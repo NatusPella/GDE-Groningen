@@ -189,9 +189,9 @@ Alle cijfers komen uit `node scripts/stats/schaal.mjs`; elk cijfer heeft zijn br
 | Bijbaanmodules (bestanden sidejob_*.js) | 17 | modules | game/js/sidejob_*.js |  |
 | Stemopnames (game/audio/voicelines) | 3.057 | bestanden | game/audio/voicelines | bestanden, geen zinnen; alle stemmen zijn met AI gemaakt (README) |
 | Geluidsbestanden in game/audio (stemmen, muziek, radio, nieuws) | 3.148 | bestanden | game/audio |  |
-| Grootte van game/audio | 156 | MB | game/audio |  |
+| Grootte van game/audio | 180 | MB | game/audio |  |
 | Muziektracks in de radiolijst (gmusic/manifest.json) | 22 | tracks | game/audio/gmusic/manifest.json | tracks met AI gemaakt (README); meer dan 3 minuten per track is niet gemeten |
-| Muziekbestanden (gmusic + scenario + theme) | 29 | bestanden | game/audio/{gmusic,scenario,theme} |  |
+| Muziekbestanden (gmusic + scenario + theme) | 35 | bestanden | game/audio/{gmusic,scenario,theme} |  |
 | Talen van het spel (tekst) | 1 | taal | AGENTS.md (constitution punt 1) | alleen Nederlands; de stemmen praten Gronings, de ondertitels zijn Nederlands |
 | Los 3D-model als bestand (.glb) | 1 | modellen | game/models | bijna alle voertuigen, gebouwen en figuren worden met code gegenereerd (procedureel), niet gemodelleerd |
 | Doelplatformen met eigen map (desktop, web, android) | 3 | platformen | desktop, web, android | builds: macOS, Windows en (soms) Linux; webversie en Android in ontwikkeling (README) |
@@ -204,5 +204,5 @@ Alle cijfers komen uit `node scripts/stats/schaal.mjs`; elk cijfer heeft zijn br
 | game/audio/nieuws | 20 | bestanden | game/audio/nieuws |  |
 | game/audio/npc | 30 | bestanden | game/audio/npc |  |
 | game/audio/police | 12 | bestanden | game/audio/police |  |
-| game/audio/scenario | 2 | bestanden | game/audio/scenario |  |
+| game/audio/scenario | 8 | bestanden | game/audio/scenario |  |
 | game/audio/theme | 1 | bestanden | game/audio/theme |  |

@@ -6,6 +6,7 @@
 import { createBoard, key } from './minigamekit.js';
 import { driveRange, routePoint, hijackTrain } from './railway.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
+import { registerMusicProbe } from './scenariomusic.js';
 import {
   startService, stepService, abandonService, boardView, doorsOpen, MEDAL_NAMES, STOPPED_V, payFor, wantedNaDienst,
 } from './machinistrules.js';
@@ -15,6 +16,7 @@ const LINE_SPEED_K = 1.45; // railway.js DRIVE_VMAX_K
 
 let svc = null;
 let board = null;
+registerMusicProbe('trein', (w) => !!svc && !svc.finished && !!w.trainDriving); // eigen muziek tijdens de dienst (scenariomusic.js)
 
 const HELP_IDLE = `${key('G')} dienst rijden: halte voor halte, op tijd en op de streep`;
 const HELP_RUN = `Balk: remweg tegenover de afstand tot de halte (rood: nu remmen) &middot; ${key('W')} gas &middot; ${key('S')} rem &middot; ${key('Spatie')} noodrem &middot; ${key('H')} toeter &middot; ${key('Backspace')} stoppen`;
