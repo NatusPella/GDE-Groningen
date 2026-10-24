@@ -23,14 +23,14 @@ export function panelState(beat, pick, seen = {}) {
   const r = travelOptions(beat);
   const keys = { meerijden: '1', zelf: '2', overslaan: '3' };
   const options = r.options.map((o) => ({
-    key: keys[o.id], label: `${o.label} (${o.eta})`, cls: o.id === (pick || r.def) ? 'pick' : '',
+    key: keys[o.id], label: `${o.label} · ${o.kosten} · ${o.eta}`, note: o.uitleg, badge: o.id === r.def ? 'aanbevolen' : '', cls: o.id === (pick || r.def) ? 'pick' : '',
   }));
   return {
     kicker: 'REIZEN',
     text: `Naar ${beat.to}`,
     rule: `${km(beat.length)} km`,
     options,
-    help: wantsExplain(seen, TRAVEL_HELP_ID) ? 'Kies hoe je gaat' : '',
+    help: wantsExplain(seen, TRAVEL_HELP_ID) ? 'Snel reizen kost tijd, zelf gaan niet' : '',
   };
 }
 
