@@ -4,7 +4,8 @@
 // gaat via een download-link naar de map van de speler, in de opslag staat alleen
 // een klein voorbeeld (gde-galerij-v1). Toetsen: WASD lopen, pijlen kijken,
 // Spatie/Ctrl omhoog/omlaag, Shift sneller, F filter, G raster, T weer,
-// , en . tijd, [ en ] zoom, Q en E kantelen, Z en X scherptediepte, Enter/klik foto, Esc of F8 terug.
+// , en . tijd, [ en ] zoom, C en V kantelen, H terug bij Tammo, Z en X
+// scherptediepte, Enter/klik foto, Esc of F8 terug.
 import * as F from './fotomodus.js';
 import { getRenderer } from './scene3d.js';
 import { storyDate } from './calendarday.js';
@@ -46,10 +47,11 @@ function onKey(e) {
   if (k === 'enter') shoot = true;
   else if (k === 'f') { F.cycleFilter(photo.p, e.shiftKey ? -1 : 1); say(F.FILTERS.find((x) => x.id === photo.p.filter).naam); }
   else if (k === 'g') photo.p.grid = !photo.p.grid;
+  else if (k === 'h') { F.resetFreeCam(photo.p); say('Camera weer bij Tammo'); }
   else if ((k === 't' || k === ',' || k === '.') && photo.sessie) say('Tijd en weer staan vast in Samen spelen');
   else if (k === 't') { F.cycleWeather(photo.p, 1); applyWeather(); say(`Weer: ${F.weatherLabel(photo.p)}`); }
   else stepSetting(k);
-  if (['m', 'tab', 'p', 'v', 'c', 'e', 'q', 'r', 'o', 'n', 'u'].includes(k) || k === 'f' || k === 'g' || k === 't') e.stopImmediatePropagation();
+  if (['m', 'tab', 'p', 'v', 'c', 'e', 'q', 'r', 'o', 'n', 'u', 'h'].includes(k) || k === 'f' || k === 'g' || k === 't') e.stopImmediatePropagation();
 }
 function stepSetting(k) {
   const p = photo.p;
@@ -75,7 +77,7 @@ function applyWeather() {
 function startPhotoMode(world) {
   if (photo || !world || !world.player || world.player.ragdoll || world.cameraOverride || world.uiPaused) return false;
   const hour = typeof world.clock === 'number' ? world.clock : 12;
-  const p = F.createPhoto({ x: world.player.x, y: world.player.y, z: (world.player.z || 0) + 1.7 }, hour);
+  const p = F.createPhoto({ x: world.player.x, y: world.player.y, z: world.player.z || 0 }, hour);
   p.hour = hour; p.active = true;
   const pl = world.player;
   p.cam.yaw = typeof pl.angle === 'number' ? Math.PI / 2 - pl.angle : 0;
@@ -89,7 +91,7 @@ function startPhotoMode(world) {
   document.body.classList.add('cine-hide-hud', 'foto-actief');
   buildOverlay();
   for (const t of ['keydown', 'keyup']) window.addEventListener(t, onKey, true);
-  say('Fotomodus');
+  say('Fotomodus · vrije camera, H terug bij Tammo');
   return true;
 }
 
@@ -155,7 +157,7 @@ const KEYBTN = (k, label) => `<span class="foto-key"><kbd>${k}</kbd> ${label}</s
 // Staat één keer in de overlay: alleen de infostrook wisselt per frame, zodat een klik op een knop niet onder de muis wegvalt.
 const BAR_HTML =
   '<div class="foto-info" aria-live="off"></div>' +
-  '<div class="foto-row foto-row-move"><span class="foto-lbl">Camera</span>' + KEYBTN('W A S D', 'Lopen') + KEYBTN('Muis slepen', 'Kijken') + KEYBTN('Pijlen', 'Kijken') + KEYBTN('Spatie', 'Omhoog') + KEYBTN('Ctrl', 'Omlaag') + KEYBTN('Shift', 'Sneller') + '</div>' +
+  '<div class="foto-row foto-row-move"><span class="foto-lbl">Vrije camera</span>' + KEYBTN('W A S D', 'Lopen') + KEYBTN('Muis slepen', 'Kijken') + KEYBTN('Pijlen', 'Kijken') + KEYBTN('Spatie', 'Omhoog') + KEYBTN('Ctrl', 'Omlaag') + KEYBTN('Shift', 'Sneller') + KEYBTN('H', 'Bij Tammo') + '</div>' +
   '<div class="foto-row"><span class="foto-lbl">Beeld</span>' + KEYBTN('F', 'Filter') + KEYBTN('T', 'Weer') + KEYBTN(', .', 'Tijd') + KEYBTN('[ ]', 'Inzoomen') + KEYBTN('C V', 'Kantelen') + KEYBTN('Z X', 'Scherpte') + KEYBTN('G', 'Raster') + '</div>' +
   '<div class="foto-acts"><button type="button" class="foto-btn foto-go" data-foto-shoot>Foto maken <kbd>Enter</kbd></button><button type="button" class="foto-btn" data-foto-stop>Terug <kbd>Esc</kbd></button></div>';
 
