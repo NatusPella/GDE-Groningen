@@ -32,6 +32,7 @@ export const HELP_TOPICS = [
   { id: 'voertuigen', title: 'Voertuigen', lines: [
     'Stap in met {E}, uit met {E}. Elk voertuig geeft de eerste keer een korte uitleg.',
     'Achterom kijken met {Q}, toeteren met {H}, handrem met {SPACE}.',
+    'Op de trekker laat {T} de hef zakken en weer omhoog; dat is de knop voor de ploeg. {E} koppelt een werktuig, {X} lost het en {G} zet de aftakas aan. In de bijbaan op het land werkt de machine vanzelf.',
   ] },
   { id: 'vastgelopen', title: 'Vastgelopen?', lines: [
     '{ESC} › Overzicht heeft "Vastgelopen? Zet me vrij" en, tijdens een missie, "Missie stoppen" (je krijgt eerst een vraag).',

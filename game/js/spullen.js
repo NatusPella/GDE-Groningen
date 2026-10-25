@@ -13,6 +13,7 @@ import { getStoryJournal } from './story.js';
 import { getSaveSet, EIERBAL_TOTAL } from './achievements.js';
 import { SECRETS_TOTAL } from './geheimen.js';
 import { getLedger, summary } from './finance.js';
+import { woordenVan, past } from './zoektekst.js';
 
 const ICON = {
   geld: '<rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/><path d="M6 9.5v5M18 9.5v5"/>',
@@ -57,12 +58,11 @@ const zoektekst = (it) => [it.title, it.sub, it.how, it.perk, (SECTIONS.find(([c
 // en het kaartje moet in het gekozen deel vallen. Puur, zodat spullen_test het
 // kan natrekken.
 export function zoekSpullen(items, query = '', deel = 'alles') {
-  const words = String(query).toLowerCase().trim().split(/\s+/).filter(Boolean);
+  const words = woordenVan(query);
   return items.filter((it) => {
     if (deel !== 'alles' && DEEL_VAN[it.cat] !== deel) return false;
     if (!words.length) return true;
-    const tekst = zoektekst(it);
-    return words.every((w) => tekst.includes(w));
+    return past(zoektekst(it), words);
   });
 }
 
