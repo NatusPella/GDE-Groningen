@@ -145,25 +145,43 @@ t('combat: een schot of slag van een gast raakt een voetganger en de misdaad is 
   // een slag met de vuisten, uit het lichaam van de gast (plek 2), op een voetganger die er nog tegen kan
   const p1 = ped({ health: 50 }); w.pedestrians.push(p1);
   const l = w.coopFigures[2];
+  // (#492) elke slag hier is een eigen reeks: buiten het venster van 0,8 s begint de melee-reeks weer bij ×1,00
+  const vers = () => { w.time += 1; };
   const r = gastAanvalUitvoeren(w, 2, l, 'fists', 0);
   assert.equal(r.fx.type, 'melee'); assert.ok(p1.health < 50, 'de klap landde: schade zoals bij de speler (12)'); assert.equal(p1.health, 50 - WEAPONS.fists.damage);
   assert.equal(w.stats.kills, 0, 'de teller van de speler blijft staan'); assert.deepEqual(misdaad, [], 'een klap die niet doodt is geen misdaad (zoals bij de speler)');
   // een dodelijke klap: een misdaad van de gast
-  const p2 = ped({ health: 5, x: 10.8 }); w.pedestrians.length = 0; w.pedestrians.push(p2);
+  vers(); const p2 = ped({ health: 5, x: 10.8 }); w.pedestrians.length = 0; w.pedestrians.push(p2);
   gastAanvalUitvoeren(w, 2, l, 'fists', 0);
   assert.equal(p2.state, 'dead'); assert.deepEqual(misdaad, [[2, 'pedKill']]); assert.equal(w.wanted, 0, 'de host wordt niet gezocht'); assert.equal(w.stats.pedKills, 0);
   // een knuppel haalt eerst uit en landt later
-  const p3 = ped({ health: 100 }); w.pedestrians.length = 0; w.pedestrians.push(p3);
+  vers(); const p3 = ped({ health: 100 }); w.pedestrians.length = 0; w.pedestrians.push(p3);
   const k = gastAanvalUitvoeren(w, 2, l, 'knuppel', 0); assert.ok(k.wacht && k.wacht.at > w.time); assert.equal(p3.health, 100);
   assert.equal(gastSlagLanding(w, 2, l, k.wacht), true); assert.equal(p3.health, 100 - WEAPONS.knuppel.damage);
   // een agent doodslaan: een eigen gezocht-niveau van +2
-  const cop = ped({ isCop: true, health: 5 }); w.pedestrians.length = 0; w.pedestrians.push(cop); misdaad.length = 0;
+  vers(); const cop = ped({ isCop: true, health: 5 }); w.pedestrians.length = 0; w.pedestrians.push(cop); misdaad.length = 0;
   gastAanvalUitvoeren(w, 2, l, 'fists', 0); assert.equal(cop.state, 'dead'); assert.equal(w.coopWanted[2], 2); assert.equal(w.wanted, 0); assert.deepEqual(misdaad, []);
   // een agent raken die blijft staan: de politie komt (copHit)
-  const cop2 = ped({ isCop: true, health: 100 }); w.pedestrians.length = 0; w.pedestrians.push(cop2);
+  vers(); const cop2 = ped({ isCop: true, health: 100 }); w.pedestrians.length = 0; w.pedestrians.push(cop2);
   gastAanvalUitvoeren(w, 2, l, 'fists', 0); assert.deepEqual(misdaad, [[2, 'copHit']]);
   assert.equal(gastAanvalUitvoeren(w, 2, l, 'waterpistool', 0), null, 'spuiten en gooien kan een gast niet'); assert.equal(gastAanvalUitvoeren(w, 2, l, 'bestaatniet', 0), null);
   B.zetBestuurHaken({ misdaad: null });
+});
+// (#492) de melee-reeks is dezelfde voor een gast: hij slaat door dezelfde meleeHit, met een eigen stand per aanvaller
+t('combat: een gast krijgt dezelfde melee-reeks (2e slag ×1,15, 3e ×1,40) met zijn eigen stand', () => {
+  const w = hostWereld({ map: null });
+  const l = w.coopFigures[2], dmg = WEAPONS.fists.damage;
+  const p = ped({ health: 400, x: 10.9, y: 10 }); w.pedestrians.push(p);
+  gastAanvalUitvoeren(w, 2, l, 'fists', 0);
+  assert.equal(p.health, 400 - dmg, 'de eerste slag is ×1,00');
+  w.time += 0.2; gastAanvalUitvoeren(w, 2, l, 'fists', 0);
+  assert.equal(p.health, 400 - dmg - dmg * 1.15, 'de tweede slag binnen het venster is ×1,15');
+  w.time += 0.2; gastAanvalUitvoeren(w, 2, l, 'fists', 0);
+  assert.equal(p.health, 400 - dmg - dmg * 1.15 - dmg * 1.4, 'de derde slag is ×1,40');
+  assert.equal(w.meleeCombos.get('2:fists').count, 3, 'de stand van de gast staat op zijn eigen plek en wapen');
+  assert.equal(w.meleeCombos.has('0:fists'), false, 'de reeks van de speler zelf is nog niet begonnen');
+  w.time += 1; gastAanvalUitvoeren(w, 2, l, 'fists', 0);
+  assert.equal(p.health, 400 - dmg * (1 + 1.15 + 1.4 + 1), 'na het venster begint de reeks weer bij ×1,00');
 });
 t('combat: de kogels van een gast vliegen vanuit zijn lichaam, dragen zijn plek en doden met de schade van het wapen', () => {
   const misdaad = [];

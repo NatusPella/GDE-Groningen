@@ -31,6 +31,38 @@ factor (`loopbaanDeel`, `:150`), de gast past zijn eigen factor toe (`loopbaanGa
 **Tests.** `loopbaan_test.mjs`, `loopbaan_balans_test.mjs`, `loopbaan_coop_test.mjs`,
 `loopbaanstart_test.mjs`.
 
+## Vracht (bijbaan)
+
+**Doel.** Een rondje vracht: achteruit onder de oplegger, koppelen, laden, naar de afnemer, lossen.
+
+**Regels.** Vier contracttypes met eigen tarief per km, laad- en lostijd en toeslag
+(`game/js/vrachtmarkt.js`); `maakAanbod(seed, km, niveau)` is deterministisch en geeft drie
+verschillende aanbiedingen. Het loon is `km × tarief + toeslag`, met dezelfde laadschade-factor
+als voorheen, en loopt via `completeRound`/`loopbaanVerdien` (nooit `w.money +=`). De laad- en
+lostijd zitten in `c.timeLeft`, dus wachten laat de rit niet falen; lossen kan alleen bij de
+afnemer. De markt is deterministisch per seed, de afstand komt uit de wereld. Host-only: een gast
+kan de baan niet starten; het bestaande gastgat loopt via #365/#371.
+
+**Bestanden.** `vrachtmarkt.js`, `sidejob_vracht.js`, `semitrailer.js`.
+
+**Tests.** `vrachtmarkt_test.mjs`, `semitrailer_test.mjs`, `sidejob_glyph_test.mjs`.
+
+## Trein (machinist)
+
+**Doel.** Een machinistendienst rijden met echte reizigers.
+
+**Regels.** `game/js/machinistrules.js` telt per halte deterministisch in- en uitstappers uit de
+perrondrukte (1-8 wachtenden) en de capaciteit (90); op de laatste halte stapt niemand meer in.
+Een kaartje is €0,70 per meegereden reiziger per halte. `stepService` boekt het kaartgeld,
+`finish` en `payFor` nemen het mee, en de uitbetaling loopt via `loopbaanVerdien('trein', …)`.
+Het bord toont het aantal reizigers en per stop de in- en uitstappers. Host-only; een gast ziet de
+trein maar kan niet als machinist instappen.
+
+**Bestanden.** `machinistrules.js`, `machinist.js`, `treincabine.js`, `traindrive.js`.
+
+**Tests.** `machinist_test.mjs`, `simdienst_test.mjs`, `dienstregeling_test.mjs`,
+`treincabine_test.mjs`, `gasttrein_test.mjs`.
+
 ## Hengelen en vissen
 
 **Doel.** Op elk water van de provincie vrij hengelen; het meer in Meerstad houdt zijn wedstrijd.
@@ -98,6 +130,20 @@ kost niets. De banen komen uit `game/vliegplekken.json`.
 
 **Tests.** `minigames_test.mjs`, `minigames3_test.mjs`, `golfbeurt_test.mjs`,
 `golfetiquette_test.mjs`, `padelrules_test.mjs`.
+
+## Gevecht
+
+**Doel.** Melee met gewicht: een reeks slagen die oploopt zolang je raakt.
+
+**Regels.** `game/js/meleecombo.js` houdt per aanvaller én per wapen een stand bij: de tweede slag
+binnen 0,8 s na een treffer doet ×1,15, de derde ×1,40 met +0,20 knock; een misser of een
+wapenwissel zet de reeks terug. `combat.js` past de factor toe in `meleeHit`, dus ook voor de gast
+via `gastAanvalUitvoeren`/`gastSlagLanding`; de camera-schok en het geluid houden de originele
+waarden. Geen bloed of gore toevoegen; PvP houdt zijn eigen cap.
+
+**Bestanden.** `meleecombo.js`, `combat.js`, `weapons.js`.
+
+**Tests.** `meleecombo_test.mjs`, `coopwapen_test.mjs`, `cooppvp_test.mjs`, `gamefeel_test.mjs`.
 
 ## Geluid en muziek
 

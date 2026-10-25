@@ -163,6 +163,92 @@ function driveService(label, pilot, maxS = 1800) {
   if (r.plan.length !== 2) fail('range does not drop halten beyond the track');
 }
 
+// --- 7. reizigers (#492): tellen en per halte laten betalen
+{
+  // vaste drukte: dezelfde halte geeft altijd dezelfde in- en uitstappers, zonder random en zonder klok
+  const vast = { perron: 6, onBoard: 10, capaciteit: 40, zaad: 12345 };
+  const a = R.reizigersBijHalte(vast), b = R.reizigersBijHalte(vast);
+  if (a.board !== b.board || a.alight !== b.alight) fail('vaste drukte geeft geen vast aantal reizigers');
+  // de perrondrukte blijft binnen zijn band
+  for (let z = 0; z < 60; z++) if (!(R.perronVoor(z) >= 1 && R.perronVoor(z) <= R.PERRON_MAX)) fail(`perrondrukte ${R.perronVoor(z)} valt buiten 1..${R.PERRON_MAX}`);
+  // nooit negatief, nooit boven de capaciteit, nooit meer uitstappers dan er in de trein zitten
+  for (const perron of [-5, 0, 3, 8, 99]) for (const onBoard of [-2, 0, 5, 40, 60]) for (const cap of [0, 6, 40, 90]) {
+    const r = R.reizigersBijHalte({ perron, onBoard, capaciteit: cap, zaad: 7 });
+    const aan = Math.max(0, Math.min(onBoard, cap));
+    if (!(r.board >= 0 && r.alight >= 0 && Number.isInteger(r.board) && Number.isInteger(r.alight))) fail(`negatieve of gebroken reizigers bij perron ${perron}, in ${onBoard}, cap ${cap}`);
+    if (r.alight > aan) fail(`perron ${perron}, in ${onBoard}, cap ${cap}: meer uitstappers dan reizigers`);
+    if (r.onBoard > cap) fail(`perron ${perron}, in ${onBoard}, cap ${cap}: ${r.onBoard} boven de capaciteit`);
+    if (r.onBoard !== aan - r.alight + r.board) fail(`perron ${perron}, in ${onBoard}, cap ${cap}: de reizigers kloppen niet`);
+  }
+  // een trein zonder plaatsen neemt niemand meer mee; een lege trein neemt wel in
+  if (R.reizigersBijHalte({ perron: 8, onBoard: 40, capaciteit: 0, zaad: 3 }).board !== 0) fail('er stapt iemand in een trein zonder plaatsen');
+  if (!(R.reizigersBijHalte({ perron: 8, onBoard: 0, zaad: 3 }).board > 0)) fail('een lege trein neemt niemand mee');
+
+  // de dienst: de reizigers per halte, de uitslag en de uitbetaling
+  const stops = [1000, 3200, 5600, 7400].map((x, i) => ({ name: 'R' + i, s: x }));
+  const drive = (perron) => {
+    const svc = R.startService({ stops, c: 0, dir: 1, vmax: 30, time: 0, range: [0, 8000] });
+    for (const p of svc.plan) p.perron = perron;
+    let c = 0, v = 0, time = 0;
+    for (let f = 0; f < 30 * 1500 && !svc.finished; f++) {
+      time += dt;
+      const st = R.currentStop(svc);
+      const ctl = R.autopilot(svc, v, st.s - c);
+      if (R.doorsOpen(svc, time)) v = Math.max(0, v - 2.2 * dt);
+      else if (ctl.brake) v = Math.max(0, v - 2.2 * dt);
+      else if (ctl.throttle) v = Math.min(svc.vmax, v + 1.6 * dt);
+      else v = Math.max(0, v - 0.3 * dt);
+      c += v * dt;
+      R.stepService(svc, dt, { c, v, time, emergency: false });
+    }
+    return svc;
+  };
+  const vol = drive(6);
+  if (!vol.finished || vol.result.made !== 4) fail(`de dienst met reizigers eindigde niet: ${vol.result && vol.result.made}/4`);
+  else {
+    let inTrein = 0, kaart = 0, boarded = 0;
+    for (let idx = 0; idx < vol.plan.length; idx++) {
+      const p = vol.plan[idx];
+      const laatste = idx === vol.plan.length - 1;
+      const want = R.reizigersBijHalte({ perron: p.perron, onBoard: inTrein, zaad: p.zaad, laatste });
+      if (p.board !== want.board || p.alight !== want.alight) fail(`${p.name}: de reizigers kloppen niet met de regel`);
+      if (laatste && p.board !== 0) fail(`${p.name}: de laatste halte laat nog reizigers instappen`);
+      inTrein = want.onBoard;
+      kaart += p.kaart; boarded += p.board;
+      if (inTrein > R.TREIN_CAPACITEIT) fail(`${p.name}: de trein is te vol (${inTrein})`);
+    }
+    if (!(boarded > 0) || vol.result.reizigers !== boarded) fail(`de uitslag telt ${vol.result.reizigers} reizigers, de halten ${boarded}`);
+    if (Math.abs(vol.result.kaart - kaart) > 0.01 || Math.abs(vol.kaart - kaart) > 0.01) fail(`het kaartgeld klopt niet: ${vol.result.kaart} tegen ${kaart}`);
+    if (vol.reizigers !== inTrein) fail(`de dienst houdt ${vol.reizigers} reizigers bij, de halten ${inTrein}`);
+    const base = Math.round(vol.result.made * (6 + vol.result.score / 8) + vol.result.medal * 20 + vol.result.kaart) + (vol.result.faultless ? R.FAULTLESS_BONUS : 0);
+    const loon = Math.round(vol.result.made * (6 + vol.result.score / 8) + vol.result.medal * 20) + (vol.result.faultless ? R.FAULTLESS_BONUS : 0);
+    if (R.payFor(vol.result) !== base) fail(`payFor met reizigers: ${R.payFor(vol.result)} tegen ${base}`);
+    if (!(vol.result.kaart < loon)) fail('de reizigers verdubbelen de dienst: het kaartgeld is te hoog');
+    // het bord toont de reizigers en de laatste halte
+    const bv = R.boardView(vol, { v: 0, time: 0 });
+    if (bv.reizigers !== vol.reizigers || bv.done !== true) fail('het bord toont de reizigers niet');
+  }
+  // 0 reizigers: alleen het haltenloon, geen kaartgeld
+  const leeg = drive(0);
+  if (!leeg.finished || leeg.result.made !== 4) fail('de lege dienst eindigde niet');
+  else {
+    if (leeg.plan.some((p) => p.board !== 0 || p.alight !== 0 || p.kaart !== 0)) fail('er stappen reizigers in bij een leeg perron');
+    if (leeg.result.reizigers !== 0 || leeg.result.kaart !== 0) fail('een dienst zonder reizigers levert kaartgeld op');
+    const base = Math.round(leeg.result.made * (6 + leeg.result.score / 8) + leeg.result.medal * 20) + (leeg.result.faultless ? R.FAULTLESS_BONUS : 0);
+    if (R.payFor(leeg.result) !== base) fail(`zonder reizigers klopt het haltenloon niet: ${R.payFor(leeg.result)} tegen ${base}`);
+  }
+  if (R.payFor({ made: 4, score: 80, medal: 2, kaart: 12.3 }) !== Math.round(4 * 16 + 40 + 12.3)) fail('payFor telt het kaartgeld niet mee');
+  if (R.payFor({ made: 4, score: 80, medal: 2, kaart: 12.3 }, true) !== 0) fail('een gestopte dienst betaalt ook kaartgeld');
+  // het bord tijdens de dienst: de laatste halte met wie er in- en uitstapte
+  const klein = R.startService({ stops: [{ name: 'S0', s: 200 }, { name: 'S1', s: 400 }], c: 0, dir: 1, vmax: 30, time: 0 });
+  klein.plan[0].perron = 6;
+  R.stepService(klein, dt, { c: 100, v: 20, time: 1, emergency: false });
+  R.stepService(klein, dt, { c: 199, v: 0, time: 2, emergency: false });
+  const bv = R.boardView(klein, { v: 0, time: 2 });
+  if (!bv.lastStop || bv.lastStop.name !== 'S0' || bv.lastStop.board !== klein.plan[0].board) fail(`het bord mist de in- en uitstappers: ${JSON.stringify(bv.lastStop)}`);
+  if (bv.reizigers !== klein.reizigers || !(bv.reizigers > 0)) fail('het bord telt de reizigers niet');
+}
+
 ok_pay();
 function ok_pay() {
   if (R.payFor({ made: 4, score: 80, medal: 2 }) !== Math.round(4 * 16 + 40)) fail('payFor value');

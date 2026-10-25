@@ -19,6 +19,36 @@ export const FAULTLESS_BONUS = 25; // een rit zonder fouten: alles gehaald, op t
 // Remweg at the service brake.
 export const brakeDist = (v, a = BRAKE) => (v * v) / (2 * a);
 
+// --- reizigers (#492): tellen en per halte laten betalen --------------------------------------
+export const TREIN_CAPACITEIT = 90;  // zit- en staanplaatsen van de stoptrein
+export const PERRON_MAX = 8;         // meer wachtenden dan dit staan er nooit op een halte
+export const TREIN_KAARTJE = 0.7;    // euro per meegereden reiziger per halte (de bus vraagt 0,80)
+
+// Een vaste verdeelsleutel per halte: geen random en geen klok, dezelfde dienst geeft hetzelfde beeld.
+function halteKans(zaad, n) {
+  let x = (Math.imul((zaad | 0) ^ 0x9e3779b1, 2654435761) + Math.imul(n + 1, 40503)) >>> 0;
+  x ^= x >>> 15; x = Math.imul(x, 2246822519) >>> 0; x ^= x >>> 13;
+  return (x >>> 0) / 4294967296;
+}
+
+// Hoe druk staat het perron van deze halte? Tussen de 1 en PERRON_MAX wachtenden, vast per halte.
+export const perronVoor = (zaad) => 1 + Math.round((PERRON_MAX - 1) * halteKans(zaad, 0));
+
+// Wie stappen er op deze halte in en uit? perron: het aantal wachtenden, onBoard: wie er nu in de
+// trein zit. Nooit negatief, nooit boven de capaciteit, nooit meer uitstappers dan er in de trein zitten.
+// Op de laatste halte van de dienst stapt niemand meer in: die mensen zouden nooit meerijden.
+export function reizigersBijHalte({ perron = 0, onBoard = 0, capaciteit = TREIN_CAPACITEIT, zaad = 0, laatste = false }) {
+  const cap = Math.max(0, Math.floor(capaciteit));
+  const aan = clamp(Math.floor(onBoard), 0, cap);
+  const wacht = Math.max(0, Math.floor(perron));
+  // een deel stapt uit; op een drukke halte willen er meer van boord (hun bestemming)
+  const alight = Math.min(aan, Math.round(aan * (0.15 + 0.45 * halteKans(zaad, 1))));
+  // instappen: wie er wacht, voor zover er nog plaats is; niet iedereen haalt de trein
+  const vrij = cap - (aan - alight);
+  const board = laatste ? 0 : Math.max(0, Math.min(vrij, Math.round(wacht * (0.55 + 0.45 * halteKans(zaad, 2)))));
+  return { alight, board, onBoard: aan - alight + board };
+}
+
 // The speed boards on the way into a halte (m/s over the distance still to the
 // platform mark); `vmax` is the line speed.
 export function speedLimit(vmax, toStop) {
@@ -57,12 +87,16 @@ export function startService({ stops, c, dir, vmax, time, limit = 6, range, stor
   const plan = ahead.map((st) => {
     at += runTime(Math.abs(st.s - prev), vmax) + (prev === c ? 0 : DOORS_S);
     prev = st.s;
-    return { ...st, due: at, dep: at + 6, score: null, errM: null, lateS: null, medal: 0, punct: 0, comfort: 0, early: false };
+    // vast zaad per fysieke halte: dezelfde halte geeft altijd dezelfde perrondrukte
+    const zaad = (Math.round(st.s) * 31) >>> 0;
+    return { ...st, zaad, perron: perronVoor(zaad), due: at, dep: at + 6, score: null, errM: null, lateS: null, medal: 0, punct: 0, comfort: 0, early: false };
   });
   return {
     plan, i: 0, vmax, dir, start: time, doorsUntil: 0, overStop: 0, ebStop: 0, ebHeld: false, moved: false,
     limit: vmax, toStop: Infinity, finished: !plan.length, result: null, abandoned: false,
     flash: '', flashBad: false, flashUntil: 0,
+    // reizigers (#492): wie er nu in de trein zit, hoeveel er meereden en wat de kaartjes opbrachten
+    reizigers: 0, totaal: 0, kaart: 0,
     // dienstregeling, storingen en veiligheid (#444): een rood sein of een overweg op een lange etappe
     storingen: storingen ? planStoringen(plan, c, dir) : [], faults: [], safetyPen: 0, deadman: 0, holdUntil: 0, opened: 0, sein: null,
   };
@@ -110,14 +144,17 @@ function finish(svc) {
     faults: svc.faults.length, faultless: !svc.abandoned && made.length === n && n > 0 && veilig === 100 && punct >= 90,
     avgErr: made.length ? made.reduce((s, p) => s + Math.abs(p.errM), 0) / made.length : 0,
     avgLate: made.length ? made.reduce((s, p) => s + Math.max(0, p.lateS), 0) / made.length : 0,
+    // de reizigers (#492): hoeveel er meereden en wat de kaartjes bij elkaar opbrachten
+    reizigers: svc.totaal || 0, kaart: svc.kaart || 0,
   };
 }
 
 // Wat een dienst oplevert (euro's): per gehaalde halte een bedrag naar score,
-// plus een bonus voor de medaille. Een gestopte dienst betaalt niets.
+// plus een bonus voor de medaille en de kaartinkomsten van de reizigers (#492).
+// Een gestopte dienst betaalt niets.
 export function payFor(result, abandoned = false) {
   if (!result || abandoned) return 0;
-  return Math.round(result.made * (6 + result.score / 8) + result.medal * 20) + (result.faultless ? FAULTLESS_BONUS : 0);
+  return Math.round(result.made * (6 + result.score / 8) + result.medal * 20 + (result.kaart || 0)) + (result.faultless ? FAULTLESS_BONUS : 0);
 }
 
 // Wie de dienst begint (G) in een trein die hij net kaapte (#424), is geen dieven meer maar de machinist: de sterren van
@@ -178,12 +215,22 @@ export function stepService(svc, dt, s) {
     const parts = scoreParts({ errM: st.errM, lateS: st.lateS, over: svc.overStop, ebrakes: svc.ebStop });
     st.score = Math.max(0, parts.place + parts.punctual + parts.comfort - parts.penalty);
     st.punct = parts.punctual; st.comfort = parts.comfort; st.pen = parts.penalty;
+    // de reizigers van deze halte (#492): wie er uitstapt en wie er meerijdt, en het kaartgeld.
+    // Op de laatste halte stapt niemand meer in: de dienst is daar klaar.
+    const laatste = svc.i >= svc.plan.length - 1;
+    const r = reizigersBijHalte({ perron: st.perron, onBoard: svc.reizigers, zaad: st.zaad, laatste });
+    st.alight = r.alight;
+    st.board = r.board;
+    st.kaart = Math.round(r.board * TREIN_KAARTJE * 100) / 100;
+    svc.reizigers = r.onBoard;
+    svc.totaal += r.board;
+    svc.kaart = Math.round((svc.kaart + st.kaart) * 100) / 100;
     // te vroeg aangekomen: de deuren blijven open tot het vertrek (hooguit 25 s), anders loopt de dienstregeling uit
     svc.opened = s.time;
     svc.doorsUntil = Math.max(s.time + DOORS_S, Math.min(s.time + 25, st.dep));
     svc.holdUntil = svc.doorsUntil;
     svc.served = st;
-    svc.flash = `${st.name}: ${st.score} punten`;
+    svc.flash = `${st.name}: ${st.score} punten, ${st.alight} uit, ${st.board} in`;
     svc.flashBad = st.score < MEDAL_AT[0];
     svc.flashUntil = s.time + 5;
     ev.push({ kind: 'stopped', stop: st });
@@ -328,10 +375,11 @@ export function boardView(svc, s) {
     t: p.score == null ? (i === svc.i && !svc.finished ? '▶' : '·') : String(p.score),
     cls: p.score == null ? (i === svc.i && !svc.finished ? 'now' : '') : p.score >= MEDAL_AT[0] ? 'ok' : 'bad',
   }));
-  if (!st) return { done: true, cells, flash: svc.flash, bad: svc.flashBad, result: svc.result };
+  if (!st) return { done: true, cells, flash: svc.flash, bad: svc.flashBad, result: svc.result, reizigers: svc.reizigers || 0, kaart: svc.kaart || 0 };
   const toStop = svc.toStop;
   const bd = brakeDist(s.v);
   const frac = toStop > 0 ? bd / toStop : (s.v > STOPPED_V ? 2 : 0);
+  const served = svc.served && svc.served.board != null ? svc.served : null;
   return {
     done: false, doors: open, cells,
     name: st.name, toStop: Math.round(toStop), kmh: kmh(s.v), limitKmh: kmh(svc.limit),
@@ -340,5 +388,8 @@ export function boardView(svc, s) {
     flash: s.time < svc.flashUntil ? svc.flash : '', bad: svc.flashBad,
     dueIn: Math.round(st.due - s.time), depIn: open && svc.served ? Math.max(0, Math.round(svc.served.dep - s.time)) : null,
     storing: svc.sein, faults: svc.faults.length, vmaxKmh: kmh(svc.vmax), stopIndex: svc.i, stopCount: svc.plan.length,
+    // de reizigers (#492): wie er nu meerijdt en wat er op de vorige halte in- en uitstapte
+    reizigers: svc.reizigers || 0, kaart: svc.kaart || 0,
+    lastStop: served ? { name: served.name, alight: served.alight, board: served.board } : null,
   };
 }
