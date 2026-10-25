@@ -29,29 +29,5 @@ if (tw) {
   ok(tw.hedgeNear(500, 500, 5).length === 0, 'hedgeNear: ver weg niets');
   ok(tw.hedgeNear(5, 5, 3).length === 0, 'een lantaarn is geen heg');
 }
-
-// Dezelfde plas twee keer gemapt (#231): het gestreamde pad laat de tweeling helemaal weg (addTile). De gepinde set houdt
-// elke rij (de arrays zijn op gid gesorteerd en moeten dicht blijven), maar de tweeling gaat niet mee in het waterraster en
-// niet in het water dat het terrein tekent (map.duplicateWater, scene3d.js): dezelfde antwoorden als het gestreamde pad.
-{
-  const globalW = { sections: [{ type: G.SECTION.META, json: { counts: { water: 2 }, meta: {} } }] };
-  const waterTiles = [
-    tile(0, 0, [{ type: G.SECTION.WATER, rows: [
-      { gid: 0, pts: sq(0, 0, 40), kind: 'meer', lv: 0, nav: 0, name: 'Groot meer' },
-      { gid: 1, pts: sq(0, 0, 36), kind: 'meer', lv: 0, nav: 0 },
-    ] }]),
-  ];
-  const w = TileWorld.fromTiles(globalW, waterTiles);
-  ok(w.water.length === 2, 'een tweeling blijft in de waterarray (de gids blijven dicht)', String(w.water.length));
-  ok(w.duplicateWater && w.duplicateWater.size === 1 && w.duplicateWater.has(w.water[1]), 'de kleinste van de twee is de tweeling');
-  ok(w.waterNear(20, 20, 1).length === 1, 'waterNear: de plas wordt één keer gevonden', String(w.waterNear(20, 20, 1).length));
-  const dry = TileWorld.fromTiles({ sections: [{ type: G.SECTION.META, json: { counts: { water: 2 }, meta: {} } }] }, [
-    tile(0, 0, [{ type: G.SECTION.WATER, rows: [
-      { gid: 0, pts: sq(0, 0, 40), kind: 'meer', lv: 0, nav: 0 },
-      { gid: 1, pts: sq(0, 0, 36), kind: 'meer', lv: 0, nav: 2 },
-    ] }]),
-  ]);
-  ok(dry.water.length === 2 && !dry.duplicateWater && dry.waterNear(20, 20, 1).length === 2, 'een ander peil of een andere vaarklasse is geen tweeling');
-}
 console.log(`${n - fails}/${n} checks passed`);
 process.exit(fails ? 1 : 0);

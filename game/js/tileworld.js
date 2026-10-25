@@ -187,14 +187,6 @@ export class TileWorld extends GameMap {
       terrain: terrainField, terrainOn: terrain,
     });
     map._res = res;
-    // The same lake mapped twice (#231): the streamed path leaves the twin out (addTile, waterdupes.js). The pinned tiles
-    // keep every row, because the arrays are indexed by gid, so the twin stays in `map.water` and only leaves the water
-    // grid and the water the terrain draws (scene3d reads `duplicateWater`): the same answer as the streamed path.
-    const twins = map.water.length > 1 ? dropWaterDuplicates(map.water) : null;
-    if (twins && twins.size) {
-      map.duplicateWater = twins;
-      for (const w of twins) if (w.bounds) map.waterGrid.remove(w, w.bounds);
-    }
     // the global meta without the places (poiLists, poiRest) stays with the map: a reader asks only the tiles of its layer
     // (facilities.js poiLayerPlaces, #314 C1) while meta keeps the whole list for the readers that are still on it
     map.poiMeta = slim;
