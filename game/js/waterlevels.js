@@ -85,6 +85,18 @@ export const DRAFT = {
   kano: 0.2, kajak: 0.2, sup: 0.15, waterfiets: 0.3, sloep: 0.6, sloepCabin: 0.7, rubberboot: 0.3, dinghy: 0.4,
   skiff: 0.2, acht: 0.3, rondvaart: 0.9, skutsje: 1.0, binnenvaart: 2.6, zeeschip: 3.6, sleper: 2.2,
 };
+// Het loopdek van een boot, m boven de waterlijn (#434): het dolboord waar een
+// speler op staat, net zo solide als een autodak (player.js). Alleen de bootjes
+// met een dicht dek; een kano, kajak, sup of roeishell heeft geen dek om op te
+// staan en een binnenvaartschip, zeeschip of sleper ligt te hoog om er vanaf de
+// kade of uit het water op te komen: die staan er niet in (null).
+export const BOAT_DECK = {
+  sloep: 0.36, sloepCabin: 0.36,  // (een sloep met een stuurhut heeft hetzelfde dek)
+  rondvaart: 0.42, rubberboot: 0.32, dinghy: 0.24, waterfiets: 0.3,
+};
+export function boatDeck(kind) {
+  return Object.prototype.hasOwnProperty.call(BOAT_DECK, kind) ? BOAT_DECK[kind] : null;
+}
 // a walker stands in water up to this deep (wades); deeper, he swims
 export const WADE_MAX = 1.2;
 // The shipping waterways of the province by name (CEMT class III and up: barges
