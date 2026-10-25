@@ -128,24 +128,51 @@ export function klasseStijl(klasse, L, seat) {
   const side = sz < 0 ? 1 : -1;
   const passZ = sz + side * Math.min(L.hw * 0.68, 0.8);
   const dtop = L.dash.y + L.dash.h; // bovenkant dashboard: hierop staan de losse onderdelen
-  const base = { wheel: {}, seatColor: null, seatTilt: 0.2, rear: undefined, extras: [] };
+  const base = { wheel: {}, seatColor: null, rearColor: null, seatTilt: 0.2, rear: undefined, extras: [] };
   switch (klasse) {
     case 'sport':
       return { ...base, wheel: { r: 0.15, tilt: 0.6 }, seatColor: 0x5a2a2a, seatTilt: 0.5, rear: null, extras: [
         { b: [0.55, 0.12, 0.2], at: [sx + 0.28, sy + 0.08, (sz + passZ) / 2], color: 0x1b1d20 },       // hoge middentunnel
         { b: [0.04, 0.04, 0.5], at: [sx - 0.62, sy + 0.48, 0], color: 0x2a2d32 },                       // rolbeugel dwars
       ] };
-    case 'taxi':
-      return { ...base, extras: [
+    case 'taxi': {
+      // Een taxi is een sedan met een ingerichte passagiersruimte (#442): het taxameter en de betaalautomaat
+      // voor de bestuurder, en achter de voorstoelen een scheidingsruit met leeslampjes in de hemel. De
+      // achterbank zelf staat op de gewone plek (carinteriorlayout rear, seating3d ACHTERBANK), alleen in
+      // donker leer in plaats van de grijze stof van een gewone auto.
+      // de scheiding blijft onder de dakhemel (L.roof.y is de onderkant daarvan)
+      const rail = L.roof.y - 0.06, onder = sy + 0.44;
+      return { ...base, seatColor: 0x24272c, rearColor: 0x24272c, extras: [
         { b: [0.12, 0.1, 0.16], at: [sx + 0.62, dtop + 0.06, sz + side * 0.34], color: 0x20262c },     // taxameter op het dashboard
-        { b: [0.02, 0.05, 0.12], at: [sx + 0.555, dtop + 0.06, sz + side * 0.34], color: 0xd9a21c },
+        { b: [0.02, 0.05, 0.12], at: [sx + 0.555, dtop + 0.06, sz + side * 0.34], color: 0xd9a21c },   // het display, naar de bestuurder
+        { b: [0.1, 0.06, 0.18], at: [sx + 0.34, sy + 0.12, sz + side * 0.55], color: 0x20262c },       // betaalautomaat op de tunnel
+        { b: [0.02, 0.05, 0.1], at: [sx + 0.29, sy + 0.15, sz + side * 0.55], color: 0x9ad0e8 },       // pinautomaat-scherm
+        { b: [0.05, 0.06, 0.2], at: [sx + 0.5, dtop + 0.04, sz - side * 0.1], color: 0x3f9a63 },       // "vrij"-bord naast de taxameter
+        ...[rail, onder].map((y) => ({ b: [0.04, 0.05, L.hw * 1.5], at: [sx - 0.42, y, 0], color: 0x2a2f36 })),
+        ...[-1, 1].map((s) => ({ b: [0.04, rail - onder, 0.04], at: [sx - 0.42, (rail + onder) / 2, s * L.hw * 0.72], color: 0x2a2f36 })),
+        { b: [0.015, 0.36, L.hw * 1.34], at: [sx - 0.42, (rail + onder) / 2 + 0.02, 0], color: 0xa8bccb }, // de ruit van de scheiding
+        ...(L.rear ? [-1, 1].map((s) => ({ b: [0.1, 0.03, 0.16], at: [L.rear.x + 0.3, L.roof.y - 0.055, s * 0.3], color: 0xf4e6c0 })) : []),
       ] };
-    case 'politie':
-      return { ...base, extras: [
+    }
+    case 'politie': {
+      // De politieauto heeft achter de voorstoelen een kooi in plaats van een dicht schot (#442): twee rails
+      // en vier spijlen, zodat je er doorheen kijkt. Achterin een harde kunststof bank, voorin de mobilofoon
+      // met de blauwe en rode toets en een stopbord op het dashboard. De kooi blijft onder de dakhemel.
+      const rail = L.roof.y - 0.06, voet = sy + 0.2;
+      return { ...base, seatColor: 0x2f3338, rearColor: 0x2f3338, extras: [
         { b: [0.22, 0.04, 0.3], at: [sx + 0.3, sy + 0.18, (sz + passZ) / 2], color: 0x1a1d20 },        // laptophouder
         { b: [0.1, 0.12, 0.14], at: [sx + 0.62, dtop + 0.07, sz + side * 0.34], color: 0x2a2f3a },       // portofoon
-        { b: [0.03, 0.62, L.hw * 1.6], at: [sx - 0.5, sy + 0.45, 0], color: 0x3a3f46 },                 // tussenschot voor de achterbank
+        ...[rail, voet].map((y) => ({ b: [0.05, 0.05, L.hw * 1.7], at: [sx - 0.5, y, 0], color: 0x3a3f46 })), // boven- en onderrail van de kooi
+        ...[-0.62, -0.2, 0.2, 0.62].map((z) => ({ b: [0.04, rail - voet, 0.04], at: [sx - 0.5, (rail + voet) / 2, z * L.hw], color: 0x3a3f46 })),
+        ...[-1, 1].map((s) => ({ b: [0.05, rail - voet, 0.05], at: [sx - 0.5, (rail + voet) / 2, s * L.hw * 0.84], color: 0x3a3f46 })),
+        { b: [0.16, 0.07, 0.2], at: [sx + 0.3, sy + 0.14, sz + side * 0.52], color: 0x20262c },         // mobilofoon in de tunnel
+        { b: [0.02, 0.015, 0.05], at: [sx + 0.3, sy + 0.18, sz + side * 0.46], color: 0x2f6bff },
+        { b: [0.02, 0.015, 0.05], at: [sx + 0.3, sy + 0.18, sz + side * 0.58], color: 0xd2422e },
+        { b: [0.05, 0.2, 0.28], at: [sx + 0.44, dtop + 0.1, sz + side * 0.62], color: 0xe8e6e0 },       // stopbord op het dashboard
+        { b: [0.02, 0.06, 0.24], at: [sx + 0.41, dtop + 0.15, sz + side * 0.62], color: 0xb0342c },
+        { b: [0.05, 0.05, 0.24], at: [sx - 0.47, sy + 0.74, -L.hw * 0.45], color: 0x1a1d20 },           // zaklamp aan de kooi
       ] };
+    }
     case 'ambulance':
       return { ...base, rear: null, extras: [
         { b: [0.06, 0.9, L.hw * 1.7], at: [sx - 0.5, sy + 0.5, 0], color: 0x9aa3ad },                  // wand naar de laadruimte
