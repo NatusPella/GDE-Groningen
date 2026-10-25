@@ -1173,9 +1173,12 @@ export function handleEvent(world, body, van = 0) {
       const w = leesWeerEvent(body); if (!w) return false;
       world.weatherState = pasWeerToe(world.weatherState, w); return true;
     }
-    case 'klok': { // de tijd van de dag van de host
+    case 'klok': { // de tijd van de dag van de host, met zijn kalenderdag (#452: evenementen)
       if (!n || n.role !== 'client') return false;
-      const k = leesKlokEvent(body); return !!k && n.klok.observe(k, n.lokaal);
+      const k = leesKlokEvent(body);
+      if (!k || !n.klok.observe(k, n.lokaal)) return false;
+      if (k.dag != null) world.coopDag = k.dag;
+      return true;
     }
     case 'hash': { // de host controleert of de gast hetzelfde ziet; bij drie afwijkingen achter elkaar vraagt de gast zijn toestand opnieuw
       if (!n || n.role !== 'client') return false;

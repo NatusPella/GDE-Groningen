@@ -281,6 +281,13 @@ t('gedeelde speelklok: de tijd van de dag van de gast volgt die van de host, ook
     const d = Math.abs(((g.gw.clock - s.hw.clock + 36) % 24) - 12);
     assert.ok(d < 0.3, 'gast binnen 0,3 uur van de host: ' + g.gw.clock + ' vs ' + s.hw.clock);
   }
+  // de kalenderdag van de groep gaat mee (#452, evenementen)
+  s.hw.calendar = { day: 17, seen: [] };
+  s.step(3);
+  for (const g of s.gs) assert.equal(g.gw.coopDag, 17, 'de gast leeft op de dag van de host');
+  s.hw.calendar.day = 18;
+  s.step(3);
+  for (const g of s.gs) assert.equal(g.gw.coopDag, 18, 'een nacht later gaat de dag mee');
 });
 t('desync: dezelfde toestand geeft geen alarm; een afwijkend wanted leidt na drie meldingen tot een hersync', () => {
   const s = sessie(1, { hostExtra: { clock: 9, wanted: 2, mission: { phase: 'active', index: 3 } } });
