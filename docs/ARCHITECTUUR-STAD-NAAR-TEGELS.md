@@ -345,6 +345,13 @@ leest hun POIS-rijen, telt de `poiRest`-plaatsen erbij (`poisections.js layerRow
 volgorde. Liggen de tegels niet allemaal in, of is er geen tegelindex (`WORLD_SRC=json`, een dev-server zonder `game/world`),
 dan blijft `map.meta` de bron. `tileworld.js` bewaart daarvoor de globale meta zonder de plaatsen als `map.poiMeta`.
 
+**Horeca en garages op de laag (25 oktober 2026, C1).** `horeca.js` (`initHoreca`) leest de cafés via
+`poiLayerPlaces(map, 'horeca')` en `garages.js` (`initGarages`) de garages en pompen via `'garages'` en `'fuel'`, met
+dezelfde terugval. `initHoreca` werkt op een kopie van de rijen: het schuift elke plaats van de gevel naar de straatkant
+(`escapeBuilding`) en zet die punten in dezelfde volgorde terug in `map.meta.horeca`, omdat `cityprops.js` (terrassen),
+`pedestrians.js` en `pedroutes.js` die lijst nog helemaal lezen. `refitHoreca` (watergaten na de start) werkt daardoor zoals
+voorheen.
+
 **Bouwen en testen.** `loadSourcesLaag()` (pack_tiles.mjs) leest `stad.json`, haalt de lagen van `fromOsm` uit de OSM-bouw
 (`stad_cache.mjs` bewaart het resultaat in de tijdelijke map, met een sleutel uit de invoer en de bouwcode), legt `mapextras.json` erover
 en geeft de `GameMap`. `scripts/lib/loadworld.mjs` is de ene laadhulp voor tests: `loadStadData()` (alleen de handlaag, snel),
