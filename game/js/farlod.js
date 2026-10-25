@@ -14,6 +14,34 @@ import { drawHub } from './multidraw3d.js';
 const TILE = 320;
 const BUDGET_MS = 2.5;
 
+// (#463) De banden van de gevel (plint, strook hooglichten, kroonlijst) als één
+// bron: de shader van de gevel leest deze getallen en scripts/farlod_test.mjs
+// rekent ermee na dat elke band binnen de muur valt, ook bij een lage schuur.
+export const FACADE = {
+  minWall: 2.4, // de laagste muur die de bouwer maakt (buildingLodStyle)
+  plinthShare: 0.18, plinthMin: 0.75, plinthMax: 2.4, // de plint: een deel van de muur, begrensd
+  crownLow: 0.55, crownHigh: 0.35, // de kroonlijst, van boven naar beneden gemeten
+  ventFrom: 0.6, ventTo: 0.7, ventMinWall: 5.5, // de hooglichten van een hoge hal
+  bandSoft: 0.15, // de zachte rand van een band, in meters
+};
+
+// Waar de banden van één muur staan, in meters boven zijn voet: `wall` is de
+// hoogte waarmee de shader rekent (minstens minWall), `plinthEnd` het einde van
+// de plint, `crownFrom`/`crownTo` de kroonlijst en `vent` de strook hooglichten
+// van een hoge hal (null als de muur daar te laag voor is).
+export function facadeBands(foot, top) {
+  const wall = Math.max(top - foot, FACADE.minWall);
+  const plinth = Math.min(Math.max(wall * FACADE.plinthShare, FACADE.plinthMin), FACADE.plinthMax);
+  return {
+    wall,
+    plinth,
+    plinthEnd: plinth + FACADE.bandSoft,
+    crownFrom: wall - FACADE.crownLow,
+    crownTo: wall - FACADE.crownHigh,
+    vent: wall > FACADE.ventMinWall ? { from: wall * FACADE.ventFrom, to: wall * FACADE.ventTo } : null,
+  };
+}
+
 const shared = {
   uLodPlayer: { value: new THREE.Vector2() },
   uLodDetailR: { value: 140 },
@@ -25,6 +53,7 @@ const shared = {
 };
 
 function buildingMaterial() {
+  const F = FACADE;
   const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.88, metalness: 0, flatShading: true });
   m.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, shared);
@@ -72,17 +101,18 @@ varying vec2 vFarWall;`)
     diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.13, 0.17, 0.22), mix(wwin, 0.18, wblur) * 0.62);
     // the facade rhythm of the mass itself (#463): a plinth at the foot, a band of high windows on a tall hall and a darker crown under
     // the roof edge. Anchored to the wall's own foot and height (lodWall), so it stands at every distance and every viewing angle: a band
-    // that falls under a pixel fades into the share it has of that wall, so nothing shimmers and no band pops in.
+    // that falls under a pixel fades into the share it has of that wall, so nothing shimmers and no band pops in. The numbers come from
+    // FACADE (one source with facadeBands, which farlod_test.mjs checks stay inside the wall).
     float yb = clamp(vFarW.y - vFarWall.x, 0.0, max(vFarWall.y - vFarWall.x, 0.01));
-    float wh = max(vFarWall.y - vFarWall.x, 2.4);
+    float wh = max(vFarWall.y - vFarWall.x, ${F.minWall.toFixed(2)});
     float soft = smoothstep(0.5, 1.5, max(fwidth(vFarW.y), 1e-4));
-    float ph = clamp(wh * 0.18, 0.75, 2.4); // the height of the plinth
-    float plinth = mix(1.0 - smoothstep(ph - 0.15, ph + 0.15, yb), ph / wh, soft);
-    float crown = mix(smoothstep(wh - 0.55, wh - 0.35, yb), min(0.5 / wh, 0.22), soft);
+    float ph = clamp(wh * ${F.plinthShare.toFixed(2)}, ${F.plinthMin.toFixed(2)}, ${F.plinthMax.toFixed(2)}); // the height of the plinth
+    float plinth = mix(1.0 - smoothstep(ph - ${F.bandSoft.toFixed(2)}, ph + ${F.bandSoft.toFixed(2)}, yb), ph / wh, soft);
+    float crown = mix(smoothstep(wh - ${F.crownLow.toFixed(2)}, wh - ${F.crownHigh.toFixed(2)}, yb), min(0.5 / wh, 0.22), soft);
     float vent = 0.0;
-    if (wh > 5.5) { // a hall: the strip of high windows a third down from the roof
-      float v0 = wh * 0.60, v1 = wh * 0.70;
-      vent = mix(smoothstep(v0, v0 + 0.15, yb) * (1.0 - smoothstep(v1 - 0.15, v1, yb)), (v1 - v0) / wh, soft);
+    if (wh > ${F.ventMinWall.toFixed(1)}) { // a hall: the strip of high windows a third down from the roof
+      float v0 = wh * ${F.ventFrom.toFixed(2)}, v1 = wh * ${F.ventTo.toFixed(2)};
+      vent = mix(smoothstep(v0, v0 + ${F.bandSoft.toFixed(2)}, yb) * (1.0 - smoothstep(v1 - ${F.bandSoft.toFixed(2)}, v1, yb)), (v1 - v0) / wh, soft);
     }
     diffuseColor.rgb *= 1.0 - (0.15 + 0.11 * vFarSeed) * plinth - 0.10 * crown - 0.14 * vent;
     diffuseColor.rgb *= mix(1.0, 0.94, wblur);
