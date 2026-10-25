@@ -113,8 +113,11 @@ export function resolveWalker(x, y, radius, map, vx = 0, vy = 0, opts = null, z 
   if (map.elev && map.elev.has) {
     const w = map.terrainOn ? map.resolveWalls(x, y, z, radius) : resolveElevWalls(map.elev, x, y, z, radius);
     if (w) [x, y] = w;
-    if (z > 4 || z < -3.5) return [x, y];
   }
+  // Above the street nothing of the street applies: the flat of home.js and the room behind the door of a safehouse (#458,
+  // KAMER_FLOOR) sit above the ground floor, and the building under them is hidden from view while you are in it (a pand only
+  // blocks where it is drawn). This does not depend on the map having a height model.
+  if (z > 4 || z < -3.5) return [x, y];
   [x, y] = resolveWalkerProps(x, y, radius, vx, vy, opts, hop, z);
   [x, y] = resolveRailings(x, y, radius, map, hop);
   // moored houseboats along the quays are solid too

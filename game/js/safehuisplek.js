@@ -43,10 +43,11 @@ export function bruikbaar(map, x, y, d) {
 
 // Ligt een punt op een rijweg (een weg die geen voetpad of fietspad is)? Een huisje op de rijbaan sluit de weg af (#436: Hoogkerk).
 export const WEG_MARGE = 0.4; // m naast de rand van de rijbaan waar het huisje nog te dicht staat
+const rijweg = (r) => !!r.pts && r.cat !== 'foot' && r.cat !== 'cycle' && !r.bridge && !r.tunnel;
 export function opRijweg(map, x, y) {
   if (!map.roadsNear) return false;
   for (const r of map.roadsNear(x, y, 12)) {
-    if (!r.pts || r.cat === 'foot' || r.cat === 'cycle' || r.bridge || r.tunnel) continue;
+    if (!rijweg(r)) continue;
     const lim = (r.width || 5) / 2 + WEG_MARGE;
     for (let i = 0; i < r.pts.length - 1; i++) {
       const [ax, ay] = r.pts[i], [bx, by] = r.pts[i + 1];
@@ -58,15 +59,63 @@ export function opRijweg(map, x, y) {
   return false;
 }
 
+// Raakt het lijnstuk a-b de doos [-hx, hx] bij [-hz, hz]? (Liang-Barsky: elk wegsegment tegen de hele doos, geen steekproefpunten
+// die een smalle weg net kunnen missen.)
+function segmentRaaktDoos(ax, ay, bx, by, hx, hz) {
+  const dx = bx - ax, dy = by - ay;
+  let t0 = 0, t1 = 1;
+  for (const [p, q] of [[-dx, ax + hx], [dx, hx - ax], [-dy, ay + hz], [dy, hz - ay]]) {
+    if (Math.abs(p) < 1e-9) { if (q < 0) return false; continue; }
+    const t = q / p;
+    if (p < 0) { if (t > t1) return false; if (t > t0) t0 = t; } else { if (t < t0) return false; if (t < t1) t1 = t; }
+  }
+  return t0 <= t1;
+}
+
+// Ligt de doos van het huisje (HX diep, HZ breed, gedraaid over ang) op een rijweg? #434: een gast zag aan de rand van Hoogkerk niets
+// en botste toch; de losse steekproefpunten van huisVrij lieten een weg die net tussen twee punten door liep staan.
+export function opRijwegDoos(map, x, y, ang) {
+  if (!map.roadsNear) return false;
+  const fx = Math.cos(ang), fy = Math.sin(ang), rx = -fy, ry = fx;
+  const lokaal = (px, py) => { const dx = px - x, dy = py - y; return [dx * fx + dy * fy, dx * rx + dy * ry]; };
+  for (const r of map.roadsNear(x, y, 2 * (HX + HZ) + 12)) {
+    if (!rijweg(r)) continue;
+    const lim = (r.width || 5) / 2 + WEG_MARGE;
+    for (let i = 0; i < r.pts.length - 1; i++) {
+      const [ax, ay] = lokaal(r.pts[i][0], r.pts[i][1]), [bx, by] = lokaal(r.pts[i + 1][0], r.pts[i + 1][1]);
+      if (segmentRaaktDoos(ax, ay, bx, by, HX + lim, HZ + lim)) return true;
+    }
+  }
+  return false;
+}
+
+// De vier muren van een los huisje als [x, y, half, hoek], precies op de doos die safehuizen.js tekent (HX diep, HZ breed, voorkant
+// naar ang). De colliders komen hier vandaan, zodat het huisje alleen botst waar het getekend is (#434).
+export function huisMuren(x, y, ang) {
+  const fx = Math.cos(ang), fy = Math.sin(ang), rx = -fy, ry = fx;
+  return [
+    [x + fx * HX, y + fy * HX, HZ, ang + Math.PI / 2],
+    [x - fx * HX, y - fy * HX, HZ, ang + Math.PI / 2],
+    [x + rx * HZ, y + ry * HZ, HX, ang],
+    [x - rx * HZ, y - ry * HZ, HX, ang],
+  ];
+}
+
 // Staat een huisje met zijn midden op (x, y) en zijn voorkant naar ang goed: het midden, de vier hoeken en de plek bij de deur.
 export function huisVrij(map, x, y, ang, d) {
   const fx = Math.cos(ang), fy = Math.sin(ang), rx = -fy, ry = fx;
   const punten = [[x, y], [x + fx * HX + rx * HZ, y + fy * HX + ry * HZ], [x + fx * HX - rx * HZ, y + fy * HX - ry * HZ], [x - fx * HX + rx * HZ, y - fy * HX + ry * HZ], [x - fx * HX - rx * HZ, y - fy * HX - ry * HZ],
     [x + fx * DEUR_AFSTAND, y + fy * DEUR_AFSTAND]];
-  // ook de middens van de zijden: een huisje van 4,5 bij 5,5 m kan met alleen de hoeken op een smalle weg liggen
-  const zijden = [[x + fx * HX, y + fy * HX], [x - fx * HX, y - fy * HX], [x + rx * HZ, y + ry * HZ], [x - rx * HZ, y - ry * HZ]];
-  if ([[x, y], ...zijden, ...punten.slice(1, 5)].some(([px, py]) => opRijweg(map, px, py))) return false;
+  // het hele volume tegen de rijbaan (#434) en de plek bij de deur apart: de deur staat 3,2 m voor het midden, verder dan de gevel,
+  // en kan dus op de weg liggen terwijl het huisje zelf net vrij staat (#436, Hoogkerk)
+  if (opRijwegDoos(map, x, y, ang) || opRijweg(map, punten[5][0], punten[5][1])) return false;
   return punten.every(([px, py]) => droog(map, px, py, d) && bruikbaar(map, px, py, d));
+}
+
+// De plek van een pand van een gast (#449) in de wereld van de host: droog, niet in een gebouw (een doorgang mag) en de deur niet op
+// de rijbaan. De host zet er alleen een deur met een bord neer: staat die op de weg, dan keurt hij de plek af (#434, Hoogkerk).
+export function gastPandVrij(map, x, y, d) {
+  return droog(map, x, y, d) && !opRijweg(map, x, y) && vrijPunt(map, x, y, d);
 }
 
 // De plek bij de deur van een huisje op (x, y) met voorkant ang.
