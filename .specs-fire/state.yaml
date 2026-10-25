@@ -50,10 +50,12 @@ intents:
         completed_at: 2026-10-25T10:28:32.692Z
       - id: wi-438-rest
         title: "#438 Kluis en lasers per rol"
-        status: pending
+        status: completed
         complexity: medium
         mode: confirm
         depends_on: []
+        run_id: run-gde-groningen-006
+        completed_at: 2026-10-25T10:30:42.539Z
       - id: wi-388-laatste
         title: "#388 Laatste punt (volgorde wereld/filmpje)"
         status: pending
@@ -126,3 +128,11 @@ runs:
           mode: autopilot
       started: 2026-10-25T10:28:24.726Z
       completed: 2026-10-25T10:28:32.692Z
+    - id: run-gde-groningen-006
+      scope: single
+      work_items:
+        - id: wi-438-rest
+          intent: afmaken-open-issues
+          mode: confirm
+      started: 2026-10-25T10:30:28.396Z
+      completed: 2026-10-25T10:30:42.539Z
