@@ -17,7 +17,7 @@ import { WATER_Y } from './util.js';
 import { surfaceLiftAt } from './waterlevels.js';
 import { gladBoot, kiesEigenBoot, deiningBoot, bootBlijft } from './coopboot.js';
 import { ruimMeshOp } from './coopruim.js';
-import { syncZitters, clearZitters } from './coopzitten3d.js';
+import { syncZitters, clearZitters, zitterPlekken } from './coopzitten3d.js';
 import { gunShotFx } from './gunfx3d.js';
 import { nieuwSchot } from './coopwapen.js';
 
@@ -287,9 +287,11 @@ export function syncHostEntities(world, dt = 1 / 60) {
   for (const id of hornWas.keys()) if (!seen.has(id)) hornWas.delete(id);
   world.coopSirenUnits = sirenes; world.coopDeurenDbg = deurenOpen; world.coopSirenDbg = sirenes.length;
   syncSchoten(world, scene, klok); // de flits en kogelstreep van een schot van een andere speler (#434)
-  world.coopZittersDbg = syncZitters(world.coopZitters, zoekGastVoertuig, world); // wie meerijdt, op zijn stoel (#434)
-  if (klok - dbgT > 1) { // voor de testbank (eenmaal per seconde): wat de gast per voertuig laat zien
+  // wie meerijdt, op zijn stoel in het voertuig van de host (#434): de zitter hangt in het model, dus hij rijdt vanzelf mee
+  world.coopZittersDbg = syncZitters(world.coopZitters, zoekGastVoertuig, world);
+  if (klok - dbgT > 1) {
     dbgT = klok;
+    world.coopZittersPlek = zitterPlekken(); // plek, stoel en de plek in het voertuig zelf, voor de testbank (binnen de carrosserie)
     const o = {};
     for (const [id, m] of voertuigen) { const u = m.userData; o[id] = [u.blok ? 'blok' : u.gok ? 'gok' : 'echt', u.wheels ? +u.wheels[0].rotation.z.toFixed(2) : null, u.frontWheels ? +u.frontWheels[0].rotation.y.toFixed(2) : null, u.indLamps ? u.indLamps.filter((l) => l.visible).length : 0, u.policeLamps ? +u.policeLamps[0].material.emissiveIntensity.toFixed(1) : null, u.rotorHoek ? +u.rotorHoek.toFixed(1) : null, u.dentLijst ? u.dentLijst.length : 0]; }
     world.coopHostDbg = o;
