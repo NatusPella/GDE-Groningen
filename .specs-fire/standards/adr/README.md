@@ -38,6 +38,14 @@ Een nieuwe ADR kost tien minuten en hooguit twintig regels. Een beslissing die e
 bestaande ADR vervangt, krijgt een nieuwe ADR met "vervangen door" in de oude; je
 schrijft de oude niet om.
 
+**Nummers zijn een gedeelde voorraad.** Twee chats die tegelijk een ADR schrijven,
+pakken anders hetzelfde nummer. Daarom reserveert de coördinator een nummer in
+deze lijst voordat een andere sessie begint te schrijven:
+
+| # | Gereserveerd voor | Door |
+|---|---|---|
+| 0016 | GDE Light Sims (#492) | intent `gde-light-sims` |
+
 ## Lijst
 
 | # | Beslissing | Status |
