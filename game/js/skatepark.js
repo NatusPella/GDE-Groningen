@@ -423,7 +423,7 @@ function end(w, { quit = false, extern = false, uitslag = null } = {}) {
   unlockAchievement(w, 'skate_klaar');
   if (medal >= 3) unlockAchievement(w, 'skate_goud');
   if (c.best >= 2000) unlockAchievement(w, 'skate_combo');
-  const stats = [['Score', score.toLocaleString('nl-NL')], ['Beste keten', c.best.toLocaleString('nl-NL')], ['Gevallen', String(g.b.bails)], ['Grinds', String(g.b.grinds)]];
+  const stats = [['Score', score.toLocaleString('nl-NL')], ['Beste keten', c.best.toLocaleString('nl-NL')], ['Gevallen', String(g.b.bails)], ['Grindtrucs', String(g.b.grinds)]];
   if (medal) stats.push(['Medaille', MEDALS[medal]]);
   if (rec && rec.newBest) stats.push(['Record', 'Nieuw!']);
   showBanner({ kind: medal ? 'pass' : 'fail', title: medal >= 3 ? 'KONING VAN HET SKATEPARK' : medal ? 'MOOIE RONDE' : 'NOG EEN RONDE?', reason: medal ? `Beste keten: ${c.best.toLocaleString('nl-NL')} punten` : 'Hou je keten vast: elk nieuw kunstje telt zwaarder', reward: 0, stats });

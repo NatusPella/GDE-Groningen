@@ -67,7 +67,8 @@ export function initCountryHoreca(world) {
     const d = countryDoor(map, f.x, f.y);
     if (!d) continue;
     const h = { x: d.x, y: d.y };
-    spots.push({ x: d.x, y: d.y, name: f.own || cafeName(h), osmName: `${f.place} ${Math.round(f.x)},${Math.round(f.y)}`, place: f.place, lastUsed: -Infinity });
+    // ook buiten de stad een verzonnen naam: `f.own` is de naam uit OSM en die mag nooit in beeld (#488)
+    spots.push({ x: d.x, y: d.y, name: cafeName(h), osmName: `${f.place} ${Math.round(f.x)},${Math.round(f.y)}`, place: f.place, lastUsed: -Infinity });
   }
 }
 

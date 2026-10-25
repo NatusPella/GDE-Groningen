@@ -479,7 +479,7 @@ export function updateRace(dt, world, race, wpIndex) {
     if (race.timer >= COUNTDOWN) {
       race.phase = 'race';
       world.startLockUntil = 0;
-      world.addMessage('GO! GO! GO!', 1.5, { exact: true, key: 'race-countdown' });
+      world.addMessage('Start!', 1.5, { exact: true, key: 'race-countdown' });
     }
   }
   trackPlayer(world, race, wpIndex);

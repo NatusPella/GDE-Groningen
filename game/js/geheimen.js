@@ -142,7 +142,7 @@ function buildRoom() {
     c.strokeStyle = '#6a4a1a'; c.lineWidth = 10; c.strokeRect(10, 10, w - 20, h - 20);
     c.fillStyle = '#2a1a08'; c.textAlign = 'center'; c.textBaseline = 'middle';
     c.font = 'bold 50px Georgia, serif';
-    c.fillText('Made with', w / 2 - 70, 92);
+    c.fillText('Met liefde', w / 2 - 70, 92);
     c.fillStyle = '#c8102e'; heart(c, w / 2 + 110, 64, 58);
     c.fillStyle = '#2a1a08'; c.font = 'bold 50px Georgia, serif'; c.fillText('in Groningen', w / 2, 160);
     c.font = 'italic 19px Georgia, serif'; c.fillText('Voor iedereen die Grunn kent,', w / 2, 204); c.fillText('en wie het nog leert kennen.', w / 2, 228);
@@ -427,7 +427,7 @@ function enterRoom(w) {
   roomScene.visible = true;
   room = { t: 0, last: null };
   const first = !found('kamer');
-  if (first) discover(w, 'kamer', 'Achter een deurtje in de Martinitoren: een kamertje met een bureau, een oude computer en een plaquette. "Made with ❤ in Groningen." Op het bureau een envelop: "Bedankt voor het spelen."');
+  if (first) discover(w, 'kamer', 'Achter een deurtje in de Martinitoren: een kamertje met een bureau, een oude computer en een plaquette. "Met liefde in Groningen." Op het bureau een envelop: "Bedankt voor het spelen."');
   else showCard(w, { kind: 'tip', kicker: 'Martinitoren', title: 'Het kamertje', body: 'Nog altijd hier. Nog altijd met liefde gemaakt.', duration: 5, key: 'geheim-kamer', voice: false });
   pushAudioEvent(w, { kind: 'door_open', x: DOOR.x, y: DOOR.y, wood: true });
 }

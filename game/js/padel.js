@@ -789,7 +789,7 @@ function playerSwing(w, g) {
   const fault = q < 0.16 && Math.random() < 0.55;
   hitBall(g, me, 0, clamp(ut, -4.6, 4.6), clamp(vt, 1.2, 9.6), T, fault, q);
   g.lastQ = q;
-  if (q > 0.85 && !fault) g.flash = { text: 'Perfect!', t: 0.8, small: true };
+  if (q > 0.85 && !fault) g.flash = { text: 'Mooi!', t: 0.8, small: true };
 }
 
 function oppHit(g, o) {
