@@ -152,6 +152,30 @@ const placeN = n;
   ok(posts.length >= 2, 'a pedestrian mouth gets its posts', posts.length);
   ok(posts.every((p) => laneDist(p.x) > 2.75), 'no post of the mouth stands in the lane', posts.map((p) => laneDist(p.x).toFixed(2)).join(','));
 }
+// (#463) de audit vindt een paal op het asfalt, ook als die uit een nieuwe
+// wereldbouw komt of uit de laag die het spel zelf tekent: de palen van de
+// regels en de gemapte rijen gaan door dezelfde asfalttest
+{
+  const road = { pts: line(0, 990, 500), type: 'residential', cat: 'minor', width: 6, name: 'Helperzoom' };
+  const on = FA.carriagewayTest({ roads: [road] });
+  ok(!!on(500, 500) && !on(500, 508), 'de asfalttest kent de rijbaan en de stoep');
+  const found = FA.onRoadItems([
+    { k: 'bollard', x: 500, y: 500 }, { k: 'lamp', x: 500, y: 508 },
+    { k: 'gantry', x: 500, y: 500 }, { k: 'speedbump', x: 500, y: 500 },
+  ], on);
+  ok(found.length === 1 && found[0].k === 'bollard' && found[0].at[1] === 500, 'een paaltje op het asfalt wordt gevonden (een portaal en een drempel niet)', JSON.stringify(found));
+  const rep = FA.audit({
+    roads: [road], water: [],
+    furniture: [
+      { k: 'bollard', pts: [[500, 500]], osm: 1 }, // midden op de rijbaan
+      { k: 'bollard', pts: [[500, 508]], osm: 2 }, // op de stoep
+      { k: 'lamp', pts: [[500, 500]], osm: 3 }, // lantaarnpaal op de rijbaan
+    ],
+  });
+  ok(rep.mappedOnRoad.length === 2 && rep.mappedOnRoad.every((q) => q.at[1] === 500), 'de audit vindt de palen die een nieuwe wereldbouw op het asfalt legt', JSON.stringify(rep.mappedOnRoad));
+  ok(!rep.onRoad.length && !rep.drawnOnRoad.length, 'en de bouw zelf legt geen paal op het asfalt (de filter werkt)', JSON.stringify([...rep.onRoad, ...rep.drawnOnRoad]));
+  ok(FA.problems(rep) === 0, 'de gemapte rijen zijn geen fout in de plaatsing (het rapport noemt ze wel)', String(FA.problems(rep)));
+}
 console.log(`placement: ${n - placeN} checks on posts on the asphalt, in a facade and in the lane (#463)`);
 
 // the map
