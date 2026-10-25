@@ -401,7 +401,6 @@ t('een wereld zonder speler (#450): de gastheer draait koploos, de gasten spelen
   N.stopCoopNet(hw); step(2);
   for (const g of gs) assert.equal(g.gw.coopNet, null);
 });
-<<<<<<< HEAD
 t('het trekbericht (#459): alleen de host luistert, en zonder iemand bij een deur gaat het gewone gebruik door', () => {
   const s = sessie(1); s.step(2);
   const hw = s.hw;
