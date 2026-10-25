@@ -445,3 +445,11 @@ runs:
           mode: confirm
       started: 2026-10-25T16:39:17.025Z
       completed: 2026-10-25T16:57:14.613Z
+    - id: run-gde-light-sims-018
+      scope: single
+      work_items:
+        - id: wi-492-trein-crew
+          intent: gde-light-sims
+          mode: confirm
+      started: 2026-10-25T16:58:22.148Z
+      completed: 2026-10-25T17:18:12.532Z
