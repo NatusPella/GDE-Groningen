@@ -155,7 +155,8 @@ export class TileWorld extends GameMap {
     const info = {};
     for (const s of global.sections) if (s.type === SECTION.META) Object.assign(info, s.json);
     // the places of the meta (shops, horeca, garages, ...) are rows of their tiles (poisections.js)
-    info.meta = joinMeta(info.meta, tiles.map((t) => t.sections.filter((s) => s.type === SECTION.POIS).flatMap((s) => s.rows)));
+    const slim = info.meta;
+    info.meta = joinMeta(slim, tiles.map((t) => t.sections.filter((s) => s.type === SECTION.POIS).flatMap((s) => s.rows)));
     const arrays = {};
     for (const kind of KIND_OF.values()) arrays[kind] = new Array((info.counts && info.counts[kind]) || 0);
     const res = {};
@@ -186,6 +187,9 @@ export class TileWorld extends GameMap {
       terrain: terrainField, terrainOn: terrain,
     });
     map._res = res;
+    // the global meta without the places (poiLists, poiRest) stays with the map: a reader asks only the tiles of its layer
+    // (facilities.js poiLayerPlaces, #314 C1) while meta keeps the whole list for the readers that are still on it
+    map.poiMeta = slim;
     // what the streamed path (addTile) puts in its own grids too: the parcels (landUseAt) and the mapped hedges (hedgeNear) of the
     // pinned tiles. The city's tiles carry none today (its overlay tiles stream them), but a city of tiles to the very edge (#314, C2)
     // would lose the countryside's fences, herds and hedges at its rim without them.
