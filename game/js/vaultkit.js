@@ -12,6 +12,9 @@ const ROOF_H = {
   bike: 1.05, scooter: 1.15, hatch: 1.45, sedan: 1.45, sport: 1.25, taxi: 1.5, police: 1.5, escort: 1.5,
   wagon: 1.5, suv: 1.75, van: 2.1, cashvan: 2.2, ambulance: 2.7, foodtruck: 2.8, truck: 3.6, bus: 3.1,
   midibus: 2.9, trekkerlimo: 2.6, horse: 1.7, heli: 3.5, boat: 1.2, sloep: 1.0,
+  // (#463) de machines van het land en de trekker: een quad is laag, een
+  // maaidorser hoog, en de volgcam moet van allebei het echte dak kennen
+  tractor: 2.9, quad: 1.2, maaidorser: 3.5, laadmachine: 2.1,
 };
 
 export function vehicleHeight(v) {

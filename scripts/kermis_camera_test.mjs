@@ -184,17 +184,37 @@ const rad = (fps, secs) => {
   ok(/easeStep/.test(lees('minigamekit.js')), 'de helper staat in minigamekit.js');
 }
 
-// --- (#463) de volgcam blijft buiten de eigen auto ---
+// --- (#463) de volgcam blijft buiten de eigen auto, ook bij pauze ---
 {
-  const auto = { x: 10, y: 20, z: 0.2, angle: 0, model: { len: 4.4, wid: 1.8 } };
-  const [ix, iy, ih] = sc.camClearOfVehicle(10.2, 20.1, 1.4, auto);
-  ok(ix === 10.2 && iy === 20.1 && ih > 2.2, `een camera in de auto wijkt boven het dak uit (${ih.toFixed(2)} m)`);
-  const achter = sc.camClearOfVehicle(4, 20, 2.2, auto);
-  ok(achter[0] === 4 && achter[1] === 20 && achter[2] === 2.2, 'een camera achter de auto blijft staan');
+  const auto = { x: 10, y: 20, z: 0.2, angle: 0, model: { name: 'hatch', len: 4.4, wid: 1.8 } };
+  // (punt en uitkomst in beeldcoördinaten: x, hoogte, z - z is de kaart-y)
+  const [ix, ih, iz] = sc.camClearOfVehicle(10.2, 1.4, 20.1, auto);
+  ok(ix === 10.2 && iz === 20.1 && ih > 2.2, `een camera in de auto wijkt boven het dak uit (${ih.toFixed(2)} m)`);
+  const achter = sc.camClearOfVehicle(4, 2.2, 20, auto);
+  ok(achter[0] === 4 && achter[1] === 2.2 && achter[2] === 20, 'een camera achter de auto blijft staan');
+  // hoogte en z raken nooit verwisseld: een punt boven het dak blijft waar het is
+  const hoog = sc.camClearOfVehicle(10.2, 3.4, 20.1, auto);
+  ok(hoog[1] === 3.4 && hoog[2] === 20.1, 'een camera boven het dak zakt niet naar de kaart-y');
   // dezelfde auto een kwartslag gedraaid: het punt naast de neus valt dan in de lengte
   const gedraaid = { ...auto, angle: Math.PI / 2 };
-  ok(sc.camClearOfVehicle(10, 20 - 1.4, 1.2, gedraaid)[2] > 2.2, 'de auto wordt in zijn eigen richting gemeten');
-  ok(sc.camClearOfVehicle(10, 20 - 4, 1.2, gedraaid)[2] === 1.2, 'en een punt ruim naast de auto blijft staan');
+  ok(sc.camClearOfVehicle(10, 1.2, 20 - 1.4, gedraaid)[1] > 2.2, 'de auto wordt in zijn eigen richting gemeten');
+  ok(sc.camClearOfVehicle(10, 1.2, 20 - 4, gedraaid)[1] === 1.2, 'en een punt ruim naast de auto blijft staan');
+  // elke soort wijkt boven zijn eigen dak uit: een lage auto, een hoge bus,
+  // een bakwagen, een trekker en een maaidorser (vaultkit.vehicleHeight)
+  const VK = await import(root + 'vaultkit.js');
+  for (const model of [
+    { name: 'hatch', len: 4.2, wid: 1.8 }, { name: 'van', len: 5.2, wid: 2 }, { name: 'bus', len: 12, wid: 2.5 },
+    { name: 'truck', len: 7.5, wid: 2.4 }, { name: 'tractor', len: 4.3, wid: 2.3 }, { name: 'maaidorser', len: 7.4, wid: 3.3 },
+  ]) {
+    const v = { x: 0, y: 0, z: 0.4, angle: 0.3, model };
+    const [, h] = sc.camClearOfVehicle(0.3, 1, 0.2, v);
+    ok(h > 0.4 + VK.vehicleHeight(v), `de camera wijkt boven het dak van een ${model.name} uit (${h.toFixed(2)} m)`);
+    ok(h < 0.4 + VK.vehicleHeight(v) + 1, `en niet onnodig hoog boven een ${model.name} (${h.toFixed(2)} m)`);
+  }
+  // de aanroep in scene3d.js houdt hoogte en z uit elkaar
+  const src = fs.readFileSync(new URL('../game/js/scene3d.js', import.meta.url), 'utf8');
+  ok(/camClearOfVehicle\(desiredX, desiredY, desiredZ, veh\)/.test(src), 'de camera geeft punt, hoogte en z in dezelfde volgorde mee');
+  ok(/desiredX = q\[0\]; desiredY = q\[1\]; desiredZ = q\[2\];/.test(src), 'en zet ze ook zo terug (geen verwisseling van hoogte en z)');
 }
 
 console.log(bad ? `${bad} van ${n} mislukt` : `kermis_camera_test: ${n}/${n} ok`);
