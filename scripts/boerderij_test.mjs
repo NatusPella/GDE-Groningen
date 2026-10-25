@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import * as B from '../game/js/boerderij.js';
+import * as GM from '../game/js/gewasmarkt.js';
 import * as W from '../game/js/werkgang.js';
 import * as Live from '../game/js/boerderijlive.js';
 import * as LL from '../game/js/loopbaanlive.js';
@@ -63,7 +64,8 @@ t('de levenscyclus: braak, ploegen, zaaien, groeien, oogsten, afleveren, braak',
   assert.deepEqual(B.opties(b).map((x) => x.taak), ['afleveren', 'ploegen'], 'afleveren en alvast opnieuw ploegen');
   assert.equal(B.volgendeTaak(b), 'afleveren', 'eerst afleveren, dan pas opnieuw ploegen');
   const l = B.lever(b, 1);
-  assert.equal(l.bedrag, Math.round(o.kg * 0.22)); assert.equal(b.schuur.kg, 0);
+  assert.equal(l.bedrag, Math.round(o.kg * GM.dagprijs('aardappelen', 1)), 'de dagprijs van speldag 1');
+  assert.equal(b.schuur.kg, 0);
   assert.equal(b.totaal.oogsten, 1); assert.equal(b.totaal.leveringen, 1); assert.equal(b.totaal.omzet, l.bedrag);
 });
 
@@ -136,6 +138,40 @@ t('lever: de kwaliteit van de rit telt, een lege schuur levert niets, het bedrag
   assert.equal(B.lever(b, NaN).bedrag, 0);
 });
 
+t('de dagprijs: leveren gaat tegen de prijs van de speldag uit b.uren, en de basis blijft de terugval', () => {
+  const b = B.nieuweBoerderij();
+  b.schuur = { gewas: 'bieten', kg: 10000, kwaliteit: 1 };
+  const dag0 = B.lever(b, 1);
+  assert.equal(dag0.dag, 0); assert.equal(dag0.prijs, B.GEWASSEN.bieten.prijsKg); assert.equal(dag0.bedrag, 1000);
+  b.uren = 4 * 24 + 5;                                                    // speldag 4, ook al is het pas vijf uur
+  b.schuur = { gewas: 'bieten', kg: 10000, kwaliteit: 1 };
+  const dag4 = B.lever(b, 1);
+  assert.equal(dag4.dag, 4); assert.equal(dag4.prijs, GM.dagprijs('bieten', 4));
+  assert.notEqual(dag4.prijs, B.GEWASSEN.bieten.prijsKg, 'de dagprijs wijkt af van de basis');
+  assert.equal(dag4.bedrag, Math.round(10000 * GM.dagprijs('bieten', 4)));
+  // een onbekend gewas of een kapotte vracht levert niets op, ook niet met een dagprijs
+  assert.deepEqual(B.leverVracht(b, { gewas: 'tarwe', kg: 100, kwaliteit: 1 }, 1), { bedrag: 0, kg: 0, gewas: null });
+  assert.deepEqual(B.leverVracht(b, { gewas: 'bieten', kg: 0, kwaliteit: 1 }, 1), { bedrag: 0, kg: 0, gewas: null });
+});
+
+t('de markt in de samenvatting: de dag van de boerderij en per gewas de prijs en de trend', () => {
+  const b = B.nieuweBoerderij();
+  const s0 = B.samenvatting(b);
+  assert.equal(s0.dag, 0);
+  for (const id of B.GEWAS_IDS) { assert.equal(s0.prijzen[id].prijs, B.GEWASSEN[id].prijsKg); assert.equal(s0.prijzen[id].trend, 'gelijk'); }
+  b.uren = 24 * 3;
+  const s3 = B.samenvatting(b);
+  assert.equal(s3.dag, 3);
+  for (const id of B.GEWAS_IDS) {
+    const m = GM.markt(id, 3);
+    assert.equal(s3.prijzen[id].prijs, m.prijs); assert.equal(s3.prijzen[id].trend, m.trend);
+    assert.ok(['op', 'neer', 'gelijk'].includes(m.trend));
+  }
+  // per speler: twee boerderijen op dezelfde dag hebben dezelfde prijs, ook met andere uren erin
+  const ander = B.nieuweBoerderij(); ander.uren = 24 * 3 + 11;
+  assert.deepEqual(B.samenvatting(ander).prijzen, s3.prijzen);
+});
+
 t('de economie: een volle ronde van een perceel levert meer op dan ze kost, en de winst blijft in de buurt van een bijbaan', () => {
   for (const gewas of B.GEWAS_IDS.filter((g) => B.GEWASSEN[g].soort === 'akker')) {
     const b = B.nieuweBoerderij();
@@ -167,6 +203,8 @@ t('normaliseer: leeg, oud en kapot geven een geldige boerderij; onzin gaat weg; 
   const goed = B.normaliseer({ v: 1, uren: 50, perceel: { x: 1, y: 2, a: 0.5 }, keuze: 'bieten', veld: { fase: 'gezaaid', gewas: 'bieten', gezaaidOp: 10, bodem: 0.9, zaai: 0.8, mest: 0.5 }, schuur: { gewas: 'bieten', kg: 300, kwaliteit: 0.8 } });
   assert.deepEqual(B.normaliseer(JSON.parse(JSON.stringify(goed))), goed);
   assert.equal(B.fase(goed), 'groeit', '40 uur van 48');
+  assert.ok(!('markt' in goed) && !('prijzen' in goed), 'de markt wordt niet in de boerderij bewaard');
+  assert.ok(!('markt' in B.normaliseer({ v: 1, markt: { dag: 9, prijzen: {} } })), 'een oud of vreemd marktveld gaat weg');
 });
 
 t('een gezaaid veld zonder gewas of zaaitijd wordt braak (een beschadigde opslag zet geen rijp gewas neer)', () => {

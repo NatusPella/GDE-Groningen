@@ -52,19 +52,22 @@ groei (max 1,8)` (`:123`), uitbetaald via `loopbaanVerdien` met `deel: false`
 **Doel.** Eén akker bij Hoogkerk in vaste stappen: ploegen, zaaien, bemesten, groeien, oogsten,
 afleveren.
 
-**Regels.** Vier gewassen met eigen zaaigoed, groeitijd, opbrengst en prijs per kg
-(`game/js/boerderij.js:18`); een speldag is 24 minuten (`game/js/daynight.js:12`). Groei telt in
+**Regels.** Vier gewassen met eigen zaaigoed, groeitijd, opbrengst en een basisprijs per kg
+(`game/js/boerderij.js:21`); de verkoopprijs per gewas is een dagprijs uit `game/js/gewasmarkt.js`
+(binnen twintig procent van de basis, dag nul is de basis, per speler uit zijn eigen `b.uren`), en
+`leverVracht` verkoopt daartegen. Een speldag is 24 minuten (`game/js/daynight.js:12`). Groei telt in
 speluren uit `world.clock` (`game/js/boerderijlive.js:72`). Machines huur je per keer of koop je
-(`:31`); een ronde levert ongeveer €300 tot €350 winst op, en de verkoop loopt via
+(`:34`); een ronde levert ongeveer €300 tot €350 winst op, en de verkoop loopt via
 `loopbaanVerdien`. Opslag `gde-boerderij-v1` (`storagekeys.js:81`). Samen spelen: een gast werkt op
 zijn eigen akker als lokale minigame (`game/js/boerderijgast.js:1`).
 
 **Bestanden.** `boerderij.js`, `boerderijlive.js`, `boerderijui.js`, `boerderijwereld.js`,
 `boerderijgast.js`, `percelen.js`, `machines.js`, `werktuigen.js`, `werktuigen3d.js`,
-`sidejob_boerderij.js`.
+`sidejob_boerderij.js`, `gewasmarkt.js`.
 
-**Tests.** `boerderij_test.mjs`, `percelen_test.mjs`, `machines_test.mjs`, `werktuigen_test.mjs`,
-`boerderijwereld_test.mjs`, `boerderijgast_test.mjs`, `boerderijui_machines_test.mjs`.
+**Tests.** `boerderij_test.mjs`, `gewasmarkt_test.mjs`, `percelen_test.mjs`, `machines_test.mjs`,
+`werktuigen_test.mjs`, `boerderijwereld_test.mjs`, `boerderijgast_test.mjs`,
+`boerderijui_machines_test.mjs`.
 
 ## Vliegschool
 

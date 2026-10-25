@@ -100,6 +100,9 @@ t('Gewas noemt graan en gras met hun soort', () => {
   klik({ bd: 'gewas' });
   assert.match(el.innerHTML, /Graan/); assert.match(el.innerHTML, /Graanzolder Noorderveld/); assert.match(el.innerHTML, /alleen op weiland/);
   assert.match(el.innerHTML, /Op een weiland teel je gras/);
+  // de dagmarkt (#492): prijs per kilo met twee decimalen en de trend van vandaag
+  assert.match(el.innerHTML, /€\d+,\d{2} per kg vandaag/);
+  assert.match(el.innerHTML, /prijs (stijgt|daalt|gelijk)/);
   void PC;
 });
 
