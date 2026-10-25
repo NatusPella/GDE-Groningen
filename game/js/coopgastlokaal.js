@@ -1,6 +1,6 @@
 // Samen spelen (#291): wat een gast zelf op zijn eigen scherm doet terwijl de wereld van de host via het net binnenkomt.
 // updateGameplay (main.js) draait voor een gast de wereld niet; alleen deze interacties lopen lokaal, met zijn eigen geld
-// en spullen (winkels voor spullen voor jezelf, de muurkroket, horeca) en een paar losse activiteiten (hengelen, pannenkoeken
+// en spullen (winkels voor spullen voor jezelf, de muurkroket, horeca) en een paar losse activiteiten (hengelen, boeren, pannenkoeken
 // bakken, de beiaard; GAST_ACTIVITEITEN in coopgast.js, #429; docs/COOP-GAST.md). Wat hier niet door E wordt opgepakt, gaat als
 // "gebruik" naar de host: in- of uitstappen als bijrijder.
 import { tryShopInteract } from './shops.js';
