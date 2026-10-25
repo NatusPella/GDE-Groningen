@@ -1,7 +1,7 @@
 // Cutscene-acteuranimatie (game/js/actoranim.js): gebaren-planning, lopen,
 // zitten, kijkrichting, reacties, routines en het stage-contract.
 //   node scripts/actoranim_test.mjs
-import { ANIMS, animateActor, createStage, planGestures, pointAt, pathLength, applyPose, wrapAngle, makeRng, REACTIONS, HIP_Y, SEAT_CONTACT } from '../game/js/actoranim.js';
+import { ANIMS, animateActor, beginSceneActors, createStage, planGestures, pointAt, pathLength, applyPose, wrapAngle, makeRng, REACTIONS, HIP_Y, SEAT_CONTACT } from '../game/js/actoranim.js';
 
 let bad = 0;
 const check = (name, ok, info = '') => { if (!ok) { bad++; console.log('FAIL', name, info); } };
@@ -166,6 +166,25 @@ const wv = mkMesh();
 let up = 0;
 for (let t = 0; t < 3; t += 1 / 30) { animateActor(wv, { anim: 'wave', dt: 1 / 30 }); up = Math.max(up, wv.userData.armR.rotation.z); }
 check('wave tilt arm', up > 2, up);
+
+// (#434) elke rol één acteurstaat; een tweede kopie van een rol wordt niet getekend
+{
+  beginSceneActors();
+  const a = mkMesh();
+  for (let t = 0; t < 2; t += 1 / 30) animateActor(a, { anim: 'walk', speed: 1.4, t, dt: 1 / 30, rol: 'anita' });
+  const verder = mkMesh(), vers = mkMesh();
+  animateActor(verder, { anim: 'walk', speed: 1.4, dt: 1 / 30, rol: 'anita' }); // het model van het volgende bedrijf
+  animateActor(vers, { anim: 'walk', speed: 1.4, dt: 1 / 30 });
+  const d = Math.abs(verder.userData.legL.rotation.z - a.userData.legL.rotation.z);
+  check('zelfde rol loopt door op het nieuwe model', d > 0 && d < 0.1, `${d}`);
+  check('zonder rol begint een model opnieuw', Math.abs(vers.userData.legL.rotation.z - a.userData.legL.rotation.z) > 0.1);
+  beginSceneActors();
+  const na = mkMesh();
+  animateActor(na, { anim: 'walk', speed: 1.4, dt: 1 / 30, rol: 'anita' });
+  check('een nieuwe scène begint met een schone staat', Math.abs(na.userData.legL.rotation.z - vers.userData.legL.rotation.z) < 1e-9);
+  const kopie = mkMesh(); kopie.visible = true;
+  check('een dubbele kopie wordt niet getekend of geposeerd', animateActor(kopie, { anim: 'talk', verberg: true, dt: 1 / 30 }) === true && kopie.visible === false && kopie.userData.head.rotation.z === 0);
+}
 
 console.log(bad ? `${bad} MISLUKT` : 'actoranim: alles ok');
 process.exit(bad ? 1 : 0);

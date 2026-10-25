@@ -13,6 +13,7 @@ import { avatarVan, avatarLook, avatarLabel } from './coopspeler.js';
 import { ruimMeshOp } from './coopruim.js';
 import { syncBezig, hasBezigMeshes } from './coopbezig3d.js';
 import { planFigures, walkSpeed, LABEL_Y } from './coopfigures.js';
+import { cutsceneSpeelt } from './coopcut.js';
 
 const meshes = new Map(); // plek -> { mesh, char, label, prev }
 
@@ -50,7 +51,9 @@ export const hasFigureMeshes = () => meshes.size > 0 || hasZitters() || hasBezig
 export function syncFigures(world, dt) {
   const scene = getScene();
   if (!scene) return;
-  const filmpje = isCinematicActive() || !!world.cinematicHidePlayers;
+  // Een scène van de gastheer loopt soms in bedrijven: tussen twee bedrijven is er geen
+  // filmpje, maar de andere spelers staan dan nog steeds niet in die scène (#434).
+  const filmpje = isCinematicActive() || !!world.cinematicHidePlayers || cutsceneSpeelt(world);
   syncBezig(world, dt); // wie hengelt, pannenkoeken bakt of de beiaard speelt, met zijn gereedschap (#429)
   const plan = planFigures([...meshes.keys()], world.coopFigures);
   for (const slot of plan.remove) { dispose(scene, meshes.get(slot)); meshes.delete(slot); }
