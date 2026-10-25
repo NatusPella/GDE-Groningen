@@ -75,7 +75,9 @@ ok(C.PAD_MAPS.vehicle.lb === 't' && /hef/i.test(C.slotUses('lb')), 'LB in a vehi
 ok(JSON.stringify(C.normalizeKeyBinds({ b: ';', n: ';' })) === '{"n":";"}', 'a saved bind for the old B action is dropped, N keeps its own');
 
 // every situation maps every game key it needs to some button (F falls back to E via Y on foot, #495)
-const need = { foot: [' ', 'control', 'e', 'k', 'm', 'escape', 'shift', 'tab', 'o', 'i'], vehicle: [' ', 'e', 'h', 'l', 'q', 'm', 'escape', 'shift', 'i', 't', '@fire'],
+// Hengelen (i) zit op het pad alleen in een stilliggende boot; te voet is het toetsenbord/muis, want X
+// blijft daar F (uitstappen bij de attracties en de F-knop op aanraakbediening).
+const need = { foot: [' ', 'control', 'f', 'e', 'k', 'm', 'escape', 'shift', 'tab', 'o'], vehicle: [' ', 'e', 'h', 'l', 'q', 'm', 'escape', 'shift', 'i', 't', '@fire'],
   heli: [' ', 'control', 'e', 'shift'], pigeon: [' ', 'control', 'f', 'e', 'c', 'q', 'x', 'shift'], menu: ['enter', 'escape', 'q', 'e'], minigame: [' ', 'backspace', 'e'], foodtruck: ['1', '2', '3', '4', '5', '6', ' ', 'backspace'],
   pannenkoek: ['q', 'w', 'e', 'r', '1', '2', '3', 'backspace', 'escape'],
   klokken: ['a', 's', 'd', 'f', 'j', 'k', 'l', ';', ' ', 'backspace', 'q', 'e', 'escape'], train: ['t', 'backspace', 'e', 'escape'] };
@@ -92,7 +94,7 @@ ok(C.PAD_MAPS.vehicle.lb === 't' && C.PAD_MAPS.train.down === 't', 'T is the tre
 ok(JSON.stringify(C.normalizeKeyBinds({ t: 'j', m: 'g' })) === '{"m":"g"}', 'a saved bind for the old T phone key is dropped, others stay');
 ok(C.padSlotFor('ESC', 'foot') === 'start' && C.padSlotFor('ESC', 'vehicle') === 'start', 'Esc (the phone) is Start on the pad');
 ok(C.padSlotFor('T', 'menu') === null, 'T means nothing in the menu any more');
-ok(C.padSlotFor('I', 'foot') === 'x' && C.padSlotFor('I', 'vehicle') === 'down', 'hengelen is X on foot and D-pad down in a still boat');
+ok(C.padSlotFor('I', 'foot') === null && C.padSlotFor('I', 'vehicle') === 'down', 'hengelen zit op D-pad omlaag in een stilliggende boot, niet te voet (X blijft F: uitstappen)');
 
 // browser defaults: Ctrl+W closes the tab, so Ctrl's action starts on C
 ok(C.physicalKey({}, 'control') === 'control' && C.keyWord({}, 'control') === 'Ctrl', 'desktop keeps Ctrl');

@@ -194,10 +194,11 @@ export function glyphFaceSlot(slot, family) { return nintendoSwap(slot, family);
 // stick: what the left stick does - 'move' (analog walk, plus WASD for the
 // minigames and the helicopter: forward/back and turn), 'arrows' (the arrow
 // keys); triggers 'drive' make RT/LT the gas and the brake.
-// X hengelt aan de waterkant (#495); de tweede gebruikstoets (F) blijft via Y
-// werken, want die stuurt E en doet op het land hetzelfde.
+// X hengelt in een stilliggende boot (D-pad omlaag in PAD_MAPS.vehicle/skutsje, #495); te voet blijft X
+// de tweede gebruikstoets (F), want dat is ook "uitstappen" bij de attracties (reuzenrad) en de
+// aanraakbediening heeft er een F-knop voor (scripts/reuzenrad_invoer_test.mjs).
 const FOOT = {
-  a: ' ', b: 'control', x: 'i', y: 'e', lb: '@wheel-', rb: '@wheel+', lt: '@aim', rt: '@fire',
+  a: ' ', b: 'control', x: 'f', y: 'e', lb: '@wheel-', rb: '@wheel+', lt: '@aim', rt: '@fire',
   ls: 'shift', rs: 'tab', up: 'n', down: 'k', left: 'o', right: 'r', view: 'm', start: 'escape', stick: 'move',
 };
 // Minigames with their own button layout: world.activityGame -> PAD_MAPS situation

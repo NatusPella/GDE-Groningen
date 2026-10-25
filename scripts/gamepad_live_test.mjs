@@ -249,7 +249,7 @@ pad2.buttons[0].pressed = false; pad2.buttons[0].value = 0; frame(2);
   ok(seen.some((s) => s[0] === 'down' && s[1] === 'y') && !seen.some((s) => s[1] === 'p'), 'Samen spelen: D-pad omhoog in het voertuig is Y (het stuur)', seen);
   zet('foot'); reset();
   press('up'); frame(2); press('up', false); frame(2);
-  ok(seen.some((s) => s[0] === 'down' && s[1] === 'n'), 'Samen spelen: te voet blijft D-pad omhoog de radio', seen);
+  ok(seen.some((s) => s[0] === 'down' && s[1] === 'b'), 'Samen spelen: te voet brengt D-pad omhoog je bij de groep (#429); de radio staat dan op het toetsenbord', seen);
   // de roepjes (#367): D-pad links, omlaag en rechts te voet zijn Kom hier (7), Help! (8) en Kijk daar (9); zonder sessie zijn het de gewone toetsen
   for (const [knop, toets] of [['left', '7'], ['down', '8'], ['right', '9']]) {
     zet('foot'); reset();
