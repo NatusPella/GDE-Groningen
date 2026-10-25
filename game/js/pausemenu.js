@@ -273,7 +273,7 @@ const HINTS = {
   map: [[['Klik'], 'plek kiezen'], [['Scroll'], 'zoomen'], [['M'], 'sluiten', 'resume'], [['Esc'], BACK, 'back']],
   verhaal: [[['↑', '↓'], 'kiezen'], [['Enter'], 'kiezen of bellen'], [['Q', 'E'], 'tabblad'], [['Esc'], BACK, 'back']],
   spullen: [[['↑', '↓'], 'kiezen'], [['Enter'], 'gebruiken'], [['Esc'], BACK, 'back']],
-  garage: [[['↑', '↓'], 'kiezen'], [['Enter'], 'laten afleveren'], [['Q', 'E'], 'soort'], [['Esc'], BACK, 'back']],
+  garage: [[['↑', '↓'], 'kiezen'], [['Enter'], 'afleveren of kopen'], [['Q', 'E'], 'soort'], [['Esc'], BACK, 'back']],
   prestaties: [[['↑', '↓'], 'kiezen'], [['Enter'], 'openen'], [['Q', 'E'], 'weergave'], [['Esc'], BACK, 'back']],
   loopbaan: [[['↑', '↓'], 'kiezen'], [['Enter'], 'openen'], [['Esc'], BACK, 'back']],
   visboek: [[['↑', '↓'], 'kiezen'], [['Esc'], BACK, 'back']],
@@ -636,8 +636,13 @@ export function initPauseMenu(w) {
     if (panel && tab === 'loopbaan' && todoClick(e, world, panel, todoApi)) return;
     const gd = e.target.closest('[data-garage-deliver]');
     if (gd) return garageDeliver(gd.dataset.garageDeliver);
-    const gw = e.target.closest('[data-garage-shop]');
-    if (gw) { const r = garageNaarWinkel(world, gw.dataset.garageShop); renderGaragePanel(garageEl(), world, r.text); return; }
+    const gw = e.target.closest('[data-garage-koop]');
+    if (gw) {
+      const r = garageNaarWinkel(world, gw.dataset.garageKoop);
+      if (r.ok) world.addMessage(r.text, 3);
+      renderGaragePanel(garageEl(), world, r.text);
+      return;
+    }
     const gf = e.target.closest('[data-garage-find]');
     if (gf) return garageFind(gf.dataset.garageFind);
     const gs = e.target.closest('[data-garage-select]');

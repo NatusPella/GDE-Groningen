@@ -9,7 +9,7 @@ const { VEHICLE_STOCK, PAINTS } = await import('../game/js/shops.js');
 const { buildVehicleMesh } = await import('../game/js/models3d_vehicles.js');
 const THREE = await import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js');
 const {
-  garagePreviewSpec, previewVehicle, garageCardLook, turntableTarget, registerNameOf,
+  garagePreviewSpec, previewVehicle, garageCardLook, garageSaleShop, turntableTarget, registerNameOf,
   GARAGE_3Q_ANGLE, GARAGE_PIC_W, GARAGE_PIC_H, GARAGE_PIC_ZOOM, garagePicZoom, TURN_FPS,
 } = await import('../game/js/garagepics.js');
 const { garageCategory } = await import('../game/js/menumodels.js');
@@ -97,6 +97,19 @@ ok(garageCardLook({ owned: true, locked: false, status: 'lost' }) === 'lost', 'a
 ok(garageCardLook({ owned: false, locked: false }) === 'sale', 'te koop');
 ok(garageCardLook({ owned: false, locked: true }) === 'locked', 'op slot');
 ok(garagePreviewSpec(null) === null && garagePreviewSpec({ spec: {} }) === null, 'zonder model geen spec');
+
+// --- te koop: waar staat hij, voor de knop Kopen met een waypoint (#435) ---
+ok(garageSaleShop({ owned: false, locked: false, spec: { shop: 'auto' } }) === 'auto', 'te koop bij de autodealer');
+ok(garageSaleShop({ owned: false, locked: false, spec: { shop: 'fietsen' } }) === 'fietsen', 'te koop bij de fietsenwinkel');
+ok(garageSaleShop({ owned: true, spec: { shop: 'auto' } }) === '', 'van jou: geen winkel');
+ok(garageSaleShop({ owned: false, locked: true, spec: { shop: 'auto' } }) === '', 'op slot: geen winkel');
+ok(garageSaleShop({ owned: false, spec: { unlock: 'verhaal', shop: 'auto' } }) === '', 'vrijgespeeld: geen winkel');
+ok(garageSaleShop({ owned: false, locked: false }) === '' && garageSaleShop(null) === '', 'zonder spec geen winkel');
+for (const [key, spec] of Object.entries(VEHICLE_STOCK)) {
+  const e = entryOf(key, spec);
+  const verwacht = spec.unlock || !spec.shop ? '' : spec.shop;
+  ok(garageSaleShop(e) === verwacht, `${key}: Kopen wijst naar de winkel waar hij staat`);
+}
 
 // --- wie draait: muis, focus, aanraking, beperkte beweging ---
 ok(turntableTarget({ hover: 'a', focus: 'b', selected: 'c', touch: true }) === 'a', 'de muis wint');
