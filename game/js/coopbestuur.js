@@ -93,6 +93,11 @@ export const magBesturen = (v, slot = null) => weigerReden(v, slot) === null;
 
 function zelfdeNiveau(v, l) { return Math.abs((v.z || 0) - (l.gz || 0)) <= 2; }
 function stoot(world, slot, tekst) { if (world.coopMeld) world.coopMeld(slot, tekst); }
+// De naam van een gast voor een melding aan de gastheer (dezelfde volgorde als coopnet.js: avatar, naam, figuur).
+function gastNaam(world, slot) {
+  const p = (world.coopRoster || []).find((x) => x && x.slot === slot);
+  return (p && ((p.avatar && p.avatar.naam) || p.naam)) || 'Een medespeler';
+}
 
 // Een eigen object voor player.js: enterVehicle, driveVehicle en exitVehicle gebruiken alleen plek, hoek, hoogte en inVehicle van wie rijdt.
 function maakProxy(world, slot, l, v) {
@@ -146,6 +151,7 @@ export function bestuurInstappenIn(world, slot, v) {
 function stapIn(world, slot, l, v) {
   const proxy = maakProxy(world, slot, l, v);
   const auto = !v.isBike && !v.isScooter && !v.isBoat && !v.farm && !v.coopBezit && !v.raceCar; // een fiets, boot of wedstrijdwagen meenemen is geen misdaad, een auto van een ander wel; de machines van de boerderij van de host en een gedeeld voertuig van een medespeler zijn voor iedereen (#415, #449, #443)
+  const geparkeerd = !!(v.parked || v.parkSlot); // een auto aan de stoep: de gastheer ziet dat hij meegaat (#434)
   haken.enter(proxy, v, world);
   if (proxy.inVehicle !== v) return { gedaan: true }; // enterVehicle weigerde (er zat al iemand in)
   v.coopBestuurder = slot; v.wreckedByGast = null;
@@ -154,6 +160,7 @@ function stapIn(world, slot, l, v) {
   l.coopBestuurt = true; l.vx = 0; l.vy = 0;
   rijders(world)[slot] = { slot, v, proxy, buiten: 0 };
   stoot(world, slot, BESTUUR_TEKST.in);
+  if (geparkeerd && world.addMessage) world.addMessage(`${gastNaam(world, slot)} stapt in een geparkeerde auto.`, 4); // geen verrassing voor de gastheer
   if (auto && haken.misdaad) haken.misdaad(world, slot, 'autoDiefstal'); // gezien door een agent of een voetganger dichtbij: zijn eigen gezocht-niveau (coopgezocht.js)
   return { gedaan: true, voertuig: v };
 }

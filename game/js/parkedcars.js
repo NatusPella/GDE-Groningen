@@ -305,23 +305,42 @@ const EMPTY = new Set();
 
 const _near = [];
 
+// Samen spelen (#429, #434): ook rond elke losse groep spelers staan geparkeerde auto's. Wie het spel opende
+// simuleert ze anders alleen rond zijn eigen speler, en dan ziet of kan een gast er geen een (de gast tekent de
+// auto's van de host). Zonder losse groepen is dit precies de oude lijst: de speler, of de camera in een filmpje.
+function fociVan(world) {
+  const f = world.coopFoci;
+  if (f && f.length) return f;
+  const p = world.streamFocus || world.player;
+  return p && Number.isFinite(p.x) && Number.isFinite(p.y) ? [p] : [];
+}
+function dichtstbij(foci, x, y) {
+  let d = Infinity;
+  for (const f of foci) d = Math.min(d, Math.hypot(f.x - x, f.y - y));
+  return d;
+}
+
 // Every frame (from the collision pass): wake whatever is being touched,
 // generate a little of the slot queue, and spawn into free slots.
 export function tickParkedCars(world) {
   const st = states.get(world);
   if (!st) return;
   const p = world.player;
+  // de gastheer zelf, plus elke losse groep spelers (#429): een gast wekt de auto waar hij bij staat (#434)
+  const foci = p ? [p, ...(world.coopFoci || []).filter((f) => !f.host)] : [];
   if (st.sleeping.size) {
-    const pv = p.inVehicle;
-    if (!pv) {
-      const input = world.input;
-      const aiming = input && input.mouse && (input.mouse.down || input.mouse.rightDown) && world.weapon && world.weapon !== 'fists';
-      const r = aiming ? WAKE_AIM_R : WAKE_WALK_R;
+    const pv = p && p.inVehicle;
+    const input = world.input;
+    const aiming = input && input.mouse && (input.mouse.down || input.mouse.rightDown) && world.weapon && world.weapon !== 'fists';
+    const r = aiming ? WAKE_AIM_R : WAKE_WALK_R;
+    foci.forEach((f, i) => { // richten is van de gastheer; een gast wekt wat hij op de stoep raakt
+      if (i === 0 && pv) return; // de gastheer zit in een voertuig: hij wekt niets met de hand
+      const rr = i === 0 ? r : WAKE_WALK_R;
       _near.length = 0;
-      for (const v of sleepersNear(st, p.x, p.y, r + 3, _near)) {
-        if (Math.hypot(v.x - p.x, v.y - p.y) < r + v.halfLen) wake(world, st, v);
+      for (const v of sleepersNear(st, f.x, f.y, rr + 3, _near)) {
+        if (Math.hypot(v.x - f.x, v.y - f.y) < rr + v.halfLen) wake(world, st, v);
       }
-    }
+    });
     for (const o of world.vehicles) {
       if (o.parked || (Math.abs(o.speed) < 0.2 && !o.driftX && !o.driftY)) continue;
       const reach = o.halfLen + 3;
@@ -336,13 +355,14 @@ export function tickParkedCars(world) {
     }
   }
 
-  // woken cars nobody is touching go back to sleep
+  // woken cars nobody is touching go back to sleep (met losse groepen: ver van elke groep, ook als de gastheer rijdt)
+  const inVeh = !!(p && p.inVehicle);
   for (const v of st.active) {
     if (st.sleeping.has(v) || !v.parked || v.driver || v.damage) continue;
     const still = !v.speed && !v.driftX && !v.driftY && !v.yawVel;
     v._quietFor = still ? (v._quietFor || 0) + (world.time - (v._tickAt ?? world.time)) : 0;
     v._tickAt = world.time;
-    if (v._quietFor > SLEEP_AFTER && (p.inVehicle || Math.hypot(v.x - p.x, v.y - p.y) > WAKE_WALK_R + v.halfLen + 2)) putToSleep(world, st, v);
+    if (v._quietFor > SLEEP_AFTER && (foci.length < 2 && inVeh || dichtstbij(foci, v.x, v.y) > WAKE_WALK_R + v.halfLen + 2)) putToSleep(world, st, v);
   }
 
   if (st.gen || st.genQueue.length) {
@@ -367,19 +387,22 @@ export function tickParkedCars(world) {
 }
 
 function spawnInto(world, st) {
-  const p = world.streamFocus || world.player; // in a cutscene: where the camera looks (#157)
   if (st.active.size >= MAX_ACTIVE) return;
-  const cand = [];
-  const gx0 = Math.floor((p.x - SPAWN_R) / CELL), gx1 = Math.floor((p.x + SPAWN_R) / CELL);
-  const gy0 = Math.floor((p.y - SPAWN_R) / CELL), gy1 = Math.floor((p.y + SPAWN_R) / CELL);
-  for (let gx = gx0; gx <= gx1; gx++) {
-    for (let gy = gy0; gy <= gy1; gy++) {
-      const slots = st.cells.get(gx + ',' + gy);
-      if (!slots) continue;
-      for (const s of slots) {
-        if (s.v || s.taken || s.blocked) continue;
-        const d = Math.hypot(s.x - p.x, s.y - p.y);
-        if (d < SPAWN_R) cand.push([d, s]);
+  const foci = fociVan(world); // in a cutscene: where the camera looks (#157); samen spelen: elke losse groep (#429)
+  if (!foci.length) return;
+  const cand = [], gezien = new Set();
+  for (const p of foci) {
+    const gx0 = Math.floor((p.x - SPAWN_R) / CELL), gx1 = Math.floor((p.x + SPAWN_R) / CELL);
+    const gy0 = Math.floor((p.y - SPAWN_R) / CELL), gy1 = Math.floor((p.y + SPAWN_R) / CELL);
+    for (let gx = gx0; gx <= gx1; gx++) {
+      for (let gy = gy0; gy <= gy1; gy++) {
+        const slots = st.cells.get(gx + ',' + gy);
+        if (!slots) continue;
+        for (const s of slots) {
+          if (s.v || s.taken || s.blocked || gezien.has(s)) continue;
+          const d = dichtstbij(foci, s.x, s.y);
+          if (d < SPAWN_R) { gezien.add(s); cand.push([d, s]); }
+        }
       }
     }
   }
@@ -399,10 +422,10 @@ function spawnInto(world, st) {
 }
 
 // Every ~1.5 s from manageTrafficPopulation: retire stolen/moved/far cars and
-// queue the slot cells around the player (generated by tickParkedCars).
+// queue the slot cells around the players (generated by tickParkedCars).
 export function manageParkedCars(world) {
-  const player = world.streamFocus || world.player; // in a cutscene: where the camera looks (#157)
-  if (!world.map || !world.map.roads) return;
+  const foci = fociVan(world); // in a cutscene: where the camera looks (#157); samen spelen: elke losse groep (#429)
+  if (!world.map || !world.map.roads || !foci.length) return;
   const st = stateOf(world);
   const inWorld = new Set(world.vehicles);
 
@@ -419,28 +442,31 @@ export function manageParkedCars(world) {
       continue;
     }
     const blocked = v.health >= 100 && propBlocked(slot.x, slot.y, slot.angle, slot.model);
-    if (blocked || Math.hypot(v.x - player.x, v.y - player.y) > DESPAWN_R) {
+    if (blocked || dichtstbij(foci, v.x, v.y) > DESPAWN_R) {
       dropCar(world, st, v);
       if (blocked) slot.blocked = true;
     }
   }
 
-  const gx0 = Math.floor((player.x - SPAWN_R) / CELL), gx1 = Math.floor((player.x + SPAWN_R) / CELL);
-  const gy0 = Math.floor((player.y - SPAWN_R) / CELL), gy1 = Math.floor((player.y + SPAWN_R) / CELL);
-  const want = [];
-  for (let gx = gx0; gx <= gx1; gx++) {
-    for (let gy = gy0; gy <= gy1; gy++) {
-      const key = gx + ',' + gy;
-      if (!st.cells.has(key) && !(st.gen && st.gen.key === key)) want.push([Math.hypot((gx + 0.5) * CELL - player.x, (gy + 0.5) * CELL - player.y), key]);
+  const want = new Map(); // cel -> afstand tot de dichtstbijzijnde speler
+  for (const p of foci) {
+    const gx0 = Math.floor((p.x - SPAWN_R) / CELL), gx1 = Math.floor((p.x + SPAWN_R) / CELL);
+    const gy0 = Math.floor((p.y - SPAWN_R) / CELL), gy1 = Math.floor((p.y + SPAWN_R) / CELL);
+    for (let gx = gx0; gx <= gx1; gx++) {
+      for (let gy = gy0; gy <= gy1; gy++) {
+        const key = gx + ',' + gy;
+        if (st.cells.has(key) || (st.gen && st.gen.key === key)) continue;
+        const d = dichtstbij(foci, (gx + 0.5) * CELL, (gy + 0.5) * CELL);
+        if (!want.has(key) || d < want.get(key)) want.set(key, d);
+      }
     }
   }
-  want.sort((a, b) => a[0] - b[0]);
-  st.genQueue = want.map((w) => w[1]);
+  st.genQueue = [...want.entries()].sort((a, b) => a[1] - b[1]).map(([key]) => key);
   if (st.cells.size > CACHE_CELLS) {
     for (const [key, slots] of st.cells) {
       if (slots.some((s) => s.v)) continue;
       const [gx, gy] = key.split(',').map(Number);
-      if (Math.hypot((gx + 0.5) * CELL - player.x, (gy + 0.5) * CELL - player.y) > DESPAWN_R * 2) st.cells.delete(key);
+      if (dichtstbij(foci, (gx + 0.5) * CELL, (gy + 0.5) * CELL) > DESPAWN_R * 2) st.cells.delete(key);
     }
   }
   st.dirty = true;
