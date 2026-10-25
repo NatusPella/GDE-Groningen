@@ -45,7 +45,7 @@ import { renderOverview, renderTodo, renderTodoStory, todoClick, todoFocus, todo
 import { isPlayAheadOpen } from './todo.js';
 import { renderVerhaal, verhaalClick, verhaalSummary, disposeVerhaalViewer, selectVerhaalCharacter } from './verhaalui.js';
 import { anyFresh } from './characters.js';
-import { renderSpullen, spullenClick, spullenFocus } from './spullen.js';
+import { renderSpullen, spullenClick, spullenFocus, zetSpullenZoek, DELEN } from './spullen.js';
 import { phoneClick, phoneUnread, selectPhoneThread, characterForSender } from './phone.js';
 import { getErrorLog, errorReport, clearErrorLog, onErrorLogChange } from './errorlog.js';
 import { KEYS } from './storagekeys.js';
@@ -570,7 +570,12 @@ export function initPauseMenu(w) {
             </div><aside class="m-pane td-detail" aria-label="Details"></aside></div>
           </div></section>
           <section data-panel="map" class="pm-panel pm-map" hidden></section>
-          <section data-panel="spullen" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-spullen"><div class="m-main"><div class="m-list td-list"></div><aside class="m-pane td-detail" aria-label="Details"></aside></div></div></section>
+          <section data-panel="spullen" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-spullen">
+            <div class="pm-spulbar"><label class="m-inp pm-csearch">${icon('search')}
+              <input type="search" data-spul-search placeholder="Zoek in je spullen, bijv. fiets, kast of stempel" aria-label="Zoek in je spullen" autocomplete="off" spellcheck="false"></label>
+              <div class="pm-chips pm-spulchips" role="group" aria-label="Deel van je spullen">${DELEN.map(([id, label]) => `<button type="button" class="m-chip" data-spul-deel="${id}" aria-pressed="${id === 'alles'}">${label}</button>`).join('')}</div>
+            </div>
+            <div class="m-main"><div class="m-list td-list"></div><aside class="m-pane td-detail" aria-label="Details"></aside></div></div></section>
           <section data-panel="garage" class="pm-panel pm-col" hidden><div class="pm-inner pm-garage"></div></section>
           <section data-panel="verhaal" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-verhaal">${subtabsHtml('verhaal', 'Verhaal')}
             <div class="m-main pm-vbody"><div data-of="verhaal" data-sub="opdrachten" data-keep class="pm-vsub pm-vopd"><div class="m-main"><div class="m-list td-list"></div><aside class="m-pane td-detail" aria-label="Details"></aside></div></div><div data-of="verhaal" data-sub="personages" class="pm-vsub" hidden></div><div data-of="verhaal" data-sub="aanwijzingen" class="pm-vsub" hidden></div><div data-of="verhaal" data-sub="veroverd" class="pm-vsub pm-veroverd" hidden></div></div>
@@ -697,6 +702,18 @@ export function initPauseMenu(w) {
     });
   }
   search.addEventListener('input', () => filterControls(search.value));
+
+  // het zoekveld van Spullen (#435): dezelfde afscherming, zodat typen niet in het spel belandt
+  const spulZoek = root.querySelector('[data-spul-search]');
+  for (const type of ['keydown', 'keyup', 'keypress']) {
+    spulZoek.addEventListener(type, (e) => {
+      e.stopPropagation();
+      if (type !== 'keydown' || e.key !== 'Escape') return;
+      e.preventDefault();
+      if (spulZoek.value) { spulZoek.value = ''; zetSpullenZoek(root.querySelector('[data-panel="spullen"]'), ''); } else spulZoek.blur();
+    });
+  }
+  spulZoek.addEventListener('input', () => zetSpullenZoek(root.querySelector('[data-panel="spullen"]'), spulZoek.value));
 
   // a narrow sheet stacks the garage's list and viewer, and Te doen's details
   if (typeof ResizeObserver !== 'undefined') {
