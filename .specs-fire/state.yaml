@@ -184,11 +184,13 @@ intents:
           - wi-492-boot
       - id: wi-492-over
         title: "#492 Pauzemenu: Over met nieuws, credits en versie"
-        status: pending
+        status: completed
         complexity: low
         mode: autopilot
         depends_on:
           - wi-492-boot
+        run_id: run-gde-light-sims-003
+        completed_at: 2026-10-25T13:17:09.780Z
       - id: wi-492-hint
         title: "#492 Eenmalige hint over Samen spelen"
         status: pending
@@ -310,3 +312,11 @@ runs:
           mode: confirm
       started: 2026-10-25T13:05:15.756Z
       completed: 2026-10-25T13:11:57.555Z
+    - id: run-gde-light-sims-003
+      scope: single
+      work_items:
+        - id: wi-492-over
+          intent: gde-light-sims
+          mode: autopilot
+      started: 2026-10-25T13:16:32.303Z
+      completed: 2026-10-25T13:17:09.780Z
