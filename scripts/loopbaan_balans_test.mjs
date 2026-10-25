@@ -62,10 +62,12 @@ t('het inkomen per uur van wie alles uit een vak haalt stijgt met hooguit 30%', 
 });
 
 t('geld uit missies, winkels, vondsten en reparaties loopt niet via de loopbaan', () => {
-  const nietLopen = ['missions.js', 'shops.js', 'garages.js', 'geheimen.js', 'story.js', 'muggings.js', 'dorpsuitjes.js', 'snackketen.js', 'furniture.js', 'cashvan.js', 'regiolevenrt.js'];
+  const nietLopen = ['missions.js', 'shops.js', 'garages.js', 'geheimen.js', 'muggings.js', 'dorpsuitjes.js', 'snackketen.js', 'furniture.js', 'cashvan.js', 'regiolevenrt.js'];
   for (const f of nietLopen) assert.ok(!/loopbaan/i.test(fs.readFileSync(JS + f, 'utf8')), `${f} raakt de loopbaan`);
 });
 
+// story.js staat bewust niet in de lijst hierboven: het leidt alleen af of een stap met loopbanen klaar is (#431) en
+// betaalt niets uit. Dat het geen geld laat lopen, blijkt uit de volgende test: story.js staat niet in de haken-lijst.
 t('wat de loopbaan uitbetaalt loopt alleen via loopbaanVerdien of de loonfactor van het vak', () => {
   // elke haak die geld uitbetaalt staat hier; een nieuwe haak moet bewust worden toegevoegd (en hier verantwoord)
   const haken = ['sidejobs.js', 'machinist.js', 'padel.js', 'driftzone.js', 'kermis.js', 'carbid.js', 'postgame.js', 'kartbaan.js', 'regatta.js', 'pg_bruggenrace.js', 'stationtravel.js', 'coopnet.js', 'hengelen.js', 'vliegschool.js', 'loopbaanlive.js', 'boerderijlive.js', 'kaartjescontrole.js', 'pitchputt.js', 'discgolf.js', 'klimtoren.js', 'skatepark.js']; // discgolf.js en klimtoren.js: idem voor een online ronde of klim (#443); pitchputt.js: de prijs van een online pitch-and-putt-ronde loopt via loopbaanVerdien('golf') (#443); skatepark.js: de prijs van een online skatewedstrijd via loopbaanVerdien('buiten') (#443); kaartjescontrole.js: EUR 45 per volle perronronde, per station hooguit eens per 15 spelminuten (#437); pg_bruggenrace.js: de prijs van een gezamenlijke Elf Bruggenrace via loopbaanVerdien('boot') (#443)
