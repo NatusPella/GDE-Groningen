@@ -17,6 +17,9 @@ const REBUILD = process.argv.includes('--rebuild');
 const SYNC = !process.argv.includes('--no-sync');
 const rel = (p) => path.relative(WWW, p).split(path.sep).join('/');
 
+// versienaam en -code uit desktop/package.json vóór de build (#483)
+execFileSync(process.execPath, [path.join(HERE, 'version.mjs')], { stdio: 'inherit' });
+
 if (REBUILD || !fs.existsSync(path.join(WEB_DIST, 'index.html'))) {
   console.log('web-dist/ bouwen (web/build.mjs; de eerste keer duurt dat lang door de wereld en het geluid)');
   execFileSync(process.execPath, [path.join(ROOT, 'web', 'build.mjs')], { stdio: 'inherit' });

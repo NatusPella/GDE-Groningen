@@ -218,6 +218,17 @@ const ZWAAR = [
   // (geen watergat van het vaarnet over een gebouw, #362)
   ['gaten_gebouwen_audit', 'scripts/world/gaten_gebouwen_audit.mjs', ['--max=0'], 900, true],
   ['bridge_province_test', 'scripts/bridge_province_test.mjs', [], 900, true],
+  // De audits die tot #487 door niemand werden aangeroepen. De twee die nog niet groen zijn
+  // (clearance_audit, pad_input_audit) staan er bewust niet in: die hebben eerst een fix nodig,
+  // zie #494 en #495. Zo meet de fase wat groen hoort te zijn, zonder er schuld in te verstoppen.
+  ['markt_audit', 'scripts/markt_audit.mjs', [], 300, false],
+  ['mesh_audit', 'scripts/mesh_audit.mjs', [], 600, false],
+  ['missiongoals_audit', 'scripts/missiongoals_audit.mjs', [], 300, false],
+  ['overhang_audit', 'scripts/overhang_audit.mjs', [], 300, false],
+  ['passage_audit', 'scripts/passage_audit.mjs', [], 600, false],
+  ['swim_audit', 'scripts/swim_audit.mjs', [], 300, false],
+  ['kerk_audit', 'scripts/world/kerk_audit.mjs', [], 600, true],
+  ['hedge_tile_audit', 'scripts/world/hedge_tile_audit.mjs', [], 600, true],
 ];
 
 async function faseZwaar() {

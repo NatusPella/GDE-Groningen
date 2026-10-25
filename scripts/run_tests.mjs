@@ -1,5 +1,5 @@
-// Draait de standaardtests: syntaxcheck (modules via --input-type=module) op alle JS, voice_coverage en alle
-// scripts/*_test.mjs met gewone node. Gebruik: node scripts/run_tests.mjs
+// Draait de standaardtests: syntaxcheck (modules via --input-type=module) op alle JS, voice_coverage, undef_check,
+// text_audit en alle scripts/*_test.mjs met gewone node. Gebruik: node scripts/run_tests.mjs
 //   --quick          snelle subset (geen check van alle JS, geen trage tests)
 //   --timeout=<sec>  per test (standaard 120, bij --quick 30)
 //   --only=<tekst>   alleen tests waarvan de naam de tekst bevat
@@ -7,6 +7,12 @@
 // Tests die game/world of data/cache nodig hebben en die niet hebben, worden
 // overgeslagen met een SKIP-melding. Provincie- en zware wereldchecks
 // (province_test, ring_probe, drive_audit, ...) staan er bewust niet in.
+//
+// Verhouding tot scripts/test_all.mjs (#482): test_all is de standaard uit AGENTS.md en kent de
+// fasen licht, zwaar en electron, met rapport en trend. Deze runner is de snelle selectie die CI
+// draait; hij deelt de lijsten (EXCLUDED, SLOW, MISSING_DATA, listFiles) met test_all, zodat CI
+// nooit iets anders meet dan de lichte fase op dezelfde data. Wat hier niet in zit, is de zware
+// en de Electron-fase: die vragen de gestagede wereld en minuten, en draait de coördinator lokaal.
 import { spawnSync } from 'node:child_process';
 import { existsSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
@@ -103,6 +109,12 @@ function main() {
     note('voice_coverage.mjs --quiet', v, classify(v));
     const ic = run(process.execPath, ['scripts/import_check.mjs'], timeoutMs);
     note('import_check.mjs', ic, classify(ic));
+    // De twee statische poorten die een echte fout vingen die deze runner miste (#482):
+    // heist.js gebruikte namen die het niet importeerde en CI bleef groen.
+    const uc = run(process.execPath, ['scripts/undef_check.mjs'], timeoutMs);
+    note('undef_check.mjs', uc, classify(uc));
+    const ta = run(process.execPath, ['scripts/text_audit.mjs'], timeoutMs);
+    note('text_audit.mjs', ta, classify(ta));
   }
 
   for (const t of tests) {
