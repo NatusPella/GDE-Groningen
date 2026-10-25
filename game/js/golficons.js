@@ -3,7 +3,7 @@
 // Elk icoon heeft een eigen vorm naast zijn kleur (de kleur is nooit het enige teken).
 const C = { cream: '#f0ede4', green: '#3fc97a', dark: '#17301f', flag: '#d93f3f', sand: '#d9c487', sandDk: '#b89f5e', water: '#4aa3a8', waterDk: '#2f7f86', steel: '#cfcbbd', steelDk: '#8d8a7e' };
 
-const VORM = {
+export const GOLF_VORM = {
   // vlag in de hole: paal, rode wimpel, crème put
   vlag: `<ellipse cx="12" cy="20.5" rx="6" ry="2" fill="${C.dark}"/><polygon points="12,3 12,20 13.2,20 13.2,3" fill="${C.cream}"/><polygon points="13.2,3.5 21,6.8 13.2,10.2" fill="${C.flag}"/><polygon points="13.2,3.5 21,6.8 13.2,6.8" fill="#ec6b5a"/>`,
   // de bal: een hoekige schijf met drie vlakken
@@ -24,10 +24,10 @@ const VORM = {
   winnaar: `<polygon points="3,18 4,8 8.5,12 12,5 15.5,12 20,8 21,18" fill="${C.cream}"/><polygon points="12,5 15.5,12 20,8 21,18 12,18" fill="#d9d5c6"/><rect x="3" y="18" width="18" height="2.5" fill="${C.green}"/>`,
 };
 
-export const GOLF_ICONEN = Object.keys(VORM);
+export const GOLF_ICONEN = Object.keys(GOLF_VORM);
 
 export function golfIcon(naam, px = 18) {
-  const v = VORM[naam];
+  const v = GOLF_VORM[naam];
   if (!v) return '';
   return `<svg class="gf-ic" width="${px}" height="${px}" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${v}</svg>`;
 }

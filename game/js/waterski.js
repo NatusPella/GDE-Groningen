@@ -9,7 +9,7 @@ import { spawnFxPuff } from './fx3d.js';
 import { pushAudioEvent } from './pedgeom.js';
 import { WATER_Y } from './util.js';
 import { standActivity, recLine } from './standactivity.js';
-import { createBoard, key, bubble, clearBubbles, pick, stopPressed, easeCamera, geo, frame } from './minigamekit.js';
+import { createBoard, mgThema, key, bubble, clearBubbles, pick, stopPressed, easeCamera, geo, frame } from './minigamekit.js';
 import { SKI_LINES } from './minigamelines2.js';
 import { SKI, createSki, makeGates, stepSki, boatLat, skiMedal, finalScore, MEDAL_AT } from './skirules.js';
 
@@ -18,7 +18,7 @@ import { SKI, createSki, makeGates, stepSki, boatLat, skiMedal, finalScore, MEDA
 // out, Space pops you over the wake for a jump, in the air A and D spin and E
 // grabs the ski; swing wide round the buoys. Three falls end the run. Medals
 // and record in points. Free. Rules: skirules.js. `window.__waterski` debug.
-const ACCENT = '#27b0b8';
+const ACCENT = mgThema('waterski').accent; // één bron voor het HUD-thema: minigamekit.js (#453)
 const ORIGIN = geo(53.22442, 6.59434);
 const ROT = 0.261;
 const FR = frame(ORIGIN, ROT);
@@ -275,7 +275,7 @@ function camera(w) {
 }
 
 function ensureBoard() {
-  if (!board) board = createBoard('WATERSKIBAAN GRUNOPARK', ACCENT);
+  if (!board) board = createBoard('waterski');
   return board;
 }
 

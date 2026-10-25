@@ -3,7 +3,7 @@
 // limit, the braking distance and the timetable, Backspace ends it. The rules
 // are machinistrules.js, the physics railway.js (state 'player'), the boarding
 // and keys traindrive.js. Pays per halte plus a medal bonus (payFor).
-import { createBoard, key } from './minigamekit.js';
+import { createBoard, mgThema, key } from './minigamekit.js';
 import { driveRange, routePoint, hijackTrain } from './railway.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
 import { registerMusicProbe } from './scenariomusic.js';
@@ -15,7 +15,7 @@ import {
 import { createCabHud, cabView } from './treincabine.js';
 
 const PIEP_S = 2.4; // zo lang is het waarschuwingssignaal van de deuren (trein_deur_piep)
-const ACCENT = '#3a7bd5';
+const ACCENT = mgThema('machinist').accent; // één bron voor het HUD-thema: minigamekit.js (#453)
 const LINE_SPEED_K = 1.45; // railway.js DRIVE_VMAX_K
 
 let svc = null;
@@ -107,7 +107,7 @@ const STORING_MSG = {
 // controls are read into t.ctl. cab: de hendel (treincabine.js).
 export function updateMachinist(dt, world, t, cab) {
   const input = world.input;
-  if (!board) board = createBoard('Machinist', ACCENT);
+  if (!board) board = createBoard('machinist');
   if (!hud) hud = createCabHud();
   const vmaxV = t.cfg.vmax * LINE_SPEED_K;
   if (input.wasPressed('g')) {

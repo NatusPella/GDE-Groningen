@@ -8,7 +8,7 @@ import { showCard } from './hudcards.js';
 import { spawnFxPuff } from './fx3d.js';
 import { pushAudioEvent } from './pedgeom.js';
 import { standActivity, recLine } from './standactivity.js';
-import { createBoard, key, bubble, clearBubbles, pick, stopPressed, easeCamera, geo, frame, fmtTime, clamp } from './minigamekit.js';
+import { createBoard, mgThema, key, bubble, clearBubbles, pick, stopPressed, easeCamera, geo, frame, fmtTime, clamp } from './minigamekit.js';
 import { POOL_LINES } from './minigamelines2.js';
 import { POOL, SWIM, createSwim, stepSwim, diveMarker, swimMedal, MEDAL_AT } from './swimrules.js';
 
@@ -18,7 +18,7 @@ import { POOL, SWIM, createSwim, stepSwim, diveMarker, swimMedal, MEDAL_AT } fro
 // when the marker is in the green and flips the turns at the wall. Medals by
 // time, record in seconds (lower is better). Free. Rules: swimrules.js.
 // `window.__zwembad` debug.
-const ACCENT = '#2f9fd0';
+const ACCENT = mgThema('zwembad').accent; // één bron voor het HUD-thema: minigamekit.js (#453)
 const ORIGIN = geo(53.203403, 6.57101);
 const ROT = 0;
 const FR = frame(ORIGIN, ROT);
@@ -258,7 +258,7 @@ function camera(w) {
 }
 
 function ensureBoard() {
-  if (!board) board = createBoard('ZWEMBAD HET NATTE PAPIER', ACCENT);
+  if (!board) board = createBoard('zwembad');
   return board;
 }
 
@@ -272,7 +272,7 @@ function updateHud() {
     meter = { v: diveMarker(s.t), mark: 0.52, color: '#46b36a' };
     flash = flash || 'Spatie als de balk in het groen is';
   } else {
-    meter = { v: s.stamina, color: s.stamina < SWIM.tired ? '#ff9a3c' : '#2f9fd0' };
+    meter = { v: s.stamina, color: s.stamina < SWIM.tired ? '#ff9a3c' : ACCENT };
     if (!flash && s.stamina < SWIM.tired) flash = 'Moe! Rustig aan, ritme vasthouden';
   }
   const help = `${key('A')}${key('D')} om en om zwemmen · ${key('SPATIE')} duik en keerpunt · ${key('BACKSPACE')} stoppen`;

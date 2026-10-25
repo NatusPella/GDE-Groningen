@@ -7,7 +7,7 @@ import { showCard } from './hudcards.js';
 import { standActivity, recLine } from './standactivity.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
 import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHostTijd, wedGastTijd, wedScoreStop, wedGastVerlaat, wedGastReset, wedScoreRijen } from './coopwedstrijd.js';
-import { createBoard, key, bubble, clearBubbles, pick, stopPressed, easeCamera, geo, frame, fmtTime, clamp } from './minigamekit.js';
+import { createBoard, mgThema, key, bubble, clearBubbles, pick, stopPressed, easeCamera, geo, frame, fmtTime, clamp } from './minigamekit.js';
 import { CLIMB_LINES } from './minigamelines2.js';
 import { WALL, ARMS, createClimb, startClimb, stepClimb, nextHold, makeHolds, climbMedal, MEDAL_AT } from './climbrules.js';
 import { climbFx, pushFoley } from './sfx/minigamefoley.js';
@@ -18,7 +18,7 @@ import { climbFx, pushFoley } from './sfx/minigamefoley.js';
 // hold rests them, Space chalks once. A fall costs four seconds and a try,
 // three falls end the climb. Medals by time, record in seconds (lower is
 // better). Free. Rules: climbrules.js. `window.__klimtoren` debug.
-const ACCENT = '#f08a30';
+const ACCENT = mgThema('klimtoren').accent; // één bron voor het HUD-thema: minigamekit.js (#453)
 const ORIGIN = geo(53.236337, 6.537852);
 const ROT = 0;
 const FR = frame(ORIGIN, ROT);
@@ -224,7 +224,7 @@ function camera(w) {
 }
 
 function ensureBoard() {
-  if (!board) board = createBoard('KLIMTOREN ZERNIKE', ACCENT);
+  if (!board) board = createBoard('klimtoren');
   return board;
 }
 
@@ -234,7 +234,7 @@ function updateHud(w) {
   const s = g.s;
   const height = s.ground ? 0 : Math.max(0, s.body + 1.15);
   const row = `${stand ? `<span>${stand}</span>` : ''}<span>Tijd <b>${fmtTime(s.time)}</b></span><span>Hoogte <b>${height.toFixed(1).replace('.', ',')} m</b></span><span>Pogingen <b>${Math.max(0, WALL.tries - s.falls)}</b></span>`;
-  const meter = { v: s.arms, color: s.arms < 0.25 ? '#ff6f61' : '#f08a30' };
+  const meter = { v: s.arms, color: s.arms < 0.25 ? '#ff6f61' : ACCENT };
   const stand = g.online ? wedScoreRijen(w).map((r) => `${r.weg ? '<s>' : ''}${r.naam} ${r.banen === 1 ? fmtTime(r.slagen / 10) : r.banen === 2 ? 'niet boven' : 'bezig'}${r.weg ? '</s>' : ''}`).join(' · ') : '';
   const flash = g.flash ? g.flash.text : g.phase === 'wacht' ? (s.phase === 'top' ? 'Boven! Wachten op de anderen' : 'Klaar: wachten op de anderen') : g.phase === 'intro' ? 'Pak de eerste grepen...' : s.ground && g.phase === 'run' ? 'Houd A of D ingedrukt om te grijpen' : '';
   const help = `${key('A')} linkerhand · ${key('D')} rechterhand · houd vast, laat één hand los om hem hoger te zetten · ${key('SPATIE')} magnesium · ${key('BACKSPACE')} stoppen`;
