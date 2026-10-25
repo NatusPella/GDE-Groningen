@@ -1,5 +1,5 @@
 import { kermisOn, kermisWheel, kermisFrame } from './kermis.js';
-import { activityBlock } from './activitykit.js';
+import { activityBlock, iconDisc } from './activitykit.js';
 import { easeStep } from './minigamekit.js';
 import { showCard } from './hudcards.js';
 import { recordStat } from './achievements.js';
@@ -121,6 +121,37 @@ function camera(w) {
   w.cameraOverride = { position: { x: pos.x, y: pos.y, z: s.h + EYE }, lookAt: { ...g.aim }, fov: 70, cut: true };
 }
 
+// --- de kaart en Activiteiten (#436) -------------------------------------------------------
+
+// Het rad op de kaart en de minimap, in dezelfde stijl als de andere attracties: een schijf in
+// de eigen kleur met een glyph. De bovenrand van het rad, de A-poten en je eigen gondel.
+function drawIcon(ctx, s) {
+  iconDisc(ctx, s, ACCENT);
+  ctx.save();
+  ctx.scale(s, s);
+  ctx.strokeStyle = '#f2ede0';
+  ctx.lineWidth = 0.8;
+  ctx.beginPath(); ctx.arc(0, -1.6, 1.7, Math.PI, Math.PI * 2); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0, -3.3); ctx.lineTo(-1.9, -0.2); ctx.moveTo(0, -3.3); ctx.lineTo(1.9, -0.2); ctx.moveTo(0, -3.3); ctx.lineTo(0, 0.2); ctx.stroke();
+  ctx.fillStyle = '#f2ede0';
+  ctx.beginPath(); ctx.moveTo(-1.6, 0.2); ctx.lineTo(1.6, 0.2); ctx.lineTo(1.2, 2.6); ctx.lineTo(-1.2, 2.6); ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+
+// Het item onder Activiteiten. Het reuzenrad staat nog niet in de catalogus van todo.js (#436),
+// dus de attractie levert de regel zelf; activities.js geeft hem aan todoui.js door.
+const TODO = {
+  key: 'mg:hoogvlieger',
+  group: 'minigames',
+  icon: 'act-hoogvlieger',
+  title: 'Reuzenrad',
+  meta: `Grote Markt · €${W.PRICE} per ritje · 's avonds op de kermis`,
+  kicker: 'Attractie · Grote Markt',
+  text: `Kermisbaas Jan laat je ${W.LAPS} rondes meedraaien in het reuzenrad ${NAME}. Loop naar de instap en druk E als er een gondel onderaan hangt; met de muis of de pijltjes kijk je rond en met Backspace stap je weer uit.`,
+  rows: [['Prijs', `€${W.PRICE} per ritje`], ['Wanneer', "elke avond vanaf 19:00, en de hele dag als de kermis op de markt staat"]],
+  open,
+};
+
 // --- HUD: dezelfde kaart als het botsautobord (kermis.js) ---------------------------------
 
 const CSS = `
@@ -168,6 +199,9 @@ function updateHud() {
 
 export const HOOGVLIEGER = {
   id: 'hoogvlieger',
+  layer: 'hoogvlieger',
+  legend: { kind: 'act-hoogvlieger', label: 'Reuzenrad', note: "het reuzenrad Hoogvlieger op de kermis aan de Grote Markt, 's avonds" },
+  todo: TODO,
   init(w) {
     window.__hoogvlieger = {
       state: () => (ride ? { index: ride.plan.index, fraction: kermisWheel() ? W.rideFraction(ride.plan, kermisWheel().rot) : null, look: { ...ride.look }, exitReq: ride.exitReq } : null),
@@ -185,4 +219,6 @@ export const HOOGVLIEGER = {
   update,
   tick() { updateHud(); },
   camera,
+  icon: drawIcon,
+  mapSub: (s, w) => (kermisOn(w) ? 'Kermis op de Grote Markt: het rad draait' : "Het reuzenrad van kermisbaas Jan, 's avonds op de kermis"),
 };

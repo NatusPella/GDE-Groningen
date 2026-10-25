@@ -11,7 +11,10 @@
 // secondary(w), interact(w) -> handled, active() -> its minigame runs, quit(w),
 // update(dt, w) while active (instead of the player update), tick(dt, w)
 // every frame, camera(w) while active, and for the maps: layer, legend
-// { kind, label, note }, icon(ctx, s), mapSub(spot, w), ubbo(w) }.
+// { kind, label, note }, icon(ctx, s), mapSub(spot, w), ubbo(w) }. An activity
+// that is not in todo.js's catalogue yet brings its own row for Activiteiten
+// with `todo` { key, group, icon, title, meta, kicker, text, rows, open(w) }
+// (#436, the reuzenrad: todoui.js asks activities.js for those rows).
 // While a minigame runs, `world.activityGame` is its id; it claims the
 // mouse buttons, number keys and Space through `world.minigameUntil`.
 import { CARBID } from './carbid.js';
@@ -481,6 +484,27 @@ export function drawActivityMapIcon(ctx, kind, s) {
   if (!a || !a.icon) return false;
   a.icon(ctx, s);
   return true;
+}
+
+// Het item onder Activiteiten van een attractie die nog niet in de catalogus van todo.js staat
+// (#436, het reuzenrad): de activiteit levert zelf de regel (het `todo`-veld), todoui.js zet hem
+// in de lijst. Zo blijft de lijst kloppen met wat er op de kaart staat.
+export function activityTodoItems(world) {
+  const out = [];
+  for (const a of LIST) {
+    const t = a.todo;
+    const s = t && a.spots()[0];
+    if (!s) continue;
+    out.push({
+      key: t.key, group: t.group || 'minigames', icon: t.icon || (a.legend && a.legend.kind), title: t.title, code: '',
+      meta: t.meta, status: !t.open || t.open(world) ? '' : 'later', medal: null, record: '',
+      x: s.x, y: s.y,
+      // een plek als doel: het rad is geen wedstrijd met een uitslag, je gaat erheen en stapt in
+      goal: { kind: 'place', id: a.id, name: t.title, sub: s.name, x: s.x, y: s.y },
+      detail: { kicker: t.kicker, text: t.text, rows: t.rows || [] },
+    });
+  }
+  return out;
 }
 
 
