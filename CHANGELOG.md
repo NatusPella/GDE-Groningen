@@ -7,6 +7,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Opgelost
+- **De afrit van de N46 over de Roeierspad is geen lage balk meer.** Waar de afrit en de Roeierspad elkaar kruisen, stonden ze in de hoogteberekening op hetzelfde punt; de afrit zakt nu niet meer tot een halve meter boven het fietspad, en de Roeierspad heeft geen bult meer.
+- **Het Emmaviaduct laat genoeg ruimte boven de dienstlaan langs zijn rand.** Het dek zakte daar naar 3,88 m; het blijft nu boven de 4,2 m die de overspanningsaudit vraagt.
 - **De GPS springt niet meer over het veld bij de stadsrand.** Waar een wandel- of fietsroute van de provinciewegen de stad in gaat, kiest hij een overgang die bij die manier van reizen past; bij de Beneluxweg sprong de lijn 205 m over het veld naar het dichtstbijzijnde voetpad.
 - **Een onvolledige build gaat niet meer de deur uit.** Bij het stagen wordt nu gecontroleerd dat elk tegelpakket uit de wereldindex bestaat met de juiste grootte en dat alle scenariomuziek en radiostationnummers in de map staan; een half geschreven wereld-cache wordt opnieuw gebouwd. Dat voorkomt de 404's op tegels en op de menumuziek uit het foutrapport van 0.50.0.
 - **Het foutrapport toont alleen de versie die je draait.** Meldingen uit een eerdere versie reizen niet meer mee met een upgrade, dus een allang gefixte fout lijkt niet meer open te staan.
