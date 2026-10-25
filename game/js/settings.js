@@ -51,6 +51,9 @@ const BASE_DEFAULTS = {
   // short tip cards for new players (onboarding.js)
   onboardingTips: true,
   reduceMotion: false,
+  // instap- en uitstapanimatie (#459): uit = meteen op je stoel, zonder deur open en
+  // dicht en zonder de loop- en zitbeweging (Instellingen, Toegankelijkheid)
+  stapAnimatie: true,
   showFog: true,
   cinematicMoments: true,
   // a new wijk: false = a name card with a spoken line, true = the full flyover

@@ -34,7 +34,9 @@ import { buildingAt } from './tileplace.js';
 import { isMissieVoertuig } from './missievoertuig.js';
 import { bedienTrekker } from './voertuigbediening.js';
 import { seatedOf } from './occupants.js';
-import { bijInstapdeur, uitstapPunt } from './vehicledoors.js';
+import { bijInstapdeur, uitstapPunt, deurBijSpeler, deurNaam, openDeurVoor, openDeurVoorRol, trekPunt, TREK_BEREIK, TREK_SPEED } from './vehicledoors.js';
+import { ejectPassenger } from './pedestrians.js';
+import { isPassief } from './cooppvp.js';
 export { resolveBuildingCollisions };
 
 const BIKE_SPRINT_S = 2.5;
@@ -793,7 +795,98 @@ export class Player {
       else this.takeProp(world, pr.prop);
       return;
     }
-    if (v && this.deurVrij(v, world)) this.enterVehicle(v, world);
+    if (v && this.deurVrij(v, world)) { this.enterVehicle(v, world); return; }
+    // een bezette auto is niet instapbaar: bij een open passagiersdeur trek je de
+    // passagier eruit (#459)
+    this.trekPassagier(world);
+  }
+
+  // Een passagier uit een open deur trekken (#459): staan bij de bijrijders- of
+  // achterdeur terwijl die openstaat. Een medespeler (Samen spelen) kan alleen als
+  // jullie allebei niet op passief staan (#447); een AI-passagier reageert daarna
+  // zoals bij een autokraak (carjackvictim.js, pedestrians.js ejectPassenger).
+  trekPassagier(world) {
+    if (!world) return false;
+    const k = this.passagierBijDeur(world);
+    if (!k) return false;
+    if (!openDeurVoorRol(k.v, k.rol)) {
+      // eerst de deur open: de tweede E trekt hem er dan uit
+      openDeurVoor(k.v, k.rol, 3);
+      world.addMessage(`Je opent de ${deurNaam(k.v, k.deur)}. Nog een keer E om er iemand uit te trekken.`, 3);
+      return true;
+    }
+    const mede = this.medespelerIn(world, k.v, k.rol);
+    if (mede) return this.trekMedespeler(world, k, mede);
+    if (!ejectPassenger(world, k.v, k.rol)) return false;
+    openDeurVoor(k.v, k.rol, 3); // de deur blijft open voor de uitstapper
+    world.addMessage('Je trekt de passagier uit het voertuig.', 2.5);
+    return true;
+  }
+
+  // Het voertuig en de rol van een passagier bij de deur waar je staat. Alleen een
+  // stilstaand voertuig op jouw niveau; de passagiersdeur ligt rechts voor (bijrijder)
+  // of achter (achterpassagier).
+  passagierBijDeur(world) {
+    if (!world.vehicles || !world.map) return null;
+    const niveau = this.gz + this.z;
+    let best = null;
+    for (const v of world.vehicles) {
+      if (!v.model || v.wrecked || v.sinking || v.disabled) continue;
+      if (Math.abs((v.z || 0) - niveau) > 2) continue;
+      if (Math.abs(v.speed || 0) > TREK_SPEED) continue;
+      const d = deurBijSpeler(v, this.x, this.y, TREK_BEREIK + 0.4);
+      if (!d || (d.rol !== 'bijrijder' && d.rol !== 'achter')) continue;
+      if (!this.passagierIn(world, v, d.rol)) continue;
+      const afstand = Math.hypot(d.x - this.x, d.y - this.y);
+      if (!best || afstand < best.afstand) best = { v, rol: d.rol, deur: d.deur, afstand };
+    }
+    return best;
+  }
+
+  passagierIn(world, v, rol) {
+    if (this.medespelerIn(world, v, rol)) return true;
+    return seatedOf(v).passengers.some((p) => (rol === 'achter' ? p.slot === 'rear' : p.slot === 'front'));
+  }
+
+  // Een medespeler in dit voertuig (Samen spelen): plek 1 is de metgezel op de
+  // bijrijdersstoel, plek 2 en hoger zijn figuren en die zitten achterin (coopnet.js
+  // vrijeStoel); wie zelf bestuurt is geen passagier.
+  medespelerIn(world, v, rol = 'bijrijder') {
+    const c = world.companion;
+    if (c && c.inVehicle === v && rol !== 'achter') return { slot: 1, lichaam: c };
+    if (rol !== 'achter') return null;
+    for (const f of Object.values(world.coopFigures || {})) {
+      if (!f || f.inVeh !== v || f.coopBestuurt || (f.stoel | 0) < 2) continue;
+      return { slot: f.slot, lichaam: f };
+    }
+    return null;
+  }
+
+  // Een medespeler uit het voertuig trekken: hij staat naast de deur, zijn stoel is
+  // vrij en hij hoort het zelf. Zijn lichaam is van de gastheer (host), dus dit werkt
+  // zonder nieuw netwerkbericht; de volgende snapshot laat hem buiten zien.
+  trekMedespeler(world, k, mede) {
+    if (world.coopPvp && (isPassief(world.coopPvp, 0) || isPassief(world.coopPvp, mede.slot))) {
+      world.addMessage('Een medespeler eruit trekken kan alleen als jullie allebei niet op passief staan.', 3);
+      return true;
+    }
+    const p = trekPunt(k.v, this.x, this.y, { rol: k.rol });
+    if (!p) return false;
+    const [x, y] = resolveBuildingCollisions(p.x, p.y, 0.35, world.map);
+    const l = mede.lichaam;
+    if (mede.slot === 1) {
+      l.inVehicle = null; l.coopUit = true;
+      if (k.v.passenger === 'companion') k.v.passenger = null;
+    } else {
+      l.inVeh = null; l.coopVoertuig = false; l.stoel = undefined;
+    }
+    l.x = x; l.y = y; l.vx = 0; l.vy = 0;
+    openDeurVoor(k.v, k.rol, 3);
+    const eigen = mede.slot === 1;
+    const naam = eigen ? (l.naam || (l.character === 'tammo' ? 'Tammo' : 'Tessa')) : 'een medespeler';
+    world.addMessage(`Je trok ${naam} uit het voertuig.`, 2.5);
+    if (world.coopMeld && mede.slot > 0) world.coopMeld(mede.slot, 'Je bent uit het voertuig getrokken.');
+    return true;
   }
 
   takeProp(world, prop) {
