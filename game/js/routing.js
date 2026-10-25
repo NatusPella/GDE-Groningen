@@ -528,26 +528,33 @@ export function dismissCareRoute() {
 }
 
 // City streets meet the Ommeland roads here: points of the country network
-// near the city's edge that lie on a drivable city street (rebuilt with the
-// country graph).
+// near the city's edge that lie on a city street of the same way of travel
+// (rebuilt with the country graph). The snap has to be the one the city part
+// will use: a trunk the country net lets a walker on, but the city streets
+// don't, sat 205 m from the nearest footway and the route jumped that far
+// (#491).
 let gateways = null, gatewaysFor = -1;
-function cityGateways(map) {
-  if (gateways && gatewaysFor === roadGraphVersion()) return gateways;
+function cityGateways(map, kind = 'drive') {
+  if (gateways && gatewaysFor === roadGraphVersion()) return gateways[kind] || (gateways[kind] = buildGateways(map, kind));
   gatewaysFor = roadGraphVersion();
-  gateways = [];
+  gateways = {};
+  return (gateways[kind] = buildGateways(map, kind));
+}
+function buildGateways(map, kind) {
+  const out = [];
   const B = map.meta && map.meta.bounds;
-  if (!B) return gateways;
+  if (!B) return out;
   const cells = new Set();
   for (const n of gatewayCandidates(B, GATEWAY_BAND_M)) {
     const [x, y] = nodeXY(n);
     const key = Math.floor(x / GATEWAY_CELL_M) * 100003 + Math.floor(y / GATEWAY_CELL_M);
     if (cells.has(key)) continue;
-    const sn = snapToRoad(map, x, y, 'drive');
+    const sn = snapToRoad(map, x, y, kind);
     if (!sn || Math.hypot(sn.x - x, sn.y - y) > 12) continue;
     cells.add(key);
-    gateways.push({ n, x, y });
+    out.push({ n, x, y });
   }
-  return gateways;
+  return out;
 }
 
 // A route with an end outside the city graph: over the Ommeland roads, joined
@@ -578,7 +585,7 @@ function countryRoute(world, target, from, to, graphMode, kind, p = world.player
   const ts = tIn ? null : snapRoad(target.x, target.y, COUNTRY_SNAP_M, !driveOnly);
   if ((!pIn && !ps) || (!tIn && !ts)) return null;
   const lead = (s, x, y) => (s && s.d > 0.5 ? [[x, y]] : []);
-  const gws = pIn || tIn ? cityGateways(map) : null;
+  const gws = pIn || tIn ? cityGateways(map, kind) : null;
   const outer = pIn ? ts : ps;
   const cityEnd = pIn ? p : target;
   // free: the one-ways ignored; on foot or by bike always, by car as the last resort

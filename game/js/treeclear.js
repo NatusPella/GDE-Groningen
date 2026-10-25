@@ -38,7 +38,10 @@ export function treeBesideRoad(map, x, y) {
   const out = e.hw + TREE_KERB + 0.05;
   const nx = x + ((x - e.cp.x) / e.d) * (out - e.d), ny = y + ((y - e.cp.y) / e.d) * (out - e.d);
   const again = nearestEdge(map, nx, ny);
-  const stay = e.m >= 0.05 ? [x, y] : null; // (no room: a tree beside the road keeps its place)
+  // (geen ruimte: een boom die naast de weg staat houdt zijn plek; staat hij op het asfalt, dan gaat hij weg.
+  //  De marge is 0,15 m en niet 0,05: de wereldcontrole meet de rand op 5 cm en zo liet afronding er drie op de
+  //  rijbaan staan — scripts/treeclear_test.mjs.)
+  const stay = e.m >= 0.15 ? [x, y] : null;
   if (again && again.m < TREE_KERB - 0.15) return stay; // another road (or a bend of this one) is in the way
   for (const b of map.buildingsNear(nx, ny, 1)) if (pointInPolygon(nx, ny, b.pts)) return stay;
   if (isInWater(map, nx, ny)) return stay;
