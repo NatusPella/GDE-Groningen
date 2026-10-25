@@ -15,7 +15,7 @@ import { getFinanceSave, applyFinanceSave } from './finance.js';
 import { abortHeliRun } from './helirun.js';
 import { quitPadel } from './padel.js';
 import { stopVillageMini } from './dorpsuitjes.js';
-import { quitActivity } from './activities.js';
+import { quitRunningActivities } from './busy.js';
 import { getGoalSave, applyGoalSave } from './goal.js';
 import { getCalendarSave, applyCalendarSave } from './calendarday.js';
 import { migrateSave, SAVE_VERSION, savedArc, plausiblePos } from './savemigrate.js';
@@ -426,7 +426,8 @@ export function applySave(w, d) {
     abortHeliRun();
     quitPadel(w);
     stopVillageMini();
-    quitActivity(w);
+    // ook de wandeling: die meldt zich niet als activiteit (active: false) en heeft een eigen quit-hook (#241)
+    quitRunningActivities(w);
     // a shop menu (the village quiz is one) or a train drive would go on against the loaded state
     closeShopMenu({ save: false });
     quitTrainDrive(w);
