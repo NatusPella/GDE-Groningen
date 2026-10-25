@@ -32,6 +32,7 @@ import { WATERSKI } from './waterski.js';
 import { CARILLON_GAME } from './carillon.js';
 import { PANNENKOEK } from './pannenkoek.js';
 import { HENGELEN } from './hengelen.js';
+import { BOEREN } from './boerderijgast.js'; // het boerenwerk van een gast op zijn eigen akker (#434)
 import { WANDELING } from './wandeling.js';
 import { SNACKKETEN } from './snackketen.js';
 import { EVENEMENTEN } from './evenementenact.js';
@@ -344,7 +345,7 @@ const VAARDIENST = dienstActiviteit({
   },
 });
 
-const LIST = [CARBID, KERMIS, HOOGVLIEGER, GEHEIMEN, DRIFT_ZONE, DISCGOLF, PITCHPUTT, SKATEPARK, KARTBAAN, ZWEMBAD, KLIMTOREN, WATERSKI, CARILLON_GAME, PANNENKOEK, HENGELEN, WANDELING, SNACKKETEN, EVENEMENTEN, REGATTA_GAME, RINGRACE, VLIEGSCHOOL, SAFEHUIS, PVP_ARENA_ACT, VLUCHTDIENST, VAARDIENST];
+const LIST = [CARBID, KERMIS, HOOGVLIEGER, GEHEIMEN, DRIFT_ZONE, DISCGOLF, PITCHPUTT, SKATEPARK, KARTBAAN, ZWEMBAD, KLIMTOREN, WATERSKI, CARILLON_GAME, PANNENKOEK, HENGELEN, BOEREN, WANDELING, SNACKKETEN, EVENEMENTEN, REGATTA_GAME, RINGRACE, VLIEGSCHOOL, SAFEHUIS, PVP_ARENA_ACT, VLUCHTDIENST, VAARDIENST];
 
 export function initActivities(w) {
   for (const a of LIST) {
