@@ -79,6 +79,34 @@ export function snapSpotToRoad(map, spot, drivable = true, reach = SNAP_REACH_M)
   return { x: rp.x, y: rp.y, angle: flip ? along + Math.PI : along };
 }
 
+// De blokkade hoort op de weg te staan (#436): sta je naast de weg, dan schuift
+// de hele scène naar het dichtstbijzijnde wegdeel en draait de versperring
+// dwars op de rijrichting. Water, lucht en een brug of tunnel blijven zoals ze
+// zijn (daar is geen wegdek om op te zetten).
+export const SCENE_SNAP_M = 30;
+export function snapSceneToRoad(map, plan, mode = 'foot') {
+  if (!map || typeof map.nearestRoadPoint !== 'function' || !plan || !plan.props || !plan.props.length) return plan;
+  if (mode !== 'foot' && mode !== 'car' && mode !== 'bike') return plan;
+  const first = plan.props[0];
+  const rp = map.nearestRoadPoint(first.x, first.y, SCENE_SNAP_M, mode !== 'foot');
+  if (!rp || !rp.road || rp.road.bridge || rp.road.tunnel || !(rp.road.pts && rp.road.pts.length > 1)) return plan;
+  const dx = rp.x - first.x, dy = rp.y - first.y;
+  if (Math.hypot(dx, dy) > SCENE_SNAP_M) return plan;
+  const pts = rp.road.pts;
+  let bi = 0, bd = Infinity;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const d = Math.hypot((pts[i][0] + pts[i + 1][0]) / 2 - rp.x, (pts[i][1] + pts[i + 1][1]) / 2 - rp.y);
+    if (d < bd) { bd = d; bi = i; }
+  }
+  let along = Math.atan2(pts[bi + 1][1] - pts[bi][1], pts[bi + 1][0] - pts[bi][0]);
+  if (Math.cos(along - first.angle) < 0) along += Math.PI; // de voorkant blijft naar binnen wijzen
+  return {
+    ...plan,
+    props: plan.props.map((p) => ({ ...p, x: p.x + dx, y: p.y + dy, angle: along })),
+    road: { x: rp.x, y: rp.y, angle: along },
+  };
+}
+
 export function createEdgeWatch() {
   return { phase: 'idle', t: 0, cool: 0, plan: null, warnAt: {} };
 }

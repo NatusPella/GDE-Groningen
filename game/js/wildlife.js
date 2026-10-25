@@ -608,8 +608,28 @@ function updatePigeon(a, dt, world) {
   }
 }
 
+// Een kat hoort niet in het water (#436): is hij er toch in geduwd, dan
+// scharrelt hij naar de dichtstbijzijnde droge kant en schudt zich daar uit.
+// Geeft true als de kat in het water zat (en deze stap dus voor de kant was).
+export function stepKatUitWater(a, dt, map, rng = Math.random) {
+  if (!isInWater(map, a.x, a.y)) return false;
+  a.state = 'flee';
+  a.stateTimer = 4;
+  if (!(a.waterTarget && openGround(map, a.waterTarget[0], a.waterTarget[1]))) a.waterTarget = randomOpenPointNear(map, a.x, a.y, 2, 24, rng);
+  const spot = a.waterTarget;
+  if (!spot) { a.speed = 0; return true; }
+  const ang = Math.atan2(spot[1] - a.y, spot[0] - a.x);
+  a.angle = angleLerp(a.angle, ang, Math.min(1, dt * 8));
+  a.speed = 2.4;
+  a.x += Math.cos(a.angle) * a.speed * dt;
+  a.y += Math.sin(a.angle) * a.speed * dt;
+  if (!isInWater(map, a.x, a.y)) { a.waterTarget = null; a.state = 'sit'; a.stateTimer = 2.5; a.speed = 0; }
+  return true;
+}
+
 function updateCat(a, dt, world) {
   const { player, map } = world;
+  if (stepKatUitWater(a, dt, map)) return;
   a.stateTimer -= dt;
   const pd = dist(a.x, a.y, player.x, player.y);
   const tamRust = (a.tam && playerSpeed(player) < 2.5 && pd >= 0.4) || a.aaiT > 0;   // #437: rustig dichtbij komen mag bij een tamme kat
