@@ -54,7 +54,7 @@ export function mountLobby(root, hooks, opts = {}) {
   let hub = opts.hub || null, session = opts.session || null, handle = null, room = null, stopListen = null, joinedOnce = !!opts.adopt, wacht = false;
 
   const LOGT = { kies: 'rol gekozen', route: 'route gekozen', akkoord: 'toestemming gegeven', code: 'code gemaakt', fout: 'fout', status: 'status', verbinden: 'verbinden', hervat: 'opnieuw verbinden', verbreek: 'verbroken door speler', spelers: 'spelerslijst', 'openbaar-ja': 'sessie openbaar gemaakt', privaat: 'sessie weer privé', 'lijst-go': 'lijst met openbare sessies geopend' };
-  // Automatisch herstel (kamercode-route, wachtscherm in het spel): de gastheer zet na een paar seconden zelf een nieuw aanbod klaar onder
+  // Automatisch herstel (kamercode-route, wachtscherm in het spel): wie het spel opende zet na een paar seconden zelf een nieuw aanbod klaar onder
   // dezelfde kamercode, de gast voert die code zelf opnieuw in; beide met hetzelfde token, dus dezelfde plek. Een paar pogingen, daarna handmatig.
   let aankondiger = null, luis = null;
   let autoTimer = null, autoTries = 0;
@@ -103,7 +103,7 @@ export function mountLobby(root, hooks, opts = {}) {
 
   function draw() {
     const v = view(state);
-    const wensen = v.wensen ? `<div class="coop-wensen" role="group" aria-label="Kies een figuur">${v.wensen.map((w) => `<button type="button" class="m-bg coop-wens" data-act="${w.act}" aria-pressed="${w.gekozen}"><span class="ss-label"><span style="color:${w.kleur}" aria-hidden="true">●</span> ${esc(w.naam)}${w.gekozen ? ' ✓' : ''}</span></button>`).join('')}</div>` : '';
+    const wensen = v.wensen ? `<div class="coop-wensen" role="group" aria-label="Kies je figuur">${v.wensen.map((w) => `<button type="button" class="m-bg coop-wens" data-act="${w.act}" aria-pressed="${w.gekozen}"><span class="ss-label"><span style="color:${w.kleur}" aria-hidden="true">●</span> ${esc(w.naam)}${w.gekozen ? ' ✓' : ''}</span></button>`).join('')}</div>` : '';
     const sessies = v.sessies ? `<div class="coop-sessies" role="list">${v.sessies.map((x) => `<div class="coop-sessie" role="listitem" style="display:flex;gap:8px;align-items:stretch;margin:6px 0"><button type="button" class="${x.kan ? 'm-bp' : 'm-bg'} coop-btn" data-act="${x.act}" style="flex:1;text-align:left"${x.kan ? '' : ' aria-disabled="true"'}><span class="ss-label">${esc(x.tekst)}</span></button><button type="button" class="m-bt coop-btn" data-act="${x.meld}" aria-label="Melden: ${esc(x.naam)}"><span class="ss-label">Melden</span></button></div>`).join('')}</div>` : '';
     // het kleine formulier voor je online-avatar (#455): naam (hoogstens 16 tekens) en een kleur uit de vaste set
     const prof = v.profiel ? `<div class="coop-profiel" style="display:flex;flex-direction:column;gap:8px;margin:10px 0"><label class="coop-profiel-label" style="display:flex;gap:8px;align-items:center"><span>Online naam</span><input class="coop-profiel-naam" type="text" spellcheck="false" autocomplete="off" maxlength="${v.profiel.maxLength}" placeholder="Je figuur" value="${esc(v.profiel.naam)}" style="min-width:0;flex:1;max-width:260px"></label><div class="coop-kleuren" role="group" aria-label="Kleur" style="display:flex;flex-wrap:wrap;gap:6px">${v.profiel.kleuren.map((c) => `<button type="button" class="m-bg coop-kleur" data-kleur="${c.hex}" aria-pressed="${c.hex === v.profiel.kleur}" title="${esc(c.naam)}"><span class="ss-label"><span style="color:${c.hex}" aria-hidden="true">●</span> ${esc(c.naam)}</span></button>`).join('')}</div><p class="coop-profiel-hint" style="margin:0">${esc(v.profiel.tekst)} Laat je de naam leeg, dan zien de anderen de naam van je figuur. Je staat standaard op passief: medespelers kunnen je geen schade doen.</p>${v.profiel.fout ? `<p class="coop-error" role="alert">${esc(v.profiel.fout)}</p>` : ''}</div>` : '';
@@ -226,7 +226,7 @@ export function mountLobby(root, hooks, opts = {}) {
     };
     const prev = sess.onevent;
     sess.onevent = (b) => {
-      if (b && b.k === 'hek') { // de gastheer start het spel (of er was geen wachtkamer): de wachtkamer van de gast sluit
+      if (b && b.k === 'hek') { // wie het spel opende start het spel (of er was geen wachtkamer): de wachtkamer van de gast sluit
         const was = state.caps.startGate; set({ t: 'gate', aan: !!b.aan });
         if (was && !b.aan && hooks.startSpel) hooks.startSpel();
       }
