@@ -123,6 +123,12 @@ t('#371: gelukt met het deel van de gast; zonder loon geen deel in de tekst; mis
   assert.match(s.gs[0].gw.messages.join(' '), /De Proef gelukt! Tammo en jij hebben het samen gedaan\.$/m, 'zonder loon geen deel');
   s.hw.coopUitslag(false, 'De Kluis', 'Te laat', 900); s.step(1);
   for (const g of s.gs) { const m = g.gw.messages.find((x) => /De Kluis/.test(x)); assert.match(m, /^De Kluis mislukt: Te laat\. Tammo probeert het misschien opnieuw\.$/); assert.doesNotMatch(m, /deel/, 'bij mislukt geen deel'); }
+  // een gast die N zei hoort een mislukking ook als mislukking, niet als "zonder jou gedaan" (#371)
+  s.gs[0].gw.coopMeedoenNee = true;
+  s.hw.coopUitslag(false, 'Het Proefbeleg', 'neergeslagen', 0); s.step(1);
+  const nee = s.gs[0].gw.messages.filter((m) => /Het Proefbeleg/.test(m)).pop();
+  assert.match(nee, /^Het Proefbeleg mislukt: neergeslagen\. Tammo deed het zonder jou\.$/);
+  assert.doesNotMatch(nee, /zonder jou gedaan/);
   s.hw.coopUitslag(false, 'X'.repeat(300), 'y'.repeat(300)); s.step(1);
   assert.ok(s.gs[0].gw.messages.every((m) => m.length <= 160), 'korte meldingen');
   assert.equal(s.gs[0].gw.coopUitslag, undefined, 'een gast heeft de haak niet');
