@@ -54,6 +54,14 @@ export function garageCardLook(e) {
   return e.status === 'lost' ? 'lost' : 'owned';
 }
 
+// The shop type where a for-sale entry stands ('auto', 'fietsen', ...), or ''
+// when it is not for sale in a shop (yours, locked, or unlocked by the story).
+// garageui.js puts a "Kopen" button on it that sets a waypoint to that shop (#435).
+export function garageSaleShop(e) {
+  if (!e || e.owned || e.locked || !e.spec || e.spec.unlock) return '';
+  return e.spec.shop || '';
+}
+
 // Which card turns: the one under the mouse or the one with keyboard or
 // controller focus, whichever the player used last (`latest`: 'hover' or
 // 'focus'); on a touch screen, where nothing hovers, the card that was

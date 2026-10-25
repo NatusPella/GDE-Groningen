@@ -12,7 +12,7 @@ import { getShopsForRender, SHOP_TYPES } from './shops.js';
 import { setUserWaypoint } from './routing.js';
 import {
   GARAGE_3Q_ANGLE, GARAGE_PIC_W, GARAGE_PIC_H, garagePicZoom, TURN_SPEED, TURN_FPS,
-  garagePreviewSpec as previewSpec, garageCardLook, turntableTarget,
+  garagePreviewSpec as previewSpec, garageCardLook, garageSaleShop, turntableTarget,
 } from './garagepics.js';
 import {
   GARAGE_FILTERS as FILTERS, GARAGE_SORTS as SORTS, garageGroup as groupOf, garagePrice as priceOf,
@@ -47,8 +47,11 @@ const GROUP_HEAD = { owned: 'Van jou', sale: 'Te koop', locked: 'Op slot' };
 const view = { cat: 'autos', filter: 'all', sort: 'naam' };
 
 let viewer = null;
+let viewerCanvas = null;
 let selected = null;
 let lastList = [];
+// the viewer's own stills (a separate group, so a card that is still drawing is not dropped)
+const VIEWER_GROUP = 'garage-viewer';
 
 const euro = (n) => `€${Number(n).toLocaleString('nl-NL')}`;
 const shownList = (list) => garageShown(list, view);
@@ -70,7 +73,17 @@ function row(e) {
     `<span class="nm"><span class="one">${esc(e.model)}</span><span class="gar-st">${endHtml(e)}</span></span></button>`;
 }
 
-function viewerHtml(e, msg) {
+// The stage with the turning model. The silhouette and a still from the
+// shared renderer stand behind the live canvas, so the pane is never empty:
+// the first frame of the live preview (or the still) covers them (#435).
+function stageHtml(e) {
+  return `<div class="gar-stage">${vehicleGlyph(e.kind, e.locked ? '#6d756d' : e.color)}` +
+    '<img class="gar-still" alt="" draggable="false" hidden>' +
+    `<canvas aria-label="3D-model van ${esc(e.model)}"></canvas><span class="gar-hint">Sleep om te draaien</span></div>`;
+}
+
+// Everything beside the stage: name, facts, the message and the buttons.
+function detailsHtml(e, msg) {
   const rows = [];
   if (e.owned) rows.push(['Waar', esc([e.statusLabel, whereText(e)].filter(Boolean).join(' · '))]);
   else if (e.locked) rows.push(['Vrijspelen', esc(e.unlockText || 'Via het verhaal of een prestatie')]);
@@ -79,16 +92,19 @@ function viewerHtml(e, msg) {
   rows.push(['Topsnelheid', `${e.topSpeed} km/u`], ['Trekkracht', `${e.accelScore} / 10`]);
   rows.push(['Lak', `<span class="gar-dot" style="background:${esc(e.color)}"></span>${esc(e.paint)}`]);
   if (e.owned && e.kind !== 'boat' && e.kind !== 'heli') rows.push(['Upgrades', e.upgrades.length ? esc(e.upgrades.join(', ')) : `Nog niks: ${e.kind === 'bike' || e.kind === 'scooter' ? 'Spaak & Band' : 'Knal & Kolder Tuning'} helpt je graag`]);
-  // te koop: een knop die een waypoint naar de dichtstbijzijnde winkel zet (#435)
-  const koop = !e.owned && !e.locked && e.spec && e.spec.shop && !e.spec.unlock;
-  const acts = koop ? `<div class="m-acts td-acts"><button type="button" class="m-bp" data-garage-shop="${esc(e.spec.shop)}">${PIN}Naar de winkel</button></div>` : !e.owned ? '' : '<div class="m-acts td-acts">' +
+  // te koop: "Kopen" zet een waypoint naar de winkel waar hij staat (#435)
+  const koop = garageSaleShop(e);
+  const acts = koop ? `<div class="m-acts td-acts"><button type="button" class="m-bp" data-garage-koop="${esc(koop)}">${PIN}Kopen</button></div>` : !e.owned ? '' : '<div class="m-acts td-acts">' +
     (e.status !== 'driving' ? `<button type="button" class="m-bp gar-go" data-garage-deliver="${esc(e.id)}">Laten afleveren${e.fee ? ` · ${esc(e.feeLabel)}` : ''}</button>` : '') +
     (e.status === 'near' || e.status === 'far' ? `<button type="button" class="m-bg" data-garage-find="${esc(e.id)}">${PIN}Waar staat hij?</button>` : '') + '</div>';
-  return `<div class="gar-stage"><canvas aria-label="3D-model van ${esc(e.model)}"></canvas><span class="gar-hint">Sleep om te draaien</span></div>` +
-    `<div class="pm-pane-top"><span class="m-eb">${esc([e.make, GROUP_LABEL[groupOf(e)]].filter(Boolean).join(' · '))}</span><h2 class="m-h2 td-h2">${esc(e.model)}</h2></div>` +
+  return `<div class="pm-pane-top"><span class="m-eb">${esc([e.make, GROUP_LABEL[groupOf(e)]].filter(Boolean).join(' · '))}</span><h2 class="m-h2 td-h2">${esc(e.model)}</h2></div>` +
     (e.meme ? `<p class="mut">${esc(e.meme)}</p>` : '') +
     `<div class="m-facts td-stack">${rows.map(([k, v]) => `<div class="m-fact"><span>${k}</span><span class="${String(v).length > 13 ? 'td-fv' : 'm-num'}">${v}</span></div>`).join('')}</div>` +
     `<p class="gar-msg g" role="status">${esc(msg || '')}</p><span class="m-grow"></span>` + acts;
+}
+
+function viewerHtml(e, msg) {
+  return stageHtml(e) + detailsHtml(e, msg);
 }
 
 // Waypoint naar de dichtstbijzijnde winkel van dit soort (autodealer, fietsenwinkel, ...); geeft de melding terug.
@@ -105,29 +121,82 @@ export function garageNaarWinkel(world, type) {
 }
 
 // Shows vehicle `id` in the viewer (pausemenu.js: a click or Enter on a
-// row). The viewer draws through the shared renderer: switching rows only
-// swaps the model.
+// row). The stage and its preview stay: switching rows only swaps the model,
+// so the garage never builds a second renderer or a second canvas (#435).
 export function selectGarageVehicle(el, id, msg = '') {
   const e = lastList.find((x) => x.id === id);
   const box = el.querySelector('.gar-viewer');
   if (!e || !box) return;
   selected = id;
   for (const c of el.querySelectorAll('.gar-card')) { const on = c.dataset.garageSelect === id; c.classList.toggle('sel', on); c.toggleAttribute('aria-current', on); }
-  if (viewer) viewer.dispose();
-  box.innerHTML = viewerHtml(e, msg);
+  const stage = box.querySelector('.gar-stage');
+  if (stage) {
+    // only the text beside the stage changes; the canvas keeps its preview
+    for (const ch of [...box.children]) if (ch !== stage) ch.remove();
+    const tmp = document.createElement('div');
+    tmp.innerHTML = detailsHtml(e, msg);
+    for (const ch of [...tmp.children]) box.appendChild(ch);
+    const cv = stage.querySelector('canvas');
+    if (cv) cv.setAttribute('aria-label', `3D-model van ${e.model}`);
+  } else {
+    box.innerHTML = viewerHtml(e, msg);
+  }
   const c = box.querySelector('canvas');
-  viewer = createSharedPreview(c, { interactive: true, angle: GARAGE_3Q_ANGLE, active: () => c.isConnected && c.offsetParent !== null });
+  if (!c) return;
+  if (!viewer || viewerCanvas !== c) {
+    if (viewer) viewer.dispose();
+    viewerCanvas = c;
+    viewer = createSharedPreview(c, {
+      interactive: true, angle: GARAGE_3Q_ANGLE,
+      active: () => c.isConnected && c.offsetParent !== null,
+      // het echte model tekent: de stilleggevallen achtergrond mag weg
+      onFirstFrame: () => { box.dataset.drawn = '1'; showStageFallback(box, false); },
+    });
+  }
+  box.dataset.drawn = '';
+  showStageFallback(box, true);
   viewer.show(previewSpec(e));
+  showStill(box, previewSpec(e));
   // a tap selects the card: on touch that is the one to turn
   if (aim.touch) syncTurn(el);
+}
+
+// The silhouette and the still behind the live canvas: on while the preview
+// has not drawn yet, off as soon as it has.
+function showStageFallback(box, on) {
+  const glyph = box.querySelector('.gar-stage > svg');
+  if (glyph) glyph.hidden = !on;
+  const still = box.querySelector('.gar-still');
+  if (still && !on) still.hidden = true;
+}
+
+// A still of the selected model through the same shared renderer, so the pane
+// shows the vehicle even while the live preview is still starting (or when
+// this machine has no WebGL: then the silhouette stays).
+let stillKey = '';
+function showStill(box, spec) {
+  const img = box.querySelector('.gar-still');
+  if (!img || !spec) return;
+  const key = JSON.stringify(spec);
+  stillKey = key;
+  img.hidden = true;
+  img.removeAttribute('src');
+  renderSnapshot(spec, GARAGE_PIC_W * 2, GARAGE_PIC_H * 2, (url) => {
+    if (!url || !img.isConnected || stillKey !== key || box.dataset.drawn) return;
+    img.src = url;
+    img.hidden = false;
+  }, { angle: GARAGE_3Q_ANGLE, zoom: garagePicZoom(spec), group: VIEWER_GROUP });
 }
 
 // Drops the viewer's model, the turntable and the pictures still to come
 // (tab switched or menu closed).
 export function disposeGarageViewer() {
   if (viewer) { viewer.dispose(); viewer = null; }
+  viewerCanvas = null;
+  stillKey = '';
   stopTurn();
   if (turn) { turn.dispose(); turn = null; turnCanvas = null; }
+  cancelSnapshots(VIEWER_GROUP);
   cancelSnapshots(PIC_GROUP);
 }
 
@@ -250,6 +319,7 @@ function refreshList(el) {
   if (!tools || !el.querySelector('.gar-list')) return;
   stopTurn();
   cancelSnapshots(PIC_GROUP);
+  cancelSnapshots(VIEWER_GROUP);
   aim.hover = null;
   tools.innerHTML = tabsHtml(lastList);
   el.querySelector('.gar-list').innerHTML = listHtml(lastList);
