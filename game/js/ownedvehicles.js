@@ -17,6 +17,9 @@
 //     opts.minDist / opts.maxDist override the ring.
 //   findParkingSpot(world, x, y, model, opts?) -> spot | null
 //     Same search without moving anything (model: { len, wid, name }).
+//     A boat's model gets open water (a canal or harbour) and the heli's open,
+//     dry ground with room for the rotor: the shared delivery in a session uses
+//     this for every kind of own vehicle (#449).
 //   getGarageList(world) / getGarageCatalog(world)
 //     Owned vehicles (hero first) / the whole collection incl. not yet bought,
 //     as plain view objects for the phone app and the pause-menu garage.
@@ -26,6 +29,8 @@
 //     Boats go home to "Jouw steiger" behind the tower, the helicopter to the helidek on its roof (home.js).
 //     In een sessie van een ander zet de gastheer een kopie bij je neer; je eigen
 //     save en de zijne blijven zoals ze zijn (#449, coopbezit.js bezorgHost).
+//     Dat geldt ook voor je boot (op het water bij je) en de heli (op open grond);
+//     die vliegt daar niet, hij staat er.
 //     Een eigen pand (safehouse, boerderij, huis) gaat met hetzelfde bericht
 //     'bezorg' met soort 'pand' (coopbezit.js pandVraag); daar zet de host alleen
 //     een deur neer en geen voertuig.
@@ -34,6 +39,7 @@
 //   getOwnedVehiclesForMap(world) -> [{ x, y, angle, kind, label, hero, color }]
 
 import { closestPointOnSegment, isInWater } from './util.js';
+import { vindBootPlek } from './bootplek.js';
 import { ommelandArea } from './ommelandplace.js';
 import { buildingAt, roadNear, roadKind, waterGap, streetAt as roadName } from './tileplace.js';
 import { isSpawnHidden } from './pedestrians.js';
@@ -172,6 +178,10 @@ function searchRing(world, x, y, model, twoWheel, ring, ignore) {
 
 export function findParkingSpot(world, x, y, model, opts = {}) {
   if (!world || !world.map || !model) return null;
+  // Samen spelen (#449): een boot hoort op het water en de heli op open grond;
+  // de gastheer zoekt die plek met dezelfde grenzen als een parkeerplek.
+  if (model.name === 'boat') return boatSpotNear(world, x, y, model, opts);
+  if (model.name === 'heli') return heliSpotNear(world, x, y, model, opts);
   const twoWheel = model.name === 'bike' || model.name === 'scooter';
   const ring = ringFor(opts);
   return (twoWheel ? null : baySpot(world, x, y, model, ring, opts.ignore || null))
@@ -182,6 +192,46 @@ export function findParkingSpot(world, x, y, model, opts = {}) {
     // roads), else beside the nearest real road
     || (edgeDistance(x, y) > -30 ? countryKerbSpot(world, x, y, model, ring, opts.ignore || null) : null)
     || countrySpot(world, x, y, model, opts.ignore || null);
+}
+
+// Open water in de ring om (x, y) waar de romp in een van een paar koersen vrij
+// ligt (een gracht is smal), zonder andere voertuigen. Voor het bezorgen in een
+// sessie: de boot komt naast de gast in het water, niet aan de verre steiger.
+function boatSpotNear(world, x, y, model, opts) {
+  const map = world.map;
+  const ring = ringFor(opts);
+  const half = (model.len || 4) / 2;
+  const ignore = opts.ignore || null;
+  const water = (px, py) => { try { return isInWater(map, px, py); } catch (e) { return false; } }; // geen waterlaag: dan is het droog
+  const koers = (px, py) => {
+    for (let k = 0; k < 4; k++) {
+      const a = (k / 4) * Math.PI;
+      const fx = Math.cos(a) * half, fy = Math.sin(a) * half;
+      if (water(px + fx, py + fy) && water(px - fx, py - fy)) return a;
+    }
+    return null;
+  };
+  const found = vindBootPlek({
+    x, y, maxR: Math.max(ring.maxDist || 0, 80), stap: 8,
+    isWater: water,
+    vrij: (px, py) => {
+      if (Math.hypot(px - x, py - y) < ring.minDist) return false;
+      return koers(px, py) != null && clearOfVehicles(world, px, py, half, ignore);
+    },
+  });
+  if (!found) return null;
+  const angle = koers(found.x, found.y);
+  return { x: found.x, y: found.y, angle: angle ?? 0, street: roadName(map, found.x, found.y) || '' };
+}
+
+// Open, droge grond met ruimte voor de rotor, in de ring om (x, y); dezelfde
+// proeven als de "Voertuig hier"-cheat, maar rond de gast in plaats van de host.
+function heliSpotNear(world, x, y, model, opts) {
+  const map = world.map;
+  const ring = ringFor(opts);
+  const gz = map.groundHeightAt ? map.groundHeightAt(x, y, 0) : 0;
+  const radii = [7, 10, 14, 19, 25, 32, 40, 50].filter((r) => r >= ring.minDist * 0.6 && r <= Math.max(ring.maxDist || 0, 40));
+  return spotAround(world, x, y, 0, gz, 'heli', model, opts.ignore || null, radii);
 }
 
 // A free bay in a real parking lot or parking lane (parkinglots.js) in the ring.
@@ -567,19 +617,26 @@ const solidAt = (map, x, y, m) => {
 // heli; never in a building, farm, prop or other vehicle. Else the kerb
 // spot nearby (cars, bikes), visible this time.
 function besideSpot(world, kind, model, ignore) {
-  const map = world.map, p = world.player;
+  const p = world.player;
+  const radii = kind === 'boat' ? [3, 6, 10, 15, 20, 28, 36, 45] : kind === 'heli' ? [7, 10, 14, 19, 25, 32] : [3, 4.5, 6, 8, 11, 15, 20];
+  const spot = spotAround(world, p.x, p.y, p.angle, p.gz || 0, kind, model, ignore, radii);
+  if (spot || kind === 'boat' || kind === 'heli') return spot;
+  return findParkingSpot(world, p.x, p.y, model, { outOfView: false, ignore });
+}
+
+// Dezelfde zoektocht rond een punt in plaats van rond de speler: de cheat zet
+// het voertuig naast je neer, de gastheer naast de gast (#449).
+function spotAround(world, x0, y0, angle, gz, kind, model, ignore, radii) {
+  const map = world.map;
   // a gelede bus's rear unit trails behind the body: room for it either way
   const len = (model.len || 4) + 2 * (model.trailer || 0), wid = model.wid || 1.7, half = len / 2;
-  const gz = p.gz || 0;
-  const radii = kind === 'boat' ? [3, 6, 10, 15, 20, 28, 36, 45] : kind === 'heli' ? [7, 10, 14, 19, 25, 32] : [3, 4.5, 6, 8, 11, 15, 20];
-  const angle = p.angle;
   const fx = Math.cos(angle) * half, fy = Math.sin(angle) * half;
   const wet = (px, py) => isInWater(map, px, py);
   for (const r of radii) {
     const n = 12;
     for (let i = 0; i < n; i++) {
       const a = angle + Math.PI / 2 + (i % 2 ? -1 : 1) * Math.ceil(i / 2) * (Math.PI * 2 / n);
-      const x = p.x + Math.cos(a) * r, y = p.y + Math.sin(a) * r;
+      const x = x0 + Math.cos(a) * r, y = y0 + Math.sin(a) * r;
       if (kind === 'boat') {
         if (wet(x, y) && wet(x + fx, y + fy) && wet(x - fx, y - fy) && clearOfVehicles(world, x, y, half, ignore)) return { x, y, angle, street: '' };
         continue;
@@ -598,8 +655,7 @@ function besideSpot(world, kind, model, ignore) {
       return { x, y, angle, street: '' };
     }
   }
-  if (kind === 'boat' || kind === 'heli') return null;
-  return findParkingSpot(world, p.x, p.y, model, { outOfView: false, ignore });
+  return null;
 }
 
 let tempStock = null;
@@ -642,14 +698,15 @@ function deliverHere(world, id) {
 }
 
 
-// Samen spelen (#449): bezorgen in de wereld van de gastheer. De eigen auto
-// blijft thuis (in je eigen save); de host zet zijn eigen kopie bij je neer en
-// de anderen zien hem met het echte model, de kleur en de deuken (#428).
+// Samen spelen (#449): bezorgen in de wereld van de gastheer. De eigen auto,
+// boot of heli blijft thuis (in je eigen save); de host zet zijn eigen kopie bij
+// je neer en de anderen zien hem met het echte model, de kleur en de deuken
+// (#428). Een boot komt in het water naast je, de heli op open grond: daar
+// vliegt hij niet, hij staat er.
 function bezorgInSessie(world, e) {
   const short = e.hero ? 'Escapade' : e.model;
   if (world.pigeonMode) return { ok: false, text: 'Duiven krijgen geen auto bezorgd' };
   if (world.player.inVehicle) return { ok: false, text: 'Stap eerst uit je voertuig' };
-  if (e.spec.kind === 'boat' || e.spec.kind === 'heli') return { ok: false, text: 'Je boot en de helikopter kun je nog niet meenemen naar een ander' };
   const wait = Math.ceil(lastDeliveryAt + DELIVERY_COOLDOWN - world.time);
   if (wait > 0) return { ok: false, text: `De bezorger is nog onderweg met de vorige. Probeer het over ${wait} s` };
   if (world.money < e.fee) return { ok: false, text: `Te weinig geld: afleveren kost ${e.feeLabel}` };
