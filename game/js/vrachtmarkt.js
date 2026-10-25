@@ -113,3 +113,12 @@ export function contractLoon(contract) {
 const tijd = (v) => clamp(Math.round(getal(v)), 0, TIJD_MAX);
 export const laadTijd = (contract) => tijd(contract && contract.laadSeconden);
 export const losTijd = (contract) => tijd(contract && contract.losSeconden);
+
+// Samen spelen (#492): de bijrijder helpt bij het laden en het lossen. Elke keer E gaat
+// er een vaste stap van de resterende tijd af, nooit onder nul; 0 blijft 0 (dan is de
+// fase al klaar en rondt de baan hem zelf af). Het tempo begrenst coopbijbaan.js
+// (ACTIE_WACHT_S); de lading, de time-out en het loon blijven buiten dit sommetje.
+export const HELP_STAP_S = 1.5;
+export function helpLaadTijd(left, stap = HELP_STAP_S) {
+  return Math.max(0, Math.max(0, getal(left)) - Math.max(0, getal(stap)));
+}

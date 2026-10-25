@@ -12,6 +12,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Over staat in het pauzemenu.** Nieuws, credits, versie en licenties staan nu onder Esc › Over, ook nu het hoofdmenu weg is.
 - **Eenmalige hint over Samen spelen.** Na je eerste missie zie je één keer waar je Samen spelen vindt; daarna nooit meer.
 - **Milder startbudget en flitswaarschuwing.** Je begint met €500; de eerste keer bij een flitspaal krijg je een waarschuwing, daarna een boete van €10-25. De camera flitst pas vanaf 35 km/u boven de limiet.
+- **Vluchtdienst bij Eelde.** De rondvlucht betaalt nu per medaille (€18/€28/€40) en de toren geeft één vertrek- en één naderingsregel.
+- **Vracht samen.** Een gast kan de vrachtbaan met E aanvragen, als bijrijder meerijden en met E laden en lossen versnellen; iedere deelnemer krijgt het volle loon.
 - **Reeksen in het gevecht.** De tweede slag binnen een seconde doet meer schade, de derde nog meer; een misser of een wapenwissel zet de reeks terug.
 - **Treinpassagiers.** Een machinistendienst telt nu echte reizigers: ze stappen per halte in en uit, betalen een kaartje en staan op het bord.
 - **Dagprijzen op de boerderij.** Elk gewas heeft per speldag een eigen prijs, hooguit twintig procent boven of onder de basis; je verkoopt tegen de prijs van de dag dat je aflevert.

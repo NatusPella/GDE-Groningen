@@ -40,6 +40,9 @@ t('elke bijbaan uit de code heeft een status; de coöp-bijbanen en de bus werken
   for (const id of ids) assert.ok(S.samenStatus('bijbaan', id), 'bijbaan zonder status: ' + id);
   for (const id of Object.keys(BIJBAAN_REGELS)) assert.equal(S.samenStatus('bijbaan', id), 'werkt', id);
   assert.equal(S.samenStatus('bijbaan', 'bus'), 'werkt');
+  // #492: de vrachtbijbaan werkt samen met een bijrijder; de status volgt de regel in coopbijbaan.js
+  assert.equal(BIJBAAN_REGELS.vracht.rol, 'bijrijder');
+  assert.equal(S.samenStatus('bijbaan', 'vracht'), 'werkt');
   for (const id of ['boerderij', 'rondvaart', 'tjalke']) assert.equal(S.samenStatus('bijbaan', id), 'nee', id);
   for (const [id, st] of Object.entries(S.REGISTER.bijbaan)) if (st === 'werkt') assert.ok(id in BIJBAAN_REGELS || id === 'bus', 'werkt zonder coöp-regel: ' + id);
 });

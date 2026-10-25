@@ -34,12 +34,12 @@ const STAP = {
 // Een missie zonder stappen (missions.js, def.type): de soort zelf telt
 const MISSIE_SOORT = { checkpoint: DEELS, deliver: DEELS, fatbike: DEELS, stunt: DEELS, boat: NEE };
 
-// Bijbanen (sidejobs.js, job.id): taxi, bezorgen, krantenwijk (coopbijbaan.js) en de bus (buscoop.js) zijn samen te doen
+// Bijbanen (sidejobs.js, job.id): taxi, bezorger, krantenwijk en vracht (coopbijbaan.js) en de bus (buscoop.js) zijn samen te doen
 const BIJBAAN = {
-  taxi: WERKT, bezorger: WERKT, krantenwijk: WERKT, bus: WERKT,
+  taxi: WERKT, bezorger: WERKT, krantenwijk: WERKT, vracht: WERKT, bus: WERKT,
   boerderij: NEE, // de trekker
   rondvaart: NEE, rondvaarttour: NEE, veerdienst: NEE, tjalke: NEE,
-  bietenoogst: NEE, boa: NEE, cabaret: NEE, fietsdepot: NEE, lijn: NEE, rechtbank: NEE, snackoverlast: NEE, verhuizing: NEE, vracht: NEE,
+  bietenoogst: NEE, boa: NEE, cabaret: NEE, fietsdepot: NEE, lijn: NEE, rechtbank: NEE, snackoverlast: NEE, verhuizing: NEE,
 };
 
 // Activiteiten (activities.js, LIST): coöp-wedstrijden (registreerWedstrijd) en de lokale activiteiten van een gast (GAST_ACTIVITEITEN)
