@@ -61,6 +61,13 @@ if (typeof CS.animalTarget !== 'function') { console.log(`${n} checks, ${fails} 
   }
   ok(picks > 300, 'the herd keeps grazing: most tries find a spot in the pasture', String(picks));
   ok(hits === 0, 'the wander target never lands on the carriageway', `${hits} of ${picks}`);
+
+  // a car comes from the road on the left and the cow bolts: not into the lane
+  ok(typeof CS.fleeDirection === 'function', 'the generator picks a flee direction with a clearance rule (fleeDirection)');
+  if (typeof CS.fleeDirection === 'function') {
+    const [fx] = CS.fleeDirection(a, -1, 0, clear);
+    ok(!onRoad(a.x + fx * 10), 'a scared animal runs away from the road, not into the lane', String(fx.toFixed(2)));
+  }
 }
 
 const out = new URL('../game/world/', import.meta.url);
