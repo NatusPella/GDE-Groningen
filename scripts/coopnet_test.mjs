@@ -401,4 +401,15 @@ t('een wereld zonder speler (#450): de gastheer draait koploos, de gasten spelen
   N.stopCoopNet(hw); step(2);
   for (const g of gs) assert.equal(g.gw.coopNet, null);
 });
+t('het trekbericht (#459): alleen de host luistert, en zonder iemand bij een deur gaat het gewone gebruik door', () => {
+  const s = sessie(1); s.step(2);
+  const hw = s.hw;
+  assert.equal(N.handleEvent(s.gs[0].gw, { k: 'trek' }, 1), false, 'een gast luistert er niet naar');
+  assert.equal(N.handleEvent(hw, { k: 'trek' }, 0), false, 'de gastheer luistert niet naar zijn eigen bericht');
+  assert.equal(N.handleEvent(hw, { k: 'trek' }, 1), true, 'de host probeert het en valt terug op het gewone E-pad');
+  assert.equal(hw.coopGebruik, true, 'niets te trekken: als bijrijder in- of uitstappen');
+  assert.equal(N.handleEvent(hw, { k: 'trek', x: 9e9, rol: '<script>' }, 1), true, 'vreemde velden doen niets: de host rekent met zijn eigen lichaam');
+  assert.equal(N.handleEvent(hw, { k: 'gebruik' }, 1), true, 'het oude bericht blijft werken');
+  assert.equal(N.gastGebruik(s.gs[0].gw), true, 'de gast stuurt zijn E als trekbericht');
+});
 console.log(`coopnet_test: ${n}/${n} ok`);

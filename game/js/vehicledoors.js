@@ -229,6 +229,28 @@ export function trekPunt(v, x, y, { rol = 'bijrijder', bereik = TREK_BEREIK } = 
   return Math.hypot(x - wx, y - wy) <= bereik ? { deur: d, rol: d.seat || rol, x: wx, y: wy } : null;
 }
 
+// Welke passagier je bij deze deur kunt vastpakken (#459): het dichtstbijzijnde
+// stilstaande voertuig op hetzelfde niveau met een bijrijders- of achterdeur binnen
+// bereik waar iemand zit. heeft(v, rol) zegt of die stoel bezet is (de aanroeper kent de
+// bezetting: occupants.js en de medespelers). De eigen speler kiest in player.js dezelfde
+// deur; een gast vraagt het via coopnet.js en de host gebruikt deze regel.
+// Geeft { v, rol, deur, afstand, x, y } of null.
+export function trekKandidaat(voertuigen, x, y, { niveau = null, bereik = TREK_BEREIK + 0.4, heeft = null } = {}) {
+  let best = null;
+  for (const v of voertuigen || []) {
+    if (!v || !v.model || v.wrecked || v.sinking || v.disabled) continue;
+    if (niveau != null && Math.abs((v.z || 0) - niveau) > 2) continue;
+    if (Math.abs(v.speed || 0) > TREK_SPEED) continue;
+    if (Math.hypot((v.x || 0) - x, (v.y || 0) - y) > (v.halfLen || 3) + bereik + 2) continue; // ver weg: geen deur om te proberen
+    const d = deurBijSpeler(v, x, y, bereik);
+    if (!d || (d.rol !== 'bijrijder' && d.rol !== 'achter')) continue;
+    if (heeft && !heeft(v, d.rol)) continue;
+    const afstand = Math.hypot(d.x - x, d.y - y);
+    if (!best || afstand < best.afstand) best = { v, rol: d.rol, deur: d.deur, afstand, x: d.x, y: d.y };
+  }
+  return best;
+}
+
 // De instap- en uitstapanimatie is uit te zetten in Instellingen (Toegankelijkheid):
 // dan staat de speler meteen op zijn stoel, zonder deur- en stapbeweging (#459).
 export const stapAnimatieAan = (st) => !st || st.stapAnimatie !== false;
