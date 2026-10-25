@@ -624,18 +624,28 @@ export function createStage(opts = {}) {
 
 // ---- contract met cutscript.js (cutscenehost): per mesh een eigen acteur ----------------------
 // De host zet positie en rotatie; deze functie poseert alleen botten (kop, romp, ledematen).
+// Met o.rol deelt een rol zijn staat met zijn kopieën (#434); met o.verberg blijft een
+// tweede kopie van een rol onzichtbaar in plaats van mee te bewegen.
 export const ANIMS = ['idle', 'walk', 'run', 'talk', 'wave', 'point', 'shrug', 'nod', 'shake', 'laugh', 'carry', 'lean', 'hips', 'phone', 'cheer', 'look', 'ride', 'zwem', 'klim', 'sprong'];
 const LOOPED = { wave: 'zwaai', point: 'wijs', shrug: 'schouders', nod: 'knik', shake: 'schud', laugh: 'lach', cheer: 'juich' };
 const meshActors = new WeakMap();
+// (#434) Eén acteurstaat per rol in een scène: staat een rol er twee keer in, of krijgt
+// hij tussen twee bedrijven een nieuw model, dan begint hij niet met een eigen, net
+// begonnen beweging mee te lopen. Zo beweegt de metgezel als één persoon.
+const rolActors = new Map();
+export function beginSceneActors() { rolActors.clear(); }
 
 export function animateActor(mesh, o = {}) {
   const ud = mesh && mesh.userData;
   if (!ud || !ud.pelvis) return false;
-  let a = meshActors.get(mesh);
+  // (#434) een tweede kopie van dezelfde rol in dezelfde scène: niet tekenen en niet poseren
+  if (o.verberg) { mesh.visible = false; return true; }
+  const rol = typeof o.rol === 'string' && o.rol ? o.rol : null;
+  let a = rol ? rolActors.get(rol) : meshActors.get(mesh);
   if (!a) {
     a = createActor('mesh', { seed: finite(ud.lookSeed, Math.random()) });
     a.stance.next = 1e9;
-    meshActors.set(mesh, a);
+    if (rol) rolActors.set(rol, a); else meshActors.set(mesh, a);
   }
   const anim = ANIMS.includes(o.anim) ? o.anim : 'idle';
   const speed = Math.max(0, finite(o.speed));

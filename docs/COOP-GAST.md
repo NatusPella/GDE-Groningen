@@ -29,6 +29,11 @@ persoonsnamen (constitutie 10); de kleur komt uit een vaste set (`PROFIEL_KLEURE
 figuur in de spelerslijst (Tab) en in het spelersoverzicht; de andere verhaalrol (Tessa als jij Tammo bent, of andersom)
 is in jouw beeld een computerfiguur die één keer in de wereld staat.
 
+In een verhaalscène tekent het spel elke rol één keer (`coopcut.js` `cutsceneVerdeling`): de rol die jij speelt, en de
+andere verhaalrol als metgezel. Een tweede kopie van dezelfde rol in een scène wordt niet getekend, en de online-avatars
+van de andere spelers staan tijdens de hele scène uit beeld, ook tussen twee bedrijven van dezelfde scène (de opening
+bestaat uit drie bedrijven). Zo loopt er geen dubbel persoon "gek mee" door de scène heen.
+
 Iedereen begint op **passief**: medespelers doen je geen schade en jij doet hun niets, tot jullie allebei de passieve
 stand uitzetten (zie "Passieve stand en spelers tegen elkaar", #447). Wie meedoet krijgt de stap in zijn eigen verhaal en
 de volledige beloning (#429).
