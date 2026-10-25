@@ -1,11 +1,13 @@
 // Eigen boerderij (#415): de haken van het spel naar boerderij.js. Houdt de boerderij van deze speler bij in de eigen opslag
 // (gde-boerderij-v1, los van elke savegame, net als de loopbaan), telt de speluren mee uit de klok van het spel, betaalt huur,
 // zaaigoed en machines uit het geld van de speler en verkoopt de oogst met de loonfactor van het vak Landbouw. Geen DOM en geen THREE
-// (scripts/boerderij_live_test.mjs).
+// (scripts/boerderij_live_test.mjs). De leveringscontracten (#492) leven in dezelfde stand: de klok laat ze verlopen en een
+// geslaagde verkoop of aflevering telt de kilo's mee; de bonus gaat via loopbaanVerdien, nooit met world.money +=.
 //
-// Samen spelen: de boerderij is van wie speelt, op zijn eigen apparaat. Een gast draait updateGameplay niet, dus zijn gewassen groeien
-// niet terwijl hij in de wereld van een ander meespeelt; ze wachten op hem. Wat wie het spel opende verdient met een verkoop deelt hij
-// zoals alle verdiensten met de gasten (loopbaanVerdien).
+// Samen spelen: de boerderij is van wie speelt, op zijn eigen apparaat. Een gast ziet zijn gewassen en contracten met de klok van de
+// host meelopen (boerderijTijd op het gastpad, #471); verkopen en afleveren doet hij in zijn eigen spel, want in de wereld van de
+// ander kan dat niet (boerderijui.js verbergt de loonwerker-leverknop voor een gast). De bonus van een contract is van de eigen boerderij
+// en gaat niet naar de gasten van de sessie (deel: false); de gewone verkoop deelt zoals alle verdiensten.
 
 import { KEYS } from './storagekeys.js';
 import { noteMoney } from './finance.js';
@@ -13,6 +15,8 @@ import { loopbaanVerdien, loopbaanTel } from './loopbaanlive.js';
 import * as B from './boerderij.js';
 import * as PC from './percelen.js';
 import * as M from './machines.js';
+import * as CT from './boerderijcontracten.js';
+import { dagVan } from './gewasmarkt.js';
 
 const SCHRIJF_VERTRAGING_MS = 2000;
 export const VAK = 'landbouw';
@@ -29,12 +33,20 @@ const opslag = () => {
   try { return typeof localStorage !== 'undefined' ? localStorage : null; } catch (e) { return null; }
 };
 
+// Het boerderijzaad van een verse boerderij: uit de klok, één keer, en daarna bewaard. De regels zelf blijven puur.
+const nieuwZaad = () => (typeof Date !== 'undefined' ? Math.floor(Date.now() / 1000) % 0x7fffffff : CT.ZAAD);
+
 export function getBoerderij() {
   if (!boer) {
     const st = opslag();
     let raw = null;
     try { raw = st ? st.getItem(KEYS.boerderij) : null; } catch (e) { raw = null; }
     boer = raw == null ? B.nieuweBoerderij() : B.normaliseer(raw);
+    // een nieuwe boerderij kiest een eigen zaad voor het contractenaanbod: niet elke speler ziet dezelfde contracten.
+    // Daarna staat het vast in de stand, dus dezelfde boerderij houdt hetzelfde aanbod (boerderijcontracten.js is puur).
+    if (raw == null) { boer.contracten = CT.leeg(nieuwZaad(), 0); vuil = true; }
+    // de tijd stond stil: een contract waarvan de uiterste tijd intussen voorbij is, is dat nu ook (en kost niets)
+    else if (CT.verval(boer.contracten, boer.uren).verlopen.length) vuil = true;
   }
   return boer;
 }
@@ -79,7 +91,10 @@ export function boerderijTijd(w, nu = w && w.time) {
   }
   vorigeKlok = klok;
   if (uren > 0) {
-    B.tikUren(getBoerderij(), uren);
+    const b = getBoerderij();
+    B.tikUren(b, uren);
+    CT.ververs(b.contracten, dagVan(b.uren));                  // een nieuwe speldag: een nieuw aanbod
+    meldVerlopen(w, CT.verval(b.contracten, b.uren).verlopen);  // te laat is te laat, zonder boete
     huurTik(w);
     vuil = true;
     if (Number.isFinite(nu) && nu - laatsteSchrijf > 60) { laatsteSchrijf = nu; markeer(); }
@@ -145,8 +160,57 @@ export function leverAf(w, kwaliteit) {
   const r = B.lever(b, kwaliteit);
   if (!(r.kg > 0)) return { ...r, betaald: 0 };
   const betaald = loopbaanVerdien(w, VAK, r.bedrag, { xp: 14, n: 1, uniek: r.gewas, rubriek: 'Overig inkomsten' });
+  const contract = verwerkLevering(w, b, r);
   markeer();
-  return { ...r, betaald };
+  return { ...r, betaald, contract };
+}
+
+// --- leveringscontracten (#492) ------------------------------------------------------
+
+const contractTekst = (c) => `${Math.round(c.kg)} kg ${B.GEWASSEN[c.gewas].naam.toLowerCase()}`;
+
+// Een contract waarvan de tijd om is: uit de actieve lijst, de historie in, en een melding. Er gaat geen geld af.
+function meldVerlopen(w, lijst) {
+  if (!w || typeof w.addMessage !== 'function') return;
+  for (const c of lijst || []) w.addMessage(`Contract verlopen: ${contractTekst(c)}. Dat kost je niets.`, 4.5, { kind: 'tip', key: 'contract-verlopen-' + c.id });
+}
+
+// De kilo's van een geslaagde verkoop of aflevering tellen mee voor een actief contract van dat gewas. Een afgerond
+// contract betaalt zijn bonus via dezelfde haak als de verkoop (loopbaanVerdien): nooit met world.money +=, en met de
+// loonfactor van het vak Landbouw. Geeft wat er met de contracten gebeurde (het scherm en de tests lezen het).
+function verwerkLevering(w, b, r) {
+  const oud = CT.verval(b.contracten, b.uren);                  // wat al te laat was, telt niet meer mee
+  const uit = CT.lever(b.contracten, r.gewas, r.kg, b.uren);
+  let betaald = 0;
+  if (uit.bonus > 0) {
+    // De bonus is van deze boerderij: niet naar de gasten van een sessie delen (#492).
+    betaald = loopbaanVerdien(w, VAK, uit.bonus, { xp: 24, n: 1, deel: false, rubriek: 'Overig inkomsten' });
+    if (betaald > 0) { B.boek(b, { omzet: betaald }); b.totaal.omzet += betaald; }
+  }
+  if (uit.kg > 0 || uit.afgerond.length || oud.verlopen.length) markeer();
+  if (w && typeof w.addMessage === 'function') {
+    for (const c of uit.afgerond) w.addMessage(`Contract voldaan: ${contractTekst(c)} geleverd, bonus €${betaald}.`, 5, { kind: 'geld', key: 'contract-klaar-' + c.id });
+  }
+  meldVerlopen(w, oud.verlopen);
+  return { ...uit, verlopen: oud.verlopen, betaald };
+}
+
+// Het aanbod van vandaag, de actieve contracten en de historie, voor het Gewas-tabblad (boerderijui.js). Een contract waarvan
+// de tijd om is, staat hier al als verlopen en niet meer als lopend.
+export function contracten() {
+  const b = getBoerderij();
+  CT.ververs(b.contracten, dagVan(b.uren));
+  if (CT.verval(b.contracten, b.uren).verlopen.length) markeer();
+  return { dag: b.contracten.dag, uren: b.uren, aanbod: b.contracten.aanbod, actief: b.contracten.actief, historie: b.contracten.historie };
+}
+
+// Een contract aannemen: geen geld en geen nieuwe opslagsleutel, het staat in de boerderijstand. { ok, contract } of { ok: false, reden }.
+export function neemContract(id) {
+  const b = getBoerderij();
+  CT.ververs(b.contracten, dagVan(b.uren));
+  const r = CT.neemAan(b.contracten, id, b.uren);
+  if (r.ok) markeer();
+  return r;
 }
 
 export function koopMachine(w, id) {
@@ -332,9 +396,10 @@ export function loonwerkAfleveren(w) {
   if (!(r.kg > 0)) return { ok: false, reden: 'De schuur is leeg.' };
   const fee = Math.round(r.bedrag * M.LOONWERK_AFLEVEREN);
   const betaald = loopbaanVerdien(w, VAK, r.bedrag - fee, { xp: 4, n: 1, uniek: r.gewas, rubriek: 'Overig inkomsten' });
+  const contract = verwerkLevering(w, b, r);
   B.uitgaven(b, fee, 'loonwerk', null);
   markeer();
-  return { ok: true, ...r, fee, betaald };
+  return { ok: true, ...r, fee, betaald, contract };
 }
 
 // Een lading van de aanhanger bij de afnemer: verkopen met de loonfactor van Landbouw. vracht: { gewas, kg, kwaliteit, veld }.
@@ -343,8 +408,9 @@ export function leverLading(w, vracht, kwaliteit = 1) {
   const r = B.leverVracht(b, vracht, kwaliteit);
   if (!(r.kg > 0)) return { ...r, betaald: 0 };
   const betaald = loopbaanVerdien(w, VAK, r.bedrag, { xp: 14, n: 1, uniek: r.gewas, rubriek: 'Overig inkomsten' });
+  const contract = verwerkLevering(w, b, r);
   markeer();
-  return { ...r, betaald };
+  return { ...r, betaald, contract };
 }
 
 // De bank (Boerenbank Noordhoek, verzonnen): een kleine lening en aflossen.

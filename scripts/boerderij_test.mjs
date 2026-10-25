@@ -301,6 +301,85 @@ t('verkopen: met de loonfactor van Landbouw, de gasten krijgen hun deel, en mach
   Live.zetBoerderijVoorTest(null, null); LL.zetProfielVoorTest(null, null);
 });
 
+t('contracten: de bonus loopt via de bestaande haak, één keer, en een deellevering telt in kg (#492)', () => {
+  Live.zetBoerderijVoorTest(null, nepOpslag());
+  LL.zetProfielVoorTest(null, nepOpslag());
+  const p = LL.getProfiel(); p.vakken.landbouw.xp = 950; LL.zetProfielVoorTest(p, nepOpslag());  // niveau 6: de loonfactor van het vak telt mee
+  const w = nepWereld(0);
+  const b = Live.getBoerderij();
+  const a = Live.contracten().aanbod.find((x) => x.gewas === 'bieten');
+  assert.equal(Live.neemContract(a.id).ok, true);
+  assert.equal(Live.neemContract(a.id).ok, false, 'hetzelfde contract twee keer aannemen kan niet');
+  assert.equal(Live.contracten().actief.length, 1);
+  // een deellevering: de kilo's tellen, de bonus komt pas als de vracht vol is
+  const half = Math.floor(a.kg / 2);
+  b.schuur = { gewas: 'bieten', kg: half, kwaliteit: 1 };
+  const eerste = Live.leverAf(w, 1);
+  assert.equal(eerste.contract.kg, half);
+  assert.equal(eerste.contract.bonus, 0);
+  assert.equal(eerste.contract.betaald, 0);
+  assert.equal(w.money, eerste.betaald, 'alleen de verkoop, nog geen bonus');
+  assert.equal(Live.contracten().actief[0].geleverd, half);
+  // de rest: de bonus erbij, via loopbaanVerdien (dus met de loonfactor van het vak), nooit met world.money +=
+  b.schuur = { gewas: 'bieten', kg: a.kg - half, kwaliteit: 1 };
+  const rest = Live.leverAf(w, 1);
+  assert.equal(rest.contract.afgerond.length, 1);
+  assert.ok(rest.contract.betaald > rest.contract.bonus, 'de bonus gaat met de loonfactor van het vak, via loopbaanVerdien');
+  assert.equal(w.money, eerste.betaald + rest.betaald + rest.contract.betaald);
+  assert.ok(w.msgs.some((m) => /Contract voldaan/.test(m.x)), 'de speler hoort dat het contract klaar is');
+  assert.equal(LL.getProfiel().vakken.landbouw.xp > 0, true);
+  assert.equal(Live.contracten().actief.length, 0);
+  assert.equal(Live.contracten().historie.filter((c) => c.resultaat === 'klaar').length, 1);
+  // nog eens hetzelfde gewas leveren betaalt niets meer: geen dubbele afronding
+  b.schuur = { gewas: 'bieten', kg: 500, kwaliteit: 1 };
+  const na = Live.leverAf(w, 1);
+  assert.equal(na.contract.betaald, 0); assert.equal(na.contract.bonus, 0);
+  assert.equal(w.money, eerste.betaald + rest.betaald + rest.contract.betaald + na.betaald);
+  assert.equal(Live.getBoerderij().contracten.historie.filter((c) => c.resultaat === 'klaar').length, 1);
+  Live.zetBoerderijVoorTest(null, null); LL.zetProfielVoorTest(null, null);
+});
+
+t('contracten: bij het tikken van de speltijd verloopt een contract zonder boete (#492)', () => {
+  Live.zetBoerderijVoorTest(null, nepOpslag());
+  LL.zetProfielVoorTest(null, nepOpslag());
+  const w = nepWereld(1000);
+  const b = Live.getBoerderij();
+  const a = Live.contracten().aanbod[0];
+  assert.equal(Live.neemContract(a.id).ok, true);
+  b.uren = a.deadlineUren + 1;                     // de uiterste tijd is voorbij
+  w.clock = 8; Live.boerderijTijd(w);               // de eerste tik kent de klok nog niet
+  w.clock = 9; Live.boerderijTijd(w);               // en nu tikt de tijd
+  assert.equal(Live.contracten().actief.length, 0);
+  assert.equal(Live.contracten().historie.length, 1);
+  assert.equal(Live.contracten().historie[0].resultaat, 'verlopen');
+  assert.equal(w.money, 1000, 'verlopen kost niets');
+  assert.ok(w.msgs.some((m) => /Contract verlopen/.test(m.x)));
+  Live.zetBoerderijVoorTest(null, null); LL.zetProfielVoorTest(null, null);
+});
+
+t('contracten: een oude opslag zonder contracten werkt en de roundtrip blijft stabiel (#492)', () => {
+  const oud = { v: 1, uren: 30, keuze: 'bieten', veld: { fase: 'braak' } };
+  const b = B.normaliseer(oud);
+  assert.equal(b.contracten.dag, 1);
+  assert.deepEqual(b.contracten.actief, []);
+  assert.deepEqual(b.contracten.historie, []);
+  assert.equal(b.contracten.aanbod.length, B.GEWAS_IDS.length);
+  assert.deepEqual(B.normaliseer(JSON.parse(JSON.stringify(b))), b);
+  // een contract dat buiten het spel te laat werd, is bij het laden meteen verlopen (en kost niets)
+  const teLaat = { v: 1, uren: 500, contracten: { zaad: 4, dag: 20, actief: [{ id: 'contract-20-bieten', gewas: 'bieten', kg: 100, geleverd: 0, bonus: 10, bonusPerKg: 0.1, aangenomen: 0, deadline: 400 }] } };
+  Live.initBoerderij({ opslag: nepOpslag({ [KEYS.boerderij]: JSON.stringify(teLaat) }) });
+  assert.equal(Live.contracten().actief.length, 0, 'de tijd liep door terwijl het spel dicht was');
+  assert.equal(Live.contracten().historie.at(-1).resultaat, 'verlopen');
+  assert.equal(Live.contracten().historie.at(-1).bonus, 10);
+  // en de haken spelen gewoon: het aanbod staat klaar en een verkoop gaat door
+  Live.zetBoerderijVoorTest(oud, nepOpslag());
+  assert.equal(Live.contracten().aanbod.length, B.GEWAS_IDS.length);
+  const w = nepWereld(0);
+  Live.getBoerderij().schuur = { gewas: 'bieten', kg: 100, kwaliteit: 1 };
+  assert.ok(Live.leverAf(w, 1).bedrag > 0);
+  Live.zetBoerderijVoorTest(null, null);
+});
+
 t('opslag: de eigen sleutel, geen savegame, een kapotte opslag geeft een lege boerderij, vol of geblokkeerd breekt niets', () => {
   assert.equal(BASE_KEYS.boerderij, 'gde-boerderij-v1'); assert.equal(KEYS.boerderij, 'gde-boerderij-v1');
   for (const [k, v] of Object.entries(KEYS)) if (k !== 'boerderij') assert.notEqual(v, KEYS.boerderij);
