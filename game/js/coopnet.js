@@ -330,7 +330,7 @@ export function startHost(world, info, opts = {}) {
   world.coopBijbaanHostMee = () => bijbaanHostMee(world); // doet de host mee met deze baan? Zo niet, geen loon voor hem (#452)
   world.coopHelpers = () => bijbaanHelpers(world); // waar de meespelers staan, voor ophalen en afgeven te voet
   world.coopVraag = (soort, tekst, naAkkoord, naNee) => stemStart(world, soort, tekst, naAkkoord, naNee); // een tijdsprong vraagt akkoord van alle anderen (#452)
-  world.coopSchade = (slot, schade) => hub.announce({ k: 'schade', n: Math.round(Number(schade) || 0) }, slot); // een kogel van de politie raakt een gast (#434)
+  world.coopSchade = (slot, schade, soort = null) => hub.announce({ k: 'schade', n: Math.round(Number(schade) || 0), ...(soort === 'trein' ? { z: 'trein' } : {}) }, slot); // een kogel van de politie of een trein raakt een gast (#434)
   // De gastheer gaat neer of wordt opgepakt: loopt de opdracht dan door? Ja zolang een meespeler (die ja zei, verbonden en niet neer) nog staat (#452).
   world.coopOpdrachtDoor = () => { const n = world.coopNet; if (!n || n.role !== 'host') return false; return !teamDown(meedoendeStatus(world, n)); };
   world.coopMeespelers = (id) => { const n = world.coopNet; return n && n.role === 'host' && n.meedoen ? meedoendeStaan(world, n, id) : null; }; // wie de verhaalstappen meetellen, per groep (#452)
@@ -977,7 +977,9 @@ export function handleEvent(world, body, van = 0) {
     case 'schade': { // een kogel van de politie raakte jou in het spel van de host: de schade is van jou, je valt hierdoor niet om (#434)
       if (!n || n.role !== 'client' || !Number.isFinite(body.n)) return false;
       if (body.door !== undefined) return pvpGastRaak(world, body, (n.session && n.session.slot) || 1); // een medespeler raakte jou: wel neergaan, zonder kosten (#447)
-      let d = Math.max(0, Math.min(30, body.n));
+      // een trein slaat harder dan een kogel: daar telt de hele klap (67 bij 12 m/s), bij een kogel hoogstens 30 per bericht
+      const max = body.z === 'trein' ? 100 : 30;
+      let d = Math.max(0, Math.min(max, body.n));
       if ((world.armor || 0) > 0) { const a = Math.min(world.armor, d); world.armor -= a; d -= a; }
       world.health = Math.max(1, (world.health === undefined ? 100 : world.health) - d);
       return true;
