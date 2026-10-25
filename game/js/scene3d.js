@@ -90,7 +90,7 @@ import { computeLighting } from './daynight.js';
 import { createPostFX } from './postfx3d.js';
 import { noteGfxEvent, watchContext } from './blackframe.js';
 import { spawnExplosionFx, setFxCamera } from './fx3d.js';
-import { litFraction, moonPhase, STAR_SHARE } from './nightrules.js';
+import { litFraction, moonPhase, STAR_SHARE, foliageGlow } from './nightrules.js';
 import { qualityLook } from './weatherlook.js';
 import { buildCloudLayer, updateCloudLayer } from './cloud3d.js';
 import { initNightLights, setNightLightQuality, updateNightLights, isLightRigOn, setLightRigVisible } from './nightlights3d.js';
@@ -1543,7 +1543,9 @@ function limitActorShadows(cache, px, py) {
 // Trees by species (greenery.js: crown shape, height, leaf and bark colour).
 // The instanced trees take their colours per instance; leaves let light
 // through: a little emissive fill keeps canopies from turning into black
-// blobs at dusk and in shade.
+// blobs at dusk and in shade. That fill is the one part of a crown the sun
+// does not dim, so applyTimeOfDay fades it with nightrules.foliageGlow (#463):
+// in the dark a crown is as dark as the street, never a green glow.
 const TREE_TRUNK_MAT = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9, flatShading: true });
 const TREE_CANOPY_MAT = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.85, flatShading: true, emissive: new THREE.Color(0x56844a).multiplyScalar(0.09) });
 const TREE_TRUNK_GEO = new THREE.CylinderGeometry(0.14, 0.22, 1, 6).translate(0, 0.5, 0);
@@ -3958,6 +3960,8 @@ function applyTimeOfDay(dt, world) {
   renderer.toneMappingExposure = L.exp;
   setStarOpacity(skyDome, L.night * (1 - cover));
   setNightFactor(1.5 * L.night, litFraction('wonen', L.hour), litFraction('winkel', L.hour), litFraction('kantoor', L.hour));
+  // the leaves' emissive fill fades with the same night as the windows (#463)
+  TREE_CANOPY_MAT.emissiveIntensity = foliageGlow(L.night);
   farLod.setNight(1.5 * L.night, litFraction('wonen', L.hour));
   setCountryNight(1.5 * L.night, litFraction('wonen', L.hour));
   scene.fog.near = lightBase.fogNear;
