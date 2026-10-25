@@ -12,6 +12,8 @@ import { updateMachinist, endService, doorsAreOpen, deadmanHit, serviceRunning, 
 import { newCab, stepCab, cabCtl } from './treincabine.js';
 import { trainLayout, hasInterior, carPoint, walkMove, driverEye, cabDoorSpot, inCabZone, doorNear, WALK_SPEED } from './treinlayout.js';
 import { uitslagUitPunten } from './simdienst.js';
+import { currentStation } from './stationlife.js';
+import { perronStop, isKaartjesknipper } from './kaartjescontrole.js';
 
 const WALK_YAW_RATE = 1.8;   // rad/s met de pijltjes links en rechts
 const MOUSE_YAW = 0.0025;    // rad per pixel, zoals de volgcamera
@@ -80,7 +82,9 @@ export function trainPrompt(world) {
     const door = doorNear(cl, walk.lx, walk.lz);
     if (door) {
       const ok = t.v < DOOR_STAND_V && t.doorsOpen;
-      return { id: 'trein-rijden', x: car.x, y: car.y, h: (car.z || 0) + PANEEL_H, key: 'E', label: 'Uitstappen', sub: ok ? 'De deuren staan open' : t.v >= DOOR_STAND_V ? 'Wacht tot de trein stilstaat' : 'De deuren zijn dicht: druk O', ring: true, dim: !ok };
+      // bij een open deur op een perron zegt de tip meteen wat je als Kaartjesknipper kunt doen (#437)
+      const knip = ok && isKaartjesknipper() && !!perronStop(t, currentStation(), world.time);
+      return { id: 'trein-rijden', x: car.x, y: car.y, h: (car.z || 0) + PANEEL_H, key: 'E', label: 'Uitstappen', sub: ok ? (knip ? 'De deuren staan open: controleer de kaartjes op het perron' : 'De deuren staan open') : t.v >= DOOR_STAND_V ? 'Wacht tot de trein stilstaat' : 'De deuren zijn dicht: druk O', ring: true, dim: !ok };
     }
     if (walk.car === cabIndex(t) && Math.abs(walk.lx - cl.bulkhead) < 1.6) return { id: 'trein-cabine', x: car.x, y: car.y, h: (car.z || 0) + PANEEL_H, key: 'T', label: 'Naar de cabine', sub: 'Aan de knoppen', ring: true };
     return null;
@@ -161,6 +165,10 @@ export function quitTrainDrive(world) {
 // fromCar: de wagen waaruit de speler stapt (een deur van een andere wagen dan de cabine), met de voorkeurskant.
 function stopDriving(world, placeOutside, fromCar = null, prefSide = 1) {
   const t = world.trainDriving;
+  // sta je stil bij een perron, dan onthoudt de kaartjescontrole dat: een ronde daar is een conducteursronde met
+  // bonus, zo hangt het kaartjes knippen aan het stoppen met de trein (#437)
+  const stop = perronStop(t, currentStation(), world.time);
+  if (stop) world.perronStop = stop;
   world.trainDriving = null;
   world.trainCam = null;
   world.trainWalk = null;

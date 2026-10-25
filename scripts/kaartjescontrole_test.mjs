@@ -28,12 +28,14 @@ K.resetControle();
 zetNiveau(0);
 let w = maakWereld(0);
 ok(K.magControleren(w) === false && K.kaartjesPrompt(w, cur(8)) === null, 'niveau 1: geen kaartjescontrole');
+ok(K.isKaartjesknipper() === false, 'niveau 1 is geen Kaartjesknipper');
 zetNiveau(L.XP_DREMPELS[1]);
 ok(K.kaartjesPrompt(w, cur(8)) === null, 'niveau 2: nog niet');
 
 // Kaartjesknipper (niveau 3): prompt bij een reiziger op het perron
 zetNiveau(L.XP_DREMPELS[2]);
 ok(L.titelVan('trein', 3) === 'Kaartjesknipper' && K.magControleren(w), 'niveau 3 is Kaartjesknipper');
+ok(K.isKaartjesknipper() === true, 'en de trein weet dat ook');
 const tip = K.kaartjesPrompt(w, cur(8));
 ok(tip && tip.key === 'E' && tip.label === 'Kaartje controleren' && /1 van 5/.test(tip.sub), 'tip: E, Kaartje controleren, 1 van 5');
 ok(K.kaartjesPrompt(w, cur(1)) === null, 'één reiziger: geen opdracht');
@@ -69,5 +71,35 @@ w.player.x = plekken[7].x; w.player.y = plekken[7].y;
 ok(K.kaartjesPrompt(w, cur(8)) === null, 'na een ronde even rust');
 w.time += K.CONTROLE_PAUZE_S + 1;
 ok(K.kaartjesPrompt(w, cur(8)) !== null, 'na de pauze weer een ronde');
+
+// de ronde is een uitslag met een teller die aan het vak Spoor telt (#437): reizigers, rondes, het station erbij
+let stand = K.controleStand();
+ok(stand.rondes === 1 && stand.reizigers === 5, 'de teller telt vijf reizigers in een ronde');
+ok(stand.laatste && stand.laatste.station === 'Kropswolde' && stand.laatste.reizigers === 5 && stand.laatste.bonus === 0, 'de uitslag van de ronde');
+ok(LL.getProfiel().vakken.trein.uniek.includes('Kropswolde'), 'het station staat in de lijst van het vak Spoor');
+ok(stand.laatste.nieuw === true && w.msgs.some((m) => /vak Spoor/.test(m)), 'een nieuw station zegt het erbij');
+
+// een conducteursstop: je eigen trein stilstaand bij het perron (traindrive.js legt world.perronStop neer)
+ok(K.perronStop({ v: 0 }, cur(8), 500)?.station === 'Kropswolde', 'stilstaan bij het perron is een conducteursstop');
+ok(K.perronStop({ v: 12 }, cur(8), 500) === null, 'een rijdende trein is geen stop');
+ok(K.perronStop({ v: 0 }, { ...cur(8), d: K.PERRON_STOP_M + 5 }, 500) === null, 'te ver van het perron telt niet');
+ok(K.perronStop(null, cur(8), 500) === null, 'zonder trein geen stop');
+
+K.resetControle();
+w = maakWereld(0);
+w.time = 5000;
+w.perronStop = K.perronStop({ v: 0 }, cur(8), 5000);
+ok(K.conducteursbonus(w, 'Kropswolde') === true && K.conducteursbonus(w, 'Hoogkerk') === false, 'bonus alleen op dat perron');
+const xp2 = LL.getProfiel().vakken.trein.xp;
+for (let i = 0; i < 5; i++) {
+  w.player.x = plekken[i].x; w.player.y = plekken[i].y;
+  ok(K.controleer(w, cur(8)) === true, `conducteursronde: reiziger ${i + 1}`);
+}
+stand = K.controleStand();
+ok(stand.laatste.bonus === K.CONTROLE_BONUS && stand.laatste.betaald > K.CONTROLE_LOON, 'de conducteursbonus zit in de uitslag');
+ok(w.msgs.some((m) => /conducteursbonus/.test(m)), 'de melding noemt de conducteursbonus');
+ok(LL.getProfiel().vakken.trein.xp >= xp2 + 5 * K.CONTROLE_XP_PER + K.CONTROLE_XP + K.CONTROLE_BONUS_XP, 'extra punten voor de conducteursronde');
+w.time += K.CONTROLE_BONUS_S + 1;
+ok(K.conducteursbonus(w, 'Kropswolde') === false, 'na de bonusperiode telt hij niet meer');
 
 console.log(`kaartjescontrole_test: ${n}/${n} ok`);
