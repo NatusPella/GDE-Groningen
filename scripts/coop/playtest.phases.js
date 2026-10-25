@@ -263,7 +263,8 @@ window.__coopPhases = (c) => {
         const sl = await haal('slot-gast');
         const mm = noodMelding(); mm.length = 0;
         await esc(); await until(() => document.querySelector('.ra[data-goto="spel"]'), 8000, 'rail Spel'); document.querySelector('.ra[data-goto="spel"]').click(); await sleep(400);
-        await until(() => document.querySelector('#pause-menu [data-of="spel"][data-subtab="spelers"]'), 8000, 'tab Spelers'); document.querySelector('#pause-menu [data-of="spel"][data-subtab="spelers"]').click(); await sleep(1500);
+        await until(() => document.querySelector('#pause-menu [data-of="spel"][data-subtab="samen"]'), 8000, 'tab Samen spelen'); document.querySelector('#pause-menu [data-of="spel"][data-subtab="samen"]').click(); await sleep(400);
+        await until(() => document.querySelector('#pause-menu [data-of="samen"][data-subtab="spelers"]'), 8000, 'tab Spelers'); document.querySelector('#pause-menu [data-of="samen"][data-subtab="spelers"]').click(); await sleep(1500);
         const knop = await until(() => document.querySelector(`#pause-menu [data-geef="${sl}"]`), 8000, 'knop Spel overdragen'); shot('overdragen-menu');
         knop.click(); log('overdragen-gevraagd', { slot: sl });
         await sleep(1500); await closeMenu(); await sleep(6000); log('overdragen-na-klik', { meldingen: mm.slice(-4), wissel: !!w.coopWissel, ui: w.coopWisselUi ? JSON.stringify(w.coopWisselUi).slice(0, 200) : null, paused: !!w.paused, inVoertuig: !!(w.player && w.player.inVehicle) });
@@ -292,7 +293,8 @@ window.__coopPhases = (c) => {
       if (isHost()) {
         const sl = await haal('slot-gast2'); const voor = (w.coopRoster || []).length;
         await esc(); await until(() => document.querySelector('.ra[data-goto="spel"]'), 8000, 'rail Spel'); document.querySelector('.ra[data-goto="spel"]').click(); await sleep(400);
-        await until(() => document.querySelector('#pause-menu [data-of="spel"][data-subtab="spelers"]'), 8000, 'tab Spelers'); document.querySelector('#pause-menu [data-of="spel"][data-subtab="spelers"]').click(); await sleep(1500);
+        await until(() => document.querySelector('#pause-menu [data-of="spel"][data-subtab="samen"]'), 8000, 'tab Samen spelen'); document.querySelector('#pause-menu [data-of="spel"][data-subtab="samen"]').click(); await sleep(400);
+        await until(() => document.querySelector('#pause-menu [data-of="samen"][data-subtab="spelers"]'), 8000, 'tab Spelers'); document.querySelector('#pause-menu [data-of="samen"][data-subtab="spelers"]').click(); await sleep(1500);
         const k = await until(() => document.querySelector(`#pause-menu [data-eruit="${sl}"]`), 8000, 'knop eruit zetten'); shot('kick-menu');
         k.click(); await sleep(600); const k2 = await until(() => document.querySelector(`#pause-menu [data-eruit="${sl}"]`), 4000, 'bevestigen'); k2.click(); await sleep(2500);
         await closeMenu(); await sleep(3000);

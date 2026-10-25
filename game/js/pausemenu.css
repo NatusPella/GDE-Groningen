@@ -33,7 +33,7 @@ body:has(#pause-menu.prestart.visible) #start-screen .ss-foot { visibility: hidd
 #pause-menu .ra .n { margin-left: auto; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 18px; letter-spacing: 0; color: var(--g); }
 #pause-menu .ra .n:empty { display: none; }
 #pause-menu .ra .n .n-ic { width: 16px; height: 16px; margin: 0 4px -2px 0; stroke: currentColor; fill: none; stroke-width: 1.8; vertical-align: baseline; }
-/* het tabblad Spelers in Spel telt mee met een poppetje, net als de teller bij Spel (#435) */
+/* het tabblad Spelers onder Samen spelen telt mee met een poppetje, net als de teller bij Spel (#435) */
 #pause-menu .m-tab small .n-ic { width: 15px; height: 15px; margin: 0 4px -2px 0; stroke: currentColor; fill: none; stroke-width: 1.8; vertical-align: baseline; }
 /* een nieuw bolletje op de rail zelf (Verhaal, Prestaties): de subtabbladen hadden er al een (#435) */
 #pause-menu .ra[data-new] .ra-t::after { content: ''; display: inline-block; width: 8px; height: 8px; margin-left: 8px; border-radius: 50%; background: var(--g); vertical-align: 6px; }
@@ -453,7 +453,7 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 }
 
 /* Samen spelen (lobbyui.js, #95): kop, tekst, code, invoer en knoppen in de menustijl; ook in het wachtscherm (.coop-hold) */
-/* zolang je samen speelt staat er een rail-item bij (Spelers): iets lagere items, zodat de knoppen onderaan blijven staan */
+/* zolang je samen speelt staat er een teller bij Spel: iets lagere items, zodat de knoppen onderaan blijven staan */
 @media (min-height: 461px) { #pause-menu[data-coop="1"] .pm-rail { --ra-h: 44px; } }
 @media (min-height: 461px) and (max-height: 820px) { #pause-menu[data-coop="1"] .pm-rail { --ra-h: 32px; } #pause-menu[data-coop="1"] .pm-rail-sp { height: 8px; } #pause-menu[data-coop="1"] .pm-game .ra { height: 32px; min-height: 0; font-size: 24px; } #pause-menu[data-coop="1"] .pm-q-head { padding-bottom: 12px; } }
 #pause-menu .pm-samen { display: flex; flex-direction: column; gap: 12px; max-width: 952px; padding: 32px 64px 40px; overflow-y: auto; scrollbar-width: none; }
@@ -493,7 +493,11 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .vh-phone .ph-thread { flex: none; overflow: visible; }
 #pause-menu .vh-phone .ph-detail:empty { display: none; }
 #pause-menu .vh-phone h4 { margin: 8px 0 0; }
-/* Samen spelen en Spelers als tabblad van Spel (#430) */
+/* Samen spelen en de spelerslijst als twee tabbladen van Spel (#434): de lijst erft de marge van het onderdeel */
+#pause-menu .pm-samen > .m-tabs { margin: 0; }
+#pause-menu .pm-samen > .m-tabs .m-tab { height: 44px; font-size: 22px; }
+#pause-menu .pm-samen-inner { display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+#pause-menu .pm-samen .pm-samen-spelers { max-width: none; padding: 0; overflow: visible; flex: 1; min-height: 0; }
 #pause-menu .pm-spelcoop[hidden] { display: none; }
 #pause-menu .pm-spelcoop:not([hidden]) { flex: 1; min-height: 0; }
 /* Spullen (#435): pictogram bij categorie en kaart, uitleg bij een lege categorie */
