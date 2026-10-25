@@ -18,7 +18,7 @@ const OUT = path.resolve(arg('out', path.join(os.tmpdir(), 'gde-qa-perron')));
 const GAME = arg('game', '');
 const ONLY = arg('only', '');
 const SETTLE = Number(arg('settle', 7000));
-const LOCKS = process.env.GDE_LOCKS || 'C:/Users/abuis/gde-locks';
+const LOCKS = process.env.GDE_LOCKS || path.join(os.tmpdir(), 'gde-locks');
 if (!GAME || !fs.existsSync(path.join(path.resolve(GAME), 'index.html'))) { console.error('geef --game=<gestagede game-map> (met index.html)'); process.exit(2); }
 
 let slot = null;
