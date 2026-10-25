@@ -25,6 +25,9 @@ data/satellite_reference.jpg
 # local agent settings, reviews and worktrees
 .claude/
 
+# specs.md (FIRE): lokale Node-afhankelijkheid voor de run-scripts
+.specsmd/node_modules/
+
 # packed map tiles (scripts/world/pack_tiles.mjs): a build artifact
 game/world/
 
@@ -35,3 +38,7 @@ data/world/ahn/
 data/world/corridor.partial-pack/
 docs/verhaal/nieuw/export/
 .publish-names.local
+
+# lokale agent-tooling
+.opencode/
+.specsmd/

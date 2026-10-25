@@ -86,6 +86,10 @@
 #heist-ui .hx-card em { display: block; margin-top: 4px; font-family: 'Arial Narrow', Arial, sans-serif; font-style: normal; font-size: 12px; opacity: 0.55; }
 #heist-ui .hx-choice-note { display: none; margin-top: 6px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 12px; opacity: 0.6; text-align: center; }
 #heist-ui .hx-plan.choosing .hx-choice-note { display: block; }
+/* De rollen bij samen spelen (#438): één regel per speler onder de tekening */
+#heist-ui .hx-samen { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 8px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 13px; line-height: 1.35; color: rgba(240, 237, 228, 0.85); }
+#heist-ui .hx-samen b { color: var(--gron-green-light, #3fc97a); letter-spacing: 2px; }
+#heist-ui .hx-samen span { white-space: nowrap; }
 
 /* --- the card on the empty cushion ------------------------------------------------------ */
 #heist-ui .hx-note {
