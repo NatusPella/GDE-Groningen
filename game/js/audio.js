@@ -13,7 +13,7 @@ import { initAmbience, updateAmbience, ambienceStats, getPlace } from './sfx/amb
 import { initFoley, updateFoley, propHit, foleyStats } from './sfx/foley.js';
 import { initUiSfx, uiWorldInit, updateUiSfx, uiDomEvent, isUiGestureTarget } from './sfx/ui.js';
 import { updateSkySfx } from './sfx/sky.js';
-import { createScenarioDirector, activityMusicKey, loopPoints } from './scenariomusic.js';
+import { createScenarioDirector, activityMusicKey, createLoopScan } from './scenariomusic.js';
 import { MIN_TRACK_S, normalizeTrack, pickTrack, pushHistory, pickJingle, STATION_NAME } from './musicpick.js';
 import { createMusicWatch } from './musicwatch.js';
 import * as speech from './speech.js';
@@ -3503,9 +3503,23 @@ function loadScenarioBuffer(key) {
     .then((buf) => {
       const chans = [];
       for (let c = 0; c < buf.numberOfChannels; c++) chans.push(buf.getChannelData(c));
-      scenarioBuffers[key] = { buf, loop: loopPoints(chans, buf.sampleRate) };
+      // Minutes-long track: find the loop points in steps from
+      // updateScenarioMusic(), never in one pass inside a frame (#473).
+      scenarioBuffers[key] = { buf, loop: null, scan: createLoopScan(chans, buf.sampleRate) };
     })
     .catch((e) => { scenarioBuffers[key] = { failed: true }; console.warn('scenario music', key, e); });
+}
+
+// One step of the loop-point scan per frame, for every track that arrived but
+// has no loop points yet. Typical tracks only have encoder padding at the ends
+// and finish in the first step; a long silent intro still cannot block a frame.
+function scanScenarioLoops() {
+  for (const key in scenarioBuffers) {
+    const e = scenarioBuffers[key];
+    if (!e || !e.scan) continue;
+    const loop = e.scan.step();
+    if (loop) { e.loop = loop; e.scan = null; }
+  }
 }
 
 function stopScenarioTrack() {
@@ -3522,7 +3536,7 @@ function stopScenarioTrack() {
 
 function startScenarioTrack(key) {
   const entry = scenarioBuffers[key];
-  if (!entry || !entry.buf) return false;
+  if (!entry || !entry.buf || !entry.loop) return false;
   if (!scenarioVol) {
     scenarioVol = ctx.createGain();
     scenarioVol.connect(musicOut);
@@ -3544,6 +3558,7 @@ function startScenarioTrack(key) {
 
 // Returns the scenario key while one is (starting to) play, else null.
 function updateScenarioMusic(dt, world) {
+  scanScenarioLoops();
   const m = world.mission;
   const race = !!(m && m.phase === 'active' && m.raceMusic);
   const chasing = world.wanted > 0 && !(world.police && world.police.searching) && !world.pendingRespawn;
@@ -3553,7 +3568,7 @@ function updateScenarioMusic(dt, world) {
   if (want !== cur) {
     // switch once the new loop is decoded; until then the old one keeps going
     if (!want) stopScenarioTrack();
-    else if (scenarioBuffers[want].buf) { stopScenarioTrack(); startScenarioTrack(want); }
+    else if (scenarioBuffers[want].loop) { stopScenarioTrack(); startScenarioTrack(want); }
     else if (scenarioBuffers[want].failed) want = null;
   }
   if (scenarioVol) scenarioVol.gain.value = SCENARIO_VOLUME * musicVolume(getSettings()) * (1 - 0.45 * stingDuck.level);
