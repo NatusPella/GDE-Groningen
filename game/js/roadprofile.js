@@ -67,21 +67,59 @@ export function zAlong(r, i, t) {
 }
 
 // The road network: unique vertices (nodes) and, per road, the node of each
-// vertex. { nodes: Map(key -> { id, x, y, roads: [[road, i], ...] }), ids: [node per id], of: Map(road -> Int32Array) }
+// vertex. { nodes: Map(key -> { id, x, y, roads: [[road, i], ...] }), ids: [node per id],
+//   of: Map(road -> Int32Array), bumps: [{ x, y, up: [road, i], lo: [road, i] }] }
+// A shared vertex is a joint only when the ways meet there. Densifying two
+// crossing ways can put a vertex of both on the same centimetre (#501: the N46
+// slip road over the Roeierspad), and merging those would pull the street below
+// up to the deck (or the deck down to the street). A raised way with an explicit
+// layer that *passes through* the point is over the other one, not joined to it:
+// those vertices become two nodes, and `bumps` marks the crossing so the deck
+// can be held at its clearance (profile.mjs). A raised way that *ends* there
+// still lands on the road below (an off-ramp joining its carriageway), so it
+// keeps the joint.
 export function buildNetwork(roads) {
-  const nodes = new Map(), ids = [], of = new Map();
-  for (const r of roads) {
-    const a = new Int32Array(r.pts.length);
-    r.pts.forEach((p, i) => {
-      const k = nodeKey(p);
-      let n = nodes.get(k);
-      if (!n) { n = { id: ids.length, x: p[0], y: p[1], roads: [] }; nodes.set(k, n); ids.push(n); }
-      n.roads.push([r, i]);
-      a[i] = n.id;
-    });
-    of.set(r, a);
+  const at = new Map();
+  for (const r of roads) r.pts.forEach((p, i) => {
+    const k = nodeKey(p);
+    const l = at.get(k);
+    if (l) l.push([r, i]); else at.set(k, [[r, i]]);
+  });
+  const nodes = new Map(), ids = [], of = new Map(), bumps = [];
+  for (const r of roads) of.set(r, new Int32Array(r.pts.length));
+  for (const [k, list] of at) {
+    const order = list.map(([r]) => gradeOrder(r));
+    const top = Math.max(...order), bottom = Math.min(...order);
+    // an explicitly layered raised way (layer > 0) that passes through the
+    // point is a deck over the other one: a way tagged as a bridge without a
+    // layer is often a short culvert or a ramp that starts at grade, and must
+    // not lift anything (#501)
+    const over = top > 0 && top > bottom
+      ? list.filter(([r, i], q) => order[q] === top && i > 0 && i < r.pts.length - 1 && (r.layer | 0) > 0)
+      : [];
+    const groups = new Map();
+    if (!over.length) groups.set('', list);
+    else list.forEach((e, q) => groups.set(`${order[q]}`, (groups.get(`${order[q]}`) || []).concat([e])));
+    const [r0, i0] = list[0];
+    for (const [suffix, entries] of groups) {
+      const kk = suffix ? `${k}|${suffix}` : k;
+      let n = nodes.get(kk);
+      if (!n) { n = { id: ids.length, x: r0.pts[i0][0], y: r0.pts[i0][1], roads: [] }; nodes.set(kk, n); ids.push(n); }
+      for (const [r, i] of entries) { n.roads.push([r, i]); of.get(r)[i] = n.id; }
+    }
+    if (over.length) bumps.push({ x: r0.pts[i0][0], y: r0.pts[i0][1], up: over[0], lo: list.filter((e, q) => order[q] === bottom)[0] });
   }
-  return { nodes, ids, of };
+  return { nodes, ids, of, bumps };
+}
+
+// The crossings that split vertices create, in the shape planCrossings returns
+// ({ a, i, t, b, j, u, x, y }), so the solver can measure them.
+export function bumpCrossings(net) {
+  const seg = (r, i) => (i >= r.pts.length - 1 ? [Math.max(0, r.pts.length - 2), 1] : [i, 0]);
+  return (net.bumps || []).map((b) => {
+    const [ai, at] = seg(b.up[0], b.up[1]), [bi, bt] = seg(b.lo[0], b.lo[1]);
+    return { a: b.up[0], i: ai, t: at, b: b.lo[0], j: bi, u: bt, x: b.x, y: b.y };
+  });
 }
 
 // Connected components of the roads that carry a profile and every road
