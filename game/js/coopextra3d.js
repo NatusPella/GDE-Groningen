@@ -10,7 +10,7 @@ import { juichHoek } from './vrijgezellen.js';
 import { buildWildlifeMesh3D, animateWildlifeMesh3D } from './wildlife.js';
 import { getTrafficControllers, updateTrafficLights } from './trafficlights.js';
 import { breakPropByKey, restorePropByKey, isPropBroken } from './breakables.js';
-import { DIER_MAX_SCHAAL, veiligeDierSchaal, V_GROET, V_FEEST, V_WAPEN, V_AANVAL, V_GERAAKT, V_LIGT, lichtVerschil, standVers, MISC_KERMIS, MISC_STUNT, MISC_PUNTEN, MISC_PEDS, MISC_WERELD, MISC_SPREKERS, leesStunt, leesPunten, leesPeds, leesWereld, leesSprekers, WERELD_BRUG, WERELD_SLUIS, WERELD_GARAGE, standRekwisieten } from './coopextra.js';
+import { DIER_MAX_SCHAAL, veiligeDierSchaal, VOGEL_HOOGTE, V_GROET, V_FEEST, V_WAPEN, V_AANVAL, V_GERAAKT, V_LIGT, lichtVerschil, standVers, MISC_KERMIS, MISC_STUNT, MISC_PUNTEN, MISC_PEDS, MISC_WERELD, MISC_SPREKERS, leesStunt, leesPunten, leesPeds, leesWereld, leesSprekers, WERELD_BRUG, WERELD_SLUIS, WERELD_GARAGE, standRekwisieten } from './coopextra.js';
 import { SPIKE_SPAN, SPIKE_DEPTH } from './roadshards.js';
 import { getMovableBridges, BRIDGE_TIMING } from './movablebridges.js';
 import { getSluizen, signalOf } from './sluizen.js';
@@ -141,6 +141,7 @@ const losSprekers = new Map(); // naam|tekst -> { x, y, h, female, speechName, s
 const dieren = new Map(); // id -> { mesh, a }
 function dierData(d) {
   const a = { kind: d.soort, x: d.x, y: d.y, z: 0, angle: d.hoek, speed: d.speed, stride: 0, bobSeed: d.bob, flapSeed: d.bob, dead: d.dood, state: 'walk' };
+  if (VOGEL_HOOGTE.has(d.soort)) a.lift = (Number(d.aux) || 0) / 10; // de echte hoogte van de host (dieren-aux, coopextra.js): een vliegende vogel of een duif op een dak (#428)
   if (d.soort === 'cow' && d.var === 1) a.variant = 'red';
   else if (d.soort === 'duck') a.variant = EEND[d.var] || 'hen';
   else if (d.soort === 'cat') a.variant = d.var;
@@ -167,9 +168,16 @@ export function syncGastDieren(world, dt) {
     const a = e.a; e.doel = d;
     if (Math.hypot(d.x - a.x, d.y - a.y) > 15) { a.x = d.x; a.y = d.y; } else { a.x += (d.x - a.x) * k; a.y += (d.y - a.y) * k; }
     a.angle = hoekLerp(a.angle, d.hoek, k); a.speed = d.speed; a.dead = d.dood; a.stride += d.speed * dt;
+    if (VOGEL_HOOGTE.has(d.soort)) a.lift = (Number(d.aux) || 0) / 10;
     const m = e.mesh;
     if (m.scale.x !== m.userData.dierSchaal || m.scale.y !== m.userData.dierSchaal || m.scale.z !== m.userData.dierSchaal) m.scale.setScalar(m.userData.dierSchaal); // nooit groter dan de eigen bouw (#433)
-    const y = (a.kind === 'seagull' ? 6 + Math.sin(nu * 2 + (a.flapSeed || 0)) * 1.2 : grond(world, a.x, a.y)) + (a.lift || 0);
+    // Een vogel boven de grond staat op de hoogte van de host (absolute z, net als wildlife.js); zit hij op de grond, dan
+    // op de grond van de kaart. Zo blijft een duif op een dak of een meeuw in de vlucht waar de host hem heeft (#428).
+    // a.z is wat animateWildlifeMesh3D zelf op het model zet, dus die zetten we op dezelfde hoogte.
+    const vogel = VOGEL_HOOGTE.has(d.soort);
+    const y = vogel && a.lift > 0.3 ? a.lift : grond(world, a.x, a.y);
+    a.z = y;
+    if (vogel) a.state = a.lift > 0.3 ? 'fly' : 'ground'; // een vogel op de grond vouwt zijn vleugels, net als bij de host
     m.position.set(a.x, y, a.y); m.rotation.y = -a.angle;
     try { animateWildlifeMesh3D(m, a, nu); } catch (er) { /* zonder animatie */ }
   }

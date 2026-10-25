@@ -6,7 +6,7 @@ import { encodeExtra, decodeExtra, MAX_EXTRA } from '../game/js/net/codec.js';
 import { createLink, makeRng } from '../game/js/net/memtransport.js';
 import { HostSession, ClientSession, EXTRA_HZ } from '../game/js/net/session.js';
 import { checkHandshake, PROTO } from '../game/js/net/protocol.js';
-import { pedId, kiesVoetgangers } from '../game/js/coopworld.js';
+import { pedId, kiesVoetgangers, verzamelEntiteiten, leesEntiteiten } from '../game/js/coopworld.js';
 import { dichtstbijDoel } from '../game/js/hudgps.js';
 
 let n = 0;
@@ -384,5 +384,50 @@ t('over het net: gast ziet rekwisieten en doelen; een oudere gast negeert de tag
   X.wisRegistratie();
 });
 
+t('dieren: de hoogte van een vogel gaat mee in de aux, zonder het record te verlengen (#428)', () => {
+  const w = wereld(0, 0);
+  w.wildlife = [
+    { kind: 'seagull', x: 110, y: 205, angle: 0, speed: 3, z: 8.4, state: 'fly', bobSeed: 0.5 },
+    { kind: 'pigeon', x: 111, y: 205, angle: 0, speed: 0, z: 12.3, state: 'fly', bobSeed: 0.5 },
+    { kind: 'cow', x: 112, y: 205, angle: 0, speed: 0, z: 0, bobSeed: 0.5 },
+    { kind: 'dog', x: 113, y: 205, angle: 0, speed: 1, color: 0.4, breed: 1, bobSeed: 0.5 },
+  ];
+  const d = X.leesExtra(X.codeerExtra(X.verzamelExtra(w, BIJ, X.nieuwGeheugen(), DEPS), BIJ[0]));
+  const meeuw = d.dieren.find((x) => x.soort === 'seagull'), duif = d.dieren.find((x) => x.soort === 'pigeon');
+  assert.equal(meeuw.aux, 84); assert.equal(duif.aux, 123); near(meeuw.aux / 10, 8.4, 0.01);
+  assert.equal(d.dieren.find((x) => x.soort === 'cow').aux, 0, 'een koe houdt geen hoogte bij');
+  assert.equal(d.dieren.find((x) => x.soort === 'dog').aux, 102, 'de hond houdt zijn vachtkleur');
+  assert.ok(X.VOGEL_HOOGTE.has('seagull') && X.VOGEL_HOOGTE.has('pigeon') && !X.VOGEL_HOOGTE.has('cow'));
+  assert.equal(d.voetgangers.length, w.pedestrians.length, 'een dierenbericht verandert niets aan de voetgangers');
+});
+t('snapshot en EXTRA: dezelfde voetgangers, dieren, lichten en objecten bij de gast (#428)', () => {
+  const w = wereld();
+  const gast = leesEntiteiten(verzamelEntiteiten(w, BIJ));
+  const g = X.nieuwGeheugen(), berichten = [];
+  for (let k = 0; k < 3; k++) berichten.push(X.leesExtra(X.codeerExtra(X.verzamelExtra(w, BIJ, g, DEPS), BIJ[0])));
+  const eerste = berichten[0];
+  // de snapshot en het EXTRA-bericht kiezen dezelfde voetgangers: dezelfde id's, geen dubbele en geen vreemde
+  assert.deepEqual(eerste.voetgangers.map((p) => p.id).sort(), gast.voetgangers.map((p) => p.id).sort());
+  assert.equal(gast.voetgangers.length, w.pedestrians.length);
+  // elk van hen krijgt binnen drie berichten zijn echte uiterlijk, met dezelfde kleding, huid en seed als de host
+  const uieren = new Map(berichten.flatMap((b) => b.uiterlijk).map((u) => [u.id, u]));
+  for (const p of w.pedestrians) {
+    const ui = uieren.get(pedId(p));
+    assert.ok(ui, 'uiterlijk voor voetganger ' + pedId(p));
+    assert.equal(ui.kleding, p.clothing); assert.equal(ui.huid, p.skin); assert.equal(ui.zaad, p._lookSeed);
+  }
+  assert.equal(uieren.size, w.pedestrians.length, 'geen uiterlijk voor iemand die er niet is');
+  // dieren: dezelfde soort en plek (het bericht is 0,05 m nauwkeurig), en wat ver weg is komt niet mee
+  assert.equal(eerste.dieren.length, w.wildlife.length);
+  for (const a of w.wildlife) {
+    const d = eerste.dieren.find((x) => x.soort === a.kind && Math.abs(x.x - a.x) < 0.06 && Math.abs(x.y - a.y) < 0.06);
+    assert.ok(d, 'dier ' + a.kind + ' op dezelfde plek');
+  }
+  // lichten: dezelfde complexen met dezelfde klok (stappen van 0,25 s)
+  assert.deepEqual(eerste.lichten.map((l) => l.i), [0, 2]);
+  for (const l of eerste.lichten) near(l.t, DEPS.controllers[l.i].t, 0.13);
+  // kapotte objecten: dezelfde sleutels en plekken; alleen de valrichting vult de gast zelf in (inventaris)
+  assert.deepEqual(eerste.kapot.map((k) => k.key), ['bin@1000,2000', 'lamp@-55,60']);
+});
 
 console.log(`coopextra_test: ${n}/${n} ok`);

@@ -1,10 +1,16 @@
 // Samen spelen (#95): de wereld van de host delen met gasten (game/js/coopworld.js) + codec en hub.
 import assert from 'node:assert/strict';
+import { existsSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import * as W from '../game/js/coopworld.js';
 import { encodeSnapshot, decodeSnapshot } from '../game/js/net/codec.js';
 
 let n = 0;
 const t = (name, f) => { f(); n++; };
+const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+// De hoek gaat als 0..2π over de lijn: een negatieve hoek van de host komt als 2π − x terug.
+const hoekVerschil = (a, b) => { let d = (a - b) % (Math.PI * 2); if (d > Math.PI) d -= Math.PI * 2; if (d < -Math.PI) d += Math.PI * 2; return d; };
 
 const veh = (id, x, y, extra = {}) => ({ id, x, y, angle: 0.5, model: { len: 4.2 }, ...extra });
 
@@ -160,5 +166,88 @@ t('scène van de host: filmpje, regel en keuze worden gereinigd en alleen bij ve
   assert.deepEqual(W.leesSceneBericht({ k: 'scene', filmpje: true }), { filmpje: true, pauze: false, regel: null, keuze: null });
   assert.equal(W.sceneLeeg(W.schoonScene({ pauze: true })), false, 'een pauze van de host is ook iets om te melden'); assert.equal(W.sceneBericht(null, { pauze: true }).event.pauze, true); assert.equal(W.leesSceneBericht({ k: 'x' }), null);
   assert.ok(JSON.stringify(W.schoonScene({ filmpje: true, regel: { wie: 'w'.repeat(99), tekst: 't'.repeat(999) }, keuze: { tekst: 'k'.repeat(999), opties: Array(9).fill('o'.repeat(99)) } })).length < 1500, 'past ruim in een bericht');
+});
+t('zonder uiterlijk tekent de gast toch een echt model, ook voor een boot, heli en vliegtuig (#428)', () => {
+  for (const soort of W.VOERTUIG_SOORTEN) {
+    const spec = W.gokUiterlijk(soort, 7, { len: W.VOERTUIG_MATEN[soort][0], wid: W.VOERTUIG_MATEN[soort][1] });
+    if (soort === 'trein') { assert.equal(spec, null, 'een trein komt uit de eigen spoorwegen, niet als voertuig'); continue; }
+    assert.ok(spec && spec.model && spec.model.name, soort + ' heeft een gokmodel');
+    assert.equal(spec.wrecked, false);
+  }
+  const boot = W.gokUiterlijk('boot', 3);
+  assert.equal(boot.isBoat, true); assert.equal(boot.model.kind, 'sloep'); assert.ok(boot.model.len > 4 && boot.model.wid > 1);
+  assert.equal(W.gokUiterlijk('heli', 3).isHeli, true);
+  assert.equal(W.gokUiterlijk('overig', 3).isPlane, true);
+  assert.equal(W.gokUiterlijk('politie', 3).isPolice, true);
+  assert.equal(W.gokUiterlijk('fiets', 3).isBike, true);
+  assert.deepEqual(W.gokUiterlijk('auto', 5), W.gokUiterlijk('auto', 5), 'hetzelfde id geeft altijd dezelfde gok');
+  assert.equal(W.gokUiterlijk('onbekend', 5), null);
+  assert.ok(W.GOK_MODELLEN.includes(W.gokUiterlijk('auto', 5).model.name));
+});
+t('snapshot en weergave: de gast tekent dezelfde voertuigen, boten en trein als de host (#428)', () => {
+  const alles = [
+    veh(1, 5, 0, { angle: 0.4, model: { name: 'sedan', len: 4.3, wid: 1.8, color: '#7a1f1f' }, speed: 12.4, steer: 0.3, indicator: 'left' }),
+    veh(2, 8, 0, { angle: 1.1, model: { name: 'van', len: 5, wid: 2, color: '#d9d9d9' }, speed: -2.5 }),
+    veh(3, 11, 0, { angle: 2.2, isBus: true, model: { name: 'bus', len: 11.2, wid: 2.55, color: '#132a44', stripe: '#3fc6d4' }, speed: 6 }),
+    veh(4, 14, 0, { angle: -0.7, isPolice: true, model: { name: 'police', len: 4.4, wid: 1.8, color: '#1c1c1c' }, sirenOn: true }),
+    veh(5, 17, 0, { angle: 0.9, isBike: true, model: { name: 'motor', motorbike: 'sport', len: 2.1, wid: 0.8, color: '#2f5a8f', rider: '#3a3c40' }, speed: 9 }),
+    veh(6, 20, 0, { angle: 1.6, isScooter: true, model: { name: 'scooter', len: 1.8, wid: 0.7, color: '#e0e0e0', rider: '#7a2e2e' } }),
+    veh(7, 23, 0, { angle: 2.8, isBike: true, model: { name: 'bike', len: 1.75, wid: 0.5, color: '#2b2b2b', rider: '#2a8f6a' } }),
+    veh(8, 26, 0, { angle: 0.1, isBoat: true, model: { kind: 'sloep', name: 'boat', len: 5.5, wid: 2, color: '#e8e6e0', cabin: '#2f3a44' }, speed: 4.2 }),
+    veh(9, 34, 0, { angle: 3.1, isBoat: true, model: { kind: 'zeeschip', soort: 'tanker', name: 'boat', len: 98, wid: 15.4, color: '#2a2d33', cabin: '#e8e6e0' }, speed: 5 }),
+    veh(10, 40, 0, { angle: 0.2, isHeli: true, z: 40, rotor: 1, model: { name: 'heli', len: 8.8, wid: 2.1, color: '#b0b0b0' } }),
+    veh(11, 44, 0, { angle: -1.4, model: { name: 'truck', len: 9, wid: 2.5, color: '#8a7a5a' }, speed: 7 }),
+    veh(12, 48, 0, { angle: 1.9, isPlane: true, z: 90, model: { name: 'plane', len: 8, wid: 10.6, color: '#e9e4d3' } }),
+  ];
+  const ped = (x, y, extra = {}) => ({ x, y, angle: 0.9, state: 'wander', health: 30, isCop: false, clothing: '#b8473a', skin: '#d9aa82', _lookSeed: 10.5, ...extra });
+  const peds = [ped(4, 4), ped(6, 6, { isCop: true }), ped(9, 3, { state: 'dead', health: 0 })];
+  const world = { vehicles: alles, pedestrians: peds, wanted: 0, time: 10 };
+  const treinen = [{ id: 2, x: 60, y: 0, v: 8, halfLen: 40 }];
+  const bij = [{ x: 0, y: 0 }];
+  const cache = new Map();
+  let gast = null;
+  for (let k = 0; k < 8; k++) { // het uiterlijk gaat roulerend mee: na een paar snapshots heeft elk voertuig het
+    const ents = W.verzamelEntiteiten(world, bij, { treinen });
+    const d = decodeSnapshot(encodeSnapshot(k, k, 0, { players: [], shared: { money: 0, wanted: 0, clock: 10 }, mission: { stage: 0, state: 'run', present: 3 }, entities: ents, looks: ents.looks }), cache);
+    assert.ok(d, 'snapshot ' + k + ' leesbaar');
+    gast = W.leesEntiteiten(d.entities);
+  }
+  assert.equal(gast.voertuigen.length, alles.length, 'elk voertuig van de host staat bij de gast');
+  const perId = new Map(gast.voertuigen.map((v) => [v.id, v]));
+  for (const v of alles) {
+    const g = perId.get(v.id);
+    assert.ok(g, 'voertuig ' + v.id + ' bij de gast');
+    assert.equal(g.soort, W.VOERTUIG_SOORTEN[W.voertuigSoort(v)], 'dezelfde soort');
+    assert.ok(Math.abs(g.x - v.x) < 0.01 && Math.abs(g.y - v.y) < 0.01, 'dezelfde plek');
+    assert.ok(Math.abs(hoekVerschil(g.angle, v.angle || 0)) < 0.001, 'dezelfde richting');
+    assert.ok(Math.abs(g.snelheid - (v.speed || 0)) <= 0.26, 'dezelfde snelheid');
+    assert.ok(g.look, 'het uiterlijk van ' + v.id + ' is binnen');
+    const spec = W.uiterlijkSpec(g.look), host = W.voertuigUiterlijk(v, v.id);
+    assert.equal(spec.model.name, W.VOERTUIG_MODELLEN[host.model], 'hetzelfde model');
+    assert.equal(spec.model.color, '#' + (host.color & 0xffffff).toString(16).padStart(6, '0'), 'dezelfde kleur');
+    assert.ok(Math.abs(spec.model.len - host.len) < 0.02 && Math.abs(spec.model.wid - host.wid) < 0.13, 'dezelfde maat');
+  }
+  const boot = perId.get(8); assert.equal(W.uiterlijkSpec(boot.look).isBoat, true, 'een boot is een echt bootmodel');
+  assert.equal(perId.get(10).hoogteZ, 40); assert.equal(perId.get(12).hoogteZ, 90, 'helikopter en vliegtuig op hun hoogte');
+  // voetgangers: dezelfde id's en plekken in de snapshot, en de gast tekent ze alle drie (de dode ligt)
+  assert.deepEqual(gast.voetgangers.map((p) => p.id).sort(), peds.map((p) => W.pedId(p)).sort());
+  assert.equal(gast.voetgangers.filter((p) => p.agent).length, 1);
+  for (const p of peds) { const g = gast.voetgangers.find((q) => q.id === W.pedId(p)); assert.ok(Math.abs(g.x - p.x) < 0.01 && Math.abs(g.y - p.y) < 0.01); }
+  // de trein gaat niet als voertuig mee maar als route: de gast tekent hem met zijn eigen spoorwegen (echt model)
+  assert.deepEqual(gast.treinen.map((x) => [x.route, x.x, x.y, x.v]), [[2, 60, 0, 8]]);
+  assert.ok(!gast.voertuigen.some((v) => v.soort === 'trein'));
+  assert.equal(W.gokUiterlijk('trein'), null);
+});
+t('inventaris: wat de gast lokaal invult noemt zijn bron en de test die het dekt (#428)', () => {
+  const soorten = new Set(['beeld', 'beweging', 'geluid']);
+  assert.ok(Array.isArray(W.LOKAAL_VERZONNEN) && W.LOKAAL_VERZONNEN.length >= 8, 'de inventaris bestaat');
+  for (const p of W.LOKAAL_VERZONNEN) {
+    assert.ok(p.wat && p.waarom && p.bron && p.test, JSON.stringify(p));
+    assert.ok(soorten.has(p.waar), p.wat + ': ' + p.waar);
+    assert.ok(existsSync(join(root, 'game', 'js', p.bron)), p.bron + ' bestaat');
+    assert.ok(existsSync(join(root, 'scripts', p.test)), p.test + ' bestaat');
+  }
+  const tekst = W.LOKAAL_VERZONNEN.map((p) => p.wat).join(' | ');
+  for (const kern of ['deining', 'valrichting', 'verkeerslicht', 'vogel', 'voertuig zonder uiterlijk', 'wagonindeling']) assert.ok(tekst.includes(kern), 'de inventaris noemt ' + kern);
 });
 console.log(`coopworld_test: ${n}/${n} ok`);

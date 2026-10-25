@@ -79,7 +79,10 @@ function dierVar(a) {
   if (a.kind === 'dog') return (a.breed | 0) & 255;
   return 0;
 }
-function dierAux(a) { return a.kind === 'dog' ? u8((Number.isFinite(a.color) ? a.color : 0) * 255) : 0; }
+// De aux-byte draagt per soort iets anders: de vachtkleur van een hond, en de hoogte (in dm) van een vogel die vliegt
+// of op een dak zit (#428). Zo gaat de echte hoogte mee zonder het record te verlengen: een oudere gast leest hem als 0.
+export const VOGEL_HOOGTE = new Set(['seagull', 'pigeon']);
+function dierAux(a) { return a.kind === 'dog' ? u8((Number.isFinite(a.color) ? a.color : 0) * 255) : VOGEL_HOOGTE.has(a.kind) ? u8((Number(a.z) || 0) * 10) : 0; }
 
 // ----------------------------------------------------------- de host: verzamelen en coderen
 export const nieuwGeheugen = () => ({ looks: new Map(), kapotHash: '', kapotAt: -99, n: 0 });
