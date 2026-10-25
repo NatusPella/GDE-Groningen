@@ -56,3 +56,4 @@ schrijft de oude niet om.
 | [0012](0012-nederlands-verzonnen-altijd-zomer.md) | Nederlands, verzonnen namen, altijd zomer | besloten |
 | [0013](0013-een-testrunner-met-fasen.md) | Eén testrunner met drie fasen | voorgesteld |
 | [0014](0014-release-lokaal-builds-in-actions.md) | Release lokaal, builds in Actions, agents nooit | besloten |
+| [0015](0015-een-ingang-geen-hoofdmenu.md) | Eén ingang, geen hoofdmenu; laden is een wereldgebeurtenis | besloten |

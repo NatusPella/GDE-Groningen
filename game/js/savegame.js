@@ -29,7 +29,7 @@ import { applyGuestChanges, applyGuestStory, applyGuestAchievements } from './co
 import { verhaalStatus } from './coopverhaal.js';
 import { gebeurtenissenVan, maakBoekhouding } from './coopbeloning.js';
 import { getRenderer, afterNextFrame } from './scene3d.js';
-import { readSlot, writeSlotRaw, writeThumb, activeSlot, setActive, createSlot, deleteSlot, nameOf, pickActive } from './saveslots.js';
+import { readSlot, writeSlotRaw, writeThumb, activeSlot, setActive, createSlot, deleteSlot, nameOf, pickActive, pickLatest } from './saveslots.js';
 import { maakCheckpoint } from './coopcheckpoint.js';
 import { registerSaveGame, registerSaveTimers, registerGastVerhaal, registerGastBoek } from './savehook.js';
 import { STEPS, PARTS, stepDone, stepAvailable, nextStoryStep, ARC_ID } from './storyarc.js';
@@ -189,6 +189,16 @@ export function loadSlot(w, n) {
 
 export function ensureActiveSlot() {
   return pickActive(null);
+}
+
+// Boot: the save that was written last, not the slot that happened to be active.
+export function ensureLatestSlot() {
+  return pickLatest(null);
+}
+
+// The slot this tab is actually writing to (boundSlot after a load/new game, else the active one).
+export function currentSlot() {
+  return saveTarget();
 }
 
 function serialize(w) {

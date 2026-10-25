@@ -5,7 +5,7 @@ Je hoeft niets technisch te kunnen. Lukt iets niet, ga dan naar [Als het niet lu
 
 ## Wat je nodig hebt
 
-- Iedereen **dezelfde versie** van het spel, het liefst de nieuwste. Kijk onder *Over* in het hoofdmenu welke versie je hebt.
+- Iedereen **dezelfde versie** van het spel, het liefst de nieuwste. Kijk in het pauzemenu (Esc) bij *Instellingen* welke versie je hebt.
 - Internet bij iedereen. Een VPN uit te zetten kan helpen.
 - Eén persoon die het spel opent (die speelt Tammo, de tweede speler Tessa, de anderen krijgen een eigen figuur) en drie die meedoen.
 - Wie het spel opent bepaalt het spel: de wereld, het verhaal, de missies en de tijd van de dag zijn van die speler. Wat de anderen verdienen bewaart het spel in hun eigen spel.
@@ -18,7 +18,7 @@ Start het spel. Komt er bij het koppelen "Andere versie", dan hebben jullie niet
 
 ### 2. De speler die het spel opent
 
-1. Kies in het hoofdmenu **Samen spelen** en dan **Een spel openen**.
+1. Start je eigen spel, druk op Esc en kies **Samen spelen** › **Een spel openen**.
 2. Kies een opgeslagen spel, of een lege plek voor een nieuw spel.
 3. Het spel opent in de wachtkamer. Kies **Iemand uitnodigen** en dan **Kamercode**.
 4. Lees het toestemmingsscherm en kies **Akkoord en verbinden**. Je IP-adres gaat naar je medespelers; er worden openbare servers gebruikt om elkaar te vinden. Wat daarover gaat is versleuteld met de kamercode.
@@ -27,7 +27,7 @@ Start het spel. Komt er bij het koppelen "Andere versie", dan hebben jullie niet
 
 ### 3. De drie die meedoen
 
-1. Kies in het hoofdmenu **Samen spelen** en dan **Meedoen**.
+1. Start je eigen spel, druk op Esc en kies **Samen spelen** › **Meedoen**.
 2. Typ of plak de kamercode en kies **Verder**.
 3. Lees het toestemmingsscherm en kies **Akkoord en verbinden**.
 4. Je komt in de wachtkamer. Wacht tot de speler die het spel opende het start.
@@ -69,7 +69,7 @@ Op een computer met de broncode (of voor wie de beheerder het zo wil): `node scr
 
 Doe dit een uur van tevoren, elk voor zich:
 
-- [ ] Dezelfde versie geïnstalleerd (kijk onder *Over*).
+- [ ] Dezelfde versie geïnstalleerd (kijk onderaan het pauzemenu bij de versie).
 - [ ] Spel gestart en de oefenronde of een bestaand spel werkt.
 - [ ] Internet stabiel; geen VPN aan; liefst een kabel of goed wifi.
 - [ ] **Verbinding testen** gedaan en alles op *Goed* of een begrijpelijk *Let op*. Zo niet, los dat nu op.

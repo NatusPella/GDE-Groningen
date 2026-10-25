@@ -69,12 +69,12 @@ const actiesTab = spelSrc.slice(spelSrc.indexOf("tab('acties'"), spelSrc.indexOf
 for (const a of ACTIES) ok(new RegExp('data-action="' + a + '"').test(actiesTab), 'Spel > Opslaan & stoppen heeft data-action="' + a + '"');
 ok(!/pm-rail-acts|pm-rail-foot/.test(pm.slice(pm.indexOf('<nav class="pm-rail"'), pm.indexOf('</nav>', pm.indexOf('<nav class="pm-rail"')))), 'de rail heeft geen spel-acties meer');
 ok(/data-restart-confirm/.test(actiesTab) && /Laatste spel laden/.test(actiesTab) && /Nieuw spel \(nieuwe plek\)/.test(actiesTab) && /Annuleren/.test(actiesTab), 'de vraag bij Opnieuw beginnen staat er met haar drie knoppen');
-ok(/Spel opslaan<\/button>/.test(actiesTab) && /Naar het hoofdmenu<\/button>/.test(actiesTab) && /Opgeslagen spellen<\/button>/.test(actiesTab) && /Opnieuw beginnen<\/button>/.test(actiesTab) && /Afsluiten<\/button>/.test(actiesTab), 'de knoppen houden hun tekst (de tests en harnassen zoeken erop)');
+ok(/Spel opslaan<\/button>/.test(actiesTab) && /Herstarten<\/button>/.test(actiesTab) && /Opgeslagen spellen<\/button>/.test(actiesTab) && /Opnieuw beginnen<\/button>/.test(actiesTab) && /Afsluiten<\/button>/.test(actiesTab), 'de knoppen houden hun tekst (de tests en harnassen zoeken erop)');
 ok(!/querySelector\('\.pm-game \.pm-confirm'\)|querySelector\('\.pm-status'\)|\.pm-rail-acts/.test(pm), 'de code zoekt de vraag, de statusregel en de knoppen niet meer in de rail');
 ok(/data-game-status/.test(actiesTab) && /\[data-game-status\]/.test(pm), 'de statusregel van opslaan en laden staat onder de knoppen');
 ok(/pm-ingame/.test(pm.slice(pm.indexOf('function subtabsHtml'), pm.indexOf('function subtabsHtml') + 500)) && /const subsOf = /.test(pm), 'het tabblad Opslaan & stoppen is er in het hoofdmenu (voor de start) niet');
 ok(/#pause-menu \[data-panel="spel"\] \[data-action\]/.test(read('desktop/devtools.js')), 'de smoke-test van Electron meldt ook de acties onder Spel (pauseButtons)');
-ok(/data-action="menu"[^>]*>Naar het hoofdmenu</.test(pm), 'het pauzemenu heeft Naar het hoofdmenu (alleenspelen_test)');
+ok(/data-action="menu"[^>]*>Herstarten</.test(pm), 'het pauzemenu heeft Spel herstarten (alleenspelen_test)');
 // Standaard herstellen blijft bij Instellingen (het zet alles terug, ook Spel)
 ok(/\[data-action="reset"\]'\)\.hidden = name !== 'settings'/.test(pm), 'Standaard herstellen blijft bij Instellingen');
 // oude opgeslagen keuzes (pref.sub) breken niets: een onbekend tabblad valt terug op het eerste
@@ -220,7 +220,7 @@ ok(read('game/js/helpoverview.js').includes("id: 'kaart'"), 'Besturing, Hulp: de
 // #435: veilig afsluiten vanuit het hoofdmenu en de nieuw-bolletjes op de rail
 const exitBranch = pm.slice(pm.indexOf("a === 'menu' || a === 'exit'"), pm.indexOf("a === 'pigeon-stop'"));
 ok(/started\(\) && !prestart && world\) saveGame\(world\)/.test(exitBranch), 'Afsluiten bewaart alleen een lopend spel, niet de menuscene boven het hoofdmenu (#435)');
-ok(!/if \(world\) saveGame\(world\)/.test(exitBranch), 'geen onvoorwaardelijke save meer bij Naar het hoofdmenu of Afsluiten');
+ok(!/if \(world\) saveGame\(world\)/.test(exitBranch), 'geen onvoorwaardelijke save meer bij Spel herstarten of Afsluiten');
 const pcss = read('game/js/pausemenu.css');
 ok(pcss.includes('.ra[data-new] .ra-t::after'), 'de nieuw-bolletjes op de rail (Verhaal, Prestaties) hebben een eigen stijl (#435)');
 ok(pcss.includes('.ra.pm-exit::after'), 'Afsluiten staat met een scheidingslijn onder de andere secties');

@@ -234,6 +234,7 @@ Debug hooks on `window` (`window.__x`, read by scripts/perf, the story test and 
 | `?stil` | Geen audio en geen pauze bij verborgen tabblad (testsessies) |
 | `?audiograf` | Met stil: de audiograaf draait wel, maar eindigt in een gedempte uitgang |
 | `?noattract` | Geen aantrekkingsfilmpje op het titelscherm; door naar het menu |
+| `?menu` | Forceer het oude startscherm (QA en opnames); normaal start het spel meteen in de laatste save |
 | `?attract` | Speel het aantrekkingsfilmpje (trailer.js) |
 | `?perf` | Prestatierun: titelscherm automatisch voorbij |
 | `?spotsonly` | Verhaaltest: alleen de plekkenronde |

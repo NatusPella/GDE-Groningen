@@ -13,9 +13,9 @@ Code-identifiers, bestandsnamen en opslagsleutels (`gde-save-v1`, `saveslots.js`
 | save slot, slot (voor een savegame) | **opslagplek** | "slot" als deursluiting is gewoon Nederlands en blijft |
 | backup | **herstelkopie** | |
 | load, loaden | **laden** | "Laatste savegame laden" |
-| (hoofdmenu) single player, solo | **Alleen spelen** | de ene hoofdkeuze naast **Samen spelen**; opent het scherm **Opgeslagen spellen** met bovenaan **Doorgaan** (het laatst gespeelde spel) en als eerste kaart **Nieuw spel**. Kiezen van een kaart is laden. Geen losse "Nieuw spel" of "Hervatten" in het hoofdmenu. Zonder opgeslagen spel start Alleen spelen meteen een nieuw spel |
-| continue, resume, hervatten (hoofdmenu en pauzemenu) | **Doorgaan** | terug naar het spel (pauzemenu: **Terug**, Esc) of verder met het laatst gespeelde spel. "Hervatten" is voor het hervatpunt na een mislukking |
-| main menu, titelscherm (in beeld) | **Naar het hoofdmenu** | de knop in het pauzemenu; het scherm zelf heet **Hoofdmenu** |
+| (vroeger) single player, solo | **Spelen** | geen aparte knop meer: het spel start in de save die je het laatst hebt opgeslagen; zonder save begint het verhaal meteen. Een andere save of een nieuw spel staat in het pauzemenu onder **Spel** |
+| continue, resume, hervatten (pauzemenu) | **Verder spelen** | terug naar het spel (Esc); het spel start zelf al in de laatst opgeslagen save. "Hervatten" is voor het hervatpunt na een mislukking |
+| main menu, titelscherm (in beeld) | **Spel herstarten** | de knop in het pauzemenu; het spel slaat op en start opnieuw in die save. Er is geen hoofdmenu meer |
 | host, gastheer, gastgever | **de naam van de speler** ("Tammo heeft het spel geopend", "Wacht tot Tammo het spel start"), of **de ander** | geen rolnaam bij samen spelen (eigenaar, 20-10): niet "gastheer" en niet "gastgever". De knoppen heten **Een spel openen** en **Meedoen**; de naam is die van het personage (Tammo, Tessa) of de profielnaam. "Gast" mag waar het moet ("de gast"), liever met naam. In code en docs blijft de interne naam `host` |
 | co-op, coöp, multiplayer | **samen spelen** | de naam van de modus in beeld; zie ook de regel hierboven voor wie het spel opende. Interne namen, bestanden en issue-titels blijven `coop` |
 | lobby | **kamer** (of wachtkamer) | alleen waar het in beeld staat |
