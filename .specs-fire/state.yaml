@@ -227,19 +227,7 @@ intents:
         depends_on:
           - wi-493-geld
 runs:
-  active:
-    - id: run-gde-light-sims-016
-      scope: single
-      work_items:
-        - id: wi-492-vlieg-samen
-          intent: gde-light-sims
-          mode: confirm
-          status: in_progress
-          current_phase: plan
-          checkpoint_state: none
-          current_checkpoint: plan
-      current_item: wi-492-vlieg-samen
-      started: 2026-10-25T16:28:08.629Z
+  active: []
   completed:
     - id: run-gde-groningen-001
       scope: single
@@ -441,3 +429,19 @@ runs:
           mode: confirm
       started: 2026-10-25T16:17:02.953Z
       completed: 2026-10-25T16:37:45.911Z
+    - id: run-gde-light-sims-016
+      scope: single
+      work_items:
+        - id: wi-492-vlieg-samen
+          intent: gde-light-sims
+          mode: confirm
+      started: 2026-10-25T16:28:08.629Z
+      completed: 2026-10-25T16:57:14.263Z
+    - id: run-gde-light-sims-017
+      scope: single
+      work_items:
+        - id: wi-492-trein-samen
+          intent: gde-light-sims
+          mode: confirm
+      started: 2026-10-25T16:39:17.025Z
+      completed: 2026-10-25T16:57:14.613Z
