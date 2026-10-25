@@ -4,6 +4,10 @@
 // Het onderzoek (weiland-randen-sloten.md) mat 885 palen over spoor buiten 5 km van de stad;
 // dit is de herhaalbare versie, met drempels die alleen kunnen dalen.
 //
+// Sinds #502 keurt de audit ook wat er ná de start gebeurt: of een kudde met haar
+// graasbereik (huis plus loopafstand, binnen het perceel) de rijbaan kan halen, en of
+// een wandelaar van pedestrians.js op de asfaltstrook van een weg terechtkomt.
+//
 //   node scripts/world/prop_conflict_audit.mjs [--strict] [--rail N] [--random N] [--seed S] [--json]
 //
 // Vensters van 1 x 1 km in de provincietegels (>700 m buiten de stad): N met spoor, N willekeurig,
@@ -23,15 +27,19 @@ const CE = await import('../../game/js/countryedge.js');
 const CF = await import('../../game/js/countryfield.js');
 const CS = await import('../../game/js/countryside.js');
 const SF = await import('../../game/js/streetfurniture.js');
+const { isOnRoad } = await import('../../game/js/pedgeom.js');
+const { spawnPedestriansNear } = await import('../../game/js/pedestrians.js');
 
 // Wat --strict toestaat: alleen dalen. ZERO: tellers die 0 moeten zijn (over spoor, weg, water, gebouw; vee in
-// water, op weg of spoor). RATE: [teller, van wat, hoogstens aandeel]: de gemeten waarde op de standaardvensters
+// water, op weg of spoor; een kudde die de rijbaan kan halen; een wandelaar op de rijbaan). RATE: [teller, van wat,
+// hoogstens aandeel]: de gemeten waarde op de standaardvensters
 // (12 met spoor, 12 willekeurig, seed 7) met een kleine marge; wat de generator nog niet kan (dubbele palen,
 // draad net over een sloot, naadgaten van andere hekken) staat hier met het gemeten aandeel.
 export const ZERO = [
   'postOnRail', 'wireOnRail', 'hedgeOnRail', 'postOnRoad', 'wireOnRoad', 'hedgeOnRoad',
   'postInWater', 'wireInWater', 'hedgeInWater', 'postInBuilding', 'wireInBuilding', 'hedgeInBuilding',
-  'cattleInWater', 'cattleOnRoad', 'cattleOnRail', 'cattleOnFarmland', 'osmOnRail', 'osmOnRoad', 'osmInWater', 'osmInBuilding', 'gateOnRail',
+  'cattleInWater', 'cattleOnRoad', 'cattleOnRail', 'cattleOnFarmland', 'cattleReachOnRoad',
+  'osmOnRail', 'osmOnRoad', 'osmInWater', 'osmInBuilding', 'gateOnRail', 'walkersOnRoad',
 ];
 export const RATE = [
   ['seamGaps', 'posts', 0.002], ['doublePosts', 'posts', 0.025], ['postOnDitch', 'posts', 0.001],
@@ -126,6 +134,58 @@ function judge(map) {
 
 const KINDS = { post: 'post', wire: 'wire', hedge: 'hedge' };
 
+// Kan een kudde vanaf haar graasplek de rijbaan halen? De dieren trekken een doel binnen
+// `spread` van hun huis, begrensd door het perceel; dat perceel loopt tot de rand van de
+// strook en kent de weg niet (#502). Rekent met de echte afstand tot de asfaltstrook.
+function reachOnRoad(a, nrb) {
+  const r = a.rect, sp = a.spread || 10;
+  const x0 = Math.max(r[0], a.hx - sp), x1 = Math.min(r[2], a.hx + sp);
+  const y0 = Math.max(r[1], a.hy - sp), y1 = Math.min(r[3], a.hy + sp);
+  if (x0 > x1 || y0 > y1) return false;
+  for (const rd of nrb(a.hx, a.hy, sp + 15)) {
+    if (rd.bridge) continue;
+    const hw = (rd.width || 4) / 2, P = rd.pts;
+    for (let i = 0; i < P.length - 1; i++) {
+      const len = Math.hypot(P[i + 1][0] - P[i][0], P[i + 1][1] - P[i][1]);
+      const n = Math.max(1, Math.ceil(len / 2));
+      for (let k = 0; k <= n; k++) {
+        const x = P[i][0] + (P[i + 1][0] - P[i][0]) * (k / n), y = P[i][1] + (P[i + 1][1] - P[i][1]) * (k / n);
+        if (x < x0 - hw || x > x1 + hw || y < y0 - hw || y > y1 + hw) continue;
+        if (Math.hypot(x - a.hx, y - a.hy) <= sp + hw) return true;
+      }
+    }
+  }
+  return false;
+}
+
+// Waar een wandelaar vandaan komt (pedestrians.js kiest een punt 1 tot 3 m naast een weg):
+// bij een kruising is die berm de rijbaan van de kruisende weg, en daar loopt hij dan (#502).
+// De echte spawner wordt op zulke punten losgelaten, met een vaste reeks per venster.
+export const WALKER_CATS = ['major', 'normal', 'minor'];
+function walkerSample(map, ox, oy, seed) {
+  const spots = [], seen = new Set();
+  for (const r of map.all.roads) {
+    if (seen.has(r)) continue;
+    seen.add(r);
+    const P = r.pts;
+    for (let i = 0; i < P.length - 1 && spots.length < 24; i++) {
+      for (const t of [0.05, 0.5, 0.95]) {
+        const x = P[i][0] + (P[i + 1][0] - P[i][0]) * t, y = P[i][1] + (P[i + 1][1] - P[i][1]) * t;
+        if (x < ox || x > ox + 1000 || y < oy || y > oy + 1000) continue;
+        spots.push([x, y]);
+        if (spots.length >= 24) break;
+      }
+    }
+    if (spots.length >= 24) break;
+  }
+  let s = seed >>> 0;
+  const rnd = () => { s = (Math.imul(s, 1664525) + 1013904223) >>> 0; return s / 4294967296; };
+  const out = [];
+  for (const [x, y] of spots) out.push(...spawnPedestriansNear(map, x, y, 8, rnd, true));
+  return { walkers: out.length, onRoad: out.filter((p) => isOnRoad(map, p.x, p.y, 0, WALKER_CATS)).length };
+}
+
+
 // de tegels van de provincie met spoor, en willekeurige, buiten de stad
 export function pickWindows(index, { rail = 30, random = 30, seed = 7 } = {}) {
   const tiles = Object.entries(index.tiles).filter(([, t]) => t.flags & PW.PFLAG.PROVINCE && t.n);
@@ -164,6 +224,7 @@ export function auditWindow(out, index, key, { rails = [] } = {}) {
   const [ox, oy] = G.tileOrigin(ci, cj);
   const c = { windows: 1, posts: 0, wires: 0, hedges: 0, cattle: 0 };
   const add = (k, n = 1) => { c[k] = (c[k] || 0) + n; };
+  const nrb = near(map.all.roads);
   const T = 160;
   const posts = [], farmPosts = [], gatePts = [];
   for (let tx = Math.floor(ox / T); tx <= Math.floor((ox + 1000) / T); tx++) {
@@ -197,9 +258,13 @@ export function auditWindow(out, index, key, { rails = [] } = {}) {
         if (J.onRoad(a.x, a.y)) add('cattleOnRoad');
         if (J.onRail(a.x, a.y)) add('cattleOnRail');
         if (J.onFarmland(a.x, a.y)) add('cattleOnFarmland');
+        // en kan het dier er met een loopdoel komen? (het perceel kent de weg niet, #502)
+        if (reachOnRoad(a, nrb)) add('cattleReachOnRoad');
       }
     }
   }
+  // wandelaars: de echte spawner op de wegen van dit venster (pedestrians.js)
+  { const w = walkerSample(map, ox, oy, 502 + ci * 7919 + cj); add('walkers', w.walkers); add('walkersOnRoad', w.onRoad); }
   // the short wings of a field gate in arable land are meant: only a post with no gate within 7 m counts
   for (const [fx, fy] of farmPosts) if (!gatePts.some(([gx, gy]) => Math.hypot(gx - fx, gy - fy) < 7)) add('postOnFarmland');
   // de gemapte OSM-hekken en -heggen (streetfurniture.js, zoals streetfurniture3d.js ze per tegel zet): over spoor, weg, gebouw, water
@@ -289,7 +354,7 @@ async function main() {
   const total = sumWindows(rows.map((r) => r.c));
   const perStreek = {};
   for (const r of rows) { const s = perStreek[r.streek] || (perStreek[r.streek] = []); s.push(r.c); }
-  const keys = ['posts', 'wires', 'hedges', 'cattle', 'postOnRail', 'wireOnRail', 'hedgeOnRail', 'postOnRoad', 'wireOnRoad', 'hedgeOnRoad', 'postInWater', 'wireInWater', 'hedgeInWater', 'postInBuilding', 'wireInBuilding', 'hedgeInBuilding', 'postOnDitch', 'wireOnDitch', 'hedgeOnDitch', 'doublePosts', 'seamGaps', 'postOnFarmland', 'cattleOnFarmland', 'gates', 'gateAtRail', 'gateOnRail', 'osmPieces', 'osmOnRail', 'osmOnRoad', 'osmInWater', 'osmInBuilding', 'cattleInWater', 'cattleOnRoad', 'cattleOnRail'];
+  const keys = ['posts', 'wires', 'hedges', 'cattle', 'postOnRail', 'wireOnRail', 'hedgeOnRail', 'postOnRoad', 'wireOnRoad', 'hedgeOnRoad', 'postInWater', 'wireInWater', 'hedgeInWater', 'postInBuilding', 'wireInBuilding', 'hedgeInBuilding', 'postOnDitch', 'wireOnDitch', 'hedgeOnDitch', 'doublePosts', 'seamGaps', 'postOnFarmland', 'cattleOnFarmland', 'cattleReachOnRoad', 'gates', 'gateAtRail', 'gateOnRail', 'osmPieces', 'osmOnRail', 'osmOnRoad', 'osmInWater', 'osmInBuilding', 'cattleInWater', 'cattleOnRoad', 'cattleOnRail', 'walkers', 'walkersOnRoad'];
   if (args.includes('--json')) { console.log(JSON.stringify({ total, perStreek: Object.fromEntries(Object.entries(perStreek).map(([s, l]) => [s, sumWindows(l)])) })); }
   else {
     console.log(`${all.length} vensters (${W.rail.length} met spoor, ${W.random.length} willekeurig), seed ${opt('seed', 7)}`);

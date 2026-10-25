@@ -817,7 +817,7 @@ function lanePoint(map, road, i, dir, v) {
   return [p[0] + nrm[0] * lane * dir, p[1] + nrm[1] * lane * dir];
 }
 
-export function spawnVehicleOnRoad(map, road, isPolice = false, rng = Math.random, isBike = false, isBus = false, atPoint = null, isScooter = false, forcedModel = null) {
+export function spawnVehicleOnRoad(map, road, isPolice = false, rng = Math.random, isBike = false, isBus = false, atPoint = null, isScooter = false, forcedModel = null, wantAngle = null) {
   const pts = road.pts;
   let i, a, b, t;
   if (atPoint) {
@@ -839,7 +839,12 @@ export function spawnVehicleOnRoad(map, road, isPolice = false, rng = Math.rando
   const x = a[0] + (b[0] - a[0]) * t;
   const y = a[1] + (b[1] - a[1]) * t;
   let angle = Math.atan2(b[1] - a[1], b[0] - a[0]);
-  const dir = road.oneway ? 1 : (rng() < 0.5 ? 1 : -1);
+  // wantAngle: de richting die de beller eist (een live bus komt uit de feed met een eigen koers). Zonder
+  // deze regel koos de dobbelsteen hier de helft van de tijd de verkeerde kant op, en dan werd de live bus
+  // terecht afgekeurd (#332, livebussen).
+  const dir = road.oneway ? 1 : (wantAngle != null
+    ? (Math.abs(normalizeAngle(angle - wantAngle)) > Math.PI / 2 ? -1 : 1)
+    : (rng() < 0.5 ? 1 : -1));
   if (dir < 0) angle = normalizeAngle(angle + Math.PI);
   const model = forcedModel || (isPolice
     ? POLICE_MODEL
@@ -1195,8 +1200,20 @@ export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax
       if (count >= target + 2 || vehicles.some((q) => q.liveId === lb.id)) continue;
       const rp = busSpawnPoint(map, lb.line, lb.x, lb.y);
       if (!rp) continue;
-      const v = spawnVehicleOnRoad(map, rp.road, false, Math.random, false, true, rp);
-      if (Math.abs(normalizeAngle(v.angle - lb.angle)) > LIVE_HOEK_MAX || !spawnSpotFree(vehicles, v) || spawnWouldPop(world, v)) continue;
+      // De echte bus is de waarheid: staat er een bus van de eigen dienst op dezelfde plek, dan gaat die
+      // weg in plaats van de live bus. Anders komt een live bus nooit in beeld als er net een dienstbus
+      // staat — dat gebeurde in de test de helft van de tijd (#332).
+      let spotBus = null;
+      for (const q of vehicles) {
+        if (!q.isBus || q.wrecked || q.driver === 'player' || q.liveId != null) continue;
+        if (Math.hypot(q.x - lb.x, q.y - lb.y) < 24 && (!spotBus || Math.hypot(q.x - lb.x, q.y - lb.y) < Math.hypot(spotBus.x - lb.x, spotBus.y - lb.y))) spotBus = q;
+      }
+      if (spotBus) { vehicles.splice(vehicles.indexOf(spotBus), 1); count = Math.max(0, count - 1); }
+      const v = spawnVehicleOnRoad(map, rp.road, false, Math.random, false, true, rp, false, null, lb.angle);
+      if (Math.abs(normalizeAngle(v.angle - lb.angle)) > LIVE_HOEK_MAX || !spawnSpotFree(vehicles, v) || spawnWouldPop(world, v)) {
+        if (spotBus) vehicles.push(spotBus); // past hij toch niet, dan blijft de dienstbus staan
+        continue;
+      }
       v.busRun = makeRunner(lb.line, projectOnLine(lb.line, v.x, v.y).s, lb.dir);
       v.liveId = lb.id;
       vehicles.push(v);
