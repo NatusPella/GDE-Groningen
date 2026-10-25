@@ -42,6 +42,18 @@ export function twilight(elevDeg) {
   return x * x * (3 - 2 * x);
 }
 
+// Het emissieve vulsel van het bladerdak (#463). Dat vulsel houdt een kruin in
+// de schemering en in de schaduw van een zwarte blob, maar het is het ene stuk
+// boom dat de zon niet dimt: in de nacht bleven de kronen daardoor groen
+// oplichten tussen de donkere straat. `night` is de nachtwaarde van de zon
+// (nightFactor, 0..1): 1 = het vulsel blijft zoals het was (dag en schemering),
+// 0 = geen eigen licht meer. De straatlampen gaan aan bij night > 0.5, dus dan
+// is de gloed al weg.
+export function foliageGlow(night) {
+  const n = Math.min(1, Math.max(0, (Number(night) || 0) * 1.5));
+  return 1 - n * n * (3 - 2 * n);
+}
+
 // Maanfase over de verzonnen kalenderdagen: 0 nieuw, 0.5 vol. Synodische maand.
 const SYNODIC_DAYS = 29.53;
 export function moonPhase(day, offset = 0.31) {
