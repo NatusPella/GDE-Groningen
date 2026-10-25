@@ -250,10 +250,11 @@ const SECTIONS = [
   ['streken', 'Cheats', 'Een beetje vals spelen'],
 ];
 // the rail's three groups: playing, collected, system
-const RAIL_GROUPS = [['spel', 'verhaal', 'loopbaan', 'todo'], ['map', 'spullen', 'garage', 'prestaties', 'fotos'], ['settings']];
+// Cheats staat sinds #435 naast Instellingen in de rail: het was te verstopt onder Instellingen > Cheats.
+const RAIL_GROUPS = [['spel', 'verhaal', 'loopbaan', 'todo'], ['map', 'spullen', 'garage', 'prestaties', 'fotos'], ['settings', 'streken']];
 // Onderdelen zonder eigen plek in de rail die onder een ander onderdeel hangen (#430): Vissen en Farmen horen bij Loopbaan
 // (de tegels Bezigheden), de toetsen en knoppen bij Instellingen > Besturing. De rail markeert de ouder; Terug gaat naar de ouder.
-const CHILD = { visboek: 'loopbaan', boerderij: 'loopbaan', controls: 'settings', streken: 'settings' };
+const CHILD = { visboek: 'loopbaan', boerderij: 'loopbaan', controls: 'settings' };
 const PRESTART_SECTIONS = ['spel', 'settings', 'controls'];
 const SUBTABS = {
   todo: [['alles', 'Alles'], ['dichtbij', 'Dichtbij']],
