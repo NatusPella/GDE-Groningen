@@ -80,10 +80,15 @@ const BOARD_GEO = markShared(new THREE.BoxGeometry(0.04, 1, 1));
 export function buildSign(sign) {
   const g = new THREE.Group();
   const keys = [];
+  // Een bord zonder tekst is geen bord (#436): geen leeg, zwart vlak in de wereld.
+  const tekst = (t) => (typeof t === 'string' ? t.trim() : '');
   if (sign.kind === 'place') {
-    const k = 'p:' + sign.text + (sign.sub ? ':' + sign.sub : '');
+    const text = tekst(sign.text);
+    if (!text) return g;
+    sign = { ...sign, text };
+    const k = 'p:' + text + (sign.sub ? ':' + sign.sub : '');
     keys.push(k);
-    const face = texture(k, placeBoard(sign.text, sign.sub), 512, 160);
+    const face = texture(k, placeBoard(text, sign.sub), 512, 160);
     for (const z of [-0.75, 0.75]) {
       const p = new THREE.Mesh(POST_GEO, POST_MAT);
       p.scale.y = 2.3;
@@ -97,10 +102,13 @@ export function buildSign(sign) {
     g.add(b);
     g.rotation.y = -(sign.rot || 0) + Math.PI / 2;
   } else {
+    // blades zonder naam (een dorp dat nog niet in de lijst staat) slaan we over
+    const blades = (sign.blades || []).filter((bl) => bl && tekst(bl.text));
+    if (!blades.length) return g;
     const p = new THREE.Mesh(POST_GEO, POST_MAT);
     p.scale.y = 3.1;
     g.add(p);
-    sign.blades.forEach((bl, i) => {
+    blades.forEach((bl, i) => {
       // blade along its arm, arrow tip pointing outwards from the post
       const ang = Math.atan2(bl.ay, bl.ax);
       const kR = 'b:' + bl.text + ':' + bl.km + ':r', kL = 'b:' + bl.text + ':' + bl.km + ':l';
