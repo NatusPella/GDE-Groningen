@@ -22,12 +22,15 @@ POST = f'ffmpeg -af {TRIM},loudnorm=I={LUFS}:TP={TP}:LRA=11:linear=true (two-pas
 
 args = [a for a in sys.argv[1:]]
 budget, OUT_DIR, JOBS = 2.5, None, os.path.join(REPO, 'scripts', 'tts_lines.json')
-for flag in ['--budget', '--provider', '--model', '--out', '--jobs']:
+for flag in ['--budget', '--provider', '--model', '--rpm', '--out', '--jobs']:
     if flag in args:
-        i = args.index(flag); value = args[i + 1]; del args[i:i + 2]
+        i = args.index(flag)
+        if i + 1 >= len(args): raise SystemExit(f'{flag} needs a value')
+        value = args[i + 1]; del args[i:i + 2]
         if flag == '--budget': budget = float(value)
         elif flag == '--provider': configure(provider=value)
         elif flag == '--model': configure(model=value)
+        elif flag == '--rpm': configure(rpm=float(value))
         elif flag == '--out': OUT_DIR = value  # a scratch folder for a listen (a proef, not a manifest)
         else: JOBS = os.path.join(REPO, value)
 
@@ -53,19 +56,31 @@ def job(l):
         return l, 'skip', probe(dst), None
     os.makedirs(os.path.dirname(dst), exist_ok=True)
     say = say_of(l)
+
+    def take(style):
+        wav = dst[:-4] + '.tmp.wav'
+        pcm = speak(l['voice'], say, style)
+        check(pcm, say)
+        with wave.open(wav, 'wb') as w:
+            w.setnchannels(1); w.setsampwidth(2); w.setframerate(24000); w.writeframes(pcm)
+        encode(wav, dst)
+        os.remove(wav)
+
     err = None
     for attempt, style in enumerate(tries(l)):
         try:
-            wav = dst[:-4] + '.tmp.wav'
-            pcm = speak(l['voice'], say, style)
-            check(pcm, say)
-            with wave.open(wav, 'wb') as w:
-                w.setnchannels(1); w.setsampwidth(2); w.setframerate(24000); w.writeframes(pcm)
-            encode(wav, dst)
-            os.remove(wav)
+            take(style)
             return l, 'ok' if attempt == 0 else 'ok-fallback', probe(dst), style
         except urllib.error.HTTPError as e:
             err = f'HTTP {e.code} {e.read()[:160]!r}'
+            # a rate limit is not a reason to change the style: wait and ask again
+            for wait in ([10, 20, 30] if e.code == 429 else []):
+                time.sleep(wait)
+                try:
+                    take(style)
+                    return l, 'ok-retry', probe(dst), style
+                except Exception as again:
+                    err = repr(again)[:160]
         except Exception as e:
             err = repr(e)[:160]
         time.sleep(1)

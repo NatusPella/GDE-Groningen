@@ -312,6 +312,19 @@
   "file": "anita/een_gestolen_automaat_op_een_aan_c088920a.mp3"
  },
  {
+  "key": "Anita|Er komt een politieauto aan. Instappen.",
+  "speaker": "Anita",
+  "text": "Er komt een politieauto aan. Instappen.",
+  "area": "M02.1",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "lacherig, ad rem",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: lacherig, ad rem.",
+  "file": "anita/er_komt_een_politieauto_aan_inst_4ede8b87.mp3"
+ },
+ {
   "key": "Tammo|Ik rij.",
   "speaker": "Tammo",
   "text": "Ik rij.",

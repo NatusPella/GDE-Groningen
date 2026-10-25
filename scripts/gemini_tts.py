@@ -17,7 +17,7 @@
 # the same ("<speaker>|<text>", the text as shown): exactly how each clip was
 # made - file, model, voice, the input sent, the style, the post-processing
 # and the date. The game never loads it.
-import base64, datetime, json, os, urllib.request
+import base64, datetime, json, os, threading, time, urllib.request
 
 REPO = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 # GDE_ENV points at a .env outside this checkout (an agent works in a worktree, the key lives in the
@@ -37,14 +37,18 @@ ACCEPTED = (MODEL, 'gemini-3.8-flash-tts', 'gemini-3.8-flash-lite-tts')
 # (ai.google.dev/gemini-api/docs/pricing). Input text is a rounding error next to the audio.
 AUDIO_TPS, PRICE = 25, {'gemini-3.8-flash-tts': 9.0, 'gemini-3.8-flash-lite-tts': 6.0}
 CURRENT = MODEL
+# AI Studio allows 10 requests per minute for this model on Tier 1 (a 454-line run otherwise spends
+# its time on 429s); 0 turns the throttle off. Over OpenRouter there is no such limit.
+RPM = 10
+_RATE_LOCK, _LAST_CALL = threading.Lock(), [0.0]
 _SPENT = 0.0  # dollars spent in this run; only the google transport can meter itself
 _KEYS = {}
 _SPOKEN = None
 
 
-def configure(provider=None, model=None):
-    """Picks the transport and the model new clips are recorded with (one run, one model)."""
-    global PROVIDER, CURRENT
+def configure(provider=None, model=None, rpm=None):
+    """Picks the transport, the model and the request rate for new clips (one run, one model)."""
+    global PROVIDER, CURRENT, RPM
     if provider:
         if provider not in PROVIDERS:
             raise SystemExit(f'unknown provider {provider!r}; use one of {", ".join(PROVIDERS)}')
@@ -52,17 +56,33 @@ def configure(provider=None, model=None):
     CURRENT = model or (GOOGLE_MODEL if PROVIDER == 'google' else MODEL)
     if CURRENT not in ACCEPTED:
         raise SystemExit(f'model {CURRENT!r} is not in ACCEPTED: add it to gemini_tts.ACCEPTED and tts_cast.mjs first')
+    if PROVIDER == 'google' and CURRENT not in PRICE:
+        raise SystemExit(f'{CURRENT!r} is an OpenRouter id; the google transport wants gemini-3.8-flash-tts or gemini-3.8-flash-lite-tts')
+    if rpm is not None:
+        RPM = rpm
+
+
+def throttle():
+    """Spaces the google requests so the per-minute limit is not hit by four threads at once."""
+    if not RPM:
+        return
+    with _RATE_LOCK:
+        wait = _LAST_CALL[0] + 60.0 / RPM - time.monotonic()
+        if wait > 0:
+            time.sleep(wait)
+        _LAST_CALL[0] = time.monotonic()
 
 
 def api_key():
     """The API key of the active transport, read from .env without ever printing it."""
     if PROVIDER not in _KEYS:
-        name = 'GEMINI_API_KEY' if PROVIDER == 'google' else 'OPENROUTER_API_KEY'
+        names = ('GOOGLE_AI_STUDIO_KEY', 'GEMINI_API_KEY') if PROVIDER == 'google' else ('OPENROUTER_API_KEY',)
         if not ENV:
-            raise SystemExit(f'no .env found for {name}')
-        found = [l.split('=', 1)[1].strip().strip('"\'') for l in open(ENV, encoding='utf-8') if l.startswith(name + '=')]
+            raise SystemExit(f'no .env found for {" or ".join(names)} (set GDE_ENV to point at one)')
+        lines = open(ENV, encoding='utf-8').read().splitlines()
+        found = [l.split('=', 1)[1].strip().strip('"\'') for name in names for l in lines if l.startswith(name + '=')]
         if not found:
-            raise SystemExit(f'{name} is not in .env')
+            raise SystemExit(f'{" or ".join(names)} is not in .env')
         _KEYS[PROVIDER] = found[0]
     return _KEYS[PROVIDER]
 
@@ -93,7 +113,7 @@ def speak(voice, text, style):
     """24 kHz mono 16-bit PCM."""
     if PROVIDER == 'google':
         return _speak_google(voice, text, style)
-    body = {'model': MODEL, 'input': text, 'voice': voice, 'response_format': 'pcm'}
+    body = {'model': CURRENT if '/' in CURRENT else 'google/' + CURRENT, 'input': text, 'voice': voice, 'response_format': 'pcm'}
     if style:
         body['provider'] = {'options': {'google-ai-studio': {'speech_metadata': {'style': style}}}}
     req = urllib.request.Request(ENDPOINT, data=json.dumps(body).encode(), headers={'Authorization': f'Bearer {api_key()}', 'Content-Type': 'application/json'})
@@ -114,6 +134,7 @@ def _speak_google(voice, text, style):
         'generation_config': {'speech_config': [{'voice': voice}]},
     }
     req = urllib.request.Request(GOOGLE_ENDPOINT, data=json.dumps(body).encode(), headers={'x-goog-api-key': api_key(), 'Content-Type': 'application/json'})
+    throttle()
     with urllib.request.urlopen(req, timeout=180) as r:
         data = json.loads(r.read())
     pcm = pcm_of(data)
