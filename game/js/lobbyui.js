@@ -18,7 +18,7 @@ import { hostRoom, joinRoom, rtcSupported } from './net/rtcroom.js';
 import { MultiSignaler, LijstSignaler } from './net/brokers.js';
 import * as CONFIG from './net/netconfig.js';
 import { makeRoom, formatRoom, topicFor } from './net/sigcrypto.js';
-import { LIJST, Serverlijst, maakAankondiger, maakId } from './net/serverlijst.js';
+import { LIJST, Serverlijst, maakAankondiger } from './net/serverlijst.js';
 import { PROTO } from './net/protocol.js';
 import { lijst as rosterLijst, charInfo } from './coopplayers.js';
 import { meet, beoordeel, foutrapport, verbindingslog } from './net/diagnose.js';
@@ -26,7 +26,6 @@ import { maakEnv } from './net/diagnoseenv.js';
 import { VERSION } from './version.js';
 
 const newLijstSignaler = () => new LijstSignaler(CONFIG, { socket: (url) => { const ws = new WebSocket(url); ws.binaryType = 'arraybuffer'; return ws; } }, { brokerTimeout: CONFIG.TIMEOUTS.broker, interval: LIJST.interval });
-const rnd = () => { try { return crypto.getRandomValues(new Uint32Array(1))[0] / 4294967296; } catch (e) { return Math.random(); } };
 // Gemelde sessies (#438) blijven op dit apparaat verborgen: alleen id's, hoogstens 50, en nooit stuk als de opslag ontbreekt
 const VERBORGEN_SLEUTEL = 'gde-serverlijst-verborgen';
 const leesVerborgen = () => { try { const a = JSON.parse(localStorage.getItem(VERBORGEN_SLEUTEL) || '[]'); return Array.isArray(a) ? a.filter((x) => typeof x === 'string').slice(-50) : []; } catch (e) { return []; } };
@@ -48,7 +47,10 @@ export function mountLobby(root, hooks, opts = {}) {
     const host = opts.rol === ROLES.HOST, bron = host ? opts.hub : opts.session;
     const lijst = host ? (bron && bron.roster ? rosterLijst(bron.roster) : []) : (bron && bron.welcome && Array.isArray(bron.welcome.lijst) ? bron.welcome.lijst : []);
     const max = host ? (bron && bron.roster ? bron.roster.max : 0) : (bron && bron.welcome ? bron.welcome.max : 0);
-    state = reduce(state, { t: 'adopteer', rol: opts.rol, route: opts.adopt.route, code: opts.adopt.code, lijst, max, slot: host ? 0 : bron && bron.slot });
+    // (#450) de lopende sessie houdt zijn naam en vaste id: de hub kent ze (openbaar), de gast kreeg ze in het welkom
+    const pub = host && opts.hub && opts.hub.publiek ? opts.hub.publiek() : null;
+    const sessie = host ? (pub ? { id: pub.id, naam: pub.naam } : null) : (opts.session && opts.session.sessie ? opts.session.sessie : null);
+    state = reduce(state, { t: 'adopteer', rol: opts.rol, route: opts.adopt.route, code: opts.adopt.code, lijst, max, slot: host ? 0 : bron && bron.slot, openbaar: pub, sessie });
   }
   let lastDiag = null;
   let hub = opts.hub || null, session = opts.session || null, handle = null, room = null, stopListen = null, joinedOnce = !!opts.adopt, wacht = false;
@@ -142,6 +144,7 @@ export function mountLobby(root, hooks, opts = {}) {
   function ensureHub() {
     if (hub) return hub;
     hub = hooks.startHost(state.route, onRoster);
+    koppelAankondiging();
     return hub;
   }
   async function openRoom() { // een aanbod voor de eerstvolgende gast, onder dezelfde kamercode
@@ -171,14 +174,25 @@ export function mountLobby(root, hooks, opts = {}) {
     await openRoom();
   }
 
-  // ----- openbare sessie (#438): de host kondigt elke 15 s aan zolang dit scherm de sessie openbaar houdt
+  // ----- openbare sessie (#438, #450): de hub houdt de regel van deze sessie vast (naam, een vast id en het echte aantal
+  // spelers); dit scherm plaatst hem. De hub zegt wanneer het aan- of uitgaat, zodat de sessie dezelfde regel houdt als het
+  // paneel opnieuw opent of het spel wordt overgenomen.
+  function koppelAankondiging() {
+    if (!hub || !hub.zetOpenbaar) return;
+    hub.opOpenbaar = (p) => { if (p) startAankondiging(); else stopAankondiging(); };
+  }
+  const roomTekst = () => { // de kamercode van deze sessie: die van dit paneel, of die uit de overname
+    const c = String(state.code || (opts.adopt && opts.adopt.code) || '').replace(/-/g, '');
+    return /^[A-HJ-NP-Z2-9]{10}$/.test(c) ? c : null;
+  };
   async function startAankondiging() {
     stopAankondiging();
-    if (!room) return;
+    const p = hub && hub.publiek ? hub.publiek() : null, room = roomTekst();
+    if (!p || !room) return; // geen hub, geen kamercode of niet openbaar: niets plaatsen
     const sig = newLijstSignaler();
     aankondiger = sig;
-    const maak = maakAankondiger({ naam: state.openbaarNaam, versie: VERSION, proto: PROTO, room: () => room, id: maakId(rnd),
-      hub: () => (hub && hub.roster ? { spelers: Math.max(1, hub.roster.spelers.length), max: hub.roster.max } : null) });
+    const maak = maakAankondiger({ naam: p.naam, versie: VERSION, proto: PROTO, room, id: p.id,
+      hub: () => (hub && hub.publiek ? hub.publiek() : null) });
     const topic = await topicFor(LIJST.sleutel);
     if (aankondiger === sig) sig.kondig(topic, maak); // intussen weer privé gemaakt: niets plaatsen
   }
@@ -219,6 +233,7 @@ export function mountLobby(root, hooks, opts = {}) {
     sess.onstatus = (st) => {
       set({ t: 'status', status: st, reason: sess.rejected, ander: sess.remoteVersion, partner: { slot: sess.slot } });
       if (st === 'ok') {
+        if (sess.sessie) set({ t: 'sessie', sessie: sess.sessie }); // bij welke sessie je hoort (#450)
         if (!sess.lijstGezien && sess.welcome && Array.isArray(sess.welcome.lijst)) set({ t: 'spelers', lijst: sess.welcome.lijst.map((x) => ({ ...x, naam: naamVan(x) })), max: sess.welcome.max });
         if (!joinedOnce) { joinedOnce = true; if (hooks.joined) hooks.joined(ROLES.GAST); }
         if (opts.start && hooks.resumed) hooks.resumed();
@@ -261,6 +276,7 @@ export function mountLobby(root, hooks, opts = {}) {
     if (handle && handle.cancel) handle.cancel();
     handle = null; wacht = false;
     stopAankondiging(); stopLuisteren();
+    if (hub && hub.opOpenbaar) hub.opOpenbaar = null; // dit scherm plaatst niets meer; de sessie houdt wel zijn naam en id (#450)
     if (stopListen) { stopListen(); stopListen = null; }
     if (api && state.route === ROUTES.DIRECT && !opts.start && !opts.adopt) api.stop();
   }
@@ -270,9 +286,15 @@ export function mountLobby(root, hooks, opts = {}) {
     try {
       if (a === 'start-spel') { if (hooks.startSpel) hooks.startSpel(); if (state.rol === ROLES.HOST) set({ t: 'gate', aan: false }); } // het spel loopt: Spel starten verdwijnt (#434)
       else if (a === 'openbaar') set({ t: 'openbaar-vraag' });
-      else if (a === 'openbaar-ja') { set({ t: 'openbaar-ja', naam: input ? input.value : '' }); if (state.openbaar) await startAankondiging(); }
+      else if (a === 'openbaar-ja') {
+        const naam = input ? input.value : '';
+        // de hub houdt naam en het vaste id van deze sessie vast (#450); hij filtert de naam ook (constitutie 10)
+        const r = hub && hub.zetOpenbaar ? hub.zetOpenbaar(true, naam) : { ok: true };
+        set({ t: 'openbaar-ja', naam, id: r.id });
+        if (r.ok && state.openbaar && !aankondiger) await startAankondiging();
+      }
       else if (a === 'openbaar-terug') set({ t: 'openbaar-terug' });
-      else if (a === 'privaat') { set({ t: 'privaat' }); await nieuweKamer(); }
+      else if (a === 'privaat') { if (hub && hub.zetOpenbaar) hub.zetOpenbaar(false); set({ t: 'privaat' }); await nieuweKamer(); }
       else if (a === 'lijst') set({ t: 'lijst-vraag' });
       else if (a === 'lijst-go') { set({ t: 'lijst-go' }); await startLuisteren(); }
       else if (a === 'lijst-terug') set({ t: 'lijst-terug' });
@@ -331,7 +353,9 @@ export function mountLobby(root, hooks, opts = {}) {
     if (e.target && e.target.classList && e.target.classList.contains('coop-profiel-naam')) state = reduce(state, { t: 'profiel', naam: e.target.value });
   });
   root.addEventListener('change', (e) => { if (e.target && e.target.classList && e.target.classList.contains('coop-profiel-naam')) bewaarProfiel(); });
+  if (hub) koppelAankondiging();
   draw();
+  if (state.step === 'verbonden' && state.openbaar && hub) startAankondiging(); // een lopende openbare sessie staat weer in de lijst, met dezelfde regel (#450)
   if (state.step === 'verbroken') planAuto(AUTO_EERSTE);
   return { event: set, state: () => state, close() { cleanup(); root.innerHTML = ''; } };
 }

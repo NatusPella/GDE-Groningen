@@ -401,4 +401,21 @@ t('een wereld zonder speler (#450): de gastheer draait koploos, de gasten spelen
   N.stopCoopNet(hw); step(2);
   for (const g of gs) assert.equal(g.gw.coopNet, null);
 });
+t('een openbare sessie (#450): een gastheer zonder speler telt plek 0 niet mee, en de gast kent zijn sessie uit het welkom', () => {
+  const hw = koplozeWereld({ start: { x: 0, y: 0 } });
+  N.startHost(hw, INFO, { seed: 5, koploos: true });
+  const hub = hw.coopNet.hub;
+  hub.zetOpenbaar(true, 'Zomeravond');
+  assert.equal(hub.publiek().spelers, 1, 'de lege plek 0 van een koploze gastheer is geen speler');
+  const link = createLink({ latency: 0.03, seed: 3 }); N.addGuest(hw, link.a);
+  const gw = mkWorld(); N.startClient(gw, link.b, INFO);
+  for (let k = 0; k < 120; k++) { N.tickCoopNet(hw, 1 / 60); N.tickCoopNet(gw, 1 / 60); link.advance(1 / 60); }
+  assert.equal(hub.publiek().spelers, 1, 'alleen de gast telt');
+  assert.deepEqual(gw.coopNet.session.sessie, { id: hub.id, naam: 'Zomeravond' }, 'de gast weet bij welke sessie hij zit');
+  // een gewone sessie: de gastheer speelt zelf mee en telt dus wel
+  const s = sessie(1); s.step(2);
+  s.hw.coopNet.hub.zetOpenbaar(true, 'Met z\'n tweeën');
+  assert.equal(s.hw.coopNet.hub.publiek().spelers, 2, 'de gastheer telt mee');
+  N.stopCoopNet(hw); N.stopCoopNet(s.hw);
+});
 console.log(`coopnet_test: ${n}/${n} ok`);

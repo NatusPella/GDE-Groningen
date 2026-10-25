@@ -126,7 +126,11 @@ export function createLobby(caps = {}) {
     profiel: { naam: String(caps.onlineNaam || '').slice(0, ONLINE_NAAM_MAX), kleur: profielKleur(caps.onlineKleur) }, profielFout: '',
     caps: { direct: !!caps.direct, rtc: caps.rtc !== false, laatsteCode: caps.laatsteCode || '', startGate: !!caps.startGate, spelNaam: String(caps.spelNaam || ''), lijst: !!caps.lijst, versie: String(caps.versie || ''), opslaan: !!caps.opslaan },
     diag: null, terugNaar: caps.keuze === ROLES.GAST && caps.lijst ? 'gast-typt' : 'start', andereVersie: '',
-    openbaar: false, openbaarNaam: '', lijst: [], // openbaar: alleen voor deze sessie (een nieuwe lobby is weer privé)
+    openbaar: !!(caps.openbaar && caps.openbaar.naam), openbaarNaam: caps.openbaar ? String(caps.openbaar.naam) : '', // alleen voor deze sessie (een nieuwe lobby is weer privé; het paneel leest het uit de hub)
+    sessieId: caps.openbaar && caps.openbaar.id ? String(caps.openbaar.id) : '', // het vaste id van deze sessie (#450): dezelfde regel in de lijst, ook na een overname
+    sessie: (caps.sessie && caps.sessie.id) ? { id: String(caps.sessie.id), naam: String(caps.sessie.naam || '') }
+      : (caps.openbaar && caps.openbaar.id ? { id: String(caps.openbaar.id), naam: String(caps.openbaar.naam || '') } : null), // bij welke sessie je hoort (gast, of de openbare regel van de hub)
+    lijst: [],
   };
 }
 const fresh = (s) => createLobby(s.caps);
@@ -171,7 +175,12 @@ export function reduce(s, ev) {
       if (s.step !== 'openbaar-vraag') return s;
       const r = schoonNaam(ev.naam);
       if (!r.ok) return { ...n, error: r.reason };
-      n.openbaar = true; n.openbaarNaam = r.naam; n.step = s.spelers.length > 1 ? 'verbonden' : 'host-wacht'; return n;
+      n.openbaar = true; n.openbaarNaam = r.naam; n.step = s.spelers.length > 1 ? 'verbonden' : 'host-wacht';
+      // het vaste id van deze sessie (#450): de hub maakt het en geeft het mee, zodat een heropend paneel of een nieuwe
+      // gastheer dezelfde regel in de lijst houdt in plaats van een nieuwe
+      n.sessieId = typeof ev.id === 'string' && ev.id ? String(ev.id) : s.sessieId;
+      n.sessie = n.sessieId ? { id: n.sessieId, naam: r.naam } : s.sessie;
+      return n;
     }
     case 'openbaar-terug': if (s.step !== 'openbaar-vraag') return s; n.step = s.spelers.length > 1 ? 'verbonden' : 'host-wacht'; return n;
     case 'privaat': n.openbaar = false; return n;
@@ -215,7 +224,7 @@ export function reduce(s, ev) {
       if (ev.status === 'ok' || ev.status === 'lag') n.step = 'verbonden';
       else if (ev.status === 'lost') n.step = 'verbroken';
       else if (ev.status === 'geweigerd') n.step = 'geweigerd';
-      else if (ev.status === 'verbroken' || ev.status === 'weg') return fresh(s);
+      else if (ev.status === 'verbroken' || ev.status === 'weg') return { ...fresh(s), sessie: s.sessie }; // de sessie onthouden: je vindt hem terug in de lijst (#450)
       return n;
     }
     case 'hervat': // de host wacht weer op dezelfde gast; de gast voert de code opnieuw in
@@ -224,8 +233,17 @@ export function reduce(s, ev) {
     case 'adopteer': { // de sessie loopt al (na het overdragen van het spel, of het paneel is opnieuw getekend): het paneel kent rol, kamercode en spelers weer
       n.rol = ev.rol === ROLES.HOST ? ROLES.HOST : ROLES.GAST; n.route = ev.route === ROUTES.DIRECT ? ROUTES.DIRECT : ROUTES.KAMER; n.code = String(ev.code || '');
       n.spelers = Array.isArray(ev.lijst) ? ev.lijst : []; n.max = Math.min(ABS_MAX, Math.max(MIN_MAX, ev.max | 0 || DEFAULT_MAX));
-      n.partner = ev.slot != null ? { slot: ev.slot } : null; n.status = 'ok'; n.step = 'verbonden'; return n;
+      n.partner = ev.slot != null ? { slot: ev.slot } : null; n.status = 'ok'; n.step = 'verbonden';
+      // de sessie houdt zijn naam en vaste id (#450): het paneel leest ze uit de hub (openbaar) en uit het welkom (gast), zodat
+      // een lopende sessie dezelfde regel in de lijst houdt en een gast hem terugvindt
+      if (ev.openbaar && ev.openbaar.naam) { n.openbaar = true; n.openbaarNaam = String(ev.openbaar.naam); n.sessieId = String(ev.openbaar.id || s.sessieId || ''); }
+      if (ev.sessie && ev.sessie.id) n.sessie = { id: String(ev.sessie.id), naam: String(ev.sessie.naam || '') };
+      else if (n.openbaar && n.sessieId) n.sessie = { id: n.sessieId, naam: n.openbaarNaam };
+      return n;
     }
+    case 'sessie': // de gast hoort bij het welkom bij welke sessie hij zit (#450): zijn regel in de lijst is herkenbaar
+      if (!ev.sessie || !ev.sessie.id) return s;
+      n.sessie = { id: String(ev.sessie.id).slice(0, 16), naam: String(ev.sessie.naam || '').slice(0, 24) }; return n;
     case 'laatste-code': // de code waarmee deze speler aansloot: na eruit gezet worden staat hij weer klaar om opnieuw aan te sluiten
       if (typeof ev.code !== 'string' || !ev.code) return s;
       n.caps = { ...s.caps, laatsteCode: ev.code }; return n;
@@ -356,7 +374,7 @@ export function view(s) {
     case 'lijst-vraag':
       return V({ title: 'Openbare sessies', lines: LIJST_TEXT, buttons: [{ act: 'lijst-go', label: 'Akkoord en lijst tonen', primary: true }, { act: 'lijst-terug', label: 'Annuleren' }] });
     case 'lijst': {
-      const sessies = (s.lijst || []).map((e, i) => ({ act: 'sluit-' + i, meld: 'meld-' + i, naam: e.naam, kan: !!e.kan, tekst: `${e.naam} · ${e.spelers} van ${e.max} spelers · versie ${e.versie}${e.anders ? ' · Andere versie: niet aan te sluiten' : e.vol ? ' · Vol' : ''}` }));
+      const sessies = (s.lijst || []).map((e, i) => ({ act: 'sluit-' + i, meld: 'meld-' + i, naam: e.naam, kan: !!e.kan, mijn: !!(s.sessie && s.sessie.id && e.id === s.sessie.id), tekst: `${e.naam} · ${e.spelers} van ${e.max} spelers · versie ${e.versie}${e.anders ? ' · Andere versie: niet aan te sluiten' : e.vol ? ' · Vol' : ''}${s.sessie && s.sessie.id === e.id ? ' · je was hier' : ''}` }));
       return V({ title: 'Openbare sessies', lines: [sessies.length ? 'Kies een sessie om aan te sluiten. De lijst ververst zichzelf elke paar seconden.' : 'We zoeken openbare sessies. Er zijn er nu geen gevonden; de lijst ververst zichzelf elke paar seconden, dus even geduld kan helpen.'], sessies, buttons: [{ act: 'lijst-terug', label: 'Terug', primary: true }] });
     }
     case 'diag-vraag':
