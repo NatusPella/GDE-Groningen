@@ -1,5 +1,7 @@
 > **Archief (oktober 2026).** Dit document is vervangen door issue #65 en de open punten in `.specs-fire/standards/publicatie.md`.
 > Het staat hier alleen als historie: gebruik het niet als bron en werk het niet bij.
+> Relatieve links in dit document verwijzen naar de oude plek in `docs/` en
+> werken hier niet meer.
 
 # Plan naar 1.0 (#65)
 
