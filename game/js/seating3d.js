@@ -4,7 +4,8 @@ import { boatSeats, boatCrewCount, boatKind } from './boattypes.js';
 import { WATER_Y } from './util.js';
 import { tractorCab } from './models3d_vehicles.js';
 import { hash2 as hash } from './rng.js';
-import { deurVoorStoel, instapKant, doorsFor } from './vehicledoors.js';
+import { deurVoorStoel, instapKant, doorsFor, stapAnimatieAan } from './vehicledoors.js';
+import { getSettings } from './settings.js';
 
 // Where people sit in and on vehicles, and the short enter/exit animations
 // (walk to the door, sit down; swing a leg over a bike; a carjack yank),
@@ -205,7 +206,10 @@ export function trackSeat(tr, actor, dt, isPlayer) {
   if (v !== tr.v) {
     const prev = tr.v;
     tr.anim = null;
-    if (v && !prev && tr.foot && !actor.ragdoll) {
+    // de animatie is uit te zetten in Instellingen (Toegankelijkheid, #459): dan
+    // staat de speler meteen op zijn stoel en blijft de deur dicht
+    const animatie = stapAnimatieAan(getSettings());
+    if (animatie && v && !prev && tr.foot && !actor.ragdoll) {
       // instappen gebeurt bij de deur waar de speler staat: links de bestuurdersstoel,
       // rechts de bijrijdersstoel (#459). Wie zelf rijdt schuift daarna achter het stuur.
       const doel = vehicleSeat(v, isPlayer);
@@ -213,7 +217,7 @@ export function trackSeat(tr, actor, dt, isPlayer) {
       // een korte slide als de stoel van de deur niet de stoel is waar de speler eindigt
       const slideT = instap.stoel !== doel && instap.deur ? 0.18 : 0;
       tr.anim = { kind: 'enter', v, t: 0, from: tr.foot, instap, slideT, jack: isPlayer && !!v.carjacked && !v.isBike && !v.isScooter && !v.isBoat, walkT: 0, sitT: 0, init: false };
-    } else if (!v && prev && !prev.sinking && !actor.water && !actor.ragdoll) {
+    } else if (animatie && !v && prev && !prev.sinking && !actor.water && !actor.ragdoll) {
       tr.anim = { kind: 'exit', v: prev, t: 0, walkT: 0.2, sitT: prev.isBike || prev.isScooter ? 0.3 : 0.36, init: false };
     }
     tr.v = v;

@@ -187,6 +187,14 @@ for (const [g, want] of [[true, true], [false, false], ['ja', undefined]]) {
   ok(m && m.data.gore === want, `settings v7 gore ${JSON.stringify(g)} becomes ${want}`, m && m.data.gore);
 }
 
+// de instap- en uitstapanimatie (#459) staat standaard aan en een oude
+// instellingenlijst zonder die sleutel houdt de standaard (settings.js vult aan)
+ok(/\n\s+stapAnimatie: true,/.test(src('settings.js')), 'settings.js has the step animation on by default');
+{
+  const oud = migrateSettings({ v: 9, reduceMotion: true });
+  ok(oud && !('stapAnimatie' in oud.data), 'an old settings file simply lacks stapAnimatie (the default fills it)');
+}
+
 // loading resets the counters first: a counter the save lacks is 0, not this session's value
 {
   const st = statsFromSave({ kills: 7, missionsDone: 'x', bogus: 9 });

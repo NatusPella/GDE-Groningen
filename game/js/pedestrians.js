@@ -6,9 +6,9 @@ import { scaledTarget, farAIDist, skipFar, takeDt } from './simload.js';
 import { aandeel, nietBijFoci } from './coopfoci.js';
 import { hoofdspeler, naasteSpeler } from './spelersregister.js';
 import { inClearZone } from './clearzone.js';
-import { openDriverDoor } from './vehicledoors.js';
+import { openDriverDoor, uitstapPunt, openDeurVoorRol } from './vehicledoors.js';
 import { profileOf } from './signalement.js';
-import { createVictim, stepVictim, victimDone, VICTIM, stepOutPlan, stepOutPos } from './carjackvictim.js';
+import { createVictim, stepVictim, victimDone, VICTIM, stepOutPlan, stepOutPos, trekUitPlan } from './carjackvictim.js';
 import { dist, pointInPolygon, closestPointOnSegment, isInWater } from './util.js';
 import { resolveBuildingCollisions, findExitSpot } from './collision.js';
 import { resolveWalker } from './collision.js';
@@ -436,6 +436,40 @@ export function ejectPassengers(world, ev) {
   }
   clearSeated(v, { driver: false });
   return out;
+}
+
+// Eén passagier uit zijn open deur trekken (#459): hij schuift van zijn stoel naar
+// buiten (carjackvictim.js trekUitPlan) en volgt daarna dezelfde reacties als een
+// bestuurder bij een autokraak: boos zwaaien, om de auto heen, bellen. De deur staat
+// al open; player.js opent hem eerst.
+export function ejectPassenger(world, v, rol = 'bijrijder') {
+  if (!v || v.isBoat || v._mount) return null;
+  const occ = seatedOf(v);
+  const slot = rol === 'achter' ? 'rear' : 'front';
+  const i = occ.passengers.findIndex((p) => p.slot === slot);
+  if (i < 0) return null;
+  const p = occ.passengers.splice(i, 1)[0];
+  const deur = openDeurVoorRol(v, rol); // de open deur is de weg naar buiten
+  const kant = deur ? deur.side : ((uitstapPunt(v, rol) || {}).kant || 1);
+  const [x, y] = findExitSpot(v, 0.3, world.map, [kant, -kant]);
+  const ped = new Pedestrian(x, y, Math.atan2(v.y - y, v.x - x));
+  // dezelfde persoon als de bijrijder die er zat (#49, occupants.js heeft de seed)
+  const seed = p.seed || (v.id || 0) * 7.1 + (slot === 'front' ? 3 : 8);
+  ped._lookSeed = seed;
+  ped.clothing = '#7a6a8a';
+  ped.skin = SKIN_TONES[Math.floor(hash2(seed, 2.1) * SKIN_TONES.length)];
+  ped.hasBag = false;
+  ped.health = 40;
+  ped.noFade = true;
+  ped.passengerOf = v.id;
+  world.pedestrians.push(ped);
+  // hij schuift door zijn eigen deur naar buiten, niet ineens op straat
+  ped.stepOut = trekUitPlan(v, rol, { x, y });
+  ped.x = ped.stepOut.fx; ped.y = ped.stepOut.fy;
+  ped._vic = createVictim(seed, {});
+  ped._vicCar = v;
+  setState(ped, 'jackvic');
+  return ped;
 }
 
 export function ejectDriver(world, ev) {
