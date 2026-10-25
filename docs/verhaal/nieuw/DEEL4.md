@@ -4,7 +4,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md), [08-IMPLEMENTATIE.md](08-IMPLEMENT
 
 ## Waarom niet de oude Deel 4
 
-De scripts `../deel4-f4a.md`, `../deel4-f4b.md` en `../deel4-f4c.md` (de Ommelander Ronde, 32 missies, 1,2 MB tekst, patatbaron Ubbo Oldenhuis) horen bij het eerste verhaal. Het nieuwe verhaal (akte 1 tot en met 5, M01-M26) heeft ze ingehaald:
+De scripts `../../archief/2026-10/deel4-f4a.md`, `../../archief/2026-10/deel4-f4b.md` en `../../archief/2026-10/deel4-f4c.md` (de Ommelander Ronde, 32 missies, 1,2 MB tekst, patatbaron Ubbo Oldenhuis) horen bij het eerste verhaal. Het nieuwe verhaal (akte 1 tot en met 5, M01-M26) heeft ze ingehaald:
 
 - **Jelle Terpstra** is de tegenstander; Oldenhuis Bakt is in de epiloog van Jelle (E2: de eenenveertig snackbars gaan dicht). Ubbo past er niet meer in.
 - **De finale in Bourtange bestaat al:** M20 (Het beleg van Bourtange) en M26 (het Ontzet).

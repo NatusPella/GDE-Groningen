@@ -1,5 +1,5 @@
-// Shared economy numbers and formulas (docs/verhaal/nieuw/00-OVERZICHT.md: money must
-// never be a problem). Shop and vehicle prices stay next to their stock in
+// Shared economy numbers and formulas (docs/verhaal/nieuw/00-OVERZICHT.md:
+// money must never be the thing that stops the story). Shop and vehicle prices stay next to their stock in
 // shops.js; this holds the costs of bad luck (repairs, wrecks, fines) and
 // the income that is not a mission reward. No game imports: storytest.js
 // reads it for the money checks.

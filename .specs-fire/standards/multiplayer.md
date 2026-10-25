@@ -36,8 +36,8 @@ verhaal en bezit; elke nieuwe functie krijgt een regel over Samen spelen.
 
 - Elke speler kan gevraagd worden (20 s, J/N); de momentopname gaat in stukken van
   800 tekens over de sessie. Bij mislukken houdt de oude host het spel
-  (terugvalkamer, 40 s); bij wegvallen neemt de opvolger (`rangschik`) over na 12 s
-  stilte.
+  (terugvalkamer, 30 s); bij wegvallen neemt de opvolger (`rangschik`) over na 12 s
+  stilte. De aansluittijd is 40 s.
 - Mee: klok, dag, weer, gezocht, opdracht met stage en tijd, kapotte objecten,
   bezette voertuigen (model, kleur, schade), zaad en plek. Niet mee: verkeer,
   voetgangers en dieren, geld en voortgang per speler, het verhaal van de nieuwe

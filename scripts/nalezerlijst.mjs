@@ -38,7 +38,7 @@ export function build() {
   md += `Samenvatting: ${g.length} Groningse spreekregels, ${f.length} regels met Friese woorden (heuristisch gevonden).\n\n`;
   md += `## 1. Gronings (getoond -> ingesproken)\n\n| # | Getoond | Ingesproken (Gronings) | Oordeel |\n|---|---|---|---|\n`;
   g.forEach(([a, b], i) => { md += `| ${i + 1} | ${esc(a)} | ${esc(b)} | |\n`; });
-  md += `\nDe Friese regels in de Deel 4-scripts (\`docs/verhaal/deel4-f4a.md\`, \`-f4b\`, \`-f4c\`) zijn de bron; hieronder staan alleen de regels die in \`script.json\` zitten.\n`;
+  md += `\nDe Friese regels in de Deel 4-scripts (\`docs/archief/2026-10/deel4-f4a.md\`, \`-f4b\`, \`-f4c\`) zijn de bron; hieronder staan alleen de regels die in \`script.json\` zitten.\n`;
   md += `\n## 2. Fries (kandidaten; plaats in \`script.json\`)\n\n| # | Plaats | Tekst | Oordeel |\n|---|---|---|---|\n`;
   f.forEach(([p, t], i) => { md += `| ${i + 1} | \`${p}\` | ${esc(t)} | |\n`; });
   return { md, g: g.length, f: f.length };

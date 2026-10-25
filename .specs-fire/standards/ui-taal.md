@@ -20,17 +20,17 @@ Tokens staan in `game/js/hud_panel.css` (`:root`), `game/js/menu.css` (`.gm`) en
 |---|---|---|
 | `--gron-green` | `#1e9e56` | accent: knoppen, actieve stand, randen |
 | `--gron-green-light` | `#3fc97a` | koppen, toetslabels, hover, gloed |
-| `--gd` (menu) | `#0f5c30` | ingedrukte knop |
+| `--gron-green-dark` / `--gd` | `#0f5c30` | ingedrukte knop |
 | achtergrond | `#17301f` → `#0c140e` | radiale gradient, nooit plat zwart |
 | tekst | `#f0ede4`, `#f2f2f2` | body op donker chroom |
 | gevaar | `#d93f3f`, tekst `#f08a8a` | het enige rood |
 | wanted | `#e8c93a`, leeg `rgba(255,255,255,0.25)` | alleen de wanted-sterren |
 | toetsplaatje | `#fbfaf5` op `#0c140e`, rand `#a9a69b` | elke hint (`a11y.css:6`) |
 
-- Eén rood: `#d93f3f` als vulling, `#f08a8a` als tekst, `#e55a5a` als hover
-  (`menu.css:102`). De primaire knop licht op naar `#62d792` (`:90`).
-- Geel is gereserveerd voor wanted-sterren, de badge voor bijzondere dagen en de
-  missiemarkering. Geen blauw accent, geen tweede merkkeur, geen plat zwart.
+- Eén rood: `#d93f3f`; `#f08a8a` alleen als tekst, `#e55a5a` als hover
+  (`menu.css:102`). Geel `#e8c93a` is gereserveerd voor wanted-sterren, de badge voor
+  bijzondere dagen en de missiemarkering. Geen blauw accent, geen tweede merkkeur,
+  geen plat zwart.
 - Statuskleuren nooit als eigen hex: `markerColors()` (`a11y.js:21`) leest `PALETTES`
   (`:14-19`) en zet `--mk-*` op `<html>` (`:52`): ok `#3fc97a`, danger `#d93f3f`,
   mission `#e8c93a`, missionActive `#3fd0ff`, your goal `#c068ff`, job `#ff9a3c`,
@@ -38,15 +38,16 @@ Tokens staan in `game/js/hud_panel.css` (`:root`), `game/js/menu.css` (`.gm`) en
   Okabe-Ito-waarden; canvas en 3D hertekenen op `onPaletteChange`.
 - Contrast 4,5:1 voor tekst, 3:1 voor grote tekst en iconen (`a11ylogic.js:35-36`).
   Kleur is nooit de enige aanwijzing; vorm, patroon of woord gaat mee.
-- `--gron-green-dark` (`DESIGN_SYSTEM.md:43`) heet in de CSS `--gd`.
+- De tokennaam `--gron-green-dark` uit `DESIGN_SYSTEM.md:43` bestaat niet in de CSS;
+  de waarde heet er `--gd`.
 
 ## Typografie en logo
 
 - Stack `'Bebas Neue', 'Arial Narrow', Arial, sans-serif`, geladen in
   `game/index.html:14`. Lopende tekst in Arial Narrow; Bebas voor titels, tabs,
   knoppen, cijfers en eyebrows.
-- Menu, stage 1920x1080: titel 80 px, sectietitel 64, nummer 44, tab en primaire knop
-  26, ghost 24, body 20 op regelafstand 1,45, klein 18 (`menu.css:16,31-33,89,93`).
+- Menu: titel 80 px, sectietitel 64, nummer 44, tab en primaire knop 26, ghost 24,
+  body 20 op regelafstand 1,45, klein 18 (`menu.css:16,31-33,89,93`).
 - Logo is HTML/CSS, nooit een beeld: `logoHtml()` (`logo.js`) en `.gde-logo`
   (`index.html:26`). GDE in Big Shoulders Display 900 van `#f0ede4` naar `#3fc97a`,
   de plaatsnaam op een plaat `#1e9e56`. Big Shoulders is alleen voor het logo.
@@ -54,28 +55,27 @@ Tokens staan in `game/js/hud_panel.css` (`:root`), `game/js/menu.css` (`.gm`) en
   toetsplaatje mag kleiner. De HUD zet `--hud-min` op 13 px gedeeld door `--ui`
   (`hud_panel.css:13`); `READABLE_MIN` is 13 (`hudlook.js:109`).
 - Conflict 12 tegen 13 px: `DESIGN_SYSTEM.md:93` noemt 12 als vloer met menu's op
-  13+, `:263` en `:326` zeggen "geen tekst onder 13 px", en
+  13+, `:263` zegt "geen tekst onder 13 px" en `:326` ("no sentence under 12 px,
+menus 13 px and up") noemt 12 als vloer voor een zin en 13 voor menu's, en
   `DESIGN-COMPONENTEN.md:41-43` noemt 12 als vloer met 13 in de HUD. De code doet 13
-  in de HUD en 20/18 in de menu's; 12 is de harde ondergrens voor een zin, niet het
-  doel.
+  in de HUD en 20/18 in de menu's; 12 is de ondergrens voor een zin, niet het doel.
 - De 11 px in de kaartbalk is schuld: `DESIGN-SCHULD.md:11` noemt
-  `kaartactieui.js:44`, hij staat op `:58`; HUD-chips staan op `max(11px, ...)`
-  (`hud_panel.css:217`).
+  `kaartactieui.js:44`, hij staat op `:58`.
 
 ## Bediening
 
 De tabel in het pauzemenu (Instellingen > Besturing > Toetsenoverzicht,
-`CONTROL_GROUPS` in `pausemenu.js:59`) is de bron van waarheid: W A S D en muis,
-`Shift` rennen, `Space` springen of remmen, `Ctrl` bukken, E of F gebruiken, Esc
-terug, M de kaart, Tab de spelerslijst, 1 tot 4 de wapens, Q/E en `[`/`]` de
-tabbladen, U geluid, O de verhaalstap, F8 de fotomodus, F11 volledig scherm en 7, 8,
-9 de roepen.
+`CONTROL_GROUPS` in `pausemenu.js:59`) is de bron van waarheid: W A S D en muis
+lopen en kijken, `Shift` rent, `Space` springt of remt, `Ctrl` bukt, E of F gebruikt,
+Esc gaat terug, M opent de kaart, Tab de spelerslijst, Q/E de tabbladen, U dempt, O
+slaat de verhaalstap over, F8 opent de fotomodus, F11 volledig scherm en 7, 8, 9
+roepen.
 
 - Elke actie heeft een weg op elk apparaat dat de speler mag gebruiken, of het scherm
   zegt waarom niet. Een nieuwe actie krijgt meteen een slot in `PAD_MAPS`
   (`controls.js:204`); touchknoppen zijn diezelfde slots.
 - Noem een toets nooit als tekst: gebruik `{E}` of `glyphHtml()`. De hint toont wat je
-  nu kunt, hooguit twee regels; uitleg leer je één keer per apparaat.
+  nu kunt, hooguit twee regels.
 - Touch: knoppen 64 px rond (`touch.js:22`), elk ander element minstens 44 px hoog
   (`:46`). Esc of B gaat altijd terug.
 - Conflict: `pausemenu.js:121` zegt dat Q/E de sectie wisselen, maar de afhandeling
@@ -87,24 +87,30 @@ tabbladen, U geluid, O de verhaalstap, F8 de fotomodus, F11 volledig scherm en 7
 De structuur staat op één plek: `SECTIONS` (`pausemenu.js:235`), `RAIL_GROUPS`
 (`:254`), `CHILD` (`:257`), `SUBTABS` (`:259`) en `HINTS` (`:275`). De rail heeft
 drie groepen: Spel, Verhaal, Loopbanen, Activiteiten / Kaart, Spullen, Garage,
-Prestaties, Foto's / Instellingen, Cheats. De tabs: Spel (Overzicht, Samen spelen,
-Opslaan & stoppen, Spelen, Camera & richten, Hints & uitleg), Samen spelen (Samen
-spelen, Spelers), Verhaal (Opdrachten, Personages, Aanwijzingen, Veroverd),
-Activiteiten (Alles, Dichtbij), plus Instellingen en Besturing met eigen tabs.
+Prestaties, Foto's / Instellingen, Cheats. De tabs uit `SUBTABS`:
+
+| Sectie | Tabs |
+|---|---|
+| Spel | Overzicht, Samen spelen, Opslaan & stoppen, Spelen, Camera & richten, Hints & uitleg |
+| Samen spelen | Samen spelen, Spelers |
+| Verhaal | Opdrachten, Personages, Aanwijzingen, Veroverd |
+| Activiteiten | Alles, Dichtbij |
+| Instellingen | Beeld, Geluid & ondertitels, Besturing, Interface, Toegankelijkheid, Foutrapport, Cheats |
+| Besturing | Toetsenbord en muis, Controller, Toetsenoverzicht, Hulp |
 
 - De kaart is één scherm zonder rail; Visboek en Boerderij hangen onder Loopbanen,
   Besturing onder Instellingen. Spelers alleen in een sessie (`:358`); voor een spel
   begint alleen Spel, Instellingen en Besturing (`:258`).
-- Spel > Overzicht is thuis: daar opent het menu, Esc uit een kindscherm gaat naar de
-  ouder en daarna daarheen. Eén primaire knop per scherm, de rest ghost of stille
-  tekst; groen voor gekozen of primair, rood alleen wat iets verwoest.
+- Spel > Overzicht is thuis: daar opent het menu, en Esc gaat van een kindscherm naar
+  de ouder, dan naar Overzicht en sluit. Eén primaire knop per scherm, de rest ghost
+  of stille tekst; groen voor gekozen of primair, rood alleen wat iets verwoest.
 - Eén eigenaar: de structuur staat alleen in `pausemenu.js`, de vorm alleen in
   `menu.css` (`.gm`, `.m-*`). Geen ander bestand definieert knoppen, rijen of tabs
   (`DESIGN_SYSTEM.md:217-219`); de Samen spelen-schermen breken dit nog
   (`DESIGN-SCHULD.md:16`).
 - Hooguit 125 woorden op een keuzescherm en 270 op een naslagscherm, beeld boven
-  tekst, twee tot vier hints, focus zichtbaar (2 px crème, of 2 px groen `#3fc97a`
-  met controller, `a11y.css:34`).
+  tekst, twee tot vier hints, focus zichtbaar (2 px crème, `menu.css:26`, of 2 px
+  groen `#3fc97a` met controller, `a11y.css:34`).
 - Conflict: `DESIGN_SYSTEM.md:233` zegt "drie groepen" en noemt er vier, en zet
   Spelers als tab van Spel. De code heeft drie groepen (`:254`) en Spelers onder
   Samen spelen (`:265`) (#480).
@@ -114,10 +120,9 @@ Activiteiten (Alles, Dichtbij), plus Instellingen en Besturing met eigen tabs.
 - Nederlands in alles wat de speler ziet of hoort (constitutie 1); code,
   bestandsnamen en opslagsleutels blijven zoals ze zijn.
 - Woordkeuze uit `docs/WOORDENLIJST.md`: opslaan, savegame, **Opgeslagen spellen**,
-  **Doorgaan**, **Naar het hoofdmenu**, controlepunt of hervatpunt, uitzending, reeks,
-  topscore, uitleg, einde spel. **Samen spelen**, nooit co-op, coöp of multiplayer;
-  wachtkamer of kamer, nooit lobby. Geen rolnaam als gastheer of host: de naam van de
-  speler of "de ander".
+  **Doorgaan**, controlepunt of hervatpunt, uitzending, topscore, uitleg, einde spel.
+  **Samen spelen**, nooit co-op, coöp of multiplayer; wachtkamer of kamer, nooit
+  lobby. Geen rolnaam als gastheer of host: de naam van de speler of "de ander".
 - `scripts/text_audit.mjs` faalt op de Engelse vorm (`ANGLICISMEN`, `:223`) en op "de
   Grunn" (`:254`). Het is "Grunn".
 - Gronings en Fries alleen met zorg. Een dialectregel staat zoals hij is, met de
@@ -133,18 +138,17 @@ Activiteiten (Alles, Dichtbij), plus Instellingen en Besturing met eigen tabs.
 - Woordbudget: een HUD-bericht is één zin van hooguit 14 woorden
   (`WORD_BUDGET.cardBody`, `hudtext.js:18`); het doel zelf 6, de regel eronder 3, een
   hint 3, een prompt 8, een ondertitel 18.
-- Toon: kort, rustig, concreet. Een weigering zegt waarom, een afkoeling zegt hoe
-  lang, een tweede bevestiging herhaalt de vraag op dezelfde knop.
+- Toon: kort en rustig; een weigering zegt waarom, een afkoeling hoe lang.
 
 ## Inclusieve taal
 
 Geen man als standaard (agent, brandweerlieden, vuilnisophaler, zakenreiziger,
-klusser, iemand aan het roer, cameraploeg), geen groepsaanspreking (allemaal,
-iedereen, mensen, beste aanwezigen, luisteraars), geen "hij" voor een onbekend
-persoon (die, diegene, de, je eigen), en geen aandoening, afkomst, gender of ziekte
-als scheldwoord. Satire over gedrag en een personage met een vast geslacht mogen
-blijven. `text_audit.mjs` (regel `inclusief`, `:240`) houdt dit vast; uitzonderingen
-staan met reden in `scripts/text_audit_allow.json`. Zie `docs/INCLUSIEVE-TAAL.md`.
+klusser, iemand aan het roer), geen groepsaanspreking (allemaal, iedereen, mensen,
+beste aanwezigen), geen "hij" voor een onbekend persoon (die, diegene, de, je eigen),
+en geen aandoening, afkomst, gender of ziekte als scheldwoord. Satire over gedrag en
+een personage met een vast geslacht mogen blijven. `text_audit.mjs` (regel
+`inclusief`, `:240`) houdt dit vast; uitzonderingen staan met reden in
+`scripts/text_audit_allow.json`. Zie `docs/INCLUSIEVE-TAAL.md`.
 
 ## Beeldtaal 3D
 
@@ -154,8 +158,8 @@ staan met reden in `scripts/text_audit_allow.json`. Zie `docs/INCLUSIEVE-TAAL.md
   omhoog, PBR, geen Habbo- of cartoonstijl.
 - Een echte plek is herkenbaar maar stijl-eigen: geen kopie van foto, bouwtekening of
   bestaand model, geen merk-, kenteken- of gemeentelogo. Aards palet (baksteen
-  `#a8442c` tot `#c9876a`, daken `#2b2a38`, water `#2c7790`), altijd zomer; beelden
-  buiten het spel zijn renders van het spel (`game/img/laad/`, `loadscene.js`).
+  `#a8442c`, daken `#2b2a38`, water `#2c7790`), altijd zomer; beelden buiten het
+  spel zijn renders van het spel (`game/img/laad/`, `loadscene.js`).
 - Een echt merk als stijlbron mag niet. De stijlbrief noemt een "Ford Escort"-achtige
   auto (`3d-model-prompts.md:301`) en chibi-proporties (`:346-352`); die spreken de
   regel hierboven tegen (#479).

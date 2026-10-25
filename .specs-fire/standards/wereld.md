@@ -23,7 +23,8 @@ bestaat niet meer (#90/C3).
   osm-id) en `landmarkkits.json`.
 - **Provincie** = alle tegels binnen 3 km van de grens (`BUFFER_M`), met vlaggen
   LAND 1, BUILT 4, OLD 8, BUFFER 16, PROVINCE 32, OVERLAY 64; het oude
-  Ommeland-vak komt uit `ommeland_raw.json.gz`; zee is een vlag.
+  Ommeland-vak komt uit `ommeland_raw.json.gz`. Water is geen eigen vlag: zee en
+  water zijn de plekken waar `LAND` ontbreekt (`build_province.mjs:51`).
 
 ## Stad gepind, provincie gestreamd
 
@@ -73,8 +74,8 @@ dingen, profiel `gde-gebieden-v1` per speler, safehouses in wijken en woonplaats
    geen voorwaarde.
 5. Lees per tegel, niet per wereld: geen nieuwe hele-array-lezer (#314 C1);
    gebruik de grids of `poiLayerPlaces` met terugval, en houd de gepinde set klein.
-6. Een nieuwe plek met iets te doen krijgt een regel in `verzameltaken()` of
-   `SPEL_SLEUTELS` (#414), anders telt hij niet mee voor de gebieden.
+6. Een nieuwe plek met iets te doen krijgt een sleutel in `SPEL_SLEUTELS`
+   (`game/js/gebieden.js`, #414), anders telt hij niet mee voor de gebieden.
 7. Nederlands, verzonnen namen voor merken, altijd zomer; echte plaatsen en
    gebouwen mogen.
 8. Bewijs: determinisme, `world_tiles_test`, `tileworld_test`, `province_test`,
