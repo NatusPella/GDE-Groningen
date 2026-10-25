@@ -105,7 +105,7 @@ De builds staan bij de [Releases](../../releases) van deze repo, per versie:
 ### Opgeslagen spellen en privacy
 
 Het spel slaat vanzelf op (en met **Opslaan** in het menu), op je eigen
-apparaat. Kies in het hoofdmenu **Alleen spelen** voor **Doorgaan** met het laatst gespeelde spel, een **Nieuw spel** of een ander opgeslagen spel. Vanaf versie 1.0 blijft een savegame werken in elke latere versie:
+apparaat. Bij het starten gaat het verder met de save die je het laatst hebt opgeslagen; een ander opgeslagen spel of een **Nieuw spel** kies je in het pauzemenu onder **Spel**. Vanaf versie 1.0 blijft een savegame werken in elke latere versie:
 oudere savegames worden bij het laden bijgewerkt (`game/js/savemigrate.js`).
 Een savegame van het oude verhaal (dat niet meer bestaat) gaat door in het nieuwe verhaal: geld, spullen, voertuigen, prestaties en instellingen blijven, het verhaal begint opnieuw. Je oude savegame blijft ongemoeid op je apparaat staan.
 

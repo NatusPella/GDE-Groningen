@@ -55,7 +55,7 @@ export function decodeInput(buf) {
 }
 
 // --- snapshot: host -> client ---
-// snap: { players:[{slot,x,y,z,angle,alive,inVeh,driver,run,health,vehicle}],
+// snap: { players:[{slot,x,y,z,angle,alive,inVeh,driver,run,crouch,down,health,vehicle,seat,weapon,attack}],
 //         shared:{money,wanted,clock}, mission:{stage,state,present}, entities:[{id,kind,x,z,angle}], looks:[...] }
 // Een voertuig-entiteit (kind < VEH_KINDS) heeft er een dynamische staat achter: vlaggen u8, snelheid i8 (0,5 m/s),
 // sturen i8, bij FL_HASZ de hoogte i16 (0,1 m) en bij een heli de rotor u8. Het uiterlijk (model, kleur, schade) staat
@@ -139,7 +139,7 @@ export function encodeSnapshot(seq, tick, ackInput, snap) {
     v.setUint8(o++, p.slot & 0xff);
     v.setFloat32(o, p.x); o += 4; v.setFloat32(o, p.y); o += 4; v.setFloat32(o, p.z || 0); o += 4;
     v.setUint16(o, quantAngle(p.angle || 0)); o += 2;
-    v.setUint8(o++, (p.alive ? 1 : 0) | (p.inVeh ? 2 : 0) | (p.driver ? 4 : 0) | (p.run ? 8 : 0) | (p.crouch ? 16 : 0));
+    v.setUint8(o++, (p.alive ? 1 : 0) | (p.inVeh ? 2 : 0) | (p.driver ? 4 : 0) | (p.run ? 8 : 0) | (p.crouch ? 16 : 0) | (p.down ? 32 : 0));
     v.setUint8(o++, clamp(Math.round(p.health ?? 100), 0, 255));
     v.setUint16(o, p.vehicle == null ? NO_VEHICLE : p.vehicle & 0xffff); o += 2;
     // de drie gereserveerde bytes (#434, zelfde wireversie: een oudere ontvanger slaat ze over): stoel in het voertuig, wapen in de hand, aanval
@@ -177,7 +177,7 @@ export function decodeSnapshot(buf, looksCache = null) {
       p.x = v.getFloat32(o); o += 4; p.y = v.getFloat32(o); o += 4; p.z = v.getFloat32(o); o += 4;
       p.angle = dequantAngle(v.getUint16(o)); o += 2;
       const f = v.getUint8(o++);
-      p.alive = !!(f & 1); p.inVeh = !!(f & 2); p.driver = !!(f & 4); p.run = !!(f & 8); p.crouch = !!(f & 16);
+      p.alive = !!(f & 1); p.inVeh = !!(f & 2); p.driver = !!(f & 4); p.run = !!(f & 8); p.crouch = !!(f & 16); p.down = !!(f & 32); // bit 32: achterover maar niet dood (#369); een oude zender laat hem 0
       p.health = v.getUint8(o++);
       const veh = v.getUint16(o); o += 2; p.vehicle = veh === NO_VEHICLE ? null : veh;
       p.seat = v.getUint8(o++); p.weapon = v.getUint8(o++); p.attack = v.getUint8(o++);

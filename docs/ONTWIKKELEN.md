@@ -198,7 +198,7 @@ minimap's edge arrows carry a ring, a dot or a square.
   twins Durk & Douwe appear in the cutscenes and reach you by voiced calls,
   livestreams, Kiekdoar posts and cards; "Eerder in GDE" recaps open each
   part and "Wat weten we?" in the pause menu lists the clues so far), shops (weapons,
-  armour and food are bought, not found on the street; you start with €250),
+  armour and food are bought, not found on the street; you start with €500),
   Kiekdoar news feed and phone notifications. Duif-modus as an in-game
   activity: at six pigeon signs (Vismarkt, Grote Markt, Martinitoren,
   Noorderplantsoen, Stationsplein and a duiventil at the volkstuinen) press E
@@ -234,6 +234,7 @@ Debug hooks on `window` (`window.__x`, read by scripts/perf, the story test and 
 | `?stil` | Geen audio en geen pauze bij verborgen tabblad (testsessies) |
 | `?audiograf` | Met stil: de audiograaf draait wel, maar eindigt in een gedempte uitgang |
 | `?noattract` | Geen aantrekkingsfilmpje op het titelscherm; door naar het menu |
+| `?menu` | Forceer het oude startscherm (QA en opnames); normaal start het spel meteen in de laatste save |
 | `?attract` | Speel het aantrekkingsfilmpje (trailer.js) |
 | `?perf` | Prestatierun: titelscherm automatisch voorbij |
 | `?spotsonly` | Verhaaltest: alleen de plekkenronde |

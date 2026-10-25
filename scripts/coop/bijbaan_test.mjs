@@ -1,7 +1,7 @@
-// Samen spelen (#452): bijbanen samen doen (game/js/coopbijbaan.js). Taxi, bezorgen en de krantenwijk einde-tot-einde met een host en
-// gasten op een nep-wereld per speler, over een geheugentransport met de echte koppeling (coopnet.js, hub, sessies). De banen zelf
-// laden three van een CDN en zijn niet in Node te importeren: een nep-loper (nepBanen) doet wat sidejobs.js doet (start, doel
-// publiceren, ronde afronden met dezelfde regels voor de beloning, einde) en de drie banen gebruiken dezelfde haken; de bron wordt gecontroleerd.
+// Samen spelen (#452): bijbanen samen doen (game/js/coopbijbaan.js). Taxi, bezorgen, de krantenwijk en de vrachtrit einde-tot-einde met
+// een host en gasten op een nep-wereld per speler, over een geheugentransport met de echte koppeling (coopnet.js, hub, sessies). De banen
+// zelf laden three van een CDN en zijn niet in Node te importeren: een nep-loper (nepBanen) doet wat sidejobs.js doet (start, doel
+// publiceren, ronde afronden met dezelfde regels voor de beloning, einde) en de vier banen gebruiken dezelfde haken; de bron wordt gecontroleerd.
 //   node scripts/coop/bijbaan_test.mjs
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -9,8 +9,10 @@ import { createLink } from '../../game/js/net/memtransport.js';
 import * as N from '../../game/js/coopnet.js';
 import * as B from '../../game/js/coopbijbaan.js';
 import * as G from '../../game/js/coopgast.js';
+import * as CB from '../../game/js/coopbestuur.js';
 import * as LL from '../../game/js/loopbaanlive.js';
 import { vakVanBaan } from '../../game/js/loopbaan.js';
+import { helpLaadTijd } from '../../game/js/vrachtmarkt.js';
 
 let n = 0;
 const t = (name, f) => { f(); n++; };
@@ -38,22 +40,25 @@ function sessie(gasten = 1) {
   return { hw, gs, step, sluit };
 }
 
-// De nep-loper: dezelfde haken als sidejobs.js (startJob, completeRound, endShift, publish, sideJobActions), met de regels van de drie banen in het klein.
+// De nep-loper: dezelfde haken als sidejobs.js (startJob, completeRound, endShift, publish, sideJobActions), met de regels van de vier banen in het klein.
 //  taxi: het ophalen en afzetten doet de host zelf. bezorger: ophalen en afgeven door wie bij de deur staat (afstandNaast). krantenwijk: de stapel is gedeeld.
-const NAMEN = { taxi: 'Grunn Taxi', bezorger: 'Hap & Rap bezorger', krantenwijk: 'Krantenwijk', bus: 'Streekbus' };
-const DEUR = { x: 100, y: 0 }, KLANT = { x: 200, y: 0 };
+//  vracht: de host rijdt; de bijrijder helpt met E bij laden en lossen (dezelfde pure stap als in vrachtmarkt.js), bij de truck.
+const NAMEN = { taxi: 'Grunn Taxi', bezorger: 'Hap & Rap bezorger', krantenwijk: 'Krantenwijk', vracht: 'Hunze Vrachtvervoer', bus: 'Streekbus' };
+const DEUR = { x: 100, y: 0 }, KLANT = { x: 200, y: 0 }, TRUCK = { x: 10, y: 0 };
 function nepBanen(w, { spot = null } = {}) {
   let ctx = null, verzoek = null;
-  const pub = w.sideJob = { active: false, id: null, label: '', color: '#ff9a3c', marker: null, dots: [], progress: '', timeLeft: null, goal: null, bus: null };
+  const pub = w.sideJob = { active: false, id: null, label: '', color: '#ff9a3c', marker: null, dots: [], progress: '', timeLeft: null, goal: null, bus: null, help: false };
   const publish = () => {
-    if (!ctx) { Object.assign(pub, { active: false, id: null, label: '', marker: null, progress: '', timeLeft: null, goal: null }); return; }
-    const m = ctx.fase === 'ophalen' ? DEUR : KLANT;
-    Object.assign(pub, { active: true, id: ctx.id, label: NAMEN[ctx.id], marker: { x: m.x, y: m.y }, progress: `Klus ${ctx.streak + 1}`, timeLeft: 90, goal: { label: ctx.fase === 'ophalen' ? 'Ophalen' : 'Bezorgen', desc: 'test' } });
+    if (!ctx) { Object.assign(pub, { active: false, id: null, label: '', marker: null, progress: '', timeLeft: null, goal: null, help: false }); return; }
+    const m = ctx.id === 'vracht' ? TRUCK : ctx.fase === 'ophalen' ? DEUR : KLANT;
+    const doel = ctx.id === 'vracht' ? (ctx.fase === 'lossen' ? 'Lossen' : 'Laden bij de oplegger') : ctx.fase === 'ophalen' ? 'Ophalen' : 'Bezorgen';
+    const progress = ctx.id === 'vracht' ? `${ctx.fase === 'lossen' ? 'Lossen' : 'Laden'} ${Math.ceil(ctx.fase === 'lossen' ? ctx.losLeft : ctx.laadLeft)} s` : `Klus ${ctx.streak + 1}`;
+    Object.assign(pub, { active: true, id: ctx.id, label: NAMEN[ctx.id], marker: { x: m.x, y: m.y }, progress, timeLeft: 90, goal: { label: doel, desc: 'test' }, help: ctx.id === 'vracht' && (ctx.fase === 'laden' || ctx.fase === 'lossen') });
   };
   const loper = {
     start(id, van = null) {
       if (ctx) return false;
-      ctx = { id, round: 0, streak: 0, fase: 'ophalen', stapel: 6, gegooid: [], verdiend: 0, opVerzoek: van != null };
+      ctx = { id, round: 0, streak: 0, fase: id === 'vracht' ? 'laden' : 'ophalen', stapel: 6, gegooid: [], verdiend: 0, opVerzoek: van != null, laadLeft: 6, losLeft: 4 };
       if (w.coopBijbaanStart) w.coopBijbaanStart(id, NAMEN[id], van);
       publish(); return true;
     },
@@ -63,7 +68,7 @@ function nepBanen(w, { spot = null } = {}) {
       w.money += total;
       const gedeeld = w.coopBijbaanBeloning ? w.coopBijbaanBeloning(ctx.id, base, vak, xp, ctx.round) : false;
       if (!gedeeld && w.coopDeel) w.coopDeel(total, { vak, basis: base, xp });
-      ctx.verdiend += total; ctx.streak++; ctx.round++; ctx.fase = 'ophalen'; publish();
+      ctx.verdiend += total; ctx.streak++; ctx.round++; ctx.fase = ctx.id === 'vracht' ? 'klaar' : 'ophalen'; publish(); // vracht: tussen twee ronden valt er niets te laden
     },
     eind(kind = 'quit') { if (!ctx) return; ctx = null; if (w.coopBijbaanEind) w.coopBijbaanEind(kind); publish(); },
     tik() { // de bezorger: wie bij de deur staat haalt op en geeft af
@@ -74,9 +79,26 @@ function nepBanen(w, { spot = null } = {}) {
   };
   w.sideJobActions = {
     startVoor: (id, slot) => { if (ctx) return { ok: false, reden: 'Je bent al aan het werk' }; verzoek = slot; const ok = loper.start(id, slot); verzoek = null; return { ok, reden: '' }; },
-    helperActie: (slot, x, y) => { // de krant: elke worp haalt een krant van de gedeelde stapel
-      if (!ctx || ctx.id !== 'krantenwijk' || ctx.stapel <= 0) return false;
-      ctx.stapel--; ctx.gegooid.push({ slot, x, y }); if (ctx.stapel === 0) loper.complete(50, 10); return true;
+    helperNu: () => !!ctx && ctx.id === 'vracht' && (ctx.fase === 'laden' || ctx.fase === 'lossen'),
+    helperActie: (slot, x, y) => { // de krant: elke worp haalt een krant van de gedeelde stapel; de vracht: de bijrijder helpt laden en lossen
+      if (!ctx) return false;
+      if (ctx.id === 'krantenwijk') {
+        if (ctx.stapel <= 0) return false;
+        ctx.stapel--; ctx.gegooid.push({ slot, x, y }); if (ctx.stapel === 0) loper.complete(50, 10); return true;
+      }
+      if (ctx.id === 'vracht') {
+        if (ctx.fase !== 'laden' && ctx.fase !== 'lossen') return false;
+        if (Math.hypot(x - TRUCK.x, y - TRUCK.y) > 20) return false; // alleen bij de truck
+        if (ctx.fase === 'laden') {
+          ctx.laadLeft = helpLaadTijd(ctx.laadLeft);
+          if (ctx.laadLeft <= 0) ctx.fase = 'lossen';
+        } else {
+          ctx.losLeft = helpLaadTijd(ctx.losLeft);
+          if (ctx.losLeft <= 0) { loper.complete(90, 12); return true; }
+        }
+        publish(); return true;
+      }
+      return false;
     },
     spotBij: () => spot,
   };
@@ -89,8 +111,8 @@ const druk = (w, k) => w.input.s.add(k);
 const geld = (s) => s.gs.map((g) => g.gw.money);
 
 // ------------------------------------------------------------------ het kader: de regels en de berichten
-t('de tabel: taxi, bezorger en krantenwijk met een rol en een hulptekst; een andere baan is niet gedeeld', () => {
-  assert.deepEqual(Object.keys(B.BIJBAAN_REGELS).sort(), ['bezorger', 'krantenwijk', 'taxi']);
+t('de tabel: taxi, bezorger, krantenwijk en vracht met een rol en een hulptekst; een andere baan is niet gedeeld', () => {
+  assert.deepEqual(Object.keys(B.BIJBAAN_REGELS).sort(), ['bezorger', 'krantenwijk', 'taxi', 'vracht']);
   for (const [id, r] of Object.entries(B.BIJBAAN_REGELS)) assert.ok(r.rol.length > 3 && r.hulp.length > 20, id);
   assert.equal(B.bijbaanMetCoop('taxi'), true); assert.equal(B.bijbaanMetCoop('bus'), false); assert.equal(B.bijbaanMetCoop('constructor'), false);
   const alles = JSON.stringify(B.BIJBAAN_REGELS) + [B.BIJBAAN_TEKST.hostStart('A','B'), B.BIJBAAN_TEKST.laat('B'), B.BIJBAAN_TEKST.ja('B','h'), B.BIJBAAN_TEKST.gevraagd('B'), B.BIJBAAN_TEKST.bezig, B.BIJBAAN_TEKST.nee, B.BIJBAAN_TEKST.eindOk].join(' ');
@@ -279,10 +301,101 @@ t('krantenwijk: bij een baan zonder actie (taxi) doet E van een deelnemer niets 
   s.lopers.eind('ok');
 });
 
+// ------------------------------------------------------------------ vracht: de bijrijder rijdt mee en helpt laden en lossen
+t('vracht: de regel noemt de bijrijder, E helpt; de gast is passagier in de leen-truck en blijft van het stuur af', () => {
+  const r = B.BIJBAAN_REGELS.vracht;
+  assert.equal(r.rol, 'bijrijder'); assert.equal(r.actie, true); assert.equal(r.positie, false, 'de bijrijder zit in de truck, zijn plek telt niet apart mee');
+  assert.match(r.hulp, /leen-truck/); assert.match(r.hulp, /laden en lossen/);
+  assert.equal(B.bijbaanMetCoop('vracht'), true);
+  // de leen-truck van de baan is een missionCar (sidejobkit.js): een gast bestuurt hem niet, maar meerijden als passagier mag al
+  // (companion.js coopGastGebruik kent geen missionCar-weigering), dus coopbestuur.js blijft zoals het is.
+  assert.equal(CB.magBesturen({ missionCar: true, sideJob: true }, 1), false, 'de gast wordt geen chauffeur van de leen-truck');
+  const comp = bron('companion.js');
+  const blok = (comp.match(/function coopGastGebruik[\s\S]*?\n}/) || [''])[0];
+  assert.ok(blok && !/missionCar/.test(blok), 'een passagier in een missionCar is niet geweigerd');
+  assert.match(blok, /v\.passenger = 'companion'/);
+});
+
+t('vracht: de host start, de gast krijgt Meedoen?, doet mee met J, helpt met E laden en lossen en elke deelnemer krijgt per ronde het volle bedrag', () => {
+  const s = opzet(2, 'vracht'), [a, b] = s.gs.map((x) => x.gw), hw = s.hw;
+  s.lopers.start('vracht'); s.step(1);
+  assert.equal(B.bijbaanKaartModel(a).titel, 'Meedoen?', 'de uitnodiging noemt de bijrijder: ' + JSON.stringify(B.bijbaanKaartModel(a)));
+  assert.match(B.bijbaanKaartModel(a).regels[0], /Jij bent bijrijder/);
+  assert.match(B.bijbaanKaartModel(a).regels[0], /leen-truck/);
+  druk(a, 'j'); druk(b, 'n'); s.step(1);
+  assert.ok(tekstIn(a, /Je doet mee met Hunze Vrachtvervoer/));
+  assert.equal(b.coopBijbaanGast.deelt, false, 'wie nee zei doet niet mee');
+  assert.equal(a.sideJob.active, true); assert.equal(a.sideJob.label, 'Hunze Vrachtvervoer');
+  assert.equal(a.sideJob.goal.label, 'Laden bij de oplegger', 'de gast ziet de laadfase');
+  // zit de bijrijder er nog niet in, dan gaat E naar het instappen (coopgastlokaal.js → gastGebruik), niet naar de baan
+  a.sideJobActions.spotBij = () => null; // hij staat bij de truck, niet meer bij het startpunt
+  const voor = s.lopers.ctx().laadLeft;
+  assert.equal(B.bijbaanGastE(a), false, 'E naast de truck is om in te stappen');
+  s.step(0.5); assert.equal(s.lopers.ctx().laadLeft, voor, 'zonder meerijden geen hulpactie');
+  // de gast zit als passagier in de leen-truck: de host rekent met de plek van de truck, niet met wat de gast meldt
+  hw.companion.inVehicle = TRUCK; s.step(0.5);
+  assert.equal(a.coopInVoertuig, true, 'de gast zit als passagier in de leen-truck');
+  const laad0 = s.lopers.ctx().laadLeft;
+  assert.equal(B.bijbaanGastE(a), true); s.step(0.6); s.step(0.6);
+  assert.equal(s.lopers.ctx().laadLeft, helpLaadTijd(laad0), 'E van de bijrijder verkort het laden met de vaste stap');
+  // tijdens de rit is E geen hulpactie: dan moet hij kunnen uitstappen (#492)
+  s.lopers.ctx().fase = 'rijden'; a.sideJob.help = false;
+  assert.equal(B.bijbaanGastE(a), false, 'tijdens de rit claimt de baan E niet');
+  s.lopers.ctx().fase = 'laden'; a.sideJob.help = true;
+  assert.match(a.sideJob.progress, /Laden 5 s/, 'de gast ziet de voortgang op het bord: ' + a.sideJob.progress);
+  const na1 = s.lopers.ctx().laadLeft;
+  B.bijbaanGastE(a); B.bijbaanGastE(a); s.step(0.1);
+  assert.equal(s.lopers.ctx().laadLeft, helpLaadTijd(na1), 'twee keer E vlak achter elkaar geeft één stap');
+  // buiten bereik van de truck helpt E niet (de gast zit dan in een voertuig dat ver van de laadplek staat)
+  hw.companion.inVehicle = { x: TRUCK.x + 60, y: TRUCK.y }; s.step(0.5);
+  const na2 = s.lopers.ctx().laadLeft;
+  B.bijbaanGastE(a); s.step(0.6);
+  assert.equal(s.lopers.ctx().laadLeft, na2, 'helpen kan alleen bij de truck');
+  // terug bij de truck: het laden loopt leeg en gaat over in lossen
+  hw.companion.inVehicle = TRUCK; s.step(0.5);
+  for (let i = 0; i < 2; i++) { B.bijbaanGastE(a); s.step(0.5); }
+  assert.equal(s.lopers.ctx().laadLeft, 0, 'nooit onder nul'); assert.equal(s.lopers.ctx().fase, 'lossen', 'daarna gaat het lossen');
+  b.coopInVoertuig = true; // hij zit wel in de truck, maar deed niet mee
+  b.coopBijbaanGast.deelt = true; b.coopBijbaanGast.id = 'vracht'; // een rommelige of valse client die nee zei maar toch probeert
+  const los0 = s.lopers.ctx().losLeft;
+  B.bijbaanGastE(b); s.step(0.5);
+  assert.equal(s.lopers.ctx().losLeft, los0, 'wie niet meedoet kan niet helpen');
+  // lossen: de laatste hulp rondt de ronde af en betaalt iedereen die meedoet
+  for (let i = 0; i < 3; i++) { B.bijbaanGastE(a); s.step(0.5); }
+  assert.equal(s.lopers.ctx().streak, 1, 'de bijrijder lost de lading');
+  assert.equal(hw.money, 90, 'de host kreeg zijn eigen bedrag');
+  assert.ok(a.money > 0, 'de bijrijder kreeg geld'); const eerste = a.money;
+  assert.ok(a.money >= 90 * 0.5 && a.money <= 90 * 1.5, 'het volle bedrag volgens zijn eigen loonfactor, niet gedeeld: ' + a.money);
+  assert.equal(b.money, 0, 'wie nee zei krijgt niets');
+  assert.ok(LL.getProfiel().vakken[vakVanBaan('vracht')].xp >= 12, 'alle loopbaanpunten voor de bijrijder');
+  B.bijbaanGastE(a); s.step(0.5);
+  assert.equal(s.lopers.ctx().streak, 1, 'tussen twee ronden valt er niets te laden');
+  // de volgende ronde: opnieuw het volle bedrag, en een betaalde ronde komt nooit twee keer aan
+  s.lopers.complete(90, 12); s.step(1);
+  assert.equal(a.money, eerste * 2, 'elke ronde opnieuw het volle bedrag');
+  const id = [...s.hw.coopNet.bijbaan.boek.ids()].pop();
+  assert.equal(N.handleEvent(a, { k: 'beloning', geld: 90, id }, 0), false, 'de boekhouding van de gast kent deze id al');
+  assert.equal(B.bijbaanBeloning(hw, 'vracht', 90, 'vervoer', 12, 1), true);
+  s.step(1); assert.equal(a.money, eerste * 2, 'dezelfde ronde nogmaals betaalt niet nogmaals');
+  s.lopers.eind('ok'); s.step(1);
+  assert.equal(a.sideJob.active, false); assert.ok(tekstIn(a, /De baan is klaar/));
+});
+
+t('vracht: een gast vraagt de baan bij het startpunt met E; de host start en de gast doet meteen mee als bijrijder', () => {
+  const s = opzet(1, 'vracht'), g = s.gs[0].gw;
+  druk(g, 'e');
+  assert.equal(B.bijbaanGastE(g), true); s.step(1.5);
+  assert.ok(tekstIn(g, /Je vraagt Hunze Vrachtvervoer te starten/));
+  assert.equal(s.lopers.ctx().id, 'vracht'); assert.equal(s.lopers.ctx().opVerzoek, true, 'de baan draait op de wereld van de host');
+  assert.equal(g.coopBijbaanGast.deelt, true, 'wie de baan startte doet altijd mee'); assert.equal(B.bijbaanKaartModel(g), null);
+  assert.equal(g.sideJob.goal.label, 'Laden bij de oplegger', 'hij ziet meteen de laadfase');
+  s.lopers.eind('ok'); s.step(1);
+});
+
 // ------------------------------------------------------------------ de regels en de bron
 t('de regels voor een gast: bijbanen zijn deels; de teksten in het spel en in docs/COOP-GAST.md zeggen hetzelfde', () => {
   const r = G.GAST_REGELS.find((x) => x.actie === 'bijbanen');
-  assert.equal(r.mag, 'deels'); assert.match(r.regel, /Taxi, bezorgen en de krantenwijk/); assert.match(r.regel, /volledige beloning/);
+  assert.equal(r.mag, 'deels'); assert.match(r.regel, /Taxi, bezorgen, de krantenwijk en de vrachtrit/); assert.match(r.regel, /bijrijder/); assert.match(r.regel, /volledige beloning/);
   const doc = bron('../../docs/COOP-GAST.md');
   assert.match(doc, /\| Bijbanen \| deels \|/); assert.match(doc, /coopbijbaan\.js/);
 });

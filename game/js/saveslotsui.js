@@ -15,7 +15,9 @@
 //     (the host of Samen spelen picks the game to play with); an empty card calls onNew() as usual.
 import * as S from './saveslots.js';
 import { MAX_SLOTS } from './storagekeys.js';
-import { saveGame, loadSlot, readSave, bindSlot, storySummary, onThumbKept, coopSessieLoopt, COOP_LADEN_TEKST, COOP_NIEUW_TEKST, COOP_WISSEN_TEKST } from './savegame.js';
+import { saveGame, loadSlot, readSave, bindSlot, storySummary, onThumbKept, coopSessieLoopt, currentSlot, COOP_NIEUW_TEKST, COOP_WISSEN_TEKST } from './savegame.js';
+import { stopCoopNet } from './coopnet.js';
+import { coopLoadTekst, COOP_LOAD_FAIL, runCoopLoad } from './cooploadrules.js';
 
 const DESKTOP = typeof window !== 'undefined' && window.gdeDesktop && window.gdeDesktop.isDesktop ? window.gdeDesktop : null;
 
@@ -150,14 +152,29 @@ export function openSaveSlots(opts = {}) {
       mi('delete', 'trash', 'Spel verwijderen', ' danger') + `<button type="button" class="ssl-x" data-grp="menu" data-do="back" aria-label="Sluiten">${svg(IC.x)}</button></div>`;
   };
 
+  // Een vraag die niet in een kaartje past (hij is te lang voor vier kolommen): over het hele
+  // paneel, met een eigen vak, zodat de bevestiging altijd met muis, touch en toetsenbord te
+  // bereiken is (#492).
+  const coopQuestion = () => {
+    if (!over || over.kind !== 'coop-load') return '';
+    return `<div class="ssl-over ssl-modal" role="alertdialog" aria-label="Sessie beëindigen"><div class="ssl-box"><p>${esc(coopLoadTekst(world))}</p>` +
+      '<div class="ssl-qacts"><button type="button" class="m-bp" data-grp="menu" data-do="back">Nee</button><button type="button" class="m-bg danger" data-grp="menu" data-do="coop-load-ok">Ja, sessie beëindigen en laden</button></div></div></div>';
+  };
+
   const card = (s) => {
     const sm = s.summary;
     const data = S.readSlot(null, s.n).data;
     const story = data ? storySummary(data) : null;
     const thumb = S.readThumb(null, s.n);
     const bad = s.state === 'kapot' || s.state === 'nieuwer' || s.state === 'ander-verhaal';
+    const inSessie = coopSessieLoopt(world);
+    const isCurrent = mode === 'game' && !opts.pick && s.n === currentSlot();
+    // bij de host is het eigen spel echt het spel dat al loopt; een gast laadt zijn eigen
+    // opgeslagen spel juist door de sessie te verlaten (#492)
+    const currentBlocked = isCurrent && !(inSessie && world.coopRole !== 'host');
+    const label = isCurrent ? 'Huidig spel' : primaryLabel;
     const chips = [];
-    if (s.active) chips.push('<span class="ssl-chip on" title="Het spel slaat vanzelf op in dit opgeslagen spel">Autosave</span>');
+    if (isCurrent) chips.push('<span class="ssl-chip on" title="Het spel slaat vanzelf op in dit opgeslagen spel">Autosave</span>');
     if (s.state === 'hersteld') chips.push('<span class="ssl-chip warn">Hersteld</span>');
     if (bad) chips.push('<span class="ssl-chip warn">Kan niet laden</span>');
     const pic = thumb ? `<img src="${thumb}" alt="" draggable="false">` : `<span class="ssl-nopic">${svg(IC.person, 'ssl-nopic-ic')}</span>`;
@@ -165,10 +182,10 @@ export function openSaveSlots(opts = {}) {
     const ago = sm ? S.agoText(sm.savedAt) || dateText(sm.savedAt) : '';
     const meta = sm ? `${S.formatPlaytime(sm.playSeconds)} · ${ago}` : '';
     const tip = story && story.next && !bad ? `Volgende stap: ${story.next}` : '';
-    const open = over && over.n === s.n;
+    const open = over && over.n === s.n && over.kind !== 'coop-load';
     return `<div class="ssl-card${s.n === sel ? ' sel' : ''}${bad ? ' bad' : ''}${open ? ' open' : ''}" role="listitem" data-slot="${s.n}">` +
-      `<button type="button" class="ssl-main" data-grp="list" data-slot="${s.n}" data-do="load"${bad || !sm ? ' disabled' : ''} aria-label="${esc(s.name)}: ${primaryLabel}"${tip ? ` title="${esc(tip)}"` : ''}>` +
-      `<span class="ssl-pic">${pic}<span class="ssl-chips">${chips.join('')}</span><span class="ssl-go">${esc(primaryLabel)}</span></span>` +
+      `<button type="button" class="ssl-main" data-grp="list" data-slot="${s.n}" data-do="load"${bad || !sm || currentBlocked ? ' disabled' : ''} aria-label="${esc(s.name)}: ${label}"${tip ? ` title="${esc(tip)}"` : ''}>` +
+      `<span class="ssl-pic">${pic}<span class="ssl-chips">${chips.join('')}</span><span class="ssl-go">${esc(label)}</span></span>` +
       `<span class="ssl-body"><span class="ssl-nm">${esc(s.name)}</span><span class="ssl-part one">${esc(part)}</span><span class="ssl-meta one mut">${esc(meta)}</span></span></button>` +
       `<button type="button" class="ssl-more" data-grp="list" data-more="${s.n}" aria-haspopup="menu" aria-expanded="${!!open}" aria-label="Meer voor ${esc(s.name)}" title="Meer">${svg(IC.more)}</button>` +
       (open ? overHtml(s) : '') + '</div>';
@@ -228,12 +245,13 @@ export function openSaveSlots(opts = {}) {
     const stage = document.createElement('div');
     stage.className = 'gm-stage';
     stage.innerHTML = `<section class="m-panel ssl-panel">
-      <header class="m-head"><div><span class="m-eb">${esc(opts.eyebrow || (mode === 'start' ? 'Hoofdmenu' : 'Pauze'))}</span><h1 class="m-h1" id="ssl-title">${esc(opts.titel || 'Opgeslagen spellen')}</h1>${opts.hint ? `<p class="mut ssl-intro">${esc(opts.hint)}</p>` : ''}</div><div class="m-hr"><span class="mut">${slots.length} van ${MAX_SLOTS}</span></div></header>
+      <header class="m-head"><div><span class="m-eb">${esc(opts.eyebrow || (mode === 'start' ? 'Spel' : 'Pauze'))}</span><h1 class="m-h1" id="ssl-title">${esc(opts.titel || 'Opgeslagen spellen')}</h1>${opts.hint ? `<p class="mut ssl-intro">${esc(opts.hint)}</p>` : ''}</div><div class="m-hr"><span class="mut">${slots.length} van ${MAX_SLOTS}</span></div></header>
       ${last ? `<div class="ssl-hero-wrap">${heroHtml(last)}</div>` : ''}
       <div class="ssl-scroll"><div class="ssl-grid" role="list" aria-label="Opgeslagen spellen">${tiles.join('')}</div></div>
       <p class="ssl-msg" role="status">${esc(message)}</p>
       <footer class="ssl-foot"><button type="button" class="ssl-fb" data-grp="foot" data-do="import"${full ? ' disabled title="Alle plekken zijn in gebruik"' : ''}>${svg(IC.import)}<span>Spel importeren</span></button>
         <span class="ssl-fgrow"></span><button type="button" class="ssl-fb" data-grp="foot" data-do="close">${svg(IC.back)}<span>Terug</span></button></footer>
+      ${coopQuestion()}
     </section>`;
     rootEl.insertBefore(stage, file);
     const q = (s) => stage.querySelector(s);
@@ -241,7 +259,7 @@ export function openSaveSlots(opts = {}) {
     if (over) {
       if (over.kind === 'rename') { el = q('[data-input]'); if (el) { el.focus(); el.select(); return; } }
       el = q('.ssl-over [data-grp="menu"]:not(:disabled)');
-      if (over.kind === 'delete' || over.kind === 'overwrite' || over.kind === 'newfull') el = q('.ssl-over [data-do="back"]');
+      if (over.kind === 'delete' || over.kind === 'overwrite' || over.kind === 'newfull' || over.kind === 'coop-load') el = q('.ssl-over [data-do="back"]');
     } else if (focus && focus.more) el = q(`[data-more="${focus.more}"]`);
     else if (focus && focus.newcard) el = q('.ssl-new .ssl-main');
     else if (intro && !focus && q('.ssl-hero')) el = q('.ssl-hero');
@@ -272,7 +290,11 @@ export function openSaveSlots(opts = {}) {
     }
     if (act === 'import') { file.value = ''; file.click(); return; }
     if (act === 'load' && cur) {
-      if (coopSessieLoopt(world)) { say(COOP_LADEN_TEKST); return; }
+      const inSessie = coopSessieLoopt(world);
+      const isHost = inSessie && world.coopRole === 'host';
+      // het spel dat al loopt eerst opslaan en dan "laden" zou het met zichzelf overschrijven
+      if (mode === 'game' && !opts.pick && cur.n === currentSlot() && (!inSessie || isHost)) { say('Dit is het spel dat je nu speelt.'); return; }
+      if (inSessie) { sel = cur.n; over = { n: cur.n, kind: 'coop-load' }; render(); return; }
       sel = cur.n;
       if (opts.pick) {
         if (!readSave(cur.n)) { say('Dit opgeslagen spel kan niet geladen worden.'); return; }
@@ -282,9 +304,12 @@ export function openSaveSlots(opts = {}) {
         if (!readSave(cur.n)) { say('Dit opgeslagen spel kan niet geladen worden.'); return; }
         S.setActive(null, cur.n);
         close(() => { if (opts.onLoad) opts.onLoad(cur.n); });
-      } else if (loadSlot(world, cur.n)) {
-        close(() => { if (opts.onLoad) opts.onLoad(cur.n); });
-      } else say('Dit opgeslagen spel kan niet geladen worden.');
+      } else {
+        // eerst de huidige voortgang bewaren; mislukt dat, dan blijft het huidige spel staan
+        if (!saveGame(world, { toast: false })) { say('Opslaan mislukt; het spel is niet geladen.'); return; }
+        if (loadSlot(world, cur.n)) close(() => { if (opts.onLoad) opts.onLoad(cur.n); });
+        else say('Dit opgeslagen spel kan niet geladen worden.');
+      }
       return;
     }
     if (act === 'more' && cur) { sel = cur.n; over = { n: cur.n, kind: 'menu' }; message = ''; render(); return; }
@@ -310,6 +335,15 @@ export function openSaveSlots(opts = {}) {
       bindSlot();
       over = null;
       message = saveGame(world, { toast: false }) ? 'Overschreven.' : 'Opslaan mislukt.';
+      render({ slot: cur.n });
+      return;
+    }
+    if (act === 'coop-load-ok' && cur) {
+      const res = runCoopLoad(world, cur.n, { stop: stopCoopNet, save: saveGame, load: loadSlot });
+      if (res.ok) { close(() => { if (opts.onLoad) opts.onLoad(cur.n); }); return; }
+      // ook bij een mislukte stap eerlijk opnieuw tekenen: na het stoppen is de sessie weg
+      over = null;
+      message = COOP_LOAD_FAIL[res.reason] || 'Laden mislukt.';
       render({ slot: cur.n });
       return;
     }

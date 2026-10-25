@@ -153,8 +153,93 @@ intents:
         depends_on: []
         run_id: run-gde-groningen-012
         completed_at: 2026-10-25T11:14:08.969Z
+  - id: gde-light-sims
+    title: "GDE Light Sims: zeven lichte beroepsloopbanen en Samen spelen als
+      ruggengraat"
+    status: in_progress
+    work_items:
+      - id: wi-492-boot
+        title: "#492 Bootflow: geen hoofdmenu, laatste save, minimaal laadscherm"
+        status: completed
+        complexity: medium
+        mode: confirm
+        depends_on: []
+        run_id: run-gde-light-sims-001
+        completed_at: 2026-10-25T12:58:42.428Z
+      - id: wi-492-bench
+        title: "#492 Eerste-start-prestatietest en automatische grafische preset"
+        status: completed
+        complexity: medium
+        mode: confirm
+        depends_on:
+          - wi-492-boot
+        run_id: run-gde-light-sims-002
+        completed_at: 2026-10-25T13:11:57.555Z
+      - id: wi-492-saves
+        title: "#492 Pauzemenu: savebeheer, nieuw spel en stoppen"
+        status: pending
+        complexity: medium
+        mode: confirm
+        depends_on:
+          - wi-492-boot
+      - id: wi-492-over
+        title: "#492 Pauzemenu: Over met nieuws, credits en versie"
+        status: completed
+        complexity: low
+        mode: autopilot
+        depends_on:
+          - wi-492-boot
+        run_id: run-gde-light-sims-003
+        completed_at: 2026-10-25T13:17:09.780Z
+      - id: wi-492-hint
+        title: "#492 Eenmalige hint over Samen spelen"
+        status: completed
+        complexity: low
+        mode: autopilot
+        depends_on:
+          - wi-492-boot
+        run_id: run-gde-light-sims-004
+        completed_at: 2026-10-25T13:18:22.782Z
+      - id: wi-493-geld
+        title: "#493 Geldcurve fase 1: mildere start, flitswaarschuwing en hoger
+          startbudget"
+        status: completed
+        complexity: medium
+        mode: confirm
+        depends_on: []
+        run_id: run-gde-light-sims-005
+        completed_at: 2026-10-25T14:38:53.206Z
+      - id: wi-492-laad
+        title: "#492 Laden tijdens een sessie: bevestigen en de sessie beëindigen"
+        status: completed
+        complexity: medium
+        mode: confirm
+        depends_on:
+          - wi-492-boot
+        run_id: run-gde-light-sims-006
+        completed_at: 2026-10-25T15:25:31.922Z
+      - id: wi-492-samen
+        title: "#492 Samen spelen: contract voor naadloos in/uit, start vanaf de kaart
+          en 1+1=3"
+        status: pending
+        complexity: high
+        mode: validate
+        depends_on:
+          - wi-493-geld
 runs:
-  active: []
+  active:
+    - id: run-gde-light-sims-016
+      scope: single
+      work_items:
+        - id: wi-492-vlieg-samen
+          intent: gde-light-sims
+          mode: confirm
+          status: in_progress
+          current_phase: plan
+          checkpoint_state: none
+          current_checkpoint: plan
+      current_item: wi-492-vlieg-samen
+      started: 2026-10-25T16:28:08.629Z
   completed:
     - id: run-gde-groningen-001
       scope: single
@@ -236,3 +321,123 @@ runs:
           mode: confirm
       started: 2026-10-25T11:14:00.171Z
       completed: 2026-10-25T11:14:00.586Z
+    - id: run-gde-light-sims-001
+      scope: single
+      work_items:
+        - id: wi-492-boot
+          intent: gde-light-sims
+          mode: confirm
+      started: 2026-10-25T12:19:52.412Z
+      completed: 2026-10-25T12:58:42.428Z
+    - id: run-gde-light-sims-002
+      scope: single
+      work_items:
+        - id: wi-492-bench
+          intent: gde-light-sims
+          mode: confirm
+      started: 2026-10-25T13:05:15.756Z
+      completed: 2026-10-25T13:11:57.555Z
+    - id: run-gde-light-sims-003
+      scope: single
+      work_items:
+        - id: wi-492-over
+          intent: gde-light-sims
+          mode: autopilot
+      started: 2026-10-25T13:16:32.303Z
+      completed: 2026-10-25T13:17:09.780Z
+    - id: run-gde-light-sims-004
+      scope: single
+      work_items:
+        - id: wi-492-hint
+          intent: gde-light-sims
+          mode: autopilot
+      started: 2026-10-25T13:18:03.889Z
+      completed: 2026-10-25T13:18:22.782Z
+    - id: run-gde-light-sims-005
+      scope: single
+      work_items:
+        - id: wi-493-geld
+          intent: gde-light-sims
+          mode: confirm
+      started: 2026-10-25T14:31:06.932Z
+      completed: 2026-10-25T14:38:53.206Z
+    - id: run-gde-light-sims-006
+      scope: single
+      work_items:
+        - id: wi-492-laad
+          intent: gde-light-sims
+          mode: confirm
+      started: 2026-10-25T15:03:14.646Z
+      completed: 2026-10-25T15:25:31.922Z
+    - id: run-gde-light-sims-007
+      scope: single
+      work_items:
+        - id: wi-492-boer-markt
+          intent: gde-light-sims
+          mode: confirm
+      started: 2026-10-25T15:34:24.083Z
+      completed: 2026-10-25T15:48:53.563Z
+    - id: run-gde-light-sims-008
+      scope: single
+      work_items:
+        - id: wi-492-melee-combo
+          intent: gde-light-sims
+          mode: confirm
+      started: 2026-10-25T15:36:21.351Z
+      completed: 2026-10-25T16:00:17.629Z
+    - id: run-gde-light-sims-009
+      scope: single
+      work_items:
+        - id: wi-492-vracht-markt
+          intent: gde-light-sims
+          mode: confirm
+      started: 2026-10-25T15:36:21.475Z
+      completed: 2026-10-25T16:00:17.989Z
+    - id: run-gde-light-sims-010
+      scope: single
+      work_items:
+        - id: wi-492-trein-passagiers
+          intent: gde-light-sims
+          mode: confirm
+      started: 2026-10-25T15:36:21.597Z
+      completed: 2026-10-25T16:00:18.363Z
+    - id: run-gde-light-sims-011
+      scope: single
+      work_items:
+        - id: wi-369-down
+          intent: gde-light-sims
+          mode: confirm
+      started: 2026-10-25T15:51:24.917Z
+      completed: 2026-10-25T16:15:46.757Z
+    - id: run-gde-light-sims-012
+      scope: single
+      work_items:
+        - id: wi-492-vracht-samen
+          intent: gde-light-sims
+          mode: confirm
+      started: 2026-10-25T16:03:14.996Z
+      completed: 2026-10-25T16:27:26.755Z
+    - id: run-gde-light-sims-013
+      scope: single
+      work_items:
+        - id: wi-492-vlieg-beloning
+          intent: gde-light-sims
+          mode: confirm
+      started: 2026-10-25T16:17:02.819Z
+      completed: 2026-10-25T16:27:27.116Z
+    - id: run-gde-light-sims-015
+      scope: single
+      work_items:
+        - id: wi-366-figuren
+          intent: gde-light-sims
+          mode: confirm
+      started: 2026-10-25T16:17:43.447Z
+      completed: 2026-10-25T16:33:44.384Z
+    - id: run-gde-light-sims-014
+      scope: single
+      work_items:
+        - id: wi-492-boer-contracten
+          intent: gde-light-sims
+          mode: confirm
+      started: 2026-10-25T16:17:02.953Z
+      completed: 2026-10-25T16:37:45.911Z

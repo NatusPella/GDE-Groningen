@@ -6,6 +6,19 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Nieuw
+- **Het spel start meteen in je laatste savegame.** Het hoofdmenu met Alleen spelen en Samen spelen is weg; je laadt de savegame die je het laatst hebt opgeslagen, of je begint direct aan het verhaal. Een andere savegame laden en Samen spelen staan in het pauzemenu. Bij het laden van een andere savegame wordt je huidige voortgang eerst bewaard.
+- **De eerste start kiest zelf de grafische stand.** Een korte meting op het laadscherm kiest de best mogelijke stand voor je computer; met Esc of Spatie sla je de meting over.
+- **Over staat in het pauzemenu.** Nieuws, credits, versie en licenties staan nu onder Esc › Over, ook nu het hoofdmenu weg is.
+- **Eenmalige hint over Samen spelen.** Na je eerste missie zie je één keer waar je Samen spelen vindt; daarna nooit meer.
+- **Milder startbudget en flitswaarschuwing.** Je begint met €500; de eerste keer bij een flitspaal krijg je een waarschuwing, daarna een boete van €10-25. De camera flitst pas vanaf 35 km/u boven de limiet.
+- **Vluchtdienst bij Eelde.** De rondvlucht betaalt nu per medaille (€18/€28/€40) en de toren geeft één vertrek- en één naderingsregel.
+- **Boerderijcontracten.** Afnemers vragen per speldag een vracht van een gewas; je neemt een contract aan, levert de kilo's bij de verkoop en krijgt de bonus bovenop de dagprijs. Verlopen kost niets.
+- **Vracht samen.** Een gast kan de vrachtbaan met E aanvragen, als bijrijder meerijden en met E laden en lossen versnellen; iedere deelnemer krijgt het volle loon.
+- **Reeksen in het gevecht.** De tweede slag binnen een seconde doet meer schade, de derde nog meer; een misser of een wapenwissel zet de reeks terug.
+- **Treinpassagiers.** Een machinistendienst telt nu echte reizigers: ze stappen per halte in en uit, betalen een kaartje en staan op het bord.
+- **Dagprijzen op de boerderij.** Elk gewas heeft per speldag een eigen prijs, hooguit twintig procent boven of onder de basis; je verkoopt tegen de prijs van de dag dat je aflevert.
+
 ### Opgelost
 - **Vee en wandelaars blijven van de rijbaan.** Een koe of schaap graast niet meer de weg op waar zijn perceel tot de rand van de strook loopt, ook niet als een auto het dier opjaagt; en op een provinciale weg zonder trottoir staan geen wandelaars meer midden in de rijstrook (bij een kruising lag de berm van de zijweg op de rijbaan van de hoofdweg).
 - **Tekst op borden is van beide kanten leesbaar.** Een bord dat aan twee kanten tekst had, liet de achterkant in spiegelbeeld zien; dat geldt nu voor het doek boven de kartbaan, het SKATEPARK-bord, de borden bij discgolf, het podium en de badeendjes.
@@ -18,7 +31,6 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Een onvolledige build gaat niet meer de deur uit.** Bij het stagen wordt nu gecontroleerd dat elk tegelpakket uit de wereldindex bestaat met de juiste grootte en dat alle scenariomuziek en radiostationnummers in de map staan; een half geschreven wereld-cache wordt opnieuw gebouwd. Dat voorkomt de 404's op tegels en op de menumuziek uit het foutrapport van 0.50.0.
 - **Het foutrapport toont alleen de versie die je draait.** Meldingen uit een eerdere versie reizen niet meer mee met een upgrade, dus een allang gefixte fout lijkt niet meer open te staan.
 - **Een lange treinrit wordt niet meer na 2,5 minuut afgekapt.** De waakhond respecteert de duur die de rit zelf opgeeft in plaats van een vaste grens van 150 seconden.
-
 ### Onderhoud
 - **De documentatie is opgeschoond en de specs zijn de basis.** De levende regels staan nu in elf specs onder `.specs-fire/standards/` (Samen spelen, wereld, mechanica, verhaal, UI en taal, publicatie, plus de vijf standaarden); 23 vervallen of dubbele documenten gingen naar `docs/archief/2026-10/`, de gegenereerde verhaal- en opnamelijsten staan niet meer in git, en de verwijzingen in README, AGENTS en ARCHITECTURE kloppen weer. De keuzes die het project dragen staan met hun afgewezen alternatieven in `.specs-fire/standards/adr/`. Begin bij `docs/SPECS-FIRE.md`.
 

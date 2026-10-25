@@ -24,6 +24,7 @@ import { gastAanval, gastLichamen } from './coopbestuur.js';
 import { pvpSlag, pvpKogel } from './cooppvpwereld.js'; // spelers tegen elkaar, alleen als beiden niet op passief staan (#447)
 import { wantedVan, zetWantedVan } from './coopgezocht.js';
 import { hoofdspeler } from './spelersregister.js'; // de speler achter dit scherm (#446); politie en gezocht blijven per speler
+import { nieuweCombo, comboSlag, comboUitslag } from './meleecombo.js'; // de melee-reeks (#492)
 
 export { WEAPONS, WEAPON_KEYS, isMeleeWeapon, isRangedWeapon, isGunWeapon };
 
@@ -205,6 +206,16 @@ function meleeHit(world, angle, weapon, key, ctx = null) {
   const p = ctx ? ctx.p : hoofdspeler(world);
   if (p.inVehicle) return;
   const gelockt = ctx ? null : lockedPed;
+  // de melee-reeks (#492): elke aanvaller zijn eigen stand, en de slag telt pas mee als hij landt
+  const dader = (ctx && ctx.dader) | 0; // plek 0 is de speler van wie het spel opende
+  const nu = world.time || 0;
+  const reeks = world.meleeCombos || (world.meleeCombos = new Map());
+  // per aanvaller én per wapen: van wapen wisselen begint een nieuwe reeks, en de cooldowns verschillen
+  const sleutel = `${dader}:${key}`;
+  const stand = reeks.get(sleutel) || nieuweCombo();
+  const slag = comboSlag(stand, nu);
+  const schade = weapon.damage * slag.factor;
+  const gewicht = { ...weapon, damage: schade, knock: (weapon.knock || 0) + slag.knockExtra }; // de derde slag duwt harder
   const cone = weapon.cone || Math.PI / 3;
   const ca = Math.cos(angle), sa = Math.sin(angle);
   const inReach = (x, y, extra) => {
@@ -217,14 +228,14 @@ function meleeHit(world, angle, weapon, key, ctx = null) {
   let landed = null;
   for (const t of world.pedestrians) {
     if (t.state === 'dead' || t.scripted || !inReach(t.x, t.y, t === gelockt ? 0.8 : 0)) continue;
-    damagePed(world, t, weapon.damage, true, ca, sa, true, weapon, ctx ? ctx.dader : 0);
+    damagePed(world, t, schade, true, ca, sa, true, gewicht, dader);
     landed = landed || 'flesh';
   }
-  if (world.coopPvp && pvpSlag(world, ctx ? ctx.dader : 0, inReach, weapon.damage)) landed = landed || 'flesh'; // een andere speler (#447)
+  if (world.coopPvp && pvpSlag(world, dader, inReach, schade)) landed = landed || 'flesh'; // een andere speler (#447)
   for (const v of world.vehicles) {
     if (v.wrecked || v.sinking || v.isBoat || !inReach(v.x, v.y, v.halfLen * 0.7)) continue;
     if (weapon.damage >= 20 || key === 'fists') {
-      v.health -= weapon.damage * 0.4;
+      v.health -= schade * 0.4;
       if (v.health <= 0) wreckVehicle(world, v, !ctx);
     }
     landed = landed || 'car';
@@ -237,6 +248,7 @@ function meleeHit(world, angle, weapon, key, ctx = null) {
       landed = landed || 'prop';
     }
   }
+  reeks.set(sleutel, comboUitslag(stand, nu, !!landed)); // een treffer telt door, een misser wist de reeks
   if (landed) weaponSound(world, { sub: 'hit', weapon: key, material: weapon.sound, on: landed, x: p.x + ca * weapon.range, y: p.y + sa * weapon.range });
   if (!ctx && (landed === 'flesh' || landed === 'car')) {
     world.lastMeleeHit = { time: world.time };   // main.js: korte timescale-dip (#216)

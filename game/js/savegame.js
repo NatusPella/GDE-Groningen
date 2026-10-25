@@ -4,7 +4,7 @@ import { WEAPONS } from './combat.js';
 import { isCinematicActive, skipAllCinematics } from './cinematics.js';
 import { getShopSave, applyShopSave } from './shops.js';
 import { getAchievementSaveData, applyAchievementSaveData, getChallengeRecord, EIERBAL_TOTAL, missieKlaarId } from './achievements.js';
-import { PG_PRIZE, EIERBAL_FIND_PAY, EIERBAL_ALL_BONUS } from './economy.js';
+import { PG_PRIZE, EIERBAL_FIND_PAY, EIERBAL_ALL_BONUS, START_MONEY } from './economy.js';
 import { getPigeonSaveData, applyPigeonSaveData } from './pigeonmode.js';
 import { getSideJobSave, applySideJobSave } from './sidejobs.js';
 import { getStorySave, applyStorySave } from './story.js';
@@ -29,7 +29,7 @@ import { applyGuestChanges, applyGuestStory, applyGuestAchievements } from './co
 import { verhaalStatus } from './coopverhaal.js';
 import { gebeurtenissenVan, maakBoekhouding } from './coopbeloning.js';
 import { getRenderer, afterNextFrame } from './scene3d.js';
-import { readSlot, writeSlotRaw, writeThumb, activeSlot, setActive, createSlot, deleteSlot, nameOf, pickActive } from './saveslots.js';
+import { readSlot, writeSlotRaw, writeThumb, activeSlot, setActive, createSlot, deleteSlot, nameOf, pickActive, pickLatest } from './saveslots.js';
 import { maakCheckpoint } from './coopcheckpoint.js';
 import { registerSaveGame, registerSaveTimers, registerGastVerhaal, registerGastBoek } from './savehook.js';
 import { STEPS, PARTS, stepDone, stepAvailable, nextStoryStep, ARC_ID } from './storyarc.js';
@@ -70,7 +70,6 @@ let playSeconds = 0;
 const num = (v, d) => (typeof v === 'number' && Number.isFinite(v) ? v : d);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const MIN_RESTORE = 1500;
-const START_MONEY = 250;
 const JELLE_CHALLENGES = ['bruggen', 'fierljep', 'skutsje'];
 
 // A save whose money got lost (the NaN-money bug stored null): its last good
@@ -189,6 +188,16 @@ export function loadSlot(w, n) {
 
 export function ensureActiveSlot() {
   return pickActive(null);
+}
+
+// Boot: the save that was written last, not the slot that happened to be active.
+export function ensureLatestSlot() {
+  return pickLatest(null);
+}
+
+// The slot this tab is actually writing to (boundSlot after a load/new game, else the active one).
+export function currentSlot() {
+  return saveTarget();
 }
 
 function serialize(w) {
@@ -422,8 +431,9 @@ function placeAt(w, x, y) {
   }
 }
 
-// Samen spelen: zolang er een sessie loopt wordt er niets geladen, want dat vervangt geld en wereld onder de sessie (#452).
-export const COOP_LADEN_TEKST = 'Samen spelen loopt nog. Stop eerst de sessie om een ander spel te laden.';
+// Samen spelen: nieuw spel en het verwijderen van het actieve slot blijven geblokkeerd zolang de sessie
+// loopt (#452). Een ander opgeslagen spel laden mag wel, maar eerst met bevestiging: de sessie eindigt,
+// de voortgang wordt bewaard en pas dan wordt er geladen (cooploadrules.js, #492).
 export const COOP_NIEUW_TEKST = 'Samen spelen loopt nog. Stop eerst de sessie om een nieuw spel te beginnen.';
 export const COOP_WISSEN_TEKST = 'Samen spelen loopt nog. Stop eerst de sessie om dit spel te verwijderen.';
 export const coopSessieLoopt = (w) => !!(w && w.coopNet);

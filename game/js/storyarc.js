@@ -6,6 +6,7 @@
 // version come first (storyarc_basis.js), the missions of the current story come after them.
 import * as NIEUW from './storyarc_nieuw.js';
 import { MISSION_IDS as BASIS_MISSION_IDS, RETIRED_STEPS as BASIS_RETIRED_STEPS } from './storyarc_basis.js';
+import { START_MONEY } from './economy.js';
 
 // kept for the modules that ask which story a save or a handshake belongs to (there is only one now)
 export const ARC_ID = 'nieuw';
@@ -118,12 +119,13 @@ export function loopbanenTot(stapId) {
   return [...new Set(out)];
 }
 
+// The start budget lives in economy.js; re-exported for modules that ask the arc.
+export { START_MONEY };
+
 // Worst case money over the whole arc (planned steps included): start money,
 // every requirement bought at its price, every mission at its minimum
 // payout, side jobs counted as zero. `low` is the lowest balance right
 // before a purchase, `margin` how much was left over there.
-export const START_MONEY = 250;
-
 // payShare < 1 models a player who skips every mission (story.js pays that
 // share) and buys only what is required.
 export function computeMoneyTimeline(start = START_MONEY, payShare = 1) {

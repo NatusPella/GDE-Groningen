@@ -121,12 +121,19 @@ function springKnop(n, inp, dt) {
 // Een extra speler in het voertuig van de gastheer krijgt een eigen stoel (2 en hoger; 0 is de bestuurder, 1 de bijrijder voorin, #434).
 const vrijeStoel = (world, fig, v) => volgendeStoel(Object.values(figures(world)).filter((f) => f !== fig && f.inVeh === v).map((f) => f.stoel));
 
+// Ligt dit lichaam achterover (een ragdoll die niet dood is)? De gasten zien hem dan als neergeslagen (#369);
+// een oude val ruimt de ragdoll zelf op (ragdoll.js isKnockedDown), hier telt alleen de stand.
+export function ligtNeer(b) { const rd = b && b.ragdoll; return !!rd && !rd.dead; }
+// De echte gezondheid van een lichaam, begrensd zoals de codec hem kan dragen; zonder waarde 100.
+const gezondheidVan = (v) => (Number.isFinite(v) ? Math.max(0, Math.min(255, Math.round(v))) : 100);
+
 // De record van één speler in het snapshot: plek, hoogte (springen), bukken, het voertuig met stoel, en wapen en aanval van de gastheer (#434).
+// alive = dood of gepakt; down = achterover (een ragdoll) maar niet dood (#369).
 export function spelerRecord(world, b, slot) {
   if (!b) return b;
   const q = posOf(b), veh = b.inVehicle || b.inVeh;
   const vo = veh && typeof veh === 'object' ? veh : null, inV = !!veh;
-  const r = { slot, x: q.x, y: q.y, z: b.z || 0, angle: q.angle || 0, alive: slot === 0 ? !world.pendingRespawn : slot === 1 ? b.state !== 'dead' : true, inVeh: inV, driver: (slot === 0 && inV) || bestuurt(b), run: false, health: 100,
+  const r = { slot, x: q.x, y: q.y, z: b.z || 0, angle: q.angle || 0, alive: slot === 0 ? !world.pendingRespawn : slot === 1 ? b.state !== 'dead' : true, inVeh: inV, driver: (slot === 0 && inV) || bestuurt(b), run: false, health: gezondheidVan(slot === 0 ? world.health : b.health), down: ligtNeer(b),
     vehicle: vo ? voertuigId(vo, 0) : null, crouch: !inV && !!b.crouching, seat: slot === 0 || bestuurt(b) ? 0 : slot === 1 ? 1 : (b.stoel | 0) || 2, weapon: 0, attack: 0 };
   if (slot === 0 && !inV && !(b.swimming || b.vault)) { // wat de gastheer in de hand heeft en zijn laatste aanval: de gast tekent het op de figuur van de gastheer
     r.weapon = wapenCode(world.weapon);
@@ -292,7 +299,11 @@ export function startHost(world, info, opts = {}) {
       if (slot >= eersteGastPlek(koploos)) { // zonder speler staat er niemand om naast te komen: de server geeft de startplek (#450)
         const f = ensureFigure(world, slot, char, avatar);
         if (koploos) { const p = startPlek(world, slot); f.x = p.x; f.y = p.y; }
-        else { f.x = world.player.x + 1.5 * (slot - 1); f.y = world.player.y + 1.5; }
+        else { // geen vaste offset: een droge, vrije plek naast de gastheer, of mee in de boot (#366)
+          const p = world.player, plek = drogePlekBij(world, p.x, p.y, (slot * 1.7) % (Math.PI * 2));
+          if (plek) { f.x = plek.x; f.y = plek.y; }
+          else if (!zetInBoot(world, f)) { f.x = p.x + 1.5 * (slot - 1); f.y = p.y + 1.5; } // nergens droog en geen boot: de oude regel
+        }
       }
       if (fade) fade('in'); // de gast komt met een korte fade naast je staan
     },
@@ -423,7 +434,9 @@ export function zetEigenVoertuigenTerug(world, n) {
 }
 
 // ---------------------------------------------------------------- elke frame
-function stepFigures(world, dt) {
+// De figuren van plek 2 en hoger stappen hier: invoer → stepSlot2 → moveFigure. Apart gezet zodat de test
+// (scripts/coopfiguur_test.mjs) dezelfde koppeling kan draaien als het spel.
+export function stepFigures(world, dt) {
   const f = figures(world);
   for (const slot of Object.keys(f)) {
     const fig = f[slot];
@@ -468,12 +481,16 @@ export function figuurPlekken(v) {
   if (v.isBike || v.isScooter || v.isHeli || v.isPlane) return 0;
   return v.isBus ? 6 : 3;
 }
-// Een extra speler stapt uit: naast het voertuig, aan de kant van zijn plek
+// Een extra speler stapt uit: naast het voertuig, aan de kant van zijn plek. Staat daar water of een muur, dan zoekt hij
+// een droge, vrije plek rond het voertuig (#366); vindt hij niets, dan blijft hij bij het voertuig en zet de band hem in de boot.
 function figUit(world, fig) {
   const v = fig.inVeh; fig.inVeh = null; fig.coopVoertuig = false;
   if (!v) return;
   const zijde = fig.slot % 2 ? 1 : -1, a = (v.angle || 0) + zijde * Math.PI / 2, d = (v.halfWid || 1) + 1.4 + 0.5 * Math.floor(fig.slot / 2);
-  fig.x = v.x + Math.cos(a) * d; fig.y = v.y + Math.sin(a) * d; fig.vx = 0; fig.vy = 0;
+  const x = v.x + Math.cos(a) * d, y = v.y + Math.sin(a) * d;
+  const plek = (!world.coopVrij || world.coopVrij(x, y, world)) ? { x, y } : drogePlekBij(world, v.x, v.y, a);
+  fig.x = plek ? plek.x : v.x; fig.y = plek ? plek.y : v.y;
+  fig.vx = 0; fig.vy = 0;
 }
 // E van de 3e of 4e speler: instappen als de gastheer in een voertuig zit met een vrije plek dichtbij, of uitstappen als het bijna stilstaat
 export function figGebruik(world, slot) {
@@ -513,19 +530,24 @@ export function meldVoertuig(world, n) {
   return true;
 }
 
-// Neergaan, arrestatie en opstaan van de gastheer en Tessa: de anderen horen het, de gast zelf ook (#369)
+// Neergaan, arrestatie en opstaan van de gastheer en Tessa: de anderen horen het, de gast zelf ook (#369).
+// Ook een ragdoll telt (achterover, nog niet dood): één regel per overgang, nooit elke tik.
 export function meldNeer(world, n) {
-  const pr = world.pendingRespawn ? (world.pendingRespawn.busted ? 'gepakt' : 'neer') : null;
+  const pr = world.pendingRespawn ? (world.pendingRespawn.busted ? 'gepakt' : 'neer') : ligtNeer(world.player) ? 'neer' : null;
   if (pr !== (n.hostNeer || null)) {
     n.hostNeer = pr;
     if (pr) n.hub.announce({ k: 'melding', tekst: `${openerNaam(world.coopRoster, true)} is ${pr === 'gepakt' ? 'door de politie gepakt' : 'neergeslagen'}.` });
   }
   const vast = !!(world.companionHold && world.coop && world.coop.remote && !world.coopVrijLopen); // wie niet meedoet loopt vrij (#429) // een opdracht of minigame parkeert Tessa: haar speler kan even niet lopen (#375)
   if (vast !== !!n.tessaVast) { n.tessaVast = vast; n.hub.announce({ k: 'melding', tekst: vast ? 'Je kijkt even mee: de opdracht houdt je op je plek.' : 'Je kunt weer lopen.' }, 1); }
-  const c = world.companion, dood = !!(c && c.state === 'dead');
+  const c = world.companion, dood = !!(c && (c.state === 'dead' || ligtNeer(c)));
   if (dood !== !!n.tessaNeer) {
     n.tessaNeer = dood;
+    const naam = gastNaam(world, 1);
+    const regel = dood ? `${naam} is neergeslagen.` : `${naam} staat weer.`;
     n.hub.announce({ k: 'melding', tekst: dood ? 'Je bent geraakt. Je staat zo weer op.' : 'Je staat weer.' }, 1);
+    for (const s of n.hub.roster.spelers) if (s.slot >= 2 && s.verbinding !== 'lost') n.hub.announce({ k: 'melding', tekst: regel }, s.slot);
+    if (world.addMessage) world.addMessage(regel, 3.5); // de gastheer ziet het zelf, zonder netbericht over zijn eigen metgezel
   }
 }
 
@@ -572,17 +594,36 @@ export function werkFoci(world, dt = 0) {
   return info;
 }
 
-// Een speler zet de band terug naast de gastheer (de eerste droge plek rond hem)
+// Een droge, vrije plek bij (x, y) voor een figuur die binnenkomt, uitstapt of bij de groep wordt gezet (#366): eerst een
+// kring eromheen (de voorkeurshoek eerst), dan de dichtstbijzijnde open plek of straat. Zonder kaart of coopVrij is de
+// gevraagde kring genoeg. Geeft null als er niets droog is.
+const VRIJ_RINGEN = [2.2, 4.5, 8];
+function drogePlekBij(world, x, y, a0 = 0) {
+  if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+  const vrij = (qx, qy) => !world.coopVrij || world.coopVrij(qx, qy, world);
+  for (const r of VRIJ_RINGEN) {
+    for (let i = 0; i < 8; i++) {
+      const a = a0 + i * Math.PI / 4, qx = x + Math.cos(a) * r, qy = y + Math.sin(a) * r;
+      if (vrij(qx, qy)) return { x: qx, y: qy };
+    }
+  }
+  const map = world.map;
+  const kandidaten = [
+    map && typeof map.findOpenSpawn === 'function' ? map.findOpenSpawn(x, y, 60) : null,
+    map && typeof map.nearestRoadPoint === 'function' ? map.nearestRoadPoint(x, y, 120) : null,
+  ];
+  for (const q of kandidaten) if (q && Number.isFinite(q.x) && Number.isFinite(q.y) && vrij(q.x, q.y)) return { x: q.x, y: q.y };
+  return null;
+}
+
+// Een speler zet de band terug naast de gastheer (de eerste droge plek rond hem, anders de dichtstbijzijnde droge plek).
+// Vindt hij niets, dan blijft het lichaam waar het is: de band probeert daarna de boot (#366).
 function zetBijGroep(world, lichaam, a0) {
   const p = world.player;
-  lichaam.x = p.x; lichaam.y = p.y; // niets vrij rond de gastheer: dan op zijn plek
-  let droog = false;
-  for (let i = 0; i < 8; i++) { // de eerste droge plek rond de gastheer, niet in het water of een gebouw
-    const a = a0 + i * Math.PI / 4, x = p.x + Math.cos(a) * 2.2, y = p.y + Math.sin(a) * 2.2;
-    if (!world.coopVrij || world.coopVrij(x, y, world)) { lichaam.x = x; lichaam.y = y; droog = true; break; }
-  }
+  const plek = drogePlekBij(world, p.x, p.y, a0);
+  if (plek) { lichaam.x = plek.x; lichaam.y = plek.y; }
   lichaam.gz = p.gz || 0; lichaam.vx = 0; lichaam.vy = 0;
-  return droog;
+  return !!plek;
 }
 // Zit de gastheer op het water in een boot en is er rond hem geen droge plek, dan zet de band een speler in de boot (een plek, anders naast de boot in het water)
 // in plaats van in zee; een boot ligt niet aan de kant. Geeft true als de speler in de boot zit (#434).
@@ -595,22 +636,37 @@ export function zetInBoot(world, lichaam) {
     return true;
   }
   if (Object.values(figures(world)).filter((f) => f.inVeh === v).length >= figuurPlekken(v)) return false;
-  lichaam.inVeh = v; lichaam.coopVoertuig = true; lichaam.x = v.x; lichaam.y = v.y; lichaam.vx = 0; lichaam.vy = 0;
+  const bezet = new Set(Object.values(figures(world)).filter((f) => f.inVeh === v).map((f) => f.stoel));
+  let stoel = 0; while (bezet.has(stoel)) stoel++;
+  lichaam.inVeh = v; lichaam.coopVoertuig = true; lichaam.stoel = stoel; lichaam.x = v.x; lichaam.y = v.y; lichaam.vx = 0; lichaam.vy = 0;
   return true;
 }
 const BOOT_MELD = 'Je zit weer in de boot.';
 
+// Heeft deze figuur een eigen interessegebied (coopfoci.js), dus een groep ver van de gastheer? Dan loopt hij vrij, zoals
+// elke speler die uit elkaar gaat (#429). Zit hij in de groep van de gastheer zelf (binnen de samenvoegafstand van 150 m),
+// dan geldt de band van 110 m. Zonder foci (een testwereld) geldt de band altijd. Zo is de afstandsregel expliciet: de
+// wereld rond de gastheer is geladen, dus daar hoort een figuur bij de groep te blijven; verder weg laadt het spel de
+// wereld rond zijn eigen focus en is er geen grens meer.
+function eigenGroep(world, slot) {
+  const foci = world.coopFociInfo && world.coopFociInfo.foci;
+  if (!foci || !foci.length) return false;
+  for (const f of foci) if (Array.isArray(f.slots) && f.slots.includes(slot)) return !f.host;
+  return false;
+}
+
 // Een extra speler (plek 2 en hoger) heeft geen band zoals Tessa; loopt hij te ver van de gastheer, dan is de wereld daar niet geladen
 // (geen gebouwen, geen grond). Eerst een melding, daarna zet de gastheer hem bij de groep (#366). Met spelers uit elkaar (#429)
-// geldt dat alleen voor wie geen eigen focus heeft (te veel groepen voor het budget).
+// geldt dat alleen voor wie geen eigen focus heeft: zie eigenGroep.
 export function bandFiguren(world, dt) {
   const p = world.player; if (!p || !Number.isFinite(p.x)) return;
   const v = p.inVehicle; // alleen voor de uitgeschakelde meerij-tak hieronder; de snelheid van de host telt niet mee: een gast wordt er nooit door teruggezet
   for (const fig of Object.values(figures(world))) {
     if (fig.inVeh) { fig.wacht = false; continue; }
     const d = Math.hypot(fig.x - p.x, fig.y - p.y), los = losVoor(world, fig.slot, fig.x, fig.y), band = FIGUUR_BAND;
+    const losLopen = los.ok && eigenGroep(world, fig.slot); // een eigen groep ver weg: geen band, wel de melding hoe hij terugkomt
     const plek = false; // niemand wordt vanzelf in een voertuig gezet: te ver weg betekent naast de gastheer, instappen doet de speler zelf met E
-    if (los.ok) { // los van de groep, maar de wereld is voor hem geladen: niet terugzetten, wel een keer zeggen hoe hij terugkomt
+    if (losLopen) { // los van de groep, maar de wereld is voor hem geladen: niet terugzetten, wel een keer zeggen hoe hij terugkomt
       if (d > LOS_MELD_M && !fig.losGemeld) { fig.losGemeld = true; if (world.coopMeld) world.coopMeld(fig.slot, LOS_TEKST); }
       if (d <= LOS_MELD_M) fig.losGemeld = false;
       fig.gewaarschuwd = false;
@@ -629,7 +685,10 @@ export function bandFiguren(world, dt) {
     if (fig.verTijd >= (d > 300 && !los.ok ? 0.5 : FIGUUR_TERUG_S) || fig.vastTijd >= FIGUUR_TERUG_S) { // te lang buiten de groep zonder eigen interessegebied (meer dan acht groepen), of vast: terug bij de groep
       fig.verTijd = 0; fig.vastTijd = 0; fig.gewaarschuwd = false; fig.losGemeld = false; fig.wacht = false; fig.ongeladen = 0; fig.vx = 0; fig.vy = 0;
       if (plek) { fig.inVeh = v; fig.coopVoertuig = true; fig.stoel = vrijeStoel(world, fig, v); fig.x = v.x; fig.y = v.y; if (world.coopMeld) world.coopMeld(fig.slot, 'Je rijdt mee. Met E stap je uit als het voertuig stilstaat.'); continue; } // is er plek, dan zit hij weer in het voertuig (geen eindeloos terugzetten)
-      if (!zetBijGroep(world, fig, (fig.slot * 1.7) % (Math.PI * 2)) && zetInBoot(world, fig)) { if (world.coopMeld) world.coopMeld(fig.slot, BOOT_MELD); continue; }
+      if (!zetBijGroep(world, fig, (fig.slot * 1.7) % (Math.PI * 2))) {
+        if (zetInBoot(world, fig)) { if (world.coopMeld) world.coopMeld(fig.slot, BOOT_MELD); continue; }
+        continue; // nergens droog en geen boot: hij blijft staan en de volgende meting probeert het opnieuw (geen valse melding)
+      }
       if (world.coopMeld) world.coopMeld(fig.slot, 'Je staat weer bij de groep.');
     }
   }
@@ -661,8 +720,9 @@ export function bandMetgezel(world, dt) {
   c.verTijd = 0; c.gewaarschuwd = false; c.losGemeld = false; c.coopWacht = false; c.ongeladen = 0; c.vx = 0; c.vy = 0;
   const plek = false; // geen automatisch meerijden: te ver weg betekent naast de gastheer, instappen doet ze zelf met E
   if (plek) { c.inVehicle = v; v.passenger = 'companion'; c.coopUit = false; if (world.coopMeld) world.coopMeld(1, 'Je rijdt mee. Met E stap je uit als het voertuig stilstaat.'); return true; }
-  if (!zetBijGroep(world, c, Math.PI * 1.7) && zetInBoot(world, c)) { if (world.coopMeld) world.coopMeld(1, BOOT_MELD); return true; }
-  if (world.coopMeld) world.coopMeld(1, 'Je staat weer bij de groep.');
+  const droog = zetBijGroep(world, c, Math.PI * 1.7);
+  if (!droog && zetInBoot(world, c)) { if (world.coopMeld) world.coopMeld(1, BOOT_MELD); return true; }
+  if (droog && world.coopMeld) world.coopMeld(1, 'Je staat weer bij de groep.'); // geen droge plek en geen boot: niet claimen dat het gelukt is (#366)
   return true;
 }
 
@@ -683,7 +743,7 @@ export function bijGroepHost(world, slot) {
   const droog = zetBijGroep(world, lichaam, slot === 1 ? Math.PI * 1.7 : (slot * 1.7) % (Math.PI * 2));
   lichaam.verTijd = 0; lichaam.wacht = false; lichaam.coopWacht = false; lichaam.ongeladen = 0;
   if (!droog && zetInBoot(world, lichaam)) { if (world.coopMeld) world.coopMeld(slot, BOOT_MELD); return true; }
-  if (world.coopMeld) world.coopMeld(slot, 'Je staat weer bij de groep.');
+  if (droog && world.coopMeld) world.coopMeld(slot, 'Je staat weer bij de groep.');
   return true;
 }
 
@@ -960,7 +1020,7 @@ export function tickCoopNet(world, dt) {
   for (const slot of meedoenTik(n.meedoen, dt)) world.coopMeld && world.coopMeld(slot, 'Je doet mee.');
   if (n.stem) stemTikHost(world, n, dt);
   const c = world.companion;
-  const players = [c ? { slot: 1, x: posOf(c).x, y: posOf(c).y, angle: posOf(c).angle, alive: c.state !== 'dead', inVeh: !!c.inVehicle } : null, ...Object.values(figures(world)).map((f) => ({ slot: f.slot, x: f.x, y: f.y, angle: f.angle, alive: true, inVeh: !!f.inVeh }))].filter(Boolean);
+  const players = [c ? { slot: 1, x: posOf(c).x, y: posOf(c).y, angle: posOf(c).angle, alive: c.state !== 'dead', down: ligtNeer(c), inVeh: !!c.inVehicle } : null, ...Object.values(figures(world)).map((f) => ({ slot: f.slot, x: f.x, y: f.y, angle: f.angle, alive: true, down: !!f.coopDown, inVeh: !!f.inVeh }))].filter(Boolean);
   world.coopPartners = partnersInfo(0, players, world.coopRoster || []); ververs(world, 0); // register world.players (#446)
   world.coopPartner = world.coopPartners[0] || null;
   // gedeelde camera met Tessa (plek 1) zolang zij echt meespeelt; extra spelers hebben hun eigen camera
@@ -1108,7 +1168,17 @@ export function handleEvent(world, body, van = 0) {
       // De uitslag van een andere groep gaat langs je heen: die opdracht deed je niet mee (#452).
       if (typeof body.id === 'string' && body.id && world.coopGroep && world.coopGroep.id && body.id !== world.coopGroep.id) return false;
       const naam = openerNaam(world.coopRoster, true);
-      if (world.coopMeedoenNee) { world.coopMeedoenNee = false; if (world.addMessage) world.addMessage(`${body.label}: ${naam} heeft het zonder jou gedaan.`.slice(0, 160), 4); return true; } // je deed niet mee: geen deel (#429)
+      if (world.coopMeedoenNee) {
+        world.coopMeedoenNee = false;
+        // wie N zei deed niet mee, maar hoort een mislukking wél als mislukking, niet als "zonder jou gedaan" (#371)
+        const nee = body.gestopt
+          ? `${naam} heeft ${body.label} gestopt, voor iedereen.`
+          : body.ok === false
+            ? `${body.label} mislukt${body.reden ? ': ' + String(body.reden).slice(0, 60) : ''}. ${naam} deed het zonder jou.`
+            : `${body.label}: ${naam} heeft het zonder jou gedaan.`;
+        if (world.addMessage) world.addMessage(nee.slice(0, 160), 4);
+        return true;
+      } // je deed niet mee: geen deel (#429)
       const deel = Math.floor(Number(body.deel)) || 0;
       // gestopt (#390): de gastheer stopte de missie uit het pauzemenu, voor iedereen; het is geen mislukking
       const tekst = body.gestopt ? `${naam} heeft ${body.label} gestopt, voor iedereen. ${naam} kan hem opnieuw starten.` : body.ok ? `${body.label} gelukt! ${naam} en jij hebben het samen gedaan.${deel > 0 ? ` Jouw deel: €${deel.toLocaleString('nl-NL')}.` : ''}` : `${body.label} mislukt${body.reden ? ': ' + String(body.reden).slice(0, 60) : ''}. ${naam} probeert het misschien opnieuw.`;

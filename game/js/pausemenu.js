@@ -15,10 +15,13 @@ import { renderVeroverdPanel } from './veroverdpanel.js';
 import { renderSpelersPanel } from './coopspelersui.js';
 import { renderCheatsPanel, cheatsClick, resetCheatsPanel, cheatsFocus } from './cheatsui.js';
 import { skipCurrent, getStoryJournal, markCluesSeen } from './story.js';
-import { saveGame, hasSave, loadLatestSave, startNewSlot, coopSessieLoopt, COOP_LADEN_TEKST, COOP_NIEUW_TEKST, getSaveSummary, getPlaySeconds } from './savegame.js';
+import { saveGame, hasSave, loadLatestSave, startNewSlot, coopSessieLoopt, COOP_NIEUW_TEKST, getSaveSummary, getPlaySeconds, loadSlot, currentSlot } from './savegame.js';
 import { openSaveSlots, isSaveSlotsOpen } from './saveslotsui.js';
+import { stopCoopNet } from './coopnet.js';
+import { coopLoadTekst, COOP_LOAD_FAIL, runCoopLoad } from './cooploadrules.js';
 import { getClockText } from './clocktext.js';
 import { VERSION } from './version.js';
+import { loadChangelog, newsOnStart, ABOUT_HTML } from './over.js';
 import { versionLabel } from './menumodels.js';
 import { storyDate } from './calendarday.js';
 import { isCinematicActive } from './cinematics.js';
@@ -243,6 +246,7 @@ const SECTIONS = [
   ['prestaties', 'Prestaties', 'Blijven bewaard, ook bij een nieuw spel'],
   ['fotos', "Foto's", 'Fotomodus en je galerij'],
   ['settings', 'Instellingen', 'Beeld, geluid, besturing, hulp en cheats'],
+  ['over', 'Over', 'Nieuws, credits, versie en licenties'],
   // onderdelen onder een ander onderdeel (CHILD), niet los in de rail
   ['visboek', 'Visboek', 'Alle vis van de provincie, van jou'],
   ['boerderij', 'Boerderij', 'Je eigen akker, gewassen en machines'],
@@ -251,7 +255,7 @@ const SECTIONS = [
 ];
 // the rail's three groups: playing, collected, system
 // Cheats staat sinds #435 naast Instellingen in de rail: het was te verstopt onder Instellingen > Cheats.
-const RAIL_GROUPS = [['spel', 'verhaal', 'loopbaan', 'todo'], ['map', 'spullen', 'garage', 'prestaties', 'fotos'], ['settings', 'streken']];
+const RAIL_GROUPS = [['spel', 'verhaal', 'loopbaan', 'todo'], ['map', 'spullen', 'garage', 'prestaties', 'fotos'], ['settings', 'over', 'streken']];
 // Onderdelen zonder eigen plek in de rail die onder een ander onderdeel hangen (#430): Vissen en Farmen horen bij Loopbaan
 // (de tegels Bezigheden), de toetsen en knoppen bij Instellingen > Besturing. De rail markeert de ouder; Terug gaat naar de ouder.
 const CHILD = { visboek: 'loopbaan', boerderij: 'loopbaan', controls: 'settings' };
@@ -493,7 +497,7 @@ function spelHtml() {
       <p class="pm-status" data-game-status role="status"></p>
       <div class="m-gh"><span>Stoppen</span></div>
 <div class="m-li pm-row">${rowName('Missie stoppen', 'Staat bij Overzicht zodra er een missie loopt, met een vraag erbij')}<button type="button" class="m-bg" data-goto-sub="spel:overzicht">Naar Overzicht</button></div>
-      <div class="m-li pm-row">${rowName('Hoofdmenu', 'Slaat op en gaat terug naar het hoofdmenu')}<button type="button" class="m-bg" data-action="menu" title="Opslaan en terug naar het hoofdmenu">Naar het hoofdmenu</button></div>
+      <div class="m-li pm-row">${rowName('Spel herstarten', 'Slaat op en start het spel opnieuw')}<button type="button" class="m-bg" data-action="menu" title="Opslaan en het spel opnieuw starten">Herstarten</button></div>
       ${DESKTOP ? `<div class="m-li pm-row">${rowName('Spel sluiten', 'Slaat op en sluit het spel')}<button type="button" class="m-bg" data-action="exit" title="Opslaan en het spel sluiten">Afsluiten</button></div>` : ''}
       <div class="m-gh"><span>Opnieuw beginnen</span></div>
       <div class="m-li pm-row">${rowName('Opnieuw beginnen', 'Alles sinds je laatste savegame gaat verloren')}<button type="button" class="m-bg danger" data-action="restart">Opnieuw beginnen</button></div>
@@ -502,6 +506,10 @@ function spelHtml() {
         <button type="button" class="m-bg" data-action="load">Laatste spel laden</button>
         <button type="button" class="m-bg danger" data-action="new">Nieuw spel (nieuwe plek)</button>
         <button type="button" class="m-bt" data-action="cancel">Annuleren</button>
+      </div>
+      <div class="pm-confirm" data-coop-load-confirm hidden>
+        <p data-coop-load-text></p>
+        <div class="m-acts"><button type="button" class="m-bp" data-action="coop-load-go">Ja, sessie beëindigen en laden</button><button type="button" class="m-bt" data-action="coop-load-cancel">Annuleren</button></div>
       </div>`, `${pane('Spel', 'Je spel', '<p>Opslaan, laden, opnieuw beginnen en stoppen. Je spel wordt ook vanzelf bewaard.</p><p class="mut">Hoe het spel speelt staat bij de andere tabbladen; beeld en geluid onder Instellingen.</p>')}`)}
     ${tab('spelen', `
       <div class="m-gh"><span>Verkeer en geweld</span></div>
@@ -590,6 +598,7 @@ export function initPauseMenu(w) {
           <section data-panel="streken" class="pm-panel pm-col" hidden><div class="pm-inner pm-streken"></div></section>
           <section data-panel="spel" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-settings">${spelHtml()}</div></section>
           <section data-panel="settings" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-settings">${settingsHtml()}</div></section>
+          <section data-panel="over" class="pm-panel pm-col" hidden><div class="pm-inner pm-over"></div></section>
           <section data-panel="controls" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-cinner">
             ${subtabsHtml('controls', 'Besturing')}
             <label class="m-inp pm-csearch">${icon('search')}
@@ -776,6 +785,22 @@ function renderCheats(focusSel) {
   if (tab === 'streken') sheetNote(sub);
   const back = focusSel && panel.querySelector(focusSel);
   if (back) back.focus({ preventScroll: true });
+}
+
+// Over: version, the changelog and the credits. Opening it counts as "seen", so the news is
+// no longer marked as new on the next start.
+function renderOverPanel(el) {
+  if (!el) return;
+  newsOnStart();
+  el.innerHTML = `<div class="m-main"><div class="m-list pm-over">
+    <p class="mut">Versie ${esc(VERSION)} · NatusPella</p>
+    <div class="pm-over-news" aria-live="polite"><p class="mut">De lijst met wijzigingen laden…</p></div>
+    <div class="pm-over-about">${ABOUT_HTML}</div>
+  </div></div>`;
+  const box = el.querySelector('.pm-over-news');
+  loadChangelog().then((html) => {
+    if (box && box.isConnected) box.innerHTML = `<h3>Wat is er nieuw</h3>${html}`;
+  });
 }
 
 const ARROWS = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
@@ -1184,21 +1209,42 @@ function runAction(a) {
   if (a === 'resume') setOpen(false);
   else if (a === 'save') status(saveGame(world) ? `Opgeslagen om ${new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}` : 'Opslaan mislukt');
   else if (a === 'load') {
-    if (coopSessieLoopt(world)) { status(COOP_LADEN_TEKST); return; }
+    if (coopSessieLoopt(world)) {
+      // een lopende sessie eindigt eerst; dezelfde volgorde als in het savepaneel (#492)
+      const box = root.querySelector('[data-coop-load-confirm]');
+      if (!box) return;
+      box.querySelector('[data-coop-load-text]').textContent = coopLoadTekst(world, 'Het laatste opgeslagen spel');
+      box.hidden = false;
+      confirmEl.hidden = true;
+      box.querySelector('[data-action="coop-load-cancel"]').focus();
+      return;
+    }
     if (loadLatestSave(world)) setOpen(false);
     else status('Geen savegame gevonden');
+  } else if (a === 'coop-load-cancel') {
+    root.querySelector('[data-coop-load-confirm]').hidden = true;
+    confirmEl.hidden = false;
+    const b = confirmEl.querySelector('[data-action="load"]');
+    if (b) b.focus();
+  } else if (a === 'coop-load-go') {
+    root.querySelector('[data-coop-load-confirm]').hidden = true;
+    const res = runCoopLoad(world, currentSlot(), { stop: stopCoopNet, save: saveGame, load: loadSlot });
+    if (res.ok) setOpen(false);
+    else status(COOP_LOAD_FAIL[res.reason] || 'Laden mislukt.');
   } else if (a === 'saves') {
     if (world && world.pigeonMode) { status('Je bent een duif. Stop de duif-modus om savegames te gebruiken.'); return; }
     openSaveSlots({ mode: 'game', world, onLoad: () => setOpen(false), onClose: () => { syncSaveButtons(); const b = root.querySelector('[data-panel="spel"] [data-action="saves"]'); if (b) b.focus(); } });
   } else if (a === 'restart') {
+    root.querySelector('[data-coop-load-confirm]').hidden = true;
     confirmEl.hidden = false;
     syncSaveButtons();
     confirmEl.querySelector('button').focus();
   } else if (a === 'cancel') {
+    root.querySelector('[data-coop-load-confirm]').hidden = true;
     confirmEl.hidden = true;
     root.querySelector('[data-action="restart"]').focus();
   } else if (a === 'menu' || a === 'exit') {
-    // save, then back to the main menu (Alleen spelen) or close the app; a
+    // save, then restart the game (the boot flow loads that save again) or close the app; a
     // pigeon first turns back into Tammo/Tessa so the save has a street spot.
     // Alleen een lopend spel bewaart: het menu boven het hoofdscherm (prestart)
     // draait in de menuscène en mag de laatste savegame niet overschrijven (#435).
@@ -1562,6 +1608,7 @@ function syncRail() {
   const pigeon = !!(world && world.pigeonMode);
   for (const b of root.querySelectorAll('[data-panel="spel"] [data-action="save"], [data-panel="spel"] [data-action="saves"]')) b.disabled = pigeon;
   root.querySelector('[data-restart-confirm]').hidden = true;
+  root.querySelector('[data-coop-load-confirm]').hidden = true;
   root.querySelector('[data-game-status]').textContent = '';
   syncSaveButtons();
 }
@@ -1665,6 +1712,7 @@ function showTab(name, how) {
   if (name === 'spel') { showSubtab('spel', pref.sub.spel || subsOf('spel')[0][0]); syncControls(); syncSaveButtons(); afterSpelSub(); }
   if (name === 'spel') { const sp = root.querySelector('[data-of="samen"][data-subtab="spelers"]'); if (sp) sp.hidden = !(world && world.coopNet); }
   if (name === 'settings') { showSubtab('settings', pref.sub.settings || 'video'); syncControls(); syncDesktopControls(); }
+  if (name === 'over') renderOverPanel(root.querySelector('[data-panel="over"] .pm-inner'));
   if (prev !== name) { const p = activePanel(); if (p) p.scrollTop = 0; }
 }
 

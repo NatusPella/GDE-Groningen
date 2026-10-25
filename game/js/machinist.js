@@ -163,7 +163,7 @@ export function updateMachinist(dt, world, t, cab) {
       const pay = payFor(r, svc.abandoned);
       const betaald = loopbaanVerdien(world, 'trein', pay, { xp: pay > 0 ? Math.round(r.made * 4 + r.medal * 8) : 0, n: 0, uniek: pay > 0 ? 'machinist' : null }); // samen spelen (#365), loopbaan (#381)
       svc.pay = betaald;
-      if (betaald > 0) world.addMessage(`Dienst betaald: €${betaald}`, 3);
+      if (betaald > 0) world.addMessage(`Dienst betaald: €${betaald}${r.reizigers ? `, met ${r.reizigers} reizigers` : ''}`, 3);
     }
     board.hide();
     if (hud) {
@@ -176,8 +176,9 @@ export function updateMachinist(dt, world, t, cab) {
   board.set({
     row: `<b>${v.name}</b> &middot; remweg ${v.brakeM} m`,
     cells: v.cells,
+    extra: `<span>Reizigers <b>${v.reizigers}</b></span>${v.lastStop ? ` <span>${v.lastStop.name}: <b>${v.lastStop.alight}</b> uit, <b>${v.lastStop.board}</b> in</span>` : ''}`,
     meter: { v: Math.min(1, v.brakeFrac), color: v.brakeFrac > 0.9 ? '#d94a3a' : v.brakeFrac > 0.7 ? '#e0a030' : '#46a35e' },
-    flash: v.doors ? 'Deuren open' : v.tooFast ? 'Te hard: rem af' : v.flash,
+    flash: v.doors ? `Deuren open${v.lastStop ? `: ${v.lastStop.alight} uit, ${v.lastStop.board} in` : ''}` : v.tooFast ? 'Te hard: rem af' : v.flash,
     bad: v.tooFast || v.bad,
     help: HELP_METER,
   });

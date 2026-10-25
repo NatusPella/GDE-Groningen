@@ -14,7 +14,9 @@ const w = (name, body) => { const f = path.join(out, name); fs.writeFileSync(f, 
 
 // 1. herladen (de opdracht zelf mag falen door het navigeren)
 const add = (args.find((x) => x.startsWith('--url-add=')) || '').slice(10);
-const reload = add ? `location.href = location.href + ${JSON.stringify('&' + add)}` : 'location.reload()';
+// ?menu=1: de gewone boot slaat het hoofdmenu over; deze REPL heeft het menu nodig om __menuStart te kunnen gebruiken
+const extra = ['menu=1', add].filter(Boolean).join('&');
+const reload = `location.href = location.href.split('#')[0] + (location.search ? '&' : '?') + ${JSON.stringify(extra)}`;
 const r0 = send(w('_boot0.js', `(window.__clipState ? window.__clipState.rt.setTimeout : setTimeout)(() => { ${reload}; }, 50); return "herladen";`), 20);
 console.log(r0.stdout.trim() || r0.stderr.trim());
 // 2. wachten tot het spel er weer is

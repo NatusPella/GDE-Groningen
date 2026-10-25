@@ -82,7 +82,9 @@ Modules: `machines.js` (pure regels voor kopen, huren, diesel, slijtage, onderho
 
 Eggen als aparte stap, uien en koolzaad, balenpers, de bijbaan op een gekozen ander perceel dan Hoogkerk (de vrije klussen werken wel op elk perceel), de rest van samen spelen (stap 3: de gast ziet je kasboek of erf niet en heeft zelf geen toets voor tanken), een kleine veestapel of weide (koeien, schapen en paarden bestaan als
 wereldleven), controllerknoppen voor koppelen, aftakas en hef, en een eigen interieur voor maaidorser en laadmachine (zitplek en cabine: de besturing en interieurs zijn van de voertuigagent). De
-tabellen in `boerderij.js` (`GEWASSEN`, `MACHINES`, `TAKEN`) en `BAND` zijn de plekken waar je ze toevoegt.
+tabellen in `boerderij.js` (`GEWASSEN`, `MACHINES`, `TAKEN`) en `BAND` zijn de plekken waar je ze toevoegt. Een
+nieuw gewas krijgt ook een regel in `PRIJS_KG` (`gewasmarkt.js`): daar staan de basisprijzen van de dagmarkt, en zonder die regel
+heeft het geen prijs.
 
 ## Gemeten in Electron (stap 2)
 
