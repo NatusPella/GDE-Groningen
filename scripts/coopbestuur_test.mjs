@@ -23,7 +23,7 @@ const haken = () => ({
   vind: (x, y, lijst) => lijst.filter((v) => Math.hypot(v.x - x, v.y - y) < 4).sort((a, b) => Math.hypot(a.x - x, a.y - y) - Math.hypot(b.x - x, b.y - y))[0] || null,
   vindProp: null, rijProp: null,
   misdaad: (w, slot, kind) => reportCrime(w, kind, { dader: slot }),
-  enter(l, v) { if (v.driver) return; v.driver = 'player'; l.inVehicle = v; ingevoerd.push(v.id); },
+  enter(l, v) { if (v.driver) return; v.driver = 'player'; v.parked = false; l.inVehicle = v; ingevoerd.push(v.id); },
   exit(l, map, w) { const v = l.inVehicle; v.driver = null; l.inVehicle = null; l.x = v.x + 3; l.y = v.y; },
   drive(l, dt, inv) { const [ax, ay] = inv.axis(); const v = l.inVehicle; v.speed = -ay * 10; v.angle += ax * dt; v.handbrake = inv.isDown(' '); if (!v.handbrake) v.x += v.speed * dt; l.x = v.x; l.y = v.y; l.angle = v.angle; bestuurd.push([ax, ay, v.handbrake]); },
   los: () => ({ ok: true, wacht: false }),
@@ -65,6 +65,20 @@ t('gast (plek 1) stapt in als bestuurder, de host ziet hem, en het voertuig krij
   w.coop.remoteInput = { mx: 0, my: 0, buttons: 2, yaw: 0 }; const x0 = v.x;
   B.bestuurTick(w, 0.1);
   assert.equal(v.handbrake, true); assert.equal(v.x, x0, 'handrem: bit 1 van de knoppen');
+});
+
+t('een gast stapt in bij een geparkeerde auto aan de stoep; de gastheer ziet dat hij meegaat (#434)', () => {
+  B.zetBestuurHaken(haken()); meldingen.length = 0;
+  const w = mkWorld(); w.coopRoster = [{ slot: 1, naam: 'Nikky', char: 'anita' }];
+  const v = auto(11, 40, 40, { parked: true, parkSlot: { x: 40, y: 40 } }); w.vehicles = [v]; // ver van de gastheer: hij heeft er zelf niets aan
+  w.companion.x = 40.6; w.companion.y = 42;
+  assert.equal(B.bestuurGebruik(w, 1).gedaan, true);
+  assert.equal(v.driver, 'player'); assert.equal(v.coopBestuurder, 1); assert.equal(v.parked, false, 'de auto is van de stoep gehaald');
+  assert.ok(w.messages.some((m) => /Nikky stapt in een geparkeerde auto/.test(m)), 'de gastheer wordt niet verrast: ' + w.messages.join(' | '));
+  assert.ok(meldingen.some(([s, m]) => s === 1 && /Je rijdt/.test(m)), 'de gast hoort dat hij rijdt');
+  const w2 = mkWorld(); w2.vehicles = [auto(12, 40, 40)]; w2.companion.x = 40.6; w2.companion.y = 42;
+  B.bestuurGebruik(w2, 1);
+  assert.equal(w2.messages.length, 0, 'een gewone auto: geen melding aan de gastheer');
 });
 
 t('geen dubbele bestuurders: een tweede gast en dezelfde gast nog eens', () => {

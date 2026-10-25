@@ -10,7 +10,7 @@ import { vehicleHooks } from './vehiclehooks.js';
 import { splatterPed, bleedPed, GIB_SPEED } from './gore3d.js';
 import { railHeightFn } from './railprofile.js';
 import { onPerron } from './perrons.js';
-import { duwVanWagen } from './treincoop.js';
+import { duwVanWagen, volgTrein, TREIN_SPRONG_M } from './treincoop.js';
 import { MAP_PALETTE, INK } from './mapstyle.js';
 
 const HALF_WIDTH = 1.45;
@@ -140,16 +140,33 @@ function projectOnRoute(route, x, y) {
 
 // Samen spelen (#428): een gast speelt geen eigen dienstregeling, de host stuurt waar een trein staat (het midden van de trein
 // en zijn snelheid met teken). Zet de dienstregeltrein van die route daar neer; de wagons volgen uit de route.
+// De gast zet de wagens niet meteen op die plek (#434): het doel komt van de host, zijn eigen booglengte (t.gastC) loopt
+// tussen twee snapshots door met de laatste snelheid mee en schuift zacht bij (stapTreinenGast, treincoop.js volgTrein).
 export function zetTreinVanHost(routeIdx, x, y, v) {
   const route = routes[routeIdx];
   if (!route) return null;
   const t = trains.find((q) => q.route === route && q.state !== 'mission' && q.state !== 'player');
   if (!t) return null;
-  t.c = projectOnRoute(route, x, y).s;
-  t.v = Math.abs(v);
-  if (Math.abs(v) > 0.05) t.dir = v > 0 ? 1 : -1;
-  placeCars(t);
+  const s = projectOnRoute(route, x, y).s;
+  t.gastDoel = s;
+  t.gastV = Number.isFinite(v) ? v : 0; // met teken: de booglengte loopt mee met de rijrichting
+  t.v = Math.abs(t.gastV);
+  if (Math.abs(t.gastV) > 0.05) t.dir = t.gastV > 0 ? 1 : -1;
+  // de eerste snapshot en een sprong (de host zette de trein ergens anders neer): meteen goed staan; anders stapTreinenGast
+  if (!Number.isFinite(t.gastC) || Math.abs(s - t.gastC) > TREIN_SPRONG_M) { t.gastC = s; t.c = s; placeCars(t); }
   return t;
+}
+// Elke frame bij de gast (gastOverwegen): de trein rijdt door met de laatste snelheid van de host en haalt een late
+// snapshot zacht in, in plaats van stil te staan en dan te springen (#434).
+export function stapTreinenGast(dt) {
+  for (const t of trains) {
+    if (t.gastWeg !== false || !Number.isFinite(t.gastDoel)) continue;
+    const c = volgTrein(Number.isFinite(t.gastC) ? t.gastC : t.gastDoel, t.gastDoel, t.gastV, dt, t.route.len);
+    if (c === t.c) continue;
+    t.gastC = c;
+    t.c = c;
+    placeCars(t);
+  }
 }
 // Alle treinen van de host in één keer: lijst = [{ route, x, y, v }]. De gast speelt de rest van de dienstregeling niet: een trein die de host
 // niet noemt, staat bij de gast niet getekend (gastWeg) en laat de overwegen met rust, in plaats van stil te staan op een verzonnen plek.
@@ -161,6 +178,7 @@ export function zetTreinenVanHost(lijst) {
 // De overwegen van een gast: de slagbomen, het knipperlicht en de bel volgen de treinen die de host stuurt (elke frame; updateRailway draait niet bij een gast).
 // Daarna de trein zelf: die is ook solide (gastTreinContact).
 export function gastOverwegen(dt, world) {
+  stapTreinenGast(dt);
   for (const c of crossings) c.threat = false;
   for (const t of trains) {
     if (t.gastWeg) continue;
