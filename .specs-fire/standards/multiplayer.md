@@ -70,7 +70,13 @@ verhaal en bezit; elke nieuwe functie krijgt een regel over Samen spelen.
 **Wel:** lopen (eigen focus boven 150 m, B haalt je bij de groep), winkelen, eten,
 bijrijden (E), stuur doorgeven (Y), een vrij voertuig besturen (niet bus, trein,
 heli of vliegtuig), hengelen, boeren, wapen uit eigen save, taxi/bezorgen/krant
-samen, wedstrijd of opdracht aanvragen met E, passief/PvP, roepen.
+samen, vracht als bijrijder (E helpt laden en lossen), wedstrijd of opdracht
+aanvragen met E, passief/PvP, roepen.
+
+De snapshot stuurt per speler echte gezondheid en een `down`-vlag (ragdoll) naast
+`alive` (dood of gepakt). Tab-lijst, marker en figuur lezen die, zodat een
+neergeslagen gastheer of Tessa overal zichtbaar is (#369); `down` laat een opdracht
+niet falen.
 
 **Niet:** voertuigen, wapens of tuning voor de wereld kopen, gesprekken met
 personages, spuiten en gooien, minigames die een lichaam of voertuig in de wereld

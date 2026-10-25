@@ -29,6 +29,21 @@ t('snapshot rondreis', () => {
   assert.deepEqual(d.mission, { stage: 4, state: 'run', present: 3 });
   assert.equal(d.entities[0].id, 9); near(d.entities[0].z, -20.25, 0.01);
 });
+t('neergeslagen en gezondheid: health en down over en weer; een oude zender geeft down false (#369)', () => {
+  const snap = { ...SNAP, players: [
+    { ...SNAP.players[0], down: true, health: 40, crouch: true },
+    { ...SNAP.players[1], down: false, health: 40 },
+  ] };
+  const d = K.decodeSnapshot(K.encodeSnapshot(1, 2, 3, snap));
+  assert.deepEqual(d.players.map((p) => [p.health, p.down]), [[40, true], [40, false]], 'gezondheid 40 en de neer-vlag per speler');
+  assert.equal(d.players[0].crouch, true, 'bit 32 staat naast de bestaande vlaggen');
+  const oud = K.decodeSnapshot(K.encodeSnapshot(1, 2, 3, { ...SNAP, players: [{ slot: 0, x: 10, y: 20, z: 0, angle: 0, alive: true, health: 100 }] }));
+  assert.deepEqual([oud.players[0].health, oud.players[0].down], [100, false], 'een oude zender (zonder down) blijft werken');
+  const b = K.encodeSnapshot(1, 2, 3, snap);
+  const zonder = K.encodeSnapshot(1, 2, 3, { ...snap, players: snap.players.map((p) => ({ ...p, down: false })) });
+  assert.equal(b.length, zonder.length, 'de vlag past in de bestaande byte: geen langer bericht en geen versiebump');
+  assert.equal(K.CODEC_VERSION, 2);
+});
 t('snapshot is compact (twee spelers, één entiteit)', () => {
   assert.ok(K.encodeSnapshot(0, 0, 0, SNAP).length < 120);
 });

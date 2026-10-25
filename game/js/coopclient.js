@@ -64,6 +64,12 @@ export function applyHostState(world, me, sample, roster = null, dt = 0) {
     b.x = p.x; b.y = p.y; b.angle = p.angle;
     if (b !== world.player) b.coopVoertuig = !!p.inVeh; // wie in een voertuig zit, tekenen we niet los: coopzitten3d.js zet hem op zijn stoel in het voertuig (#372, #434)
     b.z = !p.inVeh && Number.isFinite(p.z) ? p.z : 0; b.crouching = !!p.crouch && !p.inVeh; // springen en bukken (#434)
+    if (b !== world.player) { // wat de gastheer van JOUW lichaam weet is niet leidend voor je eigen scherm; een ander lichaam wel (#369)
+      if (Number.isFinite(p.health)) b.health = Math.max(0, Math.min(255, Math.round(p.health)));
+      const neer = !!p.down;
+      if (neer && !b.coopDown) b.coopVal = world.time || 0; // net neer: vanaf hier achterover vallen en blijven liggen (zoals coopextra3d.js bij een voetganger)
+      b.coopDown = neer;
+    }
     if (!p.inVeh && p.vehicle == null) { // wapen en aanval van de gastheer, voor de aanvalshoudingen van het model
       b.coopWapen = wapenNaam(p.weapon | 0);
       const a = leesAanval(p.attack);
