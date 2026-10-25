@@ -38,7 +38,12 @@ Lokaal: Windows-exe en wereld (`--world`). In Actions, na de release met `node s
 **Agents:** werk in een eigen worktree en branch, in kleine commits. Test alleen wat bij je eigen wijziging hoort (`node --check` plus de paar tests die die code dekken); de volledige suite, `province_test`, de zware audits en de Electron-verhaaltest draait de coördinator bij het maken van een release, niet de agent. Geen push, merge, tag of release door agents; dat doet de coördinator na de tests.
 Alleen één Electron-instantie tegelijk en geen nieuwe agents tijdens een releasebouw. Houd de schijf vrij.
 
-**Specs en uitvoering:** groter werk plan je met specsmd FIRE (`/specsmd-fire-planner`) en voer je uit met UltraCode; de rolverdeling staat in [docs/SPECS-FIRE.md](docs/SPECS-FIRE.md).
+**Context per sessie:** een nieuwe sessie leest alleen `AGENTS.md` en wat hij zelf opzoekt; een vorig gesprek bestaat niet meer. Daarom doet de agent dit zelf, zonder dat de eigenaar erom vraagt:
+- **Begin:** leid het issuenummer af uit de branchnaam of worktreenaam (`w61-454` → #454), anders uit de laatste commits (`#n`). Is er een issue, haal het op en open met maximaal 5 regels: doel, stand, volgende stap, waarschijnlijke bestanden. Geen nummer en geen issue? Begin gewoon; vraag alleen bij echte twijfel om één nummer.
+- **Lees gericht:** `ARCHITECTURE.md` nooit in zijn geheel (30k woorden, ca. 45k tokens); zoek de sectie met `grep`.
+- **Eind:** schrijf de stand als comment op het issue (gedaan, open, gestopt, nog niet bekeken), ook als niemand daarom vraagt. Dan begint de volgende sessie bij het issue en niet bij een gesprek.
+
+**Specs en uitvoering:** groter werk plan je met specsmd FIRE (`/specsmd-fire-planner`) en voer je uit met UltraCode. De rolverdeling in [docs/SPECS-FIRE.md](docs/SPECS-FIRE.md) is **verplicht voor iedere agent, ook voor subagents**: lees dat bestand vóór je groter werk plant, opknipt of uitvoert, en volg de loop, de mode-mapping en de harde regels. Er is één uitvoeringspad: nooit FIRE's `builder`-skill naast UltraCode. Wijkt deze AGENTS.md af, dan wint AGENTS.md.
 
 ## Testen
 
