@@ -196,6 +196,30 @@ check('bus staat stil: deuren open', D.stilstandDeurOpen(car('bus', { isBus: tru
   D.openDriverDoor(m); D.stepDoors(m.doors, dt * 30, { speed: 8 });
   check('een rijdende auto slaat de deur dicht', !(m.doors.open.vl > 0.5));
 }
+// de instap- en uitstapanimatie is uit te zetten in Instellingen (#459)
+check('animatie staat standaard aan', D.stapAnimatieAan(null) && D.stapAnimatieAan({}) && D.stapAnimatieAan({ stapAnimatie: true }));
+check('animatie uit: meteen op de stoel', D.stapAnimatieAan({ stapAnimatie: false }) === false);
+
+// een passagier uit een open deur trekken (#459)
+{
+  const c = car('sedan', { x: 0, y: 0, angle: 0, halfWid: 0.9 });
+  check('dichte deur: niemand eruit', D.openDeurVoorRol(c, 'bijrijder') === null && D.trekPunt(c, 0.645, 1.5) === null);
+  check('deur openzetten kan per rol', D.openDeurVoor(c, 'bijrijder') === 'vr' && c.doors.want.vr === 1);
+  for (let i = 0; i < 30; i++) D.stepDoors(c.doors, 1 / 60);
+  check('open deur: de bijrijdersdeur', D.openDeurVoorRol(c, 'bijrijder').id === 'vr' && D.openDeurVoorRol(c, 'bestuurder') === null);
+  const p = D.trekPunt(c, 0.645, 1.5);
+  check('bij de open deur: het trekpunt naast de auto', !!p && p.rol === 'bijrijder' && Math.abs(p.x - 0.645) < 0.01 && Math.abs(p.y - 1.32) < 0.01, JSON.stringify(p));
+  check('te ver van de deur: niet trekken', D.trekPunt(c, 0.645, 3.4) === null);
+  const rijdend = car('sedan', { speed: 3, doors: c.doors });
+  check('een rijdend voertuig geeft niemand vrij', D.trekPunt(rijdend, 0.645, 1.5, { rol: 'bijrijder' }) === null);
+  check('zonder logische deur: niet trekken', D.trekPunt(car('bike'), 0, 0) === null && D.openDeurVoorRol(car('bike'), 'bijrijder') === null);
+  const achter = car('sedan', { x: 0, y: 0, angle: 0, halfWid: 0.9 });
+  D.openDeurVoor(achter, 'achter');
+  for (let i = 0; i < 30; i++) D.stepDoors(achter.doors, 1 / 60);
+  const q = D.trekPunt(achter, -0.6, 1.5, { rol: 'achter' });
+  check('achterpassagier: de achterdeur rechts', !!q && q.deur.id === 'ar' && q.rol === 'achter', JSON.stringify(q));
+}
+
 // busdeuren sluiten aan op de opening in het busmodel (hoogte 3,0 m, opening 0,42..2,6 m, 1,25 m breed)
 for (const [naam, len, aantal] of [['bus', 11.2, 4], ['midibus', 8.4, 2]]) {
   const b = D.doorsFor({ model: { name: naam, len, wid: 2.5 }, isBus: true });

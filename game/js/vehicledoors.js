@@ -199,6 +199,40 @@ export function uitstapPunt(v, rol = 'bestuurder') {
   return { kant: d.side, langs: d.x * v.model.len, deur: d };
 }
 
+// --- iemand uit een open deur trekken (#459) ---------------------------------------
+// De deur van de passagier moet open staan en het voertuig staat stil; de trekker
+// staat naast die deur. Pure regel, player.js past hem toe (ejectPassenger in
+// pedestrians.js zorgt voor de reacties van carjackvictim.js).
+export const DEUR_OPEN_VANAF = 0.6;   // stand waarin een deur als open telt
+export const TREK_BEREIK = 1.6;       // m vanaf het instappunt van de deur
+export const TREK_SPEED = 0.5;        // m/s: een rijdend voertuig geeft niemand vrij
+
+// De deur van deze rol, als die open genoeg staat; anders null.
+export function openDeurVoorRol(v, rol = 'bijrijder') {
+  const defs = doorsFor(v);
+  const st = v && v.doors;
+  if (!defs.length || !st) return null;
+  const d = deurVoorRol(defs, rol, st, rol === 'bestuurder' ? -1 : 1);
+  return d && (st.open[d.id] || 0) >= DEUR_OPEN_VANAF ? d : null;
+}
+
+// Waar de passagier naast de open deur staat en welke deur dat is: { deur, rol, x, y }
+// in wereldmeters, of null als de deur dicht is, het voertuig rijdt of de trekker te
+// ver weg staat. rol: 'bijrijder' of 'achter'.
+export function trekPunt(v, x, y, { rol = 'bijrijder', bereik = TREK_BEREIK } = {}) {
+  if (!v || !v.model || v.wrecked || v.sinking || Math.abs(v.speed || 0) > TREK_SPEED) return null;
+  const d = openDeurVoorRol(v, rol);
+  if (!d || !d.side) return null;
+  const c = Math.cos(v.angle || 0), s = Math.sin(v.angle || 0);
+  const px = d.x * v.model.len, pz = d.side * (v.model.wid / 2 + DEUR_STAP);
+  const wx = (v.x || 0) + c * px - s * pz, wy = (v.y || 0) + s * px + c * pz;
+  return Math.hypot(x - wx, y - wy) <= bereik ? { deur: d, rol: d.seat || rol, x: wx, y: wy } : null;
+}
+
+// De instap- en uitstapanimatie is uit te zetten in Instellingen (Toegankelijkheid):
+// dan staat de speler meteen op zijn stoel, zonder deur- en stapbeweging (#459).
+export const stapAnimatieAan = (st) => !st || st.stapAnimatie !== false;
+
 export function makeDoorState() {
   return { open: {}, want: {}, loose: {}, hold: {}, dmg: {} };
 }
@@ -358,14 +392,16 @@ export function reconcileDoors(v, defs, wereld = { n: 0 }) {
 // Bedient de bestuurder de deuren zelf (v.busBediend, busbestuur.js, #444), dan gaan ze niet vanzelf open.
 export const stilstandDeurOpen = (v) => !!v && (v.isBus || v.isTram || v.isTrain) && Math.abs(v.speed || 0) < 0.3 && !v.wrecked && !v.busBediend;
 
-// De bestuurdersdeur zwaait open als de bestuurder uit zijn auto stapt of wordt getrokken
-// (#49, pedestrians.js ejectDriver). Geeft de deur-id, of null zonder logische deur.
-export function openDriverDoor(v, hold = 2.5) {
+// De deur van een rol zwaait open: de bestuurdersdeur als de bestuurder uit zijn auto
+// stapt of wordt getrokken (#49, pedestrians.js ejectDriver), de passagiersdeur als
+// een bijrijder of achterpassagier eruit komt (#459). Geeft de deur-id, of null.
+export function openDeurVoor(v, rol = 'bestuurder', hold = 2.5) {
   const defs = doorsFor(v);
   if (!defs.length) return null;
   const st = ensureDoors(v);
-  const d = deurVoorRol(defs, 'bestuurder', st, -1);
+  const d = deurVoorRol(defs, rol, st, rol === 'bestuurder' ? -1 : 1);
   if (!d) return null;
   wantDoor(st, d.id, true, hold);
   return d.id;
 }
+export const openDriverDoor = (v, hold = 2.5) => openDeurVoor(v, 'bestuurder', hold);
