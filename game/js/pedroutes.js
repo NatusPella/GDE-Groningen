@@ -5,6 +5,7 @@ import { findProps, isPropBroken } from './breakables.js';
 import { SpatialGrid } from './spatialgrid.js';
 import { walkPathHook } from './latehooks.js';
 import { markZebraUser, zebraSpeedLimit } from './trafficyield.js';
+import { poiLayerPlaces } from './facilities.js';
 export { zebraSpeedLimit };
 
 
@@ -41,7 +42,7 @@ function destPool(map) {
   pool = [];
   const meta = map.meta || {};
   for (const h of meta.horeca || []) pool.push({ x: h.x, y: h.y, kind: 'horeca' });
-  for (const p of (meta.pois && meta.pois.health) || []) pool.push({ x: p.x, y: p.y, kind: 'shop' });
+  for (const p of poiLayerPlaces(map, 'pois.health')) pool.push({ x: p.x, y: p.y, kind: 'shop' });
   for (const l of meta.landmarks || []) for (let k = 0; k < 4; k++) pool.push({ x: l.x, y: l.y, kind: 'landmark' });
   for (const s of map.stations || []) for (let k = 0; k < 6; k++) pool.push({ x: s.x, y: s.y, kind: 'station' });
   return pool;

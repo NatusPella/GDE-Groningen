@@ -181,20 +181,41 @@ export function initShopPlaces(map, raw) {
 // tiles that carry it (scripts/world/poilagen.mjs, index.pois.layers) and the places that stayed in the global layer
 // (poiRest), so a reader asks those tiles instead of the whole set. Are they not all in, or is there no tile index (a map
 // from stad.json alone: WORLD_SRC=json, a dev server without world), then map.meta stays the source. The list is the same.
-export function poiLayerPlaces(map, name) {
-  const meta = (map && map.meta) || {};
+//
+// `name` is a meta key ('shops', 'policeStations', 'hospital') or a list of a kind ('pois.health'). poiLayerPlaces gives
+// a list, poiLayerPlace one place (the hospital, the helipad: a single object in the meta).
+function metaAt(meta, name) {
+  let v = meta;
+  for (const k of name.split('.')) { if (!v || typeof v !== 'object') return undefined; v = v[k]; }
+  return v;
+}
+
+// what the tiles of the layer give: the list, the single place, null when a place of it is missing, undefined when there
+// is no layer to ask (no tile index, or a tile of it not in yet)
+function layerValue(map, name) {
   const slim = map && map.poiMeta;
   const layer = map && map.tileIndex && map.tileIndex.pois && map.tileIndex.pois.layers && map.tileIndex.pois.layers[name];
   const store = map && map.store;
-  if (slim && layer && store && layer.tiles.every((k) => store.ready(k))) {
-    const rows = layer.tiles.map((k) => {
-      const tile = store.tile(k);
-      return tile ? tile.sections.filter((s) => s.type === SECTION.POIS).flatMap((s) => s.rows) : [];
-    });
-    const list = layerRows(slim, name, rows);
-    if (list !== null) return list;
-  }
-  return meta[name] || [];
+  if (!slim || !layer || !store || !layer.tiles.every((k) => store.ready(k))) return undefined;
+  const rows = layer.tiles.map((k) => {
+    const tile = store.tile(k);
+    return tile ? tile.sections.filter((s) => s.type === SECTION.POIS).flatMap((s) => s.rows) : [];
+  });
+  return layerRows(slim, name, rows);
+}
+
+export function poiLayerPlaces(map, name) {
+  const value = layerValue(map, name);
+  if (Array.isArray(value)) return value;
+  const list = metaAt((map && map.meta) || {}, name);
+  return Array.isArray(list) ? list : [];
+}
+
+export function poiLayerPlace(map, name) {
+  const value = layerValue(map, name);
+  if (value && !Array.isArray(value)) return value;
+  const one = metaAt((map && map.meta) || {}, name);
+  return one && !Array.isArray(one) ? one : null;
 }
 
 export function facilitiesOf(kind) {

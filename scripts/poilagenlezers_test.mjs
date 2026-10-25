@@ -93,4 +93,39 @@ let uitDeLaag = 0;
   assert.equal(getGaragesForRender().length, 2, 'garages zonder index: geen terugval op map.meta.garages');
 }
 
+// De laatste lezers (#314, C1): een losse plaats (het ziekenhuis, de helikopterplek) en een lijst van een soort
+// ('pois.health') komen net zo goed uit de tegels van hun laag; zonder index of met een tegel die niet in is, uit map.meta.
+{
+  const { poiLayerPlace, poiLayerPlaces } = await import('../game/js/facilities.js');
+  const extra = {
+    ...places,
+    hospital: { name: 'UMCG', x: 10, y: 20 },
+    helipad: { x: 10, y: 20, r: 12, angle: 0 },
+    policeStations: [{ name: 'Bureau Testwijk', x: 0, y: 8 }],
+    careSites: [{ name: 'Zorgpost Testwijk', x: 100, y: 8 }],
+    trafficLights: [{ x: 4, y: 4 }],
+    pois: { health: [{ x: 12, y: 8, kind: 'health', name: 'Huisarts Testwijk' }], money: [] },
+  };
+  const s2 = splitMeta(extra, tileKeyOf);
+  const l2 = poiLayers(s2);
+  const dec2 = new Map();
+  for (const [k, rows] of s2.rows) { const [i, j] = G.tileFromKey(k); dec2.set(k, G.decodeBlob(G.encodeBlob({ i, j, sections: [{ type: G.SECTION.POIS, rows }] }))); }
+  const world2 = { meta: extra, poiMeta: s2.meta, tileIndex: { pois: l2 }, store: { ready: () => true, tile: (k) => dec2.get(k) } };
+  const onlyMeta = { meta: { ...extra, hospital: undefined } };
+  assert.deepEqual(poiLayerPlace(world2, 'hospital'), extra.hospital, 'hospital: niet de losse plaats van de laag');
+  assert.deepEqual(poiLayerPlace(world2, 'helipad'), extra.helipad, 'helipad: niet de losse plaats van de laag');
+  assert.deepEqual(poiLayerPlaces(world2, 'policeStations'), extra.policeStations, 'politiebureaus: niet uit de laag');
+  assert.deepEqual(poiLayerPlaces(world2, 'careSites'), extra.careSites, 'zorglocaties: niet uit de laag');
+  assert.deepEqual(poiLayerPlaces(world2, 'trafficLights'), extra.trafficLights, 'verkeerslichten: niet uit de laag');
+  assert.deepEqual(poiLayerPlaces(world2, 'pois.health'), extra.pois.health, 'pois.health: niet uit de laag');
+  assert.deepEqual(poiLayerPlaces(world2, 'pois.money'), [], 'pois.money is leeg, ook uit de tegels');
+  // zonder tegelindex (WORLD_SRC=json): de lijsten van map.meta, ook de losse plaatsen en de soorten
+  assert.deepEqual(poiLayerPlaces(onlyMeta, 'pois.health'), extra.pois.health, 'zonder index: map.meta.pois.health');
+  assert.deepEqual(poiLayerPlaces(onlyMeta, 'trafficLights'), extra.trafficLights, 'zonder index: map.meta.trafficLights');
+  assert.ok(poiLayerPlace(onlyMeta, 'hospital') === null && poiLayerPlace(onlyMeta, 'helipad').r === 12, 'zonder index: de losse plaatsen uit map.meta');
+  // een tegel van de laag niet in: de hele lijst uit map.meta, nooit half
+  const missing = { ...world2, store: { ready: (k) => k !== l2.layers.policeStations.tiles[0], tile: (k) => dec2.get(k) } };
+  assert.deepEqual(poiLayerPlaces(missing, 'policeStations'), extra.policeStations, 'een tegel niet in: map.meta, geen halve lijst');
+}
+
 console.log(`poilagenlezers_test: ok (${places.horeca.length} cafés en ${uitDeLaag} garages en pompen uit de laag)`);
