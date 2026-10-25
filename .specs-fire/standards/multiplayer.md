@@ -84,6 +84,11 @@ zetten, heli besturen, een filmpje voor iedereen overslaan (wel de eigen weergav
 snelreizen via de kaart (het safehouse-anker wel), de tijd verzetten, cheats of
 testmenu, en de hostrol.
 
+De figuren van plek 2 en 3 gebruiken dezelfde botsing, water- en terrainregel als
+Tessa; een nieuwe of uitgestapte figuur komt op een droge vrije plek of in de boot.
+Binnen de groep van de gastheer geldt de 110 m-band, met een eigen focus loopt een
+figuur vrij (#366).
+
 ## Bestanden
 
 Net: `net/hub|session|brokers|codec|protocol|interp.js`, `coopnet.js`,
