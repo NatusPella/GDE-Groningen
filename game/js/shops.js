@@ -534,12 +534,22 @@ export function spawnStockVehicle(world, key, x, y, angle) {
 }
 
 // Samen spelen (#449): een eigen voertuig van een gast in de wereld van de host.
-// Een kopie met dezelfde kleur, onderdelen en schade. Hij staat niet in de
-// collectie van de host en komt dus niet in zijn save; de host ruimt hem op als de
-// gast weggaat (coopbezit.js).
+// Een kopie met dezelfde kleur, onderdelen en schade. Dat geldt ook voor zijn
+// boot (die op het water van de host komt te liggen) en zijn heli. Hij staat niet
+// in de collectie van de host en komt dus niet in zijn save; de host ruimt hem op
+// als de gast weggaat (coopbezit.js).
 export function spawnSharedVehicle(world, { spec, color, upgrades, health, dents, flat }, x, y, angle) {
   if (!spec) return null;
-  return spawnOwned(world, { key: null, spec, color: color || spec.color, upgrades: upgrades || [], health, dents, flat }, x, y, angle ?? 0);
+  const v = spawnOwned(world, { key: null, spec, color: color || spec.color, upgrades: upgrades || [], health, dents, flat }, x, y, angle ?? 0);
+  // spawnOwnedBoat bouwt de boot kaal op: de onderdelen en schade van de gast
+  // gaan mee, zodat de anderen hetzelfde varen als hij thuis heeft (#428)
+  if (v && spec.kind === 'boat') {
+    if (upgrades && upgrades.length) { v.upgrades = [...upgrades]; applyUpgrades(v); }
+    if (Number.isFinite(health)) v.health = Math.max(5, Math.min(100, health));
+    if (Array.isArray(dents) && dents.length) v.dentLog = dents.slice(0, 12);
+    if (flat === true) v.flat = true;
+  }
+  return v;
 }
 
 export function replacementFee(o) {
