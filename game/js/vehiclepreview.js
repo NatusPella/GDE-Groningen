@@ -226,21 +226,28 @@ export function createVehiclePreview(canvas, { interactive = false, active = () 
 
 let gl = null;
 let glFailed = false;
+let glRetryAt = 0;
+// een mislukte context is niet voorgoed (#435: voorbeelden 'weg'): na een korte pauze proberen we het opnieuw, zodat
+// een tijdelijke fout (te veel contexten, een herstart van de GPU) de voorbeelden niet de rest van de sessie weglaat
+const GL_RETRY_MS = 2000;
 
 function sharedGl() {
-  if (gl || glFailed) return gl;
+  if (gl) return gl;
+  if (glFailed && performance.now() < glRetryAt) return null;
   try {
     const canvas = document.createElement('canvas');
     watchContext(canvas, 'voorbeelden');
-    // verloren context (#435: voorbeelden 'weg'): de gedeelde renderer valt weg en wordt bij de volgende vraag opnieuw gemaakt;
+    // verloren context (#435): de gedeelde renderer valt weg en wordt bij de volgende vraag opnieuw gemaakt;
     // plaatjes die leeg of zwart uitvielen worden dan ook opnieuw getekend
     canvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); if (gl && gl.canvas === canvas) { gl = null; forgetBlankShots(); } });
     const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.setClearColor(0x000000, 0);
     gl = { renderer, canvas, ...setupScene() };
+    glFailed = false;
   } catch (err) {
     glFailed = true;
+    glRetryAt = performance.now() + GL_RETRY_MS;
   }
   return gl;
 }
@@ -263,9 +270,10 @@ function renderShared(mesh, spec, fit, w, h, zoom) {
 // Same API as createVehiclePreview, drawn through the shared renderer onto
 // `canvas` (a plain 2D canvas). dispose() frees only the model.
 // speed: radians per second of the turn; fps: a cap on the frames drawn (the
-// garage cards turn at 30).
-export function createSharedPreview(canvas, { interactive = false, active = () => true, pixelRatio = () => Math.min(1.5, devicePixelRatio), angle = 0.6, speed = 0.75, fps = 0, zoom = 1 } = {}) {
-  const p = { mesh: null, body: null, fit: null, key: '', raf: 0, angle, zoom, drag: null, idleAt: 0, spec: null, dead: false, last: 0, drawn: 0, ctx: canvas.getContext('2d') };
+// garage cards turn at 30). onFirstFrame: called once, when the first frame of
+// a shown model has been drawn (the garage hides its fallback picture then).
+export function createSharedPreview(canvas, { interactive = false, active = () => true, pixelRatio = () => Math.min(1.5, devicePixelRatio), angle = 0.6, speed = 0.75, fps = 0, zoom = 1, onFirstFrame = null } = {}) {
+  const p = { mesh: null, body: null, fit: null, key: '', raf: 0, angle, zoom, drag: null, idleAt: 0, spec: null, dead: false, last: 0, drawn: 0, onFirstFrame, ctx: canvas.getContext('2d') };
   const minGap = fps ? 1000 / fps - 3 : 0;
 
   function tick() {
@@ -284,14 +292,18 @@ export function createSharedPreview(canvas, { interactive = false, active = () =
     if (p.spec.kind === 'person') animatePersonWalk(p.body, 0, dt);
     const src = renderShared(p.mesh, p.spec, p.fit, w, h, p.zoom);
     p.ctx.clearRect(0, 0, w, h);
-    if (src) p.ctx.drawImage(src, 0, 0);
+    if (src) {
+      p.ctx.drawImage(src, 0, 0);
+      if (p.onFirstFrame) { const cb = p.onFirstFrame; p.onFirstFrame = null; cb(); }
+    }
     p.raf = requestAnimationFrame(tick);
   }
 
   function show(spec) {
     const key = spec ? JSON.stringify(spec) : '';
-    if (key === p.key && (p.raf || !spec)) return;
+    if (key === p.key && (p.raf || !spec)) { if (spec) p.onFirstFrame = onFirstFrame; return; }
     p.key = key;
+    p.onFirstFrame = onFirstFrame;
     if (p.mesh) { disposeMesh(p.mesh); p.mesh = null; }
     p.spec = spec;
     if (!spec || !sharedGl()) {
@@ -338,6 +350,7 @@ let pumping = false;
 const SHOT_BUDGET_MS = 6;
 
 function shoot(spec, w, h, angle, zoom = 1) {
+  if (!sharedGl()) return '';
   const o = buildObject(spec, true);
   if (!o) return '';
   o.mesh.rotation.y = angle;
@@ -395,8 +408,9 @@ function pump(deadline) {
     const job = queue.shift();
     if (!shots.has(job.key)) {
       const url = shoot(job.spec, job.w, job.h, job.angle, job.zoom);
-      if (url || glFailed) shots.set(job.key, url);
-      if (job.keep) keepShot(job.key, shots.get(job.key));
+      // een leeg plaatje nooit bewaren: de volgende vraag tekent het opnieuw (na een herstelde context)
+      if (url) shots.set(job.key, url);
+      if (job.keep && url) keepShot(job.key, url);
     }
     for (const cb of job.cbs) cb(shots.has(job.key) ? shots.get(job.key) : '');
     n++;

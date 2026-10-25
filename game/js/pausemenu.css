@@ -246,8 +246,11 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 
 /* Garage */
 #pause-menu .gar-stage { position: relative; flex: none; height: 220px; background: radial-gradient(ellipse at 50% 80%, rgba(240, 237, 228, 0.07), rgba(240, 237, 228, 0) 60%); }
-#pause-menu .gar-stage canvas { width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; }
+#pause-menu .gar-stage canvas { position: relative; z-index: 1; width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; }
 #pause-menu .gar-stage canvas:active { cursor: grabbing; }
+/* achter de live preview: het silhouet en een stilstaand beeld uit dezelfde renderer (#435) */
+#pause-menu .gar-stage > svg { position: absolute; inset: 0; margin: auto; width: 168px; height: 168px; opacity: 0.85; pointer-events: none; }
+#pause-menu .gar-stage .gar-still { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
 #pause-menu .gar-stage .gar-hint { position: absolute; left: 0; bottom: 0; font-size: 18px; color: var(--mut); pointer-events: none; }
 #pause-menu .gar-dot { display: inline-block; width: 16px; height: 16px; margin-right: 8px; border-radius: 50%; box-shadow: 0 0 0 1px rgba(240, 237, 228, 0.5); vertical-align: -2px; }
 #pause-menu .gar-msg { font-size: 18px; }
