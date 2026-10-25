@@ -2,6 +2,8 @@
 
 `node scripts/test_all.mjs` draait de tests in fasen en schrijft een rapport met een korte Nederlandse samenvatting bovenaan. Het hoort bij #186 (spelbot), #5 en #4. De werkafspraken staan in [AGENTS.md](../AGENTS.md) (sectie Testen); dit document beschrijft het commando.
 
+Er is één andere runner: `node scripts/run_tests.mjs` is de snelle selectie die CI draait (`.github/workflows/test.yml`). Hij deelt zijn lijsten met `test_all` en draait sinds #482 ook `undef_check` en `text_audit`; de zware en Electron-fase zitten er bewust niet in (zie `.specs-fire/standards/adr/0013-een-testrunner-met-fasen.md`).
+
 ```
 node scripts/test_all.mjs [--fase=licht|zwaar|electron|alles] [--rapport=<map>]
                           [--only=<tekst>] [--jobs=2] [--test-timeout=120]

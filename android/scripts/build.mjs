@@ -15,6 +15,9 @@ if (!jdk) throw new Error('Geen JDK 21 gevonden: zet JAVA_HOME (docs/ANDROID.md)
 
 if (!args.includes('--no-stage')) {
   execFileSync(process.execPath, [path.join(ANDROID, 'scripts', 'stage.mjs'), ...args.filter((a) => a === '--rebuild')], { stdio: 'inherit', env });
+} else {
+  // zonder stage moet de versie alsnog kloppen (#483)
+  execFileSync(process.execPath, [path.join(ANDROID, 'scripts', 'version.mjs')], { stdio: 'inherit' });
 }
 // local.properties staat in .gitignore (pad naar de SDK, per machine)
 fs.writeFileSync(path.join(PROJECT, 'local.properties'), 'sdk.dir=' + sdk.split('\\').join('/') + '\n');

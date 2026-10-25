@@ -216,7 +216,7 @@ if (!app.requestSingleInstanceLock()) {
       applicationName: APP_NAME,
       applicationVersion: app.getVersion(),
       version: '',
-      copyright: '© 2026 NatusPella · Made with love in Groningen, with AI',
+      copyright: '© 2026 NatusPella · Met liefde in Grunn gemaakt, met AI',
       credits: 'Zomer vol misdaad · GDE = Grootste Diefstal Ever',
     });
     if (process.platform === 'darwin' && !app.isPackaged && app.dock) app.dock.setIcon(path.join(__dirname, 'resources', 'icon.png'));
