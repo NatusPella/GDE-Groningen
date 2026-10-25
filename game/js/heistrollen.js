@@ -1,3 +1,4 @@
+import { hoofdspeler } from './spelersregister.js';
 // Een heist samen (#438): iedereen een eigen rol, of tegen elkaar om de buit.
 // Puur: geen three.js, geen wereld, geen netwerk. De verhaalheist (heist.js) laat de
 // rollen op de bouwtekening zien; de coöp-opdracht Kluisklus (coopactivities.js) gebruikt
@@ -142,7 +143,7 @@ export function lichaamVan(world, slot) {
   const reg = world && Array.isArray(world.players) ? world.players : null;
   if (reg) { const r = reg.find((x) => x && x.slot === slot); if (r && r.entiteit) return r.entiteit; }
   if (!world) return null;
-  if (slot === 0) return world.player || null;
+  if (slot === 0) return hoofdspeler(world) || null;
   if (slot === 1) return world.companion || null;
   return null;
 }
