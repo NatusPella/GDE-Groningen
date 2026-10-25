@@ -854,7 +854,7 @@ export class Player {
     if (!openDeurVoorRol(k.v, k.rol)) {
       // eerst de deur open: de tweede E trekt hem er dan uit
       openDeurVoor(k.v, k.rol, 3);
-      world.addMessage(`Je opent de ${deurNaam(k.v, k.deur)}. Nog een keer E om er iemand uit te trekken.`, 3);
+      world.addMessage(`Je opent de ${deurNaam(k.v, k.deur)}. Nog een keer E om iemand eruit te trekken.`, 3);
       return true;
     }
     const mede = this.medespelerIn(world, k.v, k.rol);
