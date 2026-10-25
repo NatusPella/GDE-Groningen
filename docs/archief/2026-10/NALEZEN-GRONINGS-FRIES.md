@@ -1,3 +1,6 @@
+> **Archief (oktober 2026).** Dit document is vervangen door `.specs-fire/standards/ui-taal.md`.
+> Het staat hier alleen als historie: gebruik het niet als bron en werk het niet bij.
+
 # Nalezen: Gronings en Fries (#13)
 
 Gegenereerd door `node scripts/nalezerlijst.mjs`. **Niets is verstuurd**; dit bestand is voor de eigenaar om aan een nalezer te geven.

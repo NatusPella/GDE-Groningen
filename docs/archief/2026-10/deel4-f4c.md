@@ -1,3 +1,6 @@
+> **Archief (oktober 2026).** Dit document is vervangen door `.specs-fire/standards/verhaal.md` (Deel 4 vóór de herschrijving).
+> Het staat hier alleen als historie: gebruik het niet als bron en werk het niet bij.
+
 # Deel 4 · F4c: Oldambt, Veenkoloniën, Westerwolde en de finale
 
 Productiescript voor inhoudsdrop **F4c** van Deel 4 "Nazomer" (de Ommelander Ronde), oktober 2026. Hoort bij [PROVINCIE-VERHAAL.md](../PROVINCIE-VERHAAL.md) (§2-§5, §9), [deel4-f4a.md](deel4-f4a.md) (zelfde opzet, zelfde dataformaten) en [personages.md](../personages.md). Alleen tekst: geen code, geen TTS-aanroepen. F4b (Wadkust en Westerkwartier) is parallel in de maak; wat dit script van F4b aanneemt staat in §1.3.

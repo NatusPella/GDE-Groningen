@@ -1,3 +1,6 @@
+> **Archief (oktober 2026).** Dit document is vervangen door `.specs-fire/standards/mechanica.md`.
+> Het staat hier alleen als historie: gebruik het niet als bron en werk het niet bij.
+
 # Geluid: wat er nog mist (audit #460)
 
 Een ronde door de code langs alle plekken die geluid zouden moeten maken, naast wat er al is: `game/js/audio.js` (de

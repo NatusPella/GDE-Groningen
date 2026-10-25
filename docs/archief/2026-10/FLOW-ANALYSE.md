@@ -1,3 +1,6 @@
+> **Archief (oktober 2026).** Dit document is vervangen door `.specs-fire/standards/verhaal.md`.
+> Het staat hier alleen als historie: gebruik het niet als bron en werk het niet bij.
+
 # Verhaalflow: analyse en voorstel (issue #93)
 
 Fase 1 van [#93](https://github.com/NatusPella/GDE-Groningen/issues/93): analyseren en voorstellen. Er is niets herschreven, geen stem opnieuw opgenomen en geen TTS gebruikt. Alleen dit document is nieuw.

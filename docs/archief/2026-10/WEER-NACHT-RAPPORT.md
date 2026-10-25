@@ -1,3 +1,6 @@
+> **Archief (oktober 2026).** Dit document is vervangen door `.specs-fire/standards/mechanica.md`.
+> Het staat hier alleen als historie: gebruik het niet als bron en werk het niet bij.
+
 # Weer, dag en nacht in beeld (#19, #194, #195)
 
 Controle van 19 oktober 2026 met `scripts/qa/weer_nacht.mjs` (headless Electron, wegwerpprofiel, één instantie onder een slot) en `scripts/qa/weer_nacht_analyse.mjs`. Altijd zomer: er zijn geen sneeuw- of ijsweertypen.

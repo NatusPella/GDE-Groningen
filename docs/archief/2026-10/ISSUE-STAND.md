@@ -1,3 +1,6 @@
+> **Archief (oktober 2026).** Dit document is vervangen door `AGENTS.md` (Werkwijze) en het bord.
+> Het staat hier alleen als historie: gebruik het niet als bron en werk het niet bij.
+
 # Issue-stand
 
 Stand van het bord op 2026-10-18 (#220, ronde 2): per open issue vergeleken met wat in main staat. Status: **gesloten** (aantoonbaar klaar, bewijs in de sluitcomment), **deels** (afvinklijst in het issue) of **open** (nog nauwelijks gebouwd). Blokkade: wat het volgende punt tegenhoudt: code, beeld (in beeld bevestigen of Electron), eigenaar (besluit of handmatig) of extern. `eigenaar`-issues zijn niet gesloten. Label `wacht-beeld`: gebouwd en getest, wacht op bevestiging in beeld. Werk dit bestand bij als een issue verandert; de afvinklijsten staan in de issues zelf.

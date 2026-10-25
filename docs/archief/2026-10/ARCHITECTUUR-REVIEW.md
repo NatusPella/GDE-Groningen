@@ -1,3 +1,6 @@
+> **Archief (oktober 2026).** Dit document is vervangen door `ARCHITECTURE.md` en `.specs-fire/standards/system-architecture.md`.
+> Het staat hier alleen als historie: gebruik het niet als bron en werk het niet bij.
+
 # Architectuurreview (#94)
 
 Alleen-lezen analyse van `game/js`, `scripts/`, `desktop/` en `web/` op onlogische systemen, dubbele implementaties en legacy.

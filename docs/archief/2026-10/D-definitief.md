@@ -1,3 +1,6 @@
+> **Archief (oktober 2026).** Dit document is vervangen door `.specs-fire/standards/verhaal.md`; het verhaal zelf staat in `docs/verhaal/nieuw/`.
+> Het staat hier alleen als historie: gebruik het niet als bron en werk het niet bij.
+
 # GDE Groningen: het definitieve script
 
 **Wat het is:** de combinatie van de drie varianten.

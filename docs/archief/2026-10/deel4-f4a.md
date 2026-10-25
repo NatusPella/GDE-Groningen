@@ -1,3 +1,6 @@
+> **Archief (oktober 2026).** Dit document is vervangen door `.specs-fire/standards/verhaal.md` (Deel 4 vóór de herschrijving).
+> Het staat hier alleen als historie: gebruik het niet als bron en werk het niet bij.
+
 # Deel 4 · F4a: Stad, Hogeland en Eemsdelta
 
 Productiescript voor inhoudsdrop **F4a** van Deel 4 "Nazomer" (de Ommelander Ronde), oktober 2026. Hoort bij [PROVINCIE-VERHAAL.md](../PROVINCIE-VERHAAL.md) (§2-§5, §9) en [PROVINCIE-PLAN.md](../PROVINCIE-PLAN.md) (§3, de F1-corridor Stad → Delfzijl → Eemshaven). Alleen tekst: er is nog geen code, en de provinciekaart wordt nog gebouwd.

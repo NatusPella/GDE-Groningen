@@ -1,3 +1,6 @@
+> **Archief (oktober 2026).** Dit document is vervangen door `docs/PERF-METING-2026-10-19.md` (de actuele meting) en `.specs-fire/standards/mechanica.md`.
+> Het staat hier alleen als historie: gebruik het niet als bron en werk het niet bij.
+
 # Profiel van de hoofdthread (0.24, Architectuur)
 
 > Historisch (stand 0.34): gemeten op 0.24 met alleen de stad en het oude Ommeland, vóór tegels, de provincie en de nieuwe wereldbouwer; de aantallen zijn verouderd, de methode (`scripts/perf`, `--cpu-throttle=4`) niet. Nieuwe metingen: issues #4 en #56.
