@@ -218,9 +218,10 @@ const ZWAAR = [
   // (geen watergat van het vaarnet over een gebouw, #362)
   ['gaten_gebouwen_audit', 'scripts/world/gaten_gebouwen_audit.mjs', ['--max=0'], 900, true],
   ['bridge_province_test', 'scripts/bridge_province_test.mjs', [], 900, true],
-  // De audits die tot #487 door niemand werden aangeroepen. De twee die nog niet groen zijn
-  // (clearance_audit, pad_input_audit) staan er bewust niet in: die hebben eerst een fix nodig,
-  // zie #494 en #495. Zo meet de fase wat groen hoort te zijn, zonder er schuld in te verstoppen.
+  // De audits die tot #487 door niemand werden aangeroepen; clearance en invoer zijn
+  // sinds #494 en #495 groen en horen er nu bij.
+  ['clearance_audit', 'scripts/clearance_audit.mjs', [], 600, false],
+  ['pad_input_audit', 'scripts/pad_input_audit.mjs', [], 300, false],
   ['markt_audit', 'scripts/markt_audit.mjs', [], 300, false],
   ['mesh_audit', 'scripts/mesh_audit.mjs', [], 600, false],
   ['missiongoals_audit', 'scripts/missiongoals_audit.mjs', [], 300, false],
