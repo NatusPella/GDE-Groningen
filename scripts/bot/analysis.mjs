@@ -34,6 +34,8 @@ export function findings(events) {
   for (const [step, rungs] of cheatSteps) add('cheat', 'bug', step, `${step} had een cheat nodig om door te gaan`, `Rungs: ${rungs.join(', ')}`);
   for (const m of S.missions.filter((x) => x.fails >= 2)) add('mislukt', 'opmerking', m.id, `${m.id} mislukte ${m.fails} keer voor de bot`, `Dat kan aan de bot liggen; kijk of de missie ook voor een speler te moeilijk is`);
   for (const m of S.minigames.filter((x) => !x.started)) add('minigame-start', 'opmerking', `mg-${m.id}`, `Minigame ${m.id} start niet bij E`, [m.how, m.prompt ? `prompt: ${m.prompt}` : ''].filter(Boolean).join('; '));
+  // #312: een kartrace die de bot niet uitrijdt is een opmerking (botzwakte of een baan die niet rond komt)
+  for (const e of events.filter((x) => x.type === 'race-uitslag' && !x.klaar)) add('race', 'opmerking', 'mg-kartbaan', 'Kartrace niet uitgereden', `Plek ${e.plek} van ${e.karts} na ${e.rondes} ronde(s)`);
   for (const e of events.filter((x) => x.type === 'schema')) add('schema', 'bug', '', 'De status van playerapi.js klopt niet met het schema', (e.problems || []).join('; '));
   if (S.unbalanced.length) add('invoer', 'bug', '', 'Toets zonder keyup', S.unbalanced.join(', '));
   // één vingerafdruk komt maar één keer voor
@@ -56,10 +58,127 @@ export function metrics(events, result = {}) {
     consoleErrors: S.consoleErrors.length, nan: S.nan, warnings: S.warnings,
     // #312: de nieuwe vaardigheden in de cijfers: hoeveel tikken de heli en de boot kregen
     helis: events.filter((e) => e.type === 'heli').length, vaart: events.filter((e) => e.type === 'vaart').length,
+    // #312: de kartrace en de stunt: een uitslag per gereden race, en de drift/aanloopregels van M01
+    races: events.filter((e) => e.type === 'race-uitslag').length,
+    raceWins: events.filter((e) => e.type === 'race-uitslag' && e.plek === 1).length,
+    stuntTicks: events.filter((e) => e.type === 'stunt').length,
     minigamesStarted: S.minigames.filter((m) => m.started).length, minigames: S.minigames.length,
     perMission,
   };
 }
+
+// --- per akte (#186, #312) ------------------------------------------------------------
+// De vijf aktes van het nieuwe verhaal; de reisstappen horen bij de akte waarin ze vallen
+// (docs/TESTEN.md: T1 en T2 bij akte 2, T3 bij 3, T4 bij 4). De epiloog telt bij akte 5.
+// Een minigame of een losse activiteit hoort bij geen akte (0).
+export const ACTS = [
+  { n: 1, name: 'Akte 1: Moi, Grunn', steps: ['M00', 'M01', 'M02', 'M03', 'M04', 'M05', 'M06'] },
+  { n: 2, name: 'Akte 2: Het Noorden is groot', steps: ['M07', 'M08', 'M09', 'M10', 'M11', 'T1', 'T2'] },
+  { n: 3, name: 'Akte 3: Aan de Eems', steps: ['M12', 'M13', 'M14', 'M15', 'M16', 'T3'] },
+  { n: 4, name: 'Akte 4: Zuidwaarts', steps: ['M17', 'M18', 'M19', 'M20', 'M21', 'T4'] },
+  { n: 5, name: 'Akte 5: Ontzet', steps: ['M22', 'M23', 'M24', 'M25', 'M26', 'M27', 'E'] },
+];
+const STEP_ACT = new Map(ACTS.flatMap((a) => a.steps.map((id) => [id, a.n])));
+// Het aktenummer van een stap: 'M02:m' en 'M02:duif' horen bij M02; een minigame bij 0.
+export function actOf(step) {
+  const id = String(step || '').split(':')[0];
+  if (/^mg-/.test(id)) return 0;
+  return STEP_ACT.get(id) || 0;
+}
+
+// Per akte: de tijd (de som van de afgeronde stappen), hoeveel stappen klaar zijn, en waar de bot
+// hing (vast, time-out) of een cheat nodig had. `extra` is de regel voor wat buiten een akte viel
+// (minigames, losse activiteiten), zodat het rapport niets weglaat.
+export function perAct(events) {
+  const acts = ACTS.map((a) => ({ n: a.n, name: a.name, seconds: 0, steps: [], done: 0, started: 0, stuck: [], timeouts: [], cheats: [], fails: 0 }));
+  const extra = { n: 0, name: 'Buiten de aktes (minigames en losse activiteiten)', seconds: 0, steps: [], done: 0, started: 0, stuck: [], timeouts: [], cheats: [], fails: 0 };
+  const byN = new Map([...acts, extra].map((a) => [a.n, a]));
+  const open = new Map();
+  const findOpen = (id) => {
+    const list = open.get(id) || [];
+    return list.length ? list[list.length - 1] : null;
+  };
+  for (const e of events) {
+    if (e.type === 'step') {
+      const id = String(e.id || '?');
+      if (e.event === 'begin') {
+        const a = byN.get(actOf(id));
+        const rec = { id, label: e.label || '', start: e.t, end: null, outcome: null };
+        a.steps.push(rec); a.started++;
+        if (!open.has(id)) open.set(id, []);
+        open.get(id).push(rec);
+      } else if (e.event === 'end') {
+        const rec = findOpen(id);
+        if (rec) { rec.end = e.t; rec.outcome = e.outcome || 'klaar'; if (rec.end != null) byN.get(actOf(id)).done++; }
+      }
+    } else if (e.type === 'mission' && e.event === 'fail') {
+      const a = byN.get(actOf(e.id));
+      if (a) a.fails++;
+    } else if (e.type === 'stuck' || e.type === 'timeout' || e.type === 'cheat') {
+      const a = byN.get(actOf(e.step));
+      if (!a) continue;
+      if (e.type === 'stuck') a.stuck.push(e);
+      else if (e.type === 'timeout') a.timeouts.push(e);
+      else if (isCheatRung(e.rung)) a.cheats.push(e);
+    }
+  }
+  for (const a of [...acts, extra]) {
+    a.seconds = Math.round(a.steps.reduce((s, r) => s + (r.end != null ? Math.max(0, r.end - r.start) : 0), 0));
+    a.steps = a.steps.filter((r) => r.end != null || r.label || r.start != null);
+  }
+  return { acts, extra };
+}
+const isCheatRung = (rung) => rung && rung !== 'nudge';
+
+// Een Markdown-tabel per akte, met dezelfde kolommen als het missierapport.
+export function actTable(acts) {
+  const out = ['| Akte | Tijd | Stappen klaar | Vast | Time-outs | Cheats |', '|---|---|---|---|---|---|'];
+  for (const a of acts) {
+    out.push(`| ${a.name} | ${fmtClock(a.seconds)} | ${a.done}/${a.started} | ${a.stuck.length} | ${a.timeouts.length} | ${a.cheats.length} |`);
+  }
+  return out.join('\n');
+}
+const fmtClock = (s) => `${Math.floor(Math.max(0, s) / 60)}:${String(Math.round(Math.max(0, s) % 60)).padStart(2, '0')}`;
+
+// Waar de bot hing, per akte: de vastzitmomenten en time-outs, het langst eerst. Elke regel zegt
+// de akte, de stap, de seconden en de plek, zodat er zonder de runmap iets mee te doen is.
+export function whereHung(acts, max = 10) {
+  const out = [];
+  for (const a of acts) {
+    for (const e of a.stuck) out.push({ act: a.n, name: a.name, step: e.step || '?', seconds: Math.round(e.idleFor || 0), x: e.x, y: e.y, goalDist: e.goalDist, kind: 'vast', what: `${Math.round(e.idleFor || 0)} s zonder voortgang` });
+    for (const e of a.timeouts) out.push({ act: a.n, name: a.name, step: e.step || '?', seconds: Math.round(e.forS || 0), x: e.x, y: e.y, goalDist: e.goalDist, kind: 'time-out', what: e.what || 'duurde te lang' });
+  }
+  return out.sort((p, q) => q.seconds - p.seconds).slice(0, max);
+}
+
+// Een korte samenvatting die als comment op het spelbot-issue kan (#186): per akte de tijd, waar
+// hij hing en wat er nog open is. Nederlands, geen interne paden, geen screenshot-lijst.
+export function issueComment({ title = 'run', date = '', run = '', metrics: m = {}, acts = [], extra = null, findings: fs = [] }) {
+  const out = [`## Spelbot: ${title}${date ? ` (${date})` : ''}`, ''];
+  out.push(`Uitkomst **${m.result || 'onbekend'}**, speltijd ${fmtClock(m.gameSeconds || 0)}, ${m.stepsDone || 0} van ${m.stepsStarted || 0} stappen klaar${run ? ` (run ${run})` : ''}.`);
+  out.push(`Vastgezeten ${m.stuck || 0}, time-outs ${m.timeouts || 0}, cheat nodig ${m.cheats || 0}, consolefouten ${m.consoleErrors || 0}, NaN ${m.nan || 0}.`);
+  if (m.races) out.push(`Kartraces: ${m.races} gereden, ${m.raceWins || 0} gewonnen.`);
+  if (acts.length) {
+    out.push('', '### Per akte', '', actTable(acts));
+    if (extra && (extra.started || extra.stuck.length || extra.timeouts.length)) out.push('', `Buiten de aktes: ${extra.done}/${extra.started} stappen, ${fmtClock(extra.seconds)}.`);
+  }
+  const hung = whereHung(acts);
+  out.push('', '### Waar hij hing', '');
+  if (!hung.length) out.push('Nergens: geen vastzitmoment en geen time-out.');
+  for (const h of hung) out.push(`- ${h.name}, ${h.step}: ${h.kind} na ${h.seconds} s${Number.isFinite(h.x) ? ` op (${Math.round(h.x)}, ${Math.round(h.y)})` : ''}${Number.isFinite(h.goalDist) ? `, ${Math.round(h.goalDist)} m van het doel` : ''}${h.kind === 'time-out' ? ` (${h.what})` : ''}`);
+  const bugs = (fs || []).filter((f) => f.severity === 'bug');
+  out.push('', '### Bevindingen', '');
+  if (!bugs.length) out.push('Geen fouten gevonden.');
+  for (const f of bugs.slice(0, 6)) out.push(`- ${f.title}`);
+  if (bugs.length > 6) out.push(`- ... en nog ${bugs.length - 6} (zie het volledige rapport)`);
+  out.push('', '### Wat open blijft', '');
+  if (m.result && !/^(KLAAR|REPLAY)/.test(String(m.result))) out.push(`- De run is niet uitgespeeld (${m.result}); de laatste stap was ${m.lastStep || '?'}.`);
+  if (m.cheats) out.push(`- ${m.cheats} keer een cheat nodig: dat zegt iets over de bot én over het spel.`);
+  if (!m.races) out.push('- Geen kartrace gereden in deze run.');
+  out.push('- Of het leuk is, hoe de besturing voelt, geluid en beeld bij 1080p of 4K: dat beoordeelt de bot niet.');
+  return out.join('\n');
+}
+
 
 // nieuw (bevindingen die er eerder niet waren), opgelost (er eerder wel, nu niet), regressies (cijfers die slechter werden)
 const WORSE_IF_HIGHER = ['stuck', 'timeouts', 'cheats', 'fails', 'consoleErrors', 'nan'];
@@ -186,12 +305,21 @@ export function audioSummary(events, { silentS = 20 } = {}) {
 
 // --- Nederlandse samenvatting --------------------------------------------------------------------------
 const fmtS = (s) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, '0')}`;
-export function nlSummary({ title, date, metrics: m, cmp, findings: fs, issues = [], audio = null }) {
+export function nlSummary({ title, date, metrics: m, cmp, findings: fs, issues = [], audio = null, acts = [], extra = null }) {
   const out = [`# Spelbot, ${title || 'run'}${date ? ` (${date})` : ''}`, ''];
   out.push(`De bot speelde ${fmtS(m.gameSeconds)} speltijd en kwam klaar met ${m.stepsDone} van ${m.stepsStarted} gestarte stappen. Uitkomst: **${m.result || 'onbekend'}**.`);
   out.push(`Vastgezeten: ${m.stuck} keer. Time-outs: ${m.timeouts || 0}. Cheat nodig: ${m.cheats} keer. Missies mislukt: ${m.fails}. Consolefouten: ${m.consoleErrors}. NaN-waarschuwingen: ${m.nan}.`);
+  if (m.races) out.push(`Kartraces: ${m.races} gereden, ${m.raceWins || 0} gewonnen; stunttikken: ${m.stuntTicks || 0}.`);
   if (m.result && !/^(KLAAR|REPLAY)/.test(String(m.result)) && m.lastStep) out.push(`De run stopte in stap ${m.lastStep}; zie "Waar de run stopte" in report.md.`);
   if (m.minigames) out.push(`Minigames: ${m.minigamesStarted} van ${m.minigames} gestart.`);
+  if (acts && acts.length) {
+    out.push('', '## Per akte', '', actTable(acts));
+    if (extra && (extra.started || extra.stuck.length || extra.timeouts.length)) out.push('', `Buiten de aktes: ${extra.done}/${extra.started} stappen, ${fmtS(extra.seconds)}.`);
+    const hung = whereHung(acts);
+    out.push('', '## Waar hij hing', '');
+    if (!hung.length) out.push('Nergens: geen vastzitmoment en geen time-out.');
+    for (const h of hung) out.push(`- ${h.name}, ${h.step}: ${h.kind} na ${h.seconds} s${Number.isFinite(h.x) ? ` op (${Math.round(h.x)}, ${Math.round(h.y)})` : ''}${Number.isFinite(h.goalDist) ? `, ${Math.round(h.goalDist)} m van het doel` : ''}${h.kind === 'time-out' ? ` (${h.what})` : ''}`);
+  }
   if (cmp && !cmp.first) {
     out.push('', '## Ten opzichte van de vorige run', '', `- Nieuw: ${cmp.nieuw.length}${cmp.nieuw.length ? ' (' + cmp.nieuw.map((f) => f.title).slice(0, 5).join('; ') + ')' : ''}`, `- Opgelost: ${cmp.opgelost.length}${cmp.opgelost.length ? ' (' + cmp.opgelost.map((f) => f.title).slice(0, 5).join('; ') + ')' : ''}`);
     out.push(`- Regressies: ${cmp.regressies.length ? cmp.regressies.map((r) => `${r.metric} ${r.was} naar ${r.nu}`).join('; ') : 'geen'}`);
