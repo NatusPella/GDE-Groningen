@@ -5,6 +5,17 @@
 //   node scripts/busspawn_test.mjs
 import './node3d.mjs';
 
+// Deze test gaat over regels, niet over geluk. Met Math.random zaait de gewone buspopulatie soms een bus
+// pal op de plek waar de live bus moet komen, en dan faalden 2 van de 6 runs op "één bus per live
+// voertuig". Een vaste reeks maakt elke run hetzelfde en een echte fout dus reproduceerbaar.
+let zaad = 0x9e3779b9;
+Math.random = () => {
+  zaad = (zaad + 0x6d2b79f5) | 0;
+  let t = Math.imul(zaad ^ (zaad >>> 15), 1 | zaad);
+  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+};
+
 const V = await import('../game/js/vehicle.js');
 const B = await import('../game/js/busroutes.js');
 let n = 0, bad = 0;
@@ -104,6 +115,11 @@ const rondje = (w, n = 60) => { for (let i = 0; i < n; i++) V.manageBusPopulatio
   ok(live.length === 1, 'één bus per live voertuig', String(live.length));
   ok(live[0] && live[0].busRun.line === lijn && live[0].busRun.dir === 1, 'de live bus rijdt zijn eigen lijn en richting');
   ok(live[0] && Math.abs(live[0].x - 150) < 40, 'hij begint bij de plek van de echte bus', live[0] && String(live[0].x));
+  // de koers komt uit de feed, niet uit de dobbelsteen: een bus die de andere kant op kijkt werd eerder
+  // afgekeurd en dan verscheen de live bus gewoon niet (#332)
+  const hoekVerschil = (a, b) => Math.abs(((a - b + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI);
+  ok(live[0] && hoekVerschil(live[0].angle, echt.angle) < Math.PI / 2,
+    'de live bus kijkt de kant op die de feed zegt', live[0] && String(live[0].angle.toFixed(2)));
   if (live[0]) {
     V.updateTrafficAI(live[0], 0.05, kaartje, w);
     ok(live[0].liveScale != null && live[0].liveScale < 0.5, 'een stilstaande echte bus: de live bus rijdt niet door', String(live[0].liveScale));
@@ -113,6 +129,22 @@ const rondje = (w, n = 60) => { for (let i = 0; i < n; i++) V.manageBusPopulatio
     echt = null;
     V.updateTrafficAI(live[0], 0.05, kaartje, w);
     ok(live[0].liveId == null && live[0].liveScale == null, 'echte bus weg: terug naar de eigen dienst');
+  }
+
+  // 5. staat er al een dienstbus op de plek van de echte bus, dan wint de echte bus (#332): zonder deze
+  // regel liet de spawn de live bus vallen zodra de eigen dienst er net een bus had neergezet.
+  {
+    const w2 = wereld(kaartje);
+    const bezet = V.spawnVehicleOnRoad(kaartje, hoofd, false, Math.random, false, true, { x: 150, y: 0 });
+    bezet.busRun = { s: 150, dir: 1 };
+    w2.vehicles.push(bezet);
+    echt = { id: 'live-1', line: lijn, dir: 1, s: 750, x: 150, y: 0, angle: 0, speed: 0 };
+    V.setLiveBussen({ positie: (id) => (echt && id === echt.id ? echt : null), kandidaten: () => [{ ...echt, d: 150 }] });
+    rondje(w2, 10);
+    const nu = w2.vehicles.filter((v) => v.isBus);
+    ok(nu.some((v) => v.liveId === 'live-1'), 'de echte bus neemt de plek van de dienstbus over', String(nu.length));
+    ok(!nu.includes(bezet), 'de dienstbus die in de weg stond is weg');
+    echt = null;
   }
   V.setLiveBussen(null);
 }
