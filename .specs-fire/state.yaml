@@ -34,16 +34,20 @@ intents:
         completed_at: 2026-10-25T10:26:54.145Z
       - id: wi-434-rest
         title: "#434 Laatste multiplayer-punten"
-        status: pending
+        status: completed
         complexity: low
         mode: autopilot
         depends_on: []
+        run_id: run-gde-groningen-004
+        completed_at: 2026-10-25T10:28:32.197Z
       - id: wi-436-rest
         title: "#436 Laatste wereldpunten"
-        status: pending
+        status: completed
         complexity: low
         mode: autopilot
         depends_on: []
+        run_id: run-gde-groningen-005
+        completed_at: 2026-10-25T10:28:32.692Z
       - id: wi-438-rest
         title: "#438 Kluis en lasers per rol"
         status: pending
@@ -106,3 +110,19 @@ runs:
           mode: confirm
       started: 2026-10-25T10:16:03.786Z
       completed: 2026-10-25T10:26:54.145Z
+    - id: run-gde-groningen-004
+      scope: single
+      work_items:
+        - id: wi-434-rest
+          intent: afmaken-open-issues
+          mode: autopilot
+      started: 2026-10-25T10:28:24.570Z
+      completed: 2026-10-25T10:28:32.197Z
+    - id: run-gde-groningen-005
+      scope: single
+      work_items:
+        - id: wi-436-rest
+          intent: afmaken-open-issues
+          mode: autopilot
+      started: 2026-10-25T10:28:24.726Z
+      completed: 2026-10-25T10:28:32.692Z
