@@ -88,9 +88,13 @@ Een taak zonder gebied (een plek in zee, of grenzen die nog niet geladen zijn) w
 
 ## Opslag, migratie en samen spelen
 
-Het profiel (`gedaan`: de id's van de taken, `beloond`: de gebieden met hun titel, `huizen`) staat per speler in de eigen sleutel `gde-gebieden-v1` (`KEYS.gebieden`), nooit in een
+Het profiel (`gedaan`: de id's van de taken, `beloond`: de gebieden met hun titel, `huizen`, `bezocht`: de buurten waar je geweest bent) staat per speler in de eigen sleutel `gde-gebieden-v1` (`KEYS.gebieden`), nooit in een
 savegame: wie samen speelt neemt zijn gebieden mee naar elke wereld. Schrijven gebeurt vertraagd (1,5 s) en voegt een tweede tabblad samen (`voegSamen`). `normaliseer` maakt
 van kapotte, lege of oude opslag een geldig profiel.
+
+**De kaart verkennen** (`bezoek`, `kaartVerkend`) telt de buurten waar je geweest bent: elke seconde kijkt `achievementtracker.js` in welke buurt de speler staat. Zo werkt de
+prestatie "De hele kaart verkend" (`kaart_alle`) op de bestaande gebieden in plaats van op de mist van de kaart, die ook zee en onbereikbare plekken dekt. `getOverzicht().kaart`
+geeft `{ gedaan, totaal, pct }` (naar beneden afgerond) en de prestaties van buurt tot provincie tonen hun stand als een ring in het Prestaties-scherm.
 
 **Versie 2** (`SLEUTEL_VERSIE`) hoort bij de echte grenzen. Een profiel van de eerste versie (wijkpunten, plaatsen en streken, alleen bij testers) houdt wat je deed (`gedaan`: de
 taken blijven gelijk) maar zijn gebieden, titels en huizen vervallen, want die bestaan niet meer; `zaad` gaat uit, dus de nieuwe indeling zaait opnieuw: wat al helemaal gedaan

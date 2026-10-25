@@ -8,6 +8,7 @@ import {
   MISSION_GOALS, isRetiredMission, MEDALS, EIERBAL_TOTAL, getStat, unseenAchievementCount, isAchievementFresh, markAchievementsSeen,
 } from './achievements.js';
 import { SIDE_JOBS } from './sidejobs.js';
+import { getOverzicht } from './gebiedenlive.js';
 import { iconSvg } from './achievementicons.js';
 import { fillBars, countTo } from './motion.js';
 import { achPct as pctOf, achNear, achDone, achCategoryOrder, achCategoryPct, achWhen, ringDash } from './menumodels.js';
@@ -85,6 +86,29 @@ function figuresBlock(st) {
   return `<div class="pa-grid">${figs.map(([k, v]) => `<div class="pa-cell"><span class="mut">${k}</span><span class="bebas">${v}</span></div>`).join('')}</div>`;
 }
 
+// De gebieden en de kaart als ringen (#435): dezelfde stand die de prestaties hierboven tellen (buurt tot provincie).
+function gebiedenBlock() {
+  const o = getOverzicht();
+  if (!o) return '<p class="m-note">De kaart wordt nog ingeladen. Probeer het zo nog eens.</p>';
+  const cel = (naam, klaar, totaal) => {
+    const pct = totaal ? (klaar / totaal) * 100 : 0;
+    return `<div class="pa-cell"><span>${esc(naam)}</span><span class="mut" style="display:flex;align-items:center;gap:12px">${ring(pct, null, 64)}<span>${klaar} van ${totaal}</span></span></div>`;
+  };
+  const rijen = [cel('Kaart verkend', o.kaart.gedaan, o.kaart.totaal)];
+  for (const n of o.overzicht) rijen.push(cel(n.niveau.naam, n.voltooid, n.gebieden.length));
+  return `<div class="pa-grid">${rijen.join('')}</div>`;
+}
+
+// De stand van het gebied waar deze prestatie over gaat (#435), zodat de ring met het aantal gebieden erbij klopt.
+function layerText(id) {
+  const o = getOverzicht();
+  if (!o) return '';
+  if (id.startsWith('kaart_')) return `<p class="mut">Je hebt ${o.kaart.gedaan} van ${o.kaart.totaal} buurten gezien.</p>`;
+  if (!id.startsWith('gebied_')) return '';
+  const n = o.overzicht.find((x) => x.niveau.id === id.slice(7));
+  return n ? `<p class="mut">Stand van de ${esc(n.niveau.naam.toLowerCase())}: ${n.voltooid} van ${n.gebieden.length} veroverd.</p>` : '';
+}
+
 function detailHtml(it, catLabel) {
   if (!it) return '<p class="mut">Kies een prestatie om te zien wat je ervoor doet.</p>';
   const title = it.hidden ? '???' : dualHtml(it.title);
@@ -94,7 +118,7 @@ function detailHtml(it, catLabel) {
     const { cur, goal, unit } = it.progress;
     prog = `<div class="pa-prog">${ring(pctOf(it), null, 120)}<span class="m-num">${fmtAmount(cur, unit)} <span class="mut">/ ${fmtAmount(goal, unit)}</span></span><span class="m-bar on"><i data-bar="d-${esc(it.id)}" data-w="${pctOf(it).toFixed(1)}"></i></span></div>`;
   }
-  return `<div class="pm-pane-top"><span class="m-eb">${esc(catLabel || 'Prestatie')}</span><h2 class="m-h2 td-h2"><span class="pa-ico big">${iconSvg(it)}</span>${title}</h2></div><p>${desc}</p>${prog}` +
+  return `<div class="pm-pane-top"><span class="m-eb">${esc(catLabel || 'Prestatie')}</span><h2 class="m-h2 td-h2"><span class="pa-ico big">${iconSvg(it)}</span>${title}</h2></div><p>${desc}</p>${prog}${it.hidden ? '' : layerText(it.id)}` +
     (it.unlocked ? `<p class="g">Behaald${it.at ? ` · ${whenText(it.at)}` : ''}</p>` : '') +
     (it.hidden ? '' : !it.unlocked && !it.progress ? '<p class="mut">Nog niet behaald.</p>' : '');
 }
@@ -112,7 +136,7 @@ export function renderAchievementsPanel(el, { keepFresh = false } = {}) {
   if (sel && !all.some((a) => a.id === sel)) sel = null;
   const selItem = all.find((a) => a.id === sel);
   const tab = (id, label, n) => `<button type="button" role="tab" class="m-tab" data-achview="${id}" aria-selected="${tabView === id}">${label}${n != null ? `<small>${n}</small>` : ''}</button>`;
-  const extras = [['cijfers', 'Cijfers', 'sinds je eerste spel', figuresBlock(st)], ['medailles', 'Medailles', 'per missie', medalsBlock()], ['records', 'Records', 'per bijbaantje', jobRecordsBlock()]];
+  const extras = [['gebieden', 'Gebieden', 'buurt tot provincie', gebiedenBlock()], ['cijfers', 'Cijfers', 'sinds je eerste spel', figuresBlock(st)], ['medailles', 'Medailles', 'per missie', medalsBlock()], ['records', 'Records', 'per bijbaantje', jobRecordsBlock()]];
   let list;
   if (tabView === 'bijna') list = near.length ? near.map((a) => row(a, a.catLabel)).join('') : '<p class="m-note">Speel wat rond, dan komen ze vanzelf.</p>';
   else if (tabView === 'behaald') list = done.length ? done.map((a) => row(a, a.catLabel)).join('') : '<p class="m-note">Nog niks behaald. Dat komt vanzelf.</p>';
