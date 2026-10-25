@@ -9,6 +9,7 @@ import { weekdayOf } from './calendar.js';
 import { playerBusy } from './busy.js';
 import { noteMoney } from './finance.js';
 import { noteWantedWhy } from './wantedwhy.js';
+import { hoofdspeler } from './spelersregister.js'; // de speler achter dit scherm (#446): de wegmisdaad en de boete zijn van hem
 
 // Two money fines when an agent is watching: the phone in your hand while
 // riding or driving, and cycling after dark without a light.
@@ -61,7 +62,7 @@ export function roadUnder(map, x, y, z = 0) {
 export const STAR_WATCH_M = 80;
 
 export function exempt(world, v) {
-  if (!world.player || world.health <= 0 || world.pendingRespawn || world.pigeonMode || world.heliRun || world.trainDriving || world.trainCam) return true;
+  if (!hoofdspeler(world) || world.health <= 0 || world.pendingRespawn || world.pigeonMode || world.heliRun || world.trainDriving || world.trainCam) return true;
   if (playerBusy(world, ['padel', 'activityGame', 'challenge', 'sideJob']).busy || world.cameraOverride) return true;
   if (world.mission && world.mission.phase === 'active') return true;
   if (v && (v.isPolice || v.isAmbulance || v.sirenOn || v.isBus)) return true;
@@ -72,7 +73,7 @@ export function exempt(world, v) {
 export function updateTrafficLaw(dt, world) {
   if (!dt) return;
   updateBikeLight(dt, world);
-  const p = world.player;
+  const p = hoofdspeler(world);
   const v = p && p.inVehicle;
   if (exempt(world, v)) { state.on = 0; state.kind = null; return; }
   state.scanT -= dt;
@@ -136,7 +137,7 @@ export function charge(world, amount, text) {
 // The phone (the pause menu on its Telefoon tab) opened while riding or
 // driving at speed: a fine if an agent sees it. Returns the amount.
 export function checkPhoneWhileMoving(world) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   const v = p && p.inVehicle;
   if (!v || exempt(world, v)) return 0;
   const mode = travelModeOf(world);
@@ -154,7 +155,7 @@ export function resetLightFine() { light.watched = 0; light.cooldown = 0; }
 export function updateBikeLight(dt, world) {
   if (!dt) return 0;
   if (light.cooldown > 0) light.cooldown -= dt;
-  const p = world.player;
+  const p = hoofdspeler(world);
   const v = p && p.inVehicle;
   const night = world.dayNight && (world.dayNight.night ?? 0) > 0.5;
   if (!v || !night || light.cooldown > 0 || exempt(world, v) || travelModeOf(world) !== 'fiets' || v.light || Math.abs(v.speed || 0) < MOVING_MS) { light.watched = 0; return 0; }

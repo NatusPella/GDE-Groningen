@@ -7,7 +7,7 @@
 // magnet); this module dresses them, gives them lines and the E prompt.
 // Text only: no recordings, no voice. All names are invented.
 import { dist, isInWater } from './util.js';
-import { naasteSpeler } from './spelersregister.js';
+import { naasteSpeler, hoofdspeler } from './spelersregister.js';
 import { spawnPedestriansNear, Pedestrian } from './pedestrians.js';
 import { isInsideBuilding } from './pedgeom.js';
 import { makeCompanion } from './pedroutes.js';
@@ -85,7 +85,7 @@ function say(ped, world, text, secs = 3) {
 
 // The standing person within reach, of one of our kinds.
 export function nearestFolk(world, reach = REACH) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   if (!p || p.inVehicle || p.swimming || p.dead) return null;
   let best = null, bd = reach;
   for (const ped of world.pedestrians || []) {
@@ -98,7 +98,7 @@ export function nearestFolk(world, reach = REACH) {
 
 // Somebody to report the grenade to: an officer on foot or a police station.
 export function nearestReporter(world) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   if (!state.grenade || !p || p.inVehicle || p.swimming) return null;
   for (const ped of world.pedestrians || []) {
     if (ped.isCop && ped.state !== 'dead' && dist(p.x, p.y, ped.x, ped.y) <= REPORT_REACH) return { x: ped.x, y: ped.y, ped };
@@ -385,8 +385,8 @@ function spawnCourier(world, p, hour) {
 }
 
 export function updateStreetLife(dt, world) {
-  if (!dt || world.paused || !world.player) return;
-  const p = world.player;
+  const p = hoofdspeler(world); // wie hier achter het scherm zit (#446); het straatleven speelt zich om hem heen af
+  if (!dt || world.paused || !p) return;
   // the standing ones call out now and then, and the one asking is polite
   if (world.time - lineAt > 14) {
     for (const ped of world.pedestrians || []) {
