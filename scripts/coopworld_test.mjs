@@ -1,6 +1,6 @@
 // Samen spelen (#95): de wereld van de host delen met gasten (game/js/coopworld.js) + codec en hub.
 import assert from 'node:assert/strict';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as W from '../game/js/coopworld.js';
@@ -238,16 +238,57 @@ t('snapshot en weergave: de gast tekent dezelfde voertuigen, boten en trein als 
   assert.ok(!gast.voertuigen.some((v) => v.soort === 'trein'));
   assert.equal(W.gokUiterlijk('trein'), null);
 });
-t('inventaris: wat de gast lokaal invult noemt zijn bron en de test die het dekt (#428)', () => {
+t('de gok is hetzelfde soort model als het echte uiterlijk, ook voor een boot, schip, heli en vliegtuig (#428)', () => {
+  const maak = {
+    auto: { model: { name: 'sedan', len: 4.3, wid: 1.8, color: '#7a1f1f' } },
+    bakkie: { model: { name: 'van', len: 5, wid: 2, color: '#d9d9d9' } },
+    bus: { isBus: true, model: { name: 'bus', len: 11, wid: 2.5 } },
+    politie: { isPolice: true, model: { name: 'police', len: 4.4, wid: 1.8 } },
+    motor: { isBike: true, model: { name: 'bike', motorbike: 'sport', len: 2.1, wid: 0.8 } },
+    scooter: { isScooter: true, model: { name: 'scooter', len: 1.8, wid: 0.7 } },
+    fiets: { isBike: true, model: { name: 'bike', len: 1.75, wid: 0.5 } },
+    boot: { isBoat: true, model: { kind: 'sloep', name: 'boat', len: 5.5, wid: 2, cabin: '#2f3a44' } },
+    heli: { isHeli: true, model: { name: 'heli', len: 8.8, wid: 2.1 } },
+    vracht: { model: { name: 'truck', len: 9, wid: 2.5 } },
+    overig: { isPlane: true, model: { name: 'plane', len: 8, wid: 10.6 } },
+  };
+  for (const soort of W.VOERTUIG_SOORTEN) {
+    if (soort === 'trein') continue; // een trein komt uit de eigen spoorwegen, niet uit de snapshot
+    const v = maak[soort]; assert.ok(v, soort);
+    assert.equal(W.VOERTUIG_SOORTEN[W.voertuigSoort(v)], soort, 'de host heeft een ' + soort);
+    const echt = W.uiterlijkSpec(W.voertuigUiterlijk(v, 5));
+    const gok = W.gokUiterlijk(soort, 5, { len: echt.model.len, wid: echt.model.wid });
+    assert.ok(gok && gok.model && typeof gok.model.name === 'string', soort + ' heeft een gokmodel');
+    for (const vlag of ['isBoat', 'isHeli', 'isPlane', 'isPolice', 'isBus']) assert.equal(!!gok[vlag], !!echt[vlag], soort + ': ' + vlag);
+    if (soort === 'fiets') assert.equal(gok.isBike, true);
+    if (soort === 'scooter') assert.equal(gok.isScooter, true);
+    if (soort === 'motor') assert.ok(gok.model.motorbike && echt.model.motorbike, 'beide een motor');
+    assert.ok(Math.abs(gok.model.len - echt.model.len) < 0.02 && Math.abs(gok.model.wid - echt.model.wid) < 0.02, soort + ': dezelfde maat');
+  }
+  // een boot zonder uiterlijk krijgt een romp die bij zijn maat past: geen opgerekte sloep van 98 m (#428)
+  assert.deepEqual(W.GOK_BOOT_M, [12, 60]);
+  assert.equal(W.gokUiterlijk('boot', 3, { len: 5.5, wid: 2 }).model.kind, 'sloep');
+  assert.equal(W.gokUiterlijk('boot', 3, { len: 40, wid: 5 }).model.kind, 'binnenvaart');
+  const schip = W.gokUiterlijk('boot', 3, { len: 98, wid: 15.4 });
+  assert.equal(schip.isBoat, true); assert.equal(schip.model.kind, 'zeeschip');
+  assert.ok(schip.model.len >= 97 && schip.model.wid > 15, 'de maat van het schip blijft');
+  assert.equal(W.gokUiterlijk('boot', 3).model.kind, 'sloep', 'zonder maat: de kleinste romp');
+});
+t('inventaris: wat de gast lokaal invult noemt zijn bron, het stuk code en de test die het dekt (#428)', () => {
   const soorten = new Set(['beeld', 'beweging', 'geluid']);
   assert.ok(Array.isArray(W.LOKAAL_VERZONNEN) && W.LOKAAL_VERZONNEN.length >= 8, 'de inventaris bestaat');
+  const gehad = new Set();
   for (const p of W.LOKAAL_VERZONNEN) {
-    assert.ok(p.wat && p.waarom && p.bron && p.test, JSON.stringify(p));
+    assert.ok(p.wat && p.waarom && p.bron && p.code && p.test, JSON.stringify(p));
+    assert.ok(!gehad.has(p.wat), 'elk punt staat er één keer: ' + p.wat); gehad.add(p.wat);
     assert.ok(soorten.has(p.waar), p.wat + ': ' + p.waar);
-    assert.ok(existsSync(join(root, 'game', 'js', p.bron)), p.bron + ' bestaat');
+    const pad = join(root, 'game', 'js', p.bron);
+    assert.ok(existsSync(pad), p.bron + ' bestaat');
     assert.ok(existsSync(join(root, 'scripts', p.test)), p.test + ' bestaat');
+    // het stuk code dat de gast zelf invult staat echt in die bron: zo veroudert de inventaris niet
+    assert.ok(readFileSync(pad, 'utf8').includes(p.code), p.bron + ' noemt ' + p.code);
   }
   const tekst = W.LOKAAL_VERZONNEN.map((p) => p.wat).join(' | ');
-  for (const kern of ['deining', 'valrichting', 'verkeerslicht', 'vogel', 'voertuig zonder uiterlijk', 'wagonindeling']) assert.ok(tekst.includes(kern), 'de inventaris noemt ' + kern);
+  for (const kern of ['deining', 'valrichting', 'verkeerslicht', 'vogel', 'voertuig zonder uiterlijk', 'wagonindeling', 'achterkant van een gelede bus', 'draaisnelheid van de wielen', 'achterover vallen']) assert.ok(tekst.includes(kern), 'de inventaris noemt ' + kern);
 });
 console.log(`coopworld_test: ${n}/${n} ok`);
