@@ -1734,6 +1734,9 @@ function smoothstep(a, b, x) {
 }
 
 const TAU = Math.PI * 2;
+// (#463) De heupzwaai blijft binnen een stap: met de volle zwaai las het lopen
+// als een spreidstand in plaats van een stap. Hardlopen mag ruimer dan lopen.
+const MAX_HIP_SWING = 0.34, MAX_HIP_SWING_RUN = 0.55;
 const _uq = new THREE.Quaternion();
 // Shaft leans back and in so the canopy centres over the head.
 const UMBRELLA_TILT = new THREE.Quaternion().setFromEuler(new THREE.Euler(-0.06, 0, 0.17));
@@ -1775,7 +1778,7 @@ export function animatePersonWalk(mesh, speed, dt) {
   const idle = 1 - w;
   const dead = Math.abs(mesh.rotation.z) > 1;
 
-  const thighAmp = (0.42 + 0.43 * r) * w;
+  const thighAmp = Math.min(MAX_HIP_SWING + (MAX_HIP_SWING_RUN - MAX_HIP_SWING) * r, (0.42 + 0.43 * r) * w);
   const thighBias = 0.1 * r;
   const kneeSwing = (0.95 + 0.95 * r) * w;
   const kneeStance = (0.08 + 0.25 * r) * w;

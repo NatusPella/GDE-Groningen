@@ -7,7 +7,7 @@ import { speakerHtml } from './speakers.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { buildBuildingMesh, setBuildingMap, setNightFactor } from './models3d_buildings.js';
 import { updateDiscoLamp } from './discolight.js';
-import { buildVehicleMesh, updateVehicleWheelSpin, applyFlatTire, setBusRearAngle, updatePoliceLamps, updateIndicatorLamps, syncPoliceMount, boatHullProfile, riderSeatFor, attachHelmet } from './models3d_vehicles.js';
+import { buildVehicleMesh, updateVehicleWheelSpin, applyFlatTire, setBusRearAngle, updatePoliceLamps, updateIndicatorLamps, syncPoliceMount, boatHullProfile, riderSeatFor, attachHelmet, carBodyFit } from './models3d_vehicles.js';
 import {
   buildVehicleImpactSparkMesh3D, updateVehicleImpactSparkMesh3D,
   vehicleNeedsFireEffect, vehicleSmokeOnly, buildVehicleFireMesh3D, updateVehicleFireMesh3D,
@@ -338,6 +338,26 @@ const CAM_PULL_LIFT = 0.7; // m of extra height when fully pulled in
 let camPull = 1;
 let camPullReset = true;
 const CAM_TARGET_RADIUS = ORBIT_RADIUS * 5 + CAM_CLEARANCE + 2;
+// (#463) De volgcam van de bestuurder hoort buiten de eigen carrosserie te
+// blijven. Trekt een muur of prop hem naar binnen - en in de pauze blijft dat
+// beeld staan - dan wijkt hij boven het dak uit in plaats van in de auto te
+// hangen. Punt en uitkomst in kaartcoördinaten: [x, y, hoogte].
+export function camClearOfVehicle(x, y, h, v, marge = 0.4) {
+  if (!v || !v.model) return [x, y, h];
+  const halfLen = (v.model.len || 0) / 2 + marge;
+  const halfWid = (v.model.wid || 0) / 2 + marge;
+  const dx = x - v.x, dy = y - v.y;
+  const c = Math.cos(v.angle || 0), s = Math.sin(v.angle || 0);
+  const lx = dx * c + dy * s, lz = -dx * s + dy * c;
+  if (Math.abs(lx) >= halfLen || Math.abs(lz) >= halfWid) return [x, y, h];
+  // de echte daklijn van de carrosserie (carBodyFit), en voor de hoge
+  // voertuigen zonder profiel een ruime schatting
+  const fit = carBodyFit(v);
+  const tall = v.model.name === 'truck' || v.model.name === 'foodtruck' || v.model.name === 'trekkerlimo' || v.isBus;
+  const dak = v._mount === 'horse' ? 2.4 : v.isBike || v.isScooter ? 1.3 : fit ? fit.roof : tall ? 3.4 : 1.6;
+  const roof = (v.z || 0) + dak + 0.6;
+  return h < roof ? [x, y, roof] : [x, y, h];
+}
 const camTargetList = [];
 let lastPx = null, lastPy = null;
 const camBase = new THREE.Vector3();
@@ -3103,6 +3123,13 @@ export function update3D(dt, world) {
   if (world.camAdjust) {
     const r = world.camAdjust(desiredX, desiredY, desiredZ, eyeX, eyeY, eyeZ);
     if (r) { desiredX = r[0]; desiredY = r[1]; desiredZ = r[2]; }
+  }
+  // (#463) nooit in de eigen carrosserie: trok een muur de camera naar binnen
+  // (en staat de wereld op pauze, dan blijft dat beeld staan), dan gaat hij
+  // boven het dak langs in plaats van erin
+  if (veh && veh.model && !veh.isBoat && !veh.isHeli) {
+    const q = camClearOfVehicle(desiredX, desiredZ, desiredY, veh);
+    desiredX = q[0]; desiredY = q[1]; desiredZ = q[2];
   }
 
   updateCamTreeHiding(world.map, eyeX, eyeY, eyeZ, desiredX, desiredY, desiredZ);
