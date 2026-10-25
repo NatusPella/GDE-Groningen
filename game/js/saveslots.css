@@ -57,6 +57,10 @@
 #saveslots .ssl-qacts button { height: 48px; padding: 0 16px; font-size: 22px; }
 #saveslots .m-bg.danger { color: var(--redtx); box-shadow: inset 0 0 0 1px rgba(217, 63, 63, 0.7); }
 #saveslots .m-bg.danger:hover { background: rgba(217, 63, 63, 0.14); }
+/* een lange vraag past niet in een kaartje: over het hele paneel, in een eigen vak (#492) */
+#saveslots .ssl-modal { position: absolute; inset: 0; z-index: 4; align-items: center; justify-content: center; padding: 24px; background: rgba(4, 8, 5, 0.72); }
+#saveslots .ssl-modal .ssl-box { display: flex; flex-direction: column; gap: 18px; width: min(640px, 100%); max-height: 100%; overflow-y: auto; padding: 26px 30px; border-radius: 12px; background: #0b130d; box-shadow: inset 0 0 0 1px var(--line), 0 24px 80px rgba(0, 0, 0, 0.55); }
+#saveslots .ssl-modal .ssl-box p { font-size: 20px; line-height: 1.4; color: rgba(240, 237, 228, 0.92); }
 #saveslots .ssl-lbl { display: flex; flex-direction: column; gap: 4px; font-size: 17px; color: var(--mut); }
 #saveslots .ssl-input { height: 48px; padding: 0 12px; border-radius: 8px; color: var(--ink); background: rgba(240, 237, 228, 0.06); box-shadow: inset 0 0 0 1px var(--line2); cursor: text; font-size: 22px; }
 #saveslots .ssl-input:focus { box-shadow: inset 0 0 0 2px var(--g); }

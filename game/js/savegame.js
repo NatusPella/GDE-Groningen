@@ -431,8 +431,9 @@ function placeAt(w, x, y) {
   }
 }
 
-// Samen spelen: zolang er een sessie loopt wordt er niets geladen, want dat vervangt geld en wereld onder de sessie (#452).
-export const COOP_LADEN_TEKST = 'Samen spelen loopt nog. Stop eerst de sessie om een ander spel te laden.';
+// Samen spelen: nieuw spel en het verwijderen van het actieve slot blijven geblokkeerd zolang de sessie
+// loopt (#452). Een ander opgeslagen spel laden mag wel, maar eerst met bevestiging: de sessie eindigt,
+// de voortgang wordt bewaard en pas dan wordt er geladen (cooploadrules.js, #492).
 export const COOP_NIEUW_TEKST = 'Samen spelen loopt nog. Stop eerst de sessie om een nieuw spel te beginnen.';
 export const COOP_WISSEN_TEKST = 'Samen spelen loopt nog. Stop eerst de sessie om dit spel te verwijderen.';
 export const coopSessieLoopt = (w) => !!(w && w.coopNet);
