@@ -753,7 +753,7 @@ export function wedHandleHost(world, body) {
     if (!b.deeln.some((d) => d.slot === mijn)) return false;
     if (b.baan) { // een baanwedstrijd: hij vaart zelf mee in de wereld van de host; alleen de stand en de uitslag komen hier binnen
       G.baan = { id: b.id, deeln: b.deeln, cps: b.cps, v: b.v || null, stand: [], t: 0 }; G.id = b.id;
-      if (world.addMessage) world.addMessage('Je doet mee: stap in je boot en vaar mee.', 4);
+      if (world.addMessage) world.addMessage('Je doet mee: bij het aftellen gaat iedereen samen weg.', 4);
       return true;
     }
     if (!haak.start) return false;

@@ -39,7 +39,7 @@ function baanModel(G) {
   const rijen = b.stand || [];
   const regels = rijen.length
     ? rijen.map((r, i) => `${i + 1}. ${naam(r.slot)}${r.weg ? ': gestopt' : r.slagen ? `: ${fmtTime(r.slagen / 100)}` : `: ${r.banen} van ${b.cps}`}`)
-    : ['Je doet mee. Stap in je boot: bij het aftellen gaat iedereen samen weg.'];
+    : ['Je vaart mee. Bij het aftellen gaat iedereen samen weg.'];
   return { soort: 'baan', titel: regel ? regel.naam : 'Wedstrijd', regels, voet: 'Backspace = stoppen' };
 }
 function uitslagModel(rijen, jij, rol, wie, kanOpnieuw, gevraagd = false) {
