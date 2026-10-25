@@ -28,7 +28,7 @@ ok(/const CHAIN = \{/.test(garages), 'garages.js: de verzonnen ketennamen bestaa
 //    echte plaats erin); een winkel, garage of pomp krijgt LABEL + buurt/plaats.
 const fac = src('facilities.js');
 ok(/const OWN_KINDS = new Set\(\[/.test(fac), 'facilities.js: er is een lijst soorten die de OSM-naam mogen tonen');
-ok(/if \(f\.own && OWN_KINDS\.has\(f\.kind\)\) return f\.own;/.test(fac), 'facilities.js: f.own alleen voor die soorten');
+ok(/if \(f\.own && \(f\.sp \|\| OWN_KINDS\.has\(f\.kind\)\)\) return f\.own;/.test(fac), 'facilities.js: f.own alleen voor de provincielijst en de diensten');
 ok(!/f\.name = f\.own/.test(fac), 'facilities.js: de naam komt uit nameOf(), niet rechtstreeks uit own');
 
 // 4. De data: winkels dragen geen naam, en de namen die er zijn, zijn beschrijvend.
