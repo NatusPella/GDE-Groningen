@@ -89,6 +89,13 @@ function carWheelGeometry(r, w) {
 }
 
 // tireColor: de blauwe banden van de goedkope leenfiets (studentenfiets.js)
+// REFLECTOR: één reflector op de velg (#436). Zonder dat ene merkteken is de draairichting van een
+// fietswiel niet af te lezen: de vier spaakstangen staan 45° uit elkaar en de band en de velg hebben
+// 16 vlakjes (elke 22,5°). Het getekende stuk per beeld loopt bij fietsnelheid op tot 0,34 rad (19,5°),
+// meer dan de helft van 22,5°, dus de velg- en bandvlakjes liepen achteruit terwijl de spaken vooruit
+// gingen: het voorwiel leek achteruit te draaien. Eén asymmetrisch merkteken maakt de richting
+// ondubbelzinnig, net als het donkere moer-merkteken op een autowiel (carWheelGeometry, SPIN_STEP).
+const REFLECTOR = 0xd8452f;
 function bikeWheelGeometry(r, tire, spokes = true, tireColor = TIRE) {
   return cached(`bwheel|${r}|${tire}|${spokes}|${tireColor}`, () => {
     const B = new GeoBuilder(1);
@@ -100,6 +107,9 @@ function bikeWheelGeometry(r, tire, spokes = true, tireColor = TIRE) {
     } else {
       for (let k = 0; k < 5; k++) B.box(0, 0, 0, (r - tire) * 1.9, 0.03, 0.02, 0x3a3a3c, 0, 0, 0, (k / 5) * Math.PI);
     }
+    // de reflector: één blokje op de velg, aan beide kanten van het wiel te zien (breder dan de spaken)
+    const rr = (r - tire) * 0.66, rs = Math.max(0.035, (r - tire) * 0.22);
+    B.box(rr, 0, 0, rs, rs * 0.75, Math.max(0.03, rs * 0.8), REFLECTOR);
     return B.build();
   });
 }
@@ -2591,6 +2601,9 @@ export function stuurOverlay(spec) {
 // wheels with the steering; bike riders pedal in step. The drawn roll per
 // frame is capped below half the spoke spacing, so fast wheels keep turning
 // forwards instead of strobing still or backwards (wagon-wheel effect).
+// A fiets heeft daarnaast één reflector per wiel (bikeWheelGeometry): de velg
+// heeft 16 vlakjes en die liepen bij fietsnelheid achteruit terwijl de spaken
+// vooruit gingen (#436).
 // No-op for meshes without userData.wheels (boats).
 const SPIN_STEP = 0.5;
 const MAX_STEER_ANGLE = 0.5;
