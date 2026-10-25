@@ -32,6 +32,7 @@ import { drawMapIcon } from './hud_panel.js';
 import { klusloon } from './economy.js';
 import { zachtePauze } from './coopgroep.js';
 import { samenWaarschuwing } from './coopstatus.js';
+import { missieMagVanuitMenu, MISSIE_VIA_STARTPUNT } from './coopgast.js';
 
 export const GROUPS = [
   ['missies', 'Missies', 'het verhaal en je klussen'],
@@ -360,6 +361,12 @@ export function playMission(world, i, after = null) {
   const list = getMissionList();
   const m = list[i];
   if (!m) return false;
+  // Samen spelen: een gast start de opdracht niet op zijn eigen scherm (dat is een dunne client); hij vraagt
+  // hem bij het startpunt met E (#452). Zo begint de telefoon of het menu geen opdracht die de wereld niet kent.
+  if (!missieMagVanuitMenu(world)) {
+    world.addMessage(MISSIE_VIA_STARTPUNT, 4);
+    return false;
+  }
   if (isMissionActive()) {
     world.addMessage(activeMissionIndex() === i ? 'Deze missie loopt al' : 'Maak eerst je huidige missie af', 3);
     return false;

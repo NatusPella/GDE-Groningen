@@ -54,5 +54,28 @@ check('aankomsttekst noemt de naam', L.arrivalText(ev).includes(ev.naam));
   check('groepsplek binnen het evenement', Math.hypot(g.x - cc.x, g.y - cc.y) <= 160 && g.n >= 2 && g.n <= 4);
   check('menigtecap > 0', L.crowdPedCap(AGENDA[0]) > 0);
 }
+// een gast ziet en hoort het evenement ook, maar ruimt geen voertuigen op (#452)
+{
+  const keuze = AGENDA.filter((e) => KINDS[e.kind].traffic === 0 && KINDS[e.kind].closure > 50 && e.from <= 40);
+  const proef = (ev, rol) => {
+    const mid = centreOf(ev), d = ev.from, h = (ev.hours[0] + ev.hours[1]) / 2;
+    const w = {
+      coopRole: rol, map: {}, clock: h, time: 0,
+      player: { x: mid.x + 45, y: mid.y }, // binnen de afsluiting, maar verder dan 40 m van de auto
+      vehicles: [{ id: 1, x: mid.x, y: mid.y }, { id: 2, x: mid.x, y: mid.y, playerOwned: true }],
+      messages: [], addMessage(t) { this.messages.push(t); },
+    };
+    L.updateEvenementen(2, w, d);
+    return { w, ev };
+  };
+  const gast = proef(keuze[0], 'client');
+  check('gast: het evenement is actief', gast.w.eventsNow.some((e) => e.id === gast.ev.id));
+  check('gast: het geluid van het evenement', !!gast.w.eventSound && gast.w.eventSound.id === gast.ev.id);
+  check('gast: de aankomstmelding', gast.w.messages.some((m) => m.includes(gast.ev.naam)));
+  check('gast: zijn voertuigen blijven staan', gast.w.vehicles.length === 2, String(gast.w.vehicles.length));
+  const host = proef(keuze[1], 'host');
+  check('gastheer: gewoon verkeer in de afsluiting gaat weg', host.w.vehicles.length === 1 && host.w.vehicles[0].id === 2, host.w.vehicles.map((v) => v.id).join());
+  check('gastheer: ook evenementen en geluid', host.w.eventsNow.some((e) => e.id === host.ev.id) && !!host.w.eventSound);
+}
 console.log(`evenementenlive_test: ${n - bad}/${n} ok`);
 process.exit(bad ? 1 : 0);

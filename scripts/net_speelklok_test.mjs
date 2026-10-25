@@ -13,6 +13,14 @@ near(hourDiff(23.5, 0.5), 1, 1e-9, 'over middernacht');
 near(hourDiff(1, 23), -2, 1e-9, 'terug over middernacht');
 const ev = klokEvent({ clock: 13.25, time: 100 });
 eq(leesKlokEvent(ev), { t: 100, uur: 13.25 }, 'klok-event rondreis');
+// de kalenderdag van de groep gaat mee (#452, evenementen); een oude gastheer stuurt hem niet
+eq(leesKlokEvent(klokEvent({ clock: 9, time: 5, calendar: { day: 12 } })), { t: 5, uur: 9, dag: 12 }, 'dag rondreis');
+eq(leesKlokEvent({ k: 'klok', t: 1, uur: 3, dag: 999 }), { t: 1, uur: 3 }, 'onzin-dag telt niet mee');
+eq(leesKlokEvent({ k: 'klok', t: 1, uur: 3, dag: 'x' }), { t: 1, uur: 3 }, 'geen getal');
+const kv = new KlokVolger();
+eq(kv.dag(), null, 'zonder melding geen dag');
+kv.observe(leesKlokEvent({ k: 'klok', t: 1, uur: 3, dag: 12 }), 0);
+eq(kv.dag(), 12, 'de volger onthoudt de dag');
 eq(leesKlokEvent({ k: 'klok', t: 1, uur: 24 }), null, 'uur 24 is ongeldig');
 eq(leesKlokEvent({ k: 'klok', t: NaN, uur: 3 }), null, 'NaN');
 eq(leesKlokEvent(null), null, 'null');

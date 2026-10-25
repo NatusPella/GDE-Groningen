@@ -111,7 +111,7 @@ export function updateEvenementen(dt, world, n) {
     if (!seen.includes(here.ev.id)) world.addMessage(arrivalText(here.ev), 5);
     seen = markSeen(st, seen, here.ev.id);
   }
-  if (world.eventsNow.length && Array.isArray(world.vehicles)) {
+  if (world.coopRole !== 'client' && world.eventsNow.length && Array.isArray(world.vehicles)) { // een gast ruimt niets op: zijn voertuigen komen uit het snapshot (#452)
     for (const v of vehiclesToClear(world.vehicles, p, n, hour)) {
       const i = world.vehicles.indexOf(v);
       if (i >= 0) world.vehicles.splice(i, 1);
