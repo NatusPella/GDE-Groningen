@@ -10,6 +10,7 @@ import { SKATE_LINES } from './minigamelines.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
 import { skateFx, pushFoley } from './sfx/minigamefoley.js';
 import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHostPunt, wedGastPunt, wedScoreStop, wedGastVerlaat, wedGastReset, wedScoreRijen } from './coopwedstrijd.js';
+import { maakBeurten, beurtKlaar, beurtNu, somVan } from './coopwedstrijdpunt.js';
 import {
   FEATURES, PARK, RUN_S, MEDAL_AT, SKATE, createBoard as createBoardState, createCombo, stepBoard, scoreEvents, tickCombo, bankCombo, skateMedal, TRICK_NAMES,
 } from './skatetricks.js';
@@ -17,7 +18,8 @@ import {
 // Skatepark Stadspark: the skatepark of the real park (OSM "Skatepark
 // Stadspark"), a little widened to a concrete floor with a quarter pipe at
 // each end, two kickers, a fun box with ledges and two rails. You ride a
-// skateboard for 90 seconds: W pushes, S brakes (in the air: grab), A/D steer
+// skateboard for 90 seconds (against others: two runs of 45 s, the points
+// add up): W pushes, S brakes (in the air: grab), A/D steer
 // (in the air: spin), Space is the ollie, E a kickflip and F a heelflip.
 // Over a rail or a ledge you lock on and grind: hold the balance with A/D.
 // Tricks multiply with the number of different ones in the chain, a clean landing
@@ -32,6 +34,8 @@ const STAND = FR.toW(-29, 0);
 const USE_RADIUS = 3;
 const DETAIL_M = 420;
 const INTRO_S = 1.6, OUTRO_S = 2.8;
+const WED_RUNS = 2;                       // een wedstrijd tegen elkaar (#443): twee runs van 45 s, de punten tellen op
+const WED_RUN_S = Math.round(RUN_S / WED_RUNS); // per run de helft: samen even lang als een solo-ronde
 const DECK = 1.2;
 
 let game = null;
@@ -256,11 +260,12 @@ function start(w, { force = false, online = null } = {}) {
   built.bd.visible = true;
   built.skater.visible = true;
   runs++;
-  game = { t: 0, phase: 'intro', phaseT: INTRO_S, left: RUN_S, b, combo: createCombo(), flash: null, cam: null, said: 0, lastNames: '', bigAir: false, prevCine: w.cinematicHidePlayers, online };
+  const beurten = online ? maakBeurten(WED_RUNS) : null, runS = online ? WED_RUN_S : RUN_S;
+  game = { t: 0, phase: 'intro', phaseT: INTRO_S, left: runS, runS, beurten, b, combo: createCombo(), flash: null, cam: null, said: 0, lastNames: '', bigAir: false, prevCine: w.cinematicHidePlayers, online };
   place(w, 0);
   const side = FR.toW(-PARK.hu - 2, PARK.hv + 1);
   w.companionHold = { x: side.x, y: side.y, face: ROT };
-  if (online !== 'gast') showCard(w, { kind: 'tip', kicker: 'Skatepark', title: 'Negentig seconden', body: '[W] duwen, [A] [D] sturen en draaien, [Spatie] ollie, [E] kickflip, [F] heelflip, [S] in de lucht een grab. Op een leuning: houd je balans met [A] [D].', duration: 10, key: 'skatepark-help', voice: false });
+  if (online !== 'gast') showCard(w, { kind: 'tip', kicker: 'Skatepark', title: online ? 'Twee beurten' : 'Negentig seconden', body: `[W] duwen, [A] [D] sturen en draaien, [Spatie] ollie, [E] kickflip, [F] heelflip, [S] in de lucht een grab. Op een leuning: houd je balans met [A] [D].${online ? ' Twee beurten van 45 seconden: de punten tellen op.' : ''}`, duration: 10, key: 'skatepark-help', voice: false });
   say(w, 'start', true);
   return true;
 }
@@ -341,7 +346,7 @@ function updateGame(w, dt) {
   }
   if (g.phase === 'intro') {
     g.phaseT -= dt;
-    if (g.phaseT <= 0) { g.phase = 'run'; g.left = RUN_S; }
+    if (g.phaseT <= 0) { g.phase = 'run'; g.left = g.runS; }
   } else if (g.phase === 'run') {
     g.left -= dt;
     if (g.left <= 0) {
@@ -353,9 +358,32 @@ function updateGame(w, dt) {
   } else if (g.phase === 'outro') {
     g.phaseT -= dt;
     if (g.combo.chain && g.b.grounded) bankCombo(g.combo);
-    if (g.phaseT <= 0) { end(w); return; }
+    if (g.phaseT <= 0) {
+      if (g.beurten && volgendeRun(w)) return; // nog een run in de wedstrijd (#443)
+      end(w); return;
+    }
   }
   place(w, dt);
+}
+
+// Eén run van een wedstrijd is klaar: de punten van deze beurt gaan naar het bord van wie het spel opende, en de volgende run
+// begint opnieuw in hetzelfde park (de som telt). Geeft false als dit de laatste run was: dan ruimt end() de wedstrijd op.
+function volgendeRun(w) {
+  const g = game;
+  const score = Math.round(g.combo.total);
+  const r = beurtKlaar(g.beurten, score);
+  const beurt = beurtNu(g.beurten) - 1;
+  if (g.online && !g.gemeld) {
+    if (g.online === 'host') wedHostPunt(w, beurt, score); else wedGastPunt(w, beurt, score);
+    if (!r.volgende) g.gemeld = true; // de laatste beurt is gemeld: end() meldt hem niet nog eens
+  }
+  if (!r.volgende) return false;
+  g.b = createBoardState(); g.b.u = -PARK.hu + 4; g.b.v = 0; g.b.a = 0;
+  g.combo = createCombo(); g.acc = 0; g.said = 0; g.flash = null;
+  g.phase = 'intro'; g.phaseT = INTRO_S; g.left = g.runS;
+  w.addMessage(`Beurt ${beurtNu(g.beurten) + 1} van ${g.beurten.beurten}: ${score.toLocaleString('nl-NL')} punten`, 3);
+  say(w, 'start', true);
+  return true;
 }
 
 function onEvent(w, e) {
@@ -382,7 +410,10 @@ function end(w, { quit = false, extern = false, uitslag = null } = {}) {
   const c = g.combo;
   if (c.chain) bankCombo(c);
   const score = c.total;
-  if (g.online && !quit) { if (g.online === 'host') wedHostPunt(w, 0, Math.round(score)); else wedGastPunt(w, 0, Math.round(score)); } // zijn beurt gaat naar wie het spel opende
+  if (g.online && !quit && !g.gemeld) { // zijn beurt gaat naar wie het spel opende (bij twee runs meldt volgendeRun elke run)
+    const beurt = g.beurten ? beurtNu(g.beurten) : 0;
+    if (g.online === 'host') wedHostPunt(w, beurt, Math.round(score)); else wedGastPunt(w, beurt, Math.round(score));
+  }
   if (g.online) { eindeOnline(w, g, quit, extern, uitslag); return; }
   if (quit) { w.addMessage('Skatepark gestopt', 2.5); return; }
   const medal = skateMedal(score);
@@ -441,11 +472,13 @@ function updateHud(w) {
   const g = game;
   if (!g || !board) return;
   const c = g.combo;
-  const left = g.phase === 'run' ? Math.ceil(g.left) : g.phase === 'intro' ? RUN_S : 0;
+  const left = g.phase === 'run' ? Math.ceil(g.left) : g.phase === 'intro' ? g.runS : 0;
   const cur = Math.round(c.cur);
   const online = g.online ? wedScoreRijen(w) : [];
   const stand = online.length ? `<span>${online.map((r) => `${r.weg ? '<s>' : ''}${r.naam} ${(r.slagen || 0).toLocaleString('nl-NL')}${r.weg ? '</s>' : ''}`).join(' · ')}</span>` : '';
-  const row = `${stand}<span>Tijd <b>${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}</b></span><span>Score <b>${c.total.toLocaleString('nl-NL')}</b></span><span>Keten <b>${cur.toLocaleString('nl-NL')}</b> x${c.chain ? c.mult : 1}</span><span>Beste <b>${c.best.toLocaleString('nl-NL')}</b></span>`;
+  const run = g.beurten ? `<span>Beurt <b>${Math.min(g.beurten.beurten, beurtNu(g.beurten) + 1)}/${g.beurten.beurten}</b></span>` : '';
+  const scoreTxt = g.beurten ? `${(somVan(g.beurten) + c.total).toLocaleString('nl-NL')}` : c.total.toLocaleString('nl-NL'); // de som van de runs tot nu toe
+  const row = `${stand}${run}<span>Tijd <b>${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}</b></span><span>${g.beurten ? 'Totaal' : 'Score'} <b>${scoreTxt}</b></span><span>Keten <b>${cur.toLocaleString('nl-NL')}</b> x${c.chain ? c.mult : 1}</span><span>Beste <b>${c.best.toLocaleString('nl-NL')}</b></span>`;
   let meter = null, flash = g.flash ? g.flash.text : g.phase === 'intro' ? 'Daar gaan we...' : g.phase === 'outro' ? 'Tijd!' : '';
   if (g.b.grind) {
     meter = { v: 0.5 + g.b.grind.bal / 2.4, mark: 0.5, color: Math.abs(g.b.grind.bal) > 0.65 ? '#d93f3f' : ACCENT };
@@ -457,7 +490,7 @@ function updateHud(w) {
 
 // --- the activity ---------------------------------------------------------------------------------------------
 
-// --- de wedstrijd tegen elkaar (#443): iedereen skatet zijn eigen ronde, wie het spel opende houdt het scorebord ------------------------------
+// --- de wedstrijd tegen elkaar (#443): iedereen skatet zijn eigen runs (twee van 45 s, de punten tellen op), wie het spel opende houdt het scorebord ------------------------------
 
 function gastTik(w, dt) {
   if (!game || game.online !== 'gast') return false;
@@ -467,7 +500,7 @@ function gastTik(w, dt) {
 }
 registreerWedstrijd('skatepark', {
   naam: 'Skatepark Stadspark', soort: 'punt', vak: 'buiten',
-  opties: () => ({ beurten: 1, format: (p) => `${Math.round(p).toLocaleString('nl-NL')} punten` }),
+  opties: () => ({ beurten: WED_RUNS, naEerste: 150, format: (p) => `${Math.round(p).toLocaleString('nl-NL')} punten` }), // 150 s: iedereen krijgt de kans om beide runs af te maken
   start: (w) => start(w, { online: 'host', force: true }),
   plek: () => ({ ...STAND }),
   gastPlek: (w, x, y) => !game && !w.player.inVehicle && Math.hypot(x - STAND.x, y - STAND.y) < 4.5, // een gast vraagt het bij de ingang (#452)

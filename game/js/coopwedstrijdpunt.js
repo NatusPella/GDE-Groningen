@@ -93,6 +93,21 @@ export function beloningPunt(rij) {
   return { geld: PRIJZEN_PUNT[rij.plek] | 0, xp: Math.max(4, 16 - rij.plek * 2) };
 }
 
+// Een spel met meer dan één beurt (skatepark: twee runs, de punten tellen op): de spelerskant houdt zelf bij welke beurt hij doet
+// en meldt elke beurt apart aan de host (meldPunt met de beurt-index). Puur, zodat de beurtelling zonder DOM te testen is.
+export function maakBeurten(beurten) {
+  return { beurten: clamp(beurten | 0, 1, MAX_BEURTEN_PUNT), gehad: [] };
+}
+export const somVan = (st) => (st && Array.isArray(st.gehad) ? st.gehad.reduce((a, v) => a + v, 0) : 0);
+export const beurtNu = (st) => (st && Array.isArray(st.gehad) ? st.gehad.length : 0);
+// Deze beurt is klaar met `punten`: geef terug of er nog een beurt volgt en wat de som tot nu toe is. Na de laatste beurt telt niets meer.
+export function beurtKlaar(st, punten) {
+  if (!st || !Array.isArray(st.gehad) || st.gehad.length >= st.beurten) return { volgende: false, som: somVan(st) };
+  const p = Number(punten);
+  st.gehad.push(Number.isFinite(p) ? clamp(Math.round(p), 0, MAX_PUNT) : 0);
+  return { volgende: st.gehad.length < st.beurten, som: somVan(st) };
+}
+
 // De berichten: de stand voor iedereen die meedoet (~2 keer per seconde als er iets veranderde). Zelfde vorm als golf en tijd:
 // [slot, beurten af, punten, 0 (geen rel), weg], zodat leesStand en het bord bij een gast hetzelfde blijven lezen.
 export function standEventPunt(sc) {
