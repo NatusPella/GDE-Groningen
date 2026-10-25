@@ -699,3 +699,34 @@ teruggeeft; ook dat `writeWorld` het blok in `index.json` zet.
 *Wat open blijft.* De lezers zelf: `shops.js`, `horeca.js`, `garages.js`, `facilities.js` en de andere gebruikers van de
 hele lijsten vragen nog steeds de samengevoegde `map.meta` (C1/B6). Het blok maakt die omzetting mogelijk zonder de
 tegelindeling opnieuw te hoeven afleiden.
+
+## Vervolg op #314 (25 oktober 2026, ronde 2): de bestemmingslezers en de watertweeling
+
+**Gedaan: de laatste bestemmingslezers op de laag.** `facilities.js` heeft naast `poiLayerPlaces(map, naam)` (een lijst) nu
+`poiLayerPlace(map, naam)` (een losse plaats: het ziekenhuis, de helikopterplek); beide vragen de tegels van de laag uit
+`index.pois.layers` en tellen de `poiRest`-plaatsen erbij, met `map.meta` als terugval (geen tegelindex, een tegel niet in,
+of een wereld zonder tegelstore). De namen mogen een punt hebben (`pois.health`). Omgezet zijn de lezers die alleen lezen:
+`emergency.js` en `respawn.js` (ziekenhuis), `skyprops.js`, `routing.js`, `models3d_buildings.js` en `pigeonmode.js`
+(helikopterplek), `routing.js`, `spotcheck.js`, `streetlife.js` en `sidejob_rechtbank.js` (politiebureaus; `spotcheck.js`
+ook zorglocaties), `junctions.js` (verkeerslichten), `spotcheck.js` (ziekenhuis) en `pedroutes.js` (`pois.health`). Wat nog
+op de hele `map.meta`-lijst leest zijn de lezers die hem ook *bijwerken* (`horeca.js` zet de straatkant terug, zie
+hierboven) en de twee grote naamlijsten (`landmarks`, `neighbourhoodPoints`: 20+15 modules, dat is B8).
+
+**Gedaan: de watertweeling in de gepinde set (C2, stap a).** Het gestreamde pad laat een plas die twee keer gemapt is
+helemaal weg (`addTile`, `waterdupes.js` #231); de gepinde set kan dat niet, want de arrays zijn op `gid` gesorteerd en
+moeten dicht blijven. `TileWorld.fromTiles` merkt de tweeling nu: `dropWaterDuplicates` over `map.water` (zelfde regel als
+het gestreamde pad), de rij blijft in de array maar gaat uit `waterGrid` (`waterNear`, `waterAt`, de minimap) en
+`map.duplicateWater` noemt hem, zodat `scene3d.js` (`waterRows`) hem niet in het terrein tekent. Zo geeft de stad dezelfde
+antwoorden als een stad die helemaal uit gestreamde tegels bestaat.
+
+*Bewijs.* `scripts/poilagenlezers_test.mjs` (nieuw blok) leest het ziekenhuis, de helikopterplek, de politiebureaus, de
+zorglocaties, de verkeerslichten en `pois.health`/`pois.money` uit de tegels van hun laag, met de terugval op `map.meta`
+en nooit een halve lijst. `scripts/tileworld_pinned_test.mjs` (10 checks) bewijst de tweeling: twee rijen blijven in
+`map.water`, één komt in `duplicateWater`, `waterNear` vindt de plas één keer, en een ander peil of een andere vaarklasse
+is geen tweeling. `poisections_test` (32), `world_tiles_test`, `tileworld_test`, `import_cycles_test` en
+`voice_coverage` blijven groen.
+
+*Wat open blijft.* C1 (de hele-array-modules) en de naamlaag B8; de stap die C2 nog nodig heeft: het spoor en de
+verkeerslichten buiten de oude kaartrand uit de tegels halen in plaats van uit `meta.bounds` (stap b), daarna de
+stadsdekking gelijk aan de stadstegels zetten (stap c). Niet bekeken in beeld: de watertweeling is met de bestaande
+wereld niet gemeten (geen `game/world` in deze werkboom), dus of de stad vandaag zulke tweetelingen heeft, is niet geteld.
