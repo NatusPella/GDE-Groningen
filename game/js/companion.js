@@ -470,11 +470,25 @@ function moveWithCollisions(c, dt, world) {
 
 // Samen spelen (#366): de figuur van een derde of vierde speler loopt met dezelfde botsingen als de metgezel
 // (rekwisieten, voetgangers, hekken, gebouwen) en komt niet in het water; world.coopMove wordt in initCompanion gezet.
+// De sub-stappen volgen de afgelegde afstand (hoogstens een halve straal per stap): een lange frame tunnelt zo niet
+// door een dunne muur of hek heen. De bovengrens houdt een enorme stap betaalbaar.
+const FIGUUR_STAP_DEEL = 0.5;    // van de straal: de kleinste sub-stap
+const FIGUUR_STAPPEN_MAX = 32;   // sub-stappen per frame
+const FIGUUR_DROOG_TERUG_M = 15; // m: zover mag de laatste droge plek terugliggen
 export function moveFigure(f, dt, world) {
   const map = world.map;
   if (!map) { f.x += f.vx * dt; f.y += f.vy * dt; return; }
   if (!Number.isFinite(f.radius)) f.radius = RADIUS;
-  const steps = Math.max(1, Math.min(8, Math.ceil(Math.hypot(f.vx, f.vy) * dt / (f.radius * 0.9))));
+  // Staat hij al in het water (na een sprong van de gastheer of een plek naast de gracht)? Dan terug naar de laatste
+  // droge plek in de buurt en niet verder het water in; is die er niet, dan blijft hij staan tot de band hem terugzet.
+  if (isInWater(map, f.x, f.y)) {
+    const terug = Number.isFinite(f.droogX) && Number.isFinite(f.droogY) && !isInWater(map, f.droogX, f.droogY)
+      && dist(f.x, f.y, f.droogX, f.droogY) <= FIGUUR_DROOG_TERUG_M;
+    if (terug) { f.x = f.droogX; f.y = f.droogY; }
+    f.vx = 0; f.vy = 0;
+    if (isInWater(map, f.x, f.y)) return; // nergens droog in de buurt: coopnet.js bandFiguren zet hem bij de groep
+  }
+  const steps = Math.max(1, Math.min(FIGUUR_STAPPEN_MAX, Math.ceil(Math.hypot(f.vx, f.vy) * dt / (f.radius * FIGUUR_STAP_DEEL))));
   const sdt = dt / steps;
   for (let i = 0; i < steps; i++) {
     let nx = f.x + f.vx * sdt, ny = f.y + f.vy * sdt;
@@ -482,19 +496,21 @@ export function moveFigure(f, dt, world) {
     [nx, ny] = pushOutOfPeds(nx, ny, f.radius, world);
     [nx, ny] = resolveRailings(nx, ny, f.radius, map);
     [nx, ny] = resolveBuildingCollisions(nx, ny, f.radius, map, 0, true);
-    if (isInWater(map, nx, ny) && !isInWater(map, f.x, f.y)) {
+    if (isInWater(map, nx, ny)) { // de kant op, niet erin: langs de waterkant schuiven
       if (!isInWater(map, nx, f.y)) ny = f.y;
       else if (!isInWater(map, f.x, ny)) nx = f.x;
       else { nx = f.x; ny = f.y; }
     }
     f.x = nx; f.y = ny;
   }
-  // op de ring (elevation.js): blijf op het dek of in de bak waar je staat, achter de wanden, zoals de metgezel (followGround)
+  // op de ring (elevation.js): blijf op het dek of in de bak waar je staat, achter de wanden, zoals de metgezel (followGround);
+  // met ?terrain (#269) dezelfde muurregel als Tessa (map.resolveWalls)
   if (map.elev && map.elev.has) {
-    const hint = f.gz || 0, w = resolveElevWalls(map.elev, f.x, f.y, hint, f.radius);
+    const hint = f.gz || 0, w = map.terrainOn ? map.resolveWalls(f.x, f.y, hint, f.radius) : resolveElevWalls(map.elev, f.x, f.y, hint, f.radius);
     if (w) [f.x, f.y] = w;
     f.gz = map.groundHeightAt(f.x, f.y, hint);
   }
+  if (!isInWater(map, f.x, f.y)) { f.droogX = f.x; f.droogY = f.y; } // de plek om naar terug te keren als hij toch nat wordt
 }
 
 // Staat een figuur hier op droog land, buiten gebouwen? (coopnet.js: de terugzetplek en een figuur die vastzit in water of muur)
