@@ -411,6 +411,8 @@ body.cine-tint-bust:not(.gpu-screenfx) #game3d { filter: grayscale(1) brightness
 #cine.show-skip.active .cine-skip { opacity: 1; transition: opacity 0.4s 0.8s; }
 /* a scene that keeps the HUD up (death, busted): bottom centre, clear of the minimap */
 body:not(.cine-hide-hud) #cine .cine-skip { right: 50%; bottom: calc(14px * var(--ui, 1)); transform: translateX(50%); }
+#cine.has-sub .cine-skip { bottom: calc(var(--bar) * 0.5 + 64px * var(--ui, 1)); } /* niet over de ondertitel (#463) */
+body:not(.cine-hide-hud) #cine.has-sub .cine-skip { bottom: calc(14px * var(--ui, 1) + 64px * var(--ui, 1)); }
 #cine .cine-skip { gap: 6px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 14px; letter-spacing: 0.3px; }
 #cine .cine-skip .hud-key { margin-right: 0; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 1px; }
 #cine .cine-skip-ring { width: 20px; height: 20px; transform: rotate(-90deg); }
