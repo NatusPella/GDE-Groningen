@@ -2,7 +2,7 @@
 // (zeeschepen.js) houdt er hooguit ZEE_MAX rond de speler, alleen op zee, met variatie in soort en kleur, en ruimt ze op.
 //   node scripts/zeeschepen_test.mjs
 import './node3d.mjs';
-import { pickZeeschip, zeeModel, manageSeaShips, resetZeeschepen, isZee, ruimteVoor, waterPast, inZicht, ZEE_MAX, ZEE_WEG, ZEE_TIK_S, ZEE_RAND } from '../game/js/zeeschepen.js';
+import { pickZeeschip, zeeModel, manageSeaShips, resetZeeschepen, isZee, ruimteVoor, waterPast, inZicht, schipInZicht, ZEE_MAX, ZEE_WEG, ZEE_TIK_S, ZEE_RAND } from '../game/js/zeeschepen.js';
 import { BOAT_KINDS, boatSeats, boatCrewCount } from '../game/js/boattypes.js';
 import { BOAT_CLASS, AIR_DRAFT, DRAFT } from '../game/js/waterlevels.js';
 
@@ -123,16 +123,16 @@ const tik = (w, sec, r = seeded(5), e = env) => { for (let t = 0; t < sec; t += 
   check('een schip komt er niet bij in je blikveld', w.vehicles.length === 0);
   check('inZicht ziet de kijkhoek van de speler', inZicht(w, 500, 0) === true && inZicht({ player: { x: 0, y: 0 } }, 500, 0) === false);
 
-  // ver weg maar in beeld: blijven staan; heel ver weg: opruimen
+  // ver weg maar in beeld: blijven staan; heel ver weg (buiten elke tekenafstand): opruimen
   resetZeeschepen();
   const w2 = wereld([zee]);
   w2.pedView = { inView: () => true };
   w2.vehicles.push(schip(ZEE_WEG + 200));
   manageSeaShips(w2, ZEE_TIK_S + 0.1, env, () => 0.99);
   check('een schip achter de horizon maar in beeld blijft staan', w2.vehicles.length === 1);
-  w2.vehicles[0].x = ZEE_WEG * 1.5 + 50;
+  w2.vehicles[0].x = ZEE_WEG * 4 + 50;
   manageSeaShips(w2, ZEE_TIK_S + 0.1, env, () => 0.99);
-  check('heel ver weg wordt het opgeruimd', w2.vehicles.length === 0);
+  check('heel ver weg wordt het opgeruimd, ook in beeld', w2.vehicles.length === 0);
 
   // buiten beeld ruimt het al bij ZEE_WEG op
   resetZeeschepen();
@@ -140,6 +140,45 @@ const tik = (w, sec, r = seeded(5), e = env) => { for (let t = 0; t < sec; t += 
   w3.vehicles.push(schip(ZEE_WEG + 200));
   manageSeaShips(w3, ZEE_TIK_S + 0.1, env, () => 0.99);
   check('buiten beeld ruimt een schip bij ZEE_WEG op', w3.vehicles.length === 0);
+}
+// ---- een containerschip van 92 m steekt met zijn boeg in beeld (#436): het middelpunt telt niet alleen
+{
+  const schip = (x, extra = {}) => Object.assign(new V(x, 0, BOAT_KINDS.zeeContainer), { angle: 0, zeeSchip: true, ...extra });
+  const smal = { pedView: { inView: (x) => x >= 100 && x <= 120 } }; // alleen dat stukje van de wereld is in beeld
+  const w = wereld([zee]);
+  w.pedView = smal.pedView;
+  check('het middelpunt buiten beeld, de boeg erin: toch in zicht', schipInZicht(w, schip(150)) === true);
+  check('de achtersteven in beeld telt ook', schipInZicht(w, Object.assign(schip(150), { angle: Math.PI })) === true);
+  check('helemaal buiten beeld: niet in zicht', schipInZicht(w, schip(400)) === false);
+  check('een schip zonder geldige plek of maat is niet in zicht', schipInZicht(w, { x: NaN, y: 0 }) === false && schipInZicht(w, schip(150, { model: null })) === false);
+
+  // een halve romp in beeld komt er niet bij
+  resetZeeschepen();
+  let kreeg = 0;
+  const env2 = { ...env, spawnBoatOnWater: () => { kreeg++; return schip(150); } };
+  const w2 = wereld([zee]);
+  w2.pedView = smal.pedView;
+  tik(w2, 300, () => 0.1, env2);
+  check('met de boeg in beeld komt er geen schip bij', kreeg > 0 && w2.vehicles.length === 0, `${kreeg} pogingen`);
+
+  // een wrak dat je ziet blijft liggen; uit beeld gaat het weg
+  resetZeeschepen();
+  const w3 = wereld([zee]);
+  w3.pedView = { inView: () => true };
+  w3.vehicles.push(schip(300, { wrecked: true }));
+  manageSeaShips(w3, ZEE_TIK_S + 0.1, env, () => 0.99);
+  check('een wrak in beeld verdwijnt niet onder je ogen', w3.vehicles.length === 1);
+  w3.vehicles[0].wrecked = true; w3.pedView = { inView: () => false };
+  manageSeaShips(w3, ZEE_TIK_S + 0.1, env, () => 0.99);
+  check('een wrak uit beeld wordt opgeruimd', w3.vehicles.length === 0);
+}
+// ---- een spawner zonder model laat het beheer niet stuklopen (#436)
+{
+  resetZeeschepen();
+  const env2 = { ...env, spawnBoatOnWater: () => ({ x: 800, y: 0, isBoat: true }) };
+  const w = wereld([zee]);
+  tik(w, 300, () => 0.1, env2);
+  check('een schip zonder model levert geen schip en geen fout op', w.vehicles.length === 0);
 }
 {
   resetZeeschepen();
