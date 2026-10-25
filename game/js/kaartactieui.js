@@ -1,7 +1,7 @@
 // De opmaak van de actiebalk, de reiskeuze en de uitleg op de kaart (#445). Alleen
 // tekenreeksen en stijl; mapview.js zet ze in de kaartkaart en regelt de kliks.
 // De tekst en de regels zitten in kaartactie.js.
-import { KAART_UITLEG, GAST_UITLEG, HIER_TITEL, HIER_HINT } from './kaartactie.js';
+import { KAART_UITLEG, GAST_UITLEG, HIER_TITEL, HIER_HINT, legendaRegels } from './kaartactie.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const svg = (d) => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${d}"/></svg>`;
@@ -37,6 +37,13 @@ export function uitlegHtml({ gast = false } = {}) {
     '</ul><button type="button" class="mapview-btn" data-act="uitleg-sluit">Begrepen</button><small>Terug te vinden onder Besturing › Hulp.</small></div>';
 }
 
+// De legenda bovenaan het luik Lagen (#445): wat een klik doet en, voor een
+// gast, wat er in Samen spelen wel en niet kan. data-gast laat mapview.js hem
+// verversen als je rol verandert.
+export function legendaHintHtml({ gast = false } = {}) {
+  return `<div class="mv-leg-hint" data-gast="${gast ? 1 : 0}">` + legendaRegels({ gast }).map((l) => `<p class="hint">${esc(l)}</p>`).join('') + '</div>';
+}
+
 // de kaart als je op jezelf klikt: geen waypoint naar je eigen plek, wel waar je staat
 export function hierHtml(plek = '') {
   return `<div class="mv-hier"><b>${esc(HIER_TITEL)}</b>${plek ? `<p class="mv-hier-plek">${esc(plek)}</p>` : ''}<p class="mv-note">${esc(HIER_HINT)}</p></div>`;
@@ -70,4 +77,7 @@ export const KAART_ACTIE_CSS = `
 .mapview-overlay .mv-uitleg b { display: block; font: 17px 'Bebas Neue', Arial, sans-serif; letter-spacing: 1px; font-weight: normal; }
 .mapview-overlay .mv-uitleg ul { margin: 4px 0 8px 16px; padding: 0; }
 .mapview-overlay .mv-uitleg small { display: block; margin-top: 6px; color: rgba(240,237,228,0.65); }
+.mapview-legend .mv-leg-hint { margin: 0 2px 8px; }
+.mapview-legend .mv-leg-hint .hint { margin: 0 0 2px; }
+.mapview-legend .mv-leg-hint .hint:last-child { margin-bottom: 0; }
 `;
