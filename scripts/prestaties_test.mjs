@@ -29,4 +29,13 @@ const retired = ACHIEVEMENTS.filter((a) => a.retired);
 check('15 prestaties van 5 vervallen missies zijn retired', retired.length === 15 && MISSION_GOALS.filter((g, i) => isRetiredMission(i)).length === 5, String(retired.length));
 check('totaal telt de vervallen prestaties niet', getAchievementSummary().total === ACHIEVEMENTS.length - retired.length);
 check('overzicht verbergt ze', getAchievementView().flatMap((c) => c.items).every((i) => !retired.some((a) => a.id === i.id)));
+
+// #435: de hele kaart verkend telt de bezochte buurten (gebieden.js), en de gebieden hangen met ringen aan de prestaties
+const ach = read('achievements.js'), ui = read('achievementsui.js'), tr = read('achievementtracker.js'), gb = read('gebieden.js');
+check('kaart_alle telt de bezochte buurten', by.get('kaart_alle').stat === 'kaartVerkend' && by.get('kaart_alle').goal === 100);
+check('de vijf lagen hebben elk een prestatie', ['buurt', 'wijk', 'woonplaats', 'gemeente', 'provincie'].every((laag) => by.get(`gebied_${laag}`) && by.get(`gebied_${laag}`).stat === `gebied_${laag}`));
+check('de ringen komen uit de gebiedenstand', ach.includes('export function setGebiedStand') && tr.includes('setGebiedStand(gebiedStand)') && ui.includes('gebiedenBlock') && ui.includes("from './gebiedenlive.js'"));
+check('de tracker telt de bezochte buurt en het deel van de kaart', tr.includes('bezoekPlek') && /setStatMax\(w, 'kaartVerkend'/.test(tr));
+check('de kaart telt buurten, geen mist', gb.includes('export function kaartVerkend') && gb.includes('export function bezoek') && gb.includes('MAX_BEZOEKT'));
+check('de prestaties van een laag tonen de laag als ring', /if \(s && a\.goal === 1\) \{ cur = s\.klaar; goal = s\.totaal; \}/.test(ach));
 process.exit(fail ? 1 : 0);

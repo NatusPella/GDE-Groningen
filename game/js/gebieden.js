@@ -18,6 +18,7 @@ import { ankerVan } from './ankerpunten.js';
 export const SLEUTEL_VERSIE = 2;     // 2: de indeling is de echte (v1 was wijkpunten, plaatsen en streken): oude beloningen en huizen vervallen
 export const MIN_TAKEN = 2;          // een gebied met minder dan twee dingen te doen is niet te veroveren
 const MAX_GEDAAN = 2000;
+const MAX_BEZOEKT = 1200;            // de buurten waar je geweest bent (#435); de provincie heeft er ruim 600
 const MAX_ID = 80;
 
 export const SOORTEN = [
@@ -163,7 +164,7 @@ export function kiesTaak(ind, sleutel, x, y) {
 
 // --- het profiel van de speler -------------------------------------------------------------------------------------
 
-export const nieuwProfiel = () => ({ v: SLEUTEL_VERSIE, gedaan: [], beloond: [], huizen: [] });
+export const nieuwProfiel = () => ({ v: SLEUTEL_VERSIE, gedaan: [], beloond: [], huizen: [], bezocht: [] });
 
 const lijstVan = (a, max) => (Array.isArray(a) ? [...new Set(a.filter((x) => typeof x === 'string' && x && x.length <= MAX_ID + 2))].slice(0, max) : []);
 
@@ -174,6 +175,7 @@ export function normaliseer(raw) {
   const p = nieuwProfiel();
   if (!d || typeof d !== 'object' || (d.v !== SLEUTEL_VERSIE && d.v !== 1)) return p;
   p.gedaan = lijstVan(d.gedaan, MAX_GEDAAN);
+  p.bezocht = lijstVan(d.bezocht, MAX_BEZOEKT); // oud of zonder bezoeken: leeg, de kaart begint waar je nu bent
   // v1 had een andere indeling (wijkpunten, plaatsen, streken): wat je deed (de taken) blijft, de gebieden zijn nieuw en worden opnieuw gezaaid
   if (d.v === SLEUTEL_VERSIE) {
     p.beloond = lijstVan(d.beloond, 600);
@@ -190,6 +192,7 @@ export function voegSamen(a, b) {
   p.gedaan = lijstVan([...x.gedaan, ...y.gedaan], MAX_GEDAAN);
   p.beloond = lijstVan([...x.beloond, ...y.beloond], 600);
   p.huizen = lijstVan([...x.huizen, ...y.huizen], 600);
+  p.bezocht = lijstVan([...x.bezocht, ...y.bezocht], MAX_BEZOEKT);
   if (x.zaad || y.zaad) p.zaad = true;
   return p;
 }
@@ -212,6 +215,32 @@ export function voortgang(p, ind, gebiedId) {
   const totaal = g.taken.length;
   const voltooid = g.veroverbaar && (klaar >= totaal || p.beloond.includes(gebiedId));
   return { klaar, totaal, deel: totaal ? klaar / totaal : 0, voltooid, veroverbaar: g.veroverbaar, perSoort };
+}
+
+// De buurten waar je geweest bent (#435): 'de hele kaart verkend' telt wat je gezien hebt, niet wat je veroverd hebt.
+// Alleen de buurt telt: die ligt in een wijk, woonplaats en gemeente, dus alle buurten is de hele kaart. Geeft het id
+// van de buurt als hij nieuw is, anders null.
+export function bezoek(p, ind, x, y) {
+  if (!ind || !ind.grenzen) return null;
+  const id = gebiedenVan(ind, x, y).buurt;
+  if (!id || !ind.gebied.has(id) || p.bezocht.includes(id) || p.bezocht.length >= MAX_BEZOEKT) return null;
+  p.bezocht.push(id);
+  return id;
+}
+
+// Hoeveel van de kaart je gezien hebt: de bezochte buurten van de provincie. pct naar beneden afgerond, zodat 100 pas
+// bij de laatste buurt valt (en niet bij 643 van de 644).
+export function kaartVerkend(p, ind) {
+  let totaal = 0, gedaan = 0;
+  if (ind) {
+    const gezien = new Set(p.bezocht);
+    for (const g of ind.gebieden) {
+      if (g.niveau !== 'buurt') continue;
+      totaal++;
+      if (gezien.has(g.id)) gedaan++;
+    }
+  }
+  return { gedaan, totaal, pct: totaal ? Math.floor((gedaan / totaal) * 100) : 0 };
 }
 
 // De beloning van een gebied: titel, geld, de vlag en een regel erbij.
