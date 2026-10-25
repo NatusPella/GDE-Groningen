@@ -51,7 +51,11 @@ for (const poly of canals.slice(0, 8)) {
     const w2 = { map, player: { x: q.x, y: q.y }, vehicles: [], time: 0, wanted: 0 };
     for (let k = 0; k < 60; k++) V.manageBoatPopulation(w2, { target: 5 });
     const barges = w2.vehicles.filter((v) => v.model.kind === 'binnenvaart');
-    best = Math.max(best, barges.length);
+    // de grens geldt per waterlichaam (#502): een speler die tussen twee kanalen staat ziet er meer
+    const perWater = V.bargesPerWater(w2.vehicles);
+    const hoogste = perWater.size ? Math.max(...perWater.values()) : 0;
+    best = Math.max(best, hoogste);
+    ok(barges.length <= 4, 'hoogstens vier binnenvaartschepen in de wereld', barges.length);
     for (let i = 0; i < barges.length; i++) for (let j = i + 1; j < barges.length; j++) if (Math.hypot(barges[i].x - barges[j].x, barges[i].y - barges[j].y) < 50) tourFree = false;
     for (const v of w2.vehicles) if (v.model.kind !== 'binnenvaart' && barges.some((b) => Math.hypot(b.x - v.x, b.y - v.y) < 30)) tourFree = false;
     busy++;
@@ -59,8 +63,20 @@ for (const poly of canals.slice(0, 8)) {
   ok(busy > 0, 'the population manager runs on the broad canals', busy);
   console.log('barges at once near a broad canal:', best);
   ok(best >= 2, 'several barges at once near a broad canal', best);
-  ok(best <= 4, 'at most four barges at a time', best);
+  ok(best <= 2, 'at most two barges on one canal', best);
   ok(tourFree, 'barges start clear of each other and of the other boats');
+}
+// the cap counts per water body, not for the whole world (#502)
+{
+  const boot = (name, body) => ({ isBoat: true, wrecked: false, model: { kind: 'binnenvaart' }, waterPoly: { name, body } });
+  const per = V.bargesPerWater([
+    boot('Winsumerdiep', 1), boot('Winsumerdiep', 1), boot('', 2), boot('Reitdiep', 3),
+    { isBoat: true, wrecked: false, model: { kind: 'sloep' }, waterPoly: { name: 'Winsumerdiep', body: 1 } },
+  ]);
+  ok(per.get('n:Winsumerdiep') === 2, 'twee barges op hetzelfde kanaal', per.get('n:Winsumerdiep'));
+  ok(per.get('n:Reitdiep') === 1, 'een andere naam telt apart', per.get('n:Reitdiep'));
+  ok([...per.values()].sort().join(',') === '1,1,2', 'drie wateren, elk hun eigen telling', JSON.stringify([...per]));
+  ok(per.size === 3, 'een sloep telt niet mee', per.size);
 }
 ok(spawned >= 2, 'barges spawn on the shipping canals', spawned);
 ok(sailed >= spawned * 0.5, 'most barges keep sailing (150 m in 6 minutes)', `${sailed} of ${spawned}`);
