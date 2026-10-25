@@ -63,6 +63,16 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Loopbanen: vaardigheden per niveau.** Het loopbanenscherm noemt wat je op het hoogste niveau kunt (zoals kaartjes knippen bij de trein) en de winkel zet de wapens vooraan.
 - **Kartrace: tussenstand per speler.** Het bord toont per deelnemer de plek, de ronde of de finishtijd, en wie ja zei maar geen gridplek had krijgt een melding.
 
+- **Samen spelen: inzittenden zijn te zien.** Van andermans voertuig zie je nu wie er op welke stoel zit, ook tijdens het rijden en zonder door de carrosserie te steken.
+- **Voertuigen: animaties en instappen.** De instap- en uitstapanimatie is uit te zetten bij Toegankelijkheid, en je kunt een passagier uit een voertuig trekken, ook als je een gast bent.
+- **Interieurs: auto en trein.** Een gewone auto heeft een dashboard, stuur en hemel op de echte raamlijn; de treincoupé kreeg stoelen met hoofdsteun, bagagerekken en schuifdeuren.
+- **Ringrace terug als activiteit.** Solo met de oude H9-regels en samen als wedstrijd met tussenstand en beloning per plek.
+- **Reuzenrad op de kaart en bij Activiteiten**, met een eigen icoon en een regel bij de bezigheden.
+- **Samen spelen: de gastheer kiest mee.** Start een gast een opdracht, dan krijgt wie het spel opende dezelfde vraag en verliest hij niets als hij nee zegt.
+- **Samen spelen: elke speler een eigen rol in de scène**, en de metgezel staat er één keer.
+- **Samen spelen: een vaste sessieregel** in de serverlijst, zodat je een openbare sessie terugvindt, met naam, spelers en versie.
+- **Reizen met een boot** zet je aan de aanlegplaats en een sprong naar een boot zoekt water in plaats van land.
+
 ## [0.50.0] - 2026-10-24
 
 ### Nieuw
