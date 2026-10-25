@@ -139,6 +139,7 @@ import { updateGunFx3D } from './gunfx3d.js';
 import { initCityProps, updateCityProps } from './cityprops.js';
 import { initPhone, updatePhone, isPhoneOpen } from './phone.js';
 import { initSaveGame, updateSaveGame, hasSave, readSave, ensureLatestSlot } from './savegame.js';
+import { START_MONEY } from './economy.js';
 import { initWeather, updateWeather } from './weather.js';
 import { initWorldEvents, updateWorldEvents } from './worldevents.js';
 import { initMuggings, updateMuggings } from './muggings.js';
@@ -726,7 +727,7 @@ async function boot() {
     if (Number.isFinite(world.money)) world._goodMoney = world.money;
     else {
       console.warn('geld was geen getal meer, hersteld', world.money);
-      world.money = Number.isFinite(world._goodMoney) ? world._goodMoney : 250;
+      world.money = Number.isFinite(world._goodMoney) ? world._goodMoney : START_MONEY;
     }
     syncLedger(getLedger(), world.money, world.clock);
 

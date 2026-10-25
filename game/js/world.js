@@ -1,6 +1,8 @@
 // Shared mutable game state. Every system (vehicles, pedestrians, combat,
 // police, missions, hud) receives this same object and reads/writes the
 // arrays and fields it owns. See ARCHITECTURE.md for the full contract.
+import { START_MONEY } from './economy.js';
+
 export const STAT_DEFAULTS = { kills: 0, pedKills: 0, copKills: 0, missionsDone: 0, playerWrecks: 0 };
 
 // The counters a loaded save gives: the defaults, then the save's own values; a
@@ -27,7 +29,7 @@ export class World {
 
     this.wanted = 0; // 0-5, any system may increase it; police.js owns decay + spawns
     this.wantedDecayTimer = 0; // police.js's own bookkeeping, other systems don't touch this
-    this.money = 250; // starting budget: a first pistol or a few snacks
+    this.money = START_MONEY; // starting budget: a first pistol or a few snacks
     this.health = 100;
     this.armor = 0;
     this.weapon = 'fists';

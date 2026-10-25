@@ -25,7 +25,7 @@ Volg AGENTS.md en docs/SPECS-FIRE.md: eigen worktree/branch, kleine commits met 
 
 ## Samen spelen
 
-De camera's en de waarschuwing zijn wereldgedrag van de host (J). De boete raakt de eigen speler; een gast in de hostwereld ziet de waarschuwing maar betaalt nog niet, omdat zijn kas op zijn eigen apparaat staat. Dat bestaande gat wordt in golf 2 gedicht met de gast-economie. De test legt vast dat de host-boete niet dubbel bij een gast terechtkomt.
+De camera's en de waarschuwing zijn wereldgedrag van de host (J). De boete raakt de eigen speler; een gast in de hostwereld ziet de waarschuwing maar betaalt nog niet, omdat zijn kas op zijn eigen apparaat staat. Dat bestaande gat wordt in golf 2 gedicht met de gast-economie. Deze run test alleen de pure regel; het netwerkpad blijft in de bestaande coöp-testbank en is hier niet opnieuw gedekt.
 
 ## Niet
 

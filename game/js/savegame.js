@@ -4,7 +4,7 @@ import { WEAPONS } from './combat.js';
 import { isCinematicActive, skipAllCinematics } from './cinematics.js';
 import { getShopSave, applyShopSave } from './shops.js';
 import { getAchievementSaveData, applyAchievementSaveData, getChallengeRecord, EIERBAL_TOTAL, missieKlaarId } from './achievements.js';
-import { PG_PRIZE, EIERBAL_FIND_PAY, EIERBAL_ALL_BONUS } from './economy.js';
+import { PG_PRIZE, EIERBAL_FIND_PAY, EIERBAL_ALL_BONUS, START_MONEY } from './economy.js';
 import { getPigeonSaveData, applyPigeonSaveData } from './pigeonmode.js';
 import { getSideJobSave, applySideJobSave } from './sidejobs.js';
 import { getStorySave, applyStorySave } from './story.js';
@@ -70,7 +70,6 @@ let playSeconds = 0;
 const num = (v, d) => (typeof v === 'number' && Number.isFinite(v) ? v : d);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const MIN_RESTORE = 1500;
-const START_MONEY = 250;
 const JELLE_CHALLENGES = ['bruggen', 'fierljep', 'skutsje'];
 
 // A save whose money got lost (the NaN-money bug stored null): its last good
