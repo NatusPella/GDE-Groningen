@@ -73,5 +73,71 @@ check('windpijl: wind van achteren wijst vooruit', Math.abs(Z.windPijlGraden(Mat
   const zonder = { speed: 1.5, roeiTop: 0 }; Z.roeiStap(zonder, false, 0, 0.05);
   check('zonder slagen trekt de roeitop de boot niet vooruit', zonder.speed === 1.5);
 }
+// ---- Samen spelen (#436): een gast die zelf vaart
+// De boot van een gast ligt in de simulatie van de host; de zeil- en roeiregels moeten daar op de invoer
+// van de gast lopen. Zonder dat voer een zeilboot op de motortop van het model en roeide een roeiboot niet.
+{
+  const wereld = (v) => ({
+    player: { inVehicle: null },
+    coopRijders: v ? { 1: { slot: 1, v } } : {},
+    coop: { remoteInput: { mx: 0, my: 0, buttons: 0, yaw: 0 } },
+    clock: 12, time: 0, paused: false,
+    input: { isDown: () => false }, addMessage: () => {}, coopMeld: () => {},
+  });
+  const roei = { isBoat: true, model: BOAT_KINDS.roeiboot, driver: 'player', coopBestuurder: 1, speed: 0, angle: 0 };
+  const w = wereld(roei);
+  for (let slag = 0; slag < 6; slag++) { // elke 1,05 s een tik naar voren
+    w.coop.remoteInput.my = -1; w.time += 0.05; Z.updateZeilvaren(0.05, w, 5);
+    w.coop.remoteInput.my = 0;
+    for (let k = 0; k < 21; k++) { w.time += 0.05; Z.updateZeilvaren(0.05, w, 5); }
+  }
+  check('een gast roeit zijn roeiboot vooruit', roei.roeiTop > 1.5 && roei.speed > 1, JSON.stringify([roei.roeiTop, roei.speed]));
+
+  const zeil = { isBoat: true, model: BOAT_KINDS.zeilboot, driver: 'player', coopBestuurder: 1, speed: 0, angle: 0, zeilTrim: 0.6 };
+  const w2 = wereld(zeil);
+  Z.updateZeilvaren(0.05, w2, 5);
+  zeil.angle = w2.wind.dir + Math.PI / 2; // halve wind: het beste punt van de poolcurve
+  const verwacht = Z.windSnelheid(zeil.angle, zeil.zeilTrim, w2.wind);
+  for (let k = 0; k < 600; k++) { w2.time = k * 0.05; Z.updateZeilvaren(0.05, w2, 5); }
+  check('een gast vaart zijn zeilboot op de wind', Math.abs(zeil.sailTop - verwacht) < 1e-6 && zeil.speed > Math.min(1, verwacht * 0.8), JSON.stringify([zeil.sailTop, verwacht, zeil.speed]));
+
+  const eigen = { isBoat: true, model: BOAT_KINDS.zeilboot, driver: 'player', speed: 0, angle: 0, zeilTrim: 0.6 };
+  const w3 = wereld(null);
+  w3.player.inVehicle = eigen;
+  for (let k = 0; k < 300; k++) { w3.time = k * 0.05; Z.updateZeilvaren(0.05, w3, 5); }
+  check('de eigen zeilboot van de speler vaart nog steeds op de wind', Number.isFinite(eigen.sailTop) && eigen.sailTop >= 0 && w3.wind && w3.wind.speed >= 2);
+
+  // de host en een gast varen allebei: geen van tweeën staat stil (niemand is meer dan de ander)
+  const eigen2 = { isBoat: true, model: BOAT_KINDS.zeilboot, driver: 'player', speed: 0, angle: 0, zeilTrim: 0.6 };
+  const gast2 = { isBoat: true, model: BOAT_KINDS.roeiboot, driver: 'player', coopBestuurder: 1, speed: 0, angle: 0 };
+  const w5 = wereld(gast2);
+  w5.player.inVehicle = eigen2;
+  for (let k = 0; k < 300; k++) {
+    w5.coop.remoteInput.my = k % 22 < 2 ? -1 : 0; // de gast tikt op zijn stick
+    w5.time = k * 0.05;
+    Z.updateZeilvaren(0.05, w5, 5);
+  }
+  check('host en gast varen allebei', eigen2.sailTop > 0 && gast2.roeiTop > 0.5, JSON.stringify([eigen2.sailTop, gast2.roeiTop]));
+
+  // twee gasten die allebei een boot besturen: elk krijgt zijn eigen regels
+  const g1 = { isBoat: true, model: BOAT_KINDS.roeiboot, driver: 'player', coopBestuurder: 1, speed: 0 };
+  const g2 = { isBoat: true, model: BOAT_KINDS.roeiboot, driver: 'player', coopBestuurder: 2, speed: 0 };
+  const w6 = wereld(g1);
+  w6.coopRijders[2] = { slot: 2, v: g2 };
+  w6.coopFigures = { 2: { input: { mx: 0, my: 0 } } };
+  for (let k = 0; k < 300; k++) {
+    const tik = k % 22 < 2 ? -1 : 0;
+    w6.coop.remoteInput.my = tik; w6.coopFigures[2].input.my = tik;
+    w6.time = k * 0.05;
+    Z.updateZeilvaren(0.05, w6, 5);
+  }
+  check('twee gasten roeien allebei', g1.roeiTop > 0.5 && g2.roeiTop > 0.5, JSON.stringify([g1.roeiTop, g2.roeiTop]));
+
+  // een gewone motorboot van een gast houdt zijn eigen vaarlaag: geen zeil- of roeiregels
+  const motor = { isBoat: true, model: BOAT_KINDS.sloep, driver: 'player', coopBestuurder: 1, speed: 2 };
+  const w4 = wereld(motor);
+  Z.updateZeilvaren(0.05, w4, 5);
+  check('een motorboot van een gast wordt niet gezeild', motor.sailTop === undefined && motor.speed === 2);
+}
 console.log(`zeilvaren_test: ${n - bad}/${n} ok`);
 process.exit(bad ? 1 : 0);

@@ -77,6 +77,18 @@ export function inZicht(world, x, y) {
   return !!(view && typeof view.inView === 'function' && view.inView(x, y));
 }
 
+// Ligt het schip zelf in beeld, niet alleen zijn middelpunt? Een containerschip van 92 tot 98 m steekt
+// met zijn boeg of achtersteven al in beeld terwijl het middelpunt erbuiten valt: dan kwam het met een
+// halve romp uit het niets op of verdween het met een halve romp (#436). Boeg en achtersteven tellen mee.
+export function schipInZicht(world, v) {
+  if (!v || !Number.isFinite(v.x) || !Number.isFinite(v.y)) return false;
+  if (inZicht(world, v.x, v.y)) return true;
+  const half = Math.max(0, (Number(v.model && v.model.len) || 0) / 2);
+  if (!(half > 0)) return false;
+  const a = Number.isFinite(v.angle) ? v.angle : 0, dx = Math.cos(a) * half, dy = Math.sin(a) * half;
+  return inZicht(world, v.x + dx, v.y + dy) || inZicht(world, v.x - dx, v.y - dy);
+}
+
 let timer = 0;
 // env: { spawnBoatOnWater, isShip } uit vehicle.js (main.js geeft ze mee)
 export function manageSeaShips(world, dt, env, rng = Math.random) {
@@ -90,8 +102,11 @@ export function manageSeaShips(world, dt, env, rng = Math.random) {
     const v = vehicles[i];
     if (!v.zeeSchip) continue;
     const weg = Math.hypot(v.x - player.x, v.y - player.y);
-    // ver weg én uit het zicht: dan valt het opruimen niet op; heel ver weg gaat altijd (ZEE_WEG * 1,5)
-    if (v.wrecked || weg > ZEE_WEG * 1.5 || (weg > ZEE_WEG && !inZicht(world, v.x, v.y))) vehicles.splice(i, 1);
+    // Een schip dat je ziet verdwijnt nooit (#436): een wrak of een schip achter de horizon gaat pas weg
+    // als het uit het zicht is. Alleen heel ver weg (buiten elke tekenafstand, ZEE_WEG * 4) ruimen we
+    // altijd op, zodat een schip dat je nooit meer ziet niet in de lijst blijft staan.
+    if (weg > ZEE_WEG * 4 || (weg > ZEE_WEG && !schipInZicht(world, v))) vehicles.splice(i, 1);
+    else if (v.wrecked && !schipInZicht(world, v)) vehicles.splice(i, 1);
     else n++;
   }
   if (n >= ZEE_MAX || rng() > ZEE_KANS || !map.waterNear) return;
@@ -102,8 +117,9 @@ export function manageSeaShips(world, dt, env, rng = Math.random) {
     const poly = kandidaten[Math.floor(rng() * kandidaten.length)];
     const v = env.spawnBoatOnWater(map, poly, rng, { model, near: [player.x, player.y], min: ZEE_SPAWN.min, max, budget: 4 });
     // hetzelfde schip van begin tot eind: een spawner die een ander model teruggeeft levert geen schip op (#436)
-    if (!v || v.model !== model && (v.model.key !== model.key || v.model.len !== model.len || v.model.wid !== model.wid || v.model.color !== model.color)) continue;
-    if (inZicht(world, v.x, v.y) || !ruimteVoor(model, v.x, v.y, vehicles.filter((o) => o.isBoat && env.isShip(o)))) continue;
+    if (!v || !v.model) continue;
+    if (v.model !== model && (v.model.key !== model.key || v.model.len !== model.len || v.model.wid !== model.wid || v.model.color !== model.color)) continue;
+    if (schipInZicht(world, v) || !ruimteVoor(model, v.x, v.y, vehicles.filter((o) => o.isBoat && env.isShip(o)))) continue;
     v.zeeSchip = true;
     vehicles.push(v);
     return;
