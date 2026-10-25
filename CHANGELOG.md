@@ -7,13 +7,19 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Opgelost
+- **Tekst op borden is van beide kanten leesbaar.** Een bord dat aan twee kanten tekst had, liet de achterkant in spiegelbeeld zien; dat geldt nu voor het doek boven de kartbaan, het SKATEPARK-bord, de borden bij discgolf, het podium en de badeendjes.
+- **De kartstart begint met een rustig beeld.** De camera zweeft niet meer door het starthek (dwarsbalk en paal midden in beeld) maar komt van hoog achter het startveld naar je kart; de prestatiekaart die je onderweg verdient zakt tijdens een minigame naar de onderkant in plaats van over de toetshulp te vallen.
+- **De bewaarder van de Gouden Eierbal stelt zich niet twee keer voor.** Haar eerste regel begon met haar eigen naam, vlak onder de naamkaart die dat al deed.
+- **Het spoor wordt in en om de stad niet meer dubbel getekend.** Het oude Ommeland-spoor werd over de hele provincie aan het landspoor toegevoegd en het spoor van de provincie werd nooit op de stadse track geknipt; buiten de stad stond daardoor 176 km spoor een tweede keer, 16 cm ernaast.
+- **Geen boom meer op de rijbaan.** Bomen uit de overlays van de stadstegels gaan er bij het samenvoegen uit als ze op het asfalt staan, en de opruiming houdt vijftien centimeter van de rand aan.
+- **Voorrang, rotondes en verkeerslichten werken ook buiten de stad.** Het kruispuntmodel leest nu de kruispuntgegevens uit de gestreamde tegels in plaats van alleen de wegen van de stad.
 - **De GPS springt niet meer over het veld bij de stadsrand.** Waar een wandel- of fietsroute van de provinciewegen de stad in gaat, kiest hij een overgang die bij die manier van reizen past; bij de Beneluxweg sprong de lijn 205 m over het veld naar het dichtstbijzijnde voetpad.
 - **Een onvolledige build gaat niet meer de deur uit.** Bij het stagen wordt nu gecontroleerd dat elk tegelpakket uit de wereldindex bestaat met de juiste grootte en dat alle scenariomuziek en radiostationnummers in de map staan; een half geschreven wereld-cache wordt opnieuw gebouwd. Dat voorkomt de 404's op tegels en op de menumuziek uit het foutrapport van 0.50.0.
 - **Het foutrapport toont alleen de versie die je draait.** Meldingen uit een eerdere versie reizen niet meer mee met een upgrade, dus een allang gefixte fout lijkt niet meer open te staan.
 - **Een lange treinrit wordt niet meer na 2,5 minuut afgekapt.** De waakhond respecteert de duur die de rit zelf opgeeft in plaats van een vaste grens van 150 seconden.
 
 ### Onderhoud
-- **De documentatie is opgeschoond en de specs zijn de basis.** De levende regels staan nu in elf specs onder `.specs-fire/standards/` (Samen spelen, wereld, mechanica, verhaal, UI en taal, publicatie, plus de vijf standaarden); 23 vervallen of dubbele documenten gingen naar `docs/archief/2026-10/`, de gegenereerde verhaal- en opnamelijsten staan niet meer in git, en de verwijzingen in README, AGENTS en ARCHITECTURE kloppen weer. De veertien keuzes die het project dragen staan met hun afgewezen alternatieven in `.specs-fire/standards/adr/`. Begin bij `docs/SPECS-FIRE.md`.
+- **De documentatie is opgeschoond en de specs zijn de basis.** De levende regels staan nu in elf specs onder `.specs-fire/standards/` (Samen spelen, wereld, mechanica, verhaal, UI en taal, publicatie, plus de vijf standaarden); 23 vervallen of dubbele documenten gingen naar `docs/archief/2026-10/`, de gegenereerde verhaal- en opnamelijsten staan niet meer in git, en de verwijzingen in README, AGENTS en ARCHITECTURE kloppen weer. De keuzes die het project dragen staan met hun afgewezen alternatieven in `.specs-fire/standards/adr/`. Begin bij `docs/SPECS-FIRE.md`.
 
 ## [0.53.0] - 2026-10-25
 
