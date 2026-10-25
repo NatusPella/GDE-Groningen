@@ -168,11 +168,13 @@ intents:
         completed_at: 2026-10-25T12:58:42.428Z
       - id: wi-492-bench
         title: "#492 Eerste-start-prestatietest en automatische grafische preset"
-        status: pending
+        status: completed
         complexity: medium
         mode: confirm
         depends_on:
           - wi-492-boot
+        run_id: run-gde-light-sims-002
+        completed_at: 2026-10-25T13:11:57.555Z
       - id: wi-492-saves
         title: "#492 Pauzemenu: savebeheer, nieuw spel en stoppen"
         status: pending
@@ -300,3 +302,11 @@ runs:
           mode: confirm
       started: 2026-10-25T12:19:52.412Z
       completed: 2026-10-25T12:58:42.428Z
+    - id: run-gde-light-sims-002
+      scope: single
+      work_items:
+        - id: wi-492-bench
+          intent: gde-light-sims
+          mode: confirm
+      started: 2026-10-25T13:05:15.756Z
+      completed: 2026-10-25T13:11:57.555Z
