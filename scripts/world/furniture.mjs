@@ -21,6 +21,10 @@
 // the game's options) and checks: nothing solid on a carriageway or cycle
 // path (a gantry spans it, a speed bump lies on it), no lamp in a tree, a
 // guardrail without holes under 5 m, the same items twice over (determinism).
+// (#463) It also generates the layer the game draws itself - the rule lamps
+// and the bollards at path mouths - and the post rows a fresh world build
+// brings: a bollard on the asphalt must show up in the report, not fall
+// silently out of the build.
 import fs from 'node:fs';
 import path from 'node:path';
 import zlib from 'node:zlib';
@@ -29,8 +33,14 @@ import { furnitureForTile, mappedFromOsm } from '../../game/js/streetfurniture.j
 import { TILE_M, GRID_X0, GRID_Y0, tileIndexOf, tileKey } from '../../game/js/gdt.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-// what the game draws itself: lamps (nightlights3d.js), path bollards (streetclutter.js)
+// what the game draws itself: lamps (nightlights3d.js), path bollards (streetclutter.js).
+// The bars and posts of the tiles are the rules' own (below); these two layers
+// are drawn by the game and were never in the audit at all (#463).
 export const GAME_OPTS = { lamps: false, bollards: false, livingBumps: false };
+export const DRAWN_OPTS = { lamps: true, bollards: true, livingBumps: false };
+// what stands on the ground and may not stand in the asphalt: a gantry spans
+// the road and a speed bump lies on it, those two are the exception
+export const POST_KINDS = new Set(['lamp', 'bollard', 'hectometer', 'placesign', 'wegwijzer', 'bench', 'bin', 'bikerack', 'shelter']);
 
 // tiles the map's roads touch, each with its roads and mapped rows
 export function tilesOf(data) {
@@ -61,13 +71,10 @@ export function generateAll(data, opts = GAME_OPTS) {
   return out;
 }
 
-export function audit(data, opts = GAME_OPTS) {
-  const tiles = generateAll(data, opts);
-  const items = tiles.flatMap((t) => t.items);
-  const counts = {};
-  for (const it of items) counts[it.k] = (counts[it.k] || 0) + 1;
-  const rep = { tiles: tiles.length, counts, onRoad: [], gaps: [], dup: 0, determinism: true };
-  // nothing solid on a carriageway or cycle path
+// Where the asphalt is, in blocks of 32 m: (x, y) -> the way there or null.
+// (a deck overhead or a sunken road below is no carriageway here: the items
+// stand at street level)
+export function carriagewayTest(data) {
   const roads = (data.roads || []).filter((r) => r && r.cat !== 'foot');
   const G = 32, grid = new Map();
   for (const r of roads) {
@@ -78,22 +85,59 @@ export function audit(data, opts = GAME_OPTS) {
           (grid.get(gx * 65536 + gy) || grid.set(gx * 65536 + gy, []).get(gx * 65536 + gy)).push([r, i]);
     }
   }
-  const onCarriageway = (x, y) => {
+  return (x, y) => {
     for (const [r, i] of grid.get(Math.floor(x / G) * 65536 + Math.floor(y / G)) || []) {
       const P = r.pts, dx = P[i + 1][0] - P[i][0], dy = P[i + 1][1] - P[i][1], L2 = dx * dx + dy * dy || 1e-9;
       const t = Math.max(0, Math.min(1, ((x - P[i][0]) * dx + (y - P[i][1]) * dy) / L2));
-      // (a deck overhead or a sunken road below is no carriageway here: the items stand at street level)
       if (r.z && Math.abs(r.z[i] + (r.z[i + 1] - r.z[i]) * t) > 3) continue;
       if (Math.hypot(P[i][0] + dx * t - x, P[i][1] + dy * t - y) < r.width / 2 - 0.1) return r;
     }
     return null;
   };
+}
+
+// The items that stand on the asphalt: a gantry spans the road, a speed bump
+// lies on it, everything else there is a fault (#463).
+export function onRoadItems(items, onCarriageway) {
+  const out = [];
   for (const it of items) {
     if (it.k === 'gantry' || it.k === 'speedbump') continue;
     const r = onCarriageway(it.x, it.y);
-    // (the mapped rows too: what OSM draws on the asphalt is left out (#463))
-    if (r) rep.onRoad.push({ k: it.k, road: r.name || r.type, at: [Math.round(it.x), Math.round(it.y)] });
+    if (r) out.push({ k: it.k, road: r.name || r.type, at: [Math.round(it.x), Math.round(it.y)] });
   }
+  return out;
+}
+
+// The posts a fresh world build puts on the asphalt (OSM maps a bollard or a
+// street lamp on the carriageway now and then). The build leaves them out
+// (streetfurniture.js freeSpot), but the audit must still find them: else a
+// fault in the source data disappears from the report at the next build (#463).
+export function mappedOnRoad(data, onCarriageway) {
+  const out = [];
+  for (const m of data.furniture || []) {
+    if (!m.pts || m.pts.length !== 1 || !POST_KINDS.has(m.k)) continue;
+    const [x, y] = m.pts[0];
+    const r = onCarriageway(x, y);
+    if (r) out.push({ k: m.k, road: r.name || r.type, at: [Math.round(x), Math.round(y)], osm: m.osm });
+  }
+  return out;
+}
+
+export function audit(data, opts = GAME_OPTS) {
+  const tiles = generateAll(data, opts);
+  const items = tiles.flatMap((t) => t.items);
+  const counts = {};
+  for (const it of items) counts[it.k] = (counts[it.k] || 0) + 1;
+  const rep = { tiles: tiles.length, counts, onRoad: [], drawnOnRoad: [], mappedOnRoad: [], gaps: [], dup: 0, determinism: true };
+  // nothing solid on a carriageway or cycle path
+  const onCarriageway = carriagewayTest(data);
+  rep.onRoad = onRoadItems(items, onCarriageway);
+  // (#463) the layer the game draws itself: its lamps and path bollards go
+  // through the same test, so a new world build cannot put a post in the lane
+  const drawn = generateAll(data, DRAWN_OPTS).flatMap((t) => t.items).filter((it) => POST_KINDS.has(it.k));
+  rep.drawnOnRoad = onRoadItems(drawn, onCarriageway);
+  // ... and the rows of the build itself
+  rep.mappedOnRoad = mappedOnRoad(data, onCarriageway);
   const allWays = (data.roads || []).filter((r) => r);
   const WG = new Map();
   for (const r of allWays) for (let i = 0; i < r.pts.length - 1; i++) {
@@ -134,14 +178,19 @@ export function audit(data, opts = GAME_OPTS) {
 
 export function printAudit(rep) {
   console.log(`${rep.tiles} tiles: ${Object.entries(rep.counts).map(([k, v]) => `${k} ${v}`).join(', ')}`);
-  console.log(`rule items on a carriageway: ${rep.onRoad.length}`);
-  for (const q of rep.onRoad.slice(0, 8)) console.log(`  ${q.k} on ${q.road} at ${q.at}`);
+  const road = [...(rep.onRoad || []), ...(rep.drawnOnRoad || [])];
+  console.log(`rule items on a carriageway: ${road.length} (${(rep.drawnOnRoad || []).length} of the drawn lamps and bollards)`);
+  for (const q of road.slice(0, 8)) console.log(`  ${q.k} on ${q.road} at ${q.at}`);
+  console.log(`mapped posts on a carriageway (left out by the build): ${(rep.mappedOnRoad || []).length}`);
+  for (const q of (rep.mappedOnRoad || []).slice(0, 8)) console.log(`  ${q.k} on ${q.road} at ${q.at}`);
   console.log(`guardrail holes under 5 m: ${rep.gaps.length}`);
   for (const q of rep.gaps.slice(0, 8)) console.log(`  ${q.gap} m at ${q.at}`);
   console.log(`duplicate keys: ${rep.dup}; same items twice: ${rep.determinism ? 'yes' : 'NO'}`);
 }
 
-export const problems = (rep) => rep.onRoad.length + rep.dup + (rep.determinism ? 0 : 1);
+// (the rows a build puts on the asphalt are left out by the build itself: they
+// are reported above, but they are no fault in the placement (#463))
+export const problems = (rep) => rep.onRoad.length + (rep.drawnOnRoad || []).length + rep.dup + (rep.determinism ? 0 : 1);
 
 async function main() {
   const args = process.argv.slice(2);
