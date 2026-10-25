@@ -234,6 +234,27 @@ t('#390: Missie stoppen (missions.js, safety.js, pausemenu.js, todoui.js): eerst
   assert.match(cn, /world\.coopUitslag = \(ok, label, reden, loon, gestopt, id\) => uitslagMelden\(world, ok, label, reden, loon, gestopt, /, 'de haak geeft gestopt en de groep door');
 });
 
+// ------------------------------------------------------------------ #492
+t('#492: de machinist betaalt elk crewlid één keer; de conducteur bedient O en K via de host', () => {
+  const m = bron('machinist.js');
+  assert.ok(m.includes("import { loopbaanVerdien, loopbaanDeel } from './loopbaanlive.js'"), 'de gastheer verdient en deelt');
+  assert.match(m, /deel: false/, 'de gastheer deelt niet via loopbaanVerdien: geen dubbele betaling');
+  assert.match(m, /splitReward\(crew, pay\)/, 'de slots komen uit treincoop.splitReward');
+  assert.match(m, /world\.coopDeel\(betaald, \{ \.\.\.loopbaanDeel\('trein', pay, xp\), slots \}\)/, 'één coopDeel met de crew-slots');
+  assert.match(m, /world\.coopTreinDeur/, 'de deurvlag van de conducteur');
+  const blok = m.slice(m.indexOf('if (!svc.paid)'));
+  assert.equal((blok.match(/dienstBeloning\(/g) || []).length, 1, 'één betaling per dienst');
+  const td = bron('traindrive.js');
+  assert.match(td, /world\.coopTreinWaak/, 'de waakvlag van de conducteur');
+  assert.match(td, /ack: input\.wasPressed\('k'\) \|\| waakGast/, 'K telt mee als de conducteur hem indrukt');
+  const cg = bron('coopgastlokaal.js');
+  assert.match(cg, /gastTrein\(world, 'deur'\)/);
+  assert.match(cg, /gastTrein\(world, 'waak'\)/);
+  const cn = bron('coopnet.js');
+  assert.match(cn, /treinMay\(crew, van, body\.a === 'deur' \? 'deuren' : 'waak'\)/, 'de host controleert de rol');
+  assert.match(cn, /world\.coopTreinDeur = true/, 'en zet de deurvlag');
+});
+
 // ------------------------------------------------------------------ #367
 t('#367: drie toetsen, korte Nederlandse teksten, ook op de controller', () => {
   assert.deepEqual(PING_TOETSEN.map((k) => [k.toets, k.tekst]), [['7', 'Kom hier'], ['8', 'Help!'], ['9', 'Kijk daar']]);

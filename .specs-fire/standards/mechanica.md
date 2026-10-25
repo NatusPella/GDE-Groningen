@@ -55,13 +55,18 @@ kan de baan niet starten; het bestaande gastgat loopt via #365/#371.
 perrondrukte (1-8 wachtenden) en de capaciteit (90); op de laatste halte stapt niemand meer in.
 Een kaartje is €0,70 per meegereden reiziger per halte. `stepService` boekt het kaartgeld,
 `finish` en `payFor` nemen het mee, en de uitbetaling loopt via `loopbaanVerdien('trein', …)`.
-Het bord toont het aantal reizigers en per stop de in- en uitstappers. Host-only; een gast ziet de
-trein maar kan niet als machinist instappen.
+Het bord toont het aantal reizigers en per stop de in- en uitstappers. De gastheer is
+machinist; `cooptrein.js` koppelt gasten aan een wagen, de eerste gast is conducteur
+(O deuren, K waakzaamheid), volgende gasten passagier. Elk crewlid krijgt het volle bedrag
+en de xp via `splitReward`/`coopDeel`; de gastheer houdt zijn eigen `loopbaanVerdien`.
+Zelf de trein besturen kan een gast niet.
 
-**Bestanden.** `machinistrules.js`, `machinist.js`, `treincabine.js`, `traindrive.js`.
+**Bestanden.** `machinistrules.js`, `machinist.js`, `treincabine.js`, `traindrive.js`,
+`cooptrein.js`, `treincoop.js`.
 
 **Tests.** `machinist_test.mjs`, `simdienst_test.mjs`, `dienstregeling_test.mjs`,
-`treincabine_test.mjs`, `gasttrein_test.mjs`.
+`treincabine_test.mjs`, `gasttrein_test.mjs`, `cooptrein_test.mjs`,
+`coop/treincoop_test.mjs`.
 
 ## Hengelen en vissen
 

@@ -171,6 +171,7 @@ function stopDriving(world, placeOutside, fromCar = null, prefSide = 1) {
   const stop = perronStop(t, currentStation(), world.time);
   if (stop) world.perronStop = stop;
   treinStop(world, t); // een gast die als passagier meerijdt staat daarna weer naast zijn wagen (#492)
+  world.coopTreinDeur = false; world.coopTreinWaak = false; // een late O of K van de conducteur telt niet meer (#492)
   world.trainDriving = null;
   world.trainCam = null;
   world.trainWalk = null;
@@ -325,7 +326,9 @@ export function updateTrainDriving(dt, world) {
   if (world.trainWalk) {
     // de speler loopt rond: de hendel en de waakzaamheid blijven zoals ze waren (zonder dienst remt de trein af)
     updateWalk(dt, world, t, input);
-    stepCab(cab, dt, { doorsOpen: doorsAreOpen(world) }, 0);
+    const waakWandelen = !!world.coopTreinWaak; // K van de conducteur, ook als de machinist rondloopt (#492)
+    world.coopTreinWaak = false;
+    stepCab(cab, dt, { ack: waakWandelen, doorsOpen: doorsAreOpen(world) }, 0);
     Object.assign(t.ctl, cabCtl(cab, false));
     t.ctl.throttle = t.ctl.power > 0;
     t.ctl.brake = t.ctl.brakeF > 0;
@@ -342,10 +345,12 @@ export function updateTrainDriving(dt, world) {
     } else { cab.look.yaw *= Math.exp(-dt * 1.5); cab.look.pitch *= Math.exp(-dt * 1.5); }
   }
   // tractiehendel: W en S (pijlen, trekker en rem van het pad) schuiven hem een stand; K is de waakzaamheidsknop
+  const waakGast = !!world.coopTreinWaak; // K van de conducteur in de trein van de gastheer (#492)
+  world.coopTreinWaak = false;
   const evs = stepCab(cab, dt, {
     up: input.isDown('w') || input.isDown('arrowup'), down: input.isDown('s') || input.isDown('arrowdown'),
     upP: input.wasPressed('w') || input.wasPressed('arrowup'), downP: input.wasPressed('s') || input.wasPressed('arrowdown'),
-    ack: input.wasPressed('k'), doorsOpen: doorsAreOpen(world),
+    ack: input.wasPressed('k') || waakGast, doorsOpen: doorsAreOpen(world),
   }, t.v);
   if (input.wasPressed('k')) input.consume('k');
   for (const e of evs) {
