@@ -64,6 +64,12 @@ const LESSONS = [
     when: (w) => w.stats.missionsDone > startDone && !busy(w),
     card: () => ({ title: 'Activiteiten', body: 'Missie binnen, en het spel heeft opgeslagen. Alles wat nog openstaat staat onder {ESC} › Verhaal en Activiteiten: kies iets en de route gaat erheen.' }),
   },
+  {
+    id: 'samen',
+    // na de eerste missie, niet tijdens een missie of een dienst, en niet als je al samen speelt
+    when: (w) => w.stats.missionsDone > startDone && !busy(w) && !w.coopNet,
+    card: () => ({ title: 'Samen spelen', body: 'Met vrienden in dezelfde wereld? Druk op {ESC} en kies Samen spelen. Je eigen geld, spullen en loopbaan gaan mee; de wereld en het verhaal zijn van wie het spel opende.' }),
+  },
 ];
 
 let seen = load();
