@@ -712,10 +712,10 @@ export function initPauseMenu(w) {
       e.stopPropagation();
       if (type !== 'keydown' || e.key !== 'Escape') return;
       e.preventDefault();
-      if (spulZoek.value) { spulZoek.value = ''; zetSpullenZoek(root.querySelector('[data-panel="spullen"]'), ''); } else spulZoek.blur();
+      if (spulZoek.value) { spulZoek.value = ''; zetSpullenZoek(''); spullenApi.rerender(); } else spulZoek.blur();
     });
   }
-  spulZoek.addEventListener('input', () => zetSpullenZoek(root.querySelector('[data-panel="spullen"]'), spulZoek.value));
+  spulZoek.addEventListener('input', () => { zetSpullenZoek(spulZoek.value); spullenApi.rerender(); });
 
   // a narrow sheet stacks the garage's list and viewer, and Te doen's details
   if (typeof ResizeObserver !== 'undefined') {
