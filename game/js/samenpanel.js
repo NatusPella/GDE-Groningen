@@ -6,6 +6,7 @@ import { startHost, startClient, addGuest, stopCoopNet, handshakeInfo, canJoin, 
 import { fadeFlash } from './coophud.js';
 import { openHold } from './coophold.js';
 import { koppelWissel } from './coophostwisselui.js';
+import { biedOver } from './coophostwisselnet.js';
 import { readSession, writeSession, toSession } from './coopsave.js';
 import { readHostScene } from './coopscene.js';
 import { setGate } from './coopgate.js';
@@ -83,6 +84,8 @@ export function renderSamenPanel(root, world, sluit = () => {}) {
     startClient: (tr, route, wens) => { try { if (!hasSave()) saveGame(world, { toast: false }); } catch (e) { /* de beloningen gaan dan niet verloren: ze staan in het geld van deze sessie */ } const sessie = startClient(world, tr, info(), { fade: fadeFlash, route, wens, code: ls ? readSession(ls).laatsteCode : '', onHold: (rol, slot, reden) => openHold(world, rol, slot, reden) }); gebonden = world.coopNet; return sessie; },
     setMax: (n) => setMaxPlayers(world, n),
     kick: (slot) => removeGuest(world, slot),
+    // het spel aan een speler overdragen (#439): dezelfde overdracht als bij Spel > Spelers, nu ook vanuit de wachtkamer
+    overdragen: (slot) => biedOver(world, slot),
     onCode: (code) => { if (ls) writeSession(ls, toSession(readSession(ls), { code })); },
     canJoin: () => eigenFilmpjeOverslaan(world, canJoin(world)),
     joined: () => {},
