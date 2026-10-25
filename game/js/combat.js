@@ -416,7 +416,8 @@ function vehicleOnPath(world, b, x0, y0) {
 
 function vehicleImpact(world, b, h) {
   const v = h.v;
-  v.health -= b.damage * BULLET_VEHICLE_SCALE;
+  // een politicauto op vijf sterren heeft een pantser (#436)
+  v.health -= b.damage * BULLET_VEHICLE_SCALE * (v.isPolice && v.driver !== 'player' && v.armor ? v.armor : 1);
   if (v.health <= 0) wreckVehicle(world, v, b.owner === 'player' && !b.dader);
   gunImpactFx({ surface: h.glass ? 'carglass' : 'metal', x: h.x, y: h.y, z: b.z, nx: h.nx, ny: h.ny, vehicle: v.wrecked ? null : v, pellet: b.pellet });
   sound(world, h.x, h.y, h.glass ? 'glass' : 'metal', b.pellet ? 0.3 : 0.6);
