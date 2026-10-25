@@ -9,6 +9,11 @@ export function isInsideBuilding(map, x, y) {
   return !!buildingAt(map, x, y);
 }
 
+// The road categories a walker keeps off: their asphalt is for cars. A footway or
+// a cycle path is where a walker belongs, a service road or a track is fair game
+// (#502).
+export const CAR_ROAD_CATS = ['major', 'normal', 'minor'];
+
 export function isOnRoad(map, x, y, margin = 0, cats = null) {
   for (const r of map.roadsNear(x, y, 2 + margin)) {
     if (cats ? !cats.includes(r.cat) : r.cat === 'foot') continue;
