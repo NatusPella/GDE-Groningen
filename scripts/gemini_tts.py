@@ -1,12 +1,14 @@
 # Shared Gemini 3.8 TTS call for the tts_*.py voice scripts, on two transports:
-#  - 'openrouter' (default): shared capacity, paid from the OpenRouter balance;
-#  - 'google' (#462): the Gemini API straight from Google AI Studio, billed per audio second and
-#    metered here (`usage()`), so a run stops at its --budget without asking anyone.
-# Both speak gemini-3.8-flash-tts or gemini-3.8-flash-lite-tts with the same schema; the lite model
-# is about a third cheaper and is meant for bulk work (docs/verhaal/nieuw/07-TTS-RAMING.md).
+#  - 'google' (default): the Gemini API straight from Google AI Studio, billed per audio second and
+#    metered here (`usage()`), so a run stops at its --budget without asking anyone;
+#  - 'openrouter': shared capacity, paid from the OpenRouter balance (kept for the old route).
+# New clips are recorded with gemini-3.8-flash-lite-tts: the owner decided on 25-10 that lite is good
+# enough and that Flash is not used any more (ADR 0018, #462). Clips of the Flash era stay accepted,
+# so nothing is re-recorded by accident.
 # 3.8 reads `input` verbatim, so the delivery (character, emotion, accent) goes in
 # speech_metadata.style; it is not billed. Inline vocal tags like <sigh> or <short pause> may stay in
-# the text. Needs OPENROUTER_API_KEY or GEMINI_API_KEY in .env (never printed).
+# the text. Needs GOOGLE_AI_STUDIO_KEY (or GEMINI_API_KEY) in .env, or OPENROUTER_API_KEY for the
+# openrouter transport; never printed.
 #
 # What is spoken is Gronings: scripts/gronings_spoken.json maps each line as the
 # game shows it (the key text) to its spoken Gronings spelling; the subtitles
@@ -26,17 +28,22 @@ ENV = os.environ.get('GDE_ENV') or next((p for p in [os.path.join(REPO, '.env'),
 ENDPOINT = 'https://openrouter.ai/api/v1/audio/speech'
 GOOGLE_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/interactions'
 PROVIDERS = ('openrouter', 'google')
-PROVIDER = 'openrouter'
-# same as tts_cast.mjs TTS_LANG; a clip logged with another lang is re-recorded
-LANG = 'gro'
-# same as tts_cast.mjs TTS_MODEL / TTS_MODELS; a clip logged with another model is re-recorded
-MODEL = 'google/gemini-3.8-flash-tts'
+# new clips are recorded with the lite model, straight from AI Studio: the owner decided on 25-10
+# that lite is good enough and that Flash is not used any more (ADR 0018, #462)
+PROVIDER = 'google'
+MODEL = 'google/gemini-3.8-flash-lite-tts'
 GOOGLE_MODEL = 'gemini-3.8-flash-lite-tts'
-ACCEPTED = (MODEL, 'gemini-3.8-flash-tts', 'gemini-3.8-flash-lite-tts')
+# the models a recording may have been made with: a clip with one of these is never re-recorded, so
+# the 3011 clips of the Flash era stay as they are
+ACCEPTED = (MODEL, 'google/gemini-3.8-flash-tts', 'gemini-3.8-flash-tts', GOOGLE_MODEL)
+# never record with these again; the owner said so on 25-10 (ADR 0018)
+FLASH = ('google/gemini-3.8-flash-tts', 'gemini-3.8-flash-tts')
 # gemini-3.8 tts: 25 audio tokens per second; output price per 1M tokens through 31-12-2026
 # (ai.google.dev/gemini-api/docs/pricing). Input text is a rounding error next to the audio.
 AUDIO_TPS, PRICE = 25, {'gemini-3.8-flash-tts': 9.0, 'gemini-3.8-flash-lite-tts': 6.0}
-CURRENT = MODEL
+CURRENT = GOOGLE_MODEL
+# same as tts_cast.mjs TTS_LANG; a clip logged with another lang is re-recorded
+LANG = 'gro'
 # AI Studio allows 10 requests per minute for this model on Tier 1 (a 454-line run otherwise spends
 # its time on 429s); 0 turns the throttle off. Over OpenRouter there is no such limit.
 RPM = 10
@@ -54,6 +61,9 @@ def configure(provider=None, model=None, rpm=None):
             raise SystemExit(f'unknown provider {provider!r}; use one of {", ".join(PROVIDERS)}')
         PROVIDER = provider
     CURRENT = model or (GOOGLE_MODEL if PROVIDER == 'google' else MODEL)
+    if CURRENT in FLASH:
+        raise SystemExit(f'{CURRENT} is Flash: de eigenaar wil sinds 25-10 geen Flash meer (ADR 0018, #462). '
+                         f'Gebruik {GOOGLE_MODEL}, of vraag het eerst opnieuw.')
     if CURRENT not in ACCEPTED:
         raise SystemExit(f'model {CURRENT!r} is not in ACCEPTED: add it to gemini_tts.ACCEPTED and tts_cast.mjs first')
     if PROVIDER == 'google' and CURRENT not in PRICE:

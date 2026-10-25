@@ -1,11 +1,12 @@
 // Shared by the TTS line lists (tts_lines_list, tts_banter_lines,
 // tts_sidejobs_lines): Tammo and Tessa's voices and the speech_metadata
 // style every job is voiced with (scripts/gemini_tts.py).
-// same as gemini_tts.MODEL: the model new clips are recorded with over OpenRouter
-export const TTS_MODEL = 'google/gemini-3.8-flash-tts';
-// every model a recording may have been made with (gemini_tts.ACCEPTED): the lite model of #462 is
-// the cheaper one for bulk work, and a clip recorded with it is not a re-recording candidate
-export const TTS_MODELS = [TTS_MODEL, 'gemini-3.8-flash-tts', 'gemini-3.8-flash-lite-tts'];
+// the model new clips are recorded with (AI Studio, straight from Google); TTS_MODELS[0]. The owner
+// decided on 25-10 that lite is good enough and Flash is not used any more (ADR 0018, #462).
+const TTS_MODEL = 'gemini-3.8-flash-lite-tts';
+// every model a recording may have been made with (gemini_tts.ACCEPTED); a clip of the Flash era is
+// not a re-recording candidate, and Flash itself is never recorded again
+export const TTS_MODELS = [TTS_MODEL, 'google/gemini-3.8-flash-lite-tts', 'gemini-3.8-flash-tts', 'google/gemini-3.8-flash-tts'];
 // every clip is recorded from its Gronings spoken text (scripts/gronings_spoken.json); a clip
 // whose tts.json entry has another lang is re-recorded
 export const TTS_LANG = 'gro';

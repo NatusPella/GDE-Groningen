@@ -1,13 +1,13 @@
 # Voices the jobs in scripts/tts_lines.json (from tts_lines_list.mjs) with
-# Gemini 3.8 TTS (gemini_tts.py) into game/audio/voicelines/<out> +
+# Gemini 3.8 Flash-Lite TTS (gemini_tts.py) into game/audio/voicelines/<out> +
 # its manifest.json (out: lines, story, sms, hints), with what each clip was
 # made from in that folder's tts.json. Needs ffmpeg. Clips that are current
 # (logged with an accepted model, see gemini_tts.ACCEPTED) are skipped; clips are
 # loudness-matched to the story lines (-18 LUFS). Stops once the run's spend
-# nears the budget: the OpenRouter credits endpoint, or gemini_tts.usage() on the
-# google transport (#462).
+# nears the budget, metered by gemini_tts.usage() (#462).
+# Flash is never used again (ADR 0018); --provider openrouter still exists.
 #   python3 scripts/tts_lines.py [max_jobs] [--budget 2.5]
-#   python3 scripts/tts_lines.py 12 --provider google --model gemini-3.8-flash-lite-tts --out proef
+#   python3 scripts/tts_lines.py 12 --out proef        (a listen, no manifest of the game)
 import json, os, sys, subprocess, urllib.error, wave, time
 from concurrent.futures import ThreadPoolExecutor
 import gemini_tts
