@@ -1,8 +1,9 @@
 // Writes scripts/tts_lines.json: one TTS job per recording that
 // voice_coverage.mjs reports missing from the lines manifest (bubbles,
-// subtitles, the story lines not in story/manifest.json), plus every
-// recording whose tts.json entry is missing or has another model than
-// TTS_MODEL (re-recorded in place, story/ included). Every job gets a Gemini voice and a
+// subtitles, the story lines not in story/manifest.json) and per spoken line of the new
+// story (game/storydata/script.json) that is still textOnly, plus every
+// recording whose tts.json entry is missing or has a model outside TTS_MODELS
+// (re-recorded in place, story/ included). Every job gets a Gemini voice and a
 // speech_metadata style (character, delivery tag, accent). Then:
 //   node scripts/tts_lines_list.mjs && python3 scripts/tts_lines.py [max_jobs]
 // New jobs for the story/jobs manifests are recorded into the lines manifest
@@ -11,7 +12,7 @@ import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import { collect, isVoiced, missingKeys, manifest, BUBBLE, NARRATOR, REPO } from './voicelines_collect.mjs';
-import { ACCENT, GRO_ACCENT, DUO, TTS_MODEL, TTS_LANG, styleOf } from './tts_cast.mjs';
+import { ACCENT, GRO_ACCENT, DUO, TTS_MODELS, TTS_LANG, styleOf } from './tts_cast.mjs';
 import { GRO } from '../game/js/subtitles.js';
 
 const GRO_WORDS = /\b(mien|nait|moar|mor|goud|kiek|joe|doar|noar|hoes|ain|hail|mout|stoet|wicht|oet|veur|zain|laven|dij|wies|lopst|rieden)\b/i;
@@ -137,6 +138,36 @@ function recording(e, sp) {
 const jobs = [];
 const seen = new Set();
 const push = (j) => { if (!seen.has(j.out + '|' + j.key)) { seen.add(j.out + '|' + j.key); jobs.push(j); } };
+
+// --- the new story (game/storydata/script.json): a line without a recording is `textOnly` and is
+// shown as text only (#326). voice_coverage checks these apart from collect(); a recording goes
+// into the lines manifest and the next build_story_data run clears `textOnly` (#462). A line is
+// skipped, and counted, when its speaker has no voice yet or its Gronings spoken text is missing:
+// recording it in Dutch instead would be worse than waiting.
+const scriptFile = path.join(REPO, 'game', 'storydata', 'script.json');
+const groFile = path.join(REPO, 'scripts', 'gronings_spoken.json');
+const waiting = { gronings: [], cast: [] };
+if (fs.existsSync(scriptFile)) {
+  const spoken = fs.existsSync(groFile) ? JSON.parse(fs.readFileSync(groFile, 'utf8')) : {};
+  for (const sc of JSON.parse(fs.readFileSync(scriptFile, 'utf8')).scenes) {
+    for (const l of sc.lines) {
+      if (!l.textOnly || !l.key) continue; // the silent app messages have no key
+      const sp = l.voice || l.speaker;
+      const c = CAST[sp];
+      const accent = c?.accent || (isGronings(l.text) ? GRO_ACCENT : ACCENT);
+      const gronings = /Gronings/.test(accent);
+      if (!c) { waiting.cast.push(`${sp} (${l.text})`); continue; }
+      if (gronings && !(l.text in spoken)) { waiting.gronings.push(`${sp}: ${l.text}`); continue; }
+      const key = `${sp}|${l.text}`;
+      const tag = mood(sp, l.text, key);
+      push({
+        key, speaker: sp, text: l.text, area: sc.id, out: 'lines', lang: gronings ? TTS_LANG : 'own',
+        voice: c.voice, who: c.who, tag, style: styleOf(c.who, tag, accent),
+        file: `${slug(sp)}/${slug(l.text).slice(0, 32)}_${hash(key).slice(0, 8)}.mp3`,
+      });
+    }
+  }
+}
 for (const e of collect()) {
   if (e.manifest === 'npc') continue;
   if (!isVoiced(e)) for (const sp of missingKeys(e)) push(makeJob(e, sp, e.manifest === 'sms' || e.manifest === 'hints' ? e.manifest : 'lines'));
@@ -144,10 +175,16 @@ for (const e of collect()) {
     const r = recording(e, sp);
     if (r && r.out !== 'jobs') {
       const j = makeJob(e, sp, r.out, r.entry.src);
-      if (r.log?.model !== TTS_MODEL || (j.lang === TTS_LANG && r.log?.lang !== TTS_LANG)) push(j);
+      if (!TTS_MODELS.includes(r.log?.model) || (j.lang === TTS_LANG && r.log?.lang !== TTS_LANG)) push(j);
     }
   }
 }
 fs.writeFileSync(path.join(REPO, 'scripts', 'tts_lines.json'), JSON.stringify(jobs, null, 1));
 const redo = jobs.filter((j) => manifest(j.out)[j.key]).length;
 console.log(jobs.length, 'jobs', `(${redo} re-recordings)`, jobs.reduce((a, j) => a + j.text.length, 0), 'chars');
+// what cannot be recorded yet, and why (docs/verhaal/nieuw/07-TTS-RAMING.md §5)
+if (waiting.cast.length) {
+  const who = [...new Set(waiting.cast.map((w) => w.replace(/ \(.*/, '')))];
+  console.log(`${waiting.cast.length} verhaalregels wachten op een stemkeuze (CAST):`, who.join(', '));
+}
+if (waiting.gronings.length) console.log(`${waiting.gronings.length} verhaalregels wachten op een Groningse spreektekst (scripts/gronings_spoken.json)`);
