@@ -8,6 +8,8 @@ import * as B from '../game/js/coopbestuur.js';
 import * as G from '../game/js/coopgezocht.js';
 import { reportCrime } from '../game/js/crime.js';
 import { wielInvoer } from '../game/js/coopgast.js';
+import * as D from '../game/js/vehicledoors.js';
+import { seatedOf } from '../game/js/occupants.js';
 import { PROTO } from '../game/js/net/protocol.js';
 import { CODEC_VERSION } from '../game/js/net/codec.js';
 
@@ -248,6 +250,94 @@ t('over het net: iedereen ziet de sterren van het doelwit; de gast die gepakt wo
   assert.ok(s.gw.money < geld && s.gw.money >= 0, 'boete: ' + s.gw.money); assert.ok(s.gw.messages.some((m) => /Gepakt/.test(m)));
   assert.equal(G.wantedVan(s.hw, 1), 0); assert.equal(s.hw.companion.coopBestuurt, false, 'uit het voertuig');
   s.step(1); assert.equal(s.gw.wanted, 0);
+});
+
+// ---- iemand uit een voertuig trekken (#459): de gast vraagt, de host controleert en doet het
+const sedan = (id, extra = {}) => auto(id, 0, 0, { x: 0, y: 0, angle: 0, model: { name: 'sedan', len: 4.3, wid: 1.8 }, ...extra });
+const bijrijdersdeur = [0.645, 1.32], achterdeur = [-0.602, 1.32]; // de instappunten naast de deuren
+
+t('een gast opent de bijrijdersdeur met E en trekt de AI-passagier er met de tweede E uit (#459)', () => {
+  let geplukt = null;
+  const h = haken();
+  h.trekUit = (w, v, rol) => { geplukt = [v.id, rol]; seatedOf(v).passengers = []; return { ped: {} }; };
+  B.zetBestuurHaken(h); meldingen.length = 0;
+  const w = mkWorld();
+  const v = sedan(71, { driver: 'ai', road: {} }); w.vehicles = [v];
+  seatedOf(v).passengers = [{ slot: 'front', seed: 3 }];
+  w.companion.x = bijrijdersdeur[0]; w.companion.y = bijrijdersdeur[1];
+  assert.equal(B.trekGast(w, 1), true);
+  assert.equal(v.doors.want.vr, 1, 'de deur gaat open');
+  assert.match(meldingen.pop()[1], /opent de bijrijdersdeur/, 'de gast hoort welke deur opengaat');
+  assert.equal(geplukt, null, 'nog niemand eruit: eerst de deur');
+  for (let i = 0; i < 30; i++) D.stepDoors(v.doors, 1 / 60);
+  meldingen.length = 0;
+  assert.equal(B.trekGast(w, 1), true);
+  assert.deepEqual(geplukt, [71, 'bijrijder'], 'de bestaande trek-actie (ejectPassenger)');
+  assert.match(meldingen.pop()[1], /trekt de passagier/);
+  B.zetBestuurHaken({ trekUit: null });
+});
+
+t('trekken kan alleen bij een bezette passagiersdeur van een stilstaand voertuig binnen bereik (#459)', () => {
+  B.zetBestuurHaken({ ...haken(), trekUit: () => ({ ped: {} }) }); meldingen.length = 0;
+  const w = mkWorld();
+  const leeg = sedan(72, { driver: 'ai', road: {} }); // niemand op de bijrijdersstoel
+  seatedOf(leeg).passengers = [];
+  w.vehicles = [leeg]; w.companion.x = bijrijdersdeur[0]; w.companion.y = bijrijdersdeur[1];
+  assert.equal(B.trekGast(w, 1), false, 'een lege stoel: het gewone gebruik gaat door');
+  const ver = sedan(73, { x: 40, y: 40, driver: 'ai', road: {} }); seatedOf(ver).passengers = [{ slot: 'front' }];
+  w.vehicles = [ver];
+  assert.equal(B.trekGast(w, 1), false, 'te ver van de deur');
+  const rijdend = sedan(74, { x: 0, y: 0, speed: 4, driver: 'ai', road: {} }); seatedOf(rijdend).passengers = [{ slot: 'front' }];
+  w.vehicles = [rijdend]; w.companion.x = bijrijdersdeur[0]; w.companion.y = bijrijdersdeur[1];
+  assert.equal(B.trekGast(w, 1), false, 'een rijdend voertuig geeft niemand vrij');
+  const bestuurder = sedan(75, { driver: 'ai', road: {} }); bestuurder.doors = D.makeDoorState(); bestuurder.doors.open.vl = 1;
+  w.vehicles = [bestuurder]; w.companion.x = 0.645; w.companion.y = -1.32;
+  assert.equal(B.trekGast(w, 1), false, 'de bestuurdersdeur is geen passagiersdeur');
+  assert.equal(B.trekGast(w, 0), false, 'de gastheer zelf gebruikt zijn eigen E');
+  B.zetBestuurHaken({ trekUit: null });
+});
+
+t('een gast trekt een medespeler van de achterbank, maar niet op passief (#447)', () => {
+  B.zetBestuurHaken(haken()); meldingen.length = 0;
+  const w = mkWorld();
+  const v = sedan(76, { driver: 'player' }); w.vehicles = [v];
+  v.doors = D.makeDoorState(); v.doors.open.ar = 1; // de achterdeur staat al open
+  w.coopFigures[2] = { slot: 2, x: 0, y: 0, inVeh: v, stoel: 2 };
+  w.coopFigures[3] = { slot: 3, x: achterdeur[0], y: achterdeur[1], gz: 0, radius: 0.4 };
+  w.coopPvp = { actief: {} }; // iedereen passief (de standaard)
+  assert.equal(B.trekGast(w, 3), true);
+  assert.equal(w.coopFigures[2].inVeh, v, 'passief: hij blijft zitten');
+  assert.match(meldingen.pop()[1], /passief/);
+  w.coopPvp = { actief: { 2: true, 3: true } }; meldingen.length = 0;
+  assert.equal(B.trekGast(w, 3), true);
+  const f = w.coopFigures[2];
+  assert.equal(f.inVeh, null); assert.equal(f.stoel, undefined); assert.equal(f.coopVoertuig, false);
+  assert.ok(Math.hypot(f.x - achterdeur[0], f.y - achterdeur[1]) < 0.01, 'hij staat naast de open deur');
+  assert.ok(meldingen.some(([s, t]) => s === 2 && /uit het voertuig getrokken/.test(t)), 'de medespeler hoort het zelf');
+});
+
+t('over het net: E van de gast bij een passagiersdeur komt als begrensd trekbericht bij de host (#459)', () => {
+  let geplukt = null;
+  B.zetBestuurHaken({ ...haken(), trekUit: (w, v, rol) => { geplukt = [v.id, rol]; seatedOf(v).passengers = []; return { ped: {} }; } });
+  const s = sessie({ vehicles: [sedan(91, { driver: 'ai', road: {} })] });
+  s.step(2);
+  const v = s.hw.vehicles[0];
+  seatedOf(v).passengers = [{ slot: 'front', seed: 3 }];
+  s.hw.player.x = 8; s.hw.player.y = 8; // de gastheer staat naast de auto
+  s.hw.companion.x = bijrijdersdeur[0]; s.hw.companion.y = bijrijdersdeur[1];
+  const verzonden = [], send = s.gw.coopNet.session.sendEvent.bind(s.gw.coopNet.session);
+  s.gw.coopNet.session.sendEvent = (b) => { verzonden.push(b); return send(b); };
+  assert.equal(N.gastGebruik(s.gw), true);
+  s.gw.coopNet.session.sendEvent = send;
+  assert.deepEqual(verzonden, [{ k: 'trek' }], 'een gewoon bericht zonder gegevens van de gast');
+  s.step(0.1);
+  assert.equal(v.doors.want.vr, 1, 'de eerste E opent de bijrijdersdeur');
+  assert.ok(s.gw.messages.some((m) => /opent de bijrijdersdeur/.test(m)), 'de gast hoort welke deur opengaat');
+  for (let i = 0; i < 30; i++) D.stepDoors(v.doors, 1 / 60);
+  s.hw.time += 1; // hetzelfde bericht meteen nog eens is begrensd (coopnet.js TREK_WACHT_S)
+  N.gastGebruik(s.gw); s.step(0.1);
+  assert.deepEqual(geplukt, [91, 'bijrijder'], 'de tweede E trekt de passagier eruit');
+  B.zetBestuurHaken({ trekUit: null });
 });
 
 t('formaat: PROTO en CODEC_VERSION zijn niet veranderd', () => {

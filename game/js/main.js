@@ -54,7 +54,7 @@ import { World } from './world.js';
 import { initCompanion, updateCompanion } from './companion.js';
 import { tickRowingCoaches } from './roeicoach.js';
 import { updateTrafficAI, resolveVehicleBuildingCollision, resolveVehicleVehicleCollisions, manageTrafficPopulation, manageBikePopulation, manageBusPopulation, manageScooterPopulation, manageMotorPopulation, manageBoatPopulation, updateBoatAI, recordContact, checkVehicleWater, spawnHeroCarNear, tickBurningVehicles, setGroundMap } from './vehicle.js';
-import { spawnPedestriansNear, updatePedestrians, CITY_CENTRE } from './pedestrians.js';
+import { spawnPedestriansNear, updatePedestrians, CITY_CENTRE, ejectPassenger } from './pedestrians.js';
 import { updateCombat, updateBullets, gastAanvalUitvoeren, gastSlagLanding } from './combat.js';
 import { setCombatEffect } from './combateffect.js';
 import { zetWapenHaken, zetGastWapenHaken } from './coopwapen.js';
@@ -461,7 +461,7 @@ async function boot() {
   // samen spelen (#434): een gast stapt in en rijdt een vrij voertuig van de host met de besturing van player.js (coopbestuur.js)
   zetWapenHaken({ aanval: gastAanvalUitvoeren, landing: gastSlagLanding }); // een gast met een wapen: de host rekent zijn aanval uit (#434)
   zetGastWapenHaken({ effect: (w, key, p) => { const wp = WEAPONS[key]; if (!wp) return; setCombatEffect({ type: wp.kind === 'melee' ? 'melee' : 'muzzle', angle: p.angle, until: w.time + (wp.kind === 'melee' ? 0.15 : 0.06), start: w.time, side: 1, weapon: key, swing: wp.swing }); (w.audioEvents || (w.audioEvents = [])).length < 64 && w.audioEvents.push({ kind: 'weapon', sub: wp.kind === 'melee' ? 'swing' : 'shot', weapon: key, x: p.x, y: p.y }); }, geluid: (w, ev) => { (w.audioEvents || (w.audioEvents = [])).length < 64 && w.audioEvents.push(ev); } }); // het eigen beeld en geluid van de gast
-  zetBestuurHaken({ misdaad: (w, slot, kind) => reportCrime(w, kind, { dader: slot }), vind: findEnterableVehicle, vindProp: findRideableProp, rijProp: rideProp, enter: (l, v, w) => Player.prototype.enterVehicle.call(l, v, w), exit: (l, map, w, th) => Player.prototype.exitVehicle.call(l, map, w, th), drive: (l, dt, inv, map, w) => Player.prototype.driveVehicle.call(l, dt, inv, map, w) });
+  zetBestuurHaken({ misdaad: (w, slot, kind) => reportCrime(w, kind, { dader: slot }), vind: findEnterableVehicle, vindProp: findRideableProp, rijProp: rideProp, enter: (l, v, w) => Player.prototype.enterVehicle.call(l, v, w), exit: (l, map, w, th) => Player.prototype.exitVehicle.call(l, map, w, th), drive: (l, dt, inv, map, w) => Player.prototype.driveVehicle.call(l, dt, inv, map, w), trekUit: (w, v, rol) => ejectPassenger(w, v, rol) }); // trekUit: een gast trekt een passagier uit zijn deur (#459)
   // samen spelen (#449): de gastheer zet het eigen voertuig van een gast neer (coopbezit.js)
   zetDeelHaken({ spec: eigenSpec, plek: (w, x, y, model, opts) => findParkingSpot(w, x, y, model, opts), maak: spawnSharedVehicle });
   buildMovableBridges(world.map);

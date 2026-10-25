@@ -7,6 +7,9 @@
 import { figures } from './coopclient.js';
 import { isKoploos } from './net/koploos.js'; // een gastheer zonder lokale speler (#450)
 import { kanUitstappen, wielInvoer } from './coopgast.js';
+import { seatedOf } from './occupants.js'; // wie er op de stoelen zit (AI-passagiers)
+import { isPassief } from './cooppvp.js'; // een medespeler eruit trekken kan alleen buiten de passieve stand (#447)
+import { trekKandidaat, openDeurVoor, openDeurVoorRol, trekPunt, deurNaam } from './vehicledoors.js'; // deur, bereik en stilstand (#459)
 // De rechten op een eigen voertuig van een medespeler (#449) staan hier: coopbezit.js wijst naar dit bestand, niet
 // andersom, zodat er geen importkring ontstaat.
 export function magGebruiken(recht, slot, eigenaar) {
@@ -25,6 +28,13 @@ export const BESTUUR_TEKST = {
   ver: 'Te ver van de groep: je voertuig staat stil en je staat weer bij de groep.',
   wacht: 'De wereld hier wordt nog geladen. Even wachten.',
 };
+export const TREK_TEKST = {
+  deur: (naam) => `Je opent de ${naam}. Nog een keer E om er iemand uit te trekken.`,
+  uit: 'Je trekt de passagier uit het voertuig.',
+  mede: 'Je trok een medespeler uit het voertuig.',
+  passief: 'Een medespeler eruit trekken kan alleen als jullie allebei niet op passief staan.',
+  weg: 'Je bent uit het voertuig getrokken.',
+};
 export const TE_VER_S = 4; // s buiten het bereik van de wereld voor de host de gast bij de groep zet
 
 // De haken (main.js en coopnet.js zetten ze; tests zetten nepversies):
@@ -32,7 +42,8 @@ export const TE_VER_S = 4; // s buiten het bereik van de wereld voor de host de 
 //  enter(lichaam, v, world) en exit(lichaam, map, world) (player.js enterVehicle en exitVehicle op het lichaam van de gast); drive(lichaam, dt, invoer, map, world)
 //  misdaad(world, slot, soort) (crime.js reportCrime met de gast als dader)
 //  los(world, slot, x, y) -> { ok, wacht } (coopnet.js losVoor); bijGroep(world, lichaam, hoek) -> true als er droge grond is (coopnet.js zetBijGroep)
-const haken = { misdaad: null, vind: null, vindProp: null, rijProp: null, enter: null, exit: null, drive: null, los: null, bijGroep: null };
+//  trekUit(world, v, rol) -> passagier of null (pedestrians.js ejectPassenger: de bestaande trek-actie)
+const haken = { misdaad: null, vind: null, vindProp: null, rijProp: null, enter: null, exit: null, drive: null, los: null, bijGroep: null, trekUit: null };
 export function zetBestuurHaken(h) { Object.assign(haken, h || {}); }
 
 export const rijders = (world) => world.coopRijders || (world.coopRijders = {});
@@ -181,6 +192,65 @@ export function bestuurLos(world, slot) {
   return true;
 }
 export function bestuurAllesLos(world) { for (const s of Object.keys(rijders(world))) bestuurLos(world, +s); }
+
+// ---- iemand uit een voertuig trekken (#459) -----------------------------------------
+// Een gast staat bij een bijrijders- of achterdeur en drukt op E: de eerste keer gaat de
+// deur open, de tweede keer trekt hij de passagier eruit. De host controleert alles met
+// zijn eigen lichaam (nooit de plek die de gast stuurt): de deur van die stoel, stilstand
+// en bereik (vehicledoors.js trekKandidaat, openDeurVoorRol, trekPunt). Een AI-passagier
+// gaat via de bestaande trek-actie (haken.trekUit, pedestrians.js ejectPassenger); een
+// medespeler is een lichaam van de host, dus die staat daarna gewoon buiten en de
+// volgende snapshot laat hem daar zien. Alleen als beiden buiten de passieve stand staan
+// (#447). Geeft false als er niets te trekken valt: de aanroeper probeert dan het gewone
+// in- of uitstappen (coopnet.js 'trek').
+function medespelerIn(world, v, rol = 'bijrijder') {
+  const c = world.companion; // plek 1 zit voorin naast de bestuurder
+  if (c && c.inVehicle === v && rol !== 'achter') return { slot: 1, lichaam: c };
+  for (const f of Object.values(figures(world))) { // een figuur op stoel 1 zit voorin, stoel 2 en hoger achterin
+    if (!f || f.inVeh !== v || f.coopBestuurt) continue;
+    if (rol === 'achter' ? (f.stoel | 0) >= 2 : (f.stoel | 0) === 1) return { slot: f.slot, lichaam: f };
+  }
+  return null;
+}
+
+function passagierIn(world, v, rol) {
+  if (medespelerIn(world, v, rol)) return true;
+  const stoel = rol === 'achter' ? 'rear' : 'front';
+  return seatedOf(v).passengers.some((p) => p && p.slot === stoel);
+}
+
+export function trekGast(world, slot) {
+  const l = lichaamVan(world, slot);
+  if (!l || !(slot > 0) || l.inVehicle || l.inVeh) return false; // zittend: E is uitstappen
+  const k = trekKandidaat(world.vehicles, l.x, l.y, { niveau: l.gz || 0, heeft: (v, rol) => passagierIn(world, v, rol) });
+  if (!k) return false;
+  const v = k.v, rol = k.rol, meld = (t) => stoot(world, slot, t);
+  if (!openDeurVoorRol(v, rol)) { // eerst de deur open: de tweede E trekt hem er dan uit
+    openDeurVoor(v, rol, 3);
+    meld(TREK_TEKST.deur(deurNaam(v, k.deur)));
+    return true;
+  }
+  const mede = medespelerIn(world, v, rol);
+  if (mede) {
+    if (world.coopPvp && (isPassief(world.coopPvp, slot) || isPassief(world.coopPvp, mede.slot))) { meld(TREK_TEKST.passief); return true; }
+    const p = trekPunt(v, l.x, l.y, { rol }); // de plek naast de open deur
+    const m = mede.lichaam;
+    if (mede.slot === 1) { m.inVehicle = null; m.coopUit = true; if (v.passenger === 'companion') v.passenger = null; if (world.coopWielSlot === 1) world.coopWielSlot = null; } // zonder bijrijder geen stuur (#434)
+    else { m.inVeh = null; m.coopVoertuig = false; m.stoel = undefined; }
+    if (p) { m.x = p.x; m.y = p.y; }
+    m.vx = 0; m.vy = 0;
+    openDeurVoor(v, rol, 3);
+    meld(TREK_TEKST.mede);
+    if (world.coopMeld && mede.slot > 0) world.coopMeld(mede.slot, TREK_TEKST.weg);
+    return true;
+  }
+  if (!haken.trekUit || !haken.trekUit(world, v, rol)) return false;
+  const auto = !v.isBike && !v.isScooter && !v.isBoat && !v.farm && !v.coopBezit; // zoals bij instappen: een fiets of boot is geen misdaad (#434)
+  if (auto && haken.misdaad) haken.misdaad(world, slot, 'autoDiefstal');
+  openDeurVoor(v, rol, 3); // de deur blijft open voor de uitstapper
+  meld(TREK_TEKST.uit);
+  return true;
+}
 
 // Elke frame bij de host: het voertuig van elke gast rijdt met zijn invoer. Pauzeert de wereld voor iedereen, dan staat het stil.
 export function bestuurTick(world, dt) {
