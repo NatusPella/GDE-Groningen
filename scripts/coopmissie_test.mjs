@@ -348,18 +348,70 @@ t('sessie: een gast start zijn eigen verhaalopdracht; de andere gast krijgt Meed
   assert.ok(hw.messages.some((m) => /start Bezorgen/.test(m)), 'de gastheer hoort wie de opdracht begon');
   assert.equal(hw.coopNet.meedoen.keuze[1], 'ja', 'de vrager doet mee');
   assert.equal(hw.coopNet.meedoen.keuze[2], 'wacht', 'de andere gast wordt gevraagd');
+  assert.equal(hw.coopNet.meedoen.keuze[0], 'wacht', 'de gastheer krijgt dezelfde vraag (#452)');
+  assert.ok(hw.coopGastVraag && hw.coopGastVraag.id === '0|Bezorgen', 'de vraag staat klaar voor de gastheer');
+  assert.ok(hw.messages.some((m) => /Meedoen\? J = ja, N = nee/.test(m)), 'met J en N in de melding');
+  assert.equal(G.gastheerMee(hw, '0|Bezorgen'), false, 'zonder antwoord doet de gastheer niet mee');
   assert.ok(gs[1].gw.messages.some((m) => /Meedoen met Bezorgen\? J = ja, N = nee/.test(m)));
   const gr = hw.coopGroepen.groepen['0|Bezorgen'];
   assert.ok(gr, 'de opdracht heeft een groep');
   assert.equal(gr.deelnemers.includes(1), true, 'de vrager hoort bij de groep');
   assert.equal(gs[0].gw.coopGroep && gs[0].gw.coopGroep.deelnemer, true, 'de vrager weet dat hij meedoet');
   assert.ok(gs[0].gw.messages.some((m) => /Bezorgen is begonnen: je doet mee/.test(m)));
+  // de gastheer zegt N: hij kijkt toe, de opdracht loopt door zonder hem (coopnet.js uitslag en missions.js dempen zijn beloning)
+  druk(hw, 'n');
+  assert.equal(G.gastheerVraagTik(hw, 1 / 60), true, 'N van de gastheer telt');
+  assert.equal(hw.coopNet.meedoen.keuze[0], 'nee');
+  assert.equal(hw.coopGastVraag, null, 'de vraag is weg');
+  assert.equal(G.gastheerMee(hw, '0|Bezorgen'), false, 'de gastheer deed niet mee');
+  assert.ok(hw.messages.some((m) => /niet mee met Bezorgen/.test(m)));
+});
+
+t('de gastheer zegt J of laat de vraag verlopen: J doet mee, verlopen is nee (#452)', () => {
+  // J: de gastheer doet mee via de gewone groep
+  const hw = { messages: [], addMessage(m) { this.messages.push(m); }, input: { wasPressed: () => false }, coopNet: { role: 'host', meedoen: M.maakMeedoen() } };
+  M.beginGast(hw.coopNet.meedoen, '4|Bezorgen', [0, 1], null, null, 1);
+  assert.equal(G.gastheerVraag(hw, '4|Bezorgen', 'Bezorgen', 20), true);
+  druk(hw, 'j');
+  assert.equal(G.gastheerVraagTik(hw, 1 / 60), true);
+  assert.equal(hw.coopNet.meedoen.keuze[0], 'ja');
+  assert.equal(G.gastheerMee(hw, '4|Bezorgen'), true, 'de gastheer speelt mee');
+  assert.ok(hw.messages.some((m) => /Je doet mee met Bezorgen/.test(m)));
+  assert.deepEqual(M.meespelers(hw.coopNet.meedoen), [0, 1], 'hij telt bij de groep');
+  // verlopen: geen antwoord is nee
+  const hw2 = { messages: [], addMessage(m) { this.messages.push(m); }, input: { wasPressed: () => false }, coopNet: { role: 'host', meedoen: M.maakMeedoen() } };
+  M.beginGast(hw2.coopNet.meedoen, '4|Bezorgen', [0, 1], null, null, 1);
+  G.gastheerVraag(hw2, '4|Bezorgen', 'Bezorgen', 20);
+  assert.equal(G.gastheerVraagTik(hw2, 5), false, 'de vraag loopt nog');
+  assert.equal(G.gastheerMee(hw2, '4|Bezorgen'), false, 'nog geen antwoord: nog niet mee');
+  assert.equal(G.gastheerVraagTik(hw2, 16), true, 'na de tijd telt het als nee');
+  assert.equal(hw2.coopNet.meedoen.keuze[0], 'nee');
+  // een vraag zonder sessie of zonder gastheerrol doet niets
+  assert.equal(G.gastheerVraagTik({ messages: [], coopNet: null }, 1), false);
+  assert.equal(G.gastheerMee({}, '4|Bezorgen'), true, 'zonder sessie het gewone pad');
+  assert.equal(G.gastheerMee({ coopNet: { role: 'client', meedoen: M.maakMeedoen() } }, '4|Bezorgen'), true, 'een gast is geen gastheer');
 });
 
 t('de respawn-haak vraagt de sessie voor neer en voor opgepakt, en de stappen lopen via stagegroep.js', () => {
   const src = fs.readFileSync(new URL('../game/js/missions.js', import.meta.url), 'utf8');
   assert.match(src, /if \(w\.coopOpdrachtDoor && w\.coopOpdrachtDoor\(\)\) return;\s*\r?\n\s*failActiveMission\(w, busted/, 'busted en neer lopen door dezelfde check');
   for (const naam of ['doelStand(', 'teamActor(', 'groepKlaar(', 'meespelerInVoertuig(', 'afstandMeespeler(']) assert.ok(src.includes(naam), `missions.js gebruikt ${naam}`);
+});
+
+t('missions.js dempt beloning en voortgang van een gastheer die niet meedeed (#452)', () => {
+  const src = fs.readFileSync(new URL('../game/js/missions.js', import.meta.url), 'utf8');
+  // de gastStart onthoudt de eigen opdracht van de gastheer en de gastStartMee-haak vraagt de keuze aan coopmissie.js
+  assert.match(src, /chain\.gastStart = \{ id: `\$\{i\}\|\$\{String\(def\.label \|\| ''\)\.slice\(0, 48\)\}`, eigenIndex \}/);
+  assert.match(src, /const gastStartMee = \(world\) => !chain\.gastStart \|\| gastheerMee\(world, chain\.gastStart\.id\)/);
+  assert.match(src, /function sluitGastStart\(world, mee\)[\s\S]{0,200}chain\.index = g\.eigenIndex; chain\.retry = null;/, 'zijn eigen keten springt terug');
+  // geen geld, geen stap verder en geen medaille als hij toekeek; de gasten krijgen hun deel wel
+  assert.match(src, /if \(mee\) \{ noteMoney\('Missies'\); world\.money \+= reward; \}/);
+  assert.match(src, /if \(mee\) chain\.completed\.add\(chain\.index\)/);
+  assert.match(src, /if \(mee\) \{\s*world\.stats\.missionsDone\+\+;/);
+  assert.match(src, /if \(mee\) hooks\.passed\(world, i\)/);
+  assert.match(src, /if \(world\.coopDeel\) world\.coopDeel\(reward\);/, 'de meespelende gasten worden altijd uitbetaald');
+  // de gastheer krijgt dezelfde vraag, elke frame bijgehouden in updateMissions
+  assert.match(src, /gastheerVraagTik\(world, dt\);/);
 });
 
 t('de marker bij een gast (#434): het doel gaat voor, een doel bij een garage krijgt het garageteken', () => {
