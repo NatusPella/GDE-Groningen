@@ -3,9 +3,10 @@
 *Ontwerpdocument, oktober 2026 (ingekort op 0.34). De eigenaar vroeg: "Ik wil de
 hele provincie kunnen spelen." Dit document houdt de techniek, de besluiten, de
 metingen en de bekende beperkingen vast. Openstaand werk staat uitsluitend als
-GitHub-issue (o.a. #1 water per tegel, #2 3D BAG, #3 oude Ommeland-lagen
-vervangen, #4 prestatiemeting, #5 zichtcontrole, #78 echte straathoogtes, #14
-machinist, #80 bussen, #19 weer, #57 webversie). Verhaal, missies en activiteiten: [PROVINCIE-VERHAAL.md](PROVINCIE-VERHAAL.md). De sectienummers
+GitHub-issue (destijds onder meer #1 water per tegel, #2 3D BAG, #3 oude
+Ommeland-lagen vervangen, #4 prestatiemeting, #5 zichtcontrole, #78 echte
+straathoogtes, #14 machinist, #80 bussen, #19 weer, #57 webversie; #1, #2, #3 en
+#78 zijn inmiddels gesloten en hun resultaat staat in de code en hieronder). Verhaal, missies en activiteiten: [PROVINCIE-VERHAAL.md](PROVINCIE-VERHAAL.md). De sectienummers
 blijven gelijk, omdat code en ARCHITECTURE.md ernaar verwijzen.*
 
 ## 0. Het kernprincipe: één wereld, één pijplijn
@@ -21,8 +22,9 @@ kwaliteit**; alleen het detailniveau op afstand (LOD) verschilt.
 
 1. **Geen `inCity`, geen stadsrand.** Code vraagt "wat voor grond is dit?"
    (landuse, wegklasse, bebouwd), uit de tegel.
-2. **Eén gegevensformaat** (`.gdt`). `citymap.json`, `mapextras.json`,
-   `ommeland.json` en `ommeland.bin` verdwijnen zodra tegels het enige pad zijn (#3, #76).
+2. **Eén gegevensformaat** (`.gdt`). `citymap.json`, `ommeland.json` en
+   `ommeland.bin` zijn weg (#3, #76); `mapextras.json` blijft als handlaag naast
+   de tegels (patches op osm-id).
 3. **Handwerk wordt een laag (overlay) per tegel**, geen zone: landmarks,
    doorgangen, ringhoogtes, kades, Grote Markt, UMCG mogen overal staan.
 4. **Procedureel alleen waar de data leeg is** (akkers, sloten, erven, uit
@@ -206,12 +208,12 @@ wegklasse (brink, kade, meubilair, sloten en erven).
 
 ### 2.6 Wat afhing van de splitsing stad/Ommeland
 
-Besluiten (de oude bestanden verdwijnen naarmate #3 vordert): `TileWorld` met
+Besluiten (#3 is af: de oude bestanden zijn weg): `TileWorld` met
 dezelfde query-API als `GameMap` (`buildingsNear`, `roadsNear`, `waterNear`,
 `nearestRoadPoint`, `groundHeightAt`, `isOnBridge`, `escapeBuilding`), eerst
-als façade; `countryreal.js`, `countryedge.js` en de rand van `countrybake.js`
-weg (de grond-shader leest per tegel een raster met wegen, landuse, water; de
-bake-techniek blijft); polders alleen buiten de grens; één gebouwgenerator met
+als façade; `countryreal.js` en `countrybake.js` weg, `countryedge.js` blijft als de randlaag
+(`edgeBlocked`, `roadGap`, `setExtraBlocked`) van de grond-shader, die per tegel een raster met wegen, landuse en water
+leest; polders alleen buiten de grens; één gebouwgenerator met
 L0-L2, één prop-scatter, één watersysteem, één far-LOD, één routegraaf
 (HPA*), één verkeerssysteem op de tegelgraaf, politie die overal op de graaf
 spawnt, één collider-set en camera-straaltest, één minimap-piramide (z0 =
@@ -224,7 +226,7 @@ maar lezen uit de tegelwereld.
 **Hoogte:** AHN (DTM, 5 m, CC0) naar 8 m per tegel, int16 dm, delta-gecodeerd;
 reliëf dat telt: zee- en kanaaldijken (8-10 m, vectorobject met profiel),
 wierden (tot ~6 m), Hondsrug-rand en Westerwolde-zand (tot ~15 m), de opgespoten
-Eemshaven en de verdiepte Ring Zuid (open: #78). **Waterpeil per waterlichaam**,
+Eemshaven en de verdiepte Ring Zuid (#78, af). **Waterpeil per waterlichaam**,
 niet één `WATER_Y`; sluizen zijn een overgang tussen twee peilen. **Zee en
 Wadden:** één zeevlak, eerst vaste vloed, later getij (12 u 25 min, ~3 m bij
 Delfzijl, ~2,5 m bij Lauwersoog; natte-zand-shader voor wadlopen). Dollard en
@@ -322,16 +324,18 @@ stroken in smalle binnenstadsstraten (klassebreedte breder dan de straat).
 van de hele weg (N7-helften 12 m met 4 stroken waar er 2 horen; 2.059 verkeerde
 strookaantallen en 1.202 te brede rijbanen, nu 0).
 
-**Model** (`scripts/world/lanemodel.py`, gedeeld door `process_osm.py` en
-`lanes.py`): `lanes`, `lanes_fwd`/`bwd`/`both`, `turn_fwd`/`bwd`, `width_cm`,
-`placement`, `bus_lanes`, `bike_lanes`, `shoulder`, `lane_w_cm`. Strookbreedtes
+**Model** (`game/js/worldbuilder.js` `laneFields`, met dezelfde getallen als de
+Python-referentie `scripts/world/lanemodel.py`; de keten die hem gebruikte,
+`process_osm.py` en `lanes.py`, is weg sinds C3): `lanes`, `lanesFwd`/`Bwd`/`Both`,
+`turnFwd`/`turnBwd`, `laneW`, `width` met `widthSrc`, `placement`. Strookbreedtes
 (NL): snelweg 3,50 m, N-weg buiten de kom 3,00-3,25, stad 2,75-3,25, busbaan
 3,25, fietsstrook 1,50-2,00, vluchtstrook 2,50-3,50. Gescheiden rijbanen zijn
 twee eenrichtingslinten. Eén model voor lintbreedte, markering (`lanes.js`:
 strepen, pijlen uit `turn:lanes`, in- en uitvoegstroken met taper), AI (rechter
 strook, voorsorteren), GPS en verkeerslichten (beschermd linksaf uit een echte
-linksafstrook). Gemeten: N7-helften nu 7,5 m met 2 stroken; 5.845 van 5.845
-autowegen gekoppeld aan hun OSM-way (`audit_lanes.py`). **Open:** `placement`
+linksafstrook). Gemeten op de oude kaart: N7-helften 7,5 m met 2 stroken; 5.845
+van 5.845 autowegen gekoppeld aan hun OSM-way. `scripts/lanes_test.mjs` dekt de
+regels nu (N7-helften 2 stroken, één `turn`-waarde per strook). **Open:** `placement`
 verschuift het lint nog niet; bus- en fietsstroken komen nog uit `mapextras`.
 
 ### 2.13 Kruispunten en rotondes
@@ -538,8 +542,8 @@ van de gebouwen terug op type-default (`hsrc`): de reden voor 3D BAG.
 **F1 (wereldbouwer, proefstrook):** `game/js/worldbuilder.js` is één generatorpad
 (gebouwbewijs: 3D BAG > OSM-hoogte > OSM-lagen > standaard); 0 verschillen met
 het oude pad (`scripts/worldbuilder_test.mjs`), `fromOsm` geeft de rijen van
-`process_osm.py` terug. Open: de stad zelf opnieuw bouwen uit OSM in plaats van uit
-`citymap.json`. Proefstrook (619 tegels langs de spoorlijnen naar Delfzijl en
+`process_osm.py` terug. Toen open, inmiddels gedaan (C3, 20 oktober 2026): de stad komt zelf uit de
+OSM-tegelbouw en `citymap.json` bestaat niet meer. Proefstrook (619 tegels langs de spoorlijnen naar Delfzijl en
 Eemshaven, N360, A7, N33): decoderen p95 1,2-2,3 ms, 1.436 poorten verbonden;
 auto 40 m/s (27 km), trein 39 m/s (31 km), heli 60 m/s (30 km): 0 tegels te
 laat; `geocheck` ok. Trein: meerijden halte voor halte op de eigen treinfysica
@@ -591,15 +595,12 @@ strook (HTTP 406/429), dus de bron is het Geofabrik-extract.
   open; A7 Stad > Bad Nieuweschans (47 km, 33 m/s), trein naar Eemshaven (45 km,
   39 m/s) en heli (60 m/s): 0 te laat, hoofdthread max 8-41 ms (een dichte
   bostegel: één `addTile`-taak). Electron: verhaaltest PASS, 0 NaN; `geocheck` ok.
-- **3D BAG voor de provincie (plan, #2):** `fetch_3dbag.py --province`; ~430.000
-  panden, ~9-10 MB gzip, downloads ~2-4 GB (schatting) tijdelijk in
-  `data/cache/3dbag`; join als in de stad (BAG-id uit `ref:bag`, anders
-  zwaartepunt + oppervlakte). Buiten de stad is nu 99 % `default`.
-- **Bekende beperkingen:** oude Ommeland-lagen binnen hun gebied nog niet per
-  tegel vervangen (#3); het water van de provincietegels is plat getekend en
-  staat buiten de watergrid (geen boten of zwemmen, auto's rijden eroverheen;
-  #1); geen Duitse randstrook; geen AHN buiten de stad (#78); een dichte
-  bostegel kost tot ~40 ms in één frame.
+- **3D BAG voor de provincie (gedaan, #2):** `fetch_3dbag.py --province` haalt de hele provincie op naar
+  `data/world/3dbag_province.json.gz`; `build_province.mjs` joint hem als in de stad (BAG-id uit `ref:bag`, anders
+  zwaartepunt + oppervlakte) en meldt het percentage gemeten hoogtes.
+- **Bekende beperkingen:** geen Duitse randstrook; een dichte
+  bostegel kost tot ~40 ms in één frame. De oude punten zijn dicht: #3 (de Ommeland-lagen zijn vervangen), #1 (het
+  provinciewater is geannoteerd en zit in de watergrid) en #78 (de AHN-hoogtes komen met `--terrain` in de tegels).
 
 ## 3. Reizen door de provincie
 

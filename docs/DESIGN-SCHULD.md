@@ -16,7 +16,7 @@ When you fix one, remove the row in the same commit.
 | 6 | The Samen spelen screens carry their own CSS and inline styles instead of the shared `.gm` set: the Spelers panel buttons are bold Arial Narrow 20 px (no Bebas, no `.m-bp` / `.m-bg`, no `.m-li` rows), the wait screen and the guest's scene layer are inline styles (radius 6, black bars) | `coopspelersui.js`, `coophold.js`, `coopscene.js` | one surface, one button set | open |
 | 7 | Messages longer than the 14-word card budget: the Meedoen? card counts 17 words with a mission name, the handover offer 19 (counted with `hudtext.js` `wordCount` on example names) | `coopmeedoen.js` `uitnodigingTekst`, `coophostwissel.js` `bodTekst` | `WORD_BUDGET.cardBody` 14 | open, split into a card and a hint |
 | 8 | The players list has no way on touch and none in a vehicle on a controller (R3 means Tab on foot, but look back in a vehicle). The code comment says "left in the screen" while the CSS puts it top centre | `controls.js` `PAD_MAPS`, `coopspelersui.js` | every action has a way on every device | open |
-| 9 | The pause menu's Besturing table says Q/E mean "vorige of volgende sectie", but the code switches tabs first and sections only on a screen without tabs | `pausemenu.js:120` against the Q/E handler at `:788` | text says what the key does | docs fix in the code text |
+| 9 | The pause menu's Besturing table says Q/E mean "vorige of volgende sectie", but the code switches tabs first and sections only on a screen without tabs | `pausemenu.js:121` against the Q/E handler at `:826` | text says what the key does | docs fix in the code text |
 | 10 | Two focus rings: cream 2 px in menus, green 2 px with a controller (`!important`). Both visible, but the player sees two styles | `menu.css`, `a11y.css` | one visible focus | besluit nodig |
 
 ## Where equality of players is only partly true in the UI
@@ -33,7 +33,7 @@ When you fix one, remove the row in the same commit.
 ## Text and structure of the docs themselves
 
 - ARCHITECTURE.md "Menus" still lists the pause menu's old rail (Overzicht, Te doen, Kaart, Telefoon / Verhaal, Spullen, Garage, Prestaties / Instellingen, Besturing, Cheats). The code today has three groups:
-  Spel, Verhaal, Loopbanen, Activiteiten / Kaart, Spullen, Garage, Prestaties, Foto's / Instellingen (`RAIL_GROUPS` in `pausemenu.js`), with Besturing and Cheats under Instellingen and Overzicht inside Spel. docs.
+  Spel, Verhaal, Loopbanen, Activiteiten / Kaart, Spullen, Garage, Prestaties, Foto's / Instellingen, Cheats (`RAIL_GROUPS` in `pausemenu.js`), with Besturing under Instellingen and Overzicht inside Spel. docs.
 - The old DESIGN_SYSTEM.md said in its HUD paragraph that the keycap is `#f0ede4` on `#9c998f`; the code is `#fbfaf5` on `#a9a69b` (`hud_panel.css`, `a11y.css`), as its own Chrome section already said. Fixed in this version.
 - The old "bring mapview.js into line" note is done: `mapview.js` takes its colours from `INK` in `mapstyle.js`, no `#e8c93a` or `#cfcfcf` is left in its style block.
 - `docs/ONTWIKKELEN.md` says LB/RB are "previous and next section" and LT/RT zoom the map (or change tab) in menus; the menu table in `controls.js` sends Q/E on the bumpers and `[` `]` on the triggers, which switch tabs first. docs.

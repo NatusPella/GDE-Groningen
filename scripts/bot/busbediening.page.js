@@ -83,7 +83,7 @@ const bed = bus.busBediend;
 check('de bus heeft een bediening', !!bed);
 ride.table.length = Math.min(ride.table.length, 3); // twee haltes: kort genoeg voor een headless run
 const hudRow = () => document.querySelector('.hud-busbed');
-check('HUD: de bedieningsrij staat onder het kaartje', !!hudRow() && /Deuren open/.test(hudRow().textContent) && /Kneel/.test(hudRow().textContent), hudRow() && hudRow().textContent);
+check('HUD: de bedieningsrij staat onder het kaartje', !!hudRow() && /Deuren open/.test(hudRow().textContent) && /Knielt/.test(hudRow().textContent), hudRow() && hudRow().textContent);
 check('HUD: prognose met afstand en tijd', hudRow() && /\d+ (m|km) · \d+ s/.test(hudRow().textContent), hudRow() && hudRow().textContent);
 
 // rijdend: de deuren gaan niet open

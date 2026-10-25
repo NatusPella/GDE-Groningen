@@ -13,8 +13,8 @@ bijbanen staan alle bijbanen eronder, met een vinkje voor wat je al gedaan hebt.
 | Groep | Vakken (titel op niveau 1 → 6, bijvoorbeeld bij Spoor: Perronstaander → Spoorbaas van het Noorden) |
 |---|---|
 | Vervoer | Spoor (km), Bus (km), Taxi, Bezorging, Vrachtwagen, Water (km), Lucht |
-| Werk | Handhaving, Kantoor, Podium, Horeca, Kermis, Landbouw (Bietenoogst, Balenrit), Klussen |
-| Sport en spel | Padel, Golf (disc en pitch and putt), Racen (kart, drift, regatta, bruggenrace), Buiten (hengelen, skaten, skiën, klimmen) |
+| Werk | Handhaving, Kantoor, Podium, Horeca, Kermis, Landbouw (Bietenoogst, Balenrit, Eigen boerderij), Klussen |
+| Sport en spel | Padel, Golf (disc en pitch and putt), Vissen (hengelen), Racen (kart, drift, regatta, bruggenrace), Buiten (skaten, skiën, klimmen, zwemmen, wandelen) |
 
 Alle titels zijn verzonnen (geen echte bedrijven of beroepsorganisaties) en staan in `VAKKEN` in `loopbaan.js`.
 
@@ -33,12 +33,18 @@ Waar de punten vandaan komen (de haken zijn klein en staan bij de bestaande plek
 
 - **Bijbanen** (`sidejobs.js`, `completeRound`): elke ronde 8 punten (10 zonder fout) in het vak van de baan (`BAAN_VAK`; wat nergens
   in staat is een klus). Het loon van de ronde krijgt de loonfactor van het vak, bovenop de bestaande bijbaanniveaus.
+- **Eigen boerderij** (`boerderijlive.js`): de oogst en de aflevering betalen via `loopbaanVerdien` in het vak Landbouw, met de
+  opbrengst van het perceel (docs/BOERDERIJ.md).
 - **Spoor**: kilometers van elke treinreis (`stationtravel.js`, 1,5 punt per km, plus het station als nieuwe plek), een dienst als machinist
-  (`machinist.js`, loon met de factor) en korting op het kaartje (`loopbaanPrijs`: de prijs gedeeld door de factor).
+  (`machinist.js`, loon met de factor), korting op het kaartje (`loopbaanPrijs`: de prijs gedeeld door de factor) en het perron:
+  `kaartjescontrole.js` betaalt €45 voor een volle ronde van vijf reizigers (€20 extra op het perron waar je net je eigen trein
+  stilzette), per station hooguit eens per 15 spelminuten (#437).
 - **Bus en Water**: kilometers die je zelf in een bus of een boot rijdt (`achievementtracker.js`, 3 punten per km), naast de ronden van de bijbanen.
 - **Lucht, vliegschool** (`vliegschool.js`): elke afgeronde les met een medaille betaalt `loopbaanVerdien(w, 'lucht', ...)`: 25, 40 en 60 euro voor de eerste keer dat je brons, zilver en goud haalt (nooit opnieuw voor dezelfde medaille, dus geen geld te kweken), 14 tot 28 punten voor een nieuwe medaille en 6 punten voor opnieuw doen; elke les is een nieuwe plek (8 punten extra, één keer). Een les zonder medaille geeft 2 punten.
-- **Padel, Racen, Kermis, Buiten**: de plek die de prijs uitbetaalt roept `loopbaanVerdien` aan (`padel.js`, `driftzone.js`,
-  `kermis.js`, `carbid.js`, `postgame.js`); kart en regatta betaalden niets en krijgen een kleine **premie** (tot €30, afnemend per plaats).
+- **Padel, Racen, Kermis, Golf, Buiten**: de plek die de prijs uitbetaalt roept `loopbaanVerdien` aan (`padel.js`, `driftzone.js`,
+  `kermis.js`, `carbid.js`, `postgame.js`, `kartbaan.js`, `regatta.js`, `pg_bruggenrace.js`, `ringrace.js`, `pitchputt.js`,
+  `discgolf.js`, `klimtoren.js`, `skatepark.js`). Een kartrace betaalt een kleine **premie** per plaats (tot €30, afnemend); de
+  Elf Bruggenrace, de ringrace en een gedeelde ronde golf, klim of skatewedstrijd betalen de prijs van die ronde via het vak.
 - **De rest** (discgolf, pitch and putt, hengelen, skaten, skiën, klimmen, helikopter, pannenkoekenschip, reuzenrad, zwemmen, wandelen):
   `STAT_VAK` in `loopbaan.js` hangt aan de bestaande prestatietellers (`recordStat`, via `setStatListener` in `achievements.js`), met een premie
   van €10 tot €20 waar het vak anders niets uitbetaalt.
@@ -92,7 +98,7 @@ Niet door een mens in beeld bekeken: zie het changelog voor wat Claude in beeld 
 
 ## Hengelen overal in de provincie (#412)
 
-Vak **Hengelen** (`hengelen`, groep sport en spel, eenheid vangsten, uniek: plekken): titels Dobbertjeskijker tot Visbaas van het Noorden. Het vak
+Vak **Vissen** (id `hengelen`, groep sport en spel, eenheid vangsten, uniek: plekken): titels Dobbertjeskijker tot Visbaas van het Noorden. Het vak
 hoort bij `hengelen.js`; de soorten en het geld staan in `visdata.js`, het water in `hengelplek.js`, het visboek in `visboek.js` (opslag
 `gde-visboek-v1`, per speler, nooit in een savegame) en het scherm in `visboekui.js` (pauzemenu › Visboek). Test: `scripts/vis_test.mjs`.
 

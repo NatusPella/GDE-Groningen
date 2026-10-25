@@ -18,4 +18,4 @@ Tips:
   "Hardwareversnelling gebruiken" aan.
 - Esc in het spel: menu, kaart en besturing.
 
-Made with love in Groningen, with AI.
+Met liefde in Grunn gemaakt, met AI.
