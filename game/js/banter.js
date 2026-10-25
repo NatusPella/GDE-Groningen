@@ -1,4 +1,4 @@
-// Tammo and Tessa talk in the car (docs/verhaal-voorstel.md §4). Plays the
+// Tammo and Tessa talk in the car (docs/verhaal/nieuw/00-OVERZICHT.md §4). Plays the
 // exchanges in banterlines.js while both ride in the same vehicle with no
 // stars, no mission or bijbaantje running, no cutscene and no phone. Triggers
 // by priority: after a mission or shift, the next story step, places and

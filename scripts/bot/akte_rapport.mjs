@@ -1,5 +1,5 @@
 // Spelbot (#186): bouwt een rapport per akte uit geanalyseerde runmappen (analyse.mjs maakte analysis.json).
-//   node scripts/bot/akte_rapport.mjs --out=docs/SPELBOT-RAPPORT.md akte1=<map> akte2=<map> ... [minigames=<map>] [--notes=<bestand>]
+//   node scripts/bot/akte_rapport.mjs --out=<rapport>.md akte1=<map> akte2=<map> ... [minigames=<map>] [--notes=<bestand>]
 // Elke naam=map wordt een kopje met de tabel per stap (tijd, uitkomst, mislukt, vast, cheats) en de bevindingen
 // van die run. --notes: een Markdown-bestand dat onderaan komt (duiding door een mens of agent).
 import fs from 'node:fs';

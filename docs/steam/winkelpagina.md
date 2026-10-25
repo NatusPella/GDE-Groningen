@@ -208,7 +208,7 @@ zelf ("The game is in Dutch only").
 Chromebook (ROADMAP, Performance: Iris Xe of UHD 620). De minimumeisen
 gaan uit van de preset **Laag** (`quality:laag, shadows:false,
 drawDistance:kort, resolution:0.75, autoResolution:true`) en van de
-profielen in `docs/PERF-PROFIEL.md` (CPU×4 haalbaar na de worker-rondes,
+profielen in `docs/PERF-METING-2026-10-19.md` (CPU×4 haalbaar na de worker-rondes,
 draw calls op Laag ca. 130–410). Bijstellen na die meting.
 
 Schijfruimte: de app is Electron (Chromium) plus de game (audio ca.

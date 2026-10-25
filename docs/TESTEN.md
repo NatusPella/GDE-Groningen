@@ -124,7 +124,7 @@ Beeld voor beeld vanaf een vaste camera; zonder de cinematic-camera van het spel
 - **kort** (#352): speelt in echte tijd de scènes die een korte of generieke regie krijgen (`quickScene`): de solo-rit van M21 (`--opts='{"cases":"m21"}'`), de herhaalde vraag van een missie (`short` intro) en de ene regel van een replay (`short` outro) voor `--opts='{"missions":"M05,M09"}'`, en het paar op het dek van een sloep (intro, outro en herhaalde vraag van M17). Per geval: of de scène begon, de duur en de kleinste afstand tussen de echte camera en een figuur; beelden `shots-<geval>-t<s>.png`.
 - **audio** meet daarnaast per tekstregel (zonder opname) of het gemurmel speelt (`metMurmel`, `zonderMurmel`): driehoekstonen van 100 tot 300 Hz onder de ondertitel (`playTextMumble`, #326).
 
-`node scripts/opnamelijst.mjs` schrijft `docs/verhaal/OPNAMELIJST.md`: elke verhaalregel zonder opname (de ondertitel is dan de terugval, het spel speelt niets). `--check` faalt als de lijst achterloopt op `script.json`.
+`node scripts/opnamelijst.mjs` schrijft `docs/verhaal/OPNAMELIJST.md` (niet in git; het bestand is gegenereerd): elke verhaalregel zonder opname (de ondertitel is dan de terugval, het spel speelt niets). `--check` faalt als de lijst achterloopt op `script.json`.
 
 ## Vaarroute-QA (#343, #184, #233)
 

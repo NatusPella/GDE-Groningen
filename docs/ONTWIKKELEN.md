@@ -298,7 +298,7 @@ only, as key:value pairs), `--cpu-throttle=4` (a slower CPU), `--nobatch`,
 `--hitch`; env `PERF_ONLY=foot,ring,heli,village,pause,sheet`,
 `PERF_PROFILE=<routes>` (CPU profile), `PERF_DIAG=1` (draw calls per owner),
 `PERF_SIM=0-2` (load-adaptive simulation level); with `--hitch`, `scripts/perf/sections.py`
-prints main-thread ms per category (`docs/PERF-PROFIEL.md`). `scripts/perf/ab.sh`
+prints main-thread ms per category (`docs/PERF-METING-2026-10-19.md`). `scripts/perf/ab.sh`
 alternates two staged builds (A/B) and prints medians. Map loading:
 `window.__loadMarks` has the boot timeline up to the title screen and the
 desktop flag `--profile-load[=ms]` logs a CPU profile of the page load. `--gfx-advice[=<GPU

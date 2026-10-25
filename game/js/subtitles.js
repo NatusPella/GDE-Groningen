@@ -11,7 +11,7 @@
 import { MODS, grunnify } from './cheatmods.js';
 
 export const FY = {
-  // the definitive script (docs/verhaal/D-definitief.md)
+  // the definitive script (docs/verhaal/nieuw/00-OVERZICHT.md)
   'Ljouwert': 'Leeuwarden',
   'pompeblêden': 'pompeblêden (rode blaadjes uit de Friese vlag)',
   'iets wat van mem is': 'iets wat van mijn moeder is',
@@ -219,7 +219,7 @@ export const GRO = {
   'Kom mor.': 'Kom maar.',
   'Mien jong.': 'Mijn jongen.',
   'Doe open, jonge.': 'Doe open, jongen.',
-  // the definitive script (docs/verhaal/D-definitief.md)
+  // the definitive script (docs/verhaal/nieuw/00-OVERZICHT.md)
   'Groot Loug': 'Een groot dorp',
   'Goidag': 'Goedendag',
   'Hij luustert noar dij, jong': 'Hij luistert naar jou, jongen',

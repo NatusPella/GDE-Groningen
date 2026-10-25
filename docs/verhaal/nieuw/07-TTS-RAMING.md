@@ -2,7 +2,7 @@
 
 **Besluit van de eigenaar: voorlopig GEEN nieuwe opnames.** Alle regels met de tag `[NIEUW]` blijven voorlopig alleen tekst (ondertitel, tekstkaart); er wordt geen TTS gedraaid voor dit verhaal en de kostenregel is **"nog niet opnemen"**. De bedragen hieronder zijn alleen een schatting voor later, geen opdracht. Het kaartje "Tige tank! – J." en de bestaande opname van Jelles radiomelding blijven zoals ze zijn opgenomen.
 
-Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Geen TTS gedraaid, geen netwerk gebruikt, `.env` niet gelezen. Alle cijfers komen uit de script-bestanden `09-script-akte1..5.md` (lokaal geteld met `node scripts/export_story.mjs`, dat nu ook radio-, telefoon- en appregels telt) en uit `docs/verhaal/deel4-f4a.md` (de eerdere kostenmaat).
+Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Geen TTS gedraaid, geen netwerk gebruikt, `.env` niet gelezen. Alle cijfers komen uit de script-bestanden `09-script-akte1..5.md` (lokaal geteld met `node scripts/export_story.mjs`, dat nu ook radio-, telefoon- en appregels telt) en uit `docs/archief/2026-10/deel4-f4a.md` (de eerdere kostenmaat).
 
 ## 1. Hoe er geteld is
 
@@ -43,7 +43,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Geen TTS gedraaid, geen netwerk ge
 
 ## 4. Kostenraming (alleen informatie: nog niet opnemen)
 
-**Kostenmaat.** `docs/verhaal/deel4-f4a.md` bevat 975 dialoogregels met samen 46.874 tekens (lokaal geteld, alleen regels in het dialoogformaat van dat bestand). De eerdere raming was ca. 1,00-1,50 dollar per F4a-script via OpenRouter. Dat geeft **0,021-0,032 dollar per 1.000 tekens**.
+**Kostenmaat.** `docs/archief/2026-10/deel4-f4a.md` bevat 975 dialoogregels met samen 46.874 tekens (lokaal geteld, alleen regels in het dialoogformaat van dat bestand). De eerdere raming was ca. 1,00-1,50 dollar per F4a-script via OpenRouter. Dat geeft **0,021-0,032 dollar per 1.000 tekens**.
 
 | Post | Tekens | Kosten (laag-hoog) |
 |---|---:|---|

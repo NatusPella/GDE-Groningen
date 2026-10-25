@@ -37,7 +37,7 @@ openen) en meldt bestand, patroonnaam en blob, nooit de waarde.
 | 3 | Merkenregisters EUIPO, TMview, BOIP met de hand doorzoeken en invullen in [MERKENCHECK.md](MERKENCHECK.md) (~15 min) | open |
 | 4 | Muziekproduct (Gemini-app/Lyria of API, abonnement) vastleggen: tabel in [LICENTIES.md](LICENTIES.md) §4.3 invullen | invultabel klaar |
 | 5 | Festival "Noorderzon" (echt evenement): laten of vervangen door een verzonnen naam | open |
-| 6 | Interne docs doorlezen op spoilers, plannen, kosten: `docs/3d-model-prompts.md`, `docs/verhaal/*`, `docs/verhaal-voorstel.md`, memes-docs (102 bronlinks, geciteerd materiaal) | open |
+| 6 | Interne docs doorlezen op spoilers, plannen, kosten: `docs/3d-model-prompts.md`, `docs/verhaal/*`, memes-docs (102 bronlinks, geciteerd materiaal) | open |
 | 7 | Webversie/CDN: three.js en lettertypen meevendoren of CDN laten staan (privacy, [PRIVACY-EN-CREDITS.md](PRIVACY-EN-CREDITS.md)) | open |
 | 8 | Websitetekst, About en social preview goedkeuren: [SOCIAL-EN-WEBSITE.md](SOCIAL-EN-WEBSITE.md) | voorstel klaar |
 | 9 | IARC-vragenlijst en Steam Content Survey zelf invullen: [IARC-ANTWOORDEN.md](IARC-ANTWOORDEN.md) | concept klaar |
