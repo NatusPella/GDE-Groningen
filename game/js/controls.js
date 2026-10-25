@@ -194,8 +194,10 @@ export function glyphFaceSlot(slot, family) { return nintendoSwap(slot, family);
 // stick: what the left stick does - 'move' (analog walk, plus WASD for the
 // minigames and the helicopter: forward/back and turn), 'arrows' (the arrow
 // keys); triggers 'drive' make RT/LT the gas and the brake.
+// X hengelt aan de waterkant (#495); de tweede gebruikstoets (F) blijft via Y
+// werken, want die stuurt E en doet op het land hetzelfde.
 const FOOT = {
-  a: ' ', b: 'control', x: 'f', y: 'e', lb: '@wheel-', rb: '@wheel+', lt: '@aim', rt: '@fire',
+  a: ' ', b: 'control', x: 'i', y: 'e', lb: '@wheel-', rb: '@wheel+', lt: '@aim', rt: '@fire',
   ls: 'shift', rs: 'tab', up: 'n', down: 'k', left: 'o', right: 'r', view: 'm', start: 'escape', stick: 'move',
 };
 // Minigames with their own button layout: world.activityGame -> PAD_MAPS situation
@@ -203,20 +205,22 @@ export const GAME_PAD_CTX = { carillon: 'klokken', pannenkoek: 'pannenkoek' };
 
 export const PAD_MAPS = {
   foot: FOOT,
-  vehicle: { a: ' ', b: 'l', x: 'h', y: 'e', lb: 'n', rb: '@fire', lt: '@brake', rt: '@gas', ls: 'shift', rs: 'q', up: 'p', down: 'v', left: '[', right: ']', view: 'm', start: 'escape', stick: 'steer' },
+  // #495: LB is de hef van de trekker en D-pad omlaag hengelt in een boot die stilligt; de radio (N)
+  // en de filmcamera (V) staan daar niet meer op het pad, wel op het toetsenbord.
+  vehicle: { a: ' ', b: 'l', x: 'h', y: 'e', lb: 't', rb: '@fire', lt: '@brake', rt: '@gas', ls: 'shift', rs: 'q', up: 'p', down: 'i', left: '[', right: ']', view: 'm', start: 'escape', stick: 'steer' },
   // de bus (#444): LB de deuren (O), RB de kneel (K); de radio en het schieten staan daar niet (de D-pad omhoog blijft het stuur geven, zie PAD_COOP)
   bus: { a: ' ', b: 'l', x: 'h', y: 'e', lb: 'o', rb: 'k', lt: '@brake', rt: '@gas', ls: 'shift', rs: 'q', up: 'p', down: 'v', left: '[', right: ']', view: 'm', start: 'escape', stick: 'steer' },
-  // manual shifting (setting shiftMode): the bumpers shift, L3 is the clutch, the radio moves to the D-pad
-  vehicleManual: { a: ' ', b: 'l', x: 'h', y: 'e', lb: ',', rb: '.', lt: '@brake', rt: '@gas', ls: 'j', rs: 'q', up: 'n', down: 'v', left: '[', right: ']', view: 'm', start: 'escape', stick: 'steer' },
-  skutsje: { a: ' ', b: 'l', x: 'h', y: 'e', lb: 'z', rb: 'q', lt: '@brake', rt: '@gas', ls: 'shift', rs: null, up: null, down: 'v', left: 'o', right: 'r', view: 'm', start: 'escape', stick: 'steer' },
+  // manual shifting (setting shiftMode): the bumpers shift, L3 is the clutch, the hef moves to the D-pad
+  vehicleManual: { a: ' ', b: 'l', x: 'h', y: 'e', lb: ',', rb: '.', lt: '@brake', rt: '@gas', ls: 'j', rs: 'q', up: 't', down: 'i', left: '[', right: ']', view: 'm', start: 'escape', stick: 'steer' },
+  skutsje: { a: ' ', b: 'l', x: 'h', y: 'e', lb: 'z', rb: 'q', lt: '@brake', rt: '@gas', ls: 'shift', rs: null, up: null, down: 'i', left: 'o', right: 'r', view: 'm', start: 'escape', stick: 'steer' },
   // the helicopter: left stick flies (forward/back, turn), A or RT up, B or LT down, RB or L3 faster
   heli: { a: ' ', b: 'control', x: null, y: 'e', lb: null, rb: 'shift', lt: 'control', rt: ' ', ls: 'shift', rs: null, up: null, down: 'v', left: 'o', right: 'backspace', view: 'm', start: 'escape', stick: 'move' },
   // the plane: like the helicopter, with the flaps on LB and the landing gear on X
   plane: { a: ' ', b: 'control', x: 'g', y: 'e', lb: 'k', rb: 'shift', lt: 'control', rt: ' ', ls: 'shift', rs: null, up: null, down: 'v', left: 'o', right: 'backspace', view: 'm', start: 'escape', stick: 'move' },
   pigeon: { a: ' ', b: 'control', x: 'f', y: 'e', lb: 'c', rb: 'q', lt: 'shift', rt: '@fire', ls: 'shift', rs: null, up: null, down: 'x', left: 'o', right: null, view: 'm', start: 'escape', stick: 'move' },
-  train: { a: ' ', b: 'backspace', x: 'h', y: 'e', lb: 'k', rb: 'g', lt: 's', rt: 'w', ls: 'o', rs: null, up: null, down: null, left: 'o', right: null, view: 'm', start: 'escape', stick: 'move' },
+  train: { a: ' ', b: 'backspace', x: 'h', y: 'e', lb: 'k', rb: 'g', lt: 's', rt: 'w', ls: 'o', rs: null, up: null, down: 't', left: 'o', right: null, view: 'm', start: 'escape', stick: 'move' },
   // carbid, botsauto's, padel and the other games on foot: B stops the game
-  minigame: { ...FOOT, b: 'backspace', lt: '@aim', rt: '@fire', stick: 'move' },
+  minigame: { ...FOOT, b: 'backspace', x: 'f', lt: '@aim', rt: '@fire', stick: 'move' },
   // the carillon: eight bells on the D-pad and the face buttons (A S D F J K L ;), the bumpers pick a tune
   klokken: { a: ';', b: 'l', x: 'j', y: 'k', lb: 'q', rb: 'e', lt: 'backspace', rt: ' ', ls: null, rs: null, up: 'f', down: 's', left: 'a', right: 'd', view: 'm', start: 'escape', stick: 'arrows' },
   // the pancake ship: A B X Y serve the four toppings (Q W E R), the bumpers and LT pick the pans (1 2 3), RT stops
@@ -231,8 +235,10 @@ export const PAD_MAPS = {
 
 // Samen spelen: in een voertuig is D-pad omhoog het stuur geven, terugnemen of erom vragen (Y op het toetsenbord, #291);
 // de alarmlichten (en bij handmatig schakelen de radio) zijn dan niet op het pad te bereiken zolang er een sessie loopt.
-// Te voet: D-pad links, omlaag en rechts zijn de roepjes Kom hier (7), Help! (8) en Kijk daar (9, #367); het kusje, het overslaan van een verhaalstap en het lakmenu staan dan alleen op het toetsenbord.
-export const PAD_COOP = { vehicle: { up: 'y' }, bus: { up: 'y' }, vehicleManual: { up: 'y' }, skutsje: { up: 'y' }, foot: { left: '7', down: '8', right: '9' } };
+// Te voet: D-pad links, omlaag en rechts zijn de roepjes Kom hier (7), Help! (8) en Kijk daar (9, #367); D-pad omhoog
+// brengt je bij de groep (B, #429): de radio staat dan alleen op het toetsenbord. Het kusje, het overslaan van een
+// verhaalstap en het lakmenu staan dan ook alleen op het toetsenbord.
+export const PAD_COOP = { vehicle: { up: 'y' }, bus: { up: 'y' }, vehicleManual: { up: 'y' }, skutsje: { up: 'y' }, foot: { up: 'b', left: '7', down: '8', right: '9' } };
 
 // The button for a canonical key or a mouse token in a situation, as a slot
 // name ('a', 'rt', ...) or 'lstick'/'rstick'; null when the pad has none.
@@ -330,6 +336,7 @@ Object.assign(ACTION_WORDS, {
   '@fire': 'Aanvallen, schieten', '@aim': 'Richten', '@wheel+': 'Volgend wapen', '@wheel-': 'Vorig wapen', '@gas': 'Gas', '@brake': 'Remmen, achteruit',
   escape: 'Pauzemenu', enter: 'Kiezen', delete: 'Doel wissen',
   arrowup: 'Omhoog', arrowdown: 'Omlaag', arrowleft: 'Links', arrowright: 'Rechts', ' ': 'Springen, handrem', q: 'Achterom kijken', e: 'Instappen, gebruiken', f: 'Gebruiken (tweede knop), duif: poepen', m: 'Kaart',
+  b: 'Bij de groep komen (Samen spelen)', t: 'Hef omhoog of omlaag (trekker)',
 });
 const MENU_WORDS = { enter: 'kiezen', escape: 'terug', delete: 'doel wissen', ' ': 'naar jezelf op de kaart', q: 'vorig onderdeel', e: 'volgend onderdeel', '[': 'vorig tabblad, uitzoomen', ']': 'volgend tabblad, inzoomen', m: 'kaart' };
 export function describe(v) {

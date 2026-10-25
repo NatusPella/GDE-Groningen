@@ -537,8 +537,8 @@ export function tegelGeladen(world, x, y) {
   if (!m.store.index.tiles[tileKey(i, j)]) return true; // daar is niets te laden (zee, buiten de kaart)
   return m.resident.has(`${i},${j}`);
 }
-export const LOS_TEKST = 'Je loopt los van de groep. Druk op B om bij de groep te komen.';
-export const BUDGET_TEKST = 'Te veel groepen uit elkaar voor het geheugen van het spel. Druk op B om bij de groep te komen, anders word je zo teruggezet.';
+export const LOS_TEKST = 'Je loopt los van de groep. Druk op B (controller: D-pad omhoog) om bij de groep te komen.';
+export const BUDGET_TEKST = 'Te veel groepen uit elkaar voor het geheugen van het spel. Druk op B (controller: D-pad omhoog) om bij de groep te komen, anders word je zo teruggezet.';
 export const LOS_MELD_M = 300; // m: vanaf hier zegt het spel een keer hoe je bij de groep komt
 export const WACHT_TEKST = 'De wereld hier wordt nog geladen. Even wachten.';
 

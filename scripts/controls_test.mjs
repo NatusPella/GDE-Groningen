@@ -67,17 +67,18 @@ ok(C.PAD_MAPS.heli.rt === ' ' && C.PAD_MAPS.heli.lt === 'control', 'heli: RT up,
 ok(C.padSlotFor('SHIFT', 'heli') === 'rb', 'heli: faster on RB');
 ok(C.KEY_ACTIONS.some(([k, d]) => k === 'control' && /heli/.test(d)) && C.KEY_ACTIONS.some(([k, d]) => k === ' ' && /heli/.test(d)), 'heli up/down named in the rebind list');
 
-// the radio: one station, so one on/off key (N) and LB in a vehicle; no station switching on B
+// the radio: one station, so one on/off key (N) on foot; in a vehicle LB is the trekker hef (#495)
 ok(C.KEY_ACTIONS.some(([k, d]) => k === 'n' && /radio aan of uit/i.test(d)), 'N turns the radio on or off');
 ok(!C.KEY_ACTIONS.some(([k]) => k === 'b') && !C.KEY_ACTIONS.some(([, d]) => /zender/i.test(d)), 'no previous/next station keys left');
-ok(C.padSlotFor('N', 'vehicle') === 'lb' && /radio aan of uit/i.test(C.slotUses('lb')), 'LB in a vehicle is the radio switch, and Besturing says so', C.slotUses('lb'));
+ok(C.padSlotFor('N', 'foot') === 'up' && /radio aan of uit/i.test(C.slotUses('up')), 'N on foot is D-pad up, and Besturing says so', C.slotUses('up'));
+ok(C.PAD_MAPS.vehicle.lb === 't' && /hef/i.test(C.slotUses('lb')), 'LB in a vehicle is the trekker hef', C.slotUses('lb'));
 ok(JSON.stringify(C.normalizeKeyBinds({ b: ';', n: ';' })) === '{"n":";"}', 'a saved bind for the old B action is dropped, N keeps its own');
 
-// every situation maps every game key it needs to some button
-const need = { foot: [' ', 'control', 'e', 'f', 'k', 'm', 'escape', 'shift', 'tab', 'o'], vehicle: [' ', 'e', 'h', 'l', 'q', 'v', 'm', 'escape', 'n', 'shift', '@fire'],
+// every situation maps every game key it needs to some button (F falls back to E via Y on foot, #495)
+const need = { foot: [' ', 'control', 'e', 'k', 'm', 'escape', 'shift', 'tab', 'o', 'i'], vehicle: [' ', 'e', 'h', 'l', 'q', 'm', 'escape', 'shift', 'i', 't', '@fire'],
   heli: [' ', 'control', 'e', 'shift'], pigeon: [' ', 'control', 'f', 'e', 'c', 'q', 'x', 'shift'], menu: ['enter', 'escape', 'q', 'e'], minigame: [' ', 'backspace', 'e'], foodtruck: ['1', '2', '3', '4', '5', '6', ' ', 'backspace'],
   pannenkoek: ['q', 'w', 'e', 'r', '1', '2', '3', 'backspace', 'escape'],
-  klokken: ['a', 's', 'd', 'f', 'j', 'k', 'l', ';', ' ', 'backspace', 'q', 'e', 'escape'] };
+  klokken: ['a', 's', 'd', 'f', 'j', 'k', 'l', ';', ' ', 'backspace', 'q', 'e', 'escape'], train: ['t', 'backspace', 'e', 'escape'] };
 for (const [ctx, keys] of Object.entries(need)) {
   for (const k of keys) {
     const has = Object.values(C.PAD_MAPS[ctx]).includes(k) || (C.PAD_MAPS[ctx].stick === 'arrows' && false);
@@ -85,12 +86,13 @@ for (const [ctx, keys] of Object.entries(need)) {
   }
 }
 
-// the phone is the pause menu (Esc): T is no longer a phone key, on the keyboard or the pad
+// the phone is the pause menu (Esc): T is no longer a phone key, it is the trekker hef and the train walk (#495)
 ok(!C.KEY_ACTIONS.some(([k]) => k === 't') && !C.KEY_ACTIONS.some(([, d]) => /^telefoon$/i.test(d)), 'no T phone action left');
-ok(Object.values(C.PAD_MAPS).every((m) => !Object.values(m).includes('t')), 'no controller button sends T');
+ok(C.PAD_MAPS.vehicle.lb === 't' && C.PAD_MAPS.train.down === 't', 'T is the trekker hef (LB) and the train walk (D-pad down)');
 ok(JSON.stringify(C.normalizeKeyBinds({ t: 'j', m: 'g' })) === '{"m":"g"}', 'a saved bind for the old T phone key is dropped, others stay');
 ok(C.padSlotFor('ESC', 'foot') === 'start' && C.padSlotFor('ESC', 'vehicle') === 'start', 'Esc (the phone) is Start on the pad');
 ok(C.padSlotFor('T', 'menu') === null, 'T means nothing in the menu any more');
+ok(C.padSlotFor('I', 'foot') === 'x' && C.padSlotFor('I', 'vehicle') === 'down', 'hengelen is X on foot and D-pad down in a still boat');
 
 // browser defaults: Ctrl+W closes the tab, so Ctrl's action starts on C
 ok(C.physicalKey({}, 'control') === 'control' && C.keyWord({}, 'control') === 'Ctrl', 'desktop keeps Ctrl');
@@ -130,7 +132,7 @@ ok(C.chaseFollowLerp(1 / 60) < 1, 'normal chase camera still eases');
 ok(['.', ',', 'j'].every((k) => C.KEY_ACTIONS.some(([c]) => c === k)), 'shift up, shift down and the clutch are rebindable keys');
 ok(C.PAD_MAPS.vehicleManual.rb === '.' && C.PAD_MAPS.vehicleManual.lb === ',' && C.PAD_MAPS.vehicleManual.ls === 'j', 'bumpers shift and L3 is the clutch in the manual vehicle map');
 ok(C.PAD_MAPS.vehicleManual.rt === '@gas' && C.PAD_MAPS.vehicleManual.lt === '@brake' && C.PAD_MAPS.vehicleManual.stick === 'steer', 'gas, brake and steering stay as in the automatic vehicle map');
-ok(C.PAD_MAPS.vehicleManual.up === 'n', 'the radio moves to the D-pad when the bumpers shift');
+ok(C.PAD_MAPS.vehicleManual.up === 't', 'in a manual tractor the hef moves to the D-pad');
 ok(new Set(C.KEY_ACTIONS.map(([k]) => C.physicalKey({}, k))).size === C.KEY_ACTIONS.length, 'no two actions share a default key');
 
 // the carillon: all eight bell keys sit on the pad, each on its own button
