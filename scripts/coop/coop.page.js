@@ -368,9 +368,9 @@ const PHASES = {
   async spelersmenu({ name = 'g-spelersmenu' }) {
     await esc();
     await until(() => document.querySelector('.ra[data-goto="spel"]'), 8000, 'rail-knop Spel');
-    document.querySelector('.ra[data-goto="spel"]').click(); await sleep(400); await until(() => document.querySelector('#pause-menu [data-of="spel"][data-subtab="spelers"]'), 8000, 'tabblad Spelers'); document.querySelector('#pause-menu [data-of="spel"][data-subtab="spelers"]').click();
+    document.querySelector('.ra[data-goto="spel"]').click(); await sleep(400); await until(() => document.querySelector('#pause-menu [data-of="spel"][data-subtab="samen"]'), 8000, 'tabblad Samen spelen'); document.querySelector('#pause-menu [data-of="spel"][data-subtab="samen"]').click(); await sleep(400); await until(() => document.querySelector('#pause-menu [data-of="samen"][data-subtab="spelers"]'), 8000, 'tabblad Spelers'); document.querySelector('#pause-menu [data-of="samen"][data-subtab="spelers"]').click();
     await sleep(1200);
-    const p = document.querySelector('#pause-menu [data-of="spel"][data-sub="spelers"]');
+    const p = document.querySelector('#pause-menu [data-of="samen"][data-sub="spelers"]');
     const rail = document.querySelector('#pause-menu .pm-rail .pm-game'), opsl = document.querySelector('#pause-menu [data-action="save"]');
     const first = document.querySelector('#pause-menu .pm-game .ra'), second = document.querySelectorAll('#pause-menu .pm-game .ra')[1];
     log('spelersmenu', { zichtbaar: !!p && !p.hidden, rijen: p ? p.querySelectorAll('.cs-rij').length : 0, roep: p ? p.querySelectorAll('[data-ping]').length : 0,
@@ -1104,9 +1104,9 @@ const PHASES = {
   // het pauzemenu open terwijl je samen speelt: ligt het partnerlabel er niet overheen? (alleen een schermafbeelding en een controle)
   async menushot() {
     await openSamen(); await sleep(900);
-    // geen permanent label meer (#377): niets van de spelerslijst ligt over het menu; Spelers is een tabblad van Spel
+    // geen permanent label meer (#377): niets van de spelerslijst ligt over het menu; Spelers is een tabblad onder Samen spelen (#434)
     const lijst = document.getElementById('coop-spelers');
-    const rail = document.querySelector('#pause-menu [data-of="spel"][data-subtab="spelers"]');
+    const rail = document.querySelector('#pause-menu [data-of="samen"][data-subtab="spelers"]');
     log('menushot', { chip: true, chipZichtbaar: !!(lijst && getComputedStyle(lijst).display !== 'none') || !!document.querySelector('.coop-chip'), railSpelers: !!rail && !rail.hidden });
     shot('g-pauzemenu');
     await sleep(500); await closeMenu();
