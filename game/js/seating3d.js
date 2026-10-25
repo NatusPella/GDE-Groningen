@@ -1,6 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { seatPose, SEAT_CONTACT, SEAT_CAR, blendSeatPose, standBehindPose, supPose, waveOverlay, carryOverlay, animatePersonWalk, buildPersonMesh, PERSON_RIG } from './models3d_people.js';
 import { boatSeats, boatCrewCount, boatKind } from './boattypes.js';
+import { busInterieur, midibusInterieur, coopPlek, VLOER } from './businterieur.js';
 import { WATER_Y } from './util.js';
 import { tractorCab } from './models3d_vehicles.js';
 import { hash2 as hash } from './rng.js';
@@ -101,6 +102,59 @@ export function vehicleSeat(v, driver) {
   if (!seat.role) seat.role = driver ? 'bestuurder' : 'bijrijder';
   c[slot] = seat;
   return seat;
+}
+
+// De bank achter de voorstoelen van een auto, busje of vrachtwagen (#434): `achter` is hoe ver de zitruimte
+// naar achteren doorloopt (vanaf het midden), `stap` de afstand achter de voorstoel. Zo blijft een passagier
+// binnen de carrosserie: geen hoofd door het dak en geen knie door de achterklep.
+const ACHTERBANK = {
+  hatch: { achter: 1.0 }, sedan: { achter: 1.25 }, wagon: { achter: 0.8 }, sport: { achter: 1.05 },
+  suv: { achter: 1.0 }, escort: { achter: 0.95 }, van: { achter: 1.9, stap: 0.5 }, truck: { achter: 1.9, stap: 0.75 },
+  quad: { achter: 0.45, stap: 0.7 }, trekker: { achter: 0.9 },
+};
+
+// Waar de zoveelste zitter in een voertuig zit (#434): 0 de bestuurder, 1 de bijrijder, 2 en hoger de
+// passagiers. Elke plek komt uit de indeling die het spel al heeft: de stoelen van boattypes.js (met de pose
+// van die plek, zodat een roeier roeit en een SUP'er peddelt), de passagiersruimte van de stadsbus en de
+// midibus (businterieur.js), en anders de bank achter de voorstoelen, binnen de carrosserie.
+export function vehicleSeatAt(v, stoel = 0) {
+  const n = Math.max(0, stoel | 0);
+  if (n <= 1) return vehicleSeat(v, n === 0);
+  if (v.isBoat) { // de echte stoelen van deze boot, met de houding die erbij hoort (peddelen, roeien, tiller)
+    const s = boatSeats(v), p = s[Math.min(n, s.length - 1)] || s[0];
+    return { ...p, role: 'achter' };
+  }
+  if (v.isBus && v.model) { // in de passagiersruimte, op een stoel of een staanplaats (businterieur.js)
+    const layout = v.model.name === 'midibus' ? midibusInterieur(v.model.len, v.model.wid) : busInterieur(v.model.len, v.model.wid, { trailer: v.model.trailer || 0 });
+    const p = coopPlek(layout, n), s = vehicleSeat(v, false);
+    if (p) return p.soort === 'zit' ? { ...s, x: p.x, y: VLOER + 0.31, z: p.z, stand: false, role: 'achter' } : { ...s, x: p.x, y: VLOER, z: p.z, stand: true, pose: undefined, role: 'achter' };
+    return { ...s, role: 'achter' }; // een volle bus: naast de bijrijder
+  }
+  const basis = vehicleSeat(v, false);
+  if (v.isBike || v.isScooter || v._mount === 'horse') return { ...basis, role: 'achter' }; // één plek: achterop
+  if (v.isHeli) { // in de cabine achter de piloot en de bijrijder
+    const k = n - 2, hl = (v.model.len || 4) / 2;
+    return { x: Math.max(-hl + 0.6, -0.15 - 0.55 * Math.floor(k / 2)), z: (k % 2 ? -1 : 1) * 0.45, y: 0.98, face: 0, pose: SEAT_CAR, role: 'achter' };
+  }
+  const hl = (v.model.len || 4) / 2, hw = (v.model.wid || 1.7) / 2, k = carKind(v), m = ACHTERBANK[k] || {};
+  const xMin = k === 'trekker' && v.model.name === 'tractor' ? tractorCab(v.model.len).x0 + 0.3 : -hl + (m.achter ?? 1.0);
+  const x = Math.max(xMin, basis.x - (m.stap ?? 0.85));
+  // twee of drie naast elkaar, al naar de breedte; meer passagiers dan dat schuiven op dezelfde bank op
+  const zs = hw >= 0.95 ? [-0.62 * hw, 0, 0.62 * hw] : [-0.55 * hw, 0.55 * hw];
+  const i = n - 2, ronde = Math.floor(i / zs.length), z = Math.max(-hw + 0.2, Math.min(hw - 0.2, zs[i % zs.length]));
+  return { ...basis, x: Math.max(xMin, x - 0.05 * ronde), z, role: 'achter' };
+}
+
+// Zoals placeSeated, maar voor een zitter die al een kind van het voertuigmodel is (coopzitten3d.js, #434):
+// dezelfde stoel, houding en hoogte, alleen in de coördinaten van het voertuig zelf. Een staande SUP'er
+// peddelt (supPose), een roeier roeit en een passagier van de waterfiets trapt mee (t).
+export function placeSeatedLocal(person, seat, t = 0) {
+  const sy = person.scale.y || 1;
+  person.position.set(seat.x, seat.stand ? seat.y : seat.y - SEAT_CONTACT * sy, seat.z);
+  person.rotation.set(0, seat.face || 0, 0);
+  if (seat.stand && seat.pose && seat.pose.arms === 'sup') supPose(person, t);
+  else if (seat.stand) standBehindPose(person);
+  else seatPose(person, seat.pose, t);
 }
 
 // De stoel die bij de deur hoort waar de instapper staat: links voor de bestuurder,
