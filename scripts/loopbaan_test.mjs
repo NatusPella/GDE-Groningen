@@ -360,5 +360,22 @@ t('een niveau met een handeling zegt wat je nu kunt (#437)', () => {
   schoon();
 });
 
+t('elke loopbaan heeft een weg naar de volgende klus (#435)', () => {
+  const ui = fs.readFileSync(JS + 'loopbaanui.js', 'utf8');
+  // per bezigheid die je nu kunt doen staat er één knop die het doel zet: de waypoint in het spel
+  assert.match(ui, /data-todo-goal="job:\$\{esc\(b\)\}"/, 'de knop zet de bijbaan als doel (waypoint)');
+  assert.match(ui, /lb-volg">Volgende klus<\/span>/, 'de volgende klus heeft een eigen label');
+  // en de kaart-van-de-loopbaan zet de eerste klus als doel als je nog niets koos
+  assert.match(ui, /data-todo-goal="job:\$\{esc\(s\.baan\)\}">Eerste klus als doel/, 'ook zonder keuze is er een eerste klus');
+  const pm = fs.readFileSync(JS + 'pausemenu.js', 'utf8');
+  assert.match(pm, /if \(panel && tab === 'loopbaan' && todoClick\(e, world, panel, todoApi\)\) return;/, 'de klikken van de loopbaan gaan naar dezelfde todo-afhandeling');
+  const td = fs.readFileSync(JS + 'todoui.js', 'utf8');
+  assert.match(td, /const goal = t\.closest\('\[data-todo-goal\]'\)/, 'en die kent data-todo-goal');
+  // Veroverd hoort bij Verhaal, niet bij Loopbaan
+  assert.match(pm, /verhaal: \[\['opdrachten', 'Opdrachten'\], \['personages', 'Personages'\], \['aanwijzingen', 'Aanwijzingen'\]/, 'Verhaal heeft zijn eigen tabbladen');
+  assert.match(pm, /data-sub="veroverd"/, 'Veroverd is een tabblad onder Verhaal');
+  assert.ok(!/data-sub="veroverd"[^\n]*loopbaan/.test(pm), 'Veroverd staat niet onder Loopbaan');
+});
+
 console.log(`loopbaan_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);
