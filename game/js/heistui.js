@@ -336,6 +336,25 @@ export function hideNote() {
 
 // --- alarm, zap, skip ------------------------------------------------------------------------
 
+// De rol van deze speler bij de inbraak (Samen spelen, #438): één regel onder in beeld. Leeg = weg.
+let roleEl = null;
+export function roleChip(text) {
+  if (!text) { if (roleEl) { roleEl.style.opacity = '0'; roleEl.classList.remove('on'); } return; }
+  ensureRoot();
+  if (!roleEl) {
+    roleEl = document.createElement('div');
+    roleEl.className = 'hx-rolechip';
+    // eigen vorm, zodat er geen stylesheet bij hoeft (heist.css blijft zoals hij is)
+    roleEl.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);bottom:104px;z-index:60;display:flex;gap:8px;align-items:center;max-width:min(560px,86vw);padding:8px 14px;border-radius:10px;background:rgba(12,16,14,.82);color:#f0ede4;font:14px/1.35 system-ui,sans-serif;box-shadow:0 2px 12px rgba(0,0,0,.35);opacity:0;transition:opacity .2s;pointer-events:none;';
+    roleEl.innerHTML = '<b style="color:#f2c14e;white-space:nowrap">Jouw rol</b><span data-r></span>';
+    root.appendChild(roleEl);
+  }
+  const s = roleEl.querySelector('[data-r]');
+  if (s) s.textContent = text;
+  roleEl.style.opacity = '1';
+  roleEl.classList.add('on');
+}
+
 export function setAlarmUi(k) {
   if (!k && !alarmEl) return;
   ensureRoot();
@@ -367,5 +386,6 @@ export function disposeHeistUi() {
   hidePlan(true);
   if (note) { note.remove(); note = null; }
   if (skipEl) { skipEl.remove(); skipEl = null; }
+  if (roleEl) { roleEl.remove(); roleEl = null; }
   setAlarmUi(0);
 }

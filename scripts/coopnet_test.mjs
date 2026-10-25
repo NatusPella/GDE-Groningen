@@ -12,6 +12,7 @@ import * as C from '../game/js/coopclient.js';
 import { remoteP2, cameraRelative } from '../game/js/coop.js';
 import { coopStep } from '../game/js/coopglue.js';
 import { gateOn, setGate } from '../game/js/coopgate.js';
+import { registerMissionQueries } from '../game/js/missionquery.js';
 
 let n = 0;
 const t = (name, f) => { f(); n++; };
@@ -473,5 +474,39 @@ t('beheerder (#450): een wachtwoord per sessie, kicken en verbieden; de verbanne
   const open = koppel({ seed: 11 }); tik(1);
   assert.equal(open.gw.coopNet.session.status, 'ok', 'zonder wachtwoord mag iedereen weer');
   N.stopCoopNet(hw);
+});
+t('de rolstap van de inbraak (#438): een gast doet zijn eigen stuk met E, de gastheer controleert', () => {
+  let stap = null;
+  registerMissionQueries({ activeStage: () => stap });
+  const s = sessie(2);
+  s.step(1);
+  const { hw } = s;
+  const [g1, g2] = s.gs;
+  assert.deepEqual(hw.coopRoster.map((r) => r.slot), [0, 1, 2], 'drie spelers');
+  const fig2 = hw.coopPartners.find((p) => p.slot === 2);
+  assert.ok(fig2, 'plek 2 heeft een lichaam');
+  hw.mission = { phase: 'active', index: 3, label: 'Museumkraak', marker: { x: fig2.x, y: fig2.y } };
+  stap = { kind: 'crack', label: 'Kraak de vitrine' };
+  // plek 1 is de loper: niet zijn stuk, dus een melding terug en geen vraag
+  g1.gw.messages.length = 0;
+  N.gastGebruik(g1.gw);
+  s.step(0.2);
+  assert.ok(g1.gw.messages.some((m) => /kluisspecialist/.test(m)), 'de loper hoort dat de kluis dit doet');
+  assert.equal(hw.coopHeistRol.vraag, null, 'de loper opent de kluis niet');
+  // plek 2 is de kluis: zijn E komt als vraag bij de gastheer binnen
+  g2.gw.messages.length = 0;
+  N.gastGebruik(g2.gw);
+  s.step(0.2);
+  assert.equal(hw.coopHeistRol.vraag, 2, 'de kluis vroeg zijn eigen stap');
+  assert.ok(g2.gw.messages.some((m) => /Jij bent de kluisspecialist/.test(m)), 'en weet wat hij moet doen');
+  // zonder lopende rolstap gaat de E gewoon naar het gewone gebruik (geen crash, geen vraag)
+  stap = null;
+  const vraag = hw.coopHeistRol.vraag;
+  N.gastGebruik(g2.gw);
+  s.step(0.2);
+  assert.equal(hw.coopHeistRol.vraag, vraag, 'zonder stap verandert er niets');
+  N.stopCoopNet(hw);
+  for (const g of s.gs) if (g.gw.coopNet) N.stopCoopNet(g.gw);
+  registerMissionQueries({ activeStage: () => null });
 });
 console.log(`coopnet_test: ${n}/${n} ok`);
