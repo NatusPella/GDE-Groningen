@@ -86,17 +86,24 @@ t('de oude host die gast wordt: zijn eigen lijst (verkeer en eigen auto) gaat op
   assert.equal(N.zetEigenVoertuigenOpzij({ vehicles: undefined }, {}), 0, 'een wereld zonder lijst breekt niets');
 });
 
-t('de gast bezorgt zijn eigen auto: de host zet hem neer, iedereen ziet hem en hij gaat weg als de gast gaat (#449)', () => {
+t('de gast bezorgt zijn eigen auto, boot en heli: de host zet ze neer, iedereen ziet ze en ze gaan weg als de gast gaat (#449)', () => {
   const s = avond(); s.step(3);
   // de wereldhaken van main.js, met een nepwereld: geen kaart, geen parkeerplek zoeken
+  const SPECS = {
+    hero: { label: 'Fjord Escapade', kind: 'car', color: '#a11f1f', model: { name: 'escort', len: 4, wid: 1.65, maxSpeed: 50 } },
+    sloep: { label: 'Sloep Nait Soezen', kind: 'boat', color: '#e8e6e0', model: { name: 'boat', len: 5, wid: 1.9, maxSpeed: 7 } },
+    wiekenwubbo: { label: 'Wieken Wubbo', kind: 'heli', color: '#b8322a', model: { name: 'heli', len: 8.8, wid: 2.1, maxSpeed: 40 } },
+  };
+  const gevraagd = [];
   zetDeelHaken({
-    spec: (key) => (key === 'hero' ? { label: 'Fjord Escapade', kind: 'car', color: '#a11f1f', model: { name: 'escort', len: 4, wid: 1.65, maxSpeed: 50 } } : null),
-    plek: () => ({ x: 500, y: 44, angle: 0 }),
+    spec: (key) => SPECS[key] || null,
+    plek: (w, x, y, model) => { gevraagd.push(model.name); return { x: 500, y: 44, angle: 0 }; },
     maak: (w, g, x, y, a) => { const v = { x, y, angle: a, model: { ...g.spec.model }, upgrades: g.upgrades, health: g.health }; w.vehicles.push(v); return v; },
   });
   s.hw.coop.remote = true; // de gast zit op de plek van de metgezel (zoals in een echte sessie)
   s.gw.coopBezit = nieuweDeelStaat();
-  const r = s.gw.coopBezitVraag({ id: 'hero', kind: 'car', label: 'Fjord Escapade', model: 'Escapade', color: '#a11f1f', upgrades: [], dents: [], health: 100, flat: false });
+  const g = { id: 'hero', kind: 'car', label: 'Fjord Escapade', model: 'Escapade', color: '#a11f1f', upgrades: [], dents: [], health: 100, flat: false };
+  const r = s.gw.coopBezitVraag(g);
   assert.equal(r.ok, true);
   s.step(1);
   const bezorgd = s.hw.vehicles.filter((v) => v.coopBezit);
@@ -104,8 +111,13 @@ t('de gast bezorgt zijn eigen auto: de host zet hem neer, iedereen ziet hem en h
   assert.equal(bezorgd[0].coopBezit.slot, 1);
   assert.equal(bezorgd[0].coopBezit.recht, 'iedereen', 'de standaard: de gast deelt hem');
   assert.equal(s.gw.vehicles.length, 0, 'de gast zet niets in zijn eigen wereld');
+  // de boot en de heli gaan met hetzelfde bericht, elk met hun eigen soort (#449)
+  assert.equal(s.gw.coopBezitVraag({ id: 'sloep', kind: 'boat', label: 'Sloep Nait Soezen', color: '#e8e6e0', upgrades: [], dents: [], health: 100, flat: false }).ok, true);
+  s.step(1);
+  assert.equal(s.hw.vehicles.filter((v) => v.coopBezit && v.coopBezit.id === 'sloep').length, 1, 'de boot staat er bij');
+  assert.equal(gevraagd[1], 'boat', 'de host zocht water met het model van de boot');
   s.step(2);
-  assert.equal(s.hw.vehicles.filter((v) => v.coopBezit).length, 1, 'de volgende ticks zetten er geen tweede bij');
+  assert.equal(s.hw.vehicles.filter((v) => v.coopBezit).length, 2, 'de volgende ticks zetten er geen tweede bij');
   N.stopCoopNet(s.hw); // de sessie stopt: de kopie gaat mee terug
   assert.equal(s.hw.vehicles.filter((v) => v.coopBezit).length, 0);
 });

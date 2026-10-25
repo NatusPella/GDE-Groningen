@@ -1,5 +1,6 @@
 // Samen spelen (#449): je eigen voertuig of pand meenemen naar de wereld van een
-// ander ("bezorgen en delen"). Het voertuig blijft in de eigen save van de
+// ander ("bezorgen en delen"). Dat geldt voor elk eigen voertuig: de auto, de
+// fiets, je boot en de heli. Het voertuig blijft in de eigen save van de
 // eigenaar; de gastheer zet een kopie in zijn wereld met dezelfde kleur,
 // onderdelen en schade, en de snapshot laat hem bij iedereen met het echte model
 // zien (#428). Van een pand zet de host alleen een deur met een markering neer:
@@ -14,8 +15,9 @@
 // magGebruiken bepaalt wie erin mag (coopbestuur.js).
 import { lichaamVan, magGebruiken } from './coopbestuur.js';
 
-// Rechten per voertuig of pand. 'vrienden' komt erbij zodra er een vriendenlijst
-// is (#449); tot die tijd is het een keuze tussen alleen ik en iedereen in de sessie.
+// Rechten per voertuig of pand, ook voor je boot en de heli: 'vrienden' komt
+// erbij zodra er een vriendenlijst is (#449); tot die tijd is het een keuze
+// tussen alleen ik en iedereen in de sessie.
 export const RECHTEN = ['ik', 'iedereen'];
 export const RECHT_TEKST = { ik: 'alleen ik', iedereen: 'iedereen' };
 export const STANDAARD_RECHT = 'iedereen'; // meenemen is delen; alleen ik houdt hem voor jezelf
@@ -26,8 +28,19 @@ export const MAX_UPGRADES = 8;
 export const MAX_DENTS = 12;
 export const SLEUTEL = /^[a-z0-9_]{1,24}$/; // een sleutel uit de garage ('hero' of een winkel)
 export const PAND_SLEUTEL = /^h:(pv|gm|wp|wk|bu):[a-z0-9]{1,24}$/i; // een huis uit je profiel ('h:wp:WP1017')
-export const SOORTEN = ['voertuig', 'pand'];
+// Een boot en de heli gaan als eigen soort over de lijn: elk heeft zijn eigen
+// plek nodig (water, open droge grond) en de host controleert dat met dezelfde
+// grenzen als bij een auto. 'voertuig' is de auto, fiets of step.
+export const SOORTEN = ['voertuig', 'boot', 'heli', 'pand'];
+export const SOORT_TEKST = { voertuig: 'voertuig', boot: 'boot', heli: 'helikopter' };
 const HEX = /^#[0-9a-f]{6}$/i;
+
+// De soort bij een spec (ownedvehicles.js eigenSpec): boten en de heli hebben
+// een eigen plek nodig; al het andere is een gewoon voertuig.
+export function soortVan(spec) {
+  const kind = spec && spec.kind;
+  return kind === 'boat' ? 'boot' : kind === 'heli' ? 'heli' : 'voertuig';
+}
 
 // De stand van het delen in deze sessie: de rechten van je eigen voertuigen en
 // panden en, bij de host, wat elke speler al bezorgd heeft.
@@ -58,16 +71,17 @@ export function leesBezorg(body) {
   if (!body || typeof body !== 'object' || body.k !== 'bezorg') return null;
   if (body.soort === 'pand') return leesPand(body);
   // een ouder bericht zonder soort is een voertuig (#449)
-  if (body.soort !== undefined && body.soort !== 'voertuig') return null;
-  return leesVoertuig(body);
+  const soort = body.soort === undefined ? 'voertuig' : body.soort;
+  if (soort !== 'voertuig' && soort !== 'boot' && soort !== 'heli') return null;
+  return leesVoertuig(body, soort);
 }
 
-function leesVoertuig(body) {
+function leesVoertuig(body, soort = 'voertuig') {
   if (typeof body.id !== 'string' || !SLEUTEL.test(body.id)) return null;
   const ups = Array.isArray(body.upgrades) ? body.upgrades.filter((u) => typeof u === 'string' && SLEUTEL.test(u)).slice(0, MAX_UPGRADES) : [];
   const dents = Array.isArray(body.dents) ? body.dents.filter((d) => Array.isArray(d) && d.length === 3 && d.every(Number.isFinite)).map((d) => d.map((n) => Math.max(-2, Math.min(2, n)))).slice(0, MAX_DENTS) : [];
   return {
-    soort: 'voertuig',
+    soort,
     id: body.id,
     color: typeof body.color === 'string' && HEX.test(body.color) ? body.color : null,
     upgrades: ups,
@@ -97,7 +111,7 @@ const hoek = (a) => (((a % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2));
 export function bezorgEvent(g, recht) {
   if (g && g.soort === 'pand') return pandEvent(g, recht);
   return {
-    k: 'bezorg', soort: 'voertuig', id: g.id, color: g.color || null, upgrades: g.upgrades || [],
+    k: 'bezorg', soort: soortVan(g), id: g.id, color: g.color || null, upgrades: g.upgrades || [],
     dents: g.dents || [], health: g.health, flat: !!g.flat,
     recht: RECHTEN.includes(recht) ? recht : STANDAARD_RECHT,
   };
@@ -116,11 +130,11 @@ export function bezorgVraag(world, g) {
   const n = world && world.coopNet;
   if (!n || n.role !== 'client' || !n.session || !n.session.sendEvent) return { ok: false, tekst: 'Je speelt niet in een sessie.' };
   if (!g || typeof g.id !== 'string' || !SLEUTEL.test(g.id)) return { ok: false, tekst: 'Dat voertuig heb je niet.' };
-  if (g.kind === 'boat' || g.kind === 'heli') return { ok: false, tekst: 'Boten en de helikopter kun je nog niet meenemen.' };
   if (world.player && world.player.inVehicle) return { ok: false, tekst: 'Stap eerst uit je voertuig.' };
   if (!n.session.sendEvent(bezorgEvent(g, rechtVan(world.coopBezit, g.id)))) return { ok: false, tekst: 'Wie het spel opende is even niet bereikbaar.' };
   const naam = g.label || g.model || 'voertuig';
-  return { ok: true, tekst: `Wie het spel opende zet je ${naam} bij je neer.` };
+  const werkwoord = soortVan(g) === 'boot' ? 'legt' : 'zet';
+  return { ok: true, tekst: `Wie het spel opende ${werkwoord} je ${naam} klaar.` };
 }
 
 // De gast: vraag de gastheer om je pand (de deur van je safehouse, boerderij of
@@ -151,8 +165,9 @@ export function bezorgControle(staat, slot, v) {
 }
 
 // De wereldhaken: spec(key) -> spec (ownedvehicles.js eigenSpec), plek(world, x, y,
-// model, opts) -> { x, y, angle } (ownedvehicles.js findParkingSpot) en
-// maak(world, gegevens, x, y, angle) -> voertuig (shops.js spawnSharedVehicle).
+// model, opts) -> { x, y, angle } (ownedvehicles.js findParkingSpot, die voor een
+// boot water en voor de heli open grond zoekt) en maak(world, gegevens, x, y,
+// angle) -> voertuig (shops.js spawnSharedVehicle).
 // Voor een pand: pand(world, p) -> { x, y, gz } | null (de plek op de kaart van de
 // host), pandZet(world, slot, p) -> marker | null en pandWeg(world, slot).
 // main.js zet de voertuighaken, home.js de pandhaken; de testbank zet nepversies.
@@ -173,9 +188,11 @@ function meldAnderen(world, behalve, tekst) {
   for (const s of n.hub.roster.spelers) if (s.slot !== 0 && s.slot !== behalve && s.verbinding !== 'lost') n.hub.announce({ k: 'melding', tekst: kort }, s.slot);
 }
 
-// De host zet het voertuig van deze gast neer, bij hem in de buurt. Geeft true als
-// het gelukt is. De kopie hoort bij de gast (coopBezit) en niet bij de collectie
-// van de host; de snapshot laat hem aan iedereen zien.
+// De host zet het voertuig van deze gast neer, bij hem in de buurt: een auto aan
+// de kant, een boot op het water en de heli op open grond (dezelfde grenzen en
+// dezelfde rechten). Geeft true als het gelukt is. De kopie hoort bij de gast
+// (coopBezit) en niet bij de collectie van de host; de snapshot laat hem aan
+// iedereen zien.
 export function bezorgHost(world, slot, body) {
   const n = world && world.coopNet;
   if (!n || n.role !== 'host' || !(slot >= 1)) return false;
@@ -190,19 +207,30 @@ export function bezorgHost(world, slot, body) {
   if (l.inVehicle || l.inVeh) { meld(world, slot, 'Stap eerst uit je voertuig.'); return false; }
   const spec = haken.spec ? haken.spec(v.id) : null;
   if (!spec) { meld(world, slot, 'Dat voertuig ken ik niet.'); return false; }
-  if (spec.kind === 'boat' || spec.kind === 'heli') { meld(world, slot, 'Boten en de helikopter kun je nog niet meenemen.'); return false; }
+  // een gast die een boot als auto stuurt (of andersom) krijgt niets: het model
+  // van de host bepaalt de soort en dus de plek
+  if (soortVan(spec) !== v.soort) { meld(world, slot, 'Dat voertuig ken ik niet.'); return false; }
   const plek = haken.plek ? haken.plek(world, l.x, l.y, spec.model, { outOfView: false, minDist: 3, maxDist: 45 }) : null;
-  if (!plek) { meld(world, slot, 'Hier past hij niet. Ga op een open plek staan.'); return false; }
+  if (!plek) { meld(world, slot, PLEK_FAIL[v.soort] || 'Hier past hij niet. Ga op een open plek staan.'); return false; }
   const maak = haken.maak;
   const voertuig = maak ? maak(world, { spec, color: v.color || spec.color, upgrades: v.upgrades, health: v.health, dents: v.dents.length ? v.dents : null, flat: v.flat }, plek.x, plek.y, plek.angle || 0) : null;
   if (!voertuig) { meld(world, slot, 'De bezorger kan hier niet komen.'); return false; }
   voertuig.coopBezit = { slot, id: v.id, recht: v.recht };
   (staat.bezorgd[slot] || (staat.bezorgd[slot] = [])).push(v.id);
-  const naam = spec.label || 'voertuig';
-  meld(world, slot, `Je ${naam} staat klaar.${v.recht === 'ik' ? ' Alleen jij mag erin.' : ' De anderen mogen er ook in.'}`);
-  meldAnderen(world, slot, `${spelerNaam(world, slot)} heeft een eigen voertuig meegenomen: ${naam}.${v.recht === 'ik' ? '' : ' Je mag erin rijden.'}`);
+  const naam = spec.label || SOORT_TEKST[v.soort] || 'voertuig';
+  const alleen = v.recht === 'ik';
+  // een heli mag in de wereld van een ander niet vliegen (coopbestuur.js), dus
+  // daar belooft de melding niet meer dan kijken
+  const erbij = alleen ? ' Alleen jij hebt de sleutel.' : v.soort === 'heli' ? ' De anderen kunnen er alleen naar kijken.' : ' De anderen mogen er ook in.';
+  meld(world, slot, `${v.soort === 'boot' ? `Je ${naam} ligt klaar.` : v.soort === 'heli' ? `Je ${naam} staat op zijn plek.` : `Je ${naam} staat klaar.`}${erbij}`);
+  meldAnderen(world, slot, `${spelerNaam(world, slot)} heeft een eigen ${SOORT_TEKST[v.soort] || 'voertuig'} meegenomen: ${naam}.${alleen ? '' : v.soort === 'heli' ? ' Hij staat er voor de show.' : ' Je mag er ook in.'}`);
   return true;
 }
+
+const PLEK_FAIL = {
+  boot: 'Hier is geen water. Ga aan de kant staan.',
+  heli: 'Te weinig ruimte voor de rotor. Zoek een open plek.',
+};
 
 // De host zet het pand van een gast in de sessie: alleen de deur met een
 // markering, op de plek die zijn eigen kaart goedkeurt. Er gaat niets van de
