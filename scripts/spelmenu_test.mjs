@@ -54,7 +54,7 @@ const subIds = [...sub.matchAll(/\['(\w+)', '([^']+)'\]/g)].map((x) => x[1]);
 ok(subIds.join() === 'overzicht,samen,acties,spelen,camera,hints', 'Spel heeft de tabbladen Overzicht, Samen spelen, Opslaan & stoppen, Spelen, Camera & richten en Hints & uitleg', subIds.join());
 ok(subIds.every((id) => ['overzicht', 'samen'].includes(id) || spelSrc.includes(`tab('${id}'`)) && spelSrc.includes('data-sub="overzicht" class="pm-ov pm-spelov"'),'elk tabblad heeft zijn inhoud (Overzicht tekent zich in Spel)');
 ok(/\['spel', 'Spel', '/.test(pm), "'spel' staat in de sectielijst");
-ok(pm.includes("RAIL_GROUPS = [['spel', 'verhaal', 'loopbaan', 'todo'], ['map', 'spullen', 'garage', 'prestaties', 'fotos'], ['settings', 'streken']];"), 'de rail: Spel, Verhaal, Loopbanen, Activiteiten | Kaart, Spullen, Garage, Prestaties, Foto’s | Instellingen en Cheats (#430, #435)');
+ok(pm.includes("RAIL_GROUPS = [['spel', 'verhaal', 'loopbaan', 'todo'], ['map', 'spullen', 'garage', 'prestaties', 'fotos'], ['settings', 'over', 'streken']];"), 'de rail: Spel, Verhaal, Loopbanen, Activiteiten | Kaart, Spullen, Garage, Prestaties, Foto’s | Instellingen, Over en Cheats (#430, #435)');
 ok(/PRESTART_SECTIONS = \['spel', 'settings', 'controls'\]/.test(pm), 'ook in het hoofdmenu (voor de start) zijn de speelopties bereikbaar');
 ok(/^\s*spel: \[\[\['↑', '↓'\], 'kiezen'\]/m.test(pm), 'Spel heeft zijn voetregel');
 ok(/^\s*spel: '<rect/m.test(pm), 'Spel heeft een icoon in dezelfde lijnstijl');
@@ -135,7 +135,7 @@ ok(/data-of="verhaal" data-sub="opdrachten" data-keep/.test(pm) && /renderTodoSt
 ok(/data-todo-view="verhaal"/.test(read('game/js/todoui.js')) && /view === 'verhaal'\) \{ pref\.sub\.verhaal = 'opdrachten'/.test(pm), 'Alle opdrachten in Overzicht leidt naar Verhaal > Opdrachten');
 // elke actie bereikbaar, geen dubbele data-actions of panelen
 const panels = [...pm.matchAll(/data-panel="(\w+)" class/g)].map((x) => x[1]);
-ok(new Set(panels).size === panels.length && panels.length === 14, 'elk paneel staat één keer in het blad', String(panels.length));
+ok(new Set(panels).size === panels.length && panels.length === 15, 'elk paneel staat één keer in het blad', String(panels.length));
 // --- #430 definitief: Spel (met Overzicht), Verhaal (met de telefoon), Loopbanen, Activiteiten, Samen spelen (met Spelers), Instellingen (met Cheats)
 const secties = new Function('return ' + pm.slice(pm.indexOf('const SECTIONS = [') + 'const SECTIONS = '.length, pm.indexOf('];', pm.indexOf('const SECTIONS = [')) + 1))();
 ok(secties.map((x) => x[0]).slice(0, 10).join() === 'spel,verhaal,loopbaan,todo,map,spullen,garage,prestaties,fotos,settings', 'de secties staan in de volgorde van de eigenaar', secties.map((x) => x[0]).join());
@@ -154,7 +154,7 @@ ok(pm.includes("[data-of=\"verhaal\"][data-subtab=\"personages\"]") && pm.includ
 ok(!/data-goto="telefoon"/.test(pm) && !/'telefoon'\)/.test(pm.slice(pm.indexOf('function syncNavBadges'), pm.indexOf('function renderPhone'))), 'er is geen rijknop of teller voor de telefoon meer; ongelezen berichten tellen bij Verhaal');
 // oude namen verwijzen door
 for (const [oud, nieuw] of [["name === 'overzicht' || name === 'game'", "name = 'spel'"], ["name === 'telefoon'", "name = 'verhaal'"], ["name === 'cheats'", "name = 'streken'"], ["name === 'missions'", "name = 'todo'"]]) ok(pm.includes(oud) && pm.includes(nieuw), 'oude naam ' + oud.split("'")[1] + ' verwijst door');
-ok(/CHILD = {[^}]*controls: 'settings'/.test(pm) && !/streken: 'settings'/.test(pm) && pm.includes("['settings', 'streken']") && !/spelers: 'samen'/.test(pm), 'Cheats staan sinds #435 in de rail naast Instellingen, niet meer verstopt als tabblad; Samen spelen en Spelers zijn geen onderdeel of rijknop meer');
+ok(/CHILD = {[^}]*controls: 'settings'/.test(pm) && !/streken: 'settings'/.test(pm) && pm.includes("['settings', 'over', 'streken']") && !/spelers: 'samen'/.test(pm), 'Cheats en Over staan sinds #435/#492 in de rail naast Instellingen, niet meer verstopt als tabblad; Samen spelen en Spelers zijn geen onderdeel of rijknop meer');
 ok(pm.includes("['samen', 'Samen spelen'], ['spelers', 'Spelers']") && pm.includes('data-of="spel" data-sub="samen"') && pm.includes('data-of="samen" data-sub="spelers"') && pm.includes('renderSamenPanel(root.querySelector') && pm.includes('renderSpelersPanel(root.querySelector') && pm.includes("id === 'spelers' && !(world && world.coopNet)"), 'Spelers is een tabblad onder Samen spelen (alleen als je samen speelt), met dezelfde lijst als eerst');
 ok(!subIds.includes('spelers') && !pm.includes('data-of="spel" data-sub="spelers"') && !pm.includes('data-of="spel" data-subtab="spelers"'), 'Spelers is geen los tabblad of rijknop van Spel meer (#434)');
 ok(pm.includes("name === 'samen' || name === 'samenspelen' || name === 'spelers'") && pm.includes("setN('spel', coopN") && pm.includes('world.coopSpelers.length'), 'de oude namen samen, samenspelen en spelers verwijzen naar Spel > Samen spelen; de rijknop Spel toont het aantal spelers');

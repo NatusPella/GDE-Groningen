@@ -19,6 +19,7 @@ import { saveGame, hasSave, loadLatestSave, startNewSlot, coopSessieLoopt, COOP_
 import { openSaveSlots, isSaveSlotsOpen } from './saveslotsui.js';
 import { getClockText } from './clocktext.js';
 import { VERSION } from './version.js';
+import { loadChangelog, newsOnStart, ABOUT_HTML } from './over.js';
 import { versionLabel } from './menumodels.js';
 import { storyDate } from './calendarday.js';
 import { isCinematicActive } from './cinematics.js';
@@ -243,6 +244,7 @@ const SECTIONS = [
   ['prestaties', 'Prestaties', 'Blijven bewaard, ook bij een nieuw spel'],
   ['fotos', "Foto's", 'Fotomodus en je galerij'],
   ['settings', 'Instellingen', 'Beeld, geluid, besturing, hulp en cheats'],
+  ['over', 'Over', 'Nieuws, credits, versie en licenties'],
   // onderdelen onder een ander onderdeel (CHILD), niet los in de rail
   ['visboek', 'Visboek', 'Alle vis van de provincie, van jou'],
   ['boerderij', 'Boerderij', 'Je eigen akker, gewassen en machines'],
@@ -251,7 +253,7 @@ const SECTIONS = [
 ];
 // the rail's three groups: playing, collected, system
 // Cheats staat sinds #435 naast Instellingen in de rail: het was te verstopt onder Instellingen > Cheats.
-const RAIL_GROUPS = [['spel', 'verhaal', 'loopbaan', 'todo'], ['map', 'spullen', 'garage', 'prestaties', 'fotos'], ['settings', 'streken']];
+const RAIL_GROUPS = [['spel', 'verhaal', 'loopbaan', 'todo'], ['map', 'spullen', 'garage', 'prestaties', 'fotos'], ['settings', 'over', 'streken']];
 // Onderdelen zonder eigen plek in de rail die onder een ander onderdeel hangen (#430): Vissen en Farmen horen bij Loopbaan
 // (de tegels Bezigheden), de toetsen en knoppen bij Instellingen > Besturing. De rail markeert de ouder; Terug gaat naar de ouder.
 const CHILD = { visboek: 'loopbaan', boerderij: 'loopbaan', controls: 'settings' };
@@ -590,6 +592,7 @@ export function initPauseMenu(w) {
           <section data-panel="streken" class="pm-panel pm-col" hidden><div class="pm-inner pm-streken"></div></section>
           <section data-panel="spel" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-settings">${spelHtml()}</div></section>
           <section data-panel="settings" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-settings">${settingsHtml()}</div></section>
+          <section data-panel="over" class="pm-panel pm-col" hidden><div class="pm-inner pm-over"></div></section>
           <section data-panel="controls" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-cinner">
             ${subtabsHtml('controls', 'Besturing')}
             <label class="m-inp pm-csearch">${icon('search')}
@@ -776,6 +779,22 @@ function renderCheats(focusSel) {
   if (tab === 'streken') sheetNote(sub);
   const back = focusSel && panel.querySelector(focusSel);
   if (back) back.focus({ preventScroll: true });
+}
+
+// Over: version, the changelog and the credits. Opening it counts as "seen", so the news is
+// no longer marked as new on the next start.
+function renderOverPanel(el) {
+  if (!el) return;
+  newsOnStart();
+  el.innerHTML = `<div class="m-main"><div class="m-list pm-over">
+    <p class="mut">Versie ${esc(VERSION)} · NatusPella</p>
+    <div class="pm-over-news" aria-live="polite"><p class="mut">De lijst met wijzigingen laden…</p></div>
+    <div class="pm-over-about">${ABOUT_HTML}</div>
+  </div></div>`;
+  const box = el.querySelector('.pm-over-news');
+  loadChangelog().then((html) => {
+    if (box && box.isConnected) box.innerHTML = `<h3>Wat is er nieuw</h3>${html}`;
+  });
 }
 
 const ARROWS = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
@@ -1665,6 +1684,7 @@ function showTab(name, how) {
   if (name === 'spel') { showSubtab('spel', pref.sub.spel || subsOf('spel')[0][0]); syncControls(); syncSaveButtons(); afterSpelSub(); }
   if (name === 'spel') { const sp = root.querySelector('[data-of="samen"][data-subtab="spelers"]'); if (sp) sp.hidden = !(world && world.coopNet); }
   if (name === 'settings') { showSubtab('settings', pref.sub.settings || 'video'); syncControls(); syncDesktopControls(); }
+  if (name === 'over') renderOverPanel(root.querySelector('[data-panel="over"] .pm-inner'));
   if (prev !== name) { const p = activePanel(); if (p) p.scrollTop = 0; }
 }
 
