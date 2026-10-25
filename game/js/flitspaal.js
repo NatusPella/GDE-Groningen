@@ -1,4 +1,4 @@
-import { SPEED_FINE } from './economy.js';
+import { speedOutcome, SPEED_MARGIN_KMH, FINE_COOLDOWN } from './flitspaalrules.js';
 import { dist } from './util.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { GeoBuilder, vcMaterial } from './pixelart3d.js';
@@ -10,10 +10,7 @@ const TARGET_COUNT = 12;
 const MIN_COUNT = 8;
 const MIN_SEPARATION = 150; // meters, keeps cameras spread across the map
 const TRIGGER_RADIUS = 6;
-const FINE_COOLDOWN = 15;
-const SPEED_MARGIN_KMH = 25; // "a good margin" over the local limit
 const FLAT_LIMIT_KMH = 60; // fallback when a road has no usable speed field
-const [MIN_FINE, MAX_FINE] = SPEED_FINE;
 const PROP_RADIUS = 70;
 
 function pickPoint(road) {
@@ -26,7 +23,7 @@ function pickPoint(road) {
 }
 
 function makeCamera(road, p) {
-  return { x: p.x, y: p.y, angle: p.angle, limitKmh: road.speed ? road.speed * 3.6 : null, lastFine: -Infinity };
+  return { x: p.x, y: p.y, angle: p.angle, limitKmh: road.speed ? road.speed * 3.6 : null, lastFine: -Infinity, warned: false };
 }
 
 export function initFlitspaal(world) {
@@ -95,14 +92,23 @@ export function updateFlitspaal(dt, world) {
     if (cam.broken || world.time - cam.lastFine < FINE_COOLDOWN) continue;
     if (dist(v.x, v.y, cam.x, cam.y) > TRIGGER_RADIUS) continue;
     const limitKmh = cam.limitKmh || FLAT_LIMIT_KMH;
-    if (speedKmh <= limitKmh + SPEED_MARGIN_KMH) continue;
+    const outcome = speedOutcome({ speedKmh, limitKmh, warned: cam.warned, money: world.money });
+    if (outcome.kind === 'none') continue;
 
     cam.lastFine = world.time;
-    const fine = MIN_FINE + Math.floor(Math.random() * (MAX_FINE - MIN_FINE + 1));
+    if (outcome.kind === 'warning') {
+      cam.warned = true;
+      world.addMessage(
+        `Flitspaal: je reed ${Math.round(speedKmh)} km/u, toegestaan is ${Math.round(limitKmh)}. Dit is een waarschuwing; volgende keer een boete.`,
+        4
+      );
+      continue;
+    }
+    cam.warned = true;
     noteMoney('Boetes');
-    world.money = Math.max(0, world.money - fine);
+    world.money = Math.max(0, world.money - outcome.fine);
     world.addMessage(
-      `Geflitst! Boete: €${fine} (u reed ${Math.round(speedKmh)} km/u, toegestaan is ${Math.round(limitKmh)})`,
+      `Geflitst! Boete: €${outcome.fine} (u reed ${Math.round(speedKmh)} km/u, toegestaan is ${Math.round(limitKmh)})`,
       4
     );
   }
