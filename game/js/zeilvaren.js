@@ -7,6 +7,7 @@
 // Regels getest in scripts/zeilvaren_test.mjs en scripts/vaardienst_test.mjs.
 import { windOp, windHoek, polair, trimRendement, BOOT_SOORTEN, WIND, standTekst, roeiSlag } from './zeilrules.js';
 import { maakDienst, stapDienst, dienstVoortgang, dienstUitslag, dienstStand } from './simdienst.js';
+import { invoerVan } from './coopbestuur.js'; // de invoer van een gast die zelf een boot bestuurt (#436)
 
 export const TRIM_RATE = 0.5;      // per seconde, zoals stepZeil
 export const OMSLAG_S = 3;        // s drijven na het omslaan
@@ -84,33 +85,74 @@ function verbergWijzer() { if (wijzer) wijzer.hidden = true; }
 
 let textT = 0;
 
+// De boten die gasten zelf besturen (#436): die liggen in de simulatie van wie het spel opende, dus de
+// zeil- en roeiregels moeten daar lopen, met de invoer van de gast. Tot nu toe keek updateZeilvaren alleen
+// naar world.player.inVehicle: een gast kon een zeilboot wel sturen, maar niet op de wind varen (hij ging op
+// de motortop van het model) en een roeiboot niet roeien. Geeft [{ v, slot, invoer }].
+export function gastBoten(world) {
+  const rijders = world && world.coopRijders, uit = [];
+  if (!rijders) return uit;
+  for (const sleutel of Object.keys(rijders)) {
+    const r = rijders[sleutel], v = r && r.v;
+    if (!v || !v.isBoat || !v.model || v.driver !== 'player' || String(v.coopBestuurder) !== String(sleutel)) continue;
+    if (!v.model.zeil && v.model.soort !== 'roeiboot') continue;
+    const invoer = invoerVan(world, +sleutel);
+    if (invoer) uit.push({ v, slot: +sleutel, invoer });
+  }
+  return uit;
+}
+
+// Een gast stuurt zijn invoer als stick (my omlaag, dus vooruit is my < 0); de eigen speler als toetsen.
+const vooruit = (invoer) => !!(invoer && (invoer.isDown
+  ? invoer.isDown('w') || invoer.isDown('arrowup')
+  : Number(invoer.my) < -0.35));
+
 export function updateZeilvaren(dt, world, dag) {
-  const v = world && world.player && world.player.inVehicle;
-  if (v && v.isBoat && v.model && v.model.soort === 'roeiboot' && v.driver === 'player') {
-    if (world.paused) return;
-    const aan = world.input.isDown('w') || world.input.isDown('arrowup');
+  const eigen = world && world.player && world.player.inVehicle;
+  const boot = eigen && eigen.isBoat ? eigen : null;
+  let gedaan = false;
+  if (boot) gedaan = stapBoot(dt, world, dag, boot, world && world.input, null) || gedaan;
+  for (const gast of gastBoten(world)) if (gast.v !== boot) gedaan = stapBoot(dt, world, dag, gast.v, gast.invoer, gast) || gedaan;
+  if (!gedaan) verbergWijzer();
+  return gedaan;
+}
+
+// Eén boot de zeil- of roeiregels laten volgen. gast: null voor de eigen speler, anders { slot } van de gast
+// (diens invoer komt als stick binnen en zijn meldingen gaan naar hem, niet naar het scherm van de host).
+function stapBoot(dt, world, dag, v, invoer, gast) {
+  if (!v || !v.isBoat || !v.model) return false;
+  const meld = (tekst, seconden) => {
+    if (gast) { if (world.coopMeld) world.coopMeld(gast.slot, tekst); }
+    else if (world.addMessage) world.addMessage(tekst, seconden);
+  };
+  if (v.model.soort === 'roeiboot' && v.driver === 'player') {
+    if (world.paused) return true;
+    const aan = vooruit(invoer);
     const tik = aan && !v.roeiWasAan;
     v.roeiWasAan = aan;
     const slag = roeiStap(v, tik, world.time || 0, dt);
-    if (slag && !slag.goed && (v.roeiSt.reeks || 0) === 0 && (v.roeiTekstT = (v.roeiTekstT || 0) - 1) <= 0) { v.roeiTekstT = 4; world.addMessage('Roei in een rustig ritme: tik W ongeveer elke seconde', 2.5); }
+    if (slag && !slag.goed && (v.roeiSt.reeks || 0) === 0 && (v.roeiTekstT = (v.roeiTekstT || 0) - 1) <= 0) { v.roeiTekstT = 4; meld('Roei in een rustig ritme: tik W ongeveer elke seconde', 2.5); }
     verbergWijzer();
-    return;
+    return true;
   }
-  if (!v || !v.isBoat || !v.model || !v.model.zeil || v.driver !== 'player') { verbergWijzer(); if (v && v.model && v.model.zeil) v.sailTop = null; return; }
-  if (world.paused) return;
+  if (!v.model.zeil || v.driver !== 'player') { if (v.model.zeil) v.sailTop = null; return false; }
+  if (world.paused) return true;
   const uur = ((world.clock % 24) + 24) % 24;
   const wind = windOp(dag, uur);
   world.wind = wind;
-  const inp = { trim: (world.input.isDown('q') ? 1 : 0) - (world.input.isDown('z') ? 1 : 0) };
+  // De gast heeft geen Q en Z in zijn invoer: zijn schoot blijft staan zoals hij hem aantrof (standaard 0,6).
+  const inp = gast ? { trim: 0 } : { trim: (invoer && invoer.isDown('q') ? 1 : 0) - (invoer && invoer.isDown('z') ? 1 : 0) };
   const was = v.omgeslagen > 0;
   zeilStap(v, wind, inp, dt);
-  if (!was && v.omgeslagen > 0) world.addMessage('Omgeslagen! Een nat pak, verder niets. Vier het zeil (Z) en vaar door', 4);
+  if (!was && v.omgeslagen > 0) meld('Omgeslagen! Een nat pak, verder niets. Vier het zeil (Z) en vaar door', 4);
+  if (gast) return true; // de windwijzer is van de eigen speler; een gast heeft die HUD niet
   toonWijzer(v, wind, windHoek(v.angle, wind));
   textT -= dt;
   if (textT <= 0) {
     textT = TEKST_GAP_S;
     world.addMessage(`${standTekst({ heading: v.angle, omgeslagen: 0 }, wind)} · wind ${Math.round(wind.speed)} m/s`, 2.5);
   }
+  return true;
 }
 
 // --- vaardienst (#444): de rondvaart of veerboot met aanleggen ---------------------------
