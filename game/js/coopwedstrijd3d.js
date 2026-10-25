@@ -5,7 +5,7 @@ import { fmtTime } from './minigamekit.js';
 import { openerNaam } from './coopplayers.js';
 import { bijbaanKaartModel } from './coopbijbaan.js';
 import { kaartSting, spelersVerbonden } from './stings.js';
-import { spelerNaam, verbondenGasten, gastStaat, wedGastStuur, wedOpnieuw, wedHostAntwoord, willenOpnieuw, uitnodigingTekst } from './coopwedstrijd.js';
+import { spelerNaam, verbondenGasten, gastStaat, wedGastStuur, wedOpnieuw, wedHostAntwoord, willenOpnieuw, uitnodigingTekst, WEDSTRIJDEN } from './coopwedstrijd.js';
 
 const ORDINAAL = ['', '1e', '2e', '3e', '4e'];
 
@@ -29,7 +29,18 @@ function wedKaart(world) {
   const G = world.coopWedGast; if (!G) return null;
   if (G.uitn) return { soort: 'uitnodiging', titel: 'Meedoen?', regels: [uitnodigingTekst(G.uitn, openerNaam(world.coopRoster, true))], voet: 'Wie finisht krijgt een beloning in het eigen geld.' };
   if (G.uitslag && !G.uitslag.gestopt) return uitslagModel(G.uitslag.rijen, G.uitslag.jij, 'gast', [], true, G.nogmaals);
+  if (G.baan) return baanModel(G); // een baanwedstrijd: de tussenstand van de host, live (#443)
   return null;
+}
+// De gast ziet in een baanwedstrijd (bruggenrace, regatta) de stand van de host: plek, naam, punten of tijd.
+function baanModel(G) {
+  const regel = WEDSTRIJDEN.get(G.id), b = G.baan;
+  const naam = (slot) => (b.deeln.find((d) => d.slot === slot) || {}).naam || 'Speler';
+  const rijen = b.stand || [];
+  const regels = rijen.length
+    ? rijen.map((r, i) => `${i + 1}. ${naam(r.slot)}${r.weg ? ': gestopt' : r.slagen ? `: ${fmtTime(r.slagen / 100)}` : `: ${r.banen} van ${b.cps}`}`)
+    : ['Je doet mee. Stap in je boot: bij het aftellen gaat iedereen samen weg.'];
+  return { soort: 'baan', titel: regel ? regel.naam : 'Wedstrijd', regels, voet: 'Backspace = stoppen' };
 }
 function uitslagModel(rijen, jij, rol, wie, kanOpnieuw, gevraagd = false) {
   const regels = rijen.map((x) => `${ORDINAAL[x.plek] || x.plek + 'e'}  ${x.naam}${x.ai ? ' (AI)' : ''}  ${x.tekst ? x.tekst : x.fin ? fmtTime(x.tijd) : x.weg ? 'niet meer erbij' : 'niet gefinisht'}${x.beste != null ? `  beste ronde ${fmtTime(x.beste)}` : ''}`); // x.tekst: de score van een golfronde

@@ -30,6 +30,7 @@ import { findParkingSpot } from './ownedvehicles.js';
 import { Vehicle } from './vehicle.js';
 import { playerBusy } from './busy.js';
 import { waarschuwVoorStart } from './coopstatus.js';
+import { wedNodigUit, wedNuStarten } from './coopwedstrijd.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
 import { vakVanUitdaging } from './loopbaan.js';
 
@@ -56,7 +57,7 @@ import { vakVanUitdaging } from './loopbaan.js';
 
 export const CHALLENGES = [BRUGGEN, FIERLJEP, SKUTSJE, FJORD, KOE];
 const BY_ID = new Map(CHALLENGES.map((d) => [d.id, d]));
-setPostgameHost({ finish, say, jelle, setTarget, isPostgameOpen, esc });
+setPostgameHost({ finish, say, jelle, setTarget, isPostgameOpen, esc, startWedstrijd });
 const PRIZE = PG_PRIZE;
 const SAY_GAP = 9;
 
@@ -263,15 +264,32 @@ export function tryPostgameInteract(w) {
   const why = blockReason(w) || vehicleProblem(w, s);
   if (why) { w.addMessage(why, 2.5); return true; }
   waarschuwVoorStart(w, 'minigame', 'pg_' + s.def.id); // samen spelen: een melding als dit nog niet samen werkt; de start gaat door
+  // Samen spelen (#443): een wedstrijd tegen elkaar begint met Meedoen? (J of N) voor iedereen; wie niemand vraagt,
+  // of alleen is, krijgt gewoon de solo-uitdaging.
+  if (s.def.wedstrijd) {
+    const uit = wedNodigUit(w, s.def.wedstrijd);
+    if (uit.ok) {
+      if (uit.reden === 'wacht') wedNuStarten(w); // nog eens op E: nu beginnen
+      return true;
+    }
+  }
   startChallenge(s);
   return true;
 }
 
-function startChallenge(s) {
+// Samen spelen (#443): de wedstrijdlaag start deze uitdaging voor iedereen, met sc = de baanwedstrijd van de host.
+export function startWedstrijd(id, sc) {
+  if (run || !open) return false;
+  const s = (spots || []).find((q) => q.def.id === id);
+  if (!s || !s.def.wedstrijd) return false;
+  return startChallenge(s, sc);
+}
+
+function startChallenge(s, sc = null) {
   const def = s.def;
   const r = { def, spot: s, world, t: 0, data: {}, ui: ensureUi(), lastSay: -99, done: false };
   let ok;
-  try { ok = def.start(r); } catch (e) { console.error('postgame start', def.id, e); ok = 'Er ging iets mis bij het klaarzetten'; }
+  try { ok = def.start(r, sc); } catch (e) { console.error('postgame start', def.id, e); ok = 'Er ging iets mis bij het klaarzetten'; }
   if (ok !== true) {
     world.addMessage(typeof ok === 'string' ? ok : 'Dat lukt nu even niet', 3);
     try { def.stop(r); } catch (e) { /* ignore */ }
@@ -282,6 +300,7 @@ function startChallenge(s) {
   ui.root.hidden = false;
   ui.root.dataset.kind = def.icon;
   ui.title.textContent = def.name;
+  if (sc) return true; // een wedstrijd tegen elkaar: geen introfilmpje, het aftellen begint meteen (#443)
   if (!state.seen.includes(def.id) && INTROS[def.id]) {
     state.seen.push(def.id);
     playIntro(def, s);
