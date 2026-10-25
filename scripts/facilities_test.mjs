@@ -43,6 +43,20 @@ if (raw.crs !== 'EPSG:4326') fail('facilities.json is not in lat/lon');
 console.log(`${Fac.FAC.all.length} facilities in the built world: ` + [...Fac.FAC.byKind].map(([k, v]) => `${k} ${v.length}`).join(', '));
 for (const k of ['police', 'doctors', 'hospital', 'fuel', 'car_repair', 'parking', 'supermarket']) if (!Fac.facilitiesOf(k).length) fail(`no ${k} in the built world`);
 
+// the POI layers (#314, C1): a reader gets a list of map.meta from the tiles of its layer alone, the same list
+{
+  const pois = (T.index && T.index.pois && T.index.pois.layers) || {};
+  const canon = (v) => JSON.stringify(v, (k, x) => (x && typeof x === 'object' && !Array.isArray(x) ? Object.fromEntries(Object.keys(x).sort().map((q) => [q, x[q]])) : x));
+  const names = ['shops', 'horeca', 'garages', 'neighbourhoodPoints'];
+  if (!Object.keys(pois).length) console.log('     (this world has no index.pois yet: the reader falls back on map.meta)');
+  for (const name of names) {
+    const via = Fac.poiLayerPlaces(map, name), want = map.meta[name] || [];
+    const same = canon(via) === canon(want);
+    if (!same) fail(`POI layer ${name}: the tiles give ${via.length} places, meta has ${want.length}`);
+    else if (pois[name]) console.log(`     POI layer ${name}: ${pois[name].n} rows in ${pois[name].tiles.length} tiles + ${pois[name].rest || 0} in the rest`);
+  }
+}
+
 // names: invented from kind + place, no business names
 const LABELS = /^(UMCG|Ziekenhuis|Huisartsenpost|Huisartsenpraktijk|Ambulancepost|Politiebureau|Politiepost|Brandweerkazerne|Apotheek|Pomp & Poets|Garage Knalpot|Taxistandplaats|Busstation|Parkeerplaats|Parkeergarage)\b/;
 const seen = new Set();

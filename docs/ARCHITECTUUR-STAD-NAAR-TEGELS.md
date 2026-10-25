@@ -332,12 +332,18 @@ tot dan is `stad.json` hun enige bron, en verandert een naam of POI daar (een ri
 
 **POI-lagen in de tegelindex (25 oktober 2026, B6 voorbereid).** `pack_tiles.build` legt naast de rijen ook vast welke tegels
 een lijst dragen: `index.pois.layers` heeft per lijst uit `meta.poiLists` (`shops`, `horeca`, `pois.health`, ...) het aantal
-rijen in de tegels (`n`) en de gesorteerde tegelssleutels (`tiles`); `rest` telt de plaatsen die buiten de stadstegels vallen
+rijen in de tegels (`n`) en de gesorteerde tegelssleutels (`tiles`); `rest` telt de plaatsen van die lijst die buiten de stadstegels vallen
 en in de globale laag blijven (`poiRest`). Een lege lijst staat er ook in, zodat een lezer weet dat de soort bestaat.
 `scripts/world/poilagen.mjs` maakt het blok (`poiLayers`, `poiLayerTiles`) uit de uitkomst van `splitMeta`; de rijen blijven
 de bron en `joinMeta` geeft uit de tegels van de lagen dezelfde `meta` terug. Een lezer kan daarmee alleen de tegels van zijn
 laag vragen (`shops.js`, `horeca.js`, ...) in plaats van de hele set; die omzetting is B6/C1 zelf. `index.pois` is een
 toevoeging: een wereld of lezer zonder het blok werkt zoals voorheen.
+
+**De eerste lezer op de laag (25 oktober 2026).** `shops.js` (`initShops`) haalt de winkels van de stad niet meer uit
+`map.meta.shops` maar via `facilities.js poiLayerPlaces(map, 'shops')`: dat vraagt de tegels van de laag uit `index.pois`,
+leest hun POIS-rijen, telt de `poiRest`-plaatsen erbij (`poisections.js layerRows`) en geeft dezelfde lijst in dezelfde
+volgorde. Liggen de tegels niet allemaal in, of is er geen tegelindex (`WORLD_SRC=json`, een dev-server zonder `game/world`),
+dan blijft `map.meta` de bron. `tileworld.js` bewaart daarvoor de globale meta zonder de plaatsen als `map.poiMeta`.
 
 **Bouwen en testen.** `loadSourcesLaag()` (pack_tiles.mjs) leest `stad.json`, haalt de lagen van `fromOsm` uit de OSM-bouw
 (`stad_cache.mjs` bewaart het resultaat in de tijdelijke map, met een sleutel uit de invoer en de bouwcode), legt `mapextras.json` erover

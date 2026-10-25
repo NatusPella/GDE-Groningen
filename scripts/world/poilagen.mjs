@@ -5,10 +5,12 @@
 // tegels hoeft te vragen in plaats van de hele set. De rijen blijven de bron: joinMeta() geeft uit
 // de tegels van een laag dezelfde lijst terug.
 //
-//   poiLayers(split) -> { layers: { naam: { n, tiles } }, rest }
+//   poiLayers(split) -> { layers: { naam: { n, rest, tiles } }, rest }
 //   poiLayerTiles(index, naam) -> de tegelssleutels van die laag (leeg als de wereld ze niet heeft)
 //
 // split is de uitkomst van splitMeta(); index is de index.json van de wereld (`index.pois`).
+// `n` is het aantal rijen in de tegels, `rest` het aantal plaatsen van die lijst dat in de globale
+// laag bleef (poiRest, buiten de stadstegels): samen is dat de hele lijst van de meta.
 
 // per lijst van de meta het aantal rijen in de tegels en de tegels die ze dragen (gesorteerd).
 // Elke lijst uit poiLists staat erin, ook een lege: een lezer weet dan dat de soort bestaat.
@@ -16,7 +18,7 @@ export function poiLayers(split) {
   const meta = (split && split.meta) || {};
   const counts = meta.poiLists || {};
   const layers = {}, seen = new Map();
-  for (const name of Object.keys(counts)) { layers[name] = { n: 0, tiles: [] }; seen.set(name, new Set()); }
+  for (const name of Object.keys(counts)) { layers[name] = { n: 0, rest: 0, tiles: [] }; seen.set(name, new Set()); }
   for (const [key, rows] of (split && split.rows) || []) {
     for (const row of rows) {
       const tiles = seen.get(row._l);
@@ -25,6 +27,7 @@ export function poiLayers(split) {
       layers[row._l].n++;
     }
   }
+  for (const row of meta.poiRest || []) if (layers[row._l]) layers[row._l].rest++;
   for (const [name, tiles] of seen) layers[name].tiles = [...tiles].sort();
   return { layers, rest: (meta.poiRest || []).length };
 }

@@ -15,6 +15,8 @@ import { isInWater } from './util.js';
 import { regionAt } from './regions.js';
 import { SpatialGrid } from './spatialgrid.js';
 import { FACILITY_KIND, REPLACED_KINDS } from './shopbind.js';
+import { SECTION } from './gdt.js';
+import { layerRows } from './poisections.js';
 
 // how far an emergency-capable post may be before the nearest doctor wins
 export const MEDICAL_REACH = 4500;
@@ -173,6 +175,26 @@ export function initShopPlaces(map, raw) {
   }
   grids = new Map();
   return rows.length;
+}
+
+// The places of one list of map.meta out of the tiles of that list (#314, B6/C1): the tile index names per POI layer the
+// tiles that carry it (scripts/world/poilagen.mjs, index.pois.layers) and the places that stayed in the global layer
+// (poiRest), so a reader asks those tiles instead of the whole set. Are they not all in, or is there no tile index (a map
+// from stad.json alone: WORLD_SRC=json, a dev server without world), then map.meta stays the source. The list is the same.
+export function poiLayerPlaces(map, name) {
+  const meta = (map && map.meta) || {};
+  const slim = map && map.poiMeta;
+  const layer = map && map.tileIndex && map.tileIndex.pois && map.tileIndex.pois.layers && map.tileIndex.pois.layers[name];
+  const store = map && map.store;
+  if (slim && layer && store && layer.tiles.every((k) => store.ready(k))) {
+    const rows = layer.tiles.map((k) => {
+      const tile = store.tile(k);
+      return tile ? tile.sections.filter((s) => s.type === SECTION.POIS).flatMap((s) => s.rows) : [];
+    });
+    const list = layerRows(slim, name, rows);
+    if (list !== null) return list;
+  }
+  return meta[name] || [];
 }
 
 export function facilitiesOf(kind) {
