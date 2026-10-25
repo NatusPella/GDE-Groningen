@@ -36,6 +36,7 @@ function finish(w, { quit = false } = {}) {
   const r = run;
   if (!r) return;
   run = null;
+  w.wandelingActief = false;
   if (board) board.hide();
   clearBubbles(w, 'wandeling');
   if (quit) { w.addMessage('Wandeling gestopt', 2.5); return; }
@@ -58,6 +59,9 @@ function start(w) {
   if (!board) board = createBoard('wandeling');
   board.show();
   run = { s: createWalk(PTS), flash: null, hint: '' };
+  // De wandeling neemt de speler niet over (active: false), maar een controller en de tastbare knoppen moeten
+  // hem wel kunnen stoppen: de indeling 'minigame' zet B op Backspace. Zie gamepad.js en touchlogic.js.
+  w.wandelingActief = true;
   showCard(w, { kind: 'tip', kicker: 'Wandeling', title: 'Pieterpad bij Winsum', body: 'Loop in volgorde langs de vijf stempelposten. Lopend tellen tijd en afstand; in een voertuig telt niets. [Backspace] stopt.', duration: 11, key: 'wandel-help', voice: false });
   say(w, 'start');
   return true;
@@ -110,6 +114,7 @@ export const WANDELING = {
   layer: 'wandeling',
   legend: { kind: 'act-wandeling', label: 'Wandeling Winsum', note: 'Pieterpad bij Winsum: vijf stempelposten, tegen de klok' },
   init(w) {
+    w.wandelingActief = false;
     window.__wandeling = {
       spot: () => ({ ...START }),
       route: () => PTS.map((q) => ({ id: q.id, x: q.x, y: q.y })),

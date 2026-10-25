@@ -243,6 +243,8 @@ export function touchContext(w, { started = true, menuOpen = false, shiftMode = 
   if (w.challenge && w.challenge.id === 'fjord') return 'foodtruck';
   if (GAME_PAD_CTX[w.activityGame]) return GAME_PAD_CTX[w.activityGame];
   if (playerBusy(w, ['padel', 'activityGame']).busy) return 'minigame';
+  // de wandeling neemt de speler niet over, maar de stopknop hoort er wel te zijn (net als op het pad)
+  if (w.wandelingActief) return 'minigame';
   const v = w.player && w.player.inVehicle;
   if (v) return v.isHeli ? 'heli' : w.noLookBack ? 'skutsje' : v.gb && shiftMode !== 'auto' ? 'vehicleManual' : 'vehicle';
   return 'foot';

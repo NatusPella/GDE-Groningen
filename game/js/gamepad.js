@@ -149,6 +149,8 @@ function context() {
   }
   if (GAME_PAD_CTX[w.activityGame]) return GAME_PAD_CTX[w.activityGame];
   if (playerBusy(w, ['padel', 'activityGame']).busy) return 'minigame';
+  // de wandeling neemt de speler niet over (wandeling.js), maar B hoort hem wel te stoppen
+  if (w.wandelingActief) return 'minigame';
   const v = w.player && w.player.inVehicle;
   if (v) return v.isPlane ? 'plane' : v.isHeli ? 'heli' : w.noLookBack ? 'skutsje' : v.gb && getSettings().shiftMode !== 'auto' ? 'vehicleManual' : v.isBus ? 'bus' : 'vehicle';
   return 'foot';
