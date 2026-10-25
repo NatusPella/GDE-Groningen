@@ -19,3 +19,32 @@ De 134 markdown-bestanden in docs/ (3,5 MB) en de root-docs opruimen tot een kle
 ## Buiten scope
 - Spelcode wijzigen (behalve als een doc een aantoonbare fout beschrijft die een issue wordt).
 - Eigenaar-publicaties (Steam, YouTube, IARC) uitvoeren.
+
+## Uitkomst (25-10-2026)
+
+Klaar. Zes specs geschreven in `.specs-fire/standards/` (`multiplayer`, `wereld`,
+`mechanica`, `verhaal`, `ui-taal`, `publicatie`), elk met de bron, de regels, de
+bestanden, de tests en de open punten.
+
+- **Verplaatst naar `docs/archief/2026-10/` (23 documenten):** de drie
+  `deel4-f4a/b/c`-drafts (1,1 MB), `D-definitief`, `00-analyse`, `FLOW-ANALYSE`,
+  `verhaal-voorstel`, `ARCHITECTUUR-REVIEW`, `FEEDBACK-SPEELTEST-1`,
+  `SPELBOT-RAPPORT`, `PERF-PROFIEL`, `WEER-NACHT-RAPPORT`, `GELUID-AUDIT`,
+  `ONBOARDING`, `PRESTATIES-ZWAK`, `ISSUE-STAND`, `OVERDRACHT`,
+  `NALEZEN-GRONINGS-FRIES`, `INVENTARIS`, `MUZIEK-OPRUIMING`, `PLAN-1.0`,
+  `OMMELAND-PARITEIT`, `SAMEN-SPEELEN-SPEELPLAN`. Elk met een kop die zegt wat het
+  vervangt en dat de relatieve links niet meer werken.
+- **Verwijderd:** `docs/verhaal/nieuw/HET-VERHAAL.md`, `docs/verhaal/OPNAMELIJST.md`
+  (beide gegenereerd) en `scripts/build_screenplay.mjs`. De generator van de
+  opnamelijst (`scripts/opnamelijst.mjs`) blijft: die schrijft het bestand op
+  verzoek en het staat niet meer in git.
+- **Bewust niet gearchiveerd:** `docs/ARCHITECTUUR-STAD-NAAR-TEGELS.md` (acht
+  codecommentaren verwijzen ernaar voor de tegelindeling) en `ARCHITECTURE.md`
+  (blijft de bestandskaart; `system-architecture.md` houdt de regels).
+- **Issues:** #465-#490 (26 stuks), alle op het bord.
+- **Gerepareerd onderweg:** `undef_check` stond op main stuk door #438 (twee
+  ontbrekende imports in `heist.js`); de juridische feiten in `LICENTIES.md` en
+  `PRIVACY-EN-CREDITS.md`; en alle kapotte relatieve links in `docs/`, README,
+  AGENTS en ARCHITECTURE.
+- **Open:** de docs die een eigen issue hebben (#468, #473, #474, #477, #480,
+  #483, #484) zijn nog niet herschreven; dat is het werk van die issues.
