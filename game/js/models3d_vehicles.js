@@ -486,7 +486,8 @@ function ambulanceOpschrift(group, P, L, W) {
 }
 
 // Sierdoppen: een lichte schijf op elk wiel, samen één 'onderdeel' dat los kan raken (#205).
-const CAP_MAT = new THREE.MeshBasicMaterial({ color: 0xc4c8cc });
+// Naafkapjes zijn geen lichtbron: een MeshBasicMaterial bleef in het donker fel wit (playtestvideo 23-10).
+const CAP_MAT = new THREE.MeshLambertMaterial({ color: 0xc4c8cc });
 function hubcaps(wheels, r) {
   const geo = cached(`hubcap|${r}`, () => new THREE.CylinderGeometry(r * 0.5, r * 0.5, 0.03, 10, 1).rotateX(Math.PI / 2));
   const caps = wheels.map((w) => {
