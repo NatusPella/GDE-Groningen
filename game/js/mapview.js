@@ -24,8 +24,8 @@ import { getPostgameSpotsForRender } from './postgame.js';
 import { getStationsForRender } from './stationtravel.js';
 import { reisOptiesVoor, tekenLijnen, lijnLagen } from './reiskaart.js';
 import { kaartRijen } from './ovkaart.js';
-import { actieModel, reisKeuzes, infoRegels, GAST_REIS_MELDING, UITLEG_ID } from './kaartactie.js';
-import { actiesHtml, reisHtml, infoHtml, uitlegHtml, hierHtml, KAART_ACTIE_CSS } from './kaartactieui.js';
+import { actieModel, reisKeuzes, infoRegels, GAST_REIS_MELDING, UITLEG_ID, klikActie } from './kaartactie.js';
+import { actiesHtml, reisHtml, infoHtml, uitlegHtml, hierHtml, legendaHintHtml, KAART_ACTIE_CSS } from './kaartactieui.js';
 import { markSeen, parseSeen } from './hudtext.js';
 import { optieRegel } from './ovopties.js';
 import { startMeerijden } from './reisrit.js';
@@ -1641,7 +1641,7 @@ function handleClick(world, sx, sy, shift = false) {
     return;
   }
   // een klik op het waypoint zelf haalt het weg (#445): de tweede klik wist hem
-  if (h && h.isGoal) { hideCard(); clearUserWaypoint(); return; }
+  if (h && h.isGoal && klikActie(getUserWaypoint(), { x: h.x, y: h.y }) === 'weg') { hideCard(); clearUserWaypoint(); return; }
   if (state.card) { hideCard(); if (!h) return; }
   // je eigen plek: een hint waar je staat, geen waypoint naar jezelf
   if (h && h.self) { showCard(world, h, sx, sy); return; }
@@ -1738,9 +1738,10 @@ function syncKaartUitleg(world) {
   const box = body.querySelector('.mv-uitleg');
   if (box) {
     if ((box.dataset.gast === '1') !== gast) box.outerHTML = uitlegHtml({ gast });
-    return;
-  }
-  if (!kaartGezien()) body.insertAdjacentHTML('beforeend', uitlegHtml({ gast }));
+  } else if (!kaartGezien()) body.insertAdjacentHTML('beforeend', uitlegHtml({ gast }));
+  // de legenda bovenaan Lagen zegt hetzelfde in het kort (#445)
+  const leg = state.overlay.querySelector('.mv-leg-hint');
+  if (leg && (leg.dataset.gast === '1') !== gast) leg.outerHTML = legendaHintHtml({ gast });
 }
 function sluitKaartUitleg(btn) {
   const box = btn.closest('.mv-uitleg');
@@ -1926,7 +1927,9 @@ function drawLegendIcon(ctx, kind) {
 
 function buildLegend(root) {
   const dpr = window.devicePixelRatio || 1;
-  root.innerHTML = '<h3>Op de kaart</h3>';
+  // de uitleg bovenaan (#445), met de Samen spelen-regel voor een gast; bij het
+  // openen van de kaart volgt syncKaartUitleg je rol
+  root.innerHTML = '<h3>Op de kaart</h3>' + legendaHintHtml({ gast: !!(state.world && state.world.coopRole === 'client' && state.world.coopNet) });
   state.legendDyn = {};
   for (const g of LEGEND) {
     const box = document.createElement('div');
@@ -1960,7 +1963,7 @@ function buildLegend(root) {
       // the explanation sits in the tooltip: the legend stays a short list of icon and name
       n.textContent = row.dyn ? row.note || '' : '';
       if (row.dyn) span.append(document.createElement('br'), n);
-      if (row.dyn) state.legendDyn[row.dyn] = n;
+      if (row.dyn) { state.legendDyn[row.dyn] = n; if (row.note) li.title = row.note; }
       else if (row.note && !row.layers) li.title = row.note;
       if (row.kind === 'companion') state.legendMaat = span.firstChild;
       li.append(cv, span);
