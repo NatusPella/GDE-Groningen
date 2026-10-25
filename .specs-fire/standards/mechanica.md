@@ -91,15 +91,18 @@ afleveren.
 speluren uit `world.clock` (`game/js/boerderijlive.js:72`). Machines huur je per keer of koop je
 (`:34`); een ronde levert ongeveer €300 tot €350 winst op, en de verkoop loopt via
 `loopbaanVerdien`. Opslag `gde-boerderij-v1` (`storagekeys.js:81`). Samen spelen: een gast werkt op
-zijn eigen akker als lokale minigame (`game/js/boerderijgast.js:1`).
+zijn eigen akker als lokale minigame (`game/js/boerderijgast.js:1`), zijn gewas en contracten lopen
+met de hostklok mee, maar leveren doet hij in zijn eigen spel. Leveringscontracten
+(`game/js/boerderijcontracten.js`): per speldag een aanbod per gewas, max. 3 actief, deellevering
+telt, de bonus gaat via `loopbaanVerdien('landbouw', …)` met `deel: false`, verlopen kost niets.
 
 **Bestanden.** `boerderij.js`, `boerderijlive.js`, `boerderijui.js`, `boerderijwereld.js`,
 `boerderijgast.js`, `percelen.js`, `machines.js`, `werktuigen.js`, `werktuigen3d.js`,
-`sidejob_boerderij.js`, `gewasmarkt.js`.
+`sidejob_boerderij.js`, `gewasmarkt.js`, `boerderijcontracten.js`.
 
-**Tests.** `boerderij_test.mjs`, `gewasmarkt_test.mjs`, `percelen_test.mjs`, `machines_test.mjs`,
-`werktuigen_test.mjs`, `boerderijwereld_test.mjs`, `boerderijgast_test.mjs`,
-`boerderijui_machines_test.mjs`.
+**Tests.** `boerderij_test.mjs`, `gewasmarkt_test.mjs`, `boerderijcontracten_test.mjs`,
+`percelen_test.mjs`, `machines_test.mjs`, `werktuigen_test.mjs`, `boerderijwereld_test.mjs`,
+`boerderijgast_test.mjs`, `boerderijui_machines_test.mjs`.
 
 ## Vliegschool
 

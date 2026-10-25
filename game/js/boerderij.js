@@ -2,7 +2,7 @@
 // oogsten, afleveren), machines die je huurt of koopt, en een kasboek met een boekjaar en een lening. Pure regels, geen DOM, geen THREE, geen
 // opslag en geen klok (scripts/boerderij_test.mjs); boerderijlive.js houdt de tijd bij en bewaart, sidejob_boerderij.js is het werk op het land
 // als loonwerk, en machines.js, werktuigen.js en boerderijwereld.js zijn het werk met je eigen trekker en werktuigen. De dagprijs per
-// gewas staat in gewasmarkt.js (#492).
+// gewas staat in gewasmarkt.js (#492) en de leveringscontracten in boerderijcontracten.js (#492).
 //
 // De kern is bewust klein: vier gewassen (aardappelen, suikerbieten, graan en op weiland gras), drie bijbaanmachines (ploeg, zaai- en strooimachine,
 // rooier). Cultiveren en spuiten zijn vrije klussen (`vrij`): alleen met je eigen trekker en werktuig, niet in de bijbaan. Het zomerseizoen is
@@ -11,6 +11,7 @@
 
 import { nieuwBedrijf, normaliseerBedrijf, actiefPerceel, bodemFactor, START_PERCEEL, PERCEEL_IDS } from './percelen.js';
 import { PRIJS_KG, dagprijs, dagVan, markt } from './gewasmarkt.js';
+import * as CT from './boerderijcontracten.js';
 
 export const VERSIE = 1;
 export const MAX_UREN = 1e7;
@@ -79,6 +80,7 @@ export function nieuweBoerderij() {
     posities: {},                                                  // waar de rijen van een ander perceel dan de Zonnehoek liggen: { x, y, a } (eenmaal gevonden)
     boek: nieuwBoek(),                                             // kosten en opbrengsten per veld en per boekjaar, en de lening
     bedrijf: nieuwBedrijf(),                 // percelen, erven, opslag en machinepark (percelen.js, #415 stap 1): oude opslag mist dit en krijgt het leeg
+    contracten: CT.leeg(),                   // het aanbod van vandaag, je actieve leveringscontracten en een begrensde historie (#492)
   };
 }
 
@@ -113,6 +115,7 @@ export function normaliseer(raw) {
   if (d.posities && typeof d.posities === 'object') for (const id of PERCEEL_IDS) { const q = d.posities[id]; if (id !== START_PERCEEL && q && Number.isFinite(q.x) && Number.isFinite(q.y)) b.posities[id] = { x: q.x, y: q.y, a: Number.isFinite(q.a) ? q.a : 0 }; }
   leesBoek(b, d.boek);
   b.bedrijf = normaliseerBedrijf(d.bedrijf);
+  b.contracten = CT.normaliseer(d.contracten, dagVan(b.uren));   // oud of kapot: een lege stand met het aanbod van vandaag
   syncVeld(b);
   return b;
 }
@@ -364,7 +367,8 @@ export function opbrengstKg(b) {
 }
 
 // Het afleveren: de lading wordt verkocht tegen de prijs van het gewas, met de kwaliteit die de rit overleefde (0..1). Geeft het
-// bedrag voor de loonfactor van de loopbaan; de schuur is daarna leeg.
+// bedrag voor de loonfactor van de loopbaan; de schuur is daarna leeg. De kg en het gewas gaan mee terug, zodat
+// boerderijlive.js ze aan een leveringscontract kan toevoegen (#492).
 export function lever(b, kwaliteit) {
   const s = b.schuur;
   const r = leverVracht(b, s, kwaliteit);
