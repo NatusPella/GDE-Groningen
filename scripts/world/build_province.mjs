@@ -343,7 +343,24 @@ function fillOldExtent({ root, fill, gid, stats, blobs, roadNet, roadSeen, railR
   // the water: annotated like the extract's (waterlevels.js), flat for the far LOD
   const wr = annotateProvinceWater(feats.filter((f) => f.kind === 'water').map((f) => { f.row.flat = true; return f.row; }), { base: waterBodies, village: ctx.village, locks: [] });
   waterBodies += wr.bodies;
-  for (const f of feats) if (f.kind === 'rails') railRows.push(f.row);
+  // Het spoor van de oude data geldt alleen voor de tegels die eruit gevuld worden (#506). Het oude bestand
+  // beslaat het hele oude Ommeland, dus zonder deze knip kwam het verse spoor er een tweede keer bij te
+  // liggen — 0,16 m ernaast, wat op het spoor zichtbaar is als twee rails over elkaar.
+  {
+    const fb = [Infinity, Infinity, -Infinity, -Infinity];
+    for (const t of fill.values()) {
+      const [ox, oy] = G.tileOrigin(t.i, t.j);
+      fb[0] = Math.min(fb[0], ox); fb[1] = Math.min(fb[1], oy);
+      fb[2] = Math.max(fb[2], ox + G.TILE_M); fb[3] = Math.max(fb[3], oy + G.TILE_M);
+    }
+    if (fb[0] < Infinity) {
+      const inBox = (P) => P.some(([x, y]) => x >= fb[0] && x <= fb[2] && y >= fb[1] && y <= fb[3]);
+      for (const f of feats) {
+        if (f.kind !== 'rails' || !inBox(f.row.pts)) continue;
+        for (const piece of clipLine(f.row.pts, fb)) if (piece.length > 1) railRows.push({ ...f.row, pts: piece });
+      }
+    }
+  }
   for (const k of [...fill.keys()].sort()) {
     const t = fill.get(k), [ox, oy] = G.tileOrigin(t.i, t.j), box = [ox, oy, ox + G.TILE_M, oy + G.TILE_M];
     const list = idx.get(k) || [];
@@ -668,7 +685,11 @@ async function cityCoverOf() {
   const P = await import('./pack_tiles.mjs');
   const { cityCoverFromMask } = await import('./citycover.mjs');
   const { data, mask } = P.readStad();
-  return { ...cityCoverFromMask(mask), rails: (data.rails || []).map((r) => r.pts) };
+  // De stadse rails komen sinds #90 uit de OSM-laag en niet meer uit stad.json: zonder deze regel kreeg
+  // railLines (cityroutes.mjs) een lege lijst en werd het spoor van de provincie nergens op de stadse
+  // track geknipt, zodat het in en om de stad dubbel werd getekend (#506).
+  const stad = await P.loadCityDataLaag();
+  return { ...cityCoverFromMask(mask), rails: (stad.data.rails || []).map((r) => r.pts || r) };
 }
 
 async function main() {
