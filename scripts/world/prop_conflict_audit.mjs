@@ -27,7 +27,7 @@ const CE = await import('../../game/js/countryedge.js');
 const CF = await import('../../game/js/countryfield.js');
 const CS = await import('../../game/js/countryside.js');
 const SF = await import('../../game/js/streetfurniture.js');
-const { isOnRoad } = await import('../../game/js/pedgeom.js');
+const { isOnRoad, CAR_ROAD_CATS } = await import('../../game/js/pedgeom.js');
 const { spawnPedestriansNear } = await import('../../game/js/pedestrians.js');
 
 // Wat --strict toestaat: alleen dalen. ZERO: tellers die 0 moeten zijn (over spoor, weg, water, gebouw; vee in
@@ -161,7 +161,6 @@ function reachOnRoad(a, nrb) {
 // Waar een wandelaar vandaan komt (pedestrians.js kiest een punt 1 tot 3 m naast een weg):
 // bij een kruising is die berm de rijbaan van de kruisende weg, en daar loopt hij dan (#502).
 // De echte spawner wordt op zulke punten losgelaten, met een vaste reeks per venster.
-export const WALKER_CATS = ['major', 'normal', 'minor'];
 function walkerSample(map, ox, oy, seed) {
   const spots = [], seen = new Set();
   for (const r of map.all.roads) {
@@ -182,7 +181,7 @@ function walkerSample(map, ox, oy, seed) {
   const rnd = () => { s = (Math.imul(s, 1664525) + 1013904223) >>> 0; return s / 4294967296; };
   const out = [];
   for (const [x, y] of spots) out.push(...spawnPedestriansNear(map, x, y, 8, rnd, true));
-  return { walkers: out.length, onRoad: out.filter((p) => isOnRoad(map, p.x, p.y, 0, WALKER_CATS)).length };
+  return { walkers: out.length, onRoad: out.filter((p) => isOnRoad(map, p.x, p.y, 0, CAR_ROAD_CATS)).length };
 }
 
 
