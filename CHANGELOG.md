@@ -4,6 +4,11 @@ Alle noemenswaardige wijzigingen in GDE Groningen, per versie. Nieuwste bovenaan
 Versies volgen SemVer: `0.x.y` tot de echte release (1.0.0); `x` voor
 nieuwe functies, `y` voor alleen bugfixes.
 
+## [Unreleased]
+
+### Onderhoud
+- **De documentatie is opgeschoond en de specs zijn de basis.** De levende regels staan nu in elf specs onder `.specs-fire/standards/` (Samen spelen, wereld, mechanica, verhaal, UI en taal, publicatie, plus de vijf standaarden); 23 vervallen of dubbele documenten gingen naar `docs/archief/2026-10/`, de gegenereerde verhaal- en opnamelijsten staan niet meer in git, en de verwijzingen in README, AGENTS en ARCHITECTURE kloppen weer. Begin bij `docs/SPECS-FIRE.md`.
+
 ## [0.53.0] - 2026-10-25
 
 ### Nieuw

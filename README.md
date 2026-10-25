@@ -186,9 +186,12 @@ beperken". Het volledige overzicht staat in
 | `scripts/` | kaart bouwen, stemmen opnemen, tests en meetscripts |
 | `data/` | OpenStreetMap-extracten waar de kaart uit gebouwd wordt |
 | `docs/` | ontwerp, verhaal, licenties, publicatie en meer |
+| `.specs-fire/` | de specs per systeem (`.specs-fire/standards/`) en het papieren spoor van het werk |
 | `steam/` | sjablonen voor een eventuele Steam-build |
 
 Hoe de modules samenwerken staat in [ARCHITECTURE.md](ARCHITECTURE.md), de
+spelregels per systeem in [.specs-fire/standards/](.specs-fire/standards/) (begin
+bij [docs/SPECS-FIRE.md](docs/SPECS-FIRE.md)), de
 beeldstijl in [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md), de plannen in
 [GitHub-bord](https://github.com/users/NatusPella/projects/5) (bugs en wensen, als issues) en wat er per versie veranderde in
 [CHANGELOG.md](CHANGELOG.md).
