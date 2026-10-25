@@ -19,7 +19,7 @@
 # the same ("<speaker>|<text>", the text as shown): exactly how each clip was
 # made - file, model, voice, the input sent, the style, the post-processing
 # and the date. The game never loads it.
-import base64, datetime, json, os, threading, time, urllib.request
+import base64, datetime, io, json, os, threading, time, urllib.error, urllib.request
 
 REPO = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 # GDE_ENV points at a .env outside this checkout (an agent works in a worktree, the key lives in the
@@ -70,6 +70,13 @@ def configure(provider=None, model=None, rpm=None):
         raise SystemExit(f'{CURRENT!r} is an OpenRouter id; the google transport wants gemini-3.8-flash-tts or gemini-3.8-flash-lite-tts')
     if rpm is not None:
         RPM = rpm
+
+
+class QuotaExhausted(RuntimeError):
+    """The model's request limit is gone for hours (AI Studio: 100 requests per day on Tier 1).
+
+    Waiting out the retry window is the only fix, so a run stops instead of retrying every clip.
+    """
 
 
 def throttle():
@@ -145,8 +152,15 @@ def _speak_google(voice, text, style):
     }
     req = urllib.request.Request(GOOGLE_ENDPOINT, data=json.dumps(body).encode(), headers={'x-goog-api-key': api_key(), 'Content-Type': 'application/json'})
     throttle()
-    with urllib.request.urlopen(req, timeout=180) as r:
-        data = json.loads(r.read())
+    try:
+        with urllib.request.urlopen(req, timeout=180) as r:
+            data = json.loads(r.read())
+    except urllib.error.HTTPError as e:
+        body = e.read().decode('utf-8', 'replace')
+        # a daily limit is not worth retrying: the run stops with the message Google gives
+        if e.code == 429 and 'per day' in body:
+            raise QuotaExhausted(body[:300])
+        raise urllib.error.HTTPError(e.url, e.code, e.msg, e.headers, io.BytesIO(body.encode()))
     pcm = pcm_of(data)
     global _SPENT
     _SPENT += len(pcm) / 2 / 24000 * AUDIO_TPS / 1e6 * PRICE[CURRENT]
