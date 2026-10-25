@@ -290,6 +290,17 @@ function keepThumb(n, force) {
 }
 
 // Een gast: de verdiende beloningen erbij in de actieve slot, de rest van die save blijft zoals hij was.
+// Lukt schrijven niet (volle opslag, tijdelijk geen leesbare slot), dan blijft het bedrag in
+// world.coopVerdiend staan en proberen we het elke frame opnieuw; na een halve minuut zegt het spel
+// het één keer, zodat niemand denkt dat het al bewaard is (#452, punt 19).
+let gastBewaarFout = 0, gastBewaarGemeld = 0;
+function gastBewaarMeld(w) {
+  gastBewaarFout++;
+  if (gastBewaarFout === 1 || Date.now() - gastBewaarGemeld > 30000) {
+    gastBewaarGemeld = Date.now();
+    if (w && w.addMessage) w.addMessage('Je verdiensten worden nog niet bewaard. We proberen het opnieuw.', 5);
+  }
+}
 function saveGuestEarnings(w) {
   const earned = w.coopVerdiend || 0;
   try {
@@ -299,11 +310,15 @@ function saveGuestEarnings(w) {
     const ok = r.state === 'ok' || r.state === 'hersteld';
     const ids = w.coopBoek ? w.coopBoek.ids() : [];
     const next = ok ? applyGuestChanges(r.data, serialize(w), earned, ids) : null;
-    if (ok && !next) { w.coopVerdiend = 0; return false; } // niets te bewaren (het verdiende geld stond er al in)
-    if (!next || !writeSlotRaw(null, saveTarget(), JSON.stringify(next))) return false;
+    if (ok && !next) { w.coopVerdiend = 0; gastBewaarFout = 0; return false; } // niets te bewaren (het verdiende geld stond er al in)
+    if (!next || !writeSlotRaw(null, saveTarget(), JSON.stringify(next))) { gastBewaarMeld(w); return false; }
     w.coopVerdiend = 0;
+    gastBewaarFout = 0;
     return true;
-  } catch (e) { return false; }
+  } catch (e) {
+    gastBewaarMeld(w);
+    return false;
+  }
 }
 
 // Samen spelen (#429): het verhaal van een gast in zijn eigen opgeslagen spel. Het schrijven is één writeSlotRaw (met teruglezen ter controle
@@ -546,12 +561,14 @@ export function updateSaveGame(dt, w) {
   if (toastTimer > 0 && (toastTimer -= dt) <= 0) toastEl.classList.remove('visible');
   if (!document.body.classList.contains('game-started')) return;
   coopCheckpointTik(dt, w);
+  // Een gast bewaart zijn verdiensten meteen, ook achter het pauzemenu (#452, punt 19): het geld staat
+  // dan in zijn eigen save voordat hij verder speelt of de sessie wegvalt.
+  if (w.coopRole === 'client' && w.coopVerdiend > 0) saveGuestEarnings(w);
   if (w.paused) return;
   if (restoredMoney >= 0) {
     w.addMessage(`We hebben je geld hersteld: €${restoredMoney.toLocaleString('nl-NL')}`, 6, { key: 'money-restored' });
     restoredMoney = -1;
   }
-  if (w.coopRole === 'client' && w.coopVerdiend > 0 && !w.paused) saveGuestEarnings(w);
   playSeconds += dt;
   const busy = isCinematicActive() || w.pendingRespawn || w.health <= 0;
 
