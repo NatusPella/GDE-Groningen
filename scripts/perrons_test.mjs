@@ -126,6 +126,38 @@ const rect = (x0, y0, x1, y1) => [[x0, y0], [x1, y0], [x1, y1], [x0, y1]];
     const y = under[0].geometry.attributes.position.getY(0);
     ok(near(y, 5.17, 0.01), 'de lichte plaat hangt net onder de kap (geen z-fighting)', y.toFixed(3));
   }
+  // (#463) de plaat boven de lichte onderkant blijft dicht en donkerder dan de
+  // onderkant: je ziet de onderkant niet door het dak heen, en de kap is bij dag
+  // geen zwart vlak (de onderkant heeft eigen licht, de plaat is middengrijs)
+  const platen = [];
+  grp.traverse((o) => { if (o.name === 'kap-plaat') platen.push(o); });
+  ok(platen.length === 2, 'elke kap heeft een plaat', String(platen.length));
+  const dicht = (m) => !!m && m.transparent !== true && m.opacity === 1 && m.visible !== false;
+  ok(platen.every((p) => dicht(p.material)) && (!under[0] || dicht(under[0].material)), 'de plaat en de onderkant zijn ondoorzichtig: niets schijnt erdoor');
+  const lum = (m) => { const h = m.color.getHex(); return (0.2126 * ((h >> 16) & 255) + 0.7152 * ((h >> 8) & 255) + 0.0722 * (h & 255)) / 255; };
+  ok(platen.every((p) => lum(p.material) > 0.25), 'de plaat zelf is bij dag geen bijna-zwart vlak', platen.map((p) => lum(p.material).toFixed(2)).join(','));
+  if (platen[0] && under[0]) {
+    // de onderkant hangt onder de onderste ring van de plaat en binnen dezelfde
+    // omtrek: van bovenaf valt er niets van de lichte plaat te zien
+    const pos = platen[0].geometry.attributes.position;
+    let y0 = Infinity, x0 = Infinity, z0 = Infinity, x1 = -Infinity, z1 = -Infinity;
+    for (let i = 0; i < pos.count; i++) {
+      y0 = Math.min(y0, pos.getY(i));
+      x0 = Math.min(x0, pos.getX(i)); x1 = Math.max(x1, pos.getX(i));
+      z0 = Math.min(z0, pos.getZ(i)); z1 = Math.max(z1, pos.getZ(i));
+    }
+    const u = under[0].geometry.attributes.position;
+    let uy = Infinity, ux0 = Infinity, uz0 = Infinity, ux1 = -Infinity, uz1 = -Infinity;
+    for (let i = 0; i < u.count; i++) {
+      uy = Math.min(uy, u.getY(i));
+      ux0 = Math.min(ux0, u.getX(i)); ux1 = Math.max(ux1, u.getX(i));
+      uz0 = Math.min(uz0, u.getZ(i)); uz1 = Math.max(uz1, u.getZ(i));
+    }
+    ok(uy < y0 - 0.005 && uy > y0 - 0.1, 'de lichte onderkant hangt onder de plaat, binnen 10 cm', `${uy.toFixed(3)} onder ${y0.toFixed(3)}`);
+    ok(near(ux0, x0, 0.001) && near(ux1, x1, 0.001) && near(uz0, z0, 0.001) && near(uz1, z1, 0.001), 'de onderkant heeft dezelfde omtrek als de plaat', `${ux0.toFixed(2)}..${ux1.toFixed(2)} / ${x0.toFixed(2)}..${x1.toFixed(2)}`);
+    ok(lum(under[0].material) > lum(platen[0].material) + 0.2, 'de onderkant is duidelijk lichter dan de plaat erboven', `${lum(under[0].material).toFixed(2)} vs ${lum(platen[0].material).toFixed(2)}`);
+    ok(under[0].material.emissive && under[0].material.emissiveIntensity > 0, 'de onderkant heeft eigen licht, ook in de schaduw van de kap');
+  }
 }
 
 console.log(`${n - fails}/${n} perron-controles gehaald`);

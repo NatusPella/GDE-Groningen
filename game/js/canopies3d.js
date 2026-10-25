@@ -139,6 +139,7 @@ function canopyGroup(map, list, props) {
     geo.translate(0, base + CANOPY_Y + SLAB + (k % 8) * CANOPY_STAGGER, 0);
     const big = ringArea2(pts) > BIG_CANOPY;
     const slab = new THREE.Mesh(geo, big ? solarMaterial() : slabMat);
+    slab.name = 'kap-plaat';
     slab.castShadow = true;
     slab.receiveShadow = true;
     group.add(slab);
