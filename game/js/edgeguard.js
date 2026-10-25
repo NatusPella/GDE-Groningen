@@ -9,7 +9,7 @@
 import { getScene } from './scene3d.js';
 import { regionEdgeLayer } from './regions.js';
 import { edgeRule } from './worldedge.js';
-import { createEdgeWatch, stepEdgeWatch, snapSpotToRoad } from './edgescene.js';
+import { createEdgeWatch, stepEdgeWatch, snapSpotToRoad, snapSceneToRoad } from './edgescene.js';
 import { buildProp, disposeProp, animateProp } from './ommelandprops3d.js';
 import { WATER_Y } from './util.js';
 
@@ -39,6 +39,8 @@ function groundAt(map, x, y) {
 
 function showScene(w, plan) {
   const scene = getScene();
+  // de blokkade op de weg, niet in de berm (#436)
+  plan = snapSceneToRoad(w.map, plan, modeOf(w.player, w.player.inVehicle));
   for (const pp of plan.props) {
     let prop;
     try { prop = buildProp(pp.kind, { hw: 3 }, {}); } catch (e) { continue; }
