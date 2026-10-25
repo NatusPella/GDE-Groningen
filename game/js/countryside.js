@@ -772,7 +772,7 @@ function genParcel(tile, bx, by, rot, col, row, a0, a1, b0, b1, W, lineAng) {
     for (let i = 0; i < n; i++) {
       const x = Math.min(rect[2], Math.max(rect[0], hc[0] + (R() - 0.5) * spread * 2));
       const y = Math.min(rect[3], Math.max(rect[1], hc[1] + (R() - 0.5) * spread * 2));
-      if (farmAt(x, y, 1) || edgeBlocked(x, y, 1)) continue; // a narrow ditch slips between the grid points above
+      if (farmAt(x, y, 1) || !animalSpotClear(x, y)) continue; // a narrow ditch slips between the grid points above
       const a = newAnimal(kind, kind === 'horse' ? (variant + (R() < 0.3 ? 1 : 0)) % HORSE_COATS.length : variant, x, y, rect, R);
       a.hx = hc[0]; a.hy = hc[1]; a.spread = spread;
       if (R() < young) a.size = kind === 'sheep' ? 0.6 : kind === 'horse' ? 0.62 : 0.66;
@@ -1310,9 +1310,50 @@ function clampRect(a) {
   a.y = Math.min(r[3], Math.max(r[1], a.y));
 }
 
+// A grazing spot has to lie on the pasture: off the roads (the hash polder roads
+// too, which edgeBlocked does not know), the track, water and the buildings. A
+// pasture's rect runs to the edge of the strip and knows nothing of the road, so
+// a herd that grazed to it walked onto the carriageway (#502).
+export function animalSpotClear(x, y) {
+  return !edgeBlocked(x, y, 1) && roadGap(x, y, 2) >= 1;
+}
+
+// A duck lives in the ditch itself, so for it only the road is off limits.
+const duckSpotClear = (x, y) => roadGap(x, y, 2) >= 1;
+const spotClearFor = (kind) => (kind === 'duck' ? duckSpotClear : animalSpotClear);
+
+// The next wander target: within the grazing radius and the pasture, but never on
+// the road, the track or in the ditch. Null keeps the current target when four
+// tries all land badly. `clear` is there for the test.
+export function animalTarget(a, rnd = Math.random, clear = null) {
+  const ok = clear || spotClearFor(a.kind);
+  for (let k = 0; k < 4; k++) {
+    const ang = rnd() * Math.PI * 2, rad = rnd() * (a.spread || 10);
+    const tx = Math.min(a.rect[2], Math.max(a.rect[0], a.hx + Math.cos(ang) * rad));
+    const ty = Math.min(a.rect[3], Math.max(a.rect[1], a.hy + Math.sin(ang) * rad));
+    if (ok(tx, ty)) return [tx, ty];
+  }
+  return null;
+}
+
+// Where a scared animal runs to: away from the car first, then a quarter turn
+// either way, then straight back, and never onto the road (#502). `clear` is
+// there for the test.
+export function fleeDirection(a, dx, dy, clear = null) {
+  const ok = clear || spotClearFor(a.kind);
+  const base = Math.atan2(dy, dx);
+  for (const turn of [0, Math.PI / 2, -Math.PI / 2, Math.PI]) {
+    const ang = base + turn;
+    if (ok(a.x + Math.cos(ang) * 10, a.y + Math.sin(ang) * 10)) return [Math.cos(ang), Math.sin(ang)];
+  }
+  const l = Math.hypot(dx, dy) || 1;
+  return [dx / l, dy / l];
+}
+
 function simAnimal(a, dt, th, time, world) {
   if (a.dead) return;
   const K = KINDS[a.kind];
+  const clear = spotClearFor(a.kind);
   const dx = a.x - th.x, dy = a.y - th.y;
   const d = Math.hypot(dx, dy);
   // at speed the car doesn't shove it aside any more: it goes under
@@ -1323,13 +1364,14 @@ function simAnimal(a, dt, th, time, world) {
   const scareR = th.rel ? K.scare * th.r : th.r * (a.kind === 'cow' ? 0.8 : 1);
   if (d < scareR && a.flee <= 0.5) {
     a.flee = 2.5 + Math.random() * 2;
-    a.fx = dx / (d || 1); a.fy = dy / (d || 1);
+    const [fx, fy] = fleeDirection(a, dx, dy, clear);
+    a.fx = fx; a.fy = fy;
   }
   // cars shove animals aside instead of driving through them
   if (th.v && d < K.radius + 1.6) {
     const push = (K.radius + 1.6 - d);
-    a.x += (dx / (d || 1)) * push;
-    a.y += (dy / (d || 1)) * push;
+    const sx = a.x + (dx / (d || 1)) * push, sy = a.y + (dy / (d || 1)) * push;
+    if (clear(sx, sy)) { a.x = sx; a.y = sy; }
   }
   const prevA = a.angle;
   if (a.flee > 0) {
@@ -1344,11 +1386,8 @@ function simAnimal(a, dt, th, time, world) {
       a.speed = Math.max(0, a.speed - dt * 1.5);
       a.timer -= dt;
       if (a.timer <= 0) {
-        const ang = Math.random() * Math.PI * 2, rad = Math.random() * (a.spread || 10);
-        a.tx = a.hx + Math.cos(ang) * rad;
-        a.ty = a.hy + Math.sin(ang) * rad;
-        a.tx = Math.min(a.rect[2], Math.max(a.rect[0], a.tx));
-        a.ty = Math.min(a.rect[3], Math.max(a.rect[1], a.ty));
+        const t = animalTarget(a, Math.random, clear);
+        if (t) { a.tx = t[0]; a.ty = t[1]; }
         a.timer = 4 + Math.random() * 10;
       }
     } else {
@@ -1367,8 +1406,21 @@ function simAnimal(a, dt, th, time, world) {
       a.fx /= l; a.fy /= l;
     } else a.timer = 0;
   }
-  a.x = nx; a.y = ny;
-  clampRect(a);
+  // and the road, the track and the ditch: the pasture's rect does not know them,
+  // so a step (walking, fleeing, shoved) may not put the animal on the asphalt (#502)
+  if (a.speed > 0.01 && !clear(nx, ny)) {
+    if (a.flee > 0) {
+      const [fx, fy] = fleeDirection(a, -Math.cos(a.angle), -Math.sin(a.angle), clear);
+      a.fx = fx; a.fy = fy;
+    }
+    // arrived, as far as the animal is concerned: the grazing timer picks a new target
+    a.tx = a.x; a.ty = a.y;
+    a.timer = 0;
+    a.speed = 0;
+  } else {
+    a.x = nx; a.y = ny;
+    clampRect(a);
+  }
   a.stride += a.speed * dt;
   a.turn = (a.angle - prevA) / Math.max(dt, 1e-3);
 }

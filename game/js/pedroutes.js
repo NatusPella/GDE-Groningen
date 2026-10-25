@@ -1,6 +1,6 @@
 import { dist, isInWater, closestPointOnSegment, pointInPolygon } from './util.js';
 import { trafficSignalsNear, pedestriansMayCross, getTrafficLights } from './trafficlights.js';
-import { isInsideBuilding, isOnRoad, setPedPose, lineOfSight } from './pedgeom.js';
+import { isInsideBuilding, isOnRoad, CAR_ROAD_CATS, setPedPose, lineOfSight } from './pedgeom.js';
 import { findProps, isPropBroken } from './breakables.js';
 import { SpatialGrid } from './spatialgrid.js';
 import { walkPathHook } from './latehooks.js';
@@ -111,15 +111,27 @@ function sidewalkOffset(road, ped) {
   return w / 2 + 1.2 + ped.lane * 0.7;
 }
 
+// A walker keeps to the verge or the sidewalk; the carriageway of a car road is
+// only for a bridge, where there is no verge at all (#502).
 function walkable(map, x, y) {
-  return !isInsideBuilding(map, x, y) && !isInWater(map, x, y);
+  return !isInsideBuilding(map, x, y) && !isInWater(map, x, y) && !isOnRoad(map, x, y, 0.2, CAR_ROAD_CATS);
 }
 
-// Pulls an offset point back towards the centreline until it is walkable.
+// Pulls an offset point towards the verge or sidewalk beside the leg. The other
+// side and a little further out come before the carriageway: a walker on the
+// asphalt of a provincial road is a walker in the lane (#502). Only where neither
+// side has a walkable spot (a bridge) does he keep to the road itself.
 function placeOffset(map, out, px, py, qx, qy) {
+  const dx = qx - px, dy = qy - py;
+  for (const side of [1, -1]) {
+    for (const k of [1, 1.2, 0.7, 1.4]) {
+      const x = px + dx * k * side, y = py + dy * k * side;
+      if (walkable(map, x, y)) { out.push([x, y]); return; }
+    }
+  }
   for (const k of [1, 0.55, 0.2, 0]) {
-    const x = px + (qx - px) * k, y = py + (qy - py) * k;
-    if (k === 0 || walkable(map, x, y)) { out.push([x, y]); return; }
+    const x = px + dx * k, y = py + dy * k;
+    if (k === 0 || (!isInsideBuilding(map, x, y) && !isInWater(map, x, y))) { out.push([x, y]); return; }
   }
 }
 
