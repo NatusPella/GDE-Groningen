@@ -318,8 +318,17 @@ The wording, the players list (hold Tab), passive mode, Meedoen?, host handover 
 ## Known deviations and open UX debt
 
 The honest list (24 October) is [docs/DESIGN-SCHULD.md](docs/DESIGN-SCHULD.md). The ones that matter most: the map's action bar and its footer hint are not yet seen in the game (#445) and use an 11 px label;
-the mouse and pointer lock on several monitors (#435); a number of screens still use hexes of their own (choice panel, minigame board, card kinds, the players list); the Samen spelen screens do not use the shared menu set;
+the mouse and pointer lock on several monitors (#435); the Samen spelen screens do not use the shared menu set;
 messages that are longer than the 14-word budget; when the opener pauses, the world stops for the guests too; and the players list has no way on touch. Fix a row, delete the row.
+
+### Status colours and identity colours
+
+Two kinds of colour, and they never mix (#479):
+
+- **Status** — danger, ok, mission, missionActive, user, job, care, police — always comes from `--mk-*`, set by `markerColors()` (`game/js/a11y.js`) from `PALETTES`. That is what makes the three colour-blind modes work. The HUD cards (`hudcards.css`), the choice panel (`choicepanel.js`) and the minigame board (`minigamekit.js`) read them with a fallback: `var(--mk-danger, #d93f3f)`.
+- **Identity** — the accent of one minigame — is a single hex in the `MINIGAMES` table of `minigamekit.js`, one per game, and it is never used for status. It says *which* game you are in, not *how it goes*.
+
+`scripts/hud_kleuren_test.mjs` enforces both: a hex outside a `var()` fallback, the text/chrome colours or that one accent table fails the test.
 
 ## New UI checklist
 

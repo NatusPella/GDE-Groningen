@@ -65,32 +65,32 @@ export function newWind(rand = Math.random, max = 5) {
 const CSS = `
 #hud .mg-board[hidden] { display: none; }
 #hud .mg-board { position: absolute; top: var(--hud-top, 14px); left: 50%; transform: translateX(-50%); min-width: 360px; max-width: min(760px, calc(100vw / var(--ui, 1) - 2 * (var(--hud-edge, 46px) + 360px)), calc(100vw - 32px)); padding: 8px 18px 9px 12px; color: #f0ede4; text-shadow: var(--hud-shadow); pointer-events: none; z-index: 4;
-  background: linear-gradient(90deg, rgba(12,20,14,0.9), rgba(24,34,28,0.66) 80%, rgba(24,34,28,0.2)); border-left: 3px solid var(--mg-acc, #6cc070); }
-#hud .mg-board small { display: flex; align-items: center; gap: 6px; font-size: 12px; letter-spacing: 3px; color: var(--mg-acc, #6cc070); }
+  background: linear-gradient(90deg, rgba(12,20,14,0.9), rgba(24,34,28,0.66) 80%, rgba(24,34,28,0.2)); border-left: 3px solid var(--mg-acc, var(--mk-ok, #3fc97a)); }
+#hud .mg-board small { display: flex; align-items: center; gap: 6px; font-size: 12px; letter-spacing: 3px; color: var(--mg-acc, var(--mk-ok, #3fc97a)); }
 #hud .mg-board .mg-ic { flex: none; }
 #hud .mg-board .mg-row { display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: baseline; font-size: 20px; letter-spacing: 1px; }
-#hud .mg-board .mg-row b { font-weight: normal; color: #ffd23f; font-size: 24px; }
+#hud .mg-board .mg-row b { font-weight: normal; color: var(--mk-mission, #e8c93a); font-size: 24px; }
 #hud .mg-board .mg-cells { display: flex; gap: 3px; margin: 5px 0 2px; }
 #hud .mg-board .mg-cells i { flex: 1; min-width: 26px; text-align: center; font-style: normal; font-size: 13px; padding: 2px 0; background: rgba(240,237,228,0.1); color: rgba(240,237,228,0.75); }
 /* touch: a cell with a key is a button (carillon bells) */
 html.touch-play #hud .mg-board .mg-cells i[data-k] { pointer-events: auto; touch-action: none; min-height: 44px; display: flex; align-items: center; justify-content: center; }
-#hud .mg-board .mg-cells i.on { background: rgba(255,210,63,0.28); color: #fff; }
-#hud .mg-board .mg-cells i.good { color: #5dff7a; }
-#hud .mg-board .mg-cells i.bad { color: #ff9a3c; }
+#hud .mg-board .mg-cells i.on { background: color-mix(in srgb, var(--mk-mission, #e8c93a) 28%, transparent); color: #fff; }
+#hud .mg-board .mg-cells i.good { color: var(--mk-ok, #3fc97a); }
+#hud .mg-board .mg-cells i.bad { color: var(--mk-job, #ff9a3c); }
 /* good and bad also differ by shape, not by colour alone */
 #hud .mg-board .mg-cells i.good::before { content: '\\2713\\a0'; }
 #hud .mg-board .mg-cells i.bad::before, #hud .mg-board .mg-flash.bad::before { content: '\\2715\\a0'; }
 #hud .mg-board .mg-meter { display: flex; align-items: center; gap: 10px; margin: 6px 0 4px; }
 #hud .mg-board .mg-meter[hidden] { display: none; }
 #hud .mg-board .mg-meter .mg-bar { position: relative; flex: 1; height: 11px; background: rgba(240,237,228,0.16); border-radius: 2px; overflow: hidden; box-shadow: inset 0 0 0 1px rgba(240,237,228,0.18); }
-#hud .mg-board .mg-meter i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--mg-acc, #6cc070); }
+#hud .mg-board .mg-meter i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--mg-acc, var(--mk-ok, #3fc97a)); }
 #hud .mg-board .mg-meter em { position: absolute; top: 0; bottom: 0; width: 3px; margin-left: -1px; background: #f0ede4; box-shadow: 0 0 0 1px rgba(12,20,14,0.7); }
 #hud .mg-board .mg-meter-t { min-width: 3.2em; text-align: right; font-size: 14px; letter-spacing: 0.5px; color: #f0ede4; }
 #hud .mg-board .mg-extra[hidden] { display: none; }
 #hud .mg-board .mg-help { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; font: 14px 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.78); }
 #hud .mg-board .hud-key { margin: 0 2px; vertical-align: middle; }
-#hud .mg-board .mg-flash { font-size: 22px; letter-spacing: 1.5px; color: #5dff7a; min-height: 1em; }
-#hud .mg-board .mg-flash.bad { color: #ff9a3c; }
+#hud .mg-board .mg-flash { font-size: 22px; letter-spacing: 1.5px; color: var(--mk-ok, #3fc97a); min-height: 1em; }
+#hud .mg-board .mg-flash.bad { color: var(--mk-job, #ff9a3c); }
 body.mg-on #hud .hud-speedo, body.mg-on #hud .hud-route, body.mg-on #hud .hud-gps, body.mg-on #hud .hud-place, body.mg-on #hud .phonefeed .pf-card { display: none !important; }
 /* smal scherm: de spel-HUD begint rechts van de uitlegkaart (linksboven, 350 px) in plaats van eroverheen (#294) */
 @media (max-width: 1500px) { #hud .mg-board { left: calc(var(--hud-edge, 46px) + 372px); transform: none; max-width: calc(100vw / var(--ui, 1) - var(--hud-edge, 46px) - 372px - 330px); } }
@@ -172,7 +172,7 @@ export function createBoard(title, accent) {
   }
   const root = document.createElement('div');
   root.className = 'mg-board';
-  root.style.setProperty('--mg-acc', kleur || '#6cc070');
+  root.style.setProperty('--mg-acc', kleur || 'var(--mk-ok, #3fc97a)');
   if (thema) root.dataset.mg = title;
   root.hidden = true;
   root.innerHTML = `<small>${thema ? mgIcoon(thema.icoon) : ''}<span>${titel}</span></small><div class="mg-row"></div><div class="mg-cells" hidden></div><div class="mg-extra" hidden></div><div class="mg-meter" hidden><span class="mg-bar"><i></i><em></em></span><span class="mg-meter-t"></span></div><div class="mg-flash"></div><div class="mg-help"></div>`;
