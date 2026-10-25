@@ -129,5 +129,41 @@ ok(M.minigames === 2 && M.minigamesStarted === 1, 'minigamecijfers');
   ok(!/\bthe\b|\band\b/.test(txt.replace(/spelbot:[0-9a-f]+/g, '')), 'samenvatting is Nederlands');
 }
 
+// --- per akte en het issue-comment (#186, #312) -----------------------------------------
+{
+  const tl = [
+    { t: 0, type: 'step', event: 'begin', id: 'M01', label: 'Een' }, { t: 60, type: 'step', event: 'end', id: 'M01', outcome: 'klaar' },
+    { t: 60, type: 'step', event: 'begin', id: 'M02', label: 'Twee' },
+    { t: 100, type: 'stuck', step: 'M02:x', x: 5, y: 6, idleFor: 40, goalDist: 12 },
+    { t: 110, type: 'timeout', step: 'M02:duif', what: 'duif: het doel niet gehaald', forS: 60, x: 1, y: 2 },
+    { t: 120, type: 'cheat', rung: 'teleport', step: 'M02' },
+    { t: 130, type: 'step', event: 'end', id: 'M02', outcome: 'klaar' },
+    { t: 130, type: 'step', event: 'begin', id: 'M07', label: 'Zeven' }, { t: 200, type: 'step', event: 'end', id: 'M07', outcome: 'klaar' },
+    { t: 200, type: 'step', event: 'begin', id: 'T3', label: 'Reis' }, { t: 250, type: 'step', event: 'end', id: 'T3', outcome: 'klaar' },
+    { t: 250, type: 'step', event: 'begin', id: 'mg-kartbaan', label: 'Kartbaan' },
+    { t: 300, type: 'race-uitslag', id: 'kartbaan', plek: 1, karts: 4, klaar: true, rondes: 3 },
+    { t: 301, type: 'stunt', fase: 'drift', score: 100 },
+  ];
+  ok(A.actOf('M02:duif') === 1 && A.actOf('T3') === 3 && A.actOf('E') === 5, 'actOf: stap, reis en epiloog bij de juiste akte');
+  ok(A.actOf('mg-kartbaan') === 0 && A.actOf('bestaat-niet') === 0, 'actOf: minigame en onbekend vallen buiten de aktes');
+  const P = A.perAct(tl);
+  ok(P.acts.length === 5 && P.acts[0].seconds === 130 && P.acts[0].done === 2 && P.acts[0].stuck.length === 1 && P.acts[0].timeouts.length === 1 && P.acts[0].cheats.length === 1, 'perAct: akte 1 met tijd, vast, time-out en cheat');
+  ok(P.acts[1].seconds === 70 && P.acts[1].done === 1 && P.acts[2].seconds === 50, 'perAct: akte 2 en 3');
+  ok(P.extra.started === 1 && P.extra.done === 0 && P.extra.seconds === 0, 'perAct: wat buiten de aktes valt staat apart');
+  const H = A.whereHung(P.acts);
+  ok(H.length === 2 && H[0].kind === 'time-out' && H[0].seconds === 60 && H[0].act === 1 && H[1].kind === 'vast', 'whereHung: het langst eerst, met akte en seconden');
+  const md = A.actTable(P.acts);
+  ok(md.includes('| Akte 1: Moi, Grunn | 2:10 | 2/2 | 1 | 1 | 1 |') && md.split('\n').length === 7, 'actTable: een regel per akte');
+  const M2 = A.metrics(tl, { result: 'TIMEOUT' });
+  ok(M2.races === 1 && M2.raceWins === 1 && M2.stuntTicks === 1, 'cijfers voor de kartrace en de stunt');
+  const C = A.issueComment({ title: 'akte 1', date: '2026-10-25', run: 'r1', metrics: M2, acts: P.acts, extra: P.extra, findings: F });
+  for (const part of ['## Spelbot: akte 1 (2026-10-25)', '### Per akte', 'Akte 1: Moi, Grunn', '### Waar hij hing', 'M02:duif', '### Bevindingen', '### Wat open blijft', 'Kartraces: 1 gereden, 1 gewonnen', 'niet uitgespeeld']) ok(C.includes(part), `issue-comment bevat: ${part}`);
+  const S2 = A.nlSummary({ title: 'akte 1', metrics: M2, cmp: A.compareRuns(null, { metrics: M2, findings: [] }), findings: F, acts: P.acts, extra: P.extra });
+  ok(S2.includes('## Per akte') && S2.includes('## Waar hij hing') && /2:10/.test(S2), 'samenvatting heeft de aktetabel en waar hij hing');
+  const RF = A.findings([{ t: 1, type: 'race-uitslag', id: 'kartbaan', plek: 4, karts: 4, klaar: false, rondes: 1 }]);
+  ok(RF.length === 1 && RF[0].kind === 'race' && RF[0].severity === 'opmerking' && /niet uitgereden/.test(RF[0].title), 'kartrace niet uitgereden is een opmerking');
+  ok(A.planIssues(RF, []).length === 0, 'een opmerking wordt geen issue');
+}
+
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);
