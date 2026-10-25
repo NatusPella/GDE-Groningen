@@ -1,6 +1,5 @@
 {
   "achievements.js": 4,
-  "aimassist.js": 5,
   "audio.js": 26,
   "banter.js": 1,
   "boatwake3d.js": 2,
@@ -9,7 +8,6 @@
   "cinematics.js": 3,
   "cityprops.js": 2,
   "clearzonesweep.js": 2,
-  "combat.js": 7,
   "companion.js": 4,
   "convoy.js": 4,
   "coopbestuur.js": 1,
