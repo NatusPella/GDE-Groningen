@@ -1108,7 +1108,17 @@ export function handleEvent(world, body, van = 0) {
       // De uitslag van een andere groep gaat langs je heen: die opdracht deed je niet mee (#452).
       if (typeof body.id === 'string' && body.id && world.coopGroep && world.coopGroep.id && body.id !== world.coopGroep.id) return false;
       const naam = openerNaam(world.coopRoster, true);
-      if (world.coopMeedoenNee) { world.coopMeedoenNee = false; if (world.addMessage) world.addMessage(`${body.label}: ${naam} heeft het zonder jou gedaan.`.slice(0, 160), 4); return true; } // je deed niet mee: geen deel (#429)
+      if (world.coopMeedoenNee) {
+        world.coopMeedoenNee = false;
+        // wie N zei deed niet mee, maar hoort een mislukking wél als mislukking, niet als "zonder jou gedaan" (#371)
+        const nee = body.gestopt
+          ? `${naam} heeft ${body.label} gestopt, voor iedereen.`
+          : body.ok === false
+            ? `${body.label} mislukt${body.reden ? ': ' + String(body.reden).slice(0, 60) : ''}. ${naam} deed het zonder jou.`
+            : `${body.label}: ${naam} heeft het zonder jou gedaan.`;
+        if (world.addMessage) world.addMessage(nee.slice(0, 160), 4);
+        return true;
+      } // je deed niet mee: geen deel (#429)
       const deel = Math.floor(Number(body.deel)) || 0;
       // gestopt (#390): de gastheer stopte de missie uit het pauzemenu, voor iedereen; het is geen mislukking
       const tekst = body.gestopt ? `${naam} heeft ${body.label} gestopt, voor iedereen. ${naam} kan hem opnieuw starten.` : body.ok ? `${body.label} gelukt! ${naam} en jij hebben het samen gedaan.${deel > 0 ? ` Jouw deel: €${deel.toLocaleString('nl-NL')}.` : ''}` : `${body.label} mislukt${body.reden ? ': ' + String(body.reden).slice(0, 60) : ''}. ${naam} probeert het misschien opnieuw.`;
