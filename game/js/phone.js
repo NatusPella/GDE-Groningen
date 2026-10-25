@@ -21,6 +21,7 @@ import { storyFlag } from './storyquery.js';
 import { getHeroCar } from './hud_panel.js';
 import { getGarageList, deliverOwnedVehicle } from './ownedvehicles.js';
 import { nieuweDeelStaat, rechtVan, zetDeelRecht, wisselRecht, RECHT_TEKST } from './coopbezit.js';
+import { missieMagVanuitMenu } from './coopgast.js';
 import { initGarageStyles } from './garageui.js';
 import { lineVoiceFor } from './linevoice.js';
 // phone talk is a call on the speech.js channel
@@ -76,6 +77,13 @@ function berendTalk(w, c) {
   const next = getNextMission();
   if (!next) return { line: 'Niks. Kom mor later.' };
   if (next.active) return { line: 'Je bent al bezig. Eerst afmaken.' };
+  // Samen spelen: een gast begint zijn opdracht niet aan de telefoon, maar bij het startpunt (#452).
+  if (!missieMagVanuitMenu(w)) {
+    return {
+      line: `Samen spelen: "${next.label}" vraag je bij het startpunt. Daar druk je op E.`,
+      actions: [{ label: 'Wijs het startpunt', primary: true, run: () => { setUserWaypoint(next.start.x, next.start.y, next.label); flashAndClose('Het startpunt staat op je kaart'); } }],
+    };
+  }
   const list = getMissionList();
   const idx = c.offer != null ? c.offer : next.index;
   const m = list[idx];

@@ -24,6 +24,11 @@ export const MELDING_ALLEEN_OPENER = 'Alleen bij wie het spel opende.';
 
 export const MELDING_WINKEL = (naam) => `${naam}: dat kan alleen in je eigen spel.`;
 
+// Een gast begint zijn eigen opdracht niet vanuit de telefoon of het menu: zijn scherm is een dunne client en de
+// opdracht moet in de wereld van wie het spel opende lopen. Hij vraagt hem bij het startpunt met E (#452).
+export const MISSIE_VIA_STARTPUNT = 'Samen spelen: ga naar het startpunt van je opdracht en druk daar op E om hem te vragen.';
+export const missieMagVanuitMenu = (world) => !world || world.coopRole !== 'client';
+
 // De tabel van de regels (docs/COOP-GAST.md en de tests lezen hem). mag: ja | nee | deels
 export const GAST_REGELS = [
   { actie: 'lopen', mag: 'ja', regel: 'Lopen en rennen zoals altijd.' },
@@ -39,7 +44,7 @@ export const GAST_REGELS = [
   { actie: 'wapens', mag: 'ja', regel: 'Een wapen dat je in je eigen spel hebt (1 tot 4 of het muiswiel, de muisknop om te slaan of te schieten): wie het spel opende rekent je slag of schot uit vanuit je lichaam, met de schade en de kogels van dat wapen en met jouw patronen. Schade en misdaad tellen bij jou; de anderen zien het wapen in je hand. Spuiten en gooien (waterpistool, carbidbus, vuurwerk) kan alleen in je eigen spel.' },
   { actie: 'boerderij', mag: 'ja', regel: 'Je eigen akker (pauzemenu, Boerderij): je gewas groeit ook terwijl je meespeelt, je kiest gewassen en koopt machines met je eigen geld. De klus op het land doe je op je eigen scherm: sta op je akker bij Hoogkerk en druk E (boerderijgast.js), houd de balk in het midden met Spatie. Het materiaal betaal je zelf, de oogst en de punten gaan naar je eigen boerderij; er komt geen trekker in de wereld van wie het spel opende.' },
   { actie: 'minigames', mag: 'deels', regel: 'Pannenkoeken bakken en de beiaard speel je zelf, op je eigen scherm. De kartbaan, discgolf, pitch en put, de klimtoren en padel start iedereen: druk E bij het startpunt, wie het spel opende voert het verzoek uit en alle anderen, ook hij, krijgen "Meedoen?" (J of N; geen antwoord is nee). Skatepark, zwemmen, vliegles en botsautootjes zetten je lichaam of een voertuig in de wereld en blijven bij wie het spel opende: je krijgt "Alleen bij wie het spel opende".' },
-  { actie: 'missies', mag: 'deels', regel: 'Missies en het verhaal speelt wie het spel opende; jij loopt mee en krijgt je deel als beloning in je eigen geld. Alleen wie het spel opende bepaalt of een filmpje of verhaalstap voor iedereen wordt overgeslagen; jij kunt je eigen weergave van een filmpje wel overslaan.' },
+  { actie: 'missies', mag: 'deels', regel: 'Missies en het verhaal speelt wie het spel opende; jij loopt mee en krijgt je volledige beloning in je eigen geld. Je kunt zelf ook een opdracht starten: sta bij het startpunt en druk daar op E. Vanuit de telefoon of het menu begin je geen opdracht; daar staat dezelfde verwijzing naar het startpunt. Alleen wie het spel opende bepaalt of een filmpje of verhaalstap voor iedereen wordt overgeslagen; jij kunt je eigen weergave van een filmpje wel overslaan.' },
 ];
 
 // De camera van een gast draait met de muis (#388). Een gast draait updateGameplay niet, dus de camerahoek op de grond die player.js
