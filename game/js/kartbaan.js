@@ -1,5 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { canvasTex } from './canvastex.js';
+import { canvasTex, signBothSides } from './canvastex.js';
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk, seatPerson, seatedY, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { showBanner } from './cinematics.js';
@@ -136,7 +136,7 @@ function buildKartMesh(color, number) {
   for (const s of [-1, 1]) mesh(new THREE.CylinderGeometry(0.035, 0.035, 1.3, 6).rotateZ(Math.PI / 2), M.metal, 0.1, 0.17, s * 0.62, g);
   mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.98, 6).rotateX(Math.PI / 2), M.metal, -0.86, 0.22, 0, g);
   // number on a plate
-  const plate = new THREE.Mesh(new THREE.PlaneGeometry(0.34, 0.3), new THREE.MeshBasicMaterial({ map: canvasTex(64, 64, (c) => { c.fillStyle = '#fff'; c.fillRect(0, 0, 64, 64); c.fillStyle = '#111'; c.font = 'bold 48px Arial'; c.textAlign = 'center'; c.fillText(String(number), 32, 50); }), side: THREE.DoubleSide }));
+  const plate = signBothSides(0.34, 0.3, new THREE.MeshBasicMaterial({ map: canvasTex(64, 64, (c) => { c.fillStyle = '#fff'; c.fillRect(0, 0, 64, 64); c.fillStyle = '#111'; c.font = 'bold 48px Arial'; c.textAlign = 'center'; c.fillText(String(number), 32, 50); }) }));
   plate.position.set(-0.95, 0.46, 0);
   plate.rotation.y = -Math.PI / 2;
   g.add(plate);
@@ -214,7 +214,7 @@ function buildTrackScene() {
   for (const s of [-1, 1]) mesh(new THREE.BoxGeometry(0.3, 5.4, 0.3), M.gantry, 0, 2.7, s * (T.hw + 1.4), gantry);
   mesh(new THREE.BoxGeometry(0.5, 0.9, (T.hw + 1.4) * 2 + 0.6), M.gantry, 0, 5.4, 0, gantry);
   const bannerTex = canvasTex(512, 96, (g, w, h) => { g.fillStyle = '#16181c'; g.fillRect(0, 0, w, h); g.fillStyle = '#f2b82a'; g.font = 'bold 54px Arial'; g.textAlign = 'center'; g.fillText('KARTBAAN ULRUM', w / 2, 64); });
-  const banner = new THREE.Mesh(new THREE.PlaneGeometry(8.4, 1.5), new THREE.MeshBasicMaterial({ map: bannerTex, side: THREE.DoubleSide }));
+  const banner = signBothSides(8.4, 1.5, new THREE.MeshBasicMaterial({ map: bannerTex }));
   banner.rotation.y = Math.PI / 2;
   banner.position.set(0.28, 6.2, 0);
   gantry.add(banner);

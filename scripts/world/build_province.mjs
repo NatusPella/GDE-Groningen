@@ -42,7 +42,10 @@ export const PROVINCE_BUILDER = 1;
 export const GID0 = 20_000_000;
 // how far past the province border tiles are built (the extract's own margin decides the rest)
 export const BUFFER_M = 3000;
-export const SRC_DIR = process.env.GDE_PROVINCE_SRC ? path.resolve(process.env.GDE_PROVINCE_SRC) : path.join(ROOT, 'data', 'cache', 'province'); // GDE_PROVINCE_SRC: een extract buiten de werkboom (worktrees)
+// de extractpaden staan in province_src.mjs: de stadsbouwcache heeft ze nodig zonder deze module te
+// importeren (dat gaf een dode kringloop, #506)
+import { SRC_DIR, haveProvince, bufferDirs } from './province_src.mjs';
+export { SRC_DIR, haveProvince, bufferDirs };
 // tile flags: 1 land, 4 built from OSM by the world builder, 8 the old
 // Ommeland layers draw it too, 16 outside the province (the buffer), 32 this layer,
 // 64 an overlay: the part of a city tile the city's own data leaves empty (its key is 'o' + the tile's)
@@ -53,17 +56,6 @@ export const FLAG = { LAND: 1, BUILT: 4, OLD: 8, BUFFER: 16, PROVINCE: 32, OVERL
 const gunzipJson = (f) => JSON.parse(zlib.gunzipSync(fs.readFileSync(f)).toString('utf8'));
 const r2 = (v) => Math.round(v * 100) / 100;
 const r1 = (v) => Math.round(v * 10) / 10;
-
-export const haveProvince = (dir = SRC_DIR) => fs.existsSync(path.join(dir, 'province.json.gz'));
-
-// The buffer strips next to the province: extracts of the neighbouring
-// provinces cut to the strip (extract_province.py --near), in
-// data/cache/province-<name>/ next to the province's own.
-export function bufferDirs(src = SRC_DIR) {
-  const base = path.dirname(src), name = path.basename(src);
-  if (!fs.existsSync(base)) return [];
-  return fs.readdirSync(base).filter((d) => d.startsWith(name + '-') && haveProvince(path.join(base, d))).sort().map((d) => path.join(base, d));
-}
 
 // ------------------------------------------------------------- geometry
 
