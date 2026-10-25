@@ -79,8 +79,12 @@ def job(l):
                 try:
                     take(style)
                     return l, 'ok-retry', probe(dst), style
+                except gemini_tts.QuotaExhausted:
+                    raise
                 except Exception as again:
                     err = repr(again)[:160]
+        except gemini_tts.QuotaExhausted:
+            raise  # the daily limit is gone: the run stops, see the batch loop
         except Exception as e:
             err = repr(e)[:160]
         time.sleep(1)
@@ -111,17 +115,25 @@ with ThreadPoolExecutor(4) as ex:
         if spent > budget:
             print(f'budget reached (${spent:.4f}), stopping with {len(lines) - b} jobs left')
             break
-        for l, st, dur, style in ex.map(job, lines[b:b + BATCH]):
-            print(st, l['file'], f'{dur:.2f}s' if dur else '')
-            if dur:
-                mans[l['out']][l['key']] = {'src': l['file'], 'dur': round(dur, 2)}
-                if style is not None:
-                    logs[l['out']][l['key']] = logged(l, l['file'], style, POST)
-            else:
-                failed.append(l['file'])
+        stop = ''
+        try:
+            for l, st, dur, style in ex.map(job, lines[b:b + BATCH]):
+                print(st, l['file'], f'{dur:.2f}s' if dur else '')
+                if dur:
+                    mans[l['out']][l['key']] = {'src': l['file'], 'dur': round(dur, 2)}
+                    if style is not None:
+                        logs[l['out']][l['key']] = logged(l, l['file'], style, POST)
+                else:
+                    failed.append(l['file'])
+        except gemini_tts.QuotaExhausted as e:
+            stop = str(e)
         for out, man in mans.items():
             json.dump(dict(sorted(man.items())) if out in ordered else man, open(f'{VL}/{out}/manifest.json', 'w', encoding='utf-8'), ensure_ascii=False, indent=0)
             save_log(f'{VL}/{out}', logs[out])
+        if stop:
+            print('gestopt: ' + stop)
+            print(f'{len(lines) - b} regels blijven liggen; de teller van AI Studio reset vanzelf.')
+            break
 time.sleep(3)
 print(f'spent ${usage() - u0:.4f} via {gemini_tts.PROVIDER}')
 for f in failed:

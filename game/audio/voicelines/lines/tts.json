@@ -59,6 +59,17 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
+"Anita|Alle? De standplaats van de winnaar is niet te koop.": {
+"src": "anita/alle_de_standplaats_van_de_winna_b7b413c7.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Alle? De standplaats van de winnaar is niet te koop.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
 "Anita|Allebei, zeggen ze hier.": {
 "src": "anita/allebei_zeggen_ze_hier_8029df29.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -129,6 +140,17 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
+"Anita|Als het niet gaat zoals het moet, doen we het anders.": {
+"src": "anita/als_het_niet_gaat_zoals_het_moet_c096e57e.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Als het niet gaat zoals het moet, doen we het anders.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
 "Anita|Als huisgenoten, Tammo. Teken nou maar.": {
 "src": "anita/als_huisgenoten_tammo_teken_nou__42a4f20a.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -169,6 +191,50 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
+"Anita|Bert kende jouw opa. Eerst kijken hoe het museum bewaakt wordt. Naar het Stationsplein.": {
+"src": "anita/bert_kende_jouw_opa_eerst_kijken_65f3645e.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Bert kende jouw opa. Eerst kijken hoe het museum bewaakt wordt. Naar het Stationsplein.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: ongeduldig, bazig.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
+"Anita|Bewaker twee is omgekocht.": {
+"src": "anita/bewaker_twee_is_omgekocht_7b99686d.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Bewaker twee is omgekocht.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: warm, grinnikend.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
+"Anita|Bewaker twee met het koekje staat niet op zijn plek.": {
+"src": "anita/bewaker_twee_met_het_koekje_staa_78a012dd.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Bewaker twee met het koekje staat niet op zijn plek.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: warm, grinnikend.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
+"Anita|Bewaker twee, met een koekje.": {
+"src": "anita/bewaker_twee_met_een_koekje_f7b6a017.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Bewaker twee, met een koekje.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
 "Anita|Bij het Stationsplein leent duivenmelker Bert je een duif.": {
 "src": "anita/bij_het_stationsplein_leent_duiv_b680c7dc.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -189,6 +255,17 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
+"Anita|Camera één, links van de deur.": {
+"src": "anita/camera_e_e_n_links_van_de_deur_0e3fec93.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Camera één, links van de deur.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: lacherig, ad rem.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
 "Anita|Chocola. Met goudpapier eromheen.": {
 "src": "anita/chocola_met_goudpapier_eromheen_399191f1.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -208,6 +285,17 @@
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: kort, alert, tegen de ander naast je.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
+},
+"Anita|Contant. Het Loket gaat om tien uur open. Nu hoeven we alleen nog in te schrijven.": {
+"src": "anita/contant_het_loket_gaat_om_tien_u_a758b56a.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Contant. Het Loket gaat om tien uur open. Nu hoeven we alleen nog in te schrijven.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
 },
 "Anita|Daar gaat het Reitdiep naar het noorden, via Zoutkamp naar het Lauwersmeer. Eeuwenlang de weg van Grunn naar zee.": {
 "src": "anita/daar_gaat_het_reitdiep_naar_het__16bcff58.mp3",
@@ -239,6 +327,17 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
+"Anita|Daar hebben we een moment voor nodig.": {
+"src": "anita/daar_hebben_we_een_moment_voor_n_7ac2a28d.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Daar hebben we een moment voor nodig.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: warm, grinnikend.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
 "Anita|Daar koop je nog geen halve frietwagen van.": {
 "src": "anita/daar_koop_je_nog_geen_halve_frie_ecce29a2.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -248,6 +347,17 @@
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: lacherig, ad rem.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
+},
+"Anita|Daar sta je alleen als je omrijdt.": {
+"src": "anita/daar_sta_je_alleen_als_je_omrijd_f0243200.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Daar sta je alleen als je omrijdt.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
 },
 "Anita|Daar. Het skûtsje. Twee reuzen met hun voeten in het water.": {
 "src": "anita/daar_het_sku_tsje_twee_reuzen_me_425f0be1.mp3",
@@ -369,6 +479,17 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
+"Anita|Dan laat jij het me zien.": {
+"src": "anita/dan_laat_jij_het_me_zien_de288af7.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Dan laat jij het me zien.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
 "Anita|Dan neem ik die bij de koelkast.": {
 "src": "anita/dan_neem_ik_die_bij_de_koelkast_6aca03e9.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -378,6 +499,17 @@
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: snel, zelfverzekerd.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
+},
+"Anita|Dan winnen wij die fietsrace.": {
+"src": "anita/dan_winnen_wij_die_fietsrace_302fe428.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Dan winnen wij die fietsrace.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: ongeduldig, bazig.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
 },
 "Anita|Dan wordt het tijd.": {
 "src": "anita/dan_wordt_het_tijd_ce1f343b.mp3",
@@ -389,6 +521,28 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
+"Anita|Dat ben ik.": {
+"src": "anita/dat_ben_ik_5b19ad30.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Dat ben ik.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
+"Anita|Dat gezicht betekent: ik snap het niet.": {
+"src": "anita/dat_gezicht_betekent_ik_snap_het_938dd091.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Dat gezicht betekent: ik snap het niet.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
 "Anita|Dat iemand één keer zegt dat ze de beste was. Dat koop je niet, Jelle.": {
 "src": "anita/dat_iemand_e_e_n_keer_zegt_dat_z_d1ca6899.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -398,6 +552,17 @@
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: ongeduldig, bazig.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
+},
+"Anita|Dat is Fries. Ik vertaal het niet.": {
+"src": "anita/dat_is_fries_ik_vertaal_het_niet_d7d1165d.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Dat is Fries. Ik vertaal het niet.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: warm, grinnikend.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
 },
 "Anita|Dat is architectuur. Eerst dertig jaar mopperen, dan trots. Zo gaat dat hier.": {
 "src": "anita/dat_is_architectuur_eerst_dertig_b8239893.mp3",
@@ -409,6 +574,28 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
+"Anita|Dat is de dag dat Grunn in 1672 de bisschop buiten hield. Dat spelen jullie elk jaar na. Ik heb het nog nooit gezien.": {
+"src": "anita/dat_is_de_dag_dat_grunn_in_1672__f0b617d7.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Dat is de dag dat Grunn in 1672 de bisschop buiten hield. Dat spelen jullie elk jaar na. Ik heb het nog nooit gezien.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: lacherig, ad rem.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
+"Anita|Dat is een gemeente.": {
+"src": "anita/dat_is_een_gemeente_f592aa3c.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Dat is een gemeente.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
 "Anita|Dat is een reclameslogan, Tammo.": {
 "src": "anita/dat_is_een_reclameslogan_tammo_35087a7f.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -418,6 +605,17 @@
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: ad rem, snel, weet het beter, warm.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
+},
+"Anita|Dat is een regel, geen brug.": {
+"src": "anita/dat_is_een_regel_geen_brug_df6c3b96.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Dat is een regel, geen brug.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: lacherig, ad rem.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
 },
 "Anita|Dat is eigenlijk best lief.": {
 "src": "anita/dat_is_eigenlijk_best_lief_9b6f3fab.mp3",
@@ -439,6 +637,28 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
+"Anita|Dat is het Forum.": {
+"src": "anita/dat_is_het_forum_3df26169.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Dat is het Forum.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: lacherig, ad rem.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
+"Anita|Dat is het formulier dat u mij gaf.": {
+"src": "anita/dat_is_het_formulier_dat_u_mij_g_95996b0b.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Dat is het formulier dat u mij gaf.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: lacherig, ad rem.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
 "Anita|Dat telt. Maar ik wil het één keer horen.": {
 "src": "anita/dat_telt_maar_ik_wil_het_e_e_n_k_f82b4078.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -458,6 +678,17 @@
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: lacherig, ad rem.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
+},
+"Anita|Dat was een mens, Tammo.": {
+"src": "anita/dat_was_een_mens_tammo_aad6c045.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Dat was een mens, Tammo.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: lacherig, ad rem.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
 },
 "Anita|Dat was het moment, Tammo. Om iets te zeggen.": {
 "src": "anita/dat_was_het_moment_tammo_om_iets_8754716b.mp3",
@@ -488,6 +719,39 @@
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
+},
+"Anita|Dat weten we na het Loket. Hij heeft het vast over meer dan een museum.": {
+"src": "anita/dat_weten_we_na_het_loket_hij_he_12fd7089.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Dat weten we na het Loket. Hij heeft het vast over meer dan een museum.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: lacherig, ad rem.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
+"Anita|Dat zeg je zelden.": {
+"src": "anita/dat_zeg_je_zelden_23370107.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Dat zeg je zelden.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: ongeduldig, bazig.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
+"Anita|Dat zoeken we later uit. Eerst pinnen en inschrijven.": {
+"src": "anita/dat_zoeken_we_later_uit_eerst_pi_72209786.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Dat zoeken we later uit. Eerst pinnen en inschrijven.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
 },
 "Anita|De Escapade heeft nog die oude zender van Henk. Hij piept. Achter het station!": {
 "src": "anita/de_escapade_heeft_nog_die_oude_z_302289ce.mp3",
@@ -529,6 +793,17 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
+"Anita|De bal is weg en wij staan op de camera. Eerlijk winnen kan nog: jouw oma won in 1953, dus die kan bakken. Dan moet Jelle eerst ergens gestopt worden.": {
+"src": "anita/de_bal_is_weg_en_wij_staan_op_de_a495e3c4.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "De bal is weg en wij staan op de camera. Eerlijk winnen kan nog: jouw oma won in 1953, dus die kan bakken. Dan moet Jelle eerst ergens gestopt worden.",
+"style": "plagend, zelfverzekerd",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
 "Anita|De laatste frituur voor het einde van de wereld. En hij is dicht. Dit is pas echt het einde.": {
 "src": "anita/de_laatste_frituur_voor_het_eind_f02029d0.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -548,6 +823,28 @@
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: geamuseerd, zakelijk.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
+},
+"Anita|De vitrine is leeg. Iemand was ons voor, en wil dat wij dat weten.": {
+"src": "anita/de_vitrine_is_leeg_iemand_was_on_92f30bfc.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "De vitrine is leeg. Iemand was ons voor, en wil dat wij dat weten.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
+"Anita|De zekering. Links. Jij houdt de bewaker bezig.": {
+"src": "anita/de_zekering_links_jij_houdt_de_b_2d935e9b.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "De zekering. Links. Jij houdt de bewaker bezig.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
 },
 "Anita|Die ballon is sneller dan hij eruitziet.": {
 "src": "anita/die_ballon_is_sneller_dan_hij_er_efd02f39.mp3",
@@ -659,6 +956,28 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
+"Anita|Dit is de Grote Markt. Parasols en kliko's geven punten, mensen kosten je punten en krassen kosten je Berend. Haal die vijftienhonderd.": {
+"src": "anita/dit_is_de_grote_markt_parasols_e_db3fea1b.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Dit is de Grote Markt. Parasols en kliko's geven punten, mensen kosten je punten en krassen kosten je Berend. Haal die vijftienhonderd.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: ongeduldig, bazig.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
+"Anita|Dit is het plan. Jij vliegt naar het museum. Fotografeer de camera's, de bewakers en de stroomkast. Ik kijk mee.": {
+"src": "anita/dit_is_het_plan_jij_vliegt_naar__cda37b03.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Dit is het plan. Jij vliegt naar het museum. Fotografeer de camera's, de bewakers en de stroomkast. Ik kijk mee.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: warm, grinnikend.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
 "Anita|Doe de boodschappen voor de echte eierbal: mosterd, verse eieren van de volkstuin en stoetbrood. En niet hard remmen met die eieren.": {
 "src": "anita/doe_de_boodschappen_voor_de_echt_a2b08b80.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -729,6 +1048,28 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
+"Anita|Dus vannacht, om twaalf uur. Drie minuten om de bal te pakken.": {
+"src": "anita/dus_vannacht_om_twaalf_uur_drie__7422f50c.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Dus vannacht, om twaalf uur. Drie minuten om de bal te pakken.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
+"Anita|Een Fries in een blauw colbert. Op de radio, en nu bij Berend.": {
+"src": "anita/een_fries_in_een_blauw_colbert_o_b46d2241.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Een Fries in een blauw colbert. Op de radio, en nu bij Berend.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: ongeduldig, bazig.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
 "Anita|Een ballon? Doe bist nait goed wies!": {
 "src": "anita/een_ballon_doe_bist_nait_goed_wi_a9027a5f.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -768,6 +1109,17 @@
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: zakelijk, ad rem, een beetje moedeloos.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
+},
+"Anita|Een gestolen automaat op een aanhanger, en wij ernaast.": {
+"src": "anita/een_gestolen_automaat_op_een_aan_c088920a.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Een gestolen automaat op een aanhanger, en wij ernaast.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: warm, grinnikend.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
 },
 "Anita|Een hele late.": {
 "src": "anita/een_hele_late_6dad9997.mp3",
@@ -829,6 +1181,28 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
+"Anita|Een streamer betaalt honderdvijftig euro voor stunts. Alleen heeft de Escapade een lekke band, dus we lenen een bakkie. Rijden, niet praten.": {
+"src": "anita/een_streamer_betaalt_honderdvijf_d3102eaf.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Een streamer betaalt honderdvijftig euro voor stunts. Alleen heeft de Escapade een lekke band, dus we lenen een bakkie. Rijden, niet praten.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: ongeduldig, bazig.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
+"Anita|Een tactiek.": {
+"src": "anita/een_tactiek_01869eb5.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Een tactiek.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: warm, grinnikend.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
 "Anita|Een uur? Waarom een uur?": {
 "src": "anita/een_uur_waarom_een_uur_50b941e6.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -849,6 +1223,17 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
+"Anita|Eerst Spuit & Klaar, voor een nieuwe kleur. Dan naar Sjabbe.": {
+"src": "anita/eerst_spuit_klaar_voor_een_nieuw_329d9816.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Eerst Spuit & Klaar, voor een nieuwe kleur. Dan naar Sjabbe.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
 "Anita|Eerst afmaken waar we mee bezig zijn.": {
 "src": "anita/eerst_afmaken_waar_we_mee_bezig__66913236.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -858,6 +1243,17 @@
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: kort, alert, tegen de ander naast je.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
+},
+"Anita|Eerst de Grote Markt, dan Berends zus.": {
+"src": "anita/eerst_de_grote_markt_dan_berends_d688739d.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Eerst de Grote Markt, dan Berends zus.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
 },
 "Anita|Eerst de acteurs oppikken aan de Turfsingel, dan door naar het Noorderplantsoen. Elke klap en het decor ligt in scherven.": {
 "src": "anita/eerst_de_acteurs_oppikken_aan_de_46e38470.mp3",
@@ -888,6 +1284,17 @@
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: opgewonden, fluisterend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
+},
+"Anita|Eerst geld. Inschrijven voor de Snackprijs kost honderdvijftig euro, contant, uiterlijk morgen om twaalf uur, bij Het Loket.": {
+"src": "anita/eerst_geld_inschrijven_voor_de_s_44c658ba.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Eerst geld. Inschrijven voor de Snackprijs kost honderdvijftig euro, contant, uiterlijk morgen om twaalf uur, bij Het Loket.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: lacherig, ad rem.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
 },
 "Anita|Eerst het UMCG, dan Jelles ballon: Tessa vliegt, Tammo hangt aan het touw.": {
 "src": "anita/eerst_het_umcg_dan_jelles_ballon_9df04da3.mp3",
@@ -959,6 +1366,17 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
+"Anita|En dan zeggen? Dat Jelle naar alarmen vroeg? Er hangt een doek om de koepel en dat noemen ze restauratie.": {
+"src": "anita/en_dan_zeggen_dat_jelle_naar_ala_14e7e386.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "En dan zeggen? Dat Jelle naar alarmen vroeg? Er hangt een doek om de koepel en dat noemen ze restauratie.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
 "Anita|En de Fjord Frituur is van ons! Hij staat in de garage. Parkeer hem bij de drukte en open het luik.": {
 "src": "anita/en_de_fjord_frituur_is_van_ons_h_076bd186.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -968,6 +1386,17 @@
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: aan de telefoon, uitdagend en vrolijk.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
+},
+"Anita|En de bovenste?": {
+"src": "anita/en_de_bovenste_f58536b7.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "En de bovenste?",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: ongelovig, vragend.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
 },
 "Anita|En de camera's van daarnet hebben óns gefilmd.": {
 "src": "anita/en_de_camera_s_van_daarnet_hebbe_7a74bb58.mp3",
@@ -1008,6 +1437,17 @@
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: vertellend, trots op de stad.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
+},
+"Anita|En wie let dan op de bal?": {
+"src": "anita/en_wie_let_dan_op_de_bal_c9dc4922.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "En wie let dan op de bal?",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: ongelovig, vragend.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
 },
 "Anita|Er blijft één schroefje over.": {
 "src": "anita/er_blijft_e_e_n_schroefje_over_6df42c16.mp3",
@@ -1179,6 +1619,17 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
+"Anita|Half acht. Eerst honderdvijftig euro pinnen, dan naar het Loket.": {
+"src": "anita/half_acht_eerst_honderdvijftig_e_3855aeef.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Half acht. Eerst honderdvijftig euro pinnen, dan naar het Loket.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: warm, grinnikend.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
 "Anita|Heel Grunn klapt voor een duif.": {
 "src": "anita/heel_grunn_klapt_voor_een_duif_6a9476b7.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -1199,6 +1650,17 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
+"Anita|Het colbert van Berend. De man uit de chat.": {
+"src": "anita/het_colbert_van_berend_de_man_ui_f5c7625e.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Het colbert van Berend. De man uit de chat.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
 "Anita|Het heette eerst het CiBoGa-terrein: circusterrein, Bodenterrein en gasfabriek. Nu wonen en werken er mensen.": {
 "src": "anita/het_heette_eerst_het_ciboga_terr_69d91998.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -1218,6 +1680,17 @@
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: droog.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
+},
+"Anita|Het is een parasol, Berend.": {
+"src": "anita/het_is_een_parasol_berend_a9d380c1.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Het is een parasol, Berend.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
 },
 "Anita|Het is koud.": {
 "src": "anita/het_is_koud_76b004a9.mp3",
@@ -1258,6 +1731,17 @@
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
+},
+"Anita|Het plan. Om twaalf uur gaan de camera's drie minuten uit. In die drie minuten pakken wij de bal, voordat Jelle hem pakt.": {
+"src": "anita/het_plan_om_twaalf_uur_gaan_de_c_37c038a8.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Het plan. Om twaalf uur gaan de camera's drie minuten uit. In die drie minuten pakken wij de bal, voordat Jelle hem pakt.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
 },
 "Anita|Het theehuis is open. Als het niet regent. Dus bijna nooit.": {
 "src": "anita/het_theehuis_is_open_als_het_nie_0716199b.mp3",
@@ -1308,6 +1792,39 @@
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: droog, geamuseerd.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
+},
+"Anita|Hij geeft bewaker twee een eierbal. Dat is zijn koekje.": {
+"src": "anita/hij_geeft_bewaker_twee_een_eierb_6db17292.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Hij geeft bewaker twee een eierbal. Dat is zijn koekje.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
+"Anita|Hij heeft een vergunning. Dat is hetzelfde. De route verandert: we moeten door de smalle straten.": {
+"src": "anita/hij_heeft_een_vergunning_dat_is__8679d74e.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Hij heeft een vergunning. Dat is hetzelfde. De route verandert: we moeten door de smalle straten.",
+"style": "ongeduldig, bazig",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
+"Anita|Hij heeft hem echt. En hij draagt hem altijd bij zich.": {
+"src": "anita/hij_heeft_hem_echt_en_hij_draagt_8dce24ca.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Hij heeft hem echt. En hij draagt hem altijd bij zich.",
+"style": "lacherig, ad rem",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
 },
 "Anita|Hij heeft mijn pas. Hij heeft mijn pas en hij…": {
 "src": "anita/hij_heeft_mijn_pas_hij_heeft_mij_cdca4be2.mp3",
@@ -1379,6 +1896,28 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
+"Anita|Hij telt de alarmen. Fotografeer hem.": {
+"src": "anita/hij_telt_de_alarmen_fotografeer__0dedeb41.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Hij telt de alarmen. Fotografeer hem.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: lacherig, ad rem.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
+"Anita|Hij vroeg Sjabbe waar het museum alarmen heeft. Hij wil de bal, want wie de bal bewaart, zit de jury voor.": {
+"src": "anita/hij_vroeg_sjabbe_waar_het_museum_773b8d25.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Hij vroeg Sjabbe waar het museum alarmen heeft. Hij wil de bal, want wie de bal bewaart, zit de jury voor.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
 "Anita|Hij wel.": {
 "src": "anita/hij_wel_ef3fad9f.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -1419,6 +1958,17 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
+"Anita|Honderdvijftig euro. Dat is precies de inschrijving voor het Loket.": {
+"src": "anita/honderdvijftig_euro_dat_is_preci_edd420b9.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Honderdvijftig euro. Dat is precies de inschrijving voor het Loket.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
 "Anita|Hou de kraam heel tegen het vuurwerk, en laat de Eierbal niet uit het oog.": {
 "src": "anita/hou_de_kraam_heel_tegen_het_vuur_be5c5200.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -1449,6 +1999,17 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
+"Anita|Iedereen, Tammo. Daarom staan we hier.": {
+"src": "anita/iedereen_tammo_daarom_staan_we_h_88eae681.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Iedereen, Tammo. Daarom staan we hier.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: warm, grinnikend.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
 "Anita|Iemand heeft onze Eierbal gejat.": {
 "src": "anita/iemand_heeft_onze_eierbal_gejat_e6ecf96f.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -1458,6 +2019,17 @@
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
+},
+"Anita|Ik ben Nederlandse, Tammo. Ik ken Grunn van de achterbank van jouw auto.": {
+"src": "anita/ik_ben_nederlandse_tammo_ik_ken__f3503433.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Ik ben Nederlandse, Tammo. Ik ken Grunn van de achterbank van jouw auto.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
 },
 "Anita|Ik doe de kroegen. Geert zegt dat ik beter tegen bier kan dan jij.": {
 "src": "anita/ik_doe_de_kroegen_geert_zegt_dat_8db70e11.mp3",
@@ -1488,6 +2060,17 @@
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: warm, grinnikend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
+},
+"Anita|Ik haal het formulier, jij pakt de stempels.": {
+"src": "anita/ik_haal_het_formulier_jij_pakt_d_a20ebe2d.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Ik haal het formulier, jij pakt de stempels.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
 },
 "Anita|Ik haal jouw auto wel terug. Alleen.": {
 "src": "anita/ik_haal_jouw_auto_wel_terug_alle_ec11f547.mp3",
@@ -1749,6 +2332,17 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
+"Anita|Je haat alles wat langer duurt dan een koekje.": {
+"src": "anita/je_haat_alles_wat_langer_duurt_d_5523ab6f.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Je haat alles wat langer duurt dan een koekje.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
 "Anita|Je hand.": {
 "src": "anita/je_hand_c4f8f8e0.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -1768,6 +2362,17 @@
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: zacht, plagend, een beetje verlegen.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
+},
+"Anita|Je kijkt nog steeds.": {
+"src": "anita/je_kijkt_nog_steeds_c9e724d1.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Je kijkt nog steeds.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
 },
 "Anita|Je neef werkt 's nachts in het museum?": {
 "src": "anita/je_neef_werkt_s_nachts_in_het_mu_c9f1f715.mp3",
@@ -1839,6 +2444,17 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
+"Anita|Jelle Terpstra. Meneer Klomp.": {
+"src": "anita/jelle_terpstra_meneer_klomp_0d475bb2.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Jelle Terpstra. Meneer Klomp.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: ongeduldig, bazig.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
 "Anita|Jelle appt. Durk en Douwe komen morgen sorry zeggen. Lopend.": {
 "src": "anita/jelle_appt_durk_en_douwe_komen_m_3d15ce7a.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -1868,6 +2484,17 @@
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: opgewonden, fluisterend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
+},
+"Anita|Jelle wil de juryleden kopen met een proeverij.": {
+"src": "anita/jelle_wil_de_juryleden_kopen_met_92f03729.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Jelle wil de juryleden kopen met een proeverij.",
+"style": "enthousiast, snel",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
 },
 "Anita|Jelle's skûtsje gooit los. Met de Gouden Eierbal aan boord, zegt Klaas.": {
 "src": "anita/jelle_s_sku_tsje_gooit_los_met_d_82679214.mp3",
@@ -2139,6 +2766,17 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
+"Anita|Met je gezicht.": {
+"src": "anita/met_je_gezicht_db12353d.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Met je gezicht.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
 "Anita|Mien jong. Dat duurde twaalf jaar.": {
 "src": "anita/mien_jong_dat_duurde_twaalf_jaar_12be86ca.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -2189,6 +2827,17 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
+"Anita|Misschien is hij betaald. Nog negentig seconden.": {
+"src": "anita/misschien_is_hij_betaald_nog_neg_36233813.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Misschien is hij betaald. Nog negentig seconden.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: warm, grinnikend.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
 "Anita|Moi.": {
 "src": "anita/moi_3f8a9d26.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -2228,6 +2877,17 @@
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: zuchtend, berustend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
+},
+"Anita|Na het Ontzet. Drie minuten. Hand.": {
+"src": "anita/na_het_ontzet_drie_minuten_hand_fc7e2e15.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Na het Ontzet. Drie minuten. Hand.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: lacherig, ad rem.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
 },
 "Anita|Naar binnen kan via de achterdeur: slotje openpeuteren en sluipen.": {
 "src": "anita/naar_binnen_kan_via_de_achterdeu_93b59ce8.mp3",
@@ -2319,6 +2979,17 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
+"Anita|Niemand raken, Tammo. Alleen de parasols.": {
+"src": "anita/niemand_raken_tammo_alleen_de_pa_3ce3c735.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Niemand raken, Tammo. Alleen de parasols.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: warm, grinnikend.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
 "Anita|Niemand.": {
 "src": "anita/niemand_a495de6d.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -2338,6 +3009,17 @@
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: kort, alert, tegen de ander naast je.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
+},
+"Anita|Nog een kwartier.": {
+"src": "anita/nog_een_kwartier_a831d4b8.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Nog een kwartier.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: ongeduldig, bazig.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
 },
 "Anita|Noorderzon mist een auto vol breekbaar decor, en de acteurs staan nog bij de Stadsschouwburg.": {
 "src": "anita/noorderzon_mist_een_auto_vol_bre_2926ffc2.mp3",
@@ -2419,6 +3101,28 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
+"Anita|Oogcontact. Zoals Sjoerd zei.": {
+"src": "anita/oogcontact_zoals_sjoerd_zei_21439ad8.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Oogcontact. Zoals Sjoerd zei.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: lacherig, ad rem.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
+"Anita|Op mijn pas. Die pin ik morgenochtend, dan gaan we naar het Loket.": {
+"src": "anita/op_mijn_pas_die_pin_ik_morgenoch_68146915.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Op mijn pas. Die pin ik morgenochtend, dan gaan we naar het Loket.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: lacherig, ad rem.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
 "Anita|Ossen, Tammo. Het staat er gewoon.": {
 "src": "anita/ossen_tammo_het_staat_er_gewoon_e5941e96.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -2448,6 +3152,17 @@
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: ongeduldig, bazig.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
+},
+"Anita|Pompeblêden. Een Fries. Hij telt de alarmen alsof hij iets controleert. Of voorbereidt.": {
+"src": "anita/pompeble_den_een_fries_hij_telt__14227538.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Pompeblêden. Een Fries. Hij telt de alarmen alsof hij iets controleert. Of voorbereidt.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
 },
 "Anita|Praat straks eens tegen mij.": {
 "src": "anita/praat_straks_eens_tegen_mij_542cf4c3.mp3",
@@ -2529,6 +3244,17 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
+"Anita|Rennen, Tammo.": {
+"src": "anita/rennen_tammo_6ac782f9.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Rennen, Tammo.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: warm, grinnikend.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
 "Anita|Rij hem heel naar het Boterdiep, om het centrum heen: daar mag je sinds 1977 niet meer door. Berend telt de krassen.": {
 "src": "anita/rij_hem_heel_naar_het_boterdiep__260c01fa.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -2568,6 +3294,28 @@
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: vertellend, trots op de stad.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
+},
+"Anita|Salamitactiek. Plakje voor plakje, tot hij alles heeft.": {
+"src": "anita/salamitactiek_plakje_voor_plakje_35bcd3f5.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Salamitactiek. Plakje voor plakje, tot hij alles heeft.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
+"Anita|Sjabbe van Pand & Poen koopt wat niemand wil en opent wat niemand kan. Wij brengen de automaat naar Sjabbe.": {
+"src": "anita/sjabbe_van_pand_poen_koopt_wat_n_a3c8b3ca.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Sjabbe van Pand & Poen koopt wat niemand wil en opent wat niemand kan. Wij brengen de automaat naar Sjabbe.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: warm, grinnikend.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
 },
 "Anita|Spijt van de zomer?": {
 "src": "anita/spijt_van_de_zomer_8f53d298.mp3",
@@ -2659,6 +3407,17 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
+"Anita|Tenzij iemand de bal eerder pakt.": {
+"src": "anita/tenzij_iemand_de_bal_eerder_pakt_d690658a.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Tenzij iemand de bal eerder pakt.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
 "Anita|Terpstra? Van Jelle?": {
 "src": "anita/terpstra_van_jelle_831901d2.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -2699,6 +3458,17 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
+"Anita|Twaalf uur, contant. Hoe moeilijk kan een stempel zijn?": {
+"src": "anita/twaalf_uur_contant_hoe_moeilijk__29dd8245.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Twaalf uur, contant. Hoe moeilijk kan een stempel zijn?",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: ongelovig, vragend.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
 "Anita|Twee bolletjes. Jij betaalt, ik ben voortvluchtig.": {
 "src": "anita/twee_bolletjes_jij_betaalt_ik_be_44fc24fe.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -2728,6 +3498,17 @@
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: opgewonden, fluisterend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
+},
+"Anita|Twee weg. Dat scheelt. Als ze maar wegblijven.": {
+"src": "anita/twee_weg_dat_scheelt_als_ze_maar_5a42d718.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Twee weg. Dat scheelt. Als ze maar wegblijven.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: lacherig, ad rem.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
 },
 "Anita|Vaar er met je huurboot achteraan, ga langszij en spring aan boord.": {
 "src": "anita/vaar_er_met_je_huurboot_achteraa_391ea6ed.mp3",
@@ -2779,6 +3560,17 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
+"Anita|Vijftig euro van Berend. Met de stunts erbij is dat genoeg, Tammo.": {
+"src": "anita/vijftig_euro_van_berend_met_de_s_fd4f24dc.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Vijftig euro van Berend. Met de stunts erbij is dat genoeg, Tammo.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: ongeduldig, bazig.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
 "Anita|Vlieg naar het Groninger Museum en zweef boven drie camera's en twee bewakers: dan staan ze op de foto.": {
 "src": "anita/vlieg_naar_het_groninger_museum__d11459ce.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -2798,6 +3590,17 @@
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
+},
+"Anita|Voor zijn moeder. Hij doet alles voor zijn moeder.": {
+"src": "anita/voor_zijn_moeder_hij_doet_alles__6e0f2d32.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Voor zijn moeder. Hij doet alles voor zijn moeder.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: lacherig, ad rem.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
 },
 "Anita|Wachten is het ergste deel van een kraak.": {
 "src": "anita/wachten_is_het_ergste_deel_van_e_ee47022d.mp3",
@@ -2959,6 +3762,28 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
+"Anita|Wij bewaken hem. Na het Ontzet brengen we hem terug.": {
+"src": "anita/wij_bewaken_hem_na_het_ontzet_br_348b8718.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Wij bewaken hem. Na het Ontzet brengen we hem terug.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: lacherig, ad rem.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
+"Anita|Wij brengen hem. Eerst even een klus op de Grote Markt, dan naar uw zus.": {
+"src": "anita/wij_brengen_hem_eerst_even_een_k_6f820870.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Wij brengen hem. Eerst even een klus op de Grote Markt, dan naar uw zus.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
 "Anita|Wij tweeën tegen de rest?": {
 "src": "anita/wij_tweee_n_tegen_de_rest_a6210a0a.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -2969,6 +3794,50 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
+"Anita|Wij willen weten wat jouw neef 's nachts in het museum ziet.": {
+"src": "anita/wij_willen_weten_wat_jouw_neef_s_fe7f32fb.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Wij willen weten wat jouw neef 's nachts in het museum ziet.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
+"Anita|Wij winnen op 28 augustus, wij krijgen die standplaats, en de Fjord Frituur heeft een thuis.": {
+"src": "anita/wij_winnen_op_28_augustus_wij_kr_9eb0d95a.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Wij winnen op 28 augustus, wij krijgen die standplaats, en de Fjord Frituur heeft een thuis.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
+"Anita|Wij zijn ingeschreven. Op 28 augustus op de Grote Markt.": {
+"src": "anita/wij_zijn_ingeschreven_op_28_augu_2cfb7db1.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Wij zijn ingeschreven. Op 28 augustus op de Grote Markt.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
+"Anita|Zacht remmen. En de bochten ruim.": {
+"src": "anita/zacht_remmen_en_de_bochten_ruim_e37a40ee.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Zacht remmen. En de bochten ruim.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
 "Anita|Ze staat op de Grote Markt, Jelle. Bij de jury. Geef maar.": {
 "src": "anita/ze_staat_op_de_grote_markt_jelle_9332559c.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -2978,6 +3847,17 @@
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: ongeduldig, bazig.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
+},
+"Anita|Ze trokken hem met een kabel uit de muur. Ik was nog niet klaar met mijn pincode.": {
+"src": "anita/ze_trokken_hem_met_een_kabel_uit_005d2e42.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Ze trokken hem met een kabel uit de muur. Ik was nog niet klaar met mijn pincode.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: lacherig, ad rem.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
 },
 "Anita|Ze wil dat hij ophoudt.": {
 "src": "anita/ze_wil_dat_hij_ophoudt_18ee94bf.mp3",
@@ -3059,6 +3939,28 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
+"Anita|Zonder bank blijft er één weg over: de Noordelijke Snackprijs. De winnaar krijgt de enige vrije standplaats van Grunn.": {
+"src": "anita/zonder_bank_blijft_er_e_e_n_weg__092dcbd1.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Zonder bank blijft er één weg over: de Noordelijke Snackprijs. De winnaar krijgt de enige vrije standplaats van Grunn.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
+"Anita|Zonder krassen.": {
+"src": "anita/zonder_krassen_483b8ad1.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Zonder krassen.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: ongeduldig, bazig.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
 "Anita|Zwaai maar. Ze zwaaien terug. Of ze gooien een brood.": {
 "src": "anita/zwaai_maar_ze_zwaaien_terug_of_z_0bdce3dd.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -3078,6 +3980,17 @@
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: zacht, ontroerd, verrast, met een glimlach die ze probeert in te houden.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
+},
+"Anita|…Dat komt op de zijkant van de wagen.": {
+"src": "anita/dat_komt_op_de_zijkant_van_de_wa_d88cc501.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "…Dat komt op de zijkant van de wagen.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: aarzelend, zacht.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
 },
 "Anita|…Er komt een politieauto aan. Instappen.": {
 "src": "anita/er_komt_een_politieauto_aan_inst_4ede8b87.mp3",
@@ -4319,6 +5232,17 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
+"Jelle Terpstra|Daarom bel ik. De Gouden Eierbal is bij mij, dus ik word de bewaarder en zit de jury voor. Mijn juristen noemen het een overname.": {
+"src": "jelle_terpstra/daarom_bel_ik_de_gouden_eierbal__c9f983d7.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Fenrir",
+"input": "Daarom bel ik. De Gouden Eierbal is bij mij, dus ik word de bewaarder en zit de jury voor. Mijn juristen noemen het een overname.",
+"style": "spoken in Dutch with a proud Frisian accent, the Frisian words said in Frisian (Frysk); ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden. Tone: zelfvoldaan, grinnikend.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
 "Jelle Terpstra|Daarom bel ik. Reglement van de Noordelijke Snackprijs, artikel 4: de trofee gaat naar wie op Gronings Ontzet wint. Ik heb hem alvast meegenomen. Dat scheelt een rit.": {
 "src": "jelle_terpstra/daarom_bel_ik_reglement_van_de_n_66b915fd.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -4378,6 +5302,28 @@
 "style": "spoken in Dutch with a proud Frisian accent, the Frisian words said in Frisian (Frysk); ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden. Tone: verbaasd, licht in paniek.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
+},
+"Jelle Terpstra|Dat is… eerlijk.": {
+"src": "jelle_terpstra/dat_is_eerlijk_da7ca14f.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Fenrir",
+"input": "Dat is… eerlijk.",
+"style": "spoken in Dutch with a proud Frisian accent, the Frisian words said in Frisian (Frysk); ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden. Tone: charmant, opschepperig.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
+"Jelle Terpstra|Dat noemen wij ondernemen. Oant sjen.": {
+"src": "jelle_terpstra/dat_noemen_wij_ondernemen_oant_s_85098411.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Fenrir",
+"input": "Dat noemen wij ondernemen. Oant sjen.",
+"style": "spoken in Dutch with a proud Frisian accent, the Frisian words said in Frisian (Frysk); ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden. Tone: charmant, opschepperig.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
 },
 "Jelle Terpstra|De Eierbal? Nooit van gehoord. Oant sjen op Gronings Ontzet!": {
 "src": "jelle_terpstra/de_eierbal_nooit_van_gehoord_oan_a4872ace.mp3",
@@ -4539,6 +5485,17 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
+"Jelle Terpstra|Foar mem.": {
+"src": "jelle_terpstra/foar_mem_13d0377d.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Fenrir",
+"input": "Foar mem.",
+"style": "spoken in Dutch with a proud Frisian accent, the Frisian words said in Frisian (Frysk); ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden. Tone: plechtig, overdreven trots.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
 "Jelle Terpstra|Fryslân wint! Maar jullie waren dichtbij.": {
 "src": "jelle_terpstra/frysla_n_wint_maar_jullie_waren__3f8a69d0.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -4578,6 +5535,28 @@
 "style": "spoken in Dutch with a proud Frisian accent, the Frisian words said in Frisian (Frysk); ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden. Tone: sportief, een beetje beschaamd.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
+},
+"Jelle Terpstra|Goedemorgen, mevrouw. Wij hebben de Europaweg gehuurd voor een evenement. Vanaf nu is de weg dicht. Het staat in de vergunning.": {
+"src": "jelle_terpstra/goedemorgen_mevrouw_wij_hebben_d_0dc17c18.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Fenrir",
+"input": "Goedemorgen, mevrouw. Wij hebben de Europaweg gehuurd voor een evenement. Vanaf nu is de weg dicht. Het staat in de vergunning.",
+"style": "spoken in Dutch with a proud Frisian accent, the Frisian words said in Frisian (Frysk); ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden. Tone: charmant, opschepperig.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
+"Jelle Terpstra|Goedemorgen. Jelle Terpstra, Us Mem Snacks. Mijn juristen hebben dit loket vanochtend vooruit betaald.": {
+"src": "jelle_terpstra/goedemorgen_jelle_terpstra_us_me_eaa067e7.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Fenrir",
+"input": "Goedemorgen. Jelle Terpstra, Us Mem Snacks. Mijn juristen hebben dit loket vanochtend vooruit betaald.",
+"style": "spoken in Dutch with a proud Frisian accent, the Frisian words said in Frisian (Frysk); ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden. Tone: plechtig, overdreven trots.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
 },
 "Jelle Terpstra|Grunn is een aardig groot dorp. Mar wat Grunn kin, kin Fryslân better.": {
 "src": "jelle_terpstra/grunn_is_een_aardig_groot_dorp_m_4a5c39a1.mp3",
@@ -4638,6 +5617,17 @@
 "style": "spoken in Dutch with a proud Frisian accent, the Frisian words said in Frisian (Frysk); ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden. Tone: zelfvoldaan, grinnikend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
+},
+"Jelle Terpstra|Ik heb de rij gekocht. U staat nu helemaal achteraan, nummer 4140. Dat staat in de overeenkomst.": {
+"src": "jelle_terpstra/ik_heb_de_rij_gekocht_u_staat_nu_630c57d8.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Fenrir",
+"input": "Ik heb de rij gekocht. U staat nu helemaal achteraan, nummer 4140. Dat staat in de overeenkomst.",
+"style": "spoken in Dutch with a proud Frisian accent, the Frisian words said in Frisian (Frysk); ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden. Tone: charmant, opschepperig.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
 },
 "Jelle Terpstra|Ik heb geoefend, hear. Deze keer win ik. Wis en wrachtich.": {
 "src": "jelle_terpstra/ik_heb_geoefend_hear_deze_keer_w_8d832005.mp3",
@@ -4899,6 +5889,17 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
+"Jelle Terpstra|Nee. Die win ik.": {
+"src": "jelle_terpstra/nee_die_win_ik_a85b6189.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Fenrir",
+"input": "Nee. Die win ik.",
+"style": "spoken in Dutch with a proud Frisian accent, the Frisian words said in Frisian (Frysk); ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden. Tone: zelfvoldaan, grinnikend.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
 "Jelle Terpstra|Net slim. Ik laat jullie even voorgaan.": {
 "src": "jelle_terpstra/net_slim_ik_laat_jullie_even_voo_63decf16.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -5058,6 +6059,17 @@
 "style": "spoken in Dutch with a proud Frisian accent, the Frisian words said in Frisian (Frysk); ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden. Tone: sportief, een beetje beschaamd.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
+},
+"Jelle Terpstra|Verder koop ik alle standplaatsen van Grunn die vrijkomen. Contant, uit een klomp, definitief.": {
+"src": "jelle_terpstra/verder_koop_ik_alle_standplaatse_8b271ce7.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "own",
+"voice": "Fenrir",
+"input": "Verder koop ik alle standplaatsen van Grunn die vrijkomen. Contant, uit een klomp, definitief.",
+"style": "spoken in Dutch with a proud Frisian accent, the Frisian words said in Frisian (Frysk); ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden. Tone: plechtig, overdreven trots.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
 },
 "Jelle Terpstra|Wacht efkes! Mijn motor is nog koud!": {
 "src": "jelle_terpstra/wacht_efkes_mijn_motor_is_nog_ko_aa16cb2d.mp3",
@@ -9399,6 +10411,17 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
+"Tammo|Ik rij.": {
+"src": "tammo/ik_rij_e57d8c24.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "gro",
+"voice": "Orus",
+"input": "Ik rie.",
+"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, laconiek.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
+},
 "Tammo|Ik schiet. Knallen kan ik. Mikken minder.": {
 "src": "tammo/ik_schiet_knallen_kan_ik_mikken__aad66ba5.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -9668,6 +10691,17 @@
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, reagerend op wat er net gebeurde.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
+},
+"Tammo|Klopt.": {
+"src": "tammo/klopt_5e433fd0.mp3",
+"model": "gemini-3.8-flash-lite-tts",
+"via": "google",
+"lang": "gro",
+"voice": "Orus",
+"input": "Klopt.",
+"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: deadpan, licht verbaasd.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-25"
 },
 "Tammo|Kom op, Geertje! Naar huis!": {
 "src": "tammo/kom_op_geertje_naar_huis_d28fdf5d.mp3",
