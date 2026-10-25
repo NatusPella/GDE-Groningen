@@ -676,7 +676,7 @@ function startRide(w, here, dest, leg, info) {
   w.trainCam = { angle: 0, speed: 0, z: 0, model: { len: 9, wid: 3 } };
   w.challengeHoldPlayer = true;
   const ok = playCinematic({
-    id: 'train-ride', priority: 2, duration: minutes * 60 * 3 + 240, pause: false, letterbox: true, skippable: true, hideHud: true,
+    id: 'train-ride', priority: 2, duration: minutes * 60 * 3 + 240, long: true, pause: false, letterbox: true, skippable: true, hideHud: true,
     kicker: 'Meerijden', title: `${lineLabel(leg)} · naar ${dest.short}`, cardFor: 3.5,
     shot: (u, tt) => rideShot(w, tt),
     onStart() {
