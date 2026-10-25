@@ -31,6 +31,7 @@ import { playCinematic, isCinematicActive, skipCinematic } from './cinematics.js
 import { playCastScene } from './missionstory.js';
 import { Vehicle } from './vehicle.js';
 import { BOAT_KINDS } from './boattypes.js';
+import { rollenPerSpeler, samenRegels } from './heistrollen.js';
 import * as UI from './heistui.js';
 
 const SPOTS_BEFORE_HELP = 3;
@@ -746,6 +747,19 @@ export function heistWatchers() {
   return H ? H.watchers.map((w) => ({ kind: w.kind, x: w.x, y: w.y })) : [];
 }
 
+// De rollen als er meer dan één speler in de sessie zit (#438): elke speler hoort bij een
+// paar stappen van de heist. Zonder sessie of met één speler is er niets te verdelen.
+function samenRollen(world) {
+  const roster = (world && world.coopRoster) || [];
+  const slots = roster.map((r) => r.slot).filter((s) => Number.isInteger(s));
+  if (slots.length < 2) return [];
+  return samenRegels(rollenPerSpeler(slots).map((r) => {
+    const p = roster.find((x) => x.slot === r.slot) || {};
+    const naam = (p.avatar && p.avatar.naam) || p.naam || `Speler ${r.slot + 1}`;
+    return { ...r, naam };
+  }));
+}
+
 function planData(world, def) {
   const map = world.map;
   const bounds = PLAN_BOUNDS;
@@ -774,6 +788,7 @@ function planData(world, def) {
   const inside = [xy(SPOTS.deur3()), xy(SPOTS.laserStart()), xy(SPOTS.stand())];
   return {
     bounds, water, buildings, bridges, rooms,
+    samen: samenRollen(world),
     marks: { start, fuse, cams, guards, lasers, vitrine: MUSEUM_CASE, achterdeur: at('achterdeur', -7.0, 0), glasdeur: at('gang', -4.5, 0), water: { x: 37.92, y: 776.83 } },
     routes: {
       sluip: [...common, xy(at('achterdeur', -7, 0)), xy(at('achterdeur', 7.3, 0)), xy(at('zaal1', -3.9, 1)), xy(at('zaal1', -0.6, 6.8)), xy(SPOTS.deur1()), xy(at('entreehal', -1.4, 0.6)), ...inside],
