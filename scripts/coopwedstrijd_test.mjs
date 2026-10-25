@@ -664,5 +664,83 @@ const kgFormat = (g) => `${(g / 1000).toFixed(1).replace('.', ',')} kg`;
   check('een onzinnig aantal beurten wordt begrensd', fout && fout.punt === true && fout.beurten === P.MAX_BEURTEN_PUNT);
 }
 
+// ---- een baanwedstrijd (bruggenrace, regatta): pure regels, de stand en de uitslag (#443)
+const B = await import('../game/js/coopwedstrijdbaan.js');
+{
+  const sc = B.maakBaan('bruggenrace', MENSEN, { cps: 11, cpNaam: 'bruggen', cap: 100 });
+  check('een baanwedstrijd begint met een lege baan', sc.baan === true && sc.cps === 11 && sc.cpNaam === 'bruggen' && sc.fase === 'bezig' && B.standBaan(sc).every((r) => r.banen === 0 && !r.klaar));
+  check('onzin telt niet (onbekende speler, geen getal, negatief)', !B.meldBaan(sc, 9, { cp: 1 }) && !B.meldBaan(sc, 0, { cp: 'x' }) && B.standBaan(sc).every((r) => r.banen === 0));
+  check('de voortgang komt binnen', B.meldBaan(sc, 0, { cp: 3, s: 500 }) && B.meldBaan(sc, 1, { cp: 5, s: 100 }));
+  const st = B.standBaan(sc);
+  check('de stand: de verste eerst, met zijn meters', st[0].slot === 1 && st[0].banen === 5 && st[1].banen === 3 && st[1].rel === 500, JSON.stringify(st));
+  check('achteruit telt niet', !B.meldBaan(sc, 0, { cp: 2, s: 9 }) && B.standBaan(sc).find((r) => r.slot === 0).banen === 3);
+  check('binnen hetzelfde punt tellen de meters verder', B.meldBaan(sc, 0, { cp: 3, s: 900 }) && B.standBaan(sc).find((r) => r.slot === 0).rel === 900);
+  const gelezen = W.leesWed(JSON.parse(JSON.stringify(B.standEventBaan(sc))));
+  check('de stand gaat als gewoon stand-bericht en wordt gelezen', gelezen && gelezen.f === 'sc' && gelezen.rijen.length === 2 && gelezen.rijen.find((r) => r.slot === 1).banen === 5, JSON.stringify(gelezen));
+  check('wie alle punten gehad heeft is klaar met zijn tijd', B.meldBaan(sc, 1, { cp: 11, klaar: true, tijd: 83.4 }) && B.uitslagBaan(sc)[0].slot === 1 && B.uitslagBaan(sc)[0].fin && /^1:23\.40$/.test(B.uitslagBaan(sc)[0].tekst));
+  check('wie nog vaart staat met zijn punten in de uitslag', /3 van 11 bruggen/.test(B.uitslagBaan(sc)[1].tekst), B.uitslagBaan(sc)[1].tekst);
+  check('de eerste die finisht start de korte klok', sc.eersteKlaar === 0 && B.tikBaan(sc, 50).length === 0);
+  check('na de korte klok is de wedstrijd klaar', B.tikBaan(sc, 120).some((e) => e.type === 'klaar') && sc.fase === 'klaar');
+  check('de beloning volgt de plek; niet gefinisht alleen punten; weg niets', B.beloningBaan({ plek: 1, fin: true }).geld === B.PRIJZEN_BAAN[1] && B.beloningBaan({ plek: 2, fin: false }).geld === 0 && B.beloningBaan({ plek: 2, fin: false }).xp > 0 && B.beloningBaan({ plek: 1, weg: true }).geld === 0 && B.beloningBaan({ plek: 1, weg: true }).xp === 0);
+  const w2 = B.maakBaan('regatta', MENSEN, { cps: 10, cpNaam: 'tonnen', cap: 50 });
+  B.meldBaan(w2, 0, { cp: 10, klaar: true, tijd: 90.004 }); B.meldBaan(w2, 1, { cp: 10, klaar: true, tijd: 90.001 });
+  const uw = B.uitslagBaan(w2);
+  check('gelijke tijden (op een honderdste) delen een plek', uw[0].plek === 1 && uw[1].plek === 1, JSON.stringify(uw.map((r) => [r.slot, r.plek])));
+  B.verlaatBaan(w2, 1);
+  check('een weggevallen deelnemer telt niet meer mee', B.standBaan(w2).at(-1).weg && !B.meldBaan(w2, 1, { cp: 2 }));
+  B.tikBaan(w2, 51);
+  check('de tijdslimiet beëindigt de wedstrijd', w2.fase === 'klaar');
+}
+
+// ---- de host en de gast met een nephub: een baanwedstrijd (bruggenrace, #443)
+{
+  const betaald = [];
+  W.zetWedHaken({ betaalGast: (w, slot, geld, extra) => { betaald.push([slot, geld, extra]); return true; } });
+  let gestart = null, eind = null;
+  W.registreerWedstrijd('bruggenrace', { naam: 'Elf Bruggenrace', soort: 'baan', vak: 'race', opties: () => ({ cps: 3, cpNaam: 'bruggen', cap: 120 }), start: (w, sc) => { gestart = sc; return true; }, plek: () => ({ x: 1, y: 2 }), eind: (w, res) => { eind = res || 'gestopt'; }, solo: () => 'solo' });
+  const { world, log, hub } = nepWereld(ROSTER());
+  check('de uitnodiging voor de bruggenrace gaat naar elke gast', W.wedNodigUit(world, 'bruggenrace').ok && log.filter(([, b]) => b.f === 'uit').length === 3);
+  W.wedHandleGast(world, { k: 'wedgast', a: 'ja' }, 1); W.wedHandleGast(world, { k: 'wedgast', a: 'nee' }, 2); W.wedHandleGast(world, { k: 'wedgast', a: 'nee' }, 3);
+  W.wedHostTik(world, 0.1);
+  check('de baanwedstrijd begint met wie ja zei', gestart && gestart.baan === true && gestart.cps === 3 && gestart.deeln.map((d) => d.slot).join() === '0,1', gestart && gestart.deeln);
+  const start = log.filter(([s, b]) => s === 1 && b.f === 'start').pop();
+  const lees = W.leesWed(start[1]);
+  check('de gast leest de start als baanwedstrijd met het aantal punten', lees && lees.baan === true && lees.cps === 3 && lees.deeln.length === 2);
+  check('een gast vaart zelf mee: zijn lichaam staat niet stil', world.companion.coopWedstrijd !== true);
+  check('de host meldt de voortgang van iedereen', W.wedHostBaan(world, 0, { cp: 1, s: 40 }) && W.wedHostBaan(world, 1, { cp: 2, s: 10 }) && !W.wedHostBaan(world, 9, { cp: 1 }));
+  const rijen = W.wedScoreRijen(world);
+  check('de host ziet de live stand voor het bord', rijen.length === 2 && rijen[0].slot === 1 && rijen[0].banen === 2 && rijen[1].banen === 1, JSON.stringify(rijen));
+  const n0 = log.length;
+  W.wedHostTik(world, 0.6);
+  check('de stand gaat naar wie meedoet, niet naar wie nee zei', log.slice(n0).filter(([, b]) => b.f === 'sc').every(([s]) => s === 1) && log.slice(n0).some(([, b]) => b.f === 'sc'));
+  hub.roster.spelers.find((s) => s.slot === 1).verbinding = 'lost';
+  W.wedHostTik(world, 0.1);
+  check('een gast die wegvalt telt niet meer mee', gestart.weg[1] === true);
+  hub.roster.spelers.find((s) => s.slot === 1).verbinding = 'ok';
+  gestart.weg[1] = false;
+  W.wedHostBaan(world, 1, { cp: 3, klaar: true, tijd: 40 });
+  W.wedHostBaan(world, 0, { cp: 3, klaar: true, tijd: 44 });
+  W.wedHostTik(world, 0.1);
+  check('als iedereen binnen is komt de uitslag', eind && eind !== 'gestopt' && eind.rijen[0].slot === 1 && eind.jij.plek === 2, JSON.stringify(eind && eind.rijen));
+  const ge = W.leesWed(log.filter(([s, b]) => s === 1 && b.f === 'eind').pop()[1]);
+  check('de gast krijgt zijn uitslag en zijn eigen beloning', ge && ge.jij.plek === 1 && ge.jij.geld === B.PRIJZEN_BAAN[1] && betaald.length === 1 && betaald[0][2].vak === 'race', JSON.stringify(ge && ge.jij));
+  check('de gast die meedeed kan een rematch vragen', W.wedHandleGast(world, { k: 'wedgast', a: 'nogmaals' }, 1));
+}
+{ // de gast-kant van een baanwedstrijd: de stand, stoppen met Backspace en de uitslag
+  const verzonden = [];
+  const world = { coopNet: { role: 'client', session: { slot: 1, sendEvent: (b) => { verzonden.push(b); return true; } } }, messages: [], addMessage(t) { this.messages.push(t); }, input: { wasPressed: () => false, consume() {} } };
+  W.wedHandleHost(world, W.startEvent('bruggenrace', MENSEN, 0, { baan: 1, cps: 11 }));
+  const G = world.coopWedGast;
+  check('de gast kent de baanwedstrijd zonder eigen scherm', G && G.baan && G.baan.cps === 11 && !G.spiegel && !G.score && !world.coopWedstrijd);
+  W.wedHandleHost(world, { k: 'wed', f: 'sc', n: 2, r: [[0, 3, 0, 120, 0], [1, 5, 8340, 40, 0]], t: 90 });
+  const rijen = W.wedScoreRijen(world);
+  check('de gast ziet de stand van de host, de eerste eerst', rijen.length === 2 && rijen[0].slot === 1 && rijen[0].banen === 5 && rijen[0].slagen === 8340 && rijen[0].naam === 'Tessa', JSON.stringify(rijen));
+  world.input.wasPressed = (k) => k === 'backspace';
+  check('de gast stopt zelf met Backspace, de rest vaart door', W.wedGastBaanTik(world, 0.016) === true && verzonden.some((b) => b.a === 'weg') && !world.coopWedGast.baan);
+  W.wedHandleHost(world, W.startEvent('bruggenrace', MENSEN, 0, { baan: 1, cps: 11 }));
+  W.wedHandleHost(world, W.eindEvent([{ plek: 1, naam: 'Tessa', slot: 1, fin: true, tijd: 83.4, beste: null, weg: false, tekst: '1:23.40' }], { plek: 1, geld: 100, xp: 15, fin: 1 }));
+  check('de uitslag van de host sluit de baanwedstrijd af', !world.coopWedGast.baan && world.coopWedGast.uitslag && world.coopWedGast.uitslag.jij.geld === 100);
+}
+
 console.log(bad ? `${bad} van ${n} controles mislukt` : `ok: ${n} controles`);
 process.exit(bad ? 1 : 0);
