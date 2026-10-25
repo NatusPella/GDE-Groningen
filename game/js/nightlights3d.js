@@ -3,7 +3,7 @@ import { WATER_Y } from './util.js';
 import { buildingAt } from './tileplace.js';
 import { makeProp, addProp, removeProp, isPropBroken, propKey } from './breakables.js';
 import { policeFlash } from './models3d_vehicles.js';
-import { lampRule } from './streetfurniture.js';
+import { lampRule, lampSpot, LAMP_AWNING } from './streetfurniture.js';
 import { hash2 as hash } from './rng.js';
 import { SpatialGrid } from './spatialgrid.js';
 import { koplampenFactor } from './weerlook.js';
@@ -307,7 +307,6 @@ function lampsForRoad(road, map) {
   const pts = road.pts;
   const h0 = hash(pts[0][0], pts[0][1]);
   const fixedSide = h0 < 0.5 ? 1 : -1;
-  const offset = path ? (road.width || 3) / 2 + 0.5 : (road.width || 6) / 2 + 0.9;
   // spacing and height by road class and lamp type (streetfurniture.js
   // LAMP_RULES: an arm over the main roads, the lantern of residential
   // streets, a low pole on paths); the high masts of a motorway stand on its
@@ -326,14 +325,17 @@ function lampsForRoad(road, map) {
       const t = next - along;
       const side = road.cat === 'major' ? (idx % 2 ? 1 : -1) : fixedSide;
       const cx = ax + dx * t, cy = ay + dy * t;
-      const x = cx - dy * offset * side, y = cy + dx * offset * side;
       idx++;
       next += spacing;
+      // a post stands at the verge, or at the kerb when the verge is under a
+      // shop's awning or against a facade: never through a wall (#463)
+      const spot = lampSpot(cx, cy, dx, dy, side, road, path, (px, py) => !buildingAt(map, px, py, LAMP_AWNING)
+        && !(map.offStreetLevel && map.offStreetLevel(px, py, 0.6)) && !(map.onCarriageway && map.onCarriageway(px, py, 0.4, road)));
+      if (!spot) continue;
+      const x = spot.x, y = spot.y;
       const known = lampByKey.get(propKey('lamp', x, y));
       if (known) { road._lamps.push(known); continue; }
       if (buildingAt(map, x, y) || lampTooClose(x, y)) continue;
-      if (map.offStreetLevel && map.offStreetLevel(x, y, 0.6)) continue;
-      if (map.onCarriageway && map.onCarriageway(x, y, 0.4, road)) continue;
       const lamp = {
         x, y,
         angle: Math.atan2(cy - y, cx - x),
@@ -359,6 +361,8 @@ export const lampsForRoadForTest = (road, map) => lampsForRoad(road, map);
 // spots before the rule lamps of the roads fill the gaps.
 function mappedLamp(map, m) {
   const [x, y] = m.pts[0];
+  // a mapped lamp inside a house or under a shop's awning keeps out (#463)
+  if (buildingAt(map, x, y, LAMP_AWNING)) return null;
   let best = null, bd = 25;
   for (const r of map.roadsNear(x, y, 12)) {
     if (!LAMP_CATS.has(r.cat) && !PATH_CATS.has(r.cat)) continue;
@@ -417,6 +421,7 @@ function rebuildVisible(world, px, py) {
   for (const m of world.map.furniture || []) {
     if (m.k !== 'lamp' || !m.pts || Math.abs(m.pts[0][0] - px) > LAMP_VIEW || Math.abs(m.pts[0][1] - py) > LAMP_VIEW) continue;
     const l = m._lamp || (m._lamp = mappedLamp(world.map, m));
+    if (!l) continue;
     if (l.broken || isPropBroken(l.key)) { l.broken = true; continue; }
     if (visible.length < LAMP_MAX) visible.push(l);
   }
