@@ -1,5 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { vehicleSeat } from './seating3d.js';
+import { carBodyFit } from './models3d_vehicles.js';
 import { hasCarInterior, interiorLayout, doorTrims, interiorKlasse, klasseStijl } from './carinteriorlayout.js';
 import { doorsFor } from './vehicledoors.js';
 
@@ -26,8 +27,8 @@ function seatAt(g, x, y, z, tilt, color = null) {
   box(g, 0.08, 0.16, 0.26, x - 0.3, y + 0.62, z, GREY);
 }
 
-function buildCarInterior(seat, len, wid, defs = [], klasse = 'auto') {
-  const L = interiorLayout(seat, len, wid);
+function buildCarInterior(seat, len, wid, defs = [], klasse = 'auto', romp = null) {
+  const L = interiorLayout(seat, len, wid, romp);
   const K = klasseStijl(klasse, L, seat);
   if (K.rear !== undefined) L.rear = K.rear;
   Object.assign(L.wheel, K.wheel);
@@ -91,7 +92,7 @@ export function updateCarInterior(mesh, v, show) {
   if (!mesh || !hasCarInterior(v)) return false;
   let g = mesh.userData.interior;
   if (!g && show) {
-    g = buildCarInterior(vehicleSeat(v, true), v.model.len, v.model.wid, doorsFor(v), interiorKlasse(v));
+    g = buildCarInterior(vehicleSeat(v, true), v.model.len, v.model.wid, doorsFor(v), interiorKlasse(v), carBodyFit(v));
     mesh.userData.interior = g;
     mesh.add(g);
   }
@@ -108,7 +109,7 @@ export function updateCarInterior(mesh, v, show) {
 // Eye pose (map x, y, height z) and look direction for the cinematics camera.
 export function interiorEyePose(v) {
   if (!hasCarInterior(v)) return null;
-  const e = interiorLayout(vehicleSeat(v, true), v.model.len, v.model.wid).eye;
+  const e = interiorLayout(vehicleSeat(v, true), v.model.len, v.model.wid, carBodyFit(v)).eye;
   const a = v.angle, c = Math.cos(a), s = Math.sin(a);
   // vehicle-local +x forward, +z right; map y runs with local +z
   const x = v.x + e.x * c - e.z * s, y = v.y + e.x * s + e.z * c;

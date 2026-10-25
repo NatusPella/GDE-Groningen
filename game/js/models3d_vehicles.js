@@ -537,6 +537,18 @@ function carType(v) {
   return n === 'sedan' || n === 'wagon' || n === 'van' || n === 'sport' || n === 'suv' ? n : 'hatch';
 }
 
+// De raamlijn en het dak van de romp van een gewone personenauto (#442): cabin3d.js en
+// carinteriorlayout.js hangen het dashboard, het stuur en de binnenspiegel zo aan de echte
+// carrosserie dat ze achter de voorruit vallen in plaats van erdoorheen. null voor voertuigen
+// met een eigen cabine (vrachtwagen, bus, tractor, foodtruck) en voor een wrak.
+export function carBodyFit(v) {
+  if (!v || !v.model || v.wrecked) return null;
+  const n = v.model.name;
+  if (v.isBus || n === 'truck' || n === 'trekkerlimo' || n === 'tractor' || n === 'quad' || n === 'foodtruck' || n === 'maaidorser' || n === 'laadmachine') return null;
+  const P = carProfile(carType(v), v.model.len / 2);
+  return { belt: P.belt, roof: P.roof, xA: P.xA, xB: P.xB, xC: P.xC, xD: P.xD };
+}
+
 function carVariant(v) {
   const n = v.model.name;
   if (n === 'taxi' || v.isTaxi) return 'taxi';

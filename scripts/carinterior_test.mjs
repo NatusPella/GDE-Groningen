@@ -72,4 +72,18 @@ for (const [len, wid, seat] of [[4.3, 1.8, { x: -0.25, y: 0.38, z: -0.3 }], [11,
   }
   assert.ok(klasseStijl('bus', interiorLayout(seat, 4.3, 1.8), seat).wheel.r > klasseStijl('sport', interiorLayout(seat, 4.3, 1.8), seat).wheel.r, 'busstuur groter dan sportstuur');
 }
+// de indeling hangt aan de echte romp (#442): dashboard onder de raamlijn en achter de voorruit,
+// het stuur en de binnenspiegel achter het glas, de dakhemel onder het echte dak
+const hatchRomp = { belt: 0.93, roof: 1.47, xA: 0.9, xB: 0.15, xC: -1.4, xD: -1.7 };
+const vanRomp = { belt: 1.08, roof: 2.08, xA: 2.05, xB: 1.4, xC: -2.46, xD: -2.48 };
+for (const [len, wid, seat, romp] of [[3.8, 1.7, { x: -0.11, y: 0.38, z: -0.29 }, hatchRomp], [4.3, 1.8, { x: -0.13, y: 0.38, z: -0.31 }, hatchRomp], [4.1, 1.85, { x: -0.12, y: 0.3, z: -0.31 }, hatchRomp], [5, 2, { x: 1.05, y: 0.72, z: -0.34 }, vanRomp]]) {
+  const L = interiorLayout(seat, len, wid, romp);
+  assert.ok(L.dash.y + L.dash.h <= romp.belt, 'dashboard onder de raamlijn');
+  assert.ok(L.dash.x + L.dash.d / 2 <= romp.xA, 'dashboard achter de voorruit');
+  assert.ok(L.wheel.x < L.dash.x && L.wheel.y + 0.13 < romp.roof, 'stuur achter het dashboard en onder het dak');
+  assert.ok(L.mirror.y < L.roof.y && L.mirror.y > L.eye.y, 'spiegel tussen oog en dak');
+  assert.ok(L.mirror.x > L.eye.x && L.mirror.x < L.roof.x1 + 0.01, 'spiegel voor het oog, aan de dakhemel');
+  assert.ok(L.roof.y < romp.roof && L.roof.x1 < romp.xB, 'dakhemel onder het echte dak en achter de voorruit');
+  assert.ok(L.roof.x0 > Math.min(romp.xC, seat.x - 1.1) - 0.01, 'dakhemel tot de achterruit');
+}
 console.log('carinterior_test ok');
