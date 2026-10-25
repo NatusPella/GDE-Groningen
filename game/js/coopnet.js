@@ -58,7 +58,7 @@ import { bijbaanStart, bijbaanBeloning, bijbaanEind, bijbaanHelpers, bijbaanHost
 import { maakPvp, wisselPassief, zetPassiefStand, verwijderSpeler, passiefEvent, passiefVanEvent, leesPassief, leesPassiefVan, pvpSchadeEvent, isPassief, PVP_TEKST } from './cooppvp.js'; // passieve stand en spelers tegen elkaar (#447)
 import { pvpGastRaak, pvpDoodVerwerk } from './cooppvpwereld.js';
 import { busCoopActie, busCoopValideerE } from './coopbus.js';
-import { zetBestuurHaken, bestuurGebruik, bestuurTick, bestuurLos, bestuurAllesLos, bestuurt } from './coopbestuur.js';
+import { zetBestuurHaken, bestuurGebruik, bestuurTick, bestuurLos, bestuurAllesLos, bestuurt, trekGast } from './coopbestuur.js';
 import { nieuweDeelStaat, bezorgVraag, bezorgHost, bezorgWeg, bezorgAllesWeg } from './coopbezit.js'; // eigen voertuigen meenemen en delen (#449)
 import { lichaamVan, eersteGastPlek, startPlek, isKoploos } from './net/koploos.js'; // een gastheer zonder lokale speler (#450)
 
@@ -70,6 +70,7 @@ export const FIGUUR_WAARSCHUWING = 80;
 export const FIGUUR_INSTAP_AFSTAND = 9; // m: de 3e en 4e speler stappen in als het voertuig van de gastheer zo dichtbij is (#372)
 export const CAMERA_DELEN = false; // Tammo en Tessa delen geen camera meer: elke speler heeft zijn eigen scherm en muis; het midden tussen beiden zette de camera verder weg en scheef (#388)
 export const FIGUUR_TERUG_S = 4;  // s te ver weg voor de gastheer de figuur bij de groep zet
+export const TREK_WACHT_S = 0.35; // s tussen twee trekpogingen van dezelfde gast: een begrensd bericht (#459)
 
 // De tegelhash komt van de aanroeper (manifest van de wereld); story = verhaalboog.
 // De online-avatar (#455) reist mee: de naam en kleur uit de instellingen van dit
@@ -1094,14 +1095,16 @@ export function handleEvent(world, body, van = 0) {
       hekBericht(world, body.aan);
       return true;
     }
-    case 'gebruik': { // de gast drukte op E bij de host: als bijrijder in- of uitstappen (alleen plek 1, de metgezel)
+    case 'trek': { // E van een gast (#459): eerst iemand uit een voertuig trekken, anders gewoon in- of uitstappen
       if (!n || n.role !== 'host' || van < 1) return false;
-      if (busCoopValideerE(world, van)) return true; // het hulpje in de bus valideert een kaartje (#444)
-      if (bestuurGebruik(world, van).gedaan) return true; // een vrij voertuig bij de gast: hij stapt in als bestuurder, of uit (#434)
-      if (van >= 2) return figGebruik(world, van); // de 3e en 4e speler stappen zelf in of uit (#372)
-      world.coopGebruik = true;
-      return true;
+      const nu = now(world), at = n.trekAt || (n.trekAt = {});
+      if (nu - (at[van] ?? -Infinity) >= TREK_WACHT_S) { // hetzelfde bericht vaker achter elkaar is begrensd
+        at[van] = nu;
+        if (trekGast(world, van)) return true;
+      }
+      return gebruikGast(world, van);
     }
+    case 'gebruik': return !!n && n.role === 'host' && van >= 1 && gebruikGast(world, van); // het oude bericht (docs/COOP-GAST.md): hetzelfde als 'trek' zonder de trekpoging
     case 'bus': return !!n && n.role === 'host' && van >= 1 && (body.a === 'deur' || body.a === 'valideer') && busCoopActie(world, van, body.a); // O en E van een medespeler in de bus (#444)
     case 'bijgroep': return bijGroepHost(world, van); // een gast die los loopt wil terug bij de groep (#429)
     case 'bezorg': return !!n && n.role === 'host' && van >= 1 && bezorgHost(world, van, body); // een gast brengt zijn eigen voertuig mee (#449)
@@ -1208,10 +1211,21 @@ export function sendPing(world, x, y, soort = 'hier') {
 }
 // ---- de gast doet iets bij de host (#291, docs/COOP-GAST.md)
 const gastNaam = (world, slot) => { const p = (world.coopRoster || []).find((x) => x && x.slot === slot); return (p && ((p.avatar && p.avatar.naam) || p.naam || (charInfo(p.char) || {}).naam)) || 'De ander'; };
-// E van de gast die niet bij een winkel of automaat was: de host laat zijn lichaam in- of uitstappen
+// E van een gast bij de host (na de eigen winkels, activiteiten en wedstrijden): als bijrijder
+// in- of uitstappen (alleen plek 1, de metgezel), of een figuur dat zelf in- of uitstapt (#372).
+function gebruikGast(world, van) {
+  if (busCoopValideerE(world, van)) return true; // het hulpje in de bus valideert een kaartje (#444)
+  if (bestuurGebruik(world, van).gedaan) return true; // een vrij voertuig bij de gast: hij stapt in als bestuurder, of uit (#434)
+  if (van >= 2) return figGebruik(world, van); // de 3e en 4e speler stappen zelf in of uit (#372)
+  world.coopGebruik = true;
+  return true;
+}
+// E van de gast die niet bij een winkel of automaat was: de host laat zijn lichaam eerst iemand
+// uit een voertuig trekken (#459) en anders in- of uitstappen. Een gewoon bericht zonder
+// gegevens: de host rekent met zijn eigen lichaam, niet met een plek van de gast.
 export function gastGebruik(world) {
   const n = world.coopNet; if (!n || n.role !== 'client' || !n.joined) return false;
-  return n.session.sendEvent({ k: 'gebruik' });
+  return n.session.sendEvent({ k: 'trek' });
 }
 // O van de gast in een bus van de host: de deuren (als hulpje of chauffeur), #444
 export function gastBus(world, a = 'deur') {
