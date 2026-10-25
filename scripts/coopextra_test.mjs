@@ -430,4 +430,45 @@ t('snapshot en EXTRA: dezelfde voetgangers, dieren, lichten en objecten bij de g
   assert.deepEqual(eerste.kapot.map((k) => k.key), ['bin@1000,2000', 'lamp@-55,60']);
 });
 
+t('de hoogte van een reiger in de vlucht gaat mee, net als van een meeuw (#428)', () => {
+  const w = wereld(0, 0);
+  w.wildlife = [
+    { kind: 'reiger', x: 110, y: 205, angle: 0.4, speed: 5, z: 6.5, state: 'fly', bobSeed: 0.5 },
+    { kind: 'reiger', x: 111, y: 205, angle: 0.4, speed: 0, z: 0, state: 'stand', bobSeed: 0.5 },
+  ];
+  const d = X.leesExtra(X.codeerExtra(X.verzamelExtra(w, BIJ, X.nieuwGeheugen(), DEPS), BIJ[0]));
+  const vliegt = d.dieren.find((x) => Math.abs(x.x - 110) < 0.1), staat = d.dieren.find((x) => Math.abs(x.x - 111) < 0.1);
+  assert.equal(vliegt.soort, 'reiger');
+  assert.equal(vliegt.aux, 65, 'de hoogte van de vliegende reiger (6,5 m) in dm');
+  assert.equal(staat.aux, 0, 'een reiger die staat houdt geen hoogte bij');
+  for (const soort of ['reiger', 'seagull', 'pigeon']) assert.ok(X.VOGEL_HOOGTE.has(soort), soort + ' houdt zijn hoogte bij');
+  assert.ok(!X.VOGEL_HOOGTE.has('gans'), 'een gans vliegt niet in dit spel');
+});
+
+t('wat de gast zelf invult: de beweging rekent hij zelf uit, de vlaggen komen mee (#428)', () => {
+  const w = wereld(2, 0);
+  const codeer = () => [...X.codeerExtra(X.verzamelExtra(w, BIJ, X.nieuwGeheugen(), DEPS), BIJ[0])];
+  const zonderFase = codeer();
+  for (const p of w.pedestrians) Object.assign(p, { walkPhase: 2.4, armZwaai: 0.8, stride: 3.1, stapTeller: 7 }); // de animatiefase van de host
+  assert.deepEqual(codeer(), zonderFase, 'de fase van de loopanimatie gaat niet over de lijn: die rekent de gast zelf uit');
+  // wat de gast nodig heeft om hetzelfde te laten zien, gaat wel mee: de vlaggen (en de snelheid) per voetganger
+  const p = w.pedestrians[0];
+  Object.assign(p, { greetUntil: 105, party: true, hitReact: { t: 99.9, dx: 1, dy: 0, k: 0.7 } });
+  const st = X.nieuweStand();
+  X.pasExtraToe(st, X.leesExtra(X.codeerExtra(X.verzamelExtra(w, BIJ, X.nieuwGeheugen(), DEPS), BIJ[0])), 100);
+  const vl = st.voetgangers.get(pedId(p)).flags;
+  for (const bit of [X.V_GROET, X.V_FEEST, X.V_GERAAKT]) assert.ok(vl & bit, 'vlag ' + bit);
+  assert.ok(!(vl & X.V_LIGT), 'hij staat nog overeind');
+  p.state = 'dead'; p.health = 0;
+  const vl2 = X.verzamelExtra(w, BIJ, X.nieuwGeheugen(), DEPS).voetgangers.find((x) => x.id === pedId(p)).flags;
+  assert.ok(vl2 & X.V_LIGT, 'dood: hij ligt, de val rekent de gast zelf uit');
+  // een wapen en een klap: de vlag en het stukje met wapen en slag, het beeld van de zwaai rekent de gast zelf uit
+  p.state = 'wander'; p.health = 30; p.heldWeapon = 'knuppel'; p.attackFx = { type: 'melee', swing: 'bat', start: 99.8 };
+  const u = X.verzamelExtra(w, BIJ, X.nieuwGeheugen(), DEPS);
+  const vw = u.voetgangers.find((x) => x.id === pedId(p)).flags;
+  assert.ok((vw & X.V_WAPEN) && (vw & X.V_AANVAL));
+  const mp = u.misc.find((x) => x.tag === X.MISC_PEDS);
+  assert.equal(X.leesPeds(mp.data).get(pedId(p)).wapen, 'knuppel');
+});
+
 console.log(`coopextra_test: ${n}/${n} ok`);
