@@ -202,7 +202,8 @@ export function yieldArms(map) {
 //         the crossing carriageway (the teeth, the stop line), 3-16 m
 export function junctionModel(map) {
   const s = store(map);
-  if (s.model) return s.model;
+  const ver = (map && map.junctionVer) || 0;
+  if (s.model && s.modelVer === ver) return s.model;
   const out = new Map();
   for (const node of junctionIndex(map).values()) {
     const sig = !graded(node) && signalised(map, node.x, node.y);
@@ -228,7 +229,39 @@ export function junctionModel(map) {
     });
     out.set(node.key, { key: node.key, x: node.x, y: node.y, control, arms });
   }
+  // De gestreamde provincietegels dragen hun eigen kruispuntmodel (de JUNCTIONS-sectie, junction_tiles.mjs):
+  // dezelfde code heeft het bij de tegelbouw uitgerekend. Zonder deze regel kende het spel buiten de gepinde
+  // stad geen voorrang, rotondes of stoplijnen (#469). Een knooppunt uit de stad wint: dat is dezelfde plek.
+  for (const n of tileJunctionNodes(map)) if (!out.has(n.key)) out.set(n.key, n);
   s.model = out;
+  s.modelVer = ver;
+  return out;
+}
+
+// De kruispunten uit de geladen tegels als modelobjecten. De rij zegt per arm de regel en de stoplijn
+// ([road gid, idx, d, rule, stop, enters]); de weg zelf zoeken we op in de wegen van de tegels, want
+// alleen die heeft de tegel als object. ux/uy blijven 0: de hulpfuncties die ze nodig hebben
+// (yieldArms, de strepen op het wegdek) werken op de stad, en de provincie gebruikt rule en stop.
+export function tileJunctionNodes(map) {
+  const rows = map && map.junctionRows;
+  if (!rows || !rows.size) return [];
+  const roads = map._res && map._res.roads;
+  const out = [];
+  for (const list of rows.values()) {
+    for (const r of list || []) {
+      if (!r || !r.k || !r.p) continue;
+      const arms = [];
+      for (const a of r.a || []) {
+        const [gid, idx, d, rule, stop, enters] = a;
+        const e = roads && roads.get(gid);
+        if (!e || !e.obj) continue;
+        arms.push({ road: e.obj, idx, d, ux: 0, uy: 0, rank: roadPriority(e.obj), enter: !!enters,
+          rule: RULES[rule] || 'free', stop: Math.min(16, Math.max(3, stop || 3)) });
+      }
+      if (!arms.length) continue;
+      out.push({ key: r.k, x: r.p[0][0], y: r.p[0][1], control: r.c || 'equal', arms });
+    }
+  }
   return out;
 }
 
