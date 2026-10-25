@@ -37,6 +37,6 @@ export function takeDt(o, dt) {
 }
 
 // a vehicle the thinning must never touch
-export const keepVehicle = (v) => v.driver === 'player' || v.missionCar || v.isHeroCar || v.isPolice || v.storyCar || v.scripted || v.isFoodtruck || v.racer || v.cineTemp || v.perfTemp || v.hijacked;
+export const keepVehicle = (v) => v.driver === 'player' || v.missionCar || v.isHeroCar || v.isPolice || v.storyCar || v.scripted || v.isFoodtruck || v.racer || v.raceCar || v.cineTemp || v.perfTemp || v.hijacked;
 
 if (typeof window !== 'undefined') window.__simLoad = { level: simLevel, force(l) { forced = l === null || l === undefined ? null : Math.max(0, Math.min(3, l)); } };

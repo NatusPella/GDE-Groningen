@@ -33,6 +33,7 @@ import { WANDELING } from './wandeling.js';
 import { SNACKKETEN } from './snackketen.js';
 import { EVENEMENTEN } from './evenementenact.js';
 import { REGATTA_GAME } from './regatta.js';
+import { RINGRACE } from './ringrace.js';
 import { VLIEGSCHOOL } from './vliegschool.js';
 import { SAFEHUIS } from './safehuizen.js';
 import { PVP_ARENA_ACT } from './cooppvpwereld.js'; // de PvP-minigame in Samen spelen (#454)
@@ -340,7 +341,7 @@ const VAARDIENST = dienstActiviteit({
   },
 });
 
-const LIST = [CARBID, KERMIS, HOOGVLIEGER, GEHEIMEN, DRIFT_ZONE, DISCGOLF, PITCHPUTT, SKATEPARK, KARTBAAN, ZWEMBAD, KLIMTOREN, WATERSKI, CARILLON_GAME, PANNENKOEK, HENGELEN, WANDELING, SNACKKETEN, EVENEMENTEN, REGATTA_GAME, VLIEGSCHOOL, SAFEHUIS, PVP_ARENA_ACT, VLUCHTDIENST, VAARDIENST];
+const LIST = [CARBID, KERMIS, HOOGVLIEGER, GEHEIMEN, DRIFT_ZONE, DISCGOLF, PITCHPUTT, SKATEPARK, KARTBAAN, ZWEMBAD, KLIMTOREN, WATERSKI, CARILLON_GAME, PANNENKOEK, HENGELEN, WANDELING, SNACKKETEN, EVENEMENTEN, REGATTA_GAME, RINGRACE, VLIEGSCHOOL, SAFEHUIS, PVP_ARENA_ACT, VLUCHTDIENST, VAARDIENST];
 
 export function initActivities(w) {
   for (const a of LIST) {

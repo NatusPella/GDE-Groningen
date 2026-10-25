@@ -134,7 +134,7 @@ export function bestuurInstappenIn(world, slot, v) {
 
 function stapIn(world, slot, l, v) {
   const proxy = maakProxy(world, slot, l, v);
-  const auto = !v.isBike && !v.isScooter && !v.isBoat && !v.farm && !v.coopBezit; // een fiets of boot meenemen is geen misdaad, een auto van een ander wel; de machines van de boerderij van de host en een gedeeld voertuig van een medespeler zijn voor iedereen (#415, #449)
+  const auto = !v.isBike && !v.isScooter && !v.isBoat && !v.farm && !v.coopBezit && !v.raceCar; // een fiets, boot of wedstrijdwagen meenemen is geen misdaad, een auto van een ander wel; de machines van de boerderij van de host en een gedeeld voertuig van een medespeler zijn voor iedereen (#415, #449, #443)
   haken.enter(proxy, v, world);
   if (proxy.inVehicle !== v) return { gedaan: true }; // enterVehicle weigerde (er zat al iemand in)
   v.coopBestuurder = slot; v.wreckedByGast = null;
