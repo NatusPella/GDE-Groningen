@@ -15,7 +15,7 @@ import { startTheme, stopTheme } from './theme.js';
 import { COW_LOADING } from './flavourlines.js';
 import { MENU_FRAME_S, getRenderer, streamPending } from './scene3d.js';
 import { makeMenuGate, GATE } from './menuready.js';
-import { isAdvisorSampling, startGfxAdvisor } from './gfxprofile.js';
+import { isAdvisorSampling, startGfxAdvisor, classifyGpu, readGpu, presetFromSample, currentPreset, applyPreset, isDefaultGfx, readAdvice, writeAdvice, presetLabel } from './gfxprofile.js';
 import { ABOUT_HTML } from './credits.js';
 import { startLoadScreen, setLoadTips } from './loadscreen.js';
 import { padGlyphInner } from './glyphs.js';
@@ -420,9 +420,57 @@ export function runStartScreen(world, opts) {
   return forceMenu ? runMenuScreen(world, opts, pending) : runBootScreen(world, opts);
 }
 
+const FIRST_RUN_MS = 3500;
+
+// The first start on a fresh profile: measure a few seconds of real frames on the boot screen
+// and pick the best preset that still runs smoothly. Skipped with Esc/Space; stored so it runs
+// once. The full benchmark in Instellingen > Beeld stays available for a deeper measurement.
+function benchmarkFirstRun(opts, done) {
+  const status = document.querySelector('#loading .ld-status');
+  if (status) status.textContent = 'Beeld instellen…';
+  let gpu = { tier: 'hoog' };
+  try { gpu = classifyGpu(readGpu(getRenderer().getContext())); } catch (e) { /* geen WebGL: standaard */ }
+  const times = [];
+  let last = 0, t0 = 0, finished = false, timer = 0;
+  const finish = ({ skip = false, persist = true } = {}) => {
+    if (finished) return;
+    finished = true;
+    window.removeEventListener('keydown', onKey, true);
+    clearTimeout(timer);
+    let pick = skip ? null : presetFromSample(gpu.tier, times, currentPreset());
+    // a visible machine too slow for ten samples still gets the lightest preset, not the default
+    if (!skip && !pick && times.length > 0 && times.length < 10) pick = 'laag';
+    if (pick) applyPreset(pick);
+    if (persist) writeAdvice(skip ? 'eerste-start:overgeslagen' : 'eerste-start:' + (pick || 'hoog'));
+    if (status) status.textContent = skip ? 'Klaar, Grunn staat te wachten' : `Beeld: ${presetLabel(pick || 'hoog')}`;
+    done();
+  };
+  const onKey = (e) => {
+    if (e.key === 'Escape' || e.key === ' ') { e.preventDefault(); finish({ skip: true }); }
+  };
+  window.addEventListener('keydown', onKey, true);
+  // a hidden or throttled tab must not keep the first start waiting; a hidden tab is not a
+  // choice, so it does not close the door for a later measurement
+  timer = setTimeout(() => {
+    if (document.hidden) finish({ skip: true, persist: false });
+    else finish();
+  }, FIRST_RUN_MS + 2500);
+  const step = (now) => {
+    if (finished) return;
+    if (!t0) t0 = now;
+    // skip the first half second: shader compilation and the first stream burst are not the game
+    if (last && now - t0 > 500) times.push(now - last);
+    last = now;
+    try { if (opts && opts.tick) opts.tick(0.016); } catch (e) { /* simulatie nog niet klaar */ }
+    try { if (opts && opts.render) opts.render(0.016, 0); } catch (e) { /* renderer nog niet klaar */ }
+    if (now - t0 < FIRST_RUN_MS || times.length < 10) requestAnimationFrame(step);
+    else finish();
+  };
+  requestAnimationFrame(step);
+}
+
 function runBootScreen(world, opts) {
-  // Nieuws (wi-492-over) en de eerste-start-prestatietest (wi-492-bench) hangen hier nog aan;
-  // tot die er zijn, slaat de boot het menu en zijn grafische advies over.
+  // Nieuws en credits (wi-492-over) hangen hier nog aan; de eerste-start-test zit hieronder.
   const slot = ensureLatestSlot();
   // No reliable latest (a full list, a broken save, or a save from a newer version): the old
   // save screen stays available instead of silently loading or overwriting the wrong save.
@@ -462,7 +510,10 @@ function runBootScreen(world, opts) {
       finish();
     };
     // QA and trailer runs that need the old menu use ?menu; this path starts immediately.
-    if (save) continueGame(); else startNew();
+    // A fresh profile first gets a short graphics measurement; everything else starts at once.
+    const firstRun = !save && !AUTO && !FLAGS.autoplay && !document.hidden && isDefaultGfx() && !readAdvice();
+    if (firstRun) benchmarkFirstRun(opts, () => startNew());
+    else if (save) continueGame(); else startNew();
   });
 }
 
