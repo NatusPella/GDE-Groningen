@@ -5,7 +5,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { TTS_LANG, TTS_MODEL } from './tts_cast.mjs';
+import { TTS_LANG, TTS_MODELS } from './tts_cast.mjs';
 
 const REPO = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const table = JSON.parse(fs.readFileSync(path.join(REPO, 'scripts', 'gronings_spoken.json'), 'utf8'));
@@ -37,7 +37,7 @@ for (const f of logs(path.join(REPO, 'game', 'audio'))) {
   const rel = path.relative(REPO, f);
   for (const [key, e] of Object.entries(log)) {
     clips++;
-    if (e.model !== TTS_MODEL) fail(`${rel}: ${key} has model ${e.model}`);
+    if (!TTS_MODELS.includes(e.model)) fail(`${rel}: ${key} has model ${e.model}`);
     else if (e.lang === 'own') own++;
     else if (e.lang !== TTS_LANG) fail(`${rel}: ${key} was not recorded in Gronings (lang ${e.lang})`);
     else if (!spokenValues.has(e.input)) fail(`${rel}: ${key} input is not in gronings_spoken.json: ${e.input}`);

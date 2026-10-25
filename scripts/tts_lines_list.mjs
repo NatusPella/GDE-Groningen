@@ -141,29 +141,46 @@ const push = (j) => { if (!seen.has(j.out + '|' + j.key)) { seen.add(j.out + '|'
 
 // --- the new story (game/storydata/script.json): a line without a recording is `textOnly` and is
 // shown as text only (#326). voice_coverage checks these apart from collect(); a recording goes
-// into the lines manifest and the next build_story_data run clears `textOnly` (#462). A line is
-// skipped, and counted, when its speaker has no voice yet or its Gronings spoken text is missing:
-// recording it in Dutch instead would be worse than waiting.
+// into the lines manifest and the next build_story_data run clears `textOnly` (#462). An already
+// recorded line only comes back as a job when its clip is gone, was never logged, or was made with a
+// model we no longer accept (`current()` in gemini_tts.py skips the rest), so a bad take stays
+// redoable: delete its mp3, run this list. A line is skipped, and counted, when its speaker has no
+// voice yet or its Gronings spoken text is missing: recording it in Dutch instead would be worse
+// than waiting.
 const scriptFile = path.join(REPO, 'game', 'storydata', 'script.json');
 const groFile = path.join(REPO, 'scripts', 'gronings_spoken.json');
+const REC = ['story', 'lines', 'banter']; // the manifests the game plays a story line from
 const waiting = { gronings: [], cast: [] };
+// the clip of a recorded line, and whether it is still there and current
+const recorded = (key) => {
+  for (const m of REC) {
+    const entry = manifest(m)[key];
+    if (!entry) continue;
+    const file = path.join(REPO, 'game', 'audio', 'voicelines', m, entry.src);
+    const fresh = fs.existsSync(file) && TTS_MODELS.includes(ttsLog(m)[key]?.model);
+    return { out: m, src: entry.src, fresh };
+  }
+  return null;
+};
 if (fs.existsSync(scriptFile)) {
   const spoken = fs.existsSync(groFile) ? JSON.parse(fs.readFileSync(groFile, 'utf8')) : {};
   for (const sc of JSON.parse(fs.readFileSync(scriptFile, 'utf8')).scenes) {
     for (const l of sc.lines) {
-      if (!l.textOnly || !l.key) continue; // the silent app messages have no key
+      if (!l.key) continue; // the silent app messages have no key
       const sp = l.voice || l.speaker;
+      const key = `${sp}|${l.text}`;
+      const have = l.textOnly ? null : recorded(key);
+      if (have?.fresh) continue;
       const c = CAST[sp];
       const accent = c?.accent || (isGronings(l.text) ? GRO_ACCENT : ACCENT);
       const gronings = /Gronings/.test(accent);
       if (!c) { waiting.cast.push(`${sp} (${l.text})`); continue; }
       if (gronings && !(l.text in spoken)) { waiting.gronings.push(`${sp}: ${l.text}`); continue; }
-      const key = `${sp}|${l.text}`;
       const tag = mood(sp, l.text, key);
       push({
-        key, speaker: sp, text: l.text, area: sc.id, out: 'lines', lang: gronings ? TTS_LANG : 'own',
+        key, speaker: sp, text: l.text, area: sc.id, out: have?.out || 'lines', lang: gronings ? TTS_LANG : 'own',
         voice: c.voice, who: c.who, tag, style: styleOf(c.who, tag, accent),
-        file: `${slug(sp)}/${slug(l.text).slice(0, 32)}_${hash(key).slice(0, 8)}.mp3`,
+        file: have?.src || `${slug(sp)}/${slug(l.text).slice(0, 32)}_${hash(key).slice(0, 8)}.mp3`,
       });
     }
   }
