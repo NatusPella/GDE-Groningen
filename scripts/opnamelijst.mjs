@@ -73,7 +73,8 @@ if (fs.existsSync(stilFile)) {
 }
 const text = out.join('\n').replace(/\n+$/, '\n');
 if (process.argv.includes('--check')) {
-  const cur = fs.existsSync(OUT) ? fs.readFileSync(OUT, 'utf8').replace(/\r\n/g, '\n') : '';
+  if (!fs.existsSync(OUT)) { console.log('geen docs/verhaal/OPNAMELIJST.md in deze werkboom (het bestand staat niet in git); niets te controleren'); process.exit(0); }
+  const cur = fs.readFileSync(OUT, 'utf8').replace(/\r\n/g, '\n');
   if (cur !== text) { console.log('docs/verhaal/OPNAMELIJST.md loopt achter: draai node scripts/opnamelijst.mjs'); process.exit(1); }
   console.log('OPNAMELIJST.md is bij');
 } else {

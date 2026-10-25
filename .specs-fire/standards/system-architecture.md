@@ -120,14 +120,7 @@ in de repo-root (ca. 200 KB). Die kaart is **naslag, geen spec**: grep erin op h
 onderwerp dat je zoekt en lees hem nooit in zijn geheel. Wijkt de kaart af van de
 code, dan is de kaart de fout en werk je hem bij in dezelfde commit.
 
-De gebiedsspecs naast dit bestand:
-
-| Spec | Gaat over |
-| --- | --- |
-| `constitution.md` | verwijzing naar `AGENTS.md`; geen tweede bron |
-| `tech-stack.md` | de gebruikte techniek en waarom |
-| `coding-standards.md` | stijl, naamgeving, modules, imports |
-| `testing-standards.md` | de testfasen en wat een test moet bewijzen |
-| `multiplayer.md` | Samen spelen: rollen, opdrachtstand, overdracht, PvP |
-| `wereld.md` | wereld, kaart, tegels, provincie, POI's, gebieden |
+De specs naast dit bestand staan in één lijst, met wat elk ervan dekt:
+[docs/SPECS-FIRE.md](../../docs/SPECS-FIRE.md). Houd die lijst daar bij: één lijst,
+geen tweede die uit elkaar kan lopen.
 

@@ -23,8 +23,7 @@ uitbetaling loopt via `loopbaanVerdien` (`game/js/loopbaanlive.js:156`) of `loop
 `w.money +=` naast een haak, en een nieuwe haak komt in `haken` van `loopbaan_balans_test.mjs`. De
 eerste klus staat in `START` (`:122`, #431). Opslag `gde-loopbaan-v1`
 (`game/js/storagekeys.js:77`). Samen spelen: de gastheer deelt `{ vak, basis, xp }` vóór zijn eigen
-factor (`loopbaanDeel`, `:150`), de gast past zijn eigen factor toe (`loopbaanGast`, `:190`), zonder
-nieuw bericht.
+factor (`loopbaanDeel`, `:150`), de gast past zijn eigen factor toe (`loopbaanGast`, `:190`).
 
 **Bestanden.** `loopbaan.js`, `loopbaanlive.js`, `loopbaanui.js`; haken in `sidejobs.js`,
 `vliegschool.js`, `padel.js`, `kermis.js`, `carbid.js`, `driftzone.js`, `postgame.js`.
@@ -55,28 +54,27 @@ afleveren.
 
 **Regels.** Vier gewassen met eigen zaaigoed, groeitijd, opbrengst en prijs per kg
 (`game/js/boerderij.js:18`); een speldag is 24 minuten (`game/js/daynight.js:12`). Groei telt in
-speluren uit `world.clock` (`game/js/boerderijlive.js:72`): een sprong vooruit telt mee, terug niet.
-Machines huur je per keer of koop je (`:31`); een ronde levert ongeveer €300 tot €350 winst op, en de
-verkoop loopt via `loopbaanVerdien` met de factor van Landbouw. Opslag `gde-boerderij-v1`
-(`storagekeys.js:81`). Samen spelen: een gast werkt op zijn eigen akker als lokale minigame
-(`game/js/boerderijgast.js:1`).
+speluren uit `world.clock` (`game/js/boerderijlive.js:72`). Machines huur je per keer of koop je
+(`:31`); een ronde levert ongeveer €300 tot €350 winst op, en de verkoop loopt via
+`loopbaanVerdien`. Opslag `gde-boerderij-v1` (`storagekeys.js:81`). Samen spelen: een gast werkt op
+zijn eigen akker als lokale minigame (`game/js/boerderijgast.js:1`).
 
 **Bestanden.** `boerderij.js`, `boerderijlive.js`, `boerderijui.js`, `boerderijwereld.js`,
 `boerderijgast.js`, `percelen.js`, `machines.js`, `werktuigen.js`, `werktuigen3d.js`,
 `sidejob_boerderij.js`.
 
 **Tests.** `boerderij_test.mjs`, `percelen_test.mjs`, `machines_test.mjs`, `werktuigen_test.mjs`,
-`boerderijwereld_test.mjs`, `boerderijui_machines_test.mjs`, `boerderijgast_test.mjs`.
+`boerderijwereld_test.mjs`, `boerderijgast_test.mjs`, `boerderijui_machines_test.mjs`.
 
 ## Vliegschool
 
 **Doel.** Twintig lessen bij Eelde met het vliegtuig of de helikopter, elk met een medaille.
 
 **Regels.** Elf vliegtuig- en negen helikopterlessen (`game/js/vliegschoolrules.js:34`); de
-basislessen staan in `vliegbasis.js`, de zeven oefenvormen in de tabel van `docs/VLIEGSCHOOL.md`.
-Een medaille betaalt €25, €40 of €60, alleen de eerste keer; opnieuw doen geeft 6 punten, een les
-zonder medaille 2. Records staan onder `vlieg-<les>`, prestaties zijn `vlieg_geslaagd`, `vlieg_goud`
-en `vlieg_brevet`; een crash kost niets. De banen komen uit `game/vliegplekken.json`.
+basislessen staan in `vliegbasis.js`. Een medaille betaalt €25, €40 of €60, alleen de eerste keer;
+opnieuw doen geeft 6 punten, een les zonder medaille 2. Records staan onder `vlieg-<les>`; een crash
+kost niets. De banen komen uit `game/vliegplekken.json`.
+
 **Bestanden.** `vliegschoolrules.js`, `vliegbasis.js`, `vliegschool.js`, `instrumenten.js`.
 
 **Tests.** `vliegschool_test.mjs` (vliegt elke vliegtuigles met de piloot), `instrumenten_test.mjs`.
@@ -88,7 +86,7 @@ en `vlieg_brevet`; een crash kost niets. De banen komen uit `game/vliegplekken.j
 **Regels.** Discgolf: negen holes in het Stadspark, medailles op +6, +1 en −2 slagen tegen par
 (`game/js/discgolfrules.js:32`), water kost een slag. Skatepark: een run van 90 s, medailles bij
 1200, 3200 en 6500 punten (`game/js/skatetricks.js:19`). Pitch en putt: zes holes, medailles op +7,
-+3 en 0 (`game/js/puttinglogic.js:34`). Alles is gratis, B of Backspace stopt, één bord bovenin via
++3 en 0 (`game/js/puttinglogic.js:34`). Gratis, B of Backspace stopt, één bord bovenin via
 `minigamekit.js`.
 
 **Bestanden.** `discgolfrules.js` + `discgolf.js`, `skatetricks.js` + `skatepark.js`,
@@ -96,19 +94,18 @@ en `vlieg_brevet`; een crash kost niets. De banen komen uit `game/vliegplekken.j
 `activitykit.js`, `minigamekit.js`.
 
 **Tests.** `minigames_test.mjs`, `minigames3_test.mjs`, `golfbeurt_test.mjs`,
-`golfetiquette_test.mjs`, `padelrules_test.mjs`, `coopwedstrijd_padel_test.mjs`.
+`golfetiquette_test.mjs`, `padelrules_test.mjs`.
 
 ## Geluid en muziek
 
 **Doel.** Eén mix met effecten, spraak en muziek, en één radiozender.
 
 **Regels.** Het meeste geluid wordt gesynthetiseerd; een paar CC0-opnames staan ernaast, beschreven
-in `game/audio/sfx/manifest.json`; ontbreekt er een, dan speelt de synth. Nieuwe opnames gaan door
-`scripts/audio/master_sfx.mjs` en krijgen een regel in `SAMPLE_INFO` (`game/js/sfx/samples.js`). De
-radio is G-Music met vier programmablokken (`game/js/musicpick.js:129`), een dag- en een nachtpool;
-een nummer uit de laatste 60% van de pool komt niet terug (`:87`), in 60% van de overgangen zit een
-jingle (`:118`). Stings zijn procedureel (`game/js/stings.js`): nooit twee tegelijk, 0,6 s afkoeling
-(`:10`), en de radio gaat er 45% zachter van (`game/js/audio.js:1755`).
+in `game/audio/sfx/manifest.json`. De radio is G-Music met vier programmablokken
+(`game/js/musicpick.js:129`), een dag- en een nachtpool; een nummer uit de laatste 60% van de pool
+komt niet terug (`:87`), in 60% van de overgangen zit een jingle (`:118`). Stings zijn procedureel
+(`game/js/stings.js`): nooit twee tegelijk, 0,6 s afkoeling (`:10`), en de radio gaat er 45% zachter
+van (`game/js/audio.js:1755`).
 
 **Bestanden.** `audio.js`, `sfx/samples.js`, `sfx/mixplan.js`, `musicpick.js`, `radio.js`,
 `stings.js`.
@@ -121,16 +118,14 @@ jingle (`:118`). Stings zijn procedureel (`game/js/stings.js`): nooit twee tegel
 **Doel.** Levenslange prestaties per speler, en beeld dat zich aanpast.
 
 **Regels.** Prestaties staan in `gde-prestaties-v1` (`storagekeys.js:27`); tellers lopen via
-`recordStat` (`game/js/achievements.js:445`) en de gate (`:379`) zet ze stil zolang een streek of de
-geldgreep loopt. Vier presets: laag, middel, vlot en hoog (`game/js/gfxprofile.js:9`). Automatische
-kwaliteit beoordeelt elke seconde op de mediaan, traag boven 27 ms (`:271`), schaalt de resolutie tot
-50% (`:270`) en kent cpuniveau 0 tot 3 (`:273`); `simload.js` volgt dat niveau voor verkeer en
-voetgangers.
+`recordStat` (`game/js/achievements.js:445`) en de gate (`:379`) zet ze stil bij een streek. Vier
+presets: laag, middel, vlot en hoog (`game/js/gfxprofile.js:9`). Automatische kwaliteit beoordeelt
+elke seconde op de mediaan, traag boven 27 ms (`:271`), schaalt de resolutie tot 50% (`:270`) en kent
+cpuniveau 0 tot 3 (`:273`); `simload.js` volgt dat niveau voor verkeer en voetgangers.
 
 **Bestanden.** `achievements.js`, `gfxprofile.js`, `simload.js`, `viewdist.js`, `settings.js`.
 
-**Tests.** `prestaties_test.mjs`, `achievements_defs_test.mjs`, `gfx_profile_test.mjs`,
-`viewdist_test.mjs`, `shadowsnap_test.mjs`.
+**Tests.** `prestaties_test.mjs`, `gfx_profile_test.mjs`, `viewdist_test.mjs`.
 
 ## Weer, dag en nacht
 
@@ -139,8 +134,7 @@ voetgangers.
 **Regels.** Zes weertypen: helder, bewolkt, mist, motregen, regenbui en onweer
 (`game/js/weatherstate.js:18`); sneeuw, ijs en vorst bestaan niet. De dag duurt 24 minuten
 (`daynight.js:12`). Sterren en maan volgen `cover = max(storm, bewolkt × 1,5, mist)`
-(`game/js/scene3d.js:3956`). Het weer is per regio; een gast volgt het weer en de dagstand van de
-gastheer (#378).
+(`game/js/scene3d.js:3956`). Een gast volgt het weer en de dagstand van de gastheer (#378).
 
 **Bestanden.** `weatherstate.js`, `weerdag.js`, `sunrules.js`, `daynight.js`, `sky3d.js`,
 `scene3d.js`.
@@ -156,24 +150,24 @@ spelen tegenhoudt.
 **Regels.** Vier kaarten in vaste volgorde (`game/js/onboarding.js:45`), elk één keer per apparaat
 onder `gde-uitleg` (`storagekeys.js:37`). Eén tegelijk: alleen als de narrative-planner het toelaat,
 er niets speelt en de speler niet in een missie, bijbaan of minigame zit; 12 s na de opening, 30 s
-tussen twee kaarten. Geen stem, niets pauzeert. Uit te zetten met `onboardingTips`; de toetshints
-(`prompts.js`) dekken alleen wat niet vanzelf spreekt.
-**Bestanden.** `onboarding.js`, `prompts.js`, `hudcards.js`, `narrative.js`, `busy.js`.
+ertussen. Uit te zetten met `onboardingTips`; de toetshints (`prompts.js`) dekken alleen wat niet
+vanzelf spreekt.
 
-**Tests.** Geen eigen test: alleen de schakelaar `onboardingTips` wordt gedekt door
-`spelmenu_test.mjs`; de kaarten zelf zijn niet in Node getest.
+**Bestanden.** `onboarding.js`, `prompts.js`, `hudcards.js`, `narrative.js`.
+
+**Tests.** Geen eigen test; alleen de schakelaar `onboardingTips` wordt gedekt door
+`spelmenu_test.mjs`.
 
 ## Meten
 
 De bron is `docs/PERF-METING-2026-10-19.md` (#4). Een nieuwe meting krijgt een eigen gedateerd
 document in `docs/`; nooit bijschrijven in een oude meting. `docs/archief/2026-10/PERF-PROFIEL.md` is
-historisch (0.24, vóór de tegels). Herhalen: `cd desktop && npm run stage`, dan
-`node scripts/perf/run.mjs <naam> <preset> --hitch`; `scripts/perf/abpair.mjs` voor een gepaard
-verschil, en alleen een paar standaardfouten telt. De machine was bij elke run bezet, dus absolute ms
-zijn ruw en verhoudingen niet (`:23`). Conflicten in één regel: de samenvatting noemt draw calls de
-grootste post (`:161`), terwijl Vervolg 9 een draw call op circa 2 µs zet en 46% minder draw calls
-maar 0,7 ms oplevert (`:417`); de vervolgen zijn de latere meting (#477). De code heeft vier presets,
-het rapport meet er drie.
+historisch (0.24, vóór de tegels). Herhalen met `node scripts/perf/run.mjs <naam> <preset>` op een
+gestagede build, en `scripts/perf/abpair.mjs` voor een gepaard verschil; alleen een paar
+standaardfouten telt. De machine was nooit leeg; absolute ms zijn ruw en verhoudingen niet (`:23`).
+Conflicten in één regel: de samenvatting noemt draw calls de grootste post (`:161`), terwijl Vervolg 9
+een draw call op circa 2 µs zet en 46% minder draw calls maar 0,7 ms oplevert (`:417`); de vervolgen
+zijn de latere meting (#477).
 
 ## Regels voor een nieuw systeem
 
@@ -198,5 +192,4 @@ het rapport meet er drie.
 - De audiowieken staan op de hoofdthread: `audio` piekte op 1945 ms in de ringroute (#482).
 - Gast en boerderijgroei: de documentatie zegt dat een gast zijn gewassen niet ziet groeien, maar
   `main.js:723` roept `boerderijTijd` ook op het gastpad aan (#471).
-- Twee testrunners: `scripts/run_tests.mjs` en `scripts/test_all.mjs`, waarbij de tweede de eerste
-  importeert (#481).
+- Twee testrunners naast elkaar (#481): `scripts/run_tests.mjs` en `scripts/test_all.mjs`.

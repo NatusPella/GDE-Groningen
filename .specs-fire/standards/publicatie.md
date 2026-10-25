@@ -8,7 +8,7 @@
 
 ## Doel
 
-De keten van wijziging naar downloadbare build, met de checks die daarbij horen
+Keten van wijziging naar downloadbare build, met de bijbehorende checks
 en de grens tussen agent en eigenaar. De repo is privé; elke stap naar buiten
 wacht op de eigenaar.
 
@@ -36,12 +36,10 @@ cd desktop && npm run release -- minor|patch --world
 versie (`:51`), leest de changelog via
 `node scripts/changelog_section.cjs "$VERSION"` (`:58`), draait `npm run stage`
 en `npx electron-builder --win --x64` (`:81`, `:83`; een dmg bouwt alleen op
-macOS, `:77`), tagt en pusht (`:124`) en maakt de release (`:176`) met
-`--prerelease` voor `0.*` (`:129`), uploadt
-(`:177`), comment op #116 (`:187`) en wist `dist/` en `build/` (`:193`). De
-notities waarschuwen voor niet-ondertekende bestanden en geven de
-installatiestappen (`:162`). Optioneel: `--linux`, `--web` (webzip, blijft
-lokaal) en `--steam` (kopie naar `steam/content/`).
+macOS, `:77`), tagt en pusht (`:124`), maakt de release (`:176`) met
+`--prerelease` voor `0.*` (`:129`), uploadt (`:177`), comment op #116 (`:187`)
+en wist `dist/` en `build/` (`:193`). Optioneel: `--linux`, `--web` en
+`--steam`.
 
 ### 3. Actions: `node scripts/release_builds.mjs`
 
@@ -66,9 +64,9 @@ met `workflow_dispatch`, hebben `contents: write` en geen geheimen, en bouwen
 uit de tag met de wereld uit `gde-world.tgz` (`GDE_PREBUILT_WORLD`); de
 provinciekaart komt dus lokaal. Bijlagen: `GDE-Groningen-<v>-windows-portable.exe`,
 `-mac.dmg`, `-linux.AppImage`, `-linux.tar.gz`, `-android-debug.apk` en
-`gde-world.tgz` (`scripts/release_builds.mjs:28-31`). Agents pushen, mergen, taggen en releasen nooit; dat
-doet de coördinator na de tests. Een agent werkt in een eigen worktree, in kleine
-commits, en draait alleen de checks bij zijn wijziging.
+`gde-world.tgz` (`scripts/release_builds.mjs:28-31`). Agents pushen, mergen,
+taggen en releasen nooit; dat doet de coördinator na de tests. Een agent werkt in
+een eigen worktree en draait alleen zijn eigen checks.
 
 ## Checks
 
@@ -171,7 +169,7 @@ committen; de OpenRouter-sleutel is alleen voor de TTS-scripts.
 
 ## Eigenaarsbesluiten die open staan
 
-Alleen deze, uit de docs:
+Uit de docs:
 
 1. Auteursnaam in de git-historie laten staan of met `--mailmap` herschrijven;
    OSM-contactgegevens in `data/*_raw.json` laten staan of de tags eruit halen.
@@ -193,11 +191,11 @@ Alleen deze, uit de docs:
    belofte van SHA-256 in de releasenotes bestaat niet in de code:
    `desktop/release.sh` en `scripts/release_builds.mjs` schrijven geen checksum.
    Een afwijking, geen regel.
-2. **#484** — de juridische teksten zijn niet overal gelijk.
-   `docs/LICENTIES.md:489` zegt in de Steam-sectie "geen online", terwijl Samen
-   spelen optioneel online is; `:50` noemt 20 muzieknummers en 8 loops, `:62` 34
-   en 15; `docs/PRIVACY-EN-CREDITS.md:45` zegt dat effecten zelf gesynthetiseerd
-   zijn, terwijl er acht CC0-opnames zijn (`docs/LICENTIES.md:68`).
+2. **#484** — de drie bekende juridische feiten zijn op 25-10 rechtgezet
+   (`docs/LICENTIES.md` noemt nu online samen spelen, 34 nummers en 15 loops;
+   `docs/PRIVACY-EN-CREDITS.md` noemt de acht CC0-opnames). Wat overblijft: de
+   aantallen staan in proza in plaats van te komen uit `scripts/audio_herkomst.mjs`,
+   en de eigenaar moet de strekking nog bevestigen.
 3. **#481** — twee testrunners naast elkaar, met verschillende dekking; zie
    "Checks".
 4. **#485** — de webversie (`web/build.mjs`) heeft geen eigen tests in
