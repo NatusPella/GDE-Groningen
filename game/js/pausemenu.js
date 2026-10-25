@@ -45,11 +45,12 @@ import { renderOverview, renderTodo, renderTodoStory, todoClick, todoFocus, todo
 import { isPlayAheadOpen } from './todo.js';
 import { renderVerhaal, verhaalClick, verhaalSummary, disposeVerhaalViewer, selectVerhaalCharacter } from './verhaalui.js';
 import { anyFresh } from './characters.js';
-import { renderSpullen, spullenClick, spullenFocus } from './spullen.js';
+import { renderSpullen, spullenClick, spullenFocus, zetSpullenZoek, DELEN } from './spullen.js';
 import { phoneClick, phoneUnread, selectPhoneThread, characterForSender } from './phone.js';
 import { getErrorLog, errorReport, clearErrorLog, onErrorLogChange } from './errorlog.js';
 import { KEYS } from './storagekeys.js';
 import { renderFotoPanel, fotoClick, isPhotoMode } from './fotomodusui.js';
+import { woordenVan, past } from './zoektekst.js';
 // Running inside the desktop app (desktop/preload.js): window mode + quit.
 const DESKTOP = typeof window !== 'undefined' && window.gdeDesktop && window.gdeDesktop.isDesktop ? window.gdeDesktop : null;
 
@@ -152,17 +153,17 @@ function controlsHtml() {
 
 function filterControls(q) {
   const panel = root.querySelector('[data-panel="controls"]');
-  const words = q.toLowerCase().trim().split(/\s+/).filter(Boolean);
+  const words = woordenVan(q);
   let any = false;
   for (const g of panel.querySelectorAll('.pm-cgroup:not(.pm-help)')) {
     let n = 0;
     for (const r of g.querySelectorAll('.pm-crow')) {
-      const hit = words.every((w) => r.dataset.search.includes(w));
+      const hit = past(r.dataset.search, words);
       r.hidden = !hit;
       if (hit) n++;
     }
     // de hulpblokken (tabblad Hulp) hebben geen toetsrijen: ze tellen mee op hun eigen tekst
-    if (g.classList.contains('pm-help')) { const t = g.textContent.toLowerCase(); n = words.every((w) => t.includes(w)) ? 1 : 0; }
+    if (g.classList.contains('pm-help')) n = past(g.textContent, words) ? 1 : 0;
     g.hidden = !n;
     any = any || n > 0;
   }
@@ -177,7 +178,7 @@ function filterBinds(words) {
     const sluitKop = () => { if (kop) kop.hidden = !n; };
     for (const el of sub.querySelectorAll('.m-gh, .pm-bind')) {
       if (el.classList.contains('m-gh')) { sluitKop(); kop = el; n = 0; continue; }
-      const hit = words.every((w) => el.textContent.toLowerCase().includes(w));
+      const hit = past(el.textContent, words);
       el.hidden = !hit;
       if (hit) n++;
     }
@@ -249,10 +250,11 @@ const SECTIONS = [
   ['streken', 'Cheats', 'Een beetje vals spelen'],
 ];
 // the rail's three groups: playing, collected, system
-const RAIL_GROUPS = [['spel', 'verhaal', 'loopbaan', 'todo'], ['map', 'spullen', 'garage', 'prestaties', 'fotos'], ['settings']];
+// Cheats staat sinds #435 naast Instellingen in de rail: het was te verstopt onder Instellingen > Cheats.
+const RAIL_GROUPS = [['spel', 'verhaal', 'loopbaan', 'todo'], ['map', 'spullen', 'garage', 'prestaties', 'fotos'], ['settings', 'streken']];
 // Onderdelen zonder eigen plek in de rail die onder een ander onderdeel hangen (#430): Vissen en Farmen horen bij Loopbaan
 // (de tegels Bezigheden), de toetsen en knoppen bij Instellingen > Besturing. De rail markeert de ouder; Terug gaat naar de ouder.
-const CHILD = { visboek: 'loopbaan', boerderij: 'loopbaan', controls: 'settings', streken: 'settings' };
+const CHILD = { visboek: 'loopbaan', boerderij: 'loopbaan', controls: 'settings' };
 const PRESTART_SECTIONS = ['spel', 'settings', 'controls'];
 const SUBTABS = {
   todo: [['alles', 'Alles'], ['dichtbij', 'Dichtbij']],
@@ -570,7 +572,12 @@ export function initPauseMenu(w) {
             </div><aside class="m-pane td-detail" aria-label="Details"></aside></div>
           </div></section>
           <section data-panel="map" class="pm-panel pm-map" hidden></section>
-          <section data-panel="spullen" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-spullen"><div class="m-main"><div class="m-list td-list"></div><aside class="m-pane td-detail" aria-label="Details"></aside></div></div></section>
+          <section data-panel="spullen" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-spullen">
+            <div class="pm-spulbar"><label class="m-inp pm-csearch">${icon('search')}
+              <input type="search" data-spul-search placeholder="Zoek in je spullen, bijv. fiets, kast of stempel" aria-label="Zoek in je spullen" autocomplete="off" spellcheck="false"></label>
+              <div class="pm-chips pm-spulchips" role="group" aria-label="Deel van je spullen">${DELEN.map(([id, label]) => `<button type="button" class="m-chip" data-spul-deel="${id}" aria-pressed="${id === 'alles'}">${label}</button>`).join('')}</div>
+            </div>
+            <div class="m-main"><div class="m-list td-list"></div><aside class="m-pane td-detail" aria-label="Details"></aside></div></div></section>
           <section data-panel="garage" class="pm-panel pm-col" hidden><div class="pm-inner pm-garage"></div></section>
           <section data-panel="verhaal" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-verhaal">${subtabsHtml('verhaal', 'Verhaal')}
             <div class="m-main pm-vbody"><div data-of="verhaal" data-sub="opdrachten" data-keep class="pm-vsub pm-vopd"><div class="m-main"><div class="m-list td-list"></div><aside class="m-pane td-detail" aria-label="Details"></aside></div></div><div data-of="verhaal" data-sub="personages" class="pm-vsub" hidden></div><div data-of="verhaal" data-sub="aanwijzingen" class="pm-vsub" hidden></div><div data-of="verhaal" data-sub="veroverd" class="pm-vsub pm-veroverd" hidden></div></div>
@@ -697,6 +704,18 @@ export function initPauseMenu(w) {
     });
   }
   search.addEventListener('input', () => filterControls(search.value));
+
+  // het zoekveld van Spullen (#435): dezelfde afscherming, zodat typen niet in het spel belandt
+  const spulZoek = root.querySelector('[data-spul-search]');
+  for (const type of ['keydown', 'keyup', 'keypress']) {
+    spulZoek.addEventListener(type, (e) => {
+      e.stopPropagation();
+      if (type !== 'keydown' || e.key !== 'Escape') return;
+      e.preventDefault();
+      if (spulZoek.value) { spulZoek.value = ''; zetSpullenZoek(''); spullenApi.rerender(); } else spulZoek.blur();
+    });
+  }
+  spulZoek.addEventListener('input', () => { zetSpullenZoek(spulZoek.value); spullenApi.rerender(); });
 
   // a narrow sheet stacks the garage's list and viewer, and Te doen's details
   if (typeof ResizeObserver !== 'undefined') {

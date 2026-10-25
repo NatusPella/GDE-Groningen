@@ -512,3 +512,7 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .sp-gh .pm-ic { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
 #pause-menu .m-li .pm-ic { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; color: var(--g); flex: none; }
 #pause-menu .sp-leeg { margin: 4px 24px 16px; font-size: 18px; line-height: 1.4; }
+/* Spullen (#435): zoeken en de delen bovenaan, zodat je snel vindt wat je hebt */
+#pause-menu .pm-spulbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin: 0 24px 12px; flex: none; }
+#pause-menu .pm-spulbar .pm-csearch { margin: 0; flex: 1 1 260px; max-width: 520px; }
+#pause-menu .pm-spulchips { justify-content: flex-start; }
