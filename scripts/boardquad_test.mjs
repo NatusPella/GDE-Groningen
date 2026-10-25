@@ -1,5 +1,7 @@
 // Place name boards and signposts: front towards the arriving traffic, plain back (#228): node scripts/boardquad_test.mjs
-import { boardQuads } from '../game/js/boardquad.js';
+// En: een bord zonder tekst is geen bord (#436), want de bordatlas is ondoorzichtig en een leeg vakje
+// staat zwart in de wereld.
+import { boardQuads, bordTekst, paneelTekst, bordHeeftTekst } from '../game/js/boardquad.js';
 
 let n = 0, fails = 0;
 const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${name}${info ? ' (' + info + ')' : ''}`); } };
@@ -31,5 +33,20 @@ for (const a of [0, 0.7, Math.PI / 2, 2.4, Math.PI, -2, -0.3]) {
   ok(f[0] === 1 && f[1] === 1, `a=${a}: the front uses its own cell`, JSON.stringify(f));
   ok(bk[0] === 3 && bk[1] === 15, `a=${a}: the back uses the plain cell`, JSON.stringify(bk));
 }
+// --- een bord zonder tekst is geen bord (#436) ---
+for (const leeg of ['', '   ', null, undefined, [], ['', '  '], [null, undefined], 0, {}]) {
+  ok(!bordHeeftTekst({ k: 'placesign', text: leeg }), `geen vlak voor een bord zonder tekst (${JSON.stringify(leeg)})`);
+  ok(bordTekst(leeg).length === 0, `geen regels zonder tekst (${JSON.stringify(leeg)})`);
+}
+ok(bordHeeftTekst({ k: 'placesign', text: ['Haren'] }), 'een plaatsnaambord heeft tekst');
+ok(bordHeeftTekst({ k: 'wegwijzer', text: ['↑ Haren', '← Zernike'] }), 'een wegwijzer heeft tekst');
+ok(bordTekst([' Haren ', '  ', null]).join('|') === 'Haren', 'lege regels en spaties vallen weg', JSON.stringify(bordTekst([' Haren ', '  ', null])));
+ok(bordTekst('Hoogkerk')[0] === 'Hoogkerk', 'één regel als tekst mag ook');
+ok(!bordHeeftTekst(null) && !bordHeeftTekst(undefined), 'een bord zonder tekstveld komt er niet in');
+// een portaal: een leeg paneel levert geen vlak op, het andere blijft
+ok(paneelTekst(['↑ Haren', ''], 0) === '↑ Haren' && paneelTekst(['↑ Haren', ''], 1) === '', 'een leeg portaalpaneel valt weg');
+ok(paneelTekst(undefined, 1) === '' && paneelTekst([' Haren '], 0) === 'Haren', 'paneeltekst is getrimd en veilig');
+ok(paneelTekst([], 0) === '' && paneelTekst('Los', 0) === 'Los', 'paneeltekst ook zonder lijst');
+
 console.log(fails ? `${fails} of ${n} FAILED` : `ok: ${n} checks`);
 process.exit(fails ? 1 : 0);

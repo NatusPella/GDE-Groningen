@@ -4,6 +4,27 @@
 // mirrored from behind (#228). Positions are three.js order (x, height, y).
 //   boardQuads(b, frontCell, backCell, cols, rows, thick)
 //     -> { pos: [x, h, y, ...], uv: [u, v, ...] } six vertices for each of the two quads
+
+// Een bord zonder tekst is geen bord (#436): het vlak staat leeg in de wereld en de bordatlas is
+// ondoorzichtig, dus een niet-getekend vakje wordt zwart. Deze regels zijn puur, zodat de atlas in
+// streetfurniture3d.js en de tests (scripts/boardquad_test.mjs) dezelfde afspraak gebruiken.
+// text: de regels van een bord (['Haren'] of ['↑ Haren', '← Zernike']); alles wat geen niet-lege
+// regel is valt weg.
+export function bordTekst(text) {
+  const lijst = Array.isArray(text) ? text : text == null ? [] : [text];
+  return lijst.map((t) => (typeof t === 'string' ? t.trim() : '')).filter(Boolean);
+}
+
+// De tekst van één paneel van een portaalbord (0 = rechtdoor, 1 = de afrit); '' als er niets staat.
+export function paneelTekst(text, p) {
+  const lijst = Array.isArray(text) ? text : text == null ? [] : [text];
+  const t = lijst[p];
+  return typeof t === 'string' ? t.trim() : '';
+}
+
+// Heeft dit bord (of portaal) überhaupt tekst? Zo niet, dan komt er geen vlak in de wereld.
+export const bordHeeftTekst = (b) => bordTekst(b && b.text).length > 0;
+
 export function boardQuads(b, frontCell, backCell, cols, rows, w, hh, z) {
   const ca = Math.cos(b.a), sa = Math.sin(b.a);
   // across the travel direction: (-sa, ca)
