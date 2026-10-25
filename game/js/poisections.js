@@ -1,3 +1,5 @@
+import { SECTION } from './gdt.js';
+
 // The city's places as tile rows (#314, B6-B8): the lists of map.meta that are points (shops, horeca, garages, neighbourhood points,
 // landmarks, traffic lights, care sites, police stations, the hospital, the helipad and the pois per kind) sit in the POIS section of
 // the tile their point lies in, instead of whole in the global layer. Pure: the packer (scripts/world/pack_tiles.mjs) splits, the
@@ -87,4 +89,31 @@ function set(meta, name, value) {
   const k = name.slice(0, i);
   if (!meta[k] || typeof meta[k] !== 'object') meta[k] = {};
   meta[k][name.slice(i + 1)] = value;
+}
+
+// Wat de tegels van een POI-laag geven, met map.meta als terugval (zie facilities.js). Hier, zodat纯 wereldtests
+// (junctions, worldbuilder) geen zware faciliteitenlaag hoeven te laden (#314).
+export function metaAt(meta, name) {
+  let v = meta;
+  for (const k of name.split('.')) { if (!v || typeof v !== 'object') return undefined; v = v[k]; }
+  return v;
+}
+
+export function layerValue(map, name) {
+  const slim = map && map.poiMeta;
+  const layer = map && map.tileIndex && map.tileIndex.pois && map.tileIndex.pois.layers && map.tileIndex.pois.layers[name];
+  const store = map && map.store;
+  if (!slim || !layer || !store || !layer.tiles.every((k) => store.ready(k))) return undefined;
+  const rows = layer.tiles.map((k) => {
+    const tile = store.tile(k);
+    return tile ? tile.sections.filter((s) => s.type === SECTION.POIS).flatMap((s) => s.rows) : [];
+  });
+  return layerRows(slim, name, rows);
+}
+
+export function poiLayerPlaces(map, name) {
+  const value = layerValue(map, name);
+  if (Array.isArray(value)) return value;
+  const list = metaAt((map && map.meta) || {}, name);
+  return Array.isArray(list) ? list : [];
 }

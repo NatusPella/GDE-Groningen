@@ -10,7 +10,7 @@
 //   yieldAt(map, road, i)  whether `road` gives way at its vertex i
 
 import { SpatialGrid } from './spatialgrid.js';
-import { poiLayerPlaces } from './facilities.js';
+import { poiLayerPlaces } from './poisections.js';
 
 const CAR_CATS = new Set(['major', 'normal', 'minor']);
 const TYPE_RANK = {
