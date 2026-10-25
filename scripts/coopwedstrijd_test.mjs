@@ -451,6 +451,8 @@ const BANEN = [{ par: 2 }, { par: 3 }, { par: 2 }, { par: 3 }, { par: 2 }, { par
   // de host stopt de ronde
   for (const s of [1, 2, 3]) W.wedHandleGast(world, { k: 'wedgast', a: 'ja' }, s);
   hub.roster.spelers.find((s) => s.slot === 2).verbinding = 'ok';
+  W.wedHostTik(world, 0.1); // hij is terug: binnen het venster krijgt hij de vraag weer (#443)
+  W.wedHandleGast(world, { k: 'wedgast', a: 'ja' }, 2);
   W.wedHostTik(world, 0.1); eind = null;
   const lg = log.length;
   check('de host kan de ronde voor iedereen stoppen', W.wedScoreStop(world) && eind === 'gestopt' && log.slice(lg).filter(([, b]) => b.f === 'eind' && b.gestopt).length >= 1 && betaald.length === 1);
@@ -664,6 +666,22 @@ const kgFormat = (g) => `${(g / 1000).toFixed(1).replace('.', ',')} kg`;
   check('een onzinnig aantal beurten wordt begrensd', fout && fout.punt === true && fout.beurten === P.MAX_BEURTEN_PUNT);
 }
 
+// ---- een puntspel met meerdere beurten (skatepark: twee runs, de punten tellen op) (#443)
+{
+  const st = P.maakBeurten(2);
+  check('een puntspel met twee beurten begint bij de eerste beurt', st.beurten === 2 && P.beurtNu(st) === 0 && P.somVan(st) === 0);
+  const b0 = P.beurtKlaar(st, 1200.4);
+  check('na de eerste beurt volgt er nog een, met de som tot nu toe', b0.volgende === true && b0.som === 1200 && P.beurtNu(st) === 1);
+  const b1 = P.beurtKlaar(st, 800);
+  check('na de laatste beurt is het klaar met de som van beide runs', b1.volgende === false && b1.som === 2000 && !P.beurtKlaar(st, 100).volgende && P.somVan(st) === 2000);
+  const leeg = P.maakBeurten(1); P.beurtKlaar(leeg, -50);
+  check('onzin aan het eind van een beurt wordt niet negatief en het aantal beurten wordt begrensd', P.somVan(leeg) === 0 && P.maakBeurten(99).beurten === P.MAX_BEURTEN_PUNT && P.beurtKlaar(null, 5).volgende === false);
+  const sc = P.maakPunt('skatepark', MENSEN, { beurten: 2 });
+  check('de twee runs van een speler tellen op in de stand van de host', P.meldPunt(sc, 0, 0, 1800) && P.meldPunt(sc, 0, 1, 2200) && P.standPunt(sc).find((r) => r.slot === 0).punten === 4000 && P.beurtenGespeeld(sc, 0) === 2);
+  const u = P.uitslagPunt(sc);
+  check('de uitslag van een wedstrijd met twee beurten toont de som', u[0].tekst === '4.000 punten' && u[0].fin === true, JSON.stringify(u.map((r) => r.tekst)));
+}
+
 // ---- een baanwedstrijd (bruggenrace, regatta): pure regels, de stand en de uitslag (#443)
 const B = await import('../game/js/coopwedstrijdbaan.js');
 {
@@ -778,6 +796,84 @@ const B = await import('../game/js/coopwedstrijdbaan.js');
   check('de gast heeft het bord van de toeschouwer', !!G.kijk && G.kijk.rijen.length === 1 && !G.spiegel);
   W.wedHandleHost(gworld, W.startEvent('kartbaan', MENSEN, 0));
   check('wie gaat meedoen raakt het bord kwijt', !G.kijk);
+}
+
+// ---- het instapvenster en de laatkomer (#443): voor de start mag je nog meedoen, erna kijk je mee
+{
+  let gestart = null;
+  W.registreerWedstrijd('kartbaan', { naam: 'Karten in Ulrum', start: (w, r) => { gestart = r; return true; }, solo: () => 'solo' });
+  const { world, log, hub } = nepWereld([{ slot: 0, char: 'tammo', verbinding: 'ok' }, { slot: 1, char: 'anita', verbinding: 'ok' }]);
+  W.wedNodigUit(world, 'kartbaan');
+  check('de uitnodiging gaat naar de gasten die er nu zijn', log.filter(([, b]) => b.f === 'uit').length === 1);
+  hub.roster.spelers.push({ slot: 2, char: 'rik', verbinding: 'ok' }); // hij komt binnen tijdens het instapvenster
+  W.wedHostTik(world, 1);
+  check('een gast die tijdens het instapvenster binnenkomt krijgt dezelfde vraag', log.some(([s, b]) => s === 2 && b.f === 'uit') && world.messages.some((m) => /kan nog meedoen/.test(m)));
+  W.wedHandleGast(world, { k: 'wedgast', a: 'ja' }, 1);
+  W.wedHandleGast(world, { k: 'wedgast', a: 'ja' }, 2);
+  W.wedHostTik(world, 10);
+  check('wie tijdens het venster ja zei, rijdt mee', gestart && gestart.karts.filter((k) => k.mens).map((k) => k.slot).join() === '0,1,2', gestart && gestart.karts.map((k) => k.slot).join());
+  hub.roster.spelers.push({ slot: 3, char: 'sanne', verbinding: 'ok' }); // hij komt na de start binnen
+  const na = log.length;
+  const laat = W.wedVraagStart(world, 3, 'kartbaan');
+  check('na de start kan niemand meer instappen: de volgende ronde', !laat.ok && laat.reden === W.WED_TEKST.loopt('Karten in Ulrum') && log.slice(na).filter(([, b]) => b.f === 'uit').length === 0);
+  W.wedRaceTik(world, gestart, DT, HOST);
+  W.wedRaceTik(world, gestart, DT, HOST);
+  for (let i = 0; i < 40; i++) W.wedRaceTik(world, gestart, DT, HOST);
+  check('de laatkomer kijkt mee op het bord van de race', log.some(([s, b]) => s === 3 && b.f === 'kijk'));
+}
+
+// ---- de toeschouwer bij een wedstrijd op het eigen scherm (golf, klimtoren, skatepark, hengelen): hetzelfde bord (#443)
+{
+  W.zetWedHaken({ betaalGast: () => true });
+  // een golfronde: de stand in slagen en banen, het bord ook bij de uitslag
+  let golf = null;
+  W.registreerWedstrijd('pitchputt', { naam: 'Pitch & putt', soort: 'score', banen: () => [{ par: 2 }, { par: 3 }], start: (w, sc) => { golf = sc; return true; }, plek: () => ({ x: 1, y: 2 }), eind: () => {}, solo: () => 'solo' });
+  const g1 = nepWereld(ROSTER());
+  W.wedNodigUit(g1.world, 'pitchputt');
+  W.wedHandleGast(g1.world, { k: 'wedgast', a: 'ja' }, 1);
+  W.wedHandleGast(g1.world, { k: 'wedgast', a: 'nee' }, 2);
+  W.wedHandleGast(g1.world, { k: 'wedgast', a: 'nee' }, 3);
+  W.wedHostTik(g1.world, 0.1);
+  check('wie nee zei krijgt meteen het bord van de golfronde', g1.log.some(([s, b]) => b.f === 'kijk' && (s === 2 || s === 3)) && !g1.log.some(([s, b]) => b.f === 'kijk' && s === 1));
+  W.wedHandleGast(g1.world, { k: 'wedgast', a: 'score', b: 0, s: 2 }, 1);
+  W.wedHostScore(g1.world, 0, 3);
+  W.wedHostTik(g1.world, 0.6);
+  const gb = W.leesWed(g1.log.filter(([, b]) => b.f === 'kijk').pop()[1]);
+  check('het bord noemt de stand van een golfronde in par en banen', gb && gb.rijen.length === 2 && gb.rijen[0][0] === '1. Tessa' && gb.rijen[0][1] === 'par, 1 van 2 banen' && gb.rijen[1][1] === '+1, 1 van 2 banen', JSON.stringify(gb && gb.rijen));
+  W.wedHandleGast(g1.world, { k: 'wedgast', a: 'score', b: 1, s: 3 }, 1);
+  W.wedHostScore(g1.world, 1, 3);
+  W.wedHostTik(g1.world, 0.1);
+  const geind = W.leesWed(g1.log.filter(([, b]) => b.f === 'kijk' && b.klaar).pop()[1]);
+  check('na de golfronde ziet de toeschouwer de eindstand', geind && geind.klaar && geind.rijen[0][0] === '1. Tessa' && /par \(5 slagen\)/.test(geind.rijen[0][1]), JSON.stringify(geind && geind.rijen));
+  // de klimtoren: tijd, of niet boven met de hoogste greep
+  W.registreerWedstrijd('klimtoren', { naam: 'Klimtoren Zernike', soort: 'tijd', vak: 'buiten', start: () => true, plek: () => ({ x: 1, y: 2 }), eind: () => {}, solo: () => 'solo' });
+  const k1 = nepWereld(ROSTER());
+  W.wedNodigUit(k1.world, 'klimtoren');
+  W.wedHandleGast(k1.world, { k: 'wedgast', a: 'ja' }, 1);
+  W.wedHandleGast(k1.world, { k: 'wedgast', a: 'nee' }, 2);
+  W.wedHandleGast(k1.world, { k: 'wedgast', a: 'nee' }, 3);
+  W.wedHostTik(k1.world, 0.1);
+  W.wedHandleGast(k1.world, { k: 'wedgast', a: 'tijd', t: 83.4, h: 12, o: 1 }, 1);
+  W.wedHostTik(k1.world, 0.6);
+  const kb = W.leesWed(k1.log.filter(([, b]) => b.f === 'kijk').pop()[1]);
+  check('het bord van de klimtoren noemt de tijd van wie boven kwam', kb && kb.rijen[0][1] === '1:23.40' && kb.rijen[1][1] === 'nog bezig', JSON.stringify(kb && kb.rijen));
+  W.wedHostTijd(k1.world, { tijd: 91.2, hoogte: 9.5, boven: false });
+  W.wedHostTik(k1.world, 0.1);
+  const ke = W.leesWed(k1.log.filter(([, b]) => b.f === 'kijk' && b.klaar).pop()[1]);
+  check('en na de poging wie niet boven kwam met zijn hoogste greep', ke && ke.klaar && ke.rijen[1][1] === 'niet boven: hoogste greep 9,5 m', JSON.stringify(ke && ke.rijen));
+  // punten met beurten: de som en hoeveel beurten iemand af had
+  W.registreerWedstrijd('hengelen', { naam: 'Hengelen Meerstad', soort: 'punt', vak: 'hengelen', opties: () => ({ beurten: 2, format: kgFormat }), start: () => true, plek: () => ({ x: 1, y: 2 }), eind: () => {}, solo: () => 'solo' });
+  const p1 = nepWereld(ROSTER());
+  W.wedNodigUit(p1.world, 'hengelen');
+  W.wedHandleGast(p1.world, { k: 'wedgast', a: 'ja' }, 1);
+  W.wedHandleGast(p1.world, { k: 'wedgast', a: 'nee' }, 2);
+  W.wedHandleGast(p1.world, { k: 'wedgast', a: 'nee' }, 3);
+  W.wedHostTik(p1.world, 0.1);
+  W.wedHandleGast(p1.world, { k: 'wedgast', a: 'punt', b: 0, p: 1200 }, 1);
+  W.wedHostPunt(p1.world, 0, 900);
+  W.wedHostTik(p1.world, 0.6);
+  const pb = W.leesWed(p1.log.filter(([, b]) => b.f === 'kijk').pop()[1]);
+  check('het bord van de hengelwedstrijd toont de som in kg en de beurten', pb && pb.rijen[0][0] === '1. Tessa' && pb.rijen[0][1] === '1,2 kg, 1 van 2 beurten' && pb.rijen[1][1] === '0,9 kg, 1 van 2 beurten', JSON.stringify(pb && pb.rijen));
 }
 
 console.log(bad ? `${bad} van ${n} controles mislukt` : `ok: ${n} controles`);
