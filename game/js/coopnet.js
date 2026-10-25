@@ -62,6 +62,8 @@ import { busCoopActie, busCoopValideerE } from './coopbus.js';
 import { zetBestuurHaken, bestuurGebruik, bestuurTick, bestuurLos, bestuurAllesLos, bestuurt, trekGast } from './coopbestuur.js';
 import { nieuweDeelStaat, bezorgVraag, bezorgHost, bezorgWeg, bezorgAllesWeg } from './coopbezit.js'; // eigen voertuigen meenemen en delen (#449)
 import { lichaamVan, eersteGastPlek, startPlek, isKoploos } from './net/koploos.js'; // een gastheer zonder lokale speler (#450)
+import { heistRolGebruik, heistGastTik } from './heistrollen.js'; // de rolstap van de inbraak in Samen spelen (#438)
+import { activeStage, getMissionDefs } from './missionquery.js'; // de lopende stap van de opdracht (#438)
 
 export const CAPS = ['scene', 'spelers', 'snaptijd', 'pvp']; // wat dit spel kent; uitbreidbaar (net/session.js negotiate). snaptijd: de tijd van een snapshot (ms van de klok van de host) staat in de kop, #434
 export const REMOVE_DELAY = 0.5; // s tussen "je bent verwijderd" en het verbreken
@@ -844,6 +846,16 @@ export function deelMetGasten(world, bedrag, info = null) {
   return k;
 }
 
+// ---------------------------------------------------------------- de rolstap van de inbraak (#438)
+// De lopende stap van de groep van deze gast, uit de eigen verhaaldefs (dezelfde data als de gastheer).
+function heistStapGast(world) {
+  const m = world.coopMissie;
+  if (!m || !m.actief || !m.stap) return null;
+  const def = (getMissionDefs() || [])[m.index];
+  if (!def || !def.heist || !Array.isArray(def.stages)) return null;
+  return def.stages.find((q) => q && typeof q.label === 'string' && q.label && m.stap.startsWith(q.label)) || null;
+}
+
 export function tickCoopNet(world, dt) {
   if (world.coopWissel) wisselTik(world, dt); // het spel overdragen (#439): ook als de sessie even weg is
   const n = world.coopNet; if (!n) return;
@@ -874,9 +886,11 @@ export function tickCoopNet(world, dt) {
     }
     const inp = world.input;
     const m = makeClientInput(inp && inp.axis ? inp.axis() : [0, 0], !!(inp && inp.isDown && inp.isDown('shift')), world.camYaw, !!((world.coopWiel || world.coopBestuurder || world.coopWedstrijd) && inp && inp.isDown && inp.isDown(' ')), !world.coopInVoertuig && springKnop(n, inp, dt), !world.coopInVoertuig && !!(inp && inp.isDown && inp.isDown('control')), !world.coopInVoertuig && !!world.coopAanvalKnop, !world.coopInVoertuig && !!world.coopZichtKnop); // zicht: de kijker van het jachtgeweer; // springen en bukken te voet, de aanvalsknop met een wapen (#434)
+    // de kluis draaien (#438): Spatie zet het cijfer vast, dus je springt of schiet niet en je blijft staan
+    if (world.coopHeistDial) { m.mx = 0; m.my = 0; m.buttons = 0; }
     if (inp && inp.wasPressed && inp.wasPressed('y')) wielGebaar(world); // Y: om het stuur vragen (#291)
     if (inp && inp.wasPressed && inp.wasPressed('b') && !world.paused) bijGroepGebaar(world); // B: bij de groep komen (#429)
-    if ((world.coopScene && world.coopScene.filmpje) || world.paused) s.setInput(0, 0, 0, m.yaw); // de gastheer kijkt een filmpje, of de gast zit zelf in een menu, de kaart of een winkel: zijn figuur staat stil (#373)
+    if ((world.coopScene && world.coopScene.filmpje) || world.paused || world.coopHeistDial) s.setInput(0, 0, 0, m.yaw); // de gastheer kijkt een filmpje, de gast zit zelf in een menu, de kaart of een winkel, of draait de kluis (#373, #438)
     else s.setInput(m.mx, m.my, m.buttons, m.yaw);
     s.tick(dt);
     n.lokaal += dt;
@@ -906,6 +920,10 @@ export function tickCoopNet(world, dt) {
       world.coopPartners = partnersInfo(s.slot, sample ? sample.players : [], world.coopRoster || []); ververs(world, s.slot); // register world.players (#446)
       world.coopPartner = world.coopPartners[0] || null;
       world.coopCam = CAMERA_DELEN && s.slot === 1 ? sharedCamera(world.player, world.companion) : null; // alleen Tessa zou de camera delen met Tammo (uit, #388)
+      // de rolstap van de inbraak (#438): je chip met je rol en, bij de kluis, de draaischijf op je eigen
+      // scherm. Klaar met draaien = een gewoon E-bericht aan de gastheer, die de stap controleert.
+      heistGastTik(world, dt, heistStapGast(world));
+      if (world.coopHeistClaim) { world.coopHeistClaim = false; gastGebruik(world); }
     }
     return;
   }
@@ -1241,6 +1259,7 @@ const gastNaam = (world, slot) => { const p = (world.coopRoster || []).find((x) 
 // E van een gast bij de host (na de eigen winkels, activiteiten en wedstrijden): als bijrijder
 // in- of uitstappen (alleen plek 1, de metgezel), of een figuur dat zelf in- of uitstapt (#372).
 function gebruikGast(world, van) {
+  if (heistRolGebruik(world, van, activeStage())) return true; // je eigen rolstap van de inbraak (#438)
   if (busCoopValideerE(world, van)) return true; // het hulpje in de bus valideert een kaartje (#444)
   if (bestuurGebruik(world, van).gedaan) return true; // een vrij voertuig bij de gast: hij stapt in als bestuurder, of uit (#434)
   if (van >= 2) return figGebruik(world, van); // de 3e en 4e speler stappen zelf in of uit (#372)
@@ -1363,7 +1382,7 @@ export function stopCoopNet(world) {
   if (n.role === 'host') { try { n.hub.announce({ k: 'weg', reden: 'spel gestopt' }); n.hub.closeAll(); } catch (e) { /* al weg */ } } else { try { if (n.session.status !== 'geweigerd' && n.session.status !== 'verbroken') n.session.leave(); } catch (e) { /* al weg */ } }
   world.coopNet = null;
   zetEigenVoertuigenTerug(world, n); // de eigen voertuigen van de gast komen terug (ook na een overdracht: de volgende startHost of startClient ziet de eigen lijst)
-  if (n.role === 'client') { wedGastReset(world); bijbaanGastReset(world); } // een race tegen elkaar op zijn scherm houdt op (#443)
+  if (n.role === 'client') { wedGastReset(world); bijbaanGastReset(world); heistGastTik(world, 0, null); world.coopHeistRol = null; world.coopHeistGast = null; } // een race tegen elkaar op zijn scherm houdt op (#443); de rolstap van de inbraak ook (#438)
   if (n.role === 'client') gastVerhaalHerlaad(world); // een meegesprongen verhaal staat ook in het lopende spel, anders overschrijft de volgende save het (#429)
   if (n.role === 'client' && n.stash) {
     const s = n.stash, p = world.player;

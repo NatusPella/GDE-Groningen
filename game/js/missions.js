@@ -39,7 +39,7 @@ import { animateSkutsjeRig } from './models3d_vehicles.js';
 import { setMuseumCaseStolen } from './museum3d.js';
 import {
   startHeist, guardRoute, placeHeistProps, updateHeist, updateFuse, closeFuse, camerasOff, vitrineSpot, vitrineStand, disposeHeist, heistEnterStage, heistLeaveStage,
-  heistApproach, heistSpotAt, heistSendingBack, updatePlanStage, updateLock, updatePickpocket, updateLasers, updateCrack, updateGetaway, heistSkipGetaway, heistBoat, playEndingShot, heistRevealUpdate, openHeistDoor, REVEAL,
+  heistApproach, heistSpotAt, heistSendingBack, updatePlanStage, updateLock, updatePickpocket, updateLasers, updateCrack, updateGetaway, heistSkipGetaway, heistBoat, playEndingShot, heistRevealUpdate, openHeistDoor, REVEAL, heistRolStap,
 } from './heist.js';
 import { spawnFjordTrain, fjordLoadPoint, fjordCrossing, loadFjord, loadFjordNow, updateFjordTrain, sendFjordTrainAway, catchFjordTrainNow, disposeFjordTrain, fjordTrainState } from './fjordtrain.js';
 import { addDrunk } from './drunk.js';
@@ -3667,27 +3667,47 @@ function updateStages(dt, world, def) {
       else if (r === 'done') nextStage(world, def);
       break;
     }
-    case 'fuse':
+    case 'fuse': {
       if (!S.target) { nextStage(world, def); break; }
+      const rf = heistRolStap(world, st, S); // Samen spelen (#438): de kluisrol doet de stroomkast
+      if (rf === 'klaar') { nextStage(world, def); break; }
+      if (rf === 'wacht') break;
       if (p.inVehicle) { hint(world, MODE_HINT.foot || ''); break; }
       if (updateFuse(dt, world, S.target, world.input)) nextStage(world, def);
       break;
+    }
     case 'plan':
       if (updatePlanStage(dt, world, st, S, def)) nextStage(world, def);
       break;
-    case 'lock':
+    case 'lock': {
+      const r = heistRolStap(world, st, S); // Samen spelen (#438): de loper peutert de deur open
+      if (r === 'klaar') { nextStage(world, def); break; }
+      if (r === 'wacht') break;
       if (p.inVehicle) { hint(world, MODE_HINT.foot || ''); break; }
       if (updateLock(dt, world, S.target)) nextStage(world, def);
       break;
-    case 'pickpocket':
+    }
+    case 'pickpocket': {
+      const r = heistRolStap(world, st, S); // Samen spelen (#438): de loper rolt het pasje
+      if (r === 'klaar') { nextStage(world, def); break; }
+      if (r === 'wacht') break;
       if (updatePickpocket(dt, world)) nextStage(world, def);
       break;
-    case 'laser':
+    }
+    case 'laser': {
+      const r = heistRolStap(world, st, S); // Samen spelen (#438): de kluisrol gaat door de lasers
+      if (r === 'klaar') { nextStage(world, def); break; }
+      if (r === 'wacht') break;
       if (updateLasers(dt, world, S.target)) nextStage(world, def);
       break;
-    case 'crack':
+    }
+    case 'crack': {
+      const r = heistRolStap(world, st, S); // Samen spelen (#438): de kluisrol draait de kluis open
+      if (r === 'klaar') { nextStage(world, def); break; }
+      if (r === 'wacht') break;
       if (updateCrack(dt, world, S.target)) nextStage(world, def);
       break;
+    }
     case 'getaway':
       if (updateGetaway(dt, world, st, S)) {
         if (heistBoat()) chain.vehicle = heistBoat();

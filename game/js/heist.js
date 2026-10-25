@@ -31,8 +31,11 @@ import { playCinematic, isCinematicActive, skipCinematic } from './cinematics.js
 import { playCastScene } from './missionstory.js';
 import { Vehicle } from './vehicle.js';
 import { BOAT_KINDS } from './boattypes.js';
-import { rollenPerSpeler, samenRegels } from './heistrollen.js';
-import * as UI from './heistui.js';
+import {
+  rollenPerSpeler, samenRegels, STAPPLEK, STAPKLAAR, STAPTEKST, rolNaam, isRolstap, slotsVan, verdelingVoor, houderVan,
+  rolStand, beginRolstap, rolGate, rolRegel, maakDraai, draaiKluis, KLUISCODE, zetHeistHaken,
+} from './heistrollen.js';
+import { gastheerMee } from './coopmissie.js';import * as UI from './heistui.js';
 
 const SPOTS_BEFORE_HELP = 3;
 const MISSES_BEFORE_HELP = 5;
@@ -51,7 +54,6 @@ const SKIP_HOLD = 0.9;
 const SKIP_AFTER = 50;
 const BOARD_REACH = 4.5;
 const CODE = [19, 5, 3];
-const DIAL = 40;
 const GUARD_LOOK = { variant: 'male', pants: 0x1c1f24, shoes: 0x111111, hairStyle: 'short', seed: 2207 };
 const DOZER_SEED = 2208;
 const GUARD_SHIRT = 0x2b3340;
@@ -202,6 +204,7 @@ export function startHeist(world, opts = {}) {
     fuse: null, fuseAt: null, fuseLamp: null, approach: 'sluip', doors: {}, lasers: null, alarm: false,
     boat: null, look: null, stageT: 0, trouble: 0, skipT: 0, hold: false, planT: 0,
   };
+  world.coopHeistRol = null; // de rolstap van deze inbraak begint schoon (#438)
   if (!opts.bare) {
     for (const [id, d] of Object.entries(DOORS)) buildDoor(id, d);
     setMuseumLights(true, 0);
@@ -615,6 +618,7 @@ export function heistEnterStage(world, st, S, k) {
   }
   if (st.kind === 'laser') buildLasers();
   if (st.kind === 'getaway') startAlarm(world);
+  meldRollen(world, st);
   if (st.kind === 'escape' || st.kind === 'shot') world.companionHold = null;
   if (c && st.kind === 'goto' && st.post === 'entreehal' && !world.companionHold) setCompanionHold(world, { ...at('achterdeur', -9.2, 0.4), face: 0 });
   if (st.kind === 'laser') return { ...SPOTS.stand(), label: st.label };
@@ -632,6 +636,7 @@ export function heistLeaveStage(world, st) {
   if (st.kind === 'laser') lasersOff();
   if (st.kind === 'crack') { releaseHold(world); H.caseOpen = true; }
   if (st.kind === 'scene' && st.reveal) revealCase();
+  if (isRolstap(st.kind)) { beginRolstap(world, null); world.coopHeistDial = null; UI.roleChip(''); }
   world.missionPrompt = null;
 }
 
@@ -735,6 +740,116 @@ function updateDistraction(world) {
   say(world, guards[0], GUARD_LINES.window, 3);
   world.addMessage('Ik tik op het raam. Nu!', 3);
 }
+
+// ---- de rolstap in Samen spelen (#438) ------------------------------------------------------
+// Elke speler doet zijn eigen stuk van de inbraak; de gastheer controleert (wie, waar, welke stap) en
+// laat de stap pas dan verder gaan. De E van een gast komt als bestaand 'trek'-bericht binnen
+// (coopnet.js, heistrollen.heistRolGebruik); de stap zelf gaat als 'missie' naar de groep en het
+// antwoord als 'melding' terug. Alleen (of zonder verdeling) doet de gastheer alles zelf, zoals voorheen.
+function rolVerdeling(world) {
+  // dezelfde verdeling op elk scherm: de verbonden plekken uit de spelerslijst (slotsVan), zonder de
+  // gastheer als hij niet meedoet aan deze opdracht
+  const slots = slotsVan(world).filter((s) => s !== 0 || gastheerMee(world));
+  return verdelingVoor(slots);
+}
+
+function spelerNaam(world, slot) {
+  const r = (world.coopRoster || []).find((x) => x && x.slot === slot);
+  return (r && ((r.avatar && r.avatar.naam) || r.naam)) || `Speler ${slot + 1}`;
+}
+
+// De rolstap van deze stage, als de rol van iemand anders is: 'wacht' (nog niet gedaan), 'klaar'
+// (zojuist gedaan) of false (de gastheer is zelf de rol en speelt de stap gewoon).
+export function heistRolStap(world, st, S) {
+  if (!H || !st || !isRolstap(st.kind)) return false;
+  const verdeling = rolVerdeling(world);
+  const stand = rolStand(world);
+  const netGedaan = stand.fase === st.kind && stand.vraag != null;
+  const uit = rolGate(world, st, verdeling);
+  if (!uit) return false;
+  if (uit === 'klaar') {
+    world.missionPrompt = null;
+    if (!netGedaan) return 'klaar';
+    const houder = houderVan(verdeling, st.kind);
+    const naam = spelerNaam(world, houder.slot);
+    world.addMessage(`${naam} doet zijn stuk: ${STAPPLEK[st.kind]}.`, 3);
+    if (world.coopMeld) world.coopMeld(houder.slot, `Gelukt. ${STAPKLAAR[st.kind]}`);
+    return 'klaar';
+  }
+  const houder = houderVan(verdeling, st.kind);
+  const q = S && S.target ? S.target : world.player;
+  world.missionPrompt = { id: 'heist-rol-' + st.kind, x: q.x, y: q.y, h: 2.3, key: 'E', ring: true, label: `Wacht op ${spelerNaam(world, houder.slot)}`, sub: `De ${rolNaam(houder.rol)} doet dit stuk` };
+  return 'wacht';
+}
+
+// Bij het begin van de stage: iedereen hoort zijn rol (de houder zijn taak, de anderen wie het doet).
+function meldRollen(world, st) {
+  if (!st || !isRolstap(st.kind)) return;
+  const verdeling = rolVerdeling(world);
+  const houder = houderVan(verdeling, st.kind);
+  if (!houder) return;
+  beginRolstap(world, st.kind);
+  for (const r of world.coopRoster || []) {
+    if (!r || !Number.isInteger(r.slot) || r.slot < 1) continue;
+    if (world.coopMeld) world.coopMeld(r.slot, rolRegel(st.kind, houder, r.slot, spelerNaam(world, houder.slot)));
+  }
+  const naam = spelerNaam(world, houder.slot);
+  if (houder.slot !== 0) world.addMessage(`${naam} is de ${rolNaam(houder.rol)}: wacht bij ${STAPPLEK[st.kind]}.`, 4, { kind: 'missie', key: 'heist-rol-' + st.kind });
+}
+
+// De gastkant: je rol in beeld, en bij de kluis de draaischijf op je eigen scherm. Klaar = de E gaat
+// naar de gastheer (coopnet.js stuurt hem als gewoon 'trek'-bericht); de gastheer controleert.
+function gastRolTik(world, dt, st) {
+  if (!world) return false;
+  const G = world.coopHeistGast || (world.coopHeistGast = { fase: null, chip: '', dial: null, klaar: false });
+  const chip = (tekst) => {
+    if (G.chip === tekst) return;
+    G.chip = tekst;
+    UI.roleChip(tekst);
+  };
+  const kijkt = !!(world.coopGroep && world.coopGroep.deelnemer === false); // je deed niet mee: geen rol
+  if (!st || !isRolstap(st.kind) || kijkt) {
+    if (G.chip) chip('');
+    G.dial = null; G.fase = null; world.coopHeistDial = null;
+    return false;
+  }
+  const verdeling = rolVerdeling(world);
+  const houder = houderVan(verdeling, st.kind);
+  const n = world.coopNet;
+  const slot = n && n.session ? n.session.slot : null;
+  const mijn = !!houder && houder.slot === slot;
+  if (G.fase !== st.kind) { G.fase = st.kind; G.dial = null; G.klaar = false; world.coopHeistDial = null; }
+  chip(mijn ? `Jij bent de ${rolNaam(houder.rol)}: ${STAPTEKST[st.kind]}` : '');
+  if (!mijn) return false;
+  const p = world.player;
+  if (st.kind !== 'crack') return true;
+  if (!p || p.inVehicle) { G.dial = null; world.coopHeistDial = null; return true; }
+  if (Math.hypot(p.x - MUSEUM_CASE.x, p.y - MUSEUM_CASE.y) > 3) { G.dial = null; world.coopHeistDial = null; UI.closePanel(); return true; }
+  const D = G.dial || (G.dial = maakDraai(KLUISCODE));
+  world.coopHeistDial = D; // je staat stil zolang je draait (coopnet.js)
+  const inp = world.input || {};
+  const r = draaiKluis(D, dt, {
+    links: !!(inp.isDown && (inp.isDown('a') || inp.isDown('arrowleft'))),
+    rechts: !!(inp.isDown && (inp.isDown('d') || inp.isDown('arrowright'))),
+    linksNu: !!(inp.wasPressed && (inp.wasPressed('a') || inp.wasPressed('arrowleft'))),
+    rechtsNu: !!(inp.wasPressed && (inp.wasPressed('d') || inp.wasPressed('arrowright'))),
+    vast: !!(inp.wasPressed && inp.wasPressed(' ')),
+  });
+  if (r.hint && world.addMessage) world.addMessage('Probeer 1953. Negentien, vijf, drie.', 3.5);
+  if (r.mis) { UI.shakePanel(); if (world.addMessage) world.addMessage('Nee, die klikte niet. Voel maar.', 2); }
+  if (r.klik) audio(world, 'notify', MUSEUM_CASE.x, MUSEUM_CASE.y);
+  if (r.klaar) {
+    G.dial = null; G.klaar = true; world.coopHeistDial = null; world.coopHeistClaim = true; // de E gaat naar de gastheer
+    chip('');
+    UI.closePanel();
+    if (world.addMessage) world.addMessage('Klik. De vitrine is open.', 3);
+    return true;
+  }
+  UI.crackPanel(D);
+  return true;
+}
+
+zetHeistHaken({ gastTik: gastRolTik });
 
 // --- the plan -------------------------------------------------------------------------------
 
@@ -1093,43 +1208,20 @@ export function updateCrack(dt, world, target) {
   if (!H) return true;
   const p = world.player;
   if (!target || p.inVehicle || dist(p.x, p.y, target.x, target.y) > 1.8) { UI.closePanel(); releaseHold(world); return false; }
-  const C = H.crack || (H.crack = { v: 0, cur: 0, code: CODE, t: 0, dirT: 0, misses: 0, showCode: false, showMark: false, feel: 0, hot: false, hinted: false });
+  const C = H.crack || (H.crack = maakDraai(CODE));
   holdPlayer(world, true);
   world.minigameUntil = world.time + 0.25;
   p.angle = Math.atan2(MUSEUM_CASE.y - p.y, MUSEUM_CASE.x - p.x);
-  C.t += dt;
   const inp = world.input;
-  const left = inp.isDown('a') || inp.isDown('arrowleft'), right = inp.isDown('d') || inp.isDown('arrowright');
-  const dir = right && !left ? 1 : left && !right ? -1 : 0;
-  if (inp.wasPressed('a') || inp.wasPressed('arrowleft')) C.v -= 1;
-  if (inp.wasPressed('d') || inp.wasPressed('arrowright')) C.v += 1;
-  C.dirT = dir ? C.dirT + dt : 0;
-  if (dir && C.dirT > 0.28) C.v += dir * 9 * dt;
-  C.v = ((C.v % DIAL) + DIAL) % DIAL;
-  if (!dir) C.v += (Math.round(C.v) - C.v) * Math.min(1, dt * 12);
-  const target0 = C.code[C.cur];
-  const dd = Math.abs(((C.v - target0 + DIAL * 1.5) % DIAL) - DIAL / 2);
-  C.feel = Math.max(0, 1 - dd / 6) ** 1.5;
-  C.hot = ((Math.round(C.v) % DIAL) + DIAL) % DIAL === target0;
-  if ((C.misses >= 2 || C.t > 12) && !C.hinted) {
-    C.hinted = true;
-    C.showCode = true;
-    world.addMessage('Probeer 1953. Negentien, vijf, drie.', 3.5);
-  }
-  if (C.t > 32) C.showMark = true;
-  if (inp.wasPressed(' ')) {
-    if (C.hot) {
-      C.cur++;
-      audio(world, 'notify', MUSEUM_CASE.x, MUSEUM_CASE.y);
-      C.t = Math.min(C.t, 20);
-    } else {
-      C.misses++;
-      H.trouble++;
-      UI.shakePanel();
-      world.addMessage('Nee, die klikte niet. Voel maar.', 2);
-    }
-  }
-  if (C.cur >= C.code.length) {
+  const r = draaiKluis(C, dt, {
+    links: inp.isDown('a') || inp.isDown('arrowleft'), rechts: inp.isDown('d') || inp.isDown('arrowright'),
+    linksNu: inp.wasPressed('a') || inp.wasPressed('arrowleft'), rechtsNu: inp.wasPressed('d') || inp.wasPressed('arrowright'),
+    vast: inp.wasPressed(' '),
+  });
+  if (r.hint) world.addMessage('Probeer 1953. Negentien, vijf, drie.', 3.5);
+  if (r.klik) audio(world, 'notify', MUSEUM_CASE.x, MUSEUM_CASE.y);
+  if (r.mis) { H.trouble++; UI.shakePanel(); world.addMessage('Nee, die klikte niet. Voel maar.', 2); }
+  if (r.klaar) {
     UI.closePanel();
     releaseHold(world);
     H.caseOpen = true;
@@ -1382,6 +1474,7 @@ export function disposeHeist() {
   if (world) {
     releaseHold(world);
     world.missionPrompt = null;
+    world.coopHeistRol = null;
     if (world.companionHold) world.companionHold = null;
   }
   H.root.removeFromParent();
