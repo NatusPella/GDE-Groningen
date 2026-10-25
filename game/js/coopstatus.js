@@ -44,16 +44,16 @@ const BIJBAAN = {
 
 // Activiteiten (activities.js, LIST): coöp-wedstrijden (registreerWedstrijd) en de lokale activiteiten van een gast (GAST_ACTIVITEITEN)
 const ACTIVITEIT = {
-  discgolf: WERKT, pitchputt: WERKT, kartbaan: WERKT, klimtoren: WERKT, hengelen: WERKT, pannenkoek: WERKT, carillon: WERKT,
+  discgolf: WERKT, pitchputt: WERKT, kartbaan: WERKT, klimtoren: WERKT, hengelen: WERKT, pannenkoek: WERKT, carillon: WERKT, regatta: WERKT, bruggenrace: WERKT,
   safehuis: DEELS, geheimen: DEELS, wandeling: DEELS, snackketen: DEELS, evenementen: DEELS,
   pvparena: DEELS, // de PvP-minigame: de host rekent en ziet het bord, de gastenkant van het bord is nog open (#454)
-  carbid: NEE, kermis: NEE, hoogvlieger: NEE, drift: NEE, skatepark: WERKT, zwembad: NEE, waterski: NEE, regatta: NEE, vliegschool: NEE,
+  carbid: NEE, kermis: NEE, hoogvlieger: NEE, drift: NEE, skatepark: WERKT, zwembad: NEE, waterski: NEE, vliegschool: NEE,
 };
 
 // Minigames (cooproles.js, registerCoop('minigame')) en wat verder een eigen plek op de kaart heeft (de heli, de duif)
 const MINIGAME = {
   padel: WERKT, kartrace: WERKT,
-  racers: NEE, pg_bruggenrace: NEE, carbid: NEE, kermis: NEE, pg_fierljep: NEE, pg_foodtruck: NEE, pg_koe: NEE, pg_skutsje: NEE,
+  racers: NEE, pg_bruggenrace: WERKT, carbid: NEE, kermis: NEE, pg_fierljep: NEE, pg_foodtruck: NEE, pg_koe: NEE, pg_skutsje: NEE,
   heli: NEE, duif: NEE,
 };
 

@@ -121,6 +121,18 @@ export function bestuurInstappen(world, slot) {
     if (gedeeld) { stoot(world, slot, BESTUUR_TEKST.gedeeld); return { gedaan: true }; }
     return { gedaan: false };
   }
+  return stapIn(world, slot, l, v);
+}
+
+// Samen spelen (#443): een gast in een bepaald voertuig zetten, eentje dat de wedstrijd voor hem klaarzette (een eigen boot op de
+// startlijn). De gast hoeft er dus niet zelf bij te staan; hij bestuurt hem met zijn stick, de host rijdt hem (bestuurTick).
+export function bestuurInstappenIn(world, slot, v) {
+  const l = lichaamVan(world, slot);
+  if (!l || !v || !haken.enter || !magBesturen(v, slot) || v.driver || v.passenger) return { gedaan: false };
+  return stapIn(world, slot, l, v);
+}
+
+function stapIn(world, slot, l, v) {
   const proxy = maakProxy(world, slot, l, v);
   const auto = !v.isBike && !v.isScooter && !v.isBoat && !v.farm && !v.coopBezit; // een fiets of boot meenemen is geen misdaad, een auto van een ander wel; de machines van de boerderij van de host en een gedeeld voertuig van een medespeler zijn voor iedereen (#415, #449)
   haken.enter(proxy, v, world);

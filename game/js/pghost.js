@@ -9,3 +9,5 @@ export const jelle = (...a) => host.jelle(...a);
 export const setTarget = (...a) => host.setTarget(...a);
 export const isPostgameOpen = (...a) => host.isPostgameOpen(...a);
 export const esc = (...a) => host.esc(...a);
+// Samen spelen (#443): de wedstrijdlaag start een uitdaging voor iedereen (na Meedoen?), met de baan van de host.
+export const startWedstrijd = (...a) => host.startWedstrijd(...a);
