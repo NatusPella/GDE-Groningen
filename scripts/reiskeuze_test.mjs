@@ -12,6 +12,10 @@ ok(m.playS === 120 && m.clockS > 120, 'ride along is cut to 2 min, clock runs re
 ok(s.playS === 20 && s.lines.length === 2, 'skip is 20 s and keeps the lines');
 ok(z.pieces === 2 && z.reward && !m.reward && !s.reward, 'only driving yourself is rewarded');
 ok(/^± \d+ min$/.test(z.eta), 'eta label', z.eta);
+ok(z.kosten.startsWith('gratis') && m.kosten === 'gratis', 'elke keuze toont de kosten', `${m.kosten} / ${z.kosten}`);
+// #445: het label leest als 'Snel reizen' of 'Snel reizen · met de trein', nooit 'Snel reizen · meerijden'
+ok(m.label === 'Snel reizen · met de trein', 'ride label names the ride', m.label);
+ok(K.travelOptions({ length: 9000, ride: 'lift' }).options[0].label === 'Snel reizen' && K.travelOptions({ length: 9000 }).options[0].label === 'Snel reizen', 'lift: gewoon Snel reizen');
 
 // no lines: skipping would lose story, so no skip option
 const nl = K.travelOptions({ length: 17000, ride: 'bus' });

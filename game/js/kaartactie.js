@@ -20,7 +20,7 @@ export const ICONEN = {
   verhaal: 'M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zm3 3v2h8V7z',
 };
 
-export const GAST_REIS_MELDING = 'Reizen kan alleen in je eigen spel. Zet wel een waypoint en ga zelf.';
+export const GAST_REIS_MELDING = 'Reizen kan alleen in je eigen spel: je gaat niet mee naar de plek van wie het spel opende. Zet wel een waypoint en ga zelf.';
 
 const mins = (s) => Math.max(1, Math.round(s / 60));
 const euro = (n) => (n > 0 ? `€ ${n}` : 'gratis');
@@ -41,6 +41,14 @@ export function zelfSeconden(afstandM, opts) {
 // Staat het waypoint op de plek waar je klikte?
 export function opWaypoint(waypoint, spot) {
   return !!(waypoint && spot && Math.hypot(waypoint.x - spot.x, waypoint.y - spot.y) < WAYPOINT_NEAR_M);
+}
+
+// De vijf-seconden-check (#445) als pure functie: wat doet een klik op deze plek?
+// Een klik zet het waypoint; een tweede klik erop (of dichtbij) haalt hem weg;
+// een klik elders vervangt hem, want er is er één tegelijk.
+export function klikActie(waypoint, spot) {
+  if (opWaypoint(waypoint, spot)) return 'weg';
+  return waypoint ? 'vervang' : 'zet';
 }
 
 // spot: { x, y, name }, speler: { x, y }, waypoint: het huidige waypoint of null,
@@ -97,9 +105,21 @@ export const KAART_UITLEG = [
   'Klik op een plek of een icoon en kies: Zet waypoint, Reis erheen of Info.',
   'Er is één waypoint tegelijk. Klik er nog eens op, of kies Haal weg, om hem te wissen.',
   'Reis erheen is snel reizen: dat kost tijd en geld. Zelf gaan zet een waypoint en je rijdt of loopt zelf.',
+  'De legenda achter Lagen legt elk icoon en elke lijn uit; zet lagen daar aan of uit.',
 ];
 // Alleen voor een gast in Samen spelen: waypoint kan, snel reizen niet.
-export const GAST_UITLEG = 'In Samen spelen kun je wel een waypoint zetten, maar niet snel reizen: dat kan alleen in je eigen spel.';
+export const GAST_UITLEG = 'In Samen spelen kun je wel een waypoint zetten en zelf gaan, maar niet snel reizen: dat kan alleen in je eigen spel.';
+
+// De legenda bovenaan het luik Lagen (#445): wat een klik doet, en dat er één
+// waypoint met een lijn en de afstand is. Een gast leest erbij wat wel kan.
+export const LEGENDA_UITLEG = [
+  'Klik op een icoon of een plek: Zet waypoint, Reis erheen (met kosten en duur) of Info.',
+  'Eén waypoint tegelijk, met een lijn en de afstand; nog een klik erop haalt hem weg.',
+];
+export const GAST_LEGENDA = 'Als gast kun je een waypoint zetten en zelf gaan; snel reizen kan alleen in je eigen spel.';
+export function legendaRegels({ gast = false } = {}) {
+  return gast ? [...LEGENDA_UITLEG, GAST_LEGENDA] : LEGENDA_UITLEG.slice();
+}
 
 // De hint bij je eigen plek op de kaart (#445), en de kaart als je op jezelf klikt.
 export const HIER_TITEL = 'Je staat hier';
