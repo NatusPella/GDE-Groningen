@@ -82,6 +82,19 @@ const ok = (c, m) => { n++; if (!c) { fails++; console.log('FAIL ' + m); } };
   ok(T.roleOf(back, 4) === 'machinist' && T.roleOf(back, 1) === 'conducteur' && T.roleOf(back, 0) === 'passagier', 'ook na een host-wissel weten we wie wat is');
 }
 
+// vloeiend rijden bij een gast (#434): de trein loopt tussen twee snapshots door en haalt een late snapshot zacht in
+{
+  ok(T.volgTrein(300, 301, 20, 1 / 60) > 300 && T.volgTrein(300, 301, 20, 1 / 60) < 301, 'een halve meter voor: hij schuift mee');
+  const stap = T.volgTrein(300, 301, 20, 1 / 60) - 300;
+  ok(Math.abs(stap - 20 / 60) < 0.02, 'en wel met de snelheid van de host', stap.toFixed(3));
+  ok(Math.abs(T.volgTrein(300, 500, 20, 1 / 60) - 500) < 1e-9, 'een sprong van meer dan 20 m: meteen mee');
+  ok(T.volgTrein(300, 300, 0, 1 / 60) === 300, 'stilstaan blijft stilstaan');
+  ok(T.volgTrein(NaN, 300, 20, 1 / 60) === 300, 'zonder eigen plek: op het doel staan');
+  ok(T.volgTrein(300, NaN, 20, 1 / 60) === 300, 'zonder doel: blijven staan');
+  ok(T.volgTrein(320, 300, -8, 1 / 60) < 320, 'een trein die terugrijdt gaat achteruit');
+  ok(T.volgTrein(990, 1010, 20, 1, 1000) === 1000, 'hij rijdt niet voorbij het einde van de route');
+}
+
 // een trein is solide, ook bij een gast (#436): de wagen duwt een lichaam de kortste kant op
 {
   const wagen = { x: 0, y: 0, angle: 0, len: 17 };

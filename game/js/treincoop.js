@@ -71,9 +71,22 @@ export function splitReward(c, total) {
   return out;
 }
 
-// Een trein rijdt niet door een gast heen (#436). Een gast speelt de dienstregeling niet: hij zet de wagens waar de host ze
-// heeft (railway.js zetTreinenVanHost). Deze regel duwt een lichaam (de eigen speler) uit zo'n wagen, zoals de host dat met
-// zijn eigen spelers doet. wagen: { x, y, angle, len }; geeft { nx, ny, depth } (de duw, in meters) of null.
+// Een gast speelt de dienstregeling niet: hij zet de wagens waar de host ze heeft (railway.js zetTreinenVanHost). Tussen
+// twee snapshots door laat hij de trein met de laatste snelheid doorrijden en schuift hij zacht naar de plek van de host,
+// zodat de trein bij een gast niet "een meter en dan stil" staat (#434; dezelfde bijsturing als net/interp.js).
+// c: de eigen booglengte op de route; doel: die van de host; v: de snelheid met teken (de host stuurt v * richting).
+// Een verschil groter dan TREIN_SPRONG_M is geen rijden maar een sprong (de host zette de trein elders neer): meteen mee.
+export const TREIN_SPRONG_M = 20;  // m
+export const TREIN_BIJSTUUR = 1;   // 1/s: hoe snel de eigen plek naar het doel schuift (net/interp.js BIJSTUUR, in meters)
+export function volgTrein(c, doel, v, dt, max = Infinity) {
+  if (!Number.isFinite(doel)) return Number.isFinite(c) ? c : 0;
+  if (!Number.isFinite(c) || Math.abs(doel - c) > TREIN_SPRONG_M) return doel;
+  const stap = (Number.isFinite(v) ? v : 0) * Math.max(0, dt) + (doel - c) * Math.min(1, Math.max(0, dt) * TREIN_BIJSTUUR);
+  return Math.max(0, Math.min(max, c + stap));
+}
+
+// Een trein rijdt niet door een gast heen (#436): deze regel duwt een lichaam (de eigen speler) uit zo'n wagen, zoals de
+// host dat met zijn eigen spelers doet. wagen: { x, y, angle, len }; geeft { nx, ny, depth } (de duw, in meters) of null.
 export const TREIN_HALF_WID = 1.45;
 export function duwVanWagen(wagen, x, y, r = 0.35) {
   if (!wagen || !Number.isFinite(wagen.x) || !Number.isFinite(wagen.y) || !Number.isFinite(x) || !Number.isFinite(y)) return null;

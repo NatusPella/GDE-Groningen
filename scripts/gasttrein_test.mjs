@@ -36,9 +36,41 @@ ok(Math.hypot(gt.cars[0].x - ht.cars[0].x, gt.cars[0].y - ht.cars[0].y) < 0.5, '
 ok(Math.abs(gt.c - ht.c) < 0.5 && gt.v === 12, 'de plek op de route en de snelheid volgen de gastheer');
 
 // --- een trein die de gastheer zelf bestuurt: de gast ziet hem ook (de host stuurt hem mee, coopnet.js hostTreinen)
+// en haalt de nieuwe plek vloeiend in, in plaats van meteen te springen (#434)
+const voor = G.getTrains()[0].c;
+G.zetTreinenVanHost([{ route: 0, x: 320, y: 0, v: 8 }]);
+ok(G.getTrains()[0].dir === 1, 'de rijrichting volgt het teken van de snelheid');
+ok(Math.abs(G.getTrains()[0].c - voor) < 1e-9, 'een nieuwe snapshot zet de trein niet meteen ergens anders neer');
 G.zetTreinenVanHost([{ route: 0, x: 320, y: 0, v: -8 }]);
-ok(Math.abs(G.getTrains()[0].c - 320) < 0.5, 'een door de gastheer bestuurde trein komt ook binnen');
-ok(G.getTrains()[0].dir === -1, 'de rijrichting volgt het teken van de snelheid');
+ok(G.getTrains()[0].dir === -1, 'een trein die terugrijdt: de richting gaat mee');
+// een reeks snapshots van een trein op 20 m/s (20 Hz, 1 m per snapshot): de gast tekent hem gelijkmatig
+let doel = 600;
+G.zetTreinenVanHost([{ route: 0, x: doel, y: 0, v: 20 }]);
+const stappen = [];
+let vorigeC = G.getTrains()[0].c;
+for (let k = 0; k < 120; k++) {
+  if (k % 3 === 0) { doel += 1; G.zetTreinenVanHost([{ route: 0, x: doel, y: 0, v: 20 }]); }
+  G.stapTreinenGast(1 / 60);
+  const nu = G.getTrains()[0].c;
+  stappen.push(nu - vorigeC); vorigeC = nu;
+}
+const minS = Math.min(...stappen), maxS = Math.max(...stappen);
+ok(minS > 0.15, 'geen enkel beeld staat de trein stil', `${minS.toFixed(3)}`);
+ok(maxS < 0.5, 'en geen enkel beeld springt hij vooruit', `${maxS.toFixed(3)}`);
+ok(Math.abs(vorigeC - doel) < 4, 'de gast blijft bij de gastheer in de buurt', `${(vorigeC - doel).toFixed(2)}`);
+
+// --- tussen twee snapshots door rijdt de trein door: geen "een meter en dan stil" (#434)
+G.zetTreinenVanHost([{ route: 0, x: 400, y: 0, v: 20 }]);
+const start = G.getTrains()[0].c;
+let vorigeT = start, achteruit = 0;
+for (let k = 0; k < 20; k++) { G.stapTreinenGast(1 / 60); const nu = G.getTrains()[0].c; if (nu < vorigeT - 1e-9) achteruit++; vorigeT = nu; }
+const naC = G.getTrains()[0].c;
+ok(naC - start > 5 && naC - start < 9, 'twintig beelden zonder snapshot: de trein rijdt door', `${(naC - start).toFixed(2)}`);
+ok(achteruit === 0, 'de trein gaat geen stap terug');
+
+// --- een sprong (de gastheer zette de trein ergens anders neer) is geen rijden: meteen mee
+G.zetTreinenVanHost([{ route: 0, x: 700, y: 0, v: 0 }]);
+ok(Math.abs(G.getTrains()[0].c - 700) < 0.01, 'een sprong van meer dan 20 m zet de trein meteen goed');
 
 // --- solide: de gast staat op het spoor en wordt opzij gezet, niet door de trein heen
 const gp = gw.player;
