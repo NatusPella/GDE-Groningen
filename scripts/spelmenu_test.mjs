@@ -30,15 +30,16 @@ const VOOR = ['preset', 'resolution', 'autoResolution', 'zuinig', 'shadows', 'dr
   'helpTime', 'helpDamage', 'helpGates', 'helpOffer', 'liveBussen', 'stapAnimatie'];   // liveBussen (#395) erbij: Spel; stapAnimatie (#459): Toegankelijkheid
 const NU = [...settingsKeys, ...spelKeys];
 ok(VOOR.length === 54, 'de lijst van vóór de wijziging heeft 54 opties (53 + stapAnimatie, #459)');
-ok(VOOR.every((k) => NU.includes(k)), 'geen optie verloren', VOOR.filter((k) => !NU.includes(k)).join(', '));
+ok(VOOR.filter((k) => k !== 'preset').every((k) => NU.includes(k)), 'geen optie verloren', VOOR.filter((k) => k !== 'preset' && !NU.includes(k)).join(', '));
 ok(NU.every((k) => VOOR.includes(k)), 'geen optie erbij die geen instelling is', NU.filter((k) => !VOOR.includes(k)).join(', '));
 ok(new Set(NU).size === NU.length, 'elke optie staat op één plek', NU.filter((k, i) => NU.indexOf(k) !== i).join(', '));
 
 // wat naar Spel verhuisd is, en wat blijft
 const NAAR_SPEL = ['fov', 'cameraDistance', 'autoAim', 'cinematicMoments', 'wijkFilm', 'showHints', 'hintSource', 'onboardingTips', 'ruzie', 'drunkFx', 'gore', 'shiftMode', 'speedFeel', 'driftAssist', 'bikeAssist', 'mapShiftTeleport', 'liveBussen'];
 ok(NAAR_SPEL.every((k) => spelKeys.includes(k) && !settingsKeys.includes(k)), 'de speelopties staan onder Spel en niet meer onder Instellingen');
-const BLIJFT = ['preset', 'resolution', 'shadows', 'masterVolume', 'mouseSensitivity', 'invertY', 'padLayout', 'hudMode', 'showMinimap', 'minimapZoom', 'minimapNorth', 'touchControls', 'showFog', 'colorBlind', 'uiScale', 'reduceMotion', 'stapAnimatie', 'helpTime', 'helpOffer', 'subtitleSize'];
+const BLIJFT = ['resolution', 'shadows', 'masterVolume', 'mouseSensitivity', 'invertY', 'padLayout', 'hudMode', 'showMinimap', 'minimapZoom', 'minimapNorth', 'touchControls', 'showFog', 'colorBlind', 'uiScale', 'reduceMotion', 'stapAnimatie', 'helpTime', 'helpOffer', 'subtitleSize'];
 ok(BLIJFT.every((k) => settingsKeys.includes(k) && !spelKeys.includes(k)), 'beeld, geluid, besturing, interface en toegankelijkheid blijven onder Instellingen');
+ok(settingsSrc.includes('data-preset-btn'), 'de voorinstellingen staan onder Instellingen > Beeld als knoppen, niet als picker (#435)');
 
 // elke optie is een echte instelling (settings.js) en de opslagsleutels zijn dezelfde gebleven
 const settingsJs = read('game/js/settings.js');
@@ -215,5 +216,9 @@ const pcss = read('game/js/pausemenu.css');
 ok(pcss.includes('.ra[data-new] .ra-t::after'), 'de nieuw-bolletjes op de rail (Verhaal, Prestaties) hebben een eigen stijl (#435)');
 ok(pcss.includes('.ra.pm-exit::after'), 'Afsluiten staat met een scheidingslijn onder de andere secties');
 ok(pm.includes("setN('todo', '');") && !pm.includes("setN('todo', fresh"), "'nieuw' van een verhaal-aanwijzing staat niet meer op Activiteiten (#435)");
+// #435: Beeld > Voorinstelling zijn knoppen, met de stand van nu gemarkeerd
+ok(pm.includes('data-preset-btn="${n}" aria-pressed="false"') && pm.includes("setAttribute('aria-pressed'") && !pm.includes('data-preset-pick'), 'de voorinstellingen zijn knoppen en de oude kiezer is weg');
+ok(pm.includes('[data-preset-now]') && pm.includes("cur ? '' : 'Eigen instellingen'"), 'de huidige stand is zichtbaar, ook als je zelf aan de schuiven zat');
+ok(pcss.includes('.pm-chips .m-chip[aria-pressed="true"]'), 'de gekozen voorinstelling staat in het groen met een vinkje');
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);
