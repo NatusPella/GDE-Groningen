@@ -23,6 +23,21 @@ export function levelOf(stars) {
   return LEVELS[n - 1];
 }
 
+// Op vijf sterren is de achtervolging zwaarder (#436): meer eenheden tegelijk en
+// een pantser, zodat de speler ze niet met een paar rammen stuk rijdt of
+// leegschiet. De waarden zijn een balansregel, geen nieuwe Eenheid: dezelfde
+// politieauto's, alleen taaiers en met meer volk.
+const TARGET = [1, 2, 3, 4, 7];
+const ARMOR = [1, 1, 1, 0.85, 0.6]; // hoeveel schade een politicauto op dat niveau nog krijgt
+export function policeTarget(stars) {
+  const n = Math.max(1, Math.min(5, Math.floor(stars) || 1));
+  return TARGET[n - 1];
+}
+export function policeArmor(stars) {
+  const n = Math.max(1, Math.min(5, Math.floor(stars) || 1));
+  return ARMOR[n - 1];
+}
+
 // A layered chase: every layer joins at its star level and stays.
 const LAYERS = [['foot', 1], ['patrol', 1], ['boat', 2], ['roadblock', 3], ['interceptor', 3], ['motor', 4], ['mount', 4], ['heli', 4]];
 
