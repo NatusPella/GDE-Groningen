@@ -68,6 +68,7 @@ import { getSettings } from './settings.js';
 import { heldBack } from './narrative.js';
 import { isPauseMenuOpen } from './pausestate.js';
 import { isOverlayHeld } from './overlayhold.js';
+import { hoofdspeler } from './spelersregister.js';
 // portraits share the HUD's green (DESIGN_SYSTEM: no blue accents); speaker
 // colours stay in subtitles
 const HUD_ACCENT = INK.greenLight;
@@ -370,7 +371,7 @@ const VEH_ICONS = {
 let vehNameFor = null;
 let vehNameTimer = 0;
 function updateVehicleName(dt, world) {
-  const v = world.player.inVehicle || null;
+  const v = hoofdspeler(world).inVehicle || null;
   if (v !== vehNameFor) {
     vehNameFor = v;
     if (v) {
@@ -464,7 +465,7 @@ function watchInput() {
 
 function sense(dt, world) {
   const now = S.now = nowS();
-  const p = world.player;
+  const p = hoofdspeler(world);
   if (world.wanted > 0) S.wantedOff = Infinity;
   else if (S.wantedOff === Infinity) S.wantedOff = now;
   // the pause menu or a moving controller stick: everything back for a moment
@@ -509,7 +510,7 @@ function updateVisibility(dt, world) {
   visT = VIS_EVERY;
   const b = document.body.classList;
   const now = nowS();
-  const p = world.player;
+  const p = hoofdspeler(world);
   const v = p.inVehicle || world.trainCam || null;
   const busy = isBusy(world);
   const dialogue = isDialogue();
@@ -571,7 +572,7 @@ function setVisFlag(key, val, apply) {
 
 // Stamina: swimming, or a bike's (or horse's) sprint; null when there is none.
 function staminaOf(world) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   let st = null;
   if (p.swimming && Number.isFinite(p.swimStamina)) st = p.swimStamina;
   const v = p.inVehicle;
@@ -584,7 +585,7 @@ function staminaOf(world) {
 
 
 function currentDistrict(world) {
-  const { x, y } = world.player;
+  const { x, y } = hoofdspeler(world);
   const meta = world.map.meta;
   // out in the real Ommelanden: the village you are in, else just Ommeland
   const area = ommelandArea(x, y);
@@ -644,15 +645,16 @@ function updateLocation(dt, world) {
     if (t) { els.locationEl.appendChild(t); els.savedIn = true; }
   }
   const district = currentDistrict(world);
-  const area = ommelandArea(world.player.x, world.player.y);
+  const h = hoofdspeler(world); // de plek van de speler van dit apparaat; de HUD hoort bij wie hier kijkt (#446)
+  const area = ommelandArea(h.x, h.y);
   const country = !!area;
-  const rp = world.map.nearestRoadPoint(world.player.x, world.player.y, 60, false);
-  const street = (rp && rp.road && rp.road.name) || (edgeDistance(world.player.x, world.player.y) > 0 ? roadStreetAt(world.map, world.player.x, world.player.y) : '');
-  locWhere = { district: district || '', country, region: area ? areaNameAt(world.player.x, world.player.y).region : '' };
+  const rp = world.map.nearestRoadPoint(h.x, h.y, 60, false);
+  const street = (rp && rp.road && rp.road.name) || (edgeDistance(h.x, h.y) > 0 ? roadStreetAt(world.map, h.x, h.y) : '');
+  locWhere = { district: district || '', country, region: area ? areaNameAt(h.x, h.y).region : '' };
   // the street big, the wijk (or village) and the city under it
   setText(els.street, street || district || '');
   // plaats + wijk: a district of a town out in the province names its town
-  const aname = area ? areaNameAt(world.player.x, world.player.y) : null;
+  const aname = area ? areaNameAt(h.x, h.y) : null;
   const region = aname ? (aname.near ? aname.name : aname.sub || (aname.region === 'groningen' ? 'Ommeland' : aname.name)) : 'Ommeland';
   setText(els.district, street ? [district, country ? (district === 'Ommeland' ? '' : region) : 'Grunn'].filter(Boolean).join(' · ') : (country ? region : 'Grunn'));
 }
@@ -666,7 +668,7 @@ const LANDMARK_R = 55;
 let placeScanT = 0;
 
 function placeCandidate(world) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   for (const l of world.map.meta.landmarks || []) {
     if (Math.abs(l.x - p.x) > LANDMARK_R || Math.abs(l.y - p.y) > LANDMARK_R) continue;
     if (Math.hypot(l.x - p.x, l.y - p.y) <= LANDMARK_R) return { key: 'lm:' + l.name, kick: locWhere.district || 'Grunn', name: l.name, line: LANDMARK_LINES[l.name] || '' };
@@ -724,7 +726,7 @@ function updateGps(dt, world) {
   gpsState.t = 0.2;
   const o = lastObjective;
   gpsState.timer = o && o.timer ? o.timer : '';
-  const p = world.player;
+  const p = hoofdspeler(world);
   const mode = travelModeOf(world);
   const route = getActiveRoute();
   let turn = null;
@@ -775,7 +777,7 @@ const HAIR = {
 };
 
 function updateCharacter(dt, world) {
-  const ch = world.player.character === 'anita' ? 'anita' : 'tammo';
+  const ch = hoofdspeler(world).character === 'anita' ? 'anita' : 'tammo';
   const drunk = (world.drunk || 0) > 0.08;
   const key = ch + (drunk ? 'd' : '');
   if (key !== els.idKey) {
@@ -820,7 +822,7 @@ function setPortrait(img, ch, keyField) {
 // "· Tessa rijdt mee": the companion, next to your name, while they are with you.
 function updateMate(world) {
   const c = world.companion;
-  const p = world.player;
+  const p = hoofdspeler(world);
   let text = '';
   if (c && !world.pigeonMode && !c.hidden) {
     const name = c.character === 'anita' ? 'Tessa' : 'Tammo';
@@ -869,7 +871,7 @@ function updateBars(world) {
     if (st != null) { els.staminaFill.style.width = stKey + '%'; els.stRow.setAttribute('aria-valuenow', stKey); }
   }
   // the vehicle's damage under yours, with its name (the train has none)
-  const v = world.player.inVehicle;
+  const v = hoofdspeler(world).inVehicle;
   const vh = v && Number.isFinite(v.health) ? Math.round(clampPct(v.health)) : null;
   const vKey = vh == null ? '' : (v.id || '') + ':' + vh;
   if (vKey !== els.vehKey) {
@@ -898,7 +900,8 @@ function updateWanted(world) {
   const searching = phase === 'zoeken';
   // the search box: how far you are out of the search area (and how long until a star drops)
   if (searching && world.wanted > 0 && pol.searchCenter) {
-    const d = Math.hypot(world.player.x - pol.searchCenter.x, world.player.y - pol.searchCenter.y);
+    const h = hoofdspeler(world);
+    const d = Math.hypot(h.x - pol.searchCenter.x, h.y - pol.searchCenter.y);
     const k = Math.max(0, Math.min(1, d / Math.max(1, pol.searchRadius) * 0.5 + (world.wantedDecayTimer || 0) / 24));
     const w = Math.round(k * 50) * 2 + '%';
     if (els.searchBar.style.width !== w) els.searchBar.style.width = w;
@@ -981,7 +984,7 @@ function fallbackEngine(v) {
 
 // Zone H: the speed big, the gear row over it and the revs in an arc.
 function updateSpeedo(world) {
-  const v = world.player.inVehicle || world.trainCam;
+  const v = hoofdspeler(world).inVehicle || world.trainCam;
   const on = !!v && !(v.isHeli && document.body.classList.contains('heli-flying'));
   els.speedo.classList.toggle('visible', on);
   document.body.classList.toggle('hud-in-vehicle', !!v);
@@ -1061,7 +1064,7 @@ function updateSpeedoPrefetch(dt, world) {
   if (!warmed) { warmed = true; prefetchSpeedoPic({ model: HERO_CAR_MODEL, isHeroCar: true }); }
   if ((prefetchIn -= dt) > 0) return;
   prefetchIn = PREFETCH_EVERY;
-  const p = world.player;
+  const p = hoofdspeler(world);
   if (!p || p.inVehicle || world.trainCam || !world.vehicles) return;
   const v = findEnterableVehicle(p.x, p.y, world.vehicles, PREFETCH_REACH);
   if (v) prefetchSpeedoPic(v);
@@ -1165,14 +1168,14 @@ function currentObjective(world) {
     const searching = !!(world.police && world.police.searching);
     return {
       kind: 'police', title: searching ? 'Blijf uit het zicht' : 'Ontsnap aan de politie', timer: '',
-      sub: searching ? 'Ze zijn je kwijt' : world.trainDriving ? 'Een trein houden ze niet zomaar tegen' : world.player.inVehicle ? 'Of laat je bak spuiten bij Spuit & Klaar' : 'Pak een bak en smeer hem',
+      sub: searching ? 'Ze zijn je kwijt' : world.trainDriving ? 'Een trein houden ze niet zomaar tegen' : hoofdspeler(world).inVehicle ? 'Of laat je bak spuiten bij Spuit & Klaar' : 'Pak een bak en smeer hem',
     };
   }
   // the player's own goal (goal.js): the story waits meanwhile
   const goal = world.goal;
   if (goal && !playerBusy(world, ['padel', 'activityGame', 'heliRun', 'challenge']).busy && !(m && m.phase === 'active')) {
     const r = getActiveRoute();
-    const d = r && r.kind === 'user' ? r.remaining : Math.hypot(goal.x - world.player.x, goal.y - world.player.y);
+    const d = r && r.kind === 'user' ? r.remaining : Math.hypot(goal.x - hoofdspeler(world).x, goal.y - hoofdspeler(world).y);
     const wait = storyWaiting(world);
     const first = r && r.kind === 'user' && r.target && /^Eerst: /.test(r.target.name) ? r.target.name : '';
     const sub = [first || goal.sub, formatDistance(d), wait ? `verhaal wacht: ${wait.code}` : ''].filter(Boolean).join(' · ');
@@ -1183,7 +1186,7 @@ function currentObjective(world) {
   const g = world.storyGuide;
   if (g && g.name && !world.storyFreePlay && !gameBusy(world) && !(m && m.phase === 'active')) {
     const atMarker = m && (m.phase === 'idle' || m.phase === 'cooldown') && Math.hypot(m.marker.x - g.x, m.marker.y - g.y) < 4;
-    const near = Math.hypot(g.x - world.player.x, g.y - world.player.y) < 40;
+    const near = Math.hypot(g.x - hoofdspeler(world).x, g.y - hoofdspeler(world).y) < 40;
     const inside = atMarker && !m.armed && m.distanceToMarker < (m.triggerRadius || 4);
     const sub = g.alt ? `${near ? 'Je bent er' : 'Volg de gele route'} · of kies: ${g.alt}, op de kaart`
       : g.buy ? (near ? 'Voor het verhaal: loop naar binnen (E)' : 'Volg de gele route naar de winkel')
@@ -2165,7 +2168,7 @@ function nearestWithin(list, x, y, r, max) {
 }
 
 function drawMinimapPois(ctx, world, job, placed, inRange, toScreen, t) {
-  const player = world.player;
+  const player = hoofdspeler(world);
   const px = player.x, py = player.y;
   const inVehicle = !!player.inVehicle;
   const pois = [];
@@ -2304,7 +2307,7 @@ function drawMinimap(dt, world) {
   const ctx = els.mmCtx;
   const dpr = hudPixelRatio();
   sizeSquareCanvas(els.mmCanvas, Math.round(MINIMAP_SIZE * dpr));
-  const player = world.player;
+  const player = hoofdspeler(world);
   const t = performance.now() / 1000;
 
   ctx.setTransform(1, 0, 0, 1, 0, 0);
