@@ -12,7 +12,7 @@ import { spawnHeroCarNear } from './vehicle.js';
 import { markDirty } from './savehook.js';
 import { recordStat } from './achievements.js';
 import { startCall } from './phonefeed.js';
-import { facilitiesOf, countryFacilities } from './facilities.js';
+import { facilitiesOf, countryFacilities, poiLayerPlaces } from './facilities.js';
 import { nearestWorldPlace } from './worldplaces.js';
 import { noteMoney } from './finance.js';
 import { zoneTotals, losseOnderdelen, onderdelenPrijs, schadeTekst } from './vehicledamage.js';
@@ -20,7 +20,8 @@ import { deelPrijs } from './vehicledoors.js';
 
 // Garages: every Garage Knalpot branch (from the OSM car repair shops) and
 // every Pomp & Poets gas station has a workshop with a roller door by the
-// street; in town from meta.garages / meta.fuel, out in the Ommelanden from
+// street; in town from the garages and fuel stations of the POI layers of the
+// tiles (facilities.js poiLayerPlaces), out in the Ommelanden from
 // the real car repair shops and fuel stations in facilities.js (the bay on
 // the forecourt where its outline is mapped). Drive up and the door rolls open, drive in, stop, press R: repair
 // (dents gone too), upgrades, new plates, and wrecks of your own vehicles
@@ -126,16 +127,16 @@ function siteName(poi, wijk, road) {
   for (let k = 2; ; k++) if (!sites.some((s) => s.name === `${base} ${k}`)) return `${base} ${k}`;
 }
 
-// The city's garages and fuel stations: at the start. Out in the Ommelanden
-// they are placed on the tiles round them (initCountryGarages, in the
-// background from the title screen on; main.js).
+// The city's garages and fuel stations: at the start, from the tiles of their POI layer (#314, C1; the whole list of
+// map.meta when a world has no layer). Out in the Ommelanden they are placed on the tiles round them
+// (initCountryGarages, in the background from the title screen on; main.js).
 export function initGarages(w) {
   world = w;
   const map = w.map;
   sites = [];
   placeSites(map, [
-    ...(map.meta.garages || []).map((g) => ({ ...g, kind: 'garage' })),
-    ...(map.meta.fuel || []).map((f) => ({ ...f, kind: 'pomp' })),
+    ...poiLayerPlaces(map, 'garages').map((g) => ({ ...g, kind: 'garage' })),
+    ...poiLayerPlaces(map, 'fuel').map((f) => ({ ...f, kind: 'pomp' })),
     // every other real fuel station in town (the old list misses a few)
     ...facilitiesOf('fuel').filter((f) => f.city).map((f) => ({ x: f.x, y: f.y, kind: 'pomp' })),
   ]);

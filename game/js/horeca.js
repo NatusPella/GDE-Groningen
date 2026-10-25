@@ -1,5 +1,5 @@
 import { dist, isInWater } from './util.js';
-import { countryFacilities, countryDoor } from './facilities.js';
+import { countryFacilities, countryDoor, poiLayerPlaces } from './facilities.js';
 import { recordUnique } from './achievements.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { noteMoney } from './finance.js';
@@ -19,7 +19,10 @@ export function initHoreca(world) {
   // OSM places bars/cafés at a point inside their building: move each one out
   // to the street side (also used by the terrace props in cityprops.js)
   const map = world.map;
-  for (const h of map.meta.horeca || []) {
+  // the cafés come out of the tiles of their layered POI rows (#314, C1), on a copy: the fixes below move a place to the
+  // street, and go back into map.meta.horeca, which cityprops.js, pedestrians.js and pedroutes.js still read whole
+  const places = poiLayerPlaces(map, 'horeca').map((h) => ({ ...h }));
+  for (const h of places) {
     [h.x, h.y] = map.escapeBuilding(h.x, h.y, 1.2);
     // pushed into a closed-off courtyard, or out onto the canal side (Café De Lallende Koe stond in het water): the nearest street instead
     if (isInWater(map, h.x, h.y) || !map.canWalkOut(h.x, h.y, 30)) {
@@ -27,7 +30,16 @@ export function initHoreca(world) {
       if (o) { h.x = o.x; h.y = o.y; }
     }
   }
-  spots = (world.map.meta.horeca || []).map((h) => ({ x: h.x, y: h.y, name: cafeName(h), osmName: h.name, lastUsed: -Infinity }));
+  syncHorecaMeta(map, places);
+  spots = places.map((h) => ({ x: h.x, y: h.y, name: cafeName(h), osmName: h.name, lastUsed: -Infinity }));
+}
+
+// The street-side point of every café in the list of the map too: the order of the POI rows is the order of the list
+// (poisections.js layerRows), so a reader that is still on the whole list sees the same spots as the game does.
+function syncHorecaMeta(map, places) {
+  const meta = (map.meta && map.meta.horeca) || [];
+  if (meta.length !== places.length) return;
+  for (let i = 0; i < meta.length; i++) { meta[i].x = places[i].x; meta[i].y = places[i].y; }
 }
 
 // The waterway fixes put water into the world after the start (vaarload.js: patches over the holes under bridges and in locks):
