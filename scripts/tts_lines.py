@@ -1,14 +1,17 @@
 # Voices the jobs in scripts/tts_lines.json (from tts_lines_list.mjs) with
-# Gemini 3.8 Flash TTS (gemini_tts.py) into game/audio/voicelines/<out> +
+# Gemini 3.8 TTS (gemini_tts.py) into game/audio/voicelines/<out> +
 # its manifest.json (out: lines, story, sms, hints), with what each clip was
 # made from in that folder's tts.json. Needs ffmpeg. Clips that are current
-# (logged with gemini_tts.MODEL) are skipped; clips are
+# (logged with an accepted model, see gemini_tts.ACCEPTED) are skipped; clips are
 # loudness-matched to the story lines (-18 LUFS). Stops once the run's spend
-# (OpenRouter credits endpoint) nears the budget.
+# nears the budget: the OpenRouter credits endpoint, or gemini_tts.usage() on the
+# google transport (#462).
 #   python3 scripts/tts_lines.py [max_jobs] [--budget 2.5]
+#   python3 scripts/tts_lines.py 12 --provider google --model gemini-3.8-flash-lite-tts --out proef
 import json, os, sys, subprocess, urllib.error, wave, time
 from concurrent.futures import ThreadPoolExecutor
-from gemini_tts import usage, speak, tries, check, current, load_log, save_log, logged, say_of, LANG
+import gemini_tts
+from gemini_tts import usage, speak, tries, check, current, load_log, save_log, logged, say_of, configure, LANG
 REPO = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 VL = os.path.join(REPO, 'game', 'audio', 'voicelines')
 TRIM = 'silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12'
@@ -18,9 +21,15 @@ BATCH = 24
 POST = f'ffmpeg -af {TRIM},loudnorm=I={LUFS}:TP={TP}:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3'
 
 args = [a for a in sys.argv[1:]]
-budget = 2.5
-if '--budget' in args:
-    i = args.index('--budget'); budget = float(args[i + 1]); del args[i:i + 2]
+budget, OUT_DIR, JOBS = 2.5, None, os.path.join(REPO, 'scripts', 'tts_lines.json')
+for flag in ['--budget', '--provider', '--model', '--out', '--jobs']:
+    if flag in args:
+        i = args.index(flag); value = args[i + 1]; del args[i:i + 2]
+        if flag == '--budget': budget = float(value)
+        elif flag == '--provider': configure(provider=value)
+        elif flag == '--model': configure(model=value)
+        elif flag == '--out': OUT_DIR = value  # a scratch folder for a listen (a proef, not a manifest)
+        else: JOBS = os.path.join(REPO, value)
 
 
 def probe(path):
@@ -63,19 +72,23 @@ def job(l):
     return l, 'FAIL ' + err, None, None
 
 
-lines = json.load(open(os.path.join(REPO, 'scripts', 'tts_lines.json')))
+lines = json.load(open(JOBS, encoding='utf-8'))
+if OUT_DIR:
+    # a proef writes its clips to a scratch folder: no manifest of the game is touched
+    for l in lines: l['out'] = OUT_DIR
 if args:
     lines = lines[:int(args[0])]
 mans, logs, ordered = {}, {}, set()
 for out in sorted({l['out'] for l in lines}):
     p = f'{VL}/{out}/manifest.json'
     os.makedirs(os.path.dirname(p), exist_ok=True)
-    mans[out] = json.load(open(p)) if os.path.exists(p) else {}
+    mans[out] = json.load(open(p, encoding='utf-8')) if os.path.exists(p) else {}
     logs[out] = load_log(os.path.dirname(p))
     # story/ keeps its hand-made mission order; the generated ones stay sorted
     if list(mans[out]) == sorted(mans[out]):
         ordered.add(out)
 u0 = usage()
+print(f'{len(lines)} jobs via {gemini_tts.PROVIDER} ({gemini_tts.CURRENT}), budget ${budget:.2f}' + (f', out {OUT_DIR}' if OUT_DIR else ''))
 failed = []
 with ThreadPoolExecutor(4) as ex:
     for b in range(0, len(lines), BATCH):
@@ -92,9 +105,9 @@ with ThreadPoolExecutor(4) as ex:
             else:
                 failed.append(l['file'])
         for out, man in mans.items():
-            json.dump(dict(sorted(man.items())) if out in ordered else man, open(f'{VL}/{out}/manifest.json', 'w'), ensure_ascii=False, indent=0)
+            json.dump(dict(sorted(man.items())) if out in ordered else man, open(f'{VL}/{out}/manifest.json', 'w', encoding='utf-8'), ensure_ascii=False, indent=0)
             save_log(f'{VL}/{out}', logs[out])
 time.sleep(3)
-print(f'spent ${usage() - u0:.4f}')
+print(f'spent ${usage() - u0:.4f} via {gemini_tts.PROVIDER}')
 for f in failed:
     print('missing:', f)
