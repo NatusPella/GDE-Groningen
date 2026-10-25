@@ -49,8 +49,7 @@ check('elke regel is Nederlands tekst, geen geweld', Object.values(C.VICTIM_LINE
 check('regels komen één keer per fase', (() => { const v = C.createVictim(sBack); let c = 0; for (let i = 0; i < 15; i++) if (C.stepVictim(v, 0.1, { dCar: 9, carSpeed: 9 }).say) c++; return c === 1; })());
 // uitstappen: van de stoel door de deur naar de plek naast de auto
 {
-  for (const angle of [0, 1.1, 2.6, -2]) {
-    const v = { x: 50, y: -20, angle, halfWid: 0.9, model: { len: 4.3 } };
+  for (const angle of [0, 1.1, 2.6, -2]) {    const v = { x: 50, y: -20, angle, halfWid: 0.9, model: { len: 4.3 } };
     const n2 = [-Math.sin(angle), Math.cos(angle)];
     const spot = { x: v.x + n2[0] * -1.6, y: v.y + n2[1] * -1.6 };
     const plan = C.stepOutPlan(v, spot);
@@ -64,6 +63,35 @@ check('regels komen één keer per fase', (() => { const v = C.createVictim(sBac
     check(`hoek ${angle}: hij beweegt alleen naar buiten`, mono);
   }
 }
+// een passagier uit zijn eigen deur trekken (#459): dezelfde reacties als de bestuurder,
+// maar vanaf de kant van zijn stoel
+{
+  const v = { x: 10, y: 5, angle: 0, halfWid: 0.9, model: { name: 'sedan', len: 4.3, wid: 1.8 } };
+  const open = (id) => ({ open: { [id]: 1 }, want: {}, loose: {}, hold: {}, dmg: {} });
+  v.doors = open('vr');
+  const rechts = C.trekUitPlan(v, 'bijrijder', { x: 10.6, y: 7.2 });
+  check('bijrijder begint aan de rechterkant, bij zijn deur', rechts.fy > v.y + 0.2 && Math.abs(rechts.fx - (v.x + 0.645)) < 0.01, JSON.stringify(rechts));
+  const links = C.trekUitPlan(v, 'bijrijder', { x: 10.6, y: 2.8 });  // belandt links, maar zijn deur is rechts
+  check('de kant volgt de deur, niet waar hij belandt', links.fy > v.y && links.ty < v.y);
+  v.doors = open('ar');
+  const achter = C.trekUitPlan(v, 'achter', { x: 9.4, y: 7.2 });
+  check('achterpassagier: achter zijn deur', achter.fx < v.x && achter.fy > v.y);
+  let last = -1, mono = true;
+  for (let t = 0; t <= 1.2; t += 0.02) { const d = Math.hypot(C.stepOutPos(rechts, t).x - rechts.fx, C.stepOutPos(rechts, t).y - rechts.fy); if (d < last - 1e-9) mono = false; last = d; }
+  check('hij schuift alleen naar buiten', mono);
+  // daarna de reacties van een autokraak: boos, bellen, één melding, nooit geweld
+  const vic = C.createVictim(5);
+  let report = 0, phases = [];
+  for (let t = 0; t < 30; t += 0.1) {
+    const o = C.stepVictim(vic, 0.1, { dCar: 4, carSpeed: 0, copNear: false });
+    if (o.report) report++;
+    if (!phases.length || phases[phases.length - 1] !== o.phase) phases.push(o.phase);
+    if (C.victimDone(vic)) break;
+  }
+  check('de passagier meldt de diefstal precies één keer', report === 1 && phases.includes('call'), phases.join());
+  check('en blijft bloedloos', C.VICTIM_LINES.call.every((l) => !/dood|bloed|sla|moord/i.test(l)));
+}
+
 // terugkomen bij een achtergelaten auto
 {
   const run = (ctx, wants = true) => {

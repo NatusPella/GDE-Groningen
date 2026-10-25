@@ -1,4 +1,5 @@
 import { hash2 } from './rng.js';
+import { openDeurVoorRol, uitstapPunt } from './vehicledoors.js';
 // Autodiefstal (#49): wat de bestuurder doet nadat hij uit zijn auto is gehaald.
 // Eerst boos zwaaien met de vuist, dan een stukje achter de auto aan (alleen
 // als hij hem terug wil en je dichtbij bent), bij een stilstaande auto op het
@@ -105,15 +106,28 @@ export const victimDone = (vic) => !vic || vic.phase === 'done';
 export const STEP_OUT = { dur: 0.75, delay: 0.2, seatSide: 0.42, seatFwd: 0.06 };
 
 // v: { x, y, angle, halfWid, model.len }, spot: { x, y } waar hij belandt.
-export function stepOutPlan(v, spot) {
+// kant en langs (optioneel): de kant van zijn eigen deur (-1 links, +1 rechts) en hoe
+// ver die langs de flank ligt; zonder die twee volgt de kant waar hij belandt.
+export function stepOutPlan(v, spot, { kant = null, langs = null } = {}) {
   const f = [Math.cos(v.angle), Math.sin(v.angle)], n = [-Math.sin(v.angle), Math.cos(v.angle)];
-  const side = (spot.x - v.x) * n[0] + (spot.y - v.y) * n[1] >= 0 ? 1 : -1;
+  const side = kant != null && kant !== 0 ? Math.sign(kant) : (spot.x - v.x) * n[0] + (spot.y - v.y) * n[1] >= 0 ? 1 : -1;
   const len = (v.model && v.model.len) || 4.2, hw = v.halfWid || 0.9;
+  const fwd = langs != null ? langs : len * STEP_OUT.seatFwd;
   return {
-    fx: v.x + f[0] * len * STEP_OUT.seatFwd + n[0] * side * hw * STEP_OUT.seatSide,
-    fy: v.y + f[1] * len * STEP_OUT.seatFwd + n[1] * side * hw * STEP_OUT.seatSide,
+    fx: v.x + f[0] * fwd + n[0] * side * hw * STEP_OUT.seatSide,
+    fy: v.y + f[1] * fwd + n[1] * side * hw * STEP_OUT.seatSide,
     tx: spot.x, ty: spot.y, t: 0, dur: STEP_OUT.dur, delay: STEP_OUT.delay,
   };
+}
+
+// Een passagier uit zijn eigen deur trekken (#459): hetzelfde plan als de bestuurder,
+// maar vanaf de kant van zijn stoel (de bijrijder rechts, een achterpassagier aan de
+// kant van zijn deur) in plaats van de kant waar hij toevallig belandt.
+export function trekUitPlan(v, rol, spot) {
+  const d = openDeurVoorRol(v, rol); // de deur die openstaat is de weg naar buiten
+  if (d) return stepOutPlan(v, spot, { kant: d.side, langs: d.x * ((v.model && v.model.len) || 4.2) });
+  const uit = uitstapPunt(v, rol);
+  return stepOutPlan(v, spot, uit ? { kant: uit.kant, langs: uit.langs } : {});
 }
 
 // Positie na t seconden: even blijven zitten (de deur gaat open), dan met een zachte versnelling naar buiten.
