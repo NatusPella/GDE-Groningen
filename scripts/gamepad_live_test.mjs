@@ -80,7 +80,7 @@ const situaties = {
 };
 function zet(naam) {
   hooks.open = false; hooks.phone = false; hooks.pause = false; hooks.map = false;
-  world.player.inVehicle = null; world.noLookBack = false; world.pigeonMode = false; world.trainDriving = false; world.challenge = null; world.activityGame = null; world.padelGame = null;
+  world.player.inVehicle = null; world.noLookBack = false; world.pigeonMode = false; world.trainDriving = false; world.challenge = null; world.activityGame = null; world.padelGame = null; world.wandelingActief = false;
   setSetting('shiftMode', 'auto');
   situaties[naam]();
 }
@@ -145,6 +145,14 @@ for (const naam of Object.keys(situaties)) {
 zet('foot');
 world.activityGame = 'carillon'; frame(2);
 ok(document.documentElement.dataset.padCtx === 'klokken', 'het klokkenspel kiest de klokkenindeling');
+zet('foot');
+
+// de wandeling neemt de speler niet over, maar heeft wel een stopknop nodig: B is Backspace (#436)
+world.wandelingActief = true; frame(2);
+ok(document.documentElement.dataset.padCtx === 'minigame', 'de wandeling kiest de minigame-indeling', document.documentElement.dataset.padCtx);
+reset(); press('b'); frame(2);
+ok(seen.some((s) => s[0] === 'down' && s[1] === 'Backspace'), 'wandeling: B stopt', seen);
+press('b', false); frame(2);
 zet('foot');
 
 // de vliegschool (#397): het lesmenu met de pijlen, en in het lesvliegtuig de gewone vliegindeling (geen minigame,
