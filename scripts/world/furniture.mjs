@@ -91,7 +91,8 @@ export function audit(data, opts = GAME_OPTS) {
   for (const it of items) {
     if (it.k === 'gantry' || it.k === 'speedbump') continue;
     const r = onCarriageway(it.x, it.y);
-    if (r && it.src === 'rule') rep.onRoad.push({ k: it.k, road: r.name || r.type, at: [Math.round(it.x), Math.round(it.y)] });
+    // (the mapped rows too: what OSM draws on the asphalt is left out (#463))
+    if (r) rep.onRoad.push({ k: it.k, road: r.name || r.type, at: [Math.round(it.x), Math.round(it.y)] });
   }
   const allWays = (data.roads || []).filter((r) => r);
   const WG = new Map();

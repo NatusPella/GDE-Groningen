@@ -84,6 +84,76 @@ ok(rows.length === 4 && rows.find((r) => r.k === 'noise_barrier').h === 5, 'OSM 
 const hedgeEl = { type: 'way', id: 9, tags: { barrier: 'hedge' }, geometry: [{ lat: 53.22, lon: 6.56 }, { lat: 53.2201, lon: 6.5605 }] };
 ok(SF.mappedFromOsm([hedgeEl]).length === 0 && SF.mappedFromOsm([hedgeEl], { hedges: true }).map((r) => r.k).join() === 'hedge', 'barrier=hedge is a row for the province only');
 
+// a post or a lamp never stands in the asphalt or in a facade (#463)
+const placeN = n;
+{
+  const road = { pts: line(0, 990, 500), type: 'residential', cat: 'minor', width: 6, bounds: [0, 497, 990, 503] };
+  const house = { pts: [[500, 480], [540, 480], [540, 493], [500, 493]], bounds: [500, 480, 540, 493] };
+  const mapped = [
+    { k: 'bollard', pts: [[500, 500]] },  // midden op de rijbaan
+    { k: 'bollard', pts: [[300, 498]] },  // in het asfalt
+    { k: 'bollard', pts: [[700, 507]] },  // op de stoep
+    { k: 'bollard', pts: [[520, 487]] },  // in een huis
+    { k: 'lamp', pts: [[400, 500]] },     // lantaarnpaal op de rijbaan
+  ];
+  const tile = SF.furnitureForTile({ x0: 0, y0: 0, size: 1000, roads: [road], mapped, buildings: [house], opts: {} });
+  const bollards = tile.items.filter((it) => it.k === 'bollard');
+  ok(bollards.length === 1 && Math.abs(bollards[0].x - 700) < 1, 'a mapped bollard on the asphalt or in a house is left out', bollards.map((b) => b.x.toFixed(0)).join(','));
+  ok(!tile.items.some((it) => it.k === 'lamp'), 'a mapped lamp on the carriageway is left out');
+  // the same question over a map's own queries (streetfurniture3d.js, streetclutter.js)
+  const fake = {
+    roadsNear: (x, y, r) => (Math.abs(y - 500) < r ? [road] : []),
+    buildingsNear: () => [house],
+    waterNear: () => [],
+  };
+  ok(!SF.spotFreeOnMap(fake, 500, 500), 'spotFreeOnMap: the asphalt is no spot');
+  ok(!SF.spotFreeOnMap(fake, 520, 487), 'spotFreeOnMap: a house is no spot');
+  ok(SF.spotFreeOnMap(fake, 700, 507), 'spotFreeOnMap: the pavement is a spot');
+  ok(!SF.spotFreeOnMap(fake, 520, 494, { house: 1.4 }), 'spotFreeOnMap: an awning keeps a lamp off the verge');
+}
+// a lamp against a shopfront moves to the kerb, and only stands where a post fits (#463)
+{
+  const road = { pts: line(0, 990, 500), type: 'residential', cat: 'minor', width: 6 };
+  const gevel = (front, depth) => ({ pts: [[0, front], [990, front], [990, front + depth], [0, front + depth]] });
+  // facades 5,1 m from the middle line: the verge (3,9 m) hangs 1,2 m from the
+  // wall, under an awning, so the post goes to the kerb (3,45 m)
+  const both = SF.furnitureForTile({ x0: 0, y0: 0, size: 1000, roads: [road], buildings: [gevel(494.9, -5), gevel(505.1, 5)], opts: { lamps: true } }).items.filter((it) => it.k === 'lamp');
+  ok(both.length > 20, 'a street with facades keeps its lamps', both.length);
+  ok(both.every((l) => Math.abs(Math.abs(l.y - 500) - 3.45) < 0.15), 'every lamp stands at the kerb, clear of the facade', both.map((l) => Math.abs(l.y - 500).toFixed(2)).join(','));
+  ok(both.every((l) => 5.1 - Math.abs(l.y - 500) >= 1.4 - 1e-6), 'no lamp post within an awning of a wall');
+  // a pavement too narrow for a post leaves no lamp there
+  const tight = SF.furnitureForTile({ x0: 0, y0: 0, size: 1000, roads: [road], buildings: [gevel(496.2, -6), gevel(503.8, 6)], opts: { lamps: true } }).items.filter((it) => it.k === 'lamp');
+  ok(tight.length === 0, 'no lamp in a pavement that is too narrow', tight.length);
+}
+
+// no post of a pedestrian street's mouth in the lane of the road it leaves (#463)
+{
+  const SC = await import('../game/js/streetclutter.js');
+  const { SeededRng } = await import('../game/js/util.js');
+  SC.initClutter();
+  const CELL = 60;
+  // a 5,5 m wide street running north-south, with a pedestrian alley leaving it
+  const car = { cat: 'normal', type: 'residential', width: 5.5, pts: [[30, 0], [30, 60]], bounds: [30, 0, 30, 60], name: 'Breedstraat' };
+  const alley = { cat: 'foot', type: 'pedestrian', width: 5, pts: [[30, 30], [45, 35], [60, 40]], bounds: [30, 30, 60, 40], name: 'Steeg' };
+  const roads = [car, alley];
+  const map = {
+    roads, roadsNear: () => roads, buildingsNear: () => [], treesNear: () => [],
+    waterNear: () => [], flatWaterNear: () => [], railNear: () => [],
+    centreDist: () => 800, meta: { horeca: [] },
+  };
+  const items = [], taken = [];
+  SC.generateClutter({
+    map, rng: new SeededRng(12345), cx0: 0, cy0: 0, CELL, centreD: 800, roads, items, horeca: [],
+    clear: (x, y, r) => taken.every((t) => Math.hypot(t[0] - x, t[1] - y) > t[2] + r),
+    take: (x, y, r) => taken.push([x, y, r]),
+  });
+  const posts = items.filter((it) => it.prop && it.prop.kind === 'bollard').map((it) => it.prop);
+  const laneDist = (x) => Math.abs(x - 30); // the street runs along x = 30, its asphalt is 2,75 m wide each way
+  ok(posts.length >= 2, 'a pedestrian mouth gets its posts', posts.length);
+  ok(posts.every((p) => laneDist(p.x) > 2.75), 'no post of the mouth stands in the lane', posts.map((p) => laneDist(p.x).toFixed(2)).join(','));
+}
+console.log(`placement: ${n - placeN} checks on posts on the asphalt, in a facade and in the lane (#463)`);
+
 // the map
 const root = new URL('../game/', import.meta.url);
 const { loadCityData } = await import('./lib/loadworld.mjs');
