@@ -93,6 +93,12 @@ let pre = `window.__botCfg = ${JSON.stringify(cfg)};\n`;
   const nav = fs.readFileSync(path.join(HERE, 'nav.mjs'), 'utf8').replace(/^export (const|function|class) /gm, '$1 ');
   pre += `window.__botNav = (() => {\n${nav}\nreturn { heliKeys, sailControls, rowDue, wrap, polair, besteTrim, windHoek, zeilRendement, bearing };\n})();\n`;
 }
+// #312: de board-stage met een voertuig (welk voertuig, waar instappen, time-out per poging) staat
+// in scripts/bot/board.mjs, om dezelfde reden buiten game/js.
+{
+  const board = fs.readFileSync(path.join(HERE, 'board.mjs'), 'utf8').replace(/^export (const|function|class) /gm, '$1 ');
+  pre += `window.__botBoard = (() => {\n${board}\nreturn { BOARD, bodyDistance, approachPoint, pickVehicle, boardStep, driveStep, pressed, missed };\n})();\n`;
+}
 if (replayFile) {
   const rl = L.RunLog.parse(fs.readFileSync(path.resolve(replayFile), 'utf8'));
   pre += `window.__botReplay = ${JSON.stringify(rl.inputs())};\n`;

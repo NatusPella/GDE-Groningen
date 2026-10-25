@@ -9,6 +9,8 @@ const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const L = await import(pathToFileURL(path.join(root, 'game', 'js', 'botlogic.js')).href);
 // #312: de heli- en zeilbesturing van de bot (scripts/bot/nav.mjs) en de regels waar ze op lijken
 const N = await import(pathToFileURL(path.join(root, 'scripts', 'bot', 'nav.mjs')).href);
+// #312: de board-stage met een voertuig van de bot (scripts/bot/board.mjs): welk voertuig, waar instappen, time-out
+const Bd = await import(pathToFileURL(path.join(root, 'scripts', 'bot', 'board.mjs')).href);
 const Z = await import(pathToFileURL(path.join(root, 'game', 'js', 'zeilrules.js')).href);
 let fails = 0, n = 0;
 const ok = (c, name) => { n++; if (!c) { fails++; console.log('FAIL', name); } };
@@ -500,6 +502,70 @@ ok(L.decide({ ...b(), mission: { active: true, stage: 'hold' }, target: { x: 8, 
   ok(N.rowDue(1.3, 0), 'roeien: na 1,3 s mag de volgende slag');
   ok(!N.rowDue(0.4, 0), 'roeien: na 0,4 s niet');
   ok(N.rowDue(8, undefined), 'roeien: de eerste slag mag meteen');
+}
+
+// --- board-stage met een voertuig (#312): welk voertuig, waar instappen, time-out -----
+{
+  const quad = { x: 40, y: 0, angle: 0, halfLen: 1.2, halfWid: 0.8, kind: 'auto', mission: true, free: true, occupied: false, drivable: true, distance: 30 };
+  const doel = { x: 40, y: 0, distance: 30 };
+  const snap = (p, auto = []) => ({ t: 0, player: { x: p.x, y: p.y }, target: doel, nearby: { vehicles: auto } });
+  // de romp: een kader van halfLen bij halfWid, precies als vehicle.js distToVehicleBody
+  ok(near(Bd.bodyDistance(quad, { x: 40, y: 5 }), 4.2), 'board: naast de wagen is de rompafstand 4,2 m');
+  ok(near(Bd.bodyDistance(quad, { x: 40, y: 0.5 }), 0), 'board: boven de wagen is de rompafstand 0');
+  // de deur: aan de kant waar de speler staat, een halve meter van de romp, in het midden van de wagen
+  const zuid = Bd.approachPoint(quad, { x: 30, y: -6 });
+  ok(zuid.side === -1 && near(Bd.bodyDistance(quad, zuid), Bd.BOARD.pad), 'board: de deur aan de zuidkant, een halve meter van de romp');
+  const noord = Bd.approachPoint(quad, { x: 30, y: 6 });
+  ok(noord.side === 1 && noord.y > quad.y, 'board: de deur aan de kant van de speler');
+  ok(Math.abs(Bd.approachPoint(quad, { x: 70, y: 2 }).door) <= quad.halfLen * 0.5, 'board: bij de deur, niet bij de bumper');
+  // welk voertuig: het eigen voertuig van de missie wint van een dichterbij staande fiets
+  const fiets = { ...quad, x: 38, y: -2, kind: 'fiets', halfLen: 0.9, halfWid: 0.35, mission: false, distance: 2 };
+  const keuze = Bd.pickVehicle(snap({ x: 30, y: 0 }, [fiets, quad]), {});
+  ok(keuze && keuze.vehicle.mission && keuze.why === 'missievoertuig', 'board: het missievoertuig gaat voor de fiets ernaast');
+  // een auto met bestuurder is autodiefstal; een wrak telt niet; een overgeslagen voertuig even niet
+  ok(Bd.pickVehicle(snap({ x: 30, y: 0 }, [{ ...quad, mission: false, occupied: true, distance: 3 }]), {}) === null, 'board: een auto met bestuurder laat de bot staan');
+  ok(Bd.pickVehicle(snap({ x: 30, y: 0 }, [{ ...quad, mission: false, free: false, distance: 3 }]), {}) === null, 'board: een wrak telt niet');
+  ok(Bd.pickVehicle(snap({ x: 30, y: 0 }, [{ ...quad, distance: Bd.BOARD.range + 10 }]), {}) === null, 'board: een voertuig buiten bereik laat de bot niet lopen');
+  const mem0 = {};
+  Bd.missed(mem0, quad, 0); Bd.missed(mem0, quad, 1); Bd.missed(mem0, quad, 2);
+  ok(mem0.skip && Bd.pickVehicle(snap({ x: 30, y: 0 }, [quad]), mem0) === null, 'board: driemaal E zonder instappen: even overslaan');
+  ok(Bd.pickVehicle(snap({ x: 30, y: 0 }, [quad]), mem0) === null && Bd.pickVehicle({ ...snap({ x: 30, y: 0 }, [quad]), t: 999 }, mem0) !== null, 'board: na een minuut is het voertuig weer een optie');
+  // lopen naar de deur, dan E, en na een druk even wachten
+  const mem = {};
+  const ver = Bd.boardStep({ ...snap({ x: 10, y: 4 }), vehicle: quad }, mem, 0);
+  ok(ver.type === 'walk' && near(Bd.bodyDistance(quad, ver.to), Bd.BOARD.pad), 'board: eerst naar de deur lopen');
+  const dichtbij = Bd.boardStep({ ...snap({ x: 40, y: 1 }), vehicle: quad }, mem, 10);
+  ok(dichtbij.type === 'enter', 'board: bij de deur is het E');
+  Bd.pressed(mem, 10);
+  ok(Bd.boardStep({ ...snap({ x: 40, y: 1 }), vehicle: quad }, mem, 10.5).type === 'wait', 'board: na E even wachten');
+  // een voertuig waar E niet aankomt: na zes drukken opgeven, binnen de tijd van een poging
+  const mem2 = {};
+  let t = 0;
+  Bd.pressed(mem2, t);
+  while (Bd.boardStep({ ...snap({ x: 40, y: 1 }), vehicle: quad }, mem2, t).type === 'wait' && t < 60) t += 0.5;
+  for (let i = 0; i < 5; i++) { Bd.pressed(mem2, t); t += Bd.BOARD.waitS; }
+  const op = Bd.boardStep({ ...snap({ x: 40, y: 1 }), vehicle: quad }, mem2, t);
+  ok(op.type === 'giveup' && op.why === 'voertuig laat niet in', 'board: zes drukken zonder instappen: opgeven met een reden');
+  // een poging die niet afkomt: time-out na 25 s
+  const mem3 = {};
+  const begin = Bd.boardStep({ ...snap({ x: 10, y: 4 }), vehicle: quad }, mem3, 100);
+  ok(begin.type === 'walk', 'board: de poging begint met lopen');
+  const laat = Bd.boardStep({ ...snap({ x: 10, y: 4 }), vehicle: quad }, mem3, 100 + Bd.BOARD.attemptS + 0.1);
+  ok(laat.type === 'giveup' && laat.why === 'time-out' && laat.forS > Bd.BOARD.attemptS, 'board: een poging duurt hooguit 35 s');
+  // in een verkeerd voertuig: eruit (één keer), daarna boarden
+  const mem4 = {};
+  const uit = Bd.boardStep({ ...snap({ x: 40, y: 2 }), player: { x: 40, y: 2, vehicle: { kind: 'fiets', mission: false } }, vehicle: quad, wrongVehicle: true }, mem4, 0);
+  ok(uit.type === 'exit', 'board: in een fiets bij de quad eerst uitstappen');
+  // uit een rijdende auto stappen is geen optie: eerst afremmen
+  const rijdend = Bd.boardStep({ ...snap({ x: 40, y: 2 }), player: { x: 40, y: 2, speed: 12, vehicle: { kind: 'auto', mission: false } }, vehicle: quad, wrongVehicle: true }, {}, 0);
+  ok(rijdend.type === 'wait', 'board: uit een rijdende auto niet meteen uitstappen');
+  ok(Bd.boardStep({ ...snap({ x: 40, y: 2 }), player: { x: 40, y: 2, vehicle: quad }, vehicle: quad }, mem4, 8).type === 'drive', 'board: in de quad: rijden');
+  // de rit erna: naar het doel, en een doel dat wegloopt is na het budget een time-out
+  const m5 = {};
+  ok(Bd.driveStep({ player: { x: 0, y: 0 }, target: { x: 500, y: 0, distance: 500 } }, m5, 0).type === 'drive', 'board: na het instappen rijden naar het doel');
+  let t5 = 0, op5 = null;
+  while (t5 < 600 && !op5) { const s5 = Bd.driveStep({ player: { x: 0, y: 0 }, target: { x: t5 * 30, y: 0, distance: t5 * 30 } }, m5, t5); if (s5.type === 'giveup') op5 = s5; t5 += 1; }
+  ok(op5 && op5.why === 'geen voortgang na het instappen' && op5.forS >= Bd.BOARD.driveS, 'board: de rit heeft een eigen budget');
 }
 
 console.log(`${n - fails}/${n} ok`);
