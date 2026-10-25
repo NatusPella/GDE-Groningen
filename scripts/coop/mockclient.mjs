@@ -45,7 +45,7 @@ function makeTransport(core, hook, sim, rng) {
   return tr;
 }
 
-// opts: { stage, code, wens, net: {latency, jitter, loss}, info: {tiles, story}, seed }
+// opts: { stage, code, wens, wachtwoord, net: {latency, jitter, loss}, info: {tiles, story}, seed }
 export async function startMockGuest(opts) {
   const sim = { ...(opts.net || {}) };
   const rng = makeRng(opts.seed || 7);
@@ -53,7 +53,7 @@ export async function startMockGuest(opts) {
   const core = createCoopCore({ gameDir: path.join(opts.stage || path.join(ROOT, 'game')), emit: (k, p) => { if (hook.fn) hook.fn(k, p); }, localIp: '127.0.0.1', upnp: false });
   const tr = makeTransport(core, hook, sim, rng);
   const { VERSION } = await import(pathToFileURL(path.join(opts.stage || path.join(ROOT, 'game'), 'js', 'version.js')).href);
-  const info = { game: 'gde', proto: PROTO, version: String(VERSION), tiles: String((opts.info && opts.info.tiles) || '-'), story: String((opts.info && opts.info.story) || 'nieuw'), char: opts.wens || undefined };
+  const info = { game: 'gde', proto: PROTO, version: String(VERSION), tiles: String((opts.info && opts.info.tiles) || '-'), story: String((opts.info && opts.info.story) || 'nieuw'), char: opts.wens || undefined, ...(opts.wachtwoord ? { wachtwoord: String(opts.wachtwoord).slice(0, 32) } : null) };
   const session = new ClientSession(tr, { info, caps: ['scene', 'spelers'], token: opts.token || undefined });
   const log = { status: [], events: [], samples: [], resync: 0 };
   const kort = (l) => { if (opts.maxLog && l.length > opts.maxLog) l.splice(0, l.length - opts.maxLog); }; // een duurtest houdt niet alles bij

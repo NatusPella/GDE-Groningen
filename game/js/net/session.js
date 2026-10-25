@@ -98,6 +98,12 @@ export class HostSession extends Base {
     const r = checkHandshake(this.cfg.info, m.body);
     const reply = (b) => this._emit(encodeJson(T.WELCOME, 0, this.tickN, 0, b));
     if (!r.ok) { this.rejected.push(r.reason); return reply({ ok: false, reason: r.reason, version: String(this.cfg.info.version || '') }); }
+    // Een sessie op slot (#450): ook een terugkerende gast moet het wachtwoord opnieuw noemen, en een verbannen token
+    // komt er niet meer in. Dezelfde weg als elke andere weigering: het welkom zegt waarom, de verbinding blijft wachten.
+    const ww = this.cfg.wachtwoord ? String(this.cfg.wachtwoord() || '') : '';
+    if (ww && String(m.body.wachtwoord == null ? '' : m.body.wachtwoord) !== ww) { this.rejected.push('wachtwoord'); return reply({ ok: false, reason: 'wachtwoord', version: String(this.cfg.info.version || '') }); }
+    const verboden = this.cfg.verboden ? this.cfg.verboden() : null;
+    if (verboden && m.body.token && verboden.has(String(m.body.token))) { this.rejected.push('verbod'); return reply({ ok: false, reason: 'verbod', version: String(this.cfg.info.version || '') }); }
     const tok = m.body.token;
     if (this.guest && tok && tok === this.guest.token) { // hervatten of herhaalde hello
       const resumed = this.status === 'lost';

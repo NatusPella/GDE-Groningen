@@ -1,9 +1,10 @@
 // Samen spelen (#95): host en gasten aan wereld-achtige objecten gekoppeld over een in-memory
 // transport (game/js/coopnet.js, coopclient.js, coopglue.js): naadloos erin en eruit, eigen
 // voortgang voor ieder, vaste personages, N spelers (4 en meer), verwijderen, beloning, pings,
-// pauze bij wegvallen per speler.
+// pauze bij wegvallen per speler, een wachtwoord per sessie en verbieden (#450).
 import assert from 'node:assert/strict';
 import { createLink } from '../game/js/net/memtransport.js';
+import { ClientSession } from '../game/js/net/session.js';
 import * as N from '../game/js/coopnet.js';
 import * as W from '../game/js/coophostwisselnet.js'; // de momentopname van een gastheer zonder speler (#450)
 import { koplozeWereld } from '../game/js/net/koploos.js';
@@ -436,5 +437,41 @@ t('een openbare sessie (#450): een gastheer zonder speler telt plek 0 niet mee, 
   s.hw.coopNet.hub.zetOpenbaar(true, 'Met z\'n tweeën');
   assert.equal(s.hw.coopNet.hub.publiek().spelers, 2, 'de gastheer telt mee');
   N.stopCoopNet(hw); N.stopCoopNet(s.hw);
+});
+t('beheerder (#450): een wachtwoord per sessie, kicken en verbieden; de verbannen gast komt met zijn token niet terug', () => {
+  const hw = koplozeWereld({ start: { x: 0, y: 0 } });
+  N.startHost(hw, INFO, { seed: 5, koploos: true, wachtwoord: 'zomer' });
+  const gasten = [];
+  const koppel = (opts = {}) => {
+    const link = createLink({ latency: 0.03, seed: opts.seed || 3 }); N.addGuest(hw, link.a);
+    const gw = mkWorld(); N.startClient(gw, link.b, INFO, opts.wachtwoord ? { wachtwoord: opts.wachtwoord } : {});
+    const g = { gw, link }; gasten.push(g); return g;
+  };
+  const tik = (secs = 1) => { for (let k = 0; k < 60 * secs; k++) { N.tickCoopNet(hw, 1 / 60); for (const g of gasten) { if (g.gw.coopNet) N.tickCoopNet(g.gw, 1 / 60); g.link.advance(1 / 60); } hw.time += 1 / 60; } };
+  // zonder het wachtwoord komt er niemand in; met het wachtwoord wel
+  const fout = koppel({ seed: 3 }); tik(1);
+  assert.equal(fout.gw.coopNet, null, 'de gast zonder wachtwoord speelt weer in zijn eigen spel');
+  assert.equal(fout.gw.coopWeigering, 'wachtwoord', 'en weet waarom');
+  assert.equal(hw.coopRoster.length, 1, 'alleen plek 0 staat in de lijst');
+  const a = koppel({ seed: 4, wachtwoord: 'zomer' }); tik(1);
+  assert.equal(a.gw.coopNet.session.status, 'ok'); assert.equal(a.gw.coopNet.session.slot, 1);
+  const b = koppel({ seed: 6, wachtwoord: 'zomer' }); tik(1);
+  assert.equal(b.gw.coopNet.session.slot, 2);
+  // verbieden: plek 2 gaat weg en mag met zijn eigen token niet terug; plek 1 blijft gewoon zitten
+  const tokenB = b.gw.coopNet.session.token;
+  assert.equal(N.verbiedGast(hw, 2), true); assert.equal(N.verbiedGast(hw, 9), false);
+  tik(1);
+  assert.equal(b.gw.coopNet, null, 'de verbannen gast is uit het spel');
+  assert.deepEqual(hw.coopRoster.map((r) => r.slot), [0, 1], 'de rest speelt door');
+  const link = createLink({ latency: 0.03, seed: 9 }); N.addGuest(hw, link.a);
+  const terug = new ClientSession(link.b, { info: { ...INFO, wachtwoord: 'zomer' }, caps: N.CAPS, token: tokenB });
+  for (let k = 0; k < 120; k++) { N.tickCoopNet(hw, 1 / 60); terug.tick(1 / 60); link.advance(1 / 60); }
+  assert.equal(terug.status, 'geweigerd'); assert.equal(terug.rejected, 'verbod', 'het token staat op de lijst van de beheerder');
+  // het wachtwoord uitzetten opent de sessie weer; wie al meespeelt blijft zitten
+  assert.equal(N.zetWachtwoord(hw, ''), false);
+  assert.equal(a.gw.coopNet.session.status, 'ok');
+  const open = koppel({ seed: 11 }); tik(1);
+  assert.equal(open.gw.coopNet.session.status, 'ok', 'zonder wachtwoord mag iedereen weer');
+  N.stopCoopNet(hw);
 });
 console.log(`coopnet_test: ${n}/${n} ok`);
