@@ -6,6 +6,7 @@
 //
 //   splitMeta(meta, tileKeyOf, canHold) -> { meta: slim, rows: Map(tile key -> rows) }
 //   joinMeta(slim, rows) -> meta, equal to what went in (the order of every list too)
+//   layerRows(slim, list, rowSets) -> that one list from the tiles of its layer (null when a place is missing)
 //
 // A row is the place's own fields plus `_l` (the list: 'shops', 'pois.health', ...) and `_n` (its place in the list; -1 for a single
 // object such as the helipad). A point whose tile cannot hold it (canHold false: a tile the city has no data for) stays in the slim
@@ -43,6 +44,21 @@ export function splitMeta(meta, tileKeyOf, canHold = () => true) {
   slim.poiLists = lists;
   if (rest.length) slim.poiRest = rest;
   return { meta: slim, rows };
+}
+
+// One list out of only the tiles of its layer (#314, C1): a reader asks the tiles the tile index names for its layer
+// (scripts/world/poilagen.mjs, index.pois.layers) and gets the same list as out of the whole meta, in the order of the places
+// (_n). The places that stayed in the global layer (poiRest, outside the city's tiles) come along. null when a place is
+// missing or two share a place: the reader then falls back on the whole list of map.meta.
+export function layerRows(slim, name, rowSets) {
+  if (!slim || !slim.poiLists || slim.poiLists[name] === undefined) return null;
+  const count = slim.poiLists[name], byN = new Map();
+  const take = (row) => { if (row._l === name) byN.set(row._n, row); };
+  for (const rows of rowSets) for (const row of rows) take(row);
+  for (const row of slim.poiRest || []) take(row);
+  if (byN.size !== (count < 0 ? 1 : count)) return null;
+  const items = [...byN].sort((a, b) => a[0] - b[0]).map(([, row]) => { const { _l, _n, ...item } = row; return item; });
+  return count < 0 ? items[0] : items;
 }
 
 export function joinMeta(slim, rowSets) {
