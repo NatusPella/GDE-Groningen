@@ -50,6 +50,31 @@ Wijkt de mode af van de werkelijkheid (een "autopilot"-klus blijkt een
 architectuurwijziging), dan pas je de mode aan in de brief — niet stilzwijgend
 zwaarder gaan werken.
 
+## De canonieke specs
+
+De inhoudelijke specs staan in `.specs-fire/standards/` en zijn het *hoe*: één per
+systeem, met de regels, de bestanden, de tests en de open punten. `docs/` houdt de
+naslag (detail, metingen, wettelijke teksten, handleidingen); een gebiedsdoc dat
+iets unieks heeft blijft en verwijst naar zijn spec.
+
+| Spec | Gaat over |
+| --- | --- |
+| `constitution.md` | verwijzing naar `AGENTS.md`; nooit een tweede bron |
+| `tech-stack.md` | de techniek en waarom |
+| `coding-standards.md` | stijl, naamgeving, modules, imports |
+| `testing-standards.md` | de testfasen en wat een test moet bewijzen |
+| `system-architecture.md` | schillen, componenten, framevolgorde, beperkingen |
+| `multiplayer.md` | Samen spelen: rollen, opdrachtstand, overdracht, PvP, beloningen |
+| `wereld.md` | wereld, kaart, tegels, provincie, POI's, gebieden |
+| `mechanica.md` | loopbaan, boerderij, vliegschool, geluid, prestaties, weer |
+| `verhaal.md` | verhaal, personages, stem, de keten van script naar spel |
+| `ui-taal.md` | kleur, typografie, bediening, menu's, taalregels |
+| `publicatie.md` | releaseketen, checks, licenties, leeftijd, privacy, merken |
+
+`ARCHITECTURE.md` in de root blijft de bestandskaart (ca. 200 KB). Dat is naslag,
+geen spec: grep erin, lees hem nooit in zijn geheel. `README.md` is voor mensen op
+GitHub, `AGENTS.md` voor agents; die twee blijven zoals ze zijn.
+
 ## Harde regels
 
 - **`state.yaml` nooit met de hand.** Altijd via de scripts; die bewaken run-ids,

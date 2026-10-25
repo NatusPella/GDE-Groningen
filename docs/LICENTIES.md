@@ -47,7 +47,7 @@ geen `node_modules` in git.
 | `data/satellite_reference.jpg` (6,4 MB) | **Esri World Imagery**-export (`scripts/extract_palette.py`) | Esri-beelden mogen niet als los bestand herverspreid worden ([Esri-voorwaarden](https://www.esri.com/en-us/legal/terms/full-master-agreement)); alleen de afgeleide kleurwaarden zitten in het spel | uit de repo en de historie (15 okt, in `.gitignore`; zie `docs/PUBLICEREN.md`) |
 | Geluidseffecten (motor, foley, ambience, UI) | gesynthetiseerd in `game/js/sfx/*.js` | eigen werk | ok |
 | Opnames van effecten (acht Freesound-bronnen in tien bestanden: autodeuren, portiergreep, bandenslip, handrembocht, remmen op grind, treindeur in open, piep en dicht) | `game/audio/sfx/` (bron en bewerking per bestand in `game/audio/sfx/manifest.json`) | Freesound, Creative Commons 0 (publiek domein); gekozen en gedownload met akkoord van de eigenaar op 24-10-2026; gemasterd met `scripts/audio/master_sfx.mjs` | ok (CC0, geen naamsvermelding nodig) |
-| Muziek: 20 G-Music-nummers, 8 scenario-loops, titelnummer `miles_past_the_city_square.mp3` | Google Gemini (volgens de eigenaar) | zie §4 | ok, met kanttekeningen |
+| Muziek: 34 G-Music-nummers, 15 scenario-loops, titelnummer `miles_past_the_city_square.mp3` | Google Gemini (volgens de eigenaar) | zie §4 | ok, met kanttekeningen |
 | Stemmen: ~3.100 clips in `game/audio/voicelines` en de vaste mappen (elke clip gelogd in een `tts.json`; telling en controle: `node scripts/audio_herkomst.mjs`, allemaal `google/gemini-3.8-flash-tts`, prebuilt stemmen zoals Orus en Callirrhoe; sinds 5 okt spreken ze Gronings, uit `scripts/gronings_spoken.json`, geschreven met Claude, de Friese personages en toeristen daargelaten) | Gemini TTS via OpenRouter | zie §4 | ok |
 | Vaste clips: `audio/npc`, `audio/police`, `audio/nieuws`, `audio/gmusic/jingles` | Gemini TTS via OpenRouter, `google/gemini-3.8-flash-tts` (`scripts/tts_barks_lines.mjs`, stemmen in `tts_cast.mjs` `CLIP_CAST`) | zie §4 | **opgelost** (3 okt): waren gemaakt met een previewmodel zonder log; nu opnieuw ingesproken en per map gelogd in `tts.json` |
 | App-icoon `desktop/resources/icon.svg/png` | eigen ontwerp (GDE-logo) met ingebedde subset van Big Shoulders Display | OFL staat inbedden toe | ok |
@@ -486,8 +486,9 @@ voor dit spel waarschijnlijk "ja" zijn (controleren met de eigenaar):
   parodieën (zie de merkentabel hierboven).
 - **Taal**: grof taalgebruik? (nagaan in de dialogen).
 - **Seksuele content**: kus in het verhaal; geen naaktheid (nagaan).
-- **Interactie/aankopen**: geen online, geen chat, geen in-app aankopen,
-  geen gebruikersdata.
+- **Interactie/aankopen**: online samen spelen met een kamercode (peer-to-peer,
+  sinds 0.38; optioneel een openbare sessielijst, standaard uit), geen tekstchat
+  of spraak, geen in-app aankopen, geen gebruikersdata en geen account.
 
 Verwachte uitkomst: **PEGI 18 / USK 18** (zie `docs/LEEFTIJD.md`): de
 eigenaar heeft gekozen voor 18+. Bloed en ledematen, het doden van

@@ -111,3 +111,23 @@ op het web.
 | Eén `World` | gedeelde state, systeem bezit eigen velden | voorspelbare volgorde, geen globals |
 | Pure kern + glue | rekenregels los van THREE/DOM | testbaar in Node |
 | Saves lokaal | `localStorage` met migraties | geen accounts, geen server |
+
+## Waar de bestandskaart staat
+
+Deze spec geeft de regels en de componenten op hoofdlijnen. De volledige
+bestandskaart met alle modules, secties en meetpunten staat in `ARCHITECTURE.md`
+in de repo-root (ca. 200 KB). Die kaart is **naslag, geen spec**: grep erin op het
+onderwerp dat je zoekt en lees hem nooit in zijn geheel. Wijkt de kaart af van de
+code, dan is de kaart de fout en werk je hem bij in dezelfde commit.
+
+De gebiedsspecs naast dit bestand:
+
+| Spec | Gaat over |
+| --- | --- |
+| `constitution.md` | verwijzing naar `AGENTS.md`; geen tweede bron |
+| `tech-stack.md` | de gebruikte techniek en waarom |
+| `coding-standards.md` | stijl, naamgeving, modules, imports |
+| `testing-standards.md` | de testfasen en wat een test moet bewijzen |
+| `multiplayer.md` | Samen spelen: rollen, opdrachtstand, overdracht, PvP |
+| `wereld.md` | wereld, kaart, tegels, provincie, POI's, gebieden |
+
