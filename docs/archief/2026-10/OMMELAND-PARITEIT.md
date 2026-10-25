@@ -1,3 +1,6 @@
+> **Archief (oktober 2026).** Dit document is vervangen door .specs-fire/standards/wereld.md.
+> Het staat hier alleen als historie: gebruik het niet als bron en werk het niet bij.
+
 # Ommeland parity with the city
 
 > Historisch (stand 0.34): de gebouwen, wegen, dorpen en skyline van het oude Ommeland (`realmap`, `countryvillage`, de weg- en gebouwlagen van `countryreal`, `countryedge` en `countryside`, `countryroute`) zijn door tegels vervangen (issue #3, ontwerp in [PROVINCIE-PLAN.md](PROVINCIE-PLAN.md), §2.28); wat van `countryreal`, `countryedge`, `countrybake` en `ommeland.json`/`.bin` overblijft is het oude waterveld, het bebouwingsmasker, plaatsen, kerken en stations. De "open" punten voor die lagen worden niet meer opgepakt, `country_props_audit.mjs` en het bruggendeel van `country_vehicles_test.mjs` zijn weg.

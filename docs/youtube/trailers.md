@@ -76,7 +76,7 @@ GDE staat voor Grootste Diefstal Ever. Een gratis, niet-commerciële parodie, ni
 
 **Tags:** `GDE Groningen, Zomer vol misdaad, Grootste Diefstal Ever, Groningen, Grunn, Gronings, open wereld, open world, gratis game, Nederlandse game, indie game, parodie, comedy, misdaad, trailer, teaser, Martinitoren, Tammo en Tessa`.
 
-**Credits:** alleen NatusPella. Geen eigen muziek van Claude; als er muziek onder komt, is die van Gemini (zie `docs/MUZIEK-OPRUIMING.md`). De gesproken regels zijn de bestaande game-regels (Gemini-stemmen, `docs/LICENTIES.md` §4), dus de AI-vermelding blijft in de beschrijving.
+**Credits:** alleen NatusPella. Geen eigen muziek van Claude; als er muziek onder komt, is die van Gemini (zie `docs/MUZIEK.md`). De gesproken regels zijn de bestaande game-regels (Gemini-stemmen, `docs/LICENTIES.md` §4), dus de AI-vermelding blijft in de beschrijving.
 
 **Instellingen:**
 - Gemaakt voor kinderen: **Nee**. Categorie Gaming, taal Nederlands, standaardlicentie.

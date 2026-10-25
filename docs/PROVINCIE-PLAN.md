@@ -13,7 +13,7 @@ blijven gelijk, omdat code en ARCHITECTURE.md ernaar verwijzen.*
 Het spel had drie lagen: de stad (`citymap.json`, volle detail), het echte
 Ommeland (~12 km, `ommeland.json`/`.bin`, dozen en grond-shader) en procedurele
 polders, elk met eigen code voor tekenen, botsen, verkeer en routes
-([OMMELAND-PARITEIT.md](OMMELAND-PARITEIT.md), historisch).
+([OMMELAND-PARITEIT.md](archief/2026-10/OMMELAND-PARITEIT.md), historisch).
 
 **Besluit van de eigenaar:** die splitsing verdwijnt. Elke tegel (binnenstad,
 dorp, polder, Eemshaven, Wadden) komt van **dezelfde bouwer** op **dezelfde

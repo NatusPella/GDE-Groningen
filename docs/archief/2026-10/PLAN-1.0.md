@@ -1,3 +1,6 @@
+> **Archief (oktober 2026).** Dit document is vervangen door issue #65 en de open punten in `.specs-fire/standards/publicatie.md`.
+> Het staat hier alleen als historie: gebruik het niet als bron en werk het niet bij.
+
 # Plan naar 1.0 (#65)
 
 Stand: 21 oktober 2026, laatste pre-release 0.38.1. Dit is een **plan**; het is

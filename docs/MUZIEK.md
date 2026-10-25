@@ -233,7 +233,7 @@ nachts buiten de keuze.
 De zeven nummers die het spel zelf synthetiseerde (`synthmusic.js`) zijn weg:
 de eigenaar besloot op 18 oktober 2026 (#66) dat muziek niet door Claude
 wordt gemaakt. Nieuwe muziek komt via Gemini op verzoek van de eigenaar; zie
-`docs/MUZIEK-OPRUIMING.md` en het wensenlijstje voor Gemini.
+`docs/archief/2026-10/MUZIEK-OPRUIMING.md` en het wensenlijstje voor Gemini.
 
 ## Korte geluidjes (stings): in code gemaakt
 

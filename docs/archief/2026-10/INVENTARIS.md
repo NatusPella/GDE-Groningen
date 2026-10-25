@@ -1,3 +1,6 @@
+> **Archief (oktober 2026).** Dit document is vervangen door de GitHub-issues #465-#488 en de specs in `.specs-fire/standards/`.
+> Het staat hier alleen als historie: gebruik het niet als bron en werk het niet bij.
+
 # Inventaris en conformiteit
 
 Op 25-10-2026 opgemaakt met vier parallelle scans (game/client, bouw en release,

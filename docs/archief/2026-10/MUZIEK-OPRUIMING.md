@@ -1,3 +1,6 @@
+> **Archief (oktober 2026).** Dit document is vervangen door `docs/MUZIEK.md`, `docs/LICENTIES.md` en de CHANGELOG.
+> Het staat hier alleen als historie: gebruik het niet als bron en werk het niet bij.
+
 # Muziek-opruiming (#66): wat is van Gemini, wat van Claude
 
 Besluit van de eigenaar, 18 oktober 2026: muziek die Claude zelf maakte
