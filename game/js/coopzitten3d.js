@@ -1,31 +1,31 @@
 // Samen spelen (#434): wie in een voertuig zit is voor iedereen te zien, op zijn stoel (host, Tessa en gasten), niet "door de auto heen"
 // of onzichtbaar. Elke zitter is een echt persoonsmodel (zoals coopfigures3d.js) dat in het voertuigmodel hangt, met dezelfde stoelen
-// en houdingen als het spel zelf (seating3d.js vehicleSeat, models3d_people.js seatPose). Op een fiets zit de bestuurder met de
-// trapbeweging van de fiets mee (models3d_vehicles.js updateVehicleWheelSpin laat het kruk draaien, de voeten volgen via de IK van het model).
+// en houdingen als het spel zelf (seating3d.js vehicleSeatAt en placeSeatedLocal: de bank achterin binnen de carrosserie, de echte
+// stoelen van een boot en de passagiersruimte van de bus). Op een fiets zit de bestuurder met de trapbeweging van de fiets mee
+// (models3d_vehicles.js updateVehicleWheelSpin laat het kruk draaien, de voeten volgen via de IK van het model).
 // De gegevens komen van coopclient.js (gast: world.coopZitters uit het snapshot) en coopnet.js (host: de extra spelers in zijn voertuig).
-// Alleen three.js en bestaande bouwers. Stoelen: 0 bestuurder, 1 bijrijder voorin, 2 en hoger achterin.
-import { buildPersonMesh, seatPose, seatedY, standBehindPose } from './models3d_people.js';
-import { vehicleSeat } from './seating3d.js';
+// Alleen three.js en bestaande bouwers. Stoelen: 0 bestuurder, 1 bijrijder voorin, 2 en hoger de passagiers.
+import { buildPersonMesh } from './models3d_people.js';
+import { vehicleSeatAt, placeSeatedLocal } from './seating3d.js';
 import { riderSeatFor } from './models3d_vehicles.js';
 import { figuurLook } from './coopplayers.js';
 import { ruimMeshOp } from './coopruim.js';
-import { busInterieur, coopPlek, VLOER } from './businterieur.js';
 import { heeftAutoPortier } from './sfx/samples.js';
 
-const zitters = new Map(); // plek -> { mesh, char, ouder, rijder }
+const zitters = new Map(); // plek -> { mesh, char, ouder, sleutel, seat, trap, beweegt, verborgen }
 const deurGezien = new Map(); // plek -> { voertuig, x, y, auto }: wie we zagen instappen, voor het portiergeluid van een medespeler (#460)
 let deurStart = null;
 
-// De stoel van deze zitter in het voertuig: vehicleSeat voor de bestuurder en de bijrijder, achterin verder naar achteren en om en om links en rechts.
-export function stoelVoor(v, stoel) {
-  if (stoel <= 1) return vehicleSeat(v, stoel === 0);
-  if (v.isBus && v.model && v.model.name === 'bus') { // in de stadsbus op een stoel of staanplek van de passagiersruimte (businterieur.js, #444)
-    const p = coopPlek(busInterieur(v.model.len, v.model.wid, { trailer: v.model.trailer || 0 }), stoel), s = vehicleSeat(v, false);
-    if (p) return p.soort === 'zit' ? { ...s, x: p.x, y: VLOER + 0.31, z: p.z, stand: false } : { ...s, x: p.x, y: VLOER, z: p.z, stand: true, pose: undefined };
-  }
-  const s = vehicleSeat(v, false), rij = Math.floor((stoel - 2) / 2) + 1;
-  const stap = v.isBus ? 1.25 : v.isBoat ? 0.8 : 0.85;
-  return { ...s, x: s.x - stap * rij, z: (stoel % 2 === 0 ? -1 : 1) * Math.max(0.25, Math.abs(s.z)) };
+// De stoel van deze zitter in het voertuig: de bestaande indeling van het spel (seating3d.js vehicleSeatAt):
+// de bestuurder, de bijrijder, de bank achterin binnen de carrosserie, de echte stoelen van een boot (met de
+// houding die erbij hoort) en de passagiersruimte van de stadsbus (businterieur.js, #434).
+export const stoelVoor = (v, stoel) => vehicleSeatAt(v, stoel);
+
+// Beweegt deze plek? Dan moet de zitter elk beeld opnieuw in de houding staan: een roeier, een peddelaar,
+// iemand op een SUP en wie op de waterfiets trapt (#434).
+function levendig(s) {
+  if (!s || !s.pose) return false;
+  return s.pose.arms === 'row' || s.pose.arms === 'paddle' || s.pose.arms === 'sup' || !!s.pose.pedal;
 }
 
 // Een bestuurder op een fiets, scooter of motor: zoals scene3d.js syncPlayerRider (de bouten en armen vast, de benen volgen de trappers).
@@ -61,14 +61,10 @@ function trapMee(p, mesh, base) {
   ud.legR.rotation.z = base - sw;
 }
 
-function plaats(p, v, stoel) {
+function plaats(p, v, stoel, t = 0, seat = null) {
   const fiets = v.isBike || v.isScooter;
   if (fiets && stoel === 0 && v._mount !== 'horse') return fietsHouding(p, v);
-  const s = stoelVoor(v, stoel);
-  p.rotation.set(0, s.face || 0, 0);
-  if (s.stand && !(s.pose && s.pose.arms === 'sup')) { standBehindPose(p); p.position.set(s.x, s.y, s.z); return null; }
-  seatPose(p, s.pose);
-  p.position.set(s.x, seatedY(p, s.y), s.z);
+  placeSeatedLocal(p, seat || stoelVoor(v, stoel), t);
   return null;
 }
 
@@ -113,6 +109,7 @@ export function deurGeluiden(world, lijst, zoek) {
 // Geeft het aantal zitters dat nu in een voertuig zit (voor de testbank). world (optioneel): voor het portiergeluid van een medespeler.
 export function syncZitters(lijst, zoek, world = null) {
   deurGeluiden(world, lijst, zoek);
+  const nu = world && Number.isFinite(world.time) ? world.time : performance.now() / 1000; // voor de bewegende houdingen (roeien, peddelen)
   const gezien = new Set();
   for (const z of lijst || []) {
     const r = zoek(z.voertuig);
@@ -125,8 +122,16 @@ export function syncZitters(lijst, zoek, world = null) {
       e = { mesh: bouwFiguur(z.char), char: z.char, ouder, verborgen: null, sleutel: '' };
       ouder.add(e.mesh); zitters.set(z.slot, e);
     }
-    const sleutel = z.stoel + '|' + (r.v.model && r.v.model.name);
-    if (e.sleutel !== sleutel) { e.sleutel = sleutel; try { e.trap = plaats(e.mesh, r.v, z.stoel); } catch (er) { e.trap = null; /* een stoel die niet past: de zitter staat in het midden */ } }
+    const m = r.v.model || {};
+    const sleutel = z.stoel + '|' + (m.name || '') + '|' + (m.len || 0) + '|' + (m.kind || '');
+    e.stoel = z.stoel | 0;
+    // een roeier of peddelaar moet elk beeld opnieuw in de houding (de armen en benen bewegen mee, #434)
+    if (e.sleutel !== sleutel) {
+      e.sleutel = sleutel;
+      try { e.seat = stoelVoor(r.v, z.stoel); e.trap = plaats(e.mesh, r.v, z.stoel, nu, e.seat); e.beweegt = levendig(e.seat); } catch (er) { e.trap = null; e.beweegt = false; /* een stoel die niet past: de zitter staat in het midden */ }
+    } else if (e.beweegt) {
+      try { plaats(e.mesh, r.v, z.stoel, nu, e.seat); } catch (er) { e.beweegt = false; /* houding mislukt: laat hem zo */ }
+    }
     e.mesh.visible = true;
     if (e.trap != null) trapMee(e.mesh, r.mesh, e.trap); // de bestuurder van een fiets trapt mee met de kruk (#434)
     // de ingebouwde bestuurder van een fiets (een voorbijganger) maakt plaats voor de speler
@@ -140,4 +145,10 @@ export function syncZitters(lijst, zoek, world = null) {
 }
 
 export const aantalZitters = () => zitters.size;
+
+// Waar elke zitter zit (in het voertuig zelf): [plek, stoel, x, y, z]. Voor de testbank, om te controleren dat
+// niemand door de carrosserie steekt (#434).
+export function zitterPlekken() {
+  return [...zitters].map(([slot, e]) => [slot, e.stoel | 0, +e.mesh.position.x.toFixed(2), +e.mesh.position.y.toFixed(2), +e.mesh.position.z.toFixed(2)]);
+}
 export function clearZitters() { for (const e of zitters.values()) haal(e); zitters.clear(); deurGezien.clear(); deurStart = null; }
