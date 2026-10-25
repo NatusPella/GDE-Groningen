@@ -23,5 +23,11 @@ for (const id of ['discgolf', 'pitchputt', 'skatepark', 'kartbaan']) {
   ok(new RegExp(`createBoard\\('${id}'\\)`).test(read(id + '.js')), `${id} haalt zijn bord uit het thema`);
 }
 ok(/export function activityThema/.test(act) && /mgThema\(id\)/.test(act), 'activities.js geeft het thema van een activiteit');
+// #436: het reuzenrad staat op de kaart en de minimap (eigen laag, legenda en icoon) en onder Activiteiten
+const rad = read('reuzenrad.js');
+ok(/layer: 'hoogvlieger'/.test(rad) && /legend: \{ kind: 'act-hoogvlieger'/.test(rad), 'hoogvlieger heeft een eigen kaartlaag en legenda');
+ok(/icon: drawIcon/.test(rad) && /mapSub:/.test(rad), 'hoogvlieger heeft een kaarticoon en een subregel op de kaart');
+ok(/todo: TODO/.test(rad) && /key: 'mg:hoogvlieger'/.test(rad), 'hoogvlieger levert een regel voor Activiteiten');
+ok(/export function activityTodoItems/.test(act) && /activityTodoItems\(world\)/.test(read('todoui.js')), 'todoui.js zet die regel in de lijst');
 console.log(`activiteitenspots_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

@@ -4,6 +4,7 @@
 // pausemenu.css (ov-*, td-*).
 import { wasHelped } from './assistlive.js';
 import { getTodoItems, chooseTodo, mapIconUrl, placeName, GROUPS, STATUS_LABEL, buyFjordUpgrade } from './todo.js';
+import { activityTodoItems } from './activities.js';
 import { getStoryView, getStorySteps, getStoryJournal, requestCredits } from './story.js';
 import { PARTS, CLUES, WHY } from './storyarc.js';
 import { getAchievementView, getAchievementSummary, getSaveSet, EIERBAL_TOTAL, MEDALS } from './achievements.js';
@@ -49,6 +50,15 @@ const svg = (d) => `<svg viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
 
 function refresh(world) {
   items = getTodoItems(world);
+  // attracties die alleen activities.js kent (#436, het reuzenrad): dezelfde afstand en hetzelfde
+  // doel als de gewone regels, zodat kiezen, 'Op de kaart' en het overzicht gewoon werken
+  const goal = getGoal();
+  for (const it of activityTodoItems(world)) {
+    if (items.some((q) => q.key === it.key)) continue; // staat hij er later toch in todo.js, dan één keer
+    it.dist = Number.isFinite(it.x) ? Math.hypot(it.x - world.player.x, it.y - world.player.y) : null;
+    it.isGoal = !!(goal && it.goal && goal.kind === it.goal.kind && goal.id === it.goal.id && (goal.kind !== 'place' || goal.name === it.goal.name));
+    items.push(it);
+  }
   byKey = new Map(items.map((it) => [it.key, it]));
 }
 
