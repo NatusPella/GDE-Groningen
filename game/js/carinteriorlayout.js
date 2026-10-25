@@ -13,38 +13,72 @@ export function hasCarInterior(v) {
 }
 
 // seat = vehicleSeat(v, true): { x, y (cushion top), z }
-export function interiorLayout(seat, len, wid) {
+// romp = carBodyFit(v) (models3d_vehicles.js): de raamlijn en het dak van de echte carrosserie.
+// Zonder romp (vrachtwagen, bus, foodtruck, een test) gelden de oude, ruime maten.
+export function interiorLayout(seat, len, wid, romp = null) {
   const hw = wid / 2;
   const sx = seat.x, sy = seat.y, sz = seat.z;
   const side = sz < 0 ? 1 : -1; // z of the passenger seat is the mirror image
-  const roof = roofLayout(sx, sy, sz, len, wid, hw);
+  const roof = roofLayout(sx, sy, sz, len, wid, hw, romp);
+  const d = dashLayout(sx, sy, wid, romp);
   return {
     eye: { x: sx + 0.05, y: sy + 0.62, z: sz },
-    dash: { x: sx + 0.85, y: sy - 0.1, w: Math.max(0.8, wid - 0.16), h: 0.44, d: 0.5 },
-    binnacle: { x: sx + 0.62, y: sy + 0.36, z: sz, w: 0.46, h: 0.16, d: 0.22 },
-    wheel: { x: sx + 0.52, y: sy + 0.32, z: sz, r: 0.17, tilt: 0.45 },
+    dash: d.dash,
+    binnacle: d.binnacle,
+    wheel: { ...d.wheel, z: sz, r: 0.17, tilt: 0.45 },
     seats: [
       { x: sx, z: sz },
       { x: sx, z: sz + side * Math.min(hw * 0.68, 0.8) },
     ],
     console: { x: sx + 0.3, y: sy - 0.02, z: (sz + (sz + side * Math.min(hw * 0.68, 0.8))) / 2, w: 0.7, h: 0.2, d: 0.2 },
     rear: len > 3.6 && len <= 6.5 ? { x: sx - 1.0, y: sy, w: wid - 0.3 } : null,
-    mirror: { x: sx + 0.72, y: roof.y - 0.14, z: sz + side * 0.28 }, // hangt aan het dak
+    // de binnenspiegel hangt aan de voorkant van de dakhemel, achter de bovenkant van de voorruit (#442)
+    mirror: romp
+      ? { x: Math.max(roof.x1 - 0.08, sx + 0.1), y: roof.y - 0.16, z: sz + side * 0.28 }
+      : { x: sx + 0.72, y: roof.y - 0.14, z: sz + side * 0.28 },
     // dakbekleding vanaf de voorruit tot achter de laatste stoel, met een A-stijl per kant
     roof,
     hw,
   };
 }
 
+// Dashboard, instrumentenpaneel en stuur. Met een romp staat de bovenkant van het dashboard op de
+// raamlijn en blijft de voorkant achter de onderkant van de voorruit, zodat je het dashboard en het
+// stuur door de ruiten ziet en er niet doorheen kijkt.
+function dashLayout(sx, sy, wid, romp) {
+  const d = romp ? 0.46 : 0.5;
+  const top = romp ? romp.belt - 0.1 : sy + 0.34;
+  const front = romp ? Math.min(sx + 1.1, romp.xA - 0.05) : sx + 1.1;
+  const wheel = romp
+    ? { x: front - d / 2 - 0.14, y: Math.max(sy + 0.32, Math.min(top - 0.06, sy + 0.42)) }
+    : { x: sx + 0.52, y: sy + 0.32 };
+  return {
+    dash: { x: front - d / 2, y: top - 0.44, w: Math.max(0.8, wid - 0.16), h: 0.44, d },
+    binnacle: { x: wheel.x + 0.1, y: top + 0.02, w: 0.46, h: 0.16, d: 0.22 },
+    wheel,
+  };
+}
+
 // Dakhemel en A-stijlen. Boven het hoofd, onder het plaatwerk: een kleine marge boven de oogpunthoogte
-// (grotere cabines, zoals bestel- en vrachtwagen en bus, hebben meer ruimte).
-function roofLayout(sx, sy, sz, len, wid, hw) {
+// (grotere cabines, zoals bestel- en vrachtwagen en bus, hebben meer ruimte). Met een romp liggen de
+// dakhemel en de A-stijlen precies onder het echte dak en langs de voorruit.
+function roofLayout(sx, sy, sz, len, wid, hw, romp = null) {
+  const zp = hw - 0.09;
+  if (romp) {
+    // onder het plaatswerk van het dak en binnen de ruit, zodat de hemel door de ramen te zien is en
+    // niet in het dak verdwijnt
+    const y = romp.roof - 0.14;
+    return {
+      y, x0: romp.xC + 0.02, x1: romp.xB - 0.02, w: Math.max(0.6, Math.min(wid - 0.3, wid * 0.8)),
+      // de A-stijl net binnen het glas, anders zweeft hij boven de raamlijn buiten de ruit
+      pillars: [-1, 1].map((s) => ({ side: s, z: s * (hw * 0.84 - 0.03), x0: romp.xA + 0.02, y0: romp.belt - 0.04, x1: romp.xB - 0.02, y1: y })),
+    };
+  }
   const big = len > 6.5 || sy > 0.55;
   const y = sy + 0.62 + (big ? 0.5 : 0.44);
   const front = sx + 1.0;
   const back = sx - (len > 3.6 && len <= 6.5 ? 1.35 : 0.55);
   const dashTop = sy - 0.1 + 0.44;
-  const zp = hw - 0.09;
   return {
     y, x0: back, x1: front, w: Math.max(0.6, wid - 0.22),
     pillars: [-1, 1].map((s) => ({ side: s, z: s * zp, x0: front + 0.12, y0: dashTop, x1: front - 0.08, y1: y })),
@@ -93,6 +127,7 @@ export function klasseStijl(klasse, L, seat) {
   const sx = seat.x, sy = seat.y, sz = seat.z;
   const side = sz < 0 ? 1 : -1;
   const passZ = sz + side * Math.min(L.hw * 0.68, 0.8);
+  const dtop = L.dash.y + L.dash.h; // bovenkant dashboard: hierop staan de losse onderdelen
   const base = { wheel: {}, seatColor: null, seatTilt: 0.2, rear: undefined, extras: [] };
   switch (klasse) {
     case 'sport':
@@ -102,19 +137,19 @@ export function klasseStijl(klasse, L, seat) {
       ] };
     case 'taxi':
       return { ...base, extras: [
-        { b: [0.12, 0.1, 0.16], at: [sx + 0.62, sy + 0.34, sz + side * 0.34], color: 0x20262c },       // taxameter op het dashboard
-        { b: [0.02, 0.05, 0.12], at: [sx + 0.555, sy + 0.34, sz + side * 0.34], color: 0xd9a21c },
+        { b: [0.12, 0.1, 0.16], at: [sx + 0.62, dtop + 0.06, sz + side * 0.34], color: 0x20262c },     // taxameter op het dashboard
+        { b: [0.02, 0.05, 0.12], at: [sx + 0.555, dtop + 0.06, sz + side * 0.34], color: 0xd9a21c },
       ] };
     case 'politie':
       return { ...base, extras: [
         { b: [0.22, 0.04, 0.3], at: [sx + 0.3, sy + 0.18, (sz + passZ) / 2], color: 0x1a1d20 },        // laptophouder
-        { b: [0.1, 0.12, 0.14], at: [sx + 0.62, sy + 0.34, sz + side * 0.34], color: 0x2a2f3a },       // portofoon
+        { b: [0.1, 0.12, 0.14], at: [sx + 0.62, dtop + 0.07, sz + side * 0.34], color: 0x2a2f3a },       // portofoon
         { b: [0.03, 0.62, L.hw * 1.6], at: [sx - 0.5, sy + 0.45, 0], color: 0x3a3f46 },                 // tussenschot voor de achterbank
       ] };
     case 'ambulance':
       return { ...base, rear: null, extras: [
         { b: [0.06, 0.9, L.hw * 1.7], at: [sx - 0.5, sy + 0.5, 0], color: 0x9aa3ad },                  // wand naar de laadruimte
-        { b: [0.14, 0.1, 0.2], at: [sx + 0.6, sy + 0.34, sz + side * 0.34], color: 0xc22b2b },        // sirenebediening
+        { b: [0.14, 0.1, 0.2], at: [sx + 0.6, dtop + 0.06, sz + side * 0.34], color: 0xc22b2b },        // sirenebediening
       ] };
     case 'bestel':
       return { ...base, seatTilt: 0.12, rear: null, extras: [
@@ -124,7 +159,7 @@ export function klasseStijl(klasse, L, seat) {
     case 'vrachtwagen':
       return { ...base, wheel: { r: 0.25, tilt: 0.15 }, seatTilt: 0.1, rear: null, extras: [
         { b: [0.9, 0.3, L.hw * 1.7], at: [sx - 0.78, sy + 0.1, 0], color: 0x3c4148 },                  // slaapbank achter de stoelen
-        { b: [0.16, 0.06, 0.22], at: [sx + 0.55, sy + 0.42, sz + side * 0.3], color: 0x20262c },      // boordcomputer
+        { b: [0.16, 0.06, 0.22], at: [sx + 0.55, dtop + 0.08, sz + side * 0.3], color: 0x20262c },      // boordcomputer
       ] };
     case 'bus':
       return { ...base, wheel: { r: 0.28, tilt: 0.08 }, seatTilt: 0.1, rear: null, extras: [
