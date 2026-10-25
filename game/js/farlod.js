@@ -31,19 +31,23 @@ function buildingMaterial() {
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', `#include <common>
 attribute vec2 lodCenter;
+attribute vec2 lodWall;
 uniform vec2 uLodPlayer;
 uniform float uLodDetailR;
 varying vec3 vFarW;
-varying float vFarSeed;`)
+varying float vFarSeed;
+varying vec2 vFarWall;`)
       .replace('#include <project_vertex>', `#include <project_vertex>
 vFarW = (modelMatrix * vec4(transformed, 1.0)).xyz;
+vFarWall = lodWall;
 vFarSeed = fract(sin(dot(lodCenter, vec2(12.9898, 78.233))) * 43758.5453);
 if (distance(lodCenter, uLodPlayer) <= uLodDetailR) gl_Position = vec4(0.0, 0.0, -2.0, 1.0);`);
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <common>', `#include <common>
 uniform float uNightGlow, uLitFrac;
 varying vec3 vFarW;
-varying float vFarSeed;`)
+varying float vFarSeed;
+varying vec2 vFarWall;`)
       .replace('#include <color_fragment>', `#include <color_fragment>
 {
   // flat roofs: panel seams every 24 m and a slightly different tone per panel, so a big hall is no empty grey plane (#260)
@@ -63,8 +67,25 @@ varying float vFarSeed;`)
     vec2 wf = fract(wg);
     float wwin = step(0.3, wf.x) * step(wf.x, 0.7) * step(0.32, wf.y) * step(wf.y, 0.78);
     float wblur = smoothstep(0.3, 0.9, max(fwidth(wg.x), fwidth(wg.y)));
-    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.13, 0.17, 0.22), wwin * (1.0 - wblur) * 0.62);
-    diffuseColor.rgb *= mix(1.0, 0.9, wblur);
+    // where the grid is finer than the pixels (in the distance, or a long wall seen almost along its length) the windows join into their
+    // own average, so the wall keeps a cool, darker tone instead of turning into one flat plane (#463)
+    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.13, 0.17, 0.22), mix(wwin, 0.18, wblur) * 0.62);
+    // the facade rhythm of the mass itself (#463): a plinth at the foot, a band of high windows on a tall hall and a darker crown under
+    // the roof edge. Anchored to the wall's own foot and height (lodWall), so it stands at every distance and every viewing angle: a band
+    // that falls under a pixel fades into the share it has of that wall, so nothing shimmers and no band pops in.
+    float yb = clamp(vFarW.y - vFarWall.x, 0.0, max(vFarWall.y - vFarWall.x, 0.01));
+    float wh = max(vFarWall.y - vFarWall.x, 2.4);
+    float soft = smoothstep(0.5, 1.5, max(fwidth(vFarW.y), 1e-4));
+    float ph = clamp(wh * 0.18, 0.75, 2.4); // the height of the plinth
+    float plinth = mix(1.0 - smoothstep(ph - 0.15, ph + 0.15, yb), ph / wh, soft);
+    float crown = mix(smoothstep(wh - 0.55, wh - 0.35, yb), min(0.5 / wh, 0.22), soft);
+    float vent = 0.0;
+    if (wh > 5.5) { // a hall: the strip of high windows a third down from the roof
+      float v0 = wh * 0.60, v1 = wh * 0.70;
+      vent = mix(smoothstep(v0, v0 + 0.15, yb) * (1.0 - smoothstep(v1 - 0.15, v1, yb)), (v1 - v0) / wh, soft);
+    }
+    diffuseColor.rgb *= 1.0 - (0.15 + 0.11 * vFarSeed) * plinth - 0.10 * crown - 0.14 * vent;
+    diffuseColor.rgb *= mix(1.0, 0.94, wblur);
   }
 }`)
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
@@ -157,19 +178,22 @@ class Buf {
 }
 
 class MeshBuilder {
-  constructor(withCenter) {
+  constructor(withCenter, withWall = false) {
     this.pos = new Buf(Float32Array, 4096);
     this.col = new Buf(Uint8Array, 4096);
     this.idx = new Buf(Uint32Array, 4096);
     this.ctr = withCenter ? new Buf(Float32Array, 4096) : null;
+    // buildings: the foot and the top of the wall this vertex belongs to, for the facade rhythm (farlod.js buildingMaterial, #463)
+    this.wall = withWall ? new Buf(Float32Array, 4096) : null;
   }
   get vertCount() { return this.pos.n / 3; }
-  vert(x, y, z, c, cx, cy) {
+  vert(x, y, z, c, cx, cy, wb, wt) {
     this.pos.reserve(3); this.col.reserve(3);
     const p = this.pos, k = this.col;
     p.a[p.n++] = x; p.a[p.n++] = y; p.a[p.n++] = z;
     k.a[k.n++] = c[0]; k.a[k.n++] = c[1]; k.a[k.n++] = c[2];
     if (this.ctr) { this.ctr.reserve(2); this.ctr.a[this.ctr.n++] = cx; this.ctr.a[this.ctr.n++] = cy; }
+    if (this.wall) { this.wall.reserve(2); this.wall.a[this.wall.n++] = wb; this.wall.a[this.wall.n++] = wt; }
   }
   tri(a, b, c) {
     this.idx.reserve(3);
@@ -182,6 +206,7 @@ class MeshBuilder {
     g.setAttribute('position', new THREE.BufferAttribute(this.pos.view(), 3));
     g.setAttribute('color', new THREE.BufferAttribute(this.col.view(), 3, true));
     if (this.ctr) g.setAttribute('lodCenter', new THREE.BufferAttribute(this.ctr.view(), 2));
+    if (this.wall) g.setAttribute('lodWall', new THREE.BufferAttribute(this.wall.view(), 2));
     if (normalUp) {
       const n = new Int8Array(this.vertCount * 3);
       for (let i = 1; i < n.length; i += 3) n[i] = 127;
@@ -207,9 +232,9 @@ function addBuilding(B, b, lift = 0) {
   const cx = (b.bounds[0] + b.bounds[2]) / 2, cy = (b.bounds[1] + b.bounds[3]) / 2;
   const wall = rgb8(s.wallHex), roof = rgb8(s.roofHex), y0 = (s.base || 0) + lift, h = y0 + s.depth;
   const base = B.vertCount;
-  for (const [x, y] of pts) B.vert(x, y0, y, wall, cx, cy);
-  for (const [x, y] of pts) B.vert(x, h, y, wall, cx, cy);
-  for (const [x, y] of pts) B.vert(x, h, y, roof, cx, cy);
+  for (const [x, y] of pts) B.vert(x, y0, y, wall, cx, cy, y0, h);
+  for (const [x, y] of pts) B.vert(x, h, y, wall, cx, cy, y0, h);
+  for (const [x, y] of pts) B.vert(x, h, y, roof, cx, cy, y0, h);
   for (let i = 0; i < n; i++) {
     const j = (i + 1) % n;
     B.tri(base + i, base + j, base + n + i);
@@ -305,7 +330,7 @@ export function createFarLOD(scene, map, opts) {
   function startJob(t) {
     t.job = {
       phase: 0, i: 0,
-      bld: new MeshBuilder(true), green: new MeshBuilder(false), path: new MeshBuilder(false), road: new MeshBuilder(false), water: new MeshBuilder(false),
+      bld: new MeshBuilder(true, true), green: new MeshBuilder(false), path: new MeshBuilder(false), road: new MeshBuilder(false), water: new MeshBuilder(false),
     };
     queue.push(t);
   }
