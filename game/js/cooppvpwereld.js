@@ -221,7 +221,7 @@ function verbergBord() { if (arenaBord && arenaBordAan) { arenaBord.hide(); aren
 // Het HUD-bord (minigamekit createBoard): de stand van beide teams, de zones, de tijd en je eigen punten.
 function toonBord(world, ar) {
   if (typeof document === 'undefined' || !document.body) return; // de pure tests hebben geen DOM (scripts/node3d.mjs)
-  if (!arenaBord) arenaBord = createBoard(ARENA_TEKST.titel, ARENA_TEAMS[0].kleur);
+  if (!arenaBord) arenaBord = createBoard('pvparena', ARENA_TEAMS[0].kleur); // titel, kleur en icoon uit het thema (#453)
   const s = arenaStand(ar), m = Math.floor(s.rest / 60), r = Math.floor(s.rest % 60);
   const zones = s.zones.map((z) => `${ARENA_ZONE[z.id] || z.id}: ${z.eigenaar == null ? 'vrij' : ARENA_TEAMS[z.eigenaar].naam}`).join(' · ');
   const eigen = s.rijen.map((d) => `${d.naam} ${d.punten}`).join(' · ');

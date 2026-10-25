@@ -4,7 +4,7 @@ import { showCard } from './hudcards.js';
 import { pushAudioEvent } from './pedgeom.js';
 import { standActivity, recLine } from './standactivity.js';
 import { activityBlock } from './activitykit.js';
-import { createBoard, key, bubble, clearBubbles, pick, stopPressed, geo } from './minigamekit.js';
+import { createBoard, mgThema, key, bubble, clearBubbles, pick, stopPressed, geo } from './minigamekit.js';
 import { HENGEL_LINES } from './minigamelines3.js';
 import { FISH, createHengel, stepHengel, hengelMedal } from './hengelrules.js';
 import { hourOf } from './streetlifedata.js';
@@ -24,7 +24,7 @@ import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHos
 //     in het vak Hengelen van de loopbaan (loopbaan.js). De vis gaat terug in het water of naar de visboer: nooit leed in beeld.
 // Regels: hengelrules.js (wedstrijd en vrij), de soorten en het geld: visdata.js, het water: hengelplek.js.
 // `window.__hengelen` debug. De plek aan het Meerstad-meer is bij de spotcheck gecontroleerd (#222).
-const ACCENT = '#4aa8d8';
+const ACCENT = mgThema('hengelen').accent; // één bron voor het HUD-thema: minigamekit.js (#453)
 const ORIGIN = geo(53.22924, 6.65732); // the first dry ground out from the lake polygon (spotcheck, #222)
 const STAND = { x: ORIGIN.x, y: ORIGIN.y };
 const MEERSTAD = { type: 'meer', naam: 'Meerstad', plek: 'meer:Meerstad', x: STAND.x, y: STAND.y };
@@ -232,7 +232,7 @@ function start(w, { online = null } = {}) {
   if (game) return false;
   const p = w.player;
   if (p.inVehicle) p.exitVehicle(w.map, w);
-  if (!board) board = createBoard('HENGELEN MEERSTAD', ACCENT);
+  if (!board) board = createBoard('hengelen');
   board.show();
   game = { mode: 'wedstrijd', s: createHengel(Math.random), flash: null, plek: MEERSTAD, kas: 0, betaald: 0, vangsten: 0, soorten: new Map(), nieuw: [], haalT: 0, online };
   if (online !== 'gast') showCard(w, { kind: 'tip', kicker: 'Hengelen', title: 'Geduld aan het meer', body: '[Spatie] gooit uit. Zakt het dobbertje (Beet!), druk dan meteen weer [Spatie]. Te vroeg trekken schrikt de vis af; grote vissen zijn minder lang onder.', key: 'hengel-help', voice: false, duration: 7 });
@@ -251,7 +251,7 @@ function startOfUitnodigen(w) {
 function startVrij(w, plek) {
   if (game || !plek) return false;
   const p = w.player;
-  if (!boardVrij) boardVrij = createBoard('HENGELEN', ACCENT);
+  if (!boardVrij) boardVrij = createBoard('hengelen');
   boardVrij.show();
   const kies = (rand) => {
     const regen = !!(w.weather && w.weather.active && w.weather.intensity > 0.25 && w.weather.kind !== 'mist');

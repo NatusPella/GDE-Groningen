@@ -4,6 +4,7 @@
 // coordinates of an older frame. No THREE here, so the pure rule files and
 // their node tests can import it.
 import { wgsToWorld } from './rdnew.js';
+import { GOLF_VORM } from './golficons.js';
 
 // Scene, banner and card of the running game, set by activities.js: a minigame that imports them
 // itself would sit in the big import cycle through scene3d/cinematics/hudcards (#108).
@@ -104,8 +105,10 @@ export const key = (t) => `<span class="hud-key">${t}</span>`;
 // --- Per-game HUD theme (#453) -------------------------------------------------------------------
 // One table for the HUD of every minigame: its title, its accent (the board's border, title and meters) and its icon.
 // The icons are flat low-poly SVG shapes in the design tokens (cream, the greens, the one red) with their own form
-// next to the colour, and hidden from screen readers because the title already names the game. A game without a row
-// here keeps the neutral board: createBoard(title, accent) still works as before.
+// next to the colour, and hidden from screen readers because the title already names the game. No new imagery: a game
+// takes an icon that is already there, so the four of this board sit next to the golf set (golficons.js) and games
+// that share a kind of play (the water sports) share its icon. A game without a row here keeps the neutral board:
+// createBoard(title, accent) still works as before.
 const MG_ICONEN = {
   // discgolf: een hoekige schijf (de basket staat op de baan, niet in het bord)
   disc: `<polygon points="4,17 11,14 18,17 12,20" fill="#17301f"/><polygon points="11,5 18,8.5 18,15.5 11,19 4,15.5 4,8.5" fill="#f0ede4"/><polygon points="11,5 18,8.5 11,12" fill="#ffffff"/><polygon points="11,12 18,15.5 11,19" fill="#cfcbbd"/><polygon points="11,12 4,15.5 4,8.5" fill="#d9d5c6"/>`,
@@ -115,6 +118,8 @@ const MG_ICONEN = {
   skate: `<polygon points="3,10 20,7.5 21.5,11.5 4.5,14" fill="#f0ede4"/><polygon points="4.5,14 21.5,11.5 21.5,12.8 4.5,15.3" fill="#cfcbbd"/><polygon points="7,15.3 9.4,15 9.4,18 7,18.3" fill="#17301f"/><polygon points="16,13.6 18.4,13.3 18.4,16.3 16,16.6" fill="#17301f"/>`,
   // karten: de geblokte finishvlag
   kart: `<polygon points="3,2.5 4.6,2.5 4.6,21.5 3,21.5" fill="#cfcbbd"/><polygon points="4.6,3 21,3 21,13.5 4.6,13.5" fill="#f0ede4"/><polygon points="4.6,3 8.7,3 8.7,8.2 4.6,8.2" fill="#17301f"/><polygon points="12.8,3 16.9,3 16.9,8.2 12.8,8.2" fill="#17301f"/><polygon points="8.7,8.2 12.8,8.2 12.8,13.5 8.7,13.5" fill="#17301f"/><polygon points="16.9,8.2 21,8.2 21,13.5 16.9,13.5" fill="#17301f"/>`,
+  // de golfset (golficons.js): bal, wedge, putter, zand, water, beurt, oog en winnaar
+  ...GOLF_VORM,
 };
 
 export const MG_THEMA = {
@@ -122,6 +127,25 @@ export const MG_THEMA = {
   pitchputt: { titel: 'PITCH & PUTT', accent: '#46b36a', icoon: 'vlag' },
   skatepark: { titel: 'SKATEPARK STADSPARK', accent: '#e8523a', icoon: 'skate' },
   kartbaan: { titel: 'KARTEN IN ULRUM', accent: '#f2b82a', icoon: 'kart' },
+  // de toren: wie boven is wint (kroon)
+  klimtoren: { titel: 'KLIMTOREN ZERNIKE', accent: '#d9455f', icoon: 'winnaar' },
+  // het water: baantjes, skiën, hengelen, zeilen en de rondvaart delen het golf-icoon van de golven
+  zwembad: { titel: 'ZWEMBAD HET NATTE PAPIER', accent: '#2fc4c9', icoon: 'water' },
+  waterski: { titel: 'WATERSKIBAAN GRUNOPARK', accent: '#1f9e86', icoon: 'water' },
+  hengelen: { titel: 'HENGELEN', accent: '#7aa63a', icoon: 'water' },
+  regatta: { titel: 'ZEILREGATTA', accent: '#3f8fa0', icoon: 'water' },
+  vaardienst: { titel: 'RONDVAART', accent: '#cf7f5a', icoon: 'water' },
+  // de pan: een ronde koek (de bal)
+  pannenkoek: { titel: 'PANNENKOEKENSCHIP DE GOUDEN PAN', accent: '#b8792a', icoon: 'bal' },
+  // op weg: de wandeling en het carillon gaan om de beurt verder (de pijl)
+  wandeling: { titel: 'WANDELING WINSUM', accent: '#a3c94a', icoon: 'beurt' },
+  carillon: { titel: 'CARILLON MARTINITOREN', accent: '#c9a227', icoon: 'beurt' },
+  // het luchtruim: de school en de rondvlucht kijken van boven (het oog)
+  vliegschool: { titel: 'VLIEGSCHOOL DE WINDWIJZER', accent: '#d9d4be', icoon: 'oog' },
+  vluchtdienst: { titel: 'RONDVLUCHT EELDE', accent: '#8fb04a', icoon: 'oog' },
+  // de arena en de machinist: een wedstrijd met een uitslag (de kroon en de finishvlag)
+  pvparena: { titel: 'PVP-ARENA', accent: '#c9568a', icoon: 'winnaar' },
+  machinist: { titel: 'MACHINIST', accent: '#b3b3a2', icoon: 'kart' },
 };
 
 export function mgIcoon(naam, px = 16) {

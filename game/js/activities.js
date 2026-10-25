@@ -135,7 +135,7 @@ function dienstActiviteit(cfg) {
     const d = cfg.maak(w, v, s);
     if (!d) { w.addMessage(cfg.geenRoute, 3); return false; }
     run = { d, v, flash: '', flashT: 0, bad: false, klok: 0 };
-    if (!board) board = createBoard(cfg.titel, cfg.accent);
+    if (!board) board = createBoard(mgThema(cfg.id) ? cfg.id : cfg.titel, cfg.accent); // een dienst met een thema (#453) haalt titel, kleur en icoon uit de tabel
     board.show();
     gameUi.showCard(w, { kind: 'tip', kicker: cfg.label, title: cfg.kaartTitel, body: cfg.kaartBody, duration: 11, key: cfg.id + '-help', voice: false });
     return true;
@@ -273,7 +273,7 @@ const VLUCHTDIENST = dienstActiviteit({
   label: 'Rondvlucht',
   naam: 'Rondvlucht bij het veld',
   note: 'een rondvlucht met de Kist: twee poorten en terug op het veld, met een medaille',
-  accent: '#e7b83a',
+  accent: mgThema('vluchtdienst').accent, // één bron voor het HUD-thema: minigamekit.js (#453)
   mode: 'air',
   inVoertuig: (v) => !!(v && v.isPlane),
   mag: (w, v) => !!v.onGround,
@@ -308,7 +308,7 @@ const VAARDIENST = dienstActiviteit({
   label: 'Rondvaart',
   naam: 'Rondvaart vanaf de kade',
   note: 'een rondvaart met de boot langs drie kades, met een dienstregeling en een medaille',
-  accent: '#2a7fd6',
+  accent: mgThema('vaardienst').accent, // één bron voor het HUD-thema: minigamekit.js (#453)
   mode: 'boat',
   inVoertuig: (v) => !!(v && v.isBoat),
   plek: (w) => { laadHavens(); return havenBij(w); },

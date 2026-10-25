@@ -2,7 +2,7 @@ import { showBanner } from './cinematics.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, setStatMax, MEDALS } from './achievements.js';
 import { showCard } from './hudcards.js';
 import { standActivity, recLine } from './standactivity.js';
-import { createBoard, key, bubble, clearBubbles, pick, stopPressed, geo } from './minigamekit.js';
+import { createBoard, mgThema, key, bubble, clearBubbles, pick, stopPressed, geo } from './minigamekit.js';
 import { getPancakeBoatSpot } from './cityprops.js';
 import { PANNENKOEK_LINES } from './minigamelines3.js';
 import { PAN, TOPPINGS, MEDAL_AT, createPan, usePan, serve, stepPan, goldenNow, pannenkoekMedal } from './pannenkoekrules.js';
@@ -12,7 +12,7 @@ import { PAN, TOPPINGS, MEDAL_AT, createPan, usePan, serve, stepPan, goldenNow, 
 // (flip inside the golden window); [Q] [W] [E] [R] serve the plate to the guest
 // who wants stroop, spek, appel or kaas. Not golden is worth half. Free.
 // Rules: pannenkoekrules.js. `window.__pannenkoek` debug.
-const ACCENT = '#e8a23a';
+const ACCENT = mgThema('pannenkoek').accent; // één bron voor het HUD-thema: minigamekit.js (#453)
 // the quay opposite the moored boat of the city props (#23); until the props are
 // placed, or when no quay was found, the Oosterhaven quay
 const FALLBACK = geo(53.2188, 6.582);
@@ -111,7 +111,7 @@ function start(w) {
   if (game) return false;
   const p = w.player;
   if (p.inVehicle) p.exitVehicle(w.map, w);
-  if (!board) board = createBoard('PANNENKOEKENSCHIP DE GOUDEN PAN', ACCENT);
+  if (!board) board = createBoard('pannenkoek');
   board.show();
   game = { s: createPan(Math.random), flash: null, said: false };
   showCard(w, { kind: 'tip', kicker: 'Pannenkoekenschip', title: 'Twee minuten bakken', body: '[1] [2] [3]: beslag in de pan, en draai als hij goudbruin is. Serveer met [Q] stroop, [W] spek, [E] appel, [R] kaas aan de gast die dat wil.', duration: 11, key: 'pannenkoek-help', voice: false });
