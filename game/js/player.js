@@ -5,7 +5,7 @@ import { waterClearance, pushOutOfWaterObstacles, insideWaterObstacle, swimmerCa
 import { findEnterableVehicle, canEnterVehicle, distToVehicleBody, resolveBoomCollisions, resolveVehicleBuildingCollision, drivePlayerBoat, pushCircleOutOfVehicle, reportImpact, tickSinkingVehicles, speedCap } from './vehicle.js';
 import { hornAt } from './movablebridges.js';
 import { hornSluis } from './sluizen.js';
-import { waterAt, surfaceLiftAt } from './waterlevels.js';
+import { waterAt, surfaceLiftAt, boatDeck } from './waterlevels.js';
 import { MOPED_LEGAL_SPEED } from './motomodels.js';
 import { findRideableProp, rideProp } from './rideprops.js';
 import { playAutoGejatLine } from './audio.js';
@@ -84,6 +84,10 @@ const VAULT_TIME = 0.5;
 const CLIMB_UP_TIME = 0.55;
 const JUMP_VAULT_WINDOW = 0.45; // s after take-off a jump can still become a vault
 const ROOF_WALK = 2.2;
+// Spatie op een dak of dek is een afstapje, geen tweede sprong (#434): het dak
+// zelf is al 1,45 m hoog, dus de gewone sprong (0,58 m) erbovenop gaf ruim 2 m
+// boven de straat en leek veel hoger dan een sprong op de grond.
+const PERCH_HOP_SPEED = 1.5;
 
 const FALL_HURT_SPEED = 8.5; // m/s landing speed (a ~3.7 m drop at GRAVITY) above which a fall hurts
 const BAIL_SPEED = 6; // m/s (22 km/h): getting out faster than this is a dive with a tumble
@@ -178,14 +182,20 @@ export class Player {
       else { this.driveVehicle(dt, world && world.coopWielSlot === 1 && world.coop && world.coop.remote && world.companion && world.companion.inVehicle === v ? wielInvoer(world.coop.remoteInput) : input, map, world); this.gz = v.z || 0; return; } // samen spelen (#291): de bijrijder heeft het stuur
     }
 
-    if (this.water || isInWater(map, this.x, this.y, this.gz + this.z)) {
+    // Het dek van een boot is solide: wie erop staat is boven water, niet erin
+    // (#434). De perch gaat daarom voor de waterregel; stapt hij eraf, dan
+    // begint de val meteen bij het dek (leavePerch) en handelt updateWater hem af.
+    if (!this.perch && (this.water || isInWater(map, this.x, this.y, this.gz + this.z))) {
       if (!this.water) this.startWaterFall();
       this.updateWater(dt, world);
       return;
     }
 
     if (this.vault) { this.updateVault(dt, world); return; }
-    if (this.perch && this.updatePerch(dt, world)) return;
+    if (this.perch) {
+      if (this.updatePerch(dt, world)) return;
+      if (this.water) { this.updateWater(dt, world); return; }
+    }
     // jump/crouch - on foot only; SPACE is also "remmen" while driving
     // (handled in driveVehicle, never reached here). Crouching slows you
     // down and plays the crouch pose; collision stays 2D (x/y) anyway
@@ -364,14 +374,14 @@ export class Player {
     if (isInWater(world.map, this.x, this.y, this.gz + this.z)) this.startWaterFall();
   }
 
-  // Falling feet-first onto a car roof: stand on it.
+  // Falling feet-first onto a car roof (or the deck of a boat): stand on it.
   landOnVehicle(world, z0) {
     const feet0 = this.gz + z0, feet = this.gz + this.z;
     for (const v of world.vehicles || []) {
-      if (!standable(v) || v.driver === 'player' || v.wrecked || v.sinking || Math.abs(v.speed) > PERCH_SLIP_SPEED) continue;
+      const p = standPlek(v, world.map);
+      if (!p || v.driver === 'player' || Math.abs(v.speed) > PERCH_SLIP_SPEED) continue;
       if (Math.abs(v.x - this.x) > v.halfLen + 0.5 || Math.abs(v.y - this.y) > v.halfLen + 0.5) continue;
-      const top = (v.z || 0) + vehicleHeight(v);
-      if (feet0 < top - 0.05 || feet > top + 0.02) continue;
+      if (feet0 < p.top - 0.05 || feet > p.top + 0.02) continue;
       const [lx, ly] = worldToLocalV(v, this.x, this.y);
       if (!onRoof(v, lx, ly)) continue;
       this.startPerch(world, v, lx, ly);
@@ -381,36 +391,48 @@ export class Player {
   }
 
   startPerch(world, v, lx, ly) {
+    const p = standPlek(v, world.map) || { base: v.z || 0, top: (v.z || 0) + vehicleHeight(v) };
     this.perch = { v, lx, ly, ang: v.angle };
-    this.gz = v.z || 0;
-    this.z = vehicleHeight(v);
+    this.gz = p.base;
+    this.z = p.top - p.base;
     this.vz = 0;
     this.airPose = 0;
     this.jumpAt = -9;
   }
 
-  // Standing on a car roof: walk around on it (the car carries you along),
-  // SPACE jumps off, walking past the edge steps down. Returns false once
-  // you are off it, so the normal on-foot update takes over this frame.
+  // Van een dak of dek af (afstapje, over de rand, of eraf gegooid): boven water
+  // begint de val daar waar je stond, niet op de straat eronder (#434).
+  leavePerch(world) {
+    this.perch = null;
+    if (isInWater(world.map, this.x, this.y, this.gz + this.z)) this.startWaterFall();
+  }
+
+  // Standing on a car roof or a boat deck: walk around on it (the vehicle
+  // carries you along), SPACE hops off, walking past the edge steps down.
+  // Returns false once you are off it, so the normal on-foot update takes over
+  // this frame.
   updatePerch(dt, world) {
     const P = this.perch, v = P.v, { input } = world;
+    const p = standPlek(v, world.map);
     const [ex, ey] = localToWorld(v, P.lx, P.ly);
-    // teleported (respawn, cutscene, mission start) or the car is gone
-    if (v.wrecked || v.sinking || v.driver === 'player' || !world.vehicles.includes(v) || Math.hypot(ex - this.x, ey - this.y) > 1.5 || this.z < 0.5) { this.perch = null; return false; }
+    // teleported (respawn, cutscene, mission start), the car or boat is gone, or
+    // someone else took the wheel
+    if (!p || v.driver === 'player' || !world.vehicles.includes(v) || Math.hypot(ex - this.x, ey - this.y) > 1.5) { this.leavePerch(world); return false; }
     if (Math.abs(v.speed) > PERCH_SLIP_SPEED) {
-      // thrown off sideways by a car pulling away
+      // thrown off sideways by a car (or a boat) pulling away
       const side = P.ly >= 0 ? 1 : -1;
       const [ox, oy] = localToWorld(v, Math.max(-v.halfLen, Math.min(v.halfLen, P.lx)), side * (v.halfWid + this.radius + 0.15));
       this.perch = null;
       [this.x, this.y] = resolveWalker(ox, oy, this.radius, world.map, 0, 0, null, this.gz);
       this.shoveX = Math.cos(v.angle) * v.speed * 0.4 - Math.sin(v.angle) * side * 2;
       this.shoveY = Math.sin(v.angle) * v.speed * 0.4 + Math.cos(v.angle) * side * 2;
+      if (isInWater(world.map, this.x, this.y, this.gz + this.z)) this.startWaterFall();
       return false;
     }
     if (input.wasPressed(' ') && !(world.minigameUntil > world.time)) {
-      this.perch = null;
-      this.vz = JUMP_SPEED;
+      this.vz = PERCH_HOP_SPEED; // een afstapje, geen sprong van een halve meter extra (#434)
       this.jumpAt = world.time;
+      this.leavePerch(world);
       return false;
     }
     this.angle = normalizeAngle(this.angle + v.angle - P.ang);
@@ -431,10 +453,10 @@ export class Player {
     this.vx = wx;
     this.vy = wy;
     [this.x, this.y] = localToWorld(v, P.lx, P.ly);
-    this.gz = v.z || 0;
-    this.z = vehicleHeight(v);
+    this.gz = p.base;
+    this.z = p.top - p.base;
     this.vz = 0;
-    if (!onRoof(v, P.lx, P.ly)) { this.perch = null; return false; }
+    if (!onRoof(v, P.lx, P.ly)) { this.leavePerch(world); return false; }
     return true;
   }
 
@@ -465,6 +487,11 @@ export class Player {
   }
 
   startWaterFall() {
+    // Een zwemmer rekent in z boven de straat (de zwemdiepte, util.js WATER_Y):
+    // stap je van een dek (of een viaduct) het water in, dan is de val de hoogte
+    // boven de straat, niet die boven het dek waar je af stapte (#434)
+    this.z += this.gz;
+    this.gz = 0;
     this.vault = null;
     this.perch = null;
     this.airPose = 0;
@@ -526,10 +553,22 @@ export class Player {
     if (this.water !== 'climb' && !inMapWater(map, this.x, this.y)) { this.leaveWater(); return; }
 
     if (this.water === 'fall') {
+      const z0 = this.z;
       this.vz -= GRAVITY * dt;
       this.z += this.vz * dt;
       const nx = this.x + this.vx * dt, ny = this.y + this.vy * dt;
       if (inMapWater(map, nx, ny) && !insideWaterObstacle(map, nx, ny)) { this.x = nx; this.y = ny; } else { this.vx = 0; this.vy = 0; }
+      // het dek van een boot vangt je op als je van de kade af stapt (#434)
+      const dek = this.vz < 0 ? dekOnder(world, this.x, this.y, this.z, z0) : null;
+      if (dek) {
+        this.water = null;
+        this.swimming = false;
+        this.waterTime = 0;
+        this.swimTilt = 0;
+        this.canClimbOut = false;
+        this.startPerch(world, dek.v, dek.lx, dek.ly);
+        return;
+      }
       // (a lake at its own peil, the Lauwersmeer, lies above the boezem's water: #299)
       const top = WATER_Y + surfaceLiftAt(map, this.x, this.y);
       if (this.z <= top) {
@@ -647,17 +686,20 @@ export class Player {
 
   // On foot the player is solid against vehicles and people: pushed out of
   // their footprint, with a shove that scales with how fast they were moving.
+  // Boats too (#434): the hull and the deck are solid like a car's body and roof.
   resolveBodyContacts(dt, world) {
     const { map } = world;
     for (const v of world.vehicles) {
-      if (v.isBoat || Math.abs(v.x - this.x) > v.halfLen + 1 || Math.abs(v.y - this.y) > v.halfLen + 1) continue;
+      if (Math.abs(v.x - this.x) > v.halfLen + 1 || Math.abs(v.y - this.y) > v.halfLen + 1) continue;
       const feet = this.gz + this.z;
-      if ((v.z || 0) - feet > 2 || feet >= (v.z || 0) + vehicleHeight(v) - 0.1) continue;
+      if (basisVan(v, map) - feet > 2 || feet >= topVan(v, map) - 0.1) continue;
       const push = pushCircleOutOfVehicle(this.x, this.y, this.radius, v);
       if (!push) continue;
       [this.x, this.y] = resolveWalker(push.x, push.y, this.radius, map, 0, 0, null, this.gz + this.z);
       const closing = (Math.cos(v.angle) * v.speed + v.driftX) * push.nx + (Math.sin(v.angle) * v.speed + v.driftY) * push.ny;
-      if (closing > 1) {
+      // Een boot die langsvaart duwt je hooguit opzij: wie op de kade staat
+      // wordt niet omver gereden door een schip in het water (#434)
+      if (closing > 1 && !v.isBoat) {
         const fresh = Math.hypot(this.shoveX, this.shoveY) < 1;
         const kick = Math.min(MAX_SHOVE, 1 + closing * 0.6);
         this.shoveX += push.nx * kick;
@@ -1067,6 +1109,52 @@ export class Player {
     this.y = v.y;
     this.angle = v.angle;
   }
+}
+
+// Waar je op een voertuig staat (#434): het dak van een auto (op de weg) of het
+// dek van een boot (op het water). base: de hoogte onder je voeten, top: het dak
+// of dek zelf. null: geen staanplek (fiets, scooter, heli, paard, lege boot).
+function standPlek(v, map) {
+  if (!v || !v.model || v.wrecked || v.sinking) return null;
+  const dek = v.isBoat ? boatDeck(v.model.kind) : null;
+  if (dek != null) {
+    const base = WATER_Y + (map ? surfaceLiftAt(map, v.x, v.y) : 0);
+    return { base, top: base + dek };
+  }
+  if (!standable(v)) return null;
+  const base = v.z || 0;
+  return { base, top: base + vehicleHeight(v) };
+}
+
+// De bovenkant van een voertuig: het dek van een boot, het dak van een auto.
+function topVan(v, map) {
+  const p = standPlek(v, map);
+  return p ? p.top : (v.z || 0) + vehicleHeight(v);
+}
+
+// Waar het voertuig zelf staat: het water onder een boot, de weg onder een auto.
+function basisVan(v, map) {
+  if (v && v.isBoat) return WATER_Y + (map ? surfaceLiftAt(map, v.x, v.y) : 0);
+  return v ? v.z || 0 : 0;
+}
+
+// Het dek van een boot onder (x, y) waar je voeten op rusten (#434): het dek is
+// solide als een autodak, dus je staat erop, je komt erop neer of je valt er
+// vanaf de kade op in plaats van in het water. feet: je voeten nu, from: die van
+// de vorige stap. Geeft { v, lx, ly, base, top } of null.
+function dekOnder(world, x, y, feet, from = feet) {
+  for (const v of world.vehicles || []) {
+    if (!v || !v.isBoat || !v.model) continue;
+    if (Math.abs(v.x - x) > v.halfLen + 0.6 || Math.abs(v.y - y) > v.halfLen + 0.6) continue;
+    const p = standPlek(v, world.map);
+    if (!p) continue;
+    const [lx, ly] = worldToLocalV(v, x, y);
+    if (!onRoof(v, lx, ly)) continue;
+    const staat = feet >= p.top - 0.05 && feet <= p.top + 0.75; // erop staan (of een sprong erboven)
+    const valt = from >= p.top - 0.05 && feet <= p.top + 0.02;   // er in deze stap op neerkomen
+    if (staat || valt) return { v, lx, ly, base: p.base, top: p.top };
+  }
+  return null;
 }
 
 // WASD relative to the camera heading: W away from the camera, A/D strafe.
