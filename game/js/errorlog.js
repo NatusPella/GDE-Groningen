@@ -25,7 +25,10 @@ const listeners = new Set();
 function load() {
   try {
     const d = JSON.parse(localStorage.getItem(STORE_KEY) || '[]');
-    return Array.isArray(d) ? d.filter((e) => e && typeof e.msg === 'string').slice(-MAX) : [];
+    // the report is about the build that is running: a warning from an older
+    // version says nothing about this one, and a bug fixed long ago kept riding
+    // along with every upgrade (#496)
+    return Array.isArray(d) ? d.filter((e) => e && typeof e.msg === 'string' && e.version === VERSION).slice(-MAX) : [];
   } catch (e) {
     return [];
   }
