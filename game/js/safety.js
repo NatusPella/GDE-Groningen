@@ -10,6 +10,7 @@ import { isMissionActive } from './missionquery.js';
 import { respawnPlayer } from './world.js';
 import { respawnFade } from './respawn.js';
 import { playerBusy } from './busy.js';
+import { REST_S, hangendeTeken, restMelding, telRest } from './scenerest.js';
 
 const CINE_MAX_EXTRA_S = 20;
 const CINE_MAX_S = 150;
@@ -24,6 +25,8 @@ let respawnT = 0;
 let deadT = 0;
 let lastSafe = null;
 let safeScanT = 0;
+// per teken van een achtergebleven scène: hoe vaak het al opviel (#435)
+const restTeller = new Map();
 
 export function initSafety(w) {
   world = w;
@@ -166,8 +169,19 @@ function watchCinematic(dt, w) {
     // a scene that ended with an error can leave the players hidden
     // (a padel match, the bumper cars, a heli run or a post-game challenge hide them on purpose and draw their own)
     const owned = playerBusy(w, ['padel', 'activityGame', 'heliRun', 'challenge']).busy || document.body.classList.contains('foto-actief'); // de fotomodus verbergt de HUD zelf (#435)
-    cineT = !owned && (w.cinematicHidePlayers || w.cinematicHideNav || document.body.classList.contains('cine-hide-hud')) ? cineT + dt : 0;
-    if (cineT > 3) { console.warn('[safety] scene leftovers cleared'); clearSceneLeftovers(w); cineT = 0; }
+    // welk teken hangt er nog? (#435: de melding zegt welke vlag bleef staan)
+    const teken = hangendeTeken({
+      hidePlayers: !!w.cinematicHidePlayers,
+      hideNav: !!w.cinematicHideNav,
+      hud: document.body.classList.contains('cine-hide-hud'),
+    });
+    cineT = !owned && teken.length ? cineT + dt : 0;
+    if (cineT > REST_S) {
+      // één regel per teken per sessie: elf keer dezelfde waarschuwing zegt niets (#435)
+      if (telRest(restTeller, teken) === 1) console.warn(restMelding(teken));
+      clearSceneLeftovers(w);
+      cineT = 0;
+    }
     return;
   }
   if (c !== cineSeen) { cineSeen = c; cineT = 0; }

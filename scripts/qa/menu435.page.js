@@ -30,6 +30,23 @@ for (const [id, naam, opts] of [['spullen', 'spullen', {}], ['prestaties', 'pres
   try { PM.openPauseMenu(id, opts); } catch (e) { check(naam + ' openen', false, e.message); continue; }
   await shot(naam, 2500);
 }
+if (stappen.includes('spullen')) {
+  // Spullen zoeken en de delen (#435): de lijst wordt korter en de voetregel zegt hoeveel je ziet
+  PM.openPauseMenu('spullen'); await sleep(2500);
+  const lijst = () => root().querySelectorAll('[data-panel="spullen"] [data-spul]').length;
+  const alle = lijst();
+  const chip = root().querySelector('[data-spul-deel="verzameling"]');
+  if (chip) chip.click(); await shot('spullen-verzameling', 1200);
+  const verzameling = lijst();
+  check('spullen: het deel Verzamelingen toont minder', verzameling > 0 && verzameling < alle, `${verzameling} van ${alle}`);
+  const veld = root().querySelector('[data-spul-search]');
+  if (veld) {
+    root().querySelector('[data-spul-deel="alles"]').click(); await sleep(400);
+    veld.value = 'stempel'; veld.dispatchEvent(new Event('input', { bubbles: true })); await shot('spullen-zoek', 1200);
+    const gezocht = lijst();
+    check('spullen: zoeken op stempel vindt de spaarkaart', gezocht > 0 && gezocht < alle, `${gezocht} van ${alle}`);
+  } else check('spullen: zoekveld', false, 'geen [data-spul-search]');
+}
 if (stappen.includes('aanwijzingen2')) {
   const ST = await import('/js/story.js');
   for (let i = 0; i < 6; i++) { try { ST.skipCurrent({ force: true }); } catch (e) { check('skip ' + i, false, e.message); } await sleep(300); }

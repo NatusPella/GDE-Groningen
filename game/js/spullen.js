@@ -13,6 +13,7 @@ import { getStoryJournal } from './story.js';
 import { getSaveSet, EIERBAL_TOTAL } from './achievements.js';
 import { SECRETS_TOTAL } from './geheimen.js';
 import { getLedger, summary } from './finance.js';
+import { woordenVan, past } from './zoektekst.js';
 
 const ICON = {
   geld: '<rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/><path d="M6 9.5v5M18 9.5v5"/>',
@@ -43,8 +44,32 @@ const EMPTY = {
 // Categorieen die ook leeg zichtbaar blijven, zodat je weet dat ze bestaan
 const ALWAYS = new Set(['werp', 'thuis', 'upgrade']);
 
+// De delen van het scherm (#435): met een druk op de knop zie je alleen wat je
+// bij je hebt, wat thuis staat of wat je verzamelt.
+export const DELEN = [['alles', 'Alles'], ['uitrusting', 'Uitrusting'], ['thuis', 'Thuis'], ['verzameling', 'Verzamelingen']];
+// geld hoort bij geen enkel deel: je ziet het bij Alles bovenaan, en in de
+// andere delen gaat het over spullen (#435)
+const DEEL_VAN = { geld: 'geld', wapens: 'uitrusting', werp: 'uitrusting', kleding: 'uitrusting', upgrade: 'uitrusting', thuis: 'thuis', kaart: 'verzameling' };
+
+// Wat er in een kaartje staat, als één lap tekst om in te zoeken
+const zoektekst = (it) => [it.title, it.sub, it.how, it.perk, (SECTIONS.find(([c]) => c === it.cat) || [, ''])[1]].join(' ').toLowerCase();
+
+// Zoeken en filteren (#435): alle woorden moeten ergens in het kaartje staan,
+// en het kaartje moet in het gekozen deel vallen. Puur, zodat spullen_test het
+// kan natrekken.
+export function zoekSpullen(items, query = '', deel = 'alles') {
+  const words = woordenVan(query);
+  return items.filter((it) => {
+    if (deel !== 'alles' && DEEL_VAN[it.cat] !== deel) return false;
+    if (!words.length) return true;
+    return past(zoektekst(it), words);
+  });
+}
+
 let sel = null;
 let byKey = new Map();
+let zoek = '';
+let deel = 'alles';
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const euro = (v) => '€' + Math.round(v).toLocaleString('nl-NL');
 const svg = (id) => `<svg class="pm-ic" viewBox="0 0 24 24" aria-hidden="true">${ICON[id] || ICON.kaart}</svg>`;
@@ -163,18 +188,34 @@ function detailHtml() {
 export function renderSpullen(panel, w) {
   const { items, counts } = collect(w);
   byKey = new Map(items.map((it) => [it.key, it]));
-  if (!sel || !byKey.has(sel)) sel = items[0] ? items[0].key : null;
+  const zichtbaar = zoekSpullen(items, zoek, deel);
+  const zichtbaarSet = new Set(zichtbaar);
+  if (!sel || !zichtbaarSet.has(sel)) sel = zichtbaar[0] ? zichtbaar[0].key : null;
   const list = panel.querySelector('.td-list');
-  list.innerHTML = SECTIONS.map(([cat, label]) => {
-    const mine = items.filter((it) => it.cat === cat);
-    if (!mine.length && !ALWAYS.has(cat)) return '';
+  const leeg = zoek.trim() || deel !== 'alles';
+  const secties = SECTIONS.map(([cat, label]) => {
+    const mine = zichtbaar.filter((it) => it.cat === cat);
+    if (!mine.length && !(ALWAYS.has(cat) && !leeg)) return '';
     const kop = `<div class="m-gh"><span class="sp-gh">${svg(cat)}${label}</span>${counts[cat] ? `<span>${esc(counts[cat])}</span>` : ''}</div>`;
     return kop + (mine.length ? mine.map(card).join('') : `<p class="mut sp-leeg">${esc(EMPTY[cat] || '')}</p>`);
   }).join('');
+  list.innerHTML = secties || `<p class="m-note sp-leeg" data-spul-leeg>Niks gevonden${zoek.trim() ? ` voor "${esc(zoek.trim())}"` : ''}. ${deel === 'alles' ? 'Probeer een ander woord.' : 'Kies Alles om alles te zien.'}</p>`;
+  // de knoppen boven de lijst tonen de stand (#435)
+  for (const b of panel.querySelectorAll('[data-spul-deel]')) b.setAttribute('aria-pressed', String(b.dataset.spulDeel === deel));
+  const zoekveld = panel.querySelector('[data-spul-search]');
+  if (zoekveld && zoekveld.value !== zoek) zoekveld.value = zoek;
   panel.querySelector('.td-detail').innerHTML = detailHtml();
   const owned = items.filter((it) => it.cat !== 'geld' && it.cat !== 'kaart').length;
-  return `${owned} dingen in bezit · ${euro(Math.max(0, Math.floor(w.money)))} contant`;
+  const kop = zichtbaar.length === items.length ? '' : `${zichtbaar.length} van ${items.length} · `;
+  return `${kop}${owned} dingen in bezit · ${euro(Math.max(0, Math.floor(w.money)))} contant`;
 }
+
+// De zoekopdracht en het gekozen deel komen uit het paneel (pausemenu.js) en
+// blijven staan als je het scherm even verlaat. Ze zetten alleen de stand; het
+// scherm opnieuw tekenen doet de aanroeper, zodat ook de voetregel klopt.
+export function zetSpullenZoek(tekst) { zoek = String(tekst || ''); }
+export function spullenZoekStand() { return { zoek, deel }; }
+export function zetSpullenDeel(d) { deel = DELEN.some(([id]) => id === d) ? d : 'alles'; }
 
 // Focus or click on a card shows it; the action button runs it. a: { rerender(keep), message(text) }
 export function spullenFocus(panel, el) {
@@ -186,6 +227,8 @@ export function spullenFocus(panel, el) {
 }
 
 export function spullenClick(e, w, panel, a) {
+  const chip = e.target.closest('[data-spul-deel]');
+  if (chip) { zetSpullenDeel(chip.dataset.spulDeel); a.rerender(); return true; }
   const act = e.target.closest('[data-spul-act]');
   if (act) {
     const it = byKey.get(act.dataset.spulAct);

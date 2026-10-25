@@ -748,6 +748,9 @@ function endRide(w, skipped) {
   rideBoard('');
   w.challengeHoldPlayer = false;
   w.trainCam = null;
+  // de rit is voorbij: de spelers mogen weer te zien zijn, ook als de reis
+  // halverwege afbreekt en er geen aankomstscène volgt (#435)
+  w.cinematicHidePlayers = false;
   if (!r || !trip) return;
   const rode = (w.time - r.start) / 60;
   trip.info = { ...trip.info, minutes: Math.max(1, Math.round(skipped ? Math.max(rode, r.minutes) : rode)), clockMinutes: skipped ? Math.max(0, r.minutes - rode) : 0 };
@@ -785,6 +788,9 @@ export function startRideBetween(w, fromName, toName) {
 }
 
 function arrive(w) {
+  // ook zonder reis (afgebroken, of al opgeruimd) mogen de spelers weer te zien zijn (#435)
+  w.cinematicHidePlayers = false;
+  w.cameraOverride = null;
   if (!trip) return;
   const { to, legs, info, saved, ride: rode } = trip;
   const last = legs[legs.length - 1];

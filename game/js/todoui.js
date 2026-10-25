@@ -236,11 +236,19 @@ function nextHtml(cur) {
     (it ? `<button type="button" class="m-bp" data-todo-goal="${esc(it.key)}">${svg(ICON.flag)}${goal ? 'Terug naar het verhaal' : 'Zet als doel'}</button>` : '') + '</section>';
 }
 
+// De volgende stap (#435): de stap die nu loopt; loopt er geen, dan de eerste
+// die je kunt doen en nog niet klaar is. Puur, zodat verhaalopdrachten_test hem
+// kan natrekken.
+export function volgendeStap(steps) {
+  const lijst = Array.isArray(steps) ? steps : [];
+  return lijst.find((s) => s.current) || lijst.find((s) => s.available && !s.done) || null;
+}
+
 function storyHtml() {
   const steps = getStorySteps();
   const jr = getStoryJournal();
   const found = new Set(jr.found.map((c) => c.title));
-  const cur = steps.find((s) => s.current);
+  const cur = volgendeStap(steps);
   if (!ui.open) ui.open = new Set([cur ? cur.part : PART_IDS[PART_IDS.length - 1]]);
   return nextHtml(cur) + PART_IDS.map((part) => {
     const P = PARTS[part];
