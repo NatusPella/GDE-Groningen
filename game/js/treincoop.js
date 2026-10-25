@@ -101,6 +101,22 @@ export function duwVanWagen(wagen, x, y, r = 0.35) {
   return { nx: ca * s, ny: sa * s, depth: px };
 }
 
+// Een trein die een speler raakt (#434): de gastheer heeft het lichaam van een gast, maar niet zijn gezondheid. Dezelfde
+// klap als bij zijn eigen speler (railway.js hitPlayer: 25 + 3,5 per m/s), als bericht 'schade' naar die gast; onder de
+// 1,5 m/s duwt de wagen alleen opzij en telt er niets. TREIN_RAAK_AFKOEL is dezelfde afkoel als HIT_COOLDOWN daar, zodat
+// een trein die over een lichaam heen schuift niet elk beeld opnieuw slaat.
+export const TREIN_RAAK_MIN = 1.5;      // m/s
+export const TREIN_RAAK_AFKOEL = 1.2;   // s
+export const treinSchade = (v) => 25 + Math.max(0, Number(v) || 0) * 3.5;
+// v: de snelheid van de trein; nu: world.time; vorige: wanneer deze speler de vorige klap kreeg (-Infinity als nooit).
+// Geeft { schade } of null (te langzaam of net al geraakt).
+export function treinKlap(v, nu, vorige = -Infinity) {
+  const s = Number(v) || 0;
+  if (s < TREIN_RAAK_MIN) return null;
+  if (Number.isFinite(vorige) && vorige > (Number(nu) || 0) - TREIN_RAAK_AFKOEL) return null;
+  return { schade: Math.round(treinSchade(s)) };
+}
+
 // De stand die een checkpoint na elke halte bewaart (voor een gast die tussendoor wegvalt of een host die wisselt).
 export const snapshot = (c) => JSON.stringify({ m: c.machinist, c: c.conducteur, p: c.passagiers, s: c.service });
 export function restore(json) {

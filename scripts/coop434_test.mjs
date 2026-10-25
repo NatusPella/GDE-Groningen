@@ -137,4 +137,24 @@ t('de gast tekent de missiemarker in de stijl van de gastheer: het doel gaat voo
   assert.match(src, /gastDoelen\(world\)\[0\]/, 'de doelen van de groep van deze gast, met de snapshot als terugval');
 });
 
+t('een trein slaat harder dan een kogel: de hele klap komt aan bij de gast (#434)', () => {
+  const hw = mkWorld(); N.startHost(hw, INFO, { seed: 7 });
+  const link = createLink({ latency: 0.02, jitter: 0, seed: 4 });
+  N.addGuest(hw, link.a);
+  const gw = mkWorld(); gw.health = 100; N.startClient(gw, link.b, INFO, {});
+  for (let k = 0; k < 60; k++) { N.tickCoopNet(hw, 1 / 60); N.tickCoopNet(gw, 1 / 60); link.advance(1 / 60); hw.time += 1 / 60; gw.time += 1 / 60; }
+  // een kogel: hoogstens 30 per bericht, zoals altijd
+  hw.coopSchade(1, 67);
+  for (let k = 0; k < 8; k++) { N.tickCoopNet(hw, 1 / 60); N.tickCoopNet(gw, 1 / 60); link.advance(1 / 60); }
+  assert.equal(gw.health, 70, 'een kogel van 67 doet 30: ' + gw.health);
+  // een trein: de hele klap (67 bij 12 m/s), anders zou een gast een aanrijding nauwelijks merken
+  hw.coopSchade(1, 67, 'trein');
+  for (let k = 0; k < 8; k++) { N.tickCoopNet(hw, 1 / 60); N.tickCoopNet(gw, 1 / 60); link.advance(1 / 60); }
+  assert.equal(gw.health, 3, 'de treinklapper telt helemaal: ' + gw.health);
+  // en hij valt er niet door om: hij blijft op 1
+  hw.coopSchade(1, 67, 'trein');
+  for (let k = 0; k < 8; k++) { N.tickCoopNet(hw, 1 / 60); N.tickCoopNet(gw, 1 / 60); link.advance(1 / 60); }
+  assert.equal(gw.health, 1, 'niet onder 1: ' + gw.health);
+});
+
 console.log(`coop434_test: ${n} tests ok`);
