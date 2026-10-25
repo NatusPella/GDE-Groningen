@@ -10,7 +10,8 @@ import { drawMapIcon, drawMapIconHalo, drawRoute, drawRoadRoute, forEachPoliceUn
 import { getGaragesForRender } from './garages.js';
 import { getHomeForRender, getHomeGarageForRender, getHomeMooringForRender, getHomeHelipadForRender } from './home.js';
 import { layerOn, setLayer as storeLayer } from './mapfilters.js';
-import { tekenVeroverd, tekenLegenda, tekenLegendeVlag } from './gebiedenkaart.js';
+import { tekenVeroverd, tekenLegenda, tekenLegendeVlag, kaartLaag, kiesLaag } from './gebiedenkaart.js';
+import { gebiedIn } from './grenzen.js';
 import { getHorecaForRender } from './horeca.js';
 import { getShopsForRender, getShopsDecluttered, storyTargetShop, drawStoryShopRing } from './shops.js';
 import { SHOP_TYPES } from './shopdata.js';
@@ -1544,18 +1545,51 @@ function plekHier(p) {
   return hierAt.naam;
 }
 
+// Het gebied onder de cursor (#435): dezelfde laag die de kaart tekent (gemeenten
+// ver uit, wijken en buurten dichtbij), zodat elk gebied aan te wijzen en aan te
+// klikken is en niet alleen het naamlabel. De laatste opzoeking wordt bewaard:
+// de kaart staat stil tussen twee muisbewegingen.
+let gebiedCache = { x: NaN, y: NaN, scale: 0, r: null };
+function gebiedBij(wx, wy) {
+  if (!layerOn('veroverd')) return null;
+  if (gebiedCache.x === wx && gebiedCache.y === wy && gebiedCache.scale === state.scale) return gebiedCache.r;
+  const { lijst, typisch } = kaartLaag();
+  const hoofd = kiesLaag(typisch, state.scale);
+  let r = null;
+  if (hoofd) {
+    const kandidaten = lijst.filter((q) => q.niveau.id === hoofd);
+    const g = gebiedIn(kandidaten.map((q) => q.gebied.grens), wx, wy);
+    if (g) r = kandidaten.find((q) => q.gebied.grens === g) || null;
+  }
+  gebiedCache = { x: wx, y: wy, scale: state.scale, r };
+  return r;
+}
+
+// De regel onder de naam van een gebied: dezelfde woorden als de kaartlaag.
+function gebiedSub(r) {
+  const soort = r.niveau.enkel;
+  const metHoofdletter = soort[0].toUpperCase() + soort.slice(1);
+  if (r.voltooid) return `${metHoofdletter} veroverd: alles gedaan (${r.totaal} dingen)`;
+  if (r.veroverbaar) return `${metHoofdletter}: ${r.klaar} van ${r.totaal} gedaan`;
+  return metHoofdletter;
+}
+
 function updateTooltip(sx, sy) {
   const tip = state.tooltip;
   const h = nearestHover(sx, sy);
-  state.canvas.classList.toggle('pointing', !!h);
+  state.canvas.classList.toggle('pointing', !!h || !!gebiedBij(...toWorld(sx, sy)));
   let main = '', sub = '';
   if (h) {
     main = h.name;
     sub = h.tipSub || h.sub || '';
   } else {
     const [wx, wy] = toWorld(sx, sy);
+    const gebied = gebiedBij(wx, wy);
     const [minx, miny, maxx, maxy] = state.real;
-    if (wx < minx || wy < miny || wx > maxx || wy > maxy) {
+    if (gebied) {
+      main = gebied.gebied.naam;
+      sub = gebiedSub(gebied);
+    } else if (wx < minx || wy < miny || wx > maxx || wy > maxy) {
       if (worldPlacesReady() || provinceMapOn()) {
         const a = areaNameAt(wx, wy);
         main = a.name;
@@ -1611,8 +1645,14 @@ function handleClick(world, sx, sy, shift = false) {
   if (state.card) { hideCard(); if (!h) return; }
   // je eigen plek: een hint waar je staat, geen waypoint naar jezelf
   if (h && h.self) { showCard(world, h, sx, sy); return; }
-  // a marker: a small card with what it is and "Zet als doel"
+  // een marker: een kaartje met wat het is en "Zet als doel"
   if (h) { showCard(world, h, sx, sy); return; }
+  // een gebied (gemeente, woonplaats, wijk of buurt): overal in het vlak aan te klikken (#435)
+  const gebied = gebiedBij(wx, wy);
+  if (gebied) {
+    showCard(world, { name: gebied.gebied.naam, sub: gebiedSub(gebied), x: gebied.gebied.x, y: gebied.gebied.y }, sx, sy);
+    return;
+  }
   const spot = state.map.nearestRoadPoint(wx, wy, 60);
   const x = spot && Math.hypot(spot.x - wx, spot.y - wy) < 30 ? spot.x : wx;
   const y = spot && Math.hypot(spot.x - wx, spot.y - wy) < 30 ? spot.y : wy;

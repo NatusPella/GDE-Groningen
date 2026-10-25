@@ -161,5 +161,15 @@ applyMapPhase('nacht');
 ok(railCols(MAP_PALETTE)[0] === nightPalette(DAYMAP).rail && railCols(MAP_PALETTE)[0] !== '#55524c' && railCols(MINI_PALETTE)[1] !== '#d8d4c8', 'at night the rails follow the night palette');
 applyMapPhase('dag');
 
+// --- de kaart als aanwijsbaar vlak (#435) -----------------------------------------
+// Niet alleen het naamlabel: hover en klik zoeken het gebied in de laag die de
+// kaart tekent (gemeenten ver uit, wijken en buurten dichtbij). Legenda en
+// filters zitten achter Lagen en staan de eerste keer open.
+const mv = src('game/js/mapview.js');
+ok(/import \{[^}]*kaartLaag[^}]*kiesLaag[^}]*\} from '\.\/gebiedenkaart\.js'/.test(mv), 'de kaart leent de gebiedenlaag van gebiedenkaart.js');
+ok(mv.includes("from './grenzen.js'") && mv.includes('gebiedIn(') && mv.includes('function gebiedBij'), 'de kaart zoekt het gebied onder de cursor met punt-in-polygoon');
+ok(mv.includes('gebiedBij(...toWorld(sx, sy))') && mv.includes('gebiedSub(gebied)') && mv.includes('showCard(world, { name: gebied.gebied.naam'), 'hover en klik gebruiken het gevonden gebied');
+ok(mv.includes('data-act="layers"') && mv.includes('toggleLegend(true)') && mv.includes("layerOn('veroverd')"), 'legenda en filters komen terug achter Lagen');
+
 console.log(fails ? `${fails} of ${n} FAILED` : `ok: ${n} checks`);
 process.exit(fails ? 1 : 0);
