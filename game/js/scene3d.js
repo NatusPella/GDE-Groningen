@@ -347,7 +347,7 @@ const CAM_TARGET_RADIUS = ORBIT_RADIUS * 5 + CAM_CLEARANCE + 2;
 // is. Het dak komt uit vaultkit.js (vehicleHeight), dat elke soort kent: een
 // hoge bus, een trekker of een maaidorser wijkt net zo goed uit als een auto.
 export function camClearOfVehicle(x, h, z, v, marge = 0.4) {
-  if (!v || !v.model) return [x, h, z];
+  if (!v || !v.model || !Number.isFinite(v.x) || !Number.isFinite(v.y)) return [x, h, z];
   const halfLen = (v.model.len || 0) / 2 + marge;
   const halfWid = (v.model.wid || 0) / 2 + marge;
   const dx = x - v.x, dz = z - v.y;
