@@ -54,7 +54,7 @@ const bruikbaar = (r) => r && Number.isFinite(r.x) && Number.isFinite(r.y);
 // Zoals dichtstbijzijndeSpeler, maar valt terug op de hoofdspeler als niemand een bruikbare plek heeft (dan gedraagt de code zich als voorheen).
 export function naasteSpeler(world, x, y) { return dichtstbijzijndeSpeler(world, x, y) || world.player; }
 
-export function hoofdspeler(world) { return world.player; }
+export function hoofdspeler(world) { return world.player; } // het lichaam van de speler van dit apparaat (plek 0); nooit een meespeler
 export function spelers(world) { return register(world); }
 // Het record van één speler op zijn vaste plek (0 = wie het spel opende, 1 en verder = de meespelers); null als die plek niet meedoet.
 export function speler(world, slot) {

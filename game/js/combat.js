@@ -23,6 +23,7 @@ import { noteWantedWhy } from './wantedwhy.js';
 import { gastAanval, gastLichamen } from './coopbestuur.js';
 import { pvpSlag, pvpKogel } from './cooppvpwereld.js'; // spelers tegen elkaar, alleen als beiden niet op passief staan (#447)
 import { wantedVan, zetWantedVan } from './coopgezocht.js';
+import { hoofdspeler } from './spelersregister.js'; // de speler achter dit scherm (#446); politie en gezocht blijven per speler
 
 export { WEAPONS, WEAPON_KEYS, isMeleeWeapon, isRangedWeapon, isGunWeapon };
 
@@ -88,7 +89,7 @@ export function updateCombat(dt, world) {
     if (input.wasPressed(String(i))) selectWeaponSlot(world, i);
   }
   cycleWeaponByWheel(dt, world, input);
-  const p = world.player;
+  const p = hoofdspeler(world);
   const weapon = WEAPONS[world.weapon];
   world.scoped = !!weapon.scope && !p.inVehicle && !p.swimming && !!input.mouse.rightDown && !world.paused;
   // from a car window only guns (and the water pistol) work
@@ -140,7 +141,7 @@ export function updateCombat(dt, world) {
 function meleeLock(world, angle, weapon) {
   lockedPed = null;
   if (getSettings().autoAim === false) return angle;
-  const p = world.player;
+  const p = hoofdspeler(world);
   const reach = weapon.range + 0.8;
   let best = null, bestScore = Infinity;
   for (const t of world.pedestrians) {
@@ -165,8 +166,9 @@ function meleeLock(world, angle, weapon) {
 function meleeAttack(world, angle, weapon) {
   angle = meleeLock(world, angle, weapon);
   punchSide = -punchSide;
+  const p = hoofdspeler(world);
   setCombatEffect({ type: 'melee', angle, until: world.time + 0.15, start: world.time, side: punchSide, weapon: world.weapon, swing: weapon.swing });
-  weaponSound(world, { sub: 'swing', weapon: world.weapon, x: world.player.x, y: world.player.y });
+  weaponSound(world, { sub: 'swing', weapon: world.weapon, x: p.x, y: p.y });
   if (weapon.windup) pendingSwing = { at: world.time + weapon.windup, angle, weapon, key: world.weapon };
   else meleeHit(world, angle, weapon, world.weapon);
 }
@@ -200,7 +202,7 @@ function weaponSound(world, ev) {
 // (fists and heavy swings only) and street props (toppled or broken).
 // ctx: een gast met een wapen (samen spelen, #434): { p: zijn lichaam, dader: zijn plek }; schade en misdaad tellen bij hem, geen camera-effecten.
 function meleeHit(world, angle, weapon, key, ctx = null) {
-  const p = ctx ? ctx.p : world.player;
+  const p = ctx ? ctx.p : hoofdspeler(world);
   if (p.inVehicle) return;
   const gelockt = ctx ? null : lockedPed;
   const cone = weapon.cone || Math.PI / 3;
@@ -249,7 +251,7 @@ const KICK = { pistol: [0.022, 0.008, 1.6], uzi: [0.009, 0.006, 0.6], shotgun: [
 
 function fireGun(world, angle, weapon, scoped = false, ctx = null, key = world.weapon) {
   if (!ctx) setCombatEffect({ type: 'muzzle', angle, until: world.time + 0.06, start: world.time, weapon: world.weapon });
-  const p = ctx ? ctx.p : world.player;
+  const p = ctx ? ctx.p : hoofdspeler(world);
   const v = p.inVehicle;
   const shots = weapon.pellets || 1;
   const base = v ? v.z || 0 : (p.gz || 0) + (p.z || 0);
@@ -499,7 +501,7 @@ function hitGast(world, b) {
 }
 
 function hitPlayer(world, b) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   if (Math.hypot(p.x - b.x, p.y - b.y) > p.radius + 0.12) return false;
   damagePlayer(world, b.damage);
   const bl = Math.hypot(b.vx, b.vy) || 1;
