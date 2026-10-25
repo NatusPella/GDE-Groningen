@@ -43,6 +43,10 @@ function modelFor(base, color, topScale = 1, accelScale = 1) {
   return { ...m, color, maxSpeed: (RACE_TOP[base] ?? m.maxSpeed) * topScale, accel: (RACE_ACCEL[base] ?? m.accel) * accelScale };
 }
 
+// De racewagen die de speler van de baan krijgt (en bij een wedstrijd tegen
+// elkaar iedereen: dezelfde auto, dus een gelijke kans, ringrace.js #443).
+export const racewagenModel = (topScale = 1.35, accelScale = 1.3) => modelFor('sport', '#c8102e', topScale, accelScale);
+
 function makeRivalBike(def, x, y, ang) {
   const v = makeTwoWheeler('bike', x, y, ang);
   v.model = { ...v.model, color: def.color, rider: def.rider, maxSpeed: def.top, accel: 3.4, brake: 8 };
@@ -64,7 +68,7 @@ function inBuilding(map, x, y, pad) {
 // Centreline + a racing line (lateral offset per point, smoothed to cut
 // corners but kept inside the carriageway and clear of buildings) + a
 // speed profile from its curvature with braking zones propagated backwards.
-function buildTrack(map, route, edge = EDGE) {
+export function buildTrack(map, route, edge = EDGE) {
   const n = route.length;
   const x = new Float64Array(n), y = new Float64Array(n), hw = new Float64Array(n);
   for (let i = 0; i < n; i++) { x[i] = route[i][0]; y[i] = route[i][1]; hw[i] = route[i][2] || 3; }
@@ -147,7 +151,7 @@ function indexAt(t, sl) {
 
 // Interpolated centreline point, normal, racing-line offset and target
 // speed at arc length sl (wraps around the lap).
-function sample(t, sl) {
+export function sample(t, sl) {
   sl = ((sl % t.L) + t.L) % t.L;
   const i = indexAt(t, sl), j = (i + 1) % t.n;
   const u = (sl - t.s[i]) / Math.max(1e-6, t.s[i + 1] - t.s[i]);
