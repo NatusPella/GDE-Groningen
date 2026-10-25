@@ -34,7 +34,7 @@ import { BOAT_KINDS } from './boattypes.js';
 import {
   rollenPerSpeler, samenRegels, STAPPLEK, STAPKLAAR, STAPTEKST, rolNaam, isRolstap, slotsVan, verdelingVoor, houderVan,
   rolStand, beginRolstap, rolGate, rolRegel, maakDraai, draaiKluis, KLUISCODE, zetHeistHaken, rolSlots } from './heistrollen.js';
-import { gastheerMee } from './coopmissie.js';import * as UI from './heistui.js';
+import { gastheerMee, opdrachtId, deelnemers } from './coopmissie.js';import * as UI from './heistui.js';
 
 const SPOTS_BEFORE_HELP = 3;
 const MISSES_BEFORE_HELP = 5;
