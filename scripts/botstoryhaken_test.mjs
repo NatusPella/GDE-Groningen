@@ -42,6 +42,13 @@ for (const s of missions.filter((q) => q.built && q.story && q.story.intro)) ok(
 // playerapi.js biedt wat bot.page.js nodig heeft
 const api = readFileSync(path.join(root, 'game/js/playerapi.js'), 'utf8');
 const page = readFileSync(path.join(root, 'scripts/bot/bot.page.js'), 'utf8');
+const mgPage = readFileSync(path.join(root, 'scripts/bot/minigames.page.js'), 'utf8');
+const runPage = readFileSync(path.join(root, 'scripts/bot/run.mjs'), 'utf8');
+// #312: racen en de stunt zijn pure modules die run.mjs in de pagina zet; de pagina's gebruiken ze
+ok(/__botRace/.test(runPage) && /__botStunt/.test(runPage), 'run.mjs zet de race- en stuntregels in de pagina');
+ok(/Rc\.kartStep/.test(mgPage) && /async function playKart/.test(mgPage), 'minigames.page.js rijdt de kartbaan met race.mjs');
+ok(/St\.stuntStep/.test(page), 'bot.page.js speelt de stuntavond met stunt.mjs');
+ok(/what: 'stunt: '/.test(page) && /idleFor: Math\.round\(D\.forS/.test(page), 'een stunt die geen punten meer oplevert wordt een time-out in het rapport');
 const used = [...page.matchAll(/B\.cheat\.(\w+)/g)].map((m) => m[1]);
 ok(used.length >= 3, 'bot.page.js gebruikt cheats');
 for (const c of new Set(used)) ok(new RegExp('\\b' + c + ':').test(api.slice(api.indexOf('cheat:'))), `playerapi.js heeft cheat.${c}`);
