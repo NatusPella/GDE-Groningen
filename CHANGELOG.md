@@ -14,6 +14,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ### Onderhoud
 - **De documentatie is opgeschoond en de specs zijn de basis.** De levende regels staan nu in elf specs onder `.specs-fire/standards/` (Samen spelen, wereld, mechanica, verhaal, UI en taal, publicatie, plus de vijf standaarden); 23 vervallen of dubbele documenten gingen naar `docs/archief/2026-10/`, de gegenereerde verhaal- en opnamelijsten staan niet meer in git, en de verwijzingen in README, AGENTS en ARCHITECTURE kloppen weer. De veertien keuzes die het project dragen staan met hun afgewezen alternatieven in `.specs-fire/standards/adr/`. Begin bij `docs/SPECS-FIRE.md`.
+- **De specs worden tegen de code gehouden.** `node scripts/spec_check.mjs` controleert elke `bestand.js:regel`-verwijzing in de specs en telt de getallen die ze noemen opnieuw uit de code en de verhaaldata; hij draait mee in de lichte fase en in CI. De eerste ronde repareerde de scèneteller en het aantal regels zonder opname in `verhaal.md` en zes regelverwijzingen die op een lege regel wezen.
 
 ## [0.53.0] - 2026-10-25
 
