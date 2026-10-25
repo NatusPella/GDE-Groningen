@@ -77,6 +77,21 @@ De issues op het bord blijven de bron voor *wat* we doen; de spec is het *hoe*. 
 work item verwijst naar zijn issue (`Refs #n`), en de walkthrough is wat een run
 heeft opgeleverd. Geen dubbele roadmap: geen werkitem zonder issue.
 
+### `run.md` is een startsnapshot, `state.yaml` is de waarheid
+
+Verwar de twee niet en synchroniseer ze niet met de hand:
+
+- `init-run.cjs` schrijft `run.md` **één keer** bij de start (fase `plan`,
+  checkpoint `none`) en zet de run in `state.yaml`.
+- `update-phase.cjs` werkt **alleen** `state.yaml` bij (plan → execute → test →
+  review) en raakt `run.md` niet aan.
+- `complete-run.cjs` zet aan het eind `run.md` en `state.yaml` allebei op
+  `completed`, inclusief het runverslag en de walkthrough.
+
+Een run die halverwege is, laat dus bewust twee verschillende fases zien. Dat is
+geen conflict en geen fout: wie `run.md` met de hand bijwerkt, maakt er juist een
+tweede waarheid van.
+
 ### De regel voor `state.yaml`
 
 `state.yaml` is het enige bestand dat bij elke run verandert, en agents werken in
