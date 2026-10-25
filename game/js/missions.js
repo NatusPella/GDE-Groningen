@@ -1,4 +1,5 @@
 import { SMS_SAY } from './smsvoice.js';
+import { dijkPrijs } from './ringrace.js';
 import { assistTime } from './assistlive.js';
 import { dist, pointInPolygon, closestPointOnSegment, boatDryPoints, clamp, isInWater } from './util.js';
 import { waterPolyAt } from './waterlevels.js';
@@ -59,7 +60,6 @@ import { afstandMeespeler, meespelerInVoertuig } from './spelersregister.js';
 import { teamActor, doelStand, groepKlaar, WACHT_OP_ANDEREN } from './stagegroep.js';
 import { registreerWedstrijd, wedNodigUit, wedHostBaan, wedBaanStand } from './coopwedstrijd.js';
 import { lichaamVan, bestuurInstappenIn, bestuurLos } from './coopbestuur.js';
-import { loopbaanVerdien } from './loopbaanlive.js';
 // a radio fragment of a stage that never got played within ten minutes is moot (refs #171; not tied to the mission: the clue in it must not be lost)
 const MISSION_RADIO_VALID = { ttl: 600 };
 import { registerBusyProbe } from './busy.js';
@@ -3170,7 +3170,7 @@ function updateHeliStage(dt, world, def, st, S) {
 // --- M14 De dijk: de straatrace als wedstrijd tegen elkaar (#443) -----------------
 // Met gasten loopt de race van de opdracht via de baanlaag (coopwedstrijdbaan.js, soort 'baan'): iedereen dezelfde auto
 // van Lammert, één gezamenlijke start bij het begin van de dijk, de tussenstand op het bord en de uitslag met een
-// beloning per plek in eigen geld en loopbaan. Wie nee zegt of niet meedoet, kijkt mee op het bord van de race
+// beloning per plek in eigen geld en racepunten. Wie nee zegt of niet meedoet, kijkt mee op het bord van de race
 // (coopwedstrijd3d.js). Zonder gasten blijft het de gewone race tegen de trekker-limo van Jelle: de opdracht zelf
 // verandert niet, de host moet nog steeds als eerste bij de sluis zijn.
 const DIJK_CP = 6;             // etappes: de voortgang is de afstand tot de sluis
@@ -3304,7 +3304,7 @@ function eindDijkRace(world, res) {
   if (res && res.jij) {
     const jij = res.jij;
     if (jij.geld > 0) world.addMessage(`Beloning: €${jij.geld.toLocaleString('nl-NL')}`, 4);
-    loopbaanVerdien(world, 'race', jij.geld, { xp: jij.xp, n: 1, uniek: 'dijk', deel: false });
+    dijkPrijs(world, jij.geld, jij.xp);
   }
   stopDijkRun(world);
 }

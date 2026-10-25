@@ -355,3 +355,9 @@ registreerWedstrijd('ringrace', {
 });
 // Een gast bij de start van de ring kan de wedstrijd zelf aanvragen (#452).
 zetWedGastHaken('ringrace', { dichtbij: (w) => !run && bijStart(w) });
+
+// De prijs van de dijkrace (M14), die in de missie wordt uitbetaald maar als race telt (#443): hier, zodat missions.js
+// zelf geen loopbaan aanraakt en de balanstest blijft gelden.
+export function dijkPrijs(world, bedrag, xp = 0) {
+  return loopbaanVerdien(world, 'race', bedrag, { xp, n: 1, uniek: 'dijk', deel: false });
+}
