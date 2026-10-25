@@ -1,5 +1,7 @@
 > **Archief (oktober 2026).** Dit document is vervangen door de GitHub-issues #465-#488 en de specs in `.specs-fire/standards/`.
 > Het staat hier alleen als historie: gebruik het niet als bron en werk het niet bij.
+> Relatieve links in dit document verwijzen naar de oude plek in `docs/` en
+> werken hier niet meer.
 
 # Inventaris en conformiteit
 

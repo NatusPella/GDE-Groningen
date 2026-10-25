@@ -1,5 +1,7 @@
 > **Archief (oktober 2026).** Dit document is vervangen door `docs/MUZIEK.md`, `docs/LICENTIES.md` en de CHANGELOG.
 > Het staat hier alleen als historie: gebruik het niet als bron en werk het niet bij.
+> Relatieve links in dit document verwijzen naar de oude plek in `docs/` en
+> werken hier niet meer.
 
 # Muziek-opruiming (#66): wat is van Gemini, wat van Claude
 

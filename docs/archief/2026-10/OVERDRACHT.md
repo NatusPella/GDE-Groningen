@@ -1,5 +1,7 @@
 > **Archief (oktober 2026).** Dit document is vervangen door `AGENTS.md` (Context per sessie) en de GitHub-issues.
 > Het staat hier alleen als historie: gebruik het niet als bron en werk het niet bij.
+> Relatieve links in dit document verwijzen naar de oude plek in `docs/` en
+> werken hier niet meer.
 
 # Overdracht (stand 18 oktober 2026, laatste release 0.35.0, daarna veel op main)
 

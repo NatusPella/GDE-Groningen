@@ -1,5 +1,7 @@
 > **Archief (oktober 2026).** Dit document is vervangen door `docs/PERF-METING-2026-10-19.md` (de actuele meting) en `.specs-fire/standards/mechanica.md`.
 > Het staat hier alleen als historie: gebruik het niet als bron en werk het niet bij.
+> Relatieve links in dit document verwijzen naar de oude plek in `docs/` en
+> werken hier niet meer.
 
 # Profiel van de hoofdthread (0.24, Architectuur)
 

@@ -1,5 +1,7 @@
 > **Archief (oktober 2026).** Dit document is vervangen door `.specs-fire/standards/verhaal.md` (Deel 4 vóór de herschrijving).
 > Het staat hier alleen als historie: gebruik het niet als bron en werk het niet bij.
+> Relatieve links in dit document verwijzen naar de oude plek in `docs/` en
+> werken hier niet meer.
 
 # Deel 4 · F4a: Stad, Hogeland en Eemsdelta
 
