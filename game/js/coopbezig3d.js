@@ -25,6 +25,17 @@ function maakGroep(beeld) {
       const m = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.7, 5), mat(0x7a5a2a));
       m.geometry.translate(0, 0.35, 0); g.add(m); delen[k] = m;
     }
+  } else if (beeld === 'hark') {
+    // het boerenwerk van een gast (#434): een hark met drie tanden, die hij heen en weer haalt
+    const steel = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 1.1, 5), mat(0x8a6a3a));
+    steel.geometry.translate(0, 0.55, 0); g.add(steel);
+    for (let k = -1; k <= 1; k++) {
+      const tand = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.22, 4), mat(0x9a9a94));
+      tand.position.set(k * 0.12, 0.08, 0); g.add(tand);
+    }
+    const balk = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.04, 0.05), mat(0x9a9a94));
+    balk.position.y = 0.18; g.add(balk);
+    delen.hark = g;
   }
   return { g, delen };
 }
@@ -63,6 +74,7 @@ export function syncBezig(world, dt) {
         e.delen.links.position.set(0.1, 0, -0.25); e.delen.links.rotation.z = -0.3 - p.links;
         e.delen.rechts.position.set(0.1, 0, 0.25); e.delen.rechts.rotation.z = -0.3 - p.rechts;
       }
+      if (e.delen.hark) e.delen.hark.rotation.x = -(p.hark || 0);
     }
   }
 }

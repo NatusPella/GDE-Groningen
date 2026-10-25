@@ -19,22 +19,25 @@ t('bezig: alleen bekende activiteiten, een wisseling telt, null ruimt op', () =>
   assert.equal(Z.zetBezig(w, 2, 'discgolf'), false, 'onbekend telt als niets'); assert.deepEqual(Object.keys(w.coopBezigVan), ['1']);
   assert.equal(Z.zetBezig(w, 1, null), true); assert.deepEqual(w.coopBezigVan, {});
   assert.equal(Z.zetBezig(w, -1, 'hengelen'), false);
+  assert.equal(Z.bezigId('boeren'), 'boeren'); assert.equal(Z.BEZIG_BEELD.boeren, 'hark');
+  assert.deepEqual(Z.bezigVanEvent(3, 'boeren'), { k: 'bezigvan', slot: 3, a: 'boeren' });
   assert.deepEqual(Z.bezigVanEvent(2, 'pannenkoek'), { k: 'bezigvan', slot: 2, a: 'pannenkoek' });
   assert.deepEqual(Z.leesBezigVan({ k: 'bezigvan', slot: 2, a: 'carillon' }), { slot: 2, a: 'carillon' });
   assert.equal(Z.leesBezigVan({ k: 'bezigvan', slot: 'x', a: 'carillon' }), null);
   assert.ok(JSON.stringify(Z.bezigVanEvent(3, 'carillon')).length < 50);
 });
 t('bezigLijst: de figuur van de ander, niet je eigen, niet in een voertuig; hengel, pan en klepels', () => {
-  const w = { player: { x: 0, y: 0 }, companion: { x: 3, y: 4, angle: 1 }, coop: { remote: true }, coopFigures: { 2: { slot: 2, x: 9, y: 9, angle: 0, char: 'a' }, 3: { slot: 3, x: 1, y: 1, char: 'b', coopVoertuig: true } } };
-  Z.zetBezig(w, 1, 'hengelen'); Z.zetBezig(w, 2, 'pannenkoek'); Z.zetBezig(w, 3, 'carillon');
+  const w = { player: { x: 0, y: 0 }, companion: { x: 3, y: 4, angle: 1 }, coop: { remote: true }, coopFigures: { 2: { slot: 2, x: 9, y: 9, angle: 0, char: 'a' }, 3: { slot: 3, x: 1, y: 1, char: 'b', coopVoertuig: true }, 4: { slot: 4, x: 6, y: 6, char: 'c' } } };
+  Z.zetBezig(w, 1, 'hengelen'); Z.zetBezig(w, 2, 'pannenkoek'); Z.zetBezig(w, 3, 'carillon'); Z.zetBezig(w, 4, 'boeren');
   const host = Z.bezigLijst(w, 0);
-  assert.deepEqual(host.map((b) => [b.slot, b.beeld]), [[1, 'hengel'], [2, 'pan']], 'plek 3 zit in een voertuig');
+  assert.deepEqual(host.map((b) => [b.slot, b.beeld]), [[1, 'hengel'], [2, 'pan'], [4, 'hark']], 'plek 3 zit in een voertuig');
   assert.equal(host[0].x, 3); assert.equal(host[0].angle, 1);
   const gast2 = Z.bezigLijst({ ...w, coopFigures: { ...w.coopFigures, 1: { slot: 1, x: 5, y: 5, char: 'anita' } } }, 2);
-  assert.deepEqual(gast2.map((b) => b.slot), [1], 'je eigen plek (2) tekent je eigen scherm, plek 3 zit in een voertuig');
+  assert.deepEqual(gast2.map((b) => b.slot), [1, 4], 'je eigen plek (2) tekent je eigen scherm, plek 3 zit in een voertuig');
   Z.tikBezig(w, 1.5); assert.equal(Z.bezigLijst(w, 0)[0].t, 1.5);
   assert.equal(Z.hengelFase(0.2), 'cast'); assert.equal(Z.hengelFase(2), 'wait');
   const p = Z.eenvoudigePose('klepels', 0.3); assert.ok(p.links >= 0 && p.rechts >= 0 && (p.links === 0 || p.rechts === 0), 'om en om');
+  assert.ok(Number.isFinite(Z.eenvoudigePose('hark', 4).hark), 'de hark haalt heen en weer');
   assert.ok(Number.isFinite(Z.eenvoudigePose('pan', 5).pan));
 });
 

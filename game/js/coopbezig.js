@@ -1,11 +1,11 @@
-// Samen spelen (#429): wie bezig is met een eigen activiteit (hengelen, pannenkoeken bakken, de beiaard) is zichtbaar voor de anderen.
+// Samen spelen (#429): wie bezig is met een eigen activiteit (hengelen, boeren, pannenkoeken bakken, de beiaard) is zichtbaar voor de anderen.
 // De gast meldt zijn activiteit al aan wie het spel opende ({ k: 'bezig', a }, coopgast.js); die bewaart hem per plek en geeft hem door aan
-// de andere gasten ({ k: 'bezigvan', slot, a }). coopbezig3d.js tekent er een staande speler met hengel, pan of klepels van.
+// de andere gasten ({ k: 'bezigvan', slot, a }). coopbezig3d.js tekent er een staande speler met hengel, hark, pan of klepels van.
 // Pure logica zonder three.js, getest in scripts/coopbezig_test.mjs. Geen nieuw netwerkformaat: gewone JSON-berichten (PROTO en CODEC_VERSION blijven 2).
 import { GAST_ACTIVITEITEN } from './coopgast.js';
 import { bodyFor, mySlotOf } from './coopclient.js';
 
-export const BEZIG_BEELD = { hengelen: 'hengel', pannenkoek: 'pan', carillon: 'klepels' };
+export const BEZIG_BEELD = { hengelen: 'hengel', boeren: 'hark', pannenkoek: 'pan', carillon: 'klepels' };
 
 export const bezigStand = (world) => world.coopBezigVan || (world.coopBezigVan = {});
 export const bezigId = (a) => (typeof a === 'string' && GAST_ACTIVITEITEN.has(a) ? a : null);
@@ -41,6 +41,7 @@ export function tikBezig(world, dt) { for (const e of Object.values(world.coopBe
 export function eenvoudigePose(beeld, t) {
   if (beeld === 'pan') return { pan: 0.25 + 0.2 * Math.sin(t * 3), omslag: Math.max(0, Math.sin(t * 0.9)) ** 8 * 1.2 };
   if (beeld === 'klepels') return { links: Math.max(0, Math.sin(t * 4.5)) * 0.9, rechts: Math.max(0, Math.sin(t * 4.5 + Math.PI)) * 0.9 };
+  if (beeld === 'hark') return { hark: 0.35 * Math.max(0, Math.sin(t * 2.2)) };
   return {};
 }
 // De hengel van een ander: eerst een worp, daarna wachten (hengelpose.js UITGOOI_T)
