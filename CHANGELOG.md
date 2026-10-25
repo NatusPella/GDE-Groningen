@@ -4,6 +4,24 @@ Alle noemenswaardige wijzigingen in GDE Groningen, per versie. Nieuwste bovenaan
 Versies volgen SemVer: `0.x.y` tot de echte release (1.0.0); `x` voor
 nieuwe functies, `y` voor alleen bugfixes.
 
+## [0.52.0] - 2026-10-25
+
+### Nieuw
+- **Samen spelen: een gast kan boeren.** Bij je eigen akker (of de vaste akker bij Hoogkerk) start je met E een klus van vier werkgangen, met je eigen materiaal, oogst en punten; vissen kon al.
+- **Samen spelen: instappen bij een geparkeerde auto.** Auto's aan de stoep bestaan nu rond elke speler, dus een gast kan naast de gastheer gewoon in- en uitstappen; de trein loopt bij de gast vloeiender mee in plaats van te stotteren.
+- **Samen spelen: betere beelden van de wereld.** Boten en het vliegtuig komen meteen met hun echte model in plaats van een blok, en vogels vliegen bij de gast op de echte hoogte.
+- **Samen spelen: de dijkrace als wedstrijd** met een gezamenlijke start, tussenstand, uitslag en beloning, plus een toeschouwerskaart voor wie niet meedoet.
+- **Samen spelen: overdragen vanuit het paneel Samen spelen**, ook in de wachtkamer.
+- **Kaart: elk gebied is hoverbaar en klikbaar.** Gemeenten, woonplaatsen, wijken en buurten geven voortgang en waypoint-acties, ook zonder label.
+- **Fotomodus: H zet je terug bij Tammo** en wist de kanteling.
+- **Treinloopbaan: kaartjes knippen bij de conducteursstop**, met een teller en punten voor het vak Spoor.
+- **Boten: een gast kan zeilen en roeien**, met de wind en het roeiritme zoals solo.
+
+### Opgelost
+- Een containerschip verdwijnt niet meer uit beeld: het schip telt met boeg en achtersteven of het in zicht is.
+- Elk dier en elke vogel heeft een harde schaalgrens, zodat er geen reuzenvogel meer kan ontstaan.
+- De horeca en de garages lezen nu de POI-laag van de tegels, met de oude kaart als terugval.
+
 ## [0.51.0] - 2026-10-25
 
 ### Nieuw
