@@ -1,6 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { drawHub, poolable, depthMaterialFor } from './multidraw3d.js';
 import { perfOff } from './devflags.js';
+import { noteBatchWork } from './gfxprofile.js';
 
 // Static batching for city buildings and roads: the meshes of every
 // building (road) in a 48 m cell are merged into one mesh per material, which
@@ -31,7 +32,12 @@ function verOf(parts) {
 }
 
 const FAR = [1e9, 1e9];
-const centreOf = (b) => (b.bounds ? [(b.bounds[0] + b.bounds[2]) / 2, (b.bounds[1] + b.bounds[3]) / 2] : FAR);
+
+// A cell key is a number, not an "ix,iy" string: a key is made for every item of
+// every scan, and those strings were the largest per-frame allocation of the
+// batcher. The offsets keep it a plain integer (48 m cells, RD coordinates).
+const KEY_SPAN = 65536;
+const keyOf = (ix, iy) => (ix + 32768) * KEY_SPAN + (iy + 32768);
 
 // the child meshes of a building that go into its cell's batch
 function partsOf(mesh, withDetail, only = null, out = []) {
@@ -65,6 +71,8 @@ function unmerge(B, c) {
   c.group = null;
   c.members = [];
   c.memberSet = null;
+  B.slots -= c.slots || 0;
+  c.slots = 0;
   B.stats.merged--;
 }
 
@@ -263,11 +271,15 @@ function makeGroup(B, job) {
     }
     mesh.castShadow = bk.cast;
     mesh.receiveShadow = true;
+    // the geometry holds world coordinates and the mesh sits at the origin: the matrix is
+    // the identity and never changes, so the scene walk may skip it altogether
     mesh.matrixAutoUpdate = false;
+    mesh.matrixWorldAutoUpdate = false;
     mesh.userData.staticBatch = true;
     group.add(mesh);
   }
   group.matrixAutoUpdate = false;
+  group.matrixWorldAutoUpdate = false;
   return group;
 }
 
@@ -292,6 +304,10 @@ function finishJob(B) {
   c.memberSet = new Set(job.list.map((m) => m.b));
   c.withDetail = job.withDetail;
   for (const m of c.members) for (const p of m.parts) p.visible = false;
+  // the draw slots the cell holds: one per pooled cell (a range in the pool's multi-draw)
+  // and one per loose mesh (a material the pool cannot take)
+  c.slots = (group.handles ? group.handles.length : 0) + group.children.length;
+  B.slots += c.slots;
   B.stats.merged++;
   B.stats.builds++;
   B.job = null;
@@ -306,8 +322,8 @@ function finishJob(B) {
 // an item must be within to be merged (default: the detail radius less a
 // margin), how many newcomers redo a merged cell (default 3), and the
 // item's distance (default: from its bounds' centre).
-function createStaticBatcher(opts) {
-  const B = { name: opts.name, bake: !!opts.bake, pool: opts.pool !== false, cells: new Map(), job: null, frame: 0, root: null, stats: { cells: 0, merged: 0, builds: 0, dropped: 0, ms: 0, frames: 0 } };
+export function createStaticBatcher(opts) {
+  const B = { name: opts.name, bake: !!opts.bake, pool: opts.pool !== false, cells: new Map(), job: null, frame: 0, root: null, slots: 0, stats: { cells: 0, merged: 0, builds: 0, dropped: 0, ms: 0, frames: 0 } };
   const cell = opts.cell || CELL, minMembers = opts.minMembers || MIN_MEMBERS;
   const memberOk = (m, ctx, dist) => ctx.meshes.get(m.b) === m.mesh && !(ctx.hidden && ctx.hidden.has(m.b)) && m.mesh.parent && verOf(m.parts) === m.ver && opts.valid(m.b, m.mesh, ctx, dist);
 
@@ -315,24 +331,41 @@ function createStaticBatcher(opts) {
   // detailR, drawDist, withDetail, budgetMs }
   function update(ctx) {
     const t0 = performance.now();
-    try { step(ctx); } finally { B.stats.ms += performance.now() - t0; B.stats.frames++; }
+    try { step(ctx); } finally {
+      const ms = performance.now() - t0;
+      B.stats.ms += ms;
+      B.stats.frames++;
+      // dev/benchmark: the draw slots this batcher holds and what the frame cost (gfxprofile.js)
+      noteBatchWork(B.slots, ms);
+    }
   }
   function step(ctx) {
     if (!B.root) {
       B.root = new THREE.Group();
       B.root.name = B.name + 'es';
+      // its cells carry world coordinates at the origin: no matrix walk for them (see makeGroup)
       B.root.matrixAutoUpdate = false;
+      B.root.matrixWorldAutoUpdate = false;
       ctx.scene.add(B.root);
     }
     B.frame++;
     const { meshes, hidden, px, py } = ctx;
-    const dist = opts.dist ? (b) => opts.dist(b, px, py) : (b) => { const [x, y] = centreOf(b); return Math.hypot(x - px, y - py); };
+    // no array per item and no Math.hypot: these run for every item of every cell
+    const dist = opts.dist ? (b) => opts.dist(b, px, py) : (b) => {
+      const bd = b.bounds;
+      if (!bd) return 1e9;
+      const dx = (bd[0] + bd[2]) * 0.5 - px, dy = (bd[1] + bd[3]) * 0.5 - py;
+      return Math.sqrt(dx * dx + dy * dy);
+    };
+    const pooled = B.pool && !perfOff('pool');
     for (const c of B.cells.values()) {
       if (!c.group) continue;
-      let bad = c.withDetail !== ctx.withDetail || !!c.group.pooled !== (B.pool && !perfOff('pool'));
+      let bad = c.withDetail !== ctx.withDetail || !!c.group.pooled !== pooled;
       for (let i = 0; i < c.members.length && !bad; i++) if (!memberOk(c.members[i], ctx, dist)) bad = true;
       if (bad) { unmerge(B, c); B.stats.dropped++; continue; }
-      for (const m of c.members) for (const p of m.parts) p.visible = false;
+      // the parts of a merged cell stay hidden; only write where something turned
+      // them visible again (scene3d toggles facade details), for a write per part per frame less
+      for (const m of c.members) for (const p of m.parts) if (p.visible) p.visible = false;
     }
     if (B.job) {
       const job = B.job;
@@ -364,18 +397,20 @@ function createStaticBatcher(opts) {
     // while each of them is valid; items crossing inner (or streaming in)
     // one by one draw on their own until a rebuild is worth it: a few of
     // them, or the cell is then complete
-    const pooled = B.pool && !perfOff('pool');
     const margin = pooled && !perfOff('poolrand') ? POOL_MARGIN : MARGIN;
     const fewest = pooled && !perfOff('poolklein') ? 1 : minMembers;
     const inner = opts.inner ? opts.inner(ctx, margin) : Math.min(ctx.drawDist, ctx.detailR) - margin;
     const want = new Map();
     for (const [b, mesh] of meshes) {
       if ((hidden && hidden.has(b)) || !mesh.parent || !mesh.visible || mesh.userData.noBatch || !opts.eligible(b, mesh)) continue;
-      const d = dist(b);
-      const [x, y] = centreOf(b);
-      const key = `${Math.floor(x / cell)},${Math.floor(y / cell)}`;
+      const bd = b.bounds;
+      const x = bd ? (bd[0] + bd[2]) * 0.5 : FAR[0];
+      const y = bd ? (bd[1] + bd[3]) * 0.5 : FAR[1];
+      const d = opts.dist ? opts.dist(b, px, py) : (bd ? Math.sqrt((x - px) * (x - px) + (y - py) * (y - py)) : 1e9);
+      const ix = Math.floor(x / cell), iy = Math.floor(y / cell);
+      const key = keyOf(ix, iy);
       let w = want.get(key);
-      if (!w) want.set(key, w = { key, d: Infinity, far: 0, list: [] });
+      if (!w) want.set(key, w = { key, ix, iy, d: Infinity, far: 0, list: [] });
       w.far = Math.max(w.far, d);
       if (d > inner) continue;
       w.d = Math.min(w.d, d);
@@ -397,7 +432,7 @@ function createStaticBatcher(opts) {
     B.lastWant = want;
     if (!best) return;
     let c = B.cells.get(best.key);
-    if (!c) B.cells.set(best.key, c = { key: best.key, group: null, members: [], memberSet: null, withDetail: ctx.withDetail });
+    if (!c) B.cells.set(best.key, c = { key: best.key, group: null, members: [], memberSet: null, withDetail: ctx.withDetail, slots: 0 });
     for (const m of best.list) {
       m.parts = opts.part ? partsOf(m.mesh, true, opts.part(m.mesh)) : partsOf(m.mesh, ctx.withDetail);
       m.ver = verOf(m.parts);
@@ -408,8 +443,8 @@ function createStaticBatcher(opts) {
   function info() {
     let meshesN = 0;
     for (const c of B.cells.values()) if (c.group) meshesN += c.group.children.length + (c.group.handles ? c.group.handles.length : 0);
-    const detail = B.lastWant ? [...B.lastWant.values()].map((w) => [w.key, w.list.length, Math.round(w.d), Math.round(w.far), B.cells.get(w.key) && B.cells.get(w.key).group ? 1 : 0]) : [];
-    return { ...B.stats, meshes: meshesN, job: B.job ? `${B.job.i}/${B.job.pieces.length}` : null, detail };
+    const detail = B.lastWant ? [...B.lastWant.values()].map((w) => [`${w.ix},${w.iy}`, w.list.length, Math.round(w.d), Math.round(w.far), B.cells.get(w.key) && B.cells.get(w.key).group ? 1 : 0]) : [];
+    return { ...B.stats, meshes: meshesN, slots: B.slots, job: B.job ? `${B.job.i}/${B.job.pieces.length}` : null, detail };
   }
 
   // every cell back to its own meshes (the batcher is switched off)
@@ -463,7 +498,9 @@ export const roadBatcher = createStaticBatcher({
   // it stays a while; a merged cell is redone once two roads have come in
   dist: (r, px, py) => {
     const b = r.bounds;
-    return b ? Math.hypot(Math.max(b[0] - px, 0, px - b[2]), Math.max(b[1] - py, 0, py - b[3])) : 1e9;
+    if (!b) return 1e9;
+    const dx = Math.max(b[0] - px, 0, px - b[2]), dy = Math.max(b[1] - py, 0, py - b[3]);
+    return Math.sqrt(dx * dx + dy * dy);
   },
   inner: (ctx, margin) => ctx.drawDist - margin,
   fresh: 2,
@@ -482,7 +519,8 @@ export const shoreBatcher = createStaticBatcher({
   minMembers: 2,
   dist: (it, px, py) => {
     const b = it.bounds;
-    return Math.hypot(Math.max(b[0] - px, 0, px - b[2]), Math.max(b[1] - py, 0, py - b[3]));
+    const dx = Math.max(b[0] - px, 0, px - b[2]), dy = Math.max(b[1] - py, 0, py - b[3]);
+    return Math.sqrt(dx * dx + dy * dy);
   },
   inner: (ctx, margin) => ctx.drawDist - margin,
   fresh: 2,

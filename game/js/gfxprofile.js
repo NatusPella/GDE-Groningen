@@ -286,9 +286,103 @@ function median(a) {
   return a[a.length >> 1];
 }
 
+// --- per-frame counter (development and measurement only) ----------------
+// ?dev, ?testmenu, ?benchmark or ?perf (or window.__gfxPerfAan = true in a run)
+// keep a window of the last 120 frames: the draw calls the renderer made, the
+// main-thread CPU time of the frame and what the static batches cost
+// (staticbatch3d.js noteBatchWork). window.__gfxPerf holds the latest frame
+// and the averages; a player never pays for it.
+const PERF_WINDOW = 120;
+const PERF_MIN = 30;
+let perfWin = null;
+
+export const perfCounterOn = () => !!(FLAGS.dev || FLAGS.testmenu || FLAGS.benchmark || FLAGS.perf
+  || (typeof window !== 'undefined' && window.__gfxPerfAan));
+
+function makePerfWindow() {
+  return {
+    n: 0, i: 0, f: 0, pendMeshes: 0, pendMs: 0,
+    ms: new Float32Array(PERF_WINDOW), cpu: new Float32Array(PERF_WINDOW), draws: new Float32Array(PERF_WINDOW),
+    batchMeshes: new Float32Array(PERF_WINDOW), batchMs: new Float32Array(PERF_WINDOW),
+    out: { frames: 0, draws: 0, cpu: 0, batchMeshes: 0, batchMs: 0, avgDraws: 0, avgCpu: 0, avgBatchMeshes: 0, avgBatchMs: 0 },
+  };
+}
+const perf = () => perfWin || (perfWin = makePerfWindow());
+
+// staticbatch3d.js, once per frame per batcher: the draw slots its merged cells
+// and loose batch meshes hold, and the ms the batcher spent (dev/benchmark only)
+export function noteBatchWork(meshes, ms) {
+  if (!perfCounterOn()) return;
+  const w = perf();
+  w.pendMeshes += meshes;
+  w.pendMs += ms;
+}
+
+// the window as plain numbers (scripts/gfx_profile_test.mjs and a run)
+export function perfSnapshot() {
+  if (!perfWin) return null;
+  const w = perfWin, n = w.n;
+  return {
+    frames: n,
+    ms: Array.from(w.ms.subarray(0, n)), cpu: Array.from(w.cpu.subarray(0, n)), draws: Array.from(w.draws.subarray(0, n)),
+    batchMeshes: Array.from(w.batchMeshes.subarray(0, n)), batchMs: Array.from(w.batchMs.subarray(0, n)),
+    avgDraws: w.out.avgDraws, avgCpu: w.out.avgCpu, avgBatchMeshes: w.out.avgBatchMeshes, avgBatchMs: w.out.avgBatchMs,
+  };
+}
+
+export function resetPerfCounter() {
+  perfWin = null;
+  if (hooked) { hooked.renderer.render = hooked.orig; hooked = null; }
+  if (typeof window !== 'undefined') delete window.__gfxPerf;
+}
+
+// three resets info.render at the start of every render() (info.autoReset, its default) and a
+// frame has one scene render plus the post-chain's quads, so the calls of the frame are summed
+// here (the same hook scripts/perf/routes.js uses)
+let hooked = null;
+function hookRenderer() {
+  const s = typeof window !== 'undefined' ? window.__scene3d : null;
+  if (!s || !s.renderer) return null;
+  if (hooked && hooked.renderer === s.renderer) return hooked;
+  const renderer = s.renderer, orig = renderer.render;
+  const h = hooked = { renderer, orig, calls: 0 };
+  renderer.render = function (...args) {
+    const out = orig.apply(this, args);
+    h.calls += renderer.info.render.calls || 0;
+    return out;
+  };
+  return h;
+}
+
+function notePerfFrame(ms, cpuMs) {
+  const w = perf();
+  const h = hookRenderer();
+  const i = w.i;
+  w.ms[i] = ms;
+  w.cpu[i] = cpuMs;
+  w.draws[i] = h ? h.calls : 0;
+  if (h) h.calls = 0;
+  w.batchMeshes[i] = w.pendMeshes;
+  w.batchMs[i] = w.pendMs;
+  w.pendMeshes = 0; w.pendMs = 0;
+  w.i = (i + 1) % PERF_WINDOW;
+  if (w.n < PERF_WINDOW) w.n++;
+  const o = w.out;
+  o.frames = w.n; o.draws = w.draws[i]; o.cpu = cpuMs; o.batchMeshes = w.batchMeshes[i]; o.batchMs = w.batchMs[i];
+  // the averages every 16 frames, so a frame costs only its ring slot
+  if (++w.f % 16 === 0 && w.n >= PERF_MIN) {
+    let sd = 0, sc = 0, sb = 0, sbm = 0;
+    for (let k = 0; k < w.n; k++) { sd += w.draws[k]; sc += w.cpu[k]; sb += w.batchMeshes[k]; sbm += w.batchMs[k]; }
+    o.avgDraws = +(sd / w.n).toFixed(1); o.avgCpu = +(sc / w.n).toFixed(2);
+    o.avgBatchMeshes = +(sb / w.n).toFixed(1); o.avgBatchMs = +(sbm / w.n).toFixed(3);
+  }
+  if (typeof window !== 'undefined') window.__gfxPerf = o;
+}
+
 // One rendered in-game frame: interval and main-thread ms. True when
 // something changed.
 export function noteFrame(ms, cpuMs) {
+  if (perfCounterOn()) notePerfFrame(ms, cpuMs);
   if (!getSettings().autoResolution) {
     if (dyn.scale === 1 && dyn.cpuLevel === 0) return false;
     dyn.scale = 1; dyn.cpuLevel = 0;

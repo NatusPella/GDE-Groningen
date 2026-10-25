@@ -1,6 +1,6 @@
 // node scripts/gfx_profile_test.mjs: the GPU classification, the first-run
 // advice and the benchmark recommendation (game/js/gfxprofile.js).
-import { classifyGpu, adviseFromSample, recommendPreset, describePreset, describeChanges, noteFrame, resetDynamic, dynamicScale, cpuLevel, currentPreset, isDefaultGfx, mobileProfileFor, MOBILE_PROFILES } from '../game/js/gfxprofile.js';
+import { classifyGpu, adviseFromSample, recommendPreset, describePreset, describeChanges, noteFrame, resetDynamic, dynamicScale, cpuLevel, currentPreset, isDefaultGfx, mobileProfileFor, MOBILE_PROFILES, noteBatchWork, perfSnapshot, resetPerfCounter, perfCounterOn } from '../game/js/gfxprofile.js';
 import { VIEW_DISTANCES, viewDistanceFor, propRadius } from '../game/js/viewdist.js';
 
 let fail = 0;
@@ -106,4 +106,29 @@ eq('mobile: tablet', mobileProfileFor({ width: 820, height: 1180, cores: 6, memo
 eq('mobile: strong tablet', mobileProfileFor({ width: 1024, height: 1366, cores: 8, memory: 8 }), 'tabletKrachtig');
 eq('mobile: unknown screen', mobileProfileFor({}), 'tablet');
 eq('mobile: profiles in range', Object.values(MOBILE_PROFILES).every((p) => p.resolution >= 0.5 && p.resolution <= 1 && ['laag', 'middel', 'hoog'].includes(p.quality)), true);
+
+// per-frame counter (dev and benchmark only, #246): the draws of every render of the frame, the
+// main-thread time and the work of the static batches; a player pays nothing
+eq('counter: off without a dev run', perfCounterOn(), false);
+noteBatchWork(5, 0.5);
+noteFrame(16, 5);
+eq('counter: nothing recorded for a player', perfSnapshot(), null);
+globalThis.window = globalThis;
+window.__gfxPerfAan = true;
+eq('counter: on with the window flag (?dev, ?benchmark, ?perf)', perfCounterOn(), true);
+let renderCalls = 0;
+const counterRenderer = { info: { render: { calls: 0 } }, render(n) { renderCalls++; this.info.render.calls = n; } };
+window.__scene3d = { renderer: counterRenderer };
+for (let f = 0; f < 36; f++) { noteBatchWork(7, 0.25); counterRenderer.render(150 + f); counterRenderer.render(3); noteFrame(16.7, 6.5); }
+const counterSnap = perfSnapshot();
+eq('counter: the draws of every render of the frame add up', counterSnap.draws[35], 188);
+eq('counter: the main-thread time of the frame', counterSnap.cpu[35], 6.5);
+eq('counter: the work of the static batches per frame', [counterSnap.batchMeshes[35], Math.round(counterSnap.batchMs[35] * 100) / 100], [7, 0.25]);
+eq('counter: averages on window.__gfxPerf', window.__gfxPerf.avgDraws > 100 && window.__gfxPerf.frames === 36, true);
+eq('counter: the renderer is hooked once, not per frame', renderCalls, 72);
+resetPerfCounter();
+eq('counter: reset stops it', [perfSnapshot(), window.__gfxPerf], [null, undefined]);
+delete window.__gfxPerfAan;
+resetDynamic();
+
 process.exit(fail ? 1 : 0);
