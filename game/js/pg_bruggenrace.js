@@ -9,7 +9,7 @@ import { clamp, isInWater } from './util.js';
 import { waterPolyAt } from './waterlevels.js';
 import { finish, jelle, setTarget, startWedstrijd } from './pghost.js';
 import { hoofdspeler } from './spelersregister.js';
-import { lichaamVan, bestuurInstappenIn } from './coopbestuur.js';
+import { lichaamVan, bestuurInstappenIn, bestuurLos } from './coopbestuur.js';
 import { registreerWedstrijd, wedHostBaan, wedBaanStand } from './coopwedstrijd.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
 import { showBanner } from './cinematics.js';
@@ -44,6 +44,15 @@ function removeBoat(w, v) {
   if (!v) return;
   const i = w.vehicles.indexOf(v);
   if (i >= 0 && v.driver !== 'player') w.vehicles.splice(i, 1);
+}
+
+// Een vorige wedstrijd opruimen: de gasten uit hun oude raceboot en de lege raceboten weg (#443).
+function ruimBoten(w) {
+  for (const slot of Object.keys(w.coopRijders || {})) {
+    const r = w.coopRijders[slot];
+    if (r && r.v && r.v.raceBoat) bestuurLos(w, +slot);
+  }
+  for (const v of [...(w.vehicles || [])]) if (v.raceBoat && !v.driver) removeBoat(w, v);
 }
 
 function jelleFigure(v) {
@@ -113,6 +122,7 @@ export const BRUGGEN = {
     prepareDiepenringRoute(map);
     actie = run;
     if (leftover) { removeBoat(w, leftover); leftover = null; }
+    ruimBoten(w);
     const berth = run.spot.data.berth;
     const wps = rondvaartWaypoints();
     const cps = [];
@@ -140,6 +150,7 @@ export const BRUGGEN = {
     const host = deeln.find((d) => !d.slot);
     if (host) {
       const p = hoofdspeler(w);
+      if (p.inVehicle && p.inVehicle !== host.boot) p.exitVehicle(map, w); // uit de boot van de vorige keer
       p.x = host.boot.x; p.y = host.boot.y;
       p.enterVehicle(host.boot, w);
       const c = w.companion; // solo vaart de metgezel mee; samen is dat het lichaam van een gast, die vaart zelf
@@ -194,8 +205,9 @@ export const BRUGGEN = {
     d.elapsed += dt;
     for (const p of d.deeln) vaarDeelnemer(w, d, p);
     // Jelle: steady pace, eases off when the player falls far behind, pushes when the player leads
-    if (mijn) {
-      const gap = d.js - mijn.ps;
+    const ref = mijn || d.deeln.reduce((a, p) => (p.ps > a.ps ? p : a), d.deeln[0]);
+    if (ref) {
+      const gap = d.js - ref.ps;
       const want = d.jfin != null ? 0 : gap > 90 ? JELLE_PACE * 0.86 : gap < -30 ? JELLE_PACE * 1.14 : JELLE_PACE;
       d.jspeed += clamp(want - d.jspeed, -3 * dt, 1.6 * dt);
     }
@@ -310,13 +322,12 @@ registreerWedstrijd('bruggenrace', {
   start: (w, sc) => startWedstrijd('bruggen', sc),
   plek: (w) => { const b = rondvaartBerth(w.map); return { ...b.boat }; },
   extra: () => ({ v: 'diepenring' }),
-  // een gast valt weg: zijn boot stopt en blijft achter (de rest vaart door)
+  // een gast valt weg: hij stapt uit en zijn boot stopt en blijft achter (de rest vaart door)
   weg: (w, sc, slot) => {
     const p = sc.deeln.find((d) => d.slot === slot);
-    if (!p || !p.boot) return false;
-    p.boot.speed = 0;
-    p.boot.throttle = 0;
-    p.boot.handbrake = true;
+    if (!p) return false;
+    bestuurLos(w, slot);
+    if (p.boot) { p.boot.speed = 0; p.boot.throttle = 0; p.boot.handbrake = true; }
     return true;
   },
   eind: (w, res) => eindBaan(w, res),

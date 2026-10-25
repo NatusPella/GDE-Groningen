@@ -15,7 +15,7 @@ import { today as calendarToday } from './calendarday.js';
 import { Vehicle } from './vehicle.js';
 import { BOAT_KINDS } from './boattypes.js';
 import { hoofdspeler } from './spelersregister.js';
-import { lichaamVan, bestuurInstappenIn } from './coopbestuur.js';
+import { lichaamVan, bestuurInstappenIn, bestuurLos } from './coopbestuur.js';
 import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHostBaan, wedBaanStand, wedScoreStop } from './coopwedstrijd.js';
 
 // Zeilregatta (#197): een activiteit die de speler NIET overneemt. Zit je in een zeilboot bij een
@@ -138,6 +138,7 @@ function startBaan(w, sc, near, baan, plas, rondes, snelheid) {
   if (mijn && !(host && isZeil(host.inVehicle))) { w.addMessage(STAP_IN, 3); return false; }
   if (!board) board = createBoard('ZEILREGATTA', ACCENT);
   board.show();
+  ruimBoten(w); // een vorige wedstrijd: de gasten uit hun oude raceboot en de lege boten weg
   const punten = startLijn(w, baan, deeln.length);
   const richttijd = Math.round(richtTijd(baan.tonnen, rondes, snelheid));
   deeln.forEach((p, k) => {
@@ -186,6 +187,19 @@ const bootVan = (w, p) => {
   const l = lichaamVan(w, p.slot);
   return l ? l.inVeh || l.inVehicle || null : null;
 };
+
+// Een vorige wedstrijd opruimen: de gasten uit hun oude raceboot en de lege raceboten uit het water (#443).
+function ruimBoten(w) {
+  for (const slot of Object.keys(w.coopRijders || {})) {
+    const r = w.coopRijders[slot];
+    if (r && r.v && r.v.raceBoat) bestuurLos(w, +slot);
+  }
+  for (const v of [...(w.vehicles || [])]) {
+    if (!v.raceBoat || v.driver === 'player') continue;
+    const i = w.vehicles.indexOf(v);
+    if (i >= 0) w.vehicles.splice(i, 1);
+  }
+}
 function updateHud(w) {
   if (!run || !board) return;
   const r = run.reg, p = hoofdspeler(w) || w.player;
@@ -360,6 +374,14 @@ registreerWedstrijd('regatta', {
   start: (w, sc) => start(w, sc),
   plek: (w) => { const n = nearestMarina(w); return n ? { x: n.m.x, y: n.m.y } : null; },
   extra: () => ({ v: run ? (run.plas ? PLAS.naam : 'haven') : 'haven' }),
+  // een gast valt weg: hij stapt uit en zijn boot stopt (de rest vaart door)
+  weg: (w, sc, slot) => {
+    const p = sc.deeln.find((d) => d.slot === slot);
+    if (!p) return false;
+    bestuurLos(w, slot);
+    if (p.boot) { p.boot.speed = 0; p.boot.sailTop = 0; }
+    return true;
+  },
   eind: (w, res) => { if (run && run.online) finish(w, { extern: true, uitslag: res }); },
   solo: (w) => start(w),
 });
