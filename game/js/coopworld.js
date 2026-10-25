@@ -8,7 +8,8 @@
 //   soort 100: het doel van de huidige opdracht.
 // Een voertuig draagt zijn dynamische staat (vlaggen, snelheid, sturen, hoogte, rotor) in elke snapshot en zijn
 // uiterlijk (model, kleur, schade) als 'look' die roulerend meegaat (#428, net/codec.js): de gast tekent het
-// echte model met dezelfde bouwer als de host. Een blok in VOERTUIG_MATEN is alleen de terugval als een look nog ontbreekt.
+// echte model met dezelfde bouwer als de host. Zonder look tekent hij eerst een gokmodel van dezelfde soort
+// (gokUiterlijk); een blok in VOERTUIG_MATEN is alleen de laatste terugval als ook die bouwer faalt.
 import { BOAT_KINDS } from './boattypes.js';
 import { VEH_KINDS, MAX_LOOKS, FL_SIREN, FL_HORN, FL_FLAT } from './net/codec.js';
 
@@ -247,6 +248,59 @@ export function uiterlijkSpec(look) {
   pv.model = model;
   return pv;
 }
+
+// De terugval zolang het uiterlijk nog niet bij de gast is (#428): het echte model van de soort, met een vaste variatie op
+// het id. Boten, heli's en vliegtuigen krijgen zo meteen een echt model in plaats van een blok. Een trein niet: die tekent
+// de gast uit zijn eigen spoorwegen (railway3d.js), niet uit de snapshot. null = geen gok (de gast wacht of tekent niets).
+export const GOK_MODELLEN = ['hatch', 'sedan', 'wagon', 'suv', 'sport'];
+export const GOK_KLEUREN = ['#9aa3ad', '#b33a3a', '#2f5f9a', '#e8e6e0', '#3d7a52', '#c9a227', '#222428'];
+const GOK_HEX = /^#[0-9a-f]{6}$/i;
+export function gokUiterlijk(soort, id = 0, { len, wid, kleur } = {}) {
+  const maat = VOERTUIG_MATEN[soort];
+  if (!maat || soort === 'trein') return null; // geen trein als voertuig: die komt uit de eigen routes
+  const h = ((id | 0) * 2654435761) >>> 0;
+  const bijkleur = GOK_KLEUREN[(h >>> 8) % GOK_KLEUREN.length];
+  const pv = { id, wrecked: false, health: 100 };
+  const model = { name: 'hatch', len: Number(len) || maat[0], wid: Number(wid) || maat[1], color: typeof kleur === 'string' && GOK_HEX.test(kleur) ? kleur : bijkleur };
+  switch (soort) {
+    case 'auto': model.name = GOK_MODELLEN[h % GOK_MODELLEN.length]; break;
+    case 'bakkie': model.name = 'van'; break;
+    case 'politie': pv.isPolice = true; model.name = 'wagon'; break;
+    case 'bus': pv.isBus = true; model.name = 'bus'; model.stripe = bijkleur; break;
+    case 'vracht': model.name = 'truck'; break;
+    case 'fiets': pv.isBike = true; model.name = 'bike'; model.rider = bijkleur; break;
+    case 'scooter': pv.isScooter = true; model.name = 'scooter'; model.rider = bijkleur; break;
+    case 'motor': pv.isScooter = true; model.name = 'scooter'; model.motorbike = true; model.rider = bijkleur; break;
+    case 'boot': { // een sloep als terugval: het eerste model uit boattypes.js, met de maat uit de snapshot
+      const b = BOAT_KINDS.sloep;
+      pv.isBoat = true;
+      Object.assign(model, b, { name: 'boat', len: model.len, wid: model.wid, color: model.color });
+      if (b.cabin !== undefined) model.cabin = bijkleur;
+      break;
+    }
+    case 'heli': pv.isHeli = true; model.name = 'heli'; break;
+    case 'overig': pv.isPlane = true; model.name = 'plane'; break;
+  }
+  pv.model = model;
+  return pv;
+}
+
+// ----------------------------------------------------------- wat de gast nog zelf invult (#428)
+// Wat een gast zelf invult omdat het niet in de snapshot of het EXTRA-bericht past. Positie, soort, staat en uiterlijk
+// komen altijd van de host; hier staat alleen beeld, beweging of geluid dat daaruit volgt. De test
+// (scripts/coopworld_test.mjs) houdt deze lijst bij de code: elk punt noemt zijn bron en de test die het dekt, zodat de
+// inventaris niet veroudert. Een nieuw lokaal verzonnen stuk hoort hier bij te komen.
+export const LOKAAL_VERZONNEN = [
+  { wat: 'deining van een boot', waar: 'beeld', bron: 'coopentities3d.js', test: 'coop434_test.mjs', waarom: 'de golfstand past niet in de snapshot; de gast deint per id en tijd op dezelfde manier (coopboot.js)' },
+  { wat: 'de valrichting van een kapot object', waar: 'beeld', bron: 'coopextra3d.js', test: 'coopextra_test.mjs', waarom: 'EXTRA stuurt de sleutel en de plek van een kapot object, niet de richting waarin het omviel' },
+  { wat: 'de lampstand van een verkeerslicht tussen twee berichten', waar: 'beeld', bron: 'coopextra3d.js', test: 'coopextra_test.mjs', waarom: 'de gast laat de klok van de host zelf doorlopen en corrigeert pas boven 0,4 s (coopextra.js lichtVerschil)' },
+  { wat: 'de vleugelslag en het banken van een vogel', waar: 'beweging', bron: 'coopextra3d.js', test: 'coopextra_test.mjs', waarom: 'de hoogte gaat mee in de aux van het dier, de animatiefase rekent de gast zelf uit (wildlife.js)' },
+  { wat: 'de loopfase van een voetganger', waar: 'beweging', bron: 'coopextra3d.js', test: 'coopextra_test.mjs', waarom: 'de snelheid gaat mee, de stand van armen en benen rekent de gast zelf uit (models3d_people.js)' },
+  { wat: 'het model van een voertuig zonder uiterlijk', waar: 'beeld', bron: 'coopentities3d.js', test: 'coopworld_test.mjs', waarom: 'tot het uiterlijk binnen is gokt de gast op de soort en het id (gokUiterlijk): altijd een echt model, nooit een blok' },
+  { wat: 'de wagonindeling van een trein', waar: 'beeld', bron: 'railway3d.js', test: 'coop434_test.mjs', waarom: 'de snapshot stuurt het midden en de snelheid; model en wagons horen bij de route uit de wereld van de gast' },
+  { wat: 'de kermisattributen en de stuntavond-animatie', waar: 'beweging', bron: 'coopextra3d.js', test: 'coopextra_test.mjs', waarom: 'EXTRA stuurt of de kermis staat en welke rekwisieten er zijn; de gast laat ze met dezelfde klok draaien (kermis.js)' },
+  { wat: 'toeter en sirene als geluid', waar: 'geluid', bron: 'coopentities3d.js', test: 'coop434_test.mjs', waarom: 'de vlaggen gaan mee, het geluid maakt de gast zelf met de bestaande geluiden (audio.js)' },
+];
 
 // Wat een gast met de entiteiten doet: voertuigen tekenen, het doel aangeven.
 export function leesEntiteiten(entities) {
