@@ -742,5 +742,43 @@ const B = await import('../game/js/coopwedstrijdbaan.js');
   check('de uitslag van de host sluit de baanwedstrijd af', !world.coopWedGast.baan && world.coopWedGast.uitslag && world.coopWedGast.uitslag.jij.geld === 100);
 }
 
+// ---- de toeschouwer (#443): wie nee zei of niet meedeed ziet het bord van de race, geen eigen scherm
+{
+  const ke = W.kijkEvent('De dijkrace', [['1. Tammo', 'ronde 2'], ['2. Tessa', '1:23.40']]);
+  check('een toeschouwersbord heeft een titel en rijen', ke.k === 'wed' && ke.f === 'kijk' && ke.titel === 'De dijkrace' && ke.rijen.length === 2 && !ke.klaar);
+  const lees = W.leesWed(ke);
+  check('de gast leest het bord', lees && lees.f === 'kijk' && lees.rijen[1][0] === '2. Tessa' && lees.rijen[1][1] === '1:23.40');
+  check('opmaak in het bord wordt schoongemaakt', W.kijkEvent('x', [['<b>Tammo</b>', '<1:23>']]).rijen[0][0] === 'bTammo/b' && W.kijkEvent('x', [['<b>Tammo</b>', '<1:23>']]).rijen[0][1] === '1:23');
+  check('rommel bij het bord wordt geweigerd', !W.leesWed({ k: 'wed', f: 'kijk' }) && !W.leesWed({ k: 'wed', f: 'kijk', titel: 'x' }) && !W.leesWed({ k: 'wed', f: 'kijk', titel: 'x', rijen: [[1]] }));
+  check('te veel rijen wordt afgekapt', W.kijkEvent('x', Array.from({ length: 12 }, (_, i) => [`${i}. speler`, 'r'])).rijen.length === 8);
+  // de host: een baanwedstrijd met twee gasten die nee zeiden
+  let gestartToeschouwer = null;
+  W.registreerWedstrijd('bruggenrace', { naam: 'Elf Bruggenrace', soort: 'baan', opties: () => ({ cps: 3, cpNaam: 'bruggen', cap: 120 }), start: (w, sc) => { gestartToeschouwer = sc; return true; }, eind: () => {}, solo: () => 'solo' });
+  const { world, log } = nepWereld(ROSTER());
+  W.wedNodigUit(world, 'bruggenrace');
+  W.wedHandleGast(world, { k: 'wedgast', a: 'ja' }, 1);
+  W.wedHandleGast(world, { k: 'wedgast', a: 'nee' }, 2);
+  W.wedHandleGast(world, { k: 'wedgast', a: 'nee' }, 3);
+  W.wedHostTik(world, 0.1);
+  W.wedHostBaan(world, 0, { cp: 1, s: 30 });
+  W.wedHostBaan(world, 1, { cp: 1, s: 90 });
+  W.wedHostTik(world, 0.6);
+  const bord = log.filter(([, b]) => b.f === 'kijk');
+  check('wie niet meedoet krijgt het bord, wie meedoet niet', bord.length >= 2 && bord.every(([s]) => s === 2 || s === 3) && bord.every(([, b]) => b.rijen.length === 2));
+  check('het bord noemt de eerste van de tussenstand bovenaan', W.leesWed(bord.at(-1)[1]).rijen[0][0] === '1. Tessa', JSON.stringify(bord.at(-1) && bord.at(-1)[1]));
+  W.wedHostBaan(world, 0, { cp: 3, klaar: true, tijd: 44 });
+  W.wedHostBaan(world, 1, { cp: 3, klaar: true, tijd: 40 });
+  W.wedHostTik(world, 0.1);
+  const eindbord = log.filter(([, b]) => b.f === 'kijk' && b.klaar);
+  check('na de uitslag ziet de toeschouwer de eindstand', eindbord.length === 2 && W.leesWed(eindbord[0][1]).rijen[0][0] === '1. Tessa' && W.leesWed(eindbord[0][1]).rijen[0][1].length > 0);
+  // de gast-kant: het bord komt binnen en een nieuwe race ruimt het op
+  const gworld = { coopNet: { role: 'client', session: { slot: 1, sendEvent: () => true } }, messages: [], addMessage() {} };
+  W.wedHandleHost(gworld, W.kijkEvent('De dijkrace', [['1. Tammo', 'ronde 1']]));
+  const G = W.gastStaat(gworld);
+  check('de gast heeft het bord van de toeschouwer', !!G.kijk && G.kijk.rijen.length === 1 && !G.spiegel);
+  W.wedHandleHost(gworld, W.startEvent('kartbaan', MENSEN, 0));
+  check('wie gaat meedoen raakt het bord kwijt', !G.kijk);
+}
+
 console.log(bad ? `${bad} van ${n} controles mislukt` : `ok: ${n} controles`);
 process.exit(bad ? 1 : 0);
