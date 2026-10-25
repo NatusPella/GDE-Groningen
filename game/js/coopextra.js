@@ -78,7 +78,8 @@ function dierVar(a) {
 }
 // De aux-byte draagt per soort iets anders: de vachtkleur van een hond, en de hoogte (in dm) van een vogel die vliegt
 // of op een dak zit (#428). Zo gaat de echte hoogte mee zonder het record te verlengen: een oudere gast leest hem als 0.
-export const VOGEL_HOOGTE = new Set(['seagull', 'pigeon']);
+// De reiger vliegt er ook vandoor (wildlife.js updateReiger, tot 8 m): zonder zijn hoogte zette de gast hem op de grond.
+export const VOGEL_HOOGTE = new Set(['seagull', 'pigeon', 'reiger']);
 function dierAux(a) { return a.kind === 'dog' ? u8((Number.isFinite(a.color) ? a.color : 0) * 255) : VOGEL_HOOGTE.has(a.kind) ? u8((Number(a.z) || 0) * 10) : 0; }
 
 // ----------------------------------------------------------- de host: verzamelen en coderen
