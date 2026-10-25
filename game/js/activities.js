@@ -44,6 +44,8 @@ import { PVP_ARENA_ACT } from './cooppvpwereld.js'; // de PvP-minigame in Samen 
 import { maakVluchtdienst, vluchtStap, vluchtStand, vluchtUitslag } from './arcadeplane.js';
 import { maakVaardienst, vaarStap, vaarStand, vaarUitslag } from './zeilvaren.js';
 import { rondvluchtRoute, kadesLangsRoute, margeVoorDienst, dienstBordRij } from './simdienst.js';
+import { departure, approach, vluchtLoon } from './luchtverkeer.js'; // de toren en de beloning van de rondvlucht (#492)
+import { loopbaanVerdien } from './loopbaanlive.js';
 import { pickTrip, getSharedNet } from './vaarnet.js';
 import { isShopOpen } from './shopui.js';
 import { GAST_ACTIVITEITEN, MELDING_ALLEEN_OPENER } from './coopgast.js';
@@ -153,11 +155,15 @@ function dienstActiviteit(cfg) {
     if (board) board.hide();
     if (afgebroken) { w.addMessage('Dienst gestopt', 2.5); return; }
     const u = cfg.uitslag(r.d);
+    // een dienst met een beloning (#492) betaalt pas na een geslaagde dienst; de dienst zelf
+    // bepaalt het bedrag (cfg.beloning) en betaalt nooit via world.money
+    const geld = cfg.beloning ? cfg.beloning(w, u, r) : 0;
     gameUi.showBanner({
       kind: u.medaille ? 'pass' : 'fail',
       title: (u.medaille === 3 ? `${cfg.label} met goud` : u.medaille ? `${cfg.label} gehaald` : `${cfg.label} zonder medaille`).toUpperCase(),
       reason: u.medaille ? 'Alle halten van de dienstregeling, zonder brokken' : 'Let op de halten, de tijd en de snelheid',
       stats: dienstStats(u),
+      reward: geld || 0,
     });
   }
 
@@ -181,6 +187,7 @@ function dienstActiviteit(cfg) {
     if (!board || !run) return;
     const d = run.d, stand = cfg.stand(d);
     const rows = dienstBordRij(stand, { klok: run.klok, ...(cfg.extra ? cfg.extra(v) : {}) });
+    if (cfg.rijen) rows.push(...cfg.rijen(run.d, v)); // de toren (#492): een vertrek- en een naderingsregel als bordrij
     board.set({
       row: rows.map(([k, val]) => `<span>${k} <b>${val}</b></span>`).join(''),
       cells: d.halten.map((h, i) => ({ t: `${i + 1}`, cls: i < d.i ? (d.gemist.some((g) => g.index === i) ? 'bad' : 'good') : i === d.i ? 'on' : '' })),
@@ -297,6 +304,16 @@ const VLUCHTDIENST = dienstActiviteit({
   stand: (d) => vluchtStand(d),
   uitslag: (d) => vluchtUitslag(d),
   extra: (v) => ({ hoogte: v.z, snelheid: Math.abs(v.speed || 0) }),
+  // de toren (#492): één vertrekregel en één naderingsregel, deterministisch per veldnaam. De
+  // dienst heeft het veld al in zijn naam, dus er is geen tweede bron voor de velden.
+  rijen: (d) => [['Vertrek', departure(d.naam)], ['Nadering', approach(d.naam)]],
+  // de beloning (#492) na een geslaagde vlucht: geld en ervaring in het vak 'lucht', nooit bij
+  // een afgebroken of mislukte vlucht, en maar één keer per dienst (vluchtLoon zet r.betaald).
+  beloning: (w, u, r) => {
+    const b = vluchtLoon(u, r);
+    if (!b.n) return 0;
+    return loopbaanVerdien(w, 'lucht', b.geld, { xp: b.xp, n: b.n, uniek: 'vluchtdienst', deel: false });
+  },
   glyph(ctx) {
     ctx.fillStyle = '#f2ede0';
     ctx.beginPath();

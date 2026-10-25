@@ -8,7 +8,7 @@ import {
   pick, rand, nearestOnStreet, kerbSide, spawnJobVehicle, pointAlongRoad, randomStreetPoint, streetNameAt,
 } from './sidejobkit.js';
 import { newTrailer, couple, uncouple, stepTrailer, fifthWheel, loadedHandling, koppelHulp } from './semitrailer.js';
-import { maakAanbod, contractLoon, laadTijd, losTijd } from './vrachtmarkt.js';
+import { maakAanbod, contractLoon, laadTijd, losTijd, helpLaadTijd, HELP_STAP_S } from './vrachtmarkt.js';
 
 const TRACTOR = { name: 'truck', len: 6.6, wid: 2.5, maxSpeed: 24, accel: 3.6, brake: 12, turnRate: 1.5, color: '#2f5c8a' };
 const KP_BACK = 1.6;
@@ -16,6 +16,7 @@ const ARRIVE_R = 14;
 const ARRIVE_SPEED = 1.6;
 const CRASH_DROP = 4.5;
 const STIL_SPEED = 1.2;   // m/s: langzamer dan dit geldt als stilstaan bij de laaddeur of de losplaats
+const HULP_R = 20;        // m: zo dicht bij de trekker moet een bijrijder staan om te helpen (coopbijbaan.js, #492)
 const THANKS = ['Mooi gedaan, die oplegger staat er weer als een huis.', 'Niks gedeukt? Dan krijg je een bakkie van het huis.', 'Zo kennen we je: netjes, en niet te snel.'];
 const BUMPY = ['Even de lading nakijken... Ach, het zal wel.', 'Een paar pallets staan scheef, maar goed.'];
 
@@ -56,6 +57,16 @@ function clearTrailer(c) {
   const d = c.data;
   if (d.tr && d.tr.mesh) { c.removeMesh(d.tr.mesh); d.tr.mesh = null; }
   d.tr = null;
+}
+
+// De bijrijder kan alleen helpen als de trekker stilstaat en er nog iets te laden of te lossen is;
+// bij het lossen moet hij ook bij de afnemer staan. Dezelfde regel voor de E-poort en de actie.
+function kanHelpen(c) {
+  const d = c && c.data, v = c && c.vehicle;
+  if (!d || !v || Math.abs(v.speed) >= STIL_SPEED) return false;
+  if (d.phase === 'load') return d.loadLeft > 0;
+  if (d.phase === 'unload') return d.losLeft > 0 && Math.hypot(v.x - d.dest.x, v.y - d.dest.y) <= ARRIVE_R;
+  return false;
 }
 
 export default {
@@ -137,6 +148,24 @@ export default {
     if (phase === 'load') return 'de laadploeg stopte ermee: de vracht staat er nog';
     if (phase === 'unload') return 'de afnemer sloot de losplaats: de lading staat er nog';
     return 'de lading kwam te laat. De klant belt de directie';
+  },
+
+  // Samen spelen (#492): de bijrijder (een meespelende gast) helpt met E bij het laden en het
+  // lossen. Alleen in die twee fasen, vlak bij de trekker en terwijl hij stilstaat; de resterende
+  // tijd gaat met een vaste stap omlaag (vrachtmarkt.js helpLaadTijd). De lading, de time-out en
+  // het loon blijven zoals ze zijn. Het tempo van E begrenst coopbijbaan.js (ACTIE_WACHT_S); de
+  // host leest de korte melding, de gast ziet de voortgang op het bord.
+  helperActie(c, h) {
+    if (!kanHelpen(c)) return false;
+    const d = c.data, v = c.vehicle;
+    if (!h || !Number.isFinite(h.x) || !Number.isFinite(h.y)) return false;
+    if (Math.hypot(h.x - v.x, h.y - v.y) > HULP_R) return false;
+    const links = d.phase === 'load' ? d.loadLeft : d.losLeft;
+    const rest = helpLaadTijd(links, HELP_STAP_S);
+    if (!(rest < links)) return false; // de fase is al klaar
+    if (d.phase === 'load') d.loadLeft = rest; else d.losLeft = rest;
+    c.msg(`De bijrijder pakt mee: ${d.phase === 'load' ? 'laden' : 'lossen'} nog ${Math.ceil(rest)} s.`, 2.2);
+    return true;
   },
 
   update(dt, c) {
@@ -234,18 +263,19 @@ export default {
 
   view(c) {
     const d = c.data, tr = d.tr;
-    if (!tr) return {};
+    if (!tr) return { help: false };
+    const help = kanHelpen(c); // de bijrijder kan nu met E helpen (#492)
     if (d.phase === 'hook') {
       const h = koppelHulp(c.vehicle, tr, KP_BACK);
-      return { marker: { x: tr.kx, y: tr.ky }, progress: `Rit ${c.streak + 1} · koppelen · ${Math.round(h.dist)} m, ${h.tip}`, goal: { label: `Koppel de ${tr.spec.name.toLowerCase()}`, desc: 'Achteruit, rechtdoor onder de oplegger' } };
+      return { help, marker: { x: tr.kx, y: tr.ky }, progress: `Rit ${c.streak + 1} · koppelen · ${Math.round(h.dist)} m, ${h.tip}`, goal: { label: `Koppel de ${tr.spec.name.toLowerCase()}`, desc: 'Achteruit, rechtdoor onder de oplegger' } };
     }
     if (d.phase === 'load') {
-      return { marker: { x: tr.kx, y: tr.ky }, progress: `Rit ${c.streak + 1} · laden ${Math.max(0, Math.ceil(d.loadLeft))} s · lading ${d.cargo}% heel`, goal: { label: 'Laden bij de oplegger', desc: `${d.contract.vracht} · blijf staan, de laadploeg is bezig` } };
+      return { help, marker: { x: tr.kx, y: tr.ky }, progress: `Rit ${c.streak + 1} · laden ${Math.max(0, Math.ceil(d.loadLeft))} s · lading ${d.cargo}% heel`, goal: { label: 'Laden bij de oplegger', desc: `${d.contract.vracht} · blijf staan, de laadploeg is bezig` } };
     }
     if (d.phase === 'unload') {
-      return { marker: { x: d.dest.x, y: d.dest.y }, progress: `Rit ${c.streak + 1} · lossen ${Math.max(0, Math.ceil(d.losLeft))} s · lading ${d.cargo}% heel`, goal: { label: `Lossen bij ${d.contract.klant}`, desc: `${d.dest.street} · ${d.contract.vracht}` } };
+      return { help, marker: { x: d.dest.x, y: d.dest.y }, progress: `Rit ${c.streak + 1} · lossen ${Math.max(0, Math.ceil(d.losLeft))} s · lading ${d.cargo}% heel`, goal: { label: `Lossen bij ${d.contract.klant}`, desc: `${d.dest.street} · ${d.contract.vracht}` } };
     }
-    return { marker: { x: d.dest.x, y: d.dest.y }, progress: `Rit ${c.streak + 1} · ${d.contract.naam} · €${d.contract.tariefPerKm} per km`, goal: { label: `Naar ${d.contract.klant}`, desc: `${d.dest.street} · ${d.contract.vracht}. Geen inklappers!` } };
+    return { help, marker: { x: d.dest.x, y: d.dest.y }, progress: `Rit ${c.streak + 1} · ${d.contract.naam} · €${d.contract.tariefPerKm} per km`, goal: { label: `Naar ${d.contract.klant}`, desc: `${d.dest.street} · ${d.contract.vracht}. Geen inklappers!` } };
   },
 
   stop(c) { clearTrailer(c); },

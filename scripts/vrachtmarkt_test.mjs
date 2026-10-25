@@ -1,12 +1,12 @@
 // De vrachtmarkt (#492): vier contracttypes, een deterministisch aanbod van drie en de
-// loonformule, plus een broncheck dat sidejob_vracht.js het contract en de laad- en
-// losfase echt gebruikt. sidejob_vracht.js laadt three van een CDN en is in node niet te
-// importeren; daarom leest die controle de bron.
+// loonformule, de hulpstap van de bijrijder, plus een broncheck dat sidejob_vracht.js het
+// contract en de laad- en losfase echt gebruikt. sidejob_vracht.js laadt three van een CDN en
+// is in node niet te importeren; daarom leest die controle de bron.
 //   node scripts/vrachtmarkt_test.mjs
 import { readFileSync } from 'node:fs';
 import {
   CONTRACTTYPES, CONTRACT_IDS, contractType, maakAanbod, contractLoon,
-  laadTijd, losTijd, AANBOD_AANTAL, TIJD_MAX,
+  laadTijd, losTijd, helpLaadTijd, HELP_STAP_S, AANBOD_AANTAL, TIJD_MAX,
 } from '../game/js/vrachtmarkt.js';
 import { TRAILER_KINDS } from '../game/js/semitrailer.js';
 
@@ -109,6 +109,27 @@ for (const o of maakAanbod(9, 1, 5)) {
   eq(o.tariefPerKm, base.tariefPerKm, `niveau 5: tarief ${o.type} hangt niet van het niveau af`);
 }
 
+// --- de hulpstap van de bijrijder (#492) -------------------------------------
+// Samen spelen: E van een meespeler haalt een vaste stap van het laden of lossen af.
+eq(HELP_STAP_S, 1.5, 'de hulpstap is een vaste 1,5 s');
+eq(helpLaadTijd(10), 8.5, 'helpen verkort met de vaste stap');
+eq(helpLaadTijd(10, 4), 6, 'een eigen stap mag');
+eq(helpLaadTijd(1.5), 0, 'precies op de stap komt op nul');
+eq(helpLaadTijd(0.4), 0, 'nooit onder nul');
+eq(helpLaadTijd(0), 0, '0 blijft 0');
+eq(helpLaadTijd(-8), 0, 'een negatieve rest telt als 0');
+eq(helpLaadTijd(1.5, 0), 1.5, 'een stap van 0 doet niets');
+eq(helpLaadTijd(3, -2), 3, 'een negatieve stap doet niets');
+for (const links of [0, 0.1, 0.9, 1.5, 1.6, 7.25, 14, 180]) {
+  const rest = helpLaadTijd(links);
+  ok(Number.isFinite(rest) && rest >= 0 && rest <= links, `help bij ${links} s: tussen 0 en de rest`, String(rest));
+  ok(links - rest <= HELP_STAP_S + 1e-9, `help bij ${links} s: nooit meer dan de stap`, String(links - rest));
+}
+for (const raar of [null, undefined, NaN, Infinity, -Infinity, 'veel', {}, []]) {
+  const rest = helpLaadTijd(raar);
+  ok(Number.isFinite(rest) && rest >= 0, `helpLaadTijd ${json(raar)}: eindig en nooit negatief`, String(rest));
+}
+
 // --- de koppeling met de vrachtbijbaan (broncheck) ---------------------------
 const src = readFileSync(new URL('../game/js/sidejob_vracht.js', import.meta.url), 'utf8');
 ok(/import \{[^}]*maakAanbod[^}]*\} from '\.\/vrachtmarkt\.js'/.test(src), 'de baan haalt het aanbod uit vrachtmarkt.js');
@@ -126,6 +147,14 @@ ok(!/world\.money\s*\+=/.test(src), 'geen eigen kasboek in de baan');
 ok(!/Math\.random\(/.test(src), 'het contract hangt niet van Math.random af');
 ok(/contract\.tariefPerKm/.test(src), 'de opdrachttekst toont het tarief');
 ok(/contract\.naam/.test(src), 'de opdrachttekst toont het type');
+// de bijrijder (#492): een hulpactie met de pure stap, alleen in de laad- en losfase en bij de trekker
+ok(/helpLaadTijd\(/.test(src), 'de bijrijder gebruikt de pure hulpstap uit vrachtmarkt.js');
+ok(/helperActie\(c, h\) \{/.test(src), 'de baan heeft een hulpactie voor een meespeler');
+ok(/function kanHelpen\(c\)/.test(src) && /Math\.abs\(v\.speed\) >= STIL_SPEED/.test(src), 'helpen kan alleen bij stilstand');
+ok(/d\.phase === 'unload'\) return d\.losLeft > 0 && Math\.hypot\(v\.x - d\.dest\.x, v\.y - d\.dest\.y\) <= ARRIVE_R/.test(src), 'lossen kan alleen bij de afnemer');
+ok(/Math\.hypot\(h\.x - v\.x, h\.y - v\.y\) > HULP_R/.test(src), 'helpen kan alleen vlak bij de trekker');
+const hulp = (src.match(/helperActie\(c, h\) \{([\s\S]*?)\n {2}\},/) || [])[1] || '';
+ok(!!hulp && !/cargo|timeLeft|complete/.test(hulp), 'de hulpstap raakt de lading, de tijd en het loon niet aan');
 
 console.log(`vrachtmarkt_test: band level 1 is ${min}-${max} euro`);
 console.log(fails ? `${fails} of ${n} failed` : `vrachtmarkt_test: ${n} checks ok`);

@@ -1,8 +1,16 @@
 ﻿// De vluchtdienst (#444) in arcadeplane.js: route tussen twee velden, poorten, checklist,
-// puntentelling en medaille. Puur: geen THREE, geen wereld.
+// puntentelling en medaille. Puur: geen THREE, geen wereld. Sinds #492 hoort de beloning en de
+// toren erbij (luchtverkeer.js) en betaalt de dienst in activities.js via loopbaanVerdien.
 //   node scripts/vluchtdienst_test.mjs
 import assert from 'node:assert';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { VLUCHT, CHECKLIST, checklist, maakVluchtdienst, vluchtStap, vluchtVoortgang, vluchtUitslag, vluchtStand } from '../game/js/arcadeplane.js';
+import { VLUCHT_LOON, VLUCHT_XP, vluchtLoon, departure, approach } from '../game/js/luchtverkeer.js';
+
+const hier = path.dirname(fileURLToPath(import.meta.url));
+const dienstBron = readFileSync(path.join(hier, '../game/js/activities.js'), 'utf8');
 
 const dt = 0.5;
 const van = { x: 0, y: 0, naam: 'Veld Noord' };
@@ -98,5 +106,47 @@ for (let x = 20; x < 500; x += 20) vluchtStap(hard, kist(x), { dt });
 vluchtStap(hard, kist(500, { onGround: true, speed: 30, landing: 'hard' }), { dt });
 assert.strictEqual(vluchtUitslag(hard).landing, 'hard');
 assert.ok(vluchtUitslag(hard).punten < vluchtUitslag(d).punten, 'een harde landing is minder');
+
+// --- de beloning (#492): goud, zilver en brons betalen verschillend ---------------------------
+const uitslag = (medaille, extra = {}) => ({ klaar: true, afgebroken: false, mislukt: null, medaille, ...extra });
+const goudLoon = vluchtLoon(uitslag(3));
+const zilverLoon = vluchtLoon(uitslag(2));
+const bronsLoon = vluchtLoon(uitslag(1));
+const geenLoon = vluchtLoon(uitslag(0));
+assert.deepStrictEqual(goudLoon, { geld: 40, xp: 26, n: 1 });
+assert.deepStrictEqual(zilverLoon, { geld: 28, xp: 20, n: 1 });
+assert.deepStrictEqual(bronsLoon, { geld: 18, xp: 14, n: 1 });
+assert.strictEqual(geenLoon.geld, 0, 'zonder medaille geen geld');
+assert.ok(goudLoon.geld > zilverLoon.geld && zilverLoon.geld > bronsLoon.geld, 'de beloning schaalt met de medaille');
+assert.ok(goudLoon.xp > zilverLoon.xp && zilverLoon.xp > bronsLoon.xp, 'de ervaring schaalt mee');
+assert.strictEqual(VLUCHT_LOON[0], 0);
+assert.ok(Math.max(...VLUCHT_LOON) < 60, 'onder de eenmalige vliegschoolmedailles (€25-60): ' + Math.max(...VLUCHT_LOON));
+assert.ok(VLUCHT_XP.every((x) => x >= 0 && x < 60));
+
+// een afgebroken of mislukte vlucht betaalt niets, hoe goed de vlucht tot dan toe was
+assert.deepStrictEqual(vluchtLoon(uitslag(3, { afgebroken: true })), { geld: 0, xp: 0, n: 0 }, 'afgebroken vlucht betaalt 0');
+assert.deepStrictEqual(vluchtLoon(uitslag(3, { mislukt: 'crash' })), { geld: 0, xp: 0, n: 0 }, 'crash betaalt 0');
+assert.deepStrictEqual(vluchtLoon(uitslag(3, { mislukt: 'te laat' })), { geld: 0, xp: 0, n: 0 }, 'te laat betaalt 0');
+assert.deepStrictEqual(vluchtLoon(uitslag(3, { klaar: false })), { geld: 0, xp: 0, n: 0 }, 'een vlucht die nog loopt betaalt niets');
+assert.deepStrictEqual(vluchtLoon(null), { geld: 0, xp: 0, n: 0 }, 'zonder uitslag betaalt niets');
+
+// geen dubbele betaling: de tweede keer op dezelfde dienst levert niets meer op
+const run = {};
+assert.deepStrictEqual(vluchtLoon(uitslag(3), run), { geld: 40, xp: 26, n: 1 });
+assert.strictEqual(run.betaald, true, 'de dienst weet dat er betaald is');
+assert.deepStrictEqual(vluchtLoon(uitslag(3), run), { geld: 0, xp: 0, n: 0 }, 'nooit twee keer betaald');
+assert.deepStrictEqual(vluchtLoon(uitslag(3), { betaald: true }), { geld: 0, xp: 0, n: 0 }, 'een betaalde dienst betaalt niet nog eens');
+
+// de xp/vak-haak in activities.js: het geld en de punten gaan naar vak 'lucht' via loopbaanVerdien
+assert.match(dienstBron, /import \{[^}]*vluchtLoon[^}]*\} from '\.\/luchtverkeer\.js'/, 'activities.js haalt de beloning uit luchtverkeer.js');
+assert.match(dienstBron, /loopbaanVerdien\(w, 'lucht', b\.geld, \{ xp: b\.xp, n: b\.n, uniek: 'vluchtdienst', deel: false \}\)/, 'de dienst betaalt via loopbaanVerdien in het vak lucht, zonder het bedrag naar gasten te delen');
+assert.match(dienstBron, /beloning: \(w, u, r\) => \{/, 'de vluchtdienst heeft de beloningshaak');
+assert.match(dienstBron, /const geld = cfg\.beloning \? cfg\.beloning\(w, u, r\) : 0;/, 'de dienst betaalt pas in stop(), niet bij elke stap');
+assert.ok(!/world\.money\s*\+=/.test(dienstBron) && !/w\.money\s*\+=/.test(dienstBron), 'geen tweede kasboek in activities.js');
+assert.ok(!/Math\.random/.test(readFileSync(path.join(hier, '../game/js/luchtverkeer.js'), 'utf8')), 'luchtverkeer.js is puur: geen random');
+
+// de toren staat als bordrij in de dienst: één vertrek- en één naderingsregel
+assert.match(dienstBron, /rijen: \(d\) => \[\['Vertrek', departure\(d\.naam\)\], \['Nadering', approach\(d\.naam\)\]\]/, 'de toren gebruikt de veldnaam die de dienst al heeft');
+assert.ok(typeof departure('Rondvlucht Eelde') === 'string' && typeof approach('Rondvlucht Eelde') === 'string', 'de bordregels komen uit luchtverkeer.js');
 
 console.log('vluchtdienst_test ok');
