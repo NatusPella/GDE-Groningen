@@ -19,10 +19,10 @@ Het onderstaande over duur en belasting zijn schattingen op een gewone ontwikkel
 | Fase | Wat | Duur (schatting) | Belasting |
 |---|---|---|---|
 | `licht` | module-check van alle JS (`node --check`, module-bewust), `import_check`, `undef_check` (ongedefinieerde namen), `voice_coverage`, `text_audit`, dode-code-bewaking, alle `scripts/*_test.mjs` (dus ook `import_cycles_test` voor de cyclusbewaking) met duur en tijdslimiet per test | 5 tot 15 minuten | 2 Node-processen tegelijk (`--jobs`), geen GPU |
-| `zwaar` | de wereldchecks uit AGENTS.md en de audits: `ring_probe`, `seat_audit`, `province_test`, `province_detail_test`, `drive_audit`, `junction_sim_test`, `network_drive_test`, `vaarnet_province_test`, `bridge_province_test`, weiland-randen (`prop_conflict_audit`), water-lagen, `landmark_audit`, `overlap_check`, `prop_water_audit`, placement, rand-, hoogte-, terrein-, spoor- en wateraudits | 20 tot 60 minuten | één Node-proces tegelijk, veel geheugen en een kern vol |
+| `zwaar` | de wereldchecks uit AGENTS.md en de audits: `ring_probe`, `seat_audit`, `province_test`, `province_detail_test`, `drive_audit`, `junction_sim_test`, `network_drive_test`, `vaarnet_province_test`, `bridge_province_test`, weiland-randen (`prop_conflict_audit`), water-lagen, `landmark_audit`, `overlap_check`, `prop_water_audit`, placement, rand-, hoogte-, terrein-, spoor- en wateraudits, de overspanning onder viaducten (`clearance_audit`) en de controllerinvoer (`pad_input_audit`) | 20 tot 60 minuten | één Node-proces tegelijk, veel geheugen en een kern vol |
 | `electron` | smoke-run, Electron-verhaaltest (`--story-test`), `geocheck`, spelbot-sweeps (missies, minigames) en de beeldrondes (`scripts/qa/*`, `scripts/ui_shots.mjs`) met beeldchecks | 1 tot 2 uur | één Electron tegelijk, GPU en een kern vol; de machine is merkbaar bezet |
 
-`zwaar` en `electron` hebben `game/world` nodig (`cd desktop && npm run stage`); `electron` ook `desktop/node_modules` (`cd desktop && npm install`, of `ELECTRON_EXE=<pad>`). Ontbreekt dat, dan staat het item in het rapport als **niet gedraaid** met de reden, en niet als geslaagd.
+`zwaar` en `electron` hebben `game/world` nodig (`cd desktop && npm run stage`); `clearance_audit` ook `data/cache/province` (anders SKIP); `electron` ook `desktop/node_modules` (`cd desktop && npm install`, of `ELECTRON_EXE=<pad>`). Ontbreekt dat, dan staat het item in het rapport als **niet gedraaid** met de reden, en niet als geslaagd.
 
 ### Aanbevolen volgorde
 
