@@ -11,7 +11,7 @@ import { join } from 'node:path';
 import { STING_KEYS, stingNoten, stingDuur } from '../../game/js/stings.js';
 
 const SR = 44100;
-const DOEL = process.argv[2] || 'C:\\Users\\abuis\\GIT\\GDE-Groningen\\.claude\\worktrees\\multiplayer-bugs-priority-776878\\geluidspreview';
+const DOEL = process.argv[2] || 'geluidspreview';
 
 // --- synth ---------------------------------------------------------------------------------------------------------
 let seed = 12345;
