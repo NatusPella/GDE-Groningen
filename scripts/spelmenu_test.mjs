@@ -190,6 +190,14 @@ ok(pm.includes("[['U'], 'Geluid uit of weer aan;"), 'Besturing legt de dempknop 
 // #435 (vervolg): garage, fotomodus, kaart, Spullen, Prestaties, Shift en Aanwijzingen
 const vp = read('game/js/vehiclepreview.js'), fu = read('game/js/fotomodusui.js'), sp = read('game/js/spullen.js'), vu = read('game/js/verhaalui.js');
 ok(vp.includes("'webglcontextlost'") && vp.includes('forgetBlankShots'), 'de gedeelde voorbeeldrenderer herstelt na een verloren WebGL-context');
+// #435: de 3D-voorbeelden in de garage en Kopen met een waypoint
+const gu = read('game/js/garageui.js'), gp = read('game/js/garagepics.js'), mm = read('game/js/menumodels.js');
+ok(mm.includes("['autos', \"Auto's\"]") && mm.indexOf("['autos'") < mm.indexOf("['all', 'Alles']"), "de garage begint op het tabblad Auto's en Alles staat achteraan");
+ok(gp.includes('export function garageSaleShop(') && gu.includes('data-garage-koop='), 'bij een voertuig dat te koop is staat een knop Kopen met de winkel erbij');
+ok(pm.includes("[data-garage-koop]") && pm.includes('garageNaarWinkel(world, gw.dataset.garageKoop)'), 'Kopen zet een waypoint naar de plek waar het te koop is (pausemenu.js)');
+ok(gu.includes('gar-stage') && gu.includes('gar-still') && gu.includes('showStageFallback'), 'het 3D-voorbeeld heeft een stilstaand beeld en een silhouet als terugval, zodat het paneel nooit leeg is');
+ok(gu.includes('viewerCanvas !== c') && gu.includes('onFirstFrame'), 'het voorbeeld wordt hergebruikt: een andere keuze wisselt alleen het model, geen nieuwe renderer of canvas');
+ok(vp.includes('GL_RETRY_MS') && vp.includes('glRetryAt') && !vp.includes('if (url || glFailed)'), 'een mislukte of verloren voorbeeldcontext wordt na een korte pauze opnieuw geprobeerd en een leeg plaatje wordt niet bewaard');
 ok(pm.includes('if (isPhotoMode()) return;'), 'het pauzemenu opent niet over de fotomodus (Escape en M horen bij de fotomodus)');
 ok(fu.includes('BAR_HTML') && fu.includes("KEYBTN('W A S D', 'Lopen')") && fu.includes('data-foto-stop'), 'de fotomodus heeft een knoppenbalk met sleutelhints en Terug');
 ok(fu.includes("inProvinceData(p.cam.x, p.cam.y) === false"), 'de vrije camera van de fotomodus blijft binnen de wereld');
