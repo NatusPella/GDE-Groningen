@@ -195,7 +195,7 @@ Aandachtspunten:
 - Alleen op een moment dat niemand speelt; de Electron-fase start dan niet en meldt dat, dus er gaat niets stuk.
 - Geen `--create` in de taak: kijk eerst een paar nachten naar de concepten en maak de issues pas aan als de dubbelen en de ruis kloppen.
 - Draai niet tegelijk met een releasebouw (AGENTS.md: geen nieuwe agents tijdens een releasebouw) en houd de schijf vrij: de beelden van de Electron-stappen staan in de runmappen onder `%TEMP%/gde-testall` en kunnen oude runs vervangen worden.
-- De spelbot heeft eigen dagelijkse tooling (`scripts/bot/daily.mjs`, zie [SPELBOT-RAPPORT.md](SPELBOT-RAPPORT.md)). `test_all.mjs` draait alleen de sweeps voor missies en minigames; wie `daily.mjs` al plant, kan de bot-stappen met `--only` overslaan of de twee op verschillende tijden zetten.
+- De spelbot heeft eigen dagelijkse tooling (`scripts/bot/daily.mjs`, rapport via `node scripts/bot/akte_rapport.mjs --out=<rapport>.md`). `test_all.mjs` draait alleen de sweeps voor missies en minigames; wie `daily.mjs` al plant, kan de bot-stappen met `--only` overslaan of de twee op verschillende tijden zetten.
 
 ## Beperkingen
 

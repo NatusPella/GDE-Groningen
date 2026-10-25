@@ -10,7 +10,7 @@
 
 Eén keten van wijziging naar downloadbare build, met de checks die daarbij horen
 en de grens tussen wat een agent mag en wat alleen de eigenaar doet. De repo is
-privé en er is niets gepubliceerd; elke stap naar buiten wacht op de eigenaar.
+privé; elke stap naar buiten wacht op de eigenaar.
 
 ## Releaseketen
 
@@ -33,16 +33,14 @@ cd desktop && npm run release -- minor|patch --world
 `minor` is een nieuwe functie, `patch` een bugfix, `current` houdt de versie.
 `--world` is verplicht voor de Actions-stap hierna: zonder `gde-world.tgz` stopt
 `scripts/release_builds.mjs:127`. `release.sh` zoekt `gh` (`:25`), bumpt de
-versie (`:51`), leest de changelogsectie via
-`node scripts/changelog_section.cjs "$VERSION"` (`:58`), commit `Release v$TAG`
-(`:70`), draait `npm run stage` en `npx electron-builder --win --x64` (`:81`,
-`:83`; een dmg bouwt alleen op macOS, `:77`), tagt en pusht (`:124`) en maakt de
-release met `--prerelease` voor `0.*` (`:129`), uploads met vier pogingen
-(`:177`), een comment op issue #116 (`:187`) en wist daarna `dist/` en `build/`
-(`:193`). De notities waarschuwen dat de bestanden niet ondertekend zijn en geven
-de installatiestappen (`:162`). Optioneel: `--linux` (AppImage en tar.gz),
-`--web` (webzip, blijft lokaal), `--steam` (kopie naar `steam/content/`) en
-`--world` (`tar czf dist/gde-world.tgz -C build/game world`, `:107`).
+versie (`:51`), leest de changelog via
+`node scripts/changelog_section.cjs "$VERSION"` (`:58`), draait `npm run stage`
+en `npx electron-builder --win --x64` (`:81`, `:83`; een dmg bouwt alleen op
+macOS, `:77`), tagt en pusht (`:124`) en maakt de release (`:129`), uploadt
+(`:177`), comment op #116 (`:187`) en wist `dist/` en `build/` (`:193`). De
+notities waarschuwen voor niet-ondertekende bestanden en geven de
+installatiestappen (`:162`). Optioneel: `--linux`, `--web` (webzip, blijft
+lokaal) en `--steam` (kopie naar `steam/content/`).
 
 ### 3. Actions: `node scripts/release_builds.mjs`
 
@@ -89,28 +87,26 @@ coördinator draait bij een release de volledige suite, `province_test`, de zwar
 audits en de verhaaltest (`--story-test=<dir>`); nooit twee Electron-instanties
 tegelijk.
 
-**Twee runners (#481).** `scripts/run_tests.mjs` (CI) draait `node --check` over
-alle JS, `voice_coverage`, `import_check` en alle `scripts/*_test.mjs` behalve
-`EXCLUDED` (`:26-29`), met `--quick`, `--only`, `--list` en `--timeout`; het
-kent geen fasen, `text_audit`, `undef_check`, dode-code-bewaking of rapport met
-trend. `test_all.mjs` doet dat wel, en dat is de runner die AGENTS.md noemt.
+**Twee runners (#481).** `scripts/run_tests.mjs` (CI) draait `node --check`,
+`voice_coverage`, `import_check` en alle `scripts/*_test.mjs` behalve `EXCLUDED`
+(`:26-29`), met `--quick`, `--only`, `--list` en `--timeout`; het kent geen
+fasen, `text_audit`, `undef_check`, dode-code-bewaking of rapport met trend.
+`test_all.mjs` doet dat wel, en dat is de runner die AGENTS.md noemt.
 
 **CI draait** `.github/workflows/test.yml` bij `pull_request` en met de hand
 (niet bij elke push), op Linux en Windows: `npm ci --ignore-scripts`,
 `npm run stage`, `node scripts/run_tests.mjs` en drie Python-tests in
-`scripts/world/` (`rdnew_test.py`, `extract_province_test.py`,
-`fetch_ahn_test.py`). De zware fasen en de verhaaltest draaien lokaal.
+`scripts/world/`. De zware fasen en de verhaaltest draaien lokaal.
 
 ## Publicatiestatus
 
 - **Repo:** privé; niets is openbaar gemaakt, geüpload of gepost
   (`docs/PUBLICATIECHECKLIST.md:3`). Vóór Public: `node scripts/publish_check.mjs
-  --history` zonder FAIL, plus `secrets_scan.mjs`, `text_audit.mjs`,
-  `merkenregister_check.mjs` en `audio_herkomst.mjs`.
+  --history` zonder FAIL, plus `secrets_scan`, `text_audit`,
+  `merkenregister_check` en `audio_herkomst`.
 - **Versie:** `0.53.0` in `desktop/package.json:4`, met `## [0.53.0] - 2026-10-25`
   als nieuwste changelogsectie; elke versie die met `0.` begint, wordt een
-  pre-release (`desktop/release.sh:129`). Metingen in de docs noemen oudere
-  versies (0.38.1, 0.47.0); dat zijn peildata.
+  pre-release (`desktop/release.sh:129`).
 - **Ondertekening:** niets is ondertekend. Windows `signExecutable: false`,
   macOS `identity: null` en `hardenedRuntime: false`
   (`desktop/package.json:62-64`, `:79`); de APK gebruikt de debug-keystore van
@@ -131,9 +127,9 @@ trend. `test_all.mjs` doet dat wel, en dat is de runner die AGENTS.md noemt.
 Het spel is **18+** (`docs/LEEFTIJD.md:3`). Verwachte labels: PEGI 18, USK 18 en
 ESRB Mature 17+. De IARC-antwoorden staan als concept in
 `docs/IARC-ANTWOORDEN.md`: geweld tegen weerloze personages, bloed en ledematen
-(standaard aan), gesimuleerd gokken met spelgeld, alcohol, licht grof
-taalgebruik, geen drugs, geen seks, geen aankopen. De eigenaar vult de lijst zelf
-in en verstuurt niets zonder akkoord (`docs/IARC-ANTWOORDEN.md:121-123`). De
+(standaard aan), gesimuleerd gokken met spelgeld, alcohol en licht grof
+taalgebruik; geen drugs, seks of aankopen. De eigenaar vult de lijst zelf in en
+verstuurt niets zonder akkoord (`docs/IARC-ANTWOORDEN.md:121-123`). De
 instelling "Bloed en ledematen" verlaagt de leeftijd niet.
 
 ### Licenties
@@ -205,21 +201,9 @@ Alleen deze, uit de docs:
    `docs/LICENTIES.md:489` zegt in de Steam-sectie "geen online", terwijl Samen
    spelen optioneel online is; `:50` noemt 20 muzieknummers en 8 loops, `:62` 34
    en 15; `docs/PRIVACY-EN-CREDITS.md:45` zegt dat effecten zelf gesynthetiseerd
-   zijn, terwijl er sinds 24 oktober acht CC0-opnames zijn
-   (`docs/LICENTIES.md:68`).
+   zijn, terwijl er acht CC0-opnames zijn (`docs/LICENTIES.md:68`).
 3. **#481** — twee testrunners naast elkaar, met verschillende dekking; zie
    "Checks".
 4. **#485** — de webversie (`web/build.mjs`) heeft geen eigen tests in
    `scripts/`; de build en de service worker worden alleen met de hand
    gecontroleerd.
-
-## Bestanden
-
-`desktop/package.json`, `desktop/release.sh`, `desktop/scripts/changelog_section.cjs`,
-`scripts/release_builds.mjs`, `scripts/release_builds_test.mjs`,
-`scripts/test_all.mjs`, `scripts/run_tests.mjs`, `scripts/publish_check.mjs`,
-`scripts/secrets_scan.mjs`, `scripts/text_audit.mjs`,
-`scripts/merkenregister_check.mjs`, `scripts/audio_herkomst.mjs`,
-`scripts/voice_coverage.mjs`, `.github/workflows/test.yml` en de vier
-`*-release.yml`-workflows, `android/android/app/build.gradle`, `LICENSE`,
-`LICENSE-CONTENT.md`, `NOTICE.md`.
