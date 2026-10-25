@@ -227,7 +227,43 @@ intents:
         depends_on:
           - wi-493-geld
 runs:
-  active: []
+  active:
+    - id: run-gde-light-sims-008
+      scope: single
+      work_items:
+        - id: wi-492-melee-combo
+          intent: gde-light-sims
+          mode: confirm
+          status: in_progress
+          current_phase: plan
+          checkpoint_state: none
+          current_checkpoint: plan
+      current_item: wi-492-melee-combo
+      started: 2026-10-25T15:36:21.351Z
+    - id: run-gde-light-sims-009
+      scope: single
+      work_items:
+        - id: wi-492-vracht-markt
+          intent: gde-light-sims
+          mode: confirm
+          status: in_progress
+          current_phase: plan
+          checkpoint_state: none
+          current_checkpoint: plan
+      current_item: wi-492-vracht-markt
+      started: 2026-10-25T15:36:21.475Z
+    - id: run-gde-light-sims-010
+      scope: single
+      work_items:
+        - id: wi-492-trein-passagiers
+          intent: gde-light-sims
+          mode: confirm
+          status: in_progress
+          current_phase: plan
+          checkpoint_state: none
+          current_checkpoint: plan
+      current_item: wi-492-trein-passagiers
+      started: 2026-10-25T15:36:21.597Z
   completed:
     - id: run-gde-groningen-001
       scope: single
@@ -357,3 +393,11 @@ runs:
           mode: confirm
       started: 2026-10-25T15:03:14.646Z
       completed: 2026-10-25T15:25:31.922Z
+    - id: run-gde-light-sims-007
+      scope: single
+      work_items:
+        - id: wi-492-boer-markt
+          intent: gde-light-sims
+          mode: confirm
+      started: 2026-10-25T15:34:24.083Z
+      completed: 2026-10-25T15:48:53.563Z
