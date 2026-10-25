@@ -197,6 +197,7 @@ export function gastOverwegen(dt, world) {
 export function gastTreinContact(world) {
   const p = world && world.player;
   if (!p || p.inVehicle || world.trainDriving || !Number.isFinite(p.x) || !Number.isFinite(p.y)) return 0;
+  if (world.coopTrein && world.coopTrein.aan) { world.coopTreinDuw = 0; return 0; } // je rijdt als passagier mee in deze trein (#492): de wagen is je plek
   const z = (p.gz || 0) + (p.z || 0);
   let n = 0;
   for (const t of trains) {
@@ -827,11 +828,12 @@ function resolveContacts(world) {
         if (push) hitPlayer(t, car, push, world);
       }
       const c = world.companion;
-      if (c && !c.inVehicle && !world.trainDriving && !c.water && c.state !== 'dead' && Math.abs((c.gz || 0) + (c.z || 0) - (car.z || 0)) < 3.5 && Math.abs(c.x - car.x) < reach && Math.abs(c.y - car.y) < reach && !opPerron(world, c.x, c.y, (c.gz || 0) + (c.z || 0))) {
+      if (c && !c.inVehicle && !c.coopTrein && !world.trainDriving && !c.water && c.state !== 'dead' && Math.abs((c.gz || 0) + (c.z || 0) - (car.z || 0)) < 3.5 && Math.abs(c.x - car.x) < reach && Math.abs(c.y - car.y) < reach && !opPerron(world, c.x, c.y, (c.gz || 0) + (c.z || 0))) {
         const push = pushOut(car, hl, c.x, c.y, c.radius || 0.35);
         if (push) hitCompanion(c, t, car, push, world);
       }
       if (world.coopFigures) for (const f of Object.values(world.coopFigures)) { // de derde en vierde speler (#434): een trein rijdt niet door ze heen, ze worden opzij gezet
+        if (f && f.coopTrein) continue; // hij rijdt als passagier mee in deze trein (#492)
         if (!f || f.inVeh || !Number.isFinite(f.x) || Math.abs(f.x - car.x) > reach || Math.abs(f.y - car.y) > reach || inRailBridgeZone(f.x, f.y) || opPerron(world, f.x, f.y, f.gz || 0)) continue;
         if (Math.abs((f.gz || 0) + (f.z || 0) - (car.z || 0)) > 3.5) continue; // een viaduct of een hoog perron: niet op het spoor
         const push = pushOut(car, hl, f.x, f.y, 0.35);

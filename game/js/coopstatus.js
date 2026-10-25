@@ -61,12 +61,21 @@ const MINIGAME = {
 // Voertuigen en loopbanen (cooproles.js, registerCoop('voertuig')): wat een meespeler als bestuurder of bijrijder nog niet kan
 const VOERTUIG = {
   auto: WERKT, bakkie: WERKT, bus: WERKT, vrachtwagen: WERKT, politie: WERKT, taxi: WERKT, motor: WERKT, scooter: WERKT, boot: WERKT, fiets: WERKT, step: WERKT, skutsje: WERKT,
-  trekker: NEE, trein: NEE, heli: NEE,
+  trekker: NEE, trein: DEELS, heli: NEE,
 };
 
 export const REGISTER = {
   stap: STAP, missie: MISSIE_SOORT, bijbaan: BIJBAAN, activiteit: ACTIVITEIT, minigame: MINIGAME, voertuig: VOERTUIG,
 };
+
+// Een toelichting bij een onderdeel waar de status strenger is dan het meerijden (#492): de lessen van de vliegschool
+// zijn voor wie het spel opende, maar in het lesvliegtuig of de leshelikopter mag een gast als passagier mee.
+// De sleutel is `soort/id`; zonder toelichting blijft het bij de gewone tekst.
+export const TOELICHTING = {
+  'activiteit/vliegschool': 'De lessen zijn voor wie het spel opende; meerijden mag, besturen niet.',
+  'voertuig/trein': 'Als passagier meerijden in de trein van de ander mag; zelf de trein besturen niet.',
+};
+export const toelichtingVan = (soort, id) => (typeof id === 'string' && TOELICHTING[soort + '/' + id]) || null;
 
 // De status van één onderdeel, of null als het onderdeel onbekend is (dan waarschuwt niets).
 // Uitzondering: een bijbaan die hier niet staat blijft bij wie het spel opende (docs/COOP-GAST.md), dus 'nee'; dat zijn er veel (paneel-, stad- en keuzebanen).
@@ -92,11 +101,14 @@ export function missieStatus(def) {
 }
 
 // De uitkomst voor de kaart en de start: { status, tekst, start } voor 'deels' en 'nee' bij twee of meer spelers; anders null.
-// status mag ook al bekend zijn (missieStatus).
+// status mag ook al bekend zijn (missieStatus); toelichting is de extra regel uit TOELICHTING (of null).
 export function samenWaarschuwing(world, soort, id, status = undefined) {
   const s = status === undefined ? samenStatus(soort, id) : status;
   if (!s || s === WERKT || !meerdereSpelers(world)) return null;
-  return { status: s, tekst: SAMEN_TEKST[s], start: START_TEKST[s], grijs: s === NEE, deels: s === DEELS };
+  const extra = toelichtingVan(soort, id);
+  const tekst = extra ? `${SAMEN_TEKST[s]} ${extra}` : SAMEN_TEKST[s];
+  const start = extra ? `${START_TEKST[s]} ${extra}` : START_TEKST[s];
+  return { status: s, tekst, start, grijs: s === NEE, deels: s === DEELS, toelichting: extra };
 }
 
 // De waarschuwing vóór de start: één melding per start, zonder de speler te blokkeren. Geeft de waarschuwing terug (of null).
