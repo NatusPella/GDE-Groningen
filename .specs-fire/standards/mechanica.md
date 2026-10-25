@@ -189,7 +189,7 @@ zijn de latere meting (#477).
   gewassen, `boerderij.js:18` heeft er vier; `docs/LOOPBAAN.md` mist de start van een vak (#431).
   (#473)
 - `docs/PERF-METING-2026-10-19.md` spreekt zichzelf tegen over de grootste kostenpost (#477).
-- De audiowieken staan op de hoofdthread: `audio` piekte op 1945 ms in de ringroute (#482).
+- De audiowieken op de hoofdthread zijn weerlegd (#473): de `audio`-sectie van de hitchprobe bevatte ook de tegelvolger en de verhaalsystemen, en de perfrun draait met `--stil` (geen AudioContext). Echte audio staat in de worker; het zoeken van de loop-punten van scènemuziek gaat nu in stappen van 32768 samples per frame.
 - Gast en boerderijgroei: de documentatie zegt dat een gast zijn gewassen niet ziet groeien, maar
   `main.js:723` roept `boerderijTijd` ook op het gastpad aan (#471).
 - Twee testrunners naast elkaar (#481): `scripts/run_tests.mjs` en `scripts/test_all.mjs`.

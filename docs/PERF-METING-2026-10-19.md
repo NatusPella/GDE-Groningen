@@ -111,6 +111,8 @@ Gemiddeld frame-interval (ms), fps daaruit, percentielen, aantal frames boven 50
 
 Simulatie op de voetroute (hoog), ms per frame: traffic 1,6, police+collide 0,9, audio 0,8, systems 0,6, peds 0,6, player 0,6, wildlife 0,4, populate 0,3, fx+gore 0,2. Samen ongeveer 6 ms: de simulatietik is niet het knelpunt.
 
+> **Weerlegd in vervolg 15:** de regel `audio` in deze tabellen is niet alleen audio. De sectie liep door tot na de tegelvolger en de verhaalsystemen, en de perfrun draait met `--stil` (geen AudioContext). De getallen zelf blijven staan; zie vervolg 15 voor de verklaring.
+
 CPU-profiel (hoog, 17 s, aandeel van de bezette hoofdthread): voet in de stad: render 49% (waarvan `postfx3d.js:206` = `renderer.render` 41%), native/GL-driver 17%, streaming/geometrie 9%, simulatie 9%, overig spelcode 8%, actoren 3D 4%, HUD 3%, GC 1%. Druk (stad, 17:30): render 33%, native 22%, **HUD/DOM 14%** (`drawMinimap` 5,2%, `fillPoly` 4,5%, `drawNeighbourhoodBorders` 1,0%, `mmHash` 0,7%), streaming 11%.
 
 Draw calls per eigenaar op de voetroute (694 per frame): building-batch 63, road (los, <100 punten) 55, terrein 43, building (los) 36, road-batch 32, farlod 29, water 21+17, plus de schaduwpassen (facade-batch 24, building-batch 20, building:detail 18+17). Op `spoor` komen daar 109 losse `building Extrude<100` bij: de gebouwbatcher haalt het tempo van de trein niet.
@@ -173,7 +175,7 @@ De winst is 0,6 tot 1,4 ms per frame op foot en druk, op spoor binnen de ruis. H
 7. **Nacht.** Hoog: 77 ms (13 fps) tegen 43 ms (23 fps) overdag op dezelfde route; `3d:render` 41 ms. Nachtlampen en verlichting kosten het meeste.
 8. **Minimap/HUD.** 5 tot 14% van de bezette hoofdthread; `fillPoly` en `drawMinimap`. Gedeeltelijk gerepareerd (zie boven). Verder: de kaart cachen in tegels of in een worker.
 9. **Pauzemenu en instellingen** renderen de scène door (`3d:render` 9 ms, 5 ms met het instellingenblad) terwijl het beeld stilstaat. Het menu rendert al op 30 of 20 fps (`MENU_FRAME_S`), dus dit is geen volle framerate meer; wat overblijft is die 9 ms per gerenderd frame (zie ook vervolg 9).
-10. **Audio-pieken.** `audio` piekt op 1945 ms (ring, 1 keer) en 88 ms (foot, 10 keer) op de hoofdthread.
+10. ~~**Audio-pieken.** `audio` piekt op 1945 ms (ring, 1 keer) en 88 ms (foot, 10 keer) op de hoofdthread.~~ **Weerlegd in vervolg 15:** dit is geen audio. De sectie bevatte ook de tegelvolger en de verhaalsystemen, en de perfrun draait met `--stil`; de piek valt samen met het langste streamingframe (knelpunt 2).
 
 Het spel haalt dit zelf niet op: `simload.js` staat op niveau 2 (het meest teruggeschakeld) in alle runs.
 
@@ -216,7 +218,7 @@ Wat is onderzocht en wat het opleverde. Alles met `routes.js` (nieuwe routes `ce
 
 ## Vervolg 2: minder draw calls (stad te voet)
 
-**Nieuwe basislijn op een rustige machine** (later in de nacht, 6 tot 8 Electron-processen minder): te voet in de stad op hoog is 21 ms per frame (47 fps), de ring 20 ms (49 fps), stilstaand 22 ms. Dat is CPU-gebonden: hoofdthread 19 tot 21 ms per frame, GPU-bovengrens 10 ms, en uitzetten van vsync (`--disable-frame-rate-limit --disable-gpu-vsync`) verandert de gemiddelde frametijd niet (20,9 tegen 21,0 ms). De eerdere 23 fps (concurrentie) was dus te pessimistisch; 60 fps vraagt ongeveer 4 ms minder CPU per frame. Van die 20 ms is `3d:render` 11 ms voor ongeveer 780 draw calls (14 µs per call) en de rest 9 ms (HUD 2, gebouwen streamen en batchen 3 tot 4, verkeer 1,6, politie en botsingen 0,9, audio 0,8, systemen, voetgangers en speler elk ongeveer 0,6).
+**Nieuwe basislijn op een rustige machine** (later in de nacht, 6 tot 8 Electron-processen minder): te voet in de stad op hoog is 21 ms per frame (47 fps), de ring 20 ms (49 fps), stilstaand 22 ms. Dat is CPU-gebonden: hoofdthread 19 tot 21 ms per frame, GPU-bovengrens 10 ms, en uitzetten van vsync (`--disable-frame-rate-limit --disable-gpu-vsync`) verandert de gemiddelde frametijd niet (20,9 tegen 21,0 ms). De eerdere 23 fps (concurrentie) was dus te pessimistisch; 60 fps vraagt ongeveer 4 ms minder CPU per frame. Van die 20 ms is `3d:render` 11 ms voor ongeveer 780 draw calls (14 µs per call) en de rest 9 ms (HUD 2, gebouwen streamen en batchen 3 tot 4, verkeer 1,6, politie en botsingen 0,9, audio 0,8 (geen echte audio, zie vervolg 15), systemen, voetgangers en speler elk ongeveer 0,6).
 
 **Draw calls per scene-deel** (hoog, 1 frame gemiddeld, `PERF_DIAG=1`, twee plekken):
 
@@ -702,3 +704,13 @@ De poort haalt in alle nieuwe runs nog steeds zijn time-out (20 s): de nog te bo
 
 - `GDE_BOOT_PROFILE=<ms>` (desktop): CPU-profiel vanaf dom-ready; `PERF_ONLY=wegenklaar` geeft nu ook `menuGate`, `menuHang`, `tileWindows` en een `bootLog` (elke 250 ms: wachtende gebouwen en wegen, de tegels van het viewpunt).
 - `scripts/perf/hook.js` schrijft die `bootLog` zelf, vanaf het laden van de pagina.
+
+## Vervolg 15: de audio-piek was geen audio (#473)
+
+**Uitkomst:** de 1945 ms (ring, 1×) en 88 ms (foot, 10×) in de sectie `audio` zijn geen audiowerk. `probe.mark('audio')` stond ná `world.map.follow` (de tegelvolger), `updateAudio`, `updateNarrative`, `updateBanter`, `updateStoryContact` en `updatePractice`, dus de sectie heette naar het laatste stuk en bevatte alles sinds de vorige markering (`systems`). In een perfrun staat audio bovendien helemaal uit: `scripts/perf/run.mjs:51` geeft `--stil` mee, `devflags.js:34` maakt daar `FLAGS.stil` van, en `audio.js` maakt dan geen AudioContext (`SILENT_MODE`): `updateAudio` keert direct terug. Er kán in die runs dus geen audiopiek van 1,9 s zitten. De 1945 ms valt samen met het langste frame van de ringrun (2033 ms in de tabel hoog); dat is tegelstreaming, dezelfde kostenpost als knelpunt 2. De voetroute heeft meer, kleinere pieken (88 ms, 10×), ook van de tegelvolger.
+
+**Gerepareerd:** `main.js` zet nu `probe.mark('mapfollow')` vóór `updateAudio` en `probe.mark('story')` ná de verhaalsystemen; `sections.py` telt `mapfollow` bij stream/geo en `story` bij sim/AI. `audio` is vanaf nu alleen `updateAudio`. Een nieuwe run is niet gedaan (geen Electron in deze sessie), dus de oude getallen blijven staan: met de nieuwe labels zou de 1945 ms als `mapfollow` verschijnen en `audio` in een perfrun ongeveer 0 zijn.
+
+**Echte audiokant, wel aangepakt:** het zoeken van de loop-punten van een scènemuziektrack (`scenariomusic.js loopPoints`) liep in één keer over de gedecodeerde buffer. Zo'n mp3 is minuten lang (4 MB, tientallen miljoenen samples in stereo), en die pass gebeurde op de hoofdthread op het moment dat de muziek wisselde. Dat gaat nu in stappen van 32768 sampleposities per frame (`createLoopScan`, gedreven uit `updateScenarioMusic`), met hetzelfde resultaat als de oude één-pass-versie; de track start hooguit één frame later. Dat is niet opnieuw in het spel gemeten (geen Electron); `scripts/audio_peaks_test.mjs` bewijst de begrenzing per stap en de gelijkheid met de oude uitkomst. De eerdere 18 ms-piek in `audio` op de pauzeroute kan hiervan komen (`menu_loop` wordt dan gedecodeerd), maar dat is niet los nagemeten.
+
+**Niet gemeten:** geen spelrun, geen echte audio-uitvoer, geen nieuwe 1945 ms-meting. De verklaring rust op de code (`--stil`, de markeringsvolgorde) en op de bestaande cijfers, niet op een nieuwe meting op deze machine.
