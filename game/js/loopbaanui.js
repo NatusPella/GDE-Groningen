@@ -11,6 +11,7 @@ import { fillBars } from './motion.js';
 import { boekVoortgang } from './visboeklive.js';
 import { baanDoelen } from './todoui.js';
 import { loopbaanStap, STEP_BY_ID } from './storyarc.js';
+import { controleStand, CONTROLE_MIN_NIVEAU } from './kaartjescontrole.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const nl = (n) => Math.round(n).toLocaleString('nl-NL');
@@ -130,6 +131,21 @@ function startHtml(profiel, id) {
     `<p class="lb-link"><button type="button" class="m-bp" data-vak-start="${esc(id)}">Loopbaan starten</button>${baan}</p></div>`;
 }
 
+// De kaartjescontrole als echte handeling (#437): het paneel laat de teller van de lopende ronde en de uitslag van
+// de laatste ronde zien, zodat niveau 3 bij Spoor niet alleen een getal en een titel is.
+function kaartjesHtml(id, niveau) {
+  if (id !== 'trein' || niveau < CONTROLE_MIN_NIVEAU) return '';
+  const s = controleStand();
+  const sessie = s.reizigers > 0 ? ` Deze sessie: ${s.rondes} ${s.rondes === 1 ? 'ronde' : 'rondes'}, ${s.reizigers} reizigers.` : '';
+  if (s.station && s.gedaan > 0) {
+    return `<p class="lb-kan"><b>Kaartjescontrole:</b> reiziger ${s.gedaan} van ${s.doel} op het perron van ${esc(s.station)}.${sessie}</p>`;
+  }
+  if (s.laatste) {
+    return `<p class="mut">Laatste ronde: ${s.laatste.reizigers} reizigers in ${esc(s.laatste.station)}, €${s.laatste.betaald}${s.laatste.bonus ? ' met conducteursbonus' : ''}.${sessie}</p>`;
+  }
+  return `<p class="mut">Kaartjescontrole: nog geen ronde gedaan; loop op een perron naar een reiziger en druk E.${sessie}</p>`;
+}
+
 function detailHtml(profiel, id) {
   const info = L.vakInfo(id);
   if (!info) return '<p class="mut">Kies een vak om te zien hoe het ervoor staat.</p>';
@@ -158,7 +174,7 @@ function detailHtml(profiel, id) {
     `<div class="lb-kop"><p class="lb-titel"><b>${esc(d.titel)}</b> <span class="mut">· niveau ${d.niveau} van ${L.MAX_NIVEAU}</span></p><p class="mut">${esc(info.wat)}</p></div>` +
     `<div class="lb-blok">${voort}<p class="mut">${doel}</p>` +
     `<p>${v.xp > 0 ? esc(telt.join(' · ')) : L.isGestart(profiel, id) ? 'Begonnen, nog geen klus gedaan.' : 'Nog niet begonnen.'}</p>` +
-    `<p class="${factor > 1 ? 'g' : 'mut'}">${factor > 1 ? `Dit vak betaalt nu ${L.percentage(factor)}% meer. ` : ''}${esc(L.loonTekst(id))}</p>${vaardigheid}</div>` +
+    `<p class="${factor > 1 ? 'g' : 'mut'}">${factor > 1 ? `Dit vak betaalt nu ${L.percentage(factor)}% meer. ` : ''}${esc(L.loonTekst(id))}</p>${vaardigheid}${kaartjesHtml(id, d.niveau)}</div>` +
     startHtml(profiel, id) + bezigheden + trap;
 }
 
