@@ -188,11 +188,11 @@ export function hipRoof(B, x0, x1, hw, he, hr, inset, color, zc = 0, o = 0.5) {
 export function windowAt(B, x, y, z, nx, nz, w, h, L) {
   const t = 0.12;
   if (nx) {
-    B.box(x + nx * 0.03, y, z, t, h + 0.16, w + 0.16, L.trim);
-    B.box(x + nx * 0.09, y, z, t, h, w, 0x2a3236);
+    B.box(x + nx * 0.06, y, z, t, h + 0.16, w + 0.16, L.trim);
+    B.box(x + nx * 0.14, y, z, t, h, w, 0x2a3236);
   } else {
-    B.box(x, y, z + nz * 0.03, w + 0.16, h + 0.16, t, L.trim);
-    B.box(x, y, z + nz * 0.09, w, h, t, 0x2a3236);
+    B.box(x, y, z + nz * 0.06, w + 0.16, h + 0.16, t, L.trim);
+    B.box(x, y, z + nz * 0.14, w, h, t, 0x2a3236);
   }
 }
 
