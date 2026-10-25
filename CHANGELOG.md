@@ -4,6 +4,21 @@ Alle noemenswaardige wijzigingen in GDE Groningen, per versie. Nieuwste bovenaan
 Versies volgen SemVer: `0.x.y` tot de echte release (1.0.0); `x` voor
 nieuwe functies, `y` voor alleen bugfixes.
 
+## [0.53.0] - 2026-10-25
+
+### Nieuw
+- **Garage: de auto's staan weer in 3D.** Het rechterpaneel gebruikt één gedeelde preview in plaats van een eigen canvas per keuze, met een stilstaand beeld als terugval, en **Kopen** zet een waypoint naar de winkel waar dat voertuig te koop is. Auto's staat vooraan.
+- **Prestaties: de hele kaart verkend.** Het spel telt de bezochte buurten (geen onbereikbare zee of mist meer) en de prestaties van buurt tot provincie tonen hun voortgang als ring; Prestaties heeft een vak Gebieden.
+- **Beeldinstellingen: vier klikbare standen** (Laag, Gemiddeld, Vlot, Hoog) met de geldende stand gemarkeerd; bij eigen instellingen staat dat eronder.
+- **Spelerslijst als tabblad onder Samen spelen**, met naam, kleur, passieve stand en kicken; de oude losse knop is weg.
+- **Samen spelen: de kalenderdag van de gastheer** gaat mee, zodat evenementen en hun aankondiging bij een gast kloppen.
+
+### Opgelost
+- De wandeling stopt nu ook met de controller en wanneer je een save laadt, in plaats van te blijven doorlopen.
+- Een wrak stopt met doorschieten na een botsing (ook een busaanhanger) en wrakken ruimen per speler op, zodat er naast een gast geen wrak blijft staan.
+- Een gast kan geen missie meer uit het telefoonmenu starten; hij wordt naar het startpunt verwezen, waar E werkt.
+- De keukenscène in de opening heeft geen kat meer als grap: de cut kijkt naar de radio, de ingesproken regel blijft.
+
 ## [0.52.0] - 2026-10-25
 
 ### Nieuw
