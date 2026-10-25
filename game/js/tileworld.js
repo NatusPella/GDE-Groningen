@@ -225,6 +225,12 @@ export class TileWorld extends GameMap {
     (this._tileRows || (this._tileRows = new Map())).set(tk, held);
     for (const s of tile.sections) {
       if (s.type === SECTION.RASTER && this.terrain) { this.terrain.add(tk, s.raster); continue; }
+      // de kruispunten van deze tegel (de JUNCTIONS-sectie): junctions.js leest ze bij het model (#469)
+      if (s.type === SECTION.JUNCTIONS) {
+        (this.junctionRows || (this.junctionRows = new Map())).set(tk, s.rows || []);
+        this.junctionVer = (this.junctionVer || 0) + 1;
+        continue;
+      }
       const kind = KIND_OF.get(s.type);
       if (!kind) continue;
       // the same lake mapped twice is drawn once (waterdupes.js, #231)
@@ -327,6 +333,8 @@ export class TileWorld extends GameMap {
     if (!this.resident.delete(tk)) return false;
     for (const fn of this._tileListeners || []) fn('drop', null, tk);
     if (this.terrain) this.terrain.drop(tk);
+    // de kruispunten van deze tegel gaan mee uit het model (#469)
+    if (this.junctionRows && this.junctionRows.delete(tk)) this.junctionVer = (this.junctionVer || 0) + 1;
     const goneRoads = [];
     const release = (kind, gid, e) => {
       if (!releaseFrom(e, tk)) return;
