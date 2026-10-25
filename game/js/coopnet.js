@@ -60,6 +60,7 @@ import { maakPvp, wisselPassief, zetPassiefStand, verwijderSpeler, passiefEvent,
 import { pvpGastRaak, pvpDoodVerwerk, pvpArenaGastBericht, pvpArenaGastMelding, pvpArenaGastTik, pvpArenaAntwoord, pvpArenaReset } from './cooppvpwereld.js';
 import { busCoopActie, busCoopValideerE } from './coopbus.js';
 import { zetBestuurHaken, bestuurGebruik, bestuurTick, bestuurLos, bestuurAllesLos, bestuurt, trekGast } from './coopbestuur.js';
+import { treinGebruik, treinUit, treinTick, treinStop } from './cooptrein.js'; // een gast als passagier in de trein van de gastheer (#492)
 import { nieuweDeelStaat, bezorgVraag, bezorgHost, bezorgWeg, bezorgAllesWeg } from './coopbezit.js'; // eigen voertuigen meenemen en delen (#449)
 import { lichaamVan, eersteGastPlek, startPlek, isKoploos } from './net/koploos.js'; // een gastheer zonder lokale speler (#450)
 import { heistRolGebruik, heistGastTik } from './heistrollen.js'; // de rolstap van de inbraak in Samen spelen (#438)
@@ -236,9 +237,10 @@ function endCoop(world) {
   if (world.companion) world.companion.coopWacht = false;
   world.coopOpdrachtDoor = null; world.coopMeespelers = null; // (#452)
   world.coopMeld = null; world.coopDeel = null; world.coopBijbaanStart = null; world.coopBijbaanBeloning = null; world.coopBijbaanEind = null; world.coopBijbaanHostMee = null; world.coopHelpers = null; world.coopUitslag = null; world.coopPingMarks = []; world.coopSpelers = []; world.coopGebruik = false; world.coopWielSlot = null; world.coopWielVraag = null; world.coopWiel = false; world.coopInVoertuig = false; world.coopBestuurder = false; // (#291, #434)
+  world.coopTreinMeld = null; world.coopTrein = null; // de treinpassagier-haak en -stand horen bij de sessie (#492)
   world.coopVraag = null; world.coopStem = null; world.coopStemBeantwoord = null; // gezamenlijke keuzes (#452)
   world.coopBezit = null; world.coopBezitVraag = null; // eigen voertuigen meenemen en delen (#449)
-  if (world.companion) { world.companion.coopUit = false; world.companion.coopBestuurt = false; }
+  if (world.companion) { world.companion.coopUit = false; world.companion.coopBestuurt = false; world.companion.coopTrein = false; }
 }
 // Per meespeler (wie ja zei of verplicht meedoet, en verbonden is): staat hij nog? (slotNeer)
 function meedoendeStatus(world, n, id = null) {
@@ -308,14 +310,14 @@ export function startHost(world, info, opts = {}) {
       if (fade) fade('in'); // de gast komt met een korte fade naast je staan
     },
     onLeave: (slot) => {
-      bestuurLos(world, slot); bezigWeg(world, slot); wapenWeg(world, slot); passiefWeg(world, slot); bijbaanWeg(world, slot);
+      bestuurLos(world, slot); treinUit(world, slot); bezigWeg(world, slot); wapenWeg(world, slot); passiefWeg(world, slot); bijbaanWeg(world, slot);
       bezorgWeg(world, slot, (s) => bestuurLos(world, s)); // zijn eigen voertuig gaat mee terug (#449)
       if (world.coopWanted) delete world.coopWanted[slot]; // een gast die weggaat neemt zijn sterren mee (#434) // het voertuig van een gast die weggaat staat stil en de stoel is vrij (#434)
       if (slot === 1 && world.coop && !koploos) { world.coop.remote = false; world.coop.remoteInput = null; }
       if (slot >= eersteGastPlek(koploos)) removeFigure(world, slot);
     },
     onLost: (slot) => {
-      bestuurLos(world, slot); bezigWeg(world, slot); bijbaanWeg(world, slot);
+      bestuurLos(world, slot); treinUit(world, slot); bezigWeg(world, slot); bijbaanWeg(world, slot);
       if (slot === 1 && world.coop && !koploos) { world.coop.remote = false; world.coop.remoteInput = null; }
       const f = slot >= eersteGastPlek(koploos) ? lichaamVan(world, slot, koploos) : null; if (f) f.input = null;
       // pauze per speler (#452): de rest speelt door; alleen als de lopende opdracht deze speler echt nodig heeft pauzeert het spel
@@ -350,6 +352,7 @@ export function startHost(world, info, opts = {}) {
   // Iedereen die bij deze groep hoort (ook wie even neer is), voor de opdrachtstand en de doelen per groep (#452).
   world.coopGroepDeelnemers = (id) => { const n = world.coopNet; if (!n || n.role !== 'host') return []; return [0, ...meespelers(n.meedoen, id || undefined)]; };
   world.coopMeld = (slot, tekst) => hub.announce({ k: 'melding', tekst: String(tekst).slice(0, 90) }, slot); // een korte melding voor een gast (#291)
+  world.coopTreinMeld = (slot, aan, rol) => hub.announce({ k: 'trein', aan: !!aan, rol: rol || null }, slot); // een gast rijdt als passagier mee in de trein van de gastheer (#492)
   world.coopPvp = maakPvp(); // iedereen begint op passief (#447)
   world.coopBezit = nieuweDeelStaat(); // eigen voertuigen die gasten meenemen en delen (#449)
   world.coopPvpSchade = (slot, schade, door) => hub.announce(pvpSchadeEvent(schade, door), slot); // schade van een medespeler aan een gast (#447)
@@ -525,7 +528,7 @@ export function meldVoertuig(world, n) {
   const hv = world.player && world.player.inVehicle || null, c = world.companion;
   if (hv === (n.hostVoertuig || null)) return false;
   n.hostVoertuig = hv;
-  if (!hv || !c || c.inVehicle || hv.passenger || !(world.coop && world.coop.remote) || !figuurPlekken(hv)) return false;
+  if (!hv || !c || c.inVehicle || hv.passenger || !(world.coop && world.coop.remote) || !(figuurPlekken(hv) || hv.isPlane || hv.isHeli)) return false;
   n.hub.announce({ k: 'melding', tekst: `${openerNaam(world.coopRoster, true)} zit in een voertuig. Druk bij het voertuig op E om mee te rijden.` }, 1);
   return true;
 }
@@ -994,6 +997,7 @@ export function tickCoopNet(world, dt) {
   werkFoci(world, dt); // spelers uit elkaar: de foci van dit moment, voor de band, de tegels en de bevolking (#429)
   stepFigures(world, dt);
   bestuurTick(world, dt); // gasten die een voertuig besturen (#434)
+  treinTick(world); // een gast die als passagier meerijdt hangt aan een wagen van de trein (#492)
   wapenTick(world, dt); // gasten met een wapen slaan en schieten (#434)
   stapMetgezelInPauze(world, dt);
   n.tKlok += dt; n.tHash += dt; n.tWeer += dt;
@@ -1247,6 +1251,11 @@ export function handleEvent(world, body, van = 0) {
       pvpArenaGastMelding(world, body.tekst); // de PvP-arena leest zijn eigen start, stand en uitslag uit de meldingen (#454)
       return true;
     }
+    case 'trein': { // je rijdt als passagier mee in de trein van de gastheer (#492): je eigen contact-check laat de wagen staan
+      if (!n || n.role !== 'client') return false;
+      world.coopTrein = body.aan === true || body.aan === 1 ? { aan: true, rol: typeof body.rol === 'string' ? body.rol : 'passagier' } : null;
+      return true;
+    }
     case 'cuttijd': { // de tijd van de gastheer in zijn scène: de gast loopt mee (coopcut.js cutGastTempo)
       if (!n || n.role !== 'client') return false;
       const k = leesCutTijd(body); if (!k) return false;
@@ -1331,6 +1340,7 @@ const gastNaam = (world, slot) => { const p = (world.coopRoster || []).find((x) 
 function gebruikGast(world, van) {
   if (heistRolGebruik(world, van, activeStage())) return true; // je eigen rolstap van de inbraak (#438)
   if (busCoopValideerE(world, van)) return true; // het hulpje in de bus valideert een kaartje (#444)
+  if (treinGebruik(world, van).gedaan) return true; // als passagier in- of uitstappen bij de trein van de gastheer (#492)
   if (bestuurGebruik(world, van).gedaan) return true; // een vrij voertuig bij de gast: hij stapt in als bestuurder, of uit (#434)
   if (van >= 2) return figGebruik(world, van); // de 3e en 4e speler stappen zelf in of uit (#372)
   world.coopGebruik = true;
@@ -1446,6 +1456,8 @@ export function stopCoopNet(world) {
   const n = world.coopNet; if (!n) return;
   if (n.stem) { const f = n.stem.nee; n.stem = null; if (f) { try { f(); } catch (e) { /* de vraag vervalt met de sessie */ } } } // een lopende stemming over een tijdsprong vervalt (#452)
   setGate(false); // zonder samen spelen is er geen wachtkamer meer
+  if (n.role === 'host') treinStop(world); // de gasten in de trein van de gastheer staan weer naast de wagen (#492)
+  else if (n.role === 'client') world.coopTrein = null; // je rijdt niet meer mee in de trein van de gastheer (#492)
   if (!isKoploos(n)) verrekenEinde(world); // de laatste verrekening: de eigen save van host en gast, met de beloningen en hun ids (#448); een gastheer zonder speler bewaart niets (#450)
   if (world.coopCutBezig != null) cutGastStop(world, null, true); // een scène van de gastheer stopt met het samen spelen
   if (n.role === 'host') bezorgAllesWeg(world, (s) => bestuurLos(world, s)); // de eigen voertuigen van de gasten gaan mee terug (#449)

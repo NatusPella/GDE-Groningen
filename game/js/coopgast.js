@@ -35,7 +35,7 @@ export const GAST_REGELS = [
   { actie: 'winkelen', mag: 'ja', regel: 'Winkels met spullen voor jezelf (kleding, kapper, tabak en loterij, avondwinkel, snackbar, woonwarenhuis) en automaten: op je eigen scherm, met je eigen geld; wat je koopt is van jou en gaat in je eigen opgeslagen spel.' },
   { actie: 'eten', mag: 'ja', regel: 'Eten en drinken bij een horecaplek en de muurkroket: met je eigen geld en je eigen gezondheid.' },
   { actie: 'voertuig-kopen', mag: 'nee', regel: 'Voertuigen, boten, helikopters, wapens, tuning en lak kopen kan alleen in je eigen spel: ze zouden in de wereld van de ander verschijnen.' },
-  { actie: 'bijrijden', mag: 'ja', regel: 'De eerste gast (Tessa) stapt zelf in met E als wie het spel opende in een voertuig zit en dicht bij is (ze gaat niet vanzelf mee); met E stap je uit (als het voertuig bijna stilstaat). Blijft ze te ver achter, dan rijdt ze na een paar seconden mee. De derde en vierde speler stappen ook met E in (auto: drie extra plekken, bus: zes) en zijn dan niet meer te zien; fietsen, scooters en helikopters hebben geen plek.' },
+  { actie: 'bijrijden', mag: 'ja', regel: 'De eerste gast (Tessa) stapt zelf in met E als wie het spel opende in een voertuig zit en dicht bij is (ze gaat niet vanzelf mee); met E stap je uit (als het voertuig bijna stilstaat). In een vliegtuig of helikopter rijd je als passagier mee, nooit als piloot; uitstappen kan daar alleen op de grond, bij bijna stilstand. Blijft ze te ver achter, dan rijdt ze na een paar seconden mee. De derde en vierde speler stappen ook met E in (auto: drie extra plekken, bus: zes) en zijn dan niet meer te zien; fietsen, scooters, vliegtuigen en helikopters hebben geen plek voor hen.' },
   { actie: 'sturen', mag: 'deels', regel: 'Met Y (controller: D-pad omhoog) geeft de bestuurder het stuur aan zijn bijrijder (en neemt het terug); de bijrijder kan met Y om het stuur vragen. De bestuurder blijft de bestuurder: schade en politie zijn van hem.' },
   { actie: 'eigen-voertuig', mag: 'deels', regel: 'Met E bij een vrij voertuig (geparkeerde auto, fiets, scooter, boot) stap je in als bestuurder en met E bij bijna stilstand weer uit; geen helikopter of vliegtuig. Schade, politie en diefstal zijn van jou.' },
   { actie: 'gesprekken', mag: 'nee', regel: 'Praten met voorbijgangers en personages kan alleen in je eigen spel; wat de ander zegt zie je als ondertitel.' },
@@ -57,9 +57,14 @@ export function gastKijkHoek(camYaw, dx, gevoeligheid = 1) {
   return Math.atan2(Math.sin(r), Math.cos(r));
 }
 
-// Een voertuig staat bijna stil: dan kan een bijrijder veilig uitstappen
+// Een voertuig staat bijna stil: dan kan een bijrijder veilig uitstappen. Een vliegtuig of helikopter alleen op de grond:
+// in de lucht blijft de gast aan boord, ook als het toestel even stilhangt (#492).
 export const UITSTAP_MAX_SNELHEID = 2;
-export const kanUitstappen = (v) => !!v && !v.isHeli && !v.isPlane && Math.abs(v.speed || 0) <= UITSTAP_MAX_SNELHEID;
+export const kanUitstappen = (v) => {
+  if (!v || Math.abs(v.speed || 0) > UITSTAP_MAX_SNELHEID) return false;
+  if (v.isHeli || v.isPlane) return v.onGround === true;
+  return true;
+};
 
 // Het stuur: hoe lang een verzoek van de bijrijder blijft staan voor de bestuurder (s)
 export const WIEL_VERZOEK_S = 12;

@@ -110,5 +110,22 @@ const ok = (c, m) => { n++; if (!c) { fails++; console.log('FAIL ' + m); } };
   ok(T.duwVanWagen({}, 0, 0) === null && T.duwVanWagen(wagen, NaN, 0) === null, 'zonder gegevens: geen duw');
 }
 
+// de crew van cooptrein.js (#492): de gastheer is de machinist, de gast een passagier; laat instappen blijft geweigerd
+{
+  const c = T.newCrew();
+  ok(T.board(c, 0).role === 'machinist', 'de gastheer is de eerste machinist');
+  const g = T.board(c, 1, 'passagier');
+  ok(g.ok && g.role === 'passagier' && T.roleOf(c, 1) === 'passagier', 'de gast is passagier');
+  ok(T.may(c, 0, 'hendel') && T.may(c, 0, 'dienst') && !T.may(c, 1, 'hendel') && !T.may(c, 1, 'dienst'), 'de gastheer houdt de hendel en de dienst');
+  ok(T.members(c).length === 2 && c.machinist === 0, 'twee aan boord, de gastheer is de machinist');
+  const uit = T.leave(c, 1);
+  ok(uit.takeover === null && T.roleOf(c, 1) === null && c.machinist === 0 && T.members(c).length === 1, 'een gast stapt uit: de gastheer blijft machinist');
+  c.service = true;
+  ok(T.board(c, 2).ok === false && T.roleOf(c, 2) === null, 'een late gast stapt niet in tijdens een dienst');
+  c.service = false;
+  ok(T.board(c, 2).role === 'passagier', 'zonder dienst is de late gast passagier');
+  ok(T.TREIN_HALF_WID === 1.45, 'de halve breedte van een wagen komt uit deze regels');
+}
+
 console.log(`${n - fails}/${n} treincoop ok`);
 process.exit(fails ? 1 : 0);

@@ -4,6 +4,7 @@
 // boarding, the controls, keeping the (hidden) player in the cab and the
 // camera/speedo proxy world.trainCam that scene3d.js and hud_panel.js read.
 import { getTrains, routePoint, railZ, isOffMap, hijackTrain, parkTrain } from './railway.js';
+import { treinStop } from './cooptrein.js'; // de gasten die als passagier meerijden (#492)
 import { isCinematicActive } from './cinematics.js';
 import { isShopOpen } from './shopui.js';
 import { isInWater } from './util.js';
@@ -169,6 +170,7 @@ function stopDriving(world, placeOutside, fromCar = null, prefSide = 1) {
   // bonus, zo hangt het kaartjes knippen aan het stoppen met de trein (#437)
   const stop = perronStop(t, currentStation(), world.time);
   if (stop) world.perronStop = stop;
+  treinStop(world, t); // een gast die als passagier meerijdt staat daarna weer naast zijn wagen (#492)
   world.trainDriving = null;
   world.trainCam = null;
   world.trainWalk = null;
@@ -234,7 +236,7 @@ function syncRider(world) {
   p.gz = car.z || 0;
   p.moving = false;
   const c = world.companion;
-  if (c && c.state !== 'dead' && !c.inVehicle) { c.x = p.x; c.y = p.y; c.vx = 0; c.vy = 0; }
+  if (c && c.state !== 'dead' && !c.inVehicle && !c.coopTrein) { c.x = p.x; c.y = p.y; c.vx = 0; c.vy = 0; }
   const cam = world.trainCam || (world.trainCam = { angle: 0, speed: 0, z: 0, model: { len: 9, wid: 3 } });
   cam.angle = a;
   cam.speed = (t.pv || 0) * t.cab;

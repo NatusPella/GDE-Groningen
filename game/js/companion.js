@@ -760,7 +760,7 @@ function coopGastGebruik(c, p, world) {
   const meld = (t) => { if (world.coopMeld) world.coopMeld(1, t); };
   if (c.inVehicle) {
     const v = c.inVehicle;
-    if (!kanUitstappen(v)) { meld('Stap uit als het voertuig bijna stilstaat.'); return; }
+    if (!kanUitstappen(v)) { meld(v.isPlane || v.isHeli ? 'Eerst landen op de grond.' : 'Stap uit als het voertuig bijna stilstaat.'); return; }
     v.passenger = null;
     c.inVehicle = null;
     [c.x, c.y] = findExitSpot(v, c.radius, world.map, EXIT_RIGHT_FIRST);
@@ -771,7 +771,7 @@ function coopGastGebruik(c, p, world) {
   }
   const v = p.inVehicle;
   if (!v) { if ((world.vehicles || []).some((q) => dist(c.x, c.y, q.x, q.y) < 6)) meld('Je kunt alleen meerijden als de ander in een voertuig zit.'); return; } // E bij een geparkeerd voertuig deed niets (#388)
-  const canRide = !v.sinking && !v.riderOff && !(v.isHeli && (!v.onGround || Math.abs((v.z || 0) - (c.gz || 0)) > 2.5));
+  const canRide = !v.sinking && !v.riderOff && !((v.isHeli || v.isPlane) && (!v.onGround || Math.abs((v.z || 0) - (c.gz || 0)) > 2.5));
   if (!canRide || v.passenger) { meld(v.passenger ? 'Er is geen plek meer in dit voertuig.' : 'Hier kun je nu niet instappen.'); return; }
   if (dist(c.x, c.y, v.x, v.y) >= (v.isBoat ? BOARD_DIST + 2.5 : BOARD_DIST) + 2) { meld('Loop naar het voertuig om in te stappen.'); return; }
   c.inVehicle = v;
@@ -792,6 +792,7 @@ function stepCompanion(dt, world) {
   }
   if (isKnockedDown(c, world)) { c.vx = 0; c.vy = 0; return; }
   if (c.coopBestuurt) { c.vx = 0; c.vy = 0; return; } // de gast bestuurt zelf een voertuig: coopbestuur.js rijdt het en zet zijn plek (#434)
+  if (c.coopTrein) { c.vx = 0; c.vy = 0; return; } // de gast zit als passagier in de trein van de gastheer: cooptrein.js zet zijn plek (#492)
   // samen spelen (#429): een gast die niet meedoet met de opdracht wordt niet geparkeerd; zijn speler loopt vrij (coopStep hieronder)
   if (world.companionHold && !(world.coopVrijLopen && world.coop && world.coop.remote) && holdCompanion(c, world.companionHold, dt, world)) return;
   // samen spelen (#291): de gast drukte op E: als bijrijder uitstappen (bijna stilstaand) of weer instappen
@@ -822,9 +823,9 @@ function stepCompanion(dt, world) {
     // every vehicle takes the two of them: a bike on the rack (or the
     // fatbike's long saddle), a step standing behind; a boat is stepped
     // into from the quay edge, so it gets a longer reach
-    // a helicopter only takes them on board while it stands on their level
-    const heliAway = v.isHeli && (!v.onGround || Math.abs((v.z || 0) - (c.gz || 0)) > 2.5);
-    if (heliAway) { c.vx = 0; c.vy = 0; return; }
+    // a helicopter or plane only takes them on board while it stands on their level
+    const airAway = (v.isHeli || v.isPlane) && (!v.onGround || Math.abs((v.z || 0) - (c.gz || 0)) > 2.5);
+    if (airAway) { c.vx = 0; c.vy = 0; return; }
     const canRide = !v.sinking && !v.riderOff;
     if (canRide && !v.passenger && dist(c.x, c.y, v.x, v.y) < (v.isBoat ? BOARD_DIST + 2.5 : BOARD_DIST)) {
       c.inVehicle = v;

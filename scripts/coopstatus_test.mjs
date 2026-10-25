@@ -67,7 +67,7 @@ t('elke minigame en elk voertuig uit cooproles.js heeft een status', () => {
   for (const id of REGISTRY.minigame.keys()) assert.ok(S.samenStatus('minigame', id), 'minigame zonder status: ' + id);
   for (const id of REGISTRY.voertuig.keys()) assert.ok(S.samenStatus('voertuig', id), 'voertuig zonder status: ' + id);
   assert.equal(S.samenStatus('minigame', 'padel'), 'werkt');
-  assert.equal(S.samenStatus('voertuig', 'trein'), 'nee');
+  assert.equal(S.samenStatus('voertuig', 'trein'), 'deels');
   assert.equal(S.samenStatus('voertuig', 'trekker'), 'nee');
 });
 
@@ -94,6 +94,21 @@ t('een missie krijgt de slechtste status van zijn stappen', () => {
   assert.equal(S.missieStatus({ type: 'boat' }), 'nee');
   assert.equal(S.missieStatus({ type: 'checkpoint' }), 'deels');
   assert.equal(S.missieStatus(null), null);
+});
+
+t('de vliegschool blijft nee, maar de tekst noemt het meerijden (#492)', () => {
+  assert.equal(S.samenStatus('activiteit', 'vliegschool'), 'nee', 'de lessen zijn host-only');
+  const w = S.samenWaarschuwing(samen(), 'activiteit', 'vliegschool');
+  assert.equal(w.status, 'nee'); assert.equal(w.grijs, true);
+  assert.equal(w.toelichting, S.TOELICHTING['activiteit/vliegschool']);
+  assert.match(w.toelichting, /meerijden/); assert.match(w.toelichting, /besturen niet/);
+  assert.match(w.tekst, /meerijden/, 'de kaarttekst noemt het meerijden echt');
+  assert.match(w.start, /meerijden/, 'de waarschuwing vóór de start noemt het meerijden echt');
+  assert.equal(S.toelichtingVan('activiteit', 'vliegschool'), w.toelichting);
+  assert.equal(S.toelichtingVan('activiteit', 'kermis'), null, 'de andere nee-onderdelen houden de gewone tekst');
+  assert.equal(S.toelichtingVan('activiteit', 'toString'), null);
+  assert.equal(S.toelichtingVan('activiteit', null), null);
+  assert.equal(S.samenWaarschuwing(samen(), 'activiteit', 'kermis').toelichting, null);
 });
 
 t('onbekende onderdelen: geen status en geen waarschuwing', () => {
