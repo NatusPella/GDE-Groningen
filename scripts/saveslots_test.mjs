@@ -133,6 +133,28 @@ ok(S.exportFileName('Mijn Grunn-save!', new Date('2026-08-01T10:00:00Z')) === 'g
   S.createSlot(ls, 'Leeg');
   ok(S.activeSlot(ls) === 2 && S.pickActive(ls) === 1 && S.activeSlot(ls) === 1, 'empty active slot falls back to the last saved');
 }
+// pickLatest: the save written last wins, even when another slot is active
+{
+  const ls = new Mem();
+  S.writeSlot(ls, 1, save(5));
+  S.writeSlot(ls, 2, save(9));
+  S.setActive(ls, 1);
+  ok(S.pickLatest(ls) === 2 && S.activeSlot(ls) === 2, 'pickLatest picks the newest save, not the active slot');
+  S.writeSlot(ls, 3, save(12));
+  S.setActive(ls, 3);
+  ok(S.pickLatest(ls) === 3, 'pickLatest keeps a newer active save');
+  const empty = new Mem();
+  ok(S.pickLatest(empty) === S.activeSlot(empty), 'pickLatest without a save keeps the active slot');
+  // the list itself cannot be written (full storage): keep the old active slot, so the boot
+  // falls back to the save screen instead of loading the wrong save
+  const blocked = new Mem();
+  S.writeSlot(blocked, 1, save(5));
+  S.writeSlot(blocked, 2, save(9));
+  S.setActive(blocked, 1);
+  const set = blocked.setItem.bind(blocked);
+  blocked.setItem = (k, v) => { if (k === KEYS.saveSlots) throw new Error('full'); set(k, v); };
+  ok(S.pickLatest(blocked) === 0 && S.activeSlot(blocked) === 1, 'pickLatest reports no reliable latest when the list cannot be written');
+}
 // all slots full
 {
   const ls = new Mem();

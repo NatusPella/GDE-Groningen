@@ -1,6 +1,6 @@
 // node scripts/gfx_profile_test.mjs: the GPU classification, the first-run
 // advice and the benchmark recommendation (game/js/gfxprofile.js).
-import { classifyGpu, adviseFromSample, recommendPreset, describePreset, describeChanges, noteFrame, resetDynamic, dynamicScale, cpuLevel, currentPreset, isDefaultGfx, mobileProfileFor, MOBILE_PROFILES, noteBatchWork, perfSnapshot, resetPerfCounter, perfCounterOn } from '../game/js/gfxprofile.js';
+import { classifyGpu, adviseFromSample, presetFromSample, recommendPreset, describePreset, describeChanges, noteFrame, resetDynamic, dynamicScale, cpuLevel, currentPreset, isDefaultGfx, mobileProfileFor, MOBILE_PROFILES, noteBatchWork, perfSnapshot, resetPerfCounter, perfCounterOn } from '../game/js/gfxprofile.js';
 import { VIEW_DISTANCES, viewDistanceFor, propRadius } from '../game/js/viewdist.js';
 
 let fail = 0;
@@ -43,6 +43,20 @@ eq('strong GPU, just short of 60 fps', adviseFromSample('hoog', 19, 'hoog'), 'vl
 eq('vlot stays on vlot', adviseFromSample('hoog', 19, 'vlot'), null);
 eq('describe vlot', describePreset('vlot'), 'schaduwen aan · resolutie 100%, automatisch · zichtafstand kort');
 eq('already laag', adviseFromSample('laag', 45, 'laag'), null);
+eq('sample: strong machine keeps hoog', presetFromSample('hoog', Array(12).fill(16), 'hoog'), null);
+eq('sample: weak gpu, slow frames -> laag', presetFromSample('laag', Array(12).fill(45), 'hoog'), 'laag');
+eq('sample: 60 fps boundary -> vlot', presetFromSample('hoog', Array(12).fill(19), 'hoog'), 'vlot');
+eq('sample: fewer than ten frames is no measurement', presetFromSample('hoog', [16, 16, 16], 'hoog'), null);
+eq('sample: no times', presetFromSample('hoog', null, 'hoog'), null);
+eq('sample: mixed frames, median 19 -> vlot', presetFromSample('hoog', [16, 16, 16, 40, 40, 19, 19, 19, 19, 19], 'hoog'), 'vlot');
+eq('sample: exactly ten frames', presetFromSample('hoog', Array(10).fill(16), 'hoog'), null);
+eq('sample: current null uses hoog', presetFromSample('hoog', Array(12).fill(19), null), 'vlot');
+eq('boundary 17.5 -> hoog', adviseFromSample('hoog', 17.5, 'hoog'), null);
+eq('boundary 17.6 -> vlot', adviseFromSample('hoog', 17.6, 'hoog'), 'vlot');
+eq('boundary 22 -> vlot', adviseFromSample('hoog', 22, 'hoog'), 'vlot');
+eq('boundary 22.1 -> middel', adviseFromSample('hoog', 22.1, 'hoog'), 'middel');
+eq('boundary 30 -> middel', adviseFromSample('hoog', 30, 'hoog'), 'middel');
+eq('boundary 30.1 -> laag', adviseFromSample('hoog', 30.1, 'hoog'), 'laag');
 
 eq('rec: hoog smooth', recommendPreset({ hoog: 60, middel: 61, laag: 62 }, 'hoog'), null);
 eq('rec: laag only smooth', recommendPreset({ hoog: 23, middel: 35, laag: 56 }, 'hoog'), 'laag');

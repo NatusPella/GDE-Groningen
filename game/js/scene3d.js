@@ -2948,6 +2948,16 @@ export function update3D(dt, world) {
       companionMesh.visible = !hidePlayers;
       placeSeated(companionMesh, vehicleMeshes.get(cv.id), cv, vehicleSeat(cv, false), world.time);
       if (companionMesh.userData.shadow) companionMesh.userData.shadow.visible = false;
+    } else if (!cAnim && world.coopRole === 'client' && comp.coopDown) {
+      // the host (or another player) is down for a guest: fall on his back and stay there, like a knocked-over
+      // pedestrian (coopextra3d.js); the normal branch below puts him upright again on getting up (#369)
+      const wt = world.time || 0, fall = Math.min(1, (wt - (comp.coopVal ?? wt)) / 0.3);
+      companionMesh.visible = !hidePlayers;
+      companionMesh.position.set(comp.x, (comp.gz || 0) + 0.14 * fall, comp.y);
+      companionMesh.rotation.set(0, -comp.angle, fall * fall * Math.PI / 2);
+      companionMesh.userData.crouch = false;
+      if (companionMesh.userData.shadow) companionMesh.userData.shadow.visible = !hidePlayers;
+      animatePersonWalk(companionMesh, 0, animDt);
     } else {
       companionMesh.visible = !hidePlayers && !comp.coopVoertuig && !comp.coopBestuurt; // samen spelen: de gastheer in een voertuig is bij een gast een blok (#372)
       if (!driveRagdoll(comp, companionMesh, world, animDt)) {

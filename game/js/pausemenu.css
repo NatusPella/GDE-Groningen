@@ -81,6 +81,14 @@ body:has(#pause-menu.prestart.visible) #start-screen .ss-foot { visibility: hidd
 #pause-menu .pm-panel[hidden] { display: none; }
 #pause-menu .pm-col { position: absolute; inset: 0; display: flex; flex-direction: column; min-height: 0; }
 #pause-menu .pm-col > .pm-inner { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+
+/* Over: version, the changelog and the credits */
+#pause-menu .pm-over { width: min(760px, 100%); padding: 0 8px 28px; color: var(--ink); line-height: 1.55; }
+#pause-menu .pm-over h3 { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 28px; letter-spacing: 0.04em; margin: 18px 0 6px; }
+#pause-menu .pm-over h4 { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 20px; letter-spacing: 0.04em; margin: 14px 0 4px; color: var(--g); }
+#pause-menu .pm-over p, #pause-menu .pm-over li { font-size: 14px; color: rgba(240, 237, 228, 0.76); }
+#pause-menu .pm-over ul { margin: 4px 0 10px 18px; }
+#pause-menu .pm-over .pm-over-news { margin-top: 16px; border-top: 1px solid rgba(240, 237, 228, 0.12); padding-top: 4px; }
 #pause-menu .pm-ov { padding: 40px 64px 40px; overflow-y: auto; scrollbar-width: none; gap: 0; }
 #pause-menu .m-main, #pause-menu .pm-settab:not([hidden]) { flex: 1; min-height: 0; display: flex; padding: 32px 64px 48px; }
 #pause-menu .pm-settab[hidden], #pause-menu [data-sub][hidden] { display: none; }

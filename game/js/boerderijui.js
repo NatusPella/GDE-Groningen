@@ -3,7 +3,8 @@
 // of koopt, en wat de boerderij tot nu toe opbracht. De gegevens komen uit boerderijlive.js (en boerderij.js); dit bestand is alleen DOM.
 // Het werk zelf doe je op het land: de bijbaan "Eigen boerderij" bij Hoogkerk. Niet door een mens in beeld bekeken.
 import * as B from './boerderij.js';
-import { getBoerderij, kiesGewas, koopMachine, getBedrijf, koopPerceel, huurPerceel, zegOpPerceel, verkoopPerceel, betaalSchuldPerceel, zetThuis, zetActief, schuurNaarErf, erfNaarSchuur, koopMachineCat, huurMachineCat, verkoopMachineCat, onderhoudMachine, loonwerk, loonwerkAfleveren, leenGeld, losAf } from './boerderijlive.js';
+import { getBoerderij, kiesGewas, koopMachine, getBedrijf, koopPerceel, huurPerceel, zegOpPerceel, verkoopPerceel, betaalSchuldPerceel, zetThuis, zetActief, schuurNaarErf, erfNaarSchuur, koopMachineCat, huurMachineCat, verkoopMachineCat, onderhoudMachine, loonwerk, loonwerkAfleveren, leenGeld, losAf, contracten, neemContract } from './boerderijlive.js';
+import * as CT from './boerderijcontracten.js';
 import * as PC from './percelen.js';
 import * as M from './machines.js';
 import * as WT from './werktuigen.js';
@@ -13,6 +14,7 @@ import { wgsToWorld } from './rdnew.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const euro = (n) => `€${Math.round(n).toLocaleString('nl-NL')}`;
+const cent = (n) => `€${n.toFixed(2).replace('.', ',')}`;   // een prijs per kilo: twee decimalen met een komma
 const nl = (n) => Math.round(n).toLocaleString('nl-NL');
 
 const ICOON = {
@@ -60,6 +62,8 @@ const bars = new Map();
 const FASE_TEKST = {
   braak: 'Braak land: tijd om te ploegen.', geploegd: 'Geploegd: tijd om te zaaien.', groeit: 'Het gewas groeit.', rijp: 'Rijp: tijd om te oogsten.',
 };
+// De markt (gewasmarkt.js): de prijs van vandaag en of hij stijgt, daalt of gelijk blijft ten opzichte van gisteren.
+const TREND_TEKST = { op: 'prijs stijgt', neer: 'prijs daalt', gelijk: 'prijs gelijk' };
 
 function perceel(b, geld) {
   const f = B.fase(b), s = B.samenvatting(b);
@@ -77,7 +81,7 @@ function perceel(b, geld) {
     `<p class="mut">${waar}</p></div>` +
     (gast ? `<p class="mut">Je speelt mee in het spel van een ander. De klussen op het land (de trekker) doe je in je eigen spel; je gewas groeit ondertussen gewoon door, en je kunt gewassen kiezen en machines kopen.</p><p><button type="button" class="m-bt" data-bd-weg="1">Zet de akker op je kaart</button></p>`
       : `<p class="mut">Werk zelf op het land met je eigen trekker en werktuigen (koop of huur ze onder Machines), of start de bijbaan Eigen boerderij bij Hoogkerk (zie de kaart) voor loonwerk met een gehuurde machine. Het gewas groeit in speltijd, ook als je iets anders doet.</p>`) +
-    veldenBlok(b) + loonwerkBlok(b, geld);
+    veldenBlok(b) + loonwerkBlok(b, geld, gast);
 }
 
 // Alle percelen van jou met hun stand, en wat de loonwerker nu voor je kan doen op het actieve perceel (tegen betaling, met jouw materiaal).
@@ -92,7 +96,7 @@ function veldenBlok(b) {
   return `<div><p class="lb-titel"><b>Je percelen</b></p>${rijen}</div>`;
 }
 
-function loonwerkBlok(b, geld) {
+function loonwerkBlok(b, geld, gast) {
   const ha = PC.actiefPerceel(b.bedrijf).ha;
   const taken = B.opties(b, { vrij: true }).filter((o) => M.loonwerkBestaat(o.taak));
   const knoppen = taken.map((o) => {
@@ -100,19 +104,45 @@ function loonwerkBlok(b, geld) {
     const loon = M.loonwerkKosten(o.taak, ha);
     return `<button type="button" class="m-bt" data-mc="loon" data-taak="${o.taak}"${geld >= loon + k.totaal ? '' : ' disabled'}>${esc(B.TAKEN[o.taak].naam)} ${euro(loon + k.totaal)}</button>`;
   });
-  if (b.schuur.kg > 0) knoppen.push(`<button type="button" class="m-bt" data-mc="loon-lever">Oogst laten afleveren (${Math.round(M.LOONWERK_AFLEVEREN * 100)}% voor de loonwerker)</button>`);
-  return `<div><p class="lb-titel"><b>Loonwerker</b></p><p class="mut">${esc(M.LOONWERKER.naam)} doet een klus op ${esc(PC.actiefPerceel(b.bedrijf).naam)} voor je, met zijn eigen trekker. Hij werkt netjes (${Math.round(M.LOONWERKER.kwaliteit * 100)}%); het zaaigoed en de mest betaal jij.</p>` +
+  if (b.schuur.kg > 0 && !gast) knoppen.push(`<button type="button" class="m-bt" data-mc="loon-lever">Oogst laten afleveren (${Math.round(M.LOONWERK_AFLEVEREN * 100)}% voor de loonwerker)</button>`);
+  const gastLever = gast && b.schuur.kg > 0 ? '<p class="mut">Je oogst lever je in je eigen spel af; hier kan dat niet.</p>' : '';
+  return `<div><p class="lb-titel"><b>Loonwerker</b></p><p class="mut">${esc(M.LOONWERKER.naam)} doet een klus op ${esc(PC.actiefPerceel(b.bedrijf).naam)} voor je, met zijn eigen trekker. Hij werkt netjes (${Math.round(M.LOONWERKER.kwaliteit * 100)}%); het zaaigoed en de mest betaal jij.</p>${gastLever}` +
     (knoppen.length ? `<div class="bd-acties">${knoppen.join(' ')}</div>` : '<p class="mut">Nu valt er niets uit te besteden.</p>') + `<p class="bd-melding" aria-live="polite">${esc(melding)}</p></div>`;
 }
 
 function gewas(b) {
+  const s = B.samenvatting(b);
   const rijen = B.GEWAS_IDS.map((id) => {
     const g = B.GEWASSEN[id];
-    return `<div class="bd-rij"><span class="bd-naam"><b>${esc(g.naam)}</b><span class="mut"> · zaaigoed ${euro(g.zaaigoed)} · rijp na ${g.groeiUren} speluren · ${nl(g.kgBasis)} kg per perceel · ${esc(g.afnemer)} · ${g.soort === 'weiland' ? 'alleen op weiland' : 'op akkers'}</span></span>` +
+    const m = s.prijzen[id] || { prijs: g.prijsKg, trend: 'gelijk' };
+    return `<div class="bd-rij"><span class="bd-naam"><b>${esc(g.naam)}</b><span class="mut"> · ${cent(m.prijs)} per kg vandaag, ${esc(TREND_TEKST[m.trend] || TREND_TEKST.gelijk)} · zaaigoed ${euro(g.zaaigoed)} · rijp na ${g.groeiUren} speluren · ${nl(g.kgBasis)} kg per perceel · ${esc(g.afnemer)} · ${g.soort === 'weiland' ? 'alleen op weiland' : 'op akkers'}</span></span>` +
       `<button type="button" class="m-bt bd-keus${b.keuze === id ? ' aan' : ''}" data-bd-gewas="${id}" aria-pressed="${b.keuze === id}">${b.keuze === id ? 'Gekozen' : 'Kies'}</button></div>`;
   }).join('');
   return `<div class="pm-pane-top"><span class="m-eb">Boerderij De Zonnehoek</span><h2 class="m-h2 td-h2">${icoon('gewas', 'pa-ico big')}Gewas</h2></div>` +
-    `<p class="mut">Het gewas dat je bij het volgende zaaien in de grond doet. Wat er al groeit blijft zoals het is. Op een weiland teel je gras, op een akker de akkerbouwgewassen.</p>${rijen}`;
+    `<p class="mut">Het gewas dat je bij het volgende zaaien in de grond doet. Wat er al groeit blijft zoals het is. Op een weiland teel je gras, op een akker de akkerbouwgewassen. De prijs per kilo kan per speldag veranderen, hooguit twintig procent boven of onder de basisprijs; je verkoopt tegen de prijs van de dag dat je aflevert.</p>${rijen}` +
+    contractenBlok();
+}
+
+// De leveringscontracten (#492): het aanbod van deze speldag met Aannemen, en de voortgang van je eigen contracten in kg.
+// De kilo's tellen mee bij de gewone verkoop of aflevering; de bonus komt bovenop de dagprijs en verloopt kost niets.
+function contractenBlok() {
+  const k = contracten();
+  const aanbod = k.aanbod.map((a) => {
+    const loopt = k.actief.some((c) => c.id === a.id);
+    const oud = k.historie.find((c) => c.id === a.id);
+    const status = loopt ? 'Loopt' : oud ? (oud.resultaat === 'klaar' ? 'Voldaan' : 'Verlopen') : '';
+    return `<div class="bd-rij"><span class="bd-naam"><b>${esc(B.GEWASSEN[a.gewas] ? B.GEWASSEN[a.gewas].naam : a.gewas)}</b><span class="mut"> · ${nl(a.kg)} kg · binnen ${a.deadlineUren} speluren · bonus ${euro(a.bonus)} (${cent(a.bonusPerKg)} per kg)</span></span>` +
+      (status ? `<span class="mut">${status}</span>` : knop('contract', 'Aannemen', { id: a.id }, k.actief.length >= CT.MAX_ACTIEF)) + '</div>';
+  }).join('') || '<p class="mut">De afnemers vragen vandaag niets.</p>';
+  const actief = k.actief.map((c) => {
+    const over = CT.resterend(c, k.uren);
+    return `<div class="bd-rij"><span class="bd-naam"><b>${esc(B.GEWASSEN[c.gewas].naam)}</b><span class="mut"> · ${nl(c.geleverd)} van ${nl(c.kg)} kg · nog ${over} speluren · bonus ${euro(c.bonus)}</span></span></div>`;
+  }).join('') || '<p class="mut">Je hebt nog geen contract aangenomen.</p>';
+  return `<div><p class="lb-titel"><b>Contracten</b> <span class="mut">· speldag ${k.dag + 1}</span></p>` +
+    '<p class="mut">De afnemers vragen deze speldag om een vracht van een gewas. De kilo\'s tellen mee als je dat gewas aflevert; een vol contract betaalt de bonus bovenop de dagprijs. De tijd loopt in speluren, en een contract dat verloopt kost je niets.</p>' +
+    `<p class="lb-titel"><b>Aanbod van vandaag</b></p>${aanbod}` +
+    `<p class="lb-titel"><b>Lopend</b></p>${actief}` +
+    `<p class="bd-melding" aria-live="polite">${esc(melding)}</p></div>`;
 }
 
 
@@ -280,12 +310,16 @@ function percelenActie(d, world) {
   }
 }
 
-// Een knop bij Machines, het loonwerk of de Bank: doe het en geef de melding terug (alles via boerderijlive.js: geld en opslag).
+// Een knop bij Machines, het loonwerk, de Bank of de contracten: doe het en geef de melding terug (alles via boerderijlive.js: geld en opslag).
 function machineActie(d, world) {
   const naam = (type) => (PC.MACHINE_CATALOGUS[type] || { naam: 'Machine' }).naam;
   const bd = getBedrijf();
   const m = d.uid ? M.vind(bd, d.uid) : null;
   switch (d.mc) {
+    case 'contract': {
+      const r = neemContract(d.id);
+      return r.ok ? `Contract aangenomen: ${nl(r.contract.kg)} kg ${B.GEWASSEN[r.contract.gewas].naam.toLowerCase()} binnen ${CT.resterend(r.contract, getBoerderij().uren)} speluren.` : r.reden;
+    }
     case 'koop-cat': { const r = koopMachineCat(world, d.type, bd.thuis); return r.ok ? `${naam(d.type)} gekocht voor ${euro(r.prijs)}. Hij staat op je erf met een volle tank.` : r.reden; }
     case 'huur-cat': { const r = huurMachineCat(world, d.type, bd.thuis); return r.ok ? `${naam(d.type)} gehuurd: ${euro(r.prijs)} voor de eerste dag. Daarna elke speldag; te laat betalen en hij gaat terug.` : r.reden; }
     case 'verkoop': { const nm = m ? naam(m.type) : ''; const r = verkoopMachineCat(world, d.uid); return r.ok ? `${nm} verkocht voor ${euro(r.bedrag)}.` : r.reden; }

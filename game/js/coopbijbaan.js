@@ -6,7 +6,8 @@
 //     wie later komt of na die tijd J zegt, kijkt mee tot de volgende baan. Wie de baan startte doet altijd mee.
 //  3. Iedereen ziet het doel, de voortgang en de marker van de baan (de host stuurt ze ongeveer twee keer per seconde mee).
 //  4. Een meespeler helpt zinnig, volgens de tabel: passagier in het voertuig (taxi), tweede bezorger die zelf ophaalt en afgeeft
-//     (bezorger), helper die kranten gooit (krantenwijk). De host blijft de bestuurder van het voertuig van de baan.
+//     (bezorger), helper die kranten gooit (krantenwijk), bijrijder die meerijdt en laadt en lost (vracht). De host blijft de
+//     bestuurder van het voertuig van de baan; een bijrijder zit naast hem en bestuurt niet (coopbestuur.js).
 //  5. Elke meespelende speler krijgt bij elke afgeronde ronde de VOLLEDIGE beloning in zijn eigen portemonnee en loopbaan, zonder
 //     samenwerkingsbonus en zonder te delen. De gebeurtenis heeft een vaste id (coopbeloning.js), dus een bericht dat twee keer
 //     aankomt betaalt één keer. Wie wegvalt houdt wat hij al kreeg en krijgt daarna niets meer; er gaat niets verloren.
@@ -31,6 +32,7 @@ export const BIJBAAN_REGELS = {
   taxi: { rol: 'passagier', hulp: 'Stap met E in de taxi en rijd mee. Elke rit levert jou ook het volle loon op.', positie: false, actie: false },
   bezorger: { rol: 'tweede bezorger', hulp: 'Loop zelf naar de zaak en naar de klant: wie het eerst bij de deur staat, haalt op en geeft af.', positie: true, actie: false },
   krantenwijk: { rol: 'helper', hulp: 'Loop mee en gooi kranten met E naar de brievenbussen. De stapel is gedeeld.', positie: true, actie: true },
+  vracht: { rol: 'bijrijder', hulp: 'Rijd mee in de leen-truck en help met E bij laden en lossen. De chauffeur rijdt.', positie: false, actie: true },
 };
 export const bijbaanMetCoop = (id) => Object.prototype.hasOwnProperty.call(BIJBAAN_REGELS, id);
 
@@ -131,7 +133,7 @@ export const eindEvent = (kind) => ({ k: 'bijbaan', f: 'eind', kind: kind === 'f
 export function doelEvent(pub) {
   if (!pub || !pub.active) return null;
   const m = pub.marker && fin(pub.marker.x) && fin(pub.marker.y) ? [Math.round(pub.marker.x * 10) / 10, Math.round(pub.marker.y * 10) / 10] : null;
-  return { k: 'bijbaan', f: 'doel', id: tekst(pub.id, 20), label: tekst(pub.label, 60), m, p: tekst(pub.progress, 80), g: pub.goal ? [tekst(pub.goal.label, 80), tekst(pub.goal.desc || '', 100)] : null, t: fin(pub.timeLeft) ? Math.round(pub.timeLeft) : null, c: tekst(pub.color, 9) };
+  return { k: 'bijbaan', f: 'doel', id: tekst(pub.id, 20), label: tekst(pub.label, 60), m, p: tekst(pub.progress, 80), g: pub.goal ? [tekst(pub.goal.label, 80), tekst(pub.goal.desc || '', 100)] : null, t: fin(pub.timeLeft) ? Math.round(pub.timeLeft) : null, c: tekst(pub.color, 9), h: pub.help ? 1 : 0 };
 }
 
 // De kortste afstand van een punt tot wie de baan speelt: de host en, bij een baan met een tweede bezorger of helper, de meespelende gasten
@@ -155,7 +157,7 @@ export function leesBijbaan(b) {
   if (b.f === 'doel') {
     const m = Array.isArray(b.m) && b.m.length === 2 && fin(b.m[0]) && fin(b.m[1]) ? { x: b.m[0], y: b.m[1] } : null;
     const g = Array.isArray(b.g) && typeof b.g[0] === 'string' ? { label: tekst(b.g[0], 80), desc: tekst(b.g[1], 100) } : null;
-    return { f: 'doel', id: tekst(b.id, 20), label: tekst(b.label, 60), marker: m, progress: tekst(b.p, 80), goal: g, timeLeft: fin(b.t) ? Math.max(0, b.t) : null, color: /^#[0-9a-f]{3,8}$/i.test(b.c) ? b.c : '#ff9a3c' };
+    return { f: 'doel', id: tekst(b.id, 20), label: tekst(b.label, 60), marker: m, progress: tekst(b.p, 80), goal: g, timeLeft: fin(b.t) ? Math.max(0, b.t) : null, color: /^#[0-9a-f]{3,8}$/i.test(b.c) ? b.c : '#ff9a3c', help: b.h === 1 };
   }
   return null;
 }
@@ -295,7 +297,7 @@ export function bijbaanHandleGast(world, body, van) {
     if (!r || !r.ok) { meldGast(world, van, (r && r.reden) || BIJBAAN_TEKST.nietGedeeld); return false; }
     return true;
   }
-  if (b.a === 'actie') { // een hulpactie (een krant gooien) vanaf de plek van de gast zelf
+  if (b.a === 'actie') { // een hulpactie (een krant gooien, bij de vracht laden of lossen) vanaf de plek van de gast zelf
     const regel = BIJBAAN_REGELS[st.id];
     if (!actief(st) || !regel || !regel.actie || !acties || !acties.helperActie) return false;
     if (!deelnemers(st, verbondenSet(world)).includes(van)) return false;
@@ -324,7 +326,7 @@ export function bijbaanHandleHost(world, body) {
     case 'laat': G.uitn = null; G.deelt = false; G.laat = b.label; if (world.addMessage) world.addMessage(BIJBAAN_TEKST.laat(b.label), 5); return true;
     case 'doel': {
       const sj = world.sideJob || (world.sideJob = {});
-      Object.assign(sj, { active: true, id: b.id, label: b.label, color: b.color, marker: b.marker, dots: [], progress: b.progress, timeLeft: b.timeLeft, goal: b.goal, bus: null });
+      Object.assign(sj, { active: true, id: b.id, label: b.label, color: b.color, marker: b.marker, dots: [], progress: b.progress, timeLeft: b.timeLeft, goal: b.goal, bus: null, help: !!b.help });
       G.id = b.id; if (!G.label) G.label = b.label;
       return true;
     }
@@ -339,7 +341,7 @@ export function bijbaanHandleHost(world, body) {
 }
 function wisDoel(world) {
   const sj = world.sideJob;
-  if (sj && sj.active) Object.assign(sj, { active: false, id: null, label: '', marker: null, dots: [], progress: '', timeLeft: null, goal: null, bus: null });
+  if (sj && sj.active) Object.assign(sj, { active: false, id: null, label: '', marker: null, dots: [], progress: '', timeLeft: null, goal: null, bus: null, help: false });
 }
 // Het scherm van de gast ruimt op (de verbinding is weg of de host stopte).
 export function bijbaanGastReset(world) {
@@ -357,18 +359,26 @@ export function bijbaanGastStuur(world, a) {
   return n.session.sendEvent({ k: 'bijbaangast', a });
 }
 // E bij een gast: een baan starten (bij een startpunt) of een hulpactie doen (tijdens een baan met actie). Geeft true als E hiervoor was.
+// Een actie-rol zonder positie (vracht) helpt vanuit het voertuig van de host: zit de gast daar nog niet in, dan is E om in te stappen
+// (coopgastlokaal.js gastGebruik) en niet voor de baan, zodat een bijrijder altijd eerst kan instappen. Een helper te voet (krantenwijk,
+// positie true) doet zijn actie gewoon vanaf zijn eigen plek.
+const actieVanuitVoertuig = (regel) => !!regel && regel.actie && !regel.positie;
 export function bijbaanGastE(world) {
   const n = world.coopNet, G = world.coopBijbaanGast;
   if (!n || n.role !== 'client' || !n.joined || !n.session || world.paused) return false;
   const regel = G && G.id ? BIJBAAN_REGELS[G.id] : null;
-  if (G && G.deelt && regel && regel.actie) {
+  const acties = world.sideJobActions;
+  // Een actie-rol vanuit het voertuig (vracht) claimt E alleen als de host-publicatie zegt dat er
+  // nu iets te helpen is; anders blijft E gewoon uitstappen, ook tijdens het koppelen en de rit (#492).
+  const hulpNu = !!(world.sideJob && world.sideJob.help);
+  if (G && G.deelt && regel && regel.actie && (!actieVanuitVoertuig(regel) || (world.coopInVoertuig && hulpNu))) {
     const nu = Number.isFinite(world.time) ? world.time : Date.now() / 1000;
     if (nu - G.actieT < ACTIE_WACHT_S) return true;
     G.actieT = nu;
     n.session.sendEvent({ k: 'bijbaangast', a: 'actie' });
     return true;
   }
-  const p = hoofdspeler(world), acties = world.sideJobActions;
+  const p = hoofdspeler(world);
   if (!p || world.coopInVoertuig || !acties || !acties.spotBij) return false;
   const spot = acties.spotBij(p.x, p.y);
   if (!spot) return false;

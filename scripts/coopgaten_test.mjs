@@ -85,14 +85,28 @@ t('#365: alleen de gastheer mag betalen; onzin in een beloning wordt genegeerd',
 });
 
 // ------------------------------------------------------------------ #369
-t('#369: de momentopname zegt wie neer is (gastheer, Tessa), een extra speler is niet neer', () => {
+t('#369: de momentopname zegt wie neer is (gastheer, Tessa), met echte gezondheid en een eigen down-vlag', () => {
   const s = avond(3); s.step(2);
   const sim = N.hostSim(s.hw, () => s.hw.coopNet.hub.roster);
-  const alive = () => Object.fromEntries(sim.snapshot().players.map((p) => [p.slot, p.alive]));
+  const rij = () => Object.fromEntries(sim.snapshot().players.map((p) => [p.slot, p]));
+  const alive = () => Object.fromEntries(Object.entries(rij()).map(([k, p]) => [k, p.alive]));
+  const down = () => Object.fromEntries(Object.entries(rij()).map(([k, p]) => [k, p.down]));
   assert.deepEqual(alive(), { 0: true, 1: true, 2: true, 3: true });
+  assert.deepEqual(down(), { 0: false, 1: false, 2: false, 3: false }, 'niemand ligt neer');
+  assert.equal(rij()[0].health, 100, 'zonder waarde is de gezondheid van de gastheer 100');
+  s.hw.health = 40; s.hw.companion.health = 55; s.step(1);
+  assert.equal(rij()[0].health, 40, 'de gastheer stuurt zijn echte gezondheid mee');
+  assert.equal(rij()[1].health, 55, 'en die van Tessa');
+  assert.equal(rij()[2].health, 100, 'een extra speler zonder gezondheid valt terug op 100');
   s.hw.pendingRespawn = { busted: false }; assert.equal(alive()[0], false, 'de gastheer is neergeslagen');
-  s.hw.pendingRespawn = null; s.hw.companion.state = 'dead';
-  assert.equal(alive()[1], false, 'Tessa is geraakt'); assert.equal(alive()[0], true); assert.equal(alive()[2], true);
+  s.hw.pendingRespawn = null; s.hw.player.ragdoll = { dead: false };
+  assert.deepEqual([alive()[0], down()[0]], [true, true], 'een ragdoll is neer, maar niet dood');
+  s.hw.player.ragdoll = null; assert.equal(down()[0], false, 'weer rechtop');
+  s.hw.companion.ragdoll = { dead: false };
+  assert.deepEqual([alive()[1], down()[1]], [true, true], 'Tessa ligt achterover');
+  s.hw.companion.ragdoll = null; s.hw.companion.state = 'dead';
+  assert.deepEqual([alive()[1], down()[1]], [false, false], 'dood of gepakt telt als alive:false, niet als down');
+  assert.equal(alive()[0], true); assert.equal(alive()[2], true);
 });
 
 t('#369: één melding per overgang, voor iedereen; Tessa hoort alleen haar eigen; niets zolang de toestand gelijk blijft', () => {
@@ -105,13 +119,42 @@ t('#369: één melding per overgang, voor iedereen; Tessa hoort alleen haar eige
   s.hw.pendingRespawn = null; s.step(1);
   s.hw.companion.state = 'dead'; s.step(3);
   assert.equal(aantal(s.gs[0].gw, /Je bent geraakt\. Je staat zo weer op\./), 1);
-  for (const i of [1, 2]) assert.equal(aantal(s.gs[i].gw, /Je bent geraakt/), 0, 'de anderen krijgen Tessa\'s melding niet');
+  for (const i of [1, 2]) {
+    assert.equal(aantal(s.gs[i].gw, /Je bent geraakt/), 0, 'de anderen krijgen Tessa\'s eigen regel niet');
+    assert.equal(aantal(s.gs[i].gw, /Tessa is neergeslagen\./), 1, 'plek 2 en 3 horen dat Tessa neer is');
+  }
+  assert.equal(aantal(s.hw, /Tessa is neergeslagen\./), 1, 'de gastheer lokaal, ook maar één keer');
   assert.equal(s.hw.coopPartners.find((p) => p.naam === 'Tessa').status, 'neer', 'het label van de gastheer');
   for (const i of [1, 2]) assert.equal(s.gs[i].gw.coopPartners.find((p) => p.naam === 'Tessa').status, 'neer', 'en dat van de andere gasten');
   s.hw.companion.state = 'alive'; s.step(2);
   assert.equal(aantal(s.gs[0].gw, /Je staat weer\./), 1);
+  assert.equal(aantal(s.gs[1].gw, /Tessa staat weer\./), 1);
   assert.equal(s.hw.coopPartners.find((p) => p.naam === 'Tessa').status, 'voet', 'het label toont weer de juiste status');
-  assert.equal(aantal(s.hw, /neergeslagen|gepakt|geraakt/), 0, 'de gastheer krijgt geen melding over zichzelf van het net');
+  assert.equal(aantal(s.hw, /Tammo is (neergeslagen|door de politie gepakt)/), 0, 'de gastheer krijgt geen netbericht over zichzelf');
+});
+
+t('#369: een ragdoll telt ook als neer; één regel per overgang, niet elke tik, en een late gast ziet de toestand', () => {
+  const s = avond(3); s.step(2);
+  s.hw.health = 65; s.hw.player.ragdoll = { dead: false }; s.step(2);
+  for (const g of s.gs) assert.equal(aantal(g.gw, /Tammo is neergeslagen/), 1, 'de gasten horen het één keer, ook zonder arrestatie');
+  for (const g of s.gs) assert.deepEqual([g.gw.companion.coopDown, g.gw.companion.health], [true, 65], 'de gast neemt down en de echte gezondheid over op het lichaam (#369)');
+  assert.equal(aantal(s.hw, /Tammo is neergeslagen/), 0);
+  s.hw.player.ragdoll = null; s.step(1);
+  for (const g of s.gs) assert.equal(g.gw.companion.coopDown, false, 'opstaan: de figuur staat weer recht');
+  s.hw.player.ragdoll = { dead: false }; s.step(1);
+  for (const g of s.gs) assert.equal(aantal(g.gw, /Tammo is neergeslagen/), 2, 'opnieuw neer: weer precies één regel');
+  s.hw.player.ragdoll = null; s.step(1);
+  // Tessa's ragdoll: plek 1 hoort haar eigen regel, de rest de hare, de gastheer lokaal
+  s.hw.companion.ragdoll = { dead: false }; s.step(2);
+  assert.equal(aantal(s.gs[0].gw, /Je bent geraakt\. Je staat zo weer op\./), 1);
+  for (const i of [1, 2]) assert.equal(aantal(s.gs[i].gw, /Tessa is neergeslagen\./), 1);
+  assert.equal(aantal(s.hw, /Tessa is neergeslagen\./), 1);
+  assert.equal(aantal(s.hw, /Tammo is neergeslagen/), 0, 'en de gastheer hoort niets over zichzelf');
+  // een late gast ziet de toestand in de eerstvolgende snapshot, ook zonder de melding van de overgang
+  const laat = s.sluit(2, 'lotte'); s.step(3);
+  const p1 = laat.gw.coopPartners.find((p) => p.slot === 1);
+  assert.equal(p1 && p1.status, 'neer', 'de late gast ziet de neergeslagen Tessa');
+  assert.equal(aantal(laat.gw, /Tessa is neergeslagen\./), 0, 'zonder de melding van de overgang');
 });
 
 // ------------------------------------------------------------------ #371
@@ -123,6 +166,12 @@ t('#371: gelukt met het deel van de gast; zonder loon geen deel in de tekst; mis
   assert.match(s.gs[0].gw.messages.join(' '), /De Proef gelukt! Tammo en jij hebben het samen gedaan\.$/m, 'zonder loon geen deel');
   s.hw.coopUitslag(false, 'De Kluis', 'Te laat', 900); s.step(1);
   for (const g of s.gs) { const m = g.gw.messages.find((x) => /De Kluis/.test(x)); assert.match(m, /^De Kluis mislukt: Te laat\. Tammo probeert het misschien opnieuw\.$/); assert.doesNotMatch(m, /deel/, 'bij mislukt geen deel'); }
+  // een gast die N zei hoort een mislukking ook als mislukking, niet als "zonder jou gedaan" (#371)
+  s.gs[0].gw.coopMeedoenNee = true;
+  s.hw.coopUitslag(false, 'Het Proefbeleg', 'neergeslagen', 0); s.step(1);
+  const nee = s.gs[0].gw.messages.filter((m) => /Het Proefbeleg/.test(m)).pop();
+  assert.match(nee, /^Het Proefbeleg mislukt: neergeslagen\. Tammo deed het zonder jou\.$/);
+  assert.doesNotMatch(nee, /zonder jou gedaan/);
   s.hw.coopUitslag(false, 'X'.repeat(300), 'y'.repeat(300)); s.step(1);
   assert.ok(s.gs[0].gw.messages.every((m) => m.length <= 160), 'korte meldingen');
   assert.equal(s.gs[0].gw.coopUitslag, undefined, 'een gast heeft de haak niet');

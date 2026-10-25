@@ -25,7 +25,7 @@ export function partnerInfo(role, sample, verbinding = 'ok') {
   let status = 'voet';
   if (verbinding === 'lost') status = 'weg';
   else if (verbinding === 'lag') status = 'haperen';
-  else if (sample && sample.alive === false) status = 'neer';
+  else if (sample && (sample.down || sample.alive === false)) status = 'neer'; // neergeslagen (een ragdoll) of dood/gepakt: alive alleen zegt niet alles (#369)
   else if (sample && sample.inVeh) status = sample.driver ? 'rijdt' : 'voertuig';
   return {
     naam: p.naam, kleur: p.kleur, vorm: p.vorm, status, tekst: STATUS_TEXT[status],

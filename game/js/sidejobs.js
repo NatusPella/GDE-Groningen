@@ -645,7 +645,7 @@ function publish() {
   const c = ctx;
   pub.active = !!c;
   if (!c) {
-    pub.id = null; pub.label = ''; pub.marker = null; pub.dots = []; pub.progress = ''; pub.timeLeft = null; pub.goal = null; pub.bus = null;
+    pub.id = null; pub.label = ''; pub.marker = null; pub.dots = []; pub.progress = ''; pub.timeLeft = null; pub.goal = null; pub.bus = null; pub.help = false;
     return;
   }
   let v = {};
@@ -659,6 +659,7 @@ function publish() {
   pub.timeLeft = c.timeLeft;
   pub.goal = v.goal || null;
   pub.bus = v.bus || null;
+  pub.help = !!v.help;
   if (c.betweenRounds) {
     pub.marker = null;
     pub.dots = [];

@@ -65,10 +65,20 @@ export function syncFigures(world, dt) {
     const map = world.map;
     if (map && map.elev && map.elev.has && map.groundHeightAt) { try { f.gz = map.groundHeightAt(f.x, f.y, f.gz || 0); } catch (er) { /* hoogte onbekend: vlak */ } }
     e.mesh.visible = !f.coopVoertuig && !filmpje; // wie meerijdt zit in het voertuig (#372); in een filmpje staan alleen de spelers van de scène in beeld (#376)
-    e.mesh.position.set(f.x, (f.gz || 0) + (f.z || 0), f.y);
-    e.mesh.rotation.y = -(f.angle || 0);
-    e.mesh.userData.crouch = !!f.crouching; // bukken (#434)
-    animatePersonWalk(e.mesh, walkSpeed(e.prev, f, dt), dt);
+    e.label.visible = !f.coopDown; // een liggende figuur draait zijn naamlabel anders plat mee (#369)
+    if (f.coopDown) { // neergeslagen (achterover, niet dood): vallen en blijven liggen, zoals een omgevallen voetganger (#369)
+      if (f.coopVal == null) f.coopVal = world.time || 0;
+      const val = Math.min(1, ((world.time || 0) - f.coopVal) / 0.3);
+      e.mesh.position.set(f.x, (f.gz || 0) + 0.14 * val, f.y);
+      e.mesh.rotation.set(0, -(f.angle || 0), val * val * Math.PI / 2);
+      e.mesh.userData.crouch = false;
+      animatePersonWalk(e.mesh, 0, dt);
+    } else {
+      e.mesh.position.set(f.x, (f.gz || 0) + (f.z || 0), f.y);
+      e.mesh.rotation.set(0, -(f.angle || 0), 0); // ook weer rechtop na een val (#369)
+      e.mesh.userData.crouch = !!f.crouching; // bukken (#434)
+      animatePersonWalk(e.mesh, walkSpeed(e.prev, f, dt), dt);
+    }
     if (f.coopWapen !== undefined || f.coopFx) { // het wapen in zijn hand en zijn slag of schot (een gast met een wapen, coopwapen.js, #434)
       try { setHeldWeapon(e.mesh, f.coopWapen || null); if (f.coopWapen || f.coopFx) applyAttackPose(e.mesh, f.coopFx, world.time, null); } catch (er) { /* zonder wapen */ }
     }

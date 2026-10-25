@@ -44,7 +44,7 @@ deze lijst voordat een andere sessie begint te schrijven:
 
 | # | Gereserveerd voor | Door |
 |---|---|---|
-| 0016 | GDE Light Sims (#492) | intent `gde-light-sims` |
+| — | (vrij; 0016 is gebruikt door `gde-light-sims`, 0017 door de taalregel) | — |
 
 ## Lijst
 
@@ -65,4 +65,5 @@ deze lijst voordat een andere sessie begint te schrijven:
 | [0013](0013-een-testrunner-met-fasen.md) | Eén testrunner met drie fasen | besloten |
 | [0014](0014-release-lokaal-builds-in-actions.md) | Release lokaal, builds in Actions, agents nooit | besloten |
 | [0015](0015-een-safehouse-systeem.md) | Eén safehouse-systeem, ook voor de verhaalplekken | besloten |
+| [0016](0016-een-ingang-geen-hoofdmenu.md) | Eén ingang, geen hoofdmenu; laden is een wereldgebeurtenis | besloten |
 | [0017](0017-code-in-het-engels.md) | Code in het Engels, spelteksten en proza in het Nederlands | besloten |

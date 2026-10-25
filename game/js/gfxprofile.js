@@ -163,16 +163,24 @@ export function adviseFromSample(gpuTier, medianMs, current) {
   return PRESET_ORDER.indexOf(pick) < PRESET_ORDER.indexOf(current || 'hoog') ? pick : null;
 }
 
+// Pure: the frame times of the first-run sample (ms) -> the preset to apply, or null.
+// Fewer than ten frames is not a measurement; the caller keeps the current settings.
+export function presetFromSample(gpuTier, times, current) {
+  if (!Array.isArray(times) || times.length < 10) return null;
+  const sorted = [...times].sort((a, b) => a - b);
+  return adviseFromSample(gpuTier, sorted[sorted.length >> 1], current || 'hoog');
+}
+
 // --- first-run advice ----------------------------------------------------
 
 const ADVICE_KEY = KEYS.gfxAdvice;
 let sampling = false;
 export const isAdvisorSampling = () => sampling;
 
-function readAdvice() {
+export function readAdvice() {
   try { return localStorage.getItem(ADVICE_KEY); } catch (e) { return 'x'; }
 }
-function writeAdvice(v) {
+export function writeAdvice(v) {
   try { localStorage.setItem(ADVICE_KEY, v); } catch (e) { /* ignore */ }
 }
 

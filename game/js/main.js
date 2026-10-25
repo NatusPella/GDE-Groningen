@@ -138,7 +138,8 @@ import { updateKnockFx3D } from './knockfx3d.js';
 import { updateGunFx3D } from './gunfx3d.js';
 import { initCityProps, updateCityProps } from './cityprops.js';
 import { initPhone, updatePhone, isPhoneOpen } from './phone.js';
-import { initSaveGame, updateSaveGame, hasSave, readSave } from './savegame.js';
+import { initSaveGame, updateSaveGame, hasSave, readSave, ensureLatestSlot } from './savegame.js';
+import { START_MONEY } from './economy.js';
 import { initWeather, updateWeather } from './weather.js';
 import { initWorldEvents, updateWorldEvents } from './worldevents.js';
 import { initMuggings, updateMuggings } from './muggings.js';
@@ -543,8 +544,9 @@ async function boot() {
   if (DEV) import('./profileoverlay.js').then((m) => m.initProfileOverlay(world)).catch((e) => console.error('profileoverlay', e));
   if (STORY_TEST) import('./storytest.js').then((m) => m.runStoryTest(world)).catch((e) => console.error('storytest', e));
   markLoad('systems');
-  // the first tiles round the save build while the boot screen is still up
-  try { const sv = hasSave() ? readSave() : null; if (sv && sv.pos) prewarmStreamAt(sv.pos.x, sv.pos.y, 40); } catch (e) { /* ignore */ }
+  // the first tiles round the save build while the boot screen is still up; boot loads the
+  // save that was written last, so warm that slot and not whichever slot happened to be active
+  try { const slot = ensureLatestSlot(); const sv = slot && hasSave() ? readSave() : null; if (sv && sv.pos) prewarmStreamAt(sv.pos.x, sv.pos.y, 40); } catch (e) { /* ignore */ }
   await terrainReady();
   markLoad('terrain');
   await finishLoading();
@@ -725,7 +727,7 @@ async function boot() {
     if (Number.isFinite(world.money)) world._goodMoney = world.money;
     else {
       console.warn('geld was geen getal meer, hersteld', world.money);
-      world.money = Number.isFinite(world._goodMoney) ? world._goodMoney : 250;
+      world.money = Number.isFinite(world._goodMoney) ? world._goodMoney : START_MONEY;
     }
     syncLedger(getLedger(), world.money, world.clock);
 

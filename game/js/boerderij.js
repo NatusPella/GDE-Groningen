@@ -1,7 +1,8 @@
 // Eigen boerderij (#415): percelen met gewassen die groeien in speltijd, werk in vaste stappen (ploegen, cultiveren, zaaien, bemesten, spuiten,
 // oogsten, afleveren), machines die je huurt of koopt, en een kasboek met een boekjaar en een lening. Pure regels, geen DOM, geen THREE, geen
 // opslag en geen klok (scripts/boerderij_test.mjs); boerderijlive.js houdt de tijd bij en bewaart, sidejob_boerderij.js is het werk op het land
-// als loonwerk, en machines.js, werktuigen.js en boerderijwereld.js zijn het werk met je eigen trekker en werktuigen.
+// als loonwerk, en machines.js, werktuigen.js en boerderijwereld.js zijn het werk met je eigen trekker en werktuigen. De dagprijs per
+// gewas staat in gewasmarkt.js (#492) en de leveringscontracten in boerderijcontracten.js (#492).
 //
 // De kern is bewust klein: vier gewassen (aardappelen, suikerbieten, graan en op weiland gras), drie bijbaanmachines (ploeg, zaai- en strooimachine,
 // rooier). Cultiveren en spuiten zijn vrije klussen (`vrij`): alleen met je eigen trekker en werktuig, niet in de bijbaan. Het zomerseizoen is
@@ -9,17 +10,20 @@
 // De boerderij is van de speler en leeft in zijn eigen opslag (gde-boerderij-v1), nooit in een savegame. Alle namen zijn verzonnen.
 
 import { nieuwBedrijf, normaliseerBedrijf, actiefPerceel, bodemFactor, START_PERCEEL, PERCEEL_IDS } from './percelen.js';
+import { PRIJS_KG, dagprijs, dagVan, markt } from './gewasmarkt.js';
+import * as CT from './boerderijcontracten.js';
 
 export const VERSIE = 1;
 export const MAX_UREN = 1e7;
 
 // groeiUren: speluren tussen zaaien en rijp (een speldag is 24 minuten: 30 uur is ruim een halve speldag). kgBasis: opbrengst van het
-// perceel (vier rijen van honderd meter) bij nette arbeid; prijsKg in euro. zaaigoed kost per keer zaaien. soort: akker of weiland.
+// perceel (vier rijen van honderd meter) bij nette arbeid; prijsKg in euro (de basisprijs van de markt, gewasmarkt.js). zaaigoed kost
+// per keer zaaien. soort: akker of weiland.
 export const GEWASSEN = {
-  aardappelen: { naam: 'Aardappelen', zaaigoed: 40, groeiUren: 30, kgBasis: 1800, prijsKg: 0.22, afnemer: 'Coöperatie Noorderveld', jong: 0x5fa043, rijp: 0x8fb04a, vorm: 'struik', soort: 'akker' },
-  bieten: { naam: 'Suikerbieten', zaaigoed: 30, groeiUren: 48, kgBasis: 4000, prijsKg: 0.10, afnemer: 'Suikerhal Hoogkerk', jong: 0x4a9a3c, rijp: 0x3d8a34, vorm: 'kegel', soort: 'akker' },
-  graan: { naam: 'Graan', zaaigoed: 35, groeiUren: 40, kgBasis: 2600, prijsKg: 0.15, afnemer: 'Graanzolder Noorderveld', jong: 0x8fb04a, rijp: 0xd9b84a, vorm: 'halm', soort: 'akker' },
-  gras: { naam: 'Gras', zaaigoed: 20, groeiUren: 20, kgBasis: 5000, prijsKg: 0.07, afnemer: 'Hooimarkt Reitdiep', jong: 0x5fb04a, rijp: 0x7fc24f, vorm: 'halm', soort: 'weiland' },
+  aardappelen: { naam: 'Aardappelen', zaaigoed: 40, groeiUren: 30, kgBasis: 1800, prijsKg: PRIJS_KG.aardappelen, afnemer: 'Coöperatie Noorderveld', jong: 0x5fa043, rijp: 0x8fb04a, vorm: 'struik', soort: 'akker' },
+  bieten: { naam: 'Suikerbieten', zaaigoed: 30, groeiUren: 48, kgBasis: 4000, prijsKg: PRIJS_KG.bieten, afnemer: 'Suikerhal Hoogkerk', jong: 0x4a9a3c, rijp: 0x3d8a34, vorm: 'kegel', soort: 'akker' },
+  graan: { naam: 'Graan', zaaigoed: 35, groeiUren: 40, kgBasis: 2600, prijsKg: PRIJS_KG.graan, afnemer: 'Graanzolder Noorderveld', jong: 0x8fb04a, rijp: 0xd9b84a, vorm: 'halm', soort: 'akker' },
+  gras: { naam: 'Gras', zaaigoed: 20, groeiUren: 20, kgBasis: 5000, prijsKg: PRIJS_KG.gras, afnemer: 'Hooimarkt Reitdiep', jong: 0x5fb04a, rijp: 0x7fc24f, vorm: 'halm', soort: 'weiland' },
 };
 export const GEWAS_IDS = Object.keys(GEWASSEN);
 export const STANDAARD_GEWAS = 'aardappelen';
@@ -76,6 +80,7 @@ export function nieuweBoerderij() {
     posities: {},                                                  // waar de rijen van een ander perceel dan de Zonnehoek liggen: { x, y, a } (eenmaal gevonden)
     boek: nieuwBoek(),                                             // kosten en opbrengsten per veld en per boekjaar, en de lening
     bedrijf: nieuwBedrijf(),                 // percelen, erven, opslag en machinepark (percelen.js, #415 stap 1): oude opslag mist dit en krijgt het leeg
+    contracten: CT.leeg(),                   // het aanbod van vandaag, je actieve leveringscontracten en een begrensde historie (#492)
   };
 }
 
@@ -110,6 +115,7 @@ export function normaliseer(raw) {
   if (d.posities && typeof d.posities === 'object') for (const id of PERCEEL_IDS) { const q = d.posities[id]; if (id !== START_PERCEEL && q && Number.isFinite(q.x) && Number.isFinite(q.y)) b.posities[id] = { x: q.x, y: q.y, a: Number.isFinite(q.a) ? q.a : 0 }; }
   leesBoek(b, d.boek);
   b.bedrijf = normaliseerBedrijf(d.bedrijf);
+  b.contracten = CT.normaliseer(d.contracten, dagVan(b.uren));   // oud of kapot: een lege stand met het aanbod van vandaag
   syncVeld(b);
   return b;
 }
@@ -361,7 +367,8 @@ export function opbrengstKg(b) {
 }
 
 // Het afleveren: de lading wordt verkocht tegen de prijs van het gewas, met de kwaliteit die de rit overleefde (0..1). Geeft het
-// bedrag voor de loonfactor van de loopbaan; de schuur is daarna leeg.
+// bedrag voor de loonfactor van de loopbaan; de schuur is daarna leeg. De kg en het gewas gaan mee terug, zodat
+// boerderijlive.js ze aan een leveringscontract kan toevoegen (#492).
 export function lever(b, kwaliteit) {
   const s = b.schuur;
   const r = leverVracht(b, s, kwaliteit);
@@ -369,12 +376,18 @@ export function lever(b, kwaliteit) {
   return r;
 }
 
-// Een vracht (de schuur, of de lading op een aanhanger: { gewas, kg, kwaliteit, veld }) verkopen; de kwaliteit van de lading telt mee.
+// Een vracht (de schuur, of de lading op een aanhanger: { gewas, kg, kwaliteit, veld }) verkopen tegen de dagprijs van de
+// speldag van de boerderij (b.uren); de kwaliteit van de lading telt mee. Een onbekend gewas of een rare dag valt terug op de
+// basisprijs. De prijs en de dag gaan mee terug voor het scherm.
 export function leverVracht(b, vracht, kwaliteit) {
   if (!vracht || !(vracht.kg > 0) || !GEWASSEN[vracht.gewas]) return { bedrag: 0, kg: 0, gewas: null };
   const q = clamp(Number.isFinite(kwaliteit) ? kwaliteit : 0, 0, 1) * clamp(Number.isFinite(vracht.kwaliteit) ? vracht.kwaliteit : 1, 0, 1);
-  const bedrag = Math.round(vracht.kg * GEWASSEN[vracht.gewas].prijsKg * q);
-  const r = { bedrag, kg: vracht.kg, gewas: vracht.gewas, kwaliteit: q };
+  const dag = dagVan(b.uren);
+  const basis = GEWASSEN[vracht.gewas].prijsKg;
+  const prijs = dagprijs(vracht.gewas, dag) || (basis > 0 ? basis : 0);
+  if (!(prijs > 0)) return { bedrag: 0, kg: 0, gewas: null };
+  const bedrag = Math.round(vracht.kg * prijs * q);
+  const r = { bedrag, kg: vracht.kg, gewas: vracht.gewas, kwaliteit: q, prijs, dag };
   boek(b, { omzet: bedrag, veld: vracht.veld, kg: vracht.kg });
   b.totaal.leveringen++;
   b.totaal.omzet += bedrag;
@@ -400,13 +413,16 @@ export function kiesGewas(b, gewas) {
   return true;
 }
 
-// Een snelle blik voor het scherm en de tests.
+// Een snelle blik voor het scherm en de tests. dag en prijzen komen uit de markt (gewasmarkt.js): per gewas de dagprijs van
+// vandaag en de trend, zodat het Gewas-tabblad ze kan tonen. Er wordt niets van bewaard.
 export function samenvatting(b) {
   const f = fase(b);
   const o = opties(b);
+  const dag = dagVan(b.uren);
   return {
     fase: f, gewas: b.veld.gewas, groei: groei(b), urenTotRijp: urenTotRijp(b), schuurKg: b.schuur.kg, schuurGewas: b.schuur.gewas,
     volgende: volgendeTaak(b), opties: o.map((x) => x.taak), eigen: MACHINE_IDS.filter((m) => b.machines[m] === 'eigen'),
+    dag, prijzen: Object.fromEntries(GEWAS_IDS.map((id) => [id, markt(id, dag)])),
     winst: b.totaal.omzet - b.totaal.uitgaven, ...b.totaal,
   };
 }

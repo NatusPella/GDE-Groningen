@@ -1,9 +1,9 @@
 import { FLAGS, reseedAutoplay } from './devflags.js';
-import { hasSave, readSave, applySave, startNewSlot, getSaveSummary, ensureActiveSlot } from './savegame.js';
+import { hasSave, readSave, applySave, startNewSlot, getSaveSummary, ensureActiveSlot, ensureLatestSlot } from './savegame.js';
 import { openSaveSlots, isSaveSlotsOpen } from './saveslotsui.js';
 import { listSlots } from './saveslots.js';
 import { VERSION } from './version.js';
-import { checkWhatsNew, markVersionSeen, compareVersions } from './whatsnew.js';
+import { loadChangelog, newsOnStart } from './over.js';
 import { pointInPolygon } from './util.js';
 import { openPauseMenu, menuIcon } from './pausemenu.js';
 import { requestOpenSamen } from './samenpanel.js';
@@ -15,7 +15,7 @@ import { startTheme, stopTheme } from './theme.js';
 import { COW_LOADING } from './flavourlines.js';
 import { MENU_FRAME_S, getRenderer, streamPending } from './scene3d.js';
 import { makeMenuGate, GATE } from './menuready.js';
-import { isAdvisorSampling, startGfxAdvisor } from './gfxprofile.js';
+import { isAdvisorSampling, startGfxAdvisor, classifyGpu, readGpu, presetFromSample, currentPreset, applyPreset, isDefaultGfx, readAdvice, writeAdvice, presetLabel } from './gfxprofile.js';
 import { ABOUT_HTML } from './credits.js';
 import { startLoadScreen, setLoadTips } from './loadscreen.js';
 import { padGlyphInner } from './glyphs.js';
@@ -299,75 +299,6 @@ function makeShot(map, spot) {
 }
 
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-const inline = (s) => esc(s)
-  .replace(/`([^`]+)`/g, '<code>$1</code>')
-  .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-  .replace(/\*([^*]+)\*/g, '<em>$1</em>');
-
-// Just enough Markdown for CHANGELOG.md: version headings, section headings,
-// bullets (with wrapped continuation lines) and paragraphs. The title, the
-// intro and an empty [Unreleased] section are left out. `fresh` marks the
-// versions newer than the one last played (see whatsnew.js).
-function changelogHtml(md, fresh = () => false) {
-  const out = [];
-  let block = null; // { kind: 'p' | 'li', text }
-  let inList = false;
-  let started = false;
-  const flush = () => {
-    if (!block) return;
-    if (block.kind === 'li') {
-      if (!inList) { out.push('<ul>'); inList = true; }
-      out.push(`<li>${inline(block.text)}</li>`);
-    } else {
-      if (inList) { out.push('</ul>'); inList = false; }
-      out.push(`<p>${inline(block.text)}</p>`);
-    }
-    block = null;
-  };
-  const closeList = () => { flush(); if (inList) { out.push('</ul>'); inList = false; } };
-  for (const raw of md.split('\n')) {
-    const line = raw.trimEnd();
-    const ver = line.match(/^## \[([^\]]+)\](?:\s*-\s*(.+))?/);
-    if (ver) {
-      closeList();
-      started = true;
-      if (ver[1].toLowerCase() === 'unreleased') { started = false; continue; }
-      const date = ver[2] ? new Date(ver[2]).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
-      const isNew = fresh(ver[1]);
-      out.push(`<h3${isNew ? ' class="ss-news-new"' : ''}>Versie ${esc(ver[1])}${date ? `<small>${esc(date)}</small>` : ''}${isNew ? '<span class="ss-news-tag">Nieuw sinds je vorige keer</span>' : ''}</h3>`);
-      continue;
-    }
-    if (!started) continue;
-    const sec = line.match(/^###\s+(.+)/);
-    if (sec) { closeList(); out.push(`<h4>${inline(sec[1])}</h4>`); continue; }
-    const li = line.match(/^\s*[-*]\s+(.+)/);
-    if (li) { flush(); block = { kind: 'li', text: li[1] }; continue; }
-    if (!line.trim()) { flush(); continue; }
-    if (block) block.text += ' ' + line.trim();
-    else { if (inList) { out.push('</ul>'); inList = false; } block = { kind: 'p', text: line.trim() }; }
-  }
-  closeList();
-  return out.join('');
-}
-
-// since: the version last played; null marks only the newest version
-let newsSince;
-let changelogCache = null;
-function loadChangelog() {
-  if (!changelogCache) {
-    let first = null;
-    const fresh = newsSince === undefined ? () => false
-      : (v) => {
-        if (first === null) first = v;
-        return newsSince ? compareVersions(v, newsSince) > 0 : v === first;
-      };
-    changelogCache = fetch('./CHANGELOG.md', { cache: 'no-store' })
-      .then((r) => (r.ok ? r.text() : Promise.reject(new Error(r.status))))
-      .then((md) => changelogHtml(md, fresh))
-      .catch(() => { changelogCache = null; return '<p>De lijst met wijzigingen kon niet worden geladen.</p>'; });
-  }
-  return changelogCache;
-}
 
 // After the attract intro: the logo appears big in the middle, then glides
 // and shrinks into its place before the menu fades in (CSS .ss-handoff).
@@ -409,9 +340,117 @@ export function planMenuStart(map) {
   } catch (e) { planned = null; }
 }
 
+// The normal boot: no menu. The save written last is loaded; without a save the story starts
+// at once (the owner's choice, 25-10). The start screen stays for the QA, trailer and attract
+// paths, which still need the menu and its backdrop.
+export function runStartScreen(world, opts) {
+  // pendingTrailer() reads and clears the pending benchmark: ask it once and hand the answer on,
+  // otherwise the menu asks again and the benchmark from Instellingen > Beeld is gone.
+  const pending = pendingTrailer();
+  const forceMenu = FLAGS.menu || FLAGS.trailer || FLAGS.preview || FLAGS.attract || FLAGS.benchmark || FLAGS.storytest || FLAGS.stil || FLAGS.perf || FLAGS.spotsonly || FLAGS.noattract || !!pending;
+  return forceMenu ? runMenuScreen(world, opts, pending) : runBootScreen(world, opts);
+}
+
+const FIRST_RUN_MS = 3500;
+
+// The first start on a fresh profile: measure a few seconds of real frames on the boot screen
+// and pick the best preset that still runs smoothly. Skipped with Esc/Space; stored so it runs
+// once. The full benchmark in Instellingen > Beeld stays available for a deeper measurement.
+function benchmarkFirstRun(opts, done) {
+  const status = document.querySelector('#loading .ld-status');
+  if (status) status.textContent = 'Beeld instellen…';
+  let gpu = { tier: 'hoog' };
+  try { gpu = classifyGpu(readGpu(getRenderer().getContext())); } catch (e) { /* geen WebGL: standaard */ }
+  const times = [];
+  let last = 0, t0 = 0, finished = false, timer = 0;
+  const finish = ({ skip = false, persist = true } = {}) => {
+    if (finished) return;
+    finished = true;
+    window.removeEventListener('keydown', onKey, true);
+    clearTimeout(timer);
+    let pick = skip ? null : presetFromSample(gpu.tier, times, currentPreset());
+    // a visible machine too slow for ten samples still gets the lightest preset, not the default
+    if (!skip && !pick && times.length > 0 && times.length < 10) pick = 'laag';
+    if (pick) applyPreset(pick);
+    if (persist) writeAdvice(skip ? 'eerste-start:overgeslagen' : 'eerste-start:' + (pick || 'hoog'));
+    if (status) status.textContent = skip ? 'Klaar, Grunn staat te wachten' : `Beeld: ${presetLabel(pick || 'hoog')}`;
+    done();
+  };
+  const onKey = (e) => {
+    if (e.key === 'Escape' || e.key === ' ') { e.preventDefault(); finish({ skip: true }); }
+  };
+  window.addEventListener('keydown', onKey, true);
+  // a hidden or throttled tab must not keep the first start waiting; a hidden tab is not a
+  // choice, so it does not close the door for a later measurement
+  timer = setTimeout(() => {
+    if (document.hidden) finish({ skip: true, persist: false });
+    else finish();
+  }, FIRST_RUN_MS + 2500);
+  const step = (now) => {
+    if (finished) return;
+    if (!t0) t0 = now;
+    // skip the first half second: shader compilation and the first stream burst are not the game
+    if (last && now - t0 > 500) times.push(now - last);
+    last = now;
+    try { if (opts && opts.tick) opts.tick(0.016); } catch (e) { /* simulatie nog niet klaar */ }
+    try { if (opts && opts.render) opts.render(0.016, 0); } catch (e) { /* renderer nog niet klaar */ }
+    if (now - t0 < FIRST_RUN_MS || times.length < 10) requestAnimationFrame(step);
+    else finish();
+  };
+  requestAnimationFrame(step);
+}
+
+function runBootScreen(world, opts) {
+  // Nieuws en credits (wi-492-over) hangen hier nog aan; de eerste-start-test zit hieronder.
+  const slot = ensureLatestSlot();
+  // No reliable latest (a full list, a broken save, or a save from a newer version): the old
+  // save screen stays available instead of silently loading or overwriting the wrong save.
+  if (!slot || (!hasSave() && listSlots(null).length)) return runMenuScreen(world, opts);
+  return new Promise((resolve) => {
+    const screen = el('start-screen');
+    if (screen) { screen.classList.remove('visible'); screen.style.display = 'none'; }
+    const save = hasSave() ? getSaveSummary() : null;
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      // Draw one frame before the boot screen goes: the main frame loop starts only after this
+      // promise resolves, so without it the first new game would show a black canvas.
+      try { if (opts && opts.render) opts.render(0.016, 0); } catch (e) { /* renderer nog niet klaar */ }
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        // the menu's first viewpoint was planned during the boot; the normal start never shows
+        // the menu, so release those tiles instead of keeping them pinned behind the game
+        try { if (world.map && world.map.releaseShots) world.map.releaseShots(); } catch (e) { /* niet erg */ }
+        dismissLoading();
+        resolve('game');
+      }));
+    };
+    const startNew = () => {
+      startTheme();
+      reseedAutoplay();
+      startNewSlot();
+      finish();
+    };
+    const continueGame = () => {
+      const d = readSave();
+      if (!d) { startNew(); return; }
+      startTheme();
+      applySave(world, d);
+      // the load screen covers the boot screen until the city round the save has streamed in
+      startLoadScreen(world, { kind: 'save' });
+      finish();
+    };
+    // QA and trailer runs that need the old menu use ?menu; this path starts immediately.
+    // A fresh profile first gets a short graphics measurement; everything else starts at once.
+    const firstRun = !save && !AUTO && !FLAGS.autoplay && !document.hidden && isDefaultGfx() && !readAdvice();
+    if (firstRun) benchmarkFirstRun(opts, () => startNew());
+    else if (save) continueGame(); else startNew();
+  });
+}
+
 // Title screen over the live city, cycling through highlights. Resolves with
 // 'game' (Alleen spelen: Doorgaan / Nieuw spel, or Samen spelen).
-export function runStartScreen(world, { render, relocate, tick, ready }) {
+function runMenuScreen(world, { render, relocate, tick, ready }, pending = null) {
   return new Promise((resolve) => {
     const screen = el('start-screen');
     const menu = screen.querySelector('.ss-menu');
@@ -713,11 +752,10 @@ export function runStartScreen(world, { render, relocate, tick, ready }) {
     };
     const onBenchmark = () => benchmark(false);
     window.addEventListener('gde-benchmark', onBenchmark);
-    // after an update the menu opens on "Wat is er nieuw"
-    const update = FLAGS.storytest ? null : checkWhatsNew(VERSION);
-    if (update) { newsSince = update.since; changelogCache = null; }
-    markVersionSeen(VERSION);
-    const intro = pendingTrailer();
+    // after an update the menu opens on "Wat is er nieuw"; the pause menu's Over tab owns
+    // the same bookkeeping now, this path only keeps the QA/trailer menu working
+    const update = FLAGS.storytest ? null : newsOnStart();
+    const intro = pending;
     // the first viewpoint is there before the gate starts to look, so the world streams in round it while the boot screen is up (#380)
     if (!intro) {
       const first = nextSpot();

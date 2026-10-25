@@ -17,12 +17,12 @@ Elke sessie is 45 tot 60 minuten. Een tester speelt één scenario; verdeel de s
 
 | Scenario | Start | Duur | Wat je wilt weten |
 | --- | --- | --- | --- |
-| A. Eerste uur | Alleen spelen › Nieuw spel | 60 min | Opening, M01 tot en met M06: begrijpt men wie Tammo en Tessa zijn, wat het doel is, waar de telefoon, kaart en Te doen zitten? |
+| A. Eerste uur | Start zonder save (het verhaal begint meteen) | 60 min | Opening, M01 tot en met M06: begrijpt men wie Tammo en Tessa zijn, wat het doel is, waar de telefoon, kaart en Te doen zitten? |
 | B. Akte 2 | Save aan het begin van akte 2 (M07) | 45 min | M07 tot en met M11: Friesland-lijn, reiskeuze (meerijden, zelf rijden, overslaan), het skûtsje op het water. |
 | C. Akte 3 | Save bij M12 | 45 min | Heli-vlucht, containers, de dijk, vliegtuig laag over het graan, kermis Winschoten. |
 | D. Akte 4 | Save bij M17 | 45 min | Bruggen, camera's, stoomtrein, het beleg van Bourtange, Anita's solodeel. |
 | E. Akte 5 en slot | Save bij M22 | 45 min | Luik, colonne, vlag, bakken, het ontzet en de epiloog. |
-| F. Vrij spelen | Alleen spelen › Nieuw spel, na M06 | 30 min | Wat doet men zonder opdracht: activiteiten, bijbanen, rondrijden, varen. |
+| F. Vrij spelen | Start zonder save, na M06 | 30 min | Wat doet men zonder opdracht: activiteiten, bijbanen, rondrijden, varen. |
 
 Saves voor B tot en met E maak je met het F9-paneel van `?dev` (hoofdstuk kiezen springt naar een stap met het geld en de voortgang die een speler daar zou hebben), of door te spelen; dev-runs gebruiken eigen `gde-dev:`-opslag. Zet ze in het wegwerpprofiel, niet in de repo.
 

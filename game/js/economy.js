@@ -4,6 +4,9 @@
 // the income that is not a mission reward. No game imports: storytest.js
 // reads it for the money checks.
 
+// A fresh save: enough for the first hours (a first weapon, food, a repair), not a free pass.
+export const START_MONEY = 500;
+
 export const HERO_REPLACE_FEE = 50;
 
 // Garage repair: damage 0-100, dents 0-3 (garages.js).
@@ -28,7 +31,7 @@ export function bustFineIn(wanted, money, vehicle) {
   return isBorrowedMissionCar(vehicle) ? 0 : bustFine(wanted, money);
 }
 
-export const SPEED_FINE = [20, 45];
+export const SPEED_FINE = [10, 25];
 export const SIDEJOB_ACCIDENT_FINE = 10;
 
 // Side jobs: base pay times this, plus LEVEL_BONUS per level above 1.

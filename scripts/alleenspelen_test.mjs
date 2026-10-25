@@ -33,11 +33,11 @@ ok(/if \(solo\) tiles\.push\(newCard/.test(ui), 'Nieuw spel is de eerste kaart')
 ok(/newfull/.test(ui) && /Dat spel wordt gewist/.test(ui), 'bij een volle opslag vraagt Nieuw spel eerst');
 
 const pause = read('game/js/pausemenu.js');
-ok(/data-action="menu"[^>]*>Naar het hoofdmenu</.test(pause), 'het pauzemenu heeft Naar het hoofdmenu');
+ok(/data-action="menu"[^>]*>Herstarten</.test(pause), 'het pauzemenu heeft Spel herstarten');
 ok(!/>Hoofdmenu<\/button>/.test(pause), 'het pauzemenu heeft geen kale Hoofdmenu-knop meer');
 
 const words = read('docs/WOORDENLIJST.md');
-ok(/\*\*Alleen spelen\*\*/.test(words) && /\*\*Naar het hoofdmenu\*\*/.test(words), 'de woordenlijst kent Alleen spelen en Naar het hoofdmenu');
+ok(/\*\*Spelen\*\*/.test(words) && /\*\*Spel herstarten\*\*/.test(words), 'de woordenlijst kent Spelen en Spel herstarten');
 
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

@@ -31,6 +31,38 @@ factor (`loopbaanDeel`, `:150`), de gast past zijn eigen factor toe (`loopbaanGa
 **Tests.** `loopbaan_test.mjs`, `loopbaan_balans_test.mjs`, `loopbaan_coop_test.mjs`,
 `loopbaanstart_test.mjs`.
 
+## Vracht (bijbaan)
+
+**Doel.** Een rondje vracht: achteruit onder de oplegger, koppelen, laden, naar de afnemer, lossen.
+
+**Regels.** Vier contracttypes met eigen tarief per km, laad- en lostijd en toeslag
+(`game/js/vrachtmarkt.js`); `maakAanbod(seed, km, niveau)` is deterministisch en geeft drie
+verschillende aanbiedingen. Het loon is `km × tarief + toeslag`, met dezelfde laadschade-factor
+als voorheen, en loopt via `completeRound`/`loopbaanVerdien` (nooit `w.money +=`). De laad- en
+lostijd zitten in `c.timeLeft`, dus wachten laat de rit niet falen; lossen kan alleen bij de
+afnemer. De markt is deterministisch per seed, de afstand komt uit de wereld. Host-only: een gast
+kan de baan niet starten; het bestaande gastgat loopt via #365/#371.
+
+**Bestanden.** `vrachtmarkt.js`, `sidejob_vracht.js`, `semitrailer.js`.
+
+**Tests.** `vrachtmarkt_test.mjs`, `semitrailer_test.mjs`, `sidejob_glyph_test.mjs`.
+
+## Trein (machinist)
+
+**Doel.** Een machinistendienst rijden met echte reizigers.
+
+**Regels.** `game/js/machinistrules.js` telt per halte deterministisch in- en uitstappers uit de
+perrondrukte (1-8 wachtenden) en de capaciteit (90); op de laatste halte stapt niemand meer in.
+Een kaartje is €0,70 per meegereden reiziger per halte. `stepService` boekt het kaartgeld,
+`finish` en `payFor` nemen het mee, en de uitbetaling loopt via `loopbaanVerdien('trein', …)`.
+Het bord toont het aantal reizigers en per stop de in- en uitstappers. Host-only; een gast ziet de
+trein maar kan niet als machinist instappen.
+
+**Bestanden.** `machinistrules.js`, `machinist.js`, `treincabine.js`, `traindrive.js`.
+
+**Tests.** `machinist_test.mjs`, `simdienst_test.mjs`, `dienstregeling_test.mjs`,
+`treincabine_test.mjs`, `gasttrein_test.mjs`.
+
 ## Hengelen en vissen
 
 **Doel.** Op elk water van de provincie vrij hengelen; het meer in Meerstad houdt zijn wedstrijd.
@@ -52,19 +84,25 @@ groei (max 1,8)` (`:123`), uitbetaald via `loopbaanVerdien` met `deel: false`
 **Doel.** Eén akker bij Hoogkerk in vaste stappen: ploegen, zaaien, bemesten, groeien, oogsten,
 afleveren.
 
-**Regels.** Vier gewassen met eigen zaaigoed, groeitijd, opbrengst en prijs per kg
-(`game/js/boerderij.js:18`); een speldag is 24 minuten (`game/js/daynight.js:12`). Groei telt in
+**Regels.** Vier gewassen met eigen zaaigoed, groeitijd, opbrengst en een basisprijs per kg
+(`game/js/boerderij.js:21`); de verkoopprijs per gewas is een dagprijs uit `game/js/gewasmarkt.js`
+(binnen twintig procent van de basis, dag nul is de basis, per speler uit zijn eigen `b.uren`), en
+`leverVracht` verkoopt daartegen. Een speldag is 24 minuten (`game/js/daynight.js:12`). Groei telt in
 speluren uit `world.clock` (`game/js/boerderijlive.js:72`). Machines huur je per keer of koop je
-(`:31`); een ronde levert ongeveer €300 tot €350 winst op, en de verkoop loopt via
+(`:34`); een ronde levert ongeveer €300 tot €350 winst op, en de verkoop loopt via
 `loopbaanVerdien`. Opslag `gde-boerderij-v1` (`storagekeys.js:81`). Samen spelen: een gast werkt op
-zijn eigen akker als lokale minigame (`game/js/boerderijgast.js:1`).
+zijn eigen akker als lokale minigame (`game/js/boerderijgast.js:1`), zijn gewas en contracten lopen
+met de hostklok mee, maar leveren doet hij in zijn eigen spel. Leveringscontracten
+(`game/js/boerderijcontracten.js`): per speldag een aanbod per gewas, max. 3 actief, deellevering
+telt, de bonus gaat via `loopbaanVerdien('landbouw', …)` met `deel: false`, verlopen kost niets.
 
 **Bestanden.** `boerderij.js`, `boerderijlive.js`, `boerderijui.js`, `boerderijwereld.js`,
 `boerderijgast.js`, `percelen.js`, `machines.js`, `werktuigen.js`, `werktuigen3d.js`,
-`sidejob_boerderij.js`.
+`sidejob_boerderij.js`, `gewasmarkt.js`, `boerderijcontracten.js`.
 
-**Tests.** `boerderij_test.mjs`, `percelen_test.mjs`, `machines_test.mjs`, `werktuigen_test.mjs`,
-`boerderijwereld_test.mjs`, `boerderijgast_test.mjs`, `boerderijui_machines_test.mjs`.
+**Tests.** `boerderij_test.mjs`, `gewasmarkt_test.mjs`, `boerderijcontracten_test.mjs`,
+`percelen_test.mjs`, `machines_test.mjs`, `werktuigen_test.mjs`, `boerderijwereld_test.mjs`,
+`boerderijgast_test.mjs`, `boerderijui_machines_test.mjs`.
 
 ## Vliegschool
 
@@ -95,6 +133,20 @@ kost niets. De banen komen uit `game/vliegplekken.json`.
 
 **Tests.** `minigames_test.mjs`, `minigames3_test.mjs`, `golfbeurt_test.mjs`,
 `golfetiquette_test.mjs`, `padelrules_test.mjs`.
+
+## Gevecht
+
+**Doel.** Melee met gewicht: een reeks slagen die oploopt zolang je raakt.
+
+**Regels.** `game/js/meleecombo.js` houdt per aanvaller én per wapen een stand bij: de tweede slag
+binnen 0,8 s na een treffer doet ×1,15, de derde ×1,40 met +0,20 knock; een misser of een
+wapenwissel zet de reeks terug. `combat.js` past de factor toe in `meleeHit`, dus ook voor de gast
+via `gastAanvalUitvoeren`/`gastSlagLanding`; de camera-schok en het geluid houden de originele
+waarden. Geen bloed of gore toevoegen; PvP houdt zijn eigen cap.
+
+**Bestanden.** `meleecombo.js`, `combat.js`, `weapons.js`.
+
+**Tests.** `meleecombo_test.mjs`, `coopwapen_test.mjs`, `cooppvp_test.mjs`, `gamefeel_test.mjs`.
 
 ## Geluid en muziek
 
@@ -147,7 +199,7 @@ beeldcontrole met `scripts/qa/weer_nacht.mjs`.
 **Doel.** De eerste tien minuten begrijpelijk zonder uitleg van buiten, zonder tutorial die het
 spelen tegenhoudt.
 
-**Regels.** Vier kaarten in vaste volgorde (`game/js/onboarding.js:45`), elk één keer per apparaat
+**Regels.** Vijf kaarten in vaste volgorde (`game/js/onboarding.js:45`), elk één keer per apparaat; de vijfde vertelt na de eerste missie dat Samen spelen onder Esc zit
 onder `gde-uitleg` (`storagekeys.js:37`). Eén tegelijk: alleen als de narrative-planner het toelaat,
 er niets speelt en de speler niet in een missie, bijbaan of minigame zit; 12 s na de opening, 30 s
 ertussen. Uit te zetten met `onboardingTips`; de toetshints (`prompts.js`) dekken alleen wat niet

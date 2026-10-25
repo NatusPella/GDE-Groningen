@@ -145,7 +145,7 @@ met een echt merk; bewuste parodie, op de allowlist, de eigenaar kan kiezen te h
 | Stadsloterij | lot bij Rook & Geluk | `game/js/shops.js` | de landelijke loterij (klank) | let op |
 | Grunneger Gokje | kraskaart | `game/js/shops.js` | niets | ok |
 | Duivenkraslot | kraskaart | `game/js/shops.js` | niets | ok |
-| Zomerzoet | ijssalon | `game/js/sidejob_vracht.js` | niets | ok |
+| Zomerzoet | ijssalon | `game/js/vrachtmarkt.js` | niets | ok |
 | Delfstof Noord | verzonnen delfstofbedrijf | `game/js/stadmissies.js` | geen echt bedrijf; gevoelig onderwerp, zie constitution 6 | ok |
 | Wiebelwerk | het Wiebelwerk-universum | `game/js/interieurplan.js` | niets | ok |
 | Us Mem Vet | bedrijf/winkel | `game/js/missions.js` | niets | ok |
