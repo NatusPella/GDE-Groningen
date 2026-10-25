@@ -74,6 +74,7 @@ een eigen worktree en draait alleen zijn eigen checks.
 | --- | --- | --- |
 | elke wijziging | `node --check <gewijzigd bestand>` | syntax van de gewijzigde JS |
 | elke wijziging | de `scripts/*_test.mjs` die de code dekt | pure regeltests |
+| elke stage | `scripts/lib/stagecheck.mjs` (via `desktop/build.mjs`) | elk pack uit de wereldindex bestaat met de juiste grootte en elk muziekbestand uit `js/audio.js` staat in de stage; anders stopt de stage (#496) |
 | vóór merge | `node scripts/test_all.mjs --fase=licht` | module-check, `import_check`, `undef_check`, `voice_coverage`, `text_audit`, dode-code en alle `scripts/*_test.mjs` |
 | vóór release | `node scripts/test_all.mjs --fase=zwaar` | wereldchecks en audits (`ring_probe`, `seat_audit`, `province_test`, `drive_audit`, spoor en water) |
 | vóór release | `node scripts/test_all.mjs --fase=electron` | smoke-run, verhaaltest, `geocheck`, spelbot en beeldrondes |
