@@ -49,9 +49,10 @@ treinreis, niet bij een sprong terug (een lading). De boerderij heeft dus een ei
   loopbaan), en geldt voor elk opgeslagen spel op dit apparaat. Het perceel staat vast zodra het gevonden is (`vindAkker` uit `sidejob_bieten.js`).
 - Een leeg, oud of kapot profiel geeft een geldige lege boerderij (`normaliseer`); een gezaaid veld zonder gewas of zaaitijd wordt braak; volle of
   geblokkeerde opslag laat het spel gewoon doorlopen.
-- **Samen spelen:** iedereen heeft zijn eigen boerderij op zijn eigen apparaat. Een gast draait `updateGameplay` niet en mag geen bijbaan starten
-  (docs/COOP-GAST.md): zijn gewassen groeien dus niet terwijl hij in andermans wereld meespeelt, ze wachten op hem. Wat wie het spel opende met een
-  verkoop verdient deelt hij zoals alle verdiensten met de gasten.
+- **Samen spelen:** iedereen heeft zijn eigen boerderij op zijn eigen apparaat, met eigen geld en eigen opslag (`gde-boerderij-v1`). Een gast
+  boert op zijn eigen akker als lokale minigame en zijn gewassen **groeien mee** met de klok van de gastheer: `main.js` roept `boerderijTijd` ook
+  op het gastpad aan, met `boerderijKlokNul` zodat de sprong naar de gastheerklok niet als groeitijd telt. Een gast mag geen bijbaan starten
+  (docs/COOP-GAST.md). Wat wie het spel opende met een verkoop verdient deelt hij zoals alle verdiensten met de gasten.
 
 ## Percelen en erven (stap 1 van #415)
 
