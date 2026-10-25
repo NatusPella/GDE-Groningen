@@ -76,5 +76,15 @@ F.resetFreeCam(thuis);
 check('reset: terug op de plek van de speler', thuis.cam.x === 5 && thuis.cam.y === 6 && thuis.cam.z === 5, JSON.stringify(thuis.cam));
 check('reset: kijkt recht vooruit, zonder kanteling, zelfde richting', thuis.cam.pitch === 0 && thuis.cam.roll === 0 && thuis.cam.yaw === 0.7, JSON.stringify(thuis.cam));
 
+// kantelen op C en V, en Escape sluit de fotomodus zonder het pauzemenu (#435):
+// E is in het spel instappen, dus E kantelt niet; M en Escape blijven van de foto
+const fs = await import('node:fs');
+const fu = fs.readFileSync(new URL('../game/js/fotomodusui.js', import.meta.url), 'utf8');
+const pm = fs.readFileSync(new URL('../game/js/pausemenu.js', import.meta.url), 'utf8');
+check('kantelen op C en V', /k === 'c'\) p\.cam\.roll -= 0\.03/.test(fu) && /k === 'v'\) p\.cam\.roll \+= 0\.03/.test(fu));
+check('E kantelt niet (E is instappen)', !/k === 'e'\)[^\n]*roll/.test(fu) && fu.includes('E is in het spel instappen'));
+check('de knoppenbalk noemt C V bij Kantelen', fu.includes("KEYBTN('C V', 'Kantelen')"));
+check('Escape sluit de foto en opent het pauzemenu niet', fu.includes("k === 'escape'") && pm.includes('if (isPhotoMode()) return;'));
+
 console.log(bad ? `${bad} van ${n} mislukt` : `fotomodus_test ok (${n} checks)`);
 process.exit(bad ? 1 : 0);
