@@ -1,14 +1,20 @@
-// Het binnenste van de trein in beeld (#442): vloer, wanden met ramen, deuren die op een halte opengaan, rijen stoelen,
-// haltestangen, lampen, een machinistencabine met bureau en zitje, en reizigers die zitten of staan. De indeling en het
+// Het binnenste van de trein in beeld (#442): vloer, wanden met kozijnen en raamstijlen, bagagerekken boven de
+// ramen, deuren die op een halte opengaan, rijen stoelen met leuning en hoofdsteun, haltestangen met lussen, lampen,
+// een machinistencabine met bureau en zitje, en reizigers die zitten of staan. De indeling en het
 // lopen staan in treinlayout.js (puur, getest). Alleen dichtbij gebouwd: alleen de trein die de speler bestuurt en alleen
 // de wagens bij de speler, zolang hij binnen kijkt (C of rondlopen); de geometrie wordt per soort wagen gedeeld
 // (markShared) en de schil van buiten gaat verborgen zolang je binnen bent. railway3d.js roept syncTreinInterieur aan.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { GeoBuilder, markShared } from './pixelart3d.js';
-import { trainLayout, passengers, driverEye, WALL_Z, DOOR_W, AISLE } from './treinlayout.js';
+import { trainLayout, passengers, driverEye, WALL_Z, DOOR_W, AISLE, GANGWAY } from './treinlayout.js';
 
 const FLOOR = 0x2b2f36, RUNNER = 0x3b4a5c, WALL = 0xd9d7cf, CEIL = 0xeceae3, SEAT = 0x2f5d8a, SEAT_DARK = 0x233f5d, POLE = 0xe5b800, DESK = 0x2a2e35, TRIM = 0x8a8f98;
 const LAMP = 0xfff4d6, GLASS = 0x9fc4d8, SCREEN = 0x3cff7a;
+// de coupé: een bagagerek boven de ramen, donkere rubberprofielen om het glas, lussen aan de stang,
+// een lichte binnenplaat in de deur en de koffers die op het rek staan
+const RACK = 0xbfbcb2, RACK_DARK = 0x6d727a, RUBBER = 0x4a4e55, STRAP = 0x33373d, DOOR_IN = 0xc9ccc6;
+const BAGS = [0x8a3f34, 0x3f5a72, 0xa8873f, 0x4a5f3f];
+const COVE = 0xdfdcd2;
 const SHIRTS = [0xc0392b, 0x2e7d9a, 0x6a8f3a, 0xe0a030, 0x7a4f9a, 0x4a4f58];
 const SKINS = [0xf1c9a5, 0xc68d62, 0x8d5a3b];
 const PANTS = 0x2a3140;
@@ -37,6 +43,49 @@ function wall(B, s, x0, x1, y0, y1, color, gaps) {
   piece(from, x1);
 }
 
+// Een horizontale lijst langs de wand op hoogte y, net als wall() onderbroken door de deuropeningen.
+function band(B, s, x0, x1, y, h, color, gaps) {
+  let from = x0;
+  const piece = (a, b) => { if (b - a > 0.02) B.box((a + b) / 2, y, s * (WALL_Z - 0.02), b - a, h, 0.06, color); };
+  for (const [a, b] of (gaps || []).filter((g) => g[1] > x0 && g[0] < x1).sort((p, q) => p[0] - q[0])) { piece(from, Math.max(from, a)); from = Math.max(from, b); }
+  piece(from, x1);
+}
+
+// Een raamstijl in het glas: een smalle post met een kapje onder en boven, zodat elk raam een kozijn heeft.
+function mullion(B, s, x, f, w) {
+  const mid = f + (SILL + HEADER) / 2;
+  B.box(x, mid, s * WALL_Z, w, HEADER - SILL, 0.05, WALL);
+  B.box(x, f + SILL + 0.05, s * (WALL_Z - 0.025), w + 0.05, 0.06, 0.07, RUBBER);
+  B.box(x, f + HEADER - 0.05, s * (WALL_Z - 0.025), w + 0.05, 0.06, 0.07, RUBBER);
+}
+
+// Een stoel: een slanke voet, een kussen, een iets achterover hellende rug met hoofdsteun en een leuning
+// aan de gangpadkant. De plek (s.x, s.z) blijft precies die van treinlayout.js, zodat de reizigers erop passen.
+function seat(B, s, f) {
+  const inner = s.z - Math.sign(s.z) * 0.21; // de gangpadkant van deze stoel
+  B.box(s.x + 0.02, f + 0.17, s.z, 0.3, 0.34, 0.3, SEAT_DARK);
+  B.box(s.x + 0.04, f + 0.39, s.z, 0.48, 0.1, 0.44, SEAT);
+  B.box(s.x - 0.22, f + 0.7, s.z, 0.1, 0.62, 0.44, SEAT, 0, 0, 0.1);
+  B.box(s.x - 0.25, f + 1.13, s.z, 0.09, 0.16, 0.3, SEAT_DARK, 0, 0, 0.1);
+  B.box(s.x + 0.02, f + 0.6, inner, 0.34, 0.05, 0.05, SEAT_DARK);
+  B.box(s.x + 0.18, f + 0.48, inner, 0.05, 0.22, 0.05, SEAT_DARK);
+}
+
+// Het bagagerek boven de ramen, met een opstaande rand aan de gangpadkant, beugels bij de raamstijlen
+// en een paar koffers erop.
+function rack(B, s, f, c, x0, x1, pillars) {
+  const cx = (x0 + x1) / 2, len = x1 - x0;
+  if (len < 1.2) return;
+  const zc = s * (WALL_Z - 0.22);
+  B.box(cx, c - 0.25, zc, len, 0.045, 0.4, RACK);
+  B.box(cx, c - 0.19, s * (WALL_Z - 0.43), len, 0.13, 0.035, RACK_DARK);
+  for (const x of pillars) if (x > x0 + 0.2 && x < x1 - 0.2) B.box(x, c - 0.29, s * (WALL_Z - 0.12), 0.05, 0.06, 0.3, TRIM);
+  for (let i = 0, x = x0 + 0.7; x < x1 - 0.6; x += 2.4, i += 1) {
+    B.box(x, c - 0.18, zc, 0.44, 0.1, 0.28, BAGS[i % BAGS.length]);
+    B.box(x + 0.2, c - 0.11, zc, 0.14, 0.06, 0.1, TRIM);
+  }
+}
+
 // De geometrie van een wagen: groep 0 = alles dat licht vangt, 1 = lampen en schermen (zelflichtend), 2 = glas.
 export function buildCarGeometry(cfg, seg, cl) {
   const B = new GeoBuilder(3);
@@ -47,33 +96,61 @@ export function buildCarGeometry(cfg, seg, cl) {
   if (cl.kind === 'car') B.box(0, f + 0.005, 0, L - 0.2, 0.012, 0.5, RUNNER);
   B.box(0, c + 0.025, 0, L, 0.05, WALL_Z * 2, CEIL);
   for (const x of cl.lamps) B.box(x, c - 0.015, 0, 0.8, 0.03, 0.3, LAMP, 1);
-  // wanden: een lage plaat, een lijst erboven, raampijlers en glas ertussen; bij de deuren geen plaat
+  // wanden: een lage plaat, een lijst erboven, raamstijlen en glas ertussen; bij de deuren geen plaat
+  const sorted = [...gaps].sort((a, b) => a[0] - b[0]);
   for (const s of [-1, 1]) {
     wall(B, s, -L / 2, L / 2, f, f + SILL, WALL, gaps);
     wall(B, s, -L / 2, L / 2, f + HEADER, c, WALL, null);
-    for (const x of cl.pillars) B.box(x, f + (SILL + HEADER) / 2, s * WALL_Z, 0.14, HEADER - SILL, 0.05, WALL);
-    for (const g of gaps) for (const gx of g) B.box(gx, f + HEADER / 2, s * WALL_Z, 0.07, HEADER, 0.07, POLE);
+    // het kozijn: een rubberen band onder en boven het glas, en stijlen met een kapje
+    band(B, s, -L / 2, L / 2, f + SILL + 0.035, 0.07, RUBBER, gaps);
+    band(B, s, -L / 2, L / 2, f + HEADER - 0.035, 0.07, RUBBER, null);
+    for (const x of cl.pillars) mullion(B, s, x, f, 0.14);
+    // tussen de stijlen nog een dunne post, zodat elk raam twee ruiten krijgt
+    const bounds = [cl.saloon[0], ...cl.pillars.filter((x) => x > cl.saloon[0] + 0.3 && x < cl.saloon[1] - 0.3), cl.saloon[1]].sort((a, b) => a - b);
+    for (let k = 0; k + 1 < bounds.length; k++) {
+      const a = bounds[k], b = bounds[k + 1];
+      if (b - a < 1.5 || sorted.some((g) => g[1] > a + 0.1 && g[0] < b - 0.1)) continue;
+      mullion(B, s, (a + b) / 2, f, 0.08);
+    }
+    // bij de deuren een paal en de rail waar de bladen onder schuiven
+    for (const g of gaps) {
+      for (const gx of g) B.box(gx, f + HEADER / 2, s * WALL_Z, 0.07, HEADER, 0.07, POLE);
+      B.box((g[0] + g[1]) / 2, f + HEADER + 0.06, s * (WALL_Z - 0.02), DOOR_W + 1.3, 0.09, 0.06, TRIM);
+    }
     // glas: een strook per stuk wand tussen de deuren
     let from = -L / 2;
-    const sorted = [...gaps].sort((a, b) => a[0] - b[0]);
     const strip = (a, b) => { if (b - a > 0.3) B.quad([a, f + SILL, s * (WALL_Z + 0.01)], [b, f + SILL, s * (WALL_Z + 0.01)], [b, f + HEADER, s * (WALL_Z + 0.01)], [a, f + HEADER, s * (WALL_Z + 0.01)], GLASS, 2); };
     for (const [a, b] of sorted) { strip(from, a); from = b; }
     strip(from, L / 2);
   }
   if (cl.kind === 'power') {
-    // de tussenmodule: een smalle gang met een machinekast
+    // de tussenmodule: een smalle gang met een machinekast en een balg naar de buren
     for (const s of [-1, 1]) B.box(0, f + 0.5, s * (WALL_Z - 0.3), L - 0.4, 1.0, 0.45, DESK);
+    for (const e of [-1, 1]) {
+      const x = e * (L / 2 - 0.06);
+      for (const z of [-GANGWAY - 0.12, GANGWAY + 0.12]) B.box(x, f + 1.05, z, 0.12, 2.1, 0.14, DESK);
+      B.box(x, f + 2.12, 0, 0.12, 0.18, GANGWAY * 2 + 0.5, DESK);
+      B.box(x, f + 0.02, 0, 0.14, 0.04, GANGWAY * 2 + 0.2, TRIM);
+    }
     return B.build();
   }
-  // stoelen
-  for (const s of cl.seats) {
-    B.box(s.x, f + 0.2, s.z, 0.4, 0.4, 0.34, SEAT_DARK);
-    B.box(s.x, f + 0.44, s.z, 0.5, 0.1, 0.42, SEAT);
-    B.box(s.x - 0.23, f + 0.8, s.z, 0.08, 0.62, 0.42, SEAT);
+  // plafondkoof langs de wanden, de drempels met een gele strip bij elke deur
+  for (const s of [-1, 1]) B.box(0, c - 0.06, s * (WALL_Z - 0.16), L - 0.6, 0.06, 0.24, COVE);
+  for (const d of cl.doors) {
+    B.box(d, f + 0.008, 0, DOOR_W, 0.018, WALL_Z * 2 - 0.06, TRIM);
+    for (const s of [-1, 1]) B.box(d, f + 0.014, s * (WALL_Z - 0.32), DOOR_W - 0.1, 0.02, 0.12, POLE);
   }
-  // haltestangen en de lange stang boven de stoelen
+  // stoelen
+  for (const s of cl.seats) seat(B, s, f);
+  // haltestangen, de lange stang boven de stoelen en de lussen eraan
   for (const p of cl.poles) B.box(p.x, (f + c) / 2, p.z, 0.05, c - f, 0.05, POLE);
   for (const sz of [-0.5, 0.5]) B.box((cl.saloon[0] + cl.saloon[1]) / 2, c - 0.22, sz, cl.saloon[1] - cl.saloon[0], 0.035, 0.035, POLE);
+  for (const sz of [-0.5, 0.5]) for (let x = cl.saloon[0] + 1.0; x < cl.saloon[1] - 0.6; x += 1.7) {
+    B.box(x, c - 0.33, sz, 0.04, 0.22, 0.02, STRAP);
+    B.box(x, c - 0.45, sz, 0.17, 0.04, 0.035, POLE);
+  }
+  // bagagerek boven de ramen, aan beide kanten van het gangpad
+  for (const s of [-1, 1]) rack(B, s, f, c, cl.saloon[0] + 0.15, cl.saloon[1] - 0.15, cl.pillars);
   // de cabine: een wand met een deurtje in het gangpad, het bureau met instrumenten, het zitje van de machinist
   if (cl.cab) {
     const e = cl.cab, xb = cl.bulkhead;
@@ -111,9 +188,22 @@ function doorLeafGeometry(cfg, cl) {
   const key = `${cfg.door}|${cl.ceilY - cl.floorY}`;
   let g = doorGeoCache.get(key);
   if (!g) {
+    // Een deurblad per helft: een donkere plint, het paneel in de kleur van de trein, een raam met
+    // kozijn, een lichte binnenplaat en een greep aan beide randen (de bladen schuiven naar elkaar).
     const B = new GeoBuilder(1);
-    B.box(0, 1.0, 0, DOOR_W / 2 - 0.02, 2.0, 0.04, cfg.door);
-    B.box(0, 1.55, 0, DOOR_W / 2 - 0.2, 0.6, 0.045, GLASS);
+    const w = DOOR_W / 2 - 0.02;
+    B.box(0, 0.14, 0, w, 0.28, 0.05, DESK);
+    B.box(0, 1.06, 0, w, 1.56, 0.045, cfg.door);
+    B.box(0, 1.92, 0, w, 0.16, 0.045, cfg.door);
+    B.box(0, 1.52, 0, w - 0.18, 0.6, 0.055, GLASS);
+    for (const y of [1.22, 1.82]) B.box(0, y, 0, w - 0.16, 0.05, 0.06, TRIM);
+    for (const x of [-w / 2 + 0.09, w / 2 - 0.09]) B.box(x, 1.52, 0, 0.06, 0.62, 0.06, TRIM);
+    // de binnenplaat en de grepen, aan beide kanten van het blad
+    for (const s of [-1, 1]) {
+      B.box(0, 0.78, s * 0.028, w - 0.12, 0.72, 0.012, DOOR_IN);
+      B.box(0, 1.16, s * 0.03, w - 0.12, 0.03, 0.012, TRIM);
+      for (const x of [-w / 2 + 0.05, w / 2 - 0.05]) B.box(x, 1.0, s * 0.035, 0.035, 0.34, 0.03, POLE);
+    }
     g = markShared(B.build());
     doorGeoCache.set(key, g);
   }
@@ -159,7 +249,7 @@ function buildInterior(group, cfg, seg, cl, seed) {
     const dm = materials()[0];
     for (const dx of cl.doors) for (const s of [-1, 1]) for (const half of [-1, 1]) {
       const mesh = new THREE.Mesh(leaf, dm);
-      mesh.position.set(dx + half * DOOR_W / 4, cl.floorY, s * (WALL_Z + 0.02));
+      mesh.position.set(dx + half * DOOR_W / 4, cl.floorY, s * (WALL_Z - 0.075));
       mesh.frustumCulled = false;
       interior.add(mesh);
       doors.push({ mesh, x: dx, half });
