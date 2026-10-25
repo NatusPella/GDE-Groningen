@@ -59,6 +59,8 @@ const LABELS = {
   ' ': { foot: 'Spring', minigame: 'Spring', vehicle: 'Handrem', vehicleManual: 'Handrem', skutsje: 'Handrem', heli: 'Omhoog', pigeon: 'Vlieg', train: 'Noodrem', foodtruck: 'OK', klokken: 'Start', cutscene: 'Overslaan' },
   control: { heli: 'Omlaag', pigeon: 'Pikken', foot: 'Bukken', minigame: 'Bukken' },
   e: { _: 'Gebruik', pannenkoek: 'Appel', klokken: 'Volgend' }, f: 'Instappen', h: 'Toeter', l: 'Sirene', q: { _: 'Achterom', pannenkoek: 'Stroop', klokken: 'Vorig' }, n: 'Radio', m: 'Kaart', o: { _: 'Overslaan', bus: 'Deuren', train: 'Deuren' }, k: { _: 'Kusje', bus: 'Knielt', train: 'Waak' },
+  // #495: de twee acties die het pad erbij kreeg, zodat de knop op aanraakbediening ook een naam heeft
+  i: { _: 'Hengelen', skutsje: 'Hengelen', vehicle: 'Hengelen' }, t: { _: 'Hef', train: 'Rondlopen' }, b: 'Bij de groep',
   shift: 'Rennen', tab: 'Doel', c: 'Koer', x: 'Mens', v: 'Film', r: { _: 'Lak', pannenkoek: 'Kaas' }, z: 'Zeil vieren', '[': 'Links', ']': 'Rechts', p: 'Alarm',
   backspace: 'Stop', g: 'Dienst', j: 'Koppeling', ',': 'Lager', '.': 'Hoger', s: 'Rem', w: { _: 'Gas', pannenkoek: 'Spek', train: 'Trek' },
   '@fire': 'Vuur', '@aim': 'Richt', '@gas': 'Gas', '@brake': 'Rem', '@wheel+': 'Wapen', '@wheel-': 'Wapen',
