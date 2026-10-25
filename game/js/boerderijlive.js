@@ -3,9 +3,10 @@
 // zaaigoed en machines uit het geld van de speler en verkoopt de oogst met de loonfactor van het vak Landbouw. Geen DOM en geen THREE
 // (scripts/boerderij_live_test.mjs).
 //
-// Samen spelen: de boerderij is van wie speelt, op zijn eigen apparaat. Een gast draait updateGameplay niet, dus zijn gewassen groeien
-// niet terwijl hij in de wereld van een ander meespeelt; ze wachten op hem. Wat wie het spel opende verdient met een verkoop deelt hij
-// zoals alle verdiensten met de gasten (loopbaanVerdien).
+// Samen spelen: de boerderij is van wie speelt, op zijn eigen apparaat (eigen opslag, eigen geld, eigen oogst).
+// Een gast boert op zijn eigen akker als lokale minigame en zijn gewassen groeien mee met de klok van de
+// gastheer: hij is even lang weg van zijn eigen spel als hij meespeelt, dus de tijd telt door (#471). Wat
+// wie het spel opende verdient met een verkoop deelt hij zoals alle verdiensten met de gasten (loopbaanVerdien).
 
 import { KEYS } from './storagekeys.js';
 import { noteMoney } from './finance.js';
