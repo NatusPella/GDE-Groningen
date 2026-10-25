@@ -430,4 +430,13 @@ t('de marker bij een gast (#434): het doel gaat voor, een doel bij een garage kr
   assert.equal(G.GARAGE_MARKER_M > 0, true);
 });
 
+t('de kluis en de lasers van de inbraak tellen de hele groep (#452, punt 3)', () => {
+  const src = fs.readFileSync(new URL('../game/js/missions.js', import.meta.url), 'utf8');
+  assert.match(src, /\{ kind: 'laser', iedereen: true, target: \{ heistSpot: 'stand' \}/);
+  assert.match(src, /\{ kind: 'crack', iedereen: true, target: \{ heistSpot: 'stand' \}/);
+  // de poort in updateMissions vraagt iedereen bij een stap met de vlag, tenzij de stap zelf de groep leest
+  assert.match(src, /if \(st\.iedereen && !GROEPSTAPPEN\.has\(st\.kind\) && !groepKlaar\(world, st, S\.target\)\)/);
+  assert.match(src, /const GROEPSTAPPEN = new Set\(\['goto', 'hold', 'board', 'escape', 'chase'\]\)/);
+});
+
 console.log(`coopmissie_test: ${n}/${n} ok`);

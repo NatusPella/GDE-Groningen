@@ -47,6 +47,16 @@ t('weigerReden: alleen vrije voertuigen, geen vliegtuig, geen verkeer of opdrach
   assert.equal(B.weigerReden(auto(1, 0, 0, { passenger: 'companion' })), 'bezet');
   assert.equal(B.weigerReden(auto(1, 0, 0, { road: {} })), 'verkeer');
   for (const k of ['isPolice', 'isBus', 'isHeroCar', 'playerOwned', 'missionCar']) assert.equal(B.weigerReden(auto(1, 0, 0, { [k]: true })), 'niet', k);
+  // de regel uit het voertuigregister (#452): ook zonder de oude vlaggen
+  assert.equal(B.weigerReden(auto(1, 0, 0, { model: { name: 'bus' } })), 'niet', 'bus');
+  assert.equal(B.weigerReden(auto(1, 0, 0, { model: { name: 'train' } })), 'niet', 'trein');
+  assert.equal(B.weigerReden(auto(1, 0, 0, { model: { name: 'taxi' } })), null, 'taxi');
+  assert.equal(B.weigerReden(auto(1, 0, 0, { model: { name: 'bike' } })), null, 'fiets');
+  assert.deepEqual(B.coopRegelVoor({ model: { name: 'bus' } }), { stoelen: 2, passagiers: 6, bestuur: 'nee', model: 'bus' });
+  assert.deepEqual(B.coopRegelVoor({}), B.COOP_STANDAARD_VOERTUIG, 'onbekend model: veilige standaard');
+  assert.equal(N.figuurPlekken({ model: { name: 'bus' } }), 6, 'de bus heeft zes plekken');
+  assert.equal(N.figuurPlekken({ model: { name: 'hatch' } }), 3, 'een auto drie');
+  assert.equal(N.figuurPlekken({ model: { name: 'bike' } }), 0, 'een fiets geen');
 });
 
 t('gast (plek 1) stapt in als bestuurder, de host ziet hem, en het voertuig krijgt zijn invoer', () => {

@@ -10,6 +10,7 @@ import { kanUitstappen, wielInvoer } from './coopgast.js';
 import { seatedOf } from './occupants.js'; // wie er op de stoelen zit (AI-passagiers)
 import { isPassief } from './cooppvp.js'; // een medespeler eruit trekken kan alleen buiten de passieve stand (#447)
 import { trekKandidaat, openDeurVoor, openDeurVoorRol, trekPunt, deurNaam } from './vehicledoors.js'; // deur, bereik en stilstand (#459)
+import { coopVanModel } from './vehicleregister.js'; // de coöp-regel per voertuigmodel (#452, punt 14/23/24)
 // De rechten op een eigen voertuig van een medespeler (#449) staan hier: coopbezit.js wijst naar dit bestand, niet
 // andersom, zodat er geen importkring ontstaat.
 export function magGebruiken(recht, slot, eigenaar) {
@@ -77,12 +78,19 @@ export function gastLichamen(world) {
 export const bestuurt = (lichaam) => !!(lichaam && lichaam.coopBestuurt);
 export const bestuurderVan = (world, slot) => (rijders(world)[slot] || null);
 
-// Mag een gast dit voertuig besturen? Geparkeerde auto, fiets, scooter en boot die vrij zijn (niemand erin, geen verkeer, geen opdrachtauto of eigen auto van de host, behalve een machine van de boerderij van de host: #415);
-// een helikopter of vliegtuig niet. Een eigen voertuig dat een gast meenam (#449, coopbezit.js) mag wel, als
-// die hem deelt (recht 'ik' is alleen voor de eigenaar). Geeft null als het mag, anders de reden.
+// De coöp-regel van dit voertuig (vehicleregister.js): stoelen, passagiers en of een gast mag sturen.
+// Een onbekend model (tests, een oud voertuig) krijgt de veilige standaard van een gewone auto.
+export const COOP_STANDAARD_VOERTUIG = Object.freeze({ stoelen: 2, passagiers: 3, bestuur: 'gast' });
+export const coopRegelVoor = (v) => coopVanModel(v && v.model) || COOP_STANDAARD_VOERTUIG;
+
+// Mag een gast dit voertuig besturen? Eerst de regel uit het register: een helikopter, vliegtuig,
+// bus, trein of politieauto staat op 'nee'; daarna de toestand van dit exemplaar (bezet, verkeer,
+// opdrachtauto, eigen auto van de host). Een eigen voertuig dat een gast meenam (#449, coopbezit.js)
+// mag wel, als die hem deelt (recht 'ik' is alleen voor de eigenaar). Geeft null als het mag, anders de reden.
 export function weigerReden(v, slot = null) {
   if (!v) return 'geen';
   if (v.isHeli || v.isPlane) return 'vlieg';
+  if (coopRegelVoor(v).bestuur === 'nee') return 'niet'; // de regel van het model, ook zonder de oude vlaggen
   if (v.driver || v.passenger || v.wrecked || v.sinking || v.disabled) return 'bezet';
   if (v.road || v.countryDrive) return 'verkeer';
   if (v.coopBezit) return magGebruiken(v.coopBezit.recht, slot, v.coopBezit.slot) ? null : 'gedeeld';

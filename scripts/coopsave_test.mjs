@@ -1,5 +1,6 @@
 // Samen spelen (#95): wat een sessie onthoudt (game/js/coopsave.js). Geen coöp-save, geen gedeelde save.
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import * as S from '../game/js/coopsave.js';
 import { BASE_KEYS, KEYS } from '../game/js/storagekeys.js';
 import { missieKlaarId } from '../game/js/achievements.js';
@@ -65,4 +66,14 @@ t('prestaties per speler: een meegespeelde opdracht staat als gedaan in zijn eig
   assert.equal(missieKlaarId(0), 'm1_klaar'); assert.equal(missieKlaarId(7), 'm8_klaar'); assert.equal(missieKlaarId(999), null);
   assert.deepEqual(S.applyGuestAchievements({ prestaties: { unlocked: [] } }, [missieKlaarId(2)]).prestaties.unlocked, ['m3_klaar']);
 });
+t('een gast bewaart zijn verdiensten meteen, ook achter het pauzemenu, en hoort het als schrijven niet lukt (#452, punt 19)', () => {
+  const src = readFileSync(new URL('../game/js/savegame.js', import.meta.url), 'utf8');
+  const bewaar = src.indexOf("if (w.coopRole === 'client' && w.coopVerdiend > 0) saveGuestEarnings(w);");
+  const pauze = src.indexOf('if (w.paused) return;');
+  assert.ok(bewaar > 0 && pauze > 0 && bewaar < pauze, 'het bewaren staat voor de pauze-terugkeer');
+  assert.doesNotMatch(src, /coopVerdiend > 0 && !w\.paused/, 'de oude voorwaarde is weg');
+  assert.match(src, /Je verdiensten worden nog niet bewaard\. We proberen het opnieuw\./);
+  assert.match(src, /gastBewaarMeld\(w\)/, 'een mislukte schrijfbeurt wordt gemeld en opnieuw geprobeerd');
+});
+
 console.log(`coopsave_test: ${n}/${n} ok`);

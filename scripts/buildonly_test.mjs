@@ -8,7 +8,6 @@ import { BUILD_ONLY } from './lib/buildonly.mjs';
 
 // bouw-only volgens de grafiek maar bewust niet uitgesloten
 const KEEP = {
-  'coopactivities.js': 'coop (#95) wordt nog aangesloten',
   'cooproles.js': 'coop (#95) wordt nog aangesloten',
   'coopstate.js': 'coop (#95) wordt nog aangesloten',
   'treincoop.js': 'coop (#444): de rollen in de trein, wordt nog aangesloten op de coöp-laag',
