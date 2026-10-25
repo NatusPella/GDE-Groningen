@@ -7,6 +7,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Opgelost
+- **De GPS springt niet meer over het veld bij de stadsrand.** Waar een wandel- of fietsroute van de provinciewegen de stad in gaat, kiest hij een overgang die bij die manier van reizen past; bij de Beneluxweg sprong de lijn 205 m over het veld naar het dichtstbijzijnde voetpad.
 - **Een onvolledige build gaat niet meer de deur uit.** Bij het stagen wordt nu gecontroleerd dat elk tegelpakket uit de wereldindex bestaat met de juiste grootte en dat alle scenariomuziek en radiostationnummers in de map staan; een half geschreven wereld-cache wordt opnieuw gebouwd. Dat voorkomt de 404's op tegels en op de menumuziek uit het foutrapport van 0.50.0.
 - **Het foutrapport toont alleen de versie die je draait.** Meldingen uit een eerdere versie reizen niet meer mee met een upgrade, dus een allang gefixte fout lijkt niet meer open te staan.
 - **Een lange treinrit wordt niet meer na 2,5 minuut afgekapt.** De waakhond respecteert de duur die de rit zelf opgeeft in plaats van een vaste grens van 150 seconden.
