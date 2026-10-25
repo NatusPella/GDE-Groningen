@@ -66,6 +66,12 @@ body:has(#pause-menu.prestart.visible) #start-screen .ss-foot { visibility: hidd
 #pause-menu .pm-slist .pm-status { margin: 4px 24px 8px; }
 
 /* the panel */
+/* de kop staat onder elkaar: datum, titel, uitleg; anders valt de uitleg naast de titel (#463) */
+#pause-menu .pm-sheet-head { display: block; }
+#pause-menu .pm-sheet-titles { min-width: 0; }
+#pause-menu .pm-sheet-eb { white-space: nowrap; }
+#pause-menu .pm-sheet-r { margin-top: 6px; width: auto; height: auto; }
+#pause-menu .pm-sheet-sub { max-width: 760px; white-space: normal; text-align: left; }
 #pause-menu .pm-sheet { left: 416px; right: 80px; top: var(--mt); bottom: var(--mb); }
 #pause-menu .pm-sheet-head .m-eb[hidden] { display: none; }
 #pause-menu .pm-sheet-sub { font-size: 20px; max-width: 760px; }
