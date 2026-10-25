@@ -360,5 +360,19 @@ t('een niveau met een handeling zegt wat je nu kunt (#437)', () => {
   schoon();
 });
 
+t('de volledige dienst als machinist hoort bij Spoor, met de stand als hij loopt (#437)', () => {
+  const leeg = L.dienstTekst(null);
+  assert.match(leeg, /Dienst als machinist/);
+  assert.match(leeg, /druk dan G/);
+  assert.match(leeg, /telt mee voor Spoor/);
+  const stops = [{ name: 'Haren', done: true }, { name: 'Zuidhorn', done: false, next: true }, { name: 'Grijpskerk', done: false }];
+  assert.equal(L.dienstTekst({ stops }), 'Dienst als machinist: 1 van 3 halten klaar, volgende Zuidhorn.');
+  assert.match(L.dienstTekst({ stops: [stops[0]] }), /laatste halte/);
+  assert.match(L.dienstTekst({ stops: [] }), /stap bij de cabine/, 'een lege dienst valt terug op de uitleg');
+  assert.match(L.dienstTekst({ stops: 'kapot' }), /stap bij de cabine/, 'onzin valt terug op de uitleg');
+  assert.match(L.startVan('trein').klus, /machinist/);
+  assert.match(L.startVan('trein').klus, /druk E en dan G/);
+});
+
 console.log(`loopbaan_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

@@ -58,4 +58,12 @@ t('de hengelhouding volgt de fase: uitwerpen, klaar, de ruk bij een beet en het 
   for (const fase of ['idle', 'cast', 'wait', 'bite', 'scare']) assert.ok(HENGEL_POSE[fase], fase);
 });
 
+t('ook een gast aan de kant hengelt zelf: de hengel is niet alleen van de host (#437)', () => {
+  const w = wereld({ coopRole: 'client', player: { x: 1000, y: 1498, vx: 0, vy: 0 } });
+  HENGELEN.tick(0.5, w);
+  const p = hengelVrijPrompt(w, false);
+  assert.ok(p, 'een gast aan de waterkant krijgt het hengelprompt'); assert.equal(p.id, 'hengel-vrij'); assert.equal(p.key, 'I');
+  assert.equal(hengelVrijPrompt(w, true), null, 'het bootprompt is het niet');
+});
+
 console.log(`coophengelboot_test: ${n}/${n} ok`);

@@ -113,15 +113,35 @@ function placeStrook(strook, r, hoogte, p) {
 
 // Wat de machine doet, in gewone woorden en met de toets erbij: de ploeg, zaaier, strooier en rooier hebben geen eigen knop;
 // ze werken zodra je in de rij rijdt. Gas geven is W (of het pijltje omhoog), sturen met A en D.
-const UITLEG = {
+export const UITLEG = {
   ploegen: 'De ploeg zakt vanzelf zodra je in de rij rijdt: gas geven met W en recht door, er is geen knop voor de ploeg.',
   zaaien: 'De zaaimachine zaait vanzelf zodra je in de rij rijdt: gas geven met W en recht door.',
   bemesten: 'De strooier strooit vanzelf zodra je in de rij rijdt: gas geven met W en recht door.',
   oogsten: 'De rooier rooit vanzelf zodra je in de rij rijdt: gas geven met W en recht door.',
 };
 // De knop in het pausemenu heet "Stoppen met <naam van de baan>" (pausemenu.js): noem die naam, dan zoekt de speler niet.
-const stopHint = (c) => `Stoppen kan altijd: Esc en dan Stoppen met ${c.job ? c.job.name : 'deze dienst'}.`;
+const stopHint = (baan) => `Stoppen kan altijd: Esc en dan Stoppen met ${baan || 'deze dienst'}.`;
 const MELDING = { tehard: 'Te hard: het werk wordt slordig (de helft van die meters telt). Gas terug.', scheef: 'Blijf in de rij.', lading: 'Rustig: de oogst rolt van de kar.' };
+
+// De uitleg bij rij 1 van 4 (#437): wat de machine doet (geen knop), waarmee je gas geeft en hoe je stopt. Puur, zodat
+// scripts/ploegwerk_test.mjs de tekst kan controleren zonder de wereld te bouwen.
+export function rijUitleg(taak, baan = null) {
+  return `Rij 1 van ${RIJEN}: ${UITLEG[taak] || ''} ${stopHint(baan)}`.trim();
+}
+// Het doel in het HUD: dezelfde uitleg, de snelheidsband in km/u en de stophint. De bovengrens komt uit de ronde (die
+// zakt op een hoger niveau), niet uit de tabel; harder dan de band is slordig werk.
+export function doelUitleg(taak, vMax, baan = null) {
+  const band = BAND[taak];
+  return `${UITLEG[taak] || ''} Houd ${kmh(band.vMin)} tot ${kmh(vMax)} km/u aan; harder is slordig werk. ${stopHint(baan)}`.trim();
+}
+// De volgende klus als doel op de kaart (#437): je eigen akker met wat er nu moet gebeuren, of null als er niets te
+// doen is (er is nog geen akker, of het gewas groeit). routing.js zet het waypoint; hier alleen de gegevens.
+export function volgendeKlus() {
+  const b = getBoerderij();
+  if (!b.perceel) return null;
+  const taak = B.volgendeTaak(b);
+  return taak ? { x: b.perceel.x, y: b.perceel.y, label: `Je akker: ${B.TAKEN[taak].naam.toLowerCase()}` } : null;
+}
 
 function stelTaakIn(c, taak) {
   const d = c.data, b = getBoerderij();
@@ -236,7 +256,7 @@ export default {
       // De uitleg komt pas als je echt bij rij 1 staat (#437): bij de start van de dienst sta je nog bij het startpunt, ver van het perceel.
       if (!d.uitleg && s.rij === 0 && Math.abs(pos.across) <= s.tol && pos.along > -1 && pos.along <= s.len) {
         d.uitleg = true;
-        c.msg(`Rij 1 van ${RIJEN}: ${UITLEG[d.taak]} ${stopHint(c)}`, 8);
+        c.msg(rijUitleg(d.taak, c.job && c.job.name), 8);
       }
     }
     for (const e of step(s, input, dt)) {
@@ -282,12 +302,11 @@ export default {
     const rij = d.rijen[s.rij];
     const pos = rijPositie(rij, c.vehicle.x, c.vehicle.y);
     const naarBegin = pos.along < 6 || Math.abs(pos.across) > s.tol * 2;
-    const band = BAND[d.taak];
     return {
       marker: naarBegin ? { x: rij.ax, y: rij.ay } : { x: rij.bx, y: rij.by },
       dots: d.rijen.slice(s.rij + 1).map((r) => ({ x: r.ax, y: r.ay })),
       progress: `Boerderij · ${naam} · rij ${Math.min(s.rij + 1, RIJEN)}/${RIJEN} · ${pct(fractie(s))}`,
-      goal: { label: naarBegin ? 'Naar het begin van de rij' : `${naam}: rij tot het eind`, desc: `${UITLEG[d.taak]} Houd ${kmh(band.vMin)} tot ${kmh(s.vMax)} km/u aan; harder is slordig werk. ${stopHint(c)}` },
+      goal: { label: naarBegin ? 'Naar het begin van de rij' : `${naam}: rij tot het eind`, desc: doelUitleg(d.taak, s.vMax, c.job && c.job.name) },
     };
   },
 
@@ -296,8 +315,8 @@ export default {
     if (d.machine) { c.removeMesh(d.machine); d.machine = null; }
     ruimVeld(d);
     // de volgende klus als doel op de kaart: je akker, met wat er nu moet gebeuren
-    const b = getBoerderij(), taak = b.perceel ? B.volgendeTaak(b) : null;
-    if (taak) import('./routing.js').then((r) => r.setUserWaypoint(b.perceel.x, b.perceel.y, `Je akker: ${B.TAKEN[taak].naam.toLowerCase()}`)).catch(() => {}); // uitgesteld geladen: een vaste import maakte een kring met routing, shops en sidejobs
+    const doel = volgendeKlus();
+    if (doel) import('./routing.js').then((r) => r.setUserWaypoint(doel.x, doel.y, doel.label)).catch(() => {}); // uitgesteld geladen: een vaste import maakte een kring met routing, shops en sidejobs
   },
 };
 
