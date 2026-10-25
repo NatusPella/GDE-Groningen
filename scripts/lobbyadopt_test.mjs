@@ -75,4 +75,24 @@ await t('pure logica: laatste-code overleeft het beginscherm; adopteer zet rol, 
   assert.equal(reduce(createLobby({}), { t: 'adopteer', rol: 'iets', route: 'iets', lijst: 'onzin' }).rol, 'gast', 'onzin valt terug op de veilige keuze');
 });
 
-console.log(`lobbyadopt_test: ${n}/4 ok`);
+await t('spel overdragen vanuit de wachtkamer: de knop vraagt wie, de keuze gaat naar de overdracht (#439)', async () => {
+  const root = fakeRoot(), geef = [];
+  const hub = { roster: roster([[0, 'anita'], [1, 'tammo'], [2, 'tessa']]), vrijePlekken: true, onchange: null };
+  const lobby = mountLobby(root, { disconnect() {}, kick() {}, overdragen: (slot) => { geef.push(slot); return { ok: true }; } }, { adopt: { code: 'ABCDE-FGHJK', route: 'kamer' }, rol: 'host', hub });
+  assert.match(root.innerHTML, /Spel overdragen/);
+  root.click('overdragen');
+  assert.equal(lobby.state().step, 'overdragen-kies');
+  assert.match(root.innerHTML, /Aan Tammo overdragen/, 'je kiest een speler, niet jezelf');
+  root.click('overdragen-1');
+  assert.deepEqual(geef, [1], 'de gekozen plek gaat naar de overdracht');
+  assert.equal(lobby.state().step, 'verbonden', 'terug naar de spelerslijst; de vraag en de pauze tekenen zichzelf');
+  // een weigering blijft in de keuze staan, met de reden; Terug gaat naar de lijst
+  const root2 = fakeRoot();
+  const l2 = mountLobby(root2, { disconnect() {}, kick() {}, overdragen: () => ({ ok: false, tekst: 'Die speler is nu niet goed bereikbaar. Jij houdt het spel.' }) }, { adopt: { code: 'ABCDE-FGHJK', route: 'kamer' }, rol: 'host', hub });
+  root2.click('overdragen'); root2.click('overdragen-1');
+  assert.equal(l2.state().step, 'overdragen-kies'); assert.match(l2.state().error, /niet goed bereikbaar/);
+  root2.click('overdragen-terug'); assert.equal(l2.state().step, 'verbonden');
+  lobby.close(); l2.close();
+});
+
+console.log(`lobbyadopt_test: ${n}/5 ok`);
