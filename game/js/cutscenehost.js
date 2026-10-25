@@ -10,9 +10,9 @@ import { carModel } from './trafficfleet.js';
 import { propSource } from './cutscenemodels.js';
 import { compileScene, fitAnchor, resolveTime, shotPoints } from './cutscript.js';
 import { roofAt } from './camerapath.js';
-import { animateActor } from './actoranim.js';
+import { animateActor, beginSceneActors } from './actoranim.js';
 import { audioPlan } from './cutaudio.js';
-import { cutPakket, cutHostId, cutHostStart, cutHostEnd, cutHostTik, cutGastTik } from './coopcut.js';
+import { cutPakket, cutHostId, cutHostStart, cutHostEnd, cutHostTik, cutGastTik, cutsceneScene, cutsceneVerdeling, acteurRol } from './coopcut.js';
 
 const STEL = { tempo: setCinematicRate, tijd: setCinematicTime };
 
@@ -111,6 +111,15 @@ function buildScriptRun(def, scene, anchor, env = null, w = null) {
     group.add(m);
     actors[id] = m;
   }
+  // (#434) elke rol één keer: de eigen rol is de speler, de andere verhaalrol de
+  // metgezel. Een tweede kopie van een rol wordt niet getekend, en elke rol krijgt één
+  // acteurstaat in de animatielaag (actoranim.js), zodat de metgezel niet meebeweegt.
+  const eigen = w && w.coopCutRol && w.coopCutRol.defId === def.id ? w.coopCutRol : null;
+  const rolScene = eigen || cutsceneScene({}, (w && w.player) || {});
+  const verdeling = rolScene.verdeling || cutsceneVerdeling(def, rolScene);
+  const verberg = new Set(verdeling.verberg);
+  const rolVan = (id) => { const r = verdeling.perActeur[id]; return r === 'speler' || r === 'metgezel' ? acteurRol(id, (def.actors || {})[id]) : null; };
+  beginSceneActors();
   for (const [id, p] of Object.entries(def.props || {})) {
     const src = propSource(p.kind);
     const m = src ? worldProp(src) : PROP_MAKERS[p.kind]();
@@ -166,12 +175,13 @@ function buildScriptRun(def, scene, anchor, env = null, w = null) {
       kitchenFrame(t);
       for (const [id, m] of Object.entries(actors)) {
         const st = s.actors[id];
+        if (verberg.has(id)) { m.visible = false; continue; } // (#434) een dubbele kopie van een rol danst niet mee
         m.visible = st.visible !== false;
         m.position.set(st.x, st.h + (st.anim === 'ride' ? 0.4 : 0), st.y);
         m.rotation.set(0, -st.a, 0);
         if (m.userData.shadow) m.userData.shadow.visible = !st.sit;
         if (st.sit) seatedFrame(m, st, t);
-        else animateActor(m, { anim: st.anim, speed: st.speed, gaze: st.gaze, t, dt });
+        else animateActor(m, { anim: st.anim, speed: st.speed, gaze: st.gaze, t, dt, rol: rolVan(id) });
       }
       for (const [id, m] of Object.entries(props)) {
         const st = s.props[id];

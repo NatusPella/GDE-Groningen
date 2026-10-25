@@ -87,6 +87,23 @@ export function nieuwCutVerzamelaar() {
 // wat er met de scènes gebeurde (world.coopCutSpoor, voor de testbank en bij een melding): [tijd, wat, ...]
 export function cutSpoor(w, ...wat) { if (!w) return; const l = w.coopCutSpoor || (w.coopCutSpoor = []); l.push([Date.now(), ...wat]); if (l.length > 80) l.shift(); }
 
+// (#434) Een scène van de gastheer bestaat soms uit bedrijven (de opening uit drie). Tussen twee
+// bedrijven is er bij een gast even geen filmpje: de scène van de gastheer loopt door, dus de
+// andere spelers blijven nog even uit beeld in plaats van "gek mee" te lopen door de scène heen.
+export const CUT_HOLD = 1.2; // s
+export function cutsceneSpeelt(w, nu = Date.now()) {
+  const r = w && w.coopCutRol;
+  if (!r) return false;
+  return !(r.tot != null && nu >= r.tot);
+}
+// De scène is klaar: hij geldt nog CUT_HOLD seconden (een volgend bedrijf vervangt hem meteen).
+export function cutsceneKlaar(w, scène, nu = Date.now()) {
+  if (!scène) return false;
+  scène.tot = nu + CUT_HOLD * 1000;
+  if (w && w.coopCutRol === scène) return true;
+  return false;
+}
+
 // ---- de gastheer: een scène begint / eindigt
 let teller = 0;
 export function cutHostId() { return ++teller; }
@@ -97,7 +114,7 @@ export function cutHostStart(w, id, pakket) {
   const stukken = cutStukken(id, { ...pakket, ...(isVerhaalrol(rol) ? { rol } : {}) });
   if (!stukken.length) return false;
   n.cutNu = id; n.cutTikAt = null; n.cutLaatsteT = null;
-  w.coopCutRol = cutsceneScene({ rol }, w.player || {}); // de gastheer speelt de hoofdrol lokaal zelf (#455)
+  w.coopCutRol = cutsceneScene({ rol }, w.player || {}, pakket && pakket.def); // de gastheer speelt de hoofdrol lokaal zelf (#455)
   let ok = true; for (const s of stukken) ok = n.hub.announce(s) && ok;
   cutSpoor(w, 'host-start', id, stukken.length, ok);
   return ok;
@@ -134,10 +151,43 @@ export const gastCine = (p, klaar) => ({ ...p.cine, cutId: p.id, skippable: true
 // (#455) Rollen in de scène: de scène vraagt een hoofdrol (p.rol, anders de eigen
 // rol). Elke client speelt die lokaal zelf; de andere verhaalrol is de metgezel en
 // staat er één keer. De online-avatars van medespelers staan niet in de scène.
-export function cutsceneScene(p, profiel = {}) {
+export function cutsceneScene(p, profiel = {}, def = null) {
   const eigen = eigenVerhaalrol(profiel);
   const hoofdrol = p && isVerhaalrol(p.rol) ? p.rol : eigen;
-  return { hoofdrol, eigen, tijdelijk: hoofdrol !== eigen, metgezel: andereVerhaalrol(hoofdrol), avatarsZichtbaar: false, metgezelEenmalig: true };
+  const scène = { hoofdrol, eigen, tijdelijk: hoofdrol !== eigen, metgezel: andereVerhaalrol(hoofdrol), avatarsZichtbaar: false, metgezelEenmalig: true };
+  if (def) { scène.verdeling = cutsceneVerdeling(def, scène); scène.defId = def.id; }
+  return scène;
+}
+
+// (#434) Welke verhaalrol is een acteur van een scène? De id en het uiterlijk zeggen
+// hetzelfde: 'tammo' is Tammo, 'tessa' (de id in de scènes) en 'anita' (haar id in het
+// verhaal) zijn Tessa. Elke andere acteur is een omstander.
+export function acteurRol(id, spec) {
+  const look = spec && spec.look;
+  if (isVerhaalrol(look)) return look;
+  if (look === 'tessa') return 'anita';
+  if (isVerhaalrol(id)) return id;
+  return id === 'tessa' ? 'anita' : null;
+}
+
+// (#434) Eén rol per speler, de metgezel één keer: welke acteurs van de scène worden
+// getekend? De acteur van de rol die deze speler speelt is de speler, de andere
+// verhaalrol is de metgezel. Staat een rol er twee keer in (een alias of een tweede
+// kopie), dan tekent alleen de eerste; de rest gaat op de verberglijst, anders danst
+// er een dubbel persoon mee. Omstanders horen er gewoon bij.
+export function cutsceneVerdeling(def, scène) {
+  const perActeur = {}, teken = [], verberg = [], gezien = new Set();
+  const spelRol = scène && isVerhaalrol(scène.hoofdrol) ? scène.hoofdrol : null;
+  const metgezelRol = scène && isVerhaalrol(scène.metgezel) ? scène.metgezel : null;
+  for (const [id, spec] of Object.entries((def && def.actors) || {})) {
+    const rol = acteurRol(id, spec);
+    if (!rol) { perActeur[id] = 'figuur'; teken.push(id); continue; }
+    if (gezien.has(rol)) { perActeur[id] = 'dubbel'; verberg.push(id); continue; }
+    gezien.add(rol);
+    perActeur[id] = rol === spelRol ? 'speler' : rol === metgezelRol ? 'metgezel' : 'figuur';
+    teken.push(id);
+  }
+  return { perActeur, teken, verberg, spelRol, metgezelRol };
 }
 
 // ---- de gast: de scène spelen (lui geladen: three.js en de cutscene-spelers horen niet bij het net)
@@ -146,11 +196,11 @@ export async function cutGastSpeel(w, p) {
   if (!w.coopNet || w.coopRole !== 'client') { cutSpoor(w, 'gast-geen-gast', p.id); return false; }
   if (w.coopCutBezig != null && w.coopCutBezig !== p.id) { try { (await import('./cinematics.js')).skipCinematic(); } catch (e) { /* al weg */ } } // de vorige scène is bij de gastheer al klaar
   w.coopCutBezig = p.id;
-  const scène = cutsceneScene(p, w.player || {});
+  const scène = cutsceneScene(p, w.player || {}, p.def);
   w.coopCutRol = scène;
   cutSpoor(w, 'gast-rol', p.id, scène.hoofdrol, scène.eigen, !!scène.tijdelijk);
   if (!w.coopCutHost || w.coopCutHost.id !== p.id) w.coopCutHost = null; // zijn eerste tijdbericht kan al binnen zijn
-  const klaar = () => { cutSpoor(w, 'gast-klaar', p.id); if (w.coopCutBezig === p.id) w.coopCutBezig = null; if (w.coopCutRol === scène) w.coopCutRol = null; };
+  const klaar = () => { cutSpoor(w, 'gast-klaar', p.id); if (w.coopCutBezig === p.id) w.coopCutBezig = null; cutsceneKlaar(w, scène); };
   const ok = m.playScript(w, p.def, {
     lines: p.lines, duration: p.duration, anchor: p.anchor || undefined, replay: true,
     cine: gastCine(p, klaar),
@@ -164,6 +214,7 @@ export async function cutGastStop(w, id, overgeslagen) {
   cutSpoor(w, 'gast-einde-bericht', id, !!overgeslagen, w.coopCutBezig);
   if (w.coopCutBezig == null || (id != null && w.coopCutBezig !== id)) return false;
   try { const c = await import('./cinematics.js'); c.skipCinematic(); } catch (e) { /* al weg */ }
-  w.coopCutBezig = null; w.coopCutRol = null;
+  cutsceneKlaar(w, w.coopCutRol);
+  w.coopCutBezig = null;
   return true;
 }

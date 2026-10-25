@@ -1,6 +1,6 @@
 // Samen spelen (#95): cutscenes samen bekijken (coopcut.js): de scène gaat in stukjes naar de gasten en komt heel aan.
 import assert from 'node:assert/strict';
-import { gastCine, cutPakket, cutStukken, cutEinde, nieuwCutVerzamelaar, leesCutPakket, cutHostStart, cutHostEnd, cutHostId, cutHostTik, cutGastTempo, cutGastTik, leesCutTijd, cutTijd, cutsceneScene, CUT_CHUNK } from '../game/js/coopcut.js';
+import { gastCine, cutPakket, cutStukken, cutEinde, nieuwCutVerzamelaar, leesCutPakket, cutHostStart, cutHostEnd, cutHostId, cutHostTik, cutGastTempo, cutGastTik, leesCutTijd, cutTijd, cutsceneScene, cutsceneVerdeling, acteurRol, cutsceneSpeelt, cutsceneKlaar, CUT_HOLD, CUT_CHUNK } from '../game/js/coopcut.js';
 import { openingActs, END_CARD } from '../game/js/cutscenes.js';
 import { encodeJson, decodeJson, T } from '../game/js/net/codec.js';
 import { Reliable } from '../game/js/net/protocol.js';
@@ -113,5 +113,31 @@ for (const [i, act] of acts.entries()) {
   ok(eigen.hoofdrol === 'tammo' && eigen.eigen === 'anita' && eigen.tijdelijk === true, 'een Tessa-speler speelt lokaal tijdelijk Tammo');
   ok(eigen.metgezel === 'anita' && eigen.metgezelEenmalig === true && eigen.avatarsZichtbaar === false, 'de metgezel staat er één keer en avatar-figuren niet');
   ok(cutsceneScene({ rol: 'tammo' }, { character: 'tammo' }).tijdelijk === false, 'eigen rol: geen wissel');
+}
+// elke speler één rol, de metgezel één keer (#434)
+{
+  const dubbel = { id: 'proef', actors: { tammo: { look: 'tammo' }, tessa: { look: 'anita' }, tessa2: { look: 'anita' }, buurvrouw: { look: { shirt: 1 } } } };
+  ok(acteurRol('tammo', { look: 'tammo' }) === 'tammo' && acteurRol('tessa', { look: 'anita' }) === 'anita', 'de id en het uiterlijk geven dezelfde verhaalrol');
+  ok(acteurRol('anita', {}) === 'anita' && acteurRol('tessa', {}) === 'anita' && acteurRol('buurvrouw', { look: {} }) === null, 'Tessa heeft twee ids; een omstander heeft geen rol');
+  const v = cutsceneVerdeling(dubbel, cutsceneScene({ rol: 'tammo' }, { character: 'tammo' }));
+  ok(v.perActeur.tammo === 'speler' && v.perActeur.tessa === 'metgezel', 'de speler en de metgezel allebei één keer');
+  ok(v.perActeur.tessa2 === 'dubbel' && v.verberg.length === 1 && v.verberg[0] === 'tessa2', 'een tweede kopie van een rol wordt niet getekend');
+  ok(v.perActeur.buurvrouw === 'figuur' && v.teken.includes('buurvrouw'), 'omstanders horen er gewoon bij');
+  const gast = cutsceneScene({ rol: 'tammo' }, { character: 'anita' }, dubbel);
+  ok(gast.defId === 'proef' && gast.verdeling.perActeur.tammo === 'speler' && gast.verdeling.perActeur.tessa === 'metgezel', 'de rol van de scène bepaalt wie de speler is');
+  ok(!('verdeling' in cutsceneScene({ rol: 'tammo' }, { character: 'anita' })), 'zonder scène geen rolverdeling');
+  // de keuken van de opening: Tammo en Tessa, elk één keer
+  const keuken = cutsceneVerdeling(acts[1].def, cutsceneScene({}, { character: 'tammo' }));
+  ok(keuken.teken.length === 2 && keuken.verberg.length === 0 && keuken.perActeur.tammo === 'speler' && keuken.perActeur.tessa === 'metgezel', 'de opening: twee mensen, elk één keer');
+  // tussen twee bedrijven van dezelfde scène blijven de andere spelers nog even uit beeld
+  const w = { coopCutRol: null };
+  const s = cutsceneScene({ rol: 'tammo' }, { character: 'anita' }, dubbel);
+  w.coopCutRol = s;
+  ok(cutsceneSpeelt(w, 1000) && cutsceneSpeelt({ coopCutRol: { hoofdrol: 'tammo' } }, 1e12), 'een lopende scène geldt');
+  ok(cutsceneKlaar(w, s, 1000) && cutsceneSpeelt(w, 1000 + CUT_HOLD * 1000 - 1), 'na een bedrijf geldt de scène nog even');
+  ok(!cutsceneSpeelt(w, 1000 + CUT_HOLD * 1000) && !cutsceneSpeelt({}), 'daarna is de wereld weer van de spelers');
+  const ander = { hoofdrol: 'tammo' };
+  w.coopCutRol = ander;
+  ok(!cutsceneKlaar(w, s, 1000) && w.coopCutRol === ander && ander.tot === undefined, 'een oude scène raakt een nieuwe niet');
 }
 console.log(`coopcut_test: ${n} ok`);
