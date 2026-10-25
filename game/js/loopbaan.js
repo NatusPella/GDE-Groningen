@@ -119,7 +119,7 @@ export const banenVan = (vak) => BAAN_IDS.filter((b) => BAAN_VAK[b] === vak);
 // loopbaan vanaf zijn eigen startplek (de baan staat daar) of vanuit het Loopbaan-scherm te beginnen, en is de
 // eerste klus nooit "zoek het zelf maar uit". De eerste klus van een baan is altijd een baan van datzelfde vak.
 export const START = {
-  trein: { baan: null, plek: 'Station Groningen', klus: 'Reis één keer met de trein; vanaf niveau 3 controleer je kaartjes op het perron.' },
+  trein: { baan: null, plek: 'Station Groningen', klus: 'Reis één keer met de trein, rijd een dienst als machinist (stap bij de cabine in, druk E en dan G) en controleer vanaf niveau 3 kaartjes op het perron.' },
   bus: { baan: 'lijn', plek: 'Bij de streekbus', klus: 'Eén dienst op de lijn: instappen en de route rijden.' },
   taxi: { baan: 'taxi', plek: 'Bij de taxistandplaats', klus: 'Eén rit met een klant van A naar B.' },
   bezorg: { baan: 'bezorger', plek: 'Bij de bezorgbus', klus: 'Eén ronde pakjes rondbrengen.' },
@@ -168,6 +168,17 @@ export function vaardigheidVan(vak, niveau) {
   let uit = null;
   for (const v of VAARDIGHEDEN[vak] || []) if (v.niveau <= niveau) uit = v;
   return uit;
+}
+
+// De treinloopbaan is meer dan reizen en kaartjes knippen: je rijdt zelf een volledige dienst als machinist (#437). De
+// dienst bestaat al in machinist.js; deze regel brengt hem naar het Loopbanen-scherm, met de stand als hij loopt. `service`
+// is wat getServiceMapState(world) geeft (stops met name/next/done) of null. Puur, zodat loopbaan_test.mjs hem dekt.
+export function dienstTekst(service) {
+  const stops = service && Array.isArray(service.stops) ? service.stops : [];
+  if (!stops.length) return 'Dienst als machinist: stap bij de cabine in een stilstaande trein (E), druk dan G. Elke halte van de dienst telt mee voor Spoor.';
+  const klaar = stops.filter((s) => s.done).length;
+  const next = stops.find((s) => s.next);
+  return `Dienst als machinist: ${klaar} van ${stops.length} halten klaar${next ? `, volgende ${next.name}` : ', laatste halte'}.`;
 }
 
 // Welke uitdaging van de nagame (postgame.js) bij welk vak hoort.

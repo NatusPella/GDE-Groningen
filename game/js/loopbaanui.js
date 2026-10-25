@@ -12,6 +12,7 @@ import { boekVoortgang } from './visboeklive.js';
 import { baanDoelen } from './todoui.js';
 import { loopbaanStap, STEP_BY_ID } from './storyarc.js';
 import { controleStand, CONTROLE_MIN_NIVEAU } from './kaartjescontrole.js';
+import { getServiceMapState } from './machinist.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const nl = (n) => Math.round(n).toLocaleString('nl-NL');
@@ -146,7 +147,16 @@ function kaartjesHtml(id, niveau) {
   return `<p class="mut">Kaartjescontrole: nog geen ronde gedaan; loop op een perron naar een reiziger en druk E.${sessie}</p>`;
 }
 
-function detailHtml(profiel, id) {
+// De volledige dienst als machinist (#437): zonder lopende dienst zegt de regel waar je hem begint, met een dienst
+// erbij de stand (halten klaar en de volgende). machinist.js levert de stand via getServiceMapState(world).
+function dienstHtml(id, w) {
+  if (id !== 'trein') return '';
+  let s = null;
+  try { s = w ? getServiceMapState(w) : null; } catch (e) { s = null; }
+  return `<p class="${s ? 'lb-kan' : 'mut'}">${esc(L.dienstTekst(s))}</p>`;
+}
+
+function detailHtml(profiel, id, w = null) {
   const info = L.vakInfo(id);
   if (!info) return '<p class="mut">Kies een vak om te zien hoe het ervoor staat.</p>';
   const v = profiel.vakken[id];
@@ -174,7 +184,7 @@ function detailHtml(profiel, id) {
     `<div class="lb-kop"><p class="lb-titel"><b>${esc(d.titel)}</b> <span class="mut">· niveau ${d.niveau} van ${L.MAX_NIVEAU}</span></p><p class="mut">${esc(info.wat)}</p></div>` +
     `<div class="lb-blok">${voort}<p class="mut">${doel}</p>` +
     `<p>${v.xp > 0 ? esc(telt.join(' · ')) : L.isGestart(profiel, id) ? 'Begonnen, nog geen klus gedaan.' : 'Nog niet begonnen.'}</p>` +
-    `<p class="${factor > 1 ? 'g' : 'mut'}">${factor > 1 ? `Dit vak betaalt nu ${L.percentage(factor)}% meer. ` : ''}${esc(L.loonTekst(id))}</p>${vaardigheid}${kaartjesHtml(id, d.niveau)}</div>` +
+    `<p class="${factor > 1 ? 'g' : 'mut'}">${factor > 1 ? `Dit vak betaalt nu ${L.percentage(factor)}% meer. ` : ''}${esc(L.loonTekst(id))}</p>${vaardigheid}${kaartjesHtml(id, d.niveau)}${dienstHtml(id, w)}</div>` +
     startHtml(profiel, id) + bezigheden + trap;
 }
 
@@ -208,7 +218,7 @@ export function renderLoopbaanPanel(el, sluit = null, w = null) {
   const sam = L.samenvatting(profiel);
   const lijst = L.GROEPEN.map((g) => `<div class="lb-groep">${esc(g.naam)}</div>` + L.VAKKEN.filter((v) => v.groep === g.id).map((v) => rij(profiel, v)).join('')).join('');
   el.innerHTML = `<div class="m-tabs"><span class="m-grow"></span><span class="pa-total"><span class="m-num">${sam.som - L.VAKKEN.length}</span><span class="mut">van ${sam.max - L.VAKKEN.length} niveaus omhoog${sam.hoogste ? ` · hoogste titel: ${esc(sam.hoogste.titel)}` : ''}</span></span></div>` +
-    `<div class="m-main"><div class="m-list pa-list lb-list">${lijst}</div><aside class="m-pane pa-pane lb-pane" aria-live="polite">${detailHtml(profiel, gekozen)}</aside></div>`;
+    `<div class="m-main"><div class="m-list pa-list lb-list">${lijst}</div><aside class="m-pane pa-pane lb-pane" aria-live="polite">${detailHtml(profiel, gekozen, wereld)}</aside></div>`;
   fillBars(el, bars);
   if (!el.dataset.bound) {
     el.dataset.bound = '1';
@@ -216,7 +226,7 @@ export function renderLoopbaanPanel(el, sluit = null, w = null) {
       if (!id || id === gekozen) return;
       gekozen = id;
       for (const b of el.querySelectorAll('[data-vak]')) { const aan = b.dataset.vak === gekozen; b.classList.toggle('sel', aan); b.toggleAttribute('aria-current', aan); }
-      el.querySelector('.lb-pane').innerHTML = detailHtml(getProfiel(), gekozen);
+      el.querySelector('.lb-pane').innerHTML = detailHtml(getProfiel(), gekozen, wereld);
       queueMicrotask(() => fillBars(el, bars));
     };
     el.addEventListener('click', (e) => {
