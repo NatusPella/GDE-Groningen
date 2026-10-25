@@ -191,7 +191,7 @@ t('#367: drie toetsen, korte Nederlandse teksten, ook op de controller', () => {
   assert.ok(PING_TOETSEN.every((k) => k.tekst.length <= 12), 'kort');
   const c = bron('controls.js');
   for (const k of ['7', '8', '9']) assert.match(c, new RegExp(`\\['${k}', 'Samen spelen:`), 'in de lijst met toetsen: ' + k);
-  assert.ok(c.includes("foot: { left: '7', down: '8', right: '9' }"), 'D-pad links, onder en rechts');
+  assert.ok(c.includes("foot: { up: 'b', left: '7', down: '8', right: '9' }"), 'D-pad links, onder en rechts (en omhoog: bij de groep komen)');
 });
 
 t('#367: de ontvanger hoort een bestaand geluidje en leest de regel; de afzender hoort niets extra; elke afzender heeft een eigen afkoeltijd', () => {
