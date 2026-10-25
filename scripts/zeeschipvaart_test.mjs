@@ -1,6 +1,9 @@
 // Zeeschipvaart (#438): de loodsregels van Lauwersoog en de Eemshaven (game/js/zeeschipvaart.js).
 //   node scripts/zeeschipvaart_test.mjs
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { HAVENS, VAART, havenById, maakVaart, doelVan, afstandTotDoel, inHaven, stapVaart, uitslagVan, faseTekst, voortgangTekst } from '../game/js/zeeschipvaart.js';
 
 const dt = 0.5;
@@ -130,6 +133,20 @@ assert.equal(maakVaart('bestaat-niet'), null, 'een onbekende haven maakt geen ro
   const klaar = maakVaart('zeeschipeems', 2);
   klaar.klaar = true;
   assert.deepEqual(stapVaart(klaar, { x: 0, y: 0, speed: 0 }, dt), [], 'na het einde gebeurt er niets meer');
+}
+
+// --- de banen zijn aangemeld --------------------------------------------------------------
+{
+  const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
+  const lees = (f) => fs.readFileSync(path.join(root, f), 'utf8');
+  assert.match(lees('game/js/sidejobs.js'), /veerdienst, zeeschipLauwersoog, zeeschipEemshaven/, 'de twee banen staan in SIDE_JOBS');
+  const loop = lees('game/js/loopbaan.js');
+  assert.match(loop, /zeeschipwad: 'water'/, 'Lauwersoog telt voor het vak Water');
+  assert.match(loop, /zeeschipeems: 'water'/, 'de Eemshaven telt voor het vak Water');
+  const ad = lees('game/js/sidejob_zeeschip.js');
+  assert.match(ad, /anchor: \(map\) => kadePunt\(map, haven\)/, 'de startplek is de kade bij de haven');
+  assert.match(ad, /needsVehicle: \(\) => true/, 'je doet de ronde vanaf het schip');
+  assert.match(ad, /c\.complete\(\{ base: r\.base, tip: r\.tip, flawless: r\.flawless, text: r\.text \}\)/, 'de uitslag gaat naar het loon');
 }
 
 console.log('zeeschipvaart_test ok');
