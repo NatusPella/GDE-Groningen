@@ -6,7 +6,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { dist, closestPointOnSegment, isInWater, pointInPolygon, boatDryPoints } from './util.js';
 import { waterPolyAt } from './waterlevels.js';
 import { clearOfBuildings, withTiles, nearestOnRoads } from './tileplace.js';
-import { countryFacilities, countryDoor } from './facilities.js';
+import { countryFacilities, countryDoor, poiLayerPlaces } from './facilities.js';
 import { edgeDistance } from './countryfield.js';
 import { getScene, refreshCharacterMeshes } from './scene3d.js';
 import { spawnVehicleOnRoad, spawnBoatOnWater, HERO_CAR_MODEL, playerTopSpeed } from './vehicle.js';
@@ -400,7 +400,7 @@ export function initShops(world) {
   const map = world.map;
   const horeca = getHorecaForRender();
   const placed = [];
-  for (const poi of map.meta.shops || []) {
+  for (const poi of poiLayerPlaces(map, 'shops')) {
     if (!SHOP_TYPES[poi.t]) continue;
     const p = placeAtPoi(map, poi, horeca, placed);
     if (p) placed.push({ ...p, type: poi.t, wijk: poi.wijk || wijkAt(map, p.x, p.y), street: p.street || poi.street });

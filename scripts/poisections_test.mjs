@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import assert from 'node:assert';
-import { splitMeta, joinMeta } from '../game/js/poisections.js';
+import { splitMeta, joinMeta, layerRows } from '../game/js/poisections.js';
 import { poiLayers, poiLayerTiles } from './world/poilagen.mjs';
 import * as G from '../game/js/gdt.js';
 
@@ -69,6 +69,20 @@ const meta = {
   const fetched = new Map();
   for (const l of Object.values(layers.layers)) for (const k of l.tiles) fetched.set(k, s.rows.get(k));
   same(joinMeta(s.meta, fetched.values()), meta, 'a reader that asks only the tiles of the layers gets the meta back');
+  // één laag lezen (layerRows, wat facilities.js poiLayerPlaces doet): dezelfde lijst, in dezelfde volgorde
+  const listOf = (m, name) => name.split('.').reduce((o, k) => (o ? o[k] : undefined), m);
+  let readOk = 0;
+  for (const name of all) {
+    const rows = rowsOf(name).map(([, r]) => r);
+    const got = layerRows(s.meta, name, rows);
+    if (JSON.stringify(got) === JSON.stringify(listOf(meta, name))) readOk++;
+  }
+  ok(readOk === all.length, 'per layer: a reader gets that list, in the order of the places', `${readOk}/${all.length}`);
+  ok(layerRows(s.meta, 'shops', rowsOf('shops').map(([, r]) => r).slice(0, 1)) === null, 'a tile of the layer missing: no short list but null');
+  const held = splitMeta(meta, tileKeyOf, (k) => k !== tileKeyOf(1500.5, -20.25));
+  const restLayers = poiLayers(held).layers;
+  ok(restLayers.shops.rest === 1 && restLayers.shops.n === 2 && restLayers.hospital.rest === 0, 'per layer: the places that stay in the global meta are counted');
+  same(layerRows(held.meta, 'shops', [...held.rows.values()]), meta.shops, 'a place in the rest comes along with the tiles of its layer');
   // what the packer writes: build() carries the layers, writeWorld puts them in index.json
   const { writeWorld } = await import('./world/pack_tiles.mjs');
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gde-poi-index-'));
@@ -96,6 +110,28 @@ const meta = {
   const fetched = new Map();
   for (const l of Object.values(layers.layers)) for (const k of l.tiles) fetched.set(k, s.rows.get(k));
   same(joinMeta(s.meta, fetched.values()), stad.meta, 'the real meta comes back from the tiles the index names');
+  // een lezer per laag (#314, C1): alleen de tegels van zijn laag plus de rest, dezelfde lijst in dezelfde volgorde
+  const listOf = (m, name) => name.split('.').reduce((o, k) => (o ? o[k] : undefined), m);
+  const readFails = [];
+  for (const [name, l] of Object.entries(layers.layers)) {
+    const got = layerRows(s.meta, name, l.tiles.map((k) => s.rows.get(k)));
+    if (JSON.stringify(got) !== JSON.stringify(listOf(stad.meta, name))) readFails.push(name);
+  }
+  ok(!readFails.length, 'the real city: every list comes from the tiles of its layer, the rest included', readFails.join(' '));
+  const shops = layers.layers.shops;
+  ok(shops.n + shops.rest === stad.meta.shops.length && shops.rest > 0 && layerRows(s.meta, 'shops', shops.tiles.map((k) => s.rows.get(k))).length === stad.meta.shops.length, 'the shops: the tiles plus the places in the rest are the whole list', `${shops.n}+${shops.rest}`);
+  // de lezer van de tegels zelf (facilities.js poiLayerPlaces): een wereld met de echte meta en de echte
+  // tegels per laag; de lijsten komen er hetzelfde uit, met en zonder index, en nooit half
+  const { poiLayerPlaces } = await import('../game/js/facilities.js');
+  const canon = (v) => JSON.stringify(v, (k, x) => (x && typeof x === 'object' && !Array.isArray(x) ? Object.fromEntries(Object.keys(x).sort().map((q) => [q, x[q]])) : x));
+  const decoded = new Map();
+  for (const [k, rows] of s.rows) { const [i, j] = G.tileFromKey(k); decoded.set(k, G.decodeBlob(G.encodeBlob({ i, j, sections: [{ type: G.SECTION.POIS, rows }] }))); }
+  const world = { meta: stad.meta, poiMeta: s.meta, tileIndex: { pois: layers }, store: { ready: () => true, tile: (k) => decoded.get(k) } };
+  const fromTiles = ['shops', 'horeca', 'garages', 'neighbourhoodPoints'].filter((name) => canon(poiLayerPlaces(world, name)) !== canon(stad.meta[name]));
+  ok(!fromTiles.length, 'poiLayerPlaces: the lists come from the tiles of their layer', fromTiles.join(' '));
+  ok(canon(poiLayerPlaces({ meta: stad.meta }, 'shops')) === canon(stad.meta.shops), 'poiLayerPlaces without a tile index (WORLD_SRC=json): map.meta');
+  const missing = { ...world, store: { ready: (k) => k !== shops.tiles[0], tile: (k) => decoded.get(k) } };
+  ok(canon(poiLayerPlaces(missing, 'shops')) === canon(stad.meta.shops), 'poiLayerPlaces with a tile of the layer not in: map.meta, not half a list');
   console.log(`     ${moved} places in ${s.rows.size} tiles (${lists.map(([k, c]) => k + ' ' + c).join(', ')}), ${(s.meta.poiRest || []).length} stay in the global meta; ${Object.keys(layers.layers).length} POI-layers in the index`);
 }
 
