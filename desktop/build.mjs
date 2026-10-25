@@ -8,6 +8,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { BUILD_ONLY } from '../scripts/lib/buildonly.mjs';
+import { checkWorld, checkAudio, formatProblems } from '../scripts/lib/stagecheck.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 import { createRequire } from 'module';
@@ -63,8 +64,12 @@ function packWorld() {
   if (process.env.GDE_PREBUILT_WORLD) {
     const dir = path.resolve(process.env.GDE_PREBUILT_WORLD);
     if (!fs.existsSync(path.join(dir, 'index.json'))) throw new Error('GDE_PREBUILT_WORLD has no index.json: ' + dir);
+    fs.rmSync(path.join(OUT, 'world'), { recursive: true, force: true });
     fs.cpSync(dir, path.join(OUT, 'world'), { recursive: true });
-    console.log('map tiles: ' + fs.readdirSync(path.join(OUT, 'world')).length + ' files (prebuilt)');
+    // a world from another machine is only as good as its index: check it before it goes into the app (#496)
+    const check = checkWorld(path.join(OUT, 'world'));
+    if (!check.ok) throw new Error('GDE_PREBUILT_WORLD is incomplete:\n' + formatProblems(check.problems));
+    console.log(`map tiles: ${check.packs} packs, ${check.tiles} tiles (prebuilt)`);
     return;
   }
   const root = path.join(SRC, '..');
@@ -115,7 +120,12 @@ function packWorld() {
   }
   const WCACHE = path.join(HERE, '.world-cache');
   const cache = path.join(WCACHE, 'world-' + h.digest('hex').slice(0, 16));
-  if (!fs.existsSync(path.join(cache, 'index.json'))) {
+  // a cache counts as done only when its packs are all there: an interrupted
+  // build (or a second builder in the same folder) leaves an index without the
+  // packs it names, and that world used to be reused for every next stage (#496)
+  const cachedWorld = checkWorld(cache);
+  if (!cachedWorld.ok) {
+    if (fs.existsSync(path.join(cache, 'index.json'))) console.log('map tiles: cache incomplete, rebuilding\n' + formatProblems(cachedWorld.problems));
     fs.rmSync(cache, { recursive: true, force: true });
     // stad.json is de handlaag: water, groen, bomen en gebouwen van de stad komen uit de OSM-tegelbouw (data/cache/province)
     if (!provDirs.length) throw new Error('the city layers come from the OSM tile build: run scripts/world/extract_province.py (data/cache/province), or set GDE_PREBUILT_WORLD');
@@ -133,8 +143,13 @@ function packWorld() {
     for (const d of fs.readdirSync(WCACHE)) if (path.join(WCACHE, d) !== cache) fs.rmSync(path.join(WCACHE, d), { recursive: true, force: true });
     console.log(`packed the map tiles in ${((Date.now() - t) / 1000).toFixed(0)} s`);
   }
+  // replace, never merge: a game/world from the checkout or an earlier stage has
+  // pack names from another generation and would stay next to the new ones
+  fs.rmSync(path.join(OUT, 'world'), { recursive: true, force: true });
   fs.cpSync(cache, path.join(OUT, 'world'), { recursive: true });
-  console.log('map tiles: ' + fs.readdirSync(path.join(OUT, 'world')).length + ' files');
+  const check = checkWorld(path.join(OUT, 'world'));
+  if (!check.ok) throw new Error('the staged world is incomplete:\n' + formatProblems(check.problems));
+  console.log(`map tiles: ${check.packs} packs, ${check.tiles} tiles`);
 }
 
 async function main() {
@@ -215,6 +230,12 @@ async function main() {
   // 5b. the map as .gdt tiles (scripts/world/pack_tiles.mjs): a build artifact,
   // cached by the content of its inputs
   packWorld();
+
+  // 5c. the music that js/audio.js names: a missing loop is a 404 at the first
+  // menu (the menu loop did that in 0.50.0, #496)
+  const audio = checkAudio(OUT);
+  if (!audio.ok) throw new Error('the stage is missing audio:\n' + formatProblems(audio.problems));
+  console.log(`audio files present (${audio.files})`);
 
   // 6. nothing may still come from the internet at load time
   const left = [];
