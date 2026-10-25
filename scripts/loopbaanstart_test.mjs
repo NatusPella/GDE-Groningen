@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import * as L from '../game/js/loopbaan.js';
 import * as Live from '../game/js/loopbaanlive.js';
 import { STEPS } from '../game/js/storyarc_nieuw.js';
-import { LOOPBAAN_STAPPEN, loopbanenBijStap, loopbaanStap, loopbanenTot, stepLoopbanenGedaan, nextStoryStep, STEP_BY_ID } from '../game/js/storyarc.js';
+import { LOOPBAAN_STAPPEN, loopbanenBijStap, loopbaanStap, loopbanenTot, stapAfgeleidGedaan, nextStoryStep, STEP_BY_ID } from '../game/js/storyarc.js';
 
 let n = 0, fails = 0;
 const t = (name, f) => { n++; try { f(); } catch (e) { fails++; console.log('FAIL', name, '\n  ', String(e.message).split('\n')[0]); } };
@@ -87,26 +87,26 @@ t('de verhaalstap telt als gedaan zodra zijn loopbanen begonnen zijn', () => {
   const stap = STEPS[k];
   assert.deepEqual(stap.loopbanen, ['bus', 'hengelen']);
   const p = L.nieuwProfiel();
-  const done = (id) => voor.has(id) || stepLoopbanenGedaan(STEP_BY_ID.get(id), (v) => L.isGestart(p, v));
+  const done = (id) => voor.has(id) || stapAfgeleidGedaan(STEP_BY_ID.get(id), (v) => L.isGestart(p, v));
   assert.equal(nextStoryStep(done, () => false).id, 'T2', 'nog niets begonnen: de stap staat er nog');
   L.startVak(p, 'bus');
   assert.equal(nextStoryStep(done, () => false).id, 'T2', 'een van de twee is niet genoeg');
   L.startVak(p, 'hengelen');
-  assert.equal(stepLoopbanenGedaan(stap, (v) => L.isGestart(p, v)), true);
+  assert.equal(stapAfgeleidGedaan(stap, (v) => L.isGestart(p, v)), true);
   assert.equal(nextStoryStep(done, () => false).id, 'M11', 'beide begonnen: het verhaal gaat verder');
   // de stap waar je op staat blijft staan: een loopbaan die je daar begint, haalt de stap niet onder je voeten weg
-  assert.equal(stepLoopbanenGedaan(stap, () => true, 'T2'), false);
-  assert.equal(stepLoopbanenGedaan(stap, () => true, 'M11'), true);
+  assert.equal(stapAfgeleidGedaan(stap, () => true, 'T2'), false);
+  assert.equal(stapAfgeleidGedaan(stap, () => true, 'M11'), true);
   // een oude save zonder de loopbanen blijft waar hij was: geen stap verzet, niets herordend
   assert.equal(nextStoryStep((id) => voor.has(id), () => false).id, 'T2');
-  assert.equal(stepLoopbanenGedaan(STEP_BY_ID.get('M04'), () => true), false, 'een stap zonder loopbanen nooit');
+  assert.equal(stapAfgeleidGedaan(STEP_BY_ID.get('M04'), () => true), false, 'een stap zonder loopbanen nooit');
 });
 
 t('een missiestap met een loopbaan telt als done als je die loopbaan al begon', () => {
   const k = STEPS.findIndex((s) => s.id === 'M03');
   const voor = new Set(STEPS.slice(0, k).map((s) => s.id));
   const p = L.nieuwProfiel();
-  const done = (id) => voor.has(id) || stepLoopbanenGedaan(STEP_BY_ID.get(id), (v) => L.isGestart(p, v));
+  const done = (id) => voor.has(id) || stapAfgeleidGedaan(STEP_BY_ID.get(id), (v) => L.isGestart(p, v));
   assert.equal(nextStoryStep(done, () => false).id, 'M03', 'kantoor nog niet begonnen: Het Loket is aan de beurt');
   L.startVak(p, 'kantoor');
   assert.equal(nextStoryStep(done, () => false).id, 'M04', 'M03 telt als gedaan, het verhaal gaat naar M04');
