@@ -13,6 +13,7 @@ import { buildingAt } from './tileplace.js';
 import { onRoadway } from './wegvlak.js';
 import { streekAt } from './regioleven.js';
 import { wildlifeLimits, fleeFrom, STREEK_MIX } from './dierenplan.js';
+import { maxDierSchaal } from './dierschaal.js';
 import { getSettings } from './settings.js';
 import { dierVanKind, ONTDEK_M, SET_DIEREN, biotoopVanPlek, veeVoorPlek } from './dierenregister.js';
 import { urbanWeight } from './provinceworld.js';
@@ -1493,7 +1494,7 @@ function buildGansMesh3D() {
   return g;
 }
 
-export function buildWildlifeMesh3D(a) {
+function bouwWildlifeMesh3D(a) {
   switch (a.kind) {
     case 'seagull': return buildSeagullMesh3D();
     case 'sheep': return buildSheepMesh3D();
@@ -1507,6 +1508,19 @@ export function buildWildlifeMesh3D(a) {
     case 'dog': return buildDogMesh3D(a.breed || 0, a.color || 0);
     default: return buildCowMesh3D(a.bobSeed, a.variant === 'red');
   }
+}
+
+// Een dier wordt nooit groter dan zijn eigen bouw (#433): de bouwer zet de schaal van de soort (de zwaan 3,1,
+// de reiger 3,4) en een ongeldige of te grote schaal wordt hier hard begrensd. Zo krijgt ook een gast, een
+// cutscene of een andere beller nooit een reuzenvogel; alleen de Reuzenduif-cheat schaalt daarna in scene3d.js.
+export function buildWildlifeMesh3D(a) {
+  const group = bouwWildlifeMesh3D(a);
+  const max = maxDierSchaal(a.kind) || 1;
+  const s = group.scale.x;
+  const veilig = Number.isFinite(s) && s > 0 ? Math.min(s, max) : max;
+  if (group.scale.x !== veilig || group.scale.y !== veilig || group.scale.z !== veilig) group.scale.setScalar(veilig);
+  group.userData.modelSchaal = veilig;
+  return group;
 }
 
 // Blob-shadow footprint [length, width] per kind (null: none, e.g. birds in flight).
