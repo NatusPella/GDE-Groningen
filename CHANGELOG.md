@@ -6,6 +6,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Nieuw
+- **Het spel start meteen in je laatste savegame.** Het hoofdmenu met Alleen spelen en Samen spelen is weg; je laadt de savegame die je het laatst hebt opgeslagen, of je begint direct aan het verhaal. Een andere savegame laden en Samen spelen staan in het pauzemenu. Bij het laden van een andere savegame wordt je huidige voortgang eerst bewaard.
+
 ### Onderhoud
 - **De documentatie is opgeschoond en de specs zijn de basis.** De levende regels staan nu in elf specs onder `.specs-fire/standards/` (Samen spelen, wereld, mechanica, verhaal, UI en taal, publicatie, plus de vijf standaarden); 23 vervallen of dubbele documenten gingen naar `docs/archief/2026-10/`, de gegenereerde verhaal- en opnamelijsten staan niet meer in git, en de verwijzingen in README, AGENTS en ARCHITECTURE kloppen weer. De veertien keuzes die het project dragen staan met hun afgewezen alternatieven in `.specs-fire/standards/adr/`. Begin bij `docs/SPECS-FIRE.md`.
 

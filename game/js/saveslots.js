@@ -144,6 +144,20 @@ export function pickActive(ls) {
   return idx.active;
 }
 
+// At boot: the slot that was saved last, whatever slot was active (the owner wants "last saved",
+// not "last active"). With no save at all the active slot stays, so a new game can use it.
+export function pickLatest(ls) {
+  const idx = readIndex(ls);
+  const best = listSlots(ls).filter((x) => x.summary).sort((a, b) => b.summary.savedAt - a.summary.savedAt)[0];
+  if (best) {
+    // if the index cannot be written (full storage) there is no reliable "latest": report 0 so
+    // the boot falls back to the save screen instead of loading the wrong save
+    if (idx.active !== best.n && !setActive(ls, best.n)) return 0;
+    return best.n;
+  }
+  return idx.active;
+}
+
 export function setActive(ls, n) {
   const idx = readIndex(ls);
   idx.active = n;

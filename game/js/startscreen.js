@@ -1,5 +1,5 @@
 import { FLAGS, reseedAutoplay } from './devflags.js';
-import { hasSave, readSave, applySave, startNewSlot, getSaveSummary, ensureActiveSlot } from './savegame.js';
+import { hasSave, readSave, applySave, startNewSlot, getSaveSummary, ensureActiveSlot, ensureLatestSlot } from './savegame.js';
 import { openSaveSlots, isSaveSlotsOpen } from './saveslotsui.js';
 import { listSlots } from './saveslots.js';
 import { VERSION } from './version.js';
@@ -409,9 +409,66 @@ export function planMenuStart(map) {
   } catch (e) { planned = null; }
 }
 
+// The normal boot: no menu. The save written last is loaded; without a save the story starts
+// at once (the owner's choice, 25-10). The start screen stays for the QA, trailer and attract
+// paths, which still need the menu and its backdrop.
+export function runStartScreen(world, opts) {
+  // pendingTrailer() reads and clears the pending benchmark: ask it once and hand the answer on,
+  // otherwise the menu asks again and the benchmark from Instellingen > Beeld is gone.
+  const pending = pendingTrailer();
+  const forceMenu = FLAGS.menu || FLAGS.trailer || FLAGS.preview || FLAGS.attract || FLAGS.benchmark || FLAGS.storytest || FLAGS.stil || FLAGS.perf || FLAGS.spotsonly || FLAGS.noattract || !!pending;
+  return forceMenu ? runMenuScreen(world, opts, pending) : runBootScreen(world, opts);
+}
+
+function runBootScreen(world, opts) {
+  // Nieuws (wi-492-over) en de eerste-start-prestatietest (wi-492-bench) hangen hier nog aan;
+  // tot die er zijn, slaat de boot het menu en zijn grafische advies over.
+  const slot = ensureLatestSlot();
+  // No reliable latest (a full list, a broken save, or a save from a newer version): the old
+  // save screen stays available instead of silently loading or overwriting the wrong save.
+  if (!slot || (!hasSave() && listSlots(null).length)) return runMenuScreen(world, opts);
+  return new Promise((resolve) => {
+    const screen = el('start-screen');
+    if (screen) { screen.classList.remove('visible'); screen.style.display = 'none'; }
+    const save = hasSave() ? getSaveSummary() : null;
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      // Draw one frame before the boot screen goes: the main frame loop starts only after this
+      // promise resolves, so without it the first new game would show a black canvas.
+      try { if (opts && opts.render) opts.render(0.016, 0); } catch (e) { /* renderer nog niet klaar */ }
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        // the menu's first viewpoint was planned during the boot; the normal start never shows
+        // the menu, so release those tiles instead of keeping them pinned behind the game
+        try { if (world.map && world.map.releaseShots) world.map.releaseShots(); } catch (e) { /* niet erg */ }
+        dismissLoading();
+        resolve('game');
+      }));
+    };
+    const startNew = () => {
+      startTheme();
+      reseedAutoplay();
+      startNewSlot();
+      finish();
+    };
+    const continueGame = () => {
+      const d = readSave();
+      if (!d) { startNew(); return; }
+      startTheme();
+      applySave(world, d);
+      // the load screen covers the boot screen until the city round the save has streamed in
+      startLoadScreen(world, { kind: 'save' });
+      finish();
+    };
+    // QA and trailer runs that need the old menu use ?menu; this path starts immediately.
+    if (save) continueGame(); else startNew();
+  });
+}
+
 // Title screen over the live city, cycling through highlights. Resolves with
 // 'game' (Alleen spelen: Doorgaan / Nieuw spel, or Samen spelen).
-export function runStartScreen(world, { render, relocate, tick, ready }) {
+function runMenuScreen(world, { render, relocate, tick, ready }, pending = null) {
   return new Promise((resolve) => {
     const screen = el('start-screen');
     const menu = screen.querySelector('.ss-menu');
@@ -717,7 +774,7 @@ export function runStartScreen(world, { render, relocate, tick, ready }) {
     const update = FLAGS.storytest ? null : checkWhatsNew(VERSION);
     if (update) { newsSince = update.since; changelogCache = null; }
     markVersionSeen(VERSION);
-    const intro = pendingTrailer();
+    const intro = pending;
     // the first viewpoint is there before the gate starts to look, so the world streams in round it while the boot screen is up (#380)
     if (!intro) {
       const first = nextSpot();

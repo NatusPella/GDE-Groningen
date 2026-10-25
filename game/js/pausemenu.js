@@ -493,7 +493,7 @@ function spelHtml() {
       <p class="pm-status" data-game-status role="status"></p>
       <div class="m-gh"><span>Stoppen</span></div>
 <div class="m-li pm-row">${rowName('Missie stoppen', 'Staat bij Overzicht zodra er een missie loopt, met een vraag erbij')}<button type="button" class="m-bg" data-goto-sub="spel:overzicht">Naar Overzicht</button></div>
-      <div class="m-li pm-row">${rowName('Hoofdmenu', 'Slaat op en gaat terug naar het hoofdmenu')}<button type="button" class="m-bg" data-action="menu" title="Opslaan en terug naar het hoofdmenu">Naar het hoofdmenu</button></div>
+      <div class="m-li pm-row">${rowName('Spel herstarten', 'Slaat op en start het spel opnieuw')}<button type="button" class="m-bg" data-action="menu" title="Opslaan en het spel opnieuw starten">Herstarten</button></div>
       ${DESKTOP ? `<div class="m-li pm-row">${rowName('Spel sluiten', 'Slaat op en sluit het spel')}<button type="button" class="m-bg" data-action="exit" title="Opslaan en het spel sluiten">Afsluiten</button></div>` : ''}
       <div class="m-gh"><span>Opnieuw beginnen</span></div>
       <div class="m-li pm-row">${rowName('Opnieuw beginnen', 'Alles sinds je laatste savegame gaat verloren')}<button type="button" class="m-bg danger" data-action="restart">Opnieuw beginnen</button></div>
@@ -1198,7 +1198,7 @@ function runAction(a) {
     confirmEl.hidden = true;
     root.querySelector('[data-action="restart"]').focus();
   } else if (a === 'menu' || a === 'exit') {
-    // save, then back to the main menu (Alleen spelen) or close the app; a
+    // save, then restart the game (the boot flow loads that save again) or close the app; a
     // pigeon first turns back into Tammo/Tessa so the save has a street spot.
     // Alleen een lopend spel bewaart: het menu boven het hoofdscherm (prestart)
     // draait in de menuscène en mag de laatste savegame niet overschrijven (#435).

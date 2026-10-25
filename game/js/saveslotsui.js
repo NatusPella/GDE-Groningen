@@ -15,7 +15,7 @@
 //     (the host of Samen spelen picks the game to play with); an empty card calls onNew() as usual.
 import * as S from './saveslots.js';
 import { MAX_SLOTS } from './storagekeys.js';
-import { saveGame, loadSlot, readSave, bindSlot, storySummary, onThumbKept, coopSessieLoopt, COOP_LADEN_TEKST, COOP_NIEUW_TEKST, COOP_WISSEN_TEKST } from './savegame.js';
+import { saveGame, loadSlot, readSave, bindSlot, storySummary, onThumbKept, coopSessieLoopt, currentSlot, COOP_LADEN_TEKST, COOP_NIEUW_TEKST, COOP_WISSEN_TEKST } from './savegame.js';
 
 const DESKTOP = typeof window !== 'undefined' && window.gdeDesktop && window.gdeDesktop.isDesktop ? window.gdeDesktop : null;
 
@@ -156,8 +156,10 @@ export function openSaveSlots(opts = {}) {
     const story = data ? storySummary(data) : null;
     const thumb = S.readThumb(null, s.n);
     const bad = s.state === 'kapot' || s.state === 'nieuwer' || s.state === 'ander-verhaal';
+    const isCurrent = mode === 'game' && !opts.pick && s.n === currentSlot();
+    const label = isCurrent ? 'Huidig spel' : primaryLabel;
     const chips = [];
-    if (s.active) chips.push('<span class="ssl-chip on" title="Het spel slaat vanzelf op in dit opgeslagen spel">Autosave</span>');
+    if (isCurrent) chips.push('<span class="ssl-chip on" title="Het spel slaat vanzelf op in dit opgeslagen spel">Autosave</span>');
     if (s.state === 'hersteld') chips.push('<span class="ssl-chip warn">Hersteld</span>');
     if (bad) chips.push('<span class="ssl-chip warn">Kan niet laden</span>');
     const pic = thumb ? `<img src="${thumb}" alt="" draggable="false">` : `<span class="ssl-nopic">${svg(IC.person, 'ssl-nopic-ic')}</span>`;
@@ -167,8 +169,8 @@ export function openSaveSlots(opts = {}) {
     const tip = story && story.next && !bad ? `Volgende stap: ${story.next}` : '';
     const open = over && over.n === s.n;
     return `<div class="ssl-card${s.n === sel ? ' sel' : ''}${bad ? ' bad' : ''}${open ? ' open' : ''}" role="listitem" data-slot="${s.n}">` +
-      `<button type="button" class="ssl-main" data-grp="list" data-slot="${s.n}" data-do="load"${bad || !sm ? ' disabled' : ''} aria-label="${esc(s.name)}: ${primaryLabel}"${tip ? ` title="${esc(tip)}"` : ''}>` +
-      `<span class="ssl-pic">${pic}<span class="ssl-chips">${chips.join('')}</span><span class="ssl-go">${esc(primaryLabel)}</span></span>` +
+      `<button type="button" class="ssl-main" data-grp="list" data-slot="${s.n}" data-do="load"${bad || !sm || isCurrent ? ' disabled' : ''} aria-label="${esc(s.name)}: ${label}"${tip ? ` title="${esc(tip)}"` : ''}>` +
+      `<span class="ssl-pic">${pic}<span class="ssl-chips">${chips.join('')}</span><span class="ssl-go">${esc(label)}</span></span>` +
       `<span class="ssl-body"><span class="ssl-nm">${esc(s.name)}</span><span class="ssl-part one">${esc(part)}</span><span class="ssl-meta one mut">${esc(meta)}</span></span></button>` +
       `<button type="button" class="ssl-more" data-grp="list" data-more="${s.n}" aria-haspopup="menu" aria-expanded="${!!open}" aria-label="Meer voor ${esc(s.name)}" title="Meer">${svg(IC.more)}</button>` +
       (open ? overHtml(s) : '') + '</div>';
@@ -228,7 +230,7 @@ export function openSaveSlots(opts = {}) {
     const stage = document.createElement('div');
     stage.className = 'gm-stage';
     stage.innerHTML = `<section class="m-panel ssl-panel">
-      <header class="m-head"><div><span class="m-eb">${esc(opts.eyebrow || (mode === 'start' ? 'Hoofdmenu' : 'Pauze'))}</span><h1 class="m-h1" id="ssl-title">${esc(opts.titel || 'Opgeslagen spellen')}</h1>${opts.hint ? `<p class="mut ssl-intro">${esc(opts.hint)}</p>` : ''}</div><div class="m-hr"><span class="mut">${slots.length} van ${MAX_SLOTS}</span></div></header>
+      <header class="m-head"><div><span class="m-eb">${esc(opts.eyebrow || (mode === 'start' ? 'Spel' : 'Pauze'))}</span><h1 class="m-h1" id="ssl-title">${esc(opts.titel || 'Opgeslagen spellen')}</h1>${opts.hint ? `<p class="mut ssl-intro">${esc(opts.hint)}</p>` : ''}</div><div class="m-hr"><span class="mut">${slots.length} van ${MAX_SLOTS}</span></div></header>
       ${last ? `<div class="ssl-hero-wrap">${heroHtml(last)}</div>` : ''}
       <div class="ssl-scroll"><div class="ssl-grid" role="list" aria-label="Opgeslagen spellen">${tiles.join('')}</div></div>
       <p class="ssl-msg" role="status">${esc(message)}</p>
@@ -273,6 +275,8 @@ export function openSaveSlots(opts = {}) {
     if (act === 'import') { file.value = ''; file.click(); return; }
     if (act === 'load' && cur) {
       if (coopSessieLoopt(world)) { say(COOP_LADEN_TEKST); return; }
+      // het spel dat al loopt eerst opslaan en dan "laden" zou het met zichzelf overschrijven
+      if (mode === 'game' && !opts.pick && cur.n === currentSlot()) { say('Dit is het spel dat je nu speelt.'); return; }
       sel = cur.n;
       if (opts.pick) {
         if (!readSave(cur.n)) { say('Dit opgeslagen spel kan niet geladen worden.'); return; }
@@ -282,9 +286,12 @@ export function openSaveSlots(opts = {}) {
         if (!readSave(cur.n)) { say('Dit opgeslagen spel kan niet geladen worden.'); return; }
         S.setActive(null, cur.n);
         close(() => { if (opts.onLoad) opts.onLoad(cur.n); });
-      } else if (loadSlot(world, cur.n)) {
-        close(() => { if (opts.onLoad) opts.onLoad(cur.n); });
-      } else say('Dit opgeslagen spel kan niet geladen worden.');
+      } else {
+        // eerst de huidige voortgang bewaren; mislukt dat, dan blijft het huidige spel staan
+        if (!saveGame(world, { toast: false })) { say('Opslaan mislukt; het spel is niet geladen.'); return; }
+        if (loadSlot(world, cur.n)) close(() => { if (opts.onLoad) opts.onLoad(cur.n); });
+        else say('Dit opgeslagen spel kan niet geladen worden.');
+      }
       return;
     }
     if (act === 'more' && cur) { sel = cur.n; over = { n: cur.n, kind: 'menu' }; message = ''; render(); return; }

@@ -5,7 +5,7 @@ Over de test: [COOP-TESTBANK.md](COOP-TESTBANK.md) (suite `opening`).
 
 ## De menustroom
 
-Hoofdmenu → **Samen spelen** → een klein scherm (`samenkeuze.js`) met twee keuzes:
+Pauzemenu (Esc) → **Samen spelen** → een klein scherm (`samenkeuze.js`) met twee keuzes:
 
 - **Een spel openen:** het scherm *Opgeslagen spellen* (`saveslotsui.js`, met eigen titel "Kies jullie spel"). Kies een opgeslagen
   spel en *Dit spel spelen*, of kies een lege plek voor een nieuw spel. Daarna opent het spel met de wachtkamer (de lobby, onderdeel
@@ -56,14 +56,14 @@ De host bewaart zoals altijd in zijn actieve opgeslagen spel; wat hij in het sch
 
 ## De wachtkamer: het spel begint met minstens twee spelers
 
-Kiest iemand in het hoofdmenu Samen spelen (een nieuw spel of een bestaand opgeslagen spel), dan begint het spel **niet**: de wachtkamer
+Kiest iemand in het pauzemenu Samen spelen (een nieuw spel of een bestaand opgeslagen spel), dan begint het spel **niet**: de wachtkamer
 staat open (`coopgate.js`; een gewone variabele, zodat een nieuw spel hem niet wist) en het verhaal wacht (`story.js` stap `opening`). De wereld is geladen,
 maar niemand speelt: het pauzemenu met de wachtkamer blijft staan (sluit je het, dan komt het terug, `main.js`), er loopt geen tijd en geen verkeer.
 
 - **Spel starten** is voor degene die het spel opende uitgeschakeld zolang je alleen bent, met de uitleg "Wacht op een medespeler: je kunt het spel starten zodra er minstens twee spelers zijn" (`MIN_SPELERS` in `lobby.js`; een speler met een weggevallen verbinding telt niet mee). Met twee of meer staat de knop aan.
 - Een gast leest "Wacht tot Tammo het spel start." (de host stuurt het bericht `hek`, `coopnet.js`; een gast die later aansluit hoort het bij het aansluiten).
 - Bij het starten (`openHek`) sluit het menu van iedereen tegelijk, het bericht `hek` (uit) gaat naar de gasten en de opening begint bij iedereen samen (zie hieronder).
-- Wie stopt (Stoppen, Iedereen stoppen, Spel verlaten) of terugkeert naar het hoofdmenu, heeft geen wachtkamer meer en speelt weer zijn eigen spel.
+- Wie stopt (Stoppen, Iedereen stoppen, Spel verlaten) of het spel herstart (Spel › Spel herstarten), heeft geen wachtkamer meer en speelt weer zijn eigen spel.
 - Valt iemand tijdens het spel weg, dan speelt de rest door; alleen een opdracht die hem echt nodig heeft zet het wachtscherm (`coophold.js`, `holdBeleid`, #452); wie later aansluit volgt de gewone aansluitregel: hij hoort dat het spel al begonnen is en speelt mee.
 
 ## De opening van een nieuw spel samen
