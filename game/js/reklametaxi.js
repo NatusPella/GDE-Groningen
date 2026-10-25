@@ -61,6 +61,26 @@ export function nootenTussen(t0, t1) {
   return uit;
 }
 
+// --- de lopende tekstband ----------------------------------------------------------------------------------
+
+// Het bord op het dak van een taxi (#404, #436): de tekstband schuift per seconde, niet per beeld, zodat
+// hij bij een wisselende beeldtijd even snel blijft lopen. offset in delen van de band (0..1).
+export const BAND_SNELHEID = 0.09; // delen van de band per seconde
+export function scrollBand(offset, dt) {
+  const o = (Number(offset) || 0) + (Number(dt) || 0) * BAND_SNELHEID;
+  return ((o % 1) + 1) % 1;
+}
+
+// Wat er met het dakbord van de reclametaxi gebeurt (#436). De mesh van een taxi bestaat niet altijd: ver
+// weg of net opnieuw gebouwd is er even geen model. Dan blijft het bord staan (het is van de taxi, niet
+// van de mesh) en hangt het er weer aan zodra de mesh terug is. Alleen een ánder, levend model vervangt het.
+//   heeftBord, levendMesh (er is nu een mesh), zelfdeMesh (die mesh is de zijne), hangt (het bord hangt eraan)
+export function bordActie({ heeftBord = false, levendMesh = false, zelfdeMesh = false, hangt = false } = {}) {
+  if (!heeftBord) return 'maak';
+  if (levendMesh && !zelfdeMesh) return 'vervang';
+  return hangt ? 'laat' : 'hang';
+}
+
 // --- wanneer en welke taxi ---------------------------------------------------------------------------------
 
 export const REKLAME_REGELS = {
