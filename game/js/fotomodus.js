@@ -41,7 +41,7 @@ export function createPhoto(player = { x: 0, y: 0, z: 1.7 }, hour = 12) {
     active: false,
     hideHud: true,
     frozen: true,                         // wereld gepauzeerd terwijl je fotografeert
-    origin: { x: player.x, y: player.y }, // waar de speler stond: de vrije camera blijft hierbij
+    origin: { x: player.x, y: player.y, z: player.z || 0 }, // waar de speler stond: de vrije camera blijft hierbij
     cam: { x: player.x, y: player.y, z: Math.max(player.z || 1.7, LIMITS.height[0]), yaw: 0, pitch: 0, roll: 0 },
     fov: 55, dof: 0, focus: 8,
     hour, weather: null,                  // null = laat het weer zoals het is
@@ -78,6 +78,16 @@ export function stepFreeCam(p, inp, dt) {
   c.x += (Math.sin(c.yaw) * f + Math.cos(c.yaw) * r) * v * dt;
   c.y += (Math.cos(c.yaw) * f - Math.sin(c.yaw) * r) * v * dt;
   c.z += (inp.up || 0) * v * 0.6 * dt;
+  return clampPhoto(p);
+}
+
+// Terug naar de speler (#435): de vrije camera dwaalt vrij rond, maar je kunt
+// altijd terug naar de plek waar Tammo staat. De kijkrichting blijft.
+export function resetFreeCam(p) {
+  const c = p.cam;
+  c.x = p.origin.x; c.y = p.origin.y;
+  c.z = Math.max((p.origin.z || 0) + 3, LIMITS.height[0]);
+  c.pitch = 0; c.roll = 0;
   return clampPhoto(p);
 }
 
