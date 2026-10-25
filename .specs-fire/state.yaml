@@ -228,18 +228,42 @@ intents:
           - wi-493-geld
 runs:
   active:
-    - id: run-gde-light-sims-011
+    - id: run-gde-light-sims-012
       scope: single
       work_items:
-        - id: wi-369-down
+        - id: wi-492-vracht-samen
           intent: gde-light-sims
           mode: confirm
           status: in_progress
           current_phase: plan
           checkpoint_state: none
           current_checkpoint: plan
-      current_item: wi-369-down
-      started: 2026-10-25T15:51:24.917Z
+      current_item: wi-492-vracht-samen
+      started: 2026-10-25T16:03:14.996Z
+    - id: run-gde-light-sims-013
+      scope: single
+      work_items:
+        - id: wi-492-vlieg-beloning
+          intent: gde-light-sims
+          mode: confirm
+          status: in_progress
+          current_phase: plan
+          checkpoint_state: none
+          current_checkpoint: plan
+      current_item: wi-492-vlieg-beloning
+      started: 2026-10-25T16:17:02.819Z
+    - id: run-gde-light-sims-014
+      scope: single
+      work_items:
+        - id: wi-492-boer-contracten
+          intent: gde-light-sims
+          mode: confirm
+          status: in_progress
+          current_phase: plan
+          checkpoint_state: none
+          current_checkpoint: plan
+      current_item: wi-492-boer-contracten
+      started: 2026-10-25T16:17:02.953Z
   completed:
     - id: run-gde-groningen-001
       scope: single
@@ -401,3 +425,11 @@ runs:
           mode: confirm
       started: 2026-10-25T15:36:21.597Z
       completed: 2026-10-25T16:00:18.363Z
+    - id: run-gde-light-sims-011
+      scope: single
+      work_items:
+        - id: wi-369-down
+          intent: gde-light-sims
+          mode: confirm
+      started: 2026-10-25T15:51:24.917Z
+      completed: 2026-10-25T16:15:46.757Z
