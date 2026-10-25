@@ -12,6 +12,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Over staat in het pauzemenu.** Nieuws, credits, versie en licenties staan nu onder Esc › Over, ook nu het hoofdmenu weg is.
 - **Eenmalige hint over Samen spelen.** Na je eerste missie zie je één keer waar je Samen spelen vindt; daarna nooit meer.
 - **Milder startbudget en flitswaarschuwing.** Je begint met €500; de eerste keer bij een flitspaal krijg je een waarschuwing, daarna een boete van €10-25. De camera flitst pas vanaf 35 km/u boven de limiet.
+- **Dagprijzen op de boerderij.** Elk gewas heeft per speldag een eigen prijs, hooguit twintig procent boven of onder de basis; je verkoopt tegen de prijs van de dag dat je aflevert.
 
 ### Onderhoud
 - **De documentatie is opgeschoond en de specs zijn de basis.** De levende regels staan nu in elf specs onder `.specs-fire/standards/` (Samen spelen, wereld, mechanica, verhaal, UI en taal, publicatie, plus de vijf standaarden); 23 vervallen of dubbele documenten gingen naar `docs/archief/2026-10/`, de gegenereerde verhaal- en opnamelijsten staan niet meer in git, en de verwijzingen in README, AGENTS en ARCHITECTURE kloppen weer. De veertien keuzes die het project dragen staan met hun afgewezen alternatieven in `.specs-fire/standards/adr/`. Begin bij `docs/SPECS-FIRE.md`.

@@ -13,6 +13,7 @@ import { wgsToWorld } from './rdnew.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const euro = (n) => `€${Math.round(n).toLocaleString('nl-NL')}`;
+const cent = (n) => `€${n.toFixed(2).replace('.', ',')}`;   // een prijs per kilo: twee decimalen met een komma
 const nl = (n) => Math.round(n).toLocaleString('nl-NL');
 
 const ICOON = {
@@ -60,6 +61,8 @@ const bars = new Map();
 const FASE_TEKST = {
   braak: 'Braak land: tijd om te ploegen.', geploegd: 'Geploegd: tijd om te zaaien.', groeit: 'Het gewas groeit.', rijp: 'Rijp: tijd om te oogsten.',
 };
+// De markt (gewasmarkt.js): de prijs van vandaag en of hij stijgt, daalt of gelijk blijft ten opzichte van gisteren.
+const TREND_TEKST = { op: 'prijs stijgt', neer: 'prijs daalt', gelijk: 'prijs gelijk' };
 
 function perceel(b, geld) {
   const f = B.fase(b), s = B.samenvatting(b);
@@ -106,13 +109,15 @@ function loonwerkBlok(b, geld) {
 }
 
 function gewas(b) {
+  const s = B.samenvatting(b);
   const rijen = B.GEWAS_IDS.map((id) => {
     const g = B.GEWASSEN[id];
-    return `<div class="bd-rij"><span class="bd-naam"><b>${esc(g.naam)}</b><span class="mut"> · zaaigoed ${euro(g.zaaigoed)} · rijp na ${g.groeiUren} speluren · ${nl(g.kgBasis)} kg per perceel · ${esc(g.afnemer)} · ${g.soort === 'weiland' ? 'alleen op weiland' : 'op akkers'}</span></span>` +
+    const m = s.prijzen[id] || { prijs: g.prijsKg, trend: 'gelijk' };
+    return `<div class="bd-rij"><span class="bd-naam"><b>${esc(g.naam)}</b><span class="mut"> · ${cent(m.prijs)} per kg vandaag, ${esc(TREND_TEKST[m.trend] || TREND_TEKST.gelijk)} · zaaigoed ${euro(g.zaaigoed)} · rijp na ${g.groeiUren} speluren · ${nl(g.kgBasis)} kg per perceel · ${esc(g.afnemer)} · ${g.soort === 'weiland' ? 'alleen op weiland' : 'op akkers'}</span></span>` +
       `<button type="button" class="m-bt bd-keus${b.keuze === id ? ' aan' : ''}" data-bd-gewas="${id}" aria-pressed="${b.keuze === id}">${b.keuze === id ? 'Gekozen' : 'Kies'}</button></div>`;
   }).join('');
   return `<div class="pm-pane-top"><span class="m-eb">Boerderij De Zonnehoek</span><h2 class="m-h2 td-h2">${icoon('gewas', 'pa-ico big')}Gewas</h2></div>` +
-    `<p class="mut">Het gewas dat je bij het volgende zaaien in de grond doet. Wat er al groeit blijft zoals het is. Op een weiland teel je gras, op een akker de akkerbouwgewassen.</p>${rijen}`;
+    `<p class="mut">Het gewas dat je bij het volgende zaaien in de grond doet. Wat er al groeit blijft zoals het is. Op een weiland teel je gras, op een akker de akkerbouwgewassen. De prijs per kilo kan per speldag veranderen, hooguit twintig procent boven of onder de basisprijs; je verkoopt tegen de prijs van de dag dat je aflevert.</p>${rijen}`;
 }
 
 
