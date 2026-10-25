@@ -21,16 +21,27 @@ function wedKaart(world) {
     }
     if (W.u) {
       const regels = Object.keys(W.u.keuze).map((s) => `${spelerNaam((n.hub.roster.spelers || []).find((p) => p.slot === +s))}: ${W.u.keuze[s] === 'ja' ? 'doet mee' : W.u.keuze[s] === 'nee' ? 'doet niet mee' : 'kiest nog'}`);
-      return { soort: 'uitnodiging', titel: `${W.u.label}: uitnodiging verstuurd`, regels, voet: `Nog ${Math.ceil(W.u.rest)} seconden. Druk op E bij de kassa om nu te starten.` };
+      const regel = WEDSTRIJDEN.get(W.u.id) || {};
+      const voet = regel.startNu ? `${regel.startNu} Nog ${Math.ceil(W.u.rest)} seconden.` : `Nog ${Math.ceil(W.u.rest)} seconden. Druk op E bij de kassa om nu te starten.`;
+      return { soort: 'uitnodiging', titel: `${W.u.label}: uitnodiging verstuurd`, regels, voet };
     }
-    if (W.uitslag && !W.hostloos) return uitslagModel(W.uitslag.rijen, W.uitslag.jij, 'host', willenOpnieuw(world).map((s) => spelerNaam((n.hub.roster.spelers || []).find((p) => p.slot === s))), verbondenGasten(world).length > 0);
+    if (W.uitslag && !W.hostloos) return uitslagModel(W.uitslag.rijen, W.uitslag.jij, 'host', willenOpnieuw(world).map((s) => spelerNaam((n.hub.roster.spelers || []).find((p) => p.slot === s))), verbondenGasten(world).length > 0 && !geenHerhaling(W.id));
     return null;
   }
   const G = world.coopWedGast; if (!G) return null;
   if (G.uitn) return { soort: 'uitnodiging', titel: 'Meedoen?', regels: [uitnodigingTekst(G.uitn, openerNaam(world.coopRoster, true))], voet: 'Wie finisht krijgt een beloning in het eigen geld.' };
-  if (G.uitslag && !G.uitslag.gestopt) return uitslagModel(G.uitslag.rijen, G.uitslag.jij, 'gast', [], true, G.nogmaals);
+  if (G.uitslag && !G.uitslag.gestopt) return uitslagModel(G.uitslag.rijen, G.uitslag.jij, 'gast', [], !geenHerhaling(G.id), G.nogmaals);
+  if (G.kijk) return kijkModel(G); // een toeschouwer (#443): het bord van de race, geen eigen scherm
   if (G.baan) return baanModel(G); // een baanwedstrijd: de tussenstand van de host, live (#443)
   return null;
+}
+const geenHerhaling = (id) => !!(WEDSTRIJDEN.get(id) || {}).geenHerhaling;
+// De toeschouwer (#443): wie nee zei of niet meedeed leest de stand van de race op zijn eigen scherm. Geen camera en
+// geen extra scherm: hetzelfde kaartje als de uitnodiging, met de rijen die de host al klaarmaakte.
+function kijkModel(G) {
+  const k = G.kijk;
+  const regels = k.rijen.length ? k.rijen.map(([naam, tekst]) => (tekst ? `${naam}: ${tekst}` : naam)) : ['Je kijkt mee. Het bord komt zo.'];
+  return { soort: 'kijk', titel: `${k.titel}: je kijkt mee`, regels, voet: k.klaar ? 'N of Enter = bord weg' : 'Je kijkt mee. N = bord weg.' };
 }
 // De gast ziet in een baanwedstrijd (bruggenrace, regatta) de stand van de host: plek, naam, punten of tijd.
 function baanModel(G) {
@@ -48,7 +59,7 @@ function uitslagModel(rijen, jij, rol, wie, kanOpnieuw, gevraagd = false) {
   if (jij) eigen = jij.weg ? 'Je reed niet uit.' : jij.fin ? `Jij werd ${ORDINAAL[jij.plek] || jij.plek + 'e'}${jij.geld > 0 ? `: beloning €${jij.geld.toLocaleString('nl-NL')}` : ''}.` : rijen.some((x) => /boven/.test(x.tekst || '')) ? 'Je kwam niet boven.' : rijen.some((x) => x.tekst) ? 'Je had niet alle banen af.' : 'Je haalde de finish niet.';
   const opnieuw = rol === 'host'
     ? (kanOpnieuw ? `J = nog een keer${wie.length ? ` (${wie.join(', ')} wil${wie.length > 1 ? 'len' : ''} ook)` : ''}, N = sluiten` : 'N = sluiten')
-    : (gevraagd ? 'Je wilt nog een keer: wacht tot de race opnieuw begint. N = sluiten' : 'J = ik wil nog een keer, N = sluiten');
+    : (!kanOpnieuw ? 'N = sluiten' : gevraagd ? 'Je wilt nog een keer: wacht tot de race opnieuw begint. N = sluiten' : 'J = ik wil nog een keer, N = sluiten');
   return { soort: 'uitslag', titel: 'Uitslag', regels: eigen ? [...regels, eigen] : regels, voet: opnieuw };
 }
 
@@ -66,6 +77,8 @@ export function wedKaartTik(world, dt) {
     } else if (G.uitslag && !G.spiegel) {
       if (toets('j')) wedGastStuur(world, 'nogmaals');
       else if (toets('n') || toets('enter')) G.uitslag = null;
+    } else if (G.kijk) { // een toeschouwer sluit het bord zelf (#443); bij de eindstand komt het bord nog één keer
+      if (toets('n') || toets('enter')) { G.kijk = null; G.kijkWeg = true; }
     }
   } else if (n && n.role === 'host' && n.wed && n.wed.u && n.wed.u.keuze[0] === 'wacht') {
     if (toets('j')) wedHostAntwoord(world, true);

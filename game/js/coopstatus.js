@@ -45,6 +45,7 @@ const BIJBAAN = {
 // Activiteiten (activities.js, LIST): coöp-wedstrijden (registreerWedstrijd) en de lokale activiteiten van een gast (GAST_ACTIVITEITEN)
 const ACTIVITEIT = {
   discgolf: WERKT, pitchputt: WERKT, kartbaan: WERKT, klimtoren: WERKT, hengelen: WERKT, pannenkoek: WERKT, carillon: WERKT, regatta: WERKT, bruggenrace: WERKT, ringrace: WERKT,
+  dijkrace: WERKT, // de straatrace van M14 (De dijk): iedereen dezelfde auto, één gezamenlijke start (#443)
   safehuis: DEELS, geheimen: DEELS, wandeling: DEELS, snackketen: DEELS, evenementen: DEELS,
   pvparena: DEELS, // de PvP-minigame: de host rekent en ziet het bord, de gastenkant van het bord is nog open (#454)
   carbid: NEE, kermis: NEE, hoogvlieger: NEE, drift: NEE, skatepark: WERKT, zwembad: NEE, waterski: NEE, vliegschool: NEE,
