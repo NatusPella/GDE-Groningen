@@ -54,6 +54,7 @@ import { jobBonusHook } from './latehooks.js';
 import { noteMoney } from './finance.js';
 import { loopbaanLoon, loopbaanTel, loopbaanDeel } from './loopbaanlive.js';
 import { vakVanBaan } from './loopbaan.js';
+import { hoofdspeler } from './spelersregister.js'; // de speler achter dit scherm doet de dienst (#446); een gast ziet de bijbaan van de host (coopbijbaan.js)
 
 export const SIDE_JOBS = [bezorger, krantenwijk, taxi, bus, rondvaart, fietsdepot, verhuizing, rondvaarttour, boa, rechtbank, cabaret, vracht, loket, studiestaat, vigilantia, promotie, kamerkoning, wolkenhal, helix, niemeyer, bernard, energielabel, tjalke, lijn, ...BIJBAAN_JOBS, veerdienst, ...PANEEL_JOBS, ...STAD_JOBS, bietenoogst, boerderij, snackoverlast];
 const BY_ID = new Map(SIDE_JOBS.map((j) => [j.id, j]));
@@ -109,7 +110,7 @@ const PAY_GUESS = { lijn: [60, 120], bezorger: [27, 55], krantenwijk: [24, 46], 
 
 // Phone job app: every job with pay, distance and why it can't start now.
 export function getSideJobOffers(w) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   const why = blockReason(w);
   return spots.map((s) => {
     const r = rec(s.job.id);
@@ -209,7 +210,7 @@ function blockReason(w) {
 }
 
 function nearestSpot(w) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (w.pigeonMode || p.inVehicle || p.swimming || p.water) return null;
   let best = null, bd = USE_RADIUS;
   for (const s of spots) {
@@ -273,7 +274,7 @@ function spotBij(x, y) {
 
 function startJob(job, takeover = null) {
   if (!job || ctx) return false;
-  const spot = spots.find((s) => s.job === job) || { job, x: world.player.x, y: world.player.y };
+  const spot = spots.find((s) => s.job === job) || { job, x: hoofdspeler(world).x, y: hoofdspeler(world).y };
   if (leftover && !(takeover && leftover === takeover.vehicle)) removeVehicle(world, leftover);
   leftover = null;
   const c = makeCtx(job, spot);
@@ -297,7 +298,7 @@ function startJob(job, takeover = null) {
   else {
     world.addMessage(`${job.name}: ${job.tagline || job.blurb}`, 3.5);
     if (Math.random() < 0.65) sayJobLine(job, 'greet');
-    else sayDuoJobLine(world.player.character, 'start');
+    else sayDuoJobLine(hoofdspeler(world).character, 'start');
   }
   try { job.round(c); } catch (e) { crash(e); return false; }
   publish();
@@ -419,7 +420,7 @@ function endShift(kind, reason = '') {
   }
   if (c.streak > 0 && c.streak === best && best >= 3) world.addMessage(`Nieuw record bij ${job.name}: ${best} klussen op rij!`, 4);
   if (kind === 'fail' || kind === 'wanted') sayJobLine(job, 'fail');
-  else if (kind === 'quit' && c.streak > 0) sayDuoJobLine(world.player.character, 'end');
+  else if (kind === 'quit' && c.streak > 0) sayDuoJobLine(hoofdspeler(world).character, 'end');
   try { job.stop(c); } catch (e) { console.error(e); }
   cleanup(c);
   cooldownUntil = world.time + RESTART_COOLDOWN;
@@ -513,7 +514,7 @@ function checkVehicle(dt, c) {
   const v = c.vehicle;
   const need = c.job.needsVehicle ? c.job.needsVehicle(c) : !!v;
   if (!need || !v) { c.awayFor = 0; return true; }
-  const p = world.player;
+  const p = hoofdspeler(world);
   if (!world.vehicles.includes(v) || v.sunk) { endShift('fail', `${c.vehicleWord} is foetsie`); return false; }
   if (v.wrecked || v.disabled) { endShift('fail', `${c.vehicleWord} is afgeschreven`); return false; }
   if (p.inVehicle === v) { c.awayFor = 0; c.boarded = true; return true; }
@@ -538,7 +539,7 @@ function startCarry(c, mesh, info = {}) {
   const sc = getScene();
   if (sc && mesh) sc.add(mesh);
   c.carrying = { mesh, ...info };
-  world.player.carrying = info.slow ?? 0.72;
+  hoofdspeler(world).carrying = info.slow ?? 0.72;
   updateCarry(c);
 }
 
@@ -547,14 +548,15 @@ function stopCarry(c) {
   if (!k) return null;
   if (k.mesh && k.mesh.parent) k.mesh.parent.remove(k.mesh);
   c.carrying = null;
-  if (world && world.player) world.player.carrying = 0;
+  const p = world && hoofdspeler(world);
+  if (p) p.carrying = 0;
   return k;
 }
 
 function updateCarry(c) {
   const k = c.carrying;
   if (!k || !k.mesh) return;
-  const p = world.player;
+  const p = hoofdspeler(world);
   if (p.inVehicle || p.water) { c.job.onCarryLost ? c.job.onCarryLost(c) : stopCarry(c); return; }
   const a = p.angle;
   const fwd = k.forward ?? 0.45;
@@ -574,7 +576,7 @@ export function trySideJobInteract(w) {
     let used = false;
     try { used = ctx.job.interact ? ctx.job.interact(ctx) : false; } catch (e) { crash(e); return consume(); }
     if (used) return consume();
-    if (ctx && ctx.carrying && !w.player.inVehicle) {
+    if (ctx && ctx.carrying && !hoofdspeler(w).inVehicle) {
       w.addMessage(ctx.carrying.hint || 'Handen vol: eerst neerzetten', 2.2);
       return consume();
     }
@@ -604,8 +606,8 @@ export function sideJobPrompt(w) {
     let pr = null;
     try { pr = ctx.job.prompt ? ctx.job.prompt(ctx) : null; } catch (e) { pr = null; }
     const k = ctx.carrying;
-    if (!pr && k && !w.player.inVehicle) {
-      const p = w.player;
+    if (!pr && k && !hoofdspeler(w).inVehicle) {
+      const p = hoofdspeler(w);
       pr = { id: 'sj-carry', x: p.x, y: p.y, h: 2.3, key: 'E', label: 'Handen vol', sub: k.hint || 'Eerst neerzetten', dim: true };
     }
     return pr;
@@ -626,8 +628,8 @@ export function sideJobSecondary(w) {
     if (ctx.job.secondary) { try { out.push(...ctx.job.secondary(ctx)); } catch (e) { /* ignore */ } }
     return out;
   }
-  if (w.player.inVehicle) return out;
-  const { x, y } = w.player;
+  if (hoofdspeler(w).inVehicle) return out;
+  const { x, y } = hoofdspeler(w);
   for (const s of spots) {
     if (Math.abs(s.x - x) > 20 || Math.abs(s.y - y) > 20) continue;
     out.push({ id: 'sj2-' + s.job.id, x: s.x, y: s.y, h: 2.2, label: s.job.name, sub: `${s.job.kicker || 'Bijbaantje'} · loop erheen en druk E`, kind: 'place' });
@@ -664,7 +666,7 @@ function publish() {
     return;
   }
   // on foot, away from both the job vehicle and the objective: point at the ride first
-  const veh = c.vehicle, p = world.player;
+  const veh = c.vehicle, p = hoofdspeler(world);
   if (c.job.boardFirst && veh && p.inVehicle !== veh && world.vehicles.includes(veh) && !veh.wrecked) {
     const far = !pub.marker || dist(p.x, p.y, pub.marker.x, pub.marker.y) > 25;
     if (far && dist(p.x, p.y, veh.x, veh.y) > 2) {
@@ -721,9 +723,10 @@ function buildBadge3D(job, x, y) {
 
 function animateBadges(w) {
   const t = performance.now() / 650;
+  const p = hoofdspeler(w);
   for (const s of spots) {
     if (!s.mesh) continue;
-    const near = Math.abs(s.x - w.player.x) < 120 && Math.abs(s.y - w.player.y) < 120;
+    const near = Math.abs(s.x - p.x) < 120 && Math.abs(s.y - p.y) < 120;
     s.mesh.visible = near && !(ctx && ctx.job === s.job);
     if (near) s.mesh.userData.badge.position.y = 2.3 + Math.sin(t + s.mesh.userData.phase) * 0.06;
   }

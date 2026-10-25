@@ -18,6 +18,7 @@ import { registerNarrative, mayStart, storyWaiting } from './narrative.js';
 import { isPhoneOpen } from './pausestate.js';
 import { playBanterVoice, stopBanterVoice, pauseBanterVoice, voiceBusy } from './audio.js';
 import { hold as holdChannel, release as releaseChannel } from './speech.js';
+import { hoofdspeler } from './spelersregister.js'; // wie er praat is de speler achter dit scherm (#446)
 import { KEYS } from './storagekeys.js';
 import { banterExchanges, storyDataReady } from './storytext.js';
 import { openBank } from './voicebank.js';
@@ -216,7 +217,7 @@ function placeList() {
 function watchWijk() {
   const pts = world.map && world.map.meta && world.map.meta.neighbourhoodPoints;
   if (!pts) return;
-  const { x, y } = world.player;
+  const { x, y } = hoofdspeler(world);
   let best = null, bestD2 = Infinity;
   for (const p of pts) {
     const d2 = (p.x - x) ** 2 + (p.y - y) ** 2;
