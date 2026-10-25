@@ -3258,7 +3258,7 @@ function tikDijkRun(world, dt) {
   if (r.S.wacht) { // nog wachten op Meedoen?: niemand rijdt weg
     if (n.wed.u) {
       holdDijk(world, r);
-      if (!r.said) { r.said = 'wacht'; world.addMessage('Wachten op de anderen: J = ja, N = nee. Daarna gaat het samen weg.', 4); }
+      if (!r.said) { r.said = 'wacht'; world.addMessage('Wachten op de anderen: J = ja, N = nee. Daarna samen weg.', 4); }
       return;
     }
     r.S.wacht = false;

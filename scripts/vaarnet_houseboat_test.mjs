@@ -9,6 +9,8 @@ import zlib from 'node:zlib';
 globalThis.requestAnimationFrame = (f) => setImmediate(f);
 const root = new URL('../game/world/', import.meta.url);
 if (!fs.existsSync(new URL('index-provincie.json', root))) { console.log('SKIP no game/world with the province layer'); process.exit(0); }
+// de stadsindex hoort er ook te zijn (npm run stage bouwt hem); zonder dat is er geen wereld om te laden
+if (!fs.existsSync(new URL('index.json', root))) { console.log('SKIP no game/world with the city index (run npm run stage)'); process.exit(0); }
 
 const G = await import('../game/js/gdt.js');
 const S = await import('../game/js/tilestore.js');
