@@ -4,7 +4,9 @@ import assert from 'node:assert';
 import {
   DIENSTREGELS, MEDAILLES, MEDAILLE_AT, maakDienst, stapDienst, afbrekenDienst,
   dienstVoortgang, dienstUitslag, dienstStand, uitslagUitPunten,
+  rondvluchtRoute, kadesLangsRoute, margeVoorDienst, dienstBordRij, tijdTekst,
 } from '../game/js/simdienst.js';
+import { maakVluchtdienst } from '../game/js/arcadeplane.js';
 
 const H = (x, y, naam) => ({ x, y, naam });
 const dt = 0.5;
@@ -155,6 +157,69 @@ assert.strictEqual(stand.volgende ?? null, null);
   assert.strictEqual(s.afstand, 50);
   assert.ok(s.voortgang > 0 && s.voortgang < 1, 'onderweg: ' + s.voortgang);
   assert.ok(Number.isFinite(s.late));
+}
+
+// --- de startplek en het bord (#444) -------------------------------------------------------
+{
+  // een rondvlucht: twee poorten op hoogte en terug naar het veld waar je opstijgt
+  const r = rondvluchtRoute(100, 200, 0, { been: 900, zij: 600, hoogte: 180 });
+  assert.strictEqual(r.route.length, 2);
+  assert.strictEqual(r.naar.x, 100);
+  assert.strictEqual(r.naar.y, 200, 'terug naar het veld');
+  assert.strictEqual(r.route[0].x, 1000);
+  assert.strictEqual(r.route[0].y, 200, 'poort 1 recht vooruit');
+  assert.strictEqual(r.route[0].z, 180);
+  assert.strictEqual(r.route[1].x, 1120);
+  assert.strictEqual(r.route[1].y, -400, 'poort 2 links van de koers');
+  assert.strictEqual(r.naar.naam, 'het veld');
+  const vd = maakVluchtdienst(r);
+  assert.strictEqual(vd.vervoer, 'vliegtuig');
+  assert.strictEqual(vd.halten.length, 3, 'twee poorten en het veld');
+
+  // extra tijd per halte: elke halte een tel later, zodat de dienst niet op de eerste meter al krap is
+  const voor = vd.halten.map((h) => h.due);
+  margeVoorDienst(vd, 14);
+  assert.strictEqual(vd.halten[0].due, voor[0] + 14);
+  assert.strictEqual(vd.halten[1].due, voor[1] + 28);
+  assert.strictEqual(vd.halten[2].due, voor[2] + 42);
+}
+{
+  // kades langs een vaarroute: gelijke stukken, de laatste op het eind
+  const pts = [[0, 0], [300, 0], [300, 400]];
+  const kades = kadesLangsRoute(pts, 3);
+  assert.strictEqual(kades.length, 3);
+  assert.strictEqual(kades[0].naam, 'Kade 1');
+  assert.ok(Math.abs(kades[0].x - 700 / 3) < 1e-6 && Math.abs(kades[0].y) < 1e-6, 'na een derde van de route: ' + JSON.stringify(kades[0]));
+  assert.ok(Math.abs(kades[1].x - 300) < 1e-6 && Math.abs(kades[1].y - (700 * 2 / 3 - 300)) < 1e-6, 'de tweede kade: ' + JSON.stringify(kades[1]));
+  assert.ok(Math.abs(kades[2].x - 300) < 1e-6 && Math.abs(kades[2].y - 400) < 1e-6, 'de laatste kade op het eind');
+  assert.deepStrictEqual(kadesLangsRoute([[0, 0]], 3), [], 'één punt is geen route');
+  assert.deepStrictEqual(kadesLangsRoute([[0, 0], [10, 0]], 3), [], 'te kort water geeft geen kades');
+  const obj = kadesLangsRoute([{ x: 0, y: 0 }, { x: 300, y: 0 }, { x: 600, y: 0 }], 2);
+  assert.strictEqual(obj.length, 2);
+  assert.ok(Math.abs(obj[1].x - 600) < 1e-6);
+  const vd = maakDienst({ vervoer: 'schip', halten: kades });
+  assert.strictEqual(vd.vervoer, 'schip');
+  assert.strictEqual(vd.halten.length, 3);
+}
+{
+  // het bord: de cijfers van de dienst en van het voertuig
+  const d = maakDienst({ vervoer: 'schip', halten: [H(0, 0, 'Kade Noord'), H(100, 0, 'Kade Zuid')] });
+  stapDienst(d, { x: 0, y: 0, v: 0, dt: 0.5 });
+  stapDienst(d, { x: 40, y: 0, v: 4, dt: 0.5 });
+  const rows = dienstBordRij(dienstStand(d), { klok: 75, snelheid: 4.2, hoogte: 120 });
+  const vind = (k) => (rows.find((r) => r[0] === k) || [])[1];
+  assert.strictEqual(vind('Volgende'), 'Kade Zuid');
+  assert.strictEqual(vind('Afstand'), '60 m');
+  assert.strictEqual(vind('Gehaald'), '1/2');
+  assert.match(vind('Tijd'), /s over|s te laat/);
+  assert.strictEqual(vind('Klok'), '1:15');
+  assert.strictEqual(vind('Snelheid'), '4 m/s');
+  assert.strictEqual(vind('Hoogte'), '120 m');
+  assert.strictEqual(tijdTekst(0), '0:00');
+  assert.strictEqual(tijdTekst(-4), '0:00');
+  assert.strictEqual(tijdTekst(3600), '60:00');
+  const klaar = dienstBordRij(dienstStand(goed));
+  assert.strictEqual(klaar[0][1], 'klaar');
 }
 
 console.log('simdienst_test ok');

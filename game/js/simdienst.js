@@ -159,6 +159,77 @@ export function dienstUitslag(d) {
   });
 }
 
+// --- de startplek en het bord (#444) ------------------------------------------------------
+// De twee diensten die je in de wereld start (activities.js): een rondvlucht boven het veld en
+// een rondvaart langs de kades. De route is meetkunde en staat hier, zodat de HUD alleen nog
+// opmaakt wat hier uit komt. Puur: geen THREE, geen wereld, geen DOM.
+export const RONDRIT = { been: 900, zij: 900, hoogte: 180 };
+
+// De route van een rondvlucht vanaf (x, y) met koers `hoek`: twee poorten op hoogte en terug
+// naar het veld waar je opstijgt. `veld` is de naam van het veld in de dienst.
+export function rondvluchtRoute(x, y, hoek, { been = RONDRIT.been, zij = RONDRIT.zij, hoogte = RONDRIT.hoogte, veld = 'het veld' } = {}) {
+  const ux = Math.cos(hoek), uy = Math.sin(hoek);
+  const nx = uy, ny = -ux;  // links van de koers (het scherm heeft y omlaag)
+  return {
+    van: { x, y, naam: veld },
+    naar: { x, y, naam: veld },
+    route: [
+      { x: x + ux * been, y: y + uy * been, z: hoogte, naam: 'Poort 1' },
+      { x: x + ux * (been + zij * 0.2) + nx * zij, y: y + uy * (been + zij * 0.2) + ny * zij, z: hoogte, naam: 'Poort 2' },
+    ],
+  };
+}
+
+// Kades langs een vaarroute: de punten uit vaarnet.js ([x, y] of { x, y }), met `aantal`
+// punten op gelijke stukken van de polyline. Te kort water geeft geen kades (dan is er geen
+// dienst); de namen zijn verzonnen en tellen op.
+export function kadesLangsRoute(pts, aantal = 3) {
+  const p = (pts || []).filter((q) => q && Number.isFinite(q.x != null ? q.x : q[0]) && Number.isFinite(q.y != null ? q.y : q[1]))
+    .map((q) => (q.x != null ? { x: q.x, y: q.y } : { x: q[0], y: q[1] }));
+  if (p.length < 2 || aantal < 1) return [];
+  const lang = [0];
+  for (let i = 1; i < p.length; i++) lang.push(lang[i - 1] + Math.hypot(p[i].x - p[i - 1].x, p[i].y - p[i - 1].y));
+  const totaal = lang[lang.length - 1];
+  if (totaal < 60 * aantal) return [];
+  const out = [];
+  for (let k = 1; k <= aantal; k++) {
+    const doel = (totaal * k) / aantal;
+    let i = 1;
+    while (i < p.length - 1 && lang[i] < doel) i++;
+    const stuk = lang[i] - lang[i - 1] || 1;
+    const t = clamp((doel - lang[i - 1]) / stuk, 0, 1);
+    out.push({ x: p[i - 1].x + (p[i].x - p[i - 1].x) * t, y: p[i - 1].y + (p[i].y - p[i - 1].y) * t, naam: `Kade ${k}` });
+  }
+  return out;
+}
+
+// Extra tijd per halte voor het draaien, dalen en aanleggen: de dienstregeling rekent met de
+// kaarsrechte afstand, een speler heeft meer nodig. Hoe verder in de dienst, hoe meer ruimte.
+export function margeVoorDienst(d, seconden = 10) {
+  d.halten.forEach((h, i) => { h.due += seconden * (i + 1); });
+  return d;
+}
+
+// mm:ss voor op het bord.
+export function tijdTekst(s) {
+  const t = Math.max(0, Math.round(s || 0));
+  return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;
+}
+
+// De regels van het bord: [label, waarde] in de volgorde van het bord. `extra` vult de cijfers
+// van het voertuig aan (snelheid, hoogte) en de klok (seconden sinds de start).
+export function dienstBordRij(stand, { klok = null, snelheid = null, hoogte = null } = {}) {
+  const rows = [['Volgende', stand.klaar ? 'klaar' : stand.volgende || '—']];
+  if (stand.afstand != null) rows.push(['Afstand', `${stand.afstand} m`]);
+  rows.push(['Gehaald', `${stand.gehaald}/${stand.totaal}`]);
+  if (stand.late != null) rows.push(['Tijd', stand.late > 0 ? `${stand.late} s te laat` : `${-stand.late} s over`]);
+  if (klok != null) rows.push(['Klok', tijdTekst(klok)]);
+  if (snelheid != null) rows.push(['Snelheid', `${Math.round(snelheid)} m/s`]);
+  if (hoogte != null) rows.push(['Hoogte', `${Math.round(hoogte)} m`]);
+  if (stand.mislukt) rows.push(['Gestopt', stand.mislukt]);
+  return rows;
+}
+
 // Wat een HUD of het loopbaanscherm van één beeld nodig heeft (geen opmaak, alleen cijfers).
 export function dienstStand(d) {
   const h = d.halten[d.i];
