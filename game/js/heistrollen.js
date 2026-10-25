@@ -260,10 +260,9 @@ export function draaiKluis(C, dt, toets = {}) {
 // ---- de gastkant: de gastheer levert de tekenkant (heistui.js) via deze haken ---------------------
 const haken = {};
 export function zetHeistHaken(h) { Object.assign(haken, h || {}); }
-export function heistHaken() { return haken; }
 
 // Elke frame op de gast (coopnet.js): de chip met je rol, en bij de kluis de draaischijf op je eigen
-// scherm. De gastheer levert de stap aan; zonder hakendoet dit niets.
+// scherm. De gastheer levert de stap aan; zonder haken doet dit niets.
 export function heistGastTik(world, dt, stap) {
   return haken.gastTik ? !!haken.gastTik(world, dt, stap) : false;
 }
