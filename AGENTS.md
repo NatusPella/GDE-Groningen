@@ -38,6 +38,8 @@ Lokaal: Windows-exe en wereld (`--world`). In Actions, na de release met `node s
 **Agents:** werk in een eigen worktree en branch, in kleine commits. Test alleen wat bij je eigen wijziging hoort (`node --check` plus de paar tests die die code dekken); de volledige suite, `province_test`, de zware audits en de Electron-verhaaltest draait de coördinator bij het maken van een release, niet de agent. Geen push, merge, tag of release door agents; dat doet de coördinator na de tests.
 Alleen één Electron-instantie tegelijk en geen nieuwe agents tijdens een releasebouw. Houd de schijf vrij.
 
+**Specs en uitvoering:** groter werk plan je met specsmd FIRE (`/specsmd-fire-planner`) en voer je uit met UltraCode; de rolverdeling staat in [docs/SPECS-FIRE.md](docs/SPECS-FIRE.md).
+
 ## Testen
 
 - Alles in één keer, met rapport: `node scripts/test_all.mjs --fase=licht|zwaar|electron|alles` (zie [docs/TESTEN.md](docs/TESTEN.md)).

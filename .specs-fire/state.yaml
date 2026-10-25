@@ -1,0 +1,110 @@
+project:
+  name: GDE Groningen - Zomer vol misdaad
+  description: Open-wereldkomedie in een low-poly Groningen. Three.js in gewone
+    ES-modules, met een Electron-desktopversie, een webversie en een
+    Android-build. Nederlands spel, verzonnen personages, echte plekken.
+  created: 2026-10-25T07:45:00Z
+  fire_version: 0.1.8
+workspace:
+  type: brownfield
+  structure: multi-part
+  autonomy_bias: balanced
+  run_scope_preference: single
+  run_scope_history: []
+  scanned_at: 2026-10-25T07:45:00Z
+  parts:
+    - game
+    - desktop
+    - web
+    - android
+    - scripts
+    - docs
+intents:
+  - id: afmaken-open-issues
+    title: Alle openstaande issues afmaken (tot een release)
+    status: in_progress
+    work_items:
+      - id: wi-463-beeld
+        title: "#463 Beeldpunten afmaken en met screenshots verifiëren"
+        status: pending
+        complexity: medium
+        mode: confirm
+        depends_on: []
+      - id: wi-434-rest
+        title: "#434 Laatste multiplayer-punten"
+        status: pending
+        complexity: low
+        mode: autopilot
+        depends_on: []
+      - id: wi-436-rest
+        title: "#436 Laatste wereldpunten"
+        status: pending
+        complexity: low
+        mode: autopilot
+        depends_on: []
+      - id: wi-438-rest
+        title: "#438 Kluis en lasers per rol"
+        status: pending
+        complexity: medium
+        mode: confirm
+        depends_on: []
+      - id: wi-388-laatste
+        title: "#388 Laatste punt (volgorde wereld/filmpje)"
+        status: pending
+        complexity: low
+        mode: autopilot
+        depends_on: []
+      - id: wi-314-c2
+        title: "#314 C2: water-tweeling goed oplossen"
+        status: pending
+        complexity: medium
+        mode: confirm
+        depends_on: []
+      - id: wi-312-bot
+        title: "#312/#186 Spelbot afmaken"
+        status: pending
+        complexity: medium
+        mode: confirm
+        depends_on: []
+      - id: wi-4-prestatie
+        title: "#4 Prestatiemeting op een rustige machine"
+        status: pending
+        complexity: low
+        mode: autopilot
+        depends_on: []
+      - id: wi-426-overdracht
+        title: "#426 Overdracht bijwerken"
+        status: pending
+        complexity: low
+        mode: autopilot
+        depends_on: []
+      - id: wi-afronden
+        title: "Afronden: CHANGELOG en release"
+        status: pending
+        complexity: medium
+        mode: confirm
+        depends_on:
+          - wi-463-beeld
+          - wi-434-rest
+          - wi-436-rest
+          - wi-438-rest
+          - wi-388-laatste
+          - wi-314-c2
+          - wi-312-bot
+          - wi-4-prestatie
+          - wi-426-overdracht
+runs:
+  active:
+    - id: run-gde-groningen-001
+      scope: single
+      work_items:
+        - id: wi-463-beeld
+          intent: afmaken-open-issues
+          mode: confirm
+          status: in_progress
+          current_phase: execute
+          checkpoint_state: approved
+          current_checkpoint: plan
+      current_item: wi-463-beeld
+      started: 2026-10-25T10:16:03.786Z
+  completed: []
