@@ -139,6 +139,7 @@ const fresh = (s) => createLobby(s.caps);
 //  kies{rol}  route{route}  invoer{text}  akkoord  code{code, lanCode?, note?}  fout{msg}
 //  status{status, reason, partner?}  terug  verbreek  hervat
 //  spelers{lijst, max}  wens{char}  hold{slot, naam}  gate{aan}
+//  overdragen  overdragen-terug  (het spel aan een speler overdragen, #439)
 export function reduce(s, ev) {
   const n = { ...s, error: '' };
   switch (ev.t) {
@@ -184,6 +185,10 @@ export function reduce(s, ev) {
     }
     case 'openbaar-terug': if (s.step !== 'openbaar-vraag') return s; n.step = s.spelers.length > 1 ? 'verbonden' : 'host-wacht'; return n;
     case 'privaat': n.openbaar = false; return n;
+    case 'overdragen': // wie het spel opende kiest een speler (#439); alleen met een kamercode, net als het overdragen zelf
+      if (s.step !== 'verbonden' || !overdrachtKandidaten(s.rol, s.route, s.spelers).length) return s;
+      n.step = 'overdragen-kies'; return n;
+    case 'overdragen-terug': if (s.step !== 'overdragen-kies') return s; n.step = s.spelers.length > 1 ? 'verbonden' : 'host-wacht'; return n;
     case 'lijst-vraag': // Openbare sessies bekijken: eerst de toestemming
       if (!s.caps.rtc || !['start', 'gast-typt'].includes(s.step)) return s;
       n.terugNaar = s.step; n.step = 'lijst-vraag'; return n;
@@ -212,6 +217,8 @@ export function reduce(s, ev) {
     case 'hold': n.holdSlot = ev.slot ?? null; n.holdNaam = ev.naam || ''; return n;
     case 'spelers': { // de lijst met spelers is veranderd (host: uit de hub; gast: van de host)
       n.spelers = Array.isArray(ev.lijst) ? ev.lijst : []; n.max = Math.min(ABS_MAX, Math.max(MIN_MAX, ev.max | 0 || DEFAULT_MAX));
+      // de gekozen speler is weg of niet meer bereikbaar: dan kies je opnieuw in de lijst (#439)
+      if (s.step === 'overdragen-kies' && !overdrachtKandidaten(n.rol, n.route, n.spelers).length) n.step = n.spelers.length > 1 ? 'verbonden' : 'host-wacht';
       if (s.rol === ROLES.HOST) {
         if (n.spelers.length > 1 && (s.step === 'host-wacht' || s.step === 'host-maakt-code')) n.step = 'verbonden';
         else if (n.spelers.length <= 1 && s.step === 'verbonden') n.step = 'host-wacht'; // iedereen weg: de code blijft geldig
@@ -255,6 +262,13 @@ export function reduce(s, ev) {
 
 // Het spel begint pas met minstens twee spelers in de wachtkamer (de eigenaar, 20-10): wie het spel opende plus een gast
 export const MIN_SPELERS = 2;
+
+// Wie het spel kan overnemen (#439): iedere andere speler die nu bereikbaar is, en alleen met een kamercode (bij een IP-adres
+// zou de nieuwe speler zijn eigen poort moeten openen en een koppelcode doorgeven; dat kan het spel niet).
+export function overdrachtKandidaten(rol, route, lijst) {
+  if (rol !== ROLES.HOST || route !== ROUTES.KAMER) return [];
+  return (Array.isArray(lijst) ? lijst : []).filter((p) => p && Number.isInteger(p.slot) && p.slot !== 0 && p.verbinding !== 'lost');
+}
 
 // De regel voor de gast: wat er van zijn voortgang wordt bewaard (docs/COOP-OPSLAAN.md)
 export const GAST_BEWAREN = (naam, opener = 'de ander') => `Je speelt mee in het spel van ${opener}. Wat je verdient bewaren we in je eigen spel${naam ? ` (${naam})` : ''}; het verhaal en de wereld zijn van ${opener}.`;
@@ -344,6 +358,8 @@ export function view(s) {
         lines.push(s.code && lijst.length < s.max ? 'Er is nog plek: geef de code aan de volgende speler.' : 'Je kunt een speler er elk moment uit halen.');
         if (s.openbaar) lines.push(openbaarRegel(s));
         buttons.push(...openbaarKnop(s));
+        // het spel overdragen (#439): de ander neemt de wereld over en jij sluit als gast aan
+        if (overdrachtKandidaten(s.rol, s.route, lijst).length) buttons.push({ act: 'overdragen', label: 'Spel overdragen…' });
         buttons.push({ act: 'verbreek', label: 'Iedereen stoppen' });
       } else {
         lines.push(`${opener} heeft het spel geopend.`);
@@ -354,6 +370,17 @@ export function view(s) {
         buttons.push({ act: 'verbreek', label: 'Spel verlaten' });
       }
       return V({ title: 'Je speelt samen', lines, code: host && s.code && lijst.length < s.max ? s.code : null, spelers: lijst, ik, buttons });
+    }
+    case 'overdragen-kies': { // het spel aan een speler overdragen (#439): de gekozen speler krijgt de vraag (J of N)
+      const kandidaten = overdrachtKandidaten(s.rol, s.route, s.spelers);
+      return V({
+        title: 'Spel overdragen',
+        lines: kandidaten.length
+          ? ['Kies wie het spel overneemt. Die speler krijgt de vraag; bij ja draait de wereld daar verder en sluit jij als gast aan. Je personage, je geld en je voortgang blijven van jou.',
+            'De wereld gaat mee: de tijd, het weer, de politie, de lopende opdracht en de kapotte dingen. Iedereen blijft op de eigen plek.']
+          : ['Er is nu niemand aan wie je het spel kunt overdragen.'],
+        buttons: [...kandidaten.map((p) => ({ act: 'overdragen-' + p.slot, label: `Aan ${p.naam || 'de ander'} overdragen` })), { act: 'overdragen-terug', label: 'Terug', primary: !kandidaten.length }],
+      });
     }
     case 'verbroken': {
       const host = s.rol === ROLES.HOST;

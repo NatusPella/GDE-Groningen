@@ -260,4 +260,34 @@ t('vaste sessie (#450): naam en vast id van een lopende sessie overleven een her
   // helemaal privé blijft privé: niemand wordt zomaar openbaar
   assert.equal(L.createLobby(APP).openbaar, false); assert.equal(L.createLobby(APP).sessie, null);
 });
+t('spel overdragen (#439): de host kiest een speler in de wachtkamer; een gast, een IP-adres en een speler die weg is niet', () => {
+  const host = (route = 'kamer') => L.reduce(run(APP, { t: 'kies', rol: 'host' }, { t: 'route', route }, { t: 'akkoord' }, { t: 'code', code: 'K3J9D-8F2MN' }), { t: 'spelers', lijst: LIJST(3), max: 4 });
+  const s = host();
+  const knop = L.view(s).buttons.find((b) => b.act === 'overdragen');
+  assert.ok(knop && knop.label.startsWith('Spel overdragen'), 'de knop staat er bij de host met een kamercode');
+  assert.equal(L.view(host('direct')).buttons.some((b) => b.act === 'overdragen'), false, 'met een IP-adres kan het niet');
+  assert.equal(L.view(L.reduce(s, { t: 'spelers', lijst: LIJST(1), max: 4 })).buttons.some((b) => b.act === 'overdragen'), false, 'alleen kun je niets overdragen');
+  const gast = L.reduce(run(APP, { t: 'kies', rol: 'gast' }, { t: 'status', status: 'ok' }), { t: 'spelers', lijst: LIJST(3), max: 4 });
+  assert.equal(L.view(gast).buttons.some((b) => b.act === 'overdragen'), false, 'een gast draagt niets over');
+  assert.deepEqual(L.overdrachtKandidaten('host', 'kamer', LIJST(3)).map((p) => p.slot), [1, 2], 'nooit jezelf');
+  assert.deepEqual(L.overdrachtKandidaten('gast', 'kamer', LIJST(3)), []);
+  assert.deepEqual(L.overdrachtKandidaten('host', 'direct', LIJST(3)), []);
+});
+t('spel overdragen (#439): de kandidaten staan in een eigen stap, met een weg terug en een melding als het niet kan', () => {
+  let s = L.reduce(run(APP, { t: 'kies', rol: 'host' }, { t: 'route', route: 'kamer' }, { t: 'akkoord' }, { t: 'code', code: 'K3J9D-8F2MN' }), { t: 'spelers', lijst: LIJST(4).map((p) => (p.slot === 2 ? { ...p, verbinding: 'lost' } : p)), max: 8 });
+  s = L.reduce(s, { t: 'overdragen' });
+  assert.equal(s.step, 'overdragen-kies');
+  const v = L.view(s);
+  assert.deepEqual(v.buttons.filter((b) => b.act.startsWith('overdragen-') && b.act !== 'overdragen-terug').map((b) => b.act), ['overdragen-1', 'overdragen-3'], 'de speler die weg is doet niet mee');
+  assert.deepEqual(v.buttons.filter((b) => b.act.startsWith('overdragen-') && b.act !== 'overdragen-terug').map((b) => b.label), ['Aan Tessa overdragen', 'Aan Lotte overdragen']);
+  assert.match(v.lines.join(' '), /de wereld gaat mee/i); assert.match(v.lines.join(' '), /je geld/i);
+  // een weigering of een speler die wegvalt: je blijft in de keuze, met de reden erbij, en Terug gaat naar de lijst
+  assert.equal(L.reduce(s, { t: 'fout', msg: 'Die speler is nu niet goed bereikbaar. Jij houdt het spel.' }).step, 'overdragen-kies');
+  assert.match(L.view(L.reduce(s, { t: 'fout', msg: 'Die speler is nu niet goed bereikbaar. Jij houdt het spel.' })).error, /niet goed bereikbaar/);
+  assert.equal(L.reduce(s, { t: 'spelers', lijst: LIJST(2).map((p) => (p.slot === 1 ? { ...p, verbinding: 'lost' } : p)), max: 8 }).step, 'verbonden', 'de speler valt weg: terug naar de lijst, zonder kandidaten');
+  assert.equal(L.reduce(s, { t: 'spelers', lijst: LIJST(1), max: 8 }).step, 'host-wacht', 'iedereen weg: terug naar wachten');
+  assert.equal(L.reduce(L.reduce(s, { t: 'overdragen-terug' }), { t: 'terug' }).step, 'verbonden');
+  // en de stap zelf kun je niet openen zonder kandidaten
+  assert.equal(L.reduce(L.reduce(s, { t: 'overdragen-terug' }), { t: 'overdragen' }).step, 'overdragen-kies');
+});
 console.log(`lobby_test: ${n}/${n} ok`);
