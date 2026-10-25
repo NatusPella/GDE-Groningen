@@ -6,7 +6,7 @@ import { stapSprong, BUK_TEMPO } from './coopspeler.js';
 import { getMissionList, getMissionDefs } from './missionquery.js';
 import { lichaamVan } from './coopbestuur.js';
 import { hoofdspeler } from './spelersregister.js';
-import { verzoekBlok, leesVerzoek, verzoekEvent, startReden, beginVerzoek, opdrachtId, GROEP_RADIUS, MISSIE_TEKST } from './coopmissie.js';
+import { verzoekBlok, leesVerzoek, verzoekEvent, startReden, beginVerzoek, opdrachtId, GROEP_RADIUS, MISSIE_TEKST, gastheerVraag } from './coopmissie.js';
 import { beginGast as meedoenGast } from './coopmeedoen.js';
 import { stapVanMissie } from './coopverhaal.js';
 
@@ -52,8 +52,8 @@ export function coopStep(c, dt, world, move) {
 
 // ---- een gast start zelf een verhaalopdracht (#452)
 // De gast staat bij het startpunt van zijn eigen volgende opdracht en drukt E: dat is een verzoek aan wie het spel opende. Die
-// begint de opdracht (dezelfde poort, busy.js) en de andere gasten krijgen "Meedoen?"; de vrager doet zelf mee. De opdrachtstand
-// per groep (coopmissie.js) blijft leidend: een groep die al loopt houdt zijn stap en doelen.
+// begint de opdracht (dezelfde poort, busy.js) en de andere gasten én de gastheer krijgen "Meedoen?"; de vrager doet zelf mee.
+// De opdrachtstand per groep (coopmissie.js) blijft leidend: een groep die al loopt houdt zijn stap en doelen.
 export const MISSIE_VRAAG_S = 2; // een tweede E binnen deze tijd doet niets (geen dubbel verzoek)
 
 // De volgende opdracht van deze speler zelf (zijn eigen verhaal), of null.
@@ -95,16 +95,20 @@ export function missieGastVerzoek(world, body, van) {
   const reden = startReden({ verzoek: v, def, lichaam: lichaamVan(world, van) });
   if (reden) { meld(reden); return false; }
   if (typeof world.coopMissieStart !== 'function' || !world.coopMissieStart(v.i)) { meld(MISSIE_TEKST.onbekend); return false; }
-  // De opdracht loopt nu in deze wereld: de vrager is de deelnemer die hem begon, de andere gasten krijgen de gewone vraag.
+  // De opdracht loopt nu in deze wereld: de vrager is de deelnemer die hem begon, de andere gasten én de gastheer krijgen de gewone
+  // vraag. De gastheer is ook een speler (#452): zegt hij nee, dan kijkt hij toe zonder beloning of verhaalstap.
   const label = String(def.label || '').slice(0, 80);
   const id = opdrachtId({ phase: 'active', index: v.i, label: def.label });
   const gasten = n.hub.roster.spelers.filter((s) => s.slot >= 1 && s.slot !== van && s.verbinding !== 'lost').map((s) => s.slot);
   const stap = stapVanMissie(v.i);
   // De groep van deze opdracht begint met de vrager erin; een groep die al liep, houdt zijn stand (coopmissie.js).
   if (world.coopGroepen) beginVerzoek(world.coopGroepen, { index: v.i, label: def.label, stap: '', lateInstap: true }, van, Number.isFinite(world.time) ? world.time : 0);
-  const uit = meedoenGast(n.meedoen, id, gasten, world.coopStapRegel ? world.coopStapRegel() : null, stap, van);
+  const uit = meedoenGast(n.meedoen, id, [...gasten, 0], world.coopStapRegel ? world.coopStapRegel() : null, stap, van);
   n.hub.announce({ k: 'meedoen', label, verplicht: true, start: true, stap, id }, van); // de vrager doet mee en ziet dat de opdracht loopt
-  for (const u of uit) n.hub.announce({ k: 'meedoen', label, verplicht: u.verplicht, sec: u.sec, stap, id }, u.slot);
+  for (const u of uit) {
+    if (u.slot === 0) { gastheerVraag(world, id, label); continue; } // de gastheer antwoordt lokaal (coopmissie.js gastheerVraagTik)
+    n.hub.announce({ k: 'meedoen', label, verplicht: u.verplicht, sec: u.sec, stap, id }, u.slot);
+  }
   const rij = n.hub.roster.spelers.find((s) => s.slot === van);
   if (world.addMessage) world.addMessage(MISSIE_TEKST.hostStart((rij && rij.naam) || 'De ander', label), 5);
   meld(MISSIE_TEKST.gestart(label));

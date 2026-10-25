@@ -94,6 +94,8 @@ ok(/chain\.checkpoints\.clear\(\)/.test(m), 'laden wist de checkpoints');
 ok(/chain\.retry = chain\.defs\[chain\.index\][^\n]*createRetryOffer/.test(m), 'falen biedt Opnieuw aan');
 ok(/updateRetry\(dt, world, def\);\n\n\s+if \(chain\.phase === 'cooldown'\)/.test(m), 'Opnieuw wordt elke frame bijgehouden');
 ok(/stepGrace\(g, dt, far \? 'away' : 'near'\)/.test(m), 'verlaten voertuig geeft grace');
+ok(/if \(mee\) chain\.completed\.add\(chain\.index\)/.test(m), 'opdracht van een gast: alleen met J van de gastheer telt hij als geklaard (#452)');
+ok(/sluitGastStart\(world, mee\)/.test(m), 'en zijn eigen keten blijft staan als hij toekeek (#452)');
 ok(/wrecked \|\| v\.disabled\) return vf\.wrecked/.test(m), 'kapot blijft direct falen');
 ok(/placeParty\(world, def\.start\)/.test(m), 'Opnieuw zet de groep op de startplek');
 ok(/kind: 'getaway', checkpoint: true/.test(m), 'M06: checkpoint bij de vlucht na de lege vitrine');
