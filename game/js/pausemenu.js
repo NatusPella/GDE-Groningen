@@ -383,13 +383,11 @@ const pane = (eyebrow, title, inner = '') => `<aside class="m-pane"><div class="
 
 function settingsHtml() {
   const qualities = Object.keys(QUALITY_PRESETS).map((q) => [q, q[0].toUpperCase() + q.slice(1)]);
-  const presets = [...PRESET_ORDER, 'eigen'].map((n) => [n, n === 'eigen' ? 'Eigen' : presetLabel(n)]);
   const tab = (id, rows, side = '') => `<div data-of="settings" data-sub="${id}" class="pm-settab" hidden><div class="m-list pm-slist">${rows}</div>${side}</div>`;
   return `${subtabsHtml('settings', 'Onderdeel')}
     ${tab('video', `
       <div class="pm-advice" data-bench-banner hidden></div>
-      <div class="m-li pm-row"><span class="nm" id="pm-l-presetknoppen">Voorinstelling</span><span class="pm-chips" role="radiogroup" aria-labelledby="pm-l-presetknoppen">${presets.map(([n, l]) => `<button type="button" class="m-chip" role="radio" data-preset-btn="${n}" aria-checked="false"${n === 'eigen' ? ' aria-disabled="true"' : ''}>${l}</button>`).join('')}</span></div>
-      <div hidden>${picker('preset', 'Voorinstelling', presets, '', 'data-preset-pick')}</div>
+      <div class="m-li pm-row"><span class="nm" id="pm-l-presetknoppen">Voorinstelling<span class="mut" data-preset-now></span></span><span class="pm-chips" role="group" aria-labelledby="pm-l-presetknoppen">${PRESET_ORDER.map((n) => `<button type="button" class="m-chip" data-preset-btn="${n}" aria-pressed="false">${presetLabel(n)}</button>`).join('')}</span></div>
       ${picker('resolution', 'Resolutie', [['1', '100%'], ['0.85', '85%'], ['0.75', '75%'], ['0.6', '60%']])}
       ${toggle('autoResolution', 'Automatische resolutie', 'bij haperen')}
       ${toggle('zuinig', 'Zuinige modus', '30 beelden per seconde, spaart batterij en warmte')}
@@ -611,7 +609,7 @@ export function initPauseMenu(w) {
     const fold = e.target.closest('[data-fold]');
     if (fold) { toggleFold(fold); return; }
     const pb = e.target.closest('[data-preset-btn]');
-    if (pb) { if (pb.dataset.presetBtn !== 'eigen') applyPreset(pb.dataset.presetBtn); syncControls(); return; } // de voorinstellingen zijn weer knoppen (#435)
+    if (pb) { applyPreset(pb.dataset.presetBtn); syncControls(); return; } // de voorinstellingen zijn knoppen (#435)
     const pick = e.target.closest('[data-pick]');
     if (pick) { stepPicker(pick.closest('.m-pk'), Number(pick.dataset.pick)); return; }
     if (e.target.closest('[data-pad-test]')) { openPadTest(); return; }
@@ -1075,9 +1073,7 @@ function stepRange(el, dir) {
 // A picker (‹ value ›): one step along its options, without wrapping.
 function pickerState(pk) {
   const options = JSON.parse(pk.dataset.options);
-  let cur;
-  if ('presetPick' in pk.dataset) cur = currentPreset(getSettings()) || 'eigen';
-  else cur = String(getSettings()[pk.dataset.setting]);
+  const cur = String(getSettings()[pk.dataset.setting]);
   return { options, i: Math.max(0, options.findIndex(([v]) => v === cur)) };
 }
 
@@ -1086,9 +1082,7 @@ function stepPicker(pk, dir) {
   const { options, i } = pickerState(pk);
   const next = Math.min(options.length - 1, Math.max(0, i + dir));
   if (next === i) return;
-  if ('presetPick' in pk.dataset) {
-    if (options[next][0] !== 'eigen') applyPreset(options[next][0]);
-  } else setSetting(pk.dataset.setting, options[next][0]);
+  setSetting(pk.dataset.setting, options[next][0]);
   syncControls();
 }
 
@@ -1244,7 +1238,7 @@ function runAction(a) {
     if (a === 'bench-apply' && res && res.rec) applyPreset(res.rec);
     dismissBenchBanner();
     syncControls();
-    const cur = root.querySelector('[data-preset-pick] [data-pick="1"]');
+    const cur = root.querySelector('[data-preset-btn][aria-pressed="true"]') || root.querySelector('[data-preset-btn]');
     if (cur) cur.focus();
   }
 }
@@ -1348,27 +1342,23 @@ function syncControls() {
   shadowBox.closest('.pm-row').classList.toggle('pm-disabled', !shadowsAllowed);
 }
 
-// The preset picker, the explanation beside it and, after a benchmark, one line
-// with the preset it advises (gfxprofile.js). Only measured numbers are shown.
+// The preset buttons, the explanation beside them and, after a benchmark, one
+// line with the preset it advises (gfxprofile.js). Only measured numbers are shown.
 function syncPresets(st) {
-  const cur = currentPreset(st) || 'eigen';
+  const cur = currentPreset(st);
   const res = getBenchResult();
-  const pk = root.querySelector('[data-preset-pick]');
-  const { options, i } = pickerState(pk);
-  pk.querySelector('output').textContent = options[i][1];
-  for (const b of root.querySelectorAll('[data-preset-btn]')) b.setAttribute('aria-checked', String(b.dataset.presetBtn === cur));
-  const [prev, next] = pk.querySelectorAll('[data-pick]');
-  prev.setAttribute('aria-disabled', String(i === 0));
-  next.setAttribute('aria-disabled', String(i === options.length - 1));
+  for (const b of root.querySelectorAll('[data-preset-btn]')) b.setAttribute('aria-pressed', String(b.dataset.presetBtn === cur));
+  const now = root.querySelector('[data-preset-now]');
+  now.textContent = cur ? '' : 'Eigen instellingen';
   const pane = root.querySelector('[data-preset-pane]');
-  pane.querySelector('[data-preset-name]').textContent = options[i][1];
-  pane.querySelector('[data-preset-desc]').textContent = cur === 'eigen' ? 'Wat je zelf instelt: resolutie, schaduwen en zichtafstand wijken af van de drie standen.' : describePreset(cur);
+  pane.querySelector('[data-preset-name]').textContent = cur ? presetLabel(cur) : 'Eigen';
+  pane.querySelector('[data-preset-desc]').textContent = cur ? describePreset(cur) : 'Wat je zelf instelt: resolutie, schaduwen en zichtafstand wijken af van de vier standen.';
   const fpsOf = (n) => (res ? (n === 'eigen' ? (res.preset ? 0 : res.avg) : res.fps[n]) : 0);
-  const fps = fpsOf(cur);
+  const fps = fpsOf(cur || 'eigen');
   const fpsBox = pane.querySelector('[data-preset-fps]');
   fpsBox.hidden = !fps;
   fpsBox.querySelector('.pm-big').textContent = fps ? `${Math.round(fps)} fps` : '';
-  const shown = options.filter(([n]) => n !== 'eigen' && fpsOf(n));
+  const shown = PRESET_ORDER.filter((n) => fpsOf(n)).map((n) => [n, presetLabel(n)]);
   const top = Math.max(1, ...shown.map(([n]) => fpsOf(n)));
   pane.querySelector('[data-preset-bars]').innerHTML = shown.map(([n, label]) =>
     `<div class="pm-fpsbar${n === cur ? ' on' : ''}"><span>${esc(label)}</span><span class="m-bar${n === cur ? ' on' : ''}"><i style="width:${Math.round((fpsOf(n) / top) * 100)}%"></i></span><span class="bebas">${Math.round(fpsOf(n))} fps</span></div>`).join('');
