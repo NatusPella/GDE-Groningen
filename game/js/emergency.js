@@ -6,7 +6,7 @@
 
 import { spawnVehicleOnRoad } from './vehicle.js';
 import { carModel, applyFleetFlags } from './trafficfleet.js';
-import { nearestFacility } from './facilities.js';
+import { nearestFacility, poiLayerPlace } from './facilities.js';
 import { activeSirens, sirenYield } from './trafficyield.js';
 export { activeSirens, sirenYield };
 
@@ -42,7 +42,7 @@ function endCall(v) {
 // Where ambulances wait: the UMCG entrance, else the nearest real hospital or
 // ambulance post (facilities.js), in town or out in the Ommelanden.
 function ambulanceBase(world, x, y) {
-  const h = world.map.meta.hospital;
+  const h = poiLayerPlace(world.map, 'hospital');
   if (h && Math.hypot(x - h.x, y - h.y) <= HOSPITAL_NEAR) return h;
   const f = nearestFacility(['hospital', 'ambulance'], x, y, { maxD: HOSPITAL_NEAR });
   return f && !f.umcg ? f : null;
