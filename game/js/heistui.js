@@ -139,17 +139,21 @@ export function crackPanel(C) {
 // --- the blueprint ---------------------------------------------------------------------------
 // data: world-space outlines and marks from heist.js planData(); focus keys:
 // island, water, fuse, cams, guards, lasers, vitrine, routeA, routeB, choice.
+// data.samen: één regel per speler met zijn rollen (#438), alleen met meer dan één speler.
 
 const CW = 960, CH = 640;
 const INK = '#3fc97a', INK_SOFT = 'rgba(63, 201, 122, 0.35)', PAPER = '#f0ede4', GOLD = '#f2c14e', RED = '#d93f3f';
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 export function showPlan(data) {
   ensureRoot();
   hidePlan(true);
   const el = document.createElement('div');
   el.className = 'hx-plan';
+  const samen = data && Array.isArray(data.samen) ? data.samen.filter((s) => typeof s === 'string' && s) : [];
   el.innerHTML = `<div class="hx-plan-head"><span>Bouwtekening · Groninger Museum</span><small>Begane grond · nachtdienst</small></div>
     <canvas width="${CW}" height="${CH}"></canvas>
+    ${samen.length ? `<div class="hx-samen" role="note"><b>Samen:</b>${samen.map((s) => `<span>${esc(s)}</span>`).join('')}</div>` : ''}
     <div class="hx-choice">
       <button type="button" class="hx-card" data-pick="sluip"><b>${key('A')} Achterdeur</b><span>Sluipen: slotje openpeuteren, langs de bewaker in zaal 1.</span><em>Spannend en stil.</em></button>
       <button type="button" class="hx-card" data-pick="vermomd"><b>${key('S')} Schoonmakers</b><span>Vermomd in een overall: pasje rollen, gewoon door de glazen deur.</span><em>De bewakers zien je pas van dichtbij.</em></button>

@@ -71,6 +71,39 @@ t('een speler valt weg: de opdracht loopt door zolang er genoeg spelers zijn, zo
   assert.equal(A.verlaat(b, 1), 'afgebroken'); assert.equal(A.complete(b), null); assert.equal(A.tick(b, 1000), 'afgebroken');
   assert.equal(A.cancel(A.createActivity('overval')), 'afgebroken');
 });
+t('de Kluisklus (#438): samen met een eigen rol en een gedeelde buit, of tegen elkaar', () => {
+  // samen: elke speler heeft rollen, de buit is de hele beloning en de rollen tellen
+  const samen = A.maakOverval([0, 1], 'samen');
+  assert.deepEqual(samen.rollen.map((r) => r.slot), [0, 1]);
+  assert.deepEqual(A.overvalRol(samen, 0), ['uitkijk', 'kluis']);
+  assert.deepEqual(A.overvalRol(samen, 1), ['loper', 'schipper']);
+  assert.equal(A.overvalRol(samen, 9).length, 0);
+  assert.match(samen.modusTekst, /gedeeld/);
+  A.addPoints(samen, 0, 4); A.addPoints(samen, 1, 1);
+  const u = A.complete(samen);
+  assert.equal(u.modus, 'samen'); assert.equal(u.winnaar, null);
+  assert.equal(Object.values(u.geld).reduce((x, y) => x + y, 0), 600);
+  assert.equal(u.geld[0], u.geld[1], 'eerlijk gedeeld; een oneven rest gaat naar wie het meest deed (heistrollen_test)');
+  // tegen elkaar: ieder houdt wat hij zelf haalde, de grootste buit wint
+  const tegen = A.maakOverval([0, 1, 2], 'tegen');
+  assert.equal(tegen.modus, 'tegen');
+  assert.equal(tegen.rollen.flatMap((r) => r.rollen).length, 4, 'met drie spelers zijn alle rollen bezet');
+  A.addPoints(tegen, 0, 1); A.addPoints(tegen, 1, 9); A.addPoints(tegen, 2, 2);
+  const v = A.complete(tegen);
+  assert.equal(v.winnaar, 1);
+  assert.equal(Object.values(v.geld).reduce((x, y) => x + y, 0), 600);
+  assert.ok(v.geld[1] > v.geld[2] && v.geld[2] >= v.geld[0], 'de grootste buit wint');
+  // een onbekende stand is samen delen; wie wegvalt verdeelt de rollen opnieuw
+  const raar = A.maakOverval([0, 1], 'iets');
+  assert.equal(raar.modus, 'samen');
+  const weg = A.maakOverval([0, 1, 2], 'samen');
+  assert.equal(A.verlaat(weg, 2), 'bezig');
+  assert.equal(weg.rollen.flatMap((r) => r.rollen).length, 4, 'de rollen van de overgebleven spelers');
+  assert.deepEqual(weg.rollen.map((r) => r.slot), [0, 1]);
+  // de gewone activiteit houdt de oude verdeling (geen rollen)
+  const oud = A.createActivity('overval');
+  assert.equal(oud.rollen, undefined);
+});
 t('uitbetalen: ieder in zijn eigen portemonnee, precies een keer', () => {
   const a = A.createActivity('padel-dubbel', [0, 1, 2, 3]); for (const s of a.spelers) A.addPoints(a, s, 5); A.complete(a);
   const wallet = {};
