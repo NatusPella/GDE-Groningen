@@ -1012,7 +1012,7 @@ export function startMissionVoorGast(world, i) {
 }
 
 // Een gast startte de lopende opdracht (#452). De gastheer deed mee als hij zelf J zei (coopmissie.js gastheerMee); anders kijkt
-// hij toe: geen geld, geen loopbaanpunten, geen medaille en geen verhaalstap. Zonder gastStart (de gewone opdracht van de
+// hij toe: geen geld, geen vakpunten, geen medaille en geen verhaalstap. Zonder gastStart (de gewone opdracht van de
 // gastheer) verandert er niets.
 const gastStartMee = (world) => !chain.gastStart || gastheerMee(world, chain.gastStart.id);
 // De gastStart afsluiten. Deed de gastheer niet mee, dan springt zijn eigen keten terug naar waar hij was en vervalt het
@@ -1492,7 +1492,7 @@ function succeed(world, def) {
     }
     playStoryOutro(world, i, { stage: storyStage(i), short: chain.completed.has(i), reward, stats, reason });
   } else {
-    // de gastheer keek toe: de opdracht is klaar, maar zijn eigen verhaal, geld en loopbaanpunten blijven waar ze waren (#452)
+    // de gastheer keek toe: de opdracht is klaar, maar zijn eigen verhaal, geld en vakpunten blijven waar ze waren (#452)
     world.addMessage(`${def.label} geklaard, zonder jou. Geen beloning of voortgang voor jou.`, 4);
   }
   const borrowed = def.handBack ? chain.vehicle : null;
