@@ -7,7 +7,7 @@ import { speakerHtml } from './speakers.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { buildBuildingMesh, setBuildingMap, setNightFactor } from './models3d_buildings.js';
 import { updateDiscoLamp } from './discolight.js';
-import { buildVehicleMesh, updateVehicleWheelSpin, applyFlatTire, setBusRearAngle, updatePoliceLamps, updateIndicatorLamps, syncPoliceMount, boatHullProfile, riderSeatFor, attachHelmet, carBodyFit } from './models3d_vehicles.js';
+import { buildVehicleMesh, updateVehicleWheelSpin, applyFlatTire, setBusRearAngle, updatePoliceLamps, updateIndicatorLamps, syncPoliceMount, boatHullProfile, riderSeatFor, attachHelmet } from './models3d_vehicles.js';
 import {
   buildVehicleImpactSparkMesh3D, updateVehicleImpactSparkMesh3D,
   vehicleNeedsFireEffect, vehicleSmokeOnly, buildVehicleFireMesh3D, updateVehicleFireMesh3D,
@@ -26,6 +26,7 @@ import { syncHaltefiguren } from './haltefiguren3d.js';
 import { seatedOf } from './occupants.js';
 import { vehicleSeat, placeSeated, makeSeatTracker, trackSeat, drawTransition, syncBoatCrew } from './seating3d.js';
 import { updateCarInterior } from './carinterior.js';
+import { vehicleHeight } from './vaultkit.js';
 import { updateSwimmers3D } from './swimmers3d.js';
 import { neutralPose, applyPose } from './actoranim.js';
 import { waggel, juichSterkte, juichHoek } from './vrijgezellen.js';
@@ -341,22 +342,20 @@ const CAM_TARGET_RADIUS = ORBIT_RADIUS * 5 + CAM_CLEARANCE + 2;
 // (#463) De volgcam van de bestuurder hoort buiten de eigen carrosserie te
 // blijven. Trekt een muur of prop hem naar binnen - en in de pauze blijft dat
 // beeld staan - dan wijkt hij boven het dak uit in plaats van in de auto te
-// hangen. Punt en uitkomst in kaartcoördinaten: [x, y, hoogte].
-export function camClearOfVehicle(x, y, h, v, marge = 0.4) {
-  if (!v || !v.model) return [x, y, h];
+// hangen. Punt en uitkomst in beeldcoördinaten, net als de camera zelf:
+// [x, hoogte, z] (z is de kaart-y), zodat de volgorde aan beide kanten gelijk
+// is. Het dak komt uit vaultkit.js (vehicleHeight), dat elke soort kent: een
+// hoge bus, een trekker of een maaidorser wijkt net zo goed uit als een auto.
+export function camClearOfVehicle(x, h, z, v, marge = 0.4) {
+  if (!v || !v.model) return [x, h, z];
   const halfLen = (v.model.len || 0) / 2 + marge;
   const halfWid = (v.model.wid || 0) / 2 + marge;
-  const dx = x - v.x, dy = y - v.y;
+  const dx = x - v.x, dz = z - v.y;
   const c = Math.cos(v.angle || 0), s = Math.sin(v.angle || 0);
-  const lx = dx * c + dy * s, lz = -dx * s + dy * c;
-  if (Math.abs(lx) >= halfLen || Math.abs(lz) >= halfWid) return [x, y, h];
-  // de echte daklijn van de carrosserie (carBodyFit), en voor de hoge
-  // voertuigen zonder profiel een ruime schatting
-  const fit = carBodyFit(v);
-  const tall = v.model.name === 'truck' || v.model.name === 'foodtruck' || v.model.name === 'trekkerlimo' || v.isBus;
-  const dak = v._mount === 'horse' ? 2.4 : v.isBike || v.isScooter ? 1.3 : fit ? fit.roof : tall ? 3.4 : 1.6;
-  const roof = (v.z || 0) + dak + 0.6;
-  return h < roof ? [x, y, roof] : [x, y, h];
+  const lx = dx * c + dz * s, lz = -dx * s + dz * c;
+  if (Math.abs(lx) >= halfLen || Math.abs(lz) >= halfWid) return [x, h, z];
+  const roof = (v.z || 0) + vehicleHeight(v) + 0.6;
+  return h < roof ? [x, roof, z] : [x, h, z];
 }
 const camTargetList = [];
 let lastPx = null, lastPy = null;
@@ -3130,7 +3129,7 @@ export function update3D(dt, world) {
   // (en staat de wereld op pauze, dan blijft dat beeld staan), dan gaat hij
   // boven het dak langs in plaats van erin
   if (veh && veh.model && !veh.isBoat && !veh.isHeli) {
-    const q = camClearOfVehicle(desiredX, desiredZ, desiredY, veh);
+    const q = camClearOfVehicle(desiredX, desiredY, desiredZ, veh);
     desiredX = q[0]; desiredY = q[1]; desiredZ = q[2];
   }
 
