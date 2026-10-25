@@ -215,7 +215,7 @@ function dienstActiviteit(cfg) {
     },
     spots() {
       const s = worldRef ? plek(worldRef) : null;
-      return s ? [{ id: cfg.id, name: cfg.naam, x: s.x, y: s.y, mode: cfg.mode] } : [];
+      return s ? [{ id: cfg.id, name: cfg.naam, x: s.x, y: s.y, mode: cfg.mode }] : [];
     },
     prompt(w) {
       // on foot: E boards the Kist or the boat at the start spot and starts the service
