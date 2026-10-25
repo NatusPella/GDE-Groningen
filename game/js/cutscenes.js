@@ -11,7 +11,7 @@ const FIETSER_B = { shirt: 0x2e7d4f, skin: 0xc9a27a, variant: 'female', seed: 16
 // plays one after the other (openingActs): 1. the trailer parody in the street (cyclists, a gull, a
 // postman) that cranes up towards the attic window; 2. the kitchen of the Oosterparkwijk at dawn
 // (the set of introkitchen3d.js): Rikus on the radio, Tessa over the loan papers, Tammo with the coffee,
-// the cat on the bank letter, the plan said out loud, the phone that buzzes; 3. moving day: the
+// the plan said out loud, the phone that buzzes; 3. moving day: the
 // Escapade with its mattress, "Rijden, niet praten", and the car limps off down the street.
 // Line numbers are local to the act (L0 = first line of the act).
 const POSTBODE = { shirt: 0xd9742a, skin: 0xd9b48f, variant: 'male', seed: 211 };
@@ -83,9 +83,9 @@ const ACT_KEUKEN = {
     tessa: { look: 'anita', at: [-0.82, 0], face: 0, anim: 'look', sit: 0.46, speaker: ['Anita', 'Tessa'], gaze: [-0.3, 0.06, 0.8] },
     tammo: { look: 'tammo', at: [1.3, 2.1], face: -90, anim: 'idle', speaker: 'Tammo', gaze: 'speaker' },
   },
-  props: {
-    kat: { kind: 'kat', at: [-2.0, 0.7, 1.05], face: 0 },
-  },
+  // no cat on the set (#434): the line about a cat ("Een kat is ook sympathiek. Die krijgt ook geen
+  // lening.") is a comparison, and a live animal walking, sitting and being talked to was the gag.
+  // Constitution 6: nothing suggestive or about an animal as a joke. The line itself stays (voiced).
   fx: [
     { t: 0, fx: 'pulse', dur: 12 },
     { t: 0.8, fx: 'naam', text: 'Tessa', dur: 2.6 },
@@ -109,11 +109,7 @@ const ACT_KEUKEN = {
     { t: 'L2+0.1', actor: 'tessa', anim: 'idle' },
     { t: 'L3', actor: 'tessa', anim: 'shrug' },
     { t: 'L4', actor: 'tammo', anim: 'shrug' },
-    // the cat hops off the sill and sits on the floor by the window, well away from Tessa and out of every camera line (neutral framing, #434)
-    { t: 'L5-0.3', prop: 'kat', path: [[-2.0, 0.7, 1.05], [-1.85, 0.9, 0.0], [-1.45, 0.85, 0.0]], speed: 1.8 },
-    { t: 'L5', actor: 'tessa', face: 'prop:kat' },
     { t: 'L5', actor: 'tessa', anim: 'shrug' },
-    { t: 'L5+2.4', actor: 'tessa', face: 0 },
     { t: 'L5+2.4', actor: 'tessa', anim: 'shake' },
     { t: 'L6', actor: 'tessa', anim: 'lean' },
     { t: 'L7', actor: 'tammo', anim: 'nod' },
@@ -148,14 +144,14 @@ const ACT_KEUKEN = {
     { t: 0, shot: 'dolly', from: [1.9, 1.2, 1.7], to: [1.0, 0.9, 1.5], look: [-2.1, 0.1, 1.5], fov: 50 },
     { t: 'L0+2.0', shot: 'dolly', from: [-1.4, -0.6, 1.25], to: [-1.65, 0.1, 1.2], look: [-2.06, 0.62, 1.15], fov: 30 },
     { t: 'L0+4.0', shot: 'dolly', from: [0.2, -0.9, 1.6], to: [-0.1, -0.7, 1.45], look: [-0.5, 0, 0.85], fov: 36 },
-    { t: 'L1', shot: 'cut', at: [-0.6, -1.2, 1.3], look: 'kat@0.15', fov: 28 },
+    { t: 'L1', shot: 'cut', at: [-1.5, -0.7, 1.3], look: [-2.05, 0.62, 1.08], fov: 36 },
     { t: 'L2-3.8', shot: 'dolly', from: [-0.8, -1.2, 1.7], to: [-0.2, -1, 1.6], look: [1.3, 1.7, 1.2], fov: 44 },
     { t: 'L2-1.6', shot: 'dolly', from: [-0.6, -0.8, 1.55], to: [-0.2, -0.5, 1.4], look: 'tammo@1.3', fov: 40 },
     { t: 'L2+0.9', shot: 'cut', at: [-0.3, -1.1, 1.5], look: 'mid:tammo,tessa@1.2', fov: 38 },
-    // the talk: closer on whoever speaks, the cat on the letter, the drawing
+    // the talk: closer on whoever speaks, the drawing
     { t: 'L3', shot: 'cut', at: [0.3, 0.5, 1.4], look: 'tessa@1.15', fov: 28 },
     { t: 'L4', shot: 'cut', at: [-0.35, -0.6, 1.4], look: 'tammo@1.2', fov: 28 },
-    { t: 'L5', shot: 'dolly', from: [0.6, -1.3, 1.5], to: [0.4, -1.1, 1.45], look: 'mid:tessa,kat@0.9', fov: 44 },
+    { t: 'L5', shot: 'cut', at: [0.35, -1.2, 1.35], look: 'tessa@1.15', fov: 34 },
     { t: 'L5+2.4', shot: 'cut', at: [0.2, 0.65, 1.4], look: 'tessa@1.2', fov: 34 },
     { t: 'L6', shot: 'dolly', from: [0.3, -0.9, 1.6], to: [0.05, -0.75, 1.5], look: 'tessa@1.2', fov: 36 },
     { t: 'L7', shot: 'cut', at: [-0.4, 0.7, 1.4], look: 'tammo@1.2', fov: 28 },

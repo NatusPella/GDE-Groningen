@@ -81,7 +81,7 @@ for (const x of compiled) {
   ok(seen.size >= (x.def.set === 'keuken' ? 20 : 6), `the camera varies in ${x.def.id}`, String(seen.size));
 }
 
-// the kitchen: Tessa sits, Tammo walks in and sits, both stand up and leave; the cat hops off the sill to the floor (#434)
+// the kitchen: Tessa sits, Tammo walks in and sits, both stand up and leave; no animal on the set (#434)
 {
   const L = kitchen.lines, sm = (t) => kitchen.scene.sample(t, kAnchor);
   const first = sm(0.5), mid = sm(L[8].at + 1), end = sm(kitchen.duration - 0.3);
@@ -89,8 +89,11 @@ for (const x of compiled) {
   ok(mid.actors.tessa.sit > 0.4 && mid.actors.tammo.sit > 0.4, 'both sit at the table in the middle');
   ok(end.actors.tessa.sit === 0 && end.actors.tammo.sit === 0, 'both stand at the end');
   ok(Math.hypot(end.actors.tessa.x - kAnchor.x - 1.3, end.actors.tessa.y - kAnchor.y - 2.3) < 0.3, 'Tessa leaves through the door');
-  const cat0 = sm(0.5).props.kat, cat1 = sm(L[8].at).props.kat;
-  ok(cat0.h - 345 > 1 && Math.abs(cat1.h - 345) < 0.05, 'the cat jumps from the sill to the floor', `${cat0.h} ${cat1.h}`);
+  // #434: geen dier als grap. De regel over de kat blijft (die is ingesproken), de poes staat niet meer op de set;
+  // in plaats van de close-up op de kat kijkt de camera op die regel naar de radio, waar Rikus het nieuws leest.
+  ok(!Object.values(kitchen.def.props || {}).some((p) => p.kind === 'kat'), 'geen kat op de keukenset');
+  const rad = sm(L[1].at + 0.6).camera.lookAt;
+  ok(Math.hypot(rad.x - kAnchor.x + 2.05, rad.y - kAnchor.y - 0.62) < 0.05, 'de radio krijgt de cut als Rikus praat', `${rad.x - kAnchor.x} ${rad.y - kAnchor.y}`);
   ok(sm(L[2].at + 0.8).speakerActor === 'tammo' && sm(L[3].at + 0.8).speakerActor === 'tessa', 'the kitchen speakers are right');
   // every line has its own shot or shares one with a close-up on the speaker
   ok(kitchen.def.shots.length >= 26, 'the kitchen has a shot plan', String(kitchen.def.shots.length));
