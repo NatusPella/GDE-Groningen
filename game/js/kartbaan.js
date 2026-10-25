@@ -498,6 +498,7 @@ function playerInput(input) {
 
 function updateGame(w, dt) {
   const g = game;
+  g.dt = dt; // de camera rekent per seconde (#436), ook bij een wedstrijd via het net
   if (g.online) { updateOnline(w, dt); return; }
   const input = w.input;
   g.t += dt;

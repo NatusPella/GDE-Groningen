@@ -170,6 +170,7 @@ function splash(w, x, y, big) {
 function updateGame(w, dt) {
   const g = game, s = g.s, input = w.input;
   g.t += dt;
+  g.dt = dt; // de camera rekent per seconde (#436)
   if (g.flash && (g.flash.t -= dt) <= 0) g.flash = null;
   if (stopPressed(input)) { end(w, { quit: true }); return; }
   if (g.phase === 'outro') {
