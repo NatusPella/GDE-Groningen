@@ -11,7 +11,7 @@
 // their slip roads at street level, gantries before the exits, hectometre
 // posts, mapped fences, noise barriers and speed tables.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { furnitureForTile, DESTINATIONS } from './streetfurniture.js';
+import { furnitureForTile, furnitureColliders, spotFreeOnMap, LAMP_AWNING, DESTINATIONS } from './streetfurniture.js';
 import { worldSignPlaces, worldTownSigns } from './worldplaces.js';
 import { boardQuads } from './boardquad.js';
 import { mergeGeometries, tint } from './geomerge.js';
@@ -27,6 +27,9 @@ const CAP = { guardrail: 2600, fence: 600, hedge: 600, noise: 400, hectometer: 1
 const TILE_REACH = 900;     // tiles whose square comes this near are generated
 const PROP_REACH = 70;      // colliders near the player
 const REBUILD_MOVE = 12;
+// the items that stand on one spot, and so can stand on the asphalt or in a
+// facade: checked against the map's own query before they are drawn (#463)
+const POINT_KINDS = new Set(['bench', 'bin', 'bikerack', 'shelter', 'bollard', 'lamp', 'placesign', 'wegwijzer', 'hectometer']);
 
 let scene = null;
 let map = null;
@@ -276,7 +279,10 @@ function tileItems(i, j) {
   const rails = (map.railNear ? map.railNear(wx, wy, wr) : []).concat(map.rails || []);
   const buildings = map.buildingsNear ? map.buildingsNear(wx, wy, wr) : [];
   const res = furnitureForTile({ x0, y0, size: TILE_M, roads, mapped, water, rails, buildings, places: worldSignPlaces() || DESTINATIONS, opts: { ...GAME_OPTS, towns: worldTownSigns() } });
-  tiles.set(key, t = { items: res.items, colliders: res.colliders });
+  // nothing that stands on one spot goes on the asphalt, into a house or into
+  // the water: the map answers for what is drawn (#463)
+  const items = res.items.filter((it) => !POINT_KINDS.has(it.k) || spotFreeOnMap(map, it.x, it.y, it.k === 'lamp' ? { house: LAMP_AWNING } : undefined));
+  tiles.set(key, t = { items, colliders: items.length === res.items.length ? res.colliders : furnitureColliders(items) });
   return t.items;
 }
 

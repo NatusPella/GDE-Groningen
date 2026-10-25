@@ -961,10 +961,24 @@ export function generateClutter(ctx) {
         const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
         if (len < 5) continue;
         const tx = (b[0] - a[0]) / len, ty = (b[1] - a[1]) / len;
-        const cx = a[0] + tx * 2.5, cy = a[1] + ty * 2.5;
         if (!isOnRoad(map, a[0], a[1], 3, ['major', 'normal', 'minor'])) continue;
         const n = Math.max(2, Math.min(6, Math.round((r.width || 4) / 1.4)));
-        row(ctx, P.bollards[inner ? 0 : 1], 'bollard', cx, cy, -ty, tx, n, 1.4, Math.atan2(ty, tx), 0.12);
+        const half = (n - 1) * 1.4 / 2;
+        // the mouth's node sits on the middle line of the car road it leaves:
+        // the row stands further into the pedestrian street, off that asphalt,
+        // never in the lane (#463)
+        const asphalt = (x, y) => isOnRoad(map, x, y, 0.15, ['major', 'normal', 'minor']) || solid(map, x, y);
+        const freeRow = (d) => {
+          for (let i = 0; i < n; i++) {
+            const s = -half + i * 1.4;
+            if (asphalt(a[0] + tx * d - ty * s, a[1] + ty * d + tx * s)) return false;
+          }
+          return true;
+        };
+        let d = 2.5;
+        while (d < 9 && !freeRow(d)) d += 0.5;
+        if (d >= 9) continue;
+        row(ctx, P.bollards[inner ? 0 : 1], 'bollard', a[0] + tx * d, a[1] + ty * d, -ty, tx, n, 1.4, Math.atan2(ty, tx), 0.12);
       }
     }
     // (rows of four to nine posts along the kerb of a street are gone: they stood in front of shop windows, in the Folkingestraat

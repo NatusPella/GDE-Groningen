@@ -22,9 +22,12 @@ import { pointInPolygon, polygonBounds, nearestOnRoadList } from './util.js';
 import { waterPolyIn } from './waterlevels.js';
 import { hash2 as hash } from './rng.js';
 import { placeSignItems } from './placesigns.js';
+import { segDist, buildingAt } from './tileplace.js';
 
 const MAIN = new Set(['motorway', 'trunk']);
 const LINK = new Set(['motorway_link', 'trunk_link']);
+// the classes a car drives on: a pavement or a cycle path may hold a post, the
+// asphalt may not (#463)
 const CAR = new Set(['major', 'normal', 'minor']);
 
 // Street lamps by road class: type (mast: a high mast on the central
@@ -231,6 +234,59 @@ function nearestRoad(roads, x, y, filter = () => true) {
   return q && { r: q.road, ux: q.ux, uy: q.uy, d: q.d, i: q.i, t: q.t };
 }
 
+// a polyline passing within d m of (x, y)
+function segNear(P, x, y, d) {
+  for (let i = 0; i < P.length - 1; i++) {
+    if (segDist(x, y, P[i], P[i + 1])[0] < d) return true;
+  }
+  return false;
+}
+
+// Metres from (x, y) to the nearest house of the list (0 inside it), up to
+// `reach`: a post keeps its distance from a wall and from the awning over the
+// pavement (#463).
+function houseGap(buildings, x, y, reach) {
+  let best = Infinity;
+  for (const b of buildings) {
+    const q = b.bounds || (b.bounds = polygonBounds(b.pts));
+    if (x < q[0] - reach || x > q[2] + reach || y < q[1] - reach || y > q[3] + reach) continue;
+    if (pointInPolygon(x, y, b.pts)) return 0;
+    for (let i = 0; i < b.pts.length - 1; i++) best = Math.min(best, segDist(x, y, b.pts[i], b.pts[i + 1])[0]);
+  }
+  return best;
+}
+
+// A lamp post keeps this far from a facade: a shop's awning hangs about a
+// metre and a quarter over the pavement (#463)
+export const LAMP_AWNING = 1.4;
+
+// Where a lamp post stands on `side` of the point (x, y) along (ux, uy): on the
+// verge, or at the kerb when the verge is against a facade or under an awning.
+// ok(px, py) says whether a post may stand there; null when neither fits.
+export function lampSpot(x, y, ux, uy, side, road, path, ok) {
+  const hw = (road.width || (path ? 3 : 6)) / 2;
+  for (const off of path ? [hw + 0.5] : [hw + 0.9, hw + 0.45]) {
+    const px = x - uy * side * off, py = y + ux * side * off;
+    if (ok(px, py)) return { x: px, y: py };
+  }
+  return null;
+}
+
+// A spot for street furniture over a streamed map (#463): off every
+// carriageway (roadsNear), out of the houses by `house` m (buildingAt) and out
+// of the water (waterNear). The same answer in the city and the province, so a
+// post or a bench never stands in the asphalt or in a shopfront.
+export function spotFreeOnMap(map, x, y, { house = 0.35, road = 0.25 } = {}) {
+  if (!map) return true;
+  if (buildingAt(map, x, y, house)) return false;
+  if (map.waterNear && waterPolyIn(map.waterNear(x, y, 6), x, y)) return false;
+  for (const r of map.roadsNear ? map.roadsNear(x, y, 8) : []) {
+    if (r.cat === 'foot' || r.cat === 'cycle' || !r.pts || r.pts.length < 2) continue;
+    if (segNear(r.pts, x, y, (r.width || 5) / 2 + road)) return false;
+  }
+  return true;
+}
+
 // --------------------------------------------------------------- the tile
 
 // opts: towns (province places [{ n, x, y, kind }]: place name boards and
@@ -254,11 +310,13 @@ export function furnitureForTile({ x0, y0, size = 1000, roads = [], mapped = [],
           (rgrid.get(gx * 65536 + gy) || rgrid.set(gx * 65536 + gy, []).get(gx * 65536 + gy)).push(r, i);
     }
   }
-  const onOtherRoad = (own, x, y) => {
+  // cats: only the ways of these classes count (a pavement holds a post, the asphalt does not, #463)
+  const onOtherRoad = (own, x, y, cats = null) => {
     const c = rgrid.get(Math.floor(x / RG) * 65536 + Math.floor(y / RG));
     if (!c) return false;
     for (let k = 0; k < c.length; k += 2) {
       const r = c[k], i = c[k + 1];
+      if (cats && !cats.has(r.cat)) continue;
       const P = r.pts, dx = P[i + 1][0] - P[i][0], dy = P[i + 1][1] - P[i][1], L2 = dx * dx + dy * dy || 1e-9;
       const t = Math.max(0, Math.min(1, ((x - P[i][0]) * dx + (y - P[i][1]) * dy) / L2));
       if (Math.abs(zAt(r, i, t)) > 3) continue;
@@ -271,14 +329,6 @@ export function furnitureForTile({ x0, y0, size = 1000, roads = [], mapped = [],
   // water polygons (with .bounds or not) holding a point
   const wet = (x, y) => !!waterPolyIn(water, x, y);
   // the track (its ballast is 4.2 m wide), a footway's own width and a house: a fence or hedge is not drawn through them (#124)
-  const segNear = (P, x, y, d) => {
-    for (let i = 0; i < P.length - 1; i++) {
-      const dx = P[i + 1][0] - P[i][0], dy = P[i + 1][1] - P[i][1], L2 = dx * dx + dy * dy || 1e-9;
-      const t = Math.max(0, Math.min(1, ((x - P[i][0]) * dx + (y - P[i][1]) * dy) / L2));
-      if (Math.hypot(P[i][0] + dx * t - x, P[i][1] + dy * t - y) < d) return true;
-    }
-    return false;
-  };
   const onRail = (x, y) => rails.some((r) => r.pts && segNear(r.pts, x, y, 2.1 + 0.4));
   const onFoot = (x, y) => roads.some((r) => r.cat === 'foot' && r.pts && !r.bridge && segNear(r.pts, x, y, Math.max(0.6, (r.width || 1.5) / 2)));
   const inHouse = (x, y) => buildings.some((b) => { const q = b.bounds || (b.bounds = polygonBounds(b.pts)); return x >= q[0] && x <= q[2] && y >= q[1] && y <= q[3] && pointInPolygon(x, y, b.pts); });
@@ -288,6 +338,10 @@ export function furnitureForTile({ x0, y0, size = 1000, roads = [], mapped = [],
     for (const [px, py] of [[x, y], [x - hx, y - hy], [x + hx, y + hy]]) if (onOtherRoad(null, px, py) || wet(px, py) || onRail(px, py) || onFoot(px, py) || inHouse(px, py)) return true;
     return false;
   };
+  // a post, a bench or a bin stands off the carriageways, out of the houses and
+  // out of the water (#463): what OSM draws on the asphalt or in a shopfront is
+  // a gap in the data, not something to put there
+  const freeSpot = (x, y, reach = 0.35) => !onOtherRoad(null, x, y, CAR) && !wet(x, y) && !onRail(x, y) && houseGap(buildings, x, y, reach) > reach;
 
   // mapped objects (OSM)
   for (const m of mapped) {
@@ -309,6 +363,9 @@ export function furnitureForTile({ x0, y0, size = 1000, roads = [], mapped = [],
       if (!near || near.d > near.r.width / 2 + 1 || !CAR.has(near.r.cat)) continue;
       add({ k: 'speedbump', x, y, a, s: near.r.width, v: m.v || 'table', src: 'osm' });
     } else if (['bench', 'bin', 'bikerack', 'shelter', 'bollard', 'lamp'].includes(m.k)) {
+      // (a post or a bench that OSM puts in the asphalt or against a facade is
+      // left out, #463)
+      if (!freeSpot(x, y, m.k === 'lamp' ? LAMP_AWNING : 0.35)) continue;
       add({ k: m.k, x, y, a, src: 'osm', ...(m.k === 'lamp' ? { v: near ? lampRule(near.r).v : 'lantern', h: near ? lampRule(near.r).h : 5.6 } : null) });
     }
   }
@@ -393,30 +450,46 @@ export function furnitureForTile({ x0, y0, size = 1000, roads = [], mapped = [],
     if (opts.livingBumps && r.type === 'living_street' && L > RULES.livingBump) {
       walk(P, RULES.livingBump, RULES.livingBump / 2, (x, y, ux, uy) => add({ k: 'speedbump', x, y, a: Math.atan2(uy, ux), s: r.width, v: 'table', src: 'rule' }));
     }
-    // street lamps by road class (the game draws its own: nightlights3d.js)
+    // street lamps by road class (the game draws its own: nightlights3d.js);
+    // a post stands at the verge, or at the kerb when the verge is against a
+    // facade or under an awning, and never in the asphalt (#463)
     if (opts.lamps && (CAR.has(r.cat) || r.cat === 'cycle' || r.cat === 'foot')) {
       const rule = lampRule(r);
+      const path = r.cat === 'cycle' || r.cat === 'foot';
       const h0 = hash(P[0][0], P[0][1]);
       const side = rule.v === 'mast' ? 0 : h0 < 0.5 ? 1 : -1;
+      const clear = (px, py) => !wet(px, py) && !onRail(px, py) && houseGap(buildings, px, py, LAMP_AWNING) > LAMP_AWNING;
+      // (a mast stands on the central reserve, its own carriageway is no obstacle)
+      const ok = side ? (px, py) => clear(px, py) && !onOtherRoad(r, px, py, CAR) : clear;
       walk(P, rule.spacing, 4 + h0 * rule.spacing * 0.6, (x, y, ux, uy, i, t) => {
-        const off = side ? r.width / 2 + 0.9 : 0;
-        add({ k: 'lamp', x: x - uy * side * off, y: y + ux * side * off, a: Math.atan2(uy, ux) + (side < 0 ? Math.PI : 0), v: rule.v, h: rule.h, z: zAt(r, i, t), src: 'rule' });
+        if (!side) {
+          if (!ok(x, y)) return;
+          add({ k: 'lamp', x, y, a: Math.atan2(uy, ux), v: rule.v, h: rule.h, z: zAt(r, i, t), src: 'rule' });
+          return;
+        }
+        const spot = lampSpot(x, y, ux, uy, side, r, path, ok);
+        if (!spot) return;
+        add({ k: 'lamp', x: spot.x, y: spot.y, a: Math.atan2(uy, ux) + (side < 0 ? Math.PI : 0), v: rule.v, h: rule.h, z: zAt(r, i, t), src: 'rule' });
       });
     }
-    // bollards where a cycle or foot path leaves a car road
+    // bollards where a cycle or foot path leaves a car road (on the path, never
+    // in the asphalt of the road it leaves, #463)
     if (opts.bollards && (r.cat === 'cycle' || r.cat === 'foot') && L > 6) {
       for (const [end, nxt] of [[0, 1], [P.length - 1, P.length - 2]]) {
         const list = shared.get(nodeKey(P[end]));
         if (!list || !list.some((q) => CAR.has(q.cat))) continue;
         const dx = P[nxt][0] - P[end][0], dy = P[nxt][1] - P[end][1], l = Math.hypot(dx, dy) || 1;
         if (l < 2.5) continue;
-        add({ k: 'bollard', x: P[end][0] + dx / l * 2, y: P[end][1] + dy / l * 2, a: Math.atan2(dy, dx), src: 'rule' });
+        const bx = P[end][0] + dx / l * 2, by = P[end][1] + dy / l * 2;
+        if (!freeSpot(bx, by, 0.6)) continue;
+        add({ k: 'bollard', x: bx, y: by, a: Math.atan2(dy, dx), src: 'rule' });
       }
     }
   }
   // place name boards and junction signposts (only with the province's places)
   if (opts.towns && opts.towns.length) {
-    for (const it of placeSignItems({ roads, towns: opts.towns, inTile, blocked: onOtherRoad })) add(it);
+    const blocked = (r, x, y) => onOtherRoad(r, x, y, CAR) || wet(x, y) || inHouse(x, y);
+    for (const it of placeSignItems({ roads, towns: opts.towns, inTile, blocked })) add(it);
   }
   items.sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : 0));
   // a narrow central reserve gets one rail, not one from each carriageway;
