@@ -95,7 +95,8 @@ export function gebiedenHtml(kies = gekozen) {
   if (kies && !o.ind.gebied.has(kies)) kies = null;
   if (!kies && alle.length) kies = (alle.find((r) => r.klaar > 0 && !r.voltooid) || alle[0]).gebied.id;
   gekozen = kies;
-  const lijst = o.overzicht.map((n) => `<div class="gb-groep">${esc(n.niveau.naam)}<span class="gb-n">${n.voltooid} van ${n.gebieden.length} veroverd</span></div>` + n.gebieden.map((r) => rij(r, o.ind)).join('')).join('');
+  const lijst = `<div class="gb-groep">Kaart verkend<span class="gb-n">${o.kaart.gedaan} van ${o.kaart.totaal} buurten · ${o.kaart.pct}%</span></div>` +
+    o.overzicht.map((n) => `<div class="gb-groep">${esc(n.niveau.naam)}<span class="gb-n">${n.voltooid} van ${n.gebieden.length} veroverd</span></div>` + n.gebieden.map((r) => rij(r, o.ind)).join('')).join('');
   const sam = G.samenvatting(o.profiel, o.ind);
   return { lijst, pane: detail(o, gekozen), totaal: `<span class="m-num">${sam.voltooid}</span><span class="mut">van ${sam.totaal} gebieden veroverd</span>` };
 }

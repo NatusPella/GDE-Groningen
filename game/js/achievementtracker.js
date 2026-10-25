@@ -8,6 +8,7 @@ import {
   initAchievements, recordStat, setStatMax, recordUnique, unlockAchievement, recordMissionResult,
   getSaveSet, addToSaveSet, isUnlocked, MISSION_GOALS, GOLD_DAMAGE, SILVER_DAMAGE, MEDALS, EIERBAL_TOTAL, formatMissionTime,
   ACHIEVEMENTS, getAchievementSummary, setStatListener, setUniekListener, achievementsGated, lifetimeSnapshot,
+  setGebiedStand,
 } from './achievements.js';
 import { vehicleContacts } from './vehicle.js';
 import { getTrains, getLevelCrossings, TRAIN_TYPES } from './railway.js';
@@ -20,7 +21,7 @@ import { chipPopup } from './stunthud.js';
 import { noteMoney } from './finance.js';
 import { initVisboek } from './visboeklive.js';
 import { initLoopbaan, loopbaanOpStat, loopbaanKm, loopbaanTel, getProfiel } from './loopbaanlive.js';
-import { initGebieden, updateGebieden, gebiedenOpVondst, getOverzicht } from './gebiedenlive.js';
+import { initGebieden, updateGebieden, gebiedenOpVondst, getOverzicht, bezoekPlek } from './gebiedenlive.js';
 import { maakBron } from './gebiedenbronnen.js';
 
 const NEAR_MISS_SPEED = 12;
@@ -64,8 +65,19 @@ let eggGroup = null;
 
 const SPEED_TYPES = (v) => (v.isBoat ? 'boot' : v.isBus ? 'bus' : v.isScooter ? 'scooter' : v.isBike ? (v.model && v.model.fat ? 'fatbike' : 'fiets') : v.isPolice ? 'politieauto' : 'auto');
 
-// De prestaties volgen de gebiedenvoortgang (#435): per laag het aantal veroverde gebieden, elke paar seconden.
+// De prestaties volgen de gebiedenvoortgang (#435): per laag het aantal veroverde gebieden en het deel van de kaart dat
+// je gezien hebt, elke paar seconden. De ringen bij de prestaties vragen dezelfde stand (setGebiedStand).
 let gebiedStatT = 0;
+let bezoekT = 0;
+function gebiedStand() {
+  const o = getOverzicht();
+  if (!o) return null;
+  const uit = {};
+  for (const n of o.overzicht) uit[n.niveau.id] = { klaar: n.voltooid, totaal: n.gebieden.length };
+  uit.kaart = { klaar: o.kaart.gedaan, totaal: o.kaart.totaal };
+  return uit;
+}
+
 function syncGebiedStats(dt, w) {
   gebiedStatT -= dt;
   if (gebiedStatT > 0) return;
@@ -73,6 +85,16 @@ function syncGebiedStats(dt, w) {
   const o = getOverzicht();
   if (!o) return;
   for (const n of o.overzicht) setStatMax(w, `gebied_${n.niveau.id}`, n.voltooid);
+  setStatMax(w, 'kaartVerkend', o.kaart.pct);
+}
+
+// De kaart verkennen (#435): één keer per seconde de buurt waar je bent. De gebiedenteller kijkt elke vijf seconden,
+// maar een auto legt in die tijd honderden meters af en zou dan buurten overslaan.
+function trackBezoek(dt, w) {
+  bezoekT -= dt;
+  if (bezoekT > 0) return;
+  bezoekT = 1;
+  bezoekPlek(w);
 }
 
 export function initAchievementTracker(w) {
@@ -83,6 +105,7 @@ export function initAchievementTracker(w) {
   setStatListener(loopbaanOpStat);
   initGebieden({ gate: achievementsGated, bron: maakBron(w) }); // gebieden veroveren (#414)
   setUniekListener(gebiedenOpVondst);
+  setGebiedStand(gebiedStand); // de ringen bij de prestaties van buurt tot provincie (#435)
   contactCursor = vehicleContacts.head;
   w.onRespawn.push((ww, { busted }) => {
     unlockAchievement(ww, busted ? 'opgepakt' : 'wasted');
@@ -121,6 +144,7 @@ export function updateAchievementTracker(dt, w) {
     trackRail(dt, w, p, pv);
     trackMission(dt, w, pv);
     updateGebieden(dt, w, () => getMissionList().filter((m) => m.done).map((m) => m.id));
+    trackBezoek(dt, w);
     syncGebiedStats(dt, w);
     updateEierballen(dt, w, p, pv);
   }

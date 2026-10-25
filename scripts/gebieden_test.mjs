@@ -177,10 +177,10 @@ t('de teksten: Nederlands, rustig, geen geweld en geen echte merken', () => {
 t('normaliseer: kapot, oud of vreemd geeft een geldig profiel; v1 houdt zijn taken maar niet zijn gebieden', () => {
   for (const raw of [null, undefined, '', '{kapot', 'null', 7, [], { v: 0 }, { v: 3, gedaan: ['x'] }]) assert.deepEqual(G.normaliseer(raw), G.nieuwProfiel());
   const p = G.normaliseer(JSON.stringify({ v: 2, gedaan: ['a', 'a', 5, '', null, 'b'], beloond: 'nee', zaad: true, rommel: 1 }));
-  assert.deepEqual(p, { v: 2, gedaan: ['a', 'b'], beloond: [], huizen: [], zaad: true });
+  assert.deepEqual(p, { v: 2, gedaan: ['a', 'b'], beloond: [], huizen: [], bezocht: [], zaad: true });
   assert.deepEqual(G.normaliseer(JSON.parse(JSON.stringify(p))), p, 'heen en terug is stabiel');
   const v1 = G.normaliseer({ v: 1, gedaan: ['m:a', 'b:taxi'], beloond: ['w:Oosterpark'], huizen: ['h:w:Oosterpark'], zaad: true });
-  assert.deepEqual(v1, { v: 2, gedaan: ['m:a', 'b:taxi'], beloond: [], huizen: [] }, 'de oude gebieden bestaan niet meer: opnieuw gezaaid');
+  assert.deepEqual(v1, { v: 2, gedaan: ['m:a', 'b:taxi'], beloond: [], huizen: [], bezocht: [] }, 'de oude gebieden bestaan niet meer: opnieuw gezaaid');
   assert.equal(G.normaliseer({ v: 2, gedaan: Array.from({ length: 5000 }, (_, k) => 'x' + k) }).gedaan.length, 2000);
   assert.deepEqual(G.normaliseer({ v: 2, gedaan: ['x'.repeat(200), 'ok'] }).gedaan, ['ok']);
 });
@@ -193,6 +193,31 @@ t('voegSamen: wat in een van beide gedaan is, is gedaan; de invoer blijft heel',
   assert.equal(m.zaad, true);
   assert.equal(JSON.stringify([a, b]), voor);
   assert.deepEqual(G.voegSamen(null, '{kapot'), G.nieuwProfiel());
+});
+t('bezoek: de buurt waar je bent telt eenmaal; kaartVerkend telt de bezochte buurten en rondt naar beneden af', () => {
+  const i = ind(), p = G.nieuwProfiel();
+  assert.equal(G.bezoek(p, i, 10, 10), 'bu:BU001');
+  assert.equal(G.bezoek(p, i, 10, 10), null, 'twee keer in dezelfde buurt telt een keer');
+  assert.deepEqual(p.bezocht, ['bu:BU001']);
+  assert.equal(G.bezoek(p, i, 13000, 5000), null, 'buiten een buurt (Haren heeft er geen) telt niets');
+  assert.equal(G.bezoek(p, i, -90000, -90000), null, 'in zee telt niets');
+  assert.equal(G.bezoek(p, G.bouwIndeling({ taken: [] }), 10, 10), null, 'zonder grenzen geen kaart');
+  assert.deepEqual(G.kaartVerkend(p, i), { gedaan: 1, totaal: 3, pct: 33 });
+  assert.deepEqual(G.kaartVerkend(p, null), { gedaan: 0, totaal: 0, pct: 0 });
+  assert.equal(G.kaartVerkend(G.nieuwProfiel(), i).pct, 0);
+  // naar beneden afronden: alle buurten op één na is nog geen 100%, pas de laatste maakt de kaart af
+  const buurten = i.gebieden.filter((g) => g.niveau === 'buurt');
+  const q = G.nieuwProfiel();
+  q.bezocht = buurten.slice(0, -1).map((g) => g.id);
+  assert.equal(G.kaartVerkend(q, i).pct, 66);
+  q.bezocht.push(buurten[buurten.length - 1].id);
+  assert.equal(G.kaartVerkend(q, i).pct, 100);
+});
+t('bezoeken overleven normaliseren en samenvoegen, en een oud profiel begint met een lege kaart', () => {
+  assert.deepEqual(G.normaliseer({ v: 2, bezocht: ['bu:BU001', 'bu:BU001', 5, ''] }).bezocht, ['bu:BU001']);
+  assert.deepEqual(G.voegSamen({ v: 2, bezocht: ['bu:BU001'] }, { v: 2, bezocht: ['bu:BU002'] }).bezocht.sort(), ['bu:BU001', 'bu:BU002']);
+  assert.deepEqual(G.normaliseer({ v: 1, gedaan: ['m:a'] }).bezocht, []);
+  assert.equal(G.normaliseer({ v: 2, bezocht: Array.from({ length: 5000 }, (_, k) => 'bu:' + k) }).bezocht.length, 1200);
 });
 t('zaai: een oude speler begint niet bij nul; klaar-gebieden krijgen hun titel zonder geld; het huis erbij', () => {
   const i = ind(), p = G.nieuwProfiel();
@@ -349,6 +374,30 @@ t('vondsten en loopbaanplekken tellen via hun eigen sleutel', () => {
   assert.deepEqual(Live.getProfiel().gedaan.sort(), ['a:padel:1', 'f:v1']);
   Live.gebiedenOpVondst(w, 'x', 'bestaat-niet'); Live.opSleutel(w, ''); Live.opSleutel(w, 7); Live.opSleutel(null, 'm:a');
   assert.equal(Live.getProfiel().gedaan.length, 3, 'm:a telt ook zonder wereld, een raar geluid niet');
+});
+t('bezoekPlek: de buurt van de speler telt mee voor de kaart en staat daarna in het eigen profiel', () => {
+  const st = nepOpslag(); begin(st);
+  const w = nepWereld(10, 10);
+  assert.equal(Live.bezoekPlek(w), 'bu:BU001');
+  assert.equal(Live.bezoekPlek(w), null, 'dezelfde buurt telt een keer');
+  assert.equal(Live.getOverzicht().kaart.gedaan, 1);
+  Live.schrijfNu();
+  assert.match(st.getItem(KEYS.gebieden), /"bezocht":\["bu:BU001"\]/);
+  w.player.x = 1500; w.player.y = 100;
+  assert.equal(Live.bezoekPlek(w), 'bu:BU002', 'een andere buurt telt ook mee');
+  assert.equal(Live.getOverzicht().kaart.pct, 66);
+  w.player.x = 2500; w.player.y = 500;
+  assert.equal(Live.bezoekPlek(w), 'bu:BU003', 'en de volgende');
+  assert.equal(Live.getOverzicht().kaart.pct, 100);
+  assert.equal(Live.bezoekPlek(null), null);
+  assert.equal(Live.bezoekPlek({}), null, 'zonder speler telt niets');
+});
+t('bezoeken worden ook door cheats geblokkeerd', () => {
+  const st = nepOpslag(); let cheat = true; begin(st, bronVan(), () => cheat);
+  assert.equal(Live.bezoekPlek(nepWereld(10, 10)), null);
+  assert.deepEqual(Live.getProfiel().bezocht, []);
+  cheat = false;
+  assert.equal(Live.bezoekPlek(nepWereld(10, 10)), 'bu:BU001');
 });
 t('zolang de wereld er niet is (de bron geeft null) telt er niets en gaat er niets mis', () => {
   const st = nepOpslag(); begin(st, () => null);

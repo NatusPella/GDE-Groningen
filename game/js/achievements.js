@@ -101,9 +101,9 @@ export const ACHIEVEMENTS = [
   { id: 'wijken_33', cat: 'verkennen', title: 'Halve Stadjer', desc: 'Ontdek 33 wijken', set: 'wijken', goal: 33 },
   { id: 'wijken_alle', cat: 'verkennen', title: 'Kenner van Grunn', desc: 'Ontdek alle 66 wijken', set: 'wijken', goal: 66 },
   { id: 'landmarks', cat: 'verkennen', title: 'Toerist in eigen stad', desc: 'Bezoek alle 14 bezienswaardigheden', set: 'landmarks', goal: 14 },
-  { id: 'kaart_25', cat: 'verkennen', title: 'Kaartlezer', desc: 'Verken een kwart van de kaart', stat: 'kaartVerkend', goal: 25, unit: '%' },
-  { id: 'kaart_50', cat: 'verkennen', title: 'Halve kaart gezien', desc: 'Verken de helft van de kaart', stat: 'kaartVerkend', goal: 50, unit: '%' },
-  { id: 'kaart_alle', cat: 'verkennen', title: 'De hele kaart verkend', desc: 'Verken de hele kaart, tot in de uiterste hoek', stat: 'kaartVerkend', goal: 100, unit: '%' },
+  { id: 'kaart_25', cat: 'verkennen', title: 'Kaartlezer', desc: 'Bezoek een kwart van alle buurten van de provincie', stat: 'kaartVerkend', goal: 25, unit: '%' },
+  { id: 'kaart_50', cat: 'verkennen', title: 'Halve kaart gezien', desc: 'Bezoek de helft van alle buurten van de provincie', stat: 'kaartVerkend', goal: 50, unit: '%' },
+  { id: 'kaart_alle', cat: 'verkennen', title: 'De hele kaart verkend', desc: 'Bezoek elke buurt van de provincie, tot in de uiterste hoek', stat: 'kaartVerkend', goal: 100, unit: '%' },
   { id: 'gebied_buurt', cat: 'verkennen', title: 'Buurtheld', desc: 'Verover een buurt: doe alles wat er te doen is (Veroverd, op de kaart)', stat: 'gebied_buurt', goal: 1 },
   { id: 'gebied_wijk', cat: 'verkennen', title: 'Wijkheld', desc: 'Verover een hele wijk', stat: 'gebied_wijk', goal: 1 },
   { id: 'gebied_wijk_5', cat: 'verkennen', title: 'Wijk voor wijk', desc: 'Verover vijf wijken', stat: 'gebied_wijk', goal: 5 },
@@ -396,6 +396,19 @@ export function lifetimeSnapshot() {
   return { stats: { ...life.stats }, sets: Object.fromEntries(Object.entries(life.sets).map(([k, v]) => [k, v.slice()])) };
 }
 
+// gebieden (#435): de prestaties voor een buurt, wijk, woonplaats, gemeente of provincie tonen hun voortgang als een
+// ring met het aantal gebieden van die laag. achievementtracker.js levert de stand uit gebiedenlive.js (getOverzicht):
+// { buurt: { klaar, totaal }, ..., kaart: { klaar, totaal } }.
+let gebiedStand = null;
+export function setGebiedStand(fn) {
+  gebiedStand = typeof fn === 'function' ? fn : null;
+}
+const laagVan = (a) => (!a.stat ? null : a.stat === 'kaartVerkend' ? 'kaart' : a.stat.startsWith('gebied_') ? a.stat.slice(7) : null);
+function leesGebiedStand() {
+  if (!gebiedStand) return null;
+  try { return gebiedStand(); } catch (e) { return null; }
+}
+
 // --- progress --------------------------------------------------------------
 
 function derived(key) {
@@ -598,14 +611,21 @@ export function getAchievementSummary() {
 }
 
 export function getAchievementView() {
+  const stand = leesGebiedStand(); // één keer per overzicht: het opbouwen van de indeling is niet gratis
   return CATEGORIES.map(([cat, label]) => {
     const items = ACHIEVEMENTS.filter((a) => a.cat === cat && visibleAch(a)).map((a) => {
       const unlocked = !!life.unlocked[a.id];
-      const cur = progressOf(a);
+      let cur = progressOf(a);
+      let goal = a.goal;
+      // een prestatie voor een hele laag (doel 1) laat de ring van die laag zien: 3 van 123 wijken. Een mijlpaal houdt
+      // zijn eigen doel (vijf wijken, een kwart van de kaart).
+      const laag = a.goal ? laagVan(a) : null;
+      const s = stand && laag && stand[laag] && stand[laag].totaal > 0 ? stand[laag] : null;
+      if (s && a.goal === 1) { cur = s.klaar; goal = s.totaal; }
       return {
         id: a.id, cat: a.cat, unlocked, hidden: !!a.hidden && !unlocked, medal: !!a.medal,
         title: a.title, desc: a.desc, at: unlocked && life.unlocked[a.id] > 1 ? life.unlocked[a.id] : 0,
-        progress: a.goal && a.goal > 1 && cur != null ? { cur: Math.min(cur, a.goal), goal: a.goal, unit: a.unit || '' } : null,
+        progress: goal && goal > 1 && cur != null ? { cur: Math.min(cur, goal), goal, unit: a.unit || '' } : null,
       };
     });
     return { cat, label, items, done: items.filter((x) => x.unlocked).length };

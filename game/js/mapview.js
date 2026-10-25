@@ -53,7 +53,7 @@ import { selectMapItems } from './missionmap.js';
 import { drawLayerAreas, drawLayerLines, layerCaption } from './missionmapdraw.js';
 import { getTodoItems, chooseTodo, mapIconUrl } from './todo.js';
 import { getMissionList } from './missionquery.js';
-import { MEDALS, setStatMax } from './achievements.js';
+import { MEDALS } from './achievements.js';
 import { nicknameOf, FLAVOUR_MAP_PLACES } from './flavourlines.js';
 import {
   updateRouting, getActiveRoute, getRouteAhead, getRoutes, dismissCareRoute, setUserWaypoint, clearUserWaypoint, getUserWaypoint, formatDistance, setRoutePrefs, getRoutePrefs,
@@ -356,8 +356,8 @@ function saveFog() {
     for (let i = 0; i < f.bits.length; i++) bin += String.fromCharCode(f.bits[i]);
     localStorage.setItem(FOG_KEY, `${f.w}x${f.h}:${btoa(bin)}`);
   } catch (e) { /* ignore */ }
-  // de prestaties 'kaart verkend' (#435): het percentage dat je ooit hebt gezien
-  try { setStatMax(null, 'kaartVerkend', Math.round(getDiscoveredRatio() * 100)); } catch (e) { /* prestaties nog niet klaar */ }
+  // de prestaties 'de kaart verkend' (#435) tellen de bezochte buurten (gebieden.js), niet de mist: die dekt ook zee
+  // en plekken waar je nooit komt, dus 100% was daar niet te halen
 }
 
 function updateFog(world) {
