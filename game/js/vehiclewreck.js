@@ -24,6 +24,19 @@ export function syncPlayerWrecks(world) {
 const BURN_MIN = 7;
 const BURN_MAX = 11;
 
+// Een wrak staat stil (#436): geen snelheid, geen zijwaartse driftsnelheid en geen draai meer.
+// Zonder dit hielden een fiets, scooter of boot die total loss sloeg zijn drift en spin, en schoot
+// een wrak dat een aanhanger nog een zet gaf (of dat later in de garage werd opgeknapt, want
+// repairVehicle laat de snelheid staan) alsnog weg. De hup van een ontploffing (v.vz) blijft.
+export function restWreck(v) {
+  if (!v) return v;
+  v.speed = 0;
+  v.driftX = 0;
+  v.driftY = 0;
+  v.yawVel = 0;
+  return v;
+}
+
 export function disableVehicle(v, byPlayer, world = null) {
   if (v.wrecked || v.disabled) return;
   v.health = 0;
@@ -31,7 +44,7 @@ export function disableVehicle(v, byPlayer, world = null) {
   if (byPlayer) markWreckedByPlayer(v, world);
   if (v.isBike || v.isScooter || v.isBoat) {
     v.wrecked = true;
-    v.speed = 0;
+    restWreck(v);
     return;
   }
   v.disabled = true;

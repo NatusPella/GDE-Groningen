@@ -9,8 +9,9 @@ import { resolvePropCollisions, setSpeedCap } from './breakables.js';
 import { shardPuncture } from './roadshards.js';
 import { CRASH_DAMAGE_SCALE, vehicleContacts, recordContact, reportImpact } from './vehicleimpact.js';
 export { CRASH_DAMAGE_SCALE, vehicleContacts, recordContact, reportImpact } from './vehicleimpact.js';
-import { markWreckedByPlayer, syncPlayerWrecks, disableVehicle } from './vehiclewreck.js';
-export { markWreckedByPlayer, syncPlayerWrecks, disableVehicle } from './vehiclewreck.js';
+import { markWreckedByPlayer, syncPlayerWrecks, disableVehicle, restWreck } from './vehiclewreck.js';
+export { markWreckedByPlayer, syncPlayerWrecks, disableVehicle, restWreck } from './vehiclewreck.js';
+import { kiesWrakkenVoorOpruimen } from './wrakopruim.js';
 import { inPassage } from './collision.js';
 import { elevWallContact } from './elevation.js';
 import { bridgeSpeedLimit, loweredBridgeBoomsNear, getMovableBridges, boatNeedsOpening, boatFrame } from './movablebridges.js';
@@ -971,13 +972,14 @@ const meerFoci = (world) => !!(world.coopFoci && world.coopFoci.length > 1);
 const focusAfstand = (world, v, player) => (meerFoci(world) ? minAfstand(world.coopFoci, v.x, v.y) : Math.hypot(v.x - player.x, v.y - player.y));
 const lokaalTelt = (world, v, player, dist) => !meerFoci(world) || Math.hypot(v.x - player.x, v.y - player.y) <= dist;
 const MAX_WRECKS = 12;
+// Welke wrakken weg mogen is de pure regel van wrakopruim.js: de verste van elke speler eerst (#436).
 function pruneWrecks(world) {
   const { player, vehicles } = world;
-  const wrecks = vehicles.filter((v) => v.wrecked && !v.sinking && v.driver !== 'player' && !v.missionCar);
-  if (wrecks.length <= MAX_WRECKS) return;
-  const d = (v) => Math.hypot(v.x - player.x, v.y - player.y);
-  wrecks.sort((a, b) => d(b) - d(a));
-  for (const v of wrecks.slice(0, wrecks.length - MAX_WRECKS)) vehicles.splice(vehicles.indexOf(v), 1);
+  const foci = meerFoci(world) ? world.coopFoci : [player];
+  for (const v of kiesWrakkenVoorOpruimen(vehicles, foci, MAX_WRECKS)) {
+    const i = vehicles.indexOf(v);
+    if (i >= 0) vehicles.splice(i, 1);
+  }
 }
 
 // A vehicle in the list twice, or two identical ones stacked on one spot (a mission
@@ -2664,8 +2666,7 @@ export function explodeVehicle(v, world) {
   v.disabled = false;
   v.wrecked = true;
   v.blewUp = true;
-  v.speed = 0;
-  v.driftX = 0; v.driftY = 0;
+  restWreck(v);
   v.yawVel = (Math.random() - 0.5) * 1.2;
   if (!v.airborne) { v.airborne = true; v.vz = 3.2 + Math.random() * 1.2; }
   for (const o of world.vehicles) {
@@ -2758,7 +2759,7 @@ export function resolveVehicleVehicleCollisions(vehicles, world = null) {
       const hx = (p1x + p2x) / 2, hy = (p1y + p2y) / 2;
       const slide = tangentialSpeed(a, b, nx, ny);
       const relN = contactImpulse(a, b, hx, hy, nx, ny, CONTACT_FRICTION);
-      for (const w of [a, b]) if (w.wrecked) { w.speed = 0; w.driftX = 0; w.driftY = 0; }
+      for (const w of [a, b]) if (w.wrecked) restWreck(w);
       if (relN >= IMPACT_EVENT_SPEED || slide > SCRAPE_SPEED) recordContact(a, b, hx, hy, nx, ny, relN, slide);
       if (relN < IMPACT_EVENT_SPEED) continue;
       // Only the player's own driving should ever count as a player wreck.
@@ -2799,6 +2800,8 @@ function resolveTrailerContacts(a, vehicles, world) {
     b.x += nx * corr; b.y += ny * corr;
     const hx = (p1x + p2x) / 2, hy = (p1y + p2y) / 2;
     const relN = contactImpulse(b, null, hx, hy, -nx, -ny, CONTACT_FRICTION);
+    // een wrak is een dood voorwerp: de duw van de aanhanger zet hem niet in beweging (#436)
+    if (b.wrecked) restWreck(b);
     if (relN < IMPACT_EVENT_SPEED) continue;
     recordContact(b, a, hx, hy, -nx, -ny, relN, 0);
     const playerInvolved = a.driver === 'player' || b.driver === 'player';
@@ -3544,6 +3547,7 @@ function updateSinking(v, dt, world) {
     v.wrecked = true;
     v._exploded = true;
     v.health = 0;
+    restWreck(v);
     if (s.byPlayer) markWreckedByPlayer(v, world);
     const fx = Math.cos(v.angle) * (v.halfLen || 1) * 0.6, fy = Math.sin(v.angle) * (v.halfLen || 1) * 0.6;
     world.particles.push({ kind: 'splash', x: v.x, y: v.y, until: world.time + SPLASH_LIFETIME });
