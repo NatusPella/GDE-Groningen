@@ -746,14 +746,14 @@ function camera(w) {
   const q = FR.toW(me.u, me.v);
   let pos, at, fov = 66;
   if (g.phase === 'grid') {
-    // a slow swing from in front of the grid down to the back of your kart
+    // een langzame dolly van hoog achter het startveld naar de staart van je kart. De camera blijft
+    // achter de startlijn, dus het starthek staat altijd vóór hem en snijdt nooit door het beeld (#504).
     const k = clamp(g.t / GO_AT, 0, 1);
     const a = ROT + me.a;
     const e = k * k * (3 - 2 * k);
-    const ang = a + Math.PI * (1 - e) * 0.8;
-    const dist = 11 - 4.6 * e;
-    pos = { x: q.x - Math.cos(ang) * dist, y: q.y - Math.sin(ang) * dist, z: 6 - 3.6 * e };
-    at = { x: q.x + Math.cos(a) * 3 * e, y: q.y + Math.sin(a) * 3 * e, z: 0.6 };
+    const dist = 15 - 8 * e;
+    pos = { x: q.x - Math.cos(a) * dist, y: q.y - Math.sin(a) * dist, z: 8.5 - 6.1 * e };
+    at = { x: q.x + Math.cos(a) * (2 + 4 * e), y: q.y + Math.sin(a) * (2 + 4 * e), z: 0.6 + 1.4 * (1 - e) };
   } else {
     g.camA += angDiff(me.a, g.camA) * Math.min(1, 0.08 + Math.abs(me.f) * 0.004);
     const a = ROT + g.camA;
