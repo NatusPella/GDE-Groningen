@@ -58,7 +58,9 @@ export function startMeerijden(world, optie, dest) {
       if (!a) return resolve({ aangekomen: false });
       world.money -= a.prijs;
       if (typeof world.clock === 'number' && klokSprongMag(world)) world.clock = (world.clock + a.klokMinuten / 60) % 24; // met meer spelers springt de klok niet: de tijd is van iedereen (#452)
-      const spot = (world.map.findOpenSpawn && world.map.findOpenSpawn(a.x, a.y, 400)) || { x: a.x, y: a.y };
+      // met de boot kom je bij de aanlegplaats aan (#438): daar blijf je in de buurt, niet 400 m het land op
+      const straal = rit.plan.mode === 'boot' ? 40 : 400;
+      const spot = (world.map.findOpenSpawn && world.map.findOpenSpawn(a.x, a.y, straal)) || { x: a.x, y: a.y };
       const p = world.player;
       if (p.inVehicle) { p.inVehicle.speed = 0; p.inVehicle.x = spot.x; p.inVehicle.y = spot.y; }
       p.x = spot.x; p.y = spot.y;
