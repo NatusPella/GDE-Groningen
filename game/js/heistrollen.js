@@ -211,7 +211,7 @@ export function heistRolGebruik(world, slot, stap) {
   const verdeling = verdelingVoor(slotsVan(world));
   if (!houderVan(verdeling, stap.kind)) return false;
   const lichaam = lichaamVan(world, slot);
-  if (!lichaam || lichaam.inVehicle) return false; // in een voertuig is E om uit te stappen
+  if (!lichaam || lichaam.inVehicle || lichaam.inVeh) return false; // in een voertuig is E om uit te stappen
   const doel = world.mission && world.mission.marker;
   const r = rolClaim(rolStand(world), { verdeling, fase: stap.kind, slot, lichaam, doel });
   if (!r) return false;
