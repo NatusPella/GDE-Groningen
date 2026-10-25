@@ -15,8 +15,10 @@ import { renderVeroverdPanel } from './veroverdpanel.js';
 import { renderSpelersPanel } from './coopspelersui.js';
 import { renderCheatsPanel, cheatsClick, resetCheatsPanel, cheatsFocus } from './cheatsui.js';
 import { skipCurrent, getStoryJournal, markCluesSeen } from './story.js';
-import { saveGame, hasSave, loadLatestSave, startNewSlot, coopSessieLoopt, COOP_LADEN_TEKST, COOP_NIEUW_TEKST, getSaveSummary, getPlaySeconds } from './savegame.js';
+import { saveGame, hasSave, loadLatestSave, startNewSlot, coopSessieLoopt, COOP_NIEUW_TEKST, getSaveSummary, getPlaySeconds, loadSlot, currentSlot } from './savegame.js';
 import { openSaveSlots, isSaveSlotsOpen } from './saveslotsui.js';
+import { stopCoopNet } from './coopnet.js';
+import { coopLoadTekst, COOP_LOAD_FAIL, runCoopLoad } from './cooploadrules.js';
 import { getClockText } from './clocktext.js';
 import { VERSION } from './version.js';
 import { loadChangelog, newsOnStart, ABOUT_HTML } from './over.js';
@@ -504,6 +506,10 @@ function spelHtml() {
         <button type="button" class="m-bg" data-action="load">Laatste spel laden</button>
         <button type="button" class="m-bg danger" data-action="new">Nieuw spel (nieuwe plek)</button>
         <button type="button" class="m-bt" data-action="cancel">Annuleren</button>
+      </div>
+      <div class="pm-confirm" data-coop-load-confirm hidden>
+        <p data-coop-load-text></p>
+        <div class="m-acts"><button type="button" class="m-bp" data-action="coop-load-go">Ja, sessie beëindigen en laden</button><button type="button" class="m-bt" data-action="coop-load-cancel">Annuleren</button></div>
       </div>`, `${pane('Spel', 'Je spel', '<p>Opslaan, laden, opnieuw beginnen en stoppen. Je spel wordt ook vanzelf bewaard.</p><p class="mut">Hoe het spel speelt staat bij de andere tabbladen; beeld en geluid onder Instellingen.</p>')}`)}
     ${tab('spelen', `
       <div class="m-gh"><span>Verkeer en geweld</span></div>
@@ -1203,17 +1209,38 @@ function runAction(a) {
   if (a === 'resume') setOpen(false);
   else if (a === 'save') status(saveGame(world) ? `Opgeslagen om ${new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}` : 'Opslaan mislukt');
   else if (a === 'load') {
-    if (coopSessieLoopt(world)) { status(COOP_LADEN_TEKST); return; }
+    if (coopSessieLoopt(world)) {
+      // een lopende sessie eindigt eerst; dezelfde volgorde als in het savepaneel (#492)
+      const box = root.querySelector('[data-coop-load-confirm]');
+      if (!box) return;
+      box.querySelector('[data-coop-load-text]').textContent = coopLoadTekst(world, 'Het laatste opgeslagen spel');
+      box.hidden = false;
+      confirmEl.hidden = true;
+      box.querySelector('[data-action="coop-load-cancel"]').focus();
+      return;
+    }
     if (loadLatestSave(world)) setOpen(false);
     else status('Geen savegame gevonden');
+  } else if (a === 'coop-load-cancel') {
+    root.querySelector('[data-coop-load-confirm]').hidden = true;
+    confirmEl.hidden = false;
+    const b = confirmEl.querySelector('[data-action="load"]');
+    if (b) b.focus();
+  } else if (a === 'coop-load-go') {
+    root.querySelector('[data-coop-load-confirm]').hidden = true;
+    const res = runCoopLoad(world, currentSlot(), { stop: stopCoopNet, save: saveGame, load: loadSlot });
+    if (res.ok) setOpen(false);
+    else status(COOP_LOAD_FAIL[res.reason] || 'Laden mislukt.');
   } else if (a === 'saves') {
     if (world && world.pigeonMode) { status('Je bent een duif. Stop de duif-modus om savegames te gebruiken.'); return; }
     openSaveSlots({ mode: 'game', world, onLoad: () => setOpen(false), onClose: () => { syncSaveButtons(); const b = root.querySelector('[data-panel="spel"] [data-action="saves"]'); if (b) b.focus(); } });
   } else if (a === 'restart') {
+    root.querySelector('[data-coop-load-confirm]').hidden = true;
     confirmEl.hidden = false;
     syncSaveButtons();
     confirmEl.querySelector('button').focus();
   } else if (a === 'cancel') {
+    root.querySelector('[data-coop-load-confirm]').hidden = true;
     confirmEl.hidden = true;
     root.querySelector('[data-action="restart"]').focus();
   } else if (a === 'menu' || a === 'exit') {
@@ -1581,6 +1608,7 @@ function syncRail() {
   const pigeon = !!(world && world.pigeonMode);
   for (const b of root.querySelectorAll('[data-panel="spel"] [data-action="save"], [data-panel="spel"] [data-action="saves"]')) b.disabled = pigeon;
   root.querySelector('[data-restart-confirm]').hidden = true;
+  root.querySelector('[data-coop-load-confirm]').hidden = true;
   root.querySelector('[data-game-status]').textContent = '';
   syncSaveButtons();
 }

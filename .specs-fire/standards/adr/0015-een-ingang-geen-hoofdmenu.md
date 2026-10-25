@@ -25,10 +25,11 @@ dan joinen" de logische volgorde, geen omweg.
   Samen spelen, Instellingen; **Over** (nieuws, credits, versie, licenties) volgt in
   `wi-492-over`.
 - **Laden is een wereldgebeurtenis.** Bij een andere save laden wordt de huidige
-  voortgang eerst bewaard. In deze stap weigert de code laden tijdens een sessie
-  (`COOP_LADEN_TEKST`); de bevestigingsflow waarbij de gasten akkoord geven of de host
-  de sessie beëindigt, volgt in `wi-492-samen`. Een gast laadt zijn eigen save alleen
-  door de sessie te verlaten.
+  voortgang eerst bewaard. In een sessie vraagt de initiator eerst om bevestiging; bij
+  "ja" eindigt de sessie (de andere spelers gaan terug naar hun eigen spel) en daarna
+  wordt het gekozen spel geladen. Een stemming onder de gasten in plaats van een
+  loskoppeling volgt in `wi-492-samen`. Een gast laadt zijn eigen save alleen door de
+  sessie te verlaten.
 - **Een save blijft een gewone save.** Co-op krijgt geen vlag en geen aparte
   sessie-save; de wereld is van de host, de voortgang per speler.
 - **De oude menu-achtergrond blijft voor QA, trailer en attract.** `?menu`,
