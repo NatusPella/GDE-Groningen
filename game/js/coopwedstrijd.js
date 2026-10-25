@@ -699,7 +699,8 @@ export function wedHandleGast(world, body, van) {
   if (b.a === 'weg') {
     const regelLv = W.lv && WEDSTRIJDEN.get(W.id), ok = W.r ? verlaat(W.r, van) : W.sc ? soortVan(W.sc).verlaat(W.sc, van) : regelLv && regelLv.live ? regelLv.live.verlaat(W.lv, van) : false;
     if (!ok) return false;
-    const l = lichaamVan(world, van); if (l) { l.coopWedstrijd = false; zetBijUitgang(l, W.r || W.sc || W.lv, van); }
+    if (W.sc && W.sc.baan) { const regel = WEDSTRIJDEN.get(W.id); if (regel && regel.weg) { try { regel.weg(world, W.sc, van); } catch (e) { /* de boot is al weg */ } } } // hij stapt uit zijn boot; zijn lichaam verplaatsen we niet
+    else { const l = lichaamVan(world, van); if (l) { l.coopWedstrijd = false; zetBijUitgang(l, W.r || W.sc || W.lv, van); } }
     meld(world, 0, `${naamVan(world, van)} speelt niet meer mee.`);
     return true;
   }
