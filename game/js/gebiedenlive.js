@@ -160,6 +160,18 @@ export const gebiedenOpUniek = (w, uniek) => opSleutel(w, 'u:' + uniek);
 export const gebiedenOpStat = (w, key) => opSleutel(w, 's:' + key);
 export const gebiedenOpVondst = (w, set, waarde) => opSleutel(w, 'v:' + waarde);
 
+// De kaart verkennen (#435): de buurt waar de speler is telt mee zodra hij er komt. achievementtracker.js vraagt dit
+// elke seconde; geeft het id van een nieuwe buurt terug, anders null. Samen spelen: elke speler verkent op zijn eigen
+// apparaat en telt in zijn eigen profiel, dus een gast telt zijn eigen buurten.
+export function bezoekPlek(w) {
+  if (geblokkeerd() || !w || !w.player) return null;
+  const ind = getIndeling();
+  if (!ind) return null;
+  const id = G.bezoek(getProfiel(), ind, w.player.x, w.player.y);
+  if (id) markeer();
+  return id;
+}
+
 // Elke paar seconden (achievementtracker.js): de missies die klaar zijn in deze save tellen mee.
 export function updateGebieden(dt, w, klaarMissies) {
   tikT -= dt;
@@ -186,10 +198,10 @@ export function koopHuisLive(w, huisIdent) {
 }
 export const heeftHuisLive = (huisIdent) => G.heeftHuis(getProfiel(), huisIdent);
 
-// Voor het scherm, de kaart en de tests.
+// Voor het scherm, de kaart en de tests. kaart: hoeveel buurten je gezien hebt (#435, de prestaties 'de hele kaart verkend').
 export function getOverzicht() {
   const ind = getIndeling();
-  return ind ? { ind, profiel: getProfiel(), overzicht: G.overzicht(getProfiel(), ind) } : null;
+  return ind ? { ind, profiel: getProfiel(), overzicht: G.overzicht(getProfiel(), ind), kaart: G.kaartVerkend(getProfiel(), ind) } : null;
 }
 export function zetVoorTest(p, st, bron) {
   profiel = p ? G.normaliseer(p) : null;

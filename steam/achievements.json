@@ -444,7 +444,7 @@
     {
       "id": "kaart_25",
       "titel": "Kaartlezer",
-      "omschrijving": "Verken een kwart van de kaart",
+      "omschrijving": "Bezoek een kwart van alle buurten van de provincie",
       "verborgen": false,
       "voorstelApiNaam": "ACH_KAART_25",
       "steamApiNaam": ""
@@ -452,7 +452,7 @@
     {
       "id": "kaart_50",
       "titel": "Halve kaart gezien",
-      "omschrijving": "Verken de helft van de kaart",
+      "omschrijving": "Bezoek de helft van alle buurten van de provincie",
       "verborgen": false,
       "voorstelApiNaam": "ACH_KAART_50",
       "steamApiNaam": ""
@@ -460,7 +460,7 @@
     {
       "id": "kaart_alle",
       "titel": "De hele kaart verkend",
-      "omschrijving": "Verken de hele kaart, tot in de uiterste hoek",
+      "omschrijving": "Bezoek elke buurt van de provincie, tot in de uiterste hoek",
       "verborgen": false,
       "voorstelApiNaam": "ACH_KAART_ALLE",
       "steamApiNaam": ""
