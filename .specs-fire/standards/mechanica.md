@@ -147,7 +147,7 @@ beeldcontrole met `scripts/qa/weer_nacht.mjs`.
 **Doel.** De eerste tien minuten begrijpelijk zonder uitleg van buiten, zonder tutorial die het
 spelen tegenhoudt.
 
-**Regels.** Vier kaarten in vaste volgorde (`game/js/onboarding.js:45`), elk één keer per apparaat
+**Regels.** Vijf kaarten in vaste volgorde (`game/js/onboarding.js:45`), elk één keer per apparaat; de vijfde vertelt na de eerste missie dat Samen spelen onder Esc zit
 onder `gde-uitleg` (`storagekeys.js:37`). Eén tegelijk: alleen als de narrative-planner het toelaat,
 er niets speelt en de speler niet in een missie, bijbaan of minigame zit; 12 s na de opening, 30 s
 ertussen. Uit te zetten met `onboardingTips`; de toetshints (`prompts.js`) dekken alleen wat niet
