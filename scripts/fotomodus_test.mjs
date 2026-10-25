@@ -68,5 +68,13 @@ check('altijd vol geeft false zonder te crashen', F.saveGallery(never, list) ===
 check('opslagsleutel geregistreerd', BASE_KEYS.gallery === F.GALLERY.key);
 check('bestandsnaam veilig', F.shotFileName('Zuidlaren / Ünï', 7) === 'gde-zuidlaren-uni-007.png' && F.shotFileName('', 1) === 'gde-groningen-001.png');
 
+// terug bij de speler (#435): de vrije camera dwaalt, maar H brengt hem thuis
+const thuis = F.createPhoto({ x: 5, y: 6, z: 2 }, 10);
+F.stepFreeCam(thuis, { fwd: 1, up: 1 }, 2);
+thuis.cam.yaw = 0.7; thuis.cam.pitch = 0.5; thuis.cam.roll = 0.3;
+F.resetFreeCam(thuis);
+check('reset: terug op de plek van de speler', thuis.cam.x === 5 && thuis.cam.y === 6 && thuis.cam.z === 5, JSON.stringify(thuis.cam));
+check('reset: kijkt recht vooruit, zonder kanteling, zelfde richting', thuis.cam.pitch === 0 && thuis.cam.roll === 0 && thuis.cam.yaw === 0.7, JSON.stringify(thuis.cam));
+
 console.log(bad ? `${bad} van ${n} mislukt` : `fotomodus_test ok (${n} checks)`);
 process.exit(bad ? 1 : 0);
