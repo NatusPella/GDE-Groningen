@@ -21,6 +21,7 @@ if (!fs.existsSync(roadFile)) { console.log('SKIP no game/world with the provinc
 import { loadCityWorld } from './lib/loadworld.mjs';
 const R = await import('../game/js/routing.js');
 const RG = await import('../game/js/roadgraph.js');
+const { roadAllowed } = await import('../game/js/roadaccess.js');
 const map = (await loadCityWorld()).map;
 const roadNet = RG.decodeRoadNet(JSON.parse(zlib.gunzipSync(fs.readFileSync(roadFile)).toString('utf8')));
 RG.setRoadNet(roadNet);
@@ -122,10 +123,15 @@ const onRoad = (range = 1e9, cx = 0, cy = 0) => {
   }
 };
 const inField = () => { for (;;) { const p = onRoad(), a = rnd() * 6.283, q = [p[0] + Math.cos(a) * 120, p[1] + Math.sin(a) * 120]; if (roadDist(q[0], q[1]) > 40) return q; } };
-const inCity = () => { const r = map.roads[Math.floor(rnd() * map.roads.length)]; return r.pts[0]; };
+// A point in the city: the start of a city road. Half the sweep drives, and a
+// car is always on a road it may drive on; the first point of a footway, steps
+// or cycle path (8 % of the city's roads, e.g. beside the station) is 77 m from
+// the nearest car road, and the route then rightly starts there (#491).
+const CAR_ROADS = map.roads.filter((r) => r.cat !== 'foot' && r.cat !== 'cycle' && !r.busOnly && roadAllowed(r, 'auto') !== false);
+const inCity = (car = false) => { const roads = car ? CAR_ROADS : map.roads; return roads[Math.floor(rnd() * roads.length)].pts[0]; };
 const KINDS = {
-  'city->prov': () => [inCity(), onRoad()],
-  'prov->city': () => [onRoad(), inCity()],
+  'city->prov': (car) => [inCity(car), onRoad()],
+  'prov->city': (car) => [onRoad(), inCity(car)],
   'prov->prov': () => [onRoad(), onRoad()],
   'near->near': () => { const a = onRoad(); return [a, onRoad(15000, a[0], a[1])]; },
   'field->prov': () => [inField(), onRoad()],
@@ -137,8 +143,8 @@ const rows = [];
 for (const [kind, gen] of Object.entries(KINDS)) {
   const k = { n: 0, len: 0, off: 0, excess: 0, longest: 0, dead: 0, maxMs: 0 };
   for (let i = 0; i < PER; i++) {
-    const [[px, py], [tx, ty]] = gen();
     const inVehicle = i % 2 ? DRIVE : null;
+    const [[px, py], [tx, ty]] = gen(!!inVehicle);
     const name = `${kind} #${i}`;
     clock += 100;
     const t0 = realNow();
@@ -197,6 +203,37 @@ console.log(`shut to walkers (motorway), open to cars: ${tot.blocked} of ${tot.n
 const okSweep = tot.dead === 0 && tot.blocked <= tot.n * 0.05 && excessShare < 0.015 && tot.rerouteBad === 0;
 if (!okSweep) fails++;
 console.log(okSweep ? 'sweep ok' : 'sweep FAIL');
+
+// ---- the city/province seam: where the country net hands over to the city
+// streets the two must meet. The gateway is snapped for the way of travel;
+// without that a walker came off a trunk that the country net lets him walk but
+// the city streets close, and the route jumped 205 m to the nearest footway (#491).
+// Each route below crosses the city's edge on a real road, from four sides; it
+// must reach its target and never run more than 60 m without a road under it.
+const SEAM = [
+  ['seam prov->city walk (north)', [-247, -11475.2], [-51, 976], null],
+  ['seam city->prov walk (north)', [-51, 976], [-247, -11475.2], null],
+  ['seam prov->city walk (south)', [-1121.2, 5058.3], [-51, 976], null],
+  ['seam prov->city walk (west)', [-7810, 43.4], [-51, 976], null],
+  ['seam prov->city walk (east)', [7240, -3447.6], [-51, 976], null],
+  // over the Beneluxweg interchange, where the country net carries a trunk that
+  // the city streets close to walkers: a gateway picked for driving sat 205 m
+  // from the nearest footway
+  ['seam prov->city walk (north-east)', [6434, -21133], [-51, 976], null],
+  ['seam city->prov walk (north-east)', [-51, 976], [6434, -21133], null],
+  ['seam prov->city drive (east)', [7240, -3447.6], [-116, 978], DRIVE],
+  ['seam city->prov drive (east)', [-116, 978], [7240, -3447.6], DRIVE],
+];
+for (const [name, [px, py], [tx, ty], veh] of SEAM) {
+  clock += 100;
+  R.updateRouting(0.1, worldAt(px, py, tx, ty, name, veh));
+  const r = R.getActiveRoute();
+  const o = r && r.pts.length > 1 ? offroad(r.pts) : { longest: Infinity };
+  const endGap = r ? Math.hypot(r.pts.at(-1)[0] - tx, r.pts.at(-1)[1] - ty) : Infinity;
+  const ok = !!r && endGap < 80 && o.longest <= 60;
+  if (!ok) fails++;
+  console.log(`${ok ? 'ok  ' : 'FAIL'} ${name}: ${r ? Math.round(r.length) + ' m, end ' + Math.round(endGap) + ' m off the target, longest off-road ' + Math.round(o.longest) + ' m' : 'no route'}`);
+}
 
 // ---- drive along tile roads: the GPS must keep its route
 // A sample of the roads is driven from its start in the direction the route
