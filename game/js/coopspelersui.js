@@ -1,5 +1,5 @@
-// Samen spelen (#95, #377): de spelerslijst in beeld. Twee plekken, nooit permanent: een compacte lijst links in het scherm zolang je
-// Tab ingedrukt houdt, en het onderdeel Spelers in het pauzemenu (alleen in een sessie) met dezelfde gegevens en de roepjes.
+// Samen spelen (#95, #377, #434): de spelerslijst in beeld. Twee plekken, nooit permanent: een compacte lijst links in het scherm zolang je
+// Tab ingedrukt houdt, en het tabblad Spelers onder Spel > Samen spelen (alleen in een sessie) met dezelfde gegevens en de roepjes.
 // In het pauzemenu stel je ook je online-avatar in (#455): de naam en kleur die anderen van je zien.
 // De gegevens komen uit world.coopSpelers (coopnet.js, gebouwd met coopspelers.js, getest); dit bestand is alleen DOM.
 // Niet door een mens in beeld bekeken.
@@ -129,10 +129,10 @@ export function renderSpelersPanel(root, world, sluit = () => {}) {
     root.dataset.key = key; root.dataset.klaar = '1';
     root.innerHTML = (rijen.length
       ? `<ul class="cs-lijst">${rijen.map((r) => rijHtml(r, true, rol, bevestig)).join('')}</ul>` +
-        `<p>Roepen kan ook in het spel: ${roepHint()}. Iemand uitnodigen: kies Samen spelen onder Spel.</p>` +
+        `<p>Roepen kan ook in het spel: ${roepHint()}. Iemand uitnodigen doe je op het tabblad Samen spelen.</p>` +
         pvpHtml(world) +
         `<div class="cs-roep">${PING_TOETSEN.map((k) => `<button type="button" data-ping="${k.soort}">${esc(k.tekst)} <small>(${k.toets})</small></button>`).join('')}</div>`
-      : `<p>Je speelt niet samen. Open Spel › Samen spelen om iemand uit te nodigen of aan te sluiten.</p>`) +
+      : `<p>Je speelt niet samen. Ga naar het tabblad Samen spelen om iemand uit te nodigen of aan te sluiten.</p>`) +
       profielHtml(world);
     const veld = root.querySelector('.cs-profiel-naam'); if (veld && veld.value !== naamInvoer) veld.value = naamInvoer;
   };

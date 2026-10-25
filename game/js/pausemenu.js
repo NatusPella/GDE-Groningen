@@ -257,7 +257,10 @@ const PRESTART_SECTIONS = ['spel', 'settings', 'controls'];
 const SUBTABS = {
   todo: [['alles', 'Alles'], ['dichtbij', 'Dichtbij']],
   verhaal: [['opdrachten', 'Opdrachten'], ['personages', 'Personages'], ['aanwijzingen', 'Aanwijzingen'], ['veroverd', 'Veroverd']],
-  spel: [['overzicht', 'Overzicht'], ['samen', 'Samen spelen'], ['spelers', 'Spelers'], ['acties', 'Opslaan & stoppen'], ['spelen', 'Spelen'], ['camera', 'Camera & richten'], ['hints', 'Hints & uitleg']],
+  spel: [['overzicht', 'Overzicht'], ['samen', 'Samen spelen'], ['acties', 'Opslaan & stoppen'], ['spelen', 'Spelen'], ['camera', 'Camera & richten'], ['hints', 'Hints & uitleg']],
+  // Samen spelen heeft twee eigen tabbladen (#434): uitnodigen en de spelerslijst. De lijst is geen
+  // los tabblad van Spel en geen rijknop in de rail; hij hoort bij Samen spelen.
+  samen: [['samen', 'Samen spelen'], ['spelers', 'Spelers']],
   settings: [['video', 'Beeld'], ['sound', 'Geluid & ondertitels'], ['besturing', 'Besturing'], ['display', 'Interface'], ['a11y', 'Toegankelijkheid'], ['fouten', 'Foutrapport'], ['cheats', 'Cheats']],
   controls: [['toetsen', 'Toetsenbord en muis'], ['knoppen', 'Controller'], ['overzicht', 'Toetsenoverzicht'], ['hulp', 'Hulp']],
 };
@@ -316,7 +319,10 @@ const pref = loadPref();
 function loadPref() {
   try {
     const p = JSON.parse(localStorage.getItem(PREF_KEY) || '{}');
-    return { last: typeof p.last === 'string' ? p.last : 'todo', sub: p.sub && typeof p.sub === 'object' ? p.sub : {} };
+    const sub = p.sub && typeof p.sub === 'object' ? p.sub : {};
+    // een oud tabblad Spelers (#434): de lijst zit nu onder Samen spelen
+    if (sub.spel === 'spelers') { sub.spel = 'samen'; if (!sub.samen) sub.samen = 'spelers'; }
+    return { last: typeof p.last === 'string' ? p.last : 'todo', sub };
   } catch (e) {
     return { last: 'todo', sub: {} };
   }
@@ -335,7 +341,7 @@ export function pauseMenuCover() {
 
 const started = () => document.body.classList.contains('game-started');
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-// 'Spelers' staat alleen in het menu zolang je samen speelt (#377)
+// De rail zelf heeft geen knop Spelers (#377): het aantal spelers staat bij Spel, de lijst onder Samen spelen (#434).
 const sectionIds = () => (prestart ? PRESTART_SECTIONS : SECTIONS.map(([id]) => id));
 const sectionOf = (id) => SECTIONS.find(([s]) => s === id);
 const key = (k) => `<span class="hud-key">${k}</span>`;
@@ -346,8 +352,8 @@ const plain = (t) => String(t).replace(/<[^>]*>/g, '').replace(/&shy;/g, '');
 
 // the tabs of a section that are there in the main menu too (Opslaan & stoppen of Spel needs a running game)
 const inGameOnly = (of, id) => (of === 'spel' && (id === 'acties' || id === 'overzicht' || id === 'samen' || id === 'spelers')) || (of === 'settings' && id === 'cheats');
-// Spelers (wie er meespeelt) is er alleen zolang je samen speelt
-const subsOf = (of) => SUBTABS[of].filter(([id]) => !(prestart && inGameOnly(of, id)) && !(of === 'spel' && id === 'spelers' && !(world && world.coopNet)));
+// Spelers (wie er meespeelt) staat onder Samen spelen en is er alleen zolang je samen speelt (#434)
+const subsOf = (of) => SUBTABS[of].filter(([id]) => !(prestart && inGameOnly(of, id)) && !((of === 'spel' || of === 'samen') && id === 'spelers' && !(world && world.coopNet)));
 function subtabsHtml(of, label) {
   return `<div class="m-tabs"><nav class="m-tablist" role="tablist" aria-label="${label}">` + SUBTABS[of].map(([id, text]) =>
     `<button type="button" role="tab" class="m-tab${inGameOnly(of, id) ? ' pm-ingame' : ''}" data-of="${of}" data-subtab="${id}" aria-selected="false">${esc(text)}<small data-count="${id}"></small></button>`).join('') + '</nav>' +
@@ -472,8 +478,11 @@ function spelHtml() {
   const tab = (id, rows, side = '') => `<div data-of="spel" data-sub="${id}" class="pm-settab" hidden><div class="m-list pm-slist">${rows}</div>${side}</div>`;
   return `${subtabsHtml('spel', 'Onderdeel')}
     <div data-of="spel" data-sub="overzicht" class="pm-ov pm-spelov" hidden></div>
-    <div data-of="spel" data-sub="samen" class="pm-samen pm-spelcoop" hidden></div>
-    <div data-of="spel" data-sub="spelers" class="pm-spelers pm-spelcoop" hidden></div>
+    <div data-of="spel" data-sub="samen" class="pm-samen pm-spelcoop" hidden>
+      ${subtabsHtml('samen', 'Samen spelen')}
+      <div data-of="samen" data-sub="samen" class="pm-samen-inner"></div>
+      <div data-of="samen" data-sub="spelers" class="pm-spelers pm-samen-spelers" hidden></div>
+    </div>
     ${tab('acties', `
       <div class="m-li pm-row">${rowName('Verder spelen', 'Terug naar het spel')}<button type="button" class="m-bp" data-action="resume">Doorgaan</button></div>
       <div class="m-gh"><span>Opslaan en laden</span></div>
@@ -620,7 +629,7 @@ export function initPauseMenu(w) {
     const rp = e.target.closest('[data-rebind-pad]');
     if (rp) return startPadRebind(rp);
     const st = e.target.closest('[data-subtab]');
-    if (st) { showSubtab(st.dataset.of, st.dataset.subtab); if (st.dataset.of === 'todo') renderTodoPanel(); if (st.dataset.of === 'verhaal') renderVerhaalPanel(); if (st.dataset.of === 'controls') renderBinds(); if (st.dataset.of === 'spel') afterSpelSub(); return; }
+    if (st) { showSubtab(st.dataset.of, st.dataset.subtab); if (st.dataset.of === 'todo') renderTodoPanel(); if (st.dataset.of === 'verhaal') renderVerhaalPanel(); if (st.dataset.of === 'controls') renderBinds(); if (st.dataset.of === 'spel' || st.dataset.of === 'samen') afterSpelSub(); return; }
     if (e.target.closest('[data-story-skip]')) {
       if (skipCurrent()) setOpen(false);
       else rerenderTodo();
@@ -1463,7 +1472,7 @@ function syncNavBadges() {
   // samen spelen is geen rijknop meer: de rail toont bij Spel hoeveel spelers er zijn
   const coopN = world && world.coopNet && world.coopSpelers ? world.coopSpelers.length : 0;
   setN('spel', coopN ? String(coopN) : '', coopN ? `${coopN} spelers` : '');
-  // het tabblad Spelers in Spel zegt hetzelfde als de rail: een poppetje en het aantal spelers (#435)
+  // het tabblad Spelers onder Samen spelen zegt hetzelfde als de rail: een poppetje en het aantal spelers (#435)
   const tabN = root.querySelector('[data-panel="spel"] [data-count="spelers"]');
   if (tabN) tabN.innerHTML = coopN ? `${icon('spelers', 'pm-ic n-ic')}${coopN}` : '';
   // geen badge op Activiteiten: 'nieuw' hoort bij Verhaal (aanwijzingen en personages), niet bij de activiteiten (#435)
@@ -1489,9 +1498,13 @@ function afterSpelSub() {
   if (sub === 'overzicht') renderOverviewPanel();
   else {
     sheetNote('');
-    // Samen spelen en het speleroverzicht (samenpanel.js, coopspelersui.js) tekenen zich in hun eigen tabblad
-    if (sub === 'samen') renderSamenPanel(root.querySelector('[data-of="spel"][data-sub="samen"]'), world, closePauseMenu);
-    if (sub === 'spelers') renderSpelersPanel(root.querySelector('[data-of="spel"][data-sub="spelers"]'), world, closePauseMenu);
+    // Samen spelen (#434): het uitnodigen en de spelerslijst zijn twee tabbladen van hetzelfde onderdeel
+    // (samenpanel.js, coopspelersui.js); elk tekent zich in zijn eigen tabblad.
+    if (sub === 'samen') {
+      showSubtab('samen', pref.sub.samen || 'samen');
+      if (pref.sub.samen === 'spelers') renderSpelersPanel(root.querySelector('[data-of="samen"][data-sub="spelers"]'), world, closePauseMenu);
+      else renderSamenPanel(root.querySelector('[data-of="samen"][data-sub="samen"]'), world, closePauseMenu);
+    }
   }
   syncFooter();
 }
@@ -1582,7 +1595,7 @@ function showTab(name, how) {
   if (name === 'telefoon') { pref.sub.verhaal = 'personages'; name = 'verhaal'; }
   if (name === 'missions') name = 'todo';
   if (name === 'cheats') name = 'streken';
-  if (name === 'samen' || name === 'samenspelen' || name === 'spelers') { pref.sub.spel = name === 'spelers' && world && world.coopNet ? 'spelers' : 'samen'; name = 'spel'; }
+  if (name === 'samen' || name === 'samenspelen' || name === 'spelers') { pref.sub.spel = 'samen'; pref.sub.samen = name === 'spelers' && world && world.coopNet ? 'spelers' : 'samen'; name = 'spel'; }
   if (name === 'jobs') { pref.sub.todo = 'alles'; name = 'todo'; }
   if (!ids.includes(name)) name = prestart ? 'settings' : HOME;
   if (how) origin = how;
@@ -1631,7 +1644,7 @@ function showTab(name, how) {
   if (name === 'controls') { const q = root.querySelector('[data-controls-search]'); q.value = ''; filterControls(''); showSubtab('controls', pref.sub.controls || 'toetsen'); bindMsg = ''; renderBinds(); }
   if (prev === 'controls' && name !== 'controls') cancelRebind();
   if (name === 'spel') { showSubtab('spel', pref.sub.spel || subsOf('spel')[0][0]); syncControls(); syncSaveButtons(); afterSpelSub(); }
-  if (name === 'spel') { const sp = root.querySelector('[data-of="spel"][data-subtab="spelers"]'); if (sp) sp.hidden = !(world && world.coopNet); }
+  if (name === 'spel') { const sp = root.querySelector('[data-of="samen"][data-subtab="spelers"]'); if (sp) sp.hidden = !(world && world.coopNet); }
   if (name === 'settings') { showSubtab('settings', pref.sub.settings || 'video'); syncControls(); syncDesktopControls(); }
   if (prev !== name) { const p = activePanel(); if (p) p.scrollTop = 0; }
 }
@@ -1643,7 +1656,7 @@ export function openPauseMenu(name = HOME, opts = {}) {
   if (opts.prestart) prestart = { onClose: opts.onClose || null };
   if (name === 'overzicht') { pref.sub.spel = 'overzicht'; name = 'spel'; }
   if (name === 'cheats') name = 'streken';
-  if (name === 'samen' || name === 'samenspelen' || name === 'spelers') { pref.sub.spel = name === 'spelers' && world && world.coopNet ? 'spelers' : 'samen'; name = 'spel'; }
+  if (name === 'samen' || name === 'samenspelen' || name === 'spelers') { pref.sub.spel = 'samen'; pref.sub.samen = name === 'spelers' && world && world.coopNet ? 'spelers' : 'samen'; name = 'spel'; }
   if (opts.sub && SUBTABS[name]) pref.sub[name] = opts.sub;
   if (opts.select) selectTodo(opts.select);
   if (opts.view) pref.sub.todo = opts.view;
