@@ -2,7 +2,7 @@
 //   node scripts/test_all.mjs [--fase=licht|zwaar|electron|alles] [--rapport=<map>]
 //        [--only=<tekst>] [--jobs=2] [--test-timeout=120] [--issues [--create]] [--force] [--locks=<map>] [--stage [--cache=<map>]] [--list]
 // Fasen (standaard licht):
-//   licht     module-check, import_check, voice_coverage, text_audit, dode-code-bewaking en alle
+//   licht     module-check, import_check, voice_coverage, text_audit, spec_check, dode-code-bewaking en alle
 //             scripts/*_test.mjs (met duur en tijdslimiet; import_cycles_test bewaakt de cycli)
 //   zwaar     de wereldchecks en audits (ring_probe, seat_audit, province_test, drive_audit, ...)
 //   electron  smoke-run, verhaaltest, geocheck, spelbot-sweeps en de beeldrondes, met beeldchecks
@@ -145,6 +145,7 @@ async function faseLicht(prev) {
     ['undef_check', ['scripts/undef_check.mjs']],
     ['voice_coverage', ['scripts/voice_coverage.mjs', '--quiet']],
     ['text_audit', ['scripts/text_audit.mjs']],
+    ['spec_check', ['scripts/spec_check.mjs']],
   ].filter(([id]) => wilDit(id));
   for (const [id, a] of losse) {
     const r = await runCmd(process.execPath, a, { ms: TEST_MS });
