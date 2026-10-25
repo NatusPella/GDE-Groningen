@@ -2,6 +2,7 @@
 // shell, keys and focus; this renders their content and handles their
 // clicks). Data comes from todo.js; the look is menu.css (m-*) and
 // pausemenu.css (ov-*, td-*).
+import { speler } from './spelersregister.js';
 import { wasHelped } from './assistlive.js';
 import { getTodoItems, chooseTodo, mapIconUrl, placeName, GROUPS, STATUS_LABEL, buyFjordUpgrade } from './todo.js';
 import { activityTodoItems } from './activities.js';
@@ -55,7 +56,7 @@ function refresh(world) {
   const goal = getGoal();
   for (const it of activityTodoItems(world)) {
     if (items.some((q) => q.key === it.key)) continue; // staat hij er later toch in todo.js, dan één keer
-    it.dist = Number.isFinite(it.x) ? Math.hypot(it.x - world.player.x, it.y - world.player.y) : null;
+    it.dist = Number.isFinite(it.x) ? Math.hypot(it.x - speler(world).x, it.y - speler(world).y) : null;
     it.isGoal = !!(goal && it.goal && goal.kind === it.goal.kind && goal.id === it.goal.id && (goal.kind !== 'place' || goal.name === it.goal.name));
     items.push(it);
   }
@@ -116,7 +117,7 @@ function goalLine(world) {
   const g = getGoal();
   if (!g) return '';
   const wait = storyWaiting(world);
-  const d = Math.hypot(g.x - world.player.x, g.y - world.player.y);
+  const d = Math.hypot(g.x - speler(world).x, g.y - speler(world).y);
   return `<span class="ov-goal mut">${svg(ICON.flag)}<span class="one">Doel: ${esc(g.name)}${[formatDistance(d), wait ? `verhaal wacht: ${wait.code}` : ''].filter(Boolean).map((t) => ' · ' + esc(t)).join('')}</span>` +
     '<button type="button" class="m-bt" data-todo-clear>Doel wissen</button></span>';
 }
