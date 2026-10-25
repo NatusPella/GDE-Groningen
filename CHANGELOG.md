@@ -7,6 +7,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Opgelost
+- **Vee en wandelaars blijven van de rijbaan.** Een koe of schaap graast niet meer de weg op waar zijn perceel tot de rand van de strook loopt, ook niet als een auto het dier opjaagt; en op een provinciale weg zonder trottoir staan geen wandelaars meer midden in de rijstrook (bij een kruising lag de berm van de zijweg op de rijbaan van de hoofdweg).
 - **Tekst op borden is van beide kanten leesbaar.** Een bord dat aan twee kanten tekst had, liet de achterkant in spiegelbeeld zien; dat geldt nu voor het doek boven de kartbaan, het SKATEPARK-bord, de borden bij discgolf, het podium en de badeendjes.
 - **De kartstart begint met een rustig beeld.** De camera zweeft niet meer door het starthek (dwarsbalk en paal midden in beeld) maar komt van hoog achter het startveld naar je kart; de prestatiekaart die je onderweg verdient zakt tijdens een minigame naar de onderkant in plaats van over de toetshulp te vallen.
 - **De bewaarder van de Gouden Eierbal stelt zich niet twee keer voor.** Haar eerste regel begon met haar eigen naam, vlak onder de naamkaart die dat al deed.
