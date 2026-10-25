@@ -110,20 +110,28 @@ const ok = (c, m) => { n++; if (!c) { fails++; console.log('FAIL ' + m); } };
   ok(T.duwVanWagen({}, 0, 0) === null && T.duwVanWagen(wagen, NaN, 0) === null, 'zonder gegevens: geen duw');
 }
 
-// de crew van cooptrein.js (#492): de gastheer is de machinist, de gast een passagier; laat instappen blijft geweigerd
+// de crew van cooptrein.js (#492): de gastheer is de machinist, de eerste gast conducteur en de volgende passagier
 {
   const c = T.newCrew();
   ok(T.board(c, 0).role === 'machinist', 'de gastheer is de eerste machinist');
-  const g = T.board(c, 1, 'passagier');
-  ok(g.ok && g.role === 'passagier' && T.roleOf(c, 1) === 'passagier', 'de gast is passagier');
-  ok(T.may(c, 0, 'hendel') && T.may(c, 0, 'dienst') && !T.may(c, 1, 'hendel') && !T.may(c, 1, 'dienst'), 'de gastheer houdt de hendel en de dienst');
-  ok(T.members(c).length === 2 && c.machinist === 0, 'twee aan boord, de gastheer is de machinist');
-  const uit = T.leave(c, 1);
-  ok(uit.takeover === null && T.roleOf(c, 1) === null && c.machinist === 0 && T.members(c).length === 1, 'een gast stapt uit: de gastheer blijft machinist');
+  const g = T.board(c, 1, 'conducteur');
+  ok(g.ok && g.role === 'conducteur' && T.roleOf(c, 1) === 'conducteur', 'de eerste gast is conducteur');
+  ok(T.may(c, 1, 'deuren') && T.may(c, 1, 'waak') && T.ackFrom(c, 1), 'de conducteur doet de deuren en de waakzaamheid');
+  ok(!T.may(c, 1, 'hendel') && !T.may(c, 1, 'dienst') && !T.may(c, 1, 'noodrem'), 'maar niet de hendel, de dienst of de noodrem');
+  const p = T.board(c, 2, 'conducteur');
+  ok(p.ok && p.role === 'passagier', 'een tweede gast is passagier');
+  ok(!T.may(c, 2, 'deuren') && !T.may(c, 2, 'waak'), 'een passagier mag de deuren en de waakzaamheid niet');
+  ok(T.may(c, 0, 'hendel') && T.may(c, 0, 'dienst') && T.may(c, 0, 'deuren'), 'de gastheer houdt de hendel en de dienst');
+  ok(T.members(c).length === 3 && c.machinist === 0 && c.conducteur === 1, 'drie aan boord, de gastheer is de machinist');
+  const uit = T.leave(c, 2);
+  ok(uit.takeover === null && T.roleOf(c, 2) === null && c.machinist === 0 && T.members(c).length === 2, 'een passagier stapt uit: de gastheer blijft machinist');
+  ok(T.leave(c, 1).takeover === null && T.roleOf(c, 1) === null && c.conducteur === null, 'de conducteur stapt uit: zijn plek komt vrij');
   c.service = true;
-  ok(T.board(c, 2).ok === false && T.roleOf(c, 2) === null, 'een late gast stapt niet in tijdens een dienst');
+  ok(T.board(c, 3).ok === false && T.roleOf(c, 3) === null, 'een late gast stapt niet in tijdens een dienst');
   c.service = false;
-  ok(T.board(c, 2).role === 'passagier', 'zonder dienst is de late gast passagier');
+  ok(T.board(c, 3, 'conducteur').role === 'conducteur', 'zonder dienst is de nieuwe gast conducteur nu de plek vrij is');
+  const s = T.splitReward(c, 40);
+  ok(s[0] === 40 && s[3] === 40 && Object.keys(s).length === 2, 'elk crewlid het volle bedrag, de gastheer doet zelf mee');
   ok(T.TREIN_HALF_WID === 1.45, 'de halve breedte van een wagen komt uit deze regels');
 }
 

@@ -5,7 +5,8 @@
 // and keys traindrive.js. Pays per halte plus a medal bonus (payFor).
 import { createBoard, mgThema, key } from './minigamekit.js';
 import { driveRange, routePoint, hijackTrain } from './railway.js';
-import { loopbaanVerdien } from './loopbaanlive.js';
+import { loopbaanVerdien, loopbaanDeel } from './loopbaanlive.js';
+import { splitReward } from './treincoop.js'; // de crew van de trein en de beloning per lid (#492)
 import { registerMusicProbe } from './scenariomusic.js';
 import { pushAudioEvent } from './pedgeom.js';
 import {
@@ -53,6 +54,8 @@ export const serviceRunning = () => !!svc && !svc.finished;
 
 export function endService(world) {
   svc = null;
+  const t = world && world.trainDriving;
+  if (t) { t.service = false; if (t.crew) t.crew.service = false; }
   if (board) board.hide();
   if (hud) hud.hide();
 }
@@ -72,6 +75,7 @@ function begin(world, t) {
     range: [lo + t.halfLen, hi - t.halfLen], storingen: true,
   });
   svc = plan(t.cab);
+  t.service = true; // een late gast mag niet meer instappen zolang de dienst loopt (#492)
   // geen halte meer voor je (je stapte in bij de kop van de lijn): als de trein stilstaat draai je de cabine om (#436)
   if (svc.finished && t.v < 1) {
     const andere = plan(-t.cab);
@@ -103,6 +107,26 @@ const STORING_MSG = {
   early: 'Te vroeg vertrokken van de halte',
 };
 
+// De deuren openen of sluiten: met O van de machinist of met de deurvlag van de conducteur (#492).
+function deuren(world, t) {
+  if (!svc || svc.finished) world.addMessage('De deuren gaan open bij een halte in een dienst: druk eerst G', 2.5);
+  else {
+    const r = pressDoors(svc, { time: world.time, v: t.v });
+    world.addMessage(r.msg, 2);
+  }
+}
+
+// De beloning van een dienst (#492): de gastheer houdt zijn eigen loopbaanVerdien-bedrag, elk crewlid (conducteur en
+// passagiers) krijgt het volle bedrag en de XP in zijn eigen geld en loopbaan. Eén coopDeel per dienst, met de slots uit
+// treincoop.splitReward zonder de gastheer; wie niet in de crew zit krijgt niets. Geeft het bedrag van de gastheer.
+export function dienstBeloning(world, pay, xp = 0) {
+  const betaald = loopbaanVerdien(world, 'trein', pay, { xp, n: 0, uniek: pay > 0 ? 'machinist' : null, deel: false });
+  const crew = world && world.trainDriving && world.trainDriving.crew;
+  const slots = crew ? Object.keys(splitReward(crew, pay)).map(Number).filter((s) => s !== 0) : [];
+  if (betaald > 0 && slots.length && world.coopDeel) world.coopDeel(betaald, { ...loopbaanDeel('trein', pay, xp), slots });
+  return betaald;
+}
+
 // Called by traindrive.js each frame while the player drives t, after the
 // controls are read into t.ctl. cab: de hendel (treincabine.js).
 export function updateMachinist(dt, world, t, cab) {
@@ -119,14 +143,12 @@ export function updateMachinist(dt, world, t, cab) {
     if (!svc.finished) abandonService(svc);
     else endService(world);
   }
+  const gastDeur = !!world.coopTreinDeur; // O van de conducteur in de trein van de gastheer (#492)
+  if (gastDeur) world.coopTreinDeur = false;
   if (input.wasPressed('o')) {
     input.consume('o');
-    if (!svc || svc.finished) world.addMessage('De deuren gaan open bij een halte in een dienst: druk eerst G', 2.5);
-    else {
-      const r = pressDoors(svc, { time: world.time, v: t.v });
-      world.addMessage(r.msg, 2);
-    }
-  }
+    deuren(world, t);
+  } else if (gastDeur) deuren(world, t);
   t.doorsOpen = !!svc && !svc.finished && doorsOpen(svc, world.time); // de deuren in het binnenste (treininterieur.js)
   if (hud) hud.show();
   if (hud) hud.intro(cab && cab.introUntil > world.time && !cab.since ? INTRO : '');
@@ -161,7 +183,8 @@ export function updateMachinist(dt, world, t, cab) {
     if (!svc.paid) {
       svc.paid = true;
       const pay = payFor(r, svc.abandoned);
-      const betaald = loopbaanVerdien(world, 'trein', pay, { xp: pay > 0 ? Math.round(r.made * 4 + r.medal * 8) : 0, n: 0, uniek: pay > 0 ? 'machinist' : null }); // samen spelen (#365), loopbaan (#381)
+      const betaald = dienstBeloning(world, pay, pay > 0 ? Math.round(r.made * 4 + r.medal * 8) : 0); // samen spelen (#365), loopbaan (#381), elk crewlid (#492)
+      t.service = false; // de dienst is klaar: een gast mag weer instappen (#492)
       svc.pay = betaald;
       if (betaald > 0) world.addMessage(`Dienst betaald: €${betaald}${r.reizigers ? `, met ${r.reizigers} reizigers` : ''}`, 3);
     }

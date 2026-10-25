@@ -1,8 +1,10 @@
-// Samen met de trein (#492): een gast stapt bij de gastheer in en rijdt als passagier mee. De rollen en de regels staan in
-// treincoop.js (puur); dit bestand koppelt het lichaam van de gast aan een wagen van de trein die de gastheer bestuurt.
+// Samen met de trein (#492): een gast stapt bij de gastheer in en rijdt als conducteur of passagier mee. De rollen en de
+// regels staan in treincoop.js (puur); dit bestand koppelt het lichaam van de gast aan een wagen van de trein die de
+// gastheer bestuurt.
 // Puur: geen THREE, geen DOM, geen netwerk, zodat scripts/cooptrein_test.mjs het kan doorlopen.
-// De gastheer is de machinist: hij rijdt de trein al met traindrive.js (world.trainDriving). Een gast is passagier, stapt
-// alleen in of uit bij stilstand en zijn lichaam is van de gastheer (coopbestuur.js lichaamVan). De gastheer zet dat lichaam
+// De gastheer is de machinist: hij rijdt de trein al met traindrive.js (world.trainDriving). De eerste gast wordt conducteur
+// (O de deuren, K de waakzaamheid), de volgende gasten passagier (#492). Een gast stapt alleen in of uit bij stilstand en
+// zijn lichaam is van de gastheer (coopbestuur.js lichaamVan). De gastheer zet dat lichaam
 // elke frame op de wagen (treinTick), zodat het met de trein meebeweegt in plaats van eruit geduwd te worden. Alleen bij het
 // stoppen van de gastheer, het wegvallen van de gast of het einde van de sessie gaat de crew weg en staat de gast naast de
 // wagen. Late instap blijft geweigerd door board() zelf (een dienst die al loopt).
@@ -17,9 +19,11 @@ export const TREIN_UIT_M = TREIN_HALF_WID + 0.9; // m: de plek naast de wagen wa
 
 export const TREIN_TEKST = {
   in: 'Je rijdt mee als passagier. E bij stilstand: uitstappen.',
+  conducteur: 'Je bent conducteur: O de deuren, K de waakzaamheid. E bij stilstand: uitstappen.',
   uit: 'Je stapt uit de trein.',
   wacht: 'Wacht tot de trein stilstaat.',
   dienst: 'De dienst is al bezig: halverwege stapt niemand meer in.',
+  geenRol: 'Alleen de machinist en de conducteur bedienen de deuren en de waakzaamheid.', // een passagier mag het niet (#492)
 };
 
 // De trein van de gastheer: alleen als hij hem zelf bestuurt (traindrive.js zet world.trainDriving). Zonder gastheer in de
@@ -97,14 +101,16 @@ export function treinGebruik(world, slot) {
   // eerst kijken of hij bij de trein staat: anders is E voor een auto of een ander voertuig, ook als de trein rijdt
   if (afstandTotTrein(t, l) > TREIN_INSTAP_M) return { gedaan: false };
   if (t.v >= TREIN_STIL_V) { stoot(world, slot, TREIN_TEKST.wacht); return { gedaan: true }; }
-  // de gastheer is de machinist (de eerste keer dat er iemand bij komt); de gast wordt passagier
+  // de gastheer is de machinist (de eerste keer dat er iemand bij komt); de eerste gast wordt conducteur als die plek vrij
+  // is (#492), board() geeft een volgende gast vanzelf de rol passagier
   if (!t.crew) t.crew = newCrew();
-  const eigen = board(t.crew, 0).ok ? board(t.crew, slot, 'passagier') : { ok: false };
+  t.crew.service = !!(t.service || t.crew.service); // loopt de dienst al, dan weigert board() de late gast (#492)
+  const eigen = board(t.crew, 0).ok ? board(t.crew, slot, 'conducteur') : { ok: false };
   if (!eigen.ok) { stoot(world, slot, TREIN_TEKST.dienst); return { gedaan: true }; } // late instap: board() weigert
   const plek = plekOpTrein(t, slot);
   if (plek) zetOpWagen(l, plek);
   meld(world, slot, true, eigen.role);
-  stoot(world, slot, TREIN_TEKST.in);
+  stoot(world, slot, eigen.role === 'conducteur' ? TREIN_TEKST.conducteur : TREIN_TEKST.in);
   return { gedaan: true, rol: eigen.role };
 }
 
@@ -149,6 +155,7 @@ export function treinTick(world) {
 // De crew opruimen: de gastheer stopt met rijden (traindrive.js stopDriving), de sessie eindigt (coopnet.js stopCoopNet)
 // of de trein is weg. Elke gast staat daarna weer naast zijn wagen.
 export function treinStop(world, t = treinVan(world)) {
+  if (world) { world.coopTreinDeur = false; world.coopTreinWaak = false; } // een late O of K van een gast telt na de dienst niet meer (#492)
   const crew = t && t.crew;
   if (!crew) return 0;
   let n = 0;
