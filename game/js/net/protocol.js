@@ -30,6 +30,8 @@ export const REASON_TEXT = {
   verhaal: 'Het verhaal is verschillend. Kies op beide kanten hetzelfde verhaal.',
   vol: 'De sessie zit al vol.',
   token: 'Deze verbinding kan niet hervat worden.',
+  wachtwoord: 'Deze sessie heeft een wachtwoord. Vraag het aan wie het spel opende en probeer het opnieuw.',
+  verbod: 'Je bent uit deze sessie verwijderd. Je kunt niet terugkomen.',
   gesloten: 'De verbinding is gesloten. Zit het spel vol, of is het spel gestopt?',
   'time-out': 'De ander antwoordt niet. Staat het spel open en is het klaar met laden? Probeer het over een halve minuut opnieuw.',
 };

@@ -71,6 +71,8 @@ export const FIGUUR_INSTAP_AFSTAND = 9; // m: de 3e en 4e speler stappen in als 
 export const CAMERA_DELEN = false; // Tammo en Tessa delen geen camera meer: elke speler heeft zijn eigen scherm en muis; het midden tussen beiden zette de camera verder weg en scheef (#388)
 export const FIGUUR_TERUG_S = 4;  // s te ver weg voor de gastheer de figuur bij de groep zet
 export const TREK_WACHT_S = 0.35; // s tussen twee trekpogingen van dezelfde gast: een begrensd bericht (#459)
+export const WACHTWOORD_MAX = 32; // tekens: een wachtwoord per sessie (#450), alleen in het geheugen van de gastheer
+export const VERBODEN_MAX = 64;   // verbannen tokens die de gastheer onthoudt (tot hij opnieuw start): geen namen of adressen
 
 // De tegelhash komt van de aanroeper (manifest van de wereld); story = verhaalboog.
 // De online-avatar (#455) reist mee: de naam en kleur uit de instellingen van dit
@@ -247,6 +249,9 @@ const now = (world) => (Number.isFinite(world.time) ? world.time : Date.now() / 
 // Een eigen id voor deze sessie, vanaf de start (#448): elk uitbetaald bedrag krijgt een id met deze sessie erin, zodat
 // een id uit een eerdere sessie nooit dezelfde is (een gast die hem al kreeg zou anders stil niets krijgen).
 const maakSessieId = () => Math.random().toString(36).slice(2, 8);
+// Een wachtwoord van de gastheer (#450) is kort en gaat nooit verder dan de kennismaking: geen regelafbrekingen, geen
+// oneindig lange tekst. Leeg betekent: de sessie is open (zoals altijd).
+const schoonWachtwoord = (w) => String(w == null ? '' : w).replace(/[\r\n]/g, '').slice(0, WACHTWOORD_MAX);
 
 // De gedeelde toestand zoals de host hem ziet en zoals een gast hem uit de snapshots opbouwt (net/desync.js)
 export function hostView(world, info, roster) {
@@ -260,15 +265,17 @@ export function guestView(sample, info) {
 
 // ---------------------------------------------------------------- host
 // opts: { seed, max (4 tot 8), onHold(rol, slot, reden), fade, route, onChange(roster), scene() -> { filmpje, regel, keuze } (wat de host op het scherm heeft, coopscene.js),
-//         koploos: de wereld heeft geen lokale speler (een dedicated server, #450); de hub en de berichten blijven dezelfde }
+//         koploos: de wereld heeft geen lokale speler (een dedicated server, #450); de hub en de berichten blijven dezelfde,
+//         wachtwoord: een sessie op slot (#450): zonder dat woord krijgt niemand een plek, ook een terugkerende gast niet }
 export function startHost(world, info, opts = {}) {
   prepareCoop(world);
   const koploos = !!opts.koploos;
   world.coop.prevLocal = world.coop.local !== false; world.coop.local = false; // in een sessie sturen de gasten, niet het toetsenbord
-  const { onHold = null, fade = null, route = null, onChange = null, scene = null } = opts;
+  const { onHold = null, fade = null, route = null, onChange = null, scene = null, wachtwoord = '' } = opts;
   let hub;
   hub = new HostHub({
     info, seed: opts.seed ?? 1, max: opts.max, caps: CAPS, rand: opts.rand, koploos, // het aantal in de lijst telt geen lege plek 0 (#450)
+    wachtwoord: schoonWachtwoord(wachtwoord), verboden: new Set(), // de beheerder van deze sessie (#450)
     sim: hostSim(world, () => hub.roster, { koploos }),
     onJoin: (slot, char, avatar = null) => {
       if (world.coopNet && world.coopNet.missie) hub.announce(missieBericht(null, world.mission).event || { k: 'missie', actief: false }, slot);
@@ -363,7 +370,7 @@ export function addGuest(world, transport) {
 }
 
 // ---------------------------------------------------------------- gast
-// opts: { onHold, fade, route, wens (gewenste figuur voor plek 2 en hoger) }
+// opts: { onHold, fade, route, wens (gewenste figuur voor plek 2 en hoger), wachtwoord (de sessie op slot, #450) }
 export function startClient(world, transport, info, opts = {}) {
   const ok = canJoin(world);
   if (!ok.ok) throw new Error(ok.reason);
@@ -371,8 +378,9 @@ export function startClient(world, transport, info, opts = {}) {
   // hierna in de wereld van de ander doet, kan zijn eigen save niet meer raken; valt de sessie weg, dan staat zijn
   // eigen stand er in ieder geval. (Heeft hij nog geen save, dan maakt samenpanel.js er eerst een.)
   try { bewaarNu(world, { toast: false }); } catch (e) { /* geen save is beter dan niet meespelen */ }
-  const { onHold = null, fade = null, route = null, wens = null, code = '' } = opts;
-  const session = new ClientSession(transport, { info: { ...info, char: wens || undefined }, caps: CAPS });
+  const { onHold = null, fade = null, route = null, wens = null, code = '', wachtwoord = '' } = opts;
+  const ww = schoonWachtwoord(wachtwoord);
+  const session = new ClientSession(transport, { info: { ...info, char: wens || undefined, ...(ww ? { wachtwoord: ww } : null) }, caps: CAPS });
   prepareCoop(world);
   const p = world.player;
   // eigen toestand bewaren: bij vertrek komt de gast hier weer terug
@@ -1284,6 +1292,27 @@ export function removeGuest(world, slot = 1) {
 export function setMaxPlayers(world, max) {
   const n = world.coopNet; if (!n || n.role !== 'host') return null;
   return n.hub.setMax(max);
+}
+// Beheerder van een sessie (#450): een wachtwoord zetten of juist weghalen. Leeg betekent open. Geldt meteen voor elke
+// nieuwe kennismaking; wie al meespeelt blijft gewoon zitten (het is geen reden om iemand eruit te gooien).
+export function zetWachtwoord(world, wachtwoord = '') {
+  const n = world.coopNet; if (!n || n.role !== 'host' || !n.hub) return null;
+  const ww = schoonWachtwoord(wachtwoord);
+  n.hub.cfg.wachtwoord = ww;
+  return ww.length > 0;
+}
+// Beheerder van een sessie (#450): iemand verwijderen én de deur voor hem dichtdoen. De gastheer kent alleen het token
+// van die verbinding (geen naam, geen adres); het blijft in het geheugen tot de gastheer opnieuw start.
+export function verbiedGast(world, slot = 1) {
+  const n = world.coopNet; if (!n || n.role !== 'host' || !n.hub) return false;
+  const ses = n.hub.sessions.get(slot);
+  const token = ses && ses.guest && ses.guest.token;
+  if (token) {
+    const lijst = n.hub.cfg.verboden || (n.hub.cfg.verboden = new Set());
+    lijst.add(String(token));
+    while (lijst.size > VERBODEN_MAX) lijst.delete(lijst.values().next().value);
+  }
+  return removeGuest(world, slot);
 }
 
 // Verlaten. Gast: terug naar de eigen plek en eigen toestand, saven mag weer. Host: alleen verder; alle gasten gaan eruit.
