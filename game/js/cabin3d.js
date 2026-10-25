@@ -65,8 +65,10 @@ export function buildCabinGeometry(seat, len, wid, klasse, romp = null) {
   };
   for (const s of L.seats) seatAt(s.x, s.z, K.seatColor || SEAT);
   if (L.rear) {
-    B.box(L.rear.x, L.rear.y - 0.07, 0, 0.5, 0.14, L.rear.w, SEAT);
-    B.box(L.rear.x - 0.27, L.rear.y + 0.27, 0, 0.1, 0.55, L.rear.w, SEAT);
+    // de achterbank in de bekleding van deze klasse: een taxi heeft donker leer, een politieauto hard plastic (#442)
+    const rear = K.rearColor || SEAT;
+    B.box(L.rear.x, L.rear.y - 0.07, 0, 0.5, 0.14, L.rear.w, rear);
+    B.box(L.rear.x - 0.27, L.rear.y + 0.27, 0, 0.1, 0.55, L.rear.w, rear);
   }
   const c = L.console;
   B.box(c.x + sh, c.y, c.z, c.d, c.h, c.w, DARK);

@@ -31,6 +31,8 @@ function carKind(v) {
   if (v.isAmbulance || n === 'foodtruck' || n === 'cashvan') return 'van';
   if (v.isHeroCar) return 'escort';
   if (v.isPolice) return 'wagon';
+  // een taxi is een sedan: dezelfde stoelen en dezelfde achterbank, ook al heet het model anders (#442)
+  if (n === 'taxi') return 'sedan';
   return n === 'sedan' || n === 'wagon' || n === 'van' || n === 'sport' || n === 'suv' ? n : 'hatch';
 }
 
