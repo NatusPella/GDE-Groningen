@@ -4,7 +4,7 @@ Ontwerpdocument, oktober 2026, bij [PROVINCIE-PLAN.md](PROVINCIE-PLAN.md).
 Het gaat hier over wat er in de provincie te doen is: het verhaal, de
 zijmissies, de activiteiten en de dichtheid. De techniek en het reizen staan
 in het plan. Uitgangspunten:
-- bestaande toon: [verhaal/D-definitief.md](verhaal/D-definitief.md) en
+- bestaande toon: [verhaal/nieuw/00-OVERZICHT.md](verhaal/nieuw/00-OVERZICHT.md) en
   [personages.md](personages.md);
 - droog en Gronings, 18+ zoals nu;
 - geen echte levende personen en geen echte merken.

@@ -110,31 +110,30 @@ plekken in `game/vliegplekken.json`.
 **Doel.** Eén mix met effecten, spraak en muziek, en één radiozender.
 
 **Regels.** Het meeste geluid wordt gesynthetiseerd; een paar CC0-opnames staan ernaast, beschreven
-in `game/audio/sfx/manifest.json`. Ontbreekt een opname, dan speelt de synth en komt er niets in de
-console. Nieuwe opnames gaan door `scripts/audio/master_sfx.mjs` en krijgen een regel in
-`SAMPLE_INFO` (`game/js/sfx/samples.js`). De radio is G-Music met vier programmablokken
+in `game/audio/sfx/manifest.json`. Ontbreekt een opname, dan speelt de synth en blijft de console
+leeg. Nieuwe opnames gaan door `scripts/audio/master_sfx.mjs` en krijgen een regel in `SAMPLE_INFO`
+(`game/js/sfx/samples.js`). De radio is G-Music met vier programmablokken
 (`game/js/musicpick.js:129`), een dag- en een nachtpool; een nummer uit de laatste 60% van de pool
-komt niet terug (`musicpick.js:87`), in 60% van de overgangen zit een jingle (`:118`), en een pool
-met minder dan zes eigen nummers leent de rest. Stings zijn procedureel (`game/js/stings.js`):
-nooit twee tegelijk, 0,6 s afkoeling (`stings.js:10`), en de radio gaat er 45% zachter van
-(`game/js/audio.js:1755`).
+komt niet terug (`:87`), in 60% van de overgangen zit een jingle (`:118`). Stings zijn procedureel
+(`game/js/stings.js`): nooit twee tegelijk, 0,6 s afkoeling (`:10`), en de radio gaat er 45% zachter
+van (`game/js/audio.js:1755`).
 
 **Bestanden.** `audio.js`, `sfx/samples.js`, `sfx/mixplan.js`, `musicpick.js`, `radio.js`,
-`stings.js`, `game/audio/sfx/manifest.json`.
+`stings.js`.
 
 **Tests.** `sfx_test.mjs`, `sfxsamples_test.mjs`, `stings_test.mjs`, `music_pick_test.mjs`,
-`scenariomusic_test.mjs`, `minigamefoley_test.mjs`.
+`minigamefoley_test.mjs`.
 
 ## Prestaties en kwaliteitsstanden
 
 **Doel.** Levenslange prestaties per speler, en beeld dat zich aan de machine aanpast.
 
 **Regels.** Prestaties staan in `gde-prestaties-v1` (`storagekeys.js:27`); tellers lopen via
-`recordStat` (`game/js/achievements.js:445`) en de gate (`achievements.js:379`) zet prestaties stil
-zolang een streek of de geldgreep loopt. Vier presets: laag, middel, vlot en hoog
-(`game/js/gfxprofile.js:9`). Automatische kwaliteit beoordeelt elke seconde op de mediaan, traag
-boven 27 ms (`gfxprofile.js:271`), schaalt de resolutie tot 50% (`:270`) en kent cpuniveau 0 tot 3
-(`:273`); `simload.js` volgt dat niveau voor verkeer en voetgangers.
+`recordStat` (`game/js/achievements.js:445`) en de gate (`:379`) zet prestaties stil zolang een
+streek of de geldgreep loopt. Vier presets: laag, middel, vlot en hoog (`game/js/gfxprofile.js:9`).
+Automatische kwaliteit beoordeelt elke seconde op de mediaan, traag boven 27 ms (`:271`), schaalt de
+resolutie tot 50% (`:270`) en kent cpuniveau 0 tot 3 (`:273`); `simload.js` volgt dat niveau voor
+verkeer en voetgangers.
 
 **Bestanden.** `achievements.js`, `gfxprofile.js`, `simload.js`, `viewdist.js`, `settings.js`.
 
@@ -177,16 +176,15 @@ de toetshints (`prompts.js`) dekken alleen wat niet vanzelf spreekt.
 
 De bron is `docs/PERF-METING-2026-10-19.md` (#4): 24, 27 en 23 fps in de stad te voet op laag,
 middel en hoog, de renderer 15 tot 41 ms per frame, de simulatie samen 5 tot 6 ms en een heap van
-1,1 tot 1,9 GB (`PERF-METING-2026-10-19.md:7`). Een nieuwe meting krijgt een eigen gedateerd
-document in `docs/`; nooit bijschrijven in een oude meting. `docs/archief/2026-10/PERF-PROFIEL.md` is
-historisch (0.24, vóór de tegels); alleen de methode is nog bruikbaar. Herhalen:
-`cd desktop && npm run stage`, dan `node scripts/perf/run.mjs <naam> <preset> --hitch`, en voor een
-gepaard verschil `scripts/perf/abpair.mjs`; alleen een verschil van een paar standaardfouten telt.
-De machine was bij elke run bezet, dus absolute ms zijn ruw en verhoudingen niet
-(`PERF-METING-2026-10-19.md:23`). Conflicten in één regel: de samenvatting noemt draw calls de
-grootste post (knelpunt 1, `:161`), terwijl Vervolg 9 een draw call op circa 2 µs zet en 46% minder
-draw calls maar 0,7 ms oplevert (`:417`); de vervolgen zijn de latere meting (#477). De code heeft
-vier presets, het rapport meet er drie.
+1,1 tot 1,9 GB (`:7`). Een nieuwe meting krijgt een eigen gedateerd document in `docs/`; nooit
+bijschrijven in een oude meting. `docs/archief/2026-10/PERF-PROFIEL.md` is historisch (0.24, vóór de
+tegels); alleen de methode is nog bruikbaar. Herhalen: `cd desktop && npm run stage`, dan
+`node scripts/perf/run.mjs <naam> <preset> --hitch`, en voor een gepaard verschil
+`scripts/perf/abpair.mjs`; alleen een verschil van een paar standaardfouten telt. De machine was bij
+elke run bezet, dus absolute ms zijn ruw en verhoudingen niet (`:23`). Conflicten in één regel: de
+samenvatting noemt draw calls de grootste post (knelpunt 1, `:161`), terwijl Vervolg 9 een draw call
+op circa 2 µs zet en 46% minder draw calls maar 0,7 ms oplevert (`:417`); de vervolgen zijn de
+latere meting (#477). De code heeft vier presets, het rapport meet er drie.
 
 ## Regels voor een nieuw systeem
 

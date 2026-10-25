@@ -49,4 +49,4 @@ Zoek met de hand (ca. 15 minuten) in EUIPO (eSearch plus), TMview en BOIP op
 
 ## 5. Gronings en Fries (#13)
 
-Besloten: geen echte nalezer; de woorden zijn zelf gecontroleerd. Zie [DIALECT-CONTROLE.md](DIALECT-CONTROLE.md) (methode, bronnen, twijfelgevallen) en `scripts/dialect_woorden_test.mjs`. De lijst [NALEZEN-GRONINGS-FRIES.md](NALEZEN-GRONINGS-FRIES.md) blijft beschikbaar als een speler of kennis zelf wil meelezen. Voor de opgesomde twijfelgevallen in ingesproken regels is opnieuw inspreken nodig (jouw akkoord).
+Besloten: geen echte nalezer; de woorden zijn zelf gecontroleerd. Zie [DIALECT-CONTROLE.md](DIALECT-CONTROLE.md) (methode, bronnen, twijfelgevallen) en `scripts/dialect_woorden_test.mjs`. De lijst uit `node scripts/nalezerlijst.mjs` blijft te maken als een speler of kennis zelf wil meelezen. Voor de opgesomde twijfelgevallen in ingesproken regels is opnieuw inspreken nodig (jouw akkoord).
