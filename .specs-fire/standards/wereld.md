@@ -26,6 +26,14 @@ bestaat niet meer (#90/C3).
   Ommeland-vak komt uit `ommeland_raw.json.gz`. Water is geen eigen vlag: zee en
   water zijn de plekken waar `LAND` ontbreekt (`build_province.mjs:51`).
 
+Een pack is content-gehasht (`<naam>-<hash>.gdp`) en `merge_overlays.mjs`
+herschrijft de packs met de overlaytegels als laatste, vóór de index. Een
+onderbroken bouw laat daardoor een index en packs uit verschillende generaties
+achter. Daarom controleert `desktop/build.mjs` elke stage met
+`scripts/lib/stagecheck.mjs`: elk pack uit elke index bestaat met de grootte die
+de index noemt, en een onvolledige wereld-cache wordt opnieuw gebouwd in plaats
+van hergebruikt (#496).
+
 ## Stad gepind, provincie gestreamd
 
 `tileworld.js` houdt de stadstegels resident (`index.pins.city`: 54 verklaarde plus
