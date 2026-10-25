@@ -5,7 +5,7 @@ import { attachPlane, makeStrip } from './planecontrol.js';
 import { PLANE_MODEL } from './planeflight.js';
 import { makeHeli, HELI_MODEL, helipadById } from './heliflight.js';
 import { standActivity } from './standactivity.js';
-import { createBoard, key, stopPressed } from './minigamekit.js';
+import { createBoard, mgThema, key, stopPressed } from './minigamekit.js';
 import { gameUi } from './minigamekit.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, MEDALS } from './achievements.js';
 import { loopbaanVerdien, loopbaanTel } from './loopbaanlive.js';
@@ -23,7 +23,7 @@ import * as R from './vliegschoolrules.js';
 // markeringen, het bord en de uitslag. Het toestel wordt gevlogen door de gewone vlieg-code (player.update): de les
 // kijkt alleen mee. Een crash kost niets (het toestel is van de school) en eindigt de les.
 // `window.__vliegschool` (debug): stand(), start(id), state(), finish(), quit(), lessen().
-const ACCENT = '#e7b83a';
+const ACCENT = mgThema('vliegschool').accent; // één bron voor het HUD-thema: minigamekit.js (#453)
 const DEALER = { x: 1764.51, y: 9959.94 };
 const INTRO_S = 4.5;
 const SCHOOL_HEALTH = 400;
@@ -460,7 +460,7 @@ function sluitAlles(w) {
 
 // --- het menu ---------------------------------------------------------------------------------------------------------------
 function openMenu(w) {
-  if (!board) board = createBoard(R.SCHOOL.toUpperCase(), ACCENT);
+  if (!board) board = createBoard('vliegschool');
   board.show();
   w.companionHold = w.companionHold || (() => { const s = stand(); return { x: s.x, y: s.y, face: 0 }; })();
 }

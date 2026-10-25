@@ -3,7 +3,7 @@ import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordSta
 import { showCard } from './hudcards.js';
 import { iconDisc, activityBlock } from './activitykit.js';
 import { isShopOpen } from './shopui.js';
-import { createBoard, key, bubble, clearBubbles, pick, fmtTime } from './minigamekit.js';
+import { createBoard, mgThema, key, bubble, clearBubbles, pick, fmtTime } from './minigamekit.js';
 import { WANDEL_LINES } from './minigamelines3.js';
 import { registerQuitHook } from './busy.js';
 import { STAMPS, routePoints, routeLength, createWalk, stepWalk, averagePace, walkMedal, nextTarget, PACE_MEDAL_AT } from './wandelrules.js';
@@ -16,7 +16,7 @@ import { STAMPS, routePoints, routeLength, createWalk, stepWalk, averagePace, wa
 // is part of the walk. Backspace stops. Free. Rules: wandelrules.js.
 // `window.__wandeling` debug. The stamp coordinates are approximate and not
 // yet checked against the tiles round Winsum.
-const ACCENT = '#7cb342';
+const ACCENT = mgThema('wandeling').accent; // één bron voor het HUD-thema: minigamekit.js (#453)
 const USE_RADIUS = 3;
 const PTS = routePoints();
 const START = { x: PTS[0].x, y: PTS[0].y };
@@ -55,7 +55,7 @@ function finish(w, { quit = false } = {}) {
 
 function start(w) {
   if (run) return false;
-  if (!board) board = createBoard('WANDELING WINSUM', ACCENT);
+  if (!board) board = createBoard('wandeling');
   board.show();
   run = { s: createWalk(PTS), flash: null, hint: '' };
   showCard(w, { kind: 'tip', kicker: 'Wandeling', title: 'Pieterpad bij Winsum', body: 'Loop in volgorde langs de vijf stempelposten. Lopend tellen tijd en afstand; in een voertuig telt niets. [Backspace] stopt.', duration: 11, key: 'wandel-help', voice: false });
