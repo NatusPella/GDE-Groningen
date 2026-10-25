@@ -1364,7 +1364,11 @@ export function manageBoatPopulation(world, { target = 4, spawnMin = 20, spawnMa
     }
   }
 }
-const BARGE_MAX = 4, BARGE_ROOM = 50;
+// Hoeveel binnenvaartschepen er tegelijk in de buurt mogen varen (#7). Dit is de enige plek waar dat
+// getal staat: streetlifedata.pickWaterLife gebruikt hetzelfde getal (2) voor de gewone mix, en de
+// lus hieronder telt bij dezelfde stand op. Stonden er twee aparte bovengrenzen (2 en 4), dan vulde
+// het tweede rondje het kanaal alsnog: bij Nieuwbrug lagen acht schepen van 39-50 m over elkaar (#502).
+const BARGE_MAX = 2, BARGE_ROOM = 50;
 
 // A wander target with room around it that the boat can reach in a straight
 // line through open water (sampled every 3 m), so the route doesn't cut
