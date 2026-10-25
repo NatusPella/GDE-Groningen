@@ -10,8 +10,8 @@ Regels die voor iedereen gelden:
 - Fries is een kruiderij, geen hoofdgerecht. Friese zinnen krijgen altijd een Nederlandse ondertitel (FY in `subtitles.js`).
 - De TTS-stemmen en basistags staan in `scripts/tts_lines_list.mjs` (`CAST`), die van Tammo en Tessa in `scripts/tts_cast.mjs` (`DUO`). Houd de tags hieronder daarmee in lijn.
 - Elk personage heeft een eigen kleur voor zijn naam in de ondertitels (zie **Sprekerskleuren** onderaan, `game/js/speakers.js`).
-- Het verhaal staat in `docs/verhaal/nieuw/00-OVERZICHT.md`: één Groningse zomer, de laatste twee weken van augustus (Kop: KEI-week, Romp: Noorderzon, Staart: kermis en Gronings Ontzet op 28 augustus), met een epiloog in september.
-- Bij de eerste ontmoeting krijgt elk personage een **naamkaart** in trailerstijl: de naam in Bebas en één droge regel (`CHARACTERS` in `game/js/storyarc.js`, getoond door `namecard.js`). Daar staan ook een korte bio en een citaat per personage.
+- Het verhaal staat in `docs/verhaal/nieuw/00-OVERZICHT.md`: één Groningse zomer, de laatste twee weken van augustus (Kop: Kiezelweek, Romp: het Plantsoenfestijn, Staart: kermis en Gronings Ontzet op 28 augustus), met een epiloog in september.
+- Bij de eerste ontmoeting krijgt elk personage een **naamkaart** in trailerstijl: de naam in Bebas en één droge regel (`CHARACTERS` in `game/js/storyarc_nieuw.js`, getoond door `namecard.js`). Daar staan ook een korte bio en een citaat per personage.
 - De **complimentenladder** komt overal terug: Ow → Goud → Valt mie nait of → Braid noar de zin → Kon minder → stilte, met een *kloet in de strotte*.
 
 ---
@@ -68,14 +68,14 @@ Regels die voor iedereen gelden:
 ## Tessa
 **In één zin:** snel, ad rem en de baas van het duo. Ze lacht om alles behalve om mensen die haar droom kleineren.
 
-**Naamkaart:** *Heeft altijd een plan B. Plan A is ook van haar.* Ze heeft geen auto; haar droom, de blauwe frietwagen, komt op Tammo's Escapade ("De Fjord Frituur, op een Fjord. Dan klopt de naam ook.").
+**Naamkaart:** *Heeft altijd een plan B. Plan A is ook van haar.* Ze is Nederlandse, niet in Stad geboren: ze woonde als kind op zeven plekken en logeerde elke zomer in Ljouwert, in het huis naast Mem. Sinds 14 augustus woont ze met Tammo in de flat in Paddepoel. Ze heeft geen auto; haar droom, de blauwe frietwagen, komt op Tammo's Escapade ("De Fjord Frituur, op een Fjord. Dan klopt de naam ook.").
 
-- **Stem:** Callirrhoe. Basistag: *Groningse vrouw, lacherig en ad rem*. Emoties: plagend, zelfverzekerd, enthousiast, bazig, warm, grinnikend.
+- **Stem:** Callirrhoe. Basistag: *Nederlandse vrouw, lacherig en ad rem*, in standaard Nederlands (#134): geen Gronings accent of dialectspelling, en een Gronings woord zou een grap over haar zijn. De opgenomen regels met een Groninger kleur blijven staan. Emoties: plagend, zelfverzekerd, enthousiast, bazig, warm, grinnikend.
 - **Zo praat ze:**
   - snel, ze onderbreekt Tammo;
   - stelt retorische vragen: "Heb jij een plan? Nee. Ik wel.";
-  - geeft instructies als bevelen.
-  - Gronings als ze boos of ontroerd is: "Doe bist nait goed wies!"
+  - geeft instructies als bevelen;
+  - fel en direct als ze boos of ontroerd is, maar in gewoon Nederlands;
   - Zij weet het meestal beter: feiten, de juiste route, de regels, de Groningse geschiedenis. Dat maakt haar soms een beetje een betweter, en dan plaagt Tammo: "Daar gaat Tessa, de wandelende Wikipedia van Stad."
 - **Stopwoorden:**
   - "Tammo. Tám-mo."
@@ -245,14 +245,12 @@ Regels die voor iedereen gelden:
 |---|---|---|---|
 | **Sjabbe** | sluwe heler, koopt alles | Rasalgethi, *hees, zakelijk* | "Wat denk je dat het waard is? De helft." |
 | **Jelmer** | hyperactieve streamer | Puck, *jong, hyper* | leest chats hardop voor, verzint trends |
-| **Sjoerd** | droge wedstrijdleider (KEI, races) | Umbriel, *droog, schamper* | "Regels zijn regels. Behalve de mijne." |
+| **Sjoerd** | droge wedstrijdleider (Kiezelweek, races) | Umbriel, *droog, schamper* | "Regels zijn regels. Behalve de mijne." |
 | **Henk** | gemoedelijke garagehouder, monteur | Sadaltager, *gemoedelijk* | belt als je auto schade heeft, noemt elke deuk "een karaktertrekje" |
 | **Harm** | wegwerker, twintig jaar Ring Zuid | Alnilam, *gemoedelijk, trots* | "Vorig jaar was het de voorlaatste." |
 | **Geert** | joviale kroegbaas | Zubenelgenubi, *joviaal, roddelend* | weet alles van iedereen, vertelt het voor een biertje |
-| **Femke** | gehaaste festivalmaker (Noorderzon) | Leda, *gehaast, enthousiast* | alles moet "gisteren" |
 | **Oma Trijntje** | 92, won in 1953 de Snackprijs met de beste eierbal van Stad (haar handjes om de bal op de foto); de tweede mentor | Sulafat, *warm, stellig* | wist dat Gerda's eierbal beter was en zei het zeventig jaar niet: "Ik ben Gronings. Wij zeggen het één keer. Dan is het waar." |
 | **Kapitein Klaas** | schorre schipper | Enceladus, *schor, knipogend* | kent elke brug, praat tegen zijn boot |
-| **Hilly** | nieuwsgierige vrouw, plat Gronings | Despina, *kletserig* | ooggetuige in "Waar is de Fjord?" |
 | **Dokter Dijkstra** | nuchtere traumaarts en heli-piloot | Sadachbia, *droog, zakelijk* | "Dit stond niet in het rooster." |
 | **Duivenmelker Bert** | oude wijze duivenman | Iapetus, *zacht, wijs* | praat over duiven als over mensen; ontdekt dat de duiven naar Tammo luisteren |
 | **Schipper Wiebe** | boze rondvaartschipper met megafoon | *luid, woedend* | scheldt je uit, maar alleen in tegeltjeswijsheden |
@@ -260,6 +258,15 @@ Regels die voor iedereen gelden:
 | **Rotor Roelf** | joviale helikopterverkoper van Eelde | Achird, *joviaal, verkoperig* | geeft een gratis proefvlucht aan iedereen die "misschien" koopt: "En nait tegen d'Olle Grieze aan, hè?" |
 | **De torenwachter** | hele oude man boven in d'Olle Grieze, alleen een stem aan de telefoon | Iapetus, *oud, droog, onverstoorbaar* | belt Tammo en Rikus over wat hij ziet: "Ik meld alleen." |
 | **Snackbarhouder** | veertig jaar open in de Oosterpoort, lege pannen | Rasalgethi, *wanhopig, dan juichend* | "Vet! Valt mie nait of!" |
+| **Geesje** | kosteres in Warffum, 84, kent Oma Trijntje; haar eieren zijn bijna heilig | nog geen opname; *warm, nuchter* | "Dat is een kerkelijk wonder." (M09) |
+| **Lammert** | havenmeester in Eemshaven en Delfzijl; zijn vader danste in 1953 met Oma; schuilplaats | nog geen opname; *kort, ironisch* | "De kraan piept. De bewaker kijkt bij het tweede piepje omhoog." (M13) |
+| **Roelfien** | graanboerin en vlieger in het Oldambt | nog geen opname; *vrolijk, praktisch* | "Vlieg laag, houd de molen rechts en trek de neus pas omhoog na de kermis." (M15) |
+| **Wubbo** | brugwachter in Veendam, elf bruggen, gek op de fanfare | nog geen opname; *rustig, praktisch* | "Mis je de maat, dan wacht je." (M17) |
+| **Tinus** | trekkertrekker en re-enactor uit het Westerkwartier, met een schuur en een trekker | nog geen opname; *joviaal* | "De modder pakt eerst je auto. Je plannen komen daarna." (T4, M22) |
+| **Mevrouw Hoving** | bewaarder van de Gouden Eierbal en voorzitter van de jury (artikel 4); Jelle zet haar met een treinreis aan de kant | nog geen opname; *beleefd, oud, formeel* | "Wie de bal bewaart, tekent de uitslag." (M03) |
+| **Willemien** | familie van Oma Trijntje in Loppersum, woont in een huis dat blijft staan | nog geen opname; *nuchter, droog* | "Het is een huis. Het moet alleen even blijven staan." (M27) |
+
+Geesje, Lammert, Roelfien, Wubbo, Tinus, mevrouw Hoving en Willemien zijn nieuw in het verhaal (`docs/verhaal/nieuw/00-OVERZICHT.md` §2) en hebben nog geen opgenomen stem; de stemkeuze staat open (`docs/verhaal/nieuw/07-TTS-RAMING.md` §5).
 
 ## Hoe Tammo en Tessa met elkaar omgaan
 - Tessa leidt, Tammo relativeert. Maar als het er echt op aankomt, is Tammo degene die het goede zegt, en in vijf woorden.
@@ -283,9 +290,12 @@ Elke naam staat vet in de eigen kleur voor de zin ("**Tammo:** tekst"), in cutsc
 | Oma Trijntje | `#cc5f90` roze | | Sjabbe | `#8c8a3c` olijf |
 | Jelmer | `#a38a00` mosterd | | Sjoerd | `#5f9848` grasgroen |
 | Henk | `#6f8bb0` staalblauw | | Harm | `#a5823c` zand |
-| Geert | `#b27850` koper | | Femke | `#b464c4` orchidee |
+| Geert | `#b27850` koper | | Mevrouw Hoving | `#a47ab8` lila |
 | Kapitein Klaas | `#3f86a8` zeeblauw | | Duivenmelker Bert | `#7282c4` duifblauw |
-| Dokter Dijkstra | `#dd4b44` rood | | Hilly | `#c0609e` fuchsia |
+| Dokter Dijkstra | `#dd4b44` rood | | Geesje | `#c28a3e` kopergeel |
 | Schipper Wiebe | `#cf5a2e` roestoranje | | Koe Aaltje / Grietje | `#818b58` / `#94866e` |
 | Rotor Roelf | `#2a9ab8` hemelsblauw | | Torenwachter | `#9a8f6a` steen |
+| Lammert | `#4c8fa8` petrolblauw | | Roelfien | `#79a23c` bladgroen |
+| Wubbo | `#6f8fb0` grijsblauw | | Tinus | `#b0883a` zandbruin |
+| Willemien | `#9a86b4` heidepaars | | | |
 | Voorbijgangers, bazen, radio en navigatie | `#8a8a8a` neutraal grijs | | | |

@@ -1,5 +1,11 @@
 # Prestatiemeting 19 oktober 2026 (#4)
 
+> **Dit is de actuele meetbron** voor prestaties (zie `.specs-fire/standards/mechanica.md`,
+> sectie "Meten"). Een nieuwe meting krijgt een **eigen, gedateerd document** in `docs/`;
+> schrijf nooit bij in deze meting. Een samenvatting die een vervolg tegenspreekt, wordt
+> rechtgezet in dezelfde beurt en met "weerlegd in vervolg N" erbij — de cijfers zelf
+> blijven staan, ook als ze later onjuist blijken.
+
 Meting van main (1a1b4c3e met de testfixes van k1) met de hele provincie aan, op de drie grafische profielen van `gfxprofile.js`. Doel: weten waar de tijd heen gaat en wat een speler merkt. Echte zwakke hardware blijft #56.
 
 ## Samenvatting
@@ -7,7 +13,7 @@ Meting van main (1a1b4c3e met de testfixes van k1) met de hele provincie aan, op
 - Op deze machine (i7-11700KF, RTX 3060, 17 GB) haalt het spel in de stad te voet **24 fps (laag), 27 (middel) en 23 (hoog)**. Autorijden op de ring: 43, 35 en 20 fps. Het is dus niet 60 fps op een sterke pc, en op laag niet veel beter dan op hoog.
 - **De renderer is de grootste post**: `3d:render` is 15 tot 41 ms per frame (hoog), en in het CPU-profiel 41% van de bezette hoofdthread (`postfx3d.js:206`, de `renderer.render`). De simulatie (verkeer, voetgangers, politie, systemen) is samen maar 5 tot 6 ms per frame.
 - **Snel reizen (trein 39 m/s, A7 33 m/s) breekt het streamen**: spoor 12 fps op hoog (p99 433 ms, langste frame 3,3 s), A7 19 fps met 394 frames boven 50 ms.
-- **De geometrie-worker loopt tot 11 tot 26 s achter** (grootste round trip van een job), op elk profiel.
+- **De geometrie-worker loopt bij het starten achter, niet bij elke job**: één keer `roadInit` van 9 tot 13 s, waarachter de rest van die worker wacht. Per taak is het 40 tot 70 ms, met `roadGeo` hoogstens 1,3 tot 2,5 s. Sinds de splitsing in twee workers (wegen en oevers los van `cityMerge` en `terrein`) blokkeert dat elkaar niet meer; zie "Vervolg 9" verderop.
 - Geheugen: 1,1 tot 1,9 GB heap. Over 3 minuten rijden komt er geen JS-lek uit (zaagtand door de GC), maar het aantal textures groeit van 135 naar 204 en geometrieën van 1,9k naar 4,4k.
 - Gerepareerd: de minimap tekende elk frame de hele vectorkaart (5 tot 14% van de bezette hoofdthread); nu hoogstens elke 33 ms of 4 keer zijn eigen tekentijd. Zie "Reparatie".
 
@@ -158,15 +164,15 @@ De winst is 0,6 tot 1,4 ms per frame op foot en druk, op spoor binnen de ruis. H
 
 ## Top 10 knelpunten
 
-1. **Renderer-CPU.** `3d:render` 14 tot 41 ms per frame op hoog en 41% van de bezette hoofdthread op foot (CPU-profiel `postfx3d.js:206`); 450 tot 820 draw calls en 450k tot 830k driehoeken per frame. Bewijs: secties en profiel hierboven. Eerste kandidaten: de ongebatchte kleine wegmeshes (55 per frame), losse gebouwen (36), water per cel (38), schaduwpassen (ongeveer 100 calls), minder driehoeken in de verte. Issue nodig.
+1. **Renderer-CPU.** `3d:render` 14 tot 41 ms per frame op hoog en 41% van de bezette hoofdthread op foot (CPU-profiel `postfx3d.js:206`); 450 tot 820 draw calls en 450k tot 830k driehoeken per frame. Bewijs: secties en profiel hierboven. Eerste kandidaten: de ongebatchte kleine wegmeshes (55 per frame), losse gebouwen (36), water per cel (38), schaduwpassen (ongeveer 100 calls), minder driehoeken in de verte. Issue nodig. **Nuance uit vervolg 9:** een draw call kost in deze build ongeveer 2 µs, dus 46% minder draw calls levert maar 0,7 ms op; de winst zit in de driehoeken en in de passen, niet in het aantal calls. Wie hieraan begint, leest vervolg 9 eerst.
 2. **Streamen bij snel reizen.** Spoor en A7: 12 tot 24 fps, p99 83 tot 433 ms, langste frame 3,3 s; pieken in `3d:render` (1,1 s), `3d:vehicles` (0,48 s), `3d:roads` (0,34 s); in een eerdere run ook `3d:buildings` 1,7 s, `3d:prewarm` 1,6 s, `3d:lights` 3,8 s. De gebouwbatcher (budget 1 tot 2 ms per frame) haalt het tempo niet: 109 losse gebouwmeshes per frame. Issue nodig.
-3. **Geometrie-worker achterstand.** Grootste round trip 11 tot 26 s (`geo.maxRoundTrip`), op alle profielen. De `province_test` op de virtuele klok meldt 0 late tegels; in het echte spel loopt de wachtrij dus wel op. Issue nodig.
+3. **Geometrie-worker bij de start.** ~~Grootste round trip 11 tot 26 s (`geo.maxRoundTrip`), op alle profielen.~~ **Weerlegd in vervolg 9:** dat getal was `roadInit`, één keer 9 tot 13 s bij het starten; per taak is het 40 tot 70 ms. De worker is sindsdien in tweeën gesplitst (wegen en oevers apart van `cityMerge` en `terrein`), dus een trage `roadInit` blokkeert de rest niet meer. Wat overblijft: de start zelf, en die vraagt een worker die de gebouwtegels niet decodeert.
 4. **Shader-prewarm.** `3d:prewarm` piekt op 345 ms (A7) en tot 2,6 s (druk, eerdere run); `gl:getProgramParameter` 1,2 ms per frame. Compilatie in het spel in plaats van vooraf.
 5. **Heap 1,1 tot 1,9 GB.** Zaagtand, geen lek, maar groot; op een machine met 8 GB gaat dat zwaar worden (#56).
 6. **Textures en geometrieën groeien** in drie minuten (135 naar 204, 1,9k naar 4,4k). Langere run nodig.
 7. **Nacht.** Hoog: 77 ms (13 fps) tegen 43 ms (23 fps) overdag op dezelfde route; `3d:render` 41 ms. Nachtlampen en verlichting kosten het meeste.
 8. **Minimap/HUD.** 5 tot 14% van de bezette hoofdthread; `fillPoly` en `drawMinimap`. Gedeeltelijk gerepareerd (zie boven). Verder: de kaart cachen in tegels of in een worker.
-9. **Pauzemenu en instellingen** renderen de scène op volle kwaliteit door (`3d:render` 9 ms, 5 ms met het instellingenblad), terwijl het beeld stilstaat. Frames 21,6 ms op hoog.
+9. **Pauzemenu en instellingen** renderen de scène door (`3d:render` 9 ms, 5 ms met het instellingenblad) terwijl het beeld stilstaat. Het menu rendert al op 30 of 20 fps (`MENU_FRAME_S`), dus dit is geen volle framerate meer; wat overblijft is die 9 ms per gerenderd frame (zie ook vervolg 9).
 10. **Audio-pieken.** `audio` piekt op 1945 ms (ring, 1 keer) en 88 ms (foot, 10 keer) op de hoofdthread.
 
 Het spel haalt dit zelf niet op: `simload.js` staat op niveau 2 (het meest teruggeschakeld) in alle runs.

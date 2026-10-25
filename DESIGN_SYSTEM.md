@@ -229,12 +229,15 @@ ring, reduced motion respected. Everything inside a `.gm-stage` is laid out in
 the mockups' 1920x1080 px and zoomed by `--mz` (`--ui` / 1.2), so it scales with
 "Grootte interface" and works from 1280x720 to 4K.
 
-**Pause menu structure** (`pausemenu.js` `SECTIONS`, `RAIL_GROUPS`, `SUBTABS`). A fixed rail on the left never changes shape; the sheet beside it shows one section. Three groups:
-**Spel** (tabs Overzicht, Samen spelen, Spelers, Opslaan & stoppen, Spelen, Camera & richten, Hints & uitleg), **Verhaal** (Opdrachten, Personages, Aanwijzingen, Veroverd), **Loopbanen** (vakken, bijbanen, Vissen, Boerderij), **Activiteiten** (Alles, Dichtbij) /
-**Kaart** (full screen, no rail), **Spullen**, **Garage**, **Prestaties**, **Foto's** / **Instellingen** (Beeld, Geluid & ondertitels, Besturing, Interface, Toegankelijkheid, Foutrapport, Cheats; Besturing and Cheats also open as their own sections).
+**Pause menu structure** (`pausemenu.js` `SECTIONS`, `RAIL_GROUPS`, `SUBTABS`; the canonical table is in [.specs-fire/standards/ui-taal.md](.specs-fire/standards/ui-taal.md), "Menu's"). A fixed rail on the left never changes shape; the sheet beside it shows one section. Three groups:
+**Spel** (tabs Overzicht, Samen spelen, Opslaan & stoppen, Spelen, Camera & richten, Hints & uitleg), **Verhaal** (Opdrachten, Personages, Aanwijzingen, Veroverd), **Loopbanen** (the vakken with their side jobs), **Activiteiten** (Alles, Dichtbij) /
+**Kaart** (full screen, no rail), **Spullen**, **Garage**, **Prestaties**, **Foto's** / **Instellingen** (Beeld, Geluid & ondertitels, Besturing, Interface, Toegankelijkheid, Foutrapport, Cheats), **Cheats** (its own place in the rail since #435).
+**Visboek** and **Boerderij** hang under Loopbanen and **Besturing** (Toetsenbord en muis, Controller, Toetsenoverzicht, Hulp) under Instellingen; each opens as its own screen and goes back to its parent.
+**Samen spelen** is a tab of Spel with its own two tabs, Samen spelen and Spelers; the players list only exists while you play together (#434).
 Spel > Overzicht is home: the menu opens there, Esc from another section goes back to it, then closes; from M or the phone Esc closes at once. A section that belongs under another goes back to its parent.
 The footer shows two to four hints per section (`HINTS`: keys or controller glyphs, clickable). Before a game has started only Spel, Instellingen and Besturing exist.
-**Spelers** shows only in a Samen spelen session. Settings use switches, sliders and previous/value/next pickers; one setting per row with a line of explanation under it, rare options folded behind "Meer opties".
+**Q** and **E** switch the section's tabs (Garage and Prestaties switch their own category tabs), and only a screen without any tabs goes to the previous or next section; `[` and `]` (the controller's triggers) switch tabs too. The Q/E row in the Besturing table still promises "vorige of volgende sectie" (#480, [docs/DESIGN-SCHULD.md](docs/DESIGN-SCHULD.md)).
+Settings use switches, sliders and previous/value/next pickers; one setting per row with a line of explanation under it, rare options folded behind "Meer opties".
 A section has one focal point, at most 125 words (a choice screen) or 270 (a reference screen), pictures before words. In a session the rule is that the menu pauses only the player who opened it
 (see "Samen spelen in the design"); the code does not fully do that yet, it is in the debt list.
 

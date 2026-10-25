@@ -80,7 +80,7 @@ roepen.
   (`:46`). Esc of B gaat altijd terug.
 - Conflict: `pausemenu.js:121` zegt dat Q/E de sectie wisselen, maar de afhandeling
   (`:826`) wisselt eerst het tabblad, net als `DESIGN-BEDIENING.md:35`. De code wint;
-  de menutekst is fout (#480).
+  de menutekst is fout (#480, nog open).
 
 ## Menu's
 
@@ -111,9 +111,10 @@ Prestaties, Foto's / Instellingen, Cheats. De tabs uit `SUBTABS`:
 - Hooguit 125 woorden op een keuzescherm en 270 op een naslagscherm, beeld boven
   tekst, twee tot vier hints, focus zichtbaar (2 px crème, `menu.css:26`, of 2 px
   groen `#3fc97a` met controller, `a11y.css:34`).
-- Conflict: `DESIGN_SYSTEM.md:233` zegt "drie groepen" en noemt er vier, en zet
-  Spelers als tab van Spel. De code heeft drie groepen (`:254`) en Spelers onder
-  Samen spelen (`:265`) (#480).
+- Opgelost op 25-10: `DESIGN_SYSTEM.md:233` zei "drie groepen" en noemde er vier, en
+  zette Spelers als tab van Spel. Het document volgt nu de code: drie groepen
+  (`:254`), Spelers onder Samen spelen (`:265`), en Cheats als eigen rail-item
+  (`streken`, sinds #435) naast de tab onder Instellingen.
 
 ## Taal
 
@@ -160,9 +161,10 @@ een personage met een vast geslacht mogen blijven. `text_audit.mjs` (regel
   bestaand model, geen merk-, kenteken- of gemeentelogo. Aards palet (baksteen
   `#a8442c`, daken `#2b2a38`, water `#2c7790`), altijd zomer; beelden buiten het
   spel zijn renders van het spel (`game/img/laad/`, `loadscene.js`).
-- Een echt merk als stijlbron mag niet. De stijlbrief noemt een "Ford Escort"-achtige
-  auto (`3d-model-prompts.md:301`) en chibi-proporties (`:346-352`); die spreken de
-  regel hierboven tegen (#479).
+- Een echt merk als stijlbron mag niet. Dat was tot 25-10 fout in de stijlbrief (een
+  "Ford Escort"-achtige auto en chibi-proporties); die noemt nu "een vierkante
+  Nederlandse gezinsauto uit de jaren 90" en kiest kantig boven chibi, met de echte
+  maten uit `models3d_people.js` (#479).
 
 ## Regels voor een nieuw scherm of nieuwe tekst
 
@@ -183,14 +185,16 @@ een personage met een vast geslacht mogen blijven. `text_audit.mjs` (regel
 
 ## Open punten (met issue)
 
-- #465: vier Engelse termen in zichtbare tekst; de audit kent ze nog niet (0
-  bevindingen op 25-10).
-- #478: "GO!" (`kartbaan.js:451`, `:524`) en "Perfect!" (`padel.js:792`,
-  `padelmatch.js:168`) staan in beeld.
-- #476: kleuren buiten de tokens, onder meer `hudcards.css:39-44` (tweede rood
+- **#476:** kleuren buiten de tokens, onder meer `hudcards.css:39-44` (tweede rood
   `#ff5a4a`, blauw `#6c9bff`, paars `#d68cff`), `choicepanel.js:10-27` (`#d9a441`,
   `#5dff7a`, `#ff9a3c`) en `minigamekit.js:68-92` (`#6cc070`, `#ffd23f`). Besluit
   nodig: benoemen als statuskleur of vervangen.
-- #479: de 3D-brief met "Ford Escort" en chibi tegen de stijlregel.
-- #480: de menudocs kloppen niet meer (`DESIGN_SYSTEM.md:232-237` tegen
-  `pausemenu.js:235-268`), inclusief de Q/E-tekst op `pausemenu.js:121`.
+- **#465 en #478 zijn op 25-10 gesloten:** de vier Engelse termen zijn nu Nederlands
+  (Knielt, Afstand/Nadering/Putt, Grindtrucs, "Met liefde in Groningen") en de kreten
+  zijn "Start!" en "Mooi!". `text_audit` kent ze en faalt erop (`ANGLICISMEN` plus de
+  nieuwe `SHOUTS`-lijst). Wat buiten de code lag is ook recht: het startscherm
+  (`game/index.html`), het About-venster (`desktop/main.js`) en de Windows-LEESMIJ.
+- **#479 en #480 zijn op 25-10 gesloten:** de 3D-brief noemt geen merk meer en kiest
+  kantig boven chibi; `DESIGN_SYSTEM.md` volgt nu de echte menustructuur van
+  `pausemenu.js` (Cheats is sinds #435 een eigen rail-item, Spelers een tab onder
+  Samen spelen), met de Q/E-fout als bekend punt erbij.

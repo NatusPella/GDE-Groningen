@@ -85,11 +85,14 @@ gedraaid**, niet geslaagd. De coördinator draait bij een release de volledige
 suite, `province_test`, de zware audits en de verhaaltest
 (`--story-test=<dir>`); nooit twee Electron-instanties tegelijk.
 
-**Twee runners (#481).** `scripts/run_tests.mjs` (CI) draait `node --check`,
-`voice_coverage`, `import_check` en alle `scripts/*_test.mjs` behalve `EXCLUDED`
-(`:26-29`), met `--quick`, `--only`, `--list` en `--timeout`; het kent geen
-fasen, `text_audit`, `undef_check`, dode-code-bewaking of rapport met trend.
-`test_all.mjs` doet dat wel, en dat is de runner die AGENTS.md noemt.
+**Twee runners (#481, opgelost 25-10).** `scripts/test_all.mjs` is de standaard uit
+AGENTS.md: fasen `licht`, `zwaar` en `electron`, met rapport en trend.
+`scripts/run_tests.mjs` is de snelle selectie die CI draait; hij deelt zijn lijsten
+(`EXCLUDED`, `SLOW`, `MISSING_DATA`, `listFiles`) met `test_all`, zodat CI niets
+anders meet dan de lichte fase. Sinds #482 draait hij ook `undef_check` en
+`text_audit` — de twee poorten die een echte fout vingen die CI miste.
+Wat hij niet kent: de zware en de Electron-fase, dode-code-bewaking en het rapport
+met trend. Die draait de coördinator lokaal.
 
 **CI draait** `.github/workflows/test.yml` bij `pull_request` en met de hand
 (niet bij elke push), op Linux en Windows: `npm ci --ignore-scripts`,
@@ -186,18 +189,20 @@ Uit de docs:
 
 ## Open punten (met issue)
 
-1. **#483** — `versionName` in `android/android/app/build.gradle:11` staat op
-   `0.35.0-android-test` (`versionCode 1`) en loopt niet mee met de release. De
-   belofte van SHA-256 in de releasenotes bestaat niet in de code:
-   `desktop/release.sh` en `scripts/release_builds.mjs` schrijven geen checksum.
-   Een afwijking, geen regel.
+1. **#483** — opgelost op 25-10: `android/scripts/version.mjs` schrijft
+   `android/android/version.properties` uit `desktop/package.json` (0.53.0 → `versionCode`
+   5300) en `build.gradle` leest dat; `desktop/release.sh` schrijft en uploadt
+   `SHA256SUMS.txt` via `scripts/release_hashes.mjs`. Wat open blijft: de APK is hier niet
+   gebouwd (geen Android-SDK) en de release is niet gedraaid, dus de eerste echte APK en
+   de eerste echte release moeten het bewijzen.
 2. **#484** — de drie bekende juridische feiten zijn op 25-10 rechtgezet
    (`docs/LICENTIES.md` noemt nu online samen spelen, 34 nummers en 15 loops;
    `docs/PRIVACY-EN-CREDITS.md` noemt de acht CC0-opnames). Wat overblijft: de
    aantallen staan in proza in plaats van te komen uit `scripts/audio_herkomst.mjs`,
    en de eigenaar moet de strekking nog bevestigen.
-3. **#481** — twee testrunners naast elkaar, met verschillende dekking; zie
-   "Checks".
+3. **#481** — opgelost op 25-10: `test_all.mjs` is de standaard, `run_tests.mjs` de
+   CI-selectie; de lijsten zijn gedeeld en CI draait nu ook `undef_check` en
+   `text_audit`. Zie ADR 0013.
 4. **#485** — de webversie (`web/build.mjs`) heeft geen eigen tests in
    `scripts/`; de build en de service worker worden alleen met de hand
    gecontroleerd.

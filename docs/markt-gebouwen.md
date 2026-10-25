@@ -76,7 +76,9 @@ x 150-240, y 40-160. The Vismarkt runs WSW-ENE from the Korenbeurs
   artworks was kept, and some panels were opened up as windows. An atrium
   with a glass roof was cut into the block, with a Jumbo in the plinth.
 - Four to five floors of about 4 m (est.).
-- Model: the height raised to 6 storeys (mapextras). Grey mosaic panels in
+- Model: an eave of at least 15 m (`Math.max(15, b.h * LEVEL)` in
+  `grootHandelshuis`, floors derived from that height; there is no
+  `mapextras` height patch). Grey mosaic panels in
   three tones, every third panel a window, a glazed ground floor with
   mullions, two coloured artwork panels on the longest front, and the
   atrium's glass roof.

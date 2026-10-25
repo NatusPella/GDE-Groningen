@@ -19,7 +19,8 @@ de stand, het volgende doel met afstand en richting, en de toetsen. Backspace st
 | Door de opening | drie keer tussen twee hoge gebouwen door, steeds krapper | idem, voor de rotor |
 | Hoveren | | twaalf seconden stil boven een cirkel |
 
-Per les een medaille (brons, zilver, goud) en een beloning: 25, 40 en 60 euro, **alleen de eerste keer dat je die medaille haalt**,
+Per les een medaille (brons, zilver, goud) en een beloning van 25, 40 en 60 euro per medaille, **alleen de eerste keer dat je die
+medaille haalt**; haal je in één vlucht meteen goud, dan krijg je die drie bedragen in één keer (€125). Daarbij
 plus punten in het vak Lucht van de Loopbaan (docs/LOOPBAAN.md). Opnieuw doen geeft 6 punten. Records staan onder `vlieg-<les>`
 (`recordChallengeResult`), prestaties `vlieg_geslaagd`, `vlieg_goud` en `vlieg_brevet` (alle lessen gehaald). Een crash kost niets:
 het toestel is van de school en de les is dan voorbij. De hulpopties (ruimere poorten en ringen, meer tijd) werken mee.

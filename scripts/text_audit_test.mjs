@@ -6,6 +6,8 @@ import { checkText, checkRaw, isProse, jsStrings, audit, voicedLookup, ALLOW } f
 let failed = 0;
 const ok = (cond, msg) => { if (!cond) { failed++; console.log('FAIL ' + msg); } };
 const rules = (t) => checkText(t).map((f) => f.rule);
+// losse kreten (geen zin) gaan door checkRaw, niet door checkText
+const rawShout = (t) => checkRaw(t).some((f) => f.rule === 'anglicisme');
 
 // must be caught
 ok(rules('Ik koop een Coca-Cola bij de Albert Heijn').includes('merk'), 'merk: Coca-Cola / Albert Heijn');
@@ -77,6 +79,10 @@ ok(!has('Score: 100, de Action-held kijkt Plus Only', 'merk'), 'gewone woorden (
 ok(has('Pas op voor de gladheid en de dooi', 'winter') && has('Alles is gevroren', 'winter'), 'winter: gladheid, dooi, gevroren');
 ok(!has('Het wordt een mooie zomerdag met zon', 'winter'), 'zomer is geen winter');
 ok(has('Je moet respawn kiezen', 'anglicisme') && has('Nieuwe achievements unlocked', 'anglicisme') && has('Open de tutorial', 'anglicisme'), 'anglicisme: respawn, achievements, unlocked, tutorial');
+// ronde 3 (#465): de vier termen uit de HUD; 'Putter' blijft in het golfspel staan
+ok(has('Kneel de bus', 'anglicisme') && has('Kies een midrange', 'anglicisme') && has('Pak de driver', 'anglicisme') && !has('De bus knielt bij de halte', 'anglicisme'), 'anglicisme: kneel, midrange, driver');
+// en de losse kreten, die geen zin zijn en dus via checkRaw gaan (#478)
+ok(rawShout('GO! GO! GO!') && rawShout('Perfect!') && !rawShout('Start!') && !rawShout('Mooi!'), 'anglicisme: losse kreten GO! en Perfect!');
 const raw = (t) => checkRaw(t).map((f) => f.rule + ':' + f.note);
 ok(raw('Mail naar ' + ['tammo', 'voorbeeld.nl'].join('@')).some((x) => x.startsWith('persoonsgegevens')), 'e-mailadres');
 ok(raw('Bel 06-12345678 of 050 1234567').filter((x) => x.includes('telefoon')).length >= 1, 'telefoonnummer');

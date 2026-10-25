@@ -1,6 +1,6 @@
 # 0013 - Eén testrunner met drie fasen
 
-- **Status:** voorgesteld
+- **Status:** besloten (25-10-2026)
 - **Datum:** 2026-10-25
 - **Spec:** `.specs-fire/standards/publicatie.md` en `testing-standards.md`
 
@@ -12,13 +12,15 @@ CI draait. Ze dekken verschillend: `run_tests` kent geen `text_audit`,
 `undef_check`, dode-code-bewaking en geen fasen. Daardoor meldt CI groen wat lokaal
 kan falen (#481), en niemand weet welke runner "de" waarheid is.
 
-## Besluit (voorstel)
+## Besluit
 
 `test_all.mjs` is de runner; `run_tests.mjs` blijft bestaan als de snelle
 selectie voor CI en deelt zijn lijsten (`EXCLUDED`, `SLOW`, `MISSING_DATA`,
 `listFiles`) met `test_all`, zodat CI nooit iets anders meet dan de lichte fase.
 CI draait de lichte fase plus de drie Python-tests; de zware en Electron-fase
-blijven lokaal bij de coördinator.
+blijven lokaal bij de coördinator. `undef_check` en `text_audit` zitten sinds #482
+in `run_tests` en dus in CI: dat zijn de twee poorten die een echte fout
+(`heist.js`) vingen die CI miste.
 
 ## Afgewezen
 

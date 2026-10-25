@@ -54,5 +54,5 @@ schrijft de oude niet om.
 | [0010](0010-een-rood-en-kleurtokens.md) | Eén rood en kleur alleen via tokens | besloten |
 | [0011](0011-tekst-is-data.md) | Tekst is data: canon, script, build, spel | besloten |
 | [0012](0012-nederlands-verzonnen-altijd-zomer.md) | Nederlands, verzonnen namen, altijd zomer | besloten |
-| [0013](0013-een-testrunner-met-fasen.md) | Eén testrunner met drie fasen | voorgesteld |
+| [0013](0013-een-testrunner-met-fasen.md) | Eén testrunner met drie fasen | besloten |
 | [0014](0014-release-lokaal-builds-in-actions.md) | Release lokaal, builds in Actions, agents nooit | besloten |

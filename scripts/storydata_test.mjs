@@ -8,6 +8,7 @@ import { build } from './build_story_data.mjs';
 import { STEPS, SPEAKERS, PARTS, NEW_MISSION_IDS } from '../game/js/storyarc_nieuw.js';
 import { dutchFor, looksFrisian } from '../game/js/subtitles.js';
 import { withEllipsisAliases } from '../game/js/voicebank.js';
+import { setStoryData, storyLines } from '../game/js/storytext.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const file = path.join(ROOT, 'game/storydata/script.json');
@@ -51,6 +52,11 @@ for (const l of lines.filter((x) => x.channel !== 'app-stil')) {
 }
 ok(!('roelf' in SPEAKERS) && !('hilje' in SPEAKERS), 'Boer Roelf and Hilje are not in the new cast');
 for (const k of ['geesje', 'lammert', 'roelfien', 'wubbo', 'tinus', 'bewaarder']) ok(SPEAKERS[k], `the new cast has ${k}`);
+// #476: the first scene with mevrouw Hoving passes her name card on (a Naamkaart regie, storytext NAMECARD)
+setStoryData(data);
+const firstHoving = scenes.find((s) => s.lines.some((l) => l.key === 'bewaarder'));
+const hovingCard = firstHoving && storyLines([firstHoving.id]).find((l) => l[2].card === 'bewaarder');
+ok(hovingCard, `${firstHoving ? firstHoving.id : 'the first Hoving scene'}: mevrouw Hoving gets her name card`);
 
 // every scene is on a step of the new arc, and the steps list their scenes
 const stepIds = new Set(STEPS.map((s) => s.id));

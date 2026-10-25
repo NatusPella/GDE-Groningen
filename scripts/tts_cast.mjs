@@ -13,7 +13,7 @@ export const ACCENT = GRO_ACCENT;
 // Tammo's dialect style may swap a Dutch word for its Gronings one ("Mien droom"); that is wanted.
 export const DUO = {
   Tammo: { voice: 'Orus', who: 'dry, deadpan man in his thirties', accent: 'spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark' },
-  Anita: { voice: 'Callirrhoe', who: 'Groningse vrouw, lacherig en ad rem', accent: ACCENT },
+  Anita: { voice: 'Callirrhoe', who: 'Nederlandse vrouw, lacherig en ad rem', accent: 'spoken in standard Dutch, clear and light, without a regional accent' },
 };
 
 // The short clips audio.js plays from fixed paths (tts_barks_lines.mjs), one

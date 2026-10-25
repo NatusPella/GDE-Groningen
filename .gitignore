@@ -44,6 +44,9 @@ docs/verhaal/OPNAMELIJST.md
 docs/NALEZEN-GRONINGS-FRIES.md
 docs/SPELBOT-RAPPORT.md
 
+# de APK-versie komt uit desktop/package.json (android/scripts/version.mjs, #483)
+android/android/version.properties
+
 # lokale agent-tooling
 .opencode/
 .specsmd/
