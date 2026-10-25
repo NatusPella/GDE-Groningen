@@ -71,7 +71,7 @@ const VAN = { name: 'van', len: 5, wid: 2, maxSpeed: 13, accel: 2.5, brake: 6, t
   for (let i = 0; i < 60; i++) { step(s, 1, { fwd: true, space: i === 0 }); maxAir = Math.max(maxAir, s.p.z); if (inside(s)) break; }
   step(s, 120, { fwd: true });
   check('hopped off the far side onto the street', !s.p.perch && s.p.z === 0 && s.p.x > s.v.x + s.v.halfWid && !inside(s), `x=${(s.p.x - s.v.x).toFixed(2)} z=${s.p.z}`);
-  check('the hop went up from the roof', maxAir > vehicleHeight(s.v) + 0.3);
+  check('SPACE on the roof is a step off, not a second jump (#434)', maxAir < vehicleHeight(s.v) + 0.2, `top=${maxAir.toFixed(2)}`);
 }
 {
   const s = scene(SEDAN);
