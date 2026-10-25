@@ -12,11 +12,12 @@ Het ontwerp staat als comment op issue #439; dit is wat er nu is en wat er nog m
 | `game/js/coophostwisselui.js` | De echte route (rtcroom, brokers, diagnose) en het scherm (J/N-vraag, pauzemelding). `koppelWissel` wordt aangeroepen door `samenpanel.js`. |
 | `game/js/coophostwisselwereld.js` | De haken met de wereld: opdracht hervatten, kapotte objecten, voertuigen, plek, geld per gast. Test: `scripts/coophostwisselwereld_test.mjs`. |
 | `game/js/coopnet.js` | Drie kleine haken: `hw-*`-berichten en de tik gaan naar `coophostwisselnet.js`, en `startClient` bewaart de gewenste figuur (`wens`). |
+| `game/js/lobby.js`, `game/js/lobbyui.js` | De knop Spel overdragen in het paneel Samen spelen (ook in de wachtkamer): de host kiest een speler (`overdrachtKandidaten`, alleen met een kamercode) en `biedOver` doet de rest. Tests: `scripts/lobby_test.mjs`, `scripts/lobbyadopt_test.mjs`. |
 | `scripts/coop/hostwissel_test.mjs` | Integratietest zonder Electron: vier spelers over een geheugentransport. |
 
 ## Verloop
 
-1. Wie het spel opende kiest in Spel › Spelers de knop 'Spel overdragen' bij een speler (`biedOver`). Het mag niet in een voertuig, een filmpje of bij een speler die wegvalt. Wie het spel opende staat stil tot er antwoord is.
+1. Wie het spel opende kiest in Spel › Spelers de knop 'Spel overdragen' bij een speler (`biedOver`), of in het paneel Samen spelen (Spel overdragen, ook in de wachtkamer). Het mag niet in een voertuig, een filmpje of bij een speler die wegvalt. Wie het spel opende staat stil tot er antwoord is.
 2. De gekozen speler krijgt de vraag (J of N; 20 s, daarna is het nee). Ja: de anderen krijgen de pauzemelding (`hw-pauze`).
 3. De momentopname gaat in stukken van 800 tekens over dezelfde sessie (`hw-bod`, `hw-stuk`); de ander controleert hem (`hw-geladen`).
 4. De ander controleert of hij bereikbaar is (`deps.bereikbaar`, dezelfde meting als Diagnose), opent een kamer (`deps.opKamer`) en meldt `hw-draait` met de kamer.
@@ -55,7 +56,7 @@ Het bod draagt een terugvalkamer (`terug`, een kamercode die `maakKamer` maakt) 
 
 - De route is getest met een register in het geheugen. `wisselRoute` in `coophostwisselui.js` gebruikt rtcroom, de brokers en STUN zoals de wachtkamer, maar is nooit over echt internet gedraaid. Te doen: twee Electron-instanties (`scripts/coop/testbank.mjs`) en daarna twee computers achter verschillende routers.
 - De kamer van de nieuwe host opent één aanbod per speler tegelijk; spelers proberen 12 keer opnieuw (`VERBIND_POGINGEN`). Bij drie of meer gasten achter een trage broker kan het aansluiten langer duren dan de pauze (80 s); meten.
-- Gevonden met `scripts/coop/playtest_sim.mjs` (drie Electron, nep-tracker): het overdragen werkt over de kamer van de nieuwe host met twee gasten tegelijk (de nep-tracker gaf eerst één aanbod aan beide aansluiters; een echte tracker doet dat niet). Open: de lobby (`lobbyui.js`) kent de nieuwe sessie niet. Na het overdragen zet 'verbroken' van de oude hub het paneel Spel > Samen spelen terug op het beginscherm, ook bij de nieuwe host; Spel > Spelers (kicken, overdragen) werkt wel, maar de kamercode van de nieuwe host en 'Iedereen stoppen' of 'Spel verlaten' staan niet in dat paneel. De simulatie leest de kamercode daarom uit `world.coopWissel.overname`.
+- Gevonden met `scripts/coop/playtest_sim.mjs` (drie Electron, nep-tracker): het overdragen werkt over de kamer van de nieuwe host met twee gasten tegelijk (de nep-tracker gaf eerst één aanbod aan beide aansluiters; een echte tracker doet dat niet). De lobby kent de sessie na het overdragen (`adopt` in `lobbyui.js`: rol, kamercode en spelers, met Iedereen stoppen of Spel verlaten), en het overdragen begint ook vanuit dat paneel met Spel overdragen (alleen met een kamercode). De simulatie leest de kamercode uit `world.coopWissel.overname`.
 - Alleen de kamercode-route. Met een IP-adres (TCP, `route: 'direct'`) is overdragen uit (`kanOverdragen`): de nieuwe host zou zijn eigen poort moeten openen (UPnP) en een koppelcode doorgeven.
 - Lukt het aansluiten bij de nieuwe host niet na `hw-draait`, dan is er de terugval (zie boven); alleen in de test met een geheugentransport geprobeerd. In `wisselRoute` krijgt `verbind` nu een eigen time-out (`joinRoom` beslist nooit als het misgaat).
 - Het scherm (`teken` in `coophostwisselui.js`) en de knop zijn niet in beeld bekeken.

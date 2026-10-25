@@ -8,7 +8,7 @@
 // wordt er een nieuw aanbod klaargezet onder dezelfde kamercode (of luistert de TCP-poort verder).
 //
 // hooks: { startHost(route, onChange) -> hub, addGuest(transport), startClient(transport, route, wens) -> session,
-//          setMax(n), kick(slot), joined(rol), disconnect(act, rol, slot), onCode(code), canJoin() -> {ok, reason}, laatsteCode, resumed() }
+//          setMax(n), kick(slot), overdragen(slot) -> { ok } | { ok: false, tekst } (#439), joined(rol), disconnect(act, rol, slot), onCode(code), canJoin() -> {ok, reason}, laatsteCode, resumed() }
 // opts:  { start: 'verbroken', rol, route, session (gast), hub (host), holdSlot, holdNaam }  (hervatten in het spel)
 //        { adopt: { code, route }, rol, session | hub }  (de sessie loopt al: na het overdragen van het spel kent het paneel rol, kamercode en spelers)
 import { createLobby, reduce, view, profielNaam, ROLES, ROUTES } from './lobby.js';
@@ -323,6 +323,15 @@ export function mountLobby(root, hooks, opts = {}) {
         if (state.code && navigator.clipboard) await navigator.clipboard.writeText(state.code);
       } else if (a.startsWith('kick-')) {
         if (hooks.kick) hooks.kick(+a.slice(5));
+      } else if (a === 'overdragen') {
+        set({ t: 'overdragen' }); // wie het spel opende kiest een speler (#439)
+      } else if (a === 'overdragen-terug') {
+        set({ t: 'overdragen-terug' });
+      } else if (a.startsWith('overdragen-')) {
+        // het spel aan deze speler overdragen: coophostwisselnet.js doet het werk, coophostwisselui.js tekent de vraag en de pauze
+        const r = hooks.overdragen ? hooks.overdragen(+a.slice('overdragen-'.length)) : { ok: false, tekst: 'Overdragen kan alleen in het spel zelf.' };
+        if (r && r.ok) set({ t: 'overdragen-terug' });
+        else set({ t: 'fout', msg: (r && r.tekst) || 'Overdragen lukte niet.' });
       } else if (a.startsWith('max-')) {
         const gekozen = hooks.setMax ? hooks.setMax(+a.slice(4)) : +a.slice(4);
         if (api && state.route === ROUTES.DIRECT) api.setMax(gekozen);
