@@ -1,33 +1,30 @@
 # Spec: Spelmechanica
 
 > Canonieke spec. Vervangt de regelinhoud van `docs/LOOPBAAN.md`, `docs/BOERDERIJ.md`,
-> `docs/VLIEGSCHOOL.md`, `docs/GELUID.md`, `docs/MUZIEK.md` en de archiefrapporten over
-> prestaties, onboarding, weer en nacht en het prestatieprofiel; die blijven detailnaslag.
-> De code is de waarheid; `AGENTS.md` wint bij twijfel.
+> `docs/VLIEGSCHOOL.md`, `docs/GELUID.md`, `docs/MUZIEK.md` en de archiefrapporten over prestaties,
+> onboarding en weer; die blijven naslag. De code is de waarheid; `AGENTS.md` wint bij twijfel.
 
 ## Doel
 
-Reikwijdte: alles wat de speler doet buiten verhaal, wereld en netwerk — loopbaan en bijbanen,
-hengelen, boerderij, vliegschool, de losse minigames, geluid en muziek, prestaties en
-kwaliteitsstanden, weer en dag/nacht, en de uitleg. Elk systeem heeft dezelfde vorm: een pure
+Reikwijdte: loopbaan en bijbanen, hengelen, boerderij, vliegschool, de losse minigames, geluid en
+muziek, prestaties en kwaliteitsstanden, weer en dag/nacht, en de uitleg. Elk systeem heeft een pure
 regelmodule zonder THREE, DOM of klok, een eigen `scripts/<onderwerp>_test.mjs` en de glue ernaast.
-Getallen staan in de regelmodule, niet in de glue of de UI. Een levenslang profiel (loopbaan,
-visboek, boerderij, prestaties) staat in zijn eigen `gde-*`-sleutel, nooit in een savegame.
+Getallen staan in de regelmodule. Een levenslang profiel (loopbaan, visboek, boerderij, prestaties)
+staat in zijn eigen `gde-*`-sleutel, nooit in een savegame.
 
 ## Loopbaan en vakken
 
 **Doel.** Elk vak betaalt beter als je het vaker en gevarieerder doet.
 
-**Regels.** Negentien vakken in drie groepen (`game/js/loopbaan.js:32`), niveau 1 tot 6 met
-drempels 0/50/140/300/560/950 (`loopbaan.js:15`) en loonfactor 1,00 tot 1,30 (`loopbaan.js:18`).
-Een nieuwe plek geeft 8 punten (`:20`), een kilometer 1,5 (trein) of 3 (bus, water) punten
-(`:206`); `STAT_VAK` hangt prestatietellers aan een vak met €10 tot €20 premie (`:191`). Elke
+**Regels.** Negentien vakken in drie groepen (`game/js/loopbaan.js:32`), niveau 1 tot 6 met drempels
+0/50/140/300/560/950 (`:15`) en loonfactor 1,00 tot 1,30 (`:18`). Een nieuwe plek geeft 8 punten
+(`:20`); `STAT_VAK` hangt prestatietellers aan een vak met €10 tot €20 premie (`:191`). Elke
 uitbetaling loopt via `loopbaanVerdien` (`game/js/loopbaanlive.js:156`) of `loopbaanTel`; nooit
 `w.money +=` naast een haak, en een nieuwe haak komt in `haken` van `loopbaan_balans_test.mjs`. De
-eerste klus van een vak staat in `START` (`loopbaan.js:122`, #431). Opslag: `gde-loopbaan-v1`
-(`game/js/storagekeys.js:77`), met `voegSamen` (hoogste per vak). Samen spelen: de gastheer deelt
-`{ vak, basis, xp }` vóór zijn eigen factor (`loopbaanDeel`, `loopbaanlive.js:150`), de gast past
-zijn eigen factor toe (`loopbaanGast`, `:190`), zonder nieuw bericht.
+eerste klus staat in `START` (`:122`, #431). Opslag `gde-loopbaan-v1`
+(`game/js/storagekeys.js:77`). Samen spelen: de gastheer deelt `{ vak, basis, xp }` vóór zijn eigen
+factor (`loopbaanDeel`, `:150`), de gast past zijn eigen factor toe (`loopbaanGast`, `:190`), zonder
+nieuw bericht.
 
 **Bestanden.** `loopbaan.js`, `loopbaanlive.js`, `loopbaanui.js`; haken in `sidejobs.js`,
 `vliegschool.js`, `padel.js`, `kermis.js`, `carbid.js`, `driftzone.js`, `postgame.js`.
@@ -43,9 +40,8 @@ zijn eigen factor toe (`loopbaanGast`, `:190`), zonder nieuw bericht.
 (`game/js/hengelplek.js:10`). De wedstrijd duurt 90 s (`game/js/hengelrules.js:8`), vrij hengelen
 kent geen klok. Zeven watertypen en 29 soorten (`game/js/visdata.js:8`, `:32`); nacht, schemer en
 regen verschuiven de gewichten (`:93`). Een vangst is `(0,2 + 0,2 × kg) × zeldzaamheid (1 tot 8) ×
-groei (max 1,8)` (`:123`); de kas gaat via `loopbaanVerdien` met `deel: false`
-(`game/js/hengelen.js:96`), want een gast hengelt in zijn eigen boek. Opslag: `gde-visboek-v1`
-(`storagekeys.js:79`).
+groei (max 1,8)` (`:123`), uitbetaald via `loopbaanVerdien` met `deel: false`
+(`game/js/hengelen.js:96`). Opslag `gde-visboek-v1` (`storagekeys.js:79`).
 
 **Bestanden.** `hengelen.js`, `hengelrules.js`, `hengelplek.js`, `visdata.js`, `visboek.js`,
 `visboeklive.js`, `visboekui.js`, `hengelanim.js`.
@@ -54,16 +50,16 @@ groei (max 1,8)` (`:123`); de kas gaat via `loopbaanVerdien` met `deel: false`
 
 ## Boerderij
 
-**Doel.** Eén eigen akker bij Hoogkerk in vaste stappen: ploegen, zaaien, bemesten, groeien,
-oogsten, afleveren.
+**Doel.** Eén akker bij Hoogkerk in vaste stappen: ploegen, zaaien, bemesten, groeien, oogsten,
+afleveren.
 
 **Regels.** Vier gewassen met eigen zaaigoed, groeitijd, opbrengst en prijs per kg
 (`game/js/boerderij.js:18`); een speldag is 24 minuten (`game/js/daynight.js:12`). Groei telt in
-speluren uit `world.clock` (`boerderijTijd`, `game/js/boerderijlive.js:72`): een sprong vooruit telt
-mee, terug niet. Machines huur je per keer of koop je (`boerderij.js:31`); een ronde levert ongeveer
-€300 tot €350 winst op voor tien minuten werk, en de verkoop loopt via `loopbaanVerdien` met de
-factor van Landbouw. Opslag: `gde-boerderij-v1` (`storagekeys.js:81`). Samen spelen: een gast werkt
-op zijn eigen akker als lokale minigame (`game/js/boerderijgast.js:1`).
+speluren uit `world.clock` (`game/js/boerderijlive.js:72`): een sprong vooruit telt mee, terug niet.
+Machines huur je per keer of koop je (`:31`); een ronde levert ongeveer €300 tot €350 winst op, en de
+verkoop loopt via `loopbaanVerdien` met de factor van Landbouw. Opslag `gde-boerderij-v1`
+(`storagekeys.js:81`). Samen spelen: een gast werkt op zijn eigen akker als lokale minigame
+(`game/js/boerderijgast.js:1`).
 
 **Bestanden.** `boerderij.js`, `boerderijlive.js`, `boerderijui.js`, `boerderijwereld.js`,
 `boerderijgast.js`, `percelen.js`, `machines.js`, `werktuigen.js`, `werktuigen3d.js`,
@@ -78,13 +74,10 @@ op zijn eigen akker als lokale minigame (`game/js/boerderijgast.js:1`).
 
 **Regels.** Elf vliegtuig- en negen helikopterlessen (`game/js/vliegschoolrules.js:34`); de
 basislessen staan in `vliegbasis.js`, de zeven oefenvormen in de tabel van `docs/VLIEGSCHOOL.md`.
-Een medaille betaalt €25, €40 of €60, alleen de eerste keer dat je die medaille haalt; opnieuw doen
-geeft 6 punten, een les zonder medaille 2. Records staan onder `vlieg-<les>`, prestaties zijn
-`vlieg_geslaagd`, `vlieg_goud` en `vlieg_brevet`; een crash kost niets. De banen komen uit gemeten
-plekken in `game/vliegplekken.json`.
-
-**Bestanden.** `vliegschoolrules.js`, `vliegbasis.js`, `vliegschool.js`, `instrumenten.js`,
-`game/vliegplekken.json`.
+Een medaille betaalt €25, €40 of €60, alleen de eerste keer; opnieuw doen geeft 6 punten, een les
+zonder medaille 2. Records staan onder `vlieg-<les>`, prestaties zijn `vlieg_geslaagd`, `vlieg_goud`
+en `vlieg_brevet`; een crash kost niets. De banen komen uit `game/vliegplekken.json`.
+**Bestanden.** `vliegschoolrules.js`, `vliegbasis.js`, `vliegschool.js`, `instrumenten.js`.
 
 **Tests.** `vliegschool_test.mjs` (vliegt elke vliegtuigles met de piloot), `instrumenten_test.mjs`.
 
@@ -96,7 +89,7 @@ plekken in `game/vliegplekken.json`.
 (`game/js/discgolfrules.js:32`), water kost een slag. Skatepark: een run van 90 s, medailles bij
 1200, 3200 en 6500 punten (`game/js/skatetricks.js:19`). Pitch en putt: zes holes, medailles op +7,
 +3 en 0 (`game/js/puttinglogic.js:34`). Alles is gratis, B of Backspace stopt, één bord bovenin via
-`minigamekit.js`; vaste plekken gaan als WGS84 door de gedeelde projectie.
+`minigamekit.js`.
 
 **Bestanden.** `discgolfrules.js` + `discgolf.js`, `skatetricks.js` + `skatepark.js`,
 `puttinglogic.js` + `pitchputt.js`, `golfetiquette.js`, `activities.js`, `standactivity.js`,
@@ -110,13 +103,12 @@ plekken in `game/vliegplekken.json`.
 **Doel.** Eén mix met effecten, spraak en muziek, en één radiozender.
 
 **Regels.** Het meeste geluid wordt gesynthetiseerd; een paar CC0-opnames staan ernaast, beschreven
-in `game/audio/sfx/manifest.json`. Ontbreekt een opname, dan speelt de synth en blijft de console
-leeg. Nieuwe opnames gaan door `scripts/audio/master_sfx.mjs` en krijgen een regel in `SAMPLE_INFO`
-(`game/js/sfx/samples.js`). De radio is G-Music met vier programmablokken
-(`game/js/musicpick.js:129`), een dag- en een nachtpool; een nummer uit de laatste 60% van de pool
-komt niet terug (`:87`), in 60% van de overgangen zit een jingle (`:118`). Stings zijn procedureel
-(`game/js/stings.js`): nooit twee tegelijk, 0,6 s afkoeling (`:10`), en de radio gaat er 45% zachter
-van (`game/js/audio.js:1755`).
+in `game/audio/sfx/manifest.json`; ontbreekt er een, dan speelt de synth. Nieuwe opnames gaan door
+`scripts/audio/master_sfx.mjs` en krijgen een regel in `SAMPLE_INFO` (`game/js/sfx/samples.js`). De
+radio is G-Music met vier programmablokken (`game/js/musicpick.js:129`), een dag- en een nachtpool;
+een nummer uit de laatste 60% van de pool komt niet terug (`:87`), in 60% van de overgangen zit een
+jingle (`:118`). Stings zijn procedureel (`game/js/stings.js`): nooit twee tegelijk, 0,6 s afkoeling
+(`:10`), en de radio gaat er 45% zachter van (`game/js/audio.js:1755`).
 
 **Bestanden.** `audio.js`, `sfx/samples.js`, `sfx/mixplan.js`, `musicpick.js`, `radio.js`,
 `stings.js`.
@@ -126,14 +118,14 @@ van (`game/js/audio.js:1755`).
 
 ## Prestaties en kwaliteitsstanden
 
-**Doel.** Levenslange prestaties per speler, en beeld dat zich aan de machine aanpast.
+**Doel.** Levenslange prestaties per speler, en beeld dat zich aanpast.
 
 **Regels.** Prestaties staan in `gde-prestaties-v1` (`storagekeys.js:27`); tellers lopen via
-`recordStat` (`game/js/achievements.js:445`) en de gate (`:379`) zet prestaties stil zolang een
-streek of de geldgreep loopt. Vier presets: laag, middel, vlot en hoog (`game/js/gfxprofile.js:9`).
-Automatische kwaliteit beoordeelt elke seconde op de mediaan, traag boven 27 ms (`:271`), schaalt de
-resolutie tot 50% (`:270`) en kent cpuniveau 0 tot 3 (`:273`); `simload.js` volgt dat niveau voor
-verkeer en voetgangers.
+`recordStat` (`game/js/achievements.js:445`) en de gate (`:379`) zet ze stil zolang een streek of de
+geldgreep loopt. Vier presets: laag, middel, vlot en hoog (`game/js/gfxprofile.js:9`). Automatische
+kwaliteit beoordeelt elke seconde op de mediaan, traag boven 27 ms (`:271`), schaalt de resolutie tot
+50% (`:270`) en kent cpuniveau 0 tot 3 (`:273`); `simload.js` volgt dat niveau voor verkeer en
+voetgangers.
 
 **Bestanden.** `achievements.js`, `gfxprofile.js`, `simload.js`, `viewdist.js`, `settings.js`.
 
@@ -147,8 +139,8 @@ verkeer en voetgangers.
 **Regels.** Zes weertypen: helder, bewolkt, mist, motregen, regenbui en onweer
 (`game/js/weatherstate.js:18`); sneeuw, ijs en vorst bestaan niet. De dag duurt 24 minuten
 (`daynight.js:12`). Sterren en maan volgen `cover = max(storm, bewolkt × 1,5, mist)`
-(`game/js/scene3d.js:3956`), zodat ze achter bewolking en mist verdwijnen. Het weer is per regio; een
-gast volgt het weer en de dagstand van de gastheer (#378).
+(`game/js/scene3d.js:3956`). Het weer is per regio; een gast volgt het weer en de dagstand van de
+gastheer (#378).
 
 **Bestanden.** `weatherstate.js`, `weerdag.js`, `sunrules.js`, `daynight.js`, `sky3d.js`,
 `scene3d.js`.
@@ -164,9 +156,8 @@ spelen tegenhoudt.
 **Regels.** Vier kaarten in vaste volgorde (`game/js/onboarding.js:45`), elk één keer per apparaat
 onder `gde-uitleg` (`storagekeys.js:37`). Eén tegelijk: alleen als de narrative-planner het toelaat,
 er niets speelt en de speler niet in een missie, bijbaan of minigame zit; 12 s na de opening, 30 s
-tussen twee kaarten. Geen stem (`voice: false`), niets pauzeert. Uit te zetten met `onboardingTips`;
-de toetshints (`prompts.js`) dekken alleen wat niet vanzelf spreekt.
-
+tussen twee kaarten. Geen stem, niets pauzeert. Uit te zetten met `onboardingTips`; de toetshints
+(`prompts.js`) dekken alleen wat niet vanzelf spreekt.
 **Bestanden.** `onboarding.js`, `prompts.js`, `hudcards.js`, `narrative.js`, `busy.js`.
 
 **Tests.** Geen eigen test: alleen de schakelaar `onboardingTips` wordt gedekt door
@@ -174,17 +165,15 @@ de toetshints (`prompts.js`) dekken alleen wat niet vanzelf spreekt.
 
 ## Meten
 
-De bron is `docs/PERF-METING-2026-10-19.md` (#4): 24, 27 en 23 fps in de stad te voet op laag,
-middel en hoog, de renderer 15 tot 41 ms per frame, de simulatie samen 5 tot 6 ms en een heap van
-1,1 tot 1,9 GB (`:7`). Een nieuwe meting krijgt een eigen gedateerd document in `docs/`; nooit
-bijschrijven in een oude meting. `docs/archief/2026-10/PERF-PROFIEL.md` is historisch (0.24, vóór de
-tegels); alleen de methode is nog bruikbaar. Herhalen: `cd desktop && npm run stage`, dan
-`node scripts/perf/run.mjs <naam> <preset> --hitch`, en voor een gepaard verschil
-`scripts/perf/abpair.mjs`; alleen een verschil van een paar standaardfouten telt. De machine was bij
-elke run bezet, dus absolute ms zijn ruw en verhoudingen niet (`:23`). Conflicten in één regel: de
-samenvatting noemt draw calls de grootste post (knelpunt 1, `:161`), terwijl Vervolg 9 een draw call
-op circa 2 µs zet en 46% minder draw calls maar 0,7 ms oplevert (`:417`); de vervolgen zijn de
-latere meting (#477). De code heeft vier presets, het rapport meet er drie.
+De bron is `docs/PERF-METING-2026-10-19.md` (#4). Een nieuwe meting krijgt een eigen gedateerd
+document in `docs/`; nooit bijschrijven in een oude meting. `docs/archief/2026-10/PERF-PROFIEL.md` is
+historisch (0.24, vóór de tegels). Herhalen: `cd desktop && npm run stage`, dan
+`node scripts/perf/run.mjs <naam> <preset> --hitch`; `scripts/perf/abpair.mjs` voor een gepaard
+verschil, en alleen een paar standaardfouten telt. De machine was bij elke run bezet, dus absolute ms
+zijn ruw en verhoudingen niet (`:23`). Conflicten in één regel: de samenvatting noemt draw calls de
+grootste post (`:161`), terwijl Vervolg 9 een draw call op circa 2 µs zet en 46% minder draw calls
+maar 0,7 ms oplevert (`:417`); de vervolgen zijn de latere meting (#477). De code heeft vier presets,
+het rapport meet er drie.
 
 ## Regels voor een nieuw systeem
 
@@ -193,10 +182,10 @@ latere meting (#477). De code heeft vier presets, het rapport meet er drie.
 2. Alle getallen in die ene module; de UI en de glue lezen ze, kopiëren ze nooit.
 3. Eén waarheid: geen tweede teller, geen tweede opslagsleutel, geen tweede economie. Geld via
    `loopbaanVerdien`, tellers via `recordStat`.
-4. Elke nieuwe missie, bijbaan of minigame krijgt een regel over Samen spelen: per speler of per
-   wereld, wat een gast ziet, wie de beloning en de voortgang krijgt, en welke test dat dekt.
+4. Elke missie, bijbaan of minigame krijgt een regel over Samen spelen: per speler of per wereld,
+   wat een gast ziet, wie de beloning krijgt, en welke test dat dekt.
 5. Opslag als `gde-<onderwerp>-v1` in `storagekeys.js`; een levenslang profiel nooit in een
-   savegame; oude of kapotte data geeft een geldig leeg profiel (`normaliseer`).
+   savegame; kapotte data geeft een geldig leeg profiel (`normaliseer`).
 6. Een Nederlandse regel onder `[Unreleased]` in `CHANGELOG.md`.
 7. Bewijs: `node --check`, de eigen test, en bij spelertekst `voice_coverage` en `text_audit`.
 
@@ -209,5 +198,5 @@ latere meting (#477). De code heeft vier presets, het rapport meet er drie.
 - De audiowieken staan op de hoofdthread: `audio` piekte op 1945 ms in de ringroute (#482).
 - Gast en boerderijgroei: de documentatie zegt dat een gast zijn gewassen niet ziet groeien, maar
   `main.js:723` roept `boerderijTijd` ook op het gastpad aan (#471).
-- Twee testrunners naast elkaar: `scripts/run_tests.mjs` en `scripts/test_all.mjs`, waarbij de
-  tweede de eerste importeert (#481).
+- Twee testrunners: `scripts/run_tests.mjs` en `scripts/test_all.mjs`, waarbij de tweede de eerste
+  importeert (#481).

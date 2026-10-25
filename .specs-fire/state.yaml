@@ -101,6 +101,58 @@ intents:
           - wi-312-bot
           - wi-4-prestatie
           - wi-426-overdracht
+  - id: docs-naar-specs
+    title: Markdown-docs naar canonieke specs in .specs-fire/standards
+    status: completed
+    work_items:
+      - id: wi-spec-multiplayer
+        title: Spec Samen spelen (multiplayer)
+        status: completed
+        complexity: medium
+        mode: confirm
+        depends_on: []
+        run_id: run-gde-groningen-007
+        completed_at: 2026-10-25T11:14:08.968Z
+      - id: wi-spec-wereld
+        title: Spec wereld, kaart en provincie
+        status: completed
+        complexity: medium
+        mode: confirm
+        depends_on: []
+        run_id: run-gde-groningen-008
+        completed_at: 2026-10-25T11:14:08.969Z
+      - id: wi-spec-mechanica
+        title: Spec spelmechanica en systemen
+        status: completed
+        complexity: medium
+        mode: confirm
+        depends_on: []
+        run_id: run-gde-groningen-009
+        completed_at: 2026-10-25T11:14:08.969Z
+      - id: wi-spec-verhaal
+        title: Spec verhaal en personages
+        status: completed
+        complexity: medium
+        mode: confirm
+        depends_on: []
+        run_id: run-gde-groningen-010
+        completed_at: 2026-10-25T11:14:08.969Z
+      - id: wi-spec-ui-taal
+        title: Spec UI, design en taal
+        status: completed
+        complexity: medium
+        mode: confirm
+        depends_on: []
+        run_id: run-gde-groningen-011
+        completed_at: 2026-10-25T11:14:08.969Z
+      - id: wi-spec-publicatie
+        title: Spec publicatie, release en tooling
+        status: completed
+        complexity: medium
+        mode: confirm
+        depends_on: []
+        run_id: run-gde-groningen-012
+        completed_at: 2026-10-25T11:14:08.969Z
 runs:
   active: []
   completed:
@@ -136,3 +188,51 @@ runs:
           mode: confirm
       started: 2026-10-25T10:30:28.396Z
       completed: 2026-10-25T10:30:42.539Z
+    - id: run-gde-groningen-007
+      scope: single
+      work_items:
+        - id: wi-spec-multiplayer
+          intent: docs-naar-specs
+          mode: confirm
+      started: 2026-10-25T11:13:57.400Z
+      completed: 2026-10-25T11:13:57.843Z
+    - id: run-gde-groningen-008
+      scope: single
+      work_items:
+        - id: wi-spec-wereld
+          intent: docs-naar-specs
+          mode: confirm
+      started: 2026-10-25T11:13:57.960Z
+      completed: 2026-10-25T11:13:58.426Z
+    - id: run-gde-groningen-009
+      scope: single
+      work_items:
+        - id: wi-spec-mechanica
+          intent: docs-naar-specs
+          mode: confirm
+      started: 2026-10-25T11:13:58.540Z
+      completed: 2026-10-25T11:13:58.945Z
+    - id: run-gde-groningen-010
+      scope: single
+      work_items:
+        - id: wi-spec-verhaal
+          intent: docs-naar-specs
+          mode: confirm
+      started: 2026-10-25T11:13:59.054Z
+      completed: 2026-10-25T11:13:59.487Z
+    - id: run-gde-groningen-011
+      scope: single
+      work_items:
+        - id: wi-spec-ui-taal
+          intent: docs-naar-specs
+          mode: confirm
+      started: 2026-10-25T11:13:59.603Z
+      completed: 2026-10-25T11:14:00.055Z
+    - id: run-gde-groningen-012
+      scope: single
+      work_items:
+        - id: wi-spec-publicatie
+          intent: docs-naar-specs
+          mode: confirm
+      started: 2026-10-25T11:14:00.171Z
+      completed: 2026-10-25T11:14:00.586Z
