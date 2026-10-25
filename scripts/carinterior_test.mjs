@@ -72,6 +72,24 @@ for (const [len, wid, seat] of [[4.3, 1.8, { x: -0.25, y: 0.38, z: -0.3 }], [11,
   }
   assert.ok(klasseStijl('bus', interiorLayout(seat, 4.3, 1.8), seat).wheel.r > klasseStijl('sport', interiorLayout(seat, 4.3, 1.8), seat).wheel.r, 'busstuur groter dan sportstuur');
 }
+// De taxi en de politieauto hebben een ingerichte passagiersruimte (#442): het taxameter, de betaalautomaat en
+// de scheidingsruit bij de taxi, de kooi en de mobilofoon bij de politie, met een eigen bekleding van de
+// achterbank. Alles binnen de breedte en onder de dakhemel, zodat het door de ruiten te zien is.
+{
+  const seat = { x: -0.14, y: 0.38, z: -0.31 };
+  const L = interiorLayout(seat, 4.6, 1.8);
+  for (const [naam, min] of [['taxi', 10], ['politie', 14]]) {
+    const K = klasseStijl(naam, L, seat);
+    assert.ok(K.extras.length >= min, `${naam}: passagiersruimte ingericht (${K.extras.length})`);
+    assert.notEqual(K.rearColor, null, `${naam}: eigen bekleding van de achterbank`);
+    assert.ok(K.extras.some((e) => e.at[0] < seat.x - 0.3), `${naam}: onderdelen achter de voorstoelen`);
+    assert.ok(K.extras.some((e) => e.at[0] > seat.x + 0.2), `${naam}: onderdelen bij het dashboard`);
+    for (const e of K.extras) {
+      assert.ok(e.at[1] - e.b[1] / 2 > 0 && e.at[1] + e.b[1] / 2 < L.roof.y, `${naam}: onderdeel onder de dakhemel`);
+      assert.ok(Math.abs(e.at[2]) + e.b[2] / 2 <= 1.8 / 2 + 0.001, `${naam}: onderdeel binnen de breedte`);
+    }
+  }
+}
 // de indeling hangt aan de echte romp (#442): dashboard onder de raamlijn en achter de voorruit,
 // het stuur en de binnenspiegel achter het glas, de dakhemel onder het echte dak
 const hatchRomp = { belt: 0.93, roof: 1.47, xA: 0.9, xB: 0.15, xC: -1.4, xD: -1.7 };

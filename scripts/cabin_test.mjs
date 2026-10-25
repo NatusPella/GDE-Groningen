@@ -14,7 +14,7 @@ let bad = 0;
 const check = (name, ok, info = '') => { if (!ok) { bad++; console.log('FAIL', name, info); } };
 const models = new Map();
 for (const m of TRAFFIC_MODELS()) if (!models.has(m.name)) models.set(m.name, m);
-const extra = [['escort', { name: 'escort', len: 4.0, wid: 1.65, color: '#a11f1f' }, { isHeroCar: true }], ['truck', { name: 'truck', len: 8.5, wid: 2.5, color: '#e8e6e0' }, {}], ['ambulance', { ...models.get('van') }, { isAmbulance: true }], ['police', { ...models.get('sedan') }, { isPolice: true }]];
+const extra = [['escort', { name: 'escort', len: 4.0, wid: 1.65, color: '#a11f1f' }, { isHeroCar: true }], ['truck', { name: 'truck', len: 8.5, wid: 2.5, color: '#e8e6e0' }, {}], ['ambulance', { ...models.get('van') }, { isAmbulance: true }], ['police', { ...models.get('sedan') }, { isPolice: true }], ['taxi', { name: 'taxi', len: 4.6, wid: 1.8, color: '#1b1c1f' }, {}]];
 const cases = [...['hatch', 'sedan', 'wagon', 'van', 'sport', 'taxi'].filter((n) => models.has(n)).map((n) => [n, models.get(n), {}]), ...extra];
 for (const [name, model, flags] of cases) {
   const v = Object.assign(new Vehicle(0, 0, 0, model), flags);
@@ -63,6 +63,24 @@ for (const name of ['hatch', 'sedan', 'wagon', 'sport', 'van']) {
   const b = g.boundingBox;
   check(name + ': interieur boven de raamlijn', b.max.y > romp.belt + 0.02, `max y ${b.max.y.toFixed(2)} raamlijn ${romp.belt}`);
   check(name + ': interieur onder het echte dak', b.max.y < romp.roof, `max y ${b.max.y.toFixed(2)} dak ${romp.roof}`);
+}
+
+// De taxi en de politieauto hebben een ingerichte passagiersruimte (#442): meer onderdelen dan dezelfde auto
+// zonder die klasse (taxameter, betaalautomaat en scheidingsruit; kooi, mobilofoon en stopbord), en alles
+// binnen de carrosserie en onder het echte dak, zodat je het van buiten door de ruiten ziet.
+for (const [naam, model, flags] of [['taxi', { name: 'taxi', len: 4.6, wid: 1.8 }, {}], ['politie', { name: 'sedan', len: 4.3, wid: 1.8 }, { isPolice: true }]]) {
+  const v = Object.assign(new Vehicle(0, 0, 0, model), flags);
+  const romp = carBodyFit(v);
+  check(naam + ': romp bekend', !!romp);
+  if (!romp) continue;
+  const seat = vehicleSeat(v, true);
+  const g = C.buildCabinGeometry(seat, v.model.len, v.model.wid, interiorKlasse(v), romp);
+  const gewoon = C.buildCabinGeometry(seat, v.model.len, v.model.wid, 'auto', romp);
+  g.computeBoundingBox();
+  const b = g.boundingBox;
+  check(naam + ': rijker ingericht dan een gewone auto', g.attributes.position.count >= gewoon.attributes.position.count + 100, `${g.attributes.position.count} tegen ${gewoon.attributes.position.count}`);
+  check(naam + ': onder het echte dak', b.max.y < romp.roof, `max y ${b.max.y.toFixed(2)} dak ${romp.roof}`);
+  check(naam + ': binnen de carrosserie', b.min.x >= -v.model.len / 2 - 0.05 && b.max.x <= v.model.len / 2 + 0.05 && b.min.z >= -v.model.wid / 2 && b.max.z <= v.model.wid / 2, `x ${b.min.x.toFixed(2)}..${b.max.x.toFixed(2)} z ${b.min.z.toFixed(2)}..${b.max.z.toFixed(2)}`);
 }
 
 // geen cabine voor bus, wrak, fiets en boot

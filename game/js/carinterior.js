@@ -62,7 +62,8 @@ function buildCarInterior(seat, len, wid, defs = [], klasse = 'auto', romp = nul
   for (const e of K.extras) box(g, e.b[0], e.b[1], e.b[2], e.at[0], e.at[1], e.at[2], e.color);
   const c = L.console;
   box(g, c.d, c.h, c.w, c.x, c.y, c.z, DARK);
-  if (L.rear) box(g, 0.5, 0.14, L.rear.w, L.rear.x, L.rear.y - 0.07, 0, SEAT), box(g, 0.1, 0.55, L.rear.w, L.rear.x - 0.27, L.rear.y + 0.27, 0, SEAT);
+  // achterbank in de bekleding van deze klasse (taxi: donker leer, politie: hard plastic, #442)
+  if (L.rear) box(g, 0.5, 0.14, L.rear.w, L.rear.x, L.rear.y - 0.07, 0, K.rearColor || SEAT), box(g, 0.1, 0.55, L.rear.w, L.rear.x - 0.27, L.rear.y + 0.27, 0, K.rearColor || SEAT);
   const m = L.mirror;
   box(g, 0.03, 0.07, 0.2, m.x, m.y, m.z, DARK);
   // dakhemel en A-stijlen
