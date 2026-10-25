@@ -185,7 +185,7 @@ zijn de latere meting (#477).
 
 ## Open punten (met issue)
 
-- Loopbaan, boerderij en vliegschool lopen achter op de code: `docs/BOERDERIJ.md:25` noemt twee
+- Loopbaan, boerderij en vliegschool lopen achter op de code: `docs/BOERDERIJ.md:26` noemt twee
   gewassen, `boerderij.js:18` heeft er vier; `docs/LOOPBAAN.md` mist de start van een vak (#431).
   (#473)
 - `docs/PERF-METING-2026-10-19.md` spreekt zichzelf tegen over de grootste kostenpost (#477).

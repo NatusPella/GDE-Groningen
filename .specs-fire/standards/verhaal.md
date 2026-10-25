@@ -29,7 +29,7 @@ zomer en in de stem van de vaste cast; tekst is data (canon, script, build, spel
    `game/js/storyarc.js` is de enige facade voor de rest van het spel (`:7`, `:16`).
 
 De data: 207 scènes, 1.450 regels in act 1 tot en met 6; 37 zijn stille appjes en
-1.074 hebben geen opname, dus die toont het spel als ondertitel met leestijd
+1.112 hebben geen opname, dus die toont het spel als ondertitel met leestijd
 (`game/js/storytext.js:51`). Een `[BEHOUDEN]`-regel heeft een opname: één andere
 letter maakt hem stil. Nieuwe opnames komen er niet; alle `[NIEUW]`-regels blijven
 tekst (`docs/verhaal/nieuw/07-TTS-RAMING.md:3`).
@@ -44,7 +44,7 @@ tekst (`docs/verhaal/nieuw/07-TTS-RAMING.md:3`).
   Deel 4 voegt M27-M30 en T5 toe: samen 30 missies en vijf reisbeats
   (`game/js/storyarc_nieuw.js:219-346`). Elke missie heeft één functie: inschrijven,
   een plakje blokkeren, de waarheid over de bal, of de wagen en het recept
-  (`docs/verhaal/nieuw/00-OVERZICHT.md:143`).
+  (`docs/verhaal/nieuw/00-OVERZICHT.md:142`).
 - **Kalender** (`game/js/calendar.js`): dag 1 is vrijdag 14 augustus 2026, het
   Gronings Ontzet dag 15 (vr 28 aug), de epiloog dag 29 (vr 11 sep, `:16-18`); Deel 4
   loopt van 14 tot 19 september (`:93`). De nazomer loopt tot 22 september en daarna
@@ -69,7 +69,7 @@ Vaste cast, stem uit `scripts/tts_cast.mjs` en `scripts/tts_lines_list.mjs`
 
 Geesje, Lammert, Roelfien, Wubbo, Tinus, mevrouw Hoving en Willemien zijn nieuw en
 hebben nog geen stem (`docs/verhaal/nieuw/07-TTS-RAMING.md:67`). **Geschrapt** zijn
-Femke, Harm, Hilly, Hilje en Boer Roelf (`docs/verhaal/nieuw/00-OVERZICHT.md:68`;
+Femke, Harm, Hilly, Hilje en Boer Roelf (`docs/verhaal/nieuw/00-OVERZICHT.md:67`;
 `game/js/storyarc_nieuw.js:104-105`); Rotor Roelf blijft alleen een stem.
 
 - **Tessa spreekt standaard Nederlands** (#134), ook in de opname: geen Gronings
@@ -89,7 +89,7 @@ Femke, Harm, Hilly, Hilje en Boer Roelf (`docs/verhaal/nieuw/00-OVERZICHT.md:68`
   Gevoelige cijfers alleen uit `docs/TESSA-CIJFERS.md`, met bron en jaar.
 - **Kanalen** strikt gescheiden: radio is wereld en dimt bij een missie, telefoon
   doet briefings en hints, het gesprek de relatie, appjes zijn stil
-  (`docs/verhaal/nieuw/00-OVERZICHT.md:311-321`).
+  (`docs/verhaal/nieuw/00-OVERZICHT.md:310-321`).
 
 ## Regels voor een nieuwe missie of scène
 
@@ -107,7 +107,7 @@ Femke, Harm, Hilly, Hilje en Boer Roelf (`docs/verhaal/nieuw/00-OVERZICHT.md:68`
    bewust stil (`app-stil`); zonder opname volgt de tekst met leestijd
    (`game/js/storytext.js:51`).
 7. **Eén functie per missie** met een oorzaak-gevolg-beat, anders wordt het een
-   zijmissie of reisbeat (`docs/verhaal/nieuw/00-OVERZICHT.md:143`).
+   zijmissie of reisbeat (`docs/verhaal/nieuw/00-OVERZICHT.md:142`).
 8. **Samen spelen**: één regel per missie of scène — doet een gast mee (J of N), wat
    ziet hij (snapshot of EXTRA-bericht), wie krijgt de beloning en de eigen voortgang
    (#429), wat gebeurt er bij wegvallen of later aansluiten, en welke test het dekt.
@@ -155,8 +155,8 @@ stille appjes; `scripts/calendar_test.mjs` de datums;
 | Waar | Wat |
 |---|---|
 | `docs/verhaal/nieuw/00-OVERZICHT.md:117` | T1 gaat naar Winsum; `docs/verhaal/nieuw/09-script-akte2.md:111` en `game/js/storyarc_nieuw.js:252` zeggen Warffum. |
-| `docs/verhaal/nieuw/00-OVERZICHT.md:79` | "26 missies, 4 reisbeats"; de code heeft er 30 en 5 door Deel 4 (`docs/verhaal/nieuw/DEEL4.md:19-25`). |
-| `docs/verhaal/nieuw/07-TTS-RAMING.md:24` | 172 scènes en 1.164 uitingen voor de vijf akten; `game/storydata/script.json` telt er 185 en 1.300. |
+| `docs/verhaal/nieuw/00-OVERZICHT.md:78` | "26 missies, 4 reisbeats"; de code heeft er 30 en 5 door Deel 4 (`docs/verhaal/nieuw/DEEL4.md:19-25`). |
+| `docs/verhaal/nieuw/07-TTS-RAMING.md:24` | 172 scènes en 1.164 uitingen voor de vijf akten; `game/storydata/script.json` telt er 207 en 1.450. |
 
 Opgelost op 25-10: de dubbele kermisdatum, "KEI-week" op vier plekken, Tessa's
 stemprofiel, en de verouderde `built`-comment.
