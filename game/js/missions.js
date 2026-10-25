@@ -57,6 +57,9 @@ import { enterTiming, updateTiming, closeTiming, timingTag } from './stagetiming
 import { withValidity } from './validity.js';
 import { afstandMeespeler, meespelerInVoertuig } from './spelersregister.js';
 import { teamActor, doelStand, groepKlaar, WACHT_OP_ANDEREN } from './stagegroep.js';
+import { registreerWedstrijd, wedNodigUit, wedHostBaan, wedBaanStand } from './coopwedstrijd.js';
+import { lichaamVan, bestuurInstappenIn, bestuurLos } from './coopbestuur.js';
+import { loopbaanVerdien } from './loopbaanlive.js';
 // a radio fragment of a stage that never got played within ten minutes is moot (refs #171; not tied to the mission: the clue in it must not be lost)
 const MISSION_RADIO_VALID = { ttl: 600 };
 import { registerBusyProbe } from './busy.js';
@@ -2299,6 +2302,7 @@ function updateRetry(dt, world, def) {
 }
 
 export function updateMissions(dt, world) {
+  tikDijkRun(world, dt); // de straatrace als wedstrijd (#443): het aftellen en de tussenstand, ook als de opdrachtstap al klaar is
   if (!chain) return;
   gastheerVraagTik(world, dt); // de gastheer kreeg "Meedoen?" bij de opdracht van een gast (#452): J of N
   resolveSpotStarts(world);
@@ -2808,7 +2812,11 @@ function stageProgressBase(world, def) {
     if (S.target && !world.wanted) return `${st.label} · ${Math.round(afstandMeespeler(world, S.target.x, S.target.y))} m`;
     return `${S.target ? 'Schud de politie af' : st.label} · ${'★'.repeat(world.wanted)}`;
   }
-  if (st.kind === 'chase' && st.race && S.finish) return `${st.label} · nog ${Math.round(afstandMeespeler(world, S.finish.x, S.finish.y))} m`;
+  if (st.kind === 'chase' && st.race && S.finish) {
+    const stand = wedBaanStand(world), mijn = stand.find((r) => r.slot === 0);
+    const plek = mijn && stand.length > 1 ? ` · ${mijn.plek} van ${stand.length}` : '';
+    return `${st.label} · nog ${Math.round(afstandMeespeler(world, S.finish.x, S.finish.y))} m${plek}`;
+  }
   if (st.kind === 'chase' && S.target && S.target.parkedRoad) return `${st.parkedLabel || st.label} · ${Math.round(afstandMeespeler(world, S.target.x, S.target.y))} m`;
   if (st.kind === 'chase' && S.target) {
     const left = `${st.meter || 'banden'} ${Math.max(0, Math.round(100 - (S.hp0 - S.target.health) / st.hits * 100))}%`;
@@ -3159,6 +3167,166 @@ function updateHeliStage(dt, world, def, st, S) {
   if (!S.started && S.t > 10) { world.addMessage('Rotor Roelf vliegt zelf. Dijkstra brengt de Eierbal.', 4); nextStage(world, def); }
 }
 
+// --- M14 De dijk: de straatrace als wedstrijd tegen elkaar (#443) -----------------
+// Met gasten loopt de race van de opdracht via de baanlaag (coopwedstrijdbaan.js, soort 'baan'): iedereen dezelfde auto
+// van Lammert, één gezamenlijke start bij het begin van de dijk, de tussenstand op het bord en de uitslag met een
+// beloning per plek in eigen geld en loopbaan. Wie nee zegt of niet meedoet, kijkt mee op het bord van de race
+// (coopwedstrijd3d.js). Zonder gasten blijft het de gewone race tegen de trekker-limo van Jelle: de opdracht zelf
+// verandert niet, de host moet nog steeds als eerste bij de sluis zijn.
+const DIJK_CP = 6;             // etappes: de voortgang is de afstand tot de sluis
+const DIJK_COUNTDOWN = 4;      // s: het gezamenlijke aftellen bij de start
+const DIJK_CAP_S = 600;        // s: de wedstrijd duurt hooguit tien minuten
+const DIJK_NA_EERSTE_S = 120;  // s: zoveel tijd krijgen de anderen na de eerste
+const DIJK_GRID = { terug: 6, rij: 8, zij: 2.4 }; // m: de startrijen achter de lijn, om en om links en rechts
+let dijkRun = null;            // de lopende wedstrijd van de straatrace (#443)
+
+// De etappe bij een afstand tot de sluis: puur, voor de tussenstand en de test (akte3_test.mjs).
+export function dijkEtappe(af, len, cps = DIJK_CP, reach = 16) {
+  if (!(len > 0)) return { cp: 0, s: 0, klaar: false };
+  const deel = clamp(1 - af / len, 0, 1);
+  const klaar = af <= reach;
+  const cp = klaar ? cps : Math.min(cps - 1, Math.floor(deel * cps));
+  return { cp, s: Math.round((deel * cps - cp) * 1000), klaar };
+}
+
+// De stap van de straatrace in de opdracht die nu loopt, of null.
+function dijkStage() {
+  if (!chain || chain.phase !== 'active' || !chain.defs) return null;
+  const def = chain.defs[chain.index], st = def && def.stages && def.stages[chain.stageIndex], S = chain.stage;
+  return st && st.kind === 'chase' && st.race && S && S.finish ? { def, st, S } : null;
+}
+
+// De wedstrijdlaag start de race: een auto per deelnemer op de startrij (dezelfde auto voor iedereen) en een aftellen.
+function startDijkRace(world, sc) {
+  const d = dijkStage(), basis = chain && chain.vehicle;
+  if (!d || !basis || basis.wrecked || !sc || !sc.baan) return false;
+  const fin = d.S.finish, start = d.def.start;
+  const len = Math.hypot(fin.x - start.x, fin.y - start.y) || 1;
+  const ang = Math.atan2(fin.y - start.y, fin.x - start.x);
+  const ux = Math.cos(ang), uy = Math.sin(ang), auto = {};
+  for (let k = 0; k < sc.deeln.length; k++) {
+    const dln = sc.deeln[k], terug = DIJK_GRID.terug + Math.floor(k / 2) * DIJK_GRID.rij, zij = (k % 2 ? 1 : -1) * DIJK_GRID.zij;
+    const x = start.x - ux * terug - uy * zij, y = start.y - uy * terug + ux * zij;
+    if (!dln.slot) {
+      const p = world.player;
+      if (p.inVehicle && p.inVehicle !== basis) p.exitVehicle(world.map, world);
+      basis.x = x; basis.y = y; basis.angle = ang; basis.speed = 0; basis.road = null;
+      if (world.map.spawnZ) basis.z = world.map.spawnZ(x, y);
+      if (p.inVehicle !== basis) p.enterVehicle(basis, world);
+      auto[0] = basis;
+      continue;
+    }
+    const v = new Vehicle(x, y, ang, { ...basis.model });
+    v.z = world.map.spawnZ ? world.map.spawnZ(x, y) : 0;
+    v.road = null; v.speed = 0;
+    world.vehicles.push(v);
+    const l = lichaamVan(world, dln.slot);
+    if (l) { l.x = x; l.y = y; l.angle = ang; l.vx = 0; l.vy = 0; }
+    const inCar = bestuurInstappenIn(world, dln.slot, v);
+    if (!inCar.gedaan && world.coopMeld) world.coopMeld(dln.slot, 'Je auto staat klaar: stap in en druk op E. Bij het aftellen gaat iedereen samen weg.');
+    auto[dln.slot] = v;
+  }
+  const t = d.S.target;
+  dijkRun = { S: d.S, def: d.def, sc, fin, len, reach: d.st.radius || 16, auto, af: DIJK_COUNTDOWN, said: null, rival: d.S.rivalHold || (t ? { x: t.x, y: t.y, angle: t.angle } : null) };
+  d.S.wed = true;
+  world.addMessage('Iedereen dezelfde auto, één start. Bij het aftellen gaat iedereen samen weg.', 4);
+  return true;
+}
+
+// Iedereen en de trekker-limo staan stil zolang er gewacht of afgeteld wordt (startLockUntil houdt ook de gasten stil).
+function holdWacht(world, S) {
+  const t = S.target;
+  if (t && S.rivalHold) { t.speed = 0; t.throttle = 0; t.x = S.rivalHold.x; t.y = S.rivalHold.y; t.angle = S.rivalHold.angle; }
+  const v = world.player.inVehicle;
+  if (v) { v.speed = 0; v.throttle = 0; }
+  world.startLockUntil = world.time + 0.25;
+}
+function holdDijk(world, r) {
+  for (const slot in r.auto) { const v = r.auto[slot]; if (v) { v.speed = 0; v.throttle = 0; } }
+  const t = r.S.target;
+  if (t && r.rival) { t.speed = 0; t.throttle = 0; t.x = r.rival.x; t.y = r.rival.y; t.angle = r.rival.angle; }
+  world.startLockUntil = world.time + 0.25;
+}
+
+// Elke frame van de host: het aftellen, de tussenstand per deelnemer en de finish. Loopt door tot iedereen binnen is,
+// ook als de opdrachtstap al voorbij is.
+function tikDijkRun(world, dt) {
+  const r = dijkRun;
+  if (!r) return;
+  const n = world.coopNet, sc = n && n.wed && n.wed.sc;
+  if (!sc || sc.id !== 'dijkrace') { stopDijkRun(world); return; } // de wedstrijd is klaar of gestopt
+  if (r.S.wacht) { // nog wachten op Meedoen?: niemand rijdt weg
+    if (n.wed.u) {
+      holdDijk(world, r);
+      if (!r.said) { r.said = 'wacht'; world.addMessage('Wachten op de anderen: J = ja, N = nee. Daarna gaat het samen weg.', 4); }
+      return;
+    }
+    r.S.wacht = false;
+  }
+  if (r.af > 0) { // het gezamenlijke aftellen: alle auto's staan stil
+    r.af -= dt;
+    holdDijk(world, r);
+    const sec = Math.max(0, Math.ceil(r.af - 0.5));
+    if (r.said !== sec) {
+      r.said = sec;
+      const tekst2 = sec > 0 ? String(sec) : 'RIJDEN!';
+      for (const d of sc.deeln) if (d.slot && world.coopMeld) world.coopMeld(d.slot, tekst2);
+      if (r.auto[0]) world.addMessage(tekst2, sec > 0 ? 0.5 : 1.4, { key: 'dijk-count', exact: true });
+    }
+    if (r.af <= 0) world.startLockUntil = 0;
+    return;
+  }
+  // de voortgang: de afstand tot de sluis is de etappe, de sluis zelf de finish
+  for (const d of sc.deeln) {
+    const v = r.auto[d.slot];
+    if (!v || v.wrecked || v.sinking) continue;
+    const af = Math.hypot(r.fin.x - v.x, r.fin.y - v.y), e = dijkEtappe(af, r.len, sc.cps, r.reach);
+    wedHostBaan(world, d.slot, { cp: e.cp, s: e.s, klaar: e.klaar, tijd: e.klaar ? Math.max(0, sc.t - DIJK_COUNTDOWN) : null });
+  }
+}
+
+// De wedstrijd is klaar (of weg): de gasten uit hun auto en de auto's van de race opruimen.
+function stopDijkRun(world) {
+  const r = dijkRun;
+  if (!r) return;
+  dijkRun = null;
+  for (const d of r.sc.deeln) if (d.slot) bestuurLos(world, d.slot);
+  for (const d of r.sc.deeln) {
+    const v = d.slot && r.auto[d.slot], i = v ? world.vehicles.indexOf(v) : -1;
+    if (i >= 0 && !v.driver && !v.passenger) world.vehicles.splice(i, 1);
+  }
+  if (r.S) { r.S.wed = false; r.S.rivalHold = null; }
+  world.startLockUntil = 0;
+}
+
+// De uitslag van de wedstrijd: de host krijgt zijn plek en beloning, de gasten zijn al betaald door de wedstrijdlaag.
+function eindDijkRace(world, res) {
+  if (res && res.jij) {
+    const jij = res.jij;
+    if (jij.geld > 0) world.addMessage(`Beloning: €${jij.geld.toLocaleString('nl-NL')}`, 4);
+    loopbaanVerdien(world, 'race', jij.geld, { xp: jij.xp, n: 1, uniek: 'dijk', deel: false });
+  }
+  stopDijkRun(world);
+}
+
+// De wedstrijd van de straatrace bij de wedstrijdlaag (coopwedstrijd.js). Geen herhaling: de race hoort bij een
+// opdrachtstap en een rematch zou de stap opnieuw beginnen zonder de opdracht.
+registreerWedstrijd('dijkrace', {
+  naam: 'De dijkrace', soort: 'baan', vak: 'race', minSpelers: 2, geenHerhaling: true,
+  startNu: 'De race begint zodra iedereen gekozen heeft.', // de opdrachtstap heeft geen E bij een kassa
+  opties: () => ({ cps: DIJK_CP, cpNaam: 'etappes', cap: DIJK_CAP_S, naEerste: DIJK_NA_EERSTE_S }),
+  start: (w, sc) => startDijkRace(w, sc),
+  blok: () => (dijkStage() ? null : 'Deze race hoort bij de opdracht De dijk.'),
+  extra: () => ({ v: 'dijk' }),
+  weg: (w, sc, slot) => { // een gast valt weg: hij stapt uit en zijn auto blijft staan (de rest rijdt door)
+    const v = dijkRun && dijkRun.auto[slot], los = bestuurLos(w, slot);
+    if (v) { v.speed = 0; v.throttle = 0; v.handbrake = true; }
+    return los || !!v;
+  },
+  eind: (w, res) => eindDijkRace(w, res),
+  solo: () => { const d = dijkStage(); if (d) d.S.net = false; return true; }, // niemand deed mee: de gewone race tegen de limo
+});
+
 // --- M14 (new story): a race to a spot against a rival on the road network. Whoever is first at `finish` wins; the
 // rival drives like the fleeing vehicle of a chase (it has no route data, it follows the roads). Without a rival
 // (no road to put it on) it is a drive to the finish.
@@ -3166,6 +3334,25 @@ function updateChaseRace(world, def, st, S) {
   const p = world.player;
   const fin = S.finish;
   if (!fin) { nextStage(world, def); return; }
+  // samen spelen (#443): met gasten is de straatrace een wedstrijd tegen elkaar, via de baanlaag
+  if (S.net == null) {
+    const uit = wedNodigUit(world, 'dijkrace');
+    S.net = !!uit.ok; S.wacht = S.net; // eerst Meedoen? (J of N, 10 s), daarna het aftellen
+  }
+  if (S.net) {
+    if (S.wacht) { // de uitnodiging loopt: tikDijkRun houdt iedereen en de limo stil
+      const W = world.coopNet && world.coopNet.wed;
+      if (W && W.u) {
+        if (S.rivalHold == null && S.target) S.rivalHold = { x: S.target.x, y: S.target.y, angle: S.target.angle };
+        holdWacht(world, S); // iedereen (en de limo) staat stil tot de keuze er is
+        if (!S.wachtSay) { S.wachtSay = true; world.addMessage('De anderen kiezen of ze meedoen. Daarna gaat het samen weg.', 4); }
+        return;
+      }
+      S.wacht = false;
+      if (!dijkRun) S.net = false; // niemand deed mee (of het starten lukte niet): de gewone race tegen de limo
+    }
+    if (S.net && dijkRun && dijkRun.af > 0) return; // het gezamenlijke aftellen
+  }
   const t = S.target && world.vehicles.includes(S.target) && !S.target.wrecked ? S.target : null;
   if (t) {
     S.rivalBest = Math.min(S.rivalBest ?? Infinity, dist(t.x, t.y, fin.x, fin.y));

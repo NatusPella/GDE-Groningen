@@ -18,7 +18,7 @@
 import { playerBusy } from './busy.js';
 import { createKart, stepKart, updateProgress, collideKarts, aiInput, rankKarts, bestLap, LAPS } from './kartrace.js';
 import { KART_RIVALS } from './minigamelines.js';
-import { angDiff, clamp } from './minigamekit.js';
+import { angDiff, clamp, fmtTime } from './minigamekit.js';
 import { KARTBAAN_TRACK, KARTBAAN_FRAME } from './kartbaanspoor.js';
 import { invoerVan, lichaamVan } from './coopbestuur.js';
 import { charInfo } from './coopplayers.js';
@@ -227,6 +227,12 @@ export function leesWed(b) {
   }
   if (b.f === 'lv') return Number.isInteger(b.n) && Array.isArray(b.d) && b.d.length <= 64 && b.d.every(fin) ? { f: 'lv', n: b.n, d: b.d.slice(), x: tekst(b.x, 60) } : null;
   if (b.f === 'sc') return leesStand(b);
+  if (b.f === 'kijk') { // de toeschouwer (#443): het bord van de race, geen eigen scherm
+    if (typeof b.titel !== 'string' || !Array.isArray(b.rijen) || b.rijen.length > 8) return null;
+    const rijen = b.rijen.map((x) => (Array.isArray(x) && x.length === 2 ? [tekst(x[0], 24), tekst(x[1], 32)] : null));
+    if (rijen.some((x) => !x)) return null;
+    return { f: 'kijk', titel: tekst(b.titel, 40), rijen, klaar: !!b.klaar };
+  }
   if (b.f === 'eind') {
     const jij = b.jij && fin(b.jij.plek) ? { plek: b.jij.plek | 0, geld: Math.max(0, b.jij.geld | 0), xp: Math.max(0, b.jij.xp | 0), fin: !!b.jij.fin, weg: !!b.jij.weg } : null;
     if (b.gestopt) return { f: 'eind', gestopt: true, rijen: [], jij: null };
@@ -244,6 +250,31 @@ export function leesGast(b) {
   if (b.a === 'score') return Number.isInteger(b.b) && b.b >= 0 && b.b < 18 && Number.isInteger(b.s) && b.s >= 1 && b.s <= 12 ? { a: 'score', baan: b.b, slagen: b.s } : null;
   if (b.a === 'punt') return Number.isInteger(b.b) && b.b >= 0 && b.b < MAX_BEURTEN_PUNT && Number.isInteger(b.p) && b.p >= 0 && b.p <= MAX_PUNT ? { a: 'punt', beurt: b.b, punten: b.p } : null;
   return { a: b.a };
+}
+
+// ---------------------------------------------------------------- de toeschouwer (#443)
+
+// Wie nee zei of niet meedeed, kijkt mee op een bord: geen eigen camera en geen extra scherm, alleen de stand van de
+// wedstrijd (coopwedstrijd3d.js tekent hem). De host stuurt het bord naar elke verbonden gast die niet in de wedstrijd
+// zit. Rijen zijn [naam, tekst], al klaar voor het bord, zodat een gast niets hoeft uit te rekenen.
+export function kijkEvent(titel, rijen, klaar = false) {
+  const r = (Array.isArray(rijen) ? rijen : []).slice(0, 8).map((x) => [tekst(x && x[0], 24) || 'Speler', tekst(x && x[1], 32)]);
+  return { k: 'wed', f: 'kijk', titel: tekst(titel, 40) || 'Wedstrijd', rijen: r, ...(klaar ? { klaar: 1 } : null) };
+}
+const kijkTitel = (id) => (WEDSTRIJDEN.get(id) || {}).naam || 'Wedstrijd';
+const kijkVanRace = (r) => raceStand(r).map((s) => [`${s.plek}. ${s.naam}${s.ai ? ' (AI)' : ''}`, s.weg ? 'niet meer erbij' : s.klaar && s.tijd != null ? fmtTime(s.tijd) : `ronde ${s.ronde}`]);
+const kijkVanBaan = (sc) => standBaan(sc).map((s) => [`${s.plek}. ${s.naam}`, s.weg ? 'niet meer erbij' : s.klaar && s.tijd != null ? fmtTime(s.tijd) : `${s.cp} van ${sc.cps} ${sc.cpNaam}`]);
+const kijkVanUitslag = (rijen) => rijen.map((r) => [`${r.plek}. ${r.naam}`, r.tekst || (r.fin && r.tijd != null ? fmtTime(r.tijd) : r.weg ? 'niet meer erbij' : 'niet gefinisht')]);
+// Het bord naar de gasten die niet meedoen. Zonder zulke gasten gebeurt er niets.
+function kijkNaar(world, W, rijen, klaar = false) {
+  const n = world.coopNet;
+  if (!n || !n.hub || !n.hub.announce || !W || !W.id) return false;
+  const deeln = new Set((W.deeln || []).map((d) => d.slot));
+  const slots = verbondenGasten(world).map((g) => g.slot).filter((s) => !deeln.has(s));
+  if (!slots.length) return false;
+  const ev = kijkEvent(kijkTitel(W.id), rijen, klaar);
+  for (const s of slots) n.hub.announce(ev, s);
+  return true;
 }
 
 // ---------------------------------------------------------------- de uitnodiging: Meedoen? (J of N, 10 seconden)
@@ -486,6 +517,7 @@ function begin(world, n, W) {
     W.sc = sc; W.nSt = -1; W.tSt = 0;
     const extra = regel.extra ? regel.extra(world) : null;
     for (const g of gasten) n.hub.announce(startEvent(u.id, deeln, 0, { baan: 1, cps: sc.cps, ...(extra || null) }), g);
+    kijkNaar(world, W, kijkVanBaan(sc)); // wie niet meedoet kijkt mee op het bord (#443)
     return true;
   }
   W.draai = W.laatste && W.laatste.id === u.id ? (W.draai + 1) % MAX_RIJDERS : 0; // een rematch: een andere pole
@@ -497,6 +529,7 @@ function begin(world, n, W) {
     n.hub.announce(startEvent(u.id, deeln, W.draai), g);
     const l = lichaamVan(world, g); if (l) l.coopWedstrijd = true; // zijn lichaam staat stil: hij rijdt (coopglue.js en stepFigures)
   }
+  kijkNaar(world, W, kijkVanRace(r)); // wie nee zei of niet meedeed kijkt mee op het bord (#443)
   return true;
 }
 
@@ -549,6 +582,8 @@ export function wedRaceTik(world, r, dt, hostInvoer = null) {
       const m = momentopname(r, ++W.nSt);
       for (const k of r.karts) if (k.mens && k.slot > 0 && !k.weg) n.hub.announce(m, k.slot);
     }
+    W.tKijk = (W.tKijk || 0) + dt;
+    if (W.tKijk >= 0.5) { W.tKijk = 0; kijkNaar(world, W, kijkVanRace(r)); } // het bord van de toeschouwers
   }
   return ev;
 }
@@ -573,6 +608,7 @@ export function wedHostEind(world, r, { gestopt = false } = {}) {
     if ((b.geld > 0 || b.xp > 0) && haken.betaalGast) haken.betaalGast(world, rij.slot, b.geld, { vak: 'race', xp: b.xp });
   }
   W.uitslag = { rijen, jij };
+  kijkNaar(world, W, kijkVanUitslag(rijen), true); // de toeschouwers zien de eindstand (#443)
   return { rijen, jij };
 }
 
@@ -589,7 +625,7 @@ function scoreTik(world, n, W, dt) {
   }
   const ev = K.tik(sc, dt);
   W.tSt += dt;
-  if (W.tSt >= 0.5 && W.nSt !== sc.n) { W.tSt = 0; W.nSt = sc.n; const m = K.event(sc); for (const d of sc.deeln) if (d.slot > 0 && !sc.weg[d.slot]) n.hub.announce(m, d.slot); } // de stand voor wie nog meedoet
+  if (W.tSt >= 0.5 && W.nSt !== sc.n) { W.tSt = 0; W.nSt = sc.n; const m = K.event(sc); for (const d of sc.deeln) if (d.slot > 0 && !sc.weg[d.slot]) n.hub.announce(m, d.slot); if (sc.baan) kijkNaar(world, W, kijkVanBaan(sc)); } // de stand voor wie nog meedoet, en het bord voor de toeschouwers
   if (ev.some((e) => e.type === 'klaar')) scoreEind(world, n, W, false);
 }
 function scoreEind(world, n, W, gestopt) {
@@ -597,7 +633,7 @@ function scoreEind(world, n, W, gestopt) {
   const K = soortVan(sc);
   const regel = WEDSTRIJDEN.get(sc.id);
   for (const d of sc.deeln) if (d.slot > 0 && !sc.baan) { const l = lichaamVan(world, d.slot); if (l) { l.coopWedstrijd = false; zetBijUitgang(l, sc, d.slot); } }
-  if (gestopt) { for (const d of sc.deeln) if (d.slot > 0 && !sc.weg[d.slot]) n.hub.announce(eindEvent([], null, true), d.slot); if (regel && regel.eind && (!sc.achtergrond || sc.baan)) regel.eind(world, null); return null; }
+  if (gestopt) { for (const d of sc.deeln) if (d.slot > 0 && !sc.weg[d.slot]) n.hub.announce(eindEvent([], null, true), d.slot); if (sc.baan) kijkNaar(world, W, [['De race is gestopt', '']], true); if (regel && regel.eind && (!sc.achtergrond || sc.baan)) regel.eind(world, null); return null; }
   const rijen = K.uitslag(sc).map((r) => ({ tijd: null, beste: null, ...r }));
   W.laatste = { id: sc.id, slots: sc.deeln.map((d) => d.slot), hostloos: !!W.hostloos };
   W.opnieuw = {};
@@ -610,6 +646,7 @@ function scoreEind(world, n, W, gestopt) {
     if ((b.geld > 0 || b.xp > 0) && haken.betaalGast) haken.betaalGast(world, rij.slot, b.geld, { vak: (regel && regel.vak) || 'golf', xp: b.xp });
   }
   W.uitslag = { rijen, jij };
+  if (sc.baan) kijkNaar(world, W, kijkVanUitslag(rijen), true); // de toeschouwers zien de eindstand (#443)
   const res = { rijen, jij, winnaars: winnaars(rijen) };
   if (regel && regel.eind && (!sc.achtergrond || sc.baan)) regel.eind(world, res);
   return res;
@@ -704,20 +741,21 @@ export function wedHandleGast(world, body, van) {
     meld(world, 0, `${naamVan(world, van)} speelt niet meer mee.`);
     return true;
   }
-  if (b.a === 'nogmaals') { if (!W.laatste || W.r || W.sc || W.lv || W.u || !W.laatste.slots.includes(van)) return false; W.opnieuw[van] = true; meld(world, 0, `${naamVan(world, van)} wil nog een keer.`); if (W.laatste.hostloos) wedVraagStart(world, van, W.laatste.id, { plekControle: false }); return true; } // zonder de host kan niemand J drukken: een gast start de rematch zelf (#452)
+  if (b.a === 'nogmaals') { if (!W.laatste || W.r || W.sc || W.lv || W.u || !W.laatste.slots.includes(van) || (WEDSTRIJDEN.get(W.laatste.id) || {}).geenHerhaling) return false; W.opnieuw[van] = true; meld(world, 0, `${naamVan(world, van)} wil nog een keer.`); if (W.laatste.hostloos) wedVraagStart(world, van, W.laatste.id, { plekControle: false }); return true; } // zonder de host kan niemand J drukken: een gast start de rematch zelf (#452)
   return false;
 }
 // De host start een rematch met dezelfde soort wedstrijd (J op de uitslag).
 export function wedOpnieuw(world) {
   const n = world.coopNet, W = n && n.wed;
   if (!W || !W.laatste || W.r || W.sc || W.lv || W.u) return { ok: false };
+  if ((WEDSTRIJDEN.get(W.laatste.id) || {}).geenHerhaling) return { ok: false }; // een wedstrijd die bij een opdracht hoort, herhaalt niet
   return wedNodigUit(world, W.laatste.id);
 }
 export const willenOpnieuw = (world) => { const n = world.coopNet; return n && n.wed ? Object.keys(n.wed.opnieuw).map(Number) : []; };
 
 // ---------------------------------------------------------------- de gast: berichten van de host
 
-export const gastStaat = (world) => world.coopWedGast || (world.coopWedGast = { uitn: null, spiegel: null, score: null, baan: null, id: null, uitslag: null, nogmaals: false, vraagT: -99 });
+export const gastStaat = (world) => world.coopWedGast || (world.coopWedGast = { uitn: null, spiegel: null, score: null, baan: null, kijk: null, kijkWeg: false, id: null, uitslag: null, nogmaals: false, vraagT: -99 });
 // Haken van het scherm van de gast per soort wedstrijd (kartbaan.js, pitchputt.js): dichtbij(world) -> bool (staat hij bij het startpunt, #452), start(world, start, spiegel) -> bool, eind(world, uitslag, spiegel),
 // tik(world, dt, spiegel) -> true zolang het scherm van de wedstrijd is
 const gastHaken = new Map();
@@ -746,10 +784,11 @@ export function wedHandleHost(world, body) {
   const n = world.coopNet, b = leesWed(body);
   if (!n || n.role !== 'client' || !b) return false;
   const G = gastStaat(world);
-  if (b.f === 'uit') { G.uitn = { id: b.id, label: b.label, rest: b.sec, wie: b.wie || '' }; G.uitslag = null; return true; }
+  if (b.f === 'uit') { G.uitn = { id: b.id, label: b.label, rest: b.sec, wie: b.wie || '' }; G.uitslag = null; G.kijk = null; G.kijkWeg = false; return true; }
   if (b.f === 'af') { G.uitn = null; return true; }
+  if (b.f === 'kijk') { if (b.klaar) G.kijkWeg = false; if (!G.kijkWeg) G.kijk = b; return true; } // een toeschouwer (#443): alleen het bord, geen eigen race
   if (b.f === 'start') {
-    G.uitn = null; G.uitslag = null; G.nogmaals = false;
+    G.uitn = null; G.uitslag = null; G.nogmaals = false; G.kijk = null; G.kijkWeg = false;
     const mijn = n.session ? n.session.slot : -1, haak = haakVan(b.id);
     if (!b.deeln.some((d) => d.slot === mijn)) return false;
     if (b.baan) { // een baanwedstrijd: hij vaart zelf mee in de wereld van de host; alleen de stand en de uitslag komen hier binnen
@@ -779,7 +818,7 @@ export function wedHandleHost(world, body) {
   if (b.f === 'lv') { const h = haakVan(G.id); return !!G.spiegel && !!h.voerIn && !!h.voerIn(G.spiegel, b); }
   if (b.f === 'sc') { if (G.baan) { G.baan.stand = b.rijen; G.baan.t = b.t || 0; return true; } if (!G.score) return false; G.score.stand = b.rijen; return true; }
   if (b.f === 'eind') {
-    const sp = G.spiegel, id = G.id, was = !!(G.spiegel || G.score || G.baan); G.spiegel = null; G.score = null; G.baan = null; world.coopWedstrijd = false;
+    const sp = G.spiegel, id = G.id, was = !!(G.spiegel || G.score || G.baan); G.spiegel = null; G.score = null; G.baan = null; G.kijk = null; world.coopWedstrijd = false;
     const h = haakVan(id);
     if (was && h.eind) h.eind(world, b, sp);
     G.uitslag = b.gestopt ? null : b; G.nogmaals = false;
@@ -792,7 +831,7 @@ export function wedGastStuur(world, a) {
   const n = world.coopNet, G = gastStaat(world);
   if (!n || n.role !== 'client' || !n.session || !leesGast({ k: 'wedgast', a })) return false;
   if (a === 'ja' || a === 'nee') { if (!G.uitn) return false; G.uitn = null; }
-  if (a === 'nogmaals') { if (!G.uitslag || G.nogmaals) return false; G.nogmaals = true; }
+  if (a === 'nogmaals') { if (!G.uitslag || G.nogmaals) return false; if ((WEDSTRIJDEN.get(G.id) || {}).geenHerhaling) return false; G.nogmaals = true; }
   return n.session.sendEvent({ k: 'wedgast', a });
 }
 // E bij een gast (coopgastlokaal.js): staat hij bij het startpunt van een wedstrijd (haak dichtbij van die wedstrijd), dan vraagt hij de host hem te starten (#452).
@@ -848,7 +887,7 @@ export function wedGastVerlaat(world) {
 export function wedGastReset(world) {
   const G = world.coopWedGast; world.coopWedstrijd = false;
   if (G) {
-    G.uitn = null; G.uitslag = null;
+    G.uitn = null; G.uitslag = null; G.kijk = null; G.kijkWeg = false;
     if (G.spiegel || G.score) { const sp = G.spiegel, h = haakVan(G.id); G.spiegel = null; G.score = null; if (h.eind) h.eind(world, { f: 'eind', gestopt: true, rijen: [], jij: null }, sp); }
     G.baan = null;
   }
