@@ -30,6 +30,7 @@ import { makeHeli, registerHelipad } from './heliflight.js';
 import { buildHelipadMesh, buildHeliMesh } from './heli3d.js';
 import { noteMoney } from './finance.js';
 import { winkelMagVoorGast, MELDING_WINKEL } from './coopgast.js';
+import { hoofdspeler } from './spelersregister.js';
 
 export const SHOP_USE_RADIUS = 2.6;
 const OUTFIT_WANTED_COOLDOWN = 60;
@@ -549,8 +550,9 @@ export function replacementFee(o) {
 // --- interaction -------------------------------------------------------------
 
 export function nearestShop(world) {
-  if (!shops.length || world.player.inVehicle || world.player.swimming) return null;
-  const { x, y } = world.player;
+  const h = hoofdspeler(world);
+  if (!shops.length || h.inVehicle || h.swimming) return null;
+  const { x, y } = h;
   let best = null, bestD = SHOP_USE_RADIUS;
   for (const s of shops) {
     if (Math.abs(s.x - x) > bestD || Math.abs(s.y - y) > bestD) continue;
@@ -574,7 +576,7 @@ const isCar = (v) => paintableVehicle(v) && !v.isBike && !v.isScooter;
 
 // Stopped in the right vehicle at a fietsenmaker / tuning shop.
 function workshopFor(world) {
-  const v = world.player.inVehicle;
+  const v = hoofdspeler(world).inVehicle;
   if (!v || Math.abs(v.speed) > 2) return null;
   const type = isTwoWheeler(v) ? 'fietsenmaker' : isCar(v) ? 'tuning' : v.isBoat && !v.wrecked ? 'boot' : null;
   if (!type) return null;
@@ -611,8 +613,8 @@ export function shopPrimaryPrompt(world) {
 }
 
 export function shopSecondaryPrompts(world) {
-  if (world.player.inVehicle) return [];
-  const { x, y } = world.player;
+  if (hoofdspeler(world).inVehicle) return [];
+  const { x, y } = hoofdspeler(world);
   const out = [];
   for (const s of shops) {
     if (Math.abs(s.x - x) > 16 || Math.abs(s.y - y) > 16) continue;
@@ -731,7 +733,7 @@ export function vehiclePreviewOf(v, color) {
 
 // The current character with outfit/hair overrides, for the clothing previews.
 function lookWith(world, over, look = null) {
-  const app = world.player.character === 'anita' ? ANITA_APPEARANCE : TAMMO_APPEARANCE;
+  const app = hoofdspeler(world).character === 'anita' ? ANITA_APPEARANCE : TAMMO_APPEARANCE;
   return { kind: 'person', look: { ...app, ...over, look }, frame: look ? 'head' : null };
 }
 
@@ -827,7 +829,7 @@ function applyUpgrades(v) {
 function upgradeTarget(world, shop, twoWheel) {
   const fits = (x) => x && !x.wrecked && (twoWheel === 'boat' ? x.isBoat && upgradeListFor(x).length > 0 : !x.isBoat && (twoWheel ? isTwoWheeler(x) : isCar(x)));
   if (twoWheel === 'boat') shop = shop.water || shop;
-  const pv = world.player.inVehicle;
+  const pv = hoofdspeler(world).inVehicle;
   if (fits(pv)) return pv;
   let best = null, bd = 15;
   for (const x of world.vehicles) {
@@ -1109,7 +1111,7 @@ function weaponSections(world) {
 }
 
 function currentChar(world) {
-  return world.player.character === 'anita' ? 'anita' : 'tammo';
+  return hoofdspeler(world).character === 'anita' ? 'anita' : 'tammo';
 }
 
 function outfitSections(world) {
@@ -1416,7 +1418,7 @@ function paintShop(world) {
   return {
     name: 'Spuit & Klaar', type: 'spuit', tagline: 'Nieuwe kleur, nieuwe kans. Klaar terwijl je wacht', color: SHOP_TYPES.spuit.color,
     sections: () => {
-      const v = world.player.inVehicle;
+      const v = hoofdspeler(world).inVehicle;
       if (!v) return [];
       const cur = (v.model && v.model.color || '').toLowerCase();
       return [{
@@ -1660,10 +1662,11 @@ export function storyOutfit() {
 }
 
 function nearestOfType(world, type) {
+  const h = hoofdspeler(world);
   let best = null, bd = Infinity;
   for (const s of shops) {
     if (s.type !== type) continue;
-    const d = dist(s.x, s.y, world.player.x, world.player.y);
+    const d = dist(s.x, s.y, h.x, h.y);
     if (d < bd) { bd = d; best = s; }
   }
   return best;
@@ -1728,8 +1731,8 @@ function syncOwnedRiders(world, lookup) {
     }
     if (rec) rec.rider.visible = v.driver === 'player' && !v.riderOff;
   }
-  if (world.player.character !== lastRiderChar) {
-    lastRiderChar = world.player.character;
+  if (hoofdspeler(world).character !== lastRiderChar) {
+    lastRiderChar = hoofdspeler(world).character;
     for (const o of state.vehicles) if (o.v) setRider(o.v);
   }
 }
@@ -1781,7 +1784,7 @@ export function updateShops(dt, world) {
     hero._upgKey = state.heroUpgrades.join();
     applyUpgrades(hero);
   }
-  const pv = world.player.inVehicle;
+  const pv = hoofdspeler(world).inVehicle;
   if (pv && !pv.playerOwned && !pv.isHeroCar) pv.stolenByPlayer = true;
   const r = state.rental;
   if (r && !r.wrecked && !r.sinking && !world.vehicles.includes(r)) world.vehicles.push(r);
@@ -1793,7 +1796,7 @@ export function updateShops(dt, world) {
 function streamShopFronts(world) {
   const scene = getScene();
   if (!scene) return;
-  const { x, y } = world.player;
+  const { x, y } = hoofdspeler(world);
   let builds = 0;
   for (const s of shops) {
     const d = Math.max(Math.abs(s.x - x), Math.abs(s.y - y));
@@ -1872,7 +1875,10 @@ export function applyShopSave(world, d) {
     const has = Number.isFinite(sv.x) && Number.isFinite(sv.y);
     // a helicopter without a spot goes back to its pad at home
     if (spec.kind === 'heli' && !has) sv.garage = true;
-    if (!o.lost && !sv.garage) o.v = has ? spawnOwned(world, o, sv.x, sv.y, Number.isFinite(sv.angle) ? sv.angle : 0, Number.isFinite(sv.z) ? sv.z : null) : spawnOwned(world, o, world.player.x, world.player.y);
+    if (!o.lost && !sv.garage) {
+      const h = hoofdspeler(world); // zonder eigen plek komt de wagen bij de speler van dit apparaat terecht (#446)
+      o.v = has ? spawnOwned(world, o, sv.x, sv.y, Number.isFinite(sv.angle) ? sv.angle : 0, Number.isFinite(sv.z) ? sv.z : null) : spawnOwned(world, o, h.x, h.y);
+    }
     if (!o.v) o.lost = !!sv.lost;
     state.vehicles.push(o);
   }
