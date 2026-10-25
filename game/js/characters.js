@@ -17,7 +17,7 @@
 //             missionstory.js NPC; null draws their initial instead
 //   always    unlocked from the start (the duo)
 //
-// The cast follows docs/verhaal/D-definitief.md; storyarc.js CHARACTERS holds
+// The cast follows docs/verhaal/nieuw/00-OVERZICHT.md; storyarc.js CHARACTERS holds
 // the in-game name cards (namecard.js) for the same people.
 import { recordUnique, hasUnique } from './achievements.js';
 import { baseSpeaker } from './speakers.js';

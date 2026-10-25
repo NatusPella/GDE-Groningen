@@ -1,7 +1,7 @@
 # Tessa: cijfers voor het feitenblok, geverifieerd (#39)
 
 Gecontroleerd op 17 oktober 2026 met publieke CBS-pagina's. Het feitenblok
-staat in `docs/FEEDBACK-SPEELTEST-1.md` (§ "Tessa en onveilig uitgaan").
+staat in `docs/archief/2026-10/FEEDBACK-SPEELTEST-1.md` (§ "Tessa en onveilig uitgaan").
 In de speltekst (`game/js`) staan nog **geen** cijfers over Tessa of onveilig
 uitgaan (grep op Tessa, feitenblok, veilig, uitgaan, CBS, procent: niets).
 Er hoeft dus niets in het spel te worden gecorrigeerd; dit zijn de cijfers en

@@ -1,6 +1,6 @@
 // Tammo and Tessa's car banter as data (banter.js plays it). Pure data: no
 // imports, so scripts/tts_banter_lines.mjs can read it in Node.
-// The beats follow docs/verhaal/D-definitief.md: one summer in August, the
+// The beats follow docs/verhaal/nieuw/00-OVERZICHT.md: one summer in August, the
 // Escapade is Tammo's, the Fjord Frituur is Tessa's dream, and Tammo never
 // says it out loud before H18.
 //

@@ -1280,7 +1280,7 @@ under the player (`profileoverlay.js`).
   frames' breakdown), `scripts/perf/ab.sh` for
   interleaved A/B runs against another staged build (`GDE_STAGE_SRC`,
   `GDE_STAGE_OUT`, `GDE_GAME_DIR`).
-- Main-thread profile per category: `docs/PERF-PROFIEL.md`. With `--hitch`
+- Main-thread profile per category: `docs/PERF-METING-2026-10-19.md`. With `--hitch`
   a run also records the ms per frame of each hitchprobe section
   (`scripts/perf/sections.py` groups them); `GDE_PROFILE_OUT=<dir>` keeps the
   raw CPU profiles of `PERF_PROFILE` routes for `scripts/perf/categories.mjs`.
@@ -1760,7 +1760,7 @@ The vision in one place: `docs/MULTIPLAYER-VISIE.md`.
 
 ## Story
 
-The story "Alles voor één eierbal" (docs/verhaal/D-definitief.md: one
+The story "Alles voor één eierbal" (docs/verhaal/nieuw/00-OVERZICHT.md: one
 Groningen summer, the last two weeks of August, epilogue in September) is
 data plus a director:
 

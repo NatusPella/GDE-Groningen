@@ -594,7 +594,7 @@ export class GameMap {
 // The worker's map only builds road surfaces and shores, so after loading it
 // drops what those never read: buildings keep just their bounds in the grid
 // (quaywalls.js nearBuilt), canopies and trees go. Measured with
-// scripts/perf/mapmem.mjs (docs/PERF-PROFIEL.md).
+// scripts/perf/mapmem.mjs (docs/PERF-METING-2026-10-19.md).
 export function slimWorkerMap(map) {
   const light = new Map();
   for (const arr of map.buildingGrid.map.values()) {

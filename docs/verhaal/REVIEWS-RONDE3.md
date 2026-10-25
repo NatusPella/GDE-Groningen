@@ -2,7 +2,7 @@
 
 Doel: nog een ronde over de nieuwste main, met onafhankelijke lezers per perspectief, de zwakke plekken verwerken in teksten en scène-data
 (zonder nieuwe opnames) en herhalen tot koude lezers de keten kunnen navertellen. Het werk staat in de branch `verhaal-ronde3`;
-de tests zijn gedraaid, het spel is **niet gespeeld** en niet in beeld bekeken. De opnamevragen staan in [OPNAMELIJST.md](OPNAMELIJST.md).
+de tests zijn gedraaid, het spel is **niet gespeeld** en niet in beeld bekeken. De opnamevragen komen uit `node scripts/opnamelijst.mjs` (het bestand staat niet in git).
 
 ## Zo is het gedaan
 

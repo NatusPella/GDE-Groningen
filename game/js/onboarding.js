@@ -1,4 +1,4 @@
-// Uitleg for new players (docs/ONBOARDING.md): a handful of short tip cards,
+// Uitleg for new players (.specs-fire/standards/mechanica.md): a handful of short tip cards,
 // each once, at the moment it is useful: the first goal, money and shops,
 // choosing your own goal on the map, and Te doen. About goals and where to
 // go, not about keys: the key hints (prompts.js) only cover what is not

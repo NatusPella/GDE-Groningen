@@ -39,6 +39,11 @@ data/world/corridor.partial-pack/
 docs/verhaal/nieuw/export/
 .publish-names.local
 
+# gegenereerde lijsten (scripts/opnamelijst.mjs, scripts/nalezerlijst.mjs): hulpmiddel, niet in git
+docs/verhaal/OPNAMELIJST.md
+docs/NALEZEN-GRONINGS-FRIES.md
+docs/SPELBOT-RAPPORT.md
+
 # lokale agent-tooling
 .opencode/
 .specsmd/

@@ -4,7 +4,7 @@
 // - geld uit missies, winkels en vondsten verandert niet (geen haak daar);
 // - de nieuwe premies voor vakken die niets uitbetaalden blijven klein ten opzichte van een bijbaan;
 // - tempo: het hoogste niveau kost uren echt spelen, het tweede niveau is snel te halen.
-// De tijden per gebeurtenis zijn schattingen uit de speeltesten (docs/SPELBOT-RAPPORT.md, speeltestlus): de test beschermt de
+// De tijden per gebeurtenis zijn schattingen uit de speeltesten (docs/archief/2026-10/SPELBOT-RAPPORT.md, speeltestlus): de test beschermt de
 // verhoudingen, niet de seconden. Het simulatiespel hieronder speelt een vak urenlang achter elkaar zoals een speler die er
 // opgaat in; dat is het zwaarste geval.
 import assert from 'node:assert/strict';

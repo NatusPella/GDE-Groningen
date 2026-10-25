@@ -30,7 +30,7 @@ De **programmacode** valt onder de GPL-3.0-or-later, zie [LICENSE](LICENSE).
 |---|---|
 | Stemmen, ingesproken regels, radio, nieuws, jingles | `game/audio/voicelines/`, `game/audio/npc/`, `game/audio/police/`, `game/audio/nieuws/`, `game/audio/gmusic/jingles/` |
 | Muziek: G-Music, scenario-loops, titelnummer | `game/audio/gmusic/`, `game/audio/scenario/`, `game/audio/theme/` |
-| Verhaal, personages en dialogen in documenten | `docs/verhaal/`, `docs/verhaal-voorstel.md`, `docs/personages.md` |
+| Verhaal, personages en dialogen in documenten | `docs/verhaal/`, `docs/personages.md` |
 | Dialogen en verhaalteksten in JavaScript-bestanden | alleen de teksten, niet de code; precieze regel hieronder: [Teksten in codebestanden](#teksten-in-codebestanden) |
 | Het 3D-model van de Martinitoren | `game/models/martinitoren.glb` |
 | Schermafbeeldingen en promotiebeelden (zonder het logo, zie hieronder) | `docs/steam/beelden/`, `docs/youtube/beelden/` |

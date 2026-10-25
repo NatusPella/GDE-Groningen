@@ -39,13 +39,13 @@ De speltekst was al grotendeels schoon: geen enkel hard scheldwoord (mongool, zi
 | `keuzewerk.js` | "Dames en heren, een dankwoord…" | "Beste aanwezigen, een dankwoord…" | aanspreking |
 | `pigeonmode.js` | Doei, jongens! | Doei, allemaal! | aanspreking |
 | `subtitles.js` | Zwaaien, jongens. | Zwaaien, allemaal. | aanspreking |
-| `09-script-akte2.md` ×5, `09-script-akte4.md` (en `script.json`, `HET-VERHAAL.md`, `00-OVERZICHT.md`, `04-akte4.md`) | …, jongens. (buschauffeur, Kapitein Klaas ×4, Jelle) | …, allemaal. / …, mensen. | aanspreking; alle zes zijn nog niet ingesproken |
+| `09-script-akte2.md` ×5, `09-script-akte4.md` (en `script.json`, `00-OVERZICHT.md`, `04-akte4.md`) | …, jongens. (buschauffeur, Kapitein Klaas ×4, Jelle) | …, allemaal. / …, mensen. | aanspreking; alle zes zijn nog niet ingesproken |
 
 ## Bewust gebleven (met reden)
 
 Elke regel staat met een `why` in `scripts/text_audit_allow.json` (rule `inclusief`).
 
-**Ingesproken en mild: de opname blijft, de nieuwe tekst staat klaar bij een heropname** (zie `scripts/voice_stil.json`, sectie `heropname`, en de laatste sectie van [OPNAMELIJST.md](verhaal/OPNAMELIJST.md)):
+**Ingesproken en mild: de opname blijft, de nieuwe tekst staat klaar bij een heropname** (zie `scripts/voice_stil.json`, sectie `heropname`; `node scripts/opnamelijst.mjs` zet ze in een lijst):
 
 - Rikus aan de luisteraars: "ik ook, jongens" (wordt "luisteraars"), in de intromontage en in akte 1.
 - Anita: "Opzij, jongens." en Tammo: "Kom op, jongens.", "Moi, jongens. Lekker gebotst?" (wordt "allemaal").

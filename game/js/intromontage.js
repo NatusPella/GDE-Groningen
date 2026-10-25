@@ -36,7 +36,7 @@ import { openBank } from './voicebank.js';
 const VOICE_DIR = openBank('story').dir;
 const voices = openBank('story').entries;
 
-// Opening of a fresh game, cut to the theme's beat (docs/verhaal/D-definitief.md,
+// Opening of a fresh game, cut to the theme's beat (docs/verhaal/nieuw/00-OVERZICHT.md,
 // "Trailer" and "Opening"): first a game-trailer parody (sun on d'Olle
 // Grieze, cyclists, a gull with a frikandel, freeze frames with name cards
 // for Tessa and Tammo, flashes ahead in the story, the title), then the
@@ -1008,7 +1008,7 @@ function buildShots(w) {
   };
 
   // the attic is too small for a frietwagen, and for the two of them: the
-  // flat in Paddepoel, the rent split in two (docs/verhaal/D-definitief.md, "Opening")
+  // flat in Paddepoel, the rent split in two (docs/verhaal/nieuw/00-OVERZICHT.md, "Opening")
   const huur = {
     minDur: 6, clock: 5.93, focus: home, kitchen: true, lead: 0.5,
     lines: [

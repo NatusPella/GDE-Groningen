@@ -34,7 +34,7 @@ banden, UI, omgeving, vuurwerk, bellen) zijn geen muziek en blijven.
 - `playRadioSting` is weg uit `audio.js`, `story.js` en `storycontact.js`.
 - `scripts/musicwatch_test.mjs` test de kiezer nu zonder synthnummers.
 - `CHANGELOG.md` [Unreleased] meldt de verwijdering; de regel in 0.36.0 blijft als geschiedenis.
-- `docs/MUZIEK.md`, `docs/youtube/trailers.md`, `ARCHITECTURE.md`, `docs/verhaal/D-definitief.md` zijn bijgewerkt.
+- `docs/MUZIEK.md`, `docs/youtube/trailers.md` en `ARCHITECTURE.md` zijn bijgewerkt.
 
 ## Niet getest
 

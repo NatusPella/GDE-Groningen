@@ -14,7 +14,6 @@ Deze versie verwerkt de besluiten na drie reviews door andere taalmodellen (twis
 | `07-TTS-RAMING.md` | aantallen behouden en nieuwe regels; kostenraming alleen ter informatie (voorlopig niets opnemen) |
 | `08-IMPLEMENTATIE.md` | voor een latere bouwronde, incl. productiekeuzes (drie signature-systemen) |
 | `09-script-akte1.md` … `09-script-akte5.md` | het volledige script, machineleesbaar (`SPREKER: tekst [BEHOUDEN\|NIEUW]`) |
-| `HET-VERHAAL.md` | het hele verhaal als filmscript in één bestand (leesbaar, zonder tags; wordt uit de 09-scripts opgebouwd) |
 
 ## 1. Titel, logline, doel en motief
 
