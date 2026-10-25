@@ -1,13 +1,13 @@
 // Samen spelen (#95): de wereld van de host bij een gast, getekend. Voertuigen dicht bij
-// de spelers als vereenvoudigde blokken in de maat en kleur van het voertuig (coopworld.js
-// VOERTUIG_MATEN), en het doel van de opdracht en het beginpunt van de volgende als
-// wereldmarkers in de stijl van de gastheer (worldmarker3d.js, #434). Alleen three.js; de
+// de spelers met het echte model, de kleur en de schade van de host (coopworld.js, #428), en
+// het doel van de opdracht en het beginpunt van de volgende als wereldmarkers in de stijl van
+// de gastheer (worldmarker3d.js, #434). Alleen three.js; de
 // gegevens komen uit world.coopHost (coopnet.js) en world.coopExtra (coopextra.js). Niet in beeld bekeken.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
 import { buildVehicleMesh, updateVehicleWheelSpin, applyFlatTire, updateIndicatorLamps, updatePoliceLamps, applyVehicleDamage, setBusRearAngle, updateBikeStaat } from './models3d_vehicles.js';
 import { poseHeliRotors } from './heli3d.js';
-import { uiterlijkSpec } from './coopworld.js';
+import { uiterlijkSpec, gokUiterlijk } from './coopworld.js';
 import { doorsFor, ensureDoors, wantDoor } from './vehicledoors.js';
 import { syncVehicleDoors } from './vehicledoors3d.js';
 import { standVers, MISC_DEUREN, leesDeuren, gastDoelen } from './coopextra.js';
@@ -102,26 +102,14 @@ export function syncSchoten(world, scene, nu) {
   lijn.visible = n > 0;
 }
 
-// De snapshot kent alleen de soort, niet het model of de kleur: een gast tekent het echte model van
-// die soort (zelfde bouwer als de host), met een stabiele variatie op het id. Lukt dat niet, dan het blok.
-const AUTO_MODELLEN = ['hatch', 'sedan', 'wagon', 'suv', 'sport'];
-const AUTO_KLEUREN = ['#9aa3ad', '#b33a3a', '#2f5f9a', '#e8e6e0', '#3d7a52', '#c9a227', '#222428'];
+// De snapshot kent alleen de soort, niet het model of de kleur: tot het uiterlijk binnen is tekent de gast het echte
+// model van die soort (coopworld.js gokUiterlijk, dezelfde bouwer als de host), met een stabiele variatie op het id.
+// Boten, heli's en vliegtuigen krijgen zo ook meteen een echt model; alleen als de bouwer faalt, blijft het blok.
 function echteMesh(v) {
-  const h = (v.id * 2654435761) >>> 0;
-  const model = { name: 'hatch', len: v.len, wid: v.wid, color: v.kleur };
-  const pv = { id: v.id, model, wrecked: false };
-  switch (v.soort) {
-    case 'auto': model.name = AUTO_MODELLEN[h % AUTO_MODELLEN.length]; model.color = AUTO_KLEUREN[(h >>> 8) % AUTO_KLEUREN.length]; break;
-    case 'bakkie': model.name = 'van'; model.color = AUTO_KLEUREN[(h >>> 8) % AUTO_KLEUREN.length]; break;
-    case 'politie': pv.isPolice = true; model.name = 'wagon'; break;
-    case 'bus': pv.isBus = true; model.name = 'bus'; break;
-    case 'vracht': model.name = 'truck'; break;
-    case 'fiets': pv.isBike = true; break;
-    case 'scooter': pv.isScooter = true; break;
-    case 'motor': pv.isScooter = true; model.motorbike = true; break;
-    default: return null;
-  }
-  try { const m = buildVehicleMesh(pv); m.userData.gokSpec = pv; return m; } catch (e) { return null; } // gokSpec: voor de stoelen van de zitters (coopzitten3d.js)
+  let spec = null;
+  try { spec = gokUiterlijk(v.soort, v.id, { len: v.len, wid: v.wid, kleur: v.kleur }); } catch (e) { spec = null; }
+  if (!spec) return null;
+  try { const m = buildVehicleMesh(spec); m.userData.gokSpec = spec; return m; } catch (e) { return null; } // gokSpec: voor de stoelen van de zitters (coopzitten3d.js)
 }
 
 // De voertuigmodellen en hun gegevens voor coopzitten3d.js (wie meerijdt zit op zijn stoel in dit model)
