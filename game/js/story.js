@@ -7,7 +7,7 @@
 // Tammo and Tessa trade places at its start, behind a short fade. After the
 // built story the last step's character stays.
 
-import { STEPS, STEP_BY_ID, PARTS, CLUES, WHY, CHARACTERS, SPEAKERS, stepAvailable, missionIndexOf, computeMoneyTimeline, partNumber, stepDone, stepLoopbanenGedaan, nextStoryStep, FINALE_PART } from './storyarc.js';
+import { STEPS, STEP_BY_ID, PARTS, CLUES, WHY, CHARACTERS, SPEAKERS, stepAvailable, missionIndexOf, computeMoneyTimeline, partNumber, stepDone, stapAfgeleidGedaan, nextStoryStep, FINALE_PART } from './storyarc.js';
 import { tickStoryTravel, rideWith } from './storytravel.js';
 import { askTravel, travelPromptOpen } from './reispanel.js';
 import { gateOn } from './coopgate.js';
@@ -146,7 +146,7 @@ function missionIdx(step) {
 
 // A step that names a loopbaan (#431) counts as done once every loopbaan it names has begun: the player may start
 // one earlier on their own (its own startplek or the Loopbaan menu) and the story then passes that step. It is derived
-// from the loopbaan (storyarc.js stepLoopbanenGedaan; the next save records it) and the order of the steps is
+// from the loopbaan (storyarc.js stapAfgeleidGedaan; the next save records it) and the order of the steps is
 // untouched. Without an entered step (a save loaded mid-mission) the running mission keeps its step open.
 function activeMissionStep() {
   if (!isMissionActive()) return null;
@@ -160,7 +160,7 @@ function onStepId() {
 }
 const doneId = (id) => {
   if (state.done.has(id)) return true;
-  return stepLoopbanenGedaan(STEP_BY_ID.get(id), isLoopbaanGestart, onStepId());
+  return stapAfgeleidGedaan(STEP_BY_ID.get(id), isLoopbaanGestart, onStepId());
 };
 
 function isDone(step, k) {
@@ -1128,7 +1128,7 @@ export function updateStory(dt, w) {
 export function getStorySave() {
   // A step whose loopbanen all began is done in this save as well (#431): the same save loads at the same place, and
   // the load card shows it. That is one-way (a loopbaan never ends), and the step the player is on stays open.
-  const loopbaan = STEPS.filter((s) => stepLoopbanenGedaan(s, isLoopbaanGestart, onStepId())).map((s) => s.id);
+  const loopbaan = STEPS.filter((s) => stapAfgeleidGedaan(s, isLoopbaanGestart, onStepId())).map((s) => s.id);
   const done = new Set([...state.done, ...loopbaan]);
   return {
     v: 1, done: [...done], skipped: [...state.skipped], fails: { ...state.fails },

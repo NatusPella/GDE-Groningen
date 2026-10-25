@@ -84,7 +84,7 @@ export function missionCode(i) {
 
 // Loopbanen (#431): the story step where each loopbaan (loopbaan.js VAKKEN) turns up, in story order.
 // This is a pointer, not a lock: the player may start a loopbaan earlier on their own, from its own startplek
-// or the Loopbaan menu, and then the step counts as done (stepLoopbanenGedaan below, with loopbaan.js loopbanenGestart).
+// or the Loopbaan menu, and then the step counts as done (stapAfgeleidGedaan below, with loopbaan.js loopbanenGestart).
 // A vak can be named at more than one step; loopbaanStap gives the first, loopbanenTot everything up to a step.
 export const LOOPBAAN_STAPPEN = STEPS
   .filter((s) => Array.isArray(s.loopbanen) && s.loopbanen.length)
@@ -98,7 +98,8 @@ export function loopbanenBijStap(stapId) {
 // its place: nothing is reordered; gestart(vak) answers whether that loopbaan has begun.
 // The step the player is on (huidige) is never made done this way: a loopbaan that begins while they are on it (the
 // trip or the mission itself) does not pull the step out from under them; that step finishes through its own goal.
-export function stepLoopbanenGedaan(step, gestart, huidige = null) {
+// Een stap met loopbanen (#431): afgeleid uit wat de speler al begon. Puur een poort, er gaat geen geld doorheen.
+export function stapAfgeleidGedaan(step, gestart, huidige = null) {
   if (!step || !Array.isArray(step.loopbanen) || !step.loopbanen.length) return false;
   if (huidige && step.id === huidige) return false;
   return typeof gestart === 'function' && step.loopbanen.every(gestart);

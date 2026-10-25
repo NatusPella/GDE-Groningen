@@ -586,3 +586,5 @@ body:not(.cine-hide-hud) #cine .cine-skip { right: 50%; bottom: calc(14px * var(
 #drift-chip .dc-m { font-size: 22px; color: rgba(240, 237, 228, 0.5); }
 #drift-chip .dc-m.on { color: #ff6f61; }
 #drift-chip .dc-t { font-size: 16px; color: rgba(240, 237, 228, 0.6); }
+
+.hud-chip.hud-mute { pointer-events: auto; position: relative; z-index: 21; min-height: 0; cursor: pointer; color: #f0ede4; }
