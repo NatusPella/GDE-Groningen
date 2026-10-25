@@ -56,7 +56,7 @@ import { wedHostTik, wedHandleGast, wedHandleHost, wedGastReset, zetWedHaken } f
 import { wedKaartTik } from './coopwedstrijd3d.js';
 import { bijbaanStart, bijbaanBeloning, bijbaanEind, bijbaanHelpers, bijbaanHostTik, bijbaanGastTik, bijbaanGastReset, bijbaanHandleGast, bijbaanHandleHost, bijbaanVoorNieuwe, bijbaanWeg, bijbaanHostMee, zetBijbaanHaken } from './coopbijbaan.js';
 import { maakPvp, wisselPassief, zetPassiefStand, verwijderSpeler, passiefEvent, passiefVanEvent, leesPassief, leesPassiefVan, pvpSchadeEvent, isPassief, PVP_TEKST } from './cooppvp.js'; // passieve stand en spelers tegen elkaar (#447)
-import { pvpGastRaak, pvpDoodVerwerk } from './cooppvpwereld.js';
+import { pvpGastRaak, pvpDoodVerwerk, pvpArenaGastBericht, pvpArenaGastMelding, pvpArenaGastTik, pvpArenaAntwoord, pvpArenaReset } from './cooppvpwereld.js';
 import { busCoopActie, busCoopValideerE } from './coopbus.js';
 import { zetBestuurHaken, bestuurGebruik, bestuurTick, bestuurLos, bestuurAllesLos, bestuurt, trekGast } from './coopbestuur.js';
 import { nieuweDeelStaat, bezorgVraag, bezorgHost, bezorgWeg, bezorgAllesWeg } from './coopbezit.js'; // eigen voertuigen meenemen en delen (#449)
@@ -218,6 +218,7 @@ function endCoop(world) {
   world.coopVrijLopen = false; world.coopUitnodiging = null; world.coopMeedoenNee = false; world.coopMeedoenJa = null; // (#429)
   world.coopFoci = null; world.coopFociInfo = null; // spelers uit elkaar (#429)
   world.coopPvp = null; world.coopPvpSchade = null; world.coopPvpMeld = null; // (#447)
+  pvpArenaReset(world); // de PvP-minigame stopt met de sessie: geen bord en geen ronde meer (#454)
   world.coopBezigVan = {}; world.coopHudWanted = 0; // wie bezig is en de sterren in het scherm van de host (#429, #434)
   world.coopWanted = null; world.coopHeat = null; world.coopDoelwit = 0; world.coopWantedMeld = null; world.coopGepakt = null; world.coopStil = false; // (#434)
   if (world.companion) world.companion.coopWacht = false;
@@ -842,6 +843,12 @@ export function tickCoopNet(world, dt) {
   if (n.role === 'host') { wedHostTik(world, dt); bijbaanHostTik(world, dt); } // een uitnodiging voor een race, minigame of bijbaan loopt af (#443, #452)
   else bijbaanGastTik(world, dt);
   wedKaartTik(world, dt); // Meedoen? J of N en de uitslag met een rematch
+  pvpArenaGastTik(world, dt); // de PvP-arena op het scherm van een gast: zijn eigen bord en de klok (#454)
+  if (n.role === 'host' && world.pvpArenaUitn && world.pvpArenaUitn.keuze[0] === 'wacht' && !world.coopGastVraag && !(n.wed && n.wed.u) && !world.paused && !world.uiPaused && world.input && world.input.wasPressed) {
+    // de host kreeg de vraag van een gast: ook hij kiest J of N (coopwedstrijd3d.js doet dat voor een wedstrijd, #454)
+    if (world.input.wasPressed('j')) pvpArenaAntwoord(world, 0, true);
+    else if (world.input.wasPressed('n')) pvpArenaAntwoord(world, 0, false);
+  }
   if (n.role === 'client') {
     const s = n.session;
     // afgewezen (sessie vol, andere versie) of de gastheer stopte (BYE): de gast speelt weer in zijn eigen spel. Zonder dit bleef hij 'gast' (zijn spel werd niet meer bewaard)
@@ -938,7 +945,7 @@ export function handleEvent(world, body, van = 0) {
     case 'wed': return wedHandleHost(world, body); // een wedstrijd tegen elkaar van de host: uitnodiging, start, stand, uitslag (#443, coopwedstrijd.js)
     case 'bijbaan': return bijbaanHandleHost(world, body); // een bijbaan van de host: uitnodiging, doel, einde (#452, coopbijbaan.js)
     case 'bijbaangast': return bijbaanHandleGast(world, body, van); // een gast antwoordt, vraagt een bijbaan te starten of helpt (alleen de host luistert)
-    case 'wedgast': return wedHandleGast(world, body, van); // het antwoord van een gast op die wedstrijd (alleen de host luistert)
+    case 'wedgast': return pvpArenaGastBericht(world, body, van) || wedHandleGast(world, body, van); // het antwoord van een gast op die wedstrijd (alleen de host luistert); eerst de PvP-arena (#454)
     case 'missiegast': return missieGastVerzoek(world, body, van); // een gast vraagt zijn eigen verhaalopdracht te starten (#452)
     case 'wapen': return !!n && n.role === 'host' && van >= 1 && wapenVerwerk(world, van, body); // een gast kiest zijn wapen (zijn eigen patronen): de host rekent zijn aanval uit (#434)
     case 'passief': { // een gast wil omschakelen: de host beslist (afkoeling) en geeft de echte stand door aan iedereen (#447)
@@ -1133,6 +1140,7 @@ export function handleEvent(world, body, van = 0) {
     case 'melding': { // een korte melding van de host, alleen voor jou
       if (!n || n.role !== 'client' || typeof body.tekst !== 'string') return false;
       if (world.addMessage) world.addMessage(body.tekst.slice(0, 90), 3.5);
+      pvpArenaGastMelding(world, body.tekst); // de PvP-arena leest zijn eigen start, stand en uitslag uit de meldingen (#454)
       return true;
     }
     case 'cuttijd': { // de tijd van de gastheer in zijn scène: de gast loopt mee (coopcut.js cutGastTempo)

@@ -246,24 +246,41 @@ t('de spelerslijst: pas als iemand actief is, zie je wie passief is (en de kaart
 });
 
 // ---------------------------------------------------------------- de PvP-minigame (#454)
-t('de PvP-arena: alleen buiten de passieve stand, punten per treffer, en een host die neergaat staat bij zijn team weer op', () => {
-  const w = hostWereld({ coopNet: { role: 'host' } });
-  w.player.x = PW.PVP_ARENA_PLEK.x; w.player.y = PW.PVP_ARENA_PLEK.y;
-  w.coopFigures[2].x = PW.PVP_ARENA_PLEK.x + 3; w.coopFigures[2].y = PW.PVP_ARENA_PLEK.y;
+// Dezelfde hub als hierboven: de arena gebruikt de gewone wedstrijdberichten ('wed' f 'uit' en 'wedgast') voor de J/N-uitnodiging.
+const hubVoor = (slots) => nepHub(slots.map((s) => ({ slot: s, naam: s === 0 ? 'Tammo' : s === 2 ? 'Roos' : 'Bram', verbinding: 'ok' })));
+const inVeld = (l, dx = 0, dy = 0) => { l.x = PW.PVP_ARENA_PLEK.x + dx; l.y = PW.PVP_ARENA_PLEK.y + dy; };
+
+t('de PvP-arena: de host nodigt uit (J/N), wie ja zegt en in het veld staat speelt mee', () => {
+  const hub = hubVoor([0, 2, 3]), geheim = [];
+  const fig = (slot, dx) => ({ slot, x: PW.PVP_ARENA_PLEK.x + dx, y: PW.PVP_ARENA_PLEK.y, angle: 0, gz: 0, radius: 0.4 });
+  const w = hostWereld({ coopNet: { role: 'host', hub }, coopMeld: (slot, tekst) => geheim.push([tekst, slot]), coopFigures: { 2: fig(2, 3), 3: fig(3, -3) } });
+  inVeld(w.player);
   w.companion.x = 900; w.companion.y = 900; // plek 1 staat ver weg: doet niet mee
   // de arena-regel zelf: alleen buiten de passieve stand (#454)
   assert.equal(P.arenaToegestaan(w.coopPvp, 0), false);
   assert.equal(P.arenaToegestaan(null, 0), false); assert.equal(P.arenaToegestaan(w.coopPvp, 99), false);
   assert.equal(PW.pvpArenaStart(w), false, 'de host staat zelf nog op passief');
   assert.ok(w.messages.at(-1).includes('passieve stand'));
-  P.zetPassiefStand(w.coopPvp, 0, false);
+  P.zetPassiefStand(w.coopPvp, 0, false); P.zetPassiefStand(w.coopPvp, 2, false); P.zetPassiefStand(w.coopPvp, 3, false);
   assert.equal(P.arenaToegestaan(w.coopPvp, 0), true);
-  assert.equal(PW.pvpArenaStart(w), false, 'één speler is niet genoeg');
-  P.zetPassiefStand(w.coopPvp, 2, false);
-  assert.equal(PW.pvpArenaStart(w), true);
-  assert.equal(w.pvpArena.fase, 'bezig');
-  assert.deepEqual(w.pvpArena.deeln.map((d) => [d.slot, d.team]), [[0, 0], [2, 1]]);
-  assert.ok(w.messages.at(-1).startsWith('De PvP-arena begint'));
+  // de uitnodiging: nog geen ronde, elke verbonden gast krijgt het gewone bericht van een wedstrijd
+  assert.equal(PW.pvpArenaStart(w), true, 'de host vraagt wie meedoet');
+  assert.equal(w.pvpArena, undefined, 'de ronde begint pas als de uitnodiging klaar is');
+  const uit = hub.uit.filter(([, b]) => b.k === 'wed' && b.f === 'uit');
+  assert.deepEqual(uit.map(([slot]) => slot), [2, 3]);
+  assert.equal(uit[0][1].id, 'pvparena'); assert.equal(uit[0][1].label, AR.ARENA_TEKST.label);
+  assert.equal(w.pvpArenaUitn.keuze[0], 'ja', 'E bij het veld is zelf meedoen');
+  assert.equal(w.pvpArenaUitn.keuze[2], 'wacht');
+  assert.equal(PW.pvpArenaGastBericht(w, { k: 'wedgast', a: 'ja' }, 2), true, 'de gast antwoordt met het gewone bericht');
+  assert.equal(PW.pvpArenaGastBericht(w, { k: 'wedgast', a: 'ja' }, 3), true);
+  assert.equal(w.pvpArenaUitn.keuze[2], 'ja');
+  // de uitnodiging telt af en de ronde begint; de gasten horen hun eigen team in de gewone melding
+  PW.pvpArenaTik(w, AR.ARENA.uitnS + 0.1);
+  assert.equal(w.pvpArena && w.pvpArena.fase, 'bezig');
+  assert.deepEqual(w.pvpArena.deeln.map((d) => [d.slot, d.team]), [[0, 0], [2, 1], [3, 0]]);
+  assert.ok(w.messages.some((m) => m.includes('jij speelt in team Noord')));
+  assert.ok(geheim.some(([t, slot]) => slot === 2 && t.includes('team Zuid')));
+  assert.ok(geheim.some(([t, slot]) => slot === 3 && t.includes('team Noord')));
   assert.equal(PW.pvpArenaStart(w), false, 'geen tweede ronde midden in een ronde');
   assert.ok(w.messages.at(-1).includes('loopt al'));
   // een treffer van de gast op de host telt in de arena
@@ -279,31 +296,115 @@ t('de PvP-arena: alleen buiten de passieve stand, punten per treffer, en een hos
   assert.ok(thuis.some((s) => Math.hypot(w.player.x - s.x, w.player.y - s.y) < 1e-6), 'op de opstelplaats van team 0');
   assert.ok(w.messages.some((m) => m.includes('schakelde') && m.includes('Roos')));
   assert.ok(w.melds.some(([t]) => t.includes('schakelde')), 'de andere gasten horen het');
-  // de zones: met de host in het midden loopt de teamstand op
+  // de zones: met de host in het midden loopt de teamstand op, en de gast hoort de wisseling
   const midden = w.pvpArena.zones.find((z) => z.id === 'midden');
-  w.player.x = midden.x; w.player.y = midden.y; w.coopFigures[2].x = 900; w.coopFigures[2].y = 900;
+  inVeld(w.player); w.player.x = midden.x; w.player.y = midden.y; w.coopFigures[2].x = 900; w.coopFigures[2].y = 900;
   w.time = 30; PW.pvpArenaTik(w, 1); PW.pvpArenaTik(w, 1);
   assert.deepEqual(w.pvpArena.score, [1, 0], 'na twee seconden een zonepunt');
   assert.equal(w.pvpArena.zones.find((z) => z.id === 'midden').eigenaar, 0);
-  // de ronde loopt af: de uitslag gaat naar de meldingen, zonder geld of voortgang
+  assert.ok(w.melds.some(([t]) => t.startsWith('Midden is van Noord')), 'de gasten zien dezelfde wisseling');
+  // de beloning per team, één keer, via de coopdeel-laag (#448): gelijk per team, de winnaar een kleine bonus
+  const betaald = [];
+  w.coopDeel = (bedrag, info) => { betaald.push([bedrag, info && info.slots]); return (info && info.slots ? info.slots.length : 0); };
+  w.pvpArena.score = [9, 3];
   w.pvpArena.t = AR.ARENA.rondeS - 1;
   w.time = 200; PW.pvpArenaTik(w, 2);
   assert.equal(w.pvpArena.fase, 'klaar');
-  assert.ok(w.messages.at(-1).includes('Arena afgelopen'));
-  assert.ok(w.melds.at(-1)[0].includes('Arena afgelopen'));
-  assert.equal(w.money, 500);
+  assert.ok(w.messages.some((m) => m.includes('Arena afgelopen')));
+  assert.deepEqual(betaald, [[AR.ARENA_BELONING.geld + AR.ARENA_BELONING.winst, [3]], [AR.ARENA_BELONING.geld, [2]]], 'de gast in het winnende team krijgt de bonus, de andere het gewone bedrag');
+  assert.ok(geheim.some(([t, slot]) => slot === 2 && t.startsWith('Arena afgelopen') && t.includes('€40')));
+  assert.ok(geheim.some(([t, slot]) => slot === 3 && t.startsWith('Arena afgelopen') && t.includes('€55')));
+  assert.equal(w.money, 500 + AR.ARENA_BELONING.geld + AR.ARENA_BELONING.winst, 'de host zit in het winnende team: hetzelfde bedrag plus de bonus');
+  PW.pvpArenaTik(w, 2); assert.equal(betaald.length, 2, 'nooit twee keer betalen');
 });
 
-t('de PvP-arena op het scherm van een gast: de gast start niet zelf en een gast die meedoet telt alleen als de host hem kent', () => {
-  const g = { time: 5, coopRole: 'client', coopPvp: P.maakPvp(), coopNet: { role: 'client', session: { slot: 2 } }, messages: [], addMessage(m) { this.messages.push(m); }, player: { x: PW.PVP_ARENA_PLEK.x, y: PW.PVP_ARENA_PLEK.y } };
-  assert.equal(PW.pvpArenaStart(g), false);
-  assert.ok(g.messages.at(-1).includes('wie hem opende'));
-  const gastPrompt = PW.pvpArenaPrompt(g);
-  assert.ok(gastPrompt && gastPrompt.sub.includes('wie hem opende'), 'een gast ziet dat de host de ronde start');
-  const solo = { player: { x: PW.PVP_ARENA_PLEK.x, y: PW.PVP_ARENA_PLEK.y } };
-  assert.ok(PW.pvpArenaPrompt(solo).sub.includes('Samen spelen'), 'de prompt zegt dat het alleen samen kan');
-  assert.equal(PW.pvpArenaPrompt({ player: { x: PW.PVP_ARENA_PLEK.x + 200, y: PW.PVP_ARENA_PLEK.y } }), null);
-  assert.equal(PW.pvpArenaDichtbij({ player: { x: PW.PVP_ARENA_PLEK.x + 200, y: PW.PVP_ARENA_PLEK.y } }), false);
+t('een gast start de PvP-arena zelf: het gewone verzoek aan de host, die ook J of N kiest', () => {
+  const hub = hubVoor([0, 2]), geheim = [];
+  const w = hostWereld({ coopNet: { role: 'host', hub }, coopMeld: (slot, tekst) => geheim.push([tekst, slot]) });
+  inVeld(w.player, 200); inVeld(w.coopFigures[2]); P.zetPassiefStand(w.coopPvp, 2, false);
+  // nog niet in het veld: geen verzoek
+  inVeld(w.coopFigures[2], 200);
+  assert.equal(PW.pvpArenaGastBericht(w, { k: 'wedgast', a: 'start', id: 'pvparena' }, 2), false);
+  assert.ok(geheim.some(([t, slot]) => slot === 2 && t.includes('veld')));
+  // in het veld: de host hoort de vraag en de starter doet mee
+  inVeld(w.coopFigures[2]);
+  assert.equal(PW.pvpArenaGastBericht(w, { k: 'wedgast', a: 'start', id: 'pvparena' }, 2), true);
+  assert.equal(w.pvpArenaUitn.keuze[2], 'ja', 'de starter doet mee');
+  assert.equal(w.pvpArenaUitn.keuze[0], 'wacht', 'ook de host kiest zelf');
+  assert.ok(w.messages.some((m) => m.includes('Roos wil de PvP-arena starten')));
+  // een andere id is geen arena: die gaat naar de wedstrijden
+  assert.equal(PW.pvpArenaGastBericht(w, { k: 'wedgast', a: 'start', id: 'kart' }, 2), false);
+  // de host zegt nee: met één gast is er te weinig voor een ronde, en dat hoort hij
+  assert.equal(PW.pvpArenaAntwoord(w, 0, false), true);
+  PW.pvpArenaTik(w, AR.ARENA.uitnS + 0.1);
+  assert.equal(w.pvpArena, undefined, 'één speler is geen wedstrijd');
+  assert.ok(w.messages.at(-1).includes('minstens twee'));
+});
+
+t('de gastenkant van de PvP-arena: eigen team, eigen bord en een eigen respawnpunt (#454)', () => {
+  const verstuurd = [];
+  const g = {
+    time: 10, coopRole: 'client', coopPvp: P.maakPvp(), coopRoster: roster, health: 100, armor: 0, money: 90, messages: [],
+    addMessage(m) { this.messages.push(m); }, player: { x: PW.PVP_ARENA_PLEK.x, y: PW.PVP_ARENA_PLEK.y, vx: 2, vy: 2 },
+    coopNet: { role: 'client', joined: true, session: { slot: 2, sendEvent: (e) => verstuurd.push(e) } },
+  };
+  P.zetPassiefStand(g.coopPvp, 2, false);
+  // E bij het veld: de gast vraagt een ronde, hij rekent niets zelf
+  assert.equal(PW.pvpArenaStart(g), true);
+  assert.deepEqual(verstuurd.at(-1), { k: 'wedgast', a: 'start', id: 'pvparena' }, 'het gewone bericht van een wedstrijd');
+  assert.equal(g.pvpArena, undefined);
+  assert.ok(g.messages.at(-1).includes('Je vraagt'));
+  // de host meldt de start met het eigen team: het eigen bord begint bij de volle ronde
+  PW.pvpArenaGastMelding(g, AR.ARENA_TEKST.startJij('Zuid'));
+  assert.equal(g.pvpArenaGast.team, 1);
+  assert.equal(g.pvpArenaGast.rest, AR.ARENA.rondeS);
+  // de stand komt als gewone melding en de eigen klok loopt door
+  PW.pvpArenaGastMelding(g, AR.arenaRegelVan([7, 4], 100));
+  assert.deepEqual(g.pvpArenaGast.score, [7, 4]); assert.equal(g.pvpArenaGast.rest, 100);
+  PW.pvpArenaGastTik(g, 2); assert.ok(Math.abs(g.pvpArenaGast.rest - 98) < 1e-9);
+  PW.pvpArenaGastMelding(g, 'West is van Zuid');
+  assert.equal(g.pvpArenaGast.flash, 'West is van Zuid');
+  // de gast gaat neer: zonder kosten weer op, bij het eigen team (team Zuid)
+  g.health = 10;
+  assert.equal(PW.pvpGastRaak(g, P.pvpSchadeEvent(15, 0), 2), true);
+  assert.equal(g.health, 100); assert.equal(g.money, 90, 'dood door een medespeler kost niets');
+  const thuis = AR.maakArena({ x: PW.PVP_ARENA_PLEK.x, y: PW.PVP_ARENA_PLEK.y }).spawns[1];
+  assert.ok(thuis.some((s) => Math.hypot(g.player.x - s.x, g.player.y - s.y) < 1e-6), 'op de opstelplaats van team Zuid');
+  assert.equal(g.player.vx, 0, 'stil bij het opstaan');
+  // de uitslag: het bord blijft nog even staan en ruimt daarna op
+  PW.pvpArenaGastMelding(g, AR.ARENA_TEKST.einde('Arena afgelopen: Noord 7, Zuid 4.', 40, 'Zuid'));
+  assert.equal(g.pvpArenaGast.klaar, true);
+  assert.ok(g.pvpArenaGast.tekst.includes('Arena afgelopen'));
+  g.time = 10 + AR.ARENA.klaarS + 0.1;
+  PW.pvpArenaGastTik(g, 0.1);
+  assert.equal(g.pvpArenaGast, null, 'na de uitslag is het bord weg');
+  // de prompt zegt nu dat de gast zelf kan vragen, en de meldingen van een ronde zonder hem doen niets
+  g.player.x = PW.PVP_ARENA_PLEK.x; g.player.y = PW.PVP_ARENA_PLEK.y;
+  const prompt = PW.pvpArenaPrompt(g);
+  assert.ok(prompt && prompt.sub.includes('druk op E'), 'een gast vraagt zelf een ronde');
+  assert.equal(PW.pvpArenaGastMelding(g, AR.arenaRegelVan([1, 2], 30)), false, 'zonder eigen ronde geen bord');
+});
+
+t('de gastenlijst en de meldingen: geen nieuw bericht, en de arena laat zich niet met een andere wedstrijd mengen', () => {
+  assert.equal(N.CAPS.includes('pvp'), true);
+  // het antwoord op de uitnodiging is het gewone 'wedgast' ja/nee; zonder uitnodiging gebeurt er niets
+  const hub = hubVoor([0, 2]);
+  const w = hostWereld({ coopNet: { role: 'host', hub }, coopMeld: () => {} });
+  assert.equal(PW.pvpArenaGastBericht(w, { k: 'wedgast', a: 'ja' }, 2), false);
+  assert.equal(PW.pvpArenaGastBericht(w, { k: 'wedgast', a: 'ja' }, 0), false, 'van plek 0 komt dit nooit als bericht');
+  // een lopende wedstrijd-uitnodiging houdt de arena tegen
+  w.coopNet.wed = { u: { keuze: { 2: 'wacht' } } };
+  inVeld(w.player); inVeld(w.coopFigures[2]); P.zetPassiefStand(w.coopPvp, 0, false); P.zetPassiefStand(w.coopPvp, 2, false);
+  assert.equal(PW.pvpArenaStart(w), false);
+  assert.ok(w.messages.at(-1).includes('wedstrijd'));
+  // en een gast die de arena vraagt krijgt dezelfde uitleg
+  assert.equal(PW.pvpArenaGastBericht(w, { k: 'wedgast', a: 'start', id: 'pvparena' }, 2), false);
+  w.coopNet.wed = null;
+  // de sessie stopt: geen ronde en geen bord meer
+  PW.pvpArenaStart(w);
+  assert.ok(w.pvpArenaUitn);
+  PW.pvpArenaReset(w);
+  assert.equal(w.pvpArenaUitn, null); assert.equal(w.pvpArena, null);
 });
 
 console.log(`cooppvp_test: ${n}/${n} ok`);
