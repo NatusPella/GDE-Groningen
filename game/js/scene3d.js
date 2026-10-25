@@ -2698,7 +2698,7 @@ export function update3D(dt, world) {
         const y = (a.kind === 'seagull' ? 6 + Math.sin(world.time * 2 + (a.flapSeed || 0)) * 1.2 : 0) + (a.lift || 0);
         mesh.position.set(a.x, y, a.y);
         // een dier wordt nooit groter dan zijn eigen bouw (alleen de Reuzenduif-cheat maakt een duif tot 6x): een ongeldige of dubbel toegepaste schaal gaf een reuzenvogel (#433)
-        const baseScale = mesh.userData.baseScale || (mesh.userData.baseScale = mesh.scale.x > 0 && mesh.scale.x < 8 ? mesh.scale.x : 1);
+        const baseScale = mesh.userData.modelSchaal || mesh.userData.baseScale || (mesh.userData.baseScale = mesh.scale.x > 0 && mesh.scale.x < 8 ? mesh.scale.x : 1);
         if (a.kind === 'pigeon') {
           const want = Math.min(6, Math.max(1, Number.isFinite(MODS.pigeonScale) ? MODS.pigeonScale : 1));
           if (mesh.userData.pigeonScale !== want) { mesh.scale.setScalar(want); mesh.userData.pigeonScale = want; }   // Reuzenduif (cheat)
