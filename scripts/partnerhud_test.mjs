@@ -16,6 +16,8 @@ t('status: te voet, voertuig, aan het stuur, neergeslagen, haperend, weg', () =>
   assert.equal(s({ x: 0, y: 0, alive: true, inVeh: true }), 'in een voertuig');
   assert.equal(s({ x: 0, y: 0, alive: true, inVeh: true, driver: true }), 'aan het stuur');
   assert.equal(s({ x: 0, y: 0, alive: false }), 'neergeslagen');
+  assert.equal(s({ x: 0, y: 0, alive: true, down: true }), 'neergeslagen', 'een ragdoll is neer, maar niet dood (#369)');
+  assert.equal(s({ x: 0, y: 0, alive: false, down: false }), 'neergeslagen', 'dood of gepakt blijft neergeslagen');
   assert.equal(s({ x: 0, y: 0, alive: true }, 'lag'), 'verbinding haperd');
   assert.equal(s({ x: 0, y: 0, alive: true }, 'lost'), 'verbinding weg');
 });
@@ -72,6 +74,13 @@ t('N spelers: alle anderen met eigen naam, kleur en vorm uit de lijst; jezelf ni
   assert.deepEqual(p.map((x) => x.naam), ['Tammo', 'Tessa', 'Lotte']);
   assert.equal(new Set(p.map((x) => x.kleur)).size, 3); assert.equal(new Set(p.map((x) => x.vorm)).size, 3);
   assert.equal(p[2].tekst, 'verbinding haperd'); assert.equal(p[0].tekst, 'te voet');
+});
+t('N spelers: een neergeslagen speler (down) telt ook in de lijst van 3 gasten (#369)', () => {
+  const roster = [{ slot: 0, char: 'tammo' }, { slot: 1, char: 'anita' }, { slot: 2, char: 'bram' }, { slot: 3, char: 'lotte' }];
+  const players = [{ slot: 0, x: 0, y: 0, alive: true, down: true }, { slot: 1, x: 10, y: 0, alive: true, down: false }, { slot: 2, x: 20, y: 0, alive: true, down: true }, { slot: 3, x: 30, y: 0, alive: false }];
+  const p = P.partnersInfo(9, players, roster);
+  assert.deepEqual(p.map((x) => x.tekst), ['neergeslagen', 'te voet', 'neergeslagen', 'neergeslagen']);
+  assert.deepEqual(p.map((x) => x.status), ['neer', 'voet', 'neer', 'neer']);
 });
 t('N spelers: markers voor iedereen op kaart en minimap, buiten beeld op de rand met pijl', () => {
   const roster = [{ slot: 0, char: 'tammo' }, { slot: 1, char: 'anita' }, { slot: 2, char: 'rik' }];

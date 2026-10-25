@@ -121,12 +121,19 @@ function springKnop(n, inp, dt) {
 // Een extra speler in het voertuig van de gastheer krijgt een eigen stoel (2 en hoger; 0 is de bestuurder, 1 de bijrijder voorin, #434).
 const vrijeStoel = (world, fig, v) => volgendeStoel(Object.values(figures(world)).filter((f) => f !== fig && f.inVeh === v).map((f) => f.stoel));
 
+// Ligt dit lichaam achterover (een ragdoll die niet dood is)? De gasten zien hem dan als neergeslagen (#369);
+// een oude val ruimt de ragdoll zelf op (ragdoll.js isKnockedDown), hier telt alleen de stand.
+export function ligtNeer(b) { const rd = b && b.ragdoll; return !!rd && !rd.dead; }
+// De echte gezondheid van een lichaam, begrensd zoals de codec hem kan dragen; zonder waarde 100.
+const gezondheidVan = (v) => (Number.isFinite(v) ? Math.max(0, Math.min(255, Math.round(v))) : 100);
+
 // De record van één speler in het snapshot: plek, hoogte (springen), bukken, het voertuig met stoel, en wapen en aanval van de gastheer (#434).
+// alive = dood of gepakt; down = achterover (een ragdoll) maar niet dood (#369).
 export function spelerRecord(world, b, slot) {
   if (!b) return b;
   const q = posOf(b), veh = b.inVehicle || b.inVeh;
   const vo = veh && typeof veh === 'object' ? veh : null, inV = !!veh;
-  const r = { slot, x: q.x, y: q.y, z: b.z || 0, angle: q.angle || 0, alive: slot === 0 ? !world.pendingRespawn : slot === 1 ? b.state !== 'dead' : true, inVeh: inV, driver: (slot === 0 && inV) || bestuurt(b), run: false, health: 100,
+  const r = { slot, x: q.x, y: q.y, z: b.z || 0, angle: q.angle || 0, alive: slot === 0 ? !world.pendingRespawn : slot === 1 ? b.state !== 'dead' : true, inVeh: inV, driver: (slot === 0 && inV) || bestuurt(b), run: false, health: gezondheidVan(slot === 0 ? world.health : b.health), down: ligtNeer(b),
     vehicle: vo ? voertuigId(vo, 0) : null, crouch: !inV && !!b.crouching, seat: slot === 0 || bestuurt(b) ? 0 : slot === 1 ? 1 : (b.stoel | 0) || 2, weapon: 0, attack: 0 };
   if (slot === 0 && !inV && !(b.swimming || b.vault)) { // wat de gastheer in de hand heeft en zijn laatste aanval: de gast tekent het op de figuur van de gastheer
     r.weapon = wapenCode(world.weapon);
@@ -513,19 +520,24 @@ export function meldVoertuig(world, n) {
   return true;
 }
 
-// Neergaan, arrestatie en opstaan van de gastheer en Tessa: de anderen horen het, de gast zelf ook (#369)
+// Neergaan, arrestatie en opstaan van de gastheer en Tessa: de anderen horen het, de gast zelf ook (#369).
+// Ook een ragdoll telt (achterover, nog niet dood): één regel per overgang, nooit elke tik.
 export function meldNeer(world, n) {
-  const pr = world.pendingRespawn ? (world.pendingRespawn.busted ? 'gepakt' : 'neer') : null;
+  const pr = world.pendingRespawn ? (world.pendingRespawn.busted ? 'gepakt' : 'neer') : ligtNeer(world.player) ? 'neer' : null;
   if (pr !== (n.hostNeer || null)) {
     n.hostNeer = pr;
     if (pr) n.hub.announce({ k: 'melding', tekst: `${openerNaam(world.coopRoster, true)} is ${pr === 'gepakt' ? 'door de politie gepakt' : 'neergeslagen'}.` });
   }
   const vast = !!(world.companionHold && world.coop && world.coop.remote && !world.coopVrijLopen); // wie niet meedoet loopt vrij (#429) // een opdracht of minigame parkeert Tessa: haar speler kan even niet lopen (#375)
   if (vast !== !!n.tessaVast) { n.tessaVast = vast; n.hub.announce({ k: 'melding', tekst: vast ? 'Je kijkt even mee: de opdracht houdt je op je plek.' : 'Je kunt weer lopen.' }, 1); }
-  const c = world.companion, dood = !!(c && c.state === 'dead');
+  const c = world.companion, dood = !!(c && (c.state === 'dead' || ligtNeer(c)));
   if (dood !== !!n.tessaNeer) {
     n.tessaNeer = dood;
+    const naam = gastNaam(world, 1);
+    const regel = dood ? `${naam} is neergeslagen.` : `${naam} staat weer.`;
     n.hub.announce({ k: 'melding', tekst: dood ? 'Je bent geraakt. Je staat zo weer op.' : 'Je staat weer.' }, 1);
+    for (const s of n.hub.roster.spelers) if (s.slot >= 2 && s.verbinding !== 'lost') n.hub.announce({ k: 'melding', tekst: regel }, s.slot);
+    if (world.addMessage) world.addMessage(regel, 3.5); // de gastheer ziet het zelf, zonder netbericht over zijn eigen metgezel
   }
 }
 
@@ -960,7 +972,7 @@ export function tickCoopNet(world, dt) {
   for (const slot of meedoenTik(n.meedoen, dt)) world.coopMeld && world.coopMeld(slot, 'Je doet mee.');
   if (n.stem) stemTikHost(world, n, dt);
   const c = world.companion;
-  const players = [c ? { slot: 1, x: posOf(c).x, y: posOf(c).y, angle: posOf(c).angle, alive: c.state !== 'dead', inVeh: !!c.inVehicle } : null, ...Object.values(figures(world)).map((f) => ({ slot: f.slot, x: f.x, y: f.y, angle: f.angle, alive: true, inVeh: !!f.inVeh }))].filter(Boolean);
+  const players = [c ? { slot: 1, x: posOf(c).x, y: posOf(c).y, angle: posOf(c).angle, alive: c.state !== 'dead', down: ligtNeer(c), inVeh: !!c.inVehicle } : null, ...Object.values(figures(world)).map((f) => ({ slot: f.slot, x: f.x, y: f.y, angle: f.angle, alive: true, down: !!f.coopDown, inVeh: !!f.inVeh }))].filter(Boolean);
   world.coopPartners = partnersInfo(0, players, world.coopRoster || []); ververs(world, 0); // register world.players (#446)
   world.coopPartner = world.coopPartners[0] || null;
   // gedeelde camera met Tessa (plek 1) zolang zij echt meespeelt; extra spelers hebben hun eigen camera
