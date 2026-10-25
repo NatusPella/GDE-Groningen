@@ -8,6 +8,8 @@
 // (playerapi.js), whose [bot-log] lines the desktop app writes to the events file.
 // #312: the helicopter and the sailing/rowing boat get their own keys and timing from
 // scripts/bot/nav.mjs (a pure module that run.mjs passes in as window.__botNav).
+// #312: a board stage with a vehicle gets its choice, its door and its timeout from
+// scripts/bot/board.mjs (likewise, as window.__botBoard).
 const CFG = window.__botCfg || {};
 const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
 const imp = (f) => import('/js/' + f + '.js');
@@ -30,6 +32,9 @@ if (!B) return JSON.stringify({ result: 'FOUT', reason: 'window.__bot ontbreekt 
 // #312: de pure heli- en zeilbesturing (scripts/bot/nav.mjs, door run.mjs meegegeven)
 const Nav = window.__botNav || null;
 if (!Nav) B.log('nav', { what: 'window.__botNav ontbreekt: start via scripts/bot/run.mjs' });
+// #312: de board-stage met een voertuig (scripts/bot/board.mjs, door run.mjs meegegeven)
+const Bd = window.__botBoard || null;
+if (!Bd) B.log('board', { what: 'window.__botBoard ontbreekt: start via scripts/bot/run.mjs' });
 const world = B.world, player = B.player;
 const PART = CFG.sweep && CFG.sweep.length ? 'all' : CFG.part || 'kop';
 const MAX_GAME = CFG.maxGameS || 3600;
@@ -46,7 +51,7 @@ const pigeonTargetWatch = new L.TaskWatch({ budget: 90 });
 const heliWatch = new L.TaskWatch({ budget: 240 });
 const sailWatch = new L.TaskWatch({ budget: 300 });
 const wedge = new L.WedgeDetector();
-const mem = { boardTries: 0, pressTries: 0 };
+const mem = { boardTries: 0, pressTries: 0, board: null, drive: null };
 const detours = {};   // per stage: the sidesteps tried on foot before a cheat
 const ladder = {}, fails = {}, scenes = {};
 let lastCine = false;
@@ -461,6 +466,83 @@ async function rescue(s, stepKey, info) {
   detector.acknowledge(s.t);
 }
 
+// #312: a board stage with a vehicle, handled by the pure rules of scripts/bot/board.mjs: which vehicle
+// (the mission's own, not a bike or a car with a driver), where to stand (at the door on the bot's side)
+// and how long one attempt may take (a timeout is a finding, not four blind presses of E). This half
+// walks, presses E and logs. Returns true: the caller skips the rest of the tick.
+async function boardStage(s, stepKey) {
+  // just boarded, or already in the mission's own vehicle while the stage still says 'board': hold still for a
+  // moment (the stage flips on its own), or the bot presses E again because another car stands nearby
+  if (s.player.vehicle) {
+    if (s.player.vehicle.mission) {
+      if (mem.holdAt == null) mem.holdAt = s.t;
+      if (s.t - mem.holdAt < 3) { B.stick(0, 0); return true; }
+      mem.holdAt = null;
+      return false;   // the stage stays 'board': let decide have it (getting out again)
+    }
+  } else mem.holdAt = null;
+  mem.board = mem.board || {};
+  // in a vehicle that is not the mission's own (a bike, last mission's car): out first, then the right one
+  const inWrong = !!s.player.vehicle && !s.player.vehicle.mission;
+  const pick = inWrong ? null : Bd.pickVehicle(s, mem.board);
+  const v = pick && pick.vehicle;
+  if (!v && !inWrong) {
+    // nothing within reach: walk to the marker (the stage's vehicle stands there)
+    if (s.target) steerTowards(s, 'walk', s.target, false, 24, 2.5);
+    return true;
+  }
+  if (v && mem.pickLog !== stepKey) {
+    mem.pickLog = stepKey;
+    B.log('board-keuze', { voertuig: { kind: v.kind, x: Math.round(v.x), y: Math.round(v.y), afstand: Math.round(v.distance), missie: !!v.mission, vrij: !!v.free }, waarom: pick.why, doel: s.target && [Math.round(s.target.x), Math.round(s.target.y)] });
+  }
+  // the snapshot only carries a kind and a position: the body (half length, half width, angle) comes from the
+  // game's own vehicle, or the door and the reach of vehicle.js would be measured on a make-believe box
+  const vObj = v ? world.vehicles.find((q) => Math.hypot(q.x - v.x, q.y - v.y) < 0.6) : null;
+  const body = vObj ? { ...v, angle: vObj.angle, halfLen: vObj.halfLen, halfWid: vObj.halfWid } : v;
+  const step = Bd.boardStep({ player: { x: s.player.x, y: s.player.y, speed: s.player.vehicle ? s.player.vehicle.speed : 0, vehicle: s.player.vehicle ? { kind: s.player.vehicle.kind, mission: !!s.player.vehicle.mission } : null }, vehicle: body, target: s.target, wrongVehicle: inWrong }, mem.board, s.t);
+  if (step.type === 'giveup') {
+    // no progress: the reason and the spot go into the report as a 'timeout', then the rescue ladder takes over
+    B.log('timeout', { step: stepKey, what: 'board: ' + step.why, forS: Math.round(step.forS || 0), x: s.player.x, y: s.player.y, goalDist: s.target ? s.target.distance : null, doel: s.target && { x: Math.round(s.target.x), y: Math.round(s.target.y) }, voertuig: v ? { kind: v.kind, x: Math.round(v.x), y: Math.round(v.y), afstand: Math.round(v.distance), missie: !!v.mission, vrij: !!v.free } : { nu: s.player.vehicle && s.player.vehicle.kind }, drukken: step.presses || 0, deur: step.to ? [Math.round(step.to.x), Math.round(step.to.y)] : null });
+    mem.board = null;
+    await rescue(s, stepKey, { idleFor: step.forS || 30, quiet: true });
+    return true;
+  }
+  if (step.type === 'wait') { B.stick(0, 0); return true; }
+  if (step.type === 'exit') {
+    B.stick(0, 0);
+    if (mem.exitLog !== stepKey) { mem.exitLog = stepKey; B.log('board-uit', { stap: stepKey, voertuig: s.player.vehicle && s.player.vehicle.kind }); }
+    await keyTap('e', 240); await sleep(600);
+    return true;
+  }
+  const big = vObj && Math.max(vObj.halfLen || 0, vObj.halfWid || 0) > 3;
+  // bij de deur aan de kant van de bot; een boot stap je van de kade in, daar is het midden het doel (de kade)
+  const aimAt = v ? (v.kind === 'boot' ? v : step.to || v) : null;
+  if (!aimAt) { B.stick(0, 0); return true; }
+  // the same sidesteps as on any walk: a board stage's vehicle often stands among cars, a bus or a shed
+  if (Math.hypot(aimAt.x - s.player.x, aimAt.y - s.player.y) > 3.5) {
+    if (await footUnstick(s, aimAt)) return true;
+    if (mem.detour && s.t < mem.detour.until && Math.hypot(mem.detour.x - s.player.x, mem.detour.y - s.player.y) > 3) { steerTowards(s, 'walk', mem.detour, false, 24, 2.5); return true; }
+  }
+  const d = steerTowards(s, 'walk', aimAt, false, 24, big || (mem.nearMiss || 0) >= 2 ? 0.4 : 2.2);
+  // the game's own test: this is what lights the prompt and lets E in (and never another vehicle)
+  const near = vObj ? V.findEnterableVehicle(player.x, player.y, world.vehicles) === vObj : d < 3.5;
+  if (near || (!vObj && d < 3.5)) {
+    B.stick(0, 0);
+    Bd.pressed(mem.board, s.t);
+    await keyTap('e', 240); await sleep(700);
+    const fe = V.findEnterableVehicle(player.x, player.y, world.vehicles);
+    B.log('instappen', { kind: v.kind, toegestaan: near, binnen: !!player.inVehicle, doel: vObj && { x: Math.round(vObj.x * 10) / 10, y: Math.round(vObj.y * 10) / 10, hl: vObj.halfLen, hw: vObj.halfWid, naam: vObj.name || vObj.label || '', hero: !!vObj.isHeroCar, wrak: !!vObj.wrecked, slot: !!(vObj.locked || vObj.disabled) }, kan: fe && { x: Math.round(fe.x * 10) / 10, y: Math.round(fe.y * 10) / 10, naam: fe.name || fe.label || '' }, ik: [Math.round(player.x * 10) / 10, Math.round(player.y * 10) / 10] });
+    if (player.inVehicle) {
+      B.log('board', { event: 'ingestapt', stap: stepKey, voertuig: { kind: v.kind, x: Math.round(v.x), y: Math.round(v.y), missie: !!v.mission }, seconden: Math.round(((s.t - (mem.board.attemptAt ?? s.t)) + Number.EPSILON) * 10) / 10, drukken: mem.board.presses || 0 });
+      // the drive to the next stage's goal gets a budget of its own (board.mjs driveStep), per stage
+      mem.drive = { id: s.story.id, key: stepKey, drove: s.t, best: null, bestAt: s.t };
+      mem.board = null;
+    } else Bd.missed(mem.board, v, s.t);
+    follower = null;
+  } else if (d < 3.5) mem.nearMiss = (mem.nearMiss || 0) + 1;
+  return true;
+}
+
 // balance and pace meter (#147, scripts/bot/balans.mjs): per step the wall time, the metres walked or driven, the time in cutscenes,
 // talks and dialogs, the goal changes and the longest quiet stretch (no movement, no scene, no new goal)
 let meter = null;
@@ -614,7 +696,23 @@ while (true) {
   track(s);
   const stepKey = (s.story.id || '?') + (s.mission.active ? ':' + (s.mission.stage || 'm') : '');
   // each stage of a mission gets its own few tries at boarding and at a prompt
-  if (stepKey !== mem.stageKey) { mem.stageKey = stepKey; mem.pressTries = 0; mem.boardTries = 0; mem.planTries = 0; mem.vehTries = 0; mem.nearMiss = 0; pigeonWatch.reset(); pigeonTargetWatch.reset(); heliWatch.reset(); sailWatch.reset(); mem.zeil = null; mem.rowT = null; }
+  if (stepKey !== mem.stageKey) { mem.stageKey = stepKey; mem.pressTries = 0; mem.boardTries = 0; mem.planTries = 0; mem.vehTries = 0; mem.nearMiss = 0; mem.board = null; mem.pickLog = null; mem.exitLog = null; mem.holdAt = null; pigeonWatch.reset(); pigeonTargetWatch.reset(); heliWatch.reset(); sailWatch.reset(); mem.zeil = null; mem.rowT = null; }
+  // #312: after a board stage the drive has a budget of its own: seven minutes without getting closer to this
+  // stage's goal is a finding, even when the car keeps crawling along (the same per stage, so a chase does not
+  // inherit the clock of the stage before it)
+  if (mem.drive) {
+    if (!s.player.vehicle || !Bd || mem.drive.id !== s.story.id) mem.drive = null;
+    else if (mem.drive.key !== stepKey) { mem.drive.key = stepKey; mem.drive.drove = s.t; mem.drive.best = null; mem.drive.bestAt = s.t; }
+    else if (!s.blocking.cinematic && !s.blocking.loading) {
+      const ds = Bd.driveStep({ player: { x: s.player.x, y: s.player.y }, target: s.target }, mem.drive, s.t);
+      if (ds.type === 'giveup') {
+        B.log('timeout', { step: stepKey, what: 'board: ' + ds.why, forS: Math.round(ds.forS || 0), x: s.player.x, y: s.player.y, goalDist: s.target ? s.target.distance : null, doel: s.target && { x: Math.round(s.target.x), y: Math.round(s.target.y) }, voertuig: s.player.vehicle ? { kind: s.player.vehicle.kind, v: Math.round((s.player.vehicle.speed || 0) * 10) / 10 } : null });
+        mem.drive = null;
+        await rescue(s, stepKey, { idleFor: ds.forS || 30, quiet: true });
+        continue;
+      }
+    }
+  }
   if (ticks++ % 100 === 0) B.log('status', { x: s.player.x, y: s.player.y, step: stepKey, dist: s.target ? s.target.distance : null, veh: s.player.vehicle ? s.player.vehicle.kind : 'te voet', wanted: s.wanted, money: s.player.money, msgs: s.hud.messages.slice(0, 2), sub: s.hud.subtitle && s.hud.subtitle.text, stunt: s.mission.stunt || undefined });
   // a mission that asks for it ('Uitstappen, jong. Fatbikes ontwijk je te voet.'): out of the vehicle
   if (s.hud.messages.some((m) => /uitstappen|te voet/i.test(m))) mem.onFootUntil = s.t + 60;
@@ -703,6 +801,12 @@ while (true) {
     B.log('cheat', { rung: 'win', ok: !!okw, step: stepKey, why: failsMax === 3 ? 'driemaal mislukt' : `${failsMax}x mislukt (bekende beperking van de bot of het spel)`, mission: { phase: s.mission.phase }, blocking: [] });
     detector.acknowledge(s.t);
     continue;
+  }
+  // #312: a board stage with a vehicle on foot (or in a bike: out first) is the bot's own little task
+  // (scripts/bot/board.mjs): choose the vehicle, walk to the door, press E, time out per attempt. Only when
+  // nothing else owns the screen.
+  if (Bd && s.mission.active && s.mission.stage === 'board' && !s.blocking.cinematic && !s.blocking.banner && !s.blocking.talk && !s.blocking.pauseMenu && !s.blocking.paused && !s.blocking.respawn && !s.blocking.loading && !s.blocking.shop && !s.blocking.ride && !(s.blocking.dialog && s.blocking.dialog.options && s.blocking.dialog.options.length)) {
+    if (await boardStage(s, stepKey)) continue;
   }
   const act = L.decide(s, mem);
   if (s.mission.active && s.mission.stage === 'choice' && act.type !== 'choose' && s.t - (mem.choiceDbgT || -99) > 10) {
