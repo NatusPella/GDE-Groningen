@@ -1656,12 +1656,26 @@ export function distToVehicleBody(v, x, y) {
 
 export const ENTER_REACH = 1.8;
 
+// Wie mag instappen (#436): een leeg voertuig, of een stilstaand/geparkeerd
+// voertuig waar nog een AI-bestuurder in zit (een wachtende of een auto die
+// voor het licht stilstaat). Rijdend verkeer laat je met rust; de speler zelf
+// nooit. Zo zijn ook een witte bestelbus en een zwarte politieauto te jatten.
+const STILL_SPEED = 1.5; // m/s: tot deze snelheid telt een bezet voertuig als stilstaand
+// een auto van een scène, missie of medespeler is geen jatbare auto
+const SCENARIO_DRIVER = new Set(['cine', 'owner', 'mission', 'jelle', 'twins', 'moored', 'racer', 'cast']);
+export function canEnterVehicle(v) {
+  if (!v || v.wrecked || v.sinking || v.disabled || v.driver === 'player') return false;
+  if (typeof v.driver === 'number' || SCENARIO_DRIVER.has(v.driver)) return false;
+  if (!v.driver) return true;
+  return !!v.parked || Math.abs(v.speed || 0) <= STILL_SPEED;
+}
+
 // The free vehicle (no driver of any kind) whose body is nearest, within
 // reach of its outline; moving traffic gets a little extra slack.
 export function findEnterableVehicle(x, y, vehicles, reach = ENTER_REACH) {
   let best = null, bestScore = Infinity;
   for (const v of vehicles) {
-    if (v.wrecked || v.sinking || v.driver || v.disabled) continue;
+    if (!canEnterVehicle(v)) continue;
     const pad = v.halfLen + reach + 1.5;
     if (Math.abs(v.x - x) > pad || Math.abs(v.y - y) > pad) continue;
     // a moored boat is boarded from the quay: a step across the gap to the hull
@@ -2626,6 +2640,9 @@ function applyImpactDamage(v, dmg, playerInvolved, world) {
     return;
   }
   if (v.driver === 'player') dmg = assistDamage(dmg);
+  // een politicauto op vijf sterren heeft een pantser (#436): hij houdt meer
+  // klappen voordat de speler hem stuk rijdt
+  if (v.isPolice && v.driver !== 'player' && v.armor) dmg *= v.armor;
   v.health = Math.max(0, v.health - dmg * CRASH_DAMAGE_SCALE);
   if (playerInvolved && v.driver === 'player' && !v.flat && !v.isBoat && !v.isHeli && !v.isBus && dmg >= FLAT_MIN_DAMAGE && v.health > 0 && Math.random() < Math.min(FLAT_MAX_CHANCE, dmg / 60)) v.flat = true;
   if (v.health <= 0) disableVehicle(v, playerInvolved, world);

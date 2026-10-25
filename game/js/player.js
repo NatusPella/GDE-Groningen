@@ -2,7 +2,7 @@ import { closestPointOnSegment, normalizeAngle, pointInPolygon, isInWater, inMap
 import { heeftAutoPortier } from './sfx/samples.js';
 import { wallAhead } from './countrywalls.js';
 import { waterClearance, pushOutOfWaterObstacles, insideWaterObstacle, swimmerCanLeave } from './waterindex.js';
-import { findEnterableVehicle, distToVehicleBody, resolveBoomCollisions, resolveVehicleBuildingCollision, drivePlayerBoat, pushCircleOutOfVehicle, reportImpact, tickSinkingVehicles, speedCap } from './vehicle.js';
+import { findEnterableVehicle, canEnterVehicle, distToVehicleBody, resolveBoomCollisions, resolveVehicleBuildingCollision, drivePlayerBoat, pushCircleOutOfVehicle, reportImpact, tickSinkingVehicles, speedCap } from './vehicle.js';
 import { hornAt } from './movablebridges.js';
 import { hornSluis } from './sluizen.js';
 import { waterAt, surfaceLiftAt } from './waterlevels.js';
@@ -895,14 +895,16 @@ export class Player {
   }
 
   enterVehicle(v, world) {
-    if (!v || v.driver || v.wrecked || v.sinking) return;
+    if (!canEnterVehicle(v)) return;
     const driven = !!v.road || !!v.countryDrive; // an AI driver: city traffic or an Ommeland road user
     // iemand achter het stuur (occupants.js): ook een wachtende in een geparkeerde auto
     // wordt er bij een autokraak uitgetrokken (#459), met de reacties van pedestrians.js
     const bezet = !v.isBike && !v.isScooter && !v.isBoat && !!(seatedOf(v).driver);
+    // een stilstaand voertuig met een AI-bestuurder is net zo goed een autokraak (#436)
+    const hadDriver = !!v.driver && v.driver !== 'player';
     const own = v.isHeroCar || v.playerOwned || v.missionCar || isMissieVoertuig(world, v, driven);
-    const stolen = !own && (driven || v.parked || (v.isPolice && !v.hijacked));
-    v.carjacked = !own && (driven || bezet); // its AI driver gets pulled out (pedestrians.js)
+    const stolen = !own && (driven || bezet || hadDriver || v.parked || (v.isPolice && !v.hijacked));
+    v.carjacked = !own && (driven || bezet || hadDriver); // its AI driver gets pulled out (pedestrians.js)
     v.driver = 'player';
     v.road = null; // player takes manual control
     v.parked = false;
