@@ -91,12 +91,63 @@ export function createScenarioDirector() {
 // Loop points inside a decoded buffer: skips the encoder padding / near
 // silence an mp3 carries at both ends, so an AudioBufferSourceNode loops
 // without an audible gap. Returns seconds.
-export function loopPoints(channels, sampleRate, threshold = 0.002) {
-  const len = channels[0].length;
-  const loud = (i) => channels.some((c) => Math.abs(c[i]) > threshold);
+//
+// A scenario track is minutes long, so its decoded buffer holds millions of
+// samples per channel. Scanning it in one go blocked the frame that switched
+// the music (#473); createLoopScan() does the same walk in fixed steps, so
+// audio.js can spend a small budget per frame. loopPoints() keeps the one-shot
+// form for short buffers and tests.
+export const LOOP_SCAN_STEP = 1 << 15; // sample positions per step (~0.75 s at 44.1 kHz)
+
+function loudAt(channels, i, threshold) {
+  for (let c = 0; c < channels.length; c++) if (Math.abs(channels[c][i]) > threshold) return true;
+  return false;
+}
+
+// Walks in from both ends in steps of at most `maxSamples` sample positions.
+// step() returns the loop points once the walk is done and null until then;
+// scanned() is the number of positions looked at so far (for tests).
+export function createLoopScan(channels, sampleRate, threshold = 0.002) {
+  const len = channels.length ? channels[0].length : 0;
   let a = 0, b = len - 1;
-  while (a < len && !loud(a)) a++;
-  while (b > a && !loud(b)) b--;
-  if (b - a < sampleRate) return { start: 0, end: len / sampleRate };
-  return { start: a / sampleRate, end: (b + 1) / sampleRate };
+  let phase = 'head';
+  let result = null;
+  let scanned = 0;
+  const finish = () => {
+    phase = 'done';
+    result = b - a < sampleRate ? { start: 0, end: len / sampleRate } : { start: a / sampleRate, end: (b + 1) / sampleRate };
+    return result;
+  };
+  return {
+    done: () => phase === 'done',
+    result: () => result,
+    scanned: () => scanned,
+    step(maxSamples = LOOP_SCAN_STEP) {
+      if (phase === 'done') return result;
+      let left = Math.max(1, Math.floor(maxSamples));
+      // Each turn looks at one position and spends one unit of the budget, so
+      // a step never does more work than asked, however long the buffer is.
+      while (left > 0 && phase !== 'done') {
+        left--;
+        scanned++;
+        if (phase === 'head') {
+          if (a >= len) { finish(); break; } // the whole buffer is silence
+          if (loudAt(channels, a, threshold)) phase = 'tail';
+          else a++;
+        } else {
+          if (b <= a) { finish(); break; }
+          if (loudAt(channels, b, threshold)) finish();
+          else b--;
+        }
+      }
+      return result;
+    },
+  };
+}
+
+export function loopPoints(channels, sampleRate, threshold = 0.002) {
+  const scan = createLoopScan(channels, sampleRate, threshold);
+  let r = null;
+  while (!(r = scan.step())) { /* one pass, for short buffers and tests */ }
+  return r;
 }
