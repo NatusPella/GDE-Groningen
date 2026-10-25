@@ -1,5 +1,6 @@
 // Samen spelen (#291): wat een gast mag doen (game/js/coopgast.js) en hoe het stuur en E over het net gaan.
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import * as G from '../game/js/coopgast.js';
 import { createLink } from '../game/js/net/memtransport.js';
 import * as N from '../game/js/coopnet.js';
@@ -41,9 +42,21 @@ t('bewaren: wat de gast zelf kocht komt in zijn eigen save, de rest blijft; zond
   assert.equal(applyGuestChanges(data, { money: -5 }, 0).money, 0, 'geld nooit negatief'); assert.equal(applyGuestChanges(null, mine, 0), null);
 });
 
+t('een gast begint zijn opdracht niet vanuit de telefoon of het menu (#452)', () => {
+  assert.equal(G.missieMagVanuitMenu(null), true);
+  assert.equal(G.missieMagVanuitMenu({}), true);
+  assert.equal(G.missieMagVanuitMenu({ coopRole: 'host' }), true);
+  assert.equal(G.missieMagVanuitMenu({ coopRole: 'client' }), false, 'een gast is een dunne client');
+  assert.match(G.MISSIE_VIA_STARTPUNT, /startpunt/);
+  assert.doesNotMatch(G.MISSIE_VIA_STARTPUNT, /gastheer|host/i);
+  const bron = (p) => fs.readFileSync(new URL('../game/js/' + p, import.meta.url), 'utf8');
+  assert.match(bron('todo.js'), /!missieMagVanuitMenu\(world\)[\s\S]{0,140}MISSIE_VIA_STARTPUNT/, 'het menu (Te doen) blokkeert');
+  assert.match(bron('phone.js'), /missieMagVanuitMenu\(w\)[\s\S]{0,400}Wijs het startpunt/, 'de telefoon (Berend) verwijst naar het startpunt');
+  assert.match(G.GAST_REGELS.find((r) => r.actie === 'missies').regel, /startpunt en druk daar op E/, 'de regel zegt hetzelfde');
+});
+
 // ---- over het net
-const INFO = { game: 'GDE', proto: 1, version: '1', tiles: '-', story: 'nieuw' };
-const mkWorld = (extra = {}) => ({ player: { x: 0, y: 0, angle: 0, character: 'tammo', vx: 0, vy: 0 }, companion: { x: 1, y: 1, angle: 0, character: 'anita' }, coop: { local: true }, money: 0, wanted: 0, camYaw: 0, time: 0, messages: [], addMessage(m) { this.messages.push(m); }, input: { axis: () => [0, 0], isDown: () => false, wasPressed: () => false }, ...extra });
+const INFO = { game: 'GDE', proto: 1, version: '1', tiles: '-', story: 'nieuw' };const mkWorld = (extra = {}) => ({ player: { x: 0, y: 0, angle: 0, character: 'tammo', vx: 0, vy: 0 }, companion: { x: 1, y: 1, angle: 0, character: 'anita' }, coop: { local: true }, money: 0, wanted: 0, camYaw: 0, time: 0, messages: [], addMessage(m) { this.messages.push(m); }, input: { axis: () => [0, 0], isDown: () => false, wasPressed: () => false }, ...extra });
 function sessie() {
   const hw = mkWorld(); N.startHost(hw, INFO, { seed: 3 });
   const link = createLink({ latency: 0.02, seed: 7 }); N.addGuest(hw, link.a);

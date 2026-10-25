@@ -12,11 +12,18 @@ export const hourDiff = (a, b) => { const d = wrap(b - a); return d > 12 ? d - 2
 
 export function klokEvent(world) {
   const uur = Number(world.clock);
-  return { k: 'klok', t: Number(world.time) || 0, uur: Number.isFinite(uur) ? Math.round(wrap(uur) * 1e4) / 1e4 : 0 };
+  const e = { k: 'klok', t: Number(world.time) || 0, uur: Number.isFinite(uur) ? Math.round(wrap(uur) * 1e4) / 1e4 : 0 };
+  // De kalenderdag van de groep (#452, evenementen): de gasten leven op de dag van de gastheer, ook als die een
+  // nacht doorgaat. Een oudere gast leest het veld niet en houdt zijn eigen dag.
+  const dag = Number(world.calendar && world.calendar.day);
+  if (Number.isInteger(dag) && dag >= 0 && dag <= 366) e.dag = dag;
+  return e;
 }
 export function leesKlokEvent(b) {
   if (!b || b.k !== 'klok' || !Number.isFinite(b.t) || !Number.isFinite(b.uur) || b.uur < 0 || b.uur >= 24) return null;
-  return { t: b.t, uur: b.uur };
+  const out = { t: b.t, uur: b.uur };
+  if (Number.isInteger(b.dag) && b.dag >= 0 && b.dag <= 366) out.dag = b.dag;
+  return out;
 }
 
 export class KlokVolger {
@@ -42,6 +49,8 @@ export class KlokVolger {
     const ahead = Math.max(0, Math.min(10, lokaal - this.last.lokaal)); // niet ver doorschuiven als de meldingen stoppen
     return wrap(this.last.uur + (this.rate || 0) * ahead);
   }
+  // De kalenderdag uit de laatste melding, of null bij een gastheer die hem niet meestuurt (#452).
+  dag() { return this.last && this.last.dag != null ? this.last.dag : null; }
   // Nieuwe klokstand voor de gast, uit zijn huidige: zacht bijsturen, snap bij een sprong
   step(huidig, dt, lokaal) {
     const tgt = this.target(lokaal);
