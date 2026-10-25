@@ -13,6 +13,7 @@ import { isInsideBuilding } from './pedgeom.js';
 import { makeCompanion } from './pedroutes.js';
 import { wijkProfileAt } from './trafficfleet.js';
 import { weekdayOf } from './calendar.js';
+import { poiLayerPlaces } from './facilities.js';
 import { maakGroep, vrijgezellenKans, maxGroepjes, volgendeJuich, JUICH_DUUR, BRUID_LINES, GAST_LINES, JUICH_LINES, WAGGEL } from './vrijgezellen.js';
 import {
   NAMES, SELLER_LINES, SELLER_BUY, BEGGAR_ASK, BEGGAR_THANKS, BEGGAR_NO_COIN, BERNARD_LINES,
@@ -103,8 +104,7 @@ export function nearestReporter(world) {
   for (const ped of world.pedestrians || []) {
     if (ped.isCop && ped.state !== 'dead' && dist(p.x, p.y, ped.x, ped.y) <= REPORT_REACH) return { x: ped.x, y: ped.y, ped };
   }
-  const meta = (world.map && world.map.meta) || {};
-  for (const s of meta.policeStations || []) {
+  for (const s of poiLayerPlaces(world.map, 'policeStations')) {
     if (finite(s.x, s.y) && dist(p.x, p.y, s.x, s.y) <= 10) return { x: s.x, y: s.y, ped: null };
   }
   return null;

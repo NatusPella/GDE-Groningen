@@ -8,6 +8,10 @@
 //   joinMeta(slim, rows) -> meta, equal to what went in (the order of every list too)
 //   layerRows(slim, list, rowSets) -> that one list from the tiles of its layer (null when a place is missing)
 //
+// The readers ask a layer through facilities.js: poiLayerPlaces (a list) and poiLayerPlace (a single such as the hospital
+// or the helipad), which pick the tiles of the layer out of index.pois.layers (scripts/world/poilagen.mjs) and fall back
+// on map.meta when a tile is not in.
+//
 // A row is the place's own fields plus `_l` (the list: 'shops', 'pois.health', ...) and `_n` (its place in the list; -1 for a single
 // object such as the helipad). A point whose tile cannot hold it (canHold false: a tile the city has no data for) stays in the slim
 // meta under `poiRest`, in the same row form. `poiLists` names every list that moved, so an empty list comes back empty.
