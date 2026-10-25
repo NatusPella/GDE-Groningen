@@ -50,6 +50,7 @@ import { samenWaarschuwing } from './coopstatus.js'; // wat nog niet samen werkt
 import { teamDown } from './cooproles.js'; // een opdracht faalt pas als alle meespelers neer zijn (#452)
 import { verrekenBeloning, verrekenEinde } from './coopdeel.js'; // verrekening per gebeurtenis en bij het einde (#448)
 import { saveGame as bewaarNu } from './savehook.js';
+import { coopVanModel } from './vehicleregister.js'; // de stoelen en passagiers per voertuigmodel (#452)
 import { getSettings } from './settings.js';
 import { profielNaam, profielKleur } from './lobby.js';
 import { wedHostTik, wedHandleGast, wedHandleHost, wedGastReset, zetWedHaken } from './coopwedstrijd.js';
@@ -455,9 +456,14 @@ export function stapMetgezelInPauze(world, dt) {
   return coopStep(c, dt, world, world.coopMove || ((q, d) => { q.x += q.vx * d; q.y += q.vy * d; }));
 }
 
-// Plekken voor extra spelers (naast Tessa) in een voertuig van de gastheer
+// Plekken voor extra spelers (naast Tessa) in een voertuig van de gastheer. De waarden komen uit
+// vehicleregister.js (coopVanModel): de bus heeft er zes, een gewone auto drie, een fiets geen.
+// Een onbekend model houdt de oude standaard, zodat een test of oud voertuig blijft werken.
 export function figuurPlekken(v) {
-  if (!v || v.isBike || v.isScooter || v.isHeli || v.isPlane || v.wrecked || v.sinking) return 0;
+  if (!v || v.wrecked || v.sinking) return 0;
+  const regel = coopVanModel(v.model);
+  if (regel) return regel.passagiers;
+  if (v.isBike || v.isScooter || v.isHeli || v.isPlane) return 0;
   return v.isBus ? 6 : 3;
 }
 // Een extra speler stapt uit: naast het voertuig, aan de kant van zijn plek

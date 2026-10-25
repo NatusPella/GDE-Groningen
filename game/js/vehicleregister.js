@@ -58,3 +58,48 @@ export const VOERTUIGEN = {
 
 export const REGISTER_NAMEN = Object.keys(VOERTUIGEN);
 export const heeftUitzondering = (naam) => !!(VOERTUIGEN[naam] && VOERTUIGEN[naam].uitzondering);
+
+// Samen spelen (#452/#434): de coöp-regel per voertuigmodel. Dit is de enige plek waar staat
+// hoeveel plekken een voertuig heeft en of een gast mag sturen; coopbestuur.js en coopnet.js
+// lezen deze regel en hebben geen eigen lijst meer nodig.
+//   stoelen     plekken voorin (de bestuurder en de bijrijder)
+//   passagiers  extra plekken achterin, naast de bijrijder
+//   bestuur     'gast' (een gast mag sturen) of 'nee' (alleen in zijn eigen spel)
+export const COOP_STANDAARD = Object.freeze({
+  auto: { stoelen: 2, passagiers: 3, bestuur: 'gast' },
+  tweewieler: { stoelen: 1, passagiers: 0, bestuur: 'gast' },
+  boot: { stoelen: 2, passagiers: 3, bestuur: 'gast' },
+  lucht: { stoelen: 2, passagiers: 0, bestuur: 'nee' },
+  ov: { stoelen: 2, passagiers: 6, bestuur: 'nee' },
+  attractie: { stoelen: 1, passagiers: 0, bestuur: 'nee' },
+  dier: { stoelen: 1, passagiers: 0, bestuur: 'nee' },
+});
+
+// Wat per model afwijkt van de standaard van zijn klasse. Een bus is groot genoeg voor een hele
+// groep, een politieauto of ambulance bestuurt een gast niet, en de machines van de boerderij
+// bestuurt hij wel als de boer ze deelt (#415).
+const COOP_AFWIJKING = {
+  bus: { passagiers: 6, bestuur: 'nee' },
+  midibus: { passagiers: 6, bestuur: 'nee' },
+  police: { bestuur: 'nee' },
+  ambulance: { bestuur: 'nee' },
+  escort: { bestuur: 'nee' },
+  heli: { bestuur: 'nee', passagiers: 0 },
+  plane: { bestuur: 'nee', passagiers: 0 },
+  train: { bestuur: 'nee', passagiers: 6 },
+  kart: { bestuur: 'nee', stoelen: 1, passagiers: 0 },
+  horse: { bestuur: 'nee', stoelen: 1, passagiers: 0 },
+  maaidorser: { bestuur: 'gast', stoelen: 1, passagiers: 0 },
+  laadmachine: { bestuur: 'gast', stoelen: 1, passagiers: 0 },
+};
+
+// De coöp-regel van een modelnaam (de `model.name` van vehicle.js), of null voor een onbekend model.
+export function coopVoertuig(naam) {
+  const e = VOERTUIGEN[naam];
+  if (!e) return null;
+  return Object.freeze({ ...COOP_STANDAARD[e.klasse], ...(COOP_AFWIJKING[naam] || {}), model: naam });
+}
+export function coopVanModel(model) {
+  const naam = model && (model.naam || model.name);
+  return typeof naam === 'string' ? coopVoertuig(naam) : null;
+}
