@@ -70,7 +70,6 @@ let sel = null;
 let byKey = new Map();
 let zoek = '';
 let deel = 'alles';
-let laatsteWereld = null;
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const euro = (v) => '€' + Math.round(v).toLocaleString('nl-NL');
 const svg = (id) => `<svg class="pm-ic" viewBox="0 0 24 24" aria-hidden="true">${ICON[id] || ICON.kaart}</svg>`;
@@ -187,7 +186,6 @@ function detailHtml() {
 
 // Draws the section into panel (pausemenu.js); returns the sheet subtitle.
 export function renderSpullen(panel, w) {
-  laatsteWereld = w;
   const { items, counts } = collect(w);
   byKey = new Map(items.map((it) => [it.key, it]));
   const zichtbaar = zoekSpullen(items, zoek, deel);
@@ -213,10 +211,11 @@ export function renderSpullen(panel, w) {
 }
 
 // De zoekopdracht en het gekozen deel komen uit het paneel (pausemenu.js) en
-// blijven staan als je het scherm even verlaat.
-export function zetSpullenZoek(panel, tekst) { zoek = String(tekst || ''); if (panel && laatsteWereld) renderSpullen(panel, laatsteWereld); }
+// blijven staan als je het scherm even verlaat. Ze zetten alleen de stand; het
+// scherm opnieuw tekenen doet de aanroeper, zodat ook de voetregel klopt.
+export function zetSpullenZoek(tekst) { zoek = String(tekst || ''); }
 export function spullenZoekStand() { return { zoek, deel }; }
-export function zetSpullenDeel(panel, d) { deel = DELEN.some(([id]) => id === d) ? d : 'alles'; if (panel && laatsteWereld) renderSpullen(panel, laatsteWereld); }
+export function zetSpullenDeel(d) { deel = DELEN.some(([id]) => id === d) ? d : 'alles'; }
 
 // Focus or click on a card shows it; the action button runs it. a: { rerender(keep), message(text) }
 export function spullenFocus(panel, el) {
@@ -229,7 +228,7 @@ export function spullenFocus(panel, el) {
 
 export function spullenClick(e, w, panel, a) {
   const chip = e.target.closest('[data-spul-deel]');
-  if (chip) { zetSpullenDeel(panel, chip.dataset.spulDeel); return true; }
+  if (chip) { zetSpullenDeel(chip.dataset.spulDeel); a.rerender(); return true; }
   const act = e.target.closest('[data-spul-act]');
   if (act) {
     const it = byKey.get(act.dataset.spulAct);

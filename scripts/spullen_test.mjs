@@ -67,7 +67,7 @@ t('het scherm heeft een zoekveld, de delen als knoppen en een lege melding', () 
   const pm = lees('pausemenu.js');
   assert.match(pm, /data-spul-search/, 'het zoekveld staat in het paneel');
   assert.match(pm, /data-spul-deel="\$\{id\}"/, 'de delen staan als knoppen');
-  assert.match(pm, /zetSpullenZoek\(root\.querySelector\('\[data-panel="spullen"\]'\)/, 'typen zoekt meteen');
+  assert.match(pm, /zetSpullenZoek\(spulZoek\.value\); spullenApi\.rerender\(\)/, 'typen zoekt meteen en werkt de voetregel bij');
   const sp = lees('spullen.js');
   assert.match(sp, /data-spul-leeg/, 'een lege uitkomst zegt het');
   assert.match(sp, /aria-pressed/, 'de gekozen knop is te zien');
