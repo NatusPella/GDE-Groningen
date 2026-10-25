@@ -13,6 +13,7 @@
 import { assistGate } from './assistlive.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
+import { signBothSides } from './canvastex.js';
 import { Vehicle } from './vehicle.js';
 import { attachPlane, makeStrip } from './planecontrol.js';
 import { PLANE_MODEL } from './planeflight.js';
@@ -44,8 +45,9 @@ function bannerMesh(text) {
   g.fillText(text, 256, 50);
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
-  const m = new THREE.Mesh(new THREE.PlaneGeometry(16, 3), new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide }));
+  const m = signBothSides(16, 3, new THREE.MeshBasicMaterial({ map: tex }));
   m.frustumCulled = false;
+  for (const c of m.children) c.frustumCulled = false;
   return m;
 }
 

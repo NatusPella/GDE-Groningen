@@ -1,5 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { canvasTex } from './canvastex.js';
+import { canvasTex, signBothSides } from './canvastex.js';
 import { getScene } from './scene3d.js';
 import { buildPersonMesh } from './models3d_people.js';
 import { buildHorseMesh } from './countryside.js';
@@ -269,8 +269,11 @@ function buildDucks() {
   const sign = canvasTex(192, 96, (c, w, h) => { c.fillStyle = '#f2e8d0'; c.fillRect(0, 0, w, h); c.fillStyle = '#c8261e'; c.font = 'bold 22px Arial'; c.textAlign = 'center'; c.fillText('BADEENDJES-', w / 2, 34); c.fillText('RACE', w / 2, 60); c.fillStyle = '#333'; c.font = '15px Arial'; c.fillText('inleg €2 · winst €10', w / 2, 84); });
   const g = anchor(DUCKS.sign, 1.5544);
   add(g, new THREE.BoxGeometry(0.06, 1.1, 0.06), std(0x6a4a2a), 0, 0.55, 0);
-  const s = add(g, new THREE.PlaneGeometry(0.8, 0.4), new THREE.MeshStandardMaterial({ map: sign, side: THREE.DoubleSide }), 0.04, 1.2, 0);
+  const s = signBothSides(0.8, 0.4, new THREE.MeshStandardMaterial({ map: sign }));
+  s.position.set(0.04, 1.2, 0);
   s.rotation.y = Math.PI / 2;
+  for (const c of s.children) { c.castShadow = true; c.receiveShadow = true; }
+  g.add(s);
   // start (red) and finish (white) buoys
   const buoys = [];
   const geo = new THREE.CylinderGeometry(0.25, 0.3, 0.5, 10);

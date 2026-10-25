@@ -1,5 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
+import { signBothSides } from './canvastex.js';
 import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
 import { showBanner } from './cinematics.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, setStatMax, MEDALS } from './achievements.js';
@@ -155,7 +156,7 @@ function buildPark() {
     t.colorSpace = THREE.SRGBColorSpace;
     return t;
   })();
-  const sign = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 0.9), new THREE.MeshBasicMaterial({ map: signTex, side: THREE.DoubleSide }));
+  const sign = signBothSides(2.4, 0.9, new THREE.MeshBasicMaterial({ map: signTex }));
   sign.position.set(-hu - 3.2, 1.9, 0);
   sign.rotation.y = Math.PI / 2;
   park.add(sign);

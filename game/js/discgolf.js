@@ -1,5 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { canvasTex as textTex } from './canvastex.js';
+import { canvasTex as textTex, signBothSides } from './canvastex.js';
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
 import { showBanner } from './cinematics.js';
@@ -132,7 +132,7 @@ function holeSign(h, i, M) {
     c.fillStyle = TEXT_FILL; c.font = 'bold 40px Arial'; c.fillText(`PAR ${h.par}`, w / 2, 80);
     c.font = '24px Arial'; c.fillText(`${Math.round(h.len)} m`, w / 2, 112);
   });
-  const plate = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.45), new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide }));
+  const plate = signBothSides(0.9, 0.45, new THREE.MeshBasicMaterial({ map: tex }));
   plate.position.set(0, 1.5, 0);
   g.add(plate);
   return g;
@@ -161,7 +161,7 @@ function basketMesh(color, n, M) {
     c.fillStyle = '#' + color.toString(16).padStart(6, '0'); c.fillRect(0, 0, w, hh);
     c.fillStyle = '#fff'; c.font = 'bold 44px Arial'; c.textAlign = 'center'; c.fillText(String(n), w / 2, 48);
   });
-  const flag = new THREE.Mesh(new THREE.PlaneGeometry(1.0, 0.5), new THREE.MeshBasicMaterial({ map: ftex, side: THREE.DoubleSide }));
+  const flag = signBothSides(1.0, 0.5, new THREE.MeshBasicMaterial({ map: ftex }));
   flag.position.set(1.05, 3.85, 0);
   g.add(flag);
   return g;
