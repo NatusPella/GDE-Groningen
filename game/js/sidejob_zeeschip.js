@@ -25,7 +25,8 @@ const MELDING = {
 // De kade waar de speler instapt: het dichtstbijzijnde droge punt bij het water van de
 // haven, buiten de gebouwen. Zonder kaart (tests) het punt van de haven zelf.
 export function kadePunt(map, haven) {
-  if (!map || !haven) return { x: haven.kade.x, y: haven.kade.y };
+  if (!haven) return null;
+  if (!map) return { x: haven.kade.x, y: haven.kade.y };
   for (let r = 12; r <= 360; r += 6) {
     const n = Math.max(8, Math.round((2 * Math.PI * r) / 12));
     for (let k = 0; k < n; k++) {
