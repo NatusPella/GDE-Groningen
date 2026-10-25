@@ -39,10 +39,11 @@ export function bodyFor(world, me, slot) {
 // story.js kijkt naar world.coop.fixedChars om de verhaalwissel niet te dubbelen.
 export function setFixedCharacters(world, me, char = null) {
   const mine = mySlotOf(me);
-  const rol = eigenVerhaalrol(world.player);
-  if (world.player) world.player.character = rol;
+  const ik = world.player;               // het eigen lichaam op deze client (#500: één plek, niet vier keer world.player)
+  const rol = eigenVerhaalrol(ik);
+  if (ik) ik.character = rol;
   if (world.companion) world.companion.character = andereVerhaalrol(rol);
-  if (world.player) world.player.coopChar = avatarVan({ ...(char ? { char } : {}), slot: mine }, mine).char;
+  if (ik) ik.coopChar = avatarVan({ ...(char ? { char } : {}), slot: mine }, mine).char;
   if (world.coop) world.coop.fixedChars = true;
 }
 
