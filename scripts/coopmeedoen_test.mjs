@@ -109,6 +109,14 @@ t('een gast begint de opdracht: hij doet zelf mee, de anderen krijgen de vraag, 
   assert.equal(M.krijgtDeel(st, 0), true, 'de gastheer die J zei doet mee');
   assert.equal(M.antwoord(st, 1, false), true);
   assert.deepEqual(M.meespelers(st), [0, 2]);
+  // geen antwoord van de gastheer is nee: de tijd laten lopen maakt hem nooit vanzelf meespeler (#452)
+  const s0 = M.maakMeedoen();
+  M.beginGast(s0, '4|Bezorgen', [0, 1], null, null, 1);
+  M.tik(s0, 30);
+  assert.equal(s0.keuze[0], 'wacht');
+  assert.equal(M.krijgtDeel(s0, 0), false);
+  assert.deepEqual(M.meespelers(s0), [1]);
+  assert.equal(M.loopVrij(s0, 0), true, 'de gastheer wordt niet vastgezet door de vraag');
   // zijn eigen verhaal vraagt de gast-hoofdrol: alleen plek 1 kan verplicht zijn, de gastheer nooit
   const s2 = M.maakMeedoen();
   const u2 = M.beginGast(s2, '5|Kluisklus', [0, 1], coopRule({ id: 'M06', kind: 'mission' }, 2), null, 2);
