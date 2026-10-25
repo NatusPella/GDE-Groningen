@@ -3,7 +3,7 @@
 import './node3d.mjs';
 await import('../game/js/mapdata.js');
 await import('../game/js/player.js');
-const { initCheats, setCheat, updateCheats, applyCheatSave, getCheatSave, isCheatOn, achievementsBlocked } = await import('../game/js/cheats.js');
+const { initCheats, setCheat, updateCheats, applyCheatSave, getCheatSave, isCheatOn, achievementsBlocked, blockedReason } = await import('../game/js/cheats.js');
 const { MODS } = await import('../game/js/cheatmods.js');
 
 let n = 0, fails = 0;
@@ -44,6 +44,12 @@ ok(!getCheatSave().unlocked.includes('geld'), 'an unknown streek is not unlocked
 applyCheatSave(null, null);
 updateCheats(0.016, w);
 ok(!isCheatOn('grotekoppen') && MODS.grav === 1, 'a save without streken starts with all off');
+
+// Reizen met de boot (#438): een boot mag alleen mee als er water bij het doel is.
+const bootw = { ...w, player: { inVehicle: { isBoat: true }, x: 0, y: 0 }, wanted: 0, health: 100 };
+ok(/water/.test(blockedReason(bootw)), 'een boot gaat niet zomaar met de kaart mee', blockedReason(bootw));
+ok(blockedReason(bootw, { bootOk: true }) === '', 'met water bij het doel mag de boot mee', blockedReason(bootw, { bootOk: true }));
+ok(blockedReason({ ...bootw, player: { inVehicle: { isBoat: false, isBike: false, isScooter: false }, x: 0, y: 0 } }) === '', 'een auto houdt de gewone regel');
 
 console.log(`${n - fails}/${n} checks passed`);
 process.exit(fails ? 1 : 0);

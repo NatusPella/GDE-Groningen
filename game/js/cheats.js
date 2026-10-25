@@ -26,6 +26,8 @@ import { showCard } from './hudcards.js';
 import { inHomeFlat } from './home.js';
 import { resetWalker, resetVehicle, placeCompanion } from './safety.js';
 import { isInWater } from './util.js';
+import { waterPolyAt } from './waterlevels.js';
+import { bootPlekOpKaart } from './bootplek.js';
 import { inDoorRange } from './facilities.js';
 import { edgeDistance } from './countryfield.js';
 import { roadNear, tilesIn, withTiles } from './tileplace.js';
@@ -200,7 +202,8 @@ export function applyCheatSave(d, save) {
 // --- teleport --------------------------------------------------------------------
 
 // Why a jump or a delivery can't happen now, or ''. reis: een snelreis voor jezelf (safehouse-anker), geen cheat: de anderen blijven waar ze zijn (#452).
-export function blockedReason(w = world, { vehicleOk = true, reis = false } = {}) {
+// bootOk: het doel heeft water waar de boot vrij ligt (#438), dan hoeft de boot niet eerst aan de kant.
+export function blockedReason(w = world, { vehicleOk = true, reis = false, bootOk = false } = {}) {
   const p = w.player;
   if (!reis && cheatsUit(w)) return CHEATS_UIT_TEKST;
   if (cheatsBusy(w)) return w.pigeonMode ? 'Eerst weer mens worden' : 'Niet tijdens een missie of filmpje';
@@ -209,7 +212,7 @@ export function blockedReason(w = world, { vehicleOk = true, reis = false } = {}
   if (p.swimming) return 'Eerst even uit het water klimmen';
   const v = p.inVehicle;
   if (v && !vehicleOk) return 'Stap eerst uit';
-  if (v && v.isBoat) return 'Eerst van het water af';
+  if (v && v.isBoat && !bootOk) return 'Eerst van het water af';
   if (v && v.isHeli) return 'Eerst landen en uitstappen';
   if (v && (v.wrecked || v.sinking)) return 'Dit voertuig gaat nergens meer heen';
   return '';
@@ -247,28 +250,42 @@ export function teleportSpot(map, x, y, car) {
   return null;
 }
 
+// Reizen met de boot (#438): sta je op het water, dan zoekt de sprong water bij het doel
+// in plaats van de kant. Zonder water in de buurt blijft de boot waar hij is.
+function bootDoel(w, x, y) {
+  const v = w.player && w.player.inVehicle;
+  if (!v || !v.isBoat) return null;
+  return bootPlekOpKaart(w.map, v, x, y, v.angle);
+}
+
 function teleport(w, x, y, name, opts = null) {
-  const why = blockedReason(w, { reis: !!(opts && opts.reis) });
+  const boot = bootDoel(w, x, y);
+  if (w.player.inVehicle && w.player.inVehicle.isBoat && !boot) {
+    w.addMessage('Daar is geen water voor je boot. Kies een plek aan het water.', 3);
+    return false;
+  }
+  const why = blockedReason(w, { reis: !!(opts && opts.reis), bootOk: !!boot });
   if (why) { w.addMessage(why, 3); return false; }
   // far from here the tiles round the target are not in yet: they come first,
   // then the same jump (the road and the open spot are picked from them)
   if (!tilesIn(w.map, [[x, y]], 400)) {
-    withTiles(w.map, [[x, y]], () => teleportNow(w, x, y, name), { radius: 400, token: 'teleport' }).catch(() => {});
+    withTiles(w.map, [[x, y]], () => teleportNow(w, x, y, name, false, boot), { radius: 400, token: 'teleport' }).catch(() => {});
     return true;
   }
-  return teleportNow(w, x, y, name);
+  return teleportNow(w, x, y, name, false, boot);
 }
 
-function teleportNow(w, x, y, name, stil = false) {
+function teleportNow(w, x, y, name, stil = false, boot = null) {
   const p = w.player, v = p.inVehicle, map = w.map;
-  const spot = teleportSpot(map, x, y, !!(v && !v.isBike && !v.isScooter));
+  const spot = boot || teleportSpot(map, x, y, !!(v && !v.isBike && !v.isScooter));
   if (!spot) { w.addMessage('Daar kun je niet staan', 3); return false; }
-  const angle = Number.isFinite(spot.angle) ? spot.angle : p.angle;
-  const gz = map.groundHeightAt ? map.groundHeightAt(spot.x, spot.y, 0) || 0 : 0;
+  const angle = Number.isFinite(spot.hoek) ? spot.hoek : Number.isFinite(spot.angle) ? spot.angle : p.angle;
+  const gz = boot ? 0 : map.groundHeightAt ? map.groundHeightAt(spot.x, spot.y, 0) || 0 : 0; // een boot drijft; hij begint net als een nieuwe boot op 0
   if (v) {
-    const [vx, vy] = map.escapeBuilding(spot.x, spot.y, (v.halfWid || 1) + 0.4);
+    const [vx, vy] = boot ? [spot.x, spot.y] : map.escapeBuilding(spot.x, spot.y, (v.halfWid || 1) + 0.4);
     resetVehicle(v, vx, vy, angle, gz);
     v.road = null;
+    if (v.isBoat) v.waterPoly = waterPolyAt(map, v.x, v.y); // de boot drijft op het water van zijn nieuwe plek
     p.x = v.x; p.y = v.y; p.angle = angle; p.gz = gz; p.z = 0; p.vz = 0;
   } else {
     resetWalker(p, spot.x, spot.y, gz);
