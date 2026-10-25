@@ -185,16 +185,19 @@ een personage met een vast geslacht mogen blijven. `text_audit.mjs` (regel
 
 ## Open punten (met issue)
 
-- **#476:** kleuren buiten de tokens, onder meer `hudcards.css:39-44` (tweede rood
+- **#479:** kleuren buiten de tokens, onder meer `hudcards.css:39-44` (tweede rood
   `#ff5a4a`, blauw `#6c9bff`, paars `#d68cff`), `choicepanel.js:10-27` (`#d9a441`,
   `#5dff7a`, `#ff9a3c`) en `minigamekit.js:68-92` (`#6cc070`, `#ffd23f`). Besluit
   nodig: benoemen als statuskleur of vervangen.
-- **#465 en #478 zijn op 25-10 gesloten:** de vier Engelse termen zijn nu Nederlands
-  (Knielt, Afstand/Nadering/Putt, Grindtrucs, "Met liefde in Groningen") en de kreten
-  zijn "Start!" en "Mooi!". `text_audit` kent ze en faalt erop (`ANGLICISMEN` plus de
-  nieuwe `SHOUTS`-lijst). Wat buiten de code lag is ook recht: het startscherm
-  (`game/index.html`), het About-venster (`desktop/main.js`) en de Windows-LEESMIJ.
-- **#479 en #480 zijn op 25-10 gesloten:** de 3D-brief noemt geen merk meer en kiest
+- **#465 is op 25-10 gesloten en in beeld gezien:** de vier Engelse termen zijn nu
+  Nederlands (Knielt, Afstand/Nadering/Putt, Grindtrucs, "Met liefde in Groningen");
+  ook het startscherm (`game/index.html`), het About-venster (`desktop/main.js`) en de
+  Windows-LEESMIJ zijn recht. `text_audit` kent ze en faalt erop (`ANGLICISMEN`).
+- **#478 is half klaar:** "Start!" en "Mooi!" staan in de code en `text_audit` heeft er
+  een `SHOUTS`-lijst voor, maar de kreet is nog niet op het scherm gezien (de eerste
+  QA-poging trof de countdown en de puntflits niet). Het issue blijft open tot dat beeld
+  er is.
+- **#480 en #481 zijn op 25-10 gesloten:** de 3D-brief noemt geen merk meer en kiest
   kantig boven chibi; `DESIGN_SYSTEM.md` volgt nu de echte menustructuur van
   `pausemenu.js` (Cheats is sinds #435 een eigen rail-item, Spelers een tab onder
   Samen spelen), met de Q/E-fout als bekend punt erbij.
