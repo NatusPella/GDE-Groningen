@@ -11,7 +11,7 @@ import { roadNetReady, snapRoad, roadPathNear, nodeXY } from './roadgraph.js';
 import { isKnockedDown } from './ragdoll.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { decayFactor, profileOf, hintFor } from './signalement.js';
-import { levelOf, markSeen, stepUnseen, isInterceptorSlot, INTERCEPTOR } from './wantedlevels.js';
+import { levelOf, markSeen, stepUnseen, isInterceptorSlot, INTERCEPTOR, policeTarget, policeArmor } from './wantedlevels.js';
 import { createShards, dropSpikes } from './roadshards.js';
 import { makeBeamGeometry, makeBeamMaterial, requestSearchlight } from './nightlights3d.js';
 import { trySpawnMounts, tryDeployCrew, adoptThrownRider, holdUnit, updateCrews, ejectMountRider, maybeBolt, updateBolting } from './policemounts.js';
@@ -225,7 +225,7 @@ function trySpawnPolice(world, state) {
     if (isPatrolCar(v)) alive++;
   }
   state.outrun = !!pv && !pv.isBoat && Math.abs(pv.speed) > OUTRUN_SPEED && !(pol && pol.searching) && nearest > OUTRUN_CLEAR_DIST;
-  const target = Math.max(1, Math.min(5, world.wanted));
+  const target = policeTarget(world.wanted);
   if (alive >= target || world.time < state.nextSpawnAt) return;
   state.nextSpawnAt = world.time + 0.5;
   const c = pol && pol.searching && pol.searchCenter ? pol.searchCenter : p;
@@ -250,6 +250,7 @@ function tunePoliceCar(v, world, d = 0, sees = true) {
     return;
   }
   if (v.model.name !== 'police') return;
+  v.armor = policeArmor(world.wanted); // #436: op vijf sterren houdt een politicauto meer klappen
   const w = clamp(world.wanted, 0, 5);
   const base = POLICE_TOP_SPEED[w];
   const pv = world.player.inVehicle;

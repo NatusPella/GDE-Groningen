@@ -596,7 +596,28 @@ const EDGE_BUILD = {
     k.solid(0, 0, (o.hw || 3) + 0.6);
   },
   rand_neef(k) {
-    k.person('fries', 0, 0, Math.PI);
+    // De twee neven bij de Friese grens staan niet stil (#436): ze ijsberen
+    // langs het hek en zwaaien, in plaats van als etalagepoppen te wachten.
+    const a = k.person('fries', 0, 0, Math.PI);
+    const b = k.person('fries', 1.3, 1.1, Math.PI);
+    const pace = (m, base, amp, phase) => {
+      m.userData.neefBase = base; m.userData.neefAmp = amp; m.userData.neefPhase = phase;
+    };
+    pace(a, 0, 1.1, 0);
+    pace(b, 1.3, 0.9, 1.7);
+    k.ticks.push((dt, t) => {
+      for (const m of [a, b]) {
+        const u = m.userData;
+        const s = Math.sin(t * 0.9 + u.neefPhase);
+        const c = Math.cos(t * 0.9 + u.neefPhase);
+        const moving = Math.abs(c) > 0.08;
+        m.position.x = u.neefBase + s * u.neefAmp;
+        if (moving) m.rotation.y = c >= 0 ? 0 : -Math.PI; // het model kijkt naar lokale +x
+        animatePersonWalk(m, moving ? 1.1 : 0, dt);
+        const arm = m.userData.armR;
+        if (!moving && arm) arm.rotation.z = 0.5 + Math.sin(t * 5 + u.neefPhase) * 0.35; // zwaaien
+      }
+    });
     k.solid(0, 0, 0.5);
   },
   rand_hunebed(k) {
