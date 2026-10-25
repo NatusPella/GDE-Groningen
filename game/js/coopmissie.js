@@ -14,6 +14,7 @@
 // controleert dezelfde poort (busy.js), begint de opdracht op het startpunt en legt de groep aan met de vrager als deelnemer. Een
 // lopende groep houdt zijn stand: een verzoek voegt alleen een deelnemer toe en overschrijft stap, doelen of keuzes nooit.
 import { playerBusy } from './busy.js';
+import { standVan, antwoord as meedoenAntwoord } from './coopmeedoen.js';
 export const MAX_GROEPEN = 8;  // meer gelijktijdige opdrachten dan dit kent het spel niet (zoals FOCI_MAX bij de foci)
 const ID_MAX = 48, LABEL_MAX = 80, STAP_MAX = 90, MAX_DOELEN = 12;
 
@@ -147,7 +148,7 @@ export const MISSIE_TEKST = {
   nietJouwBeurt: 'Deze opdracht is nog niet aan de beurt in jouw verhaal.',
   nietBijStart: 'Ga bij het startpunt staan en druk op E.',
   vraagt: (label) => `Je vraagt ${label} te starten.`,
-  hostStart: (naam, label) => `${naam} start ${label}. Je loopt mee als je wilt.`,
+  hostStart: (naam, label) => `${naam} start ${label}. Meedoen? J = ja, N = nee (zonder antwoord kijk je mee).`,
   gestart: (label) => `${label} is begonnen.`,
 };
 
@@ -211,4 +212,47 @@ export function beginVerzoek(st, { index = 0, label = '', stap = '', doelen: dl 
   if (!st || !id) return null;
   if (groep(st, id)) return voegDeelnemer(st, id, starter);
   return begin(st, { id, label, index, stap, doelen: dl, lateInstap, deelnemers: [starter] }, nu);
+}
+
+// ---- de gastheer kiest ook mee (#452)
+// De gastheer is ook een speler: start een gast een opdracht, dan krijgt de gastheer dezelfde vraag (J/N) als de andere gasten. Zegt
+// hij nee, of antwoordt hij niet, dan kijkt hij toe: geen geld, geen loopbaanpunten en geen verhaalstap, en zijn eigen keten blijft
+// waar hij was. Zijn keuze staat in dezelfde stand op plek 0; er gaat geen bericht over het net, want hij houdt de stand zelf bij.
+export const GASTHEER_VRAAG_S = 20; // zolang staat de vraag open; daarna telt hij als nee
+
+// De vraag aan de gastheer klaarzetten (coopglue.js doet dat bij het begin van de opdracht van een gast).
+export function gastheerVraag(world, id, label, sec = GASTHEER_VRAAG_S) {
+  if (!world) return false;
+  world.coopGastVraag = { id: tekst(id, ID_MAX), label: tekst(label, LABEL_MAX), rest: Number.isFinite(sec) ? Math.max(1, Math.min(30, sec)) : GASTHEER_VRAAG_S };
+  return true;
+}
+
+// Per frame op de gastheer (missions.js updateMissions): J of N, of de tijd loopt af en dat is nee.
+export function gastheerVraagTik(world, dt) {
+  const n = world && world.coopNet, v = world && world.coopGastVraag;
+  if (!n || n.role !== 'host' || !n.meedoen || !v) return false;
+  const inp = world.input;
+  v.rest -= dt;
+  const ja = !!(inp && inp.wasPressed && inp.wasPressed('j'));
+  const nee = !!(inp && inp.wasPressed && inp.wasPressed('n'));
+  if (!ja && !nee && v.rest > 0) return false;
+  if (inp && inp.consume) { if (ja) inp.consume('j'); if (nee) inp.consume('n'); }
+  const antwoord = ja && v.rest > 0;
+  world.coopGastVraag = null;
+  if (!meedoenAntwoord(n.meedoen, 0, antwoord, v.id || undefined)) return false; // de opdracht is al voorbij
+  if (world.addMessage) {
+    world.addMessage(antwoord
+      ? `Je doet mee met ${v.label}.`
+      : `Je doet niet mee met ${v.label}. Geld, loopbaanpunten en de verhaalstap van deze opdracht zijn niet voor jou.`, 5);
+  }
+  return true;
+}
+
+// Speelt de gastheer zelf mee aan deze opdracht? Zonder sessie, zonder vraag of zonder keuze: ja (het gewone pad, zoals voorheen).
+export function gastheerMee(world, id = null) {
+  const n = world && world.coopNet;
+  if (!n || n.role !== 'host' || !n.meedoen) return true;
+  const st = standVan(n.meedoen, id || undefined);
+  if (!st || !Object.prototype.hasOwnProperty.call(st.keuze, 0)) return true;
+  return st.keuze[0] === 'ja' || st.keuze[0] === 'verplicht';
 }

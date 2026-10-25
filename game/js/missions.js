@@ -69,6 +69,7 @@ import { respawnFade } from './respawn.js';
 import { playerBusy } from './busy.js';
 import { noteMoney } from './finance.js';
 import { lateInstapVoor } from './coopmeedoen.js';
+import { gastheerMee, gastheerVraagTik } from './coopmissie.js';
 import { missieStatus, waarschuwVoorStart } from './coopstatus.js';
 
 // radio fragments a stage puts on Nachtstreek (storycontact.js, loaded lazily: it imports the UI)
@@ -614,6 +615,8 @@ export function initMissions(world) {
     medalPaid: {},
     // #213: per mission index the last checkpoint stage of a failed or running attempt (not saved)
     checkpoints: new Map(),
+    // #452: deze opdracht begon een gast; eigenIndex is de eigen volgende opdracht van de gastheer, die blijft staan als hij niet meedoet
+    gastStart: null,
     resume: null,
     grace: null,
     retry: null,
@@ -657,12 +660,14 @@ export function activeStage() {
 export function failActiveMission(world, reason, bannerReason, coopReden = '') {
   if (!chain || chain.phase !== 'active') return false;
   const def = chain.defs[chain.index];
-  playMissionFailed(world, { reason: bannerReason || reason, stats: runStats(world, def) }, false);
+  const mee = gastStartMee(world); // keek de gastheer toe bij de opdracht van een gast, dan is dit niet zijn mislukking (#452)
+  if (mee) playMissionFailed(world, { reason: bannerReason || reason, stats: runStats(world, def) }, false);
   const i = chain.index;
   if (world.coopUitslag) world.coopUitslag(false, def.label, coopReden || String(bannerReason || reason || '').toLowerCase()); // samen spelen (#371): ook knock-out, arrestatie en afbreken horen de gasten
   endInFailure(world, reason);
+  sluitGastStart(world, mee);
   syncPub(world);
-  hooks.failed(world, i);
+  if (mee) hooks.failed(world, i);
   return true;
 }
 
@@ -675,9 +680,11 @@ export function cancelActiveMission(world) {
   if (!chain || chain.phase !== 'active') return false;
   const def = chain.defs[chain.index];
   const i = chain.index;
+  const mee = gastStartMee(world); // een gast startte hem en de gastheer deed niet mee: zijn eigen keten blijft staan (#452)
   chain.checkpoints.delete(i);
   if (world.coopUitslag) world.coopUitslag(false, def.label, '', 0, true);
   endInFailure(world, `${def.label} gestopt. Je kunt hem opnieuw starten`);
+  sluitGastStart(world, mee);
   syncPub(world);
   return true;
 }
@@ -990,13 +997,32 @@ export function startMissionVoorGast(world, i) {
   if (!chain || !chain.defs[i] || chain.phase === 'active') return false;
   const def = chain.defs[i];
   if (def.solo) return false;
+  const eigenIndex = chain.index; // de eigen volgende opdracht van de gastheer: die blijft staan als hij niet meedoet (#452)
   chain.index = i;
   chain.phase = 'idle';
   chain.armed = true;
   chain.wpIndex = 0;
+  chain.gastStart = null;
   startMission(world, def);
   syncPub(world);
-  return chain.phase === 'active';
+  if (chain.phase !== 'active') return false;
+  chain.gastStart = { id: `${i}|${String(def.label || '').slice(0, 48)}`, eigenIndex };
+  world.coopGastVraag = null; // een vraag van een vorige opdracht is niet meer aan de orde
+  return true;
+}
+
+// Een gast startte de lopende opdracht (#452). De gastheer deed mee als hij zelf J zei (coopmissie.js gastheerMee); anders kijkt
+// hij toe: geen geld, geen loopbaanpunten, geen medaille en geen verhaalstap. Zonder gastStart (de gewone opdracht van de
+// gastheer) verandert er niets.
+const gastStartMee = (world) => !chain.gastStart || gastheerMee(world, chain.gastStart.id);
+// De gastStart afsluiten. Deed de gastheer niet mee, dan springt zijn eigen keten terug naar waar hij was en vervalt het
+// Opnieuw-aanbod van de opdracht van de gast.
+function sluitGastStart(world, mee) {
+  const g = chain.gastStart;
+  chain.gastStart = null;
+  if (world) world.coopGastVraag = null; // een openstaande vraag hoort bij deze opdracht
+  if (g && !mee) { chain.index = g.eigenIndex; chain.retry = null; }
+  return g;
 }
 
 export function getMissionProgress() {
@@ -1036,6 +1062,7 @@ export function setMissionProgress(world, prog) {
   chain.resume = null;
   chain.grace = null;
   chain.retry = null;
+  chain.gastStart = null; // een geladen spel begint geen opdracht van een gast (#452)
   if (world.pigeonMode) stopPigeonMode(world);
   syncPub(world);
 }
@@ -1431,6 +1458,7 @@ function consequenceAdjust(def) {
 
 function succeed(world, def) {
   const i = chain.index;
+  const mee = gastStartMee(world); // een gast startte deze opdracht: alleen met zijn eigen J telt de gastheer mee (#452)
   chain.checkpoints.delete(i);
   chain.retry = null;
   stopTalk();
@@ -1440,41 +1468,46 @@ function succeed(world, def) {
   closeChoice();
   closeTiming();
   // choices that matter later in the story (M23's ally, read again in M26)
-  if (def.remember && storyMod) for (const tag of def.remember) if (chain.tags && chain.tags.has(tag)) storyMod.rememberStoryChoice(tag);
+  if (mee && def.remember && storyMod) for (const tag of def.remember) if (chain.tags && chain.tags.has(tag)) storyMod.rememberStoryChoice(tag);
   const tip =def.type === 'boat' ? rondvaartTip() : 0;
   const adj = rewardAdjust(def, base);
   const cons = consequenceAdjust(def);
   const reward = Math.max(0, base + tip + adj.amount + cons.amount);
   const reason = def.type === 'boat' ? rondvaartOutro() : def.outro || def.label;
-  noteMoney('Missies');
-  world.money += reward;
-  if (world.coopDeel) world.coopDeel(reward); // samen spelen (#365): de gasten krijgen hun deel
+  if (mee) { noteMoney('Missies'); world.money += reward; }
+  if (world.coopDeel) world.coopDeel(reward); // samen spelen (#365): de meespelende gasten krijgen hun deel, ook als de gastheer toekijkt
   if (world.coopUitslag) world.coopUitslag(true, def.label, '', reward); // en horen dat het gelukt is (#371)
-  world.stats.missionsDone++;
-  world.addMessage(`${def.label} geklaard! ${replay ? 'Klusloon ' : ''}+€${base}${tip ? ` en €${tip} fooi` : ''}${adj.text}${cons.text}`, 4);
-  const stats = runStats(world, def);
-  // what the mission cost on the way (Het Loket: the entry fee), so the card is honest about a reward of 0
-  if (def.costRow && !replay) stats.push(def.costRow);
-  if (!replay) stats.push(...consequenceAdjust(def).rows);
-  // a flawless run earns the highest compliment there is (flavour.js has an NPC say it too)
-  const r = chain.run;
-  if (r && r.hurt < 0.5 && (!r.vehicleUsed || r.vehDamage < 3) && (!r.racePos || r.racePos === 1)) {
-    stats.push(['Oordeel', PERFECT_VERDICT]);
-    world.lastPerfectRun = world.time;
+  if (mee) {
+    world.stats.missionsDone++;
+    world.addMessage(`${def.label} geklaard! ${replay ? 'Klusloon ' : ''}+€${base}${tip ? ` en €${tip} fooi` : ''}${adj.text}${cons.text}`, 4);
+    const stats = runStats(world, def);
+    // what the mission cost on the way (Het Loket: the entry fee), so the card is honest about a reward of 0
+    if (def.costRow && !replay) stats.push(def.costRow);
+    if (!replay) stats.push(...consequenceAdjust(def).rows);
+    // a flawless run earns the highest compliment there is (flavour.js has an NPC say it too)
+    const r = chain.run;
+    if (r && r.hurt < 0.5 && (!r.vehicleUsed || r.vehDamage < 3) && (!r.racePos || r.racePos === 1)) {
+      stats.push(['Oordeel', PERFECT_VERDICT]);
+      world.lastPerfectRun = world.time;
+    }
+    playStoryOutro(world, i, { stage: storyStage(i), short: chain.completed.has(i), reward, stats, reason });
+  } else {
+    // de gastheer keek toe: de opdracht is klaar, maar zijn eigen verhaal, geld en loopbaanpunten blijven waar ze waren (#452)
+    world.addMessage(`${def.label} geklaard, zonder jou. Geen beloning of voortgang voor jou.`, 4);
   }
-  playStoryOutro(world, i, { stage: storyStage(i), short: chain.completed.has(i), reward, stats, reason });
   const borrowed = def.handBack ? chain.vehicle : null;
   // a replayed kraak has no train trip after it: their own clothes straight away
   if (def.heist && replay) setStoryOutfit(null);
   releaseMissionVehicle(world);
   if (borrowed) handBack(world, def, borrowed);
-  chain.completed.add(chain.index);
+  if (mee) chain.completed.add(chain.index);
   chain.run = null;
   chain.index = nextOpenMission(i);
+  sluitGastStart(world, mee); // keek de gastheer toe, dan springt zijn eigen keten terug naar waar hij was (#452)
   chain.phase = 'idle';
   chain.wpIndex = 0;
   chain.stage = null;
-  hooks.passed(world, i);
+  if (mee) hooks.passed(world, i);
 }
 
 // achievementtracker.js after a medal run: the one-time bonus for each tier
@@ -1512,10 +1545,12 @@ function nextOpenMission(i) {
 function fail(world, def, reason) {
   const pretty = reason ? reason[0].toUpperCase() + reason.slice(1) : def.label;
   const i = chain.index;
-  playStoryFail(world, i, { reason: pretty, stats: runStats(world, def) });
+  const mee = gastStartMee(world); // een opdracht van een gast die de gastheer niet meespeelt: geen verhaalgevolg voor hem (#452)
+  if (mee) playStoryFail(world, i, { reason: pretty, stats: runStats(world, def) });
   if (world.coopUitslag) world.coopUitslag(false, def.label, pretty); // samen spelen (#371): de gasten horen het
   endInFailure(world, `${def.label} mislukt${reason ? ' — ' + reason : ''}`);
-  hooks.failed(world, i);
+  sluitGastStart(world, mee);
+  if (mee) hooks.failed(world, i);
 }
 
 function endInFailure(world, text) {
@@ -2265,6 +2300,7 @@ function updateRetry(dt, world, def) {
 
 export function updateMissions(dt, world) {
   if (!chain) return;
+  gastheerVraagTik(world, dt); // de gastheer kreeg "Meedoen?" bij de opdracht van een gast (#452): J of N
   resolveSpotStarts(world);
   updateStoryProps(dt);
   updateHandBack(dt, world);
