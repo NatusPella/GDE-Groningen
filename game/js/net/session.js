@@ -102,13 +102,13 @@ export class HostSession extends Base {
     if (this.guest && tok && tok === this.guest.token) { // hervatten of herhaalde hello
       const resumed = this.status === 'lost';
       this.lastRecv = this.now; this.lostAt = null; this._setStatus('ok');
-      reply({ ok: true, slot: this.slot, token: this.guest.token, seed: this.cfg.seed, resumed, caps: this.caps, ...this.extra });
+      reply(this._welkom({ ok: true, slot: this.slot, token: this.guest.token, seed: this.cfg.seed, resumed, caps: this.caps, ...this.extra }));
       if (resumed) { this.rel.reset(); this._sendResync(); }
       return;
     }
     if (this.guest && !tok && this.guest.lastInputSeq == null) { // welkom ging verloren: herhaal
       this.lastRecv = this.now; this._setStatus('ok');
-      return reply({ ok: true, slot: this.slot, token: this.guest.token, seed: this.cfg.seed, resumed: false, caps: this.caps, ...this.extra });
+      return reply(this._welkom({ ok: true, slot: this.slot, token: this.guest.token, seed: this.cfg.seed, resumed: false, caps: this.caps, ...this.extra }));
     }
     if (this.guest && this.status !== 'lost') { this.rejected.push('vol'); return reply({ ok: false, reason: 'vol' }); }
     if (this.guest && tok !== this.guest.token) { this.rejected.push('token'); if (tok) return reply({ ok: false, reason: 'token' }); }
@@ -120,9 +120,15 @@ export class HostSession extends Base {
     this.guest = { token: makeToken(this.rand), lastInputSeq: null, input: neutral(), lastInputAt: this.now, joinedAt: this.now };
     this.lastRecv = this.now; this.lostAt = null; this.rel.reset(); this._setStatus('ok');
     this.caps = negotiate(this.cfg.caps, m.body.caps);
-    reply({ ok: true, slot: this.slot, token: this.guest.token, seed: this.cfg.seed, resumed: false, caps: this.caps, ...this.extra });
+    reply(this._welkom({ ok: true, slot: this.slot, token: this.guest.token, seed: this.cfg.seed, resumed: false, caps: this.caps, ...this.extra }));
     this._sendResync();
     if (this.onjoin) this.onjoin(this.slot);
+  }
+  // Het welkom plus de vaste identiteit van deze sessie (#450): een gast weet zo bij welke sessie hij hoort en vindt hem later
+  // in de lijst terug. Klein: het id en de naam, geen spelers, geen adressen.
+  _welkom(basis) {
+    const s = this.cfg.sessie ? this.cfg.sessie() : null;
+    return s && s.id ? { ...basis, sessie: { id: String(s.id), naam: String(s.naam || '') } } : basis;
   }
   _input(buf) {
     const m = decodeInput(buf); if (!m) return;
@@ -231,6 +237,7 @@ export class ClientSession extends Base {
   constructor(link, cfg, rand) {
     super(link, 'client', rand);
     this.cfg = cfg; this.slot = null; this.seed = null; this.caps = []; this.token = cfg.token || null;
+    this.sessie = null; // { id, naam }: bij welke sessie deze gast hoort (#450), uit het welkom
     this.buf = new SnapBuffer(); this.inputSeq = 0; this.inputAcc = 0; this.pendingInput = neutral();
     this.helloAt = -1; this.wachtHello = 0; this.rejected = null; this.lastSnapSeq = null; this.lastExtraSeq = null; this.onextra = null; this.onlost = null; this.onresync = null; this.joined = false;
   }
@@ -243,6 +250,7 @@ export class ClientSession extends Base {
       if (!m.body.ok) { this.rejected = m.body.reason; this.remoteVersion = typeof m.body.version === 'string' ? m.body.version.slice(0, 20) : ''; this._setStatus('geweigerd'); return; }
       if (this.token && m.body.token !== this.token) this.rel.reset(); // een nieuwe sessie (te lang weg geweest): onze eigen stroom naar de host begint ook opnieuw; de stroom van de host volgt vanzelf (tijdperk)
       this.welcome = m.body; // inclusief wat de hub meegaf: personage, lijst van spelers
+      if (m.body.sessie && typeof m.body.sessie.id === 'string') this.sessie = { id: m.body.sessie.id.slice(0, 16), naam: typeof m.body.sessie.naam === 'string' ? m.body.sessie.naam.slice(0, 24) : '' }; // bij welke sessie je hoort (#450)
       this.lastExtraSeq = null; this.slot = m.body.slot; this.seed = m.body.seed; this.caps = Array.isArray(m.body.caps) ? m.body.caps : []; this.token = m.body.token; this.joined = true;
       if (m.body.resumed) this.buf.clear();
       this._setStatus('ok');

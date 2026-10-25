@@ -268,7 +268,7 @@ export function startHost(world, info, opts = {}) {
   const { onHold = null, fade = null, route = null, onChange = null, scene = null } = opts;
   let hub;
   hub = new HostHub({
-    info, seed: opts.seed ?? 1, max: opts.max, caps: CAPS, rand: opts.rand,
+    info, seed: opts.seed ?? 1, max: opts.max, caps: CAPS, rand: opts.rand, koploos, // het aantal in de lijst telt geen lege plek 0 (#450)
     sim: hostSim(world, () => hub.roster, { koploos }),
     onJoin: (slot, char, avatar = null) => {
       if (world.coopNet && world.coopNet.missie) hub.announce(missieBericht(null, world.mission).event || { k: 'missie', actief: false }, slot);

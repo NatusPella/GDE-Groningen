@@ -120,6 +120,7 @@ t('hervatten over een NIEUWE verbinding (nieuwe code): dezelfde speler krijgt de
   const l2 = createLink({ latency: 0.03, seed: 77 }); r.hub.accept(l2.a); r.links.push(l2);
   b.reconnect(l2.b); r.step(4);
   assert.equal(b.status, 'ok'); assert.equal(b.slot, 2); assert.equal(b.token, token);
+  assert.deepEqual(b.sessie, { id: r.hub.id, naam: '' }, 'het welkom herhaalt de sessie (#450)');
   assert.deepEqual(r.hub.roster.spelers.map((x) => x.slot), [0, 1, 2]);
   assert.equal(r.hub.roster.spelers.find((x) => x.slot === 2).verbinding, 'ok'); assert.equal(a.status, 'ok');
 });
@@ -151,5 +152,41 @@ t('verkeerde versie: ook in een sessie met veel spelers geweigerd, zonder plek t
 t('sluiten ruimt alles op', () => {
   const r = room(); r.add(); r.add(); r.step(2); r.hub.closeAll(); r.step(1);
   assert.equal(r.hub.sessions.size, 0);
+});
+t('een openbare sessie (#450): de hub houdt naam en een vast id, telt de echte spelers en stopt bij het einde', () => {
+  const r = room(), gezien = [];
+  assert.equal(r.hub.publiek(), null, 'standaard privé: niets in de lijst');
+  assert.match(r.hub.id, /^[a-z0-9]{10}$/, 'de sessie heeft een eigen id');
+  r.hub.opOpenbaar = (p) => gezien.push(p);
+  assert.equal(r.hub.zetOpenbaar(true, 'Kanker').ok, false, 'hetzelfde filter als een online naam (constitutie 10)');
+  assert.equal(r.hub.publiek(), null, 'een geweigerde naam maakt niets openbaar');
+  const aan = r.hub.zetOpenbaar(true, 'Zomeravond');
+  assert.deepEqual([aan.ok, aan.naam, aan.id], [true, 'Zomeravond', r.hub.id]);
+  const p1 = r.hub.publiek();
+  assert.deepEqual(p1, { id: r.hub.id, naam: 'Zomeravond', spelers: 1, max: 4 }, 'alleen de gastheer');
+  assert.deepEqual(gezien.at(-1), p1, 'wie de regel plaatst hoort hem meteen');
+  // een gast erbij telt mee; valt hij weg, dan telt zijn wachtende plek niet mee
+  const c = r.add(); r.step(2);
+  assert.equal(r.hub.publiek().spelers, 2);
+  assert.deepEqual(c.sessie, { id: r.hub.id, naam: 'Zomeravond' }, 'de gast kent zijn sessie uit het welkom');
+  r.links[0].set({ loss: 1 }); r.step(6);
+  assert.equal(r.hub.publiek().spelers, 1, 'een plek die op een terugkerende gast wacht telt niet mee');
+  r.links[0].set({ loss: 0 }); r.step(4);
+  assert.equal(c.status, 'ok');
+  // weer privé en opnieuw openbaar: hetzelfde id, dus dezelfde regel in de lijst
+  r.hub.zetOpenbaar(false);
+  assert.equal(r.hub.publiek(), null); assert.equal(gezien.at(-1), null, 'stoppen meldt het meteen');
+  assert.equal(r.hub.zetOpenbaar(true, 'Zomeravond').id, p1.id, 'het id blijft dat van deze sessie, ook na privé');
+  // het einde van de sessie haalt hem uit de lijst: er blijft geen aankondiging hangen
+  r.hub.closeAll();
+  assert.equal(gezien.at(-1), null, 'de sessie stopt: de aankondiging ook');
+});
+t('een gast in een privésessie kent alleen het id (#450); wie geweigerd wordt krijgt geen sessie', () => {
+  const r = room(); const c = r.add(); r.step(2);
+  assert.deepEqual(c.sessie, { id: r.hub.id, naam: '' }, 'privé: wel het id, geen naam');
+  const l = createLink({ latency: 0.02 }); r.hub.accept(l.a);
+  const oud = new ClientSession(l.b, { info: { ...INFO, version: 'oud' } }, makeRng(3)); r.clients.push(oud); r.links.push(l);
+  r.step(2);
+  assert.equal(oud.rejected, 'versie'); assert.equal(oud.sessie, null);
 });
 console.log(`net_hub_test: ${n}/${n} ok`);

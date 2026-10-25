@@ -28,7 +28,7 @@ const geheugen = new Map();
 globalThis.localStorage = { getItem: (k) => (geheugen.has(k) ? geheugen.get(k) : null), setItem: (k, v) => geheugen.set(k, String(v)), removeItem: (k) => geheugen.delete(k) }; // nooit de echte opslag
 
 const { mountLobby } = await import('../game/js/lobbyui.js');
-const { codeer } = await import('../game/js/net/serverlijst.js');
+const { codeer, schoonNaam } = await import('../game/js/net/serverlijst.js');
 const { PROTO } = await import('../game/js/net/protocol.js');
 const { VERSION } = await import('../game/js/version.js');
 
@@ -40,7 +40,19 @@ function fakeRoot() {
   r.click = (act) => r.handlers.forEach((h) => h({ target: { closest: () => ({ dataset: { act } }) } }));
   return r;
 }
-const hub = () => ({ roster: { max: 4, spelers: [{ slot: 0 }] }, vrijePlekken: true });
+// De hub van een sessie (#450): hij houdt de naam, een vast id en het echte aantal spelers vast; de lobby plaatst de regel.
+const hub = (naam = null) => {
+  const h = { id: 'hubbhubhub', openbaar: null, opOpenbaar: null, roster: { max: 4, spelers: [{ slot: 0, verbinding: 'ok' }] }, vrijePlekken: true };
+  h.publiek = () => (h.openbaar ? { id: h.id, naam: h.openbaar, spelers: Math.max(1, h.roster.spelers.filter((s) => s.verbinding !== 'lost').length), max: h.roster.max } : null);
+  h.zetOpenbaar = (aan, n) => {
+    if (!aan) { const was = !!h.openbaar; h.openbaar = null; if (was && h.opOpenbaar) h.opOpenbaar(null); return { ok: true, openbaar: false }; }
+    const r = schoonNaam(n); if (!r.ok) return { ok: false, reason: r.reason };
+    h.openbaar = r.naam; if (h.opOpenbaar) h.opOpenbaar(h.publiek());
+    return { ok: true, openbaar: true, naam: r.naam, id: h.id };
+  };
+  if (naam) h.openbaar = naam;
+  return h;
+};
 const hooks = (extra = {}) => ({ startHost: () => hub(), addGuest() {}, startClient() {}, setMax: (m) => m, ...extra });
 const start = () => sockets.length;
 const nieuw = (van) => sockets.slice(van);
@@ -140,6 +152,7 @@ await t('host: akkoord zet de sessie openbaar (naam, spelers, versie, kamercode,
   const tekst = lijstSockets.flatMap((s) => s.sent).filter((d) => d.includes('Zomeravond')).join('\n');
   assert.ok(tekst.includes(codeVoor.replace('-', '')) , 'met de kamercode');
   assert.ok(tekst.includes(VERSION), 'met de versie');
+  assert.ok(tekst.includes('"i":"hubbhubhub"') || tekst.includes('hubbhubhub'), 'met het vaste id van de sessie (#450)');
   assert.ok(!/\d+\.\d+\.\d+\.\d+/.test(tekst.replace(new RegExp(VERSION.replace(/\./g, '\\.'), 'g'), '')), 'geen IP-adres');
   const s1 = start();
   root.click('privaat'); await tick(150);
@@ -165,6 +178,24 @@ await t('host: stoppen of het scherm sluiten haalt de sessie meteen uit de lijst
   root2.click('terug'); await tick(20);
   assert.equal(l2.state().openbaar, false); assert.ok(ann2.every((s) => s.closed));
   l2.close();
+});
+await t('een lopende openbare sessie (#450): het paneel opnieuw openen plaatst dezelfde regel, met hetzelfde id en dezelfde kamercode', async () => {
+  const h = hub('Zomeravond'); // de hub van de sessie die al loopt: openbaar, met een vast id
+  const s0 = start(); const root = fakeRoot();
+  const lobby = mountLobby(root, hooks({ startHost: () => h }), { adopt: { code: 'K3J9D-8F2MN', route: 'kamer' }, rol: 'host', hub: h });
+  await tick(120);
+  assert.equal(lobby.state().openbaar, true, 'het paneel leest de openbare regel uit de hub');
+  assert.match(root.innerHTML, /Sessie weer privé maken/);
+  const ann = nieuw(s0).filter((x) => x.sent.some((d) => d.includes('Zomeravond')));
+  assert.ok(ann.length >= 1, 'de lopende sessie staat meteen weer in de lijst');
+  const tekst = ann.flatMap((x) => x.sent).join('\n');
+  assert.ok(tekst.includes(h.id), 'met het vaste id: dezelfde regel in de lijst');
+  assert.ok(tekst.includes('K3J9D8F2MN'), 'met de kamercode van de lopende sessie');
+  // weer privé: de hub gaat uit en de aankondiging stopt
+  root.click('privaat'); await tick(150);
+  assert.equal(h.openbaar, null, 'de hub weet het ook'); assert.equal(lobby.state().openbaar, false);
+  assert.ok(ann.every((x) => x.closed), 'de aankondiging stopt');
+  lobby.close();
 });
 await t('de kamercode invoeren werkt nog als voorheen', async () => {
   const root = fakeRoot(); const lobby = mountLobby(root, hooks());

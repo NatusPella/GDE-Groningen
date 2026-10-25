@@ -7,6 +7,7 @@
 import { HostSession } from './session.js';
 import { T, encodeJson, readHeader, decodeJson } from './codec.js';
 import { checkHandshake } from './protocol.js';
+import { schoonNaam, maakId } from './serverlijst.js';
 import { createRoster, wijsPlekToe, verwijder, zetMax, zetVerbinding, zetAvatar, lijst, lijstEvent, charInfo, heeftPlek } from '../coopplayers.js';
 
 export const PENDING_MAX = 20; // s: een verbinding die in zo lang geen geldige hello stuurde (of geweigerd is), wordt gesloten en vergeten
@@ -18,7 +19,37 @@ export class HostHub {
     this.sessions = new Map();   // slot -> HostSession
     this.pending = new Set();    // sessies die nog geen plek hebben
     this.onchange = null;        // roster veranderd (voor lobby en HUD)
+    this.id = maakId(cfg.rand);  // de vaste identiteit van deze sessie (#450): de lijst en de gasten verwijzen ernaar
+    this.openbaar = null;        // { naam } zolang de gastheer de sessie in de openbare lijst houdt (#438); standaard privé
+    this.opOpenbaar = null;      // wie de regel plaatst (lobbyui.js): hoort het als hij aan- of uitgaat
     this.snapCache = null; this.snapTick = -1; this.tickN = 0;
+  }
+
+  // De openbare regel van deze sessie (#438, #450): de naam, het vaste id en het aantal spelers van dit moment. Null zolang
+  // de gastheer de sessie privé houdt. Wie hem plaatst vraagt hem bij elke aankondiging opnieuw op, dus een gast die
+  // binnenkomt of wegvalt telt meteen mee (een plek die op een terugkerende gast wacht telt niet).
+  publiek() {
+    if (!this.openbaar) return null;
+    const nu = this.roster.spelers.filter((s) => s.verbinding !== 'lost').length;
+    const zonderSpeler = this.cfg.koploos ? 1 : 0; // een gastheer zonder speler (#450) is geen speler in de lijst
+    return { id: this.id, naam: this.openbaar.naam, spelers: Math.max(1, nu - zonderSpeler), max: this.roster.max };
+  }
+
+  // De sessie openbaar maken of weer privé (#438, #450). De naam gaat door hetzelfde filter als een online naam
+  // (constitutie 10); het id blijft dat van deze sessie, ook als hij even privé was. Zo houdt de sessie één vaste regel in de
+  // lijst in plaats van elke keer een nieuwe, en vindt wie hem zag hem terug. Geeft { ok, openbaar, naam?, id?, reason? }.
+  zetOpenbaar(aan, naam) {
+    const was = !!this.openbaar;
+    if (!aan) {
+      this.openbaar = null;
+      if (was && this.opOpenbaar) this.opOpenbaar(null);
+      return { ok: true, openbaar: false };
+    }
+    const r = schoonNaam(naam);
+    if (!r.ok) return { ok: false, openbaar: was, reason: r.reason };
+    this.openbaar = { naam: r.naam };
+    if (this.opOpenbaar) this.opOpenbaar(this.publiek());
+    return { ok: true, openbaar: true, naam: r.naam, id: this.id };
   }
 
   // Een nieuwe verbinding van een gast. Er is nog geen plek: die komt bij zijn eerste geldige hello.
@@ -41,6 +72,7 @@ export class HostHub {
     let ses = null;
     const cfg = {
       info: this.cfg.info, seed: this.cfg.seed, caps: this.cfg.caps,
+      sessie: () => ({ id: hub.id, naam: hub.openbaar ? hub.openbaar.naam : '' }), // de gast weet bij welke sessie hij hoort (#450)
       sim: { applyInput: (slot, input, seq) => this.cfg.sim.applyInput(slot, input, seq), snapshot: () => this._snapshot(), fullState: () => this.cfg.sim.fullState(), extra: (slot, tick) => (this.cfg.sim.extra ? this.cfg.sim.extra(slot, tick) : null) },
       assign(hello) {
         const p = wijsPlekToe(hub.roster, hello && hello.char);
@@ -116,5 +148,10 @@ export class HostHub {
   setMax(n) { const m = zetMax(this.roster, n); this._announceList(); return m; }
   get vrijePlekken() { return heeftPlek(this.roster); }
   status(slot) { const s = this.sessions.get(slot); return s ? s.status : null; }
-  closeAll() { for (const s of [...this.sessions.values()]) s.leave(); for (const s of this.pending) { try { s.link.close && s.link.close(); } catch (e) { /* weg */ } } this.pending.clear(); }
+  closeAll() {
+    if (this.openbaar) this.zetOpenbaar(false); // de sessie stopt: weg uit de lijst (#450)
+    for (const s of [...this.sessions.values()]) s.leave();
+    for (const s of this.pending) { try { s.link.close && s.link.close(); } catch (e) { /* weg */ } }
+    this.pending.clear();
+  }
 }
