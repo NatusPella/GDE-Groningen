@@ -1,7 +1,7 @@
 // Test voor de reclametaxi (#404): de teksten (Nederlands, verzonnen, geen echt bedrijf of nummer), het deuntje (een lus
 // van eigen noten) en wanneer er een taxi gaat omroepen (hooguit één, af en toe, alleen een rijdende bestaande taxi).
 import assert from 'node:assert';
-import { REKLAME, SONG, STAP_S, LUS_S, midiHz, nootenTussen, REKLAME_REGELS, isReklameTaxi, kiesReklameTaxi, maakReklame, stapReklame } from '../game/js/reklametaxi.js';
+import { REKLAME, SONG, STAP_S, LUS_S, midiHz, nootenTussen, REKLAME_REGELS, isReklameTaxi, kiesReklameTaxi, maakReklame, stapReklame, scrollBand, BAND_SNELHEID, bordActie } from '../game/js/reklametaxi.js';
 
 let n = 0;
 const ok = (c, naam, x) => { n++; assert.ok(c, naam + (x !== undefined ? ' ' + JSON.stringify(x) : '')); };
@@ -104,6 +104,34 @@ ok(kiesReklameTaxi([], speler, rng0) === null, 'geen taxi');
   ok(stapReklame(st, 1, 5, { voertuigen: [taxi()], speler, rng: rng0, mag: false }).length === 0 && !st.taxi, 'niet tijdens een filmpje');
   const st2 = mk();
   ok(stapReklame(st2, 1, 5, { voertuigen: [], speler, rng: rng0 }).length === 0 && st2.volgende === 5 + 15, 'zonder taxi na 15 s opnieuw');
+}
+
+// --- de lopende tekstband op het dakbord (#404, #436) ---
+{
+  // per seconde, niet per beeld: bij een lange of korte beeldtijd even ver
+  ok(Math.abs(scrollBand(0, 1) - BAND_SNELHEID) < 1e-9, 'de band schuift per seconde');
+  ok(Math.abs(scrollBand(0, 0.5) - BAND_SNELHEID * 0.5) < 1e-9, 'een half beeld is half zo ver');
+  ok(Math.abs(scrollBand(0.5, 0.5) - (0.5 + BAND_SNELHEID * 0.5)) < 1e-9, 'de band gaat verder waar hij was');
+  ok(scrollBand(0, 0) === 0, 'stilstand laat de band staan');
+  let o = 0.9;
+  for (let i = 0; i < 5; i++) o = scrollBand(o, 0.5);
+  ok(o >= 0 && o < 1, 'de band blijft binnen 0..1 na een ronde', o);
+  ok(scrollBand(0.99, -0.5) >= 0 && scrollBand(0.99, -0.5) < 1, 'ook bij een negatieve dt blijft de band in zijn baan');
+  ok(BAND_SNELHEID > 0.02 && BAND_SNELHEID < 0.3, 'de band loopt leesbaar, niet te snel', BAND_SNELHEID);
+}
+
+// --- het dakbord en de mesh van de taxi (#436) ---
+{
+  // een nieuwe taxi of nog geen bord: maken
+  ok(bordActie({ heeftBord: false }) === 'maak', 'zonder bord een bord maken');
+  // de mesh is er even niet (ver weg, net opnieuw gebouwd): het bord blijft, het is van de taxi
+  ok(bordActie({ heeftBord: true, hangt: true }) === 'laat', 'zonder mesh blijft het bord staan');
+  ok(bordActie({ heeftBord: true, hangt: false }) === 'hang', 'zonder mesh en los hangend: niet weggooien');
+  // dezelfde mesh, bord hangt er niet meer aan (een opruimronde haalde het eraf): terug eraan
+  ok(bordActie({ heeftBord: true, levendMesh: true, zelfdeMesh: true, hangt: false }) === 'hang', 'zelfde mesh: bord er weer aan');
+  ok(bordActie({ heeftBord: true, levendMesh: true, zelfdeMesh: true, hangt: true }) === 'laat', 'zelfde mesh en hangt: niets doen');
+  // een ander, levend model voor dezelfde taxi: het bord hoort bij het nieuwe model
+  ok(bordActie({ heeftBord: true, levendMesh: true, zelfdeMesh: false, hangt: true }) === 'vervang', 'nieuw model: bord vervangen');
 }
 
 console.log(`reklametaxi_test ok (${n} controles)`);

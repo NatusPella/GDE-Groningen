@@ -5,15 +5,15 @@
 
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getVehicleMesh } from './models3d_vehicles.js';
+import { markShared } from './pixelart3d.js';
 import { playReklameNoot, playReklameKraak } from './audio.js';
 import { noteSound } from './soundcaptions.js';
 import { isCinematicActive } from './cinematics.js';
-import { REKLAME, maakReklame, stapReklame, nootenTussen, midiHz } from './reklametaxi.js';
+import { REKLAME, maakReklame, stapReklame, nootenTussen, midiHz, scrollBand, bordActie } from './reklametaxi.js';
 
 const ROOF_Y = 1.62;      // m: de onderkant van het bord boven het voertuigdek van een taxi
-const BAND_SNELHEID = 0.09; // tekstband: delen van de band per seconde
 let st = null;
-let bord = null;          // { taxi, groep, tex }
+let bord = null;          // { taxi, mesh, groep, tex }
 let noten = 0, kreten = 0; // geteld voor window.__reklametaxi (de bot en de beeldtest)
 
 function bandTexture() {
@@ -49,6 +49,17 @@ function maakBord(taxi) {
     vlak.rotation.y = ry;
     groep.add(vlak);
   }
+  // Het dakbord hoort bij de taxi en niet bij de mesh: een opruimronde van de mesh (LOD, wrak, een nieuwe
+  // deuk) disposeert de geometrie en de materialen van alles wat eraan hangt. Zonder deze vlag kwam het bord
+  // er wel weer aan te hangen, maar was het al weggegooid: de taxi leek zijn lichtkrant te verliezen (#436).
+  // haalBordWeg gooit ze zelf op.
+  groep.traverse((o) => {
+    if (!o.isMesh) return;
+    o.castShadow = false; o.receiveShadow = false;
+    markShared(o.geometry);
+    markShared(o.material);
+  });
+  markShared(tex);
   mesh.add(groep);
   return { taxi, mesh, groep, tex };
 }
@@ -88,12 +99,16 @@ function tick(dt, w) {
   }
   const taxi = st.taxi;
   if (!taxi) return;
-  // het dakbord: de mesh van een taxi ver weg bestaat niet altijd; hij komt erbij zodra hij er is
-  if (bord && bord.mesh !== getVehicleMesh(taxi.id)) haalBordWeg();
-  if (!bord) bord = maakBord(taxi);
-  else if (bord.groep.parent !== bord.mesh) bord.mesh.add(bord.groep); // het dakbord hangt altijd aan de mesh van deze taxi (een opruimronde van de mesh nam het soms mee, #436)
+  // Het dakbord: alleen vervangen als er een ánder, levend model voor deze taxi staat. Is de mesh even
+  // weg (de wereld bouwt hem opnieuw of hij is nog niet gebouwd), dan blijft het bord staan en hangt het
+  // er weer aan zodra de mesh er is: het bord is van de taxi, niet van de mesh (#436).
+  const levend = getVehicleMesh(taxi.id);
+  const actie = bordActie({ heeftBord: !!bord, levendMesh: !!levend, zelfdeMesh: !!bord && bord.mesh === levend, hangt: !!bord && bord.groep.parent === bord.mesh });
+  if (actie === 'vervang') haalBordWeg();
+  if (actie === 'vervang' || actie === 'maak') bord = maakBord(taxi);
+  else if (actie === 'hang' && bord) bord.mesh.add(bord.groep);
   if (bord) bord.groep.visible = true;
-  if (bord) bord.tex.offset.x = (bord.tex.offset.x + dt * BAND_SNELHEID) % 1;
+  if (bord) bord.tex.offset.x = scrollBand(bord.tex.offset.x, dt);
   // het deuntje: de noten van dit beeld, op de plek van de taxi met zijn snelheid voor de Doppler
   const t0 = st.songT - dt;
   const vx = Math.cos(taxi.angle) * taxi.speed, vy = Math.sin(taxi.angle) * taxi.speed;
