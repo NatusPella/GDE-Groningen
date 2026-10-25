@@ -42,3 +42,7 @@ docs/verhaal/nieuw/export/
 # lokale agent-tooling
 .opencode/
 .specsmd/
+
+# FIRE-planning en run-state (lokaal)
+.specs-fire/
+
