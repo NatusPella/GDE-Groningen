@@ -10,7 +10,7 @@ import { vehicleHooks } from './vehiclehooks.js';
 import { splatterPed, bleedPed, GIB_SPEED } from './gore3d.js';
 import { railHeightFn } from './railprofile.js';
 import { onPerron } from './perrons.js';
-import { duwVanWagen, volgTrein, TREIN_SPRONG_M } from './treincoop.js';
+import { duwVanWagen, volgTrein, treinKlap, TREIN_SPRONG_M } from './treincoop.js';
 import { MAP_PALETTE, INK } from './mapstyle.js';
 
 const HALF_WIDTH = 1.45;
@@ -759,7 +759,18 @@ function hitPlayer(t, car, push, world) {
 function hitCompanion(c, t, car, push, world) {
   c.x += push.nx * push.depth;
   c.y += push.ny * push.depth;
-  if (t.v < 1.5 || c._trainHitAt > world.time - HIT_COOLDOWN) return;
+  const klap = treinKlap(t.v, world.time, c._trainHitAt);
+  // (#434) is plek 1 een gast (world.coop.remote), dan is zijn gezondheid van hem: dezelfde schade gaat als bericht naar zijn eigen spel
+  const gast = typeof world.coopSchade === 'function' && !!(world.coop && world.coop.remote);
+  if (!klap) return;
+  if (gast) {
+    c._trainHitAt = world.time;
+    world.coopSchade(1, klap.schade, 'trein');
+    // het lichaam opzij, zonder neergaan: de gast bestuurt zijn eigen lichaam en ziet zijn eigen gezondheid dalen
+    c.vx = 0; c.vy = 0;
+    world.addMessage('Een medespeler is aangereden door de trein!', 3);
+    return;
+  }
   c._trainHitAt = world.time;
   const tv = t.v * t.dir;
   c.health = Math.max(0, (c.health ?? 100) - (25 + t.v * 3.5));
@@ -822,8 +833,17 @@ function resolveContacts(world) {
       }
       if (world.coopFigures) for (const f of Object.values(world.coopFigures)) { // de derde en vierde speler (#434): een trein rijdt niet door ze heen, ze worden opzij gezet
         if (!f || f.inVeh || !Number.isFinite(f.x) || Math.abs(f.x - car.x) > reach || Math.abs(f.y - car.y) > reach || inRailBridgeZone(f.x, f.y) || opPerron(world, f.x, f.y, f.gz || 0)) continue;
+        if (Math.abs((f.gz || 0) + (f.z || 0) - (car.z || 0)) > 3.5) continue; // een viaduct of een hoog perron: niet op het spoor
         const push = pushOut(car, hl, f.x, f.y, 0.35);
-        if (push) { f.x += push.nx * push.depth; f.y += push.ny * push.depth; }
+        if (!push) continue;
+        f.x += push.nx * push.depth; f.y += push.ny * push.depth;
+        // (#434) de klap telt ook voor hem: zijn gezondheid is van hem, dus gaat de schade als bericht naar die gast
+        const klap = treinKlap(t.v, world.time, f._trainHitAt);
+        if (klap) {
+          f._trainHitAt = world.time;
+          if (typeof world.coopSchade === 'function') world.coopSchade(f.slot, klap.schade, 'trein');
+          if (world.addMessage) world.addMessage(`${f.naam || 'Een speler'} is aangereden door de trein!`, 3);
+        }
       }
       for (const ped of high ? [] : world.pedestrians) {
         if (Math.abs(ped.x - car.x) > reach || Math.abs(ped.y - car.y) > reach || opPerron(world, ped.x, ped.y, ped.gz || 0)) continue;
