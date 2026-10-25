@@ -45,6 +45,8 @@ Alleen één Electron-instantie tegelijk en geen nieuwe agents tijdens een relea
 
 **Specs en uitvoering:** groter werk plan je met specsmd FIRE (`/specsmd-fire-planner`) en voer je uit met UltraCode. De rolverdeling in [docs/SPECS-FIRE.md](docs/SPECS-FIRE.md) is **verplicht voor iedere agent, ook voor subagents**: lees dat bestand vóór je groter werk plant, opknipt of uitvoert, en volg de loop, de mode-mapping en de harde regels. Er is één uitvoeringspad: nooit FIRE's `builder`-skill naast UltraCode. Wijkt deze AGENTS.md af, dan wint AGENTS.md.
 
+De inhoudelijke specs staan in [.specs-fire/standards/](.specs-fire/standards/): per systeem één canonieke spec (`multiplayer.md`, `wereld.md`, `mechanica.md`, `verhaal.md`, `ui-taal.md`, `publicatie.md`) naast de standaarden (`coding-standards.md`, `testing-standards.md`, `tech-stack.md`, `system-architecture.md`, `constitution.md`). Die specs zijn het *hoe*; het bord is het *wat*. Een gebiedsdoc in `docs/` blijft naslag en verwijst naar zijn spec; wijkt een doc af van de code, dan is de doc de fout.
+
 ## Testen
 
 - Alles in één keer, met rapport: `node scripts/test_all.mjs --fase=licht|zwaar|electron|alles` (zie [docs/TESTEN.md](docs/TESTEN.md)).
