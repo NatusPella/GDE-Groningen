@@ -36,9 +36,11 @@ export function travelOptions(beat) {
   const realRide = travelSeconds(length, ride.mode);
   const realSelf = travelSeconds(length, selfMode);
   const opts = [];
+  // 'Snel reizen' alleen, of met hoe je meerijdt: 'Snel reizen · met de trein' (#445)
+  const rideLabel = beat.ride && beat.ride !== 'lift' ? ` · ${ride.label.toLowerCase()}` : '';
   // played time is cut to the ceiling; the clock still runs for the real time
   opts.push({
-    id: 'meerijden', label: `Snel reizen · ${ride.label.toLowerCase()}`, ride: ride.label, uitleg: UITLEG.meerijden, kosten: 'gratis', etaS: realRide, playS: Math.min(realRide, CAP.meerijden), clockS: realRide,
+    id: 'meerijden', label: `Snel reizen${rideLabel}`, ride: ride.label, uitleg: UITLEG.meerijden, kosten: 'gratis', etaS: realRide, playS: Math.min(realRide, CAP.meerijden), clockS: realRide,
     eta: label(realRide), reward: false,
   });
   // driving yourself longer than the ceiling is split by cuts into pieces

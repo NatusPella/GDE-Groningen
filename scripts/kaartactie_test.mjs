@@ -33,6 +33,13 @@ ok(ander.acties[0].id === 'waypoint' && /Vervangt/.test(ander.acties[0].sub), 'e
 ok(K.opWaypoint({ x: 0, y: 0 }, { x: 10, y: 10 }) && !K.opWaypoint({ x: 0, y: 0 }, { x: 100, y: 0 }) && !K.opWaypoint(null, { x: 0, y: 0 }), 'opWaypoint: dichtbij telt');
 ok(K.actieModel({ spot, speler, waypoint: null, opts, verhaal: true }).acties[0].id === 'story', 'het verhaaldoel: Volg het verhaal');
 
+// 2b. de vijf-seconden-check (#445): een klik zet, een tweede klik wist
+let vijf = null;
+ok(K.klikActie(vijf, spot) === 'zet', 'vijf seconden: klik op een plek zet het waypoint');
+vijf = { x: spot.x, y: spot.y };
+ok(K.klikActie(vijf, spot) === 'weg', 'vijf seconden: de tweede klik wist het waypoint');
+ok(K.klikActie({ x: 1, y: 1 }, spot) === 'vervang', 'vijf seconden: een klik elders vervangt het ene waypoint');
+
 // 3. gast: waypoint kan, reizen niet (alleen in je eigen spel)
 const gast = K.actieModel({ spot, speler, waypoint: null, opts, gast: true });
 ok(gast.acties[0].id === 'waypoint' && !gast.acties[0].disabled, 'een gast kan een waypoint zetten');
@@ -52,6 +59,11 @@ ok(html.includes('aanbevolen') && html.includes('data-card="zelf"') && html.incl
 ok(html.includes('data-act="uitleg-sluit"') && html.includes('Besturing'), 'de uitleg is te sluiten en zegt waar je hem terugvindt');
 ok(UI.uitlegHtml({ gast: true }).includes('Samen spelen') && !UI.uitlegHtml().includes('Samen spelen'), 'een gast leest de Samen spelen-regel bij de uitleg');
 ok(/Je staat hier/.test(UI.hierHtml('Vismarkt')) && UI.hierHtml('Vismarkt').includes('Vismarkt'), 'hint bij je eigen plek op de kaart');
+ok(K.KAART_UITLEG.some((l) => /legenda/.test(l)) && UI.uitlegHtml().includes('legenda'), 'de eerste-keer-uitleg noemt de legenda');
+const leg = UI.legendaHintHtml();
+ok(/Zet waypoint/.test(leg) && /Reis erheen/.test(leg) && /kosten en duur/.test(leg), 'legenda: wat een klik doet, met kosten en duur bij reizen', leg);
+ok(!leg.includes('Als gast') && UI.legendaHintHtml({ gast: true }).includes('eigen spel'), 'legenda: alleen een gast leest de Samen spelen-regel');
+ok(K.legendaRegels({ gast: true }).length === K.legendaRegels().length + 1, 'legendaRegels: één regel extra voor een gast');
 
 // 5. het keuzevenster bij een verhaalrit: Snel reizen, Zelf gaan, Overslaan, uitgelegd en met aanbevolen
 const beat = { to: 'Zoutkamp', length: 9000, ride: 'bus', lines: ['Het ritje.'] };
@@ -73,8 +85,9 @@ ok(st.includes("'Als passagier meegaan'") && st.includes("'Zelf de trein besture
 const mv = read('game/js/mapview.js');
 ok(mv.includes("act === 'reis' || act === 'info'") && mv.includes("act === 'haalweg'") && mv.includes("name: name || 'Plek op de kaart'"), 'kaart: een klik op een plek opent de actiebalk (geen direct waypoint)');
 ok(mv.includes('GAST_REIS_MELDING') && mv.includes('ALLEEN_EIGEN_SPEL'), 'kaart: een gast krijgt een melding bij reizen');
-ok(mv.includes("h && h.isGoal") && mv.includes("if (h && h.isGoal) { hideCard(); clearUserWaypoint(); return; }"), 'kaart: een klik op het waypoint zelf haalt hem weg (tweede klik)');
+ok(mv.includes("h && h.isGoal") && mv.includes("klikActie(getUserWaypoint()"), 'kaart: een klik op het waypoint zelf haalt hem weg (tweede klik)');
 ok(mv.includes('{ self: true, hier }') && mv.includes('syncKaartUitleg(world)'), 'kaart: een hint bij je eigen plek en de uitleg volgt je rol');
+ok(mv.includes('legendaHintHtml') && mv.includes('legendaHintHtml({ gast })'), 'kaart: de legenda volgt je rol (gast)');
 ok(mv.includes('data-card="close"') && mv.includes("act === 'goal'") && mv.includes("act === 'clear'"), 'kaart: de data-card-namen blijven');
 ok(read('game/js/storagekeys.js').includes("hudSeen: 'gde-hud-gezien'"), 'opslagsleutel gde-hud-gezien blijft (de uitleg onthoudt zijn eerste keer daar)');
 
