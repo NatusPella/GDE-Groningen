@@ -250,11 +250,16 @@ export function uiterlijkSpec(look) {
 }
 
 // De terugval zolang het uiterlijk nog niet bij de gast is (#428): het echte model van de soort, met een vaste variatie op
-// het id. Boten, heli's en vliegtuigen krijgen zo meteen een echt model in plaats van een blok. Een trein niet: die tekent
-// de gast uit zijn eigen spoorwegen (railway3d.js), niet uit de snapshot. null = geen gok (de gast wacht of tekent niets).
+// het id. Boten, heli's en vliegtuigen krijgen zo meteen een echt model in plaats van een blok (een boot een romp die bij
+// zijn maat past, gokBoot). Een trein niet: die tekent de gast uit zijn eigen spoorwegen (railway3d.js), niet uit de
+// snapshot. null = geen gok (de gast wacht of tekent niets).
 export const GOK_MODELLEN = ['hatch', 'sedan', 'wagon', 'suv', 'sport'];
 export const GOK_KLEUREN = ['#9aa3ad', '#b33a3a', '#2f5f9a', '#e8e6e0', '#3d7a52', '#c9a227', '#222428'];
 const GOK_HEX = /^#[0-9a-f]{6}$/i;
+// Een boot zonder uiterlijk krijgt een romp die bij zijn maat past (#428): tot 12 m een sloep, tot 60 m een binnenvaartschip,
+// daarboven een zeeschip. Zo is een schip van 98 m geen opgerekte sloep; zodra het echte uiterlijk binnen is, neemt dat het over.
+export const GOK_BOOT_M = [12, 60];
+export const gokBoot = (len) => (len >= GOK_BOOT_M[1] ? 'zeeVracht' : len >= GOK_BOOT_M[0] ? 'spits' : 'sloep');
 export function gokUiterlijk(soort, id = 0, { len, wid, kleur } = {}) {
   const maat = VOERTUIG_MATEN[soort];
   if (!maat || soort === 'trein') return null; // geen trein als voertuig: die komt uit de eigen routes
@@ -271,8 +276,8 @@ export function gokUiterlijk(soort, id = 0, { len, wid, kleur } = {}) {
     case 'fiets': pv.isBike = true; model.name = 'bike'; model.rider = bijkleur; break;
     case 'scooter': pv.isScooter = true; model.name = 'scooter'; model.rider = bijkleur; break;
     case 'motor': pv.isScooter = true; model.name = 'scooter'; model.motorbike = true; model.rider = bijkleur; break;
-    case 'boot': { // een sloep als terugval: het eerste model uit boattypes.js, met de maat uit de snapshot
-      const b = BOAT_KINDS.sloep;
+    case 'boot': { // een romp die bij de maat uit de snapshot past: een sloep, een binnenvaartschip of een zeeschip
+      const b = BOAT_KINDS[gokBoot(model.len)] || BOAT_KINDS.sloep;
       pv.isBoat = true;
       Object.assign(model, b, { name: 'boat', len: model.len, wid: model.wid, color: model.color });
       if (b.cabin !== undefined) model.cabin = bijkleur;
@@ -288,18 +293,26 @@ export function gokUiterlijk(soort, id = 0, { len, wid, kleur } = {}) {
 // ----------------------------------------------------------- wat de gast nog zelf invult (#428)
 // Wat een gast zelf invult omdat het niet in de snapshot of het EXTRA-bericht past. Positie, soort, staat en uiterlijk
 // komen altijd van de host; hier staat alleen beeld, beweging of geluid dat daaruit volgt. De test
-// (scripts/coopworld_test.mjs) houdt deze lijst bij de code: elk punt noemt zijn bron en de test die het dekt, zodat de
-// inventaris niet veroudert. Een nieuw lokaal verzonnen stuk hoort hier bij te komen.
+// (scripts/coopworld_test.mjs) houdt deze lijst bij de code: elk punt noemt zijn bron, het stuk code dat het invult en de
+// test die het dekt, zodat de inventaris niet veroudert. Een nieuw lokaal verzonnen stuk hoort hier bij te komen.
 export const LOKAAL_VERZONNEN = [
-  { wat: 'deining van een boot', waar: 'beeld', bron: 'coopentities3d.js', test: 'coop434_test.mjs', waarom: 'de golfstand past niet in de snapshot; de gast deint per id en tijd op dezelfde manier (coopboot.js)' },
-  { wat: 'de valrichting van een kapot object', waar: 'beeld', bron: 'coopextra3d.js', test: 'coopextra_test.mjs', waarom: 'EXTRA stuurt de sleutel en de plek van een kapot object, niet de richting waarin het omviel' },
-  { wat: 'de lampstand van een verkeerslicht tussen twee berichten', waar: 'beeld', bron: 'coopextra3d.js', test: 'coopextra_test.mjs', waarom: 'de gast laat de klok van wie het spel opende zelf doorlopen en corrigeert pas boven 0,4 s (coopextra.js lichtVerschil)' },
-  { wat: 'de vleugelslag en het banken van een vogel', waar: 'beweging', bron: 'coopextra3d.js', test: 'coopextra_test.mjs', waarom: 'de hoogte gaat mee in de aux van het dier, de animatiefase rekent de gast zelf uit (wildlife.js)' },
-  { wat: 'de loopfase van een voetganger', waar: 'beweging', bron: 'coopextra3d.js', test: 'coopextra_test.mjs', waarom: 'de snelheid gaat mee, de stand van armen en benen rekent de gast zelf uit (models3d_people.js)' },
-  { wat: 'het model van een voertuig zonder uiterlijk', waar: 'beeld', bron: 'coopentities3d.js', test: 'coopworld_test.mjs', waarom: 'tot het uiterlijk binnen is gokt de gast op de soort en het id (gokUiterlijk): altijd een echt model, nooit een blok' },
-  { wat: 'de wagonindeling van een trein', waar: 'beeld', bron: 'railway3d.js', test: 'coop434_test.mjs', waarom: 'de snapshot stuurt het midden en de snelheid; model en wagons horen bij de route uit de wereld van de gast' },
-  { wat: 'de kermisattributen en de stuntavond-animatie', waar: 'beweging', bron: 'coopextra3d.js', test: 'coopextra_test.mjs', waarom: 'EXTRA stuurt of de kermis staat en welke rekwisieten er zijn; de gast laat ze met dezelfde klok draaien (kermis.js)' },
-  { wat: 'toeter en sirene als geluid', waar: 'geluid', bron: 'coopentities3d.js', test: 'coop434_test.mjs', waarom: 'de vlaggen gaan mee, het geluid maakt de gast zelf met de bestaande geluiden (audio.js)' },
+  { wat: 'deining van een boot', waar: 'beeld', bron: 'coopentities3d.js', code: 'deiningBoot', test: 'coop434_test.mjs', waarom: 'de golfstand past niet in de snapshot; de gast deint per id en tijd op dezelfde manier (coopboot.js)' },
+  { wat: 'een groot schip dat de snapshot verlaat vaart nog even door', waar: 'beweging', bron: 'coopentities3d.js', code: 'bootBlijft', test: 'coop434_test.mjs', waarom: 'de host noemt een ver schip niet elke snapshot; de gast laat het op zijn laatste koers doorvaren in plaats van het te laten springen (coopboot.js)' },
+  { wat: 'de valrichting van een kapot object', waar: 'beeld', bron: 'coopextra3d.js', code: 'syncGastKapot', test: 'coopextra_test.mjs', waarom: 'EXTRA stuurt de sleutel en de plek van een kapot object, niet de richting waarin het omviel' },
+  { wat: 'de lampstand van een verkeerslicht tussen twee berichten', waar: 'beeld', bron: 'coopextra3d.js', code: 'lichtVerschil', test: 'coopextra_test.mjs', waarom: 'de gast laat de klok van wie het spel opende zelf doorlopen en corrigeert pas boven 0,4 s (coopextra.js lichtVerschil)' },
+  { wat: 'de vleugelslag en het banken van een vogel', waar: 'beweging', bron: 'coopextra3d.js', code: 'animateWildlifeMesh3D', test: 'coopextra_test.mjs', waarom: 'de hoogte gaat mee in de aux van het dier, de animatiefase rekent de gast zelf uit (wildlife.js)' },
+  { wat: 'de loopfase van een voetganger', waar: 'beweging', bron: 'coopextra3d.js', code: 'animatePersonWalk', test: 'coopextra_test.mjs', waarom: 'de snelheid gaat mee, de stand van armen en benen rekent de gast zelf uit (models3d_people.js)' },
+  { wat: 'het achterover vallen en blijven liggen van een dode of omgevallen voetganger', waar: 'beeld', bron: 'coopextra3d.js', code: 'V_LIGT', test: 'coopextra_test.mjs', waarom: 'EXTRA stuurt de vlag; de val, de hoek en hoe lang hij er ligt rekent de gast zelf uit (scene3d.js doet hetzelfde)' },
+  { wat: 'de zwaai van een groet en de dans van een feest', waar: 'beweging', bron: 'coopextra3d.js', code: 'waveOverlay', test: 'coopextra_test.mjs', waarom: 'de vlaggen V_GROET en V_FEEST gaan mee, de beweging zelf rekent de gast uit (vrijgezellen.js juichHoek)' },
+  { wat: 'de richting van een klap die aankomt', waar: 'beweging', bron: 'coopextra3d.js', code: 'applyHitReaction', test: 'coopextra_test.mjs', waarom: 'EXTRA stuurt alleen de vlag V_GERAAKT; de gast laat de geraakte persoon vanaf de hostrichting wegdeinen' },
+  { wat: 'de stand van een wapen en de slag', waar: 'beweging', bron: 'coopextra3d.js', code: 'applyAttackPose', test: 'coopextra_test.mjs', waarom: 'wapen, soort slag en swing gaan mee in MISC_PEDS; het beeld van de zwaai rekent de gast zelf uit (models3d_people.js)' },
+  { wat: 'het model van een voertuig zonder uiterlijk', waar: 'beeld', bron: 'coopentities3d.js', code: 'gokUiterlijk', test: 'coopworld_test.mjs', waarom: 'tot het uiterlijk binnen is gokt de gast op de soort en het id (gokUiterlijk): altijd een echt model, nooit een blok' },
+  { wat: 'de draaisnelheid van de wielen als de host geen snelheid meldt', waar: 'beweging', bron: 'coopentities3d.js', code: 'tekensnelheid', test: 'coopworld_test.mjs', waarom: 'een auto die een script verzet heeft geen snelheid; de gast leidt de draai af uit de verplaatsing sinds zijn vorige beeld, net als scene3d.js' },
+  { wat: 'de hoek van de achterkant van een gelede bus', waar: 'beweging', bron: 'coopentities3d.js', code: 'animeerVoertuig', test: 'coopworld_test.mjs', waarom: 'de snapshot stuurt het midden en de richting; de gast laat de achterkant met een eigen vertraging volgen (setBusRearAngle)' },
+  { wat: 'de flits en de kogelstreep van een schot van een andere speler', waar: 'beeld', bron: 'coopentities3d.js', code: 'syncSchoten', test: 'coopworld_test.mjs', waarom: 'de aanval gaat als code mee; het korte beeld ervan (0,12 s) rekent de gast zelf uit (coopwapen.js nieuwSchot)' },
+  { wat: 'de wagonindeling van een trein', waar: 'beeld', bron: 'railway.js', code: 'placeCars', test: 'coop434_test.mjs', waarom: 'de snapshot stuurt het midden en de snelheid; model en wagons horen bij de route uit de wereld van de gast' },
+  { wat: 'de kermisattributen en de stuntavond-animatie', waar: 'beweging', bron: 'coopextra3d.js', code: 'KERMIS', test: 'coopextra_test.mjs', waarom: 'EXTRA stuurt of de kermis staat en welke rekwisieten er zijn; de gast laat ze met dezelfde klok draaien (kermis.js)' },
+  { wat: 'toeter en sirene als geluid', waar: 'geluid', bron: 'coopentities3d.js', code: 'coopHoornDbg', test: 'coop434_test.mjs', waarom: 'de vlaggen gaan mee, het geluid maakt de gast zelf met de bestaande geluiden (audio.js)' },
 ];
 
 // Wat een gast met de entiteiten doet: voertuigen tekenen, het doel aangeven.
