@@ -30,7 +30,7 @@ import { countryWeight } from './countryfield.js';
 import { coveredByTiles } from './provinceworld.js';
 import { provinceLandAt } from './regions.js';
 import { puntInGebied } from './grenzen.js';
-import { HX, HZ, DEUR_MARGE, deurVan, droogeKandidaten, kamerMaat, kamerSpots, kamerSolids, pandBox, KAMER_FLOOR, plaatsSafehuis } from './safehuisplek.js';
+import { HX, HZ, DEUR_MARGE, deurVan, droogeKandidaten, huisMuren, kamerMaat, kamerSpots, kamerSolids, pandBox, KAMER_FLOOR, plaatsSafehuis } from './safehuisplek.js';
 import { buildSafehouseMarker3D, buildSafehuisKamer3D, disposeHomeExterior } from './home3d.js';
 import { registerMusicProbe } from './scenariomusic.js';
 
@@ -134,14 +134,10 @@ function bouw(h, w) {
   g.rotation.y = -h.ang;
   groep.add(g);
   h.mesh = g;
-  // de muren houden je buiten (het huisje heeft geen binnenkant)
-  const fx = Math.cos(h.ang), fy = Math.sin(h.ang), rx = -fy, ry = fx;
-  h.props = [
-    addStaticCollider('garagewall', h.x + fx * HX, h.y + fy * HX, 0.2, HZ, h.ang + Math.PI / 2),
-    addStaticCollider('garagewall', h.x - fx * HX, h.y - fy * HX, 0.2, HZ, h.ang + Math.PI / 2),
-    addStaticCollider('garagewall', h.x + rx * HZ, h.y + ry * HZ, 0.2, HX, h.ang),
-    addStaticCollider('garagewall', h.x - rx * HZ, h.y - ry * HZ, 0.2, HX, h.ang),
-  ];
+  // de muren houden je buiten (het huisje heeft geen binnenkant). Ze komen uit huisMuren, dezelfde HX en HZ als de doos hierboven,
+  // zodat het huisje alleen botst waar het getekend is; ze gaan mee weg met het mesh (#434: een gast botste bij Hoogkerk tegen
+  // muren van een huisje dat hij niet zag).
+  h.props = huisMuren(h.x, h.y, h.ang).map(([mx, my, half, hoek]) => addStaticCollider('garagewall', mx, my, 0.2, half, hoek));
   h.gebouwdMet = `${inr.niveau}|${eigen}`;
 }
 
@@ -172,7 +168,12 @@ function bouwPand(h, w) {
   h.gebouwdMet = `pand|${eigen}`;
 }
 
+// Het huisje weg: eerst de muren, dan het mesh, zodat er nooit een botsvolume blijft staan waar niets getekend is (#434).
 function opruimen(h) {
+  if (h.props) {
+    for (const p of h.props) { try { removeProp(p); } catch (e) { /* al weg */ } }
+    h.props = null;
+  }
   if (h.mesh) {
     h.mesh.removeFromParent();
     h.mesh.traverse((o) => {
@@ -183,7 +184,6 @@ function opruimen(h) {
     });
     h.mesh = null;
   }
-  if (h.props) { for (const p of h.props) { try { removeProp(p); } catch (e) { /* al weg */ } } h.props = null; }
 }
 
 // --- de kamer van een pand (#458) ----------------------------------------------------
@@ -580,8 +580,8 @@ export const SAFEHUIS = {
         }
         const eigen = heeftHuisLive(h.id);
         if (h.mesh && h.gebouwdMet !== undefined && !h.gebouwdMet.endsWith(String(eigen))) opruimen(h); // net gekocht: de vlag erbij
-        if (!h.mesh) bouw(h, w);
-      } else if (d > STREAM_UIT && h.mesh) opruimen(h);
+        if (!h.mesh) { if (h.props) opruimen(h); bouw(h, w); } // geen muren zonder getekend huisje (#434)
+      } else if (d > STREAM_UIT && (h.mesh || h.props)) opruimen(h);
     }
   },
   camera() {},

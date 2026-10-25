@@ -49,6 +49,9 @@ import { refreshDayNight } from './daynight.js';
 import { recordStat, unlockAchievement } from './achievements.js';
 import { clearDrunk } from './drunk.js';
 import { buildHomeExterior3D, buildGarageShell, buildHomeDressing, setGarageCutaway, setGarageDoor, disposeHomeExterior, buildLowerTower3D, buildFlat3D, setFlatFacade, buildSafehouseMarker3D } from './home3d.js';
+import { gastPandVrij } from './safehuisplek.js';
+import { inPassage } from './passages.js';
+import { provinceLandAt } from './regions.js';
 import { registerHelipad } from './heliflight.js';
 import { isPadelActive } from './padel.js';
 import { isVillageMiniActive } from './dorpsuitjes.js';
@@ -510,7 +513,10 @@ const spelerNaam = (world, slot) => {
   return (r && r.naam) || 'een gast';
 };
 
-// De plek die de host goedkeurt (coopbezit.js bezorgPandHost roept dit aan).
+// De plek die de host goedkeurt (coopbezit.js bezorgPandHost roept dit aan). De deur van het pand van een gast mag niet op de
+// rijbaan staan of in een gebouw: de host tekent er alleen een deur en een bord, en een deur midden op de weg is onbereikbaar
+// (#434, Hoogkerk). De eisen zijn dezelfde als die van een safehouse (safehuisplek.js gastPandVrij).
+const PAND_DEPS = { isInWater, pointInPolygon, inPassage, provinceLandAt, landSolid: null };
 function pandPlek(world, pand) {
   const map = world && world.map;
   if (!map || !Number.isFinite(pand.x) || !Number.isFinite(pand.y) || !Number.isFinite(pand.ang)) return null;
@@ -518,7 +524,7 @@ function pandPlek(world, pand) {
   const g = (ind && ind.gebied.get(pand.id.slice(2))) || null;
   if (!g || !g.grens) return null; // een sleutel die niet bij een gebied van deze wereld hoort
   if (Math.hypot(pand.x - g.grens.c[0], pand.y - g.grens.c[1]) > PAND_GEBIED_M && !puntInGebied(g.grens, pand.x, pand.y)) return null;
-  if (isInWater(map, pand.x, pand.y)) return null;
+  if (!gastPandVrij(map, pand.x, pand.y, PAND_DEPS)) return null;
   const gz = map.groundHeightAt ? map.groundHeightAt(pand.x, pand.y, 0) : 0;
   if (!Number.isFinite(gz)) return null;
   return { x: pand.x, y: pand.y, ang: pand.ang, gz };
