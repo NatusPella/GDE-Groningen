@@ -58,7 +58,7 @@ export function stickKeys(vec, held = new Set()) {
 const LABELS = {
   ' ': { foot: 'Spring', minigame: 'Spring', vehicle: 'Handrem', vehicleManual: 'Handrem', skutsje: 'Handrem', heli: 'Omhoog', pigeon: 'Vlieg', train: 'Noodrem', foodtruck: 'OK', klokken: 'Start', cutscene: 'Overslaan' },
   control: { heli: 'Omlaag', pigeon: 'Pikken', foot: 'Bukken', minigame: 'Bukken' },
-  e: { _: 'Gebruik', pannenkoek: 'Appel', klokken: 'Volgend' }, f: 'Instappen', h: 'Toeter', l: 'Sirene', q: { _: 'Achterom', pannenkoek: 'Stroop', klokken: 'Vorig' }, n: 'Radio', m: 'Kaart', o: { _: 'Overslaan', bus: 'Deuren', train: 'Deuren' }, k: { _: 'Kusje', bus: 'Kneel', train: 'Waak' },
+  e: { _: 'Gebruik', pannenkoek: 'Appel', klokken: 'Volgend' }, f: 'Instappen', h: 'Toeter', l: 'Sirene', q: { _: 'Achterom', pannenkoek: 'Stroop', klokken: 'Vorig' }, n: 'Radio', m: 'Kaart', o: { _: 'Overslaan', bus: 'Deuren', train: 'Deuren' }, k: { _: 'Kusje', bus: 'Knielt', train: 'Waak' },
   shift: 'Rennen', tab: 'Doel', c: 'Koer', x: 'Mens', v: 'Film', r: { _: 'Lak', pannenkoek: 'Kaas' }, z: 'Zeil vieren', '[': 'Links', ']': 'Rechts', p: 'Alarm',
   backspace: 'Stop', g: 'Dienst', j: 'Koppeling', ',': 'Lager', '.': 'Hoger', s: 'Rem', w: { _: 'Gas', pannenkoek: 'Spek', train: 'Trek' },
   '@fire': 'Vuur', '@aim': 'Richt', '@gas': 'Gas', '@brake': 'Rem', '@wheel+': 'Wapen', '@wheel-': 'Wapen',
@@ -119,7 +119,7 @@ const ICONS = {
   Film: '<rect x="3" y="6" width="12" height="12" rx="2"/><path d="M15 10l6-3v10l-6-3z"/>',
   Links: '<path d="M20 12H4"/><path d="M9 7l-5 5 5 5"/>',
   Rechts: '<path d="M4 12h16"/><path d="M15 7l5 5-5 5"/>',
-  Kneel: '<path d="M12 3.5v8"/><path d="M8.5 8L12 11.5 15.5 8"/><path d="M3 17.5h18"/><path d="M6 20.5h12"/>',
+  Knielt: '<path d="M12 3.5v8"/><path d="M8.5 8L12 11.5 15.5 8"/><path d="M3 17.5h18"/><path d="M6 20.5h12"/>',
   OK: '<path d="M4.5 12.5l5 5L19.5 6.5"/>',
   Koppeling: '<path d="M9.5 14.5l5-5"/><path d="M7 12l-1.5 1.5a3.5 3.5 0 0 0 5 5L12 17"/><path d="M17 12l1.5-1.5a3.5 3.5 0 0 0-5-5L12 7"/>',
   Sirene: '<rect x="4" y="12" width="16" height="5" rx="2"/><path d="M7 12c0-3 1-5 5-5s5 2 5 5"/><path d="M2 15l2-3M22 15l-2-3"/>',

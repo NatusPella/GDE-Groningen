@@ -1,5 +1,5 @@
 // The game's calendar: one Groningen summer, 2026 (docs/verhaal/KALENDER.md).
-// Day 1 is vrijdag 14 augustus (the Kop, KEI-week), Gronings Ontzet is day 15
+// Day 1 is vrijdag 14 augustus (the Kop, Kiezelweek), Gronings Ontzet is day 15
 // (vrijdag 28 augustus), the epilogue is on vrijdag 11 september (EPILOGUE_DAY) and the
 // astronomical summer ends after dinsdag 22 september, day 40. After that the
 // date stops and the days keep counting: "Nazomer · dag 41". It stays summer.
@@ -64,32 +64,12 @@ const STEP_DATES = {
   'M22': 26, 'M23': 27, 'M24': 27, 'M25': 27, 'M26': 28,
 };
 
-// Deel 4 "Nazomer" (docs/verhaal/KALENDER.md, Deel 4): day numbers, not August
-// dates. The first night of a night mission is its day (the clock after midnight
-// is the next day, within the bounds of the next step). Days 41+ are
-// "nazomer · dag N". Planned data: the steps are not all built yet; the order
-// here is the default build order (a region played in another order gets the
-// later of its own day and today, see storyBounds). Weekdays (2026): 33 di,
-// 37 za, 40 di, 41 wo, 43 vr, 44 za, 45 zo, 46 ma, 51 za.
-export const DEEL4_STEP_DAYS = {
-  // F4a: Stad and ring 1. Hogeland: voorronde 1 on za 19 (kermis Uithuizen); Eemsdelta: voorronde 2 on di 22 (the last summer day)
-  'O1': day(9, 15), 'O2': day(9, 16), 'O3': day(9, 16), 'O4': day(9, 17), 'n-trekkertrek': day(9, 17), 'O5': day(9, 18),
-  'O6': day(9, 19), 'n-warffum': day(9, 19), 'n-delfzijl': day(9, 20), 'O7': day(9, 20), 'O8': day(9, 20), 'O9': day(9, 21),
-  'O10': day(9, 22), 'n-woonschip': day(9, 22),
-  // F4b: ring 2, nazomer from day 41. Wadkust: voorronde 3 on vr 25 (havenfeest); Westerkwartier: voorronde 4 on zo 27 (O18)
-  'n-zoutkamp': day(9, 23), 'O11': day(9, 23), 'O12': day(9, 23), 'O13': day(9, 24), 'O14': day(9, 25), 'n-kotter': day(9, 25),
-  'n-zuidhorn': day(9, 25), 'O15': day(9, 26), 'O16': day(9, 26), 'O17': day(9, 27), 'O18': day(9, 27), 'n-schuur': day(9, 27),
-  // F4c: ring 3 and 4. Oldambt: voorronde 5 on di 29 (kermis Winschoten); Veenkoloniën: voorronde 6 on vr 2; Westerwolde: the finale on za 3
-  'n-winschoten': day(9, 28), 'O19': day(9, 28), 'O20': day(9, 29), 'O21': day(9, 29), 'O22': day(9, 29),
-  'n-beerta': day(9, 29), 'n-aanbod': day(9, 29), 'n-ruzie': day(9, 29),
-  'n-veendam': day(9, 30), 'O23': day(9, 30), 'O24': day(9, 30), 'O25': day(9, 30), 'O26': day(10, 1), 'O27': day(10, 2),
-  'n-brugwachter': day(10, 2), 'n-westerwolde': day(10, 2),
-  'O28': day(10, 3), 'O29': day(10, 3), 'O30': day(10, 3), 'O31': day(10, 3), 'O32': day(10, 3), 'n-boshut': day(10, 3),
-};
-// the seven voorrondes of the Ommelander Ronde, in the order they are won by default
-export const VOORRONDE_STEPS = ['O6', 'O10', 'O14', 'O18', 'O22', 'O27', 'O31'];
-
-// Deel 4 "Nazomer" of the story (docs/verhaal/nieuw/DEEL4.md): after the epilogue, still summer (before 22 september)
+// Deel 4 "Nazomer" (docs/verhaal/nieuw/DEEL4.md): day numbers, not August dates. The first
+// night of a night mission is its day (the clock after midnight is the next day, within the
+// bounds of the next step). Days 41+ are Deel 4 "Nazomer": after the epilogue, still summer
+// (before 22 september). De oude Ommelander Ronde (O1-O32, `DEEL4_STEP_DAYS` en
+// `VOORRONDE_STEPS`) is op 25-10 opgeruimd: dat verhaal is geschrapt (#187) en geen enkele
+// stap in STEPS heette nog O…, dus de tabel deed niets meer (#477).
 export const NAZOMER_STEP_DAYS = { M27: day(9, 14), M28: day(9, 15), M29: day(9, 17), T5: day(9, 19), M30: day(9, 19) };
 
 export const STEP_DAY = new Map();
@@ -99,7 +79,6 @@ export const STEP_DAY = new Map();
     if (STEP_DATES[s.id] != null) last = day(8, STEP_DATES[s.id]);
     else if (s.id === 'E') last = EPILOGUE_DAY;
     else if (NAZOMER_STEP_DAYS[s.id] != null) last = NAZOMER_STEP_DAYS[s.id];
-    else if (DEEL4_STEP_DAYS[s.id] != null) last = DEEL4_STEP_DAYS[s.id];
     STEP_DAY.set(s.id, last);
   }
 }
@@ -159,8 +138,8 @@ export function sunDeclinationDeg(n) {
 const SPECIAL_BASE = [
   { id: 'ontzet', name: 'Gronings Ontzet', from: day(8, 28), to: day(8, 28), rank: 10, icon: 'vlag',
     card: ['Gronings Ontzet', 'In 1672 hield Stad stand tegen Bommen Berend. Vlaggen op de Grote Markt, en vanavond vuurwerk.'] },
-  { id: 'kei', name: 'KEI-week', from: day(8, 14), to: day(8, 17), rank: 6, icon: 'kei',
-    card: ['KEI-week', 'Duizenden nieuwe Stadjers zoeken hun groepje. Rij rustig door de binnenstad en het Plantsoen.'] },
+  { id: 'kei', name: 'Kiezelweek', from: day(8, 14), to: day(8, 17), rank: 6, icon: 'kei',
+    card: ['Kiezelweek', 'Duizenden nieuwe Stadjers zoeken hun groepje. Rij rustig door de binnenstad en het Plantsoen.'] },
   { id: 'noorderzon', name: 'Noorderzon', from: day(8, 20), to: day(8, 30), rank: 7, icon: 'ster',
     card: ['Noorderzon', 'Elf dagen theater en muziek in het Noorderplantsoen. Tot laat lampjes in de bomen.'] },
   { id: 'kermis', name: 'Zomerkermis', from: day(8, 21), to: day(8, 30), rank: 8, icon: 'rad',
@@ -190,19 +169,17 @@ const SPECIAL_BASE = [
     card: ['Open dag in park Nienoord', 'Het Rijtuigenhuis is open. De koetsen staan klaar, de paarden ook.'] },
   { id: 'oogstfeest', name: 'Oogstfeest in Beerta', from: day(9, 28), to: day(9, 30), rank: 6, icon: 'aar', open: false,
     card: ['Oogstfeest in Beerta', 'Trekkerparade en combineshow. Het laatste graan is binnen.'] },
-  { id: 'oldambtkermis', name: 'Kermis in Winschoten', from: day(9, 29), to: day(10, 4), rank: 6, icon: 'rad', open: false,
-    card: ['Kermis in Winschoten', 'Een week kermis aan de rand van het graan. Durk en Douwe zijn er ook.'] },
+  { id: 'oldambtkermis', name: 'Kermis in Winschoten', from: day(8, 22), to: day(8, 23), rank: 6, icon: 'rad', open: true,
+    card: ['Kermis in Winschoten', 'Twee dagen kermis aan de rand van het graan. Durk en Douwe zijn er ook.'] },
   { id: 'stoomtrein', name: 'Jaarmarkt en stoomtreindag in Stadskanaal', from: day(10, 1), to: day(10, 1), rank: 5, icon: 'trein', open: false,
     card: ['Stoomtreindag in Stadskanaal', 'Een museumtrein langs de kanaalwijken, vandaag gratis. Elke brug gaat open.'] },
   { id: 'vesting', name: 'Vestingdag in Westerwolde', from: day(10, 3), to: day(10, 3), rank: 9, icon: 'vlag', open: false,
     card: ['Vestingdag in Westerwolde', 'Kartonnen kanonnen op de wallen. Berend speelt weer de belegeraar.'] },
 ];
-// The new arc names the introweek and the festival with invented names (constitutie 2), moves
-// the Winschoten kermis to za 22 - zo 23 augustus and adds the Beleg van Bourtange.
+// The new arc names the festival with an invented name (constitution 2); the
+// introweek (Kiezelweek) and the Winschoten kermis (za 22 - zo 23) are in the base list.
 const SPECIAL_NIEUW = {
-  kei: { name: 'Kiezelweek', card: ['Kiezelweek', 'Duizenden nieuwe Stadjers zoeken hun groepje. Rij rustig door de binnenstad en het Plantsoen.'] },
   noorderzon: { name: 'Plantsoenfestijn', card: ['Plantsoenfestijn', 'Elf dagen theater en muziek in het Noorderplantsoen. Tot laat lampjes in de bomen.'] },
-  oldambtkermis: { from: day(8, 22), to: day(8, 23), open: true },
 };
 // the regional summer events (regioleven.js), as month/date turned into day numbers
 const REGIO_SPECIALS = REGIO_EVENTS.map((e) => ({ id: e.id, name: e.name, from: day(e.month, e.date), to: day(e.toMonth || e.month, e.toDate || e.date), rank: e.rank, icon: e.icon, card: e.card }));

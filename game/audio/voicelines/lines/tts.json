@@ -9939,16 +9939,6 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
-"Tammo|Nee. Van de winter ook niet. Alvast.": {
-"src": "tammo/nee_van_de_winter_ook_niet_alvas_db2498c4.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"lang": "gro",
-"voice": "Orus",
-"input": "Nee. Van de winter ook nait. Alvast.",
-"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: mompelend, stiekem trots.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-05"
-},
 "Tammo|Niemand klaagde. Dat is hier een compliment.": {
 "src": "tammo/niemand_klaagde_dat_is_hier_een__9dc59934.mp3",
 "model": "google/gemini-3.8-flash-tts",

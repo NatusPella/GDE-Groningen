@@ -448,7 +448,7 @@ function updateOnline(w, dt) {
   let klaar = false;
   for (const e of ev) {
     if (e.type === 'lights') { pushAudioEvent(w, { kind: 'bell', x: STAND.x, y: STAND.y }); if (e.n === 1) pushAudioEvent(w, { kind: 'sting', name: 'kart_countdown' }); if (!gast && e.n === 1) say(w, 'lights', true); }
-    else if (e.type === 'go') { pushAudioEvent(w, { kind: 'bell', x: STAND.x, y: STAND.y }); g.flash = { text: 'GO!', t: 1.4 }; if (!gast) say(w, 'go', true); }
+    else if (e.type === 'go') { pushAudioEvent(w, { kind: 'bell', x: STAND.x, y: STAND.y }); g.flash = { text: 'Start!', t: 1.4 }; if (!gast) say(w, 'go', true); }
     else if (e.type === 'lap' && e.i === 0) { if (e.lap >= LAPS) pushAudioEvent(w, { kind: 'sting', name: 'kart_finish' }); /* je eigen finish: een korte fanfare */ g.flash = { text: `Ronde ${e.lap}: ${fmtTime(e.time)}`, t: 2.4 }; if (!gast && e.lap === LAPS - 1) say(w, 'last'); }
     else if (e.type === 'wall' && e.i === 0) pushAudioEvent(w, { kind: 'prop_hit', material: 'wood', strength: clamp(e.speed / 8, 0.2, 1), x: ORIGIN.x, y: ORIGIN.y });
     else if (e.type === 'boost' && e.i === 0) g.flash = { text: e.lvl === 2 ? 'SUPERBOOST!' : 'BOOST!', t: 1.2 };
@@ -521,7 +521,7 @@ function updateGame(w, dt) {
       g.lights = 4;
       for (const k of ks) { k.lapStart = 0; }
       pushAudioEvent(w, { kind: 'bell', x: STAND.x, y: STAND.y });
-      g.flash = { text: 'GO!', t: 1.4 };
+      g.flash = { text: 'Start!', t: 1.4 };
       say(w, 'go', true);
     }
   } else g.raceT += dt;
