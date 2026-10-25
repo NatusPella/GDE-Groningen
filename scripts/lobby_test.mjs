@@ -230,4 +230,34 @@ t('hekBericht: een gast die midden in een spel aansluit bij een gastheer in de w
   assert.equal(G.hekBericht(w, false), false); assert.equal(G.gateOn(), false); assert.equal(w.coopHek, false);
   assert.equal(G.hekBericht(w, false), false, 'geen hek meer: er verandert niets');
 });
+t('vaste sessie (#450): naam en vast id van een lopende sessie overleven een hertekend paneel en een overname', () => {
+  // de hub gaf het paneel de openbare regel; een gast kreeg het id in het welkom
+  const s = L.createLobby({ ...APP, openbaar: { naam: 'Zomeravond', id: 'abcdefghij' } });
+  assert.equal(s.openbaar, true); assert.equal(s.openbaarNaam, 'Zomeravond'); assert.equal(s.sessieId, 'abcdefghij');
+  assert.deepEqual(s.sessie, { id: 'abcdefghij', naam: 'Zomeravond' });
+  // het paneel opent opnieuw (of een nieuwe gastheer neemt over): dezelfde regel, geen nieuwe
+  const over = L.reduce(L.createLobby(APP), { t: 'adopteer', rol: 'host', route: 'kamer', code: 'K3J9D-8F2MN', lijst: [{ slot: 0, naam: 'Tammo' }], max: 4, slot: 0, openbaar: { naam: 'Zomeravond', id: 'abcdefghij' } });
+  assert.equal(over.step, 'verbonden'); assert.equal(over.openbaar, true); assert.equal(over.openbaarNaam, 'Zomeravond'); assert.equal(over.sessieId, 'abcdefghij');
+  assert.equal(L.view(over).buttons.some((b) => b.act === 'privaat'), true, 'het paneel zegt nog steeds dat hij openbaar is');
+  // de gast die terugkomt: het id uit het welkom, ook na het einde van de verbinding
+  const gast = L.reduce(L.createLobby({ ...APP, rtc: true }), { t: 'sessie', sessie: { id: 'abcdefghij', naam: 'Zomeravond' } });
+  const weg = L.reduce(gast, { t: 'status', status: 'verbroken' });
+  assert.deepEqual(weg.sessie, { id: 'abcdefghij', naam: 'Zomeravond' }, 'je onthoudt bij welke sessie je zat');
+  // in de lijst is jouw sessie herkenbaar: je was hier (en een andere niet)
+  const lijst = L.reduce(L.reduce(L.reduce(weg, { t: 'lijst-vraag' }), { t: 'lijst-go' }), { t: 'lijst-data', lijst: [
+    { id: 'abcdefghij', naam: 'Zomeravond', spelers: 2, max: 4, versie: '0.46.0', room: 'K3J9D8F2MN', anders: false, vol: false, kan: true },
+    { id: 'zzzzzzzzzz', naam: 'Ander spel', spelers: 1, max: 4, versie: '0.46.0', room: 'A2B3C4D5E6', anders: false, vol: false, kan: true },
+  ] });
+  const v = L.view(lijst);
+  assert.equal(v.sessies[0].mijn, true); assert.match(v.sessies[0].tekst, /je was hier$/);
+  assert.equal(v.sessies[1].mijn, false); assert.ok(!/je was hier/.test(v.sessies[1].tekst));
+  // akkoord met een openbare naam onthoudt het id dat de hub maakte; zonder id blijft het oude staan
+  let h = L.reduce(L.reduce(L.createLobby(APP), { t: 'kies', rol: 'host' }), { t: 'route', route: 'kamer' });
+  h = L.reduce(h, { t: 'akkoord' }); h = L.reduce(h, { t: 'code', code: 'K3J9D-8F2MN' });
+  h = L.reduce(L.reduce(h, { t: 'openbaar-vraag' }), { t: 'openbaar-ja', naam: 'Zomeravond', id: 'abcdefghij' });
+  assert.equal(h.sessieId, 'abcdefghij'); assert.deepEqual(h.sessie, { id: 'abcdefghij', naam: 'Zomeravond' });
+  assert.equal(L.reduce(L.reduce(L.reduce(h, { t: 'openbaar-vraag' }), { t: 'openbaar-ja', naam: 'Nieuwe naam' }), {}).sessieId, 'abcdefghij', 'zonder id blijft het vaste id staan');
+  // helemaal privé blijft privé: niemand wordt zomaar openbaar
+  assert.equal(L.createLobby(APP).openbaar, false); assert.equal(L.createLobby(APP).sessie, null);
+});
 console.log(`lobby_test: ${n}/${n} ok`);
