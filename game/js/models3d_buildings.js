@@ -13,6 +13,7 @@ import { buildMuseumInterior } from './museum3d.js';
 import { buildInteriorOf } from './interieur3d.js';
 import { marktKind, buildMarktGroup } from './marktgebouwen.js';
 import { hash2 } from './rng.js';
+import { poiLayerPlace } from './facilities.js';
 
 // Procedural Groningen buildings. Geometry bakes absolute world coordinates
 // (x, height, map-y) and is cached per building on b._geo3dParts: the wall
@@ -811,7 +812,7 @@ function addFlatRoofDetail(B, b, edges, open, depth, floorCount, archetype, wall
   const huge = A > 1500;
   const hs = huge ? Math.min(2.4, 1 + Math.sqrt(A / 4000)) : 1;
 
-  const pad = b.helipad && mapRef() && mapRef().meta.helipad;
+  const pad = b.helipad && mapRef() && poiLayerPlace(mapRef(), 'helipad');
   const clearAt = (x, z, m) => pointInPolygon(x, z, b.pts) && edges.every((e) => segDist(x, z, e) >= m) && !(pad && Math.hypot(x - pad.x, z - pad.y) < pad.r + 2.5);
   const fits = (a, c, ha, hc, m) => {
     for (const sa of [-1, 0, 1]) for (const sc of [-1, 0, 1]) {

@@ -10,6 +10,7 @@ import { pointInPolygon, isInWater, clamp, angleLerp, normalizeAngle, WATER_Y } 
 import { KEYS } from './storagekeys.js';
 import { quitRunningActivities } from './busy.js';
 import { waterNearby } from './waterlevels.js';
+import { poiLayerPlace } from './facilities.js';
 
 const LEVEL_H = 3.1;
 const G = 9.8;
@@ -648,7 +649,7 @@ function checkPerch(floor) {
   }
   const b = floor.b;
   if (!b) return;
-  const pad = world.map.meta.helipad;
+  const pad = poiLayerPlace(world.map, 'helipad');
   if (pad && Math.hypot(P.x - pad.x, P.y - pad.y) < pad.r + 2 && P.z > 12) unlockAchievement(world, 'umcg_heli');
   const name = b.landmark || b.name || '';
   if ((b.landmarkKind === 'tower' || name === 'Martinitoren') && P.z > 55) {

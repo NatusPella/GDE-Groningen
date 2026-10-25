@@ -1,6 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { pointInPolygon, normalizeAngle } from './util.js';
 import { rand } from './rng.js';
+import { poiLayerPlace } from './facilities.js';
 
 // Decorative sky traffic, no gameplay effect and no collision:
 //  - world.skyHeli: a trauma helicopter that now and then flies in from
@@ -43,7 +44,7 @@ const smoother = (t) => { t = clamp(t, 0, 1); return t * t * t * (t * (t * 6 - 1
 export function helipadInfo(map) {
   if (!map) return null;
   if (map._helipad !== undefined) return map._helipad;
-  const h = map.meta && map.meta.helipad;
+  const h = poiLayerPlace(map, 'helipad');
   map._helipad = null;
   if (!h) return null;
   let carrier = null, top = 0;

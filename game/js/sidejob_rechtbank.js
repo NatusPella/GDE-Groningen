@@ -8,6 +8,7 @@ import { namedBuildingSpot, pick, euro } from './sidejobkit.js';
 import { createChoicePanel, keycap } from './choicepanel.js';
 import { pickDossier, dossierQuestions, verklaringPay, COURT_SAY } from './casework.js';
 import { dist } from './util.js';
+import { poiLayerPlaces } from './facilities.js';
 
 const ARRIVE_R = 5.5;
 const READ_MIN_S = 2;
@@ -17,7 +18,7 @@ let panel = null;
 const ensurePanel = () => panel || (panel = createChoicePanel('#9a7ad0'));
 
 function stationSpot(map) {
-  const ps = (map.meta.policeStations || []).find((s) => /Centrum/.test(s.name)) || { x: 100, y: 76, name: 'Politiebureau' };
+  const ps = poiLayerPlaces(map, 'policeStations').find((s) => /Centrum/.test(s.name)) || { x: 100, y: 76, name: 'Politiebureau' };
   const o = map.findOpenSpawn(ps.x + 5, ps.y + 5, 60);
   return { x: o ? o.x : ps.x, y: o ? o.y : ps.y, name: 'Politiebureau Groningen Centrum' };
 }

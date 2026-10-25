@@ -10,6 +10,7 @@
 //   yieldAt(map, road, i)  whether `road` gives way at its vertex i
 
 import { SpatialGrid } from './spatialgrid.js';
+import { poiLayerPlaces } from './facilities.js';
 
 const CAR_CATS = new Set(['major', 'normal', 'minor']);
 const TYPE_RANK = {
@@ -101,7 +102,7 @@ const AUTO_MIN_GAP = 70;
 export function autoSignals(map) {
   const s = store(map);
   if (s.auto) return s.auto;
-  const osm = (map.meta && map.meta.trafficLights) || [];
+  const osm = poiLayerPlaces(map, 'trafficLights');
   const taken = osm.filter((l) => !l.bike).map((l) => [l.x, l.y]);
   const cands = [];
   for (const node of junctionIndex(map).values()) {
@@ -137,7 +138,7 @@ export function autoSignals(map) {
 
 export function allSignals(map) {
   const s = store(map);
-  if (!s.all) s.all = [...((map.meta && map.meta.trafficLights) || []), ...autoSignals(map)];
+  if (!s.all) s.all = [...poiLayerPlaces(map, 'trafficLights'), ...autoSignals(map)];
   return s.all;
 }
 

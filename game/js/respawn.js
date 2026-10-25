@@ -5,7 +5,7 @@ import { spawnPedestriansNear } from './pedestrians.js';
 import { helipadInfo, scriptHeli, landHeliOnPad } from './skyprops.js';
 import { isInWater, closestPointOnSegment, pointInPolygon } from './util.js';
 import { saveSoon } from './savehook.js';
-import { nearestFacility, inDoorRange } from './facilities.js';
+import { nearestFacility, inDoorRange, poiLayerPlace } from './facilities.js';
 import { edgeDistance } from './countryfield.js';
 
 // Genre-style respawn trips, played after the DOOD / OPGEPAKT shot, to the
@@ -78,7 +78,7 @@ function destination(w, busted, x, y) {
 
 // The UMCG's own point is its main entrance (Hoofdingang, meta.hospital).
 function umcgEntrance(map, site) {
-  const h = map.meta && map.meta.hospital;
+  const h = poiLayerPlace(map, 'hospital');
   return site.umcg && h ? { ...site, ...h, name: 'UMCG', umcg: true } : site;
 }
 
@@ -549,7 +549,7 @@ function begin(w, pending, opts) {
   let dest = destination(w, opts.busted, fromX, fromY);
   if (!dest) return false;
   // in a town park no ambulance gets through: the trauma heli comes instead
-  const umcg = w.map.meta && w.map.meta.hospital;
+  const umcg = poiLayerPlace(w.map, 'hospital');
   if (dest.mode === 'ambulance' && umcg && helipadInfo(w.map) && !inCountry(fromX, fromY) && !inCountry(dest.site.x, dest.site.y) && !departure(w, fromX, fromY)) dest = { site: { ...umcg, name: 'UMCG', umcg: true }, mode: 'heli' };
   const plan = planArrival(w, dest.site);
   const T = dest.mode === 'heli' ? HELI : DRIVE;

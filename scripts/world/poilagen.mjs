@@ -10,7 +10,9 @@
 //
 // split is de uitkomst van splitMeta(); index is de index.json van de wereld (`index.pois`).
 // `n` is het aantal rijen in de tegels, `rest` het aantal plaatsen van die lijst dat in de globale
-// laag bleef (poiRest, buiten de stadstegels): samen is dat de hele lijst van de meta.
+// laag bleef (poiRest, buiten de stadstegels): samen is dat de hele lijst van de meta. Een losse
+// plaats (hospital, helipad: poiLists -1) heeft `n` 1 en in zijn rij `_n` -1; een lezer vraagt hem met
+// facilities.js poiLayerPlace, een lijst met poiLayerPlaces.
 
 // per lijst van de meta het aantal rijen in de tegels en de tegels die ze dragen (gesorteerd).
 // Elke lijst uit poiLists staat erin, ook een lege: een lezer weet dan dat de soort bestaat.

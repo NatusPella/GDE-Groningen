@@ -13,6 +13,7 @@ import { getHelipads } from './heliflight.js';
 import { roadNetReady, roadGraphBuilt, roadGraphVersion, snapRoad, roadCosts, roadPath, roadPathToNode, roadPathFromNode, nodeXY, gatewayCandidates } from './roadgraph.js';
 import { playerBusy } from './busy.js';
 import { walkPathHook } from './latehooks.js';
+import { poiLayerPlace, poiLayerPlaces } from './facilities.js';
 
 const STRAY_M = 25;
 // the further from the route you may stray before it is redone, per way of travel
@@ -650,11 +651,11 @@ export function snapWaypoint(map, kind, x, y, z) {
 // a helicopter; the pads, and the home helipad, are
 const NOFLY_R = 70;
 function airContext(map) {
-  const meta = map.meta || {};
-  if (!map._noFly) map._noFly = (meta.policeStations || []).map((s) => ({ x: s.x, y: s.y, r: NOFLY_R, name: s.name }));
+  if (!map._noFly) map._noFly = poiLayerPlaces(map, 'policeStations').map((s) => ({ x: s.x, y: s.y, r: NOFLY_R, name: s.name }));
   // the pads register as the world comes up (home.js, shops.js): asked every time
   const landings = [];
-  if (meta.helipad) landings.push({ x: meta.helipad.x, y: meta.helipad.y, name: 'Helikopterplatform', kind: 'helipad' });
+  const pad = poiLayerPlace(map, 'helipad');
+  if (pad) landings.push({ x: pad.x, y: pad.y, name: 'Helikopterplatform', kind: 'helipad' });
   for (const h of getHelipads()) if (!landings.some((l) => Math.hypot(l.x - h.x, l.y - h.y) < 20)) landings.push({ x: h.x, y: h.y, name: h.name || 'Landingsplek', kind: 'helipad' });
   return { noFly: map._noFly, landings };
 }

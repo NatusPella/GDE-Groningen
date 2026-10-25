@@ -31,7 +31,7 @@ import { ensureCountryEdge, pushOutOfPlan } from './countryplan.js';
 import { countryWeight } from './countryfield.js';
 import { coveredByTiles } from './provinceworld.js';
 import { getOmmelandSpots } from './ommelandfun.js';
-import { reachableFacilities, FAC } from './facilities.js';
+import { reachableFacilities, FAC, poiLayerPlace, poiLayerPlaces } from './facilities.js';
 import { roadNear, roadKind, tilesIn, withTiles } from './tileplace.js';
 import { respawnArrival } from './respawn.js';
 import { wgsToWorld } from './rdnew.js';
@@ -154,10 +154,10 @@ export async function collectSpots(world) {
   for (const o of getOmmelandSpots(world)) add(o.kind, o.id, o);
   // every hospital, GP post, doctor and police station a death or an arrest
   // can lead to (facilities.js), where respawn.js puts the player
-  const meta = world.map.meta || {};
+  const hospital = poiLayerPlace(world.map, 'hospital');
   const sites = FAC.ready
     ? [...reachableFacilities('medical'), ...reachableFacilities('police')]
-    : [...(meta.policeStations || []), ...(meta.careSites || []), ...(meta.hospital ? [{ ...meta.hospital, umcg: true }] : [])];
+    : [...poiLayerPlaces(world.map, 'policeStations'), ...poiLayerPlaces(world.map, 'careSites'), ...(hospital ? [{ ...hospital, umcg: true }] : [])];
   const probe = { ...world, vehicles: [] };
   for (const s of sites) add('respawn', s.name || `${Math.round(s.x)},${Math.round(s.y)}`, await onTiles(world.map, s, 200, () => respawnArrival(probe, s).player));
   return out;
