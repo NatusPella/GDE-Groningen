@@ -1,5 +1,6 @@
 // Samen spelen (#454): de PvP-minigame (turf shooter) — de pure regels in game/js/pvparena.js. Punten per treffer, zones,
-// respawn, de rondeklok, de winnaar en de eis dat alleen spelers buiten de passieve stand meedoen. Pure Node, geen netwerk.
+// respawn, de rondeklok, de winnaar, de beloning per team en de gastenkant (team, stand en uitslag uit de gewone meldingen).
+// Pure Node, geen netwerk.
 import assert from 'node:assert/strict';
 import * as A from '../game/js/pvparena.js';
 
@@ -199,6 +200,68 @@ t('dood kost niets: de arena kent geen geld, geen buit en geen blijvend verlies'
   const stand = A.arenaStand(ar);
   assert.equal('geld' in stand, false); assert.equal('xp' in stand, false);
   assert.ok(!JSON.stringify(stand).includes('money'));
+});
+
+// ---------------------------------------------------------------- de gastenkant (#454)
+t('de opstelplaats van een team is ook zonder deelnemerslijst te bepalen: elke plek een eigen hoekje', () => {
+  const ar = A.maakArena({ x: 100, y: 200, rot: 0.4 });
+  assert.equal(A.arenaSpawnVoor(null, 0, 1), null);
+  const a = A.arenaSpawnVoor(ar, 0, 1), b = A.arenaSpawnVoor(ar, 0, 2), c = A.arenaSpawnVoor(ar, 1, 1);
+  assert.deepEqual(a, ar.spawns[0][1]);
+  assert.notDeepEqual(a, b, 'twee spelers staan niet op dezelfde plek');
+  assert.ok(ar.spawns[1].some((s) => s.x === c.x && s.y === c.y), 'het eigen team');
+  A.arenaMeld(ar, 0, 'Tammo', false);
+  assert.deepEqual(A.arenaSpawn(ar, 0), A.arenaSpawnVoor(ar, 0, 0), 'dezelfde regel als bij de host');
+  assert.equal(A.arenaSpawnVoor(ar, 7, 0).x, ar.x, 'een onbekend team staat in het midden');
+});
+
+t('de beloning per team: gelijk per team, een kleine bonus voor de winnaar, en dood kost niets', () => {
+  const ar = A.maakArena({ x: 0, y: 0 });
+  A.arenaMeld(ar, 0, 'Tammo', false); A.arenaMeld(ar, 1, 'Tessa', false); A.arenaMeld(ar, 2, 'Roos', false);
+  A.arenaStart(ar, 0);
+  const gelijk = A.arenaBeloningPerTeam(ar);
+  assert.equal(gelijk.length, 2);
+  assert.ok(gelijk.every((b) => b.geld === A.ARENA_BELONING.geld && b.winnaar === false), 'een gelijke stand geeft geen bonus');
+  ar.score = [9, 4];
+  const [noord, zuid] = A.arenaBeloningPerTeam(ar);
+  assert.deepEqual([noord.winnaar, noord.geld], [true, A.ARENA_BELONING.geld + A.ARENA_BELONING.winst]);
+  assert.deepEqual([zuid.winnaar, zuid.geld], [false, A.ARENA_BELONING.geld], 'het verliezende team krijgt ook het gewone bedrag');
+  const d = A.arenaDeelnemer(ar, 0);
+  assert.deepEqual(A.arenaBeloning(ar, 0), { ...noord, slot: 0 });
+  assert.equal(A.arenaBeloning(ar, 0).team, d.team);
+  assert.equal(A.arenaBeloning(ar, 9), null, 'wie niet meedeed krijgt niets');
+  assert.ok(A.ARENA_BELONING.winst > 0 && A.ARENA_BELONING.winst < A.ARENA_BELONING.geld, 'een kleine bonus');
+});
+
+t('de gast leest zijn team, de stand en de uitslag uit de gewone meldingen (geen nieuw bericht)', () => {
+  assert.equal(A.arenaTeamUitMelding(A.ARENA_TEKST.startJij('Noord')), 0);
+  assert.equal(A.arenaTeamUitMelding(A.ARENA_TEKST.startJij('Zuid')), 1);
+  assert.equal(A.arenaTeamUitMelding('De PvP-arena begint.'), null);
+  assert.equal(A.arenaTeamUitMelding(null), null);
+  // de standregel komt terug zoals hij ging, en de gast telt de klok zelf door
+  const ar = A.maakArena({ x: 0, y: 0 });
+  A.arenaMeld(ar, 0, 'Tammo', false); A.arenaMeld(ar, 1, 'Tessa', false); A.arenaStart(ar, 0);
+  ar.score = [12, 9]; ar.t = 11.4;
+  const regel = A.arenaRegel(ar);
+  assert.deepEqual(A.arenaLeesRegel(regel), { score: [12, 9], rest: 138 });
+  assert.deepEqual(A.arenaLeesRegel(A.arenaRegelVan([3, 0], 0)), { score: [3, 0], rest: 0 });
+  assert.equal(A.arenaLeesRegel('Noord 1 - 2 Oost · 0:10'), null, 'een onbekend team');
+  assert.equal(A.arenaLeesRegel('iets anders'), null);
+  // wat voor melding het is
+  assert.deepEqual(A.arenaMelding(A.ARENA_TEKST.startJij('Zuid')), { soort: 'start', team: 1 });
+  assert.deepEqual(A.arenaMelding(regel), { soort: 'stand', score: [12, 9], rest: 138 });
+  assert.deepEqual(A.arenaMelding('Midden is van Noord'), { soort: 'zone', zone: 'Midden', team: 0 });
+  assert.deepEqual(A.arenaMelding(A.ARENA_TEKST.neer('Roos', 'Tammo')), { soort: 'neer', tekst: A.ARENA_TEKST.neer('Roos', 'Tammo') });
+  const eind = A.ARENA_TEKST.einde(A.ARENA_TEKST.uitslag(12, 9), 40, 'Zuid');
+  assert.deepEqual(A.arenaMelding(eind), { soort: 'eind', tekst: eind });
+  assert.equal(A.arenaMelding('Je doet mee: zorg dat je in het veld staat.'), null);
+  assert.equal(A.arenaMelding(''), null);
+  // alles wat een gast hoort past in de negentig tekens van een melding
+  for (const tekst of [A.ARENA_TEKST.startJij('Noord'), A.ARENA_TEKST.startJij('Zuid'), A.ARENA_TEKST.vraagt, A.ARENA_TEKST.hostVraag('Een speler'),
+    A.ARENA_TEKST.verstuurd(A.ARENA.uitnS), A.ARENA_TEKST.meedoen, A.ARENA_TEKST.nee, A.ARENA_TEKST.niemand, A.ARENA_TEKST.opstaan, A.ARENA_TEKST.wacht, A.ARENA_TEKST.nietInVeld,
+    eind, A.ARENA_TEKST.kreeg(999999, 'Zuid'), A.arenaRegel(ar)]) {
+    assert.ok(typeof tekst === 'string' && tekst.length <= 90, tekst);
+  }
 });
 
 console.log(`pvparena_test: ${n}/${n} ok`);

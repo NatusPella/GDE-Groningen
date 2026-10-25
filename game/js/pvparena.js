@@ -5,10 +5,13 @@
 // Pure regels, zonder three.js, netwerk en DOM; getest in scripts/pvparena_test.mjs. De wereldhaak staat in cooppvpwereld.js.
 //
 // Een ronde: 2 tot 8 spelers, twee teams, 2,5 minuut. Wie in het veld staat en niet passief is, doet mee (geen late instap: de
-// deelnemers liggen vast bij de start). Een zone is van het team met de meeste levende spelers erin (bij een gelijke stand
-// verandert er niets); elk heel tijdvak van zoneS seconden levert een punt op. Wie neergaat staat na respawnS seconden weer op bij
-// zijn eigen team, met beschermingstijd (die tijd bewaakt de PvP-laag, cooppvp.js). De host rekent; elke plek heeft een eigen
-// score en er gaat nooit geld of voortgang af.
+// deelnemers liggen vast bij de start; elke speler, ook wie het spel opende, kan een ronde starten na een J/N-uitnodiging). Een
+// zone is van het team met de meeste levende spelers erin (bij een gelijke stand verandert er niets); elk heel tijdvak van
+// zoneS seconden levert een punt op. Wie neergaat staat na respawnS seconden weer op bij zijn eigen team (de gastenkant rekent
+// dat zelf uit met arenaSpawnVoor), met beschermingstijd (die tijd bewaakt de PvP-laag, cooppvp.js). De host rekent; elke plek
+// heeft een eigen score. De beloning is per team gelijk met een kleine bonus voor de winnaar (arenaBeloningPerTeam, #448) en er
+// gaat nooit geld of voortgang af: dood kost niets. De gast leest de start (met zijn team), de stand en de uitslag uit de gewone
+// meldingen (arenaMelding) en houdt zo zijn eigen bord bij (cooppvpwereld.js).
 
 export const ARENA = Object.freeze({
   id: 'pvparena',
@@ -22,7 +25,12 @@ export const ARENA = Object.freeze({
   respawnS: 3,          // s voor je weer opstaat
   beschermS: 3,         // s bescherming na het opstaan (cooppvp.js PVP.BESCHERM_S is langer; hier telt de korte variant)
   klaarS: 8,            // s: zolang blijft de uitslag staan
+  uitnS: 10,            // s: de J/N-uitnodiging voor de ronde (net als bij een wedstrijd, coopwedstrijd.js)
 });
+
+// De beloning per team (#448): gelijk per team, met een kleine bonus voor het winnende team. Dood kost niets; dit geld
+// komt uit de ronde zelf en gaat via de coopdeel-laag naar de eigen save van elke speler (coopnet.js payGuest).
+export const ARENA_BELONING = Object.freeze({ geld: 40, winst: 15 });
 
 export const ARENA_TEAMS = Object.freeze([
   { id: 'noord', naam: 'Noord', kleur: '#4aa3ff' },
@@ -47,17 +55,32 @@ export const ARENA_TEKST = {
   prompt: 'PvP-arena',
   promptSub: 'Twee teams, drie zones: druk op E om te beginnen',
   promptSolo: 'Alleen met Samen spelen en minstens twee spelers buiten de passieve stand',
-  start: 'De PvP-arena begint: twee teams, drie zones, 2,5 minuut. De zones beslissen de wedstrijd.',
-  alleenHost: 'De PvP-arena rekent op het spel van wie hem opende. Vraag daar om een ronde.',
   alBezig: 'Er loopt al een ronde in de PvP-arena.',
   min: 'De PvP-arena heeft minstens twee spelers buiten de passieve stand nodig, allebei in het veld.',
   passief: 'De PvP-arena is alleen voor spelers buiten de passieve stand. Zet de passieve stand eerst uit.',
   voertuig: 'Stap eerst uit: de PvP-arena begint te voet.',
+  plek: 'Ga bij het veld staan en druk op E.',
   neer: (dader, doel) => `${dader} schakelde ${doel} uit in de arena.`,
   uitslag: (noord, zuid) => `Arena afgelopen: Noord ${noord}, Zuid ${zuid}.`,
   gelijk: (noord, zuid) => `Arena afgelopen: gelijk, ${noord} tegen ${zuid}.`,
   rematch: 'Druk op E bij het veld voor een nieuwe ronde.',
+  // De gastenkant (#454): dezelfde gewone meldingen (coopnet.js 'melding', hoogstens 90 tekens), met het eigen team erin.
+  label: 'de PvP-arena',
+  vraagt: 'Je vraagt de PvP-arena te starten.',
+  hostVraag: (naam) => `${naam} wil de PvP-arena starten. Doe je mee? J = ja, N = nee.`,
+  verstuurd: (sec) => `Uitnodiging verstuurd: over ${sec} s begint de ronde, of druk nog eens op E.`,
+  meedoen: 'Je doet mee: zorg dat je in het veld staat als de ronde begint.',
+  nee: 'Je doet niet mee: de ronde loopt zonder jou door.',
+  niemand: 'Niemand deed mee: de ronde gaat niet door.',
+  opstaan: 'Je staat zo weer op: wacht even.',
+  wacht: 'Er loopt al een uitnodiging. Wacht of druk op E bij het veld.',
+  nietInVeld: 'Je stond niet in het veld: je deed deze ronde niet mee.',
+  startJij: (team) => `De PvP-arena begint: jij speelt in team ${team}. Drie zones, 2,5 minuut.`,
+  einde: (uitslag, geld, team) => `${uitslag} Team ${team}: €${geld}. Dood kostte niets.`,
+  kreeg: (geld, team) => `Je kreeg €${geld} in je eigen spel (team ${team}).`,
 };
+
+export const ARENA_ZONE_NAAM = Object.freeze({ midden: 'Midden', west: 'West', oost: 'Oost' });
 
 const fin = (n) => Number.isFinite(n);
 const deelnemer = (ar, slot) => (ar && ar.deeln ? ar.deeln.find((d) => d.slot === slot) || null : null);
@@ -163,9 +186,14 @@ export function arenaNeer(ar, dader, doel, nu = 0) {
 export function arenaSpawn(ar, slot) {
   const d = deelnemer(ar, slot);
   if (!d) return null;
-  const lijst = ar.spawns[d.team] || [];
+  return arenaSpawnVoor(ar, d.team, slot);
+}
+// Hetzelfde, maar zonder deelnemerslijst: de gastenkant van de arena kent alleen zijn eigen team en plek (#454).
+export function arenaSpawnVoor(ar, team, slot) {
+  if (!ar) return null;
+  const lijst = ar.spawns[team | 0] || [];
   if (!lijst.length) return { x: ar.x, y: ar.y };
-  return { ...lijst[Math.abs(Math.floor(slot)) % lijst.length] };
+  return { ...lijst[Math.abs(Math.floor(Number(slot) || 0)) % lijst.length] };
 }
 
 // ---------------------------------------------------------------- de klok
@@ -230,8 +258,61 @@ export function arenaUitslag(ar) {
   };
 }
 // Eén korte regel voor de bestaande meldingen (coopnet.js: 'melding', hoogstens 90 tekens), zonder nieuw netwerkformaat.
+// De gastenkant leest hem terug met arenaLeesRegel en telt de klok zelf door (#454).
+export function arenaRegelVan(score, rest) {
+  const s = Array.isArray(score) ? score : [0, 0], t = Number.isFinite(rest) ? Math.max(0, rest) : 0;
+  const m = Math.floor(t / 60), r = Math.floor(t % 60);
+  return `${ARENA_TEAMS[0].naam} ${s[0] | 0} - ${s[1] | 0} ${ARENA_TEAMS[1].naam} · ${m}:${r < 10 ? '0' : ''}${r}`.slice(0, 90);
+}
 export function arenaRegel(ar) {
   const s = arenaStand(ar);
-  const m = Math.floor(s.rest / 60), r = Math.floor(s.rest % 60);
-  return `${ARENA_TEAMS[0].naam} ${s.score[0]} - ${s.score[1]} ${ARENA_TEAMS[1].naam} · ${m}:${r < 10 ? '0' : ''}${r}`.slice(0, 90);
+  return arenaRegelVan(s.score, s.rest);
+}
+
+// ---------------------------------------------------------------- de beloning per team (#448, gastenkant #454)
+// Elk team krijgt hetzelfde bedrag, het winnende team een kleine bonus. Er gaat nooit geld af: dood kost niets. De host
+// betaalt dit één keer per ronde uit via de coopdeel-laag (coopnet.js deelMetGasten/payGuest), per speler in zijn eigen save.
+export function arenaBeloningPerTeam(ar) {
+  const w = arenaWinnaar(ar);
+  return ARENA_TEAMS.map((t, i) => ({ team: i, naam: t.naam, winnaar: w === i, geld: ARENA_BELONING.geld + (w === i ? ARENA_BELONING.winst : 0) }));
+}
+// Wat deze deelnemer krijgt; null voor wie niet meedeed.
+export function arenaBeloning(ar, slot) {
+  const d = deelnemer(ar, slot);
+  if (!d) return null;
+  const rij = arenaBeloningPerTeam(ar)[d.team] || null;
+  return rij ? { ...rij, slot } : null;
+}
+
+// ---------------------------------------------------------------- wat een gast van de meldingen leest (#454)
+// De gastenkant gebruikt geen nieuw bericht: de host stuurt de start (met het eigen team), de stand en de uitslag als gewone
+// 'melding' (coopnet.js). Deze functie leest ze terug; onbekende tekst geeft null. Puur, zodat pvparena_test het dekt.
+export function arenaTeamUitMelding(tekst) {
+  const t = typeof tekst === 'string' ? tekst : '';
+  for (let i = 0; i < ARENA_TEAMS.length; i++) if (t.includes(`team ${ARENA_TEAMS[i].naam}`)) return i;
+  return null;
+}
+// De standregel van arenaRegel terug: { score: [noord, zuid], rest }.
+export function arenaLeesRegel(tekst) {
+  const t = typeof tekst === 'string' ? tekst.trim() : '';
+  const m = /^(\S+) (\d{1,4}) - (\d{1,4}) (\S+) · (\d{1,3}):(\d\d)$/.exec(t);
+  if (!m || m[1] !== ARENA_TEAMS[0].naam || m[4] !== ARENA_TEAMS[1].naam) return null;
+  return { score: [Number(m[2]), Number(m[3])], rest: Number(m[5]) * 60 + Number(m[6]) };
+}
+// Wat voor melding dit is: { soort: 'start', team } | { soort: 'stand', score, rest } | { soort: 'zone', zone, team } |
+// { soort: 'neer', tekst } | { soort: 'eind', tekst }. De gastenkant houdt daarmee zijn eigen bord bij.
+export function arenaMelding(tekst) {
+  const t = typeof tekst === 'string' ? tekst.trim() : '';
+  if (!t) return null;
+  if (t.startsWith('De PvP-arena begint')) return { soort: 'start', team: arenaTeamUitMelding(t) };
+  if (t.startsWith('Arena afgelopen')) return { soort: 'eind', tekst: t.slice(0, 90) };
+  const zone = /^(.*) is van (.*)$/.exec(t);
+  if (zone && Object.values(ARENA_ZONE_NAAM).includes(zone[1])) {
+    const team = ARENA_TEAMS.findIndex((x) => x.naam === zone[2]);
+    if (team >= 0) return { soort: 'zone', zone: zone[1], team };
+  }
+  const stand = arenaLeesRegel(t);
+  if (stand) return { soort: 'stand', score: stand.score, rest: stand.rest };
+  if (t.includes('schakelde') && t.endsWith('in de arena.')) return { soort: 'neer', tekst: t.slice(0, 90) };
+  return null;
 }
