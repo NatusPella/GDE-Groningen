@@ -45,15 +45,30 @@ const gauss = (rng) => (rng() + rng() + rng() + rng() - 2) / 0.58;
   check('no blue accent (design system)', ids.every((id) => !blue(MG_THEMA[id].accent)), ids.map((id) => MG_THEMA[id].accent).join());
   const icons = ids.map((id) => mgIcoon(MG_THEMA[id].icoon, 16));
   check('every icon is a flat low-poly svg, hidden from screen readers', icons.every((s) => /<polygon|<ellipse|<rect/.test(s) && /aria-hidden="true"/.test(s) && !/stroke=|<image|<text/.test(s)));
-  check('every icon has its own shapes', new Set(icons).size === ids.length);
+  // geen nieuwe beeldtaal (#453): elk spel leent een bestaand icoon, en elke naam in de set heeft zijn eigen vorm,
+  // zodat de kleur nooit het enige teken is. Spellen van dezelfde soort (het water) delen bewust hun icoon.
+  const namen = ids.map((id) => MG_THEMA[id].icoon);
+  check('every theme takes an existing icon', namen.every((n) => mgIcoon(n, 16) !== ''), namen.join());
+  check('an icon name always draws the same shape, and no two names share one', new Set(namen.map((n) => mgIcoon(n, 16))).size === new Set(namen).size, namen.join());
+  check('the games do not all wear the same icon', new Set(icons).size >= 8, new Set(icons).size);
   check('an unknown game has no theme and no icon', mgThema('bestaatniet') === null && mgIcoon('bestaatniet') === '');
   check('the discgolf theme is its own', mgThema('discgolf').titel === 'DISCGOLF STADSPARK' && mgThema('discgolf').accent === '#f08a2e');
-  // de vier spellen van de eerste lading halen hun bord uit de tabel, niet uit een losse kleur van zichzelf
+  // elk spel met een bord haalt titel, kleur en icoon uit de tabel, niet uit een losse kleur van zichzelf
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-  for (const id of ['discgolf', 'pitchputt', 'skatepark', 'kartbaan']) {
-    const src = fs.readFileSync(path.join(root, 'game/js', id + '.js'), 'utf8');
-    check(`${id} uses its theme`, src.includes(`mgThema('${id}')`) && src.includes(`createBoard('${id}')`), id);
+  const THEMABORDEN = {
+    discgolf: 'discgolf', pitchputt: 'pitchputt', skatepark: 'skatepark', kartbaan: 'kartbaan',
+    klimtoren: 'klimtoren', zwembad: 'zwembad', waterski: 'waterski', hengelen: 'hengelen', regatta: 'regatta',
+    pannenkoek: 'pannenkoek', wandeling: 'wandeling', carillon: 'carillon', vliegschool: 'vliegschool', machinist: 'machinist',
+  };
+  for (const [id, file] of Object.entries(THEMABORDEN)) {
+    const src = fs.readFileSync(path.join(root, 'game/js', file + '.js'), 'utf8');
+    check(`${id} uses its theme`, src.includes(`mgThema('${id}')`) && src.includes(`createBoard('${id}')`), file);
   }
+  // de PvP-arena (#454) en de twee diensten (#444) halen hun bord ook uit de tabel
+  const pvp = fs.readFileSync(path.join(root, 'game/js/cooppvpwereld.js'), 'utf8');
+  check('pvparena uses its theme', pvp.includes("createBoard('pvparena'") && MG_THEMA.pvparena.titel === 'PVP-ARENA');
+  const diensten = fs.readFileSync(path.join(root, 'game/js/activities.js'), 'utf8');
+  check('the flight and the boat service use their theme', diensten.includes('createBoard(mgThema(cfg.id) ? cfg.id : cfg.titel, cfg.accent)') && MG_THEMA.vluchtdienst && MG_THEMA.vaardienst, 'activities.js');
 }
 
 // --- discgolf ------------------------------------------------------------------------------------

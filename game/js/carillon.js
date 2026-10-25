@@ -2,7 +2,7 @@ import { showBanner } from './cinematics.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, setStatMax, MEDALS } from './achievements.js';
 import { showCard } from './hudcards.js';
 import { standActivity, recLine } from './standactivity.js';
-import { createBoard, key, bubble, clearBubbles, pick, stopPressed } from './minigamekit.js';
+import { createBoard, mgThema, key, bubble, clearBubbles, pick, stopPressed } from './minigamekit.js';
 import { CARILLON_LINES } from './minigamelines3.js';
 import { pushAudioEvent } from './pedgeom.js';
 import { TOWER, CARILLON_STAND, BELL_KEYS, BELL_NAMES, TUNES, CARILLON, MEDAL_AT, createCarillon, stepCarillon, bellHz, carillonMedal, accuracy } from './carillonrules.js';
@@ -14,7 +14,7 @@ import { TOWER, CARILLON_STAND, BELL_KEYS, BELL_NAMES, TUNES, CARILLON, MEDAL_AT
 // Rules: carillonrules.js. `window.__carillon` debug.
 // the pitch of the 'bell_carillon' sample (sfx/dsp.js)
 const BELL_REF_HZ = 523.25;
-const ACCENT = '#d9b44a';
+const ACCENT = mgThema('carillon').accent; // één bron voor het HUD-thema: minigamekit.js (#453)
 const ORIGIN = TOWER;
 const STAND = CARILLON_STAND;
 
@@ -111,7 +111,7 @@ function start(w) {
   if (game) return false;
   const p = w.player;
   if (p.inVehicle) p.exitVehicle(w.map, w);
-  if (!board) board = createBoard('CARILLON MARTINITOREN', ACCENT);
+  if (!board) board = createBoard('carillon');
   board.show();
   game = { phase: 'pick', pick: 0, s: null, flash: null };
   showCard(w, { kind: 'tip', kicker: 'Carillon', title: 'Klokken in de Martinitoren', body: 'Kies een deuntje met [Q] en [E] en druk [Spatie]. Sla de lichtgevende klok aan op de tel: [A] [S] [D] [F] [J] [K] [L] [;].', duration: 11, key: 'carillon-help', voice: false });

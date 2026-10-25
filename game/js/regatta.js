@@ -1,7 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { recordChallengeResult, getChallengeRecord, recordStat, MEDALS } from './achievements.js';
 import { iconDisc, activityBlock } from './activitykit.js';
-import { createBoard, key, fmtTime, stopPressed, windText, gameUi } from './minigamekit.js';
+import { createBoard, mgThema, key, fmtTime, stopPressed, windText, gameUi } from './minigamekit.js';
 import { waterAt, waterPolyAt } from './waterlevels.js';
 import { buildingAt } from './tileplace.js';
 import { WATER_Y } from './util.js';
@@ -23,7 +23,7 @@ import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHos
 // Backspace stopt. De wind komt uit zeilvaren.js (world.wind). Regels: zeilrules.js, baan:
 // regattabaan.js. `window.__regatta` debug. Gratis; de medaille hangt aan de tijd. Op de Hoornse Plas (regattaplas.js, #399) ligt een
 // lange vaste baan: vijf tonnen, twee ronden, vier tegenstanders en een eigen beloning en record.
-const ACCENT = '#2a7fd6';
+const ACCENT = mgThema('regatta').accent; // één bron voor het HUD-thema: minigamekit.js (#453)
 const NAAM = 'Zeilregatta';
 const STAP_IN = 'Stap in je zeilboot: alleen daarmee tel je mee';
 let marinas = null;
@@ -116,7 +116,7 @@ function start(w, sc = null) {
   if (!baan) { w.addMessage('Geen vrij water voor een baan bij deze haven', 3); return false; }
   const rondes = plas ? PLAS.rondes : REGATTA.rondes, snelheid = plas ? PLAS.snelheid : 2.6;
   if (sc) return startBaan(w, sc, near, baan, plas, rondes, snelheid); // samen spelen: een wedstrijd tegen elkaar (#443)
-  if (!board) board = createBoard('ZEILREGATTA', ACCENT);
+  if (!board) board = createBoard('regatta');
   board.show();
   const bots = maakBots(baan.tonnen, plas ? PLAS.bots : 3);
   meshes = buildMeshes(baan.tonnen, bots);
@@ -136,7 +136,7 @@ function startBaan(w, sc, near, baan, plas, rondes, snelheid) {
   const deeln = sc.deeln.slice(0, MAX_DEELN).map((d) => ({ ...d }));
   const mijn = deeln.find((d) => !d.slot);
   if (mijn && !(host && isZeil(host.inVehicle))) { w.addMessage(STAP_IN, 3); return false; }
-  if (!board) board = createBoard('ZEILREGATTA', ACCENT);
+  if (!board) board = createBoard('regatta');
   board.show();
   ruimBoten(w); // een vorige wedstrijd: de gasten uit hun oude raceboot en de lege boten weg
   const punten = startLijn(w, baan, deeln.length);
