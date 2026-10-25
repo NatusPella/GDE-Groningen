@@ -220,6 +220,27 @@ check('animatie uit: meteen op de stoel', D.stapAnimatieAan({ stapAnimatie: fals
   check('achterpassagier: de achterdeur rechts', !!q && q.deur.id === 'ar' && q.rol === 'achter', JSON.stringify(q));
 }
 
+// een gast bij de deur: welke passagier hij kan vastpakken (#459)
+{
+  const k1 = car('sedan', { x: 0, y: 0, angle: 0 });
+  const bezet = (v, rol) => rol === 'bijrijder';
+  const k = D.trekKandidaat([k1], 0.645, 1.5, { heeft: bezet });
+  check('kandidaat: de bijrijdersdeur en die rol', !!k && k.v === k1 && k.rol === 'bijrijder' && k.deur.id === 'vr', JSON.stringify(k && { rol: k.rol, id: k.deur.id }));
+  check('lege stoel: niets te trekken', D.trekKandidaat([k1], 0.645, 1.5, { heeft: () => false }) === null);
+  check('zonder bezettingcheck telt de deur', !!D.trekKandidaat([k1], 0.645, 1.5));
+  check('de bestuurdersdeur telt niet', D.trekKandidaat([k1], 0.645, -1.5, { heeft: () => true }) === null);
+  check('te ver van de deur: niets', D.trekKandidaat([k1], 0.645, 4.2, { heeft: () => true }) === null);
+  check('een rijdende auto geeft niemand vrij', D.trekKandidaat([car('sedan', { x: 0, y: 0, angle: 0, speed: 4 })], 0.645, 1.5, { heeft: () => true }) === null);
+  check('ander niveau: de auto op de brug telt niet', D.trekKandidaat([car('sedan', { x: 0, y: 0, angle: 0, z: 6 })], 0.645, 1.5, { niveau: 0, heeft: () => true }) === null);
+  check('een wrak of fiets: niets', D.trekKandidaat([car('sedan', { wrecked: true })], 0.645, 1.5, { heeft: () => true }) === null && D.trekKandidaat([car('bike')], 0.645, 1.5, { heeft: () => true }) === null);
+  const dichtbij = car('sedan', { x: 0, y: 0, angle: 0 });
+  const b = D.trekKandidaat([car('sedan', { x: 6, y: 0, angle: 0 }), dichtbij], 0.645, 1.5, { heeft: () => true });
+  check('de dichtstbijzijnde deur wint', !!b && b.v === dichtbij);
+  const achter = D.trekKandidaat([k1], -0.6, 1.5, { heeft: (v, rol) => rol === 'achter' });
+  check('achterpassagier bij de achterdeur', !!achter && achter.rol === 'achter' && achter.deur.id === 'ar');
+  check('geen voertuigen: null', D.trekKandidaat(null, 0, 0) === null && D.trekKandidaat([], 0, 0, { heeft: () => true }) === null);
+}
+
 // busdeuren sluiten aan op de opening in het busmodel (hoogte 3,0 m, opening 0,42..2,6 m, 1,25 m breed)
 for (const [naam, len, aantal] of [['bus', 11.2, 4], ['midibus', 8.4, 2]]) {
   const b = D.doorsFor({ model: { name: naam, len, wid: 2.5 }, isBus: true });
