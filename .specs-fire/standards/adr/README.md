@@ -66,3 +66,4 @@ deze lijst voordat een andere sessie begint te schrijven:
 | [0014](0014-release-lokaal-builds-in-actions.md) | Release lokaal, builds in Actions, agents nooit | besloten |
 | [0015](0015-een-safehouse-systeem.md) | Eén safehouse-systeem, ook voor de verhaalplekken | besloten |
 | [0017](0017-code-in-het-engels.md) | Code in het Engels, spelteksten en proza in het Nederlands | besloten |
+| [0018](0018-spraak-op-flash-lite.md) | Spraak op Gemini Flash-Lite TTS, en nooit meer Flash | besloten |
