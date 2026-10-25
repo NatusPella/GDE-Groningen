@@ -193,11 +193,13 @@ intents:
         completed_at: 2026-10-25T13:17:09.780Z
       - id: wi-492-hint
         title: "#492 Eenmalige hint over Samen spelen"
-        status: pending
+        status: completed
         complexity: low
         mode: autopilot
         depends_on:
           - wi-492-boot
+        run_id: run-gde-light-sims-004
+        completed_at: 2026-10-25T13:18:22.782Z
       - id: wi-493-geld
         title: "#493 Geldcurve fase 1: mildere start, flitswaarschuwing en hoger
           startbudget"
@@ -320,3 +322,11 @@ runs:
           mode: autopilot
       started: 2026-10-25T13:16:32.303Z
       completed: 2026-10-25T13:17:09.780Z
+    - id: run-gde-light-sims-004
+      scope: single
+      work_items:
+        - id: wi-492-hint
+          intent: gde-light-sims
+          mode: autopilot
+      started: 2026-10-25T13:18:03.889Z
+      completed: 2026-10-25T13:18:22.782Z
