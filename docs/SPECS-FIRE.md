@@ -75,6 +75,15 @@ iets unieks heeft blijft en verwijst naar zijn spec.
 geen spec: grep erin, lees hem nooit in zijn geheel. `README.md` is voor mensen op
 GitHub, `AGENTS.md` voor agents; die twee blijven zoals ze zijn.
 
+### Beslissingen: `standards/adr/`
+
+Elke keuze die duur is om terug te draaien, of die iemand opnieuw gaat voorstellen,
+staat in `standards/adr/NNNN-titel.md` met het waarom én de afgewezen
+alternatieven. De index staat in `adr/README.md`; daar staat ook wanneer je er een
+schrijft (en wanneer niet). Een beslissing die een oude vervangt, krijgt een nieuwe
+ADR en de oude krijgt "vervangen door NNNN" — je schrijft een ADR nooit om. De
+spec blijft de waarheid over het *wat*; de ADR gaat over het *waarom*.
+
 ## Harde regels
 
 - **`state.yaml` nooit met de hand.** Altijd via de scripts; die bewaken run-ids,

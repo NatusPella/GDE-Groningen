@@ -103,14 +103,11 @@ op het web.
 
 ## Belangrijke beslissingen
 
-| Beslissing | Keuze | Waarom |
-| --- | --- | --- |
-| Coördinaten | RD New (EPSG:28992), verschoven oorsprong | echte kaartdata 1:1 |
-| Wereld als data | `.gdt`-tegels, build-time gemaakt | streaming, niet in git |
-| Geen bundler | import map | simpel houden, geen buildstap in dev |
-| Eén `World` | gedeelde state, systeem bezit eigen velden | voorspelbare volgorde, geen globals |
-| Pure kern + glue | rekenregels los van THREE/DOM | testbaar in Node |
-| Saves lokaal | `localStorage` met migraties | geen accounts, geen server |
+De afweging per beslissing staat in `.specs-fire/standards/adr/`: projectie,
+wereld als tegels, pinnen versus streamen, één `World`, pure regelmodule, geen
+bundler, de opener is geen baas, opdrachtstand per groep, saves lokaal, één rood,
+tekst is data, Nederlands en verzonnen namen, één testrunner, en de releaseketen.
+De index met statussen staat in `adr/README.md`; hier staat geen tweede lijst.
 
 ## Waar de bestandskaart staat
 

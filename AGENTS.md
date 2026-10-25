@@ -47,6 +47,8 @@ Alleen één Electron-instantie tegelijk en geen nieuwe agents tijdens een relea
 
 De inhoudelijke specs staan in [.specs-fire/standards/](.specs-fire/standards/): per systeem één canonieke spec (`multiplayer.md`, `wereld.md`, `mechanica.md`, `verhaal.md`, `ui-taal.md`, `publicatie.md`) naast de standaarden (`coding-standards.md`, `testing-standards.md`, `tech-stack.md`, `system-architecture.md`, `constitution.md`). Die specs zijn het *hoe*; het bord is het *wat*. Een gebiedsdoc in `docs/` blijft naslag en verwijst naar zijn spec; wijkt een doc af van de code, dan is de doc de fout.
 
+Een keuze die duur is om terug te draaien, of die iemand opnieuw gaat voorstellen, krijgt een **ADR** in [.specs-fire/standards/adr/](.specs-fire/standards/adr/) met de afgewezen alternatieven erbij (zie `adr/README.md` voor de vorm en de grens). Een nieuwe of gewijzigde ADR hoort in dezelfde commit als de code die hem volgt.
+
 ## Testen
 
 - Alles in één keer, met rapport: `node scripts/test_all.mjs --fase=licht|zwaar|electron|alles` (zie [docs/TESTEN.md](docs/TESTEN.md)).
