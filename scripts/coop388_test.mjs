@@ -1,6 +1,8 @@
 // Samen spelen, de playtest van 22-10 (#388), zonder Electron:
 //   node scripts/coop388_test.mjs
 // - de camera van een gast draait met de muis (hij draaide nooit: updateGameplay draait niet voor een gast)
+// - de camera en besturing van een gast werken ook als wie het spel opende pauzeert of een menu opent, zonder sprong
+// - een menu van de gast zelf zet alleen zijn eigen figuur stil, niet de wereld van wie het spel opende
 // - niemand deelt een camera meer (het midden tussen twee spelers zette hem verder weg en scheef)
 // - Tessa zat vast aan een harde lijn van 38 m (alleen terug lopen kon): nu dezelfde band als de andere spelers (80 m melding, 110 m terugzetten)
 // - de pauze van wie het spel opende bevriest Tessa niet meer
@@ -59,6 +61,52 @@ t('de camera van een gast draait met de muis: rechts is met de klok mee, links e
   assert.match(l, /!world\.cameraOverride/, 'niet tijdens een filmpje');
 });
 
+t('de camera en besturing van een gast werken ook als wie het spel opende pauzeert of een menu opent', () => {
+  const s = avond(2); s.step(3);
+  const tessa = s.gs[0].gw, c = s.hw.companion;
+  s.hw.paused = true; // het pauzemenu, de kaart of de winkel van de gastheer (updateGameplay staat bij hem stil)
+  assert.equal(N.coopWereldDoorloop(s.hw, true), true, 'de wereld van de gastheer loopt door achter zijn menu');
+  tessa.camYaw = Math.PI / 2; // de gast draaide zijn camera naar +y
+  tessa.input.axis = () => [0, -1]; tessa.input.isDown = (k) => k === 'shift'; // vooruit, rennend
+  const x0 = c.x, y0 = c.y;
+  s.step(2);
+  assert.ok(c.y - y0 > 5, 'vooruit is +y, zoals zijn camera kijkt: ' + (c.y - y0).toFixed(1));
+  assert.ok(Math.abs(c.x - x0) < 0.5, 'hij loopt niet opzij: de kijkhoek van de gast stuurt de looprichting');
+  assert.equal(tessa.camYaw, Math.PI / 2, 'de gastheer raakt de kijkhoek van de gast niet aan');
+  assert.equal(tessa.coopCam, null, 'de gast heeft zijn eigen camera, ook achter het menu van de gastheer');
+  // op zijn eigen scherm komt zijn lichaam mee met de simulatie van de gastheer: geen bevriezing
+  assert.ok(Math.hypot(tessa.player.x - c.x, tessa.player.y - c.y) < 2.5, 'zijn eigen lichaam loopt mee in de snapshot');
+  // een andere kijkhoek: dezelfde stick gaat de andere kant op (de camera is niet losgekoppeld)
+  tessa.camYaw = -Math.PI / 2; const y1 = c.y;
+  s.step(1);
+  assert.ok(y1 - c.y > 2, 'de andere kijkhoek draait de looprichting om: ' + (y1 - c.y).toFixed(1));
+  // de gastheer hervat: geen sprong in de kijkhoek van de gast
+  s.hw.paused = false; s.step(0.5);
+  assert.equal(tessa.camYaw, -Math.PI / 2, 'hervatten verandert de kijkhoek niet');
+});
+
+t('de camera van een gast springt niet: veel kleine muisstappen geven dezelfde hoek als een grote', () => {
+  let a = 0;
+  for (let i = 0; i < 800; i++) { const b = gastKijkHoek(a, 1); assert.ok(Math.abs(b - a) < 0.01, 'geen sprong per stap'); a = b; }
+  const groot = gastKijkHoek(0, 800);
+  assert.ok(Math.abs(Math.atan2(Math.sin(a - groot), Math.cos(a - groot))) < 1e-9, 'dezelfde hoek na 800 kleine stappen');
+  // over de naad van -π naar π geen sprong: de hoek loopt door, ook al staat hij daarna als -π + 0,01
+  const voor = Math.PI - 0.001, r = gastKijkHoek(voor, 5);
+  assert.ok(Math.abs(r) <= Math.PI, 'de hoek blijft binnen -π..π');
+  assert.ok(Math.abs(Math.atan2(Math.sin(r - voor), Math.cos(r - voor)) - 5 * MUIS_DRAAI_PER_PX) < 1e-9, 'geen sprong van een hele cirkel');
+  // een menu van de gastheer verandert de kijkhoek van de gast niet
+  const s = avond(1); s.step(2);
+  const g = s.gs[0].gw, hoek = g.camYaw;
+  s.hw.paused = true; s.step(1);
+  assert.equal(g.camYaw, hoek, 'pauzeren of een menu openen bij de gastheer zet de camera niet terug');
+  // ook een terugzetting bij de groep (B, of te ver weg) draait zijn camera niet: de kijker blijft van de speler
+  s.hw.paused = false; g.camYaw = 0.8;
+  s.hw.player.x = 400; s.step(0.5);
+  assert.equal(N.bijGroepGebaar(g), true); s.step(1);
+  assert.ok(Math.hypot(s.hw.companion.x - 400, s.hw.companion.y - s.hw.player.y) < 5, 'hij staat weer bij de groep');
+  assert.equal(g.camYaw, 0.8, 'geen sprong in de kijkhoek door het terugzetten');
+});
+
 t('niemand deelt een camera: ook Tessa en wie het spel opende hebben hun eigen', () => {
   assert.equal(N.CAMERA_DELEN, false);
   const s = avond(2); s.step(3);
@@ -103,7 +151,27 @@ t('de pauze van wie het spel opende bevriest Tessa niet: ze loopt door; het wach
   s.hw.coopHold = false; s.hw.paused = false;
   tessa.input.axis = () => [0, 0]; s.step(1);
   assert.equal(N.stapMetgezelInPauze(s.hw, 1 / 60), false, 'zonder pauze doet de functie niets (updateGameplay stapt haar)');
+  s.hw.paused = true; s.hw.coopDoorloopNu = true; assert.equal(N.stapMetgezelInPauze(s.hw, 1 / 60), false, 'loopt de wereld al door achter het menu, dan stapt updateGameplay haar (geen dubbele stap)'); s.hw.coopDoorloopNu = false;
   const c2 = { ...c }; s.hw.paused = true; s.hw.companion.state = 'dead'; N.stapMetgezelInPauze(s.hw, 1 / 60); assert.equal(c.x, c2.x, 'een neergeslagen Tessa blijft liggen');
+});
+
+t('een menu van de gast zelf zet alleen zijn eigen figuur stil, niet de wereld van wie het spel opende', () => {
+  const s = avond(2); s.step(3);
+  const [tessa, bram] = s.gs.map((g) => g.gw), c = s.hw.companion, f = s.hw.coopFigures[2];
+  // niemand zet de pauze van de een op de ander: world.paused komt alleen uit het eigen scherm (main.js)
+  for (const bestand of fs.readdirSync(new URL('../game/js/', import.meta.url)).filter((b) => b.startsWith('coop') && b.endsWith('.js'))) {
+    assert.doesNotMatch(bron(bestand), /world\.paused\s*=/, bestand + ' zet de pauze van de gastheer niet op de gast');
+  }
+  tessa.input.axis = () => [0, -1]; bram.input.axis = () => [0, -1];
+  tessa.paused = true; // zijn eigen pauzemenu, kaart of winkel (main.js zet world.paused)
+  const c0 = c.x, f0 = f.x;
+  s.step(2);
+  assert.ok(Math.abs(c.x - c0) < 0.5, 'zijn eigen figuur staat stil: ' + (c.x - c0).toFixed(2));
+  assert.ok(f.x - f0 > 5, 'de andere gast loopt door: ' + (f.x - f0).toFixed(1));
+  assert.ok(!s.hw.paused, 'de wereld van de gastheer staat niet stil van het menu van de gast');
+  tessa.paused = false; const c1 = c.x;
+  s.step(1);
+  assert.ok(c.x - c1 > 2, 'na zijn menu loopt hij gewoon weer: ' + (c.x - c1).toFixed(1));
 });
 
 t('de gastheer stapt in: Tessa gaat niet vanzelf mee, leest wat ze moet doen en stapt met E in; wie achterblijft rijdt mee', () => {
