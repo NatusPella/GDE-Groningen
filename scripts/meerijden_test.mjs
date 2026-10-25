@@ -57,5 +57,22 @@ r3.t = plan.playS * 0.5;
 ok(/Overstappen op Zuid/.test(M.ondertitel(r3)), 'subtitle: transfer', M.ondertitel(r3));
 r3.t = plan.playS - 0.1;
 ok(/Volgende halte: Winsum/.test(M.ondertitel(r3)), 'subtitle: arriving', M.ondertitel(r3));
+
+// Reizen als boot (#438): je komt aan bij de aanlegplaats en de scenetekst zegt geen halte.
+const bootOpt = { id: 'boot', etaS: 600, price: 5, lines: [],
+  legs: [{ kind: 'walk', pts: [[0, 0], [100, 20]], length: 102 }, { kind: 'boat', pts: [[100, 20], [500, 30], [900, 40]], length: 800 }],
+  stops: [{ kind: 'instap', name: 'Kade Oosterhaven', x: 100, y: 20 }, { kind: 'uitstap', name: 'Lauwersoog', x: 860, y: 38 }] };
+const bootPlan = M.ritPlan(bootOpt);
+ok(bootPlan.mode === 'boot' && bootPlan.shots.some((s) => s.name === 'kade'), 'boat ride has its own shots');
+ok(bootPlan.haven && bootPlan.haven.x === 900 && bootPlan.haven.y === 40, 'the aanlegplaats is the end of the boat leg');
+const bootRit = M.startRit(bootPlan);
+const bootA = M.aankomst(bootRit, { x: 5, y: 6, name: 'Lauwersoog' }, 50);
+ok(bootA && bootA.x === 900 && bootA.y === 40, 'boat arrival at the aanlegplaats', JSON.stringify(bootA));
+ok(bootA.naam === 'Lauwersoog' && /Lauwersoog/.test(bootA.bericht), 'boat arrival keeps the place name');
+const bootZonderVaar = M.ritPlan({ id: 'boot', etaS: 60, price: 0, legs: [], lines: [], stops: [] });
+ok(M.aankomst(M.startRit(bootZonderVaar), { x: 7, y: 8 }, 0).x === 7, 'boat without a leg falls back to the target');
+ok(/Aan boord bij Kade Oosterhaven/.test(M.ondertitel(bootRit)), 'boat subtitle: boarding', M.ondertitel(bootRit));
+bootRit.t = bootPlan.playS - 0.1;
+ok(/Volgende aanlegplaats: Lauwersoog/.test(M.ondertitel(bootRit)), 'boat subtitle: aanlegplaats', M.ondertitel(bootRit));
 console.log(`${n - fails}/${n} meerijden`);
 process.exit(fails ? 1 : 0);
