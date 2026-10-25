@@ -123,6 +123,7 @@ function say(w, kind, force = false, after = false) {
 function updateGame(w, dt) {
   const g = game, s = g.s, input = w.input;
   g.t += dt;
+  g.dt = dt; // de camera rekent per seconde (#436)
   if (g.flash && (g.flash.t -= dt) <= 0) g.flash = null;
   if (g.online === 'gast' && (!w.coopNet || w.coopRole !== 'client')) { wedGastReset(w); end(w, { quit: true, extern: true }); return; } // the connection is gone
   if (stopPressed(input)) { end(w, { quit: true, extern: g.online === 'gast' && !!g.gemeld }); return; } // a guest who is done and waits just leaves the screen: his result stays and his prize still comes

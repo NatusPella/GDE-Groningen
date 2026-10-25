@@ -486,6 +486,7 @@ function updateGame(w, dt) {
   const g = game;
   const input = w.input;
   g.t += dt;
+  g.dt = dt; // de camera rekent per seconde (#436)
   g.phaseT += dt;
   if (g.flash && (g.flash.t -= dt) <= 0) g.flash = null;
   if (g.online === 'gast' && (!w.coopNet || w.coopRole !== 'client')) { wedGastReset(w); end(w, { quit: true, extern: true }); return; } // the connection is gone

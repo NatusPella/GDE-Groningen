@@ -241,12 +241,24 @@ export function stopPressed(input) {
   return false;
 }
 
-// Ease a camera pose onto a target one.
+// How much of the remaining distance one frame covers: `k` is the fraction at
+// 60 frames per second, scaled to `dt` seconds. A pause or a hitch counts for
+// at most a quarter second, so the camera glides on instead of jumping; the
+// same elapsed time gives the same pose on a fast and a slow screen (#436).
+export function easeStep(k, dt = 1 / 60) {
+  const d = Number.isFinite(dt) && dt > 0 ? Math.min(dt, 0.25) : 1 / 60;
+  return 1 - Math.pow(1 - clamp(k, 0.001, 0.999), d * 60);
+}
+
+// Ease a camera pose onto a target one. `k` is the fraction per frame at 60 fps
+// and the step is scaled to the frame time in `state.dt` (the game stores it in
+// its update), so the camera follows per second instead of per frame.
 export function easeCamera(state, pos, at, k = 0.12) {
   if (!state.cam) state.cam = { pos: { ...pos }, at: { ...at } };
+  const f = easeStep(k, state.dt);
   for (const key2 of ['x', 'y', 'z']) {
-    state.cam.pos[key2] += (pos[key2] - state.cam.pos[key2]) * k;
-    state.cam.at[key2] += (at[key2] - state.cam.at[key2]) * k;
+    state.cam.pos[key2] += (pos[key2] - state.cam.pos[key2]) * f;
+    state.cam.at[key2] += (at[key2] - state.cam.at[key2]) * f;
   }
   return { position: { ...state.cam.pos }, lookAt: { ...state.cam.at } };
 }

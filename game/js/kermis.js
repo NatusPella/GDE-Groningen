@@ -11,6 +11,7 @@ import { notifyPhone } from './phonefeed.js';
 import { spawnFxSpark } from './fx3d.js';
 import { addStaticCollider, addProp, removeProp } from './breakables.js';
 import { activityBlock, iconDisc } from './activitykit.js';
+import { easeStep } from './minigamekit.js';
 import { KERMIS_LINES, BOTS_BUMPED, BOTS_HIT, KERMIS_NEWS, KERMIS_TWINS } from './funlines.js';
 import { DURK_LOOK, DOUWE_LOOK } from './storycast.js';
 import { isToday } from './calendarday.js';
@@ -555,6 +556,7 @@ function updateRide(w, dt) {
   const g = game;
   const input = w.input;
   g.t += dt;
+  g.dt = dt; // de camera rekent per seconde (#436)
   if (g.flash && (g.flash.t -= dt) <= 0) g.flash = null;
   if (input.wasPressed('backspace')) { input.consume('backspace'); end(w, { quit: true }); return; }
   const cars = built.cars;
@@ -710,7 +712,9 @@ function camera(w) {
   const cp = toW(cu, cv);
   const pos = { x: cp.x, y: cp.y, z: 6.2 }, at = { x: mp.x + Math.cos(a) * 2, y: mp.y + Math.sin(a) * 2, z: 0.6 };
   if (!g.cam) g.cam = { pos: { ...pos }, at: { ...at } };
-  for (const key of ['x', 'y', 'z']) { g.cam.pos[key] += (pos[key] - g.cam.pos[key]) * 0.1; g.cam.at[key] += (at[key] - g.cam.at[key]) * 0.18; }
+  // per seconde, niet per beeld (#436): dezelfde tijd is dezelfde beweging, ook op een traag scherm
+  const f = easeStep(0.1, g.dt), fa = easeStep(0.18, g.dt);
+  for (const key of ['x', 'y', 'z']) { g.cam.pos[key] += (pos[key] - g.cam.pos[key]) * f; g.cam.at[key] += (at[key] - g.cam.at[key]) * fa; }
   w.cameraOverride = { position: { ...g.cam.pos }, lookAt: { ...g.cam.at }, fov: 62, cut: true };
 }
 
