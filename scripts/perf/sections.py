@@ -7,8 +7,8 @@ import sys
 from collections import defaultdict
 
 CAT = {
-    'sim/AI': ['populate', 'player', 'traffic', 'police+collide', 'combat', 'peds', 'wildlife', 'systems', 'phone+save'],
-    'stream/geo': ['cityprops', '3d:buildings', '3d:grass', '3d:water', '3d:roads', '3d:trees', '3d:rail+country', '3d:farlod', '3d:prewarm'],
+    'sim/AI': ['populate', 'player', 'traffic', 'police+collide', 'combat', 'peds', 'wildlife', 'systems', 'phone+save', 'story'],
+    'stream/geo': ['cityprops', '3d:buildings', '3d:grass', '3d:water', '3d:roads', '3d:trees', '3d:rail+country', '3d:farlod', '3d:prewarm', 'mapfollow'],
     'actors3d': ['3d:vehicles', '3d:vehfx', '3d:peds', '3d:props+wildlife', '3d:players', '3d:markers+combat'],
     'hud/dom': ['hud'],
     'audio': ['audio'],

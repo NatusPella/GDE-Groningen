@@ -655,12 +655,17 @@ async function boot() {
       // the open sea as water rows round the player (#233)
       if (tf && world.map.addWaterPatches) ensureSeaRows(world.map, world.player.x, world.player.y);
     }
+    // The tile follower and the story systems are not audio (#473: this used
+    // to be one section called "audio", and its 1945 ms peak was map
+    // streaming). Each gets its own mark, so "audio" is only updateAudio.
+    probe.mark('mapfollow');
     updateAudio(dt, world);
+    probe.mark('audio');
     updateNarrative();
     updateBanter(world.paused ? 0 : gameDt, world);
     updateStoryContact(world.paused ? 0 : dt, world);
     updatePractice(world.paused ? 0 : dt, world);
-    probe.mark('audio');
+    probe.mark('story');
     updateStreetSigns(dt, world, getScene());
     const animDt = world.paused && !doorloop ? 0 : gameDt;
     updateFx3D(animDt, world, getScene());
