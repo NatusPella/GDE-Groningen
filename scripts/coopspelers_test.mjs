@@ -23,7 +23,7 @@ t('de lijst: jij bovenaan, daarna op plek; naam, kleur, vorm, wat ze doen, verbi
   assert.equal(r[3].verbindingTekst, 'weg'); assert.equal(r[3].afstand, null, 'zonder positie geen afstand');
   assert.ok(r.every((x) => x.kleur && VORM_TEKEN[x.vorm]), 'kleur is nooit het enige signaal: elke speler heeft een vorm');
 });
-t('de gastheer ziet de ping van elke gast; wie meespeelt een opdracht staat erbij', () => {
+t('wie het spel opende ziet de ping van elke gast; wie zelf in een opdracht zit staat erbij', () => {
   const r = spelersRijen({ mijnSlot: 0, roster, partners: partners.filter((p) => p.slot !== 0), mijn: { x: 0, y: 0, rijdt: true }, rtt: (s) => (s === 1 ? 34.4 : s === 2 ? 180 : null), opdracht: 'Het Loket' });
   assert.equal(r[0].naam, 'Tammo'); assert.equal(r[0].doet, 'aan het stuur · in opdracht');
   assert.equal(rijTekst(r[1]), 'Tessa · in een voertuig · goed 34 ms · 100 m'.replace('goed 34 ms · 100 m', 'goed 34 ms · 100 m'));
@@ -33,7 +33,8 @@ t('een gast kent alleen zijn eigen ping; neergeslagen blijft neergeslagen, ook i
   const p = partners.map((x) => (x.slot === 0 ? { ...x, tekst: 'neergeslagen', status: 'neer' } : x));
   const r = spelersRijen({ mijnSlot: 1, roster, partners: p.filter((x) => x.slot !== 1), mijn: { x: 100, y: 0, inVoertuig: true }, rtt: (s) => (s === 1 ? 20 : null), opdracht: 'X' });
   const tam = r.find((x) => x.slot === 0); assert.equal(tam.doet, 'neergeslagen'); assert.equal(tam.ms, null);
-  assert.equal(r[0].ms, 20); assert.equal(r[0].doet, 'in een voertuig');
+  assert.equal(r[0].ms, 20); assert.equal(r[0].doet, 'in een voertuig · in opdracht', 'de opdracht is van jou, niet van een vaste plek (#455)');
+  assert.doesNotMatch(tam.doet, /in opdracht/, 'van een andere groep ken je de opdracht niet');
 });
 t('afstanden: bij je, afgerond op tien meter, kilometers met een komma; rommel geeft niets', () => {
   assert.equal(afstandTekst(5), 'bij je'); assert.equal(afstandTekst(47), '50 m'); assert.equal(afstandTekst(1530), '1,5 km'); assert.equal(afstandTekst(NaN), '');
@@ -55,8 +56,8 @@ t('eruit zetten', () => {
   assert.ok(anderen.every((x) => !kanEruitZetten('gast', x)));
   assert.equal(kanEruitZetten('host', null), false);
   assert.equal(eruitKnopTekst(false), 'Eruit zetten'); assert.equal(eruitKnopTekst(true), 'Zeker weten?');
-  assert.match(eruitGezetTekst(anderen.find((x) => x.slot === 1)), /Tessa loopt weer zelf mee/);
-  assert.doesNotMatch(eruitGezetTekst(anderen.find((x) => x.slot === 2)), /Tessa/);
+  assert.equal(eruitGezetTekst(anderen.find((x) => x.slot === 1)), 'Tessa is uit het spel gezet. De anderen spelen door.');
+  assert.doesNotMatch(eruitGezetTekst(anderen.find((x) => x.slot === 1)), /loopt weer zelf mee|gastheer/i, 'geen vaste rol per plek meer (#455)');
   assert.match(wegMelding('verwijderd', 'Tammo'), /Tammo heeft je uit het spel gezet. Je speelt weer in je eigen spel/);
   assert.match(wegMelding('spel gestopt', 'Tammo'), /het spel gestopt/);
   assert.match(wegMelding('verwijderd', 'Tammo', 'ABCDE-FGHJK'), /Opnieuw aansluiten kan met de kamercode ABCDE-FGHJK/, 'een gekickte gast ziet de kamercode (#434)');
