@@ -146,6 +146,7 @@ const bronIds = () => {
   uit('keuzewerk.js', /^\s*id: '([a-z]+)',/gm);
   uit('bijbaanregels.js', /^\s*id: '([a-z]+)', naam:/gm);
   uit('sidejob_stad.js', /^\s{2}(museumbus|suikerbieten|herstelploeg|oogtv|telefoonrave|vandermeden|schouwburg|bernardrit)\b/gm);
+  uit('zeeschipvaart.js', /^\s*id: '([a-z]+)',/gm); // de zeeschip-bijbanen (#438): hun id staat bij de haven
   return ids;
 };
 t('elke bijbaan uit de bron heeft een vak, en elke baan in de tabel bestaat echt', () => {
