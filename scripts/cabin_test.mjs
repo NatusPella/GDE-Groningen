@@ -4,7 +4,7 @@
 import './node3d.mjs';
 const THREE = await import('three');
 await import('../game/js/player.js');
-const { buildVehicleMesh } = await import('../game/js/models3d_vehicles.js');
+const { buildVehicleMesh, carBodyFit } = await import('../game/js/models3d_vehicles.js');
 const { Vehicle, TRAFFIC_MODELS } = await import('../game/js/vehicle.js');
 const C = await import('../game/js/cabin3d.js');
 const { vehicleSeat } = await import('../game/js/seating3d.js');
@@ -48,6 +48,23 @@ for (const [name, model, flags] of cases) {
   C.syncCabins({ vehicles: [v] }, meshes, 0, 0);
   check(name + ': verborgen bij de binnenin-camera', !cab.visible);
 }
+// een gewone personenauto heeft een zichtbaar interieur (#442): de cabine hangt aan de echte raamlijn
+// en het echte dak, met onderdelen boven de raamlijn (stuur, binnenspiegel, dakhemel) zodat je hem
+// van buiten door de ruiten en door een open portier gevuld ziet
+for (const name of ['hatch', 'sedan', 'wagon', 'sport', 'van']) {
+  const model = models.get(name);
+  if (!model) continue;
+  const v = new Vehicle(0, 0, 0, { ...model });
+  const romp = carBodyFit(v);
+  check(name + ': romp bekend', !!romp);
+  if (!romp) continue;
+  const g = C.buildCabinGeometry(vehicleSeat(v, true), v.model.len, v.model.wid, interiorKlasse(v), romp);
+  g.computeBoundingBox();
+  const b = g.boundingBox;
+  check(name + ': interieur boven de raamlijn', b.max.y > romp.belt + 0.02, `max y ${b.max.y.toFixed(2)} raamlijn ${romp.belt}`);
+  check(name + ': interieur onder het echte dak', b.max.y < romp.roof, `max y ${b.max.y.toFixed(2)} dak ${romp.roof}`);
+}
+
 // geen cabine voor bus, wrak, fiets en boot
 const bus = Object.assign(new Vehicle(0, 0, 0, { ...models.get('bus') }), {});
 check('bus: geen cabine', !C.wantsCabin(bus));

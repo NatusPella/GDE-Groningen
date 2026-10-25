@@ -9,6 +9,7 @@ import { GeoBuilder, markShared } from './pixelart3d.js';
 import { vehicleSeat } from './seating3d.js';
 import { interiorKlasse } from './carinteriorlayout.js';
 import { cabinWheelPose } from './cabin3d.js';
+import { carBodyFit } from './models3d_vehicles.js';
 
 export const STUUR_R = 12;       // m: verder weg is het draaien van het stuur niet te zien
 export const STUUR_HOEK = 2.2;   // rad stuurdraaiing bij volle stuurinvoer (zelfde als de binnenin-camera)
@@ -77,7 +78,7 @@ export function syncAutoStuur(world, meshes, px, py, dt) {
     }
     if (!w) {
       const seat = vehicleSeat(v, true);
-      w = bouwStuurwiel(cabinWheelPose(seat, v.model.len, v.model.wid, interiorKlasse(v)));
+      w = bouwStuurwiel(cabinWheelPose(seat, v.model.len, v.model.wid, interiorKlasse(v), carBodyFit(v)));
       w.userData.turn.userData.hoek = -(v.steer || 0) * STUUR_HOEK;
       cab.add(w);
       cab.userData.stuur = w;
