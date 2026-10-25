@@ -127,6 +127,15 @@ export function slotsVan(world) {
   return [...new Set(uit)].sort((a, b) => a - b);
 }
 
+// De plekken die aan deze opdracht meedoen: zonder deelnemerslijst alle verbonden plekken, met lijst alleen wie
+// meespeelt. Een toeschouwer (nee gezegd bij Meedoen?) krijgt dus geen rol (#438).
+export function rolSlots(world, deelnemersLijst = null) {
+  const slots = slotsVan(world);
+  if (!Array.isArray(deelnemersLijst) || !deelnemersLijst.length) return slots;
+  const mee = new Set(deelnemersLijst);
+  return slots.filter((s) => mee.has(s));
+}
+
 // De rolverdeling van deze sessie; met één speler is er niets te verdelen (die doet alle rollen zelf).
 export const verdelingVoor = (slots) => (Array.isArray(slots) && new Set(slots).size >= 2 ? rollenVoor(slots) : []);
 

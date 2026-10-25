@@ -33,8 +33,7 @@ import { Vehicle } from './vehicle.js';
 import { BOAT_KINDS } from './boattypes.js';
 import {
   rollenPerSpeler, samenRegels, STAPPLEK, STAPKLAAR, STAPTEKST, rolNaam, isRolstap, slotsVan, verdelingVoor, houderVan,
-  rolStand, beginRolstap, rolGate, rolRegel, maakDraai, draaiKluis, KLUISCODE, zetHeistHaken,
-} from './heistrollen.js';
+  rolStand, beginRolstap, rolGate, rolRegel, maakDraai, draaiKluis, KLUISCODE, zetHeistHaken, rolSlots } from './heistrollen.js';
 import { gastheerMee } from './coopmissie.js';import * as UI from './heistui.js';
 
 const SPOTS_BEFORE_HELP = 3;
@@ -749,7 +748,10 @@ function updateDistraction(world) {
 function rolVerdeling(world) {
   // dezelfde verdeling op elk scherm: de verbonden plekken uit de spelerslijst (slotsVan), zonder de
   // gastheer als hij niet meedoet aan deze opdracht
-  const slots = slotsVan(world).filter((s) => s !== 0 || gastheerMee(world));
+  const st = world && world.coopMissie;
+  const mid = world && world.mission ? opdrachtId(world.mission) : null;
+  const deeln = mid ? deelnemers(st, mid) : null;
+  const slots = rolSlots(world, deeln).filter((s) => s !== 0 || gastheerMee(world));
   return verdelingVoor(slots);
 }
 

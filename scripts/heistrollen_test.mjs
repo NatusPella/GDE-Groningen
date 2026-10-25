@@ -5,8 +5,7 @@ import {
   ROLLEN, ROL, isRol, rolVanFase, rollenVoor, rollenPerSpeler, wieDoet, rolNaam, rolZin, samenRegels, buitVerdelen, MODI, isModus,
   ROLSTAP, STAPPLEK, STAPTEKST, STAPKLAAR, ROLBEREIK, isRolstap, slotsVan, verdelingVoor, houderVan, lichaamVan,
   maakRolstand, rolStand, beginRolstap, rolKlaar, rolClaim, rolGate, rolRegel, heistRolGebruik,
-  KLUISCODE, KLOKSCHIJF, maakDraai, draaiKluis, zetHeistHaken, heistGastTik,
-} from '../game/js/heistrollen.js';
+  KLUISCODE, KLOKSCHIJF, maakDraai, draaiKluis, zetHeistHaken, heistGastTik, rolSlots } from '../game/js/heistrollen.js';
 
 // --- de rollen ----------------------------------------------------------------------------
 assert.deepEqual(ROLLEN, ['uitkijk', 'loper', 'kluis', 'schipper']);
@@ -262,6 +261,15 @@ assert.match(MODI.tegen.tekst, /wint/);
   assert.equal(heistGastTik({}, 1 / 60, { kind: 'crack' }), true);
   assert.equal(gezien, 1);
   zetHeistHaken({ gastTik: null });
+}
+
+// rolSlots: een toeschouwer (niet in de deelnemerslijst) krijgt geen rol (#438)
+{
+  const world = { coopRoster: [{ slot: 0, verbinding: 'ok' }, { slot: 1, verbinding: 'ok' }, { slot: 2, verbinding: 'ok' }, { slot: 3, verbinding: 'lost' }] };
+  assert.deepEqual(rolSlots(world), [0, 1, 2], 'verbonden plekken, geen weggevallen speler');
+  assert.deepEqual(rolSlots(world, [0, 2]), [0, 2], 'alleen deelnemers, geen toeschouwer');
+  assert.deepEqual(rolSlots(world, []), [0, 1, 2], 'zonder lijst telt iedereen mee (solo of oude save)');
+  assert.deepEqual(verdelingVoor(rolSlots(world, [1])), [], 'één deelnemer: geen verdeling');
 }
 
 console.log('heistrollen_test ok');
