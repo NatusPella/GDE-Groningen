@@ -6,6 +6,7 @@
 //   node scripts/clearance_audit.mjs [--min 4.2] [--min-path 2.4] [--all]
 // Needs the vendored three.js once: cd desktop && npm run stage
 import './node3d.mjs';
+import { laneUnderDeck } from './lib/clearance.mjs';
 import fs from 'node:fs';
 
 const { GameMap, applyMapExtras } = await import('../game/js/mapdata.js');
@@ -36,13 +37,7 @@ for (const sg of elev.segs) {
     const x = sg.ax + (sg.bx - sg.ax) * t, y = sg.ay + (sg.by - sg.ay) * t;
     const zRoad = sg.za + (sg.zb - sg.za) * t;
     if (zRoad < 0.5) continue;
-    const lower = (elev.flatGrid.at(x, y) || []).filter((f) => {
-      const dx = f.bx - f.ax, dy = f.by - f.ay, l2 = dx * dx + dy * dy || 1;
-      const u = Math.max(0, Math.min(1, ((x - f.ax) * dx + (y - f.ay) * dy) / l2));
-      // the deck must lie over the lane, not just brush its edge (a footway ramp
-      // beside a service road is not a passage under the viaduct)
-      return Math.hypot(x - (f.ax + dx * u), y - (f.ay + dy * u)) <= Math.max(f.hs - sg.hs, 0.5);
-    });
+    const lower = (elev.flatGrid.at(x, y) || []).filter((f) => laneUnderDeck(x, y, f, sg.hs));
     const under = lower.length > 0;
     // the strictest class under this point decides: any car lane needs the full height
     const pathOnly = under && lower.every((f) => f.r.cat === 'cycle' || f.r.cat === 'foot');
