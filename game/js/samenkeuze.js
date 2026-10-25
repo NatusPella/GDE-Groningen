@@ -1,8 +1,9 @@
-// Samen spelen (#95) in het hoofdmenu: Samen spelen → "Gastheer worden" of "Meedoen". Een klein scherm in dezelfde
-// taal als de andere menu's (menu.css); daarna kiest de gastheer een opgeslagen spel (saveslotsui.js) en komt
-// de wachtkamer (lobbyui.js) in het spel zelf.
+// Samen spelen (#95) in het hoofdmenu: Samen spelen → "Een spel openen" of "Meedoen". Een klein scherm in dezelfde
+// taal als de andere menu's (menu.css); daarna kiest wie het spel opent een opgeslagen spel (saveslotsui.js) en komt
+// de wachtkamer (lobbyui.js) in het spel zelf. De rol hoort bij de speler (#455): iedereen speelt lokaal zijn eigen
+// verhaal (Tammo of Tessa) en de anderen zien je als je online-avatar.
 export const SAMEN_KEUZES = [
-  { act: 'host', label: 'Een spel openen', sub: 'Jij kiest het spel en nodigt tot drie anderen uit' },
+  { act: 'host', label: 'Een spel openen', sub: 'Jij kiest het spel en nodigt de anderen uit' },
   { act: 'gast', label: 'Meedoen', sub: 'Speel mee in het spel van een ander, met een kamercode of een IP-adres' },
   { act: 'lijst', label: 'Openbare sessies', sub: 'Zie welke spelers een open sessie hebben en sluit met een klik aan' },
 ];
@@ -31,7 +32,7 @@ export function openSamenKeuze(opts = {}) {
   rootEl.style.cssText = 'position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;background:rgba(6,12,8,0.72);backdrop-filter:blur(6px);';
   rootEl.innerHTML = '<section class="m-panel" style="position:relative;inset:auto;width:min(640px,92vw);padding:36px 40px 32px;display:flex;flex-direction:column;gap:18px;">' +
     '<header class="m-head" style="padding:0"><div><span class="m-eb">Hoofdmenu</span><h1 class="m-h1" id="sk-title">Samen spelen</h1></div></header>' +
-    '<p class="mut" style="margin:0;font-size:20px">Met een vriend of vriendin, tot 4 spelers. Wie het spel opent kiest het opgeslagen spel; de anderen spelen daarin mee.</p>' +
+    '<p class="mut" style="margin:0;font-size:20px">Met vrienden, in dezelfde wereld. Wie het spel opent kiest het opgeslagen spel; de anderen spelen daarin mee met hun eigen figuur en voortgang.</p>' +
     '<div class="sk-list" role="menu" style="display:flex;flex-direction:column;gap:10px">' +
     SAMEN_KEUZES.map((k, i) => `<button type="button" role="menuitem" class="${i === 0 ? 'm-bp' : 'm-bg'} sk-item" data-act="${k.act}" style="text-align:left;display:flex;flex-direction:column;align-items:flex-start;height:auto;padding:12px 20px;gap:2px"><span style="font-size:30px;letter-spacing:0.04em">${k.label}</span><small style="font-size:18px;opacity:0.8;letter-spacing:0">${k.sub}</small></button>`).join('') +
     '<button type="button" role="menuitem" class="m-bt sk-item" data-act="terug">Terug</button></div></section>';
