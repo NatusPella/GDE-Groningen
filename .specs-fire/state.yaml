@@ -153,6 +153,62 @@ intents:
         depends_on: []
         run_id: run-gde-groningen-012
         completed_at: 2026-10-25T11:14:08.969Z
+  - id: gde-light-sims
+    title: "GDE Light Sims: zeven lichte beroepsloopbanen en Samen spelen als
+      ruggengraat"
+    status: in_progress
+    work_items:
+      - id: wi-492-boot
+        title: "#492 Bootflow: geen hoofdmenu, laatste save, minimaal laadscherm"
+        status: completed
+        complexity: medium
+        mode: confirm
+        depends_on: []
+        run_id: run-gde-light-sims-001
+        completed_at: 2026-10-25T12:58:42.428Z
+      - id: wi-492-bench
+        title: "#492 Eerste-start-prestatietest en automatische grafische preset"
+        status: pending
+        complexity: medium
+        mode: confirm
+        depends_on:
+          - wi-492-boot
+      - id: wi-492-saves
+        title: "#492 Pauzemenu: savebeheer, nieuw spel en stoppen"
+        status: pending
+        complexity: medium
+        mode: confirm
+        depends_on:
+          - wi-492-boot
+      - id: wi-492-over
+        title: "#492 Pauzemenu: Over met nieuws, credits en versie"
+        status: pending
+        complexity: low
+        mode: autopilot
+        depends_on:
+          - wi-492-boot
+      - id: wi-492-hint
+        title: "#492 Eenmalige hint over Samen spelen"
+        status: pending
+        complexity: low
+        mode: autopilot
+        depends_on:
+          - wi-492-boot
+      - id: wi-493-geld
+        title: "#493 Geldcurve fase 1: mildere start, flitswaarschuwing en hoger
+          startbudget"
+        status: pending
+        complexity: medium
+        mode: confirm
+        depends_on: []
+      - id: wi-492-samen
+        title: "#492 Samen spelen: contract voor naadloos in/uit, start vanaf de kaart
+          en 1+1=3"
+        status: pending
+        complexity: high
+        mode: validate
+        depends_on:
+          - wi-493-geld
 runs:
   active: []
   completed:
@@ -236,3 +292,11 @@ runs:
           mode: confirm
       started: 2026-10-25T11:14:00.171Z
       completed: 2026-10-25T11:14:00.586Z
+    - id: run-gde-light-sims-001
+      scope: single
+      work_items:
+        - id: wi-492-boot
+          intent: gde-light-sims
+          mode: confirm
+      started: 2026-10-25T12:19:52.412Z
+      completed: 2026-10-25T12:58:42.428Z
