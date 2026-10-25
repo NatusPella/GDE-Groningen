@@ -19,6 +19,10 @@ const POST_SPACING = 7;
 
 const slabMat = new THREE.MeshStandardMaterial({ color: 0x5c6166, roughness: 0.7, metalness: 0.3, flatShading: true, side: THREE.DoubleSide });
 const postMat = new THREE.MeshStandardMaterial({ color: 0x3a3d40, roughness: 0.6, metalness: 0.5, flatShading: true });
+// (#463) De onderkant van een perronkap kreeg onder de plaat geen zon en las als
+// één zwart vlak dat de lucht afdekt. Een lichte plaat met eigen licht eronder
+// houdt het daglicht in beeld, ook vroeg in de ochtend.
+const perronUnderMat = new THREE.MeshLambertMaterial({ color: 0xc9d2d5, emissive: 0x66727a, emissiveIntensity: 0.5, side: THREE.DoubleSide });
 
 // A canopy of thousands of m2 (the roof over a car park or a plant, as at the Eemshaven) is a solar roof, not one blank dark
 // plate: solar-panel cells on the slab, and posts under it in a grid, so it does not hang on its rim alone (#260).
@@ -81,6 +85,17 @@ export function canopyBase(map, pts) {
   return base > 0.6 ? base : 0;
 }
 
+// (#463) Staat deze kap boven een perron (De Lijn)? Het midden van de kap ligt
+// boven de strook van het perron; de onderkant krijgt dan de lichte plaat.
+function overPerron(map, pts) {
+  const rows = map && map.perrons;
+  if (!rows || !rows.length) return false;
+  let cx = 0, cy = 0;
+  for (const p of pts) { cx += p[0]; cy += p[1]; }
+  cx /= pts.length; cy /= pts.length;
+  return rows.some((r) => (r.p || []).some((q) => Math.hypot(q[0] - cx, q[1] - cy) < 10));
+}
+
 function postInTheWay(map, x, y) {
   for (const r of map.roadsNear(x, y, 10)) {
     if (r.cat !== 'foot' && r.cat !== 'cycle' && nearLine(r.pts, x, y, (r.width || 5) / 2 + 0.4)) return true;
@@ -127,6 +142,17 @@ function canopyGroup(map, list, props) {
     slab.castShadow = true;
     slab.receiveShadow = true;
     group.add(slab);
+    // (#463) een perronkap: een lichte onderkant net onder de plaat, zodat je
+    // onder de kap geen zwart plafond ziet en het daglicht eronder blijft
+    if (overPerron(map, pts)) {
+      const under = new THREE.ShapeGeometry(shape);
+      under.rotateX(Math.PI / 2);
+      under.translate(0, base + CANOPY_Y - 0.03 + (k % 8) * CANOPY_STAGGER, 0);
+      const underMesh = new THREE.Mesh(under, perronUnderMat);
+      underMesh.name = 'perronkap-onder';
+      underMesh.receiveShadow = false;
+      group.add(underMesh);
+    }
     if (big) {
       // visual posts in a grid under the slab (the rim posts below are the solid ones)
       let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;

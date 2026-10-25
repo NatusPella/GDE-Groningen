@@ -109,5 +109,24 @@ const rect = (x0, y0, x1, y1) => [[x0, y0], [x1, y0], [x1, y1], [x0, y1]];
   ok(!P.onPerron(PP, 0, 0, 0.26), 'speler op het spoor: niet op het perron');
 }
 
+// 4. de onderkant van een perronkap is licht (#463): de kap boven een perron
+//    krijgt een lichte plaat onder de donkere slab, een kap elders niet
+{
+  const C = await import('../game/js/canopies3d.js');
+  const row = { id: 'k', nm: 'Perron 1', p: [[-20, 5, 2, 1.02], [0, 5, 2, 1.02], [20, 5, 2, 1.02]], r: [] };
+  const ring = (cx, cy) => [[cx - 8, cy - 3], [cx + 8, cy - 3], [cx + 8, cy + 3], [cx - 8, cy + 3]];
+  const map = { perrons: [row], canopies: [{ pts: ring(0, 5) }, { pts: ring(200, 5) }], rails: [], roads: [], roadsNear: () => [], railNear: () => [] };
+  const grp = C.buildCanopies(map);
+  const under = [];
+  grp.traverse((o) => { if (o.name === 'perronkap-onder') under.push(o); });
+  ok(under.length === 1, 'alleen de kap boven het perron krijgt een lichte onderkant', String(under.length));
+  if (under[0]) {
+    const c = under[0].material.color;
+    ok(c.r > 0.5 && c.g > 0.5 && c.b > 0.5, 'de onderkant van de perronkap is licht', `${c.r.toFixed(2)},${c.g.toFixed(2)},${c.b.toFixed(2)}`);
+    const y = under[0].geometry.attributes.position.getY(0);
+    ok(near(y, 5.17, 0.01), 'de lichte plaat hangt net onder de kap (geen z-fighting)', y.toFixed(3));
+  }
+}
+
 console.log(`${n - fails}/${n} perron-controles gehaald`);
 process.exit(fails ? 1 : 0);

@@ -34,6 +34,9 @@
 import { zwemStand, klimStand, sprongStand } from './bewegingrules.js';
 
 const TAU = Math.PI * 2;
+// (#463) De heupzwaai van een lopende acteur blijft binnen een stap; de volle
+// zwaai las als een spreidstand.
+const MAX_HIP_SWING = 0.34;
 export const HIP_Y = 0.93;
 const CHEST_Y = 1.07;
 export const SEAT_CONTACT = HIP_Y - 0.09;
@@ -481,7 +484,7 @@ function updateActor(a, dt) {
   const w = a.walkBlend;
   if (w > 0) {
     const ph = a.walkPhase, sp = a.speed;
-    const amp = 0.42 * w + 0.1 * Math.min(1, sp / 3), c = Math.max(0, Math.cos(ph + 0.5)), c2 = Math.max(0, Math.cos(ph + Math.PI + 0.5));
+    const amp = Math.min(MAX_HIP_SWING, 0.42 * w + 0.1 * Math.min(1, sp / 3)), c = Math.max(0, Math.cos(ph + 0.5)), c2 = Math.max(0, Math.cos(ph + Math.PI + 0.5));
     const walkPose = neutralPose();
     walkPose.legL.z = amp * Math.sin(ph); walkPose.legR.z = -amp * Math.sin(ph);
     walkPose.legL.k = -(0.08 + 0.95 * Math.pow(c, 1.5)); walkPose.legR.k = -(0.08 + 0.95 * Math.pow(c2, 1.5));

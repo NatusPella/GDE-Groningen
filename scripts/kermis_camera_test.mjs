@@ -184,5 +184,18 @@ const rad = (fps, secs) => {
   ok(/easeStep/.test(lees('minigamekit.js')), 'de helper staat in minigamekit.js');
 }
 
+// --- (#463) de volgcam blijft buiten de eigen auto ---
+{
+  const auto = { x: 10, y: 20, z: 0.2, angle: 0, model: { len: 4.4, wid: 1.8 } };
+  const [ix, iy, ih] = sc.camClearOfVehicle(10.2, 20.1, 1.4, auto);
+  ok(ix === 10.2 && iy === 20.1 && ih > 2.2, `een camera in de auto wijkt boven het dak uit (${ih.toFixed(2)} m)`);
+  const achter = sc.camClearOfVehicle(4, 20, 2.2, auto);
+  ok(achter[0] === 4 && achter[1] === 20 && achter[2] === 2.2, 'een camera achter de auto blijft staan');
+  // dezelfde auto een kwartslag gedraaid: het punt naast de neus valt dan in de lengte
+  const gedraaid = { ...auto, angle: Math.PI / 2 };
+  ok(sc.camClearOfVehicle(10, 20 - 1.4, 1.2, gedraaid)[2] > 2.2, 'de auto wordt in zijn eigen richting gemeten');
+  ok(sc.camClearOfVehicle(10, 20 - 4, 1.2, gedraaid)[2] === 1.2, 'en een punt ruim naast de auto blijft staan');
+}
+
 console.log(bad ? `${bad} van ${n} mislukt` : `kermis_camera_test: ${n}/${n} ok`);
 process.exit(bad ? 1 : 0);

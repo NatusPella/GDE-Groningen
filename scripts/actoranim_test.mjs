@@ -41,6 +41,7 @@ check('loopt', st.get('tammo').x > 0.5 && st.get('tammo').mode === 'lopen', st.g
 let amp = 0;
 for (let t = 0; t < 1; t += 1 / 30) { st.update(1 / 30); amp = Math.max(amp, Math.abs(st.pose('tammo').legL.z)); }
 check('beenzwaai tijdens lopen', amp > 0.1, amp);
+check('de heupzwaai blijft binnen een stap (#463)', amp <= 0.35, amp);
 run(st, 8);
 check('aangekomen', Math.abs(st.get('tammo').x - 5) < 1e-6 && Math.abs(st.get('tammo').z - 5) < 1e-6);
 check('event aangekomen', st.drain().some((e) => e.id === 'tammo' && e.event === 'aangekomen'));
