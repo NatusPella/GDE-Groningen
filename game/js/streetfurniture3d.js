@@ -13,7 +13,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { furnitureForTile, furnitureColliders, spotFreeOnMap, LAMP_AWNING, DESTINATIONS } from './streetfurniture.js';
 import { worldSignPlaces, worldTownSigns } from './worldplaces.js';
-import { boardQuads } from './boardquad.js';
+import { boardQuads, bordTekst, paneelTekst, bordHeeftTekst } from './boardquad.js';
 import { mergeGeometries, tint } from './geomerge.js';
 import { makeProp, addProp, removeProp, isPropBroken, addStaticCollider, addPropStreamer } from './breakables.js';
 import { TILE_M, GRID_X0, GRID_Y0, tileIndexOf } from './gdt.js';
@@ -164,16 +164,23 @@ function rebuildSigns(gantries) {
   }
   const ctx = atlas.getContext('2d');
   ctx.clearRect(0, 0, atlas.width, atlas.height);
+  // de atlas is ondoorzichtig: een vakje dat niet getekend is zou zwart in de wereld staan (#436)
+  ctx.fillStyle = '#1f4fa0';
+  ctx.fillRect(0, 0, atlas.width, atlas.height);
   const pos = [], uv = [];
   let slot = 0;
   for (const g of gantries) {
+    if (!bordHeeftTekst(g)) continue; // een portaal zonder tekst is geen portaal
     const ca = Math.cos(g.a), sa = Math.sin(g.a);
     // across the carriageway (to the right of travel, y south): (-sa, ca)
     const rx = -sa, ry = ca;
     const z = (g.z || 0) + g.h + 0.6;
-    for (let p = 0; p < 2 && slot < ATLAS_COLS * ATLAS_ROWS; p++, slot++) {
+    for (let p = 0; p < 2 && slot < ATLAS_COLS * ATLAS_ROWS; p++) {
+      const tekst = paneelTekst(g.text, p);
+      if (!tekst) continue; // een leeg paneel komt niet in de wereld (geen blauw vlak zonder naam)
       const col = slot % ATLAS_COLS, row = Math.floor(slot / ATLAS_COLS);
-      drawSign(ctx, col, row, g.text[p] || '', p === 1);
+      slot++;
+      drawSign(ctx, col, row, tekst, p === 1);
       // panel p: left (way on) and right (the exit) of the carriageway's middle, facing the traffic
       const w = Math.min(4.2, g.s / 2 - 0.3), off = (p === 0 ? -1 : 1) * (w / 2 + 0.15);
       const cx = g.x + rx * off - ca * 0.35, cy = g.y + ry * off - sa * 0.35;
@@ -209,7 +216,7 @@ function drawBoard(ctx, col, row, it) {
   ctx.strokeRect(x + 3, y + 3, BOARD_W - 6, BOARD_H - 6);
   ctx.fillStyle = sign ? '#f4f4f0' : '#202428';
   ctx.textBaseline = 'middle';
-  const n = it.text.length, h = (BOARD_H - 10) / n;
+  const n = Math.max(1, it.text.length), h = (BOARD_H - 10) / n;
   ctx.font = `bold ${Math.min(34, Math.floor(h * 0.7))}px sans-serif`;
   // a place name stands in the middle; signpost lines run from the left
   if (!sign) ctx.textAlign = 'center';
@@ -223,7 +230,10 @@ function drawBoard(ctx, col, row, it) {
 }
 
 function rebuildBoards(boards) {
-  const key = boards.map((g) => g.key).join('|');
+  // een bord zonder tekst is geen bord (#436): het levert geen vlak op, want dan stond er een leeg
+  // (en met een ondoorzichtige atlas zwart) bord in de wereld
+  const bruikbaar = boards.filter(bordHeeftTekst).slice(0, BOARD_COLS * BOARD_ROWS - 1);
+  const key = bruikbaar.map((g) => g.key).join('|');
   if (key === boardKey) return;
   boardKey = key;
   if (typeof document === 'undefined') return;
@@ -236,15 +246,19 @@ function rebuildBoards(boards) {
   }
   const ctx = boardAtlas.getContext('2d');
   ctx.clearRect(0, 0, boardAtlas.width, boardAtlas.height);
+  // de atlas is ondoorzichtig: een vakje dat niet getekend is zou zwart in de wereld staan
+  ctx.fillStyle = '#f4f4f0';
+  ctx.fillRect(0, 0, boardAtlas.width, boardAtlas.height);
   const pos = [], uv = [];
   // the last cell of the atlas is the plain back of every board (boardquad.js), so the text is not seen mirrored from behind
   const BACK_CELL = BOARD_COLS * BOARD_ROWS - 1;
   ctx.fillStyle = '#7d848a';
   ctx.fillRect((BACK_CELL % BOARD_COLS) * BOARD_W, Math.floor(BACK_CELL / BOARD_COLS) * BOARD_H, BOARD_W, BOARD_H);
-  boards.slice(0, BACK_CELL).forEach((b, slot) => {
+  bruikbaar.forEach((b, slot) => {
     const col = slot % BOARD_COLS, row = Math.floor(slot / BOARD_COLS);
-    drawBoard(ctx, col, row, b);
-    const w = b.k === 'wegwijzer' ? 1.8 : 1.5, hh = b.k === 'wegwijzer' ? 0.3 * b.text.length + 0.15 : 0.5;
+    const tekst = bordTekst(b.text);
+    drawBoard(ctx, col, row, { ...b, text: tekst });
+    const w = b.k === 'wegwijzer' ? 1.8 : 1.5, hh = b.k === 'wegwijzer' ? 0.3 * tekst.length + 0.15 : 0.5;
     const q = boardQuads(b, slot, BACK_CELL, BOARD_COLS, BOARD_ROWS, w, hh, (b.z || 0) + 2.2 - hh / 2);
     pos.push(...q.pos); uv.push(...q.uv);
   });
@@ -348,8 +362,8 @@ export function updateStreetFurniture3D(px, py, force = false) {
     }
   }
   for (const m of meshes.values()) { m.instanceMatrix.needsUpdate = true; markInstancesDirty(m.instanceMatrix, m.count); }
-  rebuildBoards(boards.sort((a, b) => Math.hypot(a.x - px, a.y - py) - Math.hypot(b.x - px, b.y - py)).slice(0, BOARD_COLS * BOARD_ROWS));
-  rebuildSigns(gantries.sort((a, b) => Math.hypot(a.x - px, a.y - py) - Math.hypot(b.x - px, b.y - py)).slice(0, 16));
+  rebuildBoards(boards.filter(bordHeeftTekst).sort((a, b) => Math.hypot(a.x - px, a.y - py) - Math.hypot(b.x - px, b.y - py)).slice(0, BOARD_COLS * BOARD_ROWS));
+  rebuildSigns(gantries.filter(bordHeeftTekst).sort((a, b) => Math.hypot(a.x - px, a.y - py) - Math.hypot(b.x - px, b.y - py)).slice(0, 16));
 }
 
 // colliders near the player (breakables.js streams every 0.25 s)
