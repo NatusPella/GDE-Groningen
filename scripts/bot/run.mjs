@@ -99,6 +99,17 @@ let pre = `window.__botCfg = ${JSON.stringify(cfg)};\n`;
   const board = fs.readFileSync(path.join(HERE, 'board.mjs'), 'utf8').replace(/^export (const|function|class) /gm, '$1 ');
   pre += `window.__botBoard = (() => {\n${board}\nreturn { BOARD, bodyDistance, approachPoint, pickVehicle, boardStep, driveStep, pressed, missed };\n})();\n`;
 }
+// #312: de kartrace (sturen, gas, drift en de time-outs) staat in scripts/bot/race.mjs; de
+// minigame-run van de kartbaan gebruikt hem.
+{
+  const race = fs.readFileSync(path.join(HERE, 'race.mjs'), 'utf8').replace(/^export (const|function|class) /gm, '$1 ');
+  pre += `window.__botRace = (() => {\n${race}\nreturn { RACE, wrap, locate, pointAhead, cornerAhead, kartStep, raceResult };\n})();\n`;
+}
+// #312: de stuntavond van M01 (aanloop, drift, time-out) staat in scripts/bot/stunt.mjs.
+{
+  const stunt = fs.readFileSync(path.join(HERE, 'stunt.mjs'), 'utf8').replace(/^export (const|function|class) /gm, '$1 ');
+  pre += `window.__botStunt = (() => {\n${stunt}\nreturn { STUNT, stuntStep };\n})();\n`;
+}
 if (replayFile) {
   const rl = L.RunLog.parse(fs.readFileSync(path.resolve(replayFile), 'utf8'));
   pre += `window.__botReplay = ${JSON.stringify(rl.inputs())};\n`;

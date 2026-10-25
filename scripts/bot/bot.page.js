@@ -35,6 +35,9 @@ if (!Nav) B.log('nav', { what: 'window.__botNav ontbreekt: start via scripts/bot
 // #312: de board-stage met een voertuig (scripts/bot/board.mjs, door run.mjs meegegeven)
 const Bd = window.__botBoard || null;
 if (!Bd) B.log('board', { what: 'window.__botBoard ontbreekt: start via scripts/bot/run.mjs' });
+// #312: de stuntavond van M01 (scripts/bot/stunt.mjs, door run.mjs meegegeven)
+const St = window.__botStunt || null;
+if (!St) B.log('stunt', { what: 'window.__botStunt ontbreekt: start via scripts/bot/run.mjs' });
 const world = B.world, player = B.player;
 const PART = CFG.sweep && CFG.sweep.length ? 'all' : CFG.part || 'kop';
 const MAX_GAME = CFG.maxGameS || 3600;
@@ -696,7 +699,7 @@ while (true) {
   track(s);
   const stepKey = (s.story.id || '?') + (s.mission.active ? ':' + (s.mission.stage || 'm') : '');
   // each stage of a mission gets its own few tries at boarding and at a prompt
-  if (stepKey !== mem.stageKey) { mem.stageKey = stepKey; mem.pressTries = 0; mem.boardTries = 0; mem.planTries = 0; mem.vehTries = 0; mem.nearMiss = 0; mem.board = null; mem.pickLog = null; mem.exitLog = null; mem.holdAt = null; pigeonWatch.reset(); pigeonTargetWatch.reset(); heliWatch.reset(); sailWatch.reset(); mem.zeil = null; mem.rowT = null; }
+  if (stepKey !== mem.stageKey) { mem.stageKey = stepKey; mem.pressTries = 0; mem.boardTries = 0; mem.planTries = 0; mem.vehTries = 0; mem.nearMiss = 0; mem.board = null; mem.pickLog = null; mem.exitLog = null; mem.holdAt = null; pigeonWatch.reset(); pigeonTargetWatch.reset(); heliWatch.reset(); sailWatch.reset(); mem.zeil = null; mem.rowT = null; mem.stunt = null; mem.driftLog = null; }
   // #312: after a board stage the drive has a budget of its own: seven minutes without getting closer to this
   // stage's goal is a finding, even when the car keeps crawling along (the same per stage, so a chase does not
   // inherit the clock of the stage before it)
@@ -983,26 +986,52 @@ while (true) {
     // combo (x5 after five in a row within 4 s: about 150 per half second). A run-up to 11.5 m/s, then a slide of at most 5 s, the other way each time, on the
     // open south side of the square, away from the pond.
     if (act.stunt && s.player.vehicle && s.target.distance < 80 && !mem.stuntHasProp) {
-      const veh = s.player.vehicle, sp = Math.abs(veh.speed || 0), anchor = { x: 185, y: 92 }, me1 = { x: s.player.x, y: s.player.y }, dz = L.distance(me1, anchor);
-      const D = mem.drift || (mem.drift = { phase: 'aanloop', t: s.t, dir: 1, n: 0 });
-      // walkers on the square: hitting one costs 250 points and the combo (hits 5 = nothing left); no slide with one within 9 m, and a slide stops at 4 m
-      const walkers = (world.pedestrians || []).filter((p) => p.state !== 'dead' && Math.hypot(p.x - me1.x, p.y - me1.y) < 30).map((p) => ({ x: p.x, y: p.y, r: 0.45, d: Math.hypot(p.x - me1.x, p.y - me1.y) }));
-      const nearest = walkers.reduce((m, p) => Math.min(m, p.d), Infinity);
-      if (D.phase === 'glij' && (s.t - D.t > 6 || sp < 4.5 || dz > 38 || nearest < 4)) { D.phase = 'aanloop'; D.t = s.t; B.up(' '); }
-      if (D.phase === 'aanloop' && sp >= 10 && dz < 30 && nearest > 9) { D.phase = 'glij'; D.t = s.t; D.dir = -D.dir; D.n++; B.log('drift', { n: D.n, x: Math.round(me1.x), y: Math.round(me1.y), v: Math.round(sp * 10) / 10, score: s.mission.stunt ? s.mission.stunt.score : null }); }
-      // stuck against a bench or a bike rack in the run-up: the usual ways out of a wedge
-      if (D.phase === 'aanloop' && sp < 1) { if (D.still == null) D.still = s.t; else if (s.t - D.still > 3) { D.still = null; B.log('drift-klem', { x: Math.round(me1.x), y: Math.round(me1.y) }); await vdetour(s, 1 + (D.n + (mem.driftDetours = (mem.driftDetours || 0) + 1)) % 4); continue; } } else D.still = null;
-      if (D.phase === 'glij') { B.down(' '); B.stick(D.dir, -1); mem.drifting = true; }
-      else {
+      const veh = s.player.vehicle, sp = Math.abs(veh.speed || 0), anchor = { x: 185, y: 92 }, me1 = { x: s.player.x, y: s.player.y };
+      // walkers on the square: hitting one costs 250 points and the combo; no slide with one within 9 m, and a slide stops at 4 m
+      const walkers = (world.pedestrians || []).filter((p) => p.state !== 'dead' && Math.hypot(p.x - me1.x, p.y - me1.y) < 30).map((p) => ({ x: p.x, y: p.y, r: 0.45 }));
+      const nearest = walkers.reduce((m, p) => Math.min(m, Math.hypot(p.x - me1.x, p.y - me1.y)), Infinity);
+      // the rules are pure (scripts/bot/stunt.mjs): the run-up, the drift, the walkers and the time-out
+      const score = s.mission.stunt ? s.mission.stunt.score : null;
+      const targetScore = s.mission.stunt ? s.mission.stunt.target : null;
+      const driftAt = { x: aim.x, y: aim.y };
+      const D = St
+        ? St.stuntStep({ x: me1.x, y: me1.y, angle: veh.angle, speed: sp, score, target: targetScore, anchor: driftAt, walker: nearest }, mem.stunt || (mem.stunt = {}), s.t)
+        : null;
+      if (D && D.phase === 'timeout') {
+        B.log('timeout', { step: stepKey, what: 'stunt: ' + D.why, forS: Math.round(D.forS || 0), x: s.player.x, y: s.player.y, goalDist: s.target.distance, score: D.score, target: D.target });
+        mem.stunt = null;
+        if (B.input.isDown(' ')) B.up(' ');
+        await rescue(s, stepKey, { idleFor: Math.round(D.forS || 0), quiet: true });
+        continue;
+      }
+      if (D && D.phase === 'klaar') { mem.stunt = null; if (B.input.isDown(' ')) B.up(' '); B.stick(0, 0); await sleep(200); continue; }
+      if (D && D.phase === 'klem') {
+        B.log('drift-klem', { x: Math.round(me1.x), y: Math.round(me1.y) });
+        await vdetour(s, 1 + ((mem.stunt.slides || 0) + (mem.driftDetours = (mem.driftDetours || 0) + 1)) % 4);
+        continue;
+      }
+      if (!D) {
+        // zonder stuntregels: de oude aanloop, zodat een losse pagina niet stilvalt
+        const stray = Math.atan2(driftAt.y - me1.y, driftAt.x - me1.x) - veh.angle;
+        B.stick(Math.max(-1, Math.min(1, stray * 2)), -1);
+        continue;
+      }
+      if (D.phase === 'glij') {
+        B.down(' ');
+        B.stick(D.steer, -1);
+        mem.drifting = true;
+        if (!mem.driftLog || s.t - mem.driftLog > 3) { mem.driftLog = s.t; B.log('stunt', { fase: 'drift', n: D.slides, x: Math.round(me1.x), y: Math.round(me1.y), v: Math.round(sp * 10) / 10, score, target: targetScore }); }
+      } else {
         if (B.input.isDown(' ')) B.up(' ');
         // the run-up: full throttle, a full lock towards the spot (carControls slows to a crawl on a large heading error, and then circles for ever)
         const av = walkers.length ? L.avoidance({ x: me1.x, y: me1.y, angle: veh.angle, speed: veh.speed }, walkers, { look: 20, margin: 1.2 }) : null;
-        const err = L.normAngle(L.headingTo(me1, aim) - veh.angle + (av ? av.bias : 0));
+        const err = L.normAngle(L.headingTo(me1, driftAt) - veh.angle + (av ? av.bias : 0));
         B.stick(Math.max(-1, Math.min(1, err * 2)), av && av.cap < 6 ? 0.4 : -1);
+        if (!mem.driftLog || s.t - mem.driftLog > 5) { mem.driftLog = s.t; B.log('stunt', { fase: 'aanloop', x: Math.round(me1.x), y: Math.round(me1.y), v: Math.round(sp * 10) / 10, score, target: targetScore }); }
       }
       continue;
     }
-    if (mem.drifting) { mem.drifting = false; if (B.input.isDown(' ')) B.up(' '); mem.drift = null; }
+    if (mem.drifting) { mem.drifting = false; if (B.input.isDown(' ')) B.up(' '); mem.drift = null; mem.stunt = null; }
     // inside the arena the road plan leads out of the square (and into the pond): only props, the middle and the way round the water; nothing free: stand still
     const arena = !!(act.stunt && s.player.vehicle && s.target.distance < 80);
     if (arena && !L.segmentFree({ x: s.player.x, y: s.player.y }, aim, carFree, 1.5)) {

@@ -11,6 +11,9 @@ const L = await import(pathToFileURL(path.join(root, 'game', 'js', 'botlogic.js'
 const N = await import(pathToFileURL(path.join(root, 'scripts', 'bot', 'nav.mjs')).href);
 // #312: de board-stage met een voertuig van de bot (scripts/bot/board.mjs): welk voertuig, waar instappen, time-out
 const Bd = await import(pathToFileURL(path.join(root, 'scripts', 'bot', 'board.mjs')).href);
+// #312: de kartrace (scripts/bot/race.mjs) en de stuntavond van M01 (scripts/bot/stunt.mjs)
+const Rc = await import(pathToFileURL(path.join(root, 'scripts', 'bot', 'race.mjs')).href);
+const St = await import(pathToFileURL(path.join(root, 'scripts', 'bot', 'stunt.mjs')).href);
 const Z = await import(pathToFileURL(path.join(root, 'game', 'js', 'zeilrules.js')).href);
 let fails = 0, n = 0;
 const ok = (c, name) => { n++; if (!c) { fails++; console.log('FAIL', name); } };
@@ -566,6 +569,85 @@ ok(L.decide({ ...b(), mission: { active: true, stage: 'hold' }, target: { x: 8, 
   let t5 = 0, op5 = null;
   while (t5 < 600 && !op5) { const s5 = Bd.driveStep({ player: { x: 0, y: 0 }, target: { x: t5 * 30, y: 0, distance: t5 * 30 } }, m5, t5); if (s5.type === 'giveup') op5 = s5; t5 += 1; }
   ok(op5 && op5.why === 'geen voortgang na het instappen' && op5.forS >= Bd.BOARD.driveS, 'board: de rit heeft een eigen budget');
+}
+
+// --- racen op de kartbaan (#312): sturen, gas, drift en de time-outs -------------------
+{
+  // een ronde baan van 30 m straal, dezelfde vorm als kartrace.js (u, v, ang, s, curv, step)
+  const roundTrack = (radius = 30, N = 120, hw = 4) => {
+    const u = new Float64Array(N), v = new Float64Array(N), ang = new Float64Array(N), s = new Float64Array(N), curv = new Float64Array(N);
+    let len = 0;
+    for (let i = 0; i < N; i++) {
+      const a = (i / N) * 2 * Math.PI;
+      u[i] = radius * Math.cos(a); v[i] = radius * Math.sin(a); s[i] = len;
+      ang[i] = a + Math.PI / 2; curv[i] = 1 / radius;
+      len += (2 * Math.PI * radius) / N;
+    }
+    return { N, u, v, ang, s, curv, length: len, hw, step: len / N };
+  };
+  const track = roundTrack();
+  // een recht stuk van 90 m: daar hoort geen stuurcorrectie bij
+  const line = (() => {
+    const N = 60, step = 1.5, u = new Float64Array(N), v = new Float64Array(N), ang = new Float64Array(N), s = new Float64Array(N), curv = new Float64Array(N);
+    for (let i = 0; i < N; i++) { u[i] = i * step; v[i] = 0; ang[i] = 0; s[i] = i * step; }
+    return { N, u, v, ang, s, curv, length: N * step, hw: 4, step };
+  })();
+  const kart = (o = {}) => ({ u: 30, v: 0, a: Math.PI / 2, f: 10, idx: 0, prog: 0, lap: 0, finished: false, ...o });
+  // op de lijn: gas, nauwelijks sturen
+  const recht = Rc.kartStep({ phase: 'race', kart: { u: 0, v: 0, a: 0, f: 10, idx: 0, prog: 0, lap: 0, finished: false } }, line, {}, 0);
+  ok(recht.type === 'rij' && recht.throttle > 0 && Math.abs(recht.steer) < 0.1, 'kart: op de middellijn gas en rechtuit');
+  // van de lijn af: tegensturen
+  const scheef = Rc.kartStep({ phase: 'race', kart: { u: 10, v: 3, a: 0, f: 10, idx: 6, prog: 10, lap: 0, finished: false } }, line, {}, 0);
+  ok(scheef.type === 'rij' && scheef.steer < -0.5, 'kart: van de lijn af stuurt hij terug');
+  // een lange bocht met vaart: de handrem erop (drift), een rechte lijn niet
+  const drift = Rc.kartStep({ phase: 'race', kart: kart({ f: 20, v: 5 }) }, track, {}, 0);
+  ok(drift.drift === true, 'kart: in een bocht met vaart een drift');
+  const recht2 = Rc.kartStep({ phase: 'race', kart: kart({ f: 20 }) }, { ...track, curv: new Float64Array(track.N) }, {}, 0);
+  ok(recht2.drift === false, 'kart: op een recht stuk geen drift');
+  // startlichten: wachten, en na de tijd op een time-out
+  const mg = {};
+  ok(Rc.kartStep({ phase: 'grid', kart: kart() }, track, mg, 0).type === 'wacht', 'kart: bij de startlichten wachten');
+  const gl = Rc.kartStep({ phase: 'grid', kart: kart() }, track, mg, Rc.RACE.gridS + 1);
+  ok(gl.type === 'timeout' && /startlichten/.test(gl.why), 'kart: startlichten die niet uitgaan zijn een time-out');
+  // geen voortgang: na RACE.stuckS een time-out met de cijfers
+  const ms = {};
+  Rc.kartStep({ phase: 'race', kart: kart() }, track, ms, 0);
+  const vast = Rc.kartStep({ phase: 'race', kart: kart() }, track, ms, Rc.RACE.stuckS + 1);
+  ok(vast.type === 'timeout' && /niet verder/.test(vast.why) && vast.forS >= Rc.RACE.stuckS, 'kart: stilstand is een time-out');
+  // een race die te lang duurt: een eigen budget
+  const lang = Rc.kartStep({ phase: 'race', kart: kart() }, track, { t0: 0, best: 100, bestAt: 100 }, Rc.RACE.raceS + 1);
+  ok(lang.type === 'timeout' && /te lang/.test(lang.why), 'kart: een race heeft een eigen budget');
+  // de finish: klaar, en de uitslag uit de stand
+  ok(Rc.kartStep({ phase: 'race', kart: kart({ finished: true }) }, track, {}, 0).type === 'klaar', 'kart: over de finish is klaar');
+  const uitslag = Rc.raceResult({ karts: [{ name: 'jij', prog: 10, finished: false }, { name: 'een', prog: 900, finished: true, finishT: 90 }, { name: 'twee', prog: 5 }] }, 0);
+  ok(uitslag.plek === 2 && uitslag.klaar === false && uitslag.karts === 3, 'kart: de uitslag telt de finish en de afstand');
+}
+
+// --- één stunt (#312, M01): aanloop, drift, wandelaars en een time-out ----------------
+{
+  const s = (o = {}) => ({ x: 0, y: 0, angle: 0, speed: 5, score: 0, target: 1500, anchor: { x: 0, y: 0 }, walker: Infinity, ...o });
+  const m0 = {};
+  const aanloop = St.stuntStep(s({ speed: 0 }), m0, 0);
+  ok(aanloop.phase === 'aanloop' && aanloop.throttle === 1, 'stunt: eerst een aanloop met gas');
+  const glij = St.stuntStep(s({ speed: 11 }), m0, 1);
+  ok(glij.phase === 'glij' && glij.handbrake === true && Math.abs(glij.steer) === 1, 'stunt: met vaart bij het punt de handrem erop');
+  const door = St.stuntStep(s({ speed: 10 }), m0, 2);
+  ok(door.phase === 'glij', 'stunt: de slid loopt door');
+  // een wandelaar dichtbij: de slid stopt
+  const stop = St.stuntStep(s({ speed: 10, walker: 3 }), m0, 3);
+  ok(stop.phase === 'aanloop', 'stunt: een wandelaar dichtbij stopt de slid');
+  // stil tegen een bank: klem, zodat de pagina een omweg kan nemen
+  const mk = {};
+  St.stuntStep(s({ speed: 0, anchor: { x: 50, y: 0 } }), mk, 0);
+  const klem = St.stuntStep(s({ speed: 0, anchor: { x: 50, y: 0 } }), mk, St.STUNT.stallS + 0.1);
+  ok(klem.phase === 'klem', 'stunt: stilstaan in de aanloop is een klem');
+  // het doel gehaald: klaar
+  ok(St.stuntStep(s({ score: 1500 }), {}, 0).phase === 'klaar', 'stunt: vijftienhonderd punten is klaar');
+  // geen punten meer: na het budget een time-out met de reden
+  const mt = {};
+  St.stuntStep(s(), mt, 0);
+  const op = St.stuntStep(s({ score: 25 }), mt, St.STUNT.budget + 1);
+  ok(op.phase === 'timeout' && /punten/.test(op.why) && op.forS >= St.STUNT.budget, 'stunt: zonder punten een time-out');
 }
 
 console.log(`${n - fails}/${n} ok`);

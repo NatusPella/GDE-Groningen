@@ -25,7 +25,8 @@ export function analyseRun(dir, { prev = null, base = null } = {}) {
   const fs1 = [...A.findings(log.events), ...A.imageFindings(shots)];
   const metrics = A.metrics(log.events, result);
   const audio = A.audioSummary(log.events);
-  const cur = { run: path.basename(dir), dir, date: (log.meta.started || '').slice(0, 10), metrics, findings: fs1, audio, shots };
+  const { acts, extra } = A.perAct(log.events);
+  const cur = { run: path.basename(dir), dir, date: (log.meta.started || '').slice(0, 10), metrics, acts, extra, findings: fs1, audio, shots };
   let before = prev;
   if (!before && base && fs.existsSync(path.join(base, 'latest.json'))) {
     const ptr = JSON.parse(fs.readFileSync(path.join(base, 'latest.json'), 'utf8'));
@@ -39,8 +40,10 @@ export function analyseRun(dir, { prev = null, base = null } = {}) {
   fs.mkdirSync(path.join(dir, 'review'), { recursive: true });
   const moments = Object.fromEntries(log.events.filter((e) => e.type === 'shot').map((e) => [`shots-${e.name}.png`, `${e.name} op ${Math.round(e.t)} s`]));
   fs.writeFileSync(path.join(dir, 'review', 'checklist.md'), A.checklistMarkdown(shots.map((s) => ({ ...s, moment: moments[s.file] || '' }))));
-  const summary = A.nlSummary({ title: `${log.meta.part || 'run'}${log.meta.mode === 'minigames' ? ' (minigames)' : ''}, seed ${log.meta.seed ?? '?'}`, date: cur.date, metrics, cmp: cur.cmp, findings: fs1, audio });
+  const summary = A.nlSummary({ title: `${log.meta.part || 'run'}${log.meta.mode === 'minigames' ? ' (minigames)' : ''}, seed ${log.meta.seed ?? '?'}`, date: cur.date, metrics, cmp: cur.cmp, findings: fs1, audio, acts, extra });
   fs.writeFileSync(path.join(dir, 'summary.md'), summary);
+  const comment = A.issueComment({ title: `${log.meta.part || 'run'}${log.meta.mode === 'minigames' ? ' (minigames)' : ''}`, date: cur.date, run: path.basename(dir), metrics, acts, extra, findings: fs1 });
+  fs.writeFileSync(path.join(dir, 'issue-comment.md'), comment);
   if (base) { fs.mkdirSync(base, { recursive: true }); fs.writeFileSync(path.join(base, 'latest.json'), JSON.stringify({ dir: path.resolve(dir), at: new Date().toISOString() })); }
   return cur;
 }
