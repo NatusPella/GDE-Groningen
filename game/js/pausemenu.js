@@ -50,6 +50,7 @@ import { phoneClick, phoneUnread, selectPhoneThread, characterForSender } from '
 import { getErrorLog, errorReport, clearErrorLog, onErrorLogChange } from './errorlog.js';
 import { KEYS } from './storagekeys.js';
 import { renderFotoPanel, fotoClick, isPhotoMode } from './fotomodusui.js';
+import { woordenVan, past } from './zoektekst.js';
 // Running inside the desktop app (desktop/preload.js): window mode + quit.
 const DESKTOP = typeof window !== 'undefined' && window.gdeDesktop && window.gdeDesktop.isDesktop ? window.gdeDesktop : null;
 
@@ -152,17 +153,17 @@ function controlsHtml() {
 
 function filterControls(q) {
   const panel = root.querySelector('[data-panel="controls"]');
-  const words = q.toLowerCase().trim().split(/\s+/).filter(Boolean);
+  const words = woordenVan(q);
   let any = false;
   for (const g of panel.querySelectorAll('.pm-cgroup:not(.pm-help)')) {
     let n = 0;
     for (const r of g.querySelectorAll('.pm-crow')) {
-      const hit = words.every((w) => r.dataset.search.includes(w));
+      const hit = past(r.dataset.search, words);
       r.hidden = !hit;
       if (hit) n++;
     }
     // de hulpblokken (tabblad Hulp) hebben geen toetsrijen: ze tellen mee op hun eigen tekst
-    if (g.classList.contains('pm-help')) { const t = g.textContent.toLowerCase(); n = words.every((w) => t.includes(w)) ? 1 : 0; }
+    if (g.classList.contains('pm-help')) n = past(g.textContent, words) ? 1 : 0;
     g.hidden = !n;
     any = any || n > 0;
   }
@@ -177,7 +178,7 @@ function filterBinds(words) {
     const sluitKop = () => { if (kop) kop.hidden = !n; };
     for (const el of sub.querySelectorAll('.m-gh, .pm-bind')) {
       if (el.classList.contains('m-gh')) { sluitKop(); kop = el; n = 0; continue; }
-      const hit = words.every((w) => el.textContent.toLowerCase().includes(w));
+      const hit = past(el.textContent, words);
       el.hidden = !hit;
       if (hit) n++;
     }
