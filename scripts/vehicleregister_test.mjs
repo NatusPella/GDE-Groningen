@@ -10,7 +10,7 @@ const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const JS = path.join(ROOT, 'game', 'js');
 const src = (f) => fs.readFileSync(path.join(JS, f), 'utf8');
 
-const { VOERTUIGEN, KLASSEN, REGISTER_NAMEN } = await import('../game/js/vehicleregister.js');
+const { VOERTUIGEN, KLASSEN, REGISTER_NAMEN, coopVoertuig, coopVanModel } = await import('../game/js/vehicleregister.js');
 const { VEHICLE_STOCK, upgradeListForStock, PAINTS } = await import('../game/js/shops.js');
 const { TRAFFIC_PROFILES, hourFactor, carModel } = await import('../game/js/trafficfleet.js');
 
@@ -30,6 +30,25 @@ for (const [naam, e] of Object.entries(VOERTUIGEN)) {
   ok(e.winkel.length > 0 || !!e.vondst, `${naam}: te koop of te verzamelen`);
   ok(!!e.tuning, `${naam}: upgradebaar (tuning-soort)`);
 }
+
+// --- samen spelen (#452): elk model heeft een coöp-regel (stoelen, passagiers, mag een gast sturen) ---
+for (const naam of REGISTER_NAMEN) {
+  const r = coopVoertuig(naam);
+  ok(!!r, `${naam}: coöp-regel`);
+  if (!r) continue;
+  ok(Number.isInteger(r.stoelen) && r.stoelen >= 1 && r.stoelen <= 2, `${naam}: stoelen 1 of 2`, r.stoelen);
+  ok(Number.isInteger(r.passagiers) && r.passagiers >= 0 && r.passagiers <= 6, `${naam}: passagiers 0 tot 6`, r.passagiers);
+  ok(r.bestuur === 'gast' || r.bestuur === 'nee', `${naam}: bestuur gast of nee`, r.bestuur);
+}
+ok(coopVoertuig('bike').stoelen === 1 && coopVoertuig('bike').passagiers === 0, 'fiets: één plek');
+ok(coopVoertuig('bus').passagiers === 6 && coopVoertuig('bus').bestuur === 'nee', 'bus: zes passagiers, geen gast aan het stuur');
+ok(coopVoertuig('heli').bestuur === 'nee' && coopVoertuig('plane').bestuur === 'nee', 'helikopter en vliegtuig: alleen in je eigen spel');
+ok(coopVoertuig('train').bestuur === 'nee' && coopVoertuig('trein') === null, 'trein: openbaar vervoer, geen gast aan het stuur');
+ok(coopVoertuig('taxi').bestuur === 'gast', 'taxi: een gast mag sturen');
+ok(coopVoertuig('maaidorser').bestuur === 'gast', 'de machines van de boerderij deelt de boer');
+ok(coopVanModel({ name: 'hatch' }).model === 'hatch', 'een modelnaam geeft de regel');
+ok(coopVanModel({ naam: 'bus' }).passagiers === 6, 'ook de Nederlandse veldnaam werkt');
+ok(coopVanModel(null) === null && coopVoertuig('bestaat-niet') === null, 'onbekend model heeft geen regel');
 
 // --- winkel en garage: VEHICLE_STOCK ---
 const geclaimd = new Map();
