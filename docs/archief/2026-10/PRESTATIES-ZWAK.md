@@ -1,3 +1,6 @@
+> **Archief (oktober 2026).** Dit document is vervangen door `.specs-fire/standards/mechanica.md`.
+> Het staat hier alleen als historie: gebruik het niet als bron en werk het niet bij.
+
 # Prestaties op zwakke hardware (gesimuleerd, #56)
 
 **Gesimuleerd, niet op echte hardware.** Er is geen Intel-laptop of Chromebook gemeten. De simulatie: CPU-throttling via CDP (`--cpu-throttle=N`, `Emulation.setCPUThrottlingRate`), een software-GPU (`--use-angle=swiftshader --enable-unsafe-swiftshader`), 1280x720 en 1904x993, en tot drie gelijktijdige instances. Alles draait op een i7-11700KF met een RTX 3060, **terwijl andere sessies tegelijk Electron en tests draaiden** (de machine was nooit leeg), dus de cijfers zijn ruw en de throttling blijkt niet lineair: 2x geeft 8 fps, 3x geeft 2,4 fps (de wachtende werkers en het wisselen van de throttle op een drukke machine kosten meer dan het getal zegt). Lees ze als ondergrens en als vergelijking tussen A (code vóór deze ronde) en B (code erna).

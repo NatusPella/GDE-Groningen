@@ -1,3 +1,6 @@
+> **Archief (oktober 2026).** Dit document is vervangen door `.specs-fire/standards/verhaal.md` en `docs/verhaal/nieuw/`.
+> Het staat hier alleen als historie: gebruik het niet als bron en werk het niet bij.
+
 # Analyse van het huidige verhaal
 
 Gelezen: de intro-montage, alle 36 verhaalstappen (leads, waarom-zinnen, telefoontjes, berichten, aanwijzingen), de cutscènes van de 18 missies, de duo-scènes, de missie-intro's in `missions.js`, alle 200+ autogesprekken en de reacties. Die liggen samen als `script.md` (1.829 regels) naast deze analyse.

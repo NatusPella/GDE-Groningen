@@ -1,3 +1,6 @@
+> **Archief (oktober 2026).** Dit document is vervangen door `.specs-fire/standards/verhaal.md`; het verhaal zelf staat in `docs/verhaal/nieuw/`.
+> Het staat hier alleen als historie: gebruik het niet als bron en werk het niet bij.
+
 # Verhaalvoorstel GDE Groningen: "Alles voor één eierbal"
 
 Ontwerpvoorstel, nog geen code. Reageert op de playtestfeedback: geen duidelijk eindspel, te weinig hoofdmissies, de speler moet zelf zoeken wat te doen, Tammo en Anita zeggen weinig tegen elkaar, en er is geen trailer.

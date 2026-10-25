@@ -1,3 +1,6 @@
+> **Archief (oktober 2026).** Dit document is vervangen door `AGENTS.md` (Context per sessie) en de GitHub-issues.
+> Het staat hier alleen als historie: gebruik het niet als bron en werk het niet bij.
+
 # Overdracht (stand 18 oktober 2026, laatste release 0.35.0, daarna veel op main)
 
 Voor wie het project overneemt (een andere AI of machine). Lees dit eerst, daarna `AGENTS.md` (regels en werkwijze), `README.md` en `ARCHITECTURE.md`.

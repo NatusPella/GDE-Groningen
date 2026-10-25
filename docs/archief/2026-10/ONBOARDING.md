@@ -1,3 +1,6 @@
+> **Archief (oktober 2026).** Dit document is vervangen door `.specs-fire/standards/mechanica.md`.
+> Het staat hier alleen als historie: gebruik het niet als bron en werk het niet bij.
+
 # Onboarding: de eerste 10 minuten
 
 Doel (ROADMAP 0.25): een nieuwe speler snapt de eerste 10 minuten zonder

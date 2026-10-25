@@ -1,3 +1,6 @@
+> **Archief (oktober 2026).** Dit document is vervangen door `.specs-fire/standards/mechanica.md`.
+> Het staat hier alleen als historie: gebruik het niet als bron en werk het niet bij.
+
 # Spelbot-rapport
 
 Gemaakt door `scripts/bot/akte_rapport.mjs` uit de runs van de Spelbot (epic #186). De bot beoordeelt niet of het leuk is of hoe de besturing voelt; een vastzit- of cheatmelding kan aan de bot liggen in plaats van aan het spel.

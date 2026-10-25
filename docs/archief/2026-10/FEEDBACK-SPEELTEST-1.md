@@ -1,3 +1,6 @@
+> **Archief (oktober 2026).** Dit document is vervangen door de GitHub-issues die eruit volgden (het bord).
+> Het staat hier alleen als historie: gebruik het niet als bron en werk het niet bij.
+
 # Speeltest Maus en NatusPella (15 okt 2026): besluiten en issues
 
 De ruwe lijst (83 punten) is verwerkt en verwijderd; het werk staat als issues

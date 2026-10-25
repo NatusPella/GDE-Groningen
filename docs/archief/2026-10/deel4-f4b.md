@@ -1,3 +1,6 @@
+> **Archief (oktober 2026).** Dit document is vervangen door `.specs-fire/standards/verhaal.md` (Deel 4 vóór de herschrijving).
+> Het staat hier alleen als historie: gebruik het niet als bron en werk het niet bij.
+
 # Deel 4 · F4b: Wadkust, Lauwersmeer en Westerkwartier
 
 Productiescript voor inhoudsdrop **F4b** van Deel 4 "Nazomer" (de Ommelander Ronde), oktober 2026. Hoort bij [PROVINCIE-VERHAAL.md](../PROVINCIE-VERHAAL.md) (§2-§5, §9), [PROVINCIE-PLAN.md](../PROVINCIE-PLAN.md) (§3.6 water en veer, §3.7 treinen en snelreizen, §2.7 het getij) en het vorige script [deel4-f4a.md](deel4-f4a.md). Alleen tekst: er is nog geen code, en de provinciekaart wordt nog gebouwd.
