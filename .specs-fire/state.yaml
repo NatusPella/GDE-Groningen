@@ -203,10 +203,12 @@ intents:
       - id: wi-493-geld
         title: "#493 Geldcurve fase 1: mildere start, flitswaarschuwing en hoger
           startbudget"
-        status: pending
+        status: completed
         complexity: medium
         mode: confirm
         depends_on: []
+        run_id: run-gde-light-sims-005
+        completed_at: 2026-10-25T14:38:53.206Z
       - id: wi-492-samen
         title: "#492 Samen spelen: contract voor naadloos in/uit, start vanaf de kaart
           en 1+1=3"
@@ -330,3 +332,11 @@ runs:
           mode: autopilot
       started: 2026-10-25T13:18:03.889Z
       completed: 2026-10-25T13:18:22.782Z
+    - id: run-gde-light-sims-005
+      scope: single
+      work_items:
+        - id: wi-493-geld
+          intent: gde-light-sims
+          mode: confirm
+      started: 2026-10-25T14:31:06.932Z
+      completed: 2026-10-25T14:38:53.206Z
