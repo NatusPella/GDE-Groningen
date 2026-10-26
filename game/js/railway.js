@@ -12,6 +12,7 @@ import { railHeightFn } from './railprofile.js';
 import { onPerron } from './perrons.js';
 import { duwVanWagen, volgTrein, treinKlap, TREIN_SPRONG_M } from './treincoop.js';
 import { MAP_PALETTE, INK } from './mapstyle.js';
+import { baanvakken, vakPunten } from './blokseinen.js';
 
 const HALF_WIDTH = 1.45;
 const DWELL = 25;
@@ -75,6 +76,19 @@ export function getTrains() { return trains; }
 // the built routes (stagerit.js finds the line near a story platform)
 export function getRoutes() { return routes; }
 export function getLevelCrossings() { return crossings; }
+
+// De blokseinen van de route van deze trein (#492): de baanvakken tussen de seinen, de punten
+// waarop de bezetting getoetst wordt en de andere treinen die een vak kunnen bezetten. De
+// vakken hangen alleen van de route af: één keer berekenen en op de route bewaren. De
+// machinist (machinist.js) geeft ze per frame aan machinistrules.js; een gast krijgt ze via
+// de snapshot van de host en hoeft ze zelf niet te kennen.
+export function blokseinenVoor(t) {
+  const route = t && t.route;
+  if (!route) return null;
+  if (!route.blokken) route.blokken = baanvakken(route.stops, route.len);
+  if (!route.blokPunten) route.blokPunten = route.blokken.map((b) => vakPunten(b, (at) => routePoint(route, at)));
+  return { vakken: route.blokken, punten: route.blokPunten, treinen: trains.filter((o) => o !== t) };
+}
 
 // Track height above ground at (x, y): the solved track profile
 // (railprofile.js, scripts/world/railprofile.mjs) where the map has one, else
