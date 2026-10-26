@@ -58,6 +58,9 @@ t('een hengelende gast: wie het spel opende en de andere gast zien hem; weggaan 
   assert.equal(N.handleEvent(hw, { k: 'bezig', a: 'hengelen' }, 1), true);
   step(1);
   assert.equal(hw.coopBezigVan[1].a, 'hengelen', 'bij wie het spel opende');
+  const bg = hw.coopGroepen.groepen['bezig|1|hengelen'];
+  assert.ok(bg, 'de eigen activiteit is een groep van één');
+  assert.equal(bg.leider, 1); assert.deepEqual(bg.deelnemers, [1]); assert.equal(bg.activiteit, 'hengelen'); assert.equal(bg.label, 'Vissen');
   assert.equal(g2.coopBezigVan[1].a, 'hengelen', 'bij de andere gast');
   assert.equal(g1.coopBezigVan && g1.coopBezigVan[1], undefined, 'niet terug naar de gast zelf');
   assert.equal(N.handleEvent(g2, { k: 'bezig', a: 'hengelen' }, 0), false, 'een gast luistert er niet naar');
@@ -66,8 +69,26 @@ t('een hengelende gast: wie het spel opende en de andere gast zien hem; weggaan 
   assert.equal(g3.coopBezigVan[1].a, 'hengelen', 'een late gast ziet wie al hengelt');
   N.handleEvent(hw, { k: 'bezig', a: null }, 1); step(1);
   assert.equal(hw.coopBezigVan[1], undefined); assert.equal(g2.coopBezigVan[1], undefined);
+  assert.equal(hw.coopGroepen.groepen['bezig|1|hengelen'], undefined, 'de groep verdwijnt met de activiteit');
   N.handleEvent(hw, { k: 'bezig', a: 'carillon' }, 1); step(1); assert.ok(g2.coopBezigVan[1]);
   N.stopCoopNet(hw); assert.deepEqual(hw.coopBezigVan, {}, 'na het spel is er niets meer bezig');
+});
+
+t('een missiegroep gaat voor een eigen activiteit; na de missie kan de groep weer', () => {
+  const { hw, voegToe, step } = host();
+  voegToe(); step(2);
+  hw.mission = { phase: 'active', label: 'Het Loket', type: 'stages', index: 3, progressText: 'Stap in de auto', lateInstap: true, id: '3|Het Loket' };
+  hw.coopNet.meedoen.opdracht = '3|Het Loket';
+  hw.coopNet.meedoen.keuze[1] = 'ja';
+  step(1);
+  assert.ok(hw.coopGroepen.groepen['3|Het Loket'], 'de missiegroep bestaat');
+  assert.equal(N.handleEvent(hw, { k: 'bezig', a: 'hengelen' }, 1), true);
+  step(1);
+  assert.equal(hw.coopGroepen.groepen['bezig|1|hengelen'], undefined, 'geen tweede groep voor dezelfde plek');
+  hw.mission = { ...hw.mission, phase: 'idle' }; step(1);
+  N.handleEvent(hw, { k: 'bezig', a: null }, 1); step(1);
+  N.handleEvent(hw, { k: 'bezig', a: 'hengelen' }, 1); step(1);
+  assert.ok(hw.coopGroepen.groepen['bezig|1|hengelen'], 'na de missie is de eigen activiteit weer een groep');
 });
 
 t('een late gast krijgt de uitnodiging "Meedoen met X?" en weet wat er speelt', () => {

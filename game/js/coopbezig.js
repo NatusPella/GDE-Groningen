@@ -6,6 +6,7 @@ import { GAST_ACTIVITEITEN } from './coopgast.js';
 import { bodyFor, mySlotOf } from './coopclient.js';
 
 export const BEZIG_BEELD = { hengelen: 'hengel', boeren: 'hark', pannenkoek: 'pan', carillon: 'klepels' };
+export const BEZIG_NAAM = { hengelen: 'Vissen', pannenkoek: 'Pannenkoeken bakken', carillon: 'Beiaard', boeren: 'Boerderij' };
 
 export const bezigStand = (world) => world.coopBezigVan || (world.coopBezigVan = {});
 export const bezigId = (a) => (typeof a === 'string' && GAST_ACTIVITEITEN.has(a) ? a : null);
