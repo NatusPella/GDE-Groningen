@@ -240,7 +240,8 @@ t('#492: de machinist betaalt elk crewlid één keer; de conducteur bedient O en
   assert.ok(m.includes("import { loopbaanVerdien, loopbaanDeel } from './loopbaanlive.js'"), 'de gastheer verdient en deelt');
   assert.match(m, /deel: false/, 'de gastheer deelt niet via loopbaanVerdien: geen dubbele betaling');
   assert.match(m, /splitReward\(crew, pay\)/, 'de slots komen uit treincoop.splitReward');
-  assert.match(m, /world\.coopDeel\(betaald, \{ \.\.\.loopbaanDeel\('trein', pay, xp\), slots \}\)/, 'één coopDeel met de crew-slots');
+  assert.match(m, /world\.coopDeel\(betaald, \{ \.\.\.loopbaanDeel\('trein', payBonus, xp\), slots \}\)/, 'één coopDeel met de crew-slots');
+  assert.match(m, /metGroepsbonus\(pay, aantal\)/, 'de groepsbonus over het dienstloon');
   assert.match(m, /world\.coopTreinDeur/, 'de deurvlag van de conducteur');
   const blok = m.slice(m.indexOf('if (!svc.paid)'));
   assert.equal((blok.match(/dienstBeloning\(/g) || []).length, 1, 'één betaling per dienst');

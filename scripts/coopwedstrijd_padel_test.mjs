@@ -1,7 +1,8 @@
-// Samen spelen (#443): padel tegen elkaar (game/js/padelmatch.js en de host- en gastkant in coopwedstrijd.js).
+﻿// Samen spelen (#443): padel tegen elkaar (game/js/padelmatch.js en de host- en gastkant in coopwedstrijd.js).
 //   node scripts/coopwedstrijd_padel_test.mjs
 import * as P from '../game/js/padelmatch.js';
 import * as W from '../game/js/coopwedstrijd.js';
+import { metGroepsbonus } from '../game/js/groepsbonus.js';
 import { makeRng } from '../game/js/minigamekit.js';
 
 let bad = 0, n = 0;
@@ -189,7 +190,7 @@ function nepWereld(spelers) {
   for (let i = 0; i < 600 && !ev.some((e) => e.type === 'klaar'); i++) ev = W.wedLiveTik(world, gestart, DT, hostInv);
   check('de wedstrijd eindigt als een hele ploeg weg is', gestart.fase === 'klaar' && gestart.winnaar === 0);
   const res = W.wedHostLiveEind(world, gestart);
-  check('de host krijgt de uitslag met zijn plek en beloning', res && res.jij.plek === 1 && res.jij.geld === P.PRIJZEN_PADEL[1] && res.rijen.length === 3, JSON.stringify(res && res.jij));
+  check('de host krijgt de uitslag met zijn plek en beloning', res && res.jij.plek === 1 && res.jij.geld === metGroepsbonus(P.PRIJZEN_PADEL[1], world.coopNet.wed.deeln.length) && res.rijen.length === 3, JSON.stringify(res && res.jij));
   check('wie wegviel krijgt niets en geen uitslag', !log.some(([s, b]) => s === 2 && b.f === 'eind') && !betaald.some(([s]) => s === 2) && !betaald.some(([s]) => s === 1));
   check('de eigen portemonnee en het vak padel zijn voor wie wint (host: geen betaalGast)', betaald.length === 0);
   check('lichamen weer vrij en daarna kan een nieuwe wedstrijd', world.companion.coopWedstrijd === false && W.wedNodigUit(world, 'padel').ok);
@@ -214,7 +215,7 @@ function nepWereld(spelers) {
   const res = W.wedHostLiveEind(world, gestart);
   const eindBerichten = log.filter(([, b]) => b.f === 'eind' && !b.gestopt);
   check('elke gast krijgt zijn uitslag met zijn eigen plek', eindBerichten.length === 3 && eindBerichten.every(([s, b]) => { const l = W.leesWed(b); return l && l.rijen.length === 4 && l.jij.plek >= 1 && /games/.test(l.rijen[0].tekst); }));
-  check('de beloning per plek gaat naar de eigen portemonnee van elke gast (vak padel)', betaald.length === 3 && betaald.every(([s, geld, x]) => geld === P.PRIJZEN_PADEL[gestart.stoelen.find((z) => z.slot === s).team === gestart.winnaar ? 1 : 2] && x.vak === 'padel'), JSON.stringify(betaald));
+  check('de beloning per plek gaat naar de eigen portemonnee van elke gast (vak padel)', betaald.length === 3 && betaald.every(([s, geld, x]) => geld === metGroepsbonus(P.PRIJZEN_PADEL[gestart.stoelen.find((z) => z.slot === s).team === gestart.winnaar ? 1 : 2], world.coopNet.wed.deeln.length) && x.vak === 'padel'), JSON.stringify(betaald));
   check('de host krijgt zijn eigen resultaat', res && res.jij && res.jij.geld > 0 && res.winnaars.length === 2);
   check('een rematch kan met J van een gast', W.wedHandleGast(world, { k: 'wedgast', a: 'nogmaals' }, 1) && W.wedOpnieuw(world).ok);
 }
@@ -246,3 +247,4 @@ function nepWereld(spelers) {
 
 console.log(bad ? `${bad} van ${n} controles mislukt` : `ok: ${n} controles`);
 process.exit(bad ? 1 : 0);
+
