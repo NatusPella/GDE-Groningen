@@ -85,8 +85,12 @@ const rect = (x0, y0, x1, y1) => [[x0, y0], [x1, y0], [x1, y1], [x0, y1]];
   const wall = E.resolveElevWalls(elev, row.p[10][0], edgeY - 0.1, 0, 0.35);
   ok(wall && wall[1] > edgeY, 'een voetganger op de grond komt niet door de rand', JSON.stringify(wall));
   ok(!E.resolveElevWalls(elev, row.p[10][0], edgeY - 1, top, 0.35), 'wie op het perron staat wordt niet teruggezet');
-  const veh = E.elevWallContact(elev, row.p[10][0], edgeY - 0.3, 0.2, 1.4, false, null);
-  ok(!!veh, 'een auto op de grond wordt bij de rand tegengehouden');
+  // (#509) een auto vlak onder de rand wordt tegengehouden; eentje meters diep onder een hoog perron rijdt eronderdoor
+  const hoog = row.p[10][3];
+  const veh = E.elevWallContact(elev, row.p[10][0], edgeY - 0.3, hoog - 0.6, 1.4, false, null);
+  ok(!!veh, 'een auto vlak onder de rand wordt bij de rand tegengehouden');
+  const diep = E.elevWallContact(elev, row.p[10][0], edgeY - 0.3, hoog - 6, 1.4, false, null);
+  ok(!diep, 'een auto zes meter onder een hoog perron rijdt eronderdoor (#509)');
   // bij de trap is de rand open: een voetganger op de trap wordt niet teruggezet
   const midRamp = [(tr.a[0] + tr.b[0]) / 2, (tr.a[1] + tr.b[1]) / 2];
   ok(!E.resolveElevWalls(elev, midRamp[0], midRamp[1], (top) / 2, 0.35), 'op de trap staat niets in de weg');

@@ -438,8 +438,11 @@ export async function driveAcross(world, path, speed, opts = {}) {
       const fx = Math.cos(car.angle), fy = Math.sin(car.angle);
       const dx = q[0] - car.x, dy = q[1] - car.y;
       const steer = Math.max(-1, Math.min(1, Math.atan2(dy * fx - dx * fy, dx * fx + dy * fy) * 2.2));
-      // corners on the approach (a junction just past a city bridge) are taken slower
-      const vT = Math.min(speed, cornerSpeed(path, s));
+      // corners on the approach (a junction just past a city bridge) are taken slower; een bocht tien
+      // meter verder telt mee, anders rijdt de auto op snelheid de bocht in en schuift hij er zes meter
+      // naast (Bekemaheerd, #509: cornerSpeed(s) 29,7 m/s terwijl s+10 er 6,7 vraagt)
+      const look = Math.min(path.length - 1, Math.round(s + Math.max(6, car.speed)));
+      const vT = Math.min(speed, cornerSpeed(path, s), cornerSpeed(path, look));
       const before = car.speed;
       // (a breakable prop knocked over in the step is gone from findProps after it)
       const propsBefore = findProps(car.x, car.y, 4).filter((q) => !q.water).map((q) => `${q.kind}@${capsuleDist(car.x, car.y, q).toFixed(1)}`);

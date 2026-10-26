@@ -159,5 +159,12 @@ export function wallBox(w) {
   return [Math.min(w.ax, w.bx) - 2, Math.min(w.ay, w.by) - 2, Math.max(w.ax, w.bx) + 2, Math.max(w.ay, w.by) + 2];
 }
 
-// Een muurstuk van een perron: blokkeert wie lager staat dan de bovenkant min één stap (walkers: WALK_STEP, voertuigen: VEH_STEP).
-export const perronWallSide = (w, z, veh) => (z < w.z - (veh ? VEH_STEP : WALK_STEP) ? -1 : 0);
+// Een muurstuk van een perron: blokkeert wie lager staat dan de bovenkant min één stap (walkers: WALK_STEP, voertuigen:
+// VEH_STEP). Voor een voertuig geldt daarbij een ondergrens van PER_UNDER: staat het perron hoger boven de auto, dan
+// rijdt hij eronderdoor. Het perron van het Noorderstation ligt 6,62 m boven de Kastanjelaan en daar stond elke auto
+// tegenaan (#509); 4,2 m is dezelfde doorgangshoogte die dit project voor een weg onder een dek aanhoudt. Te voet
+// blijft de regel zoals hij was.
+export const PER_UNDER = 4.2;
+export const perronWallSide = (w, z, veh) => (veh
+  ? (z < w.z - VEH_STEP && z > w.z - PER_UNDER ? -1 : 0)
+  : (z < w.z - WALK_STEP ? -1 : 0));
