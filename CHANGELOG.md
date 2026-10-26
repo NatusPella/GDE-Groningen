@@ -7,6 +7,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Opgelost
+- **Het Plataanlaan-viaduct laat genoeg ruimte boven het Jaagpad.** Waar het viaduct op zijn aanloop neerkomt, hing het dek met zijn rand 2,28 m boven het fietspad. Het viaduct landt daar nu een stukje hoger en de aanloop loopt mee, zodat een fietser er met zijn hoofd vrij blijft.
 - **De afrit van de N46 over de Roeierspad is geen lage balk meer.** Waar de afrit en de Roeierspad elkaar kruisen, stonden ze in de hoogteberekening op hetzelfde punt; de afrit zakt nu niet meer tot een halve meter boven het fietspad, en de Roeierspad heeft geen bult meer.
 - **Het Emmaviaduct laat genoeg ruimte boven de dienstlaan langs zijn rand.** Het dek zakte daar naar 3,88 m; het blijft nu boven de 4,2 m die de overspanningsaudit vraagt.
 - **De GPS springt niet meer over het veld bij de stadsrand.** Waar een wandel- of fietsroute van de provinciewegen de stad in gaat, kiest hij een overgang die bij die manier van reizen past; bij de Beneluxweg sprong de lijn 205 m over het veld naar het dichtstbijzijnde voetpad.
@@ -15,6 +16,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Een lange treinrit wordt niet meer na 2,5 minuut afgekapt.** De waakhond respecteert de duur die de rit zelf opgeeft in plaats van een vaste grens van 150 seconden.
 
 ### Onderhoud
+- **De overspanningsaudit ziet ook fietspaden onder de rand van een dek.** Met `node scripts/clearance_audit.mjs --paden` telt hij naast de rijbanen ook de as van een fiets- of voetpad dat onder de rand van een viaductdek door loopt, met dezelfde meetmethode en de norm van een pad.
 - **De documentatie is opgeschoond en de specs zijn de basis.** De levende regels staan nu in elf specs onder `.specs-fire/standards/` (Samen spelen, wereld, mechanica, verhaal, UI en taal, publicatie, plus de vijf standaarden); 23 vervallen of dubbele documenten gingen naar `docs/archief/2026-10/`, de gegenereerde verhaal- en opnamelijsten staan niet meer in git, en de verwijzingen in README, AGENTS en ARCHITECTURE kloppen weer. De veertien keuzes die het project dragen staan met hun afgewezen alternatieven in `.specs-fire/standards/adr/`. Begin bij `docs/SPECS-FIRE.md`.
 
 ## [0.53.0] - 2026-10-25

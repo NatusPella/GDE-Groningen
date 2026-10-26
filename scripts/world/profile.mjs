@@ -252,6 +252,29 @@ export function applyDeckFloors(roads, floors = DECK_FLOORS) {
   return moved;
 }
 
+// A deck that hangs with its edge over a cycle path or footway where it lands on
+// its approach (#510): the Plataanlaan viaduct comes down onto its ramp where
+// the Jaagpad passes under the deck's edge at 2.28 m. A floor cannot lift that
+// end without stepping the joint with the ramp (or breaking the ramp's grade),
+// so the solver takes it with its pins: the deck rises to the audit's height and
+// the roads it joins ramp with it within their grade. [x, y, reach, min z, only this cat]
+export const DECK_PINS = [
+  [-2337.2, -1647.8, 12, 2.4 + 1.0 + 0.1, 'major'],
+];
+// The pins of a built road set (profileCity: solve, opts.pins). A deck that has
+// no profile yet gets one from the pin.
+export function deckPins(roads, pins = DECK_PINS) {
+  const out = [];
+  for (const [x, y, reach, minZ, cat] of pins) {
+    for (const r of roads) {
+      if (!r.bridge || r.tunnel || (cat && r.cat !== cat)) continue;
+      if (!r.pts.some((p) => Math.hypot(p[0] - x, p[1] - y) <= reach)) continue;
+      out.push({ road: r, x, y, reach, minZ });
+    }
+  }
+  return out;
+}
+
 // The height solver for one connected network at a time (every road that has
 // a profile, or needs one, and whatever shares its vertices): a least-squares
 // fit with hard constraints, solved by smoothing steps alternated with
