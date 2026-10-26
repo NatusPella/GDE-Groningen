@@ -1,5 +1,5 @@
 // Coöp-testbank (#443): races tegen elkaar, gezien vanaf een gast in een echte Electron-instantie met een gescripte host in Node (zoals gastkant_434.mjs; één slot).
-// De host (Node, de echte koppeling en coopwedstrijd.js met de pure race van kartrace.js) nodigt uit, de gast zegt ja met J, rijdt mee met de stick en krijgt de uitslag
+// De host (Node, de echte koppeling en multiplayerwedstrijd.js met de pure race van kartrace.js) nodigt uit, de gast zegt ja met J, rijdt mee met de stick en krijgt de uitslag
 // en een beloning; in een rematch stopt de gast halverwege (Backspace) en rijdt de host door.
 //   node scripts/coop/gastkant_443.mjs --stage=<gestagede game-map> [--out=<map>]
 import fs from 'node:fs';
@@ -55,7 +55,7 @@ const done = new Promise((res) => child.on('exit', () => { fs.writeFileSync(path
 process.on('exit', () => { try { child.kill(); } catch (e) { /* weg */ } });
 const readEvents = () => fs.readFileSync(events, 'utf8').split(/\r?\n/).filter(Boolean).map((l) => { try { return JSON.parse(l); } catch (e) { return null; } }).filter(Boolean);
 const imp = (f) => import(pathToFileURL(path.join(ROOT, 'game', 'js', f)).href);
-const WD = await imp('coopwedstrijd.js'), KR = await imp('kartrace.js'), TRACK = (await imp('kartbaanspoor.js')).KARTBAAN_TRACK;
+const WD = await imp('multiplayerwedstrijd.js'), KR = await imp('kartrace.js'), TRACK = (await imp('kartbaanspoor.js')).KARTBAAN_TRACK;
 // de host: staat van de wedstrijd (een kleine toestandsmachine op de gebeurtenissen van de gast)
 const H = { race: null, nr: 0, uit: [], eind: [], rematch: null, weg: null, stand: 'wacht' };
 WD.registreerWedstrijd('kartbaan', { naam: 'Karten in Ulrum', start: (w, r) => { H.race = r; H.nr++; host.log.push(`race ${H.nr} begint met ${r.karts.filter((k) => k.mens).map((k) => k.name).join(' en ')} en ${r.karts.filter((k) => !k.mens).length} AI`); return true; }, solo: () => true });

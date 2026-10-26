@@ -58,7 +58,7 @@ import { enterTiming, updateTiming, closeTiming, timingTag } from './stagetiming
 import { withValidity } from './validity.js';
 import { afstandMeespeler, meespelerInVoertuig } from './spelersregister.js';
 import { teamActor, doelStand, groepKlaar, WACHT_OP_ANDEREN } from './stagegroep.js';
-import { registreerWedstrijd, wedNodigUit, wedHostBaan, wedBaanStand } from './coopwedstrijd.js';
+import { registreerWedstrijd, wedNodigUit, wedHostBaan, wedBaanStand } from './multiplayerwedstrijd.js';
 import { lichaamVan, bestuurInstappenIn, bestuurLos } from './coopbestuur.js';
 // a radio fragment of a stage that never got played within ten minutes is moot (refs #171; not tied to the mission: the clue in it must not be lost)
 const MISSION_RADIO_VALID = { ttl: 600 };
@@ -3309,7 +3309,7 @@ function eindDijkRace(world, res) {
   stopDijkRun(world);
 }
 
-// De wedstrijd van de straatrace bij de wedstrijdlaag (coopwedstrijd.js). Geen herhaling: de race hoort bij een
+// De wedstrijd van de straatrace bij de wedstrijdlaag (multiplayerwedstrijd.js). Geen herhaling: de race hoort bij een
 // opdrachtstap en een rematch zou de stap opnieuw beginnen zonder de opdracht.
 registreerWedstrijd('dijkrace', {
   naam: 'De dijkrace', soort: 'baan', vak: 'race', minSpelers: 2, geenHerhaling: true,

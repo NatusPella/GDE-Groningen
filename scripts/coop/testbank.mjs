@@ -184,7 +184,7 @@ if (code && MOCK && ROUTE === 'direct') {
     };
   };
   // #443 (suite 'wedstrijd'): een headless gast die meedoet aan de race van de host: J op de uitnodiging, rijdt met de stick, stopt (gast B in de eerste race), vraagt een rematch
-  const WD = await import(new URL('../../game/js/coopwedstrijd.js', import.meta.url).href), KR = await import(new URL('../../game/js/kartrace.js', import.meta.url).href);
+  const WD = await import(new URL('../../game/js/multiplayerwedstrijd.js', import.meta.url).href), KR = await import(new URL('../../game/js/kartrace.js', import.meta.url).href);
   const wedBot = (m, i) => {
     const st = { idx: 0, uit: 0, start: [], eind: [], beloning: [], st: 0, nogmaals: false, weg: false, spiegel: null, last: Date.now() / 1000, fasen: [], wegN: 0 }; m.bot = st;
     const rust = { mx: 0, my: 0, buttons: 0, yaw: 0 };

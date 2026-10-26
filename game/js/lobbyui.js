@@ -328,7 +328,7 @@ export function mountLobby(root, hooks, opts = {}) {
       } else if (a === 'overdragen-terug') {
         set({ t: 'overdragen-terug' });
       } else if (a.startsWith('overdragen-')) {
-        // het spel aan deze speler overdragen: coophostwisselnet.js doet het werk, coophostwisselui.js tekent de vraag en de pauze
+        // het spel aan deze speler overdragen: coophostwisselnet.js doet het werk, multiplayerhostwisselui.js tekent de vraag en de pauze
         const r = hooks.overdragen ? hooks.overdragen(+a.slice('overdragen-'.length)) : { ok: false, tekst: 'Overdragen kan alleen in het spel zelf.' };
         if (r && r.ok) set({ t: 'overdragen-terug' });
         else set({ t: 'fout', msg: (r && r.tekst) || 'Overdragen lukte niet.' });
