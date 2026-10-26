@@ -525,3 +525,11 @@ runs:
           mode: confirm
       started: 2026-10-26T06:36:03.407Z
       completed: 2026-10-26T06:55:21.633Z
+    - id: run-gde-light-sims-028
+      scope: single
+      work_items:
+        - id: wi-492-trein-rooster
+          intent: gde-light-sims
+          mode: confirm
+      started: 2026-10-26T07:12:54.272Z
+      completed: 2026-10-26T07:38:32.496Z
