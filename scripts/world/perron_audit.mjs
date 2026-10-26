@@ -63,7 +63,9 @@ for (const row of rows) {
   if (!gap) {
     const ex = mid[0] + (nx / l) * (mid[2] - 0.5), ey = mid[1] + (ny / l) * (mid[2] - 0.5);
     if (!E.resolveElevWalls(elev, ex, ey, 0, 0.35) && row.p[0][3] > P.WALK_STEP + 0.01) fail(`${tag}: de rand houdt een voetganger niet tegen`);
-    if (!E.elevWallContact(elev, ex, ey, 0, 1.4, false, null)) fail(`${tag}: de rand houdt een auto niet tegen`);
+    // (#509) een auto wordt op het niveau van het perron tegengehouden; eentje dat meters diep onder een hoog
+    // perron rijdt hoort eronderdoor te kunnen, dus die toets staat op de hoogte van het perron zelf.
+    if (!E.elevWallContact(elev, ex, ey, row.p[0][3] - 0.6, 1.4, false, null)) fail(`${tag}: de rand houdt een auto niet tegen`);
   }
 }
 for (const b of bad) console.log('  FOUT ' + b);
