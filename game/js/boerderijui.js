@@ -1,7 +1,7 @@
 // Eigen boerderij (#415): het onderdeel Boerderij van het pauzemenu. Links vier onderdelen (Perceel, Gewas, Machines, Kasboek), rechts wat
-// er te zien en te doen is: de stand van het land en de volgende taak, het gewas dat je bij het zaaien kiest, de machines die je huurt
-// of koopt, en wat de boerderij tot nu toe opbracht. De gegevens komen uit boerderijlive.js (en boerderij.js); dit bestand is alleen DOM.
-// Het werk zelf doe je op het land: de bijbaan "Eigen boerderij" bij Hoogkerk. Niet door een mens in beeld bekeken.
+// er te zien en te doen is: de stand van het land en de volgende taak, het teeltplan per perceel (het gewas voor het volgende zaaien), de
+// machines die je huurt of koopt, en wat de boerderij tot nu toe opbracht. De gegevens komen uit boerderijlive.js (en boerderij.js); dit
+// bestand is alleen DOM. Het werk zelf doe je op het land: de bijbaan "Eigen boerderij" bij Hoogkerk. Niet door een mens in beeld bekeken.
 import * as B from './boerderij.js';
 import { getBoerderij, kiesGewas, koopMachine, getBedrijf, koopPerceel, huurPerceel, zegOpPerceel, verkoopPerceel, betaalSchuldPerceel, zetThuis, zetActief, schuurNaarErf, erfNaarSchuur, koopMachineCat, huurMachineCat, verkoopMachineCat, onderhoudMachine, loonwerk, loonwerkAfleveren, leenGeld, losAf, contracten, neemContract } from './boerderijlive.js';
 import * as CT from './boerderijcontracten.js';
@@ -112,14 +112,23 @@ function loonwerkBlok(b, geld, gast) {
 
 function gewas(b) {
   const s = B.samenvatting(b);
+  const gekozen = B.actiefGewas(b);
   const rijen = B.GEWAS_IDS.map((id) => {
     const g = B.GEWASSEN[id];
     const m = s.prijzen[id] || { prijs: g.prijsKg, trend: 'gelijk' };
+    const aan = gekozen === id;
     return `<div class="bd-rij"><span class="bd-naam"><b>${esc(g.naam)}</b><span class="mut"> · ${cent(m.prijs)} per kg vandaag, ${esc(TREND_TEKST[m.trend] || TREND_TEKST.gelijk)} · zaaigoed ${euro(g.zaaigoed)} · rijp na ${g.groeiUren} speluren · ${nl(g.kgBasis)} kg per perceel · ${esc(g.afnemer)} · ${g.soort === 'weiland' ? 'alleen op weiland' : 'op akkers'}</span></span>` +
-      `<button type="button" class="m-bt bd-keus${b.keuze === id ? ' aan' : ''}" data-bd-gewas="${id}" aria-pressed="${b.keuze === id}">${b.keuze === id ? 'Gekozen' : 'Kies'}</button></div>`;
+      `<button type="button" class="m-bt bd-keus${aan ? ' aan' : ''}" data-bd-gewas="${id}" aria-pressed="${aan}">${aan ? 'Gekozen' : 'Kies'}</button></div>`;
+  }).join('');
+  // Het plan per perceel: welk gewas er bij het volgende zaaien in de grond gaat en wat het vandaag per kilo opbrengt.
+  const plannen = B.veldenOverzicht(b).map((v) => {
+    const d = PC.perceelDef(v.id), g = B.GEWASSEN[v.plan], m = s.prijzen[v.plan] || { prijs: g.prijsKg };
+    return `<div class="bd-rij"><span class="bd-naam"><b>${esc(d.naam)}</b>${v.id === b.bedrijf.actief ? ' · werkt hier' : ''}<span class="mut"> · plan: ${esc(g.naam)} · ${cent(m.prijs)} per kg vandaag${d.soort === 'weiland' ? ' · weiland' : ''}</span></span></div>`;
   }).join('');
   return `<div class="pm-pane-top"><span class="m-eb">Boerderij De Zonnehoek</span><h2 class="m-h2 td-h2">${icoon('gewas', 'pa-ico big')}Gewas</h2></div>` +
-    `<p class="mut">Het gewas dat je bij het volgende zaaien in de grond doet. Wat er al groeit blijft zoals het is. Op een weiland teel je gras, op een akker de akkerbouwgewassen. De prijs per kilo kan per speldag veranderen, hooguit twintig procent boven of onder de basisprijs; je verkoopt tegen de prijs van de dag dat je aflevert.</p>${rijen}` +
+    `<p class="mut">Je teeltplan is het gewas dat je bij het volgende zaaien in de grond doet, per perceel. Kies je een gewas, dan geldt het voor het perceel waar je werkt; de andere percelen houden hun eigen plan. Wat er al groeit blijft zoals het is. Op een weiland teel je gras, op een akker de akkerbouwgewassen. De prijs per kilo kan per speldag veranderen, hooguit twintig procent boven of onder de basisprijs; je verkoopt tegen de prijs van de dag dat je aflevert.</p>` +
+    `<p class="lb-titel"><b>Je teeltplan</b></p>${plannen}` +
+    `<p class="lb-titel"><b>Gewassen</b></p>${rijen}` +
     contractenBlok();
 }
 
@@ -344,7 +353,7 @@ export function renderBoerderijPanel(el, world) {
   const geld = (world && world.money) || 0;
   const s = B.samenvatting(b);
   const rijen = ONDERDELEN.map(([id, naam]) => {
-    const sub = id === 'perceel' ? (s.volgende ? B.TAKEN[s.volgende].naam : B.fase(b) === 'groeit' ? 'Groeit' : '-') : id === 'percelen' ? `${Object.keys(b.bedrijf.percelen).length} van jou` : id === 'erf' ? PC.erfDef(b.bedrijf.thuis).naam : id === 'gewas' ? B.GEWASSEN[b.keuze].naam : id === 'machines' ? `${b.bedrijf.machinepark.machines.length} machines, ${b.bedrijf.machinepark.werktuigen.length} werktuigen` : id === 'bank' ? (b.boek.lening.schuld > 0 ? `schuld ${euro(b.boek.lening.schuld)}` : 'geen schuld') : euro(s.winst);
+    const sub = id === 'perceel' ? (s.volgende ? B.TAKEN[s.volgende].naam : B.fase(b) === 'groeit' ? 'Groeit' : '-') : id === 'percelen' ? `${Object.keys(b.bedrijf.percelen).length} van jou` : id === 'erf' ? PC.erfDef(b.bedrijf.thuis).naam : id === 'gewas' ? B.GEWASSEN[B.actiefGewas(b)].naam : id === 'machines' ? `${b.bedrijf.machinepark.machines.length} machines, ${b.bedrijf.machinepark.werktuigen.length} werktuigen` : id === 'bank' ? (b.boek.lening.schuld > 0 ? `schuld ${euro(b.boek.lening.schuld)}` : 'geen schuld') : euro(s.winst);
     return `<button type="button" class="m-li lb-li${gekozen === id ? ' sel' : ''}" data-bd="${id}"${gekozen === id ? ' aria-current="true"' : ''}>${icoon(id)}<span class="nm"><span class="one">${esc(naam)}</span><span class="mut one">${esc(sub)}</span></span></button>`;
   }).join('');
   el.innerHTML = `<div class="m-tabs"><span class="m-grow"></span><span class="pa-total"><span class="mut">Je geld</span><span class="m-num">${euro(geld)}</span></span></div>` +

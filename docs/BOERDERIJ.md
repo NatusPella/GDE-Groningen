@@ -26,8 +26,11 @@ kopen: dan geen huur en een ruimere rij) en het kasboek.
 |---|---|---|---|---|
 | Aardappelen | €40 | 30 speluren | 1800 kg | €0,22 |
 | Suikerbieten | €30 | 48 speluren | 4000 kg | €0,10 |
+| Graan | €35 | 40 speluren | 2600 kg | €0,15 |
+| Gras (weiland) | €20 | 20 speluren | 5000 kg | €0,07 |
+| Uien | €45 | 36 speluren | 3000 kg | €0,16 |
 
-Een speldag is 24 minuten (`DAY_LENGTH_S`): aardappelen zijn na ruim een halve speldag rijp, bieten na twee. De opbrengst is `kgBasis` keer de
+Een speldag is 24 minuten (`DAY_LENGTH_S`): aardappelen zijn na ruim een halve speldag rijp, bieten na twee, uien na anderhalve. De opbrengst is `kgBasis` keer de
 kwaliteit van het ploegen (0,6 tot 1), het zaaien (0,5 tot 1) en het bemesten (+20%), keer de oogstfractie van de rijen; de prijs krijgt de kwaliteit
 van de afleverrit. Machines: ploeg €15 huur of €300 koop, zaai- en strooimachine €10 of €250, rooier €20 of €600. Een volledige ronde levert ongeveer
 €300 tot €350 winst op voor tien minuten werk: dat is in de buurt van een bijbaan (`boerderij_test.mjs` bewaakt de verhouding). De verkoop loopt
@@ -75,7 +78,7 @@ Modules: `machines.js` (pure regels voor kopen, huren, diesel, slijtage, onderho
 
 ## Niet gedaan (de uitbreiding)
 
-Eggen als aparte stap, uien en koolzaad, balenpers, de bijbaan op een gekozen ander perceel dan Hoogkerk (de vrije klussen werken wel op elk perceel), samen spelen (stap 3), een kleine veestapel of weide (koeien, schapen en paarden bestaan als
+Eggen als aparte stap, koolzaad, balenpers, de bijbaan op een gekozen ander perceel dan Hoogkerk (de vrije klussen werken wel op elk perceel), samen spelen (stap 3), een kleine veestapel of weide (koeien, schapen en paarden bestaan als
 wereldleven), controllerknoppen voor koppelen, aftakas en hef, en een eigen interieur voor maaidorser en laadmachine (zitplek en cabine: de besturing en interieurs zijn van de voertuigagent). De
 tabellen in `boerderij.js` (`GEWASSEN`, `MACHINES`, `TAKEN`) en `BAND` zijn de plekken waar je ze toevoegt. Een
 nieuw gewas krijgt ook een regel in `PRIJS_KG` (`gewasmarkt.js`): daar staan de basisprijzen van de dagmarkt, en zonder die regel

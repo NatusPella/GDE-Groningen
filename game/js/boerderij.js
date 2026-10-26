@@ -4,12 +4,13 @@
 // als loonwerk, en machines.js, werktuigen.js en boerderijwereld.js zijn het werk met je eigen trekker en werktuigen. De dagprijs per
 // gewas staat in gewasmarkt.js (#492) en de leveringscontracten in boerderijcontracten.js (#492).
 //
-// De kern is bewust klein: vier gewassen (aardappelen, suikerbieten, graan en op weiland gras), drie bijbaanmachines (ploeg, zaai- en strooimachine,
-// rooier). Cultiveren en spuiten zijn vrije klussen (`vrij`): alleen met je eigen trekker en werktuig, niet in de bijbaan. Het zomerseizoen is
-// lang genoeg voor meerdere rondes; er is geen winter (constitution 3). Eggen, uien en koolzaad zijn de uitbreiding (docs/BOERDERIJ.md).
+// De kern is bewust klein: vijf gewassen (aardappelen, suikerbieten, graan, op weiland gras en uien), drie bijbaanmachines (ploeg, zaai- en
+// strooimachine, rooier). Elk perceel heeft zijn eigen teeltplan (`b.plan`): het gewas voor het volgende zaaien. Cultiveren en spuiten zijn
+// vrije klussen (`vrij`): alleen met je eigen trekker en werktuig, niet in de bijbaan. Het zomerseizoen is lang genoeg voor meerdere rondes;
+// er is geen winter (constitution 3). Eggen en koolzaad zijn de uitbreiding (docs/BOERDERIJ.md).
 // De boerderij is van de speler en leeft in zijn eigen opslag (gde-boerderij-v1), nooit in een savegame. Alle namen zijn verzonnen.
 
-import { nieuwBedrijf, normaliseerBedrijf, actiefPerceel, bodemFactor, START_PERCEEL, PERCEEL_IDS } from './percelen.js';
+import { nieuwBedrijf, normaliseerBedrijf, actiefPerceel, perceelDef, bodemFactor, START_PERCEEL, PERCEEL_IDS } from './percelen.js';
 import { PRIJS_KG, dagprijs, dagVan, markt } from './gewasmarkt.js';
 import * as CT from './boerderijcontracten.js';
 
@@ -24,6 +25,7 @@ export const GEWASSEN = {
   bieten: { naam: 'Suikerbieten', zaaigoed: 30, groeiUren: 48, kgBasis: 4000, prijsKg: PRIJS_KG.bieten, afnemer: 'Suikerhal Hoogkerk', jong: 0x4a9a3c, rijp: 0x3d8a34, vorm: 'kegel', soort: 'akker' },
   graan: { naam: 'Graan', zaaigoed: 35, groeiUren: 40, kgBasis: 2600, prijsKg: PRIJS_KG.graan, afnemer: 'Graanzolder Noorderveld', jong: 0x8fb04a, rijp: 0xd9b84a, vorm: 'halm', soort: 'akker' },
   gras: { naam: 'Gras', zaaigoed: 20, groeiUren: 20, kgBasis: 5000, prijsKg: PRIJS_KG.gras, afnemer: 'Hooimarkt Reitdiep', jong: 0x5fb04a, rijp: 0x7fc24f, vorm: 'halm', soort: 'weiland' },
+  uien: { naam: 'Uien', zaaigoed: 45, groeiUren: 36, kgBasis: 3000, prijsKg: PRIJS_KG.uien, afnemer: 'Uienloods De Kleihoek', jong: 0x6aa24c, rijp: 0xc9a24f, vorm: 'kegel', soort: 'akker' },
 };
 export const GEWAS_IDS = Object.keys(GEWASSEN);
 export const STANDAARD_GEWAS = 'aardappelen';
@@ -71,7 +73,7 @@ const nieuwBoek = () => ({ velden: {}, jaren: {}, lening: { schuld: 0, opgenomen
 
 export function nieuweBoerderij() {
   return {
-    v: VERSIE, uren: 0, perceel: null, keuze: STANDAARD_GEWAS,
+    v: VERSIE, uren: 0, perceel: null, plan: {},                 // plan: per perceel het gewas voor het volgende zaaien (#492)
     veld: nieuwVeld(), veldVan: START_PERCEEL, velden: {},        // veld = het actieve perceel; velden = de overige per perceel (syncVeld)
     schuur: { gewas: null, kg: 0, kwaliteit: 1, veld: null },
     machines: Object.fromEntries(MACHINE_IDS.map((m) => [m, 'huur'])),
@@ -103,7 +105,6 @@ export function normaliseer(raw) {
   if (d.perceel && typeof d.perceel === 'object' && Number.isFinite(d.perceel.x) && Number.isFinite(d.perceel.y)) {
     b.perceel = { x: d.perceel.x, y: d.perceel.y, a: Number.isFinite(d.perceel.a) ? d.perceel.a : 0 };
   }
-  if (GEWASSEN[d.keuze]) b.keuze = d.keuze;
   b.veld = leesVeld(d.veld);
   if (PERCEEL_IDS.includes(d.veldVan)) b.veldVan = d.veldVan;
   if (d.velden && typeof d.velden === 'object') for (const id of PERCEEL_IDS) { const v = leesVeld(d.velden[id]); if (id !== b.veldVan && v.fase !== 'braak') b.velden[id] = v; }
@@ -116,8 +117,17 @@ export function normaliseer(raw) {
   leesBoek(b, d.boek);
   b.bedrijf = normaliseerBedrijf(d.bedrijf);
   b.contracten = CT.normaliseer(d.contracten, dagVan(b.uren));   // oud of kapot: een lege stand met het aanbod van vandaag
+  leesPlan(b, d);
   syncVeld(b);
   return b;
+}
+
+// Het teeltplan per perceel (#492): het gewas voor het volgende zaaien. Een oude opslag kent maar één keuze (`keuze`): die hoort bij het
+// perceel waar de boerderij werkt, en past hij niet bij de grond (gras op een akker), dan geldt de standaard van dat perceel.
+function leesPlan(b, d) {
+  if (d.plan && typeof d.plan === 'object') for (const id of PERCEEL_IDS) { const g = d.plan[id]; if (GEWASSEN[g]) b.plan[id] = g; }
+  const actief = b.bedrijf.actief;
+  if (!b.plan[actief] && GEWASSEN[d.keuze]) b.plan[actief] = gewasVoor(d.keuze, actiefPerceel(b.bedrijf).soort);
 }
 
 function leesBoek(b, raw) {
@@ -150,13 +160,13 @@ export function syncVeld(b) {
   return true;
 }
 
-// De stand van elk perceel van jou, voor het scherm: { id, fase, gewas, groei }.
+// De stand van elk perceel van jou, voor het scherm: { id, fase, gewas, groei, plan } met het gewas van het teeltplan erbij.
 export function veldenOverzicht(b) {
   const uit = [];
   for (const id of Object.keys(b.bedrijf.percelen)) {
     const v = id === b.veldVan ? b.veld : b.velden[id] || nieuwVeld();
     const groeiVan = v.fase === 'gezaaid' && GEWASSEN[v.gewas] ? clamp((b.uren - v.gezaaidOp) / GEWASSEN[v.gewas].groeiUren, 0, 1) : 0;
-    uit.push({ id, fase: v.fase === 'gezaaid' ? (groeiVan >= 1 ? 'rijp' : 'groeit') : v.fase, gewas: v.gewas, groei: groeiVan });
+    uit.push({ id, fase: v.fase === 'gezaaid' ? (groeiVan >= 1 ? 'rijp' : 'groeit') : v.fase, gewas: v.gewas, groei: groeiVan, plan: planVoor(b, id) });
   }
   return uit;
 }
@@ -167,7 +177,13 @@ export const veldPositie = (b, id) => (id === START_PERCEEL ? b.perceel : b.posi
 // De stand van een perceel van jou, ook als het niet het actieve is.
 export const veldStand = (b, id) => (id === b.veldVan ? b.veld : b.velden[id] || nieuwVeld());
 
-export const actiefGewas = (b) => gewasVoor(b.keuze, actiefPerceel(b.bedrijf).soort);
+export const actiefGewas = (b) => gewasVoor(b.plan[b.bedrijf.actief], actiefPerceel(b.bedrijf).soort);
+
+// Het teeltplan van een perceel, ook als het niet het actieve is: het gewas voor het volgende zaaien, aangepast aan de grond.
+export function planVoor(b, id) {
+  const d = perceelDef(id);
+  return gewasVoor(b.plan[id], d ? d.soort : 'akker');
+}
 
 // --- groei -------------------------------------------------------------------
 
@@ -406,10 +422,11 @@ export function koop(b, machine, geld) {
   return { ok: true, prijs: m.koop };
 }
 
-// Welk gewas bij het volgende zaaien (alleen een bekend gewas).
+// Welk gewas bij het volgende zaaien op het perceel waar je werkt (alleen een bekend gewas). Het plan van een ander perceel blijft staan;
+// past het gewas niet bij de grond, dan komt de standaard van dat perceel erin.
 export function kiesGewas(b, gewas) {
   if (!GEWASSEN[gewas]) return false;
-  b.keuze = gewas;
+  b.plan[b.bedrijf.actief] = gewasVoor(gewas, actiefPerceel(b.bedrijf).soort);
   return true;
 }
 

@@ -15,6 +15,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Samen meerijden.** Een gast kan als passagier mee in het vliegtuig, de helikopter of de trein van de ander; besturen blijft bij wie het spel opende, en uitstappen kan alleen op de grond of bij stilstand.
 - **Treinconducteur.** De eerste gast in de trein bedient de deuren en de waakzaamheid; alle crewleden krijgen het volle loon en de punten in hun eigen spel.
 - **Lopen en kaartjes controleren in de trein.** De conducteur loopt met T door de wagen, ziet het interieur en de reizigers, en controleert met E kaartjes voor eigen loon en punten.
+- **Teeltplan per perceel en uien.** Elk perceel houdt zijn eigen volgende gewas; uien komen er als vijfde gewas bij.
 - **Vluchtdienst bij Eelde.** De rondvlucht betaalt nu per medaille (€18/€28/€40) en de toren geeft één vertrek- en één naderingsregel.
 - **Boerderijcontracten.** Afnemers vragen per speldag een vracht van een gewas; je neemt een contract aan, levert de kilo's bij de verkoop en krijgt de bonus bovenop de dagprijs. Verlopen kost niets.
 - **Vracht samen.** Een gast kan de vrachtbaan met E aanvragen, als bijrijder meerijden en met E laden en lossen versnellen; iedere deelnemer krijgt het volle loon.

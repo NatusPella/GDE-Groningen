@@ -34,7 +34,7 @@ export const TOETS = { pto: 'G', hef: 'T', los: 'X', tank: 'R' };
 const UREN_PER_S = 24 / DAY_LENGTH_S;  // een speluur is een minuut
 const GROND = { braak: 0x9aa05a, geploegd: 0x5b3e22, cult: 0x7a5a36, gezaaid: 0x6d4c2c, mest: 0x4f3a24, spuit: 0x6a5f38 };
 // De afnemers staan bij Hoogkerk, op een weg vlakbij (de plek wordt bij de eerste rit op de dichtstbijzijnde weg gelegd). Verzonnen bedrijven.
-const AFNEMER_PLEK = { aardappelen: [53.2388, 6.5106], bieten: [53.2301, 6.4923], graan: [53.2419, 6.4808], gras: [53.2262, 6.5019] };
+const AFNEMER_PLEK = { aardappelen: [53.2388, 6.5106], bieten: [53.2301, 6.4923], graan: [53.2419, 6.4808], gras: [53.2262, 6.5019], uien: [53.2350, 6.5005] };
 
 const nieuweStaat = () => ({
   erven: new Map(), erfMeshes: new Map(), voertuigen: new Map(), werktuigen: new Map(), rigs: new Map(), pose: new Map(), velden: new Map(),
@@ -373,7 +373,7 @@ function tankPlekBij(w, v) {
 
 // --- de afnemers ---------------------------------------------------------------------------------------
 
-function afnemerPlek(w, gewas) {
+export function afnemerPlek(w, gewas) {
   if (S.afnemers.has(gewas)) return S.afnemers.get(gewas);
   const t = AFNEMER_PLEK[gewas];
   if (!t) return null;
