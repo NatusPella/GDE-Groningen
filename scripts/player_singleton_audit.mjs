@@ -125,12 +125,21 @@ export function scanDir(dir) {
 // Hetzelfde, plus per bestand en in totaal het aantal keren dat de code de
 // letterlijke spelling `world.player` gebruikt (zonder de alias `w`). Dat is de
 // maat die het issue op 25-10 gebruikte (696), handig om de teller te ijken.
+// Mappen die nooit meedoen: gegenereerde wereld, gebouwde en gevendorde kopieën,
+// en de worktrees van andere sessies onder .claude. Zonder deze lijst loopt de
+// teller op de echte repo door honderdduizenden bestanden en duurt hij minuten.
+const SKIP_DIRS = new Set(['.git', '.claude', 'node_modules', 'vendor-cache', 'build']);
+const SKIP_PATHS = ['game/world/', 'data/', 'desktop/build/', 'desktop/vendor-cache/'];
+
 export function scanDetail(dir) {
   const files = {};
   const literal = {};
   const walk = (d) => {
     for (const name of fs.readdirSync(d)) {
+      if (SKIP_DIRS.has(name)) continue;
       const p = path.join(d, name);
+      const rel = path.relative(dir, p).split(path.sep).join('/') + '/';
+      if (SKIP_PATHS.some((s) => rel.startsWith(s))) continue;
       const st = fs.statSync(p);
       if (st.isDirectory()) walk(p);
       else if (/\.js$/.test(name)) {
