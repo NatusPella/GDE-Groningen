@@ -228,18 +228,6 @@ intents:
           - wi-493-geld
 runs:
   active:
-    - id: run-gde-light-sims-021
-      scope: single
-      work_items:
-        - id: wi-492-groep-ui
-          intent: gde-light-sims
-          mode: confirm
-          status: in_progress
-          current_phase: plan
-          checkpoint_state: none
-          current_checkpoint: plan
-      current_item: wi-492-groep-ui
-      started: 2026-10-26T06:12:37.473Z
     - id: run-gde-light-sims-023
       scope: single
       work_items:
@@ -276,6 +264,18 @@ runs:
           current_checkpoint: plan
       current_item: wi-492-melee-blok
       started: 2026-10-26T06:12:38.039Z
+    - id: run-gde-light-sims-026
+      scope: single
+      work_items:
+        - id: wi-492-vlieg-route
+          intent: gde-light-sims
+          mode: confirm
+          status: in_progress
+          current_phase: plan
+          checkpoint_state: none
+          current_checkpoint: plan
+      current_item: wi-492-vlieg-route
+      started: 2026-10-26T06:29:06.406Z
   completed:
     - id: run-gde-groningen-001
       scope: single
@@ -525,3 +525,11 @@ runs:
           mode: confirm
       started: 2026-10-26T06:12:37.626Z
       completed: 2026-10-26T06:28:39.084Z
+    - id: run-gde-light-sims-021
+      scope: single
+      work_items:
+        - id: wi-492-groep-ui
+          intent: gde-light-sims
+          mode: confirm
+      started: 2026-10-26T06:12:37.473Z
+      completed: 2026-10-26T06:35:19.422Z
