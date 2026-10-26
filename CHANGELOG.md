@@ -14,6 +14,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Milder startbudget en flitswaarschuwing.** Je begint met €500; de eerste keer bij een flitspaal krijg je een waarschuwing, daarna een boete van €10-25. De camera flitst pas vanaf 35 km/u boven de limiet.
 - **Samen meerijden.** Een gast kan als passagier mee in het vliegtuig, de helikopter of de trein van de ander; besturen blijft bij wie het spel opende, en uitstappen kan alleen op de grond of bij stilstand.
 - **Treinconducteur.** De eerste gast in de trein bedient de deuren en de waakzaamheid; alle crewleden krijgen het volle loon en de punten in hun eigen spel.
+- **Vliegen tussen velden.** De rondvlucht is nu een etappe Eelde → een tweede veld; landen op de baan geeft loon, overvliegen niet, en de terugvlucht is de volgende dienst.
 - **Hengels, aas en lijnsterkte.** Vier hengels, zes aassoorten en lijnverbeteringen; een sterke lijn geeft een ruimer beetvenster, aas lokt zijn eigen soorten. Te koop bij de Avondwinkel en de botenverhuur.
 - **Melee-blok.** Met een slagwapen blokkeer je met rechts: maximaal twee seconden, daarna een korte herstelperiode; een opgevangen slag doet een vijfde schade, kogels gaan erdoor.
 - **Samen: leider en groepen zichtbaar.** De spelerslijst toont wie een opdracht leidt, en de kaart/minimap toont de eigen groep vol en andere groepen gedempt.
