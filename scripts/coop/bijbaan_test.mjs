@@ -402,7 +402,8 @@ t('de regels voor een gast: bijbanen zijn deels; de teksten in het spel en in do
 t('de haken in de bron: sidejobs.js, de drie banen, coopnet.js en het scherm van de gast', () => {
   const sj = bron('sidejobs.js');
   assert.match(sj, /world\.coopBijbaanStart\(job\.id, job\.name, verzoekVan\)/, 'startJob meldt de baan');
-  assert.match(sj, /world\.coopBijbaanBeloning\(c\.job\.id, basisFor\(c, base\) \+ tip, vak, xp, c\.round\)/, 'completeRound betaalt de basis plus fooi, met het ronde-nummer');
+  assert.match(sj, /world\.coopBijbaanBeloning\(c\.job\.id, deelBasis, vak, xp, c\.round\)/, 'completeRound betaalt de basis plus fooi, met de groepsbonus en het ronde-nummer');
+  assert.match(sj, /metGroepsbonus/, 'de groepsbonus zit in de beloning');
   assert.equal((sj.match(/world\.coopDeel\(/g) || []).length, 1, 'het oude delen blijft één keer, voor de andere banen');
   assert.match(sj, /world\.coopBijbaanEind\(kind\)/, 'endShift meldt het einde');
   assert.match(sj, /startVoor: \(id, slot\) => startOpVerzoek\(id, slot\)/); assert.match(sj, /spotBij: \(x, y\) => spotBij\(x, y\)/);

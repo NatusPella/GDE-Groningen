@@ -16,6 +16,7 @@ const L = await import('../game/js/treinlayout.js'); // de indeling, de reiziger
 const LL = await import('../game/js/loopbaanlive.js'); // het loon en de punten van de conducteur (#492)
 const TC = await import('../game/js/treincontrole.js'); // de rust na een ronde (#492)
 const LB = await import('../game/js/loopbaan.js');
+const G = await import('../game/js/groepsbonus.js');
 const { createLink } = await import('../game/js/net/memtransport.js');
 
 // een trein zoals railway.js hem maakt: twee wagens, een machinist aan de knoppen (state 'player')
@@ -206,7 +207,7 @@ ok(Math.hypot(rw.companion.x - hc.x, rw.companion.y - hc.y) > 0.5, 'zonder de cr
   ok(betaald > 0 && w4.money === betaald, 'de gastheer houdt zijn eigen loopbaanVerdien-bedrag');
   ok(gedeeld.length === 1, 'één coopDeel per dienst');
   ok(gedeeld[0].bedrag === betaald, 'met het bedrag dat de gastheer kreeg');
-  ok(gedeeld[0].info.vak === 'trein' && gedeeld[0].info.xp === 40 && gedeeld[0].info.basis === 120, 'met het vak, de XP en het basisbedrag');
+  ok(gedeeld[0].info.vak === 'trein' && gedeeld[0].info.xp === 40 && gedeeld[0].info.basis === G.metGroepsbonus(120, 3), 'met het vak, de XP en het basisbedrag met groepsbonus');
   ok(JSON.stringify(gedeeld[0].info.slots) === '[1,2]', 'alleen de crew, zonder de gastheer', JSON.stringify(gedeeld[0].info.slots));
   ok(!gedeeld[0].info.slots.includes(0), 'de gastheer zit niet in de lijst');
   // zonder crew deelt hij niets; een gast die niet meereden heeft, komt er niet in

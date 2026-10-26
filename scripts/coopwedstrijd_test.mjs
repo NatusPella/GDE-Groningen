@@ -2,6 +2,7 @@
 // de eindstand en beloning per plek, wegvallen, de berichten, de vloeiende weergave bij een gast en de host-kant met een nephub.
 //   node scripts/coopwedstrijd_test.mjs
 import * as W from '../game/js/coopwedstrijd.js';
+import { metGroepsbonus } from '../game/js/groepsbonus.js';
 import * as S from '../game/js/coopwedstrijdscore.js';
 import * as P from '../game/js/coopwedstrijdpunt.js';
 import { bestInput, KART, LAPS } from '../game/js/kartrace.js';
@@ -295,9 +296,9 @@ const ROSTER = () => [{ slot: 0, char: 'tammo', verbinding: 'ok' }, { slot: 1, c
   gestart.karts[1].weg = false;
   gestart.result = null; gestart.phase = 'outro';
   const eind = W.wedHostEind(world, gestart);
-  check('de host krijgt zijn eigen plek en beloning terug', eind && eind.jij && eind.jij.plek === 1 && eind.jij.geld === W.PRIJZEN[1]);
-  check('de gast krijgt zijn uitslag en zijn eigen beloning', log.some(([s, b]) => s === 1 && b.f === 'eind' && b.jij && b.jij.plek === 2 && b.jij.geld === W.PRIJZEN[2]));
-  check('de beloning gaat naar de eigen portemonnee en loopbaan van de gast', betaald.length === 1 && betaald[0][0] === 1 && betaald[0][1] === W.PRIJZEN[2] && betaald[0][2].vak === 'race' && betaald[0][2].xp > 0);
+  check('de host krijgt zijn eigen plek en beloning terug', eind && eind.jij && eind.jij.plek === 1 && eind.jij.geld === metGroepsbonus(W.PRIJZEN[1], 2));
+  check('de gast krijgt zijn uitslag en zijn eigen beloning', log.some(([s, b]) => s === 1 && b.f === 'eind' && b.jij && b.jij.plek === 2 && b.jij.geld === metGroepsbonus(W.PRIJZEN[2], 2)));
+  check('de beloning gaat naar de eigen portemonnee en loopbaan van de gast', betaald.length === 1 && betaald[0][0] === 1 && betaald[0][1] === metGroepsbonus(W.PRIJZEN[2], 2) && betaald[0][2].vak === 'race' && betaald[0][2].xp > 0);
   check('niemand die niet meedeed krijgt geld', betaald.every(([s]) => s === 1));
   check('het lichaam van de gast staat niet meer vast', world.companion.coopWedstrijd === false);
   // rematch
@@ -444,9 +445,9 @@ const BANEN = [{ par: 2 }, { par: 3 }, { par: 2 }, { par: 3 }, { par: 2 }, { par
   check('de host wint (par) voor de gast (+1)', eind.jij.plek === 1 && eind.winnaars.join() === '0', JSON.stringify(eind.rijen.map((r) => [r.slot, r.plek, r.slagen])));
   const ge = log.filter(([s, b]) => s === 1 && b.f === 'eind').pop();
   const gl = W.leesWed(ge[1]);
-  check('de gast krijgt zijn uitslag met tekst per speler en zijn eigen plek', gl && gl.rijen.length === 3 && /slagen/.test(gl.rijen[0].tekst) && gl.jij.plek === 2 && gl.jij.geld === S.PRIJZEN_SCORE[2], JSON.stringify(gl && gl.jij));
+  check('de gast krijgt zijn uitslag met tekst per speler en zijn eigen plek', gl && gl.rijen.length === 3 && /slagen/.test(gl.rijen[0].tekst) && gl.jij.plek === 2 && gl.jij.geld === metGroepsbonus(S.PRIJZEN_SCORE[2], gestart.deeln.length), JSON.stringify(gl && gl.jij));
   check('de gast die wegviel krijgt geen uitslag en niets', !log.some(([s, b]) => s === 2 && b.f === 'eind') && !betaald.some(([s]) => s === 2));
-  check('de beloning per plek gaat naar de eigen portemonnee en het vak golf', betaald.length === 1 && betaald[0][0] === 1 && betaald[0][1] === S.PRIJZEN_SCORE[2] && betaald[0][2].vak === 'golf');
+  check('de beloning per plek gaat naar de eigen portemonnee en het vak golf', betaald.length === 1 && betaald[0][0] === 1 && betaald[0][1] === metGroepsbonus(S.PRIJZEN_SCORE[2], gestart.deeln.length) && betaald[0][2].vak === 'golf');
   check('lichamen weer vrij en een rematch kan', world.companion.coopWedstrijd === false && W.wedHandleGast(world, { k: 'wedgast', a: 'nogmaals' }, 1) && W.wedOpnieuw(world).ok);
   // de host stopt de ronde
   for (const s of [1, 2, 3]) W.wedHandleGast(world, { k: 'wedgast', a: 'ja' }, s);
@@ -556,8 +557,8 @@ const BANEN = [{ par: 2 }, { par: 3 }, { par: 2 }, { par: 3 }, { par: 2 }, { par
   check('als wie bezig is wegvalt, eindigt de wedstrijd met de uitslag voor de host', eind && eind !== 'gestopt' && eind.jij.plek === 1 && eind.rijen.length === 3 && eind.rijen.at(-1).weg, JSON.stringify(eind && eind.jij));
   const ge = log.filter(([s, b]) => s === 1 && b.f === 'eind').pop();
   const gl = W.leesWed(ge[1]);
-  check('de gast krijgt zijn uitslag met tijden en zijn plek', gl && gl.rijen.length === 3 && /^1:10\.00$/.test(gl.rijen[1].tekst) && gl.jij.plek === 2 && gl.jij.geld === 50, JSON.stringify(gl && gl.jij));
-  check('de beloning per plek gaat naar de eigen portemonnee met het vak buiten', betaald.length === 1 && betaald[0][0] === 1 && betaald[0][1] === 50 && betaald[0][2].vak === 'buiten', JSON.stringify(betaald));
+  check('de gast krijgt zijn uitslag met tijden en zijn plek', gl && gl.rijen.length === 3 && /^1:10\.00$/.test(gl.rijen[1].tekst) && gl.jij.plek === 2 && gl.jij.geld === metGroepsbonus(50, gestart.deeln.length), JSON.stringify(gl && gl.jij));
+  check('de beloning per plek gaat naar de eigen portemonnee met het vak buiten', betaald.length === 1 && betaald[0][0] === 1 && betaald[0][1] === metGroepsbonus(50, gestart.deeln.length) && betaald[0][2].vak === 'buiten', JSON.stringify(betaald));
   check('lichamen vrij en een rematch kan', world.companion.coopWedstrijd === false && W.wedHandleGast(world, { k: 'wedgast', a: 'nogmaals' }, 1) && W.wedOpnieuw(world).ok);
 }
 { // het scherm van de gast bij de klimtoren
@@ -646,8 +647,8 @@ const kgFormat = (g) => `${(g / 1000).toFixed(1).replace('.', ',')} kg`;
   check('als wie nog bezig was wegvalt, eindigt de wedstrijd met de uitslag voor de host', eind && eind !== 'gestopt' && eind.jij.plek === 2 && eind.rijen.length === 3, JSON.stringify(eind && eind.jij));
   const ge = log.filter(([s, b]) => s === 1 && b.f === 'eind').pop();
   const gl = W.leesWed(ge[1]);
-  check('de gast krijgt zijn uitslag met punten en zijn eigen plek', gl && gl.rijen[0].tekst === '2.400 punten' && gl.jij.plek === 1 && gl.jij.geld === P.PRIJZEN_PUNT[1], JSON.stringify(gl && gl.jij));
-  check('de beloning per plek gaat naar de eigen portemonnee en het vak buiten', betaald.length === 1 && betaald[0][0] === 1 && betaald[0][1] === P.PRIJZEN_PUNT[1] && betaald[0][2].vak === 'buiten');
+  check('de gast krijgt zijn uitslag met punten en zijn eigen plek', gl && gl.rijen[0].tekst === '2.400 punten' && gl.jij.plek === 1 && gl.jij.geld === metGroepsbonus(P.PRIJZEN_PUNT[1], gestart.deeln.length), JSON.stringify(gl && gl.jij));
+  check('de beloning per plek gaat naar de eigen portemonnee en het vak buiten', betaald.length === 1 && betaald[0][0] === 1 && betaald[0][1] === metGroepsbonus(P.PRIJZEN_PUNT[1], gestart.deeln.length) && betaald[0][2].vak === 'buiten');
   check('lichamen vrij en een rematch kan', world.companion.coopWedstrijd === false && W.wedHandleGast(world, { k: 'wedgast', a: 'nogmaals' }, 1) && W.wedOpnieuw(world).ok);
 }
 { // het scherm van de gast bij punten met beurten (hengelen)
@@ -741,7 +742,7 @@ const B = await import('../game/js/coopwedstrijdbaan.js');
   W.wedHostTik(world, 0.1);
   check('als iedereen binnen is komt de uitslag', eind && eind !== 'gestopt' && eind.rijen[0].slot === 1 && eind.jij.plek === 2, JSON.stringify(eind && eind.rijen));
   const ge = W.leesWed(log.filter(([s, b]) => s === 1 && b.f === 'eind').pop()[1]);
-  check('de gast krijgt zijn uitslag en zijn eigen beloning', ge && ge.jij.plek === 1 && ge.jij.geld === B.PRIJZEN_BAAN[1] && betaald.length === 1 && betaald[0][2].vak === 'race', JSON.stringify(ge && ge.jij));
+  check('de gast krijgt zijn uitslag en zijn eigen beloning', ge && ge.jij.plek === 1 && ge.jij.geld === metGroepsbonus(B.PRIJZEN_BAAN[1], gestart.deeln.length) && betaald.length === 1 && betaald[0][2].vak === 'race', JSON.stringify(ge && ge.jij));
   check('de gast die meedeed kan een rematch vragen', W.wedHandleGast(world, { k: 'wedgast', a: 'nogmaals' }, 1));
 }
 { // de gast-kant van een baanwedstrijd: de stand, stoppen met Backspace en de uitslag

@@ -249,6 +249,14 @@ export function bijbaanHostAntwoord(world, ja) {
 // Doet de host mee met de lopende baan? (sidejobs.js: zonder dit krijgt hij geen loon)
 export function bijbaanHostMee(world) { const n = world.coopNet; return !n || n.role !== 'host' || !n.bijbaan || hostMeeBijbaan(n.bijbaan); }
 
+// Met hoeveel spelers loopt de baan? Voor de groepsbonus (1+1=3, #492): de host telt mee
+// als hij ja zei, anders alleen de gasten die meedoen.
+export function bijbaanAantal(world) {
+  const n = world && world.coopNet, st = n && n.bijbaan;
+  if (!n || n.role !== 'host' || !actief(st)) return 1;
+  return Math.max(1, deelnemers(st, verbondenSet(world)).length);
+}
+
 // Elke frame bij de host (coopnet.js tickCoopNet): de uitnodiging telt af, wie niet antwoordt kijkt mee, het doel gaat naar de anderen.
 export function bijbaanHostTik(world, dt) {
   const n = world.coopNet; if (!n || n.role !== 'host' || !n.bijbaan) return false;
