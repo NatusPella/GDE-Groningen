@@ -108,5 +108,62 @@ for (const r of echte) {
   check('vanaf het eindstation gaat hij terug naar A', e[0].richting === 'A' && e[0].dir === -1);
   check('bord is gesorteerd', (() => { const r = D.bordUitTreinen([trein({ c: 5000, target: 1, state: 'run' }), trein({ c: 10000, target: 1, timer: 5 })], 'B', nu, { schaal: 1 }); return r.every((x, i) => i === 0 || x.tijd >= r[i - 1].tijd); })());
 }
+// --- het rooster van de machinist (#492): vast per lijn, richting en speldag
+{
+  const dag = 7;
+  const rood = D.roosterVoor(lijn, 1, dag);
+  const nog = D.roosterVoor(lijn, 1, dag);
+  check('rooster: alle ritten van de dag', rood.length === D.ritten(lijn, 1).length && rood.length > 40);
+  check('rooster: dezelfde dag geeft dezelfde dienst', JSON.stringify(rood) === JSON.stringify(nog));
+  check('rooster: halten in rijrichting met oplopende tijden', rood.every((d) => d.halten.length === lijn.stops.length && d.halten.every((h, i, a) => i === 0 || h.aan >= a[i - 1].weg)));
+  check('rooster: de halten zijn de halten van de lijn', rood[0].halten.map((h) => h.name).join() === 'Alpha,Beta,Gamma' && rood[0].van === 'Alpha' && rood[0].naar === 'Gamma');
+  check('rooster: de terugrichting begint bij het eind', D.roosterVoor(lijn, -1, dag)[0].halten[0].name === 'Gamma' && D.roosterVoor(lijn, -1, dag)[0].naar === 'Alpha');
+  check('rooster: een andere dag geeft een ander rooster', JSON.stringify(rood) !== JSON.stringify(D.roosterVoor(lijn, 1, dag + 1)));
+
+  // de dienst op een halte: de eerstvolgende vanaf de klok, dezelfde keuze bij dezelfde klok
+  const nu = 8 * 3600;
+  const eersteDienst = D.dienstVoor(lijn, 1, dag);
+  check('dienst: zonder klok de eerste dienst van de dag', !!eersteDienst && eersteDienst.k === 0 && eersteDienst.start === rood[0].start && eersteDienst.vertrek === rood[0].halten[0].weg);
+  const a = D.dienstVoor(lijn, 1, dag, nu, { vanaf: 'Beta' });
+  const b = D.dienstVoor(lijn, 1, dag, nu, { vanaf: 'Beta' });
+  check('dienst: dezelfde klok geeft dezelfde dienst', !!a && a.k === b.k && a.vertrek === b.vertrek);
+  check('dienst: vertrekt vanaf de halte op of na nu', a.vertrek >= nu - 60 && a.lijn === 'Stoptrein Test' && a.naar === 'Gamma' && a.vanaf === 'Beta');
+  check('dienst: de halten van de dienst zijn de halten van de lijn', a.halten.map((h) => h.name).join() === 'Alpha,Beta,Gamma');
+  // een gemiste dienst: de volgende is kiesbaar
+  const later = D.dienstVoor(lijn, 1, dag, a.vertrek + 300, { vanaf: 'Beta' });
+  check('dienst: na een gemiste dienst komt de volgende', !!later && later.k > a.k && later.vertrek > a.vertrek);
+  // de dag is op: geen dienst meer (de machinist rijdt dan zonder rooster)
+  const laatsteBeta = D.roosterVoor(lijn, 1, dag).at(-1).halten[1].weg;
+  check('dienst: na de laatste trein niets', D.dienstVoor(lijn, 1, dag, laatsteBeta + 61, { vanaf: 'Beta' }) === null);
+  check('dienst: onbekende halte geeft niets', D.dienstVoor(lijn, 1, dag, nu, { vanaf: 'Nergens' }) === null);
+  // beide richtingen: de terugrichting is een eigen dienst met eigen tijden
+  const terug = D.dienstVoor(lijn, -1, dag, nu, { vanaf: 'Beta' });
+  check('dienst: de terugrichting rijdt naar Alpha', terug.naar === 'Alpha' && terug.dir === -1 && terug.vertrek !== a.vertrek);
+
+  // de roostertijd op de trein: tussen twee halten lineair
+  const d0 = D.roosterVoor(lijn, 1, 1)[0];
+  check('roostertijd op de halte', Math.abs(D.roostertijdOp(d0, 12000, 1) - d0.halten[1].weg) < 1e-6);
+  const half = D.roostertijdOp(d0, 6000, 1);
+  check('roostertijd tussen twee halten', half > d0.halten[0].weg && half < d0.halten[1].aan);
+  check('roostertijd voor het begin en na het eind', D.roostertijdOp(d0, -500, 1) === d0.halten[0].weg && D.roostertijdOp(d0, 99999, 1) === d0.halten.at(-1).aan);
+  check('roostertijd zonder dienst', D.roostertijdOp(null, 0) === null);
+
+  // de instaphalte: de halte waar de trein staat of net weg is
+  check('instaphalte op de halte', D.instapHalte(lijn, 12000, 1).name === 'Beta');
+  check('instaphalte net voorbij de halte', D.instapHalte(lijn, 12300, 1).name === 'Beta');
+  check('instaphalte tussen twee halten per richting', D.instapHalte(lijn, 20000, 1).name === 'Beta' && D.instapHalte(lijn, 20000, -1).name === 'Gamma');
+  check('instaphalte zonder halten', D.instapHalte({ stops: [] }, 0, 1) === null);
+
+  // een lange lijn: de dichtstbijzijnde halte achter de trein, niet het begin van de lijn
+  const vijf = { name: 'Vijflijn', stops: [{ name: 'A', s: 0 }, { name: 'B', s: 10000 }, { name: 'C', s: 20000 }, { name: 'D', s: 30000 }, { name: 'E', s: 40000 }] };
+  check('instaphalte +1 kiest de dichtstbijzijnde halte achter', D.instapHalte(vijf, 15000, 1).name === 'B');
+  check('instaphalte -1 kiest de dichtstbijzijnde halte achter', D.instapHalte(vijf, 15000, -1).name === 'C');
+  check('instaphalte -1 voor de eerste halte kiest de eerstvolgende', D.instapHalte(vijf, 5000, -1).name === 'B');
+  check('instaphalte +1 voor de eerste halte kiest de eerstvolgende', D.instapHalte(vijf, -500, 1).name === 'A');
+
+  // de tekst op het bord: lijn, richting en vertrektijd
+  check('diensttekst noemt lijn, richting en tijd', D.dienstTekst(a).includes('Stoptrein Test') && D.dienstTekst(a).includes('Gamma') && D.dienstTekst(a).includes(D.tijdLabel(a.vertrek)) && D.dienstTekst(null) === '');
+}
+
 console.log(bad ? `${bad} van ${n} mislukt` : `dienstregeling_test ok (${n} checks)`);
 process.exit(bad ? 1 : 0);

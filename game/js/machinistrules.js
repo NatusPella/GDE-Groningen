@@ -4,6 +4,7 @@
 // DOM, so scripts/machinist_test.mjs can drive it headless.
 import { medalFrom, clamp } from './minigamekit.js';
 import { seinBeeld, seinRood } from './blokseinen.js';
+import { roostertijdOp } from './dienstregeling.js';
 
 // railway.js DRIVE_BRAKE: the service brake the plan counts on
 export const BRAKE = 2.2;
@@ -81,20 +82,36 @@ export function upcomingStops(stops, c, dir, range) {
   return list;
 }
 
-// A service: the timetable from the moment the player takes the train.
-export function startService({ stops, c, dir, vmax, time, limit = 6, range, storingen = false, blokken = [], blokPunten = [] }) {
-  const ahead = upcomingStops(stops, c, dir, range).slice(0, limit);
+// A service: the timetable from the moment the player takes the train, or — with a `dienst` from
+// the roster (#492) — the halten and due times of that roster service, so the timetable comes from
+// the dienstregeling and not from the moment of boarding. Zonder dienst blijft de oude route werken.
+export function startService({ stops, c, dir, vmax, time, limit = 6, range, storingen = false, blokken = [], blokPunten = [], dienst = null }) {
+  // de roostertijd op de plek van de trein: de due-tijden zijn de verschillen uit het rooster
+  // (tussen de halten), zodat ze niet van het instapmoment of van deze trein afhangen
+  const t0 = dienst ? roostertijdOp(dienst, c, dir) : null;
+  const ahead = dienst && t0 != null
+    ? dienst.halten
+        .filter((h) => !h.offmap && (h.s - c) * dir > 5 && (!range || (h.s >= range[0] && h.s <= range[1])))
+        .slice(0, limit)
+        .map((h) => ({ name: h.name, s: h.s, due: time + (h.aan - t0) }))
+    : upcomingStops(stops, c, dir, range).slice(0, limit);
   let at = time, prev = c;
   const plan = ahead.map((st) => {
-    at += runTime(Math.abs(st.s - prev), vmax) + (prev === c ? 0 : DOORS_S);
+    let due = st.due;
+    if (due == null) {
+      at += runTime(Math.abs(st.s - prev), vmax) + (prev === c ? 0 : DOORS_S);
+      due = at;
+    }
     prev = st.s;
     // vast zaad per fysieke halte: dezelfde halte geeft altijd dezelfde perrondrukte
     const zaad = (Math.round(st.s) * 31) >>> 0;
-    return { ...st, zaad, perron: perronVoor(zaad), due: at, dep: at + 6, score: null, errM: null, lateS: null, medal: 0, punct: 0, comfort: 0, early: false };
+    return { ...st, zaad, perron: perronVoor(zaad), due, dep: due + 6, score: null, errM: null, lateS: null, medal: 0, punct: 0, comfort: 0, early: false };
   });
   return {
     plan, i: 0, vmax, dir, start: time, doorsUntil: 0, overStop: 0, ebStop: 0, ebHeld: false, moved: false,
     limit: vmax, toStop: Infinity, finished: !plan.length, result: null, abandoned: false,
+    // het rooster (#492): de dienst die je rijdt, of null (dan rekent de dienst vanaf het instapmoment)
+    dienst: dienst || null,
     flash: '', flashBad: false, flashUntil: 0,
     // reizigers (#492): wie er nu in de trein zit, hoeveel er meereden en wat de kaartjes opbrachten
     reizigers: 0, totaal: 0, kaart: 0,
