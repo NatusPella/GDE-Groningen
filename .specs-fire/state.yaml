@@ -453,3 +453,11 @@ runs:
           mode: confirm
       started: 2026-10-25T16:58:22.148Z
       completed: 2026-10-25T17:18:12.532Z
+    - id: run-gde-light-sims-019
+      scope: single
+      work_items:
+        - id: wi-492-trein-lopen
+          intent: gde-light-sims
+          mode: confirm
+      started: 2026-10-26T05:37:33.573Z
+      completed: 2026-10-26T06:07:46.300Z
