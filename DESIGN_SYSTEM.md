@@ -52,6 +52,15 @@ special-day badge in the clock (approved with the AAA HUD) and
 for the mission/waypoint marker (the genre's usual marker language)
 — everything else is green.
 
+### Loopbaansfeer
+
+Each career has its own pattern, not a new accent colour (`game/js/carrieresfeer.js`).
+The patterns use only cream and the greens above; red stays the danger colour. The
+farmer's handkerchief is therefore gingham in cream and green, with a folded corner as
+the recognisable motif: a red version in the UI would read as a warning. The pattern is
+a thin strip in the career list and a band above the career detail, never a replacement
+for the icon or the title.
+
 Where the tokens live: `--gron-*` and `--hud-*` in `game/js/hud_panel.css` (`:root` of the HUD), the menu's own set on `.gm` in `game/js/menu.css`,
 the keycap in `game/js/a11y.css`, the 2D maps in `INK`, `MAP_PALETTE` and `MINI_PALETTE` in `game/js/mapstyle.js`, and the marker roles in `PALETTES` in `game/js/a11y.js`.
 

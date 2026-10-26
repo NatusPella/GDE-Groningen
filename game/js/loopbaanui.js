@@ -13,6 +13,7 @@ import { baanDoelen } from './todoui.js';
 import { loopbaanStap, STEP_BY_ID } from './storyarc.js';
 import { controleStand, CONTROLE_MIN_NIVEAU } from './kaartjescontrole.js';
 import { getServiceMapState } from './machinist.js';
+import { sfeerVan, sfeerStijl } from './carrieresfeer.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const nl = (n) => Math.round(n).toLocaleString('nl-NL');
@@ -42,9 +43,33 @@ const ICONEN = {
 };
 const loopbaanIcoon = (naam, cls = 'pa-ico') => `<span class="${cls}"><svg viewBox="0 0 24 24" aria-hidden="true">${ICONEN[naam] || ICONEN.hamer}</svg></span>`;
 
+// De sfeerband boven het vak: een patroon in cream en groen (#492). De boerenzakdoek krijgt
+// een gevouwen punt; rood blijft de gevarenkleur, dus de doek is geblokt cream/groen.
+function sfeerHtml(id) {
+  const s = sfeerVan(id);
+  if (!s.vorm) return '';
+  const stijl = sfeerStijl(id);
+  return `<div class="lb-sfeer" style="${stijl}" title="${esc(s.motief)}">` +
+    `<span class="lb-sfeer-naam">Sfeer · ${esc(s.naam)}</span>` +
+    (s.vouw ? `<span class="lb-sfeer-vouw" style="${stijl}" aria-hidden="true"></span>` : '') + '</div>';
+}
+
+
 const CSS = `
 .lb-groep { margin: 14px 0 4px; font: 14px "Arial Narrow", Arial, sans-serif; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.55; }
 .lb-groep:first-child { margin-top: 0; }
+.lb-li { position: relative; overflow: hidden; }
+.lb-sfeer-strip { position: absolute; left: 0; top: 9px; bottom: 9px; width: 3px; border-radius: 0 2px 2px 0; opacity: 0.75; pointer-events: none; }
+.lb-li.sel .lb-sfeer-strip { opacity: 1; }
+.lb-sfeer { position: relative; min-height: 44px; border-radius: 10px; overflow: hidden; box-shadow: inset 0 0 0 1px rgba(240, 237, 228, 0.10); }
+.lb-sfeer::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(12, 20, 14, 0.62), rgba(12, 20, 14, 0.16) 58%, rgba(12, 20, 14, 0.56)); }
+.lb-sfeer-naam { position: absolute; left: 12px; bottom: 7px; z-index: 1; font: 14px "Arial Narrow", Arial, sans-serif; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(240, 237, 228, 0.86); }
+.lb-sfeer-vouw { position: absolute; right: 18px; bottom: -20px; z-index: 1; width: 54px; height: 54px; transform: rotate(45deg); border-radius: 3px; box-shadow: inset 0 0 0 1px rgba(240, 237, 228, 0.22), 0 2px 8px rgba(0, 0, 0, 0.22); pointer-events: none; }
+@media (max-height: 820px) {
+  .lb-sfeer { min-height: 34px; }
+  .lb-sfeer-naam { font-size: 13px; bottom: 5px; }
+  .lb-sfeer-vouw { width: 42px; height: 42px; bottom: -16px; }
+}
 .lb-li .nm { min-width: 0; }
 .lb-li .lb-niv { margin-left: auto; padding-left: 12px; white-space: nowrap; font-size: 15px; opacity: 0.8; }
 .lb-li .m-bar { flex: none; width: 76px; margin-left: 12px; }
@@ -101,6 +126,7 @@ function rij(profiel, info) {
   const namen = bezighedenNamen(info.id);
   const onder = `${nul ? 'Nog niet begonnen' : d.titel}${aantal ? ` · ${aantal} ${aantal === 1 ? 'bezigheid' : 'bezigheden'}` : ''}`;
   return `<button type="button" class="m-li lb-li${nul ? ' nul' : ''}${gekozen === info.id ? ' sel' : ''}" data-vak="${info.id}" title="${esc(namen.length ? 'Bezigheden: ' + namen.join(', ') : 'Geen aparte bijbaan')}"${gekozen === info.id ? ' aria-current="true"' : ''}>` +
+    `<span class="lb-sfeer-strip" style="${sfeerStijl(info.id)}" aria-hidden="true"></span>` +
     `${loopbaanIcoon(info.icoon)}<span class="nm"><span class="one">${esc(info.naam)}</span><span class="mut one">${esc(onder)}</span></span>` +
     `<span class="lb-niv">niveau ${d.niveau}</span><span class="m-bar${d.deel > 0 ? ' on' : ''}"><i data-bar="lb-${info.id}" data-w="${(d.deel * 100).toFixed(1)}"></i></span></button>`;
 }
@@ -180,7 +206,7 @@ function detailHtml(profiel, id, w = null) {
   // wat dit niveau je aan een handeling geeft (#437): niveau 3 bij Spoor is kaartjes knippen op het perron, geen getal
   const kan = L.vaardigheidVan(id, d.niveau);
   const vaardigheid = kan ? `<p class="lb-kan"><b>${esc(kan.titel)}:</b> ${esc(kan.wat)}</p>` : '';
-  return `<div class="pm-pane-top"><span class="m-eb">${esc(groep)}</span><h2 class="m-h2 td-h2">${loopbaanIcoon(info.icoon, 'pa-ico big')}${esc(info.naam)}</h2></div>` +
+  return `<div class="pm-pane-top">${sfeerHtml(id)}<span class="m-eb">${esc(groep)}</span><h2 class="m-h2 td-h2">${loopbaanIcoon(info.icoon, 'pa-ico big')}${esc(info.naam)}</h2></div>` +
     `<div class="lb-kop"><p class="lb-titel"><b>${esc(d.titel)}</b> <span class="mut">· niveau ${d.niveau} van ${L.MAX_NIVEAU}</span></p><p class="mut">${esc(info.wat)}</p></div>` +
     `<div class="lb-blok">${voort}<p class="mut">${doel}</p>` +
     `<p>${v.xp > 0 ? esc(telt.join(' · ')) : L.isGestart(profiel, id) ? 'Begonnen, nog geen klus gedaan.' : 'Nog niet begonnen.'}</p>` +
