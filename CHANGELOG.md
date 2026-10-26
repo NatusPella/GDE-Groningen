@@ -15,7 +15,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Samen meerijden.** Een gast kan als passagier mee in het vliegtuig, de helikopter of de trein van de ander; besturen blijft bij wie het spel opende, en uitstappen kan alleen op de grond of bij stilstand.
 - **Treinconducteur.** De eerste gast in de trein bedient de deuren en de waakzaamheid; alle crewleden krijgen het volle loon en de punten in hun eigen spel.
 - **Dienstrooster voor de machinist.** De machinist rijdt een vaste dienst per lijn, richting en speldag; de halten en vertrektijden komen uit het rooster, en zonder dienst blijft de oude route werken.
-- **Sfeer per loopbaan.** Elk vak heeft een eigen patroon in de loopbaanlijst en boven zijn detail, van perronstrepen tot een geblokte boerenzakdoek; rood blijft de gevarenkleur.
+- **Sfeer per loopbaan.** Elk vak heeft een eigen kleurvlak, patroon en icoon in de loopbaanlijst en boven zijn detail, met een droge satirische naam ("Altijd vertraging", "Loket gesloten", "Weer een laars"); rood blijft de gevarenkleur.
 - **Treinblokseinen.** Een bezet baanvak geeft rood op het bord en in de cabine; één sein geeft hooguit één veiligheidsfout, ook als je heen en weer rijdt.
 - **Vliegen tussen velden.** De rondvlucht is nu een etappe Eelde → een tweede veld; landen op de baan geeft loon, overvliegen niet, en de terugvlucht is de volgende dienst.
 - **Hengels, aas en lijnsterkte.** Vier hengels, zes aassoorten en lijnverbeteringen; een sterke lijn geeft een ruimer beetvenster, aas lokt zijn eigen soorten. Te koop bij de Avondwinkel en de botenverhuur.

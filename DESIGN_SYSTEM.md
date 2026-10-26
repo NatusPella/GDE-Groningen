@@ -56,11 +56,11 @@ for the mission/waypoint marker (the genre's usual marker language)
 
 Each career has its own pattern, its own icon as a low-contrast watermark and one of four
 tonalities (dark, forest, field, milk), not a new accent colour (`game/js/carrieresfeer.js`).
-The patterns use only cream and the greens above; red stays the danger colour. The
-farmer's handkerchief is therefore gingham in cream and green, with a folded corner as
-the recognisable motif: a red version in the UI would read as a warning. The pattern is
-a thin strip in the career list and a band above the career detail, never a replacement
-for the icon or the title.
+The patterns use large colour fields rather than fine lines, and the names are dry and
+satirical like the rest of the game. Red stays the danger colour. The farmer's handkerchief
+is therefore gingham in cream and green, with a folded corner as the recognisable motif: a
+red version in the UI would read as a warning. The pattern is a thin strip in the career
+list and a band above the career detail, never a replacement for the icon or the title.
 
 Where the tokens live: `--gron-*` and `--hud-*` in `game/js/hud_panel.css` (`:root` of the HUD), the menu's own set on `.gm` in `game/js/menu.css`,
 the keycap in `game/js/a11y.css`, the 2D maps in `INK`, `MAP_PALETTE` and `MINI_PALETTE` in `game/js/mapstyle.js`, and the marker roles in `PALETTES` in `game/js/a11y.js`.
