@@ -81,12 +81,15 @@ const rect = (x0, y0, x1, y1) => [[x0, y0], [x1, y0], [x1, y1], [x0, y1]];
   ok(maxJump < 0.5, 'de trap is zonder sprong te belopen', maxJump.toFixed(2));
   ok(near(zTop, top, 0.1), 'boven aan de trap sta je op het perron', zTop.toFixed(2));
   // de rand: te voet een muur, een voertuig komt er niet op, ook niet vanaf de dijk
+  // (het perron staat op een dijk van 5,6 m: daar staat de auto, en een straat eronder loopt er gewoon onderdoor, #509)
   const edgeY = row.p[10][1] + row.p[10][2];
+  const onDike = top - P.PERRON_TOP;
   const wall = E.resolveElevWalls(elev, row.p[10][0], edgeY - 0.1, 0, 0.35);
-  ok(wall && wall[1] > edgeY, 'een voetganger op de grond komt niet door de rand', JSON.stringify(wall));
+  ok(!wall, 'onder het viaduct loopt een voetganger door (#509)', JSON.stringify(wall));
   ok(!E.resolveElevWalls(elev, row.p[10][0], edgeY - 1, top, 0.35), 'wie op het perron staat wordt niet teruggezet');
-  const veh = E.elevWallContact(elev, row.p[10][0], edgeY - 0.3, 0.2, 1.4, false, null);
-  ok(!!veh, 'een auto op de grond wordt bij de rand tegengehouden');
+  const veh = E.elevWallContact(elev, row.p[10][0], edgeY - 0.3, onDike + 0.2, 1.4, false, null);
+  ok(!!veh, 'een auto op de dijk wordt bij de rand tegengehouden');
+  ok(!E.elevWallContact(elev, row.p[10][0], edgeY - 0.3, 0.2, 1.4, false, null), 'een auto rijdt op straat onder het perron door (#509)');
   // bij de trap is de rand open: een voetganger op de trap wordt niet teruggezet
   const midRamp = [(tr.a[0] + tr.b[0]) / 2, (tr.a[1] + tr.b[1]) / 2];
   ok(!E.resolveElevWalls(elev, midRamp[0], midRamp[1], (top) / 2, 0.35), 'op de trap staat niets in de weg');
