@@ -11,6 +11,8 @@ import { edgeDistance } from './countryfield.js';
 import { getScene, refreshCharacterMeshes } from './scene3d.js';
 import { spawnVehicleOnRoad, spawnBoatOnWater, HERO_CAR_MODEL, playerTopSpeed } from './vehicle.js';
 import { SHOP_TYPES, VEHICLE_STOCK } from './shopdata.js';
+import * as TUIG from './hengeltuig.js';
+import { getTuig, zetTuig } from './hengeltuiglive.js';
 export { SHOP_TYPES, VEHICLE_STOCK };
 import { BOAT_KINDS } from './boattypes.js';
 import { TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
@@ -751,9 +753,9 @@ function shopMenu(world, s, werf = false) {
   const build = {
     wapens: weaponSections, kleding: outfitSections, kapper: hairSections, tabak: tabakSections,
     fietsen: (w) => vehicleSections(w, 'fietsen', s), auto: (w) => vehicleSections(w, 'auto', s),
-    super: (w) => [...foodSections(w, 'Uit de schappen', SUPER_ITEMS), ...dierenSections(w)], snack: (w) => foodSections(w, 'Uit het vet', SNACK_ITEMS),
+    super: (w) => [...foodSections(w, 'Uit de schappen', SUPER_ITEMS), ...dierenSections(w), ...hengelSections(w)], snack: (w) => foodSections(w, 'Uit het vet', SNACK_ITEMS),
     fietsenmaker: (w) => workshopSections(w, s, true), tuning: (w) => workshopSections(w, s, false),
-    pand: (w) => pandSections(w, s), boot: (w) => (werf ? workshopSections(w, s, 'boat') : bootSections(w, s)), eikea: eikeaSections,
+    pand: (w) => pandSections(w, s), boot: (w) => (werf ? workshopSections(w, s, 'boat') : [...bootSections(w, s), ...hengelSections(w)]), eikea: eikeaSections,
     heli: (w) => vehicleSections(w, 'heli', s),
   }[s.type];
   const view = () => markStoryItems(world, s.type, build(world));
@@ -795,6 +797,70 @@ function dierenSections(world) {
   const sections = [{ title: 'Dierenhoek', note: `Je houdt ${bezit.dieren.length} dieren`, items: koopItems }];
   if (eigen.length) sections.push({ title: 'Voor je dieren', note: 'Verzorgen, trainen en uitrusten', items: eigen });
   return sections;
+}
+
+// De hengelhoek (#492): hengels, aas en een sterkere lijn, van je eigen geld. Je tuig staat in je eigen opslag
+// (gde-hengeltuig-v1), buiten elke savegame: ook een gast koopt hier in zijn eigen spel met zijn eigen geld en
+// hengelt daarna met zijn eigen hengel.
+export function hengelSections(world) {
+  const t = getTuig();
+  const lijn = TUIG.lijnsterkte(t);
+  const wachtTekst = (h) => (h.wacht < 1 ? `${Math.round((1 - h.wacht) * 100)}% korter wachten` : 'de hengel waar je mee begon');
+  const hengels = TUIG.HENGELS.map((h) => {
+    const fout = TUIG.hengelBlokkade(t, h.id, world.money);
+    const heb = TUIG.heeftHengel(t, h.id);
+    const naLijn = TUIG.lijnVoor(h.id, t.upgrades);
+    return {
+      id: 'hg-' + h.id, label: h.naam, desc: `${h.desc} · ${wachtTekst(h)}`, price: h.prijs,
+      tag: t.hengel === h.id ? 'Nu' : heb ? 'Heb je al' : '',
+      stats: [
+        { label: 'Wachttijd', v: (1.2 - h.wacht) / 0.5, to: null, text: `×${h.wacht.toFixed(2)}` },
+        { label: 'Lijnsterkte', v: lijn, to: heb ? null : naLijn, text: heb ? `${Math.round(lijn * 100)}%` : `${Math.round(lijn * 100)} → ${Math.round(naLijn * 100)}%` },
+        { label: 'Beetvenster', v: TUIG.beetFactor(lijn) / 1.3, to: heb ? null : TUIG.beetFactor(naLijn) / 1.3, text: heb ? `${Math.round(TUIG.beetFactor(lijn) * 100)}%` : `${Math.round(TUIG.beetFactor(lijn) * 100)} → ${Math.round(TUIG.beetFactor(naLijn) * 100)}%` },
+      ],
+      disabled: fout || '',
+      buy() {
+        const r = TUIG.koopHengel(getTuig(), h.id, world.money);
+        if (r.fout || !pay(world, r.prijs)) return null;
+        zetTuig(r.tuig);
+        return `${h.naam} gekocht. Hij ligt klaar aan de kant`;
+      },
+    };
+  });
+  const aas = TUIG.AAS.map((a) => ({
+    id: 'as-' + a.id, label: a.naam, desc: `${a.desc} · een pak van ${TUIG.AAS_PER_PAK} beten`, price: a.prijs,
+    tag: t.aas && t.aas.id === a.id ? `In je zak: ${t.aas.n}` : '',
+    effect: 'De vis van dit aas bijt vaker',
+    disabled: TUIG.aasBlokkade(t, a.id, world.money) || '',
+    buy() {
+      const r = TUIG.koopAas(getTuig(), a.id, world.money);
+      if (r.fout || !pay(world, r.prijs)) return null;
+      zetTuig(r.tuig);
+      return `${a.naam} in je zak: ${TUIG.AAS_PER_PAK} beten. Ander aas gaat weg`;
+    },
+  }));
+  const op = t.upgrades >= TUIG.UPGRADE_MAX;
+  const volgende = op ? null : TUIG.VERBETERINGEN[t.upgrades];
+  const naLijn = op ? lijn : TUIG.lijnVoor(t.hengel, t.upgrades + 1);
+  const lijnItem = {
+    id: 'lijn-up', label: volgende ? volgende.naam : 'Lijn op zijn sterkst', desc: volgende ? volgende.desc : `Je lijn is op ${TUIG.UPGRADE_MAX} van ${TUIG.UPGRADE_MAX} staan: sterker kan niet`,
+    price: volgende ? volgende.prijs : 0, tag: `${t.upgrades}/${TUIG.UPGRADE_MAX}`,
+    stats: [
+      { label: 'Lijnsterkte', v: lijn, to: op ? null : naLijn, text: op ? `${Math.round(lijn * 100)}%` : `${Math.round(lijn * 100)} → ${Math.round(naLijn * 100)}%` },
+      { label: 'Beetvenster', v: TUIG.beetFactor(lijn) / 1.3, to: op ? null : TUIG.beetFactor(naLijn) / 1.3, text: op ? `${Math.round(TUIG.beetFactor(lijn) * 100)}%` : `${Math.round(TUIG.beetFactor(lijn) * 100)} → ${Math.round(TUIG.beetFactor(naLijn) * 100)}%` },
+    ],
+    disabled: TUIG.upgradeBlokkade(t, world.money) || '',
+    buy() {
+      const r = TUIG.koopUpgrade(getTuig(), world.money);
+      if (r.fout || !pay(world, r.prijs)) return null;
+      zetTuig(r.tuig);
+      return `${r.verbetering.naam} erop. Het dobbertje blijft langer onder`;
+    },
+  };
+  return [
+    { title: 'Hengels en lijn', note: `Nu: ${TUIG.hengelNaam(t)} · aas: ${TUIG.aasNaam(t)} · lijn ${Math.round(lijn * 100)}%`, items: [...hengels, lijnItem] },
+    { title: 'Aas', note: `Een pak van ${TUIG.AAS_PER_PAK} beten; aas lokt de vis bij het vrije hengelen`, items: aas },
+  ];
 }
 
 // Food heals; at full health it is still for sale, to take away.
