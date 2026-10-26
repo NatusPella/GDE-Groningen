@@ -46,6 +46,7 @@ const BIJBAAN = {
 const ACTIVITEIT = {
   discgolf: WERKT, pitchputt: WERKT, kartbaan: WERKT, klimtoren: WERKT, hengelen: WERKT, pannenkoek: WERKT, carillon: WERKT, boeren: WERKT, regatta: WERKT, bruggenrace: WERKT, ringrace: WERKT,
   dijkrace: WERKT, // de straatrace van M14 (De dijk): iedereen dezelfde auto, één gezamenlijke start (#443)
+  vluchtdienst: DEELS, // de rondvlucht is host-only; als passagier meerijden mag (#492)
   safehuis: DEELS, geheimen: DEELS, wandeling: DEELS, snackketen: DEELS, evenementen: DEELS,
   pvparena: DEELS, // de PvP-minigame: de host rekent en ziet het bord, de gastenkant van het bord is nog open (#454)
   carbid: NEE, kermis: NEE, hoogvlieger: NEE, drift: NEE, skatepark: WERKT, zwembad: NEE, waterski: NEE, vliegschool: NEE,
@@ -73,6 +74,7 @@ export const REGISTER = {
 // De sleutel is `soort/id`; zonder toelichting blijft het bij de gewone tekst.
 export const TOELICHTING = {
   'activiteit/vliegschool': 'De lessen zijn voor wie het spel opende; meerijden mag, besturen niet.',
+  'activiteit/vluchtdienst': 'De rondvlucht is voor wie het spel opende; als passagier meerijden mag, besturen niet.',
   'voertuig/trein': 'Als passagier meerijden in de trein van de ander mag; zelf de trein besturen niet.',
 };
 export const toelichtingVan = (soort, id) => (typeof id === 'string' && TOELICHTING[soort + '/' + id]) || null;

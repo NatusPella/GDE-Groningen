@@ -6,8 +6,9 @@ import assert from 'node:assert';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { VLUCHT, CHECKLIST, checklist, maakVluchtdienst, vluchtStap, vluchtVoortgang, vluchtUitslag, vluchtStand } from '../game/js/arcadeplane.js';
+import { VLUCHT, CHECKLIST, checklist, maakVluchtdienst, vluchtStap, vluchtVoortgang, vluchtUitslag, vluchtStand, vluchtTussenVelden } from '../game/js/arcadeplane.js';
 import { VLUCHT_LOON, VLUCHT_XP, vluchtLoon, departure, approach } from '../game/js/luchtverkeer.js';
+import { margeVoorDienst } from '../game/js/simdienst.js';
 
 const hier = path.dirname(fileURLToPath(import.meta.url));
 const dienstBron = readFileSync(path.join(hier, '../game/js/activities.js'), 'utf8');
@@ -145,8 +146,72 @@ assert.match(dienstBron, /const geld = cfg\.beloning \? cfg\.beloning\(w, u, r\)
 assert.ok(!/world\.money\s*\+=/.test(dienstBron) && !/w\.money\s*\+=/.test(dienstBron), 'geen tweede kasboek in activities.js');
 assert.ok(!/Math\.random/.test(readFileSync(path.join(hier, '../game/js/luchtverkeer.js'), 'utf8')), 'luchtverkeer.js is puur: geen random');
 
-// de toren staat als bordrij in de dienst: één vertrek- en één naderingsregel
-assert.match(dienstBron, /rijen: \(d\) => \[\['Vertrek', departure\(d\.naam\)\], \['Nadering', approach\(d\.naam\)\]\]/, 'de toren gebruikt de veldnaam die de dienst al heeft');
+// de toren staat als bordrij in de dienst: één vertrekregel bij het vertrekveld en één
+// naderingsregel bij de bestemming (#492), niet bij de naam van de dienst
+assert.match(dienstBron, /rijen: \(d\) => \[\['Vertrek', departure\(d\.vanNaam\)\], \['Nadering', approach\(d\.naarNaam\)\]\]/, 'de toren noemt het vertrekveld en de bestemming');
 assert.ok(typeof departure('Rondvlucht Eelde') === 'string' && typeof approach('Rondvlucht Eelde') === 'string', 'de bordregels komen uit luchtverkeer.js');
+
+// --- de etappe tussen twee velden (#492) ------------------------------------------------------
+const plekken = JSON.parse(readFileSync(path.join(hier, '../game/vliegplekken.json'), 'utf8'));
+const VELDEN = [{ id: 'eelde', naam: 'Eelde', x: plekken.eelde.x, y: plekken.eelde.y, thuis: true }, ...plekken.velden];
+const rit = vluchtTussenVelden(VELDEN, plekken.eelde.x, plekken.eelde.y, { thuis: 'eelde' });
+assert.ok(rit && rit.naar.id !== 'eelde', 'de dienst kiest een tweede veld als bestemming');
+const tweed = maakVluchtdienst(rit);
+assert.strictEqual(tweed.naam, `Eelde – ${rit.naar.naam}`, 'de dienst heet naar de twee velden');
+assert.strictEqual(tweed.vanNaam, 'Eelde');
+assert.strictEqual(tweed.naarNaam, rit.naar.naam, 'de bestemming staat in de dienst');
+assert.strictEqual(tweed.halten.length, 3, 'twee poorten en het tweede veld');
+assert.strictEqual(tweed.halten[2].naam, rit.naar.naam);
+assert.strictEqual(tweed.halten[2].stil, true, 'het tweede veld telt pas als je er staat');
+assert.ok(Math.hypot(tweed.halten[2].x - rit.naar.x, tweed.halten[2].y - rit.naar.y) < 1, 'de landing telt op het tweede veld');
+assert.strictEqual(departure(tweed.vanNaam), departure('Eelde'), 'de vertrekregel hoort bij Eelde');
+assert.strictEqual(approach(tweed.naarNaam), approach(rit.naar.naam), 'de naderingsregel hoort bij de bestemming');
+
+// de hele etappe: langs de lijn, poorten op hoogte en een landing op het tweede veld
+const d2 = margeVoorDienst(maakVluchtdienst(rit), 14);
+const e2 = [];
+const k2 = (x, y, extra = {}) => ({ x, y, z: 120, speed: 45, onGround: false, roll: 0, flaps: 0, gear: true, landing: undefined, crashed: false, ...extra });
+const lengte = Math.hypot(rit.naar.x - rit.van.x, rit.naar.y - rit.van.y);
+const stapT = 20 / 45; // twintig meter per stap, op kruissnelheid
+for (let s = 0; s < lengte; s += 20) {
+  const t = s / lengte;
+  e2.push(...vluchtStap(d2, k2(rit.van.x + (rit.naar.x - rit.van.x) * t, rit.van.y + (rit.naar.y - rit.van.y) * t), { dt: stapT }));
+}
+e2.push(...vluchtStap(d2, k2(rit.naar.x, rit.naar.y, { onGround: true, z: 0, speed: 0, landing: 'zacht' }), { dt: stapT }));
+assert.ok(d2.klaar, 'de etappe is klaar');
+assert.ok(e2.some((e) => e.soort === 'halte' && e.halte.naam === rit.naar.naam), 'de landing op het tweede veld telt als halte');
+const u2 = vluchtUitslag(d2);
+assert.strictEqual(u2.gehaald, 3);
+assert.strictEqual(u2.landing, 'zacht');
+assert.strictEqual(u2.mislukt, null);
+assert.strictEqual(u2.medaille, 3, 'een nette etappe is goud: ' + u2.punten);
+const loon2 = vluchtLoon(u2);
+assert.ok(loon2.geld > 0 && loon2.xp > 0, 'een landing op het tweede veld betaalt: ' + JSON.stringify(loon2));
+
+// overvliegen zonder te landen: de dienst eindigt, maar zonder landing en zonder beloning
+const mis = maakVluchtdienst({ van: { x: 0, y: 0, naam: 'Eelde' }, naar: { x: 2000, y: 0, naam: 'Glimmen' } });
+const mev = [];
+for (let x = 20; x <= 3200; x += 20) mev.push(...vluchtStap(mis, kist(x), { dt }));
+assert.ok(mis.klaar, 'de dienst eindigt bij het voorbijvliegen');
+assert.strictEqual(mis.mislukt, 'gemist', 'geen landing op de bestemming is geen geslaagde vlucht');
+assert.strictEqual(mev.at(-1).soort, 'klaar');
+const um = vluchtUitslag(mis);
+assert.strictEqual(um.landing, null);
+assert.strictEqual(um.medaille, 0, 'zonder landing geen medaille');
+assert.deepStrictEqual(vluchtLoon(um), { geld: 0, xp: 0, n: 0 }, 'zonder landing geen beloning');
+
+// terugvliegen is een nieuwe dienst, en de keuze is nooit het veld waar je al staat
+const terug = vluchtTussenVelden(VELDEN, rit.naar.x, rit.naar.y, { thuis: 'eelde' });
+assert.ok(terug && terug.van.id === rit.naar.id, 'je vertrekt vanaf het tweede veld');
+assert.strictEqual(terug.naar.id, 'eelde', 'terug naar Eelde');
+assert.ok(!vluchtTussenVelden([VELDEN[0]], plekken.eelde.x, plekken.eelde.y, { thuis: 'eelde' }), 'zonder tweede veld geen etappe');
+
+// activities.js en planeflight.js: de dienst kiest de etappe en de wereld kent de banen
+assert.match(dienstBron, /vluchtTussenVelden\(w\.planeVelden \|\| \[\], v\.x, v\.y, \{ thuis: 'eelde' \}\)/, 'de dienst kiest de etappe uit de velden');
+assert.match(dienstBron, /dichtstbijVeld\(w\.planeVelden \|\| \[\], p\.x, p\.y\)/, 'de startplek is het veld waar de Kist staat');
+const vliegBron = readFileSync(path.join(hier, '../game/js/planeflight.js'), 'utf8');
+assert.match(vliegBron, /vliegplekken\.json/, 'planeflight leest de gemeten velden');
+assert.match(vliegBron, /w\.planeVelden = veldenVan\(\)/, 'de velden staan als banen op de wereld');
+assert.match(vliegBron, /function opBaan\(w, x, y\)/, 'de landing telt op elke baan');
 
 console.log('vluchtdienst_test ok');

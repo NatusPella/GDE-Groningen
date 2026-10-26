@@ -3,11 +3,15 @@
 // vastevleugelmodel van arcadeplane.js. De pure kant (toetsen, baan, status) staat
 // in planecontrol.js en heeft tests; dit bestand is de lijm met Vehicle, scene en
 // HUD en is nog niet in beeld bekeken. Meldt zich in main.js als activiteitenkind.
+// Sinds #492 staan ook de gemeten velden uit game/vliegplekken.json in de wereld als
+// echte banen (w.planeVelden): de vluchtdienst vliegt van veld naar veld en een landing
+// op een tweede veld is geen crash.
 
 import { Vehicle } from './vehicle.js';
 import { isInWater } from './util.js';
 import { getVehicleMesh } from './models3d_vehicles.js';
 import { attachPlane, flyPlaneVehicle, idlePlane, makeStrip, planeStatus } from './planecontrol.js';
+import { veldBaan } from './arcadeplane.js';
 import { instrumentData, maakPaneel, zomerWind, UITLEG_INSTAPPEN } from './instrumenten.js';
 
 export const PLANE_MODEL = { name: 'plane', len: 8, wid: 10.6, maxSpeed: 70, accel: 14, brake: 10, turnRate: 1, color: '#e9e4d3' };
@@ -16,6 +20,7 @@ const DEALER = { x: 1764.51, y: 9959.94 };   // Rotor Roelf op Eelde, zie shops.
 let strip = null;
 let plane = null;
 let hud = null;
+let plekken = null;   // de gemeten velden (game/vliegplekken.json), voor de vluchtdienst (#492)
 let msgAt = -Infinity;
 let uitgelegd = null;
 
@@ -46,6 +51,36 @@ function findStrip(map, from = DEALER, length = 520) {
   return best && best.bad === 0 ? best.strip : null;
 }
 
+// De velden voor de dienst (#492): Eelde als thuisveld en de gemeten velden uit
+// game/vliegplekken.json, elk met een echte baan. De eigen strip komt uit findStrip; de velden
+// uit het bestand zijn het midden van hun baan (zo meet scripts/world/vliegplekken.mjs ze).
+function veldenVan() {
+  const uit = [];
+  if (strip) {
+    const m = strip.point(strip.length / 2);
+    uit.push({ id: 'eelde', naam: 'Eelde', x: m.x, y: m.y, heading: strip.heading, lengte: strip.length, breedte: strip.width, strip, thuis: true });
+  }
+  for (const v of plekken || []) {
+    const baan = veldBaan(v);
+    if (!baan) continue;
+    uit.push({ id: v.id || `veld-${uit.length + 1}`, naam: v.naam || 'Veld', x: v.x, y: v.y, heading: baan.heading, lengte: baan.length, breedte: baan.width, strip: baan });
+  }
+  return uit;
+}
+
+function laadPlekken(w) {
+  if (plekken) { w.planeVelden = veldenVan(); return; }
+  if (typeof fetch === 'undefined' || typeof location === 'undefined') return;
+  fetch(new URL('vliegplekken.json', location.href).href)
+    .then((r) => (r.ok ? r.json() : null))
+    .then((j) => {
+      if (!j || j.v !== 1 || !Array.isArray(j.velden)) return;
+      plekken = j.velden;
+      w.planeVelden = veldenVan();
+    })
+    .catch(() => {});
+}
+
 function initPlanes(w) {
   strip = findStrip(w.map);
   if (!strip) return;
@@ -59,6 +94,18 @@ function initPlanes(w) {
   w.vehicles.push(v);
   plane = v;
   w.planeStrip = strip;
+  w.planeVelden = veldenVan();
+  laadPlekken(w);
+}
+
+// De baan onder dit punt: de strip van de eigen Kist (of van een vliegschoolles, die zet
+// w.planeStrip tijdelijk) en de banen van de gemeten velden (#492). Buiten die banen is de
+// grond geen landingsbaan.
+function opBaan(w, x, y) {
+  if (w.planeStrip === null) return false; // een les zonder baan (ringen, slalom): de grond is geen landing
+  if (w.planeStrip && w.planeStrip.contains(x, y)) return true;
+  for (const f of w.planeVelden || []) if (f.strip && f.strip.contains(x, y)) return true;
+  return false;
 }
 
 // De wind van dit moment (zomerbries). In de lessen van de vliegschool staat hij zachter, zodat smalle openingen te halen blijven.
@@ -97,8 +144,7 @@ function updatePlanes(dt, w) {
 }
 
 export function flyPlane(v, dt, w) {
-  const s = w.planeStrip;
-  flyPlaneVehicle(v, dt, (k) => w.input.isDown(k), groundOf(w.map), s ? (x, y) => s.contains(x, y) : () => false, windNu(w, v));
+  flyPlaneVehicle(v, dt, (k) => w.input.isDown(k), groundOf(w.map), (x, y) => opBaan(w, x, y), windNu(w, v));
 }
 
 export const planeKind = { id: 'planes', initPhase: 'late', init: initPlanes, tickPhase: 'world', tick: updatePlanes };
