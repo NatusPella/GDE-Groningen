@@ -156,6 +156,27 @@ ok(/Math\.hypot\(h\.x - v\.x, h\.y - v\.y\) > HULP_R/.test(src), 'helpen kan all
 const hulp = (src.match(/helperActie\(c, h\) \{([\s\S]*?)\n {2}\},/) || [])[1] || '';
 ok(!!hulp && !/cargo|timeLeft|complete/.test(hulp), 'de hulpstap raakt de lading, de tijd en het loon niet aan');
 
+// --- eigen truck of leen-truck (#492) ----------------------------------------
+// De baan leent de eigen vrachtwagen van de speler (ownedvehicles.js) via de haak in
+// vrachtkosten.js; zonder eigen truck staat de leen-truck klaar. De oplegger en het
+// koppelen blijven hetzelfde, en de eigen truck wordt na de dienst niet opgeruimd.
+const ov = readFileSync(new URL('../game/js/ownedvehicles.js', import.meta.url), 'utf8');
+const sj = readFileSync(new URL('../game/js/sidejobs.js', import.meta.url), 'utf8');
+const start = src.slice(src.indexOf('  start(c) {'), src.indexOf('  needsVehicle'));
+ok(!!start, 'de start van de baan is te vinden');
+ok(/eigenTruckHook\.haal\(c\.world, qx, qy, at\.angle\)/.test(start), 'de baan vraagt om de eigen truck bij het startpunt');
+ok(start.indexOf('eigenTruckHook.haal') < start.indexOf('spawnJobVehicle'), 'eerst de eigen truck, dan pas de leen-truck');
+ok(/const v = eigen \|\| spawnJobVehicle\(c\.world/.test(start), 'de leen-truck is de terugval als er geen eigen truck is');
+ok(/c\.ownVehicle = !!eigen/.test(start), 'de baan onthoudt welke truck er rijdt');
+ok(/c\.vehicleWord = 'je eigen truck'/.test(start), 'de meldingen noemen de eigen truck');
+ok(!/missionCar/.test(start), 'de eigen truck wordt geen opdrachtauto (een gast bestuurt hem niet)');
+ok(/eigenTruckHook\.haal = \(world, x, y, angle\) => eigenVrachtTruckBij/.test(ov), 'de garage vult de haak');
+ok(/isVrachtTruck\(o\.spec\.model\)/.test(ov), 'alleen een echte truck is geschikt');
+ok(/spawnOwnedEntry\(world, e\.entry/.test(ov), 'een truck uit de garage komt op het startpunt');
+ok(/parkAt\(world, e\.v, \{ x, y, angle \}\)/.test(ov), 'een truck die al in de wereld staat schuift naar het startpunt');
+ok(/if \(!c\.ownVehicle\) \{ releaseVehicle\(world, c\.vehicle\); leftover = c\.vehicle; \}/.test(sj), 'de eigen truck blijft na de dienst van de speler');
+ok(/newTrailer\(contract\.trailer/.test(src), 'de eigen truck krijgt dezelfde oplegger als de leen-truck');
+
 console.log(`vrachtmarkt_test: band level 1 is ${min}-${max} euro`);
 console.log(fails ? `${fails} of ${n} failed` : `vrachtmarkt_test: ${n} checks ok`);
 process.exit(fails ? 1 : 0);

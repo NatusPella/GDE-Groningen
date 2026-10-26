@@ -440,8 +440,9 @@ function cleanup(c) {
     removeVehicle(world, v);
   }
   if (c.vehicle) {
-    releaseVehicle(world, c.vehicle);
-    leftover = c.vehicle;
+    // Een eigen truck van de speler (#492, sidejob_vracht.js) gaat niet weg: hij
+    // blijft van hem, ook na de dienst. Alleen de leen-truck van de baan ruim je op.
+    if (!c.ownVehicle) { releaseVehicle(world, c.vehicle); leftover = c.vehicle; }
     c.vehicle = null;
   }
 }
