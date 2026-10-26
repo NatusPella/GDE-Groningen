@@ -118,6 +118,21 @@ t('twee groepen tegelijk: de host in een missie en een gast die hengelt', () => 
   assert.ok(hw.coopGroepen.groepen['3|Het Loket'] && hw.coopGroepen.groepen['bezig|1|hengelen'], 'beide groepen blijven bestaan');
 });
 
+t('twee gasten, twee eigen activiteiten: twee groepen naast elkaar', () => {
+  const { hw, voegToe, step } = host();
+  voegToe(); voegToe(); step(2);
+  assert.equal(N.handleEvent(hw, { k: 'bezig', a: 'hengelen' }, 1), true);
+  assert.equal(N.handleEvent(hw, { k: 'bezig', a: 'pannenkoek' }, 2), true);
+  step(1);
+  const a = hw.coopGroepen.groepen['bezig|1|hengelen'], b = hw.coopGroepen.groepen['bezig|2|pannenkoek'];
+  assert.ok(a && b, 'twee activiteitengroepen naast elkaar');
+  assert.equal(a.leider, 1); assert.equal(b.leider, 2);
+  assert.equal(a.activiteit, 'hengelen'); assert.equal(b.activiteit, 'pannenkoek');
+  assert.deepEqual(a.deelnemers, [1]); assert.deepEqual(b.deelnemers, [2]);
+  step(2);
+  assert.ok(hw.coopGroepen.groepen['bezig|1|hengelen'] && hw.coopGroepen.groepen['bezig|2|pannenkoek'], 'beide groepen blijven bestaan');
+});
+
 t('een late gast krijgt de uitnodiging "Meedoen met X?" en weet wat er speelt', () => {
   const { hw, voegToe, step } = host();
   const g1 = voegToe(); step(2);
