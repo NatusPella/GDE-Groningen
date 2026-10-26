@@ -20,6 +20,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Dagprijzen op de boerderij.** Elk gewas heeft per speldag een eigen prijs, hooguit twintig procent boven of onder de basis; je verkoopt tegen de prijs van de dag dat je aflevert.
 
 ### Opgelost
+- **Onder het perron van Groningen Noord kun je weer doorlopen en doorrijden.** De rand van een perron op het viaduct stond op straatniveau in de weg: voetgangers en auto's liepen tegen een onzichtbare muur en op de Kastanjelaan botsten auto's ermee; een perronrand telt nu alleen tot de grond waar het perron zelf op staat. Een auto rijdt ook niet meer een doodlopend straatje in om er te keren (Bekemaheerd).
 - **Vee en wandelaars blijven van de rijbaan.** Een koe of schaap graast niet meer de weg op waar zijn perceel tot de rand van de strook loopt, ook niet als een auto het dier opjaagt; en op een provinciale weg zonder trottoir staan geen wandelaars meer midden in de rijstrook (bij een kruising lag de berm van de zijweg op de rijbaan van de hoofdweg).
 - **Tekst op borden is van beide kanten leesbaar.** Een bord dat aan twee kanten tekst had, liet de achterkant in spiegelbeeld zien; dat geldt nu voor het doek boven de kartbaan, het SKATEPARK-bord, de borden bij discgolf, het podium en de badeendjes.
 - **De kartstart begint met een rustig beeld.** De camera zweeft niet meer door het starthek (dwarsbalk en paal midden in beeld) maar komt van hoog achter het startveld naar je kart; de prestatiekaart die je onderweg verdient zakt tijdens een minigame naar de onderkant in plaats van over de toetshulp te vallen.
