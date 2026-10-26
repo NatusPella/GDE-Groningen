@@ -6,7 +6,10 @@
 // Getest in scripts/cooppvp_test.mjs.
 import { PVP_TEKST, pvpMag, pvpSchade, geefBescherming, beschermd, isPassief, arenaToegestaan, pogingMelden, leesPvpSchade, leesPvpDood, pvpDoodEvent } from './cooppvp.js';
 import { maakArena, arenaMeld, arenaStart, arenaVerlaat, arenaStop, arenaTik, arenaTreffer, arenaNeer, arenaStand, arenaUitslag, arenaBeloning, arenaBeloningPerTeam, arenaSpawnVoor, arenaRegelVan, arenaRegel, arenaMelding, ARENA, ARENA_TEAMS, ARENA_ZONE_NAAM, ARENA_TEKST } from './pvparena.js'; // de PvP-minigame (#454)
-import { gastLichamen, lichaamVan } from './coopbestuur.js';
+import { gastLichamen, lichaamVan, invoerVan } from './coopbestuur.js';
+import { blokActief, blokkeer, nieuweBlok, schadeNaBlok } from './blockregels.js'; // blokkeren (#492)
+import { KNOP_ZICHT } from './coopspeler.js';
+import { WEAPONS } from './weapons.js';
 import { charInfo } from './coopplayers.js';
 import { geo, createBoard } from './minigamekit.js';
 import { registerMusicProbe } from './scenariomusic.js';
@@ -53,13 +56,77 @@ function poging(world, dader, doel) {
   else if (world.coopMeld) world.coopMeld(doel, tekst);
 }
 
-// Een slag: alle andere spelers binnen bereik (inReach is die van combat.js meleeHit). Geeft true als er iemand geraakt is.
-export function pvpSlag(world, dader, inReach, bedrag) {
+// ---------------------------------------------------------------- blokkeren (#492)
+// Dezelfde regel voor iedereen: de host blokkeert uit zijn eigen blokstand (combat.js updateCombat), een gast uit de
+// zichtknop in zijn invoer terwijl hij een slagwapen vasthoudt. Dat is dezelfde knop als de kijker: de rechtermuisknop.
+// De host werkt de blokstand van elke gast elk beeld bij (blokGastenTick, vanuit de tick hieronder); valt er een treffer
+// voordat die tick liep, dan werkt blokkeert de stand zelf bij. Zo gelden voor een gast dezelfde twee tellen: 2 s volhouden,
+// 0,35 s herstel.
+function blokVanGast(world, slot, nu) {
+  const lijst = world.coopBlok || (world.coopBlok = {});
+  const st = lijst[slot] || (lijst[slot] = nieuweBlok());
+  const inv = invoerVan(world, slot);
+  const w = ((world.coopWapens || {})[slot] || {}).w;
+  const ingedrukt = !!(inv && ((inv.buttons | 0) & KNOP_ZICHT)) && !!WEAPONS[w] && WEAPONS[w].kind === 'melee';
+  return blokkeer(st, nu, ingedrukt);
+}
+
+// Elke frame bij de host: de blokstand van elke gast met een wapen. Geeft het aantal gasten dat nu blokkeert.
+export function blokGastenTick(world) {
+  if (!world || !world.coopWapens) return 0;
+  const nu = nuVan(world);
+  let aan = 0;
+  for (const s of Object.keys(world.coopWapens)) if (+s > 0 && blokVanGast(world, +s, nu)) aan++;
+  return aan;
+}
+
+// Blokkeert deze plek nu? Plek 0 is de speler van dit scherm, de rest een gast.
+export function blokkeert(world, slot, nu) {
+  if (!world) return false;
+  if (slot === 0) return blokActief(world.blok, nu);
+  return slot > 0 ? blokVanGast(world, slot, nu) : false;
+}
+
+// Blokkeert de gast op dit scherm zelf? Zijn eigen rechtermuisknop met een slagwapen in de hand (combat.js draait daar niet).
+export function blokkeertLokaal(world) {
+  const m = world && world.input && world.input.mouse, w = world && WEAPONS[world.weapon];
+  const ingedrukt = !!m && !!m.rightDown && !world.paused && !!w && w.kind === 'melee';
+  // De gast houdt dezelfde stand bij als de host: 2 s vasthouden, daarna 0,35 s herstel. Alleen de terugkoppeling
+  // gebruikt dit; de schade rekent de host uit (#492).
+  const st = world.blok || (world.blok = nieuweBlok());
+  const nu = nuVan(world);
+  blokkeer(st, nu, ingedrukt);
+  return blokActief(st, nu);
+}
+
+// Een korte stoot bij een opgevangen slag (#492); geen bloed en geen timescale-dip.
+function blokStoot(world) {
+  const kick = world.camKick || (world.camKick = { pitch: 0, yaw: 0, fov: 0 });
+  kick.pitch = Math.max(-0.08, kick.pitch - 0.02);
+  kick.yaw += 0.01;
+  kick.fov = Math.min(3, kick.fov + 0.8);
+}
+
+// De eigen klank van een opgevangen slag op het scherm van de verdediger (de host hoort hem bij een gast via combat.js).
+function blokKlank(world, x, y) {
+  const q = world.audioEvents || (world.audioEvents = []);
+  if (q.length < 64) q.push({ kind: 'weapon', sub: 'hit', weapon: '', material: 'metal', on: 'blok', x, y });
+}
+
+// Een slag: alle andere spelers binnen bereik (inReach is die van combat.js meleeHit). Blokkert het doel, dan komt er
+// een vijfde van de schade door en telt het als een opgevangen slag. Geeft true als er iemand geraakt is.
+export function pvpSlag(world, dader, inReach, bedrag, key = '') {
   if (!isHost(world)) return false;
+  const nu = nuVan(world);
   let geraakt = false;
   for (const [slot, l] of pvpLichamen(world)) {
     if (slot === dader || !levend(world, slot, l) || !inReach(l.x, l.y, 0)) continue;
-    if (pvpTreffer(world, dader, slot, bedrag)) geraakt = true;
+    const blok = blokkeert(world, slot, nu);
+    if (!pvpTreffer(world, dader, slot, blok ? schadeNaBlok(bedrag, 'melee') : bedrag)) continue;
+    geraakt = true;
+    if (!blok) continue;
+    world.blokTreffer = { slot, at: nu, key }; // combat.js speelt de eigen klank en laat de dip achterwege
+    if (slot === 0) blokStoot(world);           // de host vangt de slag zelf op; een gast krijgt de stoot op zijn eigen scherm
   }
   return geraakt;
 }
@@ -100,6 +167,10 @@ export function pvpGastRaak(world, body, ik) {
   const pv = leesPvpSchade(body); if (!pv) return false;
   const st = world.coopPvp, nu = nuVan(world);
   if (!st || world.coopRole !== 'client' || isPassief(st, ik) || beschermd(st, ik, nu)) return true;
+  // de gast ziet zijn eigen blokstand werken (#492): dezelfde korte stoot en klank als bij de host, geen bloed. De host
+  // rekent de schade uit; een kogel gaat door de blokstand heen maar stoot hem net zo goed.
+  const blok = blokkeertLokaal(world);
+  if (blok) { const p = hoofdspeler(world); blokStoot(world); if (p) blokKlank(world, p.x, p.y); }
   let d = pv.n;
   if ((world.armor || 0) > 0) { const a = Math.min(world.armor, d); world.armor -= a; d -= a; }
   world.health = (world.health === undefined ? 100 : world.health) - d;
@@ -334,6 +405,7 @@ function arenaBeloon(world, ar, bel = arenaBeloningPerTeam(ar)) {
 export function pvpArenaTik(world, dt) {
   if (!world) return;
   if (world.coopRole === 'client') return pvpArenaGastTik(world, dt);
+  blokGastenTick(world); // de blokstand van elke gast met een wapen loopt hier mee (#492)
   const u = world.pvpArenaUitn;
   if (u) {
     for (const s of Object.keys(u.keuze)) if (+s > 0 && u.keuze[s] === 'wacht' && !verbondenGasten(world).some((g) => g.slot === +s)) u.keuze[s] = 'nee'; // weggevallen

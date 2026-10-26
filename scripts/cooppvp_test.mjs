@@ -7,8 +7,9 @@ import * as PW from '../game/js/cooppvpwereld.js';
 import * as AR from '../game/js/pvparena.js';
 import * as N from '../game/js/coopnet.js';
 import { spelersRijen, rijTekst } from '../game/js/coopspelers.js';
+import { KNOP_ZICHT } from '../game/js/coopspeler.js';
 import { WEAPONS } from '../game/js/weapons.js';
-const { gastAanvalUitvoeren, updateBullets } = await import('../game/js/combat.js');
+const { gastAanvalUitvoeren, updateBullets, damagePlayer, updateCombat } = await import('../game/js/combat.js');
 const { CODEC_VERSION } = await import('../game/js/net/codec.js');
 const { PROTO } = await import('../game/js/net/protocol.js');
 
@@ -155,6 +156,153 @@ t('een slag raakt een medespeler alleen als beiden actief zijn', () => {
   gastAanvalUitvoeren(w, 2, l, 'fists', 0); assert.equal(w.health, 100 - WEAPONS.fists.damage);
   gastAanvalUitvoeren(w, 2, l, 'fists', Math.PI); assert.equal(w.health, 100 - WEAPONS.fists.damage, 'een klap de andere kant op mist');
   assert.equal(PW.pvpSlag(w, 0, () => false, 10), false, 'buiten bereik'); assert.equal(PW.pvpSlag(w, 0, () => true, 10), true, 'de host slaat de actieve gast'); assert.deepEqual(w.gast, [[2, 10, 0]], 'en nooit zichzelf');
+});
+
+// (#492) blokkeren: de host en de gast vangen een slag op met dezelfde weg (meleeHit -> pvpSlag). Een kogel gaat erdoorheen.
+t('een geblokkeerde PvP-slag geeft een vijfde van de wapenschade, met een eigen klank en zonder dip', () => {
+  const w = hostWereld();
+  const l = w.coopFigures[2];
+  P.zetPassiefStand(w.coopPvp, 0, false); P.zetPassiefStand(w.coopPvp, 2, false);
+  w.player.x = 10.8;
+  // zonder blokstand: de volle slag van de gast
+  gastAanvalUitvoeren(w, 2, l, 'fists', 0);
+  assert.equal(w.health, 100 - WEAPONS.fists.damage);
+  // de host houdt zijn wacht vast (combat.js updateCombat zet world.blok)
+  w.health = 100; w.time += 1;
+  w.blok = { aan: true, sinds: w.time, herstelTot: 0, ingedrukt: true };
+  gastAanvalUitvoeren(w, 2, l, 'fists', 0);
+  assert.ok(Math.abs(w.health - (100 - WEAPONS.fists.damage * 0.2)) < 1e-9, `een vijfde van de schade (${w.health})`);
+  assert.equal(w.lastMeleeHit, undefined, 'een opgevangen slag geeft geen timescale-dip');
+  assert.ok(w.camKick && w.camKick.pitch < 0, 'een korte terugslag');
+  const klank = w.audioEvents.find((e) => e.on === 'blok');
+  assert.ok(klank && klank.material === 'metal', 'een eigen klank bij de opgevangen slag');
+  assert.deepEqual([w.blokTreffer.slot, w.blokTreffer.key], [0, 'fists'], 'de host vangt de slag van de gast op');
+  assert.equal(w.gast.length, 0, 'geen bloed of schadebericht: de host rekent het zelf uit');
+  // ook door de wacht heen geldt de cap van 60 van een PvP-treffer
+  w.health = 100; w.time += 1;
+  assert.equal(PW.pvpSlag(w, 2, () => true, 500, 'knuppel'), true);
+  assert.equal(w.health, 40, '20% van een te zware slag blijft onder de cap van 60');
+});
+
+t('een gast die blokkeert vangt de slag van de host op; met een vuurwapen blijft rechts richten', () => {
+  const w = hostWereld();
+  P.zetPassiefStand(w.coopPvp, 0, false); P.zetPassiefStand(w.coopPvp, 2, false);
+  const f = w.coopFigures[2];
+  w.coopWapens = { 2: { w: 'knuppel', n: Infinity } };
+  assert.equal(PW.pvpSlag(w, 0, () => true, 20), true);
+  assert.deepEqual(w.gast, [[2, 20, 0]], 'zonder wacht de volle slag');
+  f.input = { buttons: KNOP_ZICHT, yaw: 0 }; // de rechtermuisknop vast met zijn knuppel
+  assert.equal(PW.blokkeert(w, 2, w.time), true);
+  w.gast.length = 0;
+  assert.equal(PW.pvpSlag(w, 0, () => true, 20, 'knuppel'), true);
+  assert.deepEqual(w.gast, [[2, 4, 0]], 'de wacht vangt vier vijfde op');
+  assert.deepEqual([w.blokTreffer.slot, w.blokTreffer.key], [2, 'knuppel']);
+  // een vuurwapen blokkeert niet: dezelfde knop is daar de kijker (coopwapen.js)
+  w.coopWapens[2].w = 'pistol'; w.gast.length = 0;
+  assert.equal(PW.blokkeert(w, 2, w.time + 0.1), false);
+  PW.pvpSlag(w, 0, () => true, 20, 'pistol');
+  assert.deepEqual(w.gast, [[2, 20, 0]]);
+  // en na het loslaten is het herstel van de wacht ook bij de gast 0,35 s
+  w.coopWapens[2].w = 'knuppel'; f.input = { buttons: 0 };
+  assert.equal(PW.blokkeert(w, 2, w.time + 0.2), false);
+});
+
+t('blokGastenTick: de blokstand van een gast loopt per beeld mee, met dezelfde 2 s en 0,35 s herstel', () => {
+  const w = hostWereld();
+  w.coopWapens = { 2: { w: 'knuppel', n: Infinity } };
+  const f = w.coopFigures[2];
+  f.input = { buttons: KNOP_ZICHT, yaw: 0 };
+  assert.equal(PW.blokGastenTick(w), 1);
+  w.time = 11.9; assert.equal(PW.blokGastenTick(w), 1, 'na bijna 2 s nog');
+  w.time = 12; assert.equal(PW.blokGastenTick(w), 0, 'na 2 s breekt de blokstand');
+  w.time = 12.2; assert.equal(PW.blokGastenTick(w), 0, 'in het herstel begint er niets');
+  f.input = { buttons: 0, yaw: 0 }; PW.blokGastenTick(w);
+  f.input = { buttons: KNOP_ZICHT, yaw: 0 }; w.time = 12.4;
+  assert.equal(PW.blokGastenTick(w), 1, 'loslaten en opnieuw indrukken: weer een blok');
+  f.input = { buttons: 0, yaw: 0 }; assert.equal(PW.blokGastenTick(w), 0, 'loslaten stopt hem');
+  assert.equal(PW.blokGastenTick({}), 0, 'zonder gasten met een wapen gebeurt er niets');
+});
+
+t('een kogel gaat door een blokstand heen: de schade blijft ongewijzigd', () => {
+  const w = hostWereld();
+  P.zetPassiefStand(w.coopPvp, 0, false); P.zetPassiefStand(w.coopPvp, 2, false);
+  w.blok = { aan: true, sinds: w.time, herstelTot: 0, ingedrukt: true };
+  schiet(w, 2);
+  assert.equal(w.health, 85, 'de kogel van de gast telt vol');
+  // de gast blokkeert en krijgt de kogel van de host ook vol
+  w.coopWapens = { 2: { w: 'knuppel', n: Infinity } };
+  w.coopFigures[2].input = { buttons: KNOP_ZICHT };
+  w.gast.length = 0; w.player.x = 8;
+  schiet(w, 0, 8.4);
+  assert.deepEqual(w.gast, [[2, 15, 0]], 'kogels negeren de blokstand');
+});
+
+// (#492) de host zelf: de rechtermuisknop is de blokstand met een slagwapen, met een vuurwapen blijft rechts richten
+t('de host: de rechtermuisknop zet de blokstand met een slagwapen, niet met een pistool, en na 2 s breekt hij', () => {
+  const mk = (weapon) => ({
+    time: 10, weapon, ammo: { knuppel: 1, pistol: 3 }, player: { x: 0, y: 0, angle: 0, inVehicle: null, swimming: false },
+    input: { mouse: { down: false, rightDown: true, dx: 0, dy: 0, wheel: 0 }, wasPressed: () => false, isDown: () => false },
+    camYaw: 0, bullets: [], pedestrians: [], vehicles: [], particles: [], map: {},
+  });
+  const w = mk('knuppel');
+  updateCombat(0.016, w);
+  assert.equal(w.blok.aan, true, 'met een slagwapen blokkeert rechts');
+  w.time = 11.9; updateCombat(0.016, w);
+  assert.equal(w.blok.aan, true, 'na bijna 2 s nog');
+  w.time = 12; updateCombat(0.016, w);
+  assert.equal(w.blok.aan, false, 'na 2 s breekt de blokstand');
+  assert.ok(Math.abs(w.blok.herstelTot - 12.35) < 1e-9, '0,35 s herstel');
+  w.time = 13; updateCombat(0.016, w);
+  assert.equal(PW.blokkeert(w, 0, 13), false, 'blijven vasthouden begint geen nieuwe blokstand');
+  w.input.mouse.rightDown = false; updateCombat(0.016, w);
+  w.input.mouse.rightDown = true; w.time = 13.1; updateCombat(0.016, w);
+  assert.equal(w.blok.aan, true, 'loslaten en opnieuw indrukken wel');
+  // een pistool: rechts is richten, geen blok; het jachtgeweer zet de kijker
+  const g = mk('pistol'); updateCombat(0.016, g);
+  assert.equal(g.blok.aan, false); assert.equal(g.scoped, false);
+  const s = mk('jachtgeweer'); s.ammo.jachtgeweer = 5; updateCombat(0.016, s);
+  assert.equal(s.blok.aan, false); assert.equal(s.scoped, true);
+  // in een voertuig of in een menu staat de blokstand stil
+  w.time = 14; updateCombat(0.016, w); assert.equal(w.blok.aan, true);
+  w.player.inVehicle = {}; updateCombat(0.016, w); assert.equal(w.blok.aan, false, 'in een voertuig geen blok');
+  w.player.inVehicle = null; w.time = 15; updateCombat(0.016, w); assert.equal(w.blok.aan, true);
+  w.paused = true; updateCombat(0.016, w); assert.equal(w.blok.aan, false, 'in een menu geen blok');
+});
+
+t('damagePlayer gebruikt dezelfde factor: een melee-slag van de wereld komt maar voor een vijfde door de wacht', () => {
+  const vol = hostWereld();
+  damagePlayer(vol, 30);
+  const schade = 100 - vol.health;
+  assert.ok(schade > 0);
+  const w = hostWereld({ audioEvents: [] });
+  w.blok = { aan: true, sinds: w.time, herstelTot: 0, ingedrukt: true };
+  damagePlayer(w, 30);
+  assert.ok(Math.abs((100 - w.health) - schade * 0.2) < 1e-9, `een vijfde van ${schade} (${100 - w.health})`);
+  assert.ok(w.camKick && w.camKick.pitch < 0, 'een korte terugslag');
+  assert.ok(w.audioEvents.some((e) => e.on === 'blok'), 'met een eigen klank');
+  w.health = 100; w.camKick = null;
+  damagePlayer(w, 20, 'kogel');
+  assert.equal(w.health, 100 - 20, 'een kogel telt vol, ook door de wacht heen');
+  w.health = 100; w.blok = null;
+  damagePlayer(w, 30);
+  assert.ok(Math.abs(100 - w.health - schade) < 1e-9, 'zonder wacht de volle slag');
+});
+
+t('de gast ziet zijn eigen blokstand op zijn scherm: dezelfde stoot en klank', () => {
+  const g = {
+    time: 5, coopRole: 'client', coopPvp: P.maakPvp(), coopRoster: roster, health: 100, armor: 0, money: 90,
+    weapon: 'knuppel', player: { x: 5, y: 5 }, input: { mouse: { rightDown: true } }, messages: [], addMessage(m) { this.messages.push(m); },
+  };
+  P.zetPassiefStand(g.coopPvp, 2, false);
+  assert.equal(PW.blokkeertLokaal(g), true);
+  assert.equal(PW.pvpGastRaak(g, P.pvpSchadeEvent(4, 0), 2), true); // de host stuurde al de opgevangen schade
+  assert.equal(g.health, 96);
+  assert.ok(g.camKick && g.camKick.pitch < 0, 'de gast voelt de stoot');
+  assert.ok(g.audioEvents.some((e) => e.on === 'blok'), 'en hoort de eigen klank');
+  g.input.mouse.rightDown = false;
+  assert.equal(PW.blokkeertLokaal(g), false, 'loslaten: de wacht staat niet meer');
+  g.weapon = 'pistol';
+  assert.equal(PW.blokkeertLokaal(g), false, 'een vuurwapen blokkeert niet');
 });
 
 t('de host gaat neer door een medespeler: zonder kosten weer op, even beschermd, geen respawn-reis', () => {
