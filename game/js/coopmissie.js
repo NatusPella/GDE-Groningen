@@ -32,13 +32,14 @@ export function opdrachtId(m) {
 }
 
 // Een groep begint (of wordt hervat: dezelfde id houdt zijn deelnemers en antwoorden). Geeft het record of null bij een ongeldige id.
-export function begin(st, { id, label = '', index = 0, stap = '', doelen: dl = [], deelnemers = [], lateInstap = true } = {}, nu = 0) {
+export function begin(st, { id, label = '', index = 0, stap = '', doelen: dl = [], deelnemers = [], lateInstap = true, leider = null } = {}, nu = 0) {
   const gid = tekst(id, ID_MAX);
   if (!st || !gid) return null;
   let g = st.groepen[gid];
+  const lei = Number.isInteger(leider) && leider >= 0 ? leider : (slots(deelnemers)[0] ?? 0);
   if (!g) {
     if (st.volgorde.length >= MAX_GROEPEN) return null;
-    g = st.groepen[gid] = { id: gid, label: '', index: 0, stap: '', doelen: [], deelnemers: [], lateInstap: true, sinds: nu };
+    g = st.groepen[gid] = { id: gid, label: '', index: 0, stap: '', doelen: [], deelnemers: [], lateInstap: true, leider: lei, sinds: nu };
     st.volgorde.push(gid);
   }
   g.label = tekst(label, LABEL_MAX);
@@ -47,6 +48,7 @@ export function begin(st, { id, label = '', index = 0, stap = '', doelen: dl = [
   g.doelen = doelen(dl);
   g.lateInstap = lateInstap !== false;
   g.deelnemers = slots(deelnemers);
+  g.leider = lei;
   return g;
 }
 
@@ -82,6 +84,8 @@ export function groep(st, id) { return st && typeof id === 'string' && st.groepe
 export function groepen(st) { return st && st.volgorde ? st.volgorde.map((id) => st.groepen[id]).filter(Boolean) : []; }
 export const deelnemers = (st, id) => (groep(st, id) || { deelnemers: [] }).deelnemers;
 export const deelnemer = (st, id, slot) => deelnemers(st, id).includes(slot);
+export const leiderVan = (st, id) => { const g = groep(st, id); return g ? g.leider : null; };
+export const isLeider = (st, id, slot) => leiderVan(st, id) === slot;
 
 // De groep waar deze speler bij hoort. Eén speler zit in deze opzet in hoogstens één groep; wijkt de id af van de lopende
 // opdracht van de wereld, dan is dat een andere groep en blijft de stand van deze speler staan.
@@ -94,11 +98,11 @@ export function groepVan(st, slot) {
 // lopende opdracht; zijn er meer, dan ziet hij niets (hij kijkt niet mee met een willekeurige groep).
 export function zichtbaar(st, slot) {
   const g = groepVan(st, slot);
-  if (g) return { id: g.id, label: g.label, index: g.index, stap: g.stap, lateInstap: g.lateInstap, deelnemer: true };
+  if (g) return { id: g.id, label: g.label, index: g.index, stap: g.stap, lateInstap: g.lateInstap, deelnemer: true, leider: g.leider };
   const alle = groepen(st);
   if (alle.length !== 1) return null;
   const e = alle[0];
-  return { id: e.id, label: e.label, index: e.index, stap: e.stap, lateInstap: e.lateInstap, deelnemer: false };
+  return { id: e.id, label: e.label, index: e.index, stap: e.stap, lateInstap: e.lateInstap, deelnemer: false, leider: e.leider };
 }
 
 // De doelen van de opdracht van deze speler; een toeschouwer ziet de doelen van de enige lopende opdracht.
@@ -211,7 +215,7 @@ export function beginVerzoek(st, { index = 0, label = '', stap = '', doelen: dl 
   const id = opdrachtId({ phase: 'active', index, label });
   if (!st || !id) return null;
   if (groep(st, id)) return voegDeelnemer(st, id, starter);
-  return begin(st, { id, label, index, stap, doelen: dl, lateInstap, deelnemers: [starter] }, nu);
+  return begin(st, { id, label, index, stap, doelen: dl, lateInstap, deelnemers: [starter], leider: starter }, nu);
 }
 
 // ---- de gastheer kiest ook mee (#452)
