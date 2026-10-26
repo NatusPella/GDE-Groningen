@@ -5,8 +5,10 @@
 import * as L from './loopbaan.js';
 import { getProfiel } from './loopbaanlive.js';
 import { getBoek } from './visboeklive.js';
+import { getTuig } from './hengeltuiglive.js';
 import { voortgang } from './visboek.js';
 import { WATERTYPEN, SOORTEN, ZELDZAAM, soort, soortenVan, typenVan, watertype } from './visdata.js';
+import { hengelNaam, aasNaam, lijnsterkte } from './hengeltuig.js';
 import { fillBars } from './motion.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -77,9 +79,11 @@ function detailHtml(boek, id) {
     `${niv.volgend ? `Nog ${nl(niv.nodig)} punten tot ${esc(niv.volgend)}.` : 'Hoogste niveau bereikt.'}</p>`;
   if (id === 'alles') {
     const lijst = SOORTEN.map((s) => soortRij(boek, s)).join('');
+    const t = getTuig();
+    const tuigRegel = `<p class="mut">Je tuig: <b>${esc(hengelNaam(t))}</b>, ${esc(aasNaam(t))}, lijnsterkte ${Math.round(lijnsterkte(t) * 100)}%. Meer hengels, aas en een sterkere lijn bij de Avondwinkel en de botenverhuur aan de steiger.</p>`;
     return `<div class="pm-pane-top"><span class="m-eb">Visboek</span><h2 class="m-h2 td-h2">${icoon('pa-ico big')}Alle vis</h2></div>` +
       `<div class="lb-kop"><p class="lb-titel"><b>${sam.gevangen} van ${sam.totaal}</b> <span class="mut">soorten gevangen</span></p>` +
-      `<p class="mut">${sam.plekken} verschillende wateren · ${nl(boek.totaal.n)} vissen · ${kg(boek.totaal.kg)} in totaal. Hoe meer soorten en wateren, hoe meer elke vis opbrengt.</p>${kopLoopbaan}</div>` +
+      `<p class="mut">${sam.plekken} verschillende wateren · ${nl(boek.totaal.n)} vissen · ${kg(boek.totaal.kg)} in totaal. Hoe meer soorten en wateren, hoe meer elke vis opbrengt.</p>${tuigRegel}${kopLoopbaan}</div>` +
       `<ul class="vb-soorten">${lijst}</ul>`;
   }
   const t = watertype(id);

@@ -80,9 +80,11 @@ groei (max 1,8)` (`:123`), uitbetaald via `loopbaanVerdien` met `deel: false`
 (`game/js/hengelen.js:96`). Opslag `gde-visboek-v1` (`storagekeys.js:79`).
 
 **Bestanden.** `hengelen.js`, `hengelrules.js`, `hengelplek.js`, `visdata.js`, `visboek.js`,
-`visboeklive.js`, `visboekui.js`, `hengelanim.js`.
+`visboeklive.js`, `visboekui.js`, `hengelanim.js`, `hengeltuig.js`, `hengeltuiglive.js`.
 
-**Tests.** `vis_test.mjs`, `minigames3_test.mjs` (de wedstrijd), `coophengelboot_test.mjs`.
+**Tests.** `vis_test.mjs`, `hengeltuig_test.mjs`, `shops_test.mjs`, `minigames3_test.mjs` (de wedstrijd), `coophengelboot_test.mjs`.
+
+Opslag: `gde-visboek-v1` en `gde-hengeltuig-v1` (`storagekeys.js`).
 
 ## Boerderij
 
