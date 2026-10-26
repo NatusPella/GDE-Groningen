@@ -23,7 +23,7 @@ import { gateOn, setGate, hekBericht } from './coopgate.js';
 import { WIEL_TEKST, WIEL_HOST_TEKST, WIEL_VERZOEK_S, kanUitstappen } from './coopgast.js';
 import { nieuwCutVerzamelaar, cutGastSpeel, cutGastStop, leesCutTijd, cutSpoor } from './coopcut.js';
 import { verzamelExtra, codeerExtra, leesExtra, nieuwGeheugen, nieuweStand, pasExtraToe, doelenVan } from './coopextra.js';
-import { maakGroepen, begin as groepBegin, zetStand as groepZet, beeindig as groepBeeindig, ruimOp as groepRuimOp, groepen as groepLijst, doelenVoor as groepDoelenVoor, groep as groepRecord, leiderVan as groepLeider } from './coopmissie.js';
+import { maakGroepen, begin as groepBegin, zetStand as groepZet, beeindig as groepBeeindig, ruimOp as groepRuimOp, groepen as groepLijst, doelenVoor as groepDoelenVoor, groep as groepRecord, leiderVan as groepLeider, groepVan as groepVanSlot } from './coopmissie.js';
 import { wapenCode, aanvalCode, volgendeStoel, stapSprong, BUK_TEMPO } from './coopspeler.js';
 import { getCombatEffect } from './combateffect.js';
 import { wapenVan, wapenVerwerk, wapenWeg, wapenAllesWeg, wapenTick, gastWapenWeg } from './coopwapen.js';
@@ -36,7 +36,7 @@ import { spelersRijen, groepenVoor, wegMelding } from './coopspelers.js';
 import { maakMeedoen, opdrachtSleutel, standVan, begin as meedoenBegin, einde as meedoenEinde, antwoord as meedoenAntwoord, tik as meedoenTik, loopVrij, krijgtDeel, maakUitnodiging, uitnodigingTekst, toeschouwerTekst, LATE_GRENS, laat as meedoenLaat, bevestig as meedoenBevestig, meespelers } from './coopmeedoen.js';
 import { stapVanMissie, geldigeStap, uitslagTekst } from './coopverhaal.js';
 import { gastVerhaalStatus, gastVerhaalSchrijf, gastVerhaalHerlaad, gastBoekIds } from './savehook.js';
-import { zetBezig, bezigVanEvent, leesBezigVan, bezigId } from './coopbezig.js';
+import { zetBezig, bezigVanEvent, leesBezigVan, bezigId, BEZIG_NAAM } from './coopbezig.js';
 import { WEER_EVERY, weerEvent, leesWeerEvent, pasWeerToe } from './coopweer.js';
 import { loopbaanGast } from './loopbaanlive.js';
 import { maakRegister, zetPlek, leegRegister, bouwFoci, losBesluit, FOCI_MAX, MAX_AFSTAND, ONGELADEN_S } from './coopfoci.js';
@@ -820,6 +820,8 @@ function werkGroepenBij(world, n, huidig) {
     // De leider blijft wie hij was: een gast die zijn eigen opdracht startte blijft de leider als de gastheer toekijkt (#492).
     const bestaand = groepRecord(st, id);
     groepBegin(st, { id, label: huidig.label || '', index: huidig.index, stap: huidig.stap || '', lateInstap: huidig.lateInstap !== false, deelnemers, doelen: doelenVan(world.mission), leider: bestaand ? bestaand.leider : null, activiteit: 'missie' }, now(world));
+    // een missiegroep gaat voor: een eigen activiteit van dezelfde plek houdt op een groep te zijn
+    for (const s of deelnemers) for (const g of groepLijst(st)) if (g.id.startsWith(`bezig|${s}|`)) groepBeeindig(st, g.id);
   }
   const open = [0, ...n.hub.roster.spelers.filter((s) => s.verbinding !== 'lost').map((s) => s.slot)];
   groepRuimOp(st, open);
@@ -850,8 +852,23 @@ function nodigLaatUit(world, slot) {
 }
 // Wie hengelt, pannenkoeken bakt of de beiaard speelt: bewaar het per plek en geef het door aan de andere gasten (#429).
 function bezigMelden(world, n, slot, a) {
+  const was = world.coopBezigVan && world.coopBezigVan[slot] ? world.coopBezigVan[slot].a : null;
   if (!zetBezig(world, slot, a)) return false;
-  for (const s of n.hub.roster.spelers) if (s.slot !== 0 && s.slot !== slot && s.verbinding !== 'lost') n.hub.announce(bezigVanEvent(slot, bezigId(a)), s.slot);
+  const nu = bezigId(a);
+  const gid = (x) => `bezig|${slot}|${x}`;
+  // Een eigen activiteit is een groep van één: ze bestaat zolang de gast bezig is en
+  // verdwijnt bij de wisseling of het einde (#492). Een missiegroep gaat voor; dan geen
+  // tweede groep voor dezelfde plek.
+  if (was && was !== nu) { try { if (world.coopGroepEind) world.coopGroepEind(gid(was)); } catch (e) { /* geen groep */ } }
+  if (nu) {
+    const bestaand = world.coopGroepen ? groepVanSlot(world.coopGroepen, slot) : null;
+    if (!bestaand || bestaand.id === gid(nu)) {
+      try {
+        if (world.coopGroepStart) world.coopGroepStart({ id: gid(nu), label: BEZIG_NAAM[nu] || nu, activiteit: nu, deelnemers: [slot], leider: slot, stap: 'Bezig' });
+      } catch (e) { /* geen groep */ }
+    }
+  }
+  for (const s of n.hub.roster.spelers) if (s.slot !== 0 && s.slot !== slot && s.verbinding !== 'lost') n.hub.announce(bezigVanEvent(slot, nu), s.slot);
   return true;
 }
 // Een gast die aansluit hoort wie er al bezig is; een gast die weggaat is niet meer bezig.

@@ -21,6 +21,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Hengels, aas en lijnsterkte.** Vier hengels, zes aassoorten en lijnverbeteringen; een sterke lijn geeft een ruimer beetvenster, aas lokt zijn eigen soorten. Te koop bij de Avondwinkel en de botenverhuur.
 - **Melee-blok.** Met een slagwapen blokkeer je met rechts: maximaal twee seconden, daarna een korte herstelperiode; een opgevangen slag doet een vijfde schade, kogels gaan erdoor.
 - **Samen: leider en groepen zichtbaar.** De spelerslijst toont wie een opdracht leidt, en de kaart/minimap toont de eigen groep vol en andere groepen gedempt.
+- **Samen: een eigen activiteit is een groep.** Een gast die hengelt, pannenkoeken bakt, de beiaard speelt of boert staat als eigen groep van één in de spelerslijst; de groep verdwijnt als hij stopt of aan een missie meedoet.
 - **Lopen en kaartjes controleren in de trein.** De conducteur loopt met T door de wagen, ziet het interieur en de reizigers, en controleert met E kaartjes voor eigen loon en punten.
 - **Eigen truck en ritkosten.** Rijd je vrachtrit met je eigen truck, dan betaal je per rit brandstof, tol en onderhoud; het nettoloon staat in de melding.
 - **Teeltplan per perceel en uien.** Elk perceel houdt zijn eigen volgende gewas; uien komen er als vijfde gewas bij.
