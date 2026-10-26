@@ -32,14 +32,16 @@ export function opdrachtId(m) {
 }
 
 // Een groep begint (of wordt hervat: dezelfde id houdt zijn deelnemers en antwoorden). Geeft het record of null bij een ongeldige id.
-export function begin(st, { id, label = '', index = 0, stap = '', doelen: dl = [], deelnemers = [], lateInstap = true, leider = null } = {}, nu = 0) {
+export function begin(st, { id, label = '', index = 0, stap = '', doelen: dl = [], deelnemers = [], lateInstap = true, leider = null, activiteit = 'missie' } = {}, nu = 0) {
   const gid = tekst(id, ID_MAX);
   if (!st || !gid) return null;
+  const ds = slots(deelnemers);
+  if (!ds.length) return null; // een groep zonder deelnemer bestaat niet (#492)
   let g = st.groepen[gid];
-  const lei = Number.isInteger(leider) && leider >= 0 ? leider : (slots(deelnemers)[0] ?? 0);
+  const lei = Number.isInteger(leider) && leider >= 0 ? leider : (ds[0] ?? 0);
   if (!g) {
     if (st.volgorde.length >= MAX_GROEPEN) return null;
-    g = st.groepen[gid] = { id: gid, label: '', index: 0, stap: '', doelen: [], deelnemers: [], lateInstap: true, leider: lei, sinds: nu };
+    g = st.groepen[gid] = { id: gid, label: '', index: 0, stap: '', doelen: [], deelnemers: [], lateInstap: true, leider: lei, activiteit: 'missie', sinds: nu };
     st.volgorde.push(gid);
   }
   g.label = tekst(label, LABEL_MAX);
@@ -47,8 +49,9 @@ export function begin(st, { id, label = '', index = 0, stap = '', doelen: dl = [
   g.stap = tekst(stap, STAP_MAX);
   g.doelen = doelen(dl);
   g.lateInstap = lateInstap !== false;
-  g.deelnemers = slots(deelnemers);
+  g.deelnemers = ds;
   g.leider = lei;
+  g.activiteit = tekst(activiteit, 32) || 'missie';
   return g;
 }
 
@@ -98,17 +101,35 @@ export function groepVan(st, slot) {
 // lopende opdracht; zijn er meer, dan ziet hij niets (hij kijkt niet mee met een willekeurige groep).
 export function zichtbaar(st, slot) {
   const g = groepVan(st, slot);
-  if (g) return { id: g.id, label: g.label, index: g.index, stap: g.stap, lateInstap: g.lateInstap, deelnemer: true, leider: g.leider };
+  if (g) return { id: g.id, label: g.label, index: g.index, stap: g.stap, lateInstap: g.lateInstap, deelnemer: true, leider: g.leider, activiteit: g.activiteit };
   const alle = groepen(st);
   if (alle.length !== 1) return null;
   const e = alle[0];
-  return { id: e.id, label: e.label, index: e.index, stap: e.stap, lateInstap: e.lateInstap, deelnemer: false, leider: e.leider };
+  return { id: e.id, label: e.label, index: e.index, stap: e.stap, lateInstap: e.lateInstap, deelnemer: false, leider: e.leider, activiteit: e.activiteit };
 }
 
 // De doelen van de opdracht van deze speler; een toeschouwer ziet de doelen van de enige lopende opdracht.
 export function doelenVoor(st, slot) {
   const g = groepVan(st, slot) || (groepen(st).length === 1 ? groepen(st)[0] : null);
   return g ? g.doelen : [];
+}
+
+// De doelen voor de kaart en de minimap (#492): de eigen groep van deze speler eerst (vol), daarna de andere groepen (gedempt,
+// KAART_ANDER_ALPHA). De eigen markering staat daardoor bovenop en wordt nooit door een andere groep overschreven. Dit register is
+// er alleen op de gastheer: een gast krijgt van de host alleen de doelen van zijn eigen groep (coopnet.js hostSim.extra ->
+// coopextra.js gastDoelen).
+export const KAART_ANDER_ALPHA = 0.5;
+export function kaartDoelen(world) {
+  const st = world && world.coopGroepen;
+  if (!st) return [];
+  const eigen = groepVan(st, 0);
+  const uit = [];
+  if (eigen) for (const d of eigen.doelen) uit.push({ id: d.id, soort: d.soort, x: d.x, y: d.y, label: d.label, groep: eigen.label, leider: eigen.leider, eigen: true });
+  for (const g of groepen(st)) {
+    if (eigen && g.id === eigen.id) continue;
+    for (const d of g.doelen) uit.push({ id: d.id, soort: d.soort, x: d.x, y: d.y, label: d.label, groep: g.label, leider: g.leider, eigen: false });
+  }
+  return uit;
 }
 
 // Spelers die weg zijn, houden geen groep open. verbonden = de plekken die nog in de sessie zitten (inclusief de gastheer).

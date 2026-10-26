@@ -20,8 +20,10 @@ function rijHtml(r, acties, rol = null, bevestig = null) {
   const eruit = acties && kanEruitZetten(rol, r) ? `<button type="button" class="cs-eruit" data-eruit="${r.slot}">${eruitKnopTekst(bevestig === r.slot)}</button>` : '';
   const geef = acties && kanOverdragen(rol, r) ? `<button type="button" class="cs-naar" data-geef="${r.slot}">${overdragenKnopTekst}</button>` : '';
   const naar = acties && !r.jij && r.x != null ? `<button type="button" class="cs-naar" data-naar="${r.slot}">Ga erheen</button>` : '';
+  // de groep (#492): "leidt <label>" bij de leider, de groepsnaam bij de andere deelnemers, niets bij wie niet meedoet
+  const groep = r.groep ? ` <small class="cs-groep${r.leidt ? ' cs-leidt' : ''}">${esc(r.groep)}</small>` : '';
   return `<li class="cs-rij" data-slot="${r.slot}"><span class="cs-vorm" style="color:${esc(r.kleur)}" aria-hidden="true">${VORM_TEKEN[r.vorm] || '●'}</span>` +
-    `<span class="cs-naam">${esc(r.naam)}${r.jij ? ' <small>(jij)</small>' : ''}</span><span class="cs-doet">${esc(r.doet)}${r.afstandTekst ? ' · ' + esc(r.afstandTekst) : ''}</span>` +
+    `<span class="cs-naam">${esc(r.naam)}${r.jij ? ' <small>(jij)</small>' : ''}${groep}</span><span class="cs-doet">${esc(r.doet)}${r.afstandTekst ? ' · ' + esc(r.afstandTekst) : ''}</span>` +
     `<span class="cs-net" title="Verbinding"><i style="background:${STIP[r.verbinding] || STIP.ok}" aria-hidden="true"></i>${esc(r.verbindingTekst)}${r.ms != null ? ` <small>${r.ms} ms</small>` : ''}</span>${naar}${geef}${eruit}</li>`;
 }
 // De passieve stand (#447): een knop met uitleg, alleen als de host het kent
@@ -38,6 +40,9 @@ const CSS = `
 .cs-vorm { font-size: 18px; text-align: center; }
 .cs-naam { font-weight: bold; } .cs-naam small, .cs-net small { font-weight: normal; opacity: 0.7; }
 .cs-doet { opacity: 0.85; }
+.cs-groep { display: inline-block; padding: 0 5px; border-radius: 3px; background: rgba(240,237,228,0.14); }
+.cs-naam .cs-groep { opacity: 0.9; }
+.cs-naam .cs-groep.cs-leidt { background: rgba(63,201,122,0.28); opacity: 1; }
 .cs-net { white-space: nowrap; opacity: 0.9; } .cs-net i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; }
 .cs-eruit { grid-column: 2 / -1; justify-self: start; margin: 0 0 4px; padding: 3px 10px; border: 0; border-radius: 4px; background: rgba(255,90,79,0.28); color: inherit; font: inherit; cursor: pointer; } .cs-naar + .cs-eruit { grid-column: auto; }
 .cs-naar { grid-column: 2 / -1; justify-self: start; margin: 0 0 4px; padding: 3px 10px; border: 0; border-radius: 4px; background: rgba(240,237,228,0.14); color: inherit; font: inherit; cursor: pointer; }
@@ -90,7 +95,7 @@ export function updateSpelersOverlay(world) {
     document.body.appendChild(overlay);
   }
   overlay.style.display = '';
-  const key = rijen.map((r) => `${r.slot}|${r.doet}|${r.verbinding}|${r.ms}|${r.afstandTekst}|${r.naam}`).join(';');
+  const key = rijen.map((r) => `${r.slot}|${r.doet}|${r.verbinding}|${r.ms}|${r.afstandTekst}|${r.naam}|${r.groep}|${r.leidt}`).join(';');
   if (key === laatste) return;
   laatste = key;
   overlay.innerHTML = `<h3>Spelers</h3><ul class="cs-lijst">${rijen.map((r) => rijHtml(r, false)).join('')}</ul><div class="cs-voet">${roepHint()}</div>`;
@@ -122,7 +127,7 @@ export function renderSpelersPanel(root, world, sluit = () => {}) {
     const zittend = root.contains(document.activeElement) && document.activeElement.matches('button, input');
     const rol = world.coopNet && world.coopNet.role;
     const prof = getSettings();
-    const key = JSON.stringify([bevestig, kanPassiefKiezen(world), passiefStandVan(world), prof.onlineNaam, prof.onlineKleur, profielFout, ...rijen.map((r) => [r.slot, r.doet, r.verbinding, r.ms, r.afstandTekst, r.passief, r.pvpInSpel])]);
+    const key = JSON.stringify([bevestig, kanPassiefKiezen(world), passiefStandVan(world), prof.onlineNaam, prof.onlineKleur, profielFout, ...rijen.map((r) => [r.slot, r.doet, r.verbinding, r.ms, r.afstandTekst, r.passief, r.pvpInSpel, r.groep, r.leidt])]);
     if (root.dataset.key === key && root.dataset.klaar) return;
     if (zittend && root.dataset.klaar) return; // de focus op een knop of in het naamveld blijft staan
     const naamInvoer = schermNaam && document.activeElement === schermNaam ? schermNaam.value : prof.onlineNaam;

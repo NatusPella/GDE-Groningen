@@ -27,9 +27,10 @@ verhaal en bezit; elke nieuwe functie krijgt een regel over Samen spelen.
   in `coopmissie.js`, zodat groepen elkaar niet overschrijven. De host stuurt de id
   mee in `missie`; een gast kent alleen zijn eigen id en keuze.
 - Een groep heeft een `leider`: de starter, anders de eerste deelnemer. De host kan
-  groepen ook buiten de missie boekhouden (`coopGroepStart`/`coopGroepZet`/`coopGroepEind`);
-  de host simuleert, maar is inhoudelijk niet de leider. De doelen gaan per slot naar de
-  eigen groep.
+  groepen ook buiten de missie boekhouden (`coopGroepStart`/`coopGroepZet`/`coopGroepEind`),
+  maar **een groep ontstaat pas bij de start van een activiteit**: zonder activiteit of
+  zonder deelnemer maakt de host geen groep, en na afloop verdwijnt ze. De host simuleert,
+  maar is inhoudelijk niet de leider. De doelen gaan per slot naar de eigen groep.
 - **Meedoen?**: J of N, 10 s, **geen antwoord is nee** (toeschouwer); verplicht bij
   `presence 'beide'`/`needsTwo`; een spoilerwaarschuwing vraagt een eigen J; geen
   late instap bij race, kluisklus of timer (een J later dan 15 s telt niet).

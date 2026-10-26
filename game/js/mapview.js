@@ -61,6 +61,7 @@ import {
 import { KEYS } from './storagekeys.js';
 import { grijsBijPassief } from './cooppvp.js';
 import { gastDoelen } from './coopextra.js';
+import { kaartDoelen, KAART_ANDER_ALPHA } from './coopmissie.js';
 import { samenWaarschuwing } from './coopstatus.js';
 import { warnsOn, riskWhy } from './muggingrules.js';
 
@@ -1153,6 +1154,16 @@ function drawDynamicMarkers(ctx, world) {
   const gastDoel = gastDoelLijst[0];
   const gastMissie = world.coopMissie || world.coopHostMissie; // de opdracht van deze gast, niet die van een andere groep (#452)
   for (const gd of gastDoelLijst) icon(null, gd.soort === 'controle' ? 'waypoint' : missionMapKind(-1, true), gd.x, gd.y, gd.soort === 'controle' ? 'Controlepunt' : gd.label || (gastMissie && gastMissie.label) || 'Opdracht', {}, 'Missiedoel van ' + (((world.coopRoster || []).find((r) => r.slot === 0) || {}).naam || 'de ander'));
+  // samen spelen (#492): op de gastheer de groepen uit het register. De eigen groep komt vooraan en bovenop (eigen: true); de andere
+  // groepen mogen gedempt mee, maar overschrijven de eigen markering niet. Loopt de eigen opdracht al op de kaart, dan is die marker
+  // genoeg. Een gast kent alleen zijn eigen groep: die staat hierboven al (gastDoelen).
+  for (const gd of kaartDoelen(world)) {
+    if (gd.eigen && showMission) continue;
+    icon(null, gd.soort === 'controle' ? 'waypoint' : missionMapKind(-1, true), gd.x, gd.y,
+      gd.soort === 'controle' ? 'Controlepunt' : gd.label || gd.groep || 'Opdracht',
+      gd.eigen ? {} : { alpha: KAART_ANDER_ALPHA },
+      gd.eigen ? 'Doel van jouw groep' : `Missiedoel van ${gd.groep || 'een andere groep'}`);
+  }
   const gastStart = world.coopRole === 'client' && !showMission && !gastDoel && world.coopHost && world.coopHost.starts && world.coopHost.starts[0]; // (#434)
   if (gastStart) icon(null, missionMapKind(gastStart.index, false), gastStart.x, gastStart.y, 'Opdracht', {}, 'Begint zodra ' + (((world.coopRoster || []).find((r) => r.slot === 0) || {}).naam || 'de ander') + ' bij de marker staat');
   // the story's step stays on the map while a goal of your own waits it out
