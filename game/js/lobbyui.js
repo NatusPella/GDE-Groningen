@@ -30,6 +30,12 @@ const newLijstSignaler = () => new LijstSignaler(CONFIG, { socket: (url) => { co
 const VERBORGEN_SLEUTEL = 'gde-serverlijst-verborgen';
 const leesVerborgen = () => { try { const a = JSON.parse(localStorage.getItem(VERBORGEN_SLEUTEL) || '[]'); return Array.isArray(a) ? a.filter((x) => typeof x === 'string').slice(-50) : []; } catch (e) { return []; } };
 const schrijfVerborgen = (ids) => { try { localStorage.setItem(VERBORGEN_SLEUTEL, JSON.stringify(ids.slice(-50))); } catch (e) { /* geen opslag: dan alleen in dit scherm */ } };
+// Favorieten (#464): lokaal, per speler, alleen de id's van sessies die je zelf een ster gaf. Geen naam, geen IP-adres,
+// hoogstens 100; een id dat niet op een aankondiging lijkt wordt bij het lezen weggegooid. De sleutel staat in storagekeys.js.
+const FAVORIETEN_SLEUTEL = 'gde-serverlijst-favorieten';
+const ID_RE = /^[a-z0-9]{8,16}$/;
+const leesFavorieten = () => { try { const a = JSON.parse(localStorage.getItem(FAVORIETEN_SLEUTEL) || '[]'); return Array.isArray(a) ? a.filter((x) => typeof x === 'string' && ID_RE.test(x)).slice(-100) : []; } catch (e) { return []; } };
+const schrijfFavorieten = (ids) => { try { localStorage.setItem(FAVORIETEN_SLEUTEL, JSON.stringify(ids.filter((x) => typeof x === 'string' && ID_RE.test(x)).slice(-100))); } catch (e) { /* geen opslag: dan alleen in dit scherm */ } };
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -40,7 +46,7 @@ export function mountLobby(root, hooks, opts = {}) {
   const direct = onlineSupported();
   const api = direct ? window.gdeDesktop.coop : null;
   const prof = getSettings(); // online-avatar (#455): per apparaat bewaard
-  let state = createLobby({ direct, rtc: rtcSupported(), laatsteCode: hooks.laatsteCode, versie: VERSION, lijst: !!opts.lijst, opslaan: !!(typeof window !== 'undefined' && window.gdeDesktop && window.gdeDesktop.saveTextFile), start: opts.start, rol: opts.rol, keuze: opts.keuze, holdNaam: opts.holdNaam, startGate: opts.startGate, spelNaam: opts.spelNaam, onlineNaam: prof.onlineNaam, onlineKleur: prof.onlineKleur });
+  let state = createLobby({ direct, rtc: rtcSupported(), laatsteCode: hooks.laatsteCode, versie: VERSION, lijst: !!opts.lijst, opslaan: !!(typeof window !== 'undefined' && window.gdeDesktop && window.gdeDesktop.saveTextFile), start: opts.start, rol: opts.rol, keuze: opts.keuze, holdNaam: opts.holdNaam, startGate: opts.startGate, spelNaam: opts.spelNaam, onlineNaam: prof.onlineNaam, onlineKleur: prof.onlineKleur, favorieten: leesFavorieten() });
   state.route = opts.route || null;
   if (opts.holdSlot != null) state = reduce(state, { t: 'hold', slot: opts.holdSlot, naam: opts.holdNaam });
   if (opts.adopt) { // de sessie loopt al (coophostwisselnet.js wisselde hem om): geen beginscherm, wel de kamercode, de spelers en Iedereen stoppen of Spel verlaten
@@ -105,8 +111,33 @@ export function mountLobby(root, hooks, opts = {}) {
 
   function draw() {
     const v = view(state);
+    // het zoekveld van de lijst (#464): na een nieuwe tekening de focus en de cursor terugzetten, zodat je
+    // tijdens het typen niet uit het veld valt (de waarde zelf staat in de state)
+    const actief = typeof document !== 'undefined' ? document.activeElement : null;
+    const zoekFocus = !!(actief && actief.classList && actief.classList.contains('coop-lijst-zoek'));
+    const cursor = zoekFocus && typeof actief.selectionStart === 'number' ? actief.selectionStart : null;
     const wensen = v.wensen ? `<div class="coop-wensen" role="group" aria-label="Kies je figuur">${v.wensen.map((w) => `<button type="button" class="m-bg coop-wens" data-act="${w.act}" aria-pressed="${w.gekozen}"><span class="ss-label"><span style="color:${w.kleur}" aria-hidden="true">●</span> ${esc(w.naam)}${w.gekozen ? ' ✓' : ''}</span></button>`).join('')}</div>` : '';
-    const sessies = v.sessies ? `<div class="coop-sessies" role="list">${v.sessies.map((x) => `<div class="coop-sessie" role="listitem" style="display:flex;gap:8px;align-items:stretch;margin:6px 0"><button type="button" class="${x.kan ? 'm-bp' : 'm-bg'} coop-btn" data-act="${x.act}" style="flex:1;text-align:left"${x.kan ? '' : ' aria-disabled="true"'}><span class="ss-label">${esc(x.tekst)}</span></button><button type="button" class="m-bt coop-btn" data-act="${x.meld}" aria-label="Melden: ${esc(x.naam)}"><span class="ss-label">Melden</span></button></div>`).join('')}</div>` : '';
+    const chip = (act, label, aan) => `<button type="button" class="m-chip coop-chip" data-act="${act}" aria-pressed="${aan}"${aan ? ' style="background:rgba(240,237,228,.12);color:var(--ink)"' : ''}>${esc(label)}</button>`;
+    const li = v.lijstInfo;
+    const sessies = li ? `<div class="coop-lijst" role="region" aria-label="Openbare sessies">
+      <div class="coop-lijst-balk" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0">
+        <label class="m-inp" style="flex:1;min-width:180px"><span class="ss-label">Zoeken</span><input class="coop-lijst-zoek" type="search" placeholder="Zoek op naam" aria-label="Zoek in openbare sessies" autocomplete="off" spellcheck="false" maxlength="60" value="${esc(li.zoek)}"></label>
+      </div>
+      <div class="coop-lijst-filters" role="group" aria-label="Filters" style="display:flex;flex-wrap:wrap;gap:6px;margin:6px 0">
+        ${chip('lijst-filter-alleenAansluitbaar', 'Aansluitbaar', li.filters.alleenAansluitbaar)}
+        ${chip('lijst-filter-alleenFavorieten', 'Favorieten', li.filters.alleenFavorieten)}
+        ${chip('lijst-filter-alleenVers', 'Vers', li.filters.alleenVers)}
+        ${chip('lijst-filter-verbergOnbruikbaar', 'Verberg vol en andere versie', li.filters.verbergOnbruikbaar)}
+        ${chip('lijst-plek-vrij', 'Vrij', li.filters.plek === 'vrij')}
+        ${chip('lijst-plek-vol', 'Vol', li.filters.plek === 'vol')}
+      </div>
+      <div class="coop-lijst-sorteren" role="group" aria-label="Sorteren" style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0 10px">
+        <span class="mut">Sorteren:</span>${li.sorteringen.map((x) => chip('lijst-sorteer-' + x.id, x.label, x.gekozen)).join('')}
+      </div>
+      <p class="coop-lijst-teller mut" role="status"${li.telling ? '' : ' hidden'}>${esc(li.telling)}</p>
+      <div class="coop-sessies" role="list">${v.sessies.map((x) => `<div class="coop-sessie" role="listitem" style="display:flex;gap:8px;align-items:stretch;margin:6px 0${x.dim ? ';opacity:.55' : ''}"><button type="button" class="m-bt coop-btn coop-ster" data-act="${x.ster}" aria-pressed="${x.favoriet}" aria-label="${x.favoriet ? 'Favoriet af: ' : 'Favoriet: '}${esc(x.naam)}" title="Favoriet"><span class="ss-label" aria-hidden="true">${x.favoriet ? '★' : '☆'}</span></button><button type="button" class="${x.kan ? 'm-bp' : 'm-bg'} coop-btn coop-sessie-knop" data-act="${x.act}" style="flex:1;text-align:left"${x.kan ? '' : ' aria-disabled="true"'}><span class="ss-label">${esc(x.tekst)}</span>${x.leeftijd ? `<span class="coop-leeftijd mut" aria-label="${esc(x.leeftijdLang)}"> · ${esc(x.leeftijd)}</span>` : ''}</button><button type="button" class="m-bt coop-btn" data-act="${x.meld}" aria-label="Melden: ${esc(x.naam)}"><span class="ss-label">Melden</span></button></div>`).join('')}</div>
+      ${li.meer ? `<div style="margin:10px 0"><button type="button" class="m-bg coop-btn" data-act="lijst-meer"><span class="ss-label">Meer laden</span></button></div>` : ''}
+    </div>` : '';
     // het kleine formulier voor je online-avatar (#455): naam (hoogstens 16 tekens) en een kleur uit de vaste set
     const prof = v.profiel ? `<div class="coop-profiel" style="display:flex;flex-direction:column;gap:8px;margin:10px 0"><label class="coop-profiel-label" style="display:flex;gap:8px;align-items:center"><span>Online naam</span><input class="coop-profiel-naam" type="text" spellcheck="false" autocomplete="off" maxlength="${v.profiel.maxLength}" placeholder="Je figuur" value="${esc(v.profiel.naam)}" style="min-width:0;flex:1;max-width:260px"></label><div class="coop-kleuren" role="group" aria-label="Kleur" style="display:flex;flex-wrap:wrap;gap:6px">${v.profiel.kleuren.map((c) => `<button type="button" class="m-bg coop-kleur" data-kleur="${c.hex}" aria-pressed="${c.hex === v.profiel.kleur}" title="${esc(c.naam)}"><span class="ss-label"><span style="color:${c.hex}" aria-hidden="true">●</span> ${esc(c.naam)}</span></button>`).join('')}</div><p class="coop-profiel-hint" style="margin:0">${esc(v.profiel.tekst)} Laat je de naam leeg, dan zien de anderen de naam van je figuur. Je staat standaard op passief: medespelers kunnen je geen schade doen.</p>${v.profiel.fout ? `<p class="coop-error" role="alert">${esc(v.profiel.fout)}</p>` : ''}</div>` : '';
     root.innerHTML =
@@ -119,6 +150,13 @@ export function mountLobby(root, hooks, opts = {}) {
       wensen +
       (v.error ? `<p class="coop-error" role="alert">${esc(v.error)}</p>` : '') +
       `<div class="coop-btns">${v.buttons.map((b) => `<button type="button" class="${b.primary ? 'm-bp' : 'm-bg'} coop-btn" data-act="${b.act}"${b.disabled ? ' disabled aria-disabled="true"' : ''}><span class="ss-label">${esc(b.label)}</span></button>`).join('')}</div>`;
+    if (zoekFocus && root.querySelector) {
+      const veld = root.querySelector('.coop-lijst-zoek');
+      if (veld && veld.focus) {
+        veld.focus();
+        if (cursor != null && veld.setSelectionRange) { try { veld.setSelectionRange(cursor, cursor); } catch (e) { /* niet elk veld */ } }
+      }
+    }
   }
 
   // ----- online-avatar (#455): het formulier bewaren in de gewone instellingen
@@ -209,16 +247,25 @@ export function mountLobby(root, hooks, opts = {}) {
   async function startLuisteren() {
     stopLuisteren();
     const sig = newLijstSignaler(), lijst = new Serverlijst({ proto: PROTO, versie: VERSION, verborgen: leesVerborgen() });
-    const l = { sig, lijst, timer: null, laatste: '' };
+    const l = { sig, lijst, timer: null, laatste: '', getekend: 0 };
     luis = l;
     const topic = await topicFor(LIJST.sleutel);
     if (luis !== l) return; // intussen terug: niet verbinden
     sig.luister(topic, (tekst) => lijst.ontvang(tekst));
     const tik = () => {
       if (luis !== l || state.step !== 'lijst') return;
-      const nu = lijst.lijst(), json = JSON.stringify(nu);
-      if (json !== l.laatste) { l.laatste = json; set({ t: 'lijst-data', lijst: nu }); }
+      const rijen = lijst.lijst();
+      // alleen de inhoud telt voor "er is iets veranderd"; de leeftijd telt mee met de klok, dus elke paar seconden
+      // opnieuw tekenen zodat "12 s" ook echt ouder wordt (het zoekveld houdt zijn focus, zie draw())
+      const kern = rijen.map((r) => [r.id, r.naam, r.spelers, r.max, r.versie, r.kan ? 1 : 0, r.anders ? 1 : 0, r.vol ? 1 : 0].join('|')).join(';');
+      const nu = Date.now();
+      if (kern !== l.laatste || nu - l.getekend >= 5000) { l.laatste = kern; l.getekend = nu; set({ t: 'lijst-data', lijst: rijen }); }
       if (sig.alleFout() && !state.error) set({ t: 'fout', msg: 'Er is geen verbinding met de openbare servers. Controleer je internet en probeer het later opnieuw.' });
+    };
+    l.ververs = () => { // Lijst verversen: geen nieuw abonnement, alleen opnieuw lezen en tekenen
+      if (luis !== l) return;
+      l.laatste = ''; l.getekend = Date.now();
+      set({ t: 'lijst-data', lijst: lijst.lijst() });
     };
     l.timer = setInterval(tik, opts.lijstMs || 2000);
     setTimeout(tik, 400);
@@ -298,10 +345,21 @@ export function mountLobby(root, hooks, opts = {}) {
       else if (a === 'lijst') set({ t: 'lijst-vraag' });
       else if (a === 'lijst-go') { set({ t: 'lijst-go' }); await startLuisteren(); }
       else if (a === 'lijst-terug') set({ t: 'lijst-terug' });
+      else if (a === 'lijst-ververs') { set({ t: 'lijst-ververs' }); if (luis && luis.ververs) luis.ververs(); }
+      else if (a === 'lijst-meer') set({ t: 'lijst-meer' });
+      else if (a === 'lijst-filters-wissen') set({ t: 'lijst-filters-wissen' });
+      else if (a.startsWith('lijst-filter-')) set({ t: 'lijst-filter', filter: a.slice('lijst-filter-'.length) });
+      else if (a === 'lijst-plek-vrij') set({ t: 'lijst-plek', plek: 'vrij' });
+      else if (a === 'lijst-plek-vol') set({ t: 'lijst-plek', plek: 'vol' });
+      else if (a.startsWith('lijst-sorteer-')) set({ t: 'lijst-sorteer', sortering: a.slice('lijst-sorteer-'.length) });
+      else if (a.startsWith('ster-')) {
+        const e = state.lijst[+a.slice(5)];
+        if (e) { set({ t: 'lijst-ster', id: e.id }); schrijfFavorieten(state.lijstFavorieten); }
+      }
       else if (a.startsWith('sluit-')) set({ t: 'lijst-kies', i: +a.slice(6) });
       else if (a.startsWith('meld-')) {
         const e = state.lijst[+a.slice(5)];
-        if (e && luis) { schrijfVerborgen(luis.lijst.meld(e.id)); luis.laatste = ''; set({ t: 'lijst-data', lijst: luis.lijst.lijst() }); }
+        if (e && luis) { schrijfVerborgen(luis.lijst.meld(e.id)); luis.laatste = ''; luis.getekend = 0; set({ t: 'lijst-data', lijst: luis.lijst.lijst() }); }
       }
       else if (a === 'diag') set({ t: 'diag' });
       else if (a === 'diag-go') await diagnose();
@@ -360,6 +418,23 @@ export function mountLobby(root, hooks, opts = {}) {
   });
   root.addEventListener('input', (e) => { // tijdens het typen geen nieuwe tekening: anders raakt het veld zijn focus kwijt
     if (e.target && e.target.classList && e.target.classList.contains('coop-profiel-naam')) state = reduce(state, { t: 'profiel', naam: e.target.value });
+    // de lijst (#464): de waarde staat in de state, draw() zet de focus en de cursor terug
+    else if (e.target && e.target.classList && e.target.classList.contains('coop-lijst-zoek')) { state = reduce(state, { t: 'lijst-zoek', tekst: e.target.value }); draw(); }
+  });
+  root.addEventListener('keydown', (e) => { // Escape wist het zoekveld; pijltjes gaan langs de sessies
+    if (!e || !e.target) return;
+    if (e.key === 'Escape' && e.target.classList && e.target.classList.contains('coop-lijst-zoek')) {
+      e.preventDefault(); state = reduce(state, { t: 'lijst-zoek', tekst: '' }); draw(); return;
+    }
+    if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && e.target.classList && e.target.classList.contains('coop-sessie-knop')) {
+      if (!root.querySelectorAll) return;
+      const knoppen = [...root.querySelectorAll('.coop-sessie-knop')];
+      const i = knoppen.indexOf(e.target);
+      if (i < 0) return;
+      e.preventDefault();
+      const volgende = knoppen[i + (e.key === 'ArrowDown' ? 1 : -1)];
+      if (volgende && volgende.focus) volgende.focus();
+    }
   });
   root.addEventListener('change', (e) => { if (e.target && e.target.classList && e.target.classList.contains('coop-profiel-naam')) bewaarProfiel(); });
   if (hub) koppelAankondiging();
