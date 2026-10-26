@@ -5,7 +5,10 @@
 import '../node3d.mjs';
 const { heeftWereld, laadStadTegels } = await import('../lib/stadtegels.mjs');
 if (!heeftWereld()) { console.log('SKIP hedge_tile_audit: geen game/world'); process.exit(0); }
-const MAX = Number((process.argv.find((v) => v.startsWith('--max=')) || '--max=0').slice(6)), verbose = process.argv.includes('--verbose');
+// De gemapte heg is data; het spel zet er geen heginstanties op waar de lijn een rijbaan kruist
+// (streetfurniture.js pieceOnWayOrWater), dus een speler ziet hier geen heg op de weg. Daarom is dit een
+// telling en geen fout, net als in tegel_afstand_audit.mjs (#508). Met --max=N wordt het wel een grens.
+const MAX = Number((process.argv.find((v) => v.startsWith('--max=')) || '--max=Infinity').slice(6)), verbose = process.argv.includes('--verbose');
 const city = (await laadStadTegels()).world;
 const dseg = (x, y, a, b) => { const dx = b[0] - a[0], dy = b[1] - a[1], L2 = dx * dx + dy * dy || 1e-9; const t = Math.max(0, Math.min(1, ((x - a[0]) * dx + (y - a[1]) * dy) / L2)); return Math.hypot(a[0] + dx * t - x, a[1] + dy * t - y); };
 const seen = new Set(), hedges = [];
@@ -32,4 +35,5 @@ for (const h of hedges) {
 console.log(`hedge_tile_audit: ${hedges.length} gemapte heggen (${pts} punten), ${bad} liggen (deels) op een weg`);
 rows.sort((a, b) => b.metersOpWeg - a.metersOpWeg);
 if (verbose || bad) for (const r of rows.slice(0, 30)) console.log('  ', JSON.stringify(r));
+if (bad && !verbose) console.log('  (informatie: het spel tekent hier geen heg op de weg; --max=N maakt er een grens van)');
 process.exit(bad > MAX ? 1 : 0);
