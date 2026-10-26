@@ -533,3 +533,11 @@ runs:
           mode: confirm
       started: 2026-10-26T07:12:54.272Z
       completed: 2026-10-26T07:38:32.496Z
+    - id: run-gde-light-sims-029
+      scope: single
+      work_items:
+        - id: wi-492-loopbaan-sfeer
+          intent: gde-light-sims
+          mode: autopilot
+      started: 2026-10-26T07:39:03.613Z
+      completed: 2026-10-26T07:45:01.345Z
