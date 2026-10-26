@@ -17,7 +17,8 @@ import { polygonBounds, pointInPolygon } from './util.js';
 import { promoteMainWaterway } from './waterlevels.js';
 import { dropWaterDuplicates } from './waterdupes.js';
 import { addMooredBuilding, dropMooredBuilding } from './waterindex.js';
-import { SECTION, decodeBlob, tileKey } from './gdt.js';
+import { SECTION, decodeBlob, tileKey, tileOrigin, TILE_M } from './gdt.js';
+import { trimTileGreenery, trimHedgeRow } from './tilegreenery.js';
 import { TileStore, FrameQueue, HttpRangeSource, inflateRaw, makeWorkerDecoder, decodeCompressed } from './tilestore.js';
 import { TerrainField } from './terrainraster.js';
 import { extendElevation, shrinkElevation } from './elevation.js';
@@ -197,7 +198,14 @@ export class TileWorld extends GameMap {
       e.obj.bounds = boundsOfObj('parcels', e.obj);
       (map.parcelGrid || (map.parcelGrid = new SpatialGrid(64))).insert(e.obj, e.obj.bounds);
     }
-    for (const [, e] of res.furniture || []) if (e.obj.k === 'hedge' && e.obj.pts) (map.hedgeGrid || (map.hedgeGrid = new SpatialGrid(64))).insert(e.obj, polygonBounds(e.obj.pts));
+    for (const [, e] of res.furniture || []) {
+      if (e.obj.k !== 'hedge' || !e.obj.pts) continue;
+      // een gemapte heg die over een weg loopt houdt op bij de rand (#508): de stad is hier compleet, dus alle wegen zijn er
+      trimHedgeRow(map, e.obj);
+      if (!e.obj.pts.length) continue;
+      if (!e.obj.bounds) e.obj.bounds = polygonBounds(e.obj.pts);
+      (map.hedgeGrid || (map.hedgeGrid = new SpatialGrid(64))).insert(e.obj, e.obj.bounds);
+    }
     map.terrain = terrainField;
     map.terrainProfiles = terrain;
     map.tileQueue = new FrameQueue();
@@ -220,6 +228,10 @@ export class TileWorld extends GameMap {
     if (this.resident.has(tk)) return false;
     this.resident.add(tk);
     const newRoads = [], newWater = [];
+    // de bomen en heggen van deze tegel, voor de groenopruiming onderaan (#508), en of de tegel wegen meebrengt:
+    // ook een rij die een buurtegel al invoegde, reikt met zijn zoom deze tegel in en moet de ring laten kijken
+    const ownTrees = [], ownHedges = [];
+    let hasRoads = false;
     // the rows this tile holds, [kind, gid, kind, gid, ...]: dropTile visits these instead of every row of the world (#379, #247)
     const held = [];
     (this._tileRows || (this._tileRows = new Map())).set(tk, held);
@@ -237,6 +249,7 @@ export class TileWorld extends GameMap {
       const twins = kind === 'water' ? dropWaterDuplicates(s.rows) : null;
       for (const { gid, obj } of rowsOf(kind, s)) {
         if (twins && twins.size && twins.has(obj)) continue;
+        if (kind === 'roads') hasRoads = true;
         let e = this._res[kind].get(gid);
         if (!e) {
           e = { obj };
@@ -244,13 +257,18 @@ export class TileWorld extends GameMap {
           if (kind === 'buildings' || kind === 'roads' || kind === 'water' || kind === 'green' || kind === 'rails' || kind === 'parcels') obj.bounds = boundsOfObj(kind, obj);
           if (kind === 'water') { promoteMainWaterway(obj); this._waterVer = (this._waterVer || 0) + 1; newWater.push(obj); }
           if (kind === 'roads') newRoads.push(obj);
+          if (kind === 'trees') ownTrees.push(obj);
+          if (kind === 'furniture' && obj.k === 'hedge' && obj.pts) ownHedges.push(obj);
           if (kind === 'buildings' && obj.type === 'houseboat') addMooredBuilding(this, obj); // (boats keep off it, #343)
           const grid = gridOf(kind, obj);
           if (grid) (this[grid] || (this[grid] = new SpatialGrid(64))).insert(obj, boundsOfObj(kind, obj));
           // a streamed tile's mapped furniture joins the list streetfurniture3d.js reads
           if (kind === 'furniture' && this.furniture) this.furniture.push(obj);
           // the mapped hedges (OSM barrier=hedge): the countryside draws none of its own beside them (hedgeNear)
-          if (kind === 'furniture' && obj.k === 'hedge' && obj.pts) (this.hedgeGrid || (this.hedgeGrid = new SpatialGrid(64))).insert(obj, polygonBounds(obj.pts));
+          if (kind === 'furniture' && obj.k === 'hedge' && obj.pts) {
+            obj.bounds = polygonBounds(obj.pts);
+            (this.hedgeGrid || (this.hedgeGrid = new SpatialGrid(64))).insert(obj, obj.bounds);
+          }
         }
         holdIn(e, tk);
         held.push(kind, gid);
@@ -270,6 +288,13 @@ export class TileWorld extends GameMap {
       for (const r of this.roadsNear(cx, cy, Math.hypot(w.bounds[2] - w.bounds[0], w.bounds[3] - w.bounds[1]) / 2)) markDryRoad(this, r);
     }
     for (const fn of this._tileListeners || []) fn('add', tile, tk);
+    // het groen van deze tegel naast de weg (#508): de vulbomen van bos en kerkhof kwamen per tegel op de weg te
+    // staan waar de weg in de buurtegel ligt, en de gemapte heggen liepen over de rijbaan. Met deze tegel erbij zijn
+    // de eigen bomen en heggen te beoordelen, en met zijn wegen ook die van de buren binnen 12 m.
+    const [ox, oy] = tileOrigin(tile.i, tile.j);
+    const trimmed = trimTileGreenery(this, [ox, oy, ox + TILE_M, oy + TILE_M], { trees: ownTrees, hedges: ownHedges, roads: hasRoads });
+    const gs = this.greeneryStats || (this.greeneryStats = { removed: 0, moved: 0, hedges: 0 });
+    gs.removed += trimmed.removed; gs.moved += trimmed.moved; gs.hedges += trimmed.hedges;
     return true;
   }
 
@@ -345,7 +370,7 @@ export class TileWorld extends GameMap {
       const grid = gridOf(kind, e.obj);
       if (grid && this[grid]) this[grid].remove(e.obj, boundsOfObj(kind, e.obj));
       if (kind === 'furniture' && this.furniture) { const q = this.furniture.indexOf(e.obj); if (q >= 0) this.furniture.splice(q, 1); }
-      if (kind === 'furniture' && e.obj.k === 'hedge' && e.obj.pts && this.hedgeGrid) this.hedgeGrid.remove(e.obj, polygonBounds(e.obj.pts));
+      if (kind === 'furniture' && e.obj.k === 'hedge' && e.obj.pts && this.hedgeGrid) this.hedgeGrid.remove(e.obj, e.obj.bounds || polygonBounds(e.obj.pts));
     };
     const held = this._tileRows && this._tileRows.get(tk);
     if (held && !this.scanDrops) {
