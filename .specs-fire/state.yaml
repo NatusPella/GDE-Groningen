@@ -461,3 +461,11 @@ runs:
           mode: confirm
       started: 2026-10-26T05:37:33.573Z
       completed: 2026-10-26T06:07:46.300Z
+    - id: run-gde-light-sims-020
+      scope: single
+      work_items:
+        - id: wi-492-groep-leider
+          intent: gde-light-sims
+          mode: confirm
+      started: 2026-10-26T06:09:39.347Z
+      completed: 2026-10-26T06:10:16.803Z
