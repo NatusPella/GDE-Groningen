@@ -14,6 +14,7 @@
 // Saved in the savegame under `doel`; world.goal mirrors it for the HUD and maps.
 import { STEP_BY_ID, missionIndexOf } from './storyarc.js';
 import { setNextMission, getMissionDefs, unmetRequirement, requirementPlace, isMissionActive } from './missionquery.js';
+import { hoofdspeler } from './players.js';
 
 const REACH_M = 8;
 const TARGET_EVERY = 2;
@@ -145,7 +146,7 @@ export function updateGoal(dt, w) {
   world = w;
   if (w.goal !== goal) w.goal = goal;
   if (!goal) return;
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (goal.kind === 'place') {
     if (Math.hypot(goal.x - p.x, goal.y - p.y) < REACH_M) clearGoal({ done: true, title: 'Doel bereikt' });
     return;

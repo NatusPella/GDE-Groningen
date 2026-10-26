@@ -12,6 +12,7 @@ import { getSettings } from './settings.js';
 import { physicalKey, tokenKey, keyName, keyWord, PAD_LAYOUTS } from './controls.js';
 import { KEYS } from './storagekeys.js';
 import { promptSub, explains, explainId, markSeen, parseSeen } from './hudtext.js';
+import { hoofdspeler } from './players.js';
 const downKey = () => keyWord(getSettings().keyBinds, 'control');
 import { isPadActive, padState } from './gamepad.js';
 import { getUiScale } from './uiscale.js';
@@ -221,7 +222,8 @@ export function updatePrompts(dt, world) {
 function trackUsage(dt, world) {
   const input = world.input;
   if (!input || !document.body.classList.contains('game-started')) return;
-  const inV = !!world.player.inVehicle;
+  const ik = hoofdspeler(world);
+  const inV = !!ik.inVehicle;
   const pressed = (k) => input.wasPressed(k);
 
   if (pressed('m')) used('map');
@@ -235,8 +237,8 @@ function trackUsage(dt, world) {
   if (inV && !prev.inVehicle) used('enter');
   if (!inV && prev.inVehicle) used('exit');
   prev.inVehicle = inV;
-  const swim = !!world.player.swimming;
-  if (prev.swimming && !swim && world.player.water !== 'fall') used('climb');
+  const swim = !!ik.swimming;
+  if (prev.swimming && !swim && ik.water !== 'fall') used('climb');
   prev.swimming = swim;
 
   if (pressed('e') || pressed('f')) pressFlash = 0.22;
@@ -247,7 +249,7 @@ function trackUsage(dt, world) {
   if (input.mouse.rightDown && !prev.rightDown && isRangedWeapon(world.weapon)) used(WEAPONS[world.weapon].scope ? 'scope' : 'aim');
   prev.rightDown = input.mouse.rightDown;
 
-  if (inV && world.player.inVehicle.isHeli) {
+  if (inV && ik.inVehicle.isHeli) {
     if (pressed(' ') || pressed('control')) used('heliUp');
     if (pressed('a') || pressed('d')) used('heliYaw');
     if (['w', 's', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].some(pressed)) used('heliFly');
@@ -308,7 +310,8 @@ function facing(world) {
     const l = Math.hypot(camDir.x, camDir.z) || 1;
     return { fx: camDir.x / l, fy: camDir.z / l };
   }
-  return { fx: Math.cos(world.player.angle), fy: Math.sin(world.player.angle) };
+  const ik = hoofdspeler(world);
+  return { fx: Math.cos(ik.angle), fy: Math.sin(ik.angle) };
 }
 
 function angleOff(p, x, y) {
@@ -317,7 +320,7 @@ function angleOff(p, x, y) {
 }
 
 function pedInReach(world, range, cone) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   let best = null, bestD = range;
   for (const ped of world.pedestrians || []) {
     if (ped.state === 'dead') continue;
@@ -333,7 +336,7 @@ function pedInReach(world, range, cone) {
 // Mirrors the order player.js resolves an E press in (kissing is K now): the
 // nearest vehicle; clicks come next.
 function findPrimary(world) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   // upstairs in the flat only the flat's own uses: the street is 34 m below
   if (isInsideHome()) return homePrompt(world);
   // a mission stage's own prompt (heist.js: the distraction, the pickpocket)
@@ -442,13 +445,14 @@ function findPrimary(world) {
 }
 
 function inFront(world, x, y, f) {
-  const dx = x - world.player.x, dy = y - world.player.y;
+  const ik = hoofdspeler(world);
+  const dx = x - ik.x, dy = y - ik.y;
   const d = Math.hypot(dx, dy) || 1;
   return { d, dot: (dx * f.fx + dy * f.fy) / d };
 }
 
 function findSecondary(world, primary) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   if (isInsideHome()) return [];
   const f = facing(world);
   const out = [];
@@ -573,7 +577,7 @@ let heldAt = 0;
 
 function renderWorldPrompts(world, primary) {
   const now = performance.now();
-  if (world.player.inVehicle) heldPrimary = null;
+  if (hoofdspeler(world).inVehicle) heldPrimary = null;
   if (primary) { heldPrimary = primary; heldAt = now; }
   else if (heldPrimary && now - heldAt < 150) primary = heldPrimary;
   const hold = typeof world.promptHold === 'number' && primary && primary.steal ? world.promptHold : null;
@@ -656,7 +660,7 @@ const PAD_DESC = {
 };
 
 function contextRows(world, primary) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   const rows = [];
   const armed = isRangedWeapon(world.weapon);
   if (world.trainDriving) {
