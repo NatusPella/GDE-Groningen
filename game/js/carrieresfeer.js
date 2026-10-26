@@ -81,35 +81,35 @@ const VORMEN = {
     beeld: `repeating-linear-gradient(0deg, ${GREEN} 0 20px, transparent 20px 40px), repeating-linear-gradient(90deg, ${GREEN} 0 20px, transparent 20px 40px), repeating-linear-gradient(0deg, ${CREAM} 6px 8px, transparent 8px 40px), repeating-linear-gradient(90deg, ${CREAM} 6px 8px, transparent 8px 40px), linear-gradient(${CREAM_SOFT}, ${CREAM_SOFT})`,
     maat: '40px 40px',
   },
-  // een maatlat met weinig, dikke strepen
+  // een maatlat met een groot cream vlak en een groene klusbubbel
   maat: {
-    beeld: `linear-gradient(90deg, ${CREAM} 0 8%, transparent 8%), repeating-linear-gradient(90deg, ${GREEN_DARK} 0 3px, transparent 3px 32px), linear-gradient(${CREAM_SOFT}, ${CREAM_SOFT})`,
-    maat: '32px 100%',
+    beeld: `linear-gradient(90deg, ${CREAM} 0 18%, transparent 18%), linear-gradient(0deg, ${GREEN_DARK} 0 100%), radial-gradient(circle at 80% 30%, ${GREEN_LIGHT} 0 18%, transparent 18.5%)`,
+    maat: '100% 100%',
   },
   // de lijnen van een padelbaan, dik en duidelijk
   baan: {
     beeld: `linear-gradient(90deg, transparent 0 10%, ${CREAM} 10% 13%, transparent 13% 87%, ${CREAM} 87% 90%, transparent 90%), linear-gradient(0deg, transparent 0 46%, ${CREAM} 46% 54%, transparent 54%), linear-gradient(${GREEN_DARK}, ${GREEN_DARK})`,
     maat: '100% 100%',
   },
-  // hoogtelijnen van de golfbaan, groot
+  // hoogtelijnen van de golfbaan: twee grote ringen
   contour: {
-    beeld: `repeating-radial-gradient(circle at 40% 60%, transparent 0 18%, ${GREEN_LIGHT} 18% 21%, transparent 21% 36%, ${CREAM} 36% 39%, transparent 39% 54%)`,
-    maat: '160px 160px',
+    beeld: `radial-gradient(circle at 70% 50%, ${GREEN_LIGHT} 0 22%, ${CREAM} 22% 26%, ${GREEN} 26% 44%, transparent 44%)`,
+    maat: '100% 100%',
   },
-  // visschubben, groot en kleurig
+  // visschubben: twee grote schubben
   schub: {
-    beeld: `radial-gradient(circle at 50% 0, ${GREEN_LIGHT} 0 22%, transparent 22.5%), radial-gradient(circle at 50% 100%, ${CREAM} 0 22%, transparent 22.5%)`,
-    maat: '44px 44px',
+    beeld: `radial-gradient(circle at 30% 40%, ${CREAM} 0 22%, transparent 22.5%), radial-gradient(circle at 70% 60%, ${GREEN_LIGHT} 0 26%, transparent 26.5%)`,
+    maat: '100% 100%',
   },
   // startgrid van het circuit, met het felle groen van de startlampen
   grid: {
     beeld: `conic-gradient(from 90deg at 50% 50%, ${CREAM} 0 25%, ${GREEN_LIGHT} 0 50%, ${CREAM} 0 75%, ${GREEN_LIGHT} 0)`,
     maat: '30px 30px',
   },
-  // terreinlijnen van de kaart, breed
+  // terreinlijnen van de kaart: grote heuvelvlakken
   terrein: {
-    beeld: `repeating-radial-gradient(ellipse at 68% 42%, transparent 0 20%, ${CREAM} 20% 23%, transparent 23% 40%, ${GREEN_LIGHT} 40% 43%, transparent 43% 60%)`,
-    maat: '200px 140px',
+    beeld: `linear-gradient(135deg, ${GREEN_DARK} 0 55%, ${GREEN_LIGHT} 55% 100%), radial-gradient(ellipse at 70% 30%, ${CREAM} 0 18%, transparent 18.5%)`,
+    maat: '100% 100%',
   },
   // bakstenen van de kade
   dam: {
