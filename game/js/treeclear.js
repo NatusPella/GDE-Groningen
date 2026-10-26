@@ -11,7 +11,19 @@ const CARS = new Set(['major', 'normal', 'minor', 'service']);
 export const TREE_KERB = 0.7; // the trunk's centre stands this far beyond the carriageway's edge (m)
 const SEARCH = 9;
 
-const grade = (r) => CARS.has(r.cat) && !r.bridge && !r.tunnel && !r.z && r.pts && r.pts.length > 1;
+// Een weg telt alleen als hij hier op maaiveld ligt: een dek op een viaduct of een brug hoort niet bij de
+// bomen eronder. Tot #508 werd élke weg met een hoogteprofiel overgeslagen (r.z), en dan bleven de bomen
+// op een weg met een profiel — een ophoging, een viaduct waarvan de aanloop bij het maaiveld begint —
+// gewoon op de rijbaan staan. Nu beslist de hoogte van de weg op de plek van de boom zelf.
+const HOOG_MAAIVELD = 0.5;
+
+const grade = (r) => CARS.has(r.cat) && !r.bridge && !r.tunnel && r.pts && r.pts.length > 1;
+
+// De hoogte van de weg op het punt dat het dichtst bij de boom ligt (0 als de weg geen profiel heeft).
+function zAt(r, i, t) {
+  if (!r.z || r.z.length < i + 2) return 0;
+  return r.z[i] + (r.z[i + 1] - r.z[i]) * t;
+}
 
 // the car road at grade whose edge is nearest to (x, y): { m: metres from its edge (negative: on it), cp: nearest point, d, r }
 function nearestEdge(map, x, y, skip = null) {
@@ -23,6 +35,7 @@ function nearestEdge(map, x, y, skip = null) {
     if (x < minx - hw - SEARCH || x > maxx + hw + SEARCH || y < miny - hw - SEARCH || y > maxy + hw + SEARCH) continue;
     for (let i = 0; i < r.pts.length - 1; i++) {
       const cp = closestPointOnSegment(x, y, r.pts[i][0], r.pts[i][1], r.pts[i + 1][0], r.pts[i + 1][1]);
+      if (zAt(r, i, cp.t) > HOOG_MAAIVELD) continue; // een dek boven de boom, niet de weg waar hij naast staat
       const d = Math.sqrt(cp.dist2);
       if (!best || d - hw < best.m) best = { m: d - hw, cp, d, r, hw };
     }

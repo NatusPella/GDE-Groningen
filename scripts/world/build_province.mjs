@@ -307,7 +307,7 @@ function fillOldExtent({ root, fill, gid, stats, blobs, roadNet, roadSeen, railR
   const src = loadSources(root).ommeland;
   const urbanAt = urbanField(src.boxes);
   const ctx = { urbanAt, village: (x, y) => urbanAt(x, y) >= 0.5 };
-  const feats = features(src.els, ctx);
+  let feats = features(src.els, ctx);
   const inFill = (x, y) => { const [i, j] = G.tileIndexOf(x, y); return fill.has(G.tileKey(i, j)); };
   for (const b of src.boxes) {
     for (const o of boxOutlines(b)) {
@@ -321,6 +321,13 @@ function fillOldExtent({ root, fill, gid, stats, blobs, roadNet, roadSeen, railR
     }
   }
   WB.applyDuals(feats.filter((f) => f.kind === 'roads').map((f) => f.row));
+  // De bomen van de oude data gingen nergens langs de boomopruiming (#508): alleen de pakketten doen dat
+  // (tegel_schoon.mjs), en deze 27 tegels worden hier gebouwd. Zo bleven er bomen op de rijbaan staan.
+  {
+    const ts = { moved: 0, removed: 0 };
+    feats = clearPackTrees(feats, ts);
+    stats.derived.treesMoved += ts.moved; stats.derived.treesRemoved += ts.removed;
+  }
   const idx = new Map();
   for (const f of feats) {
     let bb;
