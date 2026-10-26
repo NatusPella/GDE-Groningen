@@ -20,6 +20,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Dagprijzen op de boerderij.** Elk gewas heeft per speldag een eigen prijs, hooguit twintig procent boven of onder de basis; je verkoopt tegen de prijs van de dag dat je aflevert.
 
 ### Opgelost
+- **Auto's rijden onder het perron van het Noorderstation door.** De perronrand werd als muur gezien voor alles wat eronder stond, ook een auto op straatniveau bij een perron dat zes meter boven de weg hangt; elke auto kwam daar tot stilstand. Een perron blokkeert nu alleen wie er echt naast staat.
 - **Vee en wandelaars blijven van de rijbaan.** Een koe of schaap graast niet meer de weg op waar zijn perceel tot de rand van de strook loopt, ook niet als een auto het dier opjaagt; en op een provinciale weg zonder trottoir staan geen wandelaars meer midden in de rijstrook (bij een kruising lag de berm van de zijweg op de rijbaan van de hoofdweg).
 - **Tekst op borden is van beide kanten leesbaar.** Een bord dat aan twee kanten tekst had, liet de achterkant in spiegelbeeld zien; dat geldt nu voor het doek boven de kartbaan, het SKATEPARK-bord, de borden bij discgolf, het podium en de badeendjes.
 - **De kartstart begint met een rustig beeld.** De camera zweeft niet meer door het starthek (dwarsbalk en paal midden in beeld) maar komt van hoog achter het startveld naar je kart; de prestatiekaart die je onderweg verdient zakt tijdens een minigame naar de onderkant in plaats van over de toetshulp te vallen.
