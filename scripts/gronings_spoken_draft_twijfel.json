@@ -1,0 +1,164 @@
+[
+ {
+  "text": "\"Kon minder.\" Daarboven zwijgt hij. Daar is nog niemand gekomen.",
+  "why": "'zwijgt' is Nederlands gebleven; geen betrouwbaar Gronings werkwoord gevonden.",
+  "regel": 6,
+  "chunk": 1
+ },
+ {
+  "text": "Een spuiterij. Slim.",
+  "why": "'spuiterij' is een Nederlandse vakterm; geen Gronings equivalent, zo gelaten.",
+  "regel": 12,
+  "chunk": 1
+ },
+ {
+  "text": "Sjoerd, van de Kiezelweek, die fietsrace. Zijn neef werkt 's nachts in het museum. Hij praat alleen met winnaars.",
+  "why": "Schrijfwijze van \"'s nachts\": bestaande paren schrijven 's nachts' als 's nachts' zonder apostrof.",
+  "regel": 30,
+  "chunk": 1
+ },
+ {
+  "text": "Dan ken je het slecht.",
+  "why": "Idioom 'ken je het slecht' (kennen in deze betekenis) is niet gecontroleerd.",
+  "regel": 44,
+  "chunk": 1
+ },
+ {
+  "text": "Zelf gebouwd? Met de hand?",
+  "why": "Voltooid deelwoord 'bouwd' (gebouwd) is afgeleid van het patroon, niet bevestigd.",
+  "regel": 66,
+  "chunk": 1
+ },
+ {
+  "text": "Een pad voor mensen met een rouwjas.",
+  "why": "'rouwjas' is een Nederlandse samenstelling; geen Gronings woord bekend, zo gelaten.",
+  "regel": 70,
+  "chunk": 1
+ },
+ {
+  "text": "Eén container tussen alle windmolenbladen en kabelrollen?",
+  "why": "'alle' als 'aal' vóór een meervoudig zelfstandig naamwoord is onzeker.",
+  "regel": 99,
+  "chunk": 1
+ },
+ {
+  "text": "Een tante van mij kookte erin. Ze gooide de schillen in het water. De eenden kenden haar.",
+  "why": "schillen en kenden: geen bestaande paren gevonden; Nederlandse woorden laten staan.",
+  "chunk": 2
+ },
+ {
+  "text": "Vier van de vijf staan niet meer bij hem, Berend meegerekend.",
+  "why": "meegerekend: geen bestaand paar voor de voltooide tijd; Nederlandse vorm laten staan.",
+  "chunk": 2
+ },
+ {
+  "text": "Ik ben hier nog nooit afgeslagen.",
+  "why": "afgeslagen: geen bestaand paar; spelling van de voltooide tijd van afslaan niet bevestigd, dus Nederlands gehouden.",
+  "chunk": 2
+ },
+ {
+  "text": "Het bovenstuk is blauw. Dat was niet afgesproken.",
+  "why": "afgesproken: geen bestaand paar; spelling (afsproken?) niet bevestigd, dus Nederlands gehouden.",
+  "chunk": 2
+ },
+ {
+  "text": "Ik heb nooit ergens anders gewoond.",
+  "why": "gewoond -> woond: volgt het wegvallen van ge- (zegd, moakt), maar is niet als paar aangetroffen.",
+  "chunk": 2
+ },
+ {
+  "text": "De grootste stoet die Grunn ooit zag.",
+  "why": "stoet betekent in het Gronings brood/stoetbrood; daarom optocht gebruikt, betekenis blijft gelijk.",
+  "chunk": 2
+ },
+ {
+  "text": "Je hebt de klok bijgehouden.",
+  "why": "bijgehouden -> biehollen: alleen het paar Bijhouden -> Biehollen gevonden, geen voltooide tijd.",
+  "chunk": 2
+ },
+ {
+  "text": "Grunn. Tweehonderdduizend mensen, driehonderdduizend fietsen en één toren die alles ziet.",
+  "why": "duizend -> duuzend: geen bestaand paar, afgeleid van tienduizend -> tienduuzend.",
+  "chunk": 3
+ },
+ {
+  "text": "Haal vijftienhonderd stuntpunten, dan betaal ik honderdvijftig euro.",
+  "why": "vieftienhonderd: vijftien is niet in de bestaande paren; vieftig/vief wel.",
+  "chunk": 3
+ },
+ {
+  "text": "Een luisteraar meldt een kruispunt in de binnenstad waar alles tegelijk groen was. Niemand had voorrang. Iedereen overleefde.",
+  "why": "overleefde: geen Groningse vorm in de bestaande paren, Nederlands gelaten.",
+  "chunk": 3
+ },
+ {
+  "text": "Er is iets gestolen dat niemand ooit zag, maar dat iedereen mist. 't Het nog nooit zo donker west, of 't wer altied wel weer licht.",
+  "why": "Spreekwoord blijft letterlijk (staat al als twijfelgeval in DIALECT-NALEZING.md); alleen donker zou duuster kunnen zijn.",
+  "chunk": 3
+ },
+ {
+  "text": "Het havenkantoor meldt dat Jelle een skûtsje heeft met een gouden bal in de kist. Hij vaart naar Lauwersoog, voor de pers.",
+  "why": "skûtsje: Fries woord in een Groningse zin, hoort bij het schip en blijft staan.",
+  "chunk": 3
+ },
+ {
+  "text": "Het zout van Oma ligt bij Noordpolderzijl, op de kwelder. Dat is grasland aan zee, dat bij eb droog ligt.",
+  "why": "droog: geen bestaande Groningse vorm gevonden, Nederlands gelaten (dreuge niet verzonnen).",
+  "chunk": 3
+ },
+ {
+  "text": "Nu terug, mensen. Het water denkt niet na.",
+  "why": "na -> noa: alleen noar is gedekt in de bestaande paren.",
+  "chunk": 3
+ },
+ {
+  "text": "Wind uit het noordwesten. Op de Eemsdijk zijn zeventien schapen gered van een deurwaarder. Ik weet niet hoe.",
+  "why": "schapen en gered -> red: geen bestaande paren; de vorm red is afgeleid van land/eten zonder ge-.",
+  "chunk": 3
+ },
+ {
+  "text": "Gerda belde mij. Ze zei: mijn jongen heeft de bal. Ik zei: dan nemen we de bal van hem af. Berend reed.",
+  "why": "reed (verleden tijd van rijden): niet gedekt; riedt is de enige bestaande vorm.",
+  "chunk": 3
+ },
+ {
+  "text": "Je hebt negen keer op je telefoon gekeken sinds Ter Apel. Er is geen bericht. Ik heb meegeteld.",
+  "why": "regel 12 (M21.1, Berend): \"meegeteld\" is als \"mitteld\" opgeschreven; die vorm staat niet in gronings_spoken.json. Controleer de spelling van het voltooid deelwoord.",
+  "chunk": 4
+ },
+ {
+  "text": "Houd mijn vrienden bij elkaar, jong. Zonder hen is er geen recept.",
+  "why": "regel 20 (M21.4, Trijntje): \"hen\" als \"heur\" weergegeven (zelfde vorm als het bezittelijk voornaamwoord). Nakijken of \"zonder heur\" hier de juiste vorm is.",
+  "chunk": 4
+ },
+ {
+  "text": "Mijn rubberboot is in beslag genomen. Tot de sluis ging het. Nu ben ik voor eigen rekening.",
+  "why": "regel 21 (M21.4, Klaas): \"genomen\" Nederlands gelaten; een Gronings \"nomen\" staat niet in de lijst, dus geen eigen vorm verzonnen.",
+  "chunk": 4
+ },
+ {
+  "text": "Ik heb een luik, een uitlaat en een koekje. Eén.",
+  "why": "regel 23 (M22.1, Henk): \"uitlaat\" Nederlands gelaten; geen bestaande Groningse vorm (\"oetlaat\"?) in de lijst.",
+  "chunk": 4
+ },
+ {
+  "text": "Het luik zit er al. Een deuk meer kan geen kwaad.",
+  "why": "regel 30 (M22.5, Henk): \"kwaad\" als \"kwoad\" opgeschreven; die spelling staat niet in gronings_spoken.json.",
+  "chunk": 4
+ },
+ {
+  "text": "Touw één. Doorgepikt.",
+  "why": "regel 34 (M24.2, Torenwachter): \"doorgepikt\" als \"deurpikt\"; de lijst heeft voor \"losgepikt\" juist \"loskoppen\", dus het werkwoord is onzeker.",
+  "chunk": 4
+ },
+ {
+  "text": "De politie sloot de zaak van de twee Stadjers in het zwart. Op de camerabeelden is vooral bewaker twee te zien, met een koekje.",
+  "why": "regel 68 (E2, Rikus): \"vooral\" als \"veural\"; die vorm staat niet in de lijst. \"politie\" is hier bewust Nederlands gelaten, zoals in de bestaande nieuwsregels.",
+  "chunk": 4
+ },
+ {
+  "text": "Allemaal. Het proefbeleg van Bourtange. Zestienhonderdtweeënzeventig verloor ik. Vandaag weet ik het nog niet.",
+  "why": "regel 81 (M30.1, Berend): \"verloor\" Nederlands gelaten; alleen \"verlaus\" en \"verlezen\" staan in de lijst, geen verleden tijd.",
+  "chunk": 4
+ }
+]
