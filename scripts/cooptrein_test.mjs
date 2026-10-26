@@ -12,6 +12,10 @@ const T = await import('../game/js/treincoop.js');
 const U = await import('../game/js/companion.js'); // stepCompanion laat een meerijdende gast staan
 const N = await import('../game/js/coopnet.js'); // de host-haak van de conducteur en de beloning per crewlid (#492)
 const M = await import('../game/js/machinist.js'); // dienstBeloning: de gastheer en de crew (#492)
+const L = await import('../game/js/treinlayout.js'); // de indeling, de reizigers en het lopen (#492)
+const LL = await import('../game/js/loopbaanlive.js'); // het loon en de punten van de conducteur (#492)
+const TC = await import('../game/js/treincontrole.js'); // de rust na een ronde (#492)
+const LB = await import('../game/js/loopbaan.js');
 const { createLink } = await import('../game/js/net/memtransport.js');
 
 // een trein zoals railway.js hem maakt: twee wagens, een machinist aan de knoppen (state 'player')
@@ -248,6 +252,131 @@ ok(Math.hypot(rw.companion.x - hc.x, rw.companion.y - hc.y) > 0.5, 'zonder de cr
   ok(gw.money === voor, 'wie niet in de crew zit krijgt niets');
   ok(hw.money > betaald, 'de gastheer houdt zijn eigen bedrag');
   N.stopCoopNet(hw);
+}
+
+// --- de conducteur loopt en controleert (#492): T, WASD, E bij een zittende reiziger, vijf per ronde
+{
+  const cfg = {
+    label: 'GTW', height: 3.2, front: 'gtw', doubleDeck: false,
+    segments: [{ kind: 'car', len: 17, cab: 1 }, { kind: 'car', len: 17, cab: -1 }],
+  };
+  const trein = () => ({
+    state: 'player', v: 0, dir: 1, c: 40, route: {}, cfg, halfLen: 26,
+    cars: [
+      { x: 0, y: 0, angle: 0, len: 17, z: 0, seg: cfg.segments[0] },
+      { x: -18.5, y: 0, angle: 0, len: 17, z: 0, seg: cfg.segments[1] },
+    ],
+  });
+  const nepInvoer = () => {
+    const pressed = new Set(), down = new Set();
+    return {
+      mouse: { dx: 0, dy: 0, locked: false }, lookActive: () => false,
+      wasPressed: (k) => pressed.has(k), isDown: (k) => down.has(k),
+      consume: (k) => pressed.delete(k), pressed, down,
+    };
+  };
+  const gt = trein();
+  const gb = [], gw = newWorld(gb);
+  gw.coopTrein = { aan: true, rol: 'conducteur', treinId: 0 };
+  gw.input = nepInvoer();
+  gw.money = 0;
+  const zendingen = [];
+  gw.coopTreinWalkMeld = (w, walk) => { zendingen.push(walk); return true; };
+  C.zetTreinBron(() => ({ treinen: [gt], routes: [gt.route] }));
+  LL.zetProfielVoorTest(LB.nieuwProfiel(), null); // het loon van de conducteur, nooit naar de echte opslag
+
+  // T: de conducteur staat op en ziet de wagen van binnen
+  gw.input.pressed.add('t');
+  ok(C.gastTreinTik(gw, 1 / 60) === true, 'T opent de loopstand voor de conducteur');
+  ok(gw.trainWalk && gw.trainWalk.car === 0 && gw.trainWalk.gast === true, 'hij staat in de eerste wagen');
+  ok(L.canStand(L.trainLayout(cfg)[gw.trainWalk.car], gw.trainWalk.lx, gw.trainWalk.lz), 'op een plek waar je kunt staan');
+  ok(gw.trainCam && gw.trainCam.inside === true && gw.trainCam.eye && gw.trainCam.eye.interior === true, 'de camera staat binnen in de trein');
+  ok(gw.trainCam.model && gw.trainCam.model.len === 17 && gw.trainCam.eye.fov === 72, 'met het model van de wagen en dezelfde kijkhoek als de machinist');
+  ok(gb.some((m) => m.tekst === C.TREIN_TEKST.lopen), 'en hij hoort wat hij kan doen');
+
+  // lopen over het gangpad: het lichaam gaat mee en de positie gaat naar de gastheer
+  const lx0 = gw.trainWalk.lx;
+  gw.input.down.add('w');
+  for (let k = 0; k < 20; k++) C.gastTreinTik(gw, 0.1);
+  gw.input.down.delete('w');
+  ok(gw.trainWalk.lx > lx0 + 1, 'W loopt naar voren door het gangpad', (gw.trainWalk.lx - lx0).toFixed(2));
+  ok(gw.trainWalk.lz === 0 && L.canStand(L.trainLayout(cfg)[0], gw.trainWalk.lx, gw.trainWalk.lz), 'en blijft in het gangpad');
+  const eigen = L.carPoint(gt.cars[0], gw.trainWalk.lx, gw.trainWalk.lz);
+  ok(Math.hypot(gw.player.x - eigen.x, gw.player.y - eigen.y) < 1e-9, 'het eigen lichaam staat op de vloer van de wagen');
+  ok(zendingen.some((z) => z && z.car === 0 && Number.isFinite(z.lx)), 'de looppositie gaat naar de gastheer');
+  ok(gw.trainCam.eye.position.z > 1.5, 'de ogen zitten boven de vloer', String(gw.trainCam.eye.position.z));
+
+  // vijf reizigers controleren: elk een antwoord, de teller loopt, de vijfde betaalt één keer
+  const cl = L.trainLayout(cfg)[0];
+  const pax = L.passengers(cl, C.reizigerSeed(gt, 0)).seated;
+  ok(pax.length >= 6, 'er zitten genoeg reizigers in de wagen', String(pax.length));
+  const loon = LL.loopbaanLoon('trein', 45);
+  for (let i = 0; i < 5; i++) {
+    gw.trainWalk.lx = pax[i].x; gw.trainWalk.lz = pax[i].z;
+    gw.input.pressed.add('e');
+    C.gastTreinTik(gw, 1 / 60);
+  }
+  ok(gw.money === loon, 'na vijf reizigers volgt het loon in zijn eigen geld', `${gw.money} / ${loon}`);
+  ok(gw.trainControle.rondes === 1, 'de ronde is geteld');
+  ok(gb.some((m) => /^Kaartjes gecontroleerd: €/.test(m.tekst)), 'met een melding van het loon');
+  // een zesde reiziger betaalt niet meteen opnieuw: eerst de rust
+  gw.trainWalk.lx = pax[5].x; gw.trainWalk.lz = pax[5].z;
+  gw.input.pressed.add('e');
+  C.gastTreinTik(gw, 1 / 60);
+  ok(gw.money === loon, 'de zesde controle betaalt niet nog eens');
+  ok(gw.trainControle.n === 0, 'binnen de rust begint de volgende ronde niet');
+  ok(gb.some((m) => m.tekst === C.TREIN_TEKST.rust), 'met de melding van de rust');
+  gw.time = TC.CONTROLE_RUST_S + 1;
+  gw.input.pressed.add('e');
+  C.gastTreinTik(gw, 1 / 60);
+  ok(gw.trainControle.n === 1, 'na de rust telt de volgende ronde vanaf één');
+
+  // een passagier loopt niet en controleert niet
+  gw.coopTrein.rol = 'passagier';
+  ok(C.gastControleer(gw) === false && gw.money === loon, 'een passagier controleert geen kaartjes');
+  C.gastWalkStop(gw, true);
+  gw.input.pressed.add('t');
+  ok(C.gastTreinTik(gw, 1 / 60) === false && !gw.trainWalk, 'en opent met T geen loopstand');
+  ok(gb.some((m) => m.tekst === C.TREIN_TEKST.geenConducteur), 'met de melding dat alleen de conducteur dat doet');
+
+  // T nog eens: terug op zijn plek; de gastheer hoort dat de walkstand weg is
+  gw.coopTrein.rol = 'conducteur';
+  gw.input.pressed.add('t');
+  C.gastTreinTik(gw, 1 / 60);
+  ok(gw.trainWalk && gw.trainCam && gw.trainCam.inside, 'de conducteur loopt weer');
+  zendingen.length = 0;
+  gw.input.pressed.add('t');
+  C.gastTreinTik(gw, 1 / 60);
+  ok(!gw.trainWalk && !gw.trainCam, 'T nog eens: terug op zijn plek, zonder treincamera');
+  ok(zendingen.length === 1 && zendingen[0] === null, 'de gastheer hoort dat de looppositie weg is');
+  ok(gb.some((m) => m.tekst === C.TREIN_TEKST.stoppen), 'met een melding');
+
+  // uitstappen of wegvallen: het trein-bericht zet de walkstand uit
+  gw.input.pressed.add('t');
+  C.gastTreinTik(gw, 1 / 60);
+  gw.coopNet = { role: 'client' };
+  ok(N.handleEvent(gw, { k: 'trein', aan: false }, 0) === true, 'de gastheer meldt dat hij uitstapt');
+  ok(!gw.coopTrein && !gw.trainWalk && !gw.trainCam, 'wegvallen of uitstappen ruimt de walkstand en de camera op');
+
+  // de gastheer ziet de conducteur in de juiste wagen
+  const ht = trein();
+  const hb = [], hw = newWorld(hb);
+  hw.trainDriving = ht; hw.coopNet = { role: 'host' };
+  ht.crew = T.newCrew(); T.board(ht.crew, 0); T.board(ht.crew, 1, 'conducteur');
+  ok(N.handleEvent(hw, { k: 'trein', a: 'walk', car: 1, lx: 0.2, lz: 0.1, yaw: 1.2 }, 1) === true, 'de looppositie komt bij de gastheer aan');
+  C.treinTick(hw);
+  const hp = L.carPoint(ht.cars[1], 0.2, 0.1);
+  ok(Math.hypot(hw.companion.x - hp.x, hw.companion.y - hp.y) < 1e-9, 'het lichaam staat in de wagen uit het bericht');
+  ok(Math.abs(hw.companion.angle - (ht.cars[1].angle + 1.2)) < 1e-9, 'met de kijkrichting van de conducteur');
+  ok(hw.companion.coopTrein === true, 'en hangt aan de trein');
+  ok(N.handleEvent(hw, { k: 'trein', a: 'walk', car: 1, lx: 99, lz: 99, yaw: 0 }, 1) === true, 'een ongeldige plek wordt ontvangen');
+  ok(hw.coopTreinWalk[1].lx === 0.2, 'maar niet overgenomen');
+  ok(N.handleEvent(hw, { k: 'trein', a: 'walk', weg: 1 }, 1) === true && !hw.coopTreinWalk[1], 'de gastheer ruimt de looppositie op');
+  ok(N.handleEvent(hw, { k: 'trein', a: 'walk', car: 0, lx: -2, lz: 0, yaw: 0 }, 2) === false, 'wie niet in de crew zit krijgt geen plek');
+  C.treinUit(hw, 1, ht);
+  ok(!hw.coopTreinWalk || !hw.coopTreinWalk[1], 'uitstappen ruimt de looppositie op');
+  C.zetTreinBron(null);
+  LL.zetProfielVoorTest(null, null);
 }
 
 console.log(`${n - fails}/${n} cooptrein ok`);
