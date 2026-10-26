@@ -52,6 +52,7 @@ function sfeerHtml(id) {
   const stijl = sfeerStijl(id);
   return `<div class="lb-sfeer" style="${stijl}" title="${esc(s.motief)}">` +
     (info ? loopbaanIcoon(info.icoon, 'lb-sfeer-ico') : '') +
+    (info ? `<span class="lb-sfeer-groot" aria-hidden="true">${esc(info.naam)}</span>` : '') +
     `<span class="lb-sfeer-naam">Sfeer · ${esc(s.naam)}</span>` +
     (s.vouw ? `<span class="lb-sfeer-vouw" style="${stijl}" aria-hidden="true"></span>` : '') + '</div>';
 }
@@ -66,12 +67,14 @@ const CSS = `
 .lb-sfeer { position: relative; min-height: 68px; border-radius: 10px; overflow: hidden; box-shadow: inset 0 0 0 1px rgba(240, 237, 228, 0.10); }
 .lb-sfeer::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(12, 20, 14, 0) 30%, rgba(12, 20, 14, 0.20) 55%, rgba(12, 20, 14, 0.82)); }
 .lb-sfeer-ico { position: absolute; right: 16px; top: 50%; z-index: 1; display: block; width: 58px; height: 58px; margin: 0; transform: translateY(-50%); color: rgba(240, 237, 228, 0.42); opacity: 0.9; }
+.lb-sfeer-groot { position: absolute; left: 12px; top: 50%; z-index: 1; max-width: calc(100% - 96px); overflow: hidden; transform: translateY(-50%); font: 46px "Bebas Neue", "Arial Narrow", Arial, sans-serif; line-height: 1; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(240, 237, 228, 0.20); white-space: nowrap; pointer-events: none; }
 .lb-sfeer-ico svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.35; stroke-linecap: round; stroke-linejoin: round; }
 .lb-sfeer-naam { position: absolute; left: 14px; bottom: 9px; z-index: 2; font: 15px "Arial Narrow", Arial, sans-serif; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(240, 237, 228, 0.92); text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7); }
 .lb-sfeer-vouw { position: absolute; right: 18px; bottom: -20px; z-index: 1; width: 54px; height: 54px; transform: rotate(45deg); border-radius: 3px; box-shadow: inset 0 0 0 1px rgba(240, 237, 228, 0.22), 0 2px 8px rgba(0, 0, 0, 0.22); pointer-events: none; }
 @media (max-height: 820px) {
   .lb-sfeer { min-height: 48px; }
   .lb-sfeer-ico { width: 42px; height: 42px; right: 12px; }
+  .lb-sfeer-groot { font-size: 30px; left: 10px; }
   .lb-sfeer-naam { font-size: 13px; bottom: 6px; }
   .lb-sfeer-vouw { width: 42px; height: 42px; bottom: -16px; }
 }
