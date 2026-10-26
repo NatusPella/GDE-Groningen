@@ -1,6 +1,7 @@
 // Samen spelen (#429, #434): een gast die hengelt is zichtbaar voor de anderen, een late gast krijgt de uitnodiging, twee gezochte spelers,
 // een gast met een wapen en het filmpje bij aansluiten (game/js/coopbezig.js, coopmeedoen.js, coopgezocht.js, coopbestuur.js, coopnet.js).
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import * as Z from '../game/js/coopbezig.js';
 import * as M from '../game/js/coopmeedoen.js';
 import * as G from '../game/js/coopgezocht.js';
@@ -39,6 +40,16 @@ t('bezigLijst: de figuur van de ander, niet je eigen, niet in een voertuig; heng
   const p = Z.eenvoudigePose('klepels', 0.3); assert.ok(p.links >= 0 && p.rechts >= 0 && (p.links === 0 || p.rechts === 0), 'om en om');
   assert.ok(Number.isFinite(Z.eenvoudigePose('hark', 4).hark), 'de hark haalt heen en weer');
   assert.ok(Number.isFinite(Z.eenvoudigePose('pan', 5).pan));
+});
+
+t('een lokale gastactiviteit hangt niet aan de missie of bijbaan van de host', () => {
+  const src = fs.readFileSync(new URL('../game/js/activities.js', import.meta.url), 'utf8');
+  const van = src.indexOf('export function tryActivityInteractGast');
+  const tot = src.indexOf('export function updateActivitiesWorld');
+  assert.ok(van > 0 && tot > van, 'de gastfunctie staat in activities.js');
+  const fn = src.slice(van, tot);
+  assert.ok(!/sideJob|mission|playerBusy/.test(fn), 'de gast kijkt niet naar de missie of bijbaan van de host');
+  assert.match(fn, /GAST_ACTIVITEITEN/);
 });
 
 // ---- over het net
