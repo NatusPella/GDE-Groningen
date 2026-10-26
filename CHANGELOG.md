@@ -7,6 +7,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Nieuw
+- **Openbare sessies zijn nu te doorzoeken.** In de lijst Openbare sessies kun je zoeken op naam, filteren op aansluitbaar, favorieten, vers, vrij of vol, en sorteren op spelers, naam of laatst gezien; elke regel toont hoe lang geleden de sessie zich meldde, je kunt meer dan twintig sessies laden en een ster zet een favoriet bovenaan. Alles blijft op je eigen apparaat; de speler die de sessie opende merkt er niets van.
 - **Het spel start meteen in je laatste savegame.** Het hoofdmenu met Alleen spelen en Samen spelen is weg; je laadt de savegame die je het laatst hebt opgeslagen, of je begint direct aan het verhaal. Een andere savegame laden en Samen spelen staan in het pauzemenu. Bij het laden van een andere savegame wordt je huidige voortgang eerst bewaard.
 - **De eerste start kiest zelf de grafische stand.** Een korte meting op het laadscherm kiest de best mogelijke stand voor je computer; met Esc of Spatie sla je de meting over.
 - **Over staat in het pauzemenu.** Nieuws, credits, versie en licenties staan nu onder Esc › Over, ook nu het hoofdmenu weg is.
