@@ -7,6 +7,7 @@ import { tryShopInteract } from './shops.js';
 import { tryMachineInteract } from './snackautomaat.js';
 import { tryHorecaInteract } from './horeca.js';
 import { gastGebruik, gastBus, gastTrein } from './coopnet.js';
+import { gastTreinTik } from './cooptrein.js';
 import { isShopOpen } from './shopui.js';
 import { gastKijkHoek, bezigEvent } from './coopgast.js';
 import { gastWapenTik } from './coopwapen.js';
@@ -40,6 +41,7 @@ export function updateGastLokaal(world, dt = 1 / 60) {
   const inTrein = !!(world.coopTrein && world.coopTrein.aan); // je rijdt mee in de trein van de gastheer (#492)
   if (input.wasPressed('o') && inTrein && !(world.coopHostMissie && world.coopHostMissie.actief)) { input.consume('o'); gastTrein(world, 'deur'); } // de deuren: de conducteur (#492)
   if (input.wasPressed('k') && inTrein) { input.consume('k'); gastTrein(world, 'waak'); } // de waakzaamheidsknop: de conducteur (#492)
+  if ((inTrein || world.trainWalk) && gastTreinTik(world, dt)) return true; // T: lopen door de trein, E: een kaartje controleren (#492)
   const bezig = updateActivitiesGast(dt, world); // hengelen, pannenkoeken bakken, de beiaard: op je eigen scherm (#429)
   meldBezig(world, bezig);
   if (bezig) return true;

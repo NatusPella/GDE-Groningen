@@ -60,7 +60,7 @@ import { maakPvp, wisselPassief, zetPassiefStand, verwijderSpeler, passiefEvent,
 import { pvpGastRaak, pvpDoodVerwerk, pvpArenaGastBericht, pvpArenaGastMelding, pvpArenaGastTik, pvpArenaAntwoord, pvpArenaReset } from './cooppvpwereld.js';
 import { busCoopActie, busCoopValideerE } from './coopbus.js';
 import { zetBestuurHaken, bestuurGebruik, bestuurTick, bestuurLos, bestuurAllesLos, bestuurt, trekGast } from './coopbestuur.js';
-import { treinGebruik, treinUit, treinTick, treinStop, treinVan, TREIN_TEKST } from './cooptrein.js'; // een gast als conducteur of passagier in de trein van de gastheer (#492)
+import { treinGebruik, treinUit, treinTick, treinStop, treinVan, gastTreinWeg, treinLoopPlek, treinLoopWeg, TREIN_TEKST } from './cooptrein.js'; // een gast als conducteur of passagier in de trein van de gastheer (#492)
 import { may as treinMay } from './treincoop.js'; // de conducteur bedient de deuren en de waakzaamheid (#492)
 import { nieuweDeelStaat, bezorgVraag, bezorgHost, bezorgWeg, bezorgAllesWeg } from './coopbezit.js'; // eigen voertuigen meenemen en delen (#449)
 import { lichaamVan, eersteGastPlek, startPlek, isKoploos } from './net/koploos.js'; // een gastheer zonder lokale speler (#450)
@@ -168,6 +168,14 @@ function hostTreinen() {
   return uit;
 }
 
+// De trein van de gastheer als route-index, zodat een gast hem in zijn eigen spoorwegen kan terugvinden (#492).
+function treinIdVan(world) {
+  const t = world && world.trainDriving;
+  if (!rails || !t || !t.route) return null;
+  const i = (rails.getRoutes ? rails.getRoutes() : []).indexOf(t.route);
+  return i >= 0 ? i : null;
+}
+
 // sim-adapter voor de host: plek 0 = world.player, plek 1 = world.companion, plek 2+ = figuren. Koploos (#450) heeft geen
 // speler en geen metgezel: dan is elke gast (plek 1 en hoger) een figuur en slaat de snapshot plek 0 over.
 export function hostSim(world, roster, opt = {}) {
@@ -238,7 +246,7 @@ function endCoop(world) {
   if (world.companion) world.companion.coopWacht = false;
   world.coopOpdrachtDoor = null; world.coopMeespelers = null; // (#452)
   world.coopMeld = null; world.coopDeel = null; world.coopBijbaanStart = null; world.coopBijbaanBeloning = null; world.coopBijbaanEind = null; world.coopBijbaanHostMee = null; world.coopHelpers = null; world.coopUitslag = null; world.coopPingMarks = []; world.coopSpelers = []; world.coopGebruik = false; world.coopWielSlot = null; world.coopWielVraag = null; world.coopWiel = false; world.coopInVoertuig = false; world.coopBestuurder = false; // (#291, #434)
-  world.coopTreinMeld = null; world.coopTrein = null; world.coopTreinDeur = false; world.coopTreinWaak = false; // de treinpassagier-haak, -stand en de deuren/waak van de conducteur horen bij de sessie (#492)
+  world.coopTreinMeld = null; world.coopTrein = null; world.coopTreinDeur = false; world.coopTreinWaak = false; world.coopTreinWalk = null; world.coopTreinWalkMeld = null; // de treinpassagier-haak, -stand, de deuren/waak en de looppositie van de conducteur horen bij de sessie (#492)
   world.coopVraag = null; world.coopStem = null; world.coopStemBeantwoord = null; // gezamenlijke keuzes (#452)
   world.coopBezit = null; world.coopBezitVraag = null; // eigen voertuigen meenemen en delen (#449)
   if (world.companion) { world.companion.coopUit = false; world.companion.coopBestuurt = false; world.companion.coopTrein = false; }
@@ -353,7 +361,7 @@ export function startHost(world, info, opts = {}) {
   // Iedereen die bij deze groep hoort (ook wie even neer is), voor de opdrachtstand en de doelen per groep (#452).
   world.coopGroepDeelnemers = (id) => { const n = world.coopNet; if (!n || n.role !== 'host') return []; return [0, ...meespelers(n.meedoen, id || undefined)]; };
   world.coopMeld = (slot, tekst) => hub.announce({ k: 'melding', tekst: String(tekst).slice(0, 90) }, slot); // een korte melding voor een gast (#291)
-  world.coopTreinMeld = (slot, aan, rol) => hub.announce({ k: 'trein', aan: !!aan, rol: rol || null }, slot); // een gast rijdt als passagier mee in de trein van de gastheer (#492)
+  world.coopTreinMeld = (slot, aan, rol) => hub.announce({ k: 'trein', aan: !!aan, rol: rol || null, id: aan ? treinIdVan(world) : null }, slot); // een gast rijdt als passagier mee in de trein van de gastheer (#492)
   world.coopPvp = maakPvp(); // iedereen begint op passief (#447)
   world.coopBezit = nieuweDeelStaat(); // eigen voertuigen die gasten meenemen en delen (#449)
   world.coopPvpSchade = (slot, schade, door) => hub.announce(pvpSchadeEvent(schade, door), slot); // schade van een medespeler aan een gast (#447)
@@ -414,6 +422,16 @@ export function startClient(world, transport, info, opts = {}) {
   world.coopRole = 'client';
   world.coopBezit = nieuweDeelStaat(); // de rechten van je eigen voertuigen in deze sessie (#449)
   world.coopNet = { role: 'client', wens, code, session, stash, fade, joined: false, fixed: false, route, info, klok: new KlokVolger(), desync: new DesyncMonitor(), lokaal: 0, tSpelers: 1 };
+  // de looppositie van de conducteur gaat met het bestaande trein-bericht naar de gastheer (#492): geen nieuw bericht
+  world.coopTreinWalkMeld = (w, walk) => {
+    try {
+      if (!walk) return session.sendEvent({ k: 'trein', a: 'walk', weg: 1 });
+      return session.sendEvent({
+        k: 'trein', a: 'walk', car: walk.car | 0,
+        lx: Math.round(walk.lx * 100) / 100, lz: Math.round(walk.lz * 100) / 100, yaw: Math.round(walk.yaw * 1000) / 1000,
+      });
+    } catch (e) { return false; }
+  };
   // de beloningen die al in zijn eigen save staan (#429): een bericht dat nog eens langskomt geeft nooit twee keer geld
   world.coopBoek = maakBoekhouding([...(world.coopBoek ? world.coopBoek.ids() : []), ...gastBoekIds()]);
   world.coopBezitVraag = (g) => bezorgVraag(world, g); // je eigen voertuig bij de gastheer laten bezorgen (#449, ownedvehicles.js)
@@ -1255,15 +1273,22 @@ export function handleEvent(world, body, van = 0) {
     case 'trein': { // #492: een gast rijdt als passagier of conducteur mee in de trein van de gastheer; de conducteur bedient O en K
       if (!n) return false;
       if (n.role === 'host') { // O (deuren) en K (waakzaamheid) van een gast: de host verwerkt ze in machinist.js en traindrive.js
-        if (van < 1 || (body.a !== 'deur' && body.a !== 'waak')) return false;
         const crew = (treinVan(world) || {}).crew;
         if (!crew) return false;
+        if (body.a === 'walk') { // de conducteur loopt door de wagen: zijn lichaam staat op de plek uit het bericht (#492)
+          if (!treinMay(crew, van, 'rondlopen')) return false;
+          if (body.weg) treinLoopWeg(world, van); else treinLoopPlek(world, van, body);
+          return true;
+        }
+        if (van < 1 || (body.a !== 'deur' && body.a !== 'waak')) return false;
         if (!treinMay(crew, van, body.a === 'deur' ? 'deuren' : 'waak')) { if (world.coopMeld) world.coopMeld(van, TREIN_TEKST.geenRol); return true; } // een passagier mag het niet
         if (body.a === 'deur') world.coopTreinDeur = true; else world.coopTreinWaak = true;
         return true;
       }
       if (n.role !== 'client') return false;
-      world.coopTrein = body.aan === true || body.aan === 1 ? { aan: true, rol: typeof body.rol === 'string' ? body.rol : 'passagier' } : null;
+      world.coopTrein = body.aan === true || body.aan === 1 ? { aan: true, rol: typeof body.rol === 'string' ? body.rol : 'passagier', treinId: Number.isInteger(body.id) ? body.id : null } : null;
+      if (!world.coopTrein) gastTreinWeg(world); // uitgestapt, weggevallen of de sessie stopt: geen walkstand en geen treincamera meer (#492)
+      else world.coopTreinTrein = null; // een nieuwe melding: de trein van de gastheer opnieuw opzoeken
       return true;
     }
     case 'cuttijd': { // de tijd van de gastheer in zijn scène: de gast loopt mee (coopcut.js cutGastTempo)
@@ -1472,7 +1497,7 @@ export function stopCoopNet(world) {
   if (n.stem) { const f = n.stem.nee; n.stem = null; if (f) { try { f(); } catch (e) { /* de vraag vervalt met de sessie */ } } } // een lopende stemming over een tijdsprong vervalt (#452)
   setGate(false); // zonder samen spelen is er geen wachtkamer meer
   if (n.role === 'host') treinStop(world); // de gasten in de trein van de gastheer (conducteur en passagiers) staan weer naast de wagen (#492)
-  else if (n.role === 'client') world.coopTrein = null; // je rijdt niet meer mee in de trein van de gastheer (#492)
+  else if (n.role === 'client') { world.coopTrein = null; gastTreinWeg(world); } // je rijdt niet meer mee in de trein van de gastheer (#492)
   if (!isKoploos(n)) verrekenEinde(world); // de laatste verrekening: de eigen save van host en gast, met de beloningen en hun ids (#448); een gastheer zonder speler bewaart niets (#450)
   if (world.coopCutBezig != null) cutGastStop(world, null, true); // een scène van de gastheer stopt met het samen spelen
   if (n.role === 'host') bezorgAllesWeg(world, (s) => bestuurLos(world, s)); // de eigen voertuigen van de gasten gaan mee terug (#449)

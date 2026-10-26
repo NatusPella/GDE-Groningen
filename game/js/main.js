@@ -10,6 +10,7 @@ import { setErrorContext } from './errorlog.js';
 import { DEV, STORY_TEST, FLAGS } from './devflags.js';
 import { bindCoop } from './coopglue.js';
 import { tickCoopNet, setCoopTreinen, coopWereldDoorloop } from './coopnet.js';
+import { zetTreinBron } from './cooptrein.js'; // de gast zoekt de trein van de gastheer op (#492)
 import { zetBestuurHaken } from './coopbestuur.js';
 import { zetDeelHaken } from './coopbezit.js';
 import { politieMetDoelwit } from './coopgezocht.js';
@@ -459,6 +460,7 @@ async function boot() {
   registreerHostBronnen(world); // tijdelijke rekwisieten en doelen voor de gasten (#452)
   initRailway(world);
   setCoopTreinen({ getTrains, getRoutes, routePoint, zetTreinVanHost, zetTreinenVanHost }); // samen spelen: de host stuurt zijn treinen (#428)
+  zetTreinBron(() => ({ treinen: getTrains(), routes: getRoutes() })); // de gast zoekt de trein van de gastheer op (#492)
   // samen spelen (#434): een gast stapt in en rijdt een vrij voertuig van de host met de besturing van player.js (coopbestuur.js)
   zetWapenHaken({ aanval: gastAanvalUitvoeren, landing: gastSlagLanding }); // een gast met een wapen: de host rekent zijn aanval uit (#434)
   zetGastWapenHaken({ effect: (w, key, p) => { const wp = WEAPONS[key]; if (!wp) return; setCombatEffect({ type: wp.kind === 'melee' ? 'melee' : 'muzzle', angle: p.angle, until: w.time + (wp.kind === 'melee' ? 0.15 : 0.06), start: w.time, side: 1, weapon: key, swing: wp.swing }); (w.audioEvents || (w.audioEvents = [])).length < 64 && w.audioEvents.push({ kind: 'weapon', sub: wp.kind === 'melee' ? 'swing' : 'shot', weapon: key, x: p.x, y: p.y }); }, geluid: (w, ev) => { (w.audioEvents || (w.audioEvents = [])).length < 64 && w.audioEvents.push(ev); } }); // het eigen beeld en geluid van de gast
