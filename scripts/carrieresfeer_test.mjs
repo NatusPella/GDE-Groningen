@@ -15,6 +15,7 @@ t('elk loopbaanvak heeft een eigen sfeer', () => {
     const s = S.sfeerVan(id);
     assert.ok(s.vorm, `geen sfeer voor ${id}`);
     assert.ok(s.naam && s.motief, `geen naam of motief voor ${id}`);
+    assert.notEqual(s.naam, L.vakInfo(id).naam, `de sfeer is meer dan de vaknaam (${id})`);
     assert.ok(S.sfeerStijl(id).includes('background-image:'), `geen patroon voor ${id}`);
   }
   assert.deepEqual([...S.SFEER_IDS].sort(), [...L.VAK_IDS].sort(), 'de sfeerlijst en de vakken lopen gelijk');
