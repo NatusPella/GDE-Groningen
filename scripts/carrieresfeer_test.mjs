@@ -55,7 +55,7 @@ t('de boerenzakdoek is geblokt cream/groen met een vouw', () => {
   assert.equal(s.vouw, true, 'de zakdoek heeft een gevouwen punt');
   const css = S.sfeerStijl('landbouw');
   assert.ok((css.match(/repeating-linear-gradient/g) || []).length >= 4, 'het geblokte patroon heeft horizontale en verticale draden');
-  assert.ok(css.includes('63, 201, 122') && css.includes('240, 237, 228'));
+  assert.ok(css.includes('30, 158, 86') && css.includes('240, 237, 228'));
 });
 
 t('de loopbaan-UI gebruikt de sfeer in de lijst en boven het vak', () => {

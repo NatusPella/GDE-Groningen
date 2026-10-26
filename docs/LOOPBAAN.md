@@ -10,6 +10,7 @@ functietitel van dat niveau en een balk naar het volgende. Rechts staat wat je i
 potjes, verschillende plekken), wat er nog nodig is voor de volgende titel en hoeveel meer het vak betaalt. Voor de vakken met
 bijbanen staan alle bijbanen eronder, met een vinkje voor wat je al gedaan hebt. Een niveau omhoog komt als een kaartje: *"Kaartjesknipper: Spoor niveau 3, 10% meer loon"*.
 Elk vak heeft een eigen sfeerpatroon in de lijst en boven zijn detail (`carrieresfeer.js`): cream en groen, nooit een tweede rood.
+De sfeernamen zijn droog en satirisch ("Altijd vertraging", "Loket gesloten", "Weer een laars"), met de vaknaam als watermerk.
 De boerenzakdoek bij Landbouw is daarom geblokt cream/groen met een gevouwen punt; rood blijft de gevarenkleur.
 
 | Groep | Vakken (titel op niveau 1 → 6, bijvoorbeeld bij Spoor: Perronstaander → Spoorbaas van het Noorden) |
