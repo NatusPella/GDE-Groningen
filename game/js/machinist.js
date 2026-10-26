@@ -5,6 +5,7 @@
 // and keys traindrive.js. Pays per halte plus a medal bonus (payFor).
 import { createBoard, mgThema, key } from './minigamekit.js';
 import { driveRange, routePoint, hijackTrain, blokseinenVoor } from './railway.js';
+import { dienstVoor, instapHalte, dienstTekst } from './dienstregeling.js'; // het rooster van de dienst (#492)
 import { loopbaanVerdien, loopbaanDeel } from './loopbaanlive.js';
 import { splitReward } from './treincoop.js'; // de crew van de trein en de beloning per lid (#492)
 import { registerMusicProbe } from './scenariomusic.js';
@@ -72,10 +73,19 @@ function begin(world, t) {
   const [lo, hi] = driveRange(t.route);
   // de blokseinen van deze route (#492): de machinist is de host, een gast ziet de trein via de snapshot
   const blok = blokseinenVoor(t);
+  // het rooster van vandaag (#492): de eerstvolgende dienst vanaf de halte waar je instapt. Zonder
+  // dienst (de dag is op) rekent startService zoals altijd vanaf het instapmoment.
+  const dag = world.calendar && Number.isFinite(world.calendar.day) ? world.calendar.day : 1;
+  const klok = (Number.isFinite(world.clock) ? ((world.clock % 24) + 24) % 24 : 0) * 3600;
+  const dienst = (cab) => {
+    const halte = instapHalte(t.route, t.c, cab);
+    return dienstVoor(t.route, cab, dag, klok, { vanaf: halte ? halte.name : null });
+  };
   const plan = (cab) => startService({
     stops: t.route.stops, c: t.c, dir: cab, vmax: t.cfg.vmax * LINE_SPEED_K, time: world.time,
     range: [lo + t.halfLen, hi - t.halfLen], storingen: true,
     blokken: blok ? blok.vakken : [], blokPunten: blok ? blok.punten : [],
+    dienst: dienst(cab),
   });
   svc = plan(t.cab);
   t.service = true; // een late gast mag niet meer instappen zolang de dienst loopt (#492)
@@ -98,7 +108,8 @@ function begin(world, t) {
   const vergeven = na !== world.wanted;
   if (vergeven) { world.wanted = na; world.wantedDecayTimer = 0; }
   world.trainSteal = 0;
-  world.addMessage(`Dienst: ${svc.plan.length} halten, eerst ${svc.plan[0].name}${vergeven ? '. Je staat als machinist genoteerd' : ''}`, 3.5);
+  const wat = svc.dienst ? `Dienst ${dienstTekst(svc.dienst)}: ${svc.plan.length} halten` : `Geen dienst meer vandaag: ${svc.plan.length} halten`;
+  world.addMessage(`${wat}, eerst ${svc.plan[0].name}${vergeven ? '. Je staat als machinist genoteerd' : ''}`, 3.5);
 }
 
 const STORING_MSG = {
@@ -203,7 +214,7 @@ export function updateMachinist(dt, world, t, cab) {
   board.set({
     row: `<b>${v.name}</b> &middot; remweg ${v.brakeM} m`,
     cells: v.cells,
-    extra: `<span>Reizigers <b>${v.reizigers}</b></span>${v.bloksein ? ` <span>Bloksein <b>${v.bloksein}</b></span>` : ''}${v.lastStop ? ` <span>${v.lastStop.name}: <b>${v.lastStop.alight}</b> uit, <b>${v.lastStop.board}</b> in</span>` : ''}`,
+    extra: `${svc.dienst ? `<span>${dienstTekst(svc.dienst)}</span> ` : ''}<span>Reizigers <b>${v.reizigers}</b></span>${v.bloksein ? ` <span>Bloksein <b>${v.bloksein}</b></span>` : ''}${v.lastStop ? ` <span>${v.lastStop.name}: <b>${v.lastStop.alight}</b> uit, <b>${v.lastStop.board}</b> in</span>` : ''}`,
     meter: { v: Math.min(1, v.brakeFrac), color: v.brakeFrac > 0.9 ? '#d94a3a' : v.brakeFrac > 0.7 ? '#e0a030' : '#46a35e' },
     flash: v.doors ? `Deuren open${v.lastStop ? `: ${v.lastStop.alight} uit, ${v.lastStop.board} in` : ''}` : v.tooFast ? 'Te hard: rem af' : (v.storing || v.flash),
     bad: v.tooFast || v.bad || !!v.storing,

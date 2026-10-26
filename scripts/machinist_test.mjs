@@ -312,6 +312,83 @@ function driveService(label, pilot, maxS = 1800) {
   t.c = bewaard;
 }
 
+// --- 9. het rooster (#492): de due-tijden komen uit de dienstregeling, niet uit het instapmoment
+{
+  const D = await import('../game/js/dienstregeling.js');
+  const rstops = [{ name: 'R0', s: 0 }, { name: 'R1', s: 6000 }, { name: 'R2', s: 12000 }];
+  const rlijn = { name: 'Stoptrein Roostertest', stops: rstops };
+  const dag = 4;
+  const d = D.dienstVoor(rlijn, 1, dag, 6 * 3600, { vanaf: 'R0' });
+  if (!d) fail('geen rooster-dienst voor de test');
+  else {
+    const t0 = D.roostertijdOp(d, 0, 1);
+    const traag = R.startService({ stops: rstops, c: 0, dir: 1, vmax: 1, time: 0, dienst: d });
+    const snel = R.startService({ stops: rstops, c: 0, dir: 1, vmax: 40, time: 0, dienst: d });
+    if (traag.plan.length !== 2) fail(`de rooster-dienst heeft ${traag.plan.length} halten voor de trein, niet 2`);
+    if (traag.dienst !== d) fail('de dienst bewaart het rooster niet');
+    if (Math.abs(traag.plan[0].due - (d.halten[1].aan - t0)) > 1e-6) fail(`de eerste due komt niet uit het rooster: ${traag.plan[0].due}`);
+    if (traag.plan[0].due !== snel.plan[0].due) fail('de due-tijd hangt aan de trein in plaats van aan het rooster');
+    if (Math.abs(snel.plan[1].due - (d.halten[2].aan - t0)) > 1e-6) fail('de tweede due komt niet uit het rooster');
+    if (Math.abs(traag.plan[1].due - traag.plan[0].due - (d.halten[2].aan - d.halten[1].aan)) > 1e-6) fail('de halten onderling volgen het rooster niet');
+    // het instapmoment verschuift de klok maar niet de onderlinge tijden
+    const laat = R.startService({ stops: rstops, c: 0, dir: 1, vmax: 30, time: 500, dienst: d });
+    if (Math.abs(laat.plan[0].due - 500 - traag.plan[0].due) > 1e-9) fail('de dienst verschuift niet mee met de klok');
+    // een halte buiten het berijdbare spoor valt af, net als zonder rooster
+    const kort = R.startService({ stops: rstops, c: 0, dir: 1, vmax: 30, time: 0, dienst: d, range: [0, 7000] });
+    if (kort.plan.length !== 1 || kort.plan[0].name !== 'R1') fail(`de halte buiten het spoor blijft in het rooster: ${kort.plan.map((p) => p.name)}`);
+    // zonder dienst rekent de dienst zoals altijd vanaf het instapmoment
+    const oud = R.startService({ stops: rstops, c: 0, dir: 1, vmax: 30, time: 0 });
+    if (Math.abs(oud.plan[0].due - R.runTime(6000, 30)) > 1e-9) fail(`de oude route rekent niet meer vanaf het instapmoment: ${oud.plan[0].due}`);
+    // een gewone stoptrein haalt de dienst uit het rooster (de halten en de deuren blijven werken)
+    {
+      const rit = R.startService({ stops: rstops, c: 0, dir: 1, vmax: 30, time: 0, dienst: d });
+      let c = 0, v = 0, time = 0;
+      for (let f = 0; f < 30 * 900 && !rit.finished; f++) {
+        time += dt;
+        const st = R.currentStop(rit);
+        const ctl = R.autopilot(rit, v, st.s - c);
+        if (R.doorsOpen(rit, time)) v = Math.max(0, v - 2.2 * dt);
+        else if (ctl.brake) v = Math.max(0, v - 2.2 * dt);
+        else if (ctl.throttle) v = Math.min(rit.vmax, v + 1.6 * dt);
+        else v = Math.max(0, v - 0.3 * dt);
+        c += v * dt;
+        R.stepService(rit, dt, { c, v, time, emergency: false });
+      }
+      if (!rit.finished || rit.result.made !== 2) fail(`de rooster-dienst eindigde niet met twee halten: ${rit.result && rit.result.made}/2`);
+      else for (const p of rit.plan) if (p.lateS > 60) fail(`${p.name}: ${p.lateS.toFixed(0)} s te laat op een rustige rit`);
+    }
+    // de klok van de dienst op de halte: de volgende dienst na een gemiste
+    const volgende = D.dienstVoor(rlijn, 1, dag, d.vertrek + 300, { vanaf: 'R0' });
+    if (!volgende || volgende.k <= d.k) fail('na een gemiste dienst is er geen volgende');
+    // de dag is op: zonder rooster blijft de oude route werken
+    const laatste = D.roosterVoor(rlijn, 1, dag).at(-1).halten[0].weg;
+    const nacht = D.dienstVoor(rlijn, 1, dag, laatste + 61, { vanaf: 'R0' });
+    if (nacht !== null) fail('na de laatste trein komt er nog een dienst');
+    const nachtSvc = R.startService({ stops: rstops, c: 0, dir: 1, vmax: 30, time: 0, dienst: nacht });
+    if (nachtSvc.finished || nachtSvc.plan.length !== 2 || nachtSvc.dienst !== null) fail('zonder rooster werkt de oude route niet');
+    // het bord van de machinist toont de dienst en start hem uit het rooster
+    const msrc2 = fs.readFileSync(new URL('../game/js/machinist.js', import.meta.url), 'utf8');
+    if (!/dienstTekst\(svc\.dienst\)/.test(msrc2)) fail('machinist.js toont de dienst niet op het bord');
+    if (!/dienstVoor\(t\.route/.test(msrc2) || !/instapHalte\(t\.route/.test(msrc2)) fail('machinist.js start geen dienst uit het rooster');
+    if (!/Dienst \$\{dienstTekst/.test(msrc2)) fail('machinist.js meldt de dienst niet bij G');
+  }
+  // de echte lijn: het rooster werkt ook met de halten buiten de kaart
+  {
+    const t = inRoute(route);
+    const eerste = route.stops.find((s) => !s.offmap);
+    const echt = D.dienstVoor(route, 1, 3, 9 * 3600, { vanaf: eerste.name });
+    if (!echt) fail('geen rooster-dienst op de echte lijn');
+    else {
+      const svc = R.startService({ stops: route.stops, c: eerste.s, dir: 1, vmax: t.cfg.vmax * 1.45, time: 0, dienst: echt, range: reach(t) });
+      if (!svc.plan.length) fail('de rooster-dienst op de echte lijn heeft geen halten');
+      if (svc.plan.some((p) => route.stops.find((s) => s.name === p.name && s.offmap))) fail('een halte buiten de kaart staat in de rooster-dienst');
+      const anker = D.roostertijdOp(echt, eerste.s, 1);
+      const want = echt.halten.find((h) => h.name === svc.plan[0].name);
+      if (Math.abs(svc.plan[0].due - (want.aan - anker)) > 1e-6) fail('de echte lijn rekent niet met de roostertijd');
+    }
+  }
+}
+
 ok_pay();
 function ok_pay() {
   if (R.payFor({ made: 4, score: 80, medal: 2 }) !== Math.round(4 * 16 + 40)) fail('payFor value');
