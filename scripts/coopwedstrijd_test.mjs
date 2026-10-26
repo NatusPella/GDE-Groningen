@@ -3,6 +3,7 @@
 //   node scripts/coopwedstrijd_test.mjs
 import * as W from '../game/js/coopwedstrijd.js';
 import { metGroepsbonus } from '../game/js/groepsbonus.js';
+import fs from 'node:fs';
 import * as S from '../game/js/coopwedstrijdscore.js';
 import * as P from '../game/js/coopwedstrijdpunt.js';
 import { bestInput, KART, LAPS } from '../game/js/kartrace.js';
@@ -875,6 +876,13 @@ const B = await import('../game/js/coopwedstrijdbaan.js');
   W.wedHostTik(p1.world, 0.6);
   const pb = W.leesWed(p1.log.filter(([, b]) => b.f === 'kijk').pop()[1]);
   check('het bord van de hengelwedstrijd toont de som in kg en de beurten', pb && pb.rijen[0][0] === '1. Tessa' && pb.rijen[0][1] === '1,2 kg, 1 van 2 beurten' && pb.rijen[1][1] === '0,9 kg, 1 van 2 beurten', JSON.stringify(pb && pb.rijen));
+}
+
+{
+  const src = fs.readFileSync(new URL('../game/js/klimtoren.js', import.meta.url), 'utf8');
+  const stand = src.indexOf('const stand =');
+  const row = src.indexOf('const row =');
+  check('klimtoren: de stand staat voor de row (geen TDZ)', stand > 0 && row > 0 && stand < row);
 }
 
 console.log(bad ? `${bad} van ${n} controles mislukt` : `ok: ${n} controles`);
