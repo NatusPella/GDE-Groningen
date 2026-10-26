@@ -305,7 +305,7 @@ t('krantenwijk: bij een baan zonder actie (taxi) doet E van een deelnemer niets 
 t('vracht: de regel noemt de bijrijder, E helpt; de gast is passagier in de leen-truck en blijft van het stuur af', () => {
   const r = B.BIJBAAN_REGELS.vracht;
   assert.equal(r.rol, 'bijrijder'); assert.equal(r.actie, true); assert.equal(r.positie, false, 'de bijrijder zit in de truck, zijn plek telt niet apart mee');
-  assert.match(r.hulp, /leen-truck/); assert.match(r.hulp, /laden en lossen/);
+  assert.match(r.hulp, /truck van de chauffeur/); assert.match(r.hulp, /laden en lossen/);
   assert.equal(B.bijbaanMetCoop('vracht'), true);
   // de leen-truck van de baan is een missionCar (sidejobkit.js): een gast bestuurt hem niet, maar meerijden als passagier mag al
   // (companion.js coopGastGebruik kent geen missionCar-weigering), dus coopbestuur.js blijft zoals het is.
@@ -321,7 +321,7 @@ t('vracht: de host start, de gast krijgt Meedoen?, doet mee met J, helpt met E l
   s.lopers.start('vracht'); s.step(1);
   assert.equal(B.bijbaanKaartModel(a).titel, 'Meedoen?', 'de uitnodiging noemt de bijrijder: ' + JSON.stringify(B.bijbaanKaartModel(a)));
   assert.match(B.bijbaanKaartModel(a).regels[0], /Jij bent bijrijder/);
-  assert.match(B.bijbaanKaartModel(a).regels[0], /leen-truck/);
+  assert.match(B.bijbaanKaartModel(a).regels[0], /truck van de chauffeur/);
   druk(a, 'j'); druk(b, 'n'); s.step(1);
   assert.ok(tekstIn(a, /Je doet mee met Hunze Vrachtvervoer/));
   assert.equal(b.coopBijbaanGast.deelt, false, 'wie nee zei doet niet mee');

@@ -68,6 +68,7 @@ import { VEHICLE_STOCK } from './shopdata.js';
 
 import { HERO_REPLACE_FEE } from './economy.js';
 import { getHomeForRender, getHomeMooringForRender, getHomePad, homeWhereLabel } from './home.js';
+import { eigenTruckHook, isVrachtTruck } from './vrachtkosten.js';
 const DELIVERY_COOLDOWN = 30;
 const HELI_FERRY_FEE = 60;
 const NEAR_M = 200;
@@ -788,6 +789,50 @@ function homeSpot(world, kind) {
   const p = kind === 'heli' ? getHomePad() : getHomeMooringForRender(world)[0];
   return p ? { x: p.x, y: p.y } : {};
 }
+
+// --- vrachtbijbaan (#492) -------------------------------------------------------
+
+// De eigen vrachtwagen van de speler: een gekochte truck (model 'truck', dus de
+// bakwagen, de sjouwer of de tankwagen) die niet is afgeschreven. De eerste uit de
+// garage; staat er al een in de wereld, dan gaat die voor. Rijdt er iemand in, dan
+// blijft hij waar hij is en zoekt de baan een andere truck of de leen-truck.
+export function eigenVrachtTruck(world) {
+  if (!world || !Array.isArray(world.vehicles)) return null;
+  const inGebruik = world.player && world.player.inVehicle;
+  let leeg = null;
+  for (const o of getOwnedEntries()) {
+    if (!o || o.lost || !o.spec || o.spec.kind !== 'car' || !isVrachtTruck(o.spec.model)) continue;
+    const v = o.v;
+    if (v) {
+      // kapot of bezet: die truck leent de baan niet (en wordt niet stiekem gemaakt)
+      if (v.wrecked || v.disabled || v.sinking || v.driver || v.passenger || v === inGebruik) continue;
+      if (world.vehicles.includes(v)) return { entry: o, v };
+      if (!leeg) leeg = { entry: o, v: null }; // thuis gestald: de baan zet hem neer
+      continue;
+    }
+    if (!leeg) leeg = { entry: o, v: null };
+  }
+  return leeg;
+}
+
+// Zet de eigen truck op de plek waar anders de leen-truck staat: een bestaand
+// exemplaar schuift erheen (deuken, kleur en onderdelen blijven), een truck die in
+// de garage staat wordt daar neergezet (spawnOwnedEntry, shops.js). Null als de
+// speler geen geschikte truck heeft; de baan pakt dan de leen-truck.
+export function eigenVrachtTruckBij(world, x, y, angle) {
+  if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(angle)) return null;
+  const e = eigenVrachtTruck(world);
+  if (!e) return null;
+  if (e.v) {
+    parkAt(world, e.v, { x, y, angle });
+    return e.v;
+  }
+  return spawnOwnedEntry(world, e.entry, x, y, angle);
+}
+
+// De vrachtbijbaan (sidejob_vracht.js) leent de eigen truck via deze haak; een
+// vaste import zou een kring maken (ownedvehicles -> shops -> sidejobs -> vracht).
+eigenTruckHook.haal = (world, x, y, angle) => eigenVrachtTruckBij(world, x, y, angle);
 
 export function locateOwnedVehicle(world, id) {
   const e = getGarageList(world).find((x) => x.id === id);

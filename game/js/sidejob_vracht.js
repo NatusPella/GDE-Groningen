@@ -2,6 +2,9 @@
 // onder een oplegger koppelen, dan laden, de lading rustig naar de klant brengen en
 // daar lossen: geen inklappers, geen harde klappen. De scharnierlogica staat in
 // semitrailer.js, het contract (type, tarief, laad- en lostijd) in vrachtmarkt.js.
+// Rijd je met je eigen truck (ownedvehicles.js), dan kost de rit brandstof, tol en
+// onderhoud (vrachtkosten.js); anders staat de leen-truck klaar. De dienst draait
+// altijd op de wereld van de host: een gast rijdt nooit de truck van een ander.
 
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import {
@@ -9,6 +12,8 @@ import {
 } from './sidejobkit.js';
 import { newTrailer, couple, uncouple, stepTrailer, fifthWheel, loadedHandling, koppelHulp } from './semitrailer.js';
 import { maakAanbod, contractLoon, laadTijd, losTijd, helpLaadTijd, HELP_STAP_S } from './vrachtmarkt.js';
+import { ritKosten, eigenTruckHook } from './vrachtkosten.js';
+import { noteMoney } from './finance.js';
 
 const TRACTOR = { name: 'truck', len: 6.6, wid: 2.5, maxSpeed: 24, accel: 3.6, brake: 12, turnRate: 1.5, color: '#2f5c8a' };
 const KP_BACK = 1.6;
@@ -59,6 +64,19 @@ function clearTrailer(c) {
   d.tr = null;
 }
 
+// De rit kost brandstof, tol en onderhoud (#492). Dat gaat via de bestaande
+// finance-haak (noteMoney + world.money), niet met een eigen kasboek. Heb je te
+// weinig geld, dan kost de rit niet meer dan je hebt.
+function betaalRitkosten(world, kosten) {
+  const te = Math.max(0, Math.round(kosten.totaal));
+  const betaald = Math.min(te, Math.max(0, Math.floor(world.money || 0)));
+  if (betaald > 0) {
+    noteMoney('Overige uitgaven');
+    world.money -= betaald;
+  }
+  return betaald;
+}
+
 // De bijrijder kan alleen helpen als de trekker stilstaat en er nog iets te laden of te lossen is;
 // bij het lossen moet hij ook bij de afnemer staan. Dezelfde regel voor de E-poort en de actie.
 function kanHelpen(c) {
@@ -94,10 +112,23 @@ export default {
     const rp = c.world.map.nearestRoadPoint(c.spot.x, c.spot.y, 80, true);
     if (!rp) return 'Geen plek voor de trekker';
     const at = pointAlongRoad(rp.road, rp, 12);
-    const v = spawnJobVehicle(c.world, at.x, at.y, { model: TRACTOR });
+    // Eigen truck (#492): heb je een geschikte vrachtwagen, dan rijdt de baan
+    // daarmee; anders staat de leen-truck klaar. De oplegger, het koppelen en de
+    // rest van de rit blijven precies hetzelfde (semitrailer.js). De garage zet de
+    // eigen truck op de plek van de leen-truck (ownedvehicles.js, via de haak).
+    const kerb = Math.max(0, (rp.road.width || 6) / 2 - TRACTOR.wid / 2 - 0.3);
+    const px = at.x - Math.sin(at.angle) * kerb, py = at.y + Math.cos(at.angle) * kerb;
+    const [qx, qy] = c.world.map.escapeBuilding(px, py, TRACTOR.wid * 0.6);
+    let eigen = null;
+    try { eigen = eigenTruckHook.haal(c.world, qx, qy, at.angle); } catch (e) { console.error(e); }
+    const v = eigen || spawnJobVehicle(c.world, at.x, at.y, { model: TRACTOR });
     if (!v) return 'Geen trekker beschikbaar';
     c.vehicle = v;
-    c.data.base = { maxSpeed: v.model.maxSpeed, accel: v.model.accel, brake: v.model.brake, turnRate: v.model.turnRate };
+    c.ownVehicle = !!eigen;
+    if (eigen) c.vehicleWord = 'je eigen truck';
+    if (!v._vrachtBase) v._vrachtBase = { maxSpeed: v.model.maxSpeed, accel: v.model.accel, brake: v.model.brake, turnRate: v.model.turnRate };
+    Object.assign(v.model, v._vrachtBase); // een eerdere rit met oplegger mag de eigen truck niet traag achterlaten (#492)
+    c.data.base = { ...v._vrachtBase };
     return true;
   },
 
@@ -115,6 +146,15 @@ export default {
     // aanbiedingen van de markt neemt de rit er per ronde een, zodat elk type langskomt.
     const markt = maakAanbod((c.round + 1) * 7919 + Math.round(dist), dist / 1000, c.level);
     const contract = markt[c.round % markt.length];
+    // Elke rit kost geld (#492): brandstof, tol en een APK/onderhoudsdeel. De kosten
+    // gaan meteen van je geld af via de finance-haak; het loon komt pas bij het lossen
+    // binnen (c.complete), dus bruto min kosten is wat je aan de rit overhoudt.
+    const bruto = contractLoon(contract);
+    const kosten = ritKosten(dist / 1000, !!c.ownVehicle);
+    d.kosten = kosten;
+    const betaald = betaalRitkosten(c.world, kosten);
+    const verwacht = c.pay ? c.pay(bruto) : bruto;
+    const netto = Math.max(0, verwacht - kosten.totaal);
     // Oplegger achter de trekker, dezelfde koers: eerst achteruit koppelen.
     const fw = fifthWheel(v, KP_BACK);
     const gap = 8;
@@ -140,6 +180,7 @@ export default {
     // laaddeur of de losplaats nooit de reden is dat de klus mislukt.
     c.timeLeft = 90 + (d.dist * 1.7) / 10 + d.loadLeft + d.losLeft;
     c.msg(`Klus: ${contract.vracht} naar ${contract.klant}. ${contract.naam}, €${contract.tariefPerKm} per km. Rij achteruit onder de oplegger.`, 4.5);
+    c.msg(`Ritkosten €${kosten.totaal}: brandstof €${kosten.brandstof}, tol €${kosten.tol}, ${c.ownVehicle ? 'APK en onderhoud' : 'onderhoud leen-truck'} €${kosten.onderhoud}. Van €${verwacht} bruto blijft ongeveer €${netto} over (excl. fooi)${betaald < kosten.totaal ? ` (je kon maar €${betaald} betalen)` : ''}.`, 5.5);
   },
 
   timeout: (c) => {
@@ -278,5 +319,8 @@ export default {
     return { help, marker: { x: d.dest.x, y: d.dest.y }, progress: `Rit ${c.streak + 1} · ${d.contract.naam} · €${d.contract.tariefPerKm} per km`, goal: { label: `Naar ${d.contract.klant}`, desc: `${d.dest.street} · ${d.contract.vracht}. Geen inklappers!` } };
   },
 
-  stop(c) { clearTrailer(c); },
+  stop(c) {
+    if (c.vehicle && c.data.base) Object.assign(c.vehicle.model, c.data.base); // de eigen truck houdt zijn eigen prestaties (#492)
+    clearTrailer(c);
+  },
 };
