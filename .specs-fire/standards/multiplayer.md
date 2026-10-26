@@ -31,6 +31,11 @@ verhaal en bezit; elke nieuwe functie krijgt een regel over Samen spelen.
   maar **een groep ontstaat pas bij de start van een activiteit**: zonder activiteit of
   zonder deelnemer maakt de host geen groep, en na afloop verdwijnt ze. De host simuleert,
   maar is inhoudelijk niet de leider. De doelen gaan per slot naar de eigen groep.
+- Een gast die een eigen activiteit doet (hengelen, pannenkoeken bakken, de beiaard, boeren)
+  is een **groep van één** met hem als leider (`bezig|<plek>|<activiteit>`). Die groep staat
+  naast een missiegroep van de host en verdwijnt als hij stopt. Twee door de host
+  gesimuleerde missies of bijbanen naast elkaar kunnen nog niet: dat vraagt een keten of
+  ctx per groep (open, #492).
 - **Meedoen?**: J of N, 10 s, **geen antwoord is nee** (toeschouwer); verplicht bij
   `presence 'beide'`/`needsTwo`; een spoilerwaarschuwing vraagt een eigen J; geen
   late instap bij race, kluisklus of timer (een J later dan 15 s telt niet).
