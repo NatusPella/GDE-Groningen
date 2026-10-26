@@ -48,14 +48,14 @@ const cellsOf = (x0, y0, x1, y1) => {
   for (let i = Math.floor(x0 / CELL); i <= Math.floor(x1 / CELL); i++) for (let j = Math.floor(y0 / CELL); j <= Math.floor(y1 / CELL); j++) o.push(i + ',' + j);
   return o;
 };
-const dseg = (x, y, a, b) => {
-  const dx = b[0] - a[0], dy = b[1] - a[1], L2 = dx * dx + dy * dy || 1e-9;
-  const t = Math.max(0, Math.min(1, ((x - a[0]) * dx + (y - a[1]) * dy) / L2));
-  return Math.hypot(a[0] + dx * t - x, a[1] + dy * t - y);
-};
 
 // Raster van de rijbanen op maaiveld (autowegen, geen brug of tunnel); de functie geeft voor (x, y)
-// { m, r }: de afstand tot de rand van de dichtstbijzijnde rijbaan (negatief: erop), of null.
+// { m, r }: de afstand tot de rand van de dichtstbijzijnde rijbaan (negatief: erop), of null. Een weg met een
+// hoogteprofiel telt mee zolang hij op de plek zelf op maaiveld ligt: een dek van een viaduct of brug is niet de
+// weg waar een boom naast staat (dezelfde regel als treeclear.js en tilegreenery.js, #508).
+// Dezelfde grens als treeclear.js en tilegreenery.js: tot hier ligt een weg nog op maaiveld.
+const HOOG_MAAIVELD = 0.5;
+const zAt = (r, i, t) => (!r.z || r.z.length < i + 2 ? 0 : r.z[i] + (r.z[i + 1] - r.z[i]) * t);
 export function wegRaster(roads) {
   const grid = new Map();
   for (const r of roads) {
@@ -63,16 +63,38 @@ export function wegRaster(roads) {
     const hw = (r.width || 5) / 2;
     for (let i = 0; i + 1 < r.pts.length; i++) {
       const a = r.pts[i], b = r.pts[i + 1];
-      const seg = { a, b, hw, r };
+      const seg = { a, b, hw, r, i };
       for (const c of cellsOf(Math.min(a[0], b[0]) - hw - 1, Math.min(a[1], b[1]) - hw - 1, Math.max(a[0], b[0]) + hw + 1, Math.max(a[1], b[1]) + hw + 1)) (grid.get(c) || grid.set(c, []).get(c)).push(seg);
     }
   }
   return (x, y) => {
     let best = null;
     for (const s of grid.get(Math.floor(x / CELL) + ',' + Math.floor(y / CELL)) || []) {
-      const m = dseg(x, y, s.a, s.b) - s.hw;
+      const dx = s.b[0] - s.a[0], dy = s.b[1] - s.a[1], L2 = dx * dx + dy * dy || 1e-9;
+      const t = Math.max(0, Math.min(1, ((x - s.a[0]) * dx + (y - s.a[1]) * dy) / L2));
+      if (zAt(s.r, s.i, t) > HOOG_MAAIVELD) continue; // een dek boven de boom
+      const m = Math.hypot(s.a[0] + dx * t - x, s.a[1] + dy * t - y) - s.hw;
       if (!best || m < best.m) best = { m, r: s.r };
     }
     return best;
   };
+}
+
+// De kaart die de groenopruiming van het spel nodig heeft (tilegreenery.js): roadsNear, buildingsNear en
+// waterNear over alle rijen van de wereld. Zo meet een audit met dezelfde regel als waar het spel mee tekent.
+export async function greeneryMap(rows) {
+  const { SpatialGrid } = await import('../../game/js/spatialgrid.js');
+  const boundsOf = (pts) => {
+    let a = Infinity, b = Infinity, c = -Infinity, d = -Infinity;
+    for (const p of pts) { if (p[0] < a) a = p[0]; if (p[1] < b) b = p[1]; if (p[0] > c) c = p[0]; if (p[1] > d) d = p[1]; }
+    return [a, b, c, d];
+  };
+  const grid = (list) => {
+    const g = new SpatialGrid(64);
+    for (const r of list) if (r.pts && r.pts.length > 1) { if (!r.bounds) r.bounds = boundsOf(r.pts); g.insert(r, r.bounds); }
+    return g;
+  };
+  const roads = grid(rows.roads), buildings = grid(rows.buildings), water = grid(rows.water);
+  const near = (g) => (x, y, rad) => g.query(x - rad, y - rad, x + rad, y + rad);
+  return { roadsNear: near(roads), buildingsNear: near(buildings), waterNear: near(water), meta: {} };
 }
