@@ -60,6 +60,7 @@ import {
 } from './routing.js';
 import { KEYS } from './storagekeys.js';
 import { grijsBijPassief } from './cooppvp.js';
+import { hoofdspeler } from './players.js';
 import { gastDoelen } from './coopextra.js';
 import { samenWaarschuwing } from './coopstatus.js';
 import { warnsOn, riskWhy } from './muggingrules.js';
@@ -362,7 +363,8 @@ function saveFog() {
 
 function updateFog(world) {
   const f = state.fog;
-  const cx = Math.floor((world.player.x - f.minx) / FOG_CELL), cy = Math.floor((world.player.y - f.miny) / FOG_CELL);
+  const ik = hoofdspeler(world);
+  const cx = Math.floor((ik.x - f.minx) / FOG_CELL), cy = Math.floor((ik.y - f.miny) / FOG_CELL);
   const key = cy * f.w + cx;
   if (key !== f.cell) {
     f.cell = key;
@@ -1260,8 +1262,9 @@ function drawDynamicMarkers(ctx, world) {
   }
 
   // de hint bij je eigen plek (#445): waar je staat, ook als je even niet weet waar je bent
-  const hier = plekHier(world.player);
-  icon(null, 'player', world.player.x, world.player.y, 'Jij', { angle: world.player.angle }, hier ? `Je staat hier · ${hier}` : 'Je staat hier', { self: true, hier });
+  const ik = hoofdspeler(world);
+  const hier = plekHier(ik);
+  icon(null, 'player', ik.x, ik.y, 'Jij', { angle: ik.angle }, hier ? `Je staat hier · ${hier}` : 'Je staat hier', { self: true, hier });
   // medespelers (samen spelen, #95): eigen kleur en vorm, naam en status bij de aanwijzer
   for (const p of world.coopPartners || []) if (p.zichtbaar) icon(null, 'partner', p.x, p.y, p.naam, { angle: p.heading, kleur: grijsBijPassief(world.coopPvp, p.slot) ? INK.passiefGrijs : p.kleur, vorm: p.vorm }, p.tekst + (grijsBijPassief(world.coopPvp, p.slot) ? ' · passief' : '')); // passief is grijs zodra er PvP in het spel is (#447)
   for (const m of world.coopPingMarks || []) icon(null, 'partner', m.x, m.y, m.naam ? `${m.naam}: ${m.tekst}` : m.tekst, { angle: 0, kleur: m.kleur, vorm: m.vorm }, 'roep');
@@ -1290,11 +1293,12 @@ function drawDynamicMarkers(ctx, world) {
 // points straight at the destination instead.
 function drawFullRoute(ctx, world, t, route) {
   if (!route) return;
+  const ik = hoofdspeler(world);
   const color = ROUTE_COLORS[route.kind] || ROUTE_COLORS.user;
   const width = Math.max(4, Math.min(9, 3 + state.zoom * 0.7)) * (route === getActiveRoute() ? 1 : 0.8);
   const ahead = getRouteAhead(Infinity, route);
   if (ahead && ahead.length > 1) {
-    const pts = [[world.player.x, world.player.y], ...ahead].map(([x, y]) => toScreen(x, y));
+    const pts = [[ik.x, ik.y], ...ahead].map(([x, y]) => toScreen(x, y));
     drawRoadRoute(ctx, pts, color, width);
     ctx.save();
     ctx.beginPath();
@@ -1312,7 +1316,7 @@ function drawFullRoute(ctx, world, t, route) {
   }
   const tg = route.target;
   if (!tg) return;
-  const [ax, ay] = toScreen(world.player.x, world.player.y);
+  const [ax, ay] = toScreen(ik.x, ik.y);
   const [bx, by] = toScreen(tg.x, tg.y);
   ctx.save();
   ctx.beginPath();
@@ -1686,7 +1690,8 @@ function showCard(world, h, sx, sy) {
     return;
   }
   const goal = getGoal();
-  const d = Math.hypot(h.x - world.player.x, h.y - world.player.y);
+  const ik = hoofdspeler(world);
+  const d = Math.hypot(h.x - ik.x, h.y - ik.y);
   const pips = it && it.medal != null ? `<span class="mv-pips">${[1, 2, 3].map((m) => `<span class="mv-pip" data-m="${m}"${it.medal >= m ? ' data-on' : ''} title="${MEDALS[m]}">${'BZG'[m - 1]}</span>`).join('')}</span>` : '';
   const meta = [it ? it.meta : h.sub, formatDistance(d), h.isGoal ? 'jouw waypoint' : ''].filter(Boolean).map(escHtml).join(' · ');
   // de actiebalk (#445): Zet waypoint / Reis erheen / Info, met reizen als eigen uitgelegde stap
@@ -1695,7 +1700,7 @@ function showCard(world, h, sx, sy) {
   const gast = world.coopRole === 'client' && !!world.coopNet;
   const opts = reisOptiesVoor(world, { x: h.x, y: h.y });
   const verhaal = !!(h.story && goal);
-  const model = actieModel({ spot: { x: h.x, y: h.y, name: h.name }, speler: world.player, waypoint: h.isGoal ? { x: h.x, y: h.y } : getUserWaypoint(), opts, fmt: formatDistance, gast, verhaal });
+  const model = actieModel({ spot: { x: h.x, y: h.y, name: h.name }, speler: ik, waypoint: h.isGoal ? { x: h.x, y: h.y } : getUserWaypoint(), opts, fmt: formatDistance, gast, verhaal });
   let stapHtml = '';
   state.reis = null;
   let gekozen = null;
@@ -1852,7 +1857,7 @@ function handleKeys(dt, world) {
     state.cy += py * speed;
     updateTransform();
   }
-  if (input.wasPressed(' ')) centreOn(world.player.x, world.player.y, 3);
+  if (input.wasPressed(' ')) { const ik = hoofdspeler(world); centreOn(ik.x, ik.y, 3); }
 }
 
 // --- lifecycle --------------------------------------------------------------
@@ -2248,7 +2253,7 @@ export function initMapView(world) {
       const on = !getRoutePrefs().avoidMotorways;
       setRoutePrefs({ avoidMotorways: on });
       btn.setAttribute('aria-pressed', String(on));
-    } else if (act === 'centre') centreOn(world.player.x, world.player.y, 3);
+    } else if (act === 'centre') { const ik = hoofdspeler(world); centreOn(ik.x, ik.y, 3); }
     else if (act === 'layers') toggleLegend();
     else if (act === 'close') { if (closeHandler) closeHandler(); else closeMap(); } // no Esc on a touchscreen
     else if (act === 'clear') clearUserWaypoint();
@@ -2445,7 +2450,8 @@ export function setMapActive(world, on) {
   if (on) {
     openMap(world);
     if (!state.legendGezien) { state.legendGezien = true; toggleLegend(true); } // legenda en filters staan de eerste keer open: ze zaten achter de knop Lagen (#435)
-    centreOn(world.player.x, world.player.y, 2);
+    const ik = hoofdspeler(world);
+    centreOn(ik.x, ik.y, 2);
     state.canvas.focus({ preventScroll: true });
   } else closeMap();
 }

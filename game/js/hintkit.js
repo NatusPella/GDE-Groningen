@@ -6,6 +6,7 @@
 //
 // A card body may hold key tokens ({E}, {ESC}, ...): contexthints.js turns them
 // into the player's own (rebound) key or the controller button.
+import { hoofdspeler } from './players.js';
 
 // ms after the start of play in which no context hint appears: the first goal comes first
 export const CALM_UNTIL = 600;
@@ -63,7 +64,7 @@ export const HINTS = [
 
 // What is going on now, from the world, as plain data (world-free for tests).
 export function situation(w) {
-  const pl = (w && w.player) || {};
+  const pl = hoofdspeler(w) || {};
   return {
     vehicle: vehicleKind(pl.inVehicle),
     minigame: (w && w.activityGame) || null,
