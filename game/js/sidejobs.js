@@ -25,6 +25,7 @@ import { recordStat, setStatMax, recordUnique, unlockAchievement } from './achie
 import { dist, isInWater } from './util.js';
 import { releaseVehicle, removeVehicle, removePed, euro } from './sidejobkit.js';
 import { jobVoiceFor, sayJobLine, sayDuoJobLine } from './sidejobvoice.js';
+import { metGroepsbonus } from './groepsbonus.js';
 import bezorger from './sidejob_bezorger.js';
 import krantenwijk from './sidejob_krantenwijk.js';
 import taxi from './sidejob_taxi.js';
@@ -336,15 +337,17 @@ function completeRound(c, res = {}) {
   const base = Math.max(0, res.base || 0);
   const pay = payFor(c, base);
   const tip = Math.max(0, Math.round(res.tip || 0));
-  const total = pay + tip;
+  const aantal = world.coopBijbaanAantal ? world.coopBijbaanAantal() : 1; // 1+1=3 (#492)
+  const total = metGroepsbonus(pay + tip, aantal);
   const vak = vakVanBaan(c.job.id);
   const xp = 8 + (res.flawless === false ? 0 : 2) + Math.max(0, Math.round(res.xp || 0)); // res.xp: extra loopbaanpunten (bus, #444)
   const hostMee = world.coopBijbaanHostMee ? world.coopBijbaanHostMee() !== false : true; // samen spelen (#452): wie N zei op Meedoen? krijgt geen loon en geen loopbaanpunten
   if (hostMee) { noteMoney('Bijbaantjes'); world.money += total; }
   // samen spelen: een baan met samen-regels (coopbijbaan.js) betaalt elke meespeler het volle bedrag (#452); een andere baan deelt zoals eerst (#365).
-  // De gast verdient volgens zijn eigen niveau (#381): hij krijgt de basis en past zijn eigen loonfactor toe.
-  const gedeeld = world.coopBijbaanBeloning ? world.coopBijbaanBeloning(c.job.id, basisFor(c, base) + tip, vak, xp, c.round) : false;
-  if (!gedeeld && world.coopDeel) world.coopDeel(total, Array.isArray(res.coopSlots) ? { ...loopbaanDeel(vak, basisFor(c, base) + tip, xp), slots: res.coopSlots } : loopbaanDeel(vak, basisFor(c, base) + tip, xp));
+  // De gast verdient volgens zijn eigen niveau (#381): hij krijgt de basis en past zijn eigen loonfactor toe. De groepsbonus zit in de basis.
+  const deelBasis = metGroepsbonus(basisFor(c, base) + tip, aantal);
+  const gedeeld = world.coopBijbaanBeloning ? world.coopBijbaanBeloning(c.job.id, deelBasis, vak, xp, c.round) : false;
+  if (!gedeeld && world.coopDeel) world.coopDeel(total, Array.isArray(res.coopSlots) ? { ...loopbaanDeel(vak, deelBasis, xp), slots: res.coopSlots } : loopbaanDeel(vak, deelBasis, xp));
   if (hostMee) loopbaanTel(world, vak, { n: 1, xp, uniek: c.job.id });
   c.earned += total;
   c.streak++;
@@ -363,6 +366,7 @@ function completeRound(c, res = {}) {
   const after = jobLevel(c.job.id);
   const bits = [`+${euro(total)}`];
   if (tip) bits.push(`fooi ${euro(tip)}`);
+  if (aantal > 1 && total > pay + tip) bits.push(`groepsbonus x${(total / Math.max(1, pay + tip)).toFixed(1).replace('.', ',')}`);
   bits.push(`reeks ${c.streak}`);
   world.addMessage(`${res.text ? res.text + ' ' : ''}${bits.join(' · ')}`, 3.6);
   if (after > before) sayJobLine(c.job, 'level');

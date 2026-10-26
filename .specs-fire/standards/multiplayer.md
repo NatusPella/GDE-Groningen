@@ -41,6 +41,9 @@ verhaal en bezit; elke nieuwe functie krijgt een regel over Samen spelen.
   late instap bij race, kluisklus of timer (een J later dan 15 s telt niet).
 - Meedoen geeft de volledige beloning en de eigen verhaalstap; nee of wegvallen
   geeft niets.
+- **1+1=3** (ADR 0016): elke extra deelnemer geeft elk lid 50% meer loon, tot 3× per
+  persoon; daarboven groeit alleen het totaal. Het aantal spelers is niet cap-based
+  begrensd; de host en de verbinding bepalen de praktische grens. Solo blijft factor 1.
 
 ## Overdracht
 

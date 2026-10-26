@@ -55,7 +55,7 @@ import { getSettings } from './settings.js';
 import { profielNaam, profielKleur } from './lobby.js';
 import { wedHostTik, wedHandleGast, wedHandleHost, wedGastReset, zetWedHaken } from './coopwedstrijd.js';
 import { wedKaartTik } from './coopwedstrijd3d.js';
-import { bijbaanStart, bijbaanBeloning, bijbaanEind, bijbaanHelpers, bijbaanHostTik, bijbaanGastTik, bijbaanGastReset, bijbaanHandleGast, bijbaanHandleHost, bijbaanVoorNieuwe, bijbaanWeg, bijbaanHostMee, zetBijbaanHaken } from './coopbijbaan.js';
+import { bijbaanStart, bijbaanBeloning, bijbaanEind, bijbaanHelpers, bijbaanHostTik, bijbaanGastTik, bijbaanGastReset, bijbaanHandleGast, bijbaanHandleHost, bijbaanVoorNieuwe, bijbaanWeg, bijbaanHostMee, bijbaanAantal, zetBijbaanHaken } from './coopbijbaan.js';
 import { maakPvp, wisselPassief, zetPassiefStand, verwijderSpeler, passiefEvent, passiefVanEvent, leesPassief, leesPassiefVan, pvpSchadeEvent, isPassief, PVP_TEKST } from './cooppvp.js'; // passieve stand en spelers tegen elkaar (#447)
 import { pvpGastRaak, pvpDoodVerwerk, pvpArenaGastBericht, pvpArenaGastMelding, pvpArenaGastTik, pvpArenaAntwoord, pvpArenaReset } from './cooppvpwereld.js';
 import { busCoopActie, busCoopValideerE } from './coopbus.js';
@@ -355,6 +355,7 @@ export function startHost(world, info, opts = {}) {
   world.coopBijbaanBeloning = (id, basis, vak, xp, ronde) => bijbaanBeloning(world, id, basis, vak, xp, ronde);
   world.coopBijbaanEind = (kind) => bijbaanEind(world, kind);
   world.coopBijbaanHostMee = () => bijbaanHostMee(world); // doet de host mee met deze baan? Zo niet, geen loon voor hem (#452)
+  world.coopBijbaanAantal = () => bijbaanAantal(world); // met hoeveel spelers loopt de baan? Voor de groepsbonus (#492)
   world.coopHelpers = () => bijbaanHelpers(world); // waar de meespelers staan, voor ophalen en afgeven te voet
   world.coopVraag = (soort, tekst, naAkkoord, naNee) => stemStart(world, soort, tekst, naAkkoord, naNee); // een tijdsprong vraagt akkoord van alle anderen (#452)
   world.coopSchade = (slot, schade, soort = null) => hub.announce({ k: 'schade', n: Math.round(Number(schade) || 0), ...(soort === 'trein' ? { z: 'trein' } : {}) }, slot); // een kogel van de politie of een trein raakt een gast (#434)

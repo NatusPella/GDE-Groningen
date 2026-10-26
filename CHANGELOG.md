@@ -22,6 +22,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Melee-blok.** Met een slagwapen blokkeer je met rechts: maximaal twee seconden, daarna een korte herstelperiode; een opgevangen slag doet een vijfde schade, kogels gaan erdoor.
 - **Samen: leider en groepen zichtbaar.** De spelerslijst toont wie een opdracht leidt, en de kaart/minimap toont de eigen groep vol en andere groepen gedempt.
 - **Samen: een eigen activiteit is een groep.** Een gast die hengelt, pannenkoeken bakt, de beiaard speelt of boert staat als eigen groep van één in de spelerslijst; de groep verdwijnt als hij stopt of aan een missie meedoet.
+- **1+1=3: meer spelers, meer loon.** Elk extra groepslid geeft iedereen 50% meer loon, tot 3× per persoon; daarboven groeit alleen het totaal. Solo blijft hetzelfde, en de eigen loopbaanfactor komt er nog overheen.
 - **Lopen en kaartjes controleren in de trein.** De conducteur loopt met T door de wagen, ziet het interieur en de reizigers, en controleert met E kaartjes voor eigen loon en punten.
 - **Eigen truck en ritkosten.** Rijd je vrachtrit met je eigen truck, dan betaal je per rit brandstof, tol en onderhoud; het nettoloon staat in de melding.
 - **Teeltplan per perceel en uien.** Elk perceel houdt zijn eigen volgende gewas; uien komen er als vijfde gewas bij.

@@ -26,6 +26,7 @@ import { maakScore, meldBaan, verlaatScore, tikScore, uitslagScore, beloningScor
 import { maakTijd, meldTijd, verlaatTijd, tikTijd, uitslagTijd, beloningTijd, standTijd, standEventTijd, volgordeTijd } from './coopwedstrijdtijd.js';
 import { maakPunt, meldPunt, verlaatPunt, tikPunt, uitslagPunt, beloningPunt, standPunt, standEventPunt, volgordePunt, puntTekst, MAX_BEURTEN_PUNT, MAX_PUNT } from './coopwedstrijdpunt.js';
 import { maakBaan, meldBaan as meldBaanVoortgang, verlaatBaan, tikBaan, uitslagBaan, beloningBaan, standBaan, standEventBaan, volgordeBaan, MAX_CP_BAAN } from './coopwedstrijdbaan.js';
+import { metGroepsbonus } from './groepsbonus.js';
 
 export const MAX_RIJDERS = 4;       // karts op de grid: mensen en AI samen
 export const UITNODIGING_S = 10;    // seconden om J of N te zeggen
@@ -620,12 +621,13 @@ export function wedHostEind(world, r, { gestopt = false } = {}) {
   W.r = null;
   if (gestopt) { for (const k of r.karts) if (k.mens && k.slot > 0 && !k.weg) n.hub.announce(eindEvent([], null, true), k.slot); return null; }
   const rijen = eindstand(r);
+  const aantal = W.deeln && W.deeln.length ? W.deeln.length : r.karts.filter((k) => k.mens).length;
   W.laatste = { id: W.id, slots: r.karts.filter((k) => k.mens).map((k) => k.slot), hostloos: !!W.hostloos };
   W.opnieuw = {};
   let jij = null;
   for (const rij of rijen) {
     if (rij.ai) continue;
-    const b = beloning(rij), mijn = { plek: rij.plek, geld: b.geld, xp: b.xp, fin: rij.fin ? 1 : 0, weg: rij.weg ? 1 : 0 };
+    const b0 = beloning(rij), b = { ...b0, geld: metGroepsbonus(b0.geld, aantal) }, mijn = { plek: rij.plek, geld: b.geld, xp: b.xp, fin: rij.fin ? 1 : 0, weg: rij.weg ? 1 : 0 };
     if (rij.slot === 0) { jij = mijn; continue; }
     if (rij.weg) continue; // wie wegviel is er niet meer
     n.hub.announce(eindEvent(rijen, mijn), rij.slot);
@@ -659,11 +661,12 @@ function scoreEind(world, n, W, gestopt) {
   for (const d of sc.deeln) if (d.slot > 0 && !sc.baan) { const l = lichaamVan(world, d.slot); if (l) { l.coopWedstrijd = false; zetBijUitgang(l, sc, d.slot); } }
   if (gestopt) { for (const d of sc.deeln) if (d.slot > 0 && !sc.weg[d.slot]) n.hub.announce(eindEvent([], null, true), d.slot); kijkNaar(world, W, [[sc.baan ? 'De race is gestopt' : 'De wedstrijd is gestopt', '']], true); if (regel && regel.eind && (!sc.achtergrond || sc.baan)) regel.eind(world, null); return null; }
   const rijen = K.uitslag(sc).map((r) => ({ tijd: null, beste: null, ...r }));
+  const aantal = sc.deeln.length;
   W.laatste = { id: sc.id, slots: sc.deeln.map((d) => d.slot), hostloos: !!W.hostloos };
   W.opnieuw = {};
   let jij = null;
   for (const rij of rijen) {
-    const b = K.beloning(rij), mijn = { plek: rij.plek, geld: b.geld, xp: b.xp, fin: rij.fin ? 1 : 0, weg: rij.weg ? 1 : 0 };
+    const b0 = K.beloning(rij), b = { ...b0, geld: metGroepsbonus(b0.geld, aantal) }, mijn = { plek: rij.plek, geld: b.geld, xp: b.xp, fin: rij.fin ? 1 : 0, weg: rij.weg ? 1 : 0 };
     if (rij.slot === 0) { jij = mijn; continue; }
     if (rij.weg) continue;
     n.hub.announce(eindEvent(rijen, mijn), rij.slot);
@@ -700,11 +703,12 @@ export function wedHostLiveEind(world, sim, { gestopt = false } = {}) {
   W.lv = null;
   if (gestopt) { for (const d of W.deeln) if (d.slot > 0 && L.meedoen(sim, d.slot)) n.hub.announce(eindEvent([], null, true), d.slot); return null; }
   const rijen = L.uitslag(sim);
+  const aantal = W.deeln.length;
   W.laatste = { id: W.id, slots: W.deeln.map((d) => d.slot), hostloos: !!W.hostloos };
   W.opnieuw = {};
   let jij = null;
   for (const rij of rijen) {
-    const b = L.beloning(rij), mijn = { plek: rij.plek, geld: b.geld, xp: b.xp, fin: rij.fin ? 1 : 0, weg: rij.weg ? 1 : 0 };
+    const b0 = L.beloning(rij), b = { ...b0, geld: metGroepsbonus(b0.geld, aantal) }, mijn = { plek: rij.plek, geld: b.geld, xp: b.xp, fin: rij.fin ? 1 : 0, weg: rij.weg ? 1 : 0 };
     if (rij.slot === 0) { jij = mijn; continue; }
     if (rij.weg) continue; // wie wegviel is er niet meer
     n.hub.announce(eindEvent(rijen, mijn), rij.slot);

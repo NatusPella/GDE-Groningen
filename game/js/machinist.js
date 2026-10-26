@@ -7,6 +7,7 @@ import { createBoard, mgThema, key } from './minigamekit.js';
 import { driveRange, routePoint, hijackTrain, blokseinenVoor } from './railway.js';
 import { dienstVoor, instapHalte, dienstTekst } from './dienstregeling.js'; // het rooster van de dienst (#492)
 import { loopbaanVerdien, loopbaanDeel } from './loopbaanlive.js';
+import { metGroepsbonus } from './groepsbonus.js';
 import { splitReward } from './treincoop.js'; // de crew van de trein en de beloning per lid (#492)
 import { registerMusicProbe } from './scenariomusic.js';
 import { pushAudioEvent } from './pedgeom.js';
@@ -134,10 +135,12 @@ function deuren(world, t) {
 // passagiers) krijgt het volle bedrag en de XP in zijn eigen geld en loopbaan. Eén coopDeel per dienst, met de slots uit
 // treincoop.splitReward zonder de gastheer; wie niet in de crew zit krijgt niets. Geeft het bedrag van de gastheer.
 export function dienstBeloning(world, pay, xp = 0) {
-  const betaald = loopbaanVerdien(world, 'trein', pay, { xp, n: 0, uniek: pay > 0 ? 'machinist' : null, deel: false });
   const crew = world && world.trainDriving && world.trainDriving.crew;
   const slots = crew ? Object.keys(splitReward(crew, pay)).map(Number).filter((s) => s !== 0) : [];
-  if (betaald > 0 && slots.length && world.coopDeel) world.coopDeel(betaald, { ...loopbaanDeel('trein', pay, xp), slots });
+  const aantal = 1 + slots.length; // de machinist + de crew (#492)
+  const payBonus = metGroepsbonus(pay, aantal); // 1+1=3: meer crew, meer loon per persoon
+  const betaald = loopbaanVerdien(world, 'trein', payBonus, { xp, n: 0, uniek: pay > 0 ? 'machinist' : null, deel: false });
+  if (betaald > 0 && slots.length && world.coopDeel) world.coopDeel(betaald, { ...loopbaanDeel('trein', payBonus, xp), slots });
   return betaald;
 }
 

@@ -44,6 +44,7 @@ import {
 import { spawnFjordTrain, fjordLoadPoint, fjordCrossing, loadFjord, loadFjordNow, updateFjordTrain, sendFjordTrainAway, catchFjordTrainNow, disposeFjordTrain, fjordTrainState } from './fjordtrain.js';
 import { addDrunk } from './drunk.js';
 import { klusloon, medalBonus } from './economy.js';
+import { metGroepsbonus } from './groepsbonus.js';
 import { startStunt, updateStunt, stopStunt, stuntStatus } from './stuntavond.js';
 import { storyLines, talkLines, storyDataReady, readingTime } from './storytext.js';
 import { playTalk, stopTalk } from './storytalk.js';
@@ -1475,7 +1476,13 @@ function succeed(world, def) {
   const tip =def.type === 'boat' ? rondvaartTip() : 0;
   const adj = rewardAdjust(def, base);
   const cons = consequenceAdjust(def);
-  const reward = Math.max(0, base + tip + adj.amount + cons.amount);
+  const rewardRuw = Math.max(0, base + tip + adj.amount + cons.amount);
+  // 1+1=3 (#492): de groep groeit, iedereen verdient meer. De gastheer telt mee als hij
+  // zelf meespeelde; keek hij toe, dan telt alleen het aantal gasten.
+  const deeln = world.coopGroepDeelnemers ? world.coopGroepDeelnemers(world.mission.id) : [0];
+  const aantal = deeln.filter((s) => s !== 0).length + (mee ? 1 : 0);
+  const reward = metGroepsbonus(rewardRuw, aantal);
+  const bonus = reward - rewardRuw;
   const reason = def.type === 'boat' ? rondvaartOutro() : def.outro || def.label;
   if (mee) { noteMoney('Missies'); world.money += reward; }
   if (world.coopDeel) world.coopDeel(reward); // samen spelen (#365): de meespelende gasten krijgen hun deel, ook als de gastheer toekijkt
@@ -1483,6 +1490,7 @@ function succeed(world, def) {
   if (mee) {
     world.stats.missionsDone++;
     world.addMessage(`${def.label} geklaard! ${replay ? 'Klusloon ' : ''}+€${base}${tip ? ` en €${tip} fooi` : ''}${adj.text}${cons.text}`, 4);
+    if (bonus > 0) world.addMessage(`Groepsbonus: +€${bonus} (${aantal} spelers)`, 3);
     const stats = runStats(world, def);
     // what the mission cost on the way (Het Loket: the entry fee), so the card is honest about a reward of 0
     if (def.costRow && !replay) stats.push(def.costRow);
