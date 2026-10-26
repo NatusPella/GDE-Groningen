@@ -17,6 +17,7 @@ import { carPoint, trainLayout, walkMove, canStand, passengers, WALK_SPEED } fro
 import { beginControle, controleer, reset } from './treincontrole.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
 import { isInWater } from './util.js';
+import { hoofdspeler } from './spelersregister.js';
 
 export const TREIN_INSTAP_M = 7;   // m: van het lichaam tot de zijkant van een wagen
 export const TREIN_STIL_V = 0.5;   // m/s: harder dan dit stapt niemand in of uit (zoals DOOR_STAND_V in traindrive.js)
@@ -188,7 +189,7 @@ function loopGast(dt, world, t, walk, input) {
   const co = Math.cos(walk.yaw), si = Math.sin(walk.yaw);
   walkMove(layout, walk, (co * fwd - si * str) * sp, (si * fwd + co * str) * sp);
   // het eigen lichaam staat op de vloer van de wagen, zodat de camera en de trein op dezelfde plek blijven
-  const car = t.cars[walk.car], at = carPoint(car, walk.lx, walk.lz), p = world.player;
+  const car = t.cars[walk.car], at = carPoint(car, walk.lx, walk.lz), p = hoofdspeler(world);
   if (p && !p.inVehicle) {
     p.x = at.x; p.y = at.y; p.angle = (car.angle || 0) + walk.yaw;
     p.vx = 0; p.vy = 0; p.z = 0; p.vz = 0; p.gz = car.z || 0;
