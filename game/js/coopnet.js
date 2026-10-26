@@ -23,7 +23,7 @@ import { gateOn, setGate, hekBericht } from './coopgate.js';
 import { WIEL_TEKST, WIEL_HOST_TEKST, WIEL_VERZOEK_S, kanUitstappen } from './coopgast.js';
 import { nieuwCutVerzamelaar, cutGastSpeel, cutGastStop, leesCutTijd, cutSpoor } from './coopcut.js';
 import { verzamelExtra, codeerExtra, leesExtra, nieuwGeheugen, nieuweStand, pasExtraToe, doelenVan } from './coopextra.js';
-import { maakGroepen, begin as groepBegin, beeindig as groepBeeindig, ruimOp as groepRuimOp, groepen as groepLijst, doelenVoor as groepDoelenVoor } from './coopmissie.js';
+import { maakGroepen, begin as groepBegin, zetStand as groepZet, beeindig as groepBeeindig, ruimOp as groepRuimOp, groepen as groepLijst, doelenVoor as groepDoelenVoor } from './coopmissie.js';
 import { wapenCode, aanvalCode, volgendeStoel, stapSprong, BUK_TEMPO } from './coopspeler.js';
 import { getCombatEffect } from './combateffect.js';
 import { wapenVan, wapenVerwerk, wapenWeg, wapenAllesWeg, wapenTick, gastWapenWeg } from './coopwapen.js';
@@ -371,6 +371,23 @@ export function startHost(world, info, opts = {}) {
   world.coopGepakt = (slot, level) => gastGepakt(world, slot, level);
   world.coopNet = { role: 'host', hub, fade, route, removing: {}, info, koploos, sessieId: maakSessieId(), tKlok: 0, tHash: 0, tWeer: 0, tSpelers: 1, hashN: 0, scene, tScene: 0, filmpjeT: 0, sceneNu: null, meedoen: maakMeedoen(), foci: maakRegister(), groepen: maakGroepen(), groepId: null };
   world.coopGroepen = world.coopNet.groepen; // de opdrachtstand per groep (#452), ook voor de tests en de kaart
+  // Een groep kan ook buiten de missie bestaan: iedereen mag een activiteit starten en is dan de leider van die groep.
+  // De host blijft de wereld simuleren; dit is alleen de groepsboekhouding en de per-slot doelen (#492).
+  world.coopGroepStart = (g = {}) => {
+    if (!g || typeof g.id !== 'string' || !g.id) return null;
+    return groepBegin(world.coopNet.groepen, {
+      id: g.id, label: g.label, index: g.index, stap: g.stap, doelen: g.doelen,
+      deelnemers: g.deelnemers, lateInstap: g.lateInstap, leider: g.leider,
+    }, now(world));
+  };
+  world.coopGroepZet = (id, g = {}) => groepZet(world.coopNet.groepen, id, {
+    index: g.index, stap: g.stap, doelen: g.doelen, lateInstap: g.lateInstap,
+  }, now(world));
+  world.coopGroepEind = (id) => {
+    const ok = groepBeeindig(world.coopNet.groepen, id);
+    if (ok && world.coopNet.groepId === id) world.coopNet.groepId = null;
+    return ok;
+  };
   return hub;
 }
 
