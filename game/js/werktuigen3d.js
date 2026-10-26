@@ -22,7 +22,7 @@ function wiel(g, x, y, z, r, br) {
 
 // Breedte en lengte (m) per type, voor de plek op het erf en de koppeling.
 export const AFMETING = { ploeg: [2.0, 2.2], cultivator: [3.0, 1.8], zaaimachine: [3.0, 1.8], mestverspreider: [2.4, 3.0], spuit: [5.0, 1.8], maaier: [3.2, 1.6], aanhanger: [2.3, 4.6] };
-export const GEWAS_KLEUR = { aardappelen: 0xb99b5a, bieten: 0x8d4a52, graan: 0xd9b84a, gras: 0x6fb04a };
+export const GEWAS_KLEUR = { aardappelen: 0xb99b5a, bieten: 0x8d4a52, graan: 0xd9b84a, gras: 0x6fb04a, uien: 0xc9a24f };
 
 export function bouwWerktuig(type) {
   const g = new THREE.Group();

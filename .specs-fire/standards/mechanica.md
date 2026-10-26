@@ -89,10 +89,11 @@ groei (max 1,8)` (`:123`), uitbetaald via `loopbaanVerdien` met `deel: false`
 **Doel.** Eén akker bij Hoogkerk in vaste stappen: ploegen, zaaien, bemesten, groeien, oogsten,
 afleveren.
 
-**Regels.** Vier gewassen met eigen zaaigoed, groeitijd, opbrengst en een basisprijs per kg
+**Regels.** Vijf gewassen met eigen zaaigoed, groeitijd, opbrengst en een basisprijs per kg
 (`game/js/boerderij.js:21`); de verkoopprijs per gewas is een dagprijs uit `game/js/gewasmarkt.js`
 (binnen twintig procent van de basis, dag nul is de basis, per speler uit zijn eigen `b.uren`), en
-`leverVracht` verkoopt daartegen. Een speldag is 24 minuten (`game/js/daynight.js:12`). Groei telt in
+`leverVracht` verkoopt daartegen. Elk perceel heeft een eigen teeltplan (`b.plan`); oude opslag
+met alleen `keuze` migreert naar het actieve perceel. Een speldag is 24 minuten (`game/js/daynight.js:12`). Groei telt in
 speluren uit `world.clock` (`game/js/boerderijlive.js:72`). Machines huur je per keer of koop je
 (`:34`); een ronde levert ongeveer €300 tot €350 winst op, en de verkoop loopt via
 `loopbaanVerdien`. Opslag `gde-boerderij-v1` (`storagekeys.js:81`). Samen spelen: een gast werkt op

@@ -5,7 +5,7 @@
 // De basisprijzen staan hier en boerderij.js neemt ze over in GEWASSEN.prijsKg, zodat er één bron is. Het import gaat die
 // kant op en niet terug (boerderij.js importeert dit bestand), want een cyclus in de importgrafiek is verboden
 // (scripts/import_cycles_test.mjs).
-export const PRIJS_KG = { aardappelen: 0.22, bieten: 0.10, graan: 0.15, gras: 0.07 };
+export const PRIJS_KG = { aardappelen: 0.22, bieten: 0.10, graan: 0.15, gras: 0.07, uien: 0.16 };
 
 export const MAX_SCHOM = 0.2;      // de dagprijs blijft binnen twintig procent van de basisprijs
 export const MIN_PRIJS = 0.01;     // nooit gratis of negatief
