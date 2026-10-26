@@ -687,6 +687,11 @@ async function cityCoverOf() {
   // De stadse rails komen sinds #90 uit de OSM-laag en niet meer uit stad.json: zonder deze regel kreeg
   // railLines (cityroutes.mjs) een lege lijst en werd het spoor van de provincie nergens op de stadse
   // track geknipt, zodat het in en om de stad dubbel werd getekend (#506).
+  //
+  // Let op: dit vraagt de OSM-lagen van de stad (loadCityDataLaag), en die komen alleen binnen de stage
+  // tot stand, waar de stad al gebouwd is en de cache warm is. Draai je build_province.mjs los met een
+  // koude stadscache, dan blijft hij hier wachten zonder foutmelding (exit 13). Draai dus via
+  // `npm run stage`, of eerst pack_tiles (zie #511).
   const stad = await P.loadCityDataLaag();
   return { ...cityCoverFromMask(mask), rails: (stad.data.rails || []).map((r) => r.pts || r) };
 }
