@@ -14,9 +14,13 @@ de staat, zonder al een tweede missieketen te bouwen.
 - `coopmissie.js` kent per groep een `leider`: de starter bij `beginVerzoek`, anders de
   eerste deelnemer. `leiderVan` en `isLeider` zijn pure helpers; `zichtbaar` geeft de
   leider mee.
-- `coopnet.js` krijgt op de host `coopGroepStart`, `coopGroepZet` en `coopGroepEind`,
-  waarmee een groep buiten `world.mission` kan bestaan. De missiegroep (`werkGroepenBij`)
-  raakt geen andere groep; een tweede groep houdt stap, doelen, deelnemers en leider.
+- `coopnet.js` krijgt op de host `coopGroepStart`, `coopGroepZet` en `coopGroepEind`.
+  **Een groep ontstaat pas bij de start van een activiteit**: `coopGroepStart` eist een
+  `activiteit` en minstens één deelnemer, maakt dan de groep met de starter als leider,
+  en `coopGroepEind` (of het einde van de activiteit) haalt hem weer weg. Er is geen
+  groep zonder activiteit en geen leider die blijft bestaan als de activiteit stopt.
+  De missiegroep (`werkGroepenBij`) raakt geen andere groep; een tweede groep houdt stap,
+  doelen, deelnemers en leider zolang zijn activiteit loopt.
 - De bestaande per-slot levering van doelen (`hostSim.extra`) blijft werken; een test
   bewijst dat twee groepen elk hun eigen doel houden.
 - Geen nieuwe opslag, geen protocolbump, geen wijziging aan `world.mission` of de
