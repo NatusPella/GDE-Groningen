@@ -64,6 +64,7 @@ t('de loopbaan-UI gebruikt de sfeer in de lijst en boven het vak', () => {
   assert.match(ui, /lb-sfeer-strip/);
   assert.match(ui, /sfeerHtml\(id\)/);
   assert.match(ui, /lb-sfeer-ico/);
+  assert.match(ui, /lb-sfeer-groot/);
   assert.match(ui, /\.lb-sfeer \{/);
   assert.match(ui, /\.lb-sfeer-vouw \{/);
 });
