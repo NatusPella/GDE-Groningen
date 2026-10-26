@@ -3,6 +3,7 @@
 // timetable, the speed boards, the platform stop and the score. No THREE, no
 // DOM, so scripts/machinist_test.mjs can drive it headless.
 import { medalFrom, clamp } from './minigamekit.js';
+import { seinBeeld, seinRood } from './blokseinen.js';
 
 // railway.js DRIVE_BRAKE: the service brake the plan counts on
 export const BRAKE = 2.2;
@@ -81,7 +82,7 @@ export function upcomingStops(stops, c, dir, range) {
 }
 
 // A service: the timetable from the moment the player takes the train.
-export function startService({ stops, c, dir, vmax, time, limit = 6, range, storingen = false }) {
+export function startService({ stops, c, dir, vmax, time, limit = 6, range, storingen = false, blokken = [], blokPunten = [] }) {
   const ahead = upcomingStops(stops, c, dir, range).slice(0, limit);
   let at = time, prev = c;
   const plan = ahead.map((st) => {
@@ -99,6 +100,8 @@ export function startService({ stops, c, dir, vmax, time, limit = 6, range, stor
     reizigers: 0, totaal: 0, kaart: 0,
     // dienstregeling, storingen en veiligheid (#444): een rood sein of een overweg op een lange etappe
     storingen: storingen ? planStoringen(plan, c, dir) : [], faults: [], safetyPen: 0, deadman: 0, holdUntil: 0, opened: 0, sein: null,
+    // blokseinen (#492): de baanvakken van de route en het laatst geziene seinbeeld
+    blokken, blokPunten, blokLaatst: null, blokBestraft: new Set(),
   };
 }
 
@@ -189,12 +192,19 @@ export function stepService(svc, dt, s) {
   const st = svc.plan[svc.i];
   svc.lastC = s.c;
   const toStop = (st.s - s.c) * svc.dir;
+  const nose = s.nose != null ? s.nose : s.c;
   let lim = speedLimit(svc.vmax, toStop);
   svc.sein = null;
   if (svc.storingen.length) {
-    const r = stepStoringen(svc, { nose: s.nose != null ? s.nose : s.c, v: s.v, time: s.time, dt }, ev);
+    const r = stepStoringen(svc, { nose, v: s.v, time: s.time, dt }, ev);
     lim = Math.min(lim, r.limit);
     svc.sein = r.sein;
+  }
+  // de echte blokseinen (#492): rood zolang een andere trein het vak voor je bezet
+  if (svc.blokken.length) {
+    const r = stepBlokseinen(svc, { nose, time: s.time, treinen: s.treinen }, ev);
+    lim = Math.min(lim, r.limit);
+    if (r.sein) svc.sein = r.sein;
   }
   svc.limit = lim;
   svc.toStop = toStop;
@@ -338,6 +348,35 @@ function stepStoringen(svc, s, ev) {
   return { limit, sein: text };
 }
 
+// De echte blokseinen (#492): het eerstvolgende sein voor de neus is rood zolang een andere
+// trein in het vak erachter staat (blokseinen.js). Rood begrenst de snelheid als de gescripte
+// sein-storing en het voorbijrijden is dezelfde veiligheidsfout; is het vak vrij, dan springt
+// het sein op groen. s = { nose, time, treinen }.
+function stepBlokseinen(svc, s, ev) {
+  const beeld = seinBeeld({ vakken: svc.blokken, punten: svc.blokPunten, treinen: s.treinen || [], c: s.nose, dir: svc.dir });
+  const vorig = svc.blokLaatst;
+  // een rood sein dat je voorbij reed: dezelfde fout als bij de gescripte storing. Per sein
+  // hooguit één keer, en het beeld op het moment van passeren telt (niet dat van de vorige frame).
+  if (vorig && vorig.sein != null && (vorig.sein - s.nose) * svc.dir < 0) {
+    const bestraft = svc.blokBestraft || (svc.blokBestraft = new Set());
+    if (!bestraft.has(vorig.sein) && seinRood({ vakken: svc.blokken, punten: svc.blokPunten, treinen: s.treinen || [], sein: vorig.sein, dir: svc.dir })) {
+      bestraft.add(vorig.sein);
+      addFault(svc, 'sein-genegeerd', SEIN_PEN, s.time, ev, 'Sein op rood genegeerd');
+    }
+  }
+  svc.blokLaatst = beeld.sein == null ? null : { sein: beeld.sein, rood: beeld.rood };
+  if (beeld.sein == null) return { limit: Infinity, sein: null };
+  if (!beeld.rood) {
+    if (vorig && vorig.rood && vorig.sein === beeld.sein) ev.push({ kind: 'sein-groen' });
+    return { limit: Infinity, sein: null };
+  }
+  if (!vorig || !vorig.rood || vorig.sein !== beeld.sein) ev.push({ kind: 'sein-rood' });
+  return {
+    limit: Math.sqrt(2 * BRAKE * Math.max(0, beeld.afstand - 12)),
+    sein: `Bloksein op rood, over ${Math.max(0, Math.round(beeld.afstand))} m: stop ervoor`,
+  };
+}
+
 // De waakzaamheidsrem (treincabine.js) heeft ingegrepen: dat is een veiligheidsfout.
 export function deadmanFault(svc, time) {
   if (svc.finished) return;
@@ -388,6 +427,8 @@ export function boardView(svc, s) {
     flash: s.time < svc.flashUntil ? svc.flash : '', bad: svc.flashBad,
     dueIn: Math.round(st.due - s.time), depIn: open && svc.served ? Math.max(0, Math.round(svc.served.dep - s.time)) : null,
     storing: svc.sein, faults: svc.faults.length, vmaxKmh: kmh(svc.vmax), stopIndex: svc.i, stopCount: svc.plan.length,
+    // het bloksein (#492): rood of groen, voor het bord van de machinist
+    bloksein: svc.blokLaatst ? (svc.blokLaatst.rood ? 'rood' : 'groen') : null,
     // de reizigers (#492): wie er nu meerijdt en wat er op de vorige halte in- en uitstapte
     reizigers: svc.reizigers || 0, kaart: svc.kaart || 0,
     lastStop: served ? { name: served.name, alight: served.alight, board: served.board } : null,

@@ -249,6 +249,69 @@ function driveService(label, pilot, maxS = 1800) {
   if (bv.reizigers !== klein.reizigers || !(bv.reizigers > 0)) fail('het bord telt de reizigers niet');
 }
 
+// --- 8. blokseinen (#492): een trein in het vak voor je geeft rood op het bord
+{
+  const BS = await import('../game/js/blokseinen.js');
+  const kstops = [{ name: 'K0', s: 0 }, { name: 'K1', s: 3000 }, { name: 'K2', s: 6000 }];
+  const kvakken = BS.baanvakken(kstops, 6000);
+  const kpunten = kvakken.map((b) => BS.vakPunten(b, (at) => [at, 0]));
+  // de trein staat op 1400; het volgende sein is 1500 en bewaakt het vak 1500..2250
+  const blokker = { cars: [{ x: 1600, y: 0, angle: 0, len: 20 }] };
+  const start = () => R.startService({ stops: kstops, c: 1400, dir: 1, vmax: 30, time: 0, blokken: kvakken, blokPunten: kpunten });
+  const frame = (svc, c, v, time, treinen) => R.stepService(svc, dt, { c, v, time, emergency: false, nose: c + 20, treinen });
+  const svc = start();
+  let ev = frame(svc, 1400, 20, 1, [blokker]);
+  if (!(svc.limit < 20) || !/rood/.test(svc.sein || '')) fail(`een bezet vak voor het sein geeft geen rood: ${svc.limit} ${svc.sein}`);
+  const bv = R.boardView(svc, { v: 20, time: 1 });
+  if (!/rood/.test(bv.storing || '') || bv.bloksein !== 'rood') fail(`het bord toont het rode bloksein niet: ${JSON.stringify({ storing: bv.storing, bloksein: bv.bloksein })}`);
+  // een trein achter je, of op een ander spoor, laat het sein groen
+  const achter = start(); frame(achter, 1400, 20, 1, [{ cars: [{ x: 1200, y: 0, angle: 0, len: 20 }] }]);
+  if (achter.sein !== null || achter.blokLaatst?.rood) fail(`een trein achter je geeft geen groen sein: ${achter.sein} ${achter.limit}`);
+  const naast = start(); frame(naast, 1400, 20, 1, [{ cars: [{ x: 1600, y: 6, angle: 0, len: 20 }] }]);
+  if (naast.sein !== null || naast.blokLaatst?.rood) fail(`een trein op een ander spoor geeft geen groen sein: ${naast.sein}`);
+  const vrij = start(); frame(vrij, 1400, 20, 1, []);
+  if (vrij.sein !== null || vrij.blokLaatst?.rood) fail('een vrij vak geeft geen groen sein');
+  if (R.boardView(vrij, { v: 20, time: 1 }).bloksein !== 'groen') fail('het bord toont het groene sein niet');
+  // het sein springt op groen als de trein weg is
+  const wacht = start();
+  frame(wacht, 1400, 2, 1, [blokker]);
+  ev = frame(wacht, 1400, 2, 2, []);
+  if (!ev.some((e) => e.kind === 'sein-groen') || wacht.sein !== null) fail('het sein springt niet op groen als het vak vrijkomt');
+  // een rood sein voorbijrijden is dezelfde veiligheidsfout als bij de gescripte storing
+  const fout = start();
+  frame(fout, 1400, 20, 1, [blokker]);
+  ev = frame(fout, 1600, 20, 2, [blokker]);
+  if (!ev.some((e) => e.kind === 'sein-genegeerd') || fout.safetyPen !== R.SEIN_PEN || !fout.faults.length) fail('een rood bloksein negeren is geen veiligheidsfout');
+  // de gescripte storing blijft ernaast werken
+  if (!R.startService({ stops: kstops, c: 0, dir: 1, vmax: 30, time: 0, storingen: true }).storingen.length) fail('de gescripte storingen werken niet meer');
+  // het bord van de machinist (machinist.js) toont het sein en de storing
+  const msrc = fs.readFileSync(new URL('../game/js/machinist.js', import.meta.url), 'utf8');
+  if (!/bloksein/.test(msrc) || !/v\.storing \|\| v\.flash/.test(msrc)) fail('machinist.js toont het sein niet op het bord');
+  // railway.js levert de vakken en de bezetters van de route aan de machinist
+  const t = inRoute(route);
+  const bewaard = t.c;
+  const [rlo, rhi] = RW.driveRange(route);
+  t.c = (rlo + rhi) / 2;
+  const blok = RW.blokseinenVoor(t);
+  if (!blok || !blok.vakken.length || blok.vakken.length !== blok.punten.length) fail('railway levert geen baanvakken');
+  else {
+    if (blok.treinen.includes(t)) fail('de eigen trein zit bij de bezetters');
+    const beeld = BS.seinBeeld({ vakken: blok.vakken, punten: blok.punten, treinen: [], c: t.c, halfLen: t.halfLen, dir: 1 });
+    if (!beeld.vak) fail('geen volgend baanvak op de echte route');
+    else {
+      const [bx, by] = RW.routePoint(route, (beeld.vak.van + beeld.vak.tot) / 2);
+      const dummy = { route, state: 'dwell', cars: [{ x: bx, y: by, angle: 0, len: 20 }] };
+      RW.getTrains().push(dummy);
+      const vol = RW.blokseinenVoor(t);
+      const rood = BS.seinBeeld({ vakken: vol.vakken, punten: vol.punten, treinen: vol.treinen, c: t.c, halfLen: t.halfLen, dir: 1 });
+      RW.getTrains().pop();
+      if (!rood.rood) fail('een trein in het volgende vak van de echte route geeft geen rood');
+      else if (rood.afstand > (beeld.vak.tot - beeld.vak.van) + 1) fail(`het rode sein staat te ver weg: ${rood.afstand}`);
+    }
+  }
+  t.c = bewaard;
+}
+
 ok_pay();
 function ok_pay() {
   if (R.payFor({ made: 4, score: 80, medal: 2 }) !== Math.round(4 * 16 + 40)) fail('payFor value');
