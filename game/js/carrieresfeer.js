@@ -5,10 +5,10 @@
 // lezen. De vorm (ruit, gevouwen punt, maatlijnen) draagt de verwijzing. Puur: geen DOM, geen
 // THREE, geen opslag, zodat scripts/carrieresfeer_test.mjs de patronen kan natrekken.
 
-const CREAM = 'rgba(240, 237, 228, 0.22)';
-const CREAM_SOFT = 'rgba(240, 237, 228, 0.10)';
-const GREEN = 'rgba(63, 201, 122, 0.24)';
-const GREEN_SOFT = 'rgba(63, 201, 122, 0.12)';
+const CREAM = 'rgba(240, 237, 228, 0.30)';
+const CREAM_SOFT = 'rgba(240, 237, 228, 0.14)';
+const GREEN = 'rgba(63, 201, 122, 0.34)';
+const GREEN_SOFT = 'rgba(63, 201, 122, 0.16)';
 const DARK = 'rgba(12, 20, 14, 0.34)';
 
 // beeld: de lagen van background-image; maat: background-size voor alle lagen.
@@ -143,6 +143,22 @@ export const SFEER = {
 
 const LEGE = { naam: '', vorm: '', motief: '' };
 
+// Vier tonaliteiten binnen de bestaande tokens: een donkere plaat, donkergroen, veldgroen
+// en een melkwitte waas. Zo krijgt elk vak niet alleen een ander patroon, maar ook een
+// andere toon; het blijft allemaal cream en groen uit DESIGN_SYSTEM.md.
+const TINT = {
+  nacht: 'rgba(12, 20, 14, 0.62)',
+  bos: 'rgba(15, 92, 48, 0.58)',
+  veld: 'rgba(30, 158, 86, 0.26)',
+  melk: 'rgba(240, 237, 228, 0.12)',
+};
+const TINT_VAN = {
+  trein: 'nacht', bus: 'veld', taxi: 'melk', bezorg: 'nacht', vracht: 'bos',
+  water: 'veld', lucht: 'veld', handhaving: 'nacht', kantoor: 'nacht', podium: 'bos',
+  horeca: 'melk', kermis: 'veld', landbouw: 'bos', klus: 'nacht', padel: 'veld',
+  golf: 'melk', hengelen: 'veld', race: 'nacht', buiten: 'melk', kade: 'nacht',
+};
+
 // De sfeer van een vak; onbekend vak geeft een lege sfeer (de UI valt dan terug op geen band).
 export function sfeerVan(id) {
   return SFEER[id] || LEGE;
@@ -154,7 +170,8 @@ export function sfeerStijl(id) {
   const s = SFEER[id];
   const v = s && VORMEN[s.vorm];
   if (!v) return '';
-  return `background-image:${v.beeld};background-size:${v.maat};background-repeat:repeat;`;
+  const tint = TINT[TINT_VAN[id]] || '';
+  return `${tint ? `background-color:${tint};` : ''}background-image:${v.beeld};background-size:${v.maat};background-repeat:repeat;`;
 }
 
 export const SFEER_IDS = Object.keys(SFEER).filter((id) => id !== 'kade');

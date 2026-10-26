@@ -54,7 +54,8 @@ for the mission/waypoint marker (the genre's usual marker language)
 
 ### Loopbaansfeer
 
-Each career has its own pattern, not a new accent colour (`game/js/carrieresfeer.js`).
+Each career has its own pattern, its own icon as a low-contrast watermark and one of four
+tonalities (dark, forest, field, milk), not a new accent colour (`game/js/carrieresfeer.js`).
 The patterns use only cream and the greens above; red stays the danger colour. The
 farmer's handkerchief is therefore gingham in cream and green, with a folded corner as
 the recognisable motif: a red version in the UI would read as a warning. The pattern is

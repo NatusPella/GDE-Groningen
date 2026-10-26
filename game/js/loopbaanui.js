@@ -48,8 +48,10 @@ const loopbaanIcoon = (naam, cls = 'pa-ico') => `<span class="${cls}"><svg viewB
 function sfeerHtml(id) {
   const s = sfeerVan(id);
   if (!s.vorm) return '';
+  const info = L.vakInfo(id);
   const stijl = sfeerStijl(id);
   return `<div class="lb-sfeer" style="${stijl}" title="${esc(s.motief)}">` +
+    (info ? loopbaanIcoon(info.icoon, 'lb-sfeer-ico') : '') +
     `<span class="lb-sfeer-naam">Sfeer · ${esc(s.naam)}</span>` +
     (s.vouw ? `<span class="lb-sfeer-vouw" style="${stijl}" aria-hidden="true"></span>` : '') + '</div>';
 }
@@ -61,13 +63,16 @@ const CSS = `
 .lb-li { position: relative; overflow: hidden; }
 .lb-sfeer-strip { position: absolute; left: 0; top: 9px; bottom: 9px; width: 3px; border-radius: 0 2px 2px 0; opacity: 0.75; pointer-events: none; }
 .lb-li.sel .lb-sfeer-strip { opacity: 1; }
-.lb-sfeer { position: relative; min-height: 44px; border-radius: 10px; overflow: hidden; box-shadow: inset 0 0 0 1px rgba(240, 237, 228, 0.10); }
-.lb-sfeer::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(12, 20, 14, 0.62), rgba(12, 20, 14, 0.16) 58%, rgba(12, 20, 14, 0.56)); }
-.lb-sfeer-naam { position: absolute; left: 12px; bottom: 7px; z-index: 1; font: 14px "Arial Narrow", Arial, sans-serif; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(240, 237, 228, 0.86); }
+.lb-sfeer { position: relative; min-height: 68px; border-radius: 10px; overflow: hidden; box-shadow: inset 0 0 0 1px rgba(240, 237, 228, 0.10); }
+.lb-sfeer::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(12, 20, 14, 0) 30%, rgba(12, 20, 14, 0.20) 55%, rgba(12, 20, 14, 0.82)); }
+.lb-sfeer-ico { position: absolute; right: 16px; top: 50%; z-index: 1; display: block; width: 58px; height: 58px; margin: 0; transform: translateY(-50%); color: rgba(240, 237, 228, 0.42); opacity: 0.9; }
+.lb-sfeer-ico svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.35; stroke-linecap: round; stroke-linejoin: round; }
+.lb-sfeer-naam { position: absolute; left: 14px; bottom: 9px; z-index: 2; font: 15px "Arial Narrow", Arial, sans-serif; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(240, 237, 228, 0.92); text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7); }
 .lb-sfeer-vouw { position: absolute; right: 18px; bottom: -20px; z-index: 1; width: 54px; height: 54px; transform: rotate(45deg); border-radius: 3px; box-shadow: inset 0 0 0 1px rgba(240, 237, 228, 0.22), 0 2px 8px rgba(0, 0, 0, 0.22); pointer-events: none; }
 @media (max-height: 820px) {
-  .lb-sfeer { min-height: 34px; }
-  .lb-sfeer-naam { font-size: 13px; bottom: 5px; }
+  .lb-sfeer { min-height: 48px; }
+  .lb-sfeer-ico { width: 42px; height: 42px; right: 12px; }
+  .lb-sfeer-naam { font-size: 13px; bottom: 6px; }
   .lb-sfeer-vouw { width: 42px; height: 42px; bottom: -16px; }
 }
 .lb-li .nm { min-width: 0; }
