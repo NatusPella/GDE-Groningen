@@ -15,7 +15,7 @@
 import { REASON_TEXT } from './net/protocol.js';
 import { parseRoom } from './net/sigcrypto.js';
 import { parseCode } from './net/pairing.js';
-import { schoonNaam } from './net/serverlijst.js';
+import { schoonNaam, filterEnSorteer, leeftijdTekst, leeftijdLang, LIJST, SORTERINGEN, SORTERING_LABEL } from './net/serverlijst.js';
 import { EXTRA_CHARS, DEFAULT_MAX, MIN_MAX, ABS_MAX, advies, openerNaam } from './coopplayers.js';
 
 export const ROLES = { HOST: 'host', GAST: 'gast' };
@@ -118,19 +118,28 @@ export function classifyInput(text) {
 
 // caps: { direct (desktop-app), rtc (WebRTC beschikbaar), laatsteCode, start?: 'verbroken', rol?, startGate (de wachtkamer van een nieuw of geladen spel: het spel begint pas als wie het spel opende start), spelNaam (het opgeslagen spel van deze speler) }
 export function createLobby(caps = {}) {
+  const favorieten = Array.isArray(caps.favorieten) ? caps.favorieten.filter((x) => typeof x === 'string').slice(-100) : [];
   return {
     // keuze: de rol die al in het hoofdmenu is gekozen (Gastheer worden / Meedoen): dan slaat de lobby de rolkeuze over
     step: caps.start || (caps.keuze === ROLES.GAST && caps.lijst && caps.rtc !== false ? 'lijst-vraag' : caps.keuze ? (caps.keuze === ROLES.HOST ? 'methode' : 'gast-typt') : 'start'), rol: caps.rol || caps.keuze || null, route: null, invoer: null,
     code: '', lanCode: '', note: '', error: '', reason: null, status: null, partner: null,
     spelers: [], max: DEFAULT_MAX, wens: null, holdSlot: null, holdNaam: caps.holdNaam || '',
     profiel: { naam: String(caps.onlineNaam || '').slice(0, ONLINE_NAAM_MAX), kleur: profielKleur(caps.onlineKleur) }, profielFout: '',
-    caps: { direct: !!caps.direct, rtc: caps.rtc !== false, laatsteCode: caps.laatsteCode || '', startGate: !!caps.startGate, spelNaam: String(caps.spelNaam || ''), lijst: !!caps.lijst, versie: String(caps.versie || ''), opslaan: !!caps.opslaan },
+    caps: { direct: !!caps.direct, rtc: caps.rtc !== false, laatsteCode: caps.laatsteCode || '', startGate: !!caps.startGate, spelNaam: String(caps.spelNaam || ''), lijst: !!caps.lijst, versie: String(caps.versie || ''), opslaan: !!caps.opslaan, favorieten },
     diag: null, terugNaar: caps.keuze === ROLES.GAST && caps.lijst ? 'gast-typt' : 'start', andereVersie: '',
     openbaar: !!(caps.openbaar && caps.openbaar.naam), openbaarNaam: caps.openbaar ? String(caps.openbaar.naam) : '', // alleen voor deze sessie (een nieuwe lobby is weer privé; het paneel leest het uit de hub)
     sessieId: caps.openbaar && caps.openbaar.id ? String(caps.openbaar.id) : '', // het vaste id van deze sessie (#450): dezelfde regel in de lijst, ook na een overname
     sessie: (caps.sessie && caps.sessie.id) ? { id: String(caps.sessie.id), naam: String(caps.sessie.naam || '') }
       : (caps.openbaar && caps.openbaar.id ? { id: String(caps.openbaar.id), naam: String(caps.openbaar.naam || '') } : null), // bij welke sessie je hoort (gast, of de openbare regel van de hub)
     lijst: [],
+    // de query bovenop de lijst (#464): zoeken, filters, sortering en een pagina. Puur: view() rekent het uit,
+    // lobbyui.js bewaart alleen de keuzes en de sterren.
+    lijstZoek: '',
+    lijstSortering: 'standaard',
+    lijstAantal: LIJST.maxGetoond,
+    lijstFilters: { alleenAansluitbaar: false, alleenFavorieten: false, alleenVers: false, verbergOnbruikbaar: false, plek: 'alle' },
+    lijstFavorieten: favorieten,
+    lijstVervers: 0,
   };
 }
 const fresh = (s) => createLobby(s.caps);
@@ -193,7 +202,35 @@ export function reduce(s, ev) {
       if (!s.caps.rtc || !['start', 'gast-typt'].includes(s.step)) return s;
       n.terugNaar = s.step; n.step = 'lijst-vraag'; return n;
     case 'lijst-go': if (s.step !== 'lijst-vraag') return s; n.step = 'lijst'; n.lijst = []; return n;
-    case 'lijst-data': if (s.step !== 'lijst') return s; n.lijst = Array.isArray(ev.lijst) ? ev.lijst.slice(0, 20) : []; return n;
+    case 'lijst-data': if (s.step !== 'lijst') return s; n.lijst = Array.isArray(ev.lijst) ? ev.lijst : []; return n;
+    case 'lijst-zoek': // direct tijdens het typen; het zoekveld houdt zijn waarde in de state (lobbyui.js)
+      if (s.step !== 'lijst') return s; n.lijstZoek = String(ev.tekst ?? '').slice(0, 60); n.lijstAantal = LIJST.maxGetoond; return n;
+    case 'lijst-filter': { // een filterchip aan of uit
+      if (s.step !== 'lijst' || !['alleenAansluitbaar', 'alleenFavorieten', 'alleenVers', 'verbergOnbruikbaar'].includes(ev.filter)) return s;
+      n.lijstFilters = { ...s.lijstFilters, [ev.filter]: !s.lijstFilters[ev.filter] }; n.lijstAantal = LIJST.maxGetoond; return n;
+    }
+    case 'lijst-plek': { // Vrij of Vol: nog een keer drukken wist de keuze
+      if (s.step !== 'lijst') return s;
+      const plek = ev.plek === 'vrij' || ev.plek === 'vol' ? ev.plek : 'alle';
+      n.lijstFilters = { ...s.lijstFilters, plek: s.lijstFilters.plek === plek ? 'alle' : plek }; n.lijstAantal = LIJST.maxGetoond; return n;
+    }
+    case 'lijst-sorteer':
+      if (s.step !== 'lijst' || !SORTERINGEN.includes(ev.sortering)) return s;
+      n.lijstSortering = ev.sortering; return n;
+    case 'lijst-meer': // Meer laden: met stappen van maxGetoond tot maxVolgen
+      if (s.step !== 'lijst') return s;
+      n.lijstAantal = Math.min(LIJST.maxVolgen, s.lijstAantal + LIJST.maxGetoond); return n;
+    case 'lijst-ster': { // een favoriet aan of uit; alleen het id, nooit de naam (lobbyui.js bewaart het op dit apparaat)
+      if (s.step !== 'lijst' || !ev.id) return s;
+      const id = String(ev.id);
+      n.lijstFavorieten = (s.lijstFavorieten.includes(id) ? s.lijstFavorieten.filter((x) => x !== id) : [...s.lijstFavorieten, id]).slice(-100);
+      return n;
+    }
+    case 'lijst-filters-wissen':
+      if (s.step !== 'lijst') return s;
+      n.lijstZoek = ''; n.lijstFilters = { alleenAansluitbaar: false, alleenFavorieten: false, alleenVers: false, verbergOnbruikbaar: false, plek: 'alle' };
+      n.lijstAantal = LIJST.maxGetoond; return n;
+    case 'lijst-ververs': if (s.step !== 'lijst') return s; n.lijstVervers = (s.lijstVervers || 0) + 1; return n;
     case 'lijst-kies': { // aansluiten bij een sessie uit de lijst: dezelfde route als een ingevoerde kamercode, met dezelfde toestemming
       if (s.step !== 'lijst') return s;
       const e = s.lijst[ev.i];
@@ -401,8 +438,42 @@ export function view(s) {
     case 'lijst-vraag':
       return V({ title: 'Openbare sessies', lines: LIJST_TEXT, buttons: [{ act: 'lijst-go', label: 'Akkoord en lijst tonen', primary: true }, { act: 'lijst-terug', label: 'Annuleren' }] });
     case 'lijst': {
-      const sessies = (s.lijst || []).map((e, i) => ({ act: 'sluit-' + i, meld: 'meld-' + i, naam: e.naam, kan: !!e.kan, mijn: !!(s.sessie && s.sessie.id && e.id === s.sessie.id), tekst: `${e.naam} · ${e.spelers} van ${e.max} spelers · versie ${e.versie}${e.anders ? ' · Andere versie: niet aan te sluiten' : e.vol ? ' · Vol' : ''}${s.sessie && s.sessie.id === e.id ? ' · je was hier' : ''}` }));
-      return V({ title: 'Openbare sessies', lines: [sessies.length ? 'Kies een sessie om aan te sluiten. De lijst ververst zichzelf elke paar seconden.' : 'We zoeken openbare sessies. Er zijn er nu geen gevonden; de lijst ververst zichzelf elke paar seconden, dus even geduld kan helpen.'], sessies, buttons: [{ act: 'lijst-terug', label: 'Terug', primary: true }] });
+      // (#464) de pure query: zoeken, filters, sortering en de pagina. De volgorde hier is de volgorde op het scherm.
+      const rijen = (s.lijst || []).map((e, i) => ({ ...e, i }));
+      const f = s.lijstFilters || {};
+      const q = filterEnSorteer(rijen, {
+        zoek: s.lijstZoek, alleenAansluitbaar: f.alleenAansluitbaar, alleenFavorieten: f.alleenFavorieten,
+        alleenVers: f.alleenVers, verbergOnbruikbaar: f.verbergOnbruikbaar, plek: f.plek,
+        sortering: s.lijstSortering, favorieten: s.lijstFavorieten, aantal: s.lijstAantal,
+      });
+      const sessies = q.rijen.map((e) => ({
+        i: e.i, act: 'sluit-' + e.i, meld: 'meld-' + e.i, ster: 'ster-' + e.i, id: e.id,
+        naam: e.naam, spelers: e.spelers, max: e.max, versie: e.versie,
+        kan: !!e.kan, anders: !!e.anders, vol: !!e.vol, mijn: !!(s.sessie && s.sessie.id && e.id === s.sessie.id),
+        favoriet: !!e.favoriet, leeftijd: leeftijdTekst(e.ouderdom), leeftijdLang: leeftijdLang(e.ouderdom), dim: !!e.dim,
+        tekst: `${e.naam} · ${e.spelers} van ${e.max} spelers · versie ${e.versie}${e.anders ? ' · Andere versie: niet aan te sluiten' : e.vol ? ' · Vol' : ''}${s.sessie && s.sessie.id === e.id ? ' · je was hier' : ''}`,
+      }));
+      const getoond = q.rijen.length, totaal = q.totaal, alles = q.alles;
+      const telling = alles === 0 || totaal === 0 ? '' : getoond < totaal ? `${getoond} van ${totaal} sessies` : totaal < alles ? `${totaal} van ${alles} sessies` : `${alles} ${alles === 1 ? 'sessie' : 'sessies'}`;
+      const lines = [alles === 0
+        ? 'We zoeken openbare sessies. Er zijn er nu geen gevonden; de lijst ververst zichzelf elke paar seconden, dus even geduld kan helpen.'
+        : totaal === 0
+          ? 'Geen sessies die passen. Wis het zoekveld of de filters om alles te zien.'
+          : 'Kies een sessie om aan te sluiten. De lijst ververst zichzelf elke paar seconden.' + (telling ? ` ${telling}.` : '')];
+      if (s.lijstZoek) lines.push(`Je zoekt op "${s.lijstZoek}".`);
+      return V({
+        title: 'Openbare sessies', lines, sessies,
+        lijstInfo: {
+          zoek: s.lijstZoek || '', sortering: s.lijstSortering, aantal: s.lijstAantal, filters: { ...f },
+          getoond, totaal, alles, meer: getoond < totaal, telling, ververst: s.lijstVervers || 0,
+          sorteringen: SORTERINGEN.map((id) => ({ id, label: SORTERING_LABEL[id], gekozen: id === s.lijstSortering })),
+        },
+        buttons: [
+          { act: 'lijst-ververs', label: 'Lijst verversen' },
+          ...(totaal === 0 && alles > 0 ? [{ act: 'lijst-filters-wissen', label: 'Filters wissen' }] : []),
+          { act: 'lijst-terug', label: 'Terug', primary: true },
+        ],
+      });
     }
     case 'diag-vraag':
       return V({ title: 'Verbinding testen', lines: [DIAG_TEXT], buttons: [{ act: 'diag-go', label: 'Test starten', primary: true }, { act: 'diag-terug', label: 'Annuleren' }] });

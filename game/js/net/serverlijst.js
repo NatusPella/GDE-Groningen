@@ -9,6 +9,7 @@
 // verdwijnt na 45 s uit de lijst.
 
 import { crc16 } from './pairing.js';
+import { woordenVan, past } from '../zoektekst.js';
 
 export const LIJST = {
   formaat: 1,
@@ -16,14 +17,87 @@ export const LIJST = {
   interval: 15000,           // ms tussen twee aankondigingen van een host
   verloop: 45000,            // ms zonder nieuwe aankondiging: weg uit de lijst
   maxNaam: 24,
-  maxGetoond: 20,            // hoeveel sessies de lijst hoogstens toont
+  maxGetoond: 20,            // paginagrootte van de lijst; de lijst zelf bewaart alles tot maxVolgen
   maxVolgen: 200,            // hoeveel afzenders we hoogstens bijhouden (tegen een vloed)
+  versBinnen: 20000,         // ms: "alleen vers" toont aankondigingen die zo recent binnenkwamen
+  dimLaatste: 10000,         // ms voor verloop: zo lang is een regel zichtbaar gedimd
   minTussen: 5000,           // ms: een afzender die vaker aankondigt dan dit wordt genegeerd
   nieuwPerMinuut: 60,        // nieuwe afzenders per minuut, daarboven negeren we nieuwe
   maxBytes: 600,             // een grotere aankondiging is geen aankondiging
   scheef: 90000,             // ms: een tijdstempel die verder van onze klok ligt (te oud of te nieuw) tellen we niet
 };
 export const STANDAARD_NAAM = 'Open spel';
+
+// ---------------------------------------------------------------- leeftijd en de query
+// De lijst zelf (hieronder) levert alles wat niet verlopen of gemeld is; dit is de pure stap
+// daarbovenop: zoeken, filteren, sorteren en een pagina. Geen DOM en geen opslag, zodat de
+// tests het zonder browser kunnen natrekken. De UI (lobby.js) kiest alleen de opties.
+export const SORTERINGEN = ['standaard', 'spelers', 'naam', 'gezien'];
+export const SORTERING_LABEL = { standaard: 'Aansluitbaar eerst', spelers: 'Spelers', naam: 'Naam', gezien: 'Laatst gezien' };
+
+// "net", "12 s", "2 min", "1 uur": kort genoeg voor één regel naast de naam.
+export function leeftijdTekst(ms) {
+  if (!Number.isFinite(ms) || ms < 0) return '';
+  const s = Math.floor(ms / 1000);
+  if (s < 5) return 'net';
+  if (s < 60) return `${s} s`;
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m} min`;
+  return `${Math.floor(m / 60)} uur`;
+}
+
+// Dezelfde leeftijd in gewone taal, voor een schermlezer (het getal alleen leest raar).
+export function leeftijdLang(ms) {
+  if (!Number.isFinite(ms) || ms < 0) return '';
+  const s = Math.floor(ms / 1000);
+  if (s < 5) return 'net gezien';
+  if (s < 60) return `${s} seconden geleden`;
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m} ${m === 1 ? 'minuut' : 'minuten'} geleden`;
+  const u = Math.floor(m / 60);
+  return `${u} uur geleden`;
+}
+
+const SORTERING = {
+  standaard: (p, q) => (q.kan - p.kan) || (q.gezien - p.gezien) || (p.id < q.id ? -1 : 1),
+  spelers: (p, q) => (q.spelers - p.spelers) || (q.kan - p.kan) || p.naam.localeCompare(q.naam, 'nl') || (p.id < q.id ? -1 : 1),
+  naam: (p, q) => p.naam.localeCompare(q.naam, 'nl', { sensitivity: 'base' }) || (p.id < q.id ? -1 : 1),
+  gezien: (p, q) => (q.gezien - p.gezien) || (p.id < q.id ? -1 : 1),
+};
+
+// rijen: wat Serverlijst.lijst() geeft. opties:
+//   zoek (naam, elk woord moet erin staan), alleenAansluitbaar, alleenFavorieten, alleenVers,
+//   verbergOnbruikbaar (vol of andere versie), plek ('alle' | 'vrij' | 'vol'),
+//   sortering (SORTERINGEN), favorieten (lijst met id's), aantal en vanaf (de pagina).
+// Geeft { rijen (de pagina), totaal (na filteren), alles (zonder filteren) }.
+export function filterEnSorteer(rijen, opties = {}) {
+  const o = {
+    zoek: '', alleenAansluitbaar: false, alleenFavorieten: false, alleenVers: false,
+    verbergOnbruikbaar: false, plek: 'alle', sortering: 'standaard', favorieten: [],
+    aantal: Infinity, vanaf: 0, versBinnen: LIJST.versBinnen, ...opties,
+  };
+  const alle = Array.isArray(rijen) ? rijen : [];
+  const favorieten = new Set(Array.isArray(o.favorieten) ? o.favorieten : []);
+  const woorden = woordenVan(o.zoek);
+  const blijft = (r) => {
+    if (!r) return false;
+    if (!past(r.naam, woorden)) return false;
+    if (o.alleenAansluitbaar && !r.kan) return false;
+    if (o.alleenFavorieten && !favorieten.has(r.id)) return false;
+    if (o.alleenVers && !(Number.isFinite(r.ouderdom) && r.ouderdom <= o.versBinnen)) return false;
+    if (o.verbergOnbruikbaar && !r.kan) return false;
+    if (o.plek === 'vrij' && r.vol) return false;
+    if (o.plek === 'vol' && !r.vol) return false;
+    return true;
+  };
+  const uit = alle.filter(blijft).map((r) => ({ ...r, favoriet: favorieten.has(r.id) }));
+  const sorteer = SORTERING[o.sortering] || SORTERING.standaard;
+  // favorieten staan altijd bovenaan; daarna de gekozen volgorde
+  uit.sort((p, q) => (q.favoriet - p.favoriet) || sorteer(p, q));
+  const vanaf = Math.max(0, o.vanaf | 0);
+  const aantal = Number.isFinite(o.aantal) ? Math.max(0, o.aantal | 0) : uit.length;
+  return { rijen: uit.slice(vanaf, vanaf + aantal), totaal: uit.length, alles: alle.length };
+}
 
 // ---------------------------------------------------------------- naamfilter
 // Eerste hulplijn, geen garantie: een lijst met scheldwoorden, echte merken en bekende namen, gespeld over elk
@@ -132,7 +206,8 @@ export class Serverlijst {
     return { ok: true };
   }
   _schoon(nu) { for (const [id, x] of this.items) if (nu - x.gezien > this.o.verloop) this.items.delete(id); }
-  // Wat de speler ziet: niet verlopen, niet gemeld, hoogstens maxGetoond; eerst de sessies die je kunt joinen, dan de meest recente.
+  // Alles wat de speler kan zien: niet verlopen, niet gemeld, met de leeftijd van de aankondiging. Geen afkap: de UI
+  // vraagt met zoek() om een pagina, zodat meer dan maxGetoond sessies bereikbaar blijven.
   lijst(nu = this.nu()) {
     this._schoon(nu);
     const uit = [];
@@ -140,10 +215,15 @@ export class Serverlijst {
       if (this.verborgen.has(x.id)) continue;
       const anders = (this.proto != null && x.proto !== this.proto) || (this.versie != null && x.versie !== this.versie);
       const vol = x.spelers >= x.max;
-      uit.push({ id: x.id, naam: x.naam, spelers: x.spelers, max: x.max, versie: x.versie, room: x.room, anders, vol, kan: !anders && !vol, gezien: x.gezien });
+      const ouderdom = Math.max(0, nu - x.gezien);
+      uit.push({ id: x.id, naam: x.naam, spelers: x.spelers, max: x.max, versie: x.versie, room: x.room, anders, vol, kan: !anders && !vol, gezien: x.gezien, ouderdom, dim: ouderdom >= this.o.verloop - this.o.dimLaatste });
     }
-    uit.sort((p, q) => (q.kan - p.kan) || (q.gezien - p.gezien) || (p.id < q.id ? -1 : 1));
-    return uit.slice(0, this.o.maxGetoond);
+    uit.sort(SORTERING.standaard);
+    return uit;
+  }
+  // Dezelfde lijst met zoeken, filters, sortering en een pagina (maxGetoond is de paginagrootte).
+  zoek(nu = this.nu(), opties = {}) {
+    return filterEnSorteer(this.lijst(nu), { aantal: this.o.maxGetoond, ...opties });
   }
   // Melden: deze sessie verdwijnt uit jouw lijst (alleen lokaal; er wordt niets verstuurd)
   meld(id) { this.verborgen.add(id); this.items.delete(id); return [...this.verborgen]; }
