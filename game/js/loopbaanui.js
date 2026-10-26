@@ -61,9 +61,8 @@ function sfeerHtml(id) {
 const CSS = `
 .lb-groep { margin: 14px 0 4px; font: 14px "Arial Narrow", Arial, sans-serif; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.55; }
 .lb-groep:first-child { margin-top: 0; }
-.lb-li { position: relative; overflow: hidden; }
-.lb-sfeer-strip { position: absolute; left: 0; top: 9px; bottom: 9px; width: 3px; border-radius: 0 2px 2px 0; opacity: 0.75; pointer-events: none; }
-.lb-li.sel .lb-sfeer-strip { opacity: 1; }
+.lb-li { gap: 12px; }
+.lb-sfeer-chip { width: 20px; height: 20px; border-radius: 5px; flex: none; box-shadow: inset 0 0 0 1px rgba(240, 237, 228, 0.18); }
 .lb-sfeer { position: relative; min-height: 68px; border-radius: 10px; overflow: hidden; box-shadow: inset 0 0 0 1px rgba(240, 237, 228, 0.10); }
 .lb-sfeer::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(12, 20, 14, 0) 30%, rgba(12, 20, 14, 0.20) 55%, rgba(12, 20, 14, 0.82)); }
 .lb-sfeer-ico { position: absolute; right: 16px; top: 50%; z-index: 1; display: block; width: 58px; height: 58px; margin: 0; padding: 10px; box-sizing: border-box; border-radius: 50%; background: rgba(12, 20, 14, 0.38); box-shadow: inset 0 0 0 1px rgba(240, 237, 228, 0.18); color: rgba(240, 237, 228, 0.9); transform: translateY(-50%); }
@@ -134,7 +133,7 @@ function rij(profiel, info) {
   const namen = bezighedenNamen(info.id);
   const onder = `${nul ? 'Nog niet begonnen' : d.titel}${aantal ? ` · ${aantal} ${aantal === 1 ? 'bezigheid' : 'bezigheden'}` : ''}`;
   return `<button type="button" class="m-li lb-li${nul ? ' nul' : ''}${gekozen === info.id ? ' sel' : ''}" data-vak="${info.id}" title="${esc(namen.length ? 'Bezigheden: ' + namen.join(', ') : 'Geen aparte bijbaan')}"${gekozen === info.id ? ' aria-current="true"' : ''}>` +
-    `<span class="lb-sfeer-strip" style="${sfeerStijl(info.id)}" aria-hidden="true"></span>` +
+    `<span class="lb-sfeer-chip" style="${sfeerStijl(info.id)}" aria-hidden="true"></span>` +
     `${loopbaanIcoon(info.icoon)}<span class="nm"><span class="one">${esc(info.naam)}</span><span class="mut one">${esc(onder)}</span></span>` +
     `<span class="lb-niv">niveau ${d.niveau}</span><span class="m-bar${d.deel > 0 ? ' on' : ''}"><i data-bar="lb-${info.id}" data-w="${(d.deel * 100).toFixed(1)}"></i></span></button>`;
 }
