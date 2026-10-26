@@ -160,5 +160,185 @@
   "text": "Allemaal. Het proefbeleg van Bourtange. Zestienhonderdtweeënzeventig verloor ik. Vandaag weet ik het nog niet.",
   "why": "regel 81 (M30.1, Berend): \"verloor\" Nederlands gelaten; alleen \"verlaus\" en \"verlezen\" staan in de lijst, geen verleden tijd.",
   "chunk": 4
+ },
+ {
+  "text": "Kustwacht. Melding van twee mensen in zwarte kleding op het wad. Waarschijnlijk schapen.",
+  "why": "waarschijnlijk heeft geen paar in gronings_spoken.json (ook woarschienlk niet); Nederlands gelaten.",
+  "chunk": 5
+ },
+ {
+  "text": "Vanochtend om acht uur tekent Trijntje op de sluis de overdracht van mijn woonschip. Dan mag de deurwaarder er niet meer bij.",
+  "why": "vanochtend is niet gedekt; vanmörn (naar mörn) is niet bevestigd, dus Nederlands gelaten.",
+  "chunk": 5
+ },
+ {
+  "text": "Mijn vrachtwagen brengt alles wat jullie hebben gered vannacht naar mijn woonschip in Delfzijl.",
+  "why": "gered -> red is afgeleid van het wegvallen van ge- (land, eten); geen paar, zoals ook in DIALECT-CONCEPT.md gemeld.",
+  "chunk": 5
+ },
+ {
+  "text": "De overdracht is getekend, om vijf voor acht. Het beslag mislukt. Alleen mijn kade is verhuurd, voor een evenement.",
+  "why": "getekend -> tekend is afgeleid van het ge-wegvalpatroon; geen paar voor tekenen gevonden.",
+  "chunk": 5
+ },
+ {
+  "text": "Hier zijn de papieren. Jullie wisselen ze om. Dan blijft alles hier.",
+  "why": "wisselen heeft geen paar; Nederlandse vorm gelaten (wel wisselgeld gevonden).",
+  "chunk": 5
+ },
+ {
+  "text": "Twee van de vier andere juryleden zijn weggelopen. De andere twee zitten nog bij Jelle.",
+  "why": "weggelopen -> weglopen is afgeleid (ge-wegval, zoals vlogen); geen paar.",
+  "chunk": 5
+ },
+ {
+  "text": "Meneer Terpstra heeft de vier andere juryleden en mij uitgenodigd voor een treinreis met volpension: alle maaltijden erbij. Vanaf maandag, tot na het Ontzet.",
+  "why": "uitnodigen heeft geen paar; oetnodigd is afgeleid van oet + ge-wegval. Vanof is wel gedekt.",
+  "chunk": 5
+ },
+ {
+  "text": "Er is een webbureau in Veendam dat alles om middernacht bijwerkt. Ook mijn bruggen.",
+  "why": "bijwerken heeft geen paar; bijwarkt is afgeleid van warkt/warken.",
+  "chunk": 5
+ },
+ {
+  "text": "Weer elf bruggen? Open. Dicht. Ik heb het al geleerd.",
+  "why": "geleerd -> leerd is afgeleid van het paar 'leerd fietsen'; voltooide tijd niet als paar bevestigd.",
+  "chunk": 5
+ },
+ {
+  "text": "Is de bewaarder er niet, dan zit het oudste jurylid voor. Dat is Berend Bos, jurylid sinds 1982.",
+  "why": "oldste is afgeleid van old/olle; geen paar, maar DIALECT-CONCEPT.md gebruikt dezelfde vorm (M26.2).",
+  "chunk": 5
+ },
+ {
+  "text": "De molen in Midwolda is van Jelle. Fijn meel krijg je daar niet meer. Ik heb mijn eigen graan. Dat is grof.",
+  "why": "fijn heeft geen paar (fien niet bevestigd); 'kriegst' is de samentrekking van krijg je, zoals in de bestaande paren.",
+  "chunk": 5
+ },
+ {
+  "text": "Gefeliciteerd. U bent ingeschreven voor de Noordelijke Snackprijs, met wagen. Zonder wagen vervalt uw inschrijving.",
+  "why": "ingeschreven en vervalt zijn Nederlands gelaten; voor de u-vorm is 'u bent' niet als paar bevestigd (de paren houden u/uw verder ongewijzigd).",
+  "chunk": 5
+ },
+ {
+  "text": "Formulier 7B, in drievoud. Niet vouwen.",
+  "why": "vouwen heeft geen paar; Nederlands gelaten.",
+  "chunk": 5
+ },
+ {
+  "text": "Uw formulier is gevouwen.",
+  "why": "gevouwen heeft geen paar; Nederlands gelaten (ge-vorm zou hier ook niet passen bij het formele loket).",
+  "chunk": 5
+ },
+ {
+  "text": "Elf bruggen. Toeter bij een gesloten brug, dan open ik op het ritme van de fanfare. Mis je de maat, dan wacht je.",
+  "why": "toeter heeft geen paar; Nederlands gelaten. 'Mis je' is niet als -st-vorm bevestigd, dus 'je' gehouden.",
+  "chunk": 5
+ },
+ {
+  "text": "Ik maak een offerte. Dat duurt een uur. Ik haal koffie.",
+  "why": "duurt heeft geen paar; Nederlands gelaten.",
+  "chunk": 5
+ },
+ {
+  "text": "Warm, droog en een beetje Gronings. Sinds deze zomer, jong maar eerlijk. Ik zie het voor me.",
+  "why": "droog heeft geen paar (dreuge niet verzonnen), net als in DIALECT-CONCEPT.md; 'eerlk' volgt wel het paar eerlijk -> eerlk.",
+  "chunk": 5
+ },
+ {
+  "text": "Ik stap niet uit. Ik blijf in de trein tot na het Ontzet, dat stond op de uitnodiging. Dan zit het oudste jurylid voor: Berend Bos, sinds 1982.",
+  "why": "Deftige dame, weinig dialect; 'oetnoodiging' wel uit de bestaande paren.",
+  "chunk": 6
+ },
+ {
+  "text": "Ik rij de bus. Een bus is een brug op wielen. Ik zet de zijstraten dicht.",
+  "why": "'zijstraten' Nederlands gelaten; geen paar gevonden.",
+  "chunk": 6
+ },
+ {
+  "text": "Ik rijd naast jullie. Een bus is breed. Ik zet elke zijstraat dicht waar Jelle langs wil.",
+  "why": "'breed' en 'zijstraat' Nederlands gelaten; geen paar gevonden.",
+  "chunk": 6
+ },
+ {
+  "text": "Die open ik op afstand, met mijn sleutel. Open of dicht, nooit allebei.",
+  "why": "'afstand' Nederlands gelaten; 'sleutel' blijft volgens de bestaande paren.",
+  "chunk": 6
+ },
+ {
+  "text": "Die komt een minuut later. Zijn vergunningen hebben een loket. Mijn brug niet.",
+  "why": "'vergunningen' en 'loket' Nederlands gelaten; geen paar gevonden.",
+  "chunk": 6
+ },
+ {
+  "text": "Met een luik is de zijkant zwakker, en een friteuse weegt vierhonderd kilo. Houdt de achteras het niet, dan breekt hij op de Grote Markt. Rij hem dus de modder in.",
+  "why": "'zijkant', 'zwakker', 'friteuse', 'weegt', 'achteras' en 'breekt' Nederlands gelaten: geen Groningse vorm in de paren.",
+  "chunk": 6
+ },
+ {
+  "text": "Dan trekt mijn trekker hem eruit. Aan de trekhaak. Aan Tammo hebben we hier niks.",
+  "why": "'trekhaak' Nederlands gelaten; geen paar gevonden.",
+  "chunk": 6
+ },
+ {
+  "text": "Aan je zelfvertrouwen.",
+  "why": "'zelfvertrouwen' Nederlands gelaten; geen paar gevonden.",
+  "chunk": 6
+ },
+ {
+  "text": "Mijn schuur is leeg, maar Henk komt met een luik. Voor jou en je ruzie.",
+  "why": "'ruzie' Nederlands gelaten; alleen 'ruzie' als los woord gevonden.",
+  "chunk": 6
+ },
+ {
+  "text": "Poelestraat dicht. Bus dwars. De deuren heb ik open gelaten, voor de sfeer.",
+  "why": "'sfeer' Nederlands gelaten; geen paar gevonden.",
+  "chunk": 6
+ },
+ {
+  "text": "Ik zit achterin bij Wubbo in de bus. Dit is de mooiste optocht van de provincie.",
+  "why": "'optocht' (zoals in het concept) en 'provincie' Nederlands gelaten; geen paar gevonden.",
+  "chunk": 6
+ },
+ {
+  "text": "Us Mem Snacks. Ik heb een contract.",
+  "why": "'contract' Nederlands gelaten; geen paar gevonden.",
+  "chunk": 6
+ },
+ {
+  "text": "Us Mem Snacks. De korrel is te grof.",
+  "why": "Hele regel gelijk: 'korrel' en 'grof' hebben geen Groningse vorm in de paren.",
+  "chunk": 6
+ },
+ {
+  "text": "Delfstof Noord zet het huis op nieuwe poten. De ploeg is aardig. Het duurt alleen langer dan een kopje koffie.",
+  "why": "'duurt' Nederlands gelaten; geen paar gevonden.",
+  "chunk": 6
+ },
+ {
+  "text": "Dat zegt Trijntje van alles. Breekbaar in de krant. Boeken in kleine dozen, anders krijg je ze niet getild. En de kat is het moeilijkst.",
+  "why": "'getild' Nederlands gelaten (geen paar); 'mouilikst' afgeleid van 'mouilker'.",
+  "chunk": 6
+ },
+ {
+  "text": "In de gang. Waar je hem ziet als je weggaat. En als je terugkomt.",
+  "why": "'weggoast' afgeleid van 'goat'; die vorm staat niet in de paren.",
+  "chunk": 6
+ },
+ {
+  "text": "Ik heb de sleutel van de sluis. Vrij genomen. Mijn neef houdt de sluis in Delfzijl. Hij meldt alleen.",
+  "why": "'genomen' Nederlands gelaten, zoals twijfelgeval 26 in het concept.",
+  "chunk": 6
+ },
+ {
+  "text": "Ik doe de lier van de brug. Open of dicht. Vandaag een tel te vroeg. Ik oefen het al vanochtend.",
+  "why": "'vanochtend' Nederlands gelaten; geen paar voor de ochtendvorm.",
+  "chunk": 6
+ },
+ {
+  "text": "Lier. Nu. Een tel te vroeg. Het is gelukt.",
+  "why": "'gelukt' Nederlands gelaten; geen paar voor de voltooide tijd.",
+  "chunk": 6
  }
 ]
