@@ -1,7 +1,7 @@
-// Samen spelen (#443): padel tegen elkaar (game/js/padelmatch.js en de host- en gastkant in coopwedstrijd.js).
+// Samen spelen (#443): padel tegen elkaar (game/js/padelmatch.js en de host- en gastkant in multiplayerwedstrijd.js).
 //   node scripts/coopwedstrijd_padel_test.mjs
 import * as P from '../game/js/padelmatch.js';
-import * as W from '../game/js/coopwedstrijd.js';
+import * as W from '../game/js/multiplayerwedstrijd.js';
 import { makeRng } from '../game/js/minigamekit.js';
 
 let bad = 0, n = 0;

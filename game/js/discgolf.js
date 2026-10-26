@@ -13,7 +13,7 @@ import { DISCEXT_LINES } from './minigamelines3.js';
 import { fullRound, roundMedal, ctpPoints, ctpRound, CTP } from './discgolfext.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
 import { discgolfFx, pushFoley } from './sfx/minigamefoley.js';
-import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHostScore, wedGastScore, wedScoreStop, wedGastVerlaat, wedGastReset, wedScoreRijen } from './coopwedstrijd.js';
+import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHostScore, wedGastScore, wedScoreStop, wedGastVerlaat, wedGastReset, wedScoreRijen } from './multiplayerwedstrijd.js';
 import {
   courseHoles, simulateFlight, DISCS, DISC_ORDER, RELEASES, suggestDisc, newCard, finishHole, cardTotals, courseMedal, holeName, relText,
   MAX_OVER_PAR, CIRCLE_M,
@@ -562,7 +562,7 @@ function end(w, { quit = false, extern = false, uitslag = null } = {}) {
   setCourse(BASE);
 }
 
-// Online (#443): wie stopt laat de anderen doorspelen; de uitslag en de beloning komen van wie het spel opende (coopwedstrijd.js).
+// Online (#443): wie stopt laat de anderen doorspelen; de uitslag en de beloning komen van wie het spel opende (multiplayerwedstrijd.js).
 function eindeOnline(w, g, quit, extern, res) {
   if (quit) {
     if (!extern) { if (g.online === 'host') wedScoreStop(w); else wedGastVerlaat(w); } // the host stops it for everybody, a guest only for himself

@@ -40,7 +40,7 @@ import { REGATTA_GAME } from './regatta.js';
 import { RINGRACE } from './ringrace.js';
 import { VLIEGSCHOOL } from './vliegschool.js';
 import { SAFEHUIS } from './safehuizen.js';
-import { PVP_ARENA_ACT } from './cooppvpwereld.js'; // de PvP-minigame in Samen spelen (#454)
+import { PVP_ARENA_ACT } from './multiplayerpvpwereld.js'; // de PvP-minigame in Samen spelen (#454)
 import { maakVluchtdienst, vluchtStap, vluchtStand, vluchtUitslag } from './arcadeplane.js';
 import { maakVaardienst, vaarStap, vaarStand, vaarUitslag } from './zeilvaren.js';
 import { rondvluchtRoute, kadesLangsRoute, margeVoorDienst, dienstBordRij } from './simdienst.js';

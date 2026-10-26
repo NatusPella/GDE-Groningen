@@ -20,7 +20,7 @@ import { getChallengeRecord, recordChallengeResult, MEDALS } from './achievement
 import { loopbaanVerdien } from './loopbaanlive.js';
 import { hoofdspeler } from './spelersregister.js';
 import { lichaamVan, bestuurInstappenIn, bestuurLos } from './coopbestuur.js';
-import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHostBaan, wedBaanStand, wedScoreStop } from './coopwedstrijd.js';
+import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHostBaan, wedBaanStand, wedScoreStop } from './multiplayerwedstrijd.js';
 import { CP_TOTAAL, stapPoort, meters, klaar as baanKlaar, gridRij, medailleVoorPlek, prijsVoorPlek, xpVoorPlek } from './ringbaan.js';
 
 const ACCENT = '#c8102e';

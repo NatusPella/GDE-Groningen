@@ -7,7 +7,7 @@ import * as G from '../game/js/coopgezocht.js';
 import * as B from '../game/js/coopbestuur.js';
 import * as N from '../game/js/coopnet.js';
 import * as AR from '../game/js/pvparena.js';
-import * as PW from '../game/js/cooppvpwereld.js';
+import * as PW from '../game/js/multiplayerpvpwereld.js';
 import { createLink } from '../game/js/net/memtransport.js';
 
 let n = 0;

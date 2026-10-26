@@ -16,7 +16,7 @@ import { Vehicle } from './vehicle.js';
 import { BOAT_KINDS } from './boattypes.js';
 import { hoofdspeler } from './spelersregister.js';
 import { lichaamVan, bestuurInstappenIn, bestuurLos } from './coopbestuur.js';
-import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHostBaan, wedBaanStand, wedScoreStop } from './coopwedstrijd.js';
+import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHostBaan, wedBaanStand, wedScoreStop } from './multiplayerwedstrijd.js';
 
 // Zeilregatta (#197): een activiteit die de speler NIET overneemt. Zit je in een zeilboot bij een
 // jachthaven, dan start E de regatta: vier tonnen op open water, twee rondes, in volgorde ronden.

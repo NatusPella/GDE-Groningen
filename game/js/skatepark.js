@@ -10,7 +10,7 @@ import { createBoard, mgThema, key, bubble, clearBubbles, pick, stopPressed, eas
 import { SKATE_LINES } from './minigamelines.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
 import { skateFx, pushFoley } from './sfx/minigamefoley.js';
-import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHostPunt, wedGastPunt, wedScoreStop, wedGastVerlaat, wedGastReset, wedScoreRijen } from './coopwedstrijd.js';
+import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHostPunt, wedGastPunt, wedScoreStop, wedGastVerlaat, wedGastReset, wedScoreRijen } from './multiplayerwedstrijd.js';
 import { maakBeurten, beurtKlaar, beurtNu, somVan } from './coopwedstrijdpunt.js';
 import {
   FEATURES, PARK, RUN_S, MEDAL_AT, SKATE, createBoard as createBoardState, createCombo, stepBoard, scoreEvents, tickCombo, bankCombo, skateMedal, TRICK_NAMES,
@@ -433,7 +433,7 @@ function end(w, { quit = false, extern = false, uitslag = null } = {}) {
   say(w, medal >= 2 ? 'endGood' : 'endPoor', true, true);
 }
 
-// Online (#443): wie stopt laat de anderen doorskaten; de uitslag en de beloning komen van wie het spel opende (coopwedstrijd.js).
+// Online (#443): wie stopt laat de anderen doorskaten; de uitslag en de beloning komen van wie het spel opende (multiplayerwedstrijd.js).
 function eindeOnline(w, g, quit, extern, res) {
   if (quit) {
     if (!extern) { if (g.online === 'host') wedScoreStop(w); else wedGastVerlaat(w); } // de host stopt het voor iedereen, een gast alleen voor zichzelf

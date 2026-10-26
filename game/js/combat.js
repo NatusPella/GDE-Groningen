@@ -21,7 +21,7 @@ import { assistDamage } from './assistlive.js';
 import { squirtWater, throwExplosive, updateThrowables } from './throwables.js';
 import { noteWantedWhy } from './wantedwhy.js';
 import { gastAanval, gastLichamen } from './coopbestuur.js';
-import { pvpSlag, pvpKogel } from './cooppvpwereld.js'; // spelers tegen elkaar, alleen als beiden niet op passief staan (#447)
+import { pvpSlag, pvpKogel } from './multiplayerpvpwereld.js'; // spelers tegen elkaar, alleen als beiden niet op passief staan (#447)
 import { wantedVan, zetWantedVan } from './coopgezocht.js';
 import { hoofdspeler } from './spelersregister.js'; // de speler achter dit scherm (#446); politie en gezocht blijven per speler
 import { nieuweCombo, comboSlag, comboUitslag } from './meleecombo.js'; // de melee-reeks (#492)

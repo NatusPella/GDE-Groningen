@@ -5,7 +5,7 @@ import { mountLobby } from './lobbyui.js';
 import { startHost, startClient, addGuest, stopCoopNet, handshakeInfo, canJoin, removeGuest, setMaxPlayers, openHek, genoegSpelers } from './coopnet.js';
 import { fadeFlash } from './coophud.js';
 import { openHold } from './coophold.js';
-import { koppelWissel } from './coophostwisselui.js';
+import { koppelWissel } from './multiplayerhostwisselui.js';
 import { biedOver } from './coophostwisselnet.js';
 import { readSession, writeSession, toSession } from './coopsave.js';
 import { readHostScene } from './coopscene.js';

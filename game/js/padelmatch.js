@@ -412,7 +412,7 @@ export function snapPadel(m, seq = 0) {
   return { k: 'wed', f: 'lv', n: seq | 0, d, x: m.flash ? `${m.flash.text}${m.flash.why ? ` (${m.flash.why})` : ''}`.slice(0, 60) : '' };
 }
 export const SNAP_LEN = 16 + 5 * 4;
-// De haken die het wedstrijdkader (coopwedstrijd.js) van een live wedstrijd nodig heeft.
+// De haken die het wedstrijdkader (multiplayerwedstrijd.js) van een live wedstrijd nodig heeft.
 export const livePadel = {
   tik: tikPadel, snap: snapPadel, verlaat: verlaatPadel, uitslag: uitslagPadel, beloning: beloningPadel, vak: 'padel',
   meedoen: (m, slot) => m.stoelen.some((s) => s.slot === slot && !s.weg),

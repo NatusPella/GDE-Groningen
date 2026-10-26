@@ -2,7 +2,7 @@
 // zones beslissen de wedstrijd, treffers en uitschakelingen tellen voor je eigen score. Echte wapens van het spel, geen verfmodus
 // (besluit van de eigenaar, 24-10). Alleen spelers buiten de passieve stand doen mee (#447); dood door een medespeler kost niets.
 // Bloed en gore mogen hier (constitutie 6): dit bestand tekent niets, het houdt alleen de stand bij.
-// Pure regels, zonder three.js, netwerk en DOM; getest in scripts/pvparena_test.mjs. De wereldhaak staat in cooppvpwereld.js.
+// Pure regels, zonder three.js, netwerk en DOM; getest in scripts/pvparena_test.mjs. De wereldhaak staat in multiplayerpvpwereld.js.
 //
 // Een ronde: 2 tot 8 spelers, twee teams, 2,5 minuut. Wie in het veld staat en niet passief is, doet mee (geen late instap: de
 // deelnemers liggen vast bij de start; elke speler, ook wie het spel opende, kan een ronde starten na een J/N-uitnodiging). Een
@@ -11,7 +11,7 @@
 // dat zelf uit met arenaSpawnVoor), met beschermingstijd (die tijd bewaakt de PvP-laag, cooppvp.js). De host rekent; elke plek
 // heeft een eigen score. De beloning is per team gelijk met een kleine bonus voor de winnaar (arenaBeloningPerTeam, #448) en er
 // gaat nooit geld of voortgang af: dood kost niets. De gast leest de start (met zijn team), de stand en de uitslag uit de gewone
-// meldingen (arenaMelding) en houdt zo zijn eigen bord bij (cooppvpwereld.js).
+// meldingen (arenaMelding) en houdt zo zijn eigen bord bij (multiplayerpvpwereld.js).
 
 export const ARENA = Object.freeze({
   id: 'pvparena',
@@ -25,7 +25,7 @@ export const ARENA = Object.freeze({
   respawnS: 3,          // s voor je weer opstaat
   beschermS: 3,         // s bescherming na het opstaan (cooppvp.js PVP.BESCHERM_S is langer; hier telt de korte variant)
   klaarS: 8,            // s: zolang blijft de uitslag staan
-  uitnS: 10,            // s: de J/N-uitnodiging voor de ronde (net als bij een wedstrijd, coopwedstrijd.js)
+  uitnS: 10,            // s: de J/N-uitnodiging voor de ronde (net als bij een wedstrijd, multiplayerwedstrijd.js)
 });
 
 // De beloning per team (#448): gelijk per team, met een kleine bonus voor het winnende team. Dood kost niets; dit geld
