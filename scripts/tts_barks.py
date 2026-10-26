@@ -53,7 +53,7 @@ def job(l):
     return l, 'FAIL ' + err, None
 
 
-barks = json.load(open(os.path.join(REPO, 'scripts', 'tts_barks.json')))
+barks = json.load(open(os.path.join(REPO, 'scripts', 'tts_barks.json'), encoding='utf-8'))
 logs = defaultdict(dict, {d: load_log(f'{AUDIO}/{d}') for d in {os.path.dirname(l['file']) for l in barks}})
 u0 = usage()
 with ThreadPoolExecutor(4) as ex:
