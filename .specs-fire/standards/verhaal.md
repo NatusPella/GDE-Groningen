@@ -112,7 +112,7 @@ Femke, Harm, Hilly, Hilje en Boer Roelf (`docs/verhaal/nieuw/00-OVERZICHT.md:67`
    ziet hij (snapshot of EXTRA-bericht), wie krijgt de beloning en de eigen voortgang
    (#429), wat gebeurt er bij wegvallen of later aansluiten, en welke test het dekt.
    Een gast krijgt geen gesprekken met personages en geen verhaalstap van een ander
-   (`.specs-fire/standards/multiplayer.md:75`).
+   (sectie "Wat een gast wel en niet kan" in `.specs-fire/standards/multiplayer.md`).
 9. **Bewijs**: de stap met zijn `scenes` in `game/js/storyarc_nieuw.js`, de scène in
    het `09`-script, en daarna `node scripts/build_story_data.mjs`,
    `node scripts/storydata_test.mjs`, `node scripts/story_similarity_test.mjs`,
