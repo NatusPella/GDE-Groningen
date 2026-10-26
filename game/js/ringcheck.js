@@ -324,6 +324,12 @@ export function crossingPath(map, c, reach) {
         const O = o.pts, oa = fwd ? O[0] : O[O.length - 1];
         if (Math.hypot(oa[0] - e[0], oa[1] - e[1]) > 0.5 || Math.abs(zEnd(o, !fwd) - ze) > 1) continue;
         const ob = fwd ? O[1] : O[O.length - 2];
+        // (a dead end's turnaround is not the carriageway carrying on: no car road meets the far end, so the
+        // extension would make the car U-turn inside a cul-de-sac; Bekemaheerd, #509)
+        const oe = fwd ? O[O.length - 1] : O[0];
+        const carriesOn = map.roadsNear(oe[0], oe[1], 1).some((x) => x !== o && x.cat !== 'foot' && x.cat !== 'cycle'
+          && x.pts.some((q) => Math.abs(q[0] - oe[0]) < 0.5 && Math.abs(q[1] - oe[1]) < 0.5));
+        if (!carriesOn) continue;
         // (on along o, away from the node: the way it carries on, for either end)
         const ao = Math.atan2(ob[1] - oa[1], ob[0] - oa[0]);
         const turn = Math.abs(Math.atan2(Math.sin(ao - a0), Math.cos(ao - a0)));
