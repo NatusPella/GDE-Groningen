@@ -25,6 +25,7 @@ import { pvpSlag, pvpKogel } from './cooppvpwereld.js'; // spelers tegen elkaar,
 import { wantedVan, zetWantedVan } from './coopgezocht.js';
 import { hoofdspeler } from './spelersregister.js'; // de speler achter dit scherm (#446); politie en gezocht blijven per speler
 import { nieuweCombo, comboSlag, comboUitslag } from './meleecombo.js'; // de melee-reeks (#492)
+import { nieuweBlok, blokkeer, herstel, blokActief, schadeNaBlok } from './blockregels.js'; // blokkeren met een slagwapen (#492)
 
 export { WEAPONS, WEAPON_KEYS, isMeleeWeapon, isRangedWeapon, isGunWeapon };
 
@@ -79,12 +80,18 @@ function cycleWeaponByWheel(dt, world, input) {
   world.weapon = usable[(i + dir + usable.length) % usable.length];
 }
 
+// De blokstand van de speler achter dit scherm (#492). Hij staat in de wereld zodat een geblokkeerde slag ook bij een gast
+// te zien is (cooppvpwereld.js) en de tests hem kunnen zetten.
+export function blokVan(world) {
+  return world.blok || (world.blok = nieuweBlok());
+}
+
 export function updateCombat(dt, world) {
   fireTimer = Math.max(0, fireTimer - dt);
 
   const { input } = world;
   // a minigame (padel, the fuse box) owns the mouse buttons and number keys
-  if (world.padelGame || world.minigameUntil > world.time) { world.scoped = false; pendingSwing = null; return; }
+  if (world.padelGame || world.minigameUntil > world.time) { world.scoped = false; pendingSwing = null; if (world.blok) herstel(world.blok, world.time || 0); return; }
   if (!hasWeapon(world, world.weapon)) world.weapon = 'fists';
   for (let i = 1; i <= SLOTS; i++) {
     if (input.wasPressed(String(i))) selectWeaponSlot(world, i);
@@ -93,6 +100,10 @@ export function updateCombat(dt, world) {
   const p = hoofdspeler(world);
   const weapon = WEAPONS[world.weapon];
   world.scoped = !!weapon.scope && !p.inVehicle && !p.swimming && !!input.mouse.rightDown && !world.paused;
+  // De blokstand (#492): met een slagwapen in de hand blokkeert de rechtermuisknop; met een vuurwapen blijft rechts richten.
+  // In een voertuig of in het water gaat het niet en in een menu staat de wereld stil.
+  const kanBlokkeren = weapon.kind === 'melee' && !p.inVehicle && !p.swimming && !world.paused;
+  blokkeer(blokVan(world), world.time || 0, kanBlokkeren && !!input.mouse.rightDown);
   // from a car window only guns (and the water pistol) work
   const usable = !p.inVehicle || weapon.kind === 'gun' || weapon.kind === 'water';
   updateAim(dt, world, usable && weapon.kind !== 'melee' ? weapon.range : 0);
@@ -231,7 +242,10 @@ function meleeHit(world, angle, weapon, key, ctx = null) {
     damagePed(world, t, schade, true, ca, sa, true, gewicht, dader);
     landed = landed || 'flesh';
   }
-  if (world.coopPvp && pvpSlag(world, dader, inReach, schade)) landed = landed || 'flesh'; // een andere speler (#447)
+  if (world.coopPvp) { // een andere speler (#447): blokkert hij, dan vangt hij de slag op (#492)
+    const voor = world.blokTreffer;
+    if (pvpSlag(world, dader, inReach, schade, key)) landed = landed || (world.blokTreffer !== voor ? 'blok' : 'flesh');
+  }
   for (const v of world.vehicles) {
     if (v.wrecked || v.sinking || v.isBoat || !inReach(v.x, v.y, v.halfLen * 0.7)) continue;
     if (weapon.damage >= 20 || key === 'fists') {
@@ -249,8 +263,14 @@ function meleeHit(world, angle, weapon, key, ctx = null) {
     }
   }
   reeks.set(sleutel, comboUitslag(stand, nu, !!landed)); // een treffer telt door, een misser wist de reeks
-  if (landed) weaponSound(world, { sub: 'hit', weapon: key, material: weapon.sound, on: landed, x: p.x + ca * weapon.range, y: p.y + sa * weapon.range });
-  if (!ctx && (landed === 'flesh' || landed === 'car')) {
+  // een opgevangen slag heeft een eigen klank (metaal tegen metaal), geen bloed en geen dip
+  if (landed === 'blok') weaponSound(world, { sub: 'hit', weapon: key, material: 'metal', on: 'blok', x: p.x + ca * weapon.range, y: p.y + sa * weapon.range });
+  else if (landed) weaponSound(world, { sub: 'hit', weapon: key, material: weapon.sound, on: landed, x: p.x + ca * weapon.range, y: p.y + sa * weapon.range });
+  if (!ctx && landed === 'blok') { // je slag komt terug: een korte terugslag, zonder timescale-dip
+    const kick = world.camKick || (world.camKick = { pitch: 0, yaw: 0, fov: 0 });
+    kick.pitch = Math.max(-0.08, kick.pitch - 0.03);
+    kick.yaw += 0.014;
+  } else if (!ctx && (landed === 'flesh' || landed === 'car')) {
     world.lastMeleeHit = { time: world.time };   // main.js: korte timescale-dip (#216)
     const kick = world.camKick || (world.camKick = { pitch: 0, yaw: 0, fov: 0 });
     kick.yaw += (Math.random() - 0.5) * 0.02 * weapon.knock;
@@ -516,7 +536,7 @@ function hitGast(world, b) {
 function hitPlayer(world, b) {
   const p = hoofdspeler(world);
   if (Math.hypot(p.x - b.x, p.y - b.y) > p.radius + 0.12) return false;
-  damagePlayer(world, b.damage);
+  damagePlayer(world, b.damage, 'kogel'); // een kogel gaat dwars door een blokstand heen (#492)
   const bl = Math.hypot(b.vx, b.vy) || 1;
   if (!p.inVehicle) {
     p.hitReact = { t: world.time, dx: b.vx / bl, dy: b.vy / bl, k: 0.7 };
@@ -529,8 +549,20 @@ function hitPlayer(world, b) {
   return true;
 }
 
-export function damagePlayer(world, damage) {
+// Een opgevangen melee-slag (#492): een vijfde van de schade, een korte stoot en een eigen klank; geen bloed.
+function blokOpgevangen(world, damage) {
+  const p = hoofdspeler(world);
+  if (p) weaponSound(world, { sub: 'hit', weapon: world.weapon, material: 'metal', on: 'blok', x: p.x, y: p.y });
+  const kick = world.camKick || (world.camKick = { pitch: 0, yaw: 0, fov: 0 });
+  kick.pitch = Math.max(-0.08, kick.pitch - 0.02);
+  kick.yaw += 0.01;
+  return schadeNaBlok(damage, 'melee');
+}
+
+// soort: 'melee' (een slag of stoot, de standaard) of 'kogel'; een kogel gaat ongewijzigd door een blokstand heen (#492).
+export function damagePlayer(world, damage, soort = 'melee') {
   damage = assistDamage(damage); // Hulp (#215): minder schade bij kogels, klappen en wegpiraten
+  if (soort !== 'kogel' && blokActief(world.blok, world.time || 0)) damage = blokOpgevangen(world, damage);
   if (world.armor > 0) {
     const absorbed = Math.min(world.armor, damage);
     world.armor -= absorbed;

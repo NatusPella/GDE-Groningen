@@ -6,6 +6,8 @@
 // gast en de host tellen de patronen met dezelfde klok (stapAanvalKlok), dus ze lopen gelijk. In het snapshot staan wapen en laatste
 // aanval van de gast in de bytes die er al waren (coopnet.js spelerRecord): de anderen zien het wapen in zijn hand en de zwaai.
 // Pure logica zonder three.js; combat.js komt binnen als haak (zetWapenHaken), getest in scripts/coopwapen_test.mjs.
+// Met een slagwapen in de hand is de rechtermuisknop de blokstand (#492): die gaat als zichtbit mee in de invoer en de host
+// rekent de opgevangen slag uit (cooppvpwereld.js blokkeert).
 // Geen nieuw netwerkformaat: PROTO en CODEC_VERSION blijven 2 (een oudere host negeert het bericht 'wapen').
 import { WEAPONS, WEAPON_KEYS, SLOTS } from './weapons.js';
 import { lichaamVan, invoerVan } from './coopbestuur.js';
@@ -82,10 +84,13 @@ export function gastWapenTik(world, dt, meld) {
     if (inp.mouse) wiel(world, st, dt, inp);
   }
   const key = world.weapon, kan = gastWapenKan(key);
-  // de kijker: zoals combat.js updateCombat (world.scoped stuurt de camera van scene3d.js en het richtkruis van aimassist.js); het aanvalsrecht blijft aan de host
-  const zicht = vrij && heeftKijker(key) && !!(inp.mouse && inp.mouse.rightDown);
-  world.scoped = zicht;
-  world.coopZichtKnop = zicht;
+  // de kijker: zoals combat.js updateCombat (world.scoped stuurt de camera van scene3d.js en het richtkruis van aimassist.js); het aanvalsrecht blijft aan de host.
+  // Met een slagwapen is dezelfde knop de blokstand (#492): die gaat als zichtbit naar de host, maar zet geen kijker.
+  const rechts = vrij && !!(inp.mouse && inp.mouse.rightDown);
+  const kijker = rechts && heeftKijker(key);
+  const blok = rechts && !!WEAPONS[key] && WEAPONS[key].kind === 'melee';
+  world.scoped = kijker;
+  world.coopZichtKnop = kijker || blok;
   const ingedrukt = vrij && !!(inp.mouse && inp.mouse.down);
   if (ingedrukt && !kan) { st.melding -= dt; if (st.melding <= 0) { st.melding = 3; if (world.addMessage) world.addMessage(WAPEN_TEKST.alleenEigen, 2.5); } }
   const aan = ingedrukt && kan;
@@ -125,6 +130,7 @@ export function wapenWeg(world, slot) {
   const l = lichaamVan(world, slot);
   if (l) { l.coopWapen = undefined; l.coopFx = null; }
   if (world.coopWapens) delete world.coopWapens[slot];
+  if (world.coopBlok) delete world.coopBlok[slot]; // een oude blokstand mag niet naar een nieuwe gast op deze plek lekken (#492)
 }
 export function wapenAllesWeg(world) { for (const s of Object.keys(world.coopWapens || {})) wapenWeg(world, +s); }
 

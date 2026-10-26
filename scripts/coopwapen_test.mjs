@@ -8,6 +8,7 @@ import * as S from '../game/js/coopspeler.js';
 import * as C from '../game/js/coopclient.js';
 import * as B from '../game/js/coopbestuur.js';
 import * as N from '../game/js/coopnet.js';
+import * as PW from '../game/js/cooppvpwereld.js';
 import { WEAPONS } from '../game/js/weapons.js';
 const { gastAanvalUitvoeren, gastSlagLanding, updateBullets } = await import('../game/js/combat.js');
 const { buildPersonMesh, setHeldWeapon } = await import('../game/js/models3d_people.js');
@@ -260,6 +261,23 @@ t('jachtgeweer (combat): het kijkerschot van een gast vliegt vanaf zijn oog lang
   for (let i = 0; i < 200 && w.bullets.length; i++) updateBullets(0.016, w);
   assert.equal(p.state, 'dead'); assert.ok(misdaad.some((m) => m[0] === 2), 'de misdaad is van de gast');
   B.zetBestuurHaken({ misdaad: null });
+});
+
+t('de gast met een slagwapen: de rechtermuisknop is de blokstand, die als zichtbit naar de host gaat (#492)', () => {
+  const inv = (o) => ({ mouse: { down: !!o.muis, rightDown: !!o.rechts, wheel: 0 }, wasPressed: () => false, isDown: () => false });
+  const w = { input: inv({ rechts: true }), ammo: { knuppel: 1 }, weapon: 'knuppel', player: { x: 1, y: 1, angle: 0 }, time: 0 };
+  W.gastWapenTik(w, 0.016, () => {});
+  assert.equal(w.coopZichtKnop, true, 'de wacht gaat als zichtbit mee in de invoer');
+  assert.equal(w.scoped, false, 'een slagwapen zet geen kijker');
+  assert.equal(w.coopAanvalKnop, false, 'blokkeren valt niet aan');
+  // de host leest dat bit en laat de gast daarmee blokkeren (cooppvpwereld.js blokkeert)
+  const h = { time: 1, coopRole: 'host', coopPvp: { actief: { 0: true, 2: true }, vrij: {}, tot: {}, poging: {} }, coopFigures: { 2: { slot: 2, input: { buttons: S.KNOP_ZICHT } } }, coopWapens: { 2: { w: 'knuppel' } } };
+  assert.equal(PW.blokkeert(h, 2, 1), true);
+  h.coopWapens[2].w = 'jachtgeweer';
+  assert.equal(PW.blokkeert(h, 2, 1), false, 'met een vuurwapen is rechts richten, geen blok');
+  w.input = inv({});
+  W.gastWapenTik(w, 0.016, () => {});
+  assert.equal(w.coopZichtKnop, false, 'loslaten: de wacht staat niet meer');
 });
 
 t('wire: PROTO en CODEC_VERSION blijven 2, het bericht wapen is gewone JSON', () => {
