@@ -94,8 +94,13 @@ figuur vrij (#366).
 Net: `net/hub|session|brokers|codec|protocol|interp.js`, `coopnet.js`,
 `coopfoci.js`, `coopextra*.js`. Regels:
 `coopmeedoen|missie|gast|gastlokaal|bestuur|gezocht|wapen|pvp|pvpwereld|wedstrijd*|bijbaan|status|hostwissel*|beloning|deel|checkpoint|save|bezit.js`,
-`spelersregister.js`, `pvparena.js`. Schermen: `lobby.js`, `lobbyui.js`,
+`spelersregister.js`, `players.js`, `pvparena.js`. Schermen: `lobby.js`, `lobbyui.js`,
 `samenpanel.js`, `coopgate.js`, `coopspelersui.js`, `coopscene.js`, `coophold.js`.
+
+De eigen speler lees je via `players.js` (`hoofdspeler`, `isGast`, `medespelers`,
+`elkeSpeler`, `spelerMetId`); `world.player` blijft de opslag van het eigen lichaam.
+`scripts/player_singleton_audit.mjs` (lichte fase en CI) blokkeert groei van directe
+`world.player`-verwijzingen; zie ADR [0018](adr/0018-een-ingang-voor-de-speler.md).
 
 ## Tests
 

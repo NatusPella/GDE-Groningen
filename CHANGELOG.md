@@ -32,6 +32,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Het foutrapport toont alleen de versie die je draait.** Meldingen uit een eerdere versie reizen niet meer mee met een upgrade, dus een allang gefixte fout lijkt niet meer open te staan.
 - **Een lange treinrit wordt niet meer na 2,5 minuut afgekapt.** De waakhond respecteert de duur die de rit zelf opgeeft in plaats van een vaste grens van 150 seconden.
 ### Onderhoud
+- **Eén ingang voor de speler.** Nieuwe code leest de eigen speler via `game/js/players.js` in plaats van `world.player`; een audit met basislijn (`scripts/player_singleton_audit.mjs`, in de lichte fase en in CI) blokkeert groei, en de eerste 41 lezers in kaart-, HUD- en missiehulp zijn omgezet (ADR 0018, #500).
 - **De documentatie is opgeschoond en de specs zijn de basis.** De levende regels staan nu in elf specs onder `.specs-fire/standards/` (Samen spelen, wereld, mechanica, verhaal, UI en taal, publicatie, plus de vijf standaarden); 23 vervallen of dubbele documenten gingen naar `docs/archief/2026-10/`, de gegenereerde verhaal- en opnamelijsten staan niet meer in git, en de verwijzingen in README, AGENTS en ARCHITECTURE kloppen weer. De keuzes die het project dragen staan met hun afgewezen alternatieven in `.specs-fire/standards/adr/`. Begin bij `docs/SPECS-FIRE.md`.
 
 ## [0.53.0] - 2026-10-25
