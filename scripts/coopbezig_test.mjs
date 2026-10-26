@@ -102,6 +102,22 @@ t('een missiegroep gaat voor een eigen activiteit; na de missie kan de groep wee
   assert.ok(hw.coopGroepen.groepen['bezig|1|hengelen'], 'na de missie is de eigen activiteit weer een groep');
 });
 
+t('twee groepen tegelijk: de host in een missie en een gast die hengelt', () => {
+  const { hw, voegToe, step } = host();
+  voegToe(); step(2);
+  hw.mission = { phase: 'active', label: 'Het Loket', type: 'stages', index: 3, progressText: 'Stap in de auto', lateInstap: true, id: '3|Het Loket' };
+  step(1);
+  assert.ok(hw.coopGroepen.groepen['3|Het Loket'], 'de missiegroep van de host');
+  assert.equal(N.handleEvent(hw, { k: 'bezig', a: 'hengelen' }, 1), true);
+  step(1);
+  const mg = hw.coopGroepen.groepen['3|Het Loket'], bg = hw.coopGroepen.groepen['bezig|1|hengelen'];
+  assert.ok(mg && bg, 'twee groepen naast elkaar');
+  assert.equal(mg.leider, 0); assert.equal(bg.leider, 1);
+  assert.deepEqual(bg.deelnemers, [1]); assert.equal(bg.activiteit, 'hengelen');
+  step(2);
+  assert.ok(hw.coopGroepen.groepen['3|Het Loket'] && hw.coopGroepen.groepen['bezig|1|hengelen'], 'beide groepen blijven bestaan');
+});
+
 t('een late gast krijgt de uitnodiging "Meedoen met X?" en weet wat er speelt', () => {
   const { hw, voegToe, step } = host();
   const g1 = voegToe(); step(2);
