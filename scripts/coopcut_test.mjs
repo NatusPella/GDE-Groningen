@@ -1,4 +1,5 @@
 // Samen spelen (#95): cutscenes samen bekijken (coopcut.js): de scène gaat in stukjes naar de gasten en komt heel aan.
+import './node3d.mjs'; // three uit de vendor-cache, zodat de test ook de echte gastheer (cutscenehost.js) kan aanroepen
 import assert from 'node:assert/strict';
 import { gastCine, cutPakket, cutStukken, cutEinde, nieuwCutVerzamelaar, leesCutPakket, cutHostStart, cutHostEnd, cutHostId, cutHostTik, cutGastTempo, cutGastTik, leesCutTijd, cutTijd, cutsceneScene, cutsceneVerdeling, acteurRol, cutsceneSpeelt, cutsceneKlaar, CUT_HOLD, CUT_CHUNK } from '../game/js/coopcut.js';
 import { openingActs, END_CARD } from '../game/js/cutscenes.js';
@@ -139,5 +140,50 @@ for (const [i, act] of acts.entries()) {
   const ander = { hoofdrol: 'tammo' };
   w.coopCutRol = ander;
   ok(!cutsceneKlaar(w, s, 1000) && w.coopCutRol === ander && ander.tot === undefined, 'een oude scène raakt een nieuwe niet');
+}
+// (#502) Vervangen is geen overslaan: een scène die door een scène met hogere prioriteit wordt overgenomen
+// (cinematics.js playCinematic) laat de gasten meelopen naar de nieuwe scène. Alleen een scène die de speler
+// zelf met Spatie/Esc wegklikt gaat als "overgeslagen" naar de gasten.
+{
+  const { cutHostEinde } = await import('../game/js/cutscenehost.js');
+  const { handleEvent } = await import('../game/js/coopnet.js');
+  const gastheer = () => {
+    const sent = [];
+    const w = { coopCutRol: null, coopCutSpoor: [], coopNet: { role: 'host', hub: { announce: (b) => { sent.push(b); return true; } } } };
+    const id = cutHostId();
+    cutHostStart(w, id, { def: {}, lines: [], duration: 3, anchor: null, cine: {} });
+    sent.length = 0; // alleen het einde telt hier
+    return { w, id, sent };
+  };
+  { // de scène speelde gewoon af
+    const { w, id, sent } = gastheer();
+    ok(cutHostEinde(w, id, { skipped: false, replaced: false }) && sent.length === 1 && sent[0].k === 'cutend' && sent[0].skip === false, 'een scène die afspeelt: een gewoon einde');
+  }
+  { // vervangen door een scène met hogere prioriteit (cinematics.js finish(true, true))
+    const { w, id, sent } = gastheer();
+    ok(cutHostEinde(w, id, { skipped: false, replaced: true }) === true, 'de gastheer meldt het einde van een vervangen scène');
+    ok(sent.length === 1 && !sent.some((b) => b.k === 'cutend' || b.skip === true), 'een vervangen scène stuurt géén "skip" (en geen cutend) naar de gasten');
+    ok(sent[0].k === 'cutvervang' && sent[0].id === id && sent[0].skip === false, 'de gasten horen dat de scène vervangen wordt (cutvervang)');
+    ok(w.coopNet.cutNu === null && w.coopCutRol === null, 'de gastheer ruimt de vervangen scène op, net als bij een gewoon einde');
+    ok(w.coopCutSpoor.some((r) => r.includes('host-vervangen')) && !w.coopCutSpoor.some((r) => r.includes('host-einde')), 'het spoor zegt "vervangen" en niet "overgeslagen"');
+    ok(!cutHostEinde(w, id, { skipped: false, replaced: true }), 'het einde gaat maar één keer');
+    // achterwaarts compatibel: een gast die het bericht niet kent laat het liggen en speelt door tot de
+    // nieuwe scène hem overneemt (coopcut.js cutGastSpeel); hij valt dus niet stil
+    const gast = { coopNet: { role: 'client', cutVerzamelaar: { reset() {} } }, coopCutBezig: id };
+    ok(handleEvent(gast, sent[0]) === false && gast.coopCutBezig === id, 'een gast die de vlag niet kent speelt door in plaats van te stoppen');
+  }
+  { // de speler sloeg zelf over: dat blijft precies zoals het was
+    const { w, id, sent } = gastheer();
+    ok(cutHostEinde(w, id, { skipped: true, replaced: false }) && sent.length === 1 && sent[0].k === 'cutend' && sent[0].skip === true, 'een zelf overgeslagen scène stuurt wél een "skip" naar de gasten');
+  }
+  { // zelf overslaan wint, ook als er net een nieuwe scène klaarstaat
+    const { w, id, sent } = gastheer();
+    ok(cutHostEinde(w, id, { skipped: true, replaced: true }) && sent[0].k === 'cutend' && sent[0].skip === true, 'zelf overslaan gaat voor vervangen');
+  }
+  {
+    const { w, id } = gastheer();
+    ok(!cutHostEinde({ coopNet: { role: 'client', hub: { announce: () => true } } }, id, { replaced: true }) && !cutHostEinde({}, id, { replaced: true }), 'een gast of een los spel stuurt niets');
+    ok(cutHostEinde(w, id + 99, { replaced: true }) === false, 'alleen voor de lopende scène');
+  }
 }
 console.log(`coopcut_test: ${n} ok`);
