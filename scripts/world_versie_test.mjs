@@ -48,13 +48,15 @@ if (dagen > 30) {
 }
 
 // Een rebuild van de provincielaag bovenop een bestaande wereld zette de rijen van de overlay een tweede keer
-// in de stadstegel: twee verschillende rijen met dezelfde id vanaf 20.000.000. De loader houdt dan de oude rij
-// en het water en de gebouwen van de nieuwe verdwijnen uit de rasters (#512). Elke id mag maar één keer in een
-// tegel staan.
+// in de stadstegel: twee verschillende rijen met dezelfde id in de band van de overlay (vanaf 20.000.000).
+// De loader houdt dan de oude rij en het water en de gebouwen van de nieuwe verdwijnen uit de rasters (#512).
+// Alleen die band telt: de vulbomen van de stad liggen op ~32 miljard en staan soms met identieke rijen in
+// de tegel (de loader houdt er één over), dat is geen fout.
 let dubbel = 0, dubbelTegels = 0, rijen = 0;
 if (fs.existsSync(stadium)) {
   const G = await import('../game/js/gdt.js');
   const zlib = await import('node:zlib');
+  const OVERLAY_GID0 = 20_000_000, OVERLAY_GID_SPAN = 10_000_000;
   const stad = JSON.parse(fs.readFileSync(stadium, 'utf8'));
   const blobs = new Map();
   for (const [k, t] of Object.entries(stad.tiles || {})) {
@@ -70,7 +72,7 @@ if (fs.existsSync(stadium)) {
       const seen = new Set();
       for (const r of s.rows) {
         const g = typeof r === 'object' && r ? (s.type === G.SECTION.TREES ? r.g : r.gid) : undefined;
-        if (typeof g !== 'number') continue;
+        if (typeof g !== 'number' || g < OVERLAY_GID0 || g >= OVERLAY_GID0 + OVERLAY_GID_SPAN) continue;
         rijen++;
         if (seen.has(g)) { dubbel++; raak++; } else seen.add(g);
       }
@@ -79,7 +81,7 @@ if (fs.existsSync(stadium)) {
   }
   for (const fd of blobs.values()) fs.closeSync(fd);
   if (dubbel) {
-    console.log(`FAIL world_versie_test: ${dubbel} van ${rijen} rijen in de stadstegels heeft een dubbele id ` +
+    console.log(`FAIL world_versie_test: ${dubbel} van ${rijen} overlayrijen in de stadstegels heeft een dubbele id ` +
       `(${dubbelTegels} tegels). Deze wereld is opnieuw gebouwd bovenop een oude: de overlay staat er twee keer in ` +
       'en de loader houdt de oude rij (#512). Bouw de wereld opnieuw met "cd desktop && npm run stage".');
     fails++;
@@ -88,6 +90,6 @@ if (fs.existsSync(stadium)) {
 
 if (!fails) {
   console.log(`world_versie_test ok: ${keys.length} tegels, ${overlays.length} overlaytegels allemaal samengevoegd` +
-    (fs.existsSync(stadium) ? `, stad-index aanwezig (${rijen} rijen zonder dubbele id)` : ', geen stad-index (kan kloppen)'));
+    (fs.existsSync(stadium) ? `, stad-index aanwezig (${rijen} overlayrijen zonder dubbele id)` : ', geen stad-index (kan kloppen)'));
 }
 process.exit(fails ? 1 : 0);
