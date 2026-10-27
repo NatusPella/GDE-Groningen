@@ -56,6 +56,7 @@ import { showCard } from './hudcards.js';
 import { gameUi, mgThema, createBoard, key, stopPressed } from './minigamekit.js';
 import { activityBlock, iconDisc } from './activitykit.js';
 import { registerBusyProbe, registerQuitHook } from './busy.js';
+import { hoofdspeler } from './players.js';
 export { activityBlock, iconDisc };
 
 Object.assign(gameUi, { getScene, showBanner, showCard });
@@ -76,7 +77,7 @@ function laadHavens() {
 
 // The nearest marina within the jetties (as the regatta does, regattaplas.js kiesPlek).
 function havenBij(w) {
-  const p = w.player, v = p.inVehicle;
+  const p = hoofdspeler(w), v = p.inVehicle;
   const x = v ? v.x : p.x, y = v ? v.y : p.y;
   let best = null;
   for (const m of havens || []) {
@@ -115,7 +116,7 @@ function dienstActiviteit(cfg) {
   // The vehicle for this service: the one the player is in, or a free one standing at the start
   // spot (the Kist on the field, a boat at the jetty) so E can board it.
   function voertuig(w) {
-    const p = w.player;
+    const p = hoofdspeler(w);
     if (cfg.inVoertuig(p.inVehicle)) return p.inVehicle;
     let best = null;
     for (const v of w.vehicles) {
@@ -128,14 +129,14 @@ function dienstActiviteit(cfg) {
 
   function dichtbij(w, v) {
     const s = plek(w);
-    const p = v || w.player.inVehicle;
+    const p = v || hoofdspeler(w).inVehicle;
     if (!s || !p) return null;
     return Math.hypot(p.x - s.x, p.y - s.y) <= cfg.reik ? s : null;
   }
 
   function start(w) {
     if (run) return false;
-    const v = w.player.inVehicle;
+    const v = hoofdspeler(w).inVehicle;
     if (!cfg.inVoertuig(v)) { w.addMessage(cfg.stapIn, 3); return false; }
     const s = dichtbij(w, v);
     if (!s) { w.addMessage(cfg.geenPlek, 3); return false; }
@@ -205,7 +206,7 @@ function dienstActiviteit(cfg) {
     if (!run) return;
     if (run.flashT > 0 && (run.flashT -= dt) <= 0) { run.flash = ''; run.bad = false; }
     if (w.pendingRespawn || stopPressed(w.input)) { stop(w, { afgebroken: true }); return; }
-    const v = w.player.inVehicle;
+    const v = hoofdspeler(w).inVehicle;
     if (!cfg.inVoertuig(v) || v !== run.v) { stop(w, { afgebroken: true }); return; }
     run.klok += dt;
     for (const e of cfg.stap(run.d, v, dt)) meld(e);
@@ -233,9 +234,9 @@ function dienstActiviteit(cfg) {
     },
     prompt(w) {
       // on foot: E boards the Kist or the boat at the start spot and starts the service
-      if (run || w.player.inVehicle) return null;
+      if (run || hoofdspeler(w).inVehicle) return null;
       const s = plek(w);
-      if (!s || Math.hypot(w.player.x - s.x, w.player.y - s.y) > cfg.reik) return null;
+      if (!s || Math.hypot(hoofdspeler(w).x - s.x, hoofdspeler(w).y - s.y) > cfg.reik) return null;
       const v = voertuig(w);
       if (!v) return null;
       const why = activityBlock(w);
@@ -243,7 +244,7 @@ function dienstActiviteit(cfg) {
     },
     secondary(w) {
       if (run) return [];
-      const v = w.player.inVehicle;
+      const v = hoofdspeler(w).inVehicle;
       const s = plek(w);
       if (!s) return [];
       // prompts.js stays quiet in a vehicle: a place label says that E starts the service
@@ -251,24 +252,24 @@ function dienstActiviteit(cfg) {
         if (!dichtbij(w, v) || (cfg.mag && !cfg.mag(w, v))) return [];
         return [{ id: cfg.id + '-start', x: s.x, y: s.y, h: 2.4, label: cfg.label, sub: cfg.startSub, kind: 'place' }];
       }
-      if (Math.hypot(w.player.x - s.x, w.player.y - s.y) > cfg.reik || !voertuig(w)) return [];
+      if (Math.hypot(hoofdspeler(w).x - s.x, hoofdspeler(w).y - s.y) > cfg.reik || !voertuig(w)) return [];
       return [{ id: cfg.id + '-2', x: s.x, y: s.y, h: 2.4, label: cfg.naam, sub: cfg.stapIn, kind: 'place' }];
     },
     interact(w) {
       if (run) return false;
-      const v = w.player.inVehicle;
+      const v = hoofdspeler(w).inVehicle;
       if (cfg.inVoertuig(v)) {
         if (!dichtbij(w, v) || (cfg.mag && !cfg.mag(w, v))) return false;
         const why = activityBlock(w);
         if (why) { w.addMessage(why, 2.5); return true; }
         return start(w);
       }
-      if (v || w.player.swimming) return false;
+      if (v || hoofdspeler(w).swimming) return false;
       const doel = plek(w) ? voertuig(w) : null; // on foot: step in and start
       if (!doel) return false;
       const why = activityBlock(w);
       if (why) { w.addMessage(why, 2.5); return true; }
-      w.player.enterVehicle(doel, w);
+      hoofdspeler(w).enterVehicle(doel, w);
       return start(w);
     },
     active: () => false, // the player keeps the controls
@@ -295,7 +296,7 @@ const VLUCHTDIENST = dienstActiviteit({
   // (w.planeVelden uit planeflight.js, gevuld uit game/vliegplekken.json). Zo kun je na de
   // landing op het tweede veld meteen aan de terugvlucht beginnen.
   plek: (w) => {
-    const p = w.player.inVehicle || w.player;
+    const p = hoofdspeler(w).inVehicle || hoofdspeler(w);
     const veld = dichtstbijVeld(w.planeVelden || [], p.x, p.y);
     if (!veld || !veld.strip) return null;
     const q = puntOpStrip(veld.strip, p.x, p.y);
