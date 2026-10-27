@@ -1,6 +1,6 @@
-# 07 · TTS-raming (er wordt niets opgenomen; alleen ter informatie)
+# 07 · TTS-raming (achterhaald: er wordt weer opgenomen)
 
-**Besluit van de eigenaar: voorlopig GEEN nieuwe opnames.** Alle regels met de tag `[NIEUW]` blijven voorlopig alleen tekst (ondertitel, tekstkaart); er wordt geen TTS gedraaid voor dit verhaal en de kostenregel is **"nog niet opnemen"**. De bedragen hieronder zijn alleen een schatting voor later, geen opdracht. Het kaartje "Tige tank! – J." en de bestaande opname van Jelles radiomelding blijven zoals ze zijn opgenomen.
+**Achterhaald op 25-10: nieuwe opnames mogen wel, op Gemini Flash-Lite en binnen een budget (ADR 0019, #462).** Wat hieronder staat is de raming van vóór dat besluit en blijft als historie staan; de stand van de opnames staat in de comments op #462.
 
 Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Geen TTS gedraaid, geen netwerk gebruikt, `.env` niet gelezen. Alle cijfers komen uit de script-bestanden `09-script-akte1..5.md` (lokaal geteld met `node scripts/export_story.mjs`, dat nu ook radio-, telefoon- en appregels telt) en uit `docs/archief/2026-10/deel4-f4a.md` (de eerdere kostenmaat).
 

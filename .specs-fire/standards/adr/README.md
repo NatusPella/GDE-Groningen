@@ -68,3 +68,4 @@ deze lijst voordat een andere sessie begint te schrijven:
 | [0016](0016-een-ingang-geen-hoofdmenu.md) | Eén ingang, geen hoofdmenu; laden is een wereldgebeurtenis | besloten |
 | [0017](0017-code-in-het-engels.md) | Code in het Engels, spelteksten en proza in het Nederlands | besloten |
 | [0018](0018-een-ingang-voor-de-speler.md) | Eén ingang voor de speler, met een poort op de singleton | besloten |
+| [0019](0019-spraak-op-flash-lite.md) | Spraak op Gemini Flash-Lite TTS, en nooit meer Flash | besloten |
