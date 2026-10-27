@@ -831,7 +831,8 @@ function landRoute(world, target, mode, p) {
     let w = countryRoute(world, target, from, toS, gm, kind, p);
     if (w && from && toS && Math.hypot(from.x - p.x, from.y - p.y) < CITY_SNAP_OK_M && Math.hypot(toS.x - target.x, toS.y - target.y) < CITY_SNAP_OK_M) {
       const direct = astar(from, toS, gm);
-      if (direct && polyLength(direct) < polyLength(w)) w = direct;
+      // measured from the street: the stretch from the car to that street is part of this way too (#513)
+      if (direct && polyLength(direct) + Math.hypot(from.x - p.x, from.y - p.y) < polyLength(w)) w = direct;
     }
     if (!w && from && toS) {
       w = astar(from, toS, gm);
@@ -857,6 +858,11 @@ function landRoute(world, target, mode, p) {
   }
   // no route found: no line at all rather than a straight one through town
   if (!pts) { pts = [[p.x, p.y]]; compromise = null; }
+  // A line starts where the player is. The way can begin on a snap that is not under the player (a city
+  // street beside the country road the car is on, up to CITY_SNAP_OK_M away, #513): then the stretch from
+  // the player to that snap is part of the route, in the line and in its length. Within 20 m that bit is
+  // the pavement you cross anyway and the line stays on the road.
+  else if (pts.length && Math.hypot(pts[0][0] - p.x, pts[0][1] - p.y) > 20) pts.unshift([p.x, p.y]);
   landCompromise = compromise;
   return pts;
 }
