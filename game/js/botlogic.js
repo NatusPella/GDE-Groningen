@@ -424,11 +424,54 @@ export function decide(s, mem = {}) {
   return { type: 'goto', mode: 'walk' };
 }
 
+// --- the gates of M15: which one, how high, how far (#312) ------------------------------------------------------
+// planestage.js judges the gates one at a time, in the order of the mission (gates[i], a ring of r metres, and
+// the plane has to be between lo and hi metres above the ground). The mission moves its marker onto the gate it
+// is on, so the gate to fly for is the one the marker stands on. gateAim returns it, with the height halfway
+// between lo and hi. The first ring that holds the marker wins, so the order of the mission is kept: the kermis
+// rings lie 168 m apart and a near tie may never skip one (which planestage counts as a missed gate).
+export function gateAim(gates, target, { slack = 5 } = {}) {
+  if (!Array.isArray(gates) || !gates.length) return null;
+  let i = 0;
+  if (target) {
+    let bd = Infinity, found = -1;
+    for (let k = 0; k < gates.length; k++) {
+      const d = distance(gates[k], target);
+      if (d <= (gates[k].r || 0) + slack) { found = k; break; }
+      if (d < bd) { bd = d; i = k; }
+    }
+    if (found >= 0) i = found;
+  }
+  const g = gates[i];
+  const lo = Number.isFinite(g.lo) ? g.lo : 0, hi = Number.isFinite(g.hi) ? g.hi : lo;
+  return { i, gate: g, aim: { x: g.x, y: g.y }, lo, hi, alt: (lo + hi) / 2, r: g.r || 0, from: target ? distance(g, target) : null };
+}
+
 // --- plane autopilot (M15 Laag over het graan): pure, tested against arcadeplane.js -------------------------------
 // The arcade plane (planecontrol.js) takes W/S (throttle), A/D (roll), Space (nose up), Ctrl (nose down) and Shift (brake).
 // planeKeys(p, o) says which keys to hold this tick. p = the plane state { x, y, z, heading, speed, pitch, roll, vz, onGround, throttle },
-// o = { agl, goal: {x, y}, alt, mode: 'fly' | 'land', strip }: agl above the ground here, alt the wanted height above the ground.
-// 'land' flies an approach fix 700 m before the strip, then a glide slope to a point 60 m in, and brakes after touching down.
+// o = { agl, goal: {x, y}, alt, mode: 'fly' | 'land', strip, phase }: agl above the ground here, alt the wanted height above
+// the ground, phase the landing circuit ('circuit' | 'final', kept by the caller: the keys hand it back as keys.phase).
+// 'land' flies the circuit: on to a point past the approach fix 700 m before the strip, one turn onto final, then the
+// localizer (a heading that closes the distance to the centre line) with a 6.5 % glide slope to the ground 80 m past the
+// middle, and brakes after touching down. Measured in scripts/bot_vlieg_test.mjs: M15's five gates, the circuit and a
+// soft touchdown on the strip in under four minutes of game time.
+export const PLANE_LAND = {
+  approach: 700,   // the approach fix lies this far before the middle of the strip
+  glide: 0.065,    // metres down per metre along (a 6.5 % slope: 50 m at the fix, the ground 80 m past the middle)
+  glideFrom: 80,   // the slope reaches the ground this far past the middle of the strip
+  circuitAlt: 40,  // height of the circuit, above the ground
+  vCircuit: 44,    // m/s on the circuit
+  vFinal: 32,      // m/s on final
+  join: 400,       // the localizer closes this many metres of cross-track error with one correction
+  maxJoin: 0.5,    // rad, the widest localizer correction
+  bank: 1.2,       // rad of error to the bank, on final
+  damp: 0.9,       // the bank damps itself: without it the plane drifts beside the centre line (measured)
+  run: 1200,       // the circuit aims this far beyond the fix, not at the fix itself (a point that close is orbited)
+  vzBand: 1.8,     // m/s of sink it may be off before the nose goes up or down (a narrower band porpoises +-14 m/s)
+  lowBand: 0.5,    // the same near the ground, where a steady shallow sink is wanted
+  lowSink: 1.2,    // m/s the sink is held at under 6 m
+};
 export function planeKeys(p, o) {
   const keys = new Set();
   const stall = 22;
@@ -438,32 +481,56 @@ export function planeKeys(p, o) {
     if (p.speed >= 32) keys.add(' ');
     return keys;
   }
+  const land = o.mode === 'land';
   let goal = o.goal, alt = o.alt ?? 20, vT = 46;
-  if (o.mode === 'land' && o.strip) {
+  if (land && o.strip) {
     const st = o.strip, c = Math.cos(st.heading), sn = Math.sin(st.heading);
     const at = (a) => ({ x: st.x + c * a, y: st.y + sn * a });
-    const fix = at(-700), touch = at(60);
     const dx = p.x - st.x, dy = p.y - st.y, along = dx * c + dy * sn, across = -dx * sn + dy * c;
-    const aligned = along < 300 && Math.abs(across) < 60 + Math.max(0, -along) * 0.12 && Math.abs(normAngle(p.heading - st.heading)) < 0.5;
-    if (!aligned && distance(p, fix) > 160) { goal = fix; alt = 40; vT = 44; }
-    else {
-      // glide slope to a touch point 80 m in; past it keep descending straight down the strip
-      alt = along < 80 ? clamp((80 - along) * 0.065, 0, 50) : 0;
-      vT = 32;
-      // a carrot on the centre line 120 m ahead of the plane keeps it lined up with the strip
-      goal = at(Math.min(400, along + 120));
+    const end = Number.isFinite(st.length) ? st.length : 520;
+    // which half of the circuit: to the fix, or the final with the localizer. The phase is kept by the caller
+    // (o.phase, handed back on the keys) with 200 m of slack: a plane that turns right at the boundary would
+    // otherwise flip between the two aims every tick and circle the boundary for ever (measured in the test)
+    const phase = o.phase || (along > -PLANE_LAND.approach - 200 ? 'circuit' : 'final');
+    if (phase === 'final' && along > end + 100) keys.phase = 'circuit';
+    else if (phase === 'circuit' && along < -PLANE_LAND.approach - 200) keys.phase = 'final';
+    else keys.phase = phase;
+    if (keys.phase === 'circuit') {
+      // still on the strip's side of the approach fix (M15 comes back from the kermis, which lies beyond the strip;
+      // a plane over the strip goes around): on to the fix, so the turn onto final happens past it with room and
+      // height left for the descent
+      goal = at(-PLANE_LAND.approach - PLANE_LAND.run);
+      alt = PLANE_LAND.circuitAlt; vT = PLANE_LAND.vCircuit;
+    } else {
+      // final: the localizer is a heading that closes the distance to the centre line (aiming at a point on the line
+      // swings past it, the bank turns the plane itself), and the glide slope brings it down. Pointing the other way
+      // after the turn is the same rule: the error is large, so the bank goes to its stop
+      const join = clamp(-across / PLANE_LAND.join, -PLANE_LAND.maxJoin, PLANE_LAND.maxJoin);
+      const want = normAngle(st.heading + join);
+      goal = { x: p.x + Math.cos(want) * 1000, y: p.y + Math.sin(want) * 1000 };
+      alt = along < PLANE_LAND.glideFrom ? clamp((PLANE_LAND.glideFrom - along) * PLANE_LAND.glide, 0, 50) : 0;
+      vT = PLANE_LAND.vFinal;
     }
   }
   const e = normAngle(headingTo(p, goal) - p.heading);
   // close to the ground only a little roll: a wing down on touch-down is a crash
-  const rollMax = o.mode === 'land' && o.agl < 8 ? 0.12 : 0.75;
-  const rollWant = clamp(e * 2.2, -rollMax, rollMax);
-  if (p.roll < rollWant - 0.12) keys.add('d'); else if (p.roll > rollWant + 0.12) keys.add('a');
+  const rollMax = land && o.agl < 8 ? 0.12 : 0.75;
+  // a goal dead behind us sits at ±π, where the sign of the error flips every tick and the roll with it (the plane
+  // stays on its course for ever, measured in scripts/bot_vlieg_test.mjs): hold the turn we are already in
+  const held = Math.abs(e) > 3.0 ? (p.roll >= 0 ? 1 : -1) : 0;
+  // on final the bank damps itself: a plain gain leaves the plane drifting beside the centre line, and the roll then
+  // swings from side to side (measured in scripts/bot_vlieg_test.mjs)
+  const want = held ? held * rollMax : e * (land ? PLANE_LAND.bank : 2.2) - (land && !held ? p.roll * PLANE_LAND.damp : 0);
+  const rollWant = clamp(want, -rollMax, rollMax);
+  const band = land && !held ? 0.02 : 0.12;
+  if (p.roll < rollWant - band) keys.add('d'); else if (p.roll > rollWant + band) keys.add('a');
   if (p.speed < vT - 3 || p.speed < stall + 7) keys.add('w'); else if (p.speed > vT + 4) keys.add('s');
-  const vzWant = clamp((alt - o.agl) * (o.mode === 'land' ? 0.45 : 0.28), -5, 6);
-  const low = o.agl < 6 && o.mode === 'land';
+  const low = land && o.agl < 6;
+  const vzWant = clamp((land && low ? -PLANE_LAND.lowSink : (alt - o.agl) * (land ? 0.45 : 0.28)), -5, 6);
   if (p.speed >= stall + 5) {
-    if (p.vz < (low ? -1.2 : vzWant) - 0.8) keys.add(' '); else if (p.vz > (low ? -1.2 : vzWant) + 0.8) keys.add('control');
+    // the band keeps the nose from going up and down every frame: a narrow one porpoises +-14 m/s and ends in a crash
+    const vzBand = low ? PLANE_LAND.lowBand : land ? PLANE_LAND.vzBand : 0.8;
+    if (p.vz < vzWant - vzBand) keys.add(' '); else if (p.vz > vzWant + vzBand) keys.add('control');
     if (low && o.agl < 2.5) keys.add('s');
   }
   return keys;
@@ -479,6 +546,264 @@ export function pigeonKeys(f, tgt) {
   const want = Number.isFinite(tgt.z) ? tgt.z : f.ground + 38;
   if (f.z < want - 3) keys.add(' '); else if (f.z > want + 7) keys.add('shift');
   return keys;
+}
+
+// --- disc golf in het Stadspark (discgolf.js): hoek, kracht en release ------------------------------------------
+// discgolf.js gooit met discgolfrules.simulateFlight: een lanceersnelheid (power 0.12..1 van de vmax van de
+// schijf), een richting, een hoek en een release; de wind duwt door de weerstand. Dat model staat in
+// discgolfrules.js en niet hier (botlogic heeft geen imports), dus de bot krijgt het vliegmodel van het spel
+// mee als `simulate` en zoekt daarmee: eerst de kracht die de schijf op de afstand van de mand laat landen
+// (bisectie), dan de hoek die het dichtst bij de mand uitkomt (waaier, met de wind in het model), voor elke
+// release. De afstanden zijn die van discgolfrules.suggestDisc. Zonder model blijft er een ruwe schatting over
+// (alleen als de regelmodule ontbreekt); die is nooit de proef. `env` gaat ongewijzigd naar simulateFlight:
+// zit daar een `rng` in (de kettingen loten of de schijf blijft hangen), geef er dan een met een zaadje aan,
+// anders is dezelfde worp niet dezelfde worp.
+export const DISC_WORP = {
+  ver: 50,             // verder dan dit: de afstandsschijf (suggestDisc)
+  nadering: 22,        // verder dan dit: de naderingsschijf, daaronder de putt
+  kracht: [0.12, 1],   // simulateFlight klemt de power hierop
+  loft: 0.15,          // de hoek die discgolf.js bij een nieuwe lig neerzet (een putt 0,1)
+  laag: 0.08,          // de vlakke hoek waarmee de bot op de kettingen mikt (powerForBasket)
+  zoek: 14,            // stappen in de bisectie op de kracht
+  span: 0.35,          // rad: zover waaiert de hoekzoektocht om de rechte lijn
+  scan: 15,            // zoveel hoeken links en rechts van de rechte lijn
+  cirkel: 12,          // CIRCLE_M: binnen de cirkel telt als dichtbij
+};
+export function discgolfWorp(lie, basket, opts = {}) {
+  const o = { simulate: null, env: null, disc: null, loft: DISC_WORP.loft, releases: [0, -1, 1], ...opts };
+  const d = distance(lie, basket);
+  const disc = o.disc || (d > DISC_WORP.ver ? 'driver' : d > DISC_WORP.nadering ? 'midrange' : 'putter');
+  const basis = headingTo(lie, basket);
+  if (typeof o.simulate !== 'function') {
+    // geen vliegmodel: de schatting uit de vmax van de schijven (25/19/14 m/s), alleen als de regels ontbreken
+    const bereik = disc === 'driver' ? 95 : disc === 'midrange' ? 52 : 21;
+    return { disc, yaw: basis, power: clamp(d / bereik, DISC_WORP.kracht[0], 1), loft: o.loft, release: 0, dist: d, end: null, holed: false, why: 'schatting' };
+  }
+  const vlieg = (p) => o.simulate({ x: lie.x, y: lie.y, ...p }, o.env || {});
+  // dichtbij mikt de bot op de kettingen (de schijf die op 1 m hoogte de mand raakt, zoals
+  // discgolfrules.powerForBasket), verder weg op de plek waar hij neerkomt
+  const dichtbij = d <= DISC_WORP.nadering;
+  const loft = dichtbij ? DISC_WORP.laag : o.loft;
+  const reik = (r) => {
+    if (!dichtbij) return distance(lie, r.end);
+    const p = r.path || [];
+    for (let i = 1; i < p.length; i++) if (p[i][2] <= 1 && p[i - 1][2] > 1) return Math.hypot(p[i][0] - lie.x, p[i][1] - lie.y);
+    return distance(lie, r.end);
+  };
+  let best = null;
+  const beoordeel = (r, k) => {
+    const af = distance(r.end, basket);
+    const score = af - (r.holed ? 100 : 0);   // in de mand wint van elke afstand
+    if (!best || score < best.score) {
+      best = {
+        score, disc, yaw: normAngle(k.yaw), power: k.power, loft, release: k.release, dist: af, end: { x: r.end.x, y: r.end.y }, holed: !!r.holed, reason: r.reason,
+        why: r.holed ? 'in de mand' : af <= DISC_WORP.cirkel ? 'in de cirkel' : 'dichtbij',
+      };
+    }
+  };
+  for (const release of o.releases) {
+    // de kracht die op de afstand van de mand uitkomt (of daar op 1 m hoogte langskomt)
+    const krachtVoor = (yaw) => {
+      let lo = DISC_WORP.kracht[0], hi = DISC_WORP.kracht[1];
+      for (let i = 0; i < DISC_WORP.zoek; i++) {
+        const mid = (lo + hi) / 2;
+        if (reik(vlieg({ yaw, power: mid, loft, release, disc })) < d) lo = mid; else hi = mid;
+      }
+      return (lo + hi) / 2;
+    };
+    // twee ronden: de kracht bij de beste hoek, dan de hoek bij die kracht. Eén ronde laat de wind de
+    // hoekzoektocht op de verkeerde kracht zetten (gemeten met 4,4 m/s dwarswind: +8 in plaats van +4)
+    let yaw = basis, power = krachtVoor(basis);
+    for (let ronde = 0; ronde < 2; ronde++) {
+      // de hoek: de wind blaast de schijf van de lijn, dus de waaier om de rechte lijn heen
+      const span = DISC_WORP.span / (ronde + 1);
+      let besteYaw = yaw, besteAf = Infinity;
+      for (let k = -DISC_WORP.scan; k <= DISC_WORP.scan; k++) {
+        const y = yaw + (k / DISC_WORP.scan) * span;
+        const r = vlieg({ yaw: y, power, loft, release, disc });
+        beoordeel(r, { yaw: y, power, release });
+        const af = distance(r.end, basket);
+        if (af < besteAf || (r.holed && besteAf > 0)) { besteAf = r.holed ? 0 : af; besteYaw = y; }
+      }
+      yaw = besteYaw;
+      power = krachtVoor(yaw);
+      beoordeel(vlieg({ yaw, power, loft, release, disc }), { yaw, power, release });
+    }
+  }
+  if (!best) return null;
+  delete best.score;
+  return best;
+}
+
+// --- fierljep (#186): de naald van de aanloop en de greep, het klimmen, de sprong -------------------------------
+// Het fierljep-duel (pg_fierljep.js) vraagt twee keer een druk terwijl de naald door het midden van de balk
+// gaat (kwaliteit q = 1 - |naald - 0,5| / 0,5; de naald zwaait op 0,55 en daarna 0,85 Hz), dan 2,2 s tikken
+// (dertien tikken is een volle klim), en rekent dat om naar een afstand: kwaliteit = 0,35 q1 + 0,35 q2 + 0,3 q3,
+// 8 m * kwaliteit^1,25 bonus voorbij de overkant, een plons onder 0,3 / 0,3 / 0,25. De naald legt tot pi * hz
+// per seconde af, dus een druk moet tegen de naald van het volgende beeld worden beoordeeld, niet tegen die van
+// dit beeld: verder dan een halve beeldstap van het midden is er altijd een beeld dichterbij.
+export const FIERLJEP = {
+  hz: [0.55, 0.85],   // pg_fierljep.js NEEDLE_HZ (aanloop, greep)
+  beeld: 1 / 60,      // de tijd tussen twee beelden waarin de naald gelezen wordt
+  klimS: 2.2,         // pg_fierljep.js CLIMB_S
+  klimTik: 13,        // pg_fierljep.js CLIMB_TAPS
+  bonus: 8,           // pg_fierljep.js BONUS_MAX
+  goud: 6.6,          // pg_fierljep.js GOLD_BONUS
+  basis: 2.2,         // meter voorbij de overkant voor de bonus begint
+  faal: [0.3, 0.3, 0.25],
+  weeg: [0.35, 0.35, 0.3],
+};
+// s: { fase: 'aim1' | 'aim2', needle 0..1, wacht (seconden van de pauze), dt, hz }
+// memoria onthoudt de naald van het vorige beeld (voor de stap) en of de naald net uit een pauze komt.
+export function fierljepTik(s, mem = {}) {
+  const hz = Number.isFinite(s.hz) ? s.hz : s.fase === 'aim2' ? FIERLJEP.hz[1] : FIERLJEP.hz[0];
+  const dt = Number.isFinite(s.dt) ? s.dt : FIERLJEP.beeld;
+  if (mem.fase !== s.fase) { mem.fase = s.fase; mem.needle = null; }
+  const vorige = mem.needle;
+  mem.needle = s.needle;
+  // in de pauze staat de naald stil (pg_fierljep.js laat update terugkeren): een druk daar telt niet en kost
+  // de beurt. De eerste proef drukte op de stilstaande naald van 0,5 en kreeg q 0,02 voor de greep.
+  if (s.wacht > 0) { mem.pauze = true; return { press: false, wacht: s.wacht, why: 'pauze' }; }
+  // vlak na de pauze is de stand van de naald nog die van voor de pauze; het spel loot de naaldtijd opnieuw
+  // als de greep begint, dus de eerste druk zou op een sprong worden beoordeeld (gemeten: q 0,32)
+  if (mem.pauze) { mem.pauze = false; mem.needle = null; return { press: false, why: 'naald springt bij' }; }
+  // aim() schuift de naald eerst een beeld op en beoordeelt de druk daarna: mik op de naald van het volgende beeld
+  const stap = Number.isFinite(vorige) ? s.needle - vorige : 0;
+  const verwacht = s.needle + stap;
+  const zone = Math.abs(stap) / 2 + 0.004;
+  const af = Math.abs(verwacht - 0.5);
+  const q = clamp(1 - Math.abs(s.needle - 0.5) / 0.5, 0, 1);
+  return { press: af <= zone, q, zone, verwacht, why: af <= zone ? 'midden' : 'wachten' };
+}
+// s: { tikken, klimT } — tik zolang de klim loopt en de dertien tikken er niet zijn (niet blijven hameren)
+export function fierljepKlim(s) {
+  const tikken = s.tikken || 0;
+  if (!(s.klimT > 0)) return { press: false, klaar: true, q: clamp(tikken / FIERLJEP.klimTik, 0, 1) };
+  if (tikken >= FIERLJEP.klimTik) return { press: false, klaar: false, q: 1 };
+  return { press: true, klaar: false, q: clamp((tikken + 1) / FIERLJEP.klimTik, 0, 1) };
+}
+// De sprong uit de drie kwaliteiten, precies als pg_fierljep.js playerJump: afstand = sloot + 2,2 + bonus.
+export function fierljepSpring(q, breedte) {
+  const w = FIERLJEP.weeg, f = FIERLJEP.faal;
+  const kwaliteit = clamp(w[0] * (q[0] || 0) + w[1] * (q[1] || 0) + w[2] * (q[2] || 0), 0, 1);
+  const faal = !(q[0] >= f[0]) || !(q[1] >= f[1]) || !(q[2] >= f[2]);
+  const bonus = FIERLJEP.bonus * Math.pow(kwaliteit, 1.25);
+  return { kwaliteit, faal, bonus, afstand: (breedte || 0) + FIERLJEP.basis + bonus, goud: !faal && bonus >= FIERLJEP.goud };
+}
+
+// --- de kermis (#186): welk spel, welke inzet, en hoe de botsauto rijdt ------------------------------------------
+// kermis.js: de botsauto's kosten EUR 3 (gratis in de verhaalstap), 75 s rijden, punten voor elke bots die de
+// speler geeft (meer in de flank, een reeks voor snelle botsen na elkaar), prijzengeld 0/5/12/25 bij
+// 0/60/110/160 punten en dubbel op een kermisavond. Het reuzenrad (reuzenrad.js) kost EUR 2 en is een rit van
+// twee rondes zonder prijs. De tent is 20 bij 12 m (roadaccess.js KERMIS_TENT hu/hv).
+export const KERMIS = {
+  prijs: 3, wielPrijs: 2, ritS: 75, autoR: 0.92, hu: 10, hv: 6,
+  prijzen: [0, 5, 12, 25], medailles: [0, 60, 110, 160], flank: 0.55,
+};
+// Welk spel en welke inzet: het verhaal geeft een gratis rit, anders de botsauto's zolang het geld er is, en
+// anders het reuzenrad (goedkoper, maar er valt niets te winnen). Te weinig geld: niets.
+export function kermisKeuze({ geld = 0, verhaal = false, avond = false, wiel = true } = {}) {
+  if (verhaal) return { speel: 'botsauto', prijs: 0, bonus: !!avond, waarom: 'gratis van Jan in het verhaal' };
+  if (geld >= KERMIS.prijs) return { speel: 'botsauto', prijs: KERMIS.prijs, bonus: !!avond, waarom: avond ? 'kermisavond: dubbel prijzengeld' : "de botsauto's betalen zich terug" };
+  if (wiel && geld >= KERMIS.wielPrijs) return { speel: 'hoogvlieger', prijs: KERMIS.wielPrijs, bonus: false, waarom: "te weinig voor de botsauto's: het reuzenrad" };
+  return { speel: null, prijs: 0, bonus: false, waarom: 'te weinig geld' };
+}
+// De punten van een bots, als kermis.js ze telt: naar de snelheid waarmee de bot de ander raakt, 1,8 keer in de
+// flank, 1,4 van achteren, 0,7 kop op kop, en een kwart meer per stap in de reeks (hooguit vier).
+export function kermisPunten({ into = 0, hoek = 0, combo = 0 } = {}) {
+  const soort = Math.abs(hoek) < KERMIS.flank ? 1.8 : hoek < 0 ? 1.4 : 0.7;
+  return Math.max(1, Math.round(into * 1.3 * soort * (1 + Math.min(4, Math.max(0, combo - 1)) * 0.25)));
+}
+// Eén tik van de botsauto: gas en stuur in de tent (kermis-lokaal: u langs de tent, v dwars, a de hoek).
+// De auto's van het spel zoeken de speler (kermis.js aiDrive: 40 tot 55 % jaagt), dus de beste kansen liggen
+// midden in de tent: een langzame slinger over de vloer houdt de auto snel en levert de botsen op. Bij de rand
+// stuurt hij terug naar het midden in plaats van tegen het elastiek te blijven hangen. s = { u, v, a, t, hu, hv }.
+export function kermisStap(s, mem = {}) {
+  const hu = s.hu || KERMIS.hu, hv = s.hv || KERMIS.hv, R = s.autoR || KERMIS.autoR;
+  const t = Number.isFinite(s.t) ? s.t : 0;
+  const marge = 1.6;
+  const bijRand = Math.abs(s.u) > hu - R - marge || Math.abs(s.v) > hv - R - marge;
+  // de slinger: 0,55 rad/s heen en weer over de volle breedte, zodat elke auto die jaagt in de baan komt
+  const aim = bijRand ? { u: 0, v: 0 } : { u: Math.cos(t * 0.55) * (hu - R - 2.2), v: Math.sin(t * 0.8) * (hv - R - 2) };
+  const err = normAngle(Math.atan2(aim.v - s.v, aim.u - s.u) - (s.a || 0));
+  const turn = clamp(err * 1.6, -1, 1);
+  // de auto draait op de plaats en slaat pas aan als de neus de goede kant op staat: achteruit steken als het
+  // doel pal achter ligt (kermis.js steer: achteruit is 0,7 keer gas)
+  const throttle = Math.abs(err) > 2.3 ? -0.7 : 1;
+  void mem;
+  return { throttle, turn, aim, hold: false, why: bijRand ? 'terug naar het midden' : 'slinger over de vloer' };
+}
+
+// --- het reuzenrad (#436, reuzenrad.js): instappen en uitstappen op het juiste moment ---------------------------
+// De gondels hangen op i/N * 2pi + rot, het laagste punt is -pi/2, het rad draait met OMEGA en de rit duurt
+// LAPS rondes; instappen en uitstappen kan alleen binnen BOARD_WINDOW van het laagste punt. De uitgang zet een
+// verzoek (E) en stapt uit zodra de eigen gondel onderaan hangt, dus de bot drukt pas als de rit om is: hij
+// wacht met een hold (de wachtteller van de pagina mag niet aflopen op een rit van 105 s).
+export const WHEEL = { N: 12, omega: 0.12, rondes: 2, raam: 0.26, prijs: 2 };
+const TAU = Math.PI * 2;
+// De gondel van het reuzenrad: `plan` is de rit van het spel (reuzenradrules.ridePlan); de pagina kent alleen
+// het deel van de rit (state().fraction), dus die geeft `klaar`/`index`/`links` in plaats van de plan-standen.
+export function hoogvliegerStap(s, mem = {}) {
+  const N = s.N || WHEEL.N, omega = s.omega || WHEEL.omega, raam = s.raam || WHEEL.raam;
+  const rot = Number.isFinite(s.rot) ? s.rot : 0;
+  const gat = (i) => normAngle((i / N) * TAU + rot + Math.PI / 2);   // 0 = precies onderaan
+  if (s.inGondel) {
+    const plan = s.plan || null;
+    const index = plan ? plan.index : s.index || 0;
+    const klaar = plan ? rot >= plan.endRot - 1e-9 : !!s.klaar;
+    const links = plan ? Math.max(0, (plan.endRot - rot) / omega) : Number.isFinite(s.links) ? s.links : 0;
+    const magUit = Math.abs(gat(index)) <= raam;
+    void mem;
+    return { press: klaar && magUit, magUit, klaar, links, hold: !(klaar && magUit), why: klaar ? (magUit ? 'uitstappen' : 'wachten op het laagste punt') : 'de rit duurt nog' };
+  }
+  let beste = 0, bg = Infinity;
+  for (let i = 0; i < N; i++) { const g = gat(i); if (Math.abs(g) < Math.abs(bg)) { bg = g; beste = i; } }
+  if (Math.abs(bg) <= raam) return { press: true, index: beste, wacht: 0, hold: false, why: 'instappen' };
+  // seconden tot de volgende gondel instapbaar hangt (het rad draait één kant op)
+  let wacht = Infinity;
+  for (let i = 0; i < N; i++) { const d = (((-gat(i)) % TAU) + TAU) % TAU; wacht = Math.min(wacht, Math.max(0, d - raam) / omega); }
+  return { press: false, index: beste, wacht, hold: true, why: 'wachten op een gondel' };
+}
+
+// --- padel (#443, padelmatch.js): de stoel van de bot in een wedstrijd tegen anderen -----------------------------
+// tikPadel(m, dt, invoer) neemt per mens { mx, my, buttons } (bit 2 = Spatie) en gebruikt mx/my ook voor de
+// plaatsing van de slag: mx naar de kant waar de tegenstanders niet staan, my omlaag (my < 0) is diep. De
+// bottik: naar de voorspelde bal toe als die van de tegenstander komt en op onze helft is, anders naar de
+// eigen plek; slaan als de bal binnen bereik is, met een nieuwe druk (de wedstrijd leest alleen de opgaande
+// rand, dus de knop moet tussen twee slagen los). memoria houdt de vorige stand van de knop bij.
+export function padelInvoer(m, slot, mem = {}) {
+  const stoel = (m.stoelen || []).find((x) => x.slot === slot);
+  const stil = { mx: 0, my: 0, buttons: 0, why: 'geen stoel' };
+  if (!stoel) return stil;
+  const F = stoel.team === 0 ? 1 : -1;                 // vooruit: naar het net
+  const b = m.ball, fase = m.phase || m.fase;
+  let doel = { u: stoel.hu, v: stoel.hv };
+  let slaan = false;
+  const serve = fase === 'serve' && m.serverStoel === stoel.i;
+  if (serve) {
+    slaan = !!b && !!b.toss;                           // de toss is er: slaan zodra de bal op heuphoogte is
+  } else if (b && b.live && b.hitter !== stoel.team) {
+    const p = b.crossed ? b : m.pred || b;
+    doel = { u: p.u, v: p.v };
+    // pas slaan als de bal over het net is en binnen bereik (padelmatch.js: REACH 1,45 m, hoogte 0,08-2,4 m)
+    slaan = b.crossed && Math.hypot(b.u - stoel.u, b.v - stoel.v) < 1.35 && b.z > 0.08 && b.z < 2.4;
+  }
+  const du = doel.u - stoel.u, dv = doel.v - stoel.v, d = Math.hypot(du, dv);
+  let mx = d < 0.25 ? 0 : clamp((F * du) / d, -1, 1);
+  let my = d < 0.25 ? 0 : clamp((-F * dv) / d, -1, 1);
+  if (slaan) {
+    // de slag: naar de kant waar de tegenstanders niet staan, en diep. Bij de opslag juist niet: de stick
+    // schuift de opslag zijwaarts (padelmatch.js: -teken(u) * 2,6 + F * mx * 3,0) en buiten het vak is een fout
+    if (!serve) {
+      const tegen = (m.stoelen || []).filter((x) => x.team !== stoel.team);
+      const gem = tegen.length ? tegen.reduce((a, x) => a + x.u, 0) / tegen.length : 0;
+      mx = gem > 0 ? -0.5 : 0.5;
+      my = -0.6;
+    } else { mx = 0; my = 0; }
+  }
+  const buttons = slaan && !mem.sw ? 2 : 0;
+  mem.sw = !!buttons;
+  return { mx, my, buttons, slaan, why: slaan ? (serve ? 'opslag' : 'slaan') : fase === 'serve' ? 'klaarstaan' : 'naar de bal' };
 }
 
 // --- status schema -------------------------------------------------------------------

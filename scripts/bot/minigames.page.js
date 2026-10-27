@@ -1,4 +1,4 @@
-// Page half of `scripts/bot/run.mjs --mode=minigames` (desktop --perf-script body; Spelbot fase 3, #186).
+﻿// Page half of `scripts/bot/run.mjs --mode=minigames` (desktop --perf-script body; Spelbot fase 3, #186).
 // window.__botCfg = { only, playS, shots }. Per minigame: set up (teleport to its spot, a test setup that is
 // logged as 'setup', not as "had een cheat nodig"), start it the way a player does (E), play it with a short
 // strategy, watch for stuck (nothing changes for stuckS), leave with Backspace, and log one 'minigame' event:
@@ -62,6 +62,131 @@ const PLAN = {
   vliegschool: [[['1'], 200], [['1'], 200], [['w'], 1500], [['d'], 400], [['w'], 1500], [['a'], 400]],
 };
 const DEFAULT_PLAN = [[['w'], 800], [[' '], 150], [['e'], 150], [['d'], 300], [['a'], 300]];
+
+// #186: de bordspellen en de kermis met de pure regels van game/js/botlogic.js in plaats van een vast rijtje
+// toetsen: discgolf mikt met het echte vliegmodel, de botsauto's sturen over de tent en het reuzenrad wacht op
+// zijn gondel. Zonder die regels (een losse pagina) valt de run terug op PLAN.
+const STRATEGIE = new Set(['discgolf', 'kermis', 'hoogvlieger']);
+// Een activiteit die langer duurt dan het speelbudget van 40 s moet de tijd krijgen om af te maken: een
+// botsautorit duurt 75 s en een reuzenradrit twee rondes (105 s), anders stopt de bot halverwege en is er geen
+// prijs of medaille (en telt de run een time-out die er niet is).
+const BUDGET = { discgolf: 300, kermis: 105, hoogvlieger: 145 };
+const budgetVoor = (id) => BUDGET[id] || PLAY_S;
+
+// toetsen houden zoals een speler: alleen wat verandert wordt ingedrukt of losgelaten
+function houdToetsen(want, alle = ['w', 's', 'a', 'd']) {
+  for (const k of alle) {
+    if (want.includes(k)) { if (!B.input.isDown(k)) B.down(k); }
+    else if (B.input.isDown(k)) B.up(k);
+  }
+}
+
+// Discgolf: het vliegmodel van het spel (discgolfrules.simulateFlight) in de handen van de bot (botlogic
+// discgolfWorp): de schijf, de kracht en de hoek voor deze lig en deze wind, en dan de worp van de debug-API
+// (window.__discgolf.throwAt) in plaats van een Spatie die maar wat doet.
+async function playDiscgolf(ev) {
+  const DG = window.__discgolf;
+  if (!DG || !DG.state || !DG.throwAt) return false;
+  const DR = await imp('discgolfrules');
+  ev.how += ' discgolf-regels';
+  const t0 = B.time();
+  let worpen = 0, banen = 0, laatsteBaan = -1;
+  const limit = budgetVoor('discgolf');
+  for (let i = 0; i < 100000; i++) {
+    const st = DG.state();
+    if (!st) break;                                   // de ronde is af (of gestopt)
+    if (B.time() - t0 > limit) { ev.stuck = true; ev.how += ' de ronde duurde te lang'; B.log('timeout', { step: 'mg-discgolf', what: 'discgolf: de ronde duurde te lang', forS: Math.round(B.time() - t0), x: player.x, y: player.y, goalDist: null }); break; }
+    if (st.phase === 'mode') { await B.press(' '); await sleep(500); continue; }
+    if (st.phase !== 'aim') { await sleep(250); continue; }
+    const hole = DG.holes()[st.hole];
+    if (!hole) break;
+    if (st.hole !== laatsteBaan) { laatsteBaan = st.hole; banen = Math.max(banen, st.hole + 1); }
+    // de bomen van de baan staan niet in de staat van het spel: de bot mikt op de mand en de wind, niet op de
+    // eik; een schijf die tegen een stam komt wordt de volgende worp gewoon opnieuw bekeken
+    const plan = L.discgolfWorp(st.lie, hole.basket, { simulate: DR.simulateFlight, env: { wind: st.wind, basket: hole.basket, rng: L.seededRandom(1 + worpen) } });
+    if (!plan) break;
+    const weg = DG.throwAt(plan.power, { yaw: plan.yaw, loft: plan.loft, release: plan.release, disc: plan.disc });
+    if (weg) worpen++;
+    B.log('discgolf', { baan: hole.n, worp: st.strokes + 1, disc: plan.disc, power: Math.round(plan.power * 100) / 100, yaw: Math.round(plan.yaw * 100) / 100, release: plan.release, waarom: plan.why, verwacht: Math.round(plan.dist), wind: st.wind && { mps: Math.round(st.wind.speed * 10) / 10, dir: Math.round(st.wind.dir * 100) / 100 } });
+    if (!weg) { await sleep(300); continue; }
+    await sleep(450);
+  }
+  ev.playedS = Math.round((B.time() - t0) * 10) / 10;
+  ev.how += ` ${worpen} worpen over ${banen} banen`;
+  return true;
+}
+
+// De botsauto's: gas en stuur uit botlogic.kermisStap (de tent, de rand, de slinger over de vloer). De kermis
+// leest de toetsen zelf (kermis.js updateRide: isDown('w') en 'a'/'d'), niet de stick.
+async function playKermis(ev) {
+  const KM = window.__kermis;
+  if (!KM || !KM.state) return false;
+  ev.how += " botsauto's";
+  const t0 = B.time(), mem = {};
+  const limit = budgetVoor('kermis');
+  let laatste = -1, beelden = 0, score = 0;
+  for (let i = 0; i < 100000; i++) {
+    const st = KM.state();
+    if (!st) break;
+    if (B.time() - t0 > limit) { ev.stuck = true; ev.how += ' de rit duurde te lang'; B.log('timeout', { step: 'mg-kermis', what: 'kermis: de rit duurde te lang', forS: Math.round(B.time() - t0), x: player.x, y: player.y, goalDist: null }); break; }
+    if (st.phase !== 'ride' || !st.me) { houdToetsen([]); await sleep(250); continue; }
+    const d = L.kermisStap({ u: st.me.u, v: st.me.v, a: st.me.a, t: st.t, hu: L.KERMIS.hu, hv: L.KERMIS.hv }, mem);
+    houdToetsen([...(d.throttle > 0 ? ['w'] : d.throttle < 0 ? ['s'] : []), ...(d.turn > 0.25 ? ['d'] : d.turn < -0.25 ? ['a'] : [])]);
+    beelden++;
+    score = st.score;
+    if (st.score !== laatste) { laatste = st.score; B.log('kermis', { score: st.score, hits: st.hits, combo: st.combo, links: Math.round(st.left), u: Math.round(st.me.u * 10) / 10, v: Math.round(st.me.v * 10) / 10, waarom: d.why }); }
+    await sleep(80);
+  }
+  houdToetsen([]);
+  ev.playedS = Math.round((B.time() - t0) * 10) / 10;
+  ev.how += ` ${score} punten`;
+  // de rit van 75 s is langer dan het oude budget van 40 s: zonder de uitspeeltijd stopte de bot halverwege
+  B.log('kermis-rit', { beelden, score, binnen: Math.round(B.time() - t0) });
+  return true;
+}
+
+// Het reuzenrad: de rit uitzitten en uitstappen als de twee rondes om zijn (botlogic.hoogvliegerStap). De
+// wachtteller van de pagina staat stil zolang de rit loopt (hold): een rad van 105 s is geen vastloper.
+async function playHoogvlieger(ev, hold) {
+  const HV = window.__hoogvlieger;
+  if (!HV || !HV.state) return false;
+  const KM = await imp('kermis');
+  ev.how += ' reuzenrad';
+  const t0 = B.time();
+  const limit = budgetVoor('hoogvlieger');
+  let gedrukt = 0, links = 0;
+  for (let i = 0; i < 100000; i++) {
+    const st = HV.state();
+    if (!st) break;                                  // uitgestapt: de rit is klaar
+    const wheel = KM.kermisWheel();
+    if (!wheel) break;
+    if (B.time() - t0 > limit) { ev.stuck = true; ev.how += ' de rit duurde te lang'; B.log('timeout', { step: 'mg-hoogvlieger', what: 'reuzenrad: de rit duurde te lang', forS: Math.round(B.time() - t0), x: player.x, y: player.y, goalDist: null }); break; }
+    const fractie = Number.isFinite(st.fraction) ? st.fraction : 0;
+    links = Math.max(0, Math.round((1 - fractie) * L.WHEEL.rondes * 2 * Math.PI / L.WHEEL.omega));
+    const d = L.hoogvliegerStap({ rot: wheel.rot, inGondel: true, klaar: fractie >= 1, index: st.index, links });
+    if (d.press) { await B.press('e', 120); gedrukt++; await sleep(700); continue; }
+    hold();                                          // de rit loopt: geen vastloper
+    await sleep(200);
+  }
+  ev.playedS = Math.round((B.time() - t0) * 10) / 10;
+  ev.how += ` ${gedrukt} keer E, nog ${links} s`;
+  return true;
+}
+
+// Het reuzenrad start alleen als er een gondel onderaan hangt (reuzenrad.js interact): wacht daarop voordat de
+// pagina E indrukt, anders staan alle startpogingen op een dichte deur.
+async function wachtOpGondel(ev) {
+  const KM = await imp('kermis');
+  for (let i = 0; i < 120; i++) {
+    const wheel = KM.kermisWheel();
+    if (!wheel) return;
+    const d = L.hoogvliegerStap({ rot: wheel.rot, inGondel: false });
+    if (d.wacht === 0) { ev.how += ' gondel onderaan'; return; }
+    if (i === 0) B.log('reuzenrad', { wacht: Math.round(d.wacht * 10) / 10, rot: Math.round(wheel.rot * 100) / 100 });
+    await sleep(250);
+  }
+}
+
 
 // a cheap signature of "something happened": the player, the money and the activity's own readout
 function signature(a) {
@@ -131,6 +256,34 @@ async function playKart(ev, a) {
   if (ev.race) B.log('race-uitslag', { id: 'kartbaan', plek: ev.race.plek, karts: ev.race.karts, klaar: ev.race.klaar, rondes: ev.race.rondes });
 }
 
+// het oude vaste rijtje toetsen per minigame (PLAN): voor de activiteiten zonder eigen regels, en als terugval
+// wanneer de regels of de staat van het spel ontbreken (een losse pagina)
+async function speelPlan(ev, a, id, activeNow) {
+  const plan = PLAN[id] || DEFAULT_PLAN;
+  const det = new L.StuckDetector({ windowS: STUCK_S, minGain: 0.1, minMove: 0.5 });
+  let sig = signature(a || { spots: () => [] }), k = 0, shotAt = false, changes = 0;
+  const play0 = B.time(), wallPlay0 = performance.now();
+  // ook een wandkloklimiet: staat de speltijd stil (pauze, een scherm dat de wereld bevriest), dan hangt een lus op speltijd eeuwig (#255)
+  // staat de speltijd stil (de duif), dan telt de echte tijd mee: na 5 s echt zonder speltijd is de echte tijd de klok
+  const played = () => { const g = B.time() - play0, w = (performance.now() - wallPlay0) / 1000; return g < 0.2 && w > 5 ? w : g; };
+  while (activeNow() && played() < PLAY_S && performance.now() - wallPlay0 < PLAY_S * 4000) {
+    const s = B.status();
+    if (s.blocking.cinematic || s.blocking.banner) { B.down(' '); await sleep(1300); B.up(' '); continue; }
+    const [keys, ms] = plan[k++ % plan.length];
+    for (const key of keys) B.down(key);
+    await sleep(ms);
+    for (const key of keys) B.up(key);
+    const now = signature(a || { spots: () => [] });
+    if (sig !== now) changes++;
+    const st = det.update(B.time(), { x: player.x, y: player.y, goalDist: -changes, key: id });
+    sig = now;
+    if (st.stuck) { ev.stuck = true; B.log('stuck', { step: `mg-${id}`, x: player.x, y: player.y, idleFor: st.idleFor, goalDist: null }); shot(`mg-${id}-vast`); break; }
+    if (!shotAt && played() > PLAY_S / 2) { shotAt = true; shot(`mg-${id}-midden`); }
+  }
+  ev.playedS = Math.round(played() * 10) / 10;
+  if (performance.now() - wallPlay0 >= PLAY_S * 4000) { ev.stuck = true; ev.how += ' speltijd stond stil'; B.log('stuck', { step: `mg-${id}`, x: player.x, y: player.y, idleFor: PLAY_S * 4, goalDist: null }); }
+}
+
 async function playOne(id, startFn, a) {
   const t0 = B.time();
   const money0 = world.money;
@@ -145,30 +298,20 @@ async function playOne(id, startFn, a) {
   if (ev.started && id === 'kartbaan' && Rc && window.__kartbaan) {
     // #312: de kartbaan rijdt de bot zelf (sturen, gas, drift, time-outs), niet op een vast rijtje toetsen
     await playKart(ev, a);
-  } else if (ev.started) {
-    const plan = PLAN[id] || DEFAULT_PLAN;
+  } else if (ev.started && STRATEGIE.has(id)) {
+    // #186: de bordspellen en de kermis met de pure regels van botlogic.js (discgolf, botsauto's, reuzenrad)
     const det = new L.StuckDetector({ windowS: STUCK_S, minGain: 0.1, minMove: 0.5 });
-    let sig = signature(a || { spots: () => [] }), k = 0, shotAt = false, changes = 0;
-    const play0 = B.time(), wallPlay0 = performance.now();
-    // ook een wandkloklimiet: staat de speltijd stil (pauze, een scherm dat de wereld bevriest), dan hangt een lus op speltijd eeuwig (#255)
-    // staat de speltijd stil (de duif), dan telt de echte tijd mee: na 5 s echt zonder speltijd is de echte tijd de klok
-    const played = () => { const g = B.time() - play0, w = (performance.now() - wallPlay0) / 1000; return g < 0.2 && w > 5 ? w : g; };
-    while (activeNow() && played() < PLAY_S && performance.now() - wallPlay0 < PLAY_S * 4000) {
-      const s = B.status();
-      if (s.blocking.cinematic || s.blocking.banner) { B.down(' '); await sleep(1300); B.up(' '); continue; }
-      const [keys, ms] = plan[k++ % plan.length];
-      for (const key of keys) B.down(key);
-      await sleep(ms);
-      for (const key of keys) B.up(key);
-      const now = signature(a || { spots: () => [] });
-      if (sig !== now) changes++;
-      const st = det.update(B.time(), { x: player.x, y: player.y, goalDist: -changes, key: id });
-      sig = now;
-      if (st.stuck) { ev.stuck = true; B.log('stuck', { step: `mg-${id}`, x: player.x, y: player.y, idleFor: st.idleFor, goalDist: null }); shot(`mg-${id}-vast`); break; }
-      if (!shotAt && played() > PLAY_S / 2) { shotAt = true; shot(`mg-${id}-midden`); }
+    const hold = () => det.hold(B.time());
+    const strategy = { discgolf: playDiscgolf, kermis: playKermis, hoogvlieger: playHoogvlieger }[id];
+    let gedaan = false;
+    try { gedaan = await strategy(ev, hold); } catch (e) { ev.how += ' strategie faalde: ' + String(e && e.message || e).slice(0, 120); }
+    if (!gedaan) {
+      // geen regels of geen staat: het oude rijtje toetsen, zodat een losse pagina niet stilvalt
+      ev.how += ' (terug op PLAN)';
+      await speelPlan(ev, a, id, activeNow);
     }
-    ev.playedS = Math.round(played() * 10) / 10;
-    if (performance.now() - wallPlay0 >= PLAY_S * 4000) { ev.stuck = true; ev.how += ' speltijd stond stil'; B.log('stuck', { step: `mg-${id}`, x: player.x, y: player.y, idleFor: PLAY_S * 4, goalDist: null }); }
+  } else if (ev.started) {
+    await speelPlan(ev, a, id, activeNow);
   }
   B.releaseAll();
   // leave the way a player does
@@ -213,6 +356,9 @@ for (const info of list) {
     await sleep(2500);
     try { const pr = a.prompt(world); ev.prompt = !pr ? '' : typeof pr === 'string' ? pr : JSON.stringify(pr).slice(0, 160); } catch (e) { ev.prompt = 'prompt() faalde'; }
     await settle();
+    // het reuzenrad start alleen als er een gondel onderaan hangt (reuzenrad.js interact): wacht daarop, anders
+    // staan alle startpogingen op een dichte deur en telt de run een minigame die niet start
+    if (info.id === 'hoogvlieger' && !a.active()) await wachtOpGondel(ev);
     // the opening per minigame (botlogic startAttempts): wait for the prompt before a key, step aside when nothing starts
     let jit = 0;
     for (const step of L.startAttempts(info.id)) {

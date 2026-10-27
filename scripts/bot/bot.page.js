@@ -300,12 +300,12 @@ async function flyStep(s) {
   const stripSpec = def && def.stages && (def.stages.find((q) => q.kind === 'plane') || {}).strip;
   let o = null;
   if (kind === 'airgates' && s.target) {
-    const gates = st.gates || [];
-    let g = gates[0], bd = Infinity;
-    for (const q of gates) { const d = L.distance(q, s.target); if (d < bd) { bd = d; g = q; } }
-    o = { agl: pl.z - gh(pl.x, pl.y), goal: { x: s.target.x, y: s.target.y }, alt: g ? (g.lo + g.hi) / 2 : 20, mode: 'fly' };
+    // which gate (the mission judges them in order, so the first ring that holds the marker wins), how high
+    // (halfway between lo and hi) and how far: botlogic.gateAim, tested in scripts/bot_vlieg_test.mjs
+    const g = L.gateAim(st.gates || [], s.target);
+    o = { agl: pl.z - gh(pl.x, pl.y), goal: g ? g.aim : { x: s.target.x, y: s.target.y }, alt: g ? g.alt : 20, mode: 'fly' };
   } else if (kind === 'landplane' && stripSpec) {
-    o = { agl: pl.z - gh(pl.x, pl.y), goal: { x: s.target ? s.target.x : stripSpec.x, y: s.target ? s.target.y : stripSpec.y }, alt: 30, mode: 'land', strip: stripSpec };
+    o = { agl: pl.z - gh(pl.x, pl.y), goal: { x: s.target ? s.target.x : stripSpec.x, y: s.target ? s.target.y : stripSpec.y }, alt: 30, mode: 'land', strip: stripSpec, phase: mem.landPhase || null };
   } else if (kind === 'plane') {
     // just boarded: the stage moves on by itself
     releaseFly();
@@ -316,14 +316,16 @@ async function flyStep(s) {
     await keyTap('e'); await sleep(900);
     return;
   } else if (stripSpec) {
-    o = { agl: pl.z - gh(pl.x, pl.y), goal: { x: stripSpec.x, y: stripSpec.y }, alt: 30, mode: 'land', strip: stripSpec };
+    o = { agl: pl.z - gh(pl.x, pl.y), goal: { x: stripSpec.x, y: stripSpec.y }, alt: 30, mode: 'land', strip: stripSpec, phase: mem.landPhase || null };
   }
   if (!o) { releaseFly(); return; }
   const want = L.planeKeys({ x: pl.x, y: pl.y, z: pl.z, heading: pl.heading, speed: pl.speed, pitch: pl.pitch, roll: pl.roll, vz: pl.vz, onGround: pl.onGround, throttle: pl.throttle }, o);
   applyFlyKeys(want);
+  // the landing circuit keeps its phase between ticks (to the fix, or the final): see botlogic.planeKeys
+  if (o.mode === 'land') mem.landPhase = want.phase || null;
   if (ticks % 20 === 0) {
     const rel = o.strip ? (() => { const c = Math.cos(o.strip.heading), sn = Math.sin(o.strip.heading), dx = pl.x - o.strip.x, dy = pl.y - o.strip.y; return { along: Math.round(dx * c + dy * sn), across: Math.round(-dx * sn + dy * c), hdg: Math.round(L.normAngle(pl.heading - o.strip.heading) * 100) / 100 }; })() : null;
-    B.log('vlucht', { mode: o.mode, agl: Math.round(o.agl), v: Math.round(pl.speed), vz: Math.round(pl.vz * 10) / 10, gate: o.goal && [Math.round(o.goal.x), Math.round(o.goal.y)], rel, keys: [...want].join('') });
+    B.log('vlucht', { mode: o.mode, fase: o.mode === 'land' ? mem.landPhase : null, agl: Math.round(o.agl), v: Math.round(pl.speed), vz: Math.round(pl.vz * 10) / 10, gate: o.goal && [Math.round(o.goal.x), Math.round(o.goal.y)], poort: o.mode === 'fly' && st && st.gates ? (L.gateAim(st.gates, s.target) || {}).i : null, rel, keys: [...want].join('') });
   }
 }
 
@@ -699,7 +701,7 @@ while (true) {
   track(s);
   const stepKey = (s.story.id || '?') + (s.mission.active ? ':' + (s.mission.stage || 'm') : '');
   // each stage of a mission gets its own few tries at boarding and at a prompt
-  if (stepKey !== mem.stageKey) { mem.stageKey = stepKey; mem.pressTries = 0; mem.boardTries = 0; mem.planTries = 0; mem.vehTries = 0; mem.nearMiss = 0; mem.board = null; mem.pickLog = null; mem.exitLog = null; mem.holdAt = null; pigeonWatch.reset(); pigeonTargetWatch.reset(); heliWatch.reset(); sailWatch.reset(); mem.zeil = null; mem.rowT = null; mem.stunt = null; mem.driftLog = null; }
+  if (stepKey !== mem.stageKey) { mem.stageKey = stepKey; mem.pressTries = 0; mem.boardTries = 0; mem.planTries = 0; mem.vehTries = 0; mem.nearMiss = 0; mem.board = null; mem.pickLog = null; mem.exitLog = null; mem.holdAt = null; pigeonWatch.reset(); pigeonTargetWatch.reset(); heliWatch.reset(); sailWatch.reset(); mem.zeil = null; mem.rowT = null; mem.stunt = null; mem.driftLog = null; mem.landPhase = null; }
   // #312: after a board stage the drive has a budget of its own: seven minutes without getting closer to this
   // stage's goal is a finding, even when the car keeps crawling along (the same per stage, so a chase does not
   // inherit the clock of the stage before it)

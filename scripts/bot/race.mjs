@@ -18,7 +18,7 @@ export const RACE = {
   lane: 0,          // de bot rijdt op de middellijn
   avoid: 2.6,       // zoveel meter opzij voor een kart vlak voor hem
   driftCurve: 0.022,// vanaf deze kromming een drift (kartrace.js bestInput)
-  driftMin: 14,     // en boven deze snelheid
+  driftMin: 9.5,    // en boven deze snelheid (kartrace.js KART.driftMin is 9: daar begint de drift van het spel)
   driftSteer: 0.35,
   gridS: 60,        // de startlichten duren nooit langer dan dit
   stuckS: 18,       // zolang zonder voortgang is de kart vast
@@ -102,8 +102,11 @@ export function kartStep(s, track, mem = {}, now = 0) {
   const vt = Math.min(RACE.topShare * 24, ahead.speed, traf.cap);
   const f = k.f || 0;
   const throttle = f < vt - 1 ? 1 : f > vt + 2.5 ? -1 : 0;
-  // een drift in een lange bocht: de handrem erop, de kart houdt zijn boog en laadt een boost
-  const drift = ahead.curve > RACE.driftCurve && f > RACE.driftMin && Math.abs(steer) > RACE.driftSteer;
+  // een drift in een bocht: de handrem erop, de kart houdt zijn boog en laadt een boost. De kromming *onder* de kart
+  // telt, niet de scherpste bocht verderop: die remt de kart al af tot onder de driftdrempel van 9 m/s
+  // (kartrace.js KART.driftMin) voordat de bocht begint, en dan driftt de bot nooit (gemeten op de baan van Ulrum)
+  const local = track.curv[here.i] || 0;
+  const drift = Math.max(local, ahead.curve * 0.5) > RACE.driftCurve && f > RACE.driftMin && Math.abs(steer) > RACE.driftSteer;
   return { type: 'rij', throttle, steer, drift, dist: here.off, corner: ahead.speed === Infinity ? null : ahead.speed, curve: ahead.curve, prog: k.prog, lap: k.lap, look };
 }
 
