@@ -688,12 +688,38 @@ async function cityCoverOf() {
   // railLines (cityroutes.mjs) een lege lijst en werd het spoor van de provincie nergens op de stadse
   // track geknipt, zodat het in en om de stad dubbel werd getekend (#506).
   //
-  // Let op: dit vraagt de OSM-lagen van de stad (loadCityDataLaag), en die komen alleen binnen de stage
-  // tot stand, waar de stad al gebouwd is en de cache warm is. Draai je build_province.mjs los met een
-  // koude stadscache, dan blijft hij hier wachten zonder foutmelding (exit 13). Draai dus via
-  // `npm run stage`, of eerst pack_tiles (zie #511).
-  const stad = await P.loadCityDataLaag();
-  return { ...cityCoverFromMask(mask), rails: (stad.data.rails || []).map((r) => r.pts || r) };
+  // Ze komen uit de GEBOUWDE stadstegels (index.json + pakketten), niet uit de OSM-lagen: dat is precies
+  // wat de stad zelf tekent, het is veel sneller, en het haalt de kringloop weg die build_province los
+  // liet hangen (#511): loadCityDataLaag → stad_laag.mjs → `await import('./build_province.mjs')`
+  // wachtte op deze nog niet geevalueerde module.
+  const rails = await cityRailsFromTiles(path.join(ROOT, 'game', 'world'));
+  if (!rails.length) console.log('  let op: geen stadse rails in game/world (eerst de stad bouwen); het spoor van de provincie wordt dan niet op de stadse track geknipt');
+  return { ...cityCoverFromMask(mask), rails };
+}
+
+// De spoorrijen van de stadstegels (SECTION.RAILS) als polylijnen [[x, y], ...].
+async function cityRailsFromTiles(dir) {
+  const G = await import('../../game/js/gdt.js');
+  const file = path.join(dir, 'index.json');
+  if (!fs.existsSync(file)) return [];
+  const index = JSON.parse(fs.readFileSync(file, 'utf8'));
+  if (!index.tiles || !index.packs) return [];
+  const fds = new Map();
+  const out = [];
+  try {
+    for (const t of Object.values(index.tiles)) {
+      const f = index.packs[t.pack].file;
+      if (!fds.has(f)) fds.set(f, fs.openSync(path.join(dir, f), 'r'));
+      const buf = Buffer.alloc(t.len);
+      fs.readSync(fds.get(f), buf, 0, t.len, t.off);
+      const blob = G.decodeBlob(new Uint8Array(zlib.inflateRawSync(buf)));
+      const sec = blob.sections.find((s) => s.type === G.SECTION.RAILS);
+      for (const r of (sec && sec.rows) || []) if (r.pts && r.pts.length > 1) out.push(r.pts);
+    }
+  } finally {
+    for (const fd of fds.values()) fs.closeSync(fd);
+  }
+  return out;
 }
 
 async function main() {
