@@ -47,8 +47,47 @@ if (dagen > 30) {
     'een wereldcontrole op oude data zegt weinig.');
 }
 
+// Een rebuild van de provincielaag bovenop een bestaande wereld zette de rijen van de overlay een tweede keer
+// in de stadstegel: twee verschillende rijen met dezelfde id vanaf 20.000.000. De loader houdt dan de oude rij
+// en het water en de gebouwen van de nieuwe verdwijnen uit de rasters (#512). Elke id mag maar één keer in een
+// tegel staan.
+let dubbel = 0, dubbelTegels = 0, rijen = 0;
+if (fs.existsSync(stadium)) {
+  const G = await import('../game/js/gdt.js');
+  const zlib = await import('node:zlib');
+  const stad = JSON.parse(fs.readFileSync(stadium, 'utf8'));
+  const blobs = new Map();
+  for (const [k, t] of Object.entries(stad.tiles || {})) {
+    const pack = stad.packs[t.pack];
+    if (!pack) continue;
+    if (!blobs.has(pack.file)) blobs.set(pack.file, fs.openSync(path.join(ROOT, 'game', 'world', pack.file), 'r'));
+    const buf = Buffer.alloc(t.len);
+    fs.readSync(blobs.get(pack.file), buf, 0, t.len, t.off);
+    const blob = G.decodeBlob(new Uint8Array(zlib.inflateRawSync(buf)));
+    let raak = 0;
+    for (const s of blob.sections) {
+      if (!s.rows || s.type === G.SECTION.NAV) continue;
+      const seen = new Set();
+      for (const r of s.rows) {
+        const g = typeof r === 'object' && r ? (s.type === G.SECTION.TREES ? r.g : r.gid) : undefined;
+        if (typeof g !== 'number') continue;
+        rijen++;
+        if (seen.has(g)) { dubbel++; raak++; } else seen.add(g);
+      }
+    }
+    if (raak) dubbelTegels++;
+  }
+  for (const fd of blobs.values()) fs.closeSync(fd);
+  if (dubbel) {
+    console.log(`FAIL world_versie_test: ${dubbel} van ${rijen} rijen in de stadstegels heeft een dubbele id ` +
+      `(${dubbelTegels} tegels). Deze wereld is opnieuw gebouwd bovenop een oude: de overlay staat er twee keer in ` +
+      'en de loader houdt de oude rij (#512). Bouw de wereld opnieuw met "cd desktop && npm run stage".');
+    fails++;
+  }
+}
+
 if (!fails) {
   console.log(`world_versie_test ok: ${keys.length} tegels, ${overlays.length} overlaytegels allemaal samengevoegd` +
-    (fs.existsSync(stadium) ? ', stad-index aanwezig' : ', geen stad-index (kan kloppen)'));
+    (fs.existsSync(stadium) ? `, stad-index aanwezig (${rijen} rijen zonder dubbele id)` : ', geen stad-index (kan kloppen)'));
 }
 process.exit(fails ? 1 : 0);
