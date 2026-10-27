@@ -378,8 +378,8 @@
   {
    "veld": "cameraOverride",
    "bestand": "game/js/helirun.js",
-   "max": 3,
-   "reden": "neemt de camera over",
+   "max": 4,
+   "reden": "neemt de camera over (de chase-cam, de filmstand op hoogte en de missiefases)",
    "issue": "#498"
   },
   {

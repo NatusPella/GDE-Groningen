@@ -11,7 +11,7 @@ import { unlockAchievement, setStatMax, recordStat, recordChallengeResult } from
 import { makeHeli, flyHeli, helipadById, HELI_MODEL } from './heliflight.js';
 import { findClearSpot } from './helispawn.js';
 import { ringCounter, landingGuide, guideColor } from './heligrade.js';
-import { chaseStep } from './helicam.js';
+import { chaseStep, liftPose } from './helicam.js';
 import { lineVoiceFor } from './linevoice.js';
 import { playLineVoice } from './audio.js';
 import { SPEAKERS, STEP_BY_ID } from './storyarc.js';
@@ -984,6 +984,10 @@ function updateCamera(dt) {
     r.cam = step.cam;
     world.camYaw = step.yaw;
     if (step.override) world.cameraOverride = step.override;
+    // Koos de speler een filmstand, dan staat die er al (cinematics.js) maar op straathoogte: de
+    // standen rekenen in hoogte boven de grond, en in de lucht moet de hoogte van de heli erbij.
+    // Dat tillen gebeurt hier en niet in main.js, zodat dit veld één eigenaar houdt (#498).
+    else if (world.cameraOverride) world.cameraOverride = liftPose(world.cameraOverride, v);
     return;
   }
   if (!pos) { r.cam = null; world.cameraOverride = null; return; }

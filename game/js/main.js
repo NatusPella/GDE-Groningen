@@ -161,7 +161,6 @@ import { initPigeonSpots, updatePigeonSpots, tryPigeonSpotInteract } from './pig
 import { initSideJobs, updateSideJobs, trySideJobInteract } from './sidejobs.js';
 import { updateCashVan } from './cashvan.js';
 import { initHeliRun, updateHeliRun, tryHeliSpotInteract, updateHeliSpot } from './helirun.js';
-import { liftPose } from './helicam.js';
 import { initPadel, updatePadel, tryPadelInteract, updatePadelWorld, padelCamera } from './padel.js';
 import { initActivities, isActivityActive, updateActivityGame, tryActivityInteract, updateActivitiesWorld, tickActivitiesGast, activityCamera } from './activities.js';
 import { initRadio, updateRadio } from './radio.js';
@@ -182,7 +181,7 @@ import { initBoerderij, boerderijTijd, boerderijKlokNul } from './boerderijlive.
 import { BOERDERIJ_WERELD_KIND } from './boerderijwereld.js';
 import { probe } from './hitchprobe.js';
 import { initSafety, updateSafety } from './safety.js';
-import { updateCinematics, isCinematicActive, sinceCinematic, setCinematicLinks, getCinemaCamMode } from './cinematics.js';
+import { updateCinematics, isCinematicActive, sinceCinematic, setCinematicLinks } from './cinematics.js';
 import { initFlavour, updateFlavour } from './flavour.js';
 import { initFlavour3D, updateFlavour3D } from './flavour3d.js';
 import { prepareHomeMap, initHome, updateHome, updateHomeExterior, tryHomeInteract, homeSpawnPoint, parkHeroAtHome, garagePoortToestand } from './home.js';
@@ -691,14 +690,10 @@ async function boot() {
     // (#502). Alleen de telefoon en de save-tik blijven uit; de missie heeft haar
     // eigen HUD en spelregels en die veranderen hier niet.
     else if (world.heliRun) {
+      // De filmcamera loopt mee, zodat V ook in de lucht een andere stand kan kiezen in plaats van
+      // altijd star achter de heli. De hoogtecorrectie voor die stand zit in helirun.js (daar hoort
+      // de camera van de missie thuis). Alleen de telefoon en de save-tik blijven uit.
       updateCinematics(dt, world);
-      // De stand van de speler rekent in hoogte boven de grond (een auto staat op
-      // de weg); in de lucht telt de hoogte van de heli erbij, anders kijkt hij op
-      // straatniveau onder de heli langs. Een lopend filmpje houdt zijn eigen,
-      // absolute camerastand.
-      if (getCinemaCamMode() && !isCinematicActive()) {
-        world.cameraOverride = liftPose(world.cameraOverride, world.player.inVehicle);
-      }
     }
     else {
       updatePhone(dt, world);
