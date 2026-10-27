@@ -20,6 +20,11 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '.
 const deflate = (b) => new Uint8Array(zlib.deflateRawSync(b, { level: 9 }));
 const inflate = (b) => new Uint8Array(zlib.inflateRawSync(b));
 const readJson = (f) => JSON.parse(fs.readFileSync(f, 'utf8'));
+// de id-band van de overlayrijen (build_province.mjs telt per soort vanaf GID0, game/js/tileworld.js
+// OVERLAY_GID0) en de ruimte erboven: geen soort komt in de buurt van 10 miljoen rijen, terwijl de
+// vulbomen van de stad op ~32 miljard liggen (builderhooks.js FILL_GID0 + een id per tegel)
+const OVERLAY_GID0 = 20_000_000;
+const OVERLAY_GID_SPAN = 10_000_000;
 // de tellingen per tegel (index.json) staan op sectienaam; de ids van een rij op het sectietype
 const KIND_OF_SECTION = new Map([
   [G.SECTION.BUILDINGS, 'buildings'], [G.SECTION.ROADS, 'roads'], [G.SECTION.WATER, 'water'],
@@ -84,19 +89,17 @@ function treeOnRoad(x, y, grid) {
 export function mergeBlobs(city, overlay, stripped = null) {
   const sections = asSections(city);
   const ov = asSections(overlay);
-  // Een rebuild van de provincielaag levert de overlay opnieuw aan terwijl de stadstegel de rijen van de
-  // vorige merge nog bevat: dezelfde id voor een andere rij. De loader houdt dan de oude en de nieuwe
-  // verdwijnt uit de rasters (#512). De oude rijen met een id die deze overlay opnieuw aanlevert gaan er
-  // dus eerst uit. Op id en niet op "vanaf 20.000.000", want de vulbomen van de stad (builderhooks.js
-  // FILL_GID0) liggen in dezelfde band en die blijven. `stripped` telt ze per sectietype, zodat de
-  // tellingen van de tegel niet dubbel gaan tellen.
+  // Een rebuild van de provincielaag levert de overlay opnieuw aan terwijl de stadstegel de overlayrijen van
+  // een of meer vorige builds nog bevat: dezelfde ids voor andere rijen. De loader houdt dan de oude en de
+  // nieuwe verdwijnt uit de rasters (#512). Alle rijen uit de id-band van de overlay gaan er dus eerst uit,
+  // ook die van een vorige build die deze build niet opnieuw aanlevert. Niet "alles vanaf 20.000.000": de
+  // vulbomen van de stad (builderhooks.js FILL_GID0 + een id per tegel) liggen op ~32 miljard en blijven.
+  // `stripped` telt ze per sectietype, zodat de tellingen van de tegel niet dubbel gaan tellen.
   const idOf = (type, r) => (type === G.SECTION.TREES ? r && r.g : r && r.gid);
-  const ids = new Set();
-  for (const o of ov) for (const r of o.rows || []) { const g = idOf(o.type, r); if (typeof g === 'number') ids.add(g); }
   for (const s of sections) {
-    if (!s.rows || !ids.size) continue;
+    if (!s.rows) continue;
     const before = s.rows.length;
-    s.rows = s.rows.filter((r) => { const g = idOf(s.type, r); return typeof g !== 'number' || !ids.has(g); });
+    s.rows = s.rows.filter((r) => { const g = idOf(s.type, r); return !(typeof g === 'number' && g >= OVERLAY_GID0 && g < OVERLAY_GID0 + OVERLAY_GID_SPAN); });
     if (stripped && before !== s.rows.length) stripped[s.type] = (stripped[s.type] || 0) + (before - s.rows.length);
   }
   const overlayStart = new Map(); // sectietype -> index waar de overlayrijen beginnen
