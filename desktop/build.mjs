@@ -18,6 +18,10 @@ const SRC = process.env.GDE_STAGE_SRC || path.join(HERE, '..', 'game');
 const VIADUCTS = process.env.GDE_VIADUCTS !== '0'; // province tiles with height profiles for bridges and viaducts (#235, #300); GDE_VIADUCTS=0 builds them flat
 const OUT = process.env.GDE_STAGE_OUT || path.join(HERE, 'build', 'game');
 const CACHE = path.join(HERE, 'vendor-cache');
+// --no-world / GDE_NO_WORLD=1: vendor three.js and the fonts but skip the map tiles. The CI test
+// runner has no data/cache/province (a Geofabrik extract, not in git) and needs no world: the 3D
+// tests only ask for the vendored modules, and the world-bound tests skip themselves (#500-ci).
+const NO_WORLD = process.argv.includes('--no-world') || process.env.GDE_NO_WORLD === '1';
 const CDN = 'https://cdn.jsdelivr.net/npm/';
 const THREE = CDN + 'three@0.160.0/build/three.module.js';
 const ADDONS = CDN + 'three@0.160.0/examples/jsm/';
@@ -61,6 +65,10 @@ function resolveSpec(spec, base) {
 // GDE_PREBUILT_WORLD=<dir>: take the staged map tiles of an earlier build as they are (a CI runner has no
 // data/cache for the province, .github/workflows/mac-release.yml)
 function packWorld() {
+  if (NO_WORLD) {
+    console.log('map tiles: overgeslagen (--no-world; de tests hebben geen wereld nodig)');
+    return;
+  }
   if (process.env.GDE_PREBUILT_WORLD) {
     const dir = path.resolve(process.env.GDE_PREBUILT_WORLD);
     if (!fs.existsSync(path.join(dir, 'index.json'))) throw new Error('GDE_PREBUILT_WORLD has no index.json: ' + dir);
