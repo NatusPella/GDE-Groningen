@@ -477,9 +477,15 @@ async function newArcRuntimeChecks(world, check, capture) {
   check('new arc: the script data is loaded', !!(window.__storytext && window.__storytext.ready()), JSON.stringify(window.__storytext && window.__storytext.counts()));
   // text-only talk: a line without a recording is shown with the speaker's name for a readable time and ends by itself
   if (T) {
-    const lines = window.__storytext.talk('M03.3');
-    check('new arc: M03.3 has lines and none of them has a recording', lines.length >= 5 && lines.every((l) => !l.voice), String(lines.length));
-    T.play('M03.3');
+    // a scene that still has no recordings at all: the TTS rounds add voices, so the check looks one up instead
+    // of naming M03.3 (which has been recorded since round 4)
+    const stil = (window.__storytext.scenes() || [])
+      .map((id) => ({ id, lines: window.__storytext.talk(id) }))
+      .find((s) => s.lines.length >= 5 && s.lines.every((l) => !l.voice));
+    check('new arc: a text-only scene exists', !!stil, stil ? stil.id : 'geen scène meer zonder opnames');
+    const lines = stil ? stil.lines : [];
+    check(`new arc: ${stil ? stil.id : 'de scène'} has lines and none of them has a recording`, lines.length >= 5 && lines.every((l) => !l.voice), String(lines.length));
+    if (stil) T.play(stil.id);
     const shown = await waitFor(() => { const el = document.getElementById('story-talk'); return el && el.style.opacity === '1' && /:/.test(el.textContent); }, 6000);
     const first = document.getElementById('story-talk');
     check('new arc: a text-only talk line is shown with a speaker name', shown && first && first.querySelector('.st-speaker').textContent.length > 1, first && first.textContent);
@@ -493,7 +499,9 @@ async function newArcRuntimeChecks(world, check, capture) {
     await quietDown(world);
     // #425: the world first goes to a quiet moment (no chase, no race, no fight in the last 5 s, no skipped
     // mission's left-over wanted level, nothing holding the cards back); the check below says so when it cannot.
-    const quiet = await phoneQuiet(world);
+    // 60 s: a voiced card that cannot play its audio (this run is silent) holds the screen until the feed's own
+    // 40 s guard drops it, so 30 s was just too short.
+    const quiet = await phoneQuiet(world, 60000);
     const pfState = pf.state();
     const kaart = document.querySelector('.pf-card');
     const nu = window.__story ? window.__story.current() : null;
