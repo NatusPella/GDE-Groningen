@@ -36,6 +36,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ### Opgelost
 
+- **De provincie rond de stad was deels leeg.** Bij het laden werd de nieuwste wereldlaag weggelaten zodra een oude laag dezelfde rij-id had; water en gebouwen ontbraken daardoor in de gestreamde tegels. De wereldbouw zet de overlay nu één keer in de stadstegel.
+
 - **De kanalen lopen niet meer vol met binnenvaart.** Er mogen hooguit twee schepen per waterlichaam varen (en vier in de wereld), met ruim afstand ertussen; bij Nieuwbrug lagen er vijf tot acht van 39-50 m over elkaar.
 - **De gele routelijn stopt bij de stoeprand.** De chevronstrook naar je doel liep over gazons en akkers door tot tegen een gevel; hij is nu vol zichtbaar tot 2,5 m van de verharding en weg vanaf 5 m.
 - **Onder het perron van Groningen Noord kun je weer doorlopen en doorrijden.** De rand van een perron op het viaduct stond op straatniveau in de weg: voetgangers en auto's liepen tegen een onzichtbare muur en op de Kastanjelaan botsten auto's ermee; een perronrand telt nu alleen tot de grond waar het perron zelf op staat.
