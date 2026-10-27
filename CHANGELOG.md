@@ -35,9 +35,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Dagprijzen op de boerderij.** Elk gewas heeft per speldag een eigen prijs, hooguit twintig procent boven of onder de basis; je verkoopt tegen de prijs van de dag dat je aflevert.
 - **Het nieuwe verhaal krijgt stemmen.** 642 van de 1.450 regels zijn ingesproken; wat nog geen opname heeft lees je als ondertitel met leestijd, en die komen er in latere rondes bij.
 - **Kropswolde heeft een tweede dorpsuitje.** Naast de strandtent aan het Zuidlaardermeer kun je er nu een roeibootje huren voor een rondje over het meer.
-- **De museumkraak kan samen of tegen elkaar.** De gastheer kiest in de planfase; bij "tegen elkaar" houdt wie de meeste rolstappen deed de grootste buit, en krijgt iedereen zijn eigen deel in zijn eigen portemonnee.
+- **De museumkraak kan samen of tegen elkaar.** Wie het spel opende kiest in de planfase; bij "tegen elkaar" houdt wie de meeste rolstappen deed de grootste buit, en krijgt elke speler zijn eigen deel in zijn eigen portemonnee.
 - **De controller werkt bijna overal.** Bijbanen en tekstpanelen (1-4 op de D-pad), de "Meedoen?"-vraag (A = ja, B = nee), het wacht- en overdrachtsscherm, hengelen (X), de trekker (aftakas, ontkoppelen, tanken) en de zeilboot hebben nu een knop; de reispanelen en de hintglyphs volgen de pad en je eigen indeling.
-- **Een gastheer zonder venster.** De host kan op een vaste poort draaien en de sessie in de openbare lijst zetten (naam, aantal spelers en versie; nooit een adres of wachtwoord), en de lobby heeft een wachtwoordveld voor het aanmaken en het joinen.
+- **Een sessie zonder venster.** Wie het spel opende kan op een vaste poort draaien en de sessie in de openbare lijst zetten (naam, aantal spelers en versie; nooit een adres of wachtwoord), en het wachtscherm heeft een wachtwoordveld voor het aanmaken en het joinen.
 
 ### Opgelost
 
