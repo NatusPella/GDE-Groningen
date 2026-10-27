@@ -4,6 +4,8 @@
 //   node scripts/buildonly_test.mjs
 import { execFileSync } from 'child_process';
 import fs from 'fs';
+import os from 'os';
+import path from 'path';
 import { BUILD_ONLY } from './lib/buildonly.mjs';
 
 // bouw-only volgens de grafiek maar bewust niet uitgesloten
@@ -15,7 +17,16 @@ const KEEP = {
   'cutpreviewui.js': 'game/cutpreview.html is een meegeleverde ontwikkelpagina',
 };
 
-const report = JSON.parse(execFileSync(process.execPath, ['scripts/dead_code.mjs', '--json'], { encoding: 'utf8', maxBuffer: 64 << 20 }));
+// Het rapport gaat via een tijdelijk bestand, niet via stdout: op de Linux-runner kwam de pijp
+// verminkt terug (Unterminated string in JSON, #140) terwijl Windows goed ging.
+const tmpJson = path.join(os.tmpdir(), `gde-dead-${process.pid}.json`);
+let report;
+try {
+  execFileSync(process.execPath, ['scripts/dead_code.mjs', `--json=${tmpJson}`], { stdio: 'inherit' });
+  report = JSON.parse(fs.readFileSync(tmpJson, 'utf8'));
+} finally {
+  fs.rmSync(tmpJson, { force: true });
+}
 const byName = new Map(report.map((r) => [r.file.replace('game/js/', ''), r]));
 let fails = 0;
 const ok = (c, m) => { if (!c) { fails++; console.log('FAIL ' + m); } };
