@@ -92,7 +92,7 @@ Opslag: `gde-visboek-v1` en `gde-hengeltuig-v1` (`storagekeys.js`).
 afleveren.
 
 **Regels.** Vijf gewassen met eigen zaaigoed, groeitijd, opbrengst en een basisprijs per kg
-(`game/js/boerderij.js:21`); de verkoopprijs per gewas is een dagprijs uit `game/js/gewasmarkt.js`
+(`game/js/boerderij.js:23`); de verkoopprijs per gewas is een dagprijs uit `game/js/gewasmarkt.js`
 (binnen twintig procent van de basis, dag nul is de basis, per speler uit zijn eigen `b.uren`), en
 `leverVracht` verkoopt daartegen. Elk perceel heeft een eigen teeltplan (`b.plan`); oude opslag
 met alleen `keuze` migreert naar het actieve perceel. Een speldag is 24 minuten (`game/js/daynight.js:12`). Groei telt in
@@ -150,7 +150,9 @@ kost niets. De banen komen uit `game/vliegplekken.json`.
 binnen 0,8 s na een treffer doet ×1,15, de derde ×1,40 met +0,20 knock; een misser of een
 wapenwissel zet de reeks terug. `combat.js` past de factor toe in `meleeHit`, dus ook voor de gast
 via `gastAanvalUitvoeren`/`gastSlagLanding`; de camera-schok en het geluid houden de originele
-waarden. Geen bloed of gore toevoegen; PvP houdt zijn eigen cap.
+waarden. Buiten PvP geldt "zonder getoond geweld" (constitutie 6): geen bloed of gore
+toevoegen. In PvP mogen bloed en gore wel, maar alleen tussen twee spelers die beiden niet
+passief staan, met de echte wapens en zonder blijvend verlies (#454); PvP houdt zijn eigen cap.
 
 **Bestanden.** `meleecombo.js`, `combat.js`, `weapons.js`.
 
@@ -245,9 +247,9 @@ zijn de latere meting (#477).
 
 ## Open punten (met issue)
 
-- Loopbaan, boerderij en vliegschool lopen achter op de code: `docs/BOERDERIJ.md:26` noemt twee
-  gewassen, `boerderij.js:18` heeft er vier; `docs/LOOPBAAN.md` mist de start van een vak (#431).
-  (#473)
+- Loopbaan, boerderij en vliegschool lopen achter op de code: `docs/BOERDERIJ.md:26-31` noemt
+  vier gewassen (Uien ontbreekt), `boerderij.js:23` heeft er vijf; `docs/LOOPBAAN.md` mist de
+  start van een vak (#431). (#473)
 - `docs/PERF-METING-2026-10-19.md` spreekt zichzelf tegen over de grootste kostenpost (#477).
 - De audiowieken op de hoofdthread zijn weerlegd (#473): de `audio`-sectie van de hitchprobe bevatte ook de tegelvolger en de verhaalsystemen, en de perfrun draait met `--stil` (geen AudioContext). Echte audio staat in de worker; het zoeken van de loop-punten van scènemuziek gaat nu in stappen van 32768 samples per frame.
 - Gast en boerderijgroei: de documentatie zegt dat een gast zijn gewassen niet ziet groeien, maar
