@@ -3,6 +3,12 @@
 De reviewers konden het Gronings en Fries niet door een moedertaalspreker laten nakijken. Constitution regel 1 vraagt om zorg.
 Wie het dialect spreekt: lees de regels hieronder en zet er een vinkje of een voorstel achter. Geen regel is aangepast zonder nalezing.
 
+**Concepten en stemkeuze (26-10):** voor de 431 verhaalregels die nog ingesproken moeten worden ligt een
+concept klaar in [DIALECT-CONCEPT.md](DIALECT-CONCEPT.md) (met de 31 twijfelgevallen bovenaan), en voor
+de zeventien sprekers zonder stem een voorstel in [STEMKEUZE-VOORSTEL.md](STEMKEUZE-VOORSTEL.md).
+Beide wachten op nalezing: er is nog niets samengevoegd met `scripts/gronings_spoken.json` en er is
+niets opgenomen.
+
 **Let op:** regels met `[BEHOUDEN]` hebben een opname. Een andere spelling betekent een nieuwe opname (en dus TTS of een stem). Stel dat alleen voor als de fout echt hoorbaar is.
 
 ## Twijfelgevallen (eerst nakijken)

@@ -29,10 +29,10 @@ zomer en in de stem van de vaste cast; tekst is data (canon, script, build, spel
    `game/js/storyarc.js` is de enige facade voor de rest van het spel (`:7`, `:16`).
 
 De data: 207 scènes, 1.450 regels in act 1 tot en met 6; 37 zijn stille appjes en
-1.112 hebben geen opname, dus die toont het spel als ondertitel met leestijd
+809 hebben geen opname, dus die toont het spel als ondertitel met leestijd
 (`game/js/storytext.js:51`). Een `[BEHOUDEN]`-regel heeft een opname: één andere
-letter maakt hem stil. Nieuwe opnames komen er niet; alle `[NIEUW]`-regels blijven
-tekst (`docs/verhaal/nieuw/07-TTS-RAMING.md:3`).
+letter maakt hem stil. Nieuwe opnames komen er in rondes bij op Flash-Lite (ADR 0019,
+#462); wat nog geen opname heeft blijft ondertitel (`docs/verhaal/nieuw/07-TTS-RAMING.md:3`).
 
 ## Structuur
 

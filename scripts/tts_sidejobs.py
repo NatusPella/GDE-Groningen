@@ -44,11 +44,11 @@ def job(l):
     return l, 'FAIL ' + err, None, None
 
 
-lines = json.load(open(os.path.join(REPO, 'scripts', 'tts_sidejobs.json')))
+lines = json.load(open(os.path.join(REPO, 'scripts', 'tts_sidejobs.json'), encoding='utf-8'))
 if len(sys.argv) > 1:
     lines = lines[:int(sys.argv[1])]
 man_path = f'{OUT}/manifest.json'
-man = json.load(open(man_path)) if os.path.exists(man_path) else {}
+man = json.load(open(man_path, encoding='utf-8')) if os.path.exists(man_path) else {}
 log = load_log(OUT)
 u0 = usage()
 res = []
@@ -63,7 +63,7 @@ for l, st, dur, style in res:
         man[f"{l['speaker']}|{l['text']}"] = {'src': l['file'], 'dur': round(dur, 2)}
     if style is not None:
         log[f"{l['speaker']}|{l['text']}"] = logged(l, l['file'], style, post(l))
-json.dump(man, open(man_path, 'w'), ensure_ascii=False, indent=0)
+json.dump(man, open(man_path, 'w', encoding='utf-8'), ensure_ascii=False, indent=0)
 save_log(OUT, log)
 for l, st, d, _ in res:
     if not d:

@@ -64,12 +64,12 @@ def job(l):
 
 
 os.makedirs(OUT, exist_ok=True)
-lines = json.load(open(os.path.join(REPO, 'scripts', 'tts_banter.json')))
+lines = json.load(open(os.path.join(REPO, 'scripts', 'tts_banter.json'), encoding='utf-8'))
 if len(sys.argv) > 1 and int(sys.argv[1]) > 0:
     lines = lines[:int(sys.argv[1])]
 budget = float(sys.argv[2]) if len(sys.argv) > 2 else 2.0
 man_path = f'{OUT}/manifest.json'
-man = json.load(open(man_path)) if os.path.exists(man_path) else {}
+man = json.load(open(man_path, encoding='utf-8')) if os.path.exists(man_path) else {}
 log = load_log(OUT)
 u0 = usage()
 res = []
@@ -104,7 +104,7 @@ if not (len(sys.argv) > 1 and int(sys.argv[1]) > 0):
         if f.endswith('.mp3') and f not in keep:
             os.remove(os.path.join(OUT, f))
             print('pruned', f)
-json.dump(man, open(man_path, 'w'), ensure_ascii=False, indent=0)
+json.dump(man, open(man_path, 'w', encoding='utf-8'), ensure_ascii=False, indent=0)
 save_log(OUT, log)
 for l, st, d, _ in res:
     if not d:

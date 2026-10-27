@@ -54,7 +54,7 @@ def encode(wav, dst, radio):
 
 os.makedirs(OUT, exist_ok=True)
 man_path = os.path.join(OUT, 'manifest.json')
-man = json.load(open(man_path)) if os.path.exists(man_path) else {}
+man = json.load(open(man_path, encoding='utf-8')) if os.path.exists(man_path) else {}
 log = load_log(OUT)
 force = '--force' in sys.argv
 u0 = usage()
@@ -83,6 +83,6 @@ for j in JOBS:
     man[j['key']] = {'src': j['file'], 'dur': round(dur, 2)}
     log[j['key']] = logged(j, j['file'], style, POST_RADIO if j['radio'] else POST)
     print('ok', j['file'], f'{dur:.2f}s')
-json.dump(man, open(man_path, 'w'), ensure_ascii=False, indent=0)
+json.dump(man, open(man_path, 'w', encoding='utf-8'), ensure_ascii=False, indent=0)
 save_log(OUT, log)
 print(f'spent ${usage() - u0:.4f}')
