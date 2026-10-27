@@ -85,6 +85,28 @@ export function buitVerdelen(modus, spelers = [], punten = {}, buit = 0) {
   return { geld, winnaar: null, modus: 'samen' };
 }
 
+// ---- de buit van de inbraak (#438) ----------------------------------------------------------
+// De rolhouder deed zijn stuk: dat is één punt voor de verdeling van de buit. Puur, zodat de
+// gastheer hetzelfde telt als de tests (heist.js bewaart de punten bij de heist).
+export function rolPunt(punten, slot) {
+  const p = punten && typeof punten === 'object' ? punten : {};
+  if (!Number.isInteger(slot) || slot < 0) return p;
+  p[slot] = Math.max(0, Math.round(Number(p[slot]) || 0)) + 1;
+  return p;
+}
+
+// Wie krijgt wat uit de verdeling, als lijst om uit te betalen: alleen de plekken met geld, de
+// gastheer (0) er gewoon tussen. missions.js geeft de gastheer zijn eigen deel en de gasten het
+// hunne via coopDeel(..., { slots: [slot] }); de som is altijd de hele buit.
+export function buitDelen(uitkomst) {
+  const geld = (uitkomst && uitkomst.geld) || {};
+  return Object.keys(geld)
+    .map((k) => Number(k))
+    .filter((s) => Number.isInteger(s) && s >= 0 && geld[s] > 0)
+    .sort((a, b) => a - b)
+    .map((slot) => ({ slot, bedrag: geld[slot] }));
+}
+
 // ---- de rolstap in Samen spelen (#438) ------------------------------------------------------
 // Elke speler doet zijn eigen stuk van de inbraak (E bij de plek), de gastheer controleert: hij kent de
 // stap, de rolverdeling en de plek van elk lichaam, en pas als de rolhouder het vraagt gaat de stap

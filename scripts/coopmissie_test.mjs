@@ -470,12 +470,13 @@ t('de respawn-haak vraagt de sessie voor neer en voor opgepakt, en de stappen lo
 t('missions.js dempt beloning en voortgang van een gastheer die niet meedeed (#452)', () => {
   const src = fs.readFileSync(new URL('../game/js/missions.js', import.meta.url), 'utf8');
   // de gastStart onthoudt de eigen opdracht van de gastheer en de gastStartMee-haak vraagt de keuze aan coopmissie.js
-  assert.match(src, /chain\.gastStart = \{ id: `\$\{i\}\|\$\{String\(def\.label \|\| ''\)\.slice\(0, 48\)\}`, eigenIndex \}/);
-  assert.match(src, /const gastStartMee = \(world\) => !chain\.gastStart \|\| gastheerMee\(world, chain\.gastStart\.id\)/);
-  assert.match(src, /function sluitGastStart\(world, mee\)[\s\S]{0,200}chain\.index = g\.eigenIndex; chain\.retry = null;/, 'zijn eigen keten springt terug');
+  // (#492: de keten komt uit de houder per groep, chainState())
+  assert.match(src, /chainState\(\)\.gastStart = \{ id: `\$\{i\}\|\$\{String\(def\.label \|\| ''\)\.slice\(0, 48\)\}`, eigenIndex \}/);
+  assert.match(src, /const gastStartMee = \(world\) => !chainState\(\)\.gastStart \|\| gastheerMee\(world, chainState\(\)\.gastStart\.id\)/);
+  assert.match(src, /function sluitGastStart\(world, mee\)[\s\S]{0,200}chainState\(\)\.index = g\.eigenIndex; chainState\(\)\.retry = null;/, 'zijn eigen keten springt terug');
   // geen geld, geen stap verder en geen medaille als hij toekeek; de gasten krijgen hun deel wel
   assert.match(src, /if \(mee\) \{ noteMoney\('Missies'\); world\.money \+= reward; \}/);
-  assert.match(src, /if \(mee\) chain\.completed\.add\(chain\.index\)/);
+  assert.match(src, /if \(mee\) chainState\(\)\.completed\.add\(chainState\(\)\.index\)/);
   assert.match(src, /if \(mee\) \{\s*world\.stats\.missionsDone\+\+;/);
   assert.match(src, /if \(mee\) hooks\.passed\(world, i\)/);
   assert.match(src, /if \(world\.coopDeel\) world\.coopDeel\(reward\);/, 'de meespelende gasten worden altijd uitbetaald');
