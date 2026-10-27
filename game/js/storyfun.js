@@ -37,6 +37,7 @@ import { getTrainTripCount, getStationsForRender, lastTrainArrival } from './sta
 import { villageStroll } from './dorpsuitjes.js';
 import { refreshDayNight } from './daynight.js';
 import { playerBusy } from './busy.js';
+import { hoofdspeler } from './players.js';
 
 const MEET_R = 9;
 const HIDEOUT_R = 14;
@@ -109,7 +110,7 @@ function placeDemo(w, st) {
 function removeDemo(w, why = '') {
   if (!demo) return;
   const v = demo.v;
-  if (v && w.player.inVehicle !== v) {
+  if (v && hoofdspeler(w).inVehicle !== v) {
     const i = w.vehicles.indexOf(v);
     if (i >= 0) w.vehicles.splice(i, 1);
     if (w.companion && w.companion.inVehicle === v) { w.companion.inVehicle = null; v.passenger = null; }
@@ -125,7 +126,7 @@ function updateDemo(w, st, dt) {
       // a wrecked or sunk demo heli: Roelf puts the next one down once you are off it
       const [x, y] = st.goal.heli;
       const old = demo && demo.v;
-      const away = !old || (w.player.inVehicle !== old && Math.hypot(w.player.x - x, w.player.y - y) > 30);
+      const away = !old || (hoofdspeler(w).inVehicle !== old && Math.hypot(hoofdspeler(w).x - x, hoofdspeler(w).y - y) > 30);
       if (away) {
         const again = !!old;
         if (old) { const i = w.vehicles.indexOf(old); if (i >= 0 && old.driver !== 'player') w.vehicles.splice(i, 1); }
@@ -135,7 +136,7 @@ function updateDemo(w, st, dt) {
     }
   } else if (demo) {
     const v = demo.v;
-    const p = w.player;
+    const p = hoofdspeler(w);
     if (!v || p.inVehicle !== v) {
       const far = !v || Math.hypot(p.x - v.x, p.y - v.y) > GONE_R;
       if (far || isMissionActive()) removeDemo(w, v && !v.wrecked ? 'Rotor Roelf vliegt zijn Wieken Wubbo terug naar Eelde' : '');
@@ -143,7 +144,7 @@ function updateDemo(w, st, dt) {
   }
   if (demo && demo.roelf) {
     demo.roelf.visible = !isCinematicActive();
-    if (Math.hypot(w.player.x - demo.roelf.position.x, w.player.y - demo.roelf.position.z) < ANIM_R) animatePersonWalk(demo.roelf, 0, dt);
+    if (Math.hypot(hoofdspeler(w).x - demo.roelf.position.x, hoofdspeler(w).y - demo.roelf.position.z) < ANIM_R) animatePersonWalk(demo.roelf, 0, dt);
   }
 }
 
@@ -188,10 +189,10 @@ function updateBalloon(w, st, dt) {
     b.burnLeft -= dt;
     if (b.burnLeft <= 0 && (b.nextBurn -= dt) <= 0) { b.burnLeft = 2.5; b.nextBurn = 4 + Math.random() * 5; }
     b.burn += ((b.burnLeft > 0 ? 1 : 0) - b.burn) * Math.min(1, dt * 10);
-    if (Math.hypot(w.player.x - b.x, w.player.y - b.y) < ANIM_R) animateTwins(w.time, dt, false);
+    if (Math.hypot(hoofdspeler(w).x - b.x, hoofdspeler(w).y - b.y) < ANIM_R) animateTwins(w.time, dt, false);
   } else if (balloon) {
     const b = balloon.b;
-    if (w.heliRun || isMissionActive() || Math.hypot(w.player.x - b.x, w.player.y - b.y) > BALLOON_GONE_R) removeBalloon(w);
+    if (w.heliRun || isMissionActive() || Math.hypot(hoofdspeler(w).x - b.x, hoofdspeler(w).y - b.y) > BALLOON_GONE_R) removeBalloon(w);
   }
 }
 
@@ -204,7 +205,7 @@ function playSpotScene(w, st, base) {
   const [bx, by] = st.goal.over;
   const gz = groundAt(w, bx, by);
   const lines = (sc.lines || []).map(([k, text], i) => ({ speaker: NAMES[k] || k, text, at: 0.9 + i * 2.5, dur: 2.3 }));
-  const a0 = Math.atan2(w.player.y - by, w.player.x - bx);
+  const a0 = Math.atan2(hoofdspeler(w).y - by, hoofdspeler(w).x - bx);
   let last = 0;
   return playCinematic({
     id: 'story-spot', priority: 2, duration: 1.4 + lines.length * 2.5, pause: true, letterbox: true, skippable: true, hideHud: true,
@@ -222,7 +223,7 @@ function playSpotScene(w, st, base) {
 
 function updateSpotting(w, st, base) {
   if (base.spotted || base.spotting || !st.goal.over) return;
-  const p = w.player, v = p.inVehicle;
+  const p = hoofdspeler(w), v = p.inVehicle;
   const [bx, by] = st.goal.over;
   const x = v ? v.x : p.x, y = v ? v.y : p.y;
   const d = Math.hypot(x - bx, y - by);
@@ -237,7 +238,7 @@ function updateSpotting(w, st, base) {
 // Rotor Roelf hands over the keys when you walk up to his heli.
 function updateMeet(w, st, base) {
   if (base.met || !st.meet || !demoUsable(w)) return;
-  const p = w.player, v = demo.v;
+  const p = hoofdspeler(w), v = demo.v;
   if (p.inVehicle) { if (p.inVehicle === v) base.met = true; return; }
   if (Math.hypot(p.x - v.x, p.y - v.y) > MEET_R || isCinematicActive() || isMissionActive() || w.pigeonMode) return;
   base.met = true;
@@ -252,7 +253,7 @@ function updateMeet(w, st, base) {
 // Durk & Douwe waiting at the padel court (s-padel `meet`): why they challenge you.
 function updateCourtMeet(w, st, base) {
   if (base.met || !st.meet) return;
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (p.inVehicle || p.swimming || playerBusy(w, ['padel', 'cinematic', 'mission', 'activity', 'pigeon']).busy) return;
   let site = null, bd = COURT_MEET_R;
   for (const s of getPadelSpotsForRender()) {
@@ -272,8 +273,8 @@ function playDoneScene(w, st) {
   const sc = st.scene;
   const carbid = st.goal.type === 'carbid';
   // other activities (the bike shop, the tuning garage, the boat rental) play where the player is
-  const at = carbid || st.goal.type === 'kermis' ? (carbid ? CARBID : KERMIS).spots()[0] : { x: w.player.x, y: w.player.y };
-  if (!sc || !at || Math.hypot(w.player.x - at.x, w.player.y - at.y) > SCENE_R) return true;
+  const at = carbid || st.goal.type === 'kermis' ? (carbid ? CARBID : KERMIS).spots()[0] : { x: hoofdspeler(w).x, y: hoofdspeler(w).y };
+  if (!sc || !at || Math.hypot(hoofdspeler(w).x - at.x, hoofdspeler(w).y - at.y) > SCENE_R) return true;
   // a scene at an hour of its own (the sunset at the Hoge der A)
   if (sc.clock != null && Math.abs(((w.clock - sc.clock + 36) % 24) - 12) > 0.5) { w.clock = sc.clock; refreshDayNight(w); }
   const lookTo = sc.look ? { x: at.x + sc.look[0], y: at.y + sc.look[1] } : null;
@@ -299,7 +300,7 @@ function updateLift(w, st, base) {
 
 function liftNow(w, st) {
   const at = CARBID.spots()[0];
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (!at || !st.goal.lift || Math.hypot(p.x - at.x, p.y - at.y) < LIFT_FAR) return false;
   const own = (v) => v && !v.wrecked && !v.sinking && !v.isBoat && !v.isHeli && !v.isBike && !v.isScooter && isOwnVehicle(v);
   if (own(p.inVehicle) || w.vehicles.some((v) => own(v) && Math.hypot(v.x - p.x, v.y - p.y) < LIFT_NEAR_CAR)) return false;
@@ -387,7 +388,7 @@ function trainHideout(b) {
     stroll = { ...s, village: arr.name };
     world.addMessage(`${arr.name}. Even het dorp in, naar ${s.label}. Hier zoekt niemand ons.`, 5);
   }
-  const p = world.player;
+  const p = hoofdspeler(world);
   const v = p.inVehicle;
   if (isCinematicActive() || (v && Math.abs(v.speed || 0) > HIDEOUT_STILL) || Math.hypot((v || p).x - stroll.x, (v || p).y - stroll.y) > HIDEOUT_R) return false;
   stroll = null;
@@ -402,7 +403,7 @@ export const FUN_GOALS = {
     met: (st, b) => {
       if (b.choice) return true;
       if (getTrainTripCount() > (b.trips ?? Infinity) && trainHideout(b)) { b.choice = 'trein'; return true; }
-      const p = world && world.player;
+      const p = hoofdspeler(world);
       if (!p || isMissionActive() || world.pigeonMode || isCinematicActive()) return false;
       const v = p.inVehicle;
       if (v && Math.abs(v.speed || 0) > HIDEOUT_STILL) return false;
@@ -416,7 +417,7 @@ export const FUN_GOALS = {
     },
     place: (st) => {
       if (stroll) return { x: stroll.x, y: stroll.y, name: stroll.label };
-      const p = world.player;
+      const p = hoofdspeler(world);
       let best = null, bd = Infinity;
       for (const c of hideoutChoices(st)) {
         const d = Math.hypot(c.x - p.x, c.y - p.y);
@@ -439,7 +440,7 @@ export const FUN_GOALS = {
     begin: (st, b) => { b.spotted = false; b.spotting = false; b.met = false; },
     met: (st, b) => (st.goal.over ? !!b.spotted : !!b.met),
     place: (st) => {
-      const v = world && world.player.inVehicle;
+      const v = hoofdspeler(world)?.inVehicle;
       if (v && v.isHeli && st.goal.over) return { x: st.goal.over[0], y: st.goal.over[1] };
       return demo && demo.v ? { x: demo.v.x, y: demo.v.y } : { x: st.goal.heli[0], y: st.goal.heli[1] };
     },
@@ -449,13 +450,13 @@ export const FUN_GOALS = {
 export function initStoryFun(w) {
   world = w;
   window.__storyFun = {
-    state: () => ({ activity: world.storyActivity || null, demo: demo && demo.v ? { x: demo.v.x, y: demo.v.y, z: demo.v.z, owned: !!demo.v.playerOwned, mine: world.player.inVehicle === demo.v } : null, balloon: balloon ? { x: balloon.b.x, y: balloon.b.y } : null, pending: !!pending, played: { ...played } }),
+    state: () => ({ activity: world.storyActivity || null, demo: demo && demo.v ? { x: demo.v.x, y: demo.v.y, z: demo.v.z, owned: !!demo.v.playerOwned, mine: hoofdspeler(world).inVehicle === demo.v } : null, balloon: balloon ? { x: balloon.b.x, y: balloon.b.y } : null, pending: !!pending, played: { ...played } }),
     demo: () => (demo ? demo.v : null),
     // the s-carbid lift right now (far out, nothing to drive): true when the Escapade was dropped off
     lift: (id = 's-carbid') => { const st = STEP_BY_ID.get(id); return !!(st && st.goal && st.goal.lift) && liftNow(world, st); },
     // the twins' challenge at the nearest padel court (s-padel)
     court: () => {
-      const sc = STEP_BY_ID.get('s-padel').meet, p = world.player;
+      const sc = STEP_BY_ID.get('s-padel').meet, p = hoofdspeler(world);
       const site = getPadelSpotsForRender().reduce((a, q) => (!a || Math.hypot(q.x - p.x, q.y - p.y) < Math.hypot(a.x - p.x, a.y - p.y) ? q : a), null);
       const ok = !!site && playCastScene(world, { at: { x: p.x, y: p.y }, lookTo: { x: site.x, y: site.y }, lines: sc.lines, cast: sc.cast || [], kicker: sc.kicker || '' });
       if (ok) played.court++;

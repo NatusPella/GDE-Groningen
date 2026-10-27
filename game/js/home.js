@@ -67,6 +67,7 @@ import { groepAkkoord } from './coopgroep.js';
 import { zetDeelHaken } from './coopbezit.js';
 import { getIndeling } from './gebiedenlive.js';
 import { puntInGebied } from './grenzen.js';
+import { hoofdspeler } from './players.js';
 
 const NEAR_M = 200;
 const FAR_M = 260;
@@ -801,7 +802,7 @@ function liftMenu(w) {
 }
 
 function near(w, r) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   return Math.hypot(p.x - home.center.x, p.y - home.center.y) < r;
 }
 
@@ -826,7 +827,7 @@ function closestOnLine(line, x, y) {
 }
 
 function updateVehicles(w) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   const pv = p.inVehicle;
   const entries = getOwnedEntries();
   const specOf = new Map(entries.filter((o) => o.v).map((o) => [o.v, o.spec]));
@@ -927,7 +928,7 @@ function clampToFlat(p) {
 }
 
 function canEnter(w) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (p.inVehicle || p.swimming) return 'Eerst uitstappen';
   if (w.wanted > 0) return 'Met de politie op je hielen ga je niet naar huis. Eerst ze kwijt!';
   if (playerBusy(w, ['mission', 'sideJob', 'challenge']).busy) return 'Eerst je klus afmaken';
@@ -977,7 +978,7 @@ function enterFlat(w) {
 
 // Just out of the lift, facing the hall and the living room behind it.
 function toEntry(w) {
-  const p = w.player, f = home.flat;
+  const p = hoofdspeler(w), f = home.flat;
   resetWalker(p, f.entry[0], f.entry[1], FLOOR_TOP);
   p.angle = Math.atan2(-f.Y[1], -f.Y[0]);
   w.camYaw = p.angle;
@@ -1015,7 +1016,7 @@ function exitFlatNow(w) {
 // scene, a vehicle): the flat goes, and nobody is left inside the tower.
 function dropFlat(w) {
   exitFlatNow(w);
-  const p = w.player;
+  const p = hoofdspeler(w);
   const v = p.inVehicle;
   if (!inPoly(TOWER, v ? v.x : p.x, v ? v.y : p.y, 1)) return;
   if (v) { v.driver = null; v.speed = 0; p.inVehicle = null; }
@@ -1023,7 +1024,7 @@ function dropFlat(w) {
 }
 
 function placeAtLobby(w) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   const [x, y] = home.lobby.spawn;
   resetWalker(p, x, y, 0);
   p.angle = home.lobby.angle;
@@ -1091,8 +1092,8 @@ function eatEierbal(w) {
 function canGoHome(w) {
   if (!home || w.pendingRespawn || isCinematicActive()) return 'Nu even niet';
   if (inside) return 'Je bent al thuis';
-  if (w.player.inVehicle && w.player.inVehicle.isBoat) return 'Eerst van het water af';
-  return canEnter({ ...w, player: { ...w.player, inVehicle: null, swimming: false } });
+  if (hoofdspeler(w).inVehicle && hoofdspeler(w).inVehicle.isBoat) return 'Eerst van het water af';
+  return canEnter({ ...w, player: { ...hoofdspeler(w), inVehicle: null, swimming: false } });
 }
 
 function goHome(w) {
@@ -1100,7 +1101,7 @@ function goHome(w) {
   if (why) { w.addMessage(why, 3); return false; }
   if (near(w, 25)) return true;
   return fadeThen(() => {
-    const p = w.player;
+    const p = hoofdspeler(w);
     if (p.inVehicle) {
       const v = p.inVehicle;
       v.driver = null; v.speed = 0;
@@ -1124,7 +1125,7 @@ export function applyHomeOnLoad(w, d) {
   const busySave = d && d.ctx === 'busy';
   if (busySave) {
     // a mid-mission save made upstairs: back on the street, not inside the tower
-    if (inPoly(TOWER, w.player.x, w.player.y, 1)) placeAtLobby(w);
+    if (inPoly(TOWER, hoofdspeler(w).x, hoofdspeler(w).y, 1)) placeAtLobby(w);
     return;
   }
   stockNow(w);
@@ -1139,7 +1140,7 @@ export function homeSaveContext(w) {
 // --- prompts and E --------------------------------------------------------------
 
 function flatUse(w) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   let best = furnitureFocus(w), bd = USE_R;
   if (best) return best;
   const consider = (k, s) => {
@@ -1159,7 +1160,7 @@ function flatUse(w) {
 
 // Whose bed is whose: you only sleep in your own room.
 const BED_OF = { bed: 'Tammo', bed2: 'Tessa' };
-const ownBed = (w) => (w.player.character === 'anita' ? 'bed2' : 'bed');
+const ownBed = (w) => (hoofdspeler(w).character === 'anita' ? 'bed2' : 'bed');
 
 const FLAT_PROMPTS = {
   bed: ['Slapen', 'In je eigen bed tot de ochtend, en het spel wordt opgeslagen'],
@@ -1185,13 +1186,13 @@ function roofBlock() {
 }
 
 function onHomePad(w) {
-  const v = w.player.inVehicle;
+  const v = hoofdspeler(w).inVehicle;
   return !!(v && v.isHeli && home.pad && v.onGround && !v.wrecked && v.landPad === home.pad);
 }
 
 export function homePrompt(w) {
   if (!home || busy) return null;
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (onHomePad(w)) {
     const why = canPark(w);
     return { id: 'home-pad', x: home.pad.x, y: home.pad.y, h: home.pad.z + 3.4, key: 'E', label: 'Naar binnen', sub: why || 'Met de lift naar jullie flat', ring: true };
@@ -1225,8 +1226,8 @@ export function homePrompt(w) {
 }
 
 export function homeSecondary(w) {
-  if (!home || inside || w.player.inVehicle) return [];
-  const p = w.player;
+  if (!home || inside || hoofdspeler(w).inVehicle) return [];
+  const p = hoofdspeler(w);
   const d = home.garage.door, L = home.lobby;
   if (Math.abs(d.cx - p.x) > 30 || Math.abs(d.cy - p.y) > 30) return [];
   const out = [{ id: 'home-garage', x: d.cx, y: d.cy, h: 4.2, label: 'Jullie garage', sub: 'Loop naar een voertuig en druk E', kind: 'place' }];
@@ -1248,7 +1249,7 @@ export function tryHomeInteract(w) {
     if (why) { w.addMessage(why, 3); return true; }
     enterFlat(w);
   } else if (pr.id === 'home-panel') openShopMenu(w, liftMenu(w));
-  else if (pr.id === 'home-otherbed') w.addMessage(w.player.character === 'anita' ? 'Dat is het bed van Tammo. Daar slaap jij niet' : 'Dat is het bed van Tessa. Daar slaap jij niet', 3);
+  else if (pr.id === 'home-otherbed') w.addMessage(hoofdspeler(w).character === 'anita' ? 'Dat is het bed van Tammo. Daar slaap jij niet' : 'Dat is het bed van Tessa. Daar slaap jij niet', 3);
   else if (useFurniture(w, pr.id.slice(5), { sleep: (hour, msg) => sleep(w, hour, msg) })) {
     // an EIKEA piece (furniture.js)
   } else if (pr.id === 'home-bed') sleep(w);
@@ -1284,7 +1285,7 @@ function toRoof(w) {
     v.groundZ = pad.z; v.onGround = true; v.landKind = 'pad'; v.landPad = pad;
     v.speed = 0; v.driftX = 0; v.driftY = 0; v.vx = 0; v.vy = 0; v.vz = 0;
     v.homeStored = true; v.homeSlot = 'pad'; v._homeX = pad.x; v._homeY = pad.y;
-    const p = w.player;
+    const p = hoofdspeler(w);
     resetWalker(p, pad.x, pad.y, pad.z);
     p.enterVehicle(v, w);
     p.angle = v.angle;
@@ -1311,7 +1312,7 @@ function parkOnPad(w) {
   const why = canPark(w);
   if (why) { w.addMessage(why, 3); return; }
   fadeThen(() => {
-    const p = w.player;
+    const p = hoofdspeler(w);
     const v = p.inVehicle;
     if (!v || !v.isHeli || !onHomePad(w)) return;
     const c = w.companion;
@@ -1366,7 +1367,7 @@ export function updateHomeExterior(dt, w) {
 }
 
 function streamExterior(w, dt, scene) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   const d = Math.hypot(p.x - home.center.x, p.y - home.center.y);
   if (!exterior && d < STREAM_IN) {
     exterior = buildHomeExterior3D(home);
@@ -1419,7 +1420,7 @@ export function flatStage() {
 
 // Every frame upstairs: walls and furniture, the floor, the companion on the sofa.
 function keepInFlat(dt, w) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (!updateFurnitureInside(dt, w)) clampToFlat(p);
   // safety net: whatever happens, nobody drops through the floor (or flies off it)
   if (!Number.isFinite(p.x + p.y + p.gz + p.z) || p.gz < FLOOR_TOP - 0.3 || p.z > 6) {
@@ -1487,7 +1488,7 @@ export function updateHome(dt, w) {
   if (!home) return;
   updateFurniture(dt, w);
   if (inside) {
-    const p = w.player;
+    const p = hoofdspeler(w);
     const who = p.inVehicle || p;
     const { lx, lz } = toFlat(who.x, who.y);
     const f = home.flat;

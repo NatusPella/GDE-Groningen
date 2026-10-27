@@ -23,6 +23,7 @@ import { STORY_AKTE6 } from './missionstory_akte6.js';
 import './cutscenes_akte3.js';
 import './cutscenes_akte4.js';
 import './cutscenes_akte6.js';
+import { hoofdspeler } from './players.js';
 
 // Story cutscenes around the mission chain: who asks and why (start), the
 // payoff (success) and a short sting (fail). Tammo and Tessa's relationship
@@ -1262,12 +1263,12 @@ function stageLines(i, stage, kind, entry = storyOf(i)) {
 }
 
 function facingTowards(w, anchor, target) {
-  const pref = target ? Math.atan2(target.y - anchor.y, target.x - anchor.x) : w.player.angle;
+  const pref = target ? Math.atan2(target.y - anchor.y, target.x - anchor.x) : hoofdspeler(w).angle;
   return chooseFacing(w, anchor.x, anchor.y, Number.isFinite(pref) ? pref : 0);
 }
 
 function onFootAnchor(w) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (!p.inVehicle) return { x: p.x, y: p.y };
   const v = p.inVehicle;
   const c = Math.cos(v.angle), s = Math.sin(v.angle);
@@ -1307,7 +1308,7 @@ export function playStoryIntro(w, i, { stage = i, short = false, kicker = '', ti
   stage = i;
   const s = entryFor(i);
   if (!s || run) return false;
-  const v = w.player.inVehicle;
+  const v = hoofdspeler(w).inVehicle;
   const onDeck = !!(v && v.isBoat);
   const deck = onDeck ? boatStage(v) : null;
   const anchor = onDeck ? { x: deck.x, y: deck.y } : onFootAnchor(w);
@@ -1352,7 +1353,7 @@ function outroNow(w, i, { stage = i, short = false, reward = 0, stats = [], reas
   const s = entryFor(i);
   const banner = { kind: 'pass', title: 'MISSIE GESLAAGD', reason, reward, stats };
   if (!s || run || (s.noOutro && !short)) { showBanner(banner); return false; }
-  const p = w.player;
+  const p = hoofdspeler(w);
   const v = p.inVehicle;
   const full = !short && stage >= i;
   const kiss = !!s.kiss && full;
@@ -1399,7 +1400,7 @@ export function playStoryFail(w, i, { reason = '', stats = [] } = {}) {
   // sikkom: Gronings for "almost, but not quite" (the dialect word, not the news site)
   const banner = { kind: 'fail', title: 'Sikkom.', reason, stats };
   if (!s || run) { showBanner(banner); return false; }
-  const v = w.player.inVehicle;
+  const v = hoofdspeler(w).inVehicle;
   let r;
   if (v && v.isBoat) { const deck = boatStage(v); r = buildRun(w, { anchor: { x: deck.x, y: deck.y }, facing: v.angle + Math.PI / 2, h: deck.h }); }
   else {
@@ -1453,7 +1454,7 @@ export function playVaultScene(w, { at, lines = [], landing = 'Moai! Oant sjen, 
     c.dx = (c.b.x - c.a.x) / D; c.dy = (c.b.y - c.a.y) / D;
   }
   if (!c) {
-    const a = w.player.angle || 0, dx = Math.cos(a), dy = Math.sin(a);
+    const a = hoofdspeler(w).angle || 0, dx = Math.cos(a), dy = Math.sin(a);
     c = { a: { x: at.x + dx * 4, y: at.y + dy * 4 }, b: { x: at.x + dx * 14, y: at.y + dy * 14 }, dx, dy };
   }
   const { dx, dy } = c;
@@ -1678,7 +1679,7 @@ export function playCastScene(w, { at, facing = null, lines = [], cast = [], pro
   // a hand-made camera (`shot`) that lasts for the first lines only (shotFor, shotLines: the falling flag, M24.3) is a shotOverride of the staging
   // (shotAll: the hand-made camera is the whole scene, the reveal of the case in M06.3: the staging then only brings the people and the voices)
   if (staging && !deck && !solo && (!big || shot) && (!shot || shotFor || shotLines || shotAll) && !cast.some((e) => e && e.water)) {
-    const anchor0 = w.player.inVehicle ? onFootAnchor(w) : freeSpot(w, at.x, at.y);
+    const anchor0 = hoofdspeler(w).inVehicle ? onFootAnchor(w) : freeSpot(w, at.x, at.y);
     const tlS = timeline(lines, null, lead);
     const until = shotLines && tlS.lines[shotLines - 1] ? tlS.lines[shotLines - 1].at + tlS.lines[shotLines - 1].dur : shotFor;
     const staged = playStaged(w, staging, tlS, {
@@ -2008,7 +2009,7 @@ export function playPigeonSwarm(w, { limo, stall, lines = [], kicker = '', onDon
       }
       if (who === 'A') {
         // from Tessa's side, at most 14 m back: a trekker-limo covered in pigeons
-        const pv = w.player.inVehicle || w.player;
+        const pv = hoofdspeler(w).inVehicle || hoofdspeler(w);
         const back = Math.min(14, Math.max(6, Math.hypot(pv.x - limo.x, pv.y - limo.y)));
         const fromA = Math.atan2(pv.y - limo.y, pv.x - limo.x);
         return pose(camClear(w, P(limo.x + Math.cos(fromA) * back, limo.y + Math.sin(fromA) * back, 2.4)), P(limo.x, limo.y, 1.2), 46);
@@ -2328,7 +2329,7 @@ export function playDuelJump(w, { at, fail = false } = {}) {
     if (c && Math.hypot(c.b.x - c.a.x, c.b.y - c.a.y) >= 5) spot = { from: c.a, to: c.b };
   }
   if (!spot) return null;
-  const look = w.player.character === 'anita' ? ANITA_APPEARANCE : TAMMO_APPEARANCE;
+  const look = hoofdspeler(w).character === 'anita' ? ANITA_APPEARANCE : TAMMO_APPEARANCE;
   const dx = spot.to.x - spot.from.x, dy = spot.to.y - spot.from.y, D = Math.hypot(dx, dy) || 1;
   const npc = { x: spot.from.x - (dx / D) * 9, y: spot.from.y - (dy / D) * 9, angle: Math.atan2(dy, dx), appearance: look };
   w.cinematicHidePlayers = true;
