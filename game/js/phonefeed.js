@@ -215,12 +215,24 @@ export function startCall(w, spec) {
 
 export const isCallActive = () => !!call;
 
-// The sender of the call or card on screen (a few seconds after it went):
-// Esc then opens the unfolded phone on that thread (pausemenu.js).
+// The sender of the call or card that is (or just was) on screen: Esc then opens the
+// unfolded phone on that thread (pausemenu.js, #151).
 const NOTICE_HOLD_MS = 2500;
 let notice = { from: '', until: 0 };
 function noticeFrom(from) {
   notice = { from, until: performance.now() + NOTICE_HOLD_MS + 1500 };
+}
+// Wie er net een bericht of gesprek stuurde, zolang dat nog op het scherm staat (of net weg is);
+// '' als er niets ligt. pausemenu.js opent daarmee de telefoon op dat gesprek (#151).
+function noticeThread(now = typeof performance !== 'undefined' ? performance.now() : 0) {
+  return now < notice.until ? notice.from : '';
+}
+// Eén keer: de Escape die de telefoon opent, verbruikt de melding, zodat een tweede Escape gewoon
+// het menu op Overzicht opent.
+export function takeNoticeThread(now) {
+  const t = noticeThread(now);
+  if (t) notice = { from: '', until: 0 };
+  return t;
 }
 
 function hangUp() {

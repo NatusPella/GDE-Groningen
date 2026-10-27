@@ -4,6 +4,7 @@
 // verplaatsing, zoals een respawn) en toont main.js het laadscherm voor de sprong.
 import { zachtePauze, klokSprongMag, meerSpelers } from './coopgroep.js';
 import { ritPlan, startRit, stepRit, aankomst, skipHint, ondertitel, voortgang, shotAt, SKIP_KEY } from './meerijden.js';
+import { padButtonIndex, playerPad } from './glyphs.js';
 
 let active = null;
 
@@ -14,7 +15,7 @@ function build() {
   el.className = 'reisrit';
   el.style.cssText = 'position:fixed;inset:0;z-index:9000;background:#05080a;color:#f0ede4;font:20px Arial,sans-serif;display:grid;grid-template-rows:12% 1fr 12%;pointer-events:none';
   el.innerHTML = '<div></div><div class="rr-mid" style="display:grid;place-items:center;text-align:center;padding:0 8%"><div><div class="rr-lijn" style="font:14px Arial,sans-serif;letter-spacing:3px;color:#9aa3ad"></div><div class="rr-tekst" style="font-size:34px;margin-top:10px"></div><div class="rr-balk" style="margin:26px auto 0;width:280px;height:4px;background:#1c2a30"><div class="rr-vul" style="height:100%;width:0;background:#5fb4d9"></div></div></div></div>' +
-    '<div style="display:flex;justify-content:center;align-items:center"><span class="rr-hint" style="display:none;font:15px Arial,sans-serif"><kbd style="background:#fff;color:#111;border-radius:4px;padding:2px 9px;font:bold 14px Arial,sans-serif;margin-right:8px">Spatie</kbd>overslaan (of tik, A)</span></div>';
+    '<div style="display:flex;justify-content:center;align-items:center"><span class="rr-hint" style="display:none;font:15px Arial,sans-serif"><span class="hud-key" data-gk="SPATIE" style="background:#fff;color:#111;border-radius:4px;padding:2px 9px;font:bold 14px Arial,sans-serif;margin-right:8px">Spatie</span>overslaan (of tik op het scherm)</span></div>';
   return el;
 }
 
@@ -73,7 +74,10 @@ export function startMeerijden(world, optie, dest) {
       const dt = Math.min(0.1, (now - last) / 1000);
       last = now;
       let padA = false;
-      try { const pad = (navigator.getGamepads ? [...navigator.getGamepads()] : []).find((g) => g && g.connected); padA = !!(pad && pad.buttons[document.documentElement.dataset.pad === 'switch' ? 1 : 0]?.pressed); } catch (e) { /* none */ }
+      // de A-knop van de pad van speler 1, met dezelfde herbinding en wissel als het spel (#151)
+      const pad = playerPad();
+      const b = pad && pad.buttons[padButtonIndex('a')];
+      padA = !!(b && b.pressed);
       stepRit(rit, dt, { skip: skipKey || padA });
       q('.rr-lijn').textContent = (plan.lines[0] || optie.label).toUpperCase();
       q('.rr-tekst').textContent = ondertitel(rit);

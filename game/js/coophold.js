@@ -6,13 +6,14 @@
 import { stopCoopNet, removeGuest } from './coopnet.js';
 import { readSession } from './coopsave.js';
 
-let overlay = null, view = null;
+let overlay = null, view = null, focusWacht = null;
 
 export function isHoldOpen() { return !!overlay; }
 // de sessie is voorbij terwijl het wachtscherm openstaat (de gastheer stopte, of je werd verwijderd): het scherm en de pauze gaan weg
 export function checkHold(world) { if (overlay && !world.coopNet) closeHold(world); }
 
 function closeHold(world) {
+  if (focusWacht) { focusWacht.disconnect(); focusWacht = null; }
   if (view) { view.close(); view = null; }
   if (overlay) { overlay.remove(); overlay = null; }
   world.coopHold = false;
@@ -47,4 +48,16 @@ export async function openHold(world, role, slot = 1, reden = '') {
     start: 'verbroken', rol: host ? 'host' : 'gast', route: world.coopNet.route,
     session: host ? null : world.coopNet.session, hub: host ? world.coopNet.hub : null, holdSlot: host ? slot : null, holdNaam: naam,
   });
+  // #151: met een controller moet dit scherm ook zonder muis kunnen. gamepad.js kiest hier de menu-indeling:
+  // de pijlen lopen langs de knoppen en A klikt de gefocuste. Zet de eerste knop ("Opnieuw verbinden") vast,
+  // dan doet A meteen iets; lobbyui tekent bij elke statuswissel opnieuw, dus we zetten hem daarna terug.
+  const eerste = () => {
+    if (!overlay) return;
+    const a = document.activeElement;
+    if (a && overlay.contains(a)) return;
+    const b = overlay.querySelector('button');
+    if (b && b.focus) b.focus({ preventScroll: true });
+  };
+  eerste();
+  if (typeof MutationObserver === 'function') { focusWacht = new MutationObserver(eerste); focusWacht.observe(panel, { childList: true, subtree: true }); }
 }

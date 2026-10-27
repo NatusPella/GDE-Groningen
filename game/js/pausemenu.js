@@ -50,6 +50,7 @@ import { renderVerhaal, verhaalClick, verhaalSummary, disposeVerhaalViewer, sele
 import { anyFresh } from './characters.js';
 import { renderSpullen, spullenClick, spullenFocus, zetSpullenZoek, DELEN } from './spullen.js';
 import { phoneClick, phoneUnread, selectPhoneThread, characterForSender } from './phone.js';
+import { takeNoticeThread } from './phonefeed.js';
 import { getErrorLog, errorReport, clearErrorLog, onErrorLogChange } from './errorlog.js';
 import { KEYS } from './storagekeys.js';
 import { renderFotoPanel, fotoClick, isPhotoMode } from './fotomodusui.js';
@@ -823,6 +824,9 @@ function onKey(e) {
     if (k === 'Escape' && document.body.classList.contains('mg-board')) return;
     if (k === 'Escape' || (lower === 'm' && !isCinematicActive())) {
       e.preventDefault();
+      // er lag net een bericht of gesprek: Escape opent de telefoon op dat gesprek (#151)
+      const thread = k === 'Escape' ? takeNoticeThread() : '';
+      if (thread) { openPauseMenu('telefoon', { thread }); return; }
       setOpen(true, k === 'Escape' ? HOME : 'map', 'direct');
     }
     return;

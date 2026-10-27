@@ -6,6 +6,7 @@ import { panelState, pickFromKey, cyclePick, TRAVEL_HELP_ID } from './reisview.j
 import { markSeen, parseSeen } from './hudtext.js';
 import { KEYS } from './storagekeys.js';
 import { travelOptions } from './reiskeuze.js';
+import { padButtonIndex, playerPad } from './glyphs.js';
 
 let panel = null;
 const ensurePanel = () => panel || (panel = createChoicePanel('#5fb4d9'));
@@ -53,16 +54,18 @@ export function askTravel(beat) {
       else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); finish(null); } // sluit: de standaardkeuze (#92)
     };
     document.addEventListener('keydown', onKey, true);
-    // gamepad: d-pad up/down picks, A confirms (a button already down on opening does nothing)
+    // Gamepad: D-pad up/down picks, A confirms, B closes; a button already down on opening does
+    // nothing. Dezelfde pad, herbinding en Nintendo-wissel als de rest van het spel (#151):
+    // gamepad.js kiest de pad (activePadIndex), controls.js bepaalt welke knop A, B, omhoog of
+    // omlaag is. Zo werkt hetzelfde pad als in het spel, ook na het omwisselen van knoppen.
     let raf = 0;
     const held = { up: true, down: true, a: true, b: true };
     const poll = () => {
       raf = requestAnimationFrame(poll);
-      let pad = null;
-      try { pad = (navigator.getGamepads ? [...navigator.getGamepads()] : []).find((g) => g && g.connected); } catch (e) { /* none */ }
+      const pad = playerPad();
       if (!pad) return;
-      const nint = document.documentElement.dataset.pad === 'switch'; // Nintendo-indeling: bevestigen rechts
-      const now = { up: pad.buttons[12]?.pressed || (pad.axes[1] || 0) < -0.6, down: pad.buttons[13]?.pressed || (pad.axes[1] || 0) > 0.6, a: pad.buttons[nint ? 1 : 0]?.pressed, b: pad.buttons[nint ? 0 : 1]?.pressed };
+      const pressed = (slot) => { const b = pad.buttons[padButtonIndex(slot)]; return !!(b && b.pressed); };
+      const now = { up: pressed('up') || (pad.axes[1] || 0) < -0.6, down: pressed('down') || (pad.axes[1] || 0) > 0.6, a: pressed('a'), b: pressed('b') };
       if (now.up && !held.up) { pick = cyclePick(beat, pick, -1); p.set(panelState(beat, pick, loadSeen())); }
       if (now.down && !held.down) { pick = cyclePick(beat, pick, 1); p.set(panelState(beat, pick, loadSeen())); }
       if (now.a && !held.a) { finish(pick); return; }

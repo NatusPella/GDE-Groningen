@@ -61,13 +61,29 @@ export function koppelWissel(world, opts = {}) {
 
 // ---- het scherm -----------------------------------------------------------------------------------------------------------------
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-let overlay = null, timer = null, laatste = '', eindTot = 0;
+let overlay = null, timer = null, laatste = '', eindTot = 0, huidige = null;
 
 export function startWisselUi(world) {
   if (timer || typeof document === 'undefined') return;
   timer = setInterval(() => teken(world), 200);
+  window.addEventListener('keydown', toets);
 }
+
+// #151: de vraag is met een controller te beantwoorden. gamepad.js kiest dan de coopvraag-indeling
+// (A = J, B = N) en die toetsen leest coophostwisselnet.js zelf. Esc doet wat de knop Stoppen doet,
+// zolang de oude host nog bezig is; zonder die knop doet Esc niets.
+function toets(e) {
+  if (!overlay || !huidige || e.key !== 'Escape') return;
+  const u = huidige.coopWisselUi, w = huidige.coopWissel;
+  if (!u || !u.pauze || !(w && w.oud && w.oud.bezig)) return;
+  e.preventDefault();
+  // het pauzemenu hangt aan dezelfde toets: die is nu van het overdrachtsscherm
+  if (huidige.input && huidige.input.consume) huidige.input.consume('escape');
+  annuleerOverdracht(huidige);
+}
+
 function teken(world) {
+  huidige = world;
   const u = world.coopWisselUi;
   const nu = Date.now();
   if (u && u.einde && !u.einde.gezien) { u.einde.gezien = true; eindTot = nu + 5000; }
