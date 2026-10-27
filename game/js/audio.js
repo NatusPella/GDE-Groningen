@@ -25,6 +25,8 @@ import { noteSound } from './soundcaptions.js';
 import { stingNoten, stingDuur, createStingGate } from './stings.js';
 import { GMUSIC_VOLUME, masterGain, musicVolume, musicBusGain, volumeValue } from './sfx/volume.js';
 import { dempMelding, stemNiveau } from './coopgeluid.js';
+import { hoofdspeler } from './players.js';
+import { setVehicleVoices, buildEngineVoice, buildHeliVoice, buildEarlyReflections, buildSquealVoice, buildRumbleVoice, buildScrapeVoice } from './audio/vehiclevoices.js';
 
 // the camera comes from main.js (setAudioCamera): audio.js does not import scene3d.js (#108)
 let getCamera = () => null;
@@ -411,7 +413,7 @@ function rotateByQuat(q, vx, vy, vz) {
 }
 
 function updateListener(world) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   const cam = getCamera();
   let fwd, up;
   if (cam) {
@@ -473,44 +475,6 @@ function buildSirenVoice() {
   return { osc, gain, panner, target: null, level: 0, toneHigh: false, nextToggle: Math.random() * 0.6 };
 }
 
-function buildEngineVoice() {
-  const osc = ctx.createOscillator();
-  osc.type = 'sawtooth';
-  osc.frequency.value = 40;
-  const filter = ctx.createBiquadFilter();
-  filter.type = 'lowpass';
-  filter.frequency.value = 400;
-  const gain = ctx.createGain();
-  gain.gain.value = 0;
-  const panner = makePanner({ ref: 4, rolloff: 1.3, model: 'equalpower' });
-  osc.connect(filter).connect(gain).connect(panner).connect(trafficBus);
-  osc.start();
-  return { osc, filter, gain, panner, target: null, level: 0 };
-}
-
-function buildHeliVoice() {
-  const src = ctx.createBufferSource();
-  src.buffer = noiseBuffer;
-  src.loop = true;
-  const filter = ctx.createBiquadFilter();
-  filter.type = 'lowpass';
-  filter.frequency.value = 320;
-  const chop = ctx.createGain();
-  chop.gain.value = 0.5;
-  const lfo = ctx.createOscillator();
-  lfo.frequency.value = 11;
-  const lfoDepth = ctx.createGain();
-  lfoDepth.gain.value = 0.5;
-  lfo.connect(lfoDepth).connect(chop.gain);
-  const gain = ctx.createGain();
-  gain.gain.value = 0;
-  const panner = makePanner({ ref: 12, rolloff: 0.8, model: 'equalpower' });
-  src.connect(filter).connect(chop).connect(gain).connect(panner).connect(trafficBus);
-  src.start();
-  lfo.start();
-  return { gain, panner };
-}
-
 // --- synthesized engines (sfx/engineworklet.js) ---------------------------
 // Until the worklet has loaded, or where AudioWorklet is missing (non-secure
 // origins), the oscillator engines above stay in charge.
@@ -557,29 +521,6 @@ async function loadEngineWorklet() {
 
 let engineEarly = null;
 
-// Two short, darkened slap-backs off the facades, cross-fed L/R; level
-// follows how built-up the street is. Subtle by design.
-function buildEarlyReflections() {
-  const input = ctx.createGain();
-  const level = ctx.createGain();
-  level.gain.value = 0;
-  const split = ctx.createChannelSplitter(2);
-  const merge = ctx.createChannelMerger(2);
-  const tone = ctx.createBiquadFilter();
-  tone.type = 'lowpass';
-  tone.frequency.value = 2200;
-  input.connect(tone).connect(split);
-  [[0, 1, 0.011], [1, 0, 0.017]].forEach(([from, to, time]) => {
-    const d = ctx.createDelay(0.05);
-    d.delayTime.value = time;
-    const g = ctx.createGain();
-    g.gain.value = 0.5;
-    split.connect(d, from).connect(g).connect(merge, 0, to);
-  });
-  merge.connect(level).connect(engineBus);
-  return { input, level };
-}
-
 let brassWave = null;
 let sirenWave = null;
 
@@ -600,28 +541,6 @@ function sirenTone() {
     sirenWave = ctx.createPeriodicWave(re, im);
   }
   return sirenWave;
-}
-
-// Soft, dull scrape while a vehicle slides along a wall or another car; fed
-// by collision contacts, fades once they stop.
-function buildScrapeVoice() {
-  const src = ctx.createBufferSource();
-  src.buffer = noiseBuffer;
-  src.loop = true;
-  const band = ctx.createBiquadFilter();
-  band.type = 'bandpass';
-  band.frequency.value = 650;
-  band.Q.value = 0.9;
-  const lp = ctx.createBiquadFilter();
-  lp.type = 'lowpass';
-  lp.frequency.value = 1400;
-  const gain = ctx.createGain();
-  gain.gain.value = 0;
-  const panner = makePanner({ ref: 5, rolloff: 1.1, model: 'equalpower' });
-  src.connect(band).connect(lp).connect(gain);
-  gain.connect(panner).connect(sfxBus);
-  src.start();
-  return { band, gain, panner, level: 0, target: 0, until: 0, fresh: true };
 }
 
 function playTone({ freq, freqEnd, type = 'sine', duration = 0.15, gain = 0.3, delay = 0, filterFreq = null, out = null, bus = null, prio = 1 }) {
@@ -1626,7 +1545,7 @@ export function playJobVoice(src) {
 }
 
 export function playAutoGejatLine(world) {
-  if (world.player.character === 'tammo') playVoiceline('tammo', 'auto_gejat');
+  if (hoofdspeler(world).character === 'tammo') playVoiceline('tammo', 'auto_gejat');
 }
 
 function playRandomVariant(paths, pos = null) {
@@ -1649,7 +1568,7 @@ function playPoliceBark(key, x, y) {
 }
 
 function nearestPoliceSource(world) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   let best = null;
   let bestD = Infinity;
   const consider = (x, y) => {
@@ -1679,7 +1598,7 @@ function updateChaseBark(world) {
   const expired = world.time >= chaseBarkDeadline;
   if (!(src && src.d <= CHASE_BARK_NEAR) && !expired) return;
   chaseBarkDeadline = null;
-  const p = world.player;
+  const p = hoofdspeler(world);
   let x = p.x, y = p.y;
   if (src) {
     const k = src.d > CHASE_BARK_FALLBACK_DIST ? CHASE_BARK_FALLBACK_DIST / src.d : 1;
@@ -2231,6 +2150,10 @@ function buildGraph() {
   ambBus.connect(ambSend).connect(reverb.send);
 
   noiseBuffer = buildNoiseBuffer(2);
+  // de bouwstenen van de lange voertuigstemmen staan in audio/vehiclevoices.js:
+  // die krijgen hier de knopen van deze graaf, zodat ze niets terug hoeven te
+  // importeren (zie de kop van dat bestand)
+  setVehicleVoices({ ctx, noiseBuffer, makePanner, trafficBus, engineBus, sfxBus });
   bank = createBank(ctx);
   samples = createSamples(ctx);
   engine = buildEngine();
@@ -2379,7 +2302,7 @@ const SAIL_RANGE = 60;
 
 function updateSailing(dt, world) {
   if (!ctx || muted || world.paused) return;
-  const pv = world.player.inVehicle;
+  const pv = hoofdspeler(world).inVehicle;
   for (const v of world.vehicles) {
     if (!sailPowered(v) || v.wrecked || v.sinking) continue;
     const mine = v === pv;
@@ -2448,7 +2371,7 @@ function paddleStroke(v, st, out, near) {
 
 function updatePaddling(dt, world) {
   if (!ctx || muted || world.paused) return;
-  const pv = world.player.inVehicle;
+  const pv = hoofdspeler(world).inVehicle;
   for (const v of world.vehicles) {
     if (!humanPowered(v) || v.wrecked || v.sinking) continue;
     const mine = v === pv;
@@ -2515,7 +2438,7 @@ const SURFACE_CODE = { asfalt: 0, klinkers: 1, gras: 2, fietspad: 3 };
 
 function updateEngineSynth(dt, world) {
   const S = engineState;
-  const v = world.player.inVehicle;
+  const v = hoofdspeler(world).inVehicle;
   const t = ctx.currentTime;
   // a helicopter's rotor is sfx/sky.js, not a car engine
   const motor = !!(v && !v.isBike && !v.isHeli && !v.wrecked && !v.shiftParked && !noMotor(v));
@@ -2623,7 +2546,7 @@ function trafficEngineParams(v, dt, fresh) {
 
 function updateEngine(dt, world) {
   if (synth.player) { updateEngineSynth(dt, world); return; }
-  const v = world.player.inVehicle;
+  const v = hoofdspeler(world).inVehicle;
   const motor = v && !v.isBike && !v.isHeli && !noMotor(v);
   const speed = motor ? Math.abs(v.speed) : 0;
   const t = ctx.currentTime;
@@ -2675,54 +2598,6 @@ let hornVoice = null;
 let scrapeVoice = null;
 let contactCursor = 0;
 let bellReadyAt = 0;
-
-function buildSquealVoice() {
-  const src = ctx.createBufferSource();
-  src.buffer = noiseBuffer;
-  src.loop = true;
-  const band = ctx.createBiquadFilter();
-  band.type = 'bandpass';
-  band.frequency.value = 1300;
-  band.Q.value = 9;
-  const osc = ctx.createOscillator();
-  osc.type = 'triangle';
-  osc.frequency.value = 1100;
-  const oscGain = ctx.createGain();
-  oscGain.gain.value = 0.12;
-  const gain = ctx.createGain();
-  gain.gain.value = 0;
-  const panner = makePanner({ ref: 6, rolloff: 1, model: 'equalpower' });
-  src.connect(band).connect(gain);
-  osc.connect(oscGain).connect(gain);
-  gain.connect(panner).connect(sfxBus);
-  src.start();
-  osc.start();
-  return { band, osc, gain, panner, level: 0, target: null, fresh: true, loop: null };
-}
-
-function buildRumbleVoice() {
-  const src = ctx.createBufferSource();
-  src.buffer = noiseBuffer;
-  src.loop = true;
-  const filter = ctx.createBiquadFilter();
-  filter.type = 'bandpass';
-  filter.frequency.value = 200;
-  filter.Q.value = 0.8;
-  const am = ctx.createGain();
-  am.gain.value = 1;
-  const lfo = ctx.createOscillator();
-  lfo.type = 'square';
-  lfo.frequency.value = 20;
-  const lfoDepth = ctx.createGain();
-  lfoDepth.gain.value = 0;
-  lfo.connect(lfoDepth).connect(am.gain);
-  const gain = ctx.createGain();
-  gain.gain.value = 0;
-  src.connect(filter).connect(am).connect(gain).connect(sfxBus);
-  src.start();
-  lfo.start();
-  return { filter, am, lfo, lfoDepth, gain };
-}
 
 // Player horn: two detuned discs driven into a soft clipper (the brassy
 // "honk"), then a resonant horn-bell formant and a gentle top cut.
@@ -2866,7 +2741,7 @@ const RUMBLE = {
 };
 
 function updateRumble(dt, world) {
-  const v = world.player.inVehicle;
+  const v = hoofdspeler(world).inVehicle;
   const t = ctx.currentTime;
   const r = rumbleVoice;
   if (synth.player) return;
@@ -2884,7 +2759,7 @@ function updateRumble(dt, world) {
 }
 
 function updatePlayerHorn(world) {
-  const v = world.player.inVehicle;
+  const v = hoofdspeler(world).inVehicle;
   const t = ctx.currentTime;
   const pressing = !!(v && v.horn && !v.wrecked && !world.paused);
   const bell = v && (v.isBike || (v.isScooter && !v.isPolice)); // an e-step has a bell too
@@ -2974,8 +2849,9 @@ function playAudioEvents(world) {
   let doorDelay = 0;
   for (let i = 0; i < n; i++) {
     const e = q[i];
-    const x = e.x ?? world.player.x, y = e.y ?? world.player.y;
-    noteSound(e.kind, { sub: e.kind === 'weapon' ? e.sub : e.kind === 'fx' ? e.name : '', dist: Math.hypot(x - world.player.x, y - world.player.y) });
+    const speler = hoofdspeler(world);
+    const x = e.x ?? speler.x, y = e.y ?? speler.y;
+    noteSound(e.kind, { sub: e.kind === 'weapon' ? e.sub : e.kind === 'fx' ? e.name : '', dist: Math.hypot(x - speler.x, y - speler.y) });
     switch (e.kind) {
       case 'bell': playBell(x, y); break;
       case 'crossing_bell': playCrossingBell(x, y); break;
@@ -3325,7 +3201,7 @@ function updateBikeSpeakers(dt, world) {
 function updateTrafficAudio(dt, world) {
   const running = [];
   let rammelaars = 0;
-  const pl = world.player;
+  const pl = hoofdspeler(world);
   for (const v of world.vehicles) {
     if (isEngineRunning(v)) running.push(v);
     // een studentenfiets met een los spatbord of ketting rammelt, in de buurt van de speler en niet meer dan drie tegelijk
@@ -3388,7 +3264,7 @@ function spatialAt(x, y, opts) {
 }
 
 function updateWorldEvents(world) {
-  const p = world.player;
+  const p = hoofdspeler(world);
 
   for (const b of world.bullets) {
     if (seenBullets.has(b)) continue;
@@ -3614,7 +3490,7 @@ export function updateAudio(dt, world) {
 function updateWorldAudio(dt, world) {
   updateListener(world);
   updateWorldEvents(world);
-  const pickupOut = () => spatialAt(world.player.x, world.player.y);
+  const pickupOut = () => { const p = hoofdspeler(world); return spatialAt(p.x, p.y); };
   if (world.health < prev.health) playPlayerHurt();
   if (world.armor > prev.armor) { const o = pickupOut(); if (o) playArmorUp(o); }
   else if (world.armor < prev.armor) playArmorDown();
@@ -3624,7 +3500,7 @@ function updateWorldAudio(dt, world) {
   const missionPhase = world.mission ? world.mission.phase : null;
   if (missionPhase === 'active' && prev.missionPhase !== 'active') {
     playMissionJingle();
-    playVoiceline(world.player.character, 'missie_gestart');
+    playVoiceline(hoofdspeler(world).character, 'missie_gestart');
   }
 
   for (const m of world.messages) {
@@ -3634,26 +3510,26 @@ function updateWorldAudio(dt, world) {
       lastDeathAt = world.time;
       playDeathSting();
       if (m.text === 'OPGEPAKT') {
-        playVoiceline(world.player.character, 'opgepakt');
+        playVoiceline(hoofdspeler(world).character, 'opgepakt');
         const cop = nearestPoliceSource(world);
         if (cop && cop.d < SPEECH_RANGE) playPoliceBark('aangehouden', cop.x, cop.y);
         else playPoliceBark('aangehouden');
       }
     } else if (m.text.indexOf('geklaard!') !== -1) {
       playMissionJingle();
-      playVoiceline(world.player.character, 'missie_gelukt');
+      playVoiceline(hoofdspeler(world).character, 'missie_gelukt');
     } else if (m.text.indexOf('mislukt') !== -1) {
       // a mission failed by dying/arrest already got the death voiceline
       if (world.time - lastDeathAt < 3) continue;
-      playVoiceline(world.player.character, 'missie_mislukt');
+      playVoiceline(hoofdspeler(world).character, 'missie_mislukt');
     } else if (m.text.endsWith('munitie')) {
-      playVoiceline(world.player.character, 'wapen_opgepakt');
+      playVoiceline(hoofdspeler(world).character, 'wapen_opgepakt');
     } else if (m.text.startsWith('+ €')) {
-      playVoiceline(world.player.character, 'geld_opgepakt');
+      playVoiceline(hoofdspeler(world).character, 'geld_opgepakt');
     } else if (m.text.startsWith('Kusje voor')) {
       playVoiceline(world.companion ? world.companion.character : null, 'kus');
     } else if (m.text === 'Nat geworden!') {
-      playVoiceline(world.player.character, 'water_panic');
+      playVoiceline(hoofdspeler(world).character, 'water_panic');
     }
   }
 
@@ -3851,7 +3727,7 @@ export function setSfxLinks(env) { linkEnv = env; }
 function runLinkups(world) {
   if (!linkEnv || world.paused) return;
   const q = world.audioEvents;
-  for (const e of linkups.step(world, { ...linkEnv, listener: () => world.player })) if (q.length < 64) q.push({ ...e });
+  for (const e of linkups.step(world, { ...linkEnv, listener: () => hoofdspeler(world) })) if (q.length < 64) q.push({ ...e });
 }
 
 const warmList = ['glass', 'crunch_0', 'crunch_1', 'crunch_2', 'bikebell', 'ric_whine', 'prop_metal', 'bell_big', 'bell_carillon', 'thunder_0', 'thunder_1', 'thunder_2', 'bird_0', 'bird_1', 'bird_2', 'bird_3', 'bird_4',
