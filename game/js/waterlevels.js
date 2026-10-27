@@ -122,6 +122,22 @@ export function meanWidth(poly) {
   if (poly._meanW === undefined) poly._meanW = 2 * polyArea(poly.pts) / (polyPerimeter(poly.pts) || 1);
   return poly._meanW;
 }
+
+// Past deze boot in dit water (#436)? Diepte tegen de diepgang, de waterklasse tegen de bootklasse,
+// en genoeg breedte en oppervlak om te liggen en te keren. Een sloep hoort niet in een sloot of in
+// een plasje; een kano of sup mag daar wel. `poly` is een waterrij (kind, dp, nav, pts).
+export function boatFitsWater(poly, model) {
+  if (!poly || !poly.pts || poly.pts.length < 3 || !model) return false;
+  // draftOf/boatClassOf lezen het voertuig ({ model }), niet het model zelf
+  const boot = { model };
+  const kind = WATER_KINDS[poly.kind] || WATER_KINDS.diep;
+  if (!((poly.dp ?? kind.depth) >= draftOf(boot) + 0.25)) return false;
+  if (!((poly.nav ?? kind.nav) >= boatClassOf(boot))) return false;
+  const wid = model.wid || 1.6, len = model.len || 4;
+  // een kleine marge: meanWidth is 2A/P en onderschat een ronde plas, dus niet de volle bootbreedte eisen
+  if (!(meanWidth(poly) >= wid + 1.2)) return false;
+  return polyArea(poly.pts) >= (len + 2) * (wid + 2);
+}
 export function waterwayClass(poly) {
   if (!poly) return 'klein';
   const nav = poly.nav ?? (WATER_KINDS[poly.kind] || WATER_KINDS.diep).nav, w = poly.pts ? meanWidth(poly) : Infinity;
