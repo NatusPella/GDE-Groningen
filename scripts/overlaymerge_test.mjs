@@ -89,6 +89,16 @@ ok(after.bNear === 1 && after.rNear === 1 && after.hedge === 1 && after.treeAt =
 ok(after.resident === '0,0 o0,0', 'de stadstegel en de overlay zijn resident', after.resident);
 ok(after.hm === 7.5 && !after.hasGid, 'een overlayrij houdt zijn eigenschappen en heeft geen id-veld');
 
+// een rebuild van de provincielaag levert dezelfde overlay opnieuw aan: de rijen mogen niet dubbel in de
+// stadstegel komen te staan, want dan houdt de loader de oude rij en verdwijnt de nieuwe uit de rasters (#512)
+const { mergeBlobs } = await import('./world/merge_overlays.mjs');
+const een = G.decodeBlob(mergeBlobs(G.decodeBlob(cityBlob), G.decodeBlob(ovBlob)));
+const twee = G.decodeBlob(mergeBlobs(een, G.decodeBlob(ovBlob)));
+const ids = twee.sections.filter((s) => s.rows && s.type === G.SECTION.BUILDINGS).flatMap((s) => s.rows.map((r) => r.gid));
+const treeIds = twee.sections.filter((s) => s.rows && s.type === G.SECTION.TREES).flatMap((s) => s.rows.map((r) => r.g));
+ok(ids.length === 3 && new Set(ids).size === 3 && ids.filter((g) => g >= GID0).length === 1, 'een tweede merge legt de overlay niet nog eens neer', JSON.stringify(ids));
+ok(treeIds.length === 2 && new Set(treeIds).size === 2, 'ook de bomen van de overlay blijven er één keer in staan', JSON.stringify(treeIds));
+
 // splitOverlay: een tegel zonder overlayrijen blijft zoals hij is, bomen gaan op hun g
 const plain = { i: 0, j: 0, sections: [{ type: G.SECTION.BUILDINGS, rows: [{ gid: 3, pts: sq(0, 0, 1) }] }] };
 ok(TW.splitOverlay(plain).city === plain && TW.splitOverlay(plain).overlay === null, 'splitOverlay: zonder overlayrijen dezelfde tegel');
