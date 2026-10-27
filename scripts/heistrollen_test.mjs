@@ -3,6 +3,7 @@
 import assert from 'node:assert/strict';
 import {
   ROLLEN, ROL, isRol, rolVanFase, rollenVoor, rollenPerSpeler, wieDoet, rolNaam, rolZin, samenRegels, buitVerdelen, MODI, isModus,
+  rolPunt, buitDelen,
   ROLSTAP, STAPPLEK, STAPTEKST, STAPKLAAR, ROLBEREIK, isRolstap, slotsVan, verdelingVoor, houderVan, lichaamVan,
   maakRolstand, rolStand, beginRolstap, rolKlaar, rolClaim, rolGate, rolRegel, heistRolGebruik,
   KLUISCODE, KLOKSCHIJF, maakDraai, draaiKluis, zetHeistHaken, heistGastTik, rolSlots } from '../game/js/heistrollen.js';
@@ -97,6 +98,55 @@ assert.equal(rolVanFase('onbekend'), null);
 assert.ok(isModus('samen') && isModus('tegen') && !isModus('alleen'));
 assert.match(MODI.samen.tekst, /gedeeld/);
 assert.match(MODI.tegen.tekst, /wint/);
+
+// --- de buit van een inbraak: twee en drie spelers, en de gastheer die niet meedeed (#438) ------
+{
+  const som = (u) => Object.values(u.geld).reduce((a, b) => a + b, 0);
+
+  // twee spelers, tegen elkaar: ieder houdt zijn eigen aandeel, de rest gaat naar de grootste buit
+  const twee = buitVerdelen('tegen', [0, 1], { 0: 2, 1: 5 }, 500);
+  assert.equal(twee.modus, 'tegen');
+  assert.equal(twee.winnaar, 1);
+  assert.deepEqual(twee.geld, { 0: 142, 1: 358 });
+  assert.equal(som(twee), 500, 'de hele buit is verdeeld');
+
+  // drie spelers: ook dan blijft er geen euro liggen
+  const drie = buitVerdelen('tegen', [0, 1, 2], { 0: 1, 1: 1, 2: 4 }, 700);
+  assert.equal(drie.winnaar, 2);
+  assert.deepEqual(drie.geld, { 0: 116, 1: 116, 2: 468 });
+  assert.equal(som(drie), 700);
+
+  // de gastheer deed niet mee (keek toe): alleen de gasten delen de hele buit
+  const zonderHost = buitVerdelen('tegen', [1, 2], { 1: 3, 2: 1 }, 401);
+  assert.equal(0 in zonderHost.geld, false, 'de gastheer krijgt niets');
+  assert.deepEqual(zonderHost.geld, { 1: 301, 2: 100 });
+  assert.equal(som(zonderHost), 401);
+  assert.equal(zonderHost.winnaar, 1);
+
+  // 'samen' blijft ongewijzigd: gelijk delen, de rest naar wie het meest deed
+  const samen = buitVerdelen('samen', [0, 1], { 0: 9, 1: 0 }, 201);
+  assert.equal(samen.modus, 'samen');
+  assert.equal(samen.winnaar, null);
+  assert.deepEqual(samen.geld, { 0: 101, 1: 100 });
+  assert.equal(som(samen), 201);
+  assert.deepEqual(buitVerdelen('samen', [1, 2], { 1: 1, 2: 0 }, 201), { geld: { 1: 101, 2: 100 }, winnaar: null, modus: 'samen' }, 'zonder gastheer hetzelfde');
+  assert.deepEqual(buitVerdelen('samen', [0], {}, 500).geld, { 0: 500 }, 'alleen: de hele beloning, zoals voorheen');
+
+  // de punten van de rolhouders: elk afgerond stuk is er één
+  const punten = {};
+  rolPunt(punten, 1); rolPunt(punten, 1); rolPunt(punten, 2);
+  assert.deepEqual(punten, { 1: 2, 2: 1 });
+  rolPunt(punten, -1); rolPunt(punten, 'x'); rolPunt(null, 0);
+  assert.deepEqual(punten, { 1: 2, 2: 1 }, 'rommel telt niet mee');
+  assert.deepEqual(buitVerdelen('tegen', [1, 2], punten, 300).geld, { 1: 200, 2: 100 }, 'twee van de drie punten is twee derde van de buit');
+
+  // wat er per plek uitbetaald wordt: alleen plekken met geld, de gastheer er gewoon tussen
+  assert.deepEqual(buitDelen(twee), [{ slot: 0, bedrag: 142 }, { slot: 1, bedrag: 358 }]);
+  assert.deepEqual(buitDelen(zonderHost), [{ slot: 1, bedrag: 301 }, { slot: 2, bedrag: 100 }]);
+  assert.deepEqual(buitDelen(buitVerdelen('tegen', [0, 1], { 0: 1 }, 0)), [], 'zonder buit betaalt niemand');
+  assert.deepEqual(buitDelen(null), []);
+  assert.equal(buitDelen(twee).reduce((a, x) => a + x.bedrag, 0), 500, 'de som van de betalingen is de buit');
+}
 
 // --- de rolstap in Samen spelen (#438): iedereen zijn eigen stuk, de gastheer controleert ------
 {

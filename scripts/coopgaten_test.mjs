@@ -211,8 +211,9 @@ t('#390: Missie stoppen (missions.js, safety.js, pausemenu.js, todoui.js): eerst
   const m = bron('missions.js');
   const f = m.slice(m.indexOf('export function cancelActiveMission'), m.indexOf('function speakerName'));
   assert.ok(f.length > 100, 'cancelActiveMission bestaat');
-  assert.match(f, /chain\.phase !== 'active'\) return false/, 'alleen een lopende missie');
-  assert.match(f, /chain\.checkpoints\.delete\(i\)/, 'een nieuwe poging begint bij de eerste stap (geen checkpoint)');
+  // #492: de keten komt nu uit de houder per groep (chainState())
+  assert.match(f, /chainState\(\)\.phase !== 'active'\) return false/, 'alleen een lopende missie');
+  assert.match(f, /chainState\(\)\.checkpoints\.delete\(i\)/, 'een nieuwe poging begint bij de eerste stap (geen checkpoint)');
   assert.match(f, /world\.coopUitslag\(false, def\.label, '', 0, true\)/, 'de gasten horen het');
   assert.ok(f.indexOf('coopUitslag') < f.indexOf('endInFailure'), 'voordat de missie wordt opgeruimd');
   assert.match(f, /endInFailure\(world,/, 'alles wordt opgeruimd als bij een mislukking (voertuig, scène, duif, heli) en de nieuwe poging staat klaar');
