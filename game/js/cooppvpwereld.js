@@ -205,7 +205,11 @@ export function pvpDoodVerwerk(world, body, slot) {
 // alleen wie bij de start in het veld staat (geen late instap). De beloning is gelijk per team met een kleine bonus voor de
 // winnaar en gaat via de coopdeel-laag naar de eigen save (#448); dood kost hier niets. Bloed en gore mogen in deze PvP
 // (constitutie 6), al tekent dit bestand niets.
-const ARENA_PLEK = geo(53.2062, 6.5468); // het open veld in het noorden van het Stadspark (echte plek, verzonnen arena)
+const ARENA_PLEK = (() => {
+  const p = geo(53.2062, 6.5468); // het open veld in het noorden van het Stadspark (echte plek, verzonnen arena)
+  p.x += 7.1; p.y += 7.0; // het veld stond met zijn middelpunt in een gebouw; dit is het vrije veld ernaast
+  return p;
+})();
 export const PVP_ARENA_PLEK = { x: ARENA_PLEK.x, y: ARENA_PLEK.y }; // voor de tests en de kaart
 const ARENA_NABIJ = 14;                   // m: vanaf hier verschijnt de prompt bij het veld
 const ARENA_MARGE = 4;                    // m: buiten de straal van het veld telt niemand meer mee
