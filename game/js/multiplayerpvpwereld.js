@@ -13,7 +13,7 @@ import { registerMusicProbe } from './scenariomusic.js';
 import { hoofdspeler } from './spelersregister.js';
 // De J/N-uitnodiging en de meldingen van een wedstrijd zijn er al (#443): de arena gebruikt ze opnieuw in plaats van een
 // eigen bericht (PROTO en CODEC_VERSION blijven 2).
-import { maakUitnodiging, antwoord, tikUitnodiging, jaSlots, uitEvent, verzoekBlok, verbondenGasten, registreerWedstrijd, zetWedGastHaken, WED_TEKST } from './coopwedstrijd.js';
+import { maakUitnodiging, antwoord, tikUitnodiging, jaSlots, uitEvent, verzoekBlok, verbondenGasten, registreerWedstrijd, zetWedGastHaken, WED_TEKST } from './multiplayerwedstrijd.js';
 import { noteMoney } from './finance.js';
 
 const nuVan = (w) => (Number.isFinite(w.time) ? w.time : 0);
@@ -129,7 +129,7 @@ export function pvpDoodVerwerk(world, body, slot) {
 // De regels staan in pvparena.js; hier hangt de arena aan de PvP-laag hierboven (dezelfde treffers, hetzelfde neergaan) en aan
 // een plek in de wereld. Wie het spel opende rekent de ronde uit; de gasten horen de start (met hun eigen team), de stand en de
 // uitslag via de gewone meldingen (coopnet.js 'melding'), dus geen nieuw netwerkformaat (PROTO en CODEC_VERSION blijven 2).
-// De J/N-uitnodiging loopt via de berichten van een wedstrijd ('wed' f 'uit' en 'wedgast' ja/nee/start, coopwedstrijd.js): elke
+// De J/N-uitnodiging loopt via de berichten van een wedstrijd ('wed' f 'uit' en 'wedgast' ja/nee/start, multiplayerwedstrijd.js): elke
 // speler, ook wie het spel opende, kan een ronde starten en meedoen of niet. Alleen spelers buiten de passieve stand doen mee en
 // alleen wie bij de start in het veld staat (geen late instap). De beloning is gelijk per team met een kleine bonus voor de
 // winnaar en gaat via de coopdeel-laag naar de eigen save (#448); dood kost hier niets. Bloed en gore mogen in deze PvP

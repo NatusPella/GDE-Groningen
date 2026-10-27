@@ -30,7 +30,7 @@ import { findParkingSpot } from './ownedvehicles.js';
 import { Vehicle } from './vehicle.js';
 import { playerBusy } from './busy.js';
 import { waarschuwVoorStart } from './coopstatus.js';
-import { wedNodigUit, wedNuStarten } from './coopwedstrijd.js';
+import { wedNodigUit, wedNuStarten } from './multiplayerwedstrijd.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
 import { vakVanUitdaging } from './loopbaan.js';
 

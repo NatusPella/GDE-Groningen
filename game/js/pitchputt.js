@@ -10,7 +10,7 @@ import { createBoard, mgThema, key, bubble, clearBubbles, pick, stopPressed, eas
 import { PUTT_LINES } from './minigamelines.js';
 import { WOLFIE, SIR, newEtiquette, beginHole as etqBegin, step as etqStep, holeDone as etqHoleDone, misser as etqMisser, einde as etqEinde, hallo as etqHallo, plan as etqPlan, aanDeBeurt as etqBeurt } from './golfetiquette.js';
 import { loadEchtePlekken, golfVenues, nearestOf } from './echteplekken.js';
-import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHostScore, wedGastScore, wedScoreStop, wedGastVerlaat, wedGastReset, wedScoreRijen } from './coopwedstrijd.js';
+import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHostScore, wedGastScore, wedScoreStop, wedGastVerlaat, wedGastReset, wedScoreRijen } from './multiplayerwedstrijd.js';
 import { pushAudioEvent } from './pedgeom.js';
 import { SAMPLE } from './golfphysics.js';
 import { golfRij, krachtTekst, scoreTabel, scoreCel, ensureGolfCss } from './golfhud.js';
@@ -561,7 +561,7 @@ function end(w, { quit = false, extern = false, uitslag = null } = {}) {
   etqSay(w, etqEinde(g.etq, medal >= 2));
 }
 
-// Online (#443): wie stopt laat de anderen doorspelen; de uitslag en de beloning komen van wie het spel opende (coopwedstrijd.js).
+// Online (#443): wie stopt laat de anderen doorspelen; de uitslag en de beloning komen van wie het spel opende (multiplayerwedstrijd.js).
 function eindeOnline(w, g, quit, extern, res) {
   if (quit) {
     if (!extern) { if (g.online === 'host') wedScoreStop(w); else wedGastVerlaat(w); } // the host stops it for everybody, a guest only for himself

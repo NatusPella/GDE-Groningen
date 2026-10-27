@@ -1,7 +1,7 @@
 // Samen spelen (#439): de haken tussen het overdragen en de wereld van het spel (deps van coophostwisselnet.js). Wat de nieuwe host na een
 // overdracht of een overname van de oude toepast: de lopende opdracht (op dezelfde plaats in de keten, #452), kapotte objecten, de voertuigen
 // waar spelers in zaten (met hun model en kleur, #452), de plek waar het spel stond en wat elke gast verdiende. Alleen wereldkennis,
-// geen netwerk; coophostwisselui.js (wisselRoute) voegt deze haken toe aan de route.
+// geen netwerk; multiplayerhostwisselui.js (wisselRoute) voegt deze haken toe aan de route.
 import { missionDebug, getMissionDefs, isMissionActive } from './missions.js';
 import { brokenKeysAll, breakPropByKey } from './breakables.js';
 import { spawnVehicleOnRoad, TRAFFIC_MODELS, POLICE_MODEL, HERO_CAR_MODEL, TRACTOR_MODEL, QUAD_MODEL, MACHINE_MODELLEN } from './vehicle.js';

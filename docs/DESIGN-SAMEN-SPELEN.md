@@ -65,7 +65,7 @@ With two or more players, anything that does not fully work in Samen spelen says
 
 ## Host handover
 
-Any player may be asked to take over the game (`coophostwissel*.js`, `coophostwisselui.js`).
+Any player may be asked to take over the game (`coophostwissel*.js`, `multiplayerhostwisselui.js`).
 
 1. The asked player gets a card (stays up to 20 s): **"X wil het spel aan je overdragen: jij houdt de wereld dan draaiend. J = ja, N = nee."**
 2. While it happens everybody reads **"X neemt het spel over. Even wachten, het duurt een paar seconden."**; time, weather, police and traffic stay as they were.

@@ -1,9 +1,9 @@
 // Samen spelen (#447): de passieve stand en spelers tegen elkaar. Pure regels (cooppvp.js), de treffers in de wereld van de host
-// (cooppvpwereld.js, combat.js), neergaan zonder kosten, de berichten (coopnet.js) en de spelerslijst. Pure Node, geen netwerk.
+// (multiplayerpvpwereld.js, combat.js), neergaan zonder kosten, de berichten (coopnet.js) en de spelerslijst. Pure Node, geen netwerk.
 import './node3d.mjs';
 import assert from 'node:assert/strict';
 import * as P from '../game/js/cooppvp.js';
-import * as PW from '../game/js/cooppvpwereld.js';
+import * as PW from '../game/js/multiplayerpvpwereld.js';
 import * as AR from '../game/js/pvparena.js';
 import * as N from '../game/js/coopnet.js';
 import { spelersRijen, rijTekst } from '../game/js/coopspelers.js';

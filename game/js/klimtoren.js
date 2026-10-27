@@ -6,7 +6,7 @@ import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordSta
 import { showCard } from './hudcards.js';
 import { standActivity, recLine } from './standactivity.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
-import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHostTijd, wedGastTijd, wedScoreStop, wedGastVerlaat, wedGastReset, wedScoreRijen } from './coopwedstrijd.js';
+import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHostTijd, wedGastTijd, wedScoreStop, wedGastVerlaat, wedGastReset, wedScoreRijen } from './multiplayerwedstrijd.js';
 import { createBoard, mgThema, key, bubble, clearBubbles, pick, stopPressed, easeCamera, geo, frame, fmtTime, clamp } from './minigamekit.js';
 import { CLIMB_LINES } from './minigamelines2.js';
 import { WALL, ARMS, createClimb, startClimb, stepClimb, nextHold, makeHolds, climbMedal, MEDAL_AT } from './climbrules.js';
@@ -196,7 +196,7 @@ function end(w, { quit = false, extern = false, uitslag = null } = {}) {
   }
 }
 
-// Online (#443): whoever stops lets the others climb on; the results and the prize come from whoever opened the game (coopwedstrijd.js).
+// Online (#443): whoever stops lets the others climb on; the results and the prize come from whoever opened the game (multiplayerwedstrijd.js).
 function eindeOnline(w, g, quit, extern, res) {
   if (quit) {
     if (!extern) { if (g.online === 'host') wedScoreStop(w); else wedGastVerlaat(w); } // the host stops it for everybody, a guest only for himself
