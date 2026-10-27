@@ -33,7 +33,6 @@ in `run_tests` en dus in CI: dat zijn de twee poorten die een echte fout
 
 ## Gevolgen
 
-De keuze is nog niet genomen; dit is een voorstel bij #481. Zodra hij besloten is,
-krijgt deze ADR status `besloten` en verwijst `testing-standards.md` naar één runner.
-Tot die tijd geldt: wie een gate toevoegt, zet hem in `test_all` en niet alleen in
-`run_tests`.
+De keuze is genomen (25-10, #481): `test_all.mjs` is de runner met de drie fasen en
+`run_tests.mjs` blijft de snelle CI-selectie met dezelfde lijsten. Wie een gate toevoegt,
+zet hem in `test_all` en niet alleen in `run_tests`.

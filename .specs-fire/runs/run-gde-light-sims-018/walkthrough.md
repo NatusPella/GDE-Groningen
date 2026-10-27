@@ -48,4 +48,4 @@
 
 - De zeven SIM-lussen hebben nu een samen-modus: boerderij, vissen, vracht, vliegen,
   trein (passagier + conducteur) en melee/PvP. Wat nog ontbreekt is polish: een eigen
-  interieur/camera voor de treinpassagier, gasten als piloot, en de 1+1=3-bonus (ADR 0016).
+  interieur/camera voor de treinpassagier, gasten als piloot, en de 1+1=3-bonus (ADR 0020).
