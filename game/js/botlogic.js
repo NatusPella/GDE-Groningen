@@ -472,7 +472,53 @@ export const PLANE_LAND = {
   lowBand: 0.5,    // the same near the ground, where a steady shallow sink is wanted
   lowSink: 1.2,    // m/s the sink is held at under 6 m
 };
+// De rechte nadering van vóór het circuit (planepilot_test en elke aanroeper die geen fase bijhoudt):
+// approach fix 700 m voor de baan, glijpad naar een punt 80 m in, remmen na de landing.
+function planeKeysOld(p, o) {
+  const keys = new Set();
+  const stall = 22;
+  if (p.onGround) {
+    if (o.mode === 'land') { if (p.speed > 0.5) { keys.add('shift'); keys.add('s'); } return keys; }
+    if (p.throttle < 0.98) keys.add('w');
+    if (p.speed >= 32) keys.add(' ');
+    return keys;
+  }
+  let goal = o.goal, alt = o.alt ?? 20, vT = 46;
+  if (o.mode === 'land' && o.strip) {
+    const st = o.strip, c = Math.cos(st.heading), sn = Math.sin(st.heading);
+    const at = (a) => ({ x: st.x + c * a, y: st.y + sn * a });
+    const fix = at(-700);
+    const dx = p.x - st.x, dy = p.y - st.y, along = dx * c + dy * sn, across = -dx * sn + dy * c;
+    const aligned = along < 300 && Math.abs(across) < 60 + Math.max(0, -along) * 0.12 && Math.abs(normAngle(p.heading - st.heading)) < 0.5;
+    if (!aligned && distance(p, fix) > 160) { goal = fix; alt = 40; vT = 44; }
+    else {
+      alt = along < 80 ? clamp((80 - along) * 0.065, 0, 50) : 0;
+      vT = 32;
+      goal = at(Math.min(400, along + 120));
+    }
+  }
+  const e = normAngle(headingTo(p, goal) - p.heading);
+  const rollMax = o.mode === 'land' && o.agl < 8 ? 0.12 : 0.75;
+  const rollWant = clamp(e * 2.2, -rollMax, rollMax);
+  if (p.roll < rollWant - 0.12) keys.add('d'); else if (p.roll > rollWant + 0.12) keys.add('a');
+  if (p.speed < vT - 3 || p.speed < stall + 7) keys.add('w'); else if (p.speed > vT + 4) keys.add('s');
+  const vzWant = clamp((alt - o.agl) * (o.mode === 'land' ? 0.45 : 0.28), -5, 6);
+  const low = o.agl < 6 && o.mode === 'land';
+  if (p.speed >= stall + 5) {
+    if (p.vz < (low ? -1.2 : vzWant) - 0.8) keys.add(' '); else if (p.vz > (low ? -1.2 : vzWant) + 0.8) keys.add('control');
+    if (low && o.agl < 2.5) keys.add('s');
+  }
+  return keys;
+}
+
+// Een landing zonder de fase-eigenschap (de oude aanroepers, planepilot_test) gaat langs de rechte nadering;
+// de bot die zijn circuit bijhoudt (o.phase, ook als die nog leeg is) gebruikt de localizer hieronder.
 export function planeKeys(p, o) {
+  if (o.mode === 'land' && o.strip && !('phase' in o)) return planeKeysOld(p, o);
+  return planeKeysCircuit(p, o);
+}
+
+function planeKeysCircuit(p, o) {
   const keys = new Set();
   const stall = 22;
   if (p.onGround) {
@@ -491,6 +537,8 @@ export function planeKeys(p, o) {
     // which half of the circuit: to the fix, or the final with the localizer. The phase is kept by the caller
     // (o.phase, handed back on the keys) with 200 m of slack: a plane that turns right at the boundary would
     // otherwise flip between the two aims every tick and circle the boundary for ever (measured in the test)
+    // De fase komt van de aanroeper die het circuit bijhoudt (o.phase); zonder waarde leidt de geometrie
+    // hem af. Een aanroeper die de eigenschap niet eens kent, gaat langs de rechte nadering (zie planeKeys).
     const phase = o.phase || (along > -PLANE_LAND.approach - 200 ? 'circuit' : 'final');
     if (phase === 'final' && along > end + 100) keys.phase = 'circuit';
     else if (phase === 'circuit' && along < -PLANE_LAND.approach - 200) keys.phase = 'final';
