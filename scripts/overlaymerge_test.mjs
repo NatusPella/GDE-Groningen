@@ -99,14 +99,17 @@ const treeIds = twee.sections.filter((s) => s.rows && s.type === G.SECTION.TREES
 ok(ids.length === 3 && new Set(ids).size === 3 && ids.filter((g) => g >= GID0).length === 1, 'een tweede merge legt de overlay niet nog eens neer', JSON.stringify(ids));
 ok(treeIds.length === 2 && new Set(treeIds).size === 2, 'ook de bomen van de overlay blijven er één keer in staan', JSON.stringify(treeIds));
 
-// de vulbomen van de stad (builderhooks.js FILL_GID0) liggen in dezelfde id-band als een overlayrij: die
-// mogen niet als "oude overlay" opgeruimd worden
+// de vulbomen van de stad (builderhooks.js FILL_GID0) liggen in dezelfde id-band als een overlayrij maar
+// veel hoger; een oude overlayrij die deze build niet opnieuw aanlevert hoort wél weg te gaan
 const fill = 32_000_000_000;
-const stadFill = G.encodeBlob({ i: 0, j: 0, sections: [{ type: G.SECTION.TREES, rows: [{ g: fill, p: [[1, 1]], s: 1, h: 50, f: 0 }] }] });
+const stadFill = G.encodeBlob({ i: 0, j: 0, sections: [{ type: G.SECTION.TREES, rows: [
+  { g: fill, p: [[1, 1]], s: 1, h: 50, f: 0 },
+  { g: GID0 + 900, p: [[3, 3]], s: 1, h: 50, f: 0 },
+] }] });
 const ovEen = G.encodeBlob({ i: 0, j: 0, sections: [{ type: G.SECTION.TREES, rows: [{ g: GID0 + 7, p: [[2, 2]], s: 2, h: 80, f: 0 }] }] });
 const na = G.decodeBlob(mergeBlobs(G.decodeBlob(stadFill), G.decodeBlob(ovEen)));
 const naIds = na.sections.filter((s) => s.type === G.SECTION.TREES).flatMap((s) => s.rows.map((r) => r.g));
-ok(naIds.length === 2 && naIds.includes(fill) && naIds.includes(GID0 + 7), 'een vulboom van de stad blijft bij de merge staan', JSON.stringify(naIds));
+ok(naIds.length === 2 && naIds.includes(fill) && naIds.includes(GID0 + 7), 'een vulboom blijft staan en een oude overlayrij gaat weg', JSON.stringify(naIds));
 
 // splitOverlay: een tegel zonder overlayrijen blijft zoals hij is, bomen gaan op hun g
 const plain = { i: 0, j: 0, sections: [{ type: G.SECTION.BUILDINGS, rows: [{ gid: 3, pts: sq(0, 0, 1) }] }] };
