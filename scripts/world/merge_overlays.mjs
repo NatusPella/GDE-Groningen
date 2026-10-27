@@ -20,8 +20,6 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '.
 const deflate = (b) => new Uint8Array(zlib.deflateRawSync(b, { level: 9 }));
 const inflate = (b) => new Uint8Array(zlib.inflateRawSync(b));
 const readJson = (f) => JSON.parse(fs.readFileSync(f, 'utf8'));
-// de grens tussen de rijen van de stad en die van een overlayrij (game/js/tileworld.js: OVERLAY_GID0)
-const OVERLAY_GID0 = 20_000_000;
 // de tellingen per tegel (index.json) staan op sectienaam; de ids van een rij op het sectietype
 const KIND_OF_SECTION = new Map([
   [G.SECTION.BUILDINGS, 'buildings'], [G.SECTION.ROADS, 'roads'], [G.SECTION.WATER, 'water'],
@@ -85,18 +83,24 @@ function treeOnRoad(x, y, grid) {
 
 export function mergeBlobs(city, overlay, stripped = null) {
   const sections = asSections(city);
+  const ov = asSections(overlay);
   // Een rebuild van de provincielaag levert de overlay opnieuw aan terwijl de stadstegel de rijen van de
-  // vorige merge nog bevat: die gaan er eerst uit, anders staan ze dubbel in de tegel (twee ids vanaf GID0
-  // voor verschillende rijen) en houdt de loader de oude (#512). `stripped` telt ze per sectietype, zodat
-  // de tellingen van de tegel niet dubbel gaan tellen.
+  // vorige merge nog bevat: dezelfde id voor een andere rij. De loader houdt dan de oude en de nieuwe
+  // verdwijnt uit de rasters (#512). De oude rijen met een id die deze overlay opnieuw aanlevert gaan er
+  // dus eerst uit. Op id en niet op "vanaf 20.000.000", want de vulbomen van de stad (builderhooks.js
+  // FILL_GID0) liggen in dezelfde band en die blijven. `stripped` telt ze per sectietype, zodat de
+  // tellingen van de tegel niet dubbel gaan tellen.
+  const idOf = (type, r) => (type === G.SECTION.TREES ? r && r.g : r && r.gid);
+  const ids = new Set();
+  for (const o of ov) for (const r of o.rows || []) { const g = idOf(o.type, r); if (typeof g === 'number') ids.add(g); }
   for (const s of sections) {
-    if (!s.rows) continue;
+    if (!s.rows || !ids.size) continue;
     const before = s.rows.length;
-    s.rows = s.rows.filter((r) => { const g = s.type === G.SECTION.TREES ? r && r.g : r && r.gid; return !(typeof g === 'number' && g >= OVERLAY_GID0); });
+    s.rows = s.rows.filter((r) => { const g = idOf(s.type, r); return typeof g !== 'number' || !ids.has(g); });
     if (stripped && before !== s.rows.length) stripped[s.type] = (stripped[s.type] || 0) + (before - s.rows.length);
   }
   const overlayStart = new Map(); // sectietype -> index waar de overlayrijen beginnen
-  for (const o of asSections(overlay)) {
+  for (const o of ov) {
     if (!o.rows) throw new Error(`overlaysectie ${o.type} is geen tabel`);
     const s = sections.find((q) => q.type === o.type);
     if (!s) sections.push(o);
