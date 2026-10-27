@@ -47,30 +47,36 @@ const NAMEN = { taxi: 'Grunn Taxi', bezorger: 'Hap & Rap bezorger', krantenwijk:
 const DEUR = { x: 100, y: 0 }, KLANT = { x: 200, y: 0 }, TRUCK = { x: 10, y: 0 };
 function nepBanen(w, { spot = null } = {}) {
   let ctx = null, verzoek = null;
-  const pub = w.sideJob = { active: false, id: null, label: '', color: '#ff9a3c', marker: null, dots: [], progress: '', timeLeft: null, goal: null, bus: null, help: false };
+  const pubs = w.coopSideJobs = {};
+  const leeg = () => ({ active: false, id: null, label: '', marker: null, progress: '', timeLeft: null, goal: null, help: false });
+  const pub = w.sideJob = leeg();
+  // De stand per eigenaar (#492): de host in world.sideJob, de eigen baan van een gast in world.coopSideJobs.
+  const stand = () => (ctx && ctx.owner ? (pubs[ctx.owner] || (pubs[ctx.owner] = leeg())) : pub);
   const publish = () => {
-    if (!ctx) { Object.assign(pub, { active: false, id: null, label: '', marker: null, progress: '', timeLeft: null, goal: null, help: false }); return; }
+    if (!ctx) { Object.assign(pub, leeg()); for (const k of Object.keys(pubs)) delete pubs[k]; return; }
+    const p = stand();
     const m = ctx.id === 'vracht' ? TRUCK : ctx.fase === 'ophalen' ? DEUR : KLANT;
     const doel = ctx.id === 'vracht' ? (ctx.fase === 'lossen' ? 'Lossen' : 'Laden bij de oplegger') : ctx.fase === 'ophalen' ? 'Ophalen' : 'Bezorgen';
     const progress = ctx.id === 'vracht' ? `${ctx.fase === 'lossen' ? 'Lossen' : 'Laden'} ${Math.ceil(ctx.fase === 'lossen' ? ctx.losLeft : ctx.laadLeft)} s` : `Klus ${ctx.streak + 1}`;
-    Object.assign(pub, { active: true, id: ctx.id, label: NAMEN[ctx.id], marker: { x: m.x, y: m.y }, progress, timeLeft: 90, goal: { label: doel, desc: 'test' }, help: ctx.id === 'vracht' && (ctx.fase === 'laden' || ctx.fase === 'lossen') });
+    Object.assign(p, { active: true, id: ctx.id, label: NAMEN[ctx.id], marker: { x: m.x, y: m.y }, progress, timeLeft: 90, goal: { label: doel, desc: 'test' }, help: ctx.id === 'vracht' && (ctx.fase === 'laden' || ctx.fase === 'lossen') });
   };
   const loper = {
     start(id, van = null) {
       if (ctx) return false;
-      ctx = { id, round: 0, streak: 0, fase: id === 'vracht' ? 'laden' : 'ophalen', stapel: 6, gegooid: [], verdiend: 0, opVerzoek: van != null, laadLeft: 6, losLeft: 4 };
-      if (w.coopBijbaanStart) w.coopBijbaanStart(id, NAMEN[id], van);
+      const owner = Number.isInteger(van) && van > 0 ? van : 0;
+      ctx = { owner, id, round: 0, streak: 0, fase: id === 'vracht' ? 'laden' : 'ophalen', stapel: 6, gegooid: [], verdiend: 0, opVerzoek: van != null, laadLeft: 6, losLeft: 4 };
+      if (w.coopBijbaanStart) w.coopBijbaanStart(id, NAMEN[id], van, owner);
       publish(); return true;
     },
     ctx: () => ctx,
     complete(base = 60, xp = 10) { // = completeRound in sidejobs.js
       const vak = vakVanBaan(ctx.id), total = base;
-      w.money += total;
-      const gedeeld = w.coopBijbaanBeloning ? w.coopBijbaanBeloning(ctx.id, base, vak, xp, ctx.round) : false;
-      if (!gedeeld && w.coopDeel) w.coopDeel(total, { vak, basis: base, xp });
+      if (!ctx.owner) w.money += total; // de eigenaar van de baan is de host: zijn loon; een gastenbaan betaalt via de beloning (#492)
+      const gedeeld = w.coopBijbaanBeloning ? w.coopBijbaanBeloning(ctx.id, base, vak, xp, ctx.round, ctx.owner) : false;
+      if (!gedeeld && !ctx.owner && w.coopDeel) w.coopDeel(total, { vak, basis: base, xp });
       ctx.verdiend += total; ctx.streak++; ctx.round++; ctx.fase = ctx.id === 'vracht' ? 'klaar' : 'ophalen'; publish(); // vracht: tussen twee ronden valt er niets te laden
     },
-    eind(kind = 'quit') { if (!ctx) return; ctx = null; if (w.coopBijbaanEind) w.coopBijbaanEind(kind); publish(); },
+    eind(kind = 'quit') { if (!ctx) return; const owner = ctx.owner; ctx = null; if (w.coopBijbaanEind) w.coopBijbaanEind(kind, owner); publish(); },
     tik() { // de bezorger: wie bij de deur staat haalt op en geeft af
       if (!ctx || ctx.id !== 'bezorger') return;
       if (ctx.fase === 'ophalen' && B.afstandNaast(w, DEUR.x, DEUR.y) < 4.5) { ctx.fase = 'bezorgen'; publish(); }
@@ -80,8 +86,8 @@ function nepBanen(w, { spot = null } = {}) {
   w.sideJobActions = {
     startVoor: (id, slot) => { if (ctx) return { ok: false, reden: 'Je bent al aan het werk' }; verzoek = slot; const ok = loper.start(id, slot); verzoek = null; return { ok, reden: '' }; },
     helperNu: () => !!ctx && ctx.id === 'vracht' && (ctx.fase === 'laden' || ctx.fase === 'lossen'),
-    helperActie: (slot, x, y) => { // de krant: elke worp haalt een krant van de gedeelde stapel; de vracht: de bijrijder helpt laden en lossen
-      if (!ctx) return false;
+    helperActie: (slot, x, y, owner = 0) => { // de krant: elke worp haalt een krant van de gedeelde stapel; de vracht: de bijrijder helpt laden en lossen
+      if (!ctx || (ctx.owner | 0) !== (owner | 0)) return false;
       if (ctx.id === 'krantenwijk') {
         if (ctx.stapel <= 0) return false;
         ctx.stapel--; ctx.gegooid.push({ slot, x, y }); if (ctx.stapel === 0) loper.complete(50, 10); return true;
@@ -401,17 +407,17 @@ t('de regels voor een gast: bijbanen zijn deels; de teksten in het spel en in do
 });
 t('de haken in de bron: sidejobs.js, de drie banen, coopnet.js en het scherm van de gast', () => {
   const sj = bron('sidejobs.js');
-  assert.match(sj, /world\.coopBijbaanStart\(job\.id, job\.name, verzoekVan\)/, 'startJob meldt de baan');
-  assert.match(sj, /world\.coopBijbaanBeloning\(c\.job\.id, deelBasis, vak, xp, c\.round\)/, 'completeRound betaalt de basis plus fooi, met de groepsbonus en het ronde-nummer');
+  assert.match(sj, /world\.coopBijbaanStart\(job\.id, job\.name, verzoekVan, owner\)/, 'startJob meldt de baan, met de eigenaar (#492)');
+  assert.match(sj, /world\.coopBijbaanBeloning\(c\.job\.id, deelBasis, vak, xp, c\.round, owner\)/, 'completeRound betaalt de basis plus fooi, met de groepsbonus, het ronde-nummer en de eigenaar');
   assert.match(sj, /metGroepsbonus/, 'de groepsbonus zit in de beloning');
   assert.equal((sj.match(/world\.coopDeel\(/g) || []).length, 1, 'het oude delen blijft één keer, voor de andere banen');
-  assert.match(sj, /world\.coopBijbaanEind\(kind\)/, 'endShift meldt het einde');
+  assert.match(sj, /world\.coopBijbaanEind\(kind, owner\)/, 'endShift meldt het einde per speler');
   assert.match(sj, /startVoor: \(id, slot\) => startOpVerzoek\(id, slot\)/); assert.match(sj, /spotBij: \(x, y\) => spotBij\(x, y\)/);
   assert.match(bron('sidejob_bezorger.js'), /afstandNaast\(world, door\.x, door\.y\)[\s\S]*afstandNaast\(world, target\.x, target\.y\) < HANDOVER_R/, 'de bezorger: ophalen en afgeven door wie bij de deur staat');
   const kr = bron('sidejob_krantenwijk.js');
   assert.match(kr, /helperActie\(c, h\) \{/); assert.match(kr, /afstandNaast\(world, eerste\.x, eerste\.y\) < OVERNAME_R/);
   const net = bron('coopnet.js');
-  for (const re of [/case 'bijbaan': return bijbaanHandleHost/, /case 'bijbaangast': return bijbaanHandleGast/, /world\.coopBijbaanStart = \(id, label, starter\) => bijbaanStart/, /zetBijbaanHaken\(\{ betaalGast/, /bijbaanGastReset\(world\)/, /bijbaanHostTik\(world, dt\)/]) assert.match(net, re);
+  for (const re of [/case 'bijbaan': return bijbaanHandleHost/, /case 'bijbaangast': return bijbaanHandleGast/, /world\.coopBijbaanStart = \(id, label, starter, owner\) => bijbaanStart/, /zetBijbaanHaken\(\{ betaalGast/, /bijbaanGastReset\(world\)/, /bijbaanHostTik\(world, dt\)/]) assert.match(net, re);
   assert.match(bron('coopgastlokaal.js'), /bijbaanGastE\(world\)/); assert.match(bron('coopwedstrijd3d.js'), /bijbaanKaartModel\(world\)/);
 });
 

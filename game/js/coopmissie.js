@@ -13,7 +13,7 @@
 // Een gast kan zelf een verhaalopdracht van zijn eigen groep starten (#452). Dat gaat als verzoek aan wie het spel opende: die
 // controleert dezelfde poort (busy.js), begint de opdracht op het startpunt en legt de groep aan met de vrager als deelnemer. Een
 // lopende groep houdt zijn stand: een verzoek voegt alleen een deelnemer toe en overschrijft stap, doelen of keuzes nooit.
-import { playerBusy } from './busy.js';
+import { playerBusy, gastSideJob } from './busy.js';
 import { standVan, antwoord as meedoenAntwoord } from './coopmeedoen.js';
 export const MAX_GROEPEN = 8;  // meer gelijktijdige opdrachten dan dit kent het spel niet (zoals FOCI_MAX bij de foci)
 const ID_MAX = 48, LABEL_MAX = 80, STAP_MAX = 90, MAX_DOELEN = 12;
@@ -191,7 +191,7 @@ export function verzoekBlok(world) {
   if (wedstrijdLoopt(world)) return MISSIE_TEKST.wedstrijd;
   if (playerBusy(world, ['cinematic']).busy) return MISSIE_TEKST.filmpje;
   if (playerBusy(world, ['mission', 'activeRace', 'missionPhase', 'race']).busy) return MISSIE_TEKST.bezig;
-  if (playerBusy(world, ['sideJob']).busy) return MISSIE_TEKST.bijbaan;
+  if (playerBusy(world, ['sideJob']).busy || gastSideJob(world)) return MISSIE_TEKST.bijbaan;
   if (playerBusy(world, ['challenge', 'padel', 'activityGame', 'activity', 'heliRun', 'pigeon', 'train']).busy) return MISSIE_TEKST.activiteit;
   if (playerBusy(world, ['respawn']).busy) return MISSIE_TEKST.wacht;
   return null;
