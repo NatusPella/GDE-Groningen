@@ -36,6 +36,33 @@ doen, zonder dat de een de ander stopt of overschrijft.
 - `succeed`/`fail`/`save`/`hostwissel` gaan per groep; een gastmissie is niet
   savebaar tenzij expliciet anders besloten.
 
+#### Verkenning 27-10 (voor de volgende ronde)
+
+`missions.js` is 209 KB en heeft **502 verwijzingen naar `chain`** (één modulevariabele,
+regel 600). Naast `chain` is er weinig ander modulair level-state: `contactMod`,
+`storyMod`, `worldRef`, `forceStart`, `dijkRun`. De rest van de missiestaat hangt aan
+`world` (`world.mission`, `world.missionCar`, deuren, vlaggen, markers).
+
+Drie routes, in volgorde van risico:
+
+1. **Accessor-route (aanbevolen).** Hernoem de variabele naar een houder per slot
+   (`chains: Map<slot, chain>`) en vervang de 502 sites mechanisch door
+   `chain()`/`setChain()`. Behaviour-neutraal te maken: zolang er één slot is, is het
+   resultaat identiek, en `mission_test`/`storytest`/`akte1_doelen` moeten dat bewijzen.
+   Daarna per slot de `world`-velden splitsen (`world.mission` → per slot, zoals
+   `sidejobs.js` al doet met `contexts`).
+2. **Twee ketens naast elkaar.** `chain` blijft de host, `chainGast` ernaast. Sneller,
+   maar het lost N groepen niet op en de volgende slice moet alsnog.
+3. **Tweede wereld.** Valt af: de work item zegt expliciet "geen tweede wereld".
+
+Wat er hoe dan ook bij moet: een test die twee missies tegelijk start en laat zien dat
+`fail` van de een de ander niet raakt (zoals `coop/bijbaanparallel_test.mjs` voor
+bijbanen), en een hostwissel-pad dat de ketens heel laat. Niet in deze slice: hostwissel
+voor meerdere groepen, protocolbump, nieuwe opslagsleutel.
+
+Geschat: één gerichte ronde van een dagdeel, met de volledige lichte suite en de
+Electron-verhaaltest als poort — niet iets om tussen twee releases door te doen.
+
 ## Samen spelen
 
 Dit is de kern van Samen spelen: elke groep is gelijkwaardig, de host simuleert maar
