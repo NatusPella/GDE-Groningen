@@ -15,9 +15,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   gradeLimit, GRADE_TOL, radiusMin, clearanceUnder, CAR, nodeKey, gradeOrder, zAlong,
-  buildNetwork, planCrossings, ribbonHalf, profileStats,
+  buildNetwork, planCrossings, bumpCrossings, ribbonHalf, profileStats,
 } from '../../game/js/roadprofile.js';
-import { railLiftZ } from '../../game/js/elevation.js';
+import { railLiftZ, roadZAt } from '../../game/js/elevation.js';
 import { railHeightFn, overAtRailCrossing, LC_ZONE } from '../../game/js/railprofile.js';
 import { isDeckRoad } from '../../game/js/deckterrain.js';
 import { terrainBases, underWindows } from './terrain_profile.mjs';
@@ -140,7 +140,7 @@ export function overlaps(roads, { angle = 35, margin = 0.5, carriageway = false 
 
 export function audit(data, { terrain = flatTerrain, limit = 12 } = {}) {
   const roads = data.roads;
-  const rep = { roads: 0, steep: [], radius: [], joints: [], clearance: [], paths: [], knots: [], overlap: [], crossings: 0 };
+  const rep = { roads: 0, steep: [], radius: [], joints: [], clearance: [], paths: [], overlap: [], crossings: 0 };
   for (const r of roads) {
     if (!r.z) continue;
     rep.roads++;
@@ -169,13 +169,11 @@ export function audit(data, { terrain = flatTerrain, limit = 12 } = {}) {
     if (dz >= s.need - 0.05) continue;
     const q = { up: label(s.up), lo: label(s.lo), loCat: s.lo.cat, dz, need: s.need, at: [Math.round(s.x), Math.round(s.y)] };
     // a foot or cycle path through a tunnel or over a bridge the game keeps at
-    // street level (profile.mjs --paths gives it a profile), or a known knot
+    // street level (profile.mjs --paths gives it a profile)
     const path = (r) => r.cat === 'foot' || r.cat === 'cycle';
-    if (knotAt(s.x, s.y)) rep.knots.push(q);
-    else if (path(s.up) || path(s.lo)) rep.paths.push(q);
+    if (path(s.up) || path(s.lo)) rep.paths.push(q);
     else rep.clearance.push(q);
   }
-  rep.steep = rep.steep.filter((q) => (knotAt(...q.at) ? (rep.knots.push({ ...q, steep: true }), false) : true));
   // steps between overlapping ribbons
   for (const o of overlaps(roads, { carriageway: true })) {
     const zf = o.f.z[o.j], zl = zAlong(o.lead, o.i, o.t);
@@ -202,7 +200,6 @@ export function printAudit(rep, limit = 8) {
   for (const q of low(rep.clearance)) console.log(`  ${q.dz.toFixed(2)} of ${q.need.toFixed(1)} m: ${q.up} over ${q.lo} at ${q.at}`);
   console.log(`foot and cycle paths under or over a road without their tunnel or bridge (open, --paths): ${rep.paths.length}`);
   for (const q of low(rep.paths)) console.log(`  ${q.dz.toFixed(2)} of ${q.need.toFixed(1)} m: ${q.up} over ${q.lo} at ${q.at}`);
-  if (rep.knots.length) console.log(`known OSM knots (KNOWN_KNOTS), left as they were: ${rep.knots.length}`);
   console.log(`steps between overlapping carriageways (0.15-3 m): ${rep.overlap.length}`);
   for (const q of worst(rep.overlap, 'dz')) console.log(`  ${q.dz.toFixed(2)} m ${q.f} beside ${q.lead} at ${q.at}`);
 }
@@ -220,14 +217,40 @@ const COUPLE_TOL = 0.05;
 // an untagged way's prior dip under the terrain shallower than this is taken
 // for the terrain (what the old per-way solve left where nothing asks for one)
 const SMALL = 0.8;
-// Crossings the solver leaves to the prior profile: where the OSM data joins
-// two ways that pass over each other (a shared vertex next to the crossing
-// point), so no profile gives both the joint and the clearance.
-// [x, y, radius, why]; the audit lists their crossings as known.
-export const KNOWN_KNOTS = [
-  [3100, -823, 25, 'Roeierspad joined to the N46 slip road bridge (OSM)'],
+
+// A deck that hangs over a lane running under its edge, not over its axis: the
+// clearance audit does not count it as a passage (laneUnderDeck), but the game
+// still drives under it, so it must leave the tallest vehicle room there. The
+// solved Emmaviaduct profile sagged between its rail clearance and its south
+// approach down to 3.88 m over the service lane by the station (#501); a floor
+// keeps that stretch of the deck at 4.2 m (clearance_audit.mjs) plus the deck
+// thickness and a little margin. [x, y, reach, min z, only this cat]
+export const DECK_FLOORS = [
+  [-245, 934, 30, 4.2 + 1.0 + 0.1, 'major'],
 ];
-const knotAt = (x, y) => KNOWN_KNOTS.find(([kx, ky, r]) => Math.hypot(x - kx, y - ky) < r);
+// Raise such a deck over the lane: the vertices within reach move up by the
+// deficit where the lane is, tapering to nothing at the edge, so the deck keeps
+// its joints and its grade (a solve with a pin would re-profile the whole
+// network around it).
+export function applyDeckFloors(roads, floors = DECK_FLOORS) {
+  let moved = 0;
+  for (const [x, y, reach, minZ, cat] of floors) {
+    for (const r of roads) {
+      if (!r.bridge || r.tunnel || (cat && r.cat !== cat) || !r.z) continue;
+      if (!r.pts.some((p) => Math.hypot(p[0] - x, p[1] - y) <= reach)) continue;
+      const def = minZ - roadZAt(r, x, y);
+      if (def <= 0.005) continue;
+      r.pts.forEach((p, i) => {
+        const d = Math.hypot(p[0] - x, p[1] - y);
+        if (d >= reach) return;
+        const w = 1 - (d / reach) ** 2;
+        r.z[i] = Math.round((r.z[i] + def * w) * 100) / 100;
+        moved++;
+      });
+    }
+  }
+  return moved;
+}
 
 // The height solver for one connected network at a time (every road that has
 // a profile, or needs one, and whatever shares its vertices): a least-squares
@@ -264,7 +287,9 @@ export function solve(data, { terrain = flatTerrain, iters = 600, pullPrior = 0.
   const water = data.water || [];
   // 1. who moves at each crossing that needs it; roads that get a new
   // profile are densified so their ramps have vertices
-  const crossings = planCrossings([...roads, ...rails], crossFilter);
+  // (plus the crossings where two ways only share a vertex because their
+  // profiles landed on the same centimetre: a deck over a street, #501)
+  const crossings = [...planCrossings([...roads, ...rails], crossFilter), ...bumpCrossings(buildNetwork(roads))];
   const active = new Set(onTerrain ? [] : roads.filter((r) => r.z));
   const movers = [];
   // terrain mode: the base and the voorkeurshoogte (abs) of every original road, the streets that pass under a deck lowered
@@ -277,7 +302,6 @@ export function solve(data, { terrain = flatTerrain, iters = 600, pullPrior = 0.
     // none): a street under a viaduct on a dyke (held down), a road over a tunnel whose cutting AHN shows (held up)
     for (const c of planCrossings(roads, (p, q) => isDeckRoad(p) !== isDeckRoad(q))) {
       const D = isDeckRoad(c.a) ? c.a : c.b, other = D === c.a ? c.b : c.a;
-      if (knotAt(c.x, c.y)) continue;
       if (D.bridge && !D.tunnel) underSpots.push({ lo: other, x: c.x, y: c.y, mode: 'dyke' });
       else if (D.tunnel && !D.bridge) underSpots.push({ lo: other, x: c.x, y: c.y, mode: 'hole' });
     }
@@ -302,7 +326,7 @@ export function solve(data, { terrain = flatTerrain, iters = 600, pullPrior = 0.
   };
   for (const c of crossings) {
     const s = separation(c);
-    if (!s || knotAt(c.x, c.y)) continue;
+    if (!s) continue;
     let m = mover(s);
     if (noSink && m === 'lo') m = s.up.rail || s.lo.rail ? null : 'up';
     if (!m) continue;
@@ -779,6 +803,7 @@ async function main() {
       console.log(`pass ${pass + 1} solved in ${((performance.now() - t0) / 1000).toFixed(1)} s: ${JSON.stringify(sol.stats)}; ${res.changed} profiles changed, ${res.cleared} flat now, ${sol.pts.size} roads densified`);
       if (!res.changed && !res.cleared && !sol.pts.size) break;
     }
+    console.log(`decks raised over a lane under their edge: ${applyDeckFloors(data.roads)} vertices`);
     data.roads = data.roads.filter((r) => !bus.some((b) => b.road === r));
     const busChanged = restoreBusRoads(bus);
     if (args.includes('--write')) {

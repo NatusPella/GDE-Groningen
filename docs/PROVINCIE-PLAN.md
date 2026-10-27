@@ -314,9 +314,12 @@ over tegelgrenzen en knipt daarna.
 0 wegen en spoor onder de vrije hoogte, 0 sprongen in voegen; `drive_audit`
 7.312 ritten in 25 s, `network_drive_test` 2.616 ritten streng. **Beperkingen:**
 11 fiets- en voetpaden in een OSM-tunnel of op een brug liggen nog op
-straatniveau (`--paths`, niet aangezet); één OSM-knoop bij de Roeierspad
-(`KNOWN_KNOTS`); de radiale `railLifts` blijven; 8 hakers en 94 gevels over
-stroken in smalle binnenstadsstraten (klassebreedte breder dan de straat).
+straatniveau (`--paths`, niet aangezet); de radiale `railLifts` blijven; 8 hakers
+en 94 gevels over stroken in smalle binnenstadsstraten (klassebreedte breder dan
+de straat). Het OSM-knooppunt bij de Roeierspad dat als `KNOWN_KNOTS` werd
+overgeslagen, is sinds #501 geen knoop meer: een dek dat met een eigen laag
+midden over een straatpunt loopt, krijgt daar een eigen hoogte en moet de straat
+eronder vrijhouden.
 
 ### 2.12 Rijstroken
 
