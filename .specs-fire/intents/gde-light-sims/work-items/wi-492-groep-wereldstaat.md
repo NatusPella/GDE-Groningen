@@ -11,7 +11,7 @@
 Twee groepen kunnen tegelijk een verschillende **door de host gesimuleerde** activiteit
 doen, zonder dat de een de ander stopt of overschrijft.
 
-### Slice 1: bijbanen
+### Slice 1: bijbanen — afgerond (commits fb4eb437, 6aaaa6ea; gemerged in main)
 
 - `game/js/sidejobs.js` heeft een register `contexts` per eigenaar (slot) in plaats van
   één `ctx`; de host heeft `ctx` als alias voor zijn eigen plek.
@@ -23,9 +23,9 @@ doen, zonder dat de een de ander stopt of overschrijft.
   uitnodiging, doel, ronde en beloning; de gast ziet alleen zijn eigen baan.
 - Twee gasten kunnen twee verschillende bijbanen starten; elke baan houdt zijn eigen
   voertuig, doel en loon. Stopt de een, dan loopt de ander door.
-- Tests: `scripts/sidejobcontext_test.mjs` (pure contexten) en
-  `scripts/coop/bijbaanparallel_test.mjs` (twee gasten, twee banen, onafhankelijk
-  einde en beloning). Bestaande bijbaan-, coop- en spaartests blijven groen.
+- Tests: `scripts/sidejobcontext_test.mjs` (16) en
+  `scripts/coop/bijbaanparallel_test.mjs` (9). Lichte suite op de samengevoegde branch:
+  603 geslaagd, 0 mislukt, 34 niet gedraaid.
 
 ### Slice 2: missies
 
