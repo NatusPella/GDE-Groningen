@@ -30,7 +30,7 @@ zomer en in de stem van de vaste cast; tekst is data (canon, script, build, spel
 
 De data: 207 scènes, 1.450 regels in act 1 tot en met 6; 37 zijn stille appjes en
 809 hebben geen opname, dus die toont het spel als ondertitel met leestijd
-(`game/js/storytext.js:51`). Een `[BEHOUDEN]`-regel heeft een opname: één andere
+(`game/js/storytext.js:53`). Een `[BEHOUDEN]`-regel heeft een opname: één andere
 letter maakt hem stil. Nieuwe opnames komen er in rondes bij op Flash-Lite (ADR 0019,
 #462); wat nog geen opname heeft blijft ondertitel (`docs/verhaal/nieuw/07-TTS-RAMING.md:3`).
 
@@ -105,7 +105,7 @@ Femke, Harm, Hilly, Hilje en Boer Roelf (`docs/verhaal/nieuw/00-OVERZICHT.md:67`
    `card`-optie op die regel, anders verschijnt er niets.
 6. **Een stem of een ondertitel**: elke uiting is `stem`, `radio`, `telefoon` of
    bewust stil (`app-stil`); zonder opname volgt de tekst met leestijd
-   (`game/js/storytext.js:51`).
+   (`game/js/storytext.js:53`).
 7. **Eén functie per missie** met een oorzaak-gevolg-beat, anders wordt het een
    zijmissie of reisbeat (`docs/verhaal/nieuw/00-OVERZICHT.md:142`).
 8. **Samen spelen**: één regel per missie of scène — doet een gast mee (J of N), wat
