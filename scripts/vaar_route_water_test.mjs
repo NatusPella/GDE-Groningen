@@ -36,6 +36,13 @@ if (r) for (let i = 1; i < r.pts.length; i++) {
 const keys = new Set();
 for (const [x, y] of samples) { const [i, j] = G.tileIndexOf(x, y); keys.add(G.tileKey(i, j)); }
 await Promise.all([...keys].map((k) => T.store.request(k, { priority: -1 })));
+// de wachtrij kan werk uitstellen (setImmediate): blijf draaien tot hij leeg is en de tegels
+// echt in de kaart zitten, anders meet de controle op een half geladen wereld (#512)
+for (let k = 0; k < 40; k++) {
+  map.tileQueue.run(1e9);
+  if (!map.tileQueue.size) break;
+  await new Promise((r) => setImmediate(r));
+}
 map.tileQueue.run(1e9);
 const sluizen = JSON.parse(fs.readFileSync(new URL('sluizen.json', game), 'utf8')).sluizen || [];
 const EDGE_M = 8;
