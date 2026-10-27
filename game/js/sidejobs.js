@@ -108,7 +108,7 @@ function eigenGastBaan(w) {
 // tijd, voertuigen, peds, de baan zelf) blijft van de host.
 function gastWereld(w, slot) {
   const cw = Object.create(w);
-  cw.player = spelerBeeld(lichaamVan(w, slot)) || w.player;
+  cw.player = spelerBeeld(lichaamVan(w, slot)) || hoofdspeler(w);
   cw.input = invoerVoor(w, slot);
   cw.sideJobOwner = slot;
   cw.addMessage = (text, s = 3) => meldAanSpeler(w, slot, text, s);
