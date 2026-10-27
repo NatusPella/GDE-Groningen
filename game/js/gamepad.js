@@ -131,6 +131,32 @@ function started() {
   return document.body.classList.contains('game-started');
 }
 
+// Vraagt Samen spelen om een antwoord (J of N)? Dat doen de wedstrijd (coopwedstrijd3d.js), de opdracht
+// van een gast (coopmissie.js), het overnemen van het spel (coophostwisselnet.js), de stemming en de
+// uitnodiging (coopnet.js) en de PvP-arena. Elk van die schermen leest de toetsen J en N.
+function coopVraag(w) {
+  if (w.coopGastVraag) return true;                                     // de gastheer: doet hij mee met de opdracht van een gast?
+  if (w.coopStem) return true;                                          // een stemming over een tijdsprong
+  if (w.coopUitnodiging) return true;                                   // Meedoen met deze opdracht?
+  if (w.coopWisselUi && w.coopWisselUi.vraag) return true;              // het spel overnemen
+  const n = w.coopNet;
+  if (n && n.role === 'host' && n.wed) {
+    if (n.wed.u && n.wed.u.keuze && n.wed.u.keuze[0] === 'wacht') return true;
+    if (n.wed.uitslag && !n.wed.hostloos && !n.wed.u && !n.wed.r && !n.wed.lv) return true;
+  }
+  const g = w.coopWedGast;
+  if (g && (g.uitn || (g.uitslag && !g.spiegel) || g.kijk)) return true;
+  const arena = w.pvpArenaUitn;
+  return !!(arena && arena.keuze && arena.keuze[0] === 'wacht');
+}
+
+// Staat de vrije hengelhint van prompts.js (id 'hengel-vrij') onderin? Die verschijnt alleen als je aan de
+// waterkant staat met niets anders te doen; zolang hij er staat, hengelt X (#151). Zo hoeft de voetindeling
+// zelf geen I te krijgen: X blijft daar F, voor het uitstappen bij de attracties en de aanraakbediening.
+function hengelHint() {
+  return !!(typeof document !== 'undefined' && document.querySelector && document.querySelector('.ctx-row:not(.gone)[data-id="hengel-vrij"]'));
+}
+
 // Which PAD_MAPS table applies right now.
 function context() {
   if (!started() || (hooks.menuOpen && hooks.menuOpen())) return 'menu';
@@ -151,8 +177,20 @@ function context() {
   if (playerBusy(w, ['padel', 'activityGame']).busy) return 'minigame';
   // de wandeling neemt de speler niet over (wandeling.js), maar B hoort hem wel te stoppen
   if (w.wandelingActief) return 'minigame';
+  // het wachtscherm als een speler wegvalt (coophold.js) staat stil en heeft doodgewone dialoogknoppen: in de
+  // menu-indeling lopen de pijlen erlangs en klikt A de gefocuste (#151)
+  if (w.coopHold) return 'menu';
+  // een vraag van Samen spelen: A is ja, B is nee (#151)
+  if (coopVraag(w)) return 'coopvraag';
   const v = w.player && w.player.inVehicle;
-  if (v) return v.isPlane ? 'plane' : v.isHeli ? 'heli' : w.noLookBack ? 'skutsje' : v.gb && getSettings().shiftMode !== 'auto' ? 'vehicleManual' : v.isBus ? 'bus' : 'vehicle';
+  // een zeilboot (boattypes.js `zeil`) vaart met de skûtsje-indeling: Q en Z op de bumpers, D-pad omlaag hengelt
+  // in een boot die stilligt (#151); een trekker op het erf heeft zijn eigen werktuigknoppen (#151)
+  if (v) return v.isPlane ? 'plane' : v.isHeli ? 'heli' : w.noLookBack || (v.model && v.model.zeil) ? 'skutsje' : v.farm ? 'trekker' : v.gb && getSettings().shiftMode !== 'auto' ? 'vehicleManual' : v.isBus ? 'bus' : 'vehicle';
+  // een bijbaan of tekstpaneel dat de invoer opeist (stagechoice, rechtbank, boa, snackbar: minigameUntil) leest
+  // de cijfers 1-4, Tab en Backspace: de minigame-indeling heeft ze (#151). In een voertuig (taxi, bus) blijft de
+  // voertuigindeling, want daar rijdt de speler.
+  if (w.minigameUntil > w.time) return 'minigame';
+  if (hengelHint()) return 'hengelen';
   return 'foot';
 }
 

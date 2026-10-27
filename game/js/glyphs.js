@@ -6,9 +6,9 @@
 // so modules that write hints need to know nothing about this. Inside an
 // element with `data-pad-ctx` (the Besturing table) that situation is used
 // instead of the current one; `data-g-raw` opts a keycap out.
-import { PAD_LAYOUTS, PAD_MAPS, glyphFaceSlot, padSlotFor, physicalKey, tokenKey, keyName } from './controls.js';
+import { PAD_BUTTONS, PAD_LAYOUTS, PAD_MAPS, glyphFaceSlot, padSlotFor, physicalKey, physicalButton, nintendoSwap, tokenKey, keyName } from './controls.js';
 import { getSettings, onSettingsChange } from './settings.js';
-import { onPadChange, padState } from './gamepad.js';
+import { onPadChange, padState, activePadIndex } from './gamepad.js';
 import { touchLabelForToken } from './touchlogic.js';
 import { getDevice, onDeviceChange } from './inputdevice.js';
 
@@ -28,7 +28,31 @@ const DPAD = (dir) => '<svg class="pad-dpad" viewBox="0 0 20 20" aria-hidden="tr
 
 const SLOT_WORDS = { a: 'onderste knop', b: 'rechter knop', x: 'linker knop', y: 'bovenste knop', lb: 'linker bumper', rb: 'rechter bumper', lt: 'linker trigger', rt: 'rechter trigger', ls: 'linker stick indrukken', rs: 'rechter stick indrukken', lstick: 'linker stick', rstick: 'rechter stick', up: 'D-pad omhoog', down: 'D-pad omlaag', left: 'D-pad links', right: 'D-pad rechts', dpad: 'D-pad', view: 'View-knop', start: 'Menu-knop' };
 
+// De knop die nu op een plek zit (#151): dezelfde herbinding (controls.js physicalButton)
+// en dezelfde Nintendo-wissel als gamepad.js, zodat een hint of een scherm dat zelf een
+// knop leest precies de knop aanwijst die de speler indrukt.
+export function padButton(slot, family = padState().family, binds = getSettings().padBinds) {
+  return nintendoSwap(physicalButton(binds, slot), family);
+}
+// De plek van die knop in Gamepad.buttons (de W3C-standaardvolgorde).
+export const padButtonIndex = (slot, family, binds) => PAD_BUTTONS.indexOf(padButton(slot, family, binds));
+
+// De pad van speler 1 (gamepad.js kiest hem, ook met twee spelers). Voor de weinige
+// schermen die zelf een knop lezen omdat de padlaag er geen toets voor stuurt: het
+// reispanel, de reisscène en de heli-run. Null zolang er geen pad is.
+export function playerPad() {
+  if (typeof navigator === 'undefined' || !navigator.getGamepads) return null;
+  const i = activePadIndex();
+  if (i < 0) return null;
+  try {
+    const pad = navigator.getGamepads()[i];
+    return pad && pad.connected ? pad : null;
+  } catch (e) { return null; }
+}
+
 // Inner HTML of a controller glyph for a slot ('a', 'rt', 'lstick', 'up', ...).
+// `slot` is de knop zelf: de aanroeper geeft wat de speler moet indrukken (de hint via
+// physicalButton, de herbindlijst de opgeslagen knop).
 export function padGlyphInner(slot, family = padState().family) {
   const L = PAD_LAYOUTS[family] || PAD_LAYOUTS.xbox;
   const label = SLOT_WORDS[slot] || slot;
@@ -76,10 +100,12 @@ function render(el) {
   } else if (pad.active && token) {
     const ctx = ctxOf(el);
     slot = padSlotFor(token, ctx) || '';
-    if (slot) html = padGlyphInner(slot, pad.family);
+    // de knop die de speler moet indrukken: na het omwisselen van A en B ligt de actie
+    // van 'a' op de andere knop, en de hint wijst die aan (#151)
+    if (slot) html = padGlyphInner(physicalButton(getSettings().padBinds, slot), pad.family);
     else hide = true;
     // driving: WASD is the triggers plus the stick
-    if (token === 'WASD' && PAD_MAPS[ctx] && PAD_MAPS[ctx].stick === 'steer') html = ['rt', 'lt', 'lstick'].map((s) => padGlyphInner(s, pad.family)).join('');
+    if (token === 'WASD' && PAD_MAPS[ctx] && PAD_MAPS[ctx].stick === 'steer') html = ['rt', 'lt', 'lstick'].map((s) => padGlyphInner(physicalButton(getSettings().padBinds, s), pad.family)).join('');
   } else if (token && !el.dataset.gk) {
     const canon = tokenKey(token);
     const phys = physicalKey(getSettings().keyBinds, canon);

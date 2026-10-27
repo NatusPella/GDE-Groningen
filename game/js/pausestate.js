@@ -7,10 +7,12 @@ export function isMapOpen() { return mapOpen; }
 let open = false;
 export function setPauseMenuOpen(v) { open = !!v; }
 export function isPauseMenuOpen() { return open; }
-// The unfolded phone is the pause menu on its Telefoon section; pausemenu.js reports the tab.
+// The unfolded phone is the pause menu on its Verhaal section (the Telefoon tab became
+// Verhaal › Personages, #151): B goes back a level there and an open menu on that tab counts
+// as the phone in the hand (a fine while driving). pausemenu.js reports the tab.
 let tabName = null;
 export function setPauseMenuTabState(name) { tabName = name; }
-export function isPhoneOpen() { return open && tabName === 'telefoon'; }
+export function isPhoneOpen() { return open && tabName === 'verhaal'; }
 // Open and close the menu from a module the menu itself imports (the phone): pausemenu.js registers
 // its openPauseMenu and closePauseMenu here when it loads.
 const controls = { openPauseMenu: () => {}, closePauseMenu: () => {} };

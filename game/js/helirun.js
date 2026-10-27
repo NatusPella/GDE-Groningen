@@ -25,9 +25,15 @@ import { keyWord, keyName, physicalKey } from './controls.js';
 import { playerBusy } from './busy.js';
 import { waarschuwVoorStart } from './coopstatus.js';
 const downKey = () => keyWord(getSettings().keyBinds, 'control');
-// the key help under the heli HUD, in the player's own key bindings
-const kbd = (k) => `<kbd>${k === 'backspace' ? '⌫' : keyName(physicalKey(getSettings().keyBinds, k))}</kbd>`;
-const helpHtml = () => `${kbd('w')}${kbd('s')} vooruit en remmen · ${kbd('a')}${kbd('d')} draaien · ${kbd('shift')} sneller · ${kbd(' ')} omhoog · ${kbd('control')} omlaag · ${kbd('backspace')} stoppen`;
+// De hulp onder de heli-HUD met glyphs (#151, ui-taal.md:77: nooit een toets als tekst). Een
+// keycap met data-gk laat glyphs.js de knop van de controller zien zodra die in de hand ligt;
+// de tokens zijn de namen die controls.js kent, de situatie blijft heli (PAD_MAPS).
+const TOKEN = { ' ': 'SPATIE', control: 'CTRL', shift: 'SHIFT', backspace: 'BACKSPACE' };
+const key = (k) => {
+  const label = k === 'backspace' ? '⌫' : keyName(physicalKey(getSettings().keyBinds, k));
+  return `<span class="hud-key" data-gk="${TOKEN[k] || k.toUpperCase()}">${label}</span>`;
+};
+const helpHtml = () => `${key('w')}${key('s')}${key('a')}${key('d')} vliegen · ${key('shift')} sneller · ${key(' ')} omhoog · ${key('control')} omlaag · ${key('backspace')} stoppen`;
 
 // A heli run: one flight in Rotor Roelf's demo heli (the Wieken Wubbo,
 // heliflight.js, flown with the normal heli keys) with a plan on top
@@ -296,7 +302,7 @@ body.heli-run #hud .hud-speedo, body.heli-run #hud .hud-route, body.heli-run #hu
 #heli-hud .hh-say { position: absolute; left: 50%; bottom: 27%; transform: translateX(-50%); width: max-content; max-width: min(640px, 90vw); padding: 6px 14px; background: rgba(12,12,12,0.66); border-radius: 6px; font: 18px/1.3 'Arial Narrow', Arial, sans-serif; text-align: center; opacity: 0; transition: opacity .2s; }
 #heli-hud .hh-say.on { opacity: 1; }
 #heli-hud .hh-help { position: absolute; left: 50%; bottom: 7%; transform: translateX(-50%); max-width: 92vw; font: 15px 'Arial Narrow', Arial, sans-serif; letter-spacing: .5px; padding: 6px 14px; background: rgba(20,16,6,0.6); border-radius: 6px; transition: opacity .6s; text-align: center; }
-#heli-hud .hh-help kbd { display: inline-block; min-width: 12px; margin: 0 2px; padding: 1px 6px; border: 1px solid rgba(240,237,228,0.6); border-bottom-width: 3px; border-radius: 5px; background: rgba(255,255,255,0.08); color: #f3efe4; font: bold 12px/1.2 system-ui, sans-serif; text-align: center; }
+#heli-hud .hh-help kbd, #heli-hud .hh-help .hud-key { display: inline-block; min-width: 12px; margin: 0 2px; padding: 1px 6px; border: 1px solid rgba(240,237,228,0.6); border-bottom-width: 3px; border-radius: 5px; background: rgba(255,255,255,0.08); color: #f3efe4; font: bold 12px/1.2 system-ui, sans-serif; text-align: center; }
 #heli-hud .hh-fade { position: absolute; inset: 0; background: #000; opacity: 0; transition: opacity .6s; }
 #heli-hud .hh-fade.on { opacity: 1; }
 #heli-hud .hh-fade span { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 30px; letter-spacing: 3px; color: #f0c21a; white-space: nowrap; }
@@ -325,7 +331,7 @@ function initHudDom() {
     <div class="hh-catch" hidden><div class="lbl"></div><div class="bar"><i></i></div><div class="tips"></div></div>
     <div class="hh-msg"></div>
     <div class="hh-say" role="status"></div>
-    <div class="hh-help"></div>
+    <div class="hh-help" data-pad-ctx="heli"></div>
     <div class="hh-fade"><span></span></div>
     <div class="hh-card"><h2></h2><p class="sub"></p><div class="medal"></div><p class="rows"></p></div>`;
   document.body.appendChild(root);
@@ -837,6 +843,8 @@ export function updateHeliRun(dt, w) {
   r.phaseT += dt;
   P.stepBalloon(r.b, dt);
   animateBurner(dt);
+  // Stoppen: Backspace (⌫) of D-pad rechts op de pad (PAD_MAPS.heli). B kan hier niet óók
+  // stoppen: B daalt in de heli (controls.js), dus dat is een keuze voor de speler (#151).
   if (w.input.wasPressed('backspace') && r.phase !== 'result') {
     w.input.consume('backspace');
     w.addMessage('Vlucht afgebroken: Rotor Roelf haalt zijn heli op', 3);

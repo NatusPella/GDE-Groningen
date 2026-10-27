@@ -196,7 +196,8 @@ export function glyphFaceSlot(slot, family) { return nintendoSwap(slot, family);
 // keys); triggers 'drive' make RT/LT the gas and the brake.
 // X hengelt in een stilliggende boot (D-pad omlaag in PAD_MAPS.vehicle/skutsje, #495); te voet blijft X
 // de tweede gebruikstoets (F), want dat is ook "uitstappen" bij de attracties (reuzenrad) en de
-// aanraakbediening heeft er een F-knop voor (scripts/reuzenrad_invoer_test.mjs).
+// aanraakbediening heeft er een F-knop voor (scripts/reuzenrad_invoer_test.mjs). Sta je aan de waterkant,
+// dan geldt de hengelsituatie hieronder en hengelt X (#151).
 const FOOT = {
   a: ' ', b: 'control', x: 'f', y: 'e', lb: '@wheel-', rb: '@wheel+', lt: '@aim', rt: '@fire',
   ls: 'shift', rs: 'tab', up: 'n', down: 'k', left: 'o', right: 'r', view: 'm', start: 'escape', stick: 'move',
@@ -221,7 +222,19 @@ export const PAD_MAPS = {
   pigeon: { a: ' ', b: 'control', x: 'f', y: 'e', lb: 'c', rb: 'q', lt: 'shift', rt: '@fire', ls: 'shift', rs: null, up: null, down: 'x', left: 'o', right: null, view: 'm', start: 'escape', stick: 'move' },
   train: { a: ' ', b: 'backspace', x: 'h', y: 'e', lb: 'k', rb: 'g', lt: 's', rt: 'w', ls: 'o', rs: null, up: null, down: 't', left: 'o', right: null, view: 'm', start: 'escape', stick: 'move' },
   // carbid, botsauto's, padel and the other games on foot: B stops the game
-  minigame: { ...FOOT, b: 'backspace', x: 'f', lt: '@aim', rt: '@fire', stick: 'move' },
+  // de bijbaan- en tekstpanelen (stagechoice, rechtbank, boa, snackbar: #151) lezen de cijfers 1-4, Tab en
+  // Backspace: de D-pad kiest het antwoord, B stopt, de rest blijft de voetindeling
+  minigame: { ...FOOT, b: 'backspace', x: 'f', lt: '@aim', rt: '@fire', up: '1', right: '2', down: '3', left: '4', stick: 'move' },
+  // Samen spelen (#151): een vraag of uitslag op het scherm leest J en N (wedstrijd, opdracht, overname,
+  // stemming). A is ja, B is nee; de rest blijft de voetindeling zodat je ondertussen kunt doorlopen. De
+  // D-pad doet hier niets: N op de D-pad omhoog zou de radio aanzetten.
+  coopvraag: { ...FOOT, a: 'j', b: 'n', up: null, down: null, left: null, right: null },
+  // vrij hengelen aan de waterkant (#151): de hint onderin zegt I, dus X hengelt zolang je daar staat;
+  // Y blijft instappen en gebruiken (E)
+  hengelen: { ...FOOT, x: 'i' },
+  // de trekker op het erf (#151): G de aftakas (D-pad omhoog), T de hef (LB), X ontkoppelen (B) en R tanken
+  // (D-pad omlaag). Een landbouwmachine heeft geen sirene, dus die plek is vrij; verder rijdt hij als een auto.
+  trekker: { a: ' ', b: 'x', x: 'h', y: 'e', lb: 't', rb: '@fire', lt: '@brake', rt: '@gas', ls: 'shift', rs: 'q', up: 'g', down: 'r', left: '[', right: ']', view: 'm', start: 'escape', stick: 'steer' },
   // the carillon: eight bells on the D-pad and the face buttons (A S D F J K L ;), the bumpers pick a tune
   klokken: { a: ';', b: 'l', x: 'j', y: 'k', lb: 'q', rb: 'e', lt: 'backspace', rt: ' ', ls: null, rs: null, up: 'f', down: 's', left: 'a', right: 'd', view: 'm', start: 'escape', stick: 'arrows' },
   // the pancake ship: A B X Y serve the four toppings (Q W E R), the bumpers and LT pick the pans (1 2 3), RT stops
