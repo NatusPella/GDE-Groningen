@@ -148,9 +148,9 @@ skatejargon; zelfde keuze als B2 — vertalen of allowlisten.
 **B4** `game/js/geheimen.js:145` (`fillText('Made with', …)`) en `:430` citeert
 die tekst in de ontdekt-regel. De grap werkt ook in het Nederlands.
 
-**B5** `game/js/cooppvpwereld.js` en `game/js/coopwedstrijd.js` zijn op 25-10
+**B5** `game/js/multiplayerpvpwereld.js` en `game/js/multiplayerwedstrijd.js` zijn op 25-10
 toegevoegd, dus na de regel dat nieuwe code "multiplayer" zegt;
-`game/js/coophostwisselui.js` is van 23-10. De UI zegt al netjes "Samen spelen".
+`game/js/multiplayerhostwisselui.js` is van 23-10. De UI zegt al netjes "Samen spelen".
 Hernoemen mag per bestand zodra je het toch aanraakt (met imports en tests mee);
 geen haast, wel bijhouden.
 

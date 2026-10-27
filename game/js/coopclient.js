@@ -39,11 +39,11 @@ export function bodyFor(world, me, slot) {
 // story.js kijkt naar world.coop.fixedChars om de verhaalwissel niet te dubbelen.
 export function setFixedCharacters(world, me, char = null) {
   const mine = mySlotOf(me);
-  const eigen = world.player;
-  const rol = eigenVerhaalrol(eigen);
-  if (eigen) eigen.character = rol;
+  const ik = world.player;               // het eigen lichaam op deze client (#500: één plek, niet vier keer world.player)
+  const rol = eigenVerhaalrol(ik);
+  if (ik) ik.character = rol;
   if (world.companion) world.companion.character = andereVerhaalrol(rol);
-  if (eigen) eigen.coopChar = avatarVan({ ...(char ? { char } : {}), slot: mine }, mine).char;
+  if (ik) ik.coopChar = avatarVan({ ...(char ? { char } : {}), slot: mine }, mine).char;
   if (world.coop) world.coop.fixedChars = true;
 }
 
@@ -51,7 +51,6 @@ export function setFixedCharacters(world, me, char = null) {
 export function applyHostState(world, me, sample, roster = null, dt = 0) {
   if (!sample) return 0;
   let n = 0;
-  const eigen = world.player;
   const zitters = []; world.coopZitters = zitters; // wie in een voertuig zit, voor coopzitten3d.js (#434)
   for (const p of sample.players) {
     if (!Number.isFinite(p.x) || !Number.isFinite(p.y)) continue;
@@ -64,9 +63,9 @@ export function applyHostState(world, me, sample, roster = null, dt = 0) {
     const vx = dt > 0 && Number.isFinite(b.x) ? (p.x - b.x) / dt : 0, vy = dt > 0 && Number.isFinite(b.y) ? (p.y - b.y) / dt : 0;
     const ok = Math.hypot(vx, vy) < 40; // een sprong (teleport) is geen rennen
     b.x = p.x; b.y = p.y; b.angle = p.angle;
-    if (b !== eigen) b.coopVoertuig = !!p.inVeh; // wie in een voertuig zit, tekenen we niet los: coopzitten3d.js zet hem op zijn stoel in het voertuig (#372, #434)
+    if (b !== world.player) b.coopVoertuig = !!p.inVeh; // wie in een voertuig zit, tekenen we niet los: coopzitten3d.js zet hem op zijn stoel in het voertuig (#372, #434)
     b.z = !p.inVeh && Number.isFinite(p.z) ? p.z : 0; b.crouching = !!p.crouch && !p.inVeh; // springen en bukken (#434)
-    if (b !== eigen) { // wat de gastheer van JOUW lichaam weet is niet leidend voor je eigen scherm; een ander lichaam wel (#369)
+    if (b !== world.player) { // wat de gastheer van JOUW lichaam weet is niet leidend voor je eigen scherm; een ander lichaam wel (#369)
       if (Number.isFinite(p.health)) b.health = Math.max(0, Math.min(255, Math.round(p.health)));
       const neer = !!p.down;
       if (neer && !b.coopDown) b.coopVal = world.time || 0; // net neer: vanaf hier achterover vallen en blijven liggen (zoals coopextra3d.js bij een voetganger)

@@ -5759,16 +5759,6 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-16:TP=-1.5:LRA=11:linear=true (two-pass),aresample=24000,asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
-"Tammo|Die vinden we in de winter wel terug.": {
-"src": "h17-pass-eieren_2_t_645fd3.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"lang": "gro",
-"voice": "Orus",
-"input": "Dij vinden wie in de winter wel terug.",
-"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: resigned.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-16:TP=-1.5:LRA=11:linear=true (two-pass),aresample=24000,asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-05"
-},
 "Tammo|Die weg is sneller dan wij.": {
 "src": "h9-fail_0_t_4f7bbd.mp3",
 "model": "google/gemini-3.8-flash-tts",

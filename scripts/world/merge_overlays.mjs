@@ -32,14 +32,69 @@ const asSections = (blob) => blob.sections.map((s) => {
 });
 
 // de stadstegel met de rijen van zijn overlay erachter (per soort sectie één sectie; een soort die alleen de overlay heeft komt erbij)
+//
+// De bomen van de overlay zijn nooit door de boomopruiming van de stad gegaan: die draait over de rijen van de stad,
+// en deze rijen komen er pas hier achter. Een boom die daardoor op een stadse rijbaan staat, gaat er hier alsnog uit
+// (#491; scripts/treeclear_test.mjs). Alleen de rijen van de overlay worden bekeken — die van de stad zijn al schoon.
+const CARS = new Set(['major', 'normal', 'minor', 'service']);
+const CELL = 50;
+
+function roadSegments(rows) {
+  const grid = new Map();
+  const add = (x, y, seg) => {
+    const k = Math.floor(x / CELL) + ',' + Math.floor(y / CELL);
+    let a = grid.get(k);
+    if (!a) grid.set(k, a = []);
+    a.push(seg);
+  };
+  for (const r of rows || []) {
+    if (!CARS.has(r.cat) || r.bridge || r.z || r.tunnel || !r.pts || r.pts.length < 2) continue;
+    const hw = (r.width || 5) / 2;
+    for (let i = 0; i < r.pts.length - 1; i++) {
+      const a = r.pts[i], b = r.pts[i + 1];
+      const seg = [a[0], a[1], b[0], b[1], hw];
+      add(Math.min(a[0], b[0]), Math.min(a[1], b[1]), seg);
+      add(Math.max(a[0], b[0]), Math.max(a[1], b[1]), seg);
+    }
+  }
+  return grid;
+}
+
+function treeOnRoad(x, y, grid) {
+  const cx = Math.floor(x / CELL), cy = Math.floor(y / CELL);
+  for (let dx = -1; dx <= 1; dx++) {
+    for (let dy = -1; dy <= 1; dy++) {
+      for (const [ax, ay, bx, by, hw] of grid.get((cx + dx) + ',' + (cy + dy)) || []) {
+        const vx = bx - ax, vy = by - ay, L2 = vx * vx + vy * vy || 1e-9;
+        const t = Math.max(0, Math.min(1, ((x - ax) * vx + (y - ay) * vy) / L2));
+        if (Math.hypot(ax + vx * t - x, ay + vy * t - y) < hw + 0.15) return true;
+      }
+    }
+  }
+  return false;
+}
+
 export function mergeBlobs(city, overlay) {
   const sections = asSections(city);
+  const overlayStart = new Map(); // sectietype -> index waar de overlayrijen beginnen
   for (const o of asSections(overlay)) {
     if (!o.rows) throw new Error(`overlaysectie ${o.type} is geen tabel`);
     const s = sections.find((q) => q.type === o.type);
     if (!s) sections.push(o);
     else if (!s.rows) throw new Error(`stadssectie ${o.type} is geen tabel`);
-    else s.rows = s.rows.concat(o.rows);
+    else { overlayStart.set(o.type, s.rows.length); s.rows = s.rows.concat(o.rows); }
+  }
+  // de bomen van de overlay die op een rijbaan van deze tegel staan, gaan eruit
+  const trees = sections.find((s) => s.type === G.SECTION.TREES);
+  const roads = sections.find((s) => s.type === G.SECTION.ROADS);
+  if (trees && roads && trees.rows.length) {
+    const from = overlayStart.has(G.SECTION.TREES) ? overlayStart.get(G.SECTION.TREES) : trees.rows.length;
+    const grid = roadSegments(roads.rows);
+    if (grid.size) {
+      const keep = trees.rows.slice(0, from);
+      const kept = trees.rows.slice(from).filter((t) => !(t && t.p && t.p[0] && treeOnRoad(t.p[0][0], t.p[0][1], grid)));
+      trees.rows = keep.concat(kept);
+    }
   }
   return G.encodeBlob({ i: city.i, j: city.j, flags: city.flags, builder: city.builder, sections });
 }

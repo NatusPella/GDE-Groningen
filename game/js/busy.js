@@ -17,7 +17,7 @@ export function registerBusyProbe(reason, fn) { probes[reason] = fn; }
 
 // Loopt er een eigen baan van een gast (#492)? Dat is geen reden in BUSY_ALL: de rest van de wereld
 // draait gewoon door, maar een wedstrijd of opdracht start niet naast een gastenbaan. sidejobs.js meldt
-// het hier aan, zodat de poorten (coopwedstrijd.js, coopmissie.js) bij dezelfde vraag blijven.
+// het hier aan, zodat de poorten (multiplayerwedstrijd.js, coopmissie.js) bij dezelfde vraag blijven.
 export const gastSideJob = (w) => !!(probes.gastSideJob && probes.gastSideJob(w));
 
 const FLAGS = {

@@ -239,12 +239,15 @@ ring, reduced motion respected. Everything inside a `.gm-stage` is laid out in
 the mockups' 1920x1080 px and zoomed by `--mz` (`--ui` / 1.2), so it scales with
 "Grootte interface" and works from 1280x720 to 4K.
 
-**Pause menu structure** (`pausemenu.js` `SECTIONS`, `RAIL_GROUPS`, `SUBTABS`). A fixed rail on the left never changes shape; the sheet beside it shows one section. Three groups:
-**Spel** (tabs Overzicht, Samen spelen, Spelers, Opslaan & stoppen, Spelen, Camera & richten, Hints & uitleg), **Verhaal** (Opdrachten, Personages, Aanwijzingen, Veroverd), **Loopbanen** (vakken, bijbanen, Vissen, Boerderij), **Activiteiten** (Alles, Dichtbij) /
-**Kaart** (full screen, no rail), **Spullen**, **Garage**, **Prestaties**, **Foto's** / **Instellingen** (Beeld, Geluid & ondertitels, Besturing, Interface, Toegankelijkheid, Foutrapport, Cheats; Besturing and Cheats also open as their own sections).
+**Pause menu structure** (`pausemenu.js` `SECTIONS`, `RAIL_GROUPS`, `SUBTABS`; the canonical table is in [.specs-fire/standards/ui-taal.md](.specs-fire/standards/ui-taal.md), "Menu's"). A fixed rail on the left never changes shape; the sheet beside it shows one section. Three groups:
+**Spel** (tabs Overzicht, Samen spelen, Opslaan & stoppen, Spelen, Camera & richten, Hints & uitleg), **Verhaal** (Opdrachten, Personages, Aanwijzingen, Veroverd), **Loopbanen** (the vakken with their side jobs), **Activiteiten** (Alles, Dichtbij) /
+**Kaart** (full screen, no rail), **Spullen**, **Garage**, **Prestaties**, **Foto's** / **Instellingen** (Beeld, Geluid & ondertitels, Besturing, Interface, Toegankelijkheid, Foutrapport, Cheats), **Cheats** (its own place in the rail since #435).
+**Visboek** and **Boerderij** hang under Loopbanen and **Besturing** (Toetsenbord en muis, Controller, Toetsenoverzicht, Hulp) under Instellingen; each opens as its own screen and goes back to its parent.
+**Samen spelen** is a tab of Spel with its own two tabs, Samen spelen and Spelers; the players list only exists while you play together (#434).
 Spel > Overzicht is home: the menu opens there, Esc from another section goes back to it, then closes; from M or the phone Esc closes at once. A section that belongs under another goes back to its parent.
 The footer shows two to four hints per section (`HINTS`: keys or controller glyphs, clickable). Before a game has started only Spel, Instellingen and Besturing exist.
-**Spelers** shows only in a Samen spelen session. Settings use switches, sliders and previous/value/next pickers; one setting per row with a line of explanation under it, rare options folded behind "Meer opties".
+**Q** and **E** switch the section's tabs (Garage and Prestaties switch their own category tabs), and only a screen without any tabs goes to the previous or next section; `[` and `]` (the controller's triggers) switch tabs too. The Q/E row in the Besturing table still promises "vorige of volgende sectie" (#480, [docs/DESIGN-SCHULD.md](docs/DESIGN-SCHULD.md)).
+Settings use switches, sliders and previous/value/next pickers; one setting per row with a line of explanation under it, rare options folded behind "Meer opties".
 A section has one focal point, at most 125 words (a choice screen) or 270 (a reference screen), pictures before words. In a session the rule is that the menu pauses only the player who opened it
 (see "Samen spelen in the design"); the code does not fully do that yet, it is in the debt list.
 
@@ -325,8 +328,17 @@ The wording, the players list (hold Tab), passive mode, Meedoen?, host handover 
 ## Known deviations and open UX debt
 
 The honest list (24 October) is [docs/DESIGN-SCHULD.md](docs/DESIGN-SCHULD.md). The ones that matter most: the map's action bar and its footer hint are not yet seen in the game (#445) and use an 11 px label;
-the mouse and pointer lock on several monitors (#435); a number of screens still use hexes of their own (choice panel, minigame board, card kinds, the players list); the Samen spelen screens do not use the shared menu set;
+the mouse and pointer lock on several monitors (#435); the Samen spelen screens do not use the shared menu set;
 messages that are longer than the 14-word budget; when the opener pauses, the world stops for the guests too; and the players list has no way on touch. Fix a row, delete the row.
+
+### Status colours and identity colours
+
+Two kinds of colour, and they never mix (#479):
+
+- **Status** — danger, ok, mission, missionActive, user, job, care, police — always comes from `--mk-*`, set by `markerColors()` (`game/js/a11y.js`) from `PALETTES`. That is what makes the three colour-blind modes work. The HUD cards (`hudcards.css`), the choice panel (`choicepanel.js`) and the minigame board (`minigamekit.js`) read them with a fallback: `var(--mk-danger, #d93f3f)`.
+- **Identity** — the accent of one minigame — is a single hex in the `MINIGAMES` table of `minigamekit.js`, one per game, and it is never used for status. It says *which* game you are in, not *how it goes*.
+
+`scripts/hud_kleuren_test.mjs` enforces both: a hex outside a `var()` fallback, the text/chrome colours or that one accent table fails the test.
 
 ## New UI checklist
 

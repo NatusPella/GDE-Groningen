@@ -2,8 +2,8 @@
 //   node scripts/test_all.mjs [--fase=licht|zwaar|electron|alles] [--rapport=<map>]
 //        [--only=<tekst>] [--jobs=2] [--test-timeout=120] [--issues [--create]] [--force] [--locks=<map>] [--stage [--cache=<map>]] [--list]
 // Fasen (standaard licht):
-//   licht     module-check, import_check, voice_coverage, text_audit, dode-code-bewaking en alle
-//             scripts/*_test.mjs (met duur en tijdslimiet; import_cycles_test bewaakt de cycli)
+//   licht     module-check, import_check, voice_coverage, text_audit, spec_check, de player-singleton-audit,
+//             dode-code-bewaking en alle scripts/*_test.mjs (met duur en tijdslimiet; import_cycles_test bewaakt de cycli)
 //   zwaar     de wereldchecks en audits (ring_probe, seat_audit, province_test, drive_audit, ...)
 //   electron  smoke-run, verhaaltest, geocheck, spelbot-sweeps en de beeldrondes, met beeldchecks
 // Uitvoer in <rapport>/<tijdstempel>/: fase-<naam>.json|md, rapport.json|md (samenvatting bovenaan),
@@ -145,6 +145,8 @@ async function faseLicht(prev) {
     ['undef_check', ['scripts/undef_check.mjs']],
     ['voice_coverage', ['scripts/voice_coverage.mjs', '--quiet']],
     ['text_audit', ['scripts/text_audit.mjs']],
+    ['player_singleton_audit', ['scripts/player_singleton_audit.mjs']],
+    ['spec_check', ['scripts/spec_check.mjs']],
   ].filter(([id]) => wilDit(id));
   for (const [id, a] of losse) {
     const r = await runCmd(process.execPath, a, { ms: TEST_MS });
@@ -218,6 +220,18 @@ const ZWAAR = [
   // (geen watergat van het vaarnet over een gebouw, #362)
   ['gaten_gebouwen_audit', 'scripts/world/gaten_gebouwen_audit.mjs', ['--max=0'], 900, true],
   ['bridge_province_test', 'scripts/bridge_province_test.mjs', [], 900, true],
+  // De audits die tot #487 door niemand werden aangeroepen; clearance en invoer zijn
+  // sinds #494 en #495 groen en horen er nu bij.
+  ['clearance_audit', 'scripts/clearance_audit.mjs', [], 600, false],
+  ['pad_input_audit', 'scripts/pad_input_audit.mjs', [], 300, false],
+  ['markt_audit', 'scripts/markt_audit.mjs', [], 300, false],
+  ['mesh_audit', 'scripts/mesh_audit.mjs', [], 600, false],
+  ['missiongoals_audit', 'scripts/missiongoals_audit.mjs', [], 300, false],
+  ['overhang_audit', 'scripts/overhang_audit.mjs', [], 300, false],
+  ['passage_audit', 'scripts/passage_audit.mjs', [], 600, false],
+  ['swim_audit', 'scripts/swim_audit.mjs', [], 300, false],
+  ['kerk_audit', 'scripts/world/kerk_audit.mjs', [], 600, true],
+  ['hedge_tile_audit', 'scripts/world/hedge_tile_audit.mjs', [], 600, true],
 ];
 
 async function faseZwaar() {

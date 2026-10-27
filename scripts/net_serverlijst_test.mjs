@@ -1,7 +1,7 @@
 // Samen spelen (#438): de pure kern van de openbare sessielijst (game/js/net/serverlijst.js) en de stappen in lobby.js.
 // Geen netwerk: de aankondigingen zijn gewone teksten, de klok is een getal.
 import assert from 'node:assert/strict';
-import { LIJST, STANDAARD_NAAM, schoonNaam, verboden, codeer, decodeer, maakId, Serverlijst, maakAankondiger } from '../game/js/net/serverlijst.js';
+import { LIJST, STANDAARD_NAAM, schoonNaam, verboden, codeer, decodeer, maakId, Serverlijst, maakAankondiger, filterEnSorteer, leeftijdTekst, leeftijdLang, SORTERINGEN } from '../game/js/net/serverlijst.js';
 import { crc16 } from '../game/js/net/pairing.js';
 import { makeRoom } from '../game/js/net/sigcrypto.js';
 import { PROTO } from '../game/js/net/protocol.js';
@@ -130,14 +130,17 @@ t('misbruik: dezelfde kamer onder steeds een ander id telt één keer', () => {
   for (let i = 0; i < 30; i++) zend(l, { id: 'vervalser' + String(i).padStart(2, '0'), naam: 'Gratis spel' + i });
   assert.equal(l.lijst().length, 1);
 });
-t('misbruik: een vloed van nieuwe afzenders wordt afgekapt (60 per minuut) en de lijst toont hoogstens 20', () => {
+t('misbruik: een vloed van nieuwe afzenders wordt afgekapt (60 per minuut); de lijst bewaart alles en de pagina toont 20', () => {
   const l = lijst(); let toe = 0, af = 0;
   for (let i = 0; i < 100; i++) {
     const r = zend(l, { id: 'vloed' + String(i).padStart(5, '0'), room: makeRoom((() => { let s = i + 1; return () => (s = (s * 16807) % 2147483647) / 2147483647; })()), naam: 'Spel ' + i });
     if (r.ok) toe++; else af++;
   }
   assert.equal(toe, 60); assert.equal(af, 40); assert.equal(l.afgewezen.vloed, 40);
-  assert.equal(l.lijst().length, LIJST.maxGetoond);
+  assert.equal(l.lijst().length, 60, 'de lijst zelf levert alles wat niet verlopen is');
+  assert.equal(l.zoek().rijen.length, LIJST.maxGetoond, 'standaard één pagina');
+  assert.equal(l.zoek(l.klok.now, { aantal: 40 }).rijen.length, 40);
+  assert.equal(l.zoek(l.klok.now, { aantal: LIJST.maxVolgen }).rijen.length, 60);
   l.klok.now += 61000; assert.equal(l.items.size > 0, true);
   const r = zend(l, { id: 'laterlater1', room: 'Z2B3C4D5E6', naam: 'Later' }); assert.equal(r.ok, true, 'na een minuut kan er weer iemand bij');
 });
@@ -158,6 +161,68 @@ t('melden: de sessie verdwijnt uit jouw lijst en komt niet terug bij de volgende
   assert.deepEqual(l.lijst().map((x) => x.naam), ['Andere']);
   l.klok.now += 15000; zend(l, {}); assert.deepEqual(l.lijst().map((x) => x.naam), ['Andere'], 'blijft verborgen');
   assert.deepEqual(lijst({ verborgen: ['abcd1234ef'] }).lijst(), []);
+});
+// ----- de query (#464): leeftijd, zoeken, filters, sorteren en de pagina
+const rij = (o = {}) => ({ id: 'aaaaaaaaaa', naam: 'Zomeravond', spelers: 2, max: 4, versie: '0.46.0', room: ROOM, anders: false, vol: false, kan: true, gezien: T0, ouderdom: 0, dim: false, ...o });
+const rijen = () => [
+  rij({ id: 'aaaaaaaaaa', naam: 'Zomeravond', spelers: 2, max: 4, ouderdom: 1000, gezien: T0 - 1000 }),
+  rij({ id: 'bbbbbbbbbb', naam: 'Groningen Groen', spelers: 4, max: 4, vol: true, kan: false, ouderdom: 25000, gezien: T0 - 25000 }),
+  rij({ id: 'cccccccccc', naam: 'Oud spel', spelers: 1, max: 4, anders: true, kan: false, ouderdom: 40000, gezien: T0 - 40000 }),
+  rij({ id: 'dddddddddd', naam: 'Nachtrit', spelers: 3, max: 4, ouderdom: 10000, gezien: T0 - 10000 }),
+];
+t('leeftijd: net, seconden, minuten en uren, ook in gewone taal voor de schermlezer', () => {
+  assert.deepEqual([0, 4999, 5000, 59000, 60000, 120000, 3600000].map(leeftijdTekst), ['net', 'net', '5 s', '59 s', '1 min', '2 min', '1 uur']);
+  assert.deepEqual([0, 1000, 5000, 12000, 60000, 7200000].map(leeftijdLang), ['net gezien', 'net gezien', '5 seconden geleden', '12 seconden geleden', '1 minuut geleden', '2 uur geleden']);
+  assert.equal(leeftijdTekst(undefined), ''); assert.equal(leeftijdLang(NaN), '');
+});
+t('lijst: elke regel heeft een leeftijd; de laatste 10 s voor verloop is gedimd', () => {
+  const l = lijst(); zend(l, {});
+  assert.equal(l.lijst(T0 + 12000)[0].ouderdom, 12000); assert.equal(l.lijst(T0 + 12000)[0].dim, false);
+  assert.equal(l.lijst(T0 + 34999)[0].dim, false); assert.equal(l.lijst(T0 + 35000)[0].dim, true, 'de laatste 10 s');
+  assert.equal(l.lijst(T0 + 45000).length, 1); assert.equal(l.lijst(T0 + 45001).length, 0);
+});
+t('zoeken: hoofdletterongevoelig, elk woord moet in de naam staan, leeg toont alles', () => {
+  const q = (zoek) => filterEnSorteer(rijen(), { zoek }).rijen.map((x) => x.naam);
+  assert.deepEqual(q(''), ['Zomeravond', 'Nachtrit', 'Groningen Groen', 'Oud spel'], 'standaard: aansluitbaar eerst, dan nieuwste');
+  assert.deepEqual(q('ZOMER'), ['Zomeravond']);
+  assert.deepEqual(q('gro'), ['Groningen Groen'], 'een stuk van een woord telt');
+  assert.deepEqual(q('zomer avond'), ['Zomeravond'], 'beide woorden in dezelfde naam');
+  assert.deepEqual(q('zomer gron'), [], 'elk woord moet in dezelfde regel staan');
+  assert.deepEqual(q('  '), q(''), 'spaties alleen is leeg');
+});
+t('filters: aansluitbaar, favorieten, vers, verberg onbruikbaar, vrij en vol', () => {
+  const namen = (o) => filterEnSorteer(rijen(), o).rijen.map((x) => x.naam);
+  assert.deepEqual(namen({ alleenAansluitbaar: true }), ['Zomeravond', 'Nachtrit']);
+  assert.deepEqual(namen({ favorieten: ['cccccccccc'], alleenFavorieten: true }), ['Oud spel']);
+  assert.deepEqual(namen({ alleenVers: true }), ['Zomeravond', 'Nachtrit'], 'jonger dan 20 s');
+  assert.deepEqual(namen({ verbergOnbruikbaar: true }), ['Zomeravond', 'Nachtrit']);
+  assert.deepEqual(namen({ plek: 'vrij' }), ['Zomeravond', 'Nachtrit', 'Oud spel']);
+  assert.deepEqual(namen({ plek: 'vol' }), ['Groningen Groen']);
+  assert.deepEqual(namen({ alleenAansluitbaar: true, alleenVers: true }), ['Zomeravond', 'Nachtrit'], 'filters werken samen');
+  assert.equal(filterEnSorteer(rijen(), { alleenAansluitbaar: true, plek: 'vol' }).totaal, 0);
+});
+t('sorteren: standaard, spelers, naam en laatst gezien; favorieten staan bovenaan', () => {
+  const namen = (sortering, favorieten = []) => filterEnSorteer(rijen(), { sortering, favorieten }).rijen.map((x) => x.naam);
+  assert.deepEqual(namen('standaard'), ['Zomeravond', 'Nachtrit', 'Groningen Groen', 'Oud spel']);
+  assert.deepEqual(namen('spelers'), ['Groningen Groen', 'Nachtrit', 'Zomeravond', 'Oud spel']);
+  assert.deepEqual(namen('naam'), ['Groningen Groen', 'Nachtrit', 'Oud spel', 'Zomeravond']);
+  assert.deepEqual(namen('gezien'), ['Zomeravond', 'Nachtrit', 'Groningen Groen', 'Oud spel']);
+  assert.deepEqual(namen('spelers', ['cccccccccc']), ['Oud spel', 'Groningen Groen', 'Nachtrit', 'Zomeravond']);
+  assert.equal(filterEnSorteer(rijen(), { favorieten: ['cccccccccc'] }).rijen[0].naam, 'Oud spel', 'favoriet bovenaan');
+  assert.equal(filterEnSorteer(rijen(), { sortering: 'onbekend' }).rijen[0].naam, 'Zomeravond', 'een onbekende sortering valt terug op standaard');
+  assert.deepEqual(SORTERINGEN, ['standaard', 'spelers', 'naam', 'gezien']);
+});
+t('de pagina: meer dan 20 regels blijven bereikbaar, in stappen en met een eigen begin', () => {
+  const veel = Array.from({ length: 57 }, (_, i) => rij({ id: 'x' + String(i).padStart(9, '0'), naam: 'Spel ' + String(i).padStart(2, '0'), ouderdom: i * 1000, gezien: T0 - i * 1000 }));
+  const q = (o) => filterEnSorteer(veel, o);
+  assert.deepEqual([q({}).rijen.length, q({}).totaal, q({}).alles], [57, 57, 57], 'de pure stap levert alles; de pagina kiest de UI');
+  assert.equal(q({ aantal: LIJST.maxGetoond }).rijen.length, 20);
+  assert.equal(q({ aantal: 40 }).rijen.length, 40);
+  assert.equal(q({ aantal: LIJST.maxVolgen }).rijen.length, 57, 'alles wat er is');
+  assert.deepEqual(q({ aantal: 20, vanaf: 40 }).rijen.map((x) => x.naam), ['Spel 40', 'Spel 41', 'Spel 42', 'Spel 43', 'Spel 44', 'Spel 45', 'Spel 46', 'Spel 47', 'Spel 48', 'Spel 49', 'Spel 50', 'Spel 51', 'Spel 52', 'Spel 53', 'Spel 54', 'Spel 55', 'Spel 56']);
+  const leeg = filterEnSorteer([], {});
+  assert.deepEqual([leeg.rijen, leeg.totaal, leeg.alles], [[], 0, 0], 'een lege lijst is geen fout');
+  assert.equal(filterEnSorteer(veel, { alleenVers: true }).totaal, 21, 'de leeftijd telt per regel');
 });
 t('de host: maakAankondiger levert een nieuwe tekst met de stand van dat moment, en niets zonder kamer of spelers', () => {
   let sp = { spelers: 1, max: 4 }, room = ROOM, nu = T0;
@@ -236,6 +301,26 @@ t('lobby: Openbare sessies: eerst toestemming (geen verbinding), dan de lijst, d
   assert.equal(reduce(s, { t: 'lijst-kies', i: 9 }).step, 'lijst');
   assert.equal(reduce(s, { t: 'lijst-terug' }).step, 'start');
   assert.equal(reduce(createLobby({ rtc: false }), { t: 'lijst-vraag' }).step, 'start', 'zonder directe verbinding kan het niet');
+});
+t('lobby: de query in de stand (#464): zoeken, filters, sorteren, sterren, Meer laden tot 200 en filters wissen', () => {
+  let s = reduce(createLobby({ rtc: true, favorieten: ['aaaaaaaaaa'] }), { t: 'lijst-vraag' }); s = reduce(s, { t: 'lijst-go' });
+  assert.equal(s.lijstFavorieten[0], 'aaaaaaaaaa', 'favorieten komen mee uit de opslag');
+  s = reduce(s, { t: 'lijst-zoek', tekst: '  Zomer  ' }); assert.equal(s.lijstZoek, '  Zomer  ');
+  s = reduce(s, { t: 'lijst-filter', filter: 'alleenAansluitbaar' }); assert.equal(s.lijstFilters.alleenAansluitbaar, true);
+  s = reduce(s, { t: 'lijst-sorteer', sortering: 'naam' }); assert.equal(s.lijstSortering, 'naam');
+  assert.equal(reduce(s, { t: 'lijst-sorteer', sortering: 'onzin' }).lijstSortering, 'naam', 'een onbekende sortering verandert niets');
+  s = reduce(s, { t: 'lijst-plek', plek: 'vol' }); assert.equal(s.lijstFilters.plek, 'vol');
+  s = reduce(s, { t: 'lijst-plek', plek: 'vol' }); assert.equal(s.lijstFilters.plek, 'alle', 'nog een keer drukken wist de keuze');
+  s = reduce(s, { t: 'lijst-meer' }); assert.equal(s.lijstAantal, 40);
+  for (let i = 0; i < 12; i++) s = reduce(s, { t: 'lijst-meer' }); assert.equal(s.lijstAantal, LIJST.maxVolgen, 'tot 200, niet verder');
+  s = reduce(s, { t: 'lijst-ster', id: 'bbbbbbbbbb' }); s = reduce(s, { t: 'lijst-ster', id: 'aaaaaaaaaa' });
+  assert.deepEqual(s.lijstFavorieten, ['bbbbbbbbbb'], 'een ster aan en weer uit');
+  s = reduce(s, { t: 'lijst-filters-wissen' });
+  assert.deepEqual([s.lijstZoek, s.lijstAantal, s.lijstFilters.alleenAansluitbaar, s.lijstFilters.plek], ['', LIJST.maxGetoond, false, 'alle']);
+  // de gast die je was: de teller en de leeftijd staan op de regel, niet meer in één string gepropt
+  s = reduce(s, { t: 'lijst-data', lijst: [{ id: 'bbbbbbbbbb', naam: 'Zomeravond', spelers: 2, max: 4, versie: '0.46.0', room: ROOM, anders: false, vol: false, kan: true, gezien: T0, ouderdom: 9000 }] });
+  const v = view(s); assert.equal(v.lijstInfo.telling, '1 sessie'); assert.equal(v.sessies[0].leeftijd, '9 s');
+  assert.equal(v.lijstInfo.sorteringen.length, SORTERINGEN.length); assert.equal(v.lijstInfo.filters.alleenAansluitbaar, false);
 });
 t('lobby: met keuze gast uit het hoofdmenu en lijst begint de lobby bij de toestemming voor de lijst en gaat terug naar Aansluiten', () => {
   let s = createLobby({ rtc: true, keuze: ROLES.GAST, lijst: true });

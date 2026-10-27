@@ -14,7 +14,7 @@ import { gastWapenTik } from './coopwapen.js';
 import { openerNaam } from './coopplayers.js';
 import { updateActivitiesGast, tryActivityInteractGast } from './activities.js';
 import { getSettings } from './settings.js';
-import { wedGastTik, wedGastE, wedGastBaanTik } from './coopwedstrijd.js';
+import { wedGastTik, wedGastE, wedGastBaanTik } from './multiplayerwedstrijd.js';
 import { bijbaanGastE } from './coopbijbaan.js';
 import { missieGastE } from './coopglue.js';
 

@@ -44,8 +44,8 @@ export async function inputStamp() {
   stamps(path.join(ROOT, 'data/world'), () => true, out);
   stamps(path.join(ROOT, 'scripts/world'), (f) => f.endsWith('.json'), out);
   stamps(path.join(ROOT, 'game'), (f) => f.endsWith('.json') && !['stad.json', 'mapextras.json'].includes(f), out);
-  const { SRC_DIR, bufferDirs } = await import('./build_province.mjs');
-  for (const d of [SRC_DIR, ...bufferDirs(SRC_DIR)]) stamps(d, () => true, out);
+  const { SRC_DIR: PROV_SRC, bufferDirs: PROV_BUFFERS } = await import('./province_src.mjs');
+  for (const d of [PROV_SRC, ...PROV_BUFFERS(PROV_SRC)]) stamps(d, () => true, out);
   return out.join('\n');
 }
 

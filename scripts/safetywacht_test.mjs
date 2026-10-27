@@ -5,6 +5,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { REST_S, hangendeTeken, restMelding, restSleutel, telRest } from '../game/js/scenerest.js';
+import { cinematicLimit, CINE_MARGIN_S, CINE_MAX_S } from '../game/js/cinelimit.js';
 
 const lees = (f) => fs.readFileSync(new URL(`../game/js/${f}`, import.meta.url), 'utf8');
 let n = 0;
@@ -61,6 +62,23 @@ t('de treinreis ruimt de vlag op als de rit afbreekt', () => {
   assert.match(endRide, /w\.cinematicHidePlayers = false;[\s\S]*if \(!r \|\| !trip\) return;/, 'endRide wist de vlag voor de vroege terugkeer');
   const arrive = st.slice(st.indexOf('function arrive('), st.indexOf('function saveTrain(') > st.indexOf('function arrive(') ? st.indexOf('function saveTrain(') : st.length);
   assert.match(arrive, /w\.cinematicHidePlayers = false;[\s\S]{0,200}if \(!trip\) return;/, 'arrive wist de vlag ook zonder reis');
+});
+
+t('de waakhond kapt een lange treinrit niet na 150 s af', () => {
+  // een treinrit van 4 km duurt ongeveer 4 minuten en meldt drie keer die duur
+  // plus vier minuten; de oude vaste grens van 150 s kapte hem midden in de rit
+  // af (#496). Een scène die niet lang mag duren houdt de oude grens.
+  assert.equal(CINE_MARGIN_S, 20);
+  assert.equal(CINE_MAX_S, 150);
+  assert.equal(cinematicLimit({ duration: 960, long: true }), 980);
+  assert.equal(cinematicLimit({ duration: 960 }), 150, 'zonder long blijft de vaste grens');
+  assert.equal(cinematicLimit({ duration: 3 }), 23);
+  assert.equal(cinematicLimit({}), 30, 'zonder duur een korte lijn');
+  assert.equal(cinematicLimit(null), 30);
+  const s = lees('safety.js');
+  assert.match(s, /const limit = cinematicLimit\(c\);/);
+  assert.doesNotMatch(s, /CINE_MAX_S/, 'de grens staat in cinelimit.js, niet meer hier');
+  assert.match(lees('stationtravel.js'), /id: 'train-ride', priority: 2, duration: minutes \* 60 \* 3 \+ 240, long: true/);
 });
 
 console.log(`safetywacht_test: ${n}/${n} ok`);

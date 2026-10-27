@@ -1,5 +1,16 @@
 apply plugin: 'com.android.application'
 
+// De versie komt uit android/version.properties, dat android/scripts/version.mjs uit
+// desktop/package.json schrijft (#483). Ontbreekt het bestand (bijv. in een verse checkout),
+// dan valt de build terug op een ontwikkelversie in plaats van te falen.
+def appVersion = new Properties()
+def versionFile = file('../version.properties')
+if (versionFile.exists()) {
+    versionFile.withInputStream { appVersion.load(it) }
+}
+def appVersionName = appVersion.getProperty('versionName', '0.0.0-dev')
+def appVersionCode = appVersion.getProperty('versionCode', '1').toInteger()
+
 android {
     namespace = "nl.natuspella.gde.groningen"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -7,8 +18,8 @@ android {
         applicationId "nl.natuspella.gde.groningen"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "0.35.0-android-test"
+        versionCode appVersionCode
+        versionName appVersionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

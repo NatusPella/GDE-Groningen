@@ -31,11 +31,12 @@ export const BASKET_H = 1.45;
 export const CIRCLE_M = 12;
 export const MEDAL_REL = [6, 1, -2];
 
-// vmax in m/s at full power; kd drag, kl lift, turn and fade as stability.
+// vmax in m/s at full power; kd drag, kl lift, turn and fade as stability. The names are Dutch, as a
+// disc golfer says them: the distance disc, the approach disc and the putt.
 export const DISCS = {
-  driver: { id: 'driver', name: 'Driver', vmax: 26, kd: 0.0042, kl: 0.0100, turn: 0.55, fade: 1.0 },
-  midrange: { id: 'midrange', name: 'Midrange', vmax: 19.5, kd: 0.0058, kl: 0.0105, turn: 0.15, fade: 0.65 },
-  putter: { id: 'putter', name: 'Putter', vmax: 14.5, kd: 0.0078, kl: 0.0110, turn: 0, fade: 0.35 },
+  driver: { id: 'driver', name: 'Afstand', vmax: 26, kd: 0.0042, kl: 0.0100, turn: 0.55, fade: 1.0 },
+  midrange: { id: 'midrange', name: 'Nadering', vmax: 19.5, kd: 0.0058, kl: 0.0105, turn: 0.15, fade: 0.65 },
+  putter: { id: 'putter', name: 'Putt', vmax: 14.5, kd: 0.0078, kl: 0.0110, turn: 0, fade: 0.35 },
 };
 export const DISC_ORDER = ['driver', 'midrange', 'putter'];
 export const RELEASES = [

@@ -1,5 +1,5 @@
 // The track of Karten in Ulrum in the game's own frame (pure, no THREE): kartbaan.js draws and drives on it, and
-// coopwedstrijd.js (an online race, #443) simulates on exactly the same track, so host and guests race on one baan.
+// multiplayerwedstrijd.js (an online race, #443) simulates on exactly the same track, so host and guests race on one baan.
 import { buildTrack } from './kartrace.js';
 import { geo, frame } from './minigamekit.js';
 import { ULRUM_RING, ringToLocal, startOnLongestStraight } from './kartbaandata.js';

@@ -23,6 +23,7 @@ import { waterPolyIn } from './waterlevels.js';
 import { hash2 as hash } from './rng.js';
 import { placeSignItems } from './placesigns.js';
 import { segDist, buildingAt } from './tileplace.js';
+import { hedgeLines } from './tilegreenery.js';
 
 const MAIN = new Set(['motorway', 'trunk']);
 const LINK = new Set(['motorway_link', 'trunk_link']);
@@ -348,7 +349,8 @@ export function furnitureForTile({ x0, y0, size = 1000, roads = [], mapped = [],
     if (m.pts && m.pts.length > 1) {
       const k = m.k === 'guard_rail' ? 'guardrail' : m.k === 'noise_barrier' ? 'noise' : m.k === 'wall' ? 'noise' : m.k;
       if (!['guardrail', 'fence', 'noise', 'hedge'].includes(k)) continue;
-      for (const [x, y, a, s] of pieces(m.pts, k === 'guardrail' ? RULES.guardrailPiece : 3)) {
+      // een heg die een weg kruist is in stukken geknipt (tilegreenery.js, #508): alle stukken worden getekend
+      for (const line of k === 'hedge' ? hedgeLines(m) : [m.pts]) for (const [x, y, a, s] of pieces(line, k === 'guardrail' ? RULES.guardrailPiece : 3)) {
         // a mapped fence or hedge that OSM draws over a carriageway or into water is a gap in the data, not a barrier to put there (issue #124)
         if ((k === 'fence' || k === 'hedge') && pieceOnWayOrWater(x, y, a, s)) continue;
         add({ k, x, y, a, s, h: k === 'noise' ? (m.h || 4) : k === 'hedge' ? (m.h || 1.4) : undefined, src: 'osm' });

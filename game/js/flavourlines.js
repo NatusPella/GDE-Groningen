@@ -149,8 +149,8 @@ export const EVENT_DAYS = {
     ],
   },
   keiweek: {
-    name: 'KEI-week',
-    announce: 'KEI-week! Groepjes nieuwe Stadjers in de binnenstad en het Noorderplantsoen. Rustig rijden.',
+    name: 'Kiezelweek',
+    announce: 'Kiezelweek! Groepjes nieuwe Stadjers in de binnenstad en het Noorderplantsoen. Rustig rijden.',
     barks: [
       'Waar is ons groepje gebleven?',
       'Is dit nou de Grote Markt of het Plantsoen?',

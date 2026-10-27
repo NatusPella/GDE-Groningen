@@ -159,5 +159,15 @@ export function wallBox(w) {
   return [Math.min(w.ax, w.bx) - 2, Math.min(w.ay, w.by) - 2, Math.max(w.ax, w.bx) + 2, Math.max(w.ay, w.by) + 2];
 }
 
-// Een muurstuk van een perron: blokkeert wie lager staat dan de bovenkant min één stap (walkers: WALK_STEP, voertuigen: VEH_STEP).
-export const perronWallSide = (w, z, veh) => (z < w.z - (veh ? VEH_STEP : WALK_STEP) ? -1 : 0);
+// De rand van een perron reikt van de vloer tot de ondergrond waar het perron op staat: de spoorvloer, PERRON_TOP lager.
+// Wie dieper staat, staat onder een perron op een dijk of viaduct (Kastanjelaan onder Groningen Noord, #509) en loopt er
+// gewoon onderdoor; de gewone randen in elevation.js (retain, parapet, cut, vangrail) hebben om dezelfde reden een
+// boven- én een ondergrens in z.
+export const PERRON_EDGE_REACH = PERRON_TOP;
+
+// Een muurstuk van een perron: blokkeert wie lager staat dan de bovenkant min één stap (walkers: WALK_STEP, voertuigen:
+// VEH_STEP) en niet dieper dan de rand reikt.
+export const perronWallSide = (w, z, veh) => {
+  const step = veh ? VEH_STEP : WALK_STEP;
+  return z < w.z - step && z > w.z - PERRON_EDGE_REACH - step ? -1 : 0;
+};

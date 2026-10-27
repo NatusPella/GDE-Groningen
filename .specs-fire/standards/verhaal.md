@@ -29,7 +29,7 @@ zomer en in de stem van de vaste cast; tekst is data (canon, script, build, spel
    `game/js/storyarc.js` is de enige facade voor de rest van het spel (`:7`, `:16`).
 
 De data: 207 scènes, 1.450 regels in act 1 tot en met 6; 37 zijn stille appjes en
-1.074 hebben geen opname, dus die toont het spel als ondertitel met leestijd
+1.112 hebben geen opname, dus die toont het spel als ondertitel met leestijd
 (`game/js/storytext.js:51`). Een `[BEHOUDEN]`-regel heeft een opname: één andere
 letter maakt hem stil. Nieuwe opnames komen er niet; alle `[NIEUW]`-regels blijven
 tekst (`docs/verhaal/nieuw/07-TTS-RAMING.md:3`).
@@ -44,7 +44,7 @@ tekst (`docs/verhaal/nieuw/07-TTS-RAMING.md:3`).
   Deel 4 voegt M27-M30 en T5 toe: samen 30 missies en vijf reisbeats
   (`game/js/storyarc_nieuw.js:219-346`). Elke missie heeft één functie: inschrijven,
   een plakje blokkeren, de waarheid over de bal, of de wagen en het recept
-  (`docs/verhaal/nieuw/00-OVERZICHT.md:143`).
+  (`docs/verhaal/nieuw/00-OVERZICHT.md:142`).
 - **Kalender** (`game/js/calendar.js`): dag 1 is vrijdag 14 augustus 2026, het
   Gronings Ontzet dag 15 (vr 28 aug), de epiloog dag 29 (vr 11 sep, `:16-18`); Deel 4
   loopt van 14 tot 19 september (`:93`). De nazomer loopt tot 22 september en daarna
@@ -69,7 +69,7 @@ Vaste cast, stem uit `scripts/tts_cast.mjs` en `scripts/tts_lines_list.mjs`
 
 Geesje, Lammert, Roelfien, Wubbo, Tinus, mevrouw Hoving en Willemien zijn nieuw en
 hebben nog geen stem (`docs/verhaal/nieuw/07-TTS-RAMING.md:67`). **Geschrapt** zijn
-Femke, Harm, Hilly, Hilje en Boer Roelf (`docs/verhaal/nieuw/00-OVERZICHT.md:68`;
+Femke, Harm, Hilly, Hilje en Boer Roelf (`docs/verhaal/nieuw/00-OVERZICHT.md:67`;
 `game/js/storyarc_nieuw.js:104-105`); Rotor Roelf blijft alleen een stem.
 
 - **Tessa spreekt standaard Nederlands** (#134), ook in de opname: geen Gronings
@@ -89,7 +89,7 @@ Femke, Harm, Hilly, Hilje en Boer Roelf (`docs/verhaal/nieuw/00-OVERZICHT.md:68`
   Gevoelige cijfers alleen uit `docs/TESSA-CIJFERS.md`, met bron en jaar.
 - **Kanalen** strikt gescheiden: radio is wereld en dimt bij een missie, telefoon
   doet briefings en hints, het gesprek de relatie, appjes zijn stil
-  (`docs/verhaal/nieuw/00-OVERZICHT.md:311-321`).
+  (`docs/verhaal/nieuw/00-OVERZICHT.md:310-321`).
 
 ## Regels voor een nieuwe missie of scène
 
@@ -107,12 +107,12 @@ Femke, Harm, Hilly, Hilje en Boer Roelf (`docs/verhaal/nieuw/00-OVERZICHT.md:68`
    bewust stil (`app-stil`); zonder opname volgt de tekst met leestijd
    (`game/js/storytext.js:51`).
 7. **Eén functie per missie** met een oorzaak-gevolg-beat, anders wordt het een
-   zijmissie of reisbeat (`docs/verhaal/nieuw/00-OVERZICHT.md:143`).
+   zijmissie of reisbeat (`docs/verhaal/nieuw/00-OVERZICHT.md:142`).
 8. **Samen spelen**: één regel per missie of scène — doet een gast mee (J of N), wat
    ziet hij (snapshot of EXTRA-bericht), wie krijgt de beloning en de eigen voortgang
    (#429), wat gebeurt er bij wegvallen of later aansluiten, en welke test het dekt.
    Een gast krijgt geen gesprekken met personages en geen verhaalstap van een ander
-   (`.specs-fire/standards/multiplayer.md:75`).
+   (sectie "Wat een gast wel en niet kan" in `.specs-fire/standards/multiplayer.md`).
 9. **Bewijs**: de stap met zijn `scenes` in `game/js/storyarc_nieuw.js`, de scène in
    het `09`-script, en daarna `node scripts/build_story_data.mjs`,
    `node scripts/storydata_test.mjs`, `node scripts/story_similarity_test.mjs`,
@@ -133,28 +133,30 @@ stille appjes; `scripts/calendar_test.mjs` de datums;
 
 ## Open punten (met issue)
 
-- **#472 — `docs/personages.md` loopt achter**: het verwijst voor het verhaal naar
-  een document dat niet meer bestaat (`:13`), noemt nog H-nummers en de geschrapte
-  Femke, Harm en Hilly (`:250-255`), en geeft Tessa een "Groningse" stem (`:73`), tegen
-  #134.
-- **#474 — verouderde data**: de kop van `game/js/storyarc_nieuw.js:7-9` zegt dat
-  alleen akte 1 en M07 gebouwd zijn terwijl elke stap `built: true` heeft; in
-  `game/js/calendar.js:74-90` staat dode Deel 4-data (`DEEL4_STEP_DAYS`,
-  `VOORRONDE_STEPS`) van de Ommelander Ronde; en de kermis in Winschoten staat op
-  twee datums (zie hieronder).
-- **#475 — mevrouw Hoving krijgt geen naamkaart**: `game/js/storyarc_nieuw.js:131`
-  heeft de kaart, maar geen regel geeft hem door; geen enkele scène in
-  `game/storydata/script.json` heeft een `card`-optie. Dat geldt voor alle nieuwe
-  sprekers.
+- **#472, #474, #475, #489 en #490 zijn op 25-10 gesloten.** `docs/personages.md`
+  volgt nu de canon (Geesje, Lammert, Roelfien, Wubbo, Tinus, Hoving en Willemien
+  erbij, Femke en Hilly eruit, Tessa standaard Nederlands); de kop van
+  `storyarc_nieuw.js` noemt 30 missies en 5 reisbeats; `DEEL4_STEP_DAYS` en
+  `VOORRONDE_STEPS` zijn weg (inclusief hun testblok); de kermis in Winschoten staat
+  op één datum (22-23 augustus); de introweek heet overal Kiezelweek; en Tessa's
+  stemprofiel in `scripts/tts_cast.mjs` is accent-loos. Mevrouw Hoving krijgt haar
+  naamkaart via een `Naamkaart:`-regie in `09-script-akte1.md`, met een
+  regressiecheck in `scripts/storydata_test.mjs`.
+- **Nog open:** de Kiekdoar-aankondiging van Kiezelweek is **stil** tot hij opnieuw
+  wordt ingesproken (de opname zegt nog "KEI-week"); dat staat met reden in
+  `scripts/voice_stil.json` en vraagt een TTS-run met akkoord van de eigenaar.
+  Tessa's bestaande clips zijn ook nog Gronings.
+- **Nog open:** `docs/personages.md` gebruikt verderop nog de oude H-nummering voor
+  verhaalstappen (H4, H10, H13, H16, H18); de M-mapping is niet overal eenduidig
+  (`STEP_ALIAS` zegt H13 → M11, de canon noemt de kus M16).
 
 ## Afwijkingen tussen docs en code
 
 | Waar | Wat |
 |---|---|
 | `docs/verhaal/nieuw/00-OVERZICHT.md:117` | T1 gaat naar Winsum; `docs/verhaal/nieuw/09-script-akte2.md:111` en `game/js/storyarc_nieuw.js:252` zeggen Warffum. |
-| `docs/verhaal/nieuw/00-OVERZICHT.md:79` | "26 missies, 4 reisbeats"; de code heeft er 30 en 5 door Deel 4 (`docs/verhaal/nieuw/DEEL4.md:19-25`). |
-| `game/js/calendar.js:193` | De kermis in Winschoten staat op 29 september-4 oktober met "een week" in de kaart, terwijl `:205` hem naar 22-23 augustus zet en `:62` M16 op 22 augustus. |
-| `game/js/missionstory.js:2104` | De kicker zegt "KEI-week", een echte introweek; `game/js/calendar.js:203` gebruikt "Kiezelweek" (`docs/verhaal/nieuw/00-OVERZICHT.md:108`). |
-| `docs/verhaal/nieuw/07-TTS-RAMING.md:24` | 172 scènes en 1.164 uitingen voor de vijf akten; `game/storydata/script.json` telt er 185 en 1.300. |
-| `scripts/tts_cast.mjs:16` | Tessa's stemprofiel zegt "Groningse vrouw", tegen #134 en `docs/verhaal/STIJLGIDS.md:42`. |
-| `game/js/banterlines.js:474` | "KEI-week" in een autogesprek, net als `game/js/flavourlines.js:153`; dat is de lijst uit `docs/verhaal/nieuw/ronde2-besluiten.md:30`, geen verhaaltekst. |
+| `docs/verhaal/nieuw/00-OVERZICHT.md:78` | "26 missies, 4 reisbeats"; de code heeft er 30 en 5 door Deel 4 (`docs/verhaal/nieuw/DEEL4.md:19-25`). |
+| `docs/verhaal/nieuw/07-TTS-RAMING.md:24` | 172 scènes en 1.164 uitingen voor de vijf akten; `game/storydata/script.json` telt er 207 en 1.450. |
+
+Opgelost op 25-10: de dubbele kermisdatum, "KEI-week" op vier plekken, Tessa's
+stemprofiel, en de verouderde `built`-comment.

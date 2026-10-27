@@ -7,7 +7,7 @@
 // aanval van de gast in de bytes die er al waren (coopnet.js spelerRecord): de anderen zien het wapen in zijn hand en de zwaai.
 // Pure logica zonder three.js; combat.js komt binnen als haak (zetWapenHaken), getest in scripts/coopwapen_test.mjs.
 // Met een slagwapen in de hand is de rechtermuisknop de blokstand (#492): die gaat als zichtbit mee in de invoer en de host
-// rekent de opgevangen slag uit (cooppvpwereld.js blokkeert).
+// rekent de opgevangen slag uit (multiplayerpvpwereld.js blokkeert).
 // Geen nieuw netwerkformaat: PROTO en CODEC_VERSION blijven 2 (een oudere host negeert het bericht 'wapen').
 import { WEAPONS, WEAPON_KEYS, SLOTS } from './weapons.js';
 import { lichaamVan, invoerVan } from './coopbestuur.js';

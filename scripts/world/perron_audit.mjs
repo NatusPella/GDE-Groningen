@@ -5,7 +5,8 @@
 //   - elke strook heeft een trap (hoog perron) of helling (laag perron) naar straatniveau, van 1:3,6 of 1:12, met niets in de weg
 //     (gebouw, water, weg, spoor, ander perron: rep.zonderTrap van de bouw);
 //   - de trap is te belopen: van de voet naar het perron zonder sprong van meer dan een stap (surfaceAt, zoals het spel);
-//   - de rand is dicht: een voetganger of auto op straatniveau komt er niet doorheen, behalve bij een trap.
+//   - de rand is dicht: een voetganger of auto op de grond waar het perron op staat komt er niet doorheen, behalve bij
+//     een trap; dieper (een straat onder een perron op een dijk of viaduct) loopt iedereen eronderdoor (#509).
 import '../node3d.mjs';
 import { loadStadData } from '../lib/loadworld.mjs';
 
@@ -62,8 +63,12 @@ for (const row of rows) {
   const gap = (row.r || []).some((r) => Math.hypot(r.a[0] - mid[0], r.a[1] - mid[1]) < mid[2] + 6);
   if (!gap) {
     const ex = mid[0] + (nx / l) * (mid[2] - 0.5), ey = mid[1] + (ny / l) * (mid[2] - 0.5);
-    if (!E.resolveElevWalls(elev, ex, ey, 0, 0.35) && row.p[0][3] > P.WALK_STEP + 0.01) fail(`${tag}: de rand houdt een voetganger niet tegen`);
-    if (!E.elevWallContact(elev, ex, ey, 0, 1.4, false, null)) fail(`${tag}: de rand houdt een auto niet tegen`);
+    // (de rand reikt van de vloer tot de ondergrond waar het perron op staat: op een dijk of viaduct staat de auto
+    //  daar, en een straat dieper onder het perron loopt eronderdoor, #509)
+    const base = Math.max(0, row.p[0][3] - P.PERRON_TOP);
+    const zw = Math.max(0, row.p[0][3] - P.WALK_STEP - 0.5);
+    if (!E.resolveElevWalls(elev, ex, ey, zw, 0.35) && row.p[0][3] - zw > P.WALK_STEP + 0.01) fail(`${tag}: de rand houdt een voetganger niet tegen`);
+    if (!E.elevWallContact(elev, ex, ey, base + 0.2, 1.4, false, null)) fail(`${tag}: de rand houdt een auto niet tegen`);
   }
 }
 for (const b of bad) console.log('  FOUT ' + b);

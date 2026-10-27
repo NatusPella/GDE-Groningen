@@ -229,6 +229,10 @@ const ANGLICISMEN = [
   ['hole', 'baan'], ['holes', 'banen'],
   ['respawn', 'opnieuw verschijnen of hervatten'], ['spawn', 'verschijnen'], ['loading', 'laden'], ['game over', 'einde spel'], ['highscore', 'topscore'], ['unlock', 'ontgrendel'], ['unlocked', 'ontgrendeld'],
   ['achievement', 'prestatie'], ['achievements', 'prestaties'], ['tutorial', 'uitleg'], ['quest', 'opdracht'], ['loot', 'buit'], ['gameplay', 'spel'], ['gamer', 'speler'], ['gamers', 'spelers'],
+  // ronde 3 (#465): de Engelse termen uit de HUD. 'Grinds' staat er niet in: de takenlijst (todo.js) noemt de
+  // skatekunstjes nog Engels, dus dat woord zou daar een treffer geven die hier niet hoort. 'Putter' blijft in het
+  // golfspel de Nederlandse naam van de club (golfhud.js); discgolf gebruikt hem daar niet meer.
+  ['kneel', 'knielt of "bus laten zakken"'], ['midrange', 'nadering (discgolf)'], ['driver', 'afstand (discgolf)'],
 ];
 // markup en selectors zijn geen tekst: attributen als data-action="save" en [data-boost] of .pm-rail-acts niet meekijken
 const stripMarkup = (t) => t.replace(/\b(?:data-[\w-]+|class|id|for|name|type|role|href|src)="[^"]*"/g, ' ').replace(/\bdata-[\w-]+/g, ' ').replace(/\[[^\]]*\]/g, ' ').replace(/(?<![\p{L}\p{N}])[.#][a-z][\w-]*/gu, ' ');
@@ -309,9 +313,16 @@ const RAW_RULES = [
   { rule: 'persoonsgegevens', re: /\b[A-Z]{2}\d{2}\s?[A-Z]{4}\s?\d{4}\s?\d{4}\s?\d{2}\b/, note: 'IBAN' },
   { rule: 'url', re: /\bhttps?:\/\/[^\s'"`)]+|\bwww\.[a-z0-9-]+\.[a-z]{2,}/i, note: 'webadres in speltekst of code: externe verbinding of echte site' },
 ];
+// Losse kreten staan als flits in beeld zonder omringende zin; `isProse` slaat die over, dus deze woorden keuren we
+// hier, op elke tekst (#478: "GO!" en "Perfect!").
+const SHOUTS = [
+  { rule: 'anglicisme', re: /(?<![\p{L}])GO!(?:\s+GO!)*/i, note: 'Engelse startkreet; zeg: Start!' },
+  { rule: 'anglicisme', re: /(?<![\p{L}])Perfect!/i, note: 'Engelse kreet; zeg: Mooi! of Raak!' },
+];
 export function checkRaw(text) {
   const found = [];
   for (const r of RAW_RULES) { const m = r.re.exec(text); if (m) found.push({ rule: r.rule, term: m[0], note: r.note }); }
+  for (const r of SHOUTS) { const m = r.re.exec(text); if (m) found.push({ rule: r.rule, term: m[0], note: r.note }); }
   return found;
 }
 

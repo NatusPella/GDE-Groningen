@@ -1,5 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
+import { signBothSides } from './canvastex.js';
 import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
 import { showBanner } from './cinematics.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, setStatMax, MEDALS } from './achievements.js';
@@ -9,7 +10,7 @@ import { createBoard, mgThema, key, bubble, clearBubbles, pick, stopPressed, eas
 import { SKATE_LINES } from './minigamelines.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
 import { skateFx, pushFoley } from './sfx/minigamefoley.js';
-import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHostPunt, wedGastPunt, wedScoreStop, wedGastVerlaat, wedGastReset, wedScoreRijen } from './coopwedstrijd.js';
+import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHostPunt, wedGastPunt, wedScoreStop, wedGastVerlaat, wedGastReset, wedScoreRijen } from './multiplayerwedstrijd.js';
 import { maakBeurten, beurtKlaar, beurtNu, somVan } from './coopwedstrijdpunt.js';
 import {
   FEATURES, PARK, RUN_S, MEDAL_AT, SKATE, createBoard as createBoardState, createCombo, stepBoard, scoreEvents, tickCombo, bankCombo, skateMedal, TRICK_NAMES,
@@ -155,7 +156,7 @@ function buildPark() {
     t.colorSpace = THREE.SRGBColorSpace;
     return t;
   })();
-  const sign = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 0.9), new THREE.MeshBasicMaterial({ map: signTex, side: THREE.DoubleSide }));
+  const sign = signBothSides(2.4, 0.9, new THREE.MeshBasicMaterial({ map: signTex }));
   sign.position.set(-hu - 3.2, 1.9, 0);
   sign.rotation.y = Math.PI / 2;
   park.add(sign);
@@ -423,7 +424,7 @@ function end(w, { quit = false, extern = false, uitslag = null } = {}) {
   unlockAchievement(w, 'skate_klaar');
   if (medal >= 3) unlockAchievement(w, 'skate_goud');
   if (c.best >= 2000) unlockAchievement(w, 'skate_combo');
-  const stats = [['Score', score.toLocaleString('nl-NL')], ['Beste keten', c.best.toLocaleString('nl-NL')], ['Gevallen', String(g.b.bails)], ['Grinds', String(g.b.grinds)]];
+  const stats = [['Score', score.toLocaleString('nl-NL')], ['Beste keten', c.best.toLocaleString('nl-NL')], ['Gevallen', String(g.b.bails)], ['Grindtrucs', String(g.b.grinds)]];
   if (medal) stats.push(['Medaille', MEDALS[medal]]);
   if (rec && rec.newBest) stats.push(['Record', 'Nieuw!']);
   showBanner({ kind: medal ? 'pass' : 'fail', title: medal >= 3 ? 'KONING VAN HET SKATEPARK' : medal ? 'MOOIE RONDE' : 'NOG EEN RONDE?', reason: medal ? `Beste keten: ${c.best.toLocaleString('nl-NL')} punten` : 'Hou je keten vast: elk nieuw kunstje telt zwaarder', reward: 0, stats });
@@ -432,7 +433,7 @@ function end(w, { quit = false, extern = false, uitslag = null } = {}) {
   say(w, medal >= 2 ? 'endGood' : 'endPoor', true, true);
 }
 
-// Online (#443): wie stopt laat de anderen doorskaten; de uitslag en de beloning komen van wie het spel opende (coopwedstrijd.js).
+// Online (#443): wie stopt laat de anderen doorskaten; de uitslag en de beloning komen van wie het spel opende (multiplayerwedstrijd.js).
 function eindeOnline(w, g, quit, extern, res) {
   if (quit) {
     if (!extern) { if (g.online === 'host') wedScoreStop(w); else wedGastVerlaat(w); } // de host stopt het voor iedereen, een gast alleen voor zichzelf

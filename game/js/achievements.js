@@ -651,6 +651,9 @@ const CSS = `
   border-left: 4px solid #3fc97a; box-shadow: 0 8px 28px rgba(0,0,0,0.55), 0 0 22px rgba(63,201,122,0.18);
   opacity: 0; transform: translate(-50%, -14px); transition: opacity 0.35s ease, transform 0.35s ease; pointer-events: none; }
 #hud .ach-toast.on { opacity: 1; transform: translate(-50%, 0); }
+/* Tijdens een minigame staat het bord met de toetshulp bovenaan rechts: de prestatiekaart zakt dan naar
+   de onderkant in plaats van eroverheen te vallen (#504). */
+body.mg-on #hud .ach-toast { top: auto; bottom: max(calc(13vh / var(--ui, 1)), 104px); }
 #hud .ach-toast .ach-ico { flex: none; width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center;
   background: radial-gradient(circle at 35% 30%, #6fe39d 0%, #1e9e56 70%); color: #0c140e; box-shadow: 0 0 16px rgba(63,201,122,0.5); }
 #hud .ach-toast .ach-pic { width: 26px; height: 26px; }

@@ -134,7 +134,19 @@ for (const f of gameFiles) {
   report.push({ file: rel(f), kind, users: external.map(rel).sort(), exports: ex.length, unused, namespaceUsed: star });
 }
 
-if (process.argv.includes('--json')) { console.log(JSON.stringify(report, null, 1)); process.exit(0); }
+// --json=<pad> schrijft het rapport naar een bestand in plaats van naar stdout. Nodig voor de CI:
+// op de Linux-runner kwam `--json` via een pijp verminkt terug (Unterminated string, #140), terwijl
+// dezelfde code op Windows wel goed ging. Een bestand omzeilt de pijp en de codering daarvan.
+const jsonArg = process.argv.find((a) => a.startsWith('--json'));
+if (jsonArg) {
+  const tekst = JSON.stringify(report, null, 1);
+  const doel = jsonArg.includes('=') ? jsonArg.slice(jsonArg.indexOf('=') + 1) : '';
+  if (doel) {
+    fs.writeFileSync(doel, tekst);
+    console.log(`dead_code: ${report.length} modules naar ${doel}`);
+  } else process.stdout.write(tekst + '\n');
+  process.exit(0);
+}
 
 const orphans = report.filter((r) => r.kind === 'wees');
 const buildOnly = report.filter((r) => r.kind === 'bouw-only');

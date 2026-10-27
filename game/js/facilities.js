@@ -76,9 +76,15 @@ const LABEL = {
   taxi: 'Taxistandplaats', busstation: 'Busstation', parking: 'Parkeerplaats', garagepark: 'Parkeergarage',
 };
 
+// De naam die de speler ziet is verzonnen. Twee bronnen:
+// - de provincielijst (`f.sp`): de build schrijft daar zelf een verzonnen naam in (Kroeg het Tolhuis);
+// - de namenlijst van de stad (`raw.names`): daar staan alleen beschrijvende dienstnamen in
+//   ("Politiebureau Stadskanaal"), dus die mogen alleen voor hulp- en overheidsdiensten (#488).
+const OWN_KINDS = new Set(['police', 'fire', 'hospital', 'ambulance', 'gppost', 'doctors', 'pharmacy']);
+
 function nameOf(f) {
   if (f.kind === 'hospital' && f.umcg) return 'UMCG';
-  if (f.own) return f.own;
+  if (f.own && (f.sp || OWN_KINDS.has(f.kind))) return f.own;
   const label = LABEL[f.kind];
   if (!label) return '';
   return f.place ? `${label} ${f.place}` : label;
@@ -170,7 +176,7 @@ export function initShopPlaces(map, raw) {
     if (keep.length) FAC.byKind.set(k, keep); else FAC.byKind.delete(k);
   }
   for (const f of rows) {
-    f.name = f.own;
+    f.name = nameOf(f);
     FAC.all.push(f);
     if (!FAC.byKind.has(f.kind)) FAC.byKind.set(f.kind, []);
     FAC.byKind.get(f.kind).push(f);

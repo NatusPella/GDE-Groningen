@@ -1,10 +1,11 @@
 # Van stadskaart naar tegels: één wereld, de stad als kwaliteitsmaat
 
-*Migratieplan voor issue #90, 17 oktober 2026 (stand 0.34 + Unreleased). Alleen een
-plan: er is geen code veranderd. Wat niet is nagegaan staat als **AANNAME**.
-Bij een tegenstrijdigheid met [PROVINCIE-PLAN.md](PROVINCIE-PLAN.md) (2.5, 2.6, 2.11-2.17) of
-[ARCHITECTURE.md](../ARCHITECTURE.md) ("World tiles") wint het plan hier voor de stad,
-daarna werken we die documenten bij.*
+*Migratieplan voor issue #90, 17 oktober 2026 (stand 0.34 + Unreleased). **Historisch: de migratie is
+gedaan.** De stad komt sinds C3 (20 oktober 2026, zie "Stand na C3") uit `game/stad.json` (0,2 MB
+handlaag) plus de OSM-tegelbouw; de stappen hieronder zijn het verslag van die migratie, geen open plan.
+Wat toen niet was nagegaan staat als **AANNAME**. De canonieke regels staan in
+[.specs-fire/standards/wereld.md](../.specs-fire/standards/wereld.md); dit document blijft de naslag van
+de migratie en is deels historisch.*
 
 ## 0. Doel, en wat het niet is
 
@@ -26,10 +27,12 @@ niet vereenvoudigd en mag niet achteruitgaan. Daarom:
    stadspad intact tot pariteit is aangetoond.
 4. **Eén LOD-, streaming- en laadbudget** voor stad en provincie (4.4).
 
-Bevinding die het plan sterk vereenvoudigt: de stad **is al** voor een groot deel
+Bevinding die het plan sterk vereenvoudigt: de stad **was al** voor een groot deel
 tegels. `scripts/world/pack_tiles.mjs` (320 regels) knipt de uitkomst van
-`GameMap` (geladen uit `citymap.json` + `mapextras.json`) in `.gdt`-tegels
-(de 54 "stad"-tegels, vastgepind via `index.pins.city`), en `scene3d.js` tekent
+`GameMap` (toen geladen uit `citymap.json` + `mapextras.json`; sinds C3 uit
+`game/stad.json` + de OSM-lagen) in `.gdt`-tegels (de 54 tegels van de handlaag;
+de gepinde set telt 58: de 54 plus elke tegel die een rij uit de handlaag raakt,
+`index.pins.city`), en `scene3d.js` tekent
 gestreamde provinciegebouwen, -wegen, -water en -bomen met dezelfde detailstreamers
 (`syncBuildings`, `syncRoads`, `syncWater`, `syncTrees`) als de stad. Het verschil zit dus
 in **de bron en de inhoud van de tegels** (citymap-pad met hand- en oplosserwerk
@@ -53,7 +56,7 @@ de andere agent weggehaald (#3). Wat daar nog aan hangt (`shops.js`, `horeca.js`
 nu `countryreal.js` (`clearOfReal`)) is **niet** onze zaak; wij gaan ervan uit dat
 dat er al uit is. **AANNAME.**
 
-### 1.1 Wat er nu uit `citymap.json` komt (gemeten, git-werkboom)
+### 1.1 Wat er vóór #90 uit `citymap.json` kwam (historisch, gemeten in de git-werkboom)
 
 | Bron | Grootte | Inhoud |
 |---|---|---|
@@ -61,14 +64,14 @@ dat er al uit is. **AANNAME.**
 | wegen | | 535 met hoogteprofiel `z`, 121 tunnel, 48 viaduct, 5.845 met `lanes`, 347 brug, 34 beweegbaar |
 | gebouwen | | 29 `landmark`-rijen (Paddepoel x17, Euroborg x4, Martinitoren, Martinikerk, Der Aa-kerk, Hoofdstation, Forum, Academiegebouw, Museum, Goudkantoor), 1 met `parts`, 4 met `pitch`, alle met `sd` |
 | `meta` | | 14 landmarks, 2 districten, 66 buurtpunten, 48 garages, 470 horeca, 422 verkeerslichten, `pois`, helipad, 54 winkels, UMCG, 7 zorglocaties, 2 politiebureaus, `bounds`, `locks` |
-| `game/mapextras.json` | 98 KB | 206 busRoads, 116 busLanes, 20 extra gebouwen, 142 gebouwpatches, 210 doorgangen, 28 tankstations, 8 padel, 1 roadZ |
+| `game/mapextras.json` | 98 KB | 206 busRoads, 116 busLanes, 20 extra gebouwen, 145 gebouwpatches, 210 doorgangen, 28 tankstations, 8 padel, 1 roadZ |
 | `game/landmarkkits.json` | 93 KB | kits (kerken, molens, torens, borgen) voor plaatsen buiten de stad (LK1) |
 | `game/facilities.json` | 836 KB | 9.653 voorzieningen, 500 plaatsen, 1.012 straten, 94 rijstrookrecords (provinciebreed, los van de tegels) |
 | `data/*` ruwe bronnen | ~52 MB | `groningen_raw.json` (34 MB), `ring_raw`, `districts_raw`, `shops_raw`, `horeca_raw`, `extras_buildings_*`, `landmark_*`, ... (alleen stad) |
 
 Provincie ter vergelijking: 4.077 tegels in de set, 435.000 gebouwen, ~53 MB totaal (PROVINCIE-PLAN 2.28).
 
-### 1.2 Consumenten van `citymap.json` en de stads-`GameMap`
+### 1.2 Consumenten van `citymap.json` en de stads-`GameMap` (historisch, vóór #90)
 
 **Laden (runtime, 13 bestanden noemen `citymap`):** `game/js/main.js` (r. 255-257:
 `tiles ? tiles.world : loadMap('citymap.json')`, `loadFacilities('citymap.json')`),
@@ -111,7 +114,7 @@ Python: `process_osm`, `add_*` (13), `build_map`, `gen_ringroute`, `osmfetch`, `
 `world/building_attrs.py`, `world/fetch_3dbag.py`, `world/fetch_ahn.py`, `world/rdnew.py`, `world/rebase_data.py`,
 `world/audit_lanes.py`.
 
-### 1.3 Stadsbouw (de keten die `citymap.json` maakt) in `scripts/build_map.py`
+### 1.3 Stadsbouw (de keten die `citymap.json` maakte) in `scripts/build_map.py` (historisch; de keten is weg sinds C3)
 
 `fetch_osm` > `process_osm` (575 r.) > `add_elevation` (596) > `world/profile.mjs` (630, de hoogteoplosser)
 > `add_landmarks`, `add_districts`, `add_garages`, `add_horeca`, `add_traffic_lights`, `add_pois`,
@@ -160,7 +163,7 @@ Provinciebouw (`tileBlob`): secties `buildings, roads, water, green, trees, rail
 | G11 | **Lantaarns, nachtverlichting** | `nightlights3d.js` 664, meubilair `street_lamp` | AANNAME: leest wegranden stadsbreed; per tegel |
 | G12 | **Groen/soorten** | `greenery.mjs` + `greenery.js` (hooks gedeeld) | al gelijk; pariteit meten (soortenhistogram) |
 | G13 | **POI's: winkels, horeca, garages, politie, zorg, tankstations, helipad** (`meta.*` uit `add_*.py` + caches) | `add_shops`, `add_horeca`, `add_garages`, `add_pois`, `add_police_stations`, `add_helipad`, mapextras.fuel/padel; provincie heeft `facilities.json` (9.653) buiten de tegels | POI-sectie (gereserveerd in `SECTION`, nog leeg), uit `extract_province.py` (heeft al `facilities_raw.json.gz`) |
-| G14 | **Handwerk-patches**: `buildingPatches` (142), extra footprints (20), `busRoads`/`busLanes`, `roadZ` | `add_map_extras.py`, `applyMapExtras` | "handlaag" per tegel, als patchbestand dat de bouwer toepast (gebaseerd op osm-id/bag-id i.p.v. `bounds`) |
+| G14 | **Handwerk-patches**: `buildingPatches` (145), extra footprints (20), `busRoads`/`busLanes`, `roadZ` | `add_map_extras.py`, `applyMapExtras` | "handlaag" per tegel, als patchbestand dat de bouwer toepast (gebaseerd op osm-id/bag-id i.p.v. `bounds`) |
 | G15 | **Landmarks, interieurs, kamers** (museum, Martinitoren, Tammo en Tessa's flat, Paddepoel, doors) | `b.landmark`/`b.model`/`b.name` op gebouwrijen; `museumplan.js`; `home.js` 1394 r. | objectlaag per tegel (zie 3.3) |
 | G16 | **Plaats-/regionamen** (districten, buurtpunten) | `meta.districts`, `neighbourhoodPoints` (66) | al provinciebreed: plaatsen met districten in `index-provincie.json` (921), `regions.js`/`regiondata.js` |
 | G17 | **Gebouwafstand tot de straatas** (#77, 1,5 m) | `building_clearance.mjs` na de stadsbouw | bouwerstap per tegel |
@@ -231,16 +234,16 @@ handlaag (patches, landmarks, rooms) ---+                       v
                                                                                      colliders, routing, minimap, AI
 ```
 
-Eén bron voor alles; `citymap.json`, `mapextras.json`, `landmarkkits.json` en de `data/*_raw.json`
-(stad) vervallen als bron. Wat blijft is **data in repo die geen OSM is**: de handlaag (patches, landmarks,
-kamers) als kleine bestanden onder `game/places/` (**AANNAME** naam), elk met een osm-id, bag-id of RD-coordinaat als sleutel.
+Eén bron voor alles; `citymap.json` en de `data/*_raw.json` (stad) zijn vervallen als bron (#90, C3). Wat bleef is
+**data in repo die geen OSM is**: de handlaag (`stad.json`, `mapextras.json`, `landmarkkits.json`: patches, landmarks,
+kamers) als kleine bestanden, elk met een osm-id, bag-id of RD-coordinaat als sleutel.
 
 ### 4.2 Tegelsecties (aanvullend op PROVINCIE-PLAN 2.1)
 
 Bestaand en in gebruik door beide: `buildings, roads, water, green, trees, rails, nav, furniture`.
-Voor de provincie nieuw te vullen (type bestaat in `gdt.js`): `heights`, `junctions`, `canopies`, `passages`,
-`raster` (AHN), `pois`. Nieuw: **`objects`** (zie 4.3) en een afgeleide `lights` (reeds genoemd in de plannen).
-`TileWorld.fromTiles` krijgt geen "vastgepinde-set" meer nodig (fase B10).
+Voor de provincie inmiddels gevuld (type bestaat in `gdt.js`): `heights`, `junctions`, `canopies`, `passages`,
+`raster` (AHN), `pois`. Nog niet gedaan: **`objects`** (zie 4.3) en een afgeleide `lights` (reeds genoemd in de plannen).
+`TileWorld.fromTiles` heeft de "vastgepinde-set" nog nodig; ontpinnen is C1 en staat open.
 
 ### 4.3 Landmarks, interieurs en kits als tegelobjecten
 
@@ -289,31 +292,36 @@ per materiaal), `farlod.js` (tegel x laag, een draw), `interiorglass.js` (gevelg
 
 ### 4.5 `game/stad.json`: de handlaag van de stad (ingecheckt, stap C3)
 
-`game/stad.json` (3,3 MB, `"format": "stad-1"`) vervangt `citymap.json` (17,3 MB) als de ingecheckte stadsbron. Wat uit OSM komt
+`game/stad.json` (0,2 MB, `"format": "stad-1"`) vervangt `citymap.json` (17,3 MB) als de ingecheckte stadsbron. Wat uit OSM komt
 (water, groen, bomen en alle gebouwen die niet met de hand zijn gemaakt) staat er niet meer in: dat komt uit de OSM-tegelbouw
 (`stad_laag.mjs`). `stad.json` bewaart het handwerk en de twee dingen die de stadsbouw vroeger uit de OSM-lagen van `citymap.json` las.
 Het bestand heeft één sleutel per regel en één rij per regel (leesbare diffs); de volgorde van de rijen is de `gid` in de tegels en blijft staan.
 
 | Sleutel | Inhoud | Hoe het aan tegels hangt |
 |---|---|---|
-| `format`, `fromOsm` | `"stad-1"`; de lagen die uit de OSM-bouw komen: `buildings, water, green, trees` (zodra `roads`/`rails` ook uit OSM komen, gaan ze erbij en uit het bestand) | `pack_tiles.mjs loadSourcesLaag` haalt `fromOsm` altijd uit OSM, `STAD_LAAG` kan er nog lagen aan toevoegen |
+| `format`, `fromOsm` | `"stad-1"`; de lagen die uit de OSM-bouw komen: `buildings, water, green, trees, roads, rails` | `pack_tiles.mjs loadSourcesLaag` haalt `fromOsm` altijd uit OSM, `STAD_LAAG` kan er nog lagen aan toevoegen |
 | `tiles` | de 54 stadstegels (`235_581`, ...) in de volgorde van de stadsbouw | de tegels die de OSM-bouw voor de stad bouwt (`osmCityLayers(keys, ...)`); de volgorde bepaalt de rijvolgorde dus de bytes |
 | `cover` | de dekking van de stadskaart: een masker van 208 x 189 cellen van 40 m, run-length (`x0, y0, w, h, cell, rle`) | `citycover.mjs cityCoverFromMask`: alleen OSM-rijen met hun zwaartepunt in de dekking komen in de stad; daarbuiten dekken de overlaytegels van `build_province.mjs` |
-| `roads` | 10.785 wegen met `cat`, `type`, `width`, `lanes*`, `osm`, hoogteprofiel `z`, tunnels, bruggen, beweegbare bruggen | `pack_tiles.build`: in elke tegel die de wegband raakt, plus de secties `heights`, `junctions`, `nav` |
-| `rails`, `stations`, `levelCrossings`, `railRoutes`, `railLifts`, `railPlatforms` | 193 spoorstukken met profiel, 3 stations, 3 overwegen, 4 spoorroutes, 16 liften, 22 perrons | `rails` per tegel; de rest in de globale laag (`stations`, `levelCrossings`, `railRoutes`, `railLifts`) |
+| ~~`roads`~~ (historisch, tot C3) | 10.785 wegen met `cat`, `type`, `width`, `lanes*`, `osm`, hoogteprofiel `z`, tunnels, bruggen, beweegbare bruggen; sinds C3 uit de OSM-tegelbouw (`stad_wegen.mjs`) | `pack_tiles.build`: in elke tegel die de wegband raakt, plus de secties `heights`, `junctions`, `nav` |
+| ~~`rails`, `stations`, ...~~ (historisch, tot C3) | 193 spoorstukken met profiel, 3 stations, 3 overwegen, 4 spoorroutes, 16 liften, 22 perrons; sinds C3 uit `stad_spoor.mjs` | `rails` per tegel; de rest in de globale laag (`stations`, `levelCrossings`, `railRoutes`, `railLifts`) |
 | `furniture` | 12 gemapt straatmeubilair (hekken); de regelmeubilair wordt per tegel gemaakt (`streetfurniture.js`) | `FURNITURE`-sectie per tegel |
 | `buildings` | alleen de 30 handgebouwen (`isHandBuilding` in `stad_laag.mjs`): 29 `landmark`-rijen (Martinitoren, Martinikerk, Der Aa-kerk, Hoofdstation, Forum, Academiegebouw, Goudkantoor, Groninger Museum, Euroborg x4, Winkelcentrum Paddepoel x17) en de helikopterpleisterplaats (`helipad`); velden `landmark`, `landmarkKind`, `landmarkPart`, `parts`, `pitch`, `helipad` | een rij in elke tegel die de footprint raakt; de OSM-gebouwen die op een handgebouw liggen vervallen (`withHand`) |
 | `meta` | zie hieronder | de globale laag van het pakket (`META`-sectie), niet per tegel |
+
+Sinds C3 bevat `stad.json` geen `roads` en `rails` meer (daarom 0,2 MB in plaats van 3,3 MB): die twee komen als hele wegen en spoorstukken
+met hoogteprofiel uit de OSM-tegelbouw. De twee doorgestreepte rijen zijn wat er tot dan in stond.
 
 **Landmarks.** Twee lagen die op *naam* aan elkaar hangen. (1) `meta.landmarks` (14 punten: `name`, `x`, `y`, `kind`, `buildingMatched`):
 de lijst die missies, verhaal, HUD, kaart en intro lezen (`map.meta.landmarks`); een RD-punt, geen tegelrij. (2) Het gebouw zelf: een rij in
 `buildings` met `landmark: <naam>`; de tekencode (`landmarks3d.js`, `landmarkmodels.js`, `models3d_buildings.js`, `paddepoel3d.js`) kiest op
 `b.landmark`/`b.name`. De tegel waarin een landmark staat volgt uit zijn footprint; zoek hem met `tileIndexOf(x, y)` of `buildingsNear`.
-Aanvullingen en correcties op OSM-gebouwen staan niet hier maar in `game/mapextras.json` (20 extra gebouwen, 142 patches op `osm`-id of
+Aanvullingen en correcties op OSM-gebouwen staan niet hier maar in `game/mapextras.json` (20 extra gebouwen, 145 patches op `osm`-id of
 positie, doorgangen, busbanen); `applyMapExtras` legt ze na de OSM-lagen over de kaart. In het doelmodel van 4.3 (stap B7) worden de
 landmark-rijen `objects` met de osm-/BAG-id als sleutel; tot dan is de naam de sleutel.
 
-**POI's en namen** (`meta`, alle als RD-punten `x`, `y`, nooit per tegel; de globale laag draagt ze naar de runtime):
+**POI's en namen** (`meta`; sinds 21 oktober 2026, #314, staan ze als rijen in de `POIS`-sectie van de tegel van hun punt:
+14 lijsten, 2.274 punten in 40 stadstegels, 7 in `poiRest`; `fromTiles`/`joinMeta` voegen ze weer samen tot `map.meta`, dus de
+lezers zien dezelfde vorm. De tabel hieronder is die vorm, niet de opslag):
 
 | `meta.*` | Aantal | Vorm | Lezers |
 |---|---|---|---|
@@ -327,8 +335,8 @@ landmark-rijen `objects` met de osm-/BAG-id als sleutel; tot dan is de naam de s
 | `hospital`, `careSites`, `policeStations`, `helipad` | 1, 7, 2, 1 | `{ name, x, y }` (`helipad`: `{ x, y, r, angle }`) | `emergency.js`, `respawn.js`, `spotcheck.js`, `routing.js`, `streetlife.js`, `skyprops.js` |
 | `bounds`, `frame`, `rdOrigin`, `wgsBox`, `locks` | | kader van de stadskaart (RD) | `scene3d`, `terrain3d`, `heliflight`, `mapview` |
 
-Stappen B6 (poi) en B8 (namen) halen deze lijsten uit `meta` en zetten ze als rijen op de tegel van hun punt (`placeIndex`);
-tot dan is `stad.json` hun enige bron, en verandert een naam of POI daar (een rij per regel).
+B6 (poi) is gedaan: de lijsten staan als rijen op de tegel van hun punt, zie "Vervolg op C3" en "POI-lagen in de tegelindex" hieronder.
+B8 (namen: `landmarks`, `districts`, `neighbourhoodPoints`) leest nog de samengevoegde `map.meta`; tot die stap is `stad.json` de bron van die namen.
 
 **POI-lagen in de tegelindex (25 oktober 2026, B6 voorbereid).** `pack_tiles.build` legt naast de rijen ook vast welke tegels
 een lijst dragen: `index.pois.layers` heeft per lijst uit `meta.poiLists` (`shops`, `horeca`, `pois.health`, ...) het aantal
@@ -356,12 +364,12 @@ voorheen.
 (`stad_cache.mjs` bewaart het resultaat in de tijdelijke map, met een sleutel uit de invoer en de bouwcode), legt `mapextras.json` erover
 en geeft de `GameMap`. `scripts/lib/loadworld.mjs` is de ene laadhulp voor tests: `loadStadData()` (alleen de handlaag, snel),
 `loadCityData()` en `loadCityWorld()` (met de OSM-lagen; zonder `data/cache/province` eindigt een test met SKIP). `scripts/stad_split_test.mjs`
-bewijst dat de splitsing verliesloos is: voor elke keuze van OSM-lagen zijn de stadstegels (sha256 per tegel, de globale laag en de
+bewees (historisch; met het oude pad verwijderd) dat de splitsing verliesloos was: voor elke keuze van OSM-lagen waren de stadstegels (sha256 per tegel, de globale laag en de
 tellingen) uit `[stad.json + OSM-lagen]` gelijk aan die uit `[citymap.json + dezelfde OSM-lagen]` (fixture: alle zes gekozen
 combinaties; `--echt`: de echte stad, 57 tegels + globale laag, 60 vingerafdrukken gelijk). Wijzigen kan met de hand, of met
 `profile.mjs --write` (wegen), `railprofile.mjs --write` (spoor) en `furniture.mjs --write` (meubilair), die terugschrijven in `stad.json`.
-`node scripts/stad_opruimen.mjs` controleert dat niets meer `citymap.json`, `data/*_raw.json` of de python-keten leest en toont dan de
-lijst van te verwijderen bestanden (het verwijdert zelf niets).
+`node scripts/stad_opruimen.mjs` controleerde dat niets meer `citymap.json`, `data/*_raw.json` of de python-keten las en toonde dan de
+lijst van te verwijderen bestanden; die opruiming is met C3 gedaan.
 
 ## 5. Stappenplan
 
@@ -431,8 +439,8 @@ Per stap: T-basis + diff + schermafdruksanity met vlag aan en uit.
 
 | Stap | Doel | Bestanden | Bewijs | Risico | Maat |
 |---|---|---|---|---|---|
-| **C1 Ontpinnen** | de 54 stadstegels niet meer vastpinnen; alleen spawn-, garage-, missieset en eigen auto gepind; de 45 hele-array-modules naar tegelqueries | `tileworld.js` (`fromTiles`), `tilestore.js`, `index.pins`, `scene3d.js`, `passages.js`, `geokernels.js`, `routing.js`, `waterindex.js`, `farlod.js`, `terrain3d.js`, ... | `tileworld_test`, `province_test`, verhaaltest, schermafdruksanity | modules die stil op een array rekenen | L |
-| **C2 Overlaytegels weg** | `citycover.mjs`, `o…`-sleutels, vlag 64 | `scripts/world/citycover.mjs`, `build_province.mjs`, `tileworld.js` (`residentKey`, `ov`) | `province_test`, `edge_smoke_test` | de rand van de oude stadsdata is nu dekkend; geen gat | S |
+| **C1 Ontpinnen** | de 58 gepinde stadstegels niet meer vastpinnen; alleen spawn-, garage-, missieset en eigen auto gepind; de 45 hele-array-modules naar tegelqueries | `tileworld.js` (`fromTiles`), `tilestore.js`, `index.pins`, `scene3d.js`, `passages.js`, `geokernels.js`, `routing.js`, `waterindex.js`, `farlod.js`, `terrain3d.js`, ... | `tileworld_test`, `province_test`, verhaaltest, schermafdruksanity | modules die stil op een array rekenen | L |
+| **C2 Overlaytegels weg** | `citycover.mjs`, `o…`-sleutels, vlag 64 | `scripts/world/citycover.mjs`, `build_province.mjs`, `tileworld.js` (`residentKey`, `ov`) | `province_test`, `edge_smoke_test` | de rand van de oude stadsdata is nu dekkend; geen gat | **L**: twee keer geprobeerd en teruggedraaid (612-628, 675-681); alleen de overlaytegels als eigen tegels zijn weg, hun rijen staan achter de stadstegel (`merge_overlays.mjs`) |
 | **C3 Oude pad weg** | `citymap.json`, `mapextras.json`, `landmarkkits.json`, `data/*_raw.json` (stad), `GameMap`-constructorafleiding, `loadMap`, `applyMapExtras`, `pack_tiles.mjs`, `build_map.py` en de 20 `add_*.py`/`process_osm.py`, de stadsrendercode zonder gebruikers; `desktop/build.mjs` (r. 63) en `web/build.mjs` (r. 29 `ESSENTIALS`) aanpassen; 27 Python- en 56 JS-bestanden bijwerken of schrappen | zie 1 | volledige T-zwaar, buildhash, webbuild <= 25 MB tot speelbaar | git-geschiedenis houdt het bestand (17 MB); geen herschrijving (constitution 8) | M |
 | **C4 Documenten** | PROVINCIE-PLAN 2.5/2.6, ARCHITECTURE.md "World tiles", README, dit document naar "historisch" | docs | lezen | laag | S |
 
@@ -452,7 +460,7 @@ poort B > `C1..C4`. Na elke stap blijft het spel werken: zonder `?stadlaag` is e
 3. **#77, afstand tot de straatas en de 10 bocht-schampen.** A) de 1,5 m-regel als bouwerstap voor de hele provincie (aanbevolen; 2,3 m brak `junction_sim_test`
    met een geparkeerde bestelwagen op 728, -2441); B) alleen in de stad houden. En de ~10 zijdelingse schampen van `drive_audit` (auto 25-40 graden gedraaid op een scherpe verbinding;
    nu apart geteld, "niet meegeteld"): A) die classificatie behouden als geaccepteerde uitzondering met een vaste lijst, B) de padgeometrie op scherpe verbindingen verzachten zodat ze echt weg zijn. **AANNAME** dat het aantal 10 klopt (opdracht; niet opnieuw gedraaid).
-4. **Ontpinnen of de stad blijven vastpinnen?** A) C1 volledig (stad is gewoon streaming, alleen spawn/missie/eigen auto gepind; meer werk, grootste winst in geheugen en consistentie); B) 54 stadstegels blijven vastgepind
+4. **Ontpinnen of de stad blijven vastpinnen?** A) C1 volledig (stad is gewoon streaming, alleen spawn/missie/eigen auto gepind; meer werk, grootste winst in geheugen en consistentie); B) de gepinde set (58 tegels) blijft vastgepind
    als "vaste set" (veel minder werk, geheugen gelijk). Aanbevolen: A, maar als laatste stap en alleen als de audits en schermafdrukken groen blijven.
 5. **Hoe uitrollen?** A) elke laag een eigen pre-release (veilig, traag, veel keer testen door de eigenaar); B) alles achter `?stadlaag` tot poort B en dan in één release. Aanbevolen: B met een eerste pre-release na poort A (provincie wint al).
 6. **Verificatie licht.** Akkoord dat per stap alleen bestaande audits plus 12 schermafdrukken gelden (geen prestatiemeting; die zit in de releasebouw)? En **mag fase A de provincie wat meer GPU/geheugen kosten** zolang de stad er niet slechter uitziet of voelt?
@@ -498,9 +506,9 @@ De eigenaar liet alle acht open besluiten aan Claude ("doe wat je het beste lijk
 7. **Downloads:** 3D BAG voor de provincie is gedaan (0,9 GB gestreamd, 6,8 MB resultaat). AHN provinciebreed akkoord (per tegel gestreamd, alleen hoogtes bewaren, ruwe data direct wissen; schijf is krap). Eindgrootte richting 1 GB is toegestaan.
 8. **Oude stadspad (C3):** pas verwijderen in een release nadat poort B is gehaald en de eigenaar de stad akkoord heeft bevonden. De geschiedenis wordt niet herschreven.
 
-## Stand fase 3 (stadsprofiel, query-pariteit)
+## Stand fase 3 (stadsprofiel, query-pariteit; historisch, 18 oktober)
 
-`scripts/city_parity_test.mjs` (hulp: `scripts/lib/cityparity.mjs`) bouwt twee TileWorlds: A = de stad uit `citymap.json` (vast in het geheugen), B = de 17 kerntegels uit de OSM-bouw met `buildProvince({ profile })`, gestreamd zoals de provincie (gids >= 20.000.000, geen vaste set). Daarna dezelfde vragen aan allebei op een raster van 40 m: waterAt-soort/-peil, gebouw ja/nee, `nearestRoadPoint`, `groundHeightAt`.
+*Historisch (18 oktober): de test is met het oude pad verwijderd.* `scripts/city_parity_test.mjs` (hulp: `scripts/lib/cityparity.mjs`) bouwt twee TileWorlds: A = de stad uit `citymap.json` (vast in het geheugen), B = de 17 kerntegels uit de OSM-bouw met `buildProvince({ profile })`, gestreamd zoals de provincie (gids >= 20.000.000, geen vaste set). Daarna dezelfde vragen aan allebei op een raster van 40 m: waterAt-soort/-peil, gebouw ja/nee, `nearestRoadPoint`, `groundHeightAt`.
 
 Eerste meting (raster 25 m): gebouw ja/nee 98,1 %, weg binnen 8 m 97,3 %, hoogte binnen 0,5 m 99,6 %, water: beide nat 1520, alleen stad 2, alleen OSM 70; soort gelijk 90,1 %, peil 100 %.
 
@@ -508,11 +516,11 @@ Stadsprofiel water (`waterlevels.js annotateCityWater`, aangezet door `profile` 
 
 Waarom de tellingen van `city_diff` (water +29 %, bomen +26 %) geen maat zijn: de stad bewaart een veelhoek heel in één tegel, de provincie knipt hem per tegel (meer, kleinere rijen, minder oppervlak per tegel); bomen: 72 % van de stadsbomen heeft binnen 3 m een OSM-boom, de rest is brondatum. Vergelijk daarom op vragen, niet op rijen.
 
-Nog niet gedaan: de runtime leest `citymap.json` nog (main.js, facilities.js, roadsurface.js-worker, railway.js, mapdata.js); `pack_tiles.mjs` bouwt de stadstegels in productie nog uit citymap.json; de vaste set van `tileworld.js fromTiles` eist dichte gids, dus de OSM-stad kan er pas in als de stad ook gestreamd wordt. Daarom kan #76 niets verwijderen.
+**Inmiddels gedaan (C3, 20 oktober):** de runtime leest geen `citymap.json` meer (één comment in `ringroute.js`), `pack_tiles.mjs` bouwt de stadstegels uit `stad.json` plus de OSM-tegelbouw en `desktop/build.mjs` hasht `stad.json` in plaats van `citymap.json`. Wat hieronder staat is het verslag van 18 oktober.
 
-### Lezers van citymap.json in de runtime (18 oktober, grep op `game/js`)
+### Lezers van citymap.json in de runtime (18 oktober, historisch)
 
-In een build met tegels leest de runtime `citymap.json` niet meer: `main.js` neemt `tiles.world` (alleen `?legacymap` of een dev-server zonder tegels valt terug op `loadMap`), `tileworld.js loadMapAuto` (ook voor de `roadInit`-worker in `geokernels.js`) probeert eerst de tegels, en `loadFacilities`/`loadShopPlaces` gebruiken de naam alleen als basispad voor `facilities.json` en `shopplaces.json`. Wat `citymap.json` nog echt nodig heeft: de productiebouw van de stadstegels (`scripts/world/pack_tiles.mjs`), de bouwhash (`desktop/build.mjs`), `web/build.mjs ESSENTIALS`, de terugvalpaden hierboven en ~39 scripts. Een runtimemodule omzetten is dus niet meer het knelpunt: dat is de stad uit de tegelbouw halen (OSM-bouw met stadsprofiel, gestreamd in plaats van de vaste set), wat een provincie-extract en een stagebouw vraagt. Niet gedaan in deze sessie (geen stage, geen Electron).
+In een build met tegels las de runtime `citymap.json` op 18 oktober al niet meer: `main.js` neemt `tiles.world` (alleen `?legacymap` of een dev-server zonder tegels viel terug op `loadMap`), `tileworld.js loadMapAuto` (ook voor de `roadInit`-worker in `geokernels.js`) probeert eerst de tegels, en `loadFacilities`/`loadShopPlaces` gebruiken de naam alleen als basispad voor `facilities.json` en `shopplaces.json`. Wat `citymap.json` toen nog echt nodig had: de productiebouw van de stadstegels (`scripts/world/pack_tiles.mjs`), de bouwhash (`desktop/build.mjs`), `web/build.mjs ESSENTIALS`, de terugvalpaden hierboven en ~39 scripts. Sinds C3 is dat weg (zie de kop hierboven); de runtime leest geen `citymap.json` meer.
 
 ## Stand B3/B4: wegen en spoor uit de OSM-bouw (`STAD_LAAG=roads,rails`, 20 oktober)
 
@@ -573,7 +581,8 @@ De laneJump-stand (231 tegen 230) komt uit de valse droge dekken van de eerste r
 ## Stand na C3 (20 oktober 2026): de stad komt uit de tegelbouw, het oude stadspad is weg
 
 **Gedaan.** De stad draait in productie op `game/stad.json` (0,2 MB handlaag) plus de OSM-tegelbouw voor alle zes de lagen
-(gebouwen, water, groen, bomen, wegen, spoor); `STAD_LAAG` en de runtimevlag `?stadlaag` bestaan niet meer. Verwijderd (geen
+(gebouwen, water, groen, bomen, wegen, spoor); de runtimevlag `?stadlaag` bestaat niet meer, `STAD_LAAG` is alleen nog een
+bouwvlag (`pack_tiles.mjs`; `desktop/build.mjs` neemt hem in de wereldhash). Verwijderd (geen
 geschiedenisherschrijving; alles staat in de git-geschiedenis): `game/citymap.json` (17,3 MB), `data/groningen_raw.json` (35,6 MB) en de andere
 ruwe stadsbronnen (`data/*_raw.json`, `groningen_extra.json`, `ring_raw/extra.json.gz`, `landmark_footprints.json`: ca. 62 MB),
 de Python-keten (`build_map.py`, `process_osm.py`, `fetch_osm.py`, `add_*.py`, `gen_ringroute.py`, `lanes.py`, `audit_lanes.py`,

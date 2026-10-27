@@ -67,7 +67,7 @@ export function storyDirRecording(speaker, text) {
   return v ? { src: '../banter/' + v.src, dur: v.dur } : null;
 }
 
-const NAMECARD = { 'duivenmelker bert': 'bert', 'durk & douwe': 'durk', 'jelle terpstra': 'jelle', 'mevrouw tuinstra, de bewaarder': 'bewaarder', sjabbe: 'sjabbe', tessa: 'anita', tammo: 'tammo', berend: 'berend', rikus: 'rikus' };
+const NAMECARD = { 'duivenmelker bert': 'bert', 'durk & douwe': 'durk', 'jelle terpstra': 'jelle', 'mevrouw hoving': 'bewaarder', sjabbe: 'sjabbe', tessa: 'anita', tammo: 'tammo', berend: 'berend', rikus: 'rikus' };
 
 // The CHARACTERS key whose name card the scene's regie announces for this speaker ("Naamkaart: SJABBE."), or null.
 function cardKeys(sc) {

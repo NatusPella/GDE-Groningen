@@ -15,6 +15,7 @@ import { showCard } from './hudcards.js';
 import { bridgesAhead } from './boatahead.js';
 import { getServiceMapState } from './machinist.js';
 import { clearanceOver, waterAt, airDraftOf } from './waterlevels.js';
+import { hoofdspeler } from './players.js';
 
 let cache = { at: -1, world: null, layer: null };
 let prevLayer = null;
@@ -24,7 +25,7 @@ let seenMission = null;
 const PIGEON_TARGETS = 3;
 
 function snapshot(world) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   const player = { x: p.x, y: p.y, angle: p.angle, speed: p.inVehicle ? Math.abs(p.inVehicle.speed || 0) : 0 };
   const s = { player };
   const m = world.mission;
@@ -76,7 +77,7 @@ function snapshot(world) {
 
 // The layer of this frame, or null when nothing mission-like runs.
 export function getMissionLayer(world) {
-  if (!world || !world.player) return null;
+  if (!hoofdspeler(world)) return null;
   const now = performance.now();
   if (cache.world === world && now - cache.at < 100) return cache.layer;
   let layer = null;
@@ -89,6 +90,6 @@ export function getMissionLayer(world) {
 export function updateMissionNotices(world, layer) {
   const id = world.mission && world.mission.phase === 'active' ? world.mission.index : null;
   if (id !== seenMission) { seenMission = id; seen = new Set(); }
-  for (const c of layerNotices(prevLayer, layer, world.player, seen)) showCard(world, { kind: c.kind, title: c.title, body: c.body, key: c.key, voice: false });
+  for (const c of layerNotices(prevLayer, layer, hoofdspeler(world), seen)) showCard(world, { kind: c.kind, title: c.title, body: c.body, key: c.key, voice: false });
   prevLayer = layer;
 }

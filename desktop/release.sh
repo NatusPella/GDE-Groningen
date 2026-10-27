@@ -167,6 +167,10 @@ $CHANGES
 **Windows:** download \`GDE-Groningen-$VERSION-windows-portable.exe\` en dubbelklik. Geen installatie nodig.
 Zegt Windows "Windows heeft uw pc beveiligd"? Klik op **Meer info** en dan **Toch uitvoeren**.
 
+De sha256 van de Windows-build en van \`gde-world.tgz\` staat in \`SHA256SUMS.txt\`; controleer met
+\`sha256sum -c SHA256SUMS.txt\` (macOS: \`shasum -a 256 -c\`). De builds voor macOS, Linux en Android
+worden door Actions gemaakt en staan niet in dat bestand.
+
 ${MAC_NOTES}${LINUX_NOTES}Speelde je al toen de game nog GTE VI heette? Je saves en instellingen blijven gewoon staan.
 Op de Mac kun je de oude app "GTE VI" daarna uit Programma's weggooien.
 
@@ -182,6 +186,14 @@ for f in $UPLOADS; do
   done
   [ -n "$ok" ] || { echo "Upload failed: $f (builds stay in dist/)"; exit 1; }
 done
+# sha256 van wat dit script uploadt, zodat een speler kan controleren wat hij downloadt (#483).
+# De Actions-builds (macOS, Linux, Android) komen later binnen en staan er bewust niet in.
+HASHES="dist/SHA256SUMS.txt"
+: > "$HASHES"
+for f in $UPLOADS; do
+  node ../scripts/release_hashes.mjs "$f" >> "$HASHES" || { echo "sha256 van $f mislukt"; exit 1; }
+done
+gh release upload "$TAG" "$HASHES" --clobber || { echo "Upload van SHA256SUMS.txt mislukt"; exit 1; }
 rm -f "$NOTES"
 # the comment on the standing issue notifies the mentioned collaborators
 NOTIFY_ISSUE="${NOTIFY_ISSUE:-116}"

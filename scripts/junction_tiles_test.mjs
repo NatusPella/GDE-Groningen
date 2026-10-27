@@ -1,58 +1,47 @@
-// The province's traffic lights and junction model (scripts/world/junction_tiles.mjs):
-// signals snap onto the road they belong to (2.5 m, a cycle path only: bike),
-// the city's junctionModel runs over a pack's roads, and a tile's JUNCTIONS
-// rows name road pieces of that very tile, at the vertex of the node.
-import assert from 'node:assert/strict';
-import { snapSignals, junctionsOf } from './world/junction_tiles.mjs';
-import { tileBlob } from './world/build_corridor.mjs';
-import * as G from '../game/js/gdt.js';
-import { RULES } from '../game/js/junctions.js';
+// De kruispunten van de gestreamde provincietegels (#469): de tegelbouw schrijft ze als
+// JUNCTIONS-rijen, en het spel moet ze in het model opnemen. Zonder deze test merkt niemand
+// dat de provincie geen voorrang en geen stoplijnen heeft: de stad werkt immers gewoon.
+import assert from 'node:assert';
+import { junctionModel, junctionArm } from '../game/js/junctions.js';
 
-const [ox, oy] = G.tileOrigin(40, 20);
-const X = (v) => ox + v, Y = (v) => oy + v;
-const road = (pts, o = {}) => ({ kind: 'roads', row: { pts: pts.map(([x, y]) => [X(x), Y(y)]), cat: 'normal', type: 'residential', width: 6, oneway: false, roundabout: false, bridge: false, ...o } });
-const sig = (x, y) => ({ kind: 'furniture', row: { k: 'signals', pts: [[X(x), Y(y)]], osm: 1 } });
+let n = 0;
+const ok = (v, wat) => { assert.ok(v, wat); n++; };
 
-const feats = () => [
-  road([[0, 100], [100, 100]], { type: 'secondary', cat: 'major', width: 9 }), road([[100, 100], [200, 100]], { type: 'secondary', cat: 'major', width: 9 }),
-  road([[100, 0], [100, 100]]), road([[100, 100], [100, 200]]),
-  road([[300, 300], [320, 300]], { cat: 'cycle', type: 'cycleway', width: 2 }),
-  sig(101, 101), // 1.4 m from the junction node
-  sig(310, 301), // on the cycle path only
-  sig(500, 500), // on no road: dropped
-];
+const road = { cat: 'residential', width: 6, pts: [[4, 0], [10, 0]] };
+const side = { cat: 'residential', width: 5, pts: [[4, 6], [4, 0], [4, -6]] };
 
-const s = snapSignals(feats());
-assert.equal(s.lights.length, 2, 'one car light, one bike light; the loose one is dropped');
-const car = s.lights.find((l) => !l.bike);
-assert.ok(Math.abs(car.y - Y(100)) < 0.01 || Math.abs(car.x - X(100)) < 0.01, 'snapped onto a road');
-assert.ok(Math.hypot(car.x - X(100), car.y - Y(100)) <= 1.01, 'within a metre of where it was');
-assert.equal(s.lights.filter((l) => l.bike).length, 1);
+// Een kaart zoals TileWorld hem heeft: geen stad-roads, wel de wegen van de tegel en de rijen.
+const map = {
+  roads: [],
+  meta: {},
+  _res: { roads: new Map([[7, { obj: road }], [8, { obj: side }]]) },
+  junctionRows: new Map([
+    ['p0_0', [{ k: '40,0', p: [[4, 0]], c: 'equal', a: [[7, 0, 1, 3, 4.5, 1], [8, 1, 1, 4, 3.2, 1]] }]]
+  ])
+};
 
-const j = junctionsOf(s.feats, s.lights);
-assert.equal(j.nodes.length, 1, 'one junction: the cross');
-assert.equal(j.nodes[0].control, 'signals', 'the light makes it a signalled junction');
-assert.ok(j.nodes[0].arms.every((a) => a.rule === 'signal'));
-assert.equal(j.nodes[0].arms.length, 4, 'four roads end at the node');
+const model = junctionModel(map);
+ok(model.has('40,0'), 'de provincietegel levert een knooppunt aan het model');
+const node = model.get('40,0');
+ok(node.control === 'equal', 'de controle komt uit de rij');
+ok(node.arms.length === 2, 'beide armen staan erin, met de weg uit de tegel');
 
-// the tile's rows
-const gid = { buildings: 0, roads: 0, water: 0, green: 0, trees: 0, rails: 0, canopies: 0, furniture: 0 };
-const tb = tileBlob(40, 20, s.feats, gid, 1, 1, null, { junctions: j.nodes });
-assert.ok(tb && tb.n.junctions === 1, 'the junction is in the tile of its node');
-const blob = G.decodeBlob(tb.bytes);
-const roads = blob.sections.find((q) => q.type === G.SECTION.ROADS).rows;
-const jr = blob.sections.find((q) => q.type === G.SECTION.JUNCTIONS).rows[0];
-assert.equal(jr.c, 'signals');
-assert.deepEqual(jr.p[0], [X(100), Y(100)]);
-for (const [rg, idx, d, rule] of jr.a) {
-  const r = roads.find((q) => q.gid === rg);
-  assert.ok(r, 'the arm names a road piece of this tile');
-  assert.deepEqual(r.pts[idx], jr.p[0], 'at the node vertex');
-  assert.ok(d === 1 || d === -1);
-  assert.equal(RULES[rule], 'signal');
-}
-const furn = blob.sections.find((q) => q.type === G.SECTION.FURNITURE).rows;
-assert.equal(furn.filter((q) => q.k === 'signals').length, 2);
-const again = tileBlob(40, 20, s.feats, { ...gid, roads: 0, furniture: 0 }, 1, 1, null, { junctions: j.nodes });
-assert.deepEqual(Buffer.from(again.bytes), Buffer.from(tb.bytes), 'same input, same bytes');
-console.log('junction_tiles_test ok');
+const arm = junctionArm(map, road, 0, -1);
+ok(arm && arm.rule === 'yield', 'de arm met regel yield is terug te vinden (RULES[3])');
+ok(arm && arm.stop === 4.5, 'de stoplijn uit de rij staat op de arm');
+ok(arm && arm.entry !== false, 'de arm houdt zijn enters-vlag');
+
+// Een tweede tegel erbij, en dan weer weg: het model volgt de geladen tegels.
+map.junctionRows.set('p1_0', [{ k: '90,90', p: [[9, 9]], c: 'signals', a: [[7, 0, -1, 1, 5, 1]] }]);
+map.junctionVer = (map.junctionVer || 0) + 1;
+ok(junctionModel(map).has('90,90'), 'een nieuwe tegel komt erbij');
+map.junctionRows.delete('p1_0');
+map.junctionVer++;
+ok(!junctionModel(map).has('90,90'), 'en verdwijnt weer als de tegel uitgaat');
+
+// Een knooppunt zonder bruikbare arm levert niets op in plaats van een half knooppunt.
+map.junctionRows.set('p2_0', [{ k: '10,10', p: [[1, 1]], c: 'equal', a: [[999, 0, 1, 2, 4, 1]] }]);
+map.junctionVer++;
+ok(!junctionModel(map).has('10,10'), 'een arm met een onbekende weg wordt overgeslagen');
+
+console.log(`junction_tiles_test ok (${n} checks)`);

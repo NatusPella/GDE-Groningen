@@ -42,7 +42,10 @@ export const PROVINCE_BUILDER = 1;
 export const GID0 = 20_000_000;
 // how far past the province border tiles are built (the extract's own margin decides the rest)
 export const BUFFER_M = 3000;
-export const SRC_DIR = process.env.GDE_PROVINCE_SRC ? path.resolve(process.env.GDE_PROVINCE_SRC) : path.join(ROOT, 'data', 'cache', 'province'); // GDE_PROVINCE_SRC: een extract buiten de werkboom (worktrees)
+// de extractpaden staan in province_src.mjs: de stadsbouwcache heeft ze nodig zonder deze module te
+// importeren (dat gaf een dode kringloop, #506)
+import { SRC_DIR, haveProvince, bufferDirs } from './province_src.mjs';
+export { SRC_DIR, haveProvince, bufferDirs };
 // tile flags: 1 land, 4 built from OSM by the world builder, 8 the old
 // Ommeland layers draw it too, 16 outside the province (the buffer), 32 this layer,
 // 64 an overlay: the part of a city tile the city's own data leaves empty (its key is 'o' + the tile's)
@@ -53,17 +56,6 @@ export const FLAG = { LAND: 1, BUILT: 4, OLD: 8, BUFFER: 16, PROVINCE: 32, OVERL
 const gunzipJson = (f) => JSON.parse(zlib.gunzipSync(fs.readFileSync(f)).toString('utf8'));
 const r2 = (v) => Math.round(v * 100) / 100;
 const r1 = (v) => Math.round(v * 10) / 10;
-
-export const haveProvince = (dir = SRC_DIR) => fs.existsSync(path.join(dir, 'province.json.gz'));
-
-// The buffer strips next to the province: extracts of the neighbouring
-// provinces cut to the strip (extract_province.py --near), in
-// data/cache/province-<name>/ next to the province's own.
-export function bufferDirs(src = SRC_DIR) {
-  const base = path.dirname(src), name = path.basename(src);
-  if (!fs.existsSync(base)) return [];
-  return fs.readdirSync(base).filter((d) => d.startsWith(name + '-') && haveProvince(path.join(base, d))).sort().map((d) => path.join(base, d));
-}
 
 // ------------------------------------------------------------- geometry
 
@@ -315,7 +307,7 @@ function fillOldExtent({ root, fill, gid, stats, blobs, roadNet, roadSeen, railR
   const src = loadSources(root).ommeland;
   const urbanAt = urbanField(src.boxes);
   const ctx = { urbanAt, village: (x, y) => urbanAt(x, y) >= 0.5 };
-  const feats = features(src.els, ctx);
+  let feats = features(src.els, ctx);
   const inFill = (x, y) => { const [i, j] = G.tileIndexOf(x, y); return fill.has(G.tileKey(i, j)); };
   for (const b of src.boxes) {
     for (const o of boxOutlines(b)) {
@@ -329,6 +321,38 @@ function fillOldExtent({ root, fill, gid, stats, blobs, roadNet, roadSeen, railR
     }
   }
   WB.applyDuals(feats.filter((f) => f.kind === 'roads').map((f) => f.row));
+  // De bomen van de oude data gingen nergens langs de boomopruiming (#508): alleen de pakketten doen dat
+  // (tegel_schoon.mjs), en deze 27 tegels worden hier gebouwd. Zo bleven er bomen op de rijbaan staan.
+  if (process.env.GDE_TREEDBG) {
+    const punten = [[28330, 19028], [32332, 33215], [329, -7950], [4000, 6077], [19329, -18319]];
+    for (const [x, y] of punten) {
+      const bomen = feats.filter((f) => f.kind === 'trees' && Math.hypot(f.row[0] - x, f.row[1] - y) < 8);
+      if (!bomen.length) continue;
+      const wegen = feats.filter((f) => f.kind === 'roads').map((f) => {
+        const P = f.row.pts;
+        let d = Infinity;
+        for (let i = 0; i < P.length - 1; i++) {
+          const a = P[i], b = P[i + 1], dx = b[0] - a[0], dy = b[1] - a[1], L2 = dx * dx + dy * dy || 1e-9;
+          const tt = Math.max(0, Math.min(1, ((x - a[0]) * dx + (y - a[1]) * dy) / L2));
+          d = Math.min(d, Math.hypot(a[0] + dx * tt - x, a[1] + dy * tt - y));
+        }
+        return { d: +d.toFixed(2), cat: f.row.cat, w: f.row.width, naam: f.row.name || '', bridge: !!f.row.bridge, z: !!f.row.z };
+      }).sort((q, r) => q.d - r.d).slice(0, 3);
+      console.log('DBG oud-data (' + x + ',' + y + '): bomen in feats ' + bomen.length + ' op ' + JSON.stringify(bomen.map((f) => [f.row[0], f.row[1]])) + '; dichtstbijzijnde wegen ' + JSON.stringify(wegen));
+    }
+  }
+  {
+    const ts = { moved: 0, removed: 0 };
+    feats = clearPackTrees(feats, ts);
+    stats.derived.treesMoved += ts.moved; stats.derived.treesRemoved += ts.removed;
+    if (process.env.GDE_TREEDBG) {
+      const punten = [[28330, 19028], [32332, 33215], [329, -7950], [4000, 6077], [19329, -18319]];
+      for (const [x, y] of punten) {
+        const bomen = feats.filter((f) => f.kind === 'trees' && Math.hypot(f.row[0] - x, f.row[1] - y) < 8);
+        if (bomen.length) console.log('DBG oud-data NA (' + x + ',' + y + '): ' + JSON.stringify(bomen.map((f) => [f.row[0], f.row[1]])) + ' stats ' + JSON.stringify(ts));
+      }
+    }
+  }
   const idx = new Map();
   for (const f of feats) {
     let bb;
@@ -343,7 +367,24 @@ function fillOldExtent({ root, fill, gid, stats, blobs, roadNet, roadSeen, railR
   // the water: annotated like the extract's (waterlevels.js), flat for the far LOD
   const wr = annotateProvinceWater(feats.filter((f) => f.kind === 'water').map((f) => { f.row.flat = true; return f.row; }), { base: waterBodies, village: ctx.village, locks: [] });
   waterBodies += wr.bodies;
-  for (const f of feats) if (f.kind === 'rails') railRows.push(f.row);
+  // Het spoor van de oude data geldt alleen voor de tegels die eruit gevuld worden (#506). Het oude bestand
+  // beslaat het hele oude Ommeland, dus zonder deze knip kwam het verse spoor er een tweede keer bij te
+  // liggen — 0,16 m ernaast, wat op het spoor zichtbaar is als twee rails over elkaar.
+  {
+    const fb = [Infinity, Infinity, -Infinity, -Infinity];
+    for (const t of fill.values()) {
+      const [ox, oy] = G.tileOrigin(t.i, t.j);
+      fb[0] = Math.min(fb[0], ox); fb[1] = Math.min(fb[1], oy);
+      fb[2] = Math.max(fb[2], ox + G.TILE_M); fb[3] = Math.max(fb[3], oy + G.TILE_M);
+    }
+    if (fb[0] < Infinity) {
+      const inBox = (P) => P.some(([x, y]) => x >= fb[0] && x <= fb[2] && y >= fb[1] && y <= fb[3]);
+      for (const f of feats) {
+        if (f.kind !== 'rails' || !inBox(f.row.pts)) continue;
+        for (const piece of clipLine(f.row.pts, fb)) if (piece.length > 1) railRows.push({ ...f.row, pts: piece });
+      }
+    }
+  }
   for (const k of [...fill.keys()].sort()) {
     const t = fill.get(k), [ox, oy] = G.tileOrigin(t.i, t.j), box = [ox, oy, ox + G.TILE_M, oy + G.TILE_M];
     const list = idx.get(k) || [];
@@ -668,7 +709,42 @@ async function cityCoverOf() {
   const P = await import('./pack_tiles.mjs');
   const { cityCoverFromMask } = await import('./citycover.mjs');
   const { data, mask } = P.readStad();
-  return { ...cityCoverFromMask(mask), rails: (data.rails || []).map((r) => r.pts) };
+  // De stadse rails komen sinds #90 uit de OSM-laag en niet meer uit stad.json: zonder deze regel kreeg
+  // railLines (cityroutes.mjs) een lege lijst en werd het spoor van de provincie nergens op de stadse
+  // track geknipt, zodat het in en om de stad dubbel werd getekend (#506).
+  //
+  // Ze komen uit de GEBOUWDE stadstegels (index.json + pakketten), niet uit de OSM-lagen: dat is precies
+  // wat de stad zelf tekent, het is veel sneller, en het haalt de kringloop weg die build_province los
+  // liet hangen (#511): loadCityDataLaag → stad_laag.mjs → `await import('./build_province.mjs')`
+  // wachtte op deze nog niet geevalueerde module.
+  const rails = await cityRailsFromTiles(path.join(ROOT, 'game', 'world'));
+  if (!rails.length) console.log('  let op: geen stadse rails in game/world (eerst de stad bouwen); het spoor van de provincie wordt dan niet op de stadse track geknipt');
+  return { ...cityCoverFromMask(mask), rails };
+}
+
+// De spoorrijen van de stadstegels (SECTION.RAILS) als polylijnen [[x, y], ...].
+async function cityRailsFromTiles(dir) {
+  const G = await import('../../game/js/gdt.js');
+  const file = path.join(dir, 'index.json');
+  if (!fs.existsSync(file)) return [];
+  const index = JSON.parse(fs.readFileSync(file, 'utf8'));
+  if (!index.tiles || !index.packs) return [];
+  const fds = new Map();
+  const out = [];
+  try {
+    for (const t of Object.values(index.tiles)) {
+      const f = index.packs[t.pack].file;
+      if (!fds.has(f)) fds.set(f, fs.openSync(path.join(dir, f), 'r'));
+      const buf = Buffer.alloc(t.len);
+      fs.readSync(fds.get(f), buf, 0, t.len, t.off);
+      const blob = G.decodeBlob(new Uint8Array(zlib.inflateRawSync(buf)));
+      const sec = blob.sections.find((s) => s.type === G.SECTION.RAILS);
+      for (const r of (sec && sec.rows) || []) if (r.pts && r.pts.length > 1) out.push(r.pts);
+    }
+  } finally {
+    for (const fd of fds.values()) fs.closeSync(fd);
+  }
+  return out;
 }
 
 async function main() {

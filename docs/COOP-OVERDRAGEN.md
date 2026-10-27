@@ -1,6 +1,6 @@
 # Het spel overdragen (#439)
 
-Voor wie aan `coophostwissel.js`, `coophostwisselnet.js`, `coophostwisselui.js` of `coopnet.js` werkt.
+Voor wie aan `coophostwissel.js`, `coophostwisselnet.js`, `multiplayerhostwisselui.js` of `coopnet.js` werkt.
 Het ontwerp staat als comment op issue #439; dit is wat er nu is en wat er nog moet.
 
 ## Onderdelen
@@ -9,7 +9,7 @@ Het ontwerp staat als comment op issue #439; dit is wat er nu is en wat er nog m
 |---|---|
 | `game/js/coophostwissel.js` | Pure basis: de momentopname, de stukken met controlegetal en de twee toestandsmachines (`OudeHost`, `NieuweHost`). Geen netwerk, geen klok. Test: `scripts/coophostwissel_test.mjs`. |
 | `game/js/coophostwisselnet.js` | De koppeling: momentopname vullen uit de wereld (`verzamelMomentopname`) en toepassen (`pasMomentopnameToe`), berichten over de bestaande sessies, het wisselen van hub naar gast en terug. De route komt binnen als `deps` (`zetWisselDeps`). Geen DOM. |
-| `game/js/coophostwisselui.js` | De echte route (rtcroom, brokers, diagnose) en het scherm (J/N-vraag, pauzemelding). `koppelWissel` wordt aangeroepen door `samenpanel.js`. |
+| `game/js/multiplayerhostwisselui.js` | De echte route (rtcroom, brokers, diagnose) en het scherm (J/N-vraag, pauzemelding). `koppelWissel` wordt aangeroepen door `samenpanel.js`. |
 | `game/js/coophostwisselwereld.js` | De haken met de wereld: opdracht hervatten, kapotte objecten, voertuigen, plek, geld per gast. Test: `scripts/coophostwisselwereld_test.mjs`. |
 | `game/js/coopnet.js` | Drie kleine haken: `hw-*`-berichten en de tik gaan naar `coophostwisselnet.js`, en `startClient` bewaart de gewenste figuur (`wens`). |
 | `game/js/lobby.js`, `game/js/lobbyui.js` | De knop Spel overdragen in het paneel Samen spelen (ook in de wachtkamer): de host kiest een speler (`overdrachtKandidaten`, alleen met een kamercode) en `biedOver` doet de rest. Tests: `scripts/lobby_test.mjs`, `scripts/lobbyadopt_test.mjs`. |
@@ -54,10 +54,10 @@ Het bod draagt een terugvalkamer (`terug`, een kamercode die `maakKamer` maakt) 
 
 ## Wat voor echt internet nog nodig is
 
-- De route is getest met een register in het geheugen. `wisselRoute` in `coophostwisselui.js` gebruikt rtcroom, de brokers en STUN zoals de wachtkamer, maar is nooit over echt internet gedraaid. Te doen: twee Electron-instanties (`scripts/coop/testbank.mjs`) en daarna twee computers achter verschillende routers.
+- De route is getest met een register in het geheugen. `wisselRoute` in `multiplayerhostwisselui.js` gebruikt rtcroom, de brokers en STUN zoals de wachtkamer, maar is nooit over echt internet gedraaid. Te doen: twee Electron-instanties (`scripts/coop/testbank.mjs`) en daarna twee computers achter verschillende routers.
 - De kamer van de nieuwe host opent één aanbod per speler tegelijk; spelers proberen 12 keer opnieuw (`VERBIND_POGINGEN`). Bij drie of meer gasten achter een trage broker kan het aansluiten langer duren dan de pauze (80 s); meten.
 - Gevonden met `scripts/coop/playtest_sim.mjs` (drie Electron, nep-tracker): het overdragen werkt over de kamer van de nieuwe host met twee gasten tegelijk (de nep-tracker gaf eerst één aanbod aan beide aansluiters; een echte tracker doet dat niet). De lobby kent de sessie na het overdragen (`adopt` in `lobbyui.js`: rol, kamercode en spelers, met Iedereen stoppen of Spel verlaten), en het overdragen begint ook vanuit dat paneel met Spel overdragen (alleen met een kamercode). De simulatie leest de kamercode uit `world.coopWissel.overname`.
 - Alleen de kamercode-route. Met een IP-adres (TCP, `route: 'direct'`) is overdragen uit (`kanOverdragen`): de nieuwe host zou zijn eigen poort moeten openen (UPnP) en een koppelcode doorgeven.
 - Lukt het aansluiten bij de nieuwe host niet na `hw-draait`, dan is er de terugval (zie boven); alleen in de test met een geheugentransport geprobeerd. In `wisselRoute` krijgt `verbind` nu een eigen time-out (`joinRoom` beslist nooit als het misgaat).
-- Het scherm (`teken` in `coophostwisselui.js`) en de knop zijn niet in beeld bekeken.
+- Het scherm (`teken` in `multiplayerhostwisselui.js`) en de knop zijn niet in beeld bekeken.
 - Opdrachten en filmpjes: de overdracht begint niet tijdens een filmpje; de opdracht loopt na de overdracht door op de stage waar zij was (`missionDebug.hervat`, #452), maar wat een stage zelf opbouwde (een scène, de kluis, de deuren van de kraak) begint opnieuw. De haken met de wereld (`coophostwisselwereld.js`) zijn niet in het spel zelf gezien: alleen losse functies zijn getest (`scripts/coophostwisselwereld_test.mjs`) en de momentopname in `scripts/coop/hostwissel_test.mjs`.
