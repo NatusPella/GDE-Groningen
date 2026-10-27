@@ -44,6 +44,8 @@ if (typeof window !== 'undefined') {
     ready: () => !!data,
     counts: () => (data ? { scenes: data.scenes.length, lines: data.scenes.reduce((a, s) => a + s.lines.length, 0) } : null),
     talk: (id) => talkLines(id),
+    // de id's van alle scènes: de verhaaltest zoekt er een zonder opnames (de TTS-rondes voegen stemmen toe)
+    scenes: () => (data ? data.scenes.map((s) => s.id) : []),
   };
 }
 

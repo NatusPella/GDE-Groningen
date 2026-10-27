@@ -551,7 +551,7 @@ function boatTrip(w, a) {
   };
   scene(w, a, {
     id: 'dorp-boot', title: a.def.name, duration: 14, hide: true,
-    lines: a.def.lines.map((t) => [a.def.who, t]),
+    lines: (a.def.lines || []).map((t) => [a.def.who, t]),
     shot(u) {
       const [bx, by, h] = at(Math.min(1, u * 1.05));
       if (boat) { boat.position.set(bx, BOAT_Y, by); boat.rotation.y = -h; }

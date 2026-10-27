@@ -85,6 +85,7 @@ export const VILLAGES = {
   },
   Kropswolde: {
     teaser: 'Een ijsje bij de strandtent aan het Zuidlaardermeer',
+    special: { kind: 'boot', name: 'Roeibootje op het Zuidlaardermeer', label: 'Huur een roeibootje', sub: 'Een rondje over het meer: €6', who: 'Schipper Lammert' },
     amenity: { kind: 'strandtent', name: 'Strandtent De Natte Voet', who: 'Strandtent Tineke', tag: 'zonnig, gezellig',
       lines: ['Moi! IJsje, patatje of allebei? Hier op t strand telt t nait.', 'Nait te lang in de zun, hè. Ook nait in Grunn.'] },
   },
