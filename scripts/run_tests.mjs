@@ -1,5 +1,5 @@
 // Draait de standaardtests: syntaxcheck (modules via --input-type=module) op alle JS, voice_coverage, undef_check,
-// text_audit, player_singleton_audit en alle scripts/*_test.mjs met gewone node. Gebruik: node scripts/run_tests.mjs
+// text_audit, spec_check, player_singleton_audit en alle scripts/*_test.mjs met gewone node. Gebruik: node scripts/run_tests.mjs
 //   --quick          snelle subset (geen check van alle JS, geen trage tests)
 //   --timeout=<sec>  per test (standaard 120, bij --quick 30)
 //   --only=<tekst>   alleen tests waarvan de naam de tekst bevat
@@ -118,6 +118,9 @@ function main() {
     // De poort op de enkelspeler-aanname (#500): directe world.player-lezers mogen niet groeien.
     const psa = run(process.execPath, ['scripts/player_singleton_audit.mjs'], timeoutMs);
     note('player_singleton_audit.mjs', psa, classify(psa));
+    // De specs tegen de code (#499): regelverwijzingen en de tellers in proza.
+    const sc = run(process.execPath, ['scripts/spec_check.mjs'], timeoutMs);
+    note('spec_check.mjs', sc, classify(sc));
   }
 
   for (const t of tests) {
