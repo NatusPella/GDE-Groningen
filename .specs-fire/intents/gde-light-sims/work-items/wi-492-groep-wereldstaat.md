@@ -66,7 +66,7 @@ Electron-verhaaltest als poort — niet iets om tussen twee releases door te doe
 ## Samen spelen
 
 Dit is de kern van Samen spelen: elke groep is gelijkwaardig, de host simuleert maar
-is geen leider. De beloning blijft per speler (1+1=3, ADR 0016). De wereld blijft van
+is geen leider. De beloning blijft per speler (1+1=3, ADR 0020). De wereld blijft van
 de host; elke groep krijgt een eigen view op dezelfde wereld.
 
 ## Niet

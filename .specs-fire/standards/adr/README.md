@@ -44,7 +44,7 @@ deze lijst voordat een andere sessie begint te schrijven:
 
 | # | Gereserveerd voor | Door |
 |---|---|---|
-| — | (vrij; 0016 is gebruikt door `gde-light-sims`, 0017 door de taalregel, 0018 door de speleringang #500) | — |
+| — | (vrij; 0016 is gebruikt door `gde-light-sims`, 0017 door de taalregel, 0018 door de speleringang #500, 0019 door spraak #462, 0020 door 1+1=3 #492) | — |
 
 ## Lijst
 
@@ -69,3 +69,4 @@ deze lijst voordat een andere sessie begint te schrijven:
 | [0017](0017-code-in-het-engels.md) | Code in het Engels, spelteksten en proza in het Nederlands | besloten |
 | [0018](0018-een-ingang-voor-de-speler.md) | Eén ingang voor de speler, met een poort op de singleton | besloten |
 | [0019](0019-spraak-op-flash-lite.md) | Spraak op Gemini Flash-Lite TTS, en nooit meer Flash | besloten |
+| [0020](0020-1plus1is3.md) | 1+1=3: meer spelers, meer loon per persoon (max 3×) | besloten |

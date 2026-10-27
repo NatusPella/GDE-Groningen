@@ -38,7 +38,7 @@ Iedereen begint op **passief**: medespelers doen je geen schade en jij doet hun 
 stand uitzetten (zie "Passieve stand en spelers tegen elkaar", #447). Wie meedoet krijgt de stap in zijn eigen verhaal en
 de volledige beloning (#429).
 
-**1+1=3** (ADR 0016): elke extra deelnemer geeft elk lid 50% meer loon, tot 3× per persoon; daarboven groeit alleen
+**1+1=3** (ADR 0020): elke extra deelnemer geeft elk lid 50% meer loon, tot 3× per persoon; daarboven groeit alleen
 het totaal. Het aantal spelers is niet aan een vaste cap gebonden; de host en de verbinding bepalen de praktische grens.
 Solo blijft de factor 1, en de eigen loopbaanfactor van elke speler komt er nog overheen. De regel staat in
 `game/js/groepsbonus.js` en geldt voor missies, bijbanen, wedstrijden en de treincrew.

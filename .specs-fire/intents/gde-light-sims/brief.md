@@ -4,7 +4,7 @@
 
 Naast het verhaal een set lichte beroepsloopbanen bouwen: de herkenbare lus van GTA IV, Watch Dogs 2, ETS2, Train Simulator, Flight Simulator, Farming Simulator en Fishing Simulator, met rijke features maar een kleine catalogus. Alles werkt in Samen spelen, met eigen voortgang per speler en een samenwerkingsbonus (1+1=3).
 
-Epic: #492. De scope en de afgewezen alternatieven staan in de ADR `0015-een-ingang-geen-hoofdmenu.md`.
+Epic: #492. De scope en de afgewezen alternatieven staan in de ADR `0016-een-ingang-geen-hoofdmenu.md`.
 
 ## Waarom
 
