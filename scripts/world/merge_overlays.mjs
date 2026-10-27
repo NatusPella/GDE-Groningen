@@ -20,6 +20,15 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '.
 const deflate = (b) => new Uint8Array(zlib.deflateRawSync(b, { level: 9 }));
 const inflate = (b) => new Uint8Array(zlib.inflateRawSync(b));
 const readJson = (f) => JSON.parse(fs.readFileSync(f, 'utf8'));
+// de grens tussen de rijen van de stad en die van een overlayrij (game/js/tileworld.js: OVERLAY_GID0)
+const OVERLAY_GID0 = 20_000_000;
+// de tellingen per tegel (index.json) staan op sectienaam; de ids van een rij op het sectietype
+const KIND_OF_SECTION = new Map([
+  [G.SECTION.BUILDINGS, 'buildings'], [G.SECTION.ROADS, 'roads'], [G.SECTION.WATER, 'water'],
+  [G.SECTION.GREEN, 'green'], [G.SECTION.TREES, 'trees'], [G.SECTION.RAILS, 'rails'],
+  [G.SECTION.CANOPIES, 'canopies'], [G.SECTION.FURNITURE, 'furniture'], [G.SECTION.PARCELS, 'parcels'],
+  [G.SECTION.HEIGHTS, 'heights'],
+]);
 
 // de tegel als secties die encodeBlob weer maakt: rijen, json, raster of bytes
 const asSections = (blob) => blob.sections.map((s) => {
@@ -74,8 +83,18 @@ function treeOnRoad(x, y, grid) {
   return false;
 }
 
-export function mergeBlobs(city, overlay) {
+export function mergeBlobs(city, overlay, stripped = null) {
   const sections = asSections(city);
+  // Een rebuild van de provincielaag levert de overlay opnieuw aan terwijl de stadstegel de rijen van de
+  // vorige merge nog bevat: die gaan er eerst uit, anders staan ze dubbel in de tegel (twee ids vanaf GID0
+  // voor verschillende rijen) en houdt de loader de oude (#512). `stripped` telt ze per sectietype, zodat
+  // de tellingen van de tegel niet dubbel gaan tellen.
+  for (const s of sections) {
+    if (!s.rows) continue;
+    const before = s.rows.length;
+    s.rows = s.rows.filter((r) => { const g = s.type === G.SECTION.TREES ? r && r.g : r && r.gid; return !(typeof g === 'number' && g >= OVERLAY_GID0); });
+    if (stripped && before !== s.rows.length) stripped[s.type] = (stripped[s.type] || 0) + (before - s.rows.length);
+  }
   const overlayStart = new Map(); // sectietype -> index waar de overlayrijen beginnen
   for (const o of asSections(overlay)) {
     if (!o.rows) throw new Error(`overlaysectie ${o.type} is geen tabel`);
@@ -142,8 +161,14 @@ export function mergeOverlays(dir, { log = () => {} } = {}) {
     if (!ce) throw new Error(`overlay ${ok} heeft geen stadstegel ${k}`);
     const pe = prov.tiles[ok];
     const ovBlob = G.decodeBlob(slice(prov, pe));
-    const merged = mergeBlobs(G.decodeBlob(slice(city, ce)), ovBlob);
+    const stripped = {};
+    const merged = mergeBlobs(G.decodeBlob(slice(city, ce)), ovBlob, stripped);
     mergedCity.set(k, { bytes: merged, n: { ...ce.n }, maxH: Math.max(ce.maxH || 0, pe.maxH || 0), ovN: pe.n });
+    // de tellingen van de stadstegel telden de overlayrijen van de vorige merge mee: die gaan eraf
+    for (const [type, count] of Object.entries(stripped)) {
+      const kind = KIND_OF_SECTION.get(Number(type));
+      if (kind && mergedCity.get(k).n[kind]) mergedCity.get(k).n[kind] = Math.max(0, mergedCity.get(k).n[kind] - count);
+    }
     for (const [kind, v] of Object.entries(pe.n || {})) mergedCity.get(k).n[kind] = (mergedCity.get(k).n[kind] || 0) + v;
     emptied.set(ok, G.encodeBlob({ i: ovBlob.i, j: ovBlob.j, flags: ovBlob.flags, builder: ovBlob.builder, sections: [] }));
     log(`  ${k}: stad ${ce.raw} + overlay ${pe.raw} -> ${merged.length} B`);
