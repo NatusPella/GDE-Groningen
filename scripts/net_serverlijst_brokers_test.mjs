@@ -173,7 +173,7 @@ await t('misbruik: rommel, een vervalste naam en een vloed op de lijn komen niet
   const l2 = new Serverlijst({ proto: PROTO, versie: '0.46.0' });
   const rng = makeRng(77); let toe = 0;
   for (let i = 0; i < 500; i++) { const r = l2.ontvang(codeer({ naam: 'Vloed ' + i, spelers: 1, max: 4, versie: '0.46.0', proto: PROTO, room: makeRoom(rng), id: maakId(rng), nu: Date.now() }), Date.now()); if (r.ok) toe++; }
-  assert.equal(toe, LIJST.nieuwPerMinuut); assert.equal(l2.lijst().length, LIJST.maxGetoond);
+  assert.equal(toe, LIJST.nieuwPerMinuut); assert.equal(l2.lijst().length, LIJST.nieuwPerMinuut, 'de lijst bewaart alles'); assert.equal(l2.zoek().rijen.length, LIJST.maxGetoond, 'de pagina toont 20');
   aanval.close(); host.stop(); luis.stop();
 });
 await t('melden: de gemelde sessie verdwijnt uit jouw lijst en blijft weg bij de volgende aankondiging, zonder dat er iets over de lijn gaat', async () => {
