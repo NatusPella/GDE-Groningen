@@ -749,8 +749,8 @@
   {
    "veld": "money",
    "bestand": "game/js/missions.js",
-   "max": 3,
-   "reden": "past het saldo aan buiten economy.js om",
+   "max": 4,
+   "reden": "past het saldo aan buiten economy.js om; de vierde is de uitbetaling per speler bij de museumkraak (#438)",
    "issue": "#498"
   },
   {
