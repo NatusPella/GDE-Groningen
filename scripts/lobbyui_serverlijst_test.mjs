@@ -36,8 +36,18 @@ let n = 0;
 const t = async (name, f) => { await f(); n++; };
 const tick = (ms = 20) => new Promise((r) => setTimeout(r, ms));
 function fakeRoot() {
-  const r = { innerHTML: '', handlers: [], value: '', querySelector: (q) => (q === '.coop-input' ? { value: r.value } : null), contains: () => true, addEventListener(ev, f) { this.handlers.push(f); } };
-  r.click = (act) => r.handlers.forEach((h) => h({ target: { closest: () => ({ dataset: { act } }) } }));
+  const r = { innerHTML: '', listeners: {}, value: '' };
+  r.querySelector = (q) => (q === '.coop-input' ? { value: r.value } : q === '.coop-lijst-zoek' ? { value: r.zoek || '', focus() {}, setSelectionRange() {} } : null);
+  r.contains = () => true;
+  r.addEventListener = (ev, f) => { (r.listeners[ev] || (r.listeners[ev] = [])).push(f); };
+  r.click = (act) => (r.listeners.click || []).forEach((h) => h({ target: { closest: () => ({ dataset: { act } }) } }));
+  // Een toets en een zoekopdracht zoals de browser ze geeft; elke keydown krijgt ook een keyup (AGENTS.md).
+  r.typ = (tekst) => { r.zoek = tekst; const el = { value: tekst, classList: { contains: (c) => c === 'coop-lijst-zoek' } }; (r.listeners.input || []).forEach((h) => h({ target: el })); };
+  r.key = (key, cls = 'coop-lijst-zoek') => {
+    const el = { classList: { contains: (c) => c === cls }, focus() {}, selectionStart: 0 };
+    (r.listeners.keydown || []).forEach((h) => h({ key, target: el, preventDefault() {} }));
+    (r.listeners.keyup || []).forEach((h) => h({ key, target: el }));
+  };
   return r;
 }
 // De hub van een sessie (#450): hij houdt de naam, een vast id en het echte aantal spelers vast; de lobby plaatst de regel.
@@ -207,6 +217,105 @@ await t('met keuze gast en lijst (uit het hoofdmenu) begint de lobby met de toes
   const s0 = start(); const root = fakeRoot(); const lobby = mountLobby(root, hooks(), { keuze: 'gast', lijst: true });
   assert.equal(lobby.state().step, 'lijst-vraag'); assert.equal(start(), s0);
   root.click('lijst-terug'); assert.equal(lobby.state().step, 'gast-typt');
+  lobby.close();
+});
+
+// ----- de serverbrowser (#464): zoeken, filters, sorteren, leeftijd, favorieten en meer dan 20 regels
+const rijVan = (i, nu, extra = {}) => ({ id: 'lijst' + String(i).padStart(5, '0'), naam: 'Sessie ' + String(i).padStart(2, '0'), spelers: 1 + (i % 3), max: 8, versie: VERSION, room: 'K3J9D8F2MN', anders: false, vol: false, kan: true, gezien: nu - i * 1000, ouderdom: i * 1000, dim: i >= 35, ...extra });
+async function openLijst() {
+  const root = fakeRoot(); const lobby = mountLobby(root, hooks(), { lijstMs: 100000 });
+  root.click('lijst'); root.click('lijst-go'); await tick(450); // de eerste tik van de lijst is geweest
+  return { root, lobby };
+}
+await t('#464: de lijst heeft een zoekveld, filters, sorteren, een leeftijd per regel en meer dan 20 via Meer laden', async () => {
+  geheugen.clear();
+  const { root, lobby } = await openLijst();
+  lobby.event({ t: 'lijst-data', lijst: Array.from({ length: 25 }, (_, i) => rijVan(i, Date.now())) });
+  assert.match(root.innerHTML, /coop-lijst-zoek/, 'zoekveld');
+  assert.match(root.innerHTML, /data-act="lijst-filter-alleenAansluitbaar" aria-pressed="false"/);
+  assert.match(root.innerHTML, /data-act="lijst-sorteer-standaard" aria-pressed="true"/);
+  assert.match(root.innerHTML, /20 van 25 sessies/, 'de teller');
+  assert.match(root.innerHTML, /net/, 'leeftijd per regel');
+  assert.match(root.innerHTML, /Meer laden/);
+  assert.equal((root.innerHTML.match(/class="coop-sessie"/g) || []).length, 20);
+  root.click('lijst-meer');
+  assert.equal((root.innerHTML.match(/class="coop-sessie"/g) || []).length, 25, 'de rest is bereikbaar');
+  assert.match(root.innerHTML, /25 sessies/);
+  lobby.close();
+});
+await t('#464: zoeken tijdens het typen, Escape wist, en een filter dat niets vindt zegt het met Filters wissen', async () => {
+  geheugen.clear();
+  const { root, lobby } = await openLijst();
+  lobby.event({ t: 'lijst-data', lijst: Array.from({ length: 25 }, (_, i) => rijVan(i, Date.now())) });
+  root.typ('sessie 07');
+  assert.match(root.innerHTML, /value="sessie 07"/, 'de waarde blijft staan');
+  assert.match(root.innerHTML, /1 van 25 sessies/); assert.match(root.innerHTML, /Sessie 07 ·/);
+  assert.ok(!/Sessie 08 ·/.test(root.innerHTML), 'de rest is weg');
+  root.key('Escape');
+  assert.match(root.innerHTML, /value=""/); assert.match(root.innerHTML, /Sessie 08 ·/);
+  root.click('lijst-filter-alleenFavorieten'); // geen favorieten: niets past
+  assert.match(root.innerHTML, /data-act="lijst-filter-alleenFavorieten" aria-pressed="true"/);
+  assert.match(root.innerHTML, /Geen sessies die passen/);
+  assert.match(root.innerHTML, /data-act="lijst-filters-wissen"/);
+  root.click('lijst-filters-wissen');
+  assert.match(root.innerHTML, /data-act="lijst-filter-alleenFavorieten" aria-pressed="false"/);
+  assert.match(root.innerHTML, /Sessie 00 ·/);
+  lobby.close();
+});
+await t('#464: sorteren op spelers, naam en laatst gezien; de keuze heeft aria-pressed', async () => {
+  geheugen.clear();
+  const { root, lobby } = await openLijst();
+  lobby.event({ t: 'lijst-data', lijst: Array.from({ length: 25 }, (_, i) => rijVan(i, Date.now())) });
+  root.click('lijst-sorteer-spelers');
+  assert.match(root.innerHTML, /data-act="lijst-sorteer-spelers" aria-pressed="true"/);
+  assert.ok(root.innerHTML.indexOf('Sessie 02 ·') < root.innerHTML.indexOf('Sessie 00 ·'), '3 spelers eerst');
+  root.click('lijst-sorteer-naam');
+  assert.match(root.innerHTML, /data-act="lijst-sorteer-naam" aria-pressed="true"/);
+  assert.ok(root.innerHTML.indexOf('Sessie 00 ·') < root.innerHTML.indexOf('Sessie 07 ·'));
+  root.click('lijst-sorteer-gezien');
+  assert.ok(root.innerHTML.indexOf('Sessie 00 ·') < root.innerHTML.indexOf('Sessie 12 ·'), 'nieuwste eerst');
+  lobby.close();
+});
+await t('#464: een ster zet een favoriet bovenaan, filtert, en blijft na het opnieuw openen van de lobby', async () => {
+  geheugen.clear();
+  const { root, lobby } = await openLijst();
+  lobby.event({ t: 'lijst-data', lijst: Array.from({ length: 25 }, (_, i) => rijVan(i, Date.now())) });
+  root.click('ster-7');
+  assert.match(root.innerHTML, /data-act="ster-7" aria-pressed="true"/);
+  assert.deepEqual(JSON.parse(geheugen.get('gde-serverlijst-favorieten')), ['lijst00007'], 'alleen het id, lokaal');
+  root.click('lijst-sorteer-spelers');
+  assert.ok(root.innerHTML.indexOf('Sessie 07 ·') < root.innerHTML.indexOf('Sessie 02 ·'), 'favoriet bovenaan');
+  root.click('lijst-filter-alleenFavorieten');
+  assert.match(root.innerHTML, /Sessie 07 ·/); assert.match(root.innerHTML, /1 van 25 sessies/);
+  lobby.close();
+  const r2 = fakeRoot(); const l2 = mountLobby(r2, hooks(), { lijstMs: 100000 });
+  r2.click('lijst'); r2.click('lijst-go'); await tick(450);
+  l2.event({ t: 'lijst-data', lijst: Array.from({ length: 25 }, (_, i) => rijVan(i, Date.now())) });
+  r2.click('lijst-filter-alleenFavorieten');
+  assert.match(r2.innerHTML, /Sessie 07 ·/, 'de ster is onthouden');
+  l2.close();
+});
+await t('#464: leeftijd en dimmen per regel; melden gebruikt de juiste regel ook na filteren', async () => {
+  geheugen.clear();
+  const { root, lobby } = await openLijst();
+  const nu = Date.now();
+  lobby.event({ t: 'lijst-data', lijst: [rijVan(0, nu, { naam: 'Vers spel' }), rijVan(1, nu, { naam: 'Bijna weg', ouderdom: 40000, gezien: nu - 40000, dim: true })] });
+  assert.match(root.innerHTML, /net/); assert.match(root.innerHTML, /40 s/);
+  assert.match(root.innerHTML, /opacity:\.55/, 'de laatste seconden zijn gedimd');
+  root.typ('bijna');
+  root.click('meld-1');
+  assert.deepEqual(JSON.parse(geheugen.get('gde-serverlijst-verborgen')), ['lijst00001'], 'het juiste id, ook na filteren');
+  lobby.close();
+});
+await t('#464: een lege lijst zegt dat er gezocht wordt; een lege uitslag heeft een uitweg', async () => {
+  geheugen.clear();
+  const { root, lobby } = await openLijst();
+  lobby.event({ t: 'lijst-data', lijst: [] });
+  assert.match(root.innerHTML, /We zoeken openbare sessies/);
+  lobby.event({ t: 'lijst-data', lijst: [rijVan(0, Date.now())] });
+  root.typ('zzz');
+  assert.match(root.innerHTML, /Geen sessies die passen/);
+  assert.match(root.innerHTML, /Filters wissen/);
   lobby.close();
 });
 
