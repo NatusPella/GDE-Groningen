@@ -128,21 +128,73 @@ export async function startNodeHost({ stage, tiles = '-', story = 'nieuw', max =
 // spelers komen op de startplek van de server en elke gast is een figuur die deze server zelf simuleert. De beheerder kan
 // kijken wie er is, iemand kicken of verbieden (alleen het token van die verbinding, geen naam of adres), het wachtwoord
 // zetten en het maximum aanpassen. Stoppen doet `h.stop()`; de CLI hieronder leest dezelfde taken van het toetsenbord.
-//   const h = await startKoplozeHost({ max: 4, wachtwoord: 'zomer' });   // h.code, h.spelers(), h.kick(2), h.stop()
-export async function startKoplozeHost({ max = 4, wachtwoord = '', start = START, clock = 12, seed = 95, localIp = null, upnp = false } = {}) {
+// Met `port` luistert hij op precies die poort (en zegt hij het als die bezet is); zonder `port` kiest het spel er zelf een.
+// Zonder wereld of zonder spelerslijst stopt hij meteen met een Nederlandse melding in plaats van een fout in de tik.
+// Met `openbaar` (of een `naam`) zet hij dezelfde regel in de openbare sessielijst als een gewone gastheer: dezelfde velden,
+// dezelfde brokers en dezelfde afmelding, maar zonder lobbypaneel (#450). Zonder die optie blijft de sessie privé.
+//   const h = await startKoplozeHost({ max: 4, wachtwoord: 'zomer', port: 41234, openbaar: true, naam: 'Zomeravond' });
+//   // h.code, h.poort, h.kamer, h.spelers(), h.publiek(), h.zetOpenbaar(aan, naam), h.kick(2), h.stop()
+// De poort van een gastheer: 0 betekent "kies er zelf een" (het spel doet dat, 41000-41999).
+export function leesPoort(tekst) {
+  const t = String(tekst == null ? '' : tekst).trim();
+  if (!t) return 0;
+  if (!/^\d{1,5}$/.test(t)) throw new Error(`"${t}" is geen poortnummer: gebruik een getal tussen 1 en 65535.`);
+  const p = Number(t);
+  if (p === 0) return 0; // 0 betekent: kies er zelf een
+  if (p < 1 || p > 65535) throw new Error(`Poort ${p} valt buiten 1-65535.`);
+  return p;
+}
+
+// De kamercode die bij de openbare regel hoort (#450): hetzelfde alfabet als een gewone kamercode (net/sigcrypto.js), zodat
+// de lijst en de rest van het spel hem hetzelfde lezen. Leeg betekent: deze gastheer kiest er zelf een.
+export function leesKamer(tekst) {
+  const t = String(tekst == null ? '' : tekst).trim().toUpperCase().replace(/[\s-]/g, '');
+  if (!t) return '';
+  if (!/^[A-HJ-NP-Z2-9]{10}$/.test(t)) throw new Error(`"${tekst}" is geen kamercode: gebruik 10 tekens, zoals K3J9D-8F2MN.`);
+  return t;
+}
+
+// Een koploze wereld is de wereld van de server (#450): geen speler, maar wel de lijsten die de hub bijhoudt. Mist er een,
+// dan zegt de gastheer dat meteen en duidelijk; een halve wereld geeft anders pas veel later een onduidelijke fout.
+export function eisKoplozeWereld(world) {
+  if (!world || typeof world !== 'object') throw new Error('De gastheer heeft geen wereld om te draaien.');
+  for (const veld of ['vehicles', 'pedestrians', 'wildlife', 'messages']) {
+    if (!Array.isArray(world[veld])) throw new Error(`De wereld van de gastheer mist de lijst "${veld}".`);
+  }
+  if (typeof world.addMessage !== 'function') throw new Error('De wereld van de gastheer mist addMessage().');
+  return world;
+}
+
+export async function startKoplozeHost({ max = 4, wachtwoord = '', start = START, clock = 12, seed = 95, localIp = null, upnp = false, port = 0, maakWereld = null, openbaar = false, naam = '', kamer = '', lijstSocket = null, lijstInterval = 0 } = {}) {
+  const poort = leesPoort(port); // 0 = het spel kiest er zelf een
   const N = await imp('coopnet.js');
   const { koplozeWereld } = await imp('net/koploos.js');
   const { listenForGuests } = await imp('net/ipctransport.js');
   const info = N.handshakeInfo({ tiles: '-', story: 'nieuw' });
-  const world = koplozeWereld({ start, clock });
+  // #450: de openbare regel is net als in de lobby een keuze van de gastheer (constitutie 4): zonder `openbaar` of een
+  // `naam` gaat er niets naar de brokers. De naam gaat door hetzelfde filter als een online naam.
+  const openbaarAan = !!openbaar || !!naam;
+  let openbareNaam = '';
+  const openbareKamer = leesKamer(kamer) || (openbaarAan ? (await imp('net/sigcrypto.js')).makeRoom() : '');
+  if (openbaarAan) {
+    const S = await imp('net/serverlijst.js');
+    const schoon = S.schoonNaam(naam);
+    if (!schoon.ok) throw new Error('De naam van de openbare sessie kan niet: ' + schoon.reason);
+    openbareNaam = schoon.naam;
+  }
+  const world = eisKoplozeWereld((typeof maakWereld === 'function' ? maakWereld : koplozeWereld)({ start, clock }));
   N.startHost(world, info, { seed, max, koploos: true, wachtwoord });
+  if (!Array.isArray(world.coopRoster)) {
+    try { N.stopCoopNet(world); } catch (e) { /* al weg */ }
+    throw new Error('De gastheer kon de spelerslijst niet aanmaken.');
+  }
 
   // de TCP-kant van de app achter dezelfde ipc-brug als in Electron; zonder Electron is dit de enige kant
   const listeners = new Set();
   const core = createCoopCore({ gameDir: path.join(ROOT, 'game'), emit: (k, p) => { for (const f of [...listeners]) f(k, p); }, ...(localIp ? { localIp } : null), upnp });
   const api = { send: (id, b) => core.send(id, b), close: (id) => core.close(id), onEvent: (fn) => { listeners.add(fn); return () => listeners.delete(fn); } };
   const off = listenForGuests(api, (tr) => N.addGuest(world, tr));
-  const hosted = await core.host({ max });
+  const hosted = await core.host({ max, ...(poort ? { port: poort } : null) });
   if (!hosted.ok) {
     try { off(); } catch (e) { /* al weg */ }
     try { N.stopCoopNet(world); } catch (e) { /* al weg */ }
@@ -150,7 +202,7 @@ export async function startKoplozeHost({ max = 4, wachtwoord = '', start = START
     throw new Error(hosted.text || 'De gastheer kon geen poort openen.');
   }
 
-  const h = { world, info, code: hosted.code, lanCode: hosted.lanCode || '', online: !!hosted.online, core, N, t: 0, gestopt: false };
+  const h = { world, info, code: hosted.code, lanCode: hosted.lanCode || '', online: !!hosted.online, poort: hosted.port || poort, core, N, t: 0, gestopt: false };
   let last = Date.now();
   h.timer = setInterval(() => {
     const now = Date.now(), dt = Math.min(0.1, (now - last) / 1000); last = now;
@@ -158,15 +210,73 @@ export async function startKoplozeHost({ max = 4, wachtwoord = '', start = START
     N.tickCoopNet(world, dt);
   }, 16);
   // de beheerderstaken: plek 0 is de server zelf en telt niet als speler
-  h.spelers = () => (world.coopRoster || []).filter((r) => r && r.slot !== 0 && r.verbinding !== 'lost').map((r) => ({ ...r }));
+  h.spelers = () => {
+    if (!Array.isArray(world.coopRoster)) throw new Error('De spelerslijst van de gastheer ontbreekt.');
+    return world.coopRoster.filter((r) => r && r.slot !== 0 && r.verbinding !== 'lost').map((r) => ({ ...r }));
+  };
   h.kick = (slot) => N.removeGuest(world, slot | 0);
   h.verbied = (slot) => N.verbiedGast(world, slot | 0);
   h.zetWachtwoord = (ww = '') => N.zetWachtwoord(world, ww);
   h.max = (n) => N.setMaxPlayers(world, n);
+
+  // #450 (slice B): dezelfde aankondiging als een gewone gastheer (net/serverlijst.js + LijstSignaler op de brokers van de
+  // kamercode), maar geplaatst door dit proces in plaats van door het lobbypaneel. De hub houdt de regel vast: naam, id en
+  // het echte aantal spelers (plek 0 telt niet mee). Stopt de sessie, dan gaat de aankondiging uit en wist de signaler het
+  // vastgehouden bericht, zodat niemand een dode sessie blijft zien.
+  const hub = world.coopNet && world.coopNet.hub;
+  const lijst = { sig: null, poging: 0, fout: '', kamer: openbareKamer };
+  const stopAankondiging = () => {
+    lijst.poging++; // een start die nog op de modules wacht is nu te laat
+    const s = lijst.sig; lijst.sig = null;
+    if (s) { try { s.close(); } catch (e) { /* al weg */ } } // MQTT: het vastgehouden bericht wordt hier gewist
+  };
+  async function startAankondiging(p) {
+    stopAankondiging();
+    if (!p) return;
+    if (!world.coopNet || world.coopNet.hub !== hub) return; // de sessie is al weg: geen verbinding meer openen
+    const poging = lijst.poging;
+    const [S, B, C, { makeRoom, topicFor }] = await Promise.all([imp('net/serverlijst.js'), imp('net/brokers.js'), imp('net/netconfig.js'), imp('net/sigcrypto.js')]);
+    if (poging !== lijst.poging || h.gestopt) return; // intussen weer privé of gestopt
+    if (!lijstSocket && typeof WebSocket !== 'function') throw new Error('Deze Node heeft geen WebSocket: een openbare sessie kan hier niet aankondigen.');
+    if (!lijst.kamer) lijst.kamer = leesKamer(kamer) || makeRoom(); // de kamercode die in de lijst staat (en die van deze sessie blijft)
+    const maakSocket = lijstSocket || ((url) => { const ws = new WebSocket(url); ws.binaryType = 'arraybuffer'; return ws; });
+    const sig = new B.LijstSignaler(C, { socket: maakSocket }, { brokerTimeout: C.TIMEOUTS.broker, interval: lijstInterval || S.LIJST.interval });
+    lijst.sig = sig;
+    const tekst = S.maakAankondiger({
+      naam: p.naam, versie: info.version, proto: info.proto, room: () => lijst.kamer, id: p.id,
+      hub: () => (world.coopNet && world.coopNet.hub === hub ? hub.publiek() : null), // de sessie is weg: niets meer plaatsen
+    });
+    const topic = await topicFor(S.LIJST.sleutel);
+    if (lijst.sig === sig) sig.kondig(topic, tekst);
+  }
+  if (hub) {
+    // de hub zegt wanneer de sessie openbaar wordt of weer privé (zetOpenbaar/closeAll), net als tegen het lobbypaneel
+    hub.opOpenbaar = (p) => {
+      const taak = startAankondiging(p);
+      lijst.taak = taak;
+      taak.catch((e) => { lijst.fout = e && e.message ? e.message : String(e); stopAankondiging(); });
+    };
+    if (openbaarAan && !hub.zetOpenbaar(true, openbareNaam).ok) stopAankondiging();
+  }
+  h.publiek = () => (hub && world.coopNet ? hub.publiek() : null);
+  // de kamercode die in de lijst staat (leeg zolang de sessie privé is); hij komt pas als de sessie openbaar wordt
+  Object.defineProperty(h, 'kamer', { enumerable: true, get: () => lijst.kamer });
+  // Openbaar maken of weer privé, met dezelfde regel als de host in de lobby (naam door het filter, het id blijft).
+  // Wachten op de aankondiging, zodat de kamercode meteen bekend is en een fout in de brokers niet stil blijft.
+  h.zetOpenbaar = async (aan = true, nieuweNaam = '') => {
+    if (!hub) return { ok: false, reason: 'De gastheer heeft geen sessie om openbaar te maken.' };
+    if (!world.coopNet) return { ok: false, reason: 'De sessie is al gestopt.' };
+    const r = hub.zetOpenbaar(!!aan, nieuweNaam);
+    if (!r.ok) return r;
+    if (aan && lijst.taak) { try { await lijst.taak; } catch (e) { /* de fout staat in lijst.fout */ } }
+    return { ...r, kamer: lijst.kamer, ...(lijst.fout ? { fout: lijst.fout } : null) };
+  };
+
   h.stop = async () => {
     if (h.gestopt) return;
     h.gestopt = true; clearInterval(h.timer);
     try { off(); } catch (e) { /* al weg */ }
+    stopAankondiging(); // eerst de lijst: het vastgehouden bericht gaat eruit terwijl de verbinding nog open is
     try { N.stopCoopNet(world); } catch (e) { /* al weg */ }
     await new Promise((r) => setTimeout(r, 300));
     try { await core.stop(); } catch (e) { /* al weg */ }
@@ -175,26 +285,43 @@ export async function startKoplozeHost({ max = 4, wachtwoord = '', start = START
 }
 
 // Het start/stop-commando van de server (#450), zonder venster:
-//   node scripts/coop/nodehost.mjs [--max=4] [--wachtwoord=...] [--upnp]
-// Daarna leest hij regels van het toetsenbord: spelers, kick <plek>, verbied <plek>, wachtwoord <tekst>, wachtwoord uit,
-// max <aantal>, stop. Ctrl+C of het einde van de invoer stopt hem ook. De poort kiest het spel zelf (41000-41999).
+//   node scripts/coop/nodehost.mjs [--max=4] [--wachtwoord=...] [--port=41234] [--openbaar] [--naam=...] [--upnp]
+// De poort mag ook uit de omgeving komen (PORT=41234). Zonder poort kiest het spel er zelf een (41000-41999); met een poort
+// luistert hij precies daar en stopt hij met een duidelijke melding als die bezet is. Met --openbaar (of een --naam) zet hij
+// dezelfde regel in de openbare sessielijst als een gewone gastheer. Daarna leest hij regels van het toetsenbord: spelers,
+// kick <plek>, verbied <plek>, wachtwoord <tekst>, wachtwoord uit, max <aantal>, openbaar <naam>, openbaar uit, stop.
+// Ctrl+C of het einde van de invoer stopt hem ook.
 async function main() {
   const args = process.argv.slice(2);
   if (args.includes('--help') || args.includes('-h')) {
-    console.log('Gebruik: node scripts/coop/nodehost.mjs [--max=4] [--wachtwoord=...] [--upnp]');
-    console.log('Commando\'s: spelers, kick <plek>, verbied <plek>, wachtwoord <tekst>, wachtwoord uit, max <aantal>, stop');
+    console.log('Gebruik: node scripts/coop/nodehost.mjs [--max=4] [--wachtwoord=...] [--port=41234] [--openbaar] [--naam=...] [--upnp]');
+    console.log('De poort mag ook via de omgeving: PORT=41234. Zonder poort kiest het spel er zelf een.');
+    console.log('Met --openbaar (of een --naam) staat de sessie in de openbare lijst: naam, spelers en versie, zonder adres.');
+    console.log('Commando\'s: spelers, kick <plek>, verbied <plek>, wachtwoord <tekst>, wachtwoord uit, max <aantal>, openbaar <naam>, openbaar uit, stop');
     return;
   }
-  const opt = (naam) => { const a = args.find((x) => x.startsWith(`--${naam}=`)); return a ? a.slice(naam.length + 3) : ''; };
-  const ww = opt('wachtwoord');
+  // --naam=waarde en --naam waarde
+  const opt = (naam) => {
+    const i = args.findIndex((x) => x === `--${naam}` || x.startsWith(`--${naam}=`));
+    if (i < 0) return '';
+    const a = args[i];
+    return a.includes('=') ? a.slice(a.indexOf('=') + 1) : String(args[i + 1] == null ? '' : args[i + 1]);
+  };
+  const ww = opt('wachtwoord'), naam = opt('naam');
+  let poort = 0;
+  try { poort = leesPoort(opt('port') || process.env.PORT || ''); }
+  catch (e) { console.error('De poort klopt niet: ' + (e && e.message ? e.message : e)); process.exit(1); }
   let h;
-  try { h = await startKoplozeHost({ max: Number(opt('max')) || 4, wachtwoord: ww, upnp: args.includes('--upnp') }); }
+  try { h = await startKoplozeHost({ max: Number(opt('max')) || 4, wachtwoord: ww, port: poort, openbaar: args.includes('--openbaar'), naam, upnp: args.includes('--upnp') }); }
   catch (e) { console.error('De gastheer kon niet starten: ' + (e && e.message ? e.message : e)); process.exit(1); }
+  const kamerTekst = (k) => (k ? `${k.slice(0, 5)}-${k.slice(5)}` : '');
   console.log('Koploze gastheer gestart (#450).');
   console.log('Koppelcode: ' + h.code);
   if (h.lanCode && h.lanCode !== h.code) console.log('In het eigen netwerk: ' + h.lanCode);
+  console.log(`Poort: ${h.poort}${poort ? ' (vast)' : ''}.`);
   console.log(`Wachtwoord: ${ww ? 'ja' : 'nee'}. Spelers: hoogstens ${h.world.coopNet.hub.roster.max}.`);
-  console.log('Commando\'s: spelers, kick <plek>, verbied <plek>, wachtwoord <tekst>, wachtwoord uit, max <aantal>, stop');
+  console.log(h.publiek() ? `Openbaar: "${h.publiek().naam}", kamercode ${kamerTekst(h.kamer)} (in de lijst Openbare sessies).` : 'Niet in de openbare lijst.');
+  console.log('Commando\'s: spelers, kick <plek>, verbied <plek>, wachtwoord <tekst>, wachtwoord uit, max <aantal>, openbaar <naam>, openbaar uit, stop');
   const rl = createInterface({ input: process.stdin, output: process.stdout, terminal: false });
   let bezig = false;
   const stoppen = async () => {
@@ -208,22 +335,32 @@ async function main() {
     const [cmd, ...rest] = regel.trim().split(/\s+/);
     const arg = rest.join(' ');
     if (!cmd) return;
-    switch (cmd.toLowerCase()) {
-      case 'spelers': {
-        const lijst = h.spelers();
-        console.log(lijst.length ? lijst.map((r) => `plek ${r.slot}: ${(r.avatar && r.avatar.naam) || r.naam || 'speler'} (${r.verbinding})`).join('\n') : 'Er is nu niemand.');
-        break;
+    try {
+      switch (cmd.toLowerCase()) {
+        case 'spelers': {
+          const lijst = h.spelers();
+          console.log(lijst.length ? lijst.map((r) => `plek ${r.slot}: ${(r.avatar && r.avatar.naam) || r.naam || 'speler'} (${r.verbinding})`).join('\n') : 'Er is nu niemand.');
+          break;
+        }
+        case 'kick': { const slot = Number(arg); console.log(h.kick(slot) ? `Plek ${slot} is verwijderd.` : 'Die plek bestaat niet.'); break; }
+        case 'verbied': { const slot = Number(arg); console.log(h.verbied(slot) ? `Plek ${slot} is verwijderd en mag niet terugkomen.` : 'Die plek bestaat niet.'); break; }
+        case 'wachtwoord':
+          if (!arg || arg.toLowerCase() === 'uit') { h.zetWachtwoord(''); console.log('De sessie is weer open.'); }
+          else { h.zetWachtwoord(arg); console.log('Het wachtwoord staat aan; wie al meespeelt blijft zitten.'); }
+          break;
+        case 'max': { const m = h.max(Number(arg)); console.log(m ? `Hoogstens ${m} spelers.` : 'Gebruik: max <aantal>.'); break; }
+        case 'openbaar': { // dezelfde regel als de host in de lobby: alleen na deze opdracht, en uit kan altijd
+          if (!arg || arg.toLowerCase() === 'uit') { await h.zetOpenbaar(false); console.log('De sessie staat niet meer in de openbare lijst.'); }
+          else {
+            const r = await h.zetOpenbaar(true, arg);
+            console.log(r.ok ? `Openbaar als "${r.naam}", kamercode ${kamerTekst(h.kamer)}.` : 'Dat lukte niet: ' + (r.reason || 'kies een andere naam.'));
+          }
+          break;
+        }
+        case 'stop': case 'quit': case 'exit': await stoppen(); break;
+        default: console.log('Onbekend commando. Gebruik: spelers, kick <plek>, verbied <plek>, wachtwoord <tekst>, wachtwoord uit, max <aantal>, openbaar <naam>, openbaar uit, stop');
       }
-      case 'kick': { const slot = Number(arg); console.log(h.kick(slot) ? `Plek ${slot} is verwijderd.` : 'Die plek bestaat niet.'); break; }
-      case 'verbied': { const slot = Number(arg); console.log(h.verbied(slot) ? `Plek ${slot} is verwijderd en mag niet terugkomen.` : 'Die plek bestaat niet.'); break; }
-      case 'wachtwoord':
-        if (!arg || arg.toLowerCase() === 'uit') { h.zetWachtwoord(''); console.log('De sessie is weer open.'); }
-        else { h.zetWachtwoord(arg); console.log('Het wachtwoord staat aan; wie al meespeelt blijft zitten.'); }
-        break;
-      case 'max': { const m = h.max(Number(arg)); console.log(m ? `Hoogstens ${m} spelers.` : 'Gebruik: max <aantal>.'); break; }
-      case 'stop': case 'quit': case 'exit': await stoppen(); break;
-      default: console.log('Onbekend commando. Gebruik: spelers, kick <plek>, verbied <plek>, wachtwoord <tekst>, wachtwoord uit, max <aantal>, stop');
-    }
+    } catch (e) { console.log('Dat lukte niet: ' + (e && e.message ? e.message : e)); } // een ontbrekende lijst of wereld stopt de server niet
   });
   process.once('SIGINT', () => { stoppen(); });
   process.once('SIGTERM', () => { stoppen(); });

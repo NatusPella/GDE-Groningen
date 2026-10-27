@@ -7,8 +7,9 @@
 // Wie het spel opende houdt de uitnodiging open zolang er plek is: na elke gast die verbindt,
 // wordt er een nieuw aanbod klaargezet onder dezelfde kamercode (of luistert de TCP-poort verder).
 //
-// hooks: { startHost(route, onChange) -> hub, addGuest(transport), startClient(transport, route, wens) -> session,
+// hooks: { startHost(route, onChange) -> hub, addGuest(transport), startClient(transport, route, wens, { wachtwoord }) -> session,
 //          setMax(n), kick(slot), overdragen(slot) -> { ok } | { ok: false, tekst } (#439), joined(rol), disconnect(act, rol, slot), onCode(code), canJoin() -> {ok, reason}, laatsteCode, resumed() }
+// Het wachtwoord van een sessie (#450) hoort bij de hub: de gastheer zet het hier, een gast geeft het mee aan de kennismaking.
 // opts:  { start: 'verbroken', rol, route, session (gast), hub (host), holdSlot, holdNaam }  (hervatten in het spel)
 //        { adopt: { code, route }, rol, session | hub }  (de sessie loopt al: na het overdragen van het spel kent het paneel rol, kamercode en spelers)
 import { createLobby, reduce, view, profielNaam, ROLES, ROUTES } from './lobby.js';
@@ -57,6 +58,10 @@ export function mountLobby(root, hooks, opts = {}) {
     const pub = host && opts.hub && opts.hub.publiek ? opts.hub.publiek() : null;
     const sessie = host ? (pub ? { id: pub.id, naam: pub.naam } : null) : (opts.session && opts.session.sessie ? opts.session.sessie : null);
     state = reduce(state, { t: 'adopteer', rol: opts.rol, route: opts.adopt.route, code: opts.adopt.code, lijst, max, slot: host ? 0 : bron && bron.slot, openbaar: pub, sessie });
+  }
+  // Een lopende sessie met een wachtwoord (#450): het paneel laat zien dat de deur op slot is en kan hem weer openzetten.
+  if (opts.hub && opts.hub.cfg && typeof opts.hub.cfg.wachtwoord === 'string' && opts.hub.cfg.wachtwoord) {
+    state = reduce(state, { t: 'wachtwoord', tekst: opts.hub.cfg.wachtwoord });
   }
   let lastDiag = null;
   let hub = opts.hub || null, session = opts.session || null, handle = null, room = null, stopListen = null, joinedOnce = !!opts.adopt, wacht = false;
@@ -140,11 +145,14 @@ export function mountLobby(root, hooks, opts = {}) {
     </div>` : '';
     // het kleine formulier voor je online-avatar (#455): naam (hoogstens 16 tekens) en een kleur uit de vaste set
     const prof = v.profiel ? `<div class="coop-profiel" style="display:flex;flex-direction:column;gap:8px;margin:10px 0"><label class="coop-profiel-label" style="display:flex;gap:8px;align-items:center"><span>Online naam</span><input class="coop-profiel-naam" type="text" spellcheck="false" autocomplete="off" maxlength="${v.profiel.maxLength}" placeholder="Je figuur" value="${esc(v.profiel.naam)}" style="min-width:0;flex:1;max-width:260px"></label><div class="coop-kleuren" role="group" aria-label="Kleur" style="display:flex;flex-wrap:wrap;gap:6px">${v.profiel.kleuren.map((c) => `<button type="button" class="m-bg coop-kleur" data-kleur="${c.hex}" aria-pressed="${c.hex === v.profiel.kleur}" title="${esc(c.naam)}"><span class="ss-label"><span style="color:${c.hex}" aria-hidden="true">●</span> ${esc(c.naam)}</span></button>`).join('')}</div><p class="coop-profiel-hint" style="margin:0">${esc(v.profiel.tekst)} Laat je de naam leeg, dan zien de anderen de naam van je figuur. Je staat standaard op passief: medespelers kunnen je geen schade doen.</p>${v.profiel.fout ? `<p class="coop-error" role="alert">${esc(v.profiel.fout)}</p>` : ''}</div>` : '';
+    // het wachtwoordveld (#450): dezelfde stijl als het zoekveld (m-inp + ss-label), met de uitleg eronder
+    const ww = v.wachtwoord ? `<div class="coop-wachtwoord-veld" style="margin:10px 0"><label class="m-inp" style="display:flex;gap:8px;align-items:center;max-width:360px"><span class="ss-label">${esc(v.wachtwoord.label)}</span><input class="coop-wachtwoord" type="password" spellcheck="false" autocomplete="off" maxlength="${v.wachtwoord.maxLength}" placeholder="${esc(v.wachtwoord.placeholder)}" value="${esc(v.wachtwoord.value)}" style="min-width:0;flex:1"></label><p class="coop-wachtwoord-hint mut" style="margin:4px 0 0">${esc(v.wachtwoord.hint)}</p></div>` : '';
     root.innerHTML =
       `<h3 class="coop-title">${esc(v.title)}</h3>` +
       v.lines.map((l) => `<p>${esc(l)}</p>`).join('') +
       prof +
       sessies +
+      ww +
       (v.code ? `<pre class="coop-code" tabindex="0" aria-label="Jouw code">${esc(v.code)}</pre>` : '') +
       (v.input ? `<input class="coop-input" type="text" spellcheck="false" autocomplete="off" placeholder="${esc(v.input.placeholder)}"${v.input.maxLength ? ` maxlength="${v.input.maxLength}"` : ''} value="${esc(v.input.value || '')}">` : '') +
       wensen +
@@ -167,6 +175,22 @@ export function mountLobby(root, hooks, opts = {}) {
     if (!state.profielFout) { setSetting('onlineNaam', state.profiel.naam); setSetting('onlineKleur', state.profiel.kleur); }
     draw();
     return !state.profielFout;
+  }
+
+  // ----- het wachtwoord van deze sessie (#450)
+  // De hub leest cfg.wachtwoord bij elke nieuwe kennismaking (net/hub.js): precies het veld dat coopnet.zetWachtwoord zet.
+  // Leeg betekent open. Wie al meespeelt blijft zitten: het is geen reden om iemand eruit te gooien.
+  function pasWachtwoordToe() {
+    if (!hub) return;
+    if (typeof hub.zetWachtwoord === 'function') { hub.zetWachtwoord(state.wachtwoord); return; }
+    if (hub.cfg) hub.cfg.wachtwoord = state.wachtwoord;
+  }
+  // De gastkant: het wachtwoord gaat mee in de kennismaking (session.cfg.info). startClient krijgt het als vierde argument
+  // mee; geeft de aanroeper dat (nog) niet door, dan zetten we het hier vóór de eerste kennismaking op de sessie.
+  function metWachtwoord(sess) {
+    const woord = state.wachtwoord;
+    if (woord && sess && sess.cfg && sess.cfg.info && sess.cfg.info.wachtwoord !== woord) sess.cfg.info.wachtwoord = woord;
+    return sess;
   }
 
   // ----- host
@@ -202,6 +226,7 @@ export function mountLobby(root, hooks, opts = {}) {
   }
   async function hostStart() {
     ensureHub();
+    pasWachtwoordToe(); // een wachtwoord dat de gastheer al invulde, geldt meteen voor de eerste gast (#450)
     if (state.route === ROUTES.DIRECT) {
       if (stopListen) stopListen();
       stopListen = listenForGuests(api, (tr) => hooks.addGuest(tr));
@@ -299,7 +324,7 @@ export function mountLobby(root, hooks, opts = {}) {
     const inv = state.invoer;
     const kan = hooks.canJoin ? hooks.canJoin() : { ok: true };
     if (!kan.ok) { set({ t: 'kies', rol: ROLES.GAST }); return set({ t: 'fout', msg: kan.reason }); }
-    const bind = (tr) => { if (opts.session) { opts.session.rebind(tr); watch(opts.session); } else watch(hooks.startClient(tr, inv.route, state.wens)); };
+    const bind = (tr) => { if (opts.session) { opts.session.rebind(tr); watch(opts.session); } else watch(metWachtwoord(hooks.startClient(tr, inv.route, state.wens, { wachtwoord: state.wachtwoord }))); };
     if (inv.route === ROUTES.DIRECT) {
       const tr = ipcTransport(api, 0);
       const r = await api.join(inv.code);
@@ -372,6 +397,7 @@ export function mountLobby(root, hooks, opts = {}) {
       else if (a === 'route-direct') set({ t: 'route', route: ROUTES.DIRECT });
       else if (a.startsWith('wens-')) set({ t: 'wens', char: a.slice(5) });
       else if (a === 'koppel') { bewaarProfiel(); set({ t: 'invoer', text: input ? input.value : '' }); }
+      else if (a === 'probeer') set({ t: 'probeer' }); // een gast met een verkeerd wachtwoord probeert het opnieuw (#450)
       else if (a === 'akkoord') {
         bewaarProfiel(); // de avatar die anderen straks zien (#455), vóór de verbinding
         set({ t: 'akkoord' });
@@ -418,6 +444,8 @@ export function mountLobby(root, hooks, opts = {}) {
   });
   root.addEventListener('input', (e) => { // tijdens het typen geen nieuwe tekening: anders raakt het veld zijn focus kwijt
     if (e.target && e.target.classList && e.target.classList.contains('coop-profiel-naam')) state = reduce(state, { t: 'profiel', naam: e.target.value });
+    // het wachtwoord (#450): meteen bewaren en bij de gastheer meteen laten gelden voor de volgende kennismaking
+    else if (e.target && e.target.classList && e.target.classList.contains('coop-wachtwoord')) { state = reduce(state, { t: 'wachtwoord', tekst: e.target.value }); pasWachtwoordToe(); }
     // de lijst (#464): de waarde staat in de state, draw() zet de focus en de cursor terug
     else if (e.target && e.target.classList && e.target.classList.contains('coop-lijst-zoek')) { state = reduce(state, { t: 'lijst-zoek', tekst: e.target.value }); draw(); }
   });
@@ -436,7 +464,11 @@ export function mountLobby(root, hooks, opts = {}) {
       if (volgende && volgende.focus) volgende.focus();
     }
   });
-  root.addEventListener('change', (e) => { if (e.target && e.target.classList && e.target.classList.contains('coop-profiel-naam')) bewaarProfiel(); });
+  root.addEventListener('change', (e) => {
+    if (e.target && e.target.classList && e.target.classList.contains('coop-profiel-naam')) bewaarProfiel();
+    // het wachtwoord (#450): na het typen de regel eronder bijwerken (open of op slot)
+    else if (e.target && e.target.classList && e.target.classList.contains('coop-wachtwoord')) { state = reduce(state, { t: 'wachtwoord', tekst: e.target.value }); pasWachtwoordToe(); draw(); }
+  });
   if (hub) koppelAankondiging();
   draw();
   if (state.step === 'verbonden' && state.openbaar && hub) startAankondiging(); // een lopende openbare sessie staat weer in de lijst, met dezelfde regel (#450)
