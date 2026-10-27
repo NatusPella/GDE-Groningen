@@ -46,6 +46,14 @@ export const LIJST_TEXT = [
 // Wat "Verbinding testen" doet, vóór de speler het toestaat (het neemt contact op met openbare servers)
 export const DIAG_TEXT = 'De test neemt contact op met dezelfde openbare servers als de kamercode: internet, servers om elkaar te vinden en servers voor de kamercode. In de app test hij ook of je router automatisch een poort opent. Er wordt niets van jou verstuurd.';
 
+// Een wachtwoord per sessie (#450): de gastheer zet het, een gast moet het kennen. Het gaat alleen mee in de kennismaking
+// (net/session.js) en staat nooit in de openbare lijst; leeg betekent open, zoals altijd. Spaties aan de randen tellen niet
+// mee, regeleinden vallen weg en er passen hoogstens 32 tekens, net als in coopnet.js (WACHTWOORD_MAX).
+export const WACHTWOORD_MAX = 32;
+export function schoonWachtwoord(tekst) {
+  return String(tekst == null ? '' : tekst).replace(/[\r\n\t]/g, '').trim().slice(0, WACHTWOORD_MAX);
+}
+
 // ---------------------------------------------------------------- online-avatar (#455)
 // Zo zien anderen je in Samen spelen: een eigen naam en kleur, los van de verhaalrol
 // (Tammo of Tessa). De naam gaat door dezelfde lijst verboden woorden als een
@@ -123,6 +131,7 @@ export function createLobby(caps = {}) {
     // keuze: de rol die al in het hoofdmenu is gekozen (Gastheer worden / Meedoen): dan slaat de lobby de rolkeuze over
     step: caps.start || (caps.keuze === ROLES.GAST && caps.lijst && caps.rtc !== false ? 'lijst-vraag' : caps.keuze ? (caps.keuze === ROLES.HOST ? 'methode' : 'gast-typt') : 'start'), rol: caps.rol || caps.keuze || null, route: null, invoer: null,
     code: '', lanCode: '', note: '', error: '', reason: null, status: null, partner: null,
+    wachtwoord: schoonWachtwoord(caps.wachtwoord), // het wachtwoord van deze sessie (#450): leeg is open
     spelers: [], max: DEFAULT_MAX, wens: null, holdSlot: null, holdNaam: caps.holdNaam || '',
     profiel: { naam: String(caps.onlineNaam || '').slice(0, ONLINE_NAAM_MAX), kleur: profielKleur(caps.onlineKleur) }, profielFout: '',
     caps: { direct: !!caps.direct, rtc: caps.rtc !== false, laatsteCode: caps.laatsteCode || '', startGate: !!caps.startGate, spelNaam: String(caps.spelNaam || ''), lijst: !!caps.lijst, versie: String(caps.versie || ''), opslaan: !!caps.opslaan, favorieten },
@@ -250,6 +259,8 @@ export function reduce(s, ev) {
       if (!r.ok) return { ...n, profielFout: r.reason };
       return { ...n, profiel: { ...s.profiel, naam: r.naam } };
     }
+    case 'wachtwoord': // het wachtwoord van deze sessie (#450): de gastheer zet of wijzigt het, de gast vult het in; leeg is open
+      return { ...n, wachtwoord: schoonWachtwoord(ev.tekst) };
     case 'gate': n.caps = { ...s.caps, startGate: !!ev.aan }; return n;
     case 'hold': n.holdSlot = ev.slot ?? null; n.holdNaam = ev.naam || ''; return n;
     case 'spelers': { // de lijst met spelers is veranderd (host: uit de hub; gast: van de host)
@@ -268,12 +279,17 @@ export function reduce(s, ev) {
       if (ev.status === 'ok' || ev.status === 'lag') n.step = 'verbonden';
       else if (ev.status === 'lost') n.step = 'verbroken';
       else if (ev.status === 'geweigerd') n.step = 'geweigerd';
-      else if (ev.status === 'verbroken' || ev.status === 'weg') return { ...fresh(s), sessie: s.sessie }; // de sessie onthouden: je vindt hem terug in de lijst (#450)
+      else if (ev.status === 'verbroken' || ev.status === 'weg') return { ...fresh(s), sessie: s.sessie, wachtwoord: ev.status === 'verbroken' ? s.wachtwoord : '' }; // de sessie onthouden: je vindt hem terug in de lijst (#450); een wachtwoord blijft bij het opnieuw verbinden staan
       return n;
     }
     case 'hervat': // de host wacht weer op dezelfde gast; de gast voert de code opnieuw in
       if (s.step !== 'verbroken') return s;
       n.step = s.rol === ROLES.HOST ? 'host-maakt-code' : 'gast-typt'; return n;
+    case 'probeer': // een gast met een verkeerd of ontbrekend wachtwoord probeert het opnieuw, met dezelfde code en hetzelfde woord
+      if (s.rol !== ROLES.GAST || s.step !== 'geweigerd' || s.reason !== 'wachtwoord') return s;
+      n.step = 'gast-typt'; n.status = null; n.reason = null;
+      if (s.caps.laatsteCode) { const c = classifyInput(s.caps.laatsteCode); if (c.ok) n.invoer = c; }
+      return n;
     case 'adopteer': { // de sessie loopt al (na het overdragen van het spel, of het paneel is opnieuw getekend): het paneel kent rol, kamercode en spelers weer
       n.rol = ev.rol === ROLES.HOST ? ROLES.HOST : ROLES.GAST; n.route = ev.route === ROUTES.DIRECT ? ROUTES.DIRECT : ROUTES.KAMER; n.code = String(ev.code || '');
       n.spelers = Array.isArray(ev.lijst) ? ev.lijst : []; n.max = Math.min(ABS_MAX, Math.max(MIN_MAX, ev.max | 0 || DEFAULT_MAX));
@@ -324,9 +340,20 @@ export function jijRegel(s, lijst, ik) {
 export function view(s) {
   // bij een fout in de stappen waar je verbindt: wijs de weg naar de test
   const hulp = s.error && ['gast-typt', 'host-wacht', 'host-maakt-code', 'methode', 'verbinden'].includes(s.step) && !/gekopieerd/.test(s.error);
-  const V = (o) => { const r = { title: 'Samen spelen', lines: [], buttons: [], input: null, code: null, profiel: null, error: s.error, ...o }; if (hulp && r.buttons.some((b) => b.act === 'diag')) r.lines = [...r.lines, 'Lukt het niet? Kies Verbinding testen: daar staat wat er mis is en wat je kunt doen.']; return r; };
+  const V = (o) => { const r = { title: 'Samen spelen', lines: [], buttons: [], input: null, code: null, profiel: null, wachtwoord: null, error: s.error, ...o }; if (hulp && r.buttons.some((b) => b.act === 'diag')) r.lines = [...r.lines, 'Lukt het niet? Kies Verbinding testen: daar staat wat er mis is en wat je kunt doen.']; return r; };
   // het kleine formulier voor je online-avatar (#455): op de schermen waar je kiest om samen te spelen
   const profiel = { ...s.profiel, kleuren: PROFIEL_KLEUREN, maxLength: ONLINE_NAAM_MAX, fout: s.profielFout, tekst: profielTekst(s.profiel) };
+  // het wachtwoordveld (#450): de gastheer beheert het, de gast vult het in; leeg betekent open
+  const wachtwoordVeld = () => ({
+    value: s.wachtwoord || '',
+    maxLength: WACHTWOORD_MAX,
+    label: s.rol === ROLES.HOST ? 'Wachtwoord voor deze sessie' : 'Wachtwoord',
+    placeholder: s.rol === ROLES.HOST ? 'Leeg: de sessie is open' : 'Alleen als de sessie er een heeft',
+    hint: s.rol === ROLES.HOST
+      ? 'Met een wachtwoord komt alleen binnen wie het weet; wie al meespeelt blijft zitten. Leeg betekent open.'
+      : 'Vraag het aan wie het spel opende. Is de sessie open, laat het dan leeg.',
+  });
+  const wachtwoordRegel = () => (s.wachtwoord ? 'Deze sessie heeft een wachtwoord: wie meedoet moet het weten.' : 'Deze sessie is open: iedereen met de code kan meedoen.');
   switch (s.step) {
     case 'start':
       return V({
@@ -360,12 +387,14 @@ export function view(s) {
       if (s.lanCode && s.lanCode !== s.code) lines.push('Op hetzelfde netwerk werkt ook de lokale code: ' + s.lanCode);
       if (s.caps.startGate) lines.push('Wacht op een medespeler: je kunt het spel starten zodra er minstens twee spelers zijn.');
       if (s.openbaar) lines.push(openbaarRegel(s));
-      return V({ title: 'Iemand uitnodigen', lines, code: s.code, buttons: [...(s.caps.startGate ? [{ act: 'start-spel', label: 'Spel starten', primary: true, disabled: true }] : []), { act: 'kopieer', label: 'Kopieer', primary: !s.caps.startGate }, ...openbaarKnop(s), { act: 'diag', label: 'Verbinding testen' }, { act: 'terug', label: 'Stoppen' }] });
+      lines.push(wachtwoordRegel());
+      return V({ title: 'Iemand uitnodigen', lines, code: s.code, wachtwoord: wachtwoordVeld(), buttons: [...(s.caps.startGate ? [{ act: 'start-spel', label: 'Spel starten', primary: true, disabled: true }] : []), { act: 'kopieer', label: 'Kopieer', primary: !s.caps.startGate }, ...openbaarKnop(s), { act: 'diag', label: 'Verbinding testen' }, { act: 'terug', label: 'Stoppen' }] });
     }
     case 'gast-typt':
       return V({
         title: 'Aansluiten', lines: ['Voer de kamercode of de koppelcode in die je kreeg. Je speelt lokaal je eigen verhaal (Tammo of Tessa, wat jouw opdracht vraagt) en de anderen zien je als je online-avatar. Kies hieronder je naam, kleur en figuur: je naam en kleur zijn wat de anderen bij je figuur zien.', GAST_BEWAREN(s.caps.spelNaam)],
         profiel,
+        wachtwoord: wachtwoordVeld(),
         input: { placeholder: 'Kamercode of GDE2-…', value: s.caps.laatsteCode || '' },
         wensen: EXTRA_CHARS.map((c) => ({ act: 'wens-' + c.id, id: c.id, naam: c.naam, kleur: c.kleur, gekozen: s.wens === c.id })),
         buttons: [{ act: 'koppel', label: 'Verder', primary: true }, ...(s.caps.rtc ? [{ act: 'lijst', label: 'Openbare sessies' }] : []), { act: 'diag', label: 'Verbinding testen' }, { act: 'terug', label: 'Terug' }],
@@ -397,6 +426,7 @@ export function view(s) {
         buttons.push(...openbaarKnop(s));
         // het spel overdragen (#439): de ander neemt de wereld over en jij sluit als gast aan
         if (overdrachtKandidaten(s.rol, s.route, lijst).length) buttons.push({ act: 'overdragen', label: 'Spel overdragen…' });
+        lines.push(wachtwoordRegel());
         buttons.push({ act: 'verbreek', label: 'Iedereen stoppen' });
       } else {
         lines.push(`${opener} heeft het spel geopend.`);
@@ -406,7 +436,7 @@ export function view(s) {
         lines.push('Je kunt er elk moment uit; je komt terug waar je was.');
         buttons.push({ act: 'verbreek', label: 'Spel verlaten' });
       }
-      return V({ title: 'Je speelt samen', lines, code: host && s.code && lijst.length < s.max ? s.code : null, spelers: lijst, ik, buttons });
+      return V({ title: 'Je speelt samen', lines, code: host && s.code && lijst.length < s.max ? s.code : null, spelers: lijst, ik, ...(host ? { wachtwoord: wachtwoordVeld() } : null), buttons });
     }
     case 'overdragen-kies': { // het spel aan een speler overdragen (#439): de gekozen speler krijgt de vraag (J of N)
       const kandidaten = overdrachtKandidaten(s.rol, s.route, s.spelers);
@@ -431,8 +461,15 @@ export function view(s) {
         buttons: [{ act: 'hervat', label: 'Opnieuw verbinden', primary: true }, { act: 'verbreek', label: host ? 'Niet wachten' : 'Stoppen' }, { act: 'diag', label: 'Verbinding testen' }],
       });
     }
-    case 'geweigerd':
-      return V({ title: 'Koppelen mislukt', lines: [s.reason === 'versie' || s.reason === 'protocol' ? versieTekst(s.caps.versie, s.andereVersie) : (REASON_TEXT[s.reason] || 'Koppelen is niet gelukt.')], buttons: [{ act: 'terug', label: 'Terug', primary: true }, { act: 'diag', label: 'Verbinding testen' }] });
+    case 'geweigerd': {
+      const ww = s.reason === 'wachtwoord'; // het woord klopte niet (of ontbrak): de gast kan het hier opnieuw invullen
+      return V({
+        title: 'Koppelen mislukt',
+        lines: [s.reason === 'versie' || s.reason === 'protocol' ? versieTekst(s.caps.versie, s.andereVersie) : (REASON_TEXT[s.reason] || 'Koppelen is niet gelukt.')],
+        ...(ww ? { wachtwoord: wachtwoordVeld() } : null),
+        buttons: ww ? [{ act: 'probeer', label: 'Opnieuw proberen', primary: true }, { act: 'terug', label: 'Terug' }, { act: 'diag', label: 'Verbinding testen' }] : [{ act: 'terug', label: 'Terug', primary: true }, { act: 'diag', label: 'Verbinding testen' }],
+      });
+    }
     case 'openbaar-vraag':
       return V({ title: 'Maak deze sessie openbaar', lines: OPENBAAR_TEXT, input: { placeholder: 'Naam van je sessie (hoogstens 24 tekens)', value: s.openbaarNaam || '', maxLength: 24 }, buttons: [{ act: 'openbaar-ja', label: 'Akkoord en openbaar maken', primary: true }, { act: 'openbaar-terug', label: 'Annuleren' }] });
     case 'lijst-vraag':

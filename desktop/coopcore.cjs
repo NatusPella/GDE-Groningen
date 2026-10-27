@@ -120,6 +120,8 @@ function createCoopCore(opts) {
     return true;
   }
 
+  // o.port: een vaste poort (#450, de koploze gastheer). Zonder die poort kiest het spel er zelf een uit PORT_MIN-PORT_MAX.
+  // Een bezette vaste poort is een duidelijke fout en geen stilzwijgende andere poort: wie de poort opgeeft, wil die poort.
   async function host(o = {}) {
     const m = await load();
     await stop();
@@ -127,14 +129,20 @@ function createCoopCore(opts) {
     key = m.pairing.makeKey();
     hostSide = true; nextId = 1;
     let port = 0;
+    const vast = Number(o.port) | 0;
     server = net.createServer((s) => {
       if (socks.size >= max - 1 && !freeStale()) { s.destroy(); return; } // vol, en geen stille verbinding om te vervangen
       attach(nextId++, s, true);
     });
-    for (let p = PORT_MIN; p <= PORT_MAX && !port; p += Math.floor(Math.random() * 7) + 1) {
-      try { await new Promise((res, rej) => { server.once('error', rej); server.listen(p, '0.0.0.0', () => { server.removeListener('error', rej); res(); }); }); port = p; } catch (e) { /* bezet */ }
+    if (vast) {
+      try { await new Promise((res, rej) => { server.once('error', rej); server.listen(vast, '0.0.0.0', () => { server.removeListener('error', rej); res(); }); }); port = vast; }
+      catch (e) { server = null; return { ok: false, port: vast, text: `Poort ${vast} is bezet of niet te gebruiken. Kies een andere poort of stop wat er al draait.` }; }
+    } else {
+      for (let p = PORT_MIN; p <= PORT_MAX && !port; p += Math.floor(Math.random() * 7) + 1) {
+        try { await new Promise((res, rej) => { server.once('error', rej); server.listen(p, '0.0.0.0', () => { server.removeListener('error', rej); res(); }); }); port = p; } catch (e) { /* bezet */ }
+      }
+      if (!port) { server = null; return { ok: false, text: 'Er is geen vrije poort gevonden.' }; }
     }
-    if (!port) { server = null; return { ok: false, text: 'Er is geen vrije poort gevonden.' }; }
     const ip = opts.localIp || lanIp();
     let ext = null;
     if (opts.upnp !== false) {
@@ -142,9 +150,9 @@ function createCoopCore(opts) {
     }
     if (ext && ext.ok) {
       mapping = ext;
-      return { ok: true, online: true, method: ext.method, code: m.pairing.makeCode({ ip: ext.externalIp, port: ext.externalPort, key }), lanCode: m.pairing.makeCode({ ip, port, key }) };
+      return { ok: true, online: true, method: ext.method, port, code: m.pairing.makeCode({ ip: ext.externalIp, port: ext.externalPort, key }), lanCode: m.pairing.makeCode({ ip, port, key }) };
     }
-    return { ok: true, online: false, reason: ext ? ext.reason : 'uit', text: ext ? ext.text : '', code: m.pairing.makeCode({ ip, port, key }), lanCode: m.pairing.makeCode({ ip, port, key }) };
+    return { ok: true, online: false, reason: ext ? ext.reason : 'uit', text: ext ? ext.text : '', port, code: m.pairing.makeCode({ ip, port, key }), lanCode: m.pairing.makeCode({ ip, port, key }) };
   }
 
   async function join(text) {
