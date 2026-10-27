@@ -433,6 +433,8 @@ export async function profileCity(d, wegen, { lagen, extras = {}, inside }) {
   if (bus.length) restoreBus(bus);
   if (wantRoads) {
     rep.dry = markDryRoads(d);
+    // a deck over a lane that runs under its edge keeps the audit's height (#501)
+    rep.deckFloors = PR.applyDeckFloors(d.roads);
     // the second profile, over the AHN terrain (#269): road.zt, what ?terrain reads (terrain_solve.mjs); none without rasters
     const ahn = ahnTerrain();
     if (ahn) rep.zt = solveTerrainRoads(d, { terrain: ahn, protect });
