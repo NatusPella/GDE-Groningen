@@ -3,7 +3,7 @@ import { linesNear, project as projectOnLine, makeRunner, stepRunner, startAt, b
 import { assistDamage } from './assistlive.js';
 import { closestPointOnSegment, normalizeAngle, clamp, lerp, pointInPolygon, inMapWater, WATER_Y, keepBoatOffShore, boatDryPoints } from './util.js';
 import { waterClearance, waterChannelPoints } from './waterindex.js';
-import { shallowWater, waterAt, waterPolyAt, BRIDGE_DRY, airDraftOf, passesUnder, bargeWater, bargeWaterAt, meanWidth, BARGE_MIN_CLEAR } from './waterlevels.js';
+import { shallowWater, waterAt, waterPolyAt, BRIDGE_DRY, airDraftOf, passesUnder, bargeWater, bargeWaterAt, meanWidth, boatFitsWater, BARGE_MIN_CLEAR } from './waterlevels.js';
 import { trafficSignalsNear, trafficLightPhaseMove } from './trafficlights.js';
 import { resolvePropCollisions, setSpeedCap } from './breakables.js';
 import { shardPuncture } from './roadshards.js';
@@ -1266,6 +1266,9 @@ export function spawnBoatOnWater(map, waterPoly, rng = Math.random, opts = {}) {
   const model = opts.model || pickBoatModel(rng);
   // inland shipping only on main waterways and harbours (#234), never on a ditch or a small canal
   if (model.kind === 'binnenvaart' && !bargeWater(waterPoly)) return null;
+  // een boot die hier niet past (diepte, klasse, breedte of oppervlak) komt hier niet (#436):
+  // een sloep hoort niet in een sloot of een plasje, een kano mag daar wel
+  if (!boatFitsWater(waterPoly, model)) return null;
   const ch = waterChannelPoints(map, waterPoly, opts.budget ?? Infinity);
   let pts = ch.pts;
   if (opts.near) {
