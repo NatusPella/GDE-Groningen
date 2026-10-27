@@ -1,6 +1,6 @@
 import assert from 'node:assert';
 import { expo, shapeAxis, shapeInputs, RAMP } from '../game/js/helictl.js';
-import { chaseTarget, followCam } from '../game/js/helicam.js';
+import { chaseTarget, followCam, chaseStep, liftPose } from '../game/js/helicam.js';
 import { guideColor } from '../game/js/heligrade.js';
 
 assert.strictEqual(expo(0), 0); assert.strictEqual(expo(1), 1); assert.strictEqual(expo(-1), -1);
@@ -37,5 +37,30 @@ let cam = null; cam = followCam(cam, T, dt);
 const far = { pos: { x: 100, y: 0, z: 50 } };
 const c1 = followCam(cam, far, dt), c2 = followCam(c1, far, dt);
 assert.ok(c1.x > cam.x && c1.x < 100 && c2.x > c1.x, 'glijdt');
+
+// filmstand (#502): kiest de speler met V een hoek, dan laat de missie
+// world.cameraOverride met rust; zonder keuze schrijft ze de chase-cam
+const versW = () => ({ cameraOverride: { position: { x: 1, y: 2, z: 3 }, lookAt: { x: 0, y: 0, z: 0 }, fov: 40, cut: true } });
+const metStand = versW(), gekozen = metStand.cameraOverride;
+const stapKeuze = chaseStep(h, null, dt, 2);
+if (stapKeuze.override) metStand.cameraOverride = stapKeuze.override;
+assert.strictEqual(metStand.cameraOverride, gekozen, 'gekozen stand blijft staan');
+assert.ok(stapKeuze.cam && Number.isFinite(stapKeuze.cam.x) && Number.isFinite(stapKeuze.yaw), 'de chase-cam loopt wel mee');
+const zonderStand = versW(), oud = zonderStand.cameraOverride;
+const stapChase = chaseStep(h, null, dt, 0);
+if (stapChase.override) zonderStand.cameraOverride = stapChase.override;
+assert.ok(stapChase.override && zonderStand.cameraOverride !== oud, 'zonder keuze schrijft de missie de chase-cam');
+assert.ok(zonderStand.cameraOverride.position.x < 0 && zonderStand.cameraOverride.lookAt.x > 0, 'en dat is de stand achter de heli');
+
+// de stand van cinematics.js rekent in hoogte boven de grond: in de lucht telt de
+// hoogte van de heli erbij, de gekozen hoek blijft
+const grond = { position: { x: 10, y: 20, z: 1.3 }, lookAt: { x: 12, y: 20, z: 0.9 }, fov: 55, cut: true };
+const hoog = liftPose(grond, { z: 60 });
+assert.strictEqual(hoog.position.z, 61.3); assert.strictEqual(hoog.lookAt.z, 60.9);
+assert.strictEqual(hoog.position.x, 10); assert.strictEqual(hoog.lookAt.x, 12);
+assert.strictEqual(grond.position.z, 1.3, 'het origineel blijft ongemoeid');
+assert.strictEqual(liftPose(grond, { z: 0 }), grond, 'op de grond valt er niets te tillen');
+assert.strictEqual(liftPose(null, { z: 60 }), null, 'geen stand, geen override');
+
 assert.strictEqual(guideColor('goed'), 0x5dff7a); assert.strictEqual(guideColor('te snel'), 0xff5a3c); assert.strictEqual(guideColor('uitlijnen'), 0xffc21a);
 console.log('helictl_test ok');

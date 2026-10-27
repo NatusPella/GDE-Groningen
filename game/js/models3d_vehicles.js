@@ -1795,14 +1795,18 @@ function buildBusMesh(v) {
 }
 
 // Swings the rear unit of a buildBusMesh() group to rearAngle (radians, world
-// heading like v.angle), clamped so a trail glitch can never fold it double.
+// heading like v.angle). The joint allows BUS_JOINT_MAX_ANGLE (the same limit
+// as TRAILER_MAX_ANGLE in vehicle.js), so a tight corner is not cut short;
+// the clamp here only stops a teleported or interpolated pose from folding
+// the unit double.
+const BUS_JOINT_MAX_ANGLE = 1.1;
 export function setBusRearAngle(mesh, busAngle, rearAngle) {
   const rear = mesh.userData.busRear;
   if (!rear) return;
   let d = (rearAngle - busAngle) % (Math.PI * 2);
   if (d > Math.PI) d -= Math.PI * 2;
   else if (d < -Math.PI) d += Math.PI * 2;
-  rear.rotation.y = -Math.max(-0.75, Math.min(0.75, d));
+  rear.rotation.y = -Math.max(-BUS_JOINT_MAX_ANGLE, Math.min(BUS_JOINT_MAX_ANGLE, d));
 }
 
 // Dutch police flash blue only: the two bar halves alternate while chasing,
@@ -2674,6 +2678,9 @@ function buildMidiBusMesh(v) {
   const wheels = [];
   for (const x of [fwX, rwX]) for (const s of [1, -1]) addWheel(group, wgeo, mats[0], x, BUS_WHEEL_R, s * (wid / 2 - 0.2), wheels);
   group.userData.wheels = wheels;
+  // de eerste twee wielen zijn de vooras (fwX, beide kanten): zonder dit veld
+  // stonden de voorwielen van de midibus stil bij het sturen (updateVehicleWheelSpin)
+  group.userData.frontWheels = wheels.slice(0, 2);
   group.userData.wheelRadius = BUS_WHEEL_R;
   return group;
 }

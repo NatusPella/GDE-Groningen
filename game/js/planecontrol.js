@@ -1,8 +1,10 @@
 // Arcade-vliegtuig aan de wereld (#15), de pure kant: toetsen en gamepad
 // (die al als toetsen binnenkomen, zelfde set als de heli) worden stuurinvoer
 // voor arcadeplane.js, en de uitkomst gaat terug op het voertuig. Zonder THREE.
-// Besturing: W/S gas op/af (het gas blijft staan), A/D rollen, Spatie neus
-// omhoog, Ctrl neus omlaag, Shift remmen op de baan, K kleppen (0 tot 3, daarna weer 0), G landingsgestel in of uit. Tests: scripts/planecontrol_test.mjs.
+// Besturing: W/S gas op/af (het gas blijft staan), A/D rollen, Spatie of het pijltje omhoog
+// neus omhoog, Ctrl of het pijltje omlaag neus omlaag, Q/E het roer (los van het rollen),
+// Shift remmen op de baan, K kleppen (0 tot 3, daarna weer 0), G landingsgestel in of uit.
+// Tests: scripts/planecontrol_test.mjs.
 
 import { makePlane, stepPlane, PLANE } from './arcadeplane.js';
 
@@ -23,9 +25,16 @@ export function planeInput(isDown, st, dt) {
     flaps: st.flaps,
     gear: st.gear,
     throttle: st.thr,
+    // A en D rollen (en op de grond sturen ze als neuswiel mee, arcadeplane.js); het roer is
+    // een eigen as: Q links, E rechts. Vroeger was yaw een kopie van rollen, waardoor het roer
+    // in de lucht niets deed en het rollen één op één met de koers werd gemengd.
+    // Let op: Q is elders ook "achterom kijken" (scene3d.js via controls.js.lookBackActive);
+    // in een vliegtuig hoort de wereld dat te blokkeren met world.noLookBack (planeflight.js).
     roll: k('d') - k('a'),
-    yaw: k('d') - k('a'),
-    pitch: k(' ') - k('control'),
+    yaw: k('e') - k('q'),
+    // Spatie en Ctrl blijven werken; de pijltjes doen hetzelfde, want omhoog/omlaag hoort op de
+    // plek die je zoekt (pijl omhoog = neus omhoog). Samen nooit meer dan vol uitslag.
+    pitch: Math.max(k(' '), k('arrowup')) - Math.max(k('control'), k('arrowdown')),
     brake: k('shift') > 0,
   };
 }
