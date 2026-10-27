@@ -43,6 +43,9 @@ t('weigerReden: alleen vrije voertuigen, geen vliegtuig, geen verkeer of opdrach
   assert.equal(B.weigerReden(auto(1, 0, 0, { isBoat: true })), null, 'boot');
   assert.equal(B.weigerReden(auto(1, 0, 0, { isHeli: true })), 'vlieg');
   assert.equal(B.weigerReden(auto(1, 0, 0, { isPlane: true })), 'vlieg');
+  // #492: een gast mag als passagier meerijden, maar wordt ook op de grond nooit piloot
+  assert.equal(B.weigerReden(auto(1, 0, 0, { isPlane: true, onGround: true, speed: 0 })), 'vlieg');
+  assert.equal(B.weigerReden(auto(1, 0, 0, { isHeli: true, onGround: true, speed: 0 })), 'vlieg');
   assert.equal(B.weigerReden(auto(1, 0, 0, { driver: 'player' })), 'bezet');
   assert.equal(B.weigerReden(auto(1, 0, 0, { passenger: 'companion' })), 'bezet');
   assert.equal(B.weigerReden(auto(1, 0, 0, { road: {} })), 'verkeer');

@@ -26,11 +26,24 @@ verhaal en bezit; elke nieuwe functie krijgt een regel over Samen spelen.
 - Elke opdracht heeft een id (`<index>|<label>`); stand en deelnemers staan per id
   in `coopmissie.js`, zodat groepen elkaar niet overschrijven. De host stuurt de id
   mee in `missie`; een gast kent alleen zijn eigen id en keuze.
+- Een groep heeft een `leider`: de starter, anders de eerste deelnemer. De host kan
+  groepen ook buiten de missie boekhouden (`coopGroepStart`/`coopGroepZet`/`coopGroepEind`),
+  maar **een groep ontstaat pas bij de start van een activiteit**: zonder activiteit of
+  zonder deelnemer maakt de host geen groep, en na afloop verdwijnt ze. De host simuleert,
+  maar is inhoudelijk niet de leider. De doelen gaan per slot naar de eigen groep.
+- Een gast die een eigen activiteit doet (hengelen, pannenkoeken bakken, de beiaard, boeren)
+  is een **groep van één** met hem als leider (`bezig|<plek>|<activiteit>`). Die groep staat
+  naast een missiegroep van de host en verdwijnt als hij stopt. Twee door de host
+  gesimuleerde missies of bijbanen naast elkaar kunnen nog niet: dat vraagt een keten of
+  ctx per groep (open, #492).
 - **Meedoen?**: J of N, 10 s, **geen antwoord is nee** (toeschouwer); verplicht bij
   `presence 'beide'`/`needsTwo`; een spoilerwaarschuwing vraagt een eigen J; geen
   late instap bij race, kluisklus of timer (een J later dan 15 s telt niet).
 - Meedoen geeft de volledige beloning en de eigen verhaalstap; nee of wegvallen
   geeft niets.
+- **1+1=3** (ADR 0016): elke extra deelnemer geeft elk lid 50% meer loon, tot 3× per
+  persoon; daarboven groeit alleen het totaal. Het aantal spelers is niet cap-based
+  begrensd; de host en de verbinding bepalen de praktische grens. Solo blijft factor 1.
 
 ## Overdracht
 

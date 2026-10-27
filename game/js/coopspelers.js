@@ -5,6 +5,7 @@
 
 import { charInfo } from './coopplayers.js';
 import { pvpInSpel, isPassief } from './cooppvp.js';
+import { groepen as groepenLijst } from './coopmissie.js';
 
 export const VORM_TEKEN = { driehoek: '▲', ruit: '◆', vierkant: '■', cirkel: '●', vijfhoek: '⬟', ster: '★', plus: '✚', kruis: '✖', maan: '☾', hart: '♥', bliksem: 'ϟ', druppel: '◖', blok: '▮', golf: '≈', schild: '⬢', bloem: '✿' };
 export const VERBINDING_TEKST = { ok: 'goed', lag: 'haperd', lost: 'weg' };
@@ -14,8 +15,32 @@ export function afstandTekst(d) {
   return d < 15 ? 'bij je' : d >= 1000 ? `${(d / 1000).toFixed(1).replace('.', ',')} km` : `${Math.round(d / 10) * 10} m`;
 }
 
-// opts: { mijnSlot, roster (world.coopRoster), partners (world.coopPartners), mijn: { x, y, inVoertuig, rijdt }, rtt: (slot) => ms | null, opdracht: label | null }
-export function spelersRijen({ mijnSlot = 0, roster = [], partners = [], mijn = null, rtt = () => null, opdracht = null, pvp = null } = {}) {
+// De groepen die deze speler kent (#492): de gastheer alle groepen uit het register, een gast alleen de groep waar hij bij hoort.
+// Een gast kent de leider uit het missie-bericht van de host (coopworld.js leesMissieBericht); een ouder bericht zonder leider
+// laat hem weg, dan staat er alleen de groep zonder "leidt". Een toeschouwer (deelnemer: false) hoort bij geen groep en ziet niets.
+export function groepenVoor(world, mijnSlot = 0) {
+  if (!world) return [];
+  if (world.coopRole === 'host') {
+    return world.coopGroepen ? groepenLijst(world.coopGroepen).map((g) => ({ id: g.id, label: g.label, leider: g.leider, deelnemers: g.deelnemers })) : [];
+  }
+  const g = world.coopGroep;
+  if (!g || !g.id || g.deelnemer === false) return [];
+  const m = world.coopMissie || world.coopHostMissie;
+  const leider = m && m.id === g.id && Number.isInteger(m.leider) ? m.leider : null;
+  return [{ id: g.id, label: g.label || (m && m.id === g.id ? m.label : '') || '', leider, deelnemers: [...(leider != null ? [leider] : []), mijnSlot] }];
+}
+
+// Wat de spelerslijst bij deze speler zet (#492): de leider "leidt <label>", een deelnemer zijn groep, een niet-deelnemer niets.
+// De leider telt altijd als deelnemer, ook als de deelnemerslijst van de host hem (nog) niet noemt.
+export function groepTekstVoor(g, slot) {
+  if (!g) return '';
+  if (g.leider === slot) return `leidt ${g.label || 'de groep'}`;
+  if (!(g.deelnemers || []).includes(slot)) return '';
+  return g.label || '';
+}
+
+// opts: { mijnSlot, roster (world.coopRoster), partners (world.coopPartners), mijn: { x, y, inVoertuig, rijdt }, rtt: (slot) => ms | null, opdracht: label | null, groepen }
+export function spelersRijen({ mijnSlot = 0, roster = [], partners = [], mijn = null, rtt = () => null, opdracht = null, pvp = null, groepen = [] } = {}) {
   const rijen = [];
   for (const r of roster || []) {
     if (!r || !Number.isInteger(r.slot)) continue;
@@ -31,10 +56,12 @@ export function spelersRijen({ mijnSlot = 0, roster = [], partners = [], mijn = 
     const ms = rtt(r.slot);
     const c = charInfo(r.char) || {}; // terugval zonder online-avatar: naam, kleur en vorm van het personage (een gast krijgt van wie het spel opende alleen plek en personage)
     const av = r.avatar && typeof r.avatar === 'object' ? r.avatar : {}; // (#455) de eigen online-avatar gaat voor de naam en kleur van het personage
+    const g = (groepen || []).find((x) => x && (x.leider === r.slot || (x.deelnemers || []).includes(r.slot))) || null; // de groep van deze speler (#492)
     rijen.push({
       slot: r.slot, naam: av.naam || r.naam || c.naam || '?', kleur: av.kleur || r.kleur || c.kleur || '#cccccc', vorm: r.vorm || c.vorm || 'cirkel', jij,
       verbinding: r.verbinding || 'ok', verbindingTekst: VERBINDING_TEKST[r.verbinding || 'ok'] || 'goed', ms: Number.isFinite(ms) ? Math.round(ms) : null,
       passief: isPassief(pvp, r.slot), pvpInSpel: pvpInSpel(pvp), // #447: wie passief is; de stand telt als zichtbaar zodra iemand bewust op actief staat
+      groep: groepTekstVoor(g, r.slot), leidt: !!(g && g.leider === r.slot), // "leidt <label>" of alleen de groep; een niet-deelnemer niets (#492)
       doet, afstand, afstandTekst: afstandTekst(afstand), x: p && p.zichtbaar ? p.x : null, y: p && p.zichtbaar ? p.y : null,
     });
   }
@@ -42,10 +69,10 @@ export function spelersRijen({ mijnSlot = 0, roster = [], partners = [], mijn = 
   return rijen.sort((a, b) => (a.jij ? -1 : b.jij ? 1 : a.slot - b.slot));
 }
 
-// Een regel in de lijst als platte tekst (tests, schermlezers): "Tessa · te voet · goed 34 ms · 40 m"
+// Een regel in de lijst als platte tekst (tests, schermlezers): "Tessa · te voet · leidt Het Loket · goed 34 ms · 40 m"
 export function rijTekst(r) {
   const naam = r.jij ? `${r.naam} (jij)` : r.naam;
-  return [naam, r.doet, r.verbindingTekst + (r.ms != null ? ` ${r.ms} ms` : ''), r.afstandTekst, r.pvpInSpel ? (r.passief ? 'passief' : 'actief') : ''].filter(Boolean).join(' · ');
+  return [naam, r.doet, r.groep, r.verbindingTekst + (r.ms != null ? ` ${r.ms} ms` : ''), r.afstandTekst, r.pvpInSpel ? (r.passief ? 'passief' : 'actief') : ''].filter(Boolean).join(' · ');
 }
 
 // Eruit zetten (#434): alleen wie het spel opende, en nooit zichzelf of plek 0. Daarna speelt iedereen gewoon door:

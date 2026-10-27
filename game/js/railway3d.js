@@ -3,6 +3,7 @@
 // railway.js.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { syncTreinInterieur } from './treininterieur.js';
+import { gastTreinVan } from './cooptrein.js'; // de trein van de gastheer waarin een gast conducteur is (#492)
 import { getTrains, getLevelCrossings, nearLevelCrossing, railZ, isOffMap, TRAIN_HALF_WIDTH, FLAT_DECK_Z } from './railway.js';
 import { WATER_Y } from './util.js';
 import { waterPolyAt } from './waterlevels.js';
@@ -742,8 +743,8 @@ function updateTrains(px, py, night, world, dt) {
       if (lamps[1]) for (const l of lamps[1]) l.material = t.dir > 0 ? HEAD_MAT : TAIL_MAT;
       if (lamps[-1]) for (const l of lamps[-1]) l.material = t.dir < 0 ? HEAD_MAT : TAIL_MAT;
     });
-    // het binnenste van de trein die de speler bestuurt, alleen zolang hij binnen kijkt (treininterieur.js, #442)
-    if (world && (t === world.trainDriving || view.tc)) { syncTreinInterieur(view, t, world, dt); view.tc = true; }
+    // het binnenste van de trein die de speler bestuurt of waarin een gast als conducteur loopt (treininterieur.js, #442, #492)
+    if (world && (t === world.trainDriving || t === gastTreinVan(world) || view.tc)) { syncTreinInterieur(view, t, world, dt); view.tc = true; }
   }
 }
 

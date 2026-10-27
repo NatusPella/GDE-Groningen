@@ -10,7 +10,7 @@
 // importeert dit bestand en niet andersom (scripts/import_cycles_test.mjs).
 import { PRIJS_KG } from './gewasmarkt.js';
 
-export const GEWAS_IDS = ['aardappelen', 'bieten', 'graan', 'gras'];
+export const GEWAS_IDS = ['aardappelen', 'bieten', 'graan', 'gras', 'uien'];
 export const MAX_ACTIEF = 3;          // meer dan drie contracten tegelijk is te veel om waar te maken
 export const MAX_HISTORIE = 12;       // de afgeronde en verlopen contracten die bewaard blijven
 export const ZAAD = 0x5eed;           // het boerderijzaad als de stand er nog geen heeft
@@ -25,6 +25,7 @@ const KG_RONDE = {
   bieten: [1200, 3000],
   graan: [800, 2000],
   gras: [1500, 3800],
+  uien: [800, 2000],
 };
 const MARGE_MIN = 0.12;               // de bonus per kilo ligt twaalf tot dertig procent boven de basisprijs
 const MARGE_MAX = 0.30;

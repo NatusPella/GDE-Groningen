@@ -41,6 +41,14 @@ function kaart(roads) {
 }
 const wereld = (map, extra = {}) => ({ map, time: 0, clock: 12, player: { x: 0, y: 0 }, vehicles: [], props: [], particles: [], stats: {}, addMessage() {}, audioEvents: [], ...extra });
 const rondje = (w, n = 60) => { for (let i = 0; i < n; i++) V.manageBusPopulation(w); };
+// De live-bustest wil één live bus, niet de willekeurige lijnbussen die hetzelfde startpunt kunnen bezetten.
+// Ruim die tussen de rondjes op, zodat de test deterministisch is; de live bus blijft staan.
+const rondjeLive = (w, n = 20) => {
+  for (let i = 0; i < n; i++) {
+    w.vehicles = w.vehicles.filter((v) => !v.isBus || v.liveId === 'live-1');
+    V.manageBusPopulation(w);
+  }
+};
 
 // 1. de lijn loopt over de tertiaire weg (y 0); ernaast, 20 m verder, ligt een woonstraatje dat dichter bij het spawnpunt kan zijn
 {
@@ -110,7 +118,7 @@ const rondje = (w, n = 60) => { for (let i = 0; i < n; i++) V.manageBusPopulatio
   let echt = { id: 'live-1', line: lijn, dir: 1, s: 750, x: 150, y: 0, angle: 0, speed: 0 };
   V.setLiveBussen({ positie: (id) => (echt && id === echt.id ? echt : null), kandidaten: () => (echt ? [{ ...echt, d: 150 }] : []) });
   const w = wereld(kaartje);
-  rondje(w, 20);
+  rondjeLive(w, 20);
   const live = w.vehicles.filter((v) => v.liveId === 'live-1');
   ok(live.length === 1, 'één bus per live voertuig', String(live.length));
   ok(live[0] && live[0].busRun.line === lijn && live[0].busRun.dir === 1, 'de live bus rijdt zijn eigen lijn en richting');

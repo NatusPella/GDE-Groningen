@@ -1,12 +1,14 @@
 // Het binnenste van de trein in beeld (#442): vloer, wanden met kozijnen en raamstijlen, bagagerekken boven de
 // ramen, deuren die op een halte opengaan, rijen stoelen met leuning en hoofdsteun, haltestangen met lussen, lampen,
 // een machinistencabine met bureau en zitje, en reizigers die zitten of staan. De indeling en het
-// lopen staan in treinlayout.js (puur, getest). Alleen dichtbij gebouwd: alleen de trein die de speler bestuurt en alleen
-// de wagens bij de speler, zolang hij binnen kijkt (C of rondlopen); de geometrie wordt per soort wagen gedeeld
-// (markShared) en de schil van buiten gaat verborgen zolang je binnen bent. railway3d.js roept syncTreinInterieur aan.
+// lopen staan in treinlayout.js (puur, getest). Alleen dichtbij gebouwd: de trein die de speler bestuurt, of de trein
+// van de gastheer waarin een gast als conducteur loopt (#492), en alleen de wagens bij hem, zolang hij binnen kijkt
+// (C of rondlopen); de geometrie wordt per soort wagen gedeeld (markShared) en de schil van buiten gaat verborgen
+// zolang je binnen bent. railway3d.js roept syncTreinInterieur aan.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { GeoBuilder, markShared } from './pixelart3d.js';
 import { trainLayout, passengers, driverEye, WALL_Z, DOOR_W, AISLE, GANGWAY } from './treinlayout.js';
+import { gastTreinVan } from './cooptrein.js'; // de conducteur die als gast door de trein loopt (#492)
 
 const FLOOR = 0x2b2f36, RUNNER = 0x3b4a5c, WALL = 0xd9d7cf, CEIL = 0xeceae3, SEAT = 0x2f5d8a, SEAT_DARK = 0x233f5d, POLE = 0xe5b800, DESK = 0x2a2e35, TRIM = 0x8a8f98;
 const LAMP = 0xfff4d6, GLASS = 0x9fc4d8, SCREEN = 0x3cff7a;
@@ -288,7 +290,9 @@ function wantedCars(world, t) {
 // Eén keer per frame voor de trein die de speler bestuurt. view: { group, cars: [wagengroep] } (railway3d.js).
 export function syncTreinInterieur(view, t, world, dt) {
   const tc = world.trainCam;
-  const inside = !!(t === world.trainDriving && tc && tc.inside);
+  const eigen = t === world.trainDriving;
+  const gast = !eigen && gastTreinVan(world) === t; // de trein van de gastheer, met een conducteur die loopt (#492)
+  const inside = !!((eigen || gast) && tc && tc.inside);
   const layout = trainLayout(t.cfg);
   const want = inside ? wantedCars(world, t) : [];
   const target = t.doorsOpen ? 1 : 0;
@@ -297,6 +301,7 @@ export function syncTreinInterieur(view, t, world, dt) {
   view.deurDoel = target;
   view.deurOpen += (target - view.deurOpen) * Math.min(1, dt * 3.2);
   if (view.paxSeed === undefined) view.paxSeed = 11 + (Math.floor(t.c) % 97);
+  t.coopPaxSeed = view.paxSeed; // de conducteur ziet dezelfde reizigers als hij controleert (#492)
   view.cars.forEach((group, i) => {
     let st = states.get(group);
     const cl = layout[i];

@@ -13,6 +13,20 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Over staat in het pauzemenu.** Nieuws, credits, versie en licenties staan nu onder Esc › Over, ook nu het hoofdmenu weg is.
 - **Eenmalige hint over Samen spelen.** Na je eerste missie zie je één keer waar je Samen spelen vindt; daarna nooit meer.
 - **Milder startbudget en flitswaarschuwing.** Je begint met €500; de eerste keer bij een flitspaal krijg je een waarschuwing, daarna een boete van €10-25. De camera flitst pas vanaf 35 km/u boven de limiet.
+- **Samen meerijden.** Een gast kan als passagier mee in het vliegtuig, de helikopter of de trein van de ander; besturen blijft bij wie het spel opende, en uitstappen kan alleen op de grond of bij stilstand.
+- **Treinconducteur.** De eerste gast in de trein bedient de deuren en de waakzaamheid; alle crewleden krijgen het volle loon en de punten in hun eigen spel.
+- **Dienstrooster voor de machinist.** De machinist rijdt een vaste dienst per lijn, richting en speldag; de halten en vertrektijden komen uit het rooster, en zonder dienst blijft de oude route werken.
+- **Sfeer per loopbaan.** Elk vak heeft een eigen kleurvlak, patroon en icoon in de loopbaanlijst en boven zijn detail, met een droge satirische naam ("Altijd vertraging", "Loket gesloten", "Weer een laars"); rood blijft de gevarenkleur.
+- **Treinblokseinen.** Een bezet baanvak geeft rood op het bord en in de cabine; één sein geeft hooguit één veiligheidsfout, ook als je heen en weer rijdt.
+- **Vliegen tussen velden.** De rondvlucht is nu een etappe Eelde → een tweede veld; landen op de baan geeft loon, overvliegen niet, en de terugvlucht is de volgende dienst.
+- **Hengels, aas en lijnsterkte.** Vier hengels, zes aassoorten en lijnverbeteringen; een sterke lijn geeft een ruimer beetvenster, aas lokt zijn eigen soorten. Te koop bij de Avondwinkel en de botenverhuur.
+- **Melee-blok.** Met een slagwapen blokkeer je met rechts: maximaal twee seconden, daarna een korte herstelperiode; een opgevangen slag doet een vijfde schade, kogels gaan erdoor.
+- **Samen: leider en groepen zichtbaar.** De spelerslijst toont wie een opdracht leidt, en de kaart/minimap toont de eigen groep vol en andere groepen gedempt.
+- **Samen: een eigen activiteit is een groep.** Een gast die hengelt, pannenkoeken bakt, de beiaard speelt of boert staat als eigen groep van één in de spelerslijst; de groep verdwijnt als hij stopt of aan een missie meedoet.
+- **1+1=3: meer spelers, meer loon.** Elk extra groepslid geeft iedereen 50% meer loon, tot 3× per persoon; daarboven groeit alleen het totaal. Solo blijft hetzelfde, en de eigen loopbaanfactor komt er nog overheen.
+- **Lopen en kaartjes controleren in de trein.** De conducteur loopt met T door de wagen, ziet het interieur en de reizigers, en controleert met E kaartjes voor eigen loon en punten.
+- **Eigen truck en ritkosten.** Rijd je vrachtrit met je eigen truck, dan betaal je per rit brandstof, tol en onderhoud; het nettoloon staat in de melding.
+- **Teeltplan per perceel en uien.** Elk perceel houdt zijn eigen volgende gewas; uien komen er als vijfde gewas bij.
 - **Vluchtdienst bij Eelde.** De rondvlucht betaalt nu per medaille (€18/€28/€40) en de toren geeft één vertrek- en één naderingsregel.
 - **Boerderijcontracten.** Afnemers vragen per speldag een vracht van een gewas; je neemt een contract aan, levert de kilo's bij de verkoop en krijgt de bonus bovenop de dagprijs. Verlopen kost niets.
 - **Vracht samen.** Een gast kan de vrachtbaan met E aanvragen, als bijrijder meerijden en met E laden en lossen versnellen; iedere deelnemer krijgt het volle loon.

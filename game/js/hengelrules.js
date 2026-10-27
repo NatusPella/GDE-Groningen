@@ -25,10 +25,13 @@ export function pickFish(rand) {
 
 // opts (hengelen overal, #412): kies(rand) -> { id, name, kg, window } kiest de vis van dit water in plaats van de vaste
 // Meerstad-lijst, duur is de tijd (Infinity: vrij hengelen zonder klok) en wacht is [min, max] seconden tot de beet.
+// venster (#492) is de factor op het beetvenster uit het hengeltuig: een sterkere lijn houdt de dobber langer onder.
+// Zonder tuig is die factor precies 1 en verandert er niets.
 export function createHengel(rand, opts = {}) {
   return {
     phase: 'idle', t: 0, left: opts.duur ?? HENGEL.duration, timer: 0, fish: null, bite: 0, kg: 0, catches: [], lost: 0, scared: 0, rand, flash: null,
-    kies: opts.kies || null, wacht: opts.wacht || [HENGEL.waitMin, HENGEL.waitMax], vangsten: [],
+    kies: opts.kies || null, wacht: opts.wacht || [HENGEL.waitMin, HENGEL.waitMax], venster: Number.isFinite(opts.venster) && opts.venster > 0 ? opts.venster : 1,
+    vangsten: [],
   };
 }
 
@@ -48,7 +51,7 @@ export function stepHengel(st, inp, dt) {
   } else if (st.phase === 'wait') {
     st.timer -= dt;
     if (press) { st.phase = 'scare'; st.timer = HENGEL.scareT; st.scared++; ev.push({ type: 'early' }); }
-    else if (st.timer <= 0) { st.phase = 'bite'; st.bite = st.fish.window; ev.push({ type: 'bite', fish: st.fish.id }); }
+    else if (st.timer <= 0) { st.phase = 'bite'; st.bite = (st.fish.window || 0) * (st.venster || 1); ev.push({ type: 'bite', fish: st.fish.id }); }
   } else if (st.phase === 'bite') {
     st.bite -= dt;
     if (press) {
@@ -69,7 +72,7 @@ export function stepHengel(st, inp, dt) {
 // A bot with a reaction time (s) and a chance to strike early.
 export function botHengel(st, reaction, rand) {
   if (st.phase === 'idle') return { cast: true };
-  if (st.phase === 'bite') return { cast: st.fish.window - st.bite >= reaction };
+  if (st.phase === 'bite') return { cast: (st.fish.window || 0) * (st.venster || 1) - st.bite >= reaction };
   if (st.phase === 'wait' && rand() < 0.002) return { cast: true };
   return {};
 }

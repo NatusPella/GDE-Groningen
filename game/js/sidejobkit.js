@@ -22,6 +22,35 @@ export function fmtClock(s) {
   return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;
 }
 
+// --- de wereldstaat per speler (#492) -------------------------------------------
+// Elke speler (plek 0 = wie het spel opende, 1 en hoger = de gasten) heeft zijn eigen
+// dienst: eigen voertuig, doel, ronde en timer. Eén register houdt ze uit elkaar, zodat
+// de een de ander niet overschrijft en het einde van de een de ander laat lopen.
+// sidejobs.js maakt er één; de tests gebruiken er ook een.
+export function maakContextregister() {
+  const m = new Map();
+  return {
+    map: m,
+    get size() { return m.size; },
+    // Een context van een speler op zijn plek; een onbruikbare eigenaar telt niet mee.
+    zet(c) {
+      if (!c || !Number.isInteger(c.owner) || c.owner < 0) return null;
+      m.set(c.owner, c);
+      return c;
+    },
+    van(owner = 0) { return m.get(owner) || null; },
+    // Alleen wegzetten als dit nog de context van die plek is: een oude, al afgeronde
+    // dienst mag de nieuwe van dezelfde speler niet wissen.
+    wis(c) {
+      if (!c) return false;
+      if (m.get(c.owner) === c) m.delete(c.owner);
+      return !m.has(c.owner);
+    },
+    lijst() { return [...m.values()]; },
+    leeg() { m.clear(); },
+  };
+}
+
 // --- placement ----------------------------------------------------------------
 
 export function nearestOnStreet(map, name, x, y, radius = 160) {
@@ -144,6 +173,8 @@ function riderShirt(world) {
 
 // Handed to the player for the job: flagged missionCar (never theft, never
 // swept up as traffic) and parked at the kerb on the nearest fitting road.
+// jobOwner is the player (slot) whose shift this vehicle belongs to (#492):
+// only that player may drive it, and nobody steals it.
 export function spawnJobVehicle(world, x, y, { model, kind = 'car', angle = null } = {}) {
   const map = world.map;
   const car = kind !== 'bike';
@@ -162,6 +193,7 @@ export function spawnJobVehicle(world, x, y, { model, kind = 'car', angle = null
   v.speed = 0;
   v.missionCar = true;
   v.sideJob = true;
+  v.jobOwner = Number.isInteger(world.sideJobOwner) ? world.sideJobOwner : 0;
   world.vehicles.push(v);
   return v;
 }
@@ -183,6 +215,7 @@ export function spawnJobBoat(world, x, y, heading, model) {
   boat.isBoat = true;
   boat.missionCar = true;
   boat.sideJob = true;
+  boat.jobOwner = Number.isInteger(world.sideJobOwner) ? world.sideJobOwner : 0;
   const map = world.map;
   if (!boatPoseClear(map, boat, x, y, heading)) {
     let best = null;
@@ -214,11 +247,14 @@ export function releaseVehicle(world, v) {
   if (!v) return;
   v.missionCar = false;
   v.sideJob = false;
+  v.jobOwner = undefined; // na de dienst is het weer een gewoon voertuig (#492)
   if (v.isBoat) v.waterPoly = waterPolyAt(world.map, v.x, v.y);
 }
 
 export function removeVehicle(world, v) {
-  if (!v || v.driver === 'player' || v.passenger) return;
+  // Een gast die zijn eigen baanvoertuig bestuurt (#492): het voertuig blijft staan tot hij
+  // zelf uitstapt, ook als de dienst erop zit. nooit onder iemands stoel vandaan halen.
+  if (!v || v.driver === 'player' || v.passenger || Number.isInteger(v.coopBestuurder)) return;
   const i = world.vehicles.indexOf(v);
   if (i >= 0) world.vehicles.splice(i, 1);
 }

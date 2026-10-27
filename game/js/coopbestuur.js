@@ -90,6 +90,9 @@ export const coopRegelVoor = (v) => coopVanModel(v && v.model) || COOP_STANDAARD
 export function weigerReden(v, slot = null) {
   if (!v) return 'geen';
   if (v.isHeli || v.isPlane) return 'vlieg';
+  // Samen spelen (#492): het voertuig van je eigen bijbaan bestuur je zelf, ook al is het een
+  // opdrachtauto. Een ander komt er niet mee weg: dat is diefstal van de dienst van een medespeler.
+  if (Number.isInteger(v.jobOwner)) return v.jobOwner === slot ? null : 'niet';
   if (coopRegelVoor(v).bestuur === 'nee') return 'niet'; // de regel van het model, ook zonder de oude vlaggen
   if (v.driver || v.passenger || v.wrecked || v.sinking || v.disabled) return 'bezet';
   if (v.road || v.countryDrive) return 'verkeer';
@@ -158,7 +161,7 @@ export function bestuurInstappenIn(world, slot, v) {
 
 function stapIn(world, slot, l, v) {
   const proxy = maakProxy(world, slot, l, v);
-  const auto = !v.isBike && !v.isScooter && !v.isBoat && !v.farm && !v.coopBezit && !v.raceCar; // een fiets, boot of wedstrijdwagen meenemen is geen misdaad, een auto van een ander wel; de machines van de boerderij van de host en een gedeeld voertuig van een medespeler zijn voor iedereen (#415, #449, #443)
+  const auto = !v.isBike && !v.isScooter && !v.isBoat && !v.farm && !v.coopBezit && !v.raceCar && !Number.isInteger(v.jobOwner); // een fiets, boot, wedstrijdwagen of het voertuig van een eigen bijbaan meenemen is geen misdaad (#492); een auto van een ander wel; de machines van de boerderij van de host en een gedeeld voertuig van een medespeler zijn voor iedereen (#415, #449, #443)
   const geparkeerd = !!(v.parked || v.parkSlot); // een auto aan de stoep: de gastheer ziet dat hij meegaat (#434)
   haken.enter(proxy, v, world);
   if (proxy.inVehicle !== v) return { gedaan: true }; // enterVehicle weigerde (er zat al iemand in)

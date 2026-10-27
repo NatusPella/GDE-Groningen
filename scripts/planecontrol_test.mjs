@@ -1,5 +1,9 @@
 import assert from 'node:assert';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { attachPlane, flyPlaneVehicle, planeInput, planeExitBlock, makeStrip, idlePlane, planeStatus } from '../game/js/planecontrol.js';
+import { makePlane, stepPlane, veldBaan } from '../game/js/arcadeplane.js';
 
 const keys = new Set();
 const isDown = (k) => keys.has(k);
@@ -41,4 +45,23 @@ assert.strictEqual(planeStatus(v).state, 'Neergestort');
 const w = { x: 0, y: 0, model: {} }; attachPlane(w, 0, 0, 5, 0); w.plane.speed = 10;
 for (let i = 0; i < 200; i++) idlePlane(w, dt, flat);
 assert.strictEqual(w.speed, 0);
+
+// --- landen op een tweede veld (#492): de gemeten baan uit game/vliegplekken.json ------------
+const hier = path.dirname(fileURLToPath(import.meta.url));
+const plekken = JSON.parse(readFileSync(path.join(hier, '../game/vliegplekken.json'), 'utf8'));
+const veld = plekken.velden[0];
+const baan = veldBaan(veld);
+assert.ok(baan.contains(veld.x, veld.y), 'de baan van het tweede veld ligt op de gemeten plek');
+const begin = baan.point(10);
+const p2 = makePlane(begin.x, begin.y, 15, veld.heading);
+p2.onGround = false; p2.speed = 30; p2.vz = -1;
+for (let i = 0; i < 8000 && !p2.onGround && !p2.crashed; i++) stepPlane(p2, { throttle: 0.3, pitch: -0.5 }, dt, () => 0, (x, y) => baan.contains(x, y));
+assert.ok(p2.onGround && !p2.crashed, 'landt op het tweede veld');
+assert.ok(p2.landing === 'zacht' || p2.landing === 'hard', 'de landing op het tweede veld telt: ' + p2.landing);
+// en ernaast is het nog steeds geen baan
+const p3 = makePlane(begin.x, begin.y, 15, veld.heading);
+p3.onGround = false; p3.speed = 30; p3.vz = -1;
+for (let i = 0; i < 8000 && !p3.onGround && !p3.crashed; i++) stepPlane(p3, { throttle: 0.3, pitch: -0.5 }, dt, () => 0, () => false);
+assert.ok(p3.crashed, 'naast het tweede veld crasht het nog steeds');
+
 console.log('planecontrol_test ok');

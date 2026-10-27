@@ -6,6 +6,7 @@ import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import * as B from '../game/js/boerderij.js';
 import * as GM from '../game/js/gewasmarkt.js';
+import * as PC from '../game/js/percelen.js';
 import * as W from '../game/js/werkgang.js';
 import * as Live from '../game/js/boerderijlive.js';
 import * as LL from '../game/js/loopbaanlive.js';
@@ -34,9 +35,9 @@ const doe = (b, taak, { speed = 4.5 } = {}) => {
 
 // ------------------------------------------------------------------ model
 t('de tabellen: gewassen, machines en taken horen bij elkaar', () => {
-  assert.deepEqual(B.GEWAS_IDS, ['aardappelen', 'bieten', 'graan', 'gras']);
+  assert.deepEqual(B.GEWAS_IDS, ['aardappelen', 'bieten', 'graan', 'gras', 'uien']);
   assert.equal(B.MACHINE_IDS.length, 3);
-  for (const g of Object.values(B.GEWASSEN)) assert.ok(g.zaaigoed > 0 && g.groeiUren > 0 && g.kgBasis > 0 && g.prijsKg > 0 && g.afnemer && g.naam);
+  for (const g of Object.values(B.GEWASSEN)) { assert.ok(g.zaaigoed > 0 && g.groeiUren > 0 && g.kgBasis > 0 && g.prijsKg > 0 && g.afnemer && g.naam); assert.ok(['struik', 'kegel', 'halm'].includes(g.vorm), `${g.naam}: vorm ${g.vorm}`); }
   for (const taak of ['ploegen', 'zaaien', 'bemesten', 'oogsten']) { assert.ok(B.machineVoor(taak), taak); assert.ok(W.BAND[taak], taak); assert.ok(B.TAKEN[taak].rijen); }
   assert.equal(B.machineVoor('afleveren'), null);
   for (const m of Object.values(B.MACHINES)) assert.ok(m.koop > m.huur * 5, 'kopen loont pas na meerdere keren huren');
@@ -196,7 +197,7 @@ t('normaliseer: leeg, oud en kapot geven een geldige boerderij; onzin gaat weg; 
     assert.equal(b.v, 1); assert.equal(B.fase(b), 'braak'); assert.equal(b.perceel, null); assert.equal(b.uren, 0);
   }
   const b = B.normaliseer(JSON.stringify({ v: 1, uren: -5, perceel: { x: 10, y: 'a' }, keuze: 'tarwe', veld: { fase: 'gezaaid', gewas: 'bieten', gezaaidOp: 3, bodem: 5, zaai: -1, mest: 'x' }, schuur: { gewas: 'bestaatniet', kg: 9 }, machines: { ploeg: 'eigen', rooier: 'gestolen', onbekend: 'eigen' }, totaal: { omzet: 12.7, uitgaven: 'veel' }, rommel: 1 }));
-  assert.equal(b.uren, 0); assert.equal(b.perceel, null); assert.equal(b.keuze, 'aardappelen');
+  assert.equal(b.uren, 0); assert.equal(b.perceel, null); assert.deepEqual(b.plan, {}, 'een onbekende keuze geeft geen plan');
   assert.equal(b.veld.fase, 'gezaaid'); assert.equal(b.veld.bodem, 1); assert.equal(b.veld.zaai, 0); assert.equal(b.veld.mest, 0);
   assert.equal(b.schuur.kg, 0); assert.deepEqual(b.machines, { ploeg: 'eigen', zaaimachine: 'huur', rooier: 'huur' });
   assert.equal(b.totaal.omzet, 13); assert.equal(b.totaal.uitgaven, 0); assert.ok(!('rommel' in b));
@@ -219,6 +220,60 @@ t('tikUren: negatief, NaN en oneindig doen niets; groei is begrensd', () => {
   B.rondTaakAf(b, 'ploegen', 1); B.rondTaakAf(b, 'zaaien', 1);
   B.tikUren(b, 1e9);
   assert.equal(B.groei(b), 1); assert.equal(B.urenTotRijp(b), 0);
+});
+
+// ------------------------------------------------------------------ teeltplan per perceel (#492)
+t('het teeltplan: elk perceel een eigen gewas voor het volgende zaaien; wisselen overschrijft een ander plan niet', () => {
+  const b = B.nieuweBoerderij();
+  assert.equal(B.actiefGewas(b), 'aardappelen', 'zonder plan geldt de standaard van de akker');
+  assert.deepEqual(b.plan, {});
+  assert.equal(B.kiesGewas(b, 'bieten'), true);
+  assert.equal(B.actiefGewas(b), 'bieten');
+  assert.equal(B.kiesGewas(b, 'tarwe'), false);
+  assert.equal(B.kiesGewas(b, 'gras'), true);
+  assert.equal(B.actiefGewas(b), 'aardappelen', 'gras past niet op een akker: de standaard van de grond');
+  assert.equal(B.kiesGewas(b, 'bieten'), true);
+  // een tweede akker kopen en daar werken
+  assert.equal(PC.koop(b.bedrijf, 'perceel', 'wierdeakker', 1e6).ok, true);
+  assert.equal(PC.zetActief(b.bedrijf, 'wierdeakker'), true);
+  assert.equal(B.syncVeld(b), true);
+  assert.equal(B.actiefGewas(b), 'aardappelen', 'een nieuw perceel begint met de standaard');
+  assert.equal(B.kiesGewas(b, 'uien'), true);
+  assert.equal(B.actiefGewas(b), 'uien');
+  assert.deepEqual(B.veldenOverzicht(b).map((v) => [v.id, v.plan]), [[PC.START_PERCEEL, 'bieten'], ['wierdeakker', 'uien']]);
+  assert.equal(B.planVoor(b, PC.START_PERCEEL), 'bieten');
+  // terug naar de Zonnehoek: het plan van de Wierdeakker blijft staan
+  assert.equal(PC.zetActief(b.bedrijf, PC.START_PERCEEL), true);
+  B.syncVeld(b);
+  assert.equal(B.actiefGewas(b), 'bieten');
+  assert.equal(B.planVoor(b, 'wierdeakker'), 'uien');
+  // op een weiland is het plan gras, ook als je een akkerbouwgewas kiest
+  assert.equal(PC.huur(b.bedrijf, 'perceel', 'dijkweide', 'dag', 0, 1e6).ok, true);
+  PC.zetActief(b.bedrijf, 'dijkweide'); B.syncVeld(b);
+  assert.equal(B.actiefGewas(b), 'gras');
+  B.kiesGewas(b, 'bieten');
+  assert.equal(B.actiefGewas(b), 'gras');
+  // zaaien zaait het plan van het perceel waar je werkt
+  doe(b, 'ploegen');
+  assert.equal(doe(b, 'zaaien').gewas, 'gras');
+  assert.equal(b.veld.gewas, 'gras');
+  assert.equal(B.planVoor(b, PC.START_PERCEEL), 'bieten', 'de Zonnehoek houdt zijn eigen plan');
+});
+
+t('een oude opslag met alleen keuze migreert naar het actieve perceel, zonder nieuwe opslagsleutel', () => {
+  const b = B.normaliseer({ v: 1, uren: 30, keuze: 'bieten', veld: { fase: 'braak' } });
+  assert.deepEqual(b.plan, { [PC.START_PERCEEL]: 'bieten' });
+  assert.equal(B.actiefGewas(b), 'bieten');
+  assert.ok(!('keuze' in b), 'het plan is de enige bron; de oude keuze gaat weg');
+  assert.deepEqual(B.normaliseer(JSON.parse(JSON.stringify(b))), b, 'heen en terug is stabiel');
+  // de oude keuze hoort bij het perceel waar de boerderij werkte, niet bij de Zonnehoek
+  const c = B.normaliseer({ v: 1, keuze: 'graan', bedrijf: { v: 1, percelen: { [PC.START_PERCEEL]: { status: 'gekocht', sinds: 0 }, wierdeakker: { status: 'gekocht', sinds: 0 } }, actief: 'wierdeakker' } });
+  assert.deepEqual(c.plan, { wierdeakker: 'graan' });
+  assert.equal(B.actiefGewas(c), 'graan');
+  // een keuze die niet bij de grond past wordt de standaard van die grond
+  assert.deepEqual(B.normaliseer({ v: 1, keuze: 'gras' }).plan, { [PC.START_PERCEEL]: 'aardappelen' });
+  // een plan met een onbekend gewas of een rare sleutel gaat weg
+  assert.deepEqual(B.normaliseer({ v: 1, plan: { [PC.START_PERCEEL]: 'tarwe', wierdeakker: 'uien', onbekend: 'graan' } }).plan, { wierdeakker: 'uien' });
 });
 
 // ------------------------------------------------------------------ werk op het land
@@ -391,7 +446,7 @@ t('opslag: de eigen sleutel, geen savegame, een kapotte opslag geeft een lege bo
   Live.zetPerceel({ x: 5, y: 6, a: 1 }); Live.kiesGewas('bieten'); Live.schrijfNu();
   assert.deepEqual(st.log, [KEYS.boerderij], 'alleen de eigen sleutel'); assert.equal(st.m.get('gde-save-v1-nieuw'), 'SAVE');
   const weer = Live.initBoerderij({ opslag: st });
-  assert.deepEqual(weer.perceel, { x: 5, y: 6, a: 1 }); assert.equal(weer.keuze, 'bieten');
+  assert.deepEqual(weer.perceel, { x: 5, y: 6, a: 1 }); assert.equal(B.actiefGewas(weer), 'bieten', 'het plan van het actieve perceel');
   st.setItem = () => { throw Object.assign(new Error('vol'), { name: 'QuotaExceededError' }); };
   Live.kiesGewas('aardappelen'); assert.doesNotThrow(() => Live.schrijfNu());
   assert.doesNotThrow(() => Live.initBoerderij({ opslag: { getItem() { throw new Error('geblokkeerd'); }, setItem() { throw new Error('vol'); } } }));

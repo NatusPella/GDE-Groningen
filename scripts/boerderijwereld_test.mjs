@@ -327,5 +327,9 @@ await t('een gast bestuurt en ziet de boerderij van de gastheer niet; een verkoc
   assert.equal(WW.boerderijWereldStand().rigs[uid], undefined);
 });
 
+await t('elk gewas heeft een afnemerplek', () => {
+  for (const id of B.GEWAS_IDS) assert.ok(WW.afnemerPlek(w, id), `geen afnemerplek voor ${id}`);
+});
+
 console.log(`boerderijwereld_test: ${n - fails}/${n}`);
 if (fails) process.exit(1);
