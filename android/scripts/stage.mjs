@@ -11,7 +11,7 @@
 import fs from 'fs';
 import path from 'path';
 import { execFileSync } from 'child_process';
-import { ANDROID, ROOT, WWW, WEB_DIST, HERE, IS_WIN, mb, walk, sizeOf, toolEnv } from './common.mjs';
+import { ANDROID, ROOT, WWW, WEB_DIST, HERE, mb, walk, sizeOf, toolEnv } from './common.mjs';
 
 const REBUILD = process.argv.includes('--rebuild');
 const SYNC = !process.argv.includes('--no-sync');
@@ -66,6 +66,9 @@ console.log(`android/www: ${files.length} bestanden, ${mb(sizeOf(files))} (web-d
 
 if (SYNC) {
   const { env } = toolEnv();
-  const cap = path.join(ANDROID, 'node_modules', '.bin', IS_WIN ? 'cap.cmd' : 'cap');
-  execFileSync(cap, ['sync', 'android'], { cwd: ANDROID, env, stdio: 'inherit', shell: IS_WIN });
+  // De CLI rechtstreeks met node starten, niet via de npm-shim (.cmd/.bin). Node 24 voert een
+  // .cmd met shell:true zo uit dat de shim zijn eigen `node` niet meer vindt ("'"node"' is not
+  // recognized"), en dan faalt `npm run build` op Windows (#483, 27-10). Zo werkt het op beide.
+  const capCli = path.join(ANDROID, 'node_modules', '@capacitor', 'cli', 'bin', 'capacitor');
+  execFileSync(process.execPath, [capCli, 'sync', 'android'], { cwd: ANDROID, env, stdio: 'inherit' });
 }
