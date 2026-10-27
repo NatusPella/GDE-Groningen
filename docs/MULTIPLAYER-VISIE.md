@@ -19,4 +19,4 @@ De visie van de eigenaar (besluiten van 23-10 en 24-10), op één plek. In gespr
 
 ## Waar het nu staat
 
-Open werk staat op GitHub: #446 (speler-abstractie), #447 (passive mode en PvP), #448 (geen verlies), #449 (eigen voertuigen en panden), #450 (dedicated servers), #451 (chat en voice), #452 (audit van de spelinhoud), #454 (PvP-minigame).
+Open werk staat op GitHub: #450 (dedicated servers; de koploze gastheer draait al, maar een Electron-variant, een vaste poort en een plek in de openbare lijst staan nog open, zie [COOP-GAST.md](COOP-GAST.md)) en #451 (chat en voice). De andere punten van de lijst zijn gebouwd (#446 speler-abstractie, #447 passive mode en PvP, #448 geen verlies, #449 eigen voertuigen en panden, #452 audit van de spelinhoud, #454 PvP-minigame, #455 rol per speler); per onderdeel staat in [COOP-GAST.md](COOP-GAST.md) wat er nog niet in beeld of met echte spelers is bekeken.

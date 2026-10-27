@@ -1,6 +1,6 @@
 # 08 · Implementatie (alleen voor een latere bouwronde)
 
-Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Er is geen code aangepast. Alles hieronder is gelezen uit `game/js` op `main` van 17 oktober 2026 of gelabeld **AANNAME** (niet geverifieerd). Volgens AGENTS.md: werk in een eigen worktree en branch, kleine commits, geen push of merge door agents; vóór elke merge `node --check`, `node scripts/voice_coverage.mjs --quiet` en alle `scripts/*_test.mjs`; vóór een release één Electron-verhaaltest.
+Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Dit is een momentopname: alles hieronder is gelezen uit `game/js` op `main` van 17 oktober 2026 of gelabeld **AANNAME** (niet geverifieerd). Daarna is Deel 4 (Nazomer, M27-M30) wel gebouwd: `game/js/missions_akte6.js`, `game/js/storyarc_nieuw.js` en [DEEL4.md](DEEL4.md). Volgens AGENTS.md: werk in een eigen worktree en branch, kleine commits, geen push of merge door agents; vóór elke merge `node --check`, `node scripts/voice_coverage.mjs --quiet` en alle `scripts/*_test.mjs`; vóór een release één Electron-verhaaltest.
 
 ## 1. Waar de wijzigingen vallen
 

@@ -1,6 +1,6 @@
 # Het nieuwe verhaal: "Alles voor één eierbal" (de provincietour)
 
-Voorstel voor issue [#93](https://github.com/NatusPella/GDE-Groningen/issues/93). Dit is **één verhaal in vijf akten**. Wat er in het oude spel bestaat (de oude delen en het oude plan voor een vervolg) bepaalt de structuur niet; oud materiaal komt alleen terug waar het past (de regels met de tag `[BEHOUDEN]`). Alleen documenten in `docs/verhaal/nieuw/`; er is geen code aangepast, niets opgenomen en geen TTS of netwerk gebruikt. Alles wat ik niet in de repo heb kunnen controleren, staat als **AANNAME**. Alles wat niemand in beeld heeft gezien, is **nog niet bekeken**.
+Voorstel voor issue [#93](https://github.com/NatusPella/GDE-Groningen/issues/93). Dit is **één verhaal in vijf akten**. Wat er in het oude spel bestaat (de oude delen en het oude plan voor een vervolg) bepaalt de structuur niet; oud materiaal komt alleen terug waar het past (de regels met de tag `[BEHOUDEN]`). Alleen documenten in `docs/verhaal/nieuw/`; het verhaal staat inmiddels wel in de code (`game/js/storyarc_nieuw.js` voor de vijf akten, `missions_nieuw.js` met `missions_akte2/4/5/6.js`, de cutscenes en Deel 4 in `missions_akte6.js`), maar de opnamen lopen achter op de tekst (zie `node scripts/voice_coverage.mjs --quiet`), en er is geen TTS of netwerk gebruikt. Alles wat ik niet in de repo heb kunnen controleren, staat als **AANNAME**. Alles wat niemand in beeld heeft gezien, is **nog niet bekeken**.
 
 Deze versie verwerkt de besluiten na drie reviews door andere taalmodellen (twist en Jelle als echte bedreiging, kanaalscheiding, samengevoegde missies, de finale als wedstrijd, het dieptepunt, de gags en de stemmen). Wat er veranderd is, staat in §11 (besluiten) en per missie in §4.
 
@@ -14,6 +14,8 @@ Deze versie verwerkt de besluiten na drie reviews door andere taalmodellen (twis
 | `07-TTS-RAMING.md` | aantallen behouden en nieuwe regels; kostenraming alleen ter informatie (voorlopig niets opnemen) |
 | `08-IMPLEMENTATIE.md` | voor een latere bouwronde, incl. productiekeuzes (drie signature-systemen) |
 | `09-script-akte1.md` … `09-script-akte5.md` | het volledige script, machineleesbaar (`SPREKER: tekst [BEHOUDEN\|NIEUW]`) |
+| `DEEL4.md` | Deel 4 (Nazomer, M27-M30) na de epiloog; dit deel staat in de code |
+| `09-script-akte6.md` | het script van Deel 4 (act 6 in `game/storydata/script.json`) |
 
 ## 1. Titel, logline, doel en motief
 
