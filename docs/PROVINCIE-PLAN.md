@@ -835,3 +835,43 @@ expliciet open data, OSM als fallback).
 | 13 | RD New: codemod of `P(x, y)`-helper | eerst de helper, daarna in één keer vastzetten (gedaan) |
 | 14 | Iconen met de hand | 30 op de bouwdoos; GLB alleen voor 3-5 |
 | 15 | Aanlichten van kerken 's nachts | ja, tot middernacht |
+
+## 8. De zuidgrens: Drenthe erbij (#507)
+
+De wegen rond Peize en Altena hingen alleen via de stik van #223 aan het net: tussen die dorpen en de
+provincie zat een gat van 3,1 km (Peize) en 2,6 km (Altena), en in het spel liep de route over een
+rechte stiklijn over het veld. Dat is geen routerfout maar een gat in de data.
+
+**Wat er precies ontbrak.** De 8x8 km-pakketten in `data/cache/province` die dat gebied dekken waren
+leeg of afwezig:
+
+| pakket | inhoud vÃ³Ã³r |
+|---|---|
+| `c-1_1.json.gz` | 26 elementen (1,9 kB) |
+| `c-1_2.json.gz` | 25 knopen (582 B) |
+| `c-1_3.json.gz` | bestaat niet |
+| `c0_1.json.gz` | bestaat niet |
+
+Dat komt omdat het gat op **53,12â€“53,15 N, 6,50â€“6,56 E** ligt: dat is **Drenthe**, en het Geofabrik-extract
+`groningen-latest.osm.pbf` stopt bij de provinciegrens.
+
+**De oplossing (gedaan op 27-10, geen wijziging in de repo nodig behalve dit hoofdstuk).** Haal het
+Drenthe-extract erbij en knip daar alleen de rand uit die grenst aan de provincie:
+
+```
+curl -L -A 'GDE-Groningen-mapbuilder/1.0' -o data/cache/drenthe-latest.osm.pbf \
+    https://download.geofabrik.de/europe/netherlands/drenthe-latest.osm.pbf
+data/cache/venv/bin/python scripts/world/extract_province.py \
+    --pbf data/cache/drenthe-latest.osm.pbf --bbox 53.100,6.440,53.170,6.620 \
+    --out data/cache/province-drenthe
+```
+
+Dat levert 7 pakketten met 28.253 elementen (2,0 MB gzip), 25 plaatsen, 39 busroutes en 312 voorzieningen;
+`c-1_1` groeit van 1,9 kB naar 843 kB en `c0_1` komt erbij. `desktop/build.mjs` leest alle
+`data/cache/province*`-mappen al in (`provDirs`), dus een `npm run stage` pikt de nieuwe map automatisch op
+en bouwt de wereld opnieuw (de hash verandert mee). De caches staan niet in git; dit hoofdstuk is de
+reproduceerstap.
+
+**Wat er daarna nog moet:** de zware sweep van `road_route_test` opnieuw draaien om te zien dat de omweg
+van 3,1 km weg is, en kijken of de stiklijn van #223 in dat gebied niet meer nodig is.
+
