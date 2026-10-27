@@ -19,6 +19,7 @@ import { rand } from './rng.js';
 import { KERMIS_TENT } from './roadaccess.js';
 import { WHEEL_AT, R, AX as WHEEL_AX, N, OMEGA } from './reuzenradrules.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
+import { hoofdspeler } from './players.js';
 
 // Kermis op de Grote Markt. The botsautotent of kermisbaas Jan stands on
 // the south side of the square all the time (always open, €3 a ride);
@@ -373,7 +374,7 @@ function drawIcon(ctx, s) {
 // --- prompt and start ----------------------------------------------------------------------
 
 function nearStand(w) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (game || w.pigeonMode || w.heliRun || p.inVehicle || p.swimming) return false;
   return Math.hypot(p.x - STAND.x, p.y - STAND.y) < USE_RADIUS;
 }
@@ -395,8 +396,8 @@ function prompt(w) {
 }
 
 function secondary(w) {
-  if (game || w.player.inVehicle) return [];
-  if (Math.abs(w.player.x - K.x) > 45 || Math.abs(w.player.y - K.y) > 45) return [];
+  if (game || hoofdspeler(w).inVehicle) return [];
+  if (Math.abs(hoofdspeler(w).x - K.x) > 45 || Math.abs(hoofdspeler(w).y - K.y) > 45) return [];
   return [{ id: 'botsauto-2', x: STAND.x, y: STAND.y, h: 2.4, label: kermisOn(w) ? 'Kermis op de Grote Markt' : "Botsauto's", sub: 'Loop naar de kassa en druk E', kind: 'place' }];
 }
 
@@ -411,7 +412,7 @@ function interact(w) {
 function start(w, { free = false } = {}) {
   if (game) return false;
   if (!built) built = buildTent();
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (p.inVehicle) p.exitVehicle(w.map, w);
   if (!free) w.money -= PRICE;
   const story = storyRide(w);
@@ -530,7 +531,7 @@ function collide(w, cars) {
         { const q = toW(me.u, me.v); pushAudioEvent(w, { kind: 'fx', name: 'kermis_ding', x: q.x, y: q.y }); }
         g.best = Math.max(g.best, g.combo);
         g.flash = { text: `${flank === 'flank' ? 'In de flank' : flank === 'kont' ? 'Van achteren' : 'Kop op kop'}! +${pts}${g.combo > 1 ? ` · reeks ${g.combo}` : ''}`, t: 1.3 };
-        w.lastImpact = { strength: Math.min(0.5, 0.12 + into * 0.07), time: w.time, x: w.player.x, y: w.player.y };
+        w.lastImpact = { strength: Math.min(0.5, 0.12 + into * 0.07), time: w.time, x: hoofdspeler(w).x, y: hoofdspeler(w).y };
         botSay(w, other, BOTS_BUMPED);
       }
     }
@@ -538,7 +539,7 @@ function collide(w, cars) {
 }
 
 function gotHit(w, by) {
-  w.lastImpact = { strength: 0.2, time: w.time, x: w.player.x, y: w.player.y };
+  w.lastImpact = { strength: 0.2, time: w.time, x: hoofdspeler(w).x, y: hoofdspeler(w).y };
   if (Math.random() < 0.4) botSay(w, by, BOTS_HIT);
 }
 
@@ -658,7 +659,7 @@ function botSay(w, car, list) {
 // --- per frame -------------------------------------------------------------------------------
 
 function updateLod(w, dt) {
-  const d = Math.hypot(w.player.x - K.x, w.player.y - K.y);
+  const d = Math.hypot(hoofdspeler(w).x - K.x, hoofdspeler(w).y - K.y);
   const on = kermisOn(w);
   if (!built && d < DETAIL_M) built = buildTent();
   if (built) {
@@ -805,7 +806,7 @@ export const KERMIS = {
   icon: drawIcon,
   mapSub: (s, w) => (kermisOn(w) ? "Kermis! Botsauto's, reuzenrad en suikerspin" : "Botsauto's van kermisbaas Jan · 's avonds kermis"),
   ubbo(w) {
-    const d = Math.hypot(STAND.x - w.player.x, STAND.y - w.player.y);
+    const d = Math.hypot(STAND.x - hoofdspeler(w).x, STAND.y - hoofdspeler(w).y);
     const rec = getChallengeRecord('botsauto');
     return { name: kermisOn(w) ? 'Kermis op de Grote Markt' : "Botsauto's op de Grote Markt", sub: rec && rec.medal ? `record: ${MEDALS[rec.medal].toLowerCase()}` : `€${PRICE} per ritje`, dist: d, x: STAND.x, y: STAND.y, play: 'kermis', where: "de botsauto's", hint: 'loop naar de kassa en druk E' };
   },

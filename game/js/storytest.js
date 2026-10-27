@@ -28,6 +28,7 @@ import { getOwnedEntries, WEAPON_STOCK, CAR_UPGRADES, OUTFITS, replacementFee } 
 import { VEHICLE_STOCK } from './shopdata.js';
 import { repairCost, bustFine, HERO_REPLACE_FEE, SIDEJOB_PAY_MULT } from './economy.js';
 import { getFurnitureSave } from './furniture.js';
+import { hoofdspeler } from './players.js';
 import { validateSpots } from './spotcheck.js';
 import { auditPassages } from './passagecheck.js';
 import { probeRingSolids, driveRingLap, probeRailLifts, driveWaterCrossings } from './ringcheck.js';
@@ -274,7 +275,7 @@ async function minigames2Smoke(world, check, capture) {
   check('zwembad: the dive starts the swim', zw.state().swim.phase === 'swim', JSON.stringify(zw.state()));
   for (let i = 0; i < 6; i++) { key(i % 2 ? 'd' : 'a', i % 2 ? 'KeyD' : 'KeyA'); await sleep(550); }
   capture('mg-zwembad-swim');
-  check('zwembad: strokes move the swimmer', zw.state().swim.dist > 3 && finite(world.player), JSON.stringify(zw.state()));
+  check('zwembad: strokes move the swimmer', zw.state().swim.dist > 3 && finite(hoofdspeler(world)), JSON.stringify(zw.state()));
   zw.finish();
   check('zwembad: the swim ends by itself', await waitFor(() => !isActivityActive(), 6000));
   await cleared('zwembad');
@@ -284,7 +285,7 @@ async function minigames2Smoke(world, check, capture) {
   await sleep(500);
   hold('a', 'KeyA');
   await waitFor(() => kt.state().climb.best > 0.3, 8000);
-  check('klimtoren: holding A grips the first hold', kt.state().climb.best > 0.3 && finite(world.player), JSON.stringify(kt.state()));
+  check('klimtoren: holding A grips the first hold', kt.state().climb.best > 0.3 && finite(hoofdspeler(world)), JSON.stringify(kt.state()));
   capture('mg-klimtoren-grip');
   release('a', 'KeyA');
   await sleep(300);
@@ -296,7 +297,7 @@ async function minigames2Smoke(world, check, capture) {
   check('waterski: starts', ws && ws.start() && await waitFor(() => ws.state() && ws.state().phase === 'run', 25000));
   await sleep(1500);
   capture('mg-waterski-run');
-  check('waterski: the boat tows the skier along the lake', await waitFor(() => ws.state().ski.sS > 2, 10000) && finite(world.player), JSON.stringify(ws.state()));
+  check('waterski: the boat tows the skier along the lake', await waitFor(() => ws.state().ski.sS > 2, 10000) && finite(hoofdspeler(world)), JSON.stringify(ws.state()));
   hold('a', 'KeyA');
   await sleep(900);
   release('a', 'KeyA');
@@ -320,7 +321,7 @@ async function batch2Smoke(world, check, capture) {
   check('events: the picture shakes during the quake', !!world.quake && world.quake.amp > 0.05, JSON.stringify(world.quake));
   capture('event-quake');
   check('events: the quake ends by itself', await waitFor(() => !world.quake && !WE.state().quake, 12000), JSON.stringify(WE.state()));
-  check('events: nothing is NaN after the quake', finite(world.player) && [window.__debug.player.x, window.__debug.player.y].every(Number.isFinite));
+  check('events: nothing is NaN after the quake', finite(hoofdspeler(world)) && [window.__debug.player.x, window.__debug.player.y].every(Number.isFinite));
   // algae: green patches in the lakes and a swim penalty on them
   WE.algae(true);
   await sleep(600);
@@ -334,7 +335,7 @@ async function batch2Smoke(world, check, capture) {
   capture('event-fireworks');
   WE.fireworks(false);
   // German tourists on the bloemetjesmarkt
-  const p = world.player;
+  const p = hoofdspeler(world);
   const home = { x: p.x, y: p.y };
   p.x = 100.6; p.y = 76.2 + 40;
   await sleep(500);
@@ -352,7 +353,7 @@ async function batch2Smoke(world, check, capture) {
   capture('event-mugging');
   await sleep(2600);
   const thief = world.pedestrians.find((q) => q.mugger);
-  check('muggings: the thief runs and nothing is NaN', !!thief && [thief.x, thief.y].every(Number.isFinite) && finite(world.player));
+  check('muggings: the thief runs and nothing is NaN', !!thief && [thief.x, thief.y].every(Number.isFinite) && finite(hoofdspeler(world)));
   // he keeps running: stay on his heels until he is caught (a slow frame rate lets him slip away from one jump)
   check('muggings: catching him gives the money back', await waitFor(() => { if (thief && MG.state().phase) { p.x = thief.x + 0.6; p.y = thief.y; } return MG.state().phase === null && world.money === 300; }, 15000, 200), JSON.stringify({ money: world.money, st: MG.state() }));
 
@@ -630,11 +631,11 @@ export async function runStoryTest(world) {
           const ok = await waitFor(() => {
             if (isCinematicActive()) skipCinematic();
             else skipStoryContact();
-            return world.player.character === step.player && (!world.companion || world.companion.character !== step.player);
+            return hoofdspeler(world).character === step.player && (!world.companion || world.companion.character !== step.player);
           }, 20000);
-          check(`${cur.id}: plays as ${step.player}`, ok, ok ? world.player.character : JSON.stringify(S().swapInfo()));
-          if (prevChar && prevChar !== world.player.character) { swaps++; entry.notes.push(`speelt als ${world.player.character}`); }
-          prevChar = world.player.character;
+          check(`${cur.id}: plays as ${step.player}`, ok, ok ? hoofdspeler(world).character : JSON.stringify(S().swapInfo()));
+          if (prevChar && prevChar !== hoofdspeler(world).character) { swaps++; entry.notes.push(`speelt als ${hoofdspeler(world).character}`); }
+          prevChar = hoofdspeler(world).character;
           await drain(world, 300);
         }
         // the calendar: every step plays on its own day (calendar.js), Ontzet on vrijdag 28 augustus
@@ -674,7 +675,7 @@ export async function runStoryTest(world) {
           } else if (step.goal && step.goal.type === 'kermis' && window.__kermis && window.__activities) {
             // the story ride from the booth (E): free even when broke, Durk & Douwe in two of the cars
             const km = window.__kermis, sf = window.__storyFun;
-            const p = world.player, s = km.spot();
+            const p = hoofdspeler(world), s = km.spot();
             if (p.inVehicle) p.exitVehicle(world.map, world);
             p.x = s.x; p.y = s.y;
             world.wanted = 0;
@@ -696,7 +697,7 @@ export async function runStoryTest(world) {
             check(`${cur.id}: done text follows the scene`, await waitFor(() => { if (isCinematicActive()) skipCinematic(); return !sf.state().pending; }, 20000, 200), JSON.stringify(sf.state()));
           } else if (step.goal && step.goal.type === 'eikea' && window.__storyEikea && window.__home) {
             // EIKEA: the Escapade at the loading dock, three boxes on the roof, one knock costs one, home, upstairs
-            const se = window.__storyEikea, hm = window.__home, p = world.player;
+            const se = window.__storyEikea, hm = window.__home, p = hoofdspeler(world);
             const shop = se.shop();
             const g0 = world.storyGuide;
             check(`${cur.id}: the guide points to EIKEA`, !!shop && !!g0 && Math.hypot(g0.x - shop.x, g0.y - shop.y) < 5, JSON.stringify(g0));
@@ -732,7 +733,8 @@ export async function runStoryTest(world) {
           } else if (step.goal && (step.goal.type === 'night' || step.goal.type === 'home') && step.homeScene && window.__home) {
             // waiting at home: go home, up in the lift, the scene plays and the step is done
             const hm = window.__home;
-            if (world.player.inVehicle) world.player.exitVehicle(world.map, world);
+            const thuis = hoofdspeler(world);
+            if (thuis.inVehicle) thuis.exitVehicle(world.map, world);
             hm.goHome();
             await sleep(1500);
             world.wanted = 0;
@@ -744,7 +746,7 @@ export async function runStoryTest(world) {
             await sleep(1500);
           } else if (step.goal && step.goal.type === 'flight' && window.__storyFun) {
             // Rotor Roelf with his demo heli on Eelde: walking up plays his scene and completes the step (H15 flies it)
-            const sf = window.__storyFun, p = world.player;
+            const sf = window.__storyFun, p = hoofdspeler(world);
             const guide = world.storyGuide;
             check(`${cur.id}: the guide points to Eelde`, !!guide && Math.hypot(guide.x - step.goal.heli[0], guide.y - step.goal.heli[1]) < 30, JSON.stringify(guide));
             const v = (await waitFor(() => sf.demo(), 5000)) && sf.demo();
@@ -759,7 +761,7 @@ export async function runStoryTest(world) {
             check(`${cur.id}: no helicopter bought for the demo flight`, !getOwnedEntries().some((o) => o.spec && o.spec.kind === 'heli'));
           } else if (step.goal && step.goal.type === 'carbid' && window.__carbid && window.__activities && window.__storyFun) {
             // the lift: on foot in town, Henk drops the Escapade off for free; then a real round at boer Roelf's churn
-            const cb = window.__carbid, sf = window.__storyFun, p = world.player;
+            const cb = window.__carbid, sf = window.__storyFun, p = hoofdspeler(world);
             if (p.inVehicle) p.exitVehicle(world.map, world);
             const town = world.map.nearestRoadPoint(701.21, -338.36, 120, false) || { x: 701.21, y: -338.36 };
             p.x = town.x; p.y = town.y;
@@ -838,7 +840,8 @@ export async function runStoryTest(world) {
               if (stage && stage.kind === 'pigeon' && !world.pigeonMode && !entry.waitedPigeon) {
                 entry.waitedPigeon = true;
                 // a pigeon does not drive: step out of the car the last mission left the player in
-                if (world.player.inVehicle) world.player.exitVehicle(world.map, world);
+                const duifLoper = hoofdspeler(world);
+                if (duifLoper.inVehicle) duifLoper.exitVehicle(world.map, world);
                 const flew = await waitFor(() => world.pigeonMode, 6000);
                 entry.notes.push(flew ? 'duif-modus gestart' : 'duif-modus startte niet ' + JSON.stringify(S().mission()));
                 check(`${cur.id}: pigeon mode starts`, flew);
@@ -902,7 +905,7 @@ export async function runStoryTest(world) {
       if (PARTS[FINALE_PART] && PARTS[FINALE_PART].finale) {
         check('post-game opens after the ending', await waitFor(() => pg && pg.open() && pg.spots().length >= 4, 8000), JSON.stringify(pg && pg.spots().map((q) => q.id)));
         for (const id of ['bruggen', 'fierljep', 'skutsje', 'fjord', 'koe']) {
-          const p = world.player;
+          const p = hoofdspeler(world);
           if (p.inVehicle && id !== 'fjord') p.exitVehicle(world.map, world);
           await sleep(300);
           const started = pg.start(id);
@@ -932,7 +935,7 @@ export async function runStoryTest(world) {
           check('ending: skipped missions keep the credits back', !ending.done && !ending.credits && ending.missions.length > 0 && ending.missions.every((m) => !m.passed), JSON.stringify(ending.missions));
           check('ending: Overzicht counts down to the end', /^Nog .* tot het einde$/.test(S().view().title), S().view().title);
         }
-        if (world.player.inVehicle) world.player.exitVehicle(world.map, world);
+        if (hoofdspeler(world).inVehicle) hoofdspeler(world).exitVehicle(world.map, world);
       }
 
       // the Ommeland extras (ommelandfun.js): twelve wereldeinden, a dorpsuitje per station
@@ -945,7 +948,8 @@ export async function runStoryTest(world) {
         else check(`all 12 wereldeinden placed at the edge of the data`, ends.length === 12, ends.map((e) => `${e.id} ${e.road}`).join(', '));
         const vs = om.villages();
         check(`every Ommeland station has its dorpsuitjes (${vs.length})`, vs.length === 8 && vs.every((v) => v.acts.length === 2 && v.egg), JSON.stringify(vs.filter((v) => v.acts.length < 2 || !v.egg).map((v) => ({ name: v.name, placed: v.placed, acts: v.acts.length, egg: !!v.egg }))));
-        if (world.player.inVehicle) world.player.exitVehicle(world.map, world);
+        const dorpLoper = hoofdspeler(world);
+        if (dorpLoper.inVehicle) dorpLoper.exitVehicle(world.map, world);
         const before = om.endsFound();
         if (ends[0]) {
           om.go(ends[0].x, ends[0].y);
@@ -962,7 +966,8 @@ export async function runStoryTest(world) {
         world.money = Math.max(world.money, 500);
         const del = deliverOwnedVehicle(world, 'hero');
         const hero = world.vehicles.find((v) => v.isHeroCar && !v.wrecked);
-        check('the Escapade is delivered in the Ommeland', del.ok && hero && Math.hypot(hero.x - world.player.x, hero.y - world.player.y) < 160, JSON.stringify({ del, at: hero && [Math.round(hero.x), Math.round(hero.y)], p: [Math.round(world.player.x), Math.round(world.player.y)] }));
+        const ommelandSpeler = hoofdspeler(world);
+        check('the Escapade is delivered in the Ommeland', del.ok && hero && Math.hypot(hero.x - ommelandSpeler.x, hero.y - ommelandSpeler.y) < 160, JSON.stringify({ del, at: hero && [Math.round(hero.x), Math.round(hero.y)], p: [Math.round(ommelandSpeler.x), Math.round(ommelandSpeler.y)] }));
         await sleep(500);
         capture('om-dorp');
         await drain(world, 700);
@@ -971,7 +976,8 @@ export async function runStoryTest(world) {
       // a heli run keeps its players hidden past the safety watchdog, and a loaded
       // save ends whatever holds the player (heli run, padel match, village tennis)
       if (window.__heliRun && window.__padel) {
-        if (world.player.inVehicle) world.player.exitVehicle(world.map, world);
+        const heliLoper = hoofdspeler(world);
+        if (heliLoper.inVehicle) heliLoper.exitVehicle(world.map, world);
         saveGame(world, { toast: false });
         window.__heliRun.start('ballonjacht');
         await sleep(600);
@@ -1019,7 +1025,7 @@ export async function runStoryTest(world) {
         await sleep(400);
         const mig = S().current();
         check('old save migrates to H2', mig && mig.id === 'H2', JSON.stringify(mig));
-        check('old save plays as the current step\'s character', await waitFor(() => world.player.character === STEP_BY_ID.get('H2').player, 5000), world.player.character);
+        check('old save plays as the current step\'s character', await waitFor(() => hoofdspeler(world).character === STEP_BY_ID.get('H2').player, 5000), hoofdspeler(world).character);
         check('old save keeps money', world.money === 1234, `€${world.money}`);
         world.money = money;
       }
@@ -1027,7 +1033,7 @@ export async function runStoryTest(world) {
       // death and arrest trips to the nearest real facility, in town and out
       // in the Ommelanden (respawn.js, facilities.js)
       for (const [label, x, y, busted] of [['UMCG', 758.72, -132.95, false], ['Bedum', 1931.4, -9027.27, true], ['Zuidhorn', -10732.8, -3017.02, false], ['Stad', 304.73, 297.32, true]]) {
-        const p = world.player;
+        const p = hoofdspeler(world);
         if (p.inVehicle) { p.inVehicle.driver = null; p.inVehicle = null; }
         const q = await withTiles(world.map, [[x, y]], () => roadNear(world.map, x, y, 300), { radius: 400 });
         const at = q && label !== 'UMCG' && label !== 'Stad' ? q : world.map.findOpenSpawn(x, y, 200) || { x, y };

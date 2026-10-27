@@ -24,6 +24,7 @@ import { interiorEyePose } from './carinterior.js';
 import { hasCarInterior } from './carinteriorlayout.js';
 import { defaultKey } from './controls.js';
 import { playerBusy } from './busy.js';
+import { hoofdspeler } from './players.js';
 
 // world.cameraOverride poses use map coordinates: x/y on the map, z = height in metres.
 // world.timeScale (0..1) slows gameplay; main.js multiplies the gameplay dt by it.
@@ -79,7 +80,7 @@ let swallowSpace = false;
 let skipShown = -1;
 
 function heading(w) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   return p.inVehicle && p.inVehicle.angle != null ? p.inVehicle.angle : p.angle;
 }
 
@@ -89,7 +90,8 @@ function momentsOn() {
 
 // up in the own helicopter (heliflight.js): no pausing street-level scenes mid-air
 function aloft(w) {
-  const v = w.player && w.player.inVehicle;
+  const p = hoofdspeler(w);
+  const v = p && p.inVehicle;
   return !!(v && v.isHeli && !v.onGround);
 }
 
@@ -326,8 +328,9 @@ function begin(spec) {
   // a pausing cutscene brings the player's vehicle to a stop, so resuming
   // doesn't launch you onward at full speed - except the ones that ask to
   // keep the motion (the wijk flyover only plays at low speed anyway)
-  if (active.pause && !active.keepMotion && world && world.player && world.player.inVehicle) {
-    const v = world.player.inVehicle;
+  const eigen = hoofdspeler(world);
+  if (active.pause && !active.keepMotion && eigen && eigen.inVehicle) {
+    const v = eigen.inVehicle;
     v.speed = 0;
     v.driftX = 0;
     v.driftY = 0;
@@ -429,8 +432,9 @@ export function updateCinematics(dt, w) {
 
   if (started && w.input.wasPressed('v') && !active) cycleCinemaCam(w);
   // C: tussen de volgcamera en het binnenzicht van de auto (#442); in een browser is C de Ctrl-toets, daar blijft V
-  if (started && !active && w.player.inVehicle && w.input.wasPressed('c') && hasCarInterior(w.player.inVehicle) && defaultKey('control') !== 'c') setCamMode(camMode === 5 ? 0 : 5);
-  if (camMode && !w.player.inVehicle) setCamMode(0);
+  const lichaam = hoofdspeler(w);
+  if (started && !active && lichaam.inVehicle && w.input.wasPressed('c') && hasCarInterior(lichaam.inVehicle) && defaultKey('control') !== 'c') setCamMode(camMode === 5 ? 0 : 5);
+  if (camMode && !lichaam.inVehicle) setCamMode(0);
 
   // a scene that films its own cast (hidePlayers): the real players stay hidden for the whole scene, also when another run
   // cleans up in between and clears the flag (two identical Tammos next to Tessa, #264)
@@ -444,7 +448,7 @@ export function updateCinematics(dt, w) {
       finish(true);
     }
   }
-  else if (!active && camMode && w.player.inVehicle) pose = cinemaCamPose(w);
+  else if (!active && camMode && lichaam.inVehicle) pose = cinemaCamPose(w);
   if (pose && active) notePose(active.id, pose);
   w.cameraOverride = pose;
 
@@ -486,7 +490,7 @@ function checkTriggers(dt, w) {
   scanTimer -= dt;
   if (scanTimer > 0) return;
   scanTimer = 0.25;
-  const p = w.player;
+  const p = hoofdspeler(w);
   for (const v of w.vehicles) {
     if (!v.wrecked || seenWrecks.has(v)) continue;
     seenWrecks.add(v);
@@ -523,7 +527,7 @@ function checkOmmelanden(w) {
   const seen = visited(w);
   if (seen.has(OMMELANDEN)) return;
   const [x0, y0, x1, y1] = realMapBox(w.map);
-  const p = w.player, m = OMMELANDEN_MARGIN;
+  const p = hoofdspeler(w), m = OMMELANDEN_MARGIN;
   if (p.x > x0 - m && p.x < x1 + m && p.y > y0 - m && p.y < y1 + m) return;
   if (aloft(w) || !mayInterrupt('ommelanden', w)) return;
   noteMoment('ommelanden');
@@ -532,7 +536,7 @@ function checkOmmelanden(w) {
 }
 
 function playOmmelanden(w) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   const [x0, y0, x1, y1] = realMapBox(w.map);
   // look away from the city: out over the open land
   let ox = p.x - (x0 + x1) / 2, oy = p.y - (y0 + y1) / 2;
@@ -563,7 +567,7 @@ function checkLandmarks(w) {
   if (active || !momentsOn() || w.wanted > 0 || w.pendingRespawn) return;
   if (busyWithJob(w)) return;
   const seen = visited(w);
-  const p = w.player;
+  const p = hoofdspeler(w);
   for (const lm of w.map.meta.landmarks || []) {
     if (!lm.name || seen.has(lm.name)) continue;
     if (Math.hypot(lm.x - p.x, lm.y - p.y) > LANDMARK_RADIUS) continue;
@@ -578,20 +582,21 @@ function checkLandmarks(w) {
 
 function markNearbyLandmarksVisited(w, radius) {
   const seen = visited(w);
+  const p = hoofdspeler(w);
   for (const lm of w.map.meta.landmarks || []) {
-    if (lm.name && Math.hypot(lm.x - w.player.x, lm.y - w.player.y) < radius) seen.add(lm.name);
+    if (lm.name && Math.hypot(lm.x - p.x, lm.y - p.y) < radius) seen.add(lm.name);
   }
 }
 
 // --- moments ----------------------------------------------------------------
 
 function behindPose(w, back = 7, up = 3.4) {
-  const p = w.player, a = heading(w);
+  const p = hoofdspeler(w), a = heading(w);
   return { pos: W(p.x - Math.cos(a) * back, up, p.y - Math.sin(a) * back), look: W(p.x, 1.3, p.y) };
 }
 
 function flyInShot(w, first) {
-  const p = w.player, a = heading(w);
+  const p = hoofdspeler(w), a = heading(w);
   const fx = Math.cos(a), fy = Math.sin(a);
   const high = clearKeys(w, [
     first || { pos: W(p.x - fx * 20 + fy * 45, 55, p.y - fy * 20 - fx * 45), look: W(p.x, 4, p.y) },
@@ -619,7 +624,7 @@ function flyInShot(w, first) {
 }
 
 function skyFlyInShot(w) {
-  const p = w.player, a = heading(w);
+  const p = hoofdspeler(w), a = heading(w);
   const fx = Math.cos(a), fy = Math.sin(a);
   return flyInShot(w, { pos: W(p.x - fx * 60 + fy * 70, 130, p.y - fy * 60 - fx * 70), look: W(p.x, 0, p.y) });
 }
@@ -750,7 +755,7 @@ function wijkLine(name) {
 }
 
 function currentWijk(w) {
-  const { x, y } = w.player;
+  const { x, y } = hoofdspeler(w);
   let best = null, bestD2 = Infinity;
   for (const p of w.map.meta.neighbourhoodPoints || []) {
     const d2 = (p.x - x) ** 2 + (p.y - y) ** 2;
@@ -799,7 +804,7 @@ function checkWijk(dt, w) {
   // plays once the player is free again (and still in it)
   if (busyWithJob(w)) return;
   // at speed a paused flyover is jarring: wait until the player slows down
-  const v = w.player.inVehicle;
+  const v = hoofdspeler(w).inVehicle;
   if (film && v && Math.abs(v.speed || 0) > WIJK_MAX_SPEED) return;
   // over the attention budget: waits while the player is still in the wijk
   if (aloft(w) || !mayInterrupt('wijk', w)) return;
@@ -875,7 +880,7 @@ export { pathShot, roofAt, clearKeys, showWijkCard };
 // pathShot keyframes). Reused by playWijk while the player is still about
 // where it was planned.
 function prepWijk(w, wijk) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   const shot = wijkStreetShot(w, wijk, heading(w), behindPose(w, 8, 3.8));
   wijkPrep = { name: wijk.name, shot, x: p.x, y: p.y, at: performance.now() };
   if (shot) prewarmPoints([0, 0.25, 0.5, 0.7].map((u) => poseFocus(shot(u))));
@@ -883,7 +888,7 @@ function prepWijk(w, wijk) {
 
 function playWijk(w, wijk) {
   const pr = wijkPrep && wijkPrep.name === wijk.name ? wijkPrep : null;
-  const p = w.player;
+  const p = hoofdspeler(w);
   const fresh = pr && pr.shot && Math.hypot(p.x - pr.x, p.y - pr.y) < 6 && performance.now() - pr.at < 8000;
   const shot = fresh ? pr.shot : wijkStreetShot(w, wijk, heading(w), behindPose(w, 8, 3.8));
   wijkPrep = null;
@@ -908,7 +913,7 @@ function keyHits(w, keys) {
 
 // lines: [{ speaker, text, at?, dur?, voice? }]; duration defaults to 4.8 s.
 export function playMissionIntro(w, { title, kicker, lines, objective, duration = 4.8 }) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   let a = objective ? Math.atan2(objective.y - p.y, objective.x - p.x) : heading(w);
   if (!Number.isFinite(a)) a = heading(w);
   const dx = Math.cos(a), dy = Math.sin(a);
@@ -928,7 +933,8 @@ export function playMissionIntro(w, { title, kicker, lines, objective, duration 
 
 function orbitShot(w, { radius = 8, height = 3, sweep = 1, start = null, lookY = 1.3, fixed = null }) {
   const a0 = start ?? heading(w) + Math.PI * 0.75;
-  const c0 = fixed || { x: w.player.x, y: w.player.y };
+  const p0 = fixed ? null : hoofdspeler(w);
+  const c0 = fixed || { x: p0.x, y: p0.y };
   let best = null;
   for (const [rk, dir] of [[1, 1], [1, -1], [0.65, 1], [0.65, -1], [0.45, 1]]) {
     const r = radius * rk;
@@ -943,7 +949,7 @@ function orbitShot(w, { radius = 8, height = 3, sweep = 1, start = null, lookY =
   }
   const r = best.r, dir = best.dir, h = best.hits ? Math.max(height, best.roof + 2) : height;
   return (u) => {
-    const c = fixed || w.player;
+    const c = fixed || hoofdspeler(w);
     const a = a0 + easeInOut(u) * sweep * dir;
     return { position: W(c.x + Math.cos(a) * r, h, c.y + Math.sin(a) * r), lookAt: W(c.x, lookY, c.y) };
   };
@@ -953,7 +959,7 @@ export function playMissionFailed(w, info, withShot = true) {
   // sikkom: Gronings for "almost, but not quite" (the dialect word, not the news site)
   showBanner({ kind: 'fail', title: 'Sikkom.', ...info });
   if (!withShot) return false;
-  const p = w.player, a = heading(w);
+  const p = hoofdspeler(w), a = heading(w);
   const px = p.x, py = p.y;
   const keys = [
     { pos: W(px - Math.cos(a) * 6, 3, py - Math.sin(a) * 6), look: W(px, 1.2, py) },
@@ -964,7 +970,7 @@ export function playMissionFailed(w, info, withShot = true) {
 
 function playDeath(w, pending) {
   const opts = { busted: !!pending.busted, moneyPenalty: pending.moneyPenalty || 0, announced: !!pending.announced };
-  const p = w.player, a = heading(w);
+  const p = hoofdspeler(w), a = heading(w);
   const px = p.x, py = p.y;
   const bx = -Math.cos(a + 0.5), by = -Math.sin(a + 0.5);
   // Genre-style: slow motion, the colour drains, a slow rise over the spot,
@@ -1004,7 +1010,7 @@ export function respawnFromScene(w, opts) {
 function playLandmark(w, lm) {
   const fp = buildingReach(w.map, lm.x, lm.y);
   const h = Math.max(LANDMARK_HEIGHT[lm.name] || 16, Math.min(60, fp.top));
-  const p = w.player;
+  const p = hoofdspeler(w);
   const start = Math.atan2(p.y - lm.y, p.x - lm.x);
   const radius = Math.min(Math.max(Math.min(60, Math.max(28, h * 0.6)), fp.reach + 18), 80);
   playCinematic({
@@ -1037,7 +1043,7 @@ function tryCrashReplay(w, x, y) {
 }
 
 function playWantedFive(w) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   let target = null;
   if (w.policeHeli) target = { x: w.policeHeli.x, y: w.policeHeli.y, h: w.policeHeli.z || 30 };
   else {
@@ -1076,7 +1082,7 @@ function setCamMode(m) {
 }
 
 function cycleCinemaCam(w) {
-  if (!w.player.inVehicle) {
+  if (!hoofdspeler(w).inVehicle) {
     w.addMessage('Filmcamera werkt alleen in een voertuig', 2);
     return;
   }
@@ -1114,8 +1120,9 @@ function normAngle(x) {
 }
 
 function cinemaCamPose(w) {
-  const v = w.player.inVehicle;
-  const a = smoothCamHeading(v, v.angle != null ? v.angle : w.player.angle);
+  const eigen = hoofdspeler(w);
+  const v = eigen.inVehicle;
+  const a = smoothCamHeading(v, v.angle != null ? v.angle : eigen.angle);
   const fx = Math.cos(a), fy = Math.sin(a), nx = -fy, ny = fx;
   const x = v.x, y = v.y;
   switch (camMode) {
@@ -1127,7 +1134,7 @@ function cinemaCamPose(w) {
       // driver's eyes inside the cabin; the car's raw heading, so wheel and dash stay put
       const e = interiorEyePose(v);
       if (!e) return { position: W(x + fx * 2.8, 0.85, y + fy * 2.8), lookAt: W(x + fx * 30, 1, y + fy * 30), fov: 68, cut: true };
-      const ca = v.angle != null ? v.angle : w.player.angle, cx = Math.cos(ca), cy = Math.sin(ca);
+      const ca = v.angle != null ? v.angle : eigen.angle, cx = Math.cos(ca), cy = Math.sin(ca);
       return { position: W(e.x, e.z, e.y), lookAt: W(e.x + cx * 30, e.z - 0.4, e.y + cy * 30), fov: 74, cut: true, interior: true };
     }
     default: return null;

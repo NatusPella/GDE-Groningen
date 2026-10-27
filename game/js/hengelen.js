@@ -17,6 +17,7 @@ import { loopbaanTel, loopbaanVerdien } from './loopbaanlive.js';
 import { maakHengelAnim } from './hengelanim.js';
 import { TAMMO_APPEARANCE, ANITA_APPEARANCE, registerPoseSource, unregisterPoseSource } from './models3d_people.js';
 import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHostPunt, wedGastPunt, wedScoreStop, wedGastVerlaat, wedGastReset, wedScoreRijen } from './multiplayerwedstrijd.js';
+import { hoofdspeler } from './players.js';
 
 // Hengelen overal in de provincie (#412), met het wedstrijdje aan het Meerstad-meer als begin. [Spatie] gooit uit; als het
 // dobbertje zakt ("Beet!") druk je meteen weer [Spatie]; te vroeg trekken schrikt de vis af. Twee manieren:
@@ -57,7 +58,8 @@ export const HENGEL_POSE = { idle: 'hengel', cast: 'hengel-uit', wait: 'hengel',
 const houding = { state: 'actief', pose: 'hengel' };
 let houdingSeed = null;
 function zetHouding(w, pose) {
-  const seed = w.player && w.player.character === 'anita' ? ANITA_APPEARANCE.seed : TAMMO_APPEARANCE.seed;
+  const eigen = hoofdspeler(w);
+  const seed = eigen && eigen.character === 'anita' ? ANITA_APPEARANCE.seed : TAMMO_APPEARANCE.seed;
   if (houdingSeed !== null && houdingSeed !== seed) unregisterPoseSource(houdingSeed);
   houdingSeed = seed;
   houding.pose = pose || 'hengel';
@@ -236,7 +238,7 @@ function glyph(ctx) {
 // De Meerstad-wedstrijd: negentig seconden, de vaste vissen van het meer.
 function start(w, { online = null } = {}) {
   if (game) return false;
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (p.inVehicle) p.exitVehicle(w.map, w);
   if (!board) board = createBoard('hengelen');
   board.show();
@@ -286,7 +288,7 @@ function startVrij(w, plek) {
 // w.coopBoot de plek en de snelheid van die boot (coopnet.js, uit het snapshot): ligt hij stil, dan hengelt de gast vanaf het water, op zijn eigen scherm.
 const gastBoot = (w) => (w.coopRole === 'client' && w.coopBoot ? w.coopBoot : null);
 function zoekPlek(w) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (!w.map || w.pigeonMode || w.heliRun || p.swimming) return null;
   const gb = gastBoot(w);
   if (gb) return Math.abs(gb.speed || 0) > BOOT_SNELHEID ? null : vindHengelplek(w.map, gb.x, gb.y, { opWater: true });
@@ -301,7 +303,7 @@ function zoekPlek(w) {
 // prompts.js: het hengelprompt voor het water waar je nu bij staat (alleen als er niets anders te doen is).
 export function hengelVrijPrompt(w, alleenBoot = false) {
   if (game || !plekNu) return null;
-  const boot = !!w.player.inVehicle || !!gastBoot(w);
+  const boot = !!hoofdspeler(w).inVehicle || !!gastBoot(w);
   if (alleenBoot !== boot) return null;
   const why = activityBlock(w);
   const t = watertype(plekNu.type);
@@ -313,7 +315,7 @@ function tick(dt, w) {
   if (game) {
     // de posehook ruimt elke paar seconden bronnen van verdwenen voetgangers op (pedestrians.js); deze stap komt na die
     // opruiming en vóór het tekenen, zodat de hengelhouding geen enkele foto overslaat
-    if (houdingSeed !== null && !w.player.inVehicle && !gastBoot(w)) registerPoseSource(houdingSeed, houding);
+    if (houdingSeed !== null && !hoofdspeler(w).inVehicle && !gastBoot(w)) registerPoseSource(houdingSeed, houding);
     updateHud(w);
     return;
   }
@@ -324,7 +326,7 @@ function tick(dt, w) {
     const why = activityBlock(w);
     w.input.consume('i');
     if (why) { w.addMessage(why, 2.5); return; }
-    const p = w.player;
+    const p = hoofdspeler(w);
     if (p.inVehicle && !p.inVehicle.isBoat) return;
     startVrij(w, plekNu);
   }
@@ -355,7 +357,7 @@ registreerWedstrijd('hengelen', {
   solo: (w) => start(w),
 });
 zetWedGastHaken('hengelen', {
-  dichtbij: (w) => !game && !w.player.inVehicle && !w.player.swimming && Math.hypot(w.player.x - STAND.x, w.player.y - STAND.y) < 3,
+  dichtbij: (w) => !game && !hoofdspeler(w).inVehicle && !hoofdspeler(w).swimming && Math.hypot(hoofdspeler(w).x - STAND.x, hoofdspeler(w).y - STAND.y) < 3,
   start: (w) => start(w, { online: 'gast' }),
   eind: (w, uit) => { if (game && game.online === 'gast') einde(w, uit.gestopt ? { quit: true, extern: true } : { uitslag: uit }); },
   tik: gastTik,
@@ -391,7 +393,7 @@ const basis = standActivity({
     quit: () => { if (!game) return false; einde(w, { quit: true }); return true; },
     plek: () => (plekNu ? { type: plekNu.type, naam: plekNu.naam, plek: plekNu.plek, afstand: plekNu.afstand, opWater: plekNu.opWater } : null),
     zoek: () => { plekNu = zoekPlek(w); return plekNu ? { type: plekNu.type, naam: plekNu.naam, plek: plekNu.plek } : null; },
-    vrij: (type, naam) => startVrij(w, type ? { type, naam: naam || null, plek: plekSleutel(type, naam, w.player.x, w.player.y), x: w.player.x, y: w.player.y, afstand: 0, opWater: false } : plekNu),
+    vrij: (type, naam) => startVrij(w, type ? { type, naam: naam || null, plek: plekSleutel(type, naam, hoofdspeler(w).x, hoofdspeler(w).y), x: hoofdspeler(w).x, y: hoofdspeler(w).y, afstand: 0, opWater: false } : plekNu),
   }),
 });
 export const HENGELEN = basis;
