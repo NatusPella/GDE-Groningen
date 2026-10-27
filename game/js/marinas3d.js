@@ -3,6 +3,7 @@ import { getScene } from './scene3d.js';
 import { Vehicle } from './vehicle.js';
 import { BOAT_KINDS } from './boattypes.js';
 import { WATER_Y } from './util.js';
+import { hoofdspeler } from './players.js';
 
 // Jachthavens (#7, scripts/world/marinas.mjs -> game/marinas.json): the
 // finger piers of the marinas near the player, with the moored pleasure craft
@@ -69,7 +70,7 @@ export function updateMarinas3D(world) {
   if (!data.length || (tick = (tick + 1) % 15) !== 0) return;
   const scene = getScene();
   if (!scene) return;
-  const p = world.player;
+  const p = hoofdspeler(world);
   const px = p.inVehicle ? p.inVehicle.x : p.x, py = p.inVehicle ? p.inVehicle.y : p.y;
   for (const [id, L] of live) {
     const m = data[id];

@@ -4,6 +4,7 @@
 import { playHeartbeat, playHeavyBreath } from './audio.js';
 import { cinematicAllowsDamageFx } from './cinematics.js';
 import { hurtLevel, walkFactor, flashFor } from './lowhealthrules.js';
+import { hoofdspeler } from './players.js';
 
 let el = null;
 let k = 0;
@@ -38,7 +39,7 @@ export function tickLowHealth(dt, world) {
   if (lastHealth != null && allowed) flash = Math.max(flash, flashFor(lastHealth, world.health));
   // een lichte camerashake mee, tenzij een andere klap die net al gaf (scene3d.js leest world.lastImpact)
   if (allowed && lastHealth != null && flashFor(lastHealth, world.health) > 0 && (!world.lastImpact || world.time - world.lastImpact.time > 0.3)) {
-    world.lastImpact = { strength: Math.min(0.5, flashFor(lastHealth, world.health)), time: world.time, x: world.player ? world.player.x : 0, y: world.player ? world.player.y : 0 };
+    world.lastImpact = { strength: Math.min(0.5, flashFor(lastHealth, world.health)), time: world.time, x: hoofdspeler(world) ? hoofdspeler(world).x : 0, y: hoofdspeler(world) ? hoofdspeler(world).y : 0 };
   }
   lastHealth = world.health;
   flash = Math.max(0, flash - dt * 2.2);

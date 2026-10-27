@@ -6,6 +6,7 @@
 // traffic lights as a probe, so this file needs no renderer.
 import { travelModeOf, oneWayFor } from './roadaccess.js';
 import { exempt, charge, agentWatching, roadUnder } from './trafficlaw.js';
+import { hoofdspeler } from './players.js';
 
 export const OFFENCE_FINE = { roodLicht: 50, tegenVerkeer: 60, teHard: 45 };
 const OFFENCE_TEXT = {
@@ -71,7 +72,7 @@ function reportOffence(world, kind, x, y) {
 // Every frame. probes: { signalsNear(x, y) -> heads, phaseFor(head, angle) -> 'red'|... }
 export function updateOffences(dt, world, probes = {}) {
   if (!dt) return 0;
-  const p = world.player, v = p && p.inVehicle;
+  const p = hoofdspeler(world), v = p && p.inVehicle;
   if (!v || v.isHeli || v.isBoat || v.wrecked || exempt(world, v)) { st.px = null; st.wrong = st.fast = 0; return 0; }
   const mode = travelModeOf(world);
   if (mode !== 'auto' && mode !== 'fiets') { st.px = null; st.wrong = st.fast = 0; return 0; }

@@ -3,6 +3,7 @@ import { vehicleContacts, surfaceUnder } from './vehicle.js';
 import { getVehicleMesh, pruneVehicleMeshes, applyVehicleDamage, vehicleDamageParts, updateBikeStaat } from './models3d_vehicles.js';
 import { rand } from './rng.js';
 import { nieuwLos } from './vehicledamage.js';
+import { hoofdspeler } from './players.js';
 
 // Vehicle feel effects: skid marks, tyre smoke/dust/spray/exhaust, sparks,
 // debris and progressive body damage. Everything is pooled up front; the
@@ -656,7 +657,7 @@ export function spawnExplosionFx(x, y, z, color, scale = 1) {
 // --- contacts: sparks, debris, dents -----------------------------------------------------------
 
 function nearPlayer(world, x, y, r) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   const dx = x - p.x, dy = y - p.y;
   return dx * dx + dy * dy < r * r;
 }
