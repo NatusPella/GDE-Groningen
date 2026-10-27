@@ -112,9 +112,13 @@ export function countReferences(src) {
 }
 
 // Pad zoals het in de basislijn staat: vanaf de repo, of vanaf de meekregen map.
+// Let op: path.relative geeft een absoluut pad terug als de twee op een andere schijf staan (D: en C:
+// op een Windows-runner), en zo'n pad begint niet met '..'. Dat hield de test op CI-Windows rood met
+// absolute paden als sleutel.
 function keyFor(file, dir) {
   const rel = path.relative(ROOT, file);
-  return (rel.startsWith('..') ? path.relative(dir, file) : rel).split(path.sep).join('/');
+  const bruikbaar = rel !== '' && !rel.startsWith('..') && !path.isAbsolute(rel);
+  return (bruikbaar ? rel : path.relative(dir, file)).split(path.sep).join('/');
 }
 
 // Alle JS-bestanden onder een map met hun aantal verwijzingen (ook nul).
