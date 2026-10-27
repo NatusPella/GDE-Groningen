@@ -57,7 +57,8 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Geen TTS gedraaid, geen netwerk ge
 | **Eerste opnameronde** | ca. 45.400 | **0,95-1,45** |
 | Met heropnamen (aanname x1,5 voor tonen en fouten) | | **1,43-2,18** |
 
-**Kosten nu: 0.** Er wordt niets opgenomen tot de eigenaar daarover beslist.
+**Kosten tot 27-10: $0,184.** Er wordt opgenomen in rondes op \`gemini-3.8-flash-lite-tts\` (ADR 0019,
+#462): 642 van de 1.450 verhaalregels hebben een stem, 163 opdrachten staan in de wachtrij.
 
 **Onzekerheid.** (1) De kostenmaat is een schatting uit één eerder bedrag; het script waarop die gebaseerd was kan meer regels hebben gehad dan de 975 die dit bestand in het dialoogformaat laat zien (het bestand noemt zelf ca. 2.508 gesproken regels). Als de maat op 2.508 regels is gebaseerd, ligt de prijs per teken ruwweg de helft lager. (2) Tarief, model (nu Gemini 3.8 via OpenRouter, zie geheugen) en eventuele regels langer dan nu kunnen de prijs verschuiven. (3) De nieuwe stemmen voor de bondgenoten kosten een stemkeuze en tests, niet veel geld. **Orde van grootte, voor later: één tot twee dollar voor het hele nieuwe verhaal.**
 
