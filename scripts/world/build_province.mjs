@@ -323,10 +323,35 @@ function fillOldExtent({ root, fill, gid, stats, blobs, roadNet, roadSeen, railR
   WB.applyDuals(feats.filter((f) => f.kind === 'roads').map((f) => f.row));
   // De bomen van de oude data gingen nergens langs de boomopruiming (#508): alleen de pakketten doen dat
   // (tegel_schoon.mjs), en deze 27 tegels worden hier gebouwd. Zo bleven er bomen op de rijbaan staan.
+  if (process.env.GDE_TREEDBG) {
+    const punten = [[28330, 19028], [32332, 33215], [329, -7950], [4000, 6077], [19329, -18319]];
+    for (const [x, y] of punten) {
+      const bomen = feats.filter((f) => f.kind === 'trees' && Math.hypot(f.row[0] - x, f.row[1] - y) < 8);
+      if (!bomen.length) continue;
+      const wegen = feats.filter((f) => f.kind === 'roads').map((f) => {
+        const P = f.row.pts;
+        let d = Infinity;
+        for (let i = 0; i < P.length - 1; i++) {
+          const a = P[i], b = P[i + 1], dx = b[0] - a[0], dy = b[1] - a[1], L2 = dx * dx + dy * dy || 1e-9;
+          const tt = Math.max(0, Math.min(1, ((x - a[0]) * dx + (y - a[1]) * dy) / L2));
+          d = Math.min(d, Math.hypot(a[0] + dx * tt - x, a[1] + dy * tt - y));
+        }
+        return { d: +d.toFixed(2), cat: f.row.cat, w: f.row.width, naam: f.row.name || '', bridge: !!f.row.bridge, z: !!f.row.z };
+      }).sort((q, r) => q.d - r.d).slice(0, 3);
+      console.log('DBG oud-data (' + x + ',' + y + '): bomen in feats ' + bomen.length + ' op ' + JSON.stringify(bomen.map((f) => [f.row[0], f.row[1]])) + '; dichtstbijzijnde wegen ' + JSON.stringify(wegen));
+    }
+  }
   {
     const ts = { moved: 0, removed: 0 };
     feats = clearPackTrees(feats, ts);
     stats.derived.treesMoved += ts.moved; stats.derived.treesRemoved += ts.removed;
+    if (process.env.GDE_TREEDBG) {
+      const punten = [[28330, 19028], [32332, 33215], [329, -7950], [4000, 6077], [19329, -18319]];
+      for (const [x, y] of punten) {
+        const bomen = feats.filter((f) => f.kind === 'trees' && Math.hypot(f.row[0] - x, f.row[1] - y) < 8);
+        if (bomen.length) console.log('DBG oud-data NA (' + x + ',' + y + '): ' + JSON.stringify(bomen.map((f) => [f.row[0], f.row[1]])) + ' stats ' + JSON.stringify(ts));
+      }
+    }
   }
   const idx = new Map();
   for (const f of feats) {

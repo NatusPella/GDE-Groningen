@@ -1,0 +1,135 @@
+# De Android-debug-APK van een **branch** bouwen, zonder release (#483).
+#
+# Waarom dit bestaat: `android-release.yml` bouwt alleen van een bestaande release-tag, omdat hij
+# `gde-world.tgz` uit die release haalt en de APK er weer naartoe uploadt. Daardoor kon je een
+# branch nooit in CI bouwen zonder eerst een release te maken.
+#
+# Deze workflow doet hetzelfde werk, maar:
+#   - je kiest zelf de ref (branch of SHA);
+#   - de wereld komt uit de nieuwste release (of een tag die je opgeeft), want de provincie bouwen
+#     vraagt de Geofabrik-extract en dat is geen CI-werk van drie minuten;
+#   - het resultaat gaat als **artifact** terug, niet naar een release;
+#   - hij controleert met aapt2 dat versionName/versionCode in de APK gelijk zijn aan
+#     `desktop/package.json` — precies de fout uit #483 (versionName bleef op 0.35.0-android-test).
+#
+# Kosten: een run duurt ongeveer 3 minuten (2m30s tot 3m08s in de runs van 24 en 25-10, met een
+# koude Gradle-cache als uitschieter naar 20 minuten). Bij 2000 gratis minuten per maand is dat
+# ruim 600 builds; de dure run is de release-set zelf (wereld + Electron, ca. 55 tot 105 minuten).
+name: Android-APK (branch)
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Branch of SHA om te bouwen'
+        required: true
+        default: 'main'
+        type: string
+      world_tag:
+        description: 'Release-tag met gde-world.tgz (leeg = de nieuwste release)'
+        required: false
+        default: ''
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-branch-${{ inputs.ref }}
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+          cache-dependency-path: |
+            desktop/package-lock.json
+            android/package-lock.json
+
+      # Capacitor 8 vraagt JDK 21 (docs/ANDROID.md)
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Android-SDK (platform 36, build-tools 36.0.0)
+        run: |
+          test -n "$ANDROID_HOME"
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "build-tools;36.0.0" > /dev/null
+          ls "$ANDROID_HOME/platforms" "$ANDROID_HOME/build-tools"
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.gradle/caches
+          key: gradle-${{ hashFiles('android/android/**/*.gradle', 'android/android/gradle/wrapper/gradle-wrapper.properties', 'android/package-lock.json') }}
+
+      - uses: actions/cache@v4
+        with:
+          path: web/.cache/opus
+          key: opus-${{ inputs.ref }}
+          restore-keys: opus-
+
+      - name: De gestagede wereld van een release
+        run: |
+          if [ -n "${{ inputs.world_tag }}" ]; then TAG="${{ inputs.world_tag }}"; else TAG="$(gh release list --limit 1 --json tagName --jq '.[0].tagName')"; fi
+          test -n "$TAG" || { echo "Geen release gevonden voor gde-world.tgz."; exit 1; }
+          echo "Wereld uit $TAG"
+          mkdir -p "$RUNNER_TEMP/gde-world"
+          gh release download "$TAG" --pattern gde-world.tgz --dir "$RUNNER_TEMP/gde-world"
+          tar xzf "$RUNNER_TEMP/gde-world/gde-world.tgz" -C "$RUNNER_TEMP/gde-world"
+          test -f "$RUNNER_TEMP/gde-world/world/index.json"
+
+      # --ignore-scripts: de Electron-binary is hier niet nodig (zoals in test.yml)
+      - name: npm ci (desktop en android)
+        run: |
+          npm ci --prefix desktop --ignore-scripts
+          npm ci --prefix android
+
+      - name: ffmpeg met Opus
+        run: ffmpeg -hide_banner -encoders 2>/dev/null | grep -q libopus || { sudo apt-get update -q && sudo apt-get install -y -q ffmpeg; }
+
+      # git op Windows bewaart de uitvoerbit van gradlew niet altijd
+      - name: Stage en debug-APK
+        working-directory: android
+        env:
+          GDE_PREBUILT_WORLD: ${{ runner.temp }}/gde-world/world
+        run: |
+          chmod +x android/gradlew
+          npm run build -- --rebuild
+
+      - name: APK controleren en de versie tegen package.json houden (#483)
+        run: |
+          APK=android/out/gde-groningen-debug.apk
+          ls -l "$APK"
+          unzip -tq "$APK"
+          unzip -l "$APK" | grep -E ' AndroidManifest\.xml$'
+          unzip -l "$APK" | grep -E ' classes\.dex$'
+          AAPT2="$(ls -d "$ANDROID_HOME"/build-tools/36.0.0/aapt2)"
+          BADGING="$("$AAPT2" dump badging "$APK")"
+          echo "$BADGING" | grep -E "^package: |sdkVersion|launchable-activity"
+          PAKKET="$(node -p "require('./desktop/package.json').version")"
+          NAAM="$(echo "$BADGING" | sed -n "s/^package: name='[^']*' versionCode='\([0-9]*\)' versionName='\([^']*\)'.*/\2/p")"
+          CODE="$(echo "$BADGING" | sed -n "s/^package: name='[^']*' versionCode='\([0-9]*\)' versionName='\([^']*\)'.*/\1/p")"
+          echo "package.json: $PAKKET — APK: $NAAM ($CODE)"
+          test -n "$NAAM" || { echo "versionName niet gevonden in de APK"; exit 1; }
+          test "$NAAM" = "$PAKKET" || { echo "versionName $NAAM wijkt af van package.json $PAKKET"; exit 1; }
+          test "$CODE" -gt 0 || { echo "versionCode $CODE is niet positief"; exit 1; }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gde-groningen-debug-apk
+          path: android/out/gde-groningen-debug.apk
+          if-no-files-found: error
+          retention-days: 14
