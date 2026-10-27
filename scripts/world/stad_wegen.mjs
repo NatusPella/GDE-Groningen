@@ -353,10 +353,10 @@ const cityTerrain = async () => { if (terrainFn) return terrainFn; if (process.e
 const lcPoints = (d) => (d.levelCrossings || []).map((c) => [c.x, c.y]);
 
 // profile.mjs main(): de oplosser tot niets meer verandert, hoogstens drie rondes
-function solveRoads(d, protect, terrain = noTerrain) {
+function solveRoads(d, protect, terrain = noTerrain, pins = []) {
   let passes = 0;
   for (let pass = 0; pass < 3; pass++) {
-    const sol = PR.solve(d, { terrain, protect });
+    const sol = PR.solve(d, { terrain, protect, pins });
     const res = PR.apply(d, sol);
     passes++;
     if (!res.changed && !res.cleared && !sol.pts.size) break;
@@ -401,7 +401,10 @@ export async function profileCity(d, wegen, { lagen, extras = {}, inside }) {
   if (wantRoads) rep.snapped = snapExtras(extras, d.roads);
   const bus = busWays(d, extras);
   const protect = PR.protectedRoads(d, extras);
-  const solveAll = () => { for (const { road } of bus) d.roads.push(road); rep.passes += solveRoads(d, protect, terrain); d.roads = d.roads.filter((r) => !bus.some((b) => b.road === r)); };
+  // het dek dat met zijn rand over een pad hangt waar het op zijn aanloop landt (#510):
+  // de oplosser tilt het op en laat de aanloop meelopen binnen de helling
+  const pins = wantRoads ? PR.deckPins(d.roads) : [];
+  const solveAll = () => { for (const { road } of bus) d.roads.push(road); rep.passes += solveRoads(d, protect, terrain, pins); d.roads = d.roads.filter((r) => !bus.some((b) => b.road === r)); };
   const saved = { rails: d.rails, levelCrossings: d.levelCrossings, railLifts: d.railLifts, railPlatforms: d.railPlatforms };
   if (wantRoads) {
     rep.ring = process.env.GDE_STAD_RING === '0' ? null : ringHeights(d, railsRaw);
