@@ -4,10 +4,12 @@
 // De twee sluimerende overspanningen van #501 zitten hier ook: een dek dat maar
 // net boven een fietspad of laan ligt moet omhoog, een dek dat al hoog genoeg is
 // blijft staan, en een fietspad onder een dek wordt niet zelf opgetild.
+// De pad-variant van #510: een dek dat met zijn rand over de as van een fietspad
+// hangt telt daar ook, met de norm van een pad.
 //   node scripts/clearance_audit_test.mjs
-import { laneUnderDeck } from './lib/clearance.mjs';
-import { buildNetwork } from '../game/js/roadprofile.js';
-import { solve, apply, applyDeckFloors } from './world/profile.mjs';
+import { laneUnderDeck, pathUnderDeck, MIN_PATH } from './lib/clearance.mjs';
+import { buildNetwork, gradeLimit, GRADE_TOL } from '../game/js/roadprofile.js';
+import { solve, apply, applyDeckFloors, deckPins } from './world/profile.mjs';
 
 let fails = 0, n = 0;
 const ok = (c, name) => { n++; if (!c) { fails++; console.log('FAIL', name); } };
@@ -42,6 +44,19 @@ const deck = (z) => ({ pts: [[-120, 0], [-60, 0], [0, 0], [60, 0], [120, 0]], ty
 const approach = () => ({ pts: [[-160, 0], [-120, 0]], type: 'trunk_link', cat: 'major', width: 5 });
 const under = (over = {}) => ({ pts: [[0, -60], [0, 0], [0, 60]], type: 'cycleway', cat: 'cycle', width: 2, ...over });
 const DECK_T = 1.0;
+
+// ------------------------------------------------------------------ #510
+// Een dek van 10,35 m breed (halve breedte 6,97 m met de stoep mee) hangt met
+// zijn rand over een fietspad dat 6,15 m van zijn as loopt: een fietser rijdt
+// daar onder de dekrand door, maar de strenge regel (boven de rijbaan) ziet hem
+// niet. De pad-variant telt hem wel, met de norm van een pad.
+const free = (deckZ) => deckZ - DECK_T; // de meting van de audit: dekhoogte min dekdikte
+ok(pathUnderDeck(0, 6.15, path, 6.97), 'de as van een fietspad onder de dekrand telt als pad-doorgang');
+ok(!laneUnderDeck(0, 6.15, path, 6.97), 'de strenge regel telt hem niet');
+ok(!pathUnderDeck(0, 7.5, path, 6.97), 'voorbij de dekrand telt hij niet mee');
+ok(pathUnderDeck(0, 6.15, path, 6.97) && free(3.28) < MIN_PATH, 'een dek op 2,28 m boven een fietspad is te laag');
+ok(pathUnderDeck(0, 6.15, path, 6.97) && !(free(3.5) < MIN_PATH), 'een dek op 2,50 m haalt de norm');
+ok(!pathUnderDeck(0, 6.15, lane({ cat: 'normal' }), 6.97), 'een dek boven alleen een rijbaan is geen pad-doorgang');
 const solved = (d, l) => {
   const data = { roads: [approach(), d, l], water: [] };
   apply(data, solve(data));
@@ -89,6 +104,25 @@ const solved = (d, l) => {
   ok(high.z[1] === 5.5, 'een dek dat al hoog genoeg is blijft ongemoeid', String(high.z[1]));
   const other = { ...d, z: [4.8, 3.8, 4.9], cat: 'cycle' };
   ok(applyDeckFloors([other], [[0, 0, 20, 5.2, 'major']]) === 0, 'de vloer geldt alleen voor de wegklasse ervan');
+}
+{
+  // De landing van #510: het dek komt boven een fietspad onder zijn rand neer op
+  // zijn aanloop. Een vloer zou de knoop met die aanloop een trede geven; de pin
+  // tilt het dek op en de oplosser laat de aanloop meelopen binnen de helling.
+  const lowDeck = { pts: [[40, 0], [0, 0]], type: 'trunk', cat: 'major', width: 10, bridge: true, layer: 1, z: [4.5, 3.2] };
+  const ramp = { pts: [[0, 0], [-80, 0]], type: 'trunk', cat: 'major', width: 10, z: [3.2, 0] };
+  const data = { roads: [lowDeck, ramp], water: [] };
+  apply(data, solve(data, { pins: [{ road: lowDeck, x: 4, y: 0, reach: 6, minZ: 3.5 }] }));
+  ok(lowDeck.z[1] >= 3.5 - 1e-6, 'een dek boven een pad onder zijn rand komt op de vloer', String(lowDeck.z[1]));
+  ok(Math.abs(lowDeck.z[1] - ramp.z[0]) < 1e-6, 'de knoop met de aanloop blijft een hoogte', `${lowDeck.z[1]} ${ramp.z[0]}`);
+  ok(Math.abs(lowDeck.z[0] - lowDeck.z[1]) / 40 <= gradeLimit(lowDeck) + GRADE_TOL, 'de helling van het dek blijft binnen de klasse');
+}
+{
+  // De pin hoort bij het dek, niet bij de weg die ernaast ligt.
+  const d = { pts: [[0, 0], [40, 0]], type: 'trunk', cat: 'major', width: 10, bridge: true, z: [3.2, 4.5] };
+  const other = { ...d, bridge: false, pts: [[0, 3], [40, 3]] };
+  const pins = deckPins([d, other], [[2, 0, 12, 3.5, 'major']]);
+  ok(pins.length === 1 && pins[0].road === d, 'de pin hoort bij het dek, niet bij de weg ernaast', String(pins.length));
 }
 
 console.log(`${n - fails}/${n} ok`);
