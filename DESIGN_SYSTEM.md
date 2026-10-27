@@ -40,7 +40,7 @@ Use these exact tokens everywhere - never invent a near-miss hex.
 |---|---|---|
 | `--gron-green` | `#1e9e56` | primary accent - buttons, active states, borders |
 | `--gron-green-light` | `#3fc97a` | headings, key labels, glow/hover state |
-| `--gron-green-dark` | `#0f5c30` | pressed/active button shade |
+| `--gd` | `#0f5c30` | pressed/active button shade |
 | background base | `#0c140e` → `#17301f` | radial dark-green gradient, never flat black |
 | foreground text | `#f2f2f2` / `#f0ede4` | body text on dark chrome |
 | warning/danger | `#d93f3f` | health-low, busted, fines - the ONE red allowed |

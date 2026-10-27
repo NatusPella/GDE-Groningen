@@ -42,8 +42,10 @@ verhaal en bezit; elke nieuwe functie krijgt een regel over Samen spelen.
 - Meedoen geeft de volledige beloning en de eigen verhaalstap; nee of wegvallen
   geeft niets.
 - **1+1=3** (ADR 0020): elke extra deelnemer geeft elk lid 50% meer loon, tot 3× per
-  persoon; daarboven groeit alleen het totaal. Het aantal spelers is niet cap-based
-  begrensd; de host en de verbinding bepalen de praktische grens. Solo blijft factor 1.
+  persoon (`GROEPSBONUS_PER_SPELER` 0,5 en `GROEPSBONUS_MAX` 3,
+  `game/js/groepsbonus.js:11-12`); daarboven groeit alleen het totaal. Het aantal spelers
+  is niet cap-based begrensd; de host en de verbinding bepalen de praktische grens. Solo
+  blijft factor 1.
 
 ## Overdracht
 
@@ -71,8 +73,11 @@ verhaal en bezit; elke nieuwe functie krijgt een regel over Samen spelen.
 
 ## Beloningen en bewaren
 
-- Beloning per gebeurtenis met een id, nooit dubbel (`coopbeloning.js`,
-  `BONUS_FACTOR` 1); wedstrijden belonen per plek.
+- Beloning per gebeurtenis met een id, nooit dubbel; `coopbeloning.js` keert het volle
+  bedrag één keer per deelnemer uit (`BONUS_FACTOR` 1, `game/js/coopbeloning.js:7`), want
+  de oude samenwerkingsbonus bestaat daar niet meer. De 1+1=3-factor is een tweede,
+  aparte laag uit `game/js/groepsbonus.js:16` en gaat op de betaalhaak over het bedrag
+  van die speler; wedstrijden belonen per plek.
 - Iedere speler schrijft zijn eigen save: elke 60 s, na een gelukte opdracht, bij
   binnenkomst en bij het einde van de sessie.
 - Geld, loopbaan, gebieden, prestaties en de eigen verhaalstap gaan naar de eigen
@@ -80,11 +85,11 @@ verhaal en bezit; elke nieuwe functie krijgt een regel over Samen spelen.
 
 ## Wat een gast wel en niet kan
 
-**Wel:** lopen (eigen focus boven 150 m, B haalt je bij de groep), winkelen, eten,
-bijrijden (E), stuur doorgeven (Y), een vrij voertuig besturen (niet bus, trein,
-heli of vliegtuig), hengelen, boeren, wapen uit eigen save, taxi/bezorgen/krant
-samen, vracht als bijrijder (E helpt laden en lossen), wedstrijd of opdracht
-aanvragen met E, passief/PvP, roepen.
+**Wel:** lopen, ook los van de groep (buiten 150 m krijg je een eigen interessegebied;
+B haalt je bij de groep), winkelen, eten, bijrijden (E), stuur doorgeven (Y), een vrij
+voertuig besturen (niet bus, trein, heli of vliegtuig), hengelen, boeren, wapen uit eigen
+save, taxi/bezorgen/krant samen, vracht als bijrijder (E helpt laden en lossen), wedstrijd
+of opdracht aanvragen met E, passief/PvP, roepen.
 
 De snapshot stuurt per speler echte gezondheid en een `down`-vlag (ragdoll) naast
 `alive` (dood of gepakt). Tab-lijst, marker en figuur lezen die, zodat een
@@ -99,8 +104,15 @@ testmenu, en de hostrol.
 
 De figuren van plek 2 en 3 gebruiken dezelfde botsing, water- en terrainregel als
 Tessa; een nieuwe of uitgestapte figuur komt op een droge vrije plek of in de boot.
-Binnen de groep van de gastheer geldt de 110 m-band, met een eigen focus loopt een
-figuur vrij (#366).
+De afstandsregel is er één: spelers binnen 150 m van elkaar delen een focus
+(`SAMENVOEG_M`, `game/js/coopfoci.js:9`). Zit een figuur in de groep van de gastheer zelf,
+dan geldt de band van 110 m — waarschuwen boven 80 m, na 4 s terug bij de groep
+(`FIGUUR_BAND`, `FIGUUR_WAARSCHUWING`, `FIGUUR_TERUG_S`, `game/js/coopnet.js:73-77`).
+Hoort hij bij een losse groep (buiten 150 m van de gastheer), dan is de wereld rond die
+groep geladen en loopt hij vrij; alleen bij 300 m zegt het spel één keer dat B hem bij de
+groep brengt (`LOS_MELD_M`, `game/js/coopnet.js:614`). Er is geen vaste maximale afstand
+tussen spelers (`MAX_AFSTAND` oneindig, `game/js/coopfoci.js:10`); het plafond is het
+aantal foci (8) en het tegelbudget (#366, #429).
 
 ## Bestanden
 
@@ -129,6 +141,5 @@ Puur (`scripts/*_test.mjs`): per module hierboven, plus `net_*`, `coop_scenarios
    filmpje-overslaan zijn ook van de opener.
 2. Opdrachtstand per groep gaat nog niet mee bij overdracht (#452); bloed in PvP:
    regel zegt mag, code niet.
-3. De afstandsregel (110 m tegenover focus boven 150 m) is niet eenduidig.
-4. Gastenkant arena, chat/voice (#451) en dedicated servers (#450) staan open.
-5. Niets met echte spelers op meerdere computers over internet bekeken.
+3. Gastenkant arena, chat/voice (#451) en dedicated servers (#450) staan open.
+4. Niets met echte spelers op meerdere computers over internet bekeken.

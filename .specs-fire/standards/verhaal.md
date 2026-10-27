@@ -147,15 +147,18 @@ stille appjes; `scripts/calendar_test.mjs` de datums;
   `scripts/voice_stil.json` en vraagt een TTS-run met akkoord van de eigenaar.
   Tessa's bestaande clips zijn ook nog Gronings.
 - **Nog open:** `docs/personages.md` gebruikt verderop nog de oude H-nummering voor
-  verhaalstappen (H4, H10, H13, H16, H18); de M-mapping is niet overal eenduidig
-  (`STEP_ALIAS` zegt H13 → M11, de canon noemt de kus M16).
+  verhaalstappen (H4, H10, H13, H16, H18). De vertaling is één tabel: `STEP_ALIAS`
+  (`game/js/storyarc_nieuw.js:110-113`) zegt H4 → M04, H10 → M24, H13 → M11, H16 → M21
+  en H18 → M26. De kus is M16 (`docs/verhaal/nieuw/09-script-akte3.md:219`; canon
+  `docs/verhaal/nieuw/03-akte3.md:141` noemt hem "was H11"), dus `docs/personages.md:275`
+  zet de kus ten onrechte op H13; volgens de tabel hoort H13 bij M11, de kustmissie.
 
 ## Afwijkingen tussen docs en code
 
 | Waar | Wat |
 |---|---|
-| `docs/verhaal/nieuw/00-OVERZICHT.md:117` | T1 gaat naar Winsum; `docs/verhaal/nieuw/09-script-akte2.md:111` en `game/js/storyarc_nieuw.js:252` zeggen Warffum. |
-| `docs/verhaal/nieuw/00-OVERZICHT.md:78` | "26 missies, 4 reisbeats"; de code heeft er 30 en 5 door Deel 4 (`docs/verhaal/nieuw/DEEL4.md:19-25`). |
+| `docs/verhaal/nieuw/00-OVERZICHT.md:118` | T1 heet daar "Station Grunn → Winsum", met een losse rit naar Warffum erna (`:119`); `docs/verhaal/nieuw/09-script-akte2.md:111` en `game/js/storyarc_nieuw.js:251` zeggen allebei dat T1 naar Warffum gaat. |
+| `docs/verhaal/nieuw/00-OVERZICHT.md:80` | De totaalrij zegt nog "26 missies, 4 reisbeats" (het plan van vóór Deel 4, `:82`); de code heeft er 30 en 5 door Deel 4 (`docs/verhaal/nieuw/DEEL4.md:21-25`). |
 | `docs/verhaal/nieuw/07-TTS-RAMING.md:24` | 172 scènes en 1.164 uitingen voor de vijf akten; `game/storydata/script.json` telt er 207 en 1.450. |
 
 Opgelost op 25-10: de dubbele kermisdatum, "KEI-week" op vier plekken, Tessa's

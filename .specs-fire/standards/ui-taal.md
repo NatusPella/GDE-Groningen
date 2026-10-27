@@ -20,7 +20,7 @@ Tokens staan in `game/js/hud_panel.css` (`:root`), `game/js/menu.css` (`.gm`) en
 |---|---|---|
 | `--gron-green` | `#1e9e56` | accent: knoppen, actieve stand, randen |
 | `--gron-green-light` | `#3fc97a` | koppen, toetslabels, hover, gloed |
-| `--gron-green-dark` / `--gd` | `#0f5c30` | ingedrukte knop |
+| `--gd` | `#0f5c30` | ingedrukte knop (`.gm`, `menu.css:12`) |
 | achtergrond | `#17301f` → `#0c140e` | radiale gradient, nooit plat zwart |
 | tekst | `#f0ede4`, `#f2f2f2` | body op donker chroom |
 | gevaar | `#d93f3f`, tekst `#f08a8a` | het enige rood |
@@ -38,8 +38,8 @@ Tokens staan in `game/js/hud_panel.css` (`:root`), `game/js/menu.css` (`.gm`) en
   Okabe-Ito-waarden; canvas en 3D hertekenen op `onPaletteChange`.
 - Contrast 4,5:1 voor tekst, 3:1 voor grote tekst en iconen (`a11ylogic.js:35-36`).
   Kleur is nooit de enige aanwijzing; vorm, patroon of woord gaat mee.
-- De tokennaam `--gron-green-dark` uit `DESIGN_SYSTEM.md:43` bestaat niet in de CSS;
-  de waarde heet er `--gd`.
+- Er is geen `--gron-green-dark`: de donkere groentint heet `--gd` (`menu.css:12`), en
+  `DESIGN_SYSTEM.md:43` gebruikt die naam nu ook.
 
 ## Typografie en logo
 
