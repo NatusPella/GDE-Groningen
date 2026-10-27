@@ -2617,7 +2617,9 @@ function buildHornVoice() {
   bell.type = 'peaking';
   bell.frequency.value = 1750;
   bell.Q.value = 1.4;
-  bell.gain.value = 7;
+  // #502: de boventoon stond op 7 en duwde de toeter ver boven de motor uit;
+  // 3 houdt het nog steeds brassy, maar niet meer schel.
+  bell.gain.value = 3;
   const body = ctx.createBiquadFilter();
   body.type = 'peaking';
   body.frequency.value = 520;
@@ -2793,7 +2795,12 @@ function updatePlayerHorn(world) {
   }
   if (on !== hornVoice.on) {
     hornVoice.on = on;
-    hornVoice.gain.gain.setTargetAtTime(on ? (v && v.isScooter ? 0.12 : 0.42) : 0, t, on ? 0.006 : 0.025);
+    // #502: de spelertoeter ging met 0.42 plus een clipper en twee
+    // formant-boosts rechtstreeks naar de sfx-bus (0.9) en was daarmee vele
+    // malen luider dan de motor (engineBus op gain * 0.65) en de NPC-toeter
+    // (0.22 + 0.18 via de ruimtelijke mixer). 0.16 zet hem onder de motor; de
+    // scooter-bel houdt dezelfde verhouding als eerst (0.12 / 0.42).
+    hornVoice.gain.gain.setTargetAtTime(on ? (v && v.isScooter ? 0.046 : 0.16) : 0, t, on ? 0.006 : 0.025);
   }
 }
 
@@ -3432,6 +3439,14 @@ function startScenarioTrack(key) {
   return true;
 }
 
+// De vier deuntjes die alleen ter vervanging van de radio spelen (#502): de
+// busbaan, het boerenwerk op de trekker, het vliegen en de fiets. Staat de radio
+// uit, dan zwijgen ze; zet de speler hem weer aan, dan komt het muziekje terug.
+export const RADIO_VEHICLE_KEYS = ['bus', 'boerderij', 'vlucht', 'fiets'];
+export function scenarioKeyAllowed(key, on) {
+  return !!key && (!!on || !RADIO_VEHICLE_KEYS.includes(key));
+}
+
 // Returns the scenario key while one is (starting to) play, else null.
 function updateScenarioMusic(dt, world) {
   scanScenarioLoops();
@@ -3439,6 +3454,11 @@ function updateScenarioMusic(dt, world) {
   const race = !!(m && m.phase === 'active' && m.raceMusic);
   const chasing = world.wanted > 0 && !(world.police && world.police.searching) && !world.pendingRespawn;
   let want = scenarioDirector.update(dt, { race, chasing, activity: activityMusicKey(world) });
+  // De vier voertuigdeuntjes (busbaan, het boerenwerk, het vliegen en de fiets)
+  // zijn een vervanging van de radio: staat die uit, dan blijft het daar stil.
+  // Een race, de achtervolging, de trein, padel en de andere activiteiten
+  // hebben een eigen reden en houden hun muziek (#502).
+  if (!scenarioKeyAllowed(want, radioOn)) want = null;
   if (want) loadScenarioBuffer(want);
   const cur = scenarioNow ? scenarioNow.key : null;
   if (want !== cur) {

@@ -55,6 +55,28 @@ const CAR_SEATS = {
 // the farm tractor's cushion above its cab floor (models3d_vehicles.js tractorCab)
 const TRACTOR_SEAT_UP = 0.55;
 
+// Het arcade-vliegtuig is geen auto met een andere naam (#502): de kist van plane3d.js is een romp van
+// 6,8 x 1,3 x 1,3 op y 1,45, dus de vloer op 0,8 en het dak op 2,1, met de cockpitruit op x 0,7. De piloot
+// en de passagier zitten op de hartlijn van die romp. Let op: PLANE_MODEL.wid in planeflight.js is 10,6 en
+// dat is de SPANWIJDTE, niet de breedte van de romp. Wie die als breedte neemt, zet de inzittende 1,8 m
+// naast de kist op de vleugel. Deze halve breedte komt uit plane3d.js (BoxGeometry 1,3 breed).
+const PLANE_HALF_W = 0.65;
+// de pilotenstoel net achter het midden (achter de ruit), de passagier een rij naar achteren; allebei op
+// dezelfde cushionhoogte, zodat het hoofd onder het dak (2,1) blijft en de knieën bij de cockpitvloer (0,8)
+const PLANE_SEAT = { x: -0.1, passagierX: -0.9, y: 1.15 };
+
+// De stoel van de piloot of de passagier in de kist (#502), in de coördinaten van het vliegtuig: op de
+// hartlijn (z = 0), want de romp is maar 1,3 breed en de vleugel is geen zitplaats.
+function planeSeat(driver) {
+  return {
+    x: driver ? PLANE_SEAT.x : PLANE_SEAT.passagierX,
+    z: 0,
+    y: PLANE_SEAT.y,
+    face: 0,
+    pose: driver ? { ...SEAT_CAR, arms: 'wheel' } : SEAT_CAR,
+  };
+}
+
 const seatCache = new WeakMap();
 
 // Seat for the driver (driver = true) or the passenger of v.
@@ -76,6 +98,9 @@ export function vehicleSeat(v, driver) {
   } else if (v.isHeli) {
     // the pilot on the right, like in a real helicopter
     seat = { x: 0.62, z: driver ? 0.4 : -0.4, y: 0.98, face: 0, pose: driver ? { ...SEAT_CAR, arms: 'wheel' } : SEAT_CAR };
+  } else if (v.isPlane) {
+    // het vliegtuig heeft een eigen tak (#502): op de hartlijn van de romp, niet op de vleugel
+    seat = planeSeat(driver);
   } else {
     const hl = v.model.len / 2, hw = v.model.wid / 2;
     const k = carKind(v);
@@ -138,6 +163,14 @@ export function vehicleSeatAt(v, stoel = 0) {
   if (v.isHeli) { // in de cabine achter de piloot en de bijrijder
     const k = n - 2, hl = (v.model.len || 4) / 2;
     return { x: Math.max(-hl + 0.6, -0.15 - 0.55 * Math.floor(k / 2)), z: (k % 2 ? -1 : 1) * 0.45, y: 0.98, face: 0, pose: SEAT_CAR, role: 'achter' };
+  }
+  if (v.isPlane) {
+    // de kist is een tweezitter (#502): de passagier zit achter de piloot op de hartlijn van de romp.
+    // De bank hieronder rekent met model.wid en dat is bij de kist de spanwijdte (10,6); die zou de
+    // passagier op de vleugel zetten. Past er eentje meer in, dan schuift hij op dezelfde hartlijn naar
+    // achteren, binnen de romp (x -3,4 .. 3,4) in plaats van de breedte in.
+    const k = Math.max(1, n - 1);
+    return { ...basis, x: Math.max(-2.6, basis.x - 0.6 * k), z: 0, role: 'achter' };
   }
   const hl = (v.model.len || 4) / 2, hw = (v.model.wid || 1.7) / 2, k = carKind(v), m = ACHTERBANK[k] || {};
   const xMin = k === 'trekker' && v.model.name === 'tractor' ? tractorCab(v.model.len).x0 + 0.3 : -hl + (m.achter ?? 1.0);
@@ -250,6 +283,8 @@ function doorLocal(v, seat) {
   const hw = v.model.wid / 2;
   if (v._mount === 'horse') return { x: -0.1, z: -(hw + 0.55) };
   if (v.isBike || v.isScooter) return { x: -0.15, z: -(hw + 0.35) };
+  // bij de kist is model.wid de spanwijdte (#502): de instap staat naast de romp, niet bij de vleugeltip
+  if (v.isPlane) return { x: seat.x + 0.15, z: PLANE_HALF_W + 0.35 };
   if (v.isBus) return { x: v.model.len / 2 - 0.9, z: hw + 0.45 };
   const side = seat.z < 0 ? -1 : 1;
   return { x: seat.x + 0.15, z: side * (hw + 0.42) };

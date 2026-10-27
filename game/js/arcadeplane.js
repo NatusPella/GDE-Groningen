@@ -15,6 +15,7 @@ export const PLANE = {
   climbMax: 0.55,   // rad: grootste neushoek
   rollMax: 0.8,
   turnRate: 0.9,    // rad/s bij volle rolhoek
+  rudderRate: 0.225, // rad/s bij vol roer: een kwart van turnRate, want het roer is geen rolroer
   liftoff: 30,      // m/s: pas daarboven komt hij van de baan
   rotate: 26,       // m/s: vanaf hier kan de neus omhoog
   landVz: 4,        // m/s zinkgang waaronder de landing zacht is
@@ -38,6 +39,8 @@ export const tegenwind = (wind, heading) => (wind ? -(wind.x * Math.cos(heading)
 
 // groundAt(x, y) -> hoogte van de grond; onRunway(x, y) -> bool (baan of helling)
 // inp: { throttle, roll, yaw, pitch, brake, flaps (0..3), gear (bool), wind: { x, y } }
+// roll is het rolroer (A/D), yaw het roer (Q/E): op de grond sturen ze samen als neuswiel,
+// in de lucht rolt roll en draait yaw apart een kwart zo snel (rudderRate).
 export function stepPlane(p, inp, dt, groundAt, onRunway = () => true, spec = PLANE) {
   if (p.crashed || dt <= 0) return p;
   const thr = clamp(inp.throttle ?? 0, 0, 1);
@@ -57,7 +60,9 @@ export function stepPlane(p, inp, dt, groundAt, onRunway = () => true, spec = PL
   if (p.onGround) {
     p.roll = 0;
     p.pitch = 0;
-    p.heading += clamp(inp.yaw ?? 0, -1, 1) * 0.5 * Math.min(1, p.speed / 8) * dt;
+    // Op de baan is er geen rolhoek: het neuswiel volgt het roer (Q/E) én A/D, zodat taxien
+    // precies zo blijft als het was (A/D gaf hier vroeger via yaw al dezelfde uitslag).
+    p.heading += clamp((inp.yaw ?? 0) + (inp.roll ?? 0), -1, 1) * 0.5 * Math.min(1, p.speed / 8) * dt;
     if (p.speed + head >= rotateV && (inp.pitch ?? 0) > 0.1 && p.speed + head >= liftoffV) {
       p.onGround = false;
       p.vz = 3;
@@ -66,7 +71,11 @@ export function stepPlane(p, inp, dt, groundAt, onRunway = () => true, spec = PL
   } else {
     p.roll += (clamp(inp.roll ?? 0, -1, 1) * spec.rollMax - p.roll) * Math.min(1, 3 * dt);
     p.pitch += (clamp(inp.pitch ?? 0, -1, 1) * spec.climbMax - p.pitch) * Math.min(1, 2 * dt);
-    p.heading += Math.sin(p.roll) * spec.turnRate * dt * (p.speed / spec.cruise);
+    // De koers komt uit het rollen (sin(roll) maal turnRate, zoals altijd) plus het roer als
+    // aparte, kleine bijdrage. Met het roer in de middenstand (yaw 0) verandert er niets aan
+    // de D-bocht van vroeger: 0 erbij optellen laat de koers exact gelijk.
+    p.heading += Math.sin(p.roll) * spec.turnRate * dt * (p.speed / spec.cruise)
+      + clamp(inp.yaw ?? 0, -1, 1) * (spec.rudderRate ?? 0.225) * dt;
     p.stalled = p.speed < stallV;
     const lift = p.stalled ? -9.8 * (1 - p.speed / stallV) * 1.4 : 0;
     const target = Math.sin(p.pitch) * p.speed * 0.6 + lift - (p.stalled ? 2.5 : 0);

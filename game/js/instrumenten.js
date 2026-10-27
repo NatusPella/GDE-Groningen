@@ -50,10 +50,12 @@ export function instrumentData(v, wind = null) {
   };
 }
 
-// De toetsen en knoppen, voor de balk onderin en voor de uitleg bij het instappen.
-export const BEDIENING = 'W en S gas · A en D rollen · Spatie neus omhoog · Ctrl neus omlaag · Shift remmen · K kleppen · G landingsgestel';
+// De toetsen en knoppen, voor de balk onderin en voor de uitleg bij het instappen. Shift remt
+// alleen op de baan (arcadeplane.js telt de rem daar op); in de lucht belooft de balk dat ook,
+// anders zoek je een luchtrem die er niet is.
+export const BEDIENING = 'W en S gas · A en D rollen · ↑/Spatie neus omhoog · ↓/Ctrl neus omlaag · Q en E roer · Shift remmen op de baan · K kleppen · G landingsgestel';
 export const BEDIENING_PAD = 'Linkerstick rollen en gas · A of RT omhoog · B of LT omlaag · LB kleppen · X landingsgestel';
-export const UITLEG_INSTAPPEN = 'Gas met W, bij 30 m/s optrekken met Spatie. Kleppen (K) helpen bij start en landing. Haal het landingsgestel in met G en zet het weer uit voor je landt. Op de baan, met de wielen uit, landen is zacht; hard of te snel telt niet.';
+export const UITLEG_INSTAPPEN = 'Gas met W, bij 30 m/s optrekken met Spatie of het pijltje omhoog. Rollen doet A en D, het roer zit op Q en E (een klein duwtje de kant op). Kleppen (K) helpen bij start en landing. Haal het landingsgestel in met G en zet het weer uit voor je landt. Op de baan, met de wielen uit, rem je met Shift en landen is zacht; hard of te snel telt niet.';
 
 // --- het paneel ------------------------------------------------------------------------------------------------------------
 const CSS = `#hud .hud-instr{position:absolute;right:var(--hud-edge,46px);bottom:var(--hud-edge,46px);display:none;width:372px;padding:8px 12px 8px 12px;color:#f0ede4;text-shadow:var(--hud-shadow);background:linear-gradient(90deg,rgba(12,20,14,.88),rgba(23,48,31,.62) 85%,rgba(23,48,31,.15));border-left:3px solid #3fc97a}

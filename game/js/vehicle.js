@@ -369,7 +369,9 @@ export class Vehicle {
       if (Math.hypot(this.driftX, this.driftY) < 0.03) { this.driftX = 0; this.driftY = 0; }
     }
 
-    if (this.isBus) pushBusTrail(this);
+    // de aanhangerhoek loopt mee in hetzelfde ritme als de trail: elke stap
+    // waarin de bus beweegt of stilstaat, zodat hij niet uit de pas raakt
+    if (this.isBus) { pushBusTrail(this); stepBusTrailerAngle(this, dt); }
     if (groundMap && !this.isBoat && !this.isHeli && !this.sinking && !this.wrecked && !this.countryDrive && dt > 0) offroadDrag(this, dt);
   }
 }
@@ -611,6 +613,7 @@ export function maxCurvature(v) {
   return s > 0.5 ? maxYawRate(v) / s : 1 / (minTurnRadius(v.model, v.driver === 'player') * (v.tightTurn && v.driver !== 'player' ? 0.45 : 1));
 }
 
+// --- aanhangerhoek begin ---
 // Rolling history of a bus's own pose, sampled by distance travelled (not
 // frame count) so the trailing "harmonica" unit tracks correctly regardless
 // of framerate or speed. Runs off applyControls so it keeps working whether
@@ -649,22 +652,58 @@ export function sampleBusTrail(v, backDist) {
   return { x: hist[0].x, y: hist[0].y, angle: hist[0].angle };
 }
 
+// De aanhanger van een gelede bus is geen star deel van de bus: hij hangt aan
+// een scharnier en heeft daardoor een eigen koers. Die koers houden we bij als
+// toestand (v.trailerAngle) in plaats van hem elk beeld opnieuw uit de trail te
+// raden. Bij stilstand, bij het wegrijden en achteruit is die trail leeg of te
+// kort, en dan sprong de achterkant terug naar de bushoek (dus recht) terwijl
+// hij in de bocht stond.
+// De koers volgt de klassieke oplegger-relatie
+//   dθ/dt = (snelheid / trailerLengte) · sin(busHoek − θ)
+// met de trailerlengte uit het model: vooruit trekt θ naar de bushoek toe,
+// achteruit klapt hij juist verder uit (het teken draait om), net als bij een
+// echte harmonica-bus.
+const TRAILER_STILL_SPEED = 0.5; // m/s; hieronder telt de bus als stilstaand
+const TRAILER_STILL_PULL = 0.8; // 1/s; hoe snel een stilstaande aanhanger naar de bushoek zakt
+export const TRAILER_MAX_ANGLE = 1.1; // rad; ruimte voor een krappe bocht (was 0,75)
+
+export function stepBusTrailerAngle(v, dt) {
+  const tl = v.model.trailer || 0;
+  if (!tl || !(dt > 0)) return;
+  if (v.trailerAngle == null) v.trailerAngle = v.angle;
+  const sp = v.speed || 0;
+  const d = normalizeAngle(v.angle - v.trailerAngle);
+  // Een stilstaande bus legt geen afstand af, dus de sleepformule verandert dan
+  // niets; de aanhanger zakt rustig naar de hoek van de bus toe in plaats van
+  // in één beeld recht te springen.
+  const still = Math.max(0, 1 - Math.abs(sp) / TRAILER_STILL_SPEED);
+  v.trailerAngle = normalizeAngle(v.trailerAngle + (sp / tl + still * TRAILER_STILL_PULL) * Math.sin(d) * dt);
+}
+
 // The rear unit of a gelede bus (model.trailer): it hangs off the joint at
-// the body's tail and points at where that joint ran a trailer-length ago,
-// so it cuts the corner the way a real one does. angle is clamped to the
-// joint's 0.75 rad; cap is its collision capsule (vehicleCapsule's form).
+// the body's tail and follows its own heading (v.trailerAngle, see
+// stepBusTrailerAngle), so it cuts the corner the way a real one does. The
+// trail below is only the fallback for a bus that has not been stepped yet.
+// angle is clamped to the joint's TRAILER_MAX_ANGLE; cap is its collision
+// capsule (vehicleCapsule's form).
 export function busTrailerPose(v) {
   const hl = v.model.len / 2, tl = v.model.trailer || 0;
   const c = Math.cos(v.angle), sn = Math.sin(v.angle);
   const jx = v.x - c * hl, jy = v.y - sn * hl;
-  const back = sampleBusTrail(v, tl * 0.65);
-  const bjx = back.x - Math.cos(back.angle) * hl, bjy = back.y - Math.sin(back.angle) * hl;
-  let a = Math.hypot(jx - bjx, jy - bjy) > 0.4 && v.speed >= 0 ? Math.atan2(jy - bjy, jx - bjx) : back.angle;
-  a = v.angle + clamp(normalizeAngle(a - v.angle), -0.75, 0.75);
+  let a;
+  if (v.trailerAngle != null) {
+    a = v.angle + clamp(normalizeAngle(v.trailerAngle - v.angle), -TRAILER_MAX_ANGLE, TRAILER_MAX_ANGLE);
+  } else {
+    const back = sampleBusTrail(v, tl * 0.65);
+    const bjx = back.x - Math.cos(back.angle) * hl, bjy = back.y - Math.sin(back.angle) * hl;
+    a = Math.hypot(jx - bjx, jy - bjy) > 0.4 && v.speed >= 0 ? Math.atan2(jy - bjy, jx - bjx) : back.angle;
+    a = v.angle + clamp(normalizeAngle(a - v.angle), -TRAILER_MAX_ANGLE, TRAILER_MAX_ANGLE);
+  }
   const r = v.halfWid + 0.05, ca = Math.cos(a), sa = Math.sin(a);
   const ax = jx - ca * r, ay = jy - sa * r, bx = jx - ca * Math.max(r, tl - r), by = jy - sa * Math.max(r, tl - r);
   return { jx, jy, angle: a, cap: { ax, ay, bx, by, r } };
 }
+// --- aanhangerhoek eind ---
 
 // Right-hand-traffic offset from the road centerline (to the right of the
 // direction of travel), used both at spawn and for the driving path.

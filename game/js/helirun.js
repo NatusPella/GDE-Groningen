@@ -4,14 +4,14 @@ import { basketRiderPose } from './basketrider.js';
 import { buildPersonMesh, animatePersonWalk, TAMMO_APPEARANCE } from './models3d_people.js';
 import { helipadInfo, scriptHeli, landHeliOnPad } from './skyprops.js';
 import { isMissionActive, getActiveRace } from './missionquery.js';
-import { isCinematicActive } from './cinematics.js';
+import { isCinematicActive, getCinemaCamMode } from './cinematics.js';
 import { isShopOpen } from './shopui.js';
 import { pushAudioEvent } from './pedgeom.js';
 import { unlockAchievement, setStatMax, recordStat, recordChallengeResult } from './achievements.js';
 import { makeHeli, flyHeli, helipadById, HELI_MODEL } from './heliflight.js';
 import { findClearSpot } from './helispawn.js';
 import { ringCounter, landingGuide, guideColor } from './heligrade.js';
-import { chaseTarget, followCam } from './helicam.js';
+import { chaseStep } from './helicam.js';
 import { lineVoiceFor } from './linevoice.js';
 import { playLineVoice } from './audio.js';
 import { SPEAKERS, STEP_BY_ID } from './storyarc.js';
@@ -952,8 +952,10 @@ function syncPlayer() {
 
 // --- camera -----------------------------------------------------------------
 
-// Flying: the normal heli follow cam (scene3d.js), so the minimap turns with
-// the heli. The intro, the cruise, the pickup and the result card get a shot.
+// Vliegen: de gewone volgcam achter de heli (scene3d.js), zodat de minimap met de
+// heli meedraait. De intro, de cruise, de pickup en de resultaatkaart krijgen een
+// eigen shot. Koos de speler met V een filmstand, dan laat de missie de camera in
+// de vlucht met rust en zet cinematics.js dat shot (#502).
 function updateCamera(dt) {
   const r = run, v = r.v, b = r.b;
   let pos = null, look = null, fov = 55;
@@ -973,11 +975,15 @@ function updateCamera(dt) {
     pos = { x: mx + Math.cos(a) * 45, y: my + Math.sin(a) * 45, z: mz + 12 };
     look = { x: mx, y: my, z: mz };
   } else if (r.phase === 'fly' && !v.wrecked) {
-    // behind the heli, a little ahead along where it really goes (helicam.js, #166)
-    const T = chaseTarget(v);
-    r.cam = followCam(r.cam, T, dt);
-    world.cameraOverride = { position: { ...r.cam }, lookAt: T.look, fov: T.fov, cut: true };
-    world.camYaw = T.dir;
+    // achter de heli, een stukje vooruit langs waar hij echt gaat (helicam.js, #166).
+    // Koos de speler met V een filmstand (BUMPER, ZIJKANT, ...), dan schrijft de
+    // missie geen override: cinematics.js zet die stand elke frame en de speler
+    // houdt de hoek die hij koos (#502). De chase-cam loopt intussen mee, zodat
+    // het beeld meteen klopt zodra hij de filmstand weer uitzet.
+    const step = chaseStep(v, r.cam, dt, getCinemaCamMode());
+    r.cam = step.cam;
+    world.camYaw = step.yaw;
+    if (step.override) world.cameraOverride = step.override;
     return;
   }
   if (!pos) { r.cam = null; world.cameraOverride = null; return; }

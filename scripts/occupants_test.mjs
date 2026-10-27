@@ -1,5 +1,9 @@
 // Bezetting van auto's (#49): occupants.js.   node scripts/occupants_test.mjs
+// De laatste checks gaan over de stoelen van het vliegtuig (#502): die komen uit seating3d.js, dat
+// three.js nodig heeft. node3d.mjs zet de CDN-URL's op de gevendorde kopie (cd desktop && npm run stage).
+import './node3d.mjs';
 import * as O from '../game/js/occupants.js';
+const { vehicleSeat, vehicleSeatAt } = await import('../game/js/seating3d.js');
 
 let bad = 0, n = 0;
 const check = (name, ok, info = '') => { n++; if (!ok) { bad++; console.log('FAIL', name, info); } };
@@ -67,5 +71,17 @@ const rs = O.budgetOccupants(spread);
 check('wereldbreed budget', rs.total <= O.OCCUPANT_BUDGET.total, rs.total);
 check('geen negatieve tellingen en altijd een plan', [...rs.occupancy.values()].every((o) => o.passengers.length >= 0));
 
+// --- het vliegtuig (#502): de piloot en de passagier zitten in de romp, niet ernaast op de vleugel ----------
+// De romp van plane3d.js is 6,8 x 1,3 x 1,3 op y 1,45: 1,3 breed, vloer 0,8 en dak 2,1. PLANE_MODEL.wid
+// (planeflight.js) is 10,6 en dat is de spanwijdte; die mag hier dus nooit als rompbreedte gelden.
+const kist = () => ({ id: 42, model: { name: 'plane', len: 8, wid: 10.6, color: '#e9e4d3' }, isPlane: true });
+const inRomp = (s) => Math.abs(s.z) < 0.65 && s.y > 0.8 && s.y < 2.1;
+const piloot = vehicleSeatAt(kist(), 0), vliegpassagier = vehicleSeatAt(kist(), 1);
+check('vliegtuig: de piloot zit op de hartlijn van de romp', inRomp(piloot) && Math.abs(piloot.x + 0.1) < 0.15, JSON.stringify([piloot.x, piloot.y, piloot.z]));
+check('vliegtuig: de passagier zit achter de piloot in dezelfde romp', inRomp(vliegpassagier) && vliegpassagier.x < piloot.x - 0.4, JSON.stringify([vliegpassagier.x, vliegpassagier.y, vliegpassagier.z]));
+check('vliegtuig: de piloot houdt de handen aan het stuur', piloot.pose && piloot.pose.arms === 'wheel', String(piloot.pose && piloot.pose.arms));
+// de oude auto-uitkomst blijft precies zoals hij was: een hatch van 4 m en 1,7 breed, links voorin op 0,38
+const hatch = vehicleSeat({ id: 7, model: { name: 'hatch', len: 4, wid: 1.7 } }, true);
+check('auto ongewijzigd: de hatchstoel blijft links voorin op 0,38', hatch.x === -4 / 2 * 0.06 && hatch.z === -1.7 / 2 * 0.34 && hatch.y === 0.38 && hatch.pose.arms === 'wheel', JSON.stringify([hatch.x, hatch.y, hatch.z]));
 console.log(bad ? `${bad}/${n} FAIL` : `occupants_test ${n}/${n} ok`);
 process.exit(bad ? 1 : 0);

@@ -23,6 +23,7 @@ let hud = null;
 let plekken = null;   // de gemeten velden (game/vliegplekken.json), voor de vluchtdienst (#492)
 let msgAt = -Infinity;
 let uitgelegd = null;
+let vlagVanMij = false;   // heeft deze module world.noLookBack gezet (Q is in de kist het roer)
 
 const groundOf = (map) => (x, y) => (map.groundHeightAt ? map.groundHeightAt(x, y, 0) : 0);
 
@@ -140,6 +141,11 @@ function updatePlanes(dt, w) {
   // uitleg bij het instappen: een keer per sessie per toestel, in tekst
   if (pv && pv.isPlane && pv !== uitgelegd) { uitgelegd = pv; w.addMessage(UITLEG_INSTAPPEN, 9, { kind: 'tip' }); }
   else if (!(pv && pv.isPlane)) uitgelegd = null;
+  // Q is in het vliegtuig het roer (planecontrol.js) en niet "achterom kijken": zonder deze vlag
+  // kantelt de camera naar achteren zodra je links stuurt. Alleen zetten zolang je zelf in de kist
+  // zit, en alleen terugnemen als wij hem gezet hebben (de skûtsje-minigame gebruikt dezelfde vlag).
+  if (pv && pv.isPlane) { w.noLookBack = true; vlagVanMij = true; }
+  else if (vlagVanMij) { w.noLookBack = false; vlagVanMij = false; }
   showCard(pv && pv.isPlane ? pv : null, w);
 }
 

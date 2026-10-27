@@ -36,7 +36,8 @@ const BREAK_MAX = 40;
 
 let world = null;
 let on = true;
-// what audio.js plays: off still plays the soundtrack in a minigame or the heli
+// what audio.js plays: alleen wat de speler zelf aanzet. Een minigame of de
+// helirun zet de radio niet meer zelf aan (#502), dus dit volgt `on`.
 let playing = true;
 let prog = programmeAt(12);
 const R = { queue: [], nextAt: 0, rot: {}, played: 0, done: null, breakUntil: 0 };
@@ -95,11 +96,22 @@ function announce(w) {
 const ducked = (w) => !!((w.mission && w.mission.phase === 'active') || talkActive() || w.storyContact || (typeof document !== 'undefined' && document.body.classList.contains('cine-hide-hud')));
 const busy = (w) => w.paused || playerBusy(w, ['activityGame', 'padel', 'heliRun', 'pigeon']).busy || ducked(w);
 
+// N zet de radio altijd om, behalve midden in een filmpje: daar is de toets van
+// de scène en praat de verteller al niet (ducked). Een minigame, padel, de
+// helirun en de duifmodus laten de radio met rust, want de speler moet hem ook
+// daar uit kunnen zetten; alleen het pauzemenu houdt de toets nog tegen (#502).
+export function radioKeyBlocked(w) {
+  return !!w.paused || playerBusy(w, ['cinematic']).busy
+    || (typeof document !== 'undefined' && document.body.classList.contains('cine-hide-hud'));
+}
+
 export function updateRadio(dt, w) {
   if (subOn && w.paused) hideSub();
-  if (!busy(w) && w.input.wasPressed('n')) setRadio(!on);
-  const want = on || playerBusy(w, ['activityGame', 'heliRun', 'pigeon']).busy;
-  if (want !== playing) { playing = want; setRadioOn(want); }
+  if (!radioKeyBlocked(w) && w.input.wasPressed('n')) setRadio(!on);
+  // Alleen de speler zet de radio aan. Vroeger stond hier `on || playerBusy(...)`,
+  // waardoor een minigame, de helirun en de duifmodus hem zelf weer aanzetten en
+  // de keuze van de speler overschreven (#502).
+  if (on !== playing) { playing = on; setRadioOn(on); }
   const next = programmeAt(w.clock);
   if (next !== prog) {
     prog = next;
