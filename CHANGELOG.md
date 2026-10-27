@@ -34,6 +34,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Treinpassagiers.** Een machinistendienst telt nu echte reizigers: ze stappen per halte in en uit, betalen een kaartje en staan op het bord.
 - **Dagprijzen op de boerderij.** Elk gewas heeft per speldag een eigen prijs, hooguit twintig procent boven of onder de basis; je verkoopt tegen de prijs van de dag dat je aflevert.
 - **Het nieuwe verhaal krijgt stemmen.** 642 van de 1.450 regels zijn ingesproken; wat nog geen opname heeft lees je als ondertitel met leestijd, en die komen er in latere rondes bij.
+- **Kropswolde heeft een tweede dorpsuitje.** Naast de strandtent aan het Zuidlaardermeer kun je er nu een roeibootje huren voor een rondje over het meer.
 
 ### Opgelost
 
