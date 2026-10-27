@@ -55,7 +55,7 @@ import { getSettings } from './settings.js';
 import { profielNaam, profielKleur } from './lobby.js';
 import { wedHostTik, wedHandleGast, wedHandleHost, wedGastReset, zetWedHaken } from './coopwedstrijd.js';
 import { wedKaartTik } from './coopwedstrijd3d.js';
-import { bijbaanStart, bijbaanBeloning, bijbaanEind, bijbaanHelpers, bijbaanHostTik, bijbaanGastTik, bijbaanGastReset, bijbaanHandleGast, bijbaanHandleHost, bijbaanVoorNieuwe, bijbaanWeg, bijbaanHostMee, bijbaanAantal, zetBijbaanHaken } from './coopbijbaan.js';
+import { bijbaanStart, bijbaanBeloning, bijbaanEind, bijbaanHelpers, bijbaanHostTik, bijbaanGastTik, bijbaanGastReset, bijbaanGastStop, bijbaanHandleGast, bijbaanHandleHost, bijbaanVoorNieuwe, bijbaanWeg, bijbaanHostMee, bijbaanAantal, zetBijbaanHaken } from './coopbijbaan.js';
 import { maakPvp, wisselPassief, zetPassiefStand, verwijderSpeler, passiefEvent, passiefVanEvent, leesPassief, leesPassiefVan, pvpSchadeEvent, isPassief, PVP_TEKST } from './cooppvp.js'; // passieve stand en spelers tegen elkaar (#447)
 import { pvpGastRaak, pvpDoodVerwerk, pvpArenaGastBericht, pvpArenaGastMelding, pvpArenaGastTik, pvpArenaAntwoord, pvpArenaReset } from './cooppvpwereld.js';
 import { busCoopActie, busCoopValideerE } from './coopbus.js';
@@ -245,7 +245,7 @@ function endCoop(world) {
   world.coopWanted = null; world.coopHeat = null; world.coopDoelwit = 0; world.coopWantedMeld = null; world.coopGepakt = null; world.coopStil = false; // (#434)
   if (world.companion) world.companion.coopWacht = false;
   world.coopOpdrachtDoor = null; world.coopMeespelers = null; // (#452)
-  world.coopMeld = null; world.coopDeel = null; world.coopBijbaanStart = null; world.coopBijbaanBeloning = null; world.coopBijbaanEind = null; world.coopBijbaanHostMee = null; world.coopHelpers = null; world.coopUitslag = null; world.coopPingMarks = []; world.coopSpelers = []; world.coopGebruik = false; world.coopWielSlot = null; world.coopWielVraag = null; world.coopWiel = false; world.coopInVoertuig = false; world.coopBestuurder = false; // (#291, #434)
+  world.coopMeld = null; world.coopDeel = null; world.coopBijbaanStart = null; world.coopBijbaanBeloning = null; world.coopBijbaanEind = null; world.coopBijbaanHostMee = null; world.coopHelpers = null; world.coopBijbaanHelpers = null; world.coopSideJobs = null; world.coopBijbaanStop = null; world.coopUitslag = null; world.coopPingMarks = []; world.coopSpelers = []; world.coopGebruik = false; world.coopWielSlot = null; world.coopWielVraag = null; world.coopWiel = false; world.coopInVoertuig = false; world.coopBestuurder = false; // (#291, #434)
   world.coopTreinMeld = null; world.coopTrein = null; world.coopTreinDeur = false; world.coopTreinWaak = false; world.coopTreinWalk = null; world.coopTreinWalkMeld = null; // de treinpassagier-haak, -stand, de deuren/waak en de looppositie van de conducteur horen bij de sessie (#492)
   world.coopVraag = null; world.coopStem = null; world.coopStemBeantwoord = null; // gezamenlijke keuzes (#452)
   world.coopBezit = null; world.coopBezitVraag = null; // eigen voertuigen meenemen en delen (#449)
@@ -351,12 +351,13 @@ export function startHost(world, info, opts = {}) {
   world.coopRoster = lijst(hub.roster);
   world.coopUitslag = (ok, label, reden, loon, gestopt, id) => uitslagMelden(world, ok, label, reden, loon, gestopt, id || (world.mission && world.mission.id) || null); // gelukt, mislukt of gestopt, per groep (#371, #390, #452)
   world.coopDeel = (bedrag, info) => deelMetGasten(world, bedrag, info); // missies, bijbanen en prijzen: elke meespelende gast krijgt het volle bedrag (#365, #452)
-  world.coopBijbaanStart = (id, label, starter) => bijbaanStart(world, id, label, starter); // een bijbaan met samen-regels: uitnodiging, doel en volledige beloning voor elke meespeler (#452, coopbijbaan.js)
-  world.coopBijbaanBeloning = (id, basis, vak, xp, ronde) => bijbaanBeloning(world, id, basis, vak, xp, ronde);
-  world.coopBijbaanEind = (kind) => bijbaanEind(world, kind);
-  world.coopBijbaanHostMee = () => bijbaanHostMee(world); // doet de host mee met deze baan? Zo niet, geen loon voor hem (#452)
-  world.coopBijbaanAantal = () => bijbaanAantal(world); // met hoeveel spelers loopt de baan? Voor de groepsbonus (#492)
+  world.coopBijbaanStart = (id, label, starter, owner) => bijbaanStart(world, id, label, starter, owner); // een bijbaan met samen-regels: uitnodiging, doel en volledige beloning voor elke meespeler (#452, coopbijbaan.js); owner = de speler van wie de baan is (#492)
+  world.coopBijbaanBeloning = (id, basis, vak, xp, ronde, owner) => bijbaanBeloning(world, id, basis, vak, xp, ronde, owner);
+  world.coopBijbaanEind = (kind, owner) => bijbaanEind(world, kind, owner);
+  world.coopBijbaanHostMee = (owner) => bijbaanHostMee(world, owner); // doet de host mee met deze baan? Zo niet, geen loon voor hem (#452)
+  world.coopBijbaanAantal = (owner) => bijbaanAantal(world, owner); // met hoeveel spelers loopt de baan? Voor de groepsbonus (#492)
   world.coopHelpers = () => bijbaanHelpers(world); // waar de meespelers staan, voor ophalen en afgeven te voet
+  world.coopBijbaanHelpers = (owner) => bijbaanHelpers(world, owner); // hetzelfde voor de eigen baan van een gast (#492)
   world.coopVraag = (soort, tekst, naAkkoord, naNee) => stemStart(world, soort, tekst, naAkkoord, naNee); // een tijdsprong vraagt akkoord van alle anderen (#452)
   world.coopSchade = (slot, schade, soort = null) => hub.announce({ k: 'schade', n: Math.round(Number(schade) || 0), ...(soort === 'trein' ? { z: 'trein' } : {}) }, slot); // een kogel van de politie of een trein raakt een gast (#434)
   // De gastheer gaat neer of wordt opgepakt: loopt de opdracht dan door? Ja zolang een meespeler (die ja zei, verbonden en niet neer) nog staat (#452).
@@ -447,6 +448,7 @@ export function startClient(world, transport, info, opts = {}) {
   world.coopRole = 'client';
   world.coopBezit = nieuweDeelStaat(); // de rechten van je eigen voertuigen in deze sessie (#449)
   world.coopNet = { role: 'client', wens, code, session, stash, fade, joined: false, fixed: false, route, info, klok: new KlokVolger(), desync: new DesyncMonitor(), lokaal: 0, tSpelers: 1 };
+  world.coopBijbaanStop = () => bijbaanGastStop(world); // Stoppen in het pausemenu stopt je eigen baan bij de host (#492)
   // de looppositie van de conducteur gaat met het bestaande trein-bericht naar de gastheer (#492): geen nieuw bericht
   world.coopTreinWalkMeld = (w, walk) => {
     try {
@@ -1545,8 +1547,10 @@ export function stopCoopNet(world) {
   const n = world.coopNet; if (!n) return;
   if (n.stem) { const f = n.stem.nee; n.stem = null; if (f) { try { f(); } catch (e) { /* de vraag vervalt met de sessie */ } } } // een lopende stemming over een tijdsprong vervalt (#452)
   setGate(false); // zonder samen spelen is er geen wachtkamer meer
-  if (n.role === 'host') treinStop(world); // de gasten in de trein van de gastheer (conducteur en passagiers) staan weer naast de wagen (#492)
-  else if (n.role === 'client') { world.coopTrein = null; gastTreinWeg(world); } // je rijdt niet meer mee in de trein van de gastheer (#492)
+  if (n.role === 'host') {
+    treinStop(world); // de gasten in de trein van de gastheer (conducteur en passagiers) staan weer naast de wagen (#492)
+    if (world.sideJobActions && world.sideJobActions.stopGasten) world.sideJobActions.stopGasten(); // de eigen banen van de gasten stoppen met de groep (#492)
+  } else if (n.role === 'client') { world.coopTrein = null; gastTreinWeg(world); } // je rijdt niet meer mee in de trein van de gastheer (#492)
   if (!isKoploos(n)) verrekenEinde(world); // de laatste verrekening: de eigen save van host en gast, met de beloningen en hun ids (#448); een gastheer zonder speler bewaart niets (#450)
   if (world.coopCutBezig != null) cutGastStop(world, null, true); // een scène van de gastheer stopt met het samen spelen
   if (n.role === 'host') bezorgAllesWeg(world, (s) => bestuurLos(world, s)); // de eigen voertuigen van de gasten gaan mee terug (#449)

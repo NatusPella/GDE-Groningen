@@ -23,7 +23,7 @@ import { isCinematicActive, playMissionIntro, showBanner } from './cinematics.js
 import { isShopOpen } from './shopui.js';
 import { recordStat, setStatMax, recordUnique, unlockAchievement } from './achievements.js';
 import { dist, isInWater } from './util.js';
-import { releaseVehicle, removeVehicle, removePed, euro } from './sidejobkit.js';
+import { releaseVehicle, removeVehicle, removePed, euro, maakContextregister } from './sidejobkit.js';
 import { jobVoiceFor, sayJobLine, sayDuoJobLine } from './sidejobvoice.js';
 import { metGroepsbonus } from './groepsbonus.js';
 import bezorger from './sidejob_bezorger.js';
@@ -50,13 +50,14 @@ import bietenoogst from './sidejob_bieten.js';
 import boerderij from './sidejob_boerderij.js';
 import snackoverlast from './sidejob_snackbar.js';
 import { SIDEJOB_PAY_MULT, SIDEJOB_LEVEL_BONUS, SIDEJOB_ACCIDENT_FINE } from './economy.js';
-import { playerBusy } from './busy.js';
+import { playerBusy, registerBusyProbe } from './busy.js';
+import { lichaamVan, invoerVan, bestuurLos } from './coopbestuur.js';
 import { waarschuwVoorStart } from './coopstatus.js';
 import { jobBonusHook } from './latehooks.js';
 import { noteMoney } from './finance.js';
 import { loopbaanLoon, loopbaanTel, loopbaanDeel } from './loopbaanlive.js';
 import { vakVanBaan } from './loopbaan.js';
-import { hoofdspeler } from './spelersregister.js'; // de speler achter dit scherm doet de dienst (#446); een gast ziet de bijbaan van de host (coopbijbaan.js)
+import { hoofdspeler } from './spelersregister.js'; // de speler achter dit scherm doet de dienst (#446); een gast heeft zijn eigen wereldstaat (contexts, #492) en ziet die via coopbijbaan.js
 
 export const SIDE_JOBS = [bezorger, krantenwijk, taxi, bus, rondvaart, fietsdepot, verhuizing, rondvaarttour, boa, rechtbank, cabaret, vracht, loket, studiestaat, vigilantia, promotie, kamerkoning, wolkenhal, helix, niemeyer, bernard, energielabel, tjalke, lijn, ...BIJBAAN_JOBS, veerdienst, zeeschipLauwersoog, zeeschipEemshaven, ...PANEEL_JOBS, ...STAD_JOBS, bietenoogst, boerderij, snackoverlast];
 const BY_ID = new Map(SIDE_JOBS.map((j) => [j.id, j]));
@@ -72,15 +73,81 @@ const LEVEL_TITLES = ['Nieuweling', 'Invaller', 'Vaste kracht', 'Routinier', 'Le
 
 let world = null;
 let spots = [];
+// De wereldstaat per speler (#492): plek 0 is wie het spel opende (de host), elke gast heeft
+// zijn eigen dienst. `ctx` blijft de alias voor de dienst van de host, zodat de bestaande
+// eenvoudige paden (HUD, interactie, kaart) precies doen wat ze deden.
+const contexts = maakContextregister();
 let ctx = null;
-let cooldownUntil = 0;
-let leftover = null;
+const cooldowns = new Map();
+let leftover = null; // het leenvoertuig van de vorige dienst van de host (zoals voorheen)
+const leftoverGast = new Map(); // hetzelfde per gast (#492)
 let progress = {};
 let seen = new Set();
 let hintAt = -Infinity;
 let lastEnd = null;
 let debugApi = null;
 const pub = { active: false, id: null, label: '', color: JOB_TARGET_COLOR, marker: null, dots: [], progress: '', timeLeft: null, goal: null, bus: null };
+
+// De context van een speler (0 = de host), of null.
+const contextVan = (owner = 0) => contexts.van(owner);
+const cooldownVan = (owner = 0) => cooldowns.get(owner) || 0;
+const zetCooldown = (owner, at) => { cooldowns.set(owner, at); };
+// Loopt er een eigen dienst van een gast? Voor de poorten van een wedstrijd of opdracht (#492, busy.js).
+const gastActief = () => contexts.lijst().some((c) => (c.owner | 0) > 0);
+registerBusyProbe('gastSideJob', () => gastActief());
+// Draait deze gast op dit apparaat zijn eigen baan? (het scherm van de gast, voor Stoppen in het pausemenu)
+function eigenGastBaan(w) {
+  const n = w && w.coopNet;
+  if (!n || n.role !== 'client' || !n.session) return null;
+  const G = w.coopBijbaanGast;
+  if (!G || !G.deelt || !G.id || (G.owner | 0) !== (n.session.slot | 0)) return null;
+  return G;
+}
+
+// Een gast ziet en bestuurt zijn eigen lichaam en invoer; de rest van de wereld (kaart, verkeer,
+// tijd, voertuigen, peds, de baan zelf) blijft van de host.
+function gastWereld(w, slot) {
+  const cw = Object.create(w);
+  cw.player = spelerBeeld(lichaamVan(w, slot)) || w.player;
+  cw.input = invoerVoor(w, slot);
+  cw.sideJobOwner = slot;
+  cw.addMessage = (text, s = 3) => meldAanSpeler(w, slot, text, s);
+  cw.sideJob = null; // een gast ziet zijn eigen baan via coopbijbaan.js, niet die van de host
+  cw.coopHelpers = () => (w.coopBijbaanHelpers ? w.coopBijbaanHelpers(slot) : null);
+  return cw;
+}
+// Het lichaam van een gast, met één verschil: een gast op plek 1 zit in `inVehicle`, een figuur (plek 2
+// en hoger) in `inVeh` (coopbestuur.js). De banen vragen naar `inVehicle`; dit beeld geeft ze allebei.
+function spelerBeeld(l) {
+  if (!l) return null;
+  return new Proxy(l, {
+    get(t, k) {
+      if (k === 'inVehicle') return t.inVehicle || t.inVeh || null;
+      if (k === 'character') return t.character || t.char;
+      const v = t[k];
+      return typeof v === 'function' ? v.bind(t) : v;
+    },
+    set(t, k, v) { t[k] = v; return true; },
+    has(t, k) { return k in t; },
+  });
+}
+function invoerVoor(w, slot) {
+  const ruw = invoerVan(w, slot);
+  // In de gedeelde banen (taxi, bezorger, krantenwijk, vracht) bestuurt de invoer het voertuig via
+  // coopbestuur.js; de baan zelf leest geen toetsen van de gast. Deze adapter houdt een baan die
+  // dat wel zou doen veilig (geen toetsen van de host op de dienst van een gast).
+  return {
+    wasPressed: () => false,
+    consume: () => {},
+    isDown: () => false,
+    axis: () => (ruw ? [Number(ruw.mx) || 0, Number(ruw.my) || 0] : [0, 0]),
+  };
+}
+function meldAanSpeler(w, slot, text, s = 4) {
+  const t = String(text == null ? '' : text);
+  if (w.coopMeld) w.coopMeld(slot, t.slice(0, 90));
+  else if (w.addMessage) w.addMessage(t, s);
+}
 
 // --- levels -----------------------------------------------------------------
 
@@ -185,16 +252,26 @@ export function initSideJobs(w) {
   if (scene) buildBeacon(scene);
   w.sideJob = pub;
   w.sideJobActions = {
-    active: () => !!ctx, stop: () => quitSideJob(), name: () => (ctx ? ctx.job.name : ''), vehicle: () => (ctx ? ctx.vehicle : null),
+    // op de host: zijn eigen dienst; op een gast: zijn eigen baan (die op de wereld van de host draait, #492)
+    active: () => !!ctx || !!eigenGastBaan(w),
+    name: () => (ctx ? ctx.job.name : (eigenGastBaan(w) ? eigenGastBaan(w).label : '')),
+    vehicle: () => (ctx ? ctx.vehicle : null),
+    stop: () => { const G = eigenGastBaan(w); if (G) return !!(w.coopBijbaanStop && w.coopBijbaanStop()); return quitSideJob(); },
     // samen spelen (#452, coopbijbaan.js): een gast vraagt een baan te starten, helpt in de baan, en ziet bij welk startpunt hij staat
     startVoor: (id, slot) => startOpVerzoek(id, slot),
-    helperActie: (slot, x, y) => helperActie(slot, x, y),
+    helperActie: (slot, x, y, owner = 0) => helperActie(slot, x, y, owner),
     spotBij: (x, y) => spotBij(x, y),
+    // per speler (#492): heeft deze plek een eigen dienst, welk doel hoort erbij, en stoppen
+    activeVoor: (slot) => !!contexts.van(slot),
+    pubVoor: (slot) => pubVoor(slot),
+    stopVoor: (slot) => quitSideJob(slot),
+    stopGasten: (reason) => stopGasten(reason),
+    gastActief,
   };
   w.onRespawn.push((ww, { busted }) => {
-    if (ctx) endShift('dead', busted ? 'Opgepakt: de dienst zit erop' : 'Je bent neergegaan: de dienst zit erop');
+    if (ctx) endShift('dead', busted ? 'Opgepakt: de dienst zit erop' : 'Je bent neergegaan: de dienst zit erop', ctx);
   });
-  debugApi = { start: (id) => startJob(BY_ID.get(id)), ctx: () => ctx, spots: () => spots, quit: () => quitSideJob(), progress: () => progress, last: () => lastEnd };
+  debugApi = { start: (id) => startJob(BY_ID.get(id)), ctx: () => ctx, contexts: () => contexts.lijst(), spots: () => spots, quit: () => quitSideJob(), progress: () => progress, last: () => lastEnd };
 }
 
 export function getSideJobSpotsForRender() {
@@ -203,12 +280,23 @@ export function getSideJobSpotsForRender() {
 
 // --- start ------------------------------------------------------------------
 
-function blockReason(w) {
-  if (ctx) return 'Je bent al aan het werk';
-  if (w.wanted > 0) return 'Niet nu: eerst de politie kwijt';
-  if (playerBusy(w, ['mission', 'activeRace']).busy) return 'Niet nu: maak eerst je missie af';
-  if (w.time < cooldownUntil) return 'Even op adem komen...';
+function blockReason(w, owner = 0) {
+  if (contexts.van(owner)) return 'Je bent al aan het werk';
+  const wanted = wantedVan(w, owner);
+  if (wanted > 0) return 'Niet nu: eerst de politie kwijt';
+  // De wereld van de host is één wereld: een lopende opdracht of race houdt ook de eigen baan van een
+  // gast tegen (de baan zou meteen weer stoppen, #492). Alleen de eigen missie van de host telt hier.
+  if (owner === 0 && playerBusy(w, ['mission', 'activeRace']).busy) return 'Niet nu: maak eerst je missie af';
+  if (owner > 0 && (isMissionActive() || getActiveRace())) return 'Niet nu: er loopt een opdracht of race';
+  if (w.time < cooldownVan(owner)) return 'Even op adem komen...';
   return null;
+}
+
+// Het gezocht-niveau van deze speler: de host in world.wanted, een gast in world.coopWanted (#434).
+function wantedVan(w, owner = 0) {
+  if (!owner) return Number(w.wanted) || 0;
+  const q = w.coopWanted;
+  return q && Number.isFinite(q[owner]) ? q[owner] : 0;
 }
 
 function nearestSpot(w) {
@@ -222,19 +310,20 @@ function nearestSpot(w) {
   return best;
 }
 
-function makeCtx(job, spot) {
+function makeCtx(job, spot, owner = 0, cw = null) {
+  const w = cw || world;
   const c = {
-    world, job, spot,
+    owner, world: w, job, spot,
     level: jobLevel(job.id),
     streak: 0, earned: 0, round: 0,
     timeLeft: null, vehicle: null, vehicleWord: job.vehicleWord || 'je voertuig',
-    data: {}, peds: [], meshes: [], vehicles: [],
+    data: {}, peds: [], meshes: [], vehicles: [], pub: null,
     nextRoundAt: 0, awayFor: 0, carrying: null, ended: false, flawless: true,
-    msg: (text, s = 3) => world.addMessage(text, s),
+    msg: (text, s = 3) => w.addMessage(text, s),
     complete: (res) => completeRound(c, res),
-    fail: (reason) => endShift('fail', reason),
+    fail: (reason) => endShift('fail', reason, c),
     skip: (text) => skipRound(c, text),
-    quit: (reason) => endShift('quit', reason),
+    quit: (reason) => endShift('quit', reason, c),
     pay: (base) => payFor(c, base),
     addMesh: (m) => { const sc = getScene(); if (sc) sc.add(m); c.meshes.push(m); return m; },
     removeMesh: (m) => { if (m && m.parent) m.parent.remove(m); const i = c.meshes.indexOf(m); if (i >= 0) c.meshes.splice(i, 1); },
@@ -246,23 +335,26 @@ function makeCtx(job, spot) {
 }
 
 // Samen spelen (#452): een gast die bij een startpunt E drukt vraagt de host de baan te starten. Zelfde regels als bij de host zelf;
-// de baan draait op de wereld van de host, de gast doet mee via coopbijbaan.js (Meedoen? J of N, volledige beloning per ronde).
+// de baan draait op de wereld van de host, maar met de eigen wereldstaat van de gast (#492): eigen voertuig, doel, ronde en loon.
+// De gast doet mee via coopbijbaan.js (Meedoen? J of N, volledige beloning per ronde); de andere spelers kunnen gewoon hun eigen baan doen.
 let verzoekVan = null;
 function startOpVerzoek(id, slot) {
   const job = BY_ID.get(id);
   if (!job || !world) return { ok: false, reden: 'Die bijbaan kennen we niet.' };
-  const why = blockReason(world);
+  if (!(slot >= 1)) return { ok: false, reden: 'Alleen een gast kan een eigen baan starten.' };
+  const why = blockReason(world, slot);
   if (why) return { ok: false, reden: why };
   verzoekVan = slot;
   let ok = false;
-  try { ok = startJob(job); } finally { verzoekVan = null; }
+  try { ok = startJob(job, null, slot, gastWereld(world, slot)); } finally { verzoekVan = null; }
   return { ok, reden: ok ? '' : `${job.name} kan nu niet beginnen` };
 }
-// Een hulpactie van een gast in de lopende baan (een krant gooien vanaf zijn plek); de baan beslist of dat kan.
-function helperActie(slot, x, y) {
-  const c = ctx;
+// Een hulpactie van een gast in een lopende baan (een krant gooien vanaf zijn plek); de baan beslist of dat kan.
+// De baan van de gast is zijn eigen context (#492); zonder owner is het de dienst van de host.
+function helperActie(slot, x, y, owner = 0) {
+  const c = contextVan(owner);
   if (!c || c.ended || !c.job.helperActie) return false;
-  try { return !!c.job.helperActie(c, { slot, x, y }); } catch (e) { crash(e); return false; }
+  try { return !!c.job.helperActie(c, { slot, x, y }); } catch (e) { crash(e, c); return false; }
 }
 // Het startpunt waar iemand staat (voor een gast die E drukt), of null.
 function spotBij(x, y) {
@@ -274,36 +366,65 @@ function spotBij(x, y) {
   return best ? { id: best.job.id, name: best.job.name } : null;
 }
 
-function startJob(job, takeover = null) {
-  if (!job || ctx) return false;
-  const spot = spots.find((s) => s.job === job) || { job, x: hoofdspeler(world).x, y: hoofdspeler(world).y };
-  if (leftover && !(takeover && leftover === takeover.vehicle)) removeVehicle(world, leftover);
-  leftover = null;
-  const c = makeCtx(job, spot);
+// De gepubliceerde stand van de dienst van een speler: de host in world.sideJob, een gast in world.coopSideJobs (coopbijbaan.js).
+function pubVoor(owner = 0) {
+  if (!owner) return pub;
+  const c = contextVan(owner);
+  return c ? c.pub : null;
+}
+
+function startJob(job, takeover = null, owner = 0, cw = null) {
+  if (!job || contexts.van(owner)) return false;
+  const w = cw || world;
+  const p = hoofdspeler(w);
+  const spot = spots.find((s) => s.job === job) || { job, x: p.x, y: p.y };
+  const oud = owner ? leftoverGast.get(owner) : leftover;
+  if (oud && !(takeover && oud === takeover.vehicle)) removeVehicle(world, oud);
+  if (owner) leftoverGast.delete(owner); else leftover = null;
+  const c = makeCtx(job, spot, owner, cw);
   c.takeover = takeover; // de dienst van een rijdende bus overnemen (#396): { vehicle, line, dir }
   let ok;
   try { ok = job.start(c); } catch (e) { console.error(e); ok = 'Er ging iets mis bij het klaarzetten'; }
   if (ok !== true) {
     cleanup(c);
-    world.addMessage(typeof ok === 'string' ? ok : `${job.name} kan nu niet beginnen`, 3);
+    w.addMessage(typeof ok === 'string' ? ok : `${job.name} kan nu niet beginnen`, 3);
     return false;
   }
-  ctx = c;
-  c.opVerzoek = verzoekVan != null; // een gast vroeg erom: de host staat misschien ver weg, dus geen afbreken om de afstand voor iemand in het voertuig zit (#452)
-  rec(job.id).shifts++;
-  waarschuwVoorStart(world, 'bijbaan', job.id); // samen spelen: een melding als deze bijbaan nog niet samen werkt; de start gaat door
-  if (world.coopBijbaanStart) { try { world.coopBijbaanStart(job.id, job.name, verzoekVan); } catch (e) { console.error(e); } } // uitnodiging voor de andere spelers (#452)
+  contexts.zet(c);
+  if (owner === 0) ctx = c;
+  c.opVerzoek = verzoekVan != null || owner > 0; // een gast vroeg erom: de host staat misschien ver weg, dus geen afbreken om de afstand voor iemand in het voertuig zit (#452)
+  if (owner === 0) rec(job.id).shifts++;
+  if (owner === 0) waarschuwVoorStart(world, 'bijbaan', job.id); // samen spelen: een melding als deze bijbaan nog niet samen werkt; de start gaat door
+  if (world.coopBijbaanStart) { try { world.coopBijbaanStart(job.id, job.name, verzoekVan, owner); } catch (e) { console.error(e); } } // uitnodiging voor de andere spelers (#452)
   const lvl = c.level;
   const kicker = `Bijbaantje · niveau ${lvl}: ${levelTitle(lvl)}`;
-  const intro = !takeover && verzoekVan == null && !job.noIntro && !seen.has(job.id) && playMissionIntro(world, { kicker, title: job.name, objective: c.vehicle || null, ...introLines(job) });
+  const intro = owner === 0 && !takeover && verzoekVan == null && !job.noIntro && !seen.has(job.id) && playMissionIntro(world, { kicker, title: job.name, objective: c.vehicle || null, ...introLines(job) });
   if (intro) seen.add(job.id);
   else {
-    world.addMessage(`${job.name}: ${job.tagline || job.blurb}`, 3.5);
-    if (Math.random() < 0.65) sayJobLine(job, 'greet');
-    else sayDuoJobLine(hoofdspeler(world).character, 'start');
+    w.addMessage(`${job.name}: ${job.tagline || job.blurb}`, 3.5);
+    if (owner === 0) {
+      if (Math.random() < 0.65) sayJobLine(job, 'greet');
+      else sayDuoJobLine(hoofdspeler(world).character, 'start');
+    }
   }
-  try { job.round(c); } catch (e) { crash(e); return false; }
+  try { job.round(c); } catch (e) { crash(e, c); return false; }
   publish();
+  return true;
+}
+
+// Voor de tests (scripts/sidejobcontext_test.mjs): de echte start en de echte ronde-afhandeling, met een
+// nepbaan in plaats van een baanmodule (die haalt three van een CDN). De wereld komt van updateSideJobs.
+export function startSideJobVoorTest(job, owner = 0) {
+  if (!job || !world) return false;
+  if (!owner) return startJob(job);
+  const eerder = verzoekVan;
+  verzoekVan = owner; // dezelfde weg als een verzoek van een gast (startOpVerzoek)
+  try { return startJob(job, null, owner, gastWereld(world, owner)); } finally { verzoekVan = eerder; }
+}
+export function rondSideJobVoorTest(owner, res = {}) {
+  const c = contextVan(owner);
+  if (!c) return false;
+  completeRound(c, res);
   return true;
 }
 
@@ -333,56 +454,68 @@ function payFor(c, base) {
 }
 
 function completeRound(c, res = {}) {
-  if (c !== ctx || c.ended) return;
+  if (c.ended) return;
+  const owner = c.owner || 0;
+  const host = owner === 0;
   const base = Math.max(0, res.base || 0);
   const pay = payFor(c, base);
   const tip = Math.max(0, Math.round(res.tip || 0));
-  const aantal = world.coopBijbaanAantal ? world.coopBijbaanAantal() : 1; // 1+1=3 (#492)
+  const aantal = world.coopBijbaanAantal ? world.coopBijbaanAantal(owner) : 1; // 1+1=3 (#492)
   const total = metGroepsbonus(pay + tip, aantal);
   const vak = vakVanBaan(c.job.id);
   const xp = 8 + (res.flawless === false ? 0 : 2) + Math.max(0, Math.round(res.xp || 0)); // res.xp: extra loopbaanpunten (bus, #444)
-  const hostMee = world.coopBijbaanHostMee ? world.coopBijbaanHostMee() !== false : true; // samen spelen (#452): wie N zei op Meedoen? krijgt geen loon en geen loopbaanpunten
+  // samen spelen (#452): wie N zei op Meedoen? krijgt geen loon en geen loopbaanpunten. De host die zelf
+  // de baan niet deed maar wel de wereld draait, krijgt ook niets. `hostMee` zegt voor elke baan of de host
+  // meedoet: bij zijn eigen baan is dat altijd zo, bij de baan van een gast alleen na zijn J (#492). Deed
+  // hij mee, dan krijgt hij hier zijn loon en loopbaanpunten, ook als de baan van een gast is; de gasten
+  // krijgen het hunne via de beloning hieronder (één keer per ronde, per speler).
+  const hostMee = world.coopBijbaanHostMee ? world.coopBijbaanHostMee(owner) !== false : true;
   if (hostMee) { noteMoney('Bijbaantjes'); world.money += total; }
   // samen spelen: een baan met samen-regels (coopbijbaan.js) betaalt elke meespeler het volle bedrag (#452); een andere baan deelt zoals eerst (#365).
   // De gast verdient volgens zijn eigen niveau (#381): hij krijgt de basis en past zijn eigen loonfactor toe. De groepsbonus zit in de basis.
   const deelBasis = metGroepsbonus(basisFor(c, base) + tip, aantal);
-  const gedeeld = world.coopBijbaanBeloning ? world.coopBijbaanBeloning(c.job.id, deelBasis, vak, xp, c.round) : false;
-  if (!gedeeld && world.coopDeel) world.coopDeel(total, Array.isArray(res.coopSlots) ? { ...loopbaanDeel(vak, deelBasis, xp), slots: res.coopSlots } : loopbaanDeel(vak, deelBasis, xp));
+  const gedeeld = world.coopBijbaanBeloning ? world.coopBijbaanBeloning(c.job.id, deelBasis, vak, xp, c.round, owner) : false;
+  if (!gedeeld && host && world.coopDeel) world.coopDeel(total, Array.isArray(res.coopSlots) ? { ...loopbaanDeel(vak, deelBasis, xp), slots: res.coopSlots } : loopbaanDeel(vak, deelBasis, xp));
   if (hostMee) loopbaanTel(world, vak, { n: 1, xp, uniek: c.job.id });
   c.earned += total;
   c.streak++;
   c.round++;
   if (res.flawless === false) c.flawless = false;
-  const r = rec(c.job.id);
-  const before = jobLevel(c.job.id);
-  r.rounds++;
-  r.earned += total;
-  if (c.streak > r.bestStreak) r.bestStreak = c.streak;
-  recordStat(world, 'sjRounds');
-  recordStat(world, 'sjEarned', total);
-  recordUnique(world, 'sjJobs', c.job.id);
-  setStatMax(world, `sj_${c.job.id}_streak`, c.streak);
-  setStatMax(world, `sj_${c.job.id}_shift`, c.earned);
-  const after = jobLevel(c.job.id);
-  const bits = [`+${euro(total)}`];
+  if (host) {
+    const r = rec(c.job.id);
+    const before = jobLevel(c.job.id);
+    r.rounds++;
+    r.earned += total;
+    if (c.streak > r.bestStreak) r.bestStreak = c.streak;
+    recordStat(world, 'sjRounds');
+    recordStat(world, 'sjEarned', total);
+    recordUnique(world, 'sjJobs', c.job.id);
+    setStatMax(world, `sj_${c.job.id}_streak`, c.streak);
+    setStatMax(world, `sj_${c.job.id}_shift`, c.earned);
+    const after = jobLevel(c.job.id);
+    c.levelUp = after > before ? after : 0;
+  }
+  const bits = [`+${euro(host ? total : deelBasis)}`];
   if (tip) bits.push(`fooi ${euro(tip)}`);
   if (aantal > 1 && total > pay + tip) bits.push(`groepsbonus x${(total / Math.max(1, pay + tip)).toFixed(1).replace('.', ',')}`);
   bits.push(`reeks ${c.streak}`);
-  world.addMessage(`${res.text ? res.text + ' ' : ''}${bits.join(' · ')}`, 3.6);
-  if (after > before) sayJobLine(c.job, 'level');
-  else sayJobLine(c.job, 'done', 0.5);
-  if (after > before) {
-    c.level = after;
-    world.addMessage(`${c.job.name}: niveau ${after}, ${levelTitle(after)}! Beter betaald, pittiger werk.`, 4.5);
-    if (after >= 5) unlockAchievement(world, 'sj_legende');
-  }
-  if (c.streak % 5 === 0 && world.phoneNotifications && c.job.sikkom) {
-    const say = SMS_SAY['job_' + c.job.id];
-    world.phoneNotifications.push({ text: 'KIEKDOAR: ' + c.job.sikkom(c), duration: 4, say: say && say.lines[0] });
+  c.world.addMessage(`${res.text ? res.text + ' ' : ''}${bits.join(' · ')}`, 3.6);
+  if (host) {
+    if (c.levelUp) sayJobLine(c.job, 'level');
+    else sayJobLine(c.job, 'done', 0.5);
+    if (c.levelUp) {
+      c.level = c.levelUp;
+      c.world.addMessage(`${c.job.name}: niveau ${c.level}, ${levelTitle(c.level)}! Beter betaald, pittiger werk.`, 4.5);
+      if (c.level >= 5) unlockAchievement(world, 'sj_legende');
+    }
+    if (c.streak % 5 === 0 && world.phoneNotifications && c.job.sikkom) {
+      const say = SMS_SAY['job_' + c.job.id];
+      world.phoneNotifications.push({ text: 'KIEKDOAR: ' + c.job.sikkom(c), duration: 4, say: say && say.lines[0] });
+    }
   }
   c.timeLeft = null;
   // a job that is played once (job.once: the ride to Tjalke, #411) ends its shift after the pay, not with a next round
-  if (c.job.once) { endShift('quit', c.job.onceText || 'Klaar, in één keer'); return; }
+  if (c.job.once) { endShift('quit', c.job.onceText || 'Klaar, in één keer', c); return; }
   c.nextRoundAt = world.time + NEXT_ROUND_DELAY;
   c.betweenRounds = true;
 }
@@ -390,49 +523,74 @@ function completeRound(c, res = {}) {
 // A round that went wrong without it being the player's fault: no pay, the
 // streak is gone, and the next round comes as usual.
 function skipRound(c, text) {
-  if (c !== ctx || c.ended) return;
+  if (c.ended) return;
   c.streak = 0;
   c.flawless = false;
-  if (text) world.addMessage(text, 4);
+  if (text) c.world.addMessage(text, 4);
   c.timeLeft = null;
   c.nextRoundAt = world.time + NEXT_ROUND_DELAY;
   c.betweenRounds = true;
 }
 
-export function quitSideJob() {
-  if (!ctx) return false;
-  endShift('quit', 'Je hebt de dienst er zelf op zitten');
+export function quitSideJob(owner = 0) {
+  const c = contextVan(owner);
+  if (!c) return false;
+  endShift('quit', 'Je hebt de dienst er zelf op zitten', c);
   return true;
 }
 
-function endShift(kind, reason = '') {
-  const c = ctx;
-  if (!c || c.ended) return;
-  lastEnd = { kind, reason, job: c.job.id, streak: c.streak, earned: c.earned };
-  c.ended = true;
-  ctx = null;
-  if (world.coopBijbaanEind) { try { world.coopBijbaanEind(kind); } catch (e) { console.error(e); } } // de anderen horen dat de baan voorbij is (#452)
-  const job = c.job;
-  const r = rec(job.id);
-  const best = r.bestStreak;
-  if (kind !== 'dead') {
-    const title = kind === 'fail' ? 'KLUS MISLUKT' : kind === 'wanted' ? 'DIENST GESTAAKT' : 'DIENST VOORBIJ';
-    const stats = [['Klussen', String(c.streak)], ['Verdiend', euro(c.earned)], ['Beste reeks', String(best)]];
-    const pretty = reason ? reason[0].toUpperCase() + reason.slice(1) : '';
-    showBanner({ kind: kind === 'quit' ? 'pass' : 'fail', title, reason: `${job.name}: ${pretty}`, reward: 0, stats });
-  } else if (reason) {
-    world.addMessage(reason, 3);
+// De eigen diensten van de gasten stoppen (de host sluit de groep of er begint een wedstrijd, #492).
+// Eerst stapt de gast uit zijn baanvoertuig, dan pas ruimen we het op: removeVehicle laat een auto met
+// een bestuurder staan (sidejobkit.js).
+function stopGasten(reason = 'de groep is gestopt') {
+  let n = 0;
+  for (const c of contexts.lijst()) {
+    if (!((c.owner | 0) > 0) || c.ended) continue;
+    try { bestuurLos(world, c.owner); } catch (e) { console.error(e); }
+    endShift('quit', reason, c);
+    n++;
   }
-  if (c.streak > 0 && c.streak === best && best >= 3) world.addMessage(`Nieuw record bij ${job.name}: ${best} klussen op rij!`, 4);
-  if (kind === 'fail' || kind === 'wanted') sayJobLine(job, 'fail');
-  else if (kind === 'quit' && c.streak > 0) sayDuoJobLine(hoofdspeler(world).character, 'end');
+  // de afkoeling van deze sessie hoort bij de sessie, niet bij het volgende spel
+  for (const k of [...cooldowns.keys()]) if (k > 0) cooldowns.delete(k);
+  return n > 0;
+}
+
+function endShift(kind, reason = '', c2 = null) {
+  const c = c2 || ctx;
+  if (!c || c.ended) return;
+  const owner = c.owner || 0;
+  lastEnd = { kind, reason, job: c.job.id, streak: c.streak, earned: c.earned, owner };
+  c.ended = true;
+  contexts.wis(c);
+  if (owner === 0) ctx = null;
+  if (world.coopBijbaanEind) { try { world.coopBijbaanEind(kind, owner); } catch (e) { console.error(e); } } // de anderen horen dat de baan voorbij is (#452), per speler (#492)
+  const job = c.job;
+  const pretty = reason ? reason[0].toUpperCase() + reason.slice(1) : '';
+  if (owner === 0) {
+    const best = rec(job.id).bestStreak;
+    if (kind !== 'dead') {
+      const title = kind === 'fail' ? 'KLUS MISLUKT' : kind === 'wanted' ? 'DIENST GESTAAKT' : 'DIENST VOORBIJ';
+      const stats = [['Klussen', String(c.streak)], ['Verdiend', euro(c.earned)], ['Beste reeks', String(best)]];
+      showBanner({ kind: kind === 'quit' ? 'pass' : 'fail', title, reason: `${job.name}: ${pretty}`, reward: 0, stats });
+    } else if (reason) {
+      world.addMessage(reason, 3);
+    }
+    if (c.streak > 0 && c.streak === best && best >= 3) world.addMessage(`Nieuw record bij ${job.name}: ${best} klussen op rij!`, 4);
+    if (kind === 'fail' || kind === 'wanted') sayJobLine(job, 'fail');
+    else if (kind === 'quit' && c.streak > 0) sayDuoJobLine(hoofdspeler(world).character, 'end');
+  } else {
+    // de eigen dienst van een gast: het einde gaat als melding naar hem, zonder bord of stem van de host (#492)
+    const title = kind === 'fail' ? 'Klus mislukt' : kind === 'wanted' ? 'Dienst gestaakt' : 'Dienst voorbij';
+    c.world.addMessage(`${title}: ${job.name}${pretty ? `. ${pretty}` : ''}`, 4);
+  }
   try { job.stop(c); } catch (e) { console.error(e); }
   cleanup(c);
-  cooldownUntil = world.time + RESTART_COOLDOWN;
+  zetCooldown(owner, world.time + RESTART_COOLDOWN);
   publish();
 }
 
 function cleanup(c) {
+  const vorigeLeftover = leftover; // de leenauto van de host van een vorige dienst blijft van de host (#492)
   stopCarry(c);
   for (const m of c.meshes) if (m.parent) m.parent.remove(m);
   c.meshes.length = 0;
@@ -447,13 +605,15 @@ function cleanup(c) {
     // Een eigen truck van de speler (#492, sidejob_vracht.js) gaat niet weg: hij
     // blijft van hem, ook na de dienst. Alleen de leen-truck van de baan ruim je op.
     if (!c.ownVehicle) { releaseVehicle(world, c.vehicle); leftover = c.vehicle; }
+    if (!c.ownVehicle && c.owner) { leftoverGast.set(c.owner, c.vehicle); leftover = vorigeLeftover; } // de leenauto van een gast hoort bij zijn eigen dienst, niet bij die van de host (#492)
     c.vehicle = null;
   }
 }
 
-function crash(e) {
+function crash(e, c = null) {
   console.error(e);
-  if (ctx) endShift('fail', 'de baas belt: er ging iets mis');
+  const t = c || ctx;
+  if (t) endShift('fail', 'de baas belt: er ging iets mis', t);
 }
 
 // --- per frame --------------------------------------------------------------
@@ -463,20 +623,36 @@ export function updateSideJobs(dt, w) {
   if (window.__debug && !window.__debug.sidejobs) window.__debug.sidejobs = debugApi;
   animateBadges(w);
   reanchor(w, dt);
-  const c = ctx;
-  if (!c) { publish(); updateBeacon(w); return; }
-  if (w.pigeonMode) { endShift('quit', 'Een duif kan geen dienst draaien'); return; }
-  if (w.wanted > 0 && !c.job.allowWanted && !forgiveAccident(c, w)) { endShift('wanted', 'met de politie achter je aan stuurt de baas je naar huis'); return; }
-  if (isMissionActive()) { endShift('quit', 'er kwam een missie tussen'); return; }
-  if (w.pendingRespawn) { publish(); updateBeacon(w); return; }
+  const lijst = contexts.lijst();
+  if (!lijst.length) { publish(); updateBeacon(w); return; }
+  // Elke speler zijn eigen dienst (#492): de host en elke gast met een baan. De een stopt de ander niet.
+  for (const c of lijst) {
+    try { updateContext(dt, w, c); } catch (e) { crash(e, c); }
+  }
+  publish();
+  updateBeacon(w);
+}
 
+function updateContext(dt, w, c) {
+  if (c.ended) return;
+  const host = (c.owner | 0) === 0;
+  if (host && w.pigeonMode) { endShift('quit', 'Een duif kan geen dienst draaien', c); return; }
+  const wanted = wantedVan(w, c.owner);
+  if (wanted > 0 && !c.job.allowWanted && !(host && forgiveAccident(c, w))) {
+    endShift('wanted', host ? 'met de politie achter je aan stuurt de baas je naar huis' : 'met de politie achter je aan stopt je dienst', c);
+    return;
+  }
+  // De wereld van de host is één wereld: een opdracht die begint, stopt ook de eigen baan van een gast,
+  // met een melding (#492). Zo lopen er nooit twee dingen door elkaar in dezelfde wereld.
+  if (isMissionActive()) { endShift('quit', 'er kwam een missie tussen', c); return; }
+  if (host && w.pendingRespawn) return;
   try {
     if (!checkVehicle(dt, c)) return;
     if (c.timeLeft != null) {
       c.timeLeft -= dt;
       if (c.timeLeft <= 0) {
         c.timeLeft = 0;
-        endShift('fail', c.job.timeout ? c.job.timeout(c) : 'tijd op');
+        endShift('fail', c.job.timeout ? c.job.timeout(c) : 'tijd op', c);
         return;
       }
     }
@@ -485,11 +661,9 @@ export function updateSideJobs(dt, w) {
     } else {
       c.job.update(dt, c);
     }
-    if (ctx !== c) return;
+    if (c.ended) return;
     updateCarry(c);
-  } catch (e) { crash(e); return; }
-  publish();
-  updateBeacon(w);
+  } catch (e) { crash(e, c); return; }
 }
 
 // Pedestrians step out in front of you: a traffic accident never ends a
@@ -520,20 +694,21 @@ function checkVehicle(dt, c) {
   const v = c.vehicle;
   const need = c.job.needsVehicle ? c.job.needsVehicle(c) : !!v;
   if (!need || !v) { c.awayFor = 0; return true; }
-  const p = hoofdspeler(world);
-  if (!world.vehicles.includes(v) || v.sunk) { endShift('fail', `${c.vehicleWord} is foetsie`); return false; }
-  if (v.wrecked || v.disabled) { endShift('fail', `${c.vehicleWord} is afgeschreven`); return false; }
-  if (p.inVehicle === v) { c.awayFor = 0; c.boarded = true; return true; }
+  const p = hoofdspeler(c.world);
+  const inV = p.inVehicle || p.inVeh || null; // een gast op plek 1 zit in inVehicle, een figuur (plek 2 en hoger) in inVeh
+  if (!world.vehicles.includes(v) || v.sunk) { endShift('fail', `${c.vehicleWord} is foetsie`, c); return false; }
+  if (v.wrecked || v.disabled) { endShift('fail', `${c.vehicleWord} is afgeschreven`, c); return false; }
+  if (inV === v) { c.awayFor = 0; c.boarded = true; return true; }
   if (c.opVerzoek && !c.boarded) return true; // een gast startte de baan: de host loopt eerst naar het voertuig (#452)
   if (c.boarded) c.awayFor += dt;
   const d = dist(p.x, p.y, v.x, v.y);
   if (d > ABANDON_DIST || c.awayFor > ABANDON_TIME) {
-    endShift('fail', `je liet ${c.vehicleWord} gewoon staan`);
+    endShift('fail', `je liet ${c.vehicleWord} gewoon staan`, c);
     return false;
   }
-  if ((d > 45 || p.inVehicle) && world.time - hintAt > 6) {
+  if ((d > 45 || inV) && world.time - hintAt > 6) {
     hintAt = world.time;
-    world.addMessage(`Terug naar ${c.vehicleWord}!`, 2.5);
+    c.world.addMessage(`Terug naar ${c.vehicleWord}!`, 2.5);
   }
   return true;
 }
@@ -545,7 +720,7 @@ function startCarry(c, mesh, info = {}) {
   const sc = getScene();
   if (sc && mesh) sc.add(mesh);
   c.carrying = { mesh, ...info };
-  hoofdspeler(world).carrying = info.slow ?? 0.72;
+  hoofdspeler(c.world).carrying = info.slow ?? 0.72;
   updateCarry(c);
 }
 
@@ -554,7 +729,7 @@ function stopCarry(c) {
   if (!k) return null;
   if (k.mesh && k.mesh.parent) k.mesh.parent.remove(k.mesh);
   c.carrying = null;
-  const p = world && hoofdspeler(world);
+  const p = c.world && hoofdspeler(c.world);
   if (p) p.carrying = 0;
   return k;
 }
@@ -562,7 +737,7 @@ function stopCarry(c) {
 function updateCarry(c) {
   const k = c.carrying;
   if (!k || !k.mesh) return;
-  const p = hoofdspeler(world);
+  const p = hoofdspeler(c.world);
   if (p.inVehicle || p.water) { c.job.onCarryLost ? c.job.onCarryLost(c) : stopCarry(c); return; }
   const a = p.angle;
   const fwd = k.forward ?? 0.45;
@@ -647,39 +822,52 @@ export function sideJobSecondary(w) {
 // --- published state ------------------------------------------------------------
 
 function publish() {
-  const c = ctx;
-  pub.active = !!c;
+  vulStand(pub, ctx);
+  // een gast ziet zijn eigen baan (#492): de stand gaat naar coopbijbaan.js, niet naar de HUD van de host
+  const gasten = world.coopSideJobs || (world.coopSideJobs = {});
+  for (const c of contexts.lijst()) {
+    if (!c.owner) continue;
+    if (!c.pub) { c.pub = { active: false, id: null, label: '', color: JOB_TARGET_COLOR, marker: null, dots: [], progress: '', timeLeft: null, goal: null, bus: null }; c.world.sideJob = c.pub; }
+    vulStand(c.pub, c);
+    gasten[c.owner] = c.pub;
+  }
+  for (const k of Object.keys(gasten)) if (!contextVan(+k)) delete gasten[k];
+}
+
+function vulStand(p, c) {
+  p.active = !!c;
   if (!c) {
-    pub.id = null; pub.label = ''; pub.marker = null; pub.dots = []; pub.progress = ''; pub.timeLeft = null; pub.goal = null; pub.bus = null; pub.help = false;
+    p.id = null; p.label = ''; p.marker = null; p.dots = []; p.progress = ''; p.timeLeft = null; p.goal = null; p.bus = null; p.help = false;
     return;
   }
   let v = {};
   try { v = c.job.view(c) || {}; } catch (e) { v = {}; }
-  pub.id = c.job.id;
-  pub.label = c.job.name;
-  pub.color = c.job.color;
-  pub.marker = v.marker && Number.isFinite(v.marker.x) ? v.marker : null;
-  pub.dots = v.dots || [];
-  pub.progress = v.progress || '';
-  pub.timeLeft = c.timeLeft;
-  pub.goal = v.goal || null;
-  pub.bus = v.bus || null;
-  pub.help = !!v.help;
+  p.id = c.job.id;
+  p.label = c.job.name;
+  p.color = c.job.color;
+  p.marker = v.marker && Number.isFinite(v.marker.x) ? v.marker : null;
+  p.dots = v.dots || [];
+  p.progress = v.progress || '';
+  p.timeLeft = c.timeLeft;
+  p.goal = v.goal || null;
+  p.bus = v.bus || null;
+  p.help = !!v.help;
   if (c.betweenRounds) {
-    pub.marker = null;
-    pub.dots = [];
-    pub.progress = `Klus ${c.streak} klaar · reeks ${c.streak}`;
-    pub.goal = { label: 'Even wachten', desc: 'De volgende klus komt eraan' };
+    p.marker = null;
+    p.dots = [];
+    p.progress = `Klus ${c.streak} klaar · reeks ${c.streak}`;
+    p.goal = { label: 'Even wachten', desc: 'De volgende klus komt eraan' };
     return;
   }
   // on foot, away from both the job vehicle and the objective: point at the ride first
-  const veh = c.vehicle, p = hoofdspeler(world);
-  if (c.job.boardFirst && veh && p.inVehicle !== veh && world.vehicles.includes(veh) && !veh.wrecked) {
-    const far = !pub.marker || dist(p.x, p.y, pub.marker.x, pub.marker.y) > 25;
-    if (far && dist(p.x, p.y, veh.x, veh.y) > 2) {
-      pub.marker = { x: veh.x, y: veh.y };
-      const next = pub.goal ? pub.goal.label : '';
-      pub.goal = { label: c.job.boardText || `Stap in ${c.vehicleWord}`, desc: next ? `Daarna: ${next[0].toLowerCase()}${next.slice(1)}` : '' };
+  const veh = c.vehicle, pl = hoofdspeler(c.world);
+  const inV = pl.inVehicle || pl.inVeh || null;
+  if (c.job.boardFirst && veh && inV !== veh && world.vehicles.includes(veh) && !veh.wrecked) {
+    const far = !p.marker || dist(pl.x, pl.y, p.marker.x, p.marker.y) > 25;
+    if (far && dist(pl.x, pl.y, veh.x, veh.y) > 2) {
+      p.marker = { x: veh.x, y: veh.y };
+      const next = p.goal ? p.goal.label : '';
+      p.goal = { label: c.job.boardText || `Stap in ${c.vehicleWord}`, desc: next ? `Daarna: ${next[0].toLowerCase()}${next.slice(1)}` : '' };
     }
   }
 }
@@ -1061,14 +1249,17 @@ export function getSideJobSave() {
 }
 
 export function applySideJobSave(w, d) {
-  if (ctx) {
-    const c = ctx;
+  for (const c of contexts.lijst()) {
     c.ended = true;
-    ctx = null;
     try { c.job.stop(c); } catch (e) { /* ignore */ }
     cleanup(c);
-    publish();
   }
+  contexts.leeg();
+  ctx = null;
+  leftover = null;
+  leftoverGast.clear();
+  cooldowns.clear(); // de afkoeling hoort bij de vorige stand, niet bij de geladen save (#492)
+  publish();
   progress = {};
   seen = new Set();
   if (!d || typeof d !== 'object' || d.v !== 1) return;
