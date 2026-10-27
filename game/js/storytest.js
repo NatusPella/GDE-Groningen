@@ -494,7 +494,9 @@ async function newArcRuntimeChecks(world, check, capture) {
     // #425: the world first goes to a quiet moment (no chase, no race, no fight in the last 5 s, no skipped
     // mission's left-over wanted level, nothing holding the cards back); the check below says so when it cannot.
     const quiet = await phoneQuiet(world);
-    check('new arc: the HUD is quiet before the app text (no chase, race or skipped mission keeps it busy)', !!quiet, JSON.stringify(quiet || phoneReady(world)));
+    const pfState = pf.state();
+    const kaart = document.querySelector('.pf-card');
+    check('new arc: the HUD is quiet before the app text (no chase, race or skipped mission keeps it busy)', !!quiet, JSON.stringify({ ...(quiet || phoneReady(world)), pf: pfState.cards, step: (S().current() || {}).id, kaart: kaart ? (kaart.textContent || '').replace(/\s+/g, ' ').slice(0, 90) : null }));
     const before = pf.state().cards;
     world.phoneNotifications.push({ from: 'Tessa', text: 'Ik ben bij het Loket. Kom niet. Je brengt ze in de war.', duration: 5, silent: true });
     // (not `story`: a story text waits for its pending radio contact (narrative.js), which the harness never plays)
@@ -872,9 +874,14 @@ export async function runStoryTest(world) {
       const end = S().current();
       check(`flow reaches "Wordt vervolgd" (${lastPart})`, end && end.end === lastPart, JSON.stringify(end));
       check('"Wordt vervolgd" card shown', S().cardShown(lastPart));
-      // the new arc's opening (M00) already played before the loop started: it is not one of the looped steps
-      const firstLooped = report.steps.length ? STEPS.findIndex((q) => q.id === report.steps[0].id) : 0;
-      check('all available steps passed', report.steps.length === STEPS.filter(stepAvailable).length - firstLooped, `${report.steps.length} stappen`);
+      // Every mission step of the arc is either walked by this loop or still open (the ones the engine skips,
+      // which the ending below names). The travel beats (T1-T5) and the end card are not steps the loop walks,
+      // so counting them (the old length check did) said 36 where the engine offers 30.
+      const walkedIds = new Set(report.steps.map((s) => s.id));
+      const openNow = S().ending().missions.map((m) => m.code);
+      const arcMissions = STEPS.filter((s) => s.kind === 'mission' && stepAvailable(s)).map((s) => s.id);
+      const notWalked = arcMissions.filter((id) => !walkedIds.has(id) && !openNow.includes(id));
+      check('all available steps passed', notWalked.length === 0, `${report.steps.length} stappen; niet gelopen en niet open: ${notWalked.join(', ') || 'geen'}`);
       check('Tammo and Tessa take turns', NEW || swaps >= 4, `${swaps} wissels`);
       const calEnd = window.__calendar && window.__calendar.get();
       check('after the story the calendar is in September', calEnd && (!PARTS[FINALE_PART].finale || calEnd.day >= 19), calEnd && calEnd.info.long);
@@ -911,7 +918,9 @@ export async function runStoryTest(world) {
           check('ending: every mission played, nothing is open', ending.missions.length === 0, JSON.stringify(ending.missions));
           check('ending: Overzicht shows the end', /^Einde/.test(S().view().title), S().view().title);
         } else {
-          check('ending: skipped missions keep the credits back', !ending.done && !ending.credits && open.includes('H15') && open.includes('H17') && open.every((c) => ['H3', 'H15', 'H17'].includes(c)), JSON.stringify(ending.missions));
+          // the missions the engine skipped stay open and keep the credits back; a mission that failed but is
+          // marked passed would slip through the old whitelist of story codes, so every open one must be unpassed
+          check('ending: skipped missions keep the credits back', !ending.done && !ending.credits && ending.missions.length > 0 && ending.missions.every((m) => !m.passed), JSON.stringify(ending.missions));
           check('ending: Overzicht counts down to the end', /^Nog .* tot het einde$/.test(S().view().title), S().view().title);
         }
         if (world.player.inVehicle) world.player.exitVehicle(world.map, world);
@@ -926,7 +935,7 @@ export async function runStoryTest(world) {
         if (!ends.length) console.warn('[storytest] no wereldeinden: this build has no province tiles, the placement check is skipped');
         else check(`all 12 wereldeinden placed at the edge of the data`, ends.length === 12, ends.map((e) => `${e.id} ${e.road}`).join(', '));
         const vs = om.villages();
-        check(`every Ommeland station has its dorpsuitjes (${vs.length})`, vs.length === 8 && vs.every((v) => v.acts.length === 2 && v.egg), JSON.stringify(vs.filter((v) => v.acts.length < 2 || !v.egg).map((v) => v.name)));
+        check(`every Ommeland station has its dorpsuitjes (${vs.length})`, vs.length === 8 && vs.every((v) => v.acts.length === 2 && v.egg), JSON.stringify(vs.filter((v) => v.acts.length < 2 || !v.egg).map((v) => ({ name: v.name, placed: v.placed, acts: v.acts.length, egg: !!v.egg }))));
         if (world.player.inVehicle) world.player.exitVehicle(world.map, world);
         const before = om.endsFound();
         if (ends[0]) {

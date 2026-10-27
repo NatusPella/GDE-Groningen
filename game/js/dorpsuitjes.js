@@ -830,7 +830,7 @@ export function initVillages(w) {
 
 export function villageDebug() {
   return ensureVillages().map((v) => ({
-    name: v.name, st: [Math.round(v.st.x), Math.round(v.st.y)],
+    name: v.name, st: [Math.round(v.st.x), Math.round(v.st.y)], placed: !!v.placed,
     acts: v.acts.map((a) => ({ kind: a.kind, x: Math.round(a.ux), y: Math.round(a.uy), d: Math.round(Math.hypot(a.ux - v.st.x, a.uy - v.st.y)), built: !!a.prop })),
     egg: v.egg ? [Math.round(v.egg.x), Math.round(v.egg.y)] : null, done: hasUnique(SET_DONE, v.name), eggFound: hasUnique(SET_EGGS, v.name),
   }));
