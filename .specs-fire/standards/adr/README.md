@@ -44,7 +44,7 @@ deze lijst voordat een andere sessie begint te schrijven:
 
 | # | Gereserveerd voor | Door |
 |---|---|---|
-| — | (vrij; 0016 is gebruikt door `gde-light-sims`, 0017 door de taalregel) | — |
+| — | (vrij; 0016 is gebruikt door `gde-light-sims`, 0017 door de taalregel, 0018 door de speleringang #500) | — |
 
 ## Lijst
 
@@ -67,3 +67,4 @@ deze lijst voordat een andere sessie begint te schrijven:
 | [0015](0015-een-safehouse-systeem.md) | Eén safehouse-systeem, ook voor de verhaalplekken | besloten |
 | [0016](0016-een-ingang-geen-hoofdmenu.md) | Eén ingang, geen hoofdmenu; laden is een wereldgebeurtenis | besloten |
 | [0017](0017-code-in-het-engels.md) | Code in het Engels, spelteksten en proza in het Nederlands | besloten |
+| [0018](0018-een-ingang-voor-de-speler.md) | Eén ingang voor de speler, met een poort op de singleton | besloten |
