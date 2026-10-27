@@ -33,6 +33,7 @@ import { waarschuwVoorStart } from './coopstatus.js';
 import { wedNodigUit, wedNuStarten } from './multiplayerwedstrijd.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
 import { vakVanUitdaging } from './loopbaan.js';
+import { hoofdspeler } from './players.js';
 
 // The post-game: once the story's ending card has played (story.js, read
 // only), Jelle Terpstra challenges Tammo and Tessa to three replayable duels
@@ -211,7 +212,7 @@ function blockReason(w) {
 
 function nearestSpot(w) {
   if (!open || !spots || run || w.pigeonMode || w.heliRun || isCinematicActive()) return null;
-  const p = w.player;
+  const p = hoofdspeler(w);
   let best = null, bd = Infinity;
   for (const s of spots) {
     const reach = s.def.reach || 2.6;
@@ -223,7 +224,7 @@ function nearestSpot(w) {
 }
 
 function vehicleProblem(w, s) {
-  const v = w.player.inVehicle;
+  const v = hoofdspeler(w).inVehicle;
   if (!s.def.vehicle) return v ? 'Stap eerst uit' : null;
   if (!v || !s.def.vehicle(v)) return s.def.need || 'Kom met het juiste voertuig';
   if (Math.abs(v.speed || 0) > 1) return 'Zet hem eerst stil';
@@ -241,7 +242,7 @@ export function postgamePrompt(w) {
 
 export function postgameSecondary(w) {
   if (!open || !spots || run || w.pigeonMode || w.heliRun) return [];
-  const p = w.player;
+  const p = hoofdspeler(w);
   const out = [];
   for (const s of spots) {
     if (Math.abs(s.x - p.x) > 30 || Math.abs(s.y - p.y) > 30) continue;
@@ -317,7 +318,7 @@ function playIntro(def, s) {
     at += dur + 0.2;
     return l;
   });
-  const a0 = Math.atan2(world.player.y - s.y, world.player.x - s.x) + 0.6;
+  const a0 = Math.atan2(hoofdspeler(world).y - s.y, hoofdspeler(world).x - s.x) + 0.6;
   playCinematic({
     id: 'pg-intro', priority: 2, duration: at + 0.4, pause: true, letterbox: true, skippable: true, hideHud: true,
     kicker: def.icon === 'fjord' ? 'Na het verhaal' : 'Revanche', title: def.name, cardFor: 2.6, lines,
@@ -578,7 +579,7 @@ function ownTruck(w) {
 }
 
 function guideCandidates(w) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   const inTruck = isTruckV(p.inVehicle);
   const out = [];
   for (const def of CHALLENGES) {
@@ -656,7 +657,7 @@ const REVEAL_LINES = [
 ];
 
 function revealTruck(w) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   const spot = findParkingSpot(w, p.x, p.y, { name: 'foodtruck', len: 5.4, wid: 2.1 }, { outOfView: false, minDist: 5, maxDist: 45 })
     || { x: p.x + 4, y: p.y + 3, angle: 0 };
   const o = getOwnedEntries().find((e) => e.key === 'fjordfrituur');
@@ -706,7 +707,7 @@ export function queueFjordReveal(w = world) {
     state.revealed = true;
     guideSkip = new Set();
     guideT = 0;
-    const p = w.player;
+    const p = hoofdspeler(w);
     if (!v || v.wrecked || w.challenge || w.pendingRespawn || p.inVehicle || w.pigeonMode) return;
     const c = w.companion;
     if (p.character !== 'anita' && c && c.character === 'anita') { c.character = p.character; p.character = 'anita'; }
@@ -721,7 +722,7 @@ export function queueFjordReveal(w = world) {
         v = revealTruck(w);
         sheet = buildSheet(v);
         getScene().add(sheet);
-        const p = w.player, c = w.companion;
+        const p = hoofdspeler(w), c = w.companion;
         // the two of them in front of the bonnet, facing the camera side
         around = v.angle || 0;
         if (!p.inVehicle) { p.x = v.x + Math.cos(around) * 4.2; p.y = v.y + Math.sin(around) * 4.2; }
@@ -765,7 +766,7 @@ export function updatePostgame(dt, w) {
   for (const d of CHALLENGES) if (d.idle) d.idle(w, dt);
   if (beam && beam.visible) updateWorldMarker3D(beam, w.time);
   if (spots) {
-    const p = w.player;
+    const p = hoofdspeler(w);
     for (const s of spots) {
       const busy = !!run;
       s.marker.visible = !busy;
@@ -813,7 +814,7 @@ export function initPostgame(w) {
 // Te doen (todo.js) lists the challenges and the Fjord Frituur upgrades.
 function postgameOffers(w = world) {
   if (!open || !spots) return [];
-  const p = w.player;
+  const p = hoofdspeler(w);
   const seen = new Set();
   const out = [];
   for (const s of spots) {
@@ -862,7 +863,7 @@ const debugApi = {
     const list = (spots || []).filter((s) => s.def.id === id);
     const s = list[k] || list[0];
     if (!s || run) return false;
-    const p = world.player;
+    const p = hoofdspeler(world);
     if (p.inVehicle && !(s.def.vehicle && s.def.vehicle(p.inVehicle))) p.exitVehicle(world.map, world);
     if (s.def.vehicle && !(p.inVehicle && s.def.vehicle(p.inVehicle)) && s.def.debugVehicle) s.def.debugVehicle(world, s);
     else if (!s.def.vehicle && !p.inVehicle) { p.x = s.x + 0.5; p.y = s.y + 0.5; }
