@@ -1,6 +1,7 @@
 // Samen spelen (#429, #434): een gast die hengelt is zichtbaar voor de anderen, een late gast krijgt de uitnodiging, twee gezochte spelers,
 // een gast met een wapen en het filmpje bij aansluiten (game/js/coopbezig.js, coopmeedoen.js, coopgezocht.js, coopbestuur.js, coopnet.js).
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import * as Z from '../game/js/coopbezig.js';
 import * as M from '../game/js/coopmeedoen.js';
 import * as G from '../game/js/coopgezocht.js';
@@ -41,6 +42,16 @@ t('bezigLijst: de figuur van de ander, niet je eigen, niet in een voertuig; heng
   assert.ok(Number.isFinite(Z.eenvoudigePose('pan', 5).pan));
 });
 
+t('een lokale gastactiviteit hangt niet aan de missie of bijbaan van de host', () => {
+  const src = fs.readFileSync(new URL('../game/js/activities.js', import.meta.url), 'utf8');
+  const van = src.indexOf('export function tryActivityInteractGast');
+  const tot = src.indexOf('export function updateActivitiesWorld');
+  assert.ok(van > 0 && tot > van, 'de gastfunctie staat in activities.js');
+  const fn = src.slice(van, tot);
+  assert.ok(!/sideJob|mission|playerBusy/.test(fn), 'de gast kijkt niet naar de missie of bijbaan van de host');
+  assert.match(fn, /GAST_ACTIVITEITEN/);
+});
+
 // ---- over het net
 const INFO = { game: 'GDE', proto: 1, version: '1', tiles: '-', story: 'nieuw' };
 const mkWorld = (extra = {}) => ({ player: { x: 0, y: 0, angle: 0, character: 'tammo', vx: 0, vy: 0 }, companion: { x: 1, y: 1, angle: 0, character: 'anita' }, coop: { local: true }, money: 0, wanted: 0, camYaw: 0, time: 0, messages: [], addMessage(m) { this.messages.push(m); }, input: { axis: () => [0, 0], isDown: () => false, wasPressed: () => false }, ...extra });
@@ -58,6 +69,9 @@ t('een hengelende gast: wie het spel opende en de andere gast zien hem; weggaan 
   assert.equal(N.handleEvent(hw, { k: 'bezig', a: 'hengelen' }, 1), true);
   step(1);
   assert.equal(hw.coopBezigVan[1].a, 'hengelen', 'bij wie het spel opende');
+  const bg = hw.coopGroepen.groepen['bezig|1|hengelen'];
+  assert.ok(bg, 'de eigen activiteit is een groep van één');
+  assert.equal(bg.leider, 1); assert.deepEqual(bg.deelnemers, [1]); assert.equal(bg.activiteit, 'hengelen'); assert.equal(bg.label, 'Vissen');
   assert.equal(g2.coopBezigVan[1].a, 'hengelen', 'bij de andere gast');
   assert.equal(g1.coopBezigVan && g1.coopBezigVan[1], undefined, 'niet terug naar de gast zelf');
   assert.equal(N.handleEvent(g2, { k: 'bezig', a: 'hengelen' }, 0), false, 'een gast luistert er niet naar');
@@ -66,8 +80,57 @@ t('een hengelende gast: wie het spel opende en de andere gast zien hem; weggaan 
   assert.equal(g3.coopBezigVan[1].a, 'hengelen', 'een late gast ziet wie al hengelt');
   N.handleEvent(hw, { k: 'bezig', a: null }, 1); step(1);
   assert.equal(hw.coopBezigVan[1], undefined); assert.equal(g2.coopBezigVan[1], undefined);
+  assert.equal(hw.coopGroepen.groepen['bezig|1|hengelen'], undefined, 'de groep verdwijnt met de activiteit');
   N.handleEvent(hw, { k: 'bezig', a: 'carillon' }, 1); step(1); assert.ok(g2.coopBezigVan[1]);
   N.stopCoopNet(hw); assert.deepEqual(hw.coopBezigVan, {}, 'na het spel is er niets meer bezig');
+});
+
+t('een missiegroep gaat voor een eigen activiteit; na de missie kan de groep weer', () => {
+  const { hw, voegToe, step } = host();
+  voegToe(); step(2);
+  hw.mission = { phase: 'active', label: 'Het Loket', type: 'stages', index: 3, progressText: 'Stap in de auto', lateInstap: true, id: '3|Het Loket' };
+  hw.coopNet.meedoen.opdracht = '3|Het Loket';
+  hw.coopNet.meedoen.keuze[1] = 'ja';
+  step(1);
+  assert.ok(hw.coopGroepen.groepen['3|Het Loket'], 'de missiegroep bestaat');
+  assert.equal(N.handleEvent(hw, { k: 'bezig', a: 'hengelen' }, 1), true);
+  step(1);
+  assert.equal(hw.coopGroepen.groepen['bezig|1|hengelen'], undefined, 'geen tweede groep voor dezelfde plek');
+  hw.mission = { ...hw.mission, phase: 'idle' }; step(1);
+  N.handleEvent(hw, { k: 'bezig', a: null }, 1); step(1);
+  N.handleEvent(hw, { k: 'bezig', a: 'hengelen' }, 1); step(1);
+  assert.ok(hw.coopGroepen.groepen['bezig|1|hengelen'], 'na de missie is de eigen activiteit weer een groep');
+});
+
+t('twee groepen tegelijk: de host in een missie en een gast die hengelt', () => {
+  const { hw, voegToe, step } = host();
+  voegToe(); step(2);
+  hw.mission = { phase: 'active', label: 'Het Loket', type: 'stages', index: 3, progressText: 'Stap in de auto', lateInstap: true, id: '3|Het Loket' };
+  step(1);
+  assert.ok(hw.coopGroepen.groepen['3|Het Loket'], 'de missiegroep van de host');
+  assert.equal(N.handleEvent(hw, { k: 'bezig', a: 'hengelen' }, 1), true);
+  step(1);
+  const mg = hw.coopGroepen.groepen['3|Het Loket'], bg = hw.coopGroepen.groepen['bezig|1|hengelen'];
+  assert.ok(mg && bg, 'twee groepen naast elkaar');
+  assert.equal(mg.leider, 0); assert.equal(bg.leider, 1);
+  assert.deepEqual(bg.deelnemers, [1]); assert.equal(bg.activiteit, 'hengelen');
+  step(2);
+  assert.ok(hw.coopGroepen.groepen['3|Het Loket'] && hw.coopGroepen.groepen['bezig|1|hengelen'], 'beide groepen blijven bestaan');
+});
+
+t('twee gasten, twee eigen activiteiten: twee groepen naast elkaar', () => {
+  const { hw, voegToe, step } = host();
+  voegToe(); voegToe(); step(2);
+  assert.equal(N.handleEvent(hw, { k: 'bezig', a: 'hengelen' }, 1), true);
+  assert.equal(N.handleEvent(hw, { k: 'bezig', a: 'pannenkoek' }, 2), true);
+  step(1);
+  const a = hw.coopGroepen.groepen['bezig|1|hengelen'], b = hw.coopGroepen.groepen['bezig|2|pannenkoek'];
+  assert.ok(a && b, 'twee activiteitengroepen naast elkaar');
+  assert.equal(a.leider, 1); assert.equal(b.leider, 2);
+  assert.equal(a.activiteit, 'hengelen'); assert.equal(b.activiteit, 'pannenkoek');
+  assert.deepEqual(a.deelnemers, [1]); assert.deepEqual(b.deelnemers, [2]);
+  step(2);
+  assert.ok(hw.coopGroepen.groepen['bezig|1|hengelen'] && hw.coopGroepen.groepen['bezig|2|pannenkoek'], 'beide groepen blijven bestaan');
 });
 
 t('een late gast krijgt de uitnodiging "Meedoen met X?" en weet wat er speelt', () => {

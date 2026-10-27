@@ -1,12 +1,14 @@
 // Hengelen overal in de provincie (#412): de vissoorten per watertype, het water herkennen, het visboek en zijn opslag, de
-// loopbaan Hengelen en de balans van het geld. Puur, geen browser: een nep-kaart voor het water, een nep-opslag voor het boek en
-// een spelbot die urenlang hengelt.
+// loopbaan Hengelen en de balans van het geld. En sinds #492 het hengeltuig (hengels, aas, lijn) met zijn eigen opslag.
+// Puur, geen browser: een nep-kaart voor het water, een nep-opslag voor het boek en een spelbot die urenlang hengelt.
 //   node scripts/vis_test.mjs
 import assert from 'node:assert/strict';
 import * as D from '../game/js/visdata.js';
 import * as B from '../game/js/visboek.js';
 import * as P from '../game/js/hengelplek.js';
 import * as LV from '../game/js/visboeklive.js';
+import * as TUIG from '../game/js/hengeltuig.js';
+import * as TUIGLIVE from '../game/js/hengeltuiglive.js';
 import * as L from '../game/js/loopbaan.js';
 import { createHengel, stepHengel, botHengel, FISH, pickFish, HENGEL } from '../game/js/hengelrules.js';
 import { KEYS } from '../game/js/storagekeys.js';
@@ -384,6 +386,63 @@ t('balans: het hoogste niveau van het vak Hengelen kost uren en de eerste soorte
   // een nieuwe soort telt zwaar: alle 29 soorten en 15 plekken geven samen ruim een derde van de weg naar de top
   const ontdekking = D.SOORT_IDS.length * D.NIEUWE_SOORT_XP + 15 * L.UNIEK_XP;
   assert.ok(ontdekking > L.XP_DREMPELS[L.MAX_NIVEAU - 1] * 0.3, 'ontdekken ' + ontdekking);
+});
+
+// ------------------------------------------------------------------ het hengeltuig (#492)
+t('tuig: zonder tuig verandert er niets aan het vissen; een sterke lijn rekt het beetvenster en een betere hengel de wachttijd', () => {
+  const leeg = TUIG.leegTuig();
+  assert.equal(TUIG.beetFactor(TUIG.lijnsterkte(leeg)), 1, 'de standaardlijn houdt het venster zoals het was');
+  assert.equal(TUIG.wachtFactor(leeg), 1, 'de standaardhengel wacht even lang');
+  const rand = makeRng(21);
+  const kies = (lijn) => (r) => { const s = TUIG.kiesMetAas('meer', r, { uur: 13 }, null); return { id: s.id, name: s.naam, kg: D.vangstGewicht(s, r), window: s.venster * TUIG.beetFactor(lijn) }; };
+  const kaal = createHengel(rand, { kies: kies(0.5), duur: Infinity, wacht: [4.5, 11], venster: TUIG.beetFactor(0.5) });
+  const sterk = createHengel(rand, { kies: kies(1), duur: Infinity, wacht: [4.5, 11], venster: TUIG.beetFactor(1) });
+  assert.equal(kaal.venster, 1);
+  assert.ok(Math.abs(sterk.venster - 1.3) < 1e-9);
+  // dezelfde worp, dezelfde vis: met de sterkste lijn blijft de dobber 30% langer onder
+  const vis = { id: 'voorn', name: 'Blankvoorn', kg: 0.3, window: 1 };
+  const duur = (venster) => {
+    const st = createHengel(makeRng(4), { kies: () => vis, duur: Infinity, wacht: [1, 1], venster });
+    stepHengel(st, { cast: true }, 0.01);
+    stepHengel(st, {}, 0.9);
+    stepHengel(st, {}, 1.05);
+    return st.bite;
+  };
+  assert.equal(duur(1), 1);
+  assert.ok(Math.abs(duur(1.3) - 1.3) < 1e-9);
+  // een karperhengel laat je 30% korter wachten
+  assert.ok(Math.abs(TUIG.wachtFactor({ v: 1, hengel: 'karper' }) - 0.7) < 1e-9);
+  // en aas lokt de vis waar het voor is
+  const tel = (aasId) => { const r = makeRng(9); let n = 0; for (let i = 0; i < 20000; i++) if (TUIG.kiesMetAas('meer', r, { uur: 13 }, aasId).id === 'snoek') n++; return n; };
+  assert.ok(tel('kunstaas') > tel(null) * 1.5, 'kunstaas lokt de snoek');
+});
+
+t('tuig: vier hengels, zes aas en twee lijnverbeteringen met oplopende prijzen, en de eigen opslag', () => {
+  assert.equal(TUIG.HENGELS.length, 4);
+  assert.equal(TUIG.HENGELS[0].prijs, 0);
+  for (let i = 1; i < TUIG.HENGELS.length; i++) assert.ok(TUIG.HENGELS[i].prijs > TUIG.HENGELS[i - 1].prijs);
+  assert.equal(TUIG.AAS.length, 6);
+  for (const a of TUIG.AAS) assert.ok(a.prijs > 0 && TUIG.aasById(a.id));
+  assert.equal(TUIG.VERBETERINGEN.length, TUIG.UPGRADE_MAX);
+  assert.ok(TUIG.VERBETERINGEN[1].prijs > TUIG.VERBETERINGEN[0].prijs);
+  // kopen met eigen geld: te weinig geld houdt de hengel in de winkel
+  assert.equal(TUIG.hengelBlokkade(TUIG.leegTuig(), 'werp', 10), 'Te weinig geld');
+  assert.equal(TUIG.koopHengel(TUIG.leegTuig(), 'werp', 60).tuig.hengel, 'werp');
+  assert.equal(TUIG.koopUpgrade(TUIG.leegTuig(), 0).fout, 'Te weinig geld');
+  assert.equal(TUIG.koopAas(TUIG.leegTuig(), 'maden', 2).tuig.aas.n, TUIG.AAS_PER_PAK);
+  // de opslag: een eigen sleutel, buiten het visboek en buiten elke savegame
+  assert.equal(KEYS.hengeltuig, 'gde-hengeltuig-v1');
+  assert.notEqual(KEYS.hengeltuig, KEYS.visboek);
+  const st = nepOpslag();
+  TUIGLIVE.initHengeltuig({ opslag: st });
+  assert.equal(TUIGLIVE.getTuig().hengel, 'peur');
+  TUIGLIVE.zetTuig(TUIG.koopHengel(TUIGLIVE.getTuig(), 'voer', 150).tuig);
+  TUIGLIVE.schrijfNu();
+  assert.ok(st.getItem(KEYS.hengeltuig), 'het tuig staat in zijn eigen sleutel');
+  assert.equal(st.getItem(KEYS.visboek), null, 'de tuigopslag raakt het visboek niet aan');
+  TUIGLIVE.initHengeltuig({ opslag: st });
+  assert.equal(TUIGLIVE.getTuig().hengel, 'voer');
+  TUIGLIVE.initHengeltuig({ opslag: nepOpslag() });
 });
 
 console.log(`vis_test: ${n - fails}/${n} ok`);

@@ -267,7 +267,7 @@ t('migratie: een oude boerderij (v1 zonder bedrijf) laadt heel, met De Zonnehoek
   const oud = { v: 1, uren: 120, perceel: { x: 10, y: 20, a: 0.5 }, keuze: 'bieten', veld: { fase: 'gezaaid', gewas: 'bieten', bodem: 0.8, zaai: 0.9, mest: 0.5, gezaaidOp: 100 }, schuur: { gewas: 'aardappelen', kg: 900, kwaliteit: 1 }, machines: { ploeg: 'eigen' }, totaal: { oogsten: 3, leveringen: 2, omzet: 700, uitgaven: 300 } };
   const b = B.normaliseer(JSON.stringify(oud));
   assert.equal(b.uren, 120);
-  assert.equal(b.keuze, 'bieten');
+  assert.equal(b.plan[PC.START_PERCEEL], 'bieten', 'de oude keuze migreert naar het plan van het actieve perceel (#492)');
   assert.equal(b.schuur.kg, 900);
   assert.equal(b.machines.ploeg, 'eigen');
   assert.equal(b.totaal.omzet, 700);

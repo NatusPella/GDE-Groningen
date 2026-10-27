@@ -101,6 +101,8 @@ export function stepPlane(p, inp, dt, groundAt, onRunway = () => true, spec = PL
 // De regels: vlieg de poorten in volgorde langs (binnen poortR, langzamer dan poortV en op de
 // hoogte van de poort), houd de checklist bij het opstijgen in orde en land op de bestemming.
 // Een crash of een gemiste poort kost punten, net als te laat aankomen; er is nooit leed.
+// Sinds #492 is de bestemming een echt tweede veld (game/vliegplekken.json): één etappe per
+// dienst, met de landing op dat veld als laatste halte. Terugvliegen is een nieuwe dienst.
 export const VLUCHT = {
   poortR: 220,        // m: zo dicht bij een poort telt hij
   poortV: 62,         // m/s: langzamer dan dit door de poort
@@ -135,6 +137,9 @@ export function maakVluchtdienst({ van = null, naar = null, route = [], maxTijd 
   d.landing = null;
   d.checklist = null;
   d.checklistOk = false;
+  // de toren (#492) heeft het vertrekveld en de bestemming nodig, niet de naam van de dienst
+  d.vanNaam = (van && van.naam) || null;
+  d.naarNaam = naar.naam || 'Bestemming';
   return d;
 }
 
@@ -159,6 +164,9 @@ export function vluchtStap(d, p, { dt = 0 } = {}) {
       d.landing = p.landing || 'hard';
       d.bonus = (d.landing === 'zacht' ? VLUCHT.landBonus : 0) + (d.checklistOk ? VLUCHT.checklistBonus : 0);
     }
+    // Een dienst die eindigt zonder landing op de bestemming is geen geslaagde vlucht (#492):
+    // overvliegen levert geen beloning op, ook al telt de rest van de route mee.
+    if (e.soort === 'klaar' && !d.landing && !d.mislukt) d.mislukt = 'gemist';
     if (e.soort === 'klaar') e.uitslag = vluchtUitslag(d);
     ev.push(e);
   }
@@ -172,3 +180,89 @@ export function vluchtUitslag(d) {
 
 export const vluchtVoortgang = dienstVoortgang;
 export const vluchtStand = dienstStand;
+
+// --- de velden en de etappe (#492) ------------------------------------------------------
+// De velden komen uit game/vliegplekken.json (het midden van de baan, de koers en de maten) en
+// Eelde zelf uit planeflight.js. Een baan heeft dezelfde vorm als makeStrip in planecontrol.js,
+// zodat de landing op een tweede veld dezelfde regel volgt als op de eigen strip.
+export const VELDROUTE = { hoogte: 120, poortDeel: [0.35, 0.7] };
+
+const getal = (v, standaard) => (Number.isFinite(v) ? v : standaard);
+
+// De baan van een veld: x en y zijn het midden van de baan, heading de koers, lengte en breedte
+// in meters (zoals scripts/world/vliegplekken.mjs ze op de tegels meet).
+export function veldBaan(veld) {
+  if (!veld || !Number.isFinite(veld.x) || !Number.isFinite(veld.y)) return null;
+  const lengte = Math.max(60, getal(veld.lengte, 420));
+  const breedte = Math.max(20, getal(veld.breedte, 80));
+  const heading = getal(veld.heading, 0);
+  const c = Math.cos(heading), s = Math.sin(heading);
+  const x = veld.x - c * lengte / 2, y = veld.y - s * lengte / 2;
+  return {
+    x, y, heading, length: lengte, width: breedte, midden: { x: veld.x, y: veld.y },
+    contains(px, py) {
+      const dx = px - x, dy = py - y;
+      const along = dx * c + dy * s, across = -dx * s + dy * c;
+      return along >= -20 && along <= lengte + 20 && Math.abs(across) <= breedte / 2 + 6;
+    },
+    point(along, across = 0) { return { x: x + c * along - s * across, y: y + s * along + c * across }; },
+  };
+}
+
+// Het veld dat het dichtst bij (x, y) ligt, of null. Velden zijn { id, naam, x, y, strip? }.
+export function dichtstbijVeld(velden, x, y) {
+  let best = null, bd = Infinity;
+  for (const f of velden || []) {
+    if (!f || !Number.isFinite(f.x) || !Number.isFinite(f.y)) continue;
+    const d = Math.hypot(f.x - x, f.y - y);
+    if (d < bd) { bd = d; best = f; }
+  }
+  return best;
+}
+
+// Het punt op de baan dat het dichtst bij (x, y) ligt: daar staat de prompt en start de dienst.
+export function puntOpStrip(strip, x, y) {
+  if (!strip || !Number.isFinite(x) || !Number.isFinite(y)) return null;
+  const c = Math.cos(strip.heading || 0), s = Math.sin(strip.heading || 0);
+  const along = Math.max(0, Math.min(strip.length || 0, (x - strip.x) * c + (y - strip.y) * s));
+  return strip.point(along);
+}
+
+// De bestemming van deze etappe: sta je op een van de velden, dan vlieg je terug naar huis
+// (Eelde); sta je thuis, dan ga je naar het dichtstbijzijnde andere veld. Eén etappe per dienst,
+// dus geen route die eindeloos doorgaat. `thuis` is het id van het veld van Eelde.
+export function kiesBestemming(velden, van, { thuis = null } = {}) {
+  if (!van) return null;
+  const lijst = (velden || []).filter((f) => f && Number.isFinite(f.x) && Number.isFinite(f.y));
+  if (!lijst.length) return null;
+  if (thuis && van.id !== thuis) {
+    const huis = lijst.find((f) => f.id === thuis);
+    if (huis && huis !== van) return huis;
+  }
+  return dichtstbijVeld(lijst.filter((f) => f !== van && (!van.id || f.id !== van.id)), van.x, van.y);
+}
+
+// De route tussen twee velden: twee poorten boven de lijn, op dezelfde hoogte. `van` en `naar`
+// zijn { x, y, naam?, id? }; de poorten liggen op een derde en twee derde van de etappe.
+export function veldRoute(van, naar, { hoogte = VELDROUTE.hoogte, poortDeel = VELDROUTE.poortDeel } = {}) {
+  if (!van || !naar) return null;
+  if (![van.x, van.y, naar.x, naar.y].every(Number.isFinite)) return null;
+  const dx = naar.x - van.x, dy = naar.y - van.y;
+  const route = (Array.isArray(poortDeel) ? poortDeel : [poortDeel]).map((t, k) => ({
+    x: van.x + dx * t, y: van.y + dy * t, z: hoogte, naam: `Poort ${k + 1}`,
+  }));
+  return {
+    van: { x: van.x, y: van.y, naam: van.naam || 'Vertrek', id: van.id || null },
+    naar: { x: naar.x, y: naar.y, naam: naar.naam || 'Bestemming', id: naar.id || null },
+    route,
+  };
+}
+
+// De hele etappe vanaf (x, y): het veld waar de kist staat, de bestemming en de route ernaartoe.
+// Geeft null als er geen tweede veld is (dan kan de dienst niet worden uitgezet).
+export function vluchtTussenVelden(velden, x, y, { thuis = null, hoogte = VELDROUTE.hoogte, poortDeel = VELDROUTE.poortDeel } = {}) {
+  const van = dichtstbijVeld(velden, x, y);
+  const naar = kiesBestemming(velden, van, { thuis });
+  if (!van || !naar) return null;
+  return veldRoute(van, naar, { hoogte, poortDeel });
+}

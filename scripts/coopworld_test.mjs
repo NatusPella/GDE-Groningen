@@ -128,6 +128,24 @@ t('opdracht-bericht: alleen bij verandering; begin en einde; gast controleert wa
   assert.equal(W.leesMissieBericht({ k: 'iets' }), null);
   assert.deepEqual(W.leesMissieBericht({ k: 'missie', actief: false }), { actief: false });
 });
+t('de leider van de groep gaat mee in het opdracht-bericht (#492); een ouder bericht zonder leider blijft werken', () => {
+  const pub = { phase: 'active', label: 'Het Loket', type: 'stages', index: 3, progressText: 'Stap in de auto', id: '3|Het Loket' };
+  const met = W.missieBericht(null, pub, 2);
+  assert.equal(met.event.leider, 2); assert.equal(met.huidig.leider, 2);
+  assert.equal(W.leesMissieBericht(met.event).leider, 2);
+  // een oud bericht (zonder leider) leest als voorheen; een ongeldige leider telt niet
+  assert.equal(W.leesMissieBericht({ k: 'missie', actief: true, label: 'Het Loket' }).leider, undefined);
+  assert.equal(W.leesMissieBericht({ k: 'missie', actief: true, label: 'Het Loket', leider: -1 }).leider, undefined);
+  assert.equal(W.leesMissieBericht({ k: 'missie', actief: true, label: 'Het Loket', leider: 64 }).leider, undefined);
+  assert.equal(W.leesMissieBericht({ k: 'missie', actief: true, label: 'Het Loket', leider: 1.5 }).leider, undefined);
+  // alleen de late-instapvlag verandert: nog steeds geen bericht; een andere leider is één bericht met dezelfde stand
+  const eerste = met.huidig;
+  assert.equal(W.missieBericht(eerste, { ...pub, lateInstap: false }, 2).event, null);
+  const wissel = W.missieBericht(eerste, pub, 1);
+  assert.equal(wissel.event.actief, true); assert.equal(wissel.event.leider, 1);
+  assert.equal(wissel.event.label, 'Het Loket'); assert.equal(wissel.event.index, 3); assert.equal(wissel.event.id, '3|Het Loket');
+  assert.equal(W.missieBericht(wissel.huidig, pub, 1).event, null, 'dezelfde leider geeft geen herhaling');
+});
 t('tekst voor de gast: Nederlands; extra spelers lopen mee in de open wereld', () => {
   const m = { actief: true, label: 'Berend telt de krassen' };
   assert.match(W.missieTekst(m, 'wereld'), /De ander speelt: Berend telt de krassen\. Jij loopt mee in de open wereld/);

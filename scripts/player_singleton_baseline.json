@@ -1,12 +1,11 @@
 {
  "version": 1,
  "note": "Aantal directe verwijzingen naar world.player per bestand (#500), inclusief de alias w.player. Alleen omlaag; zie scripts/player_singleton_audit.mjs.",
- "total": 1198,
+ "total": 1184,
  "files": {
   "game/js/aaien.js": 10,
   "game/js/achievements.js": 4,
   "game/js/achievementtracker.js": 1,
-  "game/js/activities.js": 14,
   "game/js/attention.js": 2,
   "game/js/audio.js": 26,
   "game/js/banter.js": 5,

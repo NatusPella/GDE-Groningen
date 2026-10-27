@@ -55,13 +55,18 @@ kan de baan niet starten; het bestaande gastgat loopt via #365/#371.
 perrondrukte (1-8 wachtenden) en de capaciteit (90); op de laatste halte stapt niemand meer in.
 Een kaartje is €0,70 per meegereden reiziger per halte. `stepService` boekt het kaartgeld,
 `finish` en `payFor` nemen het mee, en de uitbetaling loopt via `loopbaanVerdien('trein', …)`.
-Het bord toont het aantal reizigers en per stop de in- en uitstappers. Host-only; een gast ziet de
-trein maar kan niet als machinist instappen.
+Het bord toont het aantal reizigers en per stop de in- en uitstappers. De gastheer is
+machinist; `cooptrein.js` koppelt gasten aan een wagen, de eerste gast is conducteur
+(O deuren, K waakzaamheid), volgende gasten passagier. Elk crewlid krijgt het volle bedrag
+en de xp via `splitReward`/`coopDeel`; de gastheer houdt zijn eigen `loopbaanVerdien`.
+Zelf de trein besturen kan een gast niet.
 
-**Bestanden.** `machinistrules.js`, `machinist.js`, `treincabine.js`, `traindrive.js`.
+**Bestanden.** `machinistrules.js`, `machinist.js`, `treincabine.js`, `traindrive.js`,
+`cooptrein.js`, `treincoop.js`.
 
 **Tests.** `machinist_test.mjs`, `simdienst_test.mjs`, `dienstregeling_test.mjs`,
-`treincabine_test.mjs`, `gasttrein_test.mjs`.
+`treincabine_test.mjs`, `gasttrein_test.mjs`, `cooptrein_test.mjs`,
+`coop/treincoop_test.mjs`.
 
 ## Hengelen en vissen
 
@@ -75,19 +80,22 @@ groei (max 1,8)` (`:123`), uitbetaald via `loopbaanVerdien` met `deel: false`
 (`game/js/hengelen.js:96`). Opslag `gde-visboek-v1` (`storagekeys.js:79`).
 
 **Bestanden.** `hengelen.js`, `hengelrules.js`, `hengelplek.js`, `visdata.js`, `visboek.js`,
-`visboeklive.js`, `visboekui.js`, `hengelanim.js`.
+`visboeklive.js`, `visboekui.js`, `hengelanim.js`, `hengeltuig.js`, `hengeltuiglive.js`.
 
-**Tests.** `vis_test.mjs`, `minigames3_test.mjs` (de wedstrijd), `coophengelboot_test.mjs`.
+**Tests.** `vis_test.mjs`, `hengeltuig_test.mjs`, `shops_test.mjs`, `minigames3_test.mjs` (de wedstrijd), `coophengelboot_test.mjs`.
+
+Opslag: `gde-visboek-v1` en `gde-hengeltuig-v1` (`storagekeys.js`).
 
 ## Boerderij
 
 **Doel.** Eén akker bij Hoogkerk in vaste stappen: ploegen, zaaien, bemesten, groeien, oogsten,
 afleveren.
 
-**Regels.** Vier gewassen met eigen zaaigoed, groeitijd, opbrengst en een basisprijs per kg
+**Regels.** Vijf gewassen met eigen zaaigoed, groeitijd, opbrengst en een basisprijs per kg
 (`game/js/boerderij.js:21`); de verkoopprijs per gewas is een dagprijs uit `game/js/gewasmarkt.js`
 (binnen twintig procent van de basis, dag nul is de basis, per speler uit zijn eigen `b.uren`), en
-`leverVracht` verkoopt daartegen. Een speldag is 24 minuten (`game/js/daynight.js:12`). Groei telt in
+`leverVracht` verkoopt daartegen. Elk perceel heeft een eigen teeltplan (`b.plan`); oude opslag
+met alleen `keuze` migreert naar het actieve perceel. Een speldag is 24 minuten (`game/js/daynight.js:12`). Groei telt in
 speluren uit `world.clock` (`game/js/boerderijlive.js:72`). Machines huur je per keer of koop je
 (`:34`); een ronde levert ongeveer €300 tot €350 winst op, en de verkoop loopt via
 `loopbaanVerdien`. Opslag `gde-boerderij-v1` (`storagekeys.js:81`). Samen spelen: een gast werkt op

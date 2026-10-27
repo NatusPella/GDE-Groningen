@@ -57,9 +57,9 @@ t('de dagprijs is deterministisch: dezelfde gewas en dag geven altijd dezelfde p
   assert.deepEqual(tweede.reverse(), eerste);
 });
 
-t('de dagwissel: minstens drie van de vier gewassen hebben op dag 1 een andere prijs dan op dag 0', () => {
+t('de dagwissel: minstens drie van de vijf gewassen hebben op dag 1 een andere prijs dan op dag 0', () => {
   const anders = IDS.filter((id) => M.dagprijs(id, 1) !== M.dagprijs(id, 0));
-  assert.ok(anders.length >= 3, `${anders.length} van de 4 anders: ${anders.join(', ')}`);
+  assert.ok(anders.length >= 3, `${anders.length} van de ${IDS.length} anders: ${anders.join(', ')}`);
   // de prijzen bewegen vaker wel dan niet: over een reeks dagen verandert het merendeel
   let wissels = 0;
   for (let dag = 1; dag <= 30; dag++) for (const id of IDS) if (M.dagprijs(id, dag) !== M.dagprijs(id, dag - 1)) wissels++;
@@ -78,7 +78,7 @@ t('de trend: op als de prijs stijgt, neer als hij daalt, gelijk als hij blijft, 
 });
 
 t('een onbekend gewas heeft geen prijs en geen trend, en gooit niet', () => {
-  for (const id of ['tarwe', 'uien', '', null, undefined, 7, {}]) {
+  for (const id of ['tarwe', 'koolzaad', '', null, undefined, 7, {}]) {
     assert.equal(M.dagprijs(id, 4), 0, String(id));
     assert.deepEqual(M.markt(id, 4), { prijs: 0, trend: 'gelijk' });
   }

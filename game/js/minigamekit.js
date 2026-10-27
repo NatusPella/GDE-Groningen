@@ -142,7 +142,7 @@ export const MG_THEMA = {
   carillon: { titel: 'CARILLON MARTINITOREN', accent: '#c9a227', icoon: 'beurt' },
   // het luchtruim: de school en de rondvlucht kijken van boven (het oog)
   vliegschool: { titel: 'VLIEGSCHOOL DE WINDWIJZER', accent: '#d9d4be', icoon: 'oog' },
-  vluchtdienst: { titel: 'RONDVLUCHT EELDE', accent: '#8fb04a', icoon: 'oog' },
+  vluchtdienst: { titel: 'VLUCHT', accent: '#8fb04a', icoon: 'oog' },
   // de arena en de machinist: een wedstrijd met een uitslag (de kroon en de finishvlag)
   pvparena: { titel: 'PVP-ARENA', accent: '#c9568a', icoon: 'winnaar' },
   machinist: { titel: 'MACHINIST', accent: '#b3b3a2', icoon: 'kart' },

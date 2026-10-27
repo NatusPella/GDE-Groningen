@@ -336,17 +336,22 @@ export function leesEntiteiten(entities) {
 }
 
 // ----------------------------------------------------------- opdracht van de host
-// De host zegt in een bericht welke opdracht hij speelt (alleen als het verandert).
-export function missieBericht(prev, pub) {
+// De host zegt in een bericht welke opdracht hij speelt (alleen als het verandert). leider = de plek die de groep leidt (#492);
+// een gast kan hem alleen hieruit kennen, want het groepenregister staat op de host. Zonder leider (oudere host) werkt het bericht
+// precies zoals voorheen.
+export function missieBericht(prev, pub, leider = null) {
   const id = pub && pub.phase === 'active' && typeof pub.id === 'string' && pub.id ? pub.id.slice(0, 48) : null; // de groep van deze opdracht (#452)
-  const nu = pub && pub.phase === 'active' ? { label: String(pub.label || '').slice(0, 80), type: String(pub.type || '').slice(0, 24), index: pub.index | 0, stap: String(pub.progressText || '').slice(0, 90), lateInstap: pub.lateInstap !== false, ...(id ? { id } : null) } : null;
-  const was = prev ? `${prev.id || ''}|${prev.index}|${prev.label}|${prev.stap}|${prev.lateInstap}` : '';
-  const is = nu ? `${nu.id || ''}|${nu.index}|${nu.label}|${nu.stap}|${nu.lateInstap}` : '';
+  const lei = Number.isInteger(leider) && leider >= 0 && leider < 64 ? leider : null;
+  const nu = pub && pub.phase === 'active' ? { label: String(pub.label || '').slice(0, 80), type: String(pub.type || '').slice(0, 24), index: pub.index | 0, stap: String(pub.progressText || '').slice(0, 90), lateInstap: pub.lateInstap !== false, ...(id ? { id } : null), ...(lei != null ? { leider: lei } : null) } : null;
+  // de leider hoort bij de sleutel: wisselt hij, dan gaat de stand opnieuw mee (één bericht, geen nieuwe opdracht)
+  const sleutel = (m) => `${m.id || ''}|${m.index}|${m.label}|${m.stap}|${m.leider == null ? '' : m.leider}|${m.lateInstap}`;
+  const was = prev ? sleutel(prev) : '', is = nu ? sleutel(nu) : '';
   if (was === is) return { event: null, huidig: prev };
   if (prev && nu && was.slice(0, was.lastIndexOf('|')) === is.slice(0, is.lastIndexOf('|'))) return { event: null, huidig: nu }; // alleen de late-instapvlag veranderde: geen nieuw bericht (#452)
   // de stap van de opdracht ("Stap in de boot", "Rij naar de kerk") gaat mee, zodat een gast het hele verhaal kan volgen.
-  // De id gaat mee zodat een gast een opdracht van een andere groep niet voor de zijne aanziet (#452).
-  if (nu) return { event: { k: 'missie', actief: true, label: nu.label, type: nu.type, index: nu.index, stap: nu.stap, ...(nu.id ? { id: nu.id } : null) }, huidig: nu };
+  // De id gaat mee zodat een gast een opdracht van een andere groep niet voor de zijne aanziet (#452); de leider zodat de
+  // spelerslijst laat zien wie de groep leidt (#492).
+  if (nu) return { event: { k: 'missie', actief: true, label: nu.label, type: nu.type, index: nu.index, stap: nu.stap, ...(nu.id ? { id: nu.id } : null), ...(nu.leider != null ? { leider: nu.leider } : null) }, huidig: nu };
   return { event: { k: 'missie', actief: false, ...(prev && prev.id ? { id: prev.id } : null) }, huidig: null };
 }
 export function leesMissieBericht(b) {
@@ -354,7 +359,8 @@ export function leesMissieBericht(b) {
   if (!b.actief) return { actief: false, ...(typeof b.id === 'string' && b.id && b.id.length <= 48 ? { id: b.id } : null) };
   if (typeof b.label !== 'string' || b.label.length > 80) return null;
   const id = typeof b.id === 'string' && b.id && b.id.length <= 48 ? b.id : null;
-  return { actief: true, label: b.label, type: typeof b.type === 'string' ? b.type.slice(0, 24) : '', index: b.index | 0, stap: typeof b.stap === 'string' ? b.stap.slice(0, 90) : '', ...(id ? { id } : null) };
+  const leider = Number.isInteger(b.leider) && b.leider >= 0 && b.leider < 64 ? b.leider : null; // oude berichten hebben geen leider
+  return { actief: true, label: b.label, type: typeof b.type === 'string' ? b.type.slice(0, 24) : '', index: b.index | 0, stap: typeof b.stap === 'string' ? b.stap.slice(0, 90) : '', ...(id ? { id } : null), ...(leider != null ? { leider } : null) };
 }
 // Tekst voor de gast: wat de host nu speelt, en of de gast kan meedoen.
 export function missieTekst(m, rol = 'wereld', naam = 'De ander') {

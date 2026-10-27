@@ -59,3 +59,18 @@ console.log('semitrailer_test ok');
   assert.ok(/recht/.test(koppelHulp(t, newTrailer('koel', f.x - 3, f.y, 1.0)).tip), 'scheef');
 }
 console.log('koppelhulp ok');
+
+// Eigen truck (#492): de baan kan de truck van de speler lenen in plaats van de
+// leen-truck. De oplegger rekent met het hulpstuk, de as en de last, niet met het
+// model van de leen-truck; de eigen maten en prestaties gaan gewoon mee.
+{
+  const eigen = { x: 0, y: 0, angle: 0, model: { maxSpeed: 31, accel: 5, brake: 13, turnRate: 1.5 } };
+  const f = fifthWheel(eigen);
+  const bak = newTrailer('bak', f.x, f.y, 0);
+  assert.ok(couple(eigen, bak), 'de eigen truck koppelt dezelfde oplegger');
+  const h = loadedHandling(bak, { maxSpeed: eigen.model.maxSpeed, accel: eigen.model.accel, brake: eigen.model.brake, turnRate: eigen.model.turnRate });
+  assert.ok(h.accel > 0 && h.accel < eigen.model.accel, 'de last remt de eigen truck ook af');
+  for (let i = 0; i < 120; i++) { eigen.x += 8 * dt; stepTrailer(bak, eigen, dt); }
+  assert.ok(Math.abs(hitchAngle(eigen, bak)) < 0.02, 'rechtuit blijft de oplegger achter de eigen truck recht');
+}
+console.log('eigen truck ok');

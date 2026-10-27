@@ -20,9 +20,25 @@ t('de regels: elke actie een regel; winkels voor jezelf mogen, voertuigen en wap
   for (const type of G.WINKELS_GAST) assert.ok(SHOP_TYPES[type], 'bestaat in shopdata: ' + type);
   assert.match(G.MELDING_WINKEL('Pang & Zo'), /alleen in je eigen spel/);
 });
-t('uitstappen kan bij bijna stilstaan, niet in een heli of vliegtuig of op snelheid', () => {
+t('uitstappen kan bij bijna stilstaan; een vliegtuig of helikopter alleen op de grond (#492)', () => {
   assert.equal(G.kanUitstappen({ speed: 0 }), true); assert.equal(G.kanUitstappen({ speed: -1.5 }), true);
-  assert.equal(G.kanUitstappen({ speed: 8 }), false); assert.equal(G.kanUitstappen({ isHeli: true, speed: 0 }), false); assert.equal(G.kanUitstappen(null), false);
+  assert.equal(G.kanUitstappen({ speed: G.UITSTAP_MAX_SNELHEID }), true, 'op de drempel');
+  assert.equal(G.kanUitstappen({ speed: 8 }), false); assert.equal(G.kanUitstappen(null), false);
+  assert.equal(G.kanUitstappen({ isBoat: true, speed: 0.5 }), true, 'boot blijft zoals het was');
+  // vliegtuig en helikopter: op de grond en vrijwel stil mag, in de lucht nooit
+  assert.equal(G.kanUitstappen({ isPlane: true, speed: 0, onGround: true }), true);
+  assert.equal(G.kanUitstappen({ isPlane: true, speed: 0, onGround: false }), false, 'in de lucht blijft de gast aan boord');
+  assert.equal(G.kanUitstappen({ isPlane: true, speed: 0 }), false, 'zonder grondstand geen uitstap');
+  assert.equal(G.kanUitstappen({ isPlane: true, speed: 5, onGround: true }), false, 'op de baan maar te snel');
+  assert.equal(G.kanUitstappen({ isHeli: true, speed: 0, onGround: true }), true);
+  assert.equal(G.kanUitstappen({ isHeli: true, speed: 0, onGround: false }), false, 'zwevend');
+  assert.equal(G.kanUitstappen({ isHeli: true, speed: 3, onGround: true }), false);
+});
+t('de regel zegt dat meerijden in een vliegtuig of helikopter mag en besturen niet (#492)', () => {
+  const rij = G.GAST_REGELS.find((r) => r.actie === 'bijrijden');
+  assert.match(rij.regel, /vliegtuig/); assert.match(rij.regel, /helikopter/);
+  assert.match(rij.regel, /passagier/); assert.match(rij.regel, /nooit als piloot/);
+  assert.match(rij.regel, /alleen op de grond/);
 });
 t('de invoer van de bijrijder als invoer van het voertuig: stick, handrem en sprint; niets raakt wasPressed', () => {
   const i = G.wielInvoer({ mx: 0.5, my: -1, buttons: 2 });

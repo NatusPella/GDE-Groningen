@@ -49,7 +49,7 @@ export function rijtijden(route, dir = 1) {
     if (prev) t += Math.abs(st.s - prev.s) / RIJ.speed;
     const aan = t;
     const weg = i === stops.length - 1 ? t : t + RIJ.dwell;
-    rows.push({ name: st.name, s: st.s, aan, weg, laatste: i === stops.length - 1 });
+    rows.push({ name: st.name, s: st.s, aan, weg, laatste: i === stops.length - 1, offmap: !!st.offmap });
     t = weg; prev = st;
   });
   return rows;
@@ -87,6 +87,92 @@ export const VERTRAGING_REDENEN = [
   'Extra lang oponthoud: de machinist neemt een bakkie',
 ];
 export const redenVoor = (route, rit, dag) => VERTRAGING_REDENEN[hash(route.name, rit.k, dag) % VERTRAGING_REDENEN.length];
+
+// --- het rooster van de machinist (#492) ------------------------------------------------------
+// De machinist rijdt een dienst uit het rooster: per lijn, richting en speldag dezelfde halten met
+// dezelfde vertrektijden. De ritten zijn de bestaande ritten() en de halten komen uit rijtijden();
+// er is geen tweede rooster. De vertraging per lijn, rit en dag is de bestaande vertraging().
+// Puur en deterministisch: dezelfde dag geeft altijd dezelfde dienst.
+
+// Eén dienst: de halten in rijrichting met aankomst (aan) en vertrek (weg) in seconden na
+// middernacht, de vertraging van die dag erin. `start` is het vertrek vanaf het beginstation.
+export function dienstVanRit(route, dir, dag, rit) {
+  const verw = vertraging(route, rit, dag);
+  const halten = rijtijden(route, dir).map((r) => ({
+    name: r.name, s: r.s, aan: rit.start + r.aan + verw, weg: rit.start + r.weg + verw,
+    laatste: r.laatste, offmap: r.offmap,
+  }));
+  return {
+    lijn: route.name, dir, k: rit.k, dag, start: rit.start + verw, vertraging: verw,
+    reden: verw ? redenVoor(route, rit, dag) : '',
+    van: halten[0].name, naar: halten[halten.length - 1].name, halten,
+  };
+}
+
+// Het hele rooster van een lijn en richting op één speldag, op tijd gesorteerd (zoals ritten()).
+export function roosterVoor(route, dir = 1, dag = 1) {
+  return ritten(route, dir).map((rit) => dienstVanRit(route, dir, dag, rit));
+}
+
+// De eerstvolgende dienst die op halte `vanaf` vertrekt op of na `nu` (beide in seconden na
+// middernacht; `marge` is de speling voor een trein die net weg is). Zonder `vanaf` telt het
+// vertrek vanaf het beginstation. Is de dag op, dan null: de machinist rijdt dan zonder rooster.
+// De dienst krijgt `vanaf` en `vertrek` (de tijd op die halte) mee.
+export function dienstVoor(route, dir = 1, dag = 1, nu = 0, { vanaf = null, marge = 60 } = {}) {
+  const eerste = dir > 0 ? route.stops[0] : route.stops[route.stops.length - 1];
+  const naam = vanaf || (eerste && eerste.name) || null;
+  if (!naam) return null;
+  for (const d of roosterVoor(route, dir, dag)) {
+    const h = d.halten.find((x) => x.name === naam);
+    if (!h) return null;
+    const tijd = h.laatste ? h.aan : h.weg; // op het eindstation is aankomst het laatste wat de dienst doet
+    if (tijd >= nu - marge) return { ...d, vanaf: naam, vertrek: tijd };
+  }
+  return null;
+}
+
+// De roostertijd op de plek van de trein (booglengte c) in seconden na middernacht: tussen twee
+// halten lineair, zoals doorgangenOverweg. De machinist rekent daarmee de halten van het rooster
+// om naar de klok van zijn dienst: de verschillen uit het rooster, niet het instapmoment.
+export function roostertijdOp(dienst, c, dir = null) {
+  const h = dienst && dienst.halten;
+  if (!h || !h.length) return null;
+  const d = dir == null ? (dienst.dir || 1) : dir;
+  if (h.length === 1) return h[0].weg;
+  for (let i = 0; i < h.length - 1; i++) {
+    const a = h[i], b = h[i + 1];
+    const lo = Math.min(a.s, b.s), hi = Math.max(a.s, b.s);
+    if (hi === lo || c < lo || c > hi) continue;
+    // op de perronmarkering telt het vertrek, niet de aankomst: de trein staat er al
+    if (Math.abs(c - b.s) < 0.5) return b.weg;
+    return a.weg + (Math.abs(c - a.s) / Math.abs(b.s - a.s)) * (b.aan - a.weg);
+  }
+  const eerste = h[0], laatste = h[h.length - 1];
+  return (c - eerste.s) * d < 0 ? eerste.weg : laatste.aan;
+}
+
+// De halte waar de machinist instapt: de dichtstbijzijnde halte achter de trein in rijrichting
+// (hij staat er nog of is er net weg). Zonder halte daar de eerstvolgende halte voor de trein;
+// halten buiten de kaart tellen niet mee. Null zonder halten.
+export function instapHalte(route, c, dir = 1) {
+  const stops = (route && route.stops) || [];
+  let achter = null, voor = null, achterD = Infinity, voorD = -Infinity;
+  for (const st of stops) {
+    if (st.offmap) continue;
+    // d > 0: de halte ligt achter de neus in de rijrichting; d < 0: ervoor
+    const d = (c - st.s) * dir;
+    if (d >= -5) {
+      if (d < achterD) { achter = st; achterD = d; }
+    } else if (d > voorD) { voor = st; voorD = d; }
+  }
+  return achter || voor || null;
+}
+
+// De dienst als één regel voor het bord van de machinist: lijn, richting en vertrektijd.
+export function dienstTekst(d) {
+  if (!d) return '';
+  return `${d.lijn} naar ${d.naar}, vertrek ${tijdLabel(d.vertrek != null ? d.vertrek : d.start)}`;
+}
 
 // Spoor op een station: per station en richting stabiel, 1..4; richtingen delen geen spoor.
 export function spoor(stationNaam, route, dir) {

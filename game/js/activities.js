@@ -41,10 +41,10 @@ import { RINGRACE } from './ringrace.js';
 import { VLIEGSCHOOL } from './vliegschool.js';
 import { SAFEHUIS } from './safehuizen.js';
 import { PVP_ARENA_ACT } from './multiplayerpvpwereld.js'; // de PvP-minigame in Samen spelen (#454)
-import { maakVluchtdienst, vluchtStap, vluchtStand, vluchtUitslag } from './arcadeplane.js';
+import { maakVluchtdienst, vluchtStap, vluchtStand, vluchtUitslag, dichtstbijVeld, puntOpStrip, vluchtTussenVelden } from './arcadeplane.js';
 import { maakVaardienst, vaarStap, vaarStand, vaarUitslag } from './zeilvaren.js';
-import { rondvluchtRoute, kadesLangsRoute, margeVoorDienst, dienstBordRij } from './simdienst.js';
-import { departure, approach, vluchtLoon } from './luchtverkeer.js'; // de toren en de beloning van de rondvlucht (#492)
+import { kadesLangsRoute, margeVoorDienst, dienstBordRij } from './simdienst.js';
+import { departure, approach, vluchtLoon } from './luchtverkeer.js'; // de toren en de beloning van de vluchtdienst (#492)
 import { loopbaanVerdien } from './loopbaanlive.js';
 import { pickTrip, getSharedNet } from './vaarnet.js';
 import { isShopOpen } from './shopui.js';
@@ -56,6 +56,7 @@ import { showCard } from './hudcards.js';
 import { gameUi, mgThema, createBoard, key, stopPressed } from './minigamekit.js';
 import { activityBlock, iconDisc } from './activitykit.js';
 import { registerBusyProbe, registerQuitHook } from './busy.js';
+import { hoofdspeler } from './players.js';
 export { activityBlock, iconDisc };
 
 Object.assign(gameUi, { getScene, showBanner, showCard });
@@ -76,7 +77,7 @@ function laadHavens() {
 
 // The nearest marina within the jetties (as the regatta does, regattaplas.js kiesPlek).
 function havenBij(w) {
-  const p = w.player, v = p.inVehicle;
+  const p = hoofdspeler(w), v = p.inVehicle;
   const x = v ? v.x : p.x, y = v ? v.y : p.y;
   let best = null;
   for (const m of havens || []) {
@@ -115,7 +116,7 @@ function dienstActiviteit(cfg) {
   // The vehicle for this service: the one the player is in, or a free one standing at the start
   // spot (the Kist on the field, a boat at the jetty) so E can board it.
   function voertuig(w) {
-    const p = w.player;
+    const p = hoofdspeler(w);
     if (cfg.inVoertuig(p.inVehicle)) return p.inVehicle;
     let best = null;
     for (const v of w.vehicles) {
@@ -128,14 +129,14 @@ function dienstActiviteit(cfg) {
 
   function dichtbij(w, v) {
     const s = plek(w);
-    const p = v || w.player.inVehicle;
+    const p = v || hoofdspeler(w).inVehicle;
     if (!s || !p) return null;
     return Math.hypot(p.x - s.x, p.y - s.y) <= cfg.reik ? s : null;
   }
 
   function start(w) {
     if (run) return false;
-    const v = w.player.inVehicle;
+    const v = hoofdspeler(w).inVehicle;
     if (!cfg.inVoertuig(v)) { w.addMessage(cfg.stapIn, 3); return false; }
     const s = dichtbij(w, v);
     if (!s) { w.addMessage(cfg.geenPlek, 3); return false; }
@@ -161,7 +162,8 @@ function dienstActiviteit(cfg) {
     gameUi.showBanner({
       kind: u.medaille ? 'pass' : 'fail',
       title: (u.medaille === 3 ? `${cfg.label} met goud` : u.medaille ? `${cfg.label} gehaald` : `${cfg.label} zonder medaille`).toUpperCase(),
-      reason: u.medaille ? 'Alle halten van de dienstregeling, zonder brokken' : 'Let op de halten, de tijd en de snelheid',
+      reason: u.mislukt === 'gemist' ? 'De bestemming is niet gehaald: geen landing, geen beloning'
+        : u.medaille ? 'Alle halten van de dienstregeling, zonder brokken' : 'Let op de halten, de tijd en de snelheid',
       stats: dienstStats(u),
       reward: geld || 0,
     });
@@ -177,9 +179,10 @@ function dienstActiviteit(cfg) {
     } else if (e.soort === 'tehard') {
       run.flash = `Te hard: ${e.snelheid} m/s (max ${e.max})`; run.flashT = 4; run.bad = true;
     } else if (e.soort === 'mislukt') {
-      run.flash = e.reden === 'crash' ? 'Crash: de dienst stopt' : 'De dienst stopt'; run.flashT = 6; run.bad = true;
+      run.flash = e.reden === 'crash' ? 'Crash: de dienst stopt' : e.reden === 'gemist' ? 'Bestemming gemist: de dienst stopt' : 'De dienst stopt'; run.flashT = 6; run.bad = true;
     } else if (e.soort === 'klaar') {
-      run.flash = 'Dienst klaar'; run.flashT = 6;
+      // de vluchtdienst markeert een overvlucht als 'gemist' (#492): dan is er geen landing
+      run.flash = run.d.mislukt === 'gemist' ? 'Bestemming gemist: geen beloning' : 'Dienst klaar'; run.flashT = 6;
     }
   }
 
@@ -203,7 +206,7 @@ function dienstActiviteit(cfg) {
     if (!run) return;
     if (run.flashT > 0 && (run.flashT -= dt) <= 0) { run.flash = ''; run.bad = false; }
     if (w.pendingRespawn || stopPressed(w.input)) { stop(w, { afgebroken: true }); return; }
-    const v = w.player.inVehicle;
+    const v = hoofdspeler(w).inVehicle;
     if (!cfg.inVoertuig(v) || v !== run.v) { stop(w, { afgebroken: true }); return; }
     run.klok += dt;
     for (const e of cfg.stap(run.d, v, dt)) meld(e);
@@ -231,9 +234,9 @@ function dienstActiviteit(cfg) {
     },
     prompt(w) {
       // on foot: E boards the Kist or the boat at the start spot and starts the service
-      if (run || w.player.inVehicle) return null;
+      if (run || hoofdspeler(w).inVehicle) return null;
       const s = plek(w);
-      if (!s || Math.hypot(w.player.x - s.x, w.player.y - s.y) > cfg.reik) return null;
+      if (!s || Math.hypot(hoofdspeler(w).x - s.x, hoofdspeler(w).y - s.y) > cfg.reik) return null;
       const v = voertuig(w);
       if (!v) return null;
       const why = activityBlock(w);
@@ -241,7 +244,7 @@ function dienstActiviteit(cfg) {
     },
     secondary(w) {
       if (run) return [];
-      const v = w.player.inVehicle;
+      const v = hoofdspeler(w).inVehicle;
       const s = plek(w);
       if (!s) return [];
       // prompts.js stays quiet in a vehicle: a place label says that E starts the service
@@ -249,24 +252,24 @@ function dienstActiviteit(cfg) {
         if (!dichtbij(w, v) || (cfg.mag && !cfg.mag(w, v))) return [];
         return [{ id: cfg.id + '-start', x: s.x, y: s.y, h: 2.4, label: cfg.label, sub: cfg.startSub, kind: 'place' }];
       }
-      if (Math.hypot(w.player.x - s.x, w.player.y - s.y) > cfg.reik || !voertuig(w)) return [];
+      if (Math.hypot(hoofdspeler(w).x - s.x, hoofdspeler(w).y - s.y) > cfg.reik || !voertuig(w)) return [];
       return [{ id: cfg.id + '-2', x: s.x, y: s.y, h: 2.4, label: cfg.naam, sub: cfg.stapIn, kind: 'place' }];
     },
     interact(w) {
       if (run) return false;
-      const v = w.player.inVehicle;
+      const v = hoofdspeler(w).inVehicle;
       if (cfg.inVoertuig(v)) {
         if (!dichtbij(w, v) || (cfg.mag && !cfg.mag(w, v))) return false;
         const why = activityBlock(w);
         if (why) { w.addMessage(why, 2.5); return true; }
         return start(w);
       }
-      if (v || w.player.swimming) return false;
+      if (v || hoofdspeler(w).swimming) return false;
       const doel = plek(w) ? voertuig(w) : null; // on foot: step in and start
       if (!doel) return false;
       const why = activityBlock(w);
       if (why) { w.addMessage(why, 2.5); return true; }
-      w.player.enterVehicle(doel, w);
+      hoofdspeler(w).enterVehicle(doel, w);
       return start(w);
     },
     active: () => false, // the player keeps the controls
@@ -281,32 +284,49 @@ function dienstActiviteit(cfg) {
 
 const VLUCHTDIENST = dienstActiviteit({
   id: 'vluchtdienst',
-  titel: 'RONDVLUCHT',
-  label: 'Rondvlucht',
-  naam: 'Rondvlucht bij het veld',
-  note: 'een rondvlucht met de Kist: twee poorten en terug op het veld, met een medaille',
+  titel: 'VLUCHT',
+  label: 'Vluchtdienst',
+  naam: 'Vluchtdienst tussen de velden',
+  note: 'een vlucht met de Kist van veld naar veld: twee poorten en een landing op het tweede veld, met een medaille',
   accent: mgThema('vluchtdienst').accent, // één bron voor het HUD-thema: minigamekit.js (#453)
   mode: 'air',
   inVoertuig: (v) => !!(v && v.isPlane),
   mag: (w, v) => !!v.onGround,
-  plek: (w) => { const s = w.planeStrip; if (!s) return null; const p = s.point(30); return { x: p.x, y: p.y }; },
+  // De startplek is het veld waar de Kist staat: Eelde of een van de gemeten velden
+  // (w.planeVelden uit planeflight.js, gevuld uit game/vliegplekken.json). Zo kun je na de
+  // landing op het tweede veld meteen aan de terugvlucht beginnen.
+  plek: (w) => {
+    const p = hoofdspeler(w).inVehicle || hoofdspeler(w);
+    const veld = dichtstbijVeld(w.planeVelden || [], p.x, p.y);
+    if (!veld || !veld.strip) return null;
+    const q = puntOpStrip(veld.strip, p.x, p.y);
+    return { x: q.x, y: q.y, veld };
+  },
   reik: 420, // het hele veld: na de landing mag je meteen weer
   instap: 12,
-  stapIn: 'Instappen en de rondvlucht starten',
-  startSub: 'Druk E om de rondvlucht te starten',
-  geenPlek: 'Zoek eerst het veld bij Eelde op',
+  stapIn: 'Instappen en de vlucht starten',
+  startSub: 'Druk E om de vlucht te starten',
+  geenPlek: 'Zoek eerst een veld met de Kist op',
   geenRoute: 'De route kon hier niet worden uitgezet',
   help: `${key('W')}${key('S')} gas · ${key('A')}${key('D')} rollen · ${key('SPATIE')} neus omhoog · ${key('K')} kleppen · ${key('BACKSPACE')} stoppen`,
-  kaartTitel: 'Rondvlucht boven Eelde',
-  kaartBody: 'Stijg op, vlieg door de twee poorten (niet te snel, op hoogte) en land zacht terug op het veld. De klok loopt; te hard vliegen kost veiligheid. [Backspace] stopt.',
-  maak: (w, v) => { const d = maakVluchtdienst(rondvluchtRoute(v.x, v.y, v.angle)); d.naam = 'Rondvlucht Eelde'; return margeVoorDienst(d, 14); },
+  kaartTitel: 'Vlucht tussen de velden',
+  kaartBody: 'Stijg op, vlieg door de twee poorten (niet te snel, op hoogte) en land zacht op het tweede veld. De klok loopt; te hard vliegen kost veiligheid. [Backspace] stopt.',
+  // Eén etappe per dienst, geen eindeloze route: de bestemming komt uit de velden die de wereld al
+  // kent (Eelde en de gemeten velden). Vanaf een veld vlieg je terug naar Eelde; terugvliegen is
+  // dus een nieuwe dienst.
+  maak: (w, v) => {
+    const rit = vluchtTussenVelden(w.planeVelden || [], v.x, v.y, { thuis: 'eelde' });
+    if (!rit) return null;
+    return margeVoorDienst(maakVluchtdienst(rit), 14);
+  },
   stap: (d, v, dt) => vluchtStap(d, vliegtuigStaat(v), { dt }),
   stand: (d) => vluchtStand(d),
   uitslag: (d) => vluchtUitslag(d),
   extra: (v) => ({ hoogte: v.z, snelheid: Math.abs(v.speed || 0) }),
-  // de toren (#492): één vertrekregel en één naderingsregel, deterministisch per veldnaam. De
-  // dienst heeft het veld al in zijn naam, dus er is geen tweede bron voor de velden.
-  rijen: (d) => [['Vertrek', departure(d.naam)], ['Nadering', approach(d.naam)]],
+  // de toren (#492): één vertrekregel bij het veld van vertrek en één naderingsregel bij de
+  // bestemming, deterministisch per veldnaam. De dienst kent beide namen (vanNaam/naarNaam), dus
+  // de naderingsregel hoort bij het veld waar je echt naartoe vliegt.
+  rijen: (d) => [['Vertrek', departure(d.vanNaam)], ['Nadering', approach(d.naarNaam)]],
   // de beloning (#492) na een geslaagde vlucht: geld en ervaring in het vak 'lucht', nooit bij
   // een afgebroken of mislukte vlucht, en maar één keer per dienst (vluchtLoon zet r.betaald).
   beloning: (w, u, r) => {

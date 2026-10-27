@@ -14,7 +14,7 @@ const handlers = {};
 const el = { innerHTML: '', dataset: {}, addEventListener: (k, f) => { handlers[k] = f; }, querySelector: () => null, querySelectorAll: () => [] };
 const world = { money: 50000, clock: 8, addMessage() {} };
 // een klik op een knop met deze data-attributen
-const klik = (data) => handlers.click({ target: { closest: (sel) => (sel === '[data-pc]' && data.pc ? { dataset: data } : sel === '[data-bd]' && data.bd ? { dataset: data } : null) } });
+const klik = (data) => handlers.click({ target: { closest: (sel) => (sel === '[data-pc]' && data.pc ? { dataset: data } : sel === '[data-bd]' && data.bd ? { dataset: data } : sel === '[data-bd-gewas]' && data.bdGewas ? { dataset: data } : null) } });
 
 t('de onderdelen Percelen en Erf staan in het menu', () => {
   renderBoerderijPanel(el, world);
@@ -64,6 +64,28 @@ t('te weinig geld: de knop is uit en de reden komt als melding', () => {
   klik({ pc: 'koop', soort: 'perceel', id: 'bedumer-klei' });
   assert.match(el.innerHTML, /Je hebt €\d+ nodig/);
   assert.ok(PC.PERCEEL_IDS.length > 5);
+});
+
+t('Gewas: per perceel een eigen teeltplan; wisselen laat het plan van het ander staan (#492)', () => {
+  world.money = 50000;
+  klik({ bd: 'percelen' });
+  klik({ pc: 'actief', soort: 'perceel', id: 'wierdeakker' });
+  klik({ bd: 'gewas' });
+  assert.match(el.innerHTML, /data-bd-gewas="uien"/, 'het vijfde gewas staat in de lijst');
+  assert.match(el.innerHTML, /Wierdeakker<\/b> · werkt hier<span class="mut"> · plan: Aardappelen · /);
+  klik({ bdGewas: 'uien' });
+  assert.match(el.innerHTML, /data-bd-gewas="uien"[^>]*aria-pressed="true">Gekozen</);
+  assert.match(el.innerHTML, /Wierdeakker<\/b> · werkt hier<span class="mut"> · plan: Uien · €0,16 per kg vandaag/);
+  // naar de Zonnehoek: die houdt zijn eigen plan
+  klik({ pc: 'actief', soort: 'perceel', id: PC.START_PERCEEL });
+  klik({ bd: 'gewas' });
+  klik({ bdGewas: 'bieten' });
+  assert.match(el.innerHTML, /Akker De Zonnehoek<\/b> · werkt hier<span class="mut"> · plan: Suikerbieten/);
+  // terug naar de Wierdeakker: het plan van dat perceel staat er nog
+  klik({ pc: 'actief', soort: 'perceel', id: 'wierdeakker' });
+  klik({ bd: 'gewas' });
+  assert.match(el.innerHTML, /plan: Uien/);
+  assert.match(el.innerHTML, /data-bd-gewas="uien"[^>]*aria-pressed="true">Gekozen</);
 });
 
 console.log(`boerderijui_percelen_test: ${n - fails}/${n}`);

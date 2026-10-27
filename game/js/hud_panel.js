@@ -60,6 +60,7 @@ import { decideHud, zones, hudNow, P3, PLACE_SHOW, E_SHOW, DEFER_MAX, GPS_NEAR }
 import { vehicleKind, speedoLook, meterLevel, hudEdge, distanceOwner, vehicleLabelOwner } from './hudlook.js';
 import { nextTurn, turnText, etaText, dichtstbijDoel } from './hudgps.js';
 import { gastDoelen } from './coopextra.js';
+import { kaartDoelen, KAART_ANDER_ALPHA } from './coopmissie.js';
 import { travelModeOf, roadAllowed, minimapScale, northUp, MINIMAP_MODE } from './roadaccess.js';
 import { hudDate } from './hudcalendar.js';
 import { LANDMARK_LINES } from './placelines.js';
@@ -2497,6 +2498,13 @@ function drawMinimap(dt, world) {
   const gastDoelLijst = world.coopRole === 'client' && !showMission && !job ? gastDoelen(world) : []; // alle doelen van de host (#452); de pijl wijst naar het dichtstbijzijnde
   const gastDoel = gastDoelLijst[0], naast = dichtstbijDoel(gastDoelLijst, player.x, player.y);
   for (const gd of gastDoelLijst) if (!icon(gd.soort === 'controle' ? 'waypoint' : missionMapKind(-1, true), gd.x, gd.y) && naast && naast.doel === gd) missionEdge = edgeAngle(gd.x, gd.y);
+  // samen spelen (#492): op de gastheer de groepen uit het register. De eigen groep staat vol en bovenop; de andere groepen mogen
+  // gedempt mee en overschrijven de eigen markering niet. Loopt de eigen opdracht al op de kaart, dan is die marker genoeg.
+  const groepDoelen = kaartDoelen(world);
+  if (!busyGame) for (const gd of groepDoelen) if (!gd.eigen) icon(gd.soort === 'controle' ? 'waypoint' : missionMapKind(-1, true), gd.x, gd.y, { alpha: KAART_ANDER_ALPHA });
+  const eigenGroepDoelen = showMission || job ? [] : groepDoelen.filter((gd) => gd.eigen);
+  const naastEigen = dichtstbijDoel(eigenGroepDoelen, player.x, player.y);
+  for (const gd of eigenGroepDoelen) if (!icon(gd.soort === 'controle' ? 'waypoint' : missionMapKind(-1, true), gd.x, gd.y) && naastEigen && naastEigen.doel === gd) missionEdge = edgeAngle(gd.x, gd.y);
   const gastStart = world.coopRole === 'client' && !showMission && !job && !gastDoel && world.coopHost && world.coopHost.starts && world.coopHost.starts[0]; // het beginpunt van de volgende opdracht van de gastheer (#434)
   if (gastStart && !icon(missionMapKind(gastStart.index, false), gastStart.x, gastStart.y)) missionEdge = edgeAngle(gastStart.x, gastStart.y);
 
