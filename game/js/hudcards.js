@@ -30,6 +30,7 @@ import { zones, mayShow, cardPrio, cardZone, hudNow } from './hudrules.js';
 import { enqueueCard } from './hudbus.js';
 import { CAL_ICONS } from './calendar.js';
 import { menuMelding } from './menumelding.js';
+import { hoofdspeler } from './players.js';
 
 // the HUD's attention budget: one prominent card at a time
 const MAX_VISIBLE = 1;
@@ -264,7 +265,8 @@ function speak(c) {
   if (!hit) { companionSays(c); return; }
   const now = world.time;
   if (now - lastVoiceAt < VOICE_GAP || now - (voicedAt.get(hit.say) ?? -Infinity) < VOICE_REPEAT) return;
-  const who = world.player && world.player.character === 'anita' ? 'Anita' : 'Tammo';
+  const ik = hoofdspeler(world);
+  const who = ik && ik.character === 'anita' ? 'Anita' : 'Tammo';
   const v = lineVoiceFor(who, hit.say);
   if (!v) return;
   if (playLineVoice(v.src, v.dur, 'react')) { lastVoiceAt = now; voicedAt.set(hit.say, now); }
@@ -273,7 +275,8 @@ function speak(c) {
 // A card phrased as the companion talking (smsvoice.js hints manifest): said
 // by the one you don't play, once the channel is free while the card is up.
 function companionSays(c) {
-  const who = world.player && world.player.character === 'anita' ? 'Tammo' : 'Anita';
+  const ik = hoofdspeler(world);
+  const who = ik && ik.character === 'anita' ? 'Tammo' : 'Anita';
   const say = c.spec.say || cardSpoken(c.text);
   const v = hintVoiceFor(who, say);
   if (!v || world.time - (voicedAt.get(who + say) ?? -Infinity) < HINT_REPEAT) return;
