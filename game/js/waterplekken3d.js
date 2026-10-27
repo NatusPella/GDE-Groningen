@@ -2,6 +2,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { getScene } from './scene3d.js';
 import { WATER_Y } from './util.js';
 import { CEL, celVan, partsToWorld } from './waterplekken.js';
+import { hoofdspeler } from './players.js';
 
 // Waterplekken (#23, #7, scripts/world/waterplekken.mjs -> game/waterplekken.json): sluizen,
 // brugtorens, havens, vuurtorens en dijk- en zeewerken, per cel van 512 m als
@@ -68,7 +69,7 @@ export function updateWaterplekken3D(world) {
   if (!cellen.size || (tick = (tick + 1) % 20) !== 0) return;
   const scene = getScene();
   if (!scene) return;
-  const p = world.player;
+  const p = hoofdspeler(world);
   const px = p.inVehicle ? p.inVehicle.x : p.x, py = p.inVehicle ? p.inVehicle.y : p.y;
   const dist = (k) => {
     const [i, j] = k.split(',').map(Number);

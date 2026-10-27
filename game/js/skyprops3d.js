@@ -2,6 +2,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { helipadInfo, DECK_RAISE } from './skyprops.js';
 import { pointInPolygon } from './util.js';
 import { makeBeamGeometry, makeBeamMaterial, requestSearchlight } from './nightlights3d.js';
+import { hoofdspeler } from './players.js';
 
 // 3D side of skyprops.js: the UMCG rooftop helipad, the trauma helicopter
 // and hot-air balloons. Meshes are local +X forward like every other actor.
@@ -429,7 +430,7 @@ function updateHeli3D(world, pad, dt) {
     beam.spot.position.set(_q.x, ty3, _q.z);
     beam.spot.scale.setScalar(Math.max(2.5, len * spread * 1.2));
     beam.spot.material.opacity = 0.2 * sl * Math.min(1, 70 / len);
-    requestSearchlight(_v.x, _v.y, _v.z, _q.x, _q.y, _q.z, len * spread * 1.2, sl * smoothstep(260, 140, Math.hypot(h.x - world.player.x, h.y - world.player.y)));
+    requestSearchlight(_v.x, _v.y, _v.z, _q.x, _q.y, _q.z, len * spread * 1.2, sl * smoothstep(260, 140, Math.hypot(h.x - hoofdspeler(world).x, h.y - hoofdspeler(world).y)));
   }
   updateDust(h, dt);
 }

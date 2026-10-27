@@ -6,6 +6,7 @@ import {
 } from './countrymodels.js';
 import { vcMaterial, markShared } from './pixelart3d.js';
 import { markInstancesDirty } from './util.js';
+import { hoofdspeler } from './players.js';
 
 // The tall things of the province past the detail radius: wind turbines and
 // pylons at the places OSM has them (the land file of the tile build,
@@ -204,7 +205,7 @@ export function updateFarProps(dt, world, scene, cam) {
   if (!D.turbines.length && !D.pylons.length) return;
   if (!K) init(scene);
   const t0 = performance.now();
-  const p = world.streamFocus || world.player; // the camera focus in a cutscene (tilefocus.js)
+  const p = world.streamFocus || hoofdspeler(world); // the camera focus in a cutscene (tilefocus.js)
   const ed = edgeDistance(p.x, p.y);
   // a horizon trick: hidden deep inside the city's data
   const fadeT = smooth(-2600, -700, ed);

@@ -5,6 +5,7 @@ import { GeoBuilder, vcMaterial } from './pixelart3d.js';
 import { makeProp, addProp, removeProp } from './breakables.js';
 import { placeTrafficLight } from './trafficlights.js';
 import { noteMoney } from './finance.js';
+import { hoofdspeler } from './players.js';
 
 const TARGET_COUNT = 12;
 const MIN_COUNT = 8;
@@ -84,7 +85,7 @@ export function initFlitspaal(world) {
 export function updateFlitspaal(dt, world) {
   const cams = world.flitspaalen;
   if (!cams || !cams.length) return;
-  const v = world.player.inVehicle;
+  const v = hoofdspeler(world).inVehicle;
   if (!v || v.wrecked || v.isHeli) return;
 
   const speedKmh = Math.abs(v.speed) * 3.6;
