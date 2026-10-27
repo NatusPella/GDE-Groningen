@@ -39,8 +39,9 @@ import { animateSkutsjeRig } from './models3d_vehicles.js';
 import { setMuseumCaseStolen } from './museum3d.js';
 import {
   startHeist, guardRoute, placeHeistProps, updateHeist, updateFuse, closeFuse, camerasOff, vitrineSpot, vitrineStand, disposeHeist, heistEnterStage, heistLeaveStage,
-  heistApproach, heistSpotAt, heistSendingBack, updatePlanStage, updateLock, updatePickpocket, updateLasers, updateCrack, updateGetaway, heistSkipGetaway, heistBoat, playEndingShot, heistRevealUpdate, openHeistDoor, REVEAL, heistRolStap,
+  heistApproach, heistSpotAt, heistSendingBack, updatePlanStage, updateLock, updatePickpocket, updateLasers, updateCrack, updateGetaway, heistSkipGetaway, heistBoat, playEndingShot, heistRevealUpdate, openHeistDoor, REVEAL, heistRolStap, heistBuit,
 } from './heist.js';
+import { buitDelen } from './heistrollen.js';
 import { spawnFjordTrain, fjordLoadPoint, fjordCrossing, loadFjord, loadFjordNow, updateFjordTrain, sendFjordTrainAway, catchFjordTrainNow, disposeFjordTrain, fjordTrainState } from './fjordtrain.js';
 import { addDrunk } from './drunk.js';
 import { klusloon, medalBonus } from './economy.js';
@@ -83,7 +84,7 @@ import('./storycontact.js').then((m) => { contactMod = m; }).catch(() => {});
 let storyMod = null;
 import('./story.js').then((m) => { storyMod = m; }).catch(() => {});
 // a choice of this mission (tag) or of an earlier one (remembered as 'keuze:<tag>')
-const choiceOn = (tag) => !!(chain.tags && chain.tags.has(tag)) || !!(storyMod && storyMod.storyFlag('keuze:' + tag));
+const choiceOn = (tag) => !!(chainState().tags && chainState().tags.has(tag)) || !!(storyMod && storyMod.storyFlag('keuze:' + tag));
 
 const TRIGGER_RADIUS = 4;
 const CHECKPOINT_RADIUS = 6;
@@ -597,7 +598,32 @@ function buildDefs(world) {
   return list;
 }
 
-let chain = null;
+// #492: de missieketen hoort bij een groep, niet bij dit bestand. `chains` houdt er één per sleutel;
+// in deze slice is er één sleutel (de eigen wereld), dus leest en schrijft alles precies als één `chain`.
+// Dit blok staat bewust los: scripts/mission_chain_test.mjs haalt het tussen de markers uit en test het.
+// --- ketenhouder begin ---
+const chains = new Map();
+// De sleutel van de keten van deze wereld: de eigen groep, of 0 zolang die er nog niet is.
+function chainKey(world) {
+  const w = world || worldRef;
+  if (!w) return null;
+  return w.coopGroepSleutel != null ? w.coopGroepSleutel : 0;
+}
+
+// De keten van deze wereld (zonder wereld: die van dit bestand), of null als er nog geen keten is.
+function chainState(world) {
+  const key = chainKey(world);
+  return key === null ? null : chains.get(key) || null;
+}
+
+// Zet de keten van deze wereld; geeft hem terug zodat de volgende lezer meteen ziet wat er staat.
+function setChainState(next, world) {
+  const key = chainKey(world);
+  if (key === null) return next;
+  chains.set(key, next);
+  return next;
+}
+// --- ketenhouder eind ---
 
 export function initMissions(world) {
   worldRef = world;
@@ -606,7 +632,7 @@ export function initMissions(world) {
   defs.forEach((d, i) => { d.id = d.mid || MISSION_IDS[i]; });
   // a def that names its id (act 5) must sit at that id's index (the defs and NEW_MISSION_IDS are appended in the same order)
   defs.forEach((d, i) => { if (d.mid && MISSION_IDS[i] && d.mid !== MISSION_IDS[i]) console.warn(`missions: def '${d.mid}' staat op plek ${i} maar MISSION_IDS heeft '${MISSION_IDS[i]}'`); });
-  chain = {
+  setChainState({
     defs,
     index: 0,
     phase: 'idle',
@@ -635,8 +661,8 @@ export function initMissions(world) {
     bikes: [],
     crowd: [],
     pub: { type: null, label: '', phase: 'idle', timeLeft: 0, index: 0, total: defs.length, marker: { x: 0, y: 0 }, distanceToMarker: 0, remainingWaypoints: [] },
-  };
-  world.mission = chain.pub;
+  });
+  world.mission = chainState().pub;
   // een gast kan zelf een verhaalopdracht starten (#452): coopglue.js vraagt het, deze wereld begint hem op het startpunt
   world.coopMissieStart = (i) => startMissionVoorGast(world, i);
   // zaal 3's case is empty once H6 has been played
@@ -651,22 +677,22 @@ export function initMissions(world) {
 
 // Index of the running mission (missions.js def index), or -1.
 export function activeMissionIndex() {
-  return chain && chain.phase === 'active' ? chain.index : -1;
+  return chainState() && chainState().phase === 'active' ? chainState().index : -1;
 }
 
 // The running mission's current stage (a def.stages entry), or null.
 export function activeStage() {
-  if (!chain || chain.phase !== 'active') return null;
-  const def = chain.defs[chain.index];
-  return (def && def.stages && def.stages[chain.stageIndex]) || null;
+  if (!chainState() || chainState().phase !== 'active') return null;
+  const def = chainState().defs[chainState().index];
+  return (def && def.stages && def.stages[chainState().stageIndex]) || null;
 }
 
 export function failActiveMission(world, reason, bannerReason, coopReden = '') {
-  if (!chain || chain.phase !== 'active') return false;
-  const def = chain.defs[chain.index];
+  if (!chainState() || chainState().phase !== 'active') return false;
+  const def = chainState().defs[chainState().index];
   const mee = gastStartMee(world); // keek de gastheer toe bij de opdracht van een gast, dan is dit niet zijn mislukking (#452)
   if (mee) playMissionFailed(world, { reason: bannerReason || reason, stats: runStats(world, def) }, false);
-  const i = chain.index;
+  const i = chainState().index;
   if (world.coopUitslag) world.coopUitslag(false, def.label, coopReden || String(bannerReason || reason || '').toLowerCase()); // samen spelen (#371): ook knock-out, arrestatie en afbreken horen de gasten
   endInFailure(world, reason);
   sluitGastStart(world, mee);
@@ -681,11 +707,11 @@ export function failActiveMission(world, reason, bannerReason, coopReden = '') {
 // borrowed vehicle, a pigeon, the heli run), and the retry offer stands ("opnieuw beginnen? Enter") as does the marker at the start.
 // In Samen spelen (#371) the host's guests hear that it was stopped (world.coopUitslag, `gestopt`).
 export function cancelActiveMission(world) {
-  if (!chain || chain.phase !== 'active') return false;
-  const def = chain.defs[chain.index];
-  const i = chain.index;
+  if (!chainState() || chainState().phase !== 'active') return false;
+  const def = chainState().defs[chainState().index];
+  const i = chainState().index;
   const mee = gastStartMee(world); // een gast startte hem en de gastheer deed niet mee: zijn eigen keten blijft staan (#452)
-  chain.checkpoints.delete(i);
+  chainState().checkpoints.delete(i);
   if (world.coopUitslag) world.coopUitslag(false, def.label, '', 0, true);
   endInFailure(world, `${def.label} gestopt. Je kunt hem opnieuw starten`);
   sluitGastStart(world, mee);
@@ -700,22 +726,22 @@ function speakerName(world) {
 }
 
 function statusOf(i) {
-  if (chain.phase === 'active' && i === chain.index) return 'actief';
-  if (i === chain.index) return 'volgende';
-  return chain.completed.has(i) ? 'geklaard' : 'open';
+  if (chainState().phase === 'active' && i === chainState().index) return 'actief';
+  if (i === chainState().index) return 'volgende';
+  return chainState().completed.has(i) ? 'geklaard' : 'open';
 }
 
 // The new arc lists only the missions it has built (the others are old-story defs with the old plot's text, or not there yet).
 const ARC_BUILT = new Set(STEPS.filter((s) => s.kind === 'mission' && s.built).map((s) => missionIndexOf(s.mission)));
 
 export function getMissionList() {
-  if (!chain) return [];
+  if (!chainState()) return [];
   const w = worldRef;
-  return chain.defs.map((d, i) => ({
+  return chainState().defs.map((d, i) => ({
     index: i, id: d.id, code: missionCode(i), order: storyOrder(i), label: d.label, type: d.type, reward: d.reward, status: statusOf(i), skipped: !!hooks.skipped(i), start: { x: d.start.x, y: d.start.y },
-    samen: missieStatus(d), needs: w ? requirementText(w, d) : null, done: chain.completed.has(i), klusloon: klusloon(d.reward), medalPaid: chain.medalPaid[i] || 0,
-    pay: chain.completed.has(i) ? klusloon(d.reward) : d.reward,
-  })).filter((m) => ARC_BUILT.has(m.index) || !!chain.defs[m.index].side);
+    samen: missieStatus(d), needs: w ? requirementText(w, d) : null, done: chainState().completed.has(i), klusloon: klusloon(d.reward), medalPaid: chainState().medalPaid[i] || 0,
+    pay: chainState().completed.has(i) ? klusloon(d.reward) : d.reward,
+  })).filter((m) => ARC_BUILT.has(m.index) || !!chainState().defs[m.index].side);
 }
 
 // --- requirements ------------------------------------------------------------
@@ -800,8 +826,8 @@ const WRONG_RIDE = {
 // the ride def needs.
 function checkRide(w, def) {
   if (!def.ride || rideOk(w, def.ride)) return true;
-  if (w.time - chain.reqHintAt >= 3) {
-    chain.reqHintAt = w.time;
+  if (w.time - chainState().reqHintAt >= 3) {
+    chainState().reqHintAt = w.time;
     const v = w.player.inVehicle;
     const line = WRONG_RIDE[def.ride].find((r) => r.when(v));
     w.addMessage(line.say, 4, { kind: 'missie' });
@@ -897,20 +923,20 @@ function requirementText(w, def) {
 function checkRequirement(w, def, force = false) {
   const key = unmetRequirement(w, def);
   if (!key) return true;
-  if (w.time - chain.reqHintAt < (force ? 3 : REQUIREMENT_HINT_EVERY)) return false;
-  chain.reqHintAt = w.time;
+  if (w.time - chainState().reqHintAt < (force ? 3 : REQUIREMENT_HINT_EVERY)) return false;
+  chainState().reqHintAt = w.time;
   const place = requirementPlace(w, key);
   const text = REQUIREMENTS[key].text(place ? place.name : chainName(REQUIREMENTS[key]));
   w.addMessage(text, 5);
   if (w.phoneNotifications) w.phoneNotifications.push({ from: 'GDE', text: `${def.label}: ${text}${place ? ' Staat op je kaart.' : ''}`, duration: 6, say: SMS_SAY.gate.lines[0] });
-  hooks.gated(w, chain.index, key);
+  hooks.gated(w, chainState().index, key);
   return false;
 }
 
 export function getNextMission() {
-  if (!chain) return null;
-  const d = chain.defs[chain.index];
-  return { index: chain.index, id: d.id, label: d.label, reward: d.reward, active: chain.phase === 'active', phase: chain.phase, start: { x: d.start.x, y: d.start.y } };
+  if (!chainState()) return null;
+  const d = chainState().defs[chainState().index];
+  return { index: chainState().index, id: d.id, label: d.label, reward: d.reward, active: chainState().phase === 'active', phase: chainState().phase, start: { x: d.start.x, y: d.start.y } };
 }
 
 // Position of mission i in the story (MISSION_STORY_ORDER), or a large
@@ -921,22 +947,22 @@ function storyOrder(i) {
 }
 
 export function missionIndexById(id) {
-  return chain ? chain.defs.findIndex((d) => d.id === id) : -1;
+  return chainState() ? chainState().defs.findIndex((d) => d.id === id) : -1;
 }
 
 export function isMissionCompleted(i) {
-  return !!chain && chain.completed.has(i);
+  return !!chainState() && chainState().completed.has(i);
 }
 
 // story.js: makes mission i the next one without touching the player's
 // waypoint (the story guide routes there by itself).
 export function setNextMission(world, i) {
-  if (!chain || !chain.defs[i] || chain.phase === 'active') return false;
-  if (chain.index !== i) {
-    chain.index = i;
-    chain.phase = 'idle';
-    chain.armed = true;
-    chain.wpIndex = 0;
+  if (!chainState() || !chainState().defs[i] || chainState().phase === 'active') return false;
+  if (chainState().index !== i) {
+    chainState().index = i;
+    chainState().phase = 'idle';
+    chainState().armed = true;
+    chainState().wpIndex = 0;
   }
   syncPub(world);
   return true;
@@ -945,30 +971,30 @@ export function setNextMission(world, i) {
 // A skipped story mission counts as done for the story and the dialogue
 // (no stats, medals or achievements); story.js pays the part of the reward.
 export function markMissionCompleted(world, i) {
-  if (!chain || !chain.defs[i]) return;
-  chain.completed.add(i);
-  chain.seen.add(i);
-  if (chain.phase !== 'active' && chain.index === i) {
-    chain.index = nextOpenMission(i);
-    chain.phase = 'idle';
+  if (!chainState() || !chainState().defs[i]) return;
+  chainState().completed.add(i);
+  chainState().seen.add(i);
+  if (chainState().phase !== 'active' && chainState().index === i) {
+    chainState().index = nextOpenMission(i);
+    chainState().phase = 'idle';
     // standing on the old marker must not start the next one straight away
-    chain.armed = false;
-    chain.wpIndex = 0;
+    chainState().armed = false;
+    chainState().wpIndex = 0;
   }
   syncPub(world);
 }
 
 // Read-only access for debug/test tooling (checkpoint validation).
 export function getMissionDefs() {
-  return chain ? chain.defs : [];
+  return chainState() ? chainState().defs : [];
 }
 
 export function getActiveRace() {
-  return chain ? chain.race : null;
+  return chainState() ? chainState().race : null;
 }
 
 export function isMissionActive() {
-  return !!chain && chain.phase === 'active';
+  return !!chainState() && chainState().phase === 'active';
 }
 registerBusyProbe('mission', isMissionActive);
 registerBusyProbe('activeRace', () => !!getActiveRace());
@@ -981,13 +1007,13 @@ registerMissionQueries({
 // Callers that offer story missions ahead of the story go through todo.js
 // playMission first, which asks.
 export function trackMission(world, i) {
-  if (!chain || !chain.defs[i]) return false;
-  if (chain.phase === 'active') return i === chain.index;
-  chain.index = i;
-  chain.phase = 'idle';
-  chain.armed = true;
-  chain.wpIndex = 0;
-  const d = chain.defs[i];
+  if (!chainState() || !chainState().defs[i]) return false;
+  if (chainState().phase === 'active') return i === chainState().index;
+  chainState().index = i;
+  chainState().phase = 'idle';
+  chainState().armed = true;
+  chainState().wpIndex = 0;
+  const d = chainState().defs[i];
   checkRequirement(world, d, true);
   syncPub(world);
   setGoal({ kind: 'mission', id: i, x: d.start.x, y: d.start.y, name: missionCode(i) ? `${missionCode(i)} · ${d.label}` : d.label }, { quiet: true });
@@ -998,19 +1024,19 @@ export function trackMission(world, i) {
 // verplaatst en de intro speelt zoals bij elke opdracht. Alleen de gastheer houdt de wereld bij, dus hij voert het uit; de
 // opdrachtstand per groep (coopmissie.js) en de keuzes van de spelers blijven leidend.
 export function startMissionVoorGast(world, i) {
-  if (!chain || !chain.defs[i] || chain.phase === 'active') return false;
-  const def = chain.defs[i];
+  if (!chainState() || !chainState().defs[i] || chainState().phase === 'active') return false;
+  const def = chainState().defs[i];
   if (def.solo) return false;
-  const eigenIndex = chain.index; // de eigen volgende opdracht van de gastheer: die blijft staan als hij niet meedoet (#452)
-  chain.index = i;
-  chain.phase = 'idle';
-  chain.armed = true;
-  chain.wpIndex = 0;
-  chain.gastStart = null;
+  const eigenIndex = chainState().index; // de eigen volgende opdracht van de gastheer: die blijft staan als hij niet meedoet (#452)
+  chainState().index = i;
+  chainState().phase = 'idle';
+  chainState().armed = true;
+  chainState().wpIndex = 0;
+  chainState().gastStart = null;
   startMission(world, def);
   syncPub(world);
-  if (chain.phase !== 'active') return false;
-  chain.gastStart = { id: `${i}|${String(def.label || '').slice(0, 48)}`, eigenIndex };
+  if (chainState().phase !== 'active') return false;
+  chainState().gastStart = { id: `${i}|${String(def.label || '').slice(0, 48)}`, eigenIndex };
   world.coopGastVraag = null; // een vraag van een vorige opdracht is niet meer aan de orde
   return true;
 }
@@ -1018,55 +1044,55 @@ export function startMissionVoorGast(world, i) {
 // Een gast startte de lopende opdracht (#452). De gastheer deed mee als hij zelf J zei (coopmissie.js gastheerMee); anders kijkt
 // hij toe: geen geld, geen vakpunten, geen medaille en geen verhaalstap. Zonder gastStart (de gewone opdracht van de
 // gastheer) verandert er niets.
-const gastStartMee = (world) => !chain.gastStart || gastheerMee(world, chain.gastStart.id);
+const gastStartMee = (world) => !chainState().gastStart || gastheerMee(world, chainState().gastStart.id);
 // De gastStart afsluiten. Deed de gastheer niet mee, dan springt zijn eigen keten terug naar waar hij was en vervalt het
 // Opnieuw-aanbod van de opdracht van de gast.
 function sluitGastStart(world, mee) {
-  const g = chain.gastStart;
-  chain.gastStart = null;
+  const g = chainState().gastStart;
+  chainState().gastStart = null;
   if (world) world.coopGastVraag = null; // een openstaande vraag hoort bij deze opdracht
-  if (g && !mee) { chain.index = g.eigenIndex; chain.retry = null; }
+  if (g && !mee) { chainState().index = g.eigenIndex; chainState().retry = null; }
   return g;
 }
 
 export function getMissionProgress() {
-  if (!chain) return null;
-  return { index: chain.index, completed: [...chain.completed], seen: [...chain.seen], medals: { ...chain.medalPaid } };
+  if (!chainState()) return null;
+  return { index: chainState().index, completed: [...chainState().completed], seen: [...chainState().seen], medals: { ...chainState().medalPaid } };
 }
 
 export function setMissionProgress(world, prog) {
-  if (!chain) return;
+  if (!chainState()) return;
   // a save without mission progress is a fresh start: a mission running now still has to end
   if (!prog || typeof prog !== 'object') prog = {};
-  const n = chain.defs.length;
-  if (chain.phase === 'active') {
+  const n = chainState().defs.length;
+  if (chainState().phase === 'active') {
     // a save loaded mid-mission: what the mission put in the world goes with it
     clearStoryProps();
-    if (chain.defs[chain.index] && chain.defs[chain.index].heist) setStoryOutfit(null);
+    if (chainState().defs[chainState().index] && chainState().defs[chainState().index].heist) setStoryOutfit(null);
   }
   releaseMissionVehicle(world);
-  chain.afoot = false;
-  chain.handBack = null;
-  chain.index = Number.isInteger(prog.index) && prog.index >= 0 && prog.index < n ? prog.index : 0;
+  chainState().afoot = false;
+  chainState().handBack = null;
+  chainState().index = Number.isInteger(prog.index) && prog.index >= 0 && prog.index < n ? prog.index : 0;
   const valid = (list) => (Array.isArray(list) ? list : []).filter((i) => Number.isInteger(i) && i >= 0 && i < n);
-  chain.completed = new Set(valid(prog.completed));
-  chain.seen = new Set([...valid(prog.seen), ...chain.completed]);
-  chain.medalPaid = {};
+  chainState().completed = new Set(valid(prog.completed));
+  chainState().seen = new Set([...valid(prog.seen), ...chainState().completed]);
+  chainState().medalPaid = {};
   if (prog.medals && typeof prog.medals === 'object') {
-    for (const [k, v] of Object.entries(prog.medals)) if (chain.defs[k] && Number.isInteger(v)) chain.medalPaid[k] = Math.max(0, Math.min(3, v));
+    for (const [k, v] of Object.entries(prog.medals)) if (chainState().defs[k] && Number.isInteger(v)) chainState().medalPaid[k] = Math.max(0, Math.min(3, v));
   }
-  chain.phase = 'idle';
-  chain.armed = true;
-  chain.wpIndex = 0;
-  chain.run = null;
-  chain.stage = null;
-  chain.stagePending = false;
-  if (chain.retry && chain.retry.fade != null) respawnFade(0, 0);
-  chain.checkpoints.clear();
-  chain.resume = null;
-  chain.grace = null;
-  chain.retry = null;
-  chain.gastStart = null; // een geladen spel begint geen opdracht van een gast (#452)
+  chainState().phase = 'idle';
+  chainState().armed = true;
+  chainState().wpIndex = 0;
+  chainState().run = null;
+  chainState().stage = null;
+  chainState().stagePending = false;
+  if (chainState().retry && chainState().retry.fade != null) respawnFade(0, 0);
+  chainState().checkpoints.clear();
+  chainState().resume = null;
+  chainState().grace = null;
+  chainState().retry = null;
+  chainState().gastStart = null; // een geladen spel begint geen opdracht van een gast (#452)
   if (world.pigeonMode) stopPigeonMode(world);
   syncPub(world);
 }
@@ -1079,7 +1105,7 @@ function fmtTime(s) {
 const killCount = (world) => world.stats.pedKills + world.stats.copKills;
 
 function runStats(world, def) {
-  const r = chain.run;
+  const r = chainState().run;
   if (!r) return [];
   const stats = [['Tijd', fmtTime(r.elapsed)]];
   const kills = killCount(world) - r.kills;
@@ -1087,7 +1113,7 @@ function runStats(world, def) {
   const rv = def.type === 'boat' ? rondvaartStatus() : null;
   if (rv) stats.push(['Toeristen', `${rv.joy}%`], ['Verhalen verteld', `${rv.told}/${rv.stops}`], ['Botsingen', String(rv.bumps)]);
   if (r.vehicleUsed && !rv) stats.push([def.fragile ? def.fragile.label : 'Schade voertuig', def.fragile ? `${Math.round(cargoLeft(def))}%` : `${Math.round(r.vehDamage)}%`]);
-  if (def.type === 'fatbike') stats.push(['Geschept', String(chain.fatbikeHits || 0)]);
+  if (def.type === 'fatbike') stats.push(['Geschept', String(chainState().fatbikeHits || 0)]);
   const su = def.type === 'stunt' ? stuntStatus() : null;
   if (su) stats.push(['Punten', String(su.score)], ['Omver', String(su.broken)]);
   if (r.hurt > 0.5 || (!rv && !r.vehicleUsed)) stats.push(['Verwondingen', `${Math.round(r.hurt)}%`]);
@@ -1098,8 +1124,8 @@ function runStats(world, def) {
 // The vehicle whose damage counts for the run: the mission car/boat, the
 // handed-out race car/bike, else whatever the player drives meanwhile.
 function runVehicle(world) {
-  if (chain.vehicle) return chain.vehicle;
-  if (chain.race && chain.race.playerCar) return chain.race.playerCar;
+  if (chainState().vehicle) return chainState().vehicle;
+  if (chainState().race && chainState().race.playerCar) return chainState().race.playerCar;
   const v = world.player.inVehicle;
   return v && !v.isBoat ? v : null;
 }
@@ -1108,7 +1134,7 @@ function runVehicle(world) {
 // the run's vehicle while it is being driven), never as the current level,
 // so healing up or switching cars doesn't erase earlier knocks.
 function trackRun(dt, world) {
-  const r = chain.run;
+  const r = chainState().run;
   if (!r) return;
   r.elapsed += dt;
   const hp = world.health + world.armor;
@@ -1125,7 +1151,7 @@ function trackRun(dt, world) {
 }
 
 function cargoLeft(def) {
-  const r = chain.run;
+  const r = chainState().run;
   if (!def.fragile || !r) return 100;
   return clamp(100 - r.vehDamage * def.fragile.per, 0, 100);
 }
@@ -1133,9 +1159,9 @@ function cargoLeft(def) {
 // Until the player sits in the mission car/boat, point them at it rather
 // than at the destination they can't complete without it.
 function vehicleToBoard(world, def) {
-  if (def.type === 'stages') return stageNeedsVehicle(world, def) ? chain.vehicle : null;
+  if (def.type === 'stages') return stageNeedsVehicle(world, def) ? chainState().vehicle : null;
   if (def.type !== 'deliver' && def.type !== 'boat') return null;
-  const v = chain.vehicle;
+  const v = chainState().vehicle;
   const p = world.player;
   if (!v || v.wrecked || v.disabled) return null;
   // the rondvaart is in the tour boat (the tourists are aboard), not your own
@@ -1144,7 +1170,7 @@ function vehicleToBoard(world, def) {
 }
 
 function syncPub(world) {
-  const st = chain;
+  const st = chainState();
   const def = st.defs[st.index];
   const pub = st.pub;
   pub.type = def.type;
@@ -1162,7 +1188,7 @@ function syncPub(world) {
   let target;
   if (st.phase !== 'active' || def.type === 'stunt') target = def.start;
   else if (board) target = board;
-  else if (def.type === 'deliver') target = chain.stuntPhase ? def.stunt.center : nextStop(def) || def.dest;
+  else if (def.type === 'deliver') target = chainState().stuntPhase ? def.stunt.center : nextStop(def) || def.dest;
   else if (def.type === 'fatbike') target = def.dest;
   else if (def.type === 'stages') target = stageMarker(world, def);
   // past the last waypoint (the last pub's toast plays before the outro): the last one
@@ -1175,7 +1201,7 @@ function syncPub(world) {
   pub.distanceToMarker = afstandMeespeler(world, pub.marker.x, pub.marker.y);
   pub.armed = !!st.armed;
   pub.triggerRadius = def.triggerRadius || TRIGGER_RADIUS;
-  pub.stunt = (def.type === 'stunt' || chain.stuntPhase) && st.phase === 'active' ? stuntStatus() : null;
+  pub.stunt = (def.type === 'stunt' || chainState().stuntPhase) && st.phase === 'active' ? stuntStatus() : null;
   if (def.type === 'checkpoint' || def.type === 'boat') {
     pub.wpIndex = def.waypoints.slice(0, st.wpIndex).filter((wp) => !wp.via).length;
     pub.wpTotal = def.waypoints.filter((wp) => !wp.via).length;
@@ -1251,7 +1277,7 @@ function raceHud(st, pub) {
 }
 
 function nextStop(def) {
-  return def.stops && chain.stopIndex < def.stops.length ? def.stops[chain.stopIndex] : null;
+  return def.stops && chainState().stopIndex < def.stops.length ? def.stops[chainState().stopIndex] : null;
 }
 
 // Live counter line for the HUD (races and checkpoint runs keep the HUD's
@@ -1259,7 +1285,7 @@ function nextStop(def) {
 function progressText(world, def, pub) {
   if (def.type === 'deliver') {
     if (vehicleToBoard(world, def)) return `Stap in ${def.vehicleName || 'de auto'}`;
-    if (chain.stuntPhase) {
+    if (chainState().stuntPhase) {
       const s = stuntStatus();
       return s ? `Stunt op de Grote Markt · punten ${s.score}/${s.target}${s.combo > 1 ? ` · reeks x${s.combo}` : ''}${pub.vehicleDamage != null ? ` · schade ${pub.vehicleDamage}%` : ''}` : 'Rij naar de Grote Markt';
     }
@@ -1270,7 +1296,7 @@ function progressText(world, def, pub) {
     else if (pub.vehicleDamage != null) bits.push(`Schade ${pub.vehicleDamage}%`);
     return bits.join(' · ') || null;
   }
-  if (def.type === 'fatbike') return `Geschept: ${chain.fatbikeHits || 0} · Gezondheid ${Math.max(0, Math.round(world.health))}%`;
+  if (def.type === 'fatbike') return `Geschept: ${chainState().fatbikeHits || 0} · Gezondheid ${Math.max(0, Math.round(world.health))}%`;
   if (def.type === 'stages') return stageProgressText(world, def);
   if (def.type === 'stunt') {
     const s = stuntStatus();
@@ -1290,15 +1316,15 @@ function boatProgressText(rv) {
 // The car/boat stays in the world after the mission, but as ordinary
 // traffic that the population managers may despawn.
 function releaseMissionVehicle(world) {
-  disposeConvoy(world, chain.convoy);
-  chain.convoy = null;
+  disposeConvoy(world, chainState().convoy);
+  chainState().convoy = null;
   hideBake();
   stopRondvaart(world, 'mission');
   dropPursuer(world);
   disposeLight();
-  if (chain.storyBoat) {
-    const sb = chain.storyBoat;
-    chain.storyBoat = null;
+  if (chainState().storyBoat) {
+    const sb = chainState().storyBoat;
+    chainState().storyBoat = null;
     sb.missionCar = false;
     const i = world.vehicles.indexOf(sb);
     if (i >= 0 && world.player.inVehicle !== sb) world.vehicles.splice(i, 1);
@@ -1306,29 +1332,29 @@ function releaseMissionVehicle(world) {
   disposeFjordTrain(world);
   disposeHeist();
   releasePlaneStage(world);
-  if (chain.skutsje) {
-    const i = world.vehicles.indexOf(chain.skutsje);
-    if (i >= 0 && chain.skutsje.driver !== 'player') world.vehicles.splice(i, 1);
-    chain.skutsje = null;
+  if (chainState().skutsje) {
+    const i = world.vehicles.indexOf(chainState().skutsje);
+    if (i >= 0 && chainState().skutsje.driver !== 'player') world.vehicles.splice(i, 1);
+    chainState().skutsje = null;
     clearSkutsjeSail();
   }
-  const chased = chain.stage && chain.stage.target;
+  const chased = chainState().stage && chainState().stage.target;
   if (chased && chased.chaseTarget) { chased.missionCar = false; chased.chaseTarget = false; chased.chaseDodge = false; chased.aiOpts = null; }
   releaseLaneBikes(world);
   releaseCrowd(world);
   stopStunt(world);
-  chain.stuntPhase = false;
-  if (chain.soloHold) { chain.soloHold = false; world.companionHold = null; }
-  if (chain.race) {
-    disposeRace(world, chain.race);
-    chain.race = null;
+  chainState().stuntPhase = false;
+  if (chainState().soloHold) { chainState().soloHold = false; world.companionHold = null; }
+  if (chainState().race) {
+    disposeRace(world, chainState().race);
+    chainState().race = null;
   }
-  const v = chain.vehicle;
+  const v = chainState().vehicle;
   if (!v) return;
   v.missionCar = false;
   if (v.isBoat) v.waterPoly = waterPolyAt(world.map, v.x, v.y);
-  chain.leftover = v;
-  chain.vehicle = null;
+  chainState().leftover = v;
+  chainState().vehicle = null;
 }
 
 // def.handBack: a borrowed car or boat goes back to its owner once the
@@ -1355,15 +1381,15 @@ function handBack(world, def, v) {
   v.speed = 0;
   // somebody else's: locked until it drives off or goes
   v.driver = 'owner';
-  chain.handBack = { v, how, say: def.handBack.say, t: 0 };
-  chain.afoot = true;
+  chainState().handBack = { v, how, say: def.handBack.say, t: 0 };
+  chainState().afoot = true;
 }
 
 function updateHandBack(dt, world) {
-  const hb = chain.handBack;
+  const hb = chainState().handBack;
   if (!hb) return;
   const v = hb.v;
-  if (!world.vehicles.includes(v) || v.wrecked) { chain.handBack = null; return; }
+  if (!world.vehicles.includes(v) || v.wrecked) { chainState().handBack = null; return; }
   if (hb.t < 1.2) {
     if (isCinematicActive()) return;
     hb.t += dt;
@@ -1371,15 +1397,15 @@ function updateHandBack(dt, world) {
     world.addMessage(hb.say, 4.5, { kind: 'missie' });
     if (hb.how === 'drive') {
       v.driver = null;
-      if (attachToNearestRoad(v, world.map)) { chain.handBack = null; return; }
+      if (attachToNearestRoad(v, world.map)) { chainState().handBack = null; return; }
       v.driver = 'owner';
     }
   }
   if (dist(v.x, v.y, world.player.x, world.player.y) > HANDBACK_GONE_M) {
     const i = world.vehicles.indexOf(v);
     if (i >= 0) world.vehicles.splice(i, 1);
-    if (chain.leftover === v) chain.leftover = null;
-    chain.handBack = null;
+    if (chainState().leftover === v) chainState().leftover = null;
+    chainState().handBack = null;
   }
 }
 
@@ -1387,11 +1413,11 @@ function updateHandBack(dt, world) {
 // hand-back (you are on foot), or for a step that needs a car of yours
 // (need 'car': r-tuning; 'racecar': H9). { x, y, name } or null.
 export function rideFirst(world, need = null) {
-  if (!chain) return null;
+  if (!chainState()) return null;
   const p = world.player;
   const fits = need === 'racecar' ? (v) => rideOk(world, 'racecar', v) : need === 'car' ? isCarRide : (v) => !v.isBoat && !v.isHeli;
-  if (p.inVehicle && fits(p.inVehicle)) { chain.afoot = false; return null; }
-  if (!need && (!chain.afoot || p.inVehicle)) return null;
+  if (p.inVehicle && fits(p.inVehicle)) { chainState().afoot = false; return null; }
+  if (!need && (!chainState().afoot || p.inVehicle)) return null;
   let best = null, bd = Infinity;
   for (const v of world.vehicles) {
     if (!(v.isHeroCar || v.playerOwned) || v.missionCar || v.wrecked || v.sinking || v.driver || !fits(v)) continue;
@@ -1405,8 +1431,8 @@ export function rideFirst(world, need = null) {
 }
 
 function removeLeftover(world) {
-  const v = chain.leftover;
-  chain.leftover = null;
+  const v = chainState().leftover;
+  chainState().leftover = null;
   if (!v || v.driver === 'player' || v.passenger || v.isHeroCar || v.playerOwned) return;
   const i = world.vehicles.indexOf(v);
   if (i >= 0) world.vehicles.splice(i, 1);
@@ -1416,14 +1442,14 @@ function removeLeftover(world) {
 // lower when missions were played out of order.
 function storyStage(i) {
   const k = MISSION_STORY_ORDER.indexOf(i);
-  const prior = k >= 0 ? MISSION_STORY_ORDER.slice(0, k) : [...chain.completed].filter((j) => j !== i);
-  if (prior.every((j) => chain.completed.has(j))) return i;
-  return Math.max(0, Math.min(i - 1, prior.filter((j) => chain.completed.has(j)).length));
+  const prior = k >= 0 ? MISSION_STORY_ORDER.slice(0, k) : [...chainState().completed].filter((j) => j !== i);
+  if (prior.every((j) => chainState().completed.has(j))) return i;
+  return Math.max(0, Math.min(i - 1, prior.filter((j) => chainState().completed.has(j)).length));
 }
 
 // Berend fines scratches; intact fragile cargo earns a bonus.
 function rewardAdjust(def, base) {
-  const r = chain.run;
+  const r = chainState().run;
   if (!r) return { amount: 0, text: '' };
   if (def.scratchFine && r.vehDamage >= 1) {
     const fine = Math.min(Math.round(base * 0.75), Math.round(r.vehDamage * def.scratchFine));
@@ -1439,8 +1465,8 @@ function rewardAdjust(def, base) {
 // the jury's tier: the baking score, one level lower when both answers to the jury were wrong
 function juryTier() {
   const order = ['top', 'goed', 'mager'];
-  let i = order.indexOf(chain.bakeTier || 'goed');
-  if (chain.tags && chain.tags.has('fout1') && chain.tags.has('fout2')) i = Math.min(2, i + 1);
+  let i = order.indexOf(chainState().bakeTier || 'goed');
+  if (chainState().tags && chainState().tags.has('fout1') && chainState().tags.has('fout2')) i = Math.min(2, i + 1);
   return order[i];
 }
 
@@ -1448,12 +1474,12 @@ function juryTier() {
 function consequenceAdjust(def) {
   let amount = 0;
   const rows = [];
-  if (def.bakeBonus && chain.bakeTier) {
+  if (def.bakeBonus && chainState().bakeTier) {
     const tier = juryTier();
     amount += def.bakeBonus[tier] || 0;
     if (def.bakeRows && def.bakeRows[tier]) rows.push(def.bakeRows[tier]);
   }
-  for (const tag of chain.tags || []) {
+  for (const tag of chainState().tags || []) {
     amount += (def.tagAdjust && def.tagAdjust[tag]) || 0;
     if (def.tagRows && def.tagRows[tag]) rows.push(def.tagRows[tag]);
   }
@@ -1461,18 +1487,18 @@ function consequenceAdjust(def) {
 }
 
 function succeed(world, def) {
-  const i = chain.index;
+  const i = chainState().index;
   const mee = gastStartMee(world); // een gast startte deze opdracht: alleen met zijn eigen J telt de gastheer mee (#452)
-  chain.checkpoints.delete(i);
-  chain.retry = null;
+  chainState().checkpoints.delete(i);
+  chainState().retry = null;
   stopTalk();
   // a replay pays the klusloon; the first pass the full reward
-  const replay = chain.completed.has(i);
+  const replay = chainState().completed.has(i);
   const base = replay ? klusloon(def.reward) : def.reward;
   closeChoice();
   closeTiming();
   // choices that matter later in the story (M23's ally, read again in M26)
-  if (mee && def.remember && storyMod) for (const tag of def.remember) if (chain.tags && chain.tags.has(tag)) storyMod.rememberStoryChoice(tag);
+  if (mee && def.remember && storyMod) for (const tag of def.remember) if (chainState().tags && chainState().tags.has(tag)) storyMod.rememberStoryChoice(tag);
   const tip =def.type === 'boat' ? rondvaartTip() : 0;
   const adj = rewardAdjust(def, base);
   const cons = consequenceAdjust(def);
@@ -1484,62 +1510,78 @@ function succeed(world, def) {
   const reward = metGroepsbonus(rewardRuw, aantal);
   const bonus = reward - rewardRuw;
   const reason = def.type === 'boat' ? rondvaartOutro() : def.outro || def.label;
-  if (mee) { noteMoney('Missies'); world.money += reward; }
-  if (world.coopDeel) world.coopDeel(reward); // samen spelen (#365): de meespelende gasten krijgen hun deel, ook als de gastheer toekijkt
-  if (world.coopUitslag) world.coopUitslag(true, def.label, '', reward); // en horen dat het gelukt is (#371)
+  // Tegen elkaar (#438): de buit van de kraak gaat naar wie het meest deed, niet gelijk over iedereen.
+  // 'Samen' (en alleen) betaalt precies zoals voorheen; de gastheer krijgt in 'tegen' zijn eigen deel en
+  // elke gast het zijne met het gewone coopDeel per plek, dus met dezelfde gebeurtenis-id's en nooit twee keer.
+  const buit = def.heist ? heistBuit(world, reward) : null;
+  // alleen echt tegen elkaar als de gastheer zelf in de verdeling zit; anders de gewone uitbetaling
+  const tegen = !!(buit && buit.modus === 'tegen' && Object.prototype.hasOwnProperty.call(buit.geld, 0));
+  const hostDeel = tegen ? (buit.geld[0] || 0) : reward;
+  if (!tegen) {
+    if (mee) { noteMoney('Missies'); world.money += reward; }
+    if (world.coopDeel) world.coopDeel(reward); // samen spelen (#365): de meespelende gasten krijgen hun deel, ook als de gastheer toekijkt
+    if (world.coopUitslag) world.coopUitslag(true, def.label, '', reward); // en horen dat het gelukt is (#371)
+  } else {
+    if (mee) { noteMoney('Missies'); world.money += hostDeel; }
+    if (world.coopDeel) for (const { slot, bedrag } of buitDelen(buit)) if (slot !== 0) world.coopDeel(bedrag, { slots: [slot] });
+    // elke gast hoort zijn eigen bedrag uit de uitbetaling zelf (#448); de uitslag noemt geen deel dat
+    // niet voor iedereen hetzelfde is
+    if (world.coopUitslag) world.coopUitslag(true, def.label, '', 0);
+  }
   if (mee) {
     world.stats.missionsDone++;
     world.addMessage(`${def.label} geklaard! ${replay ? 'Klusloon ' : ''}+€${base}${tip ? ` en €${tip} fooi` : ''}${adj.text}${cons.text}`, 4);
+    if (tegen) world.addMessage(`Tegen elkaar: jouw deel van de buit is €${hostDeel}${buit.winnaar === 0 ? ' — de grootste buit was van jou.' : '.'}`, 4);
     if (bonus > 0) world.addMessage(`Groepsbonus: +€${bonus} (${aantal} spelers)`, 3);
     const stats = runStats(world, def);
     // what the mission cost on the way (Het Loket: the entry fee), so the card is honest about a reward of 0
     if (def.costRow && !replay) stats.push(def.costRow);
     if (!replay) stats.push(...consequenceAdjust(def).rows);
     // a flawless run earns the highest compliment there is (flavour.js has an NPC say it too)
-    const r = chain.run;
+    const r = chainState().run;
     if (r && r.hurt < 0.5 && (!r.vehicleUsed || r.vehDamage < 3) && (!r.racePos || r.racePos === 1)) {
       stats.push(['Oordeel', PERFECT_VERDICT]);
       world.lastPerfectRun = world.time;
     }
-    playStoryOutro(world, i, { stage: storyStage(i), short: chain.completed.has(i), reward, stats, reason });
+    playStoryOutro(world, i, { stage: storyStage(i), short: chainState().completed.has(i), reward: tegen ? hostDeel : reward, stats, reason });
   } else {
     // de gastheer keek toe: de opdracht is klaar, maar zijn eigen verhaal, geld en vakpunten blijven waar ze waren (#452)
     world.addMessage(`${def.label} geklaard, zonder jou. Geen beloning of voortgang voor jou.`, 4);
   }
-  const borrowed = def.handBack ? chain.vehicle : null;
+  const borrowed = def.handBack ? chainState().vehicle : null;
   // a replayed kraak has no train trip after it: their own clothes straight away
   if (def.heist && replay) setStoryOutfit(null);
   releaseMissionVehicle(world);
   if (borrowed) handBack(world, def, borrowed);
-  if (mee) chain.completed.add(chain.index);
-  chain.run = null;
-  chain.index = nextOpenMission(i);
+  if (mee) chainState().completed.add(chainState().index);
+  chainState().run = null;
+  chainState().index = nextOpenMission(i);
   sluitGastStart(world, mee); // keek de gastheer toe, dan springt zijn eigen keten terug naar waar hij was (#452)
-  chain.phase = 'idle';
-  chain.wpIndex = 0;
-  chain.stage = null;
+  chainState().phase = 'idle';
+  chainState().wpIndex = 0;
+  chainState().stage = null;
   if (mee) hooks.passed(world, i);
 }
 
 // achievementtracker.js after a medal run: the one-time bonus for each tier
 // reached for the first time in this playthrough. Returns the amount paid.
 export function payMedalBonus(world, i, medal) {
-  const d = chain && chain.defs[i];
+  const d = chainState() && chainState().defs[i];
   if (!d) return 0;
-  const from = chain.medalPaid[i] || 0;
+  const from = chainState().medalPaid[i] || 0;
   if (medal <= from) return 0;
   const bonus = medalBonus(d.reward, from, medal);
-  chain.medalPaid[i] = medal;
+  chainState().medalPaid[i] = medal;
   if (bonus > 0) { noteMoney('Missies'); world.money += bonus; if (world.coopDeel) world.coopDeel(bonus); }
   return bonus;
 }
 
 // Bonus still to earn on mission i: [{ medal, amount }] for the tiers not yet paid.
 export function medalBonusLeft(i) {
-  const d = chain && chain.defs[i];
+  const d = chainState() && chainState().defs[i];
   if (!d) return [];
   const out = [];
-  for (let m = (chain.medalPaid[i] || 0) + 1; m <= 3; m++) out.push({ medal: m, amount: medalBonus(d.reward, m - 1, m) });
+  for (let m = (chainState().medalPaid[i] || 0) + 1; m <= 3; m++) out.push({ medal: m, amount: medalBonus(d.reward, m - 1, m) });
   return out;
 }
 
@@ -1547,7 +1589,7 @@ export function medalBonusLeft(i) {
 // one after it (story.js may override with setNextMission).
 function nextOpenMission(i) {
   const order = MISSION_STORY_ORDER;
-  const open = order.find((j) => !chain.completed.has(j));
+  const open = order.find((j) => !chainState().completed.has(j));
   if (open != null) return open;
   const k = order.indexOf(i);
   return order[(k + 1) % order.length];
@@ -1555,7 +1597,7 @@ function nextOpenMission(i) {
 
 function fail(world, def, reason) {
   const pretty = reason ? reason[0].toUpperCase() + reason.slice(1) : def.label;
-  const i = chain.index;
+  const i = chainState().index;
   const mee = gastStartMee(world); // een opdracht van een gast die de gastheer niet meespeelt: geen verhaalgevolg voor hem (#452)
   if (mee) playStoryFail(world, i, { reason: pretty, stats: runStats(world, def) });
   if (world.coopUitslag) world.coopUitslag(false, def.label, pretty); // samen spelen (#371): de gasten horen het
@@ -1571,22 +1613,22 @@ function endInFailure(world, text) {
   closeTiming();
   clearStoryProps();
   // H6 failed: out of the black again (startMission puts it back on)
-  if (chain.defs[chain.index] && chain.defs[chain.index].heist) setStoryOutfit(null);
+  if (chainState().defs[chainState().index] && chainState().defs[chainState().index].heist) setStoryOutfit(null);
   if (world.pigeonMode) stopPigeonMode(world);
   // an aborted or skipped H15 must not leave the heli run flying on
   if (isHeliRunActive()) abortHeliRun();
   dropPursuer(world);
-  chain.stage = null;
+  chainState().stage = null;
   releaseMissionVehicle(world);
-  chain.phase = 'cooldown';
-  chain.armed = false;
-  chain.cooldownTimer = RETRY_COOLDOWN;
-  chain.wpIndex = 0;
-  chain.run = null;
-  chain.grace = null;
-  chain.resume = null;
+  chainState().phase = 'cooldown';
+  chainState().armed = false;
+  chainState().cooldownTimer = RETRY_COOLDOWN;
+  chainState().wpIndex = 0;
+  chainState().run = null;
+  chainState().grace = null;
+  chainState().resume = null;
   // #214: a retry prompt (Enter) brings you straight back instead of a long drive to the start
-  chain.retry = chain.defs[chain.index] && chain.defs[chain.index].start ? createRetryOffer(chain.index, world.time) : null;
+  chainState().retry = chainState().defs[chainState().index] && chainState().defs[chainState().index].start ? createRetryOffer(chainState().index, world.time) : null;
 }
 
 // A point `offset` metres along the road from p, towards whichever end has
@@ -1659,7 +1701,7 @@ function spawnStoryBoat(world, def) {
     if (best) { boat.x = best.x; boat.y = best.y; boat.angle = best.a; }
   }
   world.vehicles.push(boat);
-  chain.storyBoat = boat;
+  chainState().storyBoat = boat;
 }
 
 function spawnMissionBoat(def, map) {
@@ -1750,16 +1792,16 @@ function spawnLaneBike(world, def, dir, s0 = null) {
   v.missionFatbike = true;
   v.speed = fat ? 6.5 + Math.random() * 2 : 4.2 + Math.random() * 1.8;
   world.vehicles.push(v);
-  chain.bikes.push({ v, s, dir, lat, latT: lat, speed: v.speed, fat, decided: false, weaveAt: world.time + 1 + Math.random() * 2 });
+  chainState().bikes.push({ v, s, dir, lat, latT: lat, speed: v.speed, fat, decided: false, weaveAt: world.time + 1 + Math.random() * 2 });
 }
 
 function startLane(world, def) {
   const g = laneGeom(def);
-  chain.fatbikeHits = 0;
-  chain.notesSaid = null;
-  chain.hitGraceUntil = world.time + 2.5;
-  chain.laneT = 0.4;
-  chain.laneDir = 1;
+  chainState().fatbikeHits = 0;
+  chainState().notesSaid = null;
+  chainState().hitGraceUntil = world.time + 2.5;
+  chainState().laneT = 0.4;
+  chainState().laneDir = 1;
   const p = world.player;
   for (let s = 10, dir = -1; s < Math.min(g.len, 120); s += 11 + Math.random() * 6, dir = -dir) {
     const q = laneAt(g, s);
@@ -1775,14 +1817,14 @@ const HONK_BACK = ['Toeter nait zo, jong!', 'Doe toch nait zo roar, mien jong!',
 function fatbikersAnswerHonk(world, p) {
   const pv = p.inVehicle;
   const on = !!(pv && pv.horn);
-  const rising = on && !chain.hornWas;
-  chain.hornWas = on;
-  if (!rising || world.time < (chain.honkBackAt || 0)) return;
-  const b = chain.bikes.find((q) => q.fat && !q.v.wrecked && Math.hypot(q.v.x - p.x, q.v.y - p.y) < 22);
+  const rising = on && !chainState().hornWas;
+  chainState().hornWas = on;
+  if (!rising || world.time < (chainState().honkBackAt || 0)) return;
+  const b = chainState().bikes.find((q) => q.fat && !q.v.wrecked && Math.hypot(q.v.x - p.x, q.v.y - p.y) < 22);
   if (!b) return;
-  chain.honkBackAt = world.time + 5;
-  chain.honkIdx = ((chain.honkIdx || 0) + 1 + Math.floor(Math.random() * 3)) % HONK_BACK.length;
-  const text = HONK_BACK[chain.honkIdx];
+  chainState().honkBackAt = world.time + 5;
+  chainState().honkIdx = ((chainState().honkIdx || 0) + 1 + Math.floor(Math.random() * 3)) % HONK_BACK.length;
+  const text = HONK_BACK[chainState().honkIdx];
   (world.extraSpeakers || (world.extraSpeakers = [])).push({ x: b.v.x, y: b.v.y, h: 2.2, follow: b.v, speechText: text, speechUntil: world.time + 2.8 });
 }
 
@@ -1791,15 +1833,15 @@ function updateLaneBikes(dt, world, def) {
   const p = world.player;
   fatbikersAnswerHonk(world, p);
   const pl = laneProject(g, p.x, p.y);
-  chain.laneT -= dt;
-  if (chain.laneT <= 0 && chain.bikes.length < LANE_MAX_BIKES) {
-    chain.laneT = LANE_SPAWN_EVERY * (0.6 + Math.random() * 0.8);
-    spawnLaneBike(world, def, chain.laneDir);
-    chain.laneDir = -chain.laneDir;
+  chainState().laneT -= dt;
+  if (chainState().laneT <= 0 && chainState().bikes.length < LANE_MAX_BIKES) {
+    chainState().laneT = LANE_SPAWN_EVERY * (0.6 + Math.random() * 0.8);
+    spawnLaneBike(world, def, chainState().laneDir);
+    chainState().laneDir = -chainState().laneDir;
   }
-  for (let k = chain.bikes.length - 1; k >= 0; k--) {
-    const b = chain.bikes[k], v = b.v;
-    if (!world.vehicles.includes(v) || v.wrecked || v.driver !== 'mission') { chain.bikes.splice(k, 1); continue; }
+  for (let k = chainState().bikes.length - 1; k >= 0; k--) {
+    const b = chainState().bikes[k], v = b.v;
+    if (!world.vehicles.includes(v) || v.wrecked || v.driver !== 'mission') { chainState().bikes.splice(k, 1); continue; }
     const ahead = (pl.s - b.s) * b.dir;
     if (!b.decided && ahead > 0 && ahead < 13 && Math.abs(pl.lat) < LANE_HALF + 1.5) {
       b.decided = true;
@@ -1818,7 +1860,7 @@ function updateLaneBikes(dt, world, def) {
     if (b.s < -3 || b.s > g.len + 3 || (g.len > 220 && Math.abs(b.s - pl.s) > 110)) {
       const i = world.vehicles.indexOf(v);
       if (i >= 0) world.vehicles.splice(i, 1);
-      chain.bikes.splice(k, 1);
+      chainState().bikes.splice(k, 1);
       continue;
     }
     const q = laneAt(g, b.s);
@@ -1833,12 +1875,12 @@ function updateLaneBikes(dt, world, def) {
 
 function checkLaneHits(world) {
   const p = world.player;
-  if (p.inVehicle || world.time < chain.hitGraceUntil || world.pendingRespawn || isKnockedDown(p, world)) return;
-  for (const b of chain.bikes) {
+  if (p.inVehicle || world.time < chainState().hitGraceUntil || world.pendingRespawn || isKnockedDown(p, world)) return;
+  for (const b of chainState().bikes) {
     const v = b.v;
     if (Math.abs(v.x - p.x) > 2 || Math.abs(v.y - p.y) > 2 || dist(v.x, v.y, p.x, p.y) > BIKE_TOUCH_RADIUS) continue;
-    chain.fatbikeHits++;
-    chain.hitGraceUntil = world.time + BIKE_HIT_GRACE;
+    chainState().fatbikeHits++;
+    chainState().hitGraceUntil = world.time + BIKE_HIT_GRACE;
     let dmg = Math.round(b.fat ? 5 + b.speed * 0.6 : 2 + b.speed * 0.3);
     if (world.armor > 0) { const a = Math.min(world.armor, dmg); world.armor -= a; dmg -= a; }
     world.health = Math.max(0, world.health - dmg);
@@ -1848,18 +1890,18 @@ function checkLaneHits(world) {
     if (b.fat || dead) knockDown(p, world, { kind: 'hit', dead, vx: vx * 0.8, vy: vy * 0.8, vz: 1.2 + b.speed * 0.15, lieFor: 1.1 });
     else { p.shoveX = (p.shoveX || 0) + vx * 0.7; p.shoveY = (p.shoveY || 0) + vy * 0.7; }
     b.speed *= 0.4;
-    world.addMessage(b.fat ? `Au! Geschept door een fatbike (${chain.fatbikeHits}x)` : `Een fietser tikt je aan: "Kiek uut, joh!" (${chain.fatbikeHits}x)`, 2);
+    world.addMessage(b.fat ? `Au! Geschept door een fatbike (${chainState().fatbikeHits}x)` : `Een fietser tikt je aan: "Kiek uut, joh!" (${chainState().fatbikeHits}x)`, 2);
     if (dead) requestRespawn(world);
     break;
   }
 }
 
 function releaseLaneBikes(world) {
-  for (const b of chain.bikes) {
+  for (const b of chainState().bikes) {
     const i = world.vehicles.indexOf(b.v);
     if (i >= 0 && b.v.driver === 'mission') world.vehicles.splice(i, 1);
   }
-  chain.bikes.length = 0;
+  chainState().bikes.length = 0;
 }
 
 // --- Kroegentocht: drunk crowds and people staggering into you -----------------
@@ -1878,8 +1920,8 @@ function footSpot(map, x, y) {
 }
 
 function spawnCrowds(world, def) {
-  chain.crowd = [];
-  chain.chargeT = 4;
+  chainState().crowd = [];
+  chainState().chargeT = 4;
   for (const c0 of def.crowds) {
     const c = footSpot(world.map, c0.x, c0.y);
     if (!c) continue;
@@ -1895,7 +1937,7 @@ function spawnCrowds(world, def) {
       ped.missionCrowd = true;
       ped.hasBag = false;
       world.pedestrians.push(ped);
-      chain.crowd.push(ped);
+      chainState().crowd.push(ped);
     }
   }
 }
@@ -1920,10 +1962,10 @@ function startCharge(world, ped) {
 function updateCrowd(dt, world, def) {
   const p = world.player;
   const t = world.time;
-  const next = def.waypoints[chain.wpIndex];
-  for (let k = chain.crowd.length - 1; k >= 0; k--) {
-    const ped = chain.crowd[k];
-    if (ped.state === 'dead' || !world.pedestrians.includes(ped)) { chain.crowd.splice(k, 1); continue; }
+  const next = def.waypoints[chainState().wpIndex];
+  for (let k = chainState().crowd.length - 1; k >= 0; k--) {
+    const ped = chainState().crowd[k];
+    if (ped.state === 'dead' || !world.pedestrians.includes(ped)) { chainState().crowd.splice(k, 1); continue; }
     if (ped.ragdoll) continue;
     if (!ped.charging) {
       ped.anchor = ped.crowdAnchor;
@@ -1954,13 +1996,13 @@ function updateCrowd(dt, world, def) {
       endCharge(ped);
     }
   }
-  chain.chargeT -= dt;
-  if (chain.chargeT > 0 || p.inVehicle) return;
-  chain.chargeT = CHARGE_EVERY[0] + Math.random() * (CHARGE_EVERY[1] - CHARGE_EVERY[0]);
+  chainState().chargeT -= dt;
+  if (chainState().chargeT > 0 || p.inVehicle) return;
+  chainState().chargeT = CHARGE_EVERY[0] + Math.random() * (CHARGE_EVERY[1] - CHARGE_EVERY[0]);
   const hx = next ? next.x - p.x : 0, hy = next ? next.y - p.y : 0;
   const hl = Math.hypot(hx, hy) || 1;
   let best = null, bs = -Infinity;
-  for (const ped of chain.crowd) {
+  for (const ped of chainState().crowd) {
     if (ped.charging || ped.ragdoll) continue;
     const d = dist(ped.x, ped.y, p.x, p.y);
     if (d < 6 || d > 22) continue;
@@ -1971,21 +2013,21 @@ function updateCrowd(dt, world, def) {
 }
 
 function releaseCrowd() {
-  for (const ped of chain.crowd) {
+  for (const ped of chainState().crowd) {
     if (ped.charging) endCharge(ped);
     ped.anchor = null;
     ped.crowdAnchor = null;
     ped.nightlife = false;
   }
-  chain.crowd.length = 0;
+  chainState().crowd.length = 0;
 }
 
 // the dev cheat starts a lazyStart mission without road data (the tiles may not stream in headless)
 let forceStart = false;
 function startMission(world, def) {
   removeLeftover(world);
-  chain.tags = new Set();
-  chain.bakeTier = null;
+  chainState().tags = new Set();
+  chainState().bakeTier = null;
   // a start out in the province has no road data until the player is there (the tiles stream in): find the road now
   if (def.lazyStart && !def.start.road && !forceStart) {
     const spot = roadSpot(world.map, def.start.x, def.start.y, true);
@@ -1993,29 +2035,29 @@ function startMission(world, def) {
     else {
       // no road loaded here (yet): try again in a moment instead of starting without a vehicle
       world.addMessage('De weg hier wordt nog geladen. Even wachten…', 3);
-      chain.phase = 'cooldown'; chain.cooldownTimer = RETRY_COOLDOWN; chain.armed = false;
+      chainState().phase = 'cooldown'; chainState().cooldownTimer = RETRY_COOLDOWN; chainState().armed = false;
       return;
     }
   }
   waarschuwVoorStart(world, 'missie', def.id, missieStatus(def)); // samen spelen: een melding als dit nog niet (helemaal) samen werkt; de start gaat door
-  chain.afoot = false;
-  chain.phase = 'active';
-  chain.timeLeft = assistTime(def.timeLimit) ?? Infinity;
-  chain.wpIndex = 0;
-  chain.stopIndex = 0;
-  chain.stopT = 0;
-  chain.cargoWarn = 100;
-  chain.boarded = false;
-  chain.hintAt = -Infinity;
-  chain.run = { elapsed: 0, kills: killCount(world), hp: world.health + world.armor, hurt: 0, damage: 0, veh: null, vehHp: 100, vehDamage: 0, vehicleUsed: false };
-  chain.windowT = 0;
-  chain.windowExtended = false;
-  chain.clockRate = 1;
-  chain.stuntPhase = false;
-  chain.beats = {};
-  chain.momentDone = false;
-  chain.hijacked = false;
-  chain.finishPending = false;
+  chainState().afoot = false;
+  chainState().phase = 'active';
+  chainState().timeLeft = assistTime(def.timeLimit) ?? Infinity;
+  chainState().wpIndex = 0;
+  chainState().stopIndex = 0;
+  chainState().stopT = 0;
+  chainState().cargoWarn = 100;
+  chainState().boarded = false;
+  chainState().hintAt = -Infinity;
+  chainState().run = { elapsed: 0, kills: killCount(world), hp: world.health + world.armor, hurt: 0, damage: 0, veh: null, vehHp: 100, vehDamage: 0, vehicleUsed: false };
+  chainState().windowT = 0;
+  chainState().windowExtended = false;
+  chainState().clockRate = 1;
+  chainState().stuntPhase = false;
+  chainState().beats = {};
+  chainState().momentDone = false;
+  chainState().hijacked = false;
+  chainState().finishPending = false;
   // the kraak: both in black, whoever bought it (off again on the train, stationtravel.js)
   // (any other mission: the train was skipped somehow, so their own clothes again)
   setStoryOutfit(def.heist ? 'incognito' : null);
@@ -2023,20 +2065,20 @@ function startMission(world, def) {
     // the companion stays where the mission starts (H16: Tammo with the klomp)
     const p0 = world.player;
     world.companionHold = { x: p0.x + Math.cos(p0.angle + 2) * 1.6, y: p0.y + Math.sin(p0.angle + 2) * 1.6, face: p0.angle, pose: 'phone' };
-    chain.soloHold = true;
+    chainState().soloHold = true;
   }
   if (def.type === 'stunt') {
     startStunt(world, def.stunt);
     bringHeroCar(world, def);
   } else if (def.type === 'deliver' && def.start.road) {
-    chain.vehicle = spawnMissionCar(world, def);
-    world.vehicles.push(chain.vehicle);
+    chainState().vehicle = spawnMissionCar(world, def);
+    world.vehicles.push(chainState().vehicle);
     // M01 of the new arc: the stunt first, in the bakkie, then the delivery
-    if (def.stunt) { startStunt(world, def.stunt); chain.stuntPhase = true; }
+    if (def.stunt) { startStunt(world, def.stunt); chainState().stuntPhase = true; }
   } else if (def.type === 'boat') {
-    chain.vehicle = spawnMissionBoat(def, world.map);
-    world.vehicles.push(chain.vehicle);
-    startRondvaart(world, chain.vehicle);
+    chainState().vehicle = spawnMissionBoat(def, world.map);
+    world.vehicles.push(chainState().vehicle);
+    startRondvaart(world, chainState().vehicle);
   } else if (def.type === 'fatbike') {
     startLane(world, def);
   } else if (def.type === 'stages') {
@@ -2046,49 +2088,49 @@ function startMission(world, def) {
     }
     if (def.heroCar) {
       // act 5: the Escapade (the Fjord Frituur) waits at the start of the mission
-      chain.vehicle = heroCarTo(world, def.start) || (def.start.road ? spawnMissionCar(world, def) : null);
-      if (chain.vehicle && !world.vehicles.includes(chain.vehicle)) world.vehicles.push(chain.vehicle);
+      chainState().vehicle = heroCarTo(world, def.start) || (def.start.road ? spawnMissionCar(world, def) : null);
+      if (chainState().vehicle && !world.vehicles.includes(chainState().vehicle)) world.vehicles.push(chainState().vehicle);
     } else if (def.vehicle === 'car' && def.start.road) {
-      chain.vehicle = spawnMissionCar(world, def);
-      world.vehicles.push(chain.vehicle);
+      chainState().vehicle = spawnMissionCar(world, def);
+      world.vehicles.push(chainState().vehicle);
     }
     if (def.boatStart) spawnStoryBoat(world, def);
     // akte 4 (Open, dicht): a boat at the start of a stages mission, `boatAt` { x, y, angle }, `boatModel` a BOAT_KINDS key
     if (def.boatAt) {
-      chain.vehicle = spawnMissionBoat(def, world.map);
-      world.vehicles.push(chain.vehicle);
+      chainState().vehicle = spawnMissionBoat(def, world.map);
+      world.vehicles.push(chainState().vehicle);
     }
-    chain.stage = null;
-    chain.stageIndex = -1;
-    chain.stagePending = true;
+    chainState().stage = null;
+    chainState().stageIndex = -1;
+    chainState().stagePending = true;
     // #213: a retry picks up at the last checkpoint stage, not at stage 0
-    const cp = chain.checkpoints.get(chain.index);
-    chain.resume = cp && !chain.completed.has(chain.index) && isCheckpointStage(def, cp.stageIndex) ? cp : null;
-    if (!chain.resume) chain.checkpoints.delete(chain.index);
+    const cp = chainState().checkpoints.get(chainState().index);
+    chainState().resume = cp && !chainState().completed.has(chainState().index) && isCheckpointStage(def, cp.stageIndex) ? cp : null;
+    if (!chainState().resume) chainState().checkpoints.delete(chainState().index);
   } else if (def.race === 'ring') {
     // the full ringweg is ~17.5 km: tuned-up race cars keep a lap near six minutes
-    chain.race = createRace(world, RING_ROUTE, RING_CHECKPOINTS, { topScale: 1.35, accelScale: 1.3, band: 320, jelle: true });
+    chainState().race = createRace(world, RING_ROUTE, RING_CHECKPOINTS, { topScale: 1.35, accelScale: 1.3, band: 320, jelle: true });
   } else if (def.race === 'kei') {
-    chain.race = createRace(world, KEI_ROUTE, KEI_CHECKPOINTS, { bikes: true, band: 70 });
+    chainState().race = createRace(world, KEI_ROUTE, KEI_CHECKPOINTS, { bikes: true, band: 70 });
     if (def.ownBike) companionOwnBike(world);
   }
   if (def.crowds) spawnCrowds(world, def);
-  const i = chain.index;
+  const i = chainState().index;
   const code = missionCode(i);
-  const kicker = code ? `Missie ${code}` : def.side ? 'Zijmissie' : `Missie ${i + 1}/${chain.defs.length}`;
+  const kicker = code ? `Missie ${code}` : def.side ? 'Zijmissie' : `Missie ${i + 1}/${chainState().defs.length}`;
   const title = def.label;
-  const objective = chain.vehicle || def.dest || (def.waypoints && def.waypoints[0]) || def.start;
-  const shown = playStoryIntro(world, i, { stage: storyStage(i), short: chain.seen.has(i), kicker, title, target: objective });
+  const objective = chainState().vehicle || def.dest || (def.waypoints && def.waypoints[0]) || def.start;
+  const shown = playStoryIntro(world, i, { stage: storyStage(i), short: chainState().seen.has(i), kicker, title, target: objective });
   if (!shown) {
     const who = speakerName(world);
     playMissionIntro(world, { kicker, title: `Missie: ${title}`, lines: (def.intro || []).map((text) => ({ speaker: who, text })), objective });
   }
   // H13: after the intro on the quay, a shot of the boat with the two of them aboard
-  if (def.type === 'boat' && chain.vehicle) playRondvaartBoarding(world, chain.vehicle);
+  if (def.type === 'boat' && chainState().vehicle) playRondvaartBoarding(world, chainState().vehicle);
   if (def.say) world.addMessage(def.say, 5);
   // the new story: the remarks between the pair while a lane or delivery mission runs (stages carry their own talk)
   if (def.talk && storyDataReady()) playTalk(talkLines(def.talk.ids, def.talk), { id: `${def.label}:talk`, delay: def.talk.delay || 1 });
-  chain.seen.add(i);
+  chainState().seen.add(i);
 }
 
 // H5: the race is one bike each. The companion gets off the player's bike and
@@ -2103,7 +2145,7 @@ function companionOwnBike(world) {
   const spot = world.map.openSpotNear ? world.map.openSpotNear(p.x + Math.cos(a) * 2.5, p.y + Math.sin(a) * 2.5) : { x: p.x + Math.cos(a) * 2.5, y: p.y + Math.sin(a) * 2.5 };
   c.x = spot.x; c.y = spot.y; c.vx = 0; c.vy = 0;
   world.companionHold = { x: spot.x, y: spot.y, face: p.angle, pose: 'phone' };
-  chain.soloHold = true;
+  chainState().soloHold = true;
 }
 
 // Act 5: the mission car is the Escapade itself. The one in the world is moved to the start, else Henk brings a new one.
@@ -2137,24 +2179,24 @@ function bringHeroCar(world, def) {
 }
 
 function hint(world, text, say = undefined) {
-  if (world.time - chain.hintAt < HINT_INTERVAL) return;
-  chain.hintAt = world.time;
+  if (world.time - chainState().hintAt < HINT_INTERVAL) return;
+  chainState().hintAt = world.time;
   world.addMessage(text, 2.5, { say });
 }
 
 // Returns a failure reason when the mission car/boat is gone or left behind.
 function vehicleProblem(world, def) {
-  const v = chain.vehicle;
+  const v = chainState().vehicle;
   const p = v ? teamActor(world, v, (a) => a.inVehicle === v) : world.player; // samen spelen (#452): de meespeler in het voertuig, anders de dichtstbijzijnde
   const vf = def.vehicleFail || {};
   if (!v || !world.vehicles.includes(v)) return vf.gone || (def.type === 'boat' ? 'de boot is foetsie' : 'de auto is foetsie');
   if (v.wrecked || v.disabled) return vf.wrecked || (def.type === 'boat' ? 'de boot ligt nu tussen de fietsen op de bodem' : 'de auto is afgeschreven, Kiekdoar heeft al foto\'s');
-  if (p.inVehicle === v) { chain.boarded = true; chain.grace = null; return null; }
-  const g = chain.grace || (chain.grace = createGrace());
+  if (p.inVehicle === v) { chainState().boarded = true; chainState().grace = null; return null; }
+  const g = chainState().grace || (chainState().grace = createGrace());
   const far = dist(p.x, p.y, v.x, v.y) > ABANDON_DIST;
   // #214: leaving the vehicle behind is a warning with a clock, the way back is the marker; only a wreck or a gone vehicle fails at once
-  const dt = Math.max(0, Math.min(0.25, world.time - (chain.graceT ?? world.time)));
-  chain.graceT = world.time;
+  const dt = Math.max(0, Math.min(0.25, world.time - (chainState().graceT ?? world.time)));
+  chainState().graceT = world.time;
   const r = stepGrace(g, dt, far ? 'away' : 'near');
   if (r.state === 'grace') {
     const what = def.type === 'boat' ? 'de boot' : 'de auto';
@@ -2163,9 +2205,9 @@ function vehicleProblem(world, def) {
   }
   if (r.state === 'fail') {
     const what = def.type === 'boat' ? 'de boot' : 'de auto';
-    chain.grace = null;
+    chainState().grace = null;
     if (vf.left) return vf.left;
-    return chain.boarded ? `je liet ${what} gewoon achter` : `je liet ${what} staan. Parkeren kost hier meer dan de auto`;
+    return chainState().boarded ? `je liet ${what} gewoon achter` : `je liet ${what} staan. Parkeren kost hier meer dan de auto`;
   }
   return null;
 }
@@ -2185,7 +2227,7 @@ function playMoment(world, m) {
 // and the chat's reaction when the points are in. Then the delivery goes on (the clock keeps running).
 function updateStuntPhase(dt, world, def) {
   const p = world.player;
-  const b = chain.beats || (chain.beats = {});
+  const b = chainState().beats || (chainState().beats = {});
   const near = dist(p.x, p.y, def.stunt.center.x, def.stunt.center.y) < def.stunt.radius + 10;
   if (near && !b.arrived && !isCinematicActive() && storyDataReady()) {
     b.arrived = true;
@@ -2196,9 +2238,9 @@ function updateStuntPhase(dt, world, def) {
     b.talked = true;
     playTalk(talkLines(['M01.4']), { id: 'M01.4', delay: 0.5 });
   }
-  if (updateStunt(dt, world, chain.timeLeft) === 'done') {
+  if (updateStunt(dt, world, chainState().timeLeft) === 'done') {
     stopStunt(world);
-    chain.stuntPhase = false;
+    chainState().stuntPhase = false;
     if (storyDataReady() && !isCinematicActive()) playStageScene(world, { script: { ids: ['M01.5'] }, kicker: 'Grote Markt', cast: [{ key: 'jelmer', pose: 'cheer', at: [3.2, 1.2] }, { key: 'terras', pose: 'cheer', at: [3.6, -1.4] }] }, { target: null });
     world.addMessage('Punten binnen. Nu het bakkie heel naar het Boterdiep.', 4.5, { kind: 'missie' });
   }
@@ -2208,7 +2250,7 @@ function updateStuntPhase(dt, world, def) {
 // current one is only a `via` (route guidance along the streets), any later
 // via or the next real checkpoint, so cutting a corner never strands you.
 function waypointReached(p, def, radius) {
-  for (let k = chain.wpIndex; k < def.waypoints.length; k++) {
+  for (let k = chainState().wpIndex; k < def.waypoints.length; k++) {
     const wp = def.waypoints[k];
     if (dist(p.x, p.y, wp.x, wp.y) < radius) return k;
     if (!wp.via) break;
@@ -2216,23 +2258,23 @@ function waypointReached(p, def, radius) {
   return -1;
 }
 
-function reachCheckpoint(world, def, k = chain.wpIndex) {
-  chain.wpIndex = k;
-  const wp = def.waypoints[chain.wpIndex];
-  chain.wpIndex++;
-  if (!wp.via) chain.timeLeft += wp.bonus ?? def.checkpointBonus;
+function reachCheckpoint(world, def, k = chainState().wpIndex) {
+  chainState().wpIndex = k;
+  const wp = def.waypoints[chainState().wpIndex];
+  chainState().wpIndex++;
+  if (!wp.via) chainState().timeLeft += wp.bonus ?? def.checkpointBonus;
   if (def.drunk && wp.name) addDrunk(world, def.drunk);
   if (wp.toast && !isCinematicActive()) playToast(world, { at: { x: world.player.x, y: world.player.y }, facing: world.player.angle, kicker: wp.name, ...wp.toast });
-  if (def.moment && !chain.momentDone && chain.wpIndex >= def.moment.at) {
-    chain.momentDone = true;
+  if (def.moment && !chainState().momentDone && chainState().wpIndex >= def.moment.at) {
+    chainState().momentDone = true;
     playMoment(world, def.moment);
   }
-  if (chain.wpIndex >= def.waypoints.length) {
-    if (wp.toast && isCinematicActive('mission-scene')) { chain.finishPending = true; return; }
-    if (chain.race) {
-      const { position, total } = raceStandings(chain.race);
-      chain.run.racePos = position;
-      chain.run.raceTotal = total;
+  if (chainState().wpIndex >= def.waypoints.length) {
+    if (wp.toast && isCinematicActive('mission-scene')) { chainState().finishPending = true; return; }
+    if (chainState().race) {
+      const { position, total } = raceStandings(chainState().race);
+      chainState().run.racePos = position;
+      chainState().run.raceTotal = total;
       if (position > PODIUM) {
         fail(world, def, `je werd ${position}e. Alleen het podium telt`);
         return;
@@ -2242,33 +2284,33 @@ function reachCheckpoint(world, def, k = chain.wpIndex) {
     succeed(world, def);
     return;
   }
-  const next = def.waypoints.slice(chain.wpIndex).find((q) => q.name);
+  const next = def.waypoints.slice(chainState().wpIndex).find((q) => q.name);
   if (wp.name && next) world.addMessage(`Proost in ${wp.name}! Hup, door naar ${next.name}.`, 3);
 }
 
 // Missions that start at a pigeon spot: the spots are placed after the
 // defs are built, so the start moves there on the first update that has them.
 function resolveSpotStarts(world) {
-  if (!chain.heliStarts) {
+  if (!chainState().heliStarts) {
     const hs = getHeliSpotsForRender()[0];
     if (hs) {
-      chain.heliStarts = true;
-      for (const d of chain.defs) if (d.startSpot === 'heli') d.start = { ...world.map.openSpotNear(hs.x + 3.5, hs.y + 1.5), road: null };
+      chainState().heliStarts = true;
+      for (const d of chainState().defs) if (d.startSpot === 'heli') d.start = { ...world.map.openSpotNear(hs.x + 3.5, hs.y + 1.5), road: null };
     }
   }
-  if (!chain.eeldeStart) {
+  if (!chainState().eeldeStart) {
     // H15 starts beside Rotor Roelf's pad on Eelde, between the pad and his kiosk
     const ep = helipadById('eelde');
     if (ep) {
-      chain.eeldeStart = true;
-      for (const d of chain.defs) if (d.startSpot === 'eelde') d.start = { x: ep.x - 7, y: ep.y + 5, road: null };
+      chainState().eeldeStart = true;
+      for (const d of chainState().defs) if (d.startSpot === 'eelde') d.start = { x: ep.x - 7, y: ep.y + 5, road: null };
     }
   }
-  if (chain.spotStarts) return;
+  if (chainState().spotStarts) return;
   const spots = getPigeonSpotsForRender();
   if (!spots.length) return;
-  chain.spotStarts = true;
-  for (const d of chain.defs) {
+  chainState().spotStarts = true;
+  for (const d of chainState().defs) {
     const ps = d.startSpot && spots.find((q) => q.id === d.startSpot);
     if (ps) d.start = roadSpot(world.map, ps.x, ps.y);
   }
@@ -2277,24 +2319,24 @@ function resolveSpotStarts(world) {
 // #214: after a failure, Enter (or E: pad and touch send it) fades out and puts you, your vehicle and your companion at the mission's start
 const RETRY_FADE_S = 0.45;
 function updateRetry(dt, world, def) {
-  const r = chain.retry;
+  const r = chainState().retry;
   if (!r) return;
   if (r.fade != null) {
     r.fade -= dt;
     if (r.fade > 0) return;
-    chain.retry = null;
+    chainState().retry = null;
     recordStat(world, 'missionRetries');
     placeParty(world, def.start);
-    chain.armed = true;
-    chain.phase = 'idle';
-    chain.cooldownTimer = 0;
+    chainState().armed = true;
+    chainState().phase = 'idle';
+    chainState().cooldownTimer = 0;
     respawnFade(0, 500);
     return;
   }
-  if (r.missionIndex !== chain.index || !retryOfferLive(r, world.time)) { chain.retry = null; return; }
-  if (chain.phase !== 'idle') return;
+  if (r.missionIndex !== chainState().index || !retryOfferLive(r, world.time)) { chainState().retry = null; return; }
+  if (chainState().phase !== 'idle') return;
   const p = world.player;
-  if (dist(p.x, p.y, def.start.x, def.start.y) < (def.triggerRadius || TRIGGER_RADIUS) * 3 + 10) { chain.retry = null; return; }
+  if (dist(p.x, p.y, def.start.x, def.start.y) < (def.triggerRadius || TRIGGER_RADIUS) * 3 + 10) { chainState().retry = null; return; }
   if (isCinematicActive() || world.pendingRespawn || (world.sideJob && world.sideJob.active) || playerBusy(world, ['challenge', 'padel', 'activityGame']).busy) return;
   if (!r.hintedAt || world.time - r.hintedAt > 10) {
     r.hintedAt = world.time;
@@ -2311,27 +2353,27 @@ function updateRetry(dt, world, def) {
 
 export function updateMissions(dt, world) {
   tikDijkRun(world, dt); // de straatrace als wedstrijd (#443): het aftellen en de tussenstand, ook als de opdrachtstap al klaar is
-  if (!chain) return;
+  if (!chainState()) return;
   gastheerVraagTik(world, dt); // de gastheer kreeg "Meedoen?" bij de opdracht van een gast (#452): J of N
   resolveSpotStarts(world);
   updateStoryProps(dt);
   updateHandBack(dt, world);
-  const def = chain.defs[chain.index];
+  const def = chainState().defs[chainState().index];
   const p = world.player;
   // a pigeon flight only runs the stages mission that started it
-  if (world.pigeonMode && !(chain.phase === 'active' && def.type === 'stages')) return;
+  if (world.pigeonMode && !(chainState().phase === 'active' && def.type === 'stages')) return;
   updateRetiredRacers(dt, world);
 
   updateRetry(dt, world, def);
 
-  if (chain.phase === 'cooldown') {
-    chain.cooldownTimer -= dt;
-    if (chain.cooldownTimer <= 0) chain.phase = 'idle';
+  if (chainState().phase === 'cooldown') {
+    chainState().cooldownTimer -= dt;
+    if (chainState().cooldownTimer <= 0) chainState().phase = 'idle';
     syncPub(world);
     return;
   }
 
-  if (chain.phase === 'idle') {
+  if (chainState().phase === 'idle') {
     // a mission that starts at your rented boat (H14) follows it around
     if (def.startAt === 'rental') {
       const b = rentalBoat(world);
@@ -2339,15 +2381,15 @@ export function updateMissions(dt, world) {
     }
     const R = def.triggerRadius || TRIGGER_RADIUS;
     const d = dist(p.x, p.y, def.start.x, def.start.y);
-    if (d > R + 2) chain.armed = true;
-    else if (d < R && chain.armed) {
+    if (d > R + 2) chainState().armed = true;
+    else if (d < R && chainState().armed) {
       // a running bijbaantje (sidejobs.js) first has to be finished or stopped
       if (world.sideJob && world.sideJob.active) {
-        chain.armed = false;
+        chainState().armed = false;
         world.addMessage('Eerst je bijbaantje afmaken of stoppen (Esc > Spel)', 3);
-      } else if (playerBusy(world, ['challenge', 'padel', 'activityGame']).busy) chain.armed = false; else if (!checkRequirement(world, def, true)) chain.armed = false;
-      else if (!checkRide(world, def)) chain.armed = false;
-      else if (hooks.canStart(world, chain.index)) startMission(world, def);
+      } else if (playerBusy(world, ['challenge', 'padel', 'activityGame']).busy) chainState().armed = false; else if (!checkRequirement(world, def, true)) chainState().armed = false;
+      else if (!checkRide(world, def)) chainState().armed = false;
+      else if (hooks.canStart(world, chainState().index)) startMission(world, def);
     }
     syncPub(world);
     return;
@@ -2355,9 +2397,9 @@ export function updateMissions(dt, world) {
 
   trackRun(dt, world);
   // the clock starts at the race's GO, not while the grid waits
-  if ((!chain.race || chain.race.phase === 'race') && !isCinematicActive()) chain.timeLeft -= dt * (chain.clockRate || 1);
-  if (chain.timeLeft <= 0) {
-    fail(world, def, def.timeUp ? def.timeUp : def.type === 'boat' ? 'tijd op. De toeristen missen hun trein naar Zwolle' : def.type === 'stunt' || chain.stuntPhase ?'tijd op. Chat is al naar een kattenfilmpje' : 'tijd op. Zelfs de bus was sneller');
+  if ((!chainState().race || chainState().race.phase === 'race') && !isCinematicActive()) chainState().timeLeft -= dt * (chainState().clockRate || 1);
+  if (chainState().timeLeft <= 0) {
+    fail(world, def, def.timeUp ? def.timeUp : def.type === 'boat' ? 'tijd op. De toeristen missen hun trein naar Zwolle' : def.type === 'stunt' || chainState().stuntPhase ?'tijd op. Chat is al naar een kattenfilmpje' : 'tijd op. Zelfs de bus was sneller');
     syncPub(world);
     return;
   }
@@ -2370,19 +2412,19 @@ export function updateMissions(dt, world) {
     return;
   }
   // arriving by car is fine: a warning first, it only fails if you keep driving
-  if (def.onFoot && def.type === 'fatbike' && chain.run) {
+  if (def.onFoot && def.type === 'fatbike' && chainState().run) {
     if (p.inVehicle) {
-      chain.run.inVehT = (chain.run.inVehT || 0) + dt;
-      if (chain.run.inVehT < dt * 1.5) hint(world, 'Uitstappen, jong. Fatbikes ontwijk je te voet.');
-      if (chain.run.inVehT > 10) {
+      chainState().run.inVehT = (chainState().run.inVehT || 0) + dt;
+      if (chainState().run.inVehT < dt * 1.5) hint(world, 'Uitstappen, jong. Fatbikes ontwijk je te voet.');
+      if (chainState().run.inVehT > 10) {
         fail(world, def, 'je moest lopen, niet stiekem rijden');
         syncPub(world);
         return;
       }
-    } else chain.run.inVehT = 0;
+    } else chainState().run.inVehT = 0;
   }
 
-  if (def.type === 'deliver' && chain.stuntPhase) {
+  if (def.type === 'deliver' && chainState().stuntPhase) {
     updateStuntPhase(dt, world, def);
   } else if (def.type === 'deliver') {
     if (def.fragile) {
@@ -2393,57 +2435,57 @@ export function updateMissions(dt, world) {
         return;
       }
       for (const lvl of [80, 60, 45]) {
-        if (left < lvl && chain.cargoWarn > lvl) {
-          chain.cargoWarn = lvl;
+        if (left < lvl && chainState().cargoWarn > lvl) {
+          chainState().cargoWarn = lvl;
           world.addMessage(lvl > 50 ? `Krak! Achterin sneuvelt iets. ${def.fragile.label}: ${Math.round(left)}%` : `Nog één klap en het ${def.fragile.label.toLowerCase()} is weg! (${Math.round(left)}%)`, 2.8);
         }
       }
     }
-    const v = chain.vehicle;
+    const v = chainState().vehicle;
     if (p.inVehicle === v) {
       const stop = nextStop(def);
       const goal = stop || def.dest;
       if (dist(p.x, p.y, goal.x, goal.y) < (stop ? STOP_RADIUS : CHECKPOINT_RADIUS)) {
         if (!stop) succeed(world, def);
         else if (Math.abs(v.speed) > 2.5) hint(world, `Even stilstaan bij ${stop.name}, anders kan er niemand in.`, 'Even stilstaan, anders kan er niemand in.');
-        else if ((chain.stopT += dt) >= STOP_WAIT) {
-          chain.stopIndex++;
-          chain.stopT = 0;
-          if (stop.bonus) chain.timeLeft += stop.bonus;
+        else if ((chainState().stopT += dt) >= STOP_WAIT) {
+          chainState().stopIndex++;
+          chainState().stopT = 0;
+          if (stop.bonus) chainState().timeLeft += stop.bonus;
           world.addMessage(`${stop.arrive}${stop.bonus ? ` (+${stop.bonus}s)` : ''}`, 3.5);
         }
-      } else chain.stopT = 0;
+      } else chainState().stopT = 0;
     }
   } else if (def.type === 'stunt') {
-    if (updateStunt(dt, world, chain.timeLeft) === 'done') succeed(world, def);
+    if (updateStunt(dt, world, chainState().timeLeft) === 'done') succeed(world, def);
   } else if (def.type === 'checkpoint') {
     // the last pub's toast first, then the outro (a story scene can't start under it)
-    if (chain.finishPending) { if (!isCinematicActive()) { chain.finishPending = false; succeed(world, def); } return; }
-    if (chain.race) {
-      updateRace(dt, world, chain.race, chain.wpIndex);
-      const r = raceStandings(chain.race);
+    if (chainState().finishPending) { if (!isCinematicActive()) { chainState().finishPending = false; succeed(world, def); } return; }
+    if (chainState().race) {
+      updateRace(dt, world, chainState().race, chainState().wpIndex);
+      const r = raceStandings(chainState().race);
       if (r.finished >= PODIUM) {
-        chain.run.racePos = r.position;
-        chain.run.raceTotal = r.total;
+        chainState().run.racePos = r.position;
+        chainState().run.raceTotal = r.total;
         fail(world, def, 'het podium is al vol. Drie anderen waren eerder binnen');
         syncPub(world);
         return;
       }
     }
     if (def.crowds) updateCrowd(dt, world, def);
-    const k = waypointReached(p, def, chain.race ? RACE_CHECKPOINT_RADIUS : CHECKPOINT_RADIUS);
+    const k = waypointReached(p, def, chainState().race ? RACE_CHECKPOINT_RADIUS : CHECKPOINT_RADIUS);
     if (k >= 0) {
       if (def.onFoot && p.inVehicle) hint(world, 'Uitstappen, jong. Het heet kroegentocht, niet kroegenrit.');
-      else if (chain.race && chain.race.bikes && !(p.inVehicle && p.inVehicle.isBike)) hint(world, 'Op de fiets, hè. Het is een fietsrace.');
+      else if (chainState().race && chainState().race.bikes && !(p.inVehicle && p.inVehicle.isBike)) hint(world, 'Op de fiets, hè. Het is een fietsrace.');
       else reachCheckpoint(world, def, k);
     }
   } else if (def.type === 'fatbike') {
     updateLaneBikes(dt, world, def);
     checkLaneHits(world);
     for (const n of def.notes || []) {
-      if (chain.notesSaid && chain.notesSaid.has(n)) continue;
+      if (chainState().notesSaid && chainState().notesSaid.has(n)) continue;
       if (dist(p.x, p.y, n.x, n.y) > 14) continue;
-      (chain.notesSaid || (chain.notesSaid = new Set())).add(n);
+      (chainState().notesSaid || (chainState().notesSaid = new Set())).add(n);
       world.addMessage(n.text, 4, { kind: 'missie' });
     }
     if (dist(p.x, p.y, def.dest.x, def.dest.y) < CHECKPOINT_RADIUS && !isKnockedDown(p, world)) {
@@ -2458,7 +2500,7 @@ export function updateMissions(dt, world) {
       syncPub(world);
       return;
     }
-    if (p.inVehicle === chain.vehicle) {
+    if (p.inVehicle === chainState().vehicle) {
       const k = waypointReached(p, def, CHECKPOINT_RADIUS + 2);
       if (k >= 0) reachCheckpoint(world, def, k);
     }
@@ -2469,9 +2511,9 @@ export function updateMissions(dt, world) {
 
 // A wrecked handed-out race car or bike ends the race.
 function raceCarProblem() {
-  const car = chain.race && chain.race.playerCar;
+  const car = chainState().race && chainState().race.playerCar;
   if (!car || !car.wrecked) return null;
-  return chain.race.bikes ? 'je fiets ligt in de prak' : 'je racewagen is afgeschreven. Harm huilt, de pionnen juichen';
+  return chainState().race.bikes ? 'je fiets ligt in de prak' : 'je racewagen is afgeschreven. Harm huilt, de pionnen juichen';
 }
 
 // --- stages: story missions built from small objectives ------------------------
@@ -2579,8 +2621,8 @@ function resolveTarget(world, spec, from) {
     return { x: q.x, y: q.y, label: spec.label };
   }
   if (spec.shore) return { ...roadSpot(map, from.x, from.y), label: spec.label };
-  if (spec.skutsje) return chain.skutsje ? { x: chain.skutsje.x, y: chain.skutsje.y, label: spec.label } : null;
-  if (spec.storyBoat) return chain.storyBoat ? { x: chain.storyBoat.x, y: chain.storyBoat.y, label: spec.label || 'De rubberboot van Klaas' } : null;
+  if (spec.skutsje) return chainState().skutsje ? { x: chainState().skutsje.x, y: chainState().skutsje.y, label: spec.label } : null;
+  if (spec.storyBoat) return chainState().storyBoat ? { x: chainState().storyBoat.x, y: chainState().storyBoat.y, label: spec.label || 'De rubberboot van Klaas' } : null;
   if (spec.bank) return { ...bankNear(map, spec.bank[0], spec.bank[1]), label: spec.label };
   return null;
 }
@@ -2706,7 +2748,7 @@ function startSwarm(world, def, st, S, t) {
 // Flat tyres: the chased vehicle rolls to a stop and becomes the mission
 // vehicle; the car the player came in goes back to being ordinary traffic.
 function stopChaseVehicle(world, def, st) {
-  const v = chain.stage && chain.stage.target;
+  const v = chainState().stage && chainState().stage.target;
   if (!v) { nextStage(world, def); return; }
   if (st.keep) {
     // the finale's limo: it stays where it stopped, nobody's mission car
@@ -2724,10 +2766,10 @@ function stopChaseVehicle(world, def, st) {
 // tyres whole, and the run goes straight on past the 'board' stage.
 function hijackChase(world, def, st, v) {
   adoptVehicle(world, v, st, true);
-  chain.hijacked = true;
-  chain.boarded = true;
+  chainState().hijacked = true;
+  chainState().boarded = true;
   world.addMessage(st.hijack, 4.5);
-  if (def.stages[chain.stageIndex + 1] && def.stages[chain.stageIndex + 1].kind === 'board') chain.stageIndex++;
+  if (def.stages[chainState().stageIndex + 1] && def.stages[chainState().stageIndex + 1].kind === 'board') chainState().stageIndex++;
   nextStage(world, def);
 }
 
@@ -2739,10 +2781,10 @@ function adoptVehicle(world, v, st, intact = false) {
   v.chaseTarget = false;
   if (!st.hero && !intact) v.model = { ...v.model, maxSpeed: Math.min(v.model.maxSpeed, 15) };
   v.health = Math.max(v.health, 60);
-  const old = chain.vehicle;
+  const old = chainState().vehicle;
   if (old && old !== v) old.missionCar = false;
-  chain.vehicle = v;
-  chain.boarded = false;
+  chainState().vehicle = v;
+  chainState().boarded = false;
 }
 
 // H16: the Fjord drives onto the goods train at the Stationsplein
@@ -2762,28 +2804,28 @@ function chaseReachedTrain(world, def, st, S, t, dt) {
 }
 
 function stageNeedsVehicle(world, def) {
-  const st = def.stages && def.stages[chain.stageIndex];
-  const v = chain.vehicle;
+  const st = def.stages && def.stages[chainState().stageIndex];
+  const v = chainState().vehicle;
   if (!st || !v || v.wrecked || v.disabled || world.player.inVehicle === v || meespelerInVoertuig(world, v)) return false;
   return st.kind === 'board' || st.kind === 'garage' || (st.kind === 'goto' && st.mode === 'vehicle');
 }
 
 function stageVehicleProblem(world, def) {
-  const st = def.stages && def.stages[chain.stageIndex];
+  const st = def.stages && def.stages[chainState().stageIndex];
   if (!st || !def.vehicle || !(st.kind === 'board' || st.kind === 'garage' || (st.kind === 'goto' && st.mode === 'vehicle'))) return null;
   // a car waiting after another objective (H16's pigeon flight) is not abandoned yet
-  if (st.kind === 'board' && !chain.boarded && chain.stageIndex > 0) {
-    const v = chain.vehicle;
+  if (st.kind === 'board' && !chainState().boarded && chainState().stageIndex > 0) {
+    const v = chainState().vehicle;
     if (v && world.vehicles.includes(v) && !v.wrecked && !v.disabled) return null;
   }
   return vehicleProblem(world, def);
 }
 
 function stageMarker(world, def) {
-  const S = chain.stage;
-  const st = def.stages && def.stages[chain.stageIndex];
+  const S = chainState().stage;
+  const st = def.stages && def.stages[chainState().stageIndex];
   if (!S || !st) return def.start;
-  if (stageNeedsVehicle(world, def)) return chain.vehicle;
+  if (stageNeedsVehicle(world, def)) return chainState().vehicle;
   if (st.kind === 'pigeon' && S.flying) {
     const k = S.targets.findIndex((t, j) => t && !S.spotted.has(j));
     return k >= 0 ? S.targets[k] : def.start;
@@ -2797,24 +2839,24 @@ function inWindow(def) {
   const W = def.window;
   if (!W || !def.stages) return false;
   const a = def.stages.findIndex((q) => q.kind === W.after), b = def.stages.findIndex((q) => q.kind === W.until);
-  return a >= 0 && b >= 0 && chain.stageIndex > a && chain.stageIndex <= b;
+  return a >= 0 && b >= 0 && chainState().stageIndex > a && chainState().stageIndex <= b;
 }
 
 function stageProgressText(world, def) {
   const text = stageProgressBase(world, def);
-  return text && inWindow(def) ? `${text} · ${def.window.label} ${fmtTime(assistTime(def.window.secs) - chain.windowT)}` : text;
+  return text && inWindow(def) ? `${text} · ${def.window.label} ${fmtTime(assistTime(def.window.secs) - chainState().windowT)}` : text;
 }
 
 function stageProgressBase(world, def) {
-  const S = chain.stage;
-  const st = def.stages && def.stages[chain.stageIndex];
+  const S = chainState().stage;
+  const st = def.stages && def.stages[chainState().stageIndex];
   if (!S || !st) return null;
   const list = def.heist ? def.stages.filter((q) => !q.only || q.only === heistApproach()) : def.stages;
   const n = `${list.indexOf(st) + 1}/${list.length}`;
   if (st.kind === 'pigeon' && S.flying) return `${st.label} · op de foto ${S.spotted.size}/${S.targets.length}`;
   if (st.kind === 'hold') return `${st.label} · ${Math.min(100, Math.round(S.hold / st.time * 100))}%`;
   if (st.kind === 'bake' && S.bake) return `${st.label} · eierbal ${bakeProgress(S.bake).round}/${S.bake.rounds}`;
-  if (st.kind === 'convoy' && chain.convoy) { const sc = convoyStatus(world, chain.convoy); return `${st.label} · ${sc.near}/${sc.total} bij elkaar`; }
+  if (st.kind === 'convoy' && chainState().convoy) { const sc = convoyStatus(world, chainState().convoy); return `${st.label} · ${sc.near}/${sc.total} bij elkaar`; }
   if (st.kind === 'airgates' && planeStageProgress(st, S)) return planeStageProgress(st, S);
   if (st.kind === 'escape') {
     if (S.target && !world.wanted) return `${st.label} · ${Math.round(afstandMeespeler(world, S.target.x, S.target.y))} m`;
@@ -2831,13 +2873,13 @@ function stageProgressBase(world, def) {
     return `${st.label} · ${left}${st.clock ? ` · ${st.clock} ${fmtTime((st.time || 180) - S.t)}` : ''}`;
   }
   if (st.kind === 'boatchase' && S.boat) return S.hold > 0 ? `${st.label} · aan boord ${Math.min(100, Math.round(S.hold / (st.boardTime || 2.5) * 100))}%` : `${st.label} · ${Math.round(afstandMeespeler(world, S.boat.v.x, S.boat.v.y))} m`;
-  if (st.light && chain.light) return `${st.label} · gezien ${Math.round(chain.light.exposure * 100)}%${Number.isFinite(chain.timeLeft) ? ` · het water komt over ${fmtTime(chain.timeLeft)}` : ''}`;
+  if (st.light && chainState().light) return `${st.label} · gezien ${Math.round(chainState().light.exposure * 100)}%${Number.isFinite(chainState().timeLeft) ? ` · het water komt over ${fmtTime(chainState().timeLeft)}` : ''}`;
   if (st.kind === 'goto' && st.limit) return `${st.label} · ${fmtTime(st.limit - S.t)}`;
   if (st.kind === 'train' && fjordTrainState()) {
     const ft = fjordTrainState();
     return `${st.label} · trein nog ${Math.max(0, Math.round(ft.cross.s - ft.t.c - ft.t.halfLen))} m`;
   }
-  if (def.eggs && chain.stageIndex >= def.eggs.from && chain.eggs != null) return `${st.label} · ${eggText(def)}`;
+  if (def.eggs && chainState().stageIndex >= def.eggs.from && chainState().eggs != null) return `${st.label} · ${eggText(def)}`;
   return `${st.label} (${n})`;
 }
 
@@ -2851,7 +2893,7 @@ function showMissionFlag(world, def, from) {
 }
 
 function enterStage(world, def, k) {
-  chain.stageIndex = k;
+  chainState().stageIndex = k;
   const st = def.stages[k];
   if (!st) { succeed(world, def); return; }
   // a stage that belongs to one answer: ifTag / unlessTag (a choice of this mission or a remembered one)
@@ -2890,7 +2932,7 @@ function enterStage(world, def, k) {
     if (!ft || !ft.fjord) {
       // stopped before it got on: the train leaves without it
       sendFjordTrainAway();
-      chain.stage = S;
+      chainState().stage = S;
       nextStage(world, def);
       return;
     }
@@ -2906,13 +2948,13 @@ function enterStage(world, def, k) {
   if (st.kind === 'choice') enterChoice(S);
   if (st.kind === 'timing') enterTiming(S, st, choiceOn);
   if (st.kind === 'rit') enterRit(world, st, S);
-  if (def.eggs && k === def.eggs.from) { chain.eggs = 100; chain.eggWarn = 100; chain.eggVeh = null; }
-  chain.stage = S;
+  if (def.eggs && k === def.eggs.from) { chainState().eggs = 100; chainState().eggWarn = 100; chainState().eggVeh = null; }
+  chainState().stage = S;
   if (st.stars) { world.wanted = Math.max(world.wanted, st.stars); world.wantedDecayTimer = 0; }
   if (st.calm) { world.wanted = 0; world.wantedDecayTimer = 0; }
-  if (st.bonus) chain.timeLeft += st.bonus;
-  if (st.setTime) chain.timeLeft = st.setTime;
-  const say = chain.hijacked && st.sayHijacked ? st.sayHijacked : st.say;
+  if (st.bonus) chainState().timeLeft += st.bonus;
+  if (st.setTime) chainState().timeLeft = st.setTime;
+  const say = chainState().hijacked && st.sayHijacked ? st.sayHijacked : st.say;
   if (say) world.addMessage(say, 4.5);
   if (st.radio && contactMod) contactMod.queueStoryContact(withValidity({ via: 'radio', from: 'rikus', mood: 'night', ...st.radio }, MISSION_RADIO_VALID));
   // the new arc: a radio fragment and talk from the script, and the clock that runs faster (Het Loket)
@@ -2921,17 +2963,17 @@ function enterStage(world, def, k) {
     if (lines.length) contactMod.queueStoryContact(withValidity({ via: 'radio', from: 'rikus', mood: 'night', caller: st.radioScript.caller || '', lines }, MISSION_RADIO_VALID));
   }
   if (st.talk && storyDataReady()) playTalk(talkLines(st.talk.ids, st.talk), { id: `${def.id || def.label}:${k}`, delay: st.talk.delay || 1 });
-  if (st.clock) { chain.clockRate = st.clock; world.addMessage('De klok loopt harder: Jelle heeft de rij gekocht.', 4, { kind: 'gevaar', key: 'loket-klok' }); }
+  if (st.clock) { chainState().clockRate = st.clock; world.addMessage('De klok loopt harder: Jelle heeft de rij gekocht.', 4, { kind: 'gevaar', key: 'loket-klok' }); }
   saveCheckpoint(world, def, k);
 }
 
 // #213: remember this stage as the place a new attempt starts from (see missioncheckpoint.js for which stages count)
 function saveCheckpoint(world, def, k) {
-  if (!chain.checkpoints || chain.phase !== 'active' || !isCheckpointStage(def, k)) return;
-  const p = world.player, v = chain.vehicle;
+  if (!chainState().checkpoints || chainState().phase !== 'active' || !isCheckpointStage(def, k)) return;
+  const p = world.player, v = chainState().vehicle;
   const usable = v && world.vehicles.includes(v) && !v.wrecked && !v.disabled;
-  recordCheckpoint(chain.checkpoints, makeCheckpoint({
-    missionIndex: chain.index, stageIndex: k, timeLeft: chain.timeLeft, chain,
+  recordCheckpoint(chainState().checkpoints, makeCheckpoint({
+    missionIndex: chainState().index, stageIndex: k, timeLeft: chainState().timeLeft, chain: chainState(),
     player: { x: p.x, y: p.y, angle: p.angle },
     vehicle: usable ? { x: v.x, y: v.y, angle: v.angle, inside: p.inVehicle === v } : null,
   }));
@@ -2939,10 +2981,10 @@ function saveCheckpoint(world, def, k) {
 
 // A new attempt at a mission that failed after a checkpoint: back to that stage with the time, progress and vehicle of the moment.
 function resumeFromCheckpoint(world, def) {
-  const cp = chain.resume;
-  chain.resume = null;
+  const cp = chainState().resume;
+  chainState().resume = null;
   if (!cp) return;
-  const p = world.player, v = chain.vehicle;
+  const p = world.player, v = chainState().vehicle;
   if (cp.player) placeParty(world, cp.player);
   if (v && cp.vehicle && !(def.heist && !cp.vehicle.inside)) {
     v.x = cp.vehicle.x; v.y = cp.vehicle.y; v.angle = cp.vehicle.angle; v.speed = 0; v.vx = 0; v.vy = 0;
@@ -2951,17 +2993,17 @@ function resumeFromCheckpoint(world, def) {
   if (def.heist || def.fjordTrain) enterStage(world, def, 0);
   // a heist retried at the getaway: the doors you came through stand open
   if (def.heist) for (const id of ['achterdeur', 'glasdeur']) openHeistDoor(id);
-  if (chain.phase !== 'active') return;
+  if (chainState().phase !== 'active') return;
   enterStage(world, def, cp.stageIndex);
-  applyCheckpointProgress(cp, chain);
-  chain.boarded = chain.boarded || !!(cp.vehicle && cp.vehicle.inside);
+  applyCheckpointProgress(cp, chainState());
+  chainState().boarded = chainState().boarded || !!(cp.vehicle && cp.vehicle.inside);
   world.addMessage('Je begint opnieuw bij het laatste hervatpunt.', 3.5);
 }
 
 function nextStage(world, def) {
-  const cur = def.stages[chain.stageIndex];
+  const cur = def.stages[chainState().stageIndex];
   dropPursuer(world);
-  if (chain.light && !(def.stages[chain.stageIndex + 1] && def.stages[chain.stageIndex + 1].light)) disposeLight();
+  if (chainState().light && !(def.stages[chainState().stageIndex + 1] && def.stages[chainState().stageIndex + 1].light)) disposeLight();
   if (def.heist) heistLeaveStage(world, cur);
   if (cur && cur.pay) {
     const amt = Math.min(cur.pay, Math.max(0, Math.floor(world.money)));
@@ -2969,7 +3011,7 @@ function nextStage(world, def) {
     const short = amt < cur.pay ? (cur.payShort || ` Oma Trijntje legt de laatste €${cur.pay - amt} bij.`) : '';
     world.addMessage(`Gekocht! ${cur.paid || 'Afgerekend'}, -€${amt}.${short}`, 4, { kind: 'missie', key: 'stage-paid' });
   }
-  enterStage(world, def, chain.stageIndex + 1);
+  enterStage(world, def, chainState().stageIndex + 1);
 }
 
 // --- H14: Jelle's skûtsje sails the Diepenring (rondvaartchase.js route) -------
@@ -3020,7 +3062,7 @@ function spawnSkutsje(world, st) {
   v.driver = 'jelle';
   v.label = st.name || '';
   world.vehicles.push(v);
-  chain.skutsje = v;
+  chainState().skutsje = v;
   return { v, s: s0, dir, speed: 2, R };
 }
 
@@ -3056,8 +3098,8 @@ function updateBoatChase(dt, world, def, st, S) {
 // --- M11: the coast guard's searchlight over the marsh (stage `light`, searchlightlogic.js) ----------
 // The light stays up over consecutive stages that carry the same `light`; seen too long = the end of the sneaking.
 function updateLightStage(dt, world, def, st, S) {
-  if (!chain.light) chain.light = { ctl: createSearchlight(st.light), exposure: 0, t: 0, warned: false };
-  const Lt = chain.light;
+  if (!chainState().light) chainState().light = { ctl: createSearchlight(st.light), exposure: 0, t: 0, warned: false };
+  const Lt = chainState().light;
   Lt.t += dt;
   if (Lt.ctl) Lt.ctl.update(Lt.t);
   const p = world.player, ref = p.inVehicle || p;
@@ -3075,9 +3117,9 @@ function updateLightStage(dt, world, def, st, S) {
 }
 
 function disposeLight() {
-  if (!chain.light) return;
-  if (chain.light.ctl) chain.light.ctl.dispose();
-  chain.light = null;
+  if (!chainState().light) return;
+  if (chainState().light.ctl) chainState().light.ctl.dispose();
+  chainState().light = null;
 }
 
 // M11: a hop over the water or the coast, Klaas' cutter: the pair stands at `spec` (a stage target), on foot
@@ -3153,11 +3195,11 @@ function updatePursuer(dt, world, def, st, S) {
 }
 
 function dropPursuer(world) {
-  const v = chain.stage && chain.stage.limo;
+  const v = chainState().stage && chainState().stage.limo;
   if (!v) return;
   const i = world.vehicles.indexOf(v);
   if (i >= 0) world.vehicles.splice(i, 1);
-  chain.stage.limo = null;
+  chainState().stage.limo = null;
 }
 
 // --- H15: the trauma heli (helirun.js) as one stage -----------------------------
@@ -3199,14 +3241,14 @@ export function dijkEtappe(af, len, cps = DIJK_CP, reach = 16) {
 
 // De stap van de straatrace in de opdracht die nu loopt, of null.
 function dijkStage() {
-  if (!chain || chain.phase !== 'active' || !chain.defs) return null;
-  const def = chain.defs[chain.index], st = def && def.stages && def.stages[chain.stageIndex], S = chain.stage;
+  if (!chainState() || chainState().phase !== 'active' || !chainState().defs) return null;
+  const def = chainState().defs[chainState().index], st = def && def.stages && def.stages[chainState().stageIndex], S = chainState().stage;
   return st && st.kind === 'chase' && st.race && S && S.finish ? { def, st, S } : null;
 }
 
 // De wedstrijdlaag start de race: een auto per deelnemer op de startrij (dezelfde auto voor iedereen) en een aftellen.
 function startDijkRace(world, sc) {
-  const d = dijkStage(), basis = chain && chain.vehicle;
+  const d = dijkStage(), basis = chainState() && chainState().vehicle;
   if (!d || !basis || basis.wrecked || !sc || !sc.baan) return false;
   const fin = d.S.finish, start = d.def.start;
   const len = Math.hypot(fin.x - start.x, fin.y - start.y) || 1;
@@ -3419,31 +3461,31 @@ function updateFireworks(dt, world, def, st, S) {
 // def.eggs.count (M09: sixty eggs): the meter reads as eggs still whole
 function eggText(def) {
   const n = def.eggs.count;
-  return n ? `${Math.round(chain.eggs / 100 * n)} van ${n} eieren heel` : `eiermeter ${Math.round(chain.eggs)}%`;
+  return n ? `${Math.round(chainState().eggs / 100 * n)} van ${n} eieren heel` : `eiermeter ${Math.round(chainState().eggs)}%`;
 }
 
 function updateEggs(dt, world, def) {
   const v = world.player.inVehicle;
-  if (!v || chain.eggs == null || !dt) { chain.eggVeh = null; return; }
+  if (!v || chainState().eggs == null || !dt) { chainState().eggVeh = null; return; }
   const sp = Math.abs(v.speed);
-  if (chain.eggVeh === v) {
-    const decel = (chain.eggPrev - sp) / dt;
+  if (chainState().eggVeh === v) {
+    const decel = (chainState().eggPrev - sp) / dt;
     let loss = decel > 13 ? (decel - 13) * dt * 1.4 : 0;
     // M09: the wierdepaden are full of holes, so speed breaks eggs too
     if (def.eggs.rough) loss += Math.max(0, sp - def.eggs.rough.speed) * def.eggs.rough.per * dt;
-    if (v.health < chain.eggHp) loss += (chain.eggHp - v.health) * 1.2;
-    chain.eggs = Math.max(0, chain.eggs - loss);
+    if (v.health < chainState().eggHp) loss += (chainState().eggHp - v.health) * 1.2;
+    chainState().eggs = Math.max(0, chainState().eggs - loss);
   }
-  chain.eggVeh = v;
-  chain.eggPrev = sp;
-  chain.eggHp = v.health;
+  chainState().eggVeh = v;
+  chainState().eggPrev = sp;
+  chainState().eggHp = v.health;
   for (const lvl of [75, 50]) {
-    if (chain.eggs < lvl && chain.eggWarn > lvl) {
-      chain.eggWarn = lvl;
+    if (chainState().eggs < lvl && chainState().eggWarn > lvl) {
+      chainState().eggWarn = lvl;
       world.addMessage(lvl > 60 ? `Krak. Achterin breekt een ei. ${eggText(def)}` : `Nog zo'n remmer en het wordt omelet! (${eggText(def)})`, 2.8);
     }
   }
-  if (chain.eggs <= def.eggs.failAt) fail(world, def, def.eggs.fail);
+  if (chainState().eggs <= def.eggs.failAt) fail(world, def, def.eggs.fail);
 }
 
 const MODE_HINT = {
@@ -3457,7 +3499,7 @@ const GROEPSTAPPEN = new Set(['goto', 'hold', 'board', 'escape', 'chase']); // s
 function modeOk(p, mode) {
   if (mode === 'foot') return !p.inVehicle;
   if (mode === 'boat') return !!(p.inVehicle && p.inVehicle.isBoat);
-  if (mode === 'vehicle') return !!chain.vehicle && p.inVehicle === chain.vehicle;
+  if (mode === 'vehicle') return !!chainState().vehicle && p.inVehicle === chainState().vehicle;
   return true;
 }
 
@@ -3524,10 +3566,10 @@ function playStageScene(world, st, S) {
       const near = Math.hypot(c.x - v.x, c.y - v.y) < 5;
       return { position: { x: v.x + Math.cos(a) * 2.8, y: v.y + Math.sin(a) * 2.8, z: 1.75 }, lookAt: { x: near ? (v.x + c.x) / 2 : v.x, y: near ? (v.y + c.y) / 2 : v.y, z: 1.2 }, fov: 50 };
     };
-  } else if (st.deckCam && chain.skutsje) {
+  } else if (st.deckCam && chainState().skutsje) {
     // on the skûtsje (H14): from just off the bow quarter, low, looking aft over the deck, so the
     // sail stands behind the cast instead of between them and the camera; a slow drift along the hull
-    const b = chain.skutsje, ca = Math.cos(b.angle), sa = Math.sin(b.angle), hl = b.model.len / 2;
+    const b = chainState().skutsje, ca = Math.cos(b.angle), sa = Math.sin(b.angle), hl = b.model.len / 2;
     const sd = [1, -1].find((s) => isInWater(world.map, b.x + ca * (hl + 2.5) - sa * s * 3.5, b.y + sa * (hl + 2.5) + ca * s * 3.5)) ?? 1;
     shot = (u) => {
       const k = u * u * (3 - 2 * u), fw = hl + 3.2 - k * 1.4, lat = sd * (3.6 - k * 0.8);
@@ -3565,7 +3607,7 @@ function playStageScene(world, st, S) {
     const staged = playCastScene(world, {
       at: wide ? c : { x: world.player.x, y: world.player.y }, lines: st.lines, cast: st.cast || [],
       kicker: st.kicker || '', title: st.title || '', big: wide ? '' : st.big || '', lookTo, solo: !!st.solo, staging: stagingKey(st), lead: st.reveal ? REVEAL.card : 0.6,
-      deck: st.target && st.target.skutsje ? chain.skutsje : null,
+      deck: st.target && st.target.skutsje ? chainState().skutsje : null,
       shot: st.reveal || wide || st.deckCam ? shot : null, shotLines: wide ? st.shotLines || 1 : 0, shotAll: !!st.reveal,
       poses: st.dropFlag || st.showFlag ? (t, cur) => ({ T: 'lookup', A: cur && cur.who === 'A' ? (st.dropFlag ? 'cheer' : 'point') : 'lookup' }) : null,
       props: [...(st.props || []), ...(st.knots ? [{ kind: 'point', name: 'knots', at: flagKnotsFocus }] : [])],
@@ -3588,31 +3630,31 @@ function playStageScene(world, st, S) {
 
 function updateStages(dt, world, def) {
   const p = world.player;
-  if (chain.stagePending) {
+  if (chainState().stagePending) {
     if (isCinematicActive()) return;
-    chain.stagePending = false;
-    if (chain.resume) resumeFromCheckpoint(world, def);
+    chainState().stagePending = false;
+    if (chainState().resume) resumeFromCheckpoint(world, def);
     else enterStage(world, def, 0);
-    if (chain.phase !== 'active') return;
+    if (chainState().phase !== 'active') return;
   }
-  const st = def.stages[chain.stageIndex];
-  const S = chain.stage;
+  const st = def.stages[chainState().stageIndex];
+  const S = chainState().stage;
   if (!st || !S) return;
   S.t += dt;
   if (inWindow(def) && !isCinematicActive() && !(def.heist && heistSendingBack())) {
-    chain.windowT += dt;
+    chainState().windowT += dt;
     const W = def.window;
     const wSecs = assistTime(W.secs);
     // the first time it runs out the companion puts the cameras on repeat once more
-    if (chain.windowT > wSecs && W.extra && !chain.windowExtended) {
-      chain.windowExtended = true;
-      chain.windowT = wSecs - W.extra;
+    if (chainState().windowT > wSecs && W.extra && !chainState().windowExtended) {
+      chainState().windowExtended = true;
+      chainState().windowT = wSecs - W.extra;
       world.addMessage(W.extend, 4.5);
-    } else if (chain.windowT > wSecs) { fail(world, def, W.late); return; }
+    } else if (chainState().windowT > wSecs) { fail(world, def, W.late); return; }
   }
-  if (def.eggs && chain.stageIndex >= def.eggs.from) {
+  if (def.eggs && chainState().stageIndex >= def.eggs.from) {
     updateEggs(dt, world, def);
-    if (chain.phase !== 'active') return;
+    if (chainState().phase !== 'active') return;
   }
   // seen by a guard or camera: the stage waits while you're sent back; O held: skip it
   if (def.heist) {
@@ -3624,18 +3666,18 @@ function updateStages(dt, world, def) {
     }
     if (h) return;
   }
-  if (def.boatStart && chain.storyBoat && chain.stageIndex <= (def.boatUntil ?? 3) && (chain.storyBoat.wrecked || chain.storyBoat.sinking || !world.vehicles.includes(chain.storyBoat))) {
+  if (def.boatStart && chainState().storyBoat && chainState().stageIndex <= (def.boatUntil ?? 3) && (chainState().storyBoat.wrecked || chainState().storyBoat.sinking || !world.vehicles.includes(chainState().storyBoat))) {
     fail(world, def, 'de rubberboot is gezonken. Klaas wil hem niet zo terug');
     return;
   }
   if (st.light && updateLightStage(dt, world, def, st, S)) return;
-  const v = chain.vehicle;
+  const v = chainState().vehicle;
   const inCar = !!v && p.inVehicle === v;
   // samen spelen (#452): een stap met de vlag iedereen wacht op elke meespeler bij het doel (goto, hold en escape lezen de vlag zelf)
   if (st.iedereen && !GROEPSTAPPEN.has(st.kind) && !groepKlaar(world, st, S.target)) { hint(world, WACHT_OP_ANDEREN); return; }
   switch (st.kind) {
     case 'board':
-      if (inCar || meespelerInVoertuig(world, v) || (def.snapStart && !chain.vehicle)) nextStage(world, def);
+      if (inCar || meespelerInVoertuig(world, v) || (def.snapStart && !chainState().vehicle)) nextStage(world, def);
       break;
     case 'goto': {
       if (!S.target) { nextStage(world, def); break; }
@@ -3654,7 +3696,7 @@ function updateStages(dt, world, def) {
     case 'hold': {
       if (!S.target) { nextStage(world, def); break; }
       if (st.fireworks) updateFireworks(dt, world, def, st, S);
-      if (chain.phase !== 'active') break;
+      if (chainState().phase !== 'active') break;
       if (st.mud) sinkInMud(world, dt, 4);
       const g = doelStand(world, S.target, st.radius || HOLD_RADIUS, st.mode, modeOk, st.iedereen); // een meespeler bij het doel houdt de klok gaande (met st.iedereen: allemaal)
       if (g.status === 'modus') { hint(world, MODE_HINT[st.mode] || ''); break; }
@@ -3718,7 +3760,7 @@ function updateStages(dt, world, def) {
     }
     case 'getaway':
       if (updateGetaway(dt, world, st, S)) {
-        if (heistBoat()) chain.vehicle = heistBoat();
+        if (heistBoat()) chainState().vehicle = heistBoat();
         nextStage(world, def);
       }
       break;
@@ -3848,7 +3890,7 @@ function updateStages(dt, world, def) {
       const r = updateTiming(dt, world, st, S);
       if (r === 'done') {
         const tag = timingTag(st, S);
-        if (tag) (chain.tags = chain.tags || new Set()).add(tag);
+        if (tag) (chainState().tags = chainState().tags || new Set()).add(tag);
         const jump = st.vaultJump ? playDuelJump(world, { at: S.target || { x: p.x, y: p.y }, fail: S.hits < (st.goodAt ?? st.rounds.length) }) : null;
         if (jump) { S.duelJump = jump; S.duelT = 0; jump.done.then(() => { jump.over = true; }); } else nextStage(world, def);
       } else if (r && r.fail) fail(world, def, r.fail);
@@ -3858,10 +3900,10 @@ function updateStages(dt, world, def) {
       const r = updateChoice(dt, world, st, S);
       if (r === 'done') {
         // an answer can carry a tag: the mission pays and tells its consequence (def.tagAdjust, def.tagRows, st.scriptIf)
-        (chain.tags = chain.tags || new Set());
-        st.rounds.forEach((rd, k) => { const o = rd.options[S.picks[k]]; if (o && o.tag) chain.tags.add(o.tag); });
+        (chainState().tags = chainState().tags || new Set());
+        st.rounds.forEach((rd, k) => { const o = rd.options[S.picks[k]]; if (o && o.tag) chainState().tags.add(o.tag); });
         // the number of wrong answers as tags ('<countTag>1' from one wrong answer, '<countTag>2' from two): the intake of M18 gets warier with each
-        for (let w = 1; w <= S.wrong; w++) if (st.countTag) chain.tags.add(st.countTag + w);
+        for (let w = 1; w <= S.wrong; w++) if (st.countTag) chainState().tags.add(st.countTag + w);
         nextStage(world, def);
       } else if (r && r.fail) fail(world, def, r.fail);
       break;
@@ -3896,7 +3938,7 @@ function updateBakeStage(dt, world, def, st, S) {
   if (res === 'done') {
     hideBake();
     const bad = S.bake.wrongs + S.bake.redos * 3;
-    if (st.recipe === 'contest') chain.bakeTier = bad === 0 ? 'top' : bad < 3 ? 'goed' : 'mager';
+    if (st.recipe === 'contest') chainState().bakeTier = bad === 0 ? 'top' : bad < 3 ? 'goed' : 'mager';
     world.addMessage(st.recipe === 'contest' ? (bad === 0 ? 'Alle eierballen zijn goud, geen enkele mislukt. De jury gaat dit proeven.' : bad < 3 ? 'De eierballen zijn goud. Een paar mislukten, de jury merkt het niet.' : 'De eierballen zijn goud, na veel gedoe. De jury heeft het gezien.') : 'Alle eierballen zijn goud.', 3);
     return true;
   }
@@ -3906,15 +3948,15 @@ function updateBakeStage(dt, world, def, st, S) {
 // Act 5 (M23): the column. The first convoy stage brings the friends (and Jelle's limo after limoAfter seconds);
 // each stage ends when the leader is at the target and most of the column is with him. 'fail' when it falls apart.
 function updateConvoyStage(dt, world, def, st, S) {
-  if (!chain.convoy) chain.convoy = startConvoy(world);
-  const c = chain.convoy;
+  if (!chainState().convoy) chainState().convoy = startConvoy(world);
+  const c = chainState().convoy;
   // the ally chosen at the start (M23) can hold Jelle's limo back for a while (limoAfterIf: { tag: seconds })
   const held = st.limoAfterIf && Object.entries(st.limoAfterIf).find(([tag]) => choiceOn(tag));
   const limoAfter = held ? held[1] : st.limoAfter;
   if (!S.limoDone && limoAfter && S.t > limoAfter) { S.limoDone = true; if (spawnLimo(world, c)) world.addMessage('Jelles limo komt op de colonne af.', 3.5); }
   const r = updateConvoy(dt, world, c, (text) => world.addMessage(text, 2.5, { key: 'colonne-lag' }));
   if (r && r.split) { world.addMessage(`${r.split} is te ver achter: de colonne valt uiteen.`, 3.5); return 'fail'; }
-  const v = chain.vehicle;
+  const v = chainState().vehicle;
   const p = world.player;
   if (v && p.inVehicle !== v && dist(p.x, p.y, v.x, v.y) > 12) { hint(world, st.carHint || ''); return null; }
   if (!S.target || dist(p.x, p.y, S.target.x, S.target.y) >= (st.radius || STAGE_RADIUS)) return null;
@@ -3964,16 +4006,16 @@ function updatePigeonStage(dt, world, def, st, S) {
 // --- debug / test hooks (story dev mode and the automated story test) -----------
 
 export const missionDebug = {
-  state: () => (chain ? {
-    index: chain.index, phase: chain.phase, stage: chain.stageIndex, wp: chain.wpIndex, completed: [...chain.completed],
-    stageInfo: chain.stage ? { t: Math.round(chain.stage.t * 10) / 10, flying: chain.stage.flying, target: chain.stage.target && { x: Math.round(chain.stage.target.x), y: Math.round(chain.stage.target.y) } } : null,
+  state: () => (chainState() ? {
+    index: chainState().index, phase: chainState().phase, stage: chainState().stageIndex, wp: chainState().wpIndex, completed: [...chainState().completed],
+    stageInfo: chainState().stage ? { t: Math.round(chainState().stage.t * 10) / 10, flying: chainState().stage.flying, target: chainState().stage.target && { x: Math.round(chainState().stage.target.x), y: Math.round(chainState().stage.target.y) } } : null,
     player: worldRef && { x: Math.round(worldRef.player.x), y: Math.round(worldRef.player.y), inVehicle: !!worldRef.player.inVehicle },
   } : null),
   // starts mission i right here, requirements and the trigger ring aside
   start(world, i) {
-    if (!chain || !chain.defs[i] || chain.phase === 'active') return false;
-    const def = chain.defs[i];
-    chain.index = i;
+    if (!chainState() || !chainState().defs[i] || chainState().phase === 'active') return false;
+    const def = chainState().defs[i];
+    chainState().index = i;
     const p = world.player;
     if (!p.inVehicle && dist(p.x, p.y, def.start.x, def.start.y) > 30) { p.x = def.start.x; p.y = def.start.y; }
     // a lazyStart mission needs road data the streaming has not brought yet: look wider for it, the cheat has the player on the spot
@@ -3984,44 +4026,44 @@ export const missionDebug = {
     forceStart = true;
     try { startMission(world, def); } finally { forceStart = false; }
     syncPub(world);
-    return chain.phase === 'active';
+    return chainState().phase === 'active';
   },
   // wins whatever stage the mission is in (a scene, a vault, the intro still pending): independent of the path
   // the player took, so the spelbot's cheat ladder ends here (#186)
   win(world) {
-    if (!chain || chain.phase !== 'active') return false;
-    const def = chain.defs[chain.index];
+    if (!chainState() || chainState().phase !== 'active') return false;
+    const def = chainState().defs[chainState().index];
     if (world.pigeonMode) stopPigeonMode(world);
-    chain.stagePending = false;
-    chain.resume = null;
+    chainState().stagePending = false;
+    chainState().resume = null;
     if (isCinematicActive()) skipCinematic();
     succeed(world, def);
     syncPub(world);
     return true;
   },
   lose(world) {
-    if (!chain || chain.phase !== 'active') return false;
-    fail(world, chain.defs[chain.index], 'afgebroken in de testmodus');
+    if (!chainState() || chainState().phase !== 'active') return false;
+    fail(world, chainState().defs[chainState().index], 'afgebroken in de testmodus');
     syncPub(world);
     return true;
   },
   // finishes the current objective: the next stage, checkpoint or stop
   complete(world) {
-    if (!chain || chain.phase !== 'active') return false;
-    const def = chain.defs[chain.index];
+    if (!chainState() || chainState().phase !== 'active') return false;
+    const def = chainState().defs[chainState().index];
     if (def.type === 'stages') {
-      if (chain.stagePending) { chain.stagePending = false; enterStage(world, def, 0); }
-      const cur = def.stages[chain.stageIndex];
+      if (chainState().stagePending) { chainState().stagePending = false; enterStage(world, def, 0); }
+      const cur = def.stages[chainState().stageIndex];
       // a cutscene stage plays by itself (skippable); don't jump past it
       if (cur && (cur.kind === 'scene' || cur.kind === 'vault' || cur.kind === 'shot')) { syncPub(world); return true; }
-      if (cur && (cur.kind === 'plane' || cur.kind === 'airgates' || cur.kind === 'landplane') && debugCompletePlaneStage(world, cur, chain.stage)) { syncPub(world); return true; }
+      if (cur && (cur.kind === 'plane' || cur.kind === 'airgates' || cur.kind === 'landplane') && debugCompletePlaneStage(world, cur, chainState().stage)) { syncPub(world); return true; }
       if (cur && cur.kind === 'getaway') {
         heistSkipGetaway(world, false);
-        if (heistBoat()) chain.vehicle = heistBoat();
+        if (heistBoat()) chainState().vehicle = heistBoat();
       }
-      if (cur && cur.kind === 'chase' && cur.toTrain && chain.stage && chain.stage.target && fjordLoadPoint()) {
+      if (cur && cur.kind === 'chase' && cur.toTrain && chainState().stage && chainState().stage.target && fjordLoadPoint()) {
         // it makes it to the train: the Fjord goes up the ramp now
-        loadFjordNow(world, chain.stage.target);
+        loadFjordNow(world, chainState().stage.target);
         nextStage(world, def);
         syncPub(world);
         return true;
@@ -4044,7 +4086,7 @@ export const missionDebug = {
       }
       if (cur && cur.kind === 'chase') {
         // flat tyres now, and the player right next to the stopped vehicle
-        const t = chain.stage && chain.stage.target;
+        const t = chainState().stage && chainState().stage.target;
         stopChaseVehicle(world, def, cur);
         const p = world.player;
         if (t && !world.pigeonMode) {
@@ -4057,29 +4099,29 @@ export const missionDebug = {
         return true;
       }
       if (cur && cur.kind === 'fuse') { closeFuse(); camerasOff(); }
-      if (cur && cur.kind === 'boatchase' && chain.stage && chain.stage.boat) chain.stage.boat.speed = 0;
+      if (cur && cur.kind === 'boatchase' && chainState().stage && chainState().stage.boat) chainState().stage.boat.speed = 0;
       if (cur && cur.kind === 'heli' && isHeliRunActive()) abortHeliRun();
-      if (chain.phase !== 'active') { syncPub(world); return true; }
-      if (chain.stage && def.stages[chain.stageIndex] && def.stages[chain.stageIndex].kind === 'pigeon' && world.pigeonMode) stopPigeonMode(world);
+      if (chainState().phase !== 'active') { syncPub(world); return true; }
+      if (chainState().stage && def.stages[chainState().stageIndex] && def.stages[chainState().stageIndex].kind === 'pigeon' && world.pigeonMode) stopPigeonMode(world);
       if (world.wanted) { world.wanted = 0; world.wantedDecayTimer = 0; }
-      if (chain.phase === 'active') nextStage(world, def);
-    } else if ((def.type === 'checkpoint' || def.type === 'boat') && !chain.race) {
+      if (chainState().phase === 'active') nextStage(world, def);
+    } else if ((def.type === 'checkpoint' || def.type === 'boat') && !chainState().race) {
       // all waypoints reached, the outro waits for the last toast (updateMissions)
-      if (!chain.finishPending) reachCheckpoint(world, def);
-    } else if (def.type === 'deliver' && chain.stuntPhase) {
+      if (!chainState().finishPending) reachCheckpoint(world, def);
+    } else if (def.type === 'deliver' && chainState().stuntPhase) {
       // the stunt part counts as done: on to the delivery
       stopStunt(world);
-      chain.stuntPhase = false;
+      chainState().stuntPhase = false;
     } else if (def.type === 'deliver' && nextStop(def)) {
-      chain.stopIndex++;
+      chainState().stopIndex++;
     } else succeed(world, def);
     syncPub(world);
     return true;
   },
   // moves the player (and whatever they drive) to the current marker
   teleport(world) {
-    if (!chain) return false;
-    const m = chain.pub.marker;
+    if (!chainState()) return false;
+    const m = chainState().pub.marker;
     const p = world.player;
     if (world.pigeonMode) return false;
     const v = p.inVehicle;
@@ -4093,25 +4135,25 @@ export const missionDebug = {
   // where he stands, so a guest who becomes host does not jump back to the start of the mission.
   // Best effort by design: the state a stage builds for itself (a scene, the vault, the heist doors) starts fresh.
   hervat(world, i, deel = 0, tijd = null, { plek = false } = {}) {
-    if (!chain || !chain.defs[i] || chain.phase === 'active') return false;
+    if (!chainState() || !chainState().defs[i] || chainState().phase === 'active') return false;
     const p = world.player, was = p && Number.isFinite(p.x) ? { x: p.x, y: p.y } : null;
     const terug = () => { if (!plek && was && p && !p.inVehicle) { p.x = was.x; p.y = was.y; } };
     if (!this.start(world, i)) { terug(); return false; }
     terug();
-    const def = chain.defs[chain.index];
+    const def = chainState().defs[chainState().index];
     let k = Math.max(0, Math.floor(Number(deel) || 0));
     // a plan screen or a menu stage builds its own state and cannot be entered cold: resume at the stage before it
     while (k > 0 && def.stages && def.stages[k] && (def.stages[k].kind === 'plan' || def.stages[k].kind === 'choice')) k--;
     if (def.type === 'stages' && k > 0 && def.stages && def.stages[k]) {
-      chain.stagePending = false;
+      chainState().stagePending = false;
       if (def.heist || def.fjordTrain) enterStage(world, def, 0); // what those stages build for themselves stands from stage 0
-      if (chain.phase === 'active') enterStage(world, def, k);
+      if (chainState().phase === 'active') enterStage(world, def, k);
     } else if ((def.type === 'checkpoint' || def.type === 'boat') && k > 0 && def.waypoints && k < def.waypoints.length) {
-      chain.wpIndex = k;
+      chainState().wpIndex = k;
     }
-    if (chain.phase === 'active' && Number.isFinite(tijd) && tijd > 0 && Number.isFinite(chain.timeLeft)) chain.timeLeft = Math.max(tijd, 15);
+    if (chainState().phase === 'active' && Number.isFinite(tijd) && tijd > 0 && Number.isFinite(chainState().timeLeft)) chainState().timeLeft = Math.max(tijd, 15);
     syncPub(world);
-    return chain.phase === 'active';
+    return chainState().phase === 'active';
   },
 };
 

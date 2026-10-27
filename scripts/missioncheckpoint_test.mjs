@@ -88,13 +88,14 @@ const read = (p) => fs.readFileSync(new URL(`../game/js/${p}`, import.meta.url),
 const m = read('missions.js');
 ok(/from '\.\/missioncheckpoint\.js'/.test(m), 'missions.js importeert missioncheckpoint');
 ok(/saveCheckpoint\(world, def, k\);\n\}/.test(m), 'checkpoint wordt aan het eind van enterStage bewaard');
-ok(/if \(chain\.resume\) resumeFromCheckpoint\(world, def\);\n\s+else enterStage\(world, def, 0\);/.test(m), 'hervatten bij het starten van de stages');
-ok(/chain\.checkpoints\.delete\(i\)/.test(m), 'succes wist het checkpoint');
-ok(/chain\.checkpoints\.clear\(\)/.test(m), 'laden wist de checkpoints');
-ok(/chain\.retry = chain\.defs\[chain\.index\][^\n]*createRetryOffer/.test(m), 'falen biedt Opnieuw aan');
-ok(/updateRetry\(dt, world, def\);\n\n\s+if \(chain\.phase === 'cooldown'\)/.test(m), 'Opnieuw wordt elke frame bijgehouden');
+// #492: de keten komt nu uit de houder per groep (chainState())
+ok(/if \(chainState\(\)\.resume\) resumeFromCheckpoint\(world, def\);\n\s+else enterStage\(world, def, 0\);/.test(m), 'hervatten bij het starten van de stages');
+ok(/chainState\(\)\.checkpoints\.delete\(i\)/.test(m), 'succes wist het checkpoint');
+ok(/chainState\(\)\.checkpoints\.clear\(\)/.test(m), 'laden wist de checkpoints');
+ok(/chainState\(\)\.retry = chainState\(\)\.defs\[chainState\(\)\.index\][^\n]*createRetryOffer/.test(m), 'falen biedt Opnieuw aan');
+ok(/updateRetry\(dt, world, def\);\n\n\s+if \(chainState\(\)\.phase === 'cooldown'\)/.test(m), 'Opnieuw wordt elke frame bijgehouden');
 ok(/stepGrace\(g, dt, far \? 'away' : 'near'\)/.test(m), 'verlaten voertuig geeft grace');
-ok(/if \(mee\) chain\.completed\.add\(chain\.index\)/.test(m), 'opdracht van een gast: alleen met J van de gastheer telt hij als geklaard (#452)');
+ok(/if \(mee\) chainState\(\)\.completed\.add\(chainState\(\)\.index\)/.test(m), 'opdracht van een gast: alleen met J van de gastheer telt hij als geklaard (#452)');
 ok(/sluitGastStart\(world, mee\)/.test(m), 'en zijn eigen keten blijft staan als hij toekeek (#452)');
 ok(/wrecked \|\| v\.disabled\) return vf\.wrecked/.test(m), 'kapot blijft direct falen');
 ok(/placeParty\(world, def\.start\)/.test(m), 'Opnieuw zet de groep op de startplek');
