@@ -5,6 +5,7 @@ import { isInsideBuilding, isOnRoad } from './pedgeom.js';
 import { isInWater, closestPointOnSegment } from './util.js';
 import { railingItems, hasRailings, RAIL_KIND, RAIL_HALF } from './bridgerails.js';
 import { yieldArms } from './junctions.js';
+import { SIGNPOST_MAX_D, signpostSetFor } from './signblades.js';
 
 // Groningen street clutter for cityprops' per-cell meshes: bikes against
 // facades and bridge railings, kliko's, underground waste containers,
@@ -43,7 +44,6 @@ const R = {
   kiosk: [512, 440, 400, 60],
   abriPoster: [128, 256, 128, 192],
 };
-const SIGNPOST_MAX_D = 9000; // m van het centrum
 const BLADE_NAMES = ['Centrum', 'Hoofdstation', 'Zernike', 'Haren', 'Noorderplantsoen', 'Hoogkerk'];
 const CHALK_LINES = [
   ['Koffie &', 'appeltaart', '€ 4,50'],
@@ -608,6 +608,8 @@ export function initClutter() {
     abri: buildAbri(),
     elecBoxes: [buildElecBox(0x7d8a7a), buildElecBox(0xb5ae98), buildElecBox(0x6b6e70)],
     signposts: [[0, 3], [1, 2, 0], [4, 1], [5, 0, 2], [2, 1], [0, 4, 1]].map(buildSignpost),
+    // buiten de stad alleen de echte plaatsen: Haren en Hoogkerk (#436)
+    signpostsTown: [[3, 5], [5, 3], [3, 5, 3]].map(buildSignpost),
     fietsstraat: buildPoleSign('fietsstraat', 0.6, 0.4, 2.2),
     parkeren: buildPoleSign('parkeren', 0.42, 0.42, 2.2),
     stoepborden: CHALK_LINES.map((_, i) => buildStoepbord(i)),
@@ -1056,10 +1058,12 @@ export function generateClutter(ctx) {
   }
 
   // de wegwijzers wijzen naar Stad (Centrum, Hoofdstation, Haren ...): buiten de omgeving van de stad staan ze niet, ook
-  // niet in Friesland (#436). De rng wordt wel altijd getrokken, zodat de rest van de tegel niet verspringt.
-  if (!inner && rng.next() < 0.35 && centreD < SIGNPOST_MAX_D) {
+  // niet in Friesland (#436). In de stad mogen de stadsdistricten op het bord, daarbuiten alleen Haren en Hoogkerk.
+  // De rng wordt wel altijd getrokken, zodat de rest van de tegel niet verspringt.
+  const borden = signpostSetFor(centreD);
+  if (!inner && rng.next() < 0.35 && borden) {
     const s = spot((r) => (r.cat === 'cycle' || hasSidewalk(r)) && !r.bridge, (r) => (r.width || 4) / 2 + (hasSidewalk(r) ? 0.9 : 0.7), 0.4);
-    if (s) items.push(item(pick(rng, P.signposts), 'signpost', s.x, s.y, s.segA));
+    if (s) items.push(item(pick(rng, borden === 'city' ? P.signposts : P.signpostsTown), 'signpost', s.x, s.y, s.segA));
   }
 
   if (mid && !inner && rng.next() < 0.45) {
