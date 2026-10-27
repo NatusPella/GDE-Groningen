@@ -123,6 +123,7 @@ import { probe } from './hitchprobe.js';
 import { speakBubble } from './linevoice.js';
 import { applyDrunkCamera } from './drunk.js';
 import { GROUND_LAYER, SIDEWALK_EXTRA, PAVED_MATS, buildRoadGroup, setRoadNetwork, getRoadQualityVersion, roadFarColor, roadGeometryReady } from './roadsurface.js';
+import { ribbonAlpha, routeOffRoad } from './routeribbon.js';
 import { lookBackActive, chaseFollowLerp } from './controls.js';
 import { gameBusy } from './busy.js';
 
@@ -4228,7 +4229,8 @@ function buildRouteRibbonGeometry(pts, along0, map = null, z0 = 0) {
     const l = Math.hypot(dx, dy) || 1;
     dx /= l; dy /= l;
     const nx = -dy * RIBBON_HALF_W, ny = dx * RIBBON_HALF_W;
-    const alpha = Math.min(1, dist / 3, (total - dist) / 15 + 0.05);
+    // (en uitdoven zodra de route de verharding verlaat: geen gele verf over een gazon of akker, #502)
+    const alpha = ribbonAlpha(dist, total, map ? routeOffRoad(map, pts[i][0], pts[i][1]) : 0);
     for (let k = 0; k < 2; k++) {
       const side = k === 0 ? 1 : -1;
       const j = i * 2 + k;
