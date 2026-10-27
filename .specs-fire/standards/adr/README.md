@@ -38,6 +38,14 @@ Een nieuwe ADR kost tien minuten en hooguit twintig regels. Een beslissing die e
 bestaande ADR vervangt, krijgt een nieuwe ADR met "vervangen door" in de oude; je
 schrijft de oude niet om.
 
+**Nummers zijn een gedeelde voorraad.** Twee chats die tegelijk een ADR schrijven,
+pakken anders hetzelfde nummer. Daarom reserveert de coördinator een nummer in
+deze lijst voordat een andere sessie begint te schrijven:
+
+| # | Gereserveerd voor | Door |
+|---|---|---|
+| — | (vrij; 0016 is gebruikt door `gde-light-sims`, 0017 door de taalregel, 0018 door de speleringang #500) | — |
+
 ## Lijst
 
 | # | Beslissing | Status |
@@ -54,6 +62,9 @@ schrijft de oude niet om.
 | [0010](0010-een-rood-en-kleurtokens.md) | Eén rood en kleur alleen via tokens | besloten |
 | [0011](0011-tekst-is-data.md) | Tekst is data: canon, script, build, spel | besloten |
 | [0012](0012-nederlands-verzonnen-altijd-zomer.md) | Nederlands, verzonnen namen, altijd zomer | besloten |
-| [0013](0013-een-testrunner-met-fasen.md) | Eén testrunner met drie fasen | voorgesteld |
+| [0013](0013-een-testrunner-met-fasen.md) | Eén testrunner met drie fasen | besloten |
 | [0014](0014-release-lokaal-builds-in-actions.md) | Release lokaal, builds in Actions, agents nooit | besloten |
-| [0015](0015-een-ingang-geen-hoofdmenu.md) | Eén ingang, geen hoofdmenu; laden is een wereldgebeurtenis | besloten |
+| [0015](0015-een-safehouse-systeem.md) | Eén safehouse-systeem, ook voor de verhaalplekken | besloten |
+| [0016](0016-een-ingang-geen-hoofdmenu.md) | Eén ingang, geen hoofdmenu; laden is een wereldgebeurtenis | besloten |
+| [0017](0017-code-in-het-engels.md) | Code in het Engels, spelteksten en proza in het Nederlands | besloten |
+| [0018](0018-een-ingang-voor-de-speler.md) | Eén ingang voor de speler, met een poort op de singleton | besloten |

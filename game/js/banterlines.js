@@ -471,7 +471,7 @@ export const BANTER = [
     ['T', 'Dat is ook Gronings. Wel horen, niet luisteren.', 'proud, deadpan']] },
   { id: 'id-kei', trigger: 'idle', until: 'H6', lines: [
     ['T', 'Overal polsbandjes.', 'grumpy'],
-    ['A', 'KEI-week. Ze zijn nieuw hier.', 'warm'],
+    ['A', 'Kiezelweek. Ze zijn nieuw hier.', 'warm'],
     ['T', 'Er vroeg er eentje de weg.', 'dry'],
     ['A', 'En?', 'curious'],
     ['T', 'Ik heb hem naar Paddepoel gestuurd.', 'deadpan'],

@@ -155,7 +155,7 @@ met een echt merk; bewuste parodie, op de allowlist, de eigenaar kan kiezen te h
 | Pompeblêd | blad | `game/js/missionstory.js` | Fries woord voor waterleliebladeren | ok |
 | Lichtje Tjoek | lamp bij EIKEA | `game/js/furniture.js` | niets | ok |
 | Noorderzon | festival en jas (Femke, kalender, uitrusting) | `game/js/calendar.js` | het echte festival in Groningen | besluit |
-| KEI-week | introductieweek in de kalender | `game/js/calendar.js` | de echte introductieweek | besluit |
+| Kiezelweek | verzonnen introductieweek in de kalender (verving de echte KEI-week, #489) | `game/js/calendar.js` | de echte introductieweek | ok |
 | Gerrit Krolbrug | brug | `game/js/flavour.js` | echte brug (plaats), vernoemd naar een persoon; staat op de allowlist | besluit |
 | Qbuzz | alleen in een codecommentaar bij de stadsbuskleur, nooit in beeld | `game/js/vehicle.js` | echte busmaatschappij | ok (commentaar) |
 

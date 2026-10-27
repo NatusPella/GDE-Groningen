@@ -1,7 +1,7 @@
 // Samen spelen (#439): het spel overdragen, de koppeling met de wereld en het netwerk. coophostwissel.js is de pure basis (momentopname en
 // toestandsmachines); dit bestand vult de momentopname uit de wereld van wie het spel opende, past hem toe bij de nieuwe speler, stuurt de
 // berichten over de bestaande sessies (hub en ClientSession, JSON-gebeurtenissen 'hw-*') en laat iedereen opnieuw verbinden.
-// Geen DOM en geen echt netwerk: de route (kamer openen, bij een kamer aansluiten) komt als `deps` binnen (coophostwisselui.js voor het
+// Geen DOM en geen echt netwerk: de route (kamer openen, bij een kamer aansluiten) komt als `deps` binnen (multiplayerhostwisselui.js voor het
 // echte spel met rtcroom, de tests met een geheugentransport). coopnet.js roept alleen wisselEvent en wisselTik aan.
 //
 // Verloop: oude host bied() -> bod -> J/N -> stukken -> de ander laadt (hw-geladen) -> opent een kamer -> hw-draait(kamer) -> de oude host

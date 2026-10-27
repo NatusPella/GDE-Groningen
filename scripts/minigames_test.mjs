@@ -65,7 +65,7 @@ const gauss = (rng) => (rng() + rng() + rng() + rng() - 2) / 0.58;
     check(`${id} uses its theme`, src.includes(`mgThema('${id}')`) && src.includes(`createBoard('${id}')`), file);
   }
   // de PvP-arena (#454) en de twee diensten (#444) halen hun bord ook uit de tabel
-  const pvp = fs.readFileSync(path.join(root, 'game/js/cooppvpwereld.js'), 'utf8');
+  const pvp = fs.readFileSync(path.join(root, 'game/js/multiplayerpvpwereld.js'), 'utf8');
   check('pvparena uses its theme', pvp.includes("createBoard('pvparena'") && MG_THEMA.pvparena.titel === 'PVP-ARENA');
   const diensten = fs.readFileSync(path.join(root, 'game/js/activities.js'), 'utf8');
   check('the flight and the boat service use their theme', diensten.includes('createBoard(mgThema(cfg.id) ? cfg.id : cfg.titel, cfg.accent)') && MG_THEMA.vluchtdienst && MG_THEMA.vaardienst, 'activities.js');

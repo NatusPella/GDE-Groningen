@@ -1,6 +1,6 @@
 // Samen spelen (#452): een gast start een wedstrijd (E bij het startpunt) en de host hoeft niet mee te doen. Pure Node, geen net, geen DOM.
 //   node scripts/coop/gaststart_test.mjs
-import * as W from '../../game/js/coopwedstrijd.js';
+import * as W from '../../game/js/multiplayerwedstrijd.js';
 import * as P from '../../game/js/padelmatch.js';
 import * as B from '../../game/js/coopbijbaan.js';
 import { registerBusyProbe } from '../../game/js/busy.js';

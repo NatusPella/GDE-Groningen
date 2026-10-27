@@ -165,7 +165,7 @@ function menselijkeSlag(m, stoel, r) {
   vtEigen += rand(m, -1, 1) * (1 - q) * 1.8;
   const fault = q < 0.16 && m.rng() < 0.55;
   hitBall(m, stoel, clamp(ut, -4.6, 4.6), F * clamp(vtEigen, 1.2, 9.6), T, fault, q);
-  if (q > 0.85 && !fault) m.flash = { text: 'Perfect!', t: 0.8, small: true };
+  if (q > 0.85 && !fault) m.flash = { text: 'Mooi!', t: 0.8, small: true };
 }
 
 function aiSlag(m, stoel) {
@@ -412,7 +412,7 @@ export function snapPadel(m, seq = 0) {
   return { k: 'wed', f: 'lv', n: seq | 0, d, x: m.flash ? `${m.flash.text}${m.flash.why ? ` (${m.flash.why})` : ''}`.slice(0, 60) : '' };
 }
 export const SNAP_LEN = 16 + 5 * 4;
-// De haken die het wedstrijdkader (coopwedstrijd.js) van een live wedstrijd nodig heeft.
+// De haken die het wedstrijdkader (multiplayerwedstrijd.js) van een live wedstrijd nodig heeft.
 export const livePadel = {
   tik: tikPadel, snap: snapPadel, verlaat: verlaatPadel, uitslag: uitslagPadel, beloning: beloningPadel, vak: 'padel',
   meedoen: (m, slot) => m.stoelen.some((s) => s.slot === slot && !s.weg),

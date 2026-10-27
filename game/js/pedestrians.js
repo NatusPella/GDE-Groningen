@@ -1,4 +1,4 @@
-import { isInsideBuilding, isOnRoad, lineOfSight, setPedPose, pushAudioEvent } from './pedgeom.js';
+import { isInsideBuilding, isOnRoad, CAR_ROAD_CATS, lineOfSight, setPedPose, pushAudioEvent } from './pedgeom.js';
 export { isInsideBuilding, isOnRoad, lineOfSight, setPedPose, pushAudioEvent };
 import { DEAD_DURATION } from './pedconst.js';
 export { DEAD_DURATION };
@@ -174,6 +174,13 @@ function crowdedAt(x, y, fresh) {
   return false;
 }
 
+// A walker stands on a verge or a sidewalk, never on the asphalt of a car road.
+// The spawn puts them 1 to 3 m beside the road they pick, and at a junction that
+// verge is the lane of the road it meets (#502).
+export function walkerSpotClear(map, x, y) {
+  return !isInsideBuilding(map, x, y) && !isInWater(map, x, y) && !isOnRoad(map, x, y, 0.3, CAR_ROAD_CATS);
+}
+
 function spawnPedsRaw(map, x, y, count, rng, minDist = 0, hidden = true) {
   const peds = [];
   const view = hidden && spawnWorld && spawnWorld.pedView && spawnWorld.time >= (spawnWorld.pedFreeSpawnUntil || 0);
@@ -203,7 +210,7 @@ function spawnPedsRaw(map, x, y, count, rng, minDist = 0, hidden = true) {
 
     const d = dist(fx, fy, x, y);
     if (d > maxDist || d < minDist) continue;
-    if (isInsideBuilding(map, fx, fy) || isInWater(map, fx, fy)) continue;
+    if (!walkerSpotClear(map, fx, fy)) continue;
     if (map.offStreetLevel && map.offStreetLevel(fx, fy)) continue;
     if (map.onRingCarriageway && map.onRingCarriageway(fx, fy)) continue;
     if (view && !isSpawnHidden(spawnWorld, fx, fy)) continue;
@@ -238,7 +245,7 @@ function addCompanions(map, peds, max) {
     if (out.length >= max || Math.random() >= COMPANION_CHANCE) continue;
     const s = Math.random() < 0.5 ? 1 : -1;
     const cx = p.x - Math.sin(p.angle) * 0.85 * s, cy = p.y + Math.cos(p.angle) * 0.85 * s;
-    if (isInsideBuilding(map, cx, cy) || isInWater(map, cx, cy)) continue;
+    if (!walkerSpotClear(map, cx, cy)) continue;
     const c = new Pedestrian(cx, cy, p.angle);
     makeCompanion(c, p);
     c.pairSide = s;

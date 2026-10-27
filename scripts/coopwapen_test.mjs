@@ -8,7 +8,7 @@ import * as S from '../game/js/coopspeler.js';
 import * as C from '../game/js/coopclient.js';
 import * as B from '../game/js/coopbestuur.js';
 import * as N from '../game/js/coopnet.js';
-import * as PW from '../game/js/cooppvpwereld.js';
+import * as PW from '../game/js/multiplayerpvpwereld.js';
 import { WEAPONS } from '../game/js/weapons.js';
 const { gastAanvalUitvoeren, gastSlagLanding, updateBullets } = await import('../game/js/combat.js');
 const { buildPersonMesh, setHeldWeapon } = await import('../game/js/models3d_people.js');
@@ -270,7 +270,7 @@ t('de gast met een slagwapen: de rechtermuisknop is de blokstand, die als zichtb
   assert.equal(w.coopZichtKnop, true, 'de wacht gaat als zichtbit mee in de invoer');
   assert.equal(w.scoped, false, 'een slagwapen zet geen kijker');
   assert.equal(w.coopAanvalKnop, false, 'blokkeren valt niet aan');
-  // de host leest dat bit en laat de gast daarmee blokkeren (cooppvpwereld.js blokkeert)
+  // de host leest dat bit en laat de gast daarmee blokkeren (multiplayerpvpwereld.js blokkeert)
   const h = { time: 1, coopRole: 'host', coopPvp: { actief: { 0: true, 2: true }, vrij: {}, tot: {}, poging: {} }, coopFigures: { 2: { slot: 2, input: { buttons: S.KNOP_ZICHT } } }, coopWapens: { 2: { w: 'knuppel' } } };
   assert.equal(PW.blokkeert(h, 2, 1), true);
   h.coopWapens[2].w = 'jachtgeweer';

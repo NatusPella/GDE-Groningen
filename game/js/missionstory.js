@@ -2101,7 +2101,7 @@ export function playEyeContact(w, { at, heading, onDone = null } = {}) {
     m.userData.head.rotation.y = -Math.max(-1.1, Math.min(1.1, Math.atan2(Math.sin(d), Math.cos(d)))) * k;
   };
   return runScene(r, tl, {
-    id: 'mission-scene', kicker: 'KEI-week · alles groen', title: 'Oogcontact', cardFor: 2.4,
+    id: 'mission-scene', kicker: 'Kiezelweek · alles groen', title: 'Oogcontact', cardFor: 2.4,
     update: (t, dt) => {
       const qt = posAt(tStart, tEnd, t), qa = posAt(aStart, aEnd, t);
       const dip = t > RIDE && t < RIDE + BRAKE ? Math.sin((t - RIDE) / BRAKE * Math.PI) * 0.06 : 0;

@@ -55,7 +55,7 @@ const done = new Promise((res) => child.on('exit', () => { fs.writeFileSync(path
 process.on('exit', () => { try { child.kill(); } catch (e) { /* weg */ } });
 const readEvents = () => fs.readFileSync(events, 'utf8').split(/\r?\n/).filter(Boolean).map((l) => { try { return JSON.parse(l); } catch (e) { return null; } }).filter(Boolean);
 const imp = (f) => import(pathToFileURL(path.join(ROOT, 'game', 'js', f)).href);
-const WD = await imp('coopwedstrijd.js'), PL = await imp('puttinglogic.js'), EP = await imp('echteplekken.js');
+const WD = await imp('multiplayerwedstrijd.js'), PL = await imp('puttinglogic.js'), EP = await imp('echteplekken.js');
 // de baan van de host: de eerste echte golfbaan uit echteplekken.json (zoals pitchputt.js setVenues), anders het Concours
 let venue = { id: 'concours', holes: PL.ppHoles() };
 try { const v = EP.golfVenues(JSON.parse(fs.readFileSync(path.join(STAGE, 'echteplekken.json'), 'utf8')))[0]; if (v) venue = { id: v.id, holes: PL.holesFromWorld(v.holes) }; } catch (e) { /* het Concours */ }

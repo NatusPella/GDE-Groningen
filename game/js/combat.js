@@ -21,7 +21,7 @@ import { assistDamage } from './assistlive.js';
 import { squirtWater, throwExplosive, updateThrowables } from './throwables.js';
 import { noteWantedWhy } from './wantedwhy.js';
 import { gastAanval, gastLichamen } from './coopbestuur.js';
-import { pvpSlag, pvpKogel } from './cooppvpwereld.js'; // spelers tegen elkaar, alleen als beiden niet op passief staan (#447)
+import { pvpSlag, pvpKogel } from './multiplayerpvpwereld.js'; // spelers tegen elkaar, alleen als beiden niet op passief staan (#447)
 import { wantedVan, zetWantedVan } from './coopgezocht.js';
 import { hoofdspeler } from './spelersregister.js'; // de speler achter dit scherm (#446); politie en gezocht blijven per speler
 import { nieuweCombo, comboSlag, comboUitslag } from './meleecombo.js'; // de melee-reeks (#492)
@@ -81,7 +81,7 @@ function cycleWeaponByWheel(dt, world, input) {
 }
 
 // De blokstand van de speler achter dit scherm (#492). Hij staat in de wereld zodat een geblokkeerde slag ook bij een gast
-// te zien is (cooppvpwereld.js) en de tests hem kunnen zetten.
+// te zien is (multiplayerpvpwereld.js) en de tests hem kunnen zetten.
 export function blokVan(world) {
   return world.blok || (world.blok = nieuweBlok());
 }

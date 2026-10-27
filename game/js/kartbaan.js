@@ -1,5 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { canvasTex } from './canvastex.js';
+import { canvasTex, signBothSides } from './canvastex.js';
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk, seatPerson, seatedY, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { showBanner } from './cinematics.js';
@@ -20,7 +20,7 @@ import { addClearZone, corridorPoints } from './clearzone.js';
 import { KARTBAAN_ORIGIN, KARTBAAN_ROT, KARTBAAN_FRAME, KARTBAAN_WIDTH, KARTBAAN_TRACK } from './kartbaanspoor.js';
 import { racingLine } from './kartline.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
-import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedRaceTik, wedHostEind, wedGastVerlaat, wedGastReset, tikSpiegel, eindstand, beloning, raceStand } from './coopwedstrijd.js';
+import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedRaceTik, wedHostEind, wedGastVerlaat, wedGastReset, tikSpiegel, eindstand, beloning, raceStand } from './multiplayerwedstrijd.js';
 import { figuurLook } from './coopplayers.js';
 
 // Karten in Ulrum: the real outdoor kart track of Ulrum (OSM way "Kartbaan
@@ -136,7 +136,7 @@ function buildKartMesh(color, number) {
   for (const s of [-1, 1]) mesh(new THREE.CylinderGeometry(0.035, 0.035, 1.3, 6).rotateZ(Math.PI / 2), M.metal, 0.1, 0.17, s * 0.62, g);
   mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.98, 6).rotateX(Math.PI / 2), M.metal, -0.86, 0.22, 0, g);
   // number on a plate
-  const plate = new THREE.Mesh(new THREE.PlaneGeometry(0.34, 0.3), new THREE.MeshBasicMaterial({ map: canvasTex(64, 64, (c) => { c.fillStyle = '#fff'; c.fillRect(0, 0, 64, 64); c.fillStyle = '#111'; c.font = 'bold 48px Arial'; c.textAlign = 'center'; c.fillText(String(number), 32, 50); }), side: THREE.DoubleSide }));
+  const plate = signBothSides(0.34, 0.3, new THREE.MeshBasicMaterial({ map: canvasTex(64, 64, (c) => { c.fillStyle = '#fff'; c.fillRect(0, 0, 64, 64); c.fillStyle = '#111'; c.font = 'bold 48px Arial'; c.textAlign = 'center'; c.fillText(String(number), 32, 50); }) }));
   plate.position.set(-0.95, 0.46, 0);
   plate.rotation.y = -Math.PI / 2;
   g.add(plate);
@@ -214,7 +214,7 @@ function buildTrackScene() {
   for (const s of [-1, 1]) mesh(new THREE.BoxGeometry(0.3, 5.4, 0.3), M.gantry, 0, 2.7, s * (T.hw + 1.4), gantry);
   mesh(new THREE.BoxGeometry(0.5, 0.9, (T.hw + 1.4) * 2 + 0.6), M.gantry, 0, 5.4, 0, gantry);
   const bannerTex = canvasTex(512, 96, (g, w, h) => { g.fillStyle = '#16181c'; g.fillRect(0, 0, w, h); g.fillStyle = '#f2b82a'; g.font = 'bold 54px Arial'; g.textAlign = 'center'; g.fillText('KARTBAAN ULRUM', w / 2, 64); });
-  const banner = new THREE.Mesh(new THREE.PlaneGeometry(8.4, 1.5), new THREE.MeshBasicMaterial({ map: bannerTex, side: THREE.DoubleSide }));
+  const banner = signBothSides(8.4, 1.5, new THREE.MeshBasicMaterial({ map: bannerTex }));
   banner.rotation.y = Math.PI / 2;
   banner.position.set(0.28, 6.2, 0);
   gantry.add(banner);
@@ -369,7 +369,7 @@ function start(w, { force = false } = {}) {
 }
 
 // --- racing against other players (#443) -------------------------------------------------------------------------
-// The host runs the whole race (coopwedstrijd.js tikRace on the same TRACK, fed with the guests' sticks) and draws it as the solo race;
+// The host runs the whole race (multiplayerwedstrijd.js tikRace on the same TRACK, fed with the guests' sticks) and draws it as the solo race;
 // a guest draws the host's snapshots (maakSpiegel) with his own kart first. `game` is that race object, so syncKarts, camera and the
 // board work unchanged on it. Nothing else of the host's world is touched: the track is a clear zone, the riders are meshes of this module.
 
@@ -403,7 +403,7 @@ function beginOnline(w, g, kind) {
   runs++;
 }
 
-// the host: the invitation is answered, the race object is ready (coopwedstrijd.js begin)
+// the host: the invitation is answered, the race object is ready (multiplayerwedstrijd.js begin)
 function startOnline(w, race) {
   if (game || activityBlock(w)) return false;
   if (!built) built = buildTrackScene();
@@ -448,7 +448,7 @@ function updateOnline(w, dt) {
   let klaar = false;
   for (const e of ev) {
     if (e.type === 'lights') { pushAudioEvent(w, { kind: 'bell', x: STAND.x, y: STAND.y }); if (e.n === 1) pushAudioEvent(w, { kind: 'sting', name: 'kart_countdown' }); if (!gast && e.n === 1) say(w, 'lights', true); }
-    else if (e.type === 'go') { pushAudioEvent(w, { kind: 'bell', x: STAND.x, y: STAND.y }); g.flash = { text: 'GO!', t: 1.4 }; if (!gast) say(w, 'go', true); }
+    else if (e.type === 'go') { pushAudioEvent(w, { kind: 'bell', x: STAND.x, y: STAND.y }); g.flash = { text: 'Start!', t: 1.4 }; if (!gast) say(w, 'go', true); }
     else if (e.type === 'lap' && e.i === 0) { if (e.lap >= LAPS) pushAudioEvent(w, { kind: 'sting', name: 'kart_finish' }); /* je eigen finish: een korte fanfare */ g.flash = { text: `Ronde ${e.lap}: ${fmtTime(e.time)}`, t: 2.4 }; if (!gast && e.lap === LAPS - 1) say(w, 'last'); }
     else if (e.type === 'wall' && e.i === 0) pushAudioEvent(w, { kind: 'prop_hit', material: 'wood', strength: clamp(e.speed / 8, 0.2, 1), x: ORIGIN.x, y: ORIGIN.y });
     else if (e.type === 'boost' && e.i === 0) g.flash = { text: e.lvl === 2 ? 'SUPERBOOST!' : 'BOOST!', t: 1.2 };
@@ -521,7 +521,7 @@ function updateGame(w, dt) {
       g.lights = 4;
       for (const k of ks) { k.lapStart = 0; }
       pushAudioEvent(w, { kind: 'bell', x: STAND.x, y: STAND.y });
-      g.flash = { text: 'GO!', t: 1.4 };
+      g.flash = { text: 'Start!', t: 1.4 };
       say(w, 'go', true);
     }
   } else g.raceT += dt;
@@ -746,14 +746,14 @@ function camera(w) {
   const q = FR.toW(me.u, me.v);
   let pos, at, fov = 66;
   if (g.phase === 'grid') {
-    // a slow swing from in front of the grid down to the back of your kart
+    // een langzame dolly van hoog achter het startveld naar de staart van je kart. De camera blijft
+    // achter de startlijn, dus het starthek staat altijd vóór hem en snijdt nooit door het beeld (#504).
     const k = clamp(g.t / GO_AT, 0, 1);
     const a = ROT + me.a;
     const e = k * k * (3 - 2 * k);
-    const ang = a + Math.PI * (1 - e) * 0.8;
-    const dist = 11 - 4.6 * e;
-    pos = { x: q.x - Math.cos(ang) * dist, y: q.y - Math.sin(ang) * dist, z: 6 - 3.6 * e };
-    at = { x: q.x + Math.cos(a) * 3 * e, y: q.y + Math.sin(a) * 3 * e, z: 0.6 };
+    const dist = 15 - 8 * e;
+    pos = { x: q.x - Math.cos(a) * dist, y: q.y - Math.sin(a) * dist, z: 8.5 - 6.1 * e };
+    at = { x: q.x + Math.cos(a) * (2 + 4 * e), y: q.y + Math.sin(a) * (2 + 4 * e), z: 0.6 + 1.4 * (1 - e) };
   } else {
     g.camA += angDiff(me.a, g.camA) * Math.min(1, 0.08 + Math.abs(me.f) * 0.004);
     const a = ROT + g.camA;

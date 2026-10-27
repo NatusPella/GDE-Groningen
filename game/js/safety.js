@@ -11,9 +11,8 @@ import { respawnPlayer } from './world.js';
 import { respawnFade } from './respawn.js';
 import { playerBusy } from './busy.js';
 import { REST_S, hangendeTeken, restMelding, telRest } from './scenerest.js';
+import { cinematicLimit } from './cinelimit.js';
 
-const CINE_MAX_EXTRA_S = 20;
-const CINE_MAX_S = 150;
 const RESPAWN_MAX_S = 25;
 const FALL_LIMIT = -16; // the deepest road (the aqueduct) is at -11 m
 
@@ -187,7 +186,7 @@ function watchCinematic(dt, w) {
   if (c !== cineSeen) { cineSeen = c; cineT = 0; }
   if (isPauseMenuOpen() || isMapOpen()) return;
   cineT += dt;
-  const limit = Math.min(CINE_MAX_S, (Number.isFinite(c.duration) ? c.duration : 10) + CINE_MAX_EXTRA_S);
+  const limit = cinematicLimit(c);
   if (cineT > limit) {
     console.warn('[safety] cinematic ran too long, skipping', c.id);
     skipCinematic();

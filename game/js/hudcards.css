@@ -36,12 +36,14 @@ body.hud-call-on #hud .hud-nowplaying, body.hud-call-on #hud .hud-vehname, body.
 #hud .hud-card.on { opacity: 1; transform: none; }
 #hud .hud-card.out { opacity: 0; transform: translateX(-20px); transition-duration: 0.4s; }
 #hud .hud-card.bump .hc-icon svg { animation: hc-bump 0.45s ease-out; }
-#hud .hud-card[data-kind="missie"] { --hc: #e8c93a; }
-#hud .hud-card[data-kind="bijbaan"] { --hc: #ff9a3c; }
-#hud .hud-card[data-kind="geld"] { --hc: #3fc97a; }
-#hud .hud-card[data-kind="politie"] { --hc: #6c9bff; }
-#hud .hud-card[data-kind="gevaar"] { --hc: #ff5a4a; }
-#hud .hud-card[data-kind="prestatie"] { --hc: #d68cff; }
+/* De kleur van een kaart komt uit de statuskleuren van de a11y-paletten (#479): zo doen de
+   kleurenblindmodi mee en is er geen tweede rood of blauw naast de tokens. */
+#hud .hud-card[data-kind="missie"] { --hc: var(--mk-mission, #e8c93a); }
+#hud .hud-card[data-kind="bijbaan"] { --hc: var(--mk-job, #ff9a3c); }
+#hud .hud-card[data-kind="geld"] { --hc: var(--mk-ok, #3fc97a); }
+#hud .hud-card[data-kind="politie"] { --hc: var(--mk-police, #3f6fd9); }
+#hud .hud-card[data-kind="gevaar"] { --hc: var(--mk-danger, #d93f3f); }
+#hud .hud-card[data-kind="prestatie"] { --hc: var(--mk-user, #c068ff); }
 
 #hud .hc-icon { flex: 0 0 36px; width: 36px; height: 36px; display: grid; place-items: center; }
 #hud .hc-icon svg {

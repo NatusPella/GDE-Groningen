@@ -2,6 +2,18 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 
 // The one canvas-to-texture helper: a w x h canvas, drawn once by
 // draw(ctx, w, h), as an sRGB texture. opts: anisotropy, repeat [u, v].
+// Een bord met tekst aan twee kanten, zonder spiegelbeeld (#503): een dubbelzijdig vlak laat zijn
+// achterkant gespiegeld zien. Dit zijn twee vlakken rug aan rug, elk met de voorkant naar buiten, dus
+// de tekst leest van beide kanten goed. Gebruik dit voor elk vlak met tekst erop.
+export function signBothSides(w, h, material) {
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.PlaneGeometry(w, h), material));
+  const back = new THREE.Mesh(new THREE.PlaneGeometry(w, h), material);
+  back.rotation.y = Math.PI;
+  g.add(back);
+  return g;
+}
+
 export function canvasTex(w, h, draw, { anisotropy = 0, repeat = null } = {}) {
   const c = document.createElement('canvas');
   c.width = w; c.height = h;

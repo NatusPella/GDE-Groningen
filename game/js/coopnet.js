@@ -53,11 +53,11 @@ import { saveGame as bewaarNu } from './savehook.js';
 import { coopVanModel } from './vehicleregister.js'; // de stoelen en passagiers per voertuigmodel (#452)
 import { getSettings } from './settings.js';
 import { profielNaam, profielKleur } from './lobby.js';
-import { wedHostTik, wedHandleGast, wedHandleHost, wedGastReset, zetWedHaken } from './coopwedstrijd.js';
+import { wedHostTik, wedHandleGast, wedHandleHost, wedGastReset, zetWedHaken } from './multiplayerwedstrijd.js';
 import { wedKaartTik } from './coopwedstrijd3d.js';
 import { bijbaanStart, bijbaanBeloning, bijbaanEind, bijbaanHelpers, bijbaanHostTik, bijbaanGastTik, bijbaanGastReset, bijbaanGastStop, bijbaanHandleGast, bijbaanHandleHost, bijbaanVoorNieuwe, bijbaanWeg, bijbaanHostMee, bijbaanAantal, zetBijbaanHaken } from './coopbijbaan.js';
 import { maakPvp, wisselPassief, zetPassiefStand, verwijderSpeler, passiefEvent, passiefVanEvent, leesPassief, leesPassiefVan, pvpSchadeEvent, isPassief, PVP_TEKST } from './cooppvp.js'; // passieve stand en spelers tegen elkaar (#447)
-import { pvpGastRaak, pvpDoodVerwerk, pvpArenaGastBericht, pvpArenaGastMelding, pvpArenaGastTik, pvpArenaAntwoord, pvpArenaReset } from './cooppvpwereld.js';
+import { pvpGastRaak, pvpDoodVerwerk, pvpArenaGastBericht, pvpArenaGastMelding, pvpArenaGastTik, pvpArenaAntwoord, pvpArenaReset } from './multiplayerpvpwereld.js';
 import { busCoopActie, busCoopValideerE } from './coopbus.js';
 import { zetBestuurHaken, bestuurGebruik, bestuurTick, bestuurLos, bestuurAllesLos, bestuurt, trekGast } from './coopbestuur.js';
 import { treinGebruik, treinUit, treinTick, treinStop, treinVan, gastTreinWeg, treinLoopPlek, treinLoopWeg, TREIN_TEKST } from './cooptrein.js'; // een gast als conducteur of passagier in de trein van de gastheer (#492)
@@ -495,7 +495,7 @@ export function stepFigures(world, dt) {
       if ((world.player && world.player.inVehicle !== v) || v.wrecked || v.sinking) figUit(world, fig);
       else { fig.x = v.x; fig.y = v.y; fig.angle = v.angle || 0; fig.vx = 0; fig.vy = 0; continue; }
     }
-    if (fig.coopWedstrijd) { fig.vx = 0; fig.vy = 0; continue; } // hij rijdt een race tegen de anderen: zijn lichaam staat stil bij zijn kart (coopwedstrijd.js, #443)
+    if (fig.coopWedstrijd) { fig.vx = 0; fig.vy = 0; continue; } // hij rijdt een race tegen de anderen: zijn lichaam staat stil bij zijn kart (multiplayerwedstrijd.js, #443)
     if (fig.wacht) { fig.vx = 0; fig.vy = 0; continue; } // de wereld rond hem wordt nog geladen (bandFiguren, #429)
     if (!fig.input) { fig.vx *= Math.max(0, 1 - 10 * dt); fig.vy *= Math.max(0, 1 - 10 * dt); continue; }
     const m = fig.input;
@@ -609,8 +609,8 @@ export function tegelGeladen(world, x, y) {
   if (!m.store.index.tiles[tileKey(i, j)]) return true; // daar is niets te laden (zee, buiten de kaart)
   return m.resident.has(`${i},${j}`);
 }
-export const LOS_TEKST = 'Je loopt los van de groep. Druk op B om bij de groep te komen.';
-export const BUDGET_TEKST = 'Te veel groepen uit elkaar voor het geheugen van het spel. Druk op B om bij de groep te komen, anders word je zo teruggezet.';
+export const LOS_TEKST = 'Je loopt los van de groep. Druk op B (controller: D-pad omhoog) om bij de groep te komen.';
+export const BUDGET_TEKST = 'Te veel groepen uit elkaar voor het geheugen van het spel. Druk op B (controller: D-pad omhoog) om bij de groep te komen, anders word je zo teruggezet.';
 export const LOS_MELD_M = 300; // m: vanaf hier zegt het spel een keer hoe je bij de groep komt
 export const WACHT_TEKST = 'De wereld hier wordt nog geladen. Even wachten.';
 
@@ -1106,7 +1106,7 @@ export function handleEvent(world, body, van = 0) {
   if (!body || typeof body !== 'object') return false;
   const n = world.coopNet;
   switch (body.k) {
-    case 'wed': return wedHandleHost(world, body); // een wedstrijd tegen elkaar van de host: uitnodiging, start, stand, uitslag (#443, coopwedstrijd.js)
+    case 'wed': return wedHandleHost(world, body); // een wedstrijd tegen elkaar van de host: uitnodiging, start, stand, uitslag (#443, multiplayerwedstrijd.js)
     case 'bijbaan': return bijbaanHandleHost(world, body); // een bijbaan van de host: uitnodiging, doel, einde (#452, coopbijbaan.js)
     case 'bijbaangast': return bijbaanHandleGast(world, body, van); // een gast antwoordt, vraagt een bijbaan te starten of helpt (alleen de host luistert)
     case 'wedgast': return pvpArenaGastBericht(world, body, van) || wedHandleGast(world, body, van); // het antwoord van een gast op die wedstrijd (alleen de host luistert); eerst de PvP-arena (#454)

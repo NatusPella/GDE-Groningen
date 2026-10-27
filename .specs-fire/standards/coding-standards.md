@@ -13,13 +13,27 @@ omliggende code al gelden. Bij twijfel: kijk hoe de buren het doen en volg dat.
   commentaardichtheid volgt het bestand waar je in werkt.
 - **Geen nieuwe npm-pakketten** in het spel; geen bundler, geen transpilatie.
 
+## Taal
+
+Drie talen, elk met een eigen domein (ADR [0017](adr/0017-code-in-het-engels.md)):
+
+| Wat | Taal |
+| --- | --- |
+| Code: bestandsnamen, modules, functies, variabelen, constanten, comments | **Engels** |
+| Wat de speler ziet of hoort | **Nederlands** (constitution, ADR 0012) |
+| Proza: docs, specs, ADR's, CHANGELOG, issues, commits, testuitvoer | **Nederlands** |
+
+Bestaande Nederlandse namen en comments blijven staan; je hernoemt ze alleen in de commit
+die dat bestand toch al aanraakt. Geen massale hernoeming.
+
 ## Naamgeving
 
 | Element | Conventie | Voorbeeld |
 | --- | --- | --- |
-| Bestanden | kleine letters, geen streepjes | `worldbuilder.js`, `hud_panel.js` |
+| Bestanden | kleine letters, geen streepjes, Engels | `worldbuilder.js`, `hud_panel.js` |
 | Modules | één onderwerp per bestand, default of named export | `export function updatePolice(world)` |
 | Functies | werkwoord + zelfstandig naamwoord, Engels | `spawnVehicle`, `nearestFacility` |
+| Variabelen | Engels, geen afkorting die niemand kent | `railRows`, `cityCover` |
 | Pure modules | geen THREE, geen DOM, geen klok → direct testbaar in Node | `discgolfrules.js` |
 | Glue | DOM/THREE in een apart bestand naast de pure module | `discgolf.js` naast `discgolfrules.js` |
 | Opslagsleutels | `gde-<onderwerp>-v1` in `storagekeys.js` | `gde-loopbaan-v1` |

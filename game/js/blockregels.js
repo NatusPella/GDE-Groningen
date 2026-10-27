@@ -3,7 +3,7 @@
 // hij houdt het hoogstens MAX_BLOK_S vol en daarna volgt HERSTEL_S herstel voordat je opnieuw kunt blokkeren. Een nieuwe
 // blokstand begint pas met een nieuwe druk: vasthouden na een breuk begint hem niet vanzelf weer.
 // Puur: geen DOM, THREE, klok, opslag of Math.random. De stand hoort bij één verdediger; combat.js bewaart die van de
-// speler in world.blok en cooppvpwereld.js die van elke gast. Getest in scripts/blockregels_test.mjs.
+// speler in world.blok en multiplayerpvpwereld.js die van elke gast. Getest in scripts/blockregels_test.mjs.
 export const MAX_BLOK_S = 2;      // s: langer dan dit houdt de blokstand het niet vol
 export const HERSTEL_S = 0.35;    // s: na loslaten of breken eerst herstellen
 export const BLOK_FACTOR = 0.2;   // deel van de melee-schade dat door de blokstand heen komt

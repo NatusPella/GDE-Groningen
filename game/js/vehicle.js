@@ -817,7 +817,7 @@ function lanePoint(map, road, i, dir, v) {
   return [p[0] + nrm[0] * lane * dir, p[1] + nrm[1] * lane * dir];
 }
 
-export function spawnVehicleOnRoad(map, road, isPolice = false, rng = Math.random, isBike = false, isBus = false, atPoint = null, isScooter = false, forcedModel = null) {
+export function spawnVehicleOnRoad(map, road, isPolice = false, rng = Math.random, isBike = false, isBus = false, atPoint = null, isScooter = false, forcedModel = null, wantAngle = null) {
   const pts = road.pts;
   let i, a, b, t;
   if (atPoint) {
@@ -839,7 +839,12 @@ export function spawnVehicleOnRoad(map, road, isPolice = false, rng = Math.rando
   const x = a[0] + (b[0] - a[0]) * t;
   const y = a[1] + (b[1] - a[1]) * t;
   let angle = Math.atan2(b[1] - a[1], b[0] - a[0]);
-  const dir = road.oneway ? 1 : (rng() < 0.5 ? 1 : -1);
+  // wantAngle: de richting die de beller eist (een live bus komt uit de feed met een eigen koers). Zonder
+  // deze regel koos de dobbelsteen hier de helft van de tijd de verkeerde kant op, en dan werd de live bus
+  // terecht afgekeurd (#332, livebussen).
+  const dir = road.oneway ? 1 : (wantAngle != null
+    ? (Math.abs(normalizeAngle(angle - wantAngle)) > Math.PI / 2 ? -1 : 1)
+    : (rng() < 0.5 ? 1 : -1));
   if (dir < 0) angle = normalizeAngle(angle + Math.PI);
   const model = forcedModel || (isPolice
     ? POLICE_MODEL
@@ -1195,8 +1200,20 @@ export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax
       if (count >= target + 2 || vehicles.some((q) => q.liveId === lb.id)) continue;
       const rp = busSpawnPoint(map, lb.line, lb.x, lb.y);
       if (!rp) continue;
-      const v = spawnVehicleOnRoad(map, rp.road, false, Math.random, false, true, rp);
-      if (Math.abs(normalizeAngle(v.angle - lb.angle)) > LIVE_HOEK_MAX || !spawnSpotFree(vehicles, v) || spawnWouldPop(world, v)) continue;
+      // De echte bus is de waarheid: staat er een bus van de eigen dienst op dezelfde plek, dan gaat die
+      // weg in plaats van de live bus. Anders komt een live bus nooit in beeld als er net een dienstbus
+      // staat — dat gebeurde in de test de helft van de tijd (#332).
+      let spotBus = null;
+      for (const q of vehicles) {
+        if (!q.isBus || q.wrecked || q.driver === 'player' || q.liveId != null) continue;
+        if (Math.hypot(q.x - lb.x, q.y - lb.y) < 24 && (!spotBus || Math.hypot(q.x - lb.x, q.y - lb.y) < Math.hypot(spotBus.x - lb.x, spotBus.y - lb.y))) spotBus = q;
+      }
+      if (spotBus) { vehicles.splice(vehicles.indexOf(spotBus), 1); count = Math.max(0, count - 1); }
+      const v = spawnVehicleOnRoad(map, rp.road, false, Math.random, false, true, rp, false, null, lb.angle);
+      if (Math.abs(normalizeAngle(v.angle - lb.angle)) > LIVE_HOEK_MAX || !spawnSpotFree(vehicles, v) || spawnWouldPop(world, v)) {
+        if (spotBus) vehicles.push(spotBus); // past hij toch niet, dan blijft de dienstbus staan
+        continue;
+      }
       v.busRun = makeRunner(lb.line, projectOnLine(lb.line, v.x, v.y).s, lb.dir);
       v.liveId = lb.id;
       vehicles.push(v);
@@ -1291,6 +1308,28 @@ export function spawnPoliceBoatOnWater(map, waterPoly, rng = Math.random, opts =
 
 const waterMeanWidth = meanWidth;
 
+// A canal runs through several water bodies (one per tile pack), so the barge
+// limit cannot be one number for the whole world: four barges then all pick the
+// one canal near the player and lie abreast across it (#502). Count them per
+// named water; water without a name gets a key per square kilometre, because the
+// city's canals share one body id (#502 review).
+const waterBodyKey = (p) => {
+  if (!p) return null;
+  if (p.name) return 'n:' + p.name;
+  const b = p.bounds || [0, 0, 0, 0];
+  return 'b:' + p.body + ':' + Math.round((b[0] + b[2]) / 2 / 1000) + ',' + Math.round((b[1] + b[3]) / 2 / 1000);
+};
+
+export function bargesPerWater(vehicles) {
+  const per = new Map();
+  for (const v of vehicles) {
+    if (!v.isBoat || v.wrecked || isShip(v) || !isBarge(v)) continue;
+    const k = waterBodyKey(v.waterPoly);
+    per.set(k, (per.get(k) || 0) + 1);
+  }
+  return per;
+}
+
 // Mirrors manageBikePopulation's despawn/spawn-quota shape, but candidates
 // are water bodies near the player instead of roads. Police boats are
 // excluded here exactly like manageTrafficPopulation excludes police cars -
@@ -1315,6 +1354,7 @@ export function manageBoatPopulation(world, { target = 4, spawnMin = 20, spawnMa
   const have = { skiff: 0, acht: 0, sup: 0, binnenvaart: 0 };
   for (const v of vehicles) if (v.isBoat && !v.wrecked && v.model.kind in have) have[v.model.kind]++;
   const life = { hour: hourOf(world), d: distToCentre(player.x, player.y), profile: wijkProfileAt(map, player.x, player.y).key, have };
+  const perWater = bargesPerWater(vehicles);
   let guard = 0;
   while (count < target && candidates.length && guard++ < target * 6) {
     const poly = candidates[Math.floor(Math.random() * candidates.length)];
@@ -1322,32 +1362,46 @@ export function manageBoatPopulation(world, { target = 4, spawnMin = 20, spawnMa
     life.width = waterMeanWidth(poly);
     life.wide = life.width >= 24;
     life.nav = poly.nav || 0;
+    // the barge rule ("at most two near") counts per canal, not for the whole map (#502)
+    life.have = { ...have, binnenvaart: perWater.get(waterBodyKey(poly)) || 0 };
     const lifeKind = pickWaterLife(Math.random, life);
+    // the barge fleet stays at four in the whole world: the second loop below
+    // fills the rest per canal (#502 review)
+    if (lifeKind && BOAT_KINDS[lifeKind].kind === 'binnenvaart' && have.binnenvaart >= BARGE_MAX) continue;
     const v = spawnBoatOnWater(map, poly, Math.random, { near: [player.x, player.y], min: spawnMin, max: spawnMax, budget: 3, model: lifeKind ? BOAT_KINDS[lifeKind] : undefined });
     if (v && lifeKind) have[BOAT_KINDS[lifeKind].kind === 'binnenvaart' ? 'binnenvaart' : lifeKind]++;
     if (!v || !spawnSpotFree(vehicles, v) || inPrivateGarage(map, v.x, v.y, 2) || spawnWouldPop(world, v)) continue;
-    if (vehicles.some((o) => o.isBoat && !o.wrecked && Math.hypot(o.x - v.x, o.y - v.y) < (isBarge(v) ? BARGE_ROOM : isBarge(o) ? BARGE_ROOM * 0.6 : 0) + o.halfLen)) continue;
+    if (vehicles.some((o) => o.isBoat && !o.wrecked && Math.hypot(o.x - v.x, o.y - v.y) < (isBarge(v) ? v.halfLen + o.halfLen + 20 : (isBarge(o) ? BARGE_ROOM * 0.6 : 0) + o.halfLen))) continue;
     vehicles.push(v);
     count++;
+    if (isBarge(v)) perWater.set(waterBodyKey(poly), (perWater.get(waterBodyKey(poly)) || 0) + 1);
   }
 
   // inland shipping on the broad canals, several at a time (#7); a barge only
   // starts where no other boat lies within a few hull lengths, so it never
-  // boxes in a tour boat or the player
+  // boxes in a tour boat or the player. At most two on one canal: more of them
+  // fill the water from bank to bank (#502).
   if (have.binnenvaart < BARGE_MAX) {
     const wide = candidates.filter((w) => bargeWater(w));
     for (let tries = 0; tries < 4 && wide.length && have.binnenvaart < BARGE_MAX; tries++) {
       const poly = wide[Math.floor(Math.random() * wide.length)];
+      const body = waterBodyKey(poly);
+      if ((perWater.get(body) || 0) >= BARGE_PER_WATER) continue;
       const v = spawnBoatOnWater(map, poly, Math.random, { near: [player.x, player.y], min: spawnMin + 20, max: spawnMax, budget: 3, model: BOAT_KINDS[Math.random() < 0.55 ? 'spits' : 'kempenaar'] });
       if (!v || !spawnSpotFree(vehicles, v) || inPrivateGarage(map, v.x, v.y, 2) || spawnWouldPop(world, v)) continue;
-      if (vehicles.some((o) => o.isBoat && !o.wrecked && Math.hypot(o.x - v.x, o.y - v.y) < BARGE_ROOM + o.halfLen)) continue;
+      if (vehicles.some((o) => o.isBoat && !o.wrecked && Math.hypot(o.x - v.x, o.y - v.y) < v.halfLen + o.halfLen + 20)) continue;
       if (Math.hypot(v.x - player.x, v.y - player.y) < 40 + v.halfLen) continue;
       vehicles.push(v);
       have.binnenvaart++;
+      perWater.set(body, (perWater.get(body) || 0) + 1);
     }
   }
 }
-const BARGE_MAX = 4, BARGE_ROOM = 50;
+// Hoeveel binnenvaartschepen er tegelijk varen (#7, #502): wereldwijd hooguit vier, en per waterlichaam
+// hooguit twee (BARGE_PER_WATER, geteld met bargesPerWater). Die tweede grens is de belangrijke: met
+// alleen een wereldwijde teller kozen alle schepen hetzelfde kanaal bij de speler en lagen ze bij
+// Nieuwbrug met 5-8 over elkaar. streetlifedata.pickWaterLife gebruikt dezelfde per-water-grens (2).
+const BARGE_MAX = 4, BARGE_ROOM = 50, BARGE_PER_WATER = 2;
 
 // A wander target with room around it that the boat can reach in a straight
 // line through open water (sampled every 3 m), so the route doesn't cut

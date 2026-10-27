@@ -1,11 +1,11 @@
 // De straatrace van M14 (De dijk) als wedstrijd tegen elkaar (#443): de etappes op de dijk en de regel bij de
-// wedstrijdlaag (coopwedstrijd.js). De race zelf staat in missions.js (de race-tak van de opdracht).
+// wedstrijdlaag (multiplayerwedstrijd.js). De race zelf staat in missions.js (de race-tak van de opdracht).
 //   node scripts/dijkrace_test.mjs
 import './node3d.mjs';
 import assert from 'node:assert/strict';
 
 const M = await import('../game/js/missions.js');
-const W = await import('../game/js/coopwedstrijd.js');
+const W = await import('../game/js/multiplayerwedstrijd.js');
 
 // ---- de etappes: de afstand tot de sluis verdeelt de dijk in even stukken
 assert.deepEqual(M.dijkEtappe(8000, 8000), { cp: 0, s: 0, klaar: false }, 'bij de start nog geen etappe');

@@ -6,7 +6,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   day, weekdayOf, formatDay, STEP_DAY, storyBounds, clampDay, dayForSavedStep, sunDeclinationDeg, SPECIAL_DAYS,
-  specialsOn, specialDay, cardFor, upcomingSpecials, isSpecial, ONTZET_DAY, LAST_SUMMER_DAY, EPILOGUE_DAY, partStartDay, CAL_ICONS, DEEL4_STEP_DAYS, VOORRONDE_STEPS,
+  specialsOn, specialDay, cardFor, upcomingSpecials, isSpecial, ONTZET_DAY, LAST_SUMMER_DAY, EPILOGUE_DAY, partStartDay, CAL_ICONS,
 } from '../game/js/calendar.js';
 import { STEPS, PARTS, ARC_ID } from '../game/js/storyarc.js';
 
@@ -105,29 +105,10 @@ ok(up[0] === 'kei' && up.includes('noorderzon') && up.includes('kermis') && !up.
 ok(upcomingSpecials(day(8, 27), 1)[0].label === 'nu, t/m zo 30 aug' || upcomingSpecials(day(8, 27), 3).some((u) => u.label === 'morgen'), 'labels: nu / morgen');
 ok(upcomingSpecials(LAST_SUMMER_DAY + 1).length === 0, 'nothing upcoming in the nazomer');
 
-// Deel 4 "Nazomer": one consistent calendar (docs/verhaal/KALENDER.md)
-const D4 = DEEL4_STEP_DAYS;
-const wdOf = (id) => weekdayOf(D4[id]);
-ok(day(9, 15) === 33 && weekdayOf(33) === 2 && D4.O1 === 33, 'Deel 4 starts on dinsdag 15 september, day 33');
+// Deel 4 "Nazomer": the calendar after the epilogue. De oude Ommelander Ronde is op 25-10
+// opgeruimd (#477); wat hier staat gaat over de dagen en de speciale dagen die nog bestaan.
+ok(day(9, 15) === 33 && weekdayOf(33) === 2, 'day 33 is dinsdag 15 september');
 ok(weekdayOf(day(9, 20)) === 0 && weekdayOf(day(9, 27)) === 0, '20 and 27 september 2026 are sundays, not saturdays');
-const d4ids = Object.keys(D4);
-ok(d4ids.length === 48, 'Deel 4: 32 missions + 16 activities (14 + 12 + 22 steps)', String(d4ids.length));
-ok(d4ids.every((id) => !/^(H\d+|k-|r-|s-)/.test(id)), 'no Deel 1-3 ids in the Deel 4 table');
-ok(Object.values(D4).every((v, k, a) => k === 0 || v >= a[k - 1]), 'Deel 4 step days never go back (default order)');
-ok(Object.values(D4).every((v) => v > EPILOGUE_DAY && Number.isInteger(v)), 'Deel 4 comes after the epilogue');
-for (let k = 1; k <= 32; k++) ok(D4['O' + k] != null, `O${k} has a day`);
-ok(VOORRONDE_STEPS.length === 7 && VOORRONDE_STEPS.every((id, k, a) => k === 0 || D4[id] > D4[a[k - 1]]), 'seven voorrondes on seven different days, in order', VOORRONDE_STEPS.map((id) => D4[id]).join());
-ok(D4.O6 === day(9, 19) && wdOf('O6') === 6, 'voorronde 1 (O6, kermis Uithuizen): zaterdag 19 september');
-ok(D4.O10 === LAST_SUMMER_DAY && wdOf('O10') === 2 && D4.O9 + 1 === D4.O10, 'voorronde 2 (O10): dinsdag 22, the day after O9 ("morgen")');
-ok(wdOf('O5') === 5 && D4.O5 + 1 === D4.O6, 'tuinfeest (O5) on vrijdag, the day before voorronde 1');
-ok(wdOf('O11') === 3 && wdOf('O13') === 4 && wdOf('O14') === 5 && wdOf('O15') === 6 && wdOf('O16') === 6 && wdOf('O17') === 0 && wdOf('O18') === 0, 'F4b weekdays: wo, do, vr, za, za, zo, zo');
-ok(D4.O11 === LAST_SUMMER_DAY + 1 && D4.O18 === 45, 'F4b runs day 41-45, from the first nazomer day');
-ok(Object.entries(D4).filter(([id]) => D4[id] <= LAST_SUMMER_DAY).every(([id]) => /^(O([1-9]|10)|n-(trekkertrek|warffum|delfzijl|woonschip))$/.test(id)), 'F4a fills 15-22 september, nothing else');
-ok(D4.O22 === 47 && wdOf('O22') === 2 && (NEW || isSpecial('oldambtkermis', D4.O22)), 'voorronde 5 (O22): dinsdag, in the Winschoten kermis week');
-ok(D4.O27 === 50 && wdOf('O27') === 5 && D4.O28 === 51 && wdOf('O28') === 6, 'voorronde 6 on vrijdag, "het wordt zaterdag"');
-ok(['O28', 'O29', 'O30', 'O31', 'O32', 'n-boshut'].every((id) => D4[id] === D4.O28), 'the finale is one day (O29 is the clock back at 01:00)');
-ok(isSpecial('vesting', D4.O31) && isSpecial('trekkertrek', D4.O15) && isSpecial('havenfeest', D4.O14) && isSpecial('uithuizenkermis', D4.O6) && isSpecial('zuidhornkermis', D4.O18), 'Deel 4 events fall on their missions');
-ok(D4.O20 <= day(9, 30), 'O20 ("het sneeuwt, in september") is still in september');
 for (const id of NEW ? ['uithuizenkermis', 'trekkertrek'] : ['uithuizenkermis', 'trekkertrek', 'oldambtkermis']) ok(SPECIAL_DAYS.find((s) => s.id === id).open === false, `${id}: planned, not shown`);
 ok(SPECIAL_DAYS.filter((s) => s.open === false).every((s) => s.from > day(9, 14)), 'planned days are all in Deel 4');
 for (let n41 = 41; n41 <= 60; n41++) {

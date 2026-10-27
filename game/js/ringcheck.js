@@ -324,6 +324,12 @@ export function crossingPath(map, c, reach) {
         const O = o.pts, oa = fwd ? O[0] : O[O.length - 1];
         if (Math.hypot(oa[0] - e[0], oa[1] - e[1]) > 0.5 || Math.abs(zEnd(o, !fwd) - ze) > 1) continue;
         const ob = fwd ? O[1] : O[O.length - 2];
+        // (a dead end's turnaround is not the carriageway carrying on: no car road meets the far end, so the
+        // extension would make the car U-turn inside a cul-de-sac; Bekemaheerd, #509)
+        const oe = fwd ? O[O.length - 1] : O[0];
+        const carriesOn = map.roadsNear(oe[0], oe[1], 1).some((x) => x !== o && x.cat !== 'foot' && x.cat !== 'cycle'
+          && x.pts.some((q) => Math.abs(q[0] - oe[0]) < 0.5 && Math.abs(q[1] - oe[1]) < 0.5));
+        if (!carriesOn) continue;
         // (on along o, away from the node: the way it carries on, for either end)
         const ao = Math.atan2(ob[1] - oa[1], ob[0] - oa[0]);
         const turn = Math.abs(Math.atan2(Math.sin(ao - a0), Math.cos(ao - a0)));
@@ -438,8 +444,11 @@ export async function driveAcross(world, path, speed, opts = {}) {
       const fx = Math.cos(car.angle), fy = Math.sin(car.angle);
       const dx = q[0] - car.x, dy = q[1] - car.y;
       const steer = Math.max(-1, Math.min(1, Math.atan2(dy * fx - dx * fy, dx * fx + dy * fy) * 2.2));
-      // corners on the approach (a junction just past a city bridge) are taken slower
-      const vT = Math.min(speed, cornerSpeed(path, s));
+      // corners on the approach (a junction just past a city bridge) are taken slower; een bocht tien
+      // meter verder telt mee, anders rijdt de auto op snelheid de bocht in en schuift hij er zes meter
+      // naast (Bekemaheerd, #509: cornerSpeed(s) 29,7 m/s terwijl s+10 er 6,7 vraagt)
+      const look = Math.min(path.length - 1, Math.round(s + Math.max(6, car.speed)));
+      const vT = Math.min(speed, cornerSpeed(path, s), cornerSpeed(path, look));
       const before = car.speed;
       // (a breakable prop knocked over in the step is gone from findProps after it)
       const propsBefore = findProps(car.x, car.y, 4).filter((q) => !q.water).map((q) => `${q.kind}@${capsuleDist(car.x, car.y, q).toFixed(1)}`);

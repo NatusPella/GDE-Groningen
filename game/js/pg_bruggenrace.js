@@ -10,7 +10,7 @@ import { waterPolyAt } from './waterlevels.js';
 import { finish, jelle, setTarget, startWedstrijd } from './pghost.js';
 import { hoofdspeler } from './spelersregister.js';
 import { lichaamVan, bestuurInstappenIn, bestuurLos } from './coopbestuur.js';
-import { registreerWedstrijd, wedHostBaan, wedBaanStand } from './coopwedstrijd.js';
+import { registreerWedstrijd, wedHostBaan, wedBaanStand } from './multiplayerwedstrijd.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
 import { showBanner } from './cinematics.js';
 

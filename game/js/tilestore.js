@@ -21,7 +21,7 @@ export class HttpRangeSource {
   async read(file, off, len, signal) {
     this.requests++;
     const res = await fetch(this.base + file, { headers: { Range: `bytes=${off}-${off + len - 1}` }, signal });
-    if (!res.ok) throw new Error(`tile read ${file} ${off}+${len}: ${res.status}`);
+    if (!res.ok) { const err = new Error(`tile read ${file} ${off}+${len}: ${res.status}`); err.status = res.status; throw err; }
     const buf = new Uint8Array(await res.arrayBuffer());
     this.bytes += buf.length;
     // a server that ignores Range answers 200 with the whole file
@@ -30,7 +30,7 @@ export class HttpRangeSource {
   async readAll(file) {
     this.requests++;
     const res = await fetch(this.base + file);
-    if (!res.ok) throw new Error(`read ${file}: ${res.status}`);
+    if (!res.ok) { const err = new Error(`read ${file}: ${res.status}`); err.status = res.status; throw err; }
     const buf = new Uint8Array(await res.arrayBuffer());
     this.bytes += buf.length;
     return buf;
@@ -142,7 +142,11 @@ export class TileStore {
     this.gen = 0;
     this.residentBytes = 0;
     this.listeners = { tile: [], drop: [] };
-    this.stats = { loads: 0, hits: 0, cancels: 0, evictions: 0, late: 0, maxQueue: 0, bytes: 0 };
+    this.stats = { loads: 0, hits: 0, cancels: 0, evictions: 0, late: 0, maxQueue: 0, bytes: 0, errors: 0 };
+    // a pack the source does not have (404) is not coming back this session:
+    // its tiles are skipped and the warning is said once per pack (brokenPacks)
+    this.brokenPacks = new Set();
+    this.warned = new Set();
   }
 
   on(ev, fn) { this.listeners[ev].push(fn); }
@@ -160,7 +164,7 @@ export class TileStore {
     let e = this.entries.get(key);
     if (!e) {
       const meta = this.index.tiles[key];
-      if (!meta) return null;
+      if (!meta || this.brokenPacks.has(meta.pack)) return null;
       e = { key, meta, state: 'idle', tile: null, pinned: false, wanted: false, last: this.now(), outside: 0, waiters: [], priority: 0, ctl: null };
       this.entries.set(key, e);
     }
@@ -205,8 +209,27 @@ export class TileStore {
       const e = this.queue.shift();
       e.state = 'loading';
       this.active++;
-      this._load(e).finally(() => { this.active--; this._pump(); });
+      this._load(e).catch((err) => this._failed(e, err)).finally(() => { this.active--; this._pump(); });
     }
+  }
+
+  // A load that failed: the waiters already got their rejection in _load, but a
+  // prefetched tile has none, and without this catch every missing tile became
+  // an unhandled rejection (hundreds in the report, #496). A 404 means the
+  // build is incomplete, not that the network hiccupped: say it once and stop
+  // asking, or prefetch puts the same tile in the queue every frame.
+  _failed(e, err) {
+    this.stats.errors++;
+    if (!err || err.cancelled) return;
+    const pack = e.meta && e.meta.pack;
+    const file = (pack && this.index.packs[pack] && this.index.packs[pack].file) || pack || '?';
+    const missing = err.status === 404;
+    if (missing) this.brokenPacks.add(pack);
+    const seen = (missing ? '404 ' : 'fout ') + file;
+    if (this.warned.has(seen)) return;
+    this.warned.add(seen);
+    if (missing) console.warn(`tegelpakket ontbreekt in deze build: ${file} (de wereldindex hoort niet bij de bestanden; bouw opnieuw)`);
+    else console.warn(`tegel laden mislukt: ${file}: ${err.message}`);
   }
 
   async _load(e) {

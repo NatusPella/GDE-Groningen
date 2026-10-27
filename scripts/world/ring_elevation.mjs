@@ -14,7 +14,7 @@
 //      ander zolang hun wegdekken elkaar in plattegrond overlappen.
 //
 //   ringHeights({ roads, water }, rails)  zet road.z (en dichtere pts) op de ringwegen en wat ze kruist
-import { CAR } from '../../game/js/roadprofile.js';
+import { CAR, gradeOrder } from '../../game/js/roadprofile.js';
 
 const RING_TYPES = new Set(['motorway', 'motorway_link', 'trunk', 'trunk_link', 'primary', 'primary_link']);
 const LIFT = 6.0;       // viaductdek boven straatniveau (m)
@@ -38,6 +38,35 @@ const hyp = Math.hypot;
 
 const key = (p) => `${Math.round(p[0] * 10)},${Math.round(p[1] * 10)}`;
 const W = (r) => (r.width === undefined ? 6 : r.width);
+
+// Two ways that cross can both get a vertex on the same 10 cm point once they
+// are densified (the N46 slip road and the Roeierspad, #501). Ring heights are
+// keyed by that point, so the street below would inherit the viaduct's bound
+// there (a hump in the Roeierspad). A raised way with an explicit layer that
+// *passes through* the point is over the other one, not joined to it: the
+// points at such a crossing get a key per grade, so each keeps its own height.
+// Returns the key of every vertex of every road.
+function vertexKeys(roads) {
+  const at = new Map();
+  for (const r of roads) r.pts.forEach((p, i) => {
+    const k = key(p);
+    const l = at.get(k);
+    if (l) l.push([r, i]); else at.set(k, [[r, i]]);
+  });
+  const split = new Map();
+  const mark = (r, i, k) => { let m = split.get(r); if (!m) split.set(r, m = new Map()); m.set(i, k); };
+  for (const [k, list] of at) {
+    const g = list.map(([r]) => gradeOrder(r));
+    const top = Math.max(...g), bottom = Math.min(...g);
+    if (!(top > 0 && top > bottom)) continue;
+    const over = list.some(([r, i], q) => g[q] === top && i > 0 && i < r.pts.length - 1 && layerOf(r) > 0);
+    if (!over) continue;
+    // the street below gets its own key; the raised way keeps the plain one, so
+    // everything else on the ring is untouched
+    list.forEach(([r, i], q) => { if (g[q] < top) mark(r, i, `${k}~${g[q]}`); });
+  }
+  return new Map(roads.map((r) => [r, r.pts.map((p, i) => (split.get(r)?.get(i) ?? key(p)))]));
+}
 
 function segIntersect(a, b, c, d) {
   const rx = b[0] - a[0], ry = b[1] - a[1], sx = d[0] - c[0], sy = d[1] - c[1];
@@ -135,7 +164,7 @@ function pointInPoly(x, y, pts) {
   return inside;
 }
 
-function basePlateaus(roads, water) {
+function basePlateaus(roads, water, V) {
   const lo = new Map(), hi = new Map();
   const wb = water.map((w) => {
     let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
@@ -150,22 +179,23 @@ function basePlateaus(roads, water) {
   };
   for (const r of roads) {
     if (!isRing(r) || !CAT_CAR.has(r.cat)) continue;
+    const K = V.get(r);
     if (isDown(r) && !r.bridge) {
-      for (const p of r.pts) { const k = key(p), v = wet(p[0], p[1]) ? UNDER_WATER : SUNK; hi.set(k, Math.min(hi.has(k) ? hi.get(k) : 1e9, v)); }
+      r.pts.forEach((p, i) => { const k = K[i], v = wet(p[0], p[1]) ? UNDER_WATER : SUNK; hi.set(k, Math.min(hi.has(k) ? hi.get(k) : 1e9, v)); });
     } else if (r.viaduct) {
-      for (const p of r.pts) { const k = key(p); lo.set(k, Math.max(lo.has(k) ? lo.get(k) : -1e9, LIFT)); }
+      r.pts.forEach((p, i) => { const k = K[i]; lo.set(k, Math.max(lo.has(k) ? lo.get(k) : -1e9, LIFT)); });
     }
   }
   return { lo, hi };
 }
 
-function buildGraph(roads) {
+function buildGraph(roads, V) {
   const adj = new Map();
   const add = (a, b, L) => { let l = adj.get(a); if (!l) adj.set(a, l = []); l.push([b, L]); };
   for (const r of roads) {
-    const P = r.pts;
+    const P = r.pts, K = V.get(r);
     for (let i = 0; i < P.length - 1; i++) {
-      const a = key(P[i]), b = key(P[i + 1]), L = hyp(P[i + 1][0] - P[i][0], P[i + 1][1] - P[i][1]);
+      const a = K[i], b = K[i + 1], L = hyp(P[i + 1][0] - P[i][0], P[i + 1][1] - P[i][1]);
       add(a, b, L); add(b, a, L);
     }
   }
@@ -242,9 +272,9 @@ function solveField(adj, loB, hiB) {
   return z;
 }
 
-function zOn(r, zmap, x, y) {
+function zOn(r, zmap, x, y, V) {
   if (r.rail) return RAIL_Z;
-  const P = r.pts;
+  const P = r.pts, K = V.get(r);
   let best = 1e18, bz = 0.0;
   for (let i = 0; i < P.length - 1; i++) {
     const [ax, ay] = P[i];
@@ -252,7 +282,7 @@ function zOn(r, zmap, x, y) {
     const L2 = dx * dx + dy * dy || 1;
     const t = Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / L2));
     const d = (ax + dx * t - x) ** 2 + (ay + dy * t - y) ** 2;
-    if (d < best) { best = d; bz = (zmap.get(key(P[i])) || 0) * (1 - t) + (zmap.get(key(P[i + 1])) || 0) * t; }
+    if (d < best) { best = d; bz = (zmap.get(K[i]) || 0) * (1 - t) + (zmap.get(K[i + 1]) || 0) * t; }
   }
   return bz;
 }
@@ -263,8 +293,9 @@ const cmpOrder = (a, b) => (a[0] - b[0]) || (a[1] - b[1]);
 // Ringwegen die naast elkaar lopen (een afrit die zijn rijbaan verlaat of oprijdt, de twee helften van een dubbele
 // rijbaan) met overlappende wegdekken: de mindere weg (link < hoofdweg, dan de kortste) blijft binnen COUPLE_TOL van de ander
 class Coupler {
-  constructor(roads) {
+  constructor(roads, V) {
     this.G = 40.0;
+    this.V = V;
     this.roads = roads.filter((r) => isRing(r) && CAT_CAR.has(r.cat));
     this.order = new Map();
     for (const r of this.roads) this.order.set(r, [RANK[r.type] !== undefined ? RANK[r.type] : 9, -roadLen(r)]);
@@ -286,18 +317,18 @@ class Coupler {
     this.links = new Map();
     const cosMax = Math.cos(COUPLE_ANGLE * Math.PI / 180);
     for (const f of this.roads) {
-      const P = f.pts, hf = W(f) / 2 + SHOULDER, of = this.order.get(f);
-      const own = new Set(P.map(key));
+      const P = f.pts, hf = W(f) / 2 + SHOULDER, of = this.order.get(f), K = V.get(f);
+      const own = new Set(K);
       for (let j = 0; j < P.length; j++) {
-        const p = P[j], k = key(p);
+        const p = P[j], k = K[j];
         const a = P[Math.max(0, j - 1)], b = P[Math.min(P.length - 1, j + 1)];
         const fl = hyp(b[0] - a[0], b[1] - a[1]) || 1;
         const fx = (b[0] - a[0]) / fl, fy = (b[1] - a[1]) / fl;
         let best = null;
         for (const [l, i] of this.grid.get(Math.floor(p[0] / this.G) * 1e6 + Math.floor(p[1] / this.G)) || []) {
           if (l === f || cmpOrder(this.order.get(l), of) >= 0) continue;
-          const A = l.pts[i], B = l.pts[i + 1];
-          if (own.has(key(A)) && own.has(key(B))) continue;
+          const A = l.pts[i], B = l.pts[i + 1], LK = V.get(l);
+          if (own.has(LK[i]) && own.has(LK[i + 1])) continue;
           const dx = B[0] - A[0], dy = B[1] - A[1], L = hyp(dx, dy);
           if (L < 1e-6 || Math.abs((fx * dx + fy * dy) / L) < cosMax) continue;
           const t = Math.max(0.0, Math.min(1.0, ((p[0] - A[0]) * dx + (p[1] - A[1]) * dy) / (L * L)));
@@ -313,8 +344,8 @@ class Coupler {
   bands(zmap) {
     const out = new Map();
     for (const [k, [l, i, t]] of this.links) {
-      const A = l.pts[i], B = l.pts[i + 1];
-      const zc = (zmap.get(key(A)) || 0) * (1 - t) + (zmap.get(key(B)) || 0) * t;
+      const A = l.pts[i], B = l.pts[i + 1], K = this.V.get(l);
+      const zc = (zmap.get(K[i]) || 0) * (1 - t) + (zmap.get(K[i + 1]) || 0) * t;
       if (Math.abs(zc) > 0.05 || Math.abs(zmap.get(k) || 0) > 0.05) out.set(k, zc);
     }
     return out;
@@ -322,7 +353,7 @@ class Coupler {
 
   leaders(ks) {
     const out = new Set();
-    for (const k of ks) { const [l, i] = this.links.get(k); out.add(key(l.pts[i])); out.add(key(l.pts[i + 1])); }
+    for (const k of ks) { const [l, i] = this.links.get(k); const K = this.V.get(l); out.add(K[i]); out.add(K[i + 1]); }
     return out;
   }
 }
@@ -350,15 +381,16 @@ export function ringHeights(data, rails = []) {
     if (isRing(r) || involved.has(r)) { originals.set(r, new Set(r.pts.map(key))); r.pts = densify(r.pts, STEP); }
   }
   cross = crossings(roads, rails);
-  const adj = buildGraph(roads);
-  const { lo: loB, hi: hiB } = basePlateaus(roads, data.water || []);
+  const V = vertexKeys(roads);
+  const adj = buildGraph(roads, V);
+  const { lo: loB, hi: hiB } = basePlateaus(roads, data.water || [], V);
   let zmap = new Map();
   let fallbacks = 0;
   for (let it = 0; it < 24; it++) {
     zmap = solveField(adj, loB, hiB);
     let changed = 0;
     for (const [up, lo, x, y] of cross) {
-      const zu = zOn(up, zmap, x, y), zl = zOn(lo, zmap, x, y);
+      const zu = zOn(up, zmap, x, y, V), zl = zOn(lo, zmap, x, y, V);
       if (zu - zl >= CLEAR - 0.05) continue;
       const m = mover(up, lo, zu, zl);
       if (m === null) continue;
@@ -366,9 +398,11 @@ export function ringHeights(data, rails = []) {
       const reach = (!other.rail ? W(other) / 2 : 3.0) + 3.0;
       const need = m === 'up' ? zl + CLEAR : zu - CLEAR;
       let hit = 0;
-      for (const p of road.pts) {
+      const RK = V.get(road);
+      for (let i = 0; i < road.pts.length; i++) {
+        const p = road.pts[i];
         if (hyp(p[0] - x, p[1] - y) > reach) continue;
-        const k = key(p);
+        const k = RK[i];
         if (m === 'up' && get(loB, k, -1e9) < need - 0.01) { loB.set(k, need); hit++; }
         else if (m === 'lo' && get(hiB, k, 1e9) > need + 0.01) { hiB.set(k, need); hit++; }
       }
@@ -377,9 +411,11 @@ export function ringHeights(data, rails = []) {
       // de mover komt er niet binnen MAX_GRADE (een andere kruising trekt de andere kant op): de andere weg wijkt
       const oReach = W(road) / 2 + 3.0;
       const oNeed = m === 'up' ? zu - CLEAR : zl + CLEAR;
-      for (const p of other.pts) {
+      const OK = V.get(other);
+      for (let i = 0; i < other.pts.length; i++) {
+        const p = other.pts[i];
         if (hyp(p[0] - x, p[1] - y) > oReach) continue;
-        const k = key(p);
+        const k = OK[i];
         if (m === 'up' && get(hiB, k, 1e9) > oNeed + 0.01) { hiB.set(k, oNeed); changed++; fallbacks++; }
         else if (m === 'lo' && get(loB, k, -1e9) < oNeed - 0.01) { loB.set(k, oNeed); changed++; fallbacks++; }
       }
@@ -388,7 +424,7 @@ export function ringHeights(data, rails = []) {
   }
 
   // naast elkaar liggende ringwegen: de mindere volgt de ander zolang hun wegdekken overlappen
-  const coupler = new Coupler(roads);
+  const coupler = new Coupler(roads, V);
   const band = new Map(), frozen = new Map();
   const lockLo = new Map(loB), lockHi = new Map(hiB);
   for (const [up, lo, x, y] of cross) {
@@ -397,9 +433,11 @@ export function ringHeights(data, rails = []) {
       if (road.rail) continue;
       const other = sign > 0 ? lo : up;
       const reach = (!other.rail ? W(other) / 2 : 3.0) + 3.0;
-      for (const p of road.pts) {
+      const RK = V.get(road);
+      for (let i = 0; i < road.pts.length; i++) {
+        const p = road.pts[i];
         if (hyp(p[0] - x, p[1] - y) > reach) continue;
-        const k = key(p), z = get(zmap, k, 0.0);
+        const k = RK[i], z = get(zmap, k, 0.0);
         if (sign > 0) lockLo.set(k, Math.max(get(lockLo, k, -1e9), z));
         else lockHi.set(k, Math.min(get(lockHi, k, 1e9), z));
       }
@@ -464,10 +502,10 @@ export function ringHeights(data, rails = []) {
   // vasthoudt, op een weg zonder zijtakken) komt op de lagere van de twee buren, niet boven de bovenomhullende van wat eronder door moet.
   let filled = 0;
   for (const r of roads) {
-    const P = r.pts, n = P.length;
+    const P = r.pts, n = P.length, K = V.get(r);
     if (n < 3) continue;
-    const zAt = (i) => get(zmap, key(P[i]), 0.0);
-    const free = (i) => { const k = key(P[i]); return !fixed.has(k) && (adj.get(k) || []).length === 2; };
+    const zAt = (i) => get(zmap, K[i], 0.0);
+    const free = (i) => { const k = K[i]; return !fixed.has(k) && (adj.get(k) || []).length === 2; };
     for (let q = 1; q < n - 1; q++) {
       const zq = zAt(q);
       if (!free(q) || zq > zAt(q - 1) + 1e-9 || zq > zAt(q + 1) + 1e-9 || (zq > zAt(q - 1) - 0.005 && zq > zAt(q + 1) - 0.005)) continue;
@@ -479,20 +517,21 @@ export function ringHeights(data, rails = []) {
       let ok = true;
       for (let i = L + 1; i < R; i++) if (!free(i)) { ok = false; break; }
       if (!ok) continue;
-      for (let i = L + 1; i < R; i++) if (zAt(i) < m - 0.005) { const k = key(P[i]); zmap.set(k, Math.min(m, get(envHi, k, 1e9))); filled++; }
+      for (let i = L + 1; i < R; i++) if (zAt(i) < m - 0.005) { const k = K[i]; zmap.set(k, Math.min(m, get(envHi, k, 1e9))); filled++; }
     }
   }
 
   let nRoads = 0;
   for (const r of roads) {
-    let zs = r.pts.map((p) => Math.round(get(zmap, key(p), 0.0) * 100) / 100);
+    const K = V.get(r);
+    let zs = r.pts.map((p, i) => Math.round(get(zmap, K[i], 0.0) * 100) / 100);
     const keepOrig = originals.get(r);
     if (keepOrig) {
       // dichtgemaakte punten zonder inhoud (vlak en recht) weg
       const P2 = [r.pts[0]], Z2 = [zs[0]];
       for (let i = 1; i < r.pts.length - 1; i++) {
         const p = r.pts[i];
-        if (keepOrig.has(key(p)) || (adj.get(key(p)) || []).length > 2) { P2.push(p); Z2.push(zs[i]); continue; }
+        if (keepOrig.has(key(p)) || (adj.get(K[i]) || []).length > 2) { P2.push(p); Z2.push(zs[i]); continue; }
         const a = P2[P2.length - 1], b = r.pts[i + 1];
         const La = hyp(p[0] - a[0], p[1] - a[1]), Lb = hyp(b[0] - p[0], b[1] - p[1]);
         const lin = Z2[Z2.length - 1] + (zs[i + 1] - Z2[Z2.length - 1]) * La / ((La + Lb) || 1);
@@ -504,6 +543,6 @@ export function ringHeights(data, rails = []) {
     if (zs.some((z) => Math.abs(z) > 0.05)) { r.z = zs; nRoads++; }
   }
   let bad = 0;
-  for (const [up, lo, x, y] of cross) if (zOn(up, zmap, x, y) - zOn(lo, zmap, x, y) < CLEAR - 0.6 && mover(up, lo, 0, 0) !== null) bad++;
+  for (const [up, lo, x, y] of cross) if (zOn(up, zmap, x, y, V) - zOn(lo, zmap, x, y, V) < CLEAR - 0.6 && mover(up, lo, 0, 0) !== null) bad++;
   return { roads: nRoads, crossings: cross.length, fallbacks, lowClearance: bad, filled };
 }

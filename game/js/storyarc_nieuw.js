@@ -1,12 +1,11 @@
-// The story "Alles voor één eierbal" in five acts (docs/verhaal/nieuw,
-// 00-OVERZICHT and 08-IMPLEMENTATIE): 26 main missions (M01-M26), four travel
-// beats (T1-T4), the opening (M00) and the epilogue (E). It is the only story
-// (the first version was removed in #187); storyarc.js is what the rest of the
-// game imports. Nothing here imports game code, only the cast tables of storyarc_basis.js to extend.
+// The story "Alles voor één eierbal" in five acts plus Deel 4 "Nazomer"
+// (docs/verhaal/nieuw, 00-OVERZICHT, 08-IMPLEMENTATIE and DEEL4): 30 missions
+// (M01-M30), five travel beats (T1-T5), the opening (M00) and the epilogue (E).
+// It is the only story (the first version was removed in #187); storyarc.js is
+// what the rest of the game imports. Nothing here imports game code, only the
+// cast tables of storyarc_basis.js to extend.
 //
-// What is built: act 1 (M00-M06) and M07 (the first mission of act 2). Every
-// other step has `built: false`: the story stops at the first one with the
-// part's "volgt" card (PARTS.*.card), so the game never dead-ends or breaks.
+// Every step has `built: true`: the story runs to the end.
 //
 // Step fields
 //   id       unique, stable (saved): 'H1'..'H18' for missions, 'k-*', 'r-*', 's-*' for activities
@@ -84,8 +83,8 @@
 //   def                        id of the missions.js def; null for a step without a def yet
 //   scenes                     the script.json scene ids that belong to the step (documentation, checked by scripts/storydata_test.mjs)
 //   silent                     phone texts of the step are never read aloud
-// MISSION_IDS only ever grows at the end (storyarc.js): the new defs are
-// 'loket' and 'bakkiestunt', the other missions get their id when they are built.
+// MISSION_IDS only ever grows at the end (storyarc.js): the appended defs are
+// NEW_MISSION_IDS below, in the order they were added.
 import { SPEAKERS as OUD_SPEAKERS, CHARACTERS as OUD_CHARACTERS } from './storyarc_basis.js';
 
 // ids appended to MISSION_IDS (indices live in saves: append only, never reorder)

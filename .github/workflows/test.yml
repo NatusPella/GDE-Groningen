@@ -42,10 +42,12 @@ jobs:
         working-directory: desktop
         run: npm ci --ignore-scripts
 
-      # Haalt three.js binnen voor de 3D-tests en bouwt de beschikbare tegels.
-      - name: npm run stage
+      # Haalt three.js en de lettertypen binnen voor de 3D-tests. De wereld wordt hier bewust
+      # overgeslagen: data/cache/province (Geofabrik) staat niet in git, en de tests die een
+      # wereld nodig hebben slaan zichzelf over. Zonder deze vlag faalde de hele run hier al.
+      - name: npm run stage (zonder wereld)
         working-directory: desktop
-        run: npm run stage
+        run: npm run stage -- --no-world
 
       - name: Node-tests
         run: node scripts/run_tests.mjs

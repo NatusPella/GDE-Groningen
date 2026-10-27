@@ -66,8 +66,10 @@ openen) en meldt bestand, patroonnaam en blob, nooit de waarde.
 ## 5. Bewust niet gedaan
 
 Geen workflow die publiceert, geen Pages-configuratie, geen zichtbaarheids-
-wijziging, geen upload, geen post. SHA-256 in de releasenotes
-(`desktop/release.sh`) en opruimen van oude opslagsleutels zijn code-werk voor later.
+wijziging, geen upload, geen post. SHA-256 staat sinds 25-10 in de release: `desktop/release.sh`
+schrijft `SHA256SUMS.txt` voor de Windows-build en de wereld en uploadt dat naast de
+bestanden (`scripts/release_hashes.mjs`). Opruimen van oude opslagsleutels is nog code-werk
+voor later.
 
 ## 6. Lokale controles van 24 oktober (versie 0.47.0, nog niets openbaar gemaakt)
 

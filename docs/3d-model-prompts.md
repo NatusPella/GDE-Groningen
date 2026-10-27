@@ -14,11 +14,12 @@ verhoudingen, kleur), geen 1-op-1 kopie van een foto, bouwtekening of bestaand m
 van het echte gebouw/voertuig. Geen echte merk-/kenteken-/gemeentelogo's, geen
 getraceerde foto's als textuur.
 
-**Status:** Martinitoren is als eerste af en al ingebouwd (`game/models/martinitoren.glb`,
-geladen via `game/js/landmarkmodels.js`) - dit IS de referentiestijl voor alles
-hierna. De rest hieronder staat klaar om te genereren zodra er weer Claude
-Design-credits zijn (dit account zat op het moment van schrijven op 100% verbruik,
-reset 1 okt).
+**Status (25 oktober 2026):** de Martinitoren is het enige model dat af is en al ingebouwd
+(`game/models/martinitoren.glb`, geladen via `game/js/landmarkmodels.js`) - dit IS de
+referentiestijl voor alles hierna. Alle andere gebouwen, voertuigen en mensen komen nog
+uit de procedurele bouwers (`models3d_buildings.js`, `models3d_vehicles.js`,
+`models3d_people.js`); de prompts hieronder staan klaar om te genereren zodra er weer
+Claude Design-credits zijn.
 
 ## Gedeelde stijl-brief (kopieer dit boven ELKE prompt hieronder)
 
@@ -34,6 +35,8 @@ vormen.
   metaalachtige tint), geen felle platte cartoon-kleuren, geen zware outline-shader.
 - Detail komt uit de vorm/geleding zelf (randen, lijsten, uitstekende delen), niet
   uit een dikke contourlijn.
+- Vormtaal: kantig en gefacetteerd, ook bij mensen en voertuigen; geen ronde,
+  glanzende cartoon-vormen (DESIGN_SYSTEM.md, "Vormtaal").
 - Palet: rustige, aardse/steenachtige tinten (zandsteen/beige/grijsbruin voor
   gevels, leigrijs/donkerblauw voor daken, goud/messing voor sierdelen) - dezelfde
   soort tinten als het Martinitoren-model, niet de felle Habbo-kleuren van eerder.
@@ -298,7 +301,7 @@ in de bestaande weg-/parkeerlogica:
 | Archetype | len x wid (m) | Opmerking |
 |---|---|---|
 | Auto (hatchback/sedan/wagon/van/sport) | 3.8-5.0 x 1.65-2.0 | 5-6 kleurvarianten genoeg |
-| Hero-auto (speelbaar, "Ford Escort"-achtig) | 4.0 x 1.65 | 1 uniek, herkenbaar model |
+| Hero-auto (speelbaar, een vierkante Nederlandse gezinsauto uit de jaren 90) | 4.0 x 1.65 | 1 uniek, herkenbaar model |
 | Politieauto | 4.3 x 1.8 | zelfde als sedan + lichtbalk + blauw/wit |
 | Motor/scooter | 1.75-1.95 x 0.5-0.62 | incl. een "dikke"/chopper-variant |
 | Scooter (klein) | 1.1-1.15 x 0.4-0.42 | |
@@ -309,8 +312,8 @@ in de bestaande weg-/parkeerlogica:
 [gedeelde stijl-brief]
 
 Maak een low-poly personenauto in de stijl van het Martinitoren-model (zie gedeelde stijl-brief), bedoeld als 1 van 5-6
-kleurvarianten van hetzelfde silhouet (hatchback-achtig): simpele afgeronde doos-
-carrosserie, 4 losse wielen (cilinder, zwart rubber + metalGrey velg-accent), platte
+kleurvarianten van hetzelfde silhouet (hatchback-achtig): simpele, kantige doos-
+carrosserie met vlakke facetten, 4 losse wielen (cilinder, zwart rubber + metalGrey velg-accent), platte
 gekleurde ruiten (glassBlue voorruit/achterruit, roofBlue zijruiten iets
 transparant), simpele koplamp/achterlicht-vlakken (wit/brickRed).
 
@@ -334,40 +337,50 @@ motor, scooter, bus (met een simpele stripe/accent-band langs de zijkant) en boo
 
 ## D. Mensen (pedestrians + Tammo/Anita) - en waarom "animaties" hier anders werkt
 
-**Belangrijk technisch detail:** dit spel gebruikt GEEN skeletal/bone-animatie. De
-loopanimatie (`game/js/models3d_people.js` → `animatePersonWalk`) roteert 4 losse
-object-groepen met code, per frame: `legL`, `legR`, `armL`, `armR`. Er is dus GEEN
-rig/skinning/animation-clip nodig in de GLB - wel moeten deze 4 onderdelen als
-**losse, los aanspreekbare objecten/groepen** in de model-hierarchy staan (niet
-samengevoegd tot 1 mesh), met hun eigen pivot/oorsprong op het heup- resp.
-schoudergewricht (niet op het midden van het onderdeel zelf) - anders draait het
-onderdeel om het verkeerde punt.
+**Belangrijk technisch detail:** dit spel gebruikt GEEN skeletal/bone-animatie met clips. De
+loopanimatie (`game/js/models3d_people.js` → `animatePersonWalk`) draait de onderdelen van de pop met
+code, per frame: de heupen, de romp, het hoofd, de dijbenen en knieën en de bovenarmen en ellebogen
+(`BONE` en `userData` in dat bestand). Er is dus GEEN rig/skinning/animation-clip nodig in de GLB - wel
+moeten die onderdelen als **losse, aanspreekbare objecten/groepen** in de model-hierarchy staan (niet
+samengevoegd tot 1 mesh), met hun eigen pivot/oorsprong op het gewricht (niet op het midden van het
+onderdeel zelf) - anders draait het onderdeel om het verkeerde punt.
 
-Huidige verhoudingen (chibi-stijl: groot hoofd, kort lijf), uit
-`game/js/models3d_people.js`:
+Huidige verhoudingen en gewrichten (uit `game/js/models3d_people.js`, `PERSON_RIG`):
+heupen 0.93 m, knieën 0.49, enkels 0.08, borst 1.07, schouders 1.40, nek 1.49,
+hoofdcentrum 1.655; samen ongeveer 1.8 m tot de bovenkant van het hoofd. Het hoofd is
+geen bol maar een gefacetteerde vorm van ~0.19 x 0.24 x 0.17 m.
 
 ```
 [gedeelde stijl-brief]
 
-Maak een chibi-proportie mens-figuur in de stijl van het Martinitoren-model (groot rond hoofd, kort
-compact lijfje, korte dikke armen/benen) - GEEN skeletal rig, GEEN animatie-clips.
+Maak een low-poly mens-figuur van ~1.8 meter in de stijl van het Martinitoren-model:
+kantig en gefacetteerd, geen groot rond cartoonhoofd en geen kort lijfje - GEEN
+skeletal rig, GEEN animatie-clips.
 
 Onderdelen als LOSSE, benoemde objecten (elk zijn eigen pivot-punt op het gewricht,
 niet op het object-midden):
-- "torso" - romp, ~0.3m dik, ~0.44m hoog, ~0.44m breed op schouderhoogte.
-- "head" - bol, straal ~0.3m, bovenop de romp (geen apart nek-onderdeel nodig,
-  mag aan de romp vast zitten).
-- "legL" / "legR" - elk een dijbeen+onderbeen+schoen als 1 los object, lengte
-  ~0.82m, pivot-punt (oorsprong van het object) bovenaan bij de heup.
-- "armL" / "armR" - elk een arm+hand als 1 los object, lengte ~0.48m, pivot-punt
-  bovenaan bij de schouder.
+- "pelvis" - heupen, oorsprong op 0.93m.
+- "chest" - romp van ~0.93m tot de nek (1.49m), ~0.40m breed op schouderhoogte,
+  ~0.19m diep.
+- "head" - gefacetteerd hoofd van ~0.19m breed, ~0.24m hoog en ~0.17m diep, met
+  het centrum op 1.655m.
+- "legL" / "legR" - elk een dijbeen, lengte ~0.44m, pivot-punt (oorsprong van het
+  object) bovenaan bij de heup op 0.93m.
+- "kneeL" / "kneeR" - elk een onderbeen+schoen, pivot-punt bovenaan bij de knie op
+  0.49m.
+- "armL" / "armR" - elk een bovenarm, lengte 0.29m, pivot-punt bovenaan bij de
+  schouder op 1.40m.
+- "elbowL" / "elbowR" - elk een onderarm+hand, lengte 0.25m, pivot-punt bovenaan
+  bij de elleboog.
 
-Totale hoogte (rechtop, voeten op Y=0 tot bovenkant hoofd): ~1.9 meter.
+Totale hoogte (rechtop, voeten op Y=0 tot bovenkant hoofd): ~1.8 meter.
 Kleding/huid: gebruik alleen het gedeelde palet - 1 hemdkleur, 1 broek/schoenkleur,
 1 huidtint (woodLight/woodMid), 1 haarkleur (zwart of woodDark).
 
-Exporteer als losse GLB-nodes met exact deze namen: torso, head, legL, legR, armL,
-armR - de game-code zoekt op deze namen.
+Exporteer als losse GLB-nodes met exact deze namen: pelvis, chest, head, legL, legR,
+kneeL, kneeR, armL, armR, elbowL, elbowR - dat zijn de namen die de loopanimatie
+gebruikt. Een loader voor een mensen-GLB bestaat nog niet (alleen
+`landmarkmodels.js` laadt gebouwen); die komt erbij zodra het eerste model er is.
 ```
 
 Voor Tammo en Anita specifiek: zelfde structuur, plus 1 extra los onderdeel

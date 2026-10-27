@@ -9,7 +9,8 @@ Boerderij De Zonnehoek (verzonnen) is van jou: één akker bij Hoogkerk, in de b
 
 1. **Ploegen** (ploeg), 2. **zaaien** (zaai- en strooimachine; je kiest het gewas in Pauzemenu › Boerderij › Gewas en betaalt het zaaigoed),
 3. **bemesten** (optioneel, €25 mest, tot +20% opbrengst), 4. het gewas **groeit in speltijd**, 5. **oogsten** (rooier), 6. **afleveren**: laden bij het perceel en
-rustig naar de afnemer rijden (Coöperatie Noorderveld voor aardappelen, Suikerhal Hoogkerk voor suikerbieten). Een ronde is daarna weer braak.
+rustig naar de afnemer van dat gewas rijden (Coöperatie Noorderveld voor aardappelen, Suikerhal Hoogkerk voor suikerbieten, Graanzolder
+Noorderveld voor graan en Hooimarkt Reitdiep voor gras). Een ronde is daarna weer braak.
 
 Het werk zelf is de bijbaan **Eigen boerderij** (start bij Hoogkerk, zie de kaart): hij kiest zelf de volgende taak uit de stand van het land, rekent
 de huur en het zaaigoed af en gaat door met de taak erna tot er niets meer te doen is (bijvoorbeeld omdat het gewas nog groeit). Elke rijtaak is vier
@@ -28,9 +29,9 @@ kopen: dan geen huur en een ruimere rij) en het kasboek.
 | Suikerbieten | €30 | 48 speluren | 4000 kg | €0,10 |
 | Graan | €35 | 40 speluren | 2600 kg | €0,15 |
 | Gras (weiland) | €20 | 20 speluren | 5000 kg | €0,07 |
-| Uien | €45 | 36 speluren | 3000 kg | €0,16 |
 
-Een speldag is 24 minuten (`DAY_LENGTH_S`): aardappelen zijn na ruim een halve speldag rijp, bieten na twee, uien na anderhalve. De opbrengst is `kgBasis` keer de
+Een speldag is 24 minuten (`DAY_LENGTH_S`) en een speluur is een minuut: aardappelen zijn na 1,25 speldag rijp, bieten na twee, graan na
+1,7 en gras na 0,8. De opbrengst is `kgBasis` keer de
 kwaliteit van het ploegen (0,6 tot 1), het zaaien (0,5 tot 1) en het bemesten (+20%), keer de oogstfractie van de rijen; de prijs krijgt de kwaliteit
 van de afleverrit. Machines: ploeg €15 huur of €300 koop, zaai- en strooimachine €10 of €250, rooier €20 of €600. Een volledige ronde levert ongeveer
 €300 tot €350 winst op voor tien minuten werk: dat is in de buurt van een bijbaan (`boerderij_test.mjs` bewaakt de verhouding). De verkoop loopt
@@ -48,9 +49,10 @@ treinreis, niet bij een sprong terug (een lading). De boerderij heeft dus een ei
   loopbaan), en geldt voor elk opgeslagen spel op dit apparaat. Het perceel staat vast zodra het gevonden is (`vindAkker` uit `sidejob_bieten.js`).
 - Een leeg, oud of kapot profiel geeft een geldige lege boerderij (`normaliseer`); een gezaaid veld zonder gewas of zaaitijd wordt braak; volle of
   geblokkeerde opslag laat het spel gewoon doorlopen.
-- **Samen spelen:** iedereen heeft zijn eigen boerderij op zijn eigen apparaat. Een gast draait `updateGameplay` niet en mag geen bijbaan starten
-  (docs/COOP-GAST.md): zijn gewassen groeien dus niet terwijl hij in andermans wereld meespeelt, ze wachten op hem. Wat wie het spel opende met een
-  verkoop verdient deelt hij zoals alle verdiensten met de gasten.
+- **Samen spelen:** iedereen heeft zijn eigen boerderij op zijn eigen apparaat, met eigen geld en eigen opslag (`gde-boerderij-v1`). Een gast
+  boert op zijn eigen akker als lokale minigame en zijn gewassen **groeien mee** met de klok van de gastheer: `main.js` roept `boerderijTijd` ook
+  op het gastpad aan, met `boerderijKlokNul` zodat de sprong naar de gastheerklok niet als groeitijd telt. Een gast mag geen bijbaan starten
+  (docs/COOP-GAST.md). Wat wie het spel opende met een verkoop verdient deelt hij zoals alle verdiensten met de gasten.
 
 ## Percelen en erven (stap 1 van #415)
 
@@ -78,7 +80,7 @@ Modules: `machines.js` (pure regels voor kopen, huren, diesel, slijtage, onderho
 
 ## Niet gedaan (de uitbreiding)
 
-Eggen als aparte stap, koolzaad, balenpers, de bijbaan op een gekozen ander perceel dan Hoogkerk (de vrije klussen werken wel op elk perceel), samen spelen (stap 3), een kleine veestapel of weide (koeien, schapen en paarden bestaan als
+Eggen als aparte stap, uien en koolzaad, balenpers, de bijbaan op een gekozen ander perceel dan Hoogkerk (de vrije klussen werken wel op elk perceel), de rest van samen spelen (stap 3: de gast ziet je kasboek of erf niet en heeft zelf geen toets voor tanken), een kleine veestapel of weide (koeien, schapen en paarden bestaan als
 wereldleven), controllerknoppen voor koppelen, aftakas en hef, en een eigen interieur voor maaidorser en laadmachine (zitplek en cabine: de besturing en interieurs zijn van de voertuigagent). De
 tabellen in `boerderij.js` (`GEWASSEN`, `MACHINES`, `TAKEN`) en `BAND` zijn de plekken waar je ze toevoegt. Een
 nieuw gewas krijgt ook een regel in `PRIJS_KG` (`gewasmarkt.js`): daar staan de basisprijzen van de dagmarkt, en zonder die regel

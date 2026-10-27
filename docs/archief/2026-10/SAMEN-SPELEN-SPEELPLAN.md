@@ -89,7 +89,7 @@ bij de duif vliegt de gastheer alleen, bij het museum sluipt de gastheer en de r
 - **Niet door vier mensen gespeeld.** Alles is getest met bots, met een gast in een tweede venster op één computer en met een testbank (`scripts/coop/vrijdag_test.mjs`
   en `testbank.mjs`). De kamercode over echt internet, een echte router en vier computers zijn niet getest.
 - **Alleen de gastheer speelt de rest van de missies en minigames.** De anderen kijken, rijden mee en krijgen een deel van het geld. Echt samen een missie doen
-  (twee mensen met een eigen taak) kan nog niet; de voorbereide regels in `cooproles.js` zijn de rol- en teamregels, en de activiteiten van #443 zitten in `coopwedstrijd.js` en `coopbijbaan.js`.
+  (twee mensen met een eigen taak) kan nog niet; de voorbereide regels in `cooproles.js` zijn de rol- en teamregels, en de activiteiten van #443 zitten in `multiplayerwedstrijd.js` en `coopbijbaan.js`.
 - **Gesprekken en keuzes:** de gastheer kiest. Een gast ziet de vraag en de opties, maar kan niet kiezen. Praat het even af.
 - **Extra spelers zitten achterin of lopen:** een fiets, scooter of helikopter heeft geen plek voor hen. In een vliegtuig of op een trein rijdt alleen de gastheer mee.
 - **De voertuigen en voetgangers van de gastheer zijn bij een gast eenvoudige blokken en poppetjes**, alleen binnen ongeveer 150 m van een speler.

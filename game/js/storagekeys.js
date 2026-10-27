@@ -20,6 +20,7 @@ const ARC_SUFFIX = '-nieuw';
 
 export const BASE_KEYS = {
   serverlijstVerborgen: 'gde-serverlijst-verborgen', // sessies die je in de lijst van openbare sessies hebt gemeld (lobbyui.js)
+  serverlijstFavorieten: 'gde-serverlijst-favorieten', // openbare sessies die je op dit apparaat een ster gaf (lobbyui.js): alleen id's
   save: 'gde-save-v1',
   settings: 'gde-settings',
   // the save slots (saveslots.js): the list (names, the active slot); slot 1 is 'save' itself
