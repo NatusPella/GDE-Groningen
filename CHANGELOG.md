@@ -33,6 +33,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Reeksen in het gevecht.** De tweede slag binnen een seconde doet meer schade, de derde nog meer; een misser of een wapenwissel zet de reeks terug.
 - **Treinpassagiers.** Een machinistendienst telt nu echte reizigers: ze stappen per halte in en uit, betalen een kaartje en staan op het bord.
 - **Dagprijzen op de boerderij.** Elk gewas heeft per speldag een eigen prijs, hooguit twintig procent boven of onder de basis; je verkoopt tegen de prijs van de dag dat je aflevert.
+- **Het nieuwe verhaal krijgt stemmen.** 642 van de 1.450 regels zijn ingesproken; wat nog geen opname heeft lees je als ondertitel met leestijd, en die komen er in latere rondes bij.
 
 ### Opgelost
 
