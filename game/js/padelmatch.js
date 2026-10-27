@@ -26,6 +26,16 @@ const kant = (team) => (team === 0 ? -1 : 1);   // het teken van v op de helft v
 const vooruit = (team) => -kant(team);           // de richting van de ploeg naar het net (en de tegenstander)
 const sideOf = (v) => (v < 0 ? 0 : 1);
 
+// De loopsnelheid van een personage is de verplaatsing die het deze stap werkelijk maakte, niet de
+// ingedrukte richting (#502). Staat hij tegen het glas of de achterwand, dan houdt de clamp zijn
+// positie vast: de afstand is nul en dus staat de animatie stil. Met de invoer als maat bleef hij
+// doorlopen en "gleed" hij op zijn plek. padel.js (de solowedstrijd) gebruikt dezelfde regel.
+export function stapSnelheid(du, dv, dt) {
+  if (!(dt > 0)) return 0;                  // een stilstaand beeld (dt 0 of onzin) levert geen snelheid op
+  const d = Math.hypot(du, dv);
+  return Number.isFinite(d) ? d / dt : 0;
+}
+
 // De stoelen: de mensen verdelen zich over twee ploegen (host links, de eerste gast tegenover, dan om en om); lege stoelen krijgen een AI-naam.
 export function indeling(deeln) {
   const mens = (deeln || []).slice(0, MAX_SPELERS_PADEL);
@@ -265,10 +275,11 @@ function stepBall(m, dt) {
 }
 
 function beweeg(a, u, v, speed, dt) {
+  const ou = a.u, ov = a.v;
   const du = u - a.u, dv = v - a.v, d = Math.hypot(du, dv);
   const step = Math.min(d, speed * dt);
   if (d > 1e-3) { a.u += du / d * step; a.v += dv / d * step; }
-  a.speed = dt > 0 ? step / dt : 0;
+  a.speed = stapSnelheid(a.u - ou, a.v - ov, dt);  // wat hij liep, niet wat hij wilde (#502)
 }
 
 // De invoer van een mens: { mx, my, buttons } (my < 0 is vooruit, bit 1 (waarde 2) is Spatie) -> { mx, vw, sw }
@@ -287,12 +298,16 @@ export function tikPadel(m, dt, invoer) {
       const r = leesInvoer(invoer ? invoer(s.slot) : null);
       inv.set(s.i, r);
       const F = vooruit(s.team), vastInServe = m.phase === 'serve' && m.serverStoel === s.i;
+      const ou = s.u, ov = s.v;
       if (!vastInServe) {
         const len = Math.hypot(r.mx, r.vw), k = len > 1 ? 1 / len : 1;
         s.u = clamp(s.u + F * r.mx * k * SPEED_MENS * dt, -W2 + 0.35, W2 - 0.35);
         s.v = kant(s.team) * clamp(kant(s.team) * (s.v + F * r.vw * k * SPEED_MENS * dt), 0.9, L2 - 0.4);
       }
-      s.speed = len2(r) ? SPEED_MENS : 0;
+      // dezelfde regel als in padel.js: de clamp (glas, achterwand) of een onderbroken beweging
+      // levert geen verplaatsing en dus snelheid 0, zodat de benen stilstaan in plaats van door
+      // te lopen; ook tijdens de eigen serve sta je stil in plaats van te marcheren (#502)
+      s.speed = stapSnelheid(s.u - ou, s.v - ov, dt);
       if (r.sw && !s.prevSw) { s.buf = SWING_BUF; if (s.swing <= 0) s.swing = SWING_T; } else s.buf = Math.max(0, s.buf - dt);
       s.prevSw = r.sw;
     } else s.prevSw = false;
@@ -379,7 +394,6 @@ export function tikPadel(m, dt, invoer) {
   }
   return m.ev;
 }
-const len2 = (r) => Math.abs(r.mx) > 0.05 || Math.abs(r.vw) > 0.05;
 
 function eindig(m) {
   m.fase = 'klaar'; m.phase = 'klaar'; m.n++;
@@ -444,11 +458,31 @@ export function voerInPadel(sp, st) {
   sp.flashText = st.x || '';
   return true;
 }
+// De gast tekent de stoelen van de host na en krijgt twaalf momentopnamen per seconde (83 ms); daar
+// tussen moet hij doorlopen. Twee dingen maken dat strak zonder trillen (#502): de volgfactor is
+// hoog (30/s), zodat hij een momentopname in ongeveer twee beelden inhaalt en niet achter de host
+// aan blijft glijden; en de stap is nooit groter dan de afstand die nog rest, zodat hij nooit door
+// zijn doel schiet of om de laatste stand heen blijft wiebelen. Bewust geen extrapolatie met de
+// laatst bekende snelheid: staat de host plotseling stil (glas, punt), dan zou de gast eerst voorbij
+// die plek schuiven en met een ruk terugkomen -- precies het trillen dat we wilden wegnemen.
+// Een echte sprong (de opstelling bij een serve of punt) wordt met GAST_MAX_SPEED een snelle stap
+// in plaats van een teleport. Wie er bijna is, staat er ook echt: tot een halve centimeter zet hij
+// de laatste stap in één keer, anders blijft hij er op een millimeter na naast hangen en loopt de
+// animatie daar door.
+const GAST_VOLG = 30, GAST_MAX_SPEED = 9, GAST_AANKOMST = 0.005;
 export function tikPadelSpiegel(sp, dt) {
   sp.leeftijd += dt;
-  const k = 1 - Math.exp(-dt * 20);
+  const k = 1 - Math.exp(-dt * GAST_VOLG);
   for (const s of sp.stoelen) {
-    s.u += (s.tu - s.u) * k; s.v += (s.tv - s.v) * k;
+    const ou = s.u, ov = s.v;
+    const du = s.tu - s.u, dv = s.tv - s.v, d = Math.hypot(du, dv);
+    if (d <= GAST_AANKOMST) { s.u = s.tu; s.v = s.tv; }
+    else {
+      const stap = Math.min(d, d * k, GAST_MAX_SPEED * dt);
+      s.u += du / d * stap; s.v += dv / d * stap;
+    }
+    // de benen lopen op wat de gast werkelijk liep: komt hij bij zijn plek, dan staat hij stil
+    s.speed = stapSnelheid(s.u - ou, s.v - ov, dt);
     if (s.swing > 0) s.swing = Math.max(0, s.swing - dt);
   }
   if (sp.ball && sp.bt) { // de bal vliegt door tussen twee momentopnamen en wordt naar de host bijgetrokken

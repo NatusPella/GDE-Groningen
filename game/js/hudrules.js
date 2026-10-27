@@ -23,8 +23,9 @@
 //
 // Busy (a chase, a fight, a race): only P0, P1 (B, G) and P2 (stars, F, H)
 // show; P3 waits until it is quiet again, at most 30 s, then it lapses.
-// Rest ("Slim"): after 8 s without input only the minimap stays; a key or the
-// pause menu brings everything back for a moment.
+// Rest ("Slim"): after 8 s without input only the minimap, the objective and a
+// running route card stay (playtest 27-10: the goal must never disappear); a key
+// or the pause menu brings everything back for a moment.
 // Ceiling: at most 6 elements besides the minimap; over that P3 goes first,
 // then the clock, then the money. Of what talks (a message, the radio or an
 // achievement, a subtitle) at most two show at once: the P3 one gives way.
@@ -151,9 +152,16 @@ export function decideHud(s = {}) {
   show.vehicle = !!s.inVehicle;
   show.keys = (s.keys | 0) > 0;
 
-  // rest: after a while without input only the minimap (and what is being said or told)
+  // rust: na een tijd zonder invoer blijft alleen de kaart, met het doel en de
+  // routestatus erbij. Het doel gaat er niet meer uit: in de playtest van 27-10
+  // zei een speler "ik kan niet meer zien wat ik moet doen", en een missiedoel is
+  // nu eenmaal waar de HUD voor is.
   if (!all && (s.idle ?? 0) >= IDLE_AFTER && !s.wake && !wanted && !busy) {
-    for (const k of ['timer', 'gps', 'place', 'money', 'weapon', 'clock', 'bars', 'vehicle', 'keys', 'objective']) show[k] = false;
+    // 'gps' staat hier bewust niet in het rijtje: die is alleen waar als er een
+    // route loopt (hud_panel geeft 'er is een afslagkaart of een reiskaart'), dus
+    // een lopende route houdt zijn kaart vanzelf en zonder route valt er niets
+    // te bewaren.
+    for (const k of ['timer', 'place', 'money', 'weapon', 'clock', 'bars', 'vehicle', 'keys']) show[k] = false;
     if (show.cardE) show.cardE = false;
   }
 

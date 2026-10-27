@@ -70,8 +70,10 @@ export function jumpStep(a, now, pressed, grounded) {
 }
 
 // --- Rakelings ---------------------------------------------------------------------------
-const NEAR_MIN_SPEED = 14;        // m/s (~50 km/u)
-const NEAR_MAX_GAP = 1.2;         // m tussen de carrosserieen
+const NEAR_MIN_SPEED = 12;        // m/s: 50 km/u is 13,9 m/s; de oude 14 lag daar net boven, dus een
+                                  // gewone stadsweg kon nooit een beloning opleveren
+const NEAR_MAX_GAP = 1.2;         // m tussen de carrosserieen (strenger dan de detectie: de teller telt
+                                  // ook ruimere passes, de bonus blijft bewust alleen voor echte rakelings)
 export const NEAR_COOLDOWN_S = 12;       // per voertuigpaar
 const NEAR_BONUS_MIN = 5, NEAR_BONUS_MAX = 15;
 

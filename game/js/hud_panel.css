@@ -146,7 +146,9 @@ body.hide-minimap #hud .hud-minimap-wrap { display: none; }
   pointer-events: none; transition: opacity 0.4s ease;
 }
 #hud .hud-mission[hidden] { display: none; }
-#hud .hud-mission.dim { opacity: 0.35; }
+/* onder een ondertitel blijft het doel leesbaar: 0.35 maakte het onleesbaar
+   (playtest 27-10), 0.7 houdt het zichtbaar zonder de ondertitel te overschreeuwen */
+#hud .hud-mission.dim { opacity: 0.7; }
 body.shop-open #hud .hud-mission { visibility: hidden; }
 body.pigeon-mode #hud .hud-mission.in-mission:not([hidden]) { display: flex !important; }
 #hud .hud-mission[data-kind="mission"] { --obj: #e8c93a; }
