@@ -12,7 +12,7 @@ import { compileScene, fitAnchor, resolveTime, shotPoints } from './cutscript.js
 import { roofAt } from './camerapath.js';
 import { animateActor, beginSceneActors } from './actoranim.js';
 import { audioPlan } from './cutaudio.js';
-import { cutPakket, cutHostId, cutHostStart, cutHostEnd, cutHostTik, cutGastTik, cutsceneScene, cutsceneVerdeling, acteurRol } from './coopcut.js';
+import { cutPakket, cutHostId, cutHostStart, cutHostEnd, cutHostTik, cutGastTik, cutsceneScene, cutsceneVerdeling, acteurRol, cutSpoor } from './coopcut.js';
 
 const STEL = { tempo: setCinematicRate, tijd: setCinematicTime };
 
@@ -239,6 +239,29 @@ function kitchenEnv(at) {
 // QA-haak (scripts/qa/cutscene_shots.page.js): speelt een scène stil per tijdstip af; geen export, zodat de dode-code-telling gelijk blijft
 if (typeof window !== 'undefined') window.__cutHost = { buildScriptRun };
 
+// (#502) Het einde van een scène aan de gasten. Er zijn drie manieren waarop een scène eindigt, en de gasten
+// horen het verschil te merken:
+//  - de scène speelde af: 'cutend' zonder skip (cutHostEnd, coopcut.js);
+//  - de speler sloeg zelf over met Spatie/Esc: 'cutend' met skip, dan stoppen de gasten ook (#434);
+//  - een scène met hogere prioriteit nam hem over (cinematics.js playCinematic -> finish(true, true)). Dat is
+//    géén overslaan: er komt meteen een nieuwe scène aan (cutHostStart onderaan playScript) en de gasten horen
+//    daarin mee te gaan. Een 'cutend' zou ze juist laten stoppen -- coopnet.js cutGastStop kijkt niet naar skip --
+//    en dan zagen ze de nieuwe scène niet meer. Daarom gaat er een eigen bericht uit: 'cutvervang' met skip: false.
+//    Een gast die dat bericht niet kent laat het liggen (coopnet.js negeert onbekende soorten) en speelt zijn eigen
+//    kopie gewoon uit tot de nieuwe scène hem overneemt (coopcut.js cutGastSpeel): het protocol blijft dus
+//    achterwaarts compatibel en er valt niemand stil.
+export function cutHostEinde(w, id, { skipped = false, replaced = false } = {}) {
+  const n = w && w.coopNet;
+  if (!n || n.role !== 'host' || !n.hub || n.cutNu !== id) return false;
+  // zelf overgeslagen gaat altijd voor: dan is het echt een overslaan, ook als er toevallig net een nieuwe scène klaarstaat
+  if (skipped || !replaced) return cutHostEnd(w, id, skipped);
+  // vervangen: dezelfde boekhouding als cutHostEnd (coopcut.js), maar zonder 'cutend' dat de gasten stopt
+  n.cutNu = null;
+  w.coopCutRol = null;
+  cutSpoor(w, 'host-vervangen', id);
+  return n.hub.announce({ k: 'cutvervang', id, skip: false });
+}
+
 // replay: een gast speelt de scène van de gastheer na (coopcut.js); die stuurt niets door en slaat niets over
 export function playScript(w, def, { lines, duration, anchor, cine = {}, env: envIn = null, fit = null, replay = false } = {}) {
   if (current) return false;
@@ -302,7 +325,8 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
       if (cardNow) setNameCard(null);
       w.cinematicHidePlayers = false;
       w.cinematicHideNav = false;
-      if (!replay) cutHostEnd(w, cutId, skipped || replaced);
+      // (#502) vervangen is geen overslaan: cutHostEinde stuurt dan 'cutvervang' in plaats van 'cutend'
+      if (!replay) cutHostEinde(w, cutId, { skipped, replaced });
       if (cine.onEnd) cine.onEnd(skipped, replaced);
     },
   });
