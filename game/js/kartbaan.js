@@ -22,6 +22,7 @@ import { racingLine } from './kartline.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
 import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedRaceTik, wedHostEind, wedGastVerlaat, wedGastReset, tikSpiegel, eindstand, beloning, raceStand } from './multiplayerwedstrijd.js';
 import { figuurLook } from './coopplayers.js';
+import { hoofdspeler } from './players.js';
 
 // Karten in Ulrum: the real outdoor kart track of Ulrum (OSM way "Kartbaan
 // Ulrum", kartbaandata.js), laid out exactly as mapped, 330 m with the start
@@ -278,7 +279,7 @@ function buildTrackScene() {
 }
 
 function updateLod(w) {
-  const d = Math.hypot(w.player.x - CENTER.x, w.player.y - CENTER.y);
+  const d = Math.hypot(hoofdspeler(w).x - CENTER.x, hoofdspeler(w).y - CENTER.y);
   if (!built && d < DETAIL_M) built = buildTrackScene();
   if (!built) return;
   built.root.visible = d < DETAIL_M + 100 || !!game;
@@ -300,7 +301,7 @@ function drawIcon(ctx, s) {
 // --- prompt and start ---------------------------------------------------------------------------------------
 
 function nearStand(w) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (game || w.pigeonMode || w.heliRun || p.inVehicle || p.swimming) return false;
   return Math.hypot(p.x - STAND.x, p.y - STAND.y) < USE_RADIUS;
 }
@@ -317,8 +318,8 @@ function prompt(w) {
 }
 
 function secondary(w) {
-  if (game || w.player.inVehicle) return [];
-  if (Math.hypot(w.player.x - CENTER.x, w.player.y - CENTER.y) > 260) return [];
+  if (game || hoofdspeler(w).inVehicle) return [];
+  if (Math.hypot(hoofdspeler(w).x - CENTER.x, hoofdspeler(w).y - CENTER.y) > 260) return [];
   return [{ id: 'kartbaan-2', x: STAND.x, y: STAND.y, h: 2.2, label: 'Kartbaan Ulrum', sub: 'Loop naar de kassa en druk E', kind: 'place' }];
 }
 
@@ -342,7 +343,7 @@ function start(w, { force = false } = {}) {
   if (game) return false;
   if (!force && activityBlock(w)) return false;
   if (!built) built = buildTrackScene();
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (p.inVehicle) p.exitVehicle(w.map, w);
   const karts = [createKart(TRACK, 0, { player: true, name: 'jij' }), ...KART_RIVALS.map((r, i) => createKart(TRACK, i + 1, { skill: [0.93, 0.97, 1.01][i], name: r.name }))];
   // the riders, seated
@@ -407,7 +408,7 @@ function beginOnline(w, g, kind) {
 function startOnline(w, race) {
   if (game || activityBlock(w)) return false;
   if (!built) built = buildTrackScene();
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (p.inVehicle) p.exitVehicle(w.map, w);
   race.karts[0].player = true;
   race.uit = { ...STAND }; // where a guest who stops or finishes is put back
@@ -861,7 +862,7 @@ export const KARTBAAN = {
   icon: drawIcon,
   mapSub: () => recText() || 'Karten in Ulrum: drie ronden tegen drie rijders',
   ubbo(w) {
-    const d = Math.hypot(STAND.x - w.player.x, STAND.y - w.player.y);
+    const d = Math.hypot(STAND.x - hoofdspeler(w).x, STAND.y - hoofdspeler(w).y);
     const rec = getChallengeRecord('kart-race');
     return { name: 'Karten in Ulrum', sub: rec && rec.medal ? `record: ${MEDALS[rec.medal].toLowerCase()}` : 'drie ronden, gratis', dist: d, x: STAND.x, y: STAND.y, play: 'kartbaan', where: 'de kartbaan in Ulrum', hint: 'loop naar de kassa en druk E' };
   },

@@ -4,6 +4,7 @@ import { makeCopPedestrian, isSpawnHidden, CITY_CENTRE } from './pedestrians.js'
 import { isInsideBuilding } from './pedgeom.js';
 import { buildHorseMesh } from './countryside.js';
 import { setHorseMeshBuilder } from './models3d_vehicles.js';
+import { hoofdspeler } from './players.js';
 
 setHorseMeshBuilder(buildHorseMesh);
 
@@ -66,7 +67,7 @@ function clearOfVehicles(world, x, y, r) {
 }
 
 function findMountSpawn(world, minD = MOUNT_SPAWN_MIN, maxD = MOUNT_SPAWN_MAX, hidden = true, cats = MOUNT_ROAD_CATS) {
-  const p = world.player, pol = world.police;
+  const p = hoofdspeler(world), pol = world.police;
   const c = pol && pol.searching && pol.searchCenter ? pol.searchCenter : p;
   for (let attempt = 0; attempt < 6; attempt++) {
     const a = Math.random() * Math.PI * 2, d = minD + Math.random() * (maxD - minD);
@@ -103,7 +104,7 @@ export function trySpawnMounts(world, state) {
     if (!v._mount || !v.isPolice || v.hijacked || v.wrecked) continue;
     if (v._mount === 'horse') horses++; else bikes++;
   }
-  const p = world.player, pv = p.inVehicle, w = world.wanted;
+  const p = hoofdspeler(world), pv = p.inVehicle, w = world.wanted;
   const centre = Math.hypot(p.x - CITY_CENTRE.x, p.y - CITY_CENTRE.y) < CITY_CENTRE.r * CENTRE_FRACTION;
   const slow = !pv || pv.isBike || pv.isScooter;
   let maxBikes = w <= 3 ? 1 : 0;
@@ -163,7 +164,7 @@ function makePatrol(v, world, zone) {
 }
 
 function updatePatrols(world, state) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   const dt = Math.min(0.1, Math.max(0, world.time - (state.patrolT ?? world.time)));
   state.patrolT = world.time;
   let n = 0;
@@ -240,7 +241,7 @@ function freeSpot(map, x, y) {
 }
 
 function deployCrew(v, world, state, n) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   const mounted = isMounted(v);
   const fx = Math.cos(v.angle), fy = Math.sin(v.angle);
   const rx = -fy, ry = fx;
@@ -284,7 +285,7 @@ function startCrew(v, world, state, crew) {
 // or in a stopped car lets its officers out. Returns true when it did.
 export function tryDeployCrew(v, world, state) {
   if (world.wanted === 0 || world.time < (v._crewCd || 0) || world.pendingRespawn) return false;
-  const p = world.player, pv = p.inVehicle;
+  const p = hoofdspeler(world), pv = p.inVehicle;
   if (p.water || (pv && pv.isBoat)) return false;
   const target = !pv || ((pv.isBike || pv.isScooter) && Math.abs(pv.speed) < SLOW_TWO_WHEELER) || Math.abs(pv.speed) < STOPPED_CAR;
   if (!target) return false;
@@ -331,7 +332,7 @@ function makeStray(c, state) {
 
 export function updateCrews(dt, world, state) {
   const units = state.crewUnits;
-  const p = world.player, pv = p.inVehicle;
+  const p = hoofdspeler(world), pv = p.inVehicle;
   const fastPlayer = !!pv && Math.abs(pv.speed) > FAST_VEHICLE;
   for (let i = units.length - 1; i >= 0; i--) {
     const v = units[i];
@@ -417,7 +418,7 @@ function commandeer(car, cop, world) {
 // once the player is away walk to the nearest car to commandeer it.
 function updateStrays(world, state) {
   const strays = state.strays;
-  const p = world.player, pv = p.inVehicle;
+  const p = hoofdspeler(world), pv = p.inVehicle;
   for (let i = strays.length - 1; i >= 0; i--) {
     const c = strays[i];
     if (world.wanted === 0 || c.state === 'dead' || !world.pedestrians.includes(c)) {
@@ -470,7 +471,8 @@ export function ejectMountRider(v, world, state) {
 export function maybeBolt(v, world, state) {
   if (v._mount !== 'horse' || v._bolting || v.health > HORSE_BOLT_HEALTH) return false;
   v._bolting = true;
-  if (world.addMessage && dist(v.x, v.y, world.player.x, world.player.y) < 60) world.addMessage('Het politiepaard schrikt: de ruiter springt eraf en het paard slaat op hol', 3);
+  const p = hoofdspeler(world);
+  if (world.addMessage && dist(v.x, v.y, p.x, p.y) < 60) world.addMessage('Het politiepaard schrikt: de ruiter springt eraf en het paard slaat op hol', 3);
   if (!v._riderAway && !v._crew) ejectMountRider(v, world, state);
   v._ejected = true;
   v._riderAway = true;
@@ -479,7 +481,6 @@ export function maybeBolt(v, world, state) {
   v.hijacked = true;
   v.road = null;
   // het paard steigert en schiet weg van de speler, in plaats van tegen de auto aan te blijven duwen (#331)
-  const p = world.player;
   v.angle = Math.atan2(v.y - p.y, v.x - p.x);
   v.speed = Math.max(v.speed, 3);
   v.yawVel = 0;
@@ -489,7 +490,7 @@ export function maybeBolt(v, world, state) {
 }
 
 export function updateBolting(v, dt, world) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   const away = Math.atan2(v.y - p.y, v.x - p.x);
   let diff = away - v.angle;
   diff = Math.atan2(Math.sin(diff), Math.cos(diff));

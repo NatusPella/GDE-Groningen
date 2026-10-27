@@ -1,5 +1,7 @@
 // Why the police come (#391): a star that arrives without a word looks like bad luck. Every way to a star that has no card of its own names
-// its cause in one short line on the message card (politie), at most 14 words (hudtext.js). Pure apart from the world's addMessage.
+// its cause in one short line on the message card (politie), at most 14 words (hudtext.js). Pure apart from the world's addMessage and
+// players.js's read-only hoofdspeler (spelersregister.js, itself without imports).
+import { hoofdspeler } from './players.js';
 export const WANTED_WHY = {
   pedHit: 'Een voetganger geraakt: de politie zag het',
   pedKill: 'Een voetganger geraakt: de politie zag het',
@@ -45,6 +47,9 @@ export function noteWitnessHint(world) {
 // wie al is uitgestapt of in iets anders zit, krijgt geen achtervolging om een auto die hij niet meer heeft.
 export function witnessCallStands(call, world) {
   if (!call) return false;
-  if (call.kind === 'theft' && call.vehicle) return !!(world && world.player && world.player.inVehicle === call.vehicle);
+  if (call.kind === 'theft' && call.vehicle) {
+    const p = hoofdspeler(world);
+    return !!(p && p.inVehicle === call.vehicle);
+  }
   return true;
 }

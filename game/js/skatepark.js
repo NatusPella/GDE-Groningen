@@ -15,6 +15,7 @@ import { maakBeurten, beurtKlaar, beurtNu, somVan } from './coopwedstrijdpunt.js
 import {
   FEATURES, PARK, RUN_S, MEDAL_AT, SKATE, createBoard as createBoardState, createCombo, stepBoard, scoreEvents, tickCombo, bankCombo, skateMedal, TRICK_NAMES,
 } from './skatetricks.js';
+import { hoofdspeler } from './players.js';
 
 // Skatepark Stadspark: the skatepark of the real park (OSM "Skatepark
 // Stadspark"), a little widened to a concrete floor with a quarter pipe at
@@ -181,7 +182,7 @@ function buildPark() {
 }
 
 function updateLod(w) {
-  const d = Math.hypot(w.player.x - ORIGIN.x, w.player.y - ORIGIN.y);
+  const d = Math.hypot(hoofdspeler(w).x - ORIGIN.x, hoofdspeler(w).y - ORIGIN.y);
   if (!built && d < DETAIL_M) built = buildPark();
   if (!built) return;
   built.park.visible = d < DETAIL_M + 80 || !!game;
@@ -211,7 +212,7 @@ function drawIcon(ctx, s) {
 // --- prompt and start ---------------------------------------------------------------------------------
 
 function nearStand(w) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (game || w.pigeonMode || w.heliRun || p.inVehicle || p.swimming) return false;
   return Math.hypot(p.x - STAND.x, p.y - STAND.y) < USE_RADIUS;
 }
@@ -228,8 +229,8 @@ function prompt(w) {
 }
 
 function secondary(w) {
-  if (game || w.player.inVehicle) return [];
-  if (Math.hypot(w.player.x - ORIGIN.x, w.player.y - ORIGIN.y) > 120) return [];
+  if (game || hoofdspeler(w).inVehicle) return [];
+  if (Math.hypot(hoofdspeler(w).x - ORIGIN.x, hoofdspeler(w).y - ORIGIN.y) > 120) return [];
   return [{ id: 'skatepark-2', x: STAND.x, y: STAND.y, h: 2.2, label: 'Skatepark Stadspark', sub: 'Loop naar de ingang en druk E', kind: 'place' }];
 }
 
@@ -252,7 +253,7 @@ function start(w, { force = false, online = null } = {}) {
   if (game) return false;
   if (!force && !online && activityBlock(w)) return false;
   if (!built) built = buildPark();
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (p.inVehicle) p.exitVehicle(w.map, w);
   const b = createBoardState();
   b.u = -PARK.hu + 4; b.v = 0; b.a = 0;
@@ -504,7 +505,7 @@ registreerWedstrijd('skatepark', {
   opties: () => ({ beurten: WED_RUNS, naEerste: 150, format: (p) => `${Math.round(p).toLocaleString('nl-NL')} punten` }), // 150 s: iedereen krijgt de kans om beide runs af te maken
   start: (w) => start(w, { online: 'host', force: true }),
   plek: () => ({ ...STAND }),
-  gastPlek: (w, x, y) => !game && !w.player.inVehicle && Math.hypot(x - STAND.x, y - STAND.y) < 4.5, // een gast vraagt het bij de ingang (#452)
+  gastPlek: (w, x, y) => !game && !hoofdspeler(w).inVehicle && Math.hypot(x - STAND.x, y - STAND.y) < 4.5, // een gast vraagt het bij de ingang (#452)
   eind: (w, res) => {
     if (game && game.online === 'host') end(w, res ? { uitslag: res } : { quit: true, extern: true });
     else if (res) beloonOnline(w, res); // de host was al klaar: alleen zijn beloning miste nog
@@ -512,7 +513,7 @@ registreerWedstrijd('skatepark', {
   solo: (w) => start(w),
 });
 zetWedGastHaken('skatepark', {
-  dichtbij: (w) => !game && !w.player.inVehicle && Math.hypot(w.player.x - STAND.x, w.player.y - STAND.y) < 3,
+  dichtbij: (w) => !game && !hoofdspeler(w).inVehicle && Math.hypot(hoofdspeler(w).x - STAND.x, hoofdspeler(w).y - STAND.y) < 3,
   start: (w) => start(w, { online: 'gast', force: true }),
   eind: (w, uit) => { if (game && game.online === 'gast') end(w, uit.gestopt ? { quit: true, extern: true } : { uitslag: uit }); },
   tik: gastTik,
@@ -554,7 +555,7 @@ export const SKATEPARK = {
   icon: drawIcon,
   mapSub: () => recText() || 'Skatepark: hellingen, leuningen en kunstjes',
   ubbo(w) {
-    const d = Math.hypot(STAND.x - w.player.x, STAND.y - w.player.y);
+    const d = Math.hypot(STAND.x - hoofdspeler(w).x, STAND.y - hoofdspeler(w).y);
     const rec = getChallengeRecord('skatepark');
     return { name: 'Skatepark Stadspark', sub: rec && rec.medal ? `record: ${MEDALS[rec.medal].toLowerCase()}` : 'hellingen, leuningen en kunstjes, gratis', dist: d, x: STAND.x, y: STAND.y, play: 'skatepark', where: 'het skatepark in het Stadspark', hint: 'loop naar de ingang en druk E' };
   },

@@ -23,6 +23,7 @@ import { loopbaanVerdien } from './loopbaanlive.js';
 import { figuurLook } from './coopplayers.js';
 import { maakPadel, maakPadelSpiegel, voerInPadel, tikPadelSpiegel, livePadel } from './padelmatch.js';
 import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedLiveTik, wedHostLiveEind, wedGastVerlaat, wedGastReset } from './multiplayerwedstrijd.js';
+import { hoofdspeler } from './players.js';
 
 // Padel courts where OSM has them (game/mapextras.json "padel", built by
 // scripts/add_map_extras.py): a glass cage with blue turf, a net and lights
@@ -357,7 +358,7 @@ function updateNight(w) {
 }
 
 function updateLod(w) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   for (const s of sites) for (const c of s.courts) {
     if (!c.mesh) continue;
     const d = Math.hypot(c.f.cx - p.x, c.f.cy - p.y);
@@ -441,7 +442,7 @@ export function initPadel(w) {
 function nearestAny(w) {
   let best = null, bd = Infinity;
   for (const s of sites) {
-    const d = Math.hypot(s.x - w.player.x, s.y - w.player.y);
+    const d = Math.hypot(s.x - hoofdspeler(w).x, s.y - hoofdspeler(w).y);
     if (d < bd) { bd = d; best = s; }
   }
   return best;
@@ -463,7 +464,7 @@ function storyTwins() {
 }
 
 function nearestSpot(w) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (game || w.pigeonMode || w.heliRun || p.inVehicle || p.swimming) return null;
   let best = null, bd = USE_RADIUS;
   for (const s of sites) {
@@ -483,8 +484,8 @@ export function padelPrompt(w) {
 }
 
 export function padelSecondary(w) {
-  if (game || w.player.inVehicle) return [];
-  const { x, y } = w.player;
+  if (game || hoofdspeler(w).inVehicle) return [];
+  const { x, y } = hoofdspeler(w);
   const out = [];
   for (const s of sites) {
     if (Math.abs(s.x - x) > 25 || Math.abs(s.y - y) > 25) continue;
@@ -547,7 +548,7 @@ const PAIR_LOOKS = {
 
 function startMatch(w, s, { force = false } = {}) {
   if (game) return false;
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (!force && (p.inVehicle || p.swimming)) return false;
   if (p.inVehicle) p.exitVehicle(w.map, w);
   const twins = storyTwins();
@@ -1115,7 +1116,7 @@ function lookVoor(s) {
 
 function startOnline(w, sim, site, online) {
   if (game || !site) return false;
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (p.inVehicle && p.exitVehicle) p.exitVehicle(w.map, w);
   const f = site.court.f;
   const actors = sim.stoelen.map((s) => ({ mesh: look(lookVoor(s)), team: s.team }));
@@ -1329,7 +1330,7 @@ function callOf(g, team) {
 function updateHud(w) {
   const g = game;
   if (!g || !hud) return;
-  const us = w.player.character === 'anita' ? 'Tessa & Tammo' : 'Tammo & Tessa';
+  const us = hoofdspeler(w).character === 'anita' ? 'Tessa & Tammo' : 'Tammo & Tessa';
   const them = `${g.names[0]} & ${g.names[1]}`;
   const serve = (t) => (g.server === t && g.phase !== 'intro' ? ' •' : '');
   const left = Math.max(0, Math.ceil(MATCH_CAP - g.t));

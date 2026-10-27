@@ -33,8 +33,10 @@ import { Vehicle } from './vehicle.js';
 import { BOAT_KINDS } from './boattypes.js';
 import {
   rollenPerSpeler, samenRegels, STAPPLEK, STAPKLAAR, STAPTEKST, rolNaam, isRolstap, slotsVan, verdelingVoor, houderVan,
-  rolStand, beginRolstap, rolGate, rolRegel, maakDraai, draaiKluis, KLUISCODE, zetHeistHaken, rolSlots } from './heistrollen.js';
+  rolStand, beginRolstap, rolGate, rolRegel, maakDraai, draaiKluis, KLUISCODE, zetHeistHaken, rolSlots,
+  MODI, buitVerdelen, rolPunt } from './heistrollen.js';
 import { gastheerMee, opdrachtId, deelnemers } from './coopmissie.js';import * as UI from './heistui.js';
+import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
 
 const SPOTS_BEFORE_HELP = 3;
 const MISSES_BEFORE_HELP = 5;
@@ -202,6 +204,7 @@ export function startHeist(world, opts = {}) {
     world, root, watchers: [], group: -1, spotted: 0, distracted: false, seen: null, zap: null,
     fuse: null, fuseAt: null, fuseLamp: null, approach: 'sluip', doors: {}, lasers: null, alarm: false,
     boat: null, look: null, stageT: 0, trouble: 0, skipT: 0, hold: false, planT: 0,
+    modus: 'samen', punten: {}, // samen delen of tegen elkaar (#438): de stand en wat elke rolhouder deed
   };
   world.coopHeistRol = null; // de rolstap van deze inbraak begint schoon (#438)
   if (!opts.bare) {
@@ -485,7 +488,7 @@ function stepWatcher(w, dt, t, world) {
     return;
   }
   let speed = 0;
-  const p = world.player;
+  const p = hoofdspeler(world);
   if (w.chase) {
     // the alarm: after the player, slower than someone jogging off (3.0)
     const d = dist(w.x, w.y, p.x, p.y);
@@ -561,7 +564,7 @@ function stepWatcher(w, dt, t, world) {
 }
 
 function sees(w, world) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   if (!w.on || w.chase || w.asleep) return false;
   const dx = p.x - w.x, dy = p.y - w.y, d = Math.hypot(dx, dy);
   const guard = w.kind === 'guard';
@@ -574,7 +577,8 @@ function sees(w, world) {
 // The companion gives up waiting: every watcher of this stage looks away for good.
 function distract(world) {
   H.distracted = true;
-  const inside = !!museumRoomAt(world.map, world.player.x, world.player.y);
+  const p = hoofdspeler(world);
+  const inside = !!museumRoomAt(world.map, p.x, p.y);
   for (const w of H.watchers) {
     if (w.group !== H.group) continue;
     w.on = false;
@@ -635,7 +639,12 @@ export function heistLeaveStage(world, st) {
   if (st.kind === 'laser') lasersOff();
   if (st.kind === 'crack') { releaseHold(world); H.caseOpen = true; }
   if (st.kind === 'scene' && st.reveal) revealCase();
-  if (isRolstap(st.kind)) { beginRolstap(world, null); world.coopHeistDial = null; UI.roleChip(''); }
+  if (isRolstap(st.kind)) {
+    // de rolhouder rondde zijn stuk af: dat is zijn punt voor de buit (#438)
+    const houder = houderVan(rolVerdeling(world), st.kind);
+    if (houder && H) rolPunt(H.punten, houder.slot);
+    beginRolstap(world, null); world.coopHeistDial = null; UI.roleChip('');
+  }
   world.missionPrompt = null;
 }
 
@@ -660,7 +669,7 @@ function releaseHold(world) {
 // sent back after a sighting or a laser), 'skip' when the player held O.
 export function updateHeist(dt, world, st, S) {
   if (!H) return false;
-  const p = world.player;
+  const p = hoofdspeler(world);
   const t = world.time;
   H.stageT += dt;
   stepDoors(dt);
@@ -726,7 +735,7 @@ function updateDistraction(world) {
   const t = world.time;
   const busy = guards.some((w) => w.distractUntil > t);
   if (H.distractUsed || busy) { world.missionPrompt = null; return; }
-  const p = world.player;
+  const p = hoofdspeler(world);
   const room = museumRoomAt(world.map, p.x, p.y);
   if (!room || p.inVehicle) { world.missionPrompt = null; return; }
   world.missionPrompt = { id: 'heist-distract', x: p.x, y: p.y, h: 2.3, key: 'E', label: 'Afleiding', sub: 'Tammo tikt op het raam', ring: true };
@@ -748,11 +757,26 @@ function updateDistraction(world) {
 function rolVerdeling(world) {
   // dezelfde verdeling op elk scherm: de verbonden plekken uit de spelerslijst (slotsVan), zonder de
   // gastheer als hij niet meedoet aan deze opdracht
+  return verdelingVoor(deelnemerSlots(world));
+}
+
+// De plekken die aan deze inbraak meedoen (#438): de verbonden gasten uit de deelnemerslijst van de
+// groep, en de gastheer als hij zelf meespeelt. Een toeschouwer krijgt geen rol en geen deel van de buit.
+function deelnemerSlots(world) {
   const st = world && world.coopMissie;
   const mid = world && world.mission ? opdrachtId(world.mission) : null;
   const deeln = mid ? deelnemers(st, mid) : null;
-  const slots = rolSlots(world, deeln).filter((s) => s !== 0 || gastheerMee(world));
-  return verdelingVoor(slots);
+  return rolSlots(world, deeln).filter((s) => s !== 0 || gastheerMee(world));
+}
+
+// De buit van deze inbraak (#438): verdeeld over wie meedeed, met de punten die elke rolhouder bij
+// zijn stuk verdiende. In de stand 'tegen' houdt ieder wat hij zelf bij elkaar sprokkelde en gaat de
+// rest naar de grootste buit; 'samen' deelt gelijk. Zonder sessie of met één speler verandert er
+// niets: dan is het de gewone, hele beloning van de missie. missions.js (succeed) betaalt dit uit.
+export function heistBuit(world, buit) {
+  const modus = H && H.modus === 'tegen' ? 'tegen' : 'samen';
+  const punten = (H && H.punten) || {};
+  return buitVerdelen(modus, deelnemerSlots(world), punten, buit);
 }
 
 function spelerNaam(world, slot) {
@@ -779,7 +803,7 @@ export function heistRolStap(world, st, S) {
     return 'klaar';
   }
   const houder = houderVan(verdeling, st.kind);
-  const q = S && S.target ? S.target : world.player;
+  const q = S && S.target ? S.target : hoofdspeler(world);
   world.missionPrompt = { id: 'heist-rol-' + st.kind, x: q.x, y: q.y, h: 2.3, key: 'E', ring: true, label: `Wacht op ${spelerNaam(world, houder.slot)}`, sub: `De ${rolNaam(houder.rol)} doet dit stuk` };
   return 'wacht';
 }
@@ -823,7 +847,7 @@ function gastRolTik(world, dt, st) {
   if (G.fase !== st.kind) { G.fase = st.kind; G.dial = null; G.klaar = false; world.coopHeistDial = null; }
   chip(mijn ? `Jij bent de ${rolNaam(houder.rol)}: ${STAPTEKST[st.kind]}` : '');
   if (!mijn) return false;
-  const p = world.player;
+  const p = hoofdspeler(world);
   if (st.kind !== 'crack') return true;
   if (!p || p.inVehicle) { G.dial = null; world.coopHeistDial = null; return true; }
   if (Math.hypot(p.x - MUSEUM_CASE.x, p.y - MUSEUM_CASE.y) > 3) { G.dial = null; world.coopHeistDial = null; UI.closePanel(); return true; }
@@ -926,7 +950,7 @@ export function updatePlanStage(dt, world, st, S, def) {
     if (planHeard) { S.phase = 'choose'; return false; }
     const focus = new Map((st.lines || []).map(([, text, o]) => [text, o && o.focus]));
     // the two of them on the left of the frame, the blueprint on the right
-    const p = world.player;
+    const p = hoofdspeler(world);
     const face = Math.atan2(MUSEUM_CASE.y - p.y, MUSEUM_CASE.x - p.x);
     const fx = Math.cos(face), fy = Math.sin(face), nx = -fy, ny = fx;
     const shot = (u) => ({
@@ -956,23 +980,52 @@ export function updatePlanStage(dt, world, st, S, def) {
     if (inp.wasPressed('a') || inp.wasPressed('arrowleft')) S.picked = 'sluip';
     if (inp.wasPressed('s') || inp.wasPressed('arrowright')) S.picked = 'vermomd';
     if (!S.picked) return false;
-    finishPlan(world, S.picked);
+    // met meer dan één speler erbij ook de stand van de buit (#438): samen delen of tegen elkaar.
+    // Dezelfde invoer als de kaarten (A en S, met de stick op de controller). Alleen, of buiten het
+    // museum (M13), blijft het bij de gewone beloning.
+    const bare = !!(def && def.heist && def.heist.bare);
+    if (bare || deelnemerSlots(world).length < 2) { finishPlan(world, S.picked, 'samen'); return true; }
+    S.phase = 'modus';
+    S.modus = null;
+    S.modusVraag = false;
+    return false;
+  }
+  if (S.phase === 'modus') {
+    if (!S.modusVraag) {
+      S.modusVraag = true;
+      UI.planChoosing(false);
+      UI.showNote(`${MODI.samen.naam} (A) · ${MODI.tegen.naam} (S)`, 'Samen of tegen elkaar');
+    }
+    const inp = world.input;
+    if (inp.wasPressed('a') || inp.wasPressed('arrowleft')) S.modus = 'samen';
+    if (inp.wasPressed('s') || inp.wasPressed('arrowright')) S.modus = 'tegen';
+    if (!S.modus) return false;
+    UI.hideNote();
+    finishPlan(world, S.picked, S.modus);
     return true;
   }
   return false;
 }
 
-function finishPlan(world, approach) {
+function finishPlan(world, approach, modus = null) {
   if (!H) return;
   if (H.planned) return;
   H.planned = true;
   H.approach = approach === 'vermomd' ? 'vermomd' : 'sluip';
+  if (modus === 'tegen' || modus === 'samen') H.modus = modus;
   if (isCinematicActive('mission-scene') && UI.planShown()) skipCinematic();
   UI.planChoosing(false);
+  UI.hideNote();
   UI.hidePlan();
   releaseHold(world);
   if (H.approach === 'vermomd') wearOveralls(true);
   world.addMessage(H.approach === 'vermomd' ? 'Aanpak: vermomd als schoonmakers. Overall aan, emmer mee.' : 'Aanpak: sluipen via de achterdeur.', 3.5, { kind: 'missie', key: 'heist-plan' });
+  // wat de keuze voor de buit betekent (#438); alleen (of met één speler) blijft het bij de gewone beloning
+  if (H.modus === 'tegen') {
+    world.addMessage(`Tegen elkaar: ${MODI.tegen.tekst}`, 4, { kind: 'missie', key: 'heist-modus' });
+    // de gasten horen het ook, met de gewone melding van de gastheer (geen nieuw bericht)
+    for (const r of world.coopRoster || []) if (r && Number.isInteger(r.slot) && r.slot >= 1 && world.coopMeld) world.coopMeld(r.slot, 'Tegen elkaar: wie het meest doet, houdt de grootste buit.');
+  }
 }
 
 function wearOveralls(on) {
@@ -998,7 +1051,7 @@ export function closeFuse() {
 // Returns true once all fuses are pulled.
 export function updateFuse(dt, world, target, input) {
   if (!H) return true;
-  const p = world.player;
+  const p = hoofdspeler(world);
   const F = H.fuse || (H.fuse = { x: 0, dir: 1, hits: 0, misses: 0, width: 0.16, center: 0.5 });
   const near = target && dist(p.x, p.y, target.x, target.y) < 3.2 && !p.inVehicle;
   if (!near) { closeFuse(); return false; }
@@ -1033,7 +1086,7 @@ export function updateFuse(dt, world, target, input) {
 
 export function updateLock(dt, world, target) {
   if (!H) return true;
-  const p = world.player;
+  const p = hoofdspeler(world);
   const L = H.lock || (H.lock = { pins: [1.25, 0.95, 1.4, 1.1].map((P, i) => ({ P, ph: i * 1.7, y: 0 })), cur: 0, zone: 0.18, misses: 0, t: 0 });
   if (!target || p.inVehicle || dist(p.x, p.y, target.x, target.y) > 2.2) { UI.closePanel(); return false; }
   world.minigameUntil = world.time + 0.25;
@@ -1066,7 +1119,7 @@ export function updatePickpocket(dt, world) {
   if (!H) return true;
   const g = H.watchers.find((w) => w.group === H.group && w.pick);
   if (!g) return true;
-  const p = world.player;
+  const p = hoofdspeler(world);
   const d = dist(p.x, p.y, g.x, g.y);
   const behind = Math.abs(angDiff(Math.atan2(p.y - g.y, p.x - g.x), g.angle)) > g.half + 0.35;
   if (d < PICK_REACH && behind && !p.inVehicle && !H.seen) H.pickT += dt;
@@ -1171,7 +1224,7 @@ function laserPrompt(L, p, q, t) {
 export function updateLasers(dt, world, target) {
   if (!H) return true;
   if (!H.lasers) buildLasers();
-  const p = world.player;
+  const p = hoofdspeler(world);
   const L = H.lasers;
   if (target && dist(p.x, p.y, target.x, target.y) < 1.2) { world.missionPrompt = null; return true; }
   if (p.inVehicle || H.zap) { world.missionPrompt = null; return false; }
@@ -1208,7 +1261,7 @@ export function updateLasers(dt, world, target) {
 
 export function updateCrack(dt, world, target) {
   if (!H) return true;
-  const p = world.player;
+  const p = hoofdspeler(world);
   if (!target || p.inVehicle || dist(p.x, p.y, target.x, target.y) > 1.8) { UI.closePanel(); releaseHold(world); return false; }
   const C = H.crack || (H.crack = maakDraai(CODE));
   holdPlayer(world, true);
@@ -1350,7 +1403,7 @@ export function updateGetaway(dt, world, st, S) {
   if (!boat) return true;
   S.target = boat;
   if (S.cine) return S.cineDone;
-  const p = world.player;
+  const p = hoofdspeler(world);
   if (p.inVehicle && p.inVehicle !== boat) { world.addMessage('Uitstappen en de boot in!', 2); return false; }
   const d = p.inVehicle === boat ? 0 : dist(p.x, p.y, boat.x, boat.y);
   if (d > BOARD_REACH || isCinematicActive()) return false;
@@ -1361,7 +1414,7 @@ export function updateGetaway(dt, world, st, S) {
 }
 
 function boardBoat(world, boat) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   if (p.inVehicle !== boat) {
     if (p.water) { p.water = null; p.swimming = false; p.z = 0; }
     p.enterVehicle(boat, world);
@@ -1387,7 +1440,7 @@ function playLaunch(world, st, boat, done) {
   const ca = Math.cos(P.a), sa = Math.sin(P.a);
   const nx = -sa, ny = ca;
   const sAt = (u) => { const k = Math.min(1, u * 1.15); return P.len * (0.08 * k + 0.92 * k * k * (3 - 2 * k)) * 0.85; };
-  const p = world.player;
+  const p = hoofdspeler(world);
   // the roadside camera stands over open water, on whichever side has it
   const open = (x, y) => isInWater(world.map, x, y) && !roofed(world.map, x, y);
   let side = null;
@@ -1425,7 +1478,7 @@ function playLaunch(world, st, boat, done) {
 // The closing shot once the police are gone: up and away over the water,
 // back towards the museum with its alarm lights.
 export function playEndingShot(world, st, done) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   const from = { x: p.x, y: p.y };
   const mus = { x: MUSEUM_CASE.x, y: MUSEUM_CASE.y - 16 };
   const toM = Math.atan2(mus.y - from.y, mus.x - from.x);

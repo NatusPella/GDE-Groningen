@@ -18,6 +18,7 @@ import { buildProp, disposeProp, animateProp, eierbalMesh, personMesh } from './
 import { speak, duoSpeaker } from './ommelandtalk.js';
 import { VILLAGES, QUIZ, DUO } from './ommelandlines.js';
 import { playerBusy } from './busy.js';
+import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
 
 // Dorpsuitjes: a reason to take the train out to each countryside station
 // (map.countryStations, stationtravel.js halts). Per village one thing
@@ -385,7 +386,7 @@ function scene(w, a, { id, title, lines, duration, shot, onEnd, hide = false }) 
 }
 
 function stand(w, x, y, angle) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (p.inVehicle) return;
   p.x = x; p.y = y; p.angle = angle; p.vx = 0; p.vy = 0;
 }
@@ -453,8 +454,11 @@ function quiz(w, a) {
   let k = 0, right = 0;
   // a question only pops up while you are still at the table (not after walking off, a respawn or a load)
   const load0 = w.loadCount || 0;
-  const here = () => !w.pendingRespawn && !w.player.inVehicle && (w.loadCount || 0) === load0 && !isMissionActive()
-    && Math.hypot(w.player.x - a.ux, w.player.y - a.uy) < 8;
+  const here = () => {
+    const p = hoofdspeler(w);
+    return !w.pendingRespawn && !p.inVehicle && (w.loadCount || 0) === load0 && !isMissionActive()
+      && Math.hypot(p.x - a.ux, p.y - a.uy) < 8;
+  };
   const ask = () => {
     if (!here()) return;
     const [q, good, ...bad] = QUIZ[order[k]];
@@ -498,7 +502,7 @@ function tennis(w, a) {
 
 function updateTennis(dt, w) {
   const m = mini;
-  const p = w.player;
+  const p = hoofdspeler(w);
   p.x = m.px; p.y = m.py; p.vx = 0; p.vy = 0; p.angle = m.a.a;
   m.t += dt;
   const FLY = 1.25;
@@ -690,7 +694,7 @@ export function stopVillageMini() {
 
 function nearestAct(w) {
   if (!villages || mini || w.pigeonMode) return null;
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (p.inVehicle) return null;
   let best = null, bd = USE_R;
   for (const v of villages) {
@@ -718,7 +722,7 @@ export function villagePrompt(w) {
 
 export function villageSecondary(w) {
   if (!villages || mini || w.pigeonMode) return [];
-  const p = w.player;
+  const p = hoofdspeler(w);
   const out = [];
   for (const v of villages) {
     for (const a of v.acts) {
@@ -747,7 +751,7 @@ function teaser(w) {
   const n = getTrainTripCount();
   if (n === lastTrips) return;
   lastTrips = n;
-  const p = w.player;
+  const p = hoofdspeler(w);
   for (const v of villages) {
     if (!v.placed || Math.hypot(v.st.x - p.x, v.st.y - p.y) > 40) continue;
     const eggs = v.egg && !hasUnique(SET_EGGS, v.name) ? ' Ergens in het dorp ligt ook een eierbal.' : '';
@@ -758,7 +762,7 @@ function teaser(w) {
 export function updateVillages(dt, w) {
   world = w;
   if (!villageList(w)) return;
-  const p = w.player, v0 = p.inVehicle;
+  const p = hoofdspeler(w), v0 = p.inVehicle;
   const px = v0 ? v0.x : p.x, py = v0 ? v0.y : p.y;
   // one village placed per frame, once the player heads its way
   const next = villages.find((v) => !v.placed && !v.placing && Math.hypot(v.st.x - px, v.st.y - py) < PLACE_R);

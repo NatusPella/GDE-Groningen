@@ -19,6 +19,7 @@ import {
   ppHoles, holesFromWorld, venueLayout, slopeAt, onGreen, inBunker, pitch, putt, straightPower, powerForCarry, finishHole, newCard, cardTotals, courseMedal, holeName, relText,
   GREEN_R, CUP_R, MAX_OVER_PAR, PITCH_MAX,
 } from './puttinglogic.js';
+import { hoofdspeler } from './players.js';
 
 // Pitch & putt on the real courses of the province (#174; at the Concourslaan without that data): six short holes laid out on the open
 // ground inside the Concours oval at the Stadspark (no pitch & putt course is
@@ -70,7 +71,7 @@ function focus(w) {
   if (game) return;
   if (gastVenue && Date.now() - gastVenue.t < 60000) { zetVenue(gastVenue.item); return; }
   gastVenue = null;
-  const n = nearestOf(venues, w.player.x, w.player.y);
+  const n = nearestOf(venues, hoofdspeler(w).x, hoofdspeler(w).y);
   if (n) zetVenue(n.item);
 }
 // de bal is een derde van de put (CUP_R * 1,4 = 15 cm straal): groter dan een echte bal voor het oog, maar hij past duidelijk in het hol (#436)
@@ -197,7 +198,7 @@ function buildCourse(w) {
 
 function updateLod(w) {
   focus(w);
-  const d = Math.hypot(w.player.x - CENTER.x, w.player.y - CENTER.y);
+  const d = Math.hypot(hoofdspeler(w).x - CENTER.x, hoofdspeler(w).y - CENTER.y);
   if (!built && d < DETAIL_M) built = buildCourse(w);
   if (!built) return;
   built.root.visible = d < DETAIL_M + 80 || !!game;
@@ -222,7 +223,7 @@ function drawIcon(ctx, s) {
 
 function nearStand(w) {
   focus(w);
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (game || w.pigeonMode || w.heliRun || p.inVehicle || p.swimming) return false;
   return Math.hypot(p.x - STAND.x, p.y - STAND.y) < USE_RADIUS;
 }
@@ -239,9 +240,9 @@ function prompt(w) {
 }
 
 function secondary(w) {
-  if (game || w.player.inVehicle) return [];
+  if (game || hoofdspeler(w).inVehicle) return [];
   focus(w);
-  if (Math.hypot(w.player.x - CENTER.x, w.player.y - CENTER.y) > 220) return [];
+  if (Math.hypot(hoofdspeler(w).x - CENTER.x, hoofdspeler(w).y - CENTER.y) > 220) return [];
   return [{ id: 'pitchputt-2', x: STAND.x, y: STAND.y, h: 2.2, label: 'Pitch & putt', sub: 'Loop naar de eerste tee en druk E', kind: 'place' }];
 }
 
@@ -262,7 +263,7 @@ function start(w, { force = false, online = null, venueId = null } = {}) {
   if (!force && !online && activityBlock(w)) return false;
   if (venueId) zetVenue(venues.find((v) => v.id === venueId)); else focus(w);
   if (!built) built = buildCourse(w);
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (p.inVehicle && p.exitVehicle) p.exitVehicle(w.map, w);
   ensureBoard();
   board.show();
@@ -679,7 +680,7 @@ let hutT = 0, hutNear = false;
 function hut(w, dt) {
   if (built && built.keeperUntil && w.time > built.keeperUntil) built.keeperUntil = 0; // (a quit leaves it set: the keeper is hidden then)
   if (game || !built || built.keeperUntil) { hutNear = false; return; }
-  const near = !w.player.inVehicle && Math.hypot(w.player.x - STAND.x, w.player.y - STAND.y) < 16;
+  const near = !hoofdspeler(w).inVehicle && Math.hypot(hoofdspeler(w).x - STAND.x, hoofdspeler(w).y - STAND.y) < 16;
   if (near !== hutNear) {
     hutNear = near;
     built.wolfie.visible = near;
@@ -856,7 +857,7 @@ export const PITCHPUTT = {
   mapSub: () => recText() || 'Pitch & putt: zes korte banen',
   ubbo(w) {
     focus(w);
-    const d = Math.hypot(STAND.x - w.player.x, STAND.y - w.player.y);
+    const d = Math.hypot(STAND.x - hoofdspeler(w).x, STAND.y - hoofdspeler(w).y);
     const rec = getChallengeRecord('pitchputt');
     return { name: 'Pitch & putt', sub: rec && rec.medal ? `record: ${MEDALS[rec.medal].toLowerCase()}` : 'zes banen, gratis', dist: d, x: STAND.x, y: STAND.y, play: 'pitchputt', where: `de eerste tee bij ${venue.plaats}`, hint: 'loop naar de tee en druk E' };
   },

@@ -63,6 +63,7 @@ import { updateStoryTalk, stopTalk, playTalk } from './storytalk.js';
 import { makeReisGoals } from './storyreis.js';
 import { plakjesState } from './plakjes.js';
 import { registerStoryQueries } from './storyquery.js';
+import { hoofdspeler } from './players.js';
 
 // Rikus' Radio Nachtstreek studio (radiostudio.js, three.js from the CDN) for the
 // recaps and the epilogue; loaded lazily so Node checks can import this file.
@@ -73,7 +74,8 @@ import('./scene3d.js').then((m) => { sceneMod = m; }).catch(() => {});
 function openStudio() {
   const scene = sceneMod && sceneMod.getScene && sceneMod.getScene();
   if (!studioMod || !scene || !world) return null;
-  const s = studioMod.buildRadioStudio(world.player.x, world.player.y);
+  const p = hoofdspeler(world);
+  const s = studioMod.buildRadioStudio(p.x, p.y);
   scene.add(s.group);
   return s;
 }
@@ -197,7 +199,7 @@ const GOALS = {
       if (!st.goal.buy) return visited;
       return purchaseCount(st.goal.buy) > (b.bought ?? Infinity) || (visited && !!st.goal.have && (world.ammo[st.goal.have] || 0) > 0);
     },
-    place: (st) => nearest(getShopsForRender().filter((s) => s.type === st.goal.shop), world.player),
+    place: (st) => nearest(getShopsForRender().filter((s) => s.type === st.goal.shop), hoofdspeler(world)),
   },
   require: {
     met: (st) => requirementMet(world, st.goal.req),
@@ -205,17 +207,17 @@ const GOALS = {
   },
   pigeon: {
     met: (st) => { const f = getPigeonFlight(); return !!f && f.score >= st.goal.score; },
-    place: (st) => getPigeonSpotsForRender().find((s) => s.id === st.goal.spot) || nearest(getPigeonSpotsForRender(), world.player),
+    place: (st) => getPigeonSpotsForRender().find((s) => s.id === st.goal.spot) || nearest(getPigeonSpotsForRender(), hoofdspeler(world)),
   },
   sideJob: {
     begin: (st, b) => { b.rounds = jobRounds(st); },
     met: (st, b) => jobRounds(st) > (b.rounds ?? Infinity),
-    place: (st) => { const j = nearest(getSideJobList().filter((x) => jobIds(st).includes(x.id)), world.player); return j ? { x: j.x, y: j.y, name: j.name } : null; },
+    place: (st) => { const j = nearest(getSideJobList().filter((x) => jobIds(st).includes(x.id)), hoofdspeler(world)); return j ? { x: j.x, y: j.y, name: j.name } : null; },
   },
   // waiting for the dark happens at home; a step with a homeScene (k-nacht) plays it first
   night: {
     met: (st, b) => isNight(world) && (!st.homeScene || !!b.homeScene),
-    place: () => homePlace() || nearest(getGaragesForRender(), world.player),
+    place: () => homePlace() || nearest(getGaragesForRender(), hoofdspeler(world)),
   },
   // a quiet evening in the flat: go home, go up, the step's homeScene plays
   home: {
@@ -225,12 +227,12 @@ const GOALS = {
   train: {
     begin: (st, b) => { b.trips = getTrainTripCount(); },
     met: (st, b) => getTrainTripCount() > (b.trips ?? Infinity),
-    place: () => nearest(getStationsForRender(), world.player),
+    place: () => nearest(getStationsForRender(), hoofdspeler(world)),
   },
   padel: {
     begin: (st, b) => { b.matches = getPadelMatchCount(); },
     met: (st, b) => getPadelMatchCount() > (b.matches ?? Infinity),
-    place: () => nearest(getPadelSpotsForRender(), world.player),
+    place: () => nearest(getPadelSpotsForRender(), hoofdspeler(world)),
   },
   // M00 (new arc): the opening scenes of the script (C00.1-C00.3) play once, as a cutscene over the new home
   opening: {
@@ -254,7 +256,7 @@ const GOALS = {
   egg: {
     begin: (st, b) => { b.eggs = eggsFound(); },
     met: (st, b) => eggsFound() > (b.eggs ?? Infinity),
-    place: () => nearest(getEierballen().filter((e) => !e.found), world.player),
+    place: () => nearest(getEierballen().filter((e) => !e.found), hoofdspeler(world)),
   },
 };
 
@@ -367,7 +369,8 @@ function refreshGuide() {
     rt.gatedSince = gate ? (rt.gatedSince >= 0 ? rt.gatedSince : world.time) : -1;
     if (gate && world.time - rt.gatedSince > GATED_SKIP_S && !rt.gateOffered) { rt.gateOffered = true; rt.skipUntil = world.time + SKIP_OFFER_S; }
     // the player picked another mission meanwhile: arm this one again once they are at its start
-    if (!gate && def && !goalIsMission() && Math.hypot(def.start.x - world.player.x, def.start.y - world.player.y) < 40) setNextMission(world, missionIdx(step));
+    const start = hoofdspeler(world);
+    if (!gate && def && !goalIsMission() && Math.hypot(def.start.x - start.x, def.start.y - start.y) < 40) setNextMission(world, missionIdx(step));
   } else {
     const g = GOALS[step.goal.type];
     place = g && g.place(step, rt.base);
@@ -381,7 +384,7 @@ function refreshGuide() {
   } else if (step.goal && step.goal.req === 'racecar') need = 'car';
   const ride = place ? rideFirst(world, need) : null;
   if (ride) {
-    const p = world.player, far = Math.hypot(place.x - p.x, place.y - p.y);
+    const p = hoofdspeler(world), far = Math.hypot(place.x - p.x, place.y - p.y);
     if ((need || far > RIDE_FIRST_M) && Math.hypot(ride.x - p.x, ride.y - p.y) < far + 40) { why = `Eerst naar ${ride.name}, dan: ${why}`; place = ride; }
   }
   const shopId = place && place.type && place.id ? place.id : null;
@@ -468,7 +471,7 @@ function updateHomeWait(step) {
     onEnd: done,
   };
   // staged in the flat (cutscenes.js flatScene), the plain scene as the fallback
-  const pl = world.player;
+  const pl = hoofdspeler(world);
   const stage = flatStage();
   const ok = (lines.length > 2 && playScript(world, flatScene(scene && scene.clock != null ? 'avond' : 'wachten', lines), {
     lines, duration: cine.duration, anchor: stage ? stage.anchor : { x: pl.x, y: pl.y, facing: pl.angle || 0, z: pl.gz || 0 }, env: stage ? stage.env : null, cine,
@@ -501,7 +504,7 @@ function playOpening(b) {
     }
     at += 0.9;
   }
-  const p = world.player;
+  const p = hoofdspeler(world);
   const kop = PARTS.kop;
   // the staged version (cutscenes.js openingActs): people and props move, the camera cuts; the orbit below stays as the fallback
   const v0 = p.inVehicle;
@@ -621,7 +624,7 @@ function playRecap(part) {
 function playFinale(part) {
   const P = PARTS[part];
   // the ending plays over the Grote Markt: the world streams around the player
-  const p = world.player;
+  const p = hoofdspeler(world);
   const spot = world.map.nearestRoadPoint(...FINALE_SPOT, 120, false);
   if (spot && !p.inVehicle) {
     p.x = spot.x; p.y = spot.y;
@@ -727,7 +730,7 @@ function playEndCard(part) {
     kicker: PARTS[part] ? PARTS[part].end : '', title: 'Alles voor één eierbal', cardFor: 2.4, big: (PARTS[part] && PARTS[part].big) || 'Wordt vervolgd…',
     lines: ((PARTS[part] && PARTS[part].card) || []).map(([speaker, text], k) => ({ speaker, text, at: 2.6 + k * 2, dur: 1.9 })),
   };
-  const pl = world.player, vh = pl.inVehicle;
+  const pl = hoofdspeler(world), vh = pl.inVehicle;
   // staged (cutscenes.js END_CARD), the plain card as the fallback
   const ok = playScript(world, END_CARD, {
     lines: card.lines, duration: 6.5,
@@ -758,7 +761,7 @@ const charName = (c) => (c === 'anita' ? 'Anita' : 'Tammo');
 // Tammo and Tessa trade roles where they stand: the body you control becomes
 // the other one, and so does the companion (scene3d.js rebuilds the meshes).
 function swapCharacter(w, want) {
-  const p = w.player, c = w.companion;
+  const p = hoofdspeler(w), c = w.companion;
   if (p.character === want) return;
   if (c && c.character === want) c.character = p.character;
   p.character = want;
@@ -775,7 +778,7 @@ function swapDone(w, i) {
   const step = currentStep();
   if (step && !step.end && step.kind === 'activity' && step.goal && step.goal.type === 'flight' && !step.goal.over && !rt.base.met) return false;
   if (!step || step.end || step.kind !== 'mission' || missionIdx(step) !== i || !step.player) return true;
-  return w.player.character === step.player;
+  return hoofdspeler(w).character === step.player;
 }
 
 // A calm moment for the handover: no mission banner up and a beat after a
@@ -797,8 +800,8 @@ function updateCharacter(w) {
   if (step && !step.end && step.player) rt.lastPlayer = step.player;
   if (w.coop && w.coop.fixedChars) return; // coöp (#95): de host is Tammo, de gast Tessa
   const calm = calmForSwap();
-  if (!want || w.player.character === want) { rt.swapWaitAt = 0; return; }
-  if (isCinematicActive() || w.pigeonMode || isMissionActive() || w.player.ragdoll || w.pendingRespawn) return;
+  if (!want || hoofdspeler(w).character === want) { rt.swapWaitAt = 0; return; }
+  if (isCinematicActive() || w.pigeonMode || isMissionActive() || hoofdspeler(w).ragdoll || w.pendingRespawn) return;
   const now = performance.now();
   if (!rt.swapWaitAt) rt.swapWaitAt = now;
   if (!calm && now - rt.swapWaitAt < SWAP_MAX_WAIT * 1000) return;
@@ -806,7 +809,7 @@ function updateCharacter(w) {
   swapCharacter(w, want);
   if (!playHandover(w, step)) {
     flash();
-    w.addMessage(`${displayName(charName(w.player.character))} neemt het over`, 2.5);
+    w.addMessage(`${displayName(charName(hoofdspeler(w).character))} neemt het over`, 2.5);
   }
 }
 
@@ -832,11 +835,11 @@ function whip(color) {
 }
 
 function playHandover(w, step) {
-  const who = w.player.character, name = charName(who);
+  const who = hoofdspeler(w).character, name = charName(who);
   const why = step && !step.end && step.why ? step.why : '';
   const voice = why && lineVoiceFor(name, why);
   const dur = why ? Math.max(3, (voice ? voice.dur : Math.min(4, 1 + why.length * 0.05)) + 1.1) : 2.2;
-  const p = w.player, c = w.companion;
+  const p = hoofdspeler(w), c = w.companion;
   const ok = playCinematic({
     id: 'story-swap', priority: 1, duration: dur, pause: true, keepMotion: true, letterbox: true, skippable: true, hideHud: true,
     kicker: 'Neemt het over', title: name, cardFor: Math.min(2.2, dur), accent: who,
@@ -1001,7 +1004,8 @@ function validityNow() {
   if (!world) return null;
   const s = currentStep();
   const m = world.mission;
-  return { time: world.time, stepIndex: s && !s.end ? STEPS.indexOf(s) : STEPS.length, mission: m ? { phase: m.phase, index: m.index } : null, player: world.player ? { x: world.player.x, y: world.player.y } : null };
+  const ik = hoofdspeler(world);
+  return { time: world.time, stepIndex: s && !s.end ? STEPS.indexOf(s) : STEPS.length, mission: m ? { phase: m.phase, index: m.index } : null, player: ik ? { x: ik.x, y: ik.y } : null };
 }
 
 export function initStory(w) {
@@ -1086,7 +1090,7 @@ export function updateStory(dt, w) {
   }
   // the next step's text waits until a scene has been over for a moment, and
   // until the step's character has taken over: its "Bel Rikus" would hold the handover off
-  const handoverDue = !!step.player && w.player.character !== step.player && !isMissionActive();
+  const handoverDue = !!step.player && hoofdspeler(w).character !== step.player && !isMissionActive();
   if (rt.leadAt >= 0 && w.time >= rt.leadAt && !isCinematicActive() && sinceCinematic() > LEAD_AFTER_SCENE && !storyFunBusy() && !handoverDue) {
     rt.leadAt = -1;
     if (step.lead) phone(who(step.lead[0]), step.lead[1], 7, undefined, !!step.silent);
@@ -1262,7 +1266,7 @@ let jumpSettle = 0;
 export function devJumpTo(id, opts = {}) {
   const k = STEPS.findIndex((s) => s.id === id);
   if (k < 0 || !stepAvailable(STEPS[k])) return false;
-  const p0 = world.player;
+  const p0 = hoofdspeler(world);
   const fromX = p0.x, fromY = p0.y;
   for (const a of jumpPrep({ missionActive: isMissionActive(), pigeon: !!world.pigeonMode, heliRun: isHeliRunActive(), inVehicle: !!p0.inVehicle })) {
     if (a === 'abortMission') failActiveMission(world, 'Missie afgebroken', 'Afgebroken');
@@ -1301,7 +1305,7 @@ export function devJumpTo(id, opts = {}) {
   const vrijRuim = (x, y) => openRond(vrij1, x, y);
   const vrij = vrij1;
   const landOn = (spot) => {
-    const p = world.player;
+    const p = hoofdspeler(world);
     const [ex, ey] = world.map.escapeBuilding ? world.map.escapeBuilding(spot.x, spot.y, 0.5) : [spot.x, spot.y];
     if (p.inVehicle) { p.inVehicle.x = ex; p.inVehicle.y = ey; p.inVehicle.speed = 0; }
     p.x = ex; p.y = ey;
@@ -1311,13 +1315,13 @@ export function devJumpTo(id, opts = {}) {
     landOn(spot);
     // a far jump hides the view behind the load screen while the streets stream in: the game's own watch swallows it right
     // after a cinematic, and the world would show bare for a few seconds (#267)
-    if (Math.hypot(world.player.x - fromX, world.player.y - fromY) >= JUMP_M) world.devJumpLoad = true;
+    if (Math.hypot(hoofdspeler(world).x - fromX, hoofdspeler(world).y - fromY) >= JUMP_M) world.devJumpLoad = true;
     // de tegels om de landingsplek zijn na een verre sprong nog niet binnen: buildingAt ziet dan geen gebouw en de speler
     // staat even later in een gevel (camera tegen een muur, #261). Zodra ze er zijn, kijkt dit opnieuw naar een vrije plek.
     const token = ++jumpSettle;
-    const from = { x: world.player.x, y: world.player.y };
+    const from = { x: hoofdspeler(world).x, y: hoofdspeler(world).y };
     withTiles(world.map, [[spot.x, spot.y]], () => {
-      const p = world.player;
+      const p = hoofdspeler(world);
       if (token !== jumpSettle || Math.hypot(p.x - from.x, p.y - from.y) > 8 || vrijRuim(p.x, p.y)) return;
       const again = jumpSpot(def, world.storyGuide, { dist: 12, vrij: vrijRuim }) || jumpSpot(def, world.storyGuide, { dist: 12, vrij });
       if (again) landOn(again);
@@ -1366,7 +1370,7 @@ export const storyApi = {
     if (isMissionActive()) return missionDebug.teleport(world);
     const g = world.storyGuide;
     if (!g) return false;
-    const p = world.player;
+    const p = hoofdspeler(world);
     if (p.inVehicle) { p.inVehicle.x = g.x; p.inVehicle.y = g.y; p.inVehicle.speed = 0; }
     p.x = g.x; p.y = g.y;
     return true;
@@ -1376,6 +1380,6 @@ export const storyApi = {
   goalPhase: () => rt.base && rt.base.phase,
   ending: getStoryEnding,
   credits: requestCredits,
-  character: () => world.player.character,
-  swapInfo: () => ({ want: rt.cur && rt.cur.player, me: world.player.character, comp: world.companion && world.companion.character, paused: !!world.paused, cine: isCinematicActive(), pigeon: !!world.pigeonMode, mission: isMissionActive(), ragdoll: !!world.player.ragdoll, respawn: !!world.pendingRespawn, banner: isBannerUp(), card: document.body.classList.contains('hud-card-on'), narrative: narrativeState() }),
+  character: () => hoofdspeler(world).character,
+  swapInfo: () => ({ want: rt.cur && rt.cur.player, me: hoofdspeler(world).character, comp: world.companion && world.companion.character, paused: !!world.paused, cine: isCinematicActive(), pigeon: !!world.pigeonMode, mission: isMissionActive(), ragdoll: !!hoofdspeler(world).ragdoll, respawn: !!world.pendingRespawn, banner: isBannerUp(), card: document.body.classList.contains('hud-card-on'), narrative: narrativeState() }),
 };
