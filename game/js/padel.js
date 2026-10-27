@@ -22,7 +22,7 @@ import { tilesIn, withTiles } from './tileplace.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
 import { figuurLook } from './coopplayers.js';
 import { maakPadel, maakPadelSpiegel, voerInPadel, tikPadelSpiegel, livePadel } from './padelmatch.js';
-import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedLiveTik, wedHostLiveEind, wedGastVerlaat, wedGastReset } from './coopwedstrijd.js';
+import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedLiveTik, wedHostLiveEind, wedGastVerlaat, wedGastReset } from './multiplayerwedstrijd.js';
 
 // Padel courts where OSM has them (game/mapextras.json "padel", built by
 // scripts/add_map_extras.py): a glass cage with blue turf, a net and lights
@@ -1096,7 +1096,7 @@ export function quitPadel(w) {
 // --- playing against others (#443) ---------------------------------------------------------------------------------------
 // Two against two on this court: everybody who said yes plays a seat (padelmatch.js), a seat without a player is played by the AI. The host
 // (who opened the game) computes the ball and every seat from the keys of all players; a guest sends only his keys (stick and Space, as for
-// a vehicle) and draws the mirror of the host's snapshots (coopwedstrijd.js, wedLiveTik). Same actors, ball and court as the solo match.
+// a vehicle) and draws the mirror of the host's snapshots (multiplayerwedstrijd.js, wedLiveTik). Same actors, ball and court as the solo match.
 
 let uitnodigSite = null; // the court where the host pressed E: the invitation answers with it
 

@@ -20,7 +20,7 @@ import { addClearZone, corridorPoints } from './clearzone.js';
 import { KARTBAAN_ORIGIN, KARTBAAN_ROT, KARTBAAN_FRAME, KARTBAAN_WIDTH, KARTBAAN_TRACK } from './kartbaanspoor.js';
 import { racingLine } from './kartline.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
-import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedRaceTik, wedHostEind, wedGastVerlaat, wedGastReset, tikSpiegel, eindstand, beloning, raceStand } from './coopwedstrijd.js';
+import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedRaceTik, wedHostEind, wedGastVerlaat, wedGastReset, tikSpiegel, eindstand, beloning, raceStand } from './multiplayerwedstrijd.js';
 import { figuurLook } from './coopplayers.js';
 
 // Karten in Ulrum: the real outdoor kart track of Ulrum (OSM way "Kartbaan
@@ -369,7 +369,7 @@ function start(w, { force = false } = {}) {
 }
 
 // --- racing against other players (#443) -------------------------------------------------------------------------
-// The host runs the whole race (coopwedstrijd.js tikRace on the same TRACK, fed with the guests' sticks) and draws it as the solo race;
+// The host runs the whole race (multiplayerwedstrijd.js tikRace on the same TRACK, fed with the guests' sticks) and draws it as the solo race;
 // a guest draws the host's snapshots (maakSpiegel) with his own kart first. `game` is that race object, so syncKarts, camera and the
 // board work unchanged on it. Nothing else of the host's world is touched: the track is a clear zone, the riders are meshes of this module.
 
@@ -403,7 +403,7 @@ function beginOnline(w, g, kind) {
   runs++;
 }
 
-// the host: the invitation is answered, the race object is ready (coopwedstrijd.js begin)
+// the host: the invitation is answered, the race object is ready (multiplayerwedstrijd.js begin)
 function startOnline(w, race) {
   if (game || activityBlock(w)) return false;
   if (!built) built = buildTrackScene();

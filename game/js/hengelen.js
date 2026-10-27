@@ -14,7 +14,7 @@ import { boekVangst, boekVoortgang } from './visboeklive.js';
 import { loopbaanTel, loopbaanVerdien } from './loopbaanlive.js';
 import { maakHengelAnim } from './hengelanim.js';
 import { TAMMO_APPEARANCE, ANITA_APPEARANCE, registerPoseSource, unregisterPoseSource } from './models3d_people.js';
-import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHostPunt, wedGastPunt, wedScoreStop, wedGastVerlaat, wedGastReset, wedScoreRijen } from './coopwedstrijd.js';
+import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHostPunt, wedGastPunt, wedScoreStop, wedGastVerlaat, wedGastReset, wedScoreRijen } from './multiplayerwedstrijd.js';
 
 // Hengelen overal in de provincie (#412), met het wedstrijdje aan het Meerstad-meer als begin. [Spatie] gooit uit; als het
 // dobbertje zakt ("Beet!") druk je meteen weer [Spatie]; te vroeg trekken schrikt de vis af. Twee manieren:
@@ -148,7 +148,7 @@ function einde(w, { quit = false, extern = false, uitslag = null } = {}) {
   say(w, medal >= 2 ? 'endGood' : 'endPoor', 4.5);
 }
 
-// Online (#443): wie stopt laat de anderen doorhengelen; de uitslag en de beloning komen van wie het spel opende (coopwedstrijd.js).
+// Online (#443): wie stopt laat de anderen doorhengelen; de uitslag en de beloning komen van wie het spel opende (multiplayerwedstrijd.js).
 function eindeOnline(w, g, quit, extern, res) {
   if (quit) {
     if (!extern) { if (g.online === 'host') wedScoreStop(w); else wedGastVerlaat(w); } // de host stopt het voor iedereen, een gast alleen voor zichzelf

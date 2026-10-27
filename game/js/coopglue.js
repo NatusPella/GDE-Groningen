@@ -33,7 +33,7 @@ function snapshot(coop) {
 export function coopStep(c, dt, world, move) {
   if (!world.coop) return false;
   if (!world.coop.remote && world.coop.local === false) return false; // een sessie loopt, maar de gast is er (nog) niet: de volg-AI
-  if ((c.coopWacht || c.coopWedstrijd) && world.coop.remote) { c.vx = 0; c.vy = 0; c.crouching = false; return true; } // de wereld rond haar wordt nog geladen (coopnet.js bandMetgezel, #429); coopWedstrijd: hij rijdt een race tegen de anderen (coopwedstrijd.js, #443)
+  if ((c.coopWacht || c.coopWedstrijd) && world.coop.remote) { c.vx = 0; c.vy = 0; c.crouching = false; return true; } // de wereld rond haar wordt nog geladen (coopnet.js bandMetgezel, #429); coopWedstrijd: hij rijdt een race tegen de anderen (multiplayerwedstrijd.js, #443)
   // online: de gast stuurt de metgezel via het net (net/session.js), anders het eigen toetsenbord of pad
   const inp = world.coop.remote ? remoteP2(world.coop.remoteInput) : readP2(snapshot(world.coop));
   const yaw = (world.coop.remote ? (world.coop.remoteInput && world.coop.remoteInput.yaw) : world.camYaw) || 0, cs = Math.cos(yaw), sn = Math.sin(yaw);

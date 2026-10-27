@@ -5,7 +5,7 @@ import { fmtTime } from './minigamekit.js';
 import { openerNaam } from './coopplayers.js';
 import { bijbaanKaartModel } from './coopbijbaan.js';
 import { kaartSting, spelersVerbonden } from './stings.js';
-import { spelerNaam, verbondenGasten, gastStaat, wedGastStuur, wedOpnieuw, wedHostAntwoord, willenOpnieuw, uitnodigingTekst, WEDSTRIJDEN } from './coopwedstrijd.js';
+import { spelerNaam, verbondenGasten, gastStaat, wedGastStuur, wedOpnieuw, wedHostAntwoord, willenOpnieuw, uitnodigingTekst, WEDSTRIJDEN } from './multiplayerwedstrijd.js';
 
 const ORDINAAL = ['', '1e', '2e', '3e', '4e'];
 

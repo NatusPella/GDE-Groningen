@@ -12,10 +12,10 @@
 //     samenwerkingsbonus en zonder te delen. De gebeurtenis heeft een vaste id (coopbeloning.js), dus een bericht dat twee keer
 //     aankomt betaalt één keer. Wie wegvalt houdt wat hij al kreeg en krijgt daarna niets meer; er gaat niets verloren.
 // De berichten zijn gewone JSON-gebeurtenissen (k 'bijbaan' van de host, k 'bijbaangast' van een gast): PROTO en CODEC_VERSION blijven 2.
-// Pure logica waar het kan (scripts/coop/bijbaan_test.mjs); de koppeling met het net staat onderaan, net als in coopwedstrijd.js.
+// Pure logica waar het kan (scripts/coop/bijbaan_test.mjs); de koppeling met het net staat onderaan, net als in multiplayerwedstrijd.js.
 import { gebeurtenisId, maakBoekhouding } from './coopbeloning.js';
 import { lichaamVan } from './coopbestuur.js';
-import { verbondenGasten, spelerNaam } from './coopwedstrijd.js';
+import { verbondenGasten, spelerNaam } from './multiplayerwedstrijd.js';
 import { hoofdspeler } from './spelersregister.js';
 
 export const UITNODIGING_S = 10;   // seconden om J of N te zeggen

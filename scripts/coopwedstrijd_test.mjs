@@ -1,7 +1,7 @@
-// Samen spelen (#443): races tegen elkaar (game/js/coopwedstrijd.js): de uitnodiging, de grid, een race met meerdere mensen,
+// Samen spelen (#443): races tegen elkaar (game/js/multiplayerwedstrijd.js): de uitnodiging, de grid, een race met meerdere mensen,
 // de eindstand en beloning per plek, wegvallen, de berichten, de vloeiende weergave bij een gast en de host-kant met een nephub.
 //   node scripts/coopwedstrijd_test.mjs
-import * as W from '../game/js/coopwedstrijd.js';
+import * as W from '../game/js/multiplayerwedstrijd.js';
 import * as S from '../game/js/coopwedstrijdscore.js';
 import * as P from '../game/js/coopwedstrijdpunt.js';
 import { bestInput, KART, LAPS } from '../game/js/kartrace.js';

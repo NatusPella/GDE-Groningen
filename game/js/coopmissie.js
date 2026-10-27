@@ -152,7 +152,7 @@ export const MISSIE_TEKST = {
   gestart: (label) => `${label} is begonnen.`,
 };
 
-// Draait er al een wedstrijd of een uitnodiging daarvoor? (coopwedstrijd.js bewaart die stand op het net)
+// Draait er al een wedstrijd of een uitnodiging daarvoor? (multiplayerwedstrijd.js bewaart die stand op het net)
 export function wedstrijdLoopt(world) {
   const W = world && world.coopNet && world.coopNet.wed;
   return !!(W && (W.r || W.sc || W.lv || W.u));
