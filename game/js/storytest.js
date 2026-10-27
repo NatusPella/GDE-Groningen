@@ -496,7 +496,8 @@ async function newArcRuntimeChecks(world, check, capture) {
     const quiet = await phoneQuiet(world);
     const pfState = pf.state();
     const kaart = document.querySelector('.pf-card');
-    check('new arc: the HUD is quiet before the app text (no chase, race or skipped mission keeps it busy)', !!quiet, JSON.stringify({ ...(quiet || phoneReady(world)), pf: pfState.cards, step: (S().current() || {}).id, kaart: kaart ? (kaart.textContent || '').replace(/\s+/g, ' ').slice(0, 90) : null }));
+    const nu = window.__story ? window.__story.current() : null;
+    check('new arc: the HUD is quiet before the app text (no chase, race or skipped mission keeps it busy)', !!quiet, JSON.stringify({ ...(quiet || phoneReady(world)), pf: pfState.cards, step: nu && nu.id, kaart: kaart ? (kaart.textContent || '').replace(/\s+/g, ' ').slice(0, 90) : null }));
     const before = pf.state().cards;
     world.phoneNotifications.push({ from: 'Tessa', text: 'Ik ben bij het Loket. Kom niet. Je brengt ze in de war.', duration: 5, silent: true });
     // (not `story`: a story text waits for its pending radio contact (narrative.js), which the harness never plays)
