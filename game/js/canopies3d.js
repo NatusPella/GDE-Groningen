@@ -90,10 +90,13 @@ export function canopyBase(map, pts) {
 function overPerron(map, pts) {
   const rows = map && map.perrons;
   if (!rows || !rows.length) return false;
-  let cx = 0, cy = 0;
-  for (const p of pts) { cx += p[0]; cy += p[1]; }
-  cx /= pts.length; cy /= pts.length;
-  return rows.some((r) => (r.p || []).some((q) => Math.hypot(q[0] - cx, q[1] - cy) < 10));
+  // Het dekkende vlak, niet het zwaartepunt: een lange kap over twee perrons heeft zijn zwaartepunt
+  // tussen de perrons in en bleef daardoor donker van onderen (#463, perron Noord).
+  const punten = [];
+  for (const r of rows) for (const q of r.p || []) punten.push(q);
+  for (const [x, y] of pts) if (punten.some((q) => Math.hypot(q[0] - x, q[1] - y) < 8)) return true;
+  for (const q of punten) if (pointInPolygon(q[0], q[1], pts)) return true;
+  return false;
 }
 
 function postInTheWay(map, x, y) {
