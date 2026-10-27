@@ -21,7 +21,7 @@ import { loadEchtePlekken, padelDefs } from './echteplekken.js';
 import { tilesIn, withTiles } from './tileplace.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
 import { figuurLook } from './coopplayers.js';
-import { maakPadel, maakPadelSpiegel, voerInPadel, tikPadelSpiegel, livePadel } from './padelmatch.js';
+import { maakPadel, maakPadelSpiegel, voerInPadel, tikPadelSpiegel, livePadel, stapSnelheid } from './padelmatch.js';
 import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedLiveTik, wedHostLiveEind, wedGastVerlaat, wedGastReset } from './multiplayerwedstrijd.js';
 import { hoofdspeler } from './players.js';
 
@@ -816,10 +816,11 @@ function oppHit(g, o) {
 }
 
 function moveTo(a, u, v, speed, dt) {
+  const u0 = a.u, v0 = a.v;
   const du = u - a.u, dv = v - a.v, d = Math.hypot(du, dv);
   const step = Math.min(d, speed * dt);
   if (d > 1e-3) { a.u += du / d * step; a.v += dv / d * step; }
-  a.speed = dt > 0 ? step / dt : 0;
+  a.speed = stapSnelheid(a.u - u0, a.v - v0, dt);  // de stap die hij werkelijk zette (#502)
 }
 
 function updateMatch(w, dt) {
@@ -847,11 +848,16 @@ function updateMatch(w, dt) {
   }
   if (g.auto && g.phase === 'serve' && g.server === 0 && g.phaseT < 5) g.buffer = 0.1;
   const ml = Math.hypot(mu, mv) || 1;
+  // De loopsnelheid volgt de verplaatsing van deze stap, niet de ingedrukte toets (#502): de clamp
+  // hieronder houdt je bij het glas en de achterwand tegen, en dan sta je stil. Met de invoer als
+  // maat bleef de animatie doorlopen en leek je op je plek te glijden; tijdens je eigen serve (je
+  // staat dan vast) gebeurde hetzelfde.
+  const u0 = me.u, v0 = me.v;
   if (g.phase !== 'serve' || g.server !== 0) {
     me.u = clamp(me.u + mu / ml * ME_SPEED * dt, -W2 + 0.35, W2 - 0.35);
     me.v = clamp(me.v + mv / ml * ME_SPEED * dt, -L2 + 0.4, -0.9);
   }
-  me.speed = (mu || mv) ? ME_SPEED : 0;
+  me.speed = stapSnelheid(me.u - u0, me.v - v0, dt);
   const swingKey = input.wasPressed(' ');
   if (swingKey) { input.consume(' '); g.buffer = SWING_BUFFER; if (me.swing <= 0) { me.swing = SWING_T; pushAudioEvent(w, { kind: 'whoosh', strength: 0.2 }); } }
   else g.buffer = Math.max(0, g.buffer - dt);
@@ -929,12 +935,14 @@ function updateMatch(w, dt) {
     let tu = o.hu, tv = o.hv;
     if (g.phase === 'rally' && b && b.live && o === g.chaser && g.pred) { tu = g.pred.u + (o.u < g.pred.u ? -0.35 : 0.35); tv = Math.max(1.2, g.pred.v + 0.4); }
     else if (g.phase === 'rally' && b) tu = clamp(o.hu * 0.6 + b.u * 0.25, -4.5, 4.5);
-    if (g.phase === 'serve' && g.server === 1 && o === g.opp[(g.points[0] + g.points[1]) % 2]) continue;
+    // de serverende tegenstander staat stil; zonder dit bleef de loopsnelheid van de vorige stap staan
+    if (g.phase === 'serve' && g.server === 1 && o === g.opp[(g.points[0] + g.points[1]) % 2]) { o.speed = 0; continue; }
     moveTo(o, tu, tv, (g.twins ? OPP.twins : OPP.pair).speed * (g.oppMiss && o === g.chaser ? 0.7 : 1), dt);
   }
   const mate = g.mate;
   const mu2 = clamp(-Math.sign(me.u || 1) * 2.2 + (b ? b.u * 0.25 : 0), -4.3, 4.3);
-  if (!(g.phase === 'serve' && g.server === 0)) moveTo(mate, mu2, -2.6, MATE_SPEED, dt);
+  if (g.phase === 'serve' && g.server === 0) mate.speed = 0;   // hij wacht tot de serve er is: de benen staan stil
+  else moveTo(mate, mu2, -2.6, MATE_SPEED, dt);
   if (g.phase === 'point' || g.phase === 'outro') for (const o of g.opp) moveTo(o, o.hu, o.hv, 2, dt);
   for (const a of [me, mate, ...g.opp]) a.swing = Math.max(0, a.swing - dt);
   placeActors(w, dt);

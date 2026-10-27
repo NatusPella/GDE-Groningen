@@ -72,5 +72,31 @@ ok(fovTarget(60, RM) === 0, 'FOV uit bij bewegingsreductie');
   ok(m.at.size <= 70, 'geheugen blijft klein', m.at.size);
 }
 
+// #502: de drempels moeten een gewone stadsweg halen (50 km/u). De bonus zelf blijft streng
+// (maximaal 1,2 m ruimte, zie NEAR_MAX_GAP); de teller/detectie in achievementtracker.js is
+// bewust ruimer (1,9 m), zodat een pass op een stadsweg de prestatie wél laat oplopen.
+{
+  const kmh = (v) => v / 3.6;
+  const city = { pair: 'stad-a', gap: 0.9, sameDir: 0.95 };
+  ok(nearMissBonus(makeNearMiss(), 1, { ...city, speed: kmh(50) }) > 0, '50 km/u telt');
+  ok(nearMissBonus(makeNearMiss(), 1, { ...city, speed: kmh(30) }) === 0, '30 km/u telt niet');
+  ok(nearMissBonus(makeNearMiss(), 1, { ...city, speed: 12 }) > 0 && nearMissBonus(makeNearMiss(), 1, { ...city, speed: 11.9 }) === 0, 'grens ligt op 12 m/s');
+  ok(nearMissBonus(makeNearMiss(), 1, { ...city, speed: 0 }) === 0 && nearMissBonus(makeNearMiss(), 1, { ...city, speed: -0.4 }) === 0, 'stilstand telt niet');
+  ok(nearMissBonus(makeNearMiss(), 1, { ...city, speed: kmh(50), gap: 0 }) === 0 && nearMissBonus(makeNearMiss(), 1, { ...city, speed: kmh(50), gap: -0.8 }) === 0, 'een botsing telt niet');
+}
+
+// #502: de detectie in achievementtracker.js zelf -- ruimer dan 0,9 m, en geen 12 m-binnen-3 s-regel meer
+{
+  const fs = await import('node:fs');
+  const tr = fs.readFileSync(new URL('../game/js/achievementtracker.js', import.meta.url), 'utf8');
+  const gap = Number((tr.match(/const NEAR_MISS_GAP = ([0-9.]+)/) || [])[1]);
+  const speed = Number((tr.match(/const NEAR_MISS_SPEED = ([0-9.]+)/) || [])[1]);
+  ok(gap >= 1.8 && gap <= 2.0, 'detectie: ruimte past bij een stadsweg', gap);
+  ok(speed <= 13.9, 'detectie: 50 km/u valt binnen de snelheidsdrempel', speed);
+  ok(/gap > 0 && gap < NEAR_MISS_GAP/.test(tr), 'detectie: ruimte vanaf de carrosserie, botsing valt af');
+  ok(!/const far = Math\.hypot/.test(tr) && !/w\.time - cand\.t < 3/.test(tr), 'detectie: geen 12 m-binnen-3 s-regel meer');
+  ok(/dist > cand\.dist \+ NEAR_MISS_PASS/.test(tr) && /if \(cand\.done\) continue/.test(tr), 'detectie: telt als de afstand toeneemt, eenmaal per paar');
+}
+
 console.log(`gamefeel_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

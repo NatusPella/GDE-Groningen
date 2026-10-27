@@ -19,6 +19,8 @@ const FALL_LIMIT = -16; // the deepest road (the aqueduct) is at -11 m
 let world = null;
 let cineSeen = null;
 let cineT = 0;
+let sceneT = 0;    // hoeveel de scène zelf heeft afgespeeld (cinematics.js t), los van de wandklok
+let sceneAt = 0;
 let respawnSeen = null;
 let respawnT = 0;
 let deadT = 0;
@@ -183,14 +185,22 @@ function watchCinematic(dt, w) {
     }
     return;
   }
-  if (c !== cineSeen) { cineSeen = c; cineT = 0; }
+  if (c !== cineSeen) { cineSeen = c; cineT = 0; sceneT = 0; sceneAt = (cinematicState() && cinematicState().t) || 0; }
   if (isPauseMenuOpen() || isMapOpen()) return;
   cineT += dt;
+  // Tel de voortgang van de scène zelf, niet de wandklok (#515). Een gast die langzamer loopt, een game die
+  // even hapert of een scène met een eigen tempo heeft meer echte seconden nodig dan zijn duur; op de wandklok
+  // sprong zo'n scène er dus spontaan uit ("de cutscene sloeg onverwacht over" in de playtest van 22-10).
+  const nu = (cinematicState() && cinematicState().t) || 0;
+  sceneT += Math.max(0, nu - sceneAt);
+  sceneAt = nu;
   const limit = cinematicLimit(c);
-  if (cineT > limit) {
-    console.warn('[safety] cinematic ran too long, skipping', c.id);
+  // De harde grens blijft als vangnet: een scène waarvan de klok echt stilstaat, ruimen we na twee minuten
+  // extra alsnog op, anders houdt een vastloper het spel voor altijd vast.
+  if (sceneT > limit || cineT > limit + 120) {
+    console.warn('[safety] cinematic ran too long, skipping', c.id, { sceneT: Math.round(sceneT), cineT: Math.round(cineT) });
     skipCinematic();
-    cineSeen = null; cineT = 0;
+    cineSeen = null; cineT = 0; sceneT = 0; sceneAt = 0;
   }
 }
 

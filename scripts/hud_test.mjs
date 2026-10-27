@@ -44,10 +44,22 @@ ok(!d({ place: true, timer: true }).show.place && !d({ place: true, gps: true })
 ok(!d({ place: true, busy: true, wanted: 1 }).show.place, 'place name waits when busy');
 // G
 ok(d({ objective: true, subtitle: true }).dimObjective && !d({ objective: true }).dimObjective, 'objective dims under a subtitle');
+// het doel blijft onder een ondertitel leesbaar (0.35 was te dim; playtest 27-10)
+{
+  const css = readFileSync(new URL('../game/js/hud_panel.css', import.meta.url), 'utf8');
+  const m = css.match(/#hud \.hud-mission\.dim \{[^}]*opacity:\s*([\d.]+)/);
+  ok(!!m && Number(m[1]) >= 0.7, 'a dimmed objective stays readable (0.7), got ' + (m ? m[1] : 'niets'));
+}
 // rest: Slim only
 const idle = { idle: 9, hpFull: true, stamFull: true, objective: true, inVehicle: true, keys: 2, moneyAgo: 1 };
 const r = d(idle);
-ok(r.show.minimap && !r.show.objective && !r.show.vehicle && !r.show.keys && !r.show.money, 'after 8 s idle only the minimap stays');
+// De playtest van 27-10: "ik kan niet meer zien wat ik moet doen". Het missiedoel
+// hoort dus bij de ruststand te blijven staan; al het andere gaat weg.
+ok(r.show.minimap && r.show.objective && !r.show.vehicle && !r.show.keys && !r.show.money, 'after 8 s idle the objective and the minimap stay, the rest goes');
+// een lopende route houdt zijn GPS-kaart, zonder route is er niets te bewaren
+ok(d({ ...idle, gps: true }).show.gps && !r.show.gps, 'a running route keeps its GPS card in the rest');
+// zonder doel blijft er in de rust niets anders dan de kaart
+ok(!d({ ...idle, objective: false }).show.objective, 'no objective, nothing to keep');
 ok(d({ ...idle, wake: true }).show.vehicle, 'a key press brings it back');
 ok(d({ ...idle, mode: 'alles' }).show.vehicle, 'Altijd alles never rests');
 // never

@@ -24,8 +24,17 @@ import { initLoopbaan, loopbaanOpStat, loopbaanKm, loopbaanTel, getProfiel } fro
 import { initGebieden, updateGebieden, gebiedenOpVondst, getOverzicht, bezoekPlek } from './gebiedenlive.js';
 import { maakBron } from './gebiedenbronnen.js';
 
-const NEAR_MISS_SPEED = 12;
-const NEAR_MISS_GAP = 0.9;
+const NEAR_MISS_SPEED = 12; // m/s: 50 km/u is 13,9 m/s, dus een gewone stadsweg valt binnen bereik
+// Dit is de vrije ruimte tussen de carrosserieen (gap hieronder), niet die tussen rijstrookmiddens.
+// Op een stadsweg liggen de hartlijnen 3,0-3,5 m uit elkaar en is een auto ~1,7-2,0 m breed: de
+// echte ruimte is dus ~1,2-1,7 m. De oude 0,9 m kwam daar nooit bij in de buurt, waardoor er op
+// zo'n weg nooit een kandidaat ontstond (en de prestatie bijna_10/bijna_50 onbereikbaar bleef).
+const NEAR_MISS_GAP = 1.9;
+// Het paar telt zodra het verder uit elkaar staat dan op het moment van de kandidaat. De 25 cm
+// speling vangt frame-ruis op: een auto die met dezelfde snelheid naast je blijft hangen haalt dat niet.
+const NEAR_MISS_PASS = 0.25;
+// Buiten dit bereik (hart op hart) is het paar echt weg en mag dezelfde auto opnieuw beginnen.
+const NEAR_MISS_CLEAR = 11;
 const WIJK_DWELL = 2;
 const LANDMARK_RADIUS = 70;
 const TRAIN_SEEN_RADIUS = 70;
@@ -209,16 +218,32 @@ function trackVehicle(dt, w, pv) {
       const dx = o.x - pv.x, dy = o.y - pv.y;
       if (dx * dx + dy * dy > 100) continue;
       const lx = dx * c + dy * s, ly = -dx * s + dy * c;
+      // gap <= 0 is een botsing; die telt nooit als rakelings
       const gap = Math.abs(ly) - (pv.halfWid + o.halfWid);
-      if (Math.abs(lx) < pv.halfLen + o.halfLen && gap > 0 && gap < NEAR_MISS_GAP) nearCand.set(o.id, { o, t: w.time, gap, sameDir: Math.cos(pv.angle - o.angle) * (Math.sign(pv.speed) || 1) * (Math.sign(o.speed) || 1) });
+      if (Math.abs(lx) < pv.halfLen + o.halfLen && gap > 0 && gap < NEAR_MISS_GAP) {
+        nearCand.set(o.id, {
+          o, t: w.time, gap,
+          dist: Math.hypot(dx, dy), // onderlinge afstand op het moment van de kandidaat
+          sameDir: Math.cos(pv.angle - o.angle) * (Math.sign(pv.speed) || 1) * (Math.sign(o.speed) || 1),
+        });
+      }
     }
   }
   for (const [id, cand] of nearCand) {
     const o = cand.o;
-    const far = Math.hypot(o.x - pv.x, o.y - pv.y) > 12;
-    if (!far && w.time - cand.t < 3) continue;
-    nearCand.delete(id);
-    if (far && (lastHitWith.get(id) ?? -99) < cand.t - 0.5 && !o.wrecked) {
+    const dist = Math.hypot(o.x - pv.x, o.y - pv.y);
+    // Opruimen: buiten 11 m kan dit paar niet opnieuw naast elkaar staan, dus dan mag dezelfde
+    // auto later een nieuwe kandidaat worden. Een wrak telt sowieso niet.
+    if (dist > NEAR_MISS_CLEAR || o.wrecked) { nearCand.delete(id); continue; }
+    if (cand.done) continue;
+    // Vroeger moest het paar binnen 3 s verder dan 12 m uit elkaar staan. Op een stadsweg haal je
+    // dat met file, kruisend verkeer of een korte inhaalactie bijna nooit, dus er telde niets.
+    // Nu telt elke echte toename van de afstand: je bent er langs en laat hem achter.
+    // Stilstaand telt niet, ook niet als de ander wegrijdt.
+    if (!(Math.abs(pv.speed) > 1)) continue;
+    if (!(dist > cand.dist + NEAR_MISS_PASS)) continue;
+    cand.done = true;
+    if ((lastHitWith.get(id) ?? -99) < cand.t - 0.5) {
       recordStat(w, 'nearMiss');
       // kleine bonus met een chip (#216); geen beloning tegen het verkeer in, afkoeling per paar
       const bonus = nearMissBonus(nearMiss, w.time, { pair: pv.id + '-' + id, speed: pv.speed, gap: cand.gap, sameDir: cand.sameDir });
