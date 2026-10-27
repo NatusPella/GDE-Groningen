@@ -123,6 +123,18 @@ const rect = (x0, y0, x1, y1) => [[x0, y0], [x1, y0], [x1, y1], [x0, y1]];
   const under = [];
   grp.traverse((o) => { if (o.name === 'perronkap-onder') under.push(o); });
   ok(under.length === 1, 'alleen de kap boven het perron krijgt een lichte onderkant', String(under.length));
+
+  // een lange kap die het perron aan één kant dekt: het zwaartepunt ligt tientallen meters van het
+  // perron, maar de kap hangt er wel boven — die bleef eerst donker (#463, perron Noord)
+  {
+    const ver = { id: 'k2', nm: 'Perron 2', p: [[90, 5, 2, 1.02], [100, 5, 2, 1.02], [110, 5, 2, 1.02]], r: [] };
+    const lang = [[-100, 2], [110, 2], [110, 8], [-100, 8]];
+    const map2 = { perrons: [ver], canopies: [{ pts: lang }], rails: [], roads: [], roadsNear: () => [], railNear: () => [] };
+    const grp2 = C.buildCanopies(map2);
+    const under2 = [];
+    grp2.traverse((o) => { if (o.name === 'perronkap-onder') under2.push(o); });
+    ok(under2.length === 1, 'een lange kap met het zwaartepunt naast het perron krijgt toch een lichte onderkant', String(under2.length));
+  }
   if (under[0]) {
     const c = under[0].material.color;
     ok(c.r > 0.5 && c.g > 0.5 && c.b > 0.5, 'de onderkant van de perronkap is licht', `${c.r.toFixed(2)},${c.g.toFixed(2)},${c.b.toFixed(2)}`);
