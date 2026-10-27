@@ -146,6 +146,7 @@ async function faseLicht(prev) {
     ['voice_coverage', ['scripts/voice_coverage.mjs', '--quiet']],
     ['text_audit', ['scripts/text_audit.mjs']],
     ['player_singleton_audit', ['scripts/player_singleton_audit.mjs']],
+    ['world_eigenaar', ['scripts/world_eigenaar.mjs']],
     ['spec_check', ['scripts/spec_check.mjs']],
   ].filter(([id]) => wilDit(id));
   for (const [id, a] of losse) {
