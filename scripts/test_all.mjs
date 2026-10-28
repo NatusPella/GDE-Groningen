@@ -407,7 +407,7 @@ async function faseElectron(prev, staat) {
     // zijn zeven stappen af en stond hij 3,6 m van het laatste doel. Tachtig minuten geeft marge voor de
     // 36 keer dat hij even vastloopt (#387, #515).
     const d = stapDir(naam), ms = (mode === 'missions' ? 105 : 45) * 60e3;
-        const r = await runCmd(process.execPath, ['scripts/bot/run.mjs', `--mode=${mode}`, `--out=${d}`, '--force', ...(mode === 'missions' ? ['--max-wall=4800', '--speed=2'] : [])], { ms, env: env(naam) });
+        const r = await runCmd(process.execPath, ['scripts/bot/run.mjs', `--mode=${mode}`, `--out=${d}`, '--force', ...(mode === 'missions' ? ['--max-wall=4800', '--max-game=5400', '--speed=2'] : [])], { ms, env: env(naam) });
     log(`DIAG bot ${naam}: code ${r.code}, ${r.secs}s, ${r.out.length} tekens, eerste regel: ${(r.out.split(/\r?\n/)[0] || '(leeg)').slice(0, 120)}`);
     fs.writeFileSync(path.join(d, 'sweep.log'), r.out);
     let analyse = '';
