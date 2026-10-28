@@ -18,6 +18,7 @@ export const BOARD = {
   waitS: 1.2,      // na E even wachten voor de volgende druk
   stallS: 5,       // de deur niet dichterbij (hek, muur): de andere kant op
   skipS: 60,       // een voertuig waar E niet werkt even overslaan
+  ejectS: 8,       // binnen deze tijd er weer uit = dit voertuig telt niet voor de stage
   driveS: 420,     // na het instappen: zolang zonder voortgang is het doel niet gehaald
   progress: 4,     // zoveel meter dichterbij telt als voortgang
 };
@@ -104,9 +105,19 @@ export function boardStep(s, mem, now = Number.isFinite(s.t) ? s.t : 0) {
     mem.wrongAt = null;
     mem.attemptAt = null;
     if (mem.drove == null) { mem.drove = now; mem.best = null; mem.bestAt = now; }
+    mem.netIn = { key: key(veh), at: now };   // onthoud waar we in zaten (zie hieronder)
     return { type: 'drive' };
   }
   mem.drove = null;
+  // Zette het spel de bot er meteen weer uit (dit voertuig telt niet voor deze stage, zoals een
+  // gewone fiets bij een missie die zijn eigen voertuig verwacht), dan bleef hij eindeloos op- en
+  // afstappen: op M02 54 minuten lang, 3 m van het doel. Zo'n voertuig slaan we even over, zodat
+  // de volgende keuze een ander voertuig pakt.
+  if (mem.netIn && now - mem.netIn.at < BOARD.ejectS) {
+    (mem.skip = mem.skip || {})[mem.netIn.key] = now + BOARD.skipS;
+    mem.netIn = null;
+    mem.missed = 0;
+  }
   const v = s.vehicle;
   if (!v) return { type: 'wait', why: 'geen voertuig' };
   if (mem.attemptAt == null) { mem.attemptAt = now; if (mem.presses == null) mem.presses = 0; mem.body = null; mem.stallAt = null; }

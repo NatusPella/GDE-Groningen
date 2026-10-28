@@ -563,6 +563,20 @@ ok(L.decide({ ...b(), mission: { active: true, stage: 'hold' }, target: { x: 8, 
   const rijdend = Bd.boardStep({ ...snap({ x: 40, y: 2 }), player: { x: 40, y: 2, speed: 12, vehicle: { kind: 'auto', mission: false } }, vehicle: quad, wrongVehicle: true }, {}, 0);
   ok(rijdend.type === 'wait', 'board: uit een rijdende auto niet meteen uitstappen');
   ok(Bd.boardStep({ ...snap({ x: 40, y: 2 }), player: { x: 40, y: 2, vehicle: quad }, vehicle: quad }, mem4, 8).type === 'drive', 'board: in de quad: rijden');
+  // Er meteen weer uit gezet (dit voertuig telt niet voor de stage): dat voertuig even overslaan,
+  // anders stapt de bot eindeloos op en af (M02: 54 minuten, 3 m van het doel).
+  {
+    const m6 = {};
+    const fiets = { x: 40, y: 2, kind: 'fiets', mission: false, free: true, distance: 0.5, hl: 1, hw: 0.3 };
+    ok(Bd.boardStep({ ...snap({ x: 40, y: 2 }), player: { x: 40, y: 2, vehicle: fiets }, vehicle: fiets }, m6, 0).type === 'drive', 'board: ingestapt is rijden');
+    const eruit = Bd.boardStep({ ...snap({ x: 40, y: 2 }), vehicle: fiets }, m6, 3);   // 3 s later weer te voet
+    ok(m6.skip && m6.skip['40,2'] > 3, 'board: er meteen weer uit is dat voertuig even overslaan');
+    ok(eruit.type !== 'drive', 'board: na het eruit zetten niet meteen weer instappen');
+    const m7 = {};
+    Bd.boardStep({ ...snap({ x: 40, y: 2 }), player: { x: 40, y: 2, vehicle: fiets }, vehicle: fiets }, m7, 0);
+    Bd.boardStep({ ...snap({ x: 40, y: 2 }), vehicle: fiets }, m7, 30);                  // pas veel later eruit
+    ok(!m7.skip, 'board: gewoon uitstappen na een rit slaat niets over');
+  }
   // de rit erna: naar het doel, en een doel dat wegloopt is na het budget een time-out
   const m5 = {};
   ok(Bd.driveStep({ player: { x: 0, y: 0 }, target: { x: 500, y: 0, distance: 500 } }, m5, 0).type === 'drive', 'board: na het instappen rijden naar het doel');
