@@ -1183,6 +1183,10 @@ function buildBakfietsMesh(v) {
   addWheel(group, bikeWheelGeometry(0.34, 0.022), mats[0], -0.85, 0.34, 0, wheels);
   addWheel(group, bikeWheelGeometry(0.25, 0.022), mats[0], 1.0, 0.25, 0, wheels);
   group.userData.wheels = wheels;
+  // het kleine wiel vooraan (x = +1,0) is het voorwiel, het grote staat achter. Zonder dit veld
+  // zet voertuigbedien.js wiel 0 (het achterwiel) als sturend voorwiel: dan draaide het stuur om
+  // het verkeerde wiel (#436, playtest 27-10).
+  group.userData.frontWheels = [wheels[1]];
   group.userData.wheelRadius = 0.32;
   group.userData.spinStep = 0.26; // 8 spaken (45 graden), en het kleine voorwiel draait sneller (spinK)
   wheels[0].userData.spinK = 0.32 / 0.34;
@@ -2611,6 +2615,12 @@ export function stuurOverlay(spec) {
 // No-op for meshes without userData.wheels (boats).
 const SPIN_STEP = 0.5;
 const MAX_STEER_ANGLE = 0.5;
+// De draairichting van een wiel dat vooruit rolt: om de z-as omlaag, dus de bovenkant van het
+// wiel gaat naar de neus (+x). Eén teken voor álle wielen: voor- en achterwiel zitten op dezelfde
+// as en delen dezelfde geometrie, dus een wiel met een eigen teken zou zichtbaar de verkeerde
+// kant op draaien (playtest 27-10: "er gaat een voorwiel van de fietser achteruit"). spinK is een
+// overbrenging (een kleiner wiel draait sneller), nooit een richting; vandaar Math.abs eronder.
+const WIEL_VOORUIT = -1;
 export function updateVehicleWheelSpin(mesh, speed, dt, steer = 0) {
   const ud = mesh.userData;
   const wheels = ud.wheels;
@@ -2618,7 +2628,7 @@ export function updateVehicleWheelSpin(mesh, speed, dt, steer = 0) {
   const delta = (speed / ud.wheelRadius) * dt;
   const cap = ud.spinStep || SPIN_STEP;
   const shown = Math.max(-cap, Math.min(cap, delta));
-  for (const w of wheels) w.rotation.z -= shown * (w.userData.spinK || 1);
+  for (const w of wheels) w.rotation.z += shown * WIEL_VOORUIT * Math.abs(w.userData.spinK || 1);
   const fw = ud.frontWheels;
   if (fw) {
     const a = -steer * MAX_STEER_ANGLE;
