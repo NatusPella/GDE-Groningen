@@ -1,7 +1,7 @@
 {
  "version": 1,
  "note": "Aantal directe verwijzingen naar world.player per bestand (#500), inclusief de alias w.player. Alleen omlaag; zie scripts/player_singleton_audit.mjs.",
- "total": 775,
+ "total": 701,
  "files": {
   "game/js/aaien.js": 10,
   "game/js/achievements.js": 4,
@@ -82,7 +82,6 @@
   "game/js/loadscreen.js": 2,
   "game/js/main.js": 18,
   "game/js/marktfiets.js": 3,
-  "game/js/missions.js": 74,
   "game/js/missionstory.js": 2,
   "game/js/movablebridges.js": 3,
   "game/js/muggings.js": 4,
@@ -133,7 +132,8 @@
   "game/js/safety.js": 3,
   "game/js/savegame.js": 3,
   "game/js/scenariomusic.js": 2,
-  "game/js/scene3d.js": 5,
+  "game/js/scene3d.js": 4,
+  "game/js/scene3d/routeribbon3d.js": 1,
   "game/js/schaapontvoeringrt.js": 5,
   "game/js/sfx/ambience.js": 2,
   "game/js/sfx/foley.js": 6,
