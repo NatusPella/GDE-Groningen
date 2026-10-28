@@ -8,6 +8,7 @@ import {
   pick, spawnJobVehicle, spawnPed, pedAlive,
   holdPed, freePed, walkPed, removePed, say, vehicleSpeed, fmtClock,
 } from './sidejobkit.js';
+import { teVroegTekst } from './busbestuur.js';
 
 const STOP_R = 9;
 const STOP_SPEED = 0.8;
@@ -195,7 +196,8 @@ export default {
       d.hold -= dt;
       if (inBus && vehicleSpeed(v) > 1.5) {
         d.earlyDeps++;
-        c.msg(pick(EARLY_LINES), 3);
+        // eerst concreet: hoeveel seconden te vroeg en wat je had moeten doen, dan pas de grap (#502)
+        c.msg(`${teVroegTekst(due - d.clock, stop.name)} ${pick(EARLY_LINES)}`, 3.8);
         depart(c);
       } else if ((d.hold <= 0 || due - d.clock <= EARLY_OK) && !depart(c)) {
         c.msg(`Op schema. Rijden maar! Volgende halte: ${d.stops[d.next % d.stops.length].name}.`, 2.6);
@@ -257,7 +259,9 @@ export default {
       const early = due - d.clock - EARLY_OK;
       if (early > 1) {
         d.hold = Math.min(early, MAX_HOLD);
-        c.msg(`Voor op schema: nog ${Math.ceil(d.hold)} s wachten. Of rij door, dan ben je te vroeg.`, 3.2);
+        // geen getal in de melding: dat stond stil terwijl de klok doorliep; de aftelling in het HUD telt
+        // echt (view() hieronder), de melding zegt wat je moet doen (#502)
+        c.msg('Voor op schema: wacht op de dienstregeling, de aftelling staat onder je doel. Of rijd door, dan ben je te vroeg.', 3.4);
         return;
       }
       if (depart(c)) return;
@@ -277,8 +281,9 @@ export default {
     if (d.hold != null) {
       return {
         marker: { x: stop.x, y: stop.y },
-        progress: `Halte ${stop.name} · voor op schema, vertrek over ${Math.max(1, Math.ceil(d.hold))} s`,
-        goal: { label: `Halte ${stop.name}`, desc: 'Even wachten op de dienstregeling, of te vroeg doorrijden' },
+        progress: `Voor op schema · vertrek over ${Math.max(1, Math.ceil(d.hold))} s`,
+        // het kopje zegt "volgende halte" en niet "tips": dit is de halte waar je heen rijdt (#502)
+        goal: { label: `Volgende halte: ${stop.name}`, desc: 'Wacht tot de dienstregeling je laat gaan; de aftelling staat eronder' },
       };
     }
     const dots = [];
@@ -289,8 +294,10 @@ export default {
     return {
       marker: { x: stop.x, y: stop.y },
       dots,
-      progress: d.dwell ? `Halte ${stop.name} · deuren open, nog ${Math.max(1, Math.ceil(d.dwell))} s` : `Halte ${Math.min(d.next, n)}/${n} ${stop.name} · ${sched}`,
-      goal: { label: `Halte ${stop.name}`, desc: d.dwell ? 'Even stilstaan: passagiers stappen in' : 'Stop bij de halte en laat mensen instappen' },
+      // de haltenaam staat in het kopje (goal.label), dus de regel eronder telt alleen de halten en de tijd:
+      // geen tweede keer dezelfde naam over dezelfde regel (#502)
+      progress: d.dwell ? `Deuren open · nog ${Math.max(1, Math.ceil(d.dwell))} s` : `${Math.min(d.next, n)}/${n} gehaald · ${sched}`,
+      goal: { label: `Volgende halte: ${stop.name}`, desc: d.dwell ? 'Passagiers stappen in en uit; sluit de deuren met O' : 'Stop bij de halte en laat mensen instappen' },
     };
   },
 

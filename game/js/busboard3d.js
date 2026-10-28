@@ -9,7 +9,7 @@ import { getVehicleMesh } from './models3d_vehicles.js';
 import { getBusLines } from './vehicle.js';
 import { startBusShift } from './sidejobs.js';
 import { nearestLine, project } from './busroutes.js';
-import { boardText, busLineOf, takeOverOffer, lineDirection, nextStopInfo, stopAnnouncement, roundDist, OPERATOR } from './busboard.js';
+import { boardText, busLineOf, takeOverOffer, lineDirection, nextStopInfo, stopCard, roundDist, OPERATOR } from './busboard.js';
 
 const BOARD_R = 140;            // m: alleen bussen in de buurt krijgen een bord
 // m voor het buitenste vlak van de romp. De zijborden hingen op 0,02 m, precies gelijk met het deurblad
@@ -88,8 +88,12 @@ function getCard() {
   const root = document.getElementById('hud');
   if (!root) return null;
   const st = document.createElement('style');
-  st.textContent = `#hud .hud-busnext{position:absolute;left:50%;bottom:calc(var(--hud-edge,46px) + 4px);transform:translateX(-50%);display:none;padding:6px 14px 8px;color:#f0ede4;text-shadow:var(--hud-shadow);background:linear-gradient(90deg,rgba(12,20,14,.1),rgba(12,20,14,.8) 20%,rgba(12,20,14,.8) 80%,rgba(12,20,14,.1));text-align:center}
+  // Het buskaartje staat middenonder en is met de bedieningsregel (deuren, kneel, sterren) tot ongeveer
+  // 96 px hoog; de doelregel erboven begon op 1280x720 al na 52 px, dus de twee panelen lagen over
+  // elkaar (#502). Zolang je een bus bestuurt zakt het doel daarom boven het kaartje.
+  st.textContent = `#hud .hud-busnext{position:absolute;left:50%;bottom:calc(var(--hud-edge,46px) + 4px);transform:translateX(-50%);display:none;box-sizing:border-box;max-width:calc(100vw - 2*var(--hud-edge,46px) - 24px);padding:6px 14px 8px;color:#f0ede4;text-shadow:var(--hud-shadow);background:linear-gradient(90deg,rgba(12,20,14,.1),rgba(12,20,14,.8) 20%,rgba(12,20,14,.8) 80%,rgba(12,20,14,.1));text-align:center}
 body.bus-driving #hud .hud-busnext{display:block}
+body.bus-driving #hud .hud-mission{bottom:calc(var(--hud-edge,46px) + 120px)}
 #hud .hud-busnext small{display:block;font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#ffb21a}
 #hud .hud-busnext b{font-weight:normal;font-size:22px;letter-spacing:1px}
 #hud .hud-busnext span{font-size:14px;color:rgba(240,237,228,.7);margin-left:8px}
@@ -130,8 +134,11 @@ function driverCard(w, pv) {
   if (info) {
     const near = info.dist < 150;
     if (last.line !== line || last.idx !== info.index || last.near !== near) {
-      // de eerste keer na het instappen of een halte verder: één tekstmelding
-      if (last.line !== line || last.idx !== info.index || near) w.addMessage(stopAnnouncement(info), 3, { kind: 'tip', key: 'bus-next' });
+      // de eerste keer na het instappen of een halte verder: één tekstmelding met "Volgende halte" als
+      // kopje en de haltenaam eronder (#502). stopAnnouncement() blijft de volledige zin voor de lezers
+      // en de test daarvan; het kaartje splitst die zin niet meer zelf.
+      const kaart = stopCard(info);
+      if (kaart) w.addMessage(kaart.text, 3, { kind: 'tip', key: 'bus-next', kicker: kaart.kicker });
       last = { idx: info.index, near, line };
     }
   }

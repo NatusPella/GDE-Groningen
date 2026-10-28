@@ -136,6 +136,15 @@ export function vertragingTekst(v) {
   return v > 0 ? `${v} s te laat` : `${-v} s te vroeg`;
 }
 
+// De melding bij te vroeg wegrijden (#502): hoe veel seconden te vroeg en wat je had moeten doen, in
+// plaats van een algemene regel waar de speler niets aan heeft. seconden = hoe lang de dienstregeling
+// nog had willen wachten; halte is de naam van de halte (mag leeg zijn).
+export function teVroegTekst(seconden, halte = '') {
+  const s = Math.max(1, Math.round(Number(seconden) || 0));
+  const waar = halte ? ` bij ${halte}` : '';
+  return `Je reed ${s} s te vroeg weg${waar}: wacht tot de dienstregeling je laat gaan (nog ${s} s).`;
+}
+
 // Loopbaanpunten voor een rit (#381, vak bus): op tijd en tevreden levert meer op.
 export function ritPunten({ share = 1, sat = 80, haltes = 0 } = {}) {
   return Math.max(0, Math.round(haltes * 0.5 + share * 3 + sat / 25));
