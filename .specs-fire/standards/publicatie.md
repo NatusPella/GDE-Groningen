@@ -32,7 +32,7 @@ cd desktop && npm run release -- minor|patch --world
 
 `minor` is een nieuwe functie, `patch` een bugfix, `current` houdt de versie.
 `--world` is verplicht voor de Actions-stap hierna: zonder `gde-world.tgz` stopt
-`scripts/release_builds.mjs:127`. `release.sh` zoekt `gh` (`:25`), bumpt de
+`scripts/release_builds.mjs:1`. `release.sh` zoekt `gh` (`:25`), bumpt de
 versie (`:51`), leest de changelog via
 `node scripts/changelog_section.cjs "$VERSION"` (`:58`), draait `npm run stage`
 en `npx electron-builder --win --x64` (`:81`, `:83`; een dmg bouwt alleen op
@@ -64,7 +64,7 @@ met `workflow_dispatch`, hebben `contents: write` en geen geheimen, en bouwen
 uit de tag met de wereld uit `gde-world.tgz` (`GDE_PREBUILT_WORLD`); de
 provinciekaart komt dus lokaal. Bijlagen: `GDE-Groningen-<v>-windows-portable.exe`,
 `-mac.dmg`, `-linux.AppImage`, `-linux.tar.gz`, `-android-debug.apk` en
-`gde-world.tgz` (`scripts/release_builds.mjs:28-31`). Agents pushen, mergen,
+`gde-world.tgz` (`scripts/release_builds.mjs:19`). Agents pushen, mergen,
 taggen en releasen nooit; dat doet de coördinator na de tests. Een agent werkt in
 een eigen worktree en draait alleen zijn eigen checks.
 

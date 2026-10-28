@@ -148,7 +148,7 @@ met een echt merk; bewuste parodie, op de allowlist, de eigenaar kan kiezen te h
 | Zomerzoet | ijssalon | `game/js/vrachtmarkt.js` | niets | ok |
 | Delfstof Noord | verzonnen delfstofbedrijf | `game/js/stadmissies.js` | geen echt bedrijf; gevoelig onderwerp, zie constitution 6 | ok |
 | Wiebelwerk | het Wiebelwerk-universum | `game/js/interieurplan.js` | niets | ok |
-| Us Mem Vet | bedrijf/winkel | `game/js/missions.js` | niets | ok |
+| Us Mem Vet | bedrijf/winkel | `game/js/missions_defs.js` | niets | ok |
 | Kiekdoar | nieuwssite | `game/js/attention.js` | niets | ok |
 | Radio Proat | radio | `game/js/radio.js` | niets | ok |
 | G-Music | muziekzender | `game/js/radio.js` | generieke naam; registercheck in MERKENCHECK.md | ok |

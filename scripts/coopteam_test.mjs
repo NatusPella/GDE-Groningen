@@ -61,7 +61,7 @@ t('wie nee zei telt niet als meespeler; een extra gast die ja zei houdt de opdra
 t('zonder sessie bestaat de haak niet en gedraagt missions.js zich als altijd', () => {
   const w = mkWorld(); assert.equal(w.coopOpdrachtDoor, undefined);
   const { hw } = sessie(1); N.stopCoopNet(hw); assert.equal(hw.coopOpdrachtDoor, null, 'na het stoppen weg');
-  const src = fs.readFileSync(new URL('../game/js/missions.js', import.meta.url), 'utf8');
+  const src = fs.readFileSync(new URL('../game/js/missions.js', import.meta.url), 'utf8') + fs.readFileSync(new URL('../game/js/missions_defs.js', import.meta.url), 'utf8');
   assert.match(src, /if \(w\.coopOpdrachtDoor && w\.coopOpdrachtDoor\(\)\) return;\s*\r?\n\s*failActiveMission\(w, busted/, 'de respawn-haak vraagt eerst de sessie');
 });
 

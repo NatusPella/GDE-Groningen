@@ -462,7 +462,7 @@ t('de gastheer zegt J of laat de vraag verlopen: J doet mee, verlopen is nee (#4
 });
 
 t('de respawn-haak vraagt de sessie voor neer en voor opgepakt, en de stappen lopen via stagegroep.js', () => {
-  const src = fs.readFileSync(new URL('../game/js/missions.js', import.meta.url), 'utf8');
+  const src = fs.readFileSync(new URL('../game/js/missions.js', import.meta.url), 'utf8') + fs.readFileSync(new URL('../game/js/missions_defs.js', import.meta.url), 'utf8');
   assert.match(src, /if \(w\.coopOpdrachtDoor && w\.coopOpdrachtDoor\(\)\) return;\s*\r?\n\s*failActiveMission\(w, busted/, 'busted en neer lopen door dezelfde check');
   for (const naam of ['doelStand(', 'teamActor(', 'groepKlaar(', 'meespelerInVoertuig(', 'afstandMeespeler(']) assert.ok(src.includes(naam), `missions.js gebruikt ${naam}`);
 });
