@@ -70,6 +70,21 @@ function stopHouding() {
   houdingSeed = null;
 }
 
+// Een vangst gaat ook de voorraad in (#502): één vis per vangst, naast de uitbetaling. De visboer
+// betaalt per kilo (een paar euro) en een vis opeten is eten dat je anders bij de toonbank koopt,
+// dus dubbel loont het nauwelijks; zonder uitbetaling zou de kas van het hengelen en de loopbaan
+// erbij niet meer kloppen. De sleutel is dezelfde als in spullen.js (vis:<soort>), dat de
+// gezondheid per vis kent. Geen import van spullen.js: dat hangt via home.js aan activities.js en
+// dus aan dit bestand, en dat zou een importkring maken (scripts/import_cycles_test.mjs).
+export function visNaarVoorraad(w, soortId, n = 1) {
+  if (!w || !soortId) return 0;
+  if (!w.eten || typeof w.eten !== 'object') w.eten = {};
+  const k = 'vis:' + soortId;
+  const aantal = Math.max(0, Math.floor(Number(w.eten[k]) || 0) + Math.max(0, Math.floor(n)));
+  if (aantal) w.eten[k] = aantal; else delete w.eten[k];
+  return aantal;
+}
+
 // Een vangst: het visboek, de prestaties, de punten in het vak en de kas. Geeft wat er nieuw aan was terug (voor de melding).
 // De vangst is van de speler die hem binnenhaalt: de minigame draait lokaal, ook bij een gast (GAST_ACTIVITEITEN), dus het
 // geld gaat rechtstreeks in zijn eigen portemonnee en boek (`deel: false`). Er is niets te verdelen en de gastheer hoeft
@@ -80,6 +95,7 @@ function verwerkVangst(w, g, e) {
   const plek = g.plek;
   const r = boekVangst(s.id, e.kg, plek.plek, plek.type);
   if (!r) return null;
+  visNaarVoorraad(w, s.id); // mee naar huis, voor Spullen (#502)
   recordUnique(w, 'vissoorten', s.id);
   if (r.nieuwePlek) recordUnique(w, 'visplekken', plek.plek);
   recordStat(w, 'visVangsten', 1);

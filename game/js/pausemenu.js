@@ -48,7 +48,7 @@ import { renderOverview, renderTodo, renderTodoStory, todoClick, todoFocus, todo
 import { isPlayAheadOpen } from './todo.js';
 import { renderVerhaal, verhaalClick, verhaalSummary, disposeVerhaalViewer, selectVerhaalCharacter } from './verhaalui.js';
 import { anyFresh } from './characters.js';
-import { renderSpullen, spullenClick, spullenFocus, zetSpullenZoek, DELEN } from './spullen.js';
+import { renderSpullen, spullenClick, spullenFocus, spullenEnter, zetSpullenZoek, DELEN } from './spullen.js';
 import { phoneClick, phoneUnread, selectPhoneThread, characterForSender } from './phone.js';
 import { takeNoticeThread } from './phonefeed.js';
 import { getErrorLog, errorReport, clearErrorLog, onErrorLogChange } from './errorlog.js';
@@ -882,6 +882,16 @@ function onKey(e) {
       // Enter on a card: straight to "Zet als doel" (a click only shows its details)
       consume(e);
       if (!todoEnter(world, t.dataset.todo, todoApi)) t.click();
+    } else if (k === 'Enter' && t.dataset && t.dataset.spul && tab === 'spullen') {
+      // Enter op een kaart in Spullen: meteen de actie (#502). Een klik toont alleen de
+      // details; met Tab naar de actieknop gaat net als voorheen. Een kaart zonder actie
+      // klikt gewoon, zoals eerst (dat zet alleen de focus).
+      consume(e);
+      if (spullenEnter(activePanel(), t.dataset.spul, spullenApi)) {
+        // de kaart kan weg zijn (het laatste stuk eten op): de focus gaat naar de lijst
+        const paneel = activePanel();
+        if (!paneel.contains(document.activeElement)) focusEl(paneel.querySelector('[data-spul]'));
+      } else t.click();
     } else if (t.tagName === 'BUTTON') {
       // input.js cancels Space (no page scroll), which also cancels the
       // button's own click: both keys click here, once

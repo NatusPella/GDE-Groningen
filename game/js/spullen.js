@@ -2,7 +2,8 @@
 // systems that own it. Per category the things you own, with what they do
 // and where they came from, and a count of how many there are ("3 van 8"),
 // never what the rest is. Choosing a weapon takes it in hand; furniture
-// puts home on the GPS. Vehicles stay in Garage, clues and people in Verhaal.
+// puts home on the GPS; eten eet je hier op (#502). Vehicles stay in Garage,
+// clues and people in Verhaal.
 import { WEAPONS, hasWeapon, isMeleeWeapon } from './combat.js';
 import { WEAPON_STOCK, OUTFITS, CAR_UPGRADES, BIKE_UPGRADES, MOTO_UPGRADES, inventoryShopState } from './shops.js';
 import { furnitureOwned, FURNITURE_TOTAL } from './furniture.js';
@@ -14,6 +15,7 @@ import { getSaveSet, EIERBAL_TOTAL } from './achievements.js';
 import { SECRETS_TOTAL } from './geheimen.js';
 import { getLedger, summary } from './finance.js';
 import { woordenVan, past } from './zoektekst.js';
+import { soort as visSoort } from './visdata.js';
 
 const ICON = {
   geld: '<rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/><path d="M6 9.5v5M18 9.5v5"/>',
@@ -21,6 +23,7 @@ const ICON = {
   melee: '<path d="M5 19l9-9M14 10l2-6 4 4-6 2M4 20l2-2"/>',
   werp: '<path d="M8 8h8l1 12H7zM9 8V5h6v3M12 5V3"/>',
   kleding: '<path d="M8 3l4 2 4-2 5 4-3 3-2-1v12H8V9l-2 1-3-3z"/>',
+  eten: '<path d="M6 3v7a3 3 0 0 0 6 0V3M9 3v18M17 3v6c0 2 3 2 3 4v3M17 16h3"/>',
   thuis: '<path d="M3 11l9-7 9 7M5 10v10h14V10M10 20v-6h4v6"/>',
   kaart: '<rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18M7 14h4"/>',
   upgrade: '<path d="M12 4l6 7h-4v8h-4v-8H6z"/>',
@@ -30,6 +33,7 @@ const SECTIONS = [
   ['wapens', 'Wapens'],
   ['werp', 'Werpspul'],
   ['kleding', 'Kleding'],
+  ['eten', 'Eten'],
   ['thuis', 'Thuis'],
   ['kaart', 'Kaarten & verzamelingen'],
   ['upgrade', 'Upgrades'],
@@ -38,18 +42,85 @@ const SECTIONS = [
 // Wat er staat als een categorie nog leeg is: waar je het vindt (#435)
 const EMPTY = {
   werp: 'Nog niets om te gooien. Pang & Zo verkoopt het.',
+  eten: 'Nog niets te eten. De toonbank verkoopt snacks; wat je vangt, gaat mee naar huis.',
   thuis: 'Nog geen meubels. EIKEA heeft ze; thuis zet je ze neer.',
   upgrade: 'Nog geen upgrades. Knal & Kolder Tuning en Spaak & Band helpen je graag.',
 };
 // Categorieen die ook leeg zichtbaar blijven, zodat je weet dat ze bestaan
-const ALWAYS = new Set(['werp', 'thuis', 'upgrade']);
+const ALWAYS = new Set(['werp', 'eten', 'thuis', 'upgrade']);
 
 // De delen van het scherm (#435): met een druk op de knop zie je alleen wat je
 // bij je hebt, wat thuis staat of wat je verzamelt.
 export const DELEN = [['alles', 'Alles'], ['uitrusting', 'Uitrusting'], ['thuis', 'Thuis'], ['verzameling', 'Verzamelingen']];
 // geld hoort bij geen enkel deel: je ziet het bij Alles bovenaan, en in de
 // andere delen gaat het over spullen (#435)
-const DEEL_VAN = { geld: 'geld', wapens: 'uitrusting', werp: 'uitrusting', kleding: 'uitrusting', upgrade: 'uitrusting', thuis: 'thuis', kaart: 'verzameling' };
+const DEEL_VAN = { geld: 'geld', wapens: 'uitrusting', werp: 'uitrusting', kleding: 'uitrusting', eten: 'uitrusting', upgrade: 'uitrusting', thuis: 'thuis', kaart: 'verzameling' };
+
+// Eten (#502): wat je bij je hebt om op te eten. De toonbank (shops.js) verkoopt hetzelfde
+// eten; de namen en de gezondheid per stuk zijn daar overgenomen, want deze module mag de
+// winkel niet aanpassen. Opeten gebruikt precies de regel van de toonbank:
+// world.health = min(100, health + hp). De aantallen staan als voorraad op het world-object
+// (id -> aantal), net als w.ammo: geen eigen saveformaat. De save schrijft dit veld nog niet
+// (savegame.js valt buiten deze opdracht), dus na een herstart begin je met een lege maag.
+const TOONBANK = [
+  ['krentenbol', 'Krentenbol', 3, 'Avondwinkel'],
+  ['koffie', 'Koude bak koffie', 6, 'Avondwinkel'],
+  ['drop', 'Zak drop', 5, 'Avondwinkel'],
+  ['energie', 'Energiedrankje "Grunn Bull"', 12, 'Avondwinkel'],
+  ['ehbo', 'EHBO-doos', 45, 'Avondwinkel'],
+  ['kroket', 'Kroket', 8, 'Snackbar'],
+  ['frikandel', 'Frikandel speciaal', 9, 'Snackbar'],
+  ['eierbal', 'Eierbal', 12, 'Snackbar'],
+  ['oorlog', 'Patatje oorlog', 13, 'Snackbar'],
+  ['kapsalon', 'Kapsalon', 30, 'Snackbar'],
+];
+const EETBAAR = new Map(TOONBANK.map(([id, label, hp, how]) => [id, { label, hp, how }]));
+// Een gevangen vis is ook eten; hij vult meer dan een snack. De soort komt uit visdata.js.
+const VIS_HP = 15;
+const VIS_VOOR = 'vis:';
+
+// Wat een id is: een snack van de toonbank of een vis uit het hengelen (vis:<soort>).
+export function eetWaar(id) {
+  const snack = EETBAAR.get(id);
+  if (snack) return snack;
+  const s = typeof id === 'string' && id.startsWith(VIS_VOOR) ? visSoort(id.slice(VIS_VOOR.length)) : null;
+  return s ? { label: s.naam, hp: VIS_HP, how: 'Zelf gevangen' } : null;
+}
+
+// De voorraad eten die je bij je hebt, op naam gesorteerd. Wat niet (meer) bestaat telt niet mee.
+export function eetVoorraad(w) {
+  const bron = w && w.eten && typeof w.eten === 'object' ? w.eten : {};
+  const out = [];
+  for (const [id, n] of Object.entries(bron)) {
+    const waar = eetWaar(id);
+    const aantal = Math.max(0, Math.floor(Number(n) || 0));
+    if (waar && aantal > 0) out.push({ id, ...waar, aantal });
+  }
+  return out.sort((a, b) => a.label.localeCompare(b.label, 'nl'));
+}
+
+// Erbij krijgen (hengelen.js doet dit met een vis). Zonder world of met een onbekend id
+// gebeurt er niets, zodat een aanroep nooit stukloopt.
+export function voegEtenToe(w, id, n = 1) {
+  if (!w || !eetWaar(id)) return 0;
+  if (!w.eten || typeof w.eten !== 'object') w.eten = {};
+  const bij = Math.floor(Number(n));
+  const aantal = Math.max(0, Math.floor(Number(w.eten[id]) || 0) + (Number.isFinite(bij) ? bij : 0));
+  if (aantal) w.eten[id] = aantal; else delete w.eten[id];
+  return aantal;
+}
+
+// Opeten: dezelfde regel als de toonbank (shops.js foodItem). Op volle gezondheid blijft
+// het eten liggen, net als daar ("om mee te nemen"). Geeft de melding voor het paneel.
+export function eet(w, id) {
+  const waar = eetWaar(id);
+  const hebben = w && w.eten ? Math.floor(Number(w.eten[id]) || 0) : 0;
+  if (!waar || hebben <= 0) return 'Dat heb je niet bij je.';
+  if (w.health >= 100) return `${waar.label}: je zit vol, die bewaar je voor straks.`;
+  w.health = Math.min(100, w.health + waar.hp);
+  voegEtenToe(w, id, -1);
+  return `${waar.label}: lekker! Gezondheid ${Math.round(w.health)}`;
+}
 
 // Wat er in een kaartje staat, als één lap tekst om in te zoeken
 const zoektekst = (it) => [it.title, it.sub, it.how, it.perk, (SECTIONS.find(([c]) => c === it.cat) || [, ''])[1]].join(' ').toLowerCase();
@@ -70,6 +141,9 @@ let sel = null;
 let byKey = new Map();
 let zoek = '';
 let deel = 'alles';
+// De melding van de laatste actie (#502): die hoort in het detailpaneel, want de HUD zit
+// achter het pauzemenu en w.addMessage zou je nooit zien.
+let note = '';
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const euro = (v) => '€' + Math.round(v).toLocaleString('nl-NL');
 const svg = (id) => `<svg class="pm-ic" viewBox="0 0 24 24" aria-hidden="true">${ICON[id] || ICON.kaart}</svg>`;
@@ -141,6 +215,17 @@ function collect(w) {
       act: getHomeForRender().length ? { label: 'Route naar huis', run: () => homeRoute(f.short || f.label) } : null });
   }
 
+  // Eten (#502): elk eetbaar ding een eigen kaart, met "Opeten" als actie. De actie
+  // gebruikt dezelfde gezondheidsregel als de toonbank (eet hierboven).
+  const eten = eetVoorraad(w);
+  const stuks = eten.reduce((n, e) => n + e.aantal, 0);
+  counts.eten = stuks ? `${stuks} ${stuks === 1 ? 'stuk' : 'stuks'}` : '';
+  for (const e of eten) {
+    out.push({ key: 'e:' + e.id, cat: 'eten', icon: 'eten', title: e.label, sub: `${e.aantal} ${e.aantal === 1 ? 'stuk' : 'stuks'} · +${e.hp} gezondheid`,
+      side: '', how: e.how, perk: 'Opeten kan overal, ook hier in het menu', rows: [['Gezondheid', `${Math.round(w.health)} van 100`]],
+      act: { label: 'Opeten', run: () => eet(w, e.id) } });
+  }
+
   out.push({ key: 'k:stempels', cat: 'kaart', icon: 'kaart', title: 'Spaarkaart Krant & Kauwgom', sub: `${shop.stamps} van ${shop.stampCard} stempels`, how: 'Een stempel per aankoop bij Krant & Kauwgom', perk: 'Volle kaart: inleveren bij Krant & Kauwgom' });
   let jr = null;
   try { jr = getStoryJournal(); } catch (e) { /* story not ready */ }
@@ -181,7 +266,8 @@ function detailHtml() {
   if (it.act) btns += `<button type="button" class="m-bp" data-spul-act="${esc(it.key)}">${esc(it.act.label)}</button>`;
   if (it.link) btns += `<button type="button" class="${it.act ? 'm-bg' : 'm-bp'}" data-goto="${it.link[0]}">${esc(it.link[1])}</button>`;
   return `<div class="pm-pane-top"><span class="m-eb sp-gh">${svg(it.icon)}${esc((SECTIONS.find(([c]) => c === it.cat) || [, ''])[1])}</span><h2 class="m-h2 td-h2">${esc(it.title)}</h2></div>` +
-    `${it.sub ? `<p>${esc(it.sub)}</p>` : ''}${rows ? `<div class="m-facts td-stack">${rows}</div>` : ''}<span class="m-grow"></span>${btns ? `<div class="m-acts td-acts">${btns}</div>` : ''}`;
+    `${it.sub ? `<p>${esc(it.sub)}</p>` : ''}${rows ? `<div class="m-facts td-stack">${rows}</div>` : ''}<span class="m-grow"></span>` +
+    `${note ? `<p class="m-note" data-spul-melding role="status">${esc(note)}</p>` : ''}${btns ? `<div class="m-acts td-acts">${btns}</div>` : ''}`;
 }
 
 // Draws the section into panel (pausemenu.js); returns the sheet subtitle.
@@ -222,8 +308,26 @@ export function spullenFocus(panel, el) {
   const c = el && el.closest && el.closest('[data-spul]');
   if (!c || !panel.contains(c) || c.dataset.spul === sel) return;
   sel = c.dataset.spul;
+  note = ''; // een andere kaart: de melding van de vorige actie hoort er niet meer bij
   for (const b of panel.querySelectorAll('[data-spul]')) b.toggleAttribute('aria-current', b.dataset.spul === sel);
   panel.querySelector('.td-detail').innerHTML = detailHtml();
+}
+
+// Een kaartselector zonder CSS.escape: de sleutels zijn van ons (geen quotes), en zo
+// werkt dezelfde code ook buiten de browser (scripts/spullen_eten_test.mjs).
+const kaartSel = (key) => `[data-spul="${String(key).replace(/["\\]/g, '\\$&')}"]`;
+
+// De actie van een kaart uitvoeren: de knop in het detail doet dit via een klik, Enter op
+// de kaart zelf komt hier ook uit (#502). De melding gaat naar het paneel, niet naar de
+// HUD: die zit achter het pauzemenu. Geeft false als de kaart niets kan.
+export function spullenEnter(panel, key, a) {
+  const it = byKey.get(key);
+  if (!it || !it.act) return false;
+  note = it.act.run() || '';
+  const kaart = panel ? panel.querySelector(kaartSel(key)) : null;
+  if (a) a.rerender(kaart);
+  note = ''; // de tekst staat nu in het paneel; een volgende tekening begint schoon
+  return true;
 }
 
 export function spullenClick(e, w, panel, a) {
@@ -232,8 +336,9 @@ export function spullenClick(e, w, panel, a) {
   const act = e.target.closest('[data-spul-act]');
   if (act) {
     const it = byKey.get(act.dataset.spulAct);
-    if (it && it.act) { const msg = it.act.run(); if (msg) w.addMessage(msg, 3); }
-    a.rerender(panel.querySelector(`[data-spul="${CSS.escape(act.dataset.spulAct)}"]`));
+    if (it && it.act) note = it.act.run() || '';
+    a.rerender(panel.querySelector(kaartSel(act.dataset.spulAct)));
+    note = ''; // net als bij Enter: de melding blijft in het paneel staan, niet in de staat
     return true;
   }
   const c = e.target.closest('[data-spul]');
