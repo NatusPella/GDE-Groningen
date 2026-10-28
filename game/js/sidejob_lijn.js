@@ -11,7 +11,7 @@ import { makeRide, planRide, startRide, takeOverService, updateRide, rideStop, s
 import { project, makeRunner } from './busroutes.js';
 import { busCoopStart, busCoopTik, busCoopBetaal } from './coopbus.js';
 import { nieuweHalte } from './buscoop.js';
-import { makeBediening, voorligger, kleeft, stoot, waardering, tevredenWoord, ritPunten } from './busbestuur.js';
+import { makeBediening, voorligger, kleeft, stoot, waardering, tevredenWoord, ritPunten, teVroegTekst } from './busbestuur.js';
 
 const COACH = { name: 'bus', len: 11.5, wid: 2.55, maxSpeed: 22, accel: 2.6, brake: 9, turnRate: 1.1, color: '#2e8b6a' };
 
@@ -115,7 +115,9 @@ export default {
   update(dt, c) {
     const d = c.data, v = c.vehicle;
     if (!d.ride) return;
-    c.timeLeft = Math.max(5, c.timeLeft);
+    // De dienstklok telt in sidejobs.js af (c.timeLeft -= dt). Hier stond `c.timeLeft = Math.max(5, c.timeLeft)`,
+    // dat zette hem elke tik terug op 5 s: de aftelling in het HUD bleef op "5s" staan en de dienst liep nooit af
+    // (#502). De marge van twee minuten uit round() is genoeg, dus de klok loopt nu gewoon door.
     const bed = v.busBediend;
     if (bed && bed.slag) { bed.slag = false; stoot(d.ride.tevreden, -10); } // open deuren onderweg: de reizigers schrikken
     const bus = d.bus || (d.bus = { x: 0, y: 0, speed: 0, doors: null, tailgate: false });
@@ -141,7 +143,7 @@ export default {
       } else if (e.type === 'request') c.msg(`Een reiziger drukte op de halteknop: stoppen bij ${e.stop.name}.`, 2.6);
       else if (e.type === 'skipped') c.msg('Voorbij de halte met dichte deuren: de reizigers blijven staan!', 3);
       else if (e.type === 'klever') c.msg(pick(WORDS.klever), 2.6);
-      else if (e.type === 'early') c.msg('Je rijdt te vroeg weg! Wacht op de tijd.', 2.6);
+      else if (e.type === 'early') c.msg(teVroegTekst(d.ride.dwellLeft, e.stop && e.stop.name), 3);
       else if (e.type === 'hardbrake') c.msg(pick(WORDS.hardbrake), 2.2);
       else if (e.type === 'fail') { c.fail('je bent te laat voor de dienstregeling'); return; }
       else if (e.type === 'done') {

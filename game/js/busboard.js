@@ -94,6 +94,16 @@ export function nextStopInfo(line, dir, s) {
   return { index: idx, name: stopLabel(line, idx), dist, last, wrapped };
 }
 
+// Het HUD-kaartje van de volgende halte (#502): het kopje zegt waar het over gaat en de haltenaam staat
+// eronder, in plaats van het algemene kopje "Tip" boven een halve zin. De eindhalte heeft een eigen kopje,
+// want daar stappen alle reizigers uit. Geeft { kicker, text } of null.
+export function stopCard(info) {
+  if (!info) return null;
+  const kicker = info.last ? 'Eindhalte' : 'Volgende halte';
+  const text = info.last ? `${info.name}${info.dist < NEAR ? ': alle reizigers uitstappen' : ''}` : info.name;
+  return { kicker, text };
+}
+
 // Tekstmelding voor de HUD; null als er niets te melden valt.
 export function stopAnnouncement(info) {
   if (!info) return null;
