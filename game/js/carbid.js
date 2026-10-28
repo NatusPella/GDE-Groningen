@@ -15,6 +15,7 @@ import { CARBID_LINES } from './funlines.js';
 import { ROELF_LOOK, HILJE_LOOK } from './storycast.js';
 import { rand } from './rng.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
+import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
 
 // Carbid schieten, the Groningen New Year's bang, on a meadow off the
 // Beijumerweg between Beijum and Zuidwolde. Boer Roelf and Hilje have a
@@ -186,7 +187,8 @@ function resetTargets() {
 }
 
 function updateLod(w) {
-  const d = Math.hypot(w.player.x - FIELD.x, w.player.y - FIELD.y);
+  const speler = hoofdspeler(w);
+  const d = Math.hypot(speler.x - FIELD.x, speler.y - FIELD.y);
   if (!built && d < DETAIL_M) { built = buildField(); resetTargets(); }
   if (!built) return;
   const vis = d < DETAIL_M + 60 || !!game;
@@ -213,7 +215,7 @@ function drawIcon(ctx, s) {
 // --- prompt and start ----------------------------------------------------------------------
 
 function nearStand(w) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (game || w.pigeonMode || w.heliRun || p.inVehicle || p.swimming) return false;
   return Math.hypot(p.x - STAND.x, p.y - STAND.y) < USE_RADIUS;
 }
@@ -227,8 +229,9 @@ function prompt(w) {
 }
 
 function secondary(w) {
-  if (game || w.player.inVehicle) return [];
-  if (Math.abs(w.player.x - FIELD.x) > 40 || Math.abs(w.player.y - FIELD.y) > 40) return [];
+  const p = hoofdspeler(w);
+  if (game || p.inVehicle) return [];
+  if (Math.abs(p.x - FIELD.x) > 40 || Math.abs(p.y - FIELD.y) > 40) return [];
   return [{ id: 'carbid-2', x: STAND.x, y: STAND.y, h: 2.2, label: 'Carbid schieten', sub: 'Loop naar de melkbus en druk E', kind: 'place' }];
 }
 
@@ -244,6 +247,8 @@ function start(w) {
   if (game) return false;
   if (!built) { built = buildField(); }
   resetTargets();
+  // hier schrijft het spel het eigen lichaam (uit de auto, naar de melkbus): dat
+  // blijft world.player, want alleen de lezers gaan via hoofdspeler (#500)
   const p = w.player;
   if (p.inVehicle) p.exitVehicle(w.map, w);
   // carbid is shot at dusk: by day the farmers wait for it
@@ -326,7 +331,7 @@ function ignite(w, g) {
   spawnExplosionFx(m.x + c * 0.4, m.y + s * 0.4, m.z, 0x8a9197, 0.18 + power * 0.42);
   flashMuzzleLight(m.x, m.z + 0.5, m.y, 1.5 + power * 2);
   for (let k = 0; k < 10; k++) spawnFxPuff(m.x, m.z, m.y, c * rand(2, 6) + rand(-1, 1), rand(0.5, 2), s * rand(2, 6) + rand(-1, 1), rand(1, 2), 0.3, 1.6, 0.86, 0.86, 0.84, 0.5, 1.4, 0.3);
-  const p = w.player;
+  const p = hoofdspeler(w);
   const pd = Math.hypot(m.x - p.x, m.y - p.y);
   w.lastImpact = { strength: Math.min(1, 0.25 + power * 0.6) * (pd < 12 ? 1 : 0.5), time: w.time, x: m.x, y: m.y, blast: true, own: true };
   const v0 = kind === 'dud' ? 3 : launchSpeed(power);
@@ -450,6 +455,8 @@ function updateGame(w, dt) {
   if (g.recoil) g.recoil = Math.max(0, g.recoil - dt * 1.6);
   w.clock = g.clock;
   if (input.wasPressed('backspace')) { input.consume('backspace'); end(w, { quit: true }); return; }
+  // de mikser zet de speler zelf neer (x, y, hoek): een schrijfactie op het eigen
+  // lichaam, dus met opzet world.player en niet de leesbare ingang (#500)
   const p = w.player;
   p.x = STAND.x; p.y = STAND.y; p.speed = 0; p.moving = false;
   p.angle = FIELD.rot + g.yaw * 0.5;
@@ -767,7 +774,7 @@ export const CARBID = {
     return rec && rec.medal ? `Carbid schieten · record ${rec.best} punten (${MEDALS[rec.medal].toLowerCase()})` : 'Carbid schieten bij boer Roelf, bij schemer';
   },
   ubbo(w) {
-    const d = Math.hypot(STAND.x - w.player.x, STAND.y - w.player.y);
+    const d = Math.hypot(STAND.x - hoofdspeler(w).x, STAND.y - hoofdspeler(w).y);
     const rec = getChallengeRecord('carbid');
     return { name: 'Carbid schieten', sub: `${rec && rec.medal ? 'record: ' + MEDALS[rec.medal].toLowerCase() : 'vijf knallen in de polder'}`, dist: d, x: STAND.x, y: STAND.y, play: 'carbid', where: 'het carbidveld van boer Roelf', hint: 'loop naar de melkbus en druk E' };
   },

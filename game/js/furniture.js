@@ -17,6 +17,7 @@ import { getStationsForRender } from './stationtravel.js';
 import { storyFlag } from './storyquery.js';
 import { isVerplaatsbaar, schoonPlekken, plekVan, volgendePlek, opPlek, plekInfo, zonderStock } from './inrichting.js';
 import { getLedger, summary } from './finance.js';
+import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
 
 // EIKEA furniture for Tammo and Tessa's flat (home.js). Bought in the EIKEA
 // (shops.js eikeaSections), delivered "tussen 8 en 18 uur": the next time
@@ -89,7 +90,7 @@ function blank() {
 }
 
 const has = (id) => state.owned.has(id) && (!BY_ID.get(id).flatpack || state.built.has(id));
-const other = (w) => (w.player.character === 'anita' ? 'Tammo' : 'Tessa');
+const other = (w) => (hoofdspeler(w).character === 'anita' ? 'Tammo' : 'Tessa');
 const sayOnce = (w, key, text) => { if (said.has(key)) return; said.add(key); w.addMessage(text, 4, { kind: 'tip' }); };
 
 // --- save ------------------------------------------------------------------------
@@ -369,7 +370,7 @@ export function updateFurniture(dt, w) {
 
 // A use that holds the focus wherever the player stands (on the sofa, TV on).
 export function furnitureFocus(w) {
-  if (seat) return { k: 'f-bank', s: { x: w.player.x, y: w.player.y } };
+  if (seat) return { k: 'f-bank', s: { x: hoofdspeler(w).x, y: hoofdspeler(w).y } };
   if (tv && parent) {
     const tvEff = eff(BY_ID.get('tv'));
     const [x, y] = parent.flat.fl(tvEff.use.x, tvEff.use.z);
@@ -489,6 +490,8 @@ function seatSpot() {
 
 function sitDown(w) {
   if (!parent) return;
+  // zitten zet het eigen lichaam op de bank (x, y, vx, vy, sofaSeat): schrijven
+  // blijft via world.player, alleen lezers gaan door hoofdspeler (#500)
   const p = w.player;
   const s = seatSpot();
   seat = { x: s.x, y: s.y };
@@ -507,6 +510,7 @@ function sitDown(w) {
 function standUp(w, place) {
   if (!seat) return;
   seat = null;
+  // opstaan schrijft de plek van het eigen lichaam: geen lezer, dus world.player (#500)
   const p = w && w.player;
   if (!p) return;
   p.sofaSeat = null;
@@ -592,7 +596,7 @@ function updateTv(dt, w) {
   if (!tv) return;
   const tvAt = eff(BY_ID.get('tv')).at;
   const [x, y] = parent.flat.fl(tvAt.x, tvAt.z + 2.4);
-  if (Math.hypot(w.player.x - x, w.player.y - y) > TV_RANGE) { stopTv(); return; }
+  if (Math.hypot(hoofdspeler(w).x - x, hoofdspeler(w).y - y) > TV_RANGE) { stopTv(); return; }
   tv.t += dt;
   if (tv.t < tv.next) return;
   tv.i++;
@@ -626,7 +630,7 @@ function sleepMenu(w, api) {
 // --- wandkaart: pick a destination ------------------------------------------------------
 
 function mapMenu(w) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   const d = (o) => Math.hypot(o.x - p.x, o.y - p.y);
   const go = (id, label, o, sub) => ({
     id, label, desc: `${sub} · ${formatDistance(d(o))}`, verb: 'Route uitzetten', price: 0, keepFocus: true,
@@ -700,7 +704,7 @@ function pcMenu(w) {
 function bestJob(w) {
   const spots = getSideJobSpotsForRender();
   if (!spots.length) { w.addMessage('Ubbo vindt geen klussen. Raar', 3); return; }
-  const p = w.player;
+  const p = hoofdspeler(w);
   const s = spots.reduce((b, o) => (!b || Math.hypot(o.x - p.x, o.y - p.y) < Math.hypot(b.x - p.x, b.y - p.y) ? o : b), null);
   setUserWaypoint(s.x, s.y, s.job.name);
   w.addMessage(`Ubbo op de pc: bijbaantjes betalen nu 10% extra. Dichtstbij: ${s.job.name}, route staat`, 4.5, { kind: 'tip' });
@@ -716,7 +720,7 @@ export function updateFurnitureInside(dt, w) {
   const night = (w.dayNight && w.dayNight.night) || 0;
   if (night > 0.05) {
     // the ceiling lamp of the room you are in; the Lichtje Tjoek outshines it in the living room
-    const p = w.player, dx = p.x - f.ox, dy = p.y - f.oy;
+    const p = hoofdspeler(w), dx = p.x - f.ox, dy = p.y - f.oy;
     const px = dx * f.X[0] + dy * f.X[1], pz = dx * f.Y[0] + dy * f.Y[1];
     const room = f.rooms.find((r) => px >= r.x0 && px <= r.x1 && pz >= r.z0 && pz <= r.z1);
     const k = Math.min(1, night * 1.5);
@@ -736,6 +740,8 @@ export function updateFurnitureInside(dt, w) {
     if (++moment.i >= MOMENT.length) moment = null;
   }
   if (!seat) return false;
+  // op de bank blijft het eigen lichaam vastgezet (x, y, vx, vy): schrijven via
+  // world.player, de rest van dit bestand leest via hoofdspeler (#500)
   const p = w.player;
   const [ax, ay] = w.input ? w.input.axis() : [0, 0];
   if (ax || ay || p.inVehicle) { standUp(w, true); return false; }
