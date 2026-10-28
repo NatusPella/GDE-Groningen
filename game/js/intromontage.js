@@ -30,6 +30,7 @@ import { KEYS } from './storagekeys.js';
 import { BIRDS, makeBirds, scatterBirds, updateBirds } from './birds.js';
 import { setIntroPlaying } from './trailerstate.js';
 import { openBank } from './voicebank.js';
+import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
 
 // Recorded montage dialogue: the story manifest ("<speaker>|<text>"), then the
 // lines manifest (linevoice.js) for the newer lines.
@@ -335,6 +336,8 @@ export function seat(m, v, driver) {
 function moveSet(r, x, y) {
   const w = r.w, map = w.map;
   const [sx, sy] = map.escapeBuilding(x, y);
+  // de montage zet de speler zelf neer tussen twee shots: een schrijfactie op het
+  // eigen lichaam, dus bewust world.player en niet hoofdspeler (#500)
   const p = w.player;
   p.x = sx; p.y = sy; p.vx = 0; p.vy = 0;
   const c = w.companion;
@@ -1238,14 +1241,14 @@ function enterShot(r, i) {
   if (shot.black) {
     ui.black.classList.add('on');
     if (shot.card) showCard(shot.card, shot.dur);
-    sfx(w, 'camera_shutter', w.player.x, w.player.y);
+    sfx(w, 'camera_shutter', hoofdspeler(w).x, hoofdspeler(w).y);
   } else {
     ui.black.classList.remove('on');
     // a big trailer word over the picture
     if (shot.card) showCard(shot.card, shot.cardDur || shot.dur);
     else ui.card.classList.remove('on');
     if (!prev || !prev.black) flash();
-    sfx(w, 'whoosh', w.player.x, w.player.y);
+    sfx(w, 'whoosh', hoofdspeler(w).x, hoofdspeler(w).y);
   }
   ui.flare.classList.toggle('on', !!shot.flare);
   if (shot.flare) {
@@ -1266,6 +1269,8 @@ function enterShot(r, i) {
 
 function restoreHome(r) {
   const w = r.w, s = r.saved;
+  // de montage zet het eigen lichaam terug op de bewaarde plek: schrijven, dus
+  // world.player; de rest van dit bestand leest via hoofdspeler (#500)
   w.player.x = s.px; w.player.y = s.py; w.player.angle = s.pa; w.player.vx = 0; w.player.vy = 0;
   const c = w.companion;
   if (c && s.comp) { c.x = s.comp.x; c.y = s.comp.y; c.angle = s.comp.angle; c.vx = 0; c.vy = 0; }
@@ -1300,7 +1305,7 @@ function frame(r, t) {
   if (frozen && !r.frozen) {
     r.frozen = true;
     flash();
-    sfx(w, 'camera_shutter', w.player.x, w.player.y);
+    sfx(w, 'camera_shutter', hoofdspeler(w).x, hoofdspeler(w).y);
     document.body.classList.add('im-frozen');
   }
   const sv = frozen ? shot.freeze : st;
@@ -1328,7 +1333,7 @@ function frame(r, t) {
     let k = 0;
     while (k < shot.cams.length - 1 && sv >= shot.camAt[k + 1]) k++;
     // a cut inside a shot: a hard cut on the line, only a soft whoosh
-    if (k !== r.camIdx) { r.camIdx = k; sfx(w, 'whoosh', w.player.x, w.player.y, { strength: 0.4 }); }
+    if (k !== r.camIdx) { r.camIdx = k; sfx(w, 'whoosh', hoofdspeler(w).x, hoofdspeler(w).y, { strength: 0.4 }); }
     const a = shot.camAt[k], b = k + 1 < shot.cams.length ? shot.camAt[k + 1] : shot.dur;
     r.pose = shot.cams[k][1](clamp01((sv - a) / Math.max(0.1, b - a)), sv, r.state);
   }
@@ -1384,7 +1389,7 @@ export function playIntroMontage(w, { startAt = 0, flyShot, onDone } = {}) {
   let acc = 0;
   for (const s of shots) { starts.push(acc); acc += s.dur; }
   w.introTold = [];
-  const p = w.player, c = w.companion;
+  const p = hoofdspeler(w), c = w.companion;
   const r = {
     w, group, tammo, anita, shots, starts, cars: [], idx: -1, state: {}, lastT: 0, offset: Math.max(0, Math.min(total - 1, startAt)),
     camIdx: 0, pose: null, flyShot,
