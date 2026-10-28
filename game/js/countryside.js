@@ -17,6 +17,7 @@ import { updateFarProps, farPropsStats } from './farprops.js';
 import { updateCountryLife, lifeStats } from './countrylife.js';
 import { buildSign, disposeSign } from './countrysigns.js';
 import { EDGE, edgeBlocked, edgeSpanBlocked, roadGap, nearRail, landUseAt, hedgeMapped } from './countryedge.js';
+import { propVrij } from './propclear.js';
 import { ensureCountryEdge } from './countryplan.js';
 import { thinDitchOn, ditchRamp, provinceBlock, countrySurface, osmDitchesAt } from './countryfield.js';
 import { urbanWeight } from './provinceworld.js';
@@ -241,12 +242,19 @@ const ROAD_CLEAR = {
   tractorBody: 1, tractorBase: 1, trailerBody: 1, trailerBase: 1, grave: 0.5, glass: 1.5, clubhouse: 1.5,
   mast: 0.5, goal: 1, bank: 0.5, rush: 0.3,
 };
+// De waarde per soort is de voetafdruk van die soort (kroon, heg, baal, paal): dezelfde
+// regel in propclear.js houdt die afstand plus PROP_MARGE van elke verharding, ook die van
+// de tegels (#502). Een prop die niet in de tabel staat (een brug, een erf, een silo) legt
+// de bouw van het erf zelf neer.
+const propVrijHier = (x, y, type) => propVrij(x, y, ROAD_CLEAR[type]);
+// (de hash-weg alleen: voor de uiteinden van een draad en de plek van een kudde, waar de
+//  prop zelf niet staat; de props gaan door propVrijHier)
 const clearOfRoad = (x, y, m) => roadGap(x, y, m + 0.5) >= m;
 
 function push(tile, type, x, y, rotY, sx, sy, sz, color = 0xffffff, jitter = 0.08, yOff = 0, code = 0) {
   const clear = ROAD_CLEAR[type];
   if (clear !== undefined) {
-    if (!clearOfRoad(x, y, clear)) return false;
+    if (!propVrijHier(x, y, type)) return false;
     // a hedge piece lies over the tiles' water, roads or houses at its ends or in between (issue #124)
     if (type === 'hedge') {
       const hx = Math.cos(rotY) * sx * 0.5, hy = -Math.sin(rotY) * sx * 0.5;

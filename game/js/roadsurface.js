@@ -13,6 +13,7 @@ import { planBlends, blendAttributes, linearOf } from './surfaceblend.js';
 import { laneLayout } from './lanes.js';
 import { taperLines, taperLength, taperOffset } from './lanetaper.js';
 import { isMarktFietsRoad, marktFietsSpans, MARKT } from './roadaccess.js';
+import { verfBovenWater } from './waterlevels.js';
 
 // Street surfaces: procedural asphalt / klinkers / stoeptegels / gravel in the
 // shared wet-ground shader, mitred ribbons carrying road-space coordinates,
@@ -1531,7 +1532,38 @@ function markingGeometry(r) {
   }
 
   if (!M.idx.length) return null;
+  verfBovenWaterUit(M);
+  if (!M.idx.length) return null;
   return finishGeometry(M.pos, M.nrm, M.idx, [['uv', M.uv, 2]]);
+}
+
+// Wegmarkering hoort alleen op verharding die boven water uitkomt (#502, playtest 27-10):
+// bij een brug, een duiker of een weg die in de polder onder het peil ligt, kwam de verf
+// naast of onder het water uit. De verf volgt het wegdek (r.z, at()); hier valt elk
+// driehoekje weg waarvan een hoekpunt op of onder de waterspiegel van die plek ligt
+// (waterlevels.js verfBovenWater). Het dek van een brug ligt boven water en houdt zijn verf.
+// pos: x, hoogte, y per punt (de markBuf van roadsurface.js); idx: driehoekjes.
+export function verfBovenWaterIndices(map, pos, idx) {
+  if (!map || !map.waterNear) return idx;
+  // (per halve meter één keer vragen: een streep heeft vaak twee punten in dezelfde cel)
+  const cache = new Map();
+  const boven = (i) => {
+    const k = Math.round(pos[i] * 2) + ',' + Math.round(pos[i + 2] * 2);
+    let v = cache.get(k);
+    if (v === undefined) cache.set(k, (v = verfBovenWater(map, pos[i], pos[i + 2], pos[i + 1])));
+    return v;
+  };
+  const keep = [];
+  for (let i = 0; i < idx.length; i += 3) {
+    if (boven(idx[i] * 3) && boven(idx[i + 1] * 3) && boven(idx[i + 2] * 3)) keep.push(idx[i], idx[i + 1], idx[i + 2]);
+  }
+  return keep;
+}
+
+function verfBovenWaterUit(M) {
+  if (!netMap) return;
+  const keep = verfBovenWaterIndices(netMap, M.pos, M.idx);
+  if (keep.length !== M.idx.length) M.idx = keep;
 }
 
 // The surface geometries of a road as buildRoadGroup makes them, uncached,

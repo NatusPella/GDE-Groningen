@@ -14,6 +14,7 @@ import { buildInteriorOf } from './interieur3d.js';
 import { marktKind, buildMarktGroup } from './marktgebouwen.js';
 import { hash2 } from './rng.js';
 import { poiLayerPlace } from './facilities.js';
+import { woonbootY, WOONBOOT_DIEPTE } from './waterlevels.js';
 
 // Procedural Groningen buildings. Geometry bakes absolute world coordinates
 // (x, height, map-y) and is cached per building on b._geo3dParts: the wall
@@ -26,8 +27,9 @@ const LEVEL_HEIGHT = 3.1;
 const TOWER_HEIGHT = 95;
 const HOUSEBOAT_MAX_DEPTH = 4.2, HOUSEBOAT_MIN_DEPTH = 2.6;
 // Houseboats are built from y=0 like any building, then the whole group is
-// sunk so the hull sits HOUSEBOAT_DRAFT deep in the canal.
-const HOUSEBOAT_DRAFT = 0.3;
+// sunk so the hull sits HOUSEBOAT_DRAFT deep in the canal. (De diepgang staat in
+// waterlevels.js: daar rekent woonbootY het waterpeil van de plek mee.)
+const HOUSEBOAT_DRAFT = WOONBOOT_DIEPTE;
 export const HOUSEBOAT_BASE_Y = WATER_Y - HOUSEBOAT_DRAFT;
 const HOUSEBOAT_HULL_H = 0.85;
 const HOUSEBOAT_WALLS = [0x6b8a5a, 0x3f6f8a, 0x8a5a3c, 0xd6cab0, 0xcfb46c, 0x5b3a2e, 0xa3b2a0, 0x2f4a3a];
@@ -1472,8 +1474,19 @@ function addFoundation(geo, b) {
 }
 
 // Height of the bottom of the walls (the foundation's foot by the water).
+// Een woonboot ligt op het waterpeil van het water waarin hij ligt (#502, playtest 27-10):
+// waterlevels.js woonbootY geeft de waterspiegel van die plek min de diepgang, zodat hij mee
+// zakt met een meer met een eigen peil en niet op de vaste hoogte van de stadsboezem blijft
+// hangen. Zonder kaart (een audit) is dat de boezem, precies HOUSEBOAT_BASE_Y.
+export function houseboatBaseY(b) {
+  const map = mapRef();
+  const x = b.bounds ? (b.bounds[0] + b.bounds[2]) / 2 : b.pts && b.pts[0] ? b.pts[0][0] : 0;
+  const y = b.bounds ? (b.bounds[1] + b.bounds[3]) / 2 : b.pts && b.pts[0] ? b.pts[0][1] : 0;
+  return woonbootY(map, x, y);
+}
+
 export function buildingBase(b) {
-  if (archetypeOf(b) === 'houseboat') return HOUSEBOAT_BASE_Y;
+  if (archetypeOf(b) === 'houseboat') return houseboatBaseY(b);
   const f = buildingFoundation(b);
   return f ? f.y : 0;
 }
@@ -1490,7 +1503,7 @@ export function buildingLodStyle(b) {
     : archetype === 'house' || (archetype !== 'industrial' && archetype !== 'houseboat' && b.h <= 3 && Math.min(box.w, box.d) <= 11);
   return {
     ring: sanitizeFootprint(b.pts).pts,
-    base: archetype === 'houseboat' ? HOUSEBOAT_BASE_Y : 0,
+    base: archetype === 'houseboat' ? houseboatBaseY(b) : 0,
     depth: pitched ? depth + (b.hm && b.hm > depth + 0.8 ? Math.min(8, b.hm - depth) * 0.6 : 1.5) : depth,
     wallHex: BRICKS.has(wallHex) ? shade(wallHex, 0.95) : shade(wallHex, 0.9),
     roofHex: pitched ? shade(roofHex, 0.9) : 0x68686a,
@@ -1557,7 +1570,7 @@ export function buildBuildingMesh(b) {
   const parts = b._geo3dParts;
   if (!parts.main) parts.main = buildMainGeometry(b, depth);
   const group = new THREE.Group();
-  if (archetype === 'houseboat') group.position.y = HOUSEBOAT_BASE_Y;
+  if (archetype === 'houseboat') group.position.y = houseboatBaseY(b);
 
   if (b.landmark) {
     const stone = LANDMARK_STONE[b.landmarkKind] ? landmarkStoneMaterials[b.landmarkKind] : null;
