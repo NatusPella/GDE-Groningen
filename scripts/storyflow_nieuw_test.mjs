@@ -34,7 +34,7 @@ M.initMissions(world);
 const defs = M.getMissionDefs();
 const script = JSON.parse(fs.readFileSync(new URL('storydata/script.json', root), 'utf8'));
 const scenes = new Set(script.scenes.map((s) => s.id));
-const src = fs.readFileSync(new URL('js/missions.js', root), 'utf8');
+const src = fs.readFileSync(new URL('js/missions.js', root), 'utf8') + fs.readFileSync(new URL('js/missions_defs.js', root), 'utf8');
 
 // --- the chain
 const first = STEPS.findIndex((s) => s.id === 'M07');

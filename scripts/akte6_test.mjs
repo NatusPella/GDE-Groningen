@@ -85,7 +85,7 @@ const all = buildNieuwDefs({ map, walk: (x, y) => ({ x, y, road: null }), drive:
 ok(all.length === NEW_MISSION_IDS.length, 'buildNieuwDefs returns one def per new mission id', `${all.length}/${NEW_MISSION_IDS.length}`);
 ok(all[base].label === 'Inpakken' && all[base + 3].label === 'Het proefbeleg', 'the defs are in the order of the ids');
 const KINDS = new Set(['board', 'goto', 'hold', 'scene']);
-const src = fs.readFileSync(new URL('js/missions.js', root), 'utf8');
+const src = fs.readFileSync(new URL('js/missions.js', root), 'utf8') + fs.readFileSync(new URL('js/missions_defs.js', root), 'utf8');
 mine.forEach((d, k) => {
   ok(Number.isFinite(d.start.x) && Number.isFinite(d.start.y), `${d.label}: start`);
   ok(STEPS.some((s) => s.kind === 'mission' && s.reward === d.reward && s.mission === ours[k]), `${d.label}: reward equals the step's`);
