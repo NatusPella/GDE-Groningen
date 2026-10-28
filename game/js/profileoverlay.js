@@ -9,6 +9,7 @@
 // tunnel), OSM grade order and network.
 import { gradeLimit, GRADE_TOL, segmentStructures, gradeOrder } from './roadprofile.js';
 import { closestPointOnSegment } from './util.js';
+import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
 
 const W = 380, H = 170, SPAN = 150;
 const STRUCT_NAME = ['ground', 'deck', 'embankment', 'cutting', 'tunnel'];
@@ -52,7 +53,7 @@ const zOf = (r, i, t) => (r.z ? r.z[i] + (r.z[i + 1] - r.z[i]) * t : 0);
 
 export function draw() {
   if (!world || !canvas) return;
-  const map = world.map, p = world.player;
+  const map = world.map, p = hoofdspeler(world); // het eigen lichaam, niet de singleton (#500)
   const v = p.inVehicle;
   const st = (v && v.surf) || p.surf || null;
   const x = v ? v.x : p.x, y = v ? v.y : p.y;

@@ -4,6 +4,7 @@
 // Alles hier is puur (geen three.js): wildlife.js leest `a.aaiT` voor de reactie van het dier, scene3d.js de
 // `player.aaien` voor de houding. Een gast in een coöp-sessie doet dit niet (hij draait geen dierenwereld).
 import { recordStat } from './achievements.js';
+import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
 
 export const AAI_M = 2;          // binnen deze afstand (m) kan het
 export const AAI_S = 2.4;        // duur van één aai (s)
@@ -36,7 +37,7 @@ export function zoekAaibaar(dieren, p, nu = 0) {
 
 // Kan de speler nu aaien? (te voet, niet zwemmend, niet in een activiteit of in beeld)
 export function magAaien(w) {
-  const p = w && w.player;
+  const p = hoofdspeler(w); // via de leesbare ingang, niet de singleton (#500)
   if (!p || p.inVehicle || p.swimming || p.dead || (w.health != null && w.health <= 0)) return false;
   if (w.paused || w.uiPaused || w.activityGame || w.padelGame || w.pigeonMode || w.cinematicHidePlayers || w.coopInVoertuig) return false;
   return true;
@@ -44,8 +45,9 @@ export function magAaien(w) {
 
 export function aaiPrompt(w) {
   if (!magAaien(w)) return null;
-  if (w.player.aaien) return null;
-  const a = zoekAaibaar(w.wildlife, w.player, w.time);
+  const p = hoofdspeler(w);
+  if (!p || p.aaien) return null;
+  const a = zoekAaibaar(w.wildlife, p, w.time);
   if (!a) return null;
   const naam = a.kind === 'cat' ? 'de kat' : 'de hond';
   return { id: 'aaien-' + a.kind, x: a.x, y: a.y, h: 0.9, key: 'E', label: 'Aaien', sub: `Even over ${naam} strijken`, ring: true };
@@ -53,16 +55,21 @@ export function aaiPrompt(w) {
 
 // E: de aai begint. Het dier gaat zitten en kijkt naar je, de speler zakt door de knieën.
 export function startAaien(w) {
-  if (!magAaien(w) || w.player.aaien) return false;
-  const a = zoekAaibaar(w.wildlife, w.player, w.time);
+  const p = hoofdspeler(w);
+  if (!magAaien(w) || !p || p.aaien) return false;
+  const a = zoekAaibaar(w.wildlife, p, w.time);
   if (!a) return false;
+  // Schrijven op het eigen lichaam blijft op de opslagplek zelf: world.player is
+  // de bewaarplaats van dit lichaam (#500), niet iets om via de leesingang te zetten.
   w.player.aaien = { dier: a, t: 0, u: 0, beloond: false };
   a.aaiT = AAI_S;
   a.aaiNaT = w.time + AAI_PAUZE_S;
   if (a.kind === 'cat') { a.state = 'sit'; a.stateTimer = AAI_S + 1; a.speed = 0; }
   const q = w.audioEvents || (w.audioEvents = []);
   q.push({ kind: a.kind === 'cat' ? 'purr' : 'yip', x: a.x, y: a.y });
-  w.player.angle = Math.atan2(a.y - w.player.y, a.x - w.player.x);
+  // De hoek van het lichaam zelf zetten we op de opslagplek; de leesbare ingang
+  // geeft alleen lezen (#500).
+  w.player.angle = Math.atan2(a.y - p.y, a.x - p.x);
   return true;
 }
 
@@ -77,7 +84,7 @@ export function tryAaien(w) {
 
 // Elk beeld. Wegrennen of een voertuig nemen breekt de aai af (dan geen beloning).
 export function updateAaien(dt, w) {
-  const p = w && w.player;
+  const p = hoofdspeler(w);
   if (!p || !p.aaien) return;
   const s = p.aaien, a = s.dier;
   const weg = !a || a.dead || a.gone || Math.hypot(a.x - p.x, a.y - p.y) > AAI_M + 0.8

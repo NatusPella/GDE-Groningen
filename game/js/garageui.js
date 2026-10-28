@@ -10,6 +10,7 @@ import { createSharedPreview, renderSnapshot, cancelSnapshots } from './vehiclep
 import { reducedMotion } from './motion.js';
 import { getShopsForRender, SHOP_TYPES } from './shops.js';
 import { setUserWaypoint } from './routing.js';
+import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
 import {
   GARAGE_3Q_ANGLE, GARAGE_PIC_W, GARAGE_PIC_H, garagePicZoom, TURN_SPEED, TURN_FPS,
   garagePreviewSpec as previewSpec, garageCardLook, garageSaleShop, turntableTarget,
@@ -110,9 +111,10 @@ function viewerHtml(e, msg) {
 // Waypoint naar de dichtstbijzijnde winkel van dit soort (autodealer, fietsenwinkel, ...); geeft de melding terug.
 export function garageNaarWinkel(world, type) {
   let best = null, bd = Infinity;
+  const p = hoofdspeler(world); // afstand tot de speler van dit apparaat (#500)
   for (const s of getShopsForRender()) {
     if (s.type !== type) continue;
-    const d = Math.hypot(s.x - world.player.x, s.y - world.player.y);
+    const d = Math.hypot(s.x - p.x, s.y - p.y);
     if (d < bd) { bd = d; best = s; }
   }
   if (!best) return { ok: false, text: 'Deze winkel staat nog niet op de kaart.' };
