@@ -7,6 +7,8 @@ import { isInWater, closestPointOnSegment, pointInPolygon } from './util.js';
 import { saveSoon } from './savehook.js';
 import { nearestFacility, inDoorRange, poiLayerPlace } from './facilities.js';
 import { edgeDistance } from './countryfield.js';
+import { HERO_REPLACE_FEE } from './economy.js';
+import { noteMoney } from './finance.js';
 
 // Genre-style respawn trips, played after the DOOD / OPGEPAKT shot, to the
 // nearest real facility (facilities.js), in town and out in the Ommelanden:
@@ -311,33 +313,80 @@ function planArrival(w, siteIn) {
 
 // --- placing the car and the partner --------------------------------------------
 
-function parkHeroCar(w, plan) {
+// Staat de Escapade er nog? Een wrak of een gezonken auto telt niet mee: die is total loss
+// (#502). Staat er helemaal geen heldenauto (nieuw spel, samen spelen, oude save), dan is er
+// niets kapot en komt er gewoon een - vandaar `!h` en niet `some(...)`, want dan zou de
+// speler bij een nieuwe auto onterecht "total loss" te horen krijgen.
+const heroHeel = (w) => {
+  const h = w.vehicles.find((v) => v.isHeroCar);
+  return !h || !(h.wrecked || h.sinking);
+};
+
+// Wat de speler over de Escapade te horen krijgt als hij weer bij komt (#502): de auto die
+// hij had staat klaar (met zijn schade), of hij hoort wat een nieuwe kost en of hij dat kan
+// betalen. Bewust geen belofte in de rijke tak: de boete van deze respawn gaat er in
+// world.js nog af voordat de auto wordt neergezet, dus of het lukt blijkt pas in
+// parkHeroCar - die meldt de uitkomst.
+export function heroMelding(w) {
+  const fee = `€${HERO_REPLACE_FEE}`;
+  return (w.money || 0) >= HERO_REPLACE_FEE
+    ? `Je Escapade is afgeschreven. Een nieuwe kost ${fee}`
+    : `Je Escapade is afgeschreven. Bij de garage kost opknappen ${fee}, maar zoveel geld heb je niet`;
+}
+
+// De Escapade op de plek van de aankomst (#502). De auto die er al is houdt zijn health,
+// deuken, kleur en onderdelen: een respawn zet geen verse auto met health 100 neer. Alleen
+// een echte total loss (ontploft of gezonken) wordt vervangen, en dat kost HERO_REPLACE_FEE
+// - hetzelfde tarief als het wrak-item bij Henk (garages.js) - tenzij de speler het niet kan
+// betalen: dan blijft het wrak staan en zegt de melding waarom.
+export function parkHeroCar(w, plan, spawn = spawnHeroCarNear) {
   const map = w.map, c = plan.car;
-  let hero = w.vehicles.find((v) => v.isHeroCar) || null;
-  if (hero && (hero.wrecked || hero.sinking)) {
-    // the old one stays behind as an ordinary wreck; a fresh one is brought
-    hero.isHeroCar = false;
-    hero = null;
-  }
-  if (!c) {
-    if (hero) {
-      const i = w.vehicles.indexOf(hero);
-      if (i >= 0) w.vehicles.splice(i, 1);
-    }
-    const fresh = spawnHeroCarNear(map, plan.player.x, plan.player.y);
-    if (fresh) w.vehicles.push(fresh);
-    return fresh;
-  }
+  const oud = w.vehicles.find((v) => v.isHeroCar) || null;
+  const totalLoss = !!(oud && (oud.wrecked || oud.sinking));
+  let hero = totalLoss ? null : oud;
+  let nieuw = false;
   if (!hero) {
-    hero = spawnHeroCarNear(map, c.x, c.y);
-    if (!hero) return null;
+    const at = c || plan.player;
+    if (totalLoss) {
+      // De boete van deze respawn is er in world.js al af gegaan, dus iemand die bij de
+      // aankomst nog kon betalen kan hier alsnog te weinig hebben. Zeg dat hier: de
+      // aankomsttekst (begin) is voor de boete opgemaakt en kan dat niet weten.
+      if ((w.money || 0) < HERO_REPLACE_FEE) {
+        if (w.addMessage) w.addMessage(`Je Escapade is afgeschreven en een nieuwe kost €${HERO_REPLACE_FEE}; zoveel geld heb je niet`, 5);
+        return null;
+      }
+      hero = spawn(map, at.x, at.y);
+      if (!hero) return null;
+      // het wrak blijft als gewoon wrak staan; de nieuwe is vanaf nu de heldenauto. Zonder
+      // betaling blijft de vlag op het wrak staan, zodat de save hem ook als wrak kent en er
+      // bij het laden geen gratis auto voor in de plaats komt.
+      oud.isHeroCar = false;
+      noteMoney('Garage'); // het kasboek (finance.js) weet waar dit bedrag heen ging
+      w.money -= HERO_REPLACE_FEE;
+      if (w.addMessage) w.addMessage(`Een nieuwe Escapade: €${HERO_REPLACE_FEE} van je rekening`, 5);
+    } else {
+      // geen heldenauto in deze wereld: er is niets kapot, dus er komt gewoon een
+      hero = spawn(map, at.x, at.y);
+      if (!hero) return null;
+    }
     w.vehicles.push(hero);
+    nieuw = true;
   }
-  Object.assign(hero, {
-    x: c.x, y: c.y, angle: c.angle, z: map.spawnZ(c.x, c.y), vz: 0, pitch: 0,
-    speed: 0, steer: 0, driftX: 0, driftY: 0, yawVel: 0, driver: null, passenger: null,
-    road: null, plan: [], horn: false,
-  });
+  const stil = {
+    vz: 0, pitch: 0, speed: 0, steer: 0, driftX: 0, driftY: 0, yawVel: 0,
+    driver: null, passenger: null, road: null, plan: [], horn: false,
+  };
+  if (c) {
+    Object.assign(hero, stil, { x: c.x, y: c.y, angle: c.angle, z: map.spawnZ(c.x, c.y) });
+  } else if (!nieuw) {
+    // Nergens een kerb-plek (krappe aankomst): de auto van de speler blijft bestaan, met zijn
+    // eigen schade, en gaat mee naar de plek waar de speler weer opduikt. planArrival heeft
+    // daar al een hoek langs de weg voor gezocht. Geen verse auto bouwen om alleen zijn x/y
+    // te lenen: dat kost per respawn een weggegooid voertuig en een extra lezing van de
+    // onderdelen uit localStorage (spawnHeroCarNear).
+    Object.assign(hero, stil, { x: plan.player.x, y: plan.player.y, angle: plan.player.angle });
+    hero.z = map.spawnZ(hero.x, hero.y);
+  }
   return hero;
 }
 
@@ -558,7 +607,9 @@ function begin(w, pending, opts) {
   const name = dest.site.name;
   const penalty = opts.moneyPenalty ? `, €${opts.moneyPenalty} boete` : '';
   const partner = w.companion ? (w.companion.character === 'tammo' ? 'Tammo' : 'Tessa') : null;
-  const withCar = partner ? `${partner} staat klaar met de Escapade.` : 'De Escapade staat klaar.';
+  const withCar = !heroHeel(w)
+    ? `${partner ? `${partner} staat klaar. ` : ''}${heroMelding(w)}.`
+    : partner ? `${partner} staat klaar met de Escapade.` : 'De Escapade staat klaar.';
   const bureau = name.replace(/^Politiebureau\s+/, 'Bureau ');
   state.message = dest.mode === 'police'
     ? `Vrijgelaten bij ${bureau}${penalty}. ${withCar}`

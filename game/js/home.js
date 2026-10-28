@@ -623,9 +623,12 @@ const kindOf = (spec) => (spec.kind === 'boat' ? 'boat' : spec.kind === 'heli' ?
 function stash(w, o) {
   const v = o.v;
   if (!v || v.driver === 'player') return;
-  if ((v.health ?? 100) < 100) o.health = v.health;
+  // Ook een weer hele auto schrijft zijn schade weg (#502): bleef hier alleen een waarde
+  // onder de 100 staan, dan kwam de oude schade terug bij het neerzetten en sprong een
+  // betaalde reparatie in de garage zo weer terug.
+  o.health = Number.isFinite(v.health) ? v.health : 100;
   o.flat = !!v.flat;
-  if (v.dentLog && v.dentLog.length) o.dents = v.dentLog.slice(0, 12);
+  o.dents = v.dentLog && v.dentLog.length ? v.dentLog.slice(0, 12) : [];
   o.upgrades = [...(v.upgrades || o.upgrades || [])];
   const i = w.vehicles.indexOf(v);
   if (i >= 0) w.vehicles.splice(i, 1);
