@@ -348,6 +348,12 @@ async function faseElectron(prev, staat) {
   // die niets met elkaar te maken hebben. Meer dan drie kan niet: dat is het aantal sloten (#515).
   const baan = [];
   const wacht = (naam, fn, opts) => { if (wilDit(naam)) baan.push(() => stap(naam, fn, opts)); };
+  // De tijdgevoelige stappen (verhaaltest en de twee botsweeps) mogen niet samenvallen met een andere
+  // Electron-stap: met drie tegelijk viel de verhaaltest om op een timing-check (M09 kreeg een
+  // mislukking doordat de activity te langzaam liep) en schreven de bots niets weg. Die gaan eerst,
+  // één voor één; daarna pas de rest, met twee tegelijk (#515).
+  const serieel = [];
+  const later = (naam, fn, opts) => { if (wilDit(naam)) serieel.push(() => stap(naam, fn, opts)); };
 
   wacht('smoke', async () => {
     const d = stapDir('smoke'), png = path.join(d, 'smoke.png'), ms = 5 * 60e3;
@@ -373,7 +379,7 @@ async function faseElectron(prev, staat) {
     return [R.maakItem('electron', 'electron:wereldpoort', 'poort zwarte wereld en fouten per frame', b.status, r.secs, b.detail), consoleItem('wereldpoort', r.out, 0), ...beeldItems('wereldpoort', d, prevSigs, sigs)];
   });
 
-  wacht('verhaaltest', async () => {
+  later('verhaaltest', async () => {
     const d = stapDir('verhaaltest'), ms = 20 * 60e3;
     const r = await runCmd(exe, [...basis, '--story-test=' + d], { ms, env: env('verhaal'), cwd: desktop });
     fs.writeFileSync(path.join(d, 'run.log'), r.out);
@@ -401,7 +407,8 @@ async function faseElectron(prev, staat) {
     // zijn zeven stappen af en stond hij 3,6 m van het laatste doel. Tachtig minuten geeft marge voor de
     // 36 keer dat hij even vastloopt (#387, #515).
     const d = stapDir(naam), ms = (mode === 'missions' ? 105 : 45) * 60e3;
-        const r = await runCmd(process.execPath, ['scripts/bot/run.mjs', `--mode=${mode}`, '--out=${d}', '--force', ...(mode === 'missions' ? ['--max-wall=4800', '--speed=2'] : [])], { ms, env: env(naam) });
+        const r = await runCmd(process.execPath, ['scripts/bot/run.mjs', `--mode=${mode}`, `--out=${d}`, '--force', ...(mode === 'missions' ? ['--max-wall=4800', '--speed=2'] : [])], { ms, env: env(naam) });
+    log(`DIAG bot ${naam}: code ${r.code}, ${r.secs}s, ${r.out.length} tekens, eerste regel: ${(r.out.split(/\r?\n/)[0] || '(leeg)').slice(0, 120)}`);
     fs.writeFileSync(path.join(d, 'sweep.log'), r.out);
     let analyse = '';
     if (fs.existsSync(path.join(d, 'events.jsonl'))) {
@@ -411,9 +418,9 @@ async function faseElectron(prev, staat) {
     const st = r.timedOut ? 'TIMEOUT' : r.code === 0 ? 'PASS' : 'FAIL';
     return [R.maakItem('electron', 'electron:' + naam, `spelbot-sweep ${mode}`, st, r.secs, st === 'PASS' ? analyse : `code ${r.code}: ${R.eersteFout(r.out)}\n${analyse}`), consoleItem(naam, r.out, 0), ...beeldItems(naam, d, prevSigs, sigs)];
   });
-  // (een thunk, want deze helpers starten meteen als je ze aanroept)
-  baan.push(() => botSweep('bot-missies', 'missions'));
-  baan.push(() => botSweep('bot-minigames', 'minigames'));
+  // een thunk, want deze helpers starten meteen als je ze aanroept; de bots gaan in de serie-reeks
+  serieel.push(() => botSweep('bot-missies', 'missions'));
+  serieel.push(() => botSweep('bot-minigames', 'minigames'));
 
   const qa = (naam, script, extra = []) => stap(naam, async () => {
     // qa-features loopt door alle features heen en maakt 250+ schermafbeeldingen; op 27-10 was hij op een
@@ -431,13 +438,16 @@ async function faseElectron(prev, staat) {
     const st = r.timedOut ? 'TIMEOUT' : r.code === 0 ? 'PASS' : 'FAIL';
     return [R.maakItem('electron', 'electron:' + naam, naam, st, r.secs, st === 'PASS' ? poging.trim() : `code ${r.code}${poging}: ${split(tail(r.out, 3)).join(' | ')}`), consoleItem(naam, r.out, 0), ...beeldItems(naam, d, prevSigs, sigs)];
   });
+  // qa-features duurt het langst (honderd minuten): die begint meteen, zodat de korte stappen ernaast
+  // kunnen wegwerken. Twee tegelijk: drie gaf te veel drukte op de machine (#515).
+  baan.unshift(() => qa('qa-features', 'scripts/qa/feature_smoke.mjs'));
   baan.push(() => qa('qa-provincie-1', 'scripts/qa/province_shots.mjs', ['--ronde=1']));
   baan.push(() => qa('qa-provincie-2', 'scripts/qa/province_shots.mjs', ['--ronde=2']));
-  baan.push(() => qa('qa-features', 'scripts/qa/feature_smoke.mjs'));
   baan.push(() => qa('qa-visueel', 'scripts/qa/visual_issues.mjs'));
   baan.push(() => qa('ui-shots', 'scripts/ui_shots.mjs'));
-  // Alles wat hierboven klaarstaat, draait nu samen: drie tegelijk, elk met een eigen slot.
-  await pool(baan, 3);
+  // Eerst de tijdgevoelige stappen alleen, dan de rest met twee tegelijk.
+  for (const s of serieel) await s();
+  await pool(baan, 2);
   // De coöp-testbank komt hierna: die heeft twee sloten tegelijk nodig en kan dus niet met de rest mee.
   if (fs.existsSync(path.join(ROOT, 'scripts', 'coop', 'testbank.mjs'))) {
     await stap('coop', async () => {
