@@ -88,15 +88,41 @@ const THROUGH_BUILDING_COST = 8;
 // drawn when short; longer ones would cut through blocks.
 const CONNECTOR_MAX_M = 15;
 
+// Ligt (x, y) in een gebouw? (De wereldbouw kent de footprints; een poort of
+// passage is voor de botsing open, maar voor de route telt elk gebouw: een lijn
+// door de gevel is wat de speler op de kaart ziet en niet wil.)
+export function insideBuilding(map, x, y) {
+  for (const b of map.buildingsNear(x, y, 1)) {
+    const [minx, miny, maxx, maxy] = b.bounds;
+    if (x < minx || x > maxx || y < miny || y > maxy) continue;
+    if (pointInPolygon(x, y, b.pts)) return true;
+  }
+  return false;
+}
+
+// Steekt het stuk van a naar b een gebouw in? Voor de graaf: drie punten op de
+// lijn (0,25 / 0,5 / 0,75) is genoeg om een weg die dwars door een blok loopt
+// duur te maken; een weg die de gevel maar schampt (het Museumeiland onder het
+// museum, een poort) mag geen achtvoudige straf krijgen, want dan gaat de
+// router er onnodig omheen (#119, #320).
 export function throughBuilding(map, ax, ay, bx, by) {
   const samples = Math.hypot(bx - ax, by - ay) > 6 ? [0.25, 0.5, 0.75] : [0.5];
   for (const t of samples) {
-    const x = ax + (bx - ax) * t, y = ay + (by - ay) * t;
-    for (const b of map.buildingsNear(x, y, 1)) {
-      const [minx, miny, maxx, maxy] = b.bounds;
-      if (x < minx || x > maxx || y < miny || y > maxy) continue;
-      if (pointInPolygon(x, y, b.pts)) return true;
-    }
+    if (insideBuilding(map, ax + (bx - ax) * t, ay + (by - ay) * t)) return true;
+  }
+  return false;
+}
+
+// Raakt de lijn van a naar b ergens een gevel? Voor de stukken die de kaart
+// tekent en die de router niet zelf plant (de laatste meters van en naar de
+// speler, en de stippellijn als er geen weg is): daar telt elk punt, om de
+// meter, want zo'n lijn van 15 m kan met drie steekproeven net langs een hoek
+// glippen en dan loopt hij alsnog door het gebouw (#502).
+export function lineHitsBuilding(map, ax, ay, bx, by) {
+  const n = Math.max(1, Math.ceil(Math.hypot(bx - ax, by - ay)));
+  for (let i = 0; i <= n; i++) {
+    const t = i / n;
+    if (insideBuilding(map, ax + (bx - ax) * t, ay + (by - ay) * t)) return true;
   }
   return false;
 }
@@ -234,11 +260,16 @@ function buildGraph(map) {
 // (true/false kept for drive/walk). lvl: { z, pen } the height the point is
 // at; a road on the other level (the bridge, or the street under it) counts
 // pen metres further away, so a waypoint clicks onto the right one.
-function snapToRoad(map, x, y, kind, lvl = null) {
+function snapToRoad(map, x, y, kind, lvl = null, outside = true) {
   kind = kind === true ? 'drive' : kind === false ? 'walk' : kind;
   const cc = kind === 'drive' ? graph.driveComp : kind === 'bike' ? graph.bikeComp : graph.walkComp;
   const usable = kind === 'drive' ? isDrivable : kind === 'bike' ? isBikeable : isWalkable;
   let fallback = null, fallbackD = Infinity;
+  // Een punt binnen een gevel (het doel dat je aanklikte ligt in een gebouw, of
+  // de dichtstbijzijnde "weg" is een voetpad dwars door een hal) is pas de laatste
+  // keus: de route moet op straat eindigen, niet in de muur. Zo blijft de lijn
+  // buiten het gebouw en wandel je het laatste stuk zelf (#502).
+  let inBest = null, inBestD = Infinity, inTies = [];
   for (let r = 30; r <= SNAP_MAX_M; r *= 2) {
     let best = null, bestD = r;
     const ties = [];
@@ -260,9 +291,14 @@ function snapToRoad(map, x, y, kind, lvl = null) {
           const rz = Z ? Z[i] + (Z[i + 1] - Z[i]) * t : 0;
           if (Math.abs(rz - lvl.z) > LEVEL_SPLIT_M) d += lvl.pen;
         }
-        if (inMain && d < bestD + SNAP_TIE_M) ties.push({ x: cx, y: cy, road, seg: i, t, segLen: Math.sqrt(l2), d });
+        const hit = { x: cx, y: cy, road, seg: i, t, segLen: Math.sqrt(l2), d };
+        if (inMain && outside && insideBuilding(map, cx, cy)) {
+          if (d < inBestD) { inBestD = d; inBest = hit; inTies = [hit]; }
+          else if (d <= inBestD + SNAP_TIE_M) inTies.push(hit);
+          continue;
+        }
+        if (inMain && d < bestD + SNAP_TIE_M) ties.push(hit);
         if (inMain ? d >= bestD : d >= fallbackD) continue;
-        const hit = { x: cx, y: cy, road, seg: i, t, segLen: Math.sqrt(l2) };
         if (inMain) { bestD = d; best = hit; } else { fallbackD = d; fallback = hit; }
       }
     }
@@ -273,6 +309,13 @@ function snapToRoad(map, x, y, kind, lvl = null) {
       if (alts.length) best.alts = alts;
       return best;
     }
+  }
+  // alleen een punt in een gebouw gevonden: dan daarheen (een poort, een brug over
+  // een dak of een weg die de wereldbouw zelf door een hal laat lopen)
+  if (inBest) {
+    const alts = inTies.filter((h) => h.d <= inBestD + SNAP_TIE_M && h !== inBest).sort((u, v) => u.d - v.d).slice(0, SNAP_TIE_MAX);
+    if (alts.length) inBest.alts = alts;
+    return inBest;
   }
   return fallback;
 }
@@ -628,7 +671,9 @@ function countryRoute(world, target, from, to, graphMode, kind, p = world.player
 export function planLandRoute(map, kind, a, b, opts = {}) {
   if (!graph || graph.map !== map) buildGraph(map);
   const lvl = (z, pen) => (Number.isFinite(z) ? { z, pen } : null);
-  const from = snapToRoad(map, a[0], a[1], kind, lvl(opts.az, LEVEL_PEN_START_M));
+  // De start is waar de speler staat: die snap hoeft niet per se buiten een gevel
+  // te liggen (je kunt in een deuropening staan). Alleen het doel moet dat (#502).
+  const from = snapToRoad(map, a[0], a[1], kind, lvl(opts.az, LEVEL_PEN_START_M), false);
   const to = snapToRoad(map, b[0], b[1], kind, lvl(opts.bz, LEVEL_PEN_TARGET_M));
   if (!from || !to) return null;
   const gm = kind === 'drive' ? (opts.avoidMotorways ? 'driveAvoid' : 'drive') : kind;
@@ -652,6 +697,22 @@ export function planLandRoute(map, kind, a, b, opts = {}) {
 export function snapWaypoint(map, kind, x, y, z) {
   if (!graph || graph.map !== map) buildGraph(map);
   return snapToRoad(map, x, y, kind, Number.isFinite(z) ? { z, pen: LEVEL_PEN_TARGET_M } : { z: 0, pen: LEVEL_PEN_TARGET_M / 2 });
+}
+
+// Waar een klik op de kaart landt (#502). Tot nu toe schoof de kaart een klik
+// naar de dichtstbijzijnde weg zodra die binnen 30 m lag: je klikte op de kade
+// en het doel sprong de straat op. Nu is het doel precies het punt dat je
+// aanwees; alleen als dat punt in een gebouw valt schuift het naar de
+// dichtstbijzijnde plek buiten de gevel (in een muur kun je niet staan, en de
+// route kan er niet komen). De router snapt zelf wel naar de weg, maar dat raakt
+// het doel niet meer aan.
+export function klikDoel(map, x, y) {
+  if (!insideBuilding(map, x, y)) return [x, y];
+  if (map.escapeBuilding) {
+    const q = map.escapeBuilding(x, y, 0.6);
+    if (q && Number.isFinite(q[0]) && Number.isFinite(q[1]) && !insideBuilding(map, q[0], q[1])) return q;
+  }
+  return [x, y];
 }
 
 // no-fly zones and landing spots in the air: police stations are no place for
@@ -770,14 +831,17 @@ function computeRoute(world, target, mode, start = world.player) {
     // a goal on the water: walk, ride or drive to the berth beside it (a quay, the shore), the boat takes over from there
     const berth = mode === 'walk' || mode === 'bike' || mode === 'drive' ? berthFor(map, target.x, target.y) : null;
     pts = landRoute(world, berth ? { ...target, x: berth.x, y: berth.y } : target, mode, p);
-    extra = { compromise: landCompromise, ...(berth ? { berth: { x: berth.x, y: berth.y } } : null) };
+    extra = { compromise: landCompromise, noRoute: pts.length < 2, ...(berth ? { berth: { x: berth.x, y: berth.y } } : null) };
     if (pts.length > 1) {
       const first = pts[0];
       const dFirst = Math.hypot(first[0] - p.x, first[1] - p.y);
-      if (dFirst > 0.5 && dFirst <= CONNECTOR_MAX_M) pts.unshift([p.x, p.y]);
+      // De laatste paar meter van de speler naar de weg (en van de weg naar het
+      // doel) zijn een rechte lijn. Alleen als die geen gevel raakt: anders liep
+      // de lijn alsnog door het gebouw waar de router net omheen reed (#502).
+      if (dFirst > 0.5 && dFirst <= CONNECTOR_MAX_M && !lineHitsBuilding(map, p.x, p.y, first[0], first[1])) pts.unshift([p.x, p.y]);
       const last = pts[pts.length - 1];
       const dLast = Math.hypot(last[0] - target.x, last[1] - target.y);
-      if (dLast > 0.5 && dLast <= CONNECTOR_MAX_M) pts.push([target.x, target.y]);
+      if (dLast > 0.5 && dLast <= CONNECTOR_MAX_M && !lineHitsBuilding(map, last[0], last[1], target.x, target.y)) pts.push([target.x, target.y]);
     }
   }
 
@@ -822,7 +886,9 @@ function landRoute(world, target, mode, p) {
     const tw = snapToRoad(map, target.x, target.y, 'walk', lvlTo);
     if (tw && Math.hypot(tw.x - target.x, tw.y - target.y) <= CONNECTOR_MAX_M) { graphMode = 'mixed'; carTo = to; to = tw; compromise = 'mixed'; }
   }
-  const from = snapToRoad(map, p.x, p.y, kind, lvlFrom);
+  // De start is waar de speler staat (soms net in een deuropening); alleen het
+  // doel hoeft per se buiten de gevel te liggen (#502).
+  const from = snapToRoad(map, p.x, p.y, kind, lvlFrom, false);
   // The way to a snap: over the Ommeland roads when an end is out there, else over the city streets.
   // Both ends on a city street: the city graph is a candidate too, and the shorter way wins. A city street that the
   // province net also carries (it holds every car road of the tiles) counted as country, and the way then ran out
@@ -861,8 +927,9 @@ function landRoute(world, target, mode, p) {
   // A line starts where the player is. The way can begin on a snap that is not under the player (a city
   // street beside the country road the car is on, up to CITY_SNAP_OK_M away, #513): then the stretch from
   // the player to that snap is part of the route, in the line and in its length. Within 20 m that bit is
-  // the pavement you cross anyway and the line stays on the road.
-  else if (pts.length && Math.hypot(pts[0][0] - p.x, pts[0][1] - p.y) > 20) pts.unshift([p.x, p.y]);
+  // the pavement you cross anyway and the line stays on the road. No gevel in dat stuk: anders tekende
+  // de kaart een lijn door het gebouw waar de speler net uit kwam (#502).
+  else if (pts.length && Math.hypot(pts[0][0] - p.x, pts[0][1] - p.y) > 20 && !lineHitsBuilding(map, p.x, p.y, pts[0][0], pts[0][1])) pts.unshift([p.x, p.y]);
   landCompromise = compromise;
   return pts;
 }

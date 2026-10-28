@@ -57,6 +57,7 @@ import { MEDALS } from './achievements.js';
 import { nicknameOf, FLAVOUR_MAP_PLACES } from './flavourlines.js';
 import {
   updateRouting, getActiveRoute, getRouteAhead, getRoutes, dismissCareRoute, setUserWaypoint, clearUserWaypoint, getUserWaypoint, formatDistance, setRoutePrefs, getRoutePrefs,
+  klikDoel, lineHitsBuilding,
 } from './routing.js';
 import { KEYS } from './storagekeys.js';
 import { grijsBijPassief } from './cooppvp.js';
@@ -1327,6 +1328,11 @@ function drawFullRoute(ctx, world, t, route) {
   }
   const tg = route.target;
   if (!tg) return;
+  // Geen weg gevonden (of de weg houdt op bij de bebouwde kom): dan geen rechte
+  // stippellijn van hier naar het doel, want die loopt dwars door de gevels en de
+  // speler leest hem als "hij wil me door dat gebouw heen" (#502). Liever geen
+  // lijn met de eerlijke afstand erbij dan een lijn die liegt over de route.
+  if (route.noRoute || lineHitsBuilding(state.map, ik.x, ik.y, tg.x, tg.y)) return;
   const [ax, ay] = toScreen(ik.x, ik.y);
   const [bx, by] = toScreen(tg.x, tg.y);
   ctx.save();
@@ -1502,10 +1508,12 @@ function chooseResult(e) {
     showCard(state.world, { name: e.label, x: e.x, y: e.y, kind: e.icon, todo: e.todo, sx, sy }, sx, sy);
     return;
   }
-  const map = state.map;
-  const spot = map.nearestRoadPoint(e.x, e.y, 120) || { x: e.x, y: e.y };
-  setUserWaypoint(spot.x, spot.y, e.label);
-  centreOn(spot.x, spot.y, e.zoom);
+  // Het zoekresultaat is de plek: geen sprong naar de dichtstbijzijnde weg (die
+  // lag tot 120 m verderop). Alleen uit een gebouw stappen, want daar kun je
+  // niet staan (#502).
+  const [gx, gy] = klikDoel(state.map, e.x, e.y);
+  setUserWaypoint(gx, gy, e.label);
+  centreOn(gx, gy, e.zoom);
   state.searchInput.value = '';
   state.results.hidden = true;
   state.searchInput.blur();
@@ -1668,9 +1676,11 @@ function handleClick(world, sx, sy, shift = false) {
     showCard(world, { name: gebied.gebied.naam, sub: gebiedSub(gebied), x: gebied.gebied.x, y: gebied.gebied.y }, sx, sy);
     return;
   }
-  const spot = state.map.nearestRoadPoint(wx, wy, 60);
-  const x = spot && Math.hypot(spot.x - wx, spot.y - wy) < 30 ? spot.x : wx;
-  const y = spot && Math.hypot(spot.x - wx, spot.y - wy) < 30 ? spot.y : wy;
+  // Een klik op een plek: het doel is precies die plek (#502). Tot nu toe schoof
+  // de kaart de klik naar de dichtstbijzijnde weg zodra die binnen 30 m lag, en
+  // stond je waypoint dus naast waar je klikte. Alleen een klik in een gebouw
+  // schuift naar de gevel: daar kan niemand staan en de route komt er niet.
+  const [x, y] = klikDoel(state.map, wx, wy);
   const name = streetAt(x, y, 40) || wijkAt(x, y) || '';
   // een klik op een plek: eerst kiezen wat je wilt (#445), niet meteen een waypoint
   showCard(world, { name: name || 'Plek op de kaart', sub: wijkAt(x, y) && name !== wijkAt(x, y) ? wijkAt(x, y) : '', x, y, spot: true }, sx, sy);
