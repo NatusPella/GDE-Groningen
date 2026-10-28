@@ -48,6 +48,30 @@ export function surfaceLiftAt(map, x, y) {
   return best;
 }
 
+// Het waterpeil zoals het spel het tekent, in wereldmeters (y): de boezem, of het eigen peil
+// van een meer (#299). Precies de hoogte waar water3d de plas legt (util.js WATER_Y + lift).
+export const waterSurfaceY = (poly) => BOEZEM_Y + surfaceLift(poly);
+export const waterSurfaceAt = (map, x, y) => BOEZEM_Y + surfaceLiftAt(map, x, y);
+
+// Wegmarkering ligt alleen op verharding die boven water uitkomt (#502, playtest 27-10):
+// bij een brug, een duiker of een weg die in de polder onder het peil ligt kwam de verf
+// naast of onder het water uit. De verf volgt het wegdek (roadsurface.js r.z); deze regel
+// zegt of een punt van de verf nog boven het water uitsteekt. Een dek van een brug ligt
+// boven water en houdt zijn verf (en schuift mee als de brug opengaat).
+export const VERF_MARGE = 0.02; // m: zoveel boven de waterspiegel, anders is het water
+export function verfBovenWater(map, x, y, h) {
+  return h >= waterSurfaceAt(map, x, y) + VERF_MARGE;
+}
+
+// Een woonboot ligt op het waterpeil van het water waar hij in ligt (#502, playtest 27-10):
+// zijn romp zakt WOONBOOT_DIEPTE onder de waterspiegel in plaats van op de vaste hoogte van
+// de stadsboezem te blijven hangen. Zo zakt hij mee met een meer met een eigen peil, en
+// ligt hij niet in de lucht boven water dat lager getekend wordt.
+export const WOONBOOT_DIEPTE = 0.3; // m van de romp onder water (models3d_buildings.js HOUSEBOAT_DRAFT leest deze)
+export function woonbootY(map, x, y) {
+  return waterSurfaceAt(map, x, y) - WOONBOOT_DIEPTE;
+}
+
 // per kind: depth below the level, the largest boat class, the level relative
 // to street level where the kind has its own (a polder ditch)
 export const WATER_KINDS = {
