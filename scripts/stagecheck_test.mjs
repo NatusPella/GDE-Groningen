@@ -85,9 +85,9 @@ t('de scenario-loops, jingles en radiostationnummers moeten in de stage staan', 
   const g = path.join(dir, 'game');
   write('game/js/audio.js', [
     "const LOOP = { menu: './audio/scenario/menu_loop.mp3', race: './audio/scenario/race_loop.mp3' };",
-    "const JINGLE = { station_id: './audio/gmusic/jingles/station_id.wav' };",
     "const BARK = `./audio/npc/phrase_${1}.wav`;",
   ].join('\n'));
+  write('game/js/audio/radio.js', "const JINGLE = { station_id: './audio/gmusic/jingles/station_id.wav' };");
   write('game/js/theme.js', "const SRC = './audio/theme/theme.mp3';");
   write('game/audio/scenario/menu_loop.mp3', 'x');
   write('game/audio/gmusic/jingles/station_id.wav', 'x');

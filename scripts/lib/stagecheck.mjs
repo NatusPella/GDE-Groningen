@@ -56,10 +56,12 @@ export function checkWorld(dir) {
   return { ok: problems.length === 0, packs, tiles, problems };
 }
 
-// js/audio.js and js/theme.js name their files as './audio/...' string literals
-// (the generated voice and radio paths use template strings and a manifest of
-// their own, so they are not part of this check).
-const AUDIO_JS = ['audio.js', 'theme.js'];
+// js/audio.js, js/audio/radio.js and js/theme.js name their files as
+// './audio/...' string literals (the generated voice and radio paths use
+// template strings and a manifest of their own, so they are not part of this
+// check). De jinglepaden van de radio woonden tot #519 in audio.js en zijn
+// sindsdien daar te vinden, dus dat bestand leest mee.
+const AUDIO_JS = ['audio.js', 'audio/radio.js', 'theme.js'];
 
 export function checkAudio(dir) {
   const problems = [];

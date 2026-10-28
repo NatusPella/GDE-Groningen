@@ -1,7 +1,7 @@
 import { clamp } from './util.js';
 import { FLAGS } from './devflags.js';
 import { getSettings, onSettingsChange } from './settings.js';
-import { isThemeActive, refreshThemeVolume } from './theme.js';
+import { refreshThemeVolume } from './theme.js';
 import { vehicleContacts } from './vehicle.js';
 import { gearboxReadout } from './gearbox.js';
 import { createBank, buildImpulse, variantsOf, bufferNames } from './sfx/dsp.js';
@@ -14,8 +14,7 @@ import { initFoley, updateFoley, propHit, foleyStats } from './sfx/foley.js';
 import { initUiSfx, uiWorldInit, updateUiSfx, uiDomEvent, isUiGestureTarget } from './sfx/ui.js';
 import { updateSkySfx } from './sfx/sky.js';
 import { createScenarioDirector, activityMusicKey, createLoopScan } from './scenariomusic.js';
-import { MIN_TRACK_S, normalizeTrack, pickTrack, pushHistory, pickJingle, STATION_NAME } from './musicpick.js';
-import { createMusicWatch } from './musicwatch.js';
+import { MIN_TRACK_S } from './musicpick.js';
 import * as speech from './speech.js';
 import { drunkLevel } from './drunk.js';
 import { SPEAKER_MAX, SPEAKER_STOP, SPEAKER_LEVEL, SPEAKER_REF, SPEAKER_ROLLOFF, dopplerRate, edgeFade, pannerGain, pickSpeakers, pickSpeakerTrack } from './bikespeaker.js';
@@ -27,6 +26,10 @@ import { GMUSIC_VOLUME, masterGain, musicVolume, musicBusGain, volumeValue } fro
 import { dempMelding, stemNiveau } from './coopgeluid.js';
 import { hoofdspeler } from './players.js';
 import { setVehicleVoices, buildEngineVoice, buildHeliVoice, buildEarlyReflections, buildSquealVoice, buildRumbleVoice, buildScrapeVoice } from './audio/vehiclevoices.js';
+// De radio en de G-Music-machine wonen in audio/radio.js (#519); de namen die
+// de rest van het spel hier importeert blijven dezelfde.
+import { setRadioDeps, loadGMusicManifest, updateGMusic, enqueueGmusicJingle, radioSleep, radioWake, radioUnlock, radioCtxStalled, radioWasSuspended, watchRadio, radioPoke, radioState, radioTrackEls, radioCurrentTrackEl, radioOn, radioProg } from './audio/radio.js';
+export { setRadioOn, setRadioProgramme, onRadioBreak, radioInBreak } from './audio/radio.js';
 
 // the camera comes from main.js (setAudioCamera): audio.js does not import scene3d.js (#108)
 let getCamera = () => null;
@@ -42,8 +45,6 @@ const ENGINE_RANGE = 70;
 const SIREN_VOICES = 3;
 const SPEECH_RANGE = 45;
 const HRTF_NEAR = 14;
-const GMUSIC_MANIFEST_URL = './audio/gmusic/manifest.json';
-const GMUSIC_DUCK_VOLUME = 0.5;
 // Instrumental loops that replace G-Music while something big happens
 // (scenariomusic.js decides which); not part of the radio rotation.
 const SCENARIO_TRACKS = {
@@ -101,13 +102,6 @@ const ANITA_LINES = {
   opgepakt: variants('anita', 'opgepakt'),
   kus: variants('anita', 'kus'),
 };
-const GMUSIC_JINGLES = {
-  station_id: './audio/gmusic/jingles/station_id.wav',
-  nummerovergang: './audio/gmusic/jingles/nummerovergang.wav',
-  rij_knipoog: './audio/gmusic/jingles/rij_knipoog.wav',
-  hoge_wanted: './audio/gmusic/jingles/hoge_wanted.wav',
-};
-const AMBIENT_JINGLE_KEYS = ['station_id', 'nummerovergang', 'rij_knipoog'];
 
 // NPC ambient chatter, police barks, Kiekdoar phone-feed lines - each key has
 // a few voice variants recorded for it; playX() below always picks one at
@@ -1720,290 +1714,10 @@ export function playSikkomLine(key) {
   playRandomVariant(SIKKOM_AUDIO[key]);
 }
 
-// The radio (radio.js): one station, on or off. Off holds the music like a
-// scenario track does. The programme (musicpick.js PROGRAMMES) picks the
-// pool and the jingles; a new programme starts with the next record.
-// Every `every` records the radio takes a talk break: the record ends, the
-// break handler voices its segment and calls done, then the music goes on.
-let radioOn = true;
-let radioProg = { name: '', music: 'gmusic', jingles: true, every: 3 };
-let radioBreak = null;
-let breakId = 0;
-let inBreak = false;
-let recordsSinceBreak = 0;
-const radioHolds = () => !radioOn;
-export function setRadioOn(on) {
-  const was = radioOn;
-  radioOn = !!on;
-  if (radioOn && !was) freshPick = true;
-  // off ends a break without the music; back on goes on with the next record
-  if (!radioOn) { inBreak = false; breakId++; } else if (!was && gmusicStarted && !gmusicHeld && gmusicCurrentEl && gmusicCurrentEl.ended) advanceGmusicQueue();
-}
-export function setRadioProgramme(p) {
-  radioProg = p;
-}
-export function onRadioBreak(fn) {
-  radioBreak = fn;
-}
-export function radioInBreak() {
-  return inBreak;
-}
-
 // A steady source for another module (kartbaan.js's engine): it
 // connects its own nodes to `bus`. null until the audio runs.
 export function ambientOut() {
   return ctx && worldBus && !muted ? { ctx, bus: worldBus } : null;
-}
-
-// Fire-and-forget: initAudio() stays sync, this just fills in gmusicTracks
-// whenever the manifest resolves. An empty or missing manifest leaves it
-// empty, which every playback path below treats as "nothing to play".
-async function loadGMusicManifest() {
-  try {
-    const res = await fetch(GMUSIC_MANIFEST_URL);
-    if (!res.ok) return;
-    const data = await res.json();
-    const tracks = (Array.isArray(data.tracks) ? data.tracks : []).map(normalizeTrack).filter(Boolean);
-    gmusicTracks = tracks.map((t) => {
-      const el = wireGmusicEl(new Audio('./audio/gmusic/' + t.file));
-      el.preload = 'auto';
-      const raw = t.id.replace(/_/g, ' ');
-      el.gmusicTitle = GMUSIC_TITLES[raw] || raw;
-      if (!t.artist) t.artist = trackArtist(el.gmusicTitle);
-      el.gmusicTrack = t;
-      return el;
-    });
-  } catch (e) {
-    // no manifest yet / bad JSON / fetch blocked - G-Music just stays silent
-  }
-}
-
-// Station-style playback: jingle, shuffled track, jingle, track, ... all through
-// ONE queue and ONE current element, so two items can never play at once.
-// Every event handler ignores events from anything but gmusicCurrentEl, and
-// the per-frame safety net in updateGMusic only ever resumes the current
-// element - advancing happens exclusively via its 'ended' event.
-const GMUSIC_RETRY_MIN = 0.5;
-const GMUSIC_RETRY_MAX = 8;
-const GMUSIC_PENDING_TIMEOUT = 5;
-
-let gmusicTracks = [];
-// what played lately, both pools together (musicpick.js); kept
-// between sessions so a new one doesn't open with the record you just heard
-const GMUSIC_HISTORY_KEY = KEYS.radioHistory;
-const gmusicHistory = loadMusicHistory();
-let lastJingleKey = null;
-// the in-game hour (world.clock), for the night records
-let musicHour = NaN;
-let gmusicQueue = [];
-let gmusicCurrentEl = null;
-let gmusicStarted = false;
-let gmusicFadingIn = false;
-let gmusicPendingSince = null;
-let gmusicSuspended = false;
-// G-Music paused (position kept) while a scenario track plays
-let gmusicHeld = false;
-let gmusicRetryAt = 0;
-let gmusicRetryDelay = GMUSIC_RETRY_MIN;
-let gmusicAnnounceOnPlay = false;
-// Set once a genuine track (not a jingle) is actually playing; updateGMusic
-// flushes it into a HUD toast since it runs every frame with `world` in scope.
-let pendingTrackAnnounce = null;
-
-// Made-up Grunneger acts for the G-Music playlist; tracks without a named
-// act get one picked from their title.
-const GMUSIC_ARTISTS = {
-  'Onder de Martinitoren': "Lil' Eierbal",
-  'Hart van Beton': 'MC Moi Moi',
-  'Ivoren Toren in Helpman': 'De Helpman Hustlers',
-  'Staal op staal': 'Sjonnie Kiekdoar & de Ringweg Crew',
-  'Vismarkt Sprint': 'DJ Kapsalon Kees',
-  'Trouw aan het blok': 'Paddepoel Posse',
-  'Perfectie kent geen grens': 'Young Kruudmoes',
-  'De Geest van Oosterpark': 'Spookie Stadjer',
-  'Goudgeld op de oprit': 'Rijke Riekus',
-  'Suikerbuiken in de nacht': 'DJ Suikerbiet',
-  "Oosterpark is m'n droom": 'Stadjer Supreme',
-  'Staal en suiker': 'Beton Bert & de Bietenbende',
-  'Wie stoan nait stil': 'De Nait Soezen Crew',
-  'Kleur in de Wind': 'Windkracht Wiebke',
-  'Geen stoplicht houdt ons tegen': 'Ringweg Drillers',
-  'Goud in de Nacht': 'Nachtbus Nino',
-  'Hatchback op de Ring': 'De Uitlaatjes',
-  'Zomerse droom in de Stad': 'DJ Dageraad feat. MC Zernike',
-  'Trots op mien grond': 'Wierde Wind',
-  'Koplampen in de Mist': 'Lil Polder',
-};
-// file names can't carry every character of a title
-const GMUSIC_TITLES = {
-  'De Geest Van Oosterpark': 'De Geest van Oosterpark',
-  'Oosterpark is m n droom': "Oosterpark is m'n droom",
-};
-const GMUSIC_SPARE_ARTISTS = ['Oma Trijntje & de Stadjers', 'Grunn Gang', 'Lord Stoepkrijt', 'De Diepenring Boys', 'Tante Tjoedie', 'Big Bommen Berend'];
-
-function trackArtist(title) {
-  if (GMUSIC_ARTISTS[title]) return GMUSIC_ARTISTS[title];
-  let h = 0;
-  for (const c of String(title)) h = (h * 31 + c.charCodeAt(0)) >>> 0;
-  return GMUSIC_SPARE_ARTISTS[h % GMUSIC_SPARE_ARTISTS.length];
-}
-
-function wireGmusicEl(el) {
-  try { ctx.createMediaElementSource(el).connect(musicBus); } catch (e) { /* ignore */ }
-  el.addEventListener('ended', onGmusicEnded);
-  // a stub or silent file is no record: never picked again, and if it is the current one, on to the next
-  el.addEventListener('loadedmetadata', () => {
-    if (el.gmusicTrack && Number.isFinite(el.duration) && el.duration < MIN_TRACK_S) {
-      el.gmusicBad = true;
-      if (el === gmusicCurrentEl && !inBreak) advanceGmusicQueue();
-    }
-  });
-  el.addEventListener('playing', onGmusicPlaying);
-  return el;
-}
-
-// one element per jingle, reused: a fresh one per cycle stayed wired to the
-// music bus for good and piled up media players over a long session
-const jingleEls = {};
-function makeJingleEl(key) {
-  const old = jingleEls[key];
-  if (old && !old.error && old !== gmusicCurrentEl) return old;
-  const el = wireGmusicEl(new Audio(GMUSIC_JINGLES[key]));
-  el.gmusicJingleKey = key;
-  jingleEls[key] = el;
-  return el;
-}
-
-function loadMusicHistory() {
-  try {
-    const h = JSON.parse(localStorage.getItem(GMUSIC_HISTORY_KEY) || '[]');
-    return Array.isArray(h) ? h.filter((x) => typeof x === 'string') : [];
-  } catch (e) {
-    return [];
-  }
-}
-
-function randomAmbientJingleEl(chance = 1) {
-  const key = pickJingle(AMBIENT_JINGLE_KEYS, lastJingleKey, { chance });
-  if (!key) return null;
-  lastJingleKey = key;
-  return makeJingleEl(key);
-}
-
-// the next record from the programme's pool
-let freshPick = false; // radio just switched on: new records first (musicpick.js NIEUW)
-function nextTrackEl() {
-  const good = gmusicTracks.filter((x) => !x.gmusicBad);
-  const t = pickTrack((good.length ? good : gmusicTracks).map((el) => el.gmusicTrack), gmusicHistory, { station: radioProg.music, hour: musicHour, fresh: freshPick });
-  freshPick = false;
-  const el = gmusicTracks.find((x) => x.gmusicTrack === t) || gmusicTracks[0];
-  pushHistory(gmusicHistory, el.gmusicTrack.id);
-  try { localStorage.setItem(GMUSIC_HISTORY_KEY, JSON.stringify(gmusicHistory)); } catch (e) { /* private mode */ }
-  return el;
-}
-
-// a jingle between records most of the time, then the record
-function buildGmusicCycle() {
-  const j = randomAmbientJingleEl(0.6);
-  return j ? [j, nextTrackEl()] : [nextTrackEl()];
-}
-
-function onGmusicEnded(e) {
-  if (e.target !== gmusicCurrentEl) return;
-  if (!e.target.gmusicJingleKey) recordsSinceBreak++;
-  if (radioBreak && radioOn && !gmusicHeld && recordsSinceBreak >= radioProg.every) {
-    recordsSinceBreak = 0;
-    inBreak = true;
-    const id = ++breakId;
-    radioBreak(() => {
-      if (id !== breakId || !inBreak) return;
-      inBreak = false;
-      advanceGmusicQueue();
-    });
-    return;
-  }
-  advanceGmusicQueue();
-}
-
-function onGmusicPlaying(e) {
-  if (e.target !== gmusicCurrentEl) return;
-  gmusicRetryDelay = GMUSIC_RETRY_MIN;
-  if (gmusicAnnounceOnPlay) {
-    gmusicAnnounceOnPlay = false;
-    if (e.target.gmusicTitle) pendingTrackAnnounce = e.target.gmusicTitle;
-  }
-}
-
-function playGmusicCurrent() {
-  const el = gmusicCurrentEl;
-  if (!el || el.gmusicPlayInFlight || gmusicSuspended || gmusicHeld) return;
-  el.gmusicPlayInFlight = true;
-  el.play().then(() => {
-    el.gmusicPlayInFlight = false;
-  }, () => {
-    el.gmusicPlayInFlight = false;
-    if (el !== gmusicCurrentEl) return;
-    gmusicRetryAt = nowSec() + gmusicRetryDelay;
-    gmusicRetryDelay = Math.min(GMUSIC_RETRY_MAX, gmusicRetryDelay * 2);
-  });
-}
-
-// "Tune in" like a real running station: start mid-way through a random
-// track (or occasionally a jingle) with a subtle fade-in.
-function startGmusicRandomly() {
-  gmusicStarted = true;
-  gmusicPendingSince = nowSec();
-  gmusicFadingIn = true;
-  musicState.gain = 0;
-  musicBus.gain.value = 0;
-
-  const startAsJingle = Math.random() < 0.25 && speech.radioMayTalk();
-  const el = startAsJingle ? randomAmbientJingleEl() : nextTrackEl();
-  gmusicQueue = startAsJingle ? [nextTrackEl()] : buildGmusicCycle();
-  gmusicCurrentEl = el;
-  gmusicAnnounceOnPlay = true;
-
-  const startPlayback = () => {
-    if (gmusicPendingSince === null || el !== gmusicCurrentEl) return;
-    gmusicPendingSince = null;
-    const dur = el.duration;
-    if (isFinite(dur) && dur > 1) el.currentTime = Math.random() * dur * 0.8;
-    playGmusicCurrent();
-  };
-  if (el.readyState >= 1) startPlayback();
-  else {
-    el.addEventListener('loadedmetadata', startPlayback, { once: true });
-    el.addEventListener('error', () => { gmusicPendingSince = null; }, { once: true });
-  }
-}
-
-function advanceGmusicQueue() {
-  if (!gmusicQueue.length) {
-    if (!gmusicTracks.length) return;
-    gmusicQueue = buildGmusicCycle();
-  }
-  const prevEl = gmusicCurrentEl;
-  // a jingle never talks over a voice: skip it and go straight on with music
-  const noJingle = () => !speech.radioMayTalk() || !radioProg.jingles;
-  while (gmusicQueue.length > 1 && gmusicQueue[0].gmusicJingleKey && noJingle()) gmusicQueue.shift();
-  if (gmusicQueue[0].gmusicJingleKey && noJingle() && gmusicTracks.length) gmusicQueue = [nextTrackEl()];
-  const el = gmusicQueue.shift();
-  gmusicCurrentEl = el;
-  if (prevEl && prevEl !== el && !prevEl.paused) prevEl.pause();
-  try { el.currentTime = 0; } catch (e) { /* not seekable yet */ }
-  gmusicAnnounceOnPlay = true;
-  playGmusicCurrent();
-}
-
-// Queued rather than layered over the running track: it replaces the next
-// ambient jingle so music never overlaps.
-function enqueueGmusicJingle(key) {
-  if (!gmusicStarted || !speech.radioMayTalk() || !radioOn || !radioProg.jingles) return;
-  const next = gmusicQueue[0];
-  if (next && next.gmusicJingleKey === key) return;
-  const el = makeJingleEl(key);
-  if (next && next.gmusicJingleKey) gmusicQueue[0] = el;
-  else gmusicQueue.unshift(el);
 }
 
 const audioLog = [];
@@ -2021,12 +1735,11 @@ function resumeCtx(why) {
 function onVisibilityChange() {
   if (!ctx) return;
   if (document.hidden) {
-    gmusicSuspended = true;
-    if (gmusicCurrentEl && !gmusicCurrentEl.paused) gmusicCurrentEl.pause();
+    // de radio zwijgt en gaat mee met de ctx (audio/radio.js)
+    radioSleep();
     ctx.suspend().catch(() => {});
   } else {
-    gmusicSuspended = false;
-    gmusicRetryAt = 0;
+    radioWake();
     // a resume() racing the suspend() above can lose: the watchdog retries
     resumeCtx('visible');
   }
@@ -2038,9 +1751,7 @@ function onVisibilityChange() {
 // stopped. Cheap when everything already runs.
 function unlockAudio() {
   if (!ctx || document.hidden) return;
-  gmusicSuspended = false;
-  const el = gmusicCurrentEl;
-  if (el && el.paused && !el.ended && gmusicPendingSince === null && !gmusicHeld) playGmusicCurrent();
+  radioUnlock();
   resumeCtx('input');
 }
 
@@ -2154,6 +1865,14 @@ function buildGraph() {
   // die krijgen hier de knopen van deze graaf, zodat ze niets terug hoeven te
   // importeren (zie de kop van dat bestand)
   setVehicleVoices({ ctx, noiseBuffer, makePanner, trafficBus, engineBus, sfxBus });
+  // de radio en de G-Music-machine in audio/radio.js krijgen hier de muziekbus,
+  // de gainstand en de noodgrepen van de watchdog; zo importeert dat bestand
+  // niets terug (zie de kop daar). De scenariomuziek blijft hier: de radio
+  // leent hem per beeld via updateScenarioMusic.
+  setRadioDeps({
+    ctx, musicBus, musicState, stingDuckMul, fix, resumeCtx, nowSec, updateScenarioMusic,
+    scenarioPlaying: () => !!scenarioNow,
+  });
   bank = createBank(ctx);
   samples = createSamples(ctx);
   engine = buildEngine();
@@ -3147,10 +2866,13 @@ function bikeSpeakerRate(v) {
 }
 
 function startBikeSpeaker(v) {
-  const lib = gmusicTracks.map((el) => (el.gmusicBad || !el.gmusicTrack ? null : { id: el.gmusicTrack.id, duration: el.duration }));
-  const pick = pickSpeakerTrack(lib, Math.random, gmusicCurrentEl && gmusicCurrentEl.gmusicTrack ? gmusicCurrentEl.gmusicTrack.id : null, MIN_TRACK_S);
+  // de nummers van de zender komen uit audio/radio.js: alleen lezen
+  const tracks = radioTrackEls();
+  const lib = tracks.map((el) => (el.gmusicBad || !el.gmusicTrack ? null : { id: el.gmusicTrack.id, duration: el.duration }));
+  const current = radioCurrentTrackEl();
+  const pick = pickSpeakerTrack(lib, Math.random, current && current.gmusicTrack ? current.gmusicTrack.id : null, MIN_TRACK_S);
   if (!pick) return null;
-  const el = new Audio(gmusicTracks[pick.index].src);
+  const el = new Audio(tracks[pick.index].src);
   el.loop = true;
   el.preservesPitch = false;
   el.webkitPreservesPitch = false;
@@ -3164,7 +2886,7 @@ function startBikeSpeaker(v) {
   const panner = makePanner({ ref: SPEAKER_REF, rolloff: SPEAKER_ROLLOFF, maxDist: SPEAKER_STOP + 10 });
   src.connect(hp).connect(lp).connect(gain).connect(panner).connect(musicBus);
   const p = el.play(); if (p && p.catch) p.catch(() => {});
-  const voice = { v, el, nodes: [src, hp, lp, gain, panner], gain, panner, level: 0, rate: rate0, fresh: true, track: gmusicTracks[pick.index].gmusicTitle || '?', ending: false };
+  const voice = { v, el, nodes: [src, hp, lp, gain, panner], gain, panner, level: 0, rate: rate0, fresh: true, track: tracks[pick.index].gmusicTitle || '?', ending: false };
   bikeSpeakers.voices.push(voice);
   return voice;
 }
@@ -3179,7 +2901,7 @@ function updateBikeSpeakers(dt, world) {
   const B = bikeSpeakers;
   const mv = musicVolume(getSettings());
   // aan als er muziek te horen is: niet in een menu, de telefoon of een filmpje (muziekbus op 0), niet gedempt, volume niet op nul
-  const on = !menuAudio && !muted && !world.paused && gmusicTracks.length > 0 && musicState.gain > 0.05 && mv >= 0.01;
+  const on = !menuAudio && !muted && !world.paused && radioTrackEls().length > 0 && musicState.gain > 0.05 && mv >= 0.01;
   B.t -= dt;
   if (B.t <= 0) {
     B.t = 0.25;
@@ -3319,54 +3041,6 @@ function updateWorldEvents(world) {
   if (world.stats.pedKills > prev.pedKills) {
     const out = at(newlyDead.find((d) => !d.isCop));
     if (out) playPedSting(out);
-  }
-}
-
-function updateGMusic(dt, world) {
-  musicHour = world.clock;
-  if (!gmusicStarted) {
-    // the theme song owns the music until it ends, then G-Music takes over
-    if (isThemeActive()) return;
-    if (gmusicTracks.length) startGmusicRandomly();
-  } else if (gmusicPendingSince !== null) {
-    if (nowSec() - gmusicPendingSince > GMUSIC_PENDING_TIMEOUT) gmusicPendingSince = null;
-  } else {
-    // Resume-only safety net (autoplay block, media-key pause, tab switch);
-    // a broken file is skipped, an ended one is left to its 'ended' event.
-    const el = gmusicCurrentEl;
-    if (el && el.paused && !el.ended && !el.gmusicPlayInFlight && !gmusicSuspended && !gmusicHeld && nowSec() >= gmusicRetryAt) {
-      if (el.error) advanceGmusicQueue();
-      else playGmusicCurrent();
-    }
-  }
-
-  if (pendingTrackAnnounce) {
-    const night = radioProg.music === 'nachtstreek';
-    world.nowPlaying = { title: pendingTrackAnnounce, artist: (night ? 'Rikus draait: ' : '') + trackArtist(pendingTrackAnnounce), station: STATION_NAME, programme: radioProg.name, at: world.time };
-    pendingTrackAnnounce = null;
-  }
-
-  const scene = updateScenarioMusic(dt, world) || radioHolds();
-
-  // Only spoken lines (the speech.js channel) dip the music, gently;
-  // vehicles, sirens and stings never touch it. A scenario track fades
-  // G-Music out and pauses it; it resumes where it was afterwards.
-  const duck = speech.musicDuck();
-  const ducked = duck > 0;
-  const targetGain = scene ? 0 : GMUSIC_VOLUME + (GMUSIC_DUCK_VOLUME - GMUSIC_VOLUME) * duck;
-  const lerpRate = scene ? dt * 1.8 : gmusicFadingIn || gmusicHeld ? dt * 0.8 : dt * (ducked ? 1.5 : 0.8);
-  musicState.gain += (targetGain - musicState.gain) * Math.min(1, lerpRate);
-  if (!Number.isFinite(musicState.gain)) musicState.gain = targetGain;
-  musicBus.gain.value = musicBusGain(getSettings(), musicState.gain) * stingDuckMul(dt);
-  if (gmusicFadingIn && Math.abs(targetGain - musicState.gain) < 0.02) gmusicFadingIn = false;
-  if (scene && !gmusicHeld && musicState.gain < 0.02) {
-    gmusicHeld = true;
-    if (gmusicCurrentEl && !gmusicCurrentEl.paused) gmusicCurrentEl.pause();
-  } else if (!scene && gmusicHeld) {
-    gmusicHeld = false;
-    gmusicRetryAt = 0;
-    // switched off between two records (or in a break): on with the next one
-    if (gmusicCurrentEl && gmusicCurrentEl.ended) { if (!inBreak) advanceGmusicQueue(); } else playGmusicCurrent();
   }
 }
 
@@ -3622,7 +3296,6 @@ function applyOutputGains(tc) {
 // replaces a dead music element and notices a NaN in the mix.
 const WATCHDOG_S = 2;
 let watchdogAt = 0;
-const musicWatch = createMusicWatch();
 const watch = { runs: 0, fixes: 0, nan: 0, lastFix: null };
 let meterBuf = null;
 
@@ -3639,8 +3312,8 @@ function watchdog(world, force = false) {
   watch.runs++;
   const freed = speech.sweep();
   if (freed.length) fix('hold:' + freed.join(','));
-  if (!document.hidden && ctx.state !== 'running') { if (gmusicSuspended) gmusicSuspended = false; resumeCtx('watchdog'); }
-  if (!document.hidden && gmusicSuspended) { gmusicSuspended = false; gmusicRetryAt = 0; fix('gmusic-suspended'); }
+  if (!document.hidden && ctx.state !== 'running') { radioCtxStalled(); resumeCtx('watchdog'); }
+  if (!document.hidden && radioWasSuspended()) fix('gmusic-suspended');
   const want = muted ? 0 : masterLevel();
   if (master && Math.abs(master.gain.value - want) > 0.02 && ctx.state === 'running') { applyOutputGains(0.1); fix('master-gain'); }
   else if (musicOut && Math.abs(musicOut.gain.value - want) > 0.02 && ctx.state === 'running') { applyOutputGains(0.1); fix('music-gain'); }
@@ -3650,45 +3323,14 @@ function watchdog(world, force = false) {
     musicLp.frequency.setTargetAtTime(20000, ctx.currentTime, 0.3);
     fix('lowpass');
   }
-  if (gmusicHeld && !scenarioNow && !radioHolds()) { gmusicHeld = false; gmusicRetryAt = 0; playGmusicCurrent(); fix('gmusic-held'); }
-  const el = gmusicCurrentEl;
-  if (el && el.error && gmusicPendingSince === null) { reviveGmusicEl(el); fix('gmusic-dead'); }
-  // silence while the radio should play: nudge, then the next record
-  const mw = musicWatch.step(now, {
-    active: gmusicStarted && radioOn && !gmusicHeld && !gmusicSuspended && gmusicPendingSince === null && !document.hidden && gmusicTracks.length > 0,
-    hasEl: !!gmusicCurrentEl, ended: !!(gmusicCurrentEl && gmusicCurrentEl.ended),
-    currentTime: gmusicCurrentEl ? gmusicCurrentEl.currentTime : 0, inBreak,
-  });
-  if (mw === 'resume') {
-    if (gmusicCurrentEl) gmusicCurrentEl.gmusicPlayInFlight = false;
-    gmusicRetryAt = 0; resumeCtx('musicwatch'); playGmusicCurrent(); fix('music-resume');
-  } else if (mw === 'advance') {
-    gmusicRetryAt = 0; resumeCtx('musicwatch'); advanceGmusicQueue(); fix('music-advance');
-  } else if (mw === 'endBreak') {
-    inBreak = false; breakId++; advanceGmusicQueue(); fix('music-break');
-  }
+  // het G-Music-deel van de controle woont in audio/radio.js (#519): een
+  // vastgelopen zender, een dode media-element of een stilgevallen teken
+  watchRadio(now);
   if (meter) {
     if (!meterBuf) meterBuf = new Float32Array(meter.fftSize);
     meter.getFloatTimeDomainData(meterBuf);
     if (meterBuf.some((x) => !Number.isFinite(x))) { watch.nan++; fix('nan'); resetSynth(); }
   }
-}
-
-// A music element that failed (network hiccup, decoder gone) is swapped for
-// a fresh one on the same file, so the station keeps going.
-function reviveGmusicEl(el) {
-  const fresh = wireGmusicEl(new Audio(el.src));
-  fresh.preload = 'auto';
-  fresh.gmusicTitle = el.gmusicTitle;
-  fresh.gmusicJingleKey = el.gmusicJingleKey;
-  fresh.gmusicTrack = el.gmusicTrack;
-  const i = gmusicTracks.indexOf(el);
-  if (i >= 0) gmusicTracks[i] = fresh;
-  if (el.gmusicJingleKey && jingleEls[el.gmusicJingleKey] === el) jingleEls[el.gmusicJingleKey] = fresh;
-  try { el.removeAttribute('src'); el.load(); } catch (e) { /* ignore */ }
-  gmusicCurrentEl = fresh;
-  gmusicRetryAt = 0;
-  advanceGmusicQueue();
 }
 
 // The engine synth is the only hand-written DSP: if the mix ever turns NaN,
@@ -3710,12 +3352,7 @@ function audioState() {
     master: r3(master.gain.value), musicOut: r3(musicOut.gain.value), musicBus: r3(musicBus.gain.value),
     musicTarget: r3(musicState.gain), lowpass: Math.round(musicLp.frequency.value), ambience: r3(ambBus.gain.value),
     ambDuck: r3(duckState.level), musicDuck: speech.musicDuck(),
-    gmusic: {
-      started: gmusicStarted, held: gmusicHeld, suspended: gmusicSuspended, pending: gmusicPendingSince !== null,
-      current: gmusicCurrentEl ? (gmusicCurrentEl.gmusicTitle || gmusicCurrentEl.gmusicJingleKey || '?') : null,
-      paused: gmusicCurrentEl ? gmusicCurrentEl.paused : null, error: !!(gmusicCurrentEl && gmusicCurrentEl.error),
-      tracks: gmusicTracks.length, queue: gmusicQueue.length, history: gmusicHistory.slice(-8),
-    },
+    gmusic: radioState(),
     bikeSpeakers: bikeSpeakers.voices.map((q) => { const d = distToListener(q.v.x, q.v.y, 1.2); return { track: q.track, d: +d.toFixed(1), rate: +q.el.playbackRate.toFixed(3), level: +q.level.toFixed(3), vol: +(q.level * pannerGain(d, SPEAKER_REF, SPEAKER_ROLLOFF)).toFixed(3), ending: q.ending, paused: q.el.paused, lis: [+listenerPos.x.toFixed(1), +listenerPos.z.toFixed(1), +listenerVel.x.toFixed(1), +listenerVel.y.toFixed(1)] }; }),
     scenario: scenarioNow ? scenarioNow.key : null, storyScene, sceneLive: storyProbe ? !!storyProbe() : null, voiceEls: liveVoiceEls, activeVoices,
     synth: !!synth.player, speech: speech.speechState(), watchdog: { ...watch }, log: audioLog.slice(-12),
@@ -3733,7 +3370,7 @@ if (typeof window !== 'undefined') {
     poke: (what) => {
       if (!ctx) return false;
       const t = ctx.currentTime;
-      if (what === 'master') { master.gain.cancelScheduledValues(t); master.gain.setValueAtTime(0, t); } else if (what === 'music') { musicOut.gain.cancelScheduledValues(t); musicOut.gain.setValueAtTime(0, t); } else if (what === 'lowpass') { musicLp.frequency.cancelScheduledValues(t); musicLp.frequency.setValueAtTime(300, t); } else if (what === 'suspend') ctx.suspend(); else if (what === 'held') gmusicHeld = true; else if (what === 'gmusic') gmusicSuspended = true; else return false;
+      if (what === 'master') { master.gain.cancelScheduledValues(t); master.gain.setValueAtTime(0, t); } else if (what === 'music') { musicOut.gain.cancelScheduledValues(t); musicOut.gain.setValueAtTime(0, t); } else if (what === 'lowpass') { musicLp.frequency.cancelScheduledValues(t); musicLp.frequency.setValueAtTime(300, t); } else if (what === 'suspend') ctx.suspend(); else if (!radioPoke(what)) return false;
       return true;
     },
   };
