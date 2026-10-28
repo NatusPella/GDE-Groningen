@@ -117,5 +117,68 @@ if (mat && mat.onBeforeCompile) {
   ok(FR.facadeBands(10, 10.1).wall === F.minWall, 'een muur onder het minimum rekent met minWall');
 }
 
+// (#502) Prefetch-marge en hysterese: een tegel begint te bouwen vóórdat hij in
+// beeld komt, zodat hij klaar is als de speler hem ziet (playtest 27-10: "het
+// plopt nu een beetje per chunk in de verte"), en valt pas ruim achter de
+// zichtafstand weg, zodat omdraaien of een sprong in de zichtafstand hem niet
+// meteen opnieuw hoeft te bouwen.
+{
+  const P = FR.PRELOAD;
+  // de marge zelf, per zichtafstand die het spel kent (viewdist.js)
+  for (const view of [150, 350, 600, 900]) {
+    const r = FR.lodRanges(view);
+    const lead = r.start - view;
+    ok(lead > 0, `de tegel begint bij ${view} m al voorbij de zichtafstand (prefetch)`, lead.toFixed(0) + ' m');
+    ok(lead >= P.min - 1e-9 && lead >= view * P.share - 1e-9, `de marge bij ${view} m is een deel van de zichtafstand met een minimum`, lead.toFixed(0));
+    ok(r.drop > r.start + 1e-9, `de tegel valt bij ${view} m pas achter de marge weg`, `${r.start.toFixed(0)} -> ${r.drop.toFixed(0)}`);
+    ok(r.drop - view > 160, `de weggooiafstand bij ${view} m is ruimer dan de oude halve tegel`, `${(r.drop - view).toFixed(0)} m achter de zichtafstand`);
+  }
+  ok(FR.lodRanges(600).start > FR.lodRanges(350).start, 'een grotere zichtafstand schuift de marge mee naar buiten');
+
+  // een eigen laag met alleen het stadje (0..320), zodat de tellingen van
+  // hierboven niet meewegen: de speler staat op afstand d van de tegelrand
+  const opts = { flatGeometry: (g) => g, colors: { roads: {}, sidewalk: '#8a8a8a', green: '#4a6b3a' }, sidewalkExtra: 1.2, roadColorOf: null };
+  const makeLod = () => createFarLOD(new THREE.Scene(), map, opts);
+  const settle = (l, d, view = 400) => {
+    // minstens twee passes: een nieuwe tegel telt pas mee in de stats van de
+    // pass ná de bouw (farlod.js: "a pass that built something shows the new
+    // meshes with the next one")
+    for (let i = 0; i < 40; i++) {
+      l.update(320 + d, 160, view, view, 60);
+      if (i >= 1 && !l.stats.queued) return;
+    }
+  };
+
+  // 460 m: buiten de zichtafstand (400) maar binnen de marge (start 520)
+  const edge = makeLod();
+  settle(edge, 460);
+  ok(edge.stats.tiles + edge.stats.queued > 0, 'een tegel buiten de zichtafstand maar binnen de marge is al in de maak', JSON.stringify(edge.stats));
+  ok(edge.stats.visible === 0, 'die tegel staat nog niet in beeld', String(edge.stats.visible));
+
+  // voorbij de marge begint er niets: de prefetch is begrensd
+  const beyond = makeLod();
+  settle(beyond, FR.lodRanges(400).start + 40);
+  ok(beyond.stats.tiles === 0 && beyond.stats.queued === 0, 'voorbij de marge begint er nog geen tegel', JSON.stringify(beyond.stats));
+
+  // dezelfde tegel zakt naar 600 m (voorbij de oude grens van 400 + 160) en
+  // blijft staan tot voorbij `drop`
+  settle(edge, 600);
+  ok(edge.stats.tiles === 1, 'een tegel ruim buiten beeld maar binnen de hysterese blijft staan', JSON.stringify(edge.stats));
+  settle(edge, FR.lodRanges(400).drop + 60);
+  ok(edge.stats.tiles === 0, 'pas ver achter de zichtafstand valt de tegel weg', JSON.stringify(edge.stats));
+
+  // binnen de zichtafstand wordt nooit iets weggegooid, ook niet als de speler
+  // eromheen loopt of de zichtafstand verspringt
+  const near = makeLod();
+  let kept = true, lastD = -1;
+  for (const view of [400, 900, 350, 150, 600, 400]) {
+    for (const d of [0, 40, view * 0.5, view - 5]) {
+      settle(near, d, view);
+      if (near.stats.tiles !== 1) { kept = false; lastD = d; }
+    }
+  }
+  ok(kept, 'een tegel binnen de zichtafstand wordt nooit weggegooid', lastD < 0 ? 'bij elke afstand en zichtafstand' : `weg bij ${lastD} m`);
+}
+
 console.log(fails ? `${fails} of ${n} FAILED` : `ok: ${n} checks`);
 process.exit(fails ? 1 : 0);

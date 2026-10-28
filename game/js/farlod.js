@@ -6,13 +6,35 @@ import { drawHub } from './multidraw3d.js';
 
 // Far LOD layer: plain extruded buildings and flat ground (green, paths,
 // roads) merged per TILE x TILE metre tile, one draw call per tile and layer.
-// Tiles are built incrementally within a per-frame time budget and dropped
-// once well outside the view distance. Buildings the detailed streamer shows
+// Tiles are built incrementally within a per-frame time budget, started a
+// prefetch margin before they can come into view and dropped only well behind
+// it (#502). Buildings the detailed streamer shows
 // (centre within detailR of the player) are collapsed in the vertex shader;
 // ground fragments inside the guaranteed-detailed radius are discarded.
 
 const TILE = 320;
 const BUDGET_MS = 2.5;
+
+// (#502) Prefetch-marge: een tegel begint al te bouwen vóórdat hij in beeld
+// komt. Tot #502 begon hij pas op de rand van de zichtafstand (d < viewDist) en
+// omdat de bouw in blokken van BUDGET_MS gaat en de nieuwe meshes pas met de
+// volgende pass zichtbaar worden, kwam hij dus in beeld terwijl hij nog in de
+// maak was: "het plopt nu een beetje per chunk in de verte" (playtest 27-10).
+// De aanloop is een deel van de zichtafstand (`share`) met een minimum (`min`),
+// zodat hij ook bij de kortste zichtafstand (150 m) groter blijft dan wat een
+// tegel in een paar frames bouwtijd aflegt. `release` is de hysterese achter de
+// marge: een tegel die net buiten de marge valt blijft staan in plaats van meteen
+// gesloopt te worden en bij het omdraaien opnieuw gebouwd te moeten worden.
+export const PRELOAD = { share: 0.3, min: 80, release: TILE * 0.5 };
+
+// De twee afstanden rond de speler waarop de laag werkt, in meters: `start` is
+// waar een tegel begint te bouwen (dus voorbij de zichtafstand), `drop` waar hij
+// weg mag. Puur en geëxporteerd zodat scripts/farlod_test.mjs de marge kan
+// narekenen zonder daar een halve wereld voor te bouwen.
+export function lodRanges(viewDist) {
+  const start = viewDist + Math.max(viewDist * PRELOAD.share, PRELOAD.min);
+  return { start, drop: start + PRELOAD.release };
+}
 
 // (#463) De banden van de gevel (plint, strook hooglichten, kroonlijst) als één
 // bron: de shader van de gevel leest deze getallen en scripts/farlod_test.mjs
@@ -465,14 +487,21 @@ export function createFarLOD(scene, map, opts) {
       stats.queued = 0;
       return;
     }
+    // (#502) twee afstanden: `start` ligt een marge voorbij de zichtafstand (de
+    // prefetch), `drop` een halve tegel achter die marge (de hysterese). Een
+    // tegel tussen `start` en `drop` wordt met rust gelaten: hij is gebouwd en
+    // blijft staan, ook als hij buiten beeld valt.
+    const { start, drop } = lodRanges(viewDist);
     for (const t of tiles.values()) {
       // switched with ?perfoff=pool (A/B runs): the tile is built again in the other mode
       if (t.meshes && t.pooled === perfOff('pool')) disposeTile(t);
       const d = rectDist(t, px, py);
       t.dist = d;
-      if (d < viewDist) {
+      if (d < start) {
         if (!t.meshes && !t.job) startJob(t);
-      } else if (d > viewDist + TILE * 0.5 && (t.meshes || t.job)) {
+      } else if (d > drop && (t.meshes || t.job)) {
+        // pas hier, ruim achter de zichtafstand: een tegel die net buiten beeld
+        // valt of waar de speler omheen draait blijft staan
         disposeTile(t);
       }
       if (t.meshes) {
@@ -486,8 +515,13 @@ export function createFarLOD(scene, map, opts) {
       }
     }
     for (let i = queue.length - 1; i >= 0; i--) if (!queue[i].job) queue.splice(i, 1);
+    // (#502) op afstand gesorteerd: wat in beeld staat gaat vóór de
+    // prefetch-tegels verder weg, dus de marge kost nooit detail dichtbij.
     queue.sort((a, b) => a.dist - b.dist);
     const hadQueue = queue.length > 0;
+    // Het budget blijft een hard plafond per frame (BUDGET_MS): staan er door de
+    // prefetch meer tegels in de wachtrij, dan duurt het vullen langer in plaats
+    // van dat een frame duurder wordt.
     const t0 = performance.now();
     const deadline = t0 + BUDGET_MS;
     while (queue.length && performance.now() < deadline) {
