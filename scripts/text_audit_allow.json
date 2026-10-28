@@ -338,14 +338,14 @@
     {
       "rule": "inclusief",
       "term": "jongens",
-      "file": "missions.js",
+      "file": "missions_defs.js",
       "ctx": "Opzij, jongens",
       "why": "Durk en Douwe; ingesproken: de opname blijft; bij een heropname vervangen (docs/INCLUSIEVE-TAAL.md)"
     },
     {
       "rule": "inclusief",
       "term": "jongens",
-      "file": "missions.js",
+      "file": "missions_defs.js",
       "ctx": "Kom op, jongens",
       "why": "Durk en Douwe; ingesproken: de opname blijft; bij een heropname vervangen (docs/INCLUSIEVE-TAAL.md)"
     },

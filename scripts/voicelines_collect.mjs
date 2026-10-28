@@ -168,7 +168,7 @@ export function collect() {
   for (const s of lit(rv, 'const SIGHTS = ')) for (const t of s.lines) add('Rondvaart-bijbaan (gids)', 'lines', ['Tammo', 'Anita'], t, { tag: ['enthousiaste rondvaartgids door een bootspeaker, speels', 'vertellend, trots op de stad', 'grappig, met een knipoog'] });
 
   // --- mission scenes and fallback intros in missions.js -> lines manifest
-  const mi = src('missions.js');
+  const mi = src('missions.js') + src('missions_defs.js');   // de definities staan sinds #497 in missions_defs.js
   const npcs = lit(src('missionstory.js'), 'const NPC = ');
   const who = (k) => (k === 'T' ? 'Tammo' : k === 'A' ? 'Anita' : k === 'V' ? NARRATOR : npcs[k] ? npcs[k].name : k);
   // stage scene lines, also when the first line starts on a new line

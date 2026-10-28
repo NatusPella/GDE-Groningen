@@ -44,7 +44,7 @@ for (const [i, d] of defs.entries()) {
 ok(MISSION_IDS.slice(-NEW_MISSION_IDS.length).join() === NEW_MISSION_IDS.join(), 'MISSION_IDS ends with the new ids (append-only)');
 
 // landmarks and shops the act's defs refer to
-const missionsSrc = fs.readFileSync(new URL('js/missions.js', root), 'utf8') + fs.readFileSync(new URL('js/missions_nieuw.js', root), 'utf8');
+const missionsSrc = fs.readFileSync(new URL('js/missions.js', root), 'utf8') + fs.readFileSync(new URL('js/missions_defs.js', root), 'utf8') + fs.readFileSync(new URL('js/missions_nieuw.js', root), 'utf8');
 const lms = new Set(map.meta.landmarks.map((l) => l.name));
 for (const m of missionsSrc.matchAll(/landmark: '([^']+)'/g)) ok(lms.has(m[1]), `landmark "${m[1]}" exists`);
 const shopTypes = new Set((map.meta.shops || []).map((s) => s.t));
