@@ -6,9 +6,10 @@
 //   Arrow keys   forward, back, sideways             mouse (captured) turns too
 //
 // Releasing the keys levels the heli and it drifts to a hover. The body and
-// the rotor are swept against the city's buildings and the real Ommeland
-// ones; a touchdown only holds on a flat surface (ground, a flat roof, a
-// helipad) at low speed, harder ones bounce and damage it, a crash wrecks it.
+// the rotor are swept against the city's buildings, the real Ommeland ones and
+// the tree crowns (treeprops.js); a touchdown only holds on a flat surface
+// (ground, a flat roof, a helipad) at low speed, harder ones bounce and damage
+// it, a crash wrecks it.
 // Beyond the edge of the map a soft wall turns it back. Over open water the
 // canal takes it (vehicle.js sinks it).
 //
@@ -40,6 +41,10 @@ import { levelShadow } from './shadowlevel.js';
 import { unlockAchievement } from './achievements.js';
 import { helipadInfo } from './skyprops.js';
 import { shapeInputs } from './helictl.js';
+// De bomen: die staan als vaste prop in de ruimtelijke index van breakables.js
+// (treeprops.js zet elke gestreamde boom daar neer). Ze zijn geen gebouw en geen
+// dak, dus de heli toetst ze apart (zie treesNear/inTree onderaan de helpers).
+import { propsNearInto } from './breakables.js';
 
 export const HELI_MODEL = { name: 'heli', len: 8.8, wid: 2.1, maxSpeed: 40, accel: 7, brake: 9, turnRate: 1.5 };
 
@@ -62,6 +67,16 @@ const RPM = 30;
 const BODY_PROBES = [[2.3, 0, 0.25], [1.1, 1.0, 0.25], [1.1, -1.0, 0.25], [-1.0, 1.0, 0.25], [-1.0, -1.0, 0.25], [-4.4, 0, 1.3]];
 const ROTOR_PROBES = [0, 1, 2, 3, 4, 5].map((k) => [Math.cos(k * Math.PI / 3) * 4.6 - 0.2, Math.sin(k * Math.PI / 3) * 4.6, ROTOR_H]);
 const SKIDS = [[1.5, 1.0], [1.5, -1.0], [-1.1, 1.0], [-1.1, -1.0]];
+// Bomen (treeprops.js): de prop kent de stam (r) en de hele hoogte (h), geen
+// kroonmaat. greenery.js houdt de kruin op 0,2-0,45 x de hoogte en de stam
+// 0,15-0,35 x; met die banden rekenen we de kruin: een kwart van de hoogte
+// breed, vanaf 0,3 x de hoogte. Zo vliegt de heli niet door het bladerdek,
+// maar sluit een populier niet de hele straat af.
+const TREE_REACH = 10;
+const CROWN_BASE = 0.3;
+const CROWN_SHARE = 0.25;
+const CROWN_MAX = 4.5;
+const NO_TREES = [];
 
 let world = null;
 const pads = [];
@@ -149,9 +164,57 @@ function surfaceAt(map, x, y, z) {
   return { z: g, kind: 'ground', flat: true };
 }
 
+// --- bomen ---------------------------------------------------------------------
+
+// De bomen rond (x, y) uit de propindex, in één zoekactie en in onze eigen
+// buffer: dit draait per frame, dus de probes zoeken niet elk apart.
+const treeBuf = [];
+function treesNear(x, y) {
+  const raw = propsNearInto(x, y, TREE_REACH, treeBuf);
+  let n = 0;
+  for (let i = 0; i < raw.length; i++) {
+    const p = raw[i];
+    if (p.kind === 'tree' && p.h > 0) raw[n++] = p;
+  }
+  raw.length = n;
+  return raw;
+}
+
+// Valt (x, y) binnen de voet van de boom (stam of kruin)?
+function underCrown(p, x, y) {
+  const dx = x - p.x, dy = y - p.y, d2 = dx * dx + dy * dy;
+  if (d2 <= p.r * p.r) return true;
+  const cr = Math.min(p.h * CROWN_SHARE, CROWN_MAX);
+  return d2 <= cr * cr;
+}
+
+// Staat een punt op hoogte ph in de boom? Onder de kruin telt alleen de stam,
+// daarboven de hele kruin, en boven de top vliegt de heli er langs.
+function inTree(p, x, y, ph) {
+  if (ph >= p.h) return false;
+  if (ph >= p.h * CROWN_BASE) return underCrown(p, x, y);
+  const dx = x - p.x, dy = y - p.y;
+  return dx * dx + dy * dy <= p.r * p.r;
+}
+
+// De hoogste kruin boven (x, y), of -Infinity: waar de heli op stuit als hij in
+// een boom zakt. Een kruin is geen dak (surfaceAt blijft de grond houden).
+function crownTopAt(trees, x, y) {
+  let top = -Infinity;
+  for (const p of trees) if (p.h > top && underCrown(p, x, y)) top = p.h;
+  return top;
+}
+
 function local(v, lx, lz, x = v.x, y = v.y) {
   const c = Math.cos(v.angle), s = Math.sin(v.angle);
   return [x + c * lx - s * lz, y + s * lx + c * lz];
+}
+
+// De klap van de bladeren (prop_hit met het materiaal van een boomprop, net als
+// breakables.js): zo hoort het geluid bij wat de heli raakt.
+function rustle(w, x, y, strength) {
+  const q = w.audioEvents || (w.audioEvents = []);
+  if (q.length < 64) q.push({ kind: 'prop_hit', x, y, strength: clamp(strength, 0.2, 1), material: 'foliage' });
 }
 
 function hurt(v, dmg, byWorld) {
@@ -257,7 +320,7 @@ export function flyHeli(v, dt, w) {
   if (v.onGround && ready && up > 0 && !dead) v.onGround = false;
 
   const hspeed0 = Math.hypot(vx, vy);
-  let hitH = 0, rotorHit = false;
+  let hitH = 0, rotorHit = false, treeHit = false;
   // each probe's roof is looked up once per position this frame (the new
   // position is asked again by the resting pass below)
   const topMemo = new Map();
@@ -271,11 +334,31 @@ export function flyHeli(v, dt, w) {
     if (!m || x === nx) topMemo.set(key, { x, y, top });
     return top;
   };
+  // De bomen in de buurt: één zoekactie rond het hart van de heli, en alleen in
+  // de lucht (op de grond regelt breakables.js de aanrijding al). De oude en de
+  // nieuwe plek liggen bij 40 m/s geen meter uit elkaar, dus deze lijst dekt
+  // alle probes van beide.
+  const trees = v.onGround ? NO_TREES : treesNear((ox + nx) * 0.5, (oy + ny) * 0.5);
+  const inTreeAt = (lx, lz, h, x, y) => {
+    if (!trees.length) return false;
+    const [px, py] = local(v, lx, lz, x, y);
+    const ph = oz + h;
+    for (const p of trees) if (inTree(p, px, py, ph)) return true;
+    return false;
+  };
   // a probe moving into a building blocks; one that already overlapped (a
-  // spawn or a takeoff right next to a wall) may move out again
+  // spawn or a takeoff right next to a wall) may move out again. Voor een boom
+  // geldt hetzelfde: erin vliegen stuitert, er al in hangen mag er weer uit.
   const enters = (lx, lz, h) => probeTop(lx, lz, nx, ny) > oz + h + 0.05 && probeTop(lx, lz, ox, oy) <= oz + h + 0.05;
-  for (const [lx, lz, h] of BODY_PROBES) if (enters(lx, lz, h)) { hitH = 1; break; }
-  if (!hitH && v.rotor > 0.3) for (const [lx, lz, h] of ROTOR_PROBES) if (enters(lx, lz, h)) { hitH = 2; rotorHit = true; break; }
+  const entersTree = (lx, lz, h) => inTreeAt(lx, lz, h, nx, ny) && !inTreeAt(lx, lz, h, ox, oy);
+  for (const [lx, lz, h] of BODY_PROBES) {
+    if (enters(lx, lz, h)) { hitH = 1; break; }
+    if (entersTree(lx, lz, h)) { hitH = 1; treeHit = true; break; }
+  }
+  if (!hitH && v.rotor > 0.3) for (const [lx, lz, h] of ROTOR_PROBES) {
+    if (enters(lx, lz, h)) { hitH = 2; rotorHit = true; break; }
+    if (entersTree(lx, lz, h)) { hitH = 2; rotorHit = treeHit = true; break; }
+  }
   if (hitH) {
     nx = ox; ny = oy;
     const impact = hspeed0;
@@ -284,7 +367,9 @@ export function flyHeli(v, dt, w) {
       v.hitAt = w.time;
       reportImpact(w, v.x, v.y, impact * (rotorHit ? 1.2 : 1), true);
       hurt(v, (impact - 2.5) * (rotorHit ? 4 : 2.6), w);
-      if (rotorHit) say('rotor', 'Au! De rotor tikt het gebouw', 2, 'gevaar', 3);
+      if (rotorHit) say('rotor', treeHit ? 'Au! De rotor slaat door de kruin' : 'Au! De rotor tikt het gebouw', 2, 'gevaar', 3);
+      else if (treeHit) say('tree', 'Botsing met een boom: je vliegt te laag tussen de kruinen', 2.5, 'gevaar', 4);
+      if (treeHit) rustle(w, v.x, v.y, impact / 14);
     }
   }
   // sinking onto a roof edge or a ridge under the nose, tail or rotor: rest on
@@ -297,6 +382,26 @@ export function flyHeli(v, dt, w) {
   };
   rest(BODY_PROBES);
   if (v.rotor > 0.3) rest(ROTOR_PROBES);
+
+  // Een kruin is geen dak: zakt de heli van boven in een boom, dan stuitert hij
+  // erop terug (dezelfde regel als een schuin dak), in plaats van erdoorheen te
+  // zakken en met zijn skids in de stam te staan.
+  const crown = trees.length && vz < 0 ? crownTopAt(trees, nx, ny) : -Infinity;
+  if (crown > nz + 0.05 && crown <= oz + 0.05) {
+    const impactV = -vz;
+    nz = crown;
+    vz = 2.2 + impactV * 0.2;
+    vx *= 0.6; vy *= 0.6;
+    // net als bij een schuin dak telt alleen een echte klap; zacht erop zakken
+    // stuitert wel, maar kost geen gezondheid
+    if ((impactV > 1.5 || hspeed0 > 3) && w.time - (v.hitAt || -9) > 0.35) {
+      v.hitAt = w.time;
+      reportImpact(w, nx, ny, Math.min(14, 4 + impactV), true);
+      hurt(v, impactV * 2 + hspeed0, w);
+      rustle(w, nx, ny, impactV / 10);
+    }
+    say('kruin', 'Een kruin is geen landingsplek: je stuitert eraf', 2.5, 'tip', 6);
+  }
 
   // the ground, a roof, a pad or the water under the skids
   const surf = surfaceAt(map, nx, ny, oz);
