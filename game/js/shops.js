@@ -1891,18 +1891,23 @@ function streamShopFronts(world) {
 
 // --- save ----------------------------------------------------------------------
 
-// Health and the dents (replayed on the rebuilt mesh) of an owned vehicle.
+// Health en deuken (opnieuw afgespeeld op de herbouwde mesh) van een eigen voertuig.
+// Allebei altijd opschrijven, ook 100 en een lege lijst (#502): een weggelaten waarde laat
+// de vorige stand in de save staan, en dan komt de schade van voor een betaalde reparatie
+// terug zodra het voertuig weer wordt neergezet.
 function damageSave(v) {
-  const out = {};
-  if ((v.health ?? 100) < 100) out.health = Math.round(v.health);
-  if (v.dentLog && v.dentLog.length) out.dents = v.dentLog.map((d) => d.map((n) => Math.round(n * 100) / 100));
+  const out = { health: Math.round(Number.isFinite(v.health) ? v.health : 100) };
+  out.dents = Array.isArray(v.dentLog) ? v.dentLog.map((d) => d.map((n) => Math.round(n * 100) / 100)) : [];
   if (v.flat) out.flat = true;
   return out;
 }
 
 export function getShopSave() {
   const round = (n) => Math.round(n * 10) / 10;
-  const hero = worldRef && worldRef.vehicles.find((x) => x.isHeroCar && !x.wrecked);
+  // Ook een wrak telt mee (#502): met alleen een hele auto hier stond er na een wrak
+  // `hero: {}` in de save en kwam de volgende auto er met 100 health terug. Een hele auto
+  // gaat voor; de health van een wrak (0) komt bij het laden niet onder de 5 (updateShops).
+  const hero = worldRef && (worldRef.vehicles.find((x) => x.isHeroCar && !x.wrecked) || worldRef.vehicles.find((x) => x.isHeroCar));
   return {
     hero: hero ? damageSave(hero) : {},
     outfit: { ...state.outfit },

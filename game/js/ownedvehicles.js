@@ -772,8 +772,12 @@ function homeDelivery(world, e) {
   }
   const v = o.v;
   if (v) {
-    if ((v.health ?? 100) < 100) o.health = v.health;
+    // net als bij het stallen in de garage (#502): ook een heel voertuig schrijft zijn
+    // schade en deuken weg, zodat een betaalde reparatie niet terugspringt als het hier
+    // weer wordt neergezet
+    o.health = Number.isFinite(v.health) ? v.health : 100;
     o.flat = !!v.flat;
+    o.dents = v.dentLog && v.dentLog.length ? v.dentLog.slice(0, 12) : [];
     const i = world.vehicles.indexOf(v);
     if (i >= 0) world.vehicles.splice(i, 1);
     o.v = null;
