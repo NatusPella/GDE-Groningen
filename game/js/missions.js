@@ -59,6 +59,8 @@ import { enterRit, updateRit } from './stagerit.js';
 import { enterTiming, updateTiming, closeTiming, timingTag } from './stagetiming.js';
 import { withValidity } from './validity.js';
 import { afstandMeespeler, meespelerInVoertuig } from './spelersregister.js';
+// de speler van dit apparaat (#500): de missieketen is van de lokale speler, niet van de gastheer of een meespeler
+import { hoofdspeler } from './players.js';
 import { teamActor, doelStand, groepKlaar, WACHT_OP_ANDEREN } from './stagegroep.js';
 import { registreerWedstrijd, wedNodigUit, wedHostBaan, wedBaanStand } from './multiplayerwedstrijd.js';
 import { lichaamVan, bestuurInstappenIn, bestuurLos } from './coopbestuur.js';
@@ -722,7 +724,7 @@ export function cancelActiveMission(world) {
 function speakerName(world) {
   const c = world.companion;
   if (c && c.character) return c.character === 'tammo' ? 'Tammo' : 'Anita';
-  return world.player.character === 'tammo' ? 'Anita' : 'Tammo';
+  return hoofdspeler(world).character === 'tammo' ? 'Anita' : 'Tammo';
 }
 
 function statusOf(i) {
@@ -800,7 +802,7 @@ export const RACE_MIN_TOP = 200 / 3.6;
 const isRaceCar = (name, top) => name === 'sport' || top >= RACE_MIN_TOP - 0.01;
 const isCarRide = (v) => !!v && !v.isBoat && !v.isBike && !v.isScooter && !v.isHeli;
 
-function rideOk(w, ride, v = w.player.inVehicle) {
+function rideOk(w, ride, v = hoofdspeler(w).inVehicle) {
   if (ride === 'racecar') return isCarRide(v) && !v.wrecked && isRaceCar(v.model.name, v.model.maxSpeed);
   if (ride === 'bike') return !!v && v.isBike;
   if (ride === 'quay') return !v || !v.isBoat;
@@ -828,7 +830,7 @@ function checkRide(w, def) {
   if (!def.ride || rideOk(w, def.ride)) return true;
   if (w.time - chainState().reqHintAt >= 3) {
     chainState().reqHintAt = w.time;
-    const v = w.player.inVehicle;
+    const v = hoofdspeler(w).inVehicle;
     const line = WRONG_RIDE[def.ride].find((r) => r.when(v));
     w.addMessage(line.say, 4, { kind: 'missie' });
   }
@@ -884,8 +886,9 @@ export function requirementPlace(w, key) {
   if (h) return h;
   if (req.garage) {
     let best = null, bd = Infinity;
+    const eigen = hoofdspeler(w); // één keer ophalen: de lus leest steeds dezelfde speler
     for (const g of getGaragesForRender()) {
-      const d = dist(g.x, g.y, w.player.x, w.player.y);
+      const d = dist(g.x, g.y, eigen.x, eigen.y);
       if (d < bd) { bd = d; best = g; }
     }
     return best ? { x: best.x, y: best.y, name: best.name } : null;
@@ -896,9 +899,10 @@ export function requirementPlace(w, key) {
 function nearestShopOf(w, type) {
   const types = Array.isArray(type) ? type : [type];
   let best = null, bd = Infinity;
+  const eigen = hoofdspeler(w);
   for (const s of getShopsForRender()) {
     if (!types.includes(s.type)) continue;
-    const d = dist(s.x, s.y, w.player.x, w.player.y);
+    const d = dist(s.x, s.y, eigen.x, eigen.y);
     if (d < bd) { bd = d; best = s; }
   }
   return best;
@@ -1126,7 +1130,7 @@ function runStats(world, def) {
 function runVehicle(world) {
   if (chainState().vehicle) return chainState().vehicle;
   if (chainState().race && chainState().race.playerCar) return chainState().race.playerCar;
-  const v = world.player.inVehicle;
+  const v = hoofdspeler(world).inVehicle;
   return v && !v.isBoat ? v : null;
 }
 
@@ -1143,7 +1147,7 @@ function trackRun(dt, world) {
   const v = runVehicle(world);
   if (v) {
     if (v !== r.veh) { r.veh = v; r.vehHp = v.health; }
-    if (world.player.inVehicle === v) r.vehicleUsed = true;
+    if (hoofdspeler(world).inVehicle === v) r.vehicleUsed = true;
     if (v.health < r.vehHp) r.vehDamage = Math.min(100, r.vehDamage + (r.vehHp - v.health));
     r.vehHp = v.health;
   }
@@ -1162,7 +1166,7 @@ function vehicleToBoard(world, def) {
   if (def.type === 'stages') return stageNeedsVehicle(world, def) ? chainState().vehicle : null;
   if (def.type !== 'deliver' && def.type !== 'boat') return null;
   const v = chainState().vehicle;
-  const p = world.player;
+  const p = hoofdspeler(world);
   if (!v || v.wrecked || v.disabled) return null;
   // the rondvaart is in the tour boat (the tourists are aboard), not your own
   if (p.inVehicle === v || meespelerInVoertuig(world, v)) return null;
@@ -1301,7 +1305,7 @@ function progressText(world, def, pub) {
   if (def.type === 'stunt') {
     const s = stuntStatus();
     if (!s) return null;
-    if (!world.player.inVehicle) return `Stap in de Escapade · punten ${s.score}/${s.target}`;
+    if (!hoofdspeler(world).inVehicle) return `Stap in de Escapade · punten ${s.score}/${s.target}`;
     return `Punten ${s.score}/${s.target}${s.combo > 1 ? ` · reeks x${s.combo}` : ''}`;
   }
   return null;
@@ -1327,7 +1331,7 @@ function releaseMissionVehicle(world) {
     chainState().storyBoat = null;
     sb.missionCar = false;
     const i = world.vehicles.indexOf(sb);
-    if (i >= 0 && world.player.inVehicle !== sb) world.vehicles.splice(i, 1);
+    if (i >= 0 && hoofdspeler(world).inVehicle !== sb) world.vehicles.splice(i, 1);
   }
   disposeFjordTrain(world);
   disposeHeist();
@@ -1365,7 +1369,7 @@ function releaseMissionVehicle(world) {
 const HANDBACK_GONE_M = 120;
 
 function handBack(world, def, v) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   const how = def.handBack.how;
   if (!world.vehicles.includes(v) || v.wrecked || v.sinking) return;
   if (p.inVehicle === v) {
@@ -1401,7 +1405,8 @@ function updateHandBack(dt, world) {
       v.driver = 'owner';
     }
   }
-  if (dist(v.x, v.y, world.player.x, world.player.y) > HANDBACK_GONE_M) {
+  const p = hoofdspeler(world);
+  if (dist(v.x, v.y, p.x, p.y) > HANDBACK_GONE_M) {
     const i = world.vehicles.indexOf(v);
     if (i >= 0) world.vehicles.splice(i, 1);
     if (chainState().leftover === v) chainState().leftover = null;
@@ -1414,7 +1419,7 @@ function updateHandBack(dt, world) {
 // (need 'car': r-tuning; 'racecar': H9). { x, y, name } or null.
 export function rideFirst(world, need = null) {
   if (!chainState()) return null;
-  const p = world.player;
+  const p = hoofdspeler(world);
   const fits = need === 'racecar' ? (v) => rideOk(world, 'racecar', v) : need === 'car' ? isCarRide : (v) => !v.isBoat && !v.isHeli;
   if (p.inVehicle && fits(p.inVehicle)) { chainState().afoot = false; return null; }
   if (!need && (!chainState().afoot || p.inVehicle)) return null;
@@ -1657,7 +1662,7 @@ function pointAlongRoad(road, p, offset) {
 }
 
 function spawnMissionCar(world, def) {
-  const at = pointAlongRoad(def.start.road, def.start, world.player.inVehicle ? 10 : 6);
+  const at = pointAlongRoad(def.start.road, def.start, hoofdspeler(world).inVehicle ? 10 : 6);
   const car = spawnVehicleOnRoad(world.map, def.start.road, false, Math.random, false, false, at, false, def.vehicleModel ? { ...def.vehicleModel } : null);
   car.road = null;
   car.speed = 0;
@@ -1767,13 +1772,14 @@ function laneProject(g, x, y) {
 
 function spawnLaneBike(world, def, dir, s0 = null) {
   const g = laneGeom(def);
+  const eigen = hoofdspeler(world); // de speler van dit apparaat: de baan voedt zich rond hem
   const fat = Math.random() < LANE_FAT_SHARE;
   // a long lane (H12) feeds bikes in around the player instead of only at its ends
-  const pl = s0 == null && g.len > 220 ? laneProject(g, world.player.x, world.player.y).s : null;
+  const pl = s0 == null && g.len > 220 ? laneProject(g, eigen.x, eigen.y).s : null;
   const s = s0 ?? (pl != null ? clamp(pl + dir * -(45 + Math.random() * 30), 0, g.len) : dir > 0 ? 0 : g.len);
   const q = laneAt(g, s);
   // never out of thin air on top of the player
-  if (dist(q.x, q.y, world.player.x, world.player.y) < 12) return;
+  if (dist(q.x, q.y, eigen.x, eigen.y) < 12) return;
   const lat = (Math.random() * 2 - 1) * LANE_HALF;
   const x = q.x + q.nx * lat, y = q.y + q.ny * lat;
   if (isInsideBuilding(world.map, x, y)) return;
@@ -1802,7 +1808,7 @@ function startLane(world, def) {
   chainState().hitGraceUntil = world.time + 2.5;
   chainState().laneT = 0.4;
   chainState().laneDir = 1;
-  const p = world.player;
+  const p = hoofdspeler(world);
   for (let s = 10, dir = -1; s < Math.min(g.len, 120); s += 11 + Math.random() * 6, dir = -dir) {
     const q = laneAt(g, s);
     if (dist(q.x, q.y, p.x, p.y) > 12) spawnLaneBike(world, def, dir, s);
@@ -1830,7 +1836,7 @@ function fatbikersAnswerHonk(world, p) {
 
 function updateLaneBikes(dt, world, def) {
   const g = laneGeom(def);
-  const p = world.player;
+  const p = hoofdspeler(world);
   fatbikersAnswerHonk(world, p);
   const pl = laneProject(g, p.x, p.y);
   chainState().laneT -= dt;
@@ -1874,7 +1880,7 @@ function updateLaneBikes(dt, world, def) {
 }
 
 function checkLaneHits(world) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   if (p.inVehicle || world.time < chainState().hitGraceUntil || world.pendingRespawn || isKnockedDown(p, world)) return;
   for (const b of chainState().bikes) {
     const v = b.v;
@@ -1960,7 +1966,7 @@ function startCharge(world, ped) {
 }
 
 function updateCrowd(dt, world, def) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   const t = world.time;
   const next = def.waypoints[chainState().wpIndex];
   for (let k = chainState().crowd.length - 1; k >= 0; k--) {
@@ -2063,7 +2069,7 @@ function startMission(world, def) {
   setStoryOutfit(def.heist ? 'incognito' : null);
   if (def.solo) {
     // the companion stays where the mission starts (H16: Tammo with the klomp)
-    const p0 = world.player;
+    const p0 = hoofdspeler(world);
     world.companionHold = { x: p0.x + Math.cos(p0.angle + 2) * 1.6, y: p0.y + Math.sin(p0.angle + 2) * 1.6, face: p0.angle, pose: 'phone' };
     chainState().soloHold = true;
   }
@@ -2139,7 +2145,7 @@ function startMission(world, def) {
 function companionOwnBike(world) {
   const c = world.companion;
   if (!c || c.state === 'dead') return;
-  const p = world.player;
+  const p = hoofdspeler(world);
   if (c.inVehicle) { c.inVehicle.passenger = null; c.inVehicle = null; }
   const a = p.angle + Math.PI / 2;
   const spot = world.map.openSpotNear ? world.map.openSpotNear(p.x + Math.cos(a) * 2.5, p.y + Math.sin(a) * 2.5) : { x: p.x + Math.cos(a) * 2.5, y: p.y + Math.sin(a) * 2.5 };
@@ -2163,7 +2169,7 @@ function heroCarTo(world, at) {
 
 // H3 is a stunt evening in the Escapade: when it is not near, Henk parks it at the square.
 function bringHeroCar(world, def) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   if (p.inVehicle && !p.inVehicle.isBoat && !p.inVehicle.isBike) return;
   const c = def.stunt && def.stunt.center ? def.stunt.center : def.start;
   let car = world.vehicles.find((v) => v.isHeroCar && !v.wrecked && !v.sinking);
@@ -2187,7 +2193,7 @@ function hint(world, text, say = undefined) {
 // Returns a failure reason when the mission car/boat is gone or left behind.
 function vehicleProblem(world, def) {
   const v = chainState().vehicle;
-  const p = v ? teamActor(world, v, (a) => a.inVehicle === v) : world.player; // samen spelen (#452): de meespeler in het voertuig, anders de dichtstbijzijnde
+  const p = v ? teamActor(world, v, (a) => a.inVehicle === v) : hoofdspeler(world); // samen spelen (#452): de meespeler in het voertuig, anders de dichtstbijzijnde
   const vf = def.vehicleFail || {};
   if (!v || !world.vehicles.includes(v)) return vf.gone || (def.type === 'boat' ? 'de boot is foetsie' : 'de auto is foetsie');
   if (v.wrecked || v.disabled) return vf.wrecked || (def.type === 'boat' ? 'de boot ligt nu tussen de fietsen op de bodem' : 'de auto is afgeschreven, Kiekdoar heeft al foto\'s');
@@ -2215,7 +2221,7 @@ function vehicleProblem(world, def) {
 // H5's all-green crossing: a staged scene (missionstory.js playEyeContact) that
 // pauses the race; both brake, so the player rolls on slowly. The text is the fallback.
 function playMoment(world, m) {
-  const p = world.player, v = p.inVehicle;
+  const p = hoofdspeler(world), v = p.inVehicle;
   const heading = v ? v.angle : p.angle;
   const staged = !isCinematicActive() && playEyeContact(world, { at: { x: p.x, y: p.y }, heading });
   if (staged && v) v.speed *= 0.3;
@@ -2226,7 +2232,7 @@ function playMoment(world, m) {
 // M01's stunt part: the Grote Markt scene when the bakkie arrives, the pair talking while it goes on,
 // and the chat's reaction when the points are in. Then the delivery goes on (the clock keeps running).
 function updateStuntPhase(dt, world, def) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   const b = chainState().beats || (chainState().beats = {});
   const near = dist(p.x, p.y, def.stunt.center.x, def.stunt.center.y) < def.stunt.radius + 10;
   if (near && !b.arrived && !isCinematicActive() && storyDataReady()) {
@@ -2264,7 +2270,10 @@ function reachCheckpoint(world, def, k = chainState().wpIndex) {
   chainState().wpIndex++;
   if (!wp.via) chainState().timeLeft += wp.bonus ?? def.checkpointBonus;
   if (def.drunk && wp.name) addDrunk(world, def.drunk);
-  if (wp.toast && !isCinematicActive()) playToast(world, { at: { x: world.player.x, y: world.player.y }, facing: world.player.angle, kicker: wp.name, ...wp.toast });
+  if (wp.toast && !isCinematicActive()) {
+    const eigen = hoofdspeler(world); // de toast hangt boven de speler van dit apparaat
+    playToast(world, { at: { x: eigen.x, y: eigen.y }, facing: eigen.angle, kicker: wp.name, ...wp.toast });
+  }
   if (def.moment && !chainState().momentDone && chainState().wpIndex >= def.moment.at) {
     chainState().momentDone = true;
     playMoment(world, def.moment);
@@ -2335,7 +2344,7 @@ function updateRetry(dt, world, def) {
   }
   if (r.missionIndex !== chainState().index || !retryOfferLive(r, world.time)) { chainState().retry = null; return; }
   if (chainState().phase !== 'idle') return;
-  const p = world.player;
+  const p = hoofdspeler(world);
   if (dist(p.x, p.y, def.start.x, def.start.y) < (def.triggerRadius || TRIGGER_RADIUS) * 3 + 10) { chainState().retry = null; return; }
   if (isCinematicActive() || world.pendingRespawn || (world.sideJob && world.sideJob.active) || playerBusy(world, ['challenge', 'padel', 'activityGame']).busy) return;
   if (!r.hintedAt || world.time - r.hintedAt > 10) {
@@ -2359,7 +2368,7 @@ export function updateMissions(dt, world) {
   updateStoryProps(dt);
   updateHandBack(dt, world);
   const def = chainState().defs[chainState().index];
-  const p = world.player;
+  const p = hoofdspeler(world);
   // a pigeon flight only runs the stages mission that started it
   if (world.pigeonMode && !(chainState().phase === 'active' && def.type === 'stages')) return;
   updateRetiredRacers(dt, world);
@@ -2676,7 +2685,7 @@ function spawnChaseVehicle(world, def, st) {
   const road = base.road;
   if (!road) return null;
   const at = pointAlongRoad(road, base, st.lead || 40);
-  const p = world.player;
+  const p = hoofdspeler(world);
   let v = null;
   for (const pick of [0.1, 0.9]) {
     v = spawnVehicleOnRoad(world.map, road, false, () => pick, false, false, at, false, { ...st.vehicle });
@@ -2793,7 +2802,8 @@ function chaseReachedTrain(world, def, st, S, t, dt) {
   if (!lp) return false;
   const d = dist(t.x, t.y, lp.x, lp.y);
   S.stuck = d < 45 && Math.abs(t.speed) < 1 ? (S.stuck || 0) + dt : 0;
-  const late = S.t > (st.time || 180) || dist(world.player.x, world.player.y, t.x, t.y) > (st.escape || 380);
+  const p = hoofdspeler(world);
+  const late = S.t > (st.time || 180) || dist(p.x, p.y, t.x, t.y) > (st.escape || 380);
   if (d > 14 && S.stuck < 3 && !late) return false;
   // it got there (up the ramp), or the clock ran out (it is on the train already)
   if (d > 14) loadFjordNow(world, t);
@@ -2806,7 +2816,7 @@ function chaseReachedTrain(world, def, st, S, t, dt) {
 function stageNeedsVehicle(world, def) {
   const st = def.stages && def.stages[chainState().stageIndex];
   const v = chainState().vehicle;
-  if (!st || !v || v.wrecked || v.disabled || world.player.inVehicle === v || meespelerInVoertuig(world, v)) return false;
+  if (!st || !v || v.wrecked || v.disabled || hoofdspeler(world).inVehicle === v || meespelerInVoertuig(world, v)) return false;
   return st.kind === 'board' || st.kind === 'garage' || (st.kind === 'goto' && st.mode === 'vehicle');
 }
 
@@ -2898,7 +2908,7 @@ function enterStage(world, def, k) {
   if (!st) { succeed(world, def); return; }
   // a stage that belongs to one answer: ifTag / unlessTag (a choice of this mission or a remembered one)
   if ((st.ifTag && !choiceOn(st.ifTag)) || (st.unlessTag && choiceOn(st.unlessTag))) { enterStage(world, def, k + 1); return; }
-  const from ={ x: world.player.x, y: world.player.y };
+  const p = hoofdspeler(world), from = { x: p.x, y: p.y };
   const S = { t: 0, hold: 0, here: from, target: resolveTarget(world, st.target, from), spotted: new Set(), holds: [], started: false, flying: false, said: 0 };
   if (st.kind === 'pigeon') {
     S.targets = st.targets.map((t) => resolveTarget(world, t, from));
@@ -2970,7 +2980,7 @@ function enterStage(world, def, k) {
 // #213: remember this stage as the place a new attempt starts from (see missioncheckpoint.js for which stages count)
 function saveCheckpoint(world, def, k) {
   if (!chainState().checkpoints || chainState().phase !== 'active' || !isCheckpointStage(def, k)) return;
-  const p = world.player, v = chainState().vehicle;
+  const p = hoofdspeler(world), v = chainState().vehicle;
   const usable = v && world.vehicles.includes(v) && !v.wrecked && !v.disabled;
   recordCheckpoint(chainState().checkpoints, makeCheckpoint({
     missionIndex: chainState().index, stageIndex: k, timeLeft: chainState().timeLeft, chain: chainState(),
@@ -2984,7 +2994,7 @@ function resumeFromCheckpoint(world, def) {
   const cp = chainState().resume;
   chainState().resume = null;
   if (!cp) return;
-  const p = world.player, v = chainState().vehicle;
+  const p = hoofdspeler(world), v = chainState().vehicle;
   if (cp.player) placeParty(world, cp.player);
   if (v && cp.vehicle && !(def.heist && !cp.vehicle.inside)) {
     v.x = cp.vehicle.x; v.y = cp.vehicle.y; v.angle = cp.vehicle.angle; v.speed = 0; v.vx = 0; v.vy = 0;
@@ -3049,7 +3059,7 @@ function chaseRoute(st) {
 }
 
 function spawnSkutsje(world, st) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   const R = chaseRoute(st);
   const here = R.nearest(p.x, p.y);
   const dir = here + 600 < R.len ? 1 : -1;
@@ -3069,7 +3079,7 @@ function spawnSkutsje(world, st) {
 function updateBoatChase(dt, world, def, st, S) {
   const B = S.boat;
   if (!B) { nextStage(world, def); return; }
-  const p = world.player, v = B.v;
+  const p = hoofdspeler(world), v = B.v;
   if (v.driver !== 'jelle') { fail(world, def, st.lost); return; }
   if (!world.vehicles.includes(v)) world.vehicles.push(v);
   const d = dist(p.x, p.y, v.x, v.y);
@@ -3102,7 +3112,7 @@ function updateLightStage(dt, world, def, st, S) {
   const Lt = chainState().light;
   Lt.t += dt;
   if (Lt.ctl) Lt.ctl.update(Lt.t);
-  const p = world.player, ref = p.inVehicle || p;
+  const p = hoofdspeler(world), ref = p.inVehicle || p;
   const ang = sweepAngle(st.light, Lt.t);
   const inside = inBeam(st.light, ang, ref.x, ref.y);
   const coming = inside || inBeam({ ...st.light, half: (st.light.half || 0.17) * 3 }, ang, ref.x, ref.y);
@@ -3124,7 +3134,7 @@ function disposeLight() {
 
 // M11: a hop over the water or the coast, Klaas' cutter: the pair stands at `spec` (a stage target), on foot
 function warpPlayer(world, spec) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   const t = resolveTarget(world, spec, p);
   if (!t) return;
   if (p.inVehicle) p.exitVehicle(world.map, world);
@@ -3143,7 +3153,7 @@ function warpPlayer(world, spec) {
 // cuts over a wierdepad or through a churchyard loses it. Caught = it stays right on you for `caughtFor` s.
 // pursuer { model, behind, cruise, caught, caughtFor, shake, name, fail, close, lostText }
 function spawnPursuer(world, st) {
-  const P = st.pursuer, ref = world.player.inVehicle || world.player;
+  const P = st.pursuer, eigen = hoofdspeler(world), ref = eigen.inVehicle || eigen;
   const back = P.behind || 45, a = ref.angle || 0;
   const spot = roadSpot(world.map, ref.x - Math.cos(a) * back, ref.y - Math.sin(a) * back, true);
   if (!spot.road) return null;
@@ -3171,7 +3181,7 @@ function updatePursuer(dt, world, def, st, S) {
   if (S.lost) return false;
   // wrecked, or taken out of the world: the chase is over
   if (!world.vehicles.includes(v) || v.wrecked) { S.lost = true; S.limo = null; return false; }
-  const ref = world.player.inVehicle || world.player;
+  const eigen = hoofdspeler(world), ref = eigen.inVehicle || eigen;
   const d = dist(ref.x, ref.y, v.x, v.y);
   if ((S.goalT = (S.goalT || 0) - dt) <= 0) {
     S.goalT = 0.8;
@@ -3204,7 +3214,7 @@ function dropPursuer(world) {
 
 // --- H15: the trauma heli (helirun.js) as one stage -----------------------------
 function updateHeliStage(dt, world, def, st, S) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   if (S.result) {
     if (S.result.success) nextStage(world, def);
     else fail(world, def, S.result.aborted ? 'de vlucht is afgebroken' : st.lost || 'de ballon is ontsnapt');
@@ -3258,7 +3268,7 @@ function startDijkRace(world, sc) {
     const dln = sc.deeln[k], terug = DIJK_GRID.terug + Math.floor(k / 2) * DIJK_GRID.rij, zij = (k % 2 ? 1 : -1) * DIJK_GRID.zij;
     const x = start.x - ux * terug - uy * zij, y = start.y - uy * terug + ux * zij;
     if (!dln.slot) {
-      const p = world.player;
+      const p = hoofdspeler(world);
       if (p.inVehicle && p.inVehicle !== basis) p.exitVehicle(world.map, world);
       basis.x = x; basis.y = y; basis.angle = ang; basis.speed = 0; basis.road = null;
       if (world.map.spawnZ) basis.z = world.map.spawnZ(x, y);
@@ -3287,7 +3297,7 @@ function startDijkRace(world, sc) {
 function holdWacht(world, S) {
   const t = S.target;
   if (t && S.rivalHold) { t.speed = 0; t.throttle = 0; t.x = S.rivalHold.x; t.y = S.rivalHold.y; t.angle = S.rivalHold.angle; }
-  const v = world.player.inVehicle;
+  const v = hoofdspeler(world).inVehicle;
   if (v) { v.speed = 0; v.throttle = 0; }
   world.startLockUntil = world.time + 0.25;
 }
@@ -3381,7 +3391,7 @@ registreerWedstrijd('dijkrace', {
 // rival drives like the fleeing vehicle of a chase (it has no route data, it follows the roads). Without a rival
 // (no road to put it on) it is a drive to the finish.
 function updateChaseRace(world, def, st, S) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   const fin = S.finish;
   if (!fin) { nextStage(world, def); return; }
   // samen spelen (#443): met gasten is de straatrace een wedstrijd tegen elkaar, via de baanlaag
@@ -3420,7 +3430,7 @@ const FW_COLORS = [[1, 0.35, 0.3], [1, 0.85, 0.3], [0.4, 0.8, 1], [0.6, 1, 0.5],
 
 function updateFireworks(dt, world, def, st, S) {
   const fw = st.fireworks;
-  const p = world.player;
+  const p = hoofdspeler(world);
   const c = S.target;
   if ((S.fwT -= dt) <= 0) {
     S.fwT = fw.every[0] + Math.random() * (fw.every[1] - fw.every[0]);
@@ -3465,7 +3475,7 @@ function eggText(def) {
 }
 
 function updateEggs(dt, world, def) {
-  const v = world.player.inVehicle;
+  const v = hoofdspeler(world).inVehicle;
   if (!v || chainState().eggs == null || !dt) { chainState().eggVeh = null; return; }
   const sp = Math.abs(v.speed);
   if (chainState().eggVeh === v) {
@@ -3518,7 +3528,8 @@ function playStageScene(world, st, S) {
   if (st.scriptTier && st.script) st = { ...st, script: { ...st.script, ids: st.scriptTier[juryTier()] || st.script.ids } };
   if (st.scriptIf && st.script) { const hit = st.scriptIf.find((q) => choiceOn(q.tag)); if (hit) st = { ...st, script: { ...st.script, ids: hit.ids } }; }
   if (st.script && storyDataReady()) st = { ...st, lines: storyLines(st.script.ids, st.script) };
-  const c = S.target || { x: world.player.x, y: world.player.y };
+  const eigen = hoofdspeler(world); // de scène en de camera's horen bij de speler van dit apparaat
+  const c = S.target || { x: eigen.x, y: eigen.y };
   const name = (who) => (who === 'T' ? 'Tammo' : who === 'A' ? 'Anita' : storySpeakerName(who));
   let at = st.reveal ? REVEAL.card : 0.6;
   const lines = (st.lines || []).map(([who, text]) => {
@@ -3531,7 +3542,7 @@ function playStageScene(world, st, S) {
     const a = a0 + u * 0.7;
     return { position: { x: c.x + Math.cos(a) * r, y: c.y + Math.sin(a) * r, z: h }, lookAt: { x: c.x, y: c.y, z: 1.4 }, fov: 46 };
   };
-  let shot = orbit(world.player.angle + 2.4, 9, 3.2);
+  let shot = orbit(eigen.angle + 2.4, 9, 3.2);
   if (st.reveal) {
     // the empty case (heist.js lifts the dome on REVEAL's clock)
     const v = vitrineSpot() || c;
@@ -3605,7 +3616,7 @@ function playStageScene(world, st, S) {
     const wide = !!st.cam;
     const lookTo = (wide && st.cam.at && resolveTarget(world, st.cam.at, c)) || c;
     const staged = playCastScene(world, {
-      at: wide ? c : { x: world.player.x, y: world.player.y }, lines: st.lines, cast: st.cast || [],
+      at: wide ? c : { x: eigen.x, y: eigen.y }, lines: st.lines, cast: st.cast || [],
       kicker: st.kicker || '', title: st.title || '', big: wide ? '' : st.big || '', lookTo, solo: !!st.solo, staging: stagingKey(st), lead: st.reveal ? REVEAL.card : 0.6,
       deck: st.target && st.target.skutsje ? chainState().skutsje : null,
       shot: st.reveal || wide || st.deckCam ? shot : null, shotLines: wide ? st.shotLines || 1 : 0, shotAll: !!st.reveal,
@@ -3623,13 +3634,13 @@ function playStageScene(world, st, S) {
     onEnd: () => { world.cinematicHideNav = false; },
   });
   if (ok && st.big && !st.cam) {
-    playCinematic({ id: 'mission-scene', priority: 3, duration: 3.6, pause: true, letterbox: true, skippable: true, hideHud: true, big: st.big, queue: true, shot: orbit(world.player.angle + 3.1, 5, 2.2), onStart: () => { world.cinematicHideNav = true; }, onEnd: () => { world.cinematicHideNav = false; } });
+    playCinematic({ id: 'mission-scene', priority: 3, duration: 3.6, pause: true, letterbox: true, skippable: true, hideHud: true, big: st.big, queue: true, shot: orbit(eigen.angle + 3.1, 5, 2.2), onStart: () => { world.cinematicHideNav = true; }, onEnd: () => { world.cinematicHideNav = false; } });
   }
   return ok;
 }
 
 function updateStages(dt, world, def) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   if (chainState().stagePending) {
     if (isCinematicActive()) return;
     chainState().stagePending = false;
@@ -3915,7 +3926,7 @@ function updateStages(dt, world, def) {
 
 // Act 5 (M22): the meadow is mud. A car in it slows down; `k` is how hard per second.
 function sinkInMud(world, dt, k) {
-  const v = world.player.inVehicle;
+  const v = hoofdspeler(world).inVehicle;
   if (!v || Math.abs(v.speed) < 0.05) return;
   v.speed *= Math.max(0, 1 - k * dt);
   v.driftX = (v.driftX || 0) * 0.9;
@@ -3924,7 +3935,7 @@ function sinkInMud(world, dt, k) {
 
 // Act 5: the baking round (bakeround.js). The stage is on while you stand in the kitchen or at the stall.
 function updateBakeStage(dt, world, def, st, S) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   const title = st.recipe === 'practice' ? "Oma's keuken: de oefenronde" : 'Gronings Ontzet: bak de eierbal';
   if (!S.bake) S.bake = createBake({ order: st.recipe === 'practice' ? RECIPE_PRACTICE : RECIPE_CONTEST, rounds: st.rounds || 1 });
   if (!S.target) return true;
@@ -3957,7 +3968,7 @@ function updateConvoyStage(dt, world, def, st, S) {
   const r = updateConvoy(dt, world, c, (text) => world.addMessage(text, 2.5, { key: 'colonne-lag' }));
   if (r && r.split) { world.addMessage(`${r.split} is te ver achter: de colonne valt uiteen.`, 3.5); return 'fail'; }
   const v = chainState().vehicle;
-  const p = world.player;
+  const p = hoofdspeler(world);
   if (v && p.inVehicle !== v && dist(p.x, p.y, v.x, v.y) > 12) { hint(world, st.carHint || ''); return null; }
   if (!S.target || dist(p.x, p.y, S.target.x, S.target.y) >= (st.radius || STAGE_RADIUS)) return null;
   const sc = convoyStatus(world, c);
@@ -3966,7 +3977,7 @@ function updateConvoyStage(dt, world, def, st, S) {
 }
 
 function updatePigeonStage(dt, world, def, st, S) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   const f = getPigeonFlight();
   if (!S.flying) {
     if (isCinematicActive()) return;
@@ -4016,7 +4027,7 @@ export const missionDebug = {
     if (!chainState() || !chainState().defs[i] || chainState().phase === 'active') return false;
     const def = chainState().defs[i];
     chainState().index = i;
-    const p = world.player;
+    const p = hoofdspeler(world);
     if (!p.inVehicle && dist(p.x, p.y, def.start.x, def.start.y) > 30) { p.x = def.start.x; p.y = def.start.y; }
     // a lazyStart mission needs road data the streaming has not brought yet: look wider for it, the cheat has the player on the spot
     if (def.lazyStart && !def.start.road) {
@@ -4071,7 +4082,7 @@ export const missionDebug = {
       if (cur && cur.kind === 'train') {
         // there in time: the train stops at the crossing, the Fjord is back on the street
         const c = fjordCrossing();
-        const p = world.player;
+        const p = hoofdspeler(world);
         if (c && !world.pigeonMode) {
           const pv = p.inVehicle;
           if (pv) { pv.x = c.x + 12; pv.y = c.y + 6; pv.speed = 0; }
@@ -4088,7 +4099,7 @@ export const missionDebug = {
         // flat tyres now, and the player right next to the stopped vehicle
         const t = chainState().stage && chainState().stage.target;
         stopChaseVehicle(world, def, cur);
-        const p = world.player;
+        const p = hoofdspeler(world);
         if (t && !world.pigeonMode) {
           const pv = p.inVehicle;
           const x = t.x - Math.cos(t.angle) * 10, y = t.y - Math.sin(t.angle) * 10;
@@ -4122,7 +4133,7 @@ export const missionDebug = {
   teleport(world) {
     if (!chainState()) return false;
     const m = chainState().pub.marker;
-    const p = world.player;
+    const p = hoofdspeler(world);
     if (world.pigeonMode) return false;
     const v = p.inVehicle;
     if (v) { v.x = m.x; v.y = m.y; v.speed = 0; }
@@ -4136,7 +4147,7 @@ export const missionDebug = {
   // Best effort by design: the state a stage builds for itself (a scene, the vault, the heist doors) starts fresh.
   hervat(world, i, deel = 0, tijd = null, { plek = false } = {}) {
     if (!chainState() || !chainState().defs[i] || chainState().phase === 'active') return false;
-    const p = world.player, was = p && Number.isFinite(p.x) ? { x: p.x, y: p.y } : null;
+    const p = hoofdspeler(world), was = p && Number.isFinite(p.x) ? { x: p.x, y: p.y } : null;
     const terug = () => { if (!plek && was && p && !p.inVehicle) { p.x = was.x; p.y = was.y; } };
     if (!this.start(world, i)) { terug(); return false; }
     terug();

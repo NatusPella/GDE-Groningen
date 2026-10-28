@@ -2336,6 +2336,8 @@ export function playDuelJump(w, { at, fail = false } = {}) {
   const h = fjMod.poleVault(npc, spot.from, spot.to, { camera: true, slowmo: !fail, fail, appearance: look, say: false, keepActor: true, swimTime: 2.5 });
   const done = h.done.then((res) => {
     w.cinematicHidePlayers = false;
+    // De landing schrijft de eigen plek terug: dat is opslag van het eigen lichaam (zie players.js), geen
+    // leesvraag aan het spelersregister, en hier telt juist dat het object zelf blijft staan. Daarom blijft w.player.
     if (res && res.result === 'landed' && Number.isFinite(res.x)) { w.player.x = res.x; w.player.y = res.y; }
     setTimeout(() => h.dispose(), 1500);
     return res;
