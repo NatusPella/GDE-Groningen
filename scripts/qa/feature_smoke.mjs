@@ -26,7 +26,10 @@ const env = { ...process.env, GDE_TEST_PROFILE: profile };
 delete env.ELECTRON_RUN_AS_NODE;
 const r = spawnSync(electron, ['.', '--windowed', '--stil', `--force-device-scale-factor=${arg('dsf', '1')}`, `--window-size=${arg('size', '1600x900')}`,
   `--smoke-test=${path.join(OUT, 'shots.png')}`, `--perf-script=${script}`],
-  { cwd: path.join(ROOT, 'desktop'), env, encoding: 'utf8', maxBuffer: 1 << 28, timeout: 45 * 60 * 1000, killSignal: 'SIGKILL' });
+  // 100 minuten: deze stap maakt 250+ schermafbeeldingen en had op 27-10 na 45 minuten nog niet alles
+  // gehad (247 beelden, tot het laatste moment bezig). De oude grens van 45 minuten kapte hem midden in
+  // het werk af, wat als time-out in de poort verscheen zonder dat er iets stuk was (#515).
+  { cwd: path.join(ROOT, 'desktop'), env, encoding: 'utf8', maxBuffer: 1 << 28, timeout: 100 * 60 * 1000, killSignal: 'SIGKILL' });
 if (r.error) console.error('Electron starten mislukt:', r.error.message);
 fs.writeFileSync(path.join(OUT, 'run.log'), `${r.stdout || ''}\n${r.stderr || ''}`);
 fs.rmSync(path.join(os.tmpdir(), profile), { recursive: true, force: true });

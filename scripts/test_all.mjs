@@ -406,7 +406,9 @@ async function faseElectron(prev, staat) {
   await botSweep('bot-minigames', 'minigames');
 
   const qa = (naam, script, extra = []) => stap(naam, async () => {
-    const d = stapDir(naam), ms = 45 * 60e3;
+    // qa-features loopt door alle features heen en maakt 250+ schermafbeeldingen; op 27-10 was hij op een
+    // lege machine na 45 minuten nog steeds bezig (247 beelden). De rest past ruim binnen 45 minuten (#515).
+    const d = stapDir(naam), ms = (naam === 'qa-features' ? 100 : 45) * 60e3;
     let r = await runCmd(process.execPath, [script, ...extra, `--out=${d}`], { ms, env: env(naam) });
     let poging = '';
     // het spel startte niet op (te druk, trage wereldlading): één nieuwe poging
