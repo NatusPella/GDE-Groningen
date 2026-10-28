@@ -232,9 +232,6 @@ export class Vehicle {
   applyControls(dt, throttle, steerInput, brakeInput) {
     const m = this.model;
     const isPlayer = this.driver === 'player';
-    // fiets: trapgevoel (#515) — de top loopt op zolang je doortrapt (BIKE_TRAP_*), dus vóór
-    // playerTune, want die leest de trapstand
-    if (isPlayer && this.isBike) stepBikeTrap(this, throttle, dt);
     const tune = isPlayer ? playerTune(this) : null;
     // een lekke band (v.flat): trager en de auto trekt scheef
     const top = (tune ? tune.top : m.maxSpeed) * (this.flat ? FLAT_TOP_FACTOR : 1);
@@ -518,23 +515,6 @@ const FATBIKE_SPRINT_TOP = 1.15;
 const BIKE_SPRINT_ACCEL = 1.8;
 const PLAYER_CAR_ACCEL = 0.5;
 
-// Fietsgevoel (#515, playtest 27-10: "een bejaardentempo, zonder gevoel"). De speler trapt op
-// snelheid: de top van de fiets begint bij rustig toeren (BIKE_TRAP_RUST van de top) en loopt in
-// een seconde of drie doortrappen op naar de volle top. Laat je de trappers los, dan zakt de trap
-// terug en rolt de fiets uit. Geen uithoudingsbalk: alleen hoe lang je doortrapt telt.
-const BIKE_TRAP_RUST = 0.62; // deel van de top bij de eerste trap
-const BIKE_TRAP_OP = 0.14; // per s: na ~3 s doortrappen op de top
-const BIKE_TRAP_AF = 0.09; // per s: rustiger terug als je stopt met trappen
-
-function stepBikeTrap(v, throttle, dt) {
-  v.trapT = clamp((v.trapT || 0) + (throttle > 0 ? BIKE_TRAP_OP : -BIKE_TRAP_AF) * dt, 0, 1);
-}
-
-// de trapstand als factor op de top: zonder trapstand (garage, AI, playerTopSpeed) de volle top
-function bikeTrapFactor(v) {
-  return v.trapT == null ? 1 : BIKE_TRAP_RUST + (1 - BIKE_TRAP_RUST) * v.trapT;
-}
-
 function playerTune(v) {
   const m = v.model;
   // v.sailTop: a sailing boat's top speed from the wind (postgame skûtsje-sprint)
@@ -559,9 +539,8 @@ function playerTune(v) {
   if (v.isScooter) return { top: 7 * up, accel: 4.5 * upA, brake: 6.5 };
   // Shift on a bike: a short sprint of harder pedalling (player.js sprintT)
   const sprint = v.isBike && v.sprintT > 0 ? (m.fat ? FATBIKE_SPRINT_TOP : BIKE_SPRINT_TOP) : 1, sprintA = sprint > 1 ? BIKE_SPRINT_ACCEL : 1;
-  const trap = v.isBike ? bikeTrapFactor(v) : 1; // trapgevoel: de top groeit met het doortrappen
   if (v._mount === 'horse') return { top: (v.sprintT > 0 ? 13 : 7.5) * up, accel: (v.sprintT > 0 ? 5.5 : 3.4) * upA, brake: 7 };
-  if (v.isBike) return m.fat ? { top: 13.9 * up * sprint * trap, accel: 6 * upA * sprintA, brake: 9 } : { top: 7 * up * sprint * trap, accel: 3.6 * upA * sprintA, brake: 8.5 };
+  if (v.isBike) return m.fat ? { top: 13.9 * up * sprint, accel: 6 * upA * sprintA, brake: 9 } : { top: 7 * up * sprint, accel: 3.6 * upA * sprintA, brake: 8.5 };
   if (MODS.turbo && v.isHeroCar) return { top: Math.min(m.maxSpeed * 1.6, MAX_CAR_SPEED + 12), accel: m.accel * 1.9 * PLAYER_CAR_ACCEL, brake: m.brake * 1.2 };
   return { top: Math.min(m.maxSpeed, MAX_CAR_SPEED), accel: m.accel * PLAYER_CAR_ACCEL, brake: m.brake };
 }
@@ -2546,15 +2525,6 @@ const LAND_DAMAGE_SPEED = 7;
 const CREST_VZ = 2.2;
 const CREST_MIN_SPEED = 20;
 const SLOPE_SAMPLE_MAX = 0.6; // m: a probe further off than this fell over a deck edge, ignore it
-// De hoogte onder de wielen kan per beeld uit een andere bron komen: het wegdek (surfaceAt),
-// de ribbon van een brug of busbaan, of het terrein. Op de naad tussen twee daarvan scheelt het
-// zomaar een decimeter, en een bus van 12 m voelt dat als een hobbel (#515, playtest 27-10:
-// "de bussen lijken een beetje zo te hoppen"). Een sprong van één beeld is geen beweging van de
-// bak: de verticale snelheid mag per beeld hoogstens met Z_VOLG_ACC * dt veranderen. Een echte
-// helling houdt die snelheid vast en wordt dus gevolgd (op top hooguit een paar cm achter);
-// alleen de uitschieter van één beeld valt weg.
-const Z_VOLG_ACC = 6; // m/s²: meer veert een busschassis niet uit
-const Z_VOLG_SPRONG = 0.45; // m: groter is geen naad maar een rand (viaduct, kade): meteen volgen
 
 // Keep the wheels on the surface under the car (map.groundHeightAt): up and
 // down the ring's ramps, over viaducts, through the cuttings. Driving off an
@@ -2613,19 +2583,7 @@ export function settleVehicleHeight(v, map, dt) {
       v.z = ballistic;
     } else {
       v.vzG = (v.vzG || 0) + (clamp((g - z) / dt, -12, 12) - (v.vzG || 0)) * Math.min(1, dt * 10);
-      // de weg volgen met een begrensde verticale versnelling: een naad die per beeld van bron
-      // wisselt wordt zo geen hobbel, een helling blijft gevolgd (zie Z_VOLG_ACC)
-      const dz = g - z;
-      if (Math.abs(dz) > Z_VOLG_SPRONG) {
-        v.z = g;
-        v._zV = 0;
-      } else {
-        const want = dz / dt;
-        const vz = (v._zV || 0) + clamp(want - (v._zV || 0), -Z_VOLG_ACC * dt, Z_VOLG_ACC * dt);
-        v.z = z + vz * dt;
-        v._zV = Math.abs(g - v.z) < 0.002 ? 0 : vz;
-        if (Math.abs(g - v.z) < 0.002) v.z = g;
-      }
+      v.z = g;
     }
   }
   if (!g && !z && !v.pitch && !v.roll) return;
@@ -2663,24 +2621,14 @@ function wheelbaseGround(v, map, g, z) {
   if (!g && !z) return g;
   const h = Math.min(v.halfLen * 0.85, 2.6);
   const c = Math.cos(v.angle), s = Math.sin(v.angle);
-  let sum = g, weight = 1;
+  let sum = g, n = 1;
   const rib = v.surf && v.surf.ribbon;
   for (const f of WB_OFFS) {
     const d = f * h;
     const q = rib && map.surfaceZ ? map.surfaceZ(v.x + c * d, v.y + s * d, z, rib) : map.groundHeightAt(v.x + c * d, v.y + s * d, z);
-    // Een harde drempel liet het aantal meegetelde punten verspringen zodra één monsterpunt
-    // over de rand van een busbaan of verhoogd fietspad viel: de gemiddelde hoogte sprong dan
-    // in één beeld een decimeter (de hobbel van de bus). De weging loopt daarom zacht af naar
-    // nul, zodat een punt binnenkomen of verlaten geen sprong meer geeft.
-    const tol = Math.abs(d) * 0.12 + 0.02;
-    const af = Math.abs(q - g);
-    if (af >= tol) continue;
-    const t = af / tol;
-    const w = 1 - t * t * (3 - 2 * t); // smoothstep: 1 bij het midden, 0 op de drempel
-    sum += q * w;
-    weight += w;
+    if (Math.abs(q - g) <= Math.abs(d) * 0.12 + 0.02) { sum += q; n++; }
   }
-  return sum / weight;
+  return sum / n;
 }
 
 // Body motion on its springs, driven by the car's own accelerations:
