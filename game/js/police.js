@@ -414,20 +414,45 @@ function updateRam(v, dt, world, pv, d, ps) {
 // Patrol cars shoot from three stars (owner's decision, #43); cartoon shots, no one
 // is shown hit, damage is small and a bust still ends it.
 const FIRE_WANTED = 3;
+// De agent schiet door het raam aan zijn kant, niet vanuit de voorbumper (#502):
+// de loop zit op raamhoogte, een halve auto breed naar de chauffeurskant (links
+// van de rijrichting) en een stukje naar voren. De kogelhoogte telt op bij de
+// auto zelf (v.z): anders vliegt een schot op een brug of viaduct op 1,25 m
+// hoogte onder de auto van de speler door en raakt het de inzittende.
+const SHOT_SPEED = 42;
+const SHOT_WINDOW = 1.12;
+const SHOT_SIDE = 0.62;
+const SHOT_FORWARD = 0.35;
+
+// De kogel van een agent, vanaf het raam op de speler gericht. Apart en
+// uitgevoerd, zodat de test dezelfde baan kan naspelen als het spel.
+export function policeShot(v, world) {
+  const p = hoofdspeler(world);
+  if (!p) return null;
+  const fx = Math.cos(v.angle), fy = Math.sin(v.angle);
+  // chauffeurskant = links van de rijrichting (rechts rijden): (+sin, -cos)
+  const mx = v.x + fx * SHOT_FORWARD + fy * SHOT_SIDE;
+  const my = v.y + fy * SHOT_FORWARD - fx * SHOT_SIDE;
+  const dx = p.x - mx, dy = p.y - my;
+  const d = Math.hypot(dx, dy);
+  if (!(d > 1e-3)) return null;
+  return {
+    x: mx, y: my, z: (v.z || 0) + SHOT_WINDOW,
+    vx: dx / d * SHOT_SPEED, vy: dy / d * SHOT_SPEED,
+    damage: 7, owner: 'police', range: FIRE_RANGE + 4, traveled: 0,
+  };
+}
+
 function maybeFire(v, dt, world) {
   if (v._fireCd === undefined) v._fireCd = 1 + Math.random();
   v._fireCd -= dt;
   if (v._fireCd > 0) return;
   const p = hoofdspeler(world);
-  const dx = p.x - v.x, dy = p.y - v.y;
-  const d = Math.hypot(dx, dy);
+  const d = Math.hypot(p.x - v.x, p.y - v.y);
   if (d > FIRE_RANGE || d < 1) return;
   v._fireCd = 1.4 + Math.random() * 1.2;
-  const speed = 42;
-  world.bullets.push({
-    x: v.x, y: v.y, vx: dx / d * speed, vy: dy / d * speed,
-    damage: 7, owner: 'police', range: FIRE_RANGE + 4, traveled: 0,
-  });
+  const shot = policeShot(v, world);
+  if (shot) world.bullets.push(shot);
 }
 
 // Arrest state lives on world.police.bust (0..1 progress) so the HUD or
