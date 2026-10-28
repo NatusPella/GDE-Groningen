@@ -3,7 +3,8 @@
 // input.js the way gamepad.js does (padAxis, padHold, mouse), so every
 // action works unchanged. Does nothing on a desktop; ?touch=1 forces it on
 // and ?touch=0 off. Menus and the phone stay plain taps.
-import { detectTouch, touchMode, touchLayout, touchMore, stickVector, knobOffset, lookDelta, stickKeys, touchPlacement, leftOffset, touchContext, stickless, touchUiActive, iconFor, STICK_RADIUS } from './touchlogic.js';
+import { detectTouch, touchMode, touchLayout, touchBar, stickVector, knobOffset, lookDelta, stickKeys, leftOffset, touchContext, stickless, touchUiActive, iconFor, STICK_RADIUS } from './touchlogic.js';
+import { HENGEL_HINT } from './controls.js';
 import { refreshGlyphs } from './glyphs.js';
 import { getSettings } from './settings.js';
 import { FLAGS } from './devflags.js';
@@ -198,8 +199,9 @@ export function initTouch(input, world, hooks = {}) {
 
   function build() {
     btnHost.textContent = '';
-    for (const { b, spot, side } of touchPlacement(ctx)) addButton(b, spot, side);
-    const more = touchMore(ctx);
+    // touchBar: in de menu-situatie (het wachtscherm van Samen spelen) geen spellabels; Pauze blijft
+    const { plan, more } = touchBar(ctx);
+    for (const { b, spot, side } of plan) addButton(b, spot, side);
     if (more.length) {
       const panel = document.createElement('div');
       panel.className = 't-panel';
@@ -252,7 +254,7 @@ export function initTouch(input, world, hooks = {}) {
     const o = knobOffset(stick.origin, pt(e), STICK_RADIUS);
     knob.style.transform = `translate(${o.x}px, ${o.y}px)`;
     // steering keeps only the sideways part; gas and brake are buttons
-    const steer = ctx === 'vehicle' || ctx === 'vehicleManual' || ctx === 'bus' || ctx === 'skutsje';
+    const steer = ctx === 'vehicle' || ctx === 'vehicleManual' || ctx === 'bus' || ctx === 'skutsje' || ctx === 'trekker';
     input.padAxis = steer ? [v[0], 0] : v;
     const next = stickless(ctx) ? new Set() : stickKeys(steer ? [v[0], 0] : v, held);
     for (const k of held) if (!next.has(k)) hold(k, false);
@@ -293,10 +295,15 @@ export function initTouch(input, world, hooks = {}) {
   // a cutscene (cinematics.js) owns the screen: the buttons give way to one Overslaan
   const cineActive = () => { const c = document.getElementById('cine'); return !!c && c.classList.contains('active'); };
 
+  // Staat de hengelhint van prompts.js onderin (aan de waterkant, met niets anders te doen)? Dan hengelt de
+  // X-knop, net als op het pad (#151). Dezelfde selector als gamepad.js, uit controls.js, zodat de twee
+  // bedieningen hetzelfde moment kiezen.
+  const hengelHint = () => !!(document.querySelector && document.querySelector(HENGEL_HINT));
+
   // follows the game: shown while playing, rebuilt when the situation changes
   setInterval(() => {
     const active = touchUiActive({ started: document.body.classList.contains('game-started'), menuOpen: hooks.menuOpen ? hooks.menuOpen() : false });
-    const nctx = active ? touchContext(world, { started: true, menuOpen: false, shiftMode: getSettings().shiftMode, cine: cineActive() }) : 'menu';
+    const nctx = active ? touchContext(world, { started: true, menuOpen: false, shiftMode: getSettings().shiftMode, cine: cineActive(), hengel: hengelHint() }) : 'menu';
     if (active !== shown) {
       shown = active;
       document.documentElement.classList.toggle('touch-play', active);

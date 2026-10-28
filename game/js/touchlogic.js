@@ -2,7 +2,7 @@
 // device, the virtual stick, camera swipes and which on-screen buttons a
 // situation gets. The buttons are the controller's slots (controls.js
 // PAD_MAPS), so touch drives exactly the actions the gamepad and keyboard do.
-import { PAD_MAPS, GAME_PAD_CTX, tokenKey } from './controls.js';
+import { PAD_MAPS, GAME_PAD_CTX, tokenKey, coopVraag } from './controls.js';
 import { playerBusy } from './busy.js';
 import { uiScaleFor } from './hudlook.js';
 
@@ -58,11 +58,14 @@ export function stickKeys(vec, held = new Set()) {
 const LABELS = {
   ' ': { foot: 'Spring', minigame: 'Spring', vehicle: 'Handrem', vehicleManual: 'Handrem', skutsje: 'Handrem', heli: 'Omhoog', pigeon: 'Vlieg', train: 'Noodrem', foodtruck: 'OK', klokken: 'Start', cutscene: 'Overslaan' },
   control: { heli: 'Omlaag', pigeon: 'Pikken', foot: 'Bukken', minigame: 'Bukken' },
-  e: { _: 'Gebruik', pannenkoek: 'Appel', klokken: 'Volgend' }, f: 'Instappen', h: 'Toeter', l: 'Sirene', q: { _: 'Achterom', pannenkoek: 'Stroop', klokken: 'Vorig' }, n: 'Radio', m: 'Kaart', o: { _: 'Overslaan', bus: 'Deuren', train: 'Deuren' }, k: { _: 'Kusje', bus: 'Knielt', train: 'Waak' },
+  e: { _: 'Gebruik', pannenkoek: 'Appel', klokken: 'Volgend' }, f: 'Instappen', h: 'Toeter', l: 'Sirene', q: { _: 'Achterom', pannenkoek: 'Stroop', klokken: 'Vorig' }, n: { _: 'Radio', coopvraag: 'Nee' }, m: 'Kaart', o: { _: 'Overslaan', bus: 'Deuren', train: 'Deuren' }, k: { _: 'Kusje', bus: 'Knielt', train: 'Waak' },
   // #495: de twee acties die het pad erbij kreeg, zodat de knop op aanraakbediening ook een naam heeft
   i: { _: 'Hengelen', skutsje: 'Hengelen', vehicle: 'Hengelen' }, t: { _: 'Hef', train: 'Rondlopen' }, b: 'Bij de groep',
-  shift: 'Rennen', tab: 'Doel', c: 'Koer', x: 'Mens', v: 'Film', r: { _: 'Lak', pannenkoek: 'Kaas' }, z: 'Zeil vieren', '[': 'Links', ']': 'Rechts', p: 'Alarm',
-  backspace: 'Stop', g: 'Dienst', j: 'Koppeling', ',': 'Lager', '.': 'Hoger', s: 'Rem', w: { _: 'Gas', pannenkoek: 'Spek', train: 'Trek' },
+  // #151: dezelfde toets doet op de trekker iets anders dan op de grond, en J heet bij een vraag van Samen spelen geen
+  // koppeling maar "Ja": de knop zegt wat hij daar doet, net als op het pad en in de hintregel van het spel
+  x: { _: 'Mens', trekker: 'Ontkoppelen' }, g: { _: 'Dienst', trekker: 'Aftakas' }, j: { _: 'Koppeling', coopvraag: 'Ja' },
+  shift: 'Rennen', tab: 'Doel', c: 'Koer', v: 'Film', r: { _: 'Lak', pannenkoek: 'Kaas', trekker: 'Tanken' }, z: 'Zeil vieren', '[': 'Links', ']': 'Rechts', p: 'Alarm',
+  backspace: 'Stop', ',': 'Lager', '.': 'Hoger', s: 'Rem', w: { _: 'Gas', pannenkoek: 'Spek', train: 'Trek' },
   '@fire': 'Vuur', '@aim': 'Richt', '@gas': 'Gas', '@brake': 'Rem', '@wheel+': 'Wapen', '@wheel-': 'Wapen',
 };
 
@@ -124,6 +127,13 @@ const ICONS = {
   Knielt: '<path d="M12 3.5v8"/><path d="M8.5 8L12 11.5 15.5 8"/><path d="M3 17.5h18"/><path d="M6 20.5h12"/>',
   OK: '<path d="M4.5 12.5l5 5L19.5 6.5"/>',
   Koppeling: '<path d="M9.5 14.5l5-5"/><path d="M7 12l-1.5 1.5a3.5 3.5 0 0 0 5 5L12 17"/><path d="M17 12l1.5-1.5a3.5 3.5 0 0 0-5-5L12 7"/>',
+  // #151: de knoppen van de nieuwe situaties (vraag, hengelen, trekker) hebben dezelfde lijnstijl als de rest
+  Ja: '<path d="M4.5 12.5l5 5L19.5 6.5"/>',
+  Nee: '<path d="M6 6l12 12"/><path d="M18 6L6 18"/>',
+  Ontkoppelen: '<path d="M9.5 14.5l5-5"/><path d="M6.5 6.5l-2 2a3.5 3.5 0 0 0 5 5l2-2"/><path d="M17.5 17.5l2-2a3.5 3.5 0 0 0-5-5l-2 2"/><path d="M4 20L20 4"/>',
+  Aftakas: '<circle cx="9" cy="15" r="4"/><path d="M12 12l7-7"/><path d="M16 5h3v3"/>',
+  Tanken: '<path d="M6 20V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v15"/><path d="M4 20h12"/><path d="M14 9h3a2 2 0 0 1 2 2v6a1.5 1.5 0 0 0 3 0V9l-2-2"/><path d="M7 8h5"/>',
+  Hengelen: '<path d="M5 21c0-9 3.5-16 8-16 3 0 5 2.5 5 6 0 2.6-1.6 4.5-4 4.5"/><path d="M13.5 15.5l.5 3"/><path d="M14 18.5a1.6 1.6 0 1 1-3 .4"/>',
   Sirene: '<rect x="4" y="12" width="16" height="5" rx="2"/><path d="M7 12c0-3 1-5 5-5s5 2 5 5"/><path d="M2 15l2-3M22 15l-2-3"/>',
   Doel: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1"/>',
   Pauze: '<path d="M9 5v14M15 5v14"/>',
@@ -192,6 +202,15 @@ export function touchPlacement(ctx) {
   return out;
 }
 
+// Wat de balk van een situatie tekent: de knoppen met hun plek en de extra's achter "Meer". In de menu-situatie
+// geen van beide (#151): dat is het wachtscherm van Samen spelen (coophold.js), een dialoog boven de aanraaklaag
+// waarvan de speler de knoppen zelf aanraakt. De menukaart levert hier alleen toetsen op die niets met spelen te
+// maken hebben (Q, E en de tabbladen), en die horen niet onder dat venster te hangen. Pauze tekent touch.js zelf.
+export function touchBar(ctx) {
+  if (ctx === 'menu') return { plan: [], more: [] };
+  return { plan: touchPlacement(ctx), more: touchMore(ctx) };
+}
+
 // Where the HUD puts the minimap (hud_panel.css zone F: --hud-edge and --mm-size
 // by screen size, bottom 46, all times the HUD scale) in screen px. The left
 // buttons stay clear of it: beside it on a wide screen, above it on a portrait one.
@@ -217,14 +236,15 @@ export function leftOffset({ width, height }) {
 export function touchRects(ctx, { width, height }) {
   const s = touchLayout({ width, height }).scale;
   const off = leftOffset({ width, height });
-  const rects = touchPlacement(ctx).map(({ b, spot, side }) => {
+  const bar = touchBar(ctx);
+  const rects = bar.plan.map(({ b, spot, side }) => {
     const w = Math.max(BTN_MIN_W, Math.round(b.label.length * 8.5 + 20));
     const x = side === 'right' ? width - (spot[0] + w) * s : (spot[0] + off.right) * s;
     return { name: b.label, x, y: height - (spot[1] + (side === 'left' ? off.up : 0) + BTN_H) * s, w: w * s, h: BTN_H * s };
   });
   const top = (o, name) => ({ name, x: width - (o.right + o.size) * s, y: o.top * s, w: o.size * s, h: o.size * s });
   rects.push(top(PAUSE_BTN, 'II'));
-  if (touchMore(ctx).length) rects.push(top(MORE_BTN, 'Meer'));
+  if (bar.more.length) rects.push(top(MORE_BTN, 'Meer'));
   return rects;
 }
 
@@ -236,7 +256,12 @@ export function touchUiActive({ started, menuOpen }) {
 
 // The PAD_MAPS situation for the world right now (the same choice
 // gamepad.js makes), so touch buttons follow what the player is doing.
-export function touchContext(w, { started = true, menuOpen = false, shiftMode = 'auto', cine = false } = {}) {
+// `hengel`: staat de hengelhint van prompts.js onderin? Die hint is DOM en
+// daarom geen wereldveld: touch.js (dat de DOM heeft) geeft hem mee, net als
+// gamepad.js zijn eigen hengelHint() gebruikt. Zo kiest de aanraakbediening in
+// dezelfde gevallen dezelfde indeling als de controller (#151): de coopvraag,
+// het wachtscherm, de bijbaanpanelen, het hengelen en de trekker.
+export function touchContext(w, { started = true, menuOpen = false, shiftMode = 'auto', cine = false, hengel = false } = {}) {
   if (!started || menuOpen) return 'menu';
   if (cine) return 'cutscene';
   if (!w) return 'foot';
@@ -247,8 +272,19 @@ export function touchContext(w, { started = true, menuOpen = false, shiftMode = 
   if (playerBusy(w, ['padel', 'activityGame']).busy) return 'minigame';
   // de wandeling neemt de speler niet over, maar de stopknop hoort er wel te zijn (net als op het pad)
   if (w.wandelingActief) return 'minigame';
+  // het wachtscherm als een speler wegvalt (coophold.js) staat stil en heeft gewone dialoogknoppen: die tikt de
+  // speler gewoon aan (het scherm ligt boven de aanraaklaag), dus de balk gaat opzij in plaats van knoppen te
+  // tonen die de gepauzeerde wereld toch niet leest (#151)
+  if (w.coopHold) return 'menu';
+  // een vraag van Samen spelen: A is ja, B is nee (#151), precies zoals op het pad
+  if (coopVraag(w)) return 'coopvraag';
   const v = w.player && w.player.inVehicle;
-  if (v) return v.isHeli ? 'heli' : w.noLookBack ? 'skutsje' : v.gb && shiftMode !== 'auto' ? 'vehicleManual' : 'vehicle';
+  // de zeilboot vaart met de skûtsje-indeling (Q en Z op de bumpers), een landbouwmachine met de trekkerindeling (#151)
+  if (v) return v.isHeli ? 'heli' : w.noLookBack || (v.model && v.model.zeil) ? 'skutsje' : v.farm ? 'trekker' : v.gb && shiftMode !== 'auto' ? 'vehicleManual' : 'vehicle';
+  // een bijbaan of tekstpaneel dat de invoer opeist (stagechoice, rechtbank, boa, snackbar: minigameUntil) leest de
+  // cijfers 1-4, Tab en Backspace: de minigame-indeling zet die op de D-pad, dus achter "Meer" (#151)
+  if (w.minigameUntil > w.time) return 'minigame';
+  if (hengel) return 'hengelen';
   return 'foot';
 }
 

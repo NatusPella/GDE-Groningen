@@ -254,6 +254,33 @@ export const PAD_MAPS = {
 // verhaalstap en het lakmenu staan dan ook alleen op het toetsenbord.
 export const PAD_COOP = { vehicle: { up: 'y' }, bus: { up: 'y' }, vehicleManual: { up: 'y' }, skutsje: { up: 'y' }, foot: { up: 'b', left: '7', down: '8', right: '9' } };
 
+// Vraagt Samen spelen om een antwoord (J of N)? Dat doen de wedstrijd (coopwedstrijd3d.js), de opdracht van een gast
+// (coopmissie.js), het overnemen van het spel (coophostwisselnet.js), de stemming en de uitnodiging (coopnet.js) en de
+// PvP-arena. Elk van die schermen leest de toetsen J en N. Deze vraag staat hier (#151) en niet in gamepad.js, zodat de
+// controller en de aanraakbediening hem allebei op precies dezelfde manier stellen: touchlogic.js kiest er de
+// coopvraag-indeling mee. Puur: alleen velden van de wereld, geen DOM.
+export function coopVraag(w) {
+  if (!w) return false;
+  if (w.coopGastVraag) return true;                                     // de gastheer: doet hij mee met de opdracht van een gast?
+  if (w.coopStem) return true;                                          // een stemming over een tijdsprong
+  if (w.coopUitnodiging) return true;                                   // Meedoen met deze opdracht?
+  if (w.coopWisselUi && w.coopWisselUi.vraag) return true;              // het spel overnemen
+  const n = w.coopNet;
+  if (n && n.role === 'host' && n.wed) {
+    if (n.wed.u && n.wed.u.keuze && n.wed.u.keuze[0] === 'wacht') return true;
+    if (n.wed.uitslag && !n.wed.hostloos && !n.wed.u && !n.wed.r && !n.wed.lv) return true;
+  }
+  const g = w.coopWedGast;
+  if (g && (g.uitn || (g.uitslag && !g.spiegel) || g.kijk)) return true;
+  const arena = w.pvpArenaUitn;
+  return !!(arena && arena.keuze && arena.keuze[0] === 'wacht');
+}
+
+// De hintrij van prompts.js die zegt dat je aan de waterkant kunt hengelen (#151): zolang die rij zichtbaar is, doet X
+// de hengelactie. De selector staat hier één keer, want gamepad.js en touch.js moeten dezelfde hint volgen; anders
+// hengelt de ene bediening wel en de andere niet.
+export const HENGEL_HINT = '.ctx-row:not(.gone)[data-id="hengel-vrij"]';
+
 // The button for a canonical key or a mouse token in a situation, as a slot
 // name ('a', 'rt', ...) or 'lstick'/'rstick'; null when the pad has none.
 export function padSlotFor(token, ctx = 'foot') {
