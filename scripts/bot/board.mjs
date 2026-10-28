@@ -78,11 +78,21 @@ export function pickVehicle(s, mem = {}) {
 // Een druk op E telt mee voor deze poging (de pagina drukt alleen als het spel het toelaat).
 export function pressed(mem, now) { mem.presses = (mem.presses || 0) + 1; mem.pressAt = now; }
 
+// Een voertuig waar E niet werkt: oplopend overslaan. Eén keer 60 s is te kort als er maar één
+// wagen in de buurt staat — de bot komt dan na een minuut terug en staat er weer (op M02 ruim
+// 5000 s). Dus 60 s, 4 min, 15 min en daarna de rest van de run.
+function slaOver(mem, k, now) {
+  mem.skipN = mem.skipN || {};
+  const n = (mem.skipN[k] = (mem.skipN[k] || 0) + 1);
+  const duur = n >= 4 ? Infinity : BOARD.skipS * Math.pow(4, n - 1);
+  (mem.skip = mem.skip || {})[k] = duur === Infinity ? Infinity : now + duur;
+}
+
 // Een druk op E die niet instapte: na drie keer op dezelfde plek doet dit voertuig het even niet.
 export function missed(mem, v, now) {
   mem.nearMiss = (mem.nearMiss || 0) + 1;
   if (mem.nearMiss >= 3) {
-    (mem.skip = mem.skip || {})[key(v)] = now + BOARD.skipS;
+    slaOver(mem, key(v), now);
     mem.nearMiss = 0;
   }
 }
@@ -114,7 +124,7 @@ export function boardStep(s, mem, now = Number.isFinite(s.t) ? s.t : 0) {
   // afstappen: op M02 54 minuten lang, 3 m van het doel. Zo'n voertuig slaan we even over, zodat
   // de volgende keuze een ander voertuig pakt.
   if (mem.netIn && now - mem.netIn.at < BOARD.ejectS) {
-    (mem.skip = mem.skip || {})[mem.netIn.key] = now + BOARD.skipS;
+    slaOver(mem, mem.netIn.key, now);
     mem.netIn = null;
     mem.missed = 0;
   }

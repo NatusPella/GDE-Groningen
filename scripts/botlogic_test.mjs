@@ -576,6 +576,15 @@ ok(L.decide({ ...b(), mission: { active: true, stage: 'hold' }, target: { x: 8, 
     Bd.boardStep({ ...snap({ x: 40, y: 2 }), player: { x: 40, y: 2, vehicle: fiets }, vehicle: fiets }, m7, 0);
     Bd.boardStep({ ...snap({ x: 40, y: 2 }), vehicle: fiets }, m7, 30);                  // pas veel later eruit
     ok(!m7.skip, 'board: gewoon uitstappen na een rit slaat niets over');
+    // oplopend overslaan: één keer 60 s is te kort als er maar één wagen in de buurt staat
+    {
+      const m8 = {};
+      const duur = [];
+      for (let i = 0; i < 4; i++) { Bd.missed(m8, fiets, i * 100); Bd.missed(m8, fiets, i * 100 + 1); Bd.missed(m8, fiets, i * 100 + 2); duur.push(m8.skip['40,2']); }
+      ok(duur[0] === 2 + Bd.BOARD.skipS, 'board: de eerste keer 60 s overslaan', String(duur[0]));
+      ok(duur[1] > duur[0] && duur[2] > duur[1], 'board: elke volgende keer langer', duur.join(','));
+      ok(duur[3] === Infinity, 'board: na vier keer de rest van de run overslaan', String(duur[3]));
+    }
   }
   // de rit erna: naar het doel, en een doel dat wegloopt is na het budget een time-out
   const m5 = {};

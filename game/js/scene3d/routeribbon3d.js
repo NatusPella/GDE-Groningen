@@ -8,6 +8,7 @@
 // init3D binnen via setRouteRibbonScene(), dus er is geen modulecyclus.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { markerColors } from '../a11y.js';
+import { hoofdspeler } from '../players.js';
 import { gameBusy } from '../busy.js';
 import { SIDEWALK_EXTRA } from '../roadsurface.js';
 import { ribbonAlpha, routeOffRoad } from '../routeribbon.js';
@@ -212,7 +213,7 @@ export function updateRouteRibbon3D(dt, world) {
     routeRibbonMesh.geometry.dispose();
     const p0 = route.pts[route.idx];
     const lane = route.mode === 'drive' ? keepRight(ahead, world.map) : ahead;
-    const pl = world.player;
+    const pl = hoofdspeler(world);
     routeRibbonMesh.geometry = buildRouteRibbonGeometry(lane, route.cum[route.idx] + Math.hypot(route.px - p0[0], route.py - p0[1]), world.map, pl.inVehicle ? pl.inVehicle.z || 0 : pl.gz || 0);
     routeRibbonMesh.material.color.set(routeColor(route, markerColors()[route.kind] || markerColors().mission)); // a11y.js palette
   }
