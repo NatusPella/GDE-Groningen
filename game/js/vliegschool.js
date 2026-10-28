@@ -22,9 +22,12 @@ import * as R from './vliegschoolrules.js';
 // game/vliegplekken.json (scripts/world/vliegplekken.mjs). Dit bestand is de lijm: de lesvliegtuigen, de ringen en
 // markeringen, het bord en de uitslag. Het toestel wordt gevlogen door de gewone vlieg-code (player.update): de les
 // kijkt alleen mee. Een crash kost niets (het toestel is van de school) en eindigt de les.
-// `window.__vliegschool` (debug): stand(), start(id), state(), finish(), quit(), lessen().
+// `window.__vliegschool` (debug): stand(), lesSpot(), start(id), state(), finish(), quit(), lessen().
 const ACCENT = mgThema('vliegschool').accent; // één bron voor het HUD-thema: minigamekit.js (#453)
 const DEALER = { x: 1764.51, y: 9959.94 };
+// De ingang van het veld aan de Machlaan; de kiosk van Rotor Roelf staat er direct naast (shops.js). Hier komt
+// de speler het terrein op, dus hier hoort de balie met het waypoint — niet op de strip waar de leskisten staan.
+const MACHLAAN = { x: 1758.3, y: 9967.9 };
 const INTRO_S = 4.5;
 const SCHOOL_HEALTH = 400;
 
@@ -32,7 +35,8 @@ let worldRef = null;
 let plekken = null;
 let game = null;       // { fase: 'menu'|'intro'|'vlieg', ... }
 let board = null;
-let standCache = null;
+let lesCache = null;   // de plek van de leskist (het platform)
+let balieCache = null; // de plek van de balie (de ingang)
 let menu = { kist: null, cursor: 0 };
 
 // --- de gemeten plekken -----------------------------------------------------------------------------------------
@@ -57,12 +61,26 @@ function wegAfstand(map, x, y) {
   return best;
 }
 
-// Een open plek naast de baan, ruim van de weg: de eerste keer als de speler er in de buurt is (dan zijn de tegels er) opnieuw gekozen.
-function stand() {
-  const w = worldRef;
+// De balie van de school: bij de ingang van de Machlaan, naast de kiosk. De balie is het waypoint van de
+// activiteit (standactivity.js) en de plek waar de speler na een les terugkomt, dus hij moet begaanbaar zijn:
+// openSpotNear schuift hem een paar meter op als er toch een gebouw, hek of water staat. Hij hangt niet aan
+// de baan en wordt daarom één keer gekozen (de ingang ligt vast).
+export function baliePlek(w = worldRef) {
+  const m = w && w.map;
+  if (balieCache && (balieCache.zeker || !m)) return balieCache;
+  const q = { x: MACHLAAN.x + 3, y: MACHLAAN.y }; // drie meter het veld op, tussen de kiosk en het platform
+  const o = (m && m.openSpotNear && m.openSpotNear(q.x, q.y)) || (m && m.findOpenSpawn && m.findOpenSpawn(q.x, q.y, 40)) || q;
+  balieCache = { x: o.x, y: o.y, zeker: !!m };
+  return balieCache;
+}
+
+// De plek van de leskist: een open plek naast de baan, ruim van de weg. De eerste keer als de speler er in de
+// buurt is (dan zijn de tegels er) opnieuw gekozen. Dit is bewust niet de balie: het toestel blijft op het
+// platform staan, ook al staat het waypoint bij de ingang.
+export function lesPlek(w = worldRef) {
   const s = w && w.planeStrip;
   const dichtbij = !!(w && w.player && s && Math.hypot(w.player.x - s.x, w.player.y - s.y) < 250);
-  if (standCache && (standCache.zeker || (standCache.strip && !dichtbij) || !s)) return standCache;
+  if (lesCache && (lesCache.zeker || (lesCache.strip && !dichtbij) || !s)) return lesCache;
   const kand = s ? [] : [{ x: DEALER.x + 22, y: DEALER.y - 14 }];
   if (s) for (const langs of [10, 30, 60]) for (const dwars of [-18, 18, -26, 26]) kand.push(s.point(langs, dwars));
   let beste = null;
@@ -72,19 +90,20 @@ function stand() {
     const score = Math.min(weg, 30) * 3 - Math.hypot(o.x - (s ? s.x : DEALER.x), o.y - (s ? s.y : DEALER.y)) * 0.1;
     if (!beste || score > beste.score) beste = { x: o.x, y: o.y, score };
   }
-  standCache = { x: beste.x, y: beste.y, strip: !!s, zeker: dichtbij };
-  if (balie) { scene3dRemove(balie); balie = null; }
-  return standCache;
+  lesCache = { x: beste.x, y: beste.y, strip: !!s, zeker: dichtbij };
+  return lesCache;
 }
+
+// De oude naam, voor de bestaande aanroepers en `window.__vliegschool.spot()`: de school staat bij de balie.
+// Wie de leskist bedoelt, gebruikt lesPlek().
+function stand() { return baliePlek(); }
 
 // --- het bordje bij de balie --------------------------------------------------------------------------------------------
 let balie = null;
-function scene3dRemove(o) { const sc = getScene(); if (sc && o) sc.remove(o); }
 function bouwBalie(w) {
   const scene = getScene();
   if (!scene) return null;
-  const st = stand();
-  const gz = groundAt(w.map)(st.x, st.y);
+  const st = baliePlek(w);
   const grp = new THREE.Group();
   grp.name = 'vliegschool-balie';
   const hout = new THREE.MeshStandardMaterial({ color: 0x6a4a2c, roughness: 0.9 });
@@ -112,17 +131,21 @@ function bouwBalie(w) {
   zak.rotation.z = Math.PI / 2;
   zak.position.set(5.3, 4.9, 0);
   grp.add(zak);
-  // drie meter van de speler af, langs de baan, zodat niemand in de paal staat; het bord staat dwars op de baan
+  // drie meter van de speler af, zodat niemand in de paal staat; het bord staat dwars op de striprichting.
+  // De balie staat niet meer aan de baan, dus die richting is alleen nog een voorkeur: staat er toch een
+  // gebouw of water, dan schuift openSpotNear het bordje naar de eerstvolgende vrije plek.
   const s = w.planeStrip;
   const h = s ? s.heading : 0;
-  grp.position.set(st.x + Math.cos(h) * 3.5, gz, st.y + Math.sin(h) * 3.5);
+  const q = { x: st.x + Math.cos(h) * 3.5, y: st.y + Math.sin(h) * 3.5 };
+  const plek = (w.map && w.map.openSpotNear && w.map.openSpotNear(q.x, q.y)) || q;
+  grp.position.set(plek.x, groundAt(w.map)(plek.x, plek.y), plek.y);
   grp.rotation.y = -h;
   scene.add(grp);
   return grp;
 }
 function updateBalie(w) {
   if (!w || !w.player) return;
-  const st = stand();
+  const st = baliePlek(w);
   const d = Math.hypot(w.player.x - st.x, w.player.y - st.y);
   if (!balie && d < 600) balie = bouwBalie(w);
   if (balie) balie.visible = d < 800;
@@ -380,7 +403,7 @@ function startLes(w, id) {
   const d0 = R.doel(les, baan, g.st, makeEnv(w));
   if (d0) prewarmStreamAt(d0.x, d0.y, 8);
   steekIn(w, v);
-  const s = stand();
+  const s = baliePlek(w); // de instructeur blijft bij de balie waar de les begon, niet op het platform
   w.companionHold = { x: s.x, y: s.y, face: 0 };
   menuSluit();
   gameUi.showCard(w, { kind: 'tip', kicker: R.INSTRUCTEUR, title: les.titel, body: R.LIJNEN[id].uitleg, duration: 10, key: 'vliegschool-' + id, voice: false });
@@ -402,7 +425,7 @@ function opruimen(w, { naarSchool = true } = {}) {
   }
   if (g.vorigeStrip !== undefined && g.les && g.les.kist === 'vliegtuig') w.planeStrip = g.vorigeStrip;
   if (naarSchool) {
-    const s = stand();
+    const s = baliePlek(w); // terug bij de balie, waar de speler de les begon
     p.x = s.x; p.y = s.y; p.vx = p.vy = 0; p.z = 0; p.vz = 0; p.speed = 0; p.moving = false;
     p.gz = groundAt(w.map)(s.x, s.y);
     p.angle = 0;
@@ -462,7 +485,7 @@ function sluitAlles(w) {
 function openMenu(w) {
   if (!board) board = createBoard('vliegschool');
   board.show();
-  w.companionHold = w.companionHold || (() => { const s = stand(); return { x: s.x, y: s.y, face: 0 }; })();
+  w.companionHold = w.companionHold || (() => { const s = baliePlek(w); return { x: s.x, y: s.y, face: 0 }; })();
 }
 function menuSluit() { /* het bord blijft staan voor het vliegen */ }
 
@@ -624,12 +647,12 @@ export const VLIEGSCHOOL = standActivity({
   label: 'Vliegschool',
   note: 'vliegschool op Eelde: lessen voor het vliegtuig en de helikopter, met medailles',
   accent: ACCENT,
-  stand: () => stand(),
-  origin: () => stand(),
+  stand: () => baliePlek(),
+  origin: () => baliePlek(),
   useRadius: 3.4,
   labelRadius: 220,
   sub: 'Twintig lessen met vliegtuig en helikopter · gratis',
-  hint: 'Loop naar de balie bij de baan en druk E',
+  hint: 'Loop naar de balie bij de ingang en druk E',
   ubboSub: 'vlieglessen met het vliegtuig en de helikopter, gratis',
   where: 'de vliegschool bij Rotor Roelf op Eelde',
   recText,
@@ -653,6 +676,7 @@ export const VLIEGSCHOOL = standActivity({
     worldRef = w;
     return {
       spot: () => ({ ...stand() }),
+      lesSpot: () => ({ ...lesPlek() }),
       lessen: () => R.LES_IDS.slice(),
       geladen: () => !!plekken,
       start: (id) => { if (!game) start(w); if (!id) return !!game; menu.kist = (R.lesVan(id) || {}).kist || null; return startLes(w, id); },
