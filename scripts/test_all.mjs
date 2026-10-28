@@ -171,7 +171,12 @@ async function faseLicht(prev) {
     items.push(it); log(`${it.status.padEnd(7)} dode-code ${it.detail}`);
   }
   // 4. alle scripts/*_test.mjs (zonder de zware: die staan in fase zwaar)
-  const tests = fs.readdirSync(path.join(ROOT, 'scripts')).filter((n) => /_test\.mjs$/.test(n) && !EXCLUDED.has(n)).filter((n) => wilDit(n)).sort();
+  // Een paar tests meten tijd en verlies in een eigen simulatie (coop_tcp_test: 80 ms vertraging en 5%
+  // pakketverlies). Die halen hun eigen aannames niet als er drie tegelijk draaien: ze zijn alleen groen
+  // en zeiden met drie tegelijk onterecht rood. Ze draaien daarom na de pool, één voor één (#519).
+  const SERIE = new Set(['coop_tcp_test.mjs', 'coopduur_test.mjs']);
+  const alle = fs.readdirSync(path.join(ROOT, 'scripts')).filter((n) => /_test\.mjs$/.test(n) && !EXCLUDED.has(n)).filter((n) => wilDit(n)).sort();
+  const tests = alle.filter((n) => !SERIE.has(n));
   const taken = tests.map((t) => async () => {
     const ms = ZWARE_TESTS.test(t) ? TEST_MS * 15 : SLOW.has(t) ? TEST_MS * 4 : TEST_MS;
     // province_profile_test slaat zichzelf over zonder GDE_VIADUCT_FULL=1; met de provincie-extract (data/cache/province) draait hij echt
@@ -182,6 +187,12 @@ async function faseLicht(prev) {
     return it;
   });
   items.push(...(await pool(taken, JOBS)));
+  for (const t of alle.filter((n) => SERIE.has(n))) {
+    const ms = TEST_MS * 4;
+    const r = await runCmd(process.execPath, [path.join('scripts', t)], { ms });
+    const it = itemUitRes('licht', 'test:' + t, t, r, ms);
+    items.push(it); log(`${it.status.padEnd(7)} ${t} ${it.secs}s (alleen)`);
+  }
   return items;
 }
 
