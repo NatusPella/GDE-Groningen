@@ -1,7 +1,8 @@
 // De aanraakbediening kent de nieuwe situaties van #151: de coopvraag (ja/nee), het hengelen aan de waterkant,
-// de trekker op het erf en de cijferkeuze van de bijbaan- en tekstpanelen. Deze test bewijst per situatie dat
-// touchlogic.js hem kiest, dat de juiste knop bestaat (met dezelfde actie als op het pad) en dat de knoppen op
-// een telefoonscherm groot genoeg zijn en niet over elkaar liggen.
+// de trekker op het erf en de cijferkeuze van de bijbaan- en tekstpanelen. Sinds #502 kent hij ook de bus (deuren
+// en knielen) en het vliegtuig (kleppen, gestel, roer) — dezelfde keuze als gamepad.js. Deze test bewijst per
+// situatie dat touchlogic.js hem kiest, dat de juiste knop bestaat (met dezelfde actie als op het pad) en dat de
+// knoppen op een telefoonscherm groot genoeg zijn en niet over elkaar liggen.
 //   node scripts/touch_situaties_test.mjs
 import { readFileSync } from 'node:fs';
 import { PAD_MAPS, HENGEL_HINT } from '../game/js/controls.js';
@@ -89,7 +90,7 @@ globalThis.document = { addEventListener() {} };
 const { Input } = await import('../game/js/input.js');
 const inp = new Input(tgt);
 const drukt = (k) => { inp.padHold(k, true); const gezien = inp.wasPressed(k); inp.padHold(k, false); inp.endFrame(); return gezien; };
-for (const [ctx, slot] of [['coopvraag', 'a'], ['coopvraag', 'b'], ['hengelen', 'x'], ['trekker', 'b'], ['trekker', 'lb']]) {
+for (const [ctx, slot] of [['coopvraag', 'a'], ['coopvraag', 'b'], ['hengelen', 'x'], ['trekker', 'b'], ['trekker', 'lb'], ['bus', 'lb'], ['bus', 'rb'], ['plane', 'b'], ['plane', 'lb']]) {
   const b = btn(ctx, slot);
   ok(drukt(b.action), `${ctx}: het spel ziet de toets van ${b.label} (${b.action})`);
 }
@@ -126,7 +127,37 @@ ok(slecht === 0, `knoppen van alle situaties: plek, beeld, 44 px en geen overlap
   ok(rs.filter((r) => r.name === 'II').length === 1, 'trekker: de pauzeknop staat er altijd');
 }
 
-// --- 8. de bedrading: dezelfde hint en dezelfde vraag als het pad -------------------------
+// --- 8. de bus en het vliegtuig (#502): eigen indelingen, net als op het pad -----------------
+// De bus: de deuren (O) en het knielen (K) zitten op de bumpers. Zonder deze situatie kreeg de bus de
+// voertuigindeling (hef en vuur) en waren deuren en knielen op aanraak onbereikbaar.
+const busV = { speed: 0, isBus: true };
+ok(touchContext(wereld({ player: { inVehicle: busV } })) === 'bus', 'bus: een lijnbus kiest de busindeling', touchContext(wereld({ player: { inVehicle: busV } })));
+ok(btn('bus', 'lb') && btn('bus', 'lb').action === 'o' && btn('bus', 'lb').label === 'Deuren', 'bus: LB opent de deuren (O)', btn('bus', 'lb'));
+ok(btn('bus', 'rb') && btn('bus', 'rb').action === 'k' && btn('bus', 'rb').label === 'Knielen', 'bus: RB laat de bus knielen (K)', btn('bus', 'rb'));
+ok(labelFor('bus', 'o') === 'Deuren' && labelFor('bus', 'k') === 'Knielen', 'bus: de knoppen heten Deuren en Knielen', [labelFor('bus', 'o'), labelFor('bus', 'k')]);
+ok(iconFor('Deuren') !== '' && iconFor('Knielen') !== '', 'bus: de deuren- en knielknop hebben allebei een icoon');
+ok(!touchPlan('bus').some((b) => b.action === 't' || b.action === '@fire'), 'bus: geen hef en geen vuurknop in de bus', touchPlan('bus'));
+// Het vliegtuig: planeflight.js zet world.noLookBack (Q is in de kist het roer). Zonder eigen tak werd dat de
+// skûtsje-indeling en miste de speler de daling (Ctrl op B); nu wint de vliegindeling, ook van een zeilmodel.
+const kist = { speed: 0, isPlane: true };
+const inKist = wereld({ player: { inVehicle: kist }, noLookBack: true });
+ok(touchContext(inKist) === 'plane', 'vliegtuig: een vliegtuig kiest de vliegindeling', touchContext(inKist));
+ok(touchContext(inKist) !== 'skutsje', 'vliegtuig: met noLookBack (Q is het roer) wordt het geen skûtsje');
+ok(touchContext(wereld({ player: { inVehicle: { isPlane: true, model: { zeil: true } } }, noLookBack: true })) === 'plane', 'vliegtuig: de vliegindeling gaat vóór de zeilboot');
+ok(btn('plane', 'a') && btn('plane', 'a').action === ' ' && btn('plane', 'a').label === 'Omhoog', 'vliegtuig: A trekt de neus omhoog', btn('plane', 'a'));
+ok(btn('plane', 'b') && btn('plane', 'b').action === 'control' && btn('plane', 'b').label === 'Omlaag', 'vliegtuig: B duwt de neus omlaag, dus dalen kan weer', btn('plane', 'b'));
+ok(btn('plane', 'lb') && btn('plane', 'lb').action === 'k' && btn('plane', 'lb').label === 'Kleppen', 'vliegtuig: LB zet de kleppen', btn('plane', 'lb'));
+ok(btn('plane', 'x') && btn('plane', 'x').action === 'g' && btn('plane', 'x').label === 'Gestel', 'vliegtuig: X haalt het gestel in of uit', btn('plane', 'x'));
+ok(btn('plane', 'y') && btn('plane', 'y').action === 'e' && btn('plane', 'y').label === 'Roer rechts', 'vliegtuig: de E-knop is het roer rechts', btn('plane', 'y'));
+ok(labelFor('plane', 'q') === 'Roer links' && labelFor('plane', 'e') === 'Roer rechts', 'vliegtuig: Q en E heten roer links en rechts', [labelFor('plane', 'q'), labelFor('plane', 'e')]);
+ok(labelFor('plane', 'k') === 'Kleppen' && labelFor('foot', 'k') === 'Kusje', 'vliegtuig: dezelfde toets heet in de kist anders dan op de grond', [labelFor('plane', 'k'), labelFor('foot', 'k')]);
+ok(labelFor('plane', 'g') === 'Gestel' && labelFor('foot', 'g') === 'Dienst', 'vliegtuig: G is het gestel, geen dienst', [labelFor('plane', 'g'), labelFor('foot', 'g')]);
+ok(labelFor('plane', 'v') === '' && labelFor('foot', 'v') === 'Film', 'vliegtuig: geen filmknop tussen de vliegknoppen', [labelFor('plane', 'v'), labelFor('foot', 'v')]);
+ok(![...touchPlan('plane'), ...touchMore('plane')].some((b) => b.label === 'Film'), 'vliegtuig: "Film" staat nergens op de balk', [...touchPlan('plane'), ...touchMore('plane')].map((b) => b.label));
+ok(labelFor('plane', 'shift') === 'Rem' && labelFor('foot', 'shift') === 'Rennen', 'vliegtuig: Shift remt op de baan in plaats van te rennen', [labelFor('plane', 'shift'), labelFor('foot', 'shift')]);
+for (const l of ['Omhoog', 'Omlaag', 'Kleppen', 'Gestel', 'Roer links', 'Roer rechts']) ok(iconFor(l) !== '', `vliegtuig: "${l}" heeft een icoon`);
+
+// --- 9. de bedrading: dezelfde hint en dezelfde vraag als het pad -------------------------
 // Zonder deze twee regels zou de pure functie hierboven kloppen terwijl de echte touch.js de hint nooit doorgeeft
 // of gamepad.js een eigen kopie van de vraag houdt; dan lopen de twee bedieningen alsnog uit elkaar.
 const touchSrc = readFileSync(new URL('../game/js/touch.js', import.meta.url), 'utf8');
@@ -138,6 +169,8 @@ ok(HENGEL_HINT === '.ctx-row:not(.gone)[data-id="hengel-vrij"]', 'de hengelhint 
 ok(/import .*coopVraag/.test(padSrc) && /import .*coopVraag/.test(logicSrc), 'gamepad en touch gebruiken dezelfde coopVraag uit controls.js');
 ok(!/function coopVraag/.test(padSrc), 'gamepad.js heeft geen eigen kopie van de coopvraag meer');
 ok(/'trekker'/.test(touchSrc), 'touch.js stuurt ook op de trekker met de stick (zijwaarts)');
+ok(/v\.isPlane \? 'plane'/.test(logicSrc) && /v\.isPlane \? 'plane'/.test(padSrc), 'touch en gamepad zetten het vliegtuig op dezelfde plek, vóór de skûtsje-tak');
+ok(/v\.isBus \? 'bus'/.test(logicSrc) && /v\.isBus \? 'bus'/.test(padSrc), 'touch en gamepad kennen allebei de busindeling');
 ok(labelFor('trekker', 'x') === 'Ontkoppelen' && labelFor('pigeon', 'x') === 'Mens', 'dezelfde toets houdt per situatie zijn eigen naam', [labelFor('trekker', 'x'), labelFor('pigeon', 'x')]);
 
 if (fail) { console.log(`${fail} van ${n} controles gefaald`); process.exit(1); }

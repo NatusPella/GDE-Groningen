@@ -39,7 +39,9 @@ export const HINTS = [
   { id: 'v-scooter', kind: 'vehicle', match: 'scooter', title: 'Op de scooter', body: 'Sturen en gas met {WASD}: het stuur en het voorwiel draaien mee. Met {E} stap je af.' },
   { id: 'v-motor', kind: 'vehicle', match: 'motor', title: 'Motor', body: 'Met {SHIFT} en gas steigert hij; remmen met {SHIFT} geeft een stoppie. Doe dat liever niet in de stad.' },
   { id: 'v-boot', kind: 'vehicle', match: 'boot', title: 'Aan het roer', body: 'Gas en sturen met {WASD}: het roer draait mee en op een rondvaartboot of sloep ook het stuurwiel. Een boot remt langzaam en glijdt door de bocht, dus begin op tijd. Uitstappen met {E} kan bij de wal.' },
-  { id: 'v-bus', kind: 'vehicle', match: 'bus', title: 'Een bus', body: 'Lang en zwaar: neem bochten ruim en rem op tijd. Met {H} toeter je.' },
+  // #502: de hint noemde alleen de toeter, terwijl de bedieningsregel in het HUD twee knoppen belooft. Wat knielen
+  // doet (de bus zakt, zodat de instap bij de halte lager is) stond nergens; zonder die uitleg is "Knielt" een raadsel.
+  { id: 'v-bus', kind: 'vehicle', match: 'bus', title: 'Een bus', body: 'Lang en zwaar: neem bochten ruim en rem op tijd. Met {O} open je de deuren bij de halte en met {K} laat je de bus zakken, zodat de instap lager is. Met {H} toeter je.' },
   { id: 'v-trekker', kind: 'vehicle', match: 'trekker', title: 'Trekker', body: 'Gas en sturen met {WASD}, rem met {SPACE}. E koppelt een werktuig, X lost het, T laat de hef (en de ploeg) zakken en weer omhoog, G zet de aftakas aan, R tankt diesel. In de bijbaan doet de machine het zelf.' },
   { id: 'v-quad', kind: 'vehicle', match: 'quad', title: 'Quad', body: 'Wendbaar en goed in het terrein: gas en sturen met {WASD}, rem met {SPACE}. Neem bulten rustig, je zit er los bovenop.' },
   { id: 'v-foodtruck', kind: 'vehicle', match: 'foodtruck', title: 'Foodtruck', body: 'Een zware bestelbus: gas en sturen met {WASD}, handrem op {SPACE}. Met {C} kijk je vanuit de cabine mee, met {H} toeter je.' },
