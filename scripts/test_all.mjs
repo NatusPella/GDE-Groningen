@@ -342,8 +342,14 @@ async function faseElectron(prev, staat) {
     try { slot = eigenSlots ? null : await neemSlot(); items.push(...(await fn())); } catch (e) { items.push(R.maakItem('electron', 'electron:' + naam, naam, 'FAIL', 0, 'stap crashte: ' + (e && e.stack || e))); } finally { geefSlot(slot); }
     for (const it of items.filter((i) => i.fase === 'electron' && i.id.startsWith('electron:' + naam))) log(`${it.status.padEnd(7)} ${it.id} ${it.secs}s`);
   };
+  // De stappen hieronder raken elkaar niet: elke stap neemt zelf een Electron-slot uit electron-1..3.
+  // Ze daarom met drie tegelijk draaien in plaats van één voor één scheelt uren op een release-avond:
+  // de fase duurde op 27-10 3 uur 45, waarvan 100 minuten in qa-features en 60 in de missiesweep zaten
+  // die niets met elkaar te maken hebben. Meer dan drie kan niet: dat is het aantal sloten (#515).
+  const baan = [];
+  const wacht = (naam, fn, opts) => { if (wilDit(naam)) baan.push(() => stap(naam, fn, opts)); };
 
-  await stap('smoke', async () => {
+  wacht('smoke', async () => {
     const d = stapDir('smoke'), png = path.join(d, 'smoke.png'), ms = 5 * 60e3;
     const r = await runCmd(exe, [...basis, '--smoke-test=' + png], { ms, env: env('smoke'), cwd: desktop });
     fs.writeFileSync(path.join(d, 'run.log'), r.out);
@@ -359,7 +365,7 @@ async function faseElectron(prev, staat) {
 
   // poort zwarte wereld / consolefouten per frame: het spel draait 120 frames; een lege of niet getekende wereld,
   // NaN-meshes of een fout in meerdere frames laat de fase falen (scripts/perf/wereldpoort.js)
-  await stap('wereldpoort', async () => {
+  wacht('wereldpoort', async () => {
     const d = stapDir('wereldpoort'), ms = 8 * 60e3;
     const r = await runCmd(exe, [...basis, '--smoke-test=' + path.join(d, 'wereldpoort.png'), '--perf-script=' + path.join(ROOT, 'scripts', 'perf', 'wereldpoort.js')], { ms, env: env('wereldpoort'), cwd: desktop });
     fs.writeFileSync(path.join(d, 'run.log'), r.out);
@@ -367,7 +373,7 @@ async function faseElectron(prev, staat) {
     return [R.maakItem('electron', 'electron:wereldpoort', 'poort zwarte wereld en fouten per frame', b.status, r.secs, b.detail), consoleItem('wereldpoort', r.out, 0), ...beeldItems('wereldpoort', d, prevSigs, sigs)];
   });
 
-  await stap('verhaaltest', async () => {
+  wacht('verhaaltest', async () => {
     const d = stapDir('verhaaltest'), ms = 20 * 60e3;
     const r = await runCmd(exe, [...basis, '--story-test=' + d], { ms, env: env('verhaal'), cwd: desktop });
     fs.writeFileSync(path.join(d, 'run.log'), r.out);
@@ -382,7 +388,7 @@ async function faseElectron(prev, staat) {
     ];
   });
 
-  await stap('geocheck', async () => {
+  wacht('geocheck', async () => {
     const d = stapDir('geocheck'), ms = 10 * 60e3;
     const r = await runCmd(exe, [...basis, '--smoke-test=' + path.join(d, 'geocheck.png'), '--perf-script=' + path.join(ROOT, 'scripts', 'perf', 'geocheck.js')], { ms, env: env('geocheck'), cwd: desktop });
     fs.writeFileSync(path.join(d, 'run.log'), r.out);
@@ -395,7 +401,7 @@ async function faseElectron(prev, staat) {
     // zijn zeven stappen af en stond hij 3,6 m van het laatste doel. Tachtig minuten geeft marge voor de
     // 36 keer dat hij even vastloopt (#387, #515).
     const d = stapDir(naam), ms = (mode === 'missions' ? 105 : 45) * 60e3;
-    const r = await runCmd(process.execPath, ['scripts/bot/run.mjs', `--mode=${mode}`, '--out=${d}', '--force', ...(mode === 'missions' ? ['--max-wall=4800'] : [])], { ms, env: env(naam) });
+        const r = await runCmd(process.execPath, ['scripts/bot/run.mjs', `--mode=${mode}`, '--out=${d}', '--force', ...(mode === 'missions' ? ['--max-wall=4800', '--speed=2'] : [])], { ms, env: env(naam) });
     fs.writeFileSync(path.join(d, 'sweep.log'), r.out);
     let analyse = '';
     if (fs.existsSync(path.join(d, 'events.jsonl'))) {
@@ -405,8 +411,9 @@ async function faseElectron(prev, staat) {
     const st = r.timedOut ? 'TIMEOUT' : r.code === 0 ? 'PASS' : 'FAIL';
     return [R.maakItem('electron', 'electron:' + naam, `spelbot-sweep ${mode}`, st, r.secs, st === 'PASS' ? analyse : `code ${r.code}: ${R.eersteFout(r.out)}\n${analyse}`), consoleItem(naam, r.out, 0), ...beeldItems(naam, d, prevSigs, sigs)];
   });
-  await botSweep('bot-missies', 'missions');
-  await botSweep('bot-minigames', 'minigames');
+  // (een thunk, want deze helpers starten meteen als je ze aanroept)
+  baan.push(() => botSweep('bot-missies', 'missions'));
+  baan.push(() => botSweep('bot-minigames', 'minigames'));
 
   const qa = (naam, script, extra = []) => stap(naam, async () => {
     // qa-features loopt door alle features heen en maakt 250+ schermafbeeldingen; op 27-10 was hij op een
@@ -424,12 +431,14 @@ async function faseElectron(prev, staat) {
     const st = r.timedOut ? 'TIMEOUT' : r.code === 0 ? 'PASS' : 'FAIL';
     return [R.maakItem('electron', 'electron:' + naam, naam, st, r.secs, st === 'PASS' ? poging.trim() : `code ${r.code}${poging}: ${split(tail(r.out, 3)).join(' | ')}`), consoleItem(naam, r.out, 0), ...beeldItems(naam, d, prevSigs, sigs)];
   });
-  await qa('qa-provincie-1', 'scripts/qa/province_shots.mjs', ['--ronde=1']);
-  await qa('qa-provincie-2', 'scripts/qa/province_shots.mjs', ['--ronde=2']);
-  await qa('qa-features', 'scripts/qa/feature_smoke.mjs');
-  await qa('qa-visueel', 'scripts/qa/visual_issues.mjs');
-  await qa('ui-shots', 'scripts/ui_shots.mjs');
-  // coöp-testbank (y2): host en gast als twee Electrons op de loopback; neemt zelf de sloten
+  baan.push(() => qa('qa-provincie-1', 'scripts/qa/province_shots.mjs', ['--ronde=1']));
+  baan.push(() => qa('qa-provincie-2', 'scripts/qa/province_shots.mjs', ['--ronde=2']));
+  baan.push(() => qa('qa-features', 'scripts/qa/feature_smoke.mjs'));
+  baan.push(() => qa('qa-visueel', 'scripts/qa/visual_issues.mjs'));
+  baan.push(() => qa('ui-shots', 'scripts/ui_shots.mjs'));
+  // Alles wat hierboven klaarstaat, draait nu samen: drie tegelijk, elk met een eigen slot.
+  await pool(baan, 3);
+  // De coöp-testbank komt hierna: die heeft twee sloten tegelijk nodig en kan dus niet met de rest mee.
   if (fs.existsSync(path.join(ROOT, 'scripts', 'coop', 'testbank.mjs'))) {
     await stap('coop', async () => {
       // de testbank neemt zelf twee sloten en wacht daarop tot 90 min als andere sessies ze bezet houden: de limiet is 20 min testen plus die wachttijd
