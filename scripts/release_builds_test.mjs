@@ -1,8 +1,10 @@
 // Releasenotities na de Actions-builds (scripts/release_builds.mjs): alleen bijlagen die er zijn,
 // het blok wordt vervangen in plaats van verdubbeld, de regel "nog geen dmg" verdwijnt, en de
 // minuten worden per job naar boven afgerond.
+// Sinds 28-10 staat er ook een test op --droog: dat mocht niets starten maar startte drie workflows.
+// Die test draait met een nep-gh (exec), dus zonder netwerk en zonder echte runs.
 //   node scripts/release_builds_test.mjs
-import { notesFor, applyBlock, billable, BLOCK_START, BLOCK_END, BUILDS } from './release_builds.mjs';
+import { notesFor, applyBlock, billable, expectedAssets, planRuns, main, BLOCK_START, BLOCK_END, BUILDS } from './release_builds.mjs';
 
 let n = 0, fails = 0;
 const ok = (c, name) => { n++; if (!c) { fails++; console.log('FAIL ' + name); } };
@@ -36,6 +38,55 @@ ok(notesFor(V, all).length === 3, 'ARM-regels staan er niet zolang de bijlagen o
 const arm = notesFor(V, [...all, `GDE-Groningen-${V}-windows-arm64-portable.exe`, `GDE-Groningen-${V}-linux-arm64.AppImage`, `GDE-Groningen-${V}-linux-arm64.tar.gz`]);
 ok(arm.length === 5 && arm.every((x) => !/ARM/.test(x) || /niet op echte ARM-hardware getest/.test(x)), 'ARM-regels met de eerlijke kanttekening');
 ok(BUILDS.mac.factor === 10 && BUILDS.linux.factor === 1 && BUILDS.android.factor === 1, 'factoren');
+
+// --- --droog: het plan start niets ---
+const W = 'gde-world.tgz';
+const alle = Object.keys(BUILDS);
+const droogPlan = planRuns({ only: alle, explicit: null, names: [W], version: V, dry: true });
+ok(droogPlan.wanted.length === 4 && droogPlan.start.length === 0, '--droog: vier workflows in het plan, niets te starten');
+ok(planRuns({ only: alle, explicit: null, names: [W], version: V, notesOnly: true }).start.length === 0, '--notes-only start niets');
+ok(planRuns({ only: alle, explicit: null, names: [W], version: V, dry: true, notesOnly: true }).start.length === 0, '--droog met --notes-only start niets');
+ok(planRuns({ only: alle, explicit: null, names: [W], version: V }).start.length === 4, 'gewone route start alle vier');
+const metDmg = planRuns({ only: alle, explicit: null, names: [W, `GDE-Groningen-${V}-mac.dmg`], version: V });
+ok(metDmg.skipped.join(',') === 'mac' && !metDmg.start.includes('mac'), 'bijlage die er al staat wordt overgeslagen');
+ok(planRuns({ only: ['mac'], explicit: 'mac', names: [W, `GDE-Groningen-${V}-mac.dmg`], version: V }).start.join(',') === 'mac', '--only bouwt ook als de bijlage bestaat');
+ok(expectedAssets('linux', V).length === 2 && expectedAssets('linux', V, true).length === 4 && expectedAssets('mac', V).length === 1, 'droog noemt ook de linux-tar.gz en de ARM-bijlagen');
+
+// --- --droog via main(), met een nep-gh: bewijst dat er geen workflow run langskomt ---
+const releaseJson = (assets) => JSON.stringify({ assets: assets.map((name) => ({ name })), body: '## x\n', isPrerelease: false });
+const nepGh = (calls, assets) => (args) => {
+  calls.push(args.join(' '));
+  if (args[0] === 'release' && args[1] === 'view') return releaseJson(assets);
+  if (args[0] === 'release' && args[1] === 'edit') return '';
+  if (args[0] === 'workflow') return '';
+  if (args[0] === 'run' && args[1] === 'list') return JSON.stringify([{ databaseId: 4242, createdAt: new Date().toISOString(), status: 'queued' }]);
+  if (args[0] === 'run' && args[1] === 'view') return JSON.stringify({ status: 'completed', conclusion: 'success', jobs: [{ startedAt: '2026-10-29T10:00:00Z', completedAt: '2026-10-29T10:07:30Z' }] });
+  if (args[0] === 'repo') return 'iwink/GDE-Groningen';
+  throw new Error('onverwachte gh-aanroep: ' + args.join(' '));
+};
+
+const droogCalls = [];
+const droogOut = [];
+await main({ argv: [`v${V}`, '--droog'], exec: nepGh(droogCalls, [W]), log: (s) => droogOut.push(String(s)), logErr: (s) => droogOut.push(String(s)) });
+ok(!droogCalls.some((c) => c.startsWith('workflow run')), '--droog roept geen gh workflow run aan');
+ok(!droogCalls.some((c) => c.startsWith('release edit')), '--droog wijzigt de releasenotities niet');
+ok(droogCalls.every((c) => c.startsWith('release view')), '--droog doet alleen leesacties');
+ok(!droogCalls.some((c) => c.startsWith('run list') || c.startsWith('run view')), '--droog wacht niet op runs');
+const droogTekst = droogOut.join('\n');
+ok(droogTekst.includes(`zou starten: mac-release.yml (macOS-dmg) met tag=v${V}`), 'droog toont welke workflow en welke tag');
+ok(droogTekst.includes(`ontbrekende bijlagen: GDE-Groningen-${V}-mac.dmg`), 'droog toont welke bijlagen ontbreken');
+ok(droogTekst.includes('niets gestart, niets geüpload en niets aan de release gewijzigd'), 'droog zegt wat het niet doet');
+
+// Zonder gde-world.tgz breekt --droog niet af (de gewone route doet dat wel): tonen wat er ontbreekt.
+const leegCalls = [];
+const leegOut = [];
+await main({ argv: [`v${V}`, '--droog'], exec: nepGh(leegCalls, []), log: (s) => leegOut.push(String(s)), logErr: (s) => leegOut.push(String(s)) });
+ok(leegCalls.every((c) => c.startsWith('release view')) && leegOut.join('\n').includes('geen gde-world.tgz'), 'droog zonder wereld: alleen een waarschuwing, geen run');
+
+// De gewone route moet ongewijzigd blijven: daar gaat er wél een workflow run uit.
+const levendCalls = [];
+await main({ argv: [`v${V}`, '--only', 'mac'], exec: nepGh(levendCalls, [W]), log: () => {}, logErr: () => {} });
+ok(levendCalls.includes(`workflow run mac-release.yml -f tag=v${V}`), 'zonder --droog start de workflow wel');
 
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);
