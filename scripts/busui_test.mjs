@@ -74,4 +74,21 @@ const lijn = prepareLine({
   assert.ok(/kicker: kaart\.kicker/.test(bron), 'het kopje gaat mee met de melding');
 }
 
+// --- 5. de hintregel zegt wat knielen doet ---------------------------------------
+// De knop in het HUD zegt alleen "Knielt"; wat dat doet (de bus zakt, zodat de instap bij de halte lager is) stond
+// nergens. De uitleg staat in de hint van de bus (hintkit.js) en als titel op de knop zelf (busbestuurhud.js). Geen
+// extra zichtbare regel in het kaartje: dan groeit het boven de doelregel uit (punt 4, 100 px ruimte).
+{
+  const { HINTS } = await import('../game/js/hintkit.js');
+  const hint = HINTS.find((h) => h.id === 'v-bus');
+  assert.ok(hint, 'de bus heeft een hint');
+  assert.ok(/\{K\}/.test(hint.body), 'de hint noemt de K van het knielen: ' + hint.body);
+  assert.ok(/laat je de bus zakken|kniel/i.test(hint.body), 'de hint zegt wat K doet: ' + hint.body);
+  assert.ok(/instap/i.test(hint.body), 'en wat het oplevert: een lagere instap bij de halte');
+  assert.ok(/\{O\}/.test(hint.body), 'de hint noemt ook de deuren, de andere knop van de bedieningsregel');
+  assert.ok(hint.body.length < 220, 'de hint blijft kort (hintkit_test eist minder dan 220 tekens): ' + hint.body.length);
+  const bron = fs.readFileSync(new URL('../game/js/busbestuurhud.js', import.meta.url), 'utf8');
+  assert.ok(/bb-kneel"[^>]*title="[^"]*(zakken|kniel)/i.test(bron), 'de knop zelf legt uit wat knielen doet (titel)');
+}
+
 console.log('busui_test ok');

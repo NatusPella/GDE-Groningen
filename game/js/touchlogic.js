@@ -56,15 +56,20 @@ export function stickKeys(vec, held = new Set()) {
 }
 
 const LABELS = {
-  ' ': { foot: 'Spring', minigame: 'Spring', vehicle: 'Handrem', vehicleManual: 'Handrem', skutsje: 'Handrem', heli: 'Omhoog', pigeon: 'Vlieg', train: 'Noodrem', foodtruck: 'OK', klokken: 'Start', cutscene: 'Overslaan' },
-  control: { heli: 'Omlaag', pigeon: 'Pikken', foot: 'Bukken', minigame: 'Bukken' },
-  e: { _: 'Gebruik', pannenkoek: 'Appel', klokken: 'Volgend' }, f: 'Instappen', h: 'Toeter', l: 'Sirene', q: { _: 'Achterom', pannenkoek: 'Stroop', klokken: 'Vorig' }, n: { _: 'Radio', coopvraag: 'Nee' }, m: 'Kaart', o: { _: 'Overslaan', bus: 'Deuren', train: 'Deuren' }, k: { _: 'Kusje', bus: 'Knielt', train: 'Waak' },
+  ' ': { foot: 'Spring', minigame: 'Spring', vehicle: 'Handrem', vehicleManual: 'Handrem', skutsje: 'Handrem', heli: 'Omhoog', plane: 'Omhoog', pigeon: 'Vlieg', train: 'Noodrem', foodtruck: 'OK', klokken: 'Start', cutscene: 'Overslaan' },
+  // #502: in de kist is Ctrl de neus omlaag; zonder deze regel viel de daalknop van de aanraakbediening helemaal weg
+  control: { heli: 'Omlaag', plane: 'Omlaag', pigeon: 'Pikken', foot: 'Bukken', minigame: 'Bukken' },
+  // #502: in een vliegtuig is E het roer rechts (planecontrol.js) en Q het roer links, geen "Gebruik" of "Achterom";
+  // in de bus heten de bumpers Deuren (O) en Knielen (K), precies zoals de hint ze noemt
+  e: { _: 'Gebruik', pannenkoek: 'Appel', klokken: 'Volgend', plane: 'Roer rechts' }, f: 'Instappen', h: 'Toeter', l: 'Sirene', q: { _: 'Achterom', pannenkoek: 'Stroop', klokken: 'Vorig', plane: 'Roer links' }, n: { _: 'Radio', coopvraag: 'Nee' }, m: 'Kaart', o: { _: 'Overslaan', bus: 'Deuren', train: 'Deuren' }, k: { _: 'Kusje', bus: 'Knielen', train: 'Waak', plane: 'Kleppen' },
   // #495: de twee acties die het pad erbij kreeg, zodat de knop op aanraakbediening ook een naam heeft
   i: { _: 'Hengelen', skutsje: 'Hengelen', vehicle: 'Hengelen' }, t: { _: 'Hef', train: 'Rondlopen' }, b: 'Bij de groep',
   // #151: dezelfde toets doet op de trekker iets anders dan op de grond, en J heet bij een vraag van Samen spelen geen
   // koppeling maar "Ja": de knop zegt wat hij daar doet, net als op het pad en in de hintregel van het spel
-  x: { _: 'Mens', trekker: 'Ontkoppelen' }, g: { _: 'Dienst', trekker: 'Aftakas' }, j: { _: 'Koppeling', coopvraag: 'Ja' },
-  shift: 'Rennen', tab: 'Doel', c: 'Koer', v: 'Film', r: { _: 'Lak', pannenkoek: 'Kaas', trekker: 'Tanken' }, z: 'Zeil vieren', '[': 'Links', ']': 'Rechts', p: 'Alarm',
+  x: { _: 'Mens', trekker: 'Ontkoppelen' }, g: { _: 'Dienst', trekker: 'Aftakas', plane: 'Gestel' }, j: { _: 'Koppeling', coopvraag: 'Ja' },
+  // #502: Shift remt in een vliegtuig op de baan; "Rennen" zou daar niets betekenen. V is de filmcamera, maar in de
+  // kist is een filmknop tussen de vliegknoppen alleen maar verwarrend: daar dus geen knop.
+  shift: { _: 'Rennen', plane: 'Rem' }, tab: 'Doel', c: 'Koer', v: { _: 'Film', plane: '' }, r: { _: 'Lak', pannenkoek: 'Kaas', trekker: 'Tanken' }, z: 'Zeil vieren', '[': 'Links', ']': 'Rechts', p: 'Alarm',
   backspace: 'Stop', ',': 'Lager', '.': 'Hoger', s: 'Rem', w: { _: 'Gas', pannenkoek: 'Spek', train: 'Trek' },
   '@fire': 'Vuur', '@aim': 'Richt', '@gas': 'Gas', '@brake': 'Rem', '@wheel+': 'Wapen', '@wheel-': 'Wapen',
 };
@@ -124,7 +129,12 @@ const ICONS = {
   Film: '<rect x="3" y="6" width="12" height="12" rx="2"/><path d="M15 10l6-3v10l-6-3z"/>',
   Links: '<path d="M20 12H4"/><path d="M9 7l-5 5 5 5"/>',
   Rechts: '<path d="M4 12h16"/><path d="M15 7l5 5-5 5"/>',
-  Knielt: '<path d="M12 3.5v8"/><path d="M8.5 8L12 11.5 15.5 8"/><path d="M3 17.5h18"/><path d="M6 20.5h12"/>',
+  // #502: de knoppen van de bus (knielen) en het vliegtuig (kleppen, gestel, roer) in dezelfde lijnstijl
+  Knielen: '<path d="M12 3.5v8"/><path d="M8.5 8L12 11.5 15.5 8"/><path d="M3 17.5h18"/><path d="M6 20.5h12"/>',
+  Kleppen: '<path d="M3 17h18"/><path d="M6 17l2-7"/><path d="M12 17l2-7"/><path d="M18 17l2-7"/>',
+  Gestel: '<circle cx="12" cy="16.5" r="3.5"/><path d="M12 13V7"/><path d="M7 7h10"/>',
+  'Roer links': '<path d="M19 9H7"/><path d="M11 5L7 9l4 4"/><path d="M5 18h14"/>',
+  'Roer rechts': '<path d="M5 9h12"/><path d="M13 5l4 4-4 4"/><path d="M5 18h14"/>',
   OK: '<path d="M4.5 12.5l5 5L19.5 6.5"/>',
   Koppeling: '<path d="M9.5 14.5l5-5"/><path d="M7 12l-1.5 1.5a3.5 3.5 0 0 0 5 5L12 17"/><path d="M17 12l1.5-1.5a3.5 3.5 0 0 0-5-5L12 7"/>',
   // #151: de knoppen van de nieuwe situaties (vraag, hengelen, trekker) hebben dezelfde lijnstijl als de rest
@@ -181,7 +191,10 @@ export function touchPlan(ctx) {
 // Button spots from the bottom corner they sit in, in px before the layout
 // scale: [offset from the side, from the bottom]. Right: a diamond for the four
 // face buttons and one high up for the gas; left: a 2x2 block next to the stick.
-export const SPOTS_RIGHT = [[24, 110], [104, 40], [104, 180], [184, 110], [30, 240]];
+// #502: de linkerknop van de ruit stond op 184 en kwam met een lang label ("Roer rechts") in portret tegen de
+// minimap aan; 170 houdt ook een label van elf letters vrij van de kaart (touch_situaties_test rekent dat op tien
+// schermen na).
+export const SPOTS_RIGHT = [[24, 110], [104, 40], [104, 180], [170, 110], [30, 240]];
 export const SPOTS_LEFT = [[24, 40], [24, 120], [124, 40], [124, 120]];
 export const BTN_H = 64;
 export const BTN_MIN_W = 64;
@@ -279,8 +292,11 @@ export function touchContext(w, { started = true, menuOpen = false, shiftMode = 
   // een vraag van Samen spelen: A is ja, B is nee (#151), precies zoals op het pad
   if (coopVraag(w)) return 'coopvraag';
   const v = w.player && w.player.inVehicle;
-  // de zeilboot vaart met de skûtsje-indeling (Q en Z op de bumpers), een landbouwmachine met de trekkerindeling (#151)
-  if (v) return v.isHeli ? 'heli' : w.noLookBack || (v.model && v.model.zeil) ? 'skutsje' : v.farm ? 'trekker' : v.gb && shiftMode !== 'auto' ? 'vehicleManual' : 'vehicle';
+  // #502: dezelfde keuze als gamepad.js, in dezelfde volgorde. Het vliegtuig staat vóór de skûtsje-tak omdat
+  // planeflight.js world.noLookBack zet (Q is in de kist het roer): zonder deze tak werd een vliegtuig als zeilboot
+  // behandeld en miste de speler de daling (Ctrl/B). De bus staat er ook, want alleen PAD_MAPS.bus heeft de deuren
+  // (O) en het knielen (K) op de bumpers; met de voertuigindeling waren die op aanraak onbereikbaar.
+  if (v) return v.isPlane ? 'plane' : v.isHeli ? 'heli' : w.noLookBack || (v.model && v.model.zeil) ? 'skutsje' : v.farm ? 'trekker' : v.gb && shiftMode !== 'auto' ? 'vehicleManual' : v.isBus ? 'bus' : 'vehicle';
   // een bijbaan of tekstpaneel dat de invoer opeist (stagechoice, rechtbank, boa, snackbar: minigameUntil) leest de
   // cijfers 1-4, Tab en Backspace: de minigame-indeling zet die op de D-pad, dus achter "Meer" (#151)
   if (w.minigameUntil > w.time) return 'minigame';

@@ -31,7 +31,10 @@ function getRow() {
   }
   const el = document.createElement('div');
   el.className = 'hud-busbed';
-  el.innerHTML = '<span class="bb-eta"></span><span class="bb-stop">STOP</span><span class="bb-deur"><kbd>O</kbd><i>Deuren open</i></span><span class="bb-kneel"><kbd>K</kbd><i>Knielt</i></span><span class="bb-tev"></span>';
+  // #502: "Knielt" alleen zegt niet wat de knop doet. De uitleg staat in de hint van de bus (hintkit.js) en als
+  // titel op de knop, zodat wie er met de muis op staat het ook leest; een extra regel in het kaartje kan niet,
+  // want dan raakt het de doelregel erboven (busboard3d.js, 120 px).
+  el.innerHTML = '<span class="bb-eta"></span><span class="bb-stop">STOP</span><span class="bb-deur"><kbd>O</kbd><i>Deuren open</i></span><span class="bb-kneel" title="Laat de bus zakken bij de halte"><kbd>K</kbd><i>Knielt</i></span><span class="bb-tev"></span>';
   card.appendChild(el);
   row = { el, eta: el.querySelector('.bb-eta'), stop: el.querySelector('.bb-stop'), deur: el.querySelector('.bb-deur'), kneel: el.querySelector('.bb-kneel'), tev: el.querySelector('.bb-tev') };
   return row;
@@ -95,6 +98,8 @@ function updateBusBestuur(dt, w) {
   r.deur.querySelector('i').textContent = b && b.doorWant ? 'Deuren dicht' : 'Deuren open';
   r.kneel.classList.toggle('on', !!(b && b.kneelWant));
   r.kneel.querySelector('i').textContent = b && b.kneelWant ? 'Omhoog' : 'Knielt';
+  // de uitleg van de knop volgt de stand: knielen laat de bus zakken, omhoog brengt hem weer op rijhoogte (#502)
+  r.kneel.title = b && b.kneelWant ? 'Laat de bus weer omhoog komen' : 'Laat de bus zakken bij de halte';
   if (ride) {
     const sat = ride.tevreden.sat;
     r.tev.style.display = 'inline';
