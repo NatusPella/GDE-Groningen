@@ -9,7 +9,9 @@
 //   node scripts/release_builds.mjs --arm64         ook de ARM64-varianten van Windows en Linux (standaard uit, niet getest
 //                                                   op echte ARM-hardware)
 //   node scripts/release_builds.mjs --notes-only    geen builds, alleen de notities bijwerken
-//   node scripts/release_builds.mjs --droog         toon de notities, wijzig niets
+//   node scripts/release_builds.mjs --droog         alleen tonen: welke workflows er zouden starten, met welke tag,
+//                                                   welke bijlagen al op de release staan en hoe de notities worden;
+//                                                   er wordt niets gestart, niets geüpload en niets aan de release gewijzigd
 //   node scripts/release_builds.mjs --ref <branch>  workflows van een andere branch dan main (alleen als
 //                                                   het bestand ook op de standaardbranch staat)
 //
@@ -103,8 +105,28 @@ function findGh() {
   throw new Error('gh (GitHub CLI) niet gevonden: installeer hem of zet hem op PATH');
 }
 
-async function main() {
-  const argv = process.argv.slice(2);
+// Welke bestanden een build op de release hoort te zetten. --droog laat hiermee zien wat er nog ontbreekt.
+export function expectedAssets(key, version, arm64 = false) {
+  const out = [BUILDS[key].asset(version)];
+  if (key === 'linux') out.push(`GDE-Groningen-${version}-linux.tar.gz`);
+  if (arm64 && key === 'windows') out.push(`GDE-Groningen-${version}-windows-arm64-portable.exe`);
+  if (arm64 && key === 'linux') out.push(`GDE-Groningen-${version}-linux-arm64.AppImage`, `GDE-Groningen-${version}-linux-arm64.tar.gz`);
+  return out;
+}
+
+// De beslissing "wat starten we" staat los van het starten zelf, zodat één plek bepaalt of er iets
+// gebeurt. Reden: op 28-10 startte --droog alsnog drie workflows, doordat alleen het bijwerken van de
+// notities achter de vlag zat en het startblok erbuiten viel. Hier levert --droog (en --notes-only)
+// altijd een lege startlijst op; de test bewijst dat er dan geen gh-aanroep voor een run langskomt.
+export function planRuns({ only, explicit, names, version, dry = false, notesOnly = false }) {
+  const wanted = explicit ? only.slice() : only.filter((k) => !names.includes(BUILDS[k].asset(version)));
+  const skipped = explicit ? [] : only.filter((k) => !wanted.includes(k));
+  const start = dry || notesOnly ? [] : wanted;
+  return { wanted, skipped, start };
+}
+
+// exec is er voor de test: die geeft een nep-gh mee, zodat er niets wordt gezocht, gestart of verstuurd.
+export async function main({ argv = process.argv.slice(2), exec = null, log = console.log, logErr = console.error } = {}) {
   const flag = (n) => argv.includes(n);
   const val = (n) => { const i = argv.indexOf(n); return i >= 0 ? argv[i + 1] : null; };
   const valueArgs = new Set([val('--only'), val('--ref')].filter(Boolean));
@@ -112,29 +134,49 @@ async function main() {
     || 'v' + JSON.parse(fs.readFileSync(path.join(ROOT, 'desktop', 'package.json'), 'utf8')).version;
   const version = tag.slice(1);
   const explicit = val('--only');
-  let only = (explicit || Object.keys(BUILDS).join(',')).split(',').map((s) => s.trim()).filter(Boolean);
+  const only = (explicit || Object.keys(BUILDS).join(',')).split(',').map((s) => s.trim()).filter(Boolean);
   for (const o of only) if (!BUILDS[o]) throw new Error(`onbekende build "${o}": kies uit ${Object.keys(BUILDS).join(', ')}`);
   const arm64 = flag('--arm64');
   const ref = val('--ref');
   const dry = flag('--droog');
-  const gh = findGh();
-  const run = (args, opts = {}) => execFileSync(gh, args, { encoding: 'utf8', cwd: ROOT, env: { ...process.env, MSYS_NO_PATHCONV: '1' }, ...opts }).trim();
+  const notesOnly = flag('--notes-only');
+  const gh = exec ? null : findGh();
+  const run = (args, opts = {}) => {
+    const out = exec
+      ? exec(args, opts)
+      : execFileSync(gh, args, { encoding: 'utf8', cwd: ROOT, env: { ...process.env, MSYS_NO_PATHCONV: '1' }, ...opts });
+    return String(out == null ? '' : out).trim();
+  };
   const json = (args) => JSON.parse(run(args));
 
   const release = json(['release', 'view', tag, '--json', 'assets,body,isPrerelease']);
   const names = release.assets.map((a) => a.name);
-  console.log(`Release ${tag}: ${names.join(', ') || '(geen assets)'}`);
-  if (!names.includes('gde-world.tgz') && !flag('--notes-only')) {
+  log(`Release ${tag}: ${names.join(', ') || '(geen assets)'}`);
+  const hasWorld = names.includes('gde-world.tgz');
+  // Bij --droog niet afbreken op een ontbrekende wereld: dan juist tonen wat er ontbreekt. De gewone
+  // route stopt hier wel, want zonder gde-world.tgz kunnen de workflows niets bouwen.
+  if (!hasWorld && dry) log(`Let op: geen gde-world.tgz; de gewone route stopt hier (eerst release met --world).`);
+  else if (!hasWorld && !notesOnly) {
     throw new Error(`${tag} heeft geen gde-world.tgz: release met --world maken, of: tar czf gde-world.tgz -C desktop/build/game world && gh release upload ${tag} gde-world.tgz`);
   }
 
-  if (!explicit) {
-    const skip = only.filter((k) => names.includes(BUILDS[k].asset(version)));
-    if (skip.length) console.log(`Al als bijlage aanwezig, niet opnieuw gebouwd (--only ${skip.join(',')} om toch te bouwen): ${skip.map((k) => BUILDS[k].label).join(', ')}`);
-    only = only.filter((k) => !skip.includes(k));
+  const plan = planRuns({ only, explicit, names, version, dry, notesOnly });
+  if (plan.skipped.length) log(`Al als bijlage aanwezig, niet opnieuw gebouwd (--only ${plan.skipped.join(',')} om toch te bouwen): ${plan.skipped.map((k) => BUILDS[k].label).join(', ')}`);
+  if (dry) {
+    log(`\n--- droog: tag ${tag}; er wordt niets gestart, niets geüpload en niets aan de release gewijzigd ---`);
+    if (notesOnly) log('--notes-only: geen builds.');
+    else if (!plan.wanted.length) log('Geen workflows nodig: alle bijlagen staan er al.');
+    else for (const key of plan.wanted) {
+      const b = BUILDS[key];
+      const arm = b.arm && arm64 ? ' arm64=true' : '';
+      const op = ref ? ` op ${ref}` : '';
+      log(`  zou starten: ${b.workflow} (${b.label}) met tag=${tag}${arm}${op}`);
+      const missing = expectedAssets(key, version, b.arm && arm64).filter((n) => !names.includes(n));
+      log(`    ontbrekende bijlagen: ${missing.join(', ') || '(geen)'}`);
+    }
   }
   const results = {};
-  if (!flag('--notes-only')) {
+  if (plan.start.length) {
     const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     const dispatch = async (key) => {
       const b = BUILDS[key];
@@ -158,18 +200,18 @@ async function main() {
         await new Promise((res) => setTimeout(res, 20000));
       }
     };
-    await Promise.all(only.map(async (key) => {
+    await Promise.all(plan.start.map(async (key) => {
       const b = BUILDS[key];
       let attempt = 0;
       for (;;) {
         attempt++;
         const id = await dispatch(key);
-        console.log(`${b.label}: run ${id} gestart (poging ${attempt}) - https://github.com/${run(['repo', 'view', '--json', 'nameWithOwner', '-q', '.nameWithOwner'])}/actions/runs/${id}`);
+        log(`${b.label}: run ${id} gestart (poging ${attempt}) - https://github.com/${run(['repo', 'view', '--json', 'nameWithOwner', '-q', '.nameWithOwner'])}/actions/runs/${id}`);
         const r = await wait(id);
         const used = billable(r.jobs, b.factor);
         results[key] = { id, conclusion: r.conclusion, attempt, ...used };
-        console.log(`${b.label}: ${r.conclusion} - ${Math.round(used.seconds / 60 * 10) / 10} min, ${used.minutes} ${b.runner}-min = ${used.free} gratis minuten`);
-        if (r.conclusion === 'cancelled' && attempt < 2) { console.log(`${b.label}: geannuleerd (runner?), nog één keer`); continue; }
+        log(`${b.label}: ${r.conclusion} - ${Math.round(used.seconds / 60 * 10) / 10} min, ${used.minutes} ${b.runner}-min = ${used.free} gratis minuten`);
+        if (r.conclusion === 'cancelled' && attempt < 2) { log(`${b.label}: geannuleerd (runner?), nog één keer`); continue; }
         break;
       }
     }));
@@ -180,20 +222,20 @@ async function main() {
   const sections = notesFor(version, assetNames);
   const body = applyBlock(after.body, sections, assetNames.includes(`GDE-Groningen-${version}-mac.dmg`));
   if (dry) {
-    console.log('\n--- notities (droog, niet opgeslagen) ---\n' + body);
+    log('\n--- notities (droog, niet opgeslagen) ---\n' + body);
   } else if (body.replace(/\s+$/, '') !== String(after.body || '').replace(/\r\n/g, '\n').replace(/\s+$/, '')) {
     const tmp = path.join(fs.mkdtempSync(path.join(process.env.TEMP || process.env.TMPDIR || '/tmp', 'gde-notes-')), 'notes.md');
     fs.writeFileSync(tmp, body);
     run(['release', 'edit', tag, '--notes-file', tmp]);
     fs.rmSync(tmp, { force: true });
-    console.log('Releasenotities bijgewerkt.');
-  } else console.log('Releasenotities waren al bijgewerkt.');
+    log('Releasenotities bijgewerkt.');
+  } else log('Releasenotities waren al bijgewerkt.');
 
   const total = Object.values(results).reduce((a, r) => a + r.free, 0);
-  if (Object.keys(results).length) console.log(`Samen ${total} gratis minuten (van 2000 per maand).`);
+  if (Object.keys(results).length) log(`Samen ${total} gratis minuten (van 2000 per maand).`);
   const failed = Object.entries(results).filter(([, r]) => r.conclusion !== 'success');
   if (failed.length) {
-    console.error('Mislukt: ' + failed.map(([k, r]) => `${BUILDS[k].label} (${r.conclusion}, run ${r.id})`).join(', '));
+    logErr('Mislukt: ' + failed.map(([k, r]) => `${BUILDS[k].label} (${r.conclusion}, run ${r.id})`).join(', '));
     process.exitCode = 1;
   }
 }
