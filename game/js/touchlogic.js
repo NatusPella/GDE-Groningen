@@ -163,6 +163,16 @@ const RIGHT = ['a', 'b', 'x', 'y', 'rt'];
 const LEFT = ['lt', 'ls', 'lb'];
 const TOUCH_SLOTS = [...RIGHT, ...LEFT, 'rb'];
 
+// #502: een situatie mag de volgorde van de plekken zelf bepalen. Het vliegtuig deed dat niet en had daardoor geen
+// "Roer links" op het scherm: Q stond in geen enkele plek, want de D-pad droeg daar Overslaan en Stop. In de kist is
+// de ruit van de rechterduim de plek van het roer: links en rechts het roer (Q en E, dezelfde toetsen als op het pad
+// en het toetsenbord), boven en onder de neus. Deze volgorde vult die ruit; de D-pad-plekken staan dus vóór de
+// gezichtsknoppen. Het gestel schuift naar de vijfde, hoge plek en blijft met één aanraking bereikbaar.
+const SLOT_ORDER = { plane: ['left', 'a', 'b', 'right', 'x'] };
+// En aan welke kant zo'n plek staat: de D-pad van de kist hoort bij de duim van de rechterhand, want die stuurt daar
+// het roer (de linkerduim houdt de stick).
+const SLOT_SIDE = { plane: { left: 'right', right: 'right' } };
+
 // [{ slot, action, label, side }] for a situation; slots without a Dutch
 // label (or no action) are left out so the screen stays quiet.
 // Situations where the stick must send no keys (W/S/A/D are game keys there).
@@ -172,9 +182,14 @@ export function touchPlan(ctx) {
   // a cutscene: one button, held (Space) like the hold-to-skip of the keyboard
   if (ctx === 'cutscene') return [{ slot: 'a', action: ' ', label: 'Overslaan', side: 'right' }];
   const map = PAD_MAPS[ctx] || PAD_MAPS.foot;
+  // De volgorde van de plekken: standaard de vaste rij, voor een situatie met een eigen ruit (het vliegtuig) eerst
+  // haar eigen plekken en daarna de rest, zodat geen enkele knop verdwijnt.
+  const order = SLOT_ORDER[ctx];
+  const slots = order ? [...order, ...TOUCH_SLOTS.filter((s) => !order.includes(s))] : TOUCH_SLOTS;
+  const sideOf = (slot) => (SLOT_SIDE[ctx] || {})[slot] || (RIGHT.includes(slot) ? 'right' : 'left');
   const out = [];
   const seen = new Set();
-  for (const slot of TOUCH_SLOTS) {
+  for (const slot of slots) {
     const action = map[slot];
     if (action == null) continue;
     const label = labelFor(ctx, action);
@@ -183,7 +198,7 @@ export function touchPlan(ctx) {
     const id = action.startsWith('@wheel') ? '@wheel' : action;
     if (seen.has(id)) continue;
     seen.add(id);
-    out.push({ slot, action, label, side: RIGHT.includes(slot) ? 'right' : 'left' });
+    out.push({ slot, action, label, side: sideOf(slot) });
   }
   return out;
 }

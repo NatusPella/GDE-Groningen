@@ -217,8 +217,14 @@ export const PAD_MAPS = {
   skutsje: { a: ' ', b: 'l', x: 'h', y: 'e', lb: 'z', rb: 'q', lt: '@brake', rt: '@gas', ls: 'shift', rs: null, up: null, down: 'i', left: 'o', right: 'r', view: 'm', start: 'escape', stick: 'steer' },
   // the helicopter: left stick flies (forward/back, turn), A or RT up, B or LT down, RB or L3 faster
   heli: { a: ' ', b: 'control', x: null, y: 'e', lb: null, rb: 'shift', lt: 'control', rt: ' ', ls: 'shift', rs: null, up: null, down: 'v', left: 'o', right: 'backspace', view: 'm', start: 'escape', stick: 'move' },
-  // the plane: like the helicopter, with the flaps on LB and the landing gear on X
-  plane: { a: ' ', b: 'control', x: 'g', y: 'e', lb: 'k', rb: 'shift', lt: 'control', rt: ' ', ls: 'shift', rs: null, up: null, down: 'v', left: 'o', right: 'backspace', view: 'm', start: 'escape', stick: 'move' },
+  // het vliegtuig (#502): als de heli, met de kleppen op LB en het gestel op X. De D-pad links/rechts is het roer
+  // (Q en E, precies de toetsen die planecontrol.js leest); daar stonden Overslaan (O) en Stop (Backspace), die in de
+  // lucht geen roer zijn. Die twee zijn naar de rechtopstaande D-pad verhuisd: omhoog slaat een verhaalstap over,
+  // omlaag stopt de vluchtdienst (de dienst zelf noemt Backspace als stoptoets, activities.js). De filmcamera (V) stond
+  // op de D-pad omlaag terwijl de balk hem in de kist juist verbergt (labelFor 'plane', 'v'); die plek is nu van het
+  // stoppen. Y doet niets meer: het roer rechts zit net als het roer links op de D-pad, zodat het ene niet zonder het
+  // andere kan (twee knoppen, twee richtingen, geen dubbele toets in deze indeling).
+  plane: { a: ' ', b: 'control', x: 'g', y: null, lb: 'k', rb: 'shift', lt: 'control', rt: ' ', ls: 'shift', rs: null, up: 'o', down: 'backspace', left: 'q', right: 'e', view: 'm', start: 'escape', stick: 'move' },
   pigeon: { a: ' ', b: 'control', x: 'f', y: 'e', lb: 'c', rb: 'q', lt: 'shift', rt: '@fire', ls: 'shift', rs: null, up: null, down: 'x', left: 'o', right: null, view: 'm', start: 'escape', stick: 'move' },
   train: { a: ' ', b: 'backspace', x: 'h', y: 'e', lb: 'k', rb: 'g', lt: 's', rt: 'w', ls: 'o', rs: null, up: null, down: 't', left: 'o', right: null, view: 'm', start: 'escape', stick: 'move' },
   // carbid, botsauto's, padel and the other games on foot: B stops the game
