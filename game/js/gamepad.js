@@ -7,7 +7,7 @@
 // steering, the camera, the mouse buttons). The last input used decides
 // which glyphs the hints show: `pad-active` on <html> plus `data-pad` with
 // the controller family; any real key or mouse use switches back.
-import { PAD_BUTTONS, PAD_MAPS, PAD_COOP, GAME_PAD_CTX, buttonSlots, nintendoSwap, padFamily } from './controls.js';
+import { PAD_BUTTONS, PAD_MAPS, PAD_COOP, GAME_PAD_CTX, buttonSlots, nintendoSwap, padFamily, coopVraag, HENGEL_HINT } from './controls.js';
 import { getSettings, onSettingsChange } from './settings.js';
 import { sendKey } from './input.js';
 import { playerBusy } from './busy.js';
@@ -131,30 +131,13 @@ function started() {
   return document.body.classList.contains('game-started');
 }
 
-// Vraagt Samen spelen om een antwoord (J of N)? Dat doen de wedstrijd (coopwedstrijd3d.js), de opdracht
-// van een gast (coopmissie.js), het overnemen van het spel (coophostwisselnet.js), de stemming en de
-// uitnodiging (coopnet.js) en de PvP-arena. Elk van die schermen leest de toetsen J en N.
-function coopVraag(w) {
-  if (w.coopGastVraag) return true;                                     // de gastheer: doet hij mee met de opdracht van een gast?
-  if (w.coopStem) return true;                                          // een stemming over een tijdsprong
-  if (w.coopUitnodiging) return true;                                   // Meedoen met deze opdracht?
-  if (w.coopWisselUi && w.coopWisselUi.vraag) return true;              // het spel overnemen
-  const n = w.coopNet;
-  if (n && n.role === 'host' && n.wed) {
-    if (n.wed.u && n.wed.u.keuze && n.wed.u.keuze[0] === 'wacht') return true;
-    if (n.wed.uitslag && !n.wed.hostloos && !n.wed.u && !n.wed.r && !n.wed.lv) return true;
-  }
-  const g = w.coopWedGast;
-  if (g && (g.uitn || (g.uitslag && !g.spiegel) || g.kijk)) return true;
-  const arena = w.pvpArenaUitn;
-  return !!(arena && arena.keuze && arena.keuze[0] === 'wacht');
-}
-
+// De vraag van Samen spelen (J of N) staat in controls.js (coopVraag): de controller en de aanraakbediening
+// stellen hem daarmee op precies dezelfde manier (#151).
 // Staat de vrije hengelhint van prompts.js (id 'hengel-vrij') onderin? Die verschijnt alleen als je aan de
 // waterkant staat met niets anders te doen; zolang hij er staat, hengelt X (#151). Zo hoeft de voetindeling
 // zelf geen I te krijgen: X blijft daar F, voor het uitstappen bij de attracties en de aanraakbediening.
 function hengelHint() {
-  return !!(typeof document !== 'undefined' && document.querySelector && document.querySelector('.ctx-row:not(.gone)[data-id="hengel-vrij"]'));
+  return !!(typeof document !== 'undefined' && document.querySelector && document.querySelector(HENGEL_HINT));
 }
 
 // Which PAD_MAPS table applies right now.
