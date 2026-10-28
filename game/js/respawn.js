@@ -352,7 +352,7 @@ export function parkHeroCar(w, plan, spawn = spawnHeroCarNear) {
       // aankomst nog kon betalen kan hier alsnog te weinig hebben. Zeg dat hier: de
       // aankomsttekst (begin) is voor de boete opgemaakt en kan dat niet weten.
       if ((w.money || 0) < HERO_REPLACE_FEE) {
-        if (w.addMessage) w.addMessage(`Je Escapade is afgeschreven en een nieuwe kost €${HERO_REPLACE_FEE}; zoveel geld heb je niet`, 5);
+        if (w.addMessage) w.addMessage(`Afgeschreven. Een nieuwe Escapade kost €${HERO_REPLACE_FEE}.`, 5);
         return null;
       }
       hero = spawn(map, at.x, at.y);

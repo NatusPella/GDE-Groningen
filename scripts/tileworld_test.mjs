@@ -59,8 +59,9 @@ for (const k of ['roads', 'buildings', 'canopies', 'water', 'green', 'trees', 'r
   if (bad === 0) for (let i = 0; i < a.length; i++) {
     const x = k === 'clippedWays' ? { ...a[i], building: legacy.buildings.indexOf(a[i].building), road: P.cleanRow(a[i].road) } : a[i];
     const y = k === 'clippedWays' ? { ...b[i], building: tw.buildings.indexOf(b[i].building), road: P.cleanRow(b[i].road) } : b[i];
-    const cx = k === 'trees' ? JSON.stringify(x) : canon(k === 'buildings' || k === 'roads' || k === 'canopies' ? stripA(P.cleanRow(x)) : x);
-    const cy = k === 'trees' ? JSON.stringify(y) : canon(k === 'buildings' || k === 'roads' || k === 'canopies' ? stripA(P.cleanRow(y)) : y);
+    const veilig = (o) => { if (k !== 'water' || !o) return o; const { _lift, ...rest } = o; return rest; };   // _lift is een gememovormde afgeleide (surfaceLift), geen kaartgegeven
+    const cx = k === 'trees' ? JSON.stringify(x) : canon(k === 'buildings' || k === 'roads' || k === 'canopies' ? stripA(P.cleanRow(x)) : veilig(x));
+    const cy = k === 'trees' ? JSON.stringify(y) : canon(k === 'buildings' || k === 'roads' || k === 'canopies' ? stripA(P.cleanRow(y)) : veilig(y));
     // (the trees are set beside the roads at load, treeclear.js: the two maps hold the roads at a slightly different state, so a tree may differ by a few decimetres)
     if (k === 'trees' ? !(x.length === y.length && Math.hypot(x[0] - y[0], x[1] - y[1]) < 0.3 && x.slice(2).join() === y.slice(2).join()) : cx !== cy) { bad++; if (bad < 3) console.log(`  ${k}[${i}]`, cx.slice(0, 160), '|', cy.slice(0, 160)); }
   }
