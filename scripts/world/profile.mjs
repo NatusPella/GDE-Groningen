@@ -17,7 +17,7 @@ import {
   gradeLimit, GRADE_TOL, radiusMin, clearanceUnder, CAR, nodeKey, gradeOrder, zAlong,
   buildNetwork, planCrossings, bumpCrossings, ribbonHalf, profileStats,
 } from '../../game/js/roadprofile.js';
-import { railLiftZ, roadZAt } from '../../game/js/elevation.js';
+import { railLiftZ, roadZAt, RAISED } from '../../game/js/elevation.js';
 import { railHeightFn, overAtRailCrossing, LC_ZONE } from '../../game/js/railprofile.js';
 import { isDeckRoad } from '../../game/js/deckterrain.js';
 import { terrainBases, underWindows } from './terrain_profile.mjs';
@@ -799,6 +799,135 @@ export function apply(data, sol) {
     r.z = zs;
   }
   return { changed, cleared };
+}
+
+// ------------------------------------------------------------------ verhoogde oversteekplaatsen op de busbaan
+
+// Een voet- of fietspad dat een rijbaan kruist hoort daar op de rijbaan te liggen, niet erboven. Het spel kent geen
+// verhoogde oversteekplaats: alles onder RAISED (0,3 m, elevation.js) is straatniveau, en de hoogtezoeker zet een
+// voertuig op de hoogste bron binnen een stap omhoog (surfaceAt, STEP_UP 1,1 m). Een pad dat een paar decimeter boven
+// het asfalt hangt (de aanloop van een brug, trap of hellingbaan die bij het kruispunt begint) tilt een voertuig dat
+// over de rijbaan rijdt dus op: op de busbaan Oosterhamrikbaan bij (1887,-1859) liep de aanloop van de trap naar de
+// fietsbrug dwars over de busbaan en sprong de hoogte onder de bus 6-10 cm per beeld (#519).
+//
+// Alleen op de busbaan (busOnly): daar is een verhoogde oversteek nooit goed, want de bus komt er met 40-50 km/h
+// langs en de hobbel is precies wat #519 weg moest nemen. Op een gewone straat laat deze regel de kaart met rust:
+// een verhoogde oversteek van een decimeter is daar een gewoon ontwerp (en de hellingen zijn er te kort om het
+// zonder te steile aanloop vlak te leggen). Waar een pad minder dan RAISED boven de busbaan ligt, komt het stuk
+// boven het asfalt op de hoogte van de busbaan te liggen, met een knik op de rand van het asfalt: de helling begint
+// daar (een stoeprand), niet op de rijbaan. Een pad met een echt dek erover (RAISED of hoger) of met een eigen
+// brug- of tunneltag blijft ongemoeid. Buiten het asfalt houdt het pad zijn eigen hoogte.
+// Na de oplosser (pack_tiles.mjs, na applyMapExtras): een nieuwe solve zou de vlakke oversteek weer ophalen.
+export function flattenBusLaneCrossings(roads, { maxRise = RAISED, step = 0.5 } = {}) {
+  const half = (r) => (r.width || 4) / 2;
+  // de busbanen in een raster van 30 m, zodat een punt alleen de busbanen in zijn buurt ziet
+  const G = 30, grid = new Map();
+  for (const c of roads) {
+    if (!c.busOnly || !CAR.has(c.cat) || c.pts.length < 2) continue;
+    const hw = half(c);
+    for (let i = 0; i < c.pts.length - 1; i++) {
+      const a = c.pts[i], b = c.pts[i + 1];
+      const x0 = Math.floor((Math.min(a[0], b[0]) - hw) / G), x1 = Math.floor((Math.max(a[0], b[0]) + hw) / G);
+      const y0 = Math.floor((Math.min(a[1], b[1]) - hw) / G), y1 = Math.floor((Math.max(a[1], b[1]) + hw) / G);
+      for (let gx = x0; gx <= x1; gx++) for (let gy = y0; gy <= y1; gy++) {
+        const k = gx * 100003 + gy;
+        let l = grid.get(k); if (!l) grid.set(k, l = []);
+        l.push(c, i);
+      }
+    }
+  }
+  // de busbaan onder (x, y): de dichtstbijzijnde waarvan het asfalt het punt dekt, met zijn hoogte daar
+  const asphalt = (x, y) => {
+    const list = grid.get(Math.floor(x / G) * 100003 + Math.floor(y / G));
+    if (!list) return null;
+    let best = null;
+    for (let q = 0; q < list.length; q += 2) {
+      const c = list[q], i = list[q + 1];
+      const a = c.pts[i], b = c.pts[i + 1];
+      const dx = b[0] - a[0], dy = b[1] - a[1], L2 = dx * dx + dy * dy || 1;
+      const t = Math.max(0, Math.min(1, ((x - a[0]) * dx + (y - a[1]) * dy) / L2));
+      const d = Math.hypot(a[0] + dx * t - x, a[1] + dy * t - y);
+      if (d > half(c)) continue;
+      if (!best || d < best.d) best = { d, z: c.z ? c.z[i] + (c.z[i + 1] - c.z[i]) * t : 0 };
+    }
+    return best;
+  };
+  let flats = 0;
+  for (const r of roads) {
+    // (het vlakke profiel: met een terreinprofiel (road.zt) erbij zouden de punten uit de pas lopen; deze bouw
+    //  maakt geen zt, er is geen AHN-raster in de repo)
+    if (!r.z || r.z.length !== r.pts.length || r.pts.length < 2 || r.bridge || r.tunnel || r.zt) continue;
+    if (r.cat !== 'foot' && r.cat !== 'cycle') continue;
+    const P = r.pts, Z = r.z;
+    const S = [0];
+    for (let i = 1; i < P.length; i++) S[i] = S[i - 1] + Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]);
+    const L = S[S.length - 1];
+    if (L < 1) continue;
+    const segAt = (s) => { let i = 0; while (i < P.length - 2 && S[i + 1] < s) i++; return i; };
+    const ptAt = (s) => {
+      const i = segAt(s), t = (s - S[i]) / ((S[i + 1] - S[i]) || 1);
+      return [P[i][0] + (P[i + 1][0] - P[i][0]) * t, P[i][1] + (P[i + 1][1] - P[i][1]) * t];
+    };
+    const zAt = (s) => { const i = segAt(s), t = (s - S[i]) / ((S[i + 1] - S[i]) || 1); return Z[i] + (Z[i + 1] - Z[i]) * t; };
+    // monsters: waar ligt het pad boven asfalt en hoe hoog steekt het erboven uit?
+    const n = Math.max(2, Math.ceil(L / step));
+    const samp = [];
+    for (let k = 0; k <= n; k++) {
+      const s = Math.min(L, (L * k) / n), p = ptAt(s), a = asphalt(p[0], p[1]);
+      samp.push({ s, a, h: a ? zAt(s) - a.z : 0 });
+    }
+    // de stukken boven asfalt; alleen waar het een bult van hooguit RAISED is (geen dek)
+    const cuts = [];
+    for (let k = 0; k < samp.length; k++) {
+      if (!samp[k].a) continue;
+      let e = k;
+      while (e + 1 < samp.length && samp[e + 1].a) e++;
+      const run = samp.slice(k, e + 1);
+      const hump = Math.max(...run.map((q) => q.h));
+      if (hump >= 0.02 && hump < maxRise) {
+        // de randen tot op de cm: tussen een punt boven het asfalt en een punt erbuiten
+        const edge = (inS, outS) => {
+          for (let b = 0; b < 12; b++) {
+            const m = (inS + outS) / 2, p = ptAt(m);
+            if (asphalt(p[0], p[1])) inS = m; else outS = m;
+          }
+          return inS;
+        };
+        const s0 = k > 0 ? edge(samp[k].s, samp[k - 1].s) : 0;
+        const s1 = e + 1 < samp.length ? edge(samp[e].s, samp[e + 1].s) : L;
+        const p0 = ptAt(s0), p1 = ptAt(s1), a0 = asphalt(p0[0], p0[1]), a1 = asphalt(p1[0], p1[1]);
+        cuts.push({ s0, s1, z0: a0 ? a0.z : 0, z1: a1 ? a1.z : 0 });
+      }
+      k = e;
+    }
+    if (!cuts.length) continue;
+    // het profiel opnieuw opbouwen: een knik op elke rand van het asfalt, het stuk ertussen op de rijbaan
+    const outP = [], outZ = [];
+    let v = 0;
+    const put = (x, y, z) => {
+      const p = outP[outP.length - 1];
+      if (p && Math.abs(p[0] - x) < 1e-6 && Math.abs(p[1] - y) < 1e-6) { outZ[outZ.length - 1] = Math.round(z * 100) / 100; return; }
+      outP.push([x, y]);
+      outZ.push(Math.round(z * 100) / 100);
+    };
+    for (const c of cuts) {
+      while (v < P.length && S[v] <= c.s0 + 1e-6) { put(P[v][0], P[v][1], Z[v]); v++; }
+      const p0 = ptAt(c.s0);
+      put(Math.round(p0[0] * 100) / 100, Math.round(p0[1] * 100) / 100, c.z0);
+      while (v < P.length && S[v] < c.s1 - 1e-6) {
+        const a = asphalt(P[v][0], P[v][1]);
+        put(P[v][0], P[v][1], a ? a.z : Z[v]);
+        v++;
+      }
+      const p1 = ptAt(c.s1);
+      put(Math.round(p1[0] * 100) / 100, Math.round(p1[1] * 100) / 100, c.z1);
+    }
+    while (v < P.length) { put(P[v][0], P[v][1], Z[v]); v++; }
+    r.pts = outP;
+    r.z = outZ;
+    flats++;
+  }
+  return flats;
 }
 
 // ------------------------------------------------------------------ main

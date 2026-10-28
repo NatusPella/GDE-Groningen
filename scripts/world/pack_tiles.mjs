@@ -169,6 +169,10 @@ export async function loadCityDataLaag(game = path.join(ROOT, 'game'), lagen = p
     if (!osm) { const na = await (await import('./stad_na.mjs')).tidyCity(data, extrasData); if (process.env.GDE_STAD_LOG) console.log('stad_na', JSON.stringify(na)); }
   }
   if (extras) applyMapExtras(data, extrasData);
+  // een voet- of fietspad dat een busbaan op straatniveau kruist ligt daar op de busbaan, niet erboven: anders
+  // klimt de bus op de aanloop van een brug of trap die bij de oversteek begint (#519, Oosterhamrikbaan). Hier, want
+  // pas na applyMapExtras staan de busbanen van het handwerk in de wegen en is dit de wegset die de kaart leest.
+  if (all.length) report.pathFlats = (await import('./profile.mjs')).flattenBusLaneCrossings(data.roads);
   return { data, lagen: all, report };
 }
 export function parseLagen(raw) {
