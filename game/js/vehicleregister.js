@@ -37,7 +37,7 @@ export const VOERTUIGEN = {
   escort: { klasse: 'auto', spawn: [beheer('vehicle.js', 'spawnHeroCarNear')], winkel: [], vondst: 'De rode Fjord Escapade is het startvoertuig van het verhaal en staat altijd in de garage (ownedvehicles.js HERO_SPEC)', tuning: 'auto', cutscene: true },
   bus: { klasse: 'auto', spawn: [beheer('vehicle.js', 'manageBusPopulation')], winkel: ['stadsbus'], tuning: 'auto', cutscene: true },
   midibus: { klasse: 'auto', spawn: [beheer('vehicle.js', 'MIDIBUS_MODEL')], winkel: ['midibus'], tuning: 'auto', cutscene: true },
-  trekkerlimo: { klasse: 'auto', spawn: [beheer('missions.js', 'trekkerlimo')], winkel: ['trekkerlimo'], tuning: 'auto', cutscene: true },
+  trekkerlimo: { klasse: 'auto', spawn: [beheer('missions_defs.js', 'trekkerlimo')], winkel: ['trekkerlimo'], tuning: 'auto', cutscene: true },
   // Jelles limo uit het verhaal: de speler wint zijn trekker-limo, dat is de verzamelbare versie
   limo: { klasse: 'auto', alias: 'trekkerlimo', spawn: [beheer('convoy.js', "name: 'limo'")], winkel: ['trekkerlimo'], tuning: 'auto', cutscene: true },
   tractor: { klasse: 'auto', spawn: [beheer('countrylife.js', 'TRACTOR_MODEL'), beheer('parkedcars.js', 'TRACTOR_MODEL')], winkel: ['trekker'], tuning: 'auto', cutscene: true },
