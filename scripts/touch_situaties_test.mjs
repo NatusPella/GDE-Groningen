@@ -90,11 +90,11 @@ globalThis.document = { addEventListener() {} };
 const { Input } = await import('../game/js/input.js');
 const inp = new Input(tgt);
 const drukt = (k) => { inp.padHold(k, true); const gezien = inp.wasPressed(k); inp.padHold(k, false); inp.endFrame(); return gezien; };
-for (const [ctx, slot] of [['coopvraag', 'a'], ['coopvraag', 'b'], ['hengelen', 'x'], ['trekker', 'b'], ['trekker', 'lb'], ['bus', 'lb'], ['bus', 'rb'], ['plane', 'b'], ['plane', 'lb']]) {
+for (const [ctx, slot] of [['coopvraag', 'a'], ['coopvraag', 'b'], ['hengelen', 'x'], ['trekker', 'b'], ['trekker', 'lb'], ['bus', 'lb'], ['bus', 'rb'], ['plane', 'b'], ['plane', 'lb'], ['plane', 'left'], ['plane', 'right']]) {
   const b = btn(ctx, slot);
   ok(drukt(b.action), `${ctx}: het spel ziet de toets van ${b.label} (${b.action})`);
 }
-for (const [ctx, action] of [['trekker', 'g'], ['trekker', 'r'], ['minigame', '1'], ['minigame', '2'], ['minigame', '3'], ['minigame', '4']]) {
+for (const [ctx, action] of [['trekker', 'g'], ['trekker', 'r'], ['minigame', '1'], ['minigame', '2'], ['minigame', '3'], ['minigame', '4'], ['plane', 'o'], ['plane', 'backspace']]) {
   const m = extra(ctx, action);
   ok(drukt(m.action), `${ctx}: het spel ziet ${m.label} achter Meer (${m.action})`);
 }
@@ -148,7 +148,27 @@ ok(btn('plane', 'a') && btn('plane', 'a').action === ' ' && btn('plane', 'a').la
 ok(btn('plane', 'b') && btn('plane', 'b').action === 'control' && btn('plane', 'b').label === 'Omlaag', 'vliegtuig: B duwt de neus omlaag, dus dalen kan weer', btn('plane', 'b'));
 ok(btn('plane', 'lb') && btn('plane', 'lb').action === 'k' && btn('plane', 'lb').label === 'Kleppen', 'vliegtuig: LB zet de kleppen', btn('plane', 'lb'));
 ok(btn('plane', 'x') && btn('plane', 'x').action === 'g' && btn('plane', 'x').label === 'Gestel', 'vliegtuig: X haalt het gestel in of uit', btn('plane', 'x'));
-ok(btn('plane', 'y') && btn('plane', 'y').action === 'e' && btn('plane', 'y').label === 'Roer rechts', 'vliegtuig: de E-knop is het roer rechts', btn('plane', 'y'));
+// #502: het roer links bestond alleen als label (labelFor 'plane', 'q') omdat de D-pad Overslaan en Stop droeg; Q zat
+// op geen enkele plek. Nu is de D-pad het roer (Q links, E rechts) en staan die twee als echte knoppen in de ruit van
+// de rechterduim, elk op een eigen plek en met de toetsen van het toetsenbord (planecontrol.js leest Q en E).
+ok(PAD_MAPS.plane.left === 'q' && PAD_MAPS.plane.right === 'e', 'vliegtuig: de D-pad van het pad is het roer (Q en E)');
+ok(btn('plane', 'left') && btn('plane', 'left').action === 'q' && btn('plane', 'left').label === 'Roer links', 'vliegtuig: de Q-knop is het roer links', btn('plane', 'left'));
+ok(btn('plane', 'right') && btn('plane', 'right').action === 'e' && btn('plane', 'right').label === 'Roer rechts', 'vliegtuig: de E-knop is het roer rechts', btn('plane', 'right'));
+ok(btn('plane', 'left').action === PAD_MAPS.plane.left && btn('plane', 'right').action === PAD_MAPS.plane.right, 'vliegtuig: de balk stuurt dezelfde toetsen als het pad (geen tweede waarheid)');
+ok(btn('plane', 'left').side === 'right' && btn('plane', 'right').side === 'right', 'vliegtuig: het roer staat bij de duim van de rechterhand');
+{
+  const roer = touchPlacement('plane').filter((p) => p.b.action === 'q' || p.b.action === 'e');
+  ok(roer.length === 2 && roer[0].spot.join() !== roer[1].spot.join(), 'vliegtuig: roer links en rechts op een eigen plek', roer.map((p) => [p.b.label, p.spot]));
+}
+ok(!touchMore('plane').some((m) => m.action === 'q' || m.action === 'e'), 'vliegtuig: het roer zit niet ook nog eens achter Meer', touchMore('plane'));
+// Wat de D-pad eerst droeg, blijft bereikbaar: Overslaan en Stop staan nu op de rechtopstaande D-pad en dus achter
+// Meer. Stop is in de lucht nodig: de vluchtdienst noemt Backspace als stoptoets (activities.js) en minigamekit.js
+// leest hem met stopPressed.
+ok(PAD_MAPS.plane.up === 'o' && extra('plane', 'o') && extra('plane', 'o').label === 'Overslaan', 'vliegtuig: Overslaan blijft achter Meer staan', touchMore('plane'));
+ok(PAD_MAPS.plane.down === 'backspace' && extra('plane', 'backspace') && extra('plane', 'backspace').label === 'Stop', 'vliegtuig: Stop blijft achter Meer staan (de stoptoets van de vluchtdienst)', touchMore('plane'));
+// Y deed het roer rechts; dat zit nu op de D-pad, waar het roer links ook zit. Zo houdt de indeling één toets per
+// richting (en geen dubbele E, die padlogic_test als onbedoelde dubbeling zou melden).
+ok(PAD_MAPS.plane.y === null && !touchPlan('plane').some((b) => b.slot === 'y'), 'vliegtuig: geen tweede knop voor dezelfde roertoets', PAD_MAPS.plane.y);
 ok(labelFor('plane', 'q') === 'Roer links' && labelFor('plane', 'e') === 'Roer rechts', 'vliegtuig: Q en E heten roer links en rechts', [labelFor('plane', 'q'), labelFor('plane', 'e')]);
 ok(labelFor('plane', 'k') === 'Kleppen' && labelFor('foot', 'k') === 'Kusje', 'vliegtuig: dezelfde toets heet in de kist anders dan op de grond', [labelFor('plane', 'k'), labelFor('foot', 'k')]);
 ok(labelFor('plane', 'g') === 'Gestel' && labelFor('foot', 'g') === 'Dienst', 'vliegtuig: G is het gestel, geen dienst', [labelFor('plane', 'g'), labelFor('foot', 'g')]);

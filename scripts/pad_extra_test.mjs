@@ -161,6 +161,17 @@ zet({ player: { inVehicle: { speed: 0, model: { zeil: true } } } });
 ok(ctx() === 'skutsje', 'een zeilboot kiest de skûtsje-indeling', ctx());
 ok(druk('lb').includes('z') && druk('rb').includes('q'), 'zeilboot: LB viert het zeil (Z), RB haalt aan (Q)');
 
+// 6. het vliegtuig (#502): de D-pad is het roer, net als Q en E op het toetsenbord
+// In de kist waren D-pad links/rechts Overslaan (O) en Stop (Backspace); het roer links bestond op het pad helemaal
+// niet en op aanraak stond er daardoor geen "Roer links". De twee toetsen die er stonden zijn naar de rechtopstaande
+// D-pad gegaan, zodat Overslaan en Stop bereikbaar blijven (Stop is de stoptoets van de vluchtdienst).
+zet({ player: { inVehicle: { speed: 20, isPlane: true, model: { name: 'plane' } } }, noLookBack: true });
+ok(ctx() === 'plane', 'een vliegtuig kiest de vliegindeling', ctx());
+ok(druk('left').includes('q'), 'vliegtuig: D-pad links is het roer links (Q)', seen);
+ok(druk('right').includes('e'), 'vliegtuig: D-pad rechts is het roer rechts (E)', seen);
+ok(druk('up').includes('o'), 'vliegtuig: D-pad omhoog slaat een verhaalstap over (O)', seen);
+ok(druk('down').includes('Backspace'), 'vliegtuig: D-pad omlaag stopt de vlucht (Backspace)', seen);
+
 ok(threw === null, 'de hele run zonder uitzondering', threw && String(threw));
 if (fails) { console.log(`${fails} mislukt`); process.exit(1); }
 console.log(`pad_extra_test: ok (${n} controles)`);
