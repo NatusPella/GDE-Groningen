@@ -22,7 +22,7 @@ Het onderstaande over duur en belasting zijn schattingen op een gewone ontwikkel
 |---|---|---|---|
 | `licht` | module-check van alle JS (`node --check`, module-bewust), `import_check`, `undef_check` (ongedefinieerde namen), `voice_coverage`, `text_audit`, `player_singleton_audit` (directe `world.player`-lezers mogen niet groeien, #500), `spec_check` (specs tegen de code: regelverwijzingen en tellers), dode-code-bewaking, alle `scripts/*_test.mjs` (dus ook `import_cycles_test` voor de cyclusbewaking) met duur en tijdslimiet per test | 5 tot 15 minuten | 2 Node-processen tegelijk (`--jobs`), geen GPU |
 | `zwaar` | de wereldchecks uit AGENTS.md en de audits: `ring_probe`, `seat_audit`, `province_test`, `province_detail_test`, `drive_audit`, `junction_sim_test`, `network_drive_test`, `vaarnet_province_test`, `bridge_province_test`, weiland-randen (`prop_conflict_audit`), water-lagen, `landmark_audit`, `overlap_check`, `prop_water_audit`, placement, rand-, hoogte-, terrein-, spoor- en wateraudits, de overspanning onder viaducten (`clearance_audit`) en de controllerinvoer (`pad_input_audit`) | 20 tot 60 minuten | één Node-proces tegelijk, veel geheugen en een kern vol |
-| `electron` | smoke-run, Electron-verhaaltest (`--story-test`), `geocheck`, spelbot-sweeps (missies, minigames) en de beeldrondes (`scripts/qa/*`, `scripts/ui_shots.mjs`) met beeldchecks | 1 tot 2 uur | één Electron tegelijk, GPU en een kern vol; de machine is merkbaar bezet |
+| `electron` | smoke-run, Electron-verhaaltest (`--story-test`), `geocheck`, spelbot-sweeps (missies, minigames) en de beeldrondes (`scripts/qa/*`, `scripts/ui_shots.mjs`) met beeldchecks | 1,5 tot 2 uur (gemeten 27-10: 3 uur 45 na elkaar, daarna 1,5 uur met drie tegelijk) | drie Electron-stappen tegelijk, elk met een eigen slot uit `gde-locks`; de coöp-testbank komt daarna, want die heeft twee sloten nodig |
 
 `zwaar` en `electron` hebben `game/world` nodig (`cd desktop && npm run stage`); `clearance_audit` ook `data/cache/province` (anders SKIP); `electron` ook `desktop/node_modules` (`cd desktop && npm install`, of `ELECTRON_EXE=<pad>`). Ontbreekt dat, dan staat het item in het rapport als **niet gedraaid** met de reden, en niet als geslaagd. `clearance_audit --paden` telt naast de rijbanen ook de as van een fiets- of voetpad onder de rand van een dek (#510); zonder de vlag blijft de strenge meting van de rijbanen over.
 
@@ -32,6 +32,17 @@ Het onderstaande over duur en belasting zijn schattingen op een gewone ontwikkel
 2. `zwaar` na wijzigingen aan wereld, tegels, wegen, water of props, en vóór een release.
 3. `electron` vóór een release en 's nachts; nooit tijdens het spelen.
 4. `alles` is `licht`, `zwaar` en `electron` achter elkaar.
+
+### Sneller draaien
+
+Een volledige poort duurde op 27-10 vijf uur, vrijwel allemaal wachttijd. Wat er sindsdien anders is:
+
+- **De Electron-stappen draaien met drie tegelijk** over de drie sloten die er al waren (`~/.gde-locks/electron-1..3`). Elke stap neemt zelf een slot, dus de machine blijft beheersbaar; de coöp-testbank heeft twee sloten en komt daarom na de rest. Dat scheelt ongeveer twee uur.
+- **De missiesweep van de spelbot gaat op snelheid 2** (`scripts/bot/run.mjs --speed=2`). De bot wandelt anders een uur over de kaart. Hoger dan 2 kan, maar dan gaat hij vaker onterecht "vast" staan.
+- **`qa-features` heeft honderd minuten** in plaats van vijfenveertig. Die stap maakt 250+ schermafbeeldingen en was met de oude grens midden in het werk klaar: dat verscheen als time-out zonder dat er iets stuk was.
+- **`licht` mag met meer processen**: `--jobs=2` is de standaard, `--jobs=4` kan op een machine met genoeg kernen. Meet het verschil in het rapport; de telling per test staat erin.
+
+Wat níet helpt en waarom: een stap overslaan omdat hij "toch altijd groen" is. Op 27-10 waren de twee traagste stappen (`qa-features` en de missiesweep) precies de twee die een echte fout vonden, en de coop-stap vond een rol-fout die er al maanden in zat.
 
 ## Visuele sweep
 
