@@ -1,5 +1,6 @@
 // Prestaties: declarative list, lifetime stats and the unlock toast.
-// Imports only the import-free subtitles.js, so any module can call the
+// Imports only modules without further imports (subtitles.js, and players.js
+// above the import-free spelersregister.js), so any module can call the
 // hooks (recordStat, recordUnique, unlockAchievement) without creating
 // import cycles; the polling detectors live in achievementtracker.js.
 //
@@ -14,6 +15,7 @@ import { MISSION_IDS, RETIRED_MISSIONS } from './storyarc_basis.js';
 import { KEYS } from './storagekeys.js';
 import { iconSvg } from './achievementicons.js';
 import { isOverlayHeld } from './overlayhold.js';
+import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
 
 const KEY = KEYS.achievements;
 const WRITE_DELAY_MS = 2500;
@@ -725,7 +727,13 @@ function showNextToast() {
   el.classList.add('on');
   if (world) {
     const q = world.audioEvents || (world.audioEvents = []);
-    if (q.length < 64) q.push({ kind: 'prestatie', x: world.player ? world.player.x : 0, y: world.player ? world.player.y : 0 });
+    if (q.length < 64) {
+      // Het geluid van de prestatie komt van de plek waar de speler staat; die
+      // plek vragen we via de leesbare ingang (#500), want dit is geen eigendom
+      // van deze module.
+      const p = hoofdspeler(world);
+      q.push({ kind: 'prestatie', x: p ? p.x : 0, y: p ? p.y : 0 });
+    }
   }
   toastUntil = 1;
   if (toastTimer) clearTimeout(toastTimer);

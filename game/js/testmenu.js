@@ -11,6 +11,7 @@ import { isInWater } from './util.js';
 import { Vehicle } from './vehicle.js';
 import { BOAT_KINDS } from './boattypes.js';
 import { cheatsUit, CHEATS_UIT_TEKST } from './coopgroep.js';
+import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
 
 let world = null;
 let root = null;
@@ -101,7 +102,7 @@ function runShortcut(id) {
     return sp ? teleport(sp.x, sp.y, 'het reuzenrad') : say('Het reuzenrad is er nog niet (kermis)');
   }
   if (a.kind === 'bridge') {
-    const p = world.player;
+    const p = hoofdspeler(world); // startpunt van de sprong: het eigen lichaam (#500)
     let best = null, bd = Infinity;
     for (const r of (map && map.roads) || []) {
       if (!r.bridge || !r.pts || r.pts.length < 2) continue;
@@ -126,7 +127,7 @@ function runShortcut(id) {
     return first ? S.jump(first.id) : say('Geen missie gevonden');
   }
   if (a.kind === 'ship') {
-    const p = world.player;
+    const p = hoofdspeler(world); // startpunt van de sprong: het eigen lichaam (#500)
     const water = findWaterNear(p.x + Math.cos(p.angle) * 30, p.y + Math.sin(p.angle) * 30, (x, y) => isInWater(map, x, y), 200, 12);
     if (!water) return say('Geen water in de buurt: ga eerst naar een kanaal');
     const v = new Vehicle(water.x, water.y, water.angle, { ...BOAT_KINDS[a.model] });

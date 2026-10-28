@@ -20,6 +20,7 @@ import { openSaveSlots, isSaveSlotsOpen } from './saveslotsui.js';
 import { stopCoopNet } from './coopnet.js';
 import { coopLoadTekst, COOP_LOAD_FAIL, runCoopLoad } from './cooploadrules.js';
 import { getClockText } from './clocktext.js';
+import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
 import { VERSION } from './version.js';
 import { loadChangelog, newsOnStart, ABOUT_HTML } from './over.js';
 import { versionLabel } from './menumodels.js';
@@ -1629,7 +1630,9 @@ function syncRail() {
 
 function refreshInfo() {
   if (!world) return;
-  const c = world.pigeonMode ? 'Duif' : world.player.character === 'anita' ? 'Tessa' : 'Tammo';
+  // De naam in de rail hangt aan het personage van het eigen lichaam; die vraag
+  // stellen we aan de leesbare ingang (#500) in plaats van aan de singleton.
+  const c = world.pigeonMode ? 'Duif' : hoofdspeler(world).character === 'anita' ? 'Tessa' : 'Tammo';
   // the rail's date line: the story day and the clock
   const when = [storyDate(world).long, getClockText(world)].filter(Boolean).join(' · ');
   for (const el of root.querySelectorAll('[data-info="when"]')) el.textContent = prestart ? '' : when;

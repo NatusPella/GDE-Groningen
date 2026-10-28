@@ -13,6 +13,7 @@ import { wijkProfileAt } from './trafficfleet.js';
 import { inProvinceData } from './provinceworld.js';
 import { zachtePauze, meerSpelers } from './coopgroep.js';
 import { registerMusicProbe } from './scenariomusic.js';
+import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
 
 let photo = null;
 let saved = null;
@@ -32,7 +33,7 @@ export const isPhotoMode = () => !!photo;
 registerMusicProbe('foto', () => !!photo); // de eigen muziek van de fotomodus (thuis_loop)
 
 function placeName(world) {
-  try { return wijkProfileAt(world.map, world.player.x, world.player.y).wijk || 'Groningen'; } catch (e) { return 'Groningen'; }
+  try { const p = hoofdspeler(world); return wijkProfileAt(world.map, p.x, p.y).wijk || 'Groningen'; } catch (e) { return 'Groningen'; }
 }
 
 function say(t) { note = t; noteT = 2.2; }
@@ -75,11 +76,11 @@ function applyWeather() {
 }
 
 function startPhotoMode(world) {
-  if (photo || !world || !world.player || world.player.ragdoll || world.cameraOverride || world.uiPaused) return false;
+  const pl = hoofdspeler(world); // de camera begint bij het eigen lichaam (#500)
+  if (photo || !pl || pl.ragdoll || world.cameraOverride || world.uiPaused) return false;
   const hour = typeof world.clock === 'number' ? world.clock : 12;
-  const p = F.createPhoto({ x: world.player.x, y: world.player.y, z: world.player.z || 0 }, hour);
+  const p = F.createPhoto({ x: pl.x, y: pl.y, z: pl.z || 0 }, hour);
   p.hour = hour; p.active = true;
-  const pl = world.player;
   p.cam.yaw = typeof pl.angle === 'number' ? Math.PI / 2 - pl.angle : 0;
   p.cam.z = Math.max((pl.z || 0) + 3, 2);
   p.cam.z = Math.min(p.cam.z, F.LIMITS.height[1]);
