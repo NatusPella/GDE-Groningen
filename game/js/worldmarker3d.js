@@ -28,6 +28,20 @@ const MARKER_KINDS = {
 
 const COLUMN_H = 28;
 const ICON_Y = 5.5;
+// De kolom is een baken voor van ver, geen ding van dichtbij (#432). Hij is hol,
+// dubbelzijdig en 28 tot 140 m hoog; wie bij de marker staat (de spuitdienst bij
+// Garage Knalpot, een garage, een checkpoint) kijkt dus tegen de binnenkant aan en
+// ziet een egaal groen vlak over het hele beeld, midden op straat. Binnen de
+// loopafstand doen de ring op de grond en het pictogram het werk, daar blijft het
+// volume weg; tussen NEAR en FADE loopt het zacht in zodat het niet plopt. Dit
+// geldt voor dag en nacht: het is geen nachtlichteffect maar de marker zelf.
+export const COLUMN_NEAR_M = 8;
+export const COLUMN_FADE_M = 30;
+// 0 als je bij de marker staat, 1 ver weg (lineair ertussen); NaN telt als dichtbij
+export function columnNearFade(d) {
+  if (!(d > COLUMN_NEAR_M)) return 0;
+  return Math.min(1, (d - COLUMN_NEAR_M) / (COLUMN_FADE_M - COLUMN_NEAR_M));
+}
 let markerCam = null;
 export function setMarkerCamera(cam) { markerCam = cam; }
 // night and rain (0..1): the column glows a little stronger when the light is poor
@@ -159,7 +173,8 @@ export function buildWorldMarker3D(kind = 'start') {
   ground.renderOrder = 1;
   const disc = new THREE.Mesh(new THREE.CircleGeometry(1.7, 32).rotateX(-Math.PI / 2), mat({ opacity: MARKER_SOLID ? 0.22 : 0.14, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -6 }));
   disc.position.y = 0.055;
-  const column = new THREE.Mesh(new THREE.CylinderGeometry(MARKER_SOLID ? 0.1 : 0.07, MARKER_SOLID ? 0.22 : 0.16, COLUMN_H, 10, 1, true), mat({ opacity: MARKER_SOLID ? 0.55 : 0.4, map: columnTexture() }));
+  const columnBase = MARKER_SOLID ? 0.55 : 0.4; // de dekking waar de kolom op terugvalt als hij niet pulseert (vaste vorm)
+  const column = new THREE.Mesh(new THREE.CylinderGeometry(MARKER_SOLID ? 0.1 : 0.07, MARKER_SOLID ? 0.22 : 0.16, COLUMN_H, 10, 1, true), mat({ opacity: columnBase, map: columnTexture() }));
   column.position.y = COLUMN_H / 2;
   const top = new THREE.Group();
   top.position.y = ICON_Y;
@@ -173,7 +188,7 @@ export function buildWorldMarker3D(kind = 'start') {
   label.position.y = -2.1;
   top.add(label);
   group.add(disc, ground, column, top);
-  group.userData.wm = { ground, disc, column, top, icons, label, kind: '', shown: '' };
+  group.userData.wm = { ground, disc, column, top, icons, label, kind: '', shown: '', columnBase };
   setWorldMarkerKind(group, kind);
   return group;
 }
@@ -203,6 +218,10 @@ export function updateWorldMarker3D(group, time) {
   const ch = columnHeight(d);
   wm.column.scale.y = ch / COLUMN_H;
   wm.column.position.y = ch / 2;
+  // het volume van de marker: alleen van een afstandje tekenen (#432), anders staat
+  // de holle kegel als een plaat over het beeld zodra je bij het doel staat
+  const near = columnNearFade(d);
+  wm.column.visible = near > 0;
   if (wm.kind === 'checkpoint' && markerCam) ic.rotation.y = Math.atan2(markerCam.position.x - group.position.x, markerCam.position.z - group.position.z);
   else ic.rotation.y = time * 1.4;
   wm.ground.scale.setScalar(1 + Math.sin(time * 3) * 0.05);
@@ -210,7 +229,7 @@ export function updateWorldMarker3D(group, time) {
   if (ic.userData.soft) {
     const br = Math.sin(time * 1.8);
     ic.scale.setScalar(glyphPulse(br));
-    wm.column.material.opacity = columnOpacity(br, d, markerEnv);
+    wm.column.material.opacity = columnOpacity(br, d, markerEnv) * near;
     wm.disc.material.opacity = discOpacity(br, markerEnv);
     // by day: a normally blended, darker column that stays visible on the bright sky (#115)
     const day = columnNormalBlend(markerEnv);
@@ -218,8 +237,11 @@ export function updateWorldMarker3D(group, time) {
     if (wm.column.material.blending !== want) { wm.column.material.blending = want; wm.column.material.needsUpdate = true; }
     if (day) {
       wm.column.material.color.multiplyScalar(DAY_COLUMN_DARKEN);
-      wm.column.material.opacity = dayColumnOpacity(d) * (0.9 + 0.1 * br);
+      wm.column.material.opacity = dayColumnOpacity(d) * (0.9 + 0.1 * br) * near;
     }
+  } else {
+    // de vaste vorm (?marker=vorm) heeft geen eigen puls: dekking uit de bouw, ook met de afstand mee
+    wm.column.material.opacity = wm.columnBase * near;
   }
   wm.label.visible = showLabel(d);
   if (wm.label.visible) {

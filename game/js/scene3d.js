@@ -2757,6 +2757,12 @@ export function update3D(dt, world) {
   probe.mark('3d:props+wildlife');
   updateSkyProps3D(world, scene, animDt);
 
+  // de camera van dít beeld eerst: de marker meet zijn afstand (en dus zijn kolom,
+  // worldmarker3d.js) aan de hand van deze stand, dus een frame oude stand geeft een
+  // kolom die nog op de vorige plek past (#432)
+  setMarkerCamera(cam);
+  setMarkerEnv(world.dayNight ? world.dayNight.night : 0, world.weather ? world.weather.intensity : 0);
+
   // mission marker: a single persistent beacon, repositioned/recolored -
   // world.mission is one long-lived object (the chain loops forever), never
   // an array, so this is a create-once singleton, not a Map-keyed sync
@@ -2771,8 +2777,6 @@ export function update3D(dt, world) {
     scene.remove(missionMarkerMesh);
     missionMarkerMesh = null;
   }
-  setMarkerCamera(cam);
-  setMarkerEnv(world.dayNight ? world.dayNight.night : 0, world.weather ? world.weather.intensity : 0);
   updateRouteRibbon3D(animDt, world);
 
   // remaining-waypoint preview dots (checkpoint/boat missions only) - the
