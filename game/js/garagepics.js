@@ -22,6 +22,19 @@ export function garagePicZoom(spec) {
 export const TURN_SPEED = 0.9;
 export const TURN_FPS = 30;
 
+// De zichtbaarheid van het silhouet achter de levende preview (#463). Het is een
+// SVG, en een SVGElement kent geen `hidden`-eigenschap (die zit op HTMLElement):
+// `svg.hidden = true` zet alleen een eigenschap op het object, niet op het beeld,
+// dus het silhouet bleef staan. Op de draaischijf tekende het echte model zo over
+// een groot silhouet in de lakkleur heen: egale blokken waar de wielen zitten en
+// een rode waas in de ramen (het silhouet schijnt door het glas). De kaartfoto's
+// hadden er geen last van, want daar vervangt de foto het silhouet.
+// Daarom sturen we de zichtbaarheid met een echte stijl: die wint van elk
+// stylesheet, en 'none' laat het silhouet echt wijken zodra het model tekent.
+export function stageSilhouetteStyle(on) {
+  return on ? '' : 'none';
+}
+
 // The spec vehiclepreview.js builds a model from (the real vehicle builder,
 // the stock spec's own model, colour and flags), or null without a model.
 export function garagePreviewSpec(e) {
