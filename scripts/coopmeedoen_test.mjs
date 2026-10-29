@@ -77,7 +77,12 @@ t('J: vastgezet en met deel; geen antwoord: toeschouwer, de uitnodiging blijft i
   druk(gw, 'j'); step(1);
   assert.equal(hw.coopNet.meedoen.keuze[1], 'ja'); assert.equal(hw.coopVrijLopen, false);
   assert.equal(hw.coopDeel(100), 1); step(1); assert.ok(gw.money > 0, 'deel in de eigen portemonnee');
-  assert.ok(gw.messages.some((m) => /Je kijkt even mee/.test(m)), 'wie meedoet blijft vastgezet');
+  // (#516) De oude "Je kijkt even mee"-blokkade hoorde bij Tessa op plek 1. De gast is nu een eigen figuur en speelt
+  // gewoon mee; we bewijzen dat hij niet geparkeerd wordt door zijn invoer te laten lopen.
+  assert.equal(gw.messages.some((m) => /Je kijkt even mee/.test(m)), false, 'geen Tessa-blokkade meer voor de gast');
+  const f1 = hw.coopFigures[1], fx = f1.x, fy = f1.y;
+  gw.input.axis = () => [0, -1]; step(1);
+  assert.ok(Math.hypot(f1.x - fx, f1.y - fy) > 0.5, 'de gast loopt gewoon mee');
   const b = sessie(); b.hw.companionHold = { x: 5, y: 5, face: 0 }; opdracht(b.hw); b.step(1);
   assert.equal(b.hw.coopVrijLopen, true); b.step(30);
   assert.equal(b.hw.coopNet.meedoen.keuze[1], 'wacht', 'na 30 s nog geen antwoord: toeschouwer'); assert.equal(b.hw.coopVrijLopen, true);

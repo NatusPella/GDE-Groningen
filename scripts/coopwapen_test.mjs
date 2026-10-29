@@ -89,7 +89,7 @@ t('de gast: muisknop is de aanvalsknop, patronen gaan af, in een menu, voertuig 
 });
 
 // een host met een gast als figuur (plek 2) of als metgezel (plek 1)
-const hostWereld = (extra = {}) => ({ time: 10, coop: { remote: true, remoteInput: null }, companion: { x: 0, y: 0, angle: 0, gz: 0 }, coopFigures: { 2: { slot: 2, x: 10, y: 10, angle: 0, gz: 0, input: null, char: 'a' } }, pedestrians: [], vehicles: [], bullets: [], particles: [], stats: { kills: 0, copKills: 0, pedKills: 0 }, wanted: 0, ...extra });
+const hostWereld = (extra = {}) => ({ time: 10, coop: { remote: true, remoteInput: null }, coopFigures: { 1: { slot: 1, x: 0, y: 0, angle: 0, gz: 0, input: null, char: 't' }, 2: { slot: 2, x: 10, y: 10, angle: 0, gz: 0, input: null, char: 'a' } }, pedestrians: [], vehicles: [], bullets: [], particles: [], stats: { kills: 0, copKills: 0, pedKills: 0 }, wanted: 0, ...extra }); // (#516) plek 1 is een eigen figuur
 t('wapenTick (host): de knop in de invoer van de gast is een aanval vanuit zijn lichaam, met zijn kijkrichting, zijn patronen en zijn klok', () => {
   const calls = [];
   W.zetWapenHaken({ aanval: (w, slot, l, key, hoek) => { calls.push([slot, key, hoek, l.x, l.y]); return { fx: { type: 'muzzle' } }; }, landing: null });
@@ -112,17 +112,18 @@ t('wapenTick (host): de knop in de invoer van de gast is een aanval vanuit zijn 
   W.wapenWeg(w, 2); assert.equal(f.coopWapen, undefined); assert.equal(W.wapenVan(w, 2), null);
   W.zetWapenHaken({ aanval: null, landing: null });
 });
-t('wapenTick: de gast als metgezel (plek 1), een slag met uithalen landt later, in een voertuig of een pauze niets', () => {
+t('wapenTick: de gast op plek 1, een slag met uithalen landt later, in een voertuig of een pauze niets', () => {
   const calls = [], landing = [];
   W.zetWapenHaken({ aanval: (w, slot, l, key, hoek) => { calls.push(slot); return { fx: { type: 'melee', swing: 'bat' }, wacht: { at: w.time + 0.14, angle: hoek, key } }; }, landing: (w, slot, l, wacht) => landing.push([slot, wacht.key]) });
   const w = hostWereld(); W.zetWapen(w, 1, 'knuppel', Infinity);
-  w.coop.remoteInput = { mx: 0, my: 0, buttons: 16, yaw: 0.5 };
+  const f1 = w.coopFigures[1]; // (#516) plek 1 is de eigen figuur van de gast
+  f1.input = { mx: 0, my: 0, buttons: 16, yaw: 0.5 };
   assert.equal(W.wapenTick(w, 0.016), 1); assert.equal(landing.length, 0, 'nog aan het uithalen');
-  w.time += 0.2; W.wapenTick(w, 0.2); assert.deepEqual(landing, [[1, 'knuppel']]); assert.equal(w.companion.coopFx.swing, 'bat');
-  w.time += 2; w.companion.inVehicle = {}; assert.equal(W.wapenTick(w, 1), 0, 'in een voertuig slaat hij niet'); assert.equal(w.companion.coopWapen, '');
-  w.companion.inVehicle = null; w.paused = true; assert.equal(W.wapenTick(w, 1), 0, 'de wereld staat stil'); w.paused = false;
+  w.time += 0.2; W.wapenTick(w, 0.2); assert.deepEqual(landing, [[1, 'knuppel']]); assert.equal(f1.coopFx.swing, 'bat');
+  w.time += 2; f1.inVeh = {}; assert.equal(W.wapenTick(w, 1), 0, 'in een voertuig slaat hij niet'); assert.equal(f1.coopWapen, '');
+  f1.inVeh = null; w.paused = true; assert.equal(W.wapenTick(w, 1), 0, 'de wereld staat stil'); w.paused = false;
   w.coopHold = true; assert.equal(W.wapenTick(w, 1), 0); w.coopHold = false;
-  w.companion.coopWacht = true; w.time += 2; assert.equal(W.wapenTick(w, 1), 0, 'de wereld rond hem wordt nog geladen'); w.companion.coopWacht = false;
+  f1.coopWacht = true; w.time += 2; assert.equal(W.wapenTick(w, 1), 0, 'de wereld rond hem wordt nog geladen'); f1.coopWacht = false;
   W.zetWapenHaken({ aanval: null, landing: null });
 });
 

@@ -110,9 +110,10 @@ for (const spelers of AANTALLEN) {
 
   // ---- 5. de pauze van de gastheer (menu, kaart, winkel): iedereen blijft beweegbaar; de eigen pauze van een gast is alleen zijn eigen
   for (const w of gw) w.input.axis = () => [0, -1];
-  const voor = [s.hw.companion.x, ...figs().map((f) => f.x)];
+  // (#516) alle gasten zijn figuren; de metgezel is de computermetgezel en hoort niet bij een plek.
+  const voor = figs().map((f) => f.x);
   s.hw.paused = true; s.step(2);
-  const na = [s.hw.companion.x, ...figs().map((f) => f.x)];
+  const na = figs().map((f) => f.x);
   ok(na.every((x, i) => x - voor[i] > 4), `${spelers}: iedereen loopt door tijdens de pauze van de gastheer: ${na.map((x, i) => (x - voor[i]).toFixed(1)).join(' ')}`);
   ok(gw.every((w) => w.coopScene && w.coopScene.pauze), `${spelers}: iedereen leest dat de gastheer pauzeert (laag met de tekst)`);
   const laatste = gw[gw.length - 1]; laatste.paused = true; s.step(1);
@@ -122,10 +123,10 @@ for (const spelers of AANTALLEN) {
 
   // ---- 6. een kaartdoel ver weg en een teleport van de gastheer: niemand wordt meegehaald, iedereen speelt vrij door
   s.hw.player.x = 5000; s.hw.player.y = 100; s.step(1.5);
-  ok([s.hw.companion, ...figs()].every((f) => Math.hypot(f.x - 5000, f.y - 100) > 4000), `${spelers}: na een teleport van de gastheer blijft iedereen waar hij is`);
+  ok(figs().every((f) => Math.hypot(f.x - 5000, f.y - 100) > 4000), `${spelers}: na een teleport van de gastheer blijft iedereen waar hij is`);
   tessa.input.axis = () => [0, -1]; tessa.input.isDown = (k) => k === 'shift';
-  const c = s.hw.companion; let ver = 0; s.step(24, () => { ver = Math.max(ver, Math.hypot(c.x - s.hw.player.x, c.y - s.hw.player.y)); });
-  ok(ver > 76, `${spelers}: Tessa kan ver voorbij de oude lijn van 38 m: ${ver.toFixed(0)}`);
+  const c = figs().find((f) => f.slot === 1); let ver = 0; s.step(24, () => { ver = Math.max(ver, Math.hypot(c.x - s.hw.player.x, c.y - s.hw.player.y)); });
+  ok(ver > 76, `${spelers}: de eerste gast kan ver voorbij de oude lijn van 38 m: ${ver.toFixed(0)}`);
   match(tekst(tessa), /Je loopt los van de groep|Blijf bij de groep/, `${spelers}: met een uitleg hoe je bij de groep komt`);
   tessa.input.axis = () => [0, 0]; tessa.input.isDown = () => false; s.step(1); N.bijGroepGebaar(tessa); s.step(2);
   ok(Math.hypot(c.x - s.hw.player.x, c.y - s.hw.player.y) < 6, `${spelers}: en daarna weer bij de groep`);
@@ -137,19 +138,19 @@ for (const spelers of AANTALLEN) {
   ok(!tessa.coopInVoertuig, `${spelers}: ze gaat niet vanzelf mee`);
   if (figs().length) {
     for (const f of figs()) { f.x = 5000 + 2; f.y = 100 + f.slot * 0.3; }
-    for (const [i, w] of gw.entries()) if (i >= 1) w.coopNet.session.sendEvent({ k: 'gebruik' });
+    for (const w of gw) w.coopNet.session.sendEvent({ k: 'gebruik' });
     s.step(2);
     const erin = figs().filter((f) => f.inVeh === auto).length, plekken = Math.min(figs().length, 3);
     eq(erin, plekken, `${spelers}: een auto heeft drie plekken voor extra spelers (${erin} van ${figs().length})`);
     if (figs().length > 3) ok(gw.slice(1).filter((w) => /Er is geen plek meer/.test(tekst(w))).length === figs().length - 3, `${spelers}: wie geen plek krijgt leest waarom`);
     auto.speed = 20; s.step(1, () => { auto.x += 20 / 60; s.hw.player.x = auto.x; });
     ok(figs().filter((f) => f.inVeh === auto).every((f) => Math.abs(f.x - auto.x) < 0.5), `${spelers}: wie meerijdt rijdt mee`);
-    auto.speed = 0; for (const [i, w] of gw.entries()) if (i >= 1) w.coopNet.session.sendEvent({ k: 'gebruik' }); s.step(2);
+    auto.speed = 0; for (const w of gw) w.coopNet.session.sendEvent({ k: 'gebruik' }); s.step(2);
     eq(figs().filter((f) => f.inVeh).length, 0, `${spelers}: bij stilstand stappen ze uit met E`);
     // een bus heeft zes plekken; de gastheer stapt uit: dan staat iedereen ernaast
     const bus = { id: 9, x: auto.x, y: auto.y, angle: 0, speed: 0, isBus: true, halfWid: 1.3, model: { len: 11 } };
     s.hw.player.inVehicle = bus; for (const f of figs()) { f.x = bus.x + 2; f.y = bus.y + f.slot * 0.3; f.inVeh = null; }
-    for (const [i, w] of gw.entries()) if (i >= 1) w.coopNet.session.sendEvent({ k: 'gebruik' }); s.step(2);
+    for (const w of gw) w.coopNet.session.sendEvent({ k: 'gebruik' }); s.step(2);
     eq(figs().filter((f) => f.inVeh === bus).length, Math.min(figs().length, 6), `${spelers}: een bus heeft zes plekken`);
     s.hw.player.inVehicle = null; s.step(1);
     eq(figs().filter((f) => f.inVeh).length, 0, `${spelers}: stapt de gastheer uit, dan stapt iedereen uit`);

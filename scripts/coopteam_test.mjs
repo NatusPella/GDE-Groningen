@@ -41,9 +41,10 @@ t('de gastheer gaat neer: staat een meespeler nog, dan loopt de opdracht door; z
   druk(gs[0].gw, 'j'); step(1);
   assert.equal(hw.coopNet.meedoen.keuze[1], 'ja');
   assert.equal(hw.coopOpdrachtDoor(), true, 'de meespeler staat nog');
-  hw.companion.state = 'dead';
+  // (#516) de meespeler is de eigen figuur op plek 1; zijn down-vlag staat op die figuur, niet op Tessa.
+  hw.coopFigures[1].coopDown = true; step(1);
   assert.equal(hw.coopOpdrachtDoor(), false, 'ook de meespeler is neer: de opdracht faalt voor iedereen');
-  hw.companion.state = 'alive';
+  hw.coopFigures[1].coopDown = false; step(1);
   gs[0].link.cut(); step(8);
   assert.equal(hw.coopOpdrachtDoor(), false, 'een weggevallen meespeler telt niet mee');
 });
@@ -54,7 +55,7 @@ t('wie nee zei telt niet als meespeler; een extra gast die ja zei houdt de opdra
   druk(gs[0].gw, 'n'); step(1);
   assert.equal(hw.coopOpdrachtDoor(), false, 'alleen een toeschouwer over');
   druk(gs[1].gw, 'j'); step(1);
-  hw.companion.state = 'dead';
+  hw.coopFigures[1].coopDown = true; step(1); // (#516) plek 1 is de eigen figuur, niet Tessa
   assert.equal(hw.coopOpdrachtDoor(), true, 'gast 2 doet mee en staat');
 });
 

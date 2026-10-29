@@ -11,18 +11,19 @@ t('minimaal 4, standaard 8, instelbaar tot 16', () => {
   assert.equal(P.createRoster(99).max, 16);
   assert.equal(P.createRoster('x').max, 8);
 });
-t('de host is Tammo op plek 0, de eerste gast Tessa op plek 1, daarna figuren', () => {
+t('de host is Tammo op plek 0, elke gast (ook plek 1) een eigen figuur', () => {
   const r = P.createRoster(4); assert.equal(P.lijst(r)[0].naam, 'Tammo');
-  assert.deepEqual(P.wijsPlekToe(r), { slot: 1, char: 'anita' });
+  // (#516) plek 1 is geen vaste Tessa meer: de eerste gast krijgt de eerste eigen figuur.
+  assert.deepEqual(P.wijsPlekToe(r), { slot: 1, char: 'rik' });
   assert.deepEqual(P.wijsPlekToe(r, 'bram'), { slot: 2, char: 'bram' });
-  assert.deepEqual(P.wijsPlekToe(r), { slot: 3, char: 'rik' });
+  assert.deepEqual(P.wijsPlekToe(r), { slot: 3, char: 'sanne' });
   assert.equal(P.wijsPlekToe(r), null, 'vol bij 4');
-  assert.deepEqual(P.lijst(r).map((x) => x.naam), ['Tammo', 'Tessa', 'Bram', 'Rik']);
+  assert.deepEqual(P.lijst(r).map((x) => x.naam), ['Tammo', 'Rik', 'Bram', 'Sanne']);
 });
 t('de gewenste figuur als die vrij is, anders de eerste vrije; nooit Tammo of Tessa als extra speler', () => {
-  const r = P.createRoster(6); P.wijsPlekToe(r);
-  assert.equal(P.wijsPlekToe(r, 'tammo').char, 'rik');
-  assert.equal(P.wijsPlekToe(r, 'rik').char, 'sanne', 'rik is al genomen');
+  const r = P.createRoster(6); P.wijsPlekToe(r); // (#516) plek 1 krijgt rik
+  assert.equal(P.wijsPlekToe(r, 'tammo').char, 'sanne', 'tammo is geen figuur: de eerste vrije na rik');
+  assert.equal(P.wijsPlekToe(r, 'rik').char, 'bram', 'rik is al genomen');
   assert.equal(P.wijsPlekToe(r, 'lotte').char, 'lotte');
 });
 t('tot 8 spelers met allemaal een eigen figuur, kleur en naam', () => {
@@ -33,10 +34,11 @@ t('tot 8 spelers met allemaal een eigen figuur, kleur en naam', () => {
   assert.equal(new Set(l.map((x) => x.vorm)).size, 8, 'kleur is niet het enige onderscheid');
   assert.equal(P.wijsPlekToe(r), null);
 });
-t('weggaan geeft de plek vrij; Tessa komt terug als Tessa; de host kan niet weg', () => {
+t('weggaan geeft de plek vrij; dezelfde eigen figuur komt terug; de host kan niet weg', () => {
   const r = P.createRoster(4); P.wijsPlekToe(r); P.wijsPlekToe(r, 'bram'); P.wijsPlekToe(r, 'rik');
   assert.equal(P.verwijder(r, 1), true);
-  assert.deepEqual(P.wijsPlekToe(r, 'sanne'), { slot: 1, char: 'anita' }, 'plek 1 is altijd Tessa');
+  // (#516) plek 1 is geen vaste Tessa meer: wie wegging, krijgt zijn eigen figuur terug als die vrij is.
+  assert.deepEqual(P.wijsPlekToe(r, 'sanne'), { slot: 1, char: 'rik' }, 'rik is vrijgekomen, sanne zit al op plek 3');
   assert.equal(P.verwijder(r, 0), false); assert.equal(P.verwijder(r, 7), false);
   P.verwijder(r, 2); assert.deepEqual(P.wijsPlekToe(r, 'bram'), { slot: 2, char: 'bram' });
 });

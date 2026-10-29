@@ -28,7 +28,8 @@ t('bezig: alleen bekende activiteiten, een wisseling telt, null ruimt op', () =>
   assert.ok(JSON.stringify(Z.bezigVanEvent(3, 'carillon')).length < 50);
 });
 t('bezigLijst: de figuur van de ander, niet je eigen, niet in een voertuig; hengel, pan en klepels', () => {
-  const w = { player: { x: 0, y: 0 }, companion: { x: 3, y: 4, angle: 1 }, coop: { remote: true }, coopFigures: { 2: { slot: 2, x: 9, y: 9, angle: 0, char: 'a' }, 3: { slot: 3, x: 1, y: 1, char: 'b', coopVoertuig: true }, 4: { slot: 4, x: 6, y: 6, char: 'c' } } };
+  // (#516) plek 1 is een eigen figuur, niet de metgezel
+  const w = { player: { x: 0, y: 0 }, coop: { remote: true }, coopFigures: { 1: { slot: 1, x: 3, y: 4, angle: 1, char: 'a' }, 2: { slot: 2, x: 9, y: 9, angle: 0, char: 'a' }, 3: { slot: 3, x: 1, y: 1, char: 'b', coopVoertuig: true }, 4: { slot: 4, x: 6, y: 6, char: 'c' } } };
   Z.zetBezig(w, 1, 'hengelen'); Z.zetBezig(w, 2, 'pannenkoek'); Z.zetBezig(w, 3, 'carillon'); Z.zetBezig(w, 4, 'boeren');
   const host = Z.bezigLijst(w, 0);
   assert.deepEqual(host.map((b) => [b.slot, b.beeld]), [[1, 'hengel'], [2, 'pan'], [4, 'hark']], 'plek 3 zit in een voertuig');
@@ -169,7 +170,8 @@ t('twee gezochte spelers: de politie kiest hoogste niveau, dan wie al gejaagd we
   assert.equal(G.kiesDoelwit(e).slot, 0, 'zonder politie in de buurt: de host');
 });
 t('sterren van een gezochte gast in het scherm van wie het spel opende', () => {
-  const w = { wanted: 0, coopWanted: { 1: 3 }, companion: { x: 1, y: 1 }, coop: { remote: true }, coopFigures: {} };
+  // (#516) plek 1 is een eigen figuur; hudWanted leest zijn lichaam daar
+  const w = { wanted: 0, coopWanted: { 1: 3 }, coop: { remote: true }, coopFigures: { 1: { slot: 1, x: 1, y: 1 } } };
   assert.equal(G.hudWanted(w), 3);
   w.wanted = 4; assert.equal(G.hudWanted(w), 0, 'de host zelf is het doelwit: eigen niveau');
   assert.equal(G.hudWanted({ wanted: 0 }), 0);

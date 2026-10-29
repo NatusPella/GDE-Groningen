@@ -182,10 +182,11 @@ assert.match(MODI.tegen.tekst, /wint/);
   assert.equal(houderVan(v, 'goto'), null);
   assert.deepEqual(houderVan(verdelingVoor([0, 1, 2]), 'crack'), { slot: 2, rol: 'kluis' });
 
-  // het lichaam van een plek
-  const w = { player: { x: 1, y: 1 }, companion: { x: 2, y: 2 }, players: [{ slot: 2, entiteit: { x: 3, y: 3 } }] };
+  // het lichaam van een plek: (#516) plek 1 is de eigen figuur van de gast, niet de metgezel
+  const w = { player: { x: 1, y: 1 }, companion: { x: 2, y: 2 }, coopFigures: { 1: { x: 2, y: 2 } }, players: [{ slot: 2, entiteit: { x: 3, y: 3 } }] };
   assert.equal(lichaamVan(w, 0), w.player);
-  assert.equal(lichaamVan(w, 1), w.companion);
+  assert.equal(lichaamVan(w, 1), w.coopFigures[1]);
+  assert.notEqual(lichaamVan(w, 1), w.companion, 'de metgezel hoort bij geen plek meer');
   assert.deepEqual(lichaamVan(w, 2), { x: 3, y: 3 });
   assert.equal(lichaamVan(w, 9), null);
   assert.equal(lichaamVan(null, 0), null);

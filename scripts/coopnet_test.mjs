@@ -9,7 +9,7 @@ import * as N from '../game/js/coopnet.js';
 import * as W from '../game/js/coophostwisselnet.js'; // de momentopname van een gastheer zonder speler (#450)
 import { koplozeWereld } from '../game/js/net/koploos.js';
 import * as C from '../game/js/coopclient.js';
-import { remoteP2, cameraRelative } from '../game/js/coop.js';
+import { cameraRelative } from '../game/js/coop.js';
 import { coopStep } from '../game/js/coopglue.js';
 import { gateOn, setGate } from '../game/js/coopgate.js';
 import { registerMissionQueries } from '../game/js/missionquery.js';
@@ -47,7 +47,10 @@ t('rollen per speler (#455): de eigen verhaalrol blijft, de ander is de metgezel
 t('lichamen per plek: wie is mijn lichaam, wie mijn metgezel, wie een figuur', () => {
   const w = mkWorld();
   assert.equal(C.bodyFor(w, 1, 1), w.player); assert.equal(C.bodyFor(w, 1, 0), w.companion); assert.equal(C.bodyFor(w, 1, 2), null);
-  assert.equal(C.bodyFor(w, 0, 0), w.player); assert.equal(C.bodyFor(w, 0, 1), w.companion);
+  // (#516) plek 1 is op de gastheer geen metgezel meer maar de eigen figuur van de gast.
+  const f1 = C.ensureFigure(w, 1, 'sanne');
+  assert.equal(C.bodyFor(w, 0, 0), w.player); assert.equal(C.bodyFor(w, 0, 1), f1);
+  assert.notEqual(C.bodyFor(w, 0, 1), w.companion, 'de gastheer tekent op plek 1 de figuur, niet Tessa');
   assert.equal(C.bodyFor(w, 3, 3), w.player); assert.equal(C.bodyFor(w, 3, 0), w.companion);
   const f = C.ensureFigure(w, 2, 'sanne'); assert.equal(f.naam, 'Sanne'); assert.equal(C.bodyFor(w, 3, 2), f); assert.equal(C.bodyFor(w, 0, 2), f);
 });
@@ -63,25 +66,29 @@ t('invoer van de camerahoek: schermrichting wordt wereldrichting', () => {
   const d = cameraRelative({ x: 1, y: 0 }, 0); assert.equal(d.x + 0, 0); assert.equal(d.y, 1);
   const e = cameraRelative({ x: 0, y: -1 }, 0); assert.deepEqual([e.x, e.y], [1, 0]);
 });
-t('twee spelers end-to-end: invoer naar de host, toestand terug, fade, Tessa als metgezel', () => {
+t('twee spelers end-to-end: invoer naar de host, toestand terug, fade, de gast als eigen figuur', () => {
   const s = sessie(1, { hostExtra: { money: 250, wanted: 2 }, gastExtra: [{ money: 40 }] });
-  s.step(2, () => { s.hw.player.x = 10; s.hw.companion.x = 20; s.hw.companion.y = 5; });
+  // (#516) de gast is een eigen figuur op plek 1; de metgezel is de computermetgezel van de gastheer.
+  s.step(1); // eerst binnenkomen: dan bestaat de figuur van plek 1
+  s.step(1, () => { s.hw.player.x = 10; s.hw.coopFigures[1].x = 20; s.hw.coopFigures[1].y = 5; });
   const gw = s.gs[0].gw;
   assert.equal(gw.coopNet.session.status, 'ok'); assert.equal(gw.coopNet.session.slot, 1);
-  assert.equal(s.hw.coop.remote, true); assert.ok(Math.abs(s.hw.coop.remoteInput.yaw - 0.5) < 0.01);
-  assert.equal(remoteP2(s.hw.coop.remoteInput).x, 1);
+  assert.ok(s.hw.coopFigures[1].input && Math.abs(s.hw.coopFigures[1].input.yaw - 0.5) < 0.01, 'de invoer van de gast staat op zijn eigen figuur');
+  assert.equal(s.hw.coopFigures[1].input.mx, 1);
   assert.ok(Math.abs(gw.companion.x - 10) < 0.5 && Math.abs(gw.player.x - 20) < 0.5);
   assert.equal(gw.wanted, 2, 'wanted is gedeeld'); assert.equal(gw.money, 40); assert.equal(s.hw.money, 250);
   assert.ok(s.fades.includes('g1:in') && s.fades.includes('h:in'));
-  assert.equal(s.hw.coopPartner.naam, 'Tessa'); assert.equal(gw.coopPartner.naam, 'Tammo');
+  assert.equal(s.hw.coopPartner.naam, s.hw.coopRoster.find((r) => r.slot === 1).naam, 'de host ziet de avatar van de gast'); assert.equal(gw.coopPartner.naam, 'Tammo');
+  assert.equal(s.hw.companion.character, 'tammo', 'de computermetgezel blijft de andere verhaalrol'); // de host speelt anita in deze nepwereld
 });
 t('vier spelers: iedereen krijgt zijn eigen figuur, ziet de anderen met naam en kleur, en beweegt zijn eigen figuur via de host', () => {
   const s = sessie(3, { wens: [undefined, 'bram', 'lotte'] });
   s.step(2);
   const [g1, g2, g3] = s.gs.map((x) => x.gw);
+  const naam1 = s.hw.coopRoster.find((r) => r.slot === 1).naam; // (#516) de eigen avatar van de eerste gast, geen Tessa
   assert.deepEqual(s.gs.map((x) => x.gw.coopNet.session.slot), [1, 2, 3]);
   assert.equal(g2.player.coopChar, 'bram'); assert.equal(g3.player.coopChar, 'lotte');
-  assert.deepEqual(s.hw.coopRoster.map((r) => r.naam), ['Tammo', 'Tessa', 'Bram', 'Lotte']);
+  assert.deepEqual(s.hw.coopRoster.map((r) => r.naam), ['Tammo', naam1, 'Bram', 'Lotte']);
   // bewegen: gast 2 (Bram) loopt naar rechts; de host simuleert zijn figuur
   g2.input = { axis: () => [1, 0], isDown: () => false }; g2.camYaw = 0;
   const f0 = s.hw.coopFigures[2];
@@ -90,8 +97,8 @@ t('vier spelers: iedereen krijgt zijn eigen figuur, ziet de anderen met naam en 
   // iedereen ziet iedereen
   s.step(1);
   assert.deepEqual(g1.coopPartners.map((p) => p.naam).sort(), ['Bram', 'Lotte', 'Tammo']);
-  assert.deepEqual(g3.coopPartners.map((p) => p.naam).sort(), ['Bram', 'Tammo', 'Tessa']);
-  assert.equal(Object.keys(g3.coopFigures).length, 2, 'op Lotte staan Tessa en Bram als figuur');
+  assert.deepEqual(g3.coopPartners.map((p) => p.naam).sort(), ['Bram', naam1, 'Tammo']);
+  assert.equal(Object.keys(g3.coopFigures).length, 2, 'op Lotte staan de eerste gast en Bram als figuur');
   assert.ok(Math.abs(g3.coopFigures[2].x - f0.x) < 2, 'de figuur van Bram staat op de client waar hij op de host staat');
   assert.deepEqual(new Set(s.hw.coopPartners.map((p) => p.kleur)).size, 3);
 });
@@ -142,12 +149,13 @@ t('na het vertrek staat de bijgehouden beloning op nul (het geld zit in world.mo
 t('een passagier staat bij de gasten op het voertuig, niet op zijn oude plek (de camera van de gast volgt de rit)', () => {
   const car = { x: 100, y: 50, angle: 1 };
   const s = sessie(1, { hostExtra: {} }); s.step(2);
-  s.hw.companion.inVehicle = car; s.hw.companion.x = 1; s.hw.companion.y = 1; // Tessa zit in de auto; haar eigen x en y zijn van vóór het instappen
+  // (#516) de gast is de figuur op plek 1; die zit in het voertuig van de gastheer.
+  s.hw.coopFigures[1].inVeh = car; s.hw.coopFigures[1].x = 1; s.hw.coopFigures[1].y = 1; // zijn eigen x en y zijn van vóór het instappen
   s.hw.player.inVehicle = car; s.hw.player.x = 100; s.hw.player.y = 50;
   s.step(2);
   const g = s.gs[0].gw;
-  assert.ok(Math.hypot(g.player.x - 100, g.player.y - 50) < 2, 'de gast (Tessa) staat bij het voertuig: ' + g.player.x + ',' + g.player.y);
-  assert.ok(s.hw.coopPartner && Math.hypot(s.hw.coopPartner.x - 100, s.hw.coopPartner.y - 50) < 2, 'ook voor de host staat Tessa bij het voertuig');
+  assert.ok(Math.hypot(g.player.x - 100, g.player.y - 50) < 2, 'de gast staat bij het voertuig: ' + g.player.x + ',' + g.player.y);
+  assert.ok(s.hw.coopPartner && Math.hypot(s.hw.coopPartner.x - 100, s.hw.coopPartner.y - 50) < 2, 'ook voor de host staat de gast bij het voertuig');
 });
 t('de host stopt: elke gast speelt weer in zijn eigen spel (ook als het bericht verloren gaat), met een melding', () => {
   const s = sessie(2, { gastExtra: [{ player: { x: 77, y: 88, angle: 0, character: 'anita', vx: 0, vy: 0 } }, {}] }); s.step(2);
@@ -174,7 +182,7 @@ t('beloningen worden begrensd en alleen gasten ontvangen ze', () => {
 t('vertrek van een gast: terug op de eigen plek, met eigen wanted, personage en beloning; de rest speelt door', () => {
   const s = sessie(2, { hostExtra: { wanted: 3 }, gastExtra: [{ wanted: 1, player: { x: 77, y: 88, angle: 1.25, character: 'anita', vx: 0, vy: 0 } }, {}] });
   const g1 = s.gs[0].gw;
-  s.step(2, () => { s.hw.player.x = 500; s.hw.companion.x = 520; });
+  s.step(2, () => { s.hw.player.x = 500; const f = s.hw.coopFigures && s.hw.coopFigures[1]; if (f) f.x = 520; }); // (#516) de gast is de figuur op plek 1
   assert.equal(g1.wanted, 3); assert.ok(g1.player.x > 400);
   N.payGuest(s.hw, 150, 1); s.step(1);
   N.stopCoopNet(g1);
@@ -182,7 +190,7 @@ t('vertrek van een gast: terug op de eigen plek, met eigen wanted, personage en 
   assert.equal(g1.player.character, 'anita'); assert.equal(g1.coop.fixedChars, false); assert.equal(g1.money, 150);
   assert.equal(g1.coopRole, null);
   s.step(2);
-  assert.deepEqual(s.hw.coopRoster.map((r) => r.slot), [0, 2], 'de plek van Tessa is vrij');
+  assert.deepEqual(s.hw.coopRoster.map((r) => r.slot), [0, 2], 'de plek van de eerste gast is vrij');
   assert.equal(s.gs[1].gw.coopNet.session.status, 'ok');
 });
 t('host verwijdert één speler: bericht, dan verbreken; de rest speelt door', () => {
@@ -216,9 +224,12 @@ t('pauze per speler (#452): de rest speelt door als iemand wegvalt, tenzij de op
   s.hw.coopVereist = [2]; s.gs[1].link.cut(); s.step(7);
   assert.deepEqual(s.holds.filter((h) => h[0] === 'host').map((h) => h[1]), [2], 'de opdracht had plek 2 nodig');
   s.gs[0].link.cut(); s.step(7);
-  assert.deepEqual(s.holds.filter((h) => h[0] === 'host').map((h) => h[1]), [2], 'Tessa valt weg: de rest speelt door, ze kan terugkomen');
-  assert.ok(s.hw.messages.some((m) => /Tessa is weggevallen.*gaat door/.test(m)), 'de host leest dat het spel doorgaat');
-  assert.equal(s.hw.coop.remote, false, 'Tessa valt terug op de volg-AI');
+  const naam1 = s.hw.coopRoster.find((r) => r.slot === 1).naam;
+  assert.deepEqual(s.holds.filter((h) => h[0] === 'host').map((h) => h[1]), [2], 'de eerste gast valt weg: de rest speelt door, hij kan terugkomen');
+  assert.ok(s.hw.messages.some((m) => new RegExp(`${naam1} is weggevallen.*gaat door`).test(m)), 'de host leest dat het spel doorgaat');
+  // (#516) plek 1 is de eigen figuur van de gast: zonder verbinding krijgt die figuur geen invoer meer. Er is geen
+  // metgezel om op de volg-AI terug te vallen; Tessa is en blijft de computermetgezel.
+  assert.equal(s.hw.coopFigures[1].input, null, 'de figuur van de weggevallen gast staat stil');
 });
 t('pauze: Tessa houdt het spel op als de opdracht haar nodig heeft (#452)', () => {
   const s = sessie(1); s.step(2);
@@ -306,16 +317,17 @@ t('desync: dezelfde toestand geeft geen alarm; een afwijkend wanted leidt na dri
   assert.ok(resync >= 1, 'hersync gevraagd');
   assert.equal(gw.wanted, 4, 'na de hersync heeft de gast het wanted van de host');
 });
-t('touch-client: een gast met een aanraakstick (analoge as, stick via padAxis) stuurt Tessa zacht of vol, en rent met de sprinttoets', () => {
+t('touch-client: een gast met een aanraakstick (analoge as, stick via padAxis) stuurt zijn eigen figuur zacht of vol, en rent met de sprinttoets', () => {
   const touch = (ax, ay, sprint) => ({ axis: () => [ax, ay], isDown: (k) => !!sprint && k === 'shift' });
   const s = sessie(1, { gastExtra: [{ input: touch(0.4, 0, false) }] });
   s.step(2);
-  const r = s.hw.coop.remoteInput;
-  assert.ok(r && Math.abs(r.mx - 0.4) < 0.02 && r.my === 0 && !(r.buttons & 1), 'halve stick komt als halve stick aan: ' + JSON.stringify(r));
+  // (#516) de invoer van plek 1 komt op de eigen figuur van de gast, niet meer op de metgezel.
+  const r = () => s.hw.coopFigures[1] && s.hw.coopFigures[1].input;
+  assert.ok(r() && Math.abs(r().mx - 0.4) < 0.02 && r().my === 0 && !(r().buttons & 1), 'halve stick komt als halve stick aan: ' + JSON.stringify(r()));
   s.gs[0].gw.input = touch(1, 0, true); s.step(1);
-  assert.ok(s.hw.coop.remoteInput.mx > 0.98 && (s.hw.coop.remoteInput.buttons & 1) === 1, 'volle stick met sprint');
+  assert.ok(r().mx > 0.98 && (r().buttons & 1) === 1, 'volle stick met sprint');
   s.gs[0].gw.input = touch(0, 0, false); s.step(1);
-  assert.equal(s.hw.coop.remoteInput.mx, 0); assert.equal(s.hw.coop.remoteInput.my, 0);
+  assert.equal(r().mx, 0); assert.equal(r().my, 0);
 });
 t('missiestappen: de gast ziet de opdracht en daarna elke volgende stap van de gastheer', () => {
   const s = sessie(2, { hostExtra: { mission: { phase: 'active', label: 'Het Loket', type: 'stages', index: 3, progressText: 'Stap in de auto', marker: { x: 5, y: 5 } } } });
@@ -415,8 +427,12 @@ t('het trekbericht (#459): alleen de host luistert, en zonder iemand bij een deu
   const hw = s.hw;
   assert.equal(N.handleEvent(s.gs[0].gw, { k: 'trek' }, 1), false, 'een gast luistert er niet naar');
   assert.equal(N.handleEvent(hw, { k: 'trek' }, 0), false, 'de gastheer luistert niet naar zijn eigen bericht');
-  assert.equal(N.handleEvent(hw, { k: 'trek' }, 1), true, 'de host probeert het en valt terug op het gewone E-pad');
-  assert.equal(hw.coopGebruik, true, 'niets te trekken: als bijrijder in- of uitstappen');
+  // (#516) Zonder iets om bij in te stappen doet E van plek 1 niets meer; de oude metgezel-tak bestaat niet.
+  assert.equal(N.handleEvent(hw, { k: 'trek' }, 1), false, 'zonder voertuig valt er niets in of uit te stappen');
+  const auto = { x: 0, y: 0, angle: 0, model: { name: 'hatch' } };
+  hw.player.inVehicle = auto; hw.coopFigures[1].x = 1; hw.coopFigures[1].y = 0;
+  assert.equal(N.handleEvent(hw, { k: 'trek' }, 1), true, 'met een voertuig van de gastheer gaat E naar het gewone in-stappen');
+  assert.equal(hw.coopFigures[1].inVeh, auto, 'de gast stapt als passagier in');
   assert.equal(N.handleEvent(hw, { k: 'trek', x: 9e9, rol: '<script>' }, 1), true, 'vreemde velden doen niets: de host rekent met zijn eigen lichaam');
   assert.equal(N.handleEvent(hw, { k: 'gebruik' }, 1), true, 'het oude bericht blijft werken');
   assert.equal(N.gastGebruik(s.gs[0].gw), true, 'de gast stuurt zijn E als trekbericht');

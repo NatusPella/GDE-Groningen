@@ -91,12 +91,13 @@ t('wegvallen en terugkomen: pauze voor Tessa, hervatten met hetzelfde token op d
   assert.equal(s.hw.coopRoster.find((r) => r.slot === 1).verbinding, 'lost');
   assert.deepEqual(s.holds.filter((h) => h[0] === 'host').map((h) => h[1]), [], 'de host krijgt geen pauze: de rest speelt door (#452)');
   assert.ok(s.holds.some((h) => h[0] === 'client0'), 'Tessa ziet dat de verbinding weg is');
-  assert.equal(s.hw.coop.remote, false, 'tijdens het wegvallen speelt de volg-AI Tessa');
+  // (#516) plek 1 is de eigen figuur van de gast: bij wegvallen stopt zijn invoer; er is geen metgezel die de volg-AI overneemt.
+  assert.equal(s.hw.coopFigures[1].input, null, 'tijdens het wegvallen staat de figuur van de gast stil');
   tessa.link.restore();
   s.step(8);
   assert.equal(s.hw.coopRoster.find((r) => r.slot === 1).verbinding, 'ok', 'Tessa is terug');
   assert.equal(tessa.gw.coopNet.session.slot, 1, 'zelfde plek');
-  assert.equal(s.hw.coop.remote, true, 'de gast stuurt Tessa weer');
+  assert.ok(s.hw.coopFigures[1].input, 'de gast stuurt zijn eigen figuur weer');
   assert.equal(s.gs[1].gw.coopNet.session.status, 'ok', 'de andere gast merkte niets');
   return `terug na ${(s.nu - 10).toFixed(1)} s van herstel`;
 });
