@@ -1121,6 +1121,10 @@ export function generateClutter(ctx) {
   // Litter: fag ends in the gutter and at doors, cans, cups and flyers on
   // the pavement, bin bags and cans next to the containers and klikos, odd
   // bike parts, stickers on facades. Tiny merged geometry, no props.
+  // #463 (beeldronde): de rommel stond altijd 15 cm hoog, ook op een plein of een woonerf waar de
+  // bestrating op straathoogte ligt. Een peuk valt dat niet op, maar een fietswiel van de
+  // rommelatlas (buildBikeWheel) hing daardoor boven de klinkers van de Grote Markt. Alleen naast
+  // een echte stoeprand (hasSidewalk, kerktophoogte roadsurface.KERB_H) ligt de rommel hoger.
   const litterP = inner ? 1 : mid ? 0.6 : far ? 0.15 : 0.3;
   S((r) => hasSidewalk(r) || isPedestrian(r) || isResidential(r), 7, (r, x, y, segA) => {
     if (rng.next() > litterP * 0.55) return;
@@ -1133,12 +1137,14 @@ export function generateClutter(ctx) {
     if (solid(map, lx, ly)) return;
     const roll = rng.next();
     const a = rng.next() * Math.PI * 2;
-    if (roll < 0.42) items.push(item(pick(rng, P.butts), null, lx, ly, a, { y0: gutter ? 0 : 0.15 }));
-    else if (roll < 0.62) items.push(item(pick(rng, P.cans), null, lx, ly, a, { y0: gutter ? 0 : 0.15 }));
-    else if (roll < 0.74) items.push(item(P.cup, null, lx, ly, a, { y0: gutter ? 0 : 0.15 }));
-    else if (roll < 0.9) items.push(item(pick(rng, P.flyers), null, lx, ly, a, { y0: gutter ? 0.001 : 0.151 }));
-    else if (roll < 0.95 && !gutter) items.push(item(pick(rng, P.wheels), null, lx, ly, a, { y0: 0.15 }));
-    else if (!gutter) items.push(item(P.saddle, null, lx, ly, a, { y0: 0.15 }));
+    // op de stoep 15 cm hoger (de rand), op het asfalt, in de goot en op een plein op straathoogte
+    const y0 = hasSidewalk(r) && !gutter ? 0.15 : 0;
+    if (roll < 0.42) items.push(item(pick(rng, P.butts), null, lx, ly, a, { y0: gutter ? 0 : y0 }));
+    else if (roll < 0.62) items.push(item(pick(rng, P.cans), null, lx, ly, a, { y0: gutter ? 0 : y0 }));
+    else if (roll < 0.74) items.push(item(P.cup, null, lx, ly, a, { y0: gutter ? 0 : y0 }));
+    else if (roll < 0.9) items.push(item(pick(rng, P.flyers), null, lx, ly, a, { y0: gutter ? 0.001 : y0 + 0.001 }));
+    else if (roll < 0.95 && !gutter) items.push(item(pick(rng, P.wheels), null, lx, ly, a, { y0 }));
+    else if (!gutter) items.push(item(P.saddle, null, lx, ly, a, { y0 }));
   });
   // stickers on the lower facade along busy pavements
   S((r) => hasSidewalk(r) || isPedestrian(r), 11, (r, x, y, segA) => {
