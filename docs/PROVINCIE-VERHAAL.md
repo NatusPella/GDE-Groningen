@@ -106,7 +106,7 @@ ze kiezen: groeien of thuis blijven.
 |---|---|---|---|---|---|
 | **Hogeland** (wierdedorpen, Uithuizen, Warffum, Winsum) | **Geesje**, 84, kosteres van een wierdekerk, Oma's schoolvriendin | **Eppo Bolt**, "de Mestkoning", loonwerker met alle oogstmachines | een achtervolging met een combine tussen de wierden bij ondergaande zon | de kosteres | kerkenpad, wierden, het filiaal in Warffum |
 | **Eemsdelta** (Delfzijl, Appingedam, Loppersum, Eemshaven) | **Lammert**, sluiswachter, danste in 1953 met Oma | **Siebrand Mulder**, havenbaas | een stormnacht: de dijkweg met golven eroverheen, een containerkraan | de sluiswachter | de havenbaan (loods), het woonschip in Delfzijl |
-| **Wadkust & Lauwersmeer** (Lauwersoog, Zoutkamp, Noordpolderzijl) | **Fenna**, wadgids, kleindochter van Oma's vriendin + **Jelle** | **Fokko de Visser**, palingsmokkelaar | een vlucht over het wad bij opkomend water | de dijkwerker | wadlopen, sterren kijken, de kotter als safehouse |
+| **Wadkust & Lauwersmeer** (Lauwersoog, Zoutkamp, Noordpolderzijl) | **Fenna**, wadgids, kleindochter van Oma's vriendin + **Jelle** | **Fokko de Visser**, palingsmokkelaar | een vlucht over het wad bij opkomend water | de dijkwerker | wadlopen, sterren kijken, de kotter in de haven |
 | **Westerkwartier** (Zuidhorn, Leek, Grootegast, Aduard) | **Tinus**, trekkertrekker, kleinzoon | **Hilko Kremer**, rallyrijder met Ubbo's geld | de finale van de trekkertrek + een grensrit langs het kanaal naar Friesland | de molenaar | trekkertrek, rally, de boerderijschuur |
 | **Oldambt** (Winschoten, Scheemda, Blauwestad, Nieuweschans) | **Roelfien**, graanboerin, Oma's nicht | **Mevrouw Oldenhuis-Blauw**, Ubbo's zus, in een villa aan het meer | een gewasspuiter laag over het graan, achterna gezeten door een heli | de molenaar van Winschoten | het vliegveld (brevet), de kermis, het dijkhuisje |
 | **Veenkoloniën** (Hoogezand, Veendam, Pekela, Stadskanaal) | **Wubbo**, brugwachter | **Ubbo zelf** (de zetmeelfabriek) | een overval op de museum-stoomtrein + een brug-na-brugachtervolging langs de kanaalwijken | de brugwachter | museumspoor, het brugwachtershuisje |
@@ -288,18 +288,29 @@ het ontdekken van de regio.
   tegelijk in beeld; en elk event heeft een beloning of een grap,
   nooit alleen decor.
 
-### 6.2 Safehouses en bezit
+### 6.2 De zeven plekken van Deel 4
 
-| Regio | Safehouse | Hoe | Wat erbij |
+Deze plekken zijn **verhaalfeiten**: hier speelt een scène, hier komt iemand thuis.
+Ze zijn geen belofte over een systeem. Of je er kunt rusten, wat het kost en wat het
+oplevert, bepaalt de **mechanic**: één huis per veroverbare wijk en woonplaats in
+`game/js/safehuizen.js`, beschreven in `docs/GEBIEDEN.md` onder "Safehouses"
+(ADR 0021). Valt een plek samen met zo'n huis, dan is het dezelfde deur; valt hij
+ernaast, dan is de plek decor en speelt de scène er evengoed. Wat er bij een plek
+staat (een garage, een boot, een helipad) is inrichting van de mechanic en geen
+verhaaleis.
+
+| Regio | Plek | In het verhaal | Waar het verhaal hem voor gebruikt |
 |---|---|---|---|
-| Hogeland | kamer boven het café van Geesjes neef (Warffum) | na O6 | garage voor één auto |
-| Eemsdelta | woonschip in de haven van Delfzijl | na O10 | eigen boot aan de steiger |
-| Wadkust | een oude viskotter in Lauwersoog | na O14 | boot, wadkaart |
-| Westerkwartier | boerderijschuur bij Leek | na O18 | garage voor drie, trekker |
-| Oldambt | dijkhuisje bij Termunten (of een villa aan het meer, duur) | na O22 / kopen | helipad bij de villa |
-| Veenkoloniën | brugwachtershuisje | na O27 | boot, brug op afstand |
-| Westerwolde | boshut | na O31 | paard? (een idee voor later) |
-| Overal | **de Fjord Frituur zelf**: parkeren = opslaan en slapen | vanaf O1 | de rijdende basis |
+| Hogeland | kamer boven het café van Geesjes neef (Warffum) | na O6 | een kamer in Warffum voor de nacht |
+| Eemsdelta | woonschip in de haven van Delfzijl | na O10 | Lammerts schip aan de kade |
+| Wadkust | een oude viskotter in Lauwersoog | na O14 | de kotter in de haven, waarmee je het wad op gaat |
+| Westerkwartier | boerderijschuur bij Leek | na O18 | de schuur tussen de trekkers van Tinus |
+| Oldambt | dijkhuisje bij Termunten (of een villa aan het meer, duur) | na O22 / kopen | het dijkhuisje bij de dijk; de villa is van Oldenhuis-Blauw |
+| Veenkoloniën | brugwachtershuisje | na O27 | het huisje naast de brug van Wubbo |
+| Westerwolde | boshut | na O31 | de hut in het bos, met de boswachter |
+
+Daarnaast reist de **Fjord Frituur** zelf mee: vanaf O1 is de wagen de rijdende
+basis. Wat je daarin kunt (slapen, opslaan), staat bij de mechanic en niet hier.
 
 ### 6.3 Het bedrijf: Fjord-filialen
 
@@ -364,7 +375,7 @@ trein naar Delfzijl"), met versneld meerijden en een gesprek.
 | **LK1** (parallel aan F0) | echte dorpskerken en molens in het huidige Ommeland | (zie het plan) |
 | **F1** corridor | **Proefdrop "Op de rails":** O2 (Oma's lijstje, als voorproef zonder Ubbo), Loods Klaas Z5-Z6, de Streekbus (A1), Treinspotter (A27), 10 herkenningspunten op de lijn, de eerste melder | 6-8 |
 | **F2** hele provincie | dorpsuitjes, wereldeinden en geheimen provinciebreed (A34-A36), uitkijkpunten (A15), het kieken-album (A16), kerkenpad (A17), wierden (A18) | 8-10 |
-| **F3** steden en reizen | bijbaantjes per regio (A2-A4, A23-A26), races (A9-A13), het vliegbrevet (A14), safehouses (§6.2), Fjord-filialen v1 (A22), events v1 | 12-16 |
+| **F3** steden en reizen | bijbaantjes per regio (A2-A4, A23-A26), races (A9-A13), het vliegbrevet (A14), safehouses (`docs/GEBIEDEN.md`), Fjord-filialen v1 (A22), events v1 | 12-16 |
 | **F4a** | O1-O10 (Stad, Hogeland, Eemsdelta), de Piepjager (Z1-Z4), Scheuren (Z26-Z28, als de eigenaar ja zegt), trekkertrek (A5) | 16-20 |
 | **F4b** | O11-O18 (Wadkust, Westerkwartier), Fenna (Z23-Z25), Rally-Rennie (Z20-Z22), wadgids (A4), sterren (A28) | 14-18 |
 | **F4c** | O19-O32 (Oldambt, Veenkoloniën, Westerwolde, finale), de Randstedelingen (Z9-Z12), Wubbo (Z13-Z16), de Wolvenman (Z17-Z19), het kermiscircuit (A6), de combinerace (A33) | 22-28 |
