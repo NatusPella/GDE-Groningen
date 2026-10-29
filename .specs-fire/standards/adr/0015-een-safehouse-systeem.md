@@ -1,8 +1,12 @@
 # 0015 - Eén safehouse-systeem, ook voor de verhaalplekken
 
-- **Status:** besloten
+- **Status:** vervangen door 0021
 - **Datum:** 2026-10-25
 - **Spec:** `.specs-fire/standards/wereld.md` (gebieden) en `multiplayer.md`
+
+> Vervangen op 29-10 door [0021](0021-twee-lagen-verhaal-en-mechanic.md): het
+> verhaal noemt de plek, de mechanic beslist of het een huis is. De tekst hieronder
+> blijft staan als geschiedenis.
 
 ## Context
 

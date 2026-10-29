@@ -65,6 +65,8 @@ van hun punt (14 lijsten, 2.274 punten in 40 stadstegels, 7 in `poiRest`;
 (`poiLayerPlaces`/`poiLayerPlace`) met `map.meta` als terugval. Gebieden: vijf lagen
 uit `game/grenzen.json` (Kadaster/CBS, 1/10/202/123/644), een catalogus van 151
 dingen, profiel `gde-gebieden-v1` per speler, safehouses in wijken en woonplaatsen.
+Een verhaalplek uit Deel 4 is geen rij in dat systeem: het verhaal noemt de plek,
+`safehuizen.js` beslist of je er kunt rusten (ADR 0021).
 
 ## Regels voor een nieuwe feature
 
@@ -93,5 +95,8 @@ dingen, profiel `gde-gebieden-v1` per speler, safehouses in wijken en woonplaats
 
 - Werelddocumentatie loopt achter (#468).
 - Het kruispuntmodel leest de gestreamde provincietegels niet (#469).
-- Twee safehouse-systemen naast elkaar (#470).
 - C2 (water-tweeling) is teruggedraaid; de gepinde stad houdt elke rij.
+
+Opgelost op 29-10: #470 (twee safehouse-systemen naast elkaar). Het verhaal noemt
+de plekken, `safehuizen.js` is de mechanic; de afspraak staat in ADR 0021 en de
+verhaalplekken zijn verhaalfeiten in `docs/PROVINCIE-VERHAAL.md` §6.2.

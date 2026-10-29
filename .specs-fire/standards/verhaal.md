@@ -117,6 +117,11 @@ Femke, Harm, Hilly, Hilje en Boer Roelf (`docs/verhaal/nieuw/00-OVERZICHT.md:67`
    het `09`-script, en daarna `node scripts/build_story_data.mjs`,
    `node scripts/storydata_test.mjs`, `node scripts/story_similarity_test.mjs`,
    `node scripts/text_audit.mjs` en `node scripts/voice_coverage.mjs --quiet`.
+10. **Een plek is een verhaalfeit.** Een missie of scène noemt de plek die het verhaal
+    nodig heeft (de kotter, het woonschip, de boshut) en wat daar gebeurt, niet wat het
+    systeem ermee doet. Rusten, opslaan, de prijs en de sleutel zijn de mechanic
+    (`docs/GEBIEDEN.md`, `game/js/safehuizen.js`); valt de plek samen met een safehouse,
+    dan is dat dezelfde deur (ADR 0021).
 
 ## Tests
 
