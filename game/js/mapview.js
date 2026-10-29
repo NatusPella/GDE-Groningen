@@ -847,15 +847,11 @@ function pinDozen() {
 }
 
 // De strook zelf: een donkere band met per gebied één regel "naam · 0 van 5 · 0%".
-function tekenVoortgangsStrook(ctx, regels) {
+function tekenVoortgangsStrook(ctx, regels, box) {
   ctx.save();
   ctx.textBaseline = 'middle';
   ctx.textAlign = 'left';
   ctx.font = '600 12px sans-serif';
-  let w = 0;
-  for (const r of regels) w = Math.max(w, ctx.measureText(r.tekst).width);
-  const box = voortgangsStrook(state.cw, state.ch, w + 20, regels.length * 18 + 8);
-  state.strook = box;
   ctx.beginPath();
   ctx.roundRect(box[0], box[1], box[2] - box[0], box[3] - box[1], 7);
   ctx.fillStyle = inkA('dark', 0.82);
@@ -974,6 +970,23 @@ function drawStaticOverlay(ctx) {
     const laagId = tekenVeroverd(ctx, toScreen, state.scale, state.cw, state.ch, hover, onthoudLabel, inkA('cream', 0.9));
     tekenLegenda(ctx, state.cw, state.ch, laagId, inkA('cream', 0.92));
   }
+
+  // de voortgangsstrook meteen zijn plek laten reserveren (#463): hij is even
+  // breed als zijn langste regel, dus dat kan voordat de andere labels gelegd
+  // worden. Zonder chip is er geen strook en houdt de vorige plek niets vrij.
+  const strookRegels = [];
+  let laatsteNaam = '';
+  for (const it of gebiedLabels) {
+    if (!isVoortgangsregel(it.tekst)) { laatsteNaam = it.tekst; continue; }
+    if (laatsteNaam && strookRegels.length < 3) strookRegels.push({ tekst: `${laatsteNaam} · ${it.tekst}`, kleur: it.kleur });
+  }
+  if (strookRegels.length) {
+    ctx.font = '600 12px sans-serif';
+    let w = 0;
+    for (const r of strookRegels) w = Math.max(w, ctx.measureText(r.tekst).width);
+    state.strook = voortgangsStrook(state.cw, state.ch, w + 20, strookRegels.length * 18 + 8);
+    bezet.push(state.strook);
+  } else state.strook = null;
 
   // de vaste pictogrammen eerst: hun plek is bezet voordat de labels gelegd
   // worden, zodat geen naam over een icoon heen valt (#463)
@@ -1127,18 +1140,12 @@ function drawStaticOverlay(ctx) {
   }
 
   // de gebiedsnamen, in dezelfde botsingsregel en na de wijken (wijk > gebied);
-  // hun voortgangsregel gaat naar de strook rechtsboven (#463)
+  // hun voortgangsregel staat al in de strook rechtsboven (#463)
   if (gebiedLabels.length) {
     ctx.textBaseline = 'middle';
     const kandidaten = [];
-    const strookRegels = [];
-    let naam = '';
     for (const it of gebiedLabels) {
-      if (isVoortgangsregel(it.tekst)) {
-        if (naam && strookRegels.length < 3) strookRegels.push({ tekst: `${naam} · ${it.tekst}`, kleur: it.kleur });
-        continue;
-      }
-      naam = it.tekst;
+      if (isVoortgangsregel(it.tekst)) continue;
       ctx.font = it.font;
       kandidaten.push({ tekst: it.tekst, x: it.x, y: it.y, kleur: it.kleur, uitlijning: it.uitlijning, font: it.font, prio: LABEL_PRIO.wijk, box: labelDoos(ctx, it.tekst, it.x, it.y, it.uitlijning) });
     }
@@ -1147,7 +1154,7 @@ function drawStaticOverlay(ctx) {
       drawLabel(ctx, k.tekst, k.x, k.y, k.kleur, k.uitlijning);
       boxes.push(k.box);
     }
-    if (strookRegels.length) tekenVoortgangsStrook(ctx, strookRegels);
+    if (strookRegels.length) tekenVoortgangsStrook(ctx, strookRegels, state.strook);
   }
 
   if (layerOn('streets') && names.streets) drawStreetNames(ctx, boxes, bezet);

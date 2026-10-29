@@ -181,7 +181,7 @@ const PRIO = { missie: 0, wijk: 1, poi: 2 }; // dezelfde volgorde als LABEL_PRIO
   ok(bron.includes("if (!vrij(box)) continue; // geen naam over een pin of een andere naam heen (#463)"), 'de namen van bezienswaardigheden vallen niet meer ongecontroleerd over de kaart');
   ok(!bron.includes("drawLabel(ctx, l.name, sx + 6 + 5 * sc, sy + 1, INK.paper, 'left');\n"), 'de oude onbeveiligde regel voor de bezienswaardigheid is weg');
   ok(bron.includes('drawStreetNames(ctx, boxes, bezet)'), 'straatnamen wijken ook voor pins');
-  ok(bron.includes('isVoortgangsregel(it.tekst)') && bron.includes('tekenVoortgangsStrook(ctx, strookRegels)'), 'de gebiedsvoortgang gaat naar de strook');
+  ok(bron.includes('isVoortgangsregel(it.tekst)') && bron.includes('tekenVoortgangsStrook(ctx, strookRegels, state.strook)'), 'de gebiedsvoortgang gaat naar de strook');
   ok(bron.includes('state.pins = geplaatst.map((q) => [q.x, q.y])') && bron.includes('if (state.pinsGebruikt !== state.pinsSleutel) state.dirty = true'), 'de kaart onthoudt de pins en schilt één keer opnieuw als ze veranderen');
   ok(bron.includes('pinWijktVoorStrook(q.sx, q.sy, mapPriority(q.kind), strook)'), 'een pin onder de strook wijkt (behalve de belangrijke)');
   ok(bron.includes('state.pinsGebruikt = state.pinsSleutel') && bron.includes("pins: [],\n    pinsSleutel: '',\n    pinsGebruikt: '',\n    strook: null,"), 'de staat kent de pins en de strook vanaf het begin');
