@@ -1,6 +1,8 @@
 // Voertuigmodellen uit de beeldronde van #463: de cabine van de Knakker (hatch) moet er van buiten
-// uitzien als een auto met ramen, en een fietswiel hoort altijd bij een fietsframe (nooit een los
-// wieldelen in de mesh-lijst van een voertuig).
+// uitzien als een auto met ramen (de ruiten stonden te ver naar binnen, waardoor je langs het glas
+// naar de losse stangen van het interieur keek), en een fietswiel hoort altijd bij een fietsframe
+// (nooit een los wieldelen in de mesh-lijst van een voertuig). Tot slot: de losse fietswielen van
+// de rommelatlas liggen op de straat en niet 15 cm erboven (streetclutter.js).
 //   node scripts/voertuigmodel_test.mjs   (eenmalig: cd desktop && npm run stage)
 import './node3d.mjs';
 import fs from 'node:fs';
@@ -53,6 +55,21 @@ ok('knakker: glasoppervlak als een sedan', gk.oppervlak > gs.oppervlak * 0.9, `$
 const P = { belt: 0.93, roof: 1.47 };
 ok('knakker: glas boven de raamlijn', gk.bbox.min[1] >= P.belt - 0.06 && gk.bbox.max[1] <= P.roof + 0.02, `y ${gk.bbox.min[1].toFixed(2)}..${gk.bbox.max[1].toFixed(2)}`);
 ok('knakker: glas over de hele cabine', gk.bbox.max[0] - gk.bbox.min[0] > 2.4, `x ${gk.bbox.min[0].toFixed(2)}..${gk.bbox.max[0].toFixed(2)}`);
+// De ruiten staan tot tegen de carrosserie: op 0,84 van de breedte bleef er boven de raamlijn een
+// gleuf tussen plaatswerk en glas waar je langs naar binnen keek, en leek de cabine open (#463).
+const glasBreedte = gk.bbox.max[2] - gk.bbox.min[2];
+ok('knakker: ruiten sluiten aan op de carrosserie', glasBreedte / 1.7 > 0.88 && glasBreedte < 1.7, `${glasBreedte.toFixed(2)} m van 1,70 m`);
+for (const naam of ['sedan', 'wagon', 'sport']) {
+  const m = modellen.get(naam);
+  const g2 = glasVan(bouw(m));
+  const w = g2.bbox.max[2] - g2.bbox.min[2];
+  ok(naam + ': ruiten sluiten aan op de carrosserie', !!g2.grp && w / m.wid > 0.88 && w < m.wid, `${(w / m.wid).toFixed(2)} van de breedte`);
+}
+for (const m of [{ name: 'suv', len: 4.7, wid: 1.95, color: '#1b1c1f' }, { name: 'escort', len: 4.0, wid: 1.65, color: '#a11f1f' }]) {
+  const g2 = glasVan(bouw(m));
+  const w = g2.bbox.max[2] - g2.bbox.min[2];
+  ok(m.name + ': ruiten sluiten aan op de carrosserie', !!g2.grp && w / m.wid > 0.88 && w < m.wid, `${(w / m.wid).toFixed(2)} van de breedte`);
+}
 // En het glas moet als glas te zien zijn: niet zo doorschijnend dat het verlichte interieur de cabine
 // open laat lijken (#463), en niet zo glimmend dat de hemel er een witte plaat van maakt.
 ok('knakker: ruit is dicht genoeg om als raam te lezen', gk.mat.opacity >= 0.55, `opacity ${gk.mat.opacity}`);

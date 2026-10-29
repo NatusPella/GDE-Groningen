@@ -226,10 +226,15 @@ function buildCarGeometry(type, L, W, paint, opts) {
     for (const s of [1, -1]) B.box(-hl - 0.004, P.roof - 0.4, s * hw * 0.5, 0.012, 0.42, hw * 0.75, GLASS, G_GLASS);
   } else {
     const gh = [[P.xA + 0.03, P.belt - 0.03], [P.xB, P.roof - 0.07], [P.xC, P.roof - 0.07], [P.xD + 0.03, P.belt - 0.03]];
-    B.geo(extrudeProfile(gh, W * 0.84, 0.03), null, GLASS, G_GLASS);
+    // De ruiten staan tot tegen de carrosserie (#463, beeldronde): op 0,84 van de breedte bleef er
+    // boven de raamlijn een gleuf van 14 cm tussen het plaatswerk en het glas, en daar keek je zo
+    // langs naar binnen - bij de lichtgrijze Knakker leek de cabine daardoor open te zijn, met de
+    // losse stangen van het interieur in het zicht. Het glas staat nu 1 cm binnen de body, het dak
+    // sluit erop aan en de stijlen staan op de ruit in plaats van ernaast.
+    B.geo(extrudeProfile(gh, W * 0.94, 0.03), null, GLASS, G_GLASS);
     const roofPts = [[P.xB + 0.07, P.roof - 0.09], [P.xB - 0.04, P.roof], [P.xC + 0.04, P.roof], [P.xC - 0.07, P.roof - 0.09]];
-    B.geo(extrudeProfile(roofPts, W * 0.87, 0.025), null, paint);
-    const pz = W * 0.42;
+    B.geo(extrudeProfile(roofPts, W * 0.98, 0.025), null, paint);
+    const pz = W * 0.47;
     for (const s of [1, -1]) {
       sideStrip(B, P.xA + 0.02, P.belt - 0.01, P.xB + 0.02, P.roof - 0.05, s * pz, 0.07, 0.05, paint);
       sideStrip(B, P.xC - 0.02, P.roof - 0.05, P.xD, P.belt - 0.01, s * pz, type === 'sedan' || type === 'sport' ? 0.09 : 0.16, 0.05, paint);
