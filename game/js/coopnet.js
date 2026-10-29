@@ -283,7 +283,7 @@ export function hostView(world, info, roster) {
   // De plekken zijn precies de lichamen die het snapshot meestuurt (#502): plek 0 als er een speler is, en elke figuur
   // (ook plek 1). Zo kan een gast die net binnenkomt geen blijvende afwijking veroorzaken.
   const slots = [];
-  if (world && world.player) slots.push(0);
+  if (world && hoofdspeler(world)) slots.push(0);
   for (const f of Object.values((world && world.coopFigures) || {})) if (f && f.slot >= 1) slots.push(f.slot);
   return viewOf({ story: info.story, tiles: info.tiles, stage: (m && m.index) | 0, state: m && m.phase === 'active' ? 'run' : 'none', wanted: zichtbaarWanted(world), slots });
 }

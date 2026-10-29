@@ -1,5 +1,5 @@
 // Samen spelen (#434): een trein deelt zijn klap ook uit aan een gast. De gastheer heeft het lichaam van de gast
-// (plek 1 de metgezel, plek 2 en hoger een figuur), maar niet zijn gezondheid: de schade gaat als bericht 'schade'
+// (elke gast, ook plek 1, is een eigen figuur sinds #516), maar niet zijn gezondheid: de schade gaat als bericht 'schade'
 // naar die gast, met dezelfde regel als bij de eigen speler (railway.js hitPlayer).
 //   node scripts/treinschade_test.mjs
 import './node3d.mjs';
@@ -80,19 +80,22 @@ t('op een perron, op een viaduct of in een voertuig: geen schade', () => {
   assert.equal(schade.length, voor, 'in een voertuig');
 });
 
-t('plek 1 als gast: de schade gaat naar zijn eigen spel, niet naar de AI-metgezel', () => {
-  const c = { x: car.x, y: car.y, z: 0, gz: car.z || 0, character: 'anita', health: 100, vx: 0, vy: 0 };
-  hw.companion = c; hw.coop.remote = true;
+t('plek 1 als gast: zijn figuur krijgt de schade als bericht, de AI-metgezel verliest zelf gezondheid', () => {
+  // (#516) een gast is een eigen figuur op plek 1, niet de metgezel: zijn gezondheid blijft van hem.
+  const f = { slot: 1, naam: 'Rik', x: car.x, y: car.y, z: 0, gz: car.z || 0, health: 100, vx: 0, vy: 0 };
+  hw.coopFigures = { 1: f }; // alleen deze gast op het spoor
   const voor = schade.length;
   hw.time += 5; H.updateRailway(1 / 60, hw);
   assert.equal(schade.length, voor + 1, 'een bericht voor plek 1');
   assert.equal(schade[schade.length - 1][0], 1);
-  assert.equal(c.health, 100, 'de gastheer houdt geen tweede gezondheid bij voor een gast');
-  // en als plek 1 de AI-metgezel is, gaat het zoals altijd van zijn eigen gezondheid af
-  hw.coop.remote = false; c.health = 100; c._trainHitAt = undefined; c.x = car.x; c.y = car.y; c.state = 'walk';
+  assert.equal(f.health, 100, 'de gastheer houdt geen tweede gezondheid bij voor een gast');
+  // en de AI-metgezel verliest gewoon zijn eigen gezondheid, zonder bericht
+  const c = { x: car.x, y: car.y, z: 0, gz: car.z || 0, character: 'anita', health: 100, vx: 0, vy: 0, state: 'walk', _trainHitAt: undefined };
+  hw.companion = c;
+  const voor2 = schade.length;
   hw.time += 5; H.updateRailway(1 / 60, hw);
   assert.ok(c.health < 100, 'de AI-metgezel verliest gezondheid: ' + c.health);
-  assert.equal(schade.length, voor + 1, 'geen bericht voor een AI');
+  assert.equal(schade.length, voor2, 'geen bericht voor een AI');
 });
 
 console.log(`${n} treinschade-tests ok`);
