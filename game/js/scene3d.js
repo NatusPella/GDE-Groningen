@@ -125,6 +125,9 @@ import { GROUND_LAYER, SIDEWALK_EXTRA, PAVED_MATS, buildRoadGroup, setRoadNetwor
 // route-ribbon, waypoint-beacon en setRouteLinks: eigen module onder scene3d/ (#502)
 import { updateRouteRibbon3D, hideRouteRibbon3D, setRouteRibbonScene } from './scene3d/routeribbon3d.js';
 import { lookBackActive, chaseFollowLerp } from './controls.js';
+// de vaste cameraregels (verhouding, verticale kijkhoek, volgplek, harde snee):
+// los van three.js zodat scripts/camera_mobiel_test.mjs ze per scherm narekent (#502)
+import { cameraAspect, cameraVerticalFov, followCameraPose, cameraSnapNeeded, pitchForMouse, DEFAULT_PITCH } from './cameraplan.js';
 import { gameBusy } from './busy.js';
 
 // A genuine WebGL 3D view of the exact same world state the 2D canvas game
@@ -179,15 +182,15 @@ let followYaw = 0;
 // player like a classic open-world camera (higher/steeper looking down, lower/flatter
 // looking up) instead of just sliding the camera height up and down in place
 const ORBIT_RADIUS = Math.hypot(2.6, 2.6);
-const PITCH_MIN_DEG = 10; // mouse near top of screen - low, near-level "looking up" angle
-const PITCH_MAX_DEG = 52; // mouse near bottom of screen - steep overhead angle
+// muis bovenin het scherm geeft een lage, bijna level stand, onderin een steile;
+// zonder muis geldt DEFAULT_PITCH (cameraplan.js, #502)
 // mouse-look goes lower still: below LOOK_UP_FROM_DEG the camera sinks to
 // the ground and the view tilts up towards the rooftops and the sky
 const PITCH_LOOK_MIN_DEG = -16;
 const PITCH_LOOK_MAX_DEG = 60;
 const LOOK_UP_FROM_DEG = 10;
 const LOOK_UP_LIFT = 1.7;
-let followPitch = Math.atan2(5.2 - 1.3, 9);
+let followPitch = DEFAULT_PITCH;
 let lookPitchTarget = followPitch;
 let lookYaw = 0;
 let lookYawIdle = 0;
@@ -978,7 +981,9 @@ export function init3D(map) {
   // usable out at DRAW_DIST - too-small a near plane collapses the ground
   // vs. road/water/green y-offsets into the same depth bucket at range,
   // which read as "roads just don't render" (ground always won the z-test)
-  cam = new THREE.PerspectiveCamera(64, innerWidth / innerHeight, 0.5, DRAW_DIST * 1.4);
+  // fov is de VERTICALE kijkhoek (three.js): op een breed scherm blijft die
+  // gelijk, de horizontale volgt uit de verhouding (#502)
+  cam = new THREE.PerspectiveCamera(cameraVerticalFov(getSettings().fov), cameraAspect(innerWidth, innerHeight), 0.5, DRAW_DIST * 1.4);
   setFxCamera(cam);
   // de route-ribbon (scene3d/routeribbon3d.js) krijgt scene en camera via een
   // setter: een import terug zou een modulecyclus geven (#502)
@@ -1152,7 +1157,7 @@ function applyViewSettings(st) {
   if (sun.castShadow !== shadows) { sun.castShadow = shadows; renderer.shadowMap.needsUpdate = true; }
   applyShadowLevel(level);
   applyViewDistance(st);
-  cam.fov = baseFov = st.fov;
+  cam.fov = baseFov = cameraVerticalFov(st.fov);
   cam.updateProjectionMatrix();
   orbitRadius = ORBIT_RADIUS * st.cameraDistance;
 }
@@ -1206,7 +1211,9 @@ function applyShadowLevel(level) {
 
 export function resize3D() {
   if (!renderer) return;
-  cam.aspect = innerWidth / innerHeight;
+  // de vorige verhouding blijft staan als de browser even hoogte 0 meldt
+  // (draaien, adresbalk): anders is de projectie één beeld lang onbruikbaar (#502)
+  cam.aspect = cameraAspect(innerWidth, innerHeight, cam.aspect);
   cam.updateProjectionMatrix();
   sizeDirty = true;
 }
@@ -3015,8 +3022,13 @@ export function update3D(dt, world) {
     lookPitchTarget += mouse.dy * lookK * (world.scoped ? 0.3 : 1) * (getSettings().invertY ? -1 : 1);
     lookPitchTarget = Math.min(PITCH_LOOK_MAX_DEG, Math.max(PITCH_LOOK_MIN_DEG, lookPitchTarget * 180 / Math.PI)) * Math.PI / 180;
   } else {
-    const pitchT = Math.min(1, Math.max(0, (mouse.y || 0) / (innerHeight || 1)));
-    lookPitchTarget = (PITCH_MIN_DEG + (PITCH_MAX_DEG - PITCH_MIN_DEG) * pitchT) * Math.PI / 180;
+    // de cursorpositie is een aantal pixels, gedeeld door de schermhoogte: op
+    // een telefoon in landschap (360 px hoog) gaf dezelfde pixel een andere
+    // hoek dan in portret (800 px), en dus een andere camerahoogte. Zonder muis
+    // (aanraakbesturing) geldt daarom de vaste volgstand (#502).
+    const doc = document.documentElement;
+    const cursor = !(doc && doc.classList && doc.classList.contains('touch-play'));
+    lookPitchTarget = pitchForMouse(cursor ? (mouse.y || 0) / (innerHeight || 1) : NaN);
   }
   followPitch += (lookPitchTarget - followPitch) * Math.min(1, dt * (looking ? 30 : 6));
   // on foot the camera yaw is world.camYaw (orbited by the mouse in
@@ -3061,11 +3073,12 @@ export function update3D(dt, world) {
   // height of whatever the camera follows: on a viaduct, down in a cutting (elevation.js)
   const baseH = veh ? veh.z || 0 : (player.gz || 0) + Math.max(0, player.z || 0);
   const eyeX = share ? share.x : player.x, eyeY = baseH + (veh ? (veh._mount === 'horse' ? 2.2 : 1.3 + (camScale - 1) * 0.55) : 1.3), eyeZ = share ? share.y : player.y;
-  const horizDist = Math.cos(followPitch) * radius;
-  const orbitHeight = eyeY + Math.sin(followPitch) * radius;
-  let desiredX = player.x - Math.cos(camAngle) * horizDist;
-  let desiredZ = player.y - Math.sin(camAngle) * horizDist;
-  let desiredY = orbitHeight;
+  // de volgplek komt uit cameraplan.js: achter de speler en `sin(pitch) x
+  // radius` erboven, ongeacht het schermformaat (#502)
+  const pose = followCameraPose({ x: player.x, y: player.y, eye: eyeY, angle: camAngle, pitch: followPitch, radius });
+  let desiredX = pose.x;
+  let desiredZ = pose.z;
+  let desiredY = pose.y;
 
   // recursive: true - each building is now a Group of several child meshes
   // (roof/window-band/steeple/...), not one flat Mesh, so a non-recursive
@@ -3154,13 +3167,24 @@ export function update3D(dt, world) {
   updateCamTreeHiding(world.map, eyeX, eyeY, eyeZ, desiredX, desiredY, desiredZ);
 
   const teleported = lastPx !== null && Math.hypot(player.x - lastPx, player.y - lastPy) > 15;
-  if (teleported) camPullReset = true;
+  // (#502) Een harde snee ook als de camera niet meer op een volgplek staat: na
+  // de titel of een filmpje hing hij nog op het laatste titelbeeld (op een
+  // telefoon in landschap een straatbeeld 1,6 km verderop, 0,6 m boven de kale
+  // kaart) en het eerste beeld van een partij gleed hij daar vandaan naar de
+  // speler - over de lege kaart (beeld "onder het maaiveld") en dwars door de
+  // bebouwing (beeld "in de gevel"). Zonder deze snee duurt dat bij een laag
+  // beeldtempo seconden en is het maar net welk beeld je ziet.
+  const snap = teleported || !camBaseInit
+    || cameraSnapNeeded(camBaseInit ? camBase : null, { x: desiredX, y: desiredY, z: desiredZ });
+  if (snap) camPullReset = true;
   if (lookBackCut) camPullReset = true;
-  const lerpT = chaseFollowLerp(dt, { cut: teleported || lookBackCut, lookBack });
-  if (!camBaseInit) { camBase.copy(cam.position); camBaseInit = true; }
-  camBase.x += (desiredX - camBase.x) * lerpT;
-  camBase.y += (desiredY - camBase.y) * lerpT;
-  camBase.z += (desiredZ - camBase.z) * lerpT;
+  const lerpT = chaseFollowLerp(dt, { cut: snap || lookBackCut, lookBack });
+  if (snap) { camBase.set(desiredX, desiredY, desiredZ); camBaseInit = true; }
+  else {
+    camBase.x += (desiredX - camBase.x) * lerpT;
+    camBase.y += (desiredY - camBase.y) * lerpT;
+    camBase.z += (desiredZ - camBase.z) * lerpT;
+  }
   lastPx = player.x; lastPy = player.y;
   cam.position.copy(camBase);
   const imp = world.lastImpact;
@@ -3904,6 +3928,12 @@ function applyCameraOverride(dt, world, lx, ly, lz) {
     overrideLook.lerp(_camTmp.set(o.lookAt.x, o.lookAt.z ?? 1.3, o.lookAt.y), k);
     overrideBlend = o.cut ? 1 : Math.min(1, overrideBlend + dt / CAM_OVERRIDE_BLEND_S);
   } else {
+    // (#502) Een override die ver van de speler stond - het titelbeeld is een
+    // straatbeeld 1,6 km verderop, 0,6 m boven de kale kaart - laat de camera
+    // niet in 0,9 s terugvliegen: op die weg komt hij over de lege kaart
+    // ("onder het maaiveld") en dwars door de bebouwing ("in de gevel"). Ver
+    // weg is een harde snee, dichtbij het vertrouwde zachte teruglopen.
+    if (overrideBlend > 0 && cameraSnapNeeded(overridePos, cam.position)) overrideBlend = 0;
     overrideBlend = Math.max(0, overrideBlend - dt / CAM_OVERRIDE_BLEND_S);
     if (overrideBlend === 0) overrideActive = false;
   }
