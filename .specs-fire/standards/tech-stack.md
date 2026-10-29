@@ -11,14 +11,17 @@ is de kaart.
 
 ### Taal
 
-**Primair**: JavaScript (ES-modules, `import`/`export`, geen TypeScript, geen build-stap voor de gamecode).
+**Primair**: TypeScript (ES-modules, `import`/`export`, ADR 0022). Bestaande JS-modules
+zijn legacy en gaan per aanraking naar `.ts`; nieuwe gamecode is `.ts`. Types worden
+gestript (esbuild), niet gebundeld; er is geen bundler (ADR 0006).
 **Node**: v24 op de ontwikkelmachine; de scripts draaien op Node 18 of hoger.
 
 ### Engine en rendering
 
 **Engine**: Three.js **0.160.0**, geladen via een import map in `game/index.html`
-(`https://cdn.jsdelivr.net/npm/three@0.160.0/...`). Er is geen bundler en er komen
-geen nieuwe npm-pakketten in het spel zelf.
+(`https://cdn.jsdelivr.net/npm/three@0.160.0/...`). Er is geen bundler. Er komen geen
+runtime-pakketten in het spel; de TypeScript-dev-tooling (typescript, esbuild,
+`@types/three`) staat buiten het spel.
 
 ### Runtime
 
@@ -43,11 +46,14 @@ end-to-end versleutelde datachannel. Geen accounts, geen server van ons.
 
 ## Ontwikkelgereedschap
 
-- **Packagemanager**: npm, per deel (`desktop/`, `android/`); geen root-`package.json`.
-- **Build**: eigen scripts (`desktop/build.mjs` staget de wereld, `web/build.mjs` de webversie).
+- **Packagemanager**: npm, per deel (`desktop/`, `android/`); daarnaast één dev-only
+  root-`package.json` voor de TypeScript-tooling (typecheck en transpile), zonder
+  runtime-afhankelijkheden.
+- **Build**: eigen scripts (`desktop/build.mjs` staget de wereld en stript `.ts` → `.js`,
+  `web/build.mjs` de webversie).
 - **Tests**: gewone Node-scripts, geen framework (zie `testing-standards.md`).
-- **Lint/format**: geen linter; `node --check` op gewijzigde JS is de minimale poort.
-  Stijl volgt de omliggende code.
+- **Lint/format**: geen linter; `node --check` op gewijzigde JS en `tsc --noEmit` op
+  gewijzigde TS is de minimale poort. Stijl volgt de omliggende code.
 
 ## Versie-eisen
 

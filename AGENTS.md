@@ -52,7 +52,7 @@ Een keuze die duur is om terug te draaien, of die iemand opnieuw gaat voorstelle
 ## Testen
 
 - Alles in één keer, met rapport: `node scripts/test_all.mjs --fase=licht|zwaar|electron|alles` (zie [docs/TESTEN.md](docs/TESTEN.md)).
-- Vóór elke merge: `node --check` op gewijzigde JS, `node scripts/voice_coverage.mjs --quiet`, en alle `scripts/*_test.mjs` met gewone `node` (macOS en Windows hebben geen `timeout`).
+- Vóór elke merge: `node --check` op gewijzigde JS, `npx tsc --noEmit` op gewijzigde TS, `node scripts/voice_coverage.mjs --quiet`, en alle `scripts/*_test.mjs` met gewone `node` (macOS en Windows hebben geen `timeout`).
 - Vóór elke release: één Electron-verhaaltest (`--story-test=<dir>`). NaN-waarschuwingen in geometrie laten die falen.
 - Zware wereldchecks: `ring_probe`, `seat_audit`, `scripts/world/prop_conflict_audit.mjs --strict` (weilandranden en vee tegen spoor, weg, water en huis), `scripts/perf/geocheck.sh`, `drive_audit`, `junction_sim_test`, `network_drive_test`, spoor- en wateraudits.
 - Tests schrijven nooit naar echte opslag: blokkeer `localStorage` voor `gde-save-v1`, `gde-settings`, `gde-prestaties-v1`. Een synthetische `keydown` wordt altijd gevolgd door een `keyup`.
@@ -62,6 +62,7 @@ Een keuze die duur is om terug te draaien, of die iemand opnieuw gaat voorstelle
 ## Code
 
 - **Taal:** code in het **Engels** (bestandsnamen, modules, functies, variabelen, comments); wat de speler ziet of hoort in het **Nederlands**; proza (docs, specs, ADR's, changelog, issues, commits, testuitvoer) in het **Nederlands**. Bestaande Nederlandse namen en comments blijven staan: hernoem ze alleen in de commit die dat bestand toch al aanraakt, met imports, tests en docs mee. Geen massale hernoeming. Zie ADR [0017](.specs-fire/standards/adr/0017-code-in-het-engels.md).
+- **TypeScript:** nieuwe gamecode is `.ts`. Een `.js`-module die je voor een echte wijziging opent, gaat in dezelfde commit naar `.ts`, met imports, tests en docs mee (ADR [0022](.specs-fire/standards/adr/0022-typescript-is-de-taal.md)). Imports blijven `.js` zeggen (`./economy.js`): de strip-stap zet `foo.ts` om naar `foo.js`, dus importers hoeven niet te veranderen. Typecheck met `npx tsc --noEmit` vanaf de root; transpile lokaal met `npm run build:ts`. De gegenereerde `.js` staat niet in git.
 - Eén generator voor stad en platteland (`worldbuilder.js`); één hoogtevraag per net (`surfaceAt`); tegels in `.gdt`-formaat, RD New (EPSG:28992) als projectie.
 - Zelfde streaming-pad in Electron en web; de wereld is data (`game/world/` wordt bij het bouwen gemaakt en staat niet in git).
 - Opslagsleutels heten `gde-*` (met migratie van oude `gte-*`); laat saves nooit stuk gaan.

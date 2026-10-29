@@ -7,11 +7,21 @@ omliggende code al gelden. Bij twijfel: kijk hoe de buren het doen en volg dat.
 
 ## Vormgeving
 
-- **Formatter/linter**: geen. `node --check <bestand>` is de minimale poort.
+- **Formatter/linter**: geen. `node --check <bestand>` (JS) en `tsc --noEmit` (TS) is de minimale poort.
 - **Stijl**: 2 spaties, enkele quotes, puntkomma's, `const`/`let`, geen `var`.
 - **Commentaar** alleen waar het iets uitlegt wat de code zelf niet zegt;
   commentaardichtheid volgt het bestand waar je in werkt.
-- **Geen nieuwe npm-pakketten** in het spel; geen bundler, geen transpilatie.
+- **Geen nieuwe runtime-pakketten** in het spel; geen bundler. TypeScript wordt gestript
+  (esbuild), niet gebundeld.
+
+## TypeScript
+
+- Nieuwe gamecode is `.ts`; een bestaande `.js`-module die je voor een echte wijziging
+  opent, gaat in dezelfde commit naar `.ts` (ADR 0022).
+- Imports blijven `.js` zeggen (`./economy.js`): de strip-stap zet `foo.ts` om naar
+  `foo.js`, zodat importers niet hoeven te veranderen.
+- De gegenereerde `.js` staat niet in git; de `.ts` is de bron van waarheid.
+- Typecheck met `npx tsc --noEmit` vanaf de root; transpile met `npm run build:ts`.
 
 ## Taal
 
