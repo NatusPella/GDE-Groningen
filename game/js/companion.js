@@ -9,7 +9,6 @@ import { waterClearance } from './waterindex.js';
 import { passagesOf } from './collision.js';
 
 import { coopStep } from './coopglue.js';
-import { kanUitstappen } from './coopgast.js';
 const SWIM_EDGE_CLEAR = 0.7;
 import { registerPoseSource, unregisterPoseSource, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 
@@ -753,33 +752,8 @@ function followGround(world) {
   c.gz = map.groundHeightAt(c.x, c.y, hint);
 }
 
-// De gast (plek 1, de metgezel) doet iets met E (docs/COOP-GAST.md): zit ze in het voertuig van de host, dan stapt ze uit zodra het
-// bijna stilstaat; staat ze erbuiten en zit de host in een voertuig met een vrije plek dichtbij, dan stapt ze in.
-function coopGastGebruik(c, p, world) {
-  if (!world.coop || !world.coop.remote) return;
-  const meld = (t) => { if (world.coopMeld) world.coopMeld(1, t); };
-  if (c.inVehicle) {
-    const v = c.inVehicle;
-    if (!kanUitstappen(v)) { meld(v.isPlane || v.isHeli ? 'Eerst landen op de grond.' : 'Stap uit als het voertuig bijna stilstaat.'); return; }
-    v.passenger = null;
-    c.inVehicle = null;
-    [c.x, c.y] = findExitSpot(v, c.radius, world.map, EXIT_RIGHT_FIRST);
-    c.vx = 0; c.vy = 0;
-    c.coopUit = true;
-    if (world.coopWielSlot === 1) world.coopWielSlot = null; // zonder bijrijder geen stuur
-    return;
-  }
-  const v = p.inVehicle;
-  if (!v) { if ((world.vehicles || []).some((q) => dist(c.x, c.y, q.x, q.y) < 6)) meld('Je kunt alleen meerijden als de ander in een voertuig zit.'); return; } // E bij een geparkeerd voertuig deed niets (#388)
-  const canRide = !v.sinking && !v.riderOff && !((v.isHeli || v.isPlane) && (!v.onGround || Math.abs((v.z || 0) - (c.gz || 0)) > 2.5));
-  if (!canRide || v.passenger) { meld(v.passenger ? 'Er is geen plek meer in dit voertuig.' : 'Hier kun je nu niet instappen.'); return; }
-  if (dist(c.x, c.y, v.x, v.y) >= (v.isBoat ? BOARD_DIST + 2.5 : BOARD_DIST) + 2) { meld('Loop naar het voertuig om in te stappen.'); return; }
-  c.inVehicle = v;
-  v.passenger = 'companion';
-  c.coopUit = false;
-  c.vx = 0; c.vy = 0;
-}
-
+// Samen spelen (#502): de metgezel is altijd de computermetgezel en loopt met de volg-AI mee. Een gast is een eigen
+// figuur in coopnet.js, geen lichaam van de metgezel meer; de oude coopGastGebruik-tak (E voor plek 1) bestaat daarom niet.
 function stepCompanion(dt, world) {
   const c = world.companion;
   const p = world.player;
@@ -795,11 +769,11 @@ function stepCompanion(dt, world) {
   if (c.coopTrein) { c.vx = 0; c.vy = 0; return; } // de gast zit als passagier in de trein van de gastheer: cooptrein.js zet zijn plek (#492)
   // samen spelen (#429): een gast die niet meedoet met de opdracht wordt niet geparkeerd; zijn speler loopt vrij (coopStep hieronder)
   if (world.companionHold && !(world.coopVrijLopen && world.coop && world.coop.remote) && holdCompanion(c, world.companionHold, dt, world)) return;
-  // samen spelen (#291): de gast drukte op E: als bijrijder uitstappen (bijna stilstaand) of weer instappen
-  if (!p.inVehicle) c.coopUit = !!(world.coop && world.coop.remote); // de host stapte uit: ze loopt weer gewoon mee; een echte speler stapt zelf in met E, ze gaat niet vanzelf mee als de ander instapt (#388)
-  if (world.coopGebruik) { world.coopGebruik = false; coopGastGebruik(c, p, world); }
-  // mini co-op (coop.js): a second human steers the companion on foot (ook naast het voertuig van de host als ze zelf is uitgestapt)
-  if (world.coop && (!p.inVehicle || c.coopUit) && !c.inVehicle && !c.water && coopStep(c, dt, world, moveWithCollisions)) return;
+  // samen spelen (#429): de gastheer stapte uit: de metgezel loopt weer gewoon mee met de volg-AI
+  if (!p.inVehicle) c.coopUit = false;
+  // mini co-op (coop.js): een tweede speler achter hetzelfde toetsenbord stuurt de metgezel (alleen lokaal, niet online;
+  // online is de metgezel van de gastheer een computerfiguur, #502)
+  if (world.coop && !world.coop.remote && (!p.inVehicle || c.coopUit) && !c.inVehicle && !c.water && coopStep(c, dt, world, moveWithCollisions)) return;
 
   if (c.water && !c.inVehicle) {
     const boat = p.inVehicle && p.inVehicle.isBoat && !p.inVehicle.passenger && !p.inVehicle.sinking ? p.inVehicle : null;

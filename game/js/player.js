@@ -179,7 +179,9 @@ export class Player {
       this.perch = null;
       if (v.sinking) { this.x = v.x; this.y = v.y; this.angle = v.angle; return; }
       if (v.wrecked) { this.exitVehicle(map, world); if (v.blewUp && !v.isBike && !v.isScooter) this.blownOut(world, v); }
-      else { this.driveVehicle(dt, world && world.coopWielSlot === 1 && world.coop && world.coop.remote && world.companion && world.companion.inVehicle === v ? wielInvoer(world.coop.remoteInput) : input, map, world); this.gz = v.z || 0; return; } // samen spelen (#291): de bijrijder heeft het stuur
+      else { // samen spelen (#291): een gast heeft het stuur; zijn invoer staat op zijn eigen figuur (#502)
+        const stuur = world && world.coopWielSlot != null && world.coopFigures ? world.coopFigures[world.coopWielSlot] : null;
+        this.driveVehicle(dt, stuur && stuur.inVeh === v ? wielInvoer(stuur.input) : input, map, world); this.gz = v.z || 0; return; }
     }
 
     // Het dek van een boot is solide: wie erop staat is boven water, niet erin
@@ -890,16 +892,13 @@ export class Player {
     return seatedOf(v).passengers.some((p) => (rol === 'achter' ? p.slot === 'rear' : p.slot === 'front'));
   }
 
-  // Een medespeler in dit voertuig (Samen spelen): plek 1 is de metgezel op de
-  // bijrijdersstoel, plek 2 en hoger zijn figuren en die zitten achterin (coopnet.js
-  // vrijeStoel); wie zelf bestuurt is geen passagier.
+  // Een medespeler in dit voertuig (Samen spelen): elke gast is een figuur (#502); stoel 1 is de
+  // bijrijdersstoel, 2 en hoger zitten achterin (coopnet.js vrijeStoel); wie zelf bestuurt is geen passagier.
   medespelerIn(world, v, rol = 'bijrijder') {
-    const c = world.companion;
-    if (c && c.inVehicle === v && rol !== 'achter') return { slot: 1, lichaam: c };
-    if (rol !== 'achter') return null;
     for (const f of Object.values(world.coopFigures || {})) {
-      if (!f || f.inVeh !== v || f.coopBestuurt || (f.stoel | 0) < 2) continue;
-      return { slot: f.slot, lichaam: f };
+      if (!f || f.inVeh !== v || f.coopBestuurt) continue;
+      const stoel = f.stoel == null ? (f.slot === 1 ? 1 : 2) : (f.stoel | 0);
+      if (rol === 'achter' ? stoel >= 2 : stoel === 1) return { slot: f.slot, lichaam: f };
     }
     return null;
   }
@@ -916,16 +915,10 @@ export class Player {
     if (!p) return false;
     const [x, y] = resolveBuildingCollisions(p.x, p.y, 0.35, world.map);
     const l = mede.lichaam;
-    if (mede.slot === 1) {
-      l.inVehicle = null; l.coopUit = true;
-      if (k.v.passenger === 'companion') k.v.passenger = null;
-    } else {
-      l.inVeh = null; l.coopVoertuig = false; l.stoel = undefined;
-    }
+    l.inVeh = null; l.coopVoertuig = false; l.stoel = undefined; // elke gast is een figuur (#502)
     l.x = x; l.y = y; l.vx = 0; l.vy = 0;
     openDeurVoor(k.v, k.rol, 3);
-    const eigen = mede.slot === 1;
-    const naam = eigen ? (l.naam || (l.character === 'tammo' ? 'Tammo' : 'Tessa')) : 'een medespeler';
+    const naam = l.naam || 'een medespeler'; // de avatar van de gast, geen verhaalnaam (#502)
     world.addMessage(`Je trok ${naam} uit het voertuig.`, 2.5);
     if (world.coopMeld && mede.slot > 0) world.coopMeld(mede.slot, 'Je bent uit het voertuig getrokken.');
     return true;

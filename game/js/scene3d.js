@@ -2934,7 +2934,11 @@ export function update3D(dt, world) {
   // companion (Tammo/Tessa, whichever the player isn't controlling) -
   // walks alongside on foot, or rides along in whatever the player drives:
   // passenger seat, boat bench, bike rack, fatbike saddle or step deck
-  const comp = world.companion;
+  // Samen spelen (#502): world.companion is de computermetgezel (cooproles.metgezelVoorSpeler). Een gast is een eigen
+  // figuur (coopfigures3d.js) en wordt hier niet meer als Tessa/Tammo getekend; alleen een lokaal bestuurde metgezel
+  // (world.coop.remote, de tweede speler achter hetzelfde toetsenbord) houdt dit lichaam.
+  const comp = world.coop && world.coop.remote ? null : world.companion;
+  if (!comp && companionMesh) companionMesh.visible = false; // geen computermetgezel: geen tweede Tessa in beeld (#502)
   if (comp) {
     if (comp.character !== companionCharacter) {
       companionCharacter = comp.character;

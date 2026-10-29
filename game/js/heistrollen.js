@@ -168,15 +168,13 @@ export function houderVan(verdeling, fase) {
   return Number.isInteger(slot) ? { slot, rol: ROLSTAP[fase] } : null;
 }
 
-// Het lichaam van een plek in deze wereld (de gastheer is world.player, een gast een figuur of de
-// metgezel). Onbekend: null.
+// Het lichaam van een plek in deze wereld (de gastheer is world.player, elke gast een eigen figuur, #502). Onbekend: null.
 export function lichaamVan(world, slot) {
   const reg = world && Array.isArray(world.players) ? world.players : null;
   if (reg) { const r = reg.find((x) => x && x.slot === slot); if (r && r.entiteit) return r.entiteit; }
   if (!world) return null;
   if (slot === 0) return hoofdspeler(world) || null;
-  if (slot === 1) return world.companion || null;
-  return null;
+  return (world.coopFigures || {})[slot] || null;
 }
 
 // De stand van de rolstap van deze wereld: welke stap, is hij klaar, en wie vroeg hem.

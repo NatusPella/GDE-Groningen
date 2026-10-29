@@ -21,11 +21,10 @@ export const BUSCOOP_TEKST = {
 
 const BREMS = 6; // m/s^2 waarmee de bus afremt als de chauffeur wegvalt
 
-// De bus waar deze speler in zit: slot 0 de gastheer, 1 de metgezel, hoger de extra spelers. null als dat geen bus is.
+// De bus waar deze speler in zit: slot 0 de gastheer, elke gast (plek 1 en hoger) een eigen figuur in inVeh (#502).
 export function busVan(world, slot) {
   let v = null;
   if (slot === 0) v = world.player && world.player.inVehicle;
-  else if (slot === 1) { const c = world.companion; v = c && (c.inVehicle || c.inVeh) || (world.coopRijders && world.coopRijders[1] && world.coopRijders[1].v); }
   else { const f = world.coopFigures && world.coopFigures[slot]; v = f && f.inVeh; }
   return v && v.isBus ? v : null;
 }
@@ -34,8 +33,7 @@ export function busVan(world, slot) {
 export function aanBoord(world, bus) {
   const uit = [];
   if (world.player && world.player.inVehicle === bus) uit.push(0);
-  if (busVan(world, 1) === bus) uit.push(1);
-  for (const f of Object.values(world.coopFigures || {})) if (f && f.slot >= 2 && f.inVeh === bus) uit.push(f.slot);
+  for (const f of Object.values(world.coopFigures || {})) if (f && f.slot >= 1 && f.inVeh === bus) uit.push(f.slot);
   return uit;
 }
 

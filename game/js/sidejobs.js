@@ -116,8 +116,8 @@ function gastWereld(w, slot) {
   cw.coopHelpers = () => (w.coopBijbaanHelpers ? w.coopBijbaanHelpers(slot) : null);
   return cw;
 }
-// Het lichaam van een gast, met één verschil: een gast op plek 1 zit in `inVehicle`, een figuur (plek 2
-// en hoger) in `inVeh` (coopbestuur.js). De banen vragen naar `inVehicle`; dit beeld geeft ze allebei.
+// Het lichaam van een gast, met één verschil: een gast is een figuur en zit in `inVeh` (coopbestuur.js, #502). De banen
+// vragen naar `inVehicle`; dit beeld geeft ze allebei.
 function spelerBeeld(l) {
   if (!l) return null;
   return new Proxy(l, {
@@ -695,7 +695,7 @@ function checkVehicle(dt, c) {
   const need = c.job.needsVehicle ? c.job.needsVehicle(c) : !!v;
   if (!need || !v) { c.awayFor = 0; return true; }
   const p = hoofdspeler(c.world);
-  const inV = p.inVehicle || p.inVeh || null; // een gast op plek 1 zit in inVehicle, een figuur (plek 2 en hoger) in inVeh
+  const inV = p.inVehicle || p.inVeh || null; // elke gast is een figuur en zit in inVeh (#502); de speler van dit apparaat in inVehicle
   if (!world.vehicles.includes(v) || v.sunk) { endShift('fail', `${c.vehicleWord} is foetsie`, c); return false; }
   if (v.wrecked || v.disabled) { endShift('fail', `${c.vehicleWord} is afgeschreven`, c); return false; }
   if (inV === v) { c.awayFor = 0; c.boarded = true; return true; }

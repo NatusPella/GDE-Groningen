@@ -1,11 +1,11 @@
 // Samen spelen (#95): de spelerskant in het spel en de vaste personages, voor N spelers.
 // Pure functies op een `world`-achtig object (testbaar zonder spel):
-// - plek 0 (de host) speelt Tammo, plek 1 (de eerste gast) Tessa ('anita'), geen keuze en geen wissel;
-//   plek 2 en hoger zijn eigen figuren (coopplayers.js), zonder hoofdrol in het verhaal;
-// - op elke client staat het eigen lichaam in world.player (de camera volgt dat); Tammo staat in
-//   world.companion (of, op de host, Tessa); alle andere spelers zijn figuren in world.coopFigures[slot];
+// - de eigen speler (plek 0 op de gastheer, de eigen plek op een gast) speelt zijn eigen verhaalrol; de
+//   computermetgezel is de andere verhaalrol (cooproles.metgezelVoorSpeler);
+// - elke gast is een eigen figuur (coopplayers.js, #502), ook plek 1: geen vaste Tammo/Tessa per plek;
+// - op elke client staat het eigen lichaam in world.player (de camera volgt dat); de anderen zijn
+//   world.companion (de gastheer, op een gast) of figuren in world.coopFigures[slot];
 // - een client toont de toestand van de host (posities, wanted) en stuurt alleen invoer; geld en spullen blijven eigen.
-// Niet in een echt spel gezien: extra figuren hebben nog geen model in de wereld (zie #95).
 
 import { knoppen, wapenNaam, leesAanval, avatarVan } from './coopspeler.js';
 import { eigenVerhaalrol, andereVerhaalrol } from './cooproles.js';
@@ -16,9 +16,15 @@ export const mySlotOf = (me) => (me === 'host' ? 0 : me === 'client' ? 1 : me | 
 export function figures(world) { return world.coopFigures || (world.coopFigures = {}); }
 export function ensureFigure(world, slot, char, avatar = null) {
   const f = figures(world);
+  const geef = () => avatarVan({ ...(char ? { char } : {}), ...(avatar && typeof avatar === 'object' ? avatar : {}) }, slot);
   if (!f[slot]) {
-    const av = avatarVan({ ...(char ? { char } : {}), ...(avatar && typeof avatar === 'object' ? avatar : {}) }, slot); // (#455) anderen zie je als hun online-avatar
+    const av = geef(); // (#455) anderen zie je als hun online-avatar
     f[slot] = { slot, char: av.char, naam: av.naam, kleur: av.kleur, avatar: av, x: 0, y: 0, angle: 0, vx: 0, vy: 0, input: null };
+  } else if (char || avatar) {
+    // De figuur bestaat al (de gastheer maakt hem bij het binnenkomen, #502): een latere avatar of figuurkeuze van
+    // dezelfde speler moet hem alsnog aannemen, anders blijft de eerste standaardnaam staan.
+    const av = geef();
+    f[slot].char = av.char; f[slot].naam = av.naam; f[slot].kleur = av.kleur; f[slot].avatar = av;
   }
   return f[slot];
 }
@@ -28,9 +34,8 @@ export function removeFigure(world, slot) { if (world.coopFigures) delete world.
 export function bodyFor(world, me, slot) {
   const mine = mySlotOf(me);
   if (slot === mine) return world.player;
-  if (mine === 0 && slot === 1) return world.companion;      // host: Tessa is zijn metgezel
   if (mine >= 1 && slot === 0) return world.companion;       // gasten: Tammo is hun metgezel
-  return figures(world)[slot] || null;                       // alle anderen: figuren
+  return figures(world)[slot] || null;                       // alle anderen: figuren (ook plek 1 op de gastheer, #502)
 }
 
 // Zet de lichamen op hun eigen verhaalrol (#455): de rol hoort bij de speler, niet

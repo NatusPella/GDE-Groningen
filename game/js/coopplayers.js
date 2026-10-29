@@ -1,7 +1,6 @@
-// Samen spelen (#95): N spelers. De host (sterntopologie) speelt Tammo, de eerste
-// gast Tessa (vaste personages); extra spelers (3e, 4e, ... tot het ingestelde
-// maximum) spelen een eigen figuur uit een vaste lijst, zonder hoofdrol in het
-// verhaal: ze doen mee in de open wereld en bij de coöp-activiteiten.
+// Samen spelen (#95): N spelers. De host (sterntopologie) speelt zijn eigen verhaalrol; elke gast (ook plek 1) is een
+// eigen figuur uit een vaste lijst, met een eigen online-avatar (#455, #502). Ze doen mee in de open wereld en bij de
+// coöp-activiteiten, zonder een vaste verhaalrol op hun plek.
 // Pure logica: de lijst met spelers (roster), plekken, figuren en kleuren,
 // verwijderen, en wat er gebeurt als iemand wegvalt. Geen DOM, geen netwerk.
 
@@ -10,7 +9,8 @@ export const ABS_MAX = 16;  // bovengrens van het protocol (plekken in de codec)
 export const DEFAULT_MAX = 8;
 export const ADVIES_VANAF = 4; // vanaf dit aantal spelers waarschuwt de lobby voor prestaties en bandbreedte
 
-// De vaste personages van de eerste twee plekken.
+// De vaste personages van het verhaal. Ze horen bij de rol van een speler (lokaal), niet meer bij een plek: plek 0 en 1
+// zijn geen Tammo/Tessa meer (#502). MAIN_CHARS blijft de bron voor de namen en kleuren van die rollen.
 export const MAIN_CHARS = [
   { id: 'tammo', naam: 'Tammo', kleur: '#4fb3ff', vorm: 'driehoek' },
   { id: 'anita', naam: 'Tessa', kleur: '#ff7ab8', vorm: 'ruit' }, // 'anita' is het id van Tessa in storyarc
@@ -31,6 +31,8 @@ export const EXTRA_CHARS = [
   { id: 'liv', naam: 'Liv', kleur: '#59c9c0', vorm: 'golf', kleding: 'turquoise trui', huid: 0xc68863, seed: 112, variant: 'female' },
   { id: 'gijs', naam: 'Gijs', kleur: '#a58f7a', vorm: 'schild', kleding: 'beige jas', huid: 0xf1c9a5, seed: 113, variant: 'male' },
   { id: 'maud', naam: 'Maud', kleur: '#e5a0a0', vorm: 'bloem', kleding: 'zachtroze jas', huid: 0xe0b48a, seed: 114, variant: 'female' },
+  // (#516) Plek 1 is geen vaste Tessa meer, dus elke gast heeft een eigen figuur nodig: met 16 spelers zijn dat er 15.
+  { id: 'roos', naam: 'Roos', kleur: '#ffd166', vorm: 'ruit', kleding: 'gele trui', huid: 0xf1c9a5, seed: 115, variant: 'female' },
 ];
 
 // Uiterlijk voor het model (models3d_people.buildPersonMesh): vaste seed, dus iedereen ziet dezelfde figuur.
@@ -71,14 +73,13 @@ export const speler = (r, slot) => r.spelers.find((s) => s.slot === slot) || nul
 // De host kan het maximum veranderen; zit er al meer volk, dan blijft het minstens zo groot als nu.
 export function zetMax(r, n) { r.max = Math.max(clampMax(n), r.spelers.length); return r.max; }
 
-// Eerste vrije plek en het personage dat erbij hoort. Plek 1 is altijd Tessa; vanaf plek 2 een figuur
-// uit de lijst: de gewenste als die vrij is, anders de eerste vrije. Geeft { slot, char } of null (vol).
+// Eerste vrije plek en het personage dat erbij hoort. Elke gast is een eigen figuur uit de lijst (#502): de gewenste als
+// die vrij is, anders de eerste vrije. Plek 1 is dus geen vaste Tessa meer. Geeft { slot, char } of null (vol).
 export function wijsPlekToe(r, wens = null) {
   if (!heeftPlek(r)) return null;
   const vrij = []; for (let s = 1; s < r.max; s++) if (!bezet(r).includes(s)) vrij.push(s);
   if (!vrij.length) return null;
   const slot = vrij[0];
-  if (slot === 1) { r.spelers.push({ slot, char: 'anita', rol: 'gast', verbinding: 'ok' }); return { slot, char: 'anita' }; }
   const genomen = new Set(r.spelers.map((s) => s.char));
   const vrijeFiguren = EXTRA_CHARS.filter((c) => !genomen.has(c.id));
   if (!vrijeFiguren.length) return null;

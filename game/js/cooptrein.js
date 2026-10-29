@@ -4,7 +4,7 @@
 // Puur: geen THREE, geen DOM, geen netwerk, zodat scripts/cooptrein_test.mjs het kan doorlopen.
 // De gastheer is de machinist: hij rijdt de trein al met traindrive.js (world.trainDriving). De eerste gast wordt conducteur
 // (O de deuren, K de waakzaamheid), de volgende gasten passagier (#492). Een gast stapt alleen in of uit bij stilstand en
-// zijn lichaam is van de gastheer (coopbestuur.js lichaamVan). De gastheer zet dat lichaam
+// zijn lichaam is van de gastheer (coopbestuur.js lichaamVan; elke gast is een eigen figuur, #502). De gastheer zet dat lichaam
 // elke frame op de wagen (treinTick), zodat het met de trein meebeweegt in plaats van eruit geduwd te worden. Alleen bij het
 // stoppen van de gastheer, het wegvallen van de gast of het einde van de sessie gaat de crew weg en staat de gast naast de
 // wagen. Late instap blijft geweigerd door board() zelf (een dienst die al loopt).
@@ -50,8 +50,9 @@ export const treinVan = (world) => {
   return t && t.state === 'player' ? t : null;
 };
 
-// Waar de gast op de trein staat: elke gast een eigen wagen (plek 1 de eerste wagen, plek 2 de tweede), in het midden van
-// de vloer. Geeft { car, x, y, angle, z, lx, lz } of null. Ook voor de tests en de tekenaar: niets wordt bewaard.
+// Waar de gast op de trein staat: elke gast een eigen wagen (plek 1 de eerste wagen, plek 2 de tweede; elke gast is een
+// figuur, #502), in het midden van de vloer. Geeft { car, x, y, angle, z, lx, lz } of null. Ook voor de tests en de
+// tekenaar: niets wordt bewaard.
 export function lichaamPlek(world, slot) {
   const t = treinVan(world);
   return t ? plekOpTrein(t, slot) : null;
