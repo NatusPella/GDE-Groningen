@@ -13,7 +13,7 @@ import { setUserWaypoint } from './routing.js';
 import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
 import {
   GARAGE_3Q_ANGLE, GARAGE_PIC_W, GARAGE_PIC_H, garagePicZoom, TURN_SPEED, TURN_FPS,
-  garagePreviewSpec as previewSpec, garageCardLook, garageSaleShop, turntableTarget,
+  garagePreviewSpec as previewSpec, garageCardLook, garageSaleShop, turntableTarget, stageSilhouetteStyle,
 } from './garagepics.js';
 import {
   GARAGE_FILTERS as FILTERS, GARAGE_SORTS as SORTS, garageGroup as groupOf, garagePrice as priceOf,
@@ -165,9 +165,13 @@ export function selectGarageVehicle(el, id, msg = '') {
 
 // The silhouette and the still behind the live canvas: on while the preview
 // has not drawn yet, off as soon as it has.
+// Het silhouet is een SVG en die kent geen `hidden` (zie stageSilhouetteStyle,
+// #463): het werd nooit verborgen en scheen in de lakkleur door het model en het
+// glas heen. Een stijl op het element zelf werkt wel; de <img> eronder is HTML
+// en gebruikt gewoon `hidden`.
 function showStageFallback(box, on) {
   const glyph = box.querySelector('.gar-stage > svg');
-  if (glyph) glyph.hidden = !on;
+  if (glyph) glyph.style.display = stageSilhouetteStyle(on);
   const still = box.querySelector('.gar-still');
   if (still && !on) still.hidden = true;
 }
