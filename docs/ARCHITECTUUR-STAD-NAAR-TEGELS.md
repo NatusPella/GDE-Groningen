@@ -739,3 +739,245 @@ is geen tweeling. `poisections_test` (32), `world_tiles_test`, `tileworld_test`,
 verkeerslichten buiten de oude kaartrand uit de tegels halen in plaats van uit `meta.bounds` (stap b), daarna de
 stadsdekking gelijk aan de stadstegels zetten (stap c). Niet bekeken in beeld: de watertweeling is met de bestaande
 wereld niet gemeten (geen `game/world` in deze werkboom), dus of de stad vandaag zulke tweetelingen heeft, is niet geteld.
+
+## Ontwerp voor het drop-pad en de dichte gids (#314 C1, 29 oktober 2026)
+
+Deze ronde bouwt niets om: hij legt de lezers vast (bijlage A) en beschrijft wat
+ontpinnen vraagt. De pin zelf blijft staan (`tileworld.js` `loadTileWorld`, regel 437).
+
+**Waarom de pin er is.** Niet omdat de stad anders niet laadt, maar omdat het
+strooipad (`tilestore.js` `prefetch`) de stadstegels anders weggooit. `dropTile`
+haalt de rijen van een tegel uit de rasters, terwijl de hele arrays
+(`map.buildings`, `map.roads`, ...) ze houden; komt de tegel terug, dan zet
+`addTile` van elk object een tweede kopie neer. Gemeten: zonder pin vallen 9 van
+de 58 tegels uit de store en komen 4569 van 4639 gidsen dubbel terug
+(`scripts/tileworld_pinned_test.mjs`).
+
+### De dichte gids-eis (`tileworld.js:177`)
+
+`fromTiles` eist dat elk slot van elke array gevuld is:
+
+`for (const kind of Object.keys(arrays)) for (let i = 0; i < arrays[kind].length; i++) if (!arrays[kind][i]) throw new Error(...)`
+
+De gids is de plaats in de array, en die plaats is buiten de array doorverteld:
+de JUNCTIONS-rijen noemen een weg als `[road gid, idx, ...]`
+(`junctions.js` `junctionRows`), `clippedWays[].building` is een gebouw-gid
+(`tileworld.js:182`), `attachProfiles(tile, (gid) => arrays.roads[gid])` haalt de
+weg bij zijn gid op, en `splitOverlay` scheidt stad en overlay op de gids
+(20.000.000). Hernummeren bij een drop kan dus niet: de gids staat in de tegels.
+Een gat in de array is de enige vorm die klopt, en dan moet elke lezer die op
+gid/index rekent een gat kunnen velen.
+
+Wat er moet gebeuren, in vijf stappen:
+
+1. **Gaten in plaats van dichte arrays.** `dropTile` zet het slot van een rij uit
+   deze tegel op `undefined` (en de rij uit `_res`), in alle zeven arrays. De
+   controle op regel 177 wordt: dicht, behalve de gaten die de index noemt
+   (`index.sparse` per soort), zodat een oude wereld en een volle stad blijven
+   werken. `rowOf(kind, gid)` in `tileworld.js` wordt de enige weg naar een rij:
+   `_res` eerst, de array als terugval.
+2. **De gid-lezers mee.** `splitOverlay`, `clippedWays` (regel 182),
+   `attachProfiles` en de JUNCTIONS-rijen lezen nu `arrays[kind][gid]`; die gaan
+   via `rowOf` en slaan een gat over in plaats van `undefined` door te geven.
+   `junctions.js` `junctionRows` (regel 273) bouwt de gid-index uit `map.roads`
+   en moet hem uit de tegels halen die er nog zijn.
+3. **Rasters en boekhouding.** `dropTile` doet al: `_res`, `gridOf`
+   (building/road/water/green/tree/rail/parcel), `hedgeGrid`, `junctionRows`,
+   `terrain` en `shrinkElevation`. Nieuw zijn de arrays (stap 1) en de
+   `furniture`-lijst: `addTile` duwt een gestreamde rij in `this.furniture`
+   (regel 266) en `dropTile` haalt hem er weer uit (regel 372); bij de stad
+   gebeurt dat nu niet, want die rijen staan in dezelfde array. Splitsen in
+   "array van de stad" en "lijst van gestroomde rijen" is de kleinste stap.
+4. **Caches legen.** Tientallen modules bouwen één keer iets uit de hele arrays
+   en bewaren dat in een modulevariabele of op de kaart:
+   `junctions.js` (`store(map).nodes`), `vehicle/traffic.js` (`graphCache`),
+   `trafficlights.js` (`nodes`), `roadsurface.js` (`netState`),
+   `pedroutes.js` (`sites`), `parkedcars.js` (`states`), `ommelandplace.js`
+   (`railCells`), `cinematics.js` (`cityBox`), `flavour.js` (`ringPts`),
+   `waterindex.js` (`_staticWater`, `_waterIndex`, `_waterObstacles`),
+   `skyprops.js` (`_helipad`, `_balloonSites`), `trailer.js` (`_trailerBox`),
+   `farlod.js` (`tiles`), `grass.js` (`chunks`), `streetfurniture3d.js`
+   (`tiles`) en `nightlights3d.js` (`visible`). Eén geo-versie op de kaart
+   (`map.geoVer`, zoals `_waterVer` en `junctionVer` al bestaan), per add en drop
+   opgehoogd, laat elke cache zichzelf ongeldig maken.
+5. **Het tekenwerk.** `scene3d.js` (`syncBuildings`, `syncRoads`, `syncWater`,
+   `syncTrees`, het terrein), de verte-LOD (`farlod.js`), de graschunks, de
+   straatmeubeltegels, de lantaarns en de bouwwerken die één keer uit de arrays
+   komen (`roadstructures3d.js` `buildRailDecks`, `railway3d.js`,
+   `movablebridges.js`). `onTiles(fn)` geeft al `'add'` en `'drop'`; elke
+   tekenlaag wordt abonnee en ruimt zijn eigen deel op, in plaats van de wereld
+   opnieuw op te bouwen.
+
+**Volgorde.** De teller in `scripts/tegellezers_test.mjs` moet eerst zakken: de
+grootste posten zijn `mapdata.js` (21, de bouw van de rasters zelf),
+`scene3d.js` (7), `geokernels.js` (5) en `tileworld.js` (5). Daarna kan de
+dichte eis weg (stap 1 en 2), dan de caches (stap 4) en het tekenwerk (stap 5),
+en pas dan de pin. De meetlat blijft `scripts/perf/worker_overlay_diff.mjs` en
+`scripts/world/stad_pariteit_c2.mjs`; zonder die twee is een ontpinde stad niet
+te bewijzen.
+
+## Bijlage A: de 107 hele-array-lezers van de zeven kaartarrays
+
+Gemeten op 29 oktober 2026 met `node scripts/tegellezers_test.mjs --verbose`
+(uitvoer: 107 lezers in 48 bestanden). Geteld is elke plaats die
+`map.buildings`, `map.roads`, `map.water`, `map.trees`, `map.rails`,
+`map.furniture` of `map.green` als geheel gebruikt: doorgeven, erover lopen,
+`.map`/`.filter`/`.find`/`.some`/`.forEach`/`.indexOf`/`.length`, `.push`/
+`.splice`, en de bestaanscheck (`map.roads ? ...`). Niet geteld: een losse rij
+(`map.roads[i]`, `map.buildings[gid]`) en een toewijzing van de hele array
+(`m.roads = p.roads`), want dat zijn geen lezers.
+
+De verkenning van 25 oktober noemde 112 lezers in 51 bestanden. Die greep is met
+deze teller niet precies te herhalen (hij telde onder meer elke vermelding van
+`map.<array>`, ook de toewijzingen van een hele array en de losse rijen). Deze
+teller is de maat die vanaf nu geldt, met de definitie hierboven: 107 in 48
+bestanden. Hij kan alleen dalen: een nieuwe lezer of een hoger aantal per bestand
+laat `tegellezers_test` rood worden. Zakken mag, en vraagt om
+`node scripts/tegellezers_test.mjs --update` (dat verlaagt de basislijn in het
+script zelf en nooit omhoog).
+
+**Aantallen per bestand**, van groot naar klein (48 bestanden, 107 aanrakingen;
+een bestand met meer dan één array telt ze samen):
+
+| bestand | lezers | bestand | lezers |
+|---|---|---|---|
+| `mapdata.js` | 21 | `scene3d.js` | 7 |
+| `geokernels.js` | 5 | `tileworld.js` | 5 |
+| `countryedge.js` | 4 | `elevation.js` | 4 |
+| `passages.js` | 4 | `ringcheck.js` | 4 |
+| `farlod.js` | 3 | `waterindex.js` | 3 |
+| `canopies3d.js` | 2 | `grass.js` | 2 |
+| `home.js` | 2 | `junctions.js` | 2 |
+| `movablebridges.js` | 2 | `parkedcars.js` | 2 |
+| `shops.js` | 2 | `skyprops.js` | 2 |
+| `streetfurniture3d.js` | 2 | `bridgerails.js` | 1 |
+| `cinematics.js` | 1 | `flavour.js` | 1 |
+| `flitspaal.js` | 1 | `main.js` | 1 |
+| `mapview.js` | 1 | `marktfiets.js` | 1 |
+| `nightlights3d.js` | 1 | `ommelandplace.js` | 1 |
+| `passagecheck.js` | 1 | `pedestrians.js` | 1 |
+| `pedroutes.js` | 1 | `quaywalls.js` | 1 |
+| `railprofile.js` | 1 | `railway.js` | 1 |
+| `railway3d.js` | 1 | `roadstructures3d.js` | 1 |
+| `roadsurface.js` | 1 | `routing.js` | 1 |
+| `sidejobkit.js` | 1 | `simworld.js` | 1 |
+| `stationtravel.js` | 1 | `streetsigns.js` | 1 |
+| `testmenu.js` | 1 | `thuis3d.js` | 1 |
+| `trafficlights.js` | 1 | `trailer.js` | 1 |
+| `vehicle/traffic.js` | 1 | `worldevents.js` | 1 |
+
+De vraag in de laatste kolom is de vraag die de code op die plek aan de array
+stelt: dat is wat een omzetting naar de rasters of naar een tegelvraag moet
+blijven beantwoorden.
+
+| bestand | regel | array | vraag |
+|---|---|---|---|
+| `bridgerails.js` | 83 | roads | elke weg, om te zien welke een leuning of brugrand nodig heeft (`buildRails`) |
+| `canopies3d.js` | 68 | rails | alle sporen binnen 8 m, als terugval wanneer de kaart geen railraster heeft (`railsAround`) |
+| `canopies3d.js` | 106 | rails | elk spoor, of een luifelpost erop staat (`postInTheWay`) |
+| `cinematics.js` | 512 | roads | elke weg, voor de kaartdoos van de omlijning (`realMapBox`) |
+| `countryedge.js` | 51 | roads | elke weg, om te bepalen waar de bebouwde kaart ophoudt (`countryEdge`) |
+| `countryedge.js` | 52 | buildings | elk gebouw, idem (de rand van de kaart) |
+| `countryedge.js` | 57 | water | elk water, idem |
+| `countryedge.js` | 58 | trees | elke boom, idem |
+| `elevation.js` | 76 | roads | elke weg met hoogte, voor de segmenten van het hoogtemodel (`buildElevation`) |
+| `elevation.js` | 87 | roads | elke weg, om de straatribbon naast verhoogde en verzonken wegen te vinden |
+| `elevation.js` | 271 | rails | elk spoor, of er een hoogteprofiel is (`addRailLifts`) |
+| `elevation.js` | 273 | rails | elk spoor met een profiel of lift, voor de wanden en dekken |
+| `farlod.js` | 358 | buildings | elk gebouw, om de verte-LOD-tegels te vullen |
+| `farlod.js` | 362 | roads | elke weg, idem (segmenten per tegel) |
+| `farlod.js` | 368 | green | elk groenvlak, idem |
+| `flavour.js` | 237 | roads | elke weg, om de punten van de Ring Zuid te verzamelen (`ringPoints`) |
+| `flitspaal.js` | 31 | roads | elke weg van de categorie major/normal zonder hoogte, om flitspalen te plaatsen (`initFlitspaal`) |
+| `geokernels.js` | 87 | roads | elke weg, om de beweegbare zijkanten te adopteren (`roadMapLoad`) |
+| `geokernels.js` | 100 | roads | elke weg achteruit, om de kaart van de worker tot de gevraagde sleutels te snoeien (`roadInit`) |
+| `geokernels.js` | 103 | roads | dezelfde snoei, met `splice` |
+| `geokernels.js` | 109 | roads | elke weg, om de `byKey`-index van de worker te bouwen |
+| `geokernels.js` | 112 | roads | het aantal wegen in het antwoord van de worker |
+| `grass.js` | 841 | green | elk groenvlak, om de graschunks te bouwen (`initGrass`) |
+| `grass.js` | 893 | green | elk groenvlak, om overlappende vlakken een laag te geven (`assignSubLayers`) |
+| `home.js` | 316 | roads | de plaats van een weg in de array (`indexOf`), om de parkeerpaden in de plint weg te halen |
+| `home.js` | 317 | roads | dezelfde weg, met `splice` uit de lijst |
+| `junctions.js` | 44 | roads | elke weg, om de kruispunten te vinden (`junctionIndex`) |
+| `junctions.js` | 273 | roads | elke weg, om zijn gid (plaats in `map.roads`) in de JUNCTIONS-rij te zetten (`junctionRows`) |
+| `main.js` | 816 | roads | bestaat de wegenlijst? (poort voor de simbrug) |
+| `mapdata.js` | 44 | roads | elke weg, om droge kruisingen te merken (`markDryCrossings`) |
+| `mapdata.js` | 82 | roads | elke weg, om de knooppunten van de ring te verzamelen (`buildRingGrid`) |
+| `mapdata.js` | 86 | roads | elke ringweg, om segmenten en aansluitingen in het ringraster te zetten |
+| `mapdata.js` | 128 | buildings | elk gebouw, om de bounds te zetten en het bouwraster te vullen (de klasse) |
+| `mapdata.js` | 132 | buildings | elk gebouw, om geneste daken te lichten (`liftNestedRoofs`) |
+| `mapdata.js` | 134 | buildings | elk gebouw, voor de plattegrond van het museum (`attachMuseumPlan`) |
+| `mapdata.js` | 135 | buildings | elk gebouw, voor de interieurplannen (`attachInteriorPlans`) |
+| `mapdata.js` | 139 | roads | elke weg, om het wegraster te vullen (`indexRoads`) |
+| `mapdata.js` | 150 | water | elk water, om het waterraster te vullen |
+| `mapdata.js` | 156 | green | elk groenvlak, om het groenraster te vullen |
+| `mapdata.js` | 165 | trees | elke boom, om bomen op de rijbaan of op niveau te laten vallen |
+| `mapdata.js` | 168 | trees | elke boom, om hem naast de weg te zetten of te laten gaan (`clearTreesFromRoads`) |
+| `mapdata.js` | 171 | trees | elke boom, om het bomenraster te vullen |
+| `mapdata.js` | 201 | buildings | elk gebouw, om de bounds te zetten en het bouwraster te vullen (`fromParts`) |
+| `mapdata.js` | 205 | buildings | elk gebouw, voor de plattegrond van het museum |
+| `mapdata.js` | 206 | buildings | elk gebouw, voor de interieurplannen |
+| `mapdata.js` | 208 | roads | elke weg, om het wegraster te vullen |
+| `mapdata.js` | 214 | water | elk water, om het waterraster te vullen |
+| `mapdata.js` | 219 | green | elk groenvlak, om het groenraster te vullen |
+| `mapdata.js` | 228 | trees | elke boom, om hem naast de weg te zetten of te laten gaan |
+| `mapdata.js` | 230 | trees | elke boom, om het bomenraster te vullen |
+| `mapview.js` | 1413 | roads | elke weg met een naam, voor de zoekindex van de kaart (`buildSearchIndex`) |
+| `marktfiets.js` | 45 | roads | elke weg, om de uiteinden van de fietsrouteborden te vinden (`signSpots`) |
+| `movablebridges.js` | 151 | roads | elke weg, om de beweegbare zijkanten te adopteren (`buildMovableBridges`) |
+| `movablebridges.js` | 152 | roads | elke weg, om te zien welke een beweegbare brug is |
+| `nightlights3d.js` | 421 | furniture | elk meubelstuk, om de straatlantaarns te vinden (`rebuildVisible`) |
+| `ommelandplace.js` | 25 | rails | elk spoor, om de segmenten per 100 m te bucketen (`railIndex`) |
+| `parkedcars.js` | 49 | roads | elke weg met zijn plaats in de array, voor de geparkeerde auto's (`stateOf`) |
+| `parkedcars.js` | 428 | roads | bestaat de wegenlijst? (poort in `manageParkedCars`) |
+| `passagecheck.js` | 19 | roads | elke weg, om de doorgangen te keuren (`auditPassages`) |
+| `passages.js` | 411 | roads | het aantal wegen vóór het knippen (`clipWaysInBuildings`) |
+| `passages.js` | 442 | roads | elke weg, om de stukken van een geknipte weg achteraan toe te voegen |
+| `passages.js` | 445 | roads | elke weg, om de gaten (`null`) uit de lijst te halen |
+| `passages.js` | 447 | buildings | elk gebouw, om de doorgangen en deuren te wissen |
+| `pedestrians.js` | 1220 | roads | bestaat de wegenlijst? (poort voor de simbrug) |
+| `pedroutes.js` | 256 | roads | elke weg, om de loopknooppunten te vinden (`buildSites`) |
+| `quaywalls.js` | 862 | water | de plaats van dit waterpolygoon in de array (`requestShore`) |
+| `railprofile.js` | 98 | rails | elk spoor, om het hoogteprofiel te indexeren (`railHeightFn`) |
+| `railway.js` | 931 | rails | elk spoor, om de sporen op de kaart te tekenen (`drawRailsOnMap`) |
+| `railway3d.js` | 142 | rails | elk spoor, om de 3D-baan te bouwen (`buildTrackData`) |
+| `ringcheck.js` | 128 | roads | elke verhoogde of genummerde ringweg, om de ring te keuren (`probeRingSolids`) |
+| `ringcheck.js` | 279 | roads | elke weg, om de natte stukken te vinden (`waterCrossings`) |
+| `ringcheck.js` | 533 | rails | elk spoor, voor de lifts van het profiel (`probeRailLifts`) |
+| `ringcheck.js` | 543 | rails | elk spoor, om de auto en de fiets langs elke lift te zetten |
+| `roadstructures3d.js` | 685 | rails | elk spoor, om de dekken over de uitgraving te bouwen (`buildRailDecks`) |
+| `roadsurface.js` | 405 | roads | elke weg, om de knooppuntindex van het wegdek te bouwen (`netState`) |
+| `routing.js` | 147 | roads | elke weg, om de routegraaf te vullen |
+| `scene3d.js` | 1015 | water | elk water, om het terrein in de worker te bouwen (`init3D`) |
+| `scene3d.js` | 1018 | water | elk water, als terugval wanneer de worker geen terrein geeft |
+| `scene3d.js` | 1023 | water | elk water, voor het terrein zonder worker |
+| `scene3d.js` | 1063 | buildings | elk gebouw, om de landmarks te vinden |
+| `scene3d.js` | 3758 | roads | elke weg, om één weg te kiezen voor de warmup (`queueWarmup`) |
+| `scene3d.js` | 3769 | water | elk water, om een plas te kiezen voor de boot-warmup (twee keer: de check en de `find`) |
+| `shops.js` | 307 | roads | elke weg, om een aanlegsteiger bij een straat te vinden (`placeJetty`) |
+| `shops.js` | 415 | buildings | elk gebouw, om de EIKEA te vinden |
+| `sidejobkit.js` | 69 | buildings | elk gebouw, om het genoemde gebouw (Gerechtsgebouw e.d.) te vinden (`namedBuildingSpot`) |
+| `simworld.js` | 11 | roads | elke weg, om de simwegenset te bouwen (`buildSimRoads`) |
+| `skyprops.js` | 51 | buildings | elk gebouw, om het gebouw onder de helikopterplek te vinden (`helipadInfo`) |
+| `skyprops.js` | 66 | green | elk groenvlak, om ballonstartplaatsen te vinden (`launchSites`) |
+| `stationtravel.js` | 175 | rails | elk spoor, om de afstand tot het spoor te meten (`railDist`) |
+| `streetfurniture3d.js` | 285 | furniture | elk meubelstuk, om de stukken van deze tegel te vinden (`tileItems`) |
+| `streetfurniture3d.js` | 293 | rails | elk spoor (naast `railNear`), om geen hek over het spoor te tekenen |
+| `streetsigns.js` | 75 | roads | elke weg met een naam, voor de straatnaamborden (`buildSignIndex`) |
+| `testmenu.js` | 107 | roads | elke weg, om de dichtstbijzijnde brug te vinden (de sprong) |
+| `thuis3d.js` | 428 | roads | elke weg, om de Korenbloemstraat te vinden (`tagKorenbloemstraat`) |
+| `tileworld.js` | 266 | furniture | bestaat de meubellijst? en: de rij van een gestroomde tegel erin (`addTile`) |
+| `tileworld.js` | 372 | furniture | bestaat de lijst? `indexOf` en `splice` om de rij van een weggevallen tegel eruit te halen (`dropTile`) |
+| `trafficlights.js` | 111 | roads | elke weg, om het verkeerslichtennetwerk te bouwen (`buildNodes`) |
+| `trailer.js` | 429 | roads | elke weg, om de kaartdoos van de trailer te bepalen (`cityBox`) |
+| `vehicle/traffic.js` | 75 | roads | elke weg, om de rijgraaf te bouwen (`roadGraph`) |
+| `waterindex.js` | 209 | water | elk waterpolygoon, om de statische set te maken (`staticWater`) |
+| `waterindex.js` | 213 | water | elk water, om de waterindex te bouwen (`getWaterIndex`) |
+| `waterindex.js` | 324 | buildings | elk gebouw, om woonboten als obstakel te nemen (`obstacleGrid`) |
+| `worldevents.js` | 154 | water | elk water, om de plassen voor blauwalg te vinden (`lakesOf`) |
+
+Telt een rij hier één regel terwijl de teller er meer telt (regel 266 twee keer:
+de bestaanscheck en de `push`; regel 372 drie keer: de check, `indexOf` en
+`splice`; regel 3769 twee keer: de check en de `find`), dan staan er op die regel
+meer afzonderlijke aanrakingen. Ze staan er allebei omdat een volgende fase ze
+allebei moet wegwerken: 103 regels in de tabel, 107 aanrakingen in de teller.
