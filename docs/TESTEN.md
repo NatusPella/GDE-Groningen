@@ -40,7 +40,7 @@ Een volledige poort duurde op 27-10 vijf uur, vrijwel allemaal wachttijd. Wat er
 - **De Electron-stappen draaien met drie tegelijk** over de drie sloten die er al waren (`~/.gde-locks/electron-1..3`). Elke stap neemt zelf een slot, dus de machine blijft beheersbaar; de coöp-testbank heeft twee sloten en komt daarom na de rest. Dat scheelt ongeveer twee uur.
 - **De missiesweep van de spelbot gaat op snelheid 2** (`scripts/bot/run.mjs --speed=2`). De bot wandelt anders een uur over de kaart. Hoger dan 2 kan, maar dan gaat hij vaker onterecht "vast" staan.
 - **`qa-features` heeft honderd minuten** in plaats van vijfenveertig. Die stap maakt 250+ schermafbeeldingen en was met de oude grens midden in het werk klaar: dat verscheen als time-out zonder dat er iets stuk was.
-- **`licht` mag met meer processen**: `--jobs=2` is de standaard, `--jobs=4` kan op een machine met genoeg kernen. Meet het verschil in het rapport; de telling per test staat erin.
+- **`licht` draait met twee processen** (`--jobs=2`). Drie of meer lijkt sneller (11,8 in plaats van 14,4 minuten) maar gaf op 29-10 twee keer onterecht rood: `farlod_test` en `specialpeds_test` halen hun eigen aannames niet als er drie tegelijk draaien. Meet het verschil in het rapport; de telling per test staat erin.
 
 Wat níet helpt en waarom: een stap overslaan omdat hij "toch altijd groen" is. Op 27-10 waren de twee traagste stappen (`qa-features` en de missiesweep) precies de twee die een echte fout vonden, en de coop-stap vond een rol-fout die er al maanden in zat.
 
