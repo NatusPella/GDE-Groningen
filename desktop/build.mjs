@@ -7,6 +7,7 @@ import { spawnSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { build as esbuild } from 'esbuild';
 import { BUILD_ONLY } from '../scripts/lib/buildonly.mjs';
 import { checkWorld, checkAudio, formatProblems } from '../scripts/lib/stagecheck.mjs';
 
@@ -50,6 +51,26 @@ function walk(dir, out = []) {
     if (e.isDirectory()) walk(p, out); else out.push(p);
   }
   return out;
+}
+
+// TypeScript (ADR 0022): strip de types van de .ts-bronnen naar .js en laat de
+// .ts-bronnen uit de build. Geen bundel: imports blijven zoals ze zijn.
+async function transpileTs(outDir) {
+  const jsDir = path.join(outDir, 'js');
+  if (!fs.existsSync(jsDir)) return;
+  const ts = walk(jsDir).filter((f) => f.endsWith('.ts'));
+  if (!ts.length) return;
+  await esbuild({
+    entryPoints: ts,
+    outdir: jsDir,
+    outbase: jsDir,
+    bundle: false,
+    format: 'esm',
+    target: 'es2022',
+    logLevel: 'warning',
+  });
+  for (const f of ts) fs.rmSync(f);
+  console.log(`transpiled ${ts.length} .ts -> .js`);
 }
 
 const IMPORT_RE = /(?:import|export)\s[^'"]*?from\s*['"]([^'"]+)['"]|import\s*\(\s*['"]([^'"]+)['"]\s*\)|import\s+['"]([^'"]+)['"]/g;
@@ -167,6 +188,7 @@ async function main() {
   // build-only modules of game/js (scripts/lib/buildonly.mjs) stay out of the app
   const skipJs = new Set(BUILD_ONLY.map((f) => path.join(SRC, 'js', f)));
   fs.cpSync(SRC, OUT, { recursive: true, filter: (p) => path.basename(p) !== 'tts.json' && !skipJs.has(p) });
+  await transpileTs(OUT);
   // the start screen's "Wat is er nieuw" panel reads the changelog
   fs.copyFileSync(path.join(HERE, '..', 'CHANGELOG.md'), path.join(OUT, 'CHANGELOG.md'));
   // the vendored three.js and fonts must ship with their licence texts

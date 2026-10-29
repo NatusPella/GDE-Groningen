@@ -118,7 +118,8 @@
   },
   "devDependencies": {
     "electron": "^44.9.0",
-    "electron-builder": "^26.15.3"
+    "electron-builder": "^26.15.3",
+    "esbuild": "^0.24.2"
   },
   "overrides": {
     "http-cache-semantics": "^4.3.0",
