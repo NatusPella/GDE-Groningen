@@ -27,8 +27,9 @@ npm run build:ts        # game/js/*.ts -> game/js/*.js (in-place, voor dev)
 ```
 
 Imports blijven `.js` zeggen (`./economy.js`): de strip-stap zet `foo.ts` om naar
-`foo.js`, dus importers veranderen niet. De gegenereerde `.js` staat niet in git;
-een omgezette module krijgt daarom een regel in `.gitignore`.
+`foo.js`, dus importers veranderen niet. De gegenereerde `.js` wordt **wel** gecommit
+(naast de `.ts`), zodat tests met gewone `node` en `index.html` zonder build-stap
+blijven werken. Bewerk de `.ts`, draai `npm run build:ts`, en commit beide.
 
 ## Wat de proef liet zien
 
@@ -54,7 +55,8 @@ een omgezette module krijgt daarom een regel in `.gitignore`.
   genormaliseerd naar de import-map-shorthand.
 - **`@types/three` (0.160) is incompleet**, zeker voor de addons: verwacht
   `any`-terugval en eigen augmentaties.
-- **Waar de uitvoer woont.** In-place `.js` naast de `.ts`, met een gerichte
-  `.gitignore`-regel per omgezette module. Wordt die lijst ooit onwerkbaar, dan is
-  het alternatief een aparte uitvoermap met een dev-server — een bewuste keuze die
-  dan zijn eigen ADR-noot verdient.
+- **Waar de uitvoer woont.** De `.js` staat naast de `.ts` en wordt gecommit: tests
+  draaien met gewone `node` (Node 18+) en `index.html` opent zonder build-stap, dus
+  de `.js` moet in de repo staan. De `.ts` is de bron; `npm run build:ts` werkt de
+  `.js` bij en je commit beide. De build (`desktop/build.mjs`) stript opnieuw en laat
+  de `.ts`-bronnen uit het uiteindelijke pakket.

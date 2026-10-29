@@ -51,11 +51,9 @@ android/android/version.properties
 .opencode/
 .specsmd/
 
-# TypeScript (docs/TYPESCRIPT.md): tooling en gegenereerde .js naast de .ts-bronnen.
-# In een echte migratie hoort hier een bewuste keuze (in-place vs. aparte uitvoermap), zie de ADR.
+# TypeScript (docs/TYPESCRIPT.md): dev-tooling. De gegenereerde .js naast de .ts
+# wordt WEL gecommit (tests draaien met gewone node en dev opent index.html zonder
+# build-stap); de .ts is de bron, `npm run build:ts` werkt de .js bij.
 node_modules/
 game/tsbuild/
-game/js/flitspaalrules.js
-game/js/wantedstate.js
-game/js/greenwater.js
 

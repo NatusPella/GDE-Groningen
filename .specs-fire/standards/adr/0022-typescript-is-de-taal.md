@@ -25,9 +25,11 @@ Daarnaast, onveranderlijk:
 - **Geen bundler.** Types worden gestript (esbuild), niet gebundeld. ADR 0006 blijft
   staan; alleen zijn "geen buildstap in dev"-zin krijgt een uitzondering voor
   type-strippen.
-- **De uitvoer is gegenereerd en staat niet in git.** In-place `.js` met gerichte
-  ignores, of een aparte uitvoermap; de bron van waarheid is de `.ts`. De importers
-  blijven `./foo.js` zeggen: de strip-stap zet `foo.ts` om naar `foo.js`.
+- **De `.ts` is de bron; de gegenereerde `.js` wordt gecommit.** De build stript de
+  types (`foo.ts` → `foo.js`) en de `.js` gaat mee in de commit, zodat tests met
+  gewone `node` (Node 18+) en `index.html` zonder build-stap blijven werken. Bewerk
+  de `.ts`, draai `npm run build:ts`, en commit beide. Importers blijven `./foo.js`
+  zeggen: de strip-stap zet `foo.ts` om naar `foo.js`.
 - **De tooling is dev-only** (typescript, esbuild, `@types/three`), niet in het spel,
   en staat op één plek: een dev-only root-`package.json` voor typecheck/transpile en
   esbuild als build-devDependency van `desktop/` (CI doet alleen daar `npm ci`).

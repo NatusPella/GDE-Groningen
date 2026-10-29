@@ -20,7 +20,9 @@ omliggende code al gelden. Bij twijfel: kijk hoe de buren het doen en volg dat.
   opent, gaat in dezelfde commit naar `.ts` (ADR 0022).
 - Imports blijven `.js` zeggen (`./economy.js`): de strip-stap zet `foo.ts` om naar
   `foo.js`, zodat importers niet hoeven te veranderen.
-- De gegenereerde `.js` staat niet in git; de `.ts` is de bron van waarheid.
+- De gegenereerde `.js` wordt gecommit naast de `.ts` (de `.ts` is de bron;
+  `npm run build:ts` werkt de `.js` bij), zodat tests met gewone `node` en
+  `index.html` zonder build-stap blijven werken.
 - Typecheck met `npx tsc --noEmit` vanaf de root; transpile met `npm run build:ts`.
 
 ## Taal
