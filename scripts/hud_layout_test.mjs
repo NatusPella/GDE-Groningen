@@ -110,5 +110,57 @@ for (const [mode, p] of Object.entries(PALETTES)) {
   }
 }
 
+// --- #463: de plaatsnaam wijkt voor de berichtkaart van zone A ----------------
+// Op 360x800-voet en 820x1180-voet lag "GROTE MARKT" achter de TIP-kaart. De
+// melding gaat voor (hudrules.js), dus de plaatsnaam zakt tot onder de gemeten
+// kaartkolom. Deze controles houden de twee helften van die regel bij elkaar:
+// de CSS tilt op met --hud-a-bottom, hud_panel.js vult die uit de echte kaart.
+{
+  const hud = css('hud_panel.css');
+  const rule = (sel) => {
+    const at = hud.indexOf(sel + ' {');
+    return at < 0 ? '' : hud.slice(at, hud.indexOf('}', at));
+  };
+  const place = rule('#hud .hud-place');
+  ok(/top:\s*max\(/.test(place) && /var\(--hud-a-bottom/.test(place), 'plaatsnaam zakt onder de gemeten berichtkolom', place.slice(0, 190));
+  // zone B heeft twee bewoners: de routekaart wijkt alleen als de kolom hem raakt
+  const gps = rule('#hud .hud-gps');
+  ok(/top:\s*max\(/.test(gps) && /var\(--hud-gps-top/.test(gps), 'de routekaart van zone B zakt onder een melding die hem raakt', gps.slice(0, 120));
+  // de kolom wordt gemeten en niet met een vaste hoogte geraden
+  const panel = css('hud_panel.js');
+  ok(/--hud-a-bottom/.test(panel) && /el\.offsetTop \+ el\.offsetHeight/.test(panel), 'hud_panel.js meet de onderkant van de kaartkolom');
+  ok(/querySelector\('\.phonefeed'\)/.test(panel) && /\[cards, feed\]/.test(panel), 'de telefoonfeed van zone A telt even hoog mee');
+  // alleen op een smal scherm: op het bureaublad staat de melding links en zone B in het midden
+  ok(/const NARROW = 1024;/.test(panel) && /innerWidth > NARROW/.test(panel), 'de meting geldt alleen op een smal scherm (tot 1024px)');
+  // de kier tussen de onderkant van de kaart en de bovenkant van de plaatsnaam
+  const gap = Number((place.match(/--hud-a-bottom[^)]*\)\s*\+\s*(\d+)px/) || [])[1]);
+  ok(gap >= 8, `plaatsnaam houdt ${gap}px van de berichtkaart`, gap);
+  // op 360x800 begint de kolom op --hud-top (18 px in de media query); voor elke
+  // kaarthoogte blijft de plaatsnaam er dan onder, hoe hoog de kaart ook wordt
+  ok(/--hud-top:\s*max\(18px/.test(hud), 'smal scherm: --hud-top is 18px');
+  for (const cardH of [56, 90, 140, 300]) {
+    const bottom = 18 + cardH, top = Math.max(18 + 10, bottom + gap);
+    ok(top >= bottom + gap, `kaart van ${cardH}px hoog: de plaatsnaam begint op ${top}px, onder de kaart (${bottom}px)`);
+  }
+}
+
+// --- #463: de draaibanner wijkt voor een melding of een menu-kop --------------
+// Op 360x800-trein dekte "Draai je toestel voor de beste besturing" de melding
+// "AANGEREDEN DOOR DE TREIN!" af, en in de menu's de kop. De banner is een wenk,
+// geen melding: hij verdwijnt zolang een melding, de plaatsnaam of het pauzemenu
+// in beeld staat (touch.js-CSS).
+{
+  const dir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'game', 'js');
+  const src = fs.readFileSync(path.join(dir, 'touch.js'), 'utf8');
+  const sheet = (src.match(/const CSS = `([\s\S]*?)`;/) || [])[1] || '';
+  const hides = (sel) => new RegExp(sel + '[^{]*\\{[^}]*display:\\s*none').test(sheet);
+  ok(sheet !== '', 'touch.js heeft de aanraak-CSS');
+  ok(/#touch-ui \.t-turn[^{]*\{ display: block; \}/.test(sheet), 'draaibanner staat alleen in portret aan');
+  ok(hides('body\\.hud-card-on'), 'draaibanner wijkt voor een actieve melding (zone A)');
+  ok(hides('body:has\\(#hud \\.phonefeed \\.pf-card\\.on\\)'), 'draaibanner wijkt voor een telefoonbericht');
+  ok(hides('body:has\\(#pause-menu\\.visible\\)'), 'draaibanner wijkt voor de kop van het pauzemenu');
+  ok(hides('body:has\\(#hud \\.hud-place\\.on\\)'), 'draaibanner wijkt voor de plaatsnaam');
+}
+
 if (fails) { console.log(`${fails} mislukt`); process.exit(1); }
 console.log(`hud_layout_test: ok (${SIZES.length} formaten, ${Object.keys(PALETTES).length} paletten)`);

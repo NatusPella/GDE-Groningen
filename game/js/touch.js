@@ -3,7 +3,7 @@
 // input.js the way gamepad.js does (padAxis, padHold, mouse), so every
 // action works unchanged. Does nothing on a desktop; ?touch=1 forces it on
 // and ?touch=0 off. Menus and the phone stay plain taps.
-import { detectTouch, touchMode, touchLayout, touchBar, stickVector, knobOffset, lookDelta, stickKeys, leftOffset, touchContext, stickless, touchUiActive, iconFor, STICK_RADIUS } from './touchlogic.js';
+import { detectTouch, touchMode, touchLayout, touchBar, stickVector, knobOffset, lookDelta, stickKeys, leftOffset, leftStrip, touchContext, stickless, touchUiActive, iconFor, STICK_RADIUS } from './touchlogic.js';
 import { HENGEL_HINT } from './controls.js';
 import { refreshGlyphs } from './glyphs.js';
 import { getSettings } from './settings.js';
@@ -29,6 +29,18 @@ html.touch-play #touch-ui { display: block; }
 #touch-ui .t-panel .t-btn { position: static; }
 #touch-ui .t-turn { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); padding: 8px 14px; border-radius: 18px; background: rgba(10, 19, 13, 0.8); color: #f0ede4; font: 15px Arial, sans-serif; display: none; pointer-events: none; text-align: center; max-width: 90%; }
 html.touch-portrait #touch-ui .t-turn { display: block; }
+/* #463: de draaibanner is een wenk, geen melding. Op de beelden van #463 lag hij
+   over "AANGEREDEN DOOR DE TREIN!" (een berichtkaart van zone A), over de
+   plaatsnaam "GROTE MARKT" en over de kop van het pauzemenu. Een melding en een
+   menu-kop gaan voor, dus de banner wijkt zolang die in beeld staan en komt
+   terug zodra het scherm weer vrij is. Zo hoeft hij geen strook van de
+   meldingen af te snoepen. */
+html.touch-portrait body.hud-card-on #touch-ui .t-turn,
+html.touch-portrait body.hud-call-on #touch-ui .t-turn,
+html.touch-portrait body:has(#hud .phonefeed .pf-card.on) #touch-ui .t-turn,
+html.touch-portrait body:has(#hud .ach-toast.on) #touch-ui .t-turn,
+html.touch-portrait body:has(#hud .hud-place.on) #touch-ui .t-turn,
+html.touch-portrait body:has(#pause-menu.visible) #touch-ui .t-turn { display: none; }
 #touch-ui .t-pause { top: max(10px, env(safe-area-inset-top)); right: max(10px, env(safe-area-inset-right)); min-width: 48px; height: 48px; border-radius: 24px; font-size: 20px; }
 /* every action button shows a HUD-style line icon above its Dutch label (#427) */
 #touch-ui .t-btn:not(.t-num) { flex-direction: column; gap: 1px; }
@@ -57,6 +69,17 @@ html.touch-device #hud .stunt-hud { right: calc(var(--hud-edge) + 260px / var(--
 html.touch-device .mv-close { display: inline-flex !important; }
 html.touch-device .m-hint, html.touch-device #start-screen .ss-foot { display: none; }
 html.touch-device #hud .hud-fcol { left: var(--hud-edge); bottom: calc(var(--mm-bottom) + var(--mm-size) + 6px); }
+/* In landschap staat de balk naast de minimap en reikt de straatnaam (breder dan
+   de kaart) tot in de kolom van de linkerknoppen; 20 px houdt de onderkant van
+   die tekst vrij van de bovenste knop (#463). */
+html.touch-device:not(.touch-portrait) #hud .hud-fcol { bottom: calc(var(--mm-bottom) + var(--mm-size) + 20px); }
+/* De linkerbalk van de aanraakbediening staat in portret boven de minimap; de
+   straatnaam en de prestatiekaart van de linkerkolom schuiven dan boven die
+   strook langs in plaats van eronder (#463: RENNEN lag op BINNENSTAD). --t-left-top
+   is de bovenkant van de balk in schermpixels (touch.js); gedeeld door --ui omdat
+   de zoom van #hud meetelt. Zonder de variabele blijft de oude plek boven de kaart. */
+html.touch-device.touch-portrait #hud .hud-fcol { bottom: max(calc(var(--mm-bottom) + var(--mm-size) + 6px), calc(var(--t-left-top, 0px) / var(--ui, 1) + 6px)); }
+html.touch-device.touch-portrait #hud .hud-cards-e { bottom: max(calc(var(--mm-bottom) + var(--mm-size) + 14px), calc(var(--t-left-top, 0px) / var(--ui, 1) + 14px)); }
 /* small HUD texts stay at 11 px on screen after the phone's HUD scale (0.62-0.8) */
 html.touch-device #hud :is(small, .hud-key, .ach-kicker, .ach-desc, .ach-pct, .pf-time, .pf-more, .nl-sub, .hud-mission-progress) { font-size: max(12px, calc(11px / var(--ui, 1))); }
 /* the pause menu is a landscape layout: on a portrait phone it says so */
@@ -103,6 +126,13 @@ export function initTouch(input, world, hooks = {}) {
   turn.className = 't-turn';
   root.appendChild(turn);
 
+  // Waar de linkerknoppen beginnen, in knopeenheden: naast de minimap op een
+  // breed scherm, erboven in portret (#463). touchRects rekent hier al mee,
+  // touch.js zette de knoppen op hun kale plek en legde RENNEN/VUUR/HEF/REM op
+  // 800x360 bovenop de kaart. Eén bron (leftOffset), zodat beeld en model niet
+  // uit elkaar kunnen lopen.
+  let off = { right: 0, up: 0 };
+
   // screen class and orientation: button scale, zone widths, the turn-device hint
   function layout() {
     const L = touchLayout({ width: window.innerWidth, height: window.innerHeight });
@@ -115,10 +145,19 @@ export function initTouch(input, world, hooks = {}) {
     h.classList.toggle('touch-portrait', L.portrait);
     h.classList.toggle('touch-tablet', L.cls === 'tablet');
     h.dataset.touchClass = L.cls;
+    // de minimap hangt aan de HUD-schaal en de schermmaat: na een draai of een
+    // ander venster kan de wijkplek dus opschuiven
+    off = leftOffset({ width: window.innerWidth, height: window.innerHeight });
+    // de strook die de balk in portret inneemt (schermpixels): de HUD-tekst van
+    // de linkerkolom schuift er in hud_panel.css bovenlangs
+    document.documentElement.style.setProperty('--t-left-top', leftStrip({ width: window.innerWidth, height: window.innerHeight }) + 'px');
   }
+  // een draai vraagt een nieuwe balk: de knoppen staan met left/bottom in
+  // knopeenheden, dus de oude plek zou na een draai niet meer kloppen
+  const relayout = () => { layout(); if (shown) { releaseAll(); build(); } };
   layout();
-  window.addEventListener('resize', layout);
-  window.addEventListener('orientationchange', layout);
+  window.addEventListener('resize', relayout);
+  window.addEventListener('orientationchange', relayout);
 
   let ctx = 'foot';
   let shown = false;
@@ -176,8 +215,11 @@ export function initTouch(input, world, hooks = {}) {
     const el = document.createElement('div');
     el.className = 't-btn';
     face(el, b.label);
-    el.style[side] = spot[0] + 'px';
-    el.style.bottom = spot[1] + 'px';
+    // de linkerkolom (Rennen, Vuur, Hef, Rem) schuift langs de minimap; de
+    // rechterkolom houdt de rand van het scherm
+    const dx = side === 'left' ? off.right : 0, dy = side === 'left' ? off.up : 0;
+    el.style[side] = (spot[0] + dx) + 'px';
+    el.style.bottom = (spot[1] + dy) + 'px';
     el.addEventListener('pointerdown', (e) => {
       e.preventDefault();
       el.setPointerCapture && el.setPointerCapture(e.pointerId);

@@ -196,6 +196,8 @@ export function initHud(world) {
   root.appendChild(race);
 
   const cards = initCards(world, root);
+  // De plaatsnaam en de routekaart van zone B wijken voor de berichten van zone A (#463)
+  watchZoneA(root, cards);
 
   // zone F: the minimap, the street, you (health, stamina, the vehicle's damage)
   const mmWrap = document.createElement('div');
@@ -328,6 +330,55 @@ export function initHud(world) {
 // The HUD's margin to the screen edge: title-safe on a TV, tight on 720p (hudlook.js)
 function fitEdge(root) {
   root.style.setProperty('--hud-edge', hudEdge(window.innerWidth, window.innerHeight, getUiScale()) + 'px');
+}
+
+// De onderkant van de berichten van zone A, in HUD px: zone B (de plaatsnaam en
+// de routekaart) hangt aan dezelfde bovenrand en zou er op een smal scherm onder
+// schuiven (#463: "GROTE MARKT" achter de TIP-kaart, en de ACHTERVOLGING-kaart
+// over de routetitel). De melding gaat voor (hudrules.js), dus zone B tilt op tot
+// onder de gemeten kaart: hud_panel.css gebruikt --hud-a-bottom in de top van
+// .hud-place en --hud-gps-top voor de routekaart. Alleen op een smal scherm
+// meten: daar is de kaartkolom een groot deel van de breedte; op de
+// bureaubladindeling staat de melding links en zone B in het midden, en blijft
+// alles zoals het was. Zonder kaart is de kolom 0 px hoog en gaan de variabelen
+// weg. De plaatsnaam beslaat de volle breedte en schuift dus altijd op; de
+// routekaart staat in het midden en wijkt alleen als de kolom hem werkelijk raakt.
+const NARROW = 1024;
+const TOP_GAP = 12;
+function watchZoneA(root, cards) {
+  if (typeof ResizeObserver === 'undefined') return;
+  // zone A heeft twee stapels op dezelfde plek: de berichtkaarten (hudcards.js)
+  // en de telefoonfeed met binnenkomende berichten (phonefeed.js, staat er al
+  // voor initHud). De hoogste bepaalt waar zone B begint.
+  const feed = root.querySelector('.phonefeed');
+  const gps = root.querySelector('.hud-gps');
+  const place = () => {
+    if (window.innerWidth > NARROW) {
+      root.style.removeProperty('--hud-a-bottom');
+      root.style.removeProperty('--hud-gps-top');
+      return;
+    }
+    let bottom = 0, right = 0;
+    for (const el of [cards, feed]) {
+      if (!el) continue;
+      const r = el.getBoundingClientRect();
+      if (r.height > 0) { bottom = Math.max(bottom, el.offsetTop + el.offsetHeight); right = Math.max(right, r.right); }
+    }
+    if (bottom > 0) root.style.setProperty('--hud-a-bottom', `${Math.ceil(bottom)}px`);
+    else root.style.removeProperty('--hud-a-bottom');
+    // de routekaart is smaller en staat gecentreerd (translateX): zijn gemeten
+    // linkerkant telt, niet offsetLeft, want dat ziet de transform niet. Hij
+    // wijkt alleen voor een kolom die tot over die linkerkant komt, zodat de
+    // routebanner in landschap blijft staan waar de kaart hem niet raakt.
+    if (bottom > 0 && gps && right + 8 > gps.getBoundingClientRect().left) root.style.setProperty('--hud-gps-top', `${Math.ceil(bottom + TOP_GAP)}px`);
+    else root.style.removeProperty('--hud-gps-top');
+  };
+  const ro = new ResizeObserver(place);
+  ro.observe(cards); // een kaart erbij of eraf is een maatwijziging van de kolom
+  if (feed) ro.observe(feed);
+  if (gps) ro.observe(gps); // een andere routetitel kan de kaart breder maken
+  ro.observe(root); // een draai of een ander venster kan de smalle grens passeren
+  place();
 }
 
 // The right column flows under the top-right block: the race panel sits just

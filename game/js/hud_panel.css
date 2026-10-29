@@ -101,7 +101,7 @@ body.hide-minimap #hud .hud-minimap-wrap { display: none; }
 
 /* --- zone B: the GPS card and the place name ------------------------------ */
 #hud .hud-gps {
-  position: absolute; top: calc(var(--hud-top) + 2px); left: 50%; transform: translateX(-50%);
+  position: absolute; top: max(calc(var(--hud-top) + 2px), var(--hud-gps-top, 0px)); left: 50%; transform: translateX(-50%);
   display: flex; gap: 16px; align-items: center; padding: 9px 22px; border-radius: 10px;
   background: var(--hud-card); box-shadow: var(--hud-card-ring); color: #f0ede4; text-shadow: none; white-space: nowrap; max-width: calc(58vw / var(--ui, 1));
 }
@@ -123,8 +123,17 @@ body.hide-minimap #hud .hud-minimap-wrap { display: none; }
 #hud .hud-gps.no-turn .gps-arrow, #hud .hud-gps.no-turn .gps-txt, #hud .hud-gps.no-turn .gps-dist, #hud .hud-gps.no-turn .gps-sep:not(.gps-tsep) { display: none; }
 #hud .hud-gps.no-turn .gps-tsep { display: none; }
 
+/* De plaatsnaam hangt aan dezelfde bovenrand als de berichtkaart van zone A.
+   Op de beelden van #463 (360x800 en 820x1180) lag "GROTE MARKT" achter de
+   TIP-kaart: de kaartkolom is daar een flink deel van de breedte en de
+   gecentreerde plaatsnaam schoof eronderdoor. De melding gaat voor
+   (hudrules.js, zone A), dus de plaatsnaam zakt tot onder de gemeten
+   kaartkolom: --hud-a-bottom is de onderkant van de berichten bovenaan in HUD
+   px (hud_panel.js). Zonder kaart is die 0 en houdt max() de oude 10 px onder
+   --hud-top, zodat de indeling daar precies blijft zoals hij was. De 12 px
+   kier houdt de kaart en de plaatsnaam (met de titel erin) los van elkaar. */
 #hud .hud-place {
-  position: absolute; top: calc(var(--hud-top) + 10px); left: 0; right: 0; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  position: absolute; top: max(calc(var(--hud-top) + 10px), calc(var(--hud-a-bottom, 0px) + 12px)); left: 0; right: 0; display: flex; flex-direction: column; align-items: center; gap: 4px;
   color: #f0ede4; text-shadow: 0 3px 18px rgba(0, 0, 0, 0.7); opacity: 0; pointer-events: none;
 }
 #hud .hud-place.on { animation: hud-place 4.6s ease-in-out forwards; }
