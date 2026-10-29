@@ -136,6 +136,18 @@ body.hide-minimap #hud .hud-minimap-wrap { display: none; }
 #hud .pl-line { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 16px; color: rgba(240, 237, 228, 0.85); letter-spacing: 0.02em; }
 #hud .pl-line:empty { display: none; }
 
+/* --- de prestatiekaart wijkt voor een interactiehint (achievements.js) ----- */
+/* De prestatiekaart hangt aan de bovenrand en kan daar precies op een hint van
+   prompts.js staan: op de gezocht-beelden van #463 zat de E-badge van "FLUIT EEN
+   DUIF" half achter "PRESTATIE ONTGRENDELD · BEKEND BIJ DE POLITIE" en was de
+   ondertitel afgekapt. Een hint hoort bij wat je nu kunt doen, dus die gaat
+   voor. Welke kaart en welke hint is een regel (hudrules.js cardYields: twee
+   vakken die elkaar raken); hud_panel.js meet ze en zet de class. De kaart
+   blijft in de DOM staan, zodat hij terugkomt zodra de hint weg is. */
+body #hud.hud-ach-yield .ach-toast {
+  opacity: 0; visibility: hidden; transition: opacity 0.2s ease, visibility 0s 0.2s;
+}
+
 /* --- zone G: the objective (the subtitle sits under it) ------------------- */
 #hud .hud-mission {
   --obj: #3fc97a;
@@ -151,6 +163,16 @@ body.hide-minimap #hud .hud-minimap-wrap { display: none; }
 #hud .hud-mission.dim { opacity: 0.7; }
 body.shop-open #hud .hud-mission { visibility: hidden; }
 body.pigeon-mode #hud .hud-mission.in-mission:not([hidden]) { display: flex !important; }
+/* Een trein besturen zet de cabine van treincabine.js op de bodem: breder en
+   hoger dan de snelheidsmeter die er normaal staat (zone H), en precies waar G
+   staat. Op de beelden van #463 liep de missietoast ("Ontsnap aan de politie")
+   dwars door het tractie- en rempaneel, met REM 1/2/3 over de missietekst.
+   Zolang de cabine er is houdt het doel daarom de bovenkant van die band vrij:
+   --hud-g-floor is de gemeten afstand van de onderkant van het scherm tot de
+   bovenkant van de cabine (hud_panel.js, in HUD px, dus de zoom telt mee) en
+   225 is de koude start: de cabine staat 22 px van de onderkant en is op
+   1920x1080 ongeveer 203 px hoog. De kier van 10 px houdt ze uit elkaar. */
+body.tc-on #hud .hud-mission { bottom: calc(var(--hud-g-floor, 225px) + 10px); }
 #hud .hud-mission[data-kind="mission"] { --obj: #e8c93a; }
 #hud .hud-mission[data-kind="job"] { --obj: #ff9a3c; }
 #hud .hud-mission[data-kind="police"] { --obj: #ff9a9a; }

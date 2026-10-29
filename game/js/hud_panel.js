@@ -56,7 +56,7 @@ import { markerColors, onPaletteChange } from './a11y.js';
 import { drawMissionGlyph } from './missionicons.js';
 import { drawMapGlyph } from './mapglyphs.js';
 import { miniWind, windSterkte, windPijlHoek, windTekst } from './windmini.js';
-import { decideHud, zones, hudNow, P3, PLACE_SHOW, E_SHOW, DEFER_MAX, GPS_NEAR } from './hudrules.js';
+import { decideHud, zones, hudNow, cardYields, P3, PLACE_SHOW, E_SHOW, DEFER_MAX, GPS_NEAR } from './hudrules.js';
 import { vehicleKind, speedoLook, meterLevel, hudEdge, distanceOwner, vehicleLabelOwner } from './hudlook.js';
 import { nextTurn, turnText, etaText, dichtstbijDoel } from './hudgps.js';
 import { gastDoelen } from './coopextra.js';
@@ -348,6 +348,64 @@ function watchRightStack(root, topRight, race) {
   place();
 }
 
+// De prestatiekaart wijkt voor een hint die hij zou raken (#463, hudrules.js
+// cardYields): de kaart van achievements.js hangt boven het midden, precies
+// waar een interactiehint van prompts.js kan staan. Alleen kijken als er een
+// kaart staat -- dat is een paar seconden per prestatie, niet elke ronde -- en
+// dan een keer per 0,2 s, want een hint schuift met de speler mee.
+let achYieldT = 0;
+function updateAchievementCard(root, dt) {
+  if ((achYieldT -= dt) > 0) return;
+  achYieldT = 0.2;
+  const card = root.querySelector('.ach-toast.on');
+  if (!card) { root.classList.remove('hud-ach-yield'); return; }
+  const hints = document.body.classList.contains('hide-hints') ? [] : [...root.querySelectorAll('.hud-prompts:not(.off) .wp.in .wp-chip')];
+  const box = (el) => {
+    const r = el.getBoundingClientRect();
+    return r.width > 0 && r.height > 0 ? { left: r.left, right: r.right, top: r.top, bottom: r.bottom } : null;
+  };
+  root.classList.toggle('hud-ach-yield', cardYields(box(card), hints.map(box)));
+}
+
+// De cabine van de trein (treincabine.js, zone H) staat op de bodem van het
+// scherm: breder en hoger dan de snelheidsmeter, en precies onder het doel van
+// zone G. We meten hoe hoog die band is (de cabine, en de uitleg die erbij
+// hoort) en zetten dat in --hud-g-floor, waar hud_panel.css het doel boven tilt
+// (#463). Alleen meten als er een trein bestuurd wordt: geen layout lezen in de
+// gewone ronde.
+let trainBand = null; // { ro, cab, intro }
+function updateTrainBand(root) {
+  if (typeof ResizeObserver === 'undefined') return;
+  if (!document.body.classList.contains('tc-on')) {
+    if (trainBand) { trainBand.ro.disconnect(); trainBand = null; root.style.removeProperty('--hud-g-floor'); }
+    return;
+  }
+  if (trainBand && trainBand.cab.isConnected) return;
+  const cab = root.querySelector('.tc-cab');
+  if (!cab) return; // de cabine wordt pas bij het instappen gebouwd
+  const intro = root.querySelector('.tc-intro');
+  if (trainBand) trainBand.ro.disconnect(); // een nieuwe cabine: opnieuw kijken
+  const ro = new ResizeObserver(() => placeTrainBand(root));
+  ro.observe(root); ro.observe(cab);
+  if (intro) ro.observe(intro); // de uitleg komt en gaat; dat is een maatwijziging
+  trainBand = { ro, cab, intro };
+  placeTrainBand(root);
+}
+
+// De bovenkant van de treinband in HUD px vanaf de onderkant van #hud: de
+// hoogste van de cabine en de uitleg erboven. Een verborgen element telt niet
+// mee (offsetHeight 0), want die staat op 0 en zou het hele scherm als band
+// opeisen.
+function placeTrainBand(root) {
+  if (!trainBand) return;
+  const h = root.clientHeight;
+  let floor = 0;
+  for (const el of [trainBand.cab, trainBand.intro]) {
+    if (el && el.isConnected && el.offsetHeight > 0) floor = Math.max(floor, h - el.offsetTop);
+  }
+  root.style.setProperty('--hud-g-floor', `${Math.max(0, Math.ceil(floor))}px`);
+}
+
 // Restarts a CSS animation: the class goes off now and back on next frame,
 // so the style recalc in between restarts it. (Reading offsetWidth instead
 // forced a full layout in the middle of the frame: 2-10 ms on a busy HUD.)
@@ -423,11 +481,13 @@ export function updateHud(dt, world) {
   updateDamage(dt, world);
   updateSpeedo(world);
   updateSpeedoPrefetch(dt, world);
+  updateTrainBand(els.root);
   updateMission(world);
   updateGps(dt, world);
   updatePlace(dt, world);
   updateRaceHud(world);
   updateCards(dt, world);
+  updateAchievementCard(els.root, dt);
   updateNowPlaying(dt, world);
   updateLocation(dt, world);
   updatePrompts(dt, world);

@@ -98,6 +98,21 @@ export const zones = new ZoneBoard();
 // the live situation flags the modules share (hud_panel.js writes them)
 export const hudNow = { busy: false, dialogue: false };
 
+// Twee vakken op het scherm (left/right/top/bottom): raken ze elkaar?
+const hits = (a, b) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+
+// De prestatiekaart van achievements.js hangt boven het midden van het scherm,
+// waar net zo goed een interactiehint van prompts.js kan staan: op de
+// gezocht-beelden van #463 zat de E-badge van "FLUIT EEN DUIF" half achter
+// "PRESTATIE ONTGRENDELD" en was de ondertitel afgekapt. Een hint hoort bij wat
+// je nu kunt doen, dus die gaat voor: raakt de kaart er een, dan wacht de kaart
+// (en komt terug zodra de hint weg is). Staat de hint elders, dan blijft de
+// kaart gewoon staan; een hint achter het treinpaneel kost de speler zijn
+// prestatie dus niet. hud_panel.js geeft de gemeten vakken door.
+export function cardYields(card, hints = []) {
+  return !!card && hints.some((h) => !!h && hits(card, h));
+}
+
 // What shows now. s: the situation (all optional):
 //   mode, hidden, banner, busy, dialogue, idle, wake,
 //   wanted, wantedAgo, moneyAgo, moneySign (+1/-1), nearShop, moneyHeld,
