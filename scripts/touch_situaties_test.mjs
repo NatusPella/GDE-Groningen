@@ -6,7 +6,7 @@
 //   node scripts/touch_situaties_test.mjs
 import { readFileSync } from 'node:fs';
 import { PAD_MAPS, HENGEL_HINT } from '../game/js/controls.js';
-import { touchContext, touchPlan, touchMore, touchPlacement, touchRects, touchBar, labelFor, iconFor, stickless, hudMinimap } from '../game/js/touchlogic.js';
+import { touchContext, touchPlan, touchMore, touchPlacement, touchRects, touchBar, labelFor, iconFor, stickless, hudMinimap, leftStrip } from '../game/js/touchlogic.js';
 
 let fail = 0, n = 0;
 const ok = (c, name, extra) => { n++; if (!c) { fail++; console.log('FAIL ' + name + (extra !== undefined ? ' ' + JSON.stringify(extra) : '')); } };
@@ -192,6 +192,34 @@ ok(/'trekker'/.test(touchSrc), 'touch.js stuurt ook op de trekker met de stick (
 ok(/v\.isPlane \? 'plane'/.test(logicSrc) && /v\.isPlane \? 'plane'/.test(padSrc), 'touch en gamepad zetten het vliegtuig op dezelfde plek, vóór de skûtsje-tak');
 ok(/v\.isBus \? 'bus'/.test(logicSrc) && /v\.isBus \? 'bus'/.test(padSrc), 'touch en gamepad kennen allebei de busindeling');
 ok(labelFor('trekker', 'x') === 'Ontkoppelen' && labelFor('pigeon', 'x') === 'Mens', 'dezelfde toets houdt per situatie zijn eigen naam', [labelFor('trekker', 'x'), labelFor('pigeon', 'x')]);
+
+// --- 10. de balk houdt op waar de minimap begint (#463) --------------------------------------
+// Op 800x360-auto lagen RENNEN/VUUR/HEF/REM bovenop de minimap: touchRects hield al rekening met
+// leftOffset, maar touch.js zette de knoppen op hun kale plek. Deze controles binden de gemeten
+// indeling aan de echte bedrading, zodat model en beeld niet meer uit elkaar kunnen lopen.
+{
+  // landschap: de linkerkolom (Rennen, Vuur, Hef, Rem) begint rechts van de kaart
+  const mm = hudMinimap({ width: 800, height: 360 });
+  const rs = touchRects('vehicle', { width: 800, height: 360 });
+  const links = rs.filter((r) => ['Rennen', 'Vuur', 'Hef', 'Rem'].includes(r.name));
+  ok(links.length === 4, '800x360: de vier linkerknoppen van de auto staan er', rs.map((r) => r.name));
+  ok(links.every((r) => !hit(r, mm)), '800x360: geen aanraakknoop raakt de minimap', links.map((r) => [r.name, Math.round(r.x), Math.round(r.y), Math.round(r.w)]));
+  ok(links.every((r) => r.x >= mm.x + mm.w), '800x360: de linkerknoppen beginnen rechts van de minimap', { kaart: mm, knoppen: links.map((r) => Math.round(r.x)) });
+  // portret: dezelfde kolom zakt tot boven de kaart, met de onderkant vrij
+  const pmm = hudMinimap({ width: 360, height: 800 });
+  const prs = touchRects('vehicle', { width: 360, height: 800 }).filter((r) => ['Rennen', 'Vuur', 'Hef', 'Rem'].includes(r.name));
+  ok(prs.length === 4 && prs.every((r) => !hit(r, pmm) && r.y + r.h <= pmm.y + 0.5), '360x800: de balk houdt bovenaan op waar de minimap begint', prs.map((r) => [r.name, Math.round(r.y + r.h), Math.round(pmm.y)]));
+  // en de bedrading: touch.js rekent met dezelfde leftOffset als touchRects
+  ok(/leftOffset\(/.test(touchSrc) && /off\.right/.test(touchSrc) && /off\.up/.test(touchSrc), 'touch.js past leftOffset toe, net als touchRects');
+  ok(/const dx = side === 'left' \? off\.right : 0/.test(touchSrc), 'touch.js schuift alleen de linkerkolom; de rechterkolom blijft aan de rand');
+  // de balk boven de kaart krijgt een eigen strook: de straatnaam van de HUD
+  // schuift er in portret bovenlangs in plaats van eronder (geen tekst onder een knop)
+  ok(leftStrip({ width: 800, height: 360 }) === 0, '800x360: de balk staat naast de kaart, dus geen strook nodig');
+  const bovenaan = Math.max(...prs.map((r) => 800 - r.y));
+  ok(leftStrip({ width: 360, height: 800 }) === Math.ceil(bovenaan), '360x800: de strook begint bij de bovenkant van de balk', { strook: leftStrip({ width: 360, height: 800 }), bovenaan });
+  ok(/--t-left-top/.test(touchSrc) && /leftStrip\(/.test(touchSrc), 'touch.js zet de strook voor de HUD-tekst');
+  ok(/--t-left-top[^;]*\/ var\(--ui/.test(touchSrc), 'de HUD-tekst schuift boven de strook, in HUD px (de zoom telt mee)');
+}
 
 if (fail) { console.log(`${fail} van ${n} controles gefaald`); process.exit(1); }
 console.log(`touch_situaties_test: ${n} controles ok`);

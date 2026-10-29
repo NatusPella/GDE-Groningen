@@ -258,6 +258,17 @@ export function leftOffset({ width, height }) {
   return { right: Math.max(0, Math.ceil((m.x + m.w + 8) / s - SPOTS_LEFT[0][0])), up: 0 };
 }
 
+// De strook die de linkerbalk in portret boven de minimap inneemt, in
+// schermpixels vanaf de onderkant van het scherm: de bovenkant van de hoogste
+// kolom (de tweede rij plekken). hud_panel.css schuift de straatnaam en de
+// prestaties van de linkerkolom erbovenlangs, zodat de knoppen geen HUD-tekst
+// afdekken (#463: op 360x800 lag RENNEN op BINNENSTAD). In landschap staat de
+// balk naast de kaart en is er geen strook nodig.
+export function leftStrip({ width, height }) {
+  if (height <= width) return 0;
+  return Math.ceil((SPOTS_LEFT[1][1] + BTN_H + leftOffset({ width, height }).up) * touchLayout({ width, height }).scale);
+}
+
 // Screen rectangles (px) of everything in the touch layer for a situation on a
 // screen of width x height: buttons (zoomed by the layout scale, like btnHost),
 // pause and, when the situation has extras, "Meer".
