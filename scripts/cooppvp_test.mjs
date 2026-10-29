@@ -86,12 +86,12 @@ t('berichten: klein, gecontroleerd, en geen nieuw formaat (PROTO en CODEC_VERSIO
 });
 
 // ---------------------------------------------------------------- de wereld van de host
-const roster = [{ slot: 0, naam: 'Tammo' }, { slot: 1, naam: 'Tessa' }, { slot: 2, naam: 'Roos' }];
+const roster = [{ slot: 0, naam: 'Tammo' }, { slot: 1, naam: 'Rik' }, { slot: 2, naam: 'Roos' }]; // (#516) plek 1 is een eigen figuur
 const hostWereld = (extra = {}) => {
   const w = {
     time: 10, coopRole: 'host', coopPvp: P.maakPvp(), coopRoster: roster, money: 500, health: 100, armor: 0,
-    coop: { remote: true, remoteInput: null }, companion: { x: 60, y: 60, angle: 0, gz: 0, radius: 0.4 },
-    coopFigures: { 2: { slot: 2, x: 10, y: 10, angle: 0, gz: 0, radius: 0.4, input: null, char: 'a' } },
+    coop: { remote: true, remoteInput: null },
+    coopFigures: { 1: { slot: 1, x: 60, y: 60, angle: 0, gz: 0, radius: 0.4, input: null, char: 't' }, 2: { slot: 2, x: 10, y: 10, angle: 0, gz: 0, radius: 0.4, input: null, char: 'a' } },
     player: { x: 12, y: 10, angle: 0, gz: 0, radius: 0.4 }, pedestrians: [], vehicles: [], bullets: [], particles: [], stats: { kills: 0, copKills: 0, pedKills: 0 }, wanted: 0,
     map: { buildingsNear: () => [], wallsNear: () => [] }, messages: [], addMessage(m) { this.messages.push(m); }, ...extra,
   };
@@ -142,7 +142,7 @@ t('een kogel van de host raakt een actieve gast (het bericht gaat naar die gast)
 
 t('twee gasten tegen elkaar: de plek van de dader telt en de schutter raakt zichzelf niet', () => {
   const w = hostWereld(); w.player.x = -50; w.player.y = -50;
-  w.coop.remote = true; w.companion.x = 14; w.companion.y = 10; // plek 1 staat op de baan
+  w.coop.remote = true; w.coopFigures[1].x = 14; w.coopFigures[1].y = 10; // (#516) plek 1 staat op de baan
   P.zetPassiefStand(w.coopPvp, 1, false); P.zetPassiefStand(w.coopPvp, 2, false);
   schiet(w, 2, 10.5); assert.deepEqual(w.gast, [[1, 15, 2]]);
   w.gast.length = 0; schiet(w, 1, 13.5, -40); assert.deepEqual(w.gast, [[2, 15, 1]], 'ook de andere kant op');
@@ -382,7 +382,7 @@ t('zetPassiefGebaar: de host schakelt direct met afkoeling, de gast vraagt het a
 });
 
 t('de spelerslijst: pas als iemand actief is, zie je wie passief is (en de kaart wordt grijs)', () => {
-  const rooster = [{ slot: 0, naam: 'Tammo' }, { slot: 1, naam: 'Tessa' }];
+  const rooster = [{ slot: 0, naam: 'Tammo' }, { slot: 1, naam: 'Rik' }];
   const st = P.maakPvp();
   let rijen = spelersRijen({ mijnSlot: 0, roster: rooster, pvp: st });
   assert.ok(rijen.every((r) => r.passief === true && r.pvpInSpel === false)); assert.ok(!rijTekst(rijen[0]).includes('passief'));
@@ -403,7 +403,7 @@ t('de PvP-arena: de host nodigt uit (J/N), wie ja zegt en in het veld staat spee
   const fig = (slot, dx) => ({ slot, x: PW.PVP_ARENA_PLEK.x + dx, y: PW.PVP_ARENA_PLEK.y, angle: 0, gz: 0, radius: 0.4 });
   const w = hostWereld({ coopNet: { role: 'host', hub }, coopMeld: (slot, tekst) => geheim.push([tekst, slot]), coopFigures: { 2: fig(2, 3), 3: fig(3, -3) } });
   inVeld(w.player);
-  w.companion.x = 900; w.companion.y = 900; // plek 1 staat ver weg: doet niet mee
+  w.coopFigures[1] = fig(1, -900); // (#516) plek 1 staat ver weg: doet niet mee
   // de arena-regel zelf: alleen buiten de passieve stand (#454)
   assert.equal(P.arenaToegestaan(w.coopPvp, 0), false);
   assert.equal(P.arenaToegestaan(null, 0), false); assert.equal(P.arenaToegestaan(w.coopPvp, 99), false);

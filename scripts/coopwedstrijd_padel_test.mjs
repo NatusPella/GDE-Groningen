@@ -149,7 +149,8 @@ function nepWereld(spelers) {
   const log = [];
   const hub = { roster: { spelers }, announce: (b, slot) => { log.push([slot, b]); return true; } };
   const inv = { 1: { mx: 0, my: 0, buttons: 0 }, 2: { mx: 0, my: 0, buttons: 0 }, 3: { mx: 0, my: 0, buttons: 0 } };
-  const world = { coopNet: { role: 'host', hub }, companion: { x: 0, y: 0 }, coop: { remote: true, remoteInput: inv[1] }, coopFigures: { 2: { slot: 2, x: 0, y: 0, input: inv[2] }, 3: { slot: 3, x: 0, y: 0, input: inv[3] } }, messages: [], addMessage(t) { this.messages.push(t); } };
+  // (#516) plek 1 is de eigen figuur van de gast; de host simuleert hem als figuur, niet als metgezel.
+  const world = { coopNet: { role: 'host', hub }, coop: { remote: false }, coopFigures: { 1: { slot: 1, x: 0, y: 0, input: inv[1] }, 2: { slot: 2, x: 0, y: 0, input: inv[2] }, 3: { slot: 3, x: 0, y: 0, input: inv[3] } }, messages: [], addMessage(t) { this.messages.push(t); } };
   return { world, log, hub, inv };
 }
 {
@@ -165,7 +166,7 @@ function nepWereld(spelers) {
   const st = log.find(([s, b]) => s === 1 && b.f === 'start');
   const lees = W.leesWed(st[1]);
   check('de start vertelt dat het een live wedstrijd is en waar', lees && lees.live === true && lees.v === 'baan3' && lees.deeln.length === 3 && !lees.banen, JSON.stringify(lees));
-  check('de lichamen van de gasten staan stil bij de baan', world.companion.coopWedstrijd === true && world.coopFigures[2].coopWedstrijd === true && !world.coopFigures[3].coopWedstrijd && Math.hypot(world.companion.x - 50, world.companion.y - 60) < 3);
+  check('de lichamen van de gasten staan stil bij de baan', world.coopFigures[1].coopWedstrijd === true && world.coopFigures[2].coopWedstrijd === true && !world.coopFigures[3].coopWedstrijd && Math.hypot(world.coopFigures[1].x - 50, world.coopFigures[1].y - 60) < 3);
   check('een tweede wedstrijd tegelijk kan niet', W.wedNodigUit(world, 'padel').reden === 'bezig');
   const hostInv = () => ({ mx: 0, my: 0, buttons: 0 });
   const n0 = log.length;
@@ -184,7 +185,7 @@ function nepWereld(spelers) {
   check('een gast die wegvalt is weg en zijn lichaam is vrij', gestart.stoelen.find((s) => s.slot === 2).weg && world.coopFigures[2].coopWedstrijd === false);
   // gast 1 stopt zelf
   hub.roster.spelers.find((s) => s.slot === 2).verbinding = 'ok';
-  check('een gast kan zelf stoppen (bericht weg)', W.wedHandleGast(world, { k: 'wedgast', a: 'weg' }, 1) && gestart.stoelen.find((s) => s.slot === 1).weg && world.companion.coopWedstrijd === false);
+  check('een gast kan zelf stoppen (bericht weg)', W.wedHandleGast(world, { k: 'wedgast', a: 'weg' }, 1) && gestart.stoelen.find((s) => s.slot === 1).weg && world.coopFigures[1].coopWedstrijd === false);
   // niemand van team 1 is er meer: de host wint
   let ev = [];
   for (let i = 0; i < 600 && !ev.some((e) => e.type === 'klaar'); i++) ev = W.wedLiveTik(world, gestart, DT, hostInv);
@@ -193,7 +194,7 @@ function nepWereld(spelers) {
   check('de host krijgt de uitslag met zijn plek en beloning', res && res.jij.plek === 1 && res.jij.geld === metGroepsbonus(P.PRIJZEN_PADEL[1], world.coopNet.wed.deeln.length) && res.rijen.length === 3, JSON.stringify(res && res.jij));
   check('wie wegviel krijgt niets en geen uitslag', !log.some(([s, b]) => s === 2 && b.f === 'eind') && !betaald.some(([s]) => s === 2) && !betaald.some(([s]) => s === 1));
   check('de eigen portemonnee en het vak padel zijn voor wie wint (host: geen betaalGast)', betaald.length === 0);
-  check('lichamen weer vrij en daarna kan een nieuwe wedstrijd', world.companion.coopWedstrijd === false && W.wedNodigUit(world, 'padel').ok);
+  check('lichamen weer vrij en daarna kan een nieuwe wedstrijd', world.coopFigures[1].coopWedstrijd === false && W.wedNodigUit(world, 'padel').ok);
 }
 { // een volledige 2 tegen 2 met uitbetaling aan de gasten
   const betaald = [];
@@ -225,7 +226,7 @@ function nepWereld(spelers) {
   const { world, log } = nepWereld(ROSTER());
   W.wedNodigUit(world, 'padel'); W.wedHandleGast(world, { k: 'wedgast', a: 'ja' }, 1); W.wedHostTik(world, 11);
   const lg = log.length;
-  check('de host kan de wedstrijd voor iedereen stoppen, zonder beloning', W.wedHostLiveEind(world, gestart, { gestopt: true }) === null && log.slice(lg).some(([s, b]) => s === 1 && b.f === 'eind' && b.gestopt) && world.companion.coopWedstrijd === false);
+  check('de host kan de wedstrijd voor iedereen stoppen, zonder beloning', W.wedHostLiveEind(world, gestart, { gestopt: true }) === null && log.slice(lg).some(([s, b]) => s === 1 && b.f === 'eind' && b.gestopt) && world.coopFigures[1].coopWedstrijd === false);
 }
 { // het scherm van de gast
   const ev = []; const verzonden = [];

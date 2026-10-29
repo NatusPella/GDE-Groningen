@@ -455,14 +455,16 @@ const hs = samples('host'), gs = samples('gast');
 check(hs.length >= 10 && gs.length >= 10, `genoeg samples (${hs.length}/${gs.length})`);
 const firstFull = (n) => samples(n).find((s) => s.roster && s.roster.length >= EXPECT);
 check(last(hs).me && last(hs).me.char === 'tammo', 'host speelt Tammo');
-// Twee kanten, twee verhalen (#455): de gastheer ziet de tweede speler als de tweede verhaalrol
-// (Tessa), terwijl de gast in zijn eigen beeld de hoofdpersoon van zijn eigen verhaal is (Tammo).
-// Dat is de stand van nu; of de gastheer de gast als eigen avatar moet zien in plaats van als Tessa
-// is een openstaande ontwerpvraag (#516). De test legt de huidige afspraak vast, niet meer.
+// Twee kanten, twee verhalen (#455, #502): de gastheer ziet de gast als zijn eigen avatar (eigen figuur, eigen naam),
+// terwijl de gast in zijn eigen beeld de hoofdpersoon van zijn eigen verhaal is. De computermetgezel van de gastheer
+// blijft Tessa zolang er geen tweede mens is; die staat niet op plek 1.
 const gMe = [...gs].reverse().find((q) => q.role === 'client' && q.me);
-check(gMe && !!gMe.me.char, `gast heeft een eigen personage (${gMe && gMe.me.char})`);
+check(gMe && !!gMe.me.char, `gast heeft een eigen personage (${gMe && gMe.me.char})`); // in eigen beeld de hoofdpersoon van zijn verhaal
+const hRij = last(hs) && (last(hs).roster || []).find((r) => r[0] === 1);
+check(!!hRij && !/^(tammo|anita)$/i.test(String(hRij[1] || '').trim()), `de gastheer ziet de gast als eigen figuur (${hRij && hRij[1]})`);
 const gZien = last(hs) && last(hs).partners && last(hs).partners.find((p) => p[0] !== 0);
-check(!!gZien && /^(tammo|tessa|anita)$/i.test(String(gZien[1] || '').trim()), `de gastheer ziet de gast als de tweede verhaalrol (${gZien && gZien[1]})`);
+check(!!gZien && !!String(gZien[1] || '').trim() && !/^(tammo|tessa|anita)$/i.test(String(gZien[1] || '').trim()), `de gastheer ziet de gast als zichzelf, niet als Tessa (${gZien && gZien[1]})`);
+check(last(hs).companion && last(hs).companion.char === 'anita', `de computermetgezel blijft Tessa (${last(hs).companion && last(hs).companion.char})`);
 check(gs.some((q) => q.role === 'client') && hs.some((q) => q.role === 'host'), 'rollen host/client');
 for (const n of NAMES) {
   const f = firstFull(n);

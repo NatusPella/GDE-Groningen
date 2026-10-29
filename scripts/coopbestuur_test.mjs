@@ -30,11 +30,16 @@ const haken = () => ({
   bijGroep: (w, l) => { l.x = w.player.x + 2; l.y = w.player.y; return true; },
 });
 const meldingen = [];
-const mkWorld = (extra = {}) => ({
-  player: { x: 0, y: 0, angle: 0, character: 'tammo', vx: 0, vy: 0 }, companion: { x: 1, y: 1, angle: 0, character: 'anita', radius: 0.4 },
-  coop: { local: false, remote: true, remoteInput: { mx: 0, my: 0, buttons: 0, yaw: 0 } }, coopFigures: {}, vehicles: [], pedestrians: [], money: 0, wanted: 0, time: 0, paused: false,
-  coopMeld: (slot, tekst) => meldingen.push([slot, tekst]), messages: [], addMessage(m) { this.messages.push(m); }, ...extra,
-});
+const mkWorld = (extra = {}) => {
+  const w = {
+    player: { x: 0, y: 0, angle: 0, character: 'tammo', vx: 0, vy: 0 }, companion: { x: 1, y: 1, angle: 0, character: 'anita', radius: 0.4 },
+    coop: { local: false }, coopFigures: {}, vehicles: [], pedestrians: [], money: 0, wanted: 0, time: 0, paused: false,
+    coopMeld: (slot, tekst) => meldingen.push([slot, tekst]), messages: [], addMessage(m) { this.messages.push(m); }, ...extra,
+  };
+  // (#516) plek 1 is de eigen figuur van de gast; Tessa is alleen de computermetgezel in world.companion.
+  w.coopFigures[1] = w.coopFigures[1] || { slot: 1, x: 1, y: 1, angle: 0, char: 'rik', naam: 'Rik', vx: 0, vy: 0, input: { mx: 0, my: 0, buttons: 0, yaw: 0 } };
+  return w;
+};
 
 t('weigerReden: alleen vrije voertuigen, geen vliegtuig, geen verkeer of opdrachtauto', () => {
   assert.equal(B.weigerReden(auto(1, 0, 0)), null);
@@ -67,15 +72,15 @@ t('gast (plek 1) stapt in als bestuurder, de host ziet hem, en het voertuig krij
   const w = mkWorld(); const v = auto(5, 2, 1); w.vehicles = [v, auto(6, 50, 50)];
   const r = B.bestuurGebruik(w, 1);
   assert.equal(r.gedaan, true); assert.equal(v.driver, 'player'); assert.equal(v.coopBestuurder, 1);
-  assert.equal(w.companion.inVehicle, v); assert.equal(w.companion.coopBestuurt, true); assert.equal(v.passenger, undefined, 'geen bijrijder: de bestuurder');
+  assert.equal(w.coopFigures[1].inVeh, v); assert.equal(w.coopFigures[1].coopBestuurt, true); assert.equal(v.passenger, undefined, 'geen bijrijder: de bestuurder');
   assert.deepEqual(B.bestuurdersLijst(w).map((z) => [z.slot, z.stoel, z.voertuig.id]), [[1, 0, 5]], 'de host tekent hem op stoel 0');
-  const rec = N.spelerRecord(w, w.companion, 1);
+  const rec = N.spelerRecord(w, w.coopFigures[1], 1);
   assert.equal(rec.driver, true); assert.equal(rec.seat, 0); assert.equal(rec.inVeh, true);
-  w.coop.remoteInput = { mx: 0.3, my: -1, buttons: 0, yaw: 0 };
+  w.coopFigures[1].input = { mx: 0.3, my: -1, buttons: 0, yaw: 0 }; // (#516) de invoer van de gast staat op zijn eigen figuur
   B.bestuurTick(w, 0.1);
   assert.deepEqual(bestuurd[0], [0.3, -1, false], 'stick van de gast');
-  assert.ok(v.x > 2, 'het voertuig reed'); assert.equal(w.companion.x, v.x, 'zijn lichaam volgt het voertuig');
-  w.coop.remoteInput = { mx: 0, my: 0, buttons: 2, yaw: 0 }; const x0 = v.x;
+  assert.ok(v.x > 2, 'het voertuig reed'); assert.equal(w.coopFigures[1].x, v.x, 'zijn lichaam volgt het voertuig');
+  w.coopFigures[1].input = { mx: 0, my: 0, buttons: 2, yaw: 0 }; const x0 = v.x;
   B.bestuurTick(w, 0.1);
   assert.equal(v.handbrake, true); assert.equal(v.x, x0, 'handrem: bit 1 van de knoppen');
 });
@@ -84,12 +89,12 @@ t('een gast stapt in bij een geparkeerde auto aan de stoep; de gastheer ziet dat
   B.zetBestuurHaken(haken()); meldingen.length = 0;
   const w = mkWorld(); w.coopRoster = [{ slot: 1, naam: 'Nikky', char: 'anita' }];
   const v = auto(11, 40, 40, { parked: true, parkSlot: { x: 40, y: 40 } }); w.vehicles = [v]; // ver van de gastheer: hij heeft er zelf niets aan
-  w.companion.x = 40.6; w.companion.y = 42;
+  w.coopFigures[1].x = 40.6; w.coopFigures[1].y = 42;
   assert.equal(B.bestuurGebruik(w, 1).gedaan, true);
   assert.equal(v.driver, 'player'); assert.equal(v.coopBestuurder, 1); assert.equal(v.parked, false, 'de auto is van de stoep gehaald');
   assert.ok(w.messages.some((m) => /Nikky stapt in een geparkeerde auto/.test(m)), 'de gastheer wordt niet verrast: ' + w.messages.join(' | '));
   assert.ok(meldingen.some(([s, m]) => s === 1 && /Je rijdt/.test(m)), 'de gast hoort dat hij rijdt');
-  const w2 = mkWorld(); w2.vehicles = [auto(12, 40, 40)]; w2.companion.x = 40.6; w2.companion.y = 42;
+  const w2 = mkWorld(); w2.vehicles = [auto(12, 40, 40)]; w2.coopFigures[1].x = 40.6; w2.coopFigures[1].y = 42;
   B.bestuurGebruik(w2, 1);
   assert.equal(w2.messages.length, 0, 'een gewone auto: geen melding aan de gastheer');
 });
@@ -115,8 +120,8 @@ t('uitstappen met E alleen bij bijna stilstand; daarna is de stoel vrij', () => 
   assert.equal(B.bestuurGebruik(w, 1).gedaan, true); assert.equal(v.driver, 'player', 'te snel: blijft zitten');
   assert.ok(meldingen.some(([s, m]) => s === 1 && /bijna stilstaat/.test(m)));
   v.speed = 0.5; B.bestuurGebruik(w, 1);
-  assert.equal(v.driver, null); assert.equal(v.coopBestuurder, null); assert.equal(w.companion.inVehicle, null); assert.equal(w.companion.coopBestuurt, false);
-  assert.equal(w.companion.coopUit, true, 'ze loopt weer zelf'); assert.deepEqual(w.coopRijders, {});
+  assert.equal(v.driver, null); assert.equal(v.coopBestuurder, null); assert.equal(w.coopFigures[1].inVeh, null); assert.equal(w.coopFigures[1].coopBestuurt, false);
+  assert.equal(w.coopFigures[1].coopUit, undefined, 'een figuur kent de oude coopUit-vlag niet meer'); assert.equal(w.coopFigures[1].inVeh, null, 'hij staat weer buiten'); assert.equal(w.coopFigures[1].coopVoertuig, false); assert.deepEqual(w.coopRijders, {});
   assert.equal(B.bestuurGebruik(w, 1).gedaan, true, 'en kan weer instappen'); assert.equal(v.coopBestuurder, 1);
 });
 
@@ -125,10 +130,10 @@ t('de gast valt weg: het voertuig staat stil en de stoel is vrij', () => {
   const w = mkWorld(); const v = auto(5, 2, 1); w.vehicles = [v];
   B.bestuurGebruik(w, 1); v.speed = 12; v.driftX = 2;
   assert.equal(B.bestuurLos(w, 1), true);
-  assert.equal(v.speed, 0); assert.equal(v.driver, null); assert.equal(w.companion.inVehicle, null);
+  assert.equal(v.speed, 0); assert.equal(v.driver, null); assert.equal(w.coopFigures[1].inVeh, null);
   assert.equal(B.bestuurLos(w, 1), false, 'niets meer te doen');
   assert.equal(B.bestuurGebruik(w, 1).gedaan, true, 'iemand anders (of hij zelf) kan weer instappen');
-  v.wrecked = true; B.bestuurTick(w, 0.05); assert.equal(w.companion.inVehicle, null, 'kapot: de gast staat buiten');
+  v.wrecked = true; B.bestuurTick(w, 0.05); assert.equal(w.coopFigures[1].inVeh, null, 'kapot: de gast staat buiten');
   assert.equal(v.wreckedByGast, 1, 'het wrak is van de gast: geen getuige voor de host');
   const z = auto(8, 2, 1); const w2 = mkWorld(); w2.vehicles = [z]; B.bestuurGebruik(w2, 1); meldingen.length = 0;
   z.sinking = { phase: 'fall' }; B.bestuurTick(w2, 0.05);
@@ -141,19 +146,19 @@ t('een helikopter of vliegtuig: een melding, geen bestuurder', () => {
   B.zetBestuurHaken(haken()); meldingen.length = 0;
   const w = mkWorld(); w.vehicles = [auto(9, 2, 1, { isHeli: true })];
   assert.equal(B.bestuurGebruik(w, 1).gedaan, true);
-  assert.ok(meldingen.some(([, m]) => /helikopter/.test(m))); assert.equal(w.companion.coopBestuurt, undefined); assert.equal(w.vehicles[0].driver, undefined);
+  assert.ok(meldingen.some(([, m]) => /helikopter/.test(m))); assert.equal(w.coopFigures[1].coopBestuurt, undefined); assert.equal(w.vehicles[0].driver, undefined);
 });
 
 t('te ver weg of de wereld is niet geladen: het voertuig staat stil, na een paar seconden staat de gast bij de groep', () => {
   const h = haken(); h.los = () => ({ ok: false, wacht: false }); B.zetBestuurHaken(h); meldingen.length = 0;
-  const w = mkWorld(); const v = auto(5, 300, 0); w.vehicles = [v]; w.companion.x = 300; w.companion.y = 1;
+  const w = mkWorld(); const v = auto(5, 300, 0); w.vehicles = [v]; w.coopFigures[1].x = 300; w.coopFigures[1].y = 1;
   B.bestuurGebruik(w, 1);
-  w.coop.remoteInput = { mx: 0, my: -1, buttons: 0, yaw: 0 };
+  w.coopFigures[1].input = { mx: 0, my: -1, buttons: 0, yaw: 0 };
   for (let k = 0; k < 20; k++) B.bestuurTick(w, 0.1);
   assert.equal(v.x, 300, 'het voertuig stond stil');
   for (let k = 0; k < 30; k++) B.bestuurTick(w, 0.1);
-  assert.equal(w.companion.inVehicle, null); assert.equal(v.driver, null);
-  assert.ok(Math.hypot(w.companion.x - w.player.x, w.companion.y - w.player.y) < 5, 'bij de groep'); assert.ok(meldingen.some(([, m]) => /Te ver/.test(m)));
+  assert.equal(w.coopFigures[1].inVeh, null); assert.equal(v.driver, null);
+  assert.ok(Math.hypot(w.coopFigures[1].x - w.player.x, w.coopFigures[1].y - w.player.y) < 5, 'bij de groep'); assert.ok(meldingen.some(([, m]) => /Te ver/.test(m)));
 });
 
 t('pauze van iedereen: het voertuig rijdt niet', () => {
@@ -171,7 +176,7 @@ t('wielInvoer is dezelfde invoer als bij het stuur van de bijrijder', () => {
 // ---- gezocht-niveau per speler
 t('misdaad van een gast telt bij zijn eigen niveau, niet bij dat van de host', () => {
   B.zetBestuurHaken(haken());
-  const w = mkWorld(); const v = auto(5, 2, 1, { coopBestuurder: 1, driver: 'player' }); w.vehicles = [v]; w.companion.inVehicle = v; w.companion.coopBestuurt = true;
+  const w = mkWorld(); const v = auto(5, 2, 1, { coopBestuurder: 1, driver: 'player' }); w.vehicles = [v]; w.coopFigures[1].inVeh = v; w.coopFigures[1].coopBestuurt = true;
   w.coopWanted = {};
   assert.equal(reportCrime(w, 'pedKill', { vehicle: v }), true, 'een dode voetganger is ernstig');
   assert.equal(w.wanted, 0, 'de host blijft schoon'); assert.equal(G.wantedVan(w, 1), 0, 'niemand zag het');
@@ -245,10 +250,10 @@ t('over het net: E bij een vrij voertuig zet de gast als bestuurder; de gast zie
   B.zetBestuurHaken(haken());
   const s = sessie({ vehicles: [auto(5, 2, 1)] });
   s.step(2);
-  assert.equal(s.hw.coop.remote, true, 'de gast stuurt zijn invoer');
+  assert.ok(s.hw.coopFigures[1].input, 'de gast stuurt zijn invoer naar zijn eigen figuur'); // (#516)
   assert.equal(N.gastGebruik(s.gw), true); s.step(1);
   const v = s.hw.vehicles[0];
-  assert.equal(v.coopBestuurder, 1); assert.equal(s.hw.companion.coopBestuurt, true);
+  assert.equal(v.coopBestuurder, 1); assert.equal(s.hw.coopFigures[1].coopBestuurt, true);
   assert.equal(s.gw.coopInVoertuig, true); assert.equal(s.gw.coopBestuurder, true, 'de gast weet dat hij bestuurder is (Spatie is de handrem)');
   assert.ok(s.gw.messages.some((m) => /Je rijdt/.test(m)), 'melding bij de gast');
   N.gastGebruik(s.gw); s.step(1);
@@ -275,7 +280,7 @@ t('over het net: iedereen ziet de sterren van het doelwit; de gast die gepakt wo
   G.politieMetDoelwit(1 / 60, s.hw, (dt, wr) => { wr.coopGepakt(wr.player.coopSlot, wr.wanted); });
   s.step(1);
   assert.ok(s.gw.money < geld && s.gw.money >= 0, 'boete: ' + s.gw.money); assert.ok(s.gw.messages.some((m) => /Gepakt/.test(m)));
-  assert.equal(G.wantedVan(s.hw, 1), 0); assert.equal(s.hw.companion.coopBestuurt, false, 'uit het voertuig');
+  assert.equal(G.wantedVan(s.hw, 1), 0); assert.equal(s.hw.coopFigures[1].coopBestuurt, false, 'uit het voertuig');
   s.step(1); assert.equal(s.gw.wanted, 0);
 });
 
@@ -291,7 +296,7 @@ t('een gast opent de bijrijdersdeur met E en trekt de AI-passagier er met de twe
   const w = mkWorld();
   const v = sedan(71, { driver: 'ai', road: {} }); w.vehicles = [v];
   seatedOf(v).passengers = [{ slot: 'front', seed: 3 }];
-  w.companion.x = bijrijdersdeur[0]; w.companion.y = bijrijdersdeur[1];
+  w.coopFigures[1].x = bijrijdersdeur[0]; w.coopFigures[1].y = bijrijdersdeur[1];
   assert.equal(B.trekGast(w, 1), true);
   assert.equal(v.doors.want.vr, 1, 'de deur gaat open');
   assert.match(meldingen.pop()[1], /opent de bijrijdersdeur/, 'de gast hoort welke deur opengaat');
@@ -309,16 +314,16 @@ t('trekken kan alleen bij een bezette passagiersdeur van een stilstaand voertuig
   const w = mkWorld();
   const leeg = sedan(72, { driver: 'ai', road: {} }); // niemand op de bijrijdersstoel
   seatedOf(leeg).passengers = [];
-  w.vehicles = [leeg]; w.companion.x = bijrijdersdeur[0]; w.companion.y = bijrijdersdeur[1];
+  w.vehicles = [leeg]; w.coopFigures[1].x = bijrijdersdeur[0]; w.coopFigures[1].y = bijrijdersdeur[1];
   assert.equal(B.trekGast(w, 1), false, 'een lege stoel: het gewone gebruik gaat door');
   const ver = sedan(73, { x: 40, y: 40, driver: 'ai', road: {} }); seatedOf(ver).passengers = [{ slot: 'front' }];
   w.vehicles = [ver];
   assert.equal(B.trekGast(w, 1), false, 'te ver van de deur');
   const rijdend = sedan(74, { x: 0, y: 0, speed: 4, driver: 'ai', road: {} }); seatedOf(rijdend).passengers = [{ slot: 'front' }];
-  w.vehicles = [rijdend]; w.companion.x = bijrijdersdeur[0]; w.companion.y = bijrijdersdeur[1];
+  w.vehicles = [rijdend]; w.coopFigures[1].x = bijrijdersdeur[0]; w.coopFigures[1].y = bijrijdersdeur[1];
   assert.equal(B.trekGast(w, 1), false, 'een rijdend voertuig geeft niemand vrij');
   const bestuurder = sedan(75, { driver: 'ai', road: {} }); bestuurder.doors = D.makeDoorState(); bestuurder.doors.open.vl = 1;
-  w.vehicles = [bestuurder]; w.companion.x = 0.645; w.companion.y = -1.32;
+  w.vehicles = [bestuurder]; w.coopFigures[1].x = 0.645; w.coopFigures[1].y = -1.32;
   assert.equal(B.trekGast(w, 1), false, 'de bestuurdersdeur is geen passagiersdeur');
   assert.equal(B.trekGast(w, 0), false, 'de gastheer zelf gebruikt zijn eigen E');
   B.zetBestuurHaken({ trekUit: null });
@@ -351,7 +356,7 @@ t('over het net: E van de gast bij een passagiersdeur komt als begrensd trekberi
   const v = s.hw.vehicles[0];
   seatedOf(v).passengers = [{ slot: 'front', seed: 3 }];
   s.hw.player.x = 8; s.hw.player.y = 8; // de gastheer staat naast de auto
-  s.hw.companion.x = bijrijdersdeur[0]; s.hw.companion.y = bijrijdersdeur[1];
+  s.hw.coopFigures[1].x = bijrijdersdeur[0]; s.hw.coopFigures[1].y = bijrijdersdeur[1];
   const verzonden = [], send = s.gw.coopNet.session.sendEvent.bind(s.gw.coopNet.session);
   s.gw.coopNet.session.sendEvent = (b) => { verzonden.push(b); return send(b); };
   assert.equal(N.gastGebruik(s.gw), true);

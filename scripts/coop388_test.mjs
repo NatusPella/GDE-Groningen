@@ -5,8 +5,8 @@
 // - een menu van de gast zelf zet alleen zijn eigen figuur stil, niet de wereld van wie het spel opende
 // - niemand deelt een camera meer (het midden tussen twee spelers zette hem verder weg en scheef)
 // - Tessa zat vast aan een harde lijn van 38 m (alleen terug lopen kon): nu dezelfde band als de andere spelers (80 m melding, 110 m terugzetten)
-// - de pauze van wie het spel opende bevriest Tessa niet meer
-// - Tessa gaat niet vanzelf mee als de gastheer instapt: ze leest wat ze moet doen en stapt met E in; blijft ze achter, dan rijdt ze mee
+// - de pauze van wie het spel opende bevriest de gast niet meer
+// - een gast gaat niet vanzelf mee als de gastheer instapt: hij leest wat hij moet doen en stapt met E in (#516: elke gast is een eigen figuur)
 // - een gast kan op de kaart geen ritje of teleport doen (dat verplaatst alleen zijn eigen figuur)
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -23,7 +23,7 @@ const INFO = N.handshakeInfo({ tiles: 'abc', story: 'oud' });
 const toets = () => { const s = new Set(); return { s, wasPressed: (k) => s.delete(k), isDown: () => false, axis: () => [0, 0] }; };
 const mkWorld = (extra = {}) => ({ player: { x: 0, y: 0, angle: 0, character: 'tammo', vx: 0, vy: 0 }, companion: { x: 1, y: 1, angle: 0, character: 'anita', vx: 0, vy: 0, radius: 0.4 }, coop: { local: true }, money: 0, wanted: 0, camYaw: 0, time: 0, clock: 12, messages: [], addMessage(m) { this.messages.push(m); }, input: toets(), ...extra });
 
-// de host draait ook "companion.js": Tessa loopt op de invoer van haar speler zolang het spel niet op pauze staat
+// de host simuleert de figuren van de gasten in stepFigures; er is geen coopStep op de metgezel meer (#516)
 function avond(gasten = 1) {
   const hw = mkWorld(), gs = [];
   N.startHost(hw, INFO, { seed: 5 });
@@ -37,7 +37,6 @@ function avond(gasten = 1) {
   const step = (secs, f) => {
     for (let k = 0; k < Math.round(60 * secs); k++) {
       if (f) f(k);
-      if (!hw.paused && !hw.companion.inVehicle) coopStep(hw.companion, 1 / 60, hw, hw.coopMove || ((q, d) => { q.x += q.vx * d; q.y += q.vy * d; }));
       N.tickCoopNet(hw, 1 / 60);
       for (const g of gs) { if (g.gw.coopNet) N.tickCoopNet(g.gw, 1 / 60); g.link.advance(1 / 60); g.gw.time += 1 / 60; }
       hw.time += 1 / 60;
@@ -63,7 +62,7 @@ t('de camera van een gast draait met de muis: rechts is met de klok mee, links e
 
 t('de camera en besturing van een gast werken ook als wie het spel opende pauzeert of een menu opent', () => {
   const s = avond(2); s.step(3);
-  const tessa = s.gs[0].gw, c = s.hw.companion;
+  const tessa = s.gs[0].gw, c = s.hw.coopFigures[1];
   s.hw.paused = true; // het pauzemenu, de kaart of de winkel van de gastheer (updateGameplay staat bij hem stil)
   assert.equal(N.coopWereldDoorloop(s.hw, true), true, 'de wereld van de gastheer loopt door achter zijn menu');
   tessa.camYaw = Math.PI / 2; // de gast draaide zijn camera naar +y
@@ -103,7 +102,7 @@ t('de camera van een gast springt niet: veel kleine muisstappen geven dezelfde h
   s.hw.paused = false; g.camYaw = 0.8;
   s.hw.player.x = 400; s.step(0.5);
   assert.equal(N.bijGroepGebaar(g), true); s.step(1);
-  assert.ok(Math.hypot(s.hw.companion.x - 400, s.hw.companion.y - s.hw.player.y) < 5, 'hij staat weer bij de groep');
+  assert.ok(Math.hypot(s.hw.coopFigures[1].x - 400, s.hw.coopFigures[1].y - s.hw.player.y) < 5, 'hij staat weer bij de groep');
   assert.equal(g.camYaw, 0.8, 'geen sprong in de kijkhoek door het terugzetten');
 });
 
@@ -113,34 +112,35 @@ t('niemand deelt een camera: ook Tessa en wie het spel opende hebben hun eigen',
   for (const w of [s.hw, ...s.gs.map((g) => g.gw)]) assert.equal(w.coopCam, null);
 });
 
-t('Tessa kan verder dan 38 m: geen harde lijn meer; los van de groep (eigen focus, #429) wordt ze niet teruggezet en B brengt haar terug', () => {
+t('een gast kan verder dan 38 m: geen harde lijn; de band waarschuwt bij 80 m, zet hem bij 110 m terug en B brengt hem terug', () => {
   const s = avond(); s.step(3);
-  const g = s.gs[0].gw, c = s.hw.companion;
+  const g = s.gs[0].gw, c = s.hw.coopFigures[1];
   assert.equal(s.hw.coop.leash, Infinity, 'de lijn staat uit in een sessie');
   s.hw.player.x = 0; s.hw.player.y = 0; c.x = 0; c.y = 0;
   g.input.axis = () => [0, -1]; // vooruit (camera yaw 0: wereld +x)
   g.input.isDown = (k) => k === 'shift'; // rennen: 5,6 m/s
   let max = 0;
   s.step(21, () => { max = Math.max(max, Math.hypot(c.x - s.hw.player.x, c.y - s.hw.player.y)); });
-  assert.ok(max > LEASH_DIST * 2, 'ze loopt veel verder dan de oude 38 m: ' + max.toFixed(0));
-  assert.equal(aantal(g, /Blijf bij de groep/), 0, 'los lopen is toegestaan: geen waarschuwing');
+  assert.ok(max > LEASH_DIST * 2, 'hij loopt veel verder dan de oude 38 m: ' + max.toFixed(0));
+  // (#516) plek 1 volgt nu dezelfde band als elke gast: waarschuwen bij 80 m, terugzetten bij 110 m.
+  assert.ok(aantal(g, /Blijf bij de groep/) >= 1, 'de band waarschuwt bij 80 m');
   g.input.axis = () => [0, 0];
   s.step(8);
-  assert.ok(Math.hypot(c.x - s.hw.player.x, c.y - s.hw.player.y) > 80, 'ze blijft staan waar ze is: ' + c.x);
+  assert.ok(Math.hypot(c.x - s.hw.player.x, c.y - s.hw.player.y) < 120, 'de band houdt hem binnen bereik: ' + c.x.toFixed(0));
   assert.equal(N.bijGroepGebaar(g), true); s.step(1);
   assert.ok(Math.hypot(c.x - s.hw.player.x, c.y - s.hw.player.y) < 5, 'B: weer bij de groep: ' + c.x);
-  assert.equal(aantal(g, /Je staat weer bij de groep/), 1);
-  // een sprong van de gastheer (snelreizen, teleport): niemand wordt meegehaald, iedereen speelt vrij door
+  assert.ok(aantal(g, /Je staat weer bij de groep/) >= 1);
+  // een sprong van de gastheer (snelreizen, teleport): de gast heeft dan een eigen focus en wordt niet meegehaald (#429)
   s.hw.player.x = 5000; s.hw.player.y = 0; s.step(1.2);
-  assert.ok(Math.hypot(c.x - 5000, c.y) > 4000, 'Tessa blijft waar ze is, niet meegehaald: ' + c.x);
+  assert.ok(Math.hypot(c.x - 5000, c.y) > 4000, 'de gast blijft waar hij is, niet meegehaald: ' + c.x);
   // lokaal (twee spelers op één scherm) houdt de oude lijn
   const lokaal = mkWorld({ coop: { local: true } }); lokaal.player.x = 0; lokaal.companion.x = 100; lokaal.companion.y = 0; lokaal.coop.remote = true; lokaal.coop.remoteInput = { mx: 0, my: 0, buttons: 0, yaw: 0 };
   coopStep(lokaal.companion, 1 / 60, lokaal, () => {}); assert.ok(lokaal.companion.x <= LEASH_DIST + 0.01, 'zonder sessie: de oude lijn');
 });
 
-t('de pauze van wie het spel opende bevriest Tessa niet: ze loopt door; het wachtscherm bij wegvallen pauzeert wel', () => {
+t('de pauze van wie het spel opende bevriest de gasten niet: ze lopen door; het wachtscherm bij wegvallen pauzeert wel', () => {
   const s = avond(2); s.step(3);
-  const [tessa, bram] = s.gs.map((g) => g.gw), c = s.hw.companion, f = s.hw.coopFigures[2];
+  const [tessa, bram] = s.gs.map((g) => g.gw), c = s.hw.coopFigures[1], f = s.hw.coopFigures[2];
   tessa.input.axis = () => [0, -1]; bram.input.axis = () => [0, -1];
   s.hw.paused = true; // pauzemenu, kaart of winkel van de gastheer (updateGameplay staat stil)
   const c0 = c.x, f0 = f.x;
@@ -152,12 +152,12 @@ t('de pauze van wie het spel opende bevriest Tessa niet: ze loopt door; het wach
   tessa.input.axis = () => [0, 0]; s.step(1);
   assert.equal(N.stapMetgezelInPauze(s.hw, 1 / 60), false, 'zonder pauze doet de functie niets (updateGameplay stapt haar)');
   s.hw.paused = true; s.hw.coopDoorloopNu = true; assert.equal(N.stapMetgezelInPauze(s.hw, 1 / 60), false, 'loopt de wereld al door achter het menu, dan stapt updateGameplay haar (geen dubbele stap)'); s.hw.coopDoorloopNu = false;
-  const c2 = { ...c }; s.hw.paused = true; s.hw.companion.state = 'dead'; N.stapMetgezelInPauze(s.hw, 1 / 60); assert.equal(c.x, c2.x, 'een neergeslagen Tessa blijft liggen');
+  const c2 = { ...c }; s.hw.paused = true; s.hw.coopFigures[1].state = 'dead'; assert.equal(N.stapMetgezelInPauze(s.hw, 1 / 60), false, 'de functie is voor de computermetgezel, niet voor een gast (#516)'); assert.equal(c.x, c2.x, 'de gastfiguur blijft liggen');
 });
 
 t('een menu van de gast zelf zet alleen zijn eigen figuur stil, niet de wereld van wie het spel opende', () => {
   const s = avond(2); s.step(3);
-  const [tessa, bram] = s.gs.map((g) => g.gw), c = s.hw.companion, f = s.hw.coopFigures[2];
+  const [tessa, bram] = s.gs.map((g) => g.gw), c = s.hw.coopFigures[1], f = s.hw.coopFigures[2];
   // niemand zet de pauze van de een op de ander: world.paused komt alleen uit het eigen scherm (main.js)
   for (const bestand of fs.readdirSync(new URL('../game/js/', import.meta.url)).filter((b) => b.startsWith('coop') && b.endsWith('.js'))) {
     assert.doesNotMatch(bron(bestand), /world\.paused\s*=/, bestand + ' zet de pauze van de gastheer niet op de gast');
@@ -174,30 +174,34 @@ t('een menu van de gast zelf zet alleen zijn eigen figuur stil, niet de wereld v
   assert.ok(c.x - c1 > 2, 'na zijn menu loopt hij gewoon weer: ' + (c.x - c1).toFixed(1));
 });
 
-t('de gastheer stapt in: Tessa gaat niet vanzelf mee, leest wat ze moet doen en stapt met E in; wie achterblijft rijdt mee', () => {
+t('de gastheer stapt in: de gast gaat niet vanzelf mee en leest wat hij moet doen; de band houdt hem bij de groep', () => {
   const s = avond(); s.step(3);
-  const g = s.gs[0].gw, c = s.hw.companion;
+  const g = s.gs[0].gw, c = s.hw.coopFigures[1];
   const auto = { id: 7, x: 3, y: 0, angle: 0, speed: 0, halfWid: 1, model: { len: 4 } };
   s.hw.vehicles = [auto]; s.hw.player.inVehicle = auto; s.hw.player.x = 3; s.step(1);
-  assert.equal(aantal(g, /Tammo zit in een voertuig\. Druk bij het voertuig op E om mee te rijden\./), 1, 'één melding, alleen voor Tessa');
-  assert.equal(c.inVehicle, undefined, 'ze zit er niet vanzelf in');
+  assert.equal(aantal(g, /Tammo zit in een voertuig\. Druk bij het voertuig op E om mee te rijden\./), 1, 'één melding, voor de gast');
+  assert.equal(c.inVeh, undefined, 'hij zit er niet vanzelf in'); // (#516) de gast is een figuur met inVeh
   s.step(2); assert.equal(aantal(g, /zit in een voertuig/), 1, 'niet steeds opnieuw');
   s.hw.player.inVehicle = null; s.step(0.5); s.hw.player.inVehicle = auto; s.step(0.5);
   assert.equal(aantal(g, /zit in een voertuig/), 2, 'wel bij een volgende keer instappen');
-  // de host rijdt snel, maar de snelheid van de host zet niemand terug (alle spelers zijn gelijkwaardig): Tessa blijft staan waar ze staat zolang ze binnen de band is
+  // de host rijdt snel: de gast stapt niet vanzelf in en wordt niet door de snelheid van de host teruggezet (#429)
   auto.speed = 20; c.x = -60; c.y = 0;
   s.step(6, () => { auto.x += 20 / 60; s.hw.player.x = auto.x; });
-  assert.ok(!c.inVehicle, 'niet vanzelf in het voertuig'); assert.notEqual(auto.passenger, 'companion'); assert.ok(Math.abs(c.x + 60) < 5, 'Tessa wordt niet teruggezet door de snelheid van de host: ' + c.x.toFixed(1)); assert.doesNotMatch(g.messages.join(' '), /Je staat weer bij de groep/);
-  // ook als de host ver wegrijdt loopt ze los met een eigen focus (#429); B brengt haar bij de host, niets zet haar terug door zijn snelheid
+  assert.ok(!c.inVeh, 'niet vanzelf in het voertuig'); assert.notEqual(auto.passenger, 'companion');
+  assert.ok(Math.abs(c.x + 60) < 5, 'de gast wordt niet teruggezet door de snelheid van de host: ' + c.x.toFixed(1));
+  // ook als de host ver wegrijdt houdt de gast zijn eigen focus (#429); niets zet hem terug door de snelheid van de host
   auto.x = 300; s.hw.player.x = 300; s.step(6, () => { auto.x += 20 / 60; s.hw.player.x = auto.x; });
-  assert.ok(!c.inVehicle, 'niet vanzelf in het voertuig'); assert.ok(Math.abs(c.x + 60) < 5, 'Tessa blijft los staan: ' + c.x.toFixed(1)); assert.doesNotMatch(g.messages.join(' '), /Je staat weer bij de groep/);
+  assert.ok(!c.inVeh, 'niet vanzelf in het voertuig');
+  assert.ok(Math.abs(c.x + 60) < 5, 'de gast blijft los staan: ' + c.x.toFixed(1));
   c.x = 300; c.y = 0; auto.x = 500; s.hw.player.x = 500; auto.speed = 0;
-  // niet geschikt: ze wordt bij de groep gezet
-  const heli = { id: 8, x: 500, y: 0, angle: 0, speed: 0, isHeli: true }; c.inVehicle = null; auto.passenger = null; s.hw.player.inVehicle = heli; s.hw.player.x = 500; c.x = 300; c.y = 0;
-  s.step(4.5); assert.equal(c.inVehicle, null, 'niet in een helikopter'); assert.ok(Math.hypot(c.x - 500, c.y) > 100, 'ze loopt los (eigen focus, #429); B brengt haar bij de gastheer');
+  // niet geschikt (helikopter): hij blijft met zijn eigen focus staan, niet aan boord
+  const heli = { id: 8, x: 500, y: 0, angle: 0, speed: 0, isHeli: true }; c.inVeh = null; auto.passenger = null; s.hw.player.inVehicle = heli; s.hw.player.x = 500; c.x = 300; c.y = 0;
+  s.step(4.5); assert.equal(c.inVeh, null, 'niet in een helikopter'); assert.ok(Math.hypot(c.x - 500, c.y) > 100, 'hij loopt los (eigen focus, #429)');
   const c1 = bron('companion.js');
-  assert.match(c1, /c\.coopUit = !!\(world\.coop && world\.coop\.remote\)/, 'companion.js: een echte speler stapt zelf in');
-  assert.match(c1, /Je kunt alleen meerijden als de ander in een voertuig zit/, 'E bij een geparkeerd voertuig geeft een melding');
+  // (#516) de oude E-tak voor plek 1 bestaat niet meer; de metgezel is de computermetgezel en krijgt geen gastinvoer.
+  assert.doesNotMatch(c1, /coopGastGebruik\(/, 'companion.js: geen oude E-tak voor plek 1');
+  assert.match(c1, /world\.coop && !world\.coop\.remote/, 'companion.js: alleen de computermetgezel loopt op invoer');
+  assert.match(bron('coopnet.js'), /return figGebruik\(world, van\)/, 'E van een gast gaat naar zijn eigen figuur');
 });
 
 t('een gast kan op de kaart geen ritje of teleport doen', () => {

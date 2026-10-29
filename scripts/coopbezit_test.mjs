@@ -37,10 +37,10 @@ zetDeelHaken({
 
 function mkWorld() {
   const w = {
-    coop: { remote: true }, companion: { x: 12, y: 8, angle: 0 },
-    coopFigures: { 2: { slot: 2, x: 40, y: 40, angle: 0 } },
+    coop: { remote: true }, // (#516) plek 1 is een eigen figuur, geen metgezel
+    coopFigures: { 1: { slot: 1, x: 12, y: 8, angle: 0 }, 2: { slot: 2, x: 40, y: 40, angle: 0 } },
     vehicles: [], berichten: [], meldingen: [], aan: [],
-    coopRoster: [{ slot: 1, naam: 'Tessa' }, { slot: 2, naam: 'Sven' }],
+    coopRoster: [{ slot: 1, naam: 'Rik' }, { slot: 2, naam: 'Sven' }],
     addMessage(t) { this.berichten.push(t); },
     coopMeld(slot, t) { this.meldingen.push([slot, t]); },
     coopNet: { role: 'host', hub: { roster: { spelers: [{ slot: 0 }, { slot: 1 }, { slot: 2 }] }, announce(b, s) { w.aan.push([b, s]); } } },
@@ -129,7 +129,7 @@ t('de host zet de kopie bij de gast neer, met kleur en schade, en vertelt het de
   assert.match(w.meldingen[0][1], /staat klaar/);
   assert.equal(w.aan.length, 1, 'de andere gasten horen het');
   assert.equal(w.aan[0][1], 2);
-  assert.match(w.aan[0][0].tekst, /Tessa/);
+  assert.match(w.aan[0][0].tekst, /Rik/, 'de melding noemt de avatar van de gast, niet Tessa (#516)');
 });
 
 t('grenzen: geen tweede keer hetzelfde, hooguit twee per speler, en de host brengt niets mee', () => {
@@ -252,7 +252,7 @@ t('de host controleert de plek en zet alleen een deur neer, zonder een save aan 
   assert.equal(w.vehicles.length, 0, 'een pand is geen voertuig');
   assert.match(w.meldingen[w.meldingen.length - 1][1], /pand staat in de sessie/);
   assert.equal(w.aan.length, 1, 'de andere gasten horen het');
-  assert.match(w.aan[0][0].tekst, /Tessa/);
+  assert.match(w.aan[0][0].tekst, /Rik/, 'de melding noemt de avatar van de gast, niet Tessa (#516)');
   assert.equal(bezorgPandHost(w, 1, pandBody()), false, 'niet twee keer dezelfde deur');
   assert.equal(bezorgHost(w, 0, pandBody({ id: 'h:wp:WP1018' })), false, 'de host brengt geen eigen pand mee');
   assert.equal(bezorgHost(w, 1, { k: 'bezorg', soort: 'pand', id: 'geen-pand', x: 1, y: 2, ang: 0 }), false, 'een onbekende sleutel');

@@ -150,14 +150,19 @@ t('sessie: coopMeespelers geeft wie J zei, verbonden is en staat; de stap volgt 
   assert.equal(opdrachtSpelers(hw).length, 1);
   druk(gs[0].gw, 'j'); step(1);
   assert.deepEqual(hw.coopMeespelers(), [1]);
-  hw.companion.state = 'dead'; step(1);
+  // (#516) plek 1 is de eigen figuur van de gast, niet de metgezel: "neer" zetten we op die figuur, niet op Tessa.
+  hw.coopFigures[1].coopDown = true; step(1);
   assert.deepEqual(hw.coopMeespelers(), [], 'de meespeler is neer');
   assert.equal(hw.coopOpdrachtDoor(), false, 'de gastheer neer en de enige meespeler neer: de opdracht faalt');
-  hw.companion.state = 'alive'; step(1);
+  hw.coopFigures[1].coopDown = false; step(1);
   assert.deepEqual(hw.coopMeespelers(), [1]);
   assert.equal(hw.coopOpdrachtDoor(), true, 'de gastheer neer of opgepakt, een meespeler staat: de opdracht loopt door');
-  druk(gs[1].gw, 'j'); step(1);
+  // (#516) Tessa is de computermetgezel en hoort bij geen plek: haar dood mag de gast op plek 1 niet als "neer" tellen.
   hw.companion.state = 'dead'; step(1);
+  assert.deepEqual(hw.coopMeespelers(), [1], 'de dood van de computermetgezel raakt de gast niet');
+  hw.companion.state = 'alive'; step(1);
+  druk(gs[1].gw, 'j'); step(1);
+  hw.coopFigures[1].coopDown = true; step(1);
   assert.deepEqual(hw.coopMeespelers(), [2], 'een extra gast die staat telt');
   assert.equal(hw.coopOpdrachtDoor(), true);
   N.stopCoopNet(hw);

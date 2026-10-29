@@ -81,33 +81,37 @@ function sessie() {
   step(2);
   return { hw, gw, step };
 }
-t('E van de gast komt bij de host aan (alleen van plek 1) en een host kan het niet sturen', () => {
+t('E van de gast komt bij de host aan en een host kan het niet sturen', () => {
   const { hw, gw, step } = sessie();
+  // (#516) plek 1 is de eigen figuur van de gast: E zet die figuur in het voertuig van de gastheer.
+  const v = { x: 5, y: 5, speed: 0 };
+  hw.player.inVehicle = v; hw.coopFigures[1].x = 5.5; hw.coopFigures[1].y = 5;
   assert.equal(N.gastGebruik(gw), true); step(1);
-  assert.equal(hw.coopGebruik, true, 'de host weet dat de gast E drukte');
+  assert.equal(hw.coopFigures[1].inVeh, v, 'de host weet dat de gast E drukte: hij zit in het voertuig');
   assert.equal(N.gastGebruik(hw), false, 'alleen een gast stuurt dit');
   assert.equal(N.handleEvent(gw, { k: 'gebruik' }, 0), false, 'een gast luistert er niet naar');
-  assert.equal(N.handleEvent(hw, { k: 'gebruik' }, 2), false, 'een extra speler (figuur) kan niet in- of uitstappen');
+  assert.equal(N.handleEvent(hw, { k: 'gebruik' }, 2), false, 'een plek die niet meespeelt heeft geen lichaam');
 });
 t('het stuur: de host geeft het, de gast hoort het en geeft het terug; zonder voertuig of bij uitstappen niet', () => {
   const { hw, gw, step } = sessie();
+  const naam1 = hw.coopRoster.find((r) => r.slot === 1).naam; // (#516) de avatar van de gast, geen Tessa
   assert.equal(N.wielGebaar(hw), false, 'zonder voertuig geen stuur');
-  const v = { x: 5, y: 5, speed: 0 }; hw.player.inVehicle = v; hw.companion.inVehicle = v; hw.coop.remote = true; step(1); // eerst weet de gast uit de snapshots dat hij in het voertuig zit
+  const v = { x: 5, y: 5, speed: 0 }; hw.player.inVehicle = v; hw.coopFigures[1].inVeh = v; step(1); // eerst weet de gast uit de snapshots dat hij in het voertuig zit
   assert.equal(gw.coopInVoertuig, true);
   assert.equal(N.wielGebaar(hw), true); step(1);
   assert.equal(hw.coopWielSlot, 1); assert.equal(gw.coopWiel, true); assert.match(gw.messages.join(' '), /Tammo geeft je het stuur/);
-  assert.match(hw.messages.join(' '), /Je geeft Tessa het stuur/);
+  assert.match(hw.messages.join(' '), new RegExp(`Je geeft ${naam1} het stuur`));
   N.wielGebaar(gw); step(1); // de gast heeft het stuur: Y geeft het terug
-  assert.equal(hw.coopWielSlot, null); assert.equal(gw.coopWiel, false); assert.match(hw.messages.join(' '), /Je neemt het stuur terug van Tessa/);
+  assert.equal(hw.coopWielSlot, null); assert.equal(gw.coopWiel, false); assert.match(hw.messages.join(' '), new RegExp(`Je neemt het stuur terug van ${naam1}`));
   // vragen: de host ziet een verzoek en geeft met Y
   gw.messages.length = 0; hw.messages.length = 0;
   N.wielGebaar(gw); step(1);
-  assert.match(gw.messages.join(' '), /Je vraagt om het stuur/); assert.match(hw.messages.join(' '), /Tessa vraagt om het stuur/); assert.ok(hw.coopWielVraag);
+  assert.match(gw.messages.join(' '), /Je vraagt om het stuur/); assert.match(hw.messages.join(' '), new RegExp(`${naam1} vraagt om het stuur`)); assert.ok(hw.coopWielVraag);
   N.wielGebaar(hw); step(1); assert.equal(gw.coopWiel, true); assert.equal(hw.coopWielVraag, null);
-  // Tessa stapt uit (of de host): het stuur is weer van de bestuurder
-  hw.companion.inVehicle = null; step(1);
+  // de gast stapt uit (of de host): het stuur is weer van de bestuurder
+  hw.coopFigures[1].inVeh = null; step(1);
   assert.equal(hw.coopWielSlot, null, 'zonder bijrijder geen stuur'); assert.equal(gw.coopWiel, false);
-  hw.companion.inVehicle = v; hw.coopWielSlot = 1; hw.player.inVehicle = null; step(1);
+  hw.coopFigures[1].inVeh = v; hw.coopWielSlot = 1; hw.player.inVehicle = null; step(1);
   assert.equal(hw.coopWielSlot, null, 'zonder bestuurder geen stuur');
   gw.coopInVoertuig = false; gw.messages.length = 0; N.wielGebaar(gw); assert.match(gw.messages.join(' '), /Alleen als bijrijder/, 'een gast te voet kan niet vragen');
 });
@@ -121,7 +125,7 @@ t('een korte melding van de host komt bij de gast aan en een host krijgt er geen
 });
 t('de knoppen van de gast: Spatie is alleen handrem als hij het stuur heeft', () => {
   const { hw, gw, step } = sessie();
-  const v = { x: 5, y: 5, speed: 0 }; hw.player.inVehicle = v; hw.companion.inVehicle = v; step(1);
+  const v = { x: 5, y: 5, speed: 0 }; hw.player.inVehicle = v; hw.coopFigures[1].inVeh = v; step(1); // (#516) de gast is de figuur op plek 1
   gw.input = { axis: () => [0, -1], isDown: (k) => k === ' ', wasPressed: () => false };
   step(1); assert.equal(gw.coopNet.session.pendingInput.buttons & 2, 0, 'zonder stuur geen handrem (Spatie springt te voet)');
   gw.coopWiel = true; step(1); assert.equal(gw.coopNet.session.pendingInput.buttons & 2, 2);

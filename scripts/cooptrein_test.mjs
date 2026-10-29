@@ -9,7 +9,6 @@ const ok = (c, m, i = '') => { n++; if (!c) { fails++; console.log(`FAIL ${m}${i
 
 const C = await import('../game/js/cooptrein.js');
 const T = await import('../game/js/treincoop.js');
-const U = await import('../game/js/companion.js'); // stepCompanion laat een meerijdende gast staan
 const N = await import('../game/js/coopnet.js'); // de host-haak van de conducteur en de beloning per crewlid (#492)
 const M = await import('../game/js/machinist.js'); // dienstBeloning: de gastheer en de crew (#492)
 const L = await import('../game/js/treinlayout.js'); // de indeling, de reizigers en het lopen (#492)
@@ -27,7 +26,7 @@ const newTrein = () => ({
 const newWorld = (berichten) => ({
   trainDriving: null, player: { x: 0, y: 0, gz: 0, z: 0, radius: 0.35, character: 'tammo' },
   companion: { x: 0, y: 0, gz: 0, z: 0, vx: 0, vy: 0, radius: 0.35, state: 'ok' },
-  coop: { remote: true }, coopFigures: {}, map: { escapeBuilding: (x, y) => [x, y] },
+  coop: { remote: false }, coopFigures: { 1: { slot: 1, x: 0, y: 0, gz: 0, z: 0, vx: 0, vy: 0, input: null } }, map: { escapeBuilding: (x, y) => [x, y] }, // (#516) plek 1 is de eigen figuur van de gast
   time: 0, addMessage() {}, audioEvents: [], particles: [], vehicles: [], pedestrians: [],
   coopMeld: (slot, tekst) => berichten.push({ slot, tekst }),
   coopTreinMeld: (slot, aan, rol) => berichten.push({ slot, aan, rol }),
@@ -36,11 +35,11 @@ const newWorld = (berichten) => ({
 // --- zonder gastheer in de trein gebeurt er niets
 {
   const b = [], w = newWorld(b), t = newTrein();
-  w.companion.x = 1;
+  w.coopFigures[1].x = 1;
   ok(C.treinGebruik(w, 1).gedaan === false, 'zonder gastheer in de trein stapt een gast niet in');
   ok(C.lichaamPlek(w, 1) === null, 'en er is geen wagen om aan te hangen');
   w.trainDriving = t;
-  w.companion.x = 60; // ver van de trein
+  w.coopFigures[1].x = 60; // ver van de trein
   ok(C.treinGebruik(w, 1).gedaan === false && t.crew == null, 'ver van de trein is E geen instappen');
   t.v = 12;
   ok(C.treinGebruik(w, 1).gedaan === false, 'een rijdende trein ver weg claimt E niet: E blijft voor een auto of het meerijden');
@@ -49,16 +48,16 @@ const newWorld = (berichten) => ({
 // --- instappen: de gastheer is de machinist, de eerste gast conducteur en de tweede passagier (#492)
 const b1 = [], w = newWorld(b1), t = newTrein();
 w.trainDriving = t;
-w.companion.x = 3; w.companion.y = 0;
+w.coopFigures[1].x = 3; w.coopFigures[1].y = 0;
 const r1 = C.treinGebruik(w, 1);
 ok(r1.gedaan === true && r1.rol === 'conducteur', 'de eerste gast stapt in als conducteur');
 ok(T.roleOf(t.crew, 0) === 'machinist', 'de gastheer is de machinist');
 ok(T.roleOf(t.crew, 1) === 'conducteur', 'de gast is conducteur');
 ok(b1.some((m) => m.slot === 1 && m.aan === true && m.rol === 'conducteur'), 'de gast hoort dat hij conducteur is');
 ok(b1.some((m) => m.slot === 1 && m.tekst === C.TREIN_TEKST.conducteur), 'met de uitleg van O en K');
-ok(w.companion.coopTrein === true, 'zijn lichaam hangt aan de wagen');
+ok(w.coopFigures[1].coopTrein === true, 'zijn lichaam hangt aan de wagen');
 const plek0 = C.lichaamPlek(w, 1);
-ok(plek0 && Math.hypot(w.companion.x - plek0.x, w.companion.y - plek0.y) < 1e-9, 'meteen op de wagen');
+ok(plek0 && Math.hypot(w.coopFigures[1].x - plek0.x, w.coopFigures[1].y - plek0.y) < 1e-9, 'meteen op de wagen');
 ok(t.crew.conducteur === 1, 'de crew kent hem als conducteur');
 // de tweede gast: de conducteurplek is bezet, dus passagier
 w.coopFigures[2] = { slot: 2, x: 3, y: 0, gz: 0, z: 0, vx: 0, vy: 0 };
@@ -69,27 +68,30 @@ ok(b1.some((m) => m.slot === 2 && m.rol === 'passagier'), 'de tweede gast hoort 
 
 // --- 60 tikken meerijden met een rijdende trein: het lichaam blijft bij de wagen, zonder eigen snelheid
 w.player.x = 500; w.player.y = 500; // het lichaam van de gastheer staat in de cabine, niet op de wagen van de gast
-let vorige = w.companion.x, maxAf = 0;
+let vorige = w.coopFigures[1].x, maxAf = 0;
 for (let k = 0; k < 60; k++) {
   for (const car of t.cars) car.x += 0.2; // 12 m/s bij 60 beelden
   t.v = 12;
   C.treinTick(w);
   const p = C.lichaamPlek(w, 1);
-  maxAf = Math.max(maxAf, Math.hypot(w.companion.x - p.x, w.companion.y - p.y));
+  maxAf = Math.max(maxAf, Math.hypot(w.coopFigures[1].x - p.x, w.coopFigures[1].y - p.y));
 }
 ok(maxAf <= 2, '60 tikken: het lichaam blijft binnen 2 m van de wagen', maxAf.toFixed(2));
-ok(w.companion.x - vorige > 10, 'het lichaam rijdt mee met de trein', (w.companion.x - vorige).toFixed(1));
-ok(w.companion.vx === 0 && w.companion.vy === 0, 'zonder eigen snelheid');
+ok(w.coopFigures[1].x - vorige > 10, 'het lichaam rijdt mee met de trein', (w.coopFigures[1].x - vorige).toFixed(1));
+ok(w.coopFigures[1].vx === 0 && w.coopFigures[1].vy === 0, 'zonder eigen snelheid');
 ok(w.player.x === 500 && w.player.y === 500, 'de gastheer zelf blijft waar hij is');
 ok(C.treinTick(w) === 2, 'treinTick telt de meerijders');
-ok(T.roleOf(t.crew, 0) === 'machinist' && w.companion.coopTrein === true, 'de gastheer blijft machinist');
+ok(T.roleOf(t.crew, 0) === 'machinist' && w.coopFigures[1].coopTrein === true, 'de gastheer blijft machinist');
 
-// de metgezel loopt niet weg uit de trein: stepCompanion laat zijn plek met rust
-w.companion.vx = 5; w.companion.vy = 3;
-const xVoor = w.companion.x;
-U.updateCompanion(1 / 60, w);
-ok(w.companion.vx === 0 && w.companion.vy === 0, 'de metgezel krijgt geen eigen snelheid');
-ok(Math.abs(w.companion.x - xVoor) < 1e-9, 'en blijft op de wagen staan');
+// (#516) Een gast in de trein is een eigen figuur: zijn invoer laat hem lopen, maar treinTick zet hem elke frame terug
+// op de wagen. De oude tak via world.companion (de metgezel als gast) bestaat niet meer.
+w.coopFigures[1].input = { mx: 1, my: 0, buttons: 0, yaw: 0 };
+const xVoor = w.coopFigures[1].x, yVoor = w.coopFigures[1].y;
+N.stepFigures(w, 1 / 60);
+ok(Math.hypot(w.coopFigures[1].x - xVoor, w.coopFigures[1].y - yVoor) > 1e-6, 'zijn invoer laat de figuur lopen');
+C.treinTick(w);
+const plekTerug = C.lichaamPlek(w, 1);
+ok(Math.abs(w.coopFigures[1].x - plekTerug.x) < 1e-9 && Math.abs(w.coopFigures[1].y - plekTerug.y) < 1e-9, 'en treinTick zet hem terug op de wagen');
 
 // --- uitstappen: niet bij snelheid, wel bij bijna stilstand (naast de wagen)
 const r2 = C.treinGebruik(w, 1);
@@ -99,17 +101,17 @@ t.v = 0;
 const carUit = t.cars[0];
 const r3 = C.treinGebruik(w, 1);
 ok(r3.gedaan === true && !T.roleOf(t.crew, 1), 'bij stilstand stapt de gast uit');
-ok(w.companion.coopTrein === false, 'zijn lichaam hangt niet meer aan de wagen');
+ok(w.coopFigures[1].coopTrein === false, 'zijn lichaam hangt niet meer aan de wagen');
 ok(b1.some((m) => m.slot === 1 && m.aan === false), 'de gast hoort dat hij niet meer meerijdt');
-const afUit = Math.hypot(w.companion.x - carUit.x, w.companion.y - carUit.y);
-ok(Math.abs(w.companion.y - carUit.y) > 1.4 || Math.abs(w.companion.x - carUit.x) > carUit.len / 2, 'hij staat naast de wagen, niet erin', `${w.companion.x.toFixed(1)},${w.companion.y.toFixed(1)}`);
+const afUit = Math.hypot(w.coopFigures[1].x - carUit.x, w.coopFigures[1].y - carUit.y);
+ok(Math.abs(w.coopFigures[1].y - carUit.y) > 1.4 || Math.abs(w.coopFigures[1].x - carUit.x) > carUit.len / 2, 'hij staat naast de wagen, niet erin', `${w.coopFigures[1].x.toFixed(1)},${w.coopFigures[1].y.toFixed(1)}`);
 ok(T.roleOf(t.crew, 0) === 'machinist', 'de gastheer is nog steeds machinist');
 
 // --- weer instappen (de conducteurplek is vrij) en dan stopt de gastheer: de crew gaat weg
-w.companion.x = carUit.x; w.companion.y = carUit.y;
+w.coopFigures[1].x = carUit.x; w.coopFigures[1].y = carUit.y;
 ok(C.treinGebruik(w, 1).gedaan === true && T.roleOf(t.crew, 1) === 'conducteur', 'weer ingestapt als conducteur');
 ok(C.treinStop(w, t) === 2 && t.crew === null, 'de gastheer stopt: de crew is opgeruimd');
-ok(w.companion.coopTrein === false, 'de gast staat weer naast de wagen');
+ok(w.coopFigures[1].coopTrein === false, 'de gast staat weer naast de wagen');
 ok(b1.some((m) => m.slot === 1 && m.aan === false), 'en hij hoort het');
 ok(C.treinTick(w) === 0, 'zonder crew hangt er niemand aan de trein');
 
@@ -168,14 +170,14 @@ rt.state = 'dwell'; rt.timer = 1e9; rt.v = 0; rt.target = 1; rt.c = 500;
 R.placeTrain(rt);
 const hc = rt.cars[0];
 rw.player.x = 2000; rw.player.y = 2000;
-rw.companion = { x: hc.x, y: hc.y, gz: hc.z || 0, z: 0, radius: 0.35, state: 'ok', vx: 0, vy: 0, water: false, coopTrein: true };
+rw.coopFigures = { 1: { slot: 1, x: hc.x, y: hc.y, gz: hc.z || 0, z: 0, radius: 0.35, state: 'ok', vx: 0, vy: 0, water: false, coopTrein: true } };
 rw.time += 1 / 60;
 R.updateRailway(1 / 60, rw);
-ok(Math.abs(rw.companion.x - hc.x) < 1e-9 && Math.abs(rw.companion.y - hc.y) < 1e-9, 'resolveContacts laat een crew-passagier staan');
-rw.companion.coopTrein = false;
+ok(Math.abs(rw.coopFigures[1].x - hc.x) < 1e-9 && Math.abs(rw.coopFigures[1].y - hc.y) < 1e-9, 'resolveContacts laat een crew-passagier staan');
+rw.coopFigures[1].coopTrein = false;
 rw.time += 1 / 60;
 R.updateRailway(1 / 60, rw);
-ok(Math.hypot(rw.companion.x - hc.x, rw.companion.y - hc.y) > 0.5, 'zonder de crew duwt de wagen hem weg');
+ok(Math.hypot(rw.coopFigures[1].x - hc.x, rw.coopFigures[1].y - hc.y) > 0.5, 'zonder de crew duwt de wagen hem weg');
 
 // --- O en K van de conducteur (#492): de host zet een vlag voor machinist.js en traindrive.js; een passagier mag het niet
 {
@@ -367,9 +369,9 @@ ok(Math.hypot(rw.companion.x - hc.x, rw.companion.y - hc.y) > 0.5, 'zonder de cr
   ok(N.handleEvent(hw, { k: 'trein', a: 'walk', car: 1, lx: 0.2, lz: 0.1, yaw: 1.2 }, 1) === true, 'de looppositie komt bij de gastheer aan');
   C.treinTick(hw);
   const hp = L.carPoint(ht.cars[1], 0.2, 0.1);
-  ok(Math.hypot(hw.companion.x - hp.x, hw.companion.y - hp.y) < 1e-9, 'het lichaam staat in de wagen uit het bericht');
-  ok(Math.abs(hw.companion.angle - (ht.cars[1].angle + 1.2)) < 1e-9, 'met de kijkrichting van de conducteur');
-  ok(hw.companion.coopTrein === true, 'en hangt aan de trein');
+  ok(Math.hypot(hw.coopFigures[1].x - hp.x, hw.coopFigures[1].y - hp.y) < 1e-9, 'het lichaam staat in de wagen uit het bericht');
+  ok(Math.abs(hw.coopFigures[1].angle - (ht.cars[1].angle + 1.2)) < 1e-9, 'met de kijkrichting van de conducteur');
+  ok(hw.coopFigures[1].coopTrein === true, 'en hangt aan de trein');
   ok(N.handleEvent(hw, { k: 'trein', a: 'walk', car: 1, lx: 99, lz: 99, yaw: 0 }, 1) === true, 'een ongeldige plek wordt ontvangen');
   ok(hw.coopTreinWalk[1].lx === 0.2, 'maar niet overgenomen');
   ok(N.handleEvent(hw, { k: 'trein', a: 'walk', weg: 1 }, 1) === true && !hw.coopTreinWalk[1], 'de gastheer ruimt de looppositie op');
