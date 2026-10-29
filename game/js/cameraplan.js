@@ -1,4 +1,4 @@
-// De vaste regels van de volgcam, los van three.js en van de DOM (#502).
+// De vaste regels van de volgcam, los van three.js en van de DOM (#463).
 // Waarom dit hier staat en niet in scene3d.js: de camerastand hing aan het
 // schermformaat (innerWidth/innerHeight) via de verhouding, en in de praktijk
 // werd de camera op een telefoon in landschap (800x360) onder de grond en in de
@@ -51,7 +51,7 @@ export function cameraVerticalFov(preset) {
 // volgstand. Waarom dat niet als 0 doorgaat: de cursorpositie is een aantal
 // pixels en wordt door de schermhoogte gedeeld, dus dezelfde pixel gaf op een
 // scherm van 360 px hoog een heel andere hoek dan op 800 px - daar hing de
-// hoogte van de camera aan de korte kant van het scherm (#502).
+// hoogte van de camera aan de korte kant van het scherm (#463).
 export const PITCH_MIN_DEG = 10;
 export const PITCH_MAX_DEG = 52;
 export const DEFAULT_PITCH = Math.atan2(5.2 - 1.3, 9); // 23,4 graden, de standaardvolgstand

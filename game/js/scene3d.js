@@ -126,7 +126,7 @@ import { GROUND_LAYER, SIDEWALK_EXTRA, PAVED_MATS, buildRoadGroup, setRoadNetwor
 import { updateRouteRibbon3D, hideRouteRibbon3D, setRouteRibbonScene } from './scene3d/routeribbon3d.js';
 import { lookBackActive, chaseFollowLerp } from './controls.js';
 // de vaste cameraregels (verhouding, verticale kijkhoek, volgplek, harde snee):
-// los van three.js zodat scripts/camera_mobiel_test.mjs ze per scherm narekent (#502)
+// los van three.js zodat scripts/camera_mobiel_test.mjs ze per scherm narekent (#463)
 import { cameraAspect, cameraVerticalFov, followCameraPose, cameraSnapNeeded, pitchForMouse, DEFAULT_PITCH } from './cameraplan.js';
 import { gameBusy } from './busy.js';
 
@@ -183,7 +183,7 @@ let followYaw = 0;
 // looking up) instead of just sliding the camera height up and down in place
 const ORBIT_RADIUS = Math.hypot(2.6, 2.6);
 // muis bovenin het scherm geeft een lage, bijna level stand, onderin een steile;
-// zonder muis geldt DEFAULT_PITCH (cameraplan.js, #502)
+// zonder muis geldt DEFAULT_PITCH (cameraplan.js, #463)
 // mouse-look goes lower still: below LOOK_UP_FROM_DEG the camera sinks to
 // the ground and the view tilts up towards the rooftops and the sky
 const PITCH_LOOK_MIN_DEG = -16;
@@ -982,7 +982,7 @@ export function init3D(map) {
   // vs. road/water/green y-offsets into the same depth bucket at range,
   // which read as "roads just don't render" (ground always won the z-test)
   // fov is de VERTICALE kijkhoek (three.js): op een breed scherm blijft die
-  // gelijk, de horizontale volgt uit de verhouding (#502)
+  // gelijk, de horizontale volgt uit de verhouding (#463)
   cam = new THREE.PerspectiveCamera(cameraVerticalFov(getSettings().fov), cameraAspect(innerWidth, innerHeight), 0.5, DRAW_DIST * 1.4);
   setFxCamera(cam);
   // de route-ribbon (scene3d/routeribbon3d.js) krijgt scene en camera via een
@@ -1212,7 +1212,7 @@ function applyShadowLevel(level) {
 export function resize3D() {
   if (!renderer) return;
   // de vorige verhouding blijft staan als de browser even hoogte 0 meldt
-  // (draaien, adresbalk): anders is de projectie één beeld lang onbruikbaar (#502)
+  // (draaien, adresbalk): anders is de projectie één beeld lang onbruikbaar (#463)
   cam.aspect = cameraAspect(innerWidth, innerHeight, cam.aspect);
   cam.updateProjectionMatrix();
   sizeDirty = true;
@@ -3025,7 +3025,7 @@ export function update3D(dt, world) {
     // de cursorpositie is een aantal pixels, gedeeld door de schermhoogte: op
     // een telefoon in landschap (360 px hoog) gaf dezelfde pixel een andere
     // hoek dan in portret (800 px), en dus een andere camerahoogte. Zonder muis
-    // (aanraakbesturing) geldt daarom de vaste volgstand (#502).
+    // (aanraakbesturing) geldt daarom de vaste volgstand (#463).
     const doc = document.documentElement;
     const cursor = !(doc && doc.classList && doc.classList.contains('touch-play'));
     lookPitchTarget = pitchForMouse(cursor ? (mouse.y || 0) / (innerHeight || 1) : NaN);
@@ -3074,7 +3074,7 @@ export function update3D(dt, world) {
   const baseH = veh ? veh.z || 0 : (player.gz || 0) + Math.max(0, player.z || 0);
   const eyeX = share ? share.x : player.x, eyeY = baseH + (veh ? (veh._mount === 'horse' ? 2.2 : 1.3 + (camScale - 1) * 0.55) : 1.3), eyeZ = share ? share.y : player.y;
   // de volgplek komt uit cameraplan.js: achter de speler en `sin(pitch) x
-  // radius` erboven, ongeacht het schermformaat (#502)
+  // radius` erboven, ongeacht het schermformaat (#463)
   const pose = followCameraPose({ x: player.x, y: player.y, eye: eyeY, angle: camAngle, pitch: followPitch, radius });
   let desiredX = pose.x;
   let desiredZ = pose.z;
@@ -3167,7 +3167,7 @@ export function update3D(dt, world) {
   updateCamTreeHiding(world.map, eyeX, eyeY, eyeZ, desiredX, desiredY, desiredZ);
 
   const teleported = lastPx !== null && Math.hypot(player.x - lastPx, player.y - lastPy) > 15;
-  // (#502) Een harde snee ook als de camera niet meer op een volgplek staat: na
+  // (#463) Een harde snee ook als de camera niet meer op een volgplek staat: na
   // de titel of een filmpje hing hij nog op het laatste titelbeeld (op een
   // telefoon in landschap een straatbeeld 1,6 km verderop, 0,6 m boven de kale
   // kaart) en het eerste beeld van een partij gleed hij daar vandaan naar de
@@ -3185,6 +3185,32 @@ export function update3D(dt, world) {
     camBase.y += (desiredY - camBase.y) * lerpT;
     camBase.z += (desiredZ - camBase.z) * lerpT;
   }
+  // (#463) De getekende stand is de geïnterpoleerde stand, en die is nog nooit
+  // getest. Bij snelheid loopt de camera tot een paar meter achter op zijn
+  // volgplek en snijdt hij de hoek af: in een smalle straat hing hij daardoor
+  // in de gevel (gemeten: 1,1 m binnen de gebouwlijn, 2,5 m hoog, met de auto
+  // 3,7 m verderop) terwijl de gewenste stand vrij stond. Daarom dezelfde
+  // controles nog eens op de stand die echt getekend wordt: de lijn naar de
+  // speler, de eigen carrosserie en de grond.
+  if (!noCollide) {
+    const bx = camBase.x - eyeX, by = camBase.y - eyeY, bz = camBase.z - eyeZ;
+    const bl = Math.hypot(bx, by, bz) || 1;
+    const blocked = raycastFrom(eyeX, eyeY, eyeZ, bx, by, bz, bl);
+    if (blocked !== null) {
+      const k = Math.max(CAM_MIN_DIST, blocked - CAM_CLEARANCE) / bl;
+      camBase.set(eyeX + bx * k, eyeY + by * k, eyeZ + bz * k);
+    }
+  }
+  // nooit in de eigen auto of bus, ook niet als een muur hem naar binnen trok
+  if (veh && veh.model && !veh.isBoat && !veh.isHeli) {
+    const q = camClearOfVehicle(camBase.x, camBase.y, camBase.z, veh);
+    camBase.set(q[0], q[1], q[2]);
+  }
+  // en nooit onder het maaiveld, ook als de interpolatie door een helling zakte
+  if (world.map.elev && world.map.elev.has) {
+    const gBase = world.map.groundHeightAt(camBase.x, camBase.z, baseH + 1.5);
+    camBase.y = Math.max(camBase.y, Math.min(gBase, baseH + 3) + 0.6);
+  } else camBase.y = Math.max(camBase.y, 0.6);
   lastPx = player.x; lastPy = player.y;
   cam.position.copy(camBase);
   const imp = world.lastImpact;
@@ -3928,7 +3954,7 @@ function applyCameraOverride(dt, world, lx, ly, lz) {
     overrideLook.lerp(_camTmp.set(o.lookAt.x, o.lookAt.z ?? 1.3, o.lookAt.y), k);
     overrideBlend = o.cut ? 1 : Math.min(1, overrideBlend + dt / CAM_OVERRIDE_BLEND_S);
   } else {
-    // (#502) Een override die ver van de speler stond - het titelbeeld is een
+    // (#463) Een override die ver van de speler stond - het titelbeeld is een
     // straatbeeld 1,6 km verderop, 0,6 m boven de kale kaart - laat de camera
     // niet in 0,9 s terugvliegen: op die weg komt hij over de lege kaart
     // ("onder het maaiveld") en dwars door de bebouwing ("in de gevel"). Ver

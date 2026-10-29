@@ -1,4 +1,4 @@
-// De volgcam op drie schermformaten (#502): 360x800 (telefoon staand),
+// De volgcam op drie schermformaten (#463): 360x800 (telefoon staand),
 // 800x360 (telefoon liggend) en 1920x1080 (bureaublad). Wat deze test vastlegt:
 //   1. de verhouding komt uit innerWidth/innerHeight, maar nooit onbruikbaar
 //      (0, NaN, oneindig) - dat maakte de projectie één beeld lang kapot;
@@ -114,7 +114,7 @@ for (const [w, h] of SCHERMEN) {
 
 // De bedrading: scene3d.js moet deze regels ook echt gebruiken. Een camera die
 // zijn verhouding weer zelf uitrekent (innerWidth / innerHeight) of zijn plek
-// zelf uitrekent, valt hier door de mand - dat is precies hoe #502 ontstond.
+// zelf uitrekent, valt hier door de mand - dat is precies hoe #463 ontstond.
 const bron = fs.readFileSync(new URL('../game/js/scene3d.js', import.meta.url), 'utf8');
 ok(!/innerWidth\s*\/\s*innerHeight/.test(bron), 'scene3d.js rekent de verhouding niet zelf uit');
 ok(/cameraAspect\(innerWidth, innerHeight/.test(bron), 'scene3d.js haalt de verhouding uit cameraplan.js');
