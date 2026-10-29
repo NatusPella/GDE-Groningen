@@ -18,6 +18,7 @@ import { klokSprongMag, meerSpelers } from './coopgroep.js';
 import { noteMoney } from './finance.js';
 import { loopbaanTel, loopbaanPrijs } from './loopbaanlive.js';
 import { kmPunten } from './loopbaan.js';
+import { perronMateriaal, perronTegelUV, RAND_M, RAND_KLEUR } from './stationperronmateriaal.js';
 
 // Fast travel by train between the on-map stations (map.stations): a ticket
 // machine at each, a small menu, a short skippable ride cinematic.
@@ -269,24 +270,30 @@ function buildPlatform(px, py, tx, ty, nx, ny) {
   g.rotation.y = -Math.atan2(ty, tx);
   // local frame: x along the track, z away from it (the side the station is on)
   const side = Math.sign((-ty) * nx + tx * ny) || 1;
-  const mat = new THREE.MeshLambertMaterial({ color: 0xa8a49a });
-  const slab = new THREE.Mesh(new THREE.BoxGeometry(PLAT_LEN, PLAT_TOP, PLAT_W), mat);
+  // De vloer van een halte draagt dezelfde tegel als de perrons in de stad (#502): één egale
+  // Lambert-kleur werd 's nachts één blauw/grijs vlak zonder voegen, terwijl de straat ernaast
+  // wél betegeld is. perronTegelUV zet de tegel op 0,5 m, ook over een plaat van 80 m.
+  const mat = perronMateriaal(0xa8a49a);
+  const slab = new THREE.Mesh(perronTegelUV(new THREE.BoxGeometry(PLAT_LEN, PLAT_TOP, PLAT_W)), mat);
   slab.position.y = PLAT_TOP / 2;
   slab.receiveShadow = true;
   g.add(slab);
-  const edge = new THREE.Mesh(new THREE.BoxGeometry(PLAT_LEN, 0.02, 0.3), new THREE.MeshLambertMaterial({ color: 0xe8e2c8 }));
-  edge.position.set(0, PLAT_TOP + 0.01, -side * (PLAT_W / 2 - 0.25));
+  // de rand: een betonband als stoeprand, geen streep verf (#502)
+  const edge = new THREE.Mesh(perronTegelUV(new THREE.BoxGeometry(PLAT_LEN, 0.02, RAND_M)), perronMateriaal(RAND_KLEUR));
+  edge.position.set(0, PLAT_TOP + 0.01, -side * (PLAT_W / 2 - RAND_M / 2));
   g.add(edge);
   const slope = Math.atan2(PLAT_TOP, RAMP_LEN), rl = Math.hypot(PLAT_TOP, RAMP_LEN);
   for (const e of [-1, 1]) {
-    const ramp = new THREE.Mesh(new THREE.BoxGeometry(rl, 0.2, PLAT_W - 0.6), mat);
+    const ramp = new THREE.Mesh(perronTegelUV(new THREE.BoxGeometry(rl, 0.2, PLAT_W - 0.6)), mat);
     ramp.position.set(e * (PLAT_LEN / 2 + RAMP_LEN / 2), PLAT_TOP / 2 - 0.08, side * 0.3);
     ramp.rotation.z = -e * slope;
     ramp.receiveShadow = true;
     g.add(ramp);
   }
   const glass = new THREE.MeshLambertMaterial({ color: 0x9fb8c0, transparent: true, opacity: 0.45 });
-  const roof = new THREE.Mesh(new THREE.BoxGeometry(6, 0.12, 1.8), new THREE.MeshLambertMaterial({ color: 0x2d5fa8 }));
+  // de kap boven de halte is een leien dak, geen blauw vlak (#502): het verzadigde blauw
+  // (0x2d5fa8) las 's nachts als een tweede, lichtgevend perron boven de vloer
+  const roof = new THREE.Mesh(new THREE.BoxGeometry(6, 0.12, 1.8), new THREE.MeshLambertMaterial({ color: 0x55606a }));
   const back = new THREE.Mesh(new THREE.BoxGeometry(6, 2.2, 0.05), glass);
   for (const [m, o, h] of [[roof, 0.9, PLAT_TOP + 2.35], [back, 1.4, PLAT_TOP + 1.12]]) {
     m.position.set(12, h, side * o);

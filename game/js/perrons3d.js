@@ -1,17 +1,21 @@
 import * as THREE from 'three';
 import { addStaticCollider } from './breakables.js';
 import { buildPerrons } from './perrons.js';
+import { perronMateriaal, perronTegelUV, RAND_M, RAND_KLEUR } from './stationperronmateriaal.js';
 
-// De perrons en trappen van map.perrons (perrons.js, #436) als beeld: een vloer met gele rand en een gemetselde zijkant tot op de grond,
+// De perrons en trappen van map.perrons (perrons.js, #436) als beeld: een vloer met een stoeprand en een gemetselde zijkant tot op de grond,
 // een trap (treden, leuning) of een helling met een bord en paaltjes aan de voet. De paaltjes zijn vast (een auto past er niet tussen,
 // een fiets wel). Het loopvlak en de randen zelf zitten in het hoogtemodel (elevation.js addPerrons).
 
+// Elk loopvlak draagt de tegel uit stationperronmateriaal.js (#502): zonder map was een perron één egale kleur en werd het 's nachts,
+// onder het blauwe nachtlicht, één lavendelvlak zonder voegen, terwijl de straat ernaast wél betegeld is. De rand is een lichte
+// betonband (RAND_M breed) in plaats van het felle geel: dat gele vlak las nachts als een lichtgevende streep.
 const MAT = {
-  top: new THREE.MeshStandardMaterial({ color: 0xa4a5a0, roughness: 0.92, flatShading: true, side: THREE.DoubleSide }),
-  rand: new THREE.MeshStandardMaterial({ color: 0xe3b81f, roughness: 0.8, flatShading: true, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }),
-  zij: new THREE.MeshStandardMaterial({ color: 0x7a6f66, roughness: 0.95, flatShading: true, side: THREE.DoubleSide }),
-  trede: new THREE.MeshStandardMaterial({ color: 0x9a9b96, roughness: 0.9, flatShading: true, side: THREE.DoubleSide }),
-  stoot: new THREE.MeshStandardMaterial({ color: 0x6a6b66, roughness: 0.9, flatShading: true, side: THREE.DoubleSide }),
+  top: perronMateriaal(0xa4a5a0),
+  rand: perronMateriaal(RAND_KLEUR, { roughness: 0.95, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }),
+  zij: perronMateriaal(0x7a6f66, { roughness: 0.95 }),
+  trede: perronMateriaal(0x9a9b96, { roughness: 0.9 }),
+  stoot: perronMateriaal(0x6a6b66, { roughness: 0.9 }),
   leuning: new THREE.MeshStandardMaterial({ color: 0x2f3e36, roughness: 0.6, metalness: 0.4, flatShading: true, side: THREE.DoubleSide }),
   paal: new THREE.MeshStandardMaterial({ color: 0xe3b81f, roughness: 0.7, flatShading: true }),
   mast: new THREE.MeshStandardMaterial({ color: 0x3a3d40, roughness: 0.6, metalness: 0.5, flatShading: true }),
@@ -27,6 +31,8 @@ class Mesh {
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.Float32BufferAttribute(this.v, 3));
     g.computeVertexNormals();
+    // uv's uit de wereldmaat, anders ligt er één tegel over de hele strook (#502)
+    perronTegelUV(g);
     g.computeBoundingSphere();
     return g;
   }
@@ -65,8 +71,8 @@ function strook(M, row) {
     for (const E of [L, R]) {
       const a = E[i], b = E[i + 1];
       M.zij.quad([a[0], a[1], a[2]], [b[0], b[1], b[2]], [b[0], b[1], GROND], [a[0], a[1], GROND]);
-      // de gele rand: 0,4 m naar binnen
-      const ia = [a[0] - a[3] * 0.4, a[1] - a[4] * 0.4, a[2] + 0.012], ib = [b[0] - b[3] * 0.4, b[1] - b[4] * 0.4, b[2] + 0.012];
+      // de rand van het perron: een betonband van RAND_M naar binnen, geen verfstreep (#502)
+      const ia = [a[0] - a[3] * RAND_M, a[1] - a[4] * RAND_M, a[2] + 0.012], ib = [b[0] - b[3] * RAND_M, b[1] - b[4] * RAND_M, b[2] + 0.012];
       M.rand.quad([a[0], a[1], a[2] + 0.012], [b[0], b[1], b[2] + 0.012], ib, ia);
     }
   }
@@ -126,6 +132,8 @@ export function buildPerrons3D(map) {
   for (const [k, m] of Object.entries(M)) {
     if (!m.v.length) continue;
     const mesh = new THREE.Mesh(m.geometry(), MAT[k]);
+    // een naam per vlak, zodat een test het loopvlak kan aanwijzen (perronmateriaal_test)
+    mesh.name = 'perron-' + k;
     mesh.receiveShadow = true;
     mesh.castShadow = k !== 'rand';
     grp.add(mesh);
