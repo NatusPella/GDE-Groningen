@@ -5,7 +5,7 @@ import { pinchStep } from './touchlogic.js';
 import { MODES, roadAllowed, travelModeOf } from './roadaccess.js';
 import { forEachCashTarget } from './cashvan.js';
 import { facilitiesOf } from './facilities.js';
-import { mapIconScale, mapKindVisible, placeIcons, iconGapPx, mapIconAlpha } from './mapicons.js';
+import { mapIconScale, mapKindVisible, placeIcons, iconGapPx, mapIconAlpha, mapPriority } from './mapicons.js';
 import { drawMapIcon, drawMapIconHalo, drawRoute, drawRoadRoute, forEachPoliceUnit, declutter, ROUTE_COLORS, routeLabel, drawSearchArea, getPoliceSearch, missionMapKind } from './hud_panel.js';
 import { getGaragesForRender } from './garages.js';
 import { getHomeForRender, getHomeGarageForRender, getHomeMooringForRender, getHomeHelipadForRender } from './home.js';
@@ -769,6 +769,107 @@ function collides(boxes, b) {
   return false;
 }
 
+// --- labelbotsing (#463) ----------------------------------------------------
+// Een label en een pin bezetten allebei een doos in schermpunten. Wie eerst komt
+// wint; onderling geldt missie > wijk > POI (LABEL_PRIO). Een pin ligt altijd
+// bovenop en is klein en klikbaar, dus een label wijkt daar als eerste voor: in
+// de binnenstad liepen de wijk- en gebiedsnamen anders door de pins heen.
+const LABEL_PRIO = { missie: 0, wijk: 1, poi: 2 };
+
+// De doos van een label bij het font dat de ctx nu heeft (schermpunten, geen
+// wereldmeters: dezelfde tekst is bij elke zoom even groot).
+function labelDoos(ctx, tekst, x, y, uitlijning = 'center') {
+  const w = ctx.measureText(tekst).width;
+  const m = /([\d.]+)px/.exec(ctx.font || '');
+  const h = m ? parseFloat(m[1]) : 13;
+  const links = uitlijning === 'left' ? x : uitlijning === 'right' ? x - w : x - w / 2;
+  return [links, y - h / 2, links + w, y + h / 2];
+}
+
+// Plaatst een set labels in volgorde van belang; wat een ander label of een pin
+// raakt valt weg. Niet verschuiven: een half verschoven naam leest slechter dan
+// een naam die je even niet ziet, en de volgende zoom laat hem weer toe.
+// `kandidaten`: [{ box, prio, ... }]; `bezet`: al bezette dozen (pins, strook).
+function plaatsLabels(kandidaten, bezet = [], marge = 2) {
+  const uit = [];
+  const volgorde = kandidaten.map((k, i) => ({ k, i })).sort((a, b) => a.k.prio - b.k.prio || a.i - b.i);
+  for (const { k } of volgorde) {
+    const b = [k.box[0] - marge, k.box[1] - marge, k.box[2] + marge, k.box[3] + marge];
+    if (collides(bezet, b)) continue;
+    if (uit.some((o) => collides([o.box], b))) continue;
+    uit.push({ ...k, box: b });
+  }
+  return uit;
+}
+
+// De tweede regel van een gebied ("0 van 5 · 0%", of "veroverd") hoort niet bij
+// het punt op de kaart maar in de strook; daar is hij altijd leesbaar.
+function isVoortgangsregel(tekst) {
+  return tekst === 'veroverd' || /^\d+ van \d+ · \d+%$/.test(tekst);
+}
+
+// De strook: rechtsboven onder het kompas. Daar zit geen kaartchrome (de uitleg
+// staat linksboven, de legenda, de zoomknoppen en de schaalbalk linksonder) en
+// de pins wijken ervoor, dus de chip valt nooit over een icoon (#463).
+function voortgangsStrook(cw, ch, breedte, hoogte) {
+  const w = Math.min(Math.max(120, Math.round(breedte)), Math.max(120, cw - 24));
+  const h = Math.max(18, Math.round(hoogte));
+  return [cw - 12 - w, 56, cw - 12, Math.min(ch - 12, 56 + h)];
+}
+
+// Een pin onder de strook is onleesbaar en niet aanwijsbaar; hij wijkt, tenzij
+// hij belangrijk is (missie 800, doel 900, speler 1000: die houden hun plek).
+function pinWijktVoorStrook(sx, sy, prio, strook) {
+  if (!strook) return false;
+  if (sx < strook[0] || sx > strook[2] || sy < strook[1] || sy > strook[3]) return false;
+  return prio < 400;
+}
+
+// De plek die een pin op het scherm inneemt: het rondje met zijn halo plus een
+// randje lucht, zodat een label de rand niet raakt.
+function pinDoos(sx, sy, sc) {
+  const r = Math.max(9, 5 * sc + 2);
+  return [sx - r, sy - r, sx + r, sy + r];
+}
+
+// De pins van de dynamische laag staan in wereldcoördinaten in state.pins (de
+// laatste getekende set). Hier gaan ze met de huidige zoom naar schermpunten,
+// zodat ze ook kloppen nadat er geschoven of gezoomd is.
+function pinDozen() {
+  const sc = mapIconScale(state.zoom);
+  const uit = [];
+  for (const p of state.pins || []) {
+    const [sx, sy] = toScreen(p[0], p[1]);
+    uit.push(pinDoos(sx, sy, sc));
+  }
+  if (state.strook) uit.push(state.strook); // de strook houdt haar eigen plek vrij
+  return uit;
+}
+
+// De strook zelf: een donkere band met per gebied één regel "naam · 0 van 5 · 0%".
+function tekenVoortgangsStrook(ctx, regels) {
+  ctx.save();
+  ctx.textBaseline = 'middle';
+  ctx.textAlign = 'left';
+  ctx.font = '600 12px sans-serif';
+  let w = 0;
+  for (const r of regels) w = Math.max(w, ctx.measureText(r.tekst).width);
+  const box = voortgangsStrook(state.cw, state.ch, w + 20, regels.length * 18 + 8);
+  state.strook = box;
+  ctx.beginPath();
+  ctx.roundRect(box[0], box[1], box[2] - box[0], box[3] - box[1], 7);
+  ctx.fillStyle = inkA('dark', 0.82);
+  ctx.fill();
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = inkA('greenLight', 0.35);
+  ctx.stroke();
+  for (let i = 0; i < regels.length; i++) {
+    drawLabel(ctx, regels[i].tekst, box[0] + 10, box[1] + 12 + i * 18, regels[i].kleur || INK.cream, 'left');
+  }
+  ctx.restore();
+  return box;
+}
+
 function drawLabel(ctx, text, x, y, color, align) {
   ctx.textAlign = align;
   ctx.lineWidth = 3;
@@ -799,7 +900,7 @@ function roadRuns(road) {
   return runs;
 }
 
-function drawStreetNames(ctx, boxes) {
+function drawStreetNames(ctx, boxes, bezet = []) {
   const [x0, y0, x1, y1] = viewRect(-20);
   const roads = state.map.queryView(x0, y0, x1, y1).roads;
   const names = layersAtZoom(state.zoom).labels;
@@ -838,7 +939,7 @@ function drawStreetNames(ctx, boxes) {
     if (ang > Math.PI / 2) ang -= Math.PI;
     if (ang < -Math.PI / 2) ang += Math.PI;
     const box = textBox(sx, sy, w + 6, fontPx + 2, ang);
-    if (collides(boxes, box)) continue;
+    if (collides(boxes, box) || collides(bezet, box)) continue; // ook niet over een pin heen (#463)
     boxes.push(box);
     if (!prev) placedByName.set(c.r.name, [[sx, sy]]); else prev.push([sx, sy]);
     placed++;
@@ -855,23 +956,54 @@ function drawStaticOverlay(ctx) {
   const hover = [];
   const boxes = [];
   const z = state.zoom;
+  const sc = mapIconScale(z);
   const names = layersAtZoom(z).labels; // which names show at this zoom (mapstyle.js)
   const onScreen = (sx, sy, m = 20) => sx > -m && sy > -m && sx < state.cw + m && sy < state.ch + m;
+  // wat er al ligt: de pins van de dynamische laag en de voortgangsstrook. Een
+  // label valt daaromheen (#463); de pins staan in wereldcoördinaten en worden
+  // hier met de huidige zoom omgerekend, dus ze kloppen ook na schuiven/zoomen.
+  const bezet = pinDozen();
+  const vrij = (box) => !collides(boxes, box) && !collides(bezet, box);
 
-  // gebieden veroveren (#414): wat je gedaan hebt kleurt mee, een veroverd gebied krijgt een vlag
+  // gebieden veroveren (#414): wat je gedaan hebt kleurt mee, een veroverd gebied
+  // krijgt een vlag. De namen worden uitgesteld (#463): de vullingen en grenzen
+  // horen onder de andere labels, de namen gaan mee in dezelfde botsingsregel.
+  const gebiedLabels = [];
+  const onthoudLabel = (c, tekst, x, y, kleur, uitlijning) => gebiedLabels.push({ font: c.font, tekst, x, y, kleur, uitlijning });
   if (layerOn('veroverd')) {
-    const laagId = tekenVeroverd(ctx, toScreen, state.scale, state.cw, state.ch, hover, drawLabel, inkA('cream', 0.9));
+    const laagId = tekenVeroverd(ctx, toScreen, state.scale, state.cw, state.ch, hover, onthoudLabel, inkA('cream', 0.9));
     tekenLegenda(ctx, state.cw, state.ch, laagId, inkA('cream', 0.92));
   }
 
+  // de vaste pictogrammen eerst: hun plek is bezet voordat de labels gelegd
+  // worden, zodat geen naam over een icoon heen valt (#463)
+  if (layerOn('horeca') && mapKindVisible('horeca', z)) {
+    const cellPx = z >= NEAR_ZOOM * 2 ? 26 * sc / 1.9 : 40 * sc / 1.9;
+    for (const h of declutter(getHorecaForRender(), cellPx / state.scale)) {
+      const [sx, sy] = toScreen(h.x, h.y);
+      if (!onScreen(sx, sy)) continue;
+      drawMapIconHalo(ctx, 'horeca', sx, sy, sc);
+      drawMapIcon(ctx, 'horeca', sx, sy, sc, { t: 0 });
+      bezet.push(pinDoos(sx, sy, sc));
+      hover.push({ sx, sy, name: h.name || 'Horeca', sub: 'Horeca' });
+    }
+  }
+  if (layerOn('flitspaal') && mapKindVisible('flitspaal', z)) {
+    for (const f of state.world.flitspaalen || []) {
+      const [sx, sy] = toScreen(f.x, f.y);
+      if (!onScreen(sx, sy)) continue;
+      drawMapIconHalo(ctx, 'flitspaal', sx, sy, sc);
+      drawMapIcon(ctx, 'flitspaal', sx, sy, sc, { t: 0 });
+      bezet.push(pinDoos(sx, sy, sc));
+      hover.push({ sx, sy, name: 'Flitspaal' });
+    }
+  }
   if (layerOn('landmark')) {
-    ctx.font = '14px ' + FONT;
-    ctx.textBaseline = 'middle';
     for (const l of state.map.meta.landmarks || []) {
       const [sx, sy] = toScreen(l.x, l.y);
       if (!onScreen(sx, sy, 120)) continue;
-      const w = ctx.measureText(l.name).width;
-      boxes.push([sx - 7, sy - 8, sx + 11 + w, sy + 8]);
+      drawMapIcon(ctx, 'landmark', sx, sy, sc, { t: 0 });
+      bezet.push(pinDoos(sx, sy, sc));
       const nick = nicknameOf(l.name);
       hover.push({ sx, sy, name: l.name, sub: nick ? `Bezienswaardigheid · ${nick}` : 'Bezienswaardigheid', teleport: { x: l.x, y: l.y, name: l.name } });
     }
@@ -908,7 +1040,7 @@ function drawStaticOverlay(ctx) {
       const label = r.name.toUpperCase().split('').join(' ');
       const w = ctx.measureText(label).width;
       const box = [sx - w / 2, sy - 10, sx + w / 2, sy + 10];
-      if (collides(boxes, box)) continue;
+      if (!vrij(box)) continue;
       boxes.push(box);
       // de naam van een buurgebied in de kleur van zijn grens, goed leesbaar (#435)
       ctx.lineJoin = 'round'; ctx.lineWidth = 4; ctx.strokeStyle = inkA('dark', 0.8);
@@ -931,9 +1063,8 @@ function drawStaticOverlay(ctx) {
         const big = v.rank <= 1;
         ctx.font = `${big ? 16 : names.placePx}px ${FONT}`;
         const label = v.name.toUpperCase();
-        const w = ctx.measureText(label).width;
-        const box = [sx - w / 2 - 2, sy - 8, sx + w / 2 + 2, sy + 8];
-        if (collides(boxes, box)) continue;
+        const box = labelDoos(ctx, label, sx, sy);
+        if (!vrij(box)) continue;
         boxes.push(box);
         drawLabel(ctx, label, sx, sy, big ? INK.paper : inkA('cream', 0.82), 'center');
         hover.push({ sx, sy, name: v.name, sub: v.rank >= 5 ? 'Wijk' : v.kind === 'city' ? 'Stad' : v.kind === 'town' ? 'Plaats' : v.kind === 'hamlet' ? 'Buurtschap' : 'Dorp' });
@@ -944,9 +1075,8 @@ function drawStaticOverlay(ctx) {
         if ((v.kind === 'hamlet' || v.kind === 'quarter') && !names.hamlets) continue;
         const [sx, sy] = toScreen(v.x, v.y);
         const label = v.name.toUpperCase();
-        const w = ctx.measureText(label).width;
-        const box = [sx - w / 2 - 2, sy - 8, sx + w / 2 + 2, sy + 8];
-        if (collides(boxes, box)) continue;
+        const box = labelDoos(ctx, label, sx, sy);
+        if (!vrij(box)) continue;
         boxes.push(box);
         drawLabel(ctx, label, sx, sy, inkA('cream', 0.8), 'center');
         hover.push({ sx, sy, name: v.name, sub: 'Dorp in het Ommeland' });
@@ -965,7 +1095,7 @@ function drawStaticOverlay(ctx) {
       const w = ctx.measureText(label).width;
       if (sx - w / 2 < 4 || sx + w / 2 > state.cw - 4 || sy < 12 || sy > state.ch - 12) continue;
       const box = [sx - w / 2 - 2, sy - 8, sx + w / 2 + 2, sy + 8];
-      if (collides(boxes, box)) continue;
+      if (!vrij(box)) continue;
       boxes.push(box);
       drawLabel(ctx, label, sx, sy, inkA('cream', 0.45), 'center');
     }
@@ -981,7 +1111,7 @@ function drawStaticOverlay(ctx) {
       const label = p.name.toUpperCase();
       const w = ctx.measureText(label).width;
       const box = [sx - w / 2 - 2, sy - 8, sx + w / 2 + 2, sy + 8];
-      if (collides(boxes, box)) continue;
+      if (!vrij(box)) continue;
       boxes.push(box);
       // after dark a few wijken carry a warning (muggingrules.js): amber name and a triangle
       const warn = warnsOn(p.name, ((state.world.clock % 24) + 24) % 24);
@@ -996,42 +1126,53 @@ function drawStaticOverlay(ctx) {
     }
   }
 
-  if (layerOn('streets') && names.streets) drawStreetNames(ctx, boxes);
+  // de gebiedsnamen, in dezelfde botsingsregel en na de wijken (wijk > gebied);
+  // hun voortgangsregel gaat naar de strook rechtsboven (#463)
+  if (gebiedLabels.length) {
+    ctx.textBaseline = 'middle';
+    const kandidaten = [];
+    const strookRegels = [];
+    let naam = '';
+    for (const it of gebiedLabels) {
+      if (isVoortgangsregel(it.tekst)) {
+        if (naam && strookRegels.length < 3) strookRegels.push({ tekst: `${naam} · ${it.tekst}`, kleur: it.kleur });
+        continue;
+      }
+      naam = it.tekst;
+      ctx.font = it.font;
+      kandidaten.push({ tekst: it.tekst, x: it.x, y: it.y, kleur: it.kleur, uitlijning: it.uitlijning, font: it.font, prio: LABEL_PRIO.wijk, box: labelDoos(ctx, it.tekst, it.x, it.y, it.uitlijning) });
+    }
+    for (const k of plaatsLabels(kandidaten, [...bezet, ...boxes])) {
+      ctx.font = k.font;
+      drawLabel(ctx, k.tekst, k.x, k.y, k.kleur, k.uitlijning);
+      boxes.push(k.box);
+    }
+    if (strookRegels.length) tekenVoortgangsStrook(ctx, strookRegels);
+  }
 
-  const sc = mapIconScale(z);
-  if (layerOn('horeca') && mapKindVisible('horeca', z)) {
-    const cellPx = z >= NEAR_ZOOM * 2 ? 26 * sc / 1.9 : 40 * sc / 1.9;
-    for (const h of declutter(getHorecaForRender(), cellPx / state.scale)) {
-      const [sx, sy] = toScreen(h.x, h.y);
-      if (!onScreen(sx, sy)) continue;
-      drawMapIconHalo(ctx, 'horeca', sx, sy, sc);
-      drawMapIcon(ctx, 'horeca', sx, sy, sc, { t: 0 });
-      hover.push({ sx, sy, name: h.name || 'Horeca', sub: 'Horeca' });
-    }
-  }
-  if (layerOn('flitspaal') && mapKindVisible('flitspaal', z)) {
-    for (const f of state.world.flitspaalen || []) {
-      const [sx, sy] = toScreen(f.x, f.y);
-      if (!onScreen(sx, sy)) continue;
-      drawMapIconHalo(ctx, 'flitspaal', sx, sy, sc);
-      drawMapIcon(ctx, 'flitspaal', sx, sy, sc, { t: 0 });
-      hover.push({ sx, sy, name: 'Flitspaal' });
-    }
-  }
+  if (layerOn('streets') && names.streets) drawStreetNames(ctx, boxes, bezet);
+
+  // de namen van bezienswaardigheden en bijgenaamde gebouwen: POI, dus als laatste
   if (layerOn('landmark')) {
     ctx.font = '14px ' + FONT;
     ctx.textBaseline = 'middle';
     for (const l of state.map.meta.landmarks || []) {
       const [sx, sy] = toScreen(l.x, l.y);
       if (!onScreen(sx, sy, 120)) continue;
-      drawMapIcon(ctx, 'landmark', sx, sy, sc, { t: 0 });
-      drawLabel(ctx, l.name, sx + 6 + 5 * sc, sy + 1, INK.paper, 'left');
+      const x = sx + 6 + 5 * sc;
+      const box = labelDoos(ctx, l.name, x, sy + 1, 'left');
+      if (!vrij(box)) continue; // geen naam over een pin of een andere naam heen (#463)
+      boxes.push(box);
+      drawLabel(ctx, l.name, x, sy + 1, INK.paper, 'left');
     }
     // nicknamed buildings and the old Oosterpark (flavourlines.js)
     ctx.font = 'italic 13px ' + FONT;
     for (const f of FLAVOUR_MAP_PLACES) {
       const [sx, sy] = toScreen(f.x, f.y);
       if (!onScreen(sx, sy, 120) || !names.flavour) continue;
+      const box = labelDoos(ctx, f.name, sx, sy);
+      if (!vrij(box)) continue;
+      boxes.push(box);
       drawLabel(ctx, f.name, sx, sy, inkA('flavour', 0.9), 'center');
       hover.push({ sx, sy, name: f.name, sub: f.sub });
     }
@@ -1069,6 +1210,9 @@ function compose() {
 
   const t1 = performance.now();
   c.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
+  // de pins waar deze laag omheen legt (#463): de vaste laag onthoudt welke set
+  // hij gebruikte, zodat een nieuwe set één keer tot een herschil leidt
+  state.pinsGebruikt = state.pinsSleutel || '';
   drawStaticOverlay(c);
   state.perf.tilesMs = t1 - t0;
   state.perf.overlayMs = performance.now() - t1;
@@ -1280,7 +1424,19 @@ function drawDynamicMarkers(ctx, world) {
   // medespelers (samen spelen, #95): eigen kleur en vorm, naam en status bij de aanwijzer
   for (const p of world.coopPartners || []) if (p.zichtbaar) icon(null, 'partner', p.x, p.y, p.naam, { angle: p.heading, kleur: grijsBijPassief(world.coopPvp, p.slot) ? INK.passiefGrijs : p.kleur, vorm: p.vorm }, p.tekst + (grijsBijPassief(world.coopPvp, p.slot) ? ' · passief' : '')); // passief is grijs zodra er PvP in het spel is (#447)
   for (const m of world.coopPingMarks || []) icon(null, 'partner', m.x, m.y, m.naam ? `${m.naam}: ${m.tekst}` : m.tekst, { angle: 0, kleur: m.kleur, vorm: m.vorm }, 'roep');
-  for (const q of placeIcons(queue, iconGapPx(sc))) {
+  // de voortgangsstrook rechtsboven is van de chip (#463): een pin die daaronder
+  // valt is onleesbaar en niet aanwijsbaar en wijkt dus; de belangrijke pins
+  // (missie, doel, speler) houden hun plek en liggen boven de strook
+  const strook = state.strook;
+  const zichtbaar = strook ? queue.filter((q) => !pinWijktVoorStrook(q.sx, q.sy, mapPriority(q.kind), strook)) : queue;
+  const geplaatst = placeIcons(zichtbaar, iconGapPx(sc));
+  // onthoud waar de pins staan (wereldcoördinaten, zodat de vaste laag ze bij elke
+  // zoom opnieuw naar schermpunten kan omrekenen). Verandert de set, dan wordt die
+  // laag één keer opnieuw opgebouwd; de wereld staat stil zolang de kaart open is.
+  state.pins = geplaatst.map((q) => [q.x, q.y]);
+  state.pinsSleutel = geplaatst.map((q) => q.x.toFixed(1) + ',' + q.y.toFixed(1)).join(';');
+  if (state.pinsGebruikt !== state.pinsSleutel) state.dirty = true;
+  for (const q of geplaatst) {
     drawMapIconHalo(ctx, q.kind, q.sx, q.sy, sc);
     if (q.samen && q.samen.grijs) drawGrijs(ctx, () => drawMapIcon(ctx, q.kind, q.sx, q.sy, sc, { t, ...q.opts, alpha: ((q.opts && q.opts.alpha) ?? mapIconAlpha(q.kind, z)) * 0.6 })); // samen spelen: dit werkt nog niet samen (uitgegrijsd)
     else drawMapIcon(ctx, q.kind, q.sx, q.sy, sc, { t, alpha: mapIconAlpha(q.kind, z), ...q.opts });
@@ -2231,6 +2387,12 @@ export function initMapView(world) {
     frame: 0,
     staticHover: [],
     dynHover: [],
+    // de pins van de dynamische laag en de voortgangsstrook (#463): de vaste
+    // laag legt haar labels daaromheen
+    pins: [],
+    pinsSleutel: '',
+    pinsGebruikt: '',
+    strook: null,
     drag: null,
     found: [],
     sel: -1,
