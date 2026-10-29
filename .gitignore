@@ -51,3 +51,11 @@ android/android/version.properties
 .opencode/
 .specsmd/
 
+# TypeScript-POC (docs/TYPESCRIPT-POC.md): tooling en gegenereerde .js naast de .ts-bronnen.
+# In een echte migratie hoort hier een bewuste keuze (in-place vs. aparte uitvoermap), zie de ADR.
+node_modules/
+game/tsbuild/
+game/js/flitspaalrules.js
+game/js/wantedstate.js
+game/js/greenwater.js
+

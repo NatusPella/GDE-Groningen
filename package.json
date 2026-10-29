@@ -1,0 +1,14 @@
+{
+  "name": "gde-groningen-ts-poc",
+  "private": true,
+  "type": "module",
+  "description": "POC: TypeScript-proef voor GDE Groningen. Geen productiebesluit — zie docs/TYPESCRIPT-POC.md en de ADR-kwestie (tech-stack.md verbiedt nu TS en een root-package.json).",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build:ts": "node scripts/build_ts.mjs"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "esbuild": "^0.24.0"
+  }
+}
