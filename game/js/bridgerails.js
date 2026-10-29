@@ -40,7 +40,12 @@ export function hasRailings(r) {
 }
 
 // Railing sections of bridge way `r`: { x, y, angle, tx, ty, key, seg, side }.
-// Sections inside a building or across another way are left out.
+// Sections inside a building or across another way are left out, and so are the
+// sections that stand on a carriageway or beside the street (offStreetLevel, a
+// ring ramp running under the deck): cityprops.js drops those from the cell
+// mesh, so drawing and collision stay the same list. Without that, the walker
+// is held by a railing that is not there (#502, playtest 27-10: "een hekje dat
+// je niet ziet").
 export function railingItems(map, r) {
   if (r._railItems) return r._railItems;
   const out = [];
@@ -60,6 +65,10 @@ export function railingItems(map, r) {
           const t = t0 + 1 + k * 2;
           const x = a[0] + tx * t + nx * off, y = a[1] + ty * t + ny * off;
           if (buildingAt(map, x, y) || railingOpening(map, r, x, y)) continue;
+          // dezelfde regel als cityprops.js generateCell (offLimits): op een
+          // rijbaan of naast de straat tekent het celmesh de sectie niet
+          if (map.onCarriageway && map.onCarriageway(x, y, -0.4)) continue;
+          if (map.offStreetLevel && map.offStreetLevel(x, y)) continue;
           out.push({ x, y, angle, tx, ty, key: propKey(RAIL_KIND, x, y), seg: i, side, k, n, cx: a[0], cy: a[1] });
         }
       }
