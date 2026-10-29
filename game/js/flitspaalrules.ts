@@ -5,7 +5,21 @@ import { SPEED_FINE } from './economy.js';
 export const SPEED_MARGIN_KMH = 35; // a generous margin over the local limit
 export const FINE_COOLDOWN = 15;
 
-export function speedOutcome({ speedKmh, limitKmh, warned, money, roll = Math.random() }) {
+// The three outcomes as one discriminated union: the HUD and the tests read `kind`.
+export type SpeedOutcome =
+  | { kind: 'none' }
+  | { kind: 'warning' }
+  | { kind: 'fine'; fine: number };
+
+export interface SpeedOutcomeInput {
+  speedKmh: number;
+  limitKmh: number;
+  warned: boolean;
+  money: number;
+  roll?: number;
+}
+
+export function speedOutcome({ speedKmh, limitKmh, warned, money, roll = Math.random() }: SpeedOutcomeInput): SpeedOutcome {
   if (!(speedKmh > limitKmh + SPEED_MARGIN_KMH)) return { kind: 'none' };
   if (!warned) return { kind: 'warning' };
   const saldo = Number.isFinite(money) ? Math.max(0, Math.floor(money)) : 0;
