@@ -138,9 +138,10 @@ t('N spelers: een verbroken speler staat in de lijst; de pauze noemt de naam', (
   const h = L.reduce(L.reduce(s, { t: 'hold', slot: 2, naam: 'Bram' }), { t: 'status', status: 'lost' });
   assert.match(L.view(h).lines[0], /Bram is niet meer bereikbaar/); assert.match(L.view(h).lines[1], /verwijder je Bram/);
 });
-t('N spelers: de gast ziet de lijst en kiest een figuur voor plek 2 en hoger; alleen figuren uit de lijst', () => {
+t('N spelers: de gast ziet de lijst en kiest zijn eigen figuur; alleen figuren uit de lijst', () => {
   let s = run(APP, { t: 'kies', rol: 'gast' });
-  assert.equal(L.view(s).wensen.length, 14);
+  // (#516) elke gast, ook plek 1, kiest een eigen figuur: de lijst heeft er nu 15 (Roos erbij voor 16 spelers).
+  assert.equal(L.view(s).wensen.length, 15);
   assert.ok(!L.view(s).wensen.some((w) => w.id === 'tammo' || w.id === 'anita'), 'Tammo en Tessa zijn niet te kiezen');
   s = L.reduce(s, { t: 'wens', char: 'bram' }); assert.equal(s.wens, 'bram'); assert.equal(L.view(s).wensen.find((w) => w.id === 'bram').gekozen, true);
   assert.equal(L.reduce(s, { t: 'wens', char: 'tammo' }).wens, null);

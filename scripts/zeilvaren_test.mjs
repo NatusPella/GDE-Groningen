@@ -80,15 +80,16 @@ check('windpijl: wind van achteren wijst vooruit', Math.abs(Z.windPijlGraden(Mat
   const wereld = (v) => ({
     player: { inVehicle: null },
     coopRijders: v ? { 1: { slot: 1, v } } : {},
-    coop: { remoteInput: { mx: 0, my: 0, buttons: 0, yaw: 0 } },
+    // (#516) de invoer van een gast staat op zijn eigen figuur, niet meer op world.coop.remoteInput
+    coopFigures: v ? { 1: { slot: 1, x: 0, y: 0, input: { mx: 0, my: 0, buttons: 0, yaw: 0 } } } : {},
     clock: 12, time: 0, paused: false,
     input: { isDown: () => false }, addMessage: () => {}, coopMeld: () => {},
   });
   const roei = { isBoat: true, model: BOAT_KINDS.roeiboot, driver: 'player', coopBestuurder: 1, speed: 0, angle: 0 };
   const w = wereld(roei);
   for (let slag = 0; slag < 6; slag++) { // elke 1,05 s een tik naar voren
-    w.coop.remoteInput.my = -1; w.time += 0.05; Z.updateZeilvaren(0.05, w, 5);
-    w.coop.remoteInput.my = 0;
+    w.coopFigures[1].input.my = -1; w.time += 0.05; Z.updateZeilvaren(0.05, w, 5);
+    w.coopFigures[1].input.my = 0;
     for (let k = 0; k < 21; k++) { w.time += 0.05; Z.updateZeilvaren(0.05, w, 5); }
   }
   check('een gast roeit zijn roeiboot vooruit', roei.roeiTop > 1.5 && roei.speed > 1, JSON.stringify([roei.roeiTop, roei.speed]));
@@ -113,7 +114,7 @@ check('windpijl: wind van achteren wijst vooruit', Math.abs(Z.windPijlGraden(Mat
   const w5 = wereld(gast2);
   w5.player.inVehicle = eigen2;
   for (let k = 0; k < 300; k++) {
-    w5.coop.remoteInput.my = k % 22 < 2 ? -1 : 0; // de gast tikt op zijn stick
+    w5.coopFigures[1].input.my = k % 22 < 2 ? -1 : 0; // de gast tikt op zijn stick
     w5.time = k * 0.05;
     Z.updateZeilvaren(0.05, w5, 5);
   }
@@ -124,10 +125,11 @@ check('windpijl: wind van achteren wijst vooruit', Math.abs(Z.windPijlGraden(Mat
   const g2 = { isBoat: true, model: BOAT_KINDS.roeiboot, driver: 'player', coopBestuurder: 2, speed: 0 };
   const w6 = wereld(g1);
   w6.coopRijders[2] = { slot: 2, v: g2 };
-  w6.coopFigures = { 2: { input: { mx: 0, my: 0 } } };
+  // (#516) elke gast heeft zijn eigen figuur met eigen invoer
+  w6.coopFigures = { 1: { slot: 1, input: { mx: 0, my: 0 } }, 2: { slot: 2, input: { mx: 0, my: 0 } } };
   for (let k = 0; k < 300; k++) {
     const tik = k % 22 < 2 ? -1 : 0;
-    w6.coop.remoteInput.my = tik; w6.coopFigures[2].input.my = tik;
+    w6.coopFigures[1].input.my = tik; w6.coopFigures[2].input.my = tik;
     w6.time = k * 0.05;
     Z.updateZeilvaren(0.05, w6, 5);
   }

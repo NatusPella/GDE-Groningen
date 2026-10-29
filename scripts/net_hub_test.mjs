@@ -36,21 +36,22 @@ function room({ max = 4, link = {} } = {}) {
   return { hub, log, bodies, clients, links, add, step };
 }
 
-t('vier spelers: Tessa op plek 1, de gekozen figuur op 2, de eerste vrije op 3; allemaal met naam en kleur', () => {
+t('vier spelers: de eerste eigen figuur op plek 1, de gekozen figuur op 2, de eerste vrije op 3; allemaal met naam en kleur', () => {
   const r = room(); r.add(); r.add('bram'); r.add();
   r.step(2);
   assert.deepEqual(r.clients.map((c) => c.status), ['ok', 'ok', 'ok']);
   assert.deepEqual(r.clients.map((c) => c.slot), [1, 2, 3]);
-  assert.deepEqual(r.clients.map((c) => c.welcome.naam), ['Tessa', 'Bram', 'Rik']);
+  // (#516) plek 1 is geen vaste Tessa meer: de eerste gast krijgt de eerste eigen figuur (Rik).
+  assert.deepEqual(r.clients.map((c) => c.welcome.naam), ['Rik', 'Bram', 'Sanne']);
   assert.ok(r.clients.every((c) => /^#[0-9a-f]{6}$/.test(c.welcome.kleur)));
-  assert.deepEqual(r.log.joins, [[1, 'anita'], [2, 'bram'], [3, 'rik']]);
+  assert.deepEqual(r.log.joins, [[1, 'rik'], [2, 'bram'], [3, 'sanne']]);
 });
 t('de lijst met spelers bereikt iedereen en wordt gecontroleerd; de gast ziet wie er zijn', () => {
   const r = room(); const got = [];
   const c1 = r.add(); c1.onevent = (b) => { const l = leesLijstEvent(b); if (l) got.push(l); };
   r.add('sanne'); r.step(2);
   const last = got.at(-1);
-  assert.deepEqual(last.spelers.map((s) => s.char), ['tammo', 'anita', 'sanne']); assert.equal(last.max, 4);
+  assert.deepEqual(last.spelers.map((s) => s.char), ['tammo', 'rik', 'sanne']); assert.equal(last.max, 4); // (#516) plek 1 is een eigen figuur
 });
 t('invoer en lichamen: elke speler stuurt zijn eigen invoer; elke client ziet alle lichamen', () => {
   const r = room();
@@ -92,12 +93,12 @@ t('acht spelers over een lijn met 10% verlies en jitter: iedereen blijft verbond
   assert.ok(r.clients.every((c) => c.status === 'ok'), r.clients.map((c) => c.status).join());
   assert.ok(r.clients.every((c) => c.world() && c.world().players.length === 8));
 });
-t('weggaan geeft de plek vrij; de volgende krijgt hem; Tessa blijft Tessa', () => {
+t('weggaan geeft de plek vrij; de volgende krijgt hem; de eigen figuur komt terug', () => {
   const r = room(); const a = r.add(), b = r.add('bram'); r.add('rik'); r.step(2);
   a.leave(); r.step(1);
   assert.deepEqual(r.log.leaves.at(-1), [1, 'weg']);
   const nieuw = r.add('daan'); r.step(2);
-  assert.equal(nieuw.slot, 1); assert.equal(nieuw.welcome.naam, 'Tessa');
+  assert.equal(nieuw.slot, 1); assert.equal(nieuw.welcome.naam, 'Daan'); // (#516) de gast kiest zijn eigen figuur, geen vaste Tessa
   assert.equal(b.status, 'ok');
 });
 t('een extra speler valt weg: de anderen merken niets, alleen zijn plek staat op "weg"; hervatten kan', () => {
