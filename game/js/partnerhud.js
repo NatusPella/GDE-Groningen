@@ -2,12 +2,14 @@
 // status), de markering op kaart en minimap, pings en het roepen van een
 // voertuig of erbij springen. Geen DOM; de HUD tekent wat hier uitkomt.
 // Kleur is nooit het enige signaal: de marker heeft een vorm en een naam.
+// De naam van een medespeler komt uit zijn avatar (#502), niet uit een vaste verhaalrol per plek; PARTNER blijft alleen
+// de veilige standaard als er nog geen avatar of figuur bekend is.
 
 import { charInfo } from './coopplayers.js';
 
 export const PARTNER = {
-  host: { naam: 'Tessa', kleur: '#ff7ab8', vorm: 'ruit' },   // de host ziet de gast als Tessa
-  gast: { naam: 'Tammo', kleur: '#4fb3ff', vorm: 'driehoek' }, // de gast ziet de host als Tammo
+  host: { naam: 'Tessa', kleur: '#ff7ab8', vorm: 'ruit' },   // standaard als er nog geen avatar bekend is
+  gast: { naam: 'Tammo', kleur: '#4fb3ff', vorm: 'driehoek' }, // standaard als er nog geen avatar bekend is
 };
 export const PING_COOLDOWN = 1.5;
 export const PING_TTL = 8;
@@ -96,7 +98,8 @@ export function partnersInfo(mySlot, players, roster, naam = (id) => charInfo(id
     const av = r.avatar && typeof r.avatar === 'object' ? r.avatar : {}; // (#455) de online-avatar gaat voor de figuur
     const sample = (players || []).find((p) => p.slot === r.slot) || null;
     const st = partnerInfo('host', sample, r.verbinding || 'ok');
-    out.push({ ...st, slot: r.slot, naam: av.naam || c.naam || st.naam, kleur: av.kleur || c.kleur || st.kleur, vorm: c.vorm || st.vorm });
+    // De avatar gaat voor (#455); de figuur van de gastheer mag zijn eigen naam meesturen (#502, coopnet.js bouwt die lijst).
+    out.push({ ...st, slot: r.slot, naam: av.naam || (sample && sample.naam) || c.naam || st.naam, kleur: av.kleur || c.kleur || st.kleur, vorm: c.vorm || st.vorm });
   }
   return out;
 }

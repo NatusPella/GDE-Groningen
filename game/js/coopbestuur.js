@@ -1,11 +1,10 @@
 // Samen spelen (#434): een gast bestuurt zelf een voertuig. Het voertuig blijft in de simulatie van wie het spel opende (de host); de
 // gast stuurt zijn invoer (stick, rennen, handrem: dezelfde bytes als bij het stuur van de bijrijder, coopgast.js wielInvoer) en de host
-// laat het voertuig rijden alsof een speler erin zit (driver 'player', dus geen verkeersAI). Het lichaam van de gast (plek 1: de metgezel,
-// plek 2 en hoger: een figuur) zit op stoel 0; wie meerijdt of toekijkt ziet hem via coopzitten3d.js.
+// laat het voertuig rijden alsof een speler erin zit (driver 'player', dus geen verkeersAI). Elke gast is sinds #502 een eigen
+// figuur (plek 1 en hoger) en zit in `inVeh`; wie meerijdt of toekijkt ziet hem via coopzitten3d.js.
 // Pure logica zonder three.js: de dingen van player.js en vehicle.js komen binnen als haken (zetBestuurHaken), zodat dit in Node te testen is.
 // Schade, politie en diefstalgevolgen horen bij de gast: voertuig.coopBestuurder is zijn plek (coopgezocht.js).
 import { figures } from './coopclient.js';
-import { isKoploos } from './net/koploos.js'; // een gastheer zonder lokale speler (#450)
 import { kanUitstappen, wielInvoer } from './coopgast.js';
 import { seatedOf } from './occupants.js'; // wie er op de stoelen zit (AI-passagiers)
 import { isPassief } from './cooppvp.js'; // een medespeler eruit trekken kan alleen buiten de passieve stand (#447)
@@ -49,16 +48,13 @@ export function zetBestuurHaken(h) { Object.assign(haken, h || {}); }
 
 export const rijders = (world) => world.coopRijders || (world.coopRijders = {});
 
-// Het lichaam van een gast bij de host: plek 1 is de metgezel, plek 2 en hoger een figuur. Een gastheer zonder lokale
-// speler (#450) heeft geen metgezel: dan is elke gast (plek 1 en hoger) een figuur.
+// Het lichaam van een gast bij de host: elke gast (plek 1 en hoger) is een eigen figuur (#502). De metgezel is de
+// computermetgezel en hoort bij geen plek; een gastheer zonder lokale speler (#450) heeft helemaal geen metgezel.
 export function lichaamVan(world, slot) {
-  if (isKoploos(world && world.coopNet)) return slot >= 1 ? figures(world)[slot] || null : null;
-  if (slot === 1) return world.companion && world.coop && world.coop.remote ? world.companion : null;
-  return slot >= 2 ? figures(world)[slot] || null : null;
+  return slot >= 1 ? figures(world)[slot] || null : null;
 }
-// De invoer van een gast (net/session.js): plek 1 in world.coop.remoteInput, de rest op de figuur.
+// De invoer van een gast (net/session.js): altijd op zijn eigen figuur (#502).
 export function invoerVan(world, slot) {
-  if (slot === 1 && !isKoploos(world && world.coopNet)) return world.coop ? world.coop.remoteInput : null;
   const f = figures(world)[slot]; return f ? f.input : null;
 }
 // Een gast met een wapen slaat of schiet een voetganger of agent in de wereld van wie het spel opende: dat is een misdaad van de gast
@@ -68,12 +64,11 @@ export function gastAanval(world, slot, slachtoffer, { gedood = false } = {}) {
   haken.misdaad(world, slot, slachtoffer.isCop ? 'copHit' : gedood ? 'pedKill' : 'pedHit');
   return true;
 }
-// Alle lichamen van gasten bij de host: [[plek, lichaam]] (plek 1 de metgezel als hij door een gast wordt bestuurd, plek 2 en hoger figuren).
+// Alle lichamen van gasten bij de host: [[plek, lichaam]] voor elke figuur vanaf plek 1 (#502).
 export function gastLichamen(world) {
-  const uit = [], c = lichaamVan(world, 1);
-  if (c) uit.push([1, c]);
-  for (const f of Object.values(figures(world))) if (f && f.slot >= 2) uit.push([f.slot, f]);
-  return uit;
+  const uit = [];
+  for (const f of Object.values(figures(world))) if (f && f.slot >= 1) uit.push([f.slot, f]);
+  return uit.sort((a, b) => a[0] - b[0]);
 }
 export const bestuurt = (lichaam) => !!(lichaam && lichaam.coopBestuurt);
 export const bestuurderVan = (world, slot) => (rijders(world)[slot] || null);
@@ -167,7 +162,7 @@ function stapIn(world, slot, l, v) {
   if (proxy.inVehicle !== v) return { gedaan: true }; // enterVehicle weigerde (er zat al iemand in)
   v.coopBestuurder = slot; v.wreckedByGast = null;
   v.speed = Math.abs(v.speed || 0) < 0.5 ? 0 : v.speed;
-  if (slot === 1) l.inVehicle = v; else { l.inVeh = v; l.coopVoertuig = true; l.stoel = 0; }
+  l.inVeh = v; l.coopVoertuig = true; l.stoel = 0; // elke gast is een figuur (#502): ook plek 1 zit in inVeh
   l.coopBestuurt = true; l.vx = 0; l.vy = 0;
   rijders(world)[slot] = { slot, v, proxy, buiten: 0 };
   stoot(world, slot, BESTUUR_TEKST.in);
@@ -186,7 +181,7 @@ function klaar(world, slot, r, l) {
   }
   if (!l) return;
   l.coopBestuurt = false;
-  if (slot === 1) { l.inVehicle = null; l.coopUit = true; } else { l.inVeh = null; l.coopVoertuig = false; l.stoel = undefined; }
+  l.inVeh = null; l.coopVoertuig = false; l.stoel = undefined; // ook plek 1 is een figuur (#502)
   if (Number.isFinite(r.proxy.x)) { l.x = r.proxy.x; l.y = r.proxy.y; }
   l.gz = r.proxy.gz || l.gz || 0; l.vx = 0; l.vy = 0;
 }
@@ -203,7 +198,7 @@ export function bestuurUitstappen(world, slot) {
 // De gast valt weg (verbinding kwijt, weggegaan, eruit gezet): het voertuig staat stil en de stoel is vrij.
 export function bestuurLos(world, slot) {
   const r = rijders(world)[slot]; if (!r) return false;
-  const l = lichaamVan(world, slot) || (slot >= 2 ? null : world.companion);
+  const l = lichaamVan(world, slot) || null; // geen terugval op de metgezel: die hoort bij geen plek (#502)
   zetStil(r.v);
   if (haken.exit && r.proxy.inVehicle === r.v) haken.exit(r.proxy, world.map, world);
   klaar(world, slot, r, l);
@@ -222,11 +217,10 @@ export function bestuurAllesLos(world) { for (const s of Object.keys(rijders(wor
 // (#447). Geeft false als er niets te trekken valt: de aanroeper probeert dan het gewone
 // in- of uitstappen (coopnet.js 'trek').
 function medespelerIn(world, v, rol = 'bijrijder') {
-  const c = world.companion; // plek 1 zit voorin naast de bestuurder
-  if (c && c.inVehicle === v && rol !== 'achter') return { slot: 1, lichaam: c };
-  for (const f of Object.values(figures(world))) { // een figuur op stoel 1 zit voorin, stoel 2 en hoger achterin
+  for (const f of Object.values(figures(world))) { // elke gast is een figuur (#502); stoel 1 is voorin, 2 en hoger achterin
     if (!f || f.inVeh !== v || f.coopBestuurt) continue;
-    if (rol === 'achter' ? (f.stoel | 0) >= 2 : (f.stoel | 0) === 1) return { slot: f.slot, lichaam: f };
+    const stoel = f.stoel == null ? (f.slot === 1 ? 1 : 2) : (f.stoel | 0);
+    if (rol === 'achter' ? stoel >= 2 : stoel === 1) return { slot: f.slot, lichaam: f };
   }
   return null;
 }
@@ -253,8 +247,7 @@ export function trekGast(world, slot) {
     if (world.coopPvp && (isPassief(world.coopPvp, slot) || isPassief(world.coopPvp, mede.slot))) { meld(TREK_TEKST.passief); return true; }
     const p = trekPunt(v, l.x, l.y, { rol }); // de plek naast de open deur
     const m = mede.lichaam;
-    if (mede.slot === 1) { m.inVehicle = null; m.coopUit = true; if (v.passenger === 'companion') v.passenger = null; if (world.coopWielSlot === 1) world.coopWielSlot = null; } // zonder bijrijder geen stuur (#434)
-    else { m.inVeh = null; m.coopVoertuig = false; m.stoel = undefined; }
+    m.inVeh = null; m.coopVoertuig = false; m.stoel = undefined; // elke gast is een figuur (#502)
     if (p) { m.x = p.x; m.y = p.y; }
     m.vx = 0; m.vy = 0;
     openDeurVoor(v, rol, 3);

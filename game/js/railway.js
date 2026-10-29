@@ -775,17 +775,8 @@ function hitCompanion(c, t, car, push, world) {
   c.x += push.nx * push.depth;
   c.y += push.ny * push.depth;
   const klap = treinKlap(t.v, world.time, c._trainHitAt);
-  // (#434) is plek 1 een gast (world.coop.remote), dan is zijn gezondheid van hem: dezelfde schade gaat als bericht naar zijn eigen spel
-  const gast = typeof world.coopSchade === 'function' && !!(world.coop && world.coop.remote);
   if (!klap) return;
-  if (gast) {
-    c._trainHitAt = world.time;
-    world.coopSchade(1, klap.schade, 'trein');
-    // het lichaam opzij, zonder neergaan: de gast bestuurt zijn eigen lichaam en ziet zijn eigen gezondheid dalen
-    c.vx = 0; c.vy = 0;
-    world.addMessage('Een medespeler is aangereden door de trein!', 3);
-    return;
-  }
+  // De metgezel is een computerfiguur (#502): geen bericht naar een gast over "zijn" lichaam; de gewone schade geldt.
   c._trainHitAt = world.time;
   const tv = t.v * t.dir;
   c.health = Math.max(0, (c.health ?? 100) - (25 + t.v * 3.5));
