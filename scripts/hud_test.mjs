@@ -50,6 +50,55 @@ ok(d({ objective: true, subtitle: true }).dimObjective && !d({ objective: true }
   const m = css.match(/#hud \.hud-mission\.dim \{[^}]*opacity:\s*([\d.]+)/);
   ok(!!m && Number(m[1]) >= 0.7, 'a dimmed objective stays readable (0.7), got ' + (m ? m[1] : 'niets'));
 }
+// #463: het doel (zone G) en de treincabine (zone H) mogen elkaar nooit raken.
+// De cabine van treincabine.js is breder en hoger dan de snelheidsmeter en ligt
+// over de bodem waar G staat: op 1920x1080 liep de missietoast ("Ontsnap aan de
+// politie") dwars door het tractie- en rempaneel, met REM 1/2/3 over de tekst.
+// De regel: onder een trein houdt G de bovenkant van die band vrij, met de maat
+// die hud_panel.js aan de cabine meet (--hud-g-floor) en een kier eronder.
+{
+  const css = readFileSync(new URL('../game/js/hud_panel.css', import.meta.url), 'utf8');
+  const hudjs = readFileSync(new URL('../game/js/hud_panel.js', import.meta.url), 'utf8');
+  const at = css.indexOf('body.tc-on #hud .hud-mission {');
+  const gRule = at < 0 ? '' : css.slice(at, css.indexOf('}', at));
+  const floor = /bottom:\s*calc\(\s*var\(--hud-g-floor,\s*(\d+)px\)\s*\+\s*(\d+)px\s*\)/.exec(gRule);
+  ok(!!floor, 'onder een trein houdt het doel een strook vrij voor de cabine');
+  ok(/\.tc-cab/.test(hudjs) && /--hud-g-floor/.test(hudjs) && /ResizeObserver/.test(hudjs),
+    'hud_panel.js meet de cabine voor die strook (en volgt hem als hij groeit)');
+  // De cabine: 22 px van de onderkant (treincabine.js, --hud-bottom) en op de
+  // beelden van #463 203 HUD px hoog; 700 px breed plus 32 px padding vanaf
+  // max(300px, 50% - 350px). De meting van hud_panel.js kan hem alleen hoger
+  // maken (waarschuwing erbij, de uitleg erboven); de strook in de CSS is de
+  // ondergrens.
+  const CAB_BOTTOM = 22, CAB_H = 203, CAB_W = 700, CAB_PAD = 32, MM = 250;
+  const cabTop = CAB_BOTTOM + CAB_H;
+  for (const [w, h] of [[1280, 720], [1920, 1080]]) {
+    const vp = L.hudViewport(w, h), e = L.hudEdge(w, h, vp.scale);
+    const gBottom = (floor ? Number(floor[1]) : 0) + (floor ? Number(floor[2]) : 0);
+    ok(gBottom >= cabTop, `${w}x${h}: het doel staat boven de cabine (${gBottom} >= ${cabTop})`);
+    // en ze liggen ook echt boven elkaar: zonder die scheiding raakten ze elkaar
+    const cabL = Math.max(300, vp.w / 2 - 350), cabR = cabL + Math.min(CAB_W, w - 316) + CAB_PAD;
+    const gW = Math.min((58 * w) / vp.scale, vp.w - 2 * (e + MM + 160));
+    ok(cabR > vp.w / 2 - gW / 2 && cabL < vp.w / 2 + gW / 2, `${w}x${h}: het doel staat horizontaal boven de cabine`);
+    ok(gBottom + 64 < vp.h - e - MM, `${w}x${h}: de strook duwt het doel niet het beeld in of op de kaart`);
+  }
+}
+// #463: de prestatiekaart dekt geen interactiehint af -- de hint gaat voor.
+// De vakken komen uit de beelden van #463 (1920x1080): de kaart
+// "PRESTATIE ONTGRENDELD · BEKEND BIJ DE POLITIE" en de hint "FLUIT EEN DUIF".
+{
+  const card = { left: 735, right: 1060, top: 110, bottom: 195 };
+  const hint = { left: 950, right: 1108, top: 80, bottom: 138 };
+  ok(R.cardYields(card, [hint]), 'de prestatiekaart wijkt voor een hint die hij raakt');
+  ok(!R.cardYields(card, []), 'zonder hint blijft de prestatiekaart staan');
+  ok(!R.cardYields(card, [{ left: 1200, right: 1360, top: 400, bottom: 470 }]), 'een hint elders laat de kaart staan');
+  ok(!R.cardYields(card, [{ left: 1060, right: 1200, top: 110, bottom: 195 }]), 'net ernaast is geen overlap');
+  ok(!R.cardYields(null, [hint]) && !R.cardYields(card, [null]), 'geen vak, geen regel');
+  // de class die hud_panel.js zet, verbergt de kaart ook echt (hij staat in
+  // achievements.js, dus deze regel moet die van .ach-toast.on verslaan)
+  const css = readFileSync(new URL('../game/js/hud_panel.css', import.meta.url), 'utf8');
+  ok(/body #hud\.hud-ach-yield \.ach-toast \{[^}]*opacity:\s*0;[^}]*visibility:\s*hidden/.test(css), 'de kaart is dan weg, niet half doorzichtig over de hint');
+}
 // rest: Slim only
 const idle = { idle: 9, hpFull: true, stamFull: true, objective: true, inVehicle: true, keys: 2, moneyAgo: 1 };
 const r = d(idle);
