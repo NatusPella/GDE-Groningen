@@ -1,14 +1,15 @@
 {
-  "name": "gde-groningen-ts-poc",
+  "name": "gde-groningen-dev",
   "private": true,
   "type": "module",
-  "description": "POC: TypeScript-proef voor GDE Groningen. Geen productiebesluit — zie docs/TYPESCRIPT-POC.md en de ADR-kwestie (tech-stack.md verbiedt nu TS en een root-package.json).",
+  "description": "Dev-tooling voor TypeScript (ADR 0022): typecheck en type-strip. Geen runtime-afhankelijkheden; het spel zelf heeft geen npm-pakketten.",
   "scripts": {
     "typecheck": "tsc --noEmit",
     "build:ts": "node scripts/build_ts.mjs"
   },
   "devDependencies": {
     "typescript": "^5.6.3",
-    "esbuild": "^0.24.0"
+    "esbuild": "^0.24.0",
+    "@types/three": "0.160.0"
   }
 }

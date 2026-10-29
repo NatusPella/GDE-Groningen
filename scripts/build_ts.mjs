@@ -1,21 +1,23 @@
-// POC: transpileert game/js/**/*.ts naar .js (types eraf, verder ongewijzigd),
-// zodat het bestaande ESM-pad (browser/Electron, zonder bundler) de .ts-bronnen
-// blijft draaien. Geen bundel: imports blijven zoals ze zijn (bijv. './economy.js').
+// Transpileert game/js/**/*.ts naar .js (types eraf, verder ongewijzigd), zodat
+// het bestaande ESM-pad (browser/Electron, zonder bundler) de .ts-bronnen blijft
+// draaien. Geen bundel: imports blijven zoals ze zijn (bijv. './economy.js').
 //
-// Standaard in-place (de .js komen naast de .ts), want de importers zeggen al
-// './flitspaalrules.js'; die hoeven zo niet te veranderen. TS_OUT wijst ergens
-// anders heen als je de uitvoer apart wilt zien.
+//   node scripts/build_ts.mjs            in-place in game/js (dev)
+//   node scripts/build_ts.mjs --out DIR  transpileer de .ts in DIR (build/stage)
+//   node scripts/build_ts.mjs --drop-ts  verwijder de .ts na transpile (build/stage)
 //
-// Let op: dit is de POC-stap, geen productiekeuze. Waar de tooling en de
-// uitvoer wonen hoort in een ADR (zie docs/TYPESCRIPT-POC.md).
+// De uitvoer is gegenereerd en staat niet in git; de .ts is de bron van waarheid
+// (ADR 0022, zie docs/TYPESCRIPT.md).
 import { build } from 'esbuild';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const SRC = path.join(ROOT, 'game', 'js');
-const OUT = process.env.TS_OUT || SRC;
+const args = process.argv.slice(2);
+const arg = (n) => { const i = args.indexOf(n); return i >= 0 && i + 1 < args.length ? args[i + 1] : undefined; };
+const OUT = arg('--out') ? path.resolve(ROOT, arg('--out')) : path.join(ROOT, 'game', 'js');
+const DROP_TS = args.includes('--drop-ts');
 
 function walk(dir, out = []) {
   for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -26,15 +28,25 @@ function walk(dir, out = []) {
   return out;
 }
 
-const entries = walk(SRC);
+const entries = walk(OUT);
+if (!entries.length) {
+  console.log(`no .ts in ${OUT}`);
+  process.exit(0);
+}
+
 await build({
   entryPoints: entries,
   outdir: OUT,
-  outbase: SRC,
+  outbase: OUT,
   bundle: false,
   format: 'esm',
   target: 'es2022',
   logLevel: 'info',
 });
+
+if (DROP_TS) {
+  for (const f of entries) fs.rmSync(f);
+  console.log(`dropped ${entries.length} .ts sources from ${OUT}`);
+}
 
 console.log(`transpiled ${entries.length} .ts -> ${OUT}`);
