@@ -146,6 +146,18 @@ const WOORD = {
   achttien: 18, negentien: 19, twintig: 20,
 };
 
+// Schrijft een getal terug in de notatie die de spec al gebruikt: stond er "1.450", dan komt er
+// weer "1.450" en geen "1450"; stond er een woord, dan blijft het een woord als dat kan.
+function notatie(gezegd, echt) {
+  const s = String(gezegd);
+  if (/^\d{1,3}(\.\d{3})+$/.test(s) && echt >= 1000) {
+    return String(echt).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  }
+  const woord = Object.keys(WOORD).find((k) => WOORD[k] === echt);
+  if (woord && !/^\d/.test(s)) return woord;
+  return String(echt);
+}
+
 export function getal(t) {
   const s = String(t == null ? '' : t).trim().toLowerCase();
   if (WOORD[s]) return WOORD[s];
@@ -238,9 +250,66 @@ export async function check({ repo = REPO, specDir = path.join(repo, SPECS) } = 
   return { refs, counters, skipped, problems };
 }
 
+// ---------------------------------------------------------------- bijwerken
+
+// Zet elk getal in de specs gelijk aan de bron (#520). Dezelfde TELLERS als check(), maar in
+// plaats van te klagen schrijft hij de juiste waarde in dezelfde notatie. Een spec die al klopt
+// blijft byte voor byte gelijk; een teller zonder bron wordt overgeslagen, nooit geraden.
+export async function write({ repo = REPO, specDir = path.join(repo, SPECS) } = {}) {
+  const changed = [];
+  const skipped = [];
+  if (!fs.existsSync(specDir)) return { changed, skipped };
+
+  const perFile = new Map();
+  for (const c of TELLERS) {
+    if (!perFile.has(c.file)) perFile.set(c.file, []);
+    perFile.get(c.file).push(c);
+  }
+
+  for (const [name, tellers] of perFile) {
+    const file = path.posix.join(SPECS, name);
+    const lines = readLines(repo, file);
+    if (!lines) continue;
+    let text = lines.join('\n');
+
+    for (const c of tellers) {
+      const bron = await c.source(repo);
+      if (bron.skip) { skipped.push(`${file}: ${c.labels.join(' en ')} — ${bron.skip}`); continue; }
+      // de d-flag geeft m.indices: zonder die indices is niet te zien welk teken bij welke groep hoort
+      const matches = [...text.matchAll(new RegExp(c.pattern.source, c.pattern.flags.replace('g', '') + 'gd'))];
+      if (!matches.length) continue;
+      // van achter naar voor vervangen, zodat de indices van eerdere treffers blijven kloppen
+      for (const m of matches.reverse()) {
+        const groepen = [];
+        for (let k = 0; k < c.labels.length; k++) {
+          const gezegd = m[k + 1];
+          const echt = bron.waarden[k];
+          if (getal(gezegd) === echt) continue;
+          groepen.push({ label: c.labels[k], gezegd, echt, start: m.indices[k + 1][0], eind: m.indices[k + 1][1] });
+        }
+        for (const g of groepen.reverse()) {
+          const nieuw = notatie(g.gezegd, g.echt);
+          text = text.slice(0, g.start) + nieuw + text.slice(g.eind);
+          changed.push(`${file}: ${g.label} ${g.gezegd} → ${nieuw}`);
+        }
+      }
+    }
+    if (text !== lines.join('\n')) fs.writeFileSync(path.join(repo, file), text, 'utf8');
+  }
+  return { changed, skipped };
+}
+
 // ---------------------------------------------------------------- CLI
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  if (process.argv.includes('--write')) {
+    const { changed, skipped: over } = await write();
+    for (const c of changed) console.log(`AANGEPAST ${c}`);
+    for (const o of over) console.log(`SKIP ${o}`);
+    console.log(`${changed.length} getal(len) gelijk aan de bron gezet; draai de controle opnieuw`);
+    process.exit(0);
+  }
+
   const { refs, counters, skipped, problems } = await check();
   for (const p of problems) console.log(`FOUT ${p.where}: ${p.message}`);
   for (const s of skipped) console.log(`SKIP ${s}`);

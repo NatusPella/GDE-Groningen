@@ -1,0 +1,18 @@
+#!/bin/sh
+# Weigert een commit met een geheim (#62). Draait dezelfde scan als CI, maar dan vóór de push:
+# een sleutel die één keer in een commit staat, staat voor altijd in de geschiedenis, en deze
+# repo is privé op een Free-plan, dus GitHub's push protection staat hier niet aan.
+#
+# Alleen de werkboom, niet de hele geschiedenis: vier seconden in plaats van twee minuten, en de
+# geschiedenis verandert niet door een commit. Overslaan kan met `git commit --no-verify`; doe dat
+# alleen als je zeker weet dat de treffer geen geheim is.
+#
+# Installeren: node scripts/install_hooks.mjs
+command -v node >/dev/null 2>&1 || { echo "pre-commit: node niet gevonden, geheimenscan overgeslagen"; exit 0; }
+if ! node scripts/secrets_scan.mjs --tree; then
+  echo ""
+  echo "Deze commit is tegengehouden: er staat een geheim in de bestanden die je wilt committen."
+  echo "Haal de sleutel eruit (en maak hem ongeldig: hij heeft al op je schijf gestaan)."
+  echo "Geen geheim, wel een valse treffer? Voeg een uitzondering toe in scripts/publish_check.mjs."
+  exit 1
+fi
