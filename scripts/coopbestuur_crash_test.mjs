@@ -130,6 +130,19 @@ t('een lichaam zonder stapNaastDeur komt via de haak toch buiten: de gewone uits
   assert.ok((figuur.x - v.x) * Math.sin(v.angle) - (figuur.y - v.y) * Math.cos(v.angle) > 0, 'aan de linkerkant (de chauffeurskant)');
 });
 
+t('een motor die zijn gast afgooit: exitVehicle binnen driveVehicle ruimt de regel op zonder te throwen', () => {
+  B.zetBestuurHaken(haken());
+  // een motorscooter met een tweetakt-er: een klapper gooit de rijder eraf (player.js driveVehicle roept this.exitVehicle)
+  const motor = new Vehicle(20, 20, 0, { ...TRAFFIC_MODELS().find((m) => m.name === 'scooter'), motorbike: 'naked' });
+  const w = mkWorld(motor);
+  assert.equal(B.bestuurGebruik(w, 1).gedaan, true, 'de gast stapt op');
+  motor.speed = 20; motor.crashed = true;
+  assert.doesNotThrow(() => B.bestuurTick(w, 1 / 60), 'de geneste exit-aanroep op de proxy');
+  assert.equal(B.bestuurderVan(w, 1), null, 'de regel is opgeruimd');
+  assert.equal(w.coopFigures[1].inVeh, null, 'de gast staat weer naast de motor');
+  assert.equal(motor.coopBestuurder, null, 'de motor is vrij');
+});
+
 t('de gastheer zelf verandert niet: plek 0 is en blijft een echte Player', () => {
   B.zetBestuurHaken(haken());
   const v = sedan(); const w = mkWorld(v);
