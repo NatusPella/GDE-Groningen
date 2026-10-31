@@ -22,9 +22,11 @@ Sinds #528 is Samen spelen de standaard, niet iets wat je erbij doet (ADR 0022).
   het één keer en zoekt het intussen geen contact. Een oude installatie wordt nooit
   stil openbaar.
 - **Aanpasbaar** bij Instellingen > Samen spelen, samen met naam en kleur. Aanzetten
-  sluit aan of host zodra de speler in de open wereld staat; uitzetten maakt de sessie
-  besloten (bestaande gasten blijven, nieuwe komen er niet bij, de regel verdwijnt uit
-  de lijst).
+  opent het tabblad Samen spelen, waar de lobby (#95) host of aansluit; uitzetten maakt
+  de sessie besloten (bestaande gasten blijven, nieuwe komen er niet bij, de regel
+  verdwijnt uit de lijst). De schakelaar staat bij het profiel op het tabblad Spelers,
+  dat er sinds #530 ook zonder sessie is: anders is "Alleen spelen" bij de eerste start
+  een doodlopende weg.
 - **Ontsnappen via Escape** gaat altijd: naar een besloten sessie, alleen of met
   vrienden via een kamercode, zonder de eigen voortgang te verliezen (#527).
 - **De openbare lijst** toont naam, aantal spelers en versie; nooit een adres en nooit
