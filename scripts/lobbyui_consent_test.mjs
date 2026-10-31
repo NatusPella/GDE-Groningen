@@ -25,6 +25,8 @@ const tick = (ms = 20) => new Promise((r) => setTimeout(r, ms));
 function fakeRoot() {
   const r = { innerHTML: '', handlers: [], querySelector: () => null, contains: () => true, addEventListener(ev, f) { this.handlers.push(f); } };
   r.click = (act) => r.handlers.forEach((h) => h({ target: { closest: () => ({ dataset: { act } }) } }));
+  // het vinkje "Niet meer vragen" (#526): een change zoals de browser hem geeft
+  r.check = (aan) => r.handlers.forEach((h) => h({ target: { checked: aan, classList: { contains: (c) => c === 'coop-consent-vink' } } }));
   return r;
 }
 const hooks = (extra = {}) => ({ startHost: () => ({ roster: { max: 4, spelers: [] }, vrijePlekken: true }), addGuest() {}, startClient() {}, setMax: (m) => m, ...extra });
@@ -50,6 +52,59 @@ await t('na akkoord gaat de signalering via de brokers en het STUN-pad van de co
   for (const u of log.ws) assert.match(u, /^wss:\/\//, 'alleen versleutelde websockets');
   for (const c of log.pc) assert.ok(c.iceServers.every((s) => /^stun:/.test(s.urls)), 'alleen STUN, geen TURN-relay');
   lobby.close();
+});
+// (#526) één toestemming per sessie: de tweede route in dezelfde sessie komt niet meer op het scherm, maar er
+// gaat ook niets naar buiten vóór die eerste toestemming. Dat is dezelfde eigenschap, in de nieuwe vorm.
+await t('één toestemming per sessie: de tweede route vraagt niets meer en verstuurt nog steeds niets zonder akkoord (#526)', async () => {
+  const w0 = log.ws.length, p0 = log.pc.length;
+  const root = fakeRoot(); const lobby = mountLobby(root, hooks());
+  root.click('kies-host'); await tick();
+  assert.equal(lobby.state().step, 'methode');
+  assert.deepEqual([log.ws.length, log.pc.length], [w0, p0], 'nog niets verstuurd');
+  root.click('route-kamer'); await tick();
+  assert.equal(lobby.state().step, 'toestemming');
+  assert.equal(lobby.state().consented, false);
+  assert.deepEqual([log.ws.length, log.pc.length], [w0, p0], 'de eerste route wacht op het akkoord');
+  root.click('akkoord'); await tick(60);
+  const na = log.ws.length + log.pc.length;
+  assert.ok(na > w0 + p0, 'na het akkoord begint de eerste route');
+  // terug naar het beginscherm en een tweede route in dezelfde sessie: geen scherm en geen wachttijd
+  lobby.event({ t: 'verbreek' });
+  root.click('kies-host'); root.click('route-direct'); await tick(80);
+  assert.notEqual(lobby.state().step, 'toestemming', 'de tweede route vraagt het niet nog een keer');
+  lobby.close();
+});
+await t('"Niet meer vragen" (#526): het vinkje plus akkoord bewaart de keuze op dit apparaat, en alleen dan', async () => {
+  const geheugen = new Map();
+  globalThis.localStorage = { getItem: (k) => (geheugen.has(k) ? geheugen.get(k) : null), setItem: (k, v) => geheugen.set(k, String(v)), removeItem: (k) => geheugen.delete(k) };
+  const { getSettings, setSetting } = await import('../game/js/settings.js');
+  // zonder vinkje: het scherm komt één keer per sessie en er wordt niets bewaard
+  const r1 = fakeRoot(); const l1 = mountLobby(r1, hooks());
+  r1.click('kies-host'); r1.click('route-kamer'); assert.match(r1.innerHTML, /coop-consent-vink/);
+  assert.match(r1.innerHTML, /Niet meer vragen/);
+  r1.click('akkoord'); await tick(40);
+  assert.equal(getSettings().multiplayerConsentRemembered, false, 'zonder vinkje niets bewaard');
+  l1.close();
+  // met vinkje: de keuze gaat naar de gewone instellingen (gde-settings), pas na het akkoord
+  const r2 = fakeRoot(); const l2 = mountLobby(r2, hooks());
+  r2.click('kies-host'); r2.click('route-kamer');
+  assert.equal(getSettings().multiplayerConsentRemembered, false, 'het vinkje alleen bewaart nog niets');
+  r2.check(true); assert.equal(l2.state().consentRemember, true);
+  r2.click('akkoord'); await tick(40);
+  assert.equal(getSettings().multiplayerConsentRemembered, true, 'na het akkoord bewaard');
+  assert.match(geheugen.get('gde-settings') || '', /multiplayerConsentRemembered/);
+  l2.close();
+  // een volgende sessie op dit apparaat slaat het scherm over en gaat meteen door, zonder iets te versturen vooraf
+  setSetting('multiplayerConsentRemembered', true);
+  const w0 = log.ws.length, p0 = log.pc.length;
+  const r3 = fakeRoot(); const l3 = mountLobby(r3, hooks());
+  assert.equal(l3.state().consentSaved, true, 'de lobby leest de keuze uit de gewone instellingen');
+  r3.click('kies-host'); r3.click('route-kamer'); await tick(60);
+  assert.notEqual(l3.state().step, 'toestemming', 'geen scherm meer op dit apparaat');
+  assert.ok(log.ws.length + log.pc.length > w0 + p0, 'en de route begint, want de speler ging hier al eens akkoord');
+  l3.close();
+  setSetting('multiplayerConsentRemembered', false); // de test laat geen keuze achter
+  delete globalThis.localStorage;
 });
 await t('wachtscherm van een gast: komt de verbinding van zelf terug, dan sluit het scherm (anders bleef het spel voor altijd op pauze)', async () => {
   const root = fakeRoot(); let hervat = 0;
