@@ -109,16 +109,31 @@ function gastNaam(world, slot) {
 // Een eigen object voor player.js: enterVehicle, driveVehicle en exitVehicle gebruiken alleen plek, hoek, hoogte en inVehicle van wie rijdt.
 // Waarom een eigen object en niet de figuur zelf (#502): de figuur is het lichaam dat de gastheer tekent en dat de
 // snapshots vullen; de besturing schrijft elke frame x/y/hoek van het voertuig. Zo blijven die twee uit elkaar en zet
-// `klaar` de gast op de plek waar hij uitstapte. Wat player.js op `this` nodig heeft, moet hier dus staan: naast
-// exitVehicle (een motor die zijn rijder afgooit) ook stapNaastDeur, anders gooit exitVehicle midden in het uitstappen
-// een TypeError en blijft de gast in coopRijders staan (spelerscrash 31-10, 0.54.0: daarna `null.isPlane` in de tick).
+// `klaar` de gast op de plek waar hij uitstapte.
+//
+// Elke methode die player.js op `this` kan bereiken staat op één gedeelde, bevroren basis (#520). Een lijstje per proxy
+// is wat op 31-10 stukging: `stapNaastDeur` was vergeten, dus gooide exitVehicle midden in het uitstappen en bleef de
+// rijdersregel staan (`null.isPlane`, daarna `null.sinking`). Op een gedeelde basis kan een nieuwe proxy er geen missen,
+// en `scripts/coopbestuur_proxy_pariteit_test.mjs` leidt de eis af uit de haken in main.js en de bodies in player.js:
+// een nieuwe haak zonder methode laat de test falen in plaats van het spel. De vier die main.js aan een haak bindt
+// (enter/exit/drive/stap) lopen via die haak, want tests en coopnet.js zetten hun eigen versie; de rest doet bewust
+// niets: de tuimeling en het zwemmen van een gast horen bij zijn eigen spel, de gastheer tekent alleen zijn figuur (#502).
+const PROXY_BASIS = Object.freeze({
+  stapNaastDeur(v, map, uit) { return haken.stap ? haken.stap(this, v, map, uit) : false; }, // de deur van zijn stoel (player.js)
+  enterVehicle(v, world) { return haken.enter ? haken.enter(this, v, world) : undefined; },
+  exitVehicle(map, world, thrown) { return haken.exit ? haken.exit(this, map, world, thrown) : undefined; }, // een motor die zijn rijder afgooit
+  driveVehicle(dt, input, map, world) { return haken.drive ? haken.drive(this, dt, input, map, world) : undefined; },
+  diveOut() {}, ejectIntoWater() {}, enterSwim() {}, blownOut() {}, // de eigen tuimeling, plons en zwem van de gast: zijn eigen spel
+});
+
+// De toestand die player.js op het lichaam dat hij bestuurt leest of schrijft: dezelfde velden en dezelfde beginwaarden
+// als de constructor van Player (player.js), zodat een gedeelde methode hier nooit `undefined` leest. inVehicle, x/y/hoek
+// en gz leven mee met het voertuig; water en de buk- en klimvlaggen staan op hun rustwaarde van een staande speler.
 function maakProxy(world, slot, l, v) {
-  return {
+  return Object.assign(Object.create(PROXY_BASIS), {
     coopSlot: slot, x: v.x, y: v.y, angle: v.angle || 0, vx: 0, vy: 0, z: 0, vz: 0, gz: l.gz || 0, radius: l.radius || 0.4, inVehicle: null,
-    stapNaastDeur(v2, map, uit) { return haken.stap ? haken.stap(this, v2, map, uit) : false; }, // de deur van zijn stoel (player.js)
-    exitVehicle(map, w, thrown) { return haken.exit(this, map, w, thrown); }, // een motor die zijn rijder afgooit
-    diveOut() {}, ejectIntoWater() {}, blownOut() {},
-  };
+    water: null, swimming: false, swimTilt: 0, waterTime: 0, crouching: false, climb: null, climbSpot: null, climbScanAt: 0,
+  });
 }
 
 // De gast drukte op E bij de host: stapt hij uit (bestuurt hij) of in bij een vrij voertuig. Geeft:
