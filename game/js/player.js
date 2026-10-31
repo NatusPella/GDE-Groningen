@@ -970,6 +970,10 @@ export class Player {
 
   exitVehicle(map, world = null, thrown = false) {
     const v = this.inVehicle;
+    // Geen voertuig: dan valt er niets uit te stappen (spelerscrash 31-10, 0.54.0: `null.sinking`). Een gast
+    // bij de gastheer is een figuur (#502) en zijn lichaam kan naast de wagen staan terwijl een oude
+    // bestuurdersregel hem nog wil uitstappen; niets doen is dan het enige juiste antwoord.
+    if (!v) return;
     if (v.sinking && world) { this.ejectIntoWater(v, world); return; }
     const vx = Math.cos(v.angle) * v.speed + (v.driftX || 0), vy = Math.sin(v.angle) * v.speed + (v.driftY || 0);
     const bail = !!world && !thrown && !v.isBoat && !v.wrecked && Math.hypot(vx, vy) > BAIL_SPEED;
@@ -987,7 +991,10 @@ export class Player {
     const kant = uit ? uit.kant : -1;
     const eerste = kant > 0 ? EXIT_RIGHT_FIRST : EXIT_LEFT_FIRST;
     const tweede = kant > 0 ? EXIT_LEFT_FIRST : EXIT_RIGHT_FIRST;
-    if (!this.stapNaastDeur(v, map, uit)) [this.x, this.y] = findExitSpot(v, this.radius, map, eerste);
+    // Een gast is bij de gastheer een eigen figuur (#502) en geen Player: die heeft stapNaastDeur niet.
+    // Bestaat de methode niet, dan de gewone uitstapplek in plaats van een crash halverwege het uitstappen
+    // (spelerscrash 31-10, 0.54.0: `this.stapNaastDeur is not a function`).
+    if (!this.stapNaastDeur || !this.stapNaastDeur(v, map, uit)) [this.x, this.y] = findExitSpot(v, this.radius, map, eerste);
     this.angle = v.angle;
     this.z = 0;
     this.vz = 0;
@@ -1007,6 +1014,10 @@ export class Player {
 
   driveVehicle(dt, input, map, world = null) {
     const v = this.inVehicle;
+    // Geen voertuig: er valt niets te besturen (spelerscrash 31-10, 0.54.0: `null.isPlane`). De tick van
+    // coopbestuur.js komt hier ook als een gast naast zijn wagen staat (#502); stil niets doen, dan ruimt
+    // de tick zijn bestuurdersregel zelf op.
+    if (!v) return;
     if (v.isPlane && world) {
       flyPlane(v, dt, world);
       this.x = v.x; this.y = v.y; this.angle = v.angle;

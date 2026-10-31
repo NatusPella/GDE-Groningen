@@ -40,10 +40,11 @@ export const TE_VER_S = 4; // s buiten het bereik van de wereld voor de host de 
 // De haken (main.js en coopnet.js zetten ze; tests zetten nepversies):
 //  vind(x, y, voertuigen) -> voertuig of null (vehicle.js findEnterableVehicle); vindProp(x, y) -> { prop, dist } of null; rijProp(world, prop) -> voertuig
 //  enter(lichaam, v, world) en exit(lichaam, map, world) (player.js enterVehicle en exitVehicle op het lichaam van de gast); drive(lichaam, dt, invoer, map, world)
+//  stap(lichaam, v, map, uit) -> true als de gast naast de deur van zijn stoel staat (player.js stapNaastDeur)
 //  misdaad(world, slot, soort) (crime.js reportCrime met de gast als dader)
 //  los(world, slot, x, y) -> { ok, wacht } (coopnet.js losVoor); bijGroep(world, lichaam, hoek) -> true als er droge grond is (coopnet.js zetBijGroep)
 //  trekUit(world, v, rol) -> passagier of null (pedestrians.js ejectPassenger: de bestaande trek-actie)
-const haken = { misdaad: null, vind: null, vindProp: null, rijProp: null, enter: null, exit: null, drive: null, los: null, bijGroep: null, trekUit: null };
+const haken = { misdaad: null, vind: null, vindProp: null, rijProp: null, enter: null, exit: null, drive: null, stap: null, los: null, bijGroep: null, trekUit: null };
 export function zetBestuurHaken(h) { Object.assign(haken, h || {}); }
 
 export const rijders = (world) => world.coopRijders || (world.coopRijders = {});
@@ -106,9 +107,15 @@ function gastNaam(world, slot) {
 }
 
 // Een eigen object voor player.js: enterVehicle, driveVehicle en exitVehicle gebruiken alleen plek, hoek, hoogte en inVehicle van wie rijdt.
+// Waarom een eigen object en niet de figuur zelf (#502): de figuur is het lichaam dat de gastheer tekent en dat de
+// snapshots vullen; de besturing schrijft elke frame x/y/hoek van het voertuig. Zo blijven die twee uit elkaar en zet
+// `klaar` de gast op de plek waar hij uitstapte. Wat player.js op `this` nodig heeft, moet hier dus staan: naast
+// exitVehicle (een motor die zijn rijder afgooit) ook stapNaastDeur, anders gooit exitVehicle midden in het uitstappen
+// een TypeError en blijft de gast in coopRijders staan (spelerscrash 31-10, 0.54.0: daarna `null.isPlane` in de tick).
 function maakProxy(world, slot, l, v) {
   return {
     coopSlot: slot, x: v.x, y: v.y, angle: v.angle || 0, vx: 0, vy: 0, z: 0, vz: 0, gz: l.gz || 0, radius: l.radius || 0.4, inVehicle: null,
+    stapNaastDeur(v2, map, uit) { return haken.stap ? haken.stap(this, v2, map, uit) : false; }, // de deur van zijn stoel (player.js)
     exitVehicle(map, w, thrown) { return haken.exit(this, map, w, thrown); }, // een motor die zijn rijder afgooit
     diveOut() {}, ejectIntoWater() {}, blownOut() {},
   };
