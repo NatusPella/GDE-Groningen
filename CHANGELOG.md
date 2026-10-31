@@ -6,6 +6,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+- **Samen spelen vraagt nog maar één keer om toestemming.** Wie akkoord gaat op het toestemmingsscherm komt daarna in diezelfde sessie meteen door: de kamercode, de openbare lijst, verbinden, herstel en een hostwissel vroegen het elk apart, met elk een eigen uitleg. Nu is er één scherm en één uitleg, met een vinkje "Niet meer vragen op dit apparaat" en een knop om die keuze terug te draaien.
+- **Een gast die meerijdt kan niet meer crashen bij in- en uitstappen.** De crash van 31-10 (`null.isPlane`) kwam uit een proxy die één methode miste. Elke proxy erft nu één gedeelde basis, en een test bewaakt dat een nieuwe haak in de besturing ook een methode krijgt.
+- **Een missieketen blijft bij zijn sessie.** Twee sessies na elkaar deelden dezelfde keten, waardoor een gast de opdracht van de vorige sessie erfde.
 - **De spec-teller haalt zichzelf op bij de bron.** `spec_check` keurde de getallen in de specs al, maar bijwerken was handwerk: na een TTS-ronde stond `verhaal.md` op 808 terwijl de bron 706 zei, en dat moest iemand toevallig opmerken. `node scripts/spec_check.mjs --write` zet elk getal nu gelijk aan de bron, laat de notatie staan (`1.450` blijft `1.450`) en raakt een spec die al klopt niet aan. Vastgelegd in `AGENTS.md` en bewaakt door `spec_check_test`.
 - **Een geheim komt niet meer in de geschiedenis.** `scripts/secrets_scan.mjs` bestond al (werkboom én alle commits) maar draaide nergens mee. De repo is privé op een Free-plan, dus GitHub's push protection staat hier niet aan. De scan draait nu in CI, en `node scripts/install_hooks.mjs` zet een pre-commit-haak die een commit met een sleutel tegenhoudt vóór hij bestaat. `install_hooks_test` bewaakt dat de haak uitvoerbaar is: een haak zonder +x slaat git stil over.
 
