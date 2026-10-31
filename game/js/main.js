@@ -17,7 +17,8 @@ import { politieMetDoelwit } from './coopgezocht.js';
 import { reportCrime } from './crime.js';
 import { findEnterableVehicle } from './vehicle.js';
 import { findRideableProp, rideProp } from './rideprops.js';
-import { isHoldOpen, checkHold } from './coophold.js';
+import { isHoldOpen, checkHold, openHold } from './coophold.js';
+import { sessionBootTick } from './sessionboot.js'; // een sessie vanaf de start (#528, ADR 0022)
 import { updatePartnerChip } from './coophud.js';
 import { syncFigures, hasFigureMeshes } from './coopfigures3d.js';
 import { syncHostEntities, hasHostEntities, clearHostEntities } from './coopentities3d.js';
@@ -626,6 +627,11 @@ async function boot() {
     if (world.coopHekMenu) { world.coopHekMenu = false; if (gateOn()) gateMenu = true; } // een gast die midden in een spel aansloot bij een gastheer in de wachtkamer (coopgate.js)
     if (gateOn() && gateMenu && !isPauseMenuOpen()) openPauseMenu('samen');
     if (!gateOn()) gateMenu = false;
+    // Samen spelen vanaf de start (#528, ADR 0022): zodra de wereld te besturen is en de speler dat wil,
+    // zoekt het spel een sessie of opent het er zelf een. Zonder toestemming gebeurt hier niets; de wereld
+    // loopt gewoon door terwijl er gezocht wordt (sessionboot.js). Wie in het titelscherm al voor Samen
+    // spelen koos, houdt de bestaande lobby: die gaat voor.
+    if (!wantsOpenSamen()) sessionBootTick(world, { onHold: (rol, slot, reden) => openHold(world, rol, slot, reden) });
     updateMapView(dt, world);
     world.paused = isMapOpen() || isPauseMenuOpen() || isShopOpen() || !!world.uiPaused || !!world.coopHold; // coopHold: wachtscherm bij een weggevallen speler (coophold.js)
     if (document.pointerLockElement && (isMapOpen() || isPauseMenuOpen() || isPhoneOpen())) document.exitPointerLock();
