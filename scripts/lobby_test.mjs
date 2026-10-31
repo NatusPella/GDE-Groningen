@@ -28,11 +28,63 @@ t('nooit stilzwijgend verbinden: de toestemming komt eerst, met de vaste tekst',
   const s = run(APP, { t: 'kies', rol: 'host' }, { t: 'route', route: 'kamer' });
   assert.equal(s.step, 'toestemming');
   const v = L.view(s);
-  assert.equal(v.lines[0], 'Voor samen spelen wordt je IP-adres gedeeld met je medespeler en worden openbare servers gebruikt om elkaar te vinden.');
+  assert.equal(v.lines[0], L.CONSENT_TEXT);
+  assert.match(v.lines[0], /IP-adres/); assert.match(v.lines[0], /openbare servers/); assert.match(v.lines[0], /niet naar een server van ons|Naar een server van ons gaat er niets/);
   assert.deepEqual(v.buttons.map((b) => b.label), ['Akkoord en verbinden', 'Annuleren']);
-  assert.match(L.view(run(APP, { t: 'kies', rol: 'host' }, { t: 'route', route: 'direct' })).lines[0], /geen servers van anderen/);
+  assert.equal(v.consent.remember, false, 'het vinkje "Niet meer vragen" staat er en begint uit');
+  // de directe route is de enige die zijn poort noemt; de kamercode-route zegt hetzelfde in één regel
+  const direct = L.view(run(APP, { t: 'kies', rol: 'host' }, { t: 'route', route: 'direct' }));
+  assert.equal(direct.lines[0], L.CONSENT_TEXT, 'één uitleg voor elke route (#526)');
+  assert.match(direct.lines[1], /poort/); assert.match(direct.lines[1], /geen servers van anderen/);
+  assert.equal(direct.lines.length, 2, 'en alleen de directe route voegt iets toe');
   assert.equal(L.reduce(s, { t: 'code', code: 'x' }).step, 'host-wacht', 'code zonder akkoord komt niet voor in de UI: akkoord vooraf');
   assert.equal(L.reduce(run(APP, { t: 'kies', rol: 'host' }), { t: 'akkoord' }).step, 'methode', 'akkoord werkt alleen op het toestemmingsscherm');
+  assert.equal(L.hasConsent(s), false, 'zonder akkoord is er geen toestemming');
+});
+t('één toestemming per sessie: na het akkoord vraagt geen enkele route het nog een keer (#526)', () => {
+  // host: akkoord op de kamercode-route, daarna de test, een tweede route en een terugkeer naar het beginscherm
+  const akkoord = run(APP, { t: 'kies', rol: 'host' }, { t: 'route', route: 'kamer' }, { t: 'akkoord' });
+  assert.equal(akkoord.step, 'host-maakt-code'); assert.equal(L.hasConsent(akkoord), true);
+  let s = L.reduce(akkoord, { t: 'code', code: 'K3J9D-8F2MN' });
+  s = L.reduce(s, { t: 'status', status: 'ok' }); assert.equal(s.step, 'verbonden');
+  assert.equal(L.reduce(s, { t: 'terug' }).step, 'verbonden', 'terug uit een lopende sessie laat je zitten');
+  // de test: geen vraag meer, meteen meten
+  assert.equal(L.reduce(s, { t: 'diag' }).step, 'diag-bezig');
+  // een andere route in dezelfde sessie: ook meteen door
+  assert.equal(L.reduce(s, { t: 'route', route: 'direct' }).step, 'host-maakt-code');
+  // terug naar het beginscherm houdt de toestemming van deze sessie
+  const start = L.reduce(s, { t: 'verbreek' });
+  assert.equal(start.step, 'start'); assert.equal(L.hasConsent(start), true, 'dezelfde sessie: het akkoord blijft');
+  assert.equal(L.reduce(start, { t: 'lijst-vraag' }).step, 'lijst', 'de lijst zonder tweede scherm');
+  assert.equal(L.reduce(L.reduce(start, { t: 'kies', rol: 'gast' }), { t: 'invoer', text: 'K3J9D-8F2MN' }).step, 'verbinden', 'de kamercode zonder tweede scherm');
+  // een nieuwe sessie (een nieuwe lobby) vraagt het weer: het akkoord is per sessie, niet voor altijd
+  assert.equal(L.view(L.createLobby(APP)).consent, null);
+  assert.equal(run(APP, { t: 'kies', rol: 'host' }, { t: 'route', route: 'kamer' }).step, 'toestemming', 'een nieuwe sessie begint weer bij de vraag');
+});
+t('"Niet meer vragen" op dit apparaat: het vinkje bewaart de keuze, ook voor een volgende sessie (#526)', () => {
+  const gevraagd = run(APP, { t: 'kies', rol: 'host' }, { t: 'route', route: 'kamer' });
+  const gevinkt = L.reduce(gevraagd, { t: 'consent-vink', aan: true });
+  assert.equal(gevinkt.consentRemember, true);
+  assert.equal(L.view(gevinkt).consent.remember, true, 'het vinkje staat aan op het scherm');
+  assert.equal(L.hasConsent(gevinkt), false, 'het vinkje alleen is nog geen toestemming');
+  const akkoord = L.reduce(gevinkt, { t: 'akkoord' });
+  assert.equal(akkoord.consentSaved, true, 'akkoord met het vinkje bewaart de keuze voor dit apparaat');
+  // een volgende sessie op dit apparaat slaat het scherm over, ook voor de lijst uit het hoofdmenu
+  assert.equal(L.hasConsent(L.createLobby({ ...APP, consentSaved: true })), true);
+  assert.equal(run({ ...APP, consentSaved: true }, { t: 'kies', rol: 'host' }, { t: 'route', route: 'kamer' }).step, 'host-maakt-code');
+  assert.equal(L.createLobby({ ...APP, consentSaved: true, keuze: 'gast', lijst: true }).step, 'lijst');
+  // wie het vinkje niet zet, houdt alleen het akkoord van deze sessie: het apparaat onthoudt niets
+  assert.equal(L.reduce(L.reduce(gevraagd, { t: 'consent-vink', aan: false }), { t: 'akkoord' }).consentSaved, false);
+  assert.equal(L.hasConsent(L.createLobby(APP)), false, 'een nieuwe sessie zonder vinkje vraagt het weer');
+  // de keuze zit niet vast: op het beginscherm staat Toestemming intrekken, en daarna vraagt het weer
+  const bewaard = L.createLobby({ ...APP, consentSaved: true });
+  const startKnop = L.view(bewaard).buttons.find((b) => b.act === 'consent-vergeet');
+  assert.ok(startKnop && startKnop.label === 'Toestemming intrekken');
+  assert.match(L.view(bewaard).lines.join(' '), /vraagt het daarom niet meer/);
+  const terug = L.reduce(bewaard, { t: 'consent-vergeet' });
+  assert.equal(terug.consentSaved, false); assert.equal(L.hasConsent(terug), false);
+  assert.equal(L.view(terug).buttons.some((b) => b.act === 'consent-vergeet'), false, 'de knop is weer weg');
+  assert.equal(L.reduce(terug, { t: 'route', route: 'kamer' }).step, 'toestemming', 'en het scherm komt terug');
 });
 t('host-pad (kamercode): akkoord, code tonen, gast verbindt, je medespeler naast je', () => {
   let s = run(APP, { t: 'kies', rol: 'host' }, { t: 'route', route: 'kamer' }, { t: 'akkoord' });

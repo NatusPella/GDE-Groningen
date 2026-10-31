@@ -283,7 +283,7 @@ t('lobby: ook in de verbonden stand (er is nog plek) kan een host de sessie open
   const a = reduce(reduce(s, { t: 'openbaar-vraag' }), { t: 'openbaar-ja', naam: 'Met z\'n tweeën' });
   assert.equal(a.step, 'verbonden'); assert.equal(a.openbaar, true);
 });
-t('lobby: Openbare sessies: eerst toestemming (geen verbinding), dan de lijst, dan aansluiten via de gewone toestemming', () => {
+t('lobby: Openbare sessies: eerst toestemming (geen verbinding), dan de lijst, dan aansluiten met dezelfde toestemming', () => {
   let s = createLobby({ rtc: true });
   assert.ok(view(s).buttons.some((b) => b.act === 'lijst'), 'in het beginscherm');
   s = reduce(s, { t: 'lijst-vraag' }); assert.equal(s.step, 'lijst-vraag');
@@ -296,11 +296,15 @@ t('lobby: Openbare sessies: eerst toestemming (geen verbinding), dan de lijst, d
   assert.match(v.sessies[0].tekst, /Zomeravond.*2 van 4.*0\.46\.0/); assert.equal(v.sessies[0].act, 'sluit-0'); assert.equal(v.sessies[0].meld, 'meld-0'); assert.equal(v.sessies[0].kan, true);
   assert.match(v.sessies[1].tekst, /Andere versie/); assert.equal(v.sessies[1].kan, false);
   const k = reduce(s, { t: 'lijst-kies', i: 0 });
-  assert.equal(k.step, 'toestemming'); assert.equal(k.rol, ROLES.GAST); assert.equal(k.route, ROUTES.KAMER); assert.equal(k.invoer.room, ROOM);
+  // (#526) het akkoord voor de lijst geldt voor de rest van de sessie: aansluiten vraagt geen tweede scherm meer
+  assert.equal(k.step, 'verbinden'); assert.equal(k.rol, ROLES.GAST); assert.equal(k.route, ROUTES.KAMER); assert.equal(k.invoer.room, ROOM);
   assert.equal(reduce(s, { t: 'lijst-kies', i: 1 }).step, 'lijst', 'een andere versie sluit niet aan');
   assert.equal(reduce(s, { t: 'lijst-kies', i: 9 }).step, 'lijst');
   assert.equal(reduce(s, { t: 'lijst-terug' }).step, 'start');
   assert.equal(reduce(createLobby({ rtc: false }), { t: 'lijst-vraag' }).step, 'start', 'zonder directe verbinding kan het niet');
+  // zonder dat akkoord vraagt een nieuwe sessie het wel: dezelfde keuze, maar dan eerst het scherm
+  const geenAkkoord = reduce(reduce(createLobby({ rtc: true }), { t: 'kies', rol: ROLES.GAST }), { t: 'invoer', text: 'K3J9D-8F2MN' });
+  assert.equal(geenAkkoord.step, 'toestemming', 'zonder toestemming nog steeds eerst het scherm');
 });
 t('lobby: de query in de stand (#464): zoeken, filters, sorteren, sterren, Meer laden tot 200 en filters wissen', () => {
   let s = reduce(createLobby({ rtc: true, favorieten: ['aaaaaaaaaa'] }), { t: 'lijst-vraag' }); s = reduce(s, { t: 'lijst-go' });

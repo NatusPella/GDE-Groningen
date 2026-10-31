@@ -115,8 +115,10 @@ await t('de lijst toont sessies, markeert een andere versie, verbergt een gemeld
   aanbod = () => codeer({ naam: 'Tweede spel', spelers: 1, max: 4, versie: VERSION, proto: PROTO, room: 'D2B3C4D5E6', id: 'cccccccccc', nu: nu() });
   root.click('lijst-terug'); root.click('lijst'); root.click('lijst-go'); await tick(200); assert.equal(lobby.state().lijst.length, 1);
   const s1 = start(); root.click('sluit-0');
-  assert.equal(lobby.state().step, 'toestemming'); assert.equal(lobby.state().invoer.room, 'D2B3C4D5E6'); assert.equal(lobby.state().rol, 'gast');
-  assert.match(root.innerHTML, /Akkoord en verbinden/); assert.equal(start(), s1, 'aansluiten vraagt eerst de gewone toestemming');
+  // (#526) het akkoord voor de lijst geldt voor de rest van de sessie: aansluiten vraagt geen tweede scherm meer,
+  // maar er gaat nog steeds niets naar buiten voor dat ene akkoord
+  assert.equal(lobby.state().step, 'verbinden'); assert.equal(lobby.state().invoer.room, 'D2B3C4D5E6'); assert.equal(lobby.state().rol, 'gast');
+  assert.equal(start(), s1, 'nog steeds geen verbinding voor het akkoord');
   assert.ok(nieuw(s0).every((s) => s.closed), 'de lijst luistert niet meer');
   aanbod = null; lobby.close();
 });
