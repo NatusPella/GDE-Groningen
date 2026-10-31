@@ -184,6 +184,18 @@ Code: `game/js/cooppvp.js` (pure regels), `multiplayerpvpwereld.js` (treffers en
 - **Melding als iemand je wil aanvallen.** Word je als passieve speler beschoten of geslagen door iemand die actief staat, dan hoor je dat één keer per 5 s (`PVP.POGING_S`): "… wilde je aanvallen, maar je staat op passief." Een salvo kogels is dus één melding. Bij de host in beeld, bij een gast via het gewone `{ k: 'melding', tekst }` van de host; geen nieuw formaat. Twee passieve spelers "proberen" niets en krijgen geen melding.
 - **Niet gedaan / niet getest.** Races en wedstrijden (#443) regelen niets voor PvP: de invoer is daar van de wedstrijd zelf (de kart, de boot of de beurt) en de wedstrijdlaag kent de passieve stand niet; een nieuwe plek na neergaan (nu op dezelfde plek); het gevecht tussen twee spelers en de aanvalsmelding zijn alleen met pure Node-tests geprobeerd (nepwereld, nephub), niet met echte spelers of in beeld; de knop in het pauzemenu, het grijze kaarticoon en de melding zijn niet in beeld bekeken. Spuiten, gooien en aanvallen vanuit een voertuig tellen niet als PvP.
 
+## Een sessie vanaf de start (#528, ADR 0022)
+
+Sinds "multiplayer first" begint het spel zelf een sessie. Het bootpad staat in `game/js/sessionboot.js` en hangt aan `main.js` (`sessionBootTick`, één keer per beeld): zodra de wereld te besturen is (`coopnet.canJoin`: niet in een voertuig, geen filmpje, geen herstel) en `settings.magOnline()` waar is, haalt het de openbare lijst op en beslist `sessiekeuze.kies()`. **Meedoen** sluit aan bij de drukste passende sessie (de kamercode uit de rij, via `hostRoom`/`joinRoom` en `startClient`), **hosten** opent een eigen sessie met de openbare regel van #438, en **besloten** doet niets: het spel speelt gewoon door. De wereld start nooit later of anders door dit pad: de lijst heeft een time-out van 2,5 s en alles gebeurt in de achtergrond.
+
+**Zonder toestemming gebeurt er niets.** `magOnline()` onwaar betekent geen lijst, geen broker, geen socket en geen aankondiging (constitutie 4 en 10); de spelbron controleert dat vóór elke andere stap, en `scripts/sessionboot_test.mjs` telt elke `WebSocket` en `RTCPeerConnection` om dat te bewijzen.
+
+**Mislukken is geen lus.** Een verbinding die intussen vol of weg is, gaat via `sessiekeuze.volgende()` naar de volgende kandidaat, met hoogstens twee pogingen; daarna opent het spel zelf een sessie. Een lijst die niet antwoordt (broker plat, geen internet) levert een lege lijst op en dus een eigen sessie. Een tik die zelf stukloopt krijgt een paar nieuwe kansen en stopt daarna stil.
+
+**Zeggen waarom.** De `reden` uit `kies()` gaat als korte regel naar `world.addMessage` ("De sessie van Tammo is vol", "Er speelt nog niemand. Je opent zelf een sessie"), zodat een mislukking nooit stil gebeurt. Wie in het titelscherm of het pauzemenu zelf voor Samen spelen kiest, houdt het bestaande scherm: dat gaat vóór het bootpad.
+
+**Niet gedaan:** de schakelaar in Instellingen (#530) laat een lopende sessie nog niet van openbaar naar besloten gaan; het bootpad leest de instelling alleen bij de start.
+
 ## Openbare sessies (#438)
 
 Standaard is een sessie privé: alleen wie de kamercode heeft kan aansluiten. De eigenaar koos (23-10) voor een openbare lijst op dezelfde brokers, alleen als wie het spel opende dat zelf aanzet (constitutie 4 in `AGENTS.md`). Code: `game/js/net/serverlijst.js` (de pure kern), `LijstSignaler` in `net/brokers.js`, de stappen in `lobby.js` en het scherm in `lobbyui.js`. Tests: `net_serverlijst_test`, `net_serverlijst_brokers_test` en `lobbyui_serverlijst_test`.
