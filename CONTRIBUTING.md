@@ -103,7 +103,9 @@ We houden ons aan de [gedragscode](CODE_OF_CONDUCT.md).
 - **Geen echte merken, bedrijven of personen** in speltekst of beeld; verzin ze
   (register: [docs/MERKENREGISTER.md](docs/MERKENREGISTER.md)). Echte plaatsen en gebouwen mogen.
 - **Geen geheimen of persoonsgegevens** in commits: geen sleutels, `.env`, thuispaden
-  of e-mailadressen. Controleer met `node scripts/publish_check.mjs`.
+  of e-mailadressen. Controleer met `node scripts/publish_check.mjs`, of zet de
+  git-haak aan met `node scripts/install_hooks.mjs`: die weigert een commit waarin
+  `scripts/secrets_scan.mjs` een sleutel vindt.
 - **Geen auteursrechtelijk materiaal van derden** (muziek, beeld, lettertypen, modellen)
   zonder vermelding van licentie in [NOTICE.md](NOTICE.md) en `licenses/`.
 - **Alleen Nederlands** in alles wat een speler ziet of hoort (`node scripts/text_audit.mjs`).

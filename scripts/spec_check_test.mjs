@@ -5,7 +5,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { check } from './spec_check.mjs';
+import { check, write } from './spec_check.mjs';
 
 let failed = 0;
 const ok = (cond, msg) => { if (!cond) { failed++; console.log('FAIL ' + msg); } };
@@ -106,6 +106,42 @@ const meldingen = (r) => r.problems.map((p) => `${p.where}: ${p.message}`).join(
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'gde-spec-check-'));
   const r = await check({ repo: root });
   ok(r.problems.length === 1 && /de specs ontbreken/.test(meldingen(r)), 'zonder specs faalt de poort: ' + meldingen(r));
+}
+
+// --- --write haalt de getallen bij de bron
+{
+  const root = maak({ verhaal: VERHAAL({ scenes: 99, regels: 99, geen: 99 }) });
+  const voor = await check({ repo: root });
+  ok(voor.problems.length > 0, 'een verkeerde teller faalt eerst');
+
+  const w = await write({ repo: root });
+  ok(w.changed.length >= 3, `write meldt de wijzigingen (${w.changed.length})`);
+  const na = await check({ repo: root });
+  ok(na.problems.length === 0, 'na write klopt de spec met de bron: ' + meldingen(na));
+
+  const nog = await write({ repo: root });
+  ok(nog.changed.length === 0, `write is idempotent (${nog.changed.length} bij de tweede ronde)`);
+}
+
+// --- --write laat de notatie staan die de spec al gebruikt
+{
+  const metPunt = VERHAAL().replace('3 scènes, 3 regels', '3 scènes, 4.500 regels');
+  const root = maak({
+    verhaal: metPunt,
+    scenes: SCENES({ scenes: [{ id: 'M01.1', step: 'M01', lines: Array.from({ length: 4500 }, (_, i) => ({ speaker: 'T', text: `r${i}`, rec: 'story', textOnly: false })) }] }),
+  });
+  await write({ repo: root });
+  const tekst = fs.readFileSync(path.join(root, '.specs-fire/standards/verhaal.md'), 'utf8');
+  ok(/4\.500 regels/.test(tekst), 'duizendpunt blijft duizendpunt: ' + (tekst.match(/[\d.]+ regels/) || ['?'])[0]);
+}
+
+// --- --write raakt een kloppende spec niet aan
+{
+  const root = maak();
+  const p = path.join(root, '.specs-fire/standards/verhaal.md');
+  const voor = fs.readFileSync(p, 'utf8');
+  const w = await write({ repo: root });
+  ok(w.changed.length === 0 && voor === fs.readFileSync(p, 'utf8'), 'een kloppende spec blijft byte voor byte gelijk');
 }
 
 console.log(failed ? `${failed} fouten` : 'spec_check_test: alles goed');
