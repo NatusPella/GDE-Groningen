@@ -52,6 +52,13 @@ jobs:
       - name: Node-tests
         run: node scripts/run_tests.mjs
 
+      # Een geheim dat één keer in een commit staat, staat voor altijd in de geschiedenis: de repo is
+      # privé en de eigenaar zit op Free, dus GitHub's push protection staat hier niet aan (die vraagt
+      # GitHub Pro of een publieke repo). Deze scan is dan het vangnet achter de pre-commit-haak.
+      - name: Geheimenscan (werkboom en geschiedenis)
+        if: runner.os == 'Linux'
+        run: node scripts/secrets_scan.mjs
+
       - name: Python-tests
         shell: bash
         run: |
