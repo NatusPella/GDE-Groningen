@@ -10,6 +10,25 @@ Eén wereld, meer spelers: één spel draait de wereld, de anderen tekenen snaps
 en sturen invoer. Eenspeler is een sessie van één. Iedereen houdt zijn eigen geld,
 verhaal en bezit; elke nieuwe functie krijgt een regel over Samen spelen.
 
+## De ingang: altijd een sessie
+Sinds #528 is Samen spelen de standaard, niet iets wat je erbij doet (ADR 0022).
+- **Bij de eerste start** ziet de speler één scherm: zijn naam (die het spel onthoudt)
+  en de vraag of hij met andere spelers meedoet. Ja of nee, en die keuze blijft bewaard
+  in \gde-settings\ als \onlineMeedoen\.
+- **Ja** → het spel zoekt een sessie met ruimte en dezelfde versie en sluit aan; is er
+  geen, dan host het zelf en zet de sessie in de openbare lijst (#438). **Nee** → een
+  besloten sessie van één: niets naar buiten, niets in een lijst, niemand komt binnen.
+- **Ontbrekende waarde is geen ja.** Is \onlineMeedoen\ niet gezet, dan vraagt het spel
+  het één keer en zoekt het intussen geen contact. Een oude installatie wordt nooit
+  stil openbaar.
+- **Aanpasbaar** bij Instellingen > Samen spelen, samen met naam en kleur. Aanzetten
+  sluit aan of host zodra de speler in de open wereld staat; uitzetten maakt de sessie
+  besloten (bestaande gasten blijven, nieuwe komen er niet bij, de regel verdwijnt uit
+  de lijst).
+- **Ontsnappen via Escape** gaat altijd: naar een besloten sessie, alleen of met
+  vrienden via een kamercode, zonder de eigen voortgang te verliezen (#527).
+- **De openbare lijst** toont naam, aantal spelers en versie; nooit een adres en nooit
+  een wachtwoord.
 ## Rollen
 
 - **Wie het spel opende** (intern `host`) draait de wereld (tijd, weer, verkeer,
