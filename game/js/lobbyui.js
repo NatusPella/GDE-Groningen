@@ -47,7 +47,7 @@ export function mountLobby(root, hooks, opts = {}) {
   const direct = onlineSupported();
   const api = direct ? window.gdeDesktop.coop : null;
   const prof = getSettings(); // online-avatar (#455): per apparaat bewaard
-  let state = createLobby({ direct, rtc: rtcSupported(), laatsteCode: hooks.laatsteCode, versie: VERSION, lijst: !!opts.lijst, opslaan: !!(typeof window !== 'undefined' && window.gdeDesktop && window.gdeDesktop.saveTextFile), start: opts.start, rol: opts.rol, keuze: opts.keuze, holdNaam: opts.holdNaam, startGate: opts.startGate, spelNaam: opts.spelNaam, onlineNaam: prof.onlineNaam, onlineKleur: prof.onlineKleur, favorieten: leesFavorieten() });
+  let state = createLobby({ direct, rtc: rtcSupported(), laatsteCode: hooks.laatsteCode, versie: VERSION, lijst: !!opts.lijst, opslaan: !!(typeof window !== 'undefined' && window.gdeDesktop && window.gdeDesktop.saveTextFile), start: opts.start, rol: opts.rol, keuze: opts.keuze, holdNaam: opts.holdNaam, startGate: opts.startGate, spelNaam: opts.spelNaam, onlineNaam: prof.onlineNaam, onlineKleur: prof.onlineKleur, favorieten: leesFavorieten(), consentSaved: !!prof.multiplayerConsentRemembered, consented: !!(opts.adopt || opts.start) }); // (#526) een lopende sessie (adopt) of het wachtscherm in het spel is al eens toegestemd
   state.route = opts.route || null;
   if (opts.holdSlot != null) state = reduce(state, { t: 'hold', slot: opts.holdSlot, naam: opts.holdNaam });
   if (opts.adopt) { // de sessie loopt al (coophostwisselnet.js wisselde hem om): geen beginscherm, wel de kamercode, de spelers en Iedereen stoppen of Spel verlaten
@@ -86,7 +86,11 @@ export function mountLobby(root, hooks, opts = {}) {
         } else {
           const code = hooks.laatsteCode || state.caps.laatsteCode;
           if (state.step === 'verbroken') set({ t: 'hervat' });
-          if (state.step === 'gast-typt' && code) { set({ t: 'invoer', text: code }); if (state.step === 'toestemming') { set({ t: 'akkoord' }); await guestStart(); } }
+          if (state.step === 'gast-typt' && code) {
+            set({ t: 'invoer', text: code });
+            // (#526) een lopende sessie heeft al toestemming: meteen door, en anders blijft het scherm staan tot de speler akkoord gaat
+            if (state.step === 'verbinden') await guestStart();
+          }
         }
       } catch (e) { verbindingslog.add('herstel', 'poging mislukt'); }
       if (state.step !== 'verbonden') planAuto(AUTO_TUSSEN);
@@ -145,12 +149,16 @@ export function mountLobby(root, hooks, opts = {}) {
     </div>` : '';
     // het kleine formulier voor je online-avatar (#455): naam (hoogstens 16 tekens) en een kleur uit de vaste set
     const prof = v.profiel ? `<div class="coop-profiel" style="display:flex;flex-direction:column;gap:8px;margin:10px 0"><label class="coop-profiel-label" style="display:flex;gap:8px;align-items:center"><span>Online naam</span><input class="coop-profiel-naam" type="text" spellcheck="false" autocomplete="off" maxlength="${v.profiel.maxLength}" placeholder="Je figuur" value="${esc(v.profiel.naam)}" style="min-width:0;flex:1;max-width:260px"></label><div class="coop-kleuren" role="group" aria-label="Kleur" style="display:flex;flex-wrap:wrap;gap:6px">${v.profiel.kleuren.map((c) => `<button type="button" class="m-bg coop-kleur" data-kleur="${c.hex}" aria-pressed="${c.hex === v.profiel.kleur}" title="${esc(c.naam)}"><span class="ss-label"><span style="color:${c.hex}" aria-hidden="true">●</span> ${esc(c.naam)}</span></button>`).join('')}</div><p class="coop-profiel-hint" style="margin:0">${esc(v.profiel.tekst)} Laat je de naam leeg, dan zien de anderen de naam van je figuur. Je staat standaard op passief: medespelers kunnen je geen schade doen.</p>${v.profiel.fout ? `<p class="coop-error" role="alert">${esc(v.profiel.fout)}</p>` : ''}</div>` : '';
+    // het vinkje op het toestemmingsscherm (#526): "Niet meer vragen" geldt per apparaat en wordt pas bewaard
+    // als de speler daarna akkoord gaat (settings.js: multiplayerConsentRemembered)
+    const toestemming = v.consent ? `<label class="coop-consent" style="display:flex;gap:8px;align-items:center;margin:10px 0"><input class="coop-consent-vink" type="checkbox"${v.consent.remember ? ' checked' : ''}><span class="ss-label">${esc(v.consent.label)}</span></label>` : '';
     // het wachtwoordveld (#450): dezelfde stijl als het zoekveld (m-inp + ss-label), met de uitleg eronder
     const ww = v.wachtwoord ? `<div class="coop-wachtwoord-veld" style="margin:10px 0"><label class="m-inp" style="display:flex;gap:8px;align-items:center;max-width:360px"><span class="ss-label">${esc(v.wachtwoord.label)}</span><input class="coop-wachtwoord" type="password" spellcheck="false" autocomplete="off" maxlength="${v.wachtwoord.maxLength}" placeholder="${esc(v.wachtwoord.placeholder)}" value="${esc(v.wachtwoord.value)}" style="min-width:0;flex:1"></label><p class="coop-wachtwoord-hint mut" style="margin:4px 0 0">${esc(v.wachtwoord.hint)}</p></div>` : '';
     root.innerHTML =
       `<h3 class="coop-title">${esc(v.title)}</h3>` +
       v.lines.map((l) => `<p>${esc(l)}</p>`).join('') +
       prof +
+      toestemming +
       sessies +
       ww +
       (v.code ? `<pre class="coop-code" tabindex="0" aria-label="Jouw code">${esc(v.code)}</pre>` : '') +
@@ -175,6 +183,19 @@ export function mountLobby(root, hooks, opts = {}) {
     if (!state.profielFout) { setSetting('onlineNaam', state.profiel.naam); setSetting('onlineKleur', state.profiel.kleur); }
     draw();
     return !state.profielFout;
+  }
+
+  // ----- toestemming (#526): de keuze "Niet meer vragen" gaat naar de gewone instellingen, pas als de speler
+  // akkoord is gegaan. Alleen op dit apparaat; er gaat niets van naar een server.
+  function bewaarToestemming() {
+    setSetting('multiplayerConsentRemembered', !!state.consentSaved);
+  }
+  // Wie deze sessie al toestemming gaf, komt niet meer op het toestemmingsscherm: de stap die daarop zou wachten
+  // begint hier. Zonder dat akkoord komt de stap nooit verder dan 'toestemming' en gebeurt er niets (#526).
+  async function startAlsKlaar() {
+    if (state.step === 'host-maakt-code') await hostStart();
+    else if (state.step === 'verbinden') await guestStart();
+    else if (state.step === 'diag-bezig') await diagnose();
   }
 
   // ----- het wachtwoord van deze sessie (#450)
@@ -367,8 +388,8 @@ export function mountLobby(root, hooks, opts = {}) {
       }
       else if (a === 'openbaar-terug') set({ t: 'openbaar-terug' });
       else if (a === 'privaat') { if (hub && hub.zetOpenbaar) hub.zetOpenbaar(false); set({ t: 'privaat' }); await nieuweKamer(); }
-      else if (a === 'lijst') set({ t: 'lijst-vraag' });
-      else if (a === 'lijst-go') { set({ t: 'lijst-go' }); await startLuisteren(); }
+      else if (a === 'lijst') { set({ t: 'lijst-vraag' }); if (state.step === 'lijst') await startLuisteren(); } // (#526) met toestemming meteen de lijst in
+      else if (a === 'lijst-go') { set({ t: 'lijst-go' }); bewaarToestemming(); await startLuisteren(); } // (#526) dit akkoord geldt ook voor de rest van de sessie
       else if (a === 'lijst-terug') set({ t: 'lijst-terug' });
       else if (a === 'lijst-ververs') { set({ t: 'lijst-ververs' }); if (luis && luis.ververs) luis.ververs(); }
       else if (a === 'lijst-meer') set({ t: 'lijst-meer' });
@@ -381,26 +402,29 @@ export function mountLobby(root, hooks, opts = {}) {
         const e = state.lijst[+a.slice(5)];
         if (e) { set({ t: 'lijst-ster', id: e.id }); schrijfFavorieten(state.lijstFavorieten); }
       }
-      else if (a.startsWith('sluit-')) set({ t: 'lijst-kies', i: +a.slice(6) });
+      else if (a.startsWith('sluit-')) { set({ t: 'lijst-kies', i: +a.slice(6) }); await startAlsKlaar(); }
       else if (a.startsWith('meld-')) {
         const e = state.lijst[+a.slice(5)];
         if (e && luis) { schrijfVerborgen(luis.lijst.meld(e.id)); luis.laatste = ''; luis.getekend = 0; set({ t: 'lijst-data', lijst: luis.lijst.lijst() }); }
       }
-      else if (a === 'diag') set({ t: 'diag' });
-      else if (a === 'diag-go') await diagnose();
+      else if (a === 'diag') { set({ t: 'diag' }); await startAlsKlaar(); } // (#526) met toestemming meteen meten, anders eerst de vraag
+      else if (a === 'diag-go') { const vraag = state.step === 'diag-vraag'; set({ t: 'diag-go' }); if (vraag) bewaarToestemming(); await diagnose(); } // (#526) wie de test start, is akkoord: de rest van de sessie vraagt het niet meer
       else if (a === 'diag-terug') set({ t: 'diag-terug' });
       else if (a === 'rapport') { if (navigator.clipboard) await navigator.clipboard.writeText(rapportTekst()); verbindingslog.add('rapport', 'gekopieerd'); set({ t: 'fout', msg: 'Het rapport is gekopieerd. Plak het in een bericht.' }); }
       else if (a === 'logbestand') { const d = window.gdeDesktop; if (d && d.saveTextFile) await d.saveTextFile('GDE-verbindingsrapport.txt', rapportTekst()); }
       else if (a === 'kies-host') set({ t: 'kies', rol: ROLES.HOST });
       else if (a === 'kies-gast') set({ t: 'kies', rol: ROLES.GAST });
-      else if (a === 'route-kamer') set({ t: 'route', route: ROUTES.KAMER });
-      else if (a === 'route-direct') set({ t: 'route', route: ROUTES.DIRECT });
+      else if (a === 'consent-vergeet') { set({ t: 'consent-vergeet' }); setSetting('multiplayerConsentRemembered', false); } // (#526) de speler wil de vraag weer zien
+      // (#526) gaf deze sessie al toestemming, dan gaat de route meteen door; anders komt eerst het scherm
+      else if (a === 'route-kamer') { set({ t: 'route', route: ROUTES.KAMER }); await startAlsKlaar(); }
+      else if (a === 'route-direct') { set({ t: 'route', route: ROUTES.DIRECT }); await startAlsKlaar(); }
       else if (a.startsWith('wens-')) set({ t: 'wens', char: a.slice(5) });
-      else if (a === 'koppel') { bewaarProfiel(); set({ t: 'invoer', text: input ? input.value : '' }); }
+      else if (a === 'koppel') { bewaarProfiel(); set({ t: 'invoer', text: input ? input.value : '' }); await startAlsKlaar(); }
       else if (a === 'probeer') set({ t: 'probeer' }); // een gast met een verkeerd wachtwoord probeert het opnieuw (#450)
       else if (a === 'akkoord') {
         bewaarProfiel(); // de avatar die anderen straks zien (#455), vóór de verbinding
         set({ t: 'akkoord' });
+        bewaarToestemming(); // (#526) "Niet meer vragen" geldt pas nu echt; zonder vinkje één keer per sessie
         if (state.step === 'host-maakt-code') await hostStart();
         else if (state.step === 'verbinden') await guestStart();
       } else if (a === 'kopieer') {
@@ -468,9 +492,12 @@ export function mountLobby(root, hooks, opts = {}) {
     if (e.target && e.target.classList && e.target.classList.contains('coop-profiel-naam')) bewaarProfiel();
     // het wachtwoord (#450): na het typen de regel eronder bijwerken (open of op slot)
     else if (e.target && e.target.classList && e.target.classList.contains('coop-wachtwoord')) { state = reduce(state, { t: 'wachtwoord', tekst: e.target.value }); pasWachtwoordToe(); draw(); }
+    // het vinkje "Niet meer vragen" (#526): de keuze geldt bij het akkoord en wordt dan op dit apparaat bewaard
+    else if (e.target && e.target.classList && e.target.classList.contains('coop-consent-vink')) { state = reduce(state, { t: 'consent-vink', aan: !!e.target.checked }); draw(); }
   });
   if (hub) koppelAankondiging();
   draw();
+  if (state.step === 'lijst') startLuisteren().catch((e) => set({ t: 'fout', msg: e.message })); // (#526) dit apparaat gaf al toestemming: de lijst opent meteen
   if (state.step === 'verbonden' && state.openbaar && hub) startAankondiging(); // een lopende openbare sessie staat weer in de lijst, met dezelfde regel (#450)
   if (state.step === 'verbroken') planAuto(AUTO_EERSTE);
   return { event: set, state: () => state, close() { cleanup(); root.innerHTML = ''; } };
