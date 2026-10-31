@@ -4,6 +4,7 @@
 //   node scripts/install_hooks_test.mjs
 import fs from 'node:fs';
 import path from 'node:path';
+import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -15,7 +16,12 @@ ok(fs.existsSync(hook), 'scripts/hooks/pre-commit bestaat');
 const src = fs.existsSync(hook) ? fs.readFileSync(hook, 'utf8') : '';
 ok(/^#!\/bin\/sh/.test(src), 'de haak heeft een shebang');
 const mode = fs.existsSync(hook) ? fs.statSync(hook).mode : 0;
-ok((mode & 0o111) !== 0, `de haak is uitvoerbaar (mode ${(mode & 0o777).toString(8)}): anders slaat git hem stil over`);
+// Op Windows zegt het bestandssysteem altijd 666; daar telt de mode in de git-index (100755).
+// Zonder deze tak zou de test op Windows altijd falen terwijl de haak in git wél uitvoerbaar is.
+let gitMode = 0;
+try { gitMode = Number((execFileSync('git', ['ls-files', '-s', 'scripts/hooks/pre-commit'], { encoding: 'utf8' }).trim().split(/\s+/)[0]) || 0); } catch { /* geen git */ }
+const uitvoerbaar = (mode & 0o111) !== 0 || (process.platform === 'win32' && (gitMode & 0o111) !== 0);
+ok(uitvoerbaar, `de haak is uitvoerbaar (mode ${(mode & 0o777).toString(8)}, git ${gitMode.toString(8)}): anders slaat git hem stil over`);
 ok(/secrets_scan\.mjs --tree/.test(src), 'de haak draait de geheimenscan op de werkboom');
 ok(/exit 1/.test(src), 'de haak breekt de commit af bij een treffer');
 ok(/--no-verify/.test(src), 'de haak noemt de nooduitgang');
