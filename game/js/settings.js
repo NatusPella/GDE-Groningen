@@ -106,6 +106,10 @@ const BASE_DEFAULTS = {
   // van je figuur.
   onlineNaam: '',
   onlineKleur: '#4fb3ff',
+  // Samen spelen (#526): dit apparaat koos "Niet meer vragen" op het
+  // toestemmingsscherm. Alleen de keuze van het scherm; zonder dit vinkje komt
+  // de vraag één keer per sessie en gaat er niets naar buiten voor het akkoord.
+  multiplayerConsentRemembered: false,
   // unused since the attract intro plays at every launch; kept so old
   // settings files load unchanged
   attractSeen: false,
