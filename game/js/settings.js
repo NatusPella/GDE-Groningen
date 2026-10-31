@@ -110,6 +110,10 @@ const BASE_DEFAULTS = {
   // play with others, false = a private session for one. Null must never read as
   // "yes": it means the game still has to ask, and asks before any contact.
   onlineMeedoen: null,
+  // Samen spelen (#526): dit apparaat koos "Niet meer vragen" op het
+  // toestemmingsscherm. Alleen de keuze van het scherm; zonder dit vinkje komt
+  // de vraag één keer per sessie en gaat er niets naar buiten voor het akkoord.
+  multiplayerConsentRemembered: false,
   // unused since the attract intro plays at every launch; kept so old
   // settings files load unchanged
   attractSeen: false,
