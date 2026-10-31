@@ -935,6 +935,59 @@ const PHASES = {
     w.addMessage = am;
     log('bestuur-eind', { ...meet(), berichten, gepakt, maxPolitie, peds, hostWanted0, heli: { driver: heli.driver, b: heli.coopBestuurder ?? null }, killed: (w.stats && w.stats.pedKills) | 0 });
   },
+  // #525: een gast rijdt mee en stapt weer uit, van instappen tot uitstappen, met de echte koppeling, de echte haken van
+  // main.js en de echte Player-methoden. De gastheer zet een vrije auto naast de gast; de headless gast drukt E (in),
+  // rijdt een stuk en drukt E (uit). Na elke stap: geen jserror, geen NaN in een positie, een lege rijdersregel na het
+  // uitstappen en de gast naast de deur van zijn stoel in plaats van in de auto.
+  // De pure variant zonder Electron staat in scripts/coopmeerijden_test.mjs.
+  async meerijden({ s = 60 }) {
+    if (CFG.role !== 'host') { await sleep((s + 10) * 1000); return; }
+    const V = await imp('vehicle'), D = await imp('vehicledoors'), w = W();
+    const fig = (w.coopFigures || {})[1];
+    if (!fig) { log('meerijden-geen-gast', { figuren: Object.keys(w.coopFigures || {}) }); await sleep(s * 1000); return; }
+    // een vrije auto naast de gast; hij staat stil en is van niemand
+    const model = V.TRAFFIC_MODELS().find((m) => m.name === 'sedan') || V.TRAFFIC_MODELS()[0];
+    const auto = new V.Vehicle(fig.x + 2.6, fig.y, 0.4, model);
+    auto.parked = true;
+    w.vehicles.push(auto);
+    await sleep(800);
+    const num = (x) => (Number.isFinite(x) ? Math.round(x * 100) / 100 : String(x));
+    const eindig = () => {
+      const velden = { gx: fig.x, gy: fig.y, gz: fig.gz, ghoek: fig.angle, vx: auto.x, vy: auto.y, vhoek: auto.angle, vsnelheid: auto.speed || 0 };
+      const slecht = Object.entries(velden).filter(([, v]) => !Number.isFinite(v)).map(([k, v]) => k + '=' + v);
+      for (const r of Object.values(w.coopRijders || {})) if (!Number.isFinite(r.proxy.x) || !Number.isFinite(r.proxy.y)) slecht.push('proxy(' + r.slot + ')=' + r.proxy.x + ',' + r.proxy.y);
+      return slecht;
+    };
+    const meet = (fase) => {
+      const r = (w.coopRijders || {})[1] || null;
+      const uit = D.uitstapPunt(auto, 'bestuurder');
+      const off = auto.halfWid + 0.7, nx = -Math.sin(auto.angle), ny = Math.cos(auto.angle);
+      const dx = uit ? auto.x + nx * off * uit.kant + Math.cos(auto.angle) * uit.langs : auto.x;
+      const dy = uit ? auto.y + ny * off * uit.kant + Math.sin(auto.angle) * uit.langs : auto.y;
+      return {
+        fase, t: Math.round(performance.now() / 100) / 10,
+        rijders: Object.keys(w.coopRijders || {}).map(Number), regel: !!r, inVeh: !!fig.inVeh, bestuurt: !!fig.coopBestuurt, voertuig: !!fig.coopVoertuig,
+        drv: auto.driver ?? null, b: auto.coopBestuurder ?? null, snelheid: Math.round((auto.speed || 0) * 10) / 10,
+        fig: [num(fig.x), num(fig.y)], auto: [num(auto.x), num(auto.y)],
+        deur: [num(dx), num(dy)], deurAfstand: Math.round(Math.hypot(fig.x - dx, fig.y - dy) * 100) / 100, uitAfstand: Math.round(Math.hypot(fig.x - auto.x, fig.y - auto.y) * 100) / 100,
+        halfWid: auto.halfWid, gz: num(fig.gz), z: num(auto.z || 0), nan: eindig(),
+      };
+    };
+    log('meerijden-auto', { id: auto.id, fig: [num(fig.x), num(fig.y)], auto: [num(auto.x), num(auto.y)], model: model.name });
+    const t0 = performance.now(), sec = () => Math.round((performance.now() - t0) / 100) / 10;
+    let ingestapt = false, gereden = 0, uitgestapt = false, p0 = null;
+    const reeks = [];
+    while (performance.now() - t0 < s * 1000) {
+      const m = meet('meten'); reeks.push(m); log('meerijden-sample', m);
+      if (!ingestapt && m.regel && m.inVeh && m.bestuurt) { ingestapt = true; p0 = [auto.x, auto.y]; log('meerijden-in', m); shot('meerijden-in'); }
+      if (ingestapt && p0 && !uitgestapt) gereden = Math.max(gereden, Math.hypot(auto.x - p0[0], auto.y - p0[1]));
+      if (ingestapt && !uitgestapt && !m.inVeh && !m.regel && m.deurAfstand < 1) { uitgestapt = true; log('meerijden-uit', { ...m, gereden: Math.round(gereden * 10) / 10 }); shot('meerijden-uit'); }
+      if (uitgestapt && sec() > 12) break;
+      await sleep(500);
+    }
+    const eind = meet('eind');
+    log('meerijden-eind', { ...eind, ingestapt, uitgestapt, gereden: Math.round(gereden * 10) / 10, nanSamples: reeks.filter((m) => m.nan.length).length, samples: reeks.length });
+  },
   // samen spelen (#366): de figuren van plek 2 en hoger lopen op de echte wereld tegen een gebouw en een gracht aan en dwalen weg:
   // nooit in een gebouw of in het water, en te ver weg wordt na een paar seconden bij de groep gezet (stepFigures/bandFiguren in coopnet.js)
   async figuren({ s = 10 }) {

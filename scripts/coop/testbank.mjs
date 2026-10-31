@@ -27,8 +27,8 @@ if (!STAGE || !fs.existsSync(path.join(STAGE, 'index.html'))) { console.error('-
 const SUITE = arg('suite', 'basis');
 const DURATION = Number(arg('duration', 20));
 const MENU = flag('menu') || SUITE !== 'basis';
-const GASTEN = Math.max(0, Math.min(2, Number(arg('gasten', SUITE === 'verhaal' ? 2 : SUITE === 'figuren' || SUITE === 'uitelkaar' || SUITE === 'bestuur' || SUITE === 'wedstrijd' ? 0 : 1))));  // 0: alleen de host in Electron en headless gasten (mock) erbij
-const MOCK = Math.max(0, Number(arg('mock', SUITE === 'figuren' || SUITE === 'uitelkaar' ? 3 : SUITE === 'bestuur' || SUITE === 'wedstrijd' ? 2 : SUITE === 'net' ? (GASTEN > 1 ? 1 : GASTEN === 1 ? 2 : 3) : GASTEN === 0 ? 1 : 0)) || 0); // vier spelers: host + Electron-gasten + headless gasten
+const GASTEN = Math.max(0, Math.min(2, Number(arg('gasten', SUITE === 'verhaal' ? 2 : SUITE === 'figuren' || SUITE === 'uitelkaar' || SUITE === 'bestuur' || SUITE === 'wedstrijd' || SUITE === 'meerijden' ? 0 : 1))));  // 0: alleen de host in Electron en headless gasten (mock) erbij
+const MOCK = Math.max(0, Number(arg('mock', SUITE === 'figuren' || SUITE === 'uitelkaar' ? 3 : SUITE === 'bestuur' || SUITE === 'wedstrijd' ? 2 : SUITE === 'meerijden' ? 1 : SUITE === 'net' ? (GASTEN > 1 ? 1 : GASTEN === 1 ? 2 : 3) : GASTEN === 0 ? 1 : 0)) || 0); // vier spelers: host + Electron-gasten + headless gasten
 const SECOND = GASTEN > 1 ? 'gast2' : 'gast'; // wie in de suite 'net' een slecht netwerk krijgt en later vertrekt
 const PUBLIEK = flag('publiek'); // de kamercode-route over de echte openbare brokers en STUN-servers (alleen internet nodig, geen nep-tracker)
 const ROUTE = arg('route', SUITE === 'kamer' ? 'kamer' : 'direct');
@@ -55,6 +55,7 @@ const P = {
   gastacties: Object.fromEntries(['host', 'gast', 'gast2'].map((me) => [me, [[14, 'gastwinkel', { s: 50 }], [66, 'gastrit', { s: 90 }], ...(me === 'host' ? [[160, 'stopHost', {}]] : [])]])), // #291: winkelen en een rit met het stuur
   uitelkaar: { host: [[0, 'wacht', { s: 6 }], [8, 'uitelkaar', { s: 20 }], [150, 'stopHost', {}]] }, // #429: twee figuren los van de gastheer (500 m en Delfzijl) in dezelfde sessie
   bestuur: { host: [[0, 'wacht', { s: 6 }], [8, 'bestuur', { s: Number(arg('bestuur-s', 150)) }], [8 + Number(arg('bestuur-s', 150)) + 6, 'stopHost', {}]] }, // #434: twee headless gasten bestuurden een auto, misdaad en politie
+  meerijden: { host: [[0, 'wacht', { s: 6 }], [8, 'meerijden', { s: Number(arg('meerijden-s', 55)) }], [8 + Number(arg('meerijden-s', 55)) + 6, 'stopHost', {}]] }, // #525: een headless gast stapt in bij de auto van de gastheer, rijdt en stapt naast de deur weer uit
   wedstrijd: { host: [[0, 'wacht', { s: 6 }], [8, 'wedhost', { s: 260 }], [280, 'stopHost', {}]] }, // #443: de host rijdt een race tegen twee headless gasten (de een stopt halverwege), uitslag, beloning en rematch
   figuren: { host: [[0, 'wacht', { s: 6 }], [8, 'figuren', { s: 8 }], [70, 'stopHost', {}]] }, // #366: de host met drie headless gasten (vier spelers); de figuren van plek 2 en 3 lopen op de echte wereld
   touch: { host: [[0, 'kijk', { s: 16 }]], gast: [[0, 'touch', { s: 12 }]], gast2: [[0, 'wacht', { s: 16 }]] },
@@ -183,6 +184,35 @@ if (code && MOCK && ROUTE === 'direct') {
       E(); return { mx: 0, my: 0, buttons: 2, yaw: 0 };
     };
   };
+  // #525 (suite 'meerijden'): een headless gast rijdt mee en stapt weer uit: E bij de auto naast hem, een paar seconden
+  // gas, remmen met de handrem, en E om uit te stappen. Houdt de overgangen bij en of er ooit een NaN in zijn positie stond.
+  const meerijdenBot = (m) => {
+    const st = { fase: 'wachten', last: 0, tel: [], inOp: null, uitOp: null, gezien: 0, nan: 0, klaar: false, rijtijd: 0 }; m.bot = st;
+    const rust = { mx: 0, my: 0, buttons: 0, yaw: 0 };
+    return (t) => {
+      const w = m.session.world(); if (!w || st.klaar) return rust;
+      const ik = w.players.find((p) => p.slot === m.session.slot); if (!ik) return rust;
+      if (!Number.isFinite(ik.x) || !Number.isFinite(ik.y)) st.nan++;
+      const nu = Date.now() / 1000, E = () => { if (nu - st.last > 1.2) { st.last = nu; m.session.sendEvent({ k: 'gebruik' }); st.tel.push([st.fase, Math.round(t)]); } };
+      if (st.fase === 'wachten') {
+        const dichtbij = w.entities && leesEntiteiten(w.entities).voertuigen.some((v) => Math.hypot(v.x - ik.x, v.y - ik.y) < 6);
+        if (dichtbij) { st.gezien++; if (st.gezien > 10) E(); }
+        if (ik.inVeh && ik.driver) { st.fase = 'rijden'; st.inOp = { t: Math.round(t * 10) / 10, tel: st.tel.length }; }
+        return rust;
+      }
+      if (st.fase === 'rijden') {
+        st.rijtijd += 1 / 60;
+        if (st.rijtijd < 3) return { mx: 0, my: -1, buttons: 0, yaw: 0 }; // gas
+        if (st.rijtijd < 5.5) return { mx: 0, my: 0, buttons: 2, yaw: 0 }; // stilstaan met de handrem
+        st.fase = 'uit'; E();
+        return rust;
+      }
+      // uit: blijven drukken tot hij echt buiten staat
+      if (!ik.inVeh) { st.uitOp = { t: Math.round(t * 10) / 10, tel: st.tel.length }; st.klaar = true; return rust; }
+      E();
+      return rust;
+    };
+  };
   // #443 (suite 'wedstrijd'): een headless gast die meedoet aan de race van de host: J op de uitnodiging, rijdt met de stick, stopt (gast B in de eerste race), vraagt een rematch
   const WD = await import(new URL('../../game/js/multiplayerwedstrijd.js', import.meta.url).href), KR = await import(new URL('../../game/js/kartrace.js', import.meta.url).href);
   const wedBot = (m, i) => {
@@ -222,7 +252,7 @@ if (code && MOCK && ROUTE === 'direct') {
     if (i === 1 && EXPECT > 8) await waitFor(host.events, 'max-knop', 90000); // de gastheer kiest "Tot 16 spelers" zodra de eerste gast er is; de rest komt pas daarna (anders is de TCP-kant vol bij 8)
     try {
       const m = await startMockGuest({ stage: STAGE, code: guestCode, wens: undefined, net: SUITE === 'net' && (GASTEN > 0 || i === MOCK - 1) ? { latency: 0.08, jitter: 0.03, loss: 0.05 } : {}, seed: 7 + i });
-      m.input = SUITE === 'verhaal' ? volg(m) : SUITE === 'bestuur' ? bestuurBot(m, i) : SUITE === 'wedstrijd' ? wedBot(m, i) : spin(i); mocks.push(m); console.log('mockgast', i + 1, 'verbonden');
+      m.input = SUITE === 'verhaal' ? volg(m) : SUITE === 'bestuur' ? bestuurBot(m, i) : SUITE === 'meerijden' ? meerijdenBot(m) : SUITE === 'wedstrijd' ? wedBot(m, i) : spin(i); mocks.push(m); console.log('mockgast', i + 1, 'verbonden');
       setTimeout(() => console.log('mockgast', i + 1, 'plek', m.session.slot, 'status', m.session.status), 8000);
     } catch (e) { problems.push('mockgast: ' + e.message); }
   }
@@ -387,6 +417,29 @@ if (GASTEN === 0) { // alleen de host in Electron: wat de headless gasten en de 
     check(sam.some((e) => e.copMin != null && e.copMin < 25 && ((e.coopWanted[1] | 0) > 0 || (e.coopWanted[2] | 0) > 0)), 'bestuur: geen politieauto kwam bij de auto van de gast: ' + JSON.stringify(sam.map((e) => e.copMin)));
     const gp = of(H, 'bestuur-gepakt'), mgp = mocks[0] && mocks[0].log.events.some(([, e]) => e && e.k === 'gepakt');
     if (!gp.length) note('bestuur: de gast is in de tijd niet gepakt (de politie kwam niet dicht genoeg of te laat)'); else check(mgp, 'bestuur: gepakt kwam niet bij de gast aan');
+  }
+  if (SUITE === 'meerijden') { // #525: een gast stapt in bij de auto van de gastheer, rijdt en stapt naast de deur weer uit
+    const e1 = (n) => of(H, n)[0], st = e1('meerijden-auto'), inE = e1('meerijden-in'), uitE = e1('meerijden-uit'), eind = e1('meerijden-eind'), sam = of(H, 'meerijden-sample');
+    const M = mocks[0], b = M && M.bot;
+    for (const [n, x] of [['auto', st], ['in', inE], ['uit', uitE], ['eind', eind]]) note('meerijden-' + n + ': ' + JSON.stringify(x));
+    note('gast: ' + JSON.stringify(b && { fase: b.fase, in: b.inOp, uit: b.uitOp, e: b.tel, nan: b.nan, klaar: b.klaar }));
+    check(!!st, 'meerijden: de gastheer zette geen auto naast de gast: ' + JSON.stringify(st));
+    check(b && b.inOp, 'meerijden: de gast stapte niet in (E bij de auto deed niets)');
+    check(inE && inE.regel && inE.inVeh && inE.bestuurt && inE.drv === 'player' && inE.b === 1, 'meerijden: de gast is geen bestuurder van de auto geworden: ' + JSON.stringify(inE));
+    check(b && b.uitOp, 'meerijden: de gast stapte niet uit (E bij stilstand deed niets)');
+    check(uitE && !uitE.inVeh && !uitE.bestuurt && !uitE.voertuig && uitE.rijders.length === 0, 'meerijden: na het uitstappen zit hij er nog in of staat de rijdersregel nog: ' + JSON.stringify(uitE));
+    check(eind && eind.rijders.length === 0 && !eind.regel, 'meerijden: de rijdersregel bleef staan: ' + JSON.stringify(eind));
+    check(uitE && uitE.drv === null && uitE.b === null, 'meerijden: de auto bleef aan de gast hangen: ' + JSON.stringify(uitE));
+    check(uitE && uitE.deurAfstand < 1, 'meerijden: de gast staat niet naast de deur van zijn stoel maar ' + (uitE && uitE.deurAfstand) + ' m ervan: ' + JSON.stringify(uitE));
+    check(uitE && uitE.uitAfstand > uitE.halfWid, 'meerijden: de gast staat in de auto in plaats van ernaast: ' + JSON.stringify(uitE));
+    check(eind && eind.gz === eind.z, 'meerijden: de gast staat niet op de hoogte van de auto: ' + JSON.stringify({ gz: eind && eind.gz, z: eind && eind.z }));
+    const nan = sam.filter((m) => m.nan && m.nan.length);
+    check(nan.length === 0, 'meerijden: een positie was geen getal: ' + JSON.stringify(nan[0] && nan[0].nan));
+    check(!b || b.nan === 0, 'meerijden: de gast zag zijn eigen positie als geen getal (' + (b && b.nan) + ' keer)');
+    check(eind && eind.gereden > 2, 'meerijden: de auto reed niet met de invoer van de gast: ' + (eind && eind.gereden) + ' m');
+    check(sam.some((m) => m.regel && m.snelheid > 2), 'meerijden: de gastheer zag de auto nooit rijden');
+    check(!of(H, 'jserror').length, 'meerijden: de gastheer meldde een jserror: ' + JSON.stringify(of(H, 'jserror')[0]));
+    for (const e of H.filter((x) => x.type === 'console' && x.level === 'error')) problems.push('meerijden: consolefout bij de gastheer: ' + String(e.msg).slice(0, 160));
   }
   if (SUITE === 'uitelkaar') { // #429: spelers mogen uit elkaar: de wereld rond elke groep is levend
     const e1 = (n) => of(H, n)[0], st = e1('uitelkaar-start'), a = e1('uitelkaar-a'), b = e1('uitelkaar-b'), m = e1('uitelkaar-meet'), basis = e1('uitelkaar-basis'), last = e1('uitelkaar-last'), na = e1('uitelkaar-na');
@@ -731,3 +784,4 @@ fs.writeFileSync(path.join(OUT, 'result.json'), JSON.stringify({ suite: SUITE, r
 for (const x of notes) console.log('  - ' + x);
 console.log(problems.length ? 'PROBLEMEN:\n- ' + problems.join('\n- ') : 'ALLES OK');
 process.exit(problems.length ? 1 : 0);
+
