@@ -1,0 +1,24 @@
+# Ralph-loop voor GDE Groningen. Dit is het enige bestand dat per project verschilt.
+# Een tweede repo krijgt een eigen automation met een eigen kopie hiervan.
+
+repo = "NatusPella/GDE-Groningen"
+# Agent Canvas-project (bord) voor de kolom "Bezig"; leeg laten = bord overslaan.
+project_number = 5
+bord_bezig = "4aafdcdf"
+
+# Naam van de workspace in Agent Canvas. De kloon staat in
+# ~/.openhands/workspaces/<slug>/<mapnaam> en is zichtbaar in de UI.
+workspace_naam = "GDE Groningen - Ralph-loop"
+workspace_slug = "gde-groningen-ralph"
+repo_map = "GDE-Groningen"
+
+# Labels: de volgorde in `eerste` is de prioriteit (bug gaat voor wens).
+eerste = ["bug", "wens"]
+geparkeerd = ["eigenaar", "wacht-beeld", "vraag-eigenaar", "dependencies"]
+
+# Werk zonder `bug`/`wens` (hier: #523 en #524) is wel kiesbaar, maar als laatste en
+# met een melding op het issue. `uit` zou betekenen dat de loop die twee overslaat.
+ongelabeld = "laagst"
+
+# Hoe de agent de repo zijn eigen regels laat lezen.
+constitutie = "AGENTS.md"

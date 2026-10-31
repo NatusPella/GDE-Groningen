@@ -1,0 +1,29 @@
+# Ralph-loop voor World of Macedonia (NatusPella/wom). Zelfde code als GDE, eigen
+# workspace, eigen KV-teller en eigen automation.
+#
+# Dit bord is nauwelijks gelabeld: alleen #4 heeft een label (`epic`). De loop pakt
+# ongelabeld werk daarom toch op (als laagste prioriteit) en schrijft één keer een
+# comment op het issue dat het prioriteitslabel mist. Label werk dat voorrang moet
+# krijgen met `bug` of `enhancement`; dan gaat het voor.
+
+repo = "NatusPella/wom"
+hoofdbranch = "main"
+
+# Geen Agent Canvas-bord voor dit repo: leeg laten, dan slaat de loop het bord over.
+project_number = 0
+bord_bezig = ""
+
+workspace_naam = "World of Macedonia - Ralph-loop"
+workspace_slug = "wom-ralph"
+repo_map = "wom"
+
+# `first issue`/`help wanted` staan erbij zodat werk dat de eigenaar expliciet voor
+# buitenstaanders openzet ook meetelt, net als de gewone bug/enhancement-labels.
+eerste = ["bug", "enhancement", "good first issue", "help wanted", "epic"]
+geparkeerd = ["vraag-eigenaar", "wacht-beeld", "eigenaar", "question", "duplicate", "invalid", "wontfix"]
+
+# Ongelabeld werk: `laagst` = kiesbaar als laatste, `midden` = tussen wens en bug in,
+# `uit` = nooit kiezen (dan doet de loop niets tot er gelabeld is).
+ongelabeld = "laagst"
+
+constitutie = "AGENTS.md"
