@@ -10148,7 +10148,8 @@
      "text": "En Jelle?",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -10165,7 +10166,8 @@
      "text": "Dan komt de bal ook hierheen, want Jelle draagt hem altijd bij zich. Dit is onze kans, Tammo.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -10174,7 +10176,8 @@
      "text": "Tammo. Wij dagen je uit. Fierljep.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Douwe",
@@ -10182,7 +10185,8 @@
      "text": "…fierljep.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tammo",
@@ -10230,7 +10234,8 @@
      "text": "Wij zijn alleen de bezigheid.",
      "tag": "BEHOUDEN",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tammo",
@@ -10246,7 +10251,8 @@
      "text": "Baas heeft een afspraak met mem in de kruitkelder. Wij houden jullie een uur bezig.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Douwe",
@@ -10263,7 +10269,8 @@
      "text": "Douwe. Dat was ook geheim.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tammo",
@@ -10279,7 +10286,8 @@
      "text": "…vast.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tammo",
@@ -10304,7 +10312,8 @@
      "text": "…Geen plons.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     }
    ]
   },
@@ -10328,7 +10337,8 @@
      "text": "Mem. Hier is hij. Voor u. Ik heb hem genomen zoals het hoort: netjes, met een bedankje.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Mem Terpstra",
@@ -10336,7 +10346,8 @@
      "text": "Doe open, jonge.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Mem Terpstra",
@@ -10344,7 +10355,8 @@
      "text": "Dank je. Nu is hij van mij.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Jelle Terpstra",
@@ -10352,7 +10364,8 @@
      "text": "Mem. De afspraak was: u houdt hem vast tot ik win. Dit is een overtreding van onze overeenkomst.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Mem Terpstra",
@@ -10360,7 +10373,8 @@
      "text": "Er is geen overeenkomst, jonge. Er is een moeder.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Oma Trijntje",
@@ -10392,7 +10406,8 @@
      "text": "\"Tige tank! – J.\" Dat is Jelles J. Hij schrijft overal een bedankje bij.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -10401,7 +10416,8 @@
      "text": "Dat heb ik hem geleerd. Alles wat goed is in mijn jongen komt van mij. Dit ook.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -10409,7 +10425,8 @@
      "text": "Waarom doet u dit, mevrouw Terpstra?",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -10427,7 +10444,8 @@
      "text": "Mem. Dit is nog niet voorbij. Mijn juristen noemen het een geschil.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Jelle Terpstra",
@@ -10435,7 +10453,8 @@
      "text": "Durk. Douwe. Haal mijn mannen.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     }
    ]
   },
@@ -10474,7 +10493,8 @@
      "text": "Links is vrij. Naar de poort.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -10491,7 +10511,8 @@
      "text": "Rustig, jonge mensen. Het is maar een bal.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Oma Trijntje",
@@ -10577,7 +10598,8 @@
      "text": "Ik wist niet waar de bal lag. Ik wist wel dat Mem iets voor Jelle verborgen hield. Dat had ik tegen jou moeten zeggen.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -10586,7 +10608,8 @@
      "text": "En ik kan niet raden wat je verwacht, als je niets zegt.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -10603,7 +10626,8 @@
      "text": "Jij zegt nooit iets!",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -10620,7 +10644,8 @@
      "text": "Nee, dat klopt niet. Jij vraagt nooit wat. Je wordt stil, en dan boos op mij.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -10637,7 +10662,8 @@
      "text": "Ik gebruikte jullie om Jelle te stoppen. Dat was verkeerd.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Berend Bos",
@@ -10653,7 +10679,8 @@
      "text": "Henks zender piept: onze auto staat al op een trein. Zonder auto geen Fjord Frituur.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -10662,7 +10689,8 @@
      "text": "Neem de bal mee, famke. Bij jou is hij veiliger dan bij ons.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -10773,7 +10801,8 @@
      "text": "Moi.",
      "tag": "BEHOUDEN",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -10799,7 +10828,8 @@
      "text": "Het piepje van Henks zender staat bij Zuidhorn. Sneller.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -10816,7 +10846,8 @@
      "text": "Dan rij je nu honderd.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -10833,7 +10864,8 @@
      "text": "…Dat is een bijzondere troost, Berend.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     }
    ]
@@ -10896,7 +10928,8 @@
      "text": "Mevrouw. U kunt de auto redden of de bal houden. Beide tegelijk is juridisch niet mogelijk.",
      "tag": "NIEUW",
      "channel": "telefoon",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -10904,7 +10937,8 @@
      "text": "Auto.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     }
    ]
@@ -10927,7 +10961,8 @@
      "text": "\"Tige tank foar de bal. – J.\"",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -10944,7 +10979,8 @@
      "text": "Dat tel je niet.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -10961,7 +10997,8 @@
      "text": "Zonder wagen kunnen we niet bakken. Dan wint Jelle zonder wedstrijd.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -10970,7 +11007,8 @@
      "text": "Henks tweede sleutel zat onder de bumper. Tammo's sleutel zit in zijn jas, en Douwe heeft die jas.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -11001,7 +11039,8 @@
      "text": "\"Tige tank foar de bal. – J.\"",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -11018,7 +11057,8 @@
      "text": "Dat is mijn schuld.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -11035,7 +11075,8 @@
      "text": "Zonder wagen kunnen we niet bakken. Dan wint Jelle zonder wedstrijd.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -11075,7 +11116,8 @@
      "text": "Jelles advocaten hebben ze gebeld. Zeg het goed.",
      "tag": "NIEUW",
      "channel": "telefoon",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tammo",
@@ -11246,7 +11288,8 @@
      "text": "Het is een negende van Grunn.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -11263,7 +11306,8 @@
      "text": "Er is ook niks om af te slaan.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -11280,7 +11324,8 @@
      "text": "Ruik je dat? Dat is zetmeel.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -11297,7 +11342,8 @@
      "text": "Je zegt niks over zaterdag.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -11314,7 +11360,8 @@
      "text": "Dat is een antwoord dat ik niet kan gebruiken.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -11418,7 +11465,8 @@
      "text": "Wij maken van de Escapade de Fjord Frituur. Daar hoort een luik bij.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -11435,7 +11483,8 @@
      "text": "Hij is van ons, Tammo.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -11489,7 +11538,8 @@
      "text": "Dat is een Fjord Frituur.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -11514,7 +11564,8 @@
      "text": "Het is klaar.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -11531,7 +11582,8 @@
      "text": "Het is de kleur van de naam.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -11556,7 +11608,8 @@
      "text": "Het horloge van je opa?",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -11601,7 +11654,8 @@
      "text": "En als hij vastzit?",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -11634,7 +11688,8 @@
      "text": "Aan wat?",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -11682,7 +11737,8 @@
      "text": "We hebben een wagen. We hebben geen bal.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -11745,7 +11801,8 @@
      "text": "Ik moet je iets vertellen. Ik heb op zeven plekken gewoond voor ik tien was.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -11762,7 +11819,8 @@
      "text": "En elke zomer woonde ik in Ljouwert, naast Mem. Zij leerde me suikerbrood roosteren.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -11779,7 +11837,8 @@
      "text": "Een beetje.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -11796,7 +11855,8 @@
      "text": "Dat deed ik één keer.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -11813,7 +11873,8 @@
      "text": "De Fjord Frituur is een thuis op wielen. Een thuis dat je kunt meenemen.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -11822,7 +11883,8 @@
      "text": "Ik ging niet weg.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -11839,7 +11901,8 @@
      "text": "Ik ben gebleven.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     }
    ]
@@ -11883,7 +11946,8 @@
      "text": "Famke. Trijntje en ik hebben ze gebeld. Ze komen.",
      "tag": "NIEUW",
      "channel": "telefoon",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -11891,7 +11955,8 @@
      "text": "Jelle huurt morgen de hele Markt. Vandaag staan wij er eerst. Wij voorop, de rest erachter, en niemand valt weg.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -11940,7 +12005,8 @@
      "text": "Eén van jullie rijdt vlak naast ons en houdt Jelle bezig. Wie dat is, kiezen wij zo.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -11949,7 +12015,8 @@
      "text": "Rijden. Niet praten.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     }
    ]
@@ -11986,7 +12053,8 @@
      "text": "Mevrouw. Elke brug op uw route heeft vandaag een vergunning van mij voor een evenement. Veel plezier.",
      "tag": "NIEUW",
      "channel": "telefoon",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -11994,7 +12062,8 @@
      "text": "Jelle probeert ons te splitsen. Blijf bij elkaar.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -12032,7 +12101,8 @@
      "text": "Dat is Aduard. Hier houdt het Westerkwartier op.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -12049,7 +12119,8 @@
      "text": "Meer fietsers, minder trekkers. Dat leer je als je vaak verhuist.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -12058,7 +12129,8 @@
      "text": "Ik heb nooit zo lang ergens gewoond.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -12075,7 +12147,8 @@
      "text": "Dan is dit een goed begin.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -12092,7 +12165,8 @@
      "text": "Een goed tegeltje.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     }
    ]
@@ -12115,7 +12189,8 @@
      "text": "Douwe. Jelle is niet onze baas.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Douwe",
@@ -12123,7 +12198,8 @@
      "text": "…niet onze baas.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Durk",
@@ -12131,7 +12207,8 @@
      "text": "Wij zijn alleen de bezigheid.",
      "tag": "BEHOUDEN",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Douwe",
@@ -12148,7 +12225,8 @@
      "text": "En nu zijn wij de bezigheid van mem.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tammo",
@@ -12164,7 +12242,8 @@
      "text": "Van alle mems.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Durk",
@@ -12172,7 +12251,8 @@
      "text": "En hier is je jas. Met een strikje.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     }
    ]
   },
@@ -12202,7 +12282,8 @@
      "text": "En de bruggen?",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -12257,7 +12338,8 @@
      "text": "Ook een limo?",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -12282,7 +12364,8 @@
      "text": "En toen zaten we niet meer vast.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     }
    ]
@@ -12313,7 +12396,8 @@
      "text": "Een scooter tegen een limo?",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -12344,7 +12428,8 @@
      "text": "We zijn er. Allemaal.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -12361,7 +12446,8 @@
      "text": "Dat gaat Rikus niet meer zeggen. Hij heeft alle woorden al gebruikt.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -12378,7 +12464,8 @@
      "text": "Mevrouw. De colonne is een evenement zonder vergunning. Ik stuur een rekening.",
      "tag": "NIEUW",
      "channel": "telefoon",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     }
    ]
   },
@@ -12398,7 +12485,8 @@
      "text": "De colonne wacht niet. Rijden. Niet praten.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     }
    ]
@@ -12465,7 +12553,8 @@
      "text": "De vlag hangt precies boven de plek waar de Fjord Frituur morgen moet staan. Hij moet eraf.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -12569,7 +12658,8 @@
      "text": "Vier nog.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -12647,7 +12737,8 @@
      "text": "Nee. Gewoon.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     }
    ]
@@ -12728,7 +12819,8 @@
      "text": "Morgen is het Ontzet. Vannacht bakken we een proefronde, met alle vijf de ingrediënten van Oma's recept.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -12781,7 +12873,8 @@
      "text": "Ik zit hier ook, Trijntje.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Oma Trijntje",
@@ -12805,7 +12898,8 @@
      "text": "Dan houden wij Jelle tegen.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -12874,7 +12968,8 @@
      "text": "Priuw, jonge. Dat is al beter dan de mijne.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Oma Trijntje",
@@ -12906,7 +13001,8 @@
      "text": "Goedenavond.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Jelle Terpstra",
@@ -12932,7 +13028,8 @@
      "text": "Details. Geef me de wagen en het recept, en ik geef jullie genoeg voor tien frietwagens.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -12940,7 +13037,8 @@
      "text": "Tammo verkocht het horloge van zijn opa voor één luik. Jij biedt tien frietwagens.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -13064,7 +13162,8 @@
      "text": "Ik zit hier, Trijntje.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Oma Trijntje",
@@ -13080,7 +13179,8 @@
      "text": "Mem. Kom je morgen bij mijn kraam staan? Het is mijn naam.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Mem Terpstra",
@@ -13088,7 +13188,8 @@
      "text": "Ik kom, jonge.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     }
    ]
   },
@@ -13220,7 +13321,8 @@
      "text": "Vandaag winnen we eerlijk. Tot drie uur, dan zien we wel.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
