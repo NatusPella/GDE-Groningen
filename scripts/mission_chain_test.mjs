@@ -16,7 +16,7 @@ const blok = src.slice(van + BEGIN.length, tot);
 // `worldRef` hoort in missions.js bij het bestand (de wereld waarmee het start); hier is het een
 // lokale variabele zodat de test hem kan omzetten, precies zoals initMissions dat doet.
 const houder = () => new Function(
-  `let worldRef = null;\n${blok}\nreturn { chains, chainKey, chainState, setChainState, zetWereld: (w) => { worldRef = w; } };`,
+  `let worldRef = null;\n${blok}\nreturn { chains, chainKey, chainState, setChainState, setChainKey, zetWereld: (w) => { worldRef = w; } };`,
 )();
 
 let n = 0;
@@ -74,6 +74,84 @@ const ok = (c, naam) => { n++; if (!c) { console.log(`FAIL ${naam}`); process.ex
   ok((src.match(/(^|[^.\w$])chain\./gm) || []).length === 0, 'geen chain.veld-toegang meer');
   ok((src.match(/(^|[^.\w$])chain\s*=/gm) || []).length === 0, 'geen toewijzing aan chain meer');
   ok((src.match(/chain: chainState\(\),/g) || []).length === 1, 'de shorthand in makeCheckpoint is mee omgezet');
+}
+
+// --- de keten verhuist mee naar de sleutel van de sessie (#523)
+{
+  const h = houder();
+  const world = {};
+  h.zetWereld(world);
+  h.setChainState({ index: 4, completed: new Set([1]), armed: false, label: 'eigen' });
+
+  ok(h.setChainKey(world, 'sessie-a') === 'sessie-a', 'setChainKey geeft de nieuwe sleutel terug');
+  ok(h.chainKey(world) === 'sessie-a' && world.coopGroepSleutel === 'sessie-a', 'de wereld kent de sessiesleutel');
+  ok(h.chainState(world).label === 'eigen', 'de keten loopt door onder de nieuwe sleutel');
+  ok(h.chains.has(0) === false, 'onder de oude sleutel blijft niets achter');
+
+  // de eigen opdracht loopt door, ook als de sessie een andere index heeft opgeschoven
+  h.chainState(world).index = 9;
+  ok(h.setChainKey(world, null) === 0 && h.chainState(world).index === 9, 'bij het einde komt de keten terug op 0 met dezelfde stand');
+  ok(h.chains.has('sessie-a') === false, 'de sessiesleutel is opgeruimd');
+
+  // een volgende sessie begint waar de eigen wereld staat, niet met wat de vorige sessie deed
+  h.setChainState({ index: 2, completed: new Set(), armed: true }, { coopGroepSleutel: 0 });
+  h.setChainKey(world, 'sessie-b');
+  ok(h.chainState(world).index === 2, 'de nieuwe sessie erft de oude sessieketen niet');
+  ok(h.chains.has('sessie-a') === false, 'en de oude sessiesleutel blijft weg');
+}
+
+// --- de bedrading zelf: missions.js hangt de haak op de wereld, coopnet.js zet en wist hem (#523)
+{
+  ok(/world\.coopKetenZet = \(key\) => setChainKey\(world, key\);/.test(src), 'initMissions geeft de wereld de ketenhaak');
+
+  const net = fs.readFileSync(new URL('../game/js/coopnet.js', import.meta.url), 'utf8');
+  ok(/zetKetenSleutel\(world, hub\.id\)/.test(net), 'de gastheer zet de sleutel op de vaste id van de hub');
+  ok(/zetKetenSleutel\(world, s\.sessie && s\.sessie\.id \? s\.sessie\.id : null\)/.test(net), 'een gast neemt de sleutel uit het welkom');
+  ok(/zetKetenSleutel\(world, null\)/.test(net), 'stopCoopNet wist de sleutel');
+  ok(/typeof world\.coopKetenZet === 'function'/.test(net), 'zonder missies (een testwereld) is de haak een no-op');
+}
+
+// --- heen en terug over de echte sessie: gastheer, gast en het einde (#523)
+{
+  const N = await import('../game/js/coopnet.js');
+  const { createLink } = await import('../game/js/net/memtransport.js');
+  const hInf = N.handshakeInfo({ tiles: 'abc', story: 'oud' });
+  const mk = (h) => {
+    const world = { player: { x: 0, y: 0, angle: 0, character: 'anita', vx: 0, vy: 0 }, companion: { x: 1, y: 1, angle: 0, character: 'tammo' }, coop: { local: true }, money: 0, wanted: 0, camYaw: 0, time: 0, messages: [], addMessage(m) { this.messages.push(m); }, input: { axis: () => [0, 0], isDown: () => false } };
+    world.coopKetenZet = (key) => h.setChainKey(world, key); // precies de haak uit initMissions
+    h.zetWereld(world);
+    h.setChainState({ index: 5, completed: new Set([3, 4]), armed: false, label: 'eigen keten' });
+    return world;
+  };
+  const hh = houder(), hg = houder();
+  const host = mk(hh), gast = mk(hg);
+  N.startHost(host, hInf, { seed: 7, max: 4 });
+  const sessieId = host.coopNet.hub.id;
+  ok(typeof sessieId === 'string' && sessieId.length > 0, 'de hub heeft een vaste id voor deze sessie');
+  ok(host.coopGroepSleutel === sessieId, 'de gastheer speelt zijn keten onder de sessiesleutel');
+  ok(hh.chainState(host).index === 5, 'en zijn eigen opdracht staat er nog');
+
+  const link = createLink({ latency: 0.03, seed: 21 });
+  N.addGuest(host, link.a);
+  N.startClient(gast, link.b, hInf, {});
+  for (let k = 0; k < 120; k++) { N.tickCoopNet(host, 1 / 60); N.tickCoopNet(gast, 1 / 60); link.advance(1 / 60); host.time += 1 / 60; gast.time += 1 / 60; }
+  ok(!!(gast.coopNet && gast.coopNet.session.joined), 'de gast zit in de sessie');
+  ok(gast.coopGroepSleutel === sessieId, 'de gast gebruikt dezelfde sessiesleutel als de gastheer');
+
+  // twee werelden in dezelfde sessie: elk houdt zijn eigen index, completed en armed
+  hh.chainState(host).index = 6; hh.chainState(host).armed = true;
+  ok(hg.chainState(gast).index === 5 && hg.chainState(gast).armed === false, 'de keten van de gast blijft ongemoeid');
+  ok(hh.chainState(host).completed.has(4) && hg.chainState(gast).completed.has(4), 'elk heeft zijn eigen set');
+  ok(hh.chains !== hg.chains, 'twee werelden, twee houders');
+
+  N.stopCoopNet(host);
+  ok(host.coopGroepSleutel === 0, 'na het einde staat de gastheer weer op zijn eigen wereld');
+  ok(hh.chainState(host).index === 6 && hh.chainState(host).completed.has(3), 'zijn keten is ongewijzigd terug');
+  ok(hh.chains.has(sessieId) === false, 'de sessiesleutel is uit de houder verdwenen');
+
+  N.stopCoopNet(gast);
+  ok(gast.coopGroepSleutel === 0, 'ook de gast staat weer op zijn eigen wereld');
+  ok(hg.chainState(gast).index === 5, 'met zijn eigen keten');
 }
 
 console.log(`mission_chain_test: ${n}/${n} ok`);
