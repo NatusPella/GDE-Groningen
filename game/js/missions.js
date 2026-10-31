@@ -225,11 +225,28 @@ function buildDefs(world) {
 // Dit blok staat bewust los: scripts/mission_chain_test.mjs haalt het tussen de markers uit en test het.
 // --- ketenhouder begin ---
 const chains = new Map();
-// De sleutel van de keten van deze wereld: de eigen groep, of 0 zolang die er nog niet is.
+// De sleutel van de keten van deze wereld: de eigen sessie (#523), of 0 zolang er geen sessie is.
 function chainKey(world) {
   const w = world || worldRef;
   if (!w) return null;
   return w.coopGroepSleutel != null ? w.coopGroepSleutel : 0;
+}
+
+// #523: de keten verhuist mee naar de sleutel van de sessie: dezelfde keten (index, completed en armed lopen
+// door), maar onder de oude sleutel blijft niets achter, zodat een volgende sessie niet erft wat een vorige
+// achterliet. Zonder sleutel (null) komt de keten terug op 0: de eigen wereld van deze speler.
+function setChainKey(world, key) {
+  const w = world || worldRef;
+  if (!w) return null;
+  const next = key != null ? key : 0;
+  const current = chainKey(w);
+  if (current !== next) {
+    const state = chains.get(current);
+    if (state) chains.set(next, state);
+    chains.delete(current);
+  }
+  w.coopGroepSleutel = next;
+  return next;
 }
 
 // De keten van deze wereld (zonder wereld: die van dit bestand), of null als er nog geen keten is.
@@ -285,6 +302,10 @@ export function initMissions(world) {
     pub: { type: null, label: '', phase: 'idle', timeLeft: 0, index: 0, total: defs.length, marker: { x: 0, y: 0 }, distanceToMarker: 0, remainingWaypoints: [] },
   });
   world.mission = chainState().pub;
+  // #523: de keten hoort bij de sessie, niet bij de wereld. coopnet.js zet deze haak bij de start van een
+  // sessie op de vaste id van de hub (de gast leest hem uit het welkom) en wist hem bij het einde. De keten
+  // verhuist mee, dus de gastheer loopt zijn eigen opdracht door en een volgende sessie erft niets.
+  world.coopKetenZet = (key) => setChainKey(world, key);
   // een gast kan zelf een verhaalopdracht starten (#452): coopglue.js vraagt het, deze wereld begint hem op het startpunt
   world.coopMissieStart = (i) => startMissionVoorGast(world, i);
   // zaal 3's case is empty once H6 has been played

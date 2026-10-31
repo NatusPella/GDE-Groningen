@@ -234,6 +234,13 @@ function prepareCoop(world) {
   if (!world.coop) bindCoop(world, world.input);
   world.coopPings = world.coopPings || createPings();
 }
+// #523: de missieketen hoort bij de sessie. De kleinste stabiele sleutel die er is, is de vaste id van de hub
+// (`hub.id`, #450): één per sessie, dezelfde voor de gastheer en elke gast, en hij wisselt niet als spelers
+// uit elkaar lopen (dat doen de interessegebieden wel) of als het spel wordt overgedragen (de kamer blijft).
+// Zonder missies (een koploze testwereld) is er geen haak en blijft de keten waar hij was.
+function zetKetenSleutel(world, key) {
+  if (typeof world.coopKetenZet === 'function') world.coopKetenZet(key);
+}
 function endCoop(world) {
   bestuurAllesLos(world); wapenAllesWeg(world); gastWapenWeg(world); world.coopWapens = null; world.coopSchade = null; world.coopBoot = null; world.coopZit = null; // (#434) // een gast die stuurde laat het voertuig stil achter (#434)
   if (world.coop) { delete world.coop.leash; }
@@ -349,6 +356,7 @@ export function startHost(world, info, opts = {}) {
     },
   });
   hub.onchange = (roster) => { world.coopRoster = lijst(roster); if (onChange) onChange(roster); };
+  zetKetenSleutel(world, hub.id); // #523: de missieketen van de gastheer hangt vanaf nu aan deze sessie
   if (info && info.avatar) zetAvatar(hub.roster, 0, info.avatar); // je eigen online-avatar in de lijst voor de anderen (#455)
   setFixedCharacters(world, 0);
   if (world.coop) world.coop.leash = Infinity; // geen harde lijn van 38 m om Tessa: ze kon niet verder dan dat van de gastheer, en hij kon niet weten waarom (#388); bandMetgezel doet het werk
@@ -1035,6 +1043,9 @@ export function tickCoopNet(world, dt) {
     if (n.klok.last && Number.isFinite(world.clock)) world.clock = n.klok.step(world.clock, dt, n.lokaal);
     if (s.joined && !n.fixed) { // eerst weten we welke plek en figuur we hebben
       n.fixed = true; setFixedCharacters(world, s.slot, s.welcome && s.welcome.char);
+      // #523: de keten van een gast hangt aan de sessie waarin hij meespeelt (dezelfde sleutel als de gastheer,
+      // uit het welkom). Zijn eigen opdracht blijft eronder staan en komt bij het einde terug.
+      zetKetenSleutel(world, s.sessie && s.sessie.id ? s.sessie.id : null);
       if (!n.rosterEvent && s.welcome && Array.isArray(s.welcome.lijst)) world.coopRoster = s.welcome.lijst; // een 'spelers'-bericht dat vóór het welkom aankwam is nieuwer
     }
     if (n.fixed && (s.status === 'ok' || s.status === 'lag')) {
@@ -1587,6 +1598,7 @@ export function stopCoopNet(world) {
     if (world.coop) world.coop.prevLocal = s.prevLocal;
     if (n.fade && n.joined) n.fade('uit');
   }
+  zetKetenSleutel(world, null); // #523: de keten gaat terug naar de eigen wereld; de volgende sessie erft niets
   endCoop(world);
   world.coopRole = null; // eigen save mag weer (gast: met zijn eigen voortgang)
 }
