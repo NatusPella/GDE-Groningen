@@ -29,6 +29,14 @@ Sinds #528 is Samen spelen de standaard, niet iets wat je erbij doet (ADR 0022).
   vrienden via een kamercode, zonder de eigen voortgang te verliezen (#527).
 - **De openbare lijst** toont naam, aantal spelers en versie; nooit een adres en nooit
   een wachtwoord.
+- **Het bootpad** is `game/js/sessionboot.js`: zodra de wereld te besturen is
+  (`coopnet.canJoin`) en `magOnline()` waar is, haalt het de lijst op (hooguit 2,5 s,
+  daarna zonder lijst verder), laat `sessiekeuze.kies()` beslissen en sluit aan, opent
+  zelf een sessie of blijft besloten. Mislukt een verbinding, dan volgt
+  `sessiekeuze.volgende()`; na twee pogingen opent het spel zelf een sessie. De wereld
+  speelt intussen door en de `reden` staat als korte regel in beeld
+  (`scripts/sessionboot_test.mjs`).
+
 ## Rollen
 
 - **Wie het spel opende** (intern `host`) draait de wereld (tijd, weer, verkeer,
