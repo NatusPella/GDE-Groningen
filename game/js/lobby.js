@@ -10,7 +10,9 @@
 //               via openbare brokers (net/rtcroom.js, net/brokers.js). Werkt ook in de browser.
 //  - 'direct' : adres:poort van de host met UPnP, rechtstreeks, zonder servers van anderen
 //               (desktop/coopcore.cjs). Alleen in de desktop-app.
-// Nooit stilzwijgend verbinden: elke route begint met een toestemmingsscherm.
+// Nooit stilzwijgend verbinden: de eerste keer in een sessie komt er een toestemmingsscherm. Wie daar akkoord
+// gaat (of het vinkje "Niet meer vragen" op dit apparaat zette), gaat in diezelfde sessie overal meteen door:
+// kamercode, lijst, verbinden, herstel en hostwissel vragen het niet nog een keer (#526).
 
 import { REASON_TEXT } from './net/protocol.js';
 import { parseRoom } from './net/sigcrypto.js';
@@ -21,14 +23,17 @@ import { EXTRA_CHARS, DEFAULT_MAX, MIN_MAX, ABS_MAX, advies, openerNaam } from '
 export const ROLES = { HOST: 'host', GAST: 'gast' };
 export const ROUTES = { KAMER: 'kamer', DIRECT: 'direct' };
 
-export const CONSENT_TEXT = {
-  kamer: 'Voor samen spelen wordt je IP-adres gedeeld met je medespeler en worden openbare servers gebruikt om elkaar te vinden.',
-  direct: 'Voor samen spelen wordt je IP-adres gedeeld met je medespeler. Er worden geen servers van anderen gebruikt; je router opent een poort die sluit zodra je stopt.',
-};
+// Eén uitleg voor elke route (#526): hetzelfde verhaal, want het is dezelfde vraag. Alleen de directe route
+// voegt zijn poort toe; de lijst en de test leggen erbij uit wat zij zelf doen.
+export const CONSENT_TEXT = 'Voor samen spelen gaat je IP-adres naar je medespeler en naar de openbare servers die jullie helpen elkaar te vinden. Naar een server van ons gaat er niets.';
 export const CONSENT_DETAIL = {
-  kamer: 'Je kamercode versleutelt wat er via die servers gaat: zij zien alleen onleesbare berichten. Er wordt verder niets verstuurd.',
-  direct: 'Iedereen met de code kan zolang de poort open staat proberen te verbinden. Geef de code alleen aan je medespeler. Windows kan nu vragen of GDE Groningen het netwerk mag gebruiken: kies Toestaan (privé netwerk), anders kan de ander je niet bereiken.',
+  direct: 'Deze route gaat rechtstreeks naar jou: er worden geen servers van anderen gebruikt, maar je router opent een poort die sluit zodra je stopt. Iedereen met de code kan zolang die poort open staat proberen te verbinden. Windows kan nu vragen of GDE Groningen het netwerk mag gebruiken: kies Toestaan (privé netwerk), anders kan de ander je niet bereiken.',
 };
+
+// Toestemming (#526): één keer per sessie. Wie op het toestemmingsscherm akkoord gaat, of op dit apparaat
+// "Niet meer vragen" zette (settings.js: multiplayerConsentRemembered), gaat daarna in dezelfde sessie meteen
+// door naar de kamercode, de lijst, het verbinden, het herstel en een hostwissel.
+export const hasConsent = (s) => !!(s && (s.consented || s.consentSaved));
 
 // Openbare sessies (#438): standaard is een sessie privé (alleen met de kamercode). De host kiest zelf om hem in de lijst te zetten,
 // per sessie, na deze toestemming; wie de lijst opent geeft eerst toestemming voor het verbinden met de openbare servers.
@@ -37,14 +42,15 @@ export const OPENBAAR_TEXT = [
   'Dit wordt openbaar: de naam van je sessie, het aantal spelers en het maximum, de versie van het spel en de kamercode waarmee anderen aansluiten. Je IP-adres, een wachtwoord en andere gegevens staan er niet bij. De naam wordt gecontroleerd op scheldwoorden en echte merken en namen.',
   'Dit gaat elke 15 seconden naar dezelfde openbare servers als de kamercode, en die zien het onversleuteld. Uitzetten kan altijd: kies Sessie weer privé maken. Dan stopt het, je sessie verdwijnt binnen een minuut uit de lijsten en je krijgt een nieuwe kamercode, zodat de oude niet meer werkt.',
 ];
+// De lijst en de test (#526) leggen alleen nog uit wat zij zelf doen: de uitleg over het IP-adres staat al
+// één keer in CONSENT_TEXT.
 export const LIJST_TEXT = [
-  'De lijst met openbare sessies wordt opgehaald via dezelfde openbare servers als de kamercode. Die servers zien dan je IP-adres, zoals bij elke website.',
-  'Wat in de lijst staat is door spelers zelf geplaatst: de naam, het aantal spelers, de versie en de kamercode, onversleuteld. Sluit je aan, dan loopt dat via de gewone versleutelde kamercode en deel je je IP-adres met de ander.',
+  'De lijst zelf komt van diezelfde openbare servers. Wat erin staat is door spelers geplaatst: de naam, het aantal spelers, de versie en de kamercode, onversleuteld. Sluit je aan, dan loopt dat via de gewone versleutelde kamercode.',
   'Staat er iets vervelends in? Kies Melden: die sessie verdwijnt dan uit jouw lijst. Er wordt niets verstuurd.',
 ];
 
 // Wat "Verbinding testen" doet, vóór de speler het toestaat (het neemt contact op met openbare servers)
-export const DIAG_TEXT = 'De test neemt contact op met dezelfde openbare servers als de kamercode: internet, servers om elkaar te vinden en servers voor de kamercode. In de app test hij ook of je router automatisch een poort opent. Er wordt niets van jou verstuurd.';
+export const DIAG_TEXT = 'De test gebruikt die servers om te kijken of het lukt: internet, servers om elkaar te vinden en servers voor de kamercode. In de app test hij ook of je router automatisch een poort opent. Er wordt niets van jou verstuurd.';
 
 // Een wachtwoord per sessie (#450): de gastheer zet het, een gast moet het kennen. Het gaat alleen mee in de kennismaking
 // (net/session.js) en staat nooit in de openbare lijst; leeg betekent open, zoals altijd. Spaties aan de randen tellen niet
@@ -124,12 +130,17 @@ export function classifyInput(text) {
   return r.ok ? { ok: true, route: ROUTES.KAMER, room: r.room } : { ok: false, reason: 'Dit is geen kamercode en geen koppelcode van dit spel.' };
 }
 
-// caps: { direct (desktop-app), rtc (WebRTC beschikbaar), laatsteCode, start?: 'verbroken', rol?, startGate (de wachtkamer van een nieuw of geladen spel: het spel begint pas als wie het spel opende start), spelNaam (het opgeslagen spel van deze speler) }
+// caps: { direct (desktop-app), rtc (WebRTC beschikbaar), laatsteCode, start?: 'verbroken', rol?, startGate (de wachtkamer van een nieuw of geladen spel: het spel begint pas als wie het spel opende start), spelNaam (het opgeslagen spel van deze speler), consentSaved (dit apparaat koos "Niet meer vragen") }
 export function createLobby(caps = {}) {
   const favorieten = Array.isArray(caps.favorieten) ? caps.favorieten.filter((x) => typeof x === 'string').slice(-100) : [];
+  // een apparaat dat "Niet meer vragen" koos, slaat het toestemmingsscherm over: ook de lijst uit het hoofdmenu opent meteen
+  const consentSaved = !!caps.consentSaved;
+  const lijstEerst = caps.keuze === ROLES.GAST && caps.lijst && caps.rtc !== false;
   return {
     // keuze: de rol die al in het hoofdmenu is gekozen (Gastheer worden / Meedoen): dan slaat de lobby de rolkeuze over
-    step: caps.start || (caps.keuze === ROLES.GAST && caps.lijst && caps.rtc !== false ? 'lijst-vraag' : caps.keuze ? (caps.keuze === ROLES.HOST ? 'methode' : 'gast-typt') : 'start'), rol: caps.rol || caps.keuze || null, route: null, invoer: null,
+    step: caps.start || (lijstEerst ? (consentSaved ? 'lijst' : 'lijst-vraag') : caps.keuze ? (caps.keuze === ROLES.HOST ? 'methode' : 'gast-typt') : 'start'), rol: caps.rol || caps.keuze || null, route: null, invoer: null,
+    // toestemming (#526): één keer per sessie; consented zet het akkoord van dit scherm, consentSaved de keuze van dit apparaat
+    consented: !!caps.consented, consentSaved, consentRemember: consentSaved,
     code: '', lanCode: '', note: '', error: '', reason: null, status: null, partner: null,
     wachtwoord: schoonWachtwoord(caps.wachtwoord), // het wachtwoord van deze sessie (#450): leeg is open
     spelers: [], max: DEFAULT_MAX, wens: null, holdSlot: null, holdNaam: caps.holdNaam || '',
@@ -151,10 +162,14 @@ export function createLobby(caps = {}) {
     lijstVervers: 0,
   };
 }
-const fresh = (s) => createLobby(s.caps);
+// Terug naar het beginscherm zonder de sessie te vergeten: de toestemming van deze sessie blijft staan (#526)
+const fresh = (s) => ({ ...createLobby(s.caps), consented: !!s.consented, consentSaved: !!s.consentSaved });
+
+// Waar je na het toestemmingsscherm komt: dezelfde stap als na "Akkoord en verbinden" (#526)
+const naToestemming = (s) => (s.rol === ROLES.HOST ? 'host-maakt-code' : 'verbinden');
 
 // Gebeurtenissen:
-//  kies{rol}  route{route}  invoer{text}  akkoord  code{code, lanCode?, note?}  fout{msg}
+//  kies{rol}  route{route}  invoer{text}  akkoord{remember?}  consent-vink{aan}  code{code, lanCode?, note?}  fout{msg}
 //  status{status, reason, partner?}  terug  verbreek  hervat
 //  spelers{lijst, max}  wens{char}  hold{slot, naam}  gate{aan}
 //  overdragen  overdragen-terug  (het spel aan een speler overdragen, #439)
@@ -168,23 +183,33 @@ export function reduce(s, ev) {
     case 'route': // alleen host: kies kamercode of IP-adres
       if (ev.route === ROUTES.DIRECT && !s.caps.direct) return { ...n, error: 'Een IP-adres gebruiken kan alleen in de desktop-app.' };
       if (ev.route === ROUTES.KAMER && !s.caps.rtc) return { ...n, error: 'Een kamercode werkt hier niet: dit apparaat kan geen directe verbinding maken.' };
-      n.route = ev.route; n.step = 'toestemming'; return n;
+      n.route = ev.route; n.step = hasConsent(s) ? naToestemming(n) : 'toestemming'; return n;
     case 'invoer': { // alleen gast
       const c = classifyInput(ev.text);
       if (!c.ok) return { ...n, error: c.reason };
       if (c.route === ROUTES.DIRECT && !s.caps.direct) return { ...n, error: 'Een adres of koppelcode van de directe route werkt alleen in de desktop-app. Vraag om een kamercode.' };
       if (c.route === ROUTES.KAMER && !s.caps.rtc) return { ...n, error: 'Een kamercode werkt hier niet.' };
-      n.route = c.route; n.invoer = c; n.step = 'toestemming'; return n;
+      n.route = c.route; n.invoer = c; n.step = hasConsent(s) ? naToestemming(n) : 'toestemming'; return n;
     }
+    case 'consent-vink': // "Niet meer vragen" op het toestemmingsscherm (#526): alleen de keuze van dit scherm, akkoord bewaart hem
+      if (s.step !== 'toestemming' && s.step !== 'lijst-vraag' && s.step !== 'diag-vraag') return s;
+      n.consentRemember = !!ev.aan; return n;
+    case 'consent-vergeet': // het apparaat vroeg het niet meer: vanaf nu weer één keer per sessie (#526)
+      n.consentSaved = false; n.consentRemember = false; n.consented = false; return n;
     case 'akkoord':
       if (s.step !== 'toestemming') return s;
-      n.step = s.rol === ROLES.HOST ? 'host-maakt-code' : 'verbinden'; return n;
+      n.consented = true; n.consentSaved = !!(ev.remember ?? s.consentRemember ?? s.consentSaved); // geldt meteen voor de rest van deze sessie
+      n.step = naToestemming(s); return n;
     case 'code': // de host heeft een code (kamercode, of adres met UPnP; zonder router de lokale code)
       n.code = ev.code; n.lanCode = ev.lanCode || ''; n.note = ev.note || ''; n.step = 'host-wacht'; return n;
     case 'fout': n.error = ev.msg || 'Er ging iets mis.'; return n;
-    case 'diag': // Verbinding testen: eerst de vraag om toestemming
-      n.terugNaar = s.step.startsWith('diag') ? s.terugNaar : s.step; n.step = 'diag-vraag'; return n;
-    case 'diag-go': n.step = 'diag-bezig'; n.diag = null; return n;
+    case 'diag': // Verbinding testen: de eerste keer in deze sessie eerst de vraag; daarna meteen testen (#526)
+      n.terugNaar = s.step.startsWith('diag') ? s.terugNaar : s.step;
+      n.step = hasConsent(s) ? 'diag-bezig' : 'diag-vraag'; n.diag = null; return n;
+    case 'diag-go': // vanaf de vraag: dat is het akkoord voor deze sessie (#526), net als bij de routes
+      n.consented = s.consented || s.step === 'diag-vraag';
+      if (s.step === 'diag-vraag') n.consentSaved = !!(s.consentRemember ?? s.consentSaved);
+      n.step = 'diag-bezig'; n.diag = null; return n;
     case 'diag-klaar': n.step = 'diag-uit'; n.diag = ev.beoordeling || null; return n;
     case 'diag-terug': n.step = s.terugNaar || 'start'; return n;
     case 'openbaar-vraag': // alleen de host, alleen de kamercode-route (de IP-route heeft een adres in de code: nooit openbaar)
@@ -207,10 +232,10 @@ export function reduce(s, ev) {
       if (s.step !== 'verbonden' || !overdrachtKandidaten(s.rol, s.route, s.spelers).length) return s;
       n.step = 'overdragen-kies'; return n;
     case 'overdragen-terug': if (s.step !== 'overdragen-kies') return s; n.step = s.spelers.length > 1 ? 'verbonden' : 'host-wacht'; return n;
-    case 'lijst-vraag': // Openbare sessies bekijken: eerst de toestemming
+    case 'lijst-vraag': // Openbare sessies bekijken: de eerste keer in deze sessie eerst de toestemming (#526)
       if (!s.caps.rtc || !['start', 'gast-typt'].includes(s.step)) return s;
-      n.terugNaar = s.step; n.step = 'lijst-vraag'; return n;
-    case 'lijst-go': if (s.step !== 'lijst-vraag') return s; n.step = 'lijst'; n.lijst = []; return n;
+      n.terugNaar = s.step; n.step = hasConsent(s) ? 'lijst' : 'lijst-vraag'; n.lijst = []; return n;
+    case 'lijst-go': if (s.step !== 'lijst-vraag') return s; n.step = 'lijst'; n.lijst = []; n.consented = true; n.consentSaved = !!(s.consentRemember ?? s.consentSaved); return n;
     case 'lijst-data': if (s.step !== 'lijst') return s; n.lijst = Array.isArray(ev.lijst) ? ev.lijst : []; return n;
     case 'lijst-zoek': // direct tijdens het typen; het zoekveld houdt zijn waarde in de state (lobbyui.js)
       if (s.step !== 'lijst') return s; n.lijstZoek = String(ev.tekst ?? '').slice(0, 60); n.lijstAantal = LIJST.maxGetoond; return n;
@@ -245,7 +270,7 @@ export function reduce(s, ev) {
       const e = s.lijst[ev.i];
       if (!e) return s;
       if (!e.kan) return { ...n, error: e.anders ? 'Deze sessie speelt een andere versie: je kunt er niet bij aansluiten.' : 'Deze sessie zit vol.' };
-      n.rol = ROLES.GAST; n.route = ROUTES.KAMER; n.invoer = { ok: true, route: ROUTES.KAMER, room: e.room }; n.step = 'toestemming'; return n;
+      n.rol = ROLES.GAST; n.route = ROUTES.KAMER; n.invoer = { ok: true, route: ROUTES.KAMER, room: e.room }; n.step = hasConsent(s) ? naToestemming(n) : 'toestemming'; return n;
     }
     case 'lijst-terug': if (s.step !== 'lijst' && s.step !== 'lijst-vraag') return s; n.step = s.terugNaar || 'start'; return n;
     case 'wens': // alleen gast: de figuur die hij het liefst heeft (die van zijn online-avatar)
@@ -340,7 +365,7 @@ export function jijRegel(s, lijst, ik) {
 export function view(s) {
   // bij een fout in de stappen waar je verbindt: wijs de weg naar de test
   const hulp = s.error && ['gast-typt', 'host-wacht', 'host-maakt-code', 'methode', 'verbinden'].includes(s.step) && !/gekopieerd/.test(s.error);
-  const V = (o) => { const r = { title: 'Samen spelen', lines: [], buttons: [], input: null, code: null, profiel: null, wachtwoord: null, error: s.error, ...o }; if (hulp && r.buttons.some((b) => b.act === 'diag')) r.lines = [...r.lines, 'Lukt het niet? Kies Verbinding testen: daar staat wat er mis is en wat je kunt doen.']; return r; };
+  const V = (o) => { const r = { title: 'Samen spelen', lines: [], buttons: [], input: null, code: null, profiel: null, wachtwoord: null, consent: null, error: s.error, ...o }; if (hulp && r.buttons.some((b) => b.act === 'diag')) r.lines = [...r.lines, 'Lukt het niet? Kies Verbinding testen: daar staat wat er mis is en wat je kunt doen.']; return r; };
   // het kleine formulier voor je online-avatar (#455): op de schermen waar je kiest om samen te spelen
   const profiel = { ...s.profiel, kleuren: PROFIEL_KLEUREN, maxLength: ONLINE_NAAM_MAX, fout: s.profielFout, tekst: profielTekst(s.profiel) };
   // het wachtwoordveld (#450): de gastheer beheert het, de gast vult het in; leeg betekent open
@@ -357,9 +382,11 @@ export function view(s) {
   switch (s.step) {
     case 'start':
       return V({
-        lines: ['Speel samen met een vriend in de open wereld: opdrachten, minigames en het verhaal. Je houdt je eigen voortgang en speelt lokaal je eigen verhaal: Tammo of Tessa, net wat jouw verhaal vraagt. De wereld is van wie het spel opent.', 'Vul hieronder je online naam en kleur in: zo zien de anderen je, ook als jij lokaal Tammo of Tessa bent.'],
+        lines: ['Speel samen met een vriend in de open wereld: opdrachten, minigames en het verhaal. Je houdt je eigen voortgang en speelt lokaal je eigen verhaal: Tammo of Tessa, net wat jouw verhaal vraagt. De wereld is van wie het spel opent.', 'Vul hieronder je online naam en kleur in: zo zien de anderen je, ook als jij lokaal Tammo of Tessa bent.',
+          // (#526) dit apparaat koos "Niet meer vragen": zeg het hier, zodat de keuze niet vastzit
+          ...(s.consentSaved ? ['Dit apparaat gaf eerder toestemming voor samen spelen en vraagt het daarom niet meer. Wil je het toch elke keer zien? Kies Toestemming intrekken.'] : [])],
         profiel,
-        buttons: [{ act: 'kies-host', label: 'Iemand uitnodigen', primary: true }, { act: 'kies-gast', label: 'Code of adres invoeren' }, ...(s.caps.rtc ? [{ act: 'lijst', label: 'Openbare sessies' }] : []), { act: 'diag', label: 'Verbinding testen' }],
+        buttons: [{ act: 'kies-host', label: 'Iemand uitnodigen', primary: true }, { act: 'kies-gast', label: 'Code of adres invoeren' }, ...(s.caps.rtc ? [{ act: 'lijst', label: 'Openbare sessies' }] : []), { act: 'diag', label: 'Verbinding testen' }, ...(s.consentSaved ? [{ act: 'consent-vergeet', label: 'Toestemming intrekken' }] : [])],
       });
     case 'methode': {
       const buttons = [{ act: 'route-kamer', label: 'Kamercode', primary: true }];
@@ -374,9 +401,12 @@ export function view(s) {
       });
     }
     case 'toestemming':
+      // één uitleg voor elke route (#526); alleen de directe route voegt zijn poort toe. Het vinkje zet de keuze
+      // voor dit apparaat: daarna slaat de lobby het scherm over (settings.js: multiplayerConsentRemembered).
       return V({
         title: 'Eerst even toestemming',
-        lines: [CONSENT_TEXT[s.route], CONSENT_DETAIL[s.route]],
+        lines: [CONSENT_TEXT, ...(CONSENT_DETAIL[s.route] ? [CONSENT_DETAIL[s.route]] : [])],
+        consent: { remember: !!s.consentRemember, label: 'Niet meer vragen op dit apparaat' },
         buttons: [{ act: 'akkoord', label: 'Akkoord en verbinden', primary: true }, { act: 'terug', label: 'Annuleren' }],
       });
     case 'host-maakt-code':
@@ -473,7 +503,8 @@ export function view(s) {
     case 'openbaar-vraag':
       return V({ title: 'Maak deze sessie openbaar', lines: OPENBAAR_TEXT, input: { placeholder: 'Naam van je sessie (hoogstens 24 tekens)', value: s.openbaarNaam || '', maxLength: 24 }, buttons: [{ act: 'openbaar-ja', label: 'Akkoord en openbaar maken', primary: true }, { act: 'openbaar-terug', label: 'Annuleren' }] });
     case 'lijst-vraag':
-      return V({ title: 'Openbare sessies', lines: LIJST_TEXT, buttons: [{ act: 'lijst-go', label: 'Akkoord en lijst tonen', primary: true }, { act: 'lijst-terug', label: 'Annuleren' }] });
+      // dezelfde toestemming als de routes (#526), met daaronder wat de lijst zelf doet; het vinkje staat er ook
+      return V({ title: 'Openbare sessies', lines: [CONSENT_TEXT, ...LIJST_TEXT], consent: { remember: !!s.consentRemember, label: 'Niet meer vragen op dit apparaat' }, buttons: [{ act: 'lijst-go', label: 'Akkoord en lijst tonen', primary: true }, { act: 'lijst-terug', label: 'Annuleren' }] });
     case 'lijst': {
       // (#464) de pure query: zoeken, filters, sortering en de pagina. De volgorde hier is de volgorde op het scherm.
       const rijen = (s.lijst || []).map((e, i) => ({ ...e, i }));
@@ -513,7 +544,8 @@ export function view(s) {
       });
     }
     case 'diag-vraag':
-      return V({ title: 'Verbinding testen', lines: [DIAG_TEXT], buttons: [{ act: 'diag-go', label: 'Test starten', primary: true }, { act: 'diag-terug', label: 'Annuleren' }] });
+      // dezelfde toestemming als de routes (#526): het vinkje bewaart de keuze voor dit apparaat
+      return V({ title: 'Verbinding testen', lines: [CONSENT_TEXT, DIAG_TEXT], consent: { remember: !!s.consentRemember, label: 'Niet meer vragen op dit apparaat' }, buttons: [{ act: 'diag-go', label: 'Test starten', primary: true }, { act: 'diag-terug', label: 'Annuleren' }] });
     case 'diag-bezig':
       return V({ title: 'Verbinding testen', lines: ['We testen je verbinding. Dit duurt ongeveer tien seconden…'], buttons: [] });
     case 'diag-uit': {
