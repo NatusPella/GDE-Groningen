@@ -130,6 +130,7 @@ import { updatePhotoMode, wireFotoKey } from './fotomodusui.js';
 import { initPauseMenu, isPauseMenuOpen, openPauseMenu, pauseMenuCover } from './pausemenu.js';
 import { aandeel, tegelFoci, nietBijFoci } from './coopfoci.js';
 import { wantsOpenSamen, takeOpenSamen, samenGate } from './samenpanel.js';
+import { maybeOpenOnlineStart } from './onlineconsentui.js';
 import { gateOn, setGate } from './coopgate.js';
 import { updateGastLokaal } from './coopgastlokaal.js';
 import { initDayNight, updateDayNight, refreshDayNight, DAY_LENGTH_S } from './daynight.js';
@@ -553,6 +554,14 @@ async function boot() {
   await terrainReady();
   markLoad('terrain');
   await finishLoading();
+  // Samen spelen (#530, ADR 0022): a player who was never asked sees the one screen with their
+  // name and the question whether to play with others. It sits over the boot screen, before the
+  // world takes keys: typing a name must not drive the player, and nothing connects either way.
+  // The answer lands in gde-settings and the boot goes on. A test or QA run skips the question,
+  // like the graphics measurement at the first start.
+  if (!(FLAGS.noattract || FLAGS.storytest || FLAGS.stil || FLAGS.trailer || FLAGS.preview || FLAGS.benchmark || FLAGS.perf || FLAGS.spotsonly || FLAGS.autoplay || FLAGS.menu) && !document.hidden) {
+    await maybeOpenOnlineStart();
+  }
   markLoad('title');
   // the garages, cafés and shops out in the Ommelanden get their doors from the
   // tiles round them: those load behind the title screen (a few ms a frame) and
