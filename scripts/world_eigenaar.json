@@ -26,6 +26,10 @@
    "eigenaar": "game/js/cooptrein.js",
    "notitie": "cooptrein.js bedient de treindeur in de coop-modus."
   },
+  "coopKetenZet": {
+   "eigenaar": "game/js/missions.js",
+   "notitie": "missions.js zet de missieketen per sessie (#523); coopnet.js roept hem alleen aan bij de start en het einde van een sessie."
+  },
   "extraSpeakers": {
    "eigenaar": "game/js/scene3d.js",
    "notitie": "scene3d.js zet de sprekers om in tekstballonnen; modules melden alleen een spreker."
