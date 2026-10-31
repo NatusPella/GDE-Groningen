@@ -10,7 +10,7 @@ import { logoHtml } from './logo.js';
 import { setPauseMenuOpen, setPauseMenuTabState, setPauseMenuControls } from './pausestate.js';
 import { PRESET_ORDER, presetLabel, describePreset, describeChanges, currentPreset, applyPreset, getBenchResult, dismissBenchBanner, GEAR_SVG } from './gfxprofile.js';
 import { mountMapView, setMapActive, setMapCloseHandler, setMapView, getDiscoveredRatio, setMapTeleport } from './mapview.js';
-import { renderSamenPanel } from './samenpanel.js';
+import { renderSamenPanel, requestOpenSamen } from './samenpanel.js';
 import { renderVeroverdPanel } from './veroverdpanel.js';
 import { renderSpelersPanel } from './coopspelersui.js';
 import { renderCheatsPanel, cheatsClick, resetCheatsPanel, cheatsFocus } from './cheatsui.js';
@@ -267,7 +267,8 @@ const SUBTABS = {
   verhaal: [['opdrachten', 'Opdrachten'], ['personages', 'Personages'], ['aanwijzingen', 'Aanwijzingen'], ['veroverd', 'Veroverd']],
   spel: [['overzicht', 'Overzicht'], ['samen', 'Samen spelen'], ['acties', 'Opslaan & stoppen'], ['spelen', 'Spelen'], ['camera', 'Camera & richten'], ['hints', 'Hints & uitleg']],
   // Samen spelen heeft twee eigen tabbladen (#434): uitnodigen en de spelerslijst. De lijst is geen
-  // los tabblad van Spel en geen rijknop in de rail; hij hoort bij Samen spelen.
+  // los tabblad van Spel en geen rijknop in de rail; hij hoort bij Samen spelen, en sinds #530 staat
+  // er ook je profiel met de schakelaar (dus hij is er ook zonder sessie).
   samen: [['samen', 'Samen spelen'], ['spelers', 'Spelers']],
   settings: [['video', 'Beeld'], ['sound', 'Geluid & ondertitels'], ['besturing', 'Besturing'], ['display', 'Interface'], ['a11y', 'Toegankelijkheid'], ['fouten', 'Foutrapport'], ['cheats', 'Cheats']],
   controls: [['toetsen', 'Toetsenbord en muis'], ['knoppen', 'Controller'], ['overzicht', 'Toetsenoverzicht'], ['hulp', 'Hulp']],
@@ -360,8 +361,10 @@ const plain = (t) => String(t).replace(/<[^>]*>/g, '').replace(/&shy;/g, '');
 
 // the tabs of a section that are there in the main menu too (Opslaan & stoppen of Spel needs a running game)
 const inGameOnly = (of, id) => (of === 'spel' && (id === 'acties' || id === 'overzicht' || id === 'samen' || id === 'spelers')) || (of === 'settings' && id === 'cheats');
-// Spelers (wie er meespeelt) staat onder Samen spelen en is er alleen zolang je samen speelt (#434)
-const subsOf = (of) => SUBTABS[of].filter(([id]) => !(prestart && inGameOnly(of, id)) && !((of === 'spel' || of === 'samen') && id === 'spelers' && !(world && world.coopNet)));
+// Spelers (wie er meespeelt) staat onder Samen spelen. Sinds #530 staat daar ook je eigen profiel
+// met de schakelaar Meedoen met andere spelers, dus het tabblad is er ook zonder sessie: anders is
+// "Alleen spelen" bij de eerste start een doodlopende weg (ADR 0022: later alsnog kunnen meedoen).
+const subsOf = (of) => SUBTABS[of].filter(([id]) => !(prestart && inGameOnly(of, id)));
 function subtabsHtml(of, label) {
   return `<div class="m-tabs"><nav class="m-tablist" role="tablist" aria-label="${label}">` + SUBTABS[of].map(([id, text]) =>
     `<button type="button" role="tab" class="m-tab${inGameOnly(of, id) ? ' pm-ingame' : ''}" data-of="${of}" data-subtab="${id}" aria-selected="false">${esc(text)}<small data-count="${id}"></small></button>`).join('') + '</nav>' +
@@ -1582,7 +1585,7 @@ function afterSpelSub() {
     // (samenpanel.js, coopspelersui.js); elk tekent zich in zijn eigen tabblad.
     if (sub === 'samen') {
       showSubtab('samen', pref.sub.samen || 'samen');
-      if (pref.sub.samen === 'spelers') renderSpelersPanel(root.querySelector('[data-of="samen"][data-sub="spelers"]'), world, closePauseMenu);
+      if (pref.sub.samen === 'spelers') renderSpelersPanel(root.querySelector('[data-of="samen"][data-sub="spelers"]'), world, closePauseMenu, { openSamen: () => { closePauseMenu(); requestOpenSamen(); } });
       else renderSamenPanel(root.querySelector('[data-of="samen"][data-sub="samen"]'), world, closePauseMenu);
     }
   }

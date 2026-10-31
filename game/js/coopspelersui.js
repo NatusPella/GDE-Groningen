@@ -12,6 +12,8 @@ import { biedOver } from './coophostwisselnet.js';
 import { setUserWaypoint } from './routing.js';
 import { getSettings, setSetting } from './settings.js';
 import { PROFIEL_KLEUREN, ONLINE_NAAM_MAX, profielNaam, profielKleur, profielTekst } from './lobby.js';
+import { meedoenSchakelaarHtml } from './onlineconsentui.js';
+import { zetMeedoen } from './onlineconsent.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const STIP = { ok: '#3fc97a', lag: '#f2c94c', lost: '#ff5a4f' };
@@ -113,10 +115,11 @@ function profielHtml(world) {
   return `<div class="cs-profiel"><h4>Je online-avatar</h4><p>${esc(profielTekst({ naam: s.onlineNaam, kleur }))} Je speelt lokaal je eigen verhaal (Tammo of Tessa); zo zien de anderen je, ook in deze lijst.</p>` +
     `<label class="cs-profiel-label">Online naam <input type="text" class="cs-profiel-naam" maxlength="${ONLINE_NAAM_MAX}" spellcheck="false" autocomplete="off" placeholder="Je figuur" value="${esc(s.onlineNaam)}"></label>` +
     `<div class="cs-kleuren" role="group" aria-label="Kleur">${PROFIEL_KLEUREN.map((c) => `<button type="button" data-kleur="${c.hex}" aria-pressed="${c.hex === kleur}"><span style="color:${c.hex}" aria-hidden="true">●</span> ${esc(c.naam)}</button>`).join('')}</div>` +
+    meedoenSchakelaarHtml(s) +
     (profielFout ? `<p class="cs-profiel-fout" role="alert">${esc(profielFout)}</p>` : '') +
     `<p class="cs-profiel-hint">Je staat standaard op passief: medespelers kunnen je geen schade doen, en alleen als jij en de ander die stand allebei uitzetten, kunnen jullie elkaar raken. ${world && world.coopNet ? 'Je nieuwe naam en kleur gelden zodra je opnieuw meedoet.' : 'Het spel bewaart je naam en kleur op dit apparaat.'}</p></div>`;
 }
-export function renderSpelersPanel(root, world, sluit = () => {}) {
+export function renderSpelersPanel(root, world, sluit = () => {}, opts = {}) {
   if (!root) return;
   zorgVoorStijl();
   root.classList.add('pm-spelers');
@@ -127,7 +130,7 @@ export function renderSpelersPanel(root, world, sluit = () => {}) {
     const zittend = root.contains(document.activeElement) && document.activeElement.matches('button, input');
     const rol = world.coopNet && world.coopNet.role;
     const prof = getSettings();
-    const key = JSON.stringify([bevestig, kanPassiefKiezen(world), passiefStandVan(world), prof.onlineNaam, prof.onlineKleur, profielFout, ...rijen.map((r) => [r.slot, r.doet, r.verbinding, r.ms, r.afstandTekst, r.passief, r.pvpInSpel, r.groep, r.leidt])]);
+    const key = JSON.stringify([bevestig, kanPassiefKiezen(world), passiefStandVan(world), prof.onlineNaam, prof.onlineKleur, prof.onlineMeedoen, profielFout, ...rijen.map((r) => [r.slot, r.doet, r.verbinding, r.ms, r.afstandTekst, r.passief, r.pvpInSpel, r.groep, r.leidt])]);
     if (root.dataset.key === key && root.dataset.klaar) return;
     if (zittend && root.dataset.klaar) return; // de focus op een knop of in het naamveld blijft staan
     const naamInvoer = schermNaam && document.activeElement === schermNaam ? schermNaam.value : prof.onlineNaam;
@@ -149,6 +152,17 @@ export function renderSpelersPanel(root, world, sluit = () => {}) {
         profielFout = r.ok ? '' : r.reason;
         if (r.ok) setSetting('onlineNaam', r.naam);
         root.dataset.klaar = ''; teken();
+      }
+      if (e.target && e.target.matches && e.target.matches('[data-meedoen]')) { // Meedoen met andere spelers (#530): the same gde-settings key as the first-start screen
+        const r = zetMeedoen(!!e.target.checked, { world });
+        if (r.tekst && world && world.addMessage) world.addMessage(r.tekst, 5);
+        // Aan: the existing way into the waiting room (requestOpenSamen in samenpanel.js), which
+        // uses lobbyui.js to host or join. pausemenu.js hands that in, so no cycle.
+        if (r.openSamen && opts.openSamen) opts.openSamen();
+        root.dataset.klaar = ''; teken();
+        // The panel is redrawn, so a keyboard user would lose the switch; put the focus back.
+        const nieuw = root.querySelector && root.querySelector('[data-meedoen]');
+        if (nieuw && typeof nieuw.focus === 'function') nieuw.focus();
       }
     });
     root.addEventListener('click', (e) => {
