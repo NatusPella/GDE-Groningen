@@ -106,14 +106,20 @@ const BASE_DEFAULTS = {
   // van je figuur.
   onlineNaam: '',
   onlineKleur: '#4fb3ff',
+  // Consent for Samen spelen (#528, ADR 0022): null = never asked, true = wants to
+  // play with others, false = a private session for one. Null must never read as
+  // "yes": it means the game still has to ask, and asks before any contact.
+  onlineMeedoen: null,
   // unused since the attract intro plays at every launch; kept so old
   // settings files load unchanged
   attractSeen: false,
 };
 // on the Steam Deck the first start has bigger text and controller hints (deck.js); the player's own choices win
 const DEFAULTS = { ...BASE_DEFAULTS, ...deckDefaults(isSteamDeck()) };
-// the Besturing screen has its own "Standaard herstellen" for the bindings
-const KEEP_ON_RESET = new Set(['attractSeen', 'keyBinds', 'padBinds']);
+// the Besturing screen has its own "Standaard herstellen" for the bindings; the
+// consent for Samen spelen survives too, because resetting preferences is not
+// withdrawing a permission (#528, ADR 0022)
+const KEEP_ON_RESET = new Set(['attractSeen', 'keyBinds', 'padBinds', 'onlineMeedoen', 'onlineNaam']);
 const SHIFT_CHOICES = ['auto', 'manual', 'clutch'];
 export const SUBTITLE_SIZES = { klein: 0.85, normaal: 1, groot: 1.25, extragroot: 1.5 };
 export const COLOR_BLIND_MODES = ['uit', 'deuteranopie', 'protanopie', 'tritanopie'];
@@ -157,6 +163,10 @@ function load() {
     // de online-avatar (#455): een kleur blijft een kleur, anders de standaard
     if (!/^#[0-9a-f]{6}$/i.test(out.onlineKleur)) out.onlineKleur = DEFAULTS.onlineKleur;
     out.onlineNaam = String(out.onlineNaam || '').slice(0, 16);
+    // toestemming voor Samen spelen (#528, ADR 0022): alleen een echte ja of nee telt.
+    // De lus hierboven kopieert geen null (typeof null is 'object'), dus dit moet apart:
+    // ontbrekend, null, "true", 1 of wat dan ook wordt null en dus "nog nooit gevraagd".
+    out.onlineMeedoen = raw.onlineMeedoen === true ? true : raw.onlineMeedoen === false ? false : null;
     if (!(out.padLookSensitivity >= 0.3 && out.padLookSensitivity <= 2.5)) out.padLookSensitivity = DEFAULTS.padLookSensitivity;
     if (stored && mig && mig.from < SETTINGS_VERSION) {
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...out, v: SETTINGS_VERSION })); } catch (e) { /* ignore */ }
@@ -217,6 +227,13 @@ export function withTempSettings(values) {
 
 export function resetSettings() {
   for (const k of Object.keys(DEFAULTS)) if (!KEEP_ON_RESET.has(k)) setSetting(k, DEFAULTS[k]);
+}
+
+// Mag dit spel contact zoeken met andere spelers? Alleen bij een uitdrukkelijke ja;
+// null ("nog nooit gevraagd") en false geven allebei nee (#528, ADR 0022). Elke lezer
+// gebruikt deze vraag, zodat er niet op drie plekken een eigen waarheid ontstaat.
+export function magOnline() {
+  return settings.onlineMeedoen === true;
 }
 
 export function onSettingsChange(cb) {
