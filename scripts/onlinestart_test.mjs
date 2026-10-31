@@ -121,6 +121,7 @@ await t('een ongeldige naam geeft een fout en zet niets', async () => {
   assert.equal(S.getSettings().onlineNaam, '', 'de naam is niet bewaard');
   assert.match(root.innerHTML, /role="alert"/);
   assert.match(root.innerHTML, /Tammo en Tessa horen bij het verhaal/, 'dezelfde foutmelding als het profielveld');
+  assert.match(root.innerHTML, /value="Tessa"/, 'de geweigerde naam blijft in het veld staan, zodat je hem kunt verbeteren');
   assert.deepEqual([log.ws.length, log.pc.length], [0, 0]);
   // too long is refused the same way, and an empty name is allowed (the name of your figure)
   assert.equal(kiesToestemming(true, 'x'.repeat(17)).ok, false);

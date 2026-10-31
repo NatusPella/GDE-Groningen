@@ -39,15 +39,17 @@ export function meedoenSchakelaarHtml(settings = getSettings()) {
 // (role="alert"), and nothing is written; the focus goes back to the name field.
 export function mountOnlineStart(root, { naam = '', onKies = () => {} } = {}) {
   let fout = '';
+  let getypt = naam; // what the field holds now, so a refused name is not wiped from under the player
   const veld = () => (root.querySelector ? root.querySelector('.os-naam') : null);
   const teken = () => {
-    root.innerHTML = onlineStartHtml({ naam, fout });
+    root.innerHTML = onlineStartHtml({ naam: getypt, fout });
     const v = veld();
     if (v && typeof v.focus === 'function') v.focus();
   };
   const kies = (ja) => {
     const v = veld();
-    const r = kiesToestemming(ja, v && 'value' in v ? v.value : naam);
+    if (v && 'value' in v) getypt = v.value;
+    const r = kiesToestemming(ja, getypt);
     if (!r.ok) { fout = r.error; teken(); return r; }
     root.innerHTML = '';
     onKies({ ...r, keuze: ja ? 'meedoen' : 'alleen' });
