@@ -159,7 +159,9 @@ De eigen speler lees je via `players.js` (`hoofdspeler`, `isGast`, `medespelers`
 ## Tests
 
 Puur (`scripts/*_test.mjs`): per module hierboven, plus `net_*`, `coop_scenarios`,
-`coopregressie`, `vrijdag`, `coopduur`, `coopwedstrijd_padel`. Electron
+`coopregressie`, `vrijdag`, `coopduur`, `coopwedstrijd_padel`. De hele stroom van een
+gast in een voertuig (instappen, meerijden, uitstappen, weer instappen; auto, meerijden
+bij de gastheer en boot) staat in `coopbestuurflow_test`. Electron
 (`scripts/coop/testbank.mjs`): `basis`, `net`, `opening`, `gastkant`, `bestuur`,
 `wedstrijd`, `uitelkaar`, `gastkant_443`, `gastkant_434`; avondscenario
 `playtest_sim.mjs`.
