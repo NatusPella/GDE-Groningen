@@ -159,7 +159,7 @@ def main():
         raise SystemExit(f"de metadata van {version} noemt geen CC BY 4.0: gestopt (controleer de licentie en pas LICENSE_OK aan)")
     dest_dir = os.path.join(a.out, version)
     os.makedirs(dest_dir, exist_ok=True)
-    with open(os.path.join(dest_dir, "VERSIE.json"), "w") as f:
+    with open(os.path.join(dest_dir, "VERSIE.json"), "w", encoding="utf-8") as f:
         json.dump({"version": version, "license": "CC BY 4.0", "source": F.BASE, "checked": time.strftime("%Y-%m-%d")}, f, indent=1)
     done = 0
     for tid, url, sha, box in tiles:

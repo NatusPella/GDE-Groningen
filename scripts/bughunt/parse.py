@@ -1,5 +1,5 @@
 import json, sys
-s = open(sys.argv[1]).read()
+s = open(sys.argv[1], encoding="utf-8").read()
 if '[smoke error]' in s:
     print('SMOKE ERROR', s[s.index('[smoke error]'):][:300])
 i = s.index('[perf-script]')

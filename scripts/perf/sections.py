@@ -19,7 +19,7 @@ DETAIL = ['cityprops', '3d:rail+country', '3d:roads', '3d:buildings', '3d:water'
 
 acc = defaultdict(lambda: defaultdict(list))
 for f in sys.argv[1:]:
-    d = json.load(open(f))
+    d = json.load(open(f, encoding="utf-8"))
     for k, r in d['routes'].items():
         if not r or 'hitch' not in r or 'sections' not in r['hitch']:
             continue

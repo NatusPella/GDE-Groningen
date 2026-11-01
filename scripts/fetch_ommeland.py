@@ -288,7 +288,7 @@ def fetch_layer(key, bbox):
 
 def extend():
     """Grow the cache to BBOX by fetching only the strips it lacks."""
-    with gzip.open(DST, "rt") as f:
+    with gzip.open(DST, "rt", encoding="utf-8") as f:
         raw = json.load(f)
     s0, w0, n0, e0 = raw["bbox"]
     s, w, n, e = BBOX
@@ -310,7 +310,7 @@ def extend():
             raw[key] += new
             print(f"  {key}: +{len(new)}", flush=True)
     raw["bbox"] = list(BBOX)
-    with gzip.open(DST, "wt", compresslevel=9) as f:
+    with gzip.open(DST, "wt", compresslevel=9, encoding="utf-8") as f:
         json.dump(raw, f, separators=(",", ":"))
     print(f"{DST}: {os.path.getsize(DST) / 1e6:.1f} MB")
 
@@ -320,7 +320,7 @@ def main():
         extend()
         return
     if "--recompact" in sys.argv:
-        with gzip.open(DST, "rt") as f:
+        with gzip.open(DST, "rt", encoding="utf-8") as f:
             raw = json.load(f)
         rnd = lambda v: round(v, R)
         def rr(e):
@@ -334,28 +334,28 @@ def main():
         raw["water"] = [w for w in map(compact_water, raw["water"]) if w]
         if raw["bld"] and isinstance(raw["bld"][0], dict):
             raw["bld"] = [b for b in map(compact_building, raw["bld"]) if b]
-        with gzip.open(DST, "wt", compresslevel=9) as f:
+        with gzip.open(DST, "wt", compresslevel=9, encoding="utf-8") as f:
             json.dump(raw, f, separators=(",", ":"))
         print(f"{DST}: {os.path.getsize(DST) / 1e6:.1f} MB, {len(raw['bld'])} buildings")
         return
     if "--layers" in sys.argv:
-        with gzip.open(DST, "rt") as f:
+        with gzip.open(DST, "rt", encoding="utf-8") as f:
             raw = json.load(f)
         for key in sys.argv[sys.argv.index("--layers") + 1].split(","):
             raw[key] = fetch_layer(key, tuple(raw["bbox"]))
-        with gzip.open(DST, "wt", compresslevel=9) as f:
+        with gzip.open(DST, "wt", compresslevel=9, encoding="utf-8") as f:
             json.dump(raw, f, separators=(",", ":"))
         print(f"{DST}: {os.path.getsize(DST) / 1e6:.1f} MB")
         return
     if "--refresh" not in sys.argv and os.path.exists(DST):
-        with gzip.open(DST, "rt") as f:
+        with gzip.open(DST, "rt", encoding="utf-8") as f:
             if tuple(json.load(f).get("bbox", ())) == BBOX:
                 print(f"{DST}: cached")
                 return
     raw = {"bbox": list(BBOX)}
     for key in LAYERS:
         raw[key] = fetch_layer(key, BBOX)
-    with gzip.open(DST, "wt", compresslevel=9) as f:
+    with gzip.open(DST, "wt", compresslevel=9, encoding="utf-8") as f:
         json.dump(raw, f, separators=(",", ":"))
     print(f"{DST}: {os.path.getsize(DST) / 1e6:.1f} MB")
 

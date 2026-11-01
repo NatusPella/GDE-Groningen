@@ -9,7 +9,7 @@ COLS = [('avg', 'frame ms'), ('cpuAvg', 'cpu ms'), ('gpuAvg', 'gpu ms'), ('calls
 
 for f in sys.argv[1:]:
     try:
-        d = json.load(open(f))
+        d = json.load(open(f, encoding="utf-8"))
     except Exception as e:  # noqa: BLE001
         print(f, 'no result', e)
         continue

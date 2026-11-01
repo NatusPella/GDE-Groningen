@@ -84,13 +84,13 @@ def overpass(query, attempts=5, timeout=300, key=None):
 def cached(path, bbox, make_query):
     """Overpass JSON for make_query(bbox), from path when it covers bbox."""
     if "--refresh" not in sys.argv and os.path.exists(path):
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             raw = json.load(f)
         if covers(raw.get("bbox"), bbox):
             return raw
     raw = overpass(make_query(bbox))
     raw["bbox"] = list(bbox)
-    with open(path, "w") as f:
+    with open(path, "w", encoding="utf-8") as f:
         json.dump(raw, f)
     return raw
 

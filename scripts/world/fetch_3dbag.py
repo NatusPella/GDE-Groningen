@@ -349,7 +349,7 @@ PROV_COLS = ["id", "x", "y", "a", "hmax", "h50", "hg", "roof"]
 
 def province_ring():
     """the province boundary in RD New (the extract's own, scripts/world/extract_province.py)"""
-    with gzip.open(PROV_SRC, "rt") as f:
+    with gzip.open(PROV_SRC, "rt", encoding="utf-8") as f:
         b = json.load(f)["boundary"]
     return [[wgs_to_rd(la, lo) for la, lo in ring] for ring in b]
 
@@ -461,7 +461,7 @@ def run_province(a):
             os.remove(raw)
         roofs = []
         out = [compact(r, roofs) for r in rows]
-        with gzip.open(ex + ".part", "wt", compresslevel=6) as f:
+        with gzip.open(ex + ".part", "wt", compresslevel=6, encoding="utf-8") as f:
             json.dump({"roofs": roofs, "rows": out}, f, separators=(",", ":"))
         os.replace(ex + ".part", ex)
         done += 1
@@ -487,7 +487,7 @@ def merge_province(ex_dir, tiles, rings, version):
         return near[key]
 
     for name in sorted(want & have):
-        with gzip.open(os.path.join(ex_dir, name + ".json.gz"), "rt") as f:
+        with gzip.open(os.path.join(ex_dir, name + ".json.gz"), "rt", encoding="utf-8") as f:
             d = json.load(f)
         for r in d["rows"]:
             if r[0] in seen:
@@ -510,7 +510,7 @@ def merge_province(ex_dir, tiles, rings, version):
 # --------------------------------------------------------------- main
 
 def map_bbox_rd():
-    with open(os.path.join(ROOT, "game", "stad.json")) as f:
+    with open(os.path.join(ROOT, "game", "stad.json"), encoding="utf-8") as f:
         b = json.load(f)["meta"]["bounds"]
     corners = [world_to_rd(x, y) for x in (b[0], b[2]) for y in (b[1], b[3])]
     xs, ys = [c[0] for c in corners], [c[1] for c in corners]
@@ -587,7 +587,7 @@ def main():
                 seen.add(r["id"])
                 out.append(r)
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
-    with gzip.open(OUT, "wt", compresslevel=9) as f:
+    with gzip.open(OUT, "wt", compresslevel=9, encoding="utf-8") as f:
         json.dump(out, f, separators=(",", ":"))
     print(f"{len(out)} buildings -> {os.path.relpath(OUT, ROOT)} ({os.path.getsize(OUT) / 1e6:.2f} MB)")
 

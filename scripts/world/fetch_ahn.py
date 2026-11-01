@@ -180,7 +180,7 @@ def read_tiff(buf):
 # --------------------------------------------------------------- main
 
 def map_tiles():
-    with open(os.path.join(ROOT, "game", "stad.json")) as f:
+    with open(os.path.join(ROOT, "game", "stad.json"), encoding="utf-8") as f:
         data = json.load(f)
     x0, y0, x1, y1 = data["meta"]["bounds"]
     i0, j0 = math.floor((x0 - GRID_X0) / TILE_M), math.floor((y0 - GRID_Y0) / TILE_M)
@@ -215,7 +215,7 @@ def province_tiles(path=None):
     """the tiles (i, j) of the province layer's index; empty ones (no content) too: the ground is still there"""
     for p in ([path] if path else PROVINCE_INDEX):
         if p and os.path.exists(p):
-            with open(p) as f:
+            with open(p, encoding="utf-8") as f:
                 idx = json.load(f)
             return sorted((t["i"], t["j"]) for t in idx["tiles"].values())
     raise SystemExit("no index-provincie.json (run the province build or desktop stage first)")
@@ -344,7 +344,7 @@ def main():
     os.makedirs(CACHE, exist_ok=True)
     os.makedirs(OUT, exist_ok=True)
     idx_path = os.path.join(OUT, "index.json")
-    index = json.load(open(idx_path)) if os.path.exists(idx_path) else {"source": "AHN (PDOK WCS, CC0)", "coverage": a.coverage, "tiles": {}}
+    index = json.load(open(idx_path, encoding="utf-8")) if os.path.exists(idx_path) else {"source": "AHN (PDOK WCS, CC0)", "coverage": a.coverage, "tiles": {}}
     failed, got_bytes, new_requests = [], 0, 0
     for i, j in tiles:
         key = tile_key(i, j)
@@ -380,7 +380,7 @@ def main():
         index["tiles"][key] = {"w": w, "h": h, "cell": cell, "x0": wx0, "y0": wy0, "street_nap": round(ref, 2), "holes": round(holes, 3), "abs": bool(a.province)}
         print(f"  {key}: {w} x {h}, {'datum' if a.province else 'street level'} NAP {ref:+.2f} m, {holes:.0%} holes")
     index["datum_nap"] = DATUM_NAP
-    with open(idx_path, "w") as f:
+    with open(idx_path, "w", encoding="utf-8") as f:
         json.dump(index, f, indent=1, sort_keys=True)
     outb = sum(os.path.getsize(os.path.join(OUT, k + ".bin")) for k in index["tiles"] if os.path.exists(os.path.join(OUT, k + ".bin")))
     print(f"wrote {os.path.relpath(OUT, ROOT)} ({len(index['tiles'])} tiles, {outb / 1e6:.1f} MB rasters); this run: {new_requests} new requests, {got_bytes / 1e6:.2f} MB read from the GeoTIFFs")
