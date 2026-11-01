@@ -28,7 +28,14 @@ export function paneelEvent(toets, paneel) {
   const mag = paneel && Array.isArray(paneel.toetsen) ? paneel.toetsen : null;
   const k = typeof toets === 'string' ? toets : '';
   if (!mag || !mag.includes(k)) return null;
-  return { k: 'paneel', a: k };
+  // Bij een timing gaat de balk mee zoals de gast hem zag (#525): zijn druk hoort bij die ronde en die
+  // naaldstand. Zonder die twee beoordeelt de gastheer hem op zijn eigen latere beeld en telt een goede
+  // druk als mis. Alleen bij een timing: een keuze heeft geen balk.
+  const ev = { k: 'paneel', a: k };
+  const nr = paneel && Number(paneel.nr), v = paneel && paneel.meter && Number(paneel.meter.v);
+  if (Number.isInteger(nr) && nr > 0) ev.r = nr;
+  if (Number.isFinite(v)) ev.v = Math.max(0, Math.min(1, v));
+  return ev;
 }
 // De eerste toets van het paneel die deze gast indrukte (dezelfde vorm als world.input, zonder DOM)
 export function paneelToets(input, paneel) {
@@ -43,7 +50,7 @@ export function paneelToets(input, paneel) {
 // PANEEL_WACHT_S: een gast kan niet sneller drukken dan de gastheer zelf kan. `stap` is de lopende verhaalstap
 // (missions.js activeStage), `sc` het sc├¿nebericht dat de gasten als laatste kregen (daar staat het paneel in).
 export const PANEEL_WACHT_S = 0.2;
-export function paneelIndrukken(world, van, toets, stap, sc = null) {
+export function paneelIndrukken(world, van, toets, stap, sc = null, balk = null) {
   if (!world || !stap || (stap.kind !== 'choice' && stap.kind !== 'timing')) return false;
   const paneel = sc && sc.paneel;
   if (!paneel || !Array.isArray(paneel.toetsen) || !paneel.toetsen.includes(toets)) return false;
@@ -55,7 +62,13 @@ export function paneelIndrukken(world, van, toets, stap, sc = null) {
   const at = n.paneelAt || (n.paneelAt = {});
   if (nu - (at[van] ?? -Infinity) < PANEEL_WACHT_S) return false;
   at[van] = nu;
-  (world.coopPaneel || (world.coopPaneel = [])).push({ van, toets, soort: stap.kind });
+  // De ronde en de naaldstand die de gast zag, zoals hij ze meestuurde (#525). Onleesbaar of buiten bereik
+  // betekent: geen balk, en dan beslist de gastheer op zijn eigen beeld zoals voorheen.
+  const r = Number(balk && balk.r), v = Number(balk && balk.v);
+  const druk = { van, toets, soort: stap.kind };
+  if (Number.isInteger(r) && r > 0 && r < 1000) druk.r = r;
+  if (Number.isFinite(v) && v >= 0 && v <= 1) druk.v = v;
+  (world.coopPaneel || (world.coopPaneel = [])).push(druk);
   return true;
 }
 // De drukken van gasten die bij deze stap horen, en ze uit de wachtrij halen. Een druk voor een keuze komt nooit
@@ -65,6 +78,20 @@ export function neemPaneelDruk(world, soort) {
   if (!Array.isArray(q) || !q.length) return [];
   const uit = [], rest = [];
   for (const d of q) { if (d && d.soort === soort) uit.push(d.toets); else rest.push(d); }
+  world.coopPaneel = rest;
+  return uit;
+}
+// De drukken op een timing van ronde `ronde` (#525). Een druk uit een ronde die al voorbij is, valt weg: de
+// gast zag een andere balk dan die nu op het paneel staat, dus zijn druk zegt niets over deze ronde. Zo kan een
+// te late druk de opdracht van de gastheer niet meer laten mislukken (stagetiming.js failAt).
+export function neemTimingDruk(world, ronde) {
+  const q = world && world.coopPaneel;
+  if (!Array.isArray(q) || !q.length) return [];
+  const uit = [], rest = [];
+  for (const d of q) {
+    if (!d || d.soort !== 'timing') { rest.push(d); continue; }
+    if (d.r === ronde) uit.push({ toets: d.toets, v: d.v });
+  }
   world.coopPaneel = rest;
   return uit;
 }

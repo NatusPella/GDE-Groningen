@@ -28,12 +28,13 @@ export const START_TEKST = {
 // choice staat op 'werkt' sinds #525: een gast leest de vraag en de opties mee (coopscene.js) en zijn toets gaat als
 // 'paneel'-bericht naar de gastheer, die hem als zijn eigen antwoord leest (coopgast.js paneelIndrukken). Er is geen
 // tijdsdruk, dus zijn antwoord komt altijd op tijd.
-// timing blijft 'deels': de gast ziet de balk en kan meedrukken, maar zijn druk komt met de netwerklatentie aan en de
-// zone is smal (0,36-0,64 van de balk bij ongeveer een seconde per uitslag). Een druk die te laat aankomt telt als mis
-// en kan de opdracht van de gastheer laten mislukken (failAt), dus bij een timing die telt laat hij hem aan de gastheer.
+// timing staat op 'werkt' sinds #525: de gast ziet de balk en drukt mee, en zijn druk gaat met de ronde en de
+// naaldstand mee die hij zag (paneelEvent). De gastheer beoordeelt hem op die stand (stagetiming.js updateTiming,
+// neemTimingDruk), dus netwerklatentie maakt van een goede druk geen mis meer; een druk uit een ronde die al voorbij
+// is valt weg en kan de opdracht dus niet meer laten mislukken (failAt).
 const STAP = {
   goto: WERKT, hold: WERKT, board: WERKT, escape: WERKT, chase: WERKT, scene: WERKT,
-  choice: WERKT, timing: DEELS,
+  choice: WERKT, timing: WERKT,
   rit: DEELS, bake: DEELS, convoy: DEELS, fuse: DEELS, blast: DEELS, plan: DEELS, lock: DEELS, pickpocket: DEELS,
   laser: DEELS, crack: DEELS, getaway: DEELS, shot: DEELS, garage: DEELS, boatchase: DEELS, vault: DEELS,
   train: NEE, plane: NEE, airgates: NEE, landplane: NEE, heli: NEE, pigeon: NEE,

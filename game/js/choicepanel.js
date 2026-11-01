@@ -56,11 +56,14 @@ export function createChoicePanel(accent = 'var(--mk-mission, #e8c93a)') {
     get open() { return !root.hidden; },
     show() { root.hidden = false; document.body.classList.add('mg-on'); last = ''; },
     hide() { root.hidden = true; document.body.classList.remove('mg-on'); },
-    // { kicker, text, rule, options: [{ key, label, cls }], meter: { v, from, to }, flash, bad, help }
+    // { kicker, text, rule, options: [{ key, label, cls }], meter: { v, from, to }, flash, bad, help, nr }
     set(s) {
-      const sig = JSON.stringify([s.kicker, s.text, s.rule, s.options, s.meter && [Math.round(s.meter.v * 100), s.meter.from, s.meter.to], s.flash, !!s.bad, s.help]);
+      const sig = JSON.stringify([s.kicker, s.text, s.rule, s.options, s.meter && [Math.round(s.meter.v * 100), s.meter.from, s.meter.to], s.flash, !!s.bad, s.help, s.nr]);
       if (sig === last) return;
       last = sig;
+      // de ronde van een timing (#525): de gast leest hem via de DOM en stuurt hem met zijn druk mee
+      if (s.nr > 0) root.dataset.rond = String(s.nr);
+      else delete root.dataset.rond;
       el.kicker.textContent = s.kicker || '';
       el.text.textContent = s.text || '';
       el.rule.hidden = !s.rule;
