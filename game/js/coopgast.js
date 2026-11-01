@@ -22,6 +22,53 @@ export const activiteitMagLokaal = (id) => GAST_ACTIVITEITEN.has(id);
 export const bezigEvent = (id) => ({ k: 'bezig', a: GAST_ACTIVITEITEN.has(id) ? id : null });
 export const MELDING_ALLEEN_OPENER = 'Alleen bij wie het spel opende.';
 
+// Een gast drukt mee op het paneel van de gastheer (#525): een keuze of een timing van een verhaalstap.
+// Alleen de toetsen die de gastheer hem noemde komen door, zodat een gast geen willekeurige toets kan sturen.
+export function paneelEvent(toets, paneel) {
+  const mag = paneel && Array.isArray(paneel.toetsen) ? paneel.toetsen : null;
+  const k = typeof toets === 'string' ? toets : '';
+  if (!mag || !mag.includes(k)) return null;
+  return { k: 'paneel', a: k };
+}
+// De eerste toets van het paneel die deze gast indrukte (dezelfde vorm als world.input, zonder DOM)
+export function paneelToets(input, paneel) {
+  if (!input || !paneel || !Array.isArray(paneel.toetsen) || !input.wasPressed) return null;
+  for (const k of paneel.toetsen) if (input.wasPressed(k)) return k;
+  return null;
+}
+// De gastheer leest de toets van een gast als zijn eigen antwoord. Dat gaat via een wachtrij en niet meteen in de
+// invoer: de berichten van de gasten komen na de spellus van dit beeld binnen (main.js: tickCoopNet na
+// updateGameplay, en daarna wist input.endFrame de toetsen), dus de stap leest hem aan het begin van het volgende
+// beeld. Alleen de toetsen die het paneel van deze stap aanneemt komen door, en per gast hoogstens een keer per
+// PANEEL_WACHT_S: een gast kan niet sneller drukken dan de gastheer zelf kan. `stap` is de lopende verhaalstap
+// (missions.js activeStage), `sc` het sc├¿nebericht dat de gasten als laatste kregen (daar staat het paneel in).
+export const PANEEL_WACHT_S = 0.2;
+export function paneelIndrukken(world, van, toets, stap, sc = null) {
+  if (!world || !stap || (stap.kind !== 'choice' && stap.kind !== 'timing')) return false;
+  const paneel = sc && sc.paneel;
+  if (!paneel || !Array.isArray(paneel.toetsen) || !paneel.toetsen.includes(toets)) return false;
+  const inp = world.input;
+  if (!inp || !inp._justPressed || world.paused || world.uiPaused) return false;
+  const n = world.coopNet;
+  if (!n || n.role !== 'host' || !(van >= 1)) return false;
+  const nu = Number(world.time) || 0;
+  const at = n.paneelAt || (n.paneelAt = {});
+  if (nu - (at[van] ?? -Infinity) < PANEEL_WACHT_S) return false;
+  at[van] = nu;
+  (world.coopPaneel || (world.coopPaneel = [])).push({ van, toets, soort: stap.kind });
+  return true;
+}
+// De drukken van gasten die bij deze stap horen, en ze uit de wachtrij halen. Een druk voor een keuze komt nooit
+// bij een timing terecht en andersom.
+export function neemPaneelDruk(world, soort) {
+  const q = world && world.coopPaneel;
+  if (!Array.isArray(q) || !q.length) return [];
+  const uit = [], rest = [];
+  for (const d of q) { if (d && d.soort === soort) uit.push(d.toets); else rest.push(d); }
+  world.coopPaneel = rest;
+  return uit;
+}
+
 export const MELDING_WINKEL = (naam) => `${naam}: dat kan alleen in je eigen spel.`;
 
 // Een gast begint zijn eigen opdracht niet vanuit de telefoon of het menu: zijn scherm is een dunne client en de

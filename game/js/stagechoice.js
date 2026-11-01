@@ -11,6 +11,7 @@
 // Keys 1-3 pick. Nothing here imports game code but the panel; the stage state lives in S (missions.js).
 import { menuSound } from './menusound.js';
 import { createChoicePanel, keycap } from './choicepanel.js';
+import { neemPaneelDruk } from './coopgast.js'; // de toets van een gast bij de gastheer (#525)
 
 const REPLY_S = 2.6;
 let panel = null;
@@ -84,7 +85,11 @@ export function updateChoice(dt, world, st, S) {
   let key = null;
   if (S.cphase === 'ask') {
     const round = st.rounds[Math.min(S.ci, st.rounds.length - 1)];
-    for (let i = 0; i < round.options.length; i++) {
+    const geldig = (k) => round.options.some((o, i) => String(i + 1) === k);
+    // Samen spelen (#525): eerst wat een gast bij de gastheer indrukte, dan de toetsen van dit apparaat. De keuze is
+    // van de groep; elke meespeler telt. Een register van een heeft geen wachtrij en verandert dus niets.
+    key = neemPaneelDruk(world, 'choice').find(geldig) || null;
+    if (!key) for (let i = 0; i < round.options.length; i++) {
       const k = String(i + 1);
       if (world.input.wasPressed(k)) { world.input.consume(k); key = k; break; }
     }

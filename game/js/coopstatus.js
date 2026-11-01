@@ -25,9 +25,16 @@ export const START_TEKST = {
 
 // De stappen van een missie (missions.js, stage.kind). Wat alleen bij wie het spel opende staat (rekwisieten, voertuigen, kluis) is 'deels';
 // vliegen, de trein en de duivenmodus doen gasten nog niet ('nee').
+// choice staat op 'werkt' sinds #525: een gast leest de vraag en de opties mee (coopscene.js) en zijn toets gaat als
+// 'paneel'-bericht naar de gastheer, die hem als zijn eigen antwoord leest (coopgast.js paneelIndrukken). Er is geen
+// tijdsdruk, dus zijn antwoord komt altijd op tijd.
+// timing blijft 'deels': de gast ziet de balk en kan meedrukken, maar zijn druk komt met de netwerklatentie aan en de
+// zone is smal (0,36-0,64 van de balk bij ongeveer een seconde per uitslag). Een druk die te laat aankomt telt als mis
+// en kan de opdracht van de gastheer laten mislukken (failAt), dus bij een timing die telt laat hij hem aan de gastheer.
 const STAP = {
   goto: WERKT, hold: WERKT, board: WERKT, escape: WERKT, chase: WERKT, scene: WERKT,
-  choice: DEELS, timing: DEELS, rit: DEELS, bake: DEELS, convoy: DEELS, fuse: DEELS, blast: DEELS, plan: DEELS, lock: DEELS, pickpocket: DEELS,
+  choice: WERKT, timing: DEELS,
+  rit: DEELS, bake: DEELS, convoy: DEELS, fuse: DEELS, blast: DEELS, plan: DEELS, lock: DEELS, pickpocket: DEELS,
   laser: DEELS, crack: DEELS, getaway: DEELS, shot: DEELS, garage: DEELS, boatchase: DEELS, vault: DEELS,
   train: NEE, plane: NEE, airgates: NEE, landplane: NEE, heli: NEE, pigeon: NEE,
 };

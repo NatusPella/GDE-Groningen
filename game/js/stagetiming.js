@@ -10,6 +10,7 @@
 //   goodAt: hits needed for tagGood, fewer give tagLow (tags land in chain.tags, see missions.js consequenceAdjust)
 // Space, E or F press. Nothing here imports game code but the panel; the stage state lives in S (missions.js).
 import { createChoicePanel, keycap } from './choicepanel.js';
+import { neemPaneelDruk } from './coopgast.js'; // de toets van een gast bij de gastheer (#525)
 
 const REPLY_S = 1.5;
 let panel = null;
@@ -88,6 +89,10 @@ export function updateTiming(dt, world, st, S) {
   world.minigameUntil = world.time + 0.25;
   let press = false;
   if (S.tphase === 'ask') {
+    // Samen spelen (#525): een gast ziet de balk en drukt mee; zijn druk komt uit de wachtrij van de gastheer. Hij
+    // telt alleen als treffer als hij hier aankomt terwijl de naald in het groen staat, dus de klok van de gastheer is
+    // de baas (netwerklatentie kan een goede druk van een gast net naast het groen laten vallen).
+    if (neemPaneelDruk(world, 'timing').length) press = true;
     for (const k of [' ', 'e', 'f']) if (world.input.wasPressed(k)) { world.input.consume(k); press = true; }
   }
   const r = stepTiming(st, S, press, dt);
