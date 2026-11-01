@@ -92,7 +92,7 @@ t('een missie krijgt de slechtste status van zijn stappen', () => {
   assert.equal(S.missieStatus({ type: 'stages', stages: [{ kind: 'crack' }, { kind: 'train' }, { kind: 'goto' }] }), 'nee');
   assert.equal(S.missieStatus({ type: 'stages', stages: [{ kind: 'iets-nieuws' }] }), 'deels', 'een onbekende stap telt als deels');
   assert.equal(S.missieStatus({ type: 'boat' }), 'nee');
-  assert.equal(S.missieStatus({ type: 'checkpoint' }), 'deels');
+  assert.equal(S.missieStatus({ type: 'checkpoint' }), 'werkt', 'sinds #525 leest de motor de groep: elke meespeler haalt zelf de controlepunten');
   assert.equal(S.missieStatus(null), null);
 });
 

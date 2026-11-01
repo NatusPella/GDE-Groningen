@@ -175,7 +175,7 @@ function typeSource(type) {
   return { text, helpers };
 }
 
-const GROUP_READ = /\b(doelStand|teamActor|iedereenOk|opdrachtSpelers|afstandMeespeler|meespelerInVoertuig|groepKlaar)\s*\(|\bst\.iedereen\b/;
+const GROUP_READ = /\b(doelStand|teamActor|iedereenOk|opdrachtSpelers|afstandMeespeler|meespelerInVoertuig|groepKlaar|groepsActeurs)\s*\(|\bst\.iedereen\b/;
 // "The player" of one device: hoofdspeler(world), or the bare world.player singleton (#500).
 const ONE_BODY = /\bhoofdspeler\s*\(|\b(?:world|w)\.player\b|\bp\.(?:x|y|z|inVehicle|enterVehicle|exitVehicle|speed|health)\b/;
 const OWN_KEYS = /\bworld\.input\b|\binp\.wasPressed\b|\bwasPressed\s*\(/;

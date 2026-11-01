@@ -6,6 +6,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+- **Controlepunten, races en stuntavond tellen voor de hele groep (#525).** Haalt een gast een controlepunt, rijdt hij de missieauto of scoort hij op de markt, dan telt dat voor iedereen; de motor leest de groep via `groepsActeurs()` in plaats van ├®├®n lichaam. Alleen spelen verandert er niets.
+
 - **De spec-teller haalt zichzelf op bij de bron.** `spec_check` keurde de getallen in de specs al, maar bijwerken was handwerk: na een TTS-ronde stond `verhaal.md` op 808 terwijl de bron 706 zei, en dat moest iemand toevallig opmerken. `node scripts/spec_check.mjs --write` zet elk getal nu gelijk aan de bron, laat de notatie staan (`1.450` blijft `1.450`) en raakt een spec die al klopt niet aan. Vastgelegd in `AGENTS.md` en bewaakt door `spec_check_test`.
 - **Een geheim komt niet meer in de geschiedenis.** `scripts/secrets_scan.mjs` bestond al (werkboom én alle commits) maar draaide nergens mee. De repo is privé op een Free-plan, dus GitHub's push protection staat hier niet aan. De scan draait nu in CI, en `node scripts/install_hooks.mjs` zet een pre-commit-haak die een commit met een sleutel tegenhoudt vóór hij bestaat. `install_hooks_test` bewaakt dat de haak uitvoerbaar is: een haak zonder +x slaat git stil over.
 

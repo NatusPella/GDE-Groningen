@@ -17,6 +17,7 @@ import { isCinematicActive } from './cinematics.js';
 import { showStuntHud, hideStuntHud, updateStuntHud, stuntPopup } from './stunthud.js';
 import { onPropBreak, propsInRadius, isPropBroken } from './breakables.js';
 import { stuntPunten } from './omverrules.js';
+import { groepsActeurs } from './stagegroep.js';
 
 let sceneMod = null;
 import('./scene3d.js').then((m) => { sceneMod = m; }).catch(() => {});
@@ -27,6 +28,18 @@ const NEAR_MISS = 40;
 const DRIFT_PER_S = 60;
 const FLOCK = 120;
 const SPRAY = 300;
+
+// Samen spelen (#525): the riders of the group who are in a car on the square. Whoever of the group
+// scores, scores for the evening; with one player this is the body of this device, exactly as before
+// (and a car outside the stunt zone still does not count, as it did not before).
+function stuntRijders(w) {
+  const R = run;
+  if (!R) return [];
+  return groepsActeurs(w).filter((a) => {
+    const v = a.inVehicle;
+    return v && !v.isBoat && Math.hypot(v.x - R.center.x, v.y - R.center.y) < R.radius + 10;
+  });
+}
 const KINDS = [
   { kind: 'parasol', label: 'parasol', pts: 120, n: 10, opts: { r: 0.3, h: 2.4, mass: 12, material: 'plastic', breakSpeed: 0.6, breakCost: 0 } },
   { kind: 'kliko', label: 'kliko', pts: 80, n: 10, opts: { r: 0.36, h: 1.1, mass: 25, material: 'plastic', breakSpeed: 0.3, breakCost: 0, burst: 'litter' } },
@@ -191,15 +204,14 @@ export function updateStunt(dt, w, timeLeft = Infinity) {
     R.lateHint = true;
     w.addMessage(`Nog ${R.target - R.score} punten in ${LATE_HINT_S} seconden! Parasols, tafels en bankjes leveren het meest op.`, 4, { kind: 'missie', key: 'stunt-late' });
   }
-  const p = w.player, v = p.inVehicle;
-  const inZone = Math.hypot(p.x - R.center.x, p.y - R.center.y) < R.radius + 10;
-  if (v && !v.isBoat && inZone) {
+  // Samen spelen (#525): the stunt reads the group. A guest in a car on the square scores the same
+  // way the host does; with one player this is the body of this device, exactly as before.
+  let drifting = false;
+  for (const actor of stuntRijders(w)) {
+    const v = actor.inVehicle;
     // drifting through the square
     const slip = Math.hypot(v.driftX || 0, v.driftY || 0);
-    if (slip > 2.2 && Math.abs(v.speed) > 6) {
-      R.drift += dt;
-      if (R.drift > 0.5) { R.drift = 0; addPoints(w, DRIFT_PER_S * 0.5, 'drift'); }
-    } else R.drift = 0;
+    if (slip > 2.2 && Math.abs(v.speed) > 6) drifting = true;
     // near misses: fast past someone, without touching
     if (Math.abs(v.speed) > 8) {
       for (const ped of w.pedestrians) {
@@ -215,6 +227,10 @@ export function updateStunt(dt, w, timeLeft = Infinity) {
       addPoints(w, SPRAY, 'waterwagen', 'De waterwagen sproeit het terras nat!');
     }
   }
+  if (drifting) {
+    R.drift += dt;
+    if (R.drift > 0.5) { R.drift = 0; addPoints(w, DRIFT_PER_S * 0.5, 'drift'); }
+  } else R.drift = 0;
   if (R.sprayT > 0 && R.truck) {
     R.sprayT -= dt;
     const t = R.truck, c = Math.cos(t.angle), s = Math.sin(t.angle);

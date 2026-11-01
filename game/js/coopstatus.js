@@ -32,7 +32,11 @@ const STAP = {
   train: NEE, plane: NEE, airgates: NEE, landplane: NEE, heli: NEE, pigeon: NEE,
 };
 // Een missie zonder stappen (missions.js, def.type): de soort zelf telt
-const MISSIE_SOORT = { checkpoint: DEELS, deliver: DEELS, fatbike: DEELS, stunt: DEELS, boat: NEE };
+// checkpoint staat op 'werkt' sinds #525: de motor leest de groep, dus elke meespeler haalt zelf de
+// controlepunten (op zijn eigen fiets) en wie als eerste de finish haalt, telt voor de groep — net
+// als bij de stappen goto en hold. deliver blijft 'deels' (een gast rijdt mee, de missieauto besturen
+// mag hij niet), fatbike blijft 'deels' (de baandieren mikken op de gastheer), boat 'nee'.
+const MISSIE_SOORT = { checkpoint: WERKT, deliver: DEELS, fatbike: DEELS, stunt: DEELS, boat: NEE };
 
 // Bijbanen (sidejobs.js, job.id): taxi, bezorger, krantenwijk en vracht (coopbijbaan.js) en de bus (buscoop.js) zijn samen te doen
 const BIJBAAN = {

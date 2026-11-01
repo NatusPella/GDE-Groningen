@@ -7,6 +7,14 @@ import { opdrachtSpelers, acteur, hoofdspeler } from './spelersregister.js';
 export const WACHT_OP_ANDEREN = 'Wacht even: iedereen moet erbij zijn.';
 const d2 = (a, t) => Math.hypot(a.x - t.x, a.y - t.y);
 
+// De lichamen van de groep waar een checkpoint, een race of een stunt naar kijkt (#525): de gastheer
+// en de gasten die J zeiden, als x, y en inVehicle. Een register van een geeft de hoofdspeler terug,
+// dus een eenspelerspel doet precies wat het deed. Dit is de enige plek waar de motor de groep als
+// lijst lichamen leest; racen, stunten en checkpoints gebruiken hem alle drie.
+export function groepsActeurs(world) {
+  return opdrachtSpelers(world).map((r) => acteur(world, r));
+}
+
 // De meespeler die aan de eis voldoet (ok(acteur, afstand)), anders de dichtstbijzijnde bij het doel.
 export function teamActor(world, target, ok = null) {
   const l = opdrachtSpelers(world);
