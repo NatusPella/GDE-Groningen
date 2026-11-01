@@ -41,9 +41,16 @@ export function nightFactor(elevDeg) {
 
 const wrap = (h) => ((h % 24) + 24) % 24;
 
+// An hour that is always usable. A NaN or infinite clock never becomes finite
+// again by itself (NaN % 24 is still NaN), and every light, colour and the
+// exposure are interpolated from it: one bad clock hour would leave the whole
+// 3D view black for as long as nothing else sets the clock. Noon is the
+// harmless stand-in, the same one dayState and the 3D lighting already use.
+export const wrapHour = (h) => (Number.isFinite(h) ? wrap(h) : 12);
+
 // 0..1: how dark it is at this clock hour (0..24), by the sun of today's date
 export function nightAtHour(hour) {
-  return Number.isFinite(hour) ? nightFactor(sunElevationDeg(wrap(hour))) : 0;
+  return nightFactor(sunElevationDeg(wrapHour(hour)));
 }
 
 // is it night at this clock hour: the one answer for every rule that only has an hour

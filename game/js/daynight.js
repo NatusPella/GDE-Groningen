@@ -1,6 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { GRID_CONVERGENCE } from './rdnew.js';
-import { setSunDeclination, sunElevationDeg, nightFactor, nightAtHour, smoothstep, hourAngle } from './sunrules.js';
+import { setSunDeclination, sunElevationDeg, nightFactor, nightAtHour, smoothstep, hourAngle, wrapHour } from './sunrules.js';
 
 // the sun and the night live in sunrules.js (one definition of night, #107)
 export { setSunDeclination, sunElevationDeg, nightFactor, nightAtHour };
@@ -29,7 +29,7 @@ export function updateDayNight(dt, world) {
 }
 
 export function refreshDayNight(world) {
-  const hour = ((world.clock % 24) + 24) % 24;
+  const hour = wrapHour(world.clock);
   const elev = sunElevationDeg(hour);
   const dn = world.dayNight || (world.dayNight = {});
   dn.hour = hour;
@@ -65,7 +65,7 @@ const KEY_COLORS = KEYS.map((k) => Object.fromEntries(COLOR_KEYS.map((c) => [c, 
 // Fills `out` (reused between frames) with the full lighting mood for a
 // clock hour. Colours are linear THREE.Colors.
 export function computeLighting(hour, out = {}) {
-  hour = ((hour % 24) + 24) % 24;
+  hour = wrapHour(hour);
   const elev = sunElevationDeg(hour);
   for (const c of COLOR_KEYS) if (!out[c]) out[c] = new THREE.Color();
   if (!out.sunDir) { out.sunDir = new THREE.Vector3(); out.moonDir = new THREE.Vector3(); out.lightDir = new THREE.Vector3(); }
