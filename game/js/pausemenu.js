@@ -10,7 +10,7 @@ import { logoHtml } from './logo.js';
 import { setPauseMenuOpen, setPauseMenuTabState, setPauseMenuControls } from './pausestate.js';
 import { PRESET_ORDER, presetLabel, describePreset, describeChanges, currentPreset, applyPreset, getBenchResult, dismissBenchBanner, GEAR_SVG } from './gfxprofile.js';
 import { mountMapView, setMapActive, setMapCloseHandler, setMapView, getDiscoveredRatio, setMapTeleport } from './mapview.js';
-import { renderSamenPanel, requestOpenSamen } from './samenpanel.js';
+import { renderSamenPanel, requestOpenSamen, samenHubTerug } from './samenpanel.js';
 import { renderVeroverdPanel } from './veroverdpanel.js';
 import { renderSpelersPanel } from './coopspelersui.js';
 import { renderCheatsPanel, cheatsClick, resetCheatsPanel, cheatsFocus } from './cheatsui.js';
@@ -907,6 +907,10 @@ function onKey(e) {
 
 // Esc/Backspace: close an open confirm, then back to Overzicht, then close.
 function goBack() {
+  // Samen spelen (#527): de hub met drie stappen gaat eerst zelf een stap terug, zodat Escape de sessie nooit
+  // afsluit (de uitweg heet daar Ontsnappen naar besloten). Pas op de eerste stap doet Escape wat het altijd deed.
+  // Het tabblad Spelers heeft zijn eigen lijst zonder hub; daar blijft Escape dus buiten.
+  if (tab === 'spel' && pref.sub.spel === 'samen' && (pref.sub.samen || 'samen') !== 'spelers' && samenHubTerug()) return;
   const confirmEl = root.querySelector('[data-restart-confirm]');
   if (!confirmEl.hidden) {
     confirmEl.hidden = true;
