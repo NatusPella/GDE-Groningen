@@ -27,15 +27,24 @@ export function leesKlokEvent(b) {
 }
 
 export class KlokVolger {
-  constructor({ snapAbove = 0.25, slew = 0.5 } = {}) {
+  constructor({ snapAbove = 0.25, slew = 0.5, maxAhead = 2.5 } = {}) {
     this.snapAbove = snapAbove; this.slew = slew; // snap vanaf zoveel uur verschil; anders zoveel van het verschil per seconde weg
+    // Hoever de gast vooruit mag rekenen tussen twee meldingen. Was 10 s: bij een pauze van de gastheer liep de
+    // klok van de gast dan minuten voor en sprong bij het hervatten terug (#520). Een melding komt elke KLOK_EVERY
+    // seconden, dus iets meer dan dat is genoeg om soepel door te lopen.
+    this.maxAhead = maxAhead;
     this.last = null; this.prev = null; this.rate = null; this.jump = false;
+    this.stil = false; // de gastheer staat stil (pauze): dezelfde tijd komt nog eens langs
   }
   // een melding van de host; lokaal = eigen tijd in seconden (monotoon)
   observe(msg, lokaal) {
     if (!msg) return false;
-    if (this.last && msg.t <= this.last.t) return false; // oud of dubbel
-    this.prev = this.last; this.last = { ...msg, lokaal };
+    if (this.last && msg.t < this.last.t) return false; // oud
+    if (this.last && msg.t === this.last.t) { // de gastheer staat stil: zijn wereld loopt niet, dus de klok ook niet
+      this.last = { ...msg, lokaal }; this.stil = true;
+      return true;
+    }
+    this.prev = this.last; this.last = { ...msg, lokaal }; this.stil = false;
     if (this.prev) {
       const dt = this.last.t - this.prev.t, dh = hourDiff(this.prev.uur, this.last.uur);
       if (dt > 0) { const r = dh / dt; this.rate = r >= 0 && r <= MAX_RATE ? r : this.rate; } // negatief = sprong terug, geen snelheid
@@ -46,7 +55,8 @@ export class KlokVolger {
   // wat de host nu naar verwachting aanwijst
   target(lokaal) {
     if (!this.last) return null;
-    const ahead = Math.max(0, Math.min(10, lokaal - this.last.lokaal)); // niet ver doorschuiven als de meldingen stoppen
+    if (this.stil) return this.last.uur; // hij staat stil: niets om vooruit te rekenen
+    const ahead = Math.max(0, Math.min(this.maxAhead, lokaal - this.last.lokaal)); // niet ver doorschuiven als de meldingen stoppen
     return wrap(this.last.uur + (this.rate || 0) * ahead);
   }
   // De kalenderdag uit de laatste melding, of null bij een gastheer die hem niet meestuurt (#452).
@@ -57,7 +67,7 @@ export class KlokVolger {
     if (tgt == null) return huidig;
     const d = hourDiff(huidig, tgt);
     if (this.jump || Math.abs(d) > this.snapAbove) { this.jump = false; return tgt; }
-    const move = Math.sign(d) * Math.min(Math.abs(d), Math.max(Math.abs(d) * this.slew * dt, 0));
-    return wrap(huidig + move + (this.rate || 0) * dt);
+    const move = Math.sign(d) * Math.min(Math.abs(d), Math.abs(d) * this.slew * dt);
+    return wrap(huidig + move + (this.stil ? 0 : (this.rate || 0) * dt));
   }
 }
