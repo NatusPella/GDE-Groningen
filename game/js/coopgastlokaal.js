@@ -9,7 +9,7 @@ import { tryHorecaInteract } from './horeca.js';
 import { gastGebruik, gastBus, gastTrein } from './coopnet.js';
 import { gastTreinTik } from './cooptrein.js';
 import { isShopOpen } from './shopui.js';
-import { gastKijkHoek, bezigEvent } from './coopgast.js';
+import { gastKijkHoek, bezigEvent, paneelEvent, paneelToets } from './coopgast.js';
 import { gastWapenTik } from './coopwapen.js';
 import { openerNaam } from './coopplayers.js';
 import { updateActivitiesGast, tryActivityInteractGast } from './activities.js';
@@ -17,6 +17,18 @@ import { getSettings } from './settings.js';
 import { wedGastTik, wedGastE, wedGastBaanTik } from './multiplayerwedstrijd.js';
 import { bijbaanGastE } from './coopbijbaan.js';
 import { missieGastE } from './coopglue.js';
+
+// Een gast ziet aan het scènebericht van de gastheer dat er een keuze of timing op het paneel staat (#525):
+// hij stuurt zijn toets als 'paneel'-bericht, en de gastheer leest hem als zijn eigen antwoord.
+function gastPaneel(world, input) {
+  const paneel = world.coopScene && world.coopScene.paneel;
+  const k = paneelToets(input, paneel);
+  const ev = k && paneelEvent(k, paneel);
+  const n = world.coopNet;
+  if (!ev || !n || n.role !== 'client' || !n.session || !n.session.sendEvent) return false;
+  try { n.session.sendEvent(ev); } catch (e) { return false; }
+  return true;
+}
 
 // meld de host (alleen bij een wisseling) dat deze gast een activiteit speelt: hij staat dan stil. Een host zonder dit bericht negeert het.
 function meldBezig(world, id) {
@@ -46,6 +58,9 @@ export function updateGastLokaal(world, dt = 1 / 60) {
   meldBezig(world, bezig);
   if (bezig) return true;
   const e = input.wasPressed('e') || input.wasPressed('f');
+  // meedrukken op de keuze of timing van de gastheer (#525): vóór E, want bij een timing is E een van de
+  // paneeltoetsen en dan hoort hij bij het paneel, niet bij instappen
+  if (gastPaneel(world, input)) { input.consume('e'); input.consume('f'); input.consume(' '); return true; }
   if (!e) { tryShopInteract(world); return false; } // R: lak en tuning (een melding)
   if (tryShopInteract(world) || tryMachineInteract(world) || tryHorecaInteract(world)) return true;
   if (wedGastE(world)) { input.consume('e'); input.consume('f'); return true; } // een wedstrijd starten bij het startpunt: een verzoek aan wie het spel opende (#452)

@@ -19,7 +19,7 @@ import { holdBeleid, vereistVoor, leesLijstEvent, lijst, zetAvatar } from './coo
 import { cameraRelative, stepSlot2, sharedCamera } from './coop.js';
 import { coopStep, missieGastVerzoek } from './coopglue.js';
 import { gateOn, setGate, hekBericht } from './coopgate.js';
-import { WIEL_TEKST, WIEL_HOST_TEKST, WIEL_VERZOEK_S, kanUitstappen } from './coopgast.js';
+import { WIEL_TEKST, WIEL_HOST_TEKST, WIEL_VERZOEK_S, kanUitstappen, paneelIndrukken } from './coopgast.js';
 import { nieuwCutVerzamelaar, cutGastSpeel, cutGastStop, leesCutTijd, cutSpoor } from './coopcut.js';
 import { verzamelExtra, codeerExtra, leesExtra, nieuwGeheugen, nieuweStand, pasExtraToe, doelenVan } from './coopextra.js';
 import { maakGroepen, begin as groepBegin, zetStand as groepZet, beeindig as groepBeeindig, ruimOp as groepRuimOp, groepen as groepLijst, doelenVoor as groepDoelenVoor, groep as groepRecord, leiderVan as groepLeider, groepVan as groepVanSlot } from './coopmissie.js';
@@ -1087,7 +1087,9 @@ export function tickCoopNet(world, dt) {
   if (n.tWeer >= WEER_EVERY) { n.tWeer = 0; const we = weerEvent(world.weatherState); if (we) n.hub.announce(we); }
   if (n.tHash >= HASH_EVERY) { n.tHash = 0; n.hub.announce(hashEvent(++n.hashN, hostView(world, n.info, n.hub.roster))); }
   n.tScene += dt;
-  if (n.scene && n.tScene >= 0.25) { // een filmpje, een regel, een keuze: voor de gasten
+  // Een filmpje, een regel, een keuze: voor de gasten. Loopt er een timing met een balk op het paneel, dan tien
+  // keer per seconde in plaats van vier: de gast moet kunnen mikken op een naald van ongeveer een seconde (#525).
+  if (n.scene && n.tScene >= (n.sceneNu && n.sceneNu.paneel && n.sceneNu.paneel.meter ? 0.1 : 0.25)) {
     const tScene = n.tScene; n.tScene = 0;
     let sc = null; try { sc = n.scene(); } catch (e) { sc = null; }
     n.filmpjeT = sc && sc.filmpje ? n.filmpjeT + tScene : 0;
@@ -1297,6 +1299,7 @@ export function handleEvent(world, body, van = 0) {
       hekBericht(world, body.aan);
       return true;
     }
+    case 'paneel': return !!n && n.role === 'host' && van >= 1 && paneelGast(world, van, body.a); // een gast drukt mee op de keuze of timing van de gastheer (#525)
     case 'trek': { // E van een gast (#459): eerst iemand uit een voertuig trekken, anders gewoon in- of uitstappen
       if (!n || n.role !== 'host' || van < 1) return false;
       const nu = now(world), at = n.trekAt || (n.trekAt = {});
@@ -1439,6 +1442,10 @@ export function sendPing(world, x, y, soort = 'hier') {
 }
 // ---- de gast doet iets bij de host (#291, docs/COOP-GAST.md)
 const gastNaam = (world, slot) => { const p = (world.coopRoster || []).find((x) => x && x.slot === slot); return (p && ((p.avatar && p.avatar.naam) || p.naam || (charInfo(p.char) || {}).naam)) || 'De ander'; };
+
+// Een gast drukt mee op het paneel van een verhaalstap (#525): zijn toets gaat als een ingedrukte toets van de
+// gastheer naar binnen, zodat `choice` en `timing` hem lezen als een gewoon antwoord.
+const paneelGast = (world, van, toets) => paneelIndrukken(world, van, toets, activeStage(), world.coopNet && world.coopNet.sceneNu);
 // E van een gast bij de host (na de eigen winkels, activiteiten en wedstrijden): zelf een vrij voertuig instappen of
 // uitstappen (bestuurGebruik), anders als passagier mee in het voertuig van de gastheer (#372, #502). Elke gast is een
 // figuur, dus ook plek 1 gaat hier langs; de oude tak naar de metgezel bestaat niet meer.

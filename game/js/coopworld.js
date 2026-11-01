@@ -372,19 +372,44 @@ export function missieTekst(m, rol = 'wereld', naam = 'De ander') {
 // Een filmpje, de regel die iemand zegt en een keuze in een gesprek spelen op de host. De gasten krijgen dat als
 // 'scene'-bericht (alleen als het verandert): zij zien dat de gastheer een filmpje kijkt, lezen de tekst mee en zien
 // welke keuze de gastheer krijgt. De gastheer beslist; een gast kiest niet.
+//
+// `paneel` zegt welke stap van een opdracht op het paneel staat (`choice`, `timing`) en welke toetsen die
+// aanneemt (#525). Zonder die twee velden wist een gast niet dat er iets te drukken valt; met `paneel`
+// stuurt hij zijn toets als 'paneel'-bericht naar de gastheer, die het als zijn eigen antwoord leest.
 const tekst = (v, n) => (typeof v === 'string' ? v.slice(0, n) : '');
-export const SCENE_LEEG = Object.freeze({ filmpje: false, pauze: false, regel: null, keuze: null });
+const PANEEL_TOETSEN = /^[1-9ef ]$/; // 1-9 voor een keuze, Spatie/e/f voor een timing (stagetiming.js)
+export const SCENE_LEEG = Object.freeze({ filmpje: false, pauze: false, regel: null, keuze: null, paneel: null });
 export function schoonScene(sc) {
   if (!sc || typeof sc !== 'object') return { ...SCENE_LEEG };
-  const out = { filmpje: !!sc.filmpje, pauze: !!sc.pauze, regel: null, keuze: null };
+  const out = { filmpje: !!sc.filmpje, pauze: !!sc.pauze, regel: null, keuze: null, paneel: null };
   if (sc.regel && typeof sc.regel === 'object' && tekst(sc.regel.tekst, 1)) out.regel = { wie: tekst(sc.regel.wie, 40), tekst: tekst(sc.regel.tekst, 240) };
   if (sc.keuze && typeof sc.keuze === 'object' && Array.isArray(sc.keuze.opties)) {
     const opties = sc.keuze.opties.slice(0, 6).map((o) => tekst(o, 80)).filter(Boolean);
     if (opties.length) out.keuze = { tekst: tekst(sc.keuze.tekst, 240), opties };
   }
+  // een paneel zonder bruikbare toetsen is geen paneel: dan valt er voor een gast niets te doen
+  if (sc.paneel && typeof sc.paneel === 'object' && Array.isArray(sc.paneel.toetsen)) {
+    const toetsen = [...new Set(sc.paneel.toetsen.filter((k) => PANEEL_TOETSEN.test(k)))].slice(0, 9);
+    if (toetsen.length) {
+      const p = { stap: tekst(sc.paneel.stap, 16), toetsen };
+      // de vraag en de rondeteller van een timing ("Timing - 2 VAN 3"): zonder die twee weet een gast niet waar hij
+      // op drukt. Alleen als er iets staat, zodat een keuze geen lege velden meestuurt.
+      const vraag = tekst(sc.paneel.tekst, 240), ronde = tekst(sc.paneel.ronde, 24);
+      if (vraag) p.tekst = vraag;
+      if (ronde) p.ronde = ronde;
+      // de balk van een timing (stagetiming.js paint): zonder naald drukt een gast blind en verpest hij de
+      // opdracht van de gastheer, dus gaat de stand mee. Twee decimalen is genoeg voor een balk van 100 pixels.
+      const m = p.stap === 'timing' ? sc.paneel.meter : null; // alleen een timing heeft een balk
+      if (m && typeof m === 'object') {
+        const v = Number(m.v), from = Number(m.from ?? 0), to = Number(m.to ?? 0);
+        if (Number.isFinite(v) && Number.isFinite(from) && Number.isFinite(to)) p.meter = { v: Math.round(Math.max(0, Math.min(1, v)) * 100) / 100, from, to };
+      }
+      out.paneel = p;
+    }
+  }
   return out;
 }
-export const sceneLeeg = (sc) => !sc || (!sc.filmpje && !sc.pauze && !sc.regel && !sc.keuze);
+export const sceneLeeg = (sc) => !sc || (!sc.filmpje && !sc.pauze && !sc.regel && !sc.keuze && !sc.paneel);
 // prev = wat de gasten het laatst kregen; geeft het bericht dat nu nodig is (of null) en de nieuwe stand
 export function sceneBericht(prev, sc) {
   const nu = schoonScene(sc), was = prev ? schoonScene(prev) : { ...SCENE_LEEG };
@@ -395,3 +420,11 @@ export function leesSceneBericht(b) { return b && b.k === 'scene' ? schoonScene(
 // Tekst voor de gast bij een filmpje
 export const filmpjeTekst = (naam = 'De ander') => `${naam} kijkt een filmpje. Je wacht even.`;
 export const pauzeTekst = (naam = 'De ander') => `${naam} heeft het spel op pauze.`;
+// Wat een gast leest als de gastheer een keuze of een timing op het paneel heeft (#525): zijn toets telt mee.
+const TOETS_NAAM = { ' ': 'Spatie', e: 'E', f: 'F' };
+export const paneelTekst = (paneel) => {
+  const toetsen = (paneel && paneel.toetsen) || [];
+  if (!toetsen.length) return '';
+  const naam = toetsen.map((k) => TOETS_NAAM[k] || k).join(' of ');
+  return paneel.stap === 'timing' ? `Druk mee: ${naam}.` : `Jouw antwoord telt mee: ${naam}.`;
+};
