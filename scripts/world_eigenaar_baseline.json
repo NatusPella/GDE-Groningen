@@ -1,7 +1,7 @@
 {
  "version": 1,
  "note": "Aantal schrijvende bestanden per world-veld (#498), gemeten met scripts/world_eigenaar.mjs. Alleen omlaag; nieuwe velden worden op hun huidige stand opgenomen.",
- "veldTotaal": 294,
+ "veldTotaal": 296,
  "velden": {
   "_balloonTimer": 1,
   "_goodMoney": 1,
@@ -93,6 +93,7 @@
   "coopInVoertuig": 1,
   "coopJachtDoel": 1,
   "coopKetenZet": 1,
+  "coopKijkPitch": 1,
   "coopMeedoenJa": 1,
   "coopMeedoenNee": 1,
   "coopMeespelers": 1,
@@ -105,6 +106,7 @@
   "coopNet": 1,
   "coopOpdrachtDoor": 1,
   "coopOverdracht": 1,
+  "coopPaneel": 1,
   "coopPartner": 1,
   "coopPartners": 1,
   "coopPingMarks": 1,

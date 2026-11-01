@@ -1,1517 +1,1524 @@
 {
- "version": 1,
- "note": "Veldeigenaarschap van het wereldobject (#498): per veld één eigenaar, en per uitzondering het bestand, het hoogste aantal schrijfacties, de reden en het issue. Een nieuw schrijvend bestand of meer schrijfacties dan max is een fout; zie scripts/world_eigenaar.mjs.",
- "velden": {
-  "armor": {
-   "eigenaar": "game/js/player.js",
-   "notitie": "Pantser is spelertoestand, net als gezondheid."
-  },
-  "audioEvents": {
-   "eigenaar": "game/js/audio.js",
-   "notitie": "audio.js leest de lijst elk beeld; alle andere modules melden alleen een event."
-  },
-  "camYaw": {
-   "eigenaar": "game/js/scene3d.js",
-   "notitie": "scene3d.js bezit de camerahoek en de camerabediening."
-  },
-  "cameraOverride": {
-   "eigenaar": "game/js/cinematics.js",
-   "notitie": "cinematics.js neemt de camera over voor filmpjes."
-  },
-  "clock": {
-   "eigenaar": "game/js/daynight.js",
-   "notitie": "daynight.js zet de klok en de dag/nacht-cyclus."
-  },
-  "coopTreinDeur": {
-   "eigenaar": "game/js/cooptrein.js",
-   "notitie": "cooptrein.js bedient de treindeur in de coop-modus."
-  },
-  "coopKetenZet": {
-   "eigenaar": "game/js/missions.js",
-   "notitie": "missions.js zet de missieketen per sessie (#523); coopnet.js roept hem alleen aan bij de start en het einde van een sessie."
-  },
-  "extraSpeakers": {
-   "eigenaar": "game/js/scene3d.js",
-   "notitie": "scene3d.js zet de sprekers om in tekstballonnen; modules melden alleen een spreker."
-  },
-  "health": {
-   "eigenaar": "game/js/player.js",
-   "notitie": "De speler bezit zijn gezondheid; schade en herstel horen via de spelersmodule te lopen."
-  },
-  "lastImpact": {
-   "eigenaar": "game/js/vehicleimpact.js",
-   "notitie": "vehicleimpact.js registreert en gebruikt de laatste botsing."
-  },
-  "minigameUntil": {
-   "eigenaar": "game/js/sidejobkit.js",
-   "notitie": "De bijbaankit zet en leest de blokkade voor de volgende minigame."
-  },
-  "money": {
-   "eigenaar": "game/js/economy.js",
-   "notitie": "economy.js kent de prijzen en boetes; het saldo hoort daar achter één API."
-  },
-  "particles": {
-   "eigenaar": "game/js/main.js",
-   "notitie": "De hoofdlus ruimt de deeltjeslijst elk beeld op; modules voegen alleen effecten toe."
-  },
-  "pedestrians": {
-   "eigenaar": "game/js/pedestrians.js",
-   "notitie": "pedestrians.js beheert de lijst en het gedrag van voetgangers."
-  },
-  "phoneNotifications": {
-   "eigenaar": "game/js/phone.js",
-   "notitie": "phone.js bezit de telefoon en zijn meldingen."
-  },
-  "uiPaused": {
-   "eigenaar": "game/js/main.js",
-   "notitie": "De hoofdlus leest de vlag voor world.paused; schermen zetten hem tijdelijk."
-  },
-  "vehicles": {
-   "eigenaar": "game/js/main.js",
-   "notitie": "De hoofdlus beheert de lijst: hij ruimt op, stapelt botsingen en zet de speler erin."
-  },
-  "wanted": {
-   "eigenaar": "game/js/police.js",
-   "notitie": "politie bezit het verval en de spawns; andere modules melden alleen een misdrijf."
-  },
-  "wantedDecayTimer": {
-   "eigenaar": "game/js/police.js",
-   "notitie": "Eigen boeking van police.js; world.js zegt het al in een comment."
-  },
-  "weapon": {
-   "eigenaar": "game/js/combat.js",
-   "notitie": "combat.js wisselt en gebruikt het wapen."
-  },
-  "lastBlast": {
-   "eigenaar": "geen, dood veld",
-   "notitie": "Wordt door throwables.js en vehicle.js gezet, maar niemand leest hem. Verwijderen in #498."
-  },
-  "teleported": {
-   "eigenaar": "geen, dood veld",
-   "notitie": "Wordt op vijf plekken op world.time gezet, maar nergens gelezen: rest van een oude respawn-truc. Verwijderen in #498."
-  }
- },
- "uitzonderingen": [
-  {
-   "veld": "armor",
-   "bestand": "game/js/combat.js",
-   "max": 1,
-   "reden": "past het pantser aan buiten de spelersmodule om",
-   "issue": "#498"
-  },
-  {
-   "veld": "armor",
-   "bestand": "game/js/coopnet.js",
-   "max": 1,
-   "reden": "past het pantser aan buiten de spelersmodule om",
-   "issue": "#498"
-  },
-  {
-   "veld": "armor",
-   "bestand": "game/js/missions.js",
-   "max": 1,
-   "reden": "past het pantser aan buiten de spelersmodule om",
-   "issue": "#498"
-  },
-  {
-   "veld": "armor",
-   "bestand": "game/js/multiplayerpvpwereld.js",
-   "max": 4,
-   "reden": "past het pantser aan buiten de spelersmodule om",
-   "issue": "#498"
-  },
-  {
-   "veld": "armor",
-   "bestand": "game/js/pedestrians.js",
-   "max": 2,
-   "reden": "past het pantser aan buiten de spelersmodule om",
-   "issue": "#498"
-  },
-  {
-   "veld": "armor",
-   "bestand": "game/js/railway.js",
-   "max": 1,
-   "reden": "past het pantser aan buiten de spelersmodule om",
-   "issue": "#498"
-  },
-  {
-   "veld": "armor",
-   "bestand": "game/js/shops.js",
-   "max": 4,
-   "reden": "past het pantser aan buiten de spelersmodule om",
-   "issue": "#498"
-  },
-  {
-   "veld": "armor",
-   "bestand": "game/js/world.js",
-   "max": 1,
-   "reden": "past het pantser aan buiten de spelersmodule om",
-   "issue": "#498"
-  },
-  {
-   "veld": "audioEvents",
-   "bestand": "game/js/achievements.js",
-   "max": 1,
-   "reden": "meldt een geluidsevent; audio.js leest de lijst",
-   "issue": "#498"
-  },
-  {
-   "veld": "audioEvents",
-   "bestand": "game/js/breakables.js",
-   "max": 1,
-   "reden": "meldt een geluidsevent; audio.js leest de lijst",
-   "issue": "#498"
-  },
-  {
-   "veld": "audioEvents",
-   "bestand": "game/js/combat.js",
-   "max": 2,
-   "reden": "meldt een geluidsevent; audio.js leest de lijst",
-   "issue": "#498"
-  },
-  {
-   "veld": "audioEvents",
-   "bestand": "game/js/coopentities3d.js",
-   "max": 1,
-   "reden": "meldt een geluidsevent; audio.js leest de lijst",
-   "issue": "#498"
-  },
-  {
-   "veld": "audioEvents",
-   "bestand": "game/js/coopnet.js",
-   "max": 2,
-   "reden": "meldt een geluidsevent; audio.js leest de lijst",
-   "issue": "#498"
-  },
-  {
-   "veld": "audioEvents",
-   "bestand": "game/js/coopwedstrijd3d.js",
-   "max": 1,
-   "reden": "meldt een geluidsevent; audio.js leest de lijst",
-   "issue": "#498"
-  },
-  {
-   "veld": "audioEvents",
-   "bestand": "game/js/coopzitten3d.js",
-   "max": 1,
-   "reden": "meldt een geluidsevent; audio.js leest de lijst",
-   "issue": "#498"
-  },
-  {
-   "veld": "audioEvents",
-   "bestand": "game/js/countryside.js",
-   "max": 1,
-   "reden": "meldt een geluidsevent; audio.js leest de lijst",
-   "issue": "#498"
-  },
-  {
-   "veld": "audioEvents",
-   "bestand": "game/js/drunk.js",
-   "max": 1,
-   "reden": "meldt een geluidsevent; audio.js leest de lijst",
-   "issue": "#498"
-  },
-  {
-   "veld": "audioEvents",
-   "bestand": "game/js/fjordtrain.js",
-   "max": 1,
-   "reden": "meldt een geluidsevent; audio.js leest de lijst",
-   "issue": "#498"
-  },
-  {
-   "veld": "audioEvents",
-   "bestand": "game/js/gore3d.js",
-   "max": 1,
-   "reden": "meldt een geluidsevent; audio.js leest de lijst",
-   "issue": "#498"
-  },
-  {
-   "veld": "audioEvents",
-   "bestand": "game/js/heist.js",
-   "max": 1,
-   "reden": "meldt een geluidsevent; audio.js leest de lijst",
-   "issue": "#498"
-  },
-  {
-   "veld": "audioEvents",
-   "bestand": "game/js/knockfx3d.js",
-   "max": 1,
-   "reden": "meldt een geluidsevent; audio.js leest de lijst",
-   "issue": "#498"
-  },
-  {
-   "veld": "audioEvents",
-   "bestand": "game/js/missions.js",
-   "max": 2,
-   "reden": "meldt een geluidsevent; audio.js leest de lijst",
-   "issue": "#498"
-  },
-  {
-   "veld": "audioEvents",
-   "bestand": "game/js/multiplayerpvpwereld.js",
-   "max": 1,
-   "reden": "meldt een geluidsevent; audio.js leest de lijst",
-   "issue": "#498"
-  },
-  {
-   "veld": "audioEvents",
-   "bestand": "game/js/pedgeom.js",
-   "max": 2,
-   "reden": "meldt een geluidsevent; audio.js leest de lijst",
-   "issue": "#498"
-  },
-  {
-   "veld": "audioEvents",
-   "bestand": "game/js/player.js",
-   "max": 4,
-   "reden": "meldt een geluidsevent; audio.js leest de lijst",
-   "issue": "#498"
-  },
-  {
-   "veld": "audioEvents",
-   "bestand": "game/js/railway.js",
-   "max": 1,
-   "reden": "meldt een geluidsevent; audio.js leest de lijst",
-   "issue": "#498"
-  },
-  {
-   "veld": "audioEvents",
-   "bestand": "game/js/rondvaartchase.js",
-   "max": 2,
-   "reden": "meldt een geluidsevent; audio.js leest de lijst",
-   "issue": "#498"
-  },
-  {
-   "veld": "audioEvents",
-   "bestand": "game/js/sfx/minigamefoley.js",
-   "max": 2,
-   "reden": "meldt een geluidsevent; audio.js leest de lijst",
-   "issue": "#498"
-  },
-  {
-   "veld": "audioEvents",
-   "bestand": "game/js/shops.js",
-   "max": 1,
-   "reden": "meldt een geluidsevent; audio.js leest de lijst",
-   "issue": "#498"
-  },
-  {
-   "veld": "audioEvents",
-   "bestand": "game/js/sidejob_vracht.js",
-   "max": 1,
-   "reden": "meldt een geluidsevent; audio.js leest de lijst",
-   "issue": "#498"
-  },
-  {
-   "veld": "audioEvents",
-   "bestand": "game/js/throwables.js",
-   "max": 1,
-   "reden": "meldt een geluidsevent; audio.js leest de lijst",
-   "issue": "#498"
-  },
-  {
-   "veld": "audioEvents",
-   "bestand": "game/js/traindrive.js",
-   "max": 2,
-   "reden": "meldt een geluidsevent; audio.js leest de lijst",
-   "issue": "#498"
-  },
-  {
-   "veld": "audioEvents",
-   "bestand": "game/js/vehicle.js",
-   "max": 1,
-   "reden": "meldt een geluidsevent; audio.js leest de lijst",
-   "issue": "#498"
-  },
-  {
-   "veld": "audioEvents",
-   "bestand": "game/js/wildlife.js",
-   "max": 1,
-   "reden": "meldt een geluidsevent; audio.js leest de lijst",
-   "issue": "#498"
-  },
-  {
-   "veld": "camYaw",
-   "bestand": "game/js/aimassist.js",
-   "max": 1,
-   "reden": "zet de camerahoek",
-   "issue": "#498"
-  },
-  {
-   "veld": "camYaw",
-   "bestand": "game/js/combat.js",
-   "max": 1,
-   "reden": "zet de camerahoek",
-   "issue": "#498"
-  },
-  {
-   "veld": "camYaw",
-   "bestand": "game/js/coopgastlokaal.js",
-   "max": 1,
-   "reden": "zet de camerahoek",
-   "issue": "#498"
-  },
-  {
-   "veld": "camYaw",
-   "bestand": "game/js/helirun.js",
-   "max": 3,
-   "reden": "zet de camerahoek",
-   "issue": "#498"
-  },
-  {
-   "veld": "camYaw",
-   "bestand": "game/js/player.js",
-   "max": 2,
-   "reden": "zet de camerahoek",
-   "issue": "#498"
-  },
-  {
-   "veld": "camYaw",
-   "bestand": "game/js/traindrive.js",
-   "max": 1,
-   "reden": "zet de camerahoek",
-   "issue": "#498"
-  },
-  {
-   "veld": "camYaw",
-   "bestand": "game/js/world.js",
-   "max": 1,
-   "reden": "zet de camerahoek",
-   "issue": "#498"
-  },
-  {
-   "veld": "cameraOverride",
-   "bestand": "game/js/helirun.js",
-   "max": 4,
-   "reden": "neemt de camera over (de chase-cam, de filmstand op hoogte en de missiefases)",
-   "issue": "#498"
-  },
-  {
-   "veld": "cameraOverride",
-   "bestand": "game/js/samenpanel.js",
-   "max": 1,
-   "reden": "neemt de camera over",
-   "issue": "#498"
-  },
-  {
-   "veld": "cameraOverride",
-   "bestand": "game/js/startscreen.js",
-   "max": 2,
-   "reden": "neemt de camera over",
-   "issue": "#498"
-  },
-  {
-   "veld": "clock",
-   "bestand": "game/js/coophostwisselnet.js",
-   "max": 1,
-   "reden": "zet de klok of een dag/nacht-timer",
-   "issue": "#498"
-  },
-  {
-   "veld": "clock",
-   "bestand": "game/js/coopnet.js",
-   "max": 1,
-   "reden": "zet de klok of een dag/nacht-timer",
-   "issue": "#498"
-  },
-  {
-   "veld": "clock",
-   "bestand": "game/js/missions.js",
-   "max": 2,
-   "reden": "zet de klok of een dag/nacht-timer",
-   "issue": "#498"
-  },
-  {
-   "veld": "clock",
-   "bestand": "game/js/reisrit.js",
-   "max": 1,
-   "reden": "zet de klok of een dag/nacht-timer",
-   "issue": "#498"
-  },
-  {
-   "veld": "clock",
-   "bestand": "game/js/startscreen.js",
-   "max": 4,
-   "reden": "zet de klok of een dag/nacht-timer",
-   "issue": "#498"
-  },
-  {
-   "veld": "clock",
-   "bestand": "game/js/story.js",
-   "max": 2,
-   "reden": "zet de klok of een dag/nacht-timer",
-   "issue": "#498"
-  },
-  {
-   "veld": "clock",
-   "bestand": "game/js/storydev.js",
-   "max": 1,
-   "reden": "zet de klok of een dag/nacht-timer",
-   "issue": "#498"
-  },
-  {
-   "veld": "clock",
-   "bestand": "game/js/storytest.js",
-   "max": 1,
-   "reden": "zet de klok of een dag/nacht-timer",
-   "issue": "#498"
-  },
-  {
-   "veld": "clock",
-   "bestand": "game/js/testmenu.js",
-   "max": 1,
-   "reden": "zet de klok of een dag/nacht-timer",
-   "issue": "#498"
-  },
-  {
-   "veld": "coopTreinDeur",
-   "bestand": "game/js/coopnet.js",
-   "max": 2,
-   "reden": "bedient de treindeur in de coop-modus",
-   "issue": "#498"
-  },
-  {
-   "veld": "coopTreinDeur",
-   "bestand": "game/js/machinist.js",
-   "max": 1,
-   "reden": "bedient de treindeur in de coop-modus",
-   "issue": "#498"
-  },
-  {
-   "veld": "coopTreinDeur",
-   "bestand": "game/js/traindrive.js",
-   "max": 1,
-   "reden": "bedient de treindeur in de coop-modus",
-   "issue": "#498"
-  },
-  {
-   "veld": "extraSpeakers",
-   "bestand": "game/js/coopextra3d.js",
-   "max": 3,
-   "reden": "voegt een spreker toe aan de lijst",
-   "issue": "#498"
-  },
-  {
-   "veld": "extraSpeakers",
-   "bestand": "game/js/fierljep.js",
-   "max": 2,
-   "reden": "voegt een spreker toe aan de lijst",
-   "issue": "#498"
-  },
-  {
-   "veld": "extraSpeakers",
-   "bestand": "game/js/flavour.js",
-   "max": 2,
-   "reden": "voegt een spreker toe aan de lijst",
-   "issue": "#498"
-  },
-  {
-   "veld": "extraSpeakers",
-   "bestand": "game/js/heist.js",
-   "max": 1,
-   "reden": "voegt een spreker toe aan de lijst",
-   "issue": "#498"
-  },
-  {
-   "veld": "extraSpeakers",
-   "bestand": "game/js/missions.js",
-   "max": 1,
-   "reden": "voegt een spreker toe aan de lijst",
-   "issue": "#498"
-  },
-  {
-   "veld": "extraSpeakers",
-   "bestand": "game/js/policemounts.js",
-   "max": 1,
-   "reden": "voegt een spreker toe aan de lijst",
-   "issue": "#498"
-  },
-  {
-   "veld": "extraSpeakers",
-   "bestand": "game/js/swimmers3d.js",
-   "max": 2,
-   "reden": "voegt een spreker toe aan de lijst",
-   "issue": "#498"
-  },
-  {
-   "veld": "health",
-   "bestand": "game/js/combat.js",
-   "max": 2,
-   "reden": "past de gezondheid aan buiten de spelersmodule om",
-   "issue": "#498"
-  },
-  {
-   "veld": "health",
-   "bestand": "game/js/coopnet.js",
-   "max": 1,
-   "reden": "past de gezondheid aan buiten de spelersmodule om",
-   "issue": "#498"
-  },
-  {
-   "veld": "health",
-   "bestand": "game/js/horeca.js",
-   "max": 1,
-   "reden": "past de gezondheid aan buiten de spelersmodule om",
-   "issue": "#498"
-  },
-  {
-   "veld": "health",
-   "bestand": "game/js/missions.js",
-   "max": 1,
-   "reden": "past de gezondheid aan buiten de spelersmodule om",
-   "issue": "#498"
-  },
-  {
-   "veld": "health",
-   "bestand": "game/js/multiplayerpvpwereld.js",
-   "max": 4,
-   "reden": "past de gezondheid aan buiten de spelersmodule om",
-   "issue": "#498"
-  },
-  {
-   "veld": "health",
-   "bestand": "game/js/pedestrians.js",
-   "max": 2,
-   "reden": "past de gezondheid aan buiten de spelersmodule om",
-   "issue": "#498"
-  },
-  {
-   "veld": "health",
-   "bestand": "game/js/railway.js",
-   "max": 2,
-   "reden": "past de gezondheid aan buiten de spelersmodule om",
-   "issue": "#498"
-  },
-  {
-   "veld": "health",
-   "bestand": "game/js/shops.js",
-   "max": 1,
-   "reden": "past de gezondheid aan buiten de spelersmodule om",
-   "issue": "#498"
-  },
-  {
-   "veld": "health",
-   "bestand": "game/js/snackautomaat.js",
-   "max": 1,
-   "reden": "past de gezondheid aan buiten de spelersmodule om",
-   "issue": "#498"
-  },
-  {
-   "veld": "health",
-   "bestand": "game/js/vehicle.js",
-   "max": 1,
-   "reden": "past de gezondheid aan buiten de spelersmodule om",
-   "issue": "#498"
-  },
-  {
-   "veld": "health",
-   "bestand": "game/js/world.js",
-   "max": 1,
-   "reden": "past de gezondheid aan buiten de spelersmodule om",
-   "issue": "#498"
-  },
-  {
-   "veld": "lastImpact",
-   "bestand": "game/js/lowhealth.js",
-   "max": 1,
-   "reden": "registreert de laatste botsing",
-   "issue": "#498"
-  },
-  {
-   "veld": "lastImpact",
-   "bestand": "game/js/missions.js",
-   "max": 2,
-   "reden": "registreert de laatste botsing",
-   "issue": "#498"
-  },
-  {
-   "veld": "lastImpact",
-   "bestand": "game/js/railway.js",
-   "max": 3,
-   "reden": "registreert de laatste botsing",
-   "issue": "#498"
-  },
-  {
-   "veld": "lastImpact",
-   "bestand": "game/js/storytest.js",
-   "max": 1,
-   "reden": "registreert de laatste botsing",
-   "issue": "#498"
-  },
-  {
-   "veld": "lastImpact",
-   "bestand": "game/js/throwables.js",
-   "max": 1,
-   "reden": "registreert de laatste botsing",
-   "issue": "#498"
-  },
-  {
-   "veld": "lastImpact",
-   "bestand": "game/js/vehicle.js",
-   "max": 1,
-   "reden": "registreert de laatste botsing",
-   "issue": "#498"
-  },
-  {
-   "veld": "minigameUntil",
-   "bestand": "game/js/heist.js",
-   "max": 3,
-   "reden": "zet de blokkade voor de volgende minigame",
-   "issue": "#498"
-  },
-  {
-   "veld": "minigameUntil",
-   "bestand": "game/js/sidejob_boa.js",
-   "max": 1,
-   "reden": "zet de blokkade voor de volgende minigame",
-   "issue": "#498"
-  },
-  {
-   "veld": "minigameUntil",
-   "bestand": "game/js/sidejob_cabaret.js",
-   "max": 1,
-   "reden": "zet de blokkade voor de volgende minigame",
-   "issue": "#498"
-  },
-  {
-   "veld": "minigameUntil",
-   "bestand": "game/js/sidejob_keuze.js",
-   "max": 1,
-   "reden": "zet de blokkade voor de volgende minigame",
-   "issue": "#498"
-  },
-  {
-   "veld": "minigameUntil",
-   "bestand": "game/js/sidejob_rechtbank.js",
-   "max": 2,
-   "reden": "zet de blokkade voor de volgende minigame",
-   "issue": "#498"
-  },
-  {
-   "veld": "minigameUntil",
-   "bestand": "game/js/sidejob_snackbar.js",
-   "max": 1,
-   "reden": "zet de blokkade voor de volgende minigame",
-   "issue": "#498"
-  },
-  {
-   "veld": "minigameUntil",
-   "bestand": "game/js/sidejob_stad.js",
-   "max": 1,
-   "reden": "zet de blokkade voor de volgende minigame",
-   "issue": "#498"
-  },
-  {
-   "veld": "minigameUntil",
-   "bestand": "game/js/stagechoice.js",
-   "max": 1,
-   "reden": "zet de blokkade voor de volgende minigame",
-   "issue": "#498"
-  },
-  {
-   "veld": "minigameUntil",
-   "bestand": "game/js/stagetiming.js",
-   "max": 1,
-   "reden": "zet de blokkade voor de volgende minigame",
-   "issue": "#498"
-  },
-  {
-   "veld": "money",
-   "bestand": "game/js/coopbus.js",
-   "max": 1,
-   "reden": "past het saldo aan buiten economy.js om",
-   "issue": "#498"
-  },
-  {
-   "veld": "money",
-   "bestand": "game/js/coopnet.js",
-   "max": 2,
-   "reden": "past het saldo aan buiten economy.js om",
-   "issue": "#498"
-  },
-  {
-   "veld": "money",
-   "bestand": "game/js/flitspaal.js",
-   "max": 1,
-   "reden": "past het saldo aan buiten economy.js om",
-   "issue": "#498"
-  },
-  {
-   "veld": "money",
-   "bestand": "game/js/horeca.js",
-   "max": 1,
-   "reden": "past het saldo aan buiten economy.js om",
-   "issue": "#498"
-  },
-  {
-   "veld": "money",
-   "bestand": "game/js/main.js",
-   "max": 1,
-   "reden": "past het saldo aan buiten economy.js om",
-   "issue": "#498"
-  },
-  {
-   "veld": "money",
-   "bestand": "game/js/missions.js",
-   "max": 4,
-   "reden": "past het saldo aan buiten economy.js om; de vierde is de uitbetaling per speler bij de museumkraak (#438)",
-   "issue": "#498"
-  },
-  {
-   "veld": "money",
-   "bestand": "game/js/multiplayerpvpwereld.js",
-   "max": 1,
-   "reden": "past het saldo aan buiten economy.js om",
-   "issue": "#498"
-  },
-  {
-   "veld": "money",
-   "bestand": "game/js/ownedvehicles.js",
-   "max": 3,
-   "reden": "past het saldo aan buiten economy.js om",
-   "issue": "#498"
-  },
-  {
-   "veld": "money",
-   "bestand": "game/js/pg_foodtruck.js",
-   "max": 1,
-   "reden": "past het saldo aan buiten economy.js om",
-   "issue": "#498"
-  },
-  {
-   "veld": "money",
-   "bestand": "game/js/reisrit.js",
-   "max": 1,
-   "reden": "past het saldo aan buiten economy.js om",
-   "issue": "#498"
-  },
-  {
-   "veld": "money",
-   "bestand": "game/js/shops.js",
-   "max": 9,
-   "reden": "past het saldo aan buiten economy.js om",
-   "issue": "#498"
-  },
-  {
-   "veld": "money",
-   "bestand": "game/js/sidejob_vracht.js",
-   "max": 1,
-   "reden": "past het saldo aan buiten economy.js om",
-   "issue": "#498"
-  },
-  {
-   "veld": "money",
-   "bestand": "game/js/sidejobs.js",
-   "max": 1,
-   "reden": "past het saldo aan buiten economy.js om",
-   "issue": "#498"
-  },
-  {
-   "veld": "money",
-   "bestand": "game/js/snackautomaat.js",
-   "max": 1,
-   "reden": "past het saldo aan buiten economy.js om",
-   "issue": "#498"
-  },
-  {
-   "veld": "money",
-   "bestand": "game/js/story.js",
-   "max": 4,
-   "reden": "past het saldo aan buiten economy.js om",
-   "issue": "#498"
-  },
-  {
-   "veld": "money",
-   "bestand": "game/js/storydev.js",
-   "max": 1,
-   "reden": "past het saldo aan buiten economy.js om",
-   "issue": "#498"
-  },
-  {
-   "veld": "money",
-   "bestand": "game/js/storytest.js",
-   "max": 6,
-   "reden": "past het saldo aan buiten economy.js om",
-   "issue": "#498"
-  },
-  {
-   "veld": "money",
-   "bestand": "game/js/streetlife.js",
-   "max": 4,
-   "reden": "past het saldo aan buiten economy.js om",
-   "issue": "#498"
-  },
-  {
-   "veld": "money",
-   "bestand": "game/js/testmenu.js",
-   "max": 1,
-   "reden": "past het saldo aan buiten economy.js om",
-   "issue": "#498"
-  },
-  {
-   "veld": "money",
-   "bestand": "game/js/trafficlaw.js",
-   "max": 1,
-   "reden": "past het saldo aan buiten economy.js om",
-   "issue": "#498"
-  },
-  {
-   "veld": "money",
-   "bestand": "game/js/world.js",
-   "max": 1,
-   "reden": "past het saldo aan buiten economy.js om",
-   "issue": "#498"
-  },
-  {
-   "veld": "particles",
-   "bestand": "game/js/breakables.js",
-   "max": 1,
-   "reden": "voegt een deeltje toe of laat het opruimen door de hoofdlus",
-   "issue": "#498"
-  },
-  {
-   "veld": "particles",
-   "bestand": "game/js/combat.js",
-   "max": 1,
-   "reden": "voegt een deeltje toe of laat het opruimen door de hoofdlus",
-   "issue": "#498"
-  },
-  {
-   "veld": "particles",
-   "bestand": "game/js/companion.js",
-   "max": 1,
-   "reden": "voegt een deeltje toe of laat het opruimen door de hoofdlus",
-   "issue": "#498"
-  },
-  {
-   "veld": "particles",
-   "bestand": "game/js/fierljep.js",
-   "max": 2,
-   "reden": "voegt een deeltje toe of laat het opruimen door de hoofdlus",
-   "issue": "#498"
-  },
-  {
-   "veld": "particles",
-   "bestand": "game/js/golven.js",
-   "max": 1,
-   "reden": "voegt een deeltje toe of laat het opruimen door de hoofdlus",
-   "issue": "#498"
-  },
-  {
-   "veld": "particles",
-   "bestand": "game/js/gore3d.js",
-   "max": 1,
-   "reden": "voegt een deeltje toe of laat het opruimen door de hoofdlus",
-   "issue": "#498"
-  },
-  {
-   "veld": "particles",
-   "bestand": "game/js/pedestrians.js",
-   "max": 1,
-   "reden": "voegt een deeltje toe of laat het opruimen door de hoofdlus",
-   "issue": "#498"
-  },
-  {
-   "veld": "particles",
-   "bestand": "game/js/pigeonmode.js",
-   "max": 1,
-   "reden": "voegt een deeltje toe of laat het opruimen door de hoofdlus",
-   "issue": "#498"
-  },
-  {
-   "veld": "particles",
-   "bestand": "game/js/player.js",
-   "max": 2,
-   "reden": "voegt een deeltje toe of laat het opruimen door de hoofdlus",
-   "issue": "#498"
-  },
-  {
-   "veld": "particles",
-   "bestand": "game/js/railway.js",
-   "max": 3,
-   "reden": "voegt een deeltje toe of laat het opruimen door de hoofdlus",
-   "issue": "#498"
-  },
-  {
-   "veld": "particles",
-   "bestand": "game/js/throwables.js",
-   "max": 1,
-   "reden": "voegt een deeltje toe of laat het opruimen door de hoofdlus",
-   "issue": "#498"
-  },
-  {
-   "veld": "particles",
-   "bestand": "game/js/vehicle.js",
-   "max": 3,
-   "reden": "voegt een deeltje toe of laat het opruimen door de hoofdlus",
-   "issue": "#498"
-  },
-  {
-   "veld": "particles",
-   "bestand": "game/js/vehicleimpact.js",
-   "max": 1,
-   "reden": "voegt een deeltje toe of laat het opruimen door de hoofdlus",
-   "issue": "#498"
-  },
-  {
-   "veld": "pedestrians",
-   "bestand": "game/js/cityprops.js",
-   "max": 2,
-   "reden": "voegt een voetganger toe of haalt hem weg",
-   "issue": "#498"
-  },
-  {
-   "veld": "pedestrians",
-   "bestand": "game/js/coopextra3d.js",
-   "max": 1,
-   "reden": "voegt een voetganger toe of haalt hem weg",
-   "issue": "#498"
-  },
-  {
-   "veld": "pedestrians",
-   "bestand": "game/js/flavour.js",
-   "max": 1,
-   "reden": "voegt een voetganger toe of haalt hem weg",
-   "issue": "#498"
-  },
-  {
-   "veld": "pedestrians",
-   "bestand": "game/js/main.js",
-   "max": 3,
-   "reden": "voegt een voetganger toe of haalt hem weg",
-   "issue": "#498"
-  },
-  {
-   "veld": "pedestrians",
-   "bestand": "game/js/missions.js",
-   "max": 1,
-   "reden": "voegt een voetganger toe of haalt hem weg",
-   "issue": "#498"
-  },
-  {
-   "veld": "pedestrians",
-   "bestand": "game/js/police.js",
-   "max": 3,
-   "reden": "voegt een voetganger toe of haalt hem weg",
-   "issue": "#498"
-  },
-  {
-   "veld": "pedestrians",
-   "bestand": "game/js/policemounts.js",
-   "max": 3,
-   "reden": "voegt een voetganger toe of haalt hem weg",
-   "issue": "#498"
-  },
-  {
-   "veld": "pedestrians",
-   "bestand": "game/js/sidejobkit.js",
-   "max": 2,
-   "reden": "voegt een voetganger toe of haalt hem weg",
-   "issue": "#498"
-  },
-  {
-   "veld": "pedestrians",
-   "bestand": "game/js/streetlife.js",
-   "max": 5,
-   "reden": "voegt een voetganger toe of haalt hem weg",
-   "issue": "#498"
-  },
-  {
-   "veld": "phoneNotifications",
-   "bestand": "game/js/flavour.js",
-   "max": 2,
-   "reden": "voegt een melding aan de telefoon toe",
-   "issue": "#498"
-  },
-  {
-   "veld": "phoneNotifications",
-   "bestand": "game/js/sidejobs.js",
-   "max": 1,
-   "reden": "voegt een melding aan de telefoon toe",
-   "issue": "#498"
-  },
-  {
-   "veld": "phoneNotifications",
-   "bestand": "game/js/sikkomfeed.js",
-   "max": 2,
-   "reden": "voegt een melding aan de telefoon toe",
-   "issue": "#498"
-  },
-  {
-   "veld": "phoneNotifications",
-   "bestand": "game/js/story.js",
-   "max": 1,
-   "reden": "voegt een melding aan de telefoon toe",
-   "issue": "#498"
-  },
-  {
-   "veld": "phoneNotifications",
-   "bestand": "game/js/storytest.js",
-   "max": 1,
-   "reden": "voegt een melding aan de telefoon toe",
-   "issue": "#498"
-  },
-  {
-   "veld": "phoneNotifications",
-   "bestand": "game/js/weather.js",
-   "max": 2,
-   "reden": "voegt een melding aan de telefoon toe",
-   "issue": "#498"
-  },
-  {
-   "veld": "uiPaused",
-   "bestand": "game/js/assistlive.js",
-   "max": 1,
-   "reden": "houdt de simulatie tegen zolang een scherm openstaat",
-   "issue": "#498"
-  },
-  {
-   "veld": "uiPaused",
-   "bestand": "game/js/fotomodusui.js",
-   "max": 1,
-   "reden": "houdt de simulatie tegen zolang een scherm openstaat",
-   "issue": "#498"
-  },
-  {
-   "veld": "uiPaused",
-   "bestand": "game/js/loadscreen.js",
-   "max": 2,
-   "reden": "houdt de simulatie tegen zolang een scherm openstaat",
-   "issue": "#498"
-  },
-  {
-   "veld": "uiPaused",
-   "bestand": "game/js/phone.js",
-   "max": 1,
-   "reden": "houdt de simulatie tegen zolang een scherm openstaat",
-   "issue": "#498"
-  },
-  {
-   "veld": "uiPaused",
-   "bestand": "game/js/reisrit.js",
-   "max": 2,
-   "reden": "houdt de simulatie tegen zolang een scherm openstaat",
-   "issue": "#498"
-  },
-  {
-   "veld": "uiPaused",
-   "bestand": "game/js/ringcheck.js",
-   "max": 4,
-   "reden": "houdt de simulatie tegen zolang een scherm openstaat",
-   "issue": "#498"
-  },
-  {
-   "veld": "uiPaused",
-   "bestand": "game/js/todo.js",
-   "max": 1,
-   "reden": "houdt de simulatie tegen zolang een scherm openstaat",
-   "issue": "#498"
-  },
-  {
-   "veld": "vehicles",
-   "bestand": "game/js/cityprops.js",
-   "max": 1,
-   "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
-   "issue": "#498"
-  },
-  {
-   "veld": "vehicles",
-   "bestand": "game/js/convoy.js",
-   "max": 3,
-   "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
-   "issue": "#498"
-  },
-  {
-   "veld": "vehicles",
-   "bestand": "game/js/coopbezit.js",
-   "max": 1,
-   "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
-   "issue": "#498"
-  },
-  {
-   "veld": "vehicles",
-   "bestand": "game/js/coophostwisselwereld.js",
-   "max": 1,
-   "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
-   "issue": "#498"
-  },
-  {
-   "veld": "vehicles",
-   "bestand": "game/js/coopnet.js",
-   "max": 4,
-   "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
-   "issue": "#498"
-  },
-  {
-   "veld": "vehicles",
-   "bestand": "game/js/countrylife.js",
-   "max": 2,
-   "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
-   "issue": "#498"
-  },
-  {
-   "veld": "vehicles",
-   "bestand": "game/js/emergency.js",
-   "max": 1,
-   "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
-   "issue": "#498"
-  },
-  {
-   "veld": "vehicles",
-   "bestand": "game/js/evenementenlive.js",
-   "max": 1,
-   "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
-   "issue": "#498"
-  },
-  {
-   "veld": "vehicles",
-   "bestand": "game/js/flavour.js",
-   "max": 3,
-   "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
-   "issue": "#498"
-  },
-  {
-   "veld": "vehicles",
-   "bestand": "game/js/heist.js",
-   "max": 1,
-   "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
-   "issue": "#498"
-  },
-  {
-   "veld": "vehicles",
-   "bestand": "game/js/marinas3d.js",
-   "max": 2,
-   "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
-   "issue": "#498"
-  },
-  {
-   "veld": "vehicles",
-   "bestand": "game/js/missions.js",
-   "max": 24,
-   "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
-   "issue": "#498"
-  },
-  {
-   "veld": "vehicles",
-   "bestand": "game/js/ownedvehicles.js",
-   "max": 3,
-   "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
-   "issue": "#498"
-  },
-  {
-   "veld": "vehicles",
-   "bestand": "game/js/parkedcars.js",
-   "max": 3,
-   "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
-   "issue": "#498"
-  },
-  {
-   "veld": "vehicles",
-   "bestand": "game/js/parkeergarage.js",
-   "max": 2,
-   "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
-   "issue": "#498"
-  },
-  {
-   "veld": "vehicles",
-   "bestand": "game/js/pedestrians.js",
-   "max": 1,
-   "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
-   "issue": "#498"
-  },
-  {
-   "veld": "vehicles",
-   "bestand": "game/js/pg_foodtruck.js",
-   "max": 1,
-   "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
-   "issue": "#498"
-  },
-  {
-   "veld": "vehicles",
-   "bestand": "game/js/planestage.js",
-   "max": 1,
-   "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
-   "issue": "#498"
-  },
-  {
-   "veld": "vehicles",
-   "bestand": "game/js/police.js",
-   "max": 6,
-   "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
-   "issue": "#498"
-  },
-  {
-   "veld": "vehicles",
-   "bestand": "game/js/policemounts.js",
-   "max": 2,
-   "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
-   "issue": "#498"
-  },
-  {
-   "veld": "vehicles",
-   "bestand": "game/js/racers.js",
-   "max": 6,
-   "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
-   "issue": "#498"
-  },
-  {
-   "veld": "vehicles",
-   "bestand": "game/js/rideprops.js",
-   "max": 1,
-   "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
-   "issue": "#498"
-  },
-  {
-   "veld": "vehicles",
-   "bestand": "game/js/ringcheck.js",
-   "max": 2,
-   "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
-   "issue": "#498"
-  },
-  {
-   "veld": "vehicles",
-   "bestand": "game/js/rondvaartchase.js",
-   "max": 2,
-   "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
-   "issue": "#498"
-  },
-  {
-   "veld": "vehicles",
-   "bestand": "game/js/shops.js",
-   "max": 7,
-   "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
-   "issue": "#498"
-  },
-  {
-   "veld": "vehicles",
-   "bestand": "game/js/sidejobkit.js",
-   "max": 3,
-   "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
-   "issue": "#498"
-  },
-  {
-   "veld": "vehicles",
-   "bestand": "game/js/testmenu.js",
-   "max": 1,
-   "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
-   "issue": "#498"
-  },
-  {
-   "veld": "vehicles",
-   "bestand": "game/js/vehicle.js",
-   "max": 1,
-   "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
-   "issue": "#498"
-  },
-  {
-   "veld": "vehicles",
-   "bestand": "game/js/werflive.js",
-   "max": 2,
-   "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
-   "issue": "#498"
-  },
-  {
-   "veld": "wanted",
-   "bestand": "game/js/breakables.js",
-   "max": 1,
-   "reden": "verhoogt of verlaagt de gezochtheid; police.js bezit alleen het verval",
-   "issue": "#498"
-  },
-  {
-   "veld": "wanted",
-   "bestand": "game/js/combat.js",
-   "max": 1,
-   "reden": "verhoogt of verlaagt de gezochtheid; police.js bezit alleen het verval",
-   "issue": "#498"
-  },
-  {
-   "veld": "wanted",
-   "bestand": "game/js/coopclient.js",
-   "max": 1,
-   "reden": "verhoogt of verlaagt de gezochtheid; police.js bezit alleen het verval",
-   "issue": "#498"
-  },
-  {
-   "veld": "wanted",
-   "bestand": "game/js/coopgezocht.js",
-   "max": 3,
-   "reden": "verhoogt of verlaagt de gezochtheid; police.js bezit alleen het verval",
-   "issue": "#498"
-  },
-  {
-   "veld": "wanted",
-   "bestand": "game/js/coophostwisselnet.js",
-   "max": 1,
-   "reden": "verhoogt of verlaagt de gezochtheid; police.js bezit alleen het verval",
-   "issue": "#498"
-  },
-  {
-   "veld": "wanted",
-   "bestand": "game/js/coopnet.js",
-   "max": 3,
-   "reden": "verhoogt of verlaagt de gezochtheid; police.js bezit alleen het verval",
-   "issue": "#498"
-  },
-  {
-   "veld": "wanted",
-   "bestand": "game/js/crime.js",
-   "max": 1,
-   "reden": "verhoogt of verlaagt de gezochtheid; police.js bezit alleen het verval",
-   "issue": "#498"
-  },
-  {
-   "veld": "wanted",
-   "bestand": "game/js/machinist.js",
-   "max": 1,
-   "reden": "verhoogt of verlaagt de gezochtheid; police.js bezit alleen het verval",
-   "issue": "#498"
-  },
-  {
-   "veld": "wanted",
-   "bestand": "game/js/missions.js",
-   "max": 4,
-   "reden": "verhoogt of verlaagt de gezochtheid; police.js bezit alleen het verval",
-   "issue": "#498"
-  },
-  {
-   "veld": "wanted",
-   "bestand": "game/js/pedestrians.js",
-   "max": 4,
-   "reden": "verhoogt of verlaagt de gezochtheid; police.js bezit alleen het verval",
-   "issue": "#498"
-  },
-  {
-   "veld": "wanted",
-   "bestand": "game/js/shops.js",
-   "max": 3,
-   "reden": "verhoogt of verlaagt de gezochtheid; police.js bezit alleen het verval",
-   "issue": "#498"
-  },
-  {
-   "veld": "wanted",
-   "bestand": "game/js/story.js",
-   "max": 1,
-   "reden": "verhoogt of verlaagt de gezochtheid; police.js bezit alleen het verval",
-   "issue": "#498"
-  },
-  {
-   "veld": "wanted",
-   "bestand": "game/js/storytest.js",
-   "max": 9,
-   "reden": "verhoogt of verlaagt de gezochtheid; police.js bezit alleen het verval",
-   "issue": "#498"
-  },
-  {
-   "veld": "wanted",
-   "bestand": "game/js/testmenu.js",
-   "max": 1,
-   "reden": "verhoogt of verlaagt de gezochtheid; police.js bezit alleen het verval",
-   "issue": "#498"
-  },
-  {
-   "veld": "wanted",
-   "bestand": "game/js/trafficlaw.js",
-   "max": 1,
-   "reden": "verhoogt of verlaagt de gezochtheid; police.js bezit alleen het verval",
-   "issue": "#498"
-  },
-  {
-   "veld": "wanted",
-   "bestand": "game/js/traindrive.js",
-   "max": 1,
-   "reden": "verhoogt of verlaagt de gezochtheid; police.js bezit alleen het verval",
-   "issue": "#498"
-  },
-  {
-   "veld": "wanted",
-   "bestand": "game/js/vehiclewreck.js",
-   "max": 1,
-   "reden": "verhoogt of verlaagt de gezochtheid; police.js bezit alleen het verval",
-   "issue": "#498"
-  },
-  {
-   "veld": "wanted",
-   "bestand": "game/js/world.js",
-   "max": 1,
-   "reden": "verhoogt of verlaagt de gezochtheid; police.js bezit alleen het verval",
-   "issue": "#498"
-  },
-  {
-   "veld": "wantedDecayTimer",
-   "bestand": "game/js/crime.js",
-   "max": 1,
-   "reden": "raakt de vervalteller van de politie aan",
-   "issue": "#498"
-  },
-  {
-   "veld": "wantedDecayTimer",
-   "bestand": "game/js/machinist.js",
-   "max": 1,
-   "reden": "raakt de vervalteller van de politie aan",
-   "issue": "#498"
-  },
-  {
-   "veld": "wantedDecayTimer",
-   "bestand": "game/js/missions.js",
-   "max": 4,
-   "reden": "raakt de vervalteller van de politie aan",
-   "issue": "#498"
-  },
-  {
-   "veld": "wantedDecayTimer",
-   "bestand": "game/js/shops.js",
-   "max": 2,
-   "reden": "raakt de vervalteller van de politie aan",
-   "issue": "#498"
-  },
-  {
-   "veld": "wantedDecayTimer",
-   "bestand": "game/js/testmenu.js",
-   "max": 1,
-   "reden": "raakt de vervalteller van de politie aan",
-   "issue": "#498"
-  },
-  {
-   "veld": "wantedDecayTimer",
-   "bestand": "game/js/trafficlaw.js",
-   "max": 1,
-   "reden": "raakt de vervalteller van de politie aan",
-   "issue": "#498"
-  },
-  {
-   "veld": "wantedDecayTimer",
-   "bestand": "game/js/traindrive.js",
-   "max": 1,
-   "reden": "raakt de vervalteller van de politie aan",
-   "issue": "#498"
-  },
-  {
-   "veld": "wantedDecayTimer",
-   "bestand": "game/js/world.js",
-   "max": 1,
-   "reden": "raakt de vervalteller van de politie aan",
-   "issue": "#498"
-  },
-  {
-   "veld": "weapon",
-   "bestand": "game/js/coopwapen.js",
-   "max": 3,
-   "reden": "wisselt het wapen",
-   "issue": "#498"
-  },
-  {
-   "veld": "weapon",
-   "bestand": "game/js/shops.js",
-   "max": 5,
-   "reden": "wisselt het wapen",
-   "issue": "#498"
-  },
-  {
-   "veld": "weapon",
-   "bestand": "game/js/weapondrops.js",
-   "max": 1,
-   "reden": "wisselt het wapen",
-   "issue": "#498"
-  }
- ]
+  "version": 1,
+  "note": "Veldeigenaarschap van het wereldobject (#498): per veld één eigenaar, en per uitzondering het bestand, het hoogste aantal schrijfacties, de reden en het issue. Een nieuw schrijvend bestand of meer schrijfacties dan max is een fout; zie scripts/world_eigenaar.mjs.",
+  "velden": {
+    "armor": {
+      "eigenaar": "game/js/player.js",
+      "notitie": "Pantser is spelertoestand, net als gezondheid."
+    },
+    "audioEvents": {
+      "eigenaar": "game/js/audio.js",
+      "notitie": "audio.js leest de lijst elk beeld; alle andere modules melden alleen een event."
+    },
+    "camYaw": {
+      "eigenaar": "game/js/scene3d.js",
+      "notitie": "scene3d.js bezit de camerahoek en de camerabediening."
+    },
+    "cameraOverride": {
+      "eigenaar": "game/js/cinematics.js",
+      "notitie": "cinematics.js neemt de camera over voor filmpjes."
+    },
+    "clock": {
+      "eigenaar": "game/js/daynight.js",
+      "notitie": "daynight.js zet de klok en de dag/nacht-cyclus."
+    },
+    "coopTreinDeur": {
+      "eigenaar": "game/js/cooptrein.js",
+      "notitie": "cooptrein.js bedient de treindeur in de coop-modus."
+    },
+    "coopKetenZet": {
+      "eigenaar": "game/js/missions.js",
+      "notitie": "missions.js zet de missieketen per sessie (#523); coopnet.js roept hem alleen aan bij de start en het einde van een sessie."
+    },
+    "extraSpeakers": {
+      "eigenaar": "game/js/scene3d.js",
+      "notitie": "scene3d.js zet de sprekers om in tekstballonnen; modules melden alleen een spreker."
+    },
+    "health": {
+      "eigenaar": "game/js/player.js",
+      "notitie": "De speler bezit zijn gezondheid; schade en herstel horen via de spelersmodule te lopen."
+    },
+    "lastImpact": {
+      "eigenaar": "game/js/vehicleimpact.js",
+      "notitie": "vehicleimpact.js registreert en gebruikt de laatste botsing."
+    },
+    "minigameUntil": {
+      "eigenaar": "game/js/sidejobkit.js",
+      "notitie": "De bijbaankit zet en leest de blokkade voor de volgende minigame."
+    },
+    "money": {
+      "eigenaar": "game/js/economy.js",
+      "notitie": "economy.js kent de prijzen en boetes; het saldo hoort daar achter één API."
+    },
+    "particles": {
+      "eigenaar": "game/js/main.js",
+      "notitie": "De hoofdlus ruimt de deeltjeslijst elk beeld op; modules voegen alleen effecten toe."
+    },
+    "pedestrians": {
+      "eigenaar": "game/js/pedestrians.js",
+      "notitie": "pedestrians.js beheert de lijst en het gedrag van voetgangers."
+    },
+    "phoneNotifications": {
+      "eigenaar": "game/js/phone.js",
+      "notitie": "phone.js bezit de telefoon en zijn meldingen."
+    },
+    "uiPaused": {
+      "eigenaar": "game/js/main.js",
+      "notitie": "De hoofdlus leest de vlag voor world.paused; schermen zetten hem tijdelijk."
+    },
+    "vehicles": {
+      "eigenaar": "game/js/main.js",
+      "notitie": "De hoofdlus beheert de lijst: hij ruimt op, stapelt botsingen en zet de speler erin."
+    },
+    "wanted": {
+      "eigenaar": "game/js/police.js",
+      "notitie": "politie bezit het verval en de spawns; andere modules melden alleen een misdrijf."
+    },
+    "wantedDecayTimer": {
+      "eigenaar": "game/js/police.js",
+      "notitie": "Eigen boeking van police.js; world.js zegt het al in een comment."
+    },
+    "weapon": {
+      "eigenaar": "game/js/combat.js",
+      "notitie": "combat.js wisselt en gebruikt het wapen."
+    },
+    "lastBlast": {
+      "eigenaar": "geen, dood veld",
+      "notitie": "Wordt door throwables.js en vehicle.js gezet, maar niemand leest hem. Verwijderen in #498."
+    },
+    "teleported": {
+      "eigenaar": "geen, dood veld",
+      "notitie": "Wordt op vijf plekken op world.time gezet, maar nergens gelezen: rest van een oude respawn-truc. Verwijderen in #498."
+    }
+  },
+  "uitzonderingen": [
+    {
+      "veld": "armor",
+      "bestand": "game/js/combat.js",
+      "max": 1,
+      "reden": "past het pantser aan buiten de spelersmodule om",
+      "issue": "#498"
+    },
+    {
+      "veld": "armor",
+      "bestand": "game/js/coopnet.js",
+      "max": 1,
+      "reden": "past het pantser aan buiten de spelersmodule om",
+      "issue": "#498"
+    },
+    {
+      "veld": "armor",
+      "bestand": "game/js/missions.js",
+      "max": 1,
+      "reden": "past het pantser aan buiten de spelersmodule om",
+      "issue": "#498"
+    },
+    {
+      "veld": "armor",
+      "bestand": "game/js/multiplayerpvpwereld.js",
+      "max": 4,
+      "reden": "past het pantser aan buiten de spelersmodule om",
+      "issue": "#498"
+    },
+    {
+      "veld": "armor",
+      "bestand": "game/js/pedestrians.js",
+      "max": 2,
+      "reden": "past het pantser aan buiten de spelersmodule om",
+      "issue": "#498"
+    },
+    {
+      "veld": "armor",
+      "bestand": "game/js/railway.js",
+      "max": 1,
+      "reden": "past het pantser aan buiten de spelersmodule om",
+      "issue": "#498"
+    },
+    {
+      "veld": "armor",
+      "bestand": "game/js/shops.js",
+      "max": 4,
+      "reden": "past het pantser aan buiten de spelersmodule om",
+      "issue": "#498"
+    },
+    {
+      "veld": "armor",
+      "bestand": "game/js/world.js",
+      "max": 1,
+      "reden": "past het pantser aan buiten de spelersmodule om",
+      "issue": "#498"
+    },
+    {
+      "veld": "audioEvents",
+      "bestand": "game/js/achievements.js",
+      "max": 1,
+      "reden": "meldt een geluidsevent; audio.js leest de lijst",
+      "issue": "#498"
+    },
+    {
+      "veld": "audioEvents",
+      "bestand": "game/js/breakables.js",
+      "max": 1,
+      "reden": "meldt een geluidsevent; audio.js leest de lijst",
+      "issue": "#498"
+    },
+    {
+      "veld": "audioEvents",
+      "bestand": "game/js/combat.js",
+      "max": 2,
+      "reden": "meldt een geluidsevent; audio.js leest de lijst",
+      "issue": "#498"
+    },
+    {
+      "veld": "audioEvents",
+      "bestand": "game/js/coopentities3d.js",
+      "max": 1,
+      "reden": "meldt een geluidsevent; audio.js leest de lijst",
+      "issue": "#498"
+    },
+    {
+      "veld": "audioEvents",
+      "bestand": "game/js/coopnet.js",
+      "max": 2,
+      "reden": "meldt een geluidsevent; audio.js leest de lijst",
+      "issue": "#498"
+    },
+    {
+      "veld": "audioEvents",
+      "bestand": "game/js/coopwedstrijd3d.js",
+      "max": 1,
+      "reden": "meldt een geluidsevent; audio.js leest de lijst",
+      "issue": "#498"
+    },
+    {
+      "veld": "audioEvents",
+      "bestand": "game/js/coopzitten3d.js",
+      "max": 1,
+      "reden": "meldt een geluidsevent; audio.js leest de lijst",
+      "issue": "#498"
+    },
+    {
+      "veld": "audioEvents",
+      "bestand": "game/js/countryside.js",
+      "max": 1,
+      "reden": "meldt een geluidsevent; audio.js leest de lijst",
+      "issue": "#498"
+    },
+    {
+      "veld": "audioEvents",
+      "bestand": "game/js/drunk.js",
+      "max": 1,
+      "reden": "meldt een geluidsevent; audio.js leest de lijst",
+      "issue": "#498"
+    },
+    {
+      "veld": "audioEvents",
+      "bestand": "game/js/fjordtrain.js",
+      "max": 1,
+      "reden": "meldt een geluidsevent; audio.js leest de lijst",
+      "issue": "#498"
+    },
+    {
+      "veld": "audioEvents",
+      "bestand": "game/js/gore3d.js",
+      "max": 1,
+      "reden": "meldt een geluidsevent; audio.js leest de lijst",
+      "issue": "#498"
+    },
+    {
+      "veld": "audioEvents",
+      "bestand": "game/js/heist.js",
+      "max": 1,
+      "reden": "meldt een geluidsevent; audio.js leest de lijst",
+      "issue": "#498"
+    },
+    {
+      "veld": "audioEvents",
+      "bestand": "game/js/knockfx3d.js",
+      "max": 1,
+      "reden": "meldt een geluidsevent; audio.js leest de lijst",
+      "issue": "#498"
+    },
+    {
+      "veld": "audioEvents",
+      "bestand": "game/js/missions.js",
+      "max": 2,
+      "reden": "meldt een geluidsevent; audio.js leest de lijst",
+      "issue": "#498"
+    },
+    {
+      "veld": "audioEvents",
+      "bestand": "game/js/multiplayerpvpwereld.js",
+      "max": 1,
+      "reden": "meldt een geluidsevent; audio.js leest de lijst",
+      "issue": "#498"
+    },
+    {
+      "veld": "audioEvents",
+      "bestand": "game/js/pedgeom.js",
+      "max": 2,
+      "reden": "meldt een geluidsevent; audio.js leest de lijst",
+      "issue": "#498"
+    },
+    {
+      "veld": "audioEvents",
+      "bestand": "game/js/player.js",
+      "max": 4,
+      "reden": "meldt een geluidsevent; audio.js leest de lijst",
+      "issue": "#498"
+    },
+    {
+      "veld": "audioEvents",
+      "bestand": "game/js/railway.js",
+      "max": 1,
+      "reden": "meldt een geluidsevent; audio.js leest de lijst",
+      "issue": "#498"
+    },
+    {
+      "veld": "audioEvents",
+      "bestand": "game/js/rondvaartchase.js",
+      "max": 2,
+      "reden": "meldt een geluidsevent; audio.js leest de lijst",
+      "issue": "#498"
+    },
+    {
+      "veld": "audioEvents",
+      "bestand": "game/js/sfx/minigamefoley.js",
+      "max": 2,
+      "reden": "meldt een geluidsevent; audio.js leest de lijst",
+      "issue": "#498"
+    },
+    {
+      "veld": "audioEvents",
+      "bestand": "game/js/shops.js",
+      "max": 1,
+      "reden": "meldt een geluidsevent; audio.js leest de lijst",
+      "issue": "#498"
+    },
+    {
+      "veld": "audioEvents",
+      "bestand": "game/js/sidejob_vracht.js",
+      "max": 1,
+      "reden": "meldt een geluidsevent; audio.js leest de lijst",
+      "issue": "#498"
+    },
+    {
+      "veld": "audioEvents",
+      "bestand": "game/js/throwables.js",
+      "max": 1,
+      "reden": "meldt een geluidsevent; audio.js leest de lijst",
+      "issue": "#498"
+    },
+    {
+      "veld": "audioEvents",
+      "bestand": "game/js/traindrive.js",
+      "max": 2,
+      "reden": "meldt een geluidsevent; audio.js leest de lijst",
+      "issue": "#498"
+    },
+    {
+      "veld": "audioEvents",
+      "bestand": "game/js/vehicle.js",
+      "max": 1,
+      "reden": "meldt een geluidsevent; audio.js leest de lijst",
+      "issue": "#498"
+    },
+    {
+      "veld": "audioEvents",
+      "bestand": "game/js/wildlife.js",
+      "max": 1,
+      "reden": "meldt een geluidsevent; audio.js leest de lijst",
+      "issue": "#498"
+    },
+    {
+      "veld": "camYaw",
+      "bestand": "game/js/aimassist.js",
+      "max": 1,
+      "reden": "zet de camerahoek",
+      "issue": "#498"
+    },
+    {
+      "veld": "camYaw",
+      "bestand": "game/js/combat.js",
+      "max": 1,
+      "reden": "zet de camerahoek",
+      "issue": "#498"
+    },
+    {
+      "veld": "camYaw",
+      "bestand": "game/js/coopgastlokaal.js",
+      "max": 1,
+      "reden": "zet de camerahoek",
+      "issue": "#498"
+    },
+    {
+      "veld": "camYaw",
+      "bestand": "game/js/helirun.js",
+      "max": 3,
+      "reden": "zet de camerahoek",
+      "issue": "#498"
+    },
+    {
+      "veld": "camYaw",
+      "bestand": "game/js/player.js",
+      "max": 2,
+      "reden": "zet de camerahoek",
+      "issue": "#498"
+    },
+    {
+      "veld": "camYaw",
+      "bestand": "game/js/traindrive.js",
+      "max": 1,
+      "reden": "zet de camerahoek",
+      "issue": "#498"
+    },
+    {
+      "veld": "camYaw",
+      "bestand": "game/js/world.js",
+      "max": 1,
+      "reden": "zet de camerahoek",
+      "issue": "#498"
+    },
+    {
+      "veld": "cameraOverride",
+      "bestand": "game/js/helirun.js",
+      "max": 4,
+      "reden": "neemt de camera over (de chase-cam, de filmstand op hoogte en de missiefases)",
+      "issue": "#498"
+    },
+    {
+      "veld": "cameraOverride",
+      "bestand": "game/js/samenpanel.js",
+      "max": 1,
+      "reden": "neemt de camera over",
+      "issue": "#498"
+    },
+    {
+      "veld": "cameraOverride",
+      "bestand": "game/js/startscreen.js",
+      "max": 2,
+      "reden": "neemt de camera over",
+      "issue": "#498"
+    },
+    {
+      "veld": "clock",
+      "bestand": "game/js/coophostwisselnet.js",
+      "max": 1,
+      "reden": "zet de klok of een dag/nacht-timer",
+      "issue": "#498"
+    },
+    {
+      "veld": "clock",
+      "bestand": "game/js/coopnet.js",
+      "max": 1,
+      "reden": "zet de klok of een dag/nacht-timer",
+      "issue": "#498"
+    },
+    {
+      "veld": "clock",
+      "bestand": "game/js/missions.js",
+      "max": 2,
+      "reden": "zet de klok of een dag/nacht-timer",
+      "issue": "#498"
+    },
+    {
+      "veld": "clock",
+      "bestand": "game/js/reisrit.js",
+      "max": 1,
+      "reden": "zet de klok of een dag/nacht-timer",
+      "issue": "#498"
+    },
+    {
+      "veld": "clock",
+      "bestand": "game/js/startscreen.js",
+      "max": 4,
+      "reden": "zet de klok of een dag/nacht-timer",
+      "issue": "#498"
+    },
+    {
+      "veld": "clock",
+      "bestand": "game/js/story.js",
+      "max": 2,
+      "reden": "zet de klok of een dag/nacht-timer",
+      "issue": "#498"
+    },
+    {
+      "veld": "clock",
+      "bestand": "game/js/storydev.js",
+      "max": 1,
+      "reden": "zet de klok of een dag/nacht-timer",
+      "issue": "#498"
+    },
+    {
+      "veld": "clock",
+      "bestand": "game/js/storytest.js",
+      "max": 1,
+      "reden": "zet de klok of een dag/nacht-timer",
+      "issue": "#498"
+    },
+    {
+      "veld": "clock",
+      "bestand": "game/js/testmenu.js",
+      "max": 1,
+      "reden": "zet de klok of een dag/nacht-timer",
+      "issue": "#498"
+    },
+    {
+      "veld": "coopTreinDeur",
+      "bestand": "game/js/coopnet.js",
+      "max": 2,
+      "reden": "bedient de treindeur in de coop-modus",
+      "issue": "#498"
+    },
+    {
+      "veld": "coopTreinDeur",
+      "bestand": "game/js/machinist.js",
+      "max": 1,
+      "reden": "bedient de treindeur in de coop-modus",
+      "issue": "#498"
+    },
+    {
+      "veld": "coopTreinDeur",
+      "bestand": "game/js/traindrive.js",
+      "max": 1,
+      "reden": "bedient de treindeur in de coop-modus",
+      "issue": "#498"
+    },
+    {
+      "veld": "extraSpeakers",
+      "bestand": "game/js/coopextra3d.js",
+      "max": 3,
+      "reden": "voegt een spreker toe aan de lijst",
+      "issue": "#498"
+    },
+    {
+      "veld": "extraSpeakers",
+      "bestand": "game/js/fierljep.js",
+      "max": 2,
+      "reden": "voegt een spreker toe aan de lijst",
+      "issue": "#498"
+    },
+    {
+      "veld": "extraSpeakers",
+      "bestand": "game/js/flavour.js",
+      "max": 2,
+      "reden": "voegt een spreker toe aan de lijst",
+      "issue": "#498"
+    },
+    {
+      "veld": "extraSpeakers",
+      "bestand": "game/js/heist.js",
+      "max": 1,
+      "reden": "voegt een spreker toe aan de lijst",
+      "issue": "#498"
+    },
+    {
+      "veld": "extraSpeakers",
+      "bestand": "game/js/missions.js",
+      "max": 1,
+      "reden": "voegt een spreker toe aan de lijst",
+      "issue": "#498"
+    },
+    {
+      "veld": "extraSpeakers",
+      "bestand": "game/js/policemounts.js",
+      "max": 1,
+      "reden": "voegt een spreker toe aan de lijst",
+      "issue": "#498"
+    },
+    {
+      "veld": "extraSpeakers",
+      "bestand": "game/js/swimmers3d.js",
+      "max": 2,
+      "reden": "voegt een spreker toe aan de lijst",
+      "issue": "#498"
+    },
+    {
+      "veld": "health",
+      "bestand": "game/js/combat.js",
+      "max": 2,
+      "reden": "past de gezondheid aan buiten de spelersmodule om",
+      "issue": "#498"
+    },
+    {
+      "veld": "health",
+      "bestand": "game/js/coopnet.js",
+      "max": 1,
+      "reden": "past de gezondheid aan buiten de spelersmodule om",
+      "issue": "#498"
+    },
+    {
+      "veld": "health",
+      "bestand": "game/js/horeca.js",
+      "max": 1,
+      "reden": "past de gezondheid aan buiten de spelersmodule om",
+      "issue": "#498"
+    },
+    {
+      "veld": "health",
+      "bestand": "game/js/missions.js",
+      "max": 1,
+      "reden": "past de gezondheid aan buiten de spelersmodule om",
+      "issue": "#498"
+    },
+    {
+      "veld": "health",
+      "bestand": "game/js/multiplayerpvpwereld.js",
+      "max": 4,
+      "reden": "past de gezondheid aan buiten de spelersmodule om",
+      "issue": "#498"
+    },
+    {
+      "veld": "health",
+      "bestand": "game/js/pedestrians.js",
+      "max": 2,
+      "reden": "past de gezondheid aan buiten de spelersmodule om",
+      "issue": "#498"
+    },
+    {
+      "veld": "health",
+      "bestand": "game/js/railway.js",
+      "max": 2,
+      "reden": "past de gezondheid aan buiten de spelersmodule om",
+      "issue": "#498"
+    },
+    {
+      "veld": "health",
+      "bestand": "game/js/shops.js",
+      "max": 1,
+      "reden": "past de gezondheid aan buiten de spelersmodule om",
+      "issue": "#498"
+    },
+    {
+      "veld": "health",
+      "bestand": "game/js/snackautomaat.js",
+      "max": 1,
+      "reden": "past de gezondheid aan buiten de spelersmodule om",
+      "issue": "#498"
+    },
+    {
+      "veld": "health",
+      "bestand": "game/js/vehicle.js",
+      "max": 1,
+      "reden": "past de gezondheid aan buiten de spelersmodule om",
+      "issue": "#498"
+    },
+    {
+      "veld": "health",
+      "bestand": "game/js/world.js",
+      "max": 1,
+      "reden": "past de gezondheid aan buiten de spelersmodule om",
+      "issue": "#498"
+    },
+    {
+      "veld": "lastImpact",
+      "bestand": "game/js/lowhealth.js",
+      "max": 1,
+      "reden": "registreert de laatste botsing",
+      "issue": "#498"
+    },
+    {
+      "veld": "lastImpact",
+      "bestand": "game/js/missions.js",
+      "max": 2,
+      "reden": "registreert de laatste botsing",
+      "issue": "#498"
+    },
+    {
+      "veld": "lastImpact",
+      "bestand": "game/js/railway.js",
+      "max": 3,
+      "reden": "registreert de laatste botsing",
+      "issue": "#498"
+    },
+    {
+      "veld": "lastImpact",
+      "bestand": "game/js/storytest.js",
+      "max": 1,
+      "reden": "registreert de laatste botsing",
+      "issue": "#498"
+    },
+    {
+      "veld": "lastImpact",
+      "bestand": "game/js/throwables.js",
+      "max": 1,
+      "reden": "registreert de laatste botsing",
+      "issue": "#498"
+    },
+    {
+      "veld": "lastImpact",
+      "bestand": "game/js/vehicle.js",
+      "max": 1,
+      "reden": "registreert de laatste botsing",
+      "issue": "#498"
+    },
+    {
+      "veld": "minigameUntil",
+      "bestand": "game/js/heist.js",
+      "max": 3,
+      "reden": "zet de blokkade voor de volgende minigame",
+      "issue": "#498"
+    },
+    {
+      "veld": "minigameUntil",
+      "bestand": "game/js/sidejob_boa.js",
+      "max": 1,
+      "reden": "zet de blokkade voor de volgende minigame",
+      "issue": "#498"
+    },
+    {
+      "veld": "minigameUntil",
+      "bestand": "game/js/sidejob_cabaret.js",
+      "max": 1,
+      "reden": "zet de blokkade voor de volgende minigame",
+      "issue": "#498"
+    },
+    {
+      "veld": "minigameUntil",
+      "bestand": "game/js/sidejob_keuze.js",
+      "max": 1,
+      "reden": "zet de blokkade voor de volgende minigame",
+      "issue": "#498"
+    },
+    {
+      "veld": "minigameUntil",
+      "bestand": "game/js/sidejob_rechtbank.js",
+      "max": 2,
+      "reden": "zet de blokkade voor de volgende minigame",
+      "issue": "#498"
+    },
+    {
+      "veld": "minigameUntil",
+      "bestand": "game/js/sidejob_snackbar.js",
+      "max": 1,
+      "reden": "zet de blokkade voor de volgende minigame",
+      "issue": "#498"
+    },
+    {
+      "veld": "minigameUntil",
+      "bestand": "game/js/sidejob_stad.js",
+      "max": 1,
+      "reden": "zet de blokkade voor de volgende minigame",
+      "issue": "#498"
+    },
+    {
+      "veld": "minigameUntil",
+      "bestand": "game/js/stagechoice.js",
+      "max": 1,
+      "reden": "zet de blokkade voor de volgende minigame",
+      "issue": "#498"
+    },
+    {
+      "veld": "minigameUntil",
+      "bestand": "game/js/stagetiming.js",
+      "max": 1,
+      "reden": "zet de blokkade voor de volgende minigame",
+      "issue": "#498"
+    },
+    {
+      "veld": "money",
+      "bestand": "game/js/coopbus.js",
+      "max": 1,
+      "reden": "past het saldo aan buiten economy.js om",
+      "issue": "#498"
+    },
+    {
+      "veld": "money",
+      "bestand": "game/js/coopnet.js",
+      "max": 2,
+      "reden": "past het saldo aan buiten economy.js om",
+      "issue": "#498"
+    },
+    {
+      "veld": "money",
+      "bestand": "game/js/flitspaal.js",
+      "max": 1,
+      "reden": "past het saldo aan buiten economy.js om",
+      "issue": "#498"
+    },
+    {
+      "veld": "money",
+      "bestand": "game/js/horeca.js",
+      "max": 1,
+      "reden": "past het saldo aan buiten economy.js om",
+      "issue": "#498"
+    },
+    {
+      "veld": "money",
+      "bestand": "game/js/main.js",
+      "max": 1,
+      "reden": "past het saldo aan buiten economy.js om",
+      "issue": "#498"
+    },
+    {
+      "veld": "money",
+      "bestand": "game/js/missions.js",
+      "max": 4,
+      "reden": "past het saldo aan buiten economy.js om; de vierde is de uitbetaling per speler bij de museumkraak (#438)",
+      "issue": "#498"
+    },
+    {
+      "veld": "money",
+      "bestand": "game/js/multiplayerpvpwereld.js",
+      "max": 1,
+      "reden": "past het saldo aan buiten economy.js om",
+      "issue": "#498"
+    },
+    {
+      "veld": "money",
+      "bestand": "game/js/ownedvehicles.js",
+      "max": 3,
+      "reden": "past het saldo aan buiten economy.js om",
+      "issue": "#498"
+    },
+    {
+      "veld": "money",
+      "bestand": "game/js/pg_foodtruck.js",
+      "max": 1,
+      "reden": "past het saldo aan buiten economy.js om",
+      "issue": "#498"
+    },
+    {
+      "veld": "money",
+      "bestand": "game/js/reisrit.js",
+      "max": 1,
+      "reden": "past het saldo aan buiten economy.js om",
+      "issue": "#498"
+    },
+    {
+      "veld": "money",
+      "bestand": "game/js/shops.js",
+      "max": 9,
+      "reden": "past het saldo aan buiten economy.js om",
+      "issue": "#498"
+    },
+    {
+      "veld": "money",
+      "bestand": "game/js/sidejob_vracht.js",
+      "max": 1,
+      "reden": "past het saldo aan buiten economy.js om",
+      "issue": "#498"
+    },
+    {
+      "veld": "money",
+      "bestand": "game/js/sidejobs.js",
+      "max": 1,
+      "reden": "past het saldo aan buiten economy.js om",
+      "issue": "#498"
+    },
+    {
+      "veld": "money",
+      "bestand": "game/js/snackautomaat.js",
+      "max": 1,
+      "reden": "past het saldo aan buiten economy.js om",
+      "issue": "#498"
+    },
+    {
+      "veld": "money",
+      "bestand": "game/js/story.js",
+      "max": 4,
+      "reden": "past het saldo aan buiten economy.js om",
+      "issue": "#498"
+    },
+    {
+      "veld": "money",
+      "bestand": "game/js/storydev.js",
+      "max": 1,
+      "reden": "past het saldo aan buiten economy.js om",
+      "issue": "#498"
+    },
+    {
+      "veld": "money",
+      "bestand": "game/js/storytest.js",
+      "max": 6,
+      "reden": "past het saldo aan buiten economy.js om",
+      "issue": "#498"
+    },
+    {
+      "veld": "money",
+      "bestand": "game/js/streetlife.js",
+      "max": 4,
+      "reden": "past het saldo aan buiten economy.js om",
+      "issue": "#498"
+    },
+    {
+      "veld": "money",
+      "bestand": "game/js/testmenu.js",
+      "max": 1,
+      "reden": "past het saldo aan buiten economy.js om",
+      "issue": "#498"
+    },
+    {
+      "veld": "money",
+      "bestand": "game/js/trafficlaw.js",
+      "max": 1,
+      "reden": "past het saldo aan buiten economy.js om",
+      "issue": "#498"
+    },
+    {
+      "veld": "money",
+      "bestand": "game/js/world.js",
+      "max": 1,
+      "reden": "past het saldo aan buiten economy.js om",
+      "issue": "#498"
+    },
+    {
+      "veld": "particles",
+      "bestand": "game/js/breakables.js",
+      "max": 1,
+      "reden": "voegt een deeltje toe of laat het opruimen door de hoofdlus",
+      "issue": "#498"
+    },
+    {
+      "veld": "particles",
+      "bestand": "game/js/combat.js",
+      "max": 1,
+      "reden": "voegt een deeltje toe of laat het opruimen door de hoofdlus",
+      "issue": "#498"
+    },
+    {
+      "veld": "particles",
+      "bestand": "game/js/companion.js",
+      "max": 1,
+      "reden": "voegt een deeltje toe of laat het opruimen door de hoofdlus",
+      "issue": "#498"
+    },
+    {
+      "veld": "particles",
+      "bestand": "game/js/fierljep.js",
+      "max": 2,
+      "reden": "voegt een deeltje toe of laat het opruimen door de hoofdlus",
+      "issue": "#498"
+    },
+    {
+      "veld": "particles",
+      "bestand": "game/js/golven.js",
+      "max": 1,
+      "reden": "voegt een deeltje toe of laat het opruimen door de hoofdlus",
+      "issue": "#498"
+    },
+    {
+      "veld": "particles",
+      "bestand": "game/js/gore3d.js",
+      "max": 1,
+      "reden": "voegt een deeltje toe of laat het opruimen door de hoofdlus",
+      "issue": "#498"
+    },
+    {
+      "veld": "particles",
+      "bestand": "game/js/pedestrians.js",
+      "max": 1,
+      "reden": "voegt een deeltje toe of laat het opruimen door de hoofdlus",
+      "issue": "#498"
+    },
+    {
+      "veld": "particles",
+      "bestand": "game/js/pigeonmode.js",
+      "max": 1,
+      "reden": "voegt een deeltje toe of laat het opruimen door de hoofdlus",
+      "issue": "#498"
+    },
+    {
+      "veld": "particles",
+      "bestand": "game/js/player.js",
+      "max": 2,
+      "reden": "voegt een deeltje toe of laat het opruimen door de hoofdlus",
+      "issue": "#498"
+    },
+    {
+      "veld": "particles",
+      "bestand": "game/js/railway.js",
+      "max": 3,
+      "reden": "voegt een deeltje toe of laat het opruimen door de hoofdlus",
+      "issue": "#498"
+    },
+    {
+      "veld": "particles",
+      "bestand": "game/js/throwables.js",
+      "max": 1,
+      "reden": "voegt een deeltje toe of laat het opruimen door de hoofdlus",
+      "issue": "#498"
+    },
+    {
+      "veld": "particles",
+      "bestand": "game/js/vehicle.js",
+      "max": 3,
+      "reden": "voegt een deeltje toe of laat het opruimen door de hoofdlus",
+      "issue": "#498"
+    },
+    {
+      "veld": "particles",
+      "bestand": "game/js/vehicleimpact.js",
+      "max": 1,
+      "reden": "voegt een deeltje toe of laat het opruimen door de hoofdlus",
+      "issue": "#498"
+    },
+    {
+      "veld": "pedestrians",
+      "bestand": "game/js/cityprops.js",
+      "max": 2,
+      "reden": "voegt een voetganger toe of haalt hem weg",
+      "issue": "#498"
+    },
+    {
+      "veld": "pedestrians",
+      "bestand": "game/js/coopextra3d.js",
+      "max": 1,
+      "reden": "voegt een voetganger toe of haalt hem weg",
+      "issue": "#498"
+    },
+    {
+      "veld": "pedestrians",
+      "bestand": "game/js/flavour.js",
+      "max": 1,
+      "reden": "voegt een voetganger toe of haalt hem weg",
+      "issue": "#498"
+    },
+    {
+      "veld": "pedestrians",
+      "bestand": "game/js/main.js",
+      "max": 3,
+      "reden": "voegt een voetganger toe of haalt hem weg",
+      "issue": "#498"
+    },
+    {
+      "veld": "pedestrians",
+      "bestand": "game/js/missions.js",
+      "max": 1,
+      "reden": "voegt een voetganger toe of haalt hem weg",
+      "issue": "#498"
+    },
+    {
+      "veld": "pedestrians",
+      "bestand": "game/js/police.js",
+      "max": 3,
+      "reden": "voegt een voetganger toe of haalt hem weg",
+      "issue": "#498"
+    },
+    {
+      "veld": "pedestrians",
+      "bestand": "game/js/policemounts.js",
+      "max": 3,
+      "reden": "voegt een voetganger toe of haalt hem weg",
+      "issue": "#498"
+    },
+    {
+      "veld": "pedestrians",
+      "bestand": "game/js/sidejobkit.js",
+      "max": 2,
+      "reden": "voegt een voetganger toe of haalt hem weg",
+      "issue": "#498"
+    },
+    {
+      "veld": "pedestrians",
+      "bestand": "game/js/streetlife.js",
+      "max": 5,
+      "reden": "voegt een voetganger toe of haalt hem weg",
+      "issue": "#498"
+    },
+    {
+      "veld": "phoneNotifications",
+      "bestand": "game/js/flavour.js",
+      "max": 2,
+      "reden": "voegt een melding aan de telefoon toe",
+      "issue": "#498"
+    },
+    {
+      "veld": "phoneNotifications",
+      "bestand": "game/js/sidejobs.js",
+      "max": 1,
+      "reden": "voegt een melding aan de telefoon toe",
+      "issue": "#498"
+    },
+    {
+      "veld": "phoneNotifications",
+      "bestand": "game/js/sikkomfeed.js",
+      "max": 2,
+      "reden": "voegt een melding aan de telefoon toe",
+      "issue": "#498"
+    },
+    {
+      "veld": "phoneNotifications",
+      "bestand": "game/js/story.js",
+      "max": 1,
+      "reden": "voegt een melding aan de telefoon toe",
+      "issue": "#498"
+    },
+    {
+      "veld": "phoneNotifications",
+      "bestand": "game/js/storytest.js",
+      "max": 1,
+      "reden": "voegt een melding aan de telefoon toe",
+      "issue": "#498"
+    },
+    {
+      "veld": "phoneNotifications",
+      "bestand": "game/js/weather.js",
+      "max": 2,
+      "reden": "voegt een melding aan de telefoon toe",
+      "issue": "#498"
+    },
+    {
+      "veld": "uiPaused",
+      "bestand": "game/js/assistlive.js",
+      "max": 1,
+      "reden": "houdt de simulatie tegen zolang een scherm openstaat",
+      "issue": "#498"
+    },
+    {
+      "veld": "uiPaused",
+      "bestand": "game/js/fotomodusui.js",
+      "max": 1,
+      "reden": "houdt de simulatie tegen zolang een scherm openstaat",
+      "issue": "#498"
+    },
+    {
+      "veld": "uiPaused",
+      "bestand": "game/js/loadscreen.js",
+      "max": 2,
+      "reden": "houdt de simulatie tegen zolang een scherm openstaat",
+      "issue": "#498"
+    },
+    {
+      "veld": "uiPaused",
+      "bestand": "game/js/phone.js",
+      "max": 1,
+      "reden": "houdt de simulatie tegen zolang een scherm openstaat",
+      "issue": "#498"
+    },
+    {
+      "veld": "uiPaused",
+      "bestand": "game/js/reisrit.js",
+      "max": 2,
+      "reden": "houdt de simulatie tegen zolang een scherm openstaat",
+      "issue": "#498"
+    },
+    {
+      "veld": "uiPaused",
+      "bestand": "game/js/ringcheck.js",
+      "max": 4,
+      "reden": "houdt de simulatie tegen zolang een scherm openstaat",
+      "issue": "#498"
+    },
+    {
+      "veld": "uiPaused",
+      "bestand": "game/js/todo.js",
+      "max": 1,
+      "reden": "houdt de simulatie tegen zolang een scherm openstaat",
+      "issue": "#498"
+    },
+    {
+      "veld": "vehicles",
+      "bestand": "game/js/cityprops.js",
+      "max": 1,
+      "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
+      "issue": "#498"
+    },
+    {
+      "veld": "vehicles",
+      "bestand": "game/js/convoy.js",
+      "max": 3,
+      "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
+      "issue": "#498"
+    },
+    {
+      "veld": "vehicles",
+      "bestand": "game/js/coopbezit.js",
+      "max": 1,
+      "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
+      "issue": "#498"
+    },
+    {
+      "veld": "vehicles",
+      "bestand": "game/js/coophostwisselwereld.js",
+      "max": 1,
+      "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
+      "issue": "#498"
+    },
+    {
+      "veld": "vehicles",
+      "bestand": "game/js/coopnet.js",
+      "max": 4,
+      "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
+      "issue": "#498"
+    },
+    {
+      "veld": "vehicles",
+      "bestand": "game/js/countrylife.js",
+      "max": 2,
+      "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
+      "issue": "#498"
+    },
+    {
+      "veld": "vehicles",
+      "bestand": "game/js/emergency.js",
+      "max": 1,
+      "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
+      "issue": "#498"
+    },
+    {
+      "veld": "vehicles",
+      "bestand": "game/js/evenementenlive.js",
+      "max": 1,
+      "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
+      "issue": "#498"
+    },
+    {
+      "veld": "vehicles",
+      "bestand": "game/js/flavour.js",
+      "max": 3,
+      "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
+      "issue": "#498"
+    },
+    {
+      "veld": "vehicles",
+      "bestand": "game/js/heist.js",
+      "max": 1,
+      "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
+      "issue": "#498"
+    },
+    {
+      "veld": "vehicles",
+      "bestand": "game/js/marinas3d.js",
+      "max": 2,
+      "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
+      "issue": "#498"
+    },
+    {
+      "veld": "vehicles",
+      "bestand": "game/js/missions.js",
+      "max": 24,
+      "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
+      "issue": "#498"
+    },
+    {
+      "veld": "vehicles",
+      "bestand": "game/js/ownedvehicles.js",
+      "max": 3,
+      "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
+      "issue": "#498"
+    },
+    {
+      "veld": "vehicles",
+      "bestand": "game/js/parkedcars.js",
+      "max": 3,
+      "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
+      "issue": "#498"
+    },
+    {
+      "veld": "vehicles",
+      "bestand": "game/js/parkeergarage.js",
+      "max": 2,
+      "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
+      "issue": "#498"
+    },
+    {
+      "veld": "vehicles",
+      "bestand": "game/js/pedestrians.js",
+      "max": 1,
+      "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
+      "issue": "#498"
+    },
+    {
+      "veld": "vehicles",
+      "bestand": "game/js/pg_foodtruck.js",
+      "max": 1,
+      "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
+      "issue": "#498"
+    },
+    {
+      "veld": "vehicles",
+      "bestand": "game/js/planestage.js",
+      "max": 1,
+      "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
+      "issue": "#498"
+    },
+    {
+      "veld": "vehicles",
+      "bestand": "game/js/police.js",
+      "max": 6,
+      "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
+      "issue": "#498"
+    },
+    {
+      "veld": "vehicles",
+      "bestand": "game/js/policemounts.js",
+      "max": 2,
+      "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
+      "issue": "#498"
+    },
+    {
+      "veld": "vehicles",
+      "bestand": "game/js/racers.js",
+      "max": 6,
+      "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
+      "issue": "#498"
+    },
+    {
+      "veld": "vehicles",
+      "bestand": "game/js/rideprops.js",
+      "max": 1,
+      "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
+      "issue": "#498"
+    },
+    {
+      "veld": "vehicles",
+      "bestand": "game/js/ringcheck.js",
+      "max": 2,
+      "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
+      "issue": "#498"
+    },
+    {
+      "veld": "vehicles",
+      "bestand": "game/js/rondvaartchase.js",
+      "max": 2,
+      "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
+      "issue": "#498"
+    },
+    {
+      "veld": "vehicles",
+      "bestand": "game/js/shops.js",
+      "max": 7,
+      "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
+      "issue": "#498"
+    },
+    {
+      "veld": "vehicles",
+      "bestand": "game/js/sidejobkit.js",
+      "max": 3,
+      "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
+      "issue": "#498"
+    },
+    {
+      "veld": "vehicles",
+      "bestand": "game/js/testmenu.js",
+      "max": 1,
+      "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
+      "issue": "#498"
+    },
+    {
+      "veld": "vehicles",
+      "bestand": "game/js/vehicle.js",
+      "max": 1,
+      "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
+      "issue": "#498"
+    },
+    {
+      "veld": "vehicles",
+      "bestand": "game/js/werflive.js",
+      "max": 2,
+      "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
+      "issue": "#498"
+    },
+    {
+      "veld": "wanted",
+      "bestand": "game/js/breakables.js",
+      "max": 1,
+      "reden": "verhoogt of verlaagt de gezochtheid; police.js bezit alleen het verval",
+      "issue": "#498"
+    },
+    {
+      "veld": "wanted",
+      "bestand": "game/js/combat.js",
+      "max": 1,
+      "reden": "verhoogt of verlaagt de gezochtheid; police.js bezit alleen het verval",
+      "issue": "#498"
+    },
+    {
+      "veld": "wanted",
+      "bestand": "game/js/coopclient.js",
+      "max": 1,
+      "reden": "verhoogt of verlaagt de gezochtheid; police.js bezit alleen het verval",
+      "issue": "#498"
+    },
+    {
+      "veld": "wanted",
+      "bestand": "game/js/coopgezocht.js",
+      "max": 3,
+      "reden": "verhoogt of verlaagt de gezochtheid; police.js bezit alleen het verval",
+      "issue": "#498"
+    },
+    {
+      "veld": "wanted",
+      "bestand": "game/js/coophostwisselnet.js",
+      "max": 1,
+      "reden": "verhoogt of verlaagt de gezochtheid; police.js bezit alleen het verval",
+      "issue": "#498"
+    },
+    {
+      "veld": "wanted",
+      "bestand": "game/js/coopnet.js",
+      "max": 3,
+      "reden": "verhoogt of verlaagt de gezochtheid; police.js bezit alleen het verval",
+      "issue": "#498"
+    },
+    {
+      "veld": "wanted",
+      "bestand": "game/js/crime.js",
+      "max": 1,
+      "reden": "verhoogt of verlaagt de gezochtheid; police.js bezit alleen het verval",
+      "issue": "#498"
+    },
+    {
+      "veld": "wanted",
+      "bestand": "game/js/machinist.js",
+      "max": 1,
+      "reden": "verhoogt of verlaagt de gezochtheid; police.js bezit alleen het verval",
+      "issue": "#498"
+    },
+    {
+      "veld": "wanted",
+      "bestand": "game/js/missions.js",
+      "max": 4,
+      "reden": "verhoogt of verlaagt de gezochtheid; police.js bezit alleen het verval",
+      "issue": "#498"
+    },
+    {
+      "veld": "wanted",
+      "bestand": "game/js/pedestrians.js",
+      "max": 4,
+      "reden": "verhoogt of verlaagt de gezochtheid; police.js bezit alleen het verval",
+      "issue": "#498"
+    },
+    {
+      "veld": "wanted",
+      "bestand": "game/js/shops.js",
+      "max": 3,
+      "reden": "verhoogt of verlaagt de gezochtheid; police.js bezit alleen het verval",
+      "issue": "#498"
+    },
+    {
+      "veld": "wanted",
+      "bestand": "game/js/story.js",
+      "max": 1,
+      "reden": "verhoogt of verlaagt de gezochtheid; police.js bezit alleen het verval",
+      "issue": "#498"
+    },
+    {
+      "veld": "wanted",
+      "bestand": "game/js/storytest.js",
+      "max": 9,
+      "reden": "verhoogt of verlaagt de gezochtheid; police.js bezit alleen het verval",
+      "issue": "#498"
+    },
+    {
+      "veld": "wanted",
+      "bestand": "game/js/testmenu.js",
+      "max": 1,
+      "reden": "verhoogt of verlaagt de gezochtheid; police.js bezit alleen het verval",
+      "issue": "#498"
+    },
+    {
+      "veld": "wanted",
+      "bestand": "game/js/trafficlaw.js",
+      "max": 1,
+      "reden": "verhoogt of verlaagt de gezochtheid; police.js bezit alleen het verval",
+      "issue": "#498"
+    },
+    {
+      "veld": "wanted",
+      "bestand": "game/js/traindrive.js",
+      "max": 1,
+      "reden": "verhoogt of verlaagt de gezochtheid; police.js bezit alleen het verval",
+      "issue": "#498"
+    },
+    {
+      "veld": "wanted",
+      "bestand": "game/js/vehiclewreck.js",
+      "max": 1,
+      "reden": "verhoogt of verlaagt de gezochtheid; police.js bezit alleen het verval",
+      "issue": "#498"
+    },
+    {
+      "veld": "wanted",
+      "bestand": "game/js/world.js",
+      "max": 1,
+      "reden": "verhoogt of verlaagt de gezochtheid; police.js bezit alleen het verval",
+      "issue": "#498"
+    },
+    {
+      "veld": "wantedDecayTimer",
+      "bestand": "game/js/crime.js",
+      "max": 1,
+      "reden": "raakt de vervalteller van de politie aan",
+      "issue": "#498"
+    },
+    {
+      "veld": "wantedDecayTimer",
+      "bestand": "game/js/machinist.js",
+      "max": 1,
+      "reden": "raakt de vervalteller van de politie aan",
+      "issue": "#498"
+    },
+    {
+      "veld": "wantedDecayTimer",
+      "bestand": "game/js/missions.js",
+      "max": 4,
+      "reden": "raakt de vervalteller van de politie aan",
+      "issue": "#498"
+    },
+    {
+      "veld": "wantedDecayTimer",
+      "bestand": "game/js/shops.js",
+      "max": 2,
+      "reden": "raakt de vervalteller van de politie aan",
+      "issue": "#498"
+    },
+    {
+      "veld": "wantedDecayTimer",
+      "bestand": "game/js/testmenu.js",
+      "max": 1,
+      "reden": "raakt de vervalteller van de politie aan",
+      "issue": "#498"
+    },
+    {
+      "veld": "wantedDecayTimer",
+      "bestand": "game/js/trafficlaw.js",
+      "max": 1,
+      "reden": "raakt de vervalteller van de politie aan",
+      "issue": "#498"
+    },
+    {
+      "veld": "wantedDecayTimer",
+      "bestand": "game/js/traindrive.js",
+      "max": 1,
+      "reden": "raakt de vervalteller van de politie aan",
+      "issue": "#498"
+    },
+    {
+      "veld": "wantedDecayTimer",
+      "bestand": "game/js/world.js",
+      "max": 1,
+      "reden": "raakt de vervalteller van de politie aan",
+      "issue": "#498"
+    },
+    {
+      "veld": "weapon",
+      "bestand": "game/js/coopwapen.js",
+      "max": 3,
+      "reden": "wisselt het wapen",
+      "issue": "#498"
+    },
+    {
+      "veld": "weapon",
+      "bestand": "game/js/shops.js",
+      "max": 5,
+      "reden": "wisselt het wapen",
+      "issue": "#498"
+    },
+    {
+      "veld": "weapon",
+      "bestand": "game/js/weapondrops.js",
+      "max": 1,
+      "reden": "wisselt het wapen",
+      "issue": "#498"
+    },
+    {
+      "veld": "coopKijkPitch",
+      "bestand": "game/js/coopgast.js",
+      "max": 1,
+      "reden": "de kijkhoogte van een gast, die zijn eigen beeldjes optelt omdat de camera na input.endFrame leest",
+      "issue": "#434"
+    }
+  ]
 }

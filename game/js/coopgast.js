@@ -103,7 +103,7 @@ export const KIJK_MAX_RAD = (60 * Math.PI) / 180;
 export const KIJK_STANDAARD = (0.2 * Math.PI) / 180;
 // Een gast leest de muis in updateGameplay, maar de camera (update3D) draait pas na input.endFrame, dat mouse.dy op nul
 // zet: de gast kon dus niet omhoog of omlaag kijken (#434). Hij telt de beweging van dit beeld zelf op en zet die op
-// nul, zodat de camera hem ├®├®n keer leest. In een voertuig doet de camera het zelf, net als bij de gastheer.
+// nul, zodat de camera hem één keer leest. In een voertuig doet de camera het zelf, net als bij de gastheer.
 export function gastKijkHoogte(world, dy, gevoeligheid = 1) {
   const d = Number.isFinite(dy) ? dy : 0;
   const m = world.input && world.input.mouse;
