@@ -174,4 +174,20 @@ t('het maximum: een vijfde gast bij maximum 4 wordt netjes geweigerd; na een vri
   assert.equal(nieuw.gw.coopNet.session.status, 'ok');
 });
 
+// #388, laatste open punt: de volgorde wereld, filmpje, besturing. Wie midden in een scène aansluit, moet
+// de scène meteen meekrijgen in plaats van pas bij de volgende wissel. De host stuurt zijn scène bij het
+// binnenkomen (coopnet.js, onJoin) en de gast leest hem als 'scene'-bericht.
+t('een gast die midden in een filmpje aansluit, speelt de scène meteen mee', () => {
+  const filmpje = { filmpje: true, regel: { wie: 'Tessa', tekst: 'Het colbert van Berend hangt hier.' }, keuze: null };
+  const s = sessie(1, { hostExtra: { clock: 10 } });
+  s.hw.coopNet.scene = () => filmpje;
+  s.step(3); // de gastheer zit al in de scène
+  assert.ok(s.gs[0].gw.coopScene && s.gs[0].gw.coopScene.filmpje, 'de eerste gast ziet het filmpje');
+  const laat = s.voegToe();
+  s.step(2);
+  assert.ok(laat.gw.coopScene, 'de late gast heeft de scène gekregen');
+  assert.equal(laat.gw.coopScene.filmpje, true, 'en wel het filmpje, niet alleen de regel');
+  assert.match(String((laat.gw.coopScene.regel || {}).tekst || ''), /colbert/, 'met de regel die de gastheer ziet');
+});
+
 console.log(`coop_scenarios_test: ${n}/${n} ok`);
