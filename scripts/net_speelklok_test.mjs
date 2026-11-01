@@ -46,11 +46,44 @@ ok(g1 > 9.9 && g1 < 10.04, 'zacht: een stapje richting de host, geen snap');
 const sp = new KlokVolger();
 sp.observe({ t: 0, uur: 10 }, 0); sp.observe({ t: 2, uur: 10.04 }, 2); sp.observe({ t: 4, uur: 18 }, 4);
 near(sp.step(10.08, 0.1, 4), 18, 1e-9, 'sprong snapt');
-// de meldingen stoppen: de klok schuift maximaal 10 s door
+// de meldingen stoppen: de klok schuift hoogstens een meldinginterval door (#520)
 const st = new KlokVolger();
 st.observe({ t: 0, uur: 6 }, 0); st.observe({ t: 2, uur: 6.1 }, 2);
-near(st.target(2 + 100), 6.1 + 0.05 * 10, 1e-6, 'doorschuiven begrensd');
+near(st.target(2 + 100), 6.1 + 0.05 * st.maxAhead, 1e-6, 'doorschuiven begrensd');
 near(new KlokVolger().step(7, 0.1, 0), 7, 0, 'zonder melding blijft de klok staan');
+
+// --- pauze van de gastheer (#520): hij meldt elke 2 s dezelfde stand, want zijn wereld staat stil.
+// De gast mag dan niet vooruit rekenen; anders staat hij na een pauze van een halve minuut minuten
+// voor en ziet hij de klok bij het hervatten terugspringen.
+{
+  const p = new KlokVolger();
+  let gast = 10, lokaal = 0;
+  const rate = 24 / 1440; // de gewone daglengte: 1 minuut per seconde
+  // 10 s gewoon spel: de host loopt, de gast volgt
+  for (let t = 0; t <= 10; t += 2) {
+    p.observe({ t, uur: 10 + rate * t }, lokaal);
+    for (let i = 0; i < 20; i++) { gast = p.step(gast, 0.1, lokaal); lokaal += 0.1; }
+  }
+  // de host pauzeert 40 s: dezelfde tijd en dezelfde stand blijven komen
+  for (let k = 0; k < 20; k++) {
+    p.observe({ t: 10, uur: 10 + rate * 10 }, lokaal);
+    for (let i = 0; i < 20; i++) { gast = p.step(gast, 0.1, lokaal); lokaal += 0.1; }
+  }
+  near(gast, 10 + rate * 10, 0.02, 'tijdens de pauze blijft de klok van de gast bij de gastheer');
+  // de host hervat: geen sprong terug, gewoon doorlopen
+  const voor = gast;
+  p.observe({ t: 12, uur: 10 + rate * 12 }, lokaal);
+  for (let i = 0; i < 20; i++) { gast = p.step(gast, 0.1, lokaal); lokaal += 0.1; }
+  ok(gast >= voor - 1e-9 && gast < voor + 0.1, `hervatten geeft geen sprong terug (${voor} -> ${gast})`);
+  ok(hourDiff(gast, p.target(lokaal)) > -0.02, 'en de gast loopt niet achter de gastheer aan');
+}
+// een gast die een poos niets hoort (netwerkstoring) loopt niet minuten voor
+{
+  const d = new KlokVolger();
+  d.observe({ t: 0, uur: 8 }, 0); d.observe({ t: 2, uur: 8 + 2 / 60 }, 2);
+  const ver = d.target(2 + 120), laatste = 8 + 2 / 60;
+  ok(hourDiff(laatste, ver) <= d.maxAhead / 60 + 1e-9, `hoogstens ${d.maxAhead} s voor (${(hourDiff(laatste, ver) * 60).toFixed(2)} min)`);
+}
 
 // --- hash
 eq(fnv('a'), 'e40c292c', 'fnv vaste waarde');
