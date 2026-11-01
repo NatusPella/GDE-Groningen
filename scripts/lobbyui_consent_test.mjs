@@ -106,6 +106,59 @@ await t('"Niet meer vragen" (#526): het vinkje plus akkoord bewaart de keuze op 
   setSetting('multiplayerConsentRemembered', false); // de test laat geen keuze achter
   delete globalThis.localStorage;
 });
+// (#526) Het toestemmingsgat: een scherm openen en weer sluiten is geen keuze. Alleen een expliciete
+// "Akkoord"- of "Niet meer vragen"-keuze op dat scherm mag de opgeslagen toestemming zetten; een geweigerde
+// of weggeklikte vraag laat de opslag ongemoeid (constitutie 4).
+await t('toestemmingsgat (#526): openen en sluiten zonder keuze bewaart niets, akkoord en "Niet meer vragen" wel', async () => {
+  const geheugen = new Map();
+  globalThis.localStorage = { getItem: (k) => (geheugen.has(k) ? geheugen.get(k) : null), setItem: (k, v) => geheugen.set(k, String(v)), removeItem: (k) => geheugen.delete(k) };
+  const { getSettings, setSetting } = await import('../game/js/settings.js');
+  const schoon = () => { setSetting('multiplayerConsentRemembered', false); geheugen.delete('gde-settings'); };
+  // het vinkje zoals de browser het toont: alleen aangevinkt als de getekende HTML het zegt
+  const aangevinkt = (r) => /class="coop-consent-vink"[^>]*\schecked/.test(r.innerHTML);
+
+  // (a) scherm openen en sluiten zonder keuze: niets opgeslagen, op elk van de drie schermen en met het vinkje aan
+  for (const [scherm, stappen] of [['route', ['kies-host', 'route-kamer']], ['lijst', ['lijst']], ['test', ['diag']]]) {
+    schoon();
+    const r = fakeRoot(); const l = mountLobby(r, hooks());
+    for (const s of stappen) { r.click(s); await tick(20); }
+    assert.match(r.innerHTML, /coop-consent-vink/, `${scherm}: het vinkje staat op het scherm`);
+    r.check(true); await tick(); // de speler vinkt aan...
+    r.click(scherm === 'test' ? 'diag-terug' : scherm === 'lijst' ? 'lijst-terug' : 'terug'); await tick(30); // ...en annuleert
+    assert.equal(getSettings().multiplayerConsentRemembered, false, `${scherm}: annuleren bewaart niets`);
+    // en daarna in dezelfde lobby een andere weg naar het akkoord: het vinkje van het geannuleerde scherm is weg,
+    // dus dat akkoord bewaart niets. Dit is het lek van #526: het vinkje van de lijst of de test hing aan het
+    // toestemmingsscherm van een route, zonder dat de speler daar "Niet meer vragen" koos.
+    r.click('kies-host'); r.click('route-kamer'); await tick(20);
+    assert.equal(l.state().step, 'toestemming', `${scherm}: daarna komt de route weer op het toestemmingsscherm`);
+    assert.equal(aangevinkt(r), false, `${scherm}: het vinkje van het geannuleerde scherm staat niet meer aan`);
+    r.click('akkoord'); await tick(40);
+    assert.equal(getSettings().multiplayerConsentRemembered, false, `${scherm}: akkoord zonder zelf aangevinkt te hebben bewaart niets`);
+    l.close();
+  }
+  // (b) expliciet Akkoord met het vinkje: wel opgeslagen
+  schoon();
+  const rb = fakeRoot(); const lb = mountLobby(rb, hooks());
+  rb.click('kies-host'); rb.click('route-kamer'); await tick(20);
+  rb.check(true); await tick(); rb.click('akkoord'); await tick(40);
+  assert.equal(getSettings().multiplayerConsentRemembered, true, 'akkoord met het vinkje bewaart de keuze');
+  assert.match(geheugen.get('gde-settings') || '', /multiplayerConsentRemembered/);
+  lb.close();
+  // (c) expliciet "Niet meer vragen" via de lijst: bewaard, en de vraag komt niet terug
+  schoon();
+  const rc = fakeRoot(); const lc = mountLobby(rc, hooks());
+  rc.click('lijst'); await tick(20); rc.check(true); await tick(); rc.click('lijst-go'); await tick(60);
+  assert.equal(getSettings().multiplayerConsentRemembered, true, '"Niet meer vragen" op de lijst bewaart de keuze');
+  assert.equal(lc.state().step, 'lijst');
+  lc.close();
+  const rd = fakeRoot(); const ld = mountLobby(rd, hooks());
+  assert.equal(ld.state().consentSaved, true, 'een volgende sessie leest de keuze');
+  rd.click('kies-host'); rd.click('route-kamer'); await tick(40);
+  assert.notEqual(ld.state().step, 'toestemming', 'de vraag komt niet terug op dit apparaat');
+  ld.close();
+  setSetting('multiplayerConsentRemembered', false);
+  delete globalThis.localStorage;
+});
 await t('wachtscherm van een gast: komt de verbinding van zelf terug, dan sluit het scherm (anders bleef het spel voor altijd op pauze)', async () => {
   const root = fakeRoot(); let hervat = 0;
   const session = { slot: 1, onstatus: null, onevent: null, welcome: null, rejected: null };

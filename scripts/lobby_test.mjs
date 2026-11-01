@@ -86,6 +86,26 @@ t('"Niet meer vragen" op dit apparaat: het vinkje bewaart de keuze, ook voor een
   assert.equal(L.view(terug).buttons.some((b) => b.act === 'consent-vergeet'), false, 'de knop is weer weg');
   assert.equal(L.reduce(terug, { t: 'route', route: 'kamer' }).step, 'toestemming', 'en het scherm komt terug');
 });
+// (#526) Het vinkje hoort bij het scherm waarop het staat: annuleren op de lijst of de test mag het akkoord op
+// een route daarna niet stilzwijgend "Niet meer vragen" laten betekenen. De speler koos dat daar niet.
+t('een vinkje van een geannuleerd scherm telt niet mee op een ander scherm (#526)', () => {
+  const naarLijst = run(APP, { t: 'kies', rol: 'gast' }, { t: 'lijst-vraag' });
+  assert.equal(naarLijst.step, 'lijst-vraag');
+  const gevinktOpLijst = L.reduce(naarLijst, { t: 'consent-vink', aan: true });
+  const geannuleerd = L.reduce(gevinktOpLijst, { t: 'lijst-terug' });
+  assert.equal(geannuleerd.consentRemember, false, 'annuleren laat het vinkje vallen');
+  assert.equal(geannuleerd.consentSaved, false);
+  const akkoord = L.reduce(L.reduce(L.reduce(geannuleerd, { t: 'kies', rol: 'host' }), { t: 'route', route: 'kamer' }), { t: 'akkoord' });
+  assert.equal(akkoord.consented, true, 'het akkoord geldt wel voor deze sessie');
+  assert.equal(akkoord.consentSaved, false, 'maar bewaart het apparaat niet: dat vinkje was van een ander scherm');
+  assert.equal(L.hasConsent(L.createLobby(APP)), false, 'een nieuwe sessie vraagt het dus weer');
+  // hetzelfde voor de test: annuleren na het vinkje laat de keuze vallen
+  const diagGevinkt = L.reduce(run(APP, { t: 'diag' }), { t: 'consent-vink', aan: true });
+  assert.equal(diagGevinkt.consentRemember, true);
+  const diagTerug = L.reduce(diagGevinkt, { t: 'diag-terug' });
+  assert.equal(diagTerug.consentRemember, false);
+  assert.equal(diagTerug.consentSaved, false);
+});
 t('host-pad (kamercode): akkoord, code tonen, gast verbindt, je medespeler naast je', () => {
   let s = run(APP, { t: 'kies', rol: 'host' }, { t: 'route', route: 'kamer' }, { t: 'akkoord' });
   assert.equal(s.step, 'host-maakt-code');

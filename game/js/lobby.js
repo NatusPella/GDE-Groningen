@@ -168,6 +168,11 @@ const fresh = (s) => ({ ...createLobby(s.caps), consented: !!s.consented, consen
 // Waar je na het toestemmingsscherm komt: dezelfde stap als na "Akkoord en verbinden" (#526)
 const naToestemming = (s) => (s.rol === ROLES.HOST ? 'host-maakt-code' : 'verbinden');
 
+// Het vinkje "Niet meer vragen" hoort bij het scherm waarop het staat. Ga je daar zonder akkoord weg, dan valt
+// het terug op wat dit apparaat al wist: anders zou een vinkje van het ene scherm bij het akkoord op een ander
+// scherm alsnog bewaard worden, zonder dat de speler daar "Niet meer vragen" koos (#526).
+const vinkTerug = (s) => !!s.consentSaved;
+
 // Gebeurtenissen:
 //  kies{rol}  route{route}  invoer{text}  akkoord{remember?}  consent-vink{aan}  code{code, lanCode?, note?}  fout{msg}
 //  status{status, reason, partner?}  terug  verbreek  hervat
@@ -211,7 +216,7 @@ export function reduce(s, ev) {
       if (s.step === 'diag-vraag') n.consentSaved = !!(s.consentRemember ?? s.consentSaved);
       n.step = 'diag-bezig'; n.diag = null; return n;
     case 'diag-klaar': n.step = 'diag-uit'; n.diag = ev.beoordeling || null; return n;
-    case 'diag-terug': n.step = s.terugNaar || 'start'; return n;
+    case 'diag-terug': n.step = s.terugNaar || 'start'; n.consentRemember = vinkTerug(s); return n;
     case 'openbaar-vraag': // alleen de host, alleen de kamercode-route (de IP-route heeft een adres in de code: nooit openbaar)
       if (s.rol !== ROLES.HOST || s.route !== ROUTES.KAMER || !['host-wacht', 'verbonden'].includes(s.step)) return s;
       n.step = 'openbaar-vraag'; return n;
@@ -272,7 +277,7 @@ export function reduce(s, ev) {
       if (!e.kan) return { ...n, error: e.anders ? 'Deze sessie speelt een andere versie: je kunt er niet bij aansluiten.' : 'Deze sessie zit vol.' };
       n.rol = ROLES.GAST; n.route = ROUTES.KAMER; n.invoer = { ok: true, route: ROUTES.KAMER, room: e.room }; n.step = hasConsent(s) ? naToestemming(n) : 'toestemming'; return n;
     }
-    case 'lijst-terug': if (s.step !== 'lijst' && s.step !== 'lijst-vraag') return s; n.step = s.terugNaar || 'start'; return n;
+    case 'lijst-terug': if (s.step !== 'lijst' && s.step !== 'lijst-vraag') return s; n.step = s.terugNaar || 'start'; n.consentRemember = vinkTerug(s); return n;
     case 'wens': // alleen gast: de figuur die hij het liefst heeft (die van zijn online-avatar)
       n.wens = EXTRA_CHARS.some((c) => c.id === ev.char) ? ev.char : null; return n;
     case 'profiel': { // de online-avatar invullen (#455); de naam wordt pas bij profiel-klaar gefilterd

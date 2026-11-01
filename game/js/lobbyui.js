@@ -187,7 +187,10 @@ export function mountLobby(root, hooks, opts = {}) {
 
   // ----- toestemming (#526): de keuze "Niet meer vragen" gaat naar de gewone instellingen, pas als de speler
   // akkoord is gegaan. Alleen op dit apparaat; er gaat niets van naar een server.
+  // Het schrijven hangt aan het akkoord van deze sessie: openen, sluiten of annuleren van een scherm mag de
+  // opgeslagen keuze nooit veranderen, ook niet als er ergens een vinkje is blijven staan (constitutie 4).
   function bewaarToestemming() {
+    if (!state.consented) return;
     setSetting('multiplayerConsentRemembered', !!state.consentSaved);
   }
   // Wie deze sessie al toestemming gaf, komt niet meer op het toestemmingsscherm: de stap die daarop zou wachten
