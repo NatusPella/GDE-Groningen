@@ -397,6 +397,10 @@ export function schoonScene(sc) {
       const vraag = tekst(sc.paneel.tekst, 240), ronde = tekst(sc.paneel.ronde, 24);
       if (vraag) p.tekst = vraag;
       if (ronde) p.ronde = ronde;
+      // Het nummer van de ronde (#525): een druk van een gast hoort bij de ronde waarvan hij de balk zag. Zonder dat
+      // nummer telt de gastheer een te late druk op de volgende ronde, waar de naald ergens anders staat.
+      const nr = Number(sc.paneel.nr);
+      if (p.stap === 'timing' && Number.isInteger(nr) && nr > 0 && nr < 1000) p.nr = nr;
       // de balk van een timing (stagetiming.js paint): zonder naald drukt een gast blind en verpest hij de
       // opdracht van de gastheer, dus gaat de stand mee. Twee decimalen is genoeg voor een balk van 100 pixels.
       const m = p.stap === 'timing' ? sc.paneel.meter : null; // alleen een timing heeft een balk

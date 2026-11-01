@@ -10,7 +10,7 @@
 //   goodAt: hits needed for tagGood, fewer give tagLow (tags land in chain.tags, see missions.js consequenceAdjust)
 // Space, E or F press. Nothing here imports game code but the panel; the stage state lives in S (missions.js).
 import { createChoicePanel, keycap } from './choicepanel.js';
-import { neemPaneelDruk } from './coopgast.js'; // de toets van een gast bij de gastheer (#525)
+import { neemTimingDruk } from './coopgast.js'; // de toets van een gast bij de gastheer (#525)
 
 const REPLY_S = 1.5;
 let panel = null;
@@ -38,14 +38,15 @@ export function enterTiming(S, st, on) {
 export const needleAt = (round, t) => 0.5 + 0.5 * Math.sin(t * (round.speed || 0.7) * Math.PI * 2 - Math.PI / 2);
 export const inZone = (round, v) => v >= round.zone[0] && v <= round.zone[1];
 
-// The rules, without the panel: one frame. `press` is true when a key was hit this frame.
+// The rules, without the panel: one frame. `press` is true when a key was hit this frame, or { hit } when the
+// caller already judged the press (a guest's press is judged on the bar he saw, #525).
 // Returns 'done', { fail: reason } or null; S.tphase is 'ask' or 'reply' (S.treply is the line to show).
 export function stepTiming(st, S, press, dt) {
   const round = (S.rounds || st.rounds)[Math.min(S.ti, st.rounds.length - 1)];
   if (S.tphase === 'ask') {
     S.needleT += dt;
     if (!press) return null;
-    const hit = inZone(round, needleAt(round, S.needleT));
+    const hit = typeof press === 'object' ? !!press.hit : inZone(round, needleAt(round, S.needleT));
     if (hit) S.hits++; else S.miss++;
     S.treply = { text: (hit ? round.ok : round.bad) || '', bad: !hit };
     S.tphase = 'reply';
@@ -76,6 +77,7 @@ function paint(st, S, round) {
     rule: '',
     options: [],
     meter: { v: needleAt(round, S.needleT), from: round.zone[0], to: round.zone[1] },
+    nr: Math.min(S.ti + 1, st.rounds.length),
     flash: reply ? reply.text : '',
     bad: !!reply && reply.bad,
     help: reply ? '' : `${keycap('SPATIE')} ${st.help || 'druk als de streep in het groen is'}`,
@@ -89,11 +91,14 @@ export function updateTiming(dt, world, st, S) {
   world.minigameUntil = world.time + 0.25;
   let press = false;
   if (S.tphase === 'ask') {
-    // Samen spelen (#525): een gast ziet de balk en drukt mee; zijn druk komt uit de wachtrij van de gastheer. Hij
-    // telt alleen als treffer als hij hier aankomt terwijl de naald in het groen staat, dus de klok van de gastheer is
-    // de baas (netwerklatentie kan een goede druk van een gast net naast het groen laten vallen).
-    if (neemPaneelDruk(world, 'timing').length) press = true;
-    for (const k of [' ', 'e', 'f']) if (world.input.wasPressed(k)) { world.input.consume(k); press = true; }
+    // Samen spelen (#525): een gast ziet de balk en drukt mee. Zijn druk komt uit de wachtrij van de gastheer met de
+    // ronde en de naaldstand die hij zag, en wordt daarmee beoordeeld: een goede druk telt ook als hij pas een beeld
+    // later aankomt. Een druk uit een ronde die al voorbij is valt weg (neemTimingDruk), zodat hij de opdracht van
+    // de gastheer niet kan laten mislukken (failAt).
+    const round = (S.rounds || st.rounds)[Math.min(S.ti, st.rounds.length - 1)];
+    const vanGast = neemTimingDruk(world, S.ti + 1);
+    if (vanGast.length) press = { hit: vanGast.some((d) => inZone(round, Number.isFinite(d.v) ? d.v : needleAt(round, S.needleT))) };
+    else for (const k of [' ', 'e', 'f']) if (world.input.wasPressed(k)) { world.input.consume(k); press = true; }
   }
   const r = stepTiming(st, S, press, dt);
   if (r) { closeTiming(); return r; }

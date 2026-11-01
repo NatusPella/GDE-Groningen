@@ -1299,7 +1299,7 @@ export function handleEvent(world, body, van = 0) {
       hekBericht(world, body.aan);
       return true;
     }
-    case 'paneel': return !!n && n.role === 'host' && van >= 1 && paneelGast(world, van, body.a); // een gast drukt mee op de keuze of timing van de gastheer (#525)
+    case 'paneel': return !!n && n.role === 'host' && van >= 1 && paneelGast(world, van, body.a, body); // een gast drukt mee op de keuze of timing van de gastheer (#525)
     case 'trek': { // E van een gast (#459): eerst iemand uit een voertuig trekken, anders gewoon in- of uitstappen
       if (!n || n.role !== 'host' || van < 1) return false;
       const nu = now(world), at = n.trekAt || (n.trekAt = {});
@@ -1445,7 +1445,7 @@ const gastNaam = (world, slot) => { const p = (world.coopRoster || []).find((x) 
 
 // Een gast drukt mee op het paneel van een verhaalstap (#525): zijn toets gaat als een ingedrukte toets van de
 // gastheer naar binnen, zodat `choice` en `timing` hem lezen als een gewoon antwoord.
-const paneelGast = (world, van, toets) => paneelIndrukken(world, van, toets, activeStage(), world.coopNet && world.coopNet.sceneNu);
+const paneelGast = (world, van, toets, balk) => paneelIndrukken(world, van, toets, activeStage(), world.coopNet && world.coopNet.sceneNu, balk);
 // E van een gast bij de host (na de eigen winkels, activiteiten en wedstrijden): zelf een vrij voertuig instappen of
 // uitstappen (bestuurGebruik), anders als passagier mee in het voertuig van de gastheer (#372, #502). Elke gast is een
 // figuur, dus ook plek 1 gaat hier langs; de oude tak naar de metgezel bestaat niet meer.

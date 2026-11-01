@@ -3,7 +3,7 @@
 // zijn eigen antwoord en de stap gaat verder. Puur: geen netwerk, geen DOM.
 import assert from 'node:assert/strict';
 import { schoonScene, sceneBericht, sceneLeeg, leesSceneBericht, paneelTekst } from '../game/js/coopworld.js';
-import { paneelEvent, paneelToets, paneelIndrukken, neemPaneelDruk, PANEEL_WACHT_S } from '../game/js/coopgast.js';
+import { paneelEvent, paneelToets, paneelIndrukken, neemPaneelDruk, neemTimingDruk, PANEEL_WACHT_S } from '../game/js/coopgast.js';
 import { enterChoice, stepChoice } from '../game/js/stagechoice.js';
 import { enterTiming, stepTiming } from '../game/js/stagetiming.js';
 
@@ -72,6 +72,14 @@ t('de gast stuurt alleen een toets die het paneel noemt', () => {
   assert.equal(paneelEvent('3', paneel), null);
   assert.equal(paneelEvent('e', paneel), null);
   assert.equal(paneelEvent('1', null), null);
+});
+
+t('bij een timing gaat de ronde en de naaldstand mee, zodat zijn druk bij zijn eigen balk hoort', () => {
+  const paneel = { stap: 'timing', toetsen: [' '], nr: 2, meter: { v: 0.48, from: 0.36, to: 0.64 } };
+  assert.deepEqual(paneelEvent(' ', paneel), { k: 'paneel', a: ' ', r: 2, v: 0.48 });
+  // zonder ronde (een keuze) blijven die velden weg, en een onleesbare stand ook
+  assert.deepEqual(paneelEvent('1', { stap: 'choice', toetsen: ['1'] }), { k: 'paneel', a: '1' });
+  assert.deepEqual(paneelEvent(' ', { stap: 'timing', toetsen: [' '], nr: 1, meter: { v: 'x' } }), { k: 'paneel', a: ' ', r: 1 });
 });
 
 t('de gast leest zijn eigen toets uit de paneeltoetsen', () => {
@@ -144,13 +152,54 @@ t('het hele pad bij een timing: de gastheer telt de druk van de gast als een tre
   const sc = { paneel: { stap: 'timing', toetsen: [' ', 'e', 'f'] } };
   const w = hostWorld(sc); w.time = 10;
   const S = {}; enterTiming(S);
-  assert.equal(paneelIndrukken(w, 1, paneelToets(guestInput('e'), sc.paneel), stap, sc), true);
-  const press = neemPaneelDruk(w, 'timing').length > 0;
+  assert.equal(paneelIndrukken(w, 1, paneelToets(guestInput('e'), sc.paneel), stap, sc, { r: 1, v: 0.5 }), true);
+  const press = neemTimingDruk(w, 1).length > 0;
   assert.equal(press, true, 'de druk van de gast telt');
   let r = stepTiming(stap, S, press, 0.016);
   for (let i = 0; i < 600 && !r; i++) r = stepTiming(stap, S, false, 0.016);
   assert.equal(r, 'done', 'een treffer is genoeg voor goodAt 1');
   assert.equal(S.hits, 1);
+});
+
+// --- de balk van de gast (#525): zijn druk hoort bij de ronde en de naald die hij zag -------------------
+
+t('de ronde en de naaldstand van de gast komen bij de gastheer aan', () => {
+  const sc = { paneel: { stap: 'timing', toetsen: [' '], nr: 2, meter: { v: 0.4, from: 0.36, to: 0.64 } } };
+  const w = hostWorld(sc);
+  const ev = paneelEvent(' ', sc.paneel);
+  assert.equal(paneelIndrukken(w, 1, ev.a, { kind: 'timing' }, sc, ev), true);
+  assert.deepEqual(neemTimingDruk(w, 2), [{ toets: ' ', v: 0.4 }], 'bij zijn eigen ronde');
+  assert.deepEqual(neemTimingDruk(w, 2), [], 'en daarna is de wachtrij leeg');
+});
+
+t('een druk uit een oude ronde valt weg in plaats van de volgende ronde te verpesten', () => {
+  const sc = { paneel: { stap: 'timing', toetsen: [' '], nr: 1, meter: { v: 0.5, from: 0.36, to: 0.64 } } };
+  const w = hostWorld(sc);
+  assert.equal(paneelIndrukken(w, 1, ' ', { kind: 'timing' }, sc, { r: 1, v: 0.5 }), true);
+  assert.deepEqual(neemTimingDruk(w, 2), [], 'de volgende ronde leest hem niet');
+  assert.deepEqual(w.coopPaneel, [], 'en hij blijft ook niet hangen');
+});
+
+t('een gast kan met een zelfgekozen stand geen treffer forceren buiten zijn eigen ronde', () => {
+  const sc = { paneel: { stap: 'timing', toetsen: [' '], nr: 1, meter: { v: 1, from: 0.36, to: 0.64 } } };
+  const w = hostWorld(sc);
+  // de gast stuurt een ronde die niet loopt en een stand van 1: geen balk om op te mikken, dus weg
+  assert.equal(paneelIndrukken(w, 1, ' ', { kind: 'timing' }, sc, { r: 9, v: 1 }), true);
+  assert.deepEqual(neemTimingDruk(w, 1), [], 'de lopende ronde ziet hem niet');
+  // en onzin (geen getal, buiten 0-1) wordt niet overgenomen
+  w.time += PANEEL_WACHT_S;
+  assert.equal(paneelIndrukken(w, 1, ' ', { kind: 'timing' }, sc, { r: 1, v: 4 }), true);
+  assert.deepEqual(neemTimingDruk(w, 1), [{ toets: ' ', v: undefined }], 'zonder stand beslist de gastheer zelf');
+});
+
+t('de gast ziet het rondenummer in het scènebericht, zodat zijn druk bij de juiste balk hoort', () => {
+  const sc = schoonScene({ paneel: { stap: 'timing', toetsen: [' '], nr: 3, meter: { v: 0.5, from: 0.36, to: 0.64 } } });
+  assert.equal(sc.paneel.nr, 3);
+  const zonder = schoonScene({ paneel: { stap: 'timing', toetsen: [' '], nr: 0 } });
+  assert.equal(zonder.paneel.nr, undefined, 'ronde 0 bestaat niet');
+  const onzin = schoonScene({ paneel: { stap: 'timing', toetsen: [' '], nr: 'x' } });
+  assert.equal(onzin.paneel.nr, undefined);
+  assert.equal(schoonScene({ paneel: { stap: 'choice', toetsen: ['1'], nr: 2 } }).paneel.nr, undefined, 'een keuze heeft geen ronde');
 });
 
 console.log(fails ? '' : `cooppaneel_test: ${n}/${n} ok`);

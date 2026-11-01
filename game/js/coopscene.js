@@ -26,16 +26,17 @@ export function readHostScene(world) {
     const ts = talkState();
     if (ts.cur && ts.cur.line) regel = { wie: text(document.querySelector('#story-talk .st-speaker')), tekst: String(ts.cur.line) };
   }
-  let keuze = null, meter = null, kicker = '';
+  let keuze = null, meter = null, kicker = '', nr = null;
   const panel = document.querySelector('#hud .cw-panel:not([hidden])');
   if (panel) {
     keuze = { tekst: text(panel.querySelector('.cw-text')), opties: [...panel.querySelectorAll('.cw-opt')].map((o) => text(o.querySelector('span:last-child'))) };
     meter = leesMeter(panel);
     kicker = text(panel.querySelector('small'));
+    nr = Number(panel.dataset.rond) || null;
   }
   // de host in zijn pauzemenu, kaart of winkel: zijn wereld staat stil (het wachtscherm bij wegvallen is geen pauze van de host)
   const pauze = !!(world && world.paused && !world.uiPaused && !world.coopHold);
-  return { filmpje, pauze, regel, keuze, paneel: paneelStand(world, keuze, meter, kicker) };
+  return { filmpje, pauze, regel, keuze, paneel: paneelStand(world, keuze, meter, kicker, nr) };
 }
 
 // De balk van een timing zoals de gastheer hem ziet (choicepanel.js zet de naald op `left: v%` en de zone op
@@ -55,7 +56,7 @@ function leesMeter(panel) {
 // Welke stap van de opdracht staat er op het paneel, en welke toetsen neemt die aan (#525)? Een gast
 // ziet daaraan dat hij kan meedrukken; zonder paneel valt er niets te doen. De `timing`-stap toont de
 // opties niet (hij heeft alleen een balk), dus die herkennen we aan zijn eigen paneel, niet aan de tekst.
-function paneelStand(world, keuze, meter = null, kicker = '') {
+function paneelStand(world, keuze, meter = null, kicker = '', nr = null) {
   if (!world || world.coopRole !== 'host' || !activeStage) return null;
   let stap = null;
   try { stap = activeStage(); } catch (e) { return null; }
@@ -67,7 +68,7 @@ function paneelStand(world, keuze, meter = null, kicker = '') {
   // een timing zet zijn vraag niet in de optielijst maar in de tekst van het paneel: die gaat mee, met de
   // rondeteller ("Timing - 2 VAN 3"), zodat een gast weet waar hij op drukt.
   return stap.kind === 'timing'
-    ? { stap: stap.kind, toetsen, meter, tekst: (keuze && keuze.tekst) || '', ronde: kicker }
+    ? { stap: stap.kind, toetsen, meter, tekst: (keuze && keuze.tekst) || '', ronde: kicker, nr: Number.isInteger(nr) && nr > 0 ? nr : null }
     : { stap: stap.kind, toetsen };
 }
 
