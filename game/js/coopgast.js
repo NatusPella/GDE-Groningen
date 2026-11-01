@@ -97,6 +97,22 @@ export const GAST_REGELS = [
 // De camera van een gast draait met de muis (#388). Een gast draait updateGameplay niet, dus de camerahoek op de grond die player.js
 // bijhoudt (MOUSE_TURN_PER_PX) bleef staan: de camera kon niet draaien. Zelfde formule, hier puur en getest.
 export const MUIS_DRAAI_PER_PX = 0.0025;
+// Dezelfde grens als de camera van de gastheer (scene3d.js PITCH_LOOK_MIN/MAX_DEG), want de stand komt daar terecht.
+export const KIJK_MIN_RAD = (-16 * Math.PI) / 180;
+export const KIJK_MAX_RAD = (60 * Math.PI) / 180;
+export const KIJK_STANDAARD = (0.2 * Math.PI) / 180;
+// Een gast leest de muis in updateGameplay, maar de camera (update3D) draait pas na input.endFrame, dat mouse.dy op nul
+// zet: de gast kon dus niet omhoog of omlaag kijken (#434). Hij telt de beweging van dit beeld zelf op en zet die op
+// nul, zodat de camera hem ├®├®n keer leest. In een voertuig doet de camera het zelf, net als bij de gastheer.
+export function gastKijkHoogte(world, dy, gevoeligheid = 1) {
+  const d = Number.isFinite(dy) ? dy : 0;
+  const m = world.input && world.input.mouse;
+  if (m && d) m.dy = 0;
+  if (!world || world.coopInVoertuig || !d) return;
+  const g = Number.isFinite(gevoeligheid) ? gevoeligheid : 1;
+  const nu = (Number.isFinite(world.coopKijkPitch) ? world.coopKijkPitch : KIJK_STANDAARD) + d * MUIS_DRAAI_PER_PX * g;
+  world.coopKijkPitch = Math.max(KIJK_MIN_RAD, Math.min(KIJK_MAX_RAD, nu));
+}
 export function gastKijkHoek(camYaw, dx, gevoeligheid = 1) {
   const a = Number.isFinite(camYaw) ? camYaw : 0;
   const d = Number.isFinite(dx) ? dx : 0, g = Number.isFinite(gevoeligheid) ? gevoeligheid : 1;

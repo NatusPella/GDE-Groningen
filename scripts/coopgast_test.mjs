@@ -20,6 +20,30 @@ t('de regels: elke actie een regel; winkels voor jezelf mogen, voertuigen en wap
   for (const type of G.WINKELS_GAST) assert.ok(SHOP_TYPES[type], 'bestaat in shopdata: ' + type);
   assert.match(G.MELDING_WINKEL('Pang & Zo'), /alleen in je eigen spel/);
 });
+t('een gast kijkt ook omhoog en omlaag (#434)', () => {
+  // de camera van de gast leest de muis pas na input.endFrame: de gast telt de beweging van dit beeld zelf op
+  const w = { input: { mouse: { dx: 0, dy: 0 } } };
+  G.gastKijkHoogte(w, 0, 1);
+  assert.equal(w.coopKijkPitch, undefined, 'geen beweging, geen stand');
+  w.input.mouse.dy = 120;
+  G.gastKijkHoogte(w, w.input.mouse.dy, 1);
+  assert.ok(w.coopKijkPitch > G.KIJK_STANDAARD, 'naar beneden met de muis is omhoog kijken');
+  assert.equal(w.input.mouse.dy, 0, 'de gast ruimt de beweging op, anders leest de camera hem twee keer');
+  G.gastKijkHoogte(w, -120, 1);
+  assert.ok(Math.abs(w.coopKijkPitch - G.KIJK_STANDAARD) < 1e-12, 'evenveel terug is weer de beginstand');
+  for (let i = 0; i < 200; i++) G.gastKijkHoogte(w, 200, 1);
+  assert.equal(w.coopKijkPitch, G.KIJK_MAX_RAD, 'de stand blijft binnen wat de camera aankan');
+  for (let i = 0; i < 400; i++) G.gastKijkHoogte(w, -200, 1);
+  assert.equal(w.coopKijkPitch, G.KIJK_MIN_RAD);
+});
+
+t('in een voertuig laat de gast de kijkhoogte aan de camera (#434)', () => {
+  const w = { input: { mouse: { dy: 40 } }, coopInVoertuig: true };
+  G.gastKijkHoogte(w, 40, 1);
+  assert.equal(w.coopKijkPitch, undefined, 'de camera draait zelf om de auto heen');
+  assert.equal(w.input.mouse.dy, 0, 'maar de beweging wordt wel opgeruimd, net als op de grond');
+});
+
 t('uitstappen kan bij bijna stilstaan; een vliegtuig of helikopter alleen op de grond (#492)', () => {
   assert.equal(G.kanUitstappen({ speed: 0 }), true); assert.equal(G.kanUitstappen({ speed: -1.5 }), true);
   assert.equal(G.kanUitstappen({ speed: G.UITSTAP_MAX_SNELHEID }), true, 'op de drempel');
