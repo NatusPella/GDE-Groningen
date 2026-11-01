@@ -10,13 +10,14 @@ import { juichHoek } from './vrijgezellen.js';
 import { buildWildlifeMesh3D, animateWildlifeMesh3D } from './wildlife.js';
 import { getTrafficControllers, updateTrafficLights } from './trafficlights.js';
 import { breakPropByKey, restorePropByKey, isPropBroken } from './breakables.js';
-import { DIER_MAX_SCHAAL, veiligeDierSchaal, VOGEL_HOOGTE, V_GROET, V_FEEST, V_WAPEN, V_AANVAL, V_GERAAKT, V_LIGT, lichtVerschil, standVers, MISC_KERMIS, MISC_STUNT, MISC_PUNTEN, MISC_PEDS, MISC_WERELD, MISC_SPREKERS, leesStunt, leesPunten, leesPeds, leesWereld, leesSprekers, WERELD_BRUG, WERELD_SLUIS, WERELD_GARAGE, standRekwisieten } from './coopextra.js';
+import { DIER_MAX_SCHAAL, veiligeDierSchaal, VOGEL_HOOGTE, V_GROET, V_FEEST, V_WAPEN, V_AANVAL, V_GERAAKT, V_LIGT, lichtVerschil, standVers, MISC_KERMIS, MISC_STUNT, MISC_PUNTEN, MISC_PEDS, MISC_WERELD, MISC_SPREKERS, leesStunt, leesPunten, leesPeds, leesWereld, leesSprekers, WERELD_BRUG, WERELD_SLUIS, WERELD_GARAGE, standRekwisieten, standDuif } from './coopextra.js';
 import { SPIKE_SPAN, SPIKE_DEPTH } from './roadshards.js';
 import { getMovableBridges, BRIDGE_TIMING } from './movablebridges.js';
 import { getSluizen, signalOf } from './sluizen.js';
 import { LOCK_TIMING } from './locks.js';
 import { zetGaragePoortVanHost } from './home.js';
 import { KERMIS, setKermisOverride } from './kermis.js';
+import { buildPigeonBird, posePigeonBird } from './pigeonmode.js';
 import { stuntPropMesh } from './stuntavond.js';
 import { buildWaypointDotMesh3D } from './missionmarker3d.js';
 import { gastOverwegen } from './railway.js';
@@ -372,6 +373,39 @@ function ruimRekwisieten() {
   rMat.clear();
 }
 
+// ----------------------------------------------------------- de duif van de gastheer (#525)
+// De gastheer vliegt in de duifmodus (M04, M24) en de gast ziet die duif: dezelfde vogel als in pigeonmode.js, op de
+// plek uit het bericht. De gast bestuurt niets; zonder bericht (of met een leeg stukje) verdwijnt de duif weer.
+let duif = null;
+function syncGastDuif(world, dt) {
+  const scene = getScene(); if (!scene) return 0;
+  const stand = world.coopExtra, nu = world.time || 0;
+  const p = stand && standVers(stand, nu) ? standDuif(stand, nu) : null;
+  if (!p) { if (duif) { verwijder(scene, duif.groep); duif = null; } return 0; }
+  if (!duif) {
+    let bird = null; try { bird = buildPigeonBird('pigeon', null); } catch (e) { bird = null; }
+    if (!bird) return 0;
+    duif = { groep: bird, fase: 0 };
+    scene.add(bird);
+  }
+  const g = duif.groep;
+  g.position.set(p.x, p.z, p.y);
+  g.rotation.y = -p.hoek;
+  // de vleugels: stil op de grond, klappend in de lucht
+  duif.fase += dt * (p.soort === 'fly' ? 9 : 2.5);
+  try { posePigeonBird(g, { flapPhase: duif.fase, amp: p.soort === 'fly' ? 1 : 0.15, fold: p.soort === 'fly' ? 0 : 0.8, grounded: p.soort !== 'fly', walkPhase: duif.fase * 0.5, peck: 0 }); } catch (e) { /* zonder animatie */ }
+  return 1;
+}
+// De duif is per gast opgebouwd, dus zijn geometrie mag weg; de materialen komen uit de cache van pigeonmode.js
+// (cmat) en blijven staan, want de duiven van de duiventillen gebruiken dezelfde.
+function ruimDuif() {
+  const scene = getScene();
+  if (!scene || !duif) return;
+  scene.remove(duif.groep);
+  duif.groep.traverse((o) => { if (o.geometry) o.geometry.dispose(); });
+  duif = null;
+}
+
 export function clearExtra() {
   const scene = getScene();
   if (scene) { for (const e of pop.values()) verwijder(scene, e.mesh); for (const e of dieren.values()) verwijder(scene, e.mesh); }
@@ -382,10 +416,11 @@ export function clearExtra() {
   stunt.groep = null; stunt.meshes = []; stunt.sig = ''; punten.meshes = []; punten.sig = '';
   if (kermisAan) { kermisAan = false; setKermisOverride(null); }
   ruimRekwisieten();
+  ruimDuif();
   for (const key of mijnKapot) restorePropByKey(key);
   mijnKapot.clear();
 }
-export const hasExtra = () => pop.size > 0 || dieren.size > 0 || mijnKapot.size > 0 || !!stunt.groep || punten.meshes.length > 0 || rekw.size > 0 || kermisAan;
+export const hasExtra = () => pop.size > 0 || dieren.size > 0 || mijnKapot.size > 0 || !!stunt.groep || punten.meshes.length > 0 || rekw.size > 0 || kermisAan || !!duif;
 
 // Elke frame (main.js), alleen op een gast
 export function syncExtra(world, dt) {
@@ -402,9 +437,10 @@ export function syncExtra(world, dt) {
   const nw = syncGastWereld(world, dt);
   syncGastKermis(world, dt);
   const ns = syncGastStunt(world), np = syncGastPunten(world), nr = syncGastRekwisieten(world);
+  const ng = syncGastDuif(world, dt);
   let doodDier = 0; for (const e of dieren.values()) if (e.a.dead) doodDier++;
   world.coopExtraDbg = { ligt: r.ligt, wapen: r.wapen, vecht: r.vecht, wereld: nw, sprekers: losSprekers.size, doodDier }; // voor de testbank
-  world.coopExtraMeshes = [r.echt, nd, stand0(world), ns, np, kermisAan ? 1 : 0, nr]; // voor de testbank: [voetgangers met hun echte uiterlijk, dieren, kapotte objecten, stuntdingen, punten, kermis, tijdelijke rekwisieten]
+  world.coopExtraMeshes = [r.echt, nd, stand0(world), ns, np, kermisAan ? 1 : 0, nr, ng ? 1 : 0]; // voor de testbank: [voetgangers met hun echte uiterlijk, dieren, kapotte objecten, stuntdingen, punten, kermis, tijdelijke rekwisieten, de duif van de gastheer]
   if (Array.isArray(world.coopHostMeshes)) { world.coopHostMeshes[2] = r.echt; world.coopHostMeshes[3] = r.rest; } // zelfde plekken als vroeger: [voertuigen echt, blokken, voetgangers echt, eenvoudig]
 }
 const stand0 = (world) => mijnKapot.size;

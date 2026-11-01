@@ -471,4 +471,47 @@ t('wat de gast zelf invult: de beweging rekent hij zelf uit, de vlaggen komen me
   assert.equal(X.leesPeds(mp.data).get(pedId(p)).wapen, 'knuppel');
 });
 
+// #525: de duif van de gastheer. De gast ziet hem vliegen op de plek uit het bericht, en hij verdwijnt weer als de
+// gastheer stopt: een leeg stukje ruimt hem op. Een oudere host stuurt niets en dan tekent de gast niets.
+t('duif van de gastheer: rondreis, leeg stukje ruimt op, onzin wordt geweigerd', () => {
+  const d = { x: 240.5, y: -118.25, z: 31.75, hoek: 1.2, soort: 'fly' };
+  const b = X.codeerDuif(d);
+  assert.equal(b.length, 16);
+  const t2 = X.leesDuif(b);
+  assert.ok(Math.abs(t2.x - d.x) < 0.01 && Math.abs(t2.y - d.y) < 0.01 && Math.abs(t2.z - d.z) < 0.01);
+  assert.ok(Math.abs(t2.hoek - d.hoek) < 0.03, 'de hoek past in een byte');
+  assert.equal(t2.soort, 'fly');
+  assert.equal(X.leesDuif(X.codeerDuif({ ...d, soort: 'ground' })).soort, 'ground');
+  assert.equal(X.leesDuif(X.codeerDuif({ ...d, soort: 'ride' })).soort, 'ride');
+  assert.equal(X.codeerDuif(null), null, 'geen duif: niets te sturen');
+  assert.equal(X.codeerDuif({ x: NaN, y: 1, z: 2 }), null);
+  assert.equal(X.leesDuif(new Uint8Array(15)), null, 'een halve duif is geen duif');
+  assert.equal(X.leesDuif(new Uint8Array(0)), null, 'leeg betekent: er is geen duif');
+  const kapot = X.codeerDuif(d); kapot[0] = 0xff; kapot[1] = 0xff; kapot[2] = 0x7f; kapot[3] = 0x7f; // NaN in x
+  assert.equal(X.leesDuif(kapot), null);
+});
+
+t('duif van de gastheer: alleen zolang hij vliegt, en hij komt aan bij de gast', () => {
+  const w = wereld(1, 0);
+  const g = X.nieuwGeheugen();
+  let duif = { x: 240.5, y: -118.25, z: 31.75, hoek: 0.4, soort: 'fly' };
+  const deps = { ...DEPS, duif: () => duif };
+  const st = X.nieuweStand();
+
+  const eerste = X.verzamelExtra(w, BIJ, g, deps);
+  assert.ok(eerste.misc.find((m) => m.tag === X.MISC_DUIF), 'de duif gaat mee zolang hij vliegt');
+  X.pasExtraToe(st, X.leesExtra(X.codeerExtra(eerste, BIJ[0])), 100);
+  const bijGast = X.standDuif(st, 100);
+  assert.ok(bijGast && Math.abs(bijGast.z - 31.75) < 0.01, 'de gast kent de hoogte');
+
+  duif = null; // de gastheer stopt: het volgende bericht zegt dat de duif weg is
+  const weg = X.verzamelExtra(w, BIJ, g, deps);
+  const leeg = weg.misc.find((m) => m.tag === X.MISC_DUIF);
+  assert.ok(leeg && leeg.data.length === 1 && leeg.data[0] === 0, 'de duif gaat weg met een leeg stukje');
+  X.pasExtraToe(st, X.leesExtra(X.codeerExtra(weg, BIJ[0])), 101);
+  assert.equal(X.standDuif(st, 101), null, 'het lege stukje ruimt de duif bij de gast meteen op');
+  assert.ok(!X.verzamelExtra(w, BIJ, g, deps).misc.find((m) => m.tag === X.MISC_DUIF), 'en daarna zwijgt het stukje');
+  assert.equal(X.standDuif(st, 106), null, 'en na de bewaartijd is hij sowieso weg');
+});
+
 console.log(`coopextra_test: ${n}/${n} ok`);
