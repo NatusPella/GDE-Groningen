@@ -158,7 +158,7 @@ import { initSikkomFeed, updateSikkomFeed } from './sikkomfeed.js';
 import { initPhoneFeed, updatePhoneFeed } from './phonefeed.js';
 import { watchJumps, resetJumpWatch, startLoadScreen } from './loadscreen.js';
 import { initLoading, setLoadProgress, finishLoading, showLoadError, runStartScreen, yieldToPaint, planMenuStart } from './startscreen.js';
-import { initPigeonMode, updatePigeonMode, updatePigeonCamera, updatePigeonAfterglow } from './pigeonmode.js';
+import { initPigeonMode, updatePigeonMode, updatePigeonCamera, updatePigeonAfterglow, getPigeonPosition } from './pigeonmode.js';
 import { initPigeonSpots, updatePigeonSpots, tryPigeonSpotInteract } from './pigeonspots.js';
 import { initSideJobs, updateSideJobs, trySideJobInteract } from './sidejobs.js';
 import { updateCashVan } from './cashvan.js';
@@ -458,7 +458,7 @@ async function boot() {
   initHome(world);
   parkHeroAtHome(world);
   initTrafficLights(world);
-  world.coopExtraDeps = { controllers: getTrafficControllers, gebroken: brokenKeysNear, misc: (bij, g, nu) => maakMisc({ kermis: kermisOn(world), stunt: stuntSnapshot(), punten: world.mission && world.mission.phase === 'active' ? world.mission.remainingWaypoints : null }, g, nu), wereld: (bij) => maakWereldLijst(getMovableBridges(), getSluizen(), bij, garagePoortToestand()), sprekers: (bij, nu) => maakSprekersLijst(world.extraSpeakers, nu, bij) }; // wat de host de gasten vertelt (coopnet.js, coopextra.js)
+  world.coopExtraDeps = { controllers: getTrafficControllers, gebroken: brokenKeysNear, misc: (bij, g, nu) => maakMisc({ kermis: kermisOn(world), stunt: stuntSnapshot(), punten: world.mission && world.mission.phase === 'active' ? world.mission.remainingWaypoints : null }, g, nu), wereld: (bij) => maakWereldLijst(getMovableBridges(), getSluizen(), bij, garagePoortToestand()), sprekers: (bij, nu) => maakSprekersLijst(world.extraSpeakers, nu, bij), duif: () => getPigeonPosition() }; // wat de host de gasten vertelt (coopnet.js, coopextra.js)
   registreerHostBronnen(world); // tijdelijke rekwisieten en doelen voor de gasten (#452)
   initRailway(world);
   setCoopTreinen({ getTrains, getRoutes, routePoint, zetTreinVanHost, zetTreinenVanHost }); // samen spelen: de host stuurt zijn treinen (#428)

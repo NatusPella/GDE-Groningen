@@ -1761,6 +1761,13 @@ export function getPigeonFlight() {
   return { x: P.x, y: P.y, z: P.z, ground: surfaceAt(P.x, P.y, false).h, mode: P.mode, score, intro: !!intro, yaw: P.yaw, speed: P.speed };
 }
 
+// Waar de duif is, voor de andere spelers (#525): de vlucht, of null als er geen duif vliegt of staat.
+// Een gast tekent hem op deze plek; de duif zelf blijft van de gastheer.
+export function getPigeonPosition() {
+  if (!active || intro) return null;
+  return { x: P.x, y: P.y, z: P.z, hoek: P.yaw, soort: P.mode === 'fly' ? 'fly' : P.mode === 'ground' ? 'ground' : 'ride' };
+}
+
 // Read-only: where the gull is (for the mission map), or null.
 export function getPigeonThreats() {
   return active && gull ? [{ x: gull.x, y: gull.y, kind: 'meeuw', label: 'Meeuw' }] : [];

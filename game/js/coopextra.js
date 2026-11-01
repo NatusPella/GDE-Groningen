@@ -56,6 +56,9 @@ export const MISC_KERMIS = 1, MISC_STUNT = 2, MISC_PUNTEN = 3, MISC_PEDS = 4, MI
 // #452: tijdelijke rekwisieten van de host (twee stukken van hoogstens 255 bytes: tag 8 en 9) en de lijst met doelen van de opdracht (tag 10).
 // Een oudere gast kent deze tags niet en slaat ze over (zelfde formaat, geen nieuwe versie).
 export const MISC_REKWISIETEN = 8, MISC_REKWISIETEN2 = 9, MISC_DOELEN = 10;
+// #525: de duif van de gastheer. Waar de duif van de duifmodus vliegt of staat, zodat een gast hem ziet vliegen;
+// ook dit is een nieuwe tag, dus een oudere gast slaat hem over (zelfde formaat, geen nieuwe versie).
+export const MISC_DUIF = 11;
 
 const u8 = (v, lo = 0, hi = 255) => Math.min(hi, Math.max(lo, Math.round(v) | 0));
 const hexNaarRgb = (h, d) => {
@@ -154,6 +157,8 @@ export function verzamelExtra(world, bij, geheugen, deps = {}) {
   if (deps.sprekers) { const sl = deps.sprekers(bij, now) || []; st(MISC_SPREKERS, codeerSprekers(sl), !sl.length); }
   const rk = codeerRekwisieten(verzamelRekwisieten(bij, deps.rekwisieten)); st(MISC_REKWISIETEN, rk[0] || [], !rk[0]); st(MISC_REKWISIETEN2, rk[1] || [], !rk[1]);
   const dd = verzamelDoelen(bij, deps.doelen); st(MISC_DOELEN, codeerDoelen(dd), !dd.length);
+  // de duif van de gastheer (#525): zolang hij vliegt of staat; anders een leeg stukje, dat hem bij de gast opruimt
+  if (deps.duif) { const db = codeerDuif(deps.duif(bij)); st(MISC_DUIF, db || new Uint8Array(0), !db); }
   geheugen.n++;
   return uit;
 }
@@ -641,6 +646,24 @@ export function leesDoelen(b) {
   return o === b.length ? uit : null;
 }
 
+// De duif van de gastheer (#525): { x, y, z, hoek, soort } of null. De gast tekent hem op die plek; `soort` is
+// 'fly' (vliegend), 'ground' (op de grond, pikken of lopen) of 'ride' (op een auto). Eén duif, dus één record.
+export const DUIF_SOORTEN = ['fly', 'ground', 'ride'];
+export function codeerDuif(d) {
+  if (!d || !Number.isFinite(d.x) || !Number.isFinite(d.y) || !Number.isFinite(d.z)) return null;
+  const b = new Uint8Array(16); const v = new DataView(b.buffer);
+  v.setFloat32(0, d.x); v.setFloat32(4, d.y); v.setFloat32(8, d.z);
+  v.setUint8(12, hoekByte(d.hoek || 0)); v.setUint8(13, Math.max(0, DUIF_SOORTEN.indexOf(d.soort || 'fly'))); v.setUint8(14, 0); v.setUint8(15, 0);
+  return b;
+}
+export function leesDuif(b) {
+  if (!(b instanceof Uint8Array) || b.length !== 16) return null;
+  const v = new DataView(b.buffer, b.byteOffset, b.byteLength);
+  const x = v.getFloat32(0), y = v.getFloat32(4), z = v.getFloat32(8);
+  if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(z)) return null;
+  return { x, y, z, hoek: byteHoek(v.getUint8(12)), soort: DUIF_SOORTEN[v.getUint8(13)] || 'fly' };
+}
+
 // De doelen van de lopende opdracht (world.mission): het doel zelf en de controlepunten die nog te gaan zijn
 export function doelenVan(m) {
   if (!m || m.phase !== 'active' || !m.marker) return [];
@@ -658,6 +681,12 @@ export function standRekwisieten(stand, nu) {
   return uit;
 }
 export function standDoelen(stand, nu) { const m = versStuk(stand, MISC_DOELEN, nu); return m ? (m.lijst || (m.lijst = leesDoelen(m.data) || [])) : []; }
+// De duif van de gastheer, of null als hij er niet (meer) is: een leeg stukje ruimt hem bij de gast op
+export function standDuif(stand, nu) {
+  const m = versStuk(stand, MISC_DUIF, nu);
+  if (!m) return null;
+  return m.duif !== undefined ? m.duif : (m.duif = leesDuif(m.data));
+}
 // Alle doelen voor kaart en minimap van een gast; zonder doelenbericht (oudere host) het ene doel uit de snapshot
 export function gastDoelen(world) {
   const nu = world.time || 0, l = standDoelen(world.coopExtra, nu);
