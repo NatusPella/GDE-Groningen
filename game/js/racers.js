@@ -4,6 +4,7 @@
 // them alone; this module steers them with applyControls every frame.
 import { Vehicle, MODELS, maxCurvature, resolveVehicleBuildingCollision, makeTwoWheeler } from './vehicle.js';
 import { clamp, pointInPolygon, closestPointOnSegment } from './util.js';
+import { groepsActeurs } from './stagegroep.js';
 
 const A_LAT = 11; // m/s² cornering the speed profile plans for (AI tyre grip is 16)
 const PROFILE_DECEL = 11;
@@ -273,16 +274,24 @@ export function createRace(world, route, cps, opts = {}) {
 
 // Player progress, bounded by the checkpoints so a shortcut or respawn
 // never jumps the standings ahead of what the checkpoints allow.
+// Samen spelen (#525): the race reads the group, so whoever of the riders is furthest along
+// keeps the race going (a guest who rides along counts). A group of one is the body of this
+// device, exactly as before.
 function trackPlayer(world, race, wpIndex) {
   const t = race.track;
-  const p = world.player;
-  const obj = p.inVehicle || p;
   const lo = race.cpS[wpIndex] ?? 0;
   const hi = wpIndex + 1 < race.cpS.length ? race.cpS[wpIndex + 1] : t.L;
   const from = Math.max(0, indexAt(t, Math.max(0, lo - 30)));
   const to = indexAt(t, Math.min(t.L - 0.01, hi + 30));
-  const pr = project(t, obj.x, obj.y, from, Math.max(1, to - from + 2));
-  race.playerProg = clamp(pr.s, lo, hi - 0.05);
+  const count = Math.max(1, to - from + 2);
+  let best = null;
+  for (const a of groepsActeurs(world)) {
+    const obj = a.inVehicle || a;
+    const pr = project(t, obj.x, obj.y, from, count);
+    const s = clamp(pr.s, lo, hi - 0.05);
+    if (best === null || s > best) best = s;
+  }
+  race.playerProg = best === null ? race.playerProg || 0 : best;
 }
 
 function standings(race) {
@@ -456,10 +465,11 @@ function driveRival(r, dt, world, race) {
 // Call once per frame while the race runs. wpIndex is the player's next
 // checkpoint (0-based into cps.slice(1) + finish).
 export function updateRace(dt, world, race, wpIndex) {
-  const p = world.player;
   if (race.phase === 'grid') {
     race.timer += dt;
-    const ready = p.inVehicle && (race.bikes ? p.inVehicle.isBike : !p.inVehicle.isBoat);
+    // Samen spelen (#525): the group gets ready, so a guest on their own bike (or behind the wheel
+    // of the mission car) starts the grid as well. A group of one is the body of this device.
+    const ready = groepsActeurs(world).some((a) => a.inVehicle && (race.bikes ? a.inVehicle.isBike : !a.inVehicle.isBoat));
     if (ready || race.timer > MAX_GRID_WAIT) { race.phase = 'countdown'; race.timer = 0; }
     else if (race.timer > 0.5 && race.lastBeat < 0) {
       race.lastBeat = 0;
