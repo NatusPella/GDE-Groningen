@@ -61,7 +61,7 @@ import { withValidity } from './validity.js';
 import { afstandMeespeler, meespelerInVoertuig } from './spelersregister.js';
 // de speler van dit apparaat (#500): de missieketen is van de lokale speler, niet van de gastheer of een meespeler
 import { hoofdspeler } from './players.js';
-import { teamActor, doelStand, groepKlaar, WACHT_OP_ANDEREN } from './stagegroep.js';
+import { teamActor, doelStand, groepKlaar, groepsActeurs, WACHT_OP_ANDEREN } from './stagegroep.js';
 import { registreerWedstrijd, wedNodigUit, wedHostBaan, wedBaanStand } from './multiplayerwedstrijd.js';
 import { lichaamVan, bestuurInstappenIn, bestuurLos } from './coopbestuur.js';
 // a radio fragment of a stage that never got played within ten minutes is moot (refs #171; not tied to the mission: the clue in it must not be lost)
@@ -788,7 +788,9 @@ function trackRun(dt, world) {
   const v = runVehicle(world);
   if (v) {
     if (v !== r.veh) { r.veh = v; r.vehHp = v.health; }
-    if (hoofdspeler(world).inVehicle === v) r.vehicleUsed = true;
+    // Samen spelen (#525): the mission car counts as used when anyone of the group drives it, so a
+    // guest behind the wheel shows the vehicle damage on the card too; alone this is the same body.
+    if (groepsActeurs(world).some((a) => a.inVehicle === v)) r.vehicleUsed = true;
     if (v.health < r.vehHp) r.vehDamage = Math.min(100, r.vehDamage + (r.vehHp - v.health));
     r.vehHp = v.health;
   }
@@ -1873,9 +1875,10 @@ function playMoment(world, m) {
 // M01's stunt part: the Grote Markt scene when the bakkie arrives, the pair talking while it goes on,
 // and the chat's reaction when the points are in. Then the delivery goes on (the clock keeps running).
 function updateStuntPhase(dt, world, def) {
-  const p = hoofdspeler(world);
   const b = chainState().beats || (chainState().beats = {});
-  const near = dist(p.x, p.y, def.stunt.center.x, def.stunt.center.y) < def.stunt.radius + 10;
+  // Samen spelen (#525): the square scene starts when anyone of the group arrives, not only the
+  // body of this device; a group of one is that body, exactly as before.
+  const near = groepsActeurs(world).some((a) => dist(a.x, a.y, def.stunt.center.x, def.stunt.center.y) < def.stunt.radius + 10);
   if (near && !b.arrived && !isCinematicActive() && storyDataReady()) {
     b.arrived = true;
     playStageScene(world, { script: { ids: ['M01.3'] }, kicker: 'Grote Markt', cast: [{ key: 'jelmer', pose: 'phone', at: [3.2, 1.2] }] }, { target: null });
@@ -1893,16 +1896,33 @@ function updateStuntPhase(dt, world, def) {
   }
 }
 
-// Index of the waypoint the player is at: the current one or, while the
-// current one is only a `via` (route guidance along the streets), any later
-// via or the next real checkpoint, so cutting a corner never strands you.
-function waypointReached(p, def, radius) {
+// De eis van deze stap aan wie er staat (te voet, op de fiets): null als hij voldoet,
+// anders de melding. Eén speler die het goed doet is genoeg, ook als een ander het
+// verkeerd doet: de stap telt voor de groep.
+function checkpointBezwaar(def, q) {
+  if (def.onFoot && q.inVehicle) return 'Uitstappen, jong. Het heet kroegentocht, niet kroegenrit.';
+  if (chainState().race && chainState().race.bikes && !(q.inVehicle && q.inVehicle.isBike)) return 'Op de fiets, hè. Het is een fietsrace.';
+  return null;
+}
+
+// Samen spelen (#525): welk lid van de groep is bij een checkpoint, en welk checkpoint is dat.
+// De groep telt: staat de gast bij de kroeg, dan haalt de opdracht hem, ook als de gastheer nog
+// onderweg is. `ok` kiest wie de eis van de stap haalt (te voet, op de fiets); haalt niemand die,
+// dan komt de eerste die er wel staat terug, zodat de melding bij de juiste persoon komt.
+// Alleen is de groep de hoofdspeler en verandert er niets.
+function waypointReached(actors, def, radius, ok = null) {
   for (let k = chainState().wpIndex; k < def.waypoints.length; k++) {
     const wp = def.waypoints[k];
-    if (dist(p.x, p.y, wp.x, wp.y) < radius) return k;
+    let first = null;
+    for (const a of actors) {
+      if (!(dist(a.x, a.y, wp.x, wp.y) < radius)) continue;
+      if (!ok || ok(a)) return { k, actor: a };
+      first = first || a;
+    }
+    if (first) return { k, actor: first };
     if (!wp.via) break;
   }
-  return -1;
+  return null;
 }
 
 function reachCheckpoint(world, def, k = chainState().wpIndex) {
@@ -2063,10 +2083,15 @@ export function updateMissions(dt, world) {
   }
   // arriving by car is fine: a warning first, it only fails if you keep driving
   if (def.onFoot && def.type === 'fatbike' && chainState().run) {
-    if (p.inVehicle) {
+    // Samen spelen (#525): the group walks the lane. Anyone in a car gets the warning, but the
+    // mission only fails when nobody of the group is on foot; a guest driving costs the host his
+    // mission not. Alone the group is one body, so the old rule stands word for word.
+    const groep = groepsActeurs(world);
+    const rijdend = groep.filter((a) => a.inVehicle);
+    if (rijdend.length) {
       chainState().run.inVehT = (chainState().run.inVehT || 0) + dt;
       if (chainState().run.inVehT < dt * 1.5) hint(world, 'Uitstappen, jong. Fatbikes ontwijk je te voet.');
-      if (chainState().run.inVehT > 10) {
+      if (rijdend.length === groep.length && chainState().run.inVehT > 10) {
         fail(world, def, 'je moest lopen, niet stiekem rijden');
         syncPub(world);
         return;
@@ -2092,10 +2117,13 @@ export function updateMissions(dt, world) {
       }
     }
     const v = chainState().vehicle;
-    if (p.inVehicle === v) {
+    // Samen spelen (#525): the delivery counts when the group's driver (host or guest) is in the
+    // mission car; a group of one is the body of this device, exactly as before.
+    const rijder = v ? teamActor(world, v, (a) => a.inVehicle === v) : p;
+    if (rijder.inVehicle === v) {
       const stop = nextStop(def);
       const goal = stop || def.dest;
-      if (dist(p.x, p.y, goal.x, goal.y) < (stop ? STOP_RADIUS : CHECKPOINT_RADIUS)) {
+      if (dist(rijder.x, rijder.y, goal.x, goal.y) < (stop ? STOP_RADIUS : CHECKPOINT_RADIUS)) {
         if (!stop) succeed(world, def);
         else if (Math.abs(v.speed) > 2.5) hint(world, `Even stilstaan bij ${stop.name}, anders kan er niemand in.`, 'Even stilstaan, anders kan er niemand in.');
         else if ((chainState().stopT += dt) >= STOP_WAIT) {
@@ -2123,22 +2151,29 @@ export function updateMissions(dt, world) {
       }
     }
     if (def.crowds) updateCrowd(dt, world, def);
-    const k = waypointReached(p, def, chainState().race ? RACE_CHECKPOINT_RADIUS : CHECKPOINT_RADIUS);
-    if (k >= 0) {
-      if (def.onFoot && p.inVehicle) hint(world, 'Uitstappen, jong. Het heet kroegentocht, niet kroegenrit.');
-      else if (chainState().race && chainState().race.bikes && !(p.inVehicle && p.inVehicle.isBike)) hint(world, 'Op de fiets, hè. Het is een fietsrace.');
-      else reachCheckpoint(world, def, k);
+    // Samen spelen (#525): een checkpoint telt voor de groep, dus wie er als eerste staat
+    // haalt hem, gast of hoofdspeler; de eis van de stap (te voet, op de fiets) geldt voor
+    // die meespeler, en een ander die het goed doet telt ook
+    const hit = waypointReached(groepsActeurs(world), def, chainState().race ? RACE_CHECKPOINT_RADIUS : CHECKPOINT_RADIUS,
+      (a) => !checkpointBezwaar(def, a));
+    if (hit) {
+      const bezwaar = checkpointBezwaar(def, hit.actor);
+      if (bezwaar) hint(world, bezwaar);
+      else reachCheckpoint(world, def, hit.k);
     }
   } else if (def.type === 'fatbike') {
     updateLaneBikes(dt, world, def);
     checkLaneHits(world);
+    // Samen spelen (#525): the group walks the lane, so whoever of them passes a sign reads it
+    // and whoever of them reaches Oma Trijntje on foot finishes the mission.
+    const groep = groepsActeurs(world);
     for (const n of def.notes || []) {
       if (chainState().notesSaid && chainState().notesSaid.has(n)) continue;
-      if (dist(p.x, p.y, n.x, n.y) > 14) continue;
+      if (!groep.some((a) => dist(a.x, a.y, n.x, n.y) <= 14)) continue;
       (chainState().notesSaid || (chainState().notesSaid = new Set())).add(n);
       world.addMessage(n.text, 4, { kind: 'missie' });
     }
-    if (dist(p.x, p.y, def.dest.x, def.dest.y) < CHECKPOINT_RADIUS && !isKnockedDown(p, world)) {
+    if (groep.some((a) => dist(a.x, a.y, def.dest.x, def.dest.y) < CHECKPOINT_RADIUS && !isKnockedDown(a, world))) {
       succeed(world, def);
     }
   } else if (def.type === 'stages') {
@@ -2150,9 +2185,10 @@ export function updateMissions(dt, world) {
       syncPub(world);
       return;
     }
-    if (p.inVehicle === chainState().vehicle) {
-      const k = waypointReached(p, def, CHECKPOINT_RADIUS + 2);
-      if (k >= 0) reachCheckpoint(world, def, k);
+    const boot = teamActor(world, chainState().vehicle, (a) => a.inVehicle === chainState().vehicle);
+    if (boot.inVehicle === chainState().vehicle) {
+      const hit = waypointReached([boot], def, CHECKPOINT_RADIUS + 2);
+      if (hit) reachCheckpoint(world, def, hit.k);
     }
   }
 
