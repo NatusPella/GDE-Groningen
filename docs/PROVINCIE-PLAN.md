@@ -845,14 +845,14 @@ rechte stiklijn over het veld. Dat is geen routerfout maar een gat in de data.
 **Wat er precies ontbrak.** De 8x8 km-pakketten in `data/cache/province` die dat gebied dekken waren
 leeg of afwezig:
 
-| pakket | inhoud vÃ³Ã³r |
+| pakket | inhoud vóór |
 |---|---|
 | `c-1_1.json.gz` | 26 elementen (1,9 kB) |
 | `c-1_2.json.gz` | 25 knopen (582 B) |
 | `c-1_3.json.gz` | bestaat niet |
 | `c0_1.json.gz` | bestaat niet |
 
-Dat komt omdat het gat op **53,12â€“53,15 N, 6,50â€“6,56 E** ligt: dat is **Drenthe**, en het Geofabrik-extract
+Dat komt omdat het gat op **53,12–53,15 N, 6,50–6,56 E** ligt: dat is **Drenthe**, en het Geofabrik-extract
 `groningen-latest.osm.pbf` stopt bij de provinciegrens.
 
 **De oplossing (gedaan op 27-10, geen wijziging in de repo nodig behalve dit hoofdstuk).** Haal het
