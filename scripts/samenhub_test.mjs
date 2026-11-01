@@ -421,7 +421,7 @@ await t('Terug in de lobby gaat naar de hub, niet naar het oude beginscherm met 
   assert.match(sp, /if \(!b \|\| !vanHub \|\| !view \|\| !view\.state\) return;/, 'alleen als de lobby uit de hub kwam en er echt een scherm staat');
   assert.match(sp, /HUB_TERUG_STAPPEN\.includes\(view\.state\(\)\.step\)/, 'en alleen op de schermen waar de hub ze neerzette');
   assert.match(sp, /e\.stopPropagation\(\)/, 'de lobby zelf ziet de klik niet: anders tekent hij zijn eigen beginscherm');
-  assert.match(sp, /\}, true\);/, 'in de capture-fase, dus v´┐¢´┐¢r de luisteraar van de lobby');
+  assert.match(sp, /\}, true\);/, 'in de capture-fase, dus vóór de luisteraar van de lobby');
 });
 await t('een hub op een vak waar een oude lobby nog aan luistert, houdt die lobby buiten (verse knoop)', () => {
   // lobbyui.js ruimt bij close() de inhoud op, niet zijn luisteraars. De hub tekent in hetzelfde vak en gebruikt

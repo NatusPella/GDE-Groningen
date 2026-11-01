@@ -41,9 +41,9 @@ for (const k of ['zeeVracht', 'zeeContainer', 'zeeTanker', 'zeeSleper', 'zeeNieu
   check(`${k}: de kiel ligt onder de waterlijn en de opbouw erboven`, box.min.y < -1.5 && box.max.y > 3, `${box.min.y.toFixed(1)} .. ${box.max.y.toFixed(1)}`);
   const seats = boatSeats(v);
   check(`${k}: de schipper heeft een plek binnen het schip`, seats.length === 1 && Math.abs(seats[0].x) < model.len / 2 && seats[0].y > 2, JSON.stringify(seats[0]));
-  check(`${k}: én bemanningslid`, boatCrewCount(v) === 1);
+  check(`${k}: één bemanningslid`, boatCrewCount(v) === 1);
 }
-// dezelfde maat en kleur delen én geometrie
+// dezelfde maat en kleur delen één geometrie
 {
   const a = BOAT_KINDS.zeeVracht;
   const g1 = M.buildVehicleMesh({ id: 401, model: a, isBoat: true }), g2 = M.buildVehicleMesh({ id: 402, model: a, isBoat: true });
