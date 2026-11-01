@@ -3021,7 +3021,12 @@ export function update3D(dt, world) {
   const mouse = world.input.mouse;
   const looking = world.input.lookActive ? world.input.lookActive() : mouse.locked;
   const lookK = MOUSE_LOOK_PER_PX * getSettings().mouseSensitivity;
-  if (looking) {
+  // een gast op de grond houdt zijn eigen kijkhoogte bij (coopgast.js gastKijkHoogte): die stand wint van de dode
+  // muis, want zijn invoer is al aan het eind van het vorige beeld gelezen (#434). In een voertuig doet de camera
+  // het zelf, net als bij de gastheer.
+  if (looking && world.coopRole === 'client' && !camVeh && typeof world.coopKijkPitch === 'number' && Number.isFinite(world.coopKijkPitch)) {
+    lookPitchTarget = world.coopKijkPitch;
+  } else if (looking) {
     // zelfde gevoeligheid als links/rechts, ook door de scope (player.js: x 0.3)
     lookPitchTarget += mouse.dy * lookK * (world.scoped ? 0.3 : 1) * (getSettings().invertY ? -1 : 1);
     lookPitchTarget = Math.min(PITCH_LOOK_MAX_DEG, Math.max(PITCH_LOOK_MIN_DEG, lookPitchTarget * 180 / Math.PI)) * Math.PI / 180;
