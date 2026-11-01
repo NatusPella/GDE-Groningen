@@ -9,7 +9,7 @@ COLS = [('avg', 'avg ms'), ('p95', 'p95'), ('p99', 'p99'), ('cpuAvg', 'cpu'), ('
 
 for f in sys.argv[1:]:
     try:
-        d = json.load(open(f))
+        d = json.load(open(f, encoding="utf-8"))
     except Exception as e:  # noqa: BLE001
         print(f, 'no result', e)
         continue

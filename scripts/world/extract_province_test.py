@@ -106,7 +106,7 @@ if osmium:
     X.main()
     files = sorted(os.listdir(out))
     check("province.json.gz" in files and "facilities_raw.json.gz" in files and any(f.startswith("c") for f in files), f"files written: {files}")
-    with gzip.open(os.path.join(out, [f for f in files if f.startswith("c")][0]), "rt") as f:
+    with gzip.open(os.path.join(out, [f for f in files if f.startswith("c")][0]), "rt", encoding="utf-8") as f:
         check("elements" in json.load(f), "a pack has elements")
     import shutil
     shutil.rmtree(tmp)

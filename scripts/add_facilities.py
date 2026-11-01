@@ -151,20 +151,20 @@ def main():
         # from the Geofabrik extracts (the province's, the strips of its neighbours)
         raw, seen = {"elements": []}, set()
         for path in sys.argv[sys.argv.index("--cache") + 1].split(","):
-            with gzip.open(path, "rt") as f:
+            with gzip.open(path, "rt", encoding="utf-8") as f:
                 for el in json.load(f)["elements"]:
                     if (el["type"], el["id"]) not in seen:
                         seen.add((el["type"], el["id"]))
                         raw["elements"].append(el)
     elif "--refresh" not in sys.argv and os.path.exists(CACHE):
-        with gzip.open(CACHE, "rt") as f:
+        with gzip.open(CACHE, "rt", encoding="utf-8") as f:
             raw = json.load(f)
         if raw.get("bbox") != list(BBOX):
             raw = None
     if raw is None:
         raw = overpass(query(BBOX))
         raw["bbox"] = list(BBOX)
-        with gzip.open(CACHE, "wt") as f:
+        with gzip.open(CACHE, "wt", encoding="utf-8") as f:
             json.dump(raw, f, separators=(",", ":"))
 
     places, items, lanes = [], [], []
@@ -281,7 +281,7 @@ def main():
         "flags": {"1": "UMCG", "2": "emergency department", "4": "motorway services", "8": "park and ride"},
         "f": rows, "lanes": lanes,
     }
-    with open(DST, "w") as f:
+    with open(DST, "w", encoding="utf-8") as f:
         json.dump(out, f, separators=(",", ":"), ensure_ascii=False)
     count = {}
     for it in kept:

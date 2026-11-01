@@ -36,12 +36,12 @@ def points():
 def main():
     pts = points()
     if "--write" in sys.argv:
-        with open(FIXTURE, "w") as f:
+        with open(FIXTURE, "w", encoding="utf-8") as f:
             json.dump(pts, f, indent=0)
             f.write("\n")
         print(f"wrote {FIXTURE}")
         return
-    with open(FIXTURE) as f:
+    with open(FIXTURE, encoding="utf-8") as f:
         fx = json.load(f)
     bad = sum(1 for k in pts for a, b in zip(pts[k], fx[k]) if a != b)
     x, y = R.wgs_to_rd(52.15517440, 5.38720621)

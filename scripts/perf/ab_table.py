@@ -11,7 +11,7 @@ runs = {'A': [], 'B': []}
 for side in runs:
     for f in sorted(glob.glob(f'{d}/{name}-{side}[0-9]*.json')):
         try:
-            runs[side].append(json.load(open(f)))
+            runs[side].append(json.load(open(f, encoding="utf-8")))
         except Exception:  # noqa: BLE001
             pass
 print(f'{name}: A {len(runs["A"])} runs, B {len(runs["B"])} runs; load per run A {[r.get("load") for r in runs["A"]]} B {[r.get("load") for r in runs["B"]]}')

@@ -155,11 +155,11 @@ def main():
     if "--list" in sys.argv:
         for i in keep:
             print(i["k"].ljust(9), (i["n"] or "-").ljust(36), round(score(i), 1))
-    with open(OUT) as fh:
+    with open(OUT, encoding="utf-8") as fh:
         base = json.load(fh)
     old = [i for i in base["items"] if in_box(*world_to_wgs(i["x"], i["y"]))]
     items = old + sorted(keep, key=lambda i: (i["k"], i["x"], i["y"]))
-    with open(OUT, "w") as fh:
+    with open(OUT, "w", encoding="utf-8") as fh:
         json.dump({"source": base["source"], "items": items}, fh, separators=(",", ":"))
     counts = {}
     for i in items:

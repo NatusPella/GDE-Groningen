@@ -375,7 +375,7 @@ def near_mask(province_gz, margin):
     """The tiles within `margin` metres of the province outline (by its
     vertices, ~40 m apart) and outside it: the buffer strip a neighbouring
     extract is cut to."""
-    with gzip.open(province_gz, "rt") as f:
+    with gzip.open(province_gz, "rt", encoding="utf-8") as f:
         rings = json.load(f)["boundary"]
     mask = set()
     r = int(margin // TILE_M) + 2
@@ -402,7 +402,7 @@ def md5(path):
 
 def write_gz(path, data):
     tmp = path + ".tmp"
-    with gzip.open(tmp, "wt", compresslevel=6) as fh:
+    with gzip.open(tmp, "wt", compresslevel=6, encoding="utf-8") as fh:
         json.dump(data, fh, separators=(",", ":"))
     os.replace(tmp, path)
 

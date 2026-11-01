@@ -146,7 +146,7 @@ def main():
             continue
         data = fetch_pack(p)
         tmp = f + ".tmp"
-        with gzip.open(tmp, "wt", compresslevel=9) as fh:
+        with gzip.open(tmp, "wt", compresslevel=9, encoding="utf-8") as fh:
             json.dump(data, fh, separators=(",", ":"))
         os.replace(tmp, f)
         print(f"c{p['pack']}: {len(data['elements'])} elements, {os.path.getsize(f) / 1e6:.1f} MB")
