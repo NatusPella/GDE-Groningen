@@ -2757,10 +2757,12 @@ function spawnSkutsje(world, st) {
 function updateBoatChase(dt, world, def, st, S) {
   const B = S.boat;
   if (!B) { nextStage(world, def); return; }
-  const p = hoofdspeler(world), v = B.v;
+  const v = B.v;
   if (v.driver !== 'jelle') { fail(world, def, st.lost); return; }
   if (!world.vehicles.includes(v)) world.vehicles.push(v);
-  const d = dist(p.x, p.y, v.x, v.y);
+  // samen (#525): de dichtstbijzijnde meespeler bepaalt de afstand, en elke boot van de groep telt langszij
+  const naaste = teamActor(world, v);
+  const d = dist(naaste.x, naaste.y, v.x, v.y);
   // a chase does not wait for the player: the skûtsje keeps its pace however far behind you are
   const want = 7;
   B.speed += clamp(want - B.speed, -2 * dt, 1.4 * dt);
@@ -2774,7 +2776,7 @@ function updateBoatChase(dt, world, def, st, S) {
   // the mast folds aft to pass under the bridges (models3d_vehicles.js)
   const c = Math.cos(v.angle), sn = Math.sin(v.angle);
   animateSkutsjeRig(v, 0.55, [-2, 2, 6, 10].some((k) => world.map.isOnBridge(v.x + c * k, v.y + sn * k)) ? 1 : 0, world.time);
-  const alongside = !!(p.inVehicle && p.inVehicle.isBoat) && d < (st.board || 8);
+  const alongside = groepsActeurs(world).some((a) => a.inVehicle && a.inVehicle.isBoat && dist(a.x, a.y, v.x, v.y) < (st.board || 8));
   if (alongside) {
     if (!S.said) { S.said = 1; world.addMessage(st.near || 'Langszij! Hou hem vast...', 2.5); }
     S.hold += dt;
