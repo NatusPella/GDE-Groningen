@@ -65,8 +65,10 @@ const hostBestuur = []; // wat de gastheer van de auto ziet waar de gast in rijd
   if (MOCK) { const { startMockGuest } = await import('./mockclient.mjs'); for (let i = 0; i < MOCK; i++) { const m = await startMockGuest({ stage: STAGE, code: host.code, net: {}, seed: 31 + i }); m.input = () => ({ mx: 0, my: 0, run: false, yaw: 0, buttons: 0 }); mocks.push(m); } }
   globalThis.__mocks = mocks;
   { const wall = (readEvents().find((e) => e.type === 'allen-erbij') || {}).wall; if (wall) { const gap = (Date.now() - wall) / 1000, at0 = host.at; host.at = (s, fn) => at0.call(host, Math.max(0, s - gap), fn); } }
-  const c = host.world.companion; let was = 0; // wat de gastheer van het lichaam van de gast heeft: hoogte en bukken
-  setInterval(() => { const z = c.z || 0; hostMeting.zmax = Math.max(hostMeting.zmax, z); if (z > 0.05 && !was) hostMeting.sprongen++; was = z > 0.05 ? 1 : 0; if (c.crouching) hostMeting.buk = true; }, 20).unref();
+  // #502: de gast is een figuur (slot 1), niet de metgezel; meet het lichaam dat de host echt tekent
+  const gastfiguur = () => { const F = host.world.coopFigures || {}; return F[1] || F['1'] || host.world.companion; };
+  let was = 0;
+  setInterval(() => { const c = gastfiguur(); const z = c.z || 0; hostMeting.zmax = Math.max(hostMeting.zmax, z); if (z > 0.05 && !was) hostMeting.sprongen++; was = z > 0.05 ? 1 : 0; if (c.crouching) hostMeting.buk = true; }, 20).unref();
   host.at(33, (h) => { h.world.companion.x += 8; h.world.companion.y += 8; h.wapen('knuppel'); h.slaan(true); h.log.push('wapen en aanval aan'); });
   host.at(41, (h) => { h.slaan(false); h.wapen('fists'); h.world.companion.x = h.world.player.x - 2; h.world.companion.y = h.world.player.y + 1; h.rit(true); h.log.push('in de auto'); });
   host.at(44, (h) => { const car = h.drive && h.drive.car; for (const f of Object.values(h.world.coopFigures || {})) if (car) { f.x = car.x - 1; f.y = car.y + 1; f.vx = 0; f.vy = 0; } for (const m of mocks) m.session.sendEvent({ k: 'gebruik' }); h.log.push('de anderen stappen in'); });
@@ -127,3 +129,4 @@ fs.writeFileSync(path.join(OUT, 'result.json'), JSON.stringify({ problems, notes
 for (const x of notes) console.log('  - ' + x);
 console.log(problems.length ? 'PROBLEMEN:\n- ' + problems.join('\n- ') : 'ALLES OK');
 process.exit(problems.length ? 1 : 0);
+
