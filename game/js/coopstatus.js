@@ -37,6 +37,9 @@ const STAP = {
   choice: WERKT, timing: WERKT,
   rit: DEELS, convoy: DEELS, fuse: DEELS, blast: DEELS, plan: DEELS, lock: DEELS, pickpocket: DEELS,
   laser: DEELS, crack: DEELS, getaway: DEELS, shot: DEELS, boatchase: DEELS, vault: DEELS,
+  // convoy staat op 'werkt' sinds #525: de motor volgt de meespeler die in de missieauto zit (teamActor),
+  // dus een gast kan de colonne leiden en de teller telt zijn afstand.
+  convoy: WERKT,
   // garage staat op 'werkt' sinds #525: de motor kiest uit de groep de meespeler met een stilstaande auto
   // in de bay (garages.js garageInside met een actor), dus een gast kan de politie ook afschudden.
   garage: WERKT,

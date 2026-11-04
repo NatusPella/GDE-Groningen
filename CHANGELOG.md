@@ -6,6 +6,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+- **Een gast leidt de colonne (#525).** Bij de colonnestappen van M23 volgt de stoet nu de meespeler die in de missieauto zit, en de teller "bij elkaar" telt vanaf hem; zonder gast blijft de hoofdspeler de leider. De coop-audit gaat hierdoor van 18 naar 19 van de 30 missies volledig samen. Test: `convoy_test`.
 - **Een gast schudt de politie ook af in de garage (#525).** Bij de garage-stap van M02 kiest de missie nu uit de groep de meespeler met een stilstaande auto in de bay (`garageInside` met een actor), in plaats van alleen de auto van wie het spel opende; die auto krijgt een nieuwe kleur en de politie is hem kwijt. De coop-audit gaat hierdoor van 17 naar 18 van de 30 missies volledig samen. Test: `garage_zone_test`.
 - **Een gast bakt mee aan de eierballen (#525).** Bij de oefenronde in Oma's keuken (M25) en de wedstrijd op de Grote Markt (M26) telt nu de hele groep: staat een gast bij het fornuis of de kraam, dan loopt de bakronde door, ook als wie het spel opende wegloopt. De gast ziet dezelfde ingrediënten (1-6), de eierbal, de stap en het aantal missers, en zijn toets telt als de zijne; de bakstand gaat mee zodat een druk uit een oude stand niet op de volgende ronde landt. Een verkeerde toets van een gast telt als een mis, net als bij wie het spel opende. De coop-audit gaat hierdoor van 15 naar 17 van de 30 missies volledig samen. Tests: `bakeround_test`, `cooppaneel_test`.
 

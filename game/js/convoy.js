@@ -34,8 +34,8 @@ function spawnMember(world, spec, near, angle, back) {
   return v;
 }
 
-export function startConvoy(world, specs = colonneMembers()) {
-  const p = world.player;
+export function startConvoy(world, specs = colonneMembers(), lead = world.player) {
+  const p = lead;
   const state = { members: [], trail: [{ x: p.x, y: p.y }], t: 0, limo: null, cutT: 0, cuts: 0, said: false };
   specs.forEach((spec, i) => {
     const v = spawnMember(world, spec, p, p.angle, 14 + i * 12);
@@ -45,8 +45,8 @@ export function startConvoy(world, specs = colonneMembers()) {
 }
 
 // Jelle's limo: an AI car that heads for the middle of the column.
-export function spawnLimo(world, state) {
-  const p = world.player;
+export function spawnLimo(world, state, lead = world.player) {
+  const p = lead;
   const a = p.angle + Math.PI / 2;
   const rp = world.map.nearestRoadPoint(p.x + Math.cos(a) * 120 + Math.cos(p.angle) * 60, p.y + Math.sin(a) * 120 + Math.sin(p.angle) * 60, 100, true);
   if (!rp || !rp.road) return null;
@@ -61,8 +61,9 @@ export function spawnLimo(world, state) {
 }
 
 // Per frame. Returns { split: name } when the column falls apart, else null. `say(text)` shows a message.
-export function updateConvoy(dt, world, state, say = () => {}) {
-  const p = world.player;
+// `lead` is the group member the column follows (#525): the host by default, or a guest driving the mission car.
+export function updateConvoy(dt, world, state, say = () => {}, leadActor = null) {
+  const p = leadActor || world.player;
   const lead = p.inVehicle || p;
   state.t += dt;
   pushTrail(state.trail, lead.x, lead.y);
@@ -97,8 +98,8 @@ export function updateConvoy(dt, world, state, say = () => {}) {
 }
 
 // How many members are close enough to count as "bij elkaar".
-export function convoyStatus(world, state) {
-  const p = world.player;
+export function convoyStatus(world, state, leadActor = null) {
+  const p = leadActor || world.player;
   const lead = p.inVehicle || p;
   const total = state.members.length;
   const near = state.members.filter((m) => dist(m.v.x, m.v.y, lead.x, lead.y) < CONVOY.warnGap).length;
