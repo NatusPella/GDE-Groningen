@@ -48,7 +48,7 @@ export function paneelToets(input, paneel) {
 // updateGameplay, en daarna wist input.endFrame de toetsen), dus de stap leest hem aan het begin van het volgende
 // beeld. Alleen de toetsen die het paneel van deze stap aanneemt komen door, en per gast hoogstens een keer per
 // PANEEL_WACHT_S: een gast kan niet sneller drukken dan de gastheer zelf kan. `stap` is de lopende verhaalstap
-// (missions.js activeStage), `sc` het sc├¿nebericht dat de gasten als laatste kregen (daar staat het paneel in).
+// (missions.js activeStage), `sc` het scènebericht dat de gasten als laatste kregen (daar staat het paneel in).
 export const PANEEL_WACHT_S = 0.2;
 export function paneelIndrukken(world, van, toets, stap, sc = null, balk = null) {
   if (!world || !stap || (stap.kind !== 'choice' && stap.kind !== 'timing')) return false;
