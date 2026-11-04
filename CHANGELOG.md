@@ -6,6 +6,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+- **Een gast bakt mee aan de eierballen (#525).** Bij de oefenronde in Oma's keuken (M25) en de wedstrijd op de Grote Markt (M26) telt nu de hele groep: staat een gast bij het fornuis of de kraam, dan loopt de bakronde door, ook als wie het spel opende wegloopt. De gast ziet dezelfde ingrediënten (1-6), de eierbal, de stap en het aantal missers, en zijn toets telt als de zijne; de bakstand gaat mee zodat een druk uit een oude stand niet op de volgende ronde landt. Een verkeerde toets van een gast telt als een mis, net als bij wie het spel opende. De coop-audit gaat hierdoor van 15 naar 17 van de 30 missies volledig samen. Tests: `bakeround_test`, `cooppaneel_test`.
+
 ## [0.55.0] - 2026-11-04
 
 - **De klok van een gast springt niet meer terug na een pauze van de ander.** Stond het spel van wie het spel opende stil (pauzemenu, kaart, winkel), dan bleef de klok bij de gast op de oude snelheid doorlopen en sprong hij bij het hervatten minuten terug. De gast rekent nu hoogstens één melding vooruit en staat stil zodra de ander stil staat (#520).

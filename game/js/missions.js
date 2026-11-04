@@ -51,7 +51,7 @@ import { playTalk, stopTalk } from './storytalk.js';
 import { buildNieuwDefs, applyNieuw } from './missions_nieuw.js';
 import { buildZijDefs } from './missionsdata_zij.js';
 import { buildDefsVoorMuseum, buildDefsNaMuseum } from './missions_defs.js';
-import { createBake, updateBake, showBake, hideBake, bakeProgress, RECIPE_PRACTICE, RECIPE_CONTEST } from './bakeround.js';
+import { createBake, updateBake, showBake, hideBake, bakeProgress, bakePanel, RECIPE_PRACTICE, RECIPE_CONTEST } from './bakeround.js';
 import { startConvoy, spawnLimo, updateConvoy, convoyStatus, disposeConvoy } from './convoy.js';
 import { wgsToWorld } from './rdnew.js';
 import { enterChoice, updateChoice, closeChoice } from './stagechoice.js';
@@ -64,6 +64,7 @@ import { hoofdspeler } from './players.js';
 import { teamActor, doelStand, groepKlaar, groepsActeurs, WACHT_OP_ANDEREN } from './stagegroep.js';
 import { registreerWedstrijd, wedNodigUit, wedHostBaan, wedBaanStand } from './multiplayerwedstrijd.js';
 import { lichaamVan, bestuurInstappenIn, bestuurLos } from './coopbestuur.js';
+import { neemBakeDruk, neemVaultDruk, vergeetBakeDruk } from './coopgast.js'; // de toets van een gast bij de bakronde en de polsstok (#525)
 // a radio fragment of a stage that never got played within ten minutes is moot (refs #171; not tied to the mission: the clue in it must not be lost)
 const MISSION_RADIO_VALID = { ttl: 600 };
 import { registerBusyProbe } from './busy.js';
@@ -3610,21 +3611,33 @@ function sinkInMud(world, dt, k) {
   v.driftY = (v.driftY || 0) * 0.9;
 }
 
-// Act 5: the baking round (bakeround.js). The stage is on while you stand in the kitchen or at the stall.
+// Act 5: the baking round (bakeround.js). The stage is on while a member of the group stands in the kitchen
+// or at the stall: a guest at the stove counts too, and his ingredients count as the host's presses (#525).
 function updateBakeStage(dt, world, def, st, S) {
-  const p = hoofdspeler(world);
   const title = st.recipe === 'practice' ? "Oma's keuken: de oefenronde" : 'Gronings Ontzet: bak de eierbal';
   if (!S.bake) S.bake = createBake({ order: st.recipe === 'practice' ? RECIPE_PRACTICE : RECIPE_CONTEST, rounds: st.rounds || 1 });
-  if (!S.target) return true;
-  const near = dist(p.x, p.y, S.target.x, S.target.y) < (st.radius || HOLD_RADIUS);
-  if (!near) { hideBake(); S.shown = false; hint(world, st.farHint || ''); return false; }
-  if (!modeOk(p, st.mode)) { hideBake(); S.shown = false; hint(world, MODE_HINT[st.mode] || ''); return false; }
+  const stop = () => {
+    hideBake(); S.shown = false;
+    if (world.coopStagePanel) world.coopStagePanel = null;
+    vergeetBakeDruk(world); // de wachtrij van deze bakstand leeg (coopgast.js bezit world.coopPaneel)
+  };
+  if (!S.target) { stop(); return true; }
+  // de groep telt: een gast bij het fornuis of de kraam kan de ronde doen, ook als de gastheer wegloopt (#525)
+  const g = doelStand(world, S.target, st.radius || HOLD_RADIUS, st.mode, modeOk);
+  if (g.status !== 'binnen') {
+    stop();
+    hint(world, g.status === 'modus' ? (MODE_HINT[st.mode] || '') : (st.farHint || ''));
+    return false;
+  }
   if (!S.shown) { S.shown = true; showBake(S.bake, title); }
-  const res = updateBake(S.bake, world.input, title);
+  // de stand van de bakronde gaat naar de gasten; hun toets komt als de zijne terug (#525)
+  if (world.coopNet && world.coopNet.role === 'host') world.coopStagePanel = bakePanel(S.bake, title);
+  const druk = neemBakeDruk(world, S.bake.seq);
+  const res = updateBake(S.bake, world.input, title, druk[0] || null);
   if (res === 'round') world.addMessage(`Eierbal ${S.bake.round} van ${S.bake.rounds} is goud. Door!`, 2);
   else if (res === 'wrong' || res === 'redo') world.addMessage(S.bake.last, 3);
   if (res === 'done') {
-    hideBake();
+    stop();
     const bad = S.bake.wrongs + S.bake.redos * 3;
     if (st.recipe === 'contest') chainState().bakeTier = bad === 0 ? 'top' : bad < 3 ? 'goed' : 'mager';
     world.addMessage(st.recipe === 'contest' ? (bad === 0 ? 'Alle eierballen zijn goud, geen enkele mislukt. De jury gaat dit proeven.' : bad < 3 ? 'De eierballen zijn goud. Een paar mislukten, de jury merkt het niet.' : 'De eierballen zijn goud, na veel gedoe. De jury heeft het gezien.') : 'Alle eierballen zijn goud.', 3);
