@@ -3461,10 +3461,17 @@ function updateStages(dt, world, def) {
       } else if (S.shotDone) nextStage(world, def);
       break;
     case 'garage': {
-      const site = inCar ? garageInside(world) : null;
-      if (!site || Math.abs(v.speed) > 1.5) { S.hold = 0; break; }
+      // samen (#525): elke meespeler met een stilstaande auto in de garage telt, niet alleen de hoofdspeler
+      let site = null, gv = null;
+      for (const a of groepsActeurs(world)) {
+        const av = a && a.inVehicle;
+        if (!av || Math.abs(av.speed || 0) > 1.5) continue;
+        const s = garageInside(world, a);
+        if (s) { site = s; gv = av; break; }
+      }
+      if (!site) { S.hold = 0; break; }
       if ((S.hold += dt) < 1.2) break;
-      repaintVehicle(world, v, RESPRAY_COLORS[Math.floor(Math.random() * RESPRAY_COLORS.length)]);
+      repaintVehicle(world, gv, RESPRAY_COLORS[Math.floor(Math.random() * RESPRAY_COLORS.length)]);
       world.wanted = 0;
       world.wantedDecayTimer = 0;
       world.addMessage('Nieuwe kleur, nieuwe kans. Gratis. De pliesie kent hem niet meer.', 4);

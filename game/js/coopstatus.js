@@ -36,7 +36,10 @@ const STAP = {
   goto: WERKT, hold: WERKT, board: WERKT, escape: WERKT, chase: WERKT, scene: WERKT,
   choice: WERKT, timing: WERKT,
   rit: DEELS, convoy: DEELS, fuse: DEELS, blast: DEELS, plan: DEELS, lock: DEELS, pickpocket: DEELS,
-  laser: DEELS, crack: DEELS, getaway: DEELS, shot: DEELS, garage: DEELS, boatchase: DEELS, vault: DEELS,
+  laser: DEELS, crack: DEELS, getaway: DEELS, shot: DEELS, boatchase: DEELS, vault: DEELS,
+  // garage staat op 'werkt' sinds #525: de motor kiest uit de groep de meespeler met een stilstaande auto
+  // in de bay (garages.js garageInside met een actor), dus een gast kan de politie ook afschudden.
+  garage: WERKT,
   // bake staat op 'werkt' sinds #525: een gast bij het fornuis of de kraam telt mee (doelStand), ziet de
   // ingrediënten en de voortgang van de bakronde en zijn toets 1-6 gaat als de zijne naar de gastheer.
   bake: WERKT,
