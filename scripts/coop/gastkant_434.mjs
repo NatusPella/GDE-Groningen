@@ -76,7 +76,7 @@ const hostBestuur = []; // wat de gastheer van de auto ziet waar de gast in rijd
   host.at(57, (h) => { h.rit(true, { isBike: true, model: { len: 1.8, wid: 0.6, name: 'bike' } }); h.log.push('op de fiets'); });
   host.at(70, (h) => { h.rit(false); h.log.push('van de fiets'); });
   host.at(74, (h) => { h.parkeerAuto(2.5); h.log.push('een vrije auto naast de gast'); });
-  for (const sec of [78, 80, 82]) host.at(sec, (h) => { const car = h.world.vehicles.find((v) => v.id === 198); if (car) hostBestuur.push({ rij: car.coopBestuurder ?? null, driver: car.driver, speed: Math.round((car.speed || 0) * 10) / 10, mx: Math.round(car.x - h.world.companion.x), zit: !!h.world.companion.coopBestuurt }); });
+  for (const sec of [78, 80, 82]) host.at(sec, (h) => { const car = h.world.vehicles.find((v) => v.id === 198); if (car) hostBestuur.push({ rij: car.coopBestuurder ?? null, driver: car.driver, speed: Math.round((car.speed || 0) * 10) / 10, mx: Math.round(car.x - ((h.world.coopFigures && (h.world.coopFigures[1] || h.world.coopFigures['1'])) || h.world.companion).x), zit: !!((h.world.coopFigures && (h.world.coopFigures[1] || h.world.coopFigures['1'])) || h.world.companion).coopBestuurt }); });
   host.at(HOST_STOP, async (h) => { h.log.push('host stopt'); await h.stop(); });
 })();
 const res = await done;
@@ -129,4 +129,5 @@ fs.writeFileSync(path.join(OUT, 'result.json'), JSON.stringify({ problems, notes
 for (const x of notes) console.log('  - ' + x);
 console.log(problems.length ? 'PROBLEMEN:\n- ' + problems.join('\n- ') : 'ALLES OK');
 process.exit(problems.length ? 1 : 0);
+
 
