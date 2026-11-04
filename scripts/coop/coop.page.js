@@ -795,6 +795,7 @@ const PHASES = {
     await sleep(s * 1000 / 2);
     // de tijdlijn schuift onder belasting op: wacht op de staat die dit beeld moet laten zien in plaats van op de klok
     if (naam === 'auto') for (let i = 0; i < 80 && !(w.coopZitters || []).some((z) => z.stoel === 1); i++) await sleep(250);
+    if (naam === 'fiets') for (let i = 0; i < 120 && !(w.coopZitters || []).some((z) => z.stoel === 0); i++) await sleep(250);
     const guns = []; { const SC = (await import('./js/scene3d.js')).getScene(); if (SC) SC.traverse((o) => { if (o.userData && o.userData.gunKey) guns.push(o.userData.gunKey); }); } // modellen met een wapen in de hand
     const fietsen = []; { const SC = (await import('./js/scene3d.js')).getScene(); if (SC) SC.traverse((o) => { if (o.userData && o.userData.riderLegs && o.userData.wheels) fietsen.push([o, o.userData.pedalPhase || 0]); }); await sleep(350); } // de trappers van de fietsen in beeld
     const pedaal = fietsen.map(([o, p0]) => Math.abs((o.userData.pedalPhase || 0) - p0) > 0.05);
