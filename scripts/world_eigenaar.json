@@ -30,6 +30,10 @@
       "eigenaar": "game/js/missions.js",
       "notitie": "missions.js zet de missieketen per sessie (#523); coopnet.js roept hem alleen aan bij de start en het einde van een sessie."
     },
+    "coopStagePanel": {
+      "eigenaar": "game/js/missions.js",
+      "notitie": "missions.js zet de paneelstand van een missiestap (de bakronde) voor de gasten (#525); coopscene.js leest hem alleen."
+    },
     "extraSpeakers": {
       "eigenaar": "game/js/scene3d.js",
       "notitie": "scene3d.js zet de sprekers om in tekstballonnen; modules melden alleen een spreker."

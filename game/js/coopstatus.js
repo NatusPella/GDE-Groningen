@@ -35,8 +35,11 @@ export const START_TEKST = {
 const STAP = {
   goto: WERKT, hold: WERKT, board: WERKT, escape: WERKT, chase: WERKT, scene: WERKT,
   choice: WERKT, timing: WERKT,
-  rit: DEELS, bake: DEELS, convoy: DEELS, fuse: DEELS, blast: DEELS, plan: DEELS, lock: DEELS, pickpocket: DEELS,
+  rit: DEELS, convoy: DEELS, fuse: DEELS, blast: DEELS, plan: DEELS, lock: DEELS, pickpocket: DEELS,
   laser: DEELS, crack: DEELS, getaway: DEELS, shot: DEELS, garage: DEELS, boatchase: DEELS, vault: DEELS,
+  // bake staat op 'werkt' sinds #525: een gast bij het fornuis of de kraam telt mee (doelStand), ziet de
+  // ingrediënten en de voortgang van de bakronde en zijn toets 1-6 gaat als de zijne naar de gastheer.
+  bake: WERKT,
   train: NEE, plane: NEE, airgates: NEE, landplane: NEE, heli: NEE, pigeon: NEE,
 };
 // Een missie zonder stappen (missions.js, def.type): de soort zelf telt
