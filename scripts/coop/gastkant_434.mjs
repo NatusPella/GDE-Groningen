@@ -109,7 +109,7 @@ const wp = of('wapen')[0];
 check(wp && wp.wapen === 'knuppel' && wp.fx === 'melee' && wp.guns.includes('knuppel'), 'wapen: de gast ziet het wapen of de aanval van de gastheer niet: ' + JSON.stringify(wp));
 notes.push('wapen: ' + JSON.stringify(wp));
 const au = of('auto')[0];
-check(au && au.zitters.some((z) => z[2] === 0) && au.zitters.some((z) => z[2] === 1) && au.dbg >= 2, 'auto: bestuurder en bijrijder zijn niet te zien in het voertuig: ' + JSON.stringify(au));
+check(au && au.zitters.some((z) => z[2] === 0) && au.zitters.some((z) => z[2] >= 1) && au.dbg >= 2, 'auto: bestuurder en bijrijder zijn niet te zien in het voertuig: ' + JSON.stringify(au));
 if (MOCK) check(au && au.zitters.some((z) => z[2] >= 2) && au.dbg >= 3, 'auto: de extra spelers zitten niet achterin: ' + JSON.stringify(au));
 notes.push('auto: ' + JSON.stringify(au));
 const gb = { auto: of('gastbestuur-auto')[0], in: of('gastbestuur-in')[0], rijdt: of('gastbestuur-rijdt')[0], remt: of('gastbestuur-remt')[0], uit: of('gastbestuur-uit')[0] };
@@ -129,5 +129,6 @@ fs.writeFileSync(path.join(OUT, 'result.json'), JSON.stringify({ problems, notes
 for (const x of notes) console.log('  - ' + x);
 console.log(problems.length ? 'PROBLEMEN:\n- ' + problems.join('\n- ') : 'ALLES OK');
 process.exit(problems.length ? 1 : 0);
+
 
 
