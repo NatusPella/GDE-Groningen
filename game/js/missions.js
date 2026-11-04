@@ -3656,19 +3656,20 @@ function updateBakeStage(dt, world, def, st, S) {
 // Act 5 (M23): the column. The first convoy stage brings the friends (and Jelle's limo after limoAfter seconds);
 // each stage ends when the leader is at the target and most of the column is with him. 'fail' when it falls apart.
 function updateConvoyStage(dt, world, def, st, S) {
-  if (!chainState().convoy) chainState().convoy = startConvoy(world);
+  const v = chainState().vehicle;
+  // samen (#525): de colonne volgt de meespeler die in de missieauto zit; zonder gast is dat de hoofdspeler
+  const lead = v ? teamActor(world, v, (a) => a.inVehicle === v) : hoofdspeler(world);
+  if (!chainState().convoy) chainState().convoy = startConvoy(world, undefined, lead);
   const c = chainState().convoy;
   // the ally chosen at the start (M23) can hold Jelle's limo back for a while (limoAfterIf: { tag: seconds })
   const held = st.limoAfterIf && Object.entries(st.limoAfterIf).find(([tag]) => choiceOn(tag));
   const limoAfter = held ? held[1] : st.limoAfter;
-  if (!S.limoDone && limoAfter && S.t > limoAfter) { S.limoDone = true; if (spawnLimo(world, c)) world.addMessage('Jelles limo komt op de colonne af.', 3.5); }
-  const r = updateConvoy(dt, world, c, (text) => world.addMessage(text, 2.5, { key: 'colonne-lag' }));
+  if (!S.limoDone && limoAfter && S.t > limoAfter) { S.limoDone = true; if (spawnLimo(world, c, lead)) world.addMessage('Jelles limo komt op de colonne af.', 3.5); }
+  const r = updateConvoy(dt, world, c, (text) => world.addMessage(text, 2.5, { key: 'colonne-lag' }), lead);
   if (r && r.split) { world.addMessage(`${r.split} is te ver achter: de colonne valt uiteen.`, 3.5); return 'fail'; }
-  const v = chainState().vehicle;
-  const p = hoofdspeler(world);
-  if (v && p.inVehicle !== v && dist(p.x, p.y, v.x, v.y) > 12) { hint(world, st.carHint || ''); return null; }
-  if (!S.target || dist(p.x, p.y, S.target.x, S.target.y) >= (st.radius || STAGE_RADIUS)) return null;
-  const sc = convoyStatus(world, c);
+  if (v && lead.inVehicle !== v && dist(lead.x, lead.y, v.x, v.y) > 12) { hint(world, st.carHint || ''); return null; }
+  if (!S.target || dist(lead.x, lead.y, S.target.x, S.target.y) >= (st.radius || STAGE_RADIUS)) return null;
+  const sc = convoyStatus(world, c, lead);
   if (sc.total && sc.near < Math.ceil(sc.total * 0.7)) { hint(world, `Wacht op de colonne: ${sc.near} van ${sc.total} bij elkaar.`); return null; }
   return 'done';
 }
