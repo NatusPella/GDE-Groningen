@@ -14,6 +14,7 @@ import { initFoley, updateFoley, propHit, foleyStats } from './sfx/foley.js';
 import { initUiSfx, uiWorldInit, updateUiSfx, uiDomEvent, isUiGestureTarget } from './sfx/ui.js';
 import { updateSkySfx } from './sfx/sky.js';
 import { setScenarioHost, updateScenarioMusic, scenarioPlaying, scenarioKey } from './audio/scenario.js';
+import { setSpatialHost, makePanner, setPannerPos, distToListener, inverseGain, spatialOut, updateListener, MAX_DISTANCE, SOURCE_HEIGHT, HRTF_NEAR } from './audio/spatial.js';
 import { MIN_TRACK_S } from './musicpick.js';
 import * as speech from './speech.js';
 import { drunkLevel } from './drunk.js';
@@ -37,14 +38,11 @@ export function setAudioCamera(fn) { getCamera = fn; }
 
 if (typeof window !== 'undefined') window.__speech = speech;
 
-const MAX_DISTANCE = 120;
-const SOURCE_HEIGHT = 1;
 const SPEED_OF_SOUND = 343;
 const ENGINE_VOICES = 4;
 const ENGINE_RANGE = 70;
 const SIREN_VOICES = 3;
 const SPEECH_RANGE = 45;
-const HRTF_NEAR = 14;
 const SIREN_LOW_FREQ = 440;
 const SIREN_HIGH_FREQ = 587;
 const SIREN_HOLD_MIN = 0.5;
@@ -314,116 +312,6 @@ function buildEngine() {
 // camera, so the same right-handed frame is shared by picture and sound.
 const listenerPos = { x: 0, y: 0, z: 0 };
 const listenerVel = { x: 0, y: 0 };
-
-function makePanner({ ref = 5, rolloff = 1, model = 'HRTF', maxDist = MAX_DISTANCE } = {}) {
-  const p = ctx.createPanner();
-  p.panningModel = model;
-  p.distanceModel = 'inverse';
-  p.refDistance = ref;
-  p.rolloffFactor = rolloff;
-  p.maxDistance = maxDist;
-  return p;
-}
-
-function setPannerPos(p, x, y, h = SOURCE_HEIGHT, smooth = false) {
-  // a non-finite position (a NaN spot from the data) would throw on every AudioParam write
-  if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(h)) return;
-  if (p.positionX) {
-    if (smooth) {
-      const t = ctx.currentTime;
-      p.positionX.setTargetAtTime(x, t, 0.03);
-      p.positionY.setTargetAtTime(h, t, 0.03);
-      p.positionZ.setTargetAtTime(y, t, 0.03);
-    } else {
-      p.positionX.value = x;
-      p.positionY.value = h;
-      p.positionZ.value = y;
-    }
-  } else {
-    p.setPosition(x, h, y);
-  }
-}
-
-function distToListener(x, y, h = SOURCE_HEIGHT) {
-  return Math.hypot(x - listenerPos.x, h - listenerPos.y, y - listenerPos.z);
-}
-
-function inverseGain(d, ref, rolloff) {
-  return ref / (ref + rolloff * (Math.max(d, ref) - ref));
-}
-
-// A ref-counted panner that every node of one positional one-shot feeds;
-// it disconnects once the last of them has ended. null = out of range.
-function spatialOut(x, y, opts = {}) {
-  if (!ctx || muted || !voiceOk(opts.prio ?? 1)) return null;
-  const h = opts.h ?? SOURCE_HEIGHT;
-  if (distToListener(x, y, h) > (opts.range ?? MAX_DISTANCE)) return null;
-  // HRTF only where it is heard as such: far one-shots pan with equal power
-  const panner = makePanner(opts.model || distToListener(x, y, h) < HRTF_NEAR ? opts : { ...opts, model: 'equalpower' });
-  setPannerPos(panner, x, y, h);
-  panner.connect(opts.bus || sfxBus);
-  let refs = 0;
-  let used = false;
-  // a group whose every voice was refused by the budget never gets a release
-  queueMicrotask(() => { if (!used) panner.disconnect(); });
-  return {
-    node: panner,
-    hold() { refs++; used = true; },
-    release() { if (--refs <= 0) panner.disconnect(); },
-  };
-}
-
-function rotateByQuat(q, vx, vy, vz) {
-  const tx = 2 * (q.y * vz - q.z * vy);
-  const ty = 2 * (q.z * vx - q.x * vz);
-  const tz = 2 * (q.x * vy - q.y * vx);
-  return [
-    vx + q.w * tx + (q.y * tz - q.z * ty),
-    vy + q.w * ty + (q.z * tx - q.x * tz),
-    vz + q.w * tz + (q.x * ty - q.y * tx),
-  ];
-}
-
-function updateListener(world) {
-  const p = hoofdspeler(world);
-  const cam = getCamera();
-  let fwd, up;
-  if (cam) {
-    listenerPos.x = cam.position.x;
-    listenerPos.y = cam.position.y;
-    listenerPos.z = cam.position.z;
-    fwd = rotateByQuat(cam.quaternion, 0, 0, -1);
-    up = rotateByQuat(cam.quaternion, 0, 1, 0);
-  } else {
-    listenerPos.x = p.x;
-    listenerPos.y = SOURCE_HEIGHT;
-    listenerPos.z = p.y;
-    fwd = [Math.cos(p.angle || 0), 0, Math.sin(p.angle || 0)];
-    up = [0, 1, 0];
-  }
-  const v = p.inVehicle;
-  listenerVel.x = v ? Math.cos(v.angle) * v.speed : (p.vx || 0);
-  listenerVel.y = v ? Math.sin(v.angle) * v.speed : (p.vy || 0);
-
-  if (![listenerPos.x, listenerPos.y, listenerPos.z, ...fwd, ...up].every(Number.isFinite)) return;
-  const L = ctx.listener;
-  if (L.positionX) {
-    const t = ctx.currentTime;
-    const tau = 0.02;
-    L.positionX.setTargetAtTime(listenerPos.x, t, tau);
-    L.positionY.setTargetAtTime(listenerPos.y, t, tau);
-    L.positionZ.setTargetAtTime(listenerPos.z, t, tau);
-    L.forwardX.setTargetAtTime(fwd[0], t, tau);
-    L.forwardY.setTargetAtTime(fwd[1], t, tau);
-    L.forwardZ.setTargetAtTime(fwd[2], t, tau);
-    L.upX.setTargetAtTime(up[0], t, tau);
-    L.upY.setTargetAtTime(up[1], t, tau);
-    L.upZ.setTargetAtTime(up[2], t, tau);
-  } else {
-    L.setPosition(listenerPos.x, listenerPos.y, listenerPos.z);
-    L.setOrientation(fwd[0], fwd[1], fwd[2], up[0], up[1], up[2]);
-  }
-}
 
 // NL/EU two-tone "hi-lo" wail, one pooled voice per nearby police unit.
 function buildSirenVoice() {
@@ -1803,6 +1691,7 @@ function buildGraph() {
   // Music bypasses the SFX soft-clip so loud world sounds never squash it.
   musicOut = ctx.createGain();
   setScenarioHost({ ctx: () => ctx, musicOut: () => musicOut, getSettings, musicVolume, radioOn: () => radioOn, stingDuck });
+  setSpatialHost({ ctx: () => ctx, muted: () => muted, voiceOk: (p) => voiceOk(p), sfxBus: () => sfxBus, getCamera: () => getCamera() });
   musicOut.gain.value = muted ? 0 : masterLevel();
   musicLp = ctx.createBiquadFilter();
   musicLp.type = 'lowpass';
@@ -3276,5 +3165,7 @@ const warmList = ['glass', 'crunch_0', 'crunch_1', 'crunch_2', 'bikebell', 'ric_
 // silent the first time (a sound found only through a QA run, scripts/qa/sfx_levels.mjs)
 for (const n of bufferNames()) if (!warmList.includes(n)) warmList.unshift(n);
 for (const n of Object.keys(FX_INFO)) warmList.push(n);
+
+
 
 
