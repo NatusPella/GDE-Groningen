@@ -85,14 +85,6 @@
     "weapon": {
       "eigenaar": "game/js/combat.js",
       "notitie": "combat.js wisselt en gebruikt het wapen."
-    },
-    "lastBlast": {
-      "eigenaar": "geen, dood veld",
-      "notitie": "Wordt door throwables.js en vehicle.js gezet, maar niemand leest hem. Verwijderen in #498."
-    },
-    "teleported": {
-      "eigenaar": "geen, dood veld",
-      "notitie": "Wordt op vijf plekken op world.time gezet, maar nergens gelezen: rest van een oude respawn-truc. Verwijderen in #498."
     }
   },
   "uitzonderingen": [
@@ -1526,3 +1518,5 @@
     }
   ]
 }
+
+

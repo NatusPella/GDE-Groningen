@@ -628,7 +628,7 @@ function playFinale(part) {
   const spot = world.map.nearestRoadPoint(...FINALE_SPOT, 120, false);
   if (spot && !p.inVehicle) {
     p.x = spot.x; p.y = spot.y;
-    world.teleported = world.time;
+    void 0;
     const c = world.companion;
     if (c && !c.inVehicle) { c.x = p.x + 1.2; c.y = p.y + 0.6; }
   }
@@ -1383,3 +1383,4 @@ export const storyApi = {
   character: () => hoofdspeler(world).character,
   swapInfo: () => ({ want: rt.cur && rt.cur.player, me: hoofdspeler(world).character, comp: world.companion && world.companion.character, paused: !!world.paused, cine: isCinematicActive(), pigeon: !!world.pigeonMode, mission: isMissionActive(), ragdoll: !!hoofdspeler(world).ragdoll, respawn: !!world.pendingRespawn, banner: isBannerUp(), card: document.body.classList.contains('hud-card-on'), narrative: narrativeState() }),
 };
+

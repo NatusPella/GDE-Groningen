@@ -695,7 +695,7 @@ export function updateHeist(dt, world, st, S) {
       H.seen.w.cone.userData.mat.color.setHex(0xffe3a0);
       if (H.seen.w.kind === 'guard' && Math.random() < 0.5) H.seen.w.lostAt = world.time + 1.2;
       H.seen = null;
-      if (to && !p.inVehicle) { p.x = to.x; p.y = to.y; p.vx = 0; p.vy = 0; world.teleported = world.time; }
+      if (to && !p.inVehicle) { p.x = to.x; p.y = to.y; p.vx = 0; p.vy = 0; void 0; }
       if (H.spotted >= SPOTS_BEFORE_HELP && !H.distracted) distract(world);
     }
     return true;
@@ -705,7 +705,7 @@ export function updateHeist(dt, world, st, S) {
     if (H.zap.t >= ZAP_DELAY) {
       const to = SPOTS.laserStart();
       H.zap = null;
-      if (!p.inVehicle) { p.x = to.x; p.y = to.y; p.vx = 0; p.vy = 0; world.teleported = world.time; }
+      if (!p.inVehicle) { p.x = to.x; p.y = to.y; p.vx = 0; p.vy = 0; void 0; }
     }
     return true;
   }
@@ -1551,3 +1551,4 @@ if (typeof window !== 'undefined') {
     minigame: () => H && { fuse: H.fuse, lock: H.lock && { cur: H.lock.cur, zone: H.lock.zone, y: H.lock.pins.map((q) => q.y) }, crack: H.crack, zap: !!H.zap, seen: !!H.seen },
   };
 }
+

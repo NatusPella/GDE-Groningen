@@ -706,7 +706,7 @@ export async function runStoryTest(world) {
               if (p.inVehicle) p.exitVehicle(world.map, world);
               car.x = shop.x; car.y = shop.y; car.speed = 0; car.homeStored = false;
               p.x = car.x; p.y = car.y;
-              world.teleported = world.time;
+              void 0;
               p.enterVehicle(car, world);
               const loaded = await waitFor(() => (se.state() || {}).phase === 'carry', 10000);
               check(`${cur.id}: the dock scene loads three boxes on the roof`, loaded && se.state().boxes.length === 3 && car.roofBoxes === 3, JSON.stringify(se.state()));
@@ -717,7 +717,7 @@ export async function runStoryTest(world) {
               const d = hm.home.garage.door;
               car.x = d.cx + d.nx * 6; car.y = d.cy + d.ny * 6; car.speed = 0;
               p.x = car.x; p.y = car.y;
-              world.teleported = world.time;
+              void 0;
               check(`${cur.id}: the boxes come off at home`, await waitFor(() => (se.state() || {}).phase === 'home', 10000) && !car.roofBoxes, JSON.stringify({ st: se.state(), d: Math.round(Math.hypot(car.x - se.home().x, car.y - se.home().y)) }));
               p.exitVehicle(world.map, world);
               await sleep(400);
@@ -1069,3 +1069,4 @@ export async function runStoryTest(world) {
   console.log('[storytest-done] ' + JSON.stringify(report));
   return report;
 }
+
