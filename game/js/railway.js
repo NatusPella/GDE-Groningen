@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Railway simulation: shuttle trains on the routes baked into stad.json
 // (scripts/add_railways.py), level crossings that warn/close ahead of them,
 // and what happens to anything standing on the track. Rendering lives in
@@ -209,7 +210,7 @@ export function gastOverwegen(dt, world) {
 // de snapshot (zetTreinenVanHost). Zijn eigen lichaam wordt er elke frame uit geduwd, net als de host dat met zijn spelers doet;
 // geen schade, want het lichaam van de gast is van de host (die de klap in resolveContacts al afhandelt).
 export function gastTreinContact(world) {
-  const p = world && world.player;
+  const p = world && hoofdspeler(world);
   if (!p || p.inVehicle || world.trainDriving || !Number.isFinite(p.x) || !Number.isFinite(p.y)) return 0;
   if (world.coopTrein && world.coopTrein.aan) { world.coopTreinDuw = 0; return 0; } // je rijdt als passagier mee in deze trein (#492): de wagen is je plek
   const z = (p.gz || 0) + (p.z || 0);
@@ -364,7 +365,7 @@ function dwellAt(route, idx) {
 }
 
 function nearPlayer(world, t, r) {
-  const p = world.player, car = t.cars[t.cars.length >> 1];
+  const p = hoofdspeler(world), car = t.cars[t.cars.length >> 1];
   return Math.hypot(p.x - car.x, p.y - car.y) < r;
 }
 
@@ -412,7 +413,7 @@ function clack(t, step, world) {
   t.clackRun += step;
   if (t.clackRun <= CLACK_EVERY_M) return;
   t.clackRun = 0;
-  const p = world.player;
+  const p = hoofdspeler(world);
   const car = t.cars[(Math.random() * t.cars.length) | 0];
   if (Math.hypot(p.x - car.x, p.y - car.y) < 140) audio(world, { kind: 'train_clack', x: car.x, y: car.y, strength: Math.min(1, t.v / 20) });
 }
@@ -485,7 +486,7 @@ export function returnStolenTrains() {
 
 function stepParked(t, dt, world) {
   t.parkT += dt;
-  const p = world.player;
+  const p = hoofdspeler(world);
   const car = t.cars[t.cars.length >> 1];
   const far = Math.hypot(p.x - car.x, p.y - car.y) > PARK_RESUME_DIST + t.halfLen;
   if ((t.parkT > PARK_RESUME_S && far) || t.parkT > PARK_MAX_S) resumeService(t);
@@ -568,7 +569,7 @@ export function removeMissionTrain(t) {
 // and s1 for `hold` seconds: trains of routes sharing it wait at the
 // platform they stand at, or out at their far terminus.
 export function clearTrackFor(t, s0, s1, world, hold = 240) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   for (const o of trains) {
     if (o === t || isStolen(o)) continue;
     let shares = o.route === t.route;
@@ -681,7 +682,7 @@ function stapOverwegen(dt, world) {
       c.bellT -= dt;
       if (c.bellT <= 0) {
         c.bellT = BELL_INTERVAL;
-        const p = world.player;
+        const p = hoofdspeler(world);
         if (Math.hypot(p.x - c.x, p.y - c.y) < 130) audio(world, { kind: 'crossing_bell', x: c.x, y: c.y });
       }
     } else {
@@ -751,7 +752,7 @@ function updateThrown(dt, world) {
 }
 
 function hitPlayer(t, car, push, world) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   p.x += push.nx * push.depth;
   p.y += push.ny * push.depth;
   if (t.v < 1.5 || p._trainHitAt > world.time - HIT_COOLDOWN) return;
@@ -809,7 +810,7 @@ function hitPedestrian(ped, t, car, push, world) {
 const opPerron = (world, x, y, z) => { const P = world.map && world.map.elev && world.map.elev.perrons; return !!P && onPerron(P, x, y, z); };
 
 function resolveContacts(world) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   for (const t of trains) {
     for (const car of t.cars) {
       // a car up on an embankment hits only whoever stands up there too (a platform: #436), not what is under it
@@ -973,3 +974,4 @@ export { HALF_WIDTH as TRAIN_HALF_WIDTH, nearLevelCrossing };
 vehicleHooks.crossingSpeedLimit = crossingSpeedLimit;
 vehicleHooks.loweredBoomsNear = loweredBoomsNear;
 vehicleHooks.snapBoom = snapBoom;
+
