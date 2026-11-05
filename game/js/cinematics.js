@@ -1155,14 +1155,17 @@ export function showBanner({ kind = 'pass', title, reason = '', reward = 0, stat
   b.dataset.kind = kind;
   els.bTitle.textContent = title;
   els.bReason.textContent = reason;
-  els.bReward.textContent = reward ? `+ €${reward.toLocaleString('nl-NL')}` : '';
-  els.bStats.innerHTML = stats.map(([k, v]) => `<div><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('');
+  const rewardDoel = Math.max(0, Math.round(Number(reward) || 0));
+  // #514: de beloning telt op in plaats van in één keer te verschijnen; de
+  // waarde staat meteen op nul en updateBanner loopt hem in 0,7 s op.
+  els.bReward.textContent = rewardDoel ? '+ €0' : '';
+  els.bStats.innerHTML = stats.map(([k, v], i) => `<div style="--i:${i}"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('');
   b.hidden = false;
   b.classList.remove('in', 'out');
   void b.offsetWidth;
   b.classList.add('in');
   // one banner at a time: a new one replaces whatever was up
-  banner = { t: 0, time: kind === 'fail' ? FAIL_BANNER_TIME : BANNER_TIME, out: -1 };
+  banner = { t: 0, time: kind === 'fail' ? FAIL_BANNER_TIME : BANNER_TIME, out: -1, rewardDoel, rewardGetoond: 0 };
 }
 
 const MOVE_KEYS = ['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'];
@@ -1176,6 +1179,16 @@ function playingOn() {
 function updateBanner(dt) {
   if (!banner) return;
   banner.t += dt;
+  // #514: de beloning telt in 0,7 s op (ease-out), zodat het resultaat even
+  // iets te kijken geeft in plaats van meteen als eindbedrag te staan.
+  if (banner.rewardDoel) {
+    const p = Math.min(1, banner.t / 0.7);
+    const waarde = Math.round(banner.rewardDoel * (1 - Math.pow(1 - p, 3)));
+    if (waarde !== banner.rewardGetoond) {
+      banner.rewardGetoond = waarde;
+      els.bReward.textContent = `+ €${waarde.toLocaleString('nl-NL')}`;
+    }
+  }
   if (banner.out < 0 && (banner.t > banner.time || (banner.t > BANNER_GRACE && !active && playingOn()))) {
     banner.out = banner.t;
     els.banner.classList.add('out');
