@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { canvasTex } from './canvastex.js';
 import { spawnFxPuff, spawnFxSpark, spawnFxChip } from './fx3d.js';
@@ -446,7 +447,7 @@ export function updateGunFx3D(dt, world, sc) {
   if (!sc) return;
   if (!ready) init(sc);
   if (!world.paused) now += dt;
-  const px = world.player.x, py = world.player.y;
+  const px = hoofdspeler(world).x, py = hoofdspeler(world).y;
   for (const b of world.bullets) {
     if (b._shotFx) continue;
     b._shotFx = true;
@@ -469,3 +470,4 @@ export function updateGunFx3D(dt, world, sc) {
   }
   throwablesHook.update3D(dt, world, sc);
 }
+

@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import { showBanner } from './cinematics.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, setStatMax, MEDALS } from './achievements.js';
 import { showCard } from './hudcards.js';
@@ -51,7 +52,7 @@ function end(w, { quit = false } = {}) {
 }
 
 function updateGame(w, dt) {
-  const g = game, input = w.input, p = w.player;
+  const g = game, input = w.input, p = hoofdspeler(w);
   p.vx = p.vy = 0; p.speed = 0; p.moving = false;
   if (stopPressed(input)) { end(w, { quit: true }); return; }
   const s = g.s;
@@ -109,7 +110,7 @@ function glyph(ctx) {
 
 function start(w) {
   if (game) return false;
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (p.inVehicle) p.exitVehicle(w.map, w);
   if (!board) board = createBoard('pannenkoek');
   board.show();
@@ -153,3 +154,4 @@ export const PANNENKOEK = standActivity({
     quit: () => { if (!game) return false; end(w, { quit: true }); return true; },
   }),
 });
+

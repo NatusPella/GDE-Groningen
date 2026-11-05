@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // The `rit` stage of a stages mission (missions.js): Tammo drives the stopped museum steam train a short
 // stretch to the next platform with gas and brake only (M19 Stoom, light version of docs/verhaal/nieuw
 // 08-IMPLEMENTATIE §3c). Tessa's walk through the carriages is the script's scene, not physics.
@@ -75,7 +76,7 @@ export function updateRit(dt, world, st, S, hint) {
   if (!driving) {
     if (R.boarded) {
       // got out again: fine at the platform, otherwise back in
-      const d = Math.hypot(world.player.x - R.platform.x, world.player.y - R.platform.y);
+      const d = Math.hypot(hoofdspeler(world).x - R.platform.x, hoofdspeler(world).y - R.platform.y);
       if (R.reached || d < (st.radius || 40)) return 'done';
       hint(world, st.board || 'Terug in de cabine: E bij de kop van de trein.');
       return null;
@@ -102,3 +103,4 @@ export function updateRit(dt, world, st, S, hint) {
   if (!R.said && S.t > 6) { R.said = 1; world.addMessage('W is gas, S is rem. Het volgende perron ligt verderop langs het spoor.', 4); }
   return null;
 }
+

@@ -1,3 +1,4 @@
+import { hoofdspeler } from '../players.js';
 import { clamp, pointInPolygon } from '../util.js';
 import { sfxLinks } from '../latehooks.js';
 import { edgeDistance, parcelAt, MAAR_WATER } from '../countryfield.js';
@@ -161,7 +162,7 @@ function nearestWater(map, x, y) {
 // is de soort van dat voertuig: dan klinkt de wereld zoals bij de host (dichte cabine dempt het gemurmel van de menigte, de wind en het verkeer).
 const GAST_VOERTUIG = { fiets: { isBike: true }, scooter: { isScooter: true }, motor: { isScooter: true }, boot: { isBoat: true } };
 export function rijdtIn(world) {
-  const v = world.player.inVehicle;
+  const v = hoofdspeler(world).inVehicle;
   if (v) return v;
   const z = world.coopRole === 'client' ? world.coopZit : null;
   return z ? (GAST_VOERTUIG[z] || {}) : null;
@@ -169,7 +170,7 @@ export function rijdtIn(world) {
 
 function scan(world) {
   const map = world.map;
-  const p = world.player;
+  const p = hoofdspeler(world);
   const src = p.inVehicle || p;
   const x = src.x, y = src.y;
 
@@ -519,3 +520,4 @@ export function ambienceStats() {
   for (const k in beds) if (beds[k].src) running++;
   return { bedsRunning: running, queued: queue.length };
 }
+

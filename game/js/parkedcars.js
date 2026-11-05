@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import { vehicleHooks } from './vehiclehooks.js';
 import { Vehicle, MODELS, TRACTOR_MODEL, QUAD_MODEL } from './vehicle.js';
 import { pointInPolygon, closestPointOnSegment, inMapWater } from './util.js';
@@ -311,7 +312,7 @@ const _near = [];
 function fociVan(world) {
   const f = world.coopFoci;
   if (f && f.length) return f;
-  const p = world.streamFocus || world.player;
+  const p = world.streamFocus || hoofdspeler(world);
   return p && Number.isFinite(p.x) && Number.isFinite(p.y) ? [p] : [];
 }
 function dichtstbij(foci, x, y) {
@@ -325,7 +326,7 @@ function dichtstbij(foci, x, y) {
 export function tickParkedCars(world) {
   const st = states.get(world);
   if (!st) return;
-  const p = world.player;
+  const p = hoofdspeler(world);
   // de gastheer zelf, plus elke losse groep spelers (#429): een gast wekt de auto waar hij bij staat (#434)
   const foci = p ? [p, ...(world.coopFoci || []).filter((f) => !f.host)] : [];
   if (st.sleeping.size) {
@@ -474,3 +475,4 @@ export function manageParkedCars(world) {
 
 vehicleHooks.manageParkedCars = manageParkedCars;
 vehicleHooks.tickParkedCars = tickParkedCars;
+

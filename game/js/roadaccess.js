@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // How you travel and which roads are for you. The minimap and the big map
 // adapt to the travel mode (zoom, what is emphasised, "niet voor jou"), so
 // both ask here. Pure: scripts/hud_test.mjs checks the table.
@@ -19,10 +20,10 @@ const NO_CAR = new Set(['footway', 'cycleway', 'pedestrian', 'steps', 'path', 'b
 
 // The mode of the player right now (the train cab counts as OV).
 export function travelModeOf(world) {
-  if (!world || !world.player) return 'lopen';
+  if (!world || !hoofdspeler(world)) return 'lopen';
   if (world.trainDriving || world.trainCam) return 'ov';
   if (world.pigeonMode || world.heliRun) return 'lucht';
-  const v = world.player.inVehicle;
+  const v = hoofdspeler(world).inVehicle;
   if (!v) return 'lopen';
   if (v.isHeli) return 'lucht';
   if (v.isBoat) return 'boot';
@@ -169,3 +170,4 @@ export function marktFietsHint(mode, road, { weekday = -1, hour = 12 } = {}) {
   if (isMarktDay(weekday, hour)) return 'Marktdag op de Grote Markt: stap af en loop met je fiets door de kramen.';
   return 'Fietsen mag over de Grote Markt, rustig aan. Volg het fietssymbool op de klinkers.';
 }
+

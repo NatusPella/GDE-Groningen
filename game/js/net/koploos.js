@@ -1,3 +1,4 @@
+import { hoofdspeler } from '../../players.js';
 // Samen spelen (#450): de gastheer zonder lokale speler. De rol van gastheer hoort bij de sessie, niet bij de speler die
 // het spel opende: een wereld zonder speler (koploos, zonder venster) draait dezelfde hub en dezelfde protocolberichten.
 // Dit is de enige plek die weet welke lichamen zo'n wereld heeft: plek 0 heeft er geen, elke gast (plek 1 en hoger) is een
@@ -13,7 +14,7 @@ export const figuurVan = (world, slot) => ((world && world.coopFigures) || {})[s
 // geen van beide en simuleren alle gasten (plek 1 en hoger) een eigen figuur.
 export function lichaamVan(world, slot, koploos) {
   const k = koploos === undefined ? isKoploos(world && world.coopNet) : !!koploos;
-  if (slot === 0) return k ? null : ((world && world.player) || null);
+  if (slot === 0) return k ? null : ((world && hoofdspeler(world)) || null);
   if (k) return figuurVan(world, slot);
   if (slot === 1) return (world && world.companion) || null;
   return figuurVan(world, slot);
@@ -25,7 +26,7 @@ export const eersteGastPlek = (koploos) => (koploos ? 1 : 2);
 // Waar komt een nieuwe speler in een koploze wereld? Er is geen speler om naast te staan: de server geeft een startplek
 // (world.start of de oorsprong) en zet de spelers daar in een rij. Met een speler is het de oude regel (naast hem).
 export function startPlek(world, slot = 1) {
-  const p = world && world.player;
+  const p = world && hoofdspeler(world);
   const basis = p && Number.isFinite(p.x) && Number.isFinite(p.y) ? p : ((world && world.start) || { x: 0, y: 0 });
   const x = Number.isFinite(basis.x) ? basis.x : 0, y = Number.isFinite(basis.y) ? basis.y : 0;
   return { x: x + 1.5 * Math.max(0, (slot | 0) - 1), y: y + 1.5 };
@@ -44,3 +45,4 @@ export function koplozeWereld(opt = {}) {
     weatherState: opt.weatherState || null, calendar: opt.calendar || null, input: null,
   };
 }
+

@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // stadsleven.js (#67): the profile towns come to life in the game. stadsplan.js
 // draws the candidate spots; here the ones near the player are resolved on the
 // tiles that are in (kerb spots on free ground), their props are built and dropped
@@ -94,8 +95,8 @@ function scan(w, t, px, py) {
 }
 
 export function updateStadsleven(dt, w) {
-  if (!w.map || !w.map.store || !w.player || w.paused) return;
-  const p = w.player, v = p.inVehicle;
+  if (!w.map || !w.map.store || !hoofdspeler(w) || w.paused) return;
+  const p = hoofdspeler(w), v = p.inVehicle;
   const x = v ? v.x : p.x, y = v ? v.y : p.y;
   const t = townAt(x, y);
   if (t !== here) {
@@ -137,3 +138,4 @@ export function townSolids(out) {
 export function townDebug() {
   return [...towns.entries()].map(([id, T]) => ({ id, here: !!here && here.id === id, items: T.plan.items.length, resolved: [...T.st.values()].filter((s) => s.spot).length, built: [...T.st.values()].filter((s) => s.prop).length }));
 }
+

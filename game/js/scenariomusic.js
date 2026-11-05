@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Which scenario track should play instead of G-Music: 'race' during a car
 // race, 'chase' during a police chase, 'kart' / 'padel' / 'golf' / 'klimtoren'
 // while THIS player takes part in that activity, null otherwise. Priority: the
@@ -43,7 +44,7 @@ export function activityMusicKey(world) {
   // train: the machinist service, or a passenger ride between stations (stationtravel.js: trainCam without trainDriving)
   if (probed('trein', world) || (world.trainCam && !world.trainDriving)) return 'trein';
   // bus: driving a bus job or a taken-over line service (the helper and the passengers ride along in it)
-  const pv = world.player && world.player.inVehicle;
+  const pv = hoofdspeler(world) && hoofdspeler(world).inVehicle;
   if (pv && pv.isBus && (pv.sideJob || pv.rideLine || (pv.busBediend && pv.busBediend.coop))) return 'bus';
   // farm work: in a tractor, combine or loader (the work on the field, the yard and the trips in between)
   if (pv && pv.model && BOERDERIJ_MODELLEN.includes(pv.model.name)) return 'boerderij';
@@ -151,3 +152,4 @@ export function loopPoints(channels, sampleRate, threshold = 0.002) {
   while (!(r = scan.step())) { /* one pass, for short buffers and tests */ }
   return r;
 }
+

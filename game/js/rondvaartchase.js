@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Missie 8, "Alles klopt, behalve de papieren": een heel rondje Diepenring met
 // toeristen aan boord. Rustig begin, dan komt Schipper Wiebe (de echte
 // eigenaar) in z'n sloep achter je aan. Botsingen maken de toeristen bang;
@@ -993,7 +994,7 @@ export function playRondvaartBoarding(world, boat, { queue = true } = {}) {
     if (inMapWater(map, q.x, q.y)) { side = s; break; }
   }
   const board = () => {
-    const p = world.player;
+    const p = hoofdspeler(world);
     if (p.inVehicle !== boat) { p.water = null; p.swimming = false; p.z = 0; p.enterVehicle(boat, world); }
     const c = world.companion;
     if (c && c.state !== 'dead' && c.inVehicle !== boat && !boat.passenger) { if (c.inVehicle) c.inVehicle.passenger = null; c.inVehicle = boat; boat.passenger = 'companion'; c.x = boat.x; c.y = boat.y; }
@@ -1168,7 +1169,7 @@ function updateWiebe(dt, world) {
 export function updateRondvaart(dt, world) {
   if (!st) return null;
   st.t += dt;
-  const v = st.boat, p = world.player;
+  const v = st.boat, p = hoofdspeler(world);
   const driving = p.inVehicle === v;
   if (driving) {
     const tr = track(v.x, v.y, st.pi);
@@ -1241,3 +1242,4 @@ export function rondvaartProgress() {
 export function getRondvaartDebug() {
   return st ? { st, PTS, CUM, bridgeS, werkmanS, ROUTE_LENGTH } : { PTS, CUM, ROUTE_LENGTH };
 }
+
