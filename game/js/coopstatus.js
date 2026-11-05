@@ -49,7 +49,7 @@ const STAP = {
   // bake staat op 'werkt' sinds #525: een gast bij het fornuis of de kraam telt mee (doelStand), ziet de
   // ingrediënten en de voortgang van de bakronde en zijn toets 1-6 gaat als de zijne naar de gastheer.
   bake: WERKT,
-  train: NEE, plane: NEE, airgates: NEE, landplane: NEE, heli: NEE, pigeon: WERKT,
+  train: NEE, plane: WERKT, airgates: WERKT, landplane: WERKT, heli: WERKT, pigeon: WERKT,
 };
 // Een missie zonder stappen (missions.js, def.type): de soort zelf telt
 // checkpoint staat op 'werkt' sinds #525: de motor leest de groep, dus elke meespeler haalt zelf de
@@ -144,6 +144,9 @@ export function waarschuwVoorStart(world, soort, id, status = undefined) {
   if (w && world && typeof world.addMessage === 'function') world.addMessage(w.start, 4);
   return w;
 }
+
+
+
 
 
 
