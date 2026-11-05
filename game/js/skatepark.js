@@ -16,6 +16,7 @@ import {
   FEATURES, PARK, RUN_S, MEDAL_AT, SKATE, createBoard as createBoardState, createCombo, stepBoard, scoreEvents, tickCombo, bankCombo, skateMedal, TRICK_NAMES,
 } from './skatetricks.js';
 import { hoofdspeler } from './players.js';
+import { startSkatefiets } from './skatefiets.js';
 
 // Skatepark Stadspark: the skatepark of the real park (OSM "Skatepark
 // Stadspark"), a little widened to a concrete floor with a quarter pipe at
@@ -213,7 +214,9 @@ function drawIcon(ctx, s) {
 
 function nearStand(w) {
   const p = hoofdspeler(w);
-  if (game || w.pigeonMode || w.heliRun || p.inVehicle || p.swimming) return false;
+  if (game || w.pigeonMode || w.heliRun || p.swimming) return false;
+  // #537: op een fiets of step mag je de fietsronde doen; in een auto niet.
+  if (p.inVehicle && !(p.inVehicle.isBike || p.inVehicle.isScooter)) return false;
   return Math.hypot(p.x - STAND.x, p.y - STAND.y) < USE_RADIUS;
 }
 
@@ -225,6 +228,7 @@ function recText() {
 function prompt(w) {
   if (!nearStand(w)) return null;
   const why = activityBlock(w);
+  if (hoofdspeler(w).inVehicle) return { id: 'skatefiets', x: STAND.x, y: STAND.y, h: 2.2, key: 'E', label: 'Fietsronde', sub: why || 'Een minuut wheelies, sprongen en stoppies', ring: true, dim: !!why };
   return { id: 'skatepark', x: STAND.x, y: STAND.y, h: 2.2, key: 'E', label: 'Skatepark', sub: why || recText() || 'Negentig seconden kunstjes · gratis', ring: true, dim: !!why };
 }
 
@@ -238,6 +242,7 @@ function interact(w) {
   if (!nearStand(w)) return false;
   const why = activityBlock(w);
   if (why) { w.addMessage(why, 2.5); return true; }
+  if (hoofdspeler(w).inVehicle) { startSkatefiets(w, STAND); return true; }
   startOfUitnodigen(w);
   return true;
 }
@@ -561,4 +566,5 @@ export const SKATEPARK = {
   },
   runs: () => runs,
 };
+
 

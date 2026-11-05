@@ -3,6 +3,7 @@ import './storagekeys.js';
 import { hoofdspeler } from './players.js';
 import './oudmigratie.js';
 import { streamTreeProps } from './treeprops.js';
+import { updateSkatefiets } from './skatefiets.js';
 import { streamTrafficLightProps, getTrafficControllers } from './trafficlights.js';
 import { streamFlitspaalProps } from './flitspaal.js';
 import { addPropStreamer, brokenKeysNear } from './breakables.js';
@@ -816,6 +817,7 @@ async function boot() {
       if (!updateTrainDriving(dt, world)) {
         // a post-game minigame (the fierljep duel) holds the player in place
         if (!world.challengeHoldPlayer) player.update(dt, world);
+    updateSkatefiets(world, dt);
         updateCompanion(dt, world);
       }
       updateHome(dt, world);
@@ -947,4 +949,6 @@ boot().catch((err) => {
   showLoadError(err.message);
   console.error(err);
 });
+
+
 
