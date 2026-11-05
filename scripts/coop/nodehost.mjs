@@ -92,7 +92,9 @@ export async function startNodeHost({ stage, tiles = '-', story = 'nieuw', max =
   h.rit = (aan, sjabloon = {}) => { // sjabloon: eigenschappen van het voertuig (bijvoorbeeld een fiets: { isBike: true, model: { len: 1.8, wid: 0.6, name: 'bike' } })
     const w = world;
     if (aan) {
-      const car = { id: 199, x: w.player.x + 3, y: w.player.y, angle: 0, model: { len: 4.2 }, ...sjabloon };
+      const gast = w.coopFigures && (w.coopFigures[1] || w.coopFigures['1']);
+      const plek = sjabloon.isBike && gast ? { x: gast.x + 3, y: gast.y } : { x: w.player.x + 3, y: w.player.y };
+      const car = { id: 199, ...plek, angle: 0, model: { len: 4.2 }, ...sjabloon };
       w.vehicles.push(car); h.drive = { car }; h.walk = false;
       try { w.player.enterVehicle(car, w); } catch (e) { w.player.inVehicle = car; }
       w.companion.inVehicle = car; // de metgezel behoudt zijn oude x en y
@@ -369,5 +371,6 @@ async function main() {
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) await main();
+
 
 
