@@ -54,9 +54,9 @@ const STAP = {
 // Een missie zonder stappen (missions.js, def.type): de soort zelf telt
 // checkpoint staat op 'werkt' sinds #525: de motor leest de groep, dus elke meespeler haalt zelf de
 // controlepunten (op zijn eigen fiets) en wie als eerste de finish haalt, telt voor de groep — net
-// als bij de stappen goto en hold. deliver blijft 'deels' (een gast rijdt mee, de missieauto besturen
-// mag hij niet), fatbike blijft 'deels' (de baandieren mikken op de gastheer), boat 'nee'.
-const MISSIE_SOORT = { checkpoint: WERKT, deliver: DEELS, fatbike: DEELS, stunt: DEELS, boat: NEE };
+// als bij de stappen goto en hold. deliver staat op 'werkt' sinds #525: de motor leest teamActor en een gast mag de
+// opdrachtauto nu besturen, fatbike blijft 'deels' (de baandieren mikken op de gastheer), boat 'nee'.
+const MISSIE_SOORT = { checkpoint: WERKT, deliver: WERKT, fatbike: DEELS, stunt: DEELS, boat: NEE };
 
 // Bijbanen (sidejobs.js, job.id): taxi, bezorger, krantenwijk en vracht (coopbijbaan.js) en de bus (buscoop.js) zijn samen te doen
 const BIJBAAN = {
@@ -143,3 +143,4 @@ export function waarschuwVoorStart(world, soort, id, status = undefined) {
   if (w && world && typeof world.addMessage === 'function') world.addMessage(w.start, 4);
   return w;
 }
+
