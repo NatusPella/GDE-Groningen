@@ -336,24 +336,12 @@ t('C: de hele stroom ook met een boot (geen deur: naast de romp)', () => {
 // vehicleregister.js zet ze daarom op 'nee' (coopbestuur.js weigerReden: 'vlieg'). Wat deze suite dan wél moet
 // vastleggen, is dat zo'n weigering geen crash en geen half ingestapte gast achterlaat: de E valt terug op meerijden,
 // er komt een melding, en de wereld is daarna nog heel.
-t('D: een helikopter of vliegtuig weigert de gast netjes (geen halve instap, geen crash)', () => {
+t('D: een helikopter mag de gast besturen (#525)', () => {
   zetHaken();
   const heli = new V.Vehicle(0, 0, 0, { name: 'heli', len: 8.8, wid: 2.1, maxSpeed: 40, accel: 7, brake: 9, turnRate: 1.5 });
   heli.isHeli = true;
-  const tafelD = tafel({ voertuig: heli });
-  const { host, gw, v } = tafelD;
-  tafelD.stap(2);
-  const f0 = figuur(host);
-  v.x = f0.x + 1.2; v.y = f0.y; v.angle = 0;
-  ok(B.magBesturen(v, 1) === false, 'de regel van het register weigert de gast in een helikopter');
-  ok(N.gastGebruik(gw), 'de E komt aan, maar er gebeurt niets');
-  tafelD.stap(0.5);
-  eq(v.coopBestuurder, undefined, 'de gast zit niet achter de stuurknuppel');
-  ok(!figuur(host).coopBestuurt, 'en denkt dat ook niet');
-  ok(!figuur(host).inVeh, 'hij zit nergens in');
-  ok(gw.messages.some((m) => /helikopter of vliegtuig/.test(m)), 'hij krijgt de uitleg uit BESTUUR_TEKST.vlieg');
-  tickErna(tafelD, 'D helikopter');
-  wereldKlopt(host, v, { na: 'D helikopter' });
+  ok(B.magBesturen(heli, 1) === true, 'de regel staat de gast in een helikopter toe');
+  assert.equal(B.weigerReden(heli, 1), null, 'geen weigering meer');
 });
 
 // ------------------------------------------------------------------ geen echte opslag
@@ -363,3 +351,4 @@ t('D: een helikopter of vliegtuig weigert de gast netjes (geen halve instap, gee
 const beschermd = opslagSchrijfsels.filter((k) => /^gde-(save-v1|settings|prestaties-v1)$/.test(k));
 eq(beschermd.length, 0, 'de suite schrijft nooit naar de save, de instellingen of de prestaties: ' + beschermd.join(', '));
 console.log(`\ncoop/bestuurflow_test: ${groepen} stromen, ${checks} controles ok`);
+

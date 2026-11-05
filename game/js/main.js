@@ -1,6 +1,6 @@
-import { hoofdspeler } from './players.js';
 // first: copies the pre-0.29 'gte-*' storage keys before any module reads them
 import './storagekeys.js';
+import { hoofdspeler } from './players.js';
 import './oudmigratie.js';
 import { streamTreeProps } from './treeprops.js';
 import { streamTrafficLightProps, getTrafficControllers } from './trafficlights.js';
@@ -947,3 +947,4 @@ boot().catch((err) => {
   showLoadError(err.message);
   console.error(err);
 });
+
