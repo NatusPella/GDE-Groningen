@@ -13,6 +13,7 @@ import { waterPolyAt } from './waterlevels.js';
 import { inPassage } from './passages.js';
 import { elevWallContact } from './elevation.js';
 import { roadBaseAt } from './terrainlift.js';
+import { getMovableBridges } from './movablebridges.js';
 import { findProps, makeProp, resolvePropCollisions } from './breakables.js';
 import { getSignalPoles, streamTrafficLightProps } from './trafficlights.js';
 import { streamFlitspaalProps } from './flitspaal.js';
@@ -503,6 +504,9 @@ export async function driveWaterCrossings(world, speed = 80 / 3.6) {
     for (const c of waterCrossings(map)) {
       const path = crossingPath(map, c, 60);
       if (path.length < 40) continue;
+      // Een beweegbare brug die open staat of opengaat is met opzet geen weg: de
+      // kruising bestaat dan niet en de auto hoort er niet te rijden (#497-releasecheck).
+      if (getMovableBridges().some((b) => (b.state !== 'closed' || b.open > 0) && Math.hypot(b.x - c.x, b.y - c.y) < 60)) continue;
       // the centre and both outer lanes, a car's half width from the edge
       const edge = (c.road.width || 7) / 2 - 1.3;
       for (const o of edge > 0.5 ? [0, -edge, edge] : [0]) {
@@ -592,4 +596,5 @@ export function probeRailLifts(world) {
   });
   return out;
 }
+
 
