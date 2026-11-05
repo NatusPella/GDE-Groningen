@@ -248,8 +248,8 @@ function start(w) {
   if (!built) { built = buildField(); }
   resetTargets();
   // hier schrijft het spel het eigen lichaam (uit de auto, naar de melkbus): dat
-  // blijft world.player, want alleen de lezers gaan via hoofdspeler (#500)
-  const p = w.player;
+  // blijft hoofdspeler(world), want alleen de lezers gaan via hoofdspeler (#500)
+  const p = hoofdspeler(w);
   if (p.inVehicle) p.exitVehicle(w.map, w);
   // carbid is shot at dusk: by day the farmers wait for it
   const h = ((w.clock % 24) + 24) % 24;
@@ -456,8 +456,8 @@ function updateGame(w, dt) {
   w.clock = g.clock;
   if (input.wasPressed('backspace')) { input.consume('backspace'); end(w, { quit: true }); return; }
   // de mikser zet de speler zelf neer (x, y, hoek): een schrijfactie op het eigen
-  // lichaam, dus met opzet world.player en niet de leesbare ingang (#500)
-  const p = w.player;
+  // lichaam, dus met opzet hoofdspeler(world) en niet de leesbare ingang (#500)
+  const p = hoofdspeler(w);
   p.x = STAND.x; p.y = STAND.y; p.speed = 0; p.moving = false;
   p.angle = FIELD.rot + g.yaw * 0.5;
 
@@ -787,3 +787,4 @@ export const CARBID = {
     if (built) for (const f of Object.values(built.farmers)) f.mesh.visible = on;
   },
 };
+

@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Drift zones: three big roundabouts where drifting counts. Drive into a zone
 // in a car, hold the handbrake into a bend, keep your foot down and chain
 // slides; the run ends when you leave the zone, crash for good or after 90
@@ -108,7 +109,7 @@ function finalize(w, why) {
 
 function tick(dt, w) {
   world = w;
-  const v = w.player && w.player.inVehicle;
+  const v = hoofdspeler(w) && hoofdspeler(w).inVehicle;
   if (!driftEligible(v) || w.paused || !dt) {
     if (run) finalize(w, 'uit');
     if (!v || !driftEligible(v)) { drift.cur = 0; drift.chain = false; drift.active = false; drift.mult = 1; }
@@ -185,7 +186,7 @@ export const DRIFT_ZONE = {
   spots: () => DRIFT_ZONES.map((z) => ({ id: 'drift-' + z.id, name: z.name, x: z.spot.x, y: z.spot.y, mode: 'drive' })),
   prompt: () => null,
   secondary(w) {
-    const v = w.player && w.player.inVehicle;
+    const v = hoofdspeler(w) && hoofdspeler(w).inVehicle;
     if (run || !driftEligible(v)) return [];
     const out = [];
     for (const z of DRIFT_ZONES) {
@@ -209,7 +210,7 @@ export const DRIFT_ZONE = {
   ubbo(w) {
     let near = DRIFT_ZONES[0], nd = Infinity;
     for (const z of DRIFT_ZONES) {
-      const d = Math.hypot(z.x - w.player.x, z.y - w.player.y);
+      const d = Math.hypot(z.x - hoofdspeler(w).x, z.y - hoofdspeler(w).y);
       if (d < nd) { nd = d; near = z; }
     }
     const b = bestOverall();
@@ -217,3 +218,4 @@ export const DRIFT_ZONE = {
   },
   bestOverall,
 };
+

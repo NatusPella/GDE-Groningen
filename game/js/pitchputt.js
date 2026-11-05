@@ -340,7 +340,7 @@ function setLie(w) {
   g.charging = false;
   g.anim = null;
   g.bunker = inBunker(h, g.lie.x, g.lie.y);
-  const p = w.player;
+  const p = hoofdspeler(w);
   p.x = g.lie.x; p.y = g.lie.y; p.angle = g.yaw; p.speed = 0; p.moving = false; p.vx = 0; p.vy = 0; p.z = 0;
   const side = g.yaw + Math.PI / 2;
   w.companionHold = { x: g.lie.x - Math.cos(g.yaw) * 1.5 - Math.cos(side) * 2.4, y: g.lie.y - Math.sin(g.yaw) * 1.5 - Math.sin(side) * 2.4, face: g.yaw };
@@ -492,7 +492,7 @@ function updateGame(w, dt) {
   if (g.flash && (g.flash.t -= dt) <= 0) g.flash = null;
   if (g.online === 'gast' && (!w.coopNet || w.coopRole !== 'client')) { wedGastReset(w); end(w, { quit: true, extern: true }); return; } // the connection is gone
   if (stopPressed(input)) { end(w, { quit: true }); return; }
-  const p = w.player;
+  const p = hoofdspeler(w);
   p.speed = 0; p.moving = false; p.vx = 0; p.vy = 0; p.z = 0;
   // stand still at a stroke, keep the order of play: Sir Cedric and Wolfie only answer in words, the player's strokes never change (golfetiquette.js)
   const aiming = g.phase === 'aim';
@@ -863,3 +863,4 @@ export const PITCHPUTT = {
   },
   runs: () => runs,
 };
+

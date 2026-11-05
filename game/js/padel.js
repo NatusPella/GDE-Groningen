@@ -968,7 +968,7 @@ function placeActors(w, dt) {
   }
   // player position follows the actor (map icon, audio, streaming)
   const mp = toMap(f, g.me.u, g.me.v);
-  const pl = w.player;
+  const pl = hoofdspeler(w);
   pl.x = mp.x; pl.y = mp.y; pl.angle = f.rot;
   if (b) {
     const q = toMap(f, b.u, b.v);
@@ -1043,7 +1043,7 @@ function endMatch(w, { quit = false } = {}) {
   for (const a of [g.me, g.mate, ...g.opp]) getScene().remove(a.mesh);
   for (const m of [g.ballMesh, g.shadow, g.ring, g.land]) { getScene().remove(m); m.geometry.dispose(); }
   if (hud) hud.root.hidden = true;
-  const p = w.player;
+  const p = hoofdspeler(w);
   p.x = g.exitX; p.y = g.exitY; p.angle = g.f.rot + Math.PI;
   if (w.extraSpeakers) w.extraSpeakers = w.extraSpeakers.filter((e) => !g.opp.some((o) => e.speechName === o.name));
   // a match given up only blocks the court for a moment
@@ -1202,7 +1202,7 @@ function placeOnline(w, dt) {
     }
   });
   const me = eigenStoel(g), mp = toMap(f, me.u, me.v);
-  if (g.online === 'host') { const pl = w.player; pl.x = mp.x; pl.y = mp.y; pl.angle = f.rot; }
+  if (g.online === 'host') { const pl = hoofdspeler(w); pl.x = mp.x; pl.y = mp.y; pl.angle = f.rot; }
   if (b) {
     const q = toMap(f, b.u, b.v);
     g.ballMesh.visible = true; g.ballMesh.position.set(q.x, FLOOR_Y + b.z + 0.05, q.y);
@@ -1257,7 +1257,7 @@ function endOnline(w, { quit = false, extern = false } = {}) {
   for (const a of g.actors) getScene().remove(a.mesh);
   for (const m of [g.ballMesh, g.shadow, g.ring, g.land]) { getScene().remove(m); m.geometry.dispose(); }
   if (hud) hud.root.hidden = true;
-  const p = w.player;
+  const p = hoofdspeler(w);
   p.x = g.exitX; p.y = g.exitY; p.angle = g.f.rot + Math.PI;
   if (quit) { w.addMessage('Padel gestopt', 2.5); return; }
   if (g.online === 'gast' || !res) return; // a guest: the results card and the prize message come from the host
@@ -1354,3 +1354,4 @@ function updateHud(w) {
   hud.flash.classList.toggle('them', !!g.flash && g.lastWinner === 1 && !g.flash.small);
   hud.help.innerHTML = help;
 }
+

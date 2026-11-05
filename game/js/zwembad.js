@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { canvasTex } from './canvastex.js';
 import { getScene } from './scene3d.js';
@@ -114,7 +115,7 @@ function buildPool() {
 }
 
 function updateLod(w) {
-  const d = Math.hypot(w.player.x - ORIGIN.x, w.player.y - ORIGIN.y);
+  const d = Math.hypot(hoofdspeler(w).x - ORIGIN.x, hoofdspeler(w).y - ORIGIN.y);
   if (!built && d < DETAIL_M) built = buildPool();
   if (!built) return;
   built.grp.visible = built.guard.visible = d < DETAIL_M + 80 || !!game;
@@ -129,7 +130,7 @@ function worldOf(x) {
 }
 
 function place(w, dt) {
-  const g = game, p = w.player, s = g.s;
+  const g = game, p = hoofdspeler(w), s = g.s;
   p.moving = true;
   p.crouching = false;
   if (g.s.phase === 'block') {
@@ -223,7 +224,7 @@ function end(w, { quit = false } = {}) {
   game = null;
   w.companionHold = null;
   w.cameraOverride = null;
-  const p = w.player;
+  const p = hoofdspeler(w);
   p.z = 0; p.swimming = false; p.water = null; p.swimTilt = 0; p.vx = p.vy = 0; p.speed = 0; p.moving = false;
   if (board) board.hide();
   clearBubbles(w, 'zwembad');
@@ -293,7 +294,7 @@ function glyph(ctx) {
 function start(w, { force = false } = {}) {
   if (game) return false;
   if (!built) built = buildPool();
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (p.inVehicle) p.exitVehicle(w.map, w);
   ensureBoard();
   board.show();
@@ -345,3 +346,4 @@ export const ZWEMBAD = standActivity({
     quit: () => { if (!game) return false; end(w, { quit: true }); return true; },
   }),
 });
+

@@ -284,7 +284,7 @@ function place(w, dt) {
   const g = game;
   const b = g.b;
   const q = worldOf(b);
-  const p = w.player;
+  const p = hoofdspeler(w);
   p.x = q.x; p.y = q.y; p.speed = 0; p.moving = false; p.vx = 0; p.vy = 0;
   p.z = b.z + 0.1;
   p.angle = q.heading + b.spin + Math.PI / 2;
@@ -403,7 +403,7 @@ function end(w, { quit = false, extern = false, uitslag = null } = {}) {
   game = null;
   w.companionHold = null;
   w.cameraOverride = null;
-  const p = w.player;
+  const p = hoofdspeler(w);
   p.z = 0;
   if (board) board.hide();
   clearBubbles(w, 'skatepark');
@@ -561,3 +561,4 @@ export const SKATEPARK = {
   },
   runs: () => runs,
 };
+
