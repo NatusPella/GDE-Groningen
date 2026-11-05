@@ -36,7 +36,10 @@ export function readHostScene(world) {
   }
   // de host in zijn pauzemenu, kaart of winkel: zijn wereld staat stil (het wachtscherm bij wegvallen is geen pauze van de host)
   const pauze = !!(world && world.paused && !world.uiPaused && !world.coopHold);
-  return { filmpje, pauze, regel, keuze, paneel: paneelStand(world, keuze, meter, kicker, nr) };
+  // Een stap die zijn eigen paneel zet (de bakronde, #525) gaat voor: de keuze/timing hierboven leest de DOM,
+  // maar een bakstand staat niet in de HUD.
+  const eigen = world && world.coopStagePanel;
+  return { filmpje, pauze, regel, keuze, paneel: eigen || paneelStand(world, keuze, meter, kicker, nr) };
 }
 
 // De balk van een timing zoals de gastheer hem ziet (choicepanel.js zet de naald op `left: v%` en de zone op
@@ -110,8 +113,8 @@ export function updateHostScene(world) {
   // de choice-stap toont zijn opties ook als tekstblok in het midden; dan staat er alleen de toetsregel bij (#525)
   const los = sc.keuze && sc.paneel && sc.paneel.stap === 'choice' ? '' : keuze;
   const balk = meterBalk(sc.paneel);
-  const vraag = sc.paneel && sc.paneel.stap === 'timing' && (sc.paneel.ronde || sc.paneel.tekst)
-    ? `<div style="font-size:17px;opacity:.85">${esc(sc.paneel.ronde)}</div><div style="font-size:22px;margin-top:2px">${esc(sc.paneel.tekst)}</div>`
+  const vraag = sc.paneel && (sc.paneel.ronde || sc.paneel.tekst)
+    ? `${sc.paneel.ronde ? `<div style="font-size:17px;opacity:.85">${esc(sc.paneel.ronde)}</div>` : ''}${sc.paneel.tekst ? `<div style="font-size:22px;margin-top:2px">${esc(sc.paneel.tekst)}</div>` : ''}`
     : '';
   const paneel = sc.paneel ? `<div style="position:absolute;left:0;right:0;bottom:${sc.filmpje ? '13' : (los ? '16' : '9')}%;text-align:center;font-size:19px;opacity:.9;text-shadow:0 1px 3px #000">${vraag}${esc(paneelTekst(sc.paneel))}${balk}</div>` : '';
   el.innerHTML = balken + kop + pauze + regel + los + paneel;

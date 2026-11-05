@@ -50,8 +50,11 @@ export function paneelToets(input, paneel) {
 // PANEEL_WACHT_S: een gast kan niet sneller drukken dan de gastheer zelf kan. `stap` is de lopende verhaalstap
 // (missions.js activeStage), `sc` het scènebericht dat de gasten als laatste kregen (daar staat het paneel in).
 export const PANEEL_WACHT_S = 0.2;
+// De stappen die een eigen paneel hebben waarop een gast kan meedrukken (#525): een keuze, een timing,
+// de bakronde (bakeround.js) en de polsstokscène. De gastheer leest de druk als de zijne.
+const PANEEL_SOORTEN = new Set(['choice', 'timing', 'bake', 'vault']);
 export function paneelIndrukken(world, van, toets, stap, sc = null, balk = null) {
-  if (!world || !stap || (stap.kind !== 'choice' && stap.kind !== 'timing')) return false;
+  if (!world || !stap || !PANEEL_SOORTEN.has(stap.kind)) return false;
   const paneel = sc && sc.paneel;
   if (!paneel || !Array.isArray(paneel.toetsen) || !paneel.toetsen.includes(toets)) return false;
   const inp = world.input;
@@ -94,6 +97,38 @@ export function neemTimingDruk(world, ronde) {
   }
   world.coopPaneel = rest;
   return uit;
+}
+// De toets van een gast bij de bakronde (#525). `seq` is de bakstand die de gast zag (bakeround.js): een druk
+// uit een oude stand valt weg, zodat hij niet op de volgende ronde of een andere poging landt.
+export function neemBakeDruk(world, seq) {
+  const q = world && world.coopPaneel;
+  if (!Array.isArray(q) || !q.length) return [];
+  const uit = [], rest = [];
+  for (const d of q) {
+    if (!d || d.soort !== 'bake') { rest.push(d); continue; }
+    if (d.r === seq) uit.push(d.toets);
+  }
+  world.coopPaneel = rest;
+  return uit;
+}
+// De E-druk van een gast bij de polsstokscène (#525): alleen tellen in de fase die de gast zag.
+export function neemVaultDruk(world, fase) {
+  const q = world && world.coopPaneel;
+  if (!Array.isArray(q) || !q.length) return [];
+  const uit = [], rest = [];
+  for (const d of q) {
+    if (!d || d.soort !== 'vault') { rest.push(d); continue; }
+    if (d.r === fase) uit.push(d.toets);
+  }
+  world.coopPaneel = rest;
+  return uit;
+}
+// De bakdrukken van een vorige stand weggooien als de stap stopt (#525); anders groeit de wachtrij door.
+// Alleen dit bestand schrijft world.coopPaneel (scripts/world_eigenaar.json).
+export function vergeetBakeDruk(world) {
+  const q = world && world.coopPaneel;
+  if (!Array.isArray(q)) return;
+  world.coopPaneel = q.filter((d) => !d || d.soort !== 'bake');
 }
 
 export const MELDING_WINKEL = (naam) => `${naam}: dat kan alleen in je eigen spel.`;

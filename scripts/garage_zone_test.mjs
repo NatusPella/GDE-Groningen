@@ -43,4 +43,14 @@ for (const t of [tIn, tDoor]) map.treeGrid.insert(t, [t[0], t[1], t[0], t[1]]);
 G.initGarages({ map });
 for (const t of [tIn, tDoor]) assert.ok(!map.treesNear(t[0], t[1], 0.5).includes(t), 'een boom in de garagezone is niet weggehaald');
 
+// de auto van een meespeler in de bay telt ook (#525): de motor kiest uit de groep, niet alleen de hoofdspeler
+const z = sites[0];
+const bay = at(z, 0, 0);
+const car = { x: bay.x, y: bay.y, speed: 0 };
+const actor = { inVehicle: car };
+const w = { player: { inVehicle: null } };
+assert.equal(G.garageInside(w), null, 'zonder auto van de hoofdspeler is er niets');
+const auto = G.garageInside(w, actor);
+assert.ok(auto && auto.name === z.name, 'de auto van een meespeler in de bay telt');
+
 console.log(`garage_zone_test: ok (${sites.length} garages en pompen, geen boom in de zone, de deur en de straat ervoor gereserveerd)`);

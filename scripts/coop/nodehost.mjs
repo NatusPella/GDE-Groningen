@@ -110,7 +110,7 @@ export async function startNodeHost({ stage, tiles = '-', story = 'nieuw', max =
     los: () => ({ ok: true, wacht: false }),
     bijGroep: () => true,
   });
-  h.parkeerAuto = (afstand = 2.5) => { const c = world.companion, car = { id: 198, x: c.x + afstand, y: c.y, angle: 0, speed: 0, halfLen: 2.1, halfWid: 0.9, model: { len: 4.2 }, parkeer: true }; world.vehicles.push(car); return car; };
+  h.parkeerAuto = (afstand = 2.5) => { const F = world.coopFigures || {}; const c = F[1] || F['1'] || world.companion, car = { id: 198, x: c.x + afstand, y: c.y, angle: 0, speed: 0, halfLen: 2.1, halfWid: 0.9, model: { len: 4.2 }, parkeer: true }; world.vehicles.push(car); return car; };
   // #434: een wapen in de hand van de gastheer en een aanval (een zwaai met de knuppel, elke 1,5 s opnieuw)
   const CE = await imp('combateffect.js');
   h.wapen = (key) => { world.weapon = key; };
@@ -367,3 +367,4 @@ async function main() {
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) await main();
+

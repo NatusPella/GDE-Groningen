@@ -594,9 +594,9 @@ const PHASES = {
     if (CFG.role === 'host' || !B) { await sleep(s * 1000); return; }
     const msgs = []; const am = w.addMessage; w.addMessage = function (t, ...r) { msgs.push(String(t).slice(0, 70)); return am.call(this, t, ...r); };
     const t0 = performance.now(), sec = () => Math.round((performance.now() - t0) / 100) / 10;
-    for (let i = 0; i < 30 && !(w.coopHost && w.coopHost.voertuigen.some((v) => v.id === 198)); i++) await sleep(250); // de auto van de gastheer staat naast je
+    for (let i = 0; i < 60 && !(w.coopHost && w.coopHost.voertuigen.some((v) => v.id === 198)); i++) await sleep(250); // de auto van de gastheer staat naast je
     log('gastbestuur-auto', { gezien: !!(w.coopHost && w.coopHost.voertuigen.some((v) => v.id === 198)), t: sec() });
-    for (let i = 0; i < 8 && !w.coopBestuurder; i++) { await B.press('e', 150); await sleep(900); }
+    for (let i = 0; i < 20 && !w.coopBestuurder; i++) { await B.press('e', 150); await sleep(900); }
     await sleep(600);
     log('gastbestuur-in', { bestuurder: !!w.coopBestuurder, inVoertuig: !!w.coopInVoertuig, zitters: (w.coopZitters || []).map((z) => [z.slot, z.stoel, z.bestuurder]), meldingen: msgs.slice(-3), t: sec() });
     shot('gastbestuur-in'); await sleep(500);
@@ -793,6 +793,9 @@ const PHASES = {
     }
     const c = w.companion; if (c && kijk === 'host') w.camYaw = Math.atan2(c.y - w.player.y, c.x - w.player.x);
     await sleep(s * 1000 / 2);
+    // de tijdlijn schuift onder belasting op: wacht op de staat die dit beeld moet laten zien in plaats van op de klok
+    if (naam === 'auto') for (let i = 0; i < 80 && !(w.coopZitters || []).some((z) => z.stoel >= 1); i++) await sleep(250);
+    if (naam === 'fiets') for (let i = 0; i < 120 && !(w.coopZitters || []).some((z) => z.stoel === 0); i++) await sleep(250);
     const guns = []; { const SC = (await import('./js/scene3d.js')).getScene(); if (SC) SC.traverse((o) => { if (o.userData && o.userData.gunKey) guns.push(o.userData.gunKey); }); } // modellen met een wapen in de hand
     const fietsen = []; { const SC = (await import('./js/scene3d.js')).getScene(); if (SC) SC.traverse((o) => { if (o.userData && o.userData.riderLegs && o.userData.wheels) fietsen.push([o, o.userData.pedalPhase || 0]); }); await sleep(350); } // de trappers van de fietsen in beeld
     const pedaal = fietsen.map(([o, p0]) => Math.abs((o.userData.pedalPhase || 0) - p0) > 0.05);
@@ -1493,3 +1496,5 @@ try {
   shot('fout');
   return JSON.stringify({ result: 'FOUT', role: CFG.role, reason: String(e && e.message || e) });
 }
+
+
