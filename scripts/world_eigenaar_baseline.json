@@ -25,7 +25,7 @@
   "challengeHud": 1,
   "challengeTarget": 1,
   "cinematicHideNav": 3,
-  "clock": 10,
+  "clock": 11,
   "companion": 1,
   "companionHold": 2,
   "coop": 2,
@@ -186,7 +186,7 @@
   "menuCam": 2,
   "menuMuffle": 1,
   "minigameUntil": 9,
-  "mission": 1,
+  "mission": 2,
   "missionPrompt": 1,
   "money": 21,
   "nowPlaying": 3,
@@ -230,7 +230,7 @@
   "storyGuide": 1,
   "streamFocus": 1,
   "tileIndex": 1,
-  "time": 1,
+  "time": 2,
   "trainCam": 2,
   "trainControle": 1,
   "trainDriving": 1,
@@ -240,15 +240,17 @@
   "uiPaused": 7,
   "uiZacht": 1,
   "vehicles": 30,
-  "wanted": 18,
+  "wanted": 19,
   "wantedDecayTimer": 9,
   "wantedProfile": 2,
   "weapon": 4,
   "weaponDrops": 1,
   "weather": 2,
-  "weatherState": 3,
+  "weatherState": 4,
   "werf": 1,
   "wildlife": 3,
   "wind": 1
  }
 }
+
+

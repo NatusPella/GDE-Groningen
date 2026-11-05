@@ -1515,8 +1515,42 @@
       "max": 1,
       "reden": "de kijkhoogte van een gast, die zijn eigen beeldjes optelt omdat de camera na input.endFrame leest",
       "issue": "#434"
+    },
+    {
+      "veld": "clock",
+      "bestand": "game/js/net/serverstaat.js",
+      "max": 1,
+      "reden": "zet de klok terug bij het herladen van de wereldstaat van een koploze gastheer",
+      "issue": "#450"
+    },
+    {
+      "veld": "mission",
+      "bestand": "game/js/net/serverstaat.js",
+      "max": 1,
+      "reden": "leest de wereldstaat van een koploze gastheer terug",
+      "issue": "#450"
+    },
+    {
+      "veld": "time",
+      "bestand": "game/js/net/serverstaat.js",
+      "max": 1,
+      "reden": "leest de wereldstaat van een koploze gastheer terug",
+      "issue": "#450"
+    },
+    {
+      "veld": "wanted",
+      "bestand": "game/js/net/serverstaat.js",
+      "max": 1,
+      "reden": "leest de wereldstaat van een koploze gastheer terug",
+      "issue": "#450"
+    },
+    {
+      "veld": "weatherState",
+      "bestand": "game/js/net/serverstaat.js",
+      "max": 1,
+      "reden": "leest de wereldstaat van een koploze gastheer terug",
+      "issue": "#450"
     }
   ]
 }
-
 

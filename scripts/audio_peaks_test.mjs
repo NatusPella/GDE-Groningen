@@ -153,7 +153,7 @@ ok(LOOP_SCAN_STEP === 32768, 'standaardstap is 32768 sampleposities');
   const run = readFileSync(new URL('../scripts/perf/run.mjs', import.meta.url), 'utf8');
   ok(run.includes("'--stil'"), 'de perfrun draait met --stil: echte audio staat daar uit');
 
-  const audioSrc = readFileSync(new URL('../game/js/audio.js', import.meta.url), 'utf8');
+  const audioSrc = readFileSync(new URL('../game/js/audio/scenario.js', import.meta.url), 'utf8');
   ok(audioSrc.includes('createLoopScan(chans'), 'een gedecodeerde track gaat door de stappenscan');
   ok(audioSrc.includes('scanScenarioLoops();'), 'de stappenscan wordt per frame voortgezet');
   ok(!/loop:\s*loopPoints\(/.test(audioSrc), 'geen één-pass-scan meer in de decode-callback');
@@ -161,3 +161,4 @@ ok(LOOP_SCAN_STEP === 32768, 'standaardstap is 32768 sampleposities');
 
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);
+

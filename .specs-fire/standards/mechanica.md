@@ -167,7 +167,7 @@ in `game/audio/sfx/manifest.json`. De radio is G-Music met vier programmablokken
 (`game/js/musicpick.js:129`), een dag- en een nachtpool; een nummer uit de laatste 60% van de pool
 komt niet terug (`:87`), in 60% van de overgangen zit een jingle (`:118`). Stings zijn procedureel
 (`game/js/stings.js`): nooit twee tegelijk, 0,6 s afkoeling (`:10`), en de radio gaat er 45% zachter
-van (`game/js/audio.js:1755`).
+van (`game/js/audio/scenario.js:127`).
 
 **Bestanden.** `audio.js`, `sfx/samples.js`, `sfx/mixplan.js`, `musicpick.js`, `radio.js`,
 `stings.js`.
@@ -255,3 +255,4 @@ zijn de latere meting (#477).
 - Gast en boerderijgroei: de documentatie zegt dat een gast zijn gewassen niet ziet groeien, maar
   `main.js:723` roept `boerderijTijd` ook op het gastpad aan (#471).
 - Twee testrunners naast elkaar (#481): `scripts/run_tests.mjs` en `scripts/test_all.mjs`.
+

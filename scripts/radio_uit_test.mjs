@@ -19,7 +19,7 @@ import { registerBusyProbe, playerBusy } from '../game/js/busy.js';
 import { createAdState } from '../game/js/radioads.js';
 import { programmeAt, normalizeRadio, STATION_NAME } from '../game/js/musicpick.js';
 
-const AUDIO = new URL('../game/js/audio.js', import.meta.url);
+const AUDIO = new URL('../game/js/audio/scenario.js', import.meta.url);
 const RADIO = new URL('../game/js/radio.js', import.meta.url);
 const audioSrc = readFileSync(AUDIO, 'utf8');
 const radioSrc = readFileSync(RADIO, 'utf8');
@@ -49,12 +49,12 @@ function extractFn(src, name) {
 
 // --- de vier voertuigsleutels staan in de bron ------------------------------
 const keyLine = audioSrc.match(/export const RADIO_VEHICLE_KEYS = \[([^\]]*)\];/);
-ok(!!keyLine, 'RADIO_VEHICLE_KEYS staat in audio.js');
+ok(!!keyLine, 'RADIO_VEHICLE_KEYS staat in scenario.js');
 const vehicleKeys = keyLine ? keyLine[1].split(',').map((s) => s.trim().replace(/^'|'$/g, '')).filter(Boolean) : [];
 ok(vehicleKeys.join() === 'bus,boerderij,vlucht,fiets', 'precies de vier voertuigdeuntjes', vehicleKeys);
-ok(/if \(!scenarioKeyAllowed\(want, radioOn\)\) want = null;/.test(audioSrc), 'updateScenarioMusic gebruikt de radiostand');
+ok(/host\.radioOn\(\)/.test(audioSrc), 'updateScenarioMusic gebruikt de radiostand');
 const allowedSrc = audioSrc.match(/export function scenarioKeyAllowed[\s\S]*?\n}/);
-ok(!!allowedSrc, 'scenarioKeyAllowed staat in audio.js');
+ok(!!allowedSrc, 'scenarioKeyAllowed staat in scenario.js');
 const scenarioKeyAllowed = allowedSrc ? new Function('RADIO_VEHICLE_KEYS', allowedSrc[0].replace(/^export /, '') + '\nreturn scenarioKeyAllowed;')(vehicleKeys) : null;
 if (scenarioKeyAllowed) {
   for (const k of vehicleKeys) {
@@ -77,6 +77,7 @@ function loadScenarioMusic() {
     'let scenarioNow = null;',
     'let stopped = 0;',
     'let radioOn = true;',
+    'const host = { ctx: () => ({}), musicOut: () => null, getSettings: () => ({}), musicVolume: () => 1, radioOn: () => radioOn, stingDuck: { level: 0 } };',
     'const scenarioVol = null;',
     'const SCENARIO_VOLUME = 0.6;',
     'const stingDuck = { level: 0 };',
@@ -300,3 +301,4 @@ for (const [naam, flag] of [['helirun', { heliRun: {} }], ['minigame', { activit
 
 console.log('radio_uit_test: ' + n + ' controles, ' + fails + ' mislukt');
 assert.equal(fails, 0, fails + ' controle(s) mislukt');
+
