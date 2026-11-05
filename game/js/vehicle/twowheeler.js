@@ -2,7 +2,7 @@
 // de gewone fiets doet dat via bewegingsrules.js. Pure functies op het voertuig,
 // zodat vehicle.js alleen glue blijft en deze regels los te testen zijn.
 import { clamp } from '../util.js';
-import { createWheelie, stepWheelie, HOP } from '../bewegingrules.js';
+import { createWheelie, stepWheelie, HOP, fietsLeun } from '../bewegingrules.js';
 
 // Motorbike feel (player only): the bike leans into a turn (v.roll, drawn by scene3d.js) and the
 // front wheel comes up on a wheelie or goes down on a stoppie while the trick key (Shift) is
@@ -34,11 +34,15 @@ export function rideMotorbike(v, dt, throttle, gb, top, absSpeed, yawRate) {
 }
 
 // Pedal bike (player only): Ctrl held while pedalling lifts the front wheel (bewegingrules.js, #207).
-export function rideFiets(v, dt, throttle, top, brake = 0) {
+export function rideFiets(v, dt, throttle, top, brake = 0, yawRate = 0) {
   const w = v.wheelieState || (v.wheelieState = createWheelie());
   stepWheelie(w, { trick: !!v.trick && !v.disabled, throttle, brake, speed: v.speed, top, dt, airborne: !!v.airborne, steer: v.steer });
   if (w.hop && !v.airborne) { v.airborne = true; v.vz = HOP.vz; } // sprongetje (#207)
   v.pitch = w.pitch;
   v.wheelie = w.up;
   if (w.up) v.speed *= w.slow;
+  // de fiets leunt de bocht in (#537); de vering laat deze roll met rust
+  const lean = fietsLeun(yawRate, v.speed, { assist: v.bikeAssist !== false });
+  v.roll += (lean - v.roll) * Math.min(1, dt * 6);
 }
+

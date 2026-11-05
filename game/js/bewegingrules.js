@@ -25,6 +25,16 @@ const STOPPIE = { minSpeed: 3.5, pitch: -0.32, holdMax: 2.2 };
 // Ctrl loslaat, pakt de fietser het stuur weer. Alleen de houding verandert; de fiets rijdt hetzelfde.
 export const HANDS = { steer: 0.3, rise: 5, fall: 8 };
 
+// Fietsen leunen in de bocht (#537): dezelfde hoek als een motor, maar zachter en
+// gecapt; met de fietshulp (standaard aan) blijft het binnen 0,28 rad.
+export function fietsLeun(yawRate, speed, { assist = true } = {}) {
+  const s = Number.isFinite(speed) ? Math.abs(speed) : 0;
+  const y = Number.isFinite(yawRate) ? yawRate : 0;
+  const hoek = Math.atan2(y * s * Math.sign(speed || 1), 9.81) * 0.55;
+  const grens = assist ? 0.28 : 0.45;
+  return Math.max(-grens, Math.min(grens, hoek));
+}
+
 export function createWheelie() {
   return { nose: false, nosed: 0, pitch: 0, held: 0, up: false, dist: 0, best: 0, lost: false, brakeT: 0, hop: false, hopCool: 0, hops: 0, hands: 0, handsT: 0, handsBest: 0 };
 }
@@ -135,3 +145,4 @@ export function fietsHouding(s, armBase, o = { lean: 0, armZ: 0, armX: 0 }) {
   o.armX = 0.5 * h;
   return o;
 }
+
