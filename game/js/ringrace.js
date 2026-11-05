@@ -37,7 +37,7 @@ let hudT = 0;
 
 const puntVan = (p) => (p && (p.inVehicle || p)) || null;
 const bijStart = (w) => {
-  const q = puntVan(w.player);
+  const q = puntVan(hoofdspeler(w));
   return !!q && Math.hypot(q.x - START.x, q.y - START.y) <= START_REACH;
 };
 const fmt = (s) => fmtTime(Math.max(0, s));
@@ -67,7 +67,7 @@ function tickSolo(dt, w) {
   if (race.phase === 'race' && was !== 'race') r.t = 0;
   if (race.phase === 'race') {
     r.t += dt;
-    const q = puntVan(w.player);
+    const q = puntVan(hoofdspeler(w));
     if (q) {
       const cp = stapPoort(q.x, q.y, r.cp);
       if (cp !== r.cp) {
@@ -361,3 +361,4 @@ zetWedGastHaken('ringrace', { dichtbij: (w) => !run && bijStart(w) });
 export function dijkPrijs(world, bedrag, xp = 0) {
   return loopbaanVerdien(world, 'race', bedrag, { xp, n: 1, uniek: 'dijk', deel: false });
 }
+

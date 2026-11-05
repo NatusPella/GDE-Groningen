@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // The goal of a travel step of the new story (T1 train to Winsum, T2 bus to Zoutkamp, ...): be at the
 // place the trip goes to, however you got there (the train from the ticket machine, the ride-along or
 // skip of the travel beat (storytravel.js, which sets you down at the goal's place), or driving yourself).
@@ -19,9 +20,9 @@ export function makeReisGoals({ getWorld, busy, playLines }) {
       begin: (st, b) => { b.arrived = false; },
       met: (st, b) => {
         const w = getWorld();
-        if (!w || !w.player) return false;
+        if (!w || !hoofdspeler(w)) return false;
         if (b.arrived) return !busy();
-        const p = w.player.inVehicle || w.player;
+        const p = hoofdspeler(w).inVehicle || hoofdspeler(w);
         const dest = placeOf(st);
         if (Math.hypot(p.x - dest.x, p.y - dest.y) > (st.goal.r || 300)) return false;
         b.arrived = true;
@@ -34,3 +35,4 @@ export function makeReisGoals({ getWorld, busy, playLines }) {
 }
 
 export { placeOf as reisPlace };
+

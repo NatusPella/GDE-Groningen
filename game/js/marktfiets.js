@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
 import { isInWater } from './util.js';
@@ -62,8 +63,8 @@ export function signSpots(map) {
 }
 
 export function updateMarktSigns(dt, w) {
-  if (built || !w.map || !w.player) return;
-  if (Math.hypot(w.player.x - MARKT.x, w.player.y - MARKT.y) > SHOW_R) return;
+  if (built || !w.map || !hoofdspeler(w)) return;
+  if (Math.hypot(hoofdspeler(w).x - MARKT.x, hoofdspeler(w).y - MARKT.y) > SHOW_R) return;
   built = true;
   const scene = getScene();
   if (!scene) { built = false; return; }
@@ -91,3 +92,4 @@ export function resetMarktSigns() {
   group = null;
   built = false;
 }
+
