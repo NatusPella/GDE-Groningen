@@ -13,7 +13,7 @@ import { initAmbience, updateAmbience, ambienceStats, getPlace } from './sfx/amb
 import { initFoley, updateFoley, propHit, foleyStats } from './sfx/foley.js';
 import { initUiSfx, uiWorldInit, updateUiSfx, uiDomEvent, isUiGestureTarget } from './sfx/ui.js';
 import { updateSkySfx } from './sfx/sky.js';
-import { createScenarioDirector, activityMusicKey, createLoopScan } from './scenariomusic.js';
+import { setScenarioHost, updateScenarioMusic, scenarioPlaying, scenarioKey } from './audio/scenario.js';
 import { MIN_TRACK_S } from './musicpick.js';
 import * as speech from './speech.js';
 import { drunkLevel } from './drunk.js';
@@ -45,28 +45,6 @@ const ENGINE_RANGE = 70;
 const SIREN_VOICES = 3;
 const SPEECH_RANGE = 45;
 const HRTF_NEAR = 14;
-// Instrumental loops that replace G-Music while something big happens
-// (scenariomusic.js decides which); not part of the radio rotation.
-const SCENARIO_TRACKS = {
-  race: './audio/scenario/Burnout_Threshold.mp3',
-  chase: './audio/scenario/Redline_Ascent.mp3',
-  kart: './audio/scenario/kart_loop.mp3',
-  padel: './audio/scenario/padel_loop.mp3',
-  golf: './audio/scenario/golf_loop.mp3',
-  klimtoren: './audio/scenario/klimtoren_loop.mp3',
-  trein: './audio/scenario/trein_loop.mp3',
-  bus: './audio/scenario/bus_loop.mp3',
-  boerderij: './audio/scenario/boerderij_loop.mp3',
-  vlucht: './audio/scenario/vlucht_loop.mp3',
-  missie: './audio/scenario/missie_spanning_loop.mp3',
-  fiets: './audio/scenario/fiets_loop.mp3',
-  thuis: './audio/scenario/thuis_loop.mp3',
-  menu: './audio/scenario/menu_loop.mp3',
-  pvp: './audio/scenario/pvp_arena_loop.mp3',
-};
-const SCENARIO_VOLUME = 0.8;
-const SCENARIO_FADE_IN = 1.5; // s
-const SCENARIO_FADE_OUT = 2.2; // s
 const SIREN_LOW_FREQ = 440;
 const SIREN_HIGH_FREQ = 587;
 const SIREN_HOLD_MIN = 0.5;
@@ -1824,6 +1802,7 @@ function buildGraph() {
 
   // Music bypasses the SFX soft-clip so loud world sounds never squash it.
   musicOut = ctx.createGain();
+  setScenarioHost({ ctx: () => ctx, musicOut: () => musicOut, getSettings, musicVolume, radioOn: () => radioOn, stingDuck });
   musicOut.gain.value = muted ? 0 : masterLevel();
   musicLp = ctx.createBiquadFilter();
   musicLp.type = 'lowpass';
@@ -1871,7 +1850,7 @@ function buildGraph() {
   // leent hem per beeld via updateScenarioMusic.
   setRadioDeps({
     ctx, musicBus, musicState, stingDuckMul, fix, resumeCtx, nowSec, updateScenarioMusic,
-    scenarioPlaying: () => !!scenarioNow,
+    scenarioPlaying,
   });
   bank = createBank(ctx);
   samples = createSamples(ctx);
@@ -3044,107 +3023,6 @@ function updateWorldEvents(world) {
   }
 }
 
-// --- scenario music -------------------------------------------------------
-
-const scenarioDirector = createScenarioDirector();
-const scenarioBuffers = {};
-let scenarioVol = null;
-let scenarioNow = null; // { key, src, fade }
-
-function loadScenarioBuffer(key) {
-  if (scenarioBuffers[key]) return;
-  scenarioBuffers[key] = { loading: true };
-  fetch(SCENARIO_TRACKS[key])
-    .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(r.status))))
-    .then((data) => ctx.decodeAudioData(data))
-    .then((buf) => {
-      const chans = [];
-      for (let c = 0; c < buf.numberOfChannels; c++) chans.push(buf.getChannelData(c));
-      // Minutes-long track: find the loop points in steps from
-      // updateScenarioMusic(), never in one pass inside a frame (#473).
-      scenarioBuffers[key] = { buf, loop: null, scan: createLoopScan(chans, buf.sampleRate) };
-    })
-    .catch((e) => { scenarioBuffers[key] = { failed: true }; console.warn('scenario music', key, e); });
-}
-
-// One step of the loop-point scan per frame, for every track that arrived but
-// has no loop points yet. Typical tracks only have encoder padding at the ends
-// and finish in the first step; a long silent intro still cannot block a frame.
-function scanScenarioLoops() {
-  for (const key in scenarioBuffers) {
-    const e = scenarioBuffers[key];
-    if (!e || !e.scan) continue;
-    const loop = e.scan.step();
-    if (loop) { e.loop = loop; e.scan = null; }
-  }
-}
-
-function stopScenarioTrack() {
-  const s = scenarioNow;
-  scenarioNow = null;
-  if (!s) return;
-  const t = ctx.currentTime;
-  s.fade.gain.cancelScheduledValues(t);
-  s.fade.gain.setValueAtTime(s.fade.gain.value, t);
-  s.fade.gain.linearRampToValueAtTime(0, t + SCENARIO_FADE_OUT);
-  try { s.src.stop(t + SCENARIO_FADE_OUT + 0.05); } catch (e) { /* already stopped */ }
-  s.src.onended = () => s.fade.disconnect();
-}
-
-function startScenarioTrack(key) {
-  const entry = scenarioBuffers[key];
-  if (!entry || !entry.buf || !entry.loop) return false;
-  if (!scenarioVol) {
-    scenarioVol = ctx.createGain();
-    scenarioVol.connect(musicOut);
-  }
-  const src = ctx.createBufferSource();
-  src.buffer = entry.buf;
-  src.loop = true;
-  src.loopStart = entry.loop.start;
-  src.loopEnd = entry.loop.end;
-  const fade = ctx.createGain();
-  const t = ctx.currentTime;
-  fade.gain.setValueAtTime(0, t);
-  fade.gain.linearRampToValueAtTime(key === 'menu' ? 0.7 : 1, t + SCENARIO_FADE_IN); // the menu loop sits a bit lower
-  src.connect(fade).connect(scenarioVol);
-  src.start(t, entry.loop.start);
-  scenarioNow = { key, src, fade };
-  return true;
-}
-
-// De vier deuntjes die alleen ter vervanging van de radio spelen (#502): de
-// busbaan, het boerenwerk op de trekker, het vliegen en de fiets. Staat de radio
-// uit, dan zwijgen ze; zet de speler hem weer aan, dan komt het muziekje terug.
-export const RADIO_VEHICLE_KEYS = ['bus', 'boerderij', 'vlucht', 'fiets'];
-export function scenarioKeyAllowed(key, on) {
-  return !!key && (!!on || !RADIO_VEHICLE_KEYS.includes(key));
-}
-
-// Returns the scenario key while one is (starting to) play, else null.
-function updateScenarioMusic(dt, world) {
-  scanScenarioLoops();
-  const m = world.mission;
-  const race = !!(m && m.phase === 'active' && m.raceMusic);
-  const chasing = world.wanted > 0 && !(world.police && world.police.searching) && !world.pendingRespawn;
-  let want = scenarioDirector.update(dt, { race, chasing, activity: activityMusicKey(world) });
-  // De vier voertuigdeuntjes (busbaan, het boerenwerk, het vliegen en de fiets)
-  // zijn een vervanging van de radio: staat die uit, dan blijft het daar stil.
-  // Een race, de achtervolging, de trein, padel en de andere activiteiten
-  // hebben een eigen reden en houden hun muziek (#502).
-  if (!scenarioKeyAllowed(want, radioOn)) want = null;
-  if (want) loadScenarioBuffer(want);
-  const cur = scenarioNow ? scenarioNow.key : null;
-  if (want !== cur) {
-    // switch once the new loop is decoded; until then the old one keeps going
-    if (!want) stopScenarioTrack();
-    else if (scenarioBuffers[want].loop) { stopScenarioTrack(); startScenarioTrack(want); }
-    else if (scenarioBuffers[want].failed) want = null;
-  }
-  if (scenarioVol) scenarioVol.gain.value = SCENARIO_VOLUME * musicVolume(getSettings()) * (1 - 0.45 * stingDuck.level);
-  return want && scenarioBuffers[want] && !scenarioBuffers[want].failed ? want : null;
-}
-
 let lastDeathAt = -Infinity;
 
 export function updateAudio(dt, world) {
@@ -3228,7 +3106,7 @@ function updateWorldAudio(dt, world) {
   }
 
   if (world.wanted > 0 && prev.wanted === 0) {
-    if (!scenarioNow) enqueueGmusicJingle('hoge_wanted');
+    if (!scenarioPlaying()) enqueueGmusicJingle('hoge_wanted');
     chaseBarkDeadline = world.time + CHASE_BARK_WAIT;
   }
   updateChaseBark(world);
@@ -3354,7 +3232,7 @@ function audioState() {
     ambDuck: r3(duckState.level), musicDuck: speech.musicDuck(),
     gmusic: radioState(),
     bikeSpeakers: bikeSpeakers.voices.map((q) => { const d = distToListener(q.v.x, q.v.y, 1.2); return { track: q.track, d: +d.toFixed(1), rate: +q.el.playbackRate.toFixed(3), level: +q.level.toFixed(3), vol: +(q.level * pannerGain(d, SPEAKER_REF, SPEAKER_ROLLOFF)).toFixed(3), ending: q.ending, paused: q.el.paused, lis: [+listenerPos.x.toFixed(1), +listenerPos.z.toFixed(1), +listenerVel.x.toFixed(1), +listenerVel.y.toFixed(1)] }; }),
-    scenario: scenarioNow ? scenarioNow.key : null, storyScene, sceneLive: storyProbe ? !!storyProbe() : null, voiceEls: liveVoiceEls, activeVoices,
+    scenario: scenarioKey(), storyScene, sceneLive: storyProbe ? !!storyProbe() : null, voiceEls: liveVoiceEls, activeVoices,
     synth: !!synth.player, speech: speech.speechState(), watchdog: { ...watch }, log: audioLog.slice(-12),
   };
 }
@@ -3398,4 +3276,5 @@ const warmList = ['glass', 'crunch_0', 'crunch_1', 'crunch_2', 'bikebell', 'ric_
 // silent the first time (a sound found only through a QA run, scripts/qa/sfx_levels.mjs)
 for (const n of bufferNames()) if (!warmList.includes(n)) warmList.unshift(n);
 for (const n of Object.keys(FX_INFO)) warmList.push(n);
+
 
