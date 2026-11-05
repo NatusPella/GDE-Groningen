@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
 import { buildPersonMesh } from './models3d_people.js';
@@ -184,7 +185,7 @@ function blockReason(w) {
 }
 
 function nearestSpot(w) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (w.pigeonMode || p.inVehicle || p.swimming || p.water) return null;
   let best = null, bd = USE_RADIUS;
   for (const s of spots) {
@@ -206,8 +207,8 @@ export function pigeonSpotPrompt(w) {
 }
 
 export function pigeonSpotSecondary(w) {
-  if (w.pigeonMode || w.player.inVehicle) return [];
-  const { x, y } = w.player;
+  if (w.pigeonMode || hoofdspeler(w).inVehicle) return [];
+  const { x, y } = hoofdspeler(w);
   const out = [];
   for (const s of spots) {
     if (Math.abs(s.x - x) > 18 || Math.abs(s.y - y) > 18) continue;
@@ -228,7 +229,7 @@ export function tryPigeonSpotInteract(w) {
   const why = blockReason(w);
   if (why) { w.addMessage(why, 2.5); return true; }
   waarschuwVoorStart(w, 'minigame', 'duif'); // samen spelen: een melding als dit nog niet samen werkt; de start gaat door
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (p.character === 'anita') {
     if (!tammoNearby(w)) { anitaSays(w); return true; }
     // Tammo takes over where Tessa stood (scene3d.js rebuilds both meshes)
@@ -256,13 +257,13 @@ export function tryPigeonSpotInteract(w) {
 
 // Tammo walks with Tessa as the companion; he has to be close to take over.
 function tammoNearby(w) {
-  const c = w.companion, p = w.player;
+  const c = w.companion, p = hoofdspeler(w);
   return !!(c && c.character === 'tammo' && c.state !== 'dead' && !c.inVehicle && Math.hypot(c.x - p.x, c.y - p.y) < 30);
 }
 
 let anitaIdx = 0;
 function anitaSays(w) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   const list = w.extraSpeakers || (w.extraSpeakers = []);
   if (list.some((e) => e.follow === p && w.time < e.speechUntil)) return;
   const text = ANITA_NO_PIGEON[anitaIdx++ % ANITA_NO_PIGEON.length];
@@ -276,7 +277,7 @@ export function hidePigeonSpots(on) {
 }
 
 export function updatePigeonSpots(dt, w) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   const t = w.time;
   const flying = isPigeonActive();
   for (const s of spots) {

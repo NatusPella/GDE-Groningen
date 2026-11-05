@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { canvasTex, signBothSides } from './canvastex.js';
 import { getScene } from './scene3d.js';
@@ -306,7 +307,7 @@ function buildBike() {
 // --- per frame ------------------------------------------------------------------------
 
 function nearP(w, p, r) {
-  return Math.abs(w.player.x - p.x) < r && Math.abs(w.player.y - p.y) < r && Math.hypot(w.player.x - p.x, w.player.y - p.y) < r;
+  return Math.abs(hoofdspeler(w).x - p.x) < r && Math.abs(hoofdspeler(w).y - p.y) < r && Math.hypot(hoofdspeler(w).x - p.x, hoofdspeler(w).y - p.y) < r;
 }
 
 function hour(w) {
@@ -351,7 +352,7 @@ function lod(w) {
 }
 
 function proximity(w, dt) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (w.pigeonMode && !nearP(w, TOWER, 30)) return;
   if (ufo && ufo.g.visible && !ufo.leave && Math.hypot(p.x - UFO.x, p.y - UFO.y) < 190) {
     ufo.leave = 0.001;
@@ -443,7 +444,7 @@ function dropRoom(w) {
 
 function leaveRoom(w) {
   dropRoom(w);
-  const p = w.player;
+  const p = hoofdspeler(w);
   p.x = DOOR_SPOT.x; p.y = DOOR_SPOT.y; p.angle = DOOR.a;
   pushAudioEvent(w, { kind: 'door_close', x: DOOR.x, y: DOOR.y, wood: true });
 }
@@ -461,13 +462,13 @@ function roomCamera(w) {
 // --- prompts --------------------------------------------------------------------------------
 
 function onFoot(w) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   return !(p.inVehicle || p.swimming || w.pigeonMode || w.heliRun || room);
 }
 
 function nearUse(w) {
   if (!onFoot(w)) return null;
-  const p = w.player;
+  const p = hoofdspeler(w);
   const near = (s, r = 1.8) => Math.hypot(p.x - s.x, p.y - s.y) < r;
   if (meshes.door && near(DOOR_SPOT, 1.6)) return 'kamer';
   if (meshes.vending && near(VEND_SPOT)) return 'automaat';

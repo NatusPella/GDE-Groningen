@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import { Vehicle } from './vehicle.js';
 import { getVehicleMesh, animateSkutsjeRig } from './models3d_vehicles.js';
 import { buildPersonMesh, seatPerson, seatedY } from './models3d_people.js';
@@ -197,7 +198,7 @@ export const SKUTSJE = {
     moored = null;
     boat.driver = null;
     for (const v of [boat, jv]) if (!w.vehicles.includes(v)) w.vehicles.push(v);
-    const p = w.player;
+    const p = hoofdspeler(w);
     p.x = boat.x; p.y = boat.y;
     p.enterVehicle(boat, w);
     const c = w.companion;
@@ -216,7 +217,7 @@ export const SKUTSJE = {
     input.consume('q');
   },
   update(run, dt) {
-    const w = run.world, d = run.data, p = w.player, map = w.map;
+    const w = run.world, d = run.data, p = hoofdspeler(w), map = w.map;
     const boat = d.boat, jv = d.jv;
     skipperFigure(jv, JELLE_LOOK, 'pgJelle');
     if (!w.vehicles.includes(jv)) w.vehicles.push(jv);
@@ -292,7 +293,7 @@ export const SKUTSJE = {
     idleMoored(world);
     if (!leftover) return;
     if (world.player.inVehicle === leftover) animateSkutsjeRig(leftover, 0.5, bridgeAhead(world.map, leftover) ? 1 : 0, world.time);
-    else if (Math.hypot(leftover.x - world.player.x, leftover.y - world.player.y) > 120) { removeBoat(world, leftover); leftover = null; }
+    else if (Math.hypot(leftover.x - hoofdspeler(world).x, leftover.y - hoofdspeler(world).y) > 120) { removeBoat(world, leftover); leftover = null; }
   },
   debugWin(run) {
     const d = run.data;
@@ -310,7 +311,7 @@ export const SKUTSJE = {
 
 // Jelle's two skûtsjes lie at the start while you're near and no race runs.
 function idleMoored(w) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   const near = startSpot && w.postgame && !w.challenge && !leftover && Math.hypot(p.x - startSpot.x, p.y - startSpot.y) < (moored ? MOOR_FAR : MOOR_NEAR);
   if (!near) { unmoor(w); return; }
   if (!moored) {
