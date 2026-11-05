@@ -1482,7 +1482,6 @@ function updateLaneBikes(dt, world, def) {
   const g = laneGeom(def);
   const p = hoofdspeler(world);
   fatbikersAnswerHonk(world, p);
-  const pl = laneProject(g, p.x, p.y);
   chainState().laneT -= dt;
   if (chainState().laneT <= 0 && chainState().bikes.length < LANE_MAX_BIKES) {
     chainState().laneT = LANE_SPAWN_EVERY * (0.6 + Math.random() * 0.8);
@@ -1492,6 +1491,10 @@ function updateLaneBikes(dt, world, def) {
   for (let k = chainState().bikes.length - 1; k >= 0; k--) {
     const b = chainState().bikes[k], v = b.v;
     if (!world.vehicles.includes(v) || v.wrecked || v.driver !== 'mission') { chainState().bikes.splice(k, 1); continue; }
+    // Samen spelen (#525): elke fiets kiest de dichtstbijzijnde meespeler te voet als doel,
+    // zodat een gast ook wordt aangereden en niet alleen wie het spel opende.
+    const doel = teamActor(world, v, (a) => !a.inVehicle) || p;
+    const pl = laneProject(g, doel.x, doel.y);
     const ahead = (pl.s - b.s) * b.dir;
     if (!b.decided && ahead > 0 && ahead < 13 && Math.abs(pl.lat) < LANE_HALF + 1.5) {
       b.decided = true;
@@ -1524,25 +1527,35 @@ function updateLaneBikes(dt, world, def) {
 }
 
 function checkLaneHits(world) {
-  const p = hoofdspeler(world);
-  if (p.inVehicle || world.time < chainState().hitGraceUntil || world.pendingRespawn || isKnockedDown(p, world)) return;
-  for (const b of chainState().bikes) {
-    const v = b.v;
-    if (Math.abs(v.x - p.x) > 2 || Math.abs(v.y - p.y) > 2 || dist(v.x, v.y, p.x, p.y) > BIKE_TOUCH_RADIUS) continue;
-    chainState().fatbikeHits++;
-    chainState().hitGraceUntil = world.time + BIKE_HIT_GRACE;
-    let dmg = Math.round(b.fat ? 5 + b.speed * 0.6 : 2 + b.speed * 0.3);
-    if (world.armor > 0) { const a = Math.min(world.armor, dmg); world.armor -= a; dmg -= a; }
-    world.health = Math.max(0, world.health - dmg);
-    const vx = Math.cos(v.angle) * b.speed, vy = Math.sin(v.angle) * b.speed;
-    const dead = world.health <= 0;
-    world.lastImpact = { strength: b.fat ? 0.6 : 0.3, time: world.time, x: p.x, y: p.y };
-    if (b.fat || dead) knockDown(p, world, { kind: 'hit', dead, vx: vx * 0.8, vy: vy * 0.8, vz: 1.2 + b.speed * 0.15, lieFor: 1.1 });
-    else { p.shoveX = (p.shoveX || 0) + vx * 0.7; p.shoveY = (p.shoveY || 0) + vy * 0.7; }
-    b.speed *= 0.4;
-    world.addMessage(b.fat ? `Au! Geschept door een fatbike (${chainState().fatbikeHits}x)` : `Een fietser tikt je aan: "Kiek uut, joh!" (${chainState().fatbikeHits}x)`, 2);
-    if (dead) requestRespawn(world);
-    break;
+  const host = hoofdspeler(world);
+  if (world.time < chainState().hitGraceUntil || world.pendingRespawn) return;
+  // Samen spelen (#525): elke meespeler te voet kan worden geschept en houdt zijn eigen
+  // gezondheid; een gast gaat neer met zijn eigen lichaam, wie het spel opende met world.health.
+  for (const p of groepsActeurs(world)) {
+    if (p.inVehicle || isKnockedDown(p, world)) continue;
+    for (const b of chainState().bikes) {
+      const v = b.v;
+      if (Math.abs(v.x - p.x) > 2 || Math.abs(v.y - p.y) > 2 || dist(v.x, v.y, p.x, p.y) > BIKE_TOUCH_RADIUS) continue;
+      chainState().fatbikeHits++;
+      chainState().hitGraceUntil = world.time + BIKE_HIT_GRACE;
+      let dmg = Math.round(b.fat ? 5 + b.speed * 0.6 : 2 + b.speed * 0.3);
+      if (world.armor > 0) { const a = Math.min(world.armor, dmg); world.armor -= a; dmg -= a; }
+      const isHost = p === host;
+      if (isHost) world.health = Math.max(0, world.health - dmg);
+      else {
+        p.health = Math.max(0, (Number.isFinite(p.health) ? p.health : 100) - dmg);
+        if (p.health <= 0) p.coopDown = true;
+      }
+      const vx = Math.cos(v.angle) * b.speed, vy = Math.sin(v.angle) * b.speed;
+      const dead = isHost ? world.health <= 0 : p.health <= 0;
+      world.lastImpact = { strength: b.fat ? 0.6 : 0.3, time: world.time, x: p.x, y: p.y };
+      if (b.fat || dead) knockDown(p, world, { kind: 'hit', dead, vx: vx * 0.8, vy: vy * 0.8, vz: 1.2 + b.speed * 0.15, lieFor: 1.1 });
+      else { p.shoveX = (p.shoveX || 0) + vx * 0.7; p.shoveY = (p.shoveY || 0) + vy * 0.7; }
+      b.speed *= 0.4;
+      world.addMessage(b.fat ? `Au! Geschept door een fatbike (${chainState().fatbikeHits}x)` : `Een fietser tikt je aan: "Kiek uut, joh!" (${chainState().fatbikeHits}x)`, 2);
+      if (dead && isHost) requestRespawn(world);
+      break;
+    }
   }
 }
 
