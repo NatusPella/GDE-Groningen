@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Hooks the travel beats (reisbeats.js, reiskeuze.js) into the story director (#97).
 // Behind ?reizen and only in the new arc. story.js calls tickStoryTravel() once a
 // frame for the current step; everything it decides is in the pure functions below.
@@ -37,7 +38,7 @@ export function applyTravel(w, beat, choice, dest) {
 
 // The player, their vehicle and the companion stand at dest (travel beats, and the retry prompt of missions.js, #214).
 export function placeParty(w, dest) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   p.x = dest.x; p.y = dest.y; p.vx = 0; p.vy = 0;
   // the vehicle comes along (#97): it stands at the goal with you
   if (p.inVehicle) { p.inVehicle.x = dest.x; p.inVehicle.y = dest.y; p.inVehicle.speed = 0; }
@@ -78,12 +79,12 @@ export function tickStoryTravel(ctx) {
   // reward when the self-driven trip arrives
   const pend = pendingSelf.get(step.id);
   if (pend && g) {
-    const d = Math.hypot(g.x - w.player.x, g.y - w.player.y);
+    const d = Math.hypot(g.x - hoofdspeler(w).x, g.y - hoofdspeler(w).y);
     const m = selfArrivalMoney(pend, d);
     if (m) { w.money += m; w.addMessage(`Zelf gereden: €${m}`, 3, { kind: 'geld' }); pendingSelf.delete(step.id); }
   }
   if (asking || !beat || !g) return;
-  const dist = Math.hypot(g.x - w.player.x, g.y - w.player.y);
+  const dist = Math.hypot(g.x - hoofdspeler(w).x, g.y - hoofdspeler(w).y);
   const d = decideTravel({ on, beat, handled: flags.has(REIS_FLAG(step.id)), busy: ctx.busy, dist });
   if (d === 'sla-over') { flags.add(REIS_FLAG(step.id)); return; }
   if (d !== 'vraag') return;
@@ -108,3 +109,4 @@ export function tickStoryTravel(ctx) {
 }
 
 export const hasBeat = (id) => !!REISBEATS[id];
+

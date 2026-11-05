@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // k-eikea (storyarc.js): furnishing the new flat. Drive a car to EIKEA Grunn
 // at the Sontweg; at the loading dock a short scene (the list, the cupboard
 // that will not fit in the lift, who gets which room) and three boxes go on
@@ -91,7 +92,7 @@ function unload(w, b) {
 
 function updateGo(w, st, b) {
   const s = eikeaShop();
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (!s || Math.hypot(p.x - s.x, p.y - s.y) > DOCK_R || isCinematicActive() || isMissionActive() || w.pigeonMode) return;
   const v = p.inVehicle;
   if (!carries(v)) {
@@ -107,7 +108,7 @@ function updateGo(w, st, b) {
 
 function updateCarry(w, st, b) {
   const v = b.v;
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (!v || v.wrecked || v.sinking || !w.vehicles.includes(v)) {
     if (b.boxes.length) w.addMessage('De auto met de dozen is weg. EIKEA heeft vast nog meer', 4, { kind: 'tip' });
     b.boxes = [];
@@ -144,7 +145,7 @@ function updateHome(w, st, b) {
     big: (sc && sc.big) || '', lines, onEnd: done,
   };
   // staged in the flat (cutscenes.js flatScene), the plain scene as the fallback
-  const pl = w.player;
+  const pl = hoofdspeler(w);
   const stage = flatStage();
   const ok = lines.length && ((lines.length > 2 && playScript(w, flatScene('eikea', lines), {
     lines, duration: cine.duration, anchor: stage ? stage.anchor : { x: pl.x, y: pl.y, facing: pl.angle || 0, z: pl.gz || 0 }, env: stage ? stage.env : null, cine,
@@ -174,3 +175,4 @@ export function initStoryEikea(w, base) {
     home: () => homeSpot(),
   };
 }
+

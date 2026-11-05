@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Scheepswerf De Kielhaal in de wereld (#398): de agenda (evenementen.js, soort 'tewaterlating') zegt wanneer er een schip klaarligt,
 // dit bestand laat het te water gaan: aankondiging, sirene, het schip komt los (werf.js tijdlijn), de golf duwt wie op de kade
 // staat landinwaarts (spelers, auto's, voetgangers: nooit het water in, nooit leed), de boten in de basin worden eerst weggeduwd,
@@ -47,10 +48,10 @@ export function vertrekRoute(net, planVaarRoute, x, y) {
 // Eén stap van de werf. env bevat de dingen die een wereld nodig heeft (zodat een test ze kan nabootsen):
 // { Vehicle, waterAt, buildingAt, waterPolyAt, getVaarNet, planVaarRoute, isShip }
 export function updateWerf(dt, world, n, env) {
-  if (!world || !world.player || !world.map) return;
+  if (!world || !hoofdspeler(world) || !world.map) return;
   const W = world.werf || (world.werf = nieuweWerfStaat());
   const hour = ((world.clock % 24) + 24) % 24;
-  const p = world.player;
+  const p = hoofdspeler(world);
   const ev = werfEvent(n, hour);
   const fase = werfFase(!!ev, hour);
   const afstand = afstandTotHelling(p.x, p.y);
@@ -113,7 +114,7 @@ function ruimBasin(world, dt) {
 function duwWie(world, W, dt, env) {
   const { map } = world;
   const ok = (x, y) => kanStaan(map, x, y, env.waterAt, env.buildingAt);
-  const p = world.player;
+  const p = hoofdspeler(world);
   const wp = naarWerf(p.x, p.y);
   const x = W.u - T_PLONS;
   if (!p.inVehicle) {
@@ -167,3 +168,4 @@ function finish(W, world, env, metSchip) {
   W.schip = veh; W.leeftijd = 0;
   world.addMessage(`${SCHIP.naam} vaart uit naar de Waddenzee. Goede reis!`, 4);
 }
+

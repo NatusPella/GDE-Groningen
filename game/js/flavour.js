@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import { SMS_SAY } from './smsvoice.js';
 import { lineVoiceFor, NARRATOR } from './linevoice.js';
 import { playLineVoice } from './audio.js';
@@ -123,13 +124,13 @@ function bark(from, lines, r = 22, dur = 3.2) {
 // A bubble over the player, spoken in their own voice (recorded as the
 // ~m / ~f bubble of that text in Tammo's / Tessa's voice).
 function playerSays(text) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   if (!world.extraSpeakers) world.extraSpeakers = [];
   world.extraSpeakers.push({ x: p.x, y: p.y, h: 2.2, follow: p, female: p.character === 'anita', speechName: p.character === 'anita' ? 'Anita' : 'Tammo', speechText: text, speechUntil: world.time + 3.2 });
 }
 
 function inCar() {
-  const v = world.player.inVehicle;
+  const v = hoofdspeler(world).inVehicle;
   return v && !v.isBike && !v.isBoat && !v.wrecked ? v : null;
 }
 
@@ -153,7 +154,7 @@ export function updateFlavour(dt, w) {
   calendarEvent();
   cyclistsFirst();
   if (busy()) return;
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (ready('stage')) { hold('stage', 3); F.billboardStage = storyStage(); }
   nicknames(p);
   krolbrug(p);
@@ -468,7 +469,7 @@ function peerd(p) {
 // AI cars stop for a cyclist crossing just ahead of them, and the cyclist
 // rides on as if the car were not there.
 function cyclistsFirst() {
-  const p = world.player;
+  const p = hoofdspeler(world);
   const vs = world.vehicles;
   let bikes = F.bikeBuf || (F.bikeBuf = []);
   bikes.length = 0;
@@ -581,3 +582,4 @@ const debugApi = {
   radio() { const l = pick(NACHTSTREEK); world.nowPlaying = { title: 'Nachtstreek', artist: 'Rikus · streekmuziek tot de ochtend', station: STATION_NAME, programme: 'Nachtstreek', at: world.time }; return speak(NARRATOR, l, true); },
   perfect() { world.lastPerfectRun = world.time - 3; },
 };
+

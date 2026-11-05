@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Samen spelen (#95): cutscenes samen bekijken, ook de openingsscène van een nieuw spel. De gastheer speelt een
 // scène (playScript in cutscenehost.js) en stuurt de scène zelf mee als data (de beschrijving, de regels, het anker en
 // de titelkaart); de gast speelt precies dezelfde scène op zijn eigen scherm, in zijn eigen wereld. Of de scène voor iedereen
@@ -110,11 +111,11 @@ export function cutHostId() { return ++teller; }
 export function cutHostStart(w, id, pakket) {
   const n = w && w.coopNet;
   if (!n || n.role !== 'host' || !n.hub) return false;
-  const rol = (pakket && pakket.rol) || (w.player && w.player.character);
+  const rol = (pakket && pakket.rol) || (hoofdspeler(w) && hoofdspeler(w).character);
   const stukken = cutStukken(id, { ...pakket, ...(isVerhaalrol(rol) ? { rol } : {}) });
   if (!stukken.length) return false;
   n.cutNu = id; n.cutTikAt = null; n.cutLaatsteT = null;
-  w.coopCutRol = cutsceneScene({ rol }, w.player || {}, pakket && pakket.def); // de gastheer speelt de hoofdrol lokaal zelf (#455)
+  w.coopCutRol = cutsceneScene({ rol }, hoofdspeler(w) || {}, pakket && pakket.def); // de gastheer speelt de hoofdrol lokaal zelf (#455)
   let ok = true; for (const s of stukken) ok = n.hub.announce(s) && ok;
   cutSpoor(w, 'host-start', id, stukken.length, ok);
   return ok;
@@ -196,7 +197,7 @@ export async function cutGastSpeel(w, p) {
   if (!w.coopNet || w.coopRole !== 'client') { cutSpoor(w, 'gast-geen-gast', p.id); return false; }
   if (w.coopCutBezig != null && w.coopCutBezig !== p.id) { try { (await import('./cinematics.js')).skipCinematic(); } catch (e) { /* al weg */ } } // de vorige scène is bij de gastheer al klaar
   w.coopCutBezig = p.id;
-  const scène = cutsceneScene(p, w.player || {}, p.def);
+  const scène = cutsceneScene(p, hoofdspeler(w) || {}, p.def);
   w.coopCutRol = scène;
   cutSpoor(w, 'gast-rol', p.id, scène.hoofdrol, scène.eigen, !!scène.tijdelijk);
   if (!w.coopCutHost || w.coopCutHost.id !== p.id) w.coopCutHost = null; // zijn eerste tijdbericht kan al binnen zijn
@@ -218,3 +219,4 @@ export async function cutGastStop(w, id, overgeslagen) {
   w.coopCutBezig = null;
   return true;
 }
+
