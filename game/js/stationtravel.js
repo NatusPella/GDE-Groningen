@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
 import { getTrains, routePoint, placeTrain, railZ, returnStolenTrains } from './railway.js';
@@ -353,7 +354,7 @@ function blockReason(w) {
 }
 
 function nearestStation(w) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (trip || w.pigeonMode || p.inVehicle || w.trainDriving || p.swimming || p.water) return null;
   let best = null, bd = USE_RADIUS;
   for (const s of stations) {
@@ -371,8 +372,8 @@ export function stationPrompt(w) {
 }
 
 export function stationSecondary(w) {
-  if (trip || w.pigeonMode || w.player.inVehicle) return [];
-  const { x, y } = w.player;
+  if (trip || w.pigeonMode || hoofdspeler(w).inVehicle) return [];
+  const { x, y } = hoofdspeler(w);
   const out = [];
   for (const s of stations) {
     if (Math.abs(s.x - x) > 22 || Math.abs(s.y - y) > 22) continue;
@@ -812,7 +813,7 @@ function arrive(w) {
   tripsDone++;
   if (fadeEl) fadeEl.style.opacity = '0';
 
-  const p = w.player;
+  const p = hoofdspeler(w);
   p.x = to.arrive.x; p.y = to.arrive.y;
   p.angle = to.exitAngle;
   p.vx = 0; p.vy = 0; p.z = 0; p.vz = 0; p.gz = 0;

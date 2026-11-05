@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
 import { buildBuildingMesh } from './models3d_buildings.js';
@@ -1379,7 +1380,7 @@ function introShots(pl) {
 }
 
 function introCamera(w) {
-  const pl = w.player;
+  const pl = hoofdspeler(w);
   const k = smooth(clamp(intro.t / (INTRO_S * 0.85), 0, 1));
   if (!intro.shots) intro.shots = introShots(pl);
   const { x: ax, y: ay, z: az } = intro.shots.a;
@@ -1474,7 +1475,7 @@ function placePigeonMesh(dt) {
 export function updatePigeonMode(dt, w) {
   if (!active) return;
   elapsed += dt;
-  const pl = w.player;
+  const pl = hoofdspeler(w);
   const inp = w.input;
   if (inp.wasPressed('x')) { inp.consume('x'); stopPigeonMode(w); return; }
   if (intro) { updateIntro(dt, w); return; }
@@ -1519,7 +1520,7 @@ export function updatePigeonMode(dt, w) {
 
 function updateIntro(dt, w) {
   intro.t += dt;
-  const pl = w.player;
+  const pl = hoofdspeler(w);
   pl.angle = angleLerp(pl.angle, Math.atan2(P.y - pl.y, P.x - pl.x), Math.min(1, dt * 6));
   pl.vx = 0; pl.vy = 0;
   if (!intro.pecked && intro.t > 0.3) { intro.pecked = true; P.peckT = 0.35; sfx('coo', P.x, P.y, 0.8); }
@@ -1547,7 +1548,7 @@ function clearestYaw(pref) {
 function beginFlight(w) {
   intro = null;
   w.pigeonIntro = false;
-  const pl = w.player;
+  const pl = hoofdspeler(w);
   pl.x = lastSet.x = P.x;
   pl.y = lastSet.y = P.y;
   takeOff(5);
@@ -1618,7 +1619,7 @@ function placeCompanion(w, x, y, angle) {
   }
   [c.x, c.y] = spot || [x, y];
   c.vx = 0; c.vy = 0; c.z = 0; c.vz = 0;
-  c.gz = w.player.gz || 0;
+  c.gz = hoofdspeler(w).gz || 0;
   c.angle = angle;
   c.water = null; c.swimming = false; c.climb = null;
   if (c.state === 'dead') { c.state = 'alive'; c.health = 100; }
@@ -1643,7 +1644,7 @@ function clearFlightProps() {
 export function stopPigeonMode(w = world) {
   if (!active) return false;
   const map = w.map;
-  const pl = w.player;
+  const pl = hoofdspeler(w);
   const spot = intro && session ? { x: session.startX, y: session.startY } : landingSpot(map);
   const flew = !intro;
   active = false;
@@ -1782,7 +1783,7 @@ export function startPigeonMode(w, spot = null) {
   if (active || !ready) return false;
   world = w;
   if (window.__debug) window.__debug.pigeon = { P, cam, surfaceAt, foods, flock, get gull() { return gull; }, spawnGull, spawnFood, addScore, store: () => store };
-  const pl = w.player;
+  const pl = hoofdspeler(w);
   if (pl.inVehicle) return false;
   if (outro) { outro = null; }
   quitRunningActivities(w); // een lopende wandeling of minigame stopt met zijn HUD (#241)

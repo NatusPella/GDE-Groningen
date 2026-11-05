@@ -337,8 +337,8 @@ function moveSet(r, x, y) {
   const w = r.w, map = w.map;
   const [sx, sy] = map.escapeBuilding(x, y);
   // de montage zet de speler zelf neer tussen twee shots: een schrijfactie op het
-  // eigen lichaam, dus bewust world.player en niet hoofdspeler (#500)
-  const p = w.player;
+  // eigen lichaam, dus bewust hoofdspeler(world) en niet hoofdspeler (#500)
+  const p = hoofdspeler(w);
   p.x = sx; p.y = sy; p.vx = 0; p.vy = 0;
   const c = w.companion;
   if (c && !c.inVehicle) { c.x = sx + 0.8; c.y = sy; c.vx = 0; c.vy = 0; }
@@ -1270,7 +1270,7 @@ function enterShot(r, i) {
 function restoreHome(r) {
   const w = r.w, s = r.saved;
   // de montage zet het eigen lichaam terug op de bewaarde plek: schrijven, dus
-  // world.player; de rest van dit bestand leest via hoofdspeler (#500)
+  // hoofdspeler(world); de rest van dit bestand leest via hoofdspeler (#500)
   w.player.x = s.px; w.player.y = s.py; w.player.angle = s.pa; w.player.vx = 0; w.player.vy = 0;
   const c = w.companion;
   if (c && s.comp) { c.x = s.comp.x; c.y = s.comp.y; c.angle = s.comp.angle; c.vx = 0; c.vy = 0; }

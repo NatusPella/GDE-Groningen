@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Samen een bus rijden, de lijm met het spel (#444, coöp): bij de gastheer (die de wereld draait) bepaalt dit wie er aan boord zit,
 // laat een medespeler de deuren (O) bedienen en de kaartjes valideren (E), betaalt elke halte het volle bedrag aan elke meespeler uit
 // (world.coopDeel, coopnet.js) en laat de bus veilig afremmen als de chauffeur wegvalt. De regels staan in buscoop.js (met tests).
@@ -24,7 +25,7 @@ const BREMS = 6; // m/s^2 waarmee de bus afremt als de chauffeur wegvalt
 // De bus waar deze speler in zit: slot 0 de gastheer, elke gast (plek 1 en hoger) een eigen figuur in inVeh (#502).
 export function busVan(world, slot) {
   let v = null;
-  if (slot === 0) v = world.player && world.player.inVehicle;
+  if (slot === 0) v = hoofdspeler(world) && hoofdspeler(world).inVehicle;
   else { const f = world.coopFigures && world.coopFigures[slot]; v = f && f.inVeh; }
   return v && v.isBus ? v : null;
 }

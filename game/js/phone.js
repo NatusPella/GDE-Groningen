@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // The phone: Tammo and Tessa's foldable, the Pixie Vouw 11. Unfolded it IS
 // the pause menu (pausemenu.js draws the frame); this module fills its
 // Telefoon section: Contacten (calls with an action or two) and Berichten
@@ -61,7 +62,7 @@ function contacts(w) {
 
 function buddyTalk(w) {
   const c = w.companion;
-  const near = c && Math.hypot(c.x - w.player.x, c.y - w.player.y) < 15;
+  const near = c && Math.hypot(c.x - hoofdspeler(w).x, c.y - hoofdspeler(w).y) < 15;
   if (near) return { line: pick(['Ik sta letterlijk naast je. Draai je eens om.', 'Waarom bel je mij? Ik zie je gewoon staan, gek.']) };
   return {
     line: pick([

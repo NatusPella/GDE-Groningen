@@ -1,7 +1,8 @@
-// Samen spelen (#434): een gezocht-niveau per speler. De politie (police.js) kent maar één doelwit, world.player met world.wanted; een
+import { hoofdspeler } from './players.js';
+// Samen spelen (#434): een gezocht-niveau per speler. De politie (police.js) kent maar één doelwit, hoofdspeler(world) met world.wanted; een
 // misdaad van een gast (zijn voertuig rijdt een voetganger aan, hij steelt een geparkeerde auto) telt daarom op bij zijn eigen niveau
 // (world.coopWanted[plek]) en de politie jaagt op de speler met het hoogste niveau (gelijk: de speler die al gejaagd werd, anders wie
-// het spel opende). Dat gaat zonder police.js om te bouwen: voor de duur van één updatePolice staat world.player voor het lichaam
+// het spel opende). Dat gaat zonder police.js om te bouwen: voor de duur van één updatePolice staat hoofdspeler(world) voor het lichaam
 // of het voertuig van het doelwit en world.wanted voor zijn niveau; daarna staat alles weer terug.
 // Pure logica zonder three.js, getest in scripts/coopbestuur_test.mjs.
 import { lichaamVan } from './coopbestuur.js';
@@ -25,9 +26,9 @@ export function zetWantedVan(world, slot, n) {
   return v;
 }
 
-// Waar een speler nu is: zijn voertuig als hij rijdt, anders zijn lichaam. Plek 0 is world.player.
+// Waar een speler nu is: zijn voertuig als hij rijdt, anders zijn lichaam. Plek 0 is hoofdspeler(world).
 export function plekVan(world, slot) {
-  if (slot === 0) return world.player || null;
+  if (slot === 0) return hoofdspeler(world) || null;
   const l = lichaamVan(world, slot); if (!l) return null;
   const v = l.inVehicle || l.inVeh;
   return v && typeof v === 'object' && Number.isFinite(v.x) ? v : l;
@@ -42,7 +43,7 @@ export function getuigeDichtbij(world, x, y, r = GETUIGE_AFSTAND) {
   return false;
 }
 
-// Het lichaam van een gast als "world.player" voor police.js: plek, snelheid, voertuig en water zijn wat de politie leest.
+// Het lichaam van een gast als "hoofdspeler(world)" voor police.js: plek, snelheid, voertuig en water zijn wat de politie leest.
 export function doelwitProxy(world, slot, level = 0) {
   const l = lichaamVan(world, slot); if (!l) return null;
   const v = l.inVehicle || l.inVeh || null, q = v && Number.isFinite(v.x) ? v : l;
@@ -87,7 +88,7 @@ export function zichtbaarWanted(world) {
   return d ? d.level : world.wanted | 0;
 }
 
-// Draai update(dt, world) (police.js updatePolice) met het doelwit op de plek van world.player. Is het doelwit de host, dan verandert er niets.
+// Draai update(dt, world) (police.js updatePolice) met het doelwit op de plek van hoofdspeler(world). Is het doelwit de host, dan verandert er niets.
 export function politieMetDoelwit(dt, world, update) {
   const d = kiesDoelwit(world);
   const nieuw = d ? d.slot : 0;
@@ -101,7 +102,7 @@ export function politieMetDoelwit(dt, world, update) {
   const proxy = doelwitProxy(world, d.slot, d.level);
   if (!proxy) { update(dt, world); return 0; }
   world.coopJachtDoel = proxy; // de agenten te voet (pedestrians.js updateCop) jagen ook op hem
-  const eigenSpeler = world.player, eigenWanted = world.wanted, voor = d.level;
+  const eigenSpeler = hoofdspeler(world), eigenWanted = world.wanted, voor = d.level;
   world.player = proxy; world.wanted = d.level;
   try { update(dt, world); } finally {
     const na = world.wanted | 0;
