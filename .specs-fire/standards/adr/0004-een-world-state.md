@@ -32,3 +32,21 @@ missies en verhaal, audio en weer, dan HUD en `input.endFrame()`.
 Een nieuw systeem krijgt een plek in de volgorde en een eigen veld op `World`, en
 importcycli blijven verboden (grens 0, `import_cycles_test`). Wie iets nodig heeft
 wat een ander systeem bezit, leest het veld en schrijft het niet.
+
+## Exit-criterium (#498)
+
+`World` is geen eindeloze doos. Een veld of systeem gaat eruit als één van deze
+gevallen geldt:
+
+1. het heeft een eigen levensduur (start/stop, een scherm of een sessie) en de
+   rest van de wereld hoeft het buiten die levensduur niet te kennen;
+2. het wordt door meer dan drie bestanden geschreven, of de eigenaarskeuring
+   (`scripts/world_eigenaar.json`) vraagt er een uitzondering met meer dan drie
+   schrijvende bestanden voor;
+3. het heeft geen lezer meer (wel schrijvers) en is dus dood gewicht.
+
+In die gevallen wordt het een eigen module met een expliciete API; de velden
+verhuizen mee en de keuring (`node scripts/world_eigenaar.mjs`, in de lichte
+testfase) moet daarna weer groen zijn. De keuring is de grens: een nieuw veld of
+een nieuwe schrijver is pas toegestaan als het register hem noemt, met reden en
+issue.
