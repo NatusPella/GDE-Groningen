@@ -175,17 +175,6 @@ ${MAC_NOTES}${LINUX_NOTES}Speelde je al toen de game nog GTE VI heette? Je saves
 Op de Mac kun je de oude app "GTE VI" daarna uit Programma's weggooien.
 
 EOF
-# create the release first, then upload each build with a few retries:
-# a 300 MB upload sometimes times out on the first try
-gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --title "GDE Groningen $VERSION" --notes-file "$NOTES" $PRE
-for f in $UPLOADS; do
-  ok=""
-  for i in 1 2 3 4; do
-    if gh release upload "$TAG" "$f" --clobber; then ok=1; break; fi
-    echo "upload of $f failed, retry $i"; sleep 10
-  done
-  [ -n "$ok" ] || { echo "Upload failed: $f (builds stay in dist/)"; exit 1; }
-done
 # sha256 van wat dit script uploadt, zodat een speler kan controleren wat hij downloadt (#483).
 # De Actions-builds (macOS, Linux, Android) komen later binnen en staan er bewust niet in.
 HASHES="dist/SHA256SUMS.txt"
@@ -193,7 +182,11 @@ HASHES="dist/SHA256SUMS.txt"
 for f in $UPLOADS; do
   node ../scripts/release_hashes.mjs "$f" >> "$HASHES" || { echo "sha256 van $f mislukt"; exit 1; }
 done
-gh release upload "$TAG" "$HASHES" --clobber || { echo "Upload van SHA256SUMS.txt mislukt"; exit 1; }
+# De release wordt in één keer met alle bestanden aangemaakt. GitHub's immutable releases
+# (instelling van de eigenaar) staan geen uploads toe nadat de release bestaat; zo werkt het
+# met en zonder die instelling. Bij een mislukte upload blijven de builds in dist/ staan.
+gh release create "$TAG" --title "GDE Groningen $VERSION" --notes-file "$NOTES" $PRE $UPLOADS "$HASHES" \
+  || { echo "Release aanmaken of uploaden mislukt (builds stay in dist/)"; exit 1; }
 rm -f "$NOTES"
 # the comment on the standing issue notifies the mentioned collaborators
 NOTIFY_ISSUE="${NOTIFY_ISSUE:-116}"
