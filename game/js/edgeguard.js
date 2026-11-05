@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // The edge of the world in the game (docs/PROVINCIE-PLAN.md 2.24, issue #6):
 // feeds the player's spot to worldedge.js, runs the turn-back scene
 // (edgescene.js) and builds its props in the world: a border post with a
@@ -40,7 +41,7 @@ function groundAt(map, x, y) {
 function showScene(w, plan) {
   const scene = getScene();
   // de blokkade op de weg, niet in de berm (#436)
-  plan = snapSceneToRoad(w.map, plan, modeOf(w.player, w.player.inVehicle));
+  plan = snapSceneToRoad(w.map, plan, modeOf(hoofdspeler(w), hoofdspeler(w).inVehicle));
   for (const pp of plan.props) {
     let prop;
     try { prop = buildProp(pp.kind, { hw: 3 }, {}); } catch (e) { continue; }
@@ -60,7 +61,7 @@ function clearScene() {
 }
 
 function putBack(w, plannedSpot) {
-  const p = w.player, v = p.inVehicle;
+  const p = hoofdspeler(w), v = p.inVehicle;
   // over land (te voet, auto, fiets): terug op de weg, niet in een weiland (#436)
   const mode = modeOf(p, v);
   const spot = mode === 'foot' || mode === 'car' || mode === 'bike' ? snapSpotToRoad(w.map, plannedSpot, mode !== 'foot') : plannedSpot;
@@ -76,8 +77,8 @@ function putBack(w, plannedSpot) {
 
 export function updateEdgeGuard(dt, w) {
   const edge = regionEdgeLayer();
-  if (!edge || !w.map || !w.player || w.paused) return;
-  const p = w.player, v = p.inVehicle;
+  if (!edge || !w.map || !hoofdspeler(w) || w.paused) return;
+  const p = hoofdspeler(w), v = p.inVehicle;
   const x = v ? v.x : p.x, y = v ? v.y : p.y;
   if (watch.phase === 'scene') {
     for (const q of props) animateProp(q, dt, w.time);
@@ -95,4 +96,5 @@ export function updateEdgeGuard(dt, w) {
   if (ev.type === 'warn') w.addMessage(ev.rule.text, 4, { kind: 'tip' });
   else if (ev.type === 'scene') showScene(w, ev.plan);
 }
+
 

@@ -1,3 +1,4 @@
+import { hoofdspeler } from '../players.js';
 import { clamp } from '../util.js';
 import { getCombatEffect } from '../combateffect.js';
 import { isGunWeapon, isRangedWeapon } from '../weapons.js';
@@ -101,7 +102,7 @@ function playStep(surface, x, y, gain, rate, prio, rain) {
 }
 
 function footsteps(dt, world) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   const rain = world.weather ? world.weather.intensity : 0;
   // the player's own feet are never dropped for ambience (prio 1, not 0)
   if (!p.inVehicle && !world.paused && !p.ragdoll) {
@@ -172,7 +173,7 @@ function trackBullets() {
 }
 
 function combat(dt, world) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   const f = trackBullets();
   for (const b of world.bullets) bulletFrame.set(b, f);
   for (const b of prevBullets) if (bulletFrame.get(b) !== f && vanished.length < 16) vanished.push(b);
@@ -235,7 +236,7 @@ function combat(dt, world) {
 }
 
 function onShot(world, fired) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   const src = p.inVehicle || p;
   const w = world.weapon;
   const ang = src.angle || 0;
@@ -264,7 +265,7 @@ function onShot(world, fired) {
 }
 
 function whizzBy(world) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   let n = 0;
   for (const b of world.bullets) {
     if (b.owner === 'player' || whizzed.has(b)) continue;
@@ -398,7 +399,7 @@ function nearestOf(world, filter, range) {
 
 function vehicles(dt, world) {
   const t = now();
-  const p = world.player;
+  const p = hoofdspeler(world);
   const pv = p.inVehicle;
   const paused = world.paused;
 
@@ -576,7 +577,7 @@ function nearestPolice(world, range) {
 function police(dt, world) {
   const t = now();
   if (world.paused) return;
-  const pv = world.player.inVehicle;
+  const pv = hoofdspeler(world).inVehicle;
   const inCop = pv && pv.isPolice;
   if (t >= radioAt) {
     const searching = world.police && world.police.searching;
@@ -642,3 +643,5 @@ export function updateFoley(dt, world) {
 export function foleyStats() {
   return { queued: queue.length, pedSteps: pedList.length, alarm: !!(alarm && alarm.car) };
 }
+
+

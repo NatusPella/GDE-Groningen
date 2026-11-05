@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import { getScene } from './scene3d.js';
 import { notifyPhone } from './phonefeed.js';
 import { buildUfoMesh, kleurLampjes, buildStraal, setStraal } from './ufo3d.js';
@@ -52,7 +53,7 @@ export function startOntvoering(world, dier, hoek = Math.random() * Math.PI * 2)
 export function tickSchaapontvoering(dt, world, scene = null) {
   if (scene) sceneOverride = scene;
   if (!st) {
-    if (!world.wildlife || !world.player) return;
+    if (!world.wildlife || !hoofdspeler(world)) return;
     if ((checkT -= dt) > 0) return;
     checkT = S.CHECK_S;
     if (!S.isNacht(world.clock)) return;
@@ -61,7 +62,7 @@ export function tickSchaapontvoering(dt, world, scene = null) {
     if (!plan || klaar) return;
     // niet vlak na het hoofdverhaal of in een scène waar de speler naar iets anders kijkt
     if (world.cinematic || world.cameraOverride) return;
-    const pick = S.kiesSchaap(world.wildlife, world.player, Math.random());
+    const pick = S.kiesSchaap(world.wildlife, hoofdspeler(world), Math.random());
     if (pick && startOntvoering(world, pick)) klaar = true;
     return;
   }
@@ -81,7 +82,7 @@ export function tickSchaapontvoering(dt, world, scene = null) {
     schaap.speed = 0;
   }
   // één korte regel op het scherm als de straal aangaat, en op het eind een Kiekdoar-bericht
-  if (st.fase === 'straal' && regel < 0) { regel = Math.floor(Math.random() * S.REGELS.length); if (schaap && Math.hypot(schaap.x - world.player.x, schaap.y - world.player.y) < S.BEREIK[1] && world.addMessage) world.addMessage(S.REGELS[regel], 4); }
+  if (st.fase === 'straal' && regel < 0) { regel = Math.floor(Math.random() * S.REGELS.length); if (schaap && Math.hypot(schaap.x - hoofdspeler(world).x, schaap.y - hoofdspeler(world).y) < S.BEREIK[1] && world.addMessage) world.addMessage(S.REGELS[regel], 4); }
   if (st.klaar) {
     try { notifyPhone(world, { from: 'Kiekdoar', app: 'sikkom', text: S.NIEUWS, voiced: false }); } catch (e) { /* geen telefoon: dan alleen de schotel */ }
     stop();
@@ -91,7 +92,8 @@ export function tickSchaapontvoering(dt, world, scene = null) {
 if (typeof window !== 'undefined') {
   window.__ontvoering = {
     status: () => (st ? { fase: st.fase, t: +st.t.toFixed(1), lift: +st.lift.toFixed(1), straal: +st.straal.toFixed(2), ufo: { ...st.ufo } } : null),
-    start: (world, dier) => startOntvoering(world, dier || S.kiesSchaap(world.wildlife, world.player, 0)),
+    start: (world, dier) => startOntvoering(world, dier || S.kiesSchaap(world.wildlife, hoofdspeler(world), 0)),
     nacht: () => ({ nacht, plan, klaar }),
   };
 }
+

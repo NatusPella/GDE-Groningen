@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import { activityBlock, iconDisc } from './activitykit.js';
 
 // The activity object (activities.js) for a minigame that starts where you
@@ -8,7 +9,7 @@ import { activityBlock, iconDisc } from './activitykit.js';
 //         isActive(), start(w, { force }), quit(w), update(dt, w), tick(dt, w), camera(w), debug(w) -> object }
 export function standActivity(c) {
   const near = (w) => {
-    const p = w.player, s = c.stand();
+    const p = hoofdspeler(w), s = c.stand();
     if (c.isActive() || w.pigeonMode || w.heliRun || p.inVehicle || p.swimming) return false;
     return Math.hypot(p.x - s.x, p.y - s.y) < (c.useRadius || 3);
   };
@@ -25,9 +26,9 @@ export function standActivity(c) {
       return { id: c.id, x: s.x, y: s.y, h: 2.2, key: 'E', label: c.label, sub: why || (c.recText && c.recText()) || c.sub, ring: true, dim: !!why };
     },
     secondary(w) {
-      if (c.isActive() || w.player.inVehicle) return [];
+      if (c.isActive() || hoofdspeler(w).inVehicle) return [];
       const o = c.origin ? c.origin() : c.stand(), s = c.stand();
-      if (Math.hypot(w.player.x - o.x, w.player.y - o.y) > (c.labelRadius || 120)) return [];
+      if (Math.hypot(hoofdspeler(w).x - o.x, hoofdspeler(w).y - o.y) > (c.labelRadius || 120)) return [];
       return [{ id: c.id + '-2', x: s.x, y: s.y, h: 2.2, label: c.name, sub: c.hint || 'Loop erheen en druk E', kind: 'place' }];
     },
     interact(w) {
@@ -56,7 +57,7 @@ export function standActivity(c) {
     mapSub: () => (c.recText && c.recText()) || c.note,
     ubbo(w) {
       const s = c.stand();
-      return { name: c.name, sub: c.ubboSub, dist: Math.hypot(s.x - w.player.x, s.y - w.player.y), x: s.x, y: s.y, play: c.id, where: c.where || c.name, hint: 'loop erheen en druk E' };
+      return { name: c.name, sub: c.ubboSub, dist: Math.hypot(s.x - hoofdspeler(w).x, s.y - hoofdspeler(w).y), x: s.x, y: s.y, play: c.id, where: c.where || c.name, hint: 'loop erheen en druk E' };
     },
   };
 }
@@ -66,3 +67,4 @@ export function recLine(rec, fmt, medals) {
   if (!rec || rec.best == null) return null;
   return `Record: ${fmt(rec.best)}${rec.medal ? ' · ' + medals[rec.medal].toLowerCase() : ''}`;
 }
+
