@@ -94,7 +94,9 @@ export async function startNodeHost({ stage, tiles = '-', story = 'nieuw', max =
     if (aan) {
       const car = { id: 199, x: w.player.x + 3, y: w.player.y, angle: 0, model: { len: 4.2 }, ...sjabloon };
       w.vehicles.push(car); h.drive = { car }; h.walk = false;
-      w.player.inVehicle = car; w.companion.inVehicle = car; // de metgezel behoudt zijn oude x en y`n      car.driver = 'player'; // de gastheer rijdt: zonder deze vlag mag een gast de auto als bestuurder overnemen (testopzet, geen spellogica)
+      try { w.player.enterVehicle(car, w); } catch (e) { w.player.inVehicle = car; }
+      w.companion.inVehicle = car; // de metgezel behoudt zijn oude x en y
+      car.driver = 'player'; // de gastheer rijdt: zonder deze vlag mag een gast de auto als bestuurder overnemen (testopzet)
     } else if (h.drive) {
       const car = h.drive.car; w.player.inVehicle = null; w.companion.inVehicle = null; w.companion.x = car.x - 2; w.companion.y = car.y + 2;
       w.vehicles = w.vehicles.filter((v) => v !== car); h.drive = null; h.walk = true;
