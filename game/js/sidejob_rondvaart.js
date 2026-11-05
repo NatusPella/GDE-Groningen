@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Bijbaantje: rondvaartgids op het Diepenring-water. Tussen twee steigers
 // langs de bezienswaardigheden varen en bij elk punt rustig aan doen, zodat
 // de toeristen het hele verhaal horen.
@@ -103,7 +104,7 @@ export default {
 
   update(dt, c) {
     const { world } = c;
-    const d = c.data, p = world.player, v = c.vehicle;
+    const d = c.data, p = hoofdspeler(world), v = c.vehicle;
     const onBoat = p.inVehicle === v;
     const speed = vehicleSpeed(v);
     const leg = d.legInfo;

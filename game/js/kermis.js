@@ -590,7 +590,7 @@ function updateRide(w, dt) {
       spawnFxSpark(tp.x, 4.12, tp.y, rand(-1, 1), -0.5, rand(-1, 1), 0.3);
     }
   }
-  const p = w.player;
+  const p = hoofdspeler(w);
   const mp = toW(me.u, me.v);
   p.x = mp.x; p.y = mp.y; p.angle = K.rot + me.a; p.speed = 0; p.moving = false;
 }
@@ -616,7 +616,7 @@ function end(w, { quit = false } = {}) {
     }
     parkCar(car, i);
   });
-  const p = w.player;
+  const p = hoofdspeler(w);
   p.x = g.exit.x; p.y = g.exit.y; p.angle = K.rot;
   if (w.extraSpeakers) w.extraSpeakers = w.extraSpeakers.filter((e) => !e.kermis);
   if (quit) { w.addMessage("Botsauto's: eruit gestapt", 2.5); return; }
