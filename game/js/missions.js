@@ -2907,7 +2907,8 @@ function dropPursuer(world) {
 
 // --- H15: the trauma heli (helirun.js) as one stage -----------------------------
 function updateHeliStage(dt, world, def, st, S) {
-  const p = hoofdspeler(world);
+  // Samen spelen (#525): de piloot mag een gast zijn; de stage kiest hem uit de groep.
+  const p = teamActor(world, S.target, (a) => a.inVehicle && a.inVehicle.isHeli) || hoofdspeler(world);
   if (S.result) {
     if (S.result.success) nextStage(world, def);
     else fail(world, def, S.result.aborted ? 'de vlucht is afgebroken' : st.lost || 'de ballon is ontsnapt');
@@ -2916,7 +2917,7 @@ function updateHeliStage(dt, world, def, st, S) {
   if (S.started || isCinematicActive()) return;
   if (p.inVehicle && !p.inVehicle.storyDemo) { hint(world, 'Uitstappen: Rotor Roelf wacht bij zijn heli.'); return; }
   if (S.target && dist(p.x, p.y, S.target.x, S.target.y) > 30) { hint(world, st.hint || 'Naar het helidek van Rotor Roelf, op Eelde.'); return; }
-  S.started = startHeliRun({ variant: st.variant, onFinish: (res) => { S.result = res; } });
+  S.started = startHeliRun({ variant: st.variant, actor: p, onFinish: (res) => { S.result = res; } });
   if (!S.started && S.t > 10) { world.addMessage('Rotor Roelf vliegt zelf. Dijkstra brengt de Eierbal.', 4); nextStage(world, def); }
 }
 
@@ -3886,4 +3887,5 @@ export const missionDebug = {
 
 // The 3D markers live in missionmarker3d.js (a leaf, so scene3d.js need not import this module).
 export { MARKER_COLOR_ACTIVE, buildMissionMarker3D, updateMissionMarker3D, buildWaypointDotMesh3D } from './missionmarker3d.js';
+
 

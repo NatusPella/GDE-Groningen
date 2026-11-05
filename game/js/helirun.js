@@ -481,8 +481,8 @@ function heliOn(w, pad, spot = null) {
 export function startHeliRun(opts = {}) {
   const w = world;
   if (!w || run || w.pigeonMode || isCinematicActive() || document.body.classList.contains('intro-montage')) return false;
-  const pl = hoofdspeler(w);
-  if (pl.inVehicle && !pl.inVehicle.storyDemo) return false;
+  const pl = opts.actor || hoofdspeler(w);
+  if (pl.inVehicle && !pl.inVehicle.storyDemo && !opts.actor) return false;
   const pads = runPads(w);
   if (!pads.umcg) return false;
   const variant = VARIANTS[opts.variant] ? opts.variant : 'ballonjacht';
@@ -1069,4 +1069,5 @@ export function initHeliRun(w) {
     spot: () => spot,
   };
 }
+
 

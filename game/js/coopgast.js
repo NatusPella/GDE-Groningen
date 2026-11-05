@@ -216,7 +216,7 @@ export function bestuurInvoer(world, v = null) {
   if (!world) return null;
   const figs = world.coopFigures || [];
   const kandidaten = world.coopWielSlot != null ? [figs[world.coopWielSlot]] : figs.slice(1);
-  for (const f of kandidaten) if (f && f.input && (!v || f.inVeh === v)) return wielInvoer(f.input);
+  for (const f of kandidaten) if (f && f.input && (!v || f.inVeh === v || f.inVehicle === v)) return wielInvoer(f.input);
   return world.input;
 }
 
@@ -237,4 +237,5 @@ export const WIEL_HOST_TEKST = {
   gegeven: (naam) => `Je geeft ${naam} het stuur. ${wielToets()} om het terug te nemen.`,
   terug: (naam) => `Je neemt het stuur terug van ${naam}.`,
 };
+
 

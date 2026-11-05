@@ -1,4 +1,5 @@
 import { hoofdspeler } from './players.js';
+import { teamActor } from './stagegroep.js';
 // The stages of a mission with the small plane (M15 Laag over het graan, docs/verhaal/nieuw): board Roelfien's
 // plane on its own strip, fly low through gates (the first one picks up the banner), land on the strip again.
 // The flight itself is the arcade plane of planeflight.js / planecontrol.js; this module only places the plane,
@@ -140,7 +141,8 @@ function placeBanner(v) {
 export function updatePlaneStage(dt, world, st, S) {
   if (!S0 || !S0.plane) return null;
   const v = S0.plane;
-  const p = hoofdspeler(world);
+  // Samen spelen (#525): de piloot mag een gast zijn; de stage kijkt naar de groep.
+  const p = teamActor(world, v, (a) => a.inVehicle === v) || hoofdspeler(world);
   const mine = p.inVehicle === v;
   if (st.kind === 'plane') {
     if (mine) return 'next';
@@ -231,4 +233,5 @@ export function releasePlaneStage(world) {
   world.planeStrip = S0.prevStrip;
   S0 = null;
 }
+
 

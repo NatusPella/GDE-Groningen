@@ -3122,3 +3122,4 @@ De eerste versie: alles wat er tot de eerste desktop-release gebouwd is.
   Windows zelf Python regelt en de game in de browser opent.
 
 
+
