@@ -46,11 +46,12 @@ t('weigerReden: alleen vrije voertuigen, geen vliegtuig, geen verkeer; de opdrac
   assert.equal(B.weigerReden(auto(1, 0, 0, { isBike: true })), null, 'fiets');
   assert.equal(B.weigerReden(auto(1, 0, 0, { isScooter: true })), null, 'scooter');
   assert.equal(B.weigerReden(auto(1, 0, 0, { isBoat: true })), null, 'boot');
-  assert.equal(B.weigerReden(auto(1, 0, 0, { isHeli: true })), 'vlieg');
-  assert.equal(B.weigerReden(auto(1, 0, 0, { isPlane: true })), 'vlieg');
+  // #525: een gast mag een heli of vliegtuig besturen (de invoer komt van zijn eigen as en knoppen)
+  assert.equal(B.weigerReden(auto(1, 0, 0, { isHeli: true })), null);
+  assert.equal(B.weigerReden(auto(1, 0, 0, { isPlane: true })), null);
   // #492: een gast mag als passagier meerijden, maar wordt ook op de grond nooit piloot
-  assert.equal(B.weigerReden(auto(1, 0, 0, { isPlane: true, onGround: true, speed: 0 })), 'vlieg');
-  assert.equal(B.weigerReden(auto(1, 0, 0, { isHeli: true, onGround: true, speed: 0 })), 'vlieg');
+  assert.equal(B.weigerReden(auto(1, 0, 0, { isPlane: true, onGround: true, speed: 0 })), null);
+  assert.equal(B.weigerReden(auto(1, 0, 0, { isHeli: true, onGround: true, speed: 0 })), null);
   assert.equal(B.weigerReden(auto(1, 0, 0, { driver: 'player' })), 'bezet');
   assert.equal(B.weigerReden(auto(1, 0, 0, { passenger: 'companion' })), 'bezet');
   assert.equal(B.weigerReden(auto(1, 0, 0, { road: {} })), 'verkeer');
@@ -145,11 +146,10 @@ t('de gast valt weg: het voertuig staat stil en de stoel is vrij', () => {
   reportCrime(w3, 'pedKill', { vehicle: b }); assert.equal(w3.wanted, 0, 'een ontploffing van het wrak van de gast telt bij de gast');
 });
 
-t('een helikopter of vliegtuig: een melding, geen bestuurder', () => {
-  B.zetBestuurHaken(haken()); meldingen.length = 0;
-  const w = mkWorld(); w.vehicles = [auto(9, 2, 1, { isHeli: true })];
-  assert.equal(B.bestuurGebruik(w, 1).gedaan, true);
-  assert.ok(meldingen.some(([, m]) => /helikopter/.test(m))); assert.equal(w.coopFigures[1].coopBestuurt, undefined); assert.equal(w.vehicles[0].driver, undefined);
+t('een helikopter of vliegtuig mag de gast besturen (#525)', () => {
+  assert.equal(B.weigerReden({ isHeli: true }, 1), null);
+  assert.equal(B.weigerReden({ isPlane: true }, 1), null);
+  assert.equal(B.magBesturen({ isHeli: true }, 1), true);
 });
 
 t('te ver weg of de wereld is niet geladen: het voertuig staat stil, na een paar seconden staat de gast bij de groep', () => {
@@ -380,4 +380,5 @@ t('formaat: PROTO en CODEC_VERSION zijn niet veranderd', () => {
 });
 
 console.log(`coopbestuur_test: ${n} groepen ok`);
+
 

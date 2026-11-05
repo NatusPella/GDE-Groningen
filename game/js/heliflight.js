@@ -1,4 +1,5 @@
 import { hoofdspeler } from './players.js';
+import { bestuurInvoer } from './coopgast.js';
 // The own helicopter (the Wieken Wubbo from Rotor Roelf on Eelde, shops.js):
 // a Vehicle with v.isHeli, flown with easy arcade controls.
 //
@@ -239,7 +240,7 @@ function mapEdge(map) {
 
 export function flyHeli(v, dt, w) {
   world = w;
-  const map = w.map, inp = w.input;
+  const map = w.map, inp = bestuurInvoer(w, v) || w.input;
   if (!dt) return;
   // velocity as the other systems see it (a shove on the ground lands here too)
   const ca = Math.cos(v.angle), sa = Math.sin(v.angle);
@@ -650,4 +651,5 @@ if (typeof window !== 'undefined') {
     surface: (x, y, z = 200) => world && surfaceAt(world.map, x, y, z),
   };
 }
+
 

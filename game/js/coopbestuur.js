@@ -86,7 +86,6 @@ export const coopRegelVoor = (v) => coopVanModel(v && v.model) || COOP_STANDAARD
 // mag wel, als die hem deelt (recht 'ik' is alleen voor de eigenaar). Geeft null als het mag, anders de reden.
 export function weigerReden(v, slot = null) {
   if (!v) return 'geen';
-  if (v.isHeli || v.isPlane) return 'vlieg';
   // Samen spelen (#492): het voertuig van je eigen bijbaan bestuur je zelf, ook al is het een
   // opdrachtauto. Een ander komt er niet mee weg: dat is diefstal van de dienst van een medespeler.
   if (Number.isInteger(v.jobOwner)) return v.jobOwner === slot ? null : 'niet';
@@ -331,5 +330,6 @@ export function bestuurdersLijst(world) {
   }
   return uit;
 }
+
 
 

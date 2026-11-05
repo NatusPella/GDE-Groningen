@@ -1,4 +1,5 @@
 import { hoofdspeler } from './players.js';
+import { bestuurInvoer } from './coopgast.js';
 // Arcade-vliegtuig aan de wereld (#15): de eigen "Kist Kees" op een grasbaan bij
 // het kleine vliegveld van Eelde, naast de helikopter (heliflight.js) maar met het
 // vastevleugelmodel van arcadeplane.js. De pure kant (toetsen, baan, status) staat
@@ -151,8 +152,10 @@ function updatePlanes(dt, w) {
 }
 
 export function flyPlane(v, dt, w) {
-  flyPlaneVehicle(v, dt, (k) => w.input.isDown(k), groundOf(w.map), (x, y) => opBaan(w, x, y), windNu(w, v));
+  const inp = bestuurInvoer(w, v) || w.input;
+  flyPlaneVehicle(v, dt, (k) => inp.isDown(k), groundOf(w.map), (x, y) => opBaan(w, x, y), windNu(w, v));
 }
 
 export const planeKind = { id: 'planes', initPhase: 'late', init: initPlanes, tickPhase: 'world', tick: updatePlanes };
+
 

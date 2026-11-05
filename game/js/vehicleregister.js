@@ -84,8 +84,8 @@ const COOP_AFWIJKING = {
   police: { bestuur: 'nee' },
   ambulance: { bestuur: 'nee' },
   escort: { bestuur: 'nee' },
-  heli: { bestuur: 'nee', passagiers: 0 },
-  plane: { bestuur: 'nee', passagiers: 0 },
+  heli: { bestuur: 'gast', passagiers: 1 },
+  plane: { bestuur: 'gast', passagiers: 1 },
   train: { bestuur: 'nee', passagiers: 6 },
   kart: { bestuur: 'nee', stoelen: 1, passagiers: 0 },
   horse: { bestuur: 'nee', stoelen: 1, passagiers: 0 },
@@ -103,3 +103,5 @@ export function coopVanModel(model) {
   const naam = model && (model.naam || model.name);
   return typeof naam === 'string' ? coopVoertuig(naam) : null;
 }
+
+

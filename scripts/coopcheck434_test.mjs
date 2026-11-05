@@ -70,7 +70,7 @@ punt('springen en bukken van de gast (dezelfde sprong als de speler)', () => {
 });
 
 punt('een gast stapt zelf in een vrij voertuig en weer uit', () => {
-  assert.equal(R.weigerReden({ isHeli: true }, 1), 'vlieg');
+  assert.equal(R.weigerReden({ isHeli: true }, 1), null, 'een gast mag de heli besturen (#525)');
   assert.equal(R.weigerReden({ driver: 'player' }, 1), 'bezet');
   assert.equal(R.weigerReden({ road: true }, 1), 'verkeer');
   assert.equal(R.weigerReden({ isPolice: true }, 1), 'niet');
@@ -240,3 +240,4 @@ punt('treinen: vloeiend, solide, en een gast voelt de klap', () => {
 });
 
 console.log(`\ncoopcheck434: ${n} punten nagelopen`);
+
