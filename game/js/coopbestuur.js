@@ -94,7 +94,7 @@ export function weigerReden(v, slot = null) {
   if (v.driver || v.passenger || v.wrecked || v.sinking || v.disabled) return 'bezet';
   if (v.road || v.countryDrive) return 'verkeer';
   if (v.coopBezit) return magGebruiken(v.coopBezit.recht, slot, v.coopBezit.slot) ? null : 'gedeeld';
-  if (v.isPolice || v.isBus || v.isHeroCar || (v.playerOwned && !v.farm) || v.missionCar || v.storyCar || v.scripted || v.racer || v.cineTemp || v.homeStored || v._mount || v.isAmbulance) return 'niet';
+  if (v.isPolice || v.isBus || v.isHeroCar || (v.playerOwned && !v.farm) || v.storyCar || v.scripted || v.racer || v.cineTemp || v.homeStored || v._mount || v.isAmbulance) return 'niet';
   return null;
 }
 export const magBesturen = (v, slot = null) => weigerReden(v, slot) === null;
@@ -331,4 +331,5 @@ export function bestuurdersLijst(world) {
   }
   return uit;
 }
+
 

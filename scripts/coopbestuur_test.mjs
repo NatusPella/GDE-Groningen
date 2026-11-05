@@ -41,7 +41,7 @@ const mkWorld = (extra = {}) => {
   return w;
 };
 
-t('weigerReden: alleen vrije voertuigen, geen vliegtuig, geen verkeer of opdrachtauto', () => {
+t('weigerReden: alleen vrije voertuigen, geen vliegtuig, geen verkeer; de opdrachtauto mag door de groep', () => {
   assert.equal(B.weigerReden(auto(1, 0, 0)), null);
   assert.equal(B.weigerReden(auto(1, 0, 0, { isBike: true })), null, 'fiets');
   assert.equal(B.weigerReden(auto(1, 0, 0, { isScooter: true })), null, 'scooter');
@@ -54,7 +54,10 @@ t('weigerReden: alleen vrije voertuigen, geen vliegtuig, geen verkeer of opdrach
   assert.equal(B.weigerReden(auto(1, 0, 0, { driver: 'player' })), 'bezet');
   assert.equal(B.weigerReden(auto(1, 0, 0, { passenger: 'companion' })), 'bezet');
   assert.equal(B.weigerReden(auto(1, 0, 0, { road: {} })), 'verkeer');
-  for (const k of ['isPolice', 'isBus', 'isHeroCar', 'playerOwned', 'missionCar']) assert.equal(B.weigerReden(auto(1, 0, 0, { [k]: true })), 'niet', k);
+  for (const k of ['isPolice', 'isBus', 'isHeroCar', 'playerOwned']) assert.equal(B.weigerReden(auto(1, 0, 0, { [k]: true })), 'niet', k);
+  // #525: de opdrachtauto van de missie mag door de groep bestuurd worden (de motor leest teamActor);
+  // een scripted/story-auto blijft buiten de groep.
+  assert.equal(B.weigerReden(auto(1, 0, 0, { missionCar: true })), null, 'opdrachtauto');
   // de regel uit het voertuigregister (#452): ook zonder de oude vlaggen
   assert.equal(B.weigerReden(auto(1, 0, 0, { model: { name: 'bus' } })), 'niet', 'bus');
   assert.equal(B.weigerReden(auto(1, 0, 0, { model: { name: 'train' } })), 'niet', 'trein');
@@ -377,3 +380,4 @@ t('formaat: PROTO en CODEC_VERSION zijn niet veranderd', () => {
 });
 
 console.log(`coopbestuur_test: ${n} groepen ok`);
+

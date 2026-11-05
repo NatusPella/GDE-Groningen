@@ -6,6 +6,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+- **Een gast bestuurt ook de missieauto (#525).** De opdrachtauto van een missie is niet langer alleen voor wie het spel opende: een gast stapt in en rijdt hem, en de aflevermissie telt de groep via `teamActor`, dus de rit en de stops gelden voor iedereen. De coop-audit gaat hierdoor van 20 naar 21 van de 30 missies volledig samen. Tests: `coopbestuur_test`, `coopmissie_test`, `coopbestuurflow_test`.
 - **Onderhoud:** de speler-singleton is verder teruggebracht. `world.player` wordt nog op 70 plekken direct gelezen (was 1.239); de rest gaat via `hoofdspeler(world)` uit `players.js`, en de audit in de lichte testfase houdt de teller vast (#500). Het eigenaarschap van `World` is nu een keuring met een ADR-exitcriterium (#498), en twee echt dode velden (`lastBlast`, `teleported`) zijn verwijderd (#552).
 - **Een gast haalt het skûtsje ook in (#525).** Bij de bootachtervolging van M11 bepaalt nu de dichtstbijzijnde meespeler de afstand, en elke boot van de groep telt langszij; de achtervolging mislukt dus niet meer omdat wie het spel opende ver weg is. De coop-audit gaat hierdoor van 19 naar 20 van de 30 missies volledig samen.
 - **Een gast leidt de colonne (#525).** Bij de colonnestappen van M23 volgt de stoet nu de meespeler die in de missieauto zit, en de teller "bij elkaar" telt vanaf hem; zonder gast blijft de hoofdspeler de leider. De coop-audit gaat hierdoor van 18 naar 19 van de 30 missies volledig samen. Test: `convoy_test`.
