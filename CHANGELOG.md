@@ -6,6 +6,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+- **Onderhoud:** de speler-singleton is verder teruggebracht. `world.player` wordt nog op 70 plekken direct gelezen (was 1.239); de rest gaat via `hoofdspeler(world)` uit `players.js`, en de audit in de lichte testfase houdt de teller vast (#500). Het eigenaarschap van `World` is nu een keuring met een ADR-exitcriterium (#498), en twee echt dode velden (`lastBlast`, `teleported`) zijn verwijderd (#552).
 - **Een gast haalt het skûtsje ook in (#525).** Bij de bootachtervolging van M11 bepaalt nu de dichtstbijzijnde meespeler de afstand, en elke boot van de groep telt langszij; de achtervolging mislukt dus niet meer omdat wie het spel opende ver weg is. De coop-audit gaat hierdoor van 19 naar 20 van de 30 missies volledig samen.
 - **Een gast leidt de colonne (#525).** Bij de colonnestappen van M23 volgt de stoet nu de meespeler die in de missieauto zit, en de teller "bij elkaar" telt vanaf hem; zonder gast blijft de hoofdspeler de leider. De coop-audit gaat hierdoor van 18 naar 19 van de 30 missies volledig samen. Test: `convoy_test`.
 - **Een gast schudt de politie ook af in de garage (#525).** Bij de garage-stap van M02 kiest de missie nu uit de groep de meespeler met een stilstaande auto in de bay (`garageInside` met een actor), in plaats van alleen de auto van wie het spel opende; die auto krijgt een nieuwe kleur en de politie is hem kwijt. De coop-audit gaat hierdoor van 17 naar 18 van de 30 missies volledig samen. Test: `garage_zone_test`.
