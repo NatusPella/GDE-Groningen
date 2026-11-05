@@ -491,8 +491,8 @@ function seatSpot() {
 function sitDown(w) {
   if (!parent) return;
   // zitten zet het eigen lichaam op de bank (x, y, vx, vy, sofaSeat): schrijven
-  // blijft via world.player, alleen lezers gaan door hoofdspeler (#500)
-  const p = w.player;
+  // blijft via hoofdspeler(world), alleen lezers gaan door hoofdspeler (#500)
+  const p = hoofdspeler(w);
   const s = seatSpot();
   seat = { x: s.x, y: s.y };
   p.x = s.x; p.y = s.y; p.vx = 0; p.vy = 0;
@@ -510,8 +510,8 @@ function sitDown(w) {
 function standUp(w, place) {
   if (!seat) return;
   seat = null;
-  // opstaan schrijft de plek van het eigen lichaam: geen lezer, dus world.player (#500)
-  const p = w && w.player;
+  // opstaan schrijft de plek van het eigen lichaam: geen lezer, dus hoofdspeler(world) (#500)
+  const p = w && hoofdspeler(w);
   if (!p) return;
   p.sofaSeat = null;
   if (place && parent) {
@@ -741,8 +741,8 @@ export function updateFurnitureInside(dt, w) {
   }
   if (!seat) return false;
   // op de bank blijft het eigen lichaam vastgezet (x, y, vx, vy): schrijven via
-  // world.player, de rest van dit bestand leest via hoofdspeler (#500)
-  const p = w.player;
+  // hoofdspeler(world), de rest van dit bestand leest via hoofdspeler (#500)
+  const p = hoofdspeler(w);
   const [ax, ay] = w.input ? w.input.axis() : [0, 0];
   if (ax || ay || p.inVehicle) { standUp(w, true); return false; }
   p.x = seat.x; p.y = seat.y; p.vx = 0; p.vy = 0;
@@ -767,3 +767,4 @@ window.__furniture = {
 furnitureShopHook.items = furnitureShopItems;
 furnitureShopHook.note = furnitureShopNote;
 jobBonusHook.get = furnitureJobBonus;
+

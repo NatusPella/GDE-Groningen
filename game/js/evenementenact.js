@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import { iconDisc } from './activitykit.js';
 import { today as calendarToday } from './calendarday.js';
 import { activitySpotsFor, eventHere } from './evenementen.js';
@@ -26,14 +27,14 @@ export const EVENEMENTEN = {
     world = w;
     window.__evenementen = {
       spots: (all = true) => activitySpotsFor(calendarToday(w), hourOf(w), all),
-      here: () => eventHere(w.player.x, w.player.y, calendarToday(w), hourOf(w), 0),
+      here: () => eventHere(hoofdspeler(w).x, hoofdspeler(w).y, calendarToday(w), hourOf(w), 0),
     };
   },
   spots: (all = false) => (world ? activitySpotsFor(calendarToday(world), hourOf(world), all) : []),
   prompt: () => null,
   secondary(w) {
     const out = [];
-    const p = w.player;
+    const p = hoofdspeler(w);
     for (const s of activitySpotsFor(calendarToday(w), hourOf(w))) {
       if (!s.live || Math.hypot(s.x - p.x, s.y - p.y) > 200) continue;
       out.push({ id: 'evenement-' + s.id, x: s.x, y: s.y, h: 3, label: s.name, sub: 'Hier is iets te doen', kind: 'place' });
@@ -53,3 +54,4 @@ export const EVENEMENTEN = {
   mapSub: (spot) => spot.sub || 'Evenement',
   ubbo: () => null,
 };
+

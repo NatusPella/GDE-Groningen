@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import { playCinematic, roofAt, respawnFromScene, setCinematicLinks } from './cinematics.js';
 import { spawnHeroCarNear, spawnVehicleOnRoad, manageTrafficPopulation, manageBikePopulation } from './vehicle.js';
 import { slotFits, propBlocked, sleepingParkedCars } from './parkedcars.js';
@@ -422,7 +423,7 @@ function placeCompanion(w, plan) {
 }
 
 function repopulate(w) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   try {
     manageTrafficPopulation(w);
     manageBikePopulation(w);
@@ -593,7 +594,7 @@ export function startRespawnScene(w, pending, opts) {
 }
 
 function begin(w, pending, opts) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   const fromX = p.inVehicle ? p.inVehicle.x : p.x, fromY = p.inVehicle ? p.inVehicle.y : p.y;
   let dest = destination(w, opts.busted, fromX, fromY);
   if (!dest) return false;
@@ -669,7 +670,7 @@ function respawnNow(state) {
   state.done = true;
   if (w.pendingRespawn !== pending) return;
   w.pendingRespawn = null;
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (p.water && typeof p.leaveWater === 'function') p.leaveWater();
   p.climb = null;
   respawnFromScene(w, { ...opts, spot: { ...plan.player, name: dest.site.name, message: state.message } });
@@ -863,3 +864,4 @@ if (typeof window !== 'undefined') {
 }
 
 setCinematicLinks({ startRespawnScene, respawnFade });
+

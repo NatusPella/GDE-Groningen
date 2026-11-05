@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene, streamPending, addCamTargetSource } from './scene3d.js';
 import { facilitiesOf } from './facilities.js';
@@ -380,7 +381,7 @@ const GARAGE_MOOD = (L) => {
 };
 
 function playerThing(w) {
-  const p = w.player, v = p.inVehicle;
+  const p = hoofdspeler(w), v = p.inVehicle;
   return v ? { v, x: v.x, y: v.y } : { v: null, x: p.x, y: p.y };
 }
 
@@ -394,7 +395,7 @@ function flash() {
 }
 
 function enter(site) {
-  const w = world, p = w.player;
+  const w = world, p = hoofdspeler(w);
   const t = playerThing(w);
   if (!fits(t.v)) {
     if (!site.warned || w.time - site.warned > 4) { site.warned = w.time; w.addMessage('Te groot voor de garage', 3); }
@@ -425,7 +426,7 @@ function enter(site) {
 }
 
 function leave(site, to) {
-  const w = world, p = w.player;
+  const w = world, p = hoofdspeler(w);
   const t = playerThing(w);
   const g = site.gate;
   clearCars(site, t.v);
@@ -569,7 +570,7 @@ export function updateParkeergarages(dt, w) {
   if (!sites.length) return;
   if (st.fade > 0 && (st.fade -= dt) <= 0) { st.fade = 0; respawnFade(0, 600); }
   if (st.cooldown > 0) st.cooldown -= dt;
-  const p = w.player;
+  const p = hoofdspeler(w);
   const focus = w.streamFocus || p;
   const t = playerThing(w);
   const inside = st.inside;
@@ -594,3 +595,4 @@ export function updateParkeergarages(dt, w) {
     if (!inside && st.cooldown <= 0 && !w.paused && s.gateGroup && P.inGateZone(s.gate, t.x, t.y)) enter(s);
   }
 }
+

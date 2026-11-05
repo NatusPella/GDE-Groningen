@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Runs regioleven.js in the game: now and then a chance encounter as a
 // text card (no voice), and the finds of a streek when you stand on them.
 // Quiet during missions, cutscenes and every other busy moment (busy.js).
@@ -26,21 +27,21 @@ const foundIds = () => {
 };
 
 export function updateRegioLeven(dt, w) {
-  if (!w || !w.player) return;
+  if (!w || !hoofdspeler(w)) return;
   nieuwsNow += dt;
   if (!nieuws) nieuws = createNieuwsLink(1 + Math.floor(Math.random() * 1e6));
   if ((nieuwsT -= dt) <= 0 && !w.paused) {
     nieuwsT = 0.5;
-    const sk = streekAt(w.player.x, w.player.y);
+    const sk = streekAt(hoofdspeler(w).x, hoofdspeler(w).y);
     const n = tikNieuws(nieuws, w, nieuwsNow, { regio: 'groningen', plaats: sk ? sk.name : 'Groningen' }, nieuwsEnv);
     if (n && !playerBusy(w).busy) showCard(w, { kind: 'tip', kicker: n.bron, title: n.item.lezer, body: n.item.tekst, duration: 9, key: 'nieuws-' + Math.round(nieuwsNow), voice: false });
   }
   // passers-by talk to each other in bubbles (straatpraat.js, #190): also during a mission or a job (it is
   // ambient), not in a cutscene, a minigame or a respawn, and not from a fast vehicle
-  const pv = w.player.inVehicle;
+  const pv = hoofdspeler(w).inVehicle;
   if ((!pv || Math.abs(pv.speed || 0) < 6) && !playerBusy(w, ['cinematic', 'respawn', 'heliRun', 'pigeon', 'train', 'padel', 'activityGame']).busy) tikStraatpraat(dt, w);
   if (playerBusy(w).busy) return;
-  const p = w.player;
+  const p = hoofdspeler(w);
   const moving = p.inVehicle ? Math.abs(p.inVehicle.speed || 0) > 0.5 : (p.speed || 0) > 0.3;
   if ((scanT -= dt) <= 0) {
     scanT = 0.5;
@@ -74,3 +75,4 @@ export function updateRegioLeven(dt, w) {
   if (gift > 0 && Number.isFinite(w.money)) w.money += gift;
   showCard(w, { kind: 'tip', kicker: s ? s.name : 'Onderweg', title: e.who, body: e.line + (gift > 0 ? ` (€${gift})` : ''), duration: 6, key: 'ontmoeting-' + e.id, voice: false });
 }
+

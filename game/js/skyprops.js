@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { pointInPolygon, normalizeAngle } from './util.js';
 import { rand } from './rng.js';
@@ -273,7 +274,7 @@ function spawnBalloons(world, forceLaunch = null) {
   const launch = forceLaunch ?? (launchTime && sites.length && Math.random() < 0.55);
   const wind = world.weather ? world.weather.windAngle : 0;
   const wx = Math.cos(wind), wy = Math.sin(wind);
-  const px = world.player.x, py = world.player.y;
+  const px = hoofdspeler(world).x, py = hoofdspeler(world).y;
   if (launch && sites.length) {
     const s = sites[Math.floor(Math.random() * sites.length)];
     const b = newBalloon(s.x + rand(-20, 20), s.y + rand(-20, 20), 0, Math.random() * 1e6);
@@ -309,7 +310,7 @@ function updateBalloons(dt, world) {
   const wind = world.weather ? world.weather.windAngle : 0;
   const wx = Math.cos(wind), wy = Math.sin(wind);
   const [bx0, by0, bx1, by1] = world.map.meta.bounds;
-  const px = world.player.x, py = world.player.y;
+  const px = hoofdspeler(world).x, py = hoofdspeler(world).y;
   for (let i = list.length - 1; i >= 0; i--) {
     const b = list[i];
     if (b.scripted) continue;
@@ -436,3 +437,4 @@ function debugApi(world) {
     balloons: () => world.balloons,
   };
 }
+

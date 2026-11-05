@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Kaartjesknipper (#437): treinloopbaan niveau 3. Op het perron van een station staan reizigers (stationlife3d.js);
 // wie Kaartjesknipper is controleert er een paar: lopen naar een reiziger, E, een kort antwoord. Is de ronde
 // rond (CONTROLE_DOEL reizigers, of minder als het rustig is) dan betaalt het loon van het vak plus loopbaanpunten.
@@ -80,7 +81,7 @@ export function conducteursbonus(w, naam) {
 }
 
 export function magControleren(w) {
-  const p = w && w.player;
+  const p = w && hoofdspeler(w);
   if (!p || p.inVehicle || p.swimming || w.paused || w.uiPaused) return false;
   if (playerBusy(w).busy) return false;
   return isKaartjesknipper();
@@ -102,7 +103,7 @@ export function dichtstbij(w, cur = currentStation()) {
   let best = null, bd = CONTROLE_M;
   for (const r of lijst) {
     if (toestand.gedaan.has(r.i)) continue;
-    const d = Math.hypot(r.x - w.player.x, r.y - w.player.y);
+    const d = Math.hypot(r.x - hoofdspeler(w).x, r.y - hoofdspeler(w).y);
     if (d <= bd) { bd = d; best = { ...r, doel: rondeDoel(lijst) }; }
   }
   return best;
@@ -154,3 +155,4 @@ export function tryControle(w, cur = currentStation()) {
 export function updateControle() {
   synchroon(currentStation());
 }
+

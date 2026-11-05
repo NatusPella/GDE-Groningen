@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import { ejectDriver } from './pedestrians.js';
 import { lineOfSight } from './pedgeom.js';
 import { walkPed } from './sidejobkit.js';
@@ -31,7 +32,7 @@ export function initRoadRage(w) {
     state: () => ({ phase: S.fight && S.fight.phase, armed: S.fight && S.fight.weapon, since: S.since, level: levelOf(getSettings().ruzie) }),
     // forces a fight with the nearest ordinary car (tests); weapon: a key or null
     start: (weapon = null) => {
-      const v = w.vehicles.find((c) => eligible(c) && dist(c, w.player) < 60);
+      const v = w.vehicles.find((c) => eligible(c) && dist(c, hoofdspeler(w)) < 60);
       return v ? begin(w, v, weapon || undefined) : false;
     },
     abort: () => end(w, true),
@@ -138,10 +139,10 @@ function copNearby(w, f) {
 }
 
 export function updateRoadRage(dt, w) {
-  if (!dt || w.paused || !w.player || !w.map) return;
+  if (!dt || w.paused || !hoofdspeler(w) || !w.map) return;
   world = w;
   S.since += dt;
-  const p = w.player;
+  const p = hoofdspeler(w);
   const f = S.fight;
   if (!f) {
     detect(w);
@@ -274,7 +275,7 @@ export function updateRoadRage(dt, w) {
 
 // A hard bump or a long honk, and the dice.
 function detect(w) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   const level = levelOf(getSettings().ruzie);
   const may = mayRage({ busy: busy(w), dead: p.dead || w.pendingRespawn, wanted: w.wanted || 0, since: S.since, time: w.time || 0, level });
   const pv = p.inVehicle;
@@ -295,3 +296,4 @@ function detect(w) {
     if (begin(w, v)) { S.fight.trigger = trigger; return; }
   }
 }
+

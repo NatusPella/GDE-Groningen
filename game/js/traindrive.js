@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Stealing a train: board a stopped train at the cab end (E), drive it along
 // its own line with throttle and brake, get off again once it stands still.
 // The physics live in railway.js (state 'player'); this file handles the
@@ -57,7 +58,7 @@ function facingOf(t) {
 
 // A stopped (or abandoned) train whose cab end the player stands next to.
 function boardable(world) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   if (world.trainDriving || p.inVehicle || p.swimming || p.water || p.ragdoll || world.pigeonMode) return null;
   // at the ticket machine E buys a ticket, not a train
   if (stationPrompt(world)) return null;
@@ -145,7 +146,7 @@ function board(world, { t, cab: cab_ }) {
   cab.look = { yaw: 0, pitch: 0 };
   insideCam = false;
   world.trainWalk = null;
-  const p = world.player;
+  const p = hoofdspeler(world);
   p.vx = 0; p.vy = 0; p.moving = false; p.crouching = false; p.vault = null;
   syncRider(world);
   const q = world.audioEvents || (world.audioEvents = []);
@@ -182,7 +183,7 @@ function stopDriving(world, placeOutside, fromCar = null, prefSide = 1) {
   const car = fromCar != null ? t.cars[fromCar] : cabCar(t);
   if (t.state === 'player') parkTrain(t);
   if (!placeOutside) return;
-  const p = world.player, map = world.map;
+  const p = hoofdspeler(world), map = world.map;
   const back = fromCar != null ? 0 : Math.cos(facingOf(t)) * 3, backY = fromCar != null ? 0 : Math.sin(facingOf(t)) * 3;
   let spot = null;
   for (const side of [prefSide, -prefSide]) {
@@ -214,7 +215,7 @@ function stopDriving(world, placeOutside, fromCar = null, prefSide = 1) {
 // Keeps the player (hidden) in the cab and the camera proxy up to date.
 function syncRider(world) {
   const t = world.trainDriving;
-  const p = world.player;
+  const p = hoofdspeler(world);
   const car = cabCar(t);
   const a = facingOf(t);
   const walk = world.trainWalk;
@@ -406,3 +407,4 @@ export function treinDienst(world) {
     uitslag: svc.result ? treinUitslag(svc.result, svc.abandoned) : null,
   };
 }
+

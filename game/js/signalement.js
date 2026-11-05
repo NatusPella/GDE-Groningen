@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Signalement (#43, steps 4 and 5): what the police are told about you. A
 // witness' call (pedestrians.js) or a seen crime notes the vehicle you are in
 // (which one, what colour) or, on foot, that you are on foot. When you are
@@ -7,7 +8,7 @@
 export const MISMATCH_DECAY = 2.5;
 
 export function profileOf(world) {
-  const v = world && world.player && world.player.inVehicle;
+  const v = world && hoofdspeler(world) && hoofdspeler(world).inVehicle;
   if (!v) return { vehicle: null, color: null };
   return { vehicle: v.id ?? v.uid ?? v.name ?? (v.model && v.model.name) ?? 'voertuig', color: v.color || (v.model && v.model.color) || null, ref: v };
 }
@@ -26,7 +27,7 @@ export function fitsProfile(profile, world) {
 // police's mind: the same description cools down up to 40% slower.
 export function decayFactor(profile, world) {
   if (!fitsProfile(profile, world)) return MISMATCH_DECAY;
-  const v = world && world.player && world.player.inVehicle;
+  const v = world && hoofdspeler(world) && hoofdspeler(world).inVehicle;
   const flash = v && v.tuning && v.tuning.opvallend > 0 ? Math.min(1, v.tuning.opvallend) : 0;
   return 1 - 0.4 * flash;
 }
@@ -40,3 +41,4 @@ export function hintFor(profile, world, hinted) {
   if (fitsProfile(profile, world)) return null;
   return profileOf(world).vehicle === null ? ON_FOOT_HINT : MISMATCH_HINT;
 }
+
