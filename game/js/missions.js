@@ -3567,8 +3567,11 @@ function updateStages(dt, world, def) {
     case 'vault':
       if (!S.started) {
         if (isCinematicActive()) break;
-        S.started = true;
         const at = S.target || { x: p.x, y: p.y };
+        // Samen spelen (#525): de polsstokscène begint pas als de hele groep bij de gracht
+        // staat; wie achterloopt krijgt de wachtmelding in plaats van de scène te missen.
+        if (!groepKlaar(world, { iedereen: true }, at, 40)) { hint(world, WACHT_OP_ANDEREN); break; }
+        S.started = true;
         const vlines = st.script && storyDataReady() ? storyLines(st.script.ids, st.script) : st.lines;
         if (!playVaultScene(world, { at, lines: vlines, landing: st.landing, fail: !!st.fail })) { world.addMessage(st.fail ? 'Jelle springt met een polsstok… en ligt in het water.' : 'Jelle springt met een polsstok over de gracht. Moai.', 4); nextStage(world, def); }
       } else if (!isCinematicActive('mission-vault')) nextStage(world, def);

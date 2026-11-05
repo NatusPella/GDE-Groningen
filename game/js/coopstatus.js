@@ -36,7 +36,7 @@ const STAP = {
   goto: WERKT, hold: WERKT, board: WERKT, escape: WERKT, chase: WERKT, scene: WERKT,
   choice: WERKT, timing: WERKT,
   rit: DEELS, convoy: DEELS, fuse: DEELS, blast: DEELS, plan: DEELS, lock: DEELS, pickpocket: DEELS,
-  laser: DEELS, crack: DEELS, getaway: DEELS, shot: DEELS, vault: DEELS,
+  laser: DEELS, crack: DEELS, getaway: DEELS, shot: DEELS, vault: WERKT,
   // boatchase staat op 'werkt' sinds #525: de dichtstbijzijnde meespeler bepaalt de afstand en elke boot
   // van de groep telt langszij (teamActor, groepsActeurs), dus een gast kan het skûtsje ook inhalen.
   boatchase: WERKT,
@@ -144,5 +144,6 @@ export function waarschuwVoorStart(world, soort, id, status = undefined) {
   if (w && world && typeof world.addMessage === 'function') world.addMessage(w.start, 4);
   return w;
 }
+
 
 
