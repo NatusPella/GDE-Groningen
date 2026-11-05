@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene, prewarmStreamAt } from './scene3d.js';
 import { basketRiderPose } from './basketrider.js';
@@ -480,7 +481,7 @@ function heliOn(w, pad, spot = null) {
 export function startHeliRun(opts = {}) {
   const w = world;
   if (!w || run || w.pigeonMode || isCinematicActive() || document.body.classList.contains('intro-montage')) return false;
-  const pl = w.player;
+  const pl = hoofdspeler(w);
   if (pl.inVehicle && !pl.inVehicle.storyDemo) return false;
   const pads = runPads(w);
   if (!pads.umcg) return false;
@@ -613,7 +614,7 @@ function cleanup(aborted) {
   hud.card.classList.remove('on');
   hud.say.classList.remove('on');
   hud.fade.classList.remove('on');
-  const pl = w.player;
+  const pl = hoofdspeler(w);
   pl.inVehicle = null;
   // back on the street by the UMCG (a run given up at Eelde stays at Eelde)
   const atEelde = r.startPad.id === 'eelde' && Math.hypot(v.x - r.startPad.x, v.y - r.startPad.y) < 400;
@@ -945,7 +946,7 @@ function updateCatchHud() {
 }
 
 function syncPlayer() {
-  const pl = world.player, v = run.v;
+  const pl = hoofdspeler(world), v = run.v;
   pl.x = v.x; pl.y = v.y; pl.angle = v.angle;
   pl.vx = 0; pl.vy = 0;
 }
@@ -1003,7 +1004,7 @@ function updateCamera(dt) {
 // --- start spot ---------------------------------------------------------------
 
 function nearSpot(w) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (!spot || w.pigeonMode || w.heliRun || p.inVehicle || p.swimming || p.water) return false;
   return Math.hypot(spot.x - p.x, spot.y - p.y) < USE_RADIUS;
 }
@@ -1015,8 +1016,8 @@ export function heliSpotPrompt(w) {
 }
 
 export function heliSpotSecondary(w) {
-  if (!spot || w.heliRun || w.pigeonMode || w.player.inVehicle) return [];
-  const { x, y } = w.player;
+  if (!spot || w.heliRun || w.pigeonMode || hoofdspeler(w).inVehicle) return [];
+  const { x, y } = hoofdspeler(w);
   if (Math.abs(spot.x - x) > 20 || Math.abs(spot.y - y) > 20) return [];
   return [{ id: 'heli2-umcg', x: spot.x, y: spot.y, h: 2.2, label: 'Ballonjacht', sub: 'Loop erheen en druk E', kind: 'place' }];
 }
@@ -1038,7 +1039,7 @@ export function tryHeliSpotInteract(w) {
 
 function animatePilot(dt) {
   if (!spot || !spot.pilot) return;
-  const p = world.player;
+  const p = hoofdspeler(world);
   if (Math.abs(spot.x - p.x) > 60 || Math.abs(spot.y - p.y) > 60) return;
   animatePersonWalk(spot.pilot, 0, dt);
 }
@@ -1068,3 +1069,4 @@ export function initHeliRun(w) {
     spot: () => spot,
   };
 }
+

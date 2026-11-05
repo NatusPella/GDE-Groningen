@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Owned vehicles ("Mijn voertuigen"): the red Fjord Escapade plus everything
 // bought at Ome Harm Occasions / Trap & Toeter (the bought collection itself
 // lives in shops.js and is saved with it). Rentals and side-job/mission
@@ -450,7 +451,7 @@ function nameOf(spec, v) {
 
 function statusOf(world, v, lost, kind, key) {
   if (lost) return { key: 'lost', label: 'Afgeschreven' };
-  const speler = world.player;
+  const speler = hoofdspeler(world);
   if (speler && speler.inVehicle === v) return { key: 'driving', label: 'Je zit erin' };
   if (!v || !world.vehicles.includes(v) || v.homeStored) return { key: 'garage', label: homeWhereLabel(key) || (kind === 'heli' ? 'Thuis op het helidek' : kind === 'boat' ? 'Thuis aan jouw steiger' : 'Thuis in de garage') };
   const d = Math.hypot(v.x - (speler ? speler.x : 0), v.y - (speler ? speler.y : 0));
@@ -557,7 +558,7 @@ export function getGarageCatalog(world) {
 
 export function getOwnedVehiclesForMap(world) {
   const out = [];
-  const pv = world.player.inVehicle;
+  const pv = hoofdspeler(world).inVehicle;
   const hero = heroCar(world);
   const look = getHeroLook();
   if (hero && hero !== pv) out.push({ x: hero.x, y: hero.y, angle: hero.angle, kind: 'car', label: 'Fjord Escapade', hero: true, color: look.color || HERO_SPEC.color });
@@ -619,7 +620,7 @@ const solidAt = (map, x, y, m) => {
 // heli; never in a building, farm, prop or other vehicle. Else the kerb
 // spot nearby (cars, bikes), visible this time.
 function besideSpot(world, kind, model, ignore) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   const radii = kind === 'boat' ? [3, 6, 10, 15, 20, 28, 36, 45] : kind === 'heli' ? [7, 10, 14, 19, 25, 32] : [3, 4.5, 6, 8, 11, 15, 20];
   const spot = spotAround(world, p.x, p.y, p.angle, p.gz || 0, kind, model, ignore, radii);
   if (spot || kind === 'boat' || kind === 'heli') return spot;
@@ -673,7 +674,7 @@ const HERE_FAIL = {
 function deliverHere(world, id) {
   if (world.pigeonMode) return { ok: false, text: 'Eerst weer mens worden' };
   if (inHomeFlat()) return { ok: false, text: 'Eerst de flat uit' };
-  if (world.player.swimming) return { ok: false, text: 'Eerst even uit het water klimmen' };
+  if (hoofdspeler(world).swimming) return { ok: false, text: 'Eerst even uit het water klimmen' };
   const e = getGarageCatalog(world).find((x) => x.id === id);
   if (!e) return { ok: false, text: 'Dat voertuig bestaat niet' };
   const short = e.hero ? 'Escapade' : e.model || e.spec.label;
@@ -708,7 +709,7 @@ function deliverHere(world, id) {
 function bezorgInSessie(world, e) {
   const short = e.hero ? 'Escapade' : e.model;
   if (world.pigeonMode) return { ok: false, text: 'Duiven krijgen geen auto bezorgd' };
-  if (world.player.inVehicle) return { ok: false, text: 'Stap eerst uit je voertuig' };
+  if (hoofdspeler(world).inVehicle) return { ok: false, text: 'Stap eerst uit je voertuig' };
   const wait = Math.ceil(lastDeliveryAt + DELIVERY_COOLDOWN - world.time);
   if (wait > 0) return { ok: false, text: `De bezorger is nog onderweg met de vorige. Probeer het over ${wait} s` };
   if (world.money < e.fee) return { ok: false, text: `Te weinig geld: afleveren kost ${e.feeLabel}` };
@@ -734,7 +735,7 @@ export function deliverOwnedVehicle(world, id, opts = {}) {
   if (e.status === 'driving') return { ok: false, text: `Je zit al in je ${short}` };
   if (world.pigeonMode) return { ok: false, text: 'Duiven krijgen geen auto bezorgd' };
   if (world.wanted > 0) return { ok: false, text: 'Met de politie op je hielen bezorgt niemand iets. Eerst ze kwijt!' };
-  if (world.player.swimming) return { ok: false, text: 'Eerst even uit het water klimmen' };
+  if (hoofdspeler(world).swimming) return { ok: false, text: 'Eerst even uit het water klimmen' };
   if (e.status === 'near' && e.dist < 60) {
     return { ok: true, text: `Je ${short} staat al om de hoek. Je ziet hem op je kaart` };
   }
@@ -744,7 +745,7 @@ export function deliverOwnedVehicle(world, id, opts = {}) {
 
   const home = homeDelivery(world, e);
   if (home) return home;
-  const px = world.player.x, py = world.player.y;
+  const px = hoofdspeler(world).x, py = hoofdspeler(world).y;
   const pick = (kind, model, ignore) => (kind === 'boat' ? jettySpot(world, px, py, ignore ? 450 : 5000) : findParkingSpot(world, px, py, model, { ignore }));
   const spot = placeEntry(world, id, pick);
   if (!spot) return { ok: false, text: 'De bezorger kan hier nergens parkeren. Loop eens naar een gewone straat' };
@@ -803,7 +804,7 @@ function homeSpot(world, kind) {
 // blijft hij waar hij is en zoekt de baan een andere truck of de leen-truck.
 export function eigenVrachtTruck(world) {
   if (!world || !Array.isArray(world.vehicles)) return null;
-  const inGebruik = world.player && world.player.inVehicle;
+  const inGebruik = hoofdspeler(world) && hoofdspeler(world).inVehicle;
   let leeg = null;
   for (const o of getOwnedEntries()) {
     if (!o || o.lost || !o.spec || o.spec.kind !== 'car' || !isVrachtTruck(o.spec.model)) continue;
@@ -863,3 +864,4 @@ export function whereText(e) {
   const d = e.dist != null ? (e.dist < 1000 ? `${Math.round(e.dist / 10) * 10} m` : `${(e.dist / 1000).toFixed(1).replace('.', ',')} km`) : '';
   return [parts.join(', '), d].filter(Boolean).join(' · ');
 }
+
