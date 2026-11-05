@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Movable bridges (docs/PROVINCIE-PLAN.md 2.11, "Water"): every road that OSM
 // tags bridge:movable (scripts/world/water.mjs sets road.movable) opens for
 // boats that do not fit under it, and for a skipper who sounds the horn in
@@ -246,7 +247,7 @@ export function onSpan(b, x, y, pad = 1) {
 function spanBusy(b, world) {
   if (!world) return false;
   for (const v of world.vehicles || []) if (!v.isBoat && !v.sinking && onSpan(b, v.x, v.y, v.halfLen || 2)) return true;
-  const p = world.player;
+  const p = hoofdspeler(world);
   if (p && !p.inVehicle && !p.water && onSpan(b, p.x, p.y)) return true;
   for (const ped of world.pedestrians || []) if (onSpan(b, ped.x, ped.y, 0.5) && ped.state !== 'dead') return true;
   return false;
@@ -344,7 +345,7 @@ export function bridgeHint(state, onWater) {
 
 // The player is on the span while the barriers are down and the leaf waits for the span to empty (#302)
 function clearHint(b, world) {
-  const p = world && world.player;
+  const p = world && hoofdspeler(world);
   if (!p || !world.addMessage || b.t < BRIDGE_TIMING.CLEAR_HINT_S) return;
   const v = p.inVehicle;
   if (v ? v.isBoat || !onSpan(b, v.x, v.y, v.halfLen || 2) : (p.water || !onSpan(b, p.x, p.y))) return;
@@ -356,7 +357,7 @@ function clearHint(b, world) {
 }
 
 function hintNear(b, world) {
-  const p = world && world.player;
+  const p = world && hoofdspeler(world);
   if (!p || !world.addMessage) return;
   const v = p.inVehicle;
   const x = v ? v.x : p.x, y = v ? v.y : p.y;
@@ -480,3 +481,4 @@ export function bridgeSpeedLimit(v, path, project) {
 
 // for tests and the story test
 export function _setBridgesForTest(list) { bridges = list; ready = true; }
+

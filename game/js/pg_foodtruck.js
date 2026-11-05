@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import { spawnPed, walkPed, holdPed, freePed, pedAlive, say as pedSay } from './sidejobkit.js';
 import { recordStat, unlockAchievement } from './achievements.js';
 import { Vehicle, pushCircleOutOfVehicle } from './vehicle.js';
@@ -258,7 +259,7 @@ export const FJORD = {
     return `${s.data.spot.name}: ${b.label}`;
   },
   start(run) {
-    const w = run.world, v = w.player.inVehicle;
+    const w = run.world, v = hoofdspeler(w).inVehicle;
     if (!isTruck(v)) return 'Kom met de Fjord Frituur';
     const b = run.spot.data.spot.busy(w);
     Object.assign(run.data, {
@@ -286,7 +287,7 @@ export const FJORD = {
   update(run, dt) {
     const w = run.world, d = run.data, v = d.truck;
     const moved = Math.hypot(v.x - d.x0, v.y - d.y0);
-    if (w.player.inVehicle !== v || moved > 4 || v.wrecked) { end(run, moved > 4 ? 'De truck schoof weg: luik dicht.' : 'Luik dicht.'); return; }
+    if (hoofdspeler(w).inVehicle !== v || moved > 4 || v.wrecked) { end(run, moved > 4 ? 'De truck schoof weg: luik dicht.' : 'Luik dicht.'); return; }
     // holding the throttle closes up: the truck stays on its brakes until the queue has stepped aside
     d.throttleT = d.wantsDrive ? d.throttleT + dt : 0;
     if (d.throttleT > 0.6) { end(run, 'Luik dicht: jullie rijden door.'); return; }
@@ -353,7 +354,7 @@ export const FJORD = {
   },
   debugVehicle(world, s) {
     // dev/test only: put the player in a Fjord Frituur at the spot
-    const p = world.player;
+    const p = hoofdspeler(world);
     if (p.inVehicle) return;
     const v = world.vehicles.find((x) => isTruck(x) && !x.driver) || new Vehicle(s.x, s.y, 0, { name: 'foodtruck', len: 5.4, wid: 2.1, maxSpeed: 34, accel: 6.5, brake: 14, turnRate: 2, color: '#2f6fb0' });
     if (!world.vehicles.includes(v)) { v.isFoodtruck = true; v.missionCar = true; world.vehicles.push(v); }
@@ -415,3 +416,4 @@ function end(run, why, cut = false) {
     stats: [['Geholpen', String(d.served)], ['Fout', String(d.wrong)], ['Weggelopen', String(d.lost)], ...(bonus ? [['Dienstbonus', `€${bonus}`]] : [])],
   });
 }
+

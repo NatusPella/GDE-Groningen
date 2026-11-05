@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // The load screen (the approved "Laadscherm"): a slow Ken Burns picture of the
 // place you are going to, the logo, "Eerder in het verhaal", a "Je gaat verder
 // in" card, a tip and a real progress bar with the phase of the work. It
@@ -65,7 +66,7 @@ function ensureCss() {
 export function startLoadScreen(world, opts = {}) {
   if (active) return active;
   ensureCss();
-  const p = world.player;
+  const p = hoofdspeler(world);
   const x = Number.isFinite(opts.x) ? opts.x : p.x, y = Number.isFinite(opts.y) ? opts.y : p.y;
   const kind = ['save', 'travel', 'snel'].includes(opts.kind) ? opts.kind : 'travel';
   let place = { name: opts.name || '', country: false, district: '' };
@@ -160,7 +161,7 @@ export function startLoadScreen(world, opts = {}) {
 // the screen while the city streams in. main.js calls this every frame.
 let lastX = null, lastY = 0;
 export function watchJumps(world, { swallow = false, hold = false } = {}) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   // hold: a menu or the map is open, the jump is looked at once it closes
   if (hold && lastX != null) return;
   const moved = lastX == null ? 0 : Math.hypot(p.x - lastX, p.y - lastY);
@@ -169,3 +170,4 @@ export function watchJumps(world, { swallow = false, hold = false } = {}) {
   startLoadScreen(world, { kind: loadKind(moved), x: p.x, y: p.y, mission: world.loadMission });
 }
 export function resetJumpWatch() { lastX = null; }
+

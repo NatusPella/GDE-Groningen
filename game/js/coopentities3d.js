@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Samen spelen (#95): de wereld van de host bij een gast, getekend. Voertuigen dicht bij
 // de spelers met het echte model, de kleur en de schade van de host (coopworld.js, #428), en
 // het doel van de opdracht en het beginpunt van de volgende als wereldmarkers in de stijl van
@@ -221,7 +222,7 @@ export function syncHostEntities(world, dt = 1 / 60) {
   const stand = world.coopExtra, md = stand && standVers(stand, world.time) ? stand.misc.get(MISC_DEUREN) : null;
   const deuren = md ? (md.kaart || (md.kaart = leesDeuren(md.data) || new Map())) : null;
   const sirenes = [];
-  const eigenId = kiesEigenBoot(world.coopBoot, host.voertuigen, world.player); // de boot waar deze gast zelf op zit
+  const eigenId = kiesEigenBoot(world.coopBoot, host.voertuigen, hoofdspeler(world)); // de boot waar deze gast zelf op zit
   deurenOpen = 0;
   for (const v of host.voertuigen) {
     seen.add(v.id);
@@ -264,7 +265,7 @@ export function syncHostEntities(world, dt = 1 / 60) {
     if (!m.userData.blok) animeerVoertuig(m, spec, v, klok, dt, deuren, vast);
     // geluid: de toeter bij het aangaan van de vlag (met de toonhoogte van dit voertuig) en de sirene zolang hij aan staat, met de bestaande geluiden (audio.js)
     const toet = !!v.toeter;
-    const hp = world.player;
+    const hp = hoofdspeler(world);
     if (toet && !hornWas.get(v.id) && hp && Math.hypot(v.x - hp.x, v.y - hp.y) < 130) {
       world.coopHoornDbg = (world.coopHoornDbg || 0) + 1; // voor de testbank
       (world.audioEvents || (world.audioEvents = [])).push(spec && (spec.isBike) ? { kind: 'bell', x: v.x, y: v.y } : { kind: 'horn', x: v.x, y: v.y, low: spec ? (spec.isBoat ? 0.45 : spec.isBus ? 0.7 : spec.model && spec.model.name === 'van' ? 0.85 : spec.isHeroCar ? 0.96 : 1) : 1 });
@@ -329,7 +330,7 @@ export function syncHostEntities(world, dt = 1 / 60) {
     if (start) {
       startBaken.position.set(start.x, grondY(world, start.x, start.y), start.y);
       updateWorldMarker3D(startBaken, klok);
-      const p = world.player;
+      const p = hoofdspeler(world);
       if (p && Math.hypot(start.x - p.x, start.y - p.y) < 25 && world.time - startHint > 40 && world.addMessage) { startHint = world.time; world.addMessage(startHintTekst(), 5); }
     }
   }
@@ -349,3 +350,4 @@ export function clearHostEntities() {
   if (startBaken && scene) scene.remove(startBaken);
   startBaken = null;
 }
+

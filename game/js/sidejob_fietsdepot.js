@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Bijbaantje: fietsenhandhaving bij het Hoofdstation. Foutgeparkeerde
 // fietsen (met een oranje label) oppakken en in het busje van het
 // fietsdepot zetten, terwijl de eigenaren komen protesteren.
@@ -124,7 +125,7 @@ export default {
 
   update(dt, c) {
     const { world } = c;
-    const d = c.data, p = world.player, v = c.vehicle;
+    const d = c.data, p = hoofdspeler(world), v = c.vehicle;
     if (v) decorateVehicle(v, 'depot', vanSign);
     const carried = d.bikes.find((b) => b.state === 'carried');
 
@@ -170,7 +171,7 @@ export default {
 
   interact(c) {
     const { world } = c;
-    const d = c.data, p = world.player, v = c.vehicle;
+    const d = c.data, p = hoofdspeler(world), v = c.vehicle;
     if (p.inVehicle) return false;
     const carried = d.bikes.find((b) => b.state === 'carried');
     if (carried) {
@@ -201,7 +202,7 @@ export default {
 
   prompt(c) {
     const { world } = c;
-    const d = c.data, p = world.player, v = c.vehicle;
+    const d = c.data, p = hoofdspeler(world), v = c.vehicle;
     if (p.inVehicle) return null;
     const carried = d.bikes.find((b) => b.state === 'carried');
     if (carried) {
@@ -225,7 +226,7 @@ export default {
       const at = v || c.spot;
       return { marker: { x: at.x, y: at.y }, dots, progress, goal: { label: 'Naar het busje', desc: 'Druk E bij het busje van het fietsdepot' } };
     }
-    const p = c.world.player;
+    const p = hoofdspeler(c.world);
     left.sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y));
     const next = left[0];
     return { marker: next ? { x: next.x, y: next.y } : null, dots: dots.filter((x) => !next || x.x !== next.x || x.y !== next.y), progress, goal: { label: 'Fietsen met een oranje label', desc: 'Loop erheen en druk E om op te pakken' } };
@@ -247,3 +248,5 @@ export default {
     if (d.protester && pedAlive(c.world, d.protester.ped)) freePed(d.protester.ped);
   },
 };
+
+

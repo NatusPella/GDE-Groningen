@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { isInWater, WATER_Y } from './util.js';
 import { spawnFxPuff } from './fx3d.js';
@@ -92,7 +93,7 @@ function ringAt(i, hx, hy, hz, t, seed, k) {
 }
 
 function updateStars(world) {
-  const t = world.time, pl = world.player;
+  const t = world.time, pl = hoofdspeler(world);
   let n = 0;
   const head = (x, y, h, seed, k) => {
     if (n >= STAR_ACTORS || k <= 0) return;
@@ -175,7 +176,7 @@ const FEATHER_COLS = { pigeon: [0x8d929c, 0xb6bac2, 0x5b6170], duck: [0x7a5b3c, 
 
 // A bird the player drives at flaps away in a fluster, leaving a few feathers.
 function flusterBirds(world) {
-  const v = world.player.inVehicle;
+  const v = hoofdspeler(world).inVehicle;
   const list = world.wildlife;
   if (!v || !list || v.isBoat || Math.abs(v.speed) < 6) return;
   const ca = Math.cos(v.angle), sa = Math.sin(v.angle);
@@ -211,3 +212,4 @@ export function updateKnockFx3D(dt, world, sc) {
   updateFeathers(dt, world);
   updateStars(world);
 }
+

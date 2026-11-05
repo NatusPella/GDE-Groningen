@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { buildWeaponMesh } from './models3d_people.js';
 import { hasWeapon } from './combat.js';
@@ -24,7 +25,7 @@ export function dropWeapon(world, key, x, y, gz = 0) {
 }
 
 function nearestDrop(world, reach = RAGE.pickupReach) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   if (!p || p.inVehicle || p.swimming || p.dead || !world.weaponDrops) return null;
   let best = null, bd = reach;
   for (const d of world.weaponDrops) {
@@ -85,8 +86,8 @@ function buildDrop(d) {
 export function updateWeaponDrops3D(dt, world, sc) {
   if (sc) scene = sc;
   const list = world.weaponDrops;
-  if (list && list.length && world.player) {
-    const p = world.player, now = world.time || 0;
+  if (list && list.length && hoofdspeler(world)) {
+    const p = hoofdspeler(world), now = world.time || 0;
     for (let i = list.length - 1; i >= 0; i--) {
       const d = list[i];
       if (now - d.t > RAGE.dropLife || Math.hypot(d.x - p.x, d.y - p.y) > RAGE.dropFar) list.splice(i, 1);
@@ -113,3 +114,4 @@ export function updateWeaponDrops3D(dt, world, sc) {
     if (w) { w.rotation.y = t * 1.2 + d.id; w.position.y = 0.45 + Math.sin(t * 2.4 + d.id) * 0.06; }
   }
 }
+

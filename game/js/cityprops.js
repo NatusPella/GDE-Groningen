@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { PARKS, parkBankSpots } from './parkplekken.js';
 import { GeoBuilder, vcMaterial, composeMatrix, tubeGeometry, HABBO_PALETTE } from './pixelart3d.js';
@@ -804,7 +805,7 @@ function updateSlots(activeCells) {
   const alive = new Set(world.pedestrians);
   let count = 0;
   for (const cell of activeCells) for (const s of cell.slots) if (s.ped && s.ped.scene && alive.has(s.ped)) count++;
-  const p = world.player;
+  const p = hoofdspeler(world);
   const ordered = [];
   for (const cell of activeCells) for (const s of cell.slots) ordered.push(s);
   ordered.sort((a, b) => (a.kind === 'terrace') - (b.kind === 'terrace'));
@@ -835,7 +836,7 @@ function updateSlots(activeCells) {
 let vendorLineAt = -Infinity;
 let haulerSpoke = false;
 function sceneChatter(activeCells) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   for (const cell of activeCells) {
     for (const s of cell.slots) {
       const ped = s.ped;
@@ -908,7 +909,7 @@ export function updateCityProps(dt, w, scene) {
     group.name = 'cityprops';
     scene.add(group);
   }
-  const p = w.player;
+  const p = hoofdspeler(w);
   const pcx = Math.floor(p.x / CELL), pcy = Math.floor(p.y / CELL);
   const span = Math.ceil(BUILD_RADIUS / CELL);
   const activeCells = [];
@@ -976,3 +977,4 @@ export function updateCityProps(dt, w, scene) {
     spawnStudentGroup();
   }
 }
+

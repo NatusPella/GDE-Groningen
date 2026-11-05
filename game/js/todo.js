@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // "Te doen": one catalogue of everything there is to do, for the pause menu
 // (Overzicht, Te doen), the map's marker card and search. Read only
 // from the systems that own the things; choosing one makes it the player's
@@ -151,7 +152,7 @@ function missionItems(world) {
 }
 
 function minigameItems(world) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   const out = [];
   const add = (it, spots) => {
     const s = spots.length ? nearest(spots, p) : null;
@@ -247,7 +248,7 @@ function ommelandItems(world) {
   const total = Object.keys(VILLAGES).length;
   const done = uniqueCount(SET_DONE), eggs = uniqueCount(SET_EGGS);
   const city = getStationsForRender().filter((s) => !VILLAGES[s.name]);
-  const st = city.length ? nearest(city, world.player) : null;
+  const st = city.length ? nearest(city, hoofdspeler(world)) : null;
   const names = Object.keys(VILLAGES);
   const ends = uniqueCount('wereldeinden');
   return [
@@ -325,7 +326,7 @@ let worldRef = null;
 
 export function getTodoItems(world) {
   worldRef = world;
-  const p = world.player;
+  const p = hoofdspeler(world);
   const items = [...missionItems(world), ...minigameItems(world), ...jobItems(), ...ommelandItems(world), ...collectItems(), ...postgameItems(world)];
   const st = storyStepItem(world);
   if (st) items.unshift(st);
@@ -457,3 +458,4 @@ function confirmPlayAhead(world, ahead, onGo) {
   el.hidden = false;
   el.querySelector('[data-ga="back"]').focus({ preventScroll: true });
 }
+

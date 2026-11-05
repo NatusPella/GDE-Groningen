@@ -1,9 +1,10 @@
+import { hoofdspeler } from './players.js';
 // Samen spelen (#95): de spelerskant in het spel en de vaste personages, voor N spelers.
 // Pure functies op een `world`-achtig object (testbaar zonder spel):
 // - de eigen speler (plek 0 op de gastheer, de eigen plek op een gast) speelt zijn eigen verhaalrol; de
 //   computermetgezel is de andere verhaalrol (cooproles.metgezelVoorSpeler);
 // - elke gast is een eigen figuur (coopplayers.js, #502), ook plek 1: geen vaste Tammo/Tessa per plek;
-// - op elke client staat het eigen lichaam in world.player (de camera volgt dat); de anderen zijn
+// - op elke client staat het eigen lichaam in hoofdspeler(world) (de camera volgt dat); de anderen zijn
 //   world.companion (de gastheer, op een gast) of figuren in world.coopFigures[slot];
 // - een client toont de toestand van de host (posities, wanted) en stuurt alleen invoer; geld en spullen blijven eigen.
 
@@ -33,7 +34,7 @@ export function removeFigure(world, slot) { if (world.coopFigures) delete world.
 // Welk lichaam hoort bij welke plek, gezien vanaf plek `me`?
 export function bodyFor(world, me, slot) {
   const mine = mySlotOf(me);
-  if (slot === mine) return world.player;
+  if (slot === mine) return hoofdspeler(world);
   if (mine >= 1 && slot === 0) return world.companion;       // gasten: Tammo is hun metgezel
   return figures(world)[slot] || null;                       // alle anderen: figuren (ook plek 1 op de gastheer, #502)
 }
@@ -44,7 +45,7 @@ export function bodyFor(world, me, slot) {
 // story.js kijkt naar world.coop.fixedChars om de verhaalwissel niet te dubbelen.
 export function setFixedCharacters(world, me, char = null) {
   const mine = mySlotOf(me);
-  const ik = world.player;               // het eigen lichaam op deze client (#500: één plek, niet vier keer world.player)
+  const ik = hoofdspeler(world);               // het eigen lichaam op deze client (#500: één plek, niet vier keer hoofdspeler(world))
   const rol = eigenVerhaalrol(ik);
   if (ik) ik.character = rol;
   if (world.companion) world.companion.character = andereVerhaalrol(rol);
@@ -68,9 +69,9 @@ export function applyHostState(world, me, sample, roster = null, dt = 0) {
     const vx = dt > 0 && Number.isFinite(b.x) ? (p.x - b.x) / dt : 0, vy = dt > 0 && Number.isFinite(b.y) ? (p.y - b.y) / dt : 0;
     const ok = Math.hypot(vx, vy) < 40; // een sprong (teleport) is geen rennen
     b.x = p.x; b.y = p.y; b.angle = p.angle;
-    if (b !== world.player) b.coopVoertuig = !!p.inVeh; // wie in een voertuig zit, tekenen we niet los: coopzitten3d.js zet hem op zijn stoel in het voertuig (#372, #434)
+    if (b !== hoofdspeler(world)) b.coopVoertuig = !!p.inVeh; // wie in een voertuig zit, tekenen we niet los: coopzitten3d.js zet hem op zijn stoel in het voertuig (#372, #434)
     b.z = !p.inVeh && Number.isFinite(p.z) ? p.z : 0; b.crouching = !!p.crouch && !p.inVeh; // springen en bukken (#434)
-    if (b !== world.player) { // wat de gastheer van JOUW lichaam weet is niet leidend voor je eigen scherm; een ander lichaam wel (#369)
+    if (b !== hoofdspeler(world)) { // wat de gastheer van JOUW lichaam weet is niet leidend voor je eigen scherm; een ander lichaam wel (#369)
       if (Number.isFinite(p.health)) b.health = Math.max(0, Math.min(255, Math.round(p.health)));
       const neer = !!p.down;
       if (neer && !b.coopDown) b.coopVal = world.time || 0; // net neer: vanaf hier achterover vallen en blijven liggen (zoals coopextra3d.js bij een voetganger)
@@ -98,3 +99,4 @@ export function makeClientInput(axis, run, camYaw, handrem = false, springen = f
   const [x, y] = axis || [0, 0];
   return { mx: x, my: y, buttons: knoppen({ rennen: run, handrem, springen: springen && !handrem, bukken, aanval, zicht }), yaw: Number.isFinite(camYaw) ? camYaw : 0 };
 }
+
