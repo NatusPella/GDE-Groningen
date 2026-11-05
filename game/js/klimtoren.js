@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
@@ -86,7 +87,7 @@ function ensureHolds(list) {
 }
 
 function updateLod(w) {
-  const d = Math.hypot(w.player.x - ORIGIN.x, w.player.y - ORIGIN.y);
+  const d = Math.hypot(hoofdspeler(w).x - ORIGIN.x, hoofdspeler(w).y - ORIGIN.y);
   if (!built && d < DETAIL_M) built = buildTower();
   if (!built) return;
   ensureHolds(game ? game.s.holds : (built.preview || (built.preview = makeHolds(seed))));
@@ -101,7 +102,7 @@ function holdWorld(h) {
 // --- the climb ---------------------------------------------------------------------------------------------
 
 function place(w) {
-  const g = game, s = g.s, p = w.player;
+  const g = game, s = g.s, p = hoofdspeler(w);
   const hs = ['a', 'd'].map((k) => s.hands[k].hold).filter(Boolean);
   const lat = hs.length ? hs.reduce((a, h) => a + h.x, 0) / hs.length : 0;
   const q = FR.toW(FACE_U + 0.38, -lat);
@@ -169,7 +170,7 @@ function end(w, { quit = false, extern = false, uitslag = null } = {}) {
   game = null;
   w.companionHold = null;
   w.cameraOverride = null;
-  const p = w.player;
+  const p = hoofdspeler(w);
   p.z = 0; p.vx = p.vy = 0; p.speed = 0; p.moving = false;
   if (board) board.hide();
   clearBubbles(w, 'klimtoren');
@@ -215,7 +216,7 @@ function eindeOnline(w, g, quit, extern, res) {
 function camera(w) {
   const g = game;
   if (!g) return;
-  const s = g.s, p = w.player;
+  const s = g.s, p = hoofdspeler(w);
   const h = s.ground ? 1.5 : s.body + 1.4;
   const pos = { x: p.x + 8.5, y: p.y, z: Math.max(2.6, h * 0.55 + 1.6) };
   const at = { x: p.x - 1, y: p.y, z: h };
@@ -272,7 +273,7 @@ function glyph(ctx) {
 function start(w, { online = null } = {}) {
   if (game) return false;
   if (!built) built = buildTower();
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (p.inVehicle) p.exitVehicle(w.map, w);
   const holds = makeHolds(seed);
   ensureBoard();
@@ -316,7 +317,7 @@ registreerWedstrijd('klimtoren', {
   solo: (w) => start(w),
 });
 zetWedGastHaken('klimtoren', {
-  dichtbij: (w) => !game && !w.player.inVehicle && Math.hypot(w.player.x - STAND.x, w.player.y - STAND.y) < 3,
+  dichtbij: (w) => !game && !hoofdspeler(w).inVehicle && Math.hypot(hoofdspeler(w).x - STAND.x, hoofdspeler(w).y - STAND.y) < 3,
   start: (w) => start(w, { online: 'gast' }),
   eind: (w, uit) => { if (game && game.online === 'gast') end(w, uit.gestopt ? { quit: true, extern: true } : { uitslag: uit }); },
   tik: gastTik,
@@ -357,3 +358,4 @@ export const KLIMTOREN = standActivity({
     quit: () => { if (!game) return false; end(w, { quit: true }); return true; },
   }),
 });
+
