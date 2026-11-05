@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Tipsy after the kroegentocht: world.drunk (0..1) rises at each pub and wears
 // off a couple of minutes later (a respawn sobers you up at once). The level
 // drives a swaying camera, double vision and a warm vignette, wandering feet,
@@ -50,7 +51,7 @@ export function drunkVisual() {
 }
 
 export function updateDrunk(dt, world) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   if (world.pendingRespawn || world.health <= 0) world.drunk = 0;
   let lvl = world.drunk || 0;
   if (lvl > 0 && world.time > st.holdUntil) lvl = world.drunk = Math.max(0, lvl - DECAY_PER_S * dt);
@@ -165,3 +166,4 @@ function updateVignette() {
     st.vig.style.display = o > 0 ? '' : 'none';
   }
 }
+

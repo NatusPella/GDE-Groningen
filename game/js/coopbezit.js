@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Samen spelen (#449): je eigen voertuig of pand meenemen naar de wereld van een
 // ander ("bezorgen en delen"). Dat geldt voor elk eigen voertuig: de auto, de
 // fiets, je boot en de heli. Het voertuig blijft in de eigen save van de
@@ -130,7 +131,7 @@ export function bezorgVraag(world, g) {
   const n = world && world.coopNet;
   if (!n || n.role !== 'client' || !n.session || !n.session.sendEvent) return { ok: false, tekst: 'Je speelt niet in een sessie.' };
   if (!g || typeof g.id !== 'string' || !SLEUTEL.test(g.id)) return { ok: false, tekst: 'Dat voertuig heb je niet.' };
-  if (world.player && world.player.inVehicle) return { ok: false, tekst: 'Stap eerst uit je voertuig.' };
+  if (hoofdspeler(world) && hoofdspeler(world).inVehicle) return { ok: false, tekst: 'Stap eerst uit je voertuig.' };
   if (!n.session.sendEvent(bezorgEvent(g, rechtVan(world.coopBezit, g.id)))) return { ok: false, tekst: 'Wie het spel opende is even niet bereikbaar.' };
   const naam = g.label || g.model || 'voertuig';
   const werkwoord = soortVan(g) === 'boot' ? 'legt' : 'zet';
@@ -282,3 +283,4 @@ export function bezorgAllesWeg(world, uitstappen = null) {
   for (const s of slots) n += bezorgWeg(world, s, uitstappen);
   return n;
 }
+

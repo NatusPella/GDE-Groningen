@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Lijnnummer en volgende bestemming op de bus (#160), de wereldkant: een
 // LED-bestemmingsbord op de voorkant en zijkanten van elke bus met een lijn en
 // de tekstkaart "volgende halte" voor de bus die de speler bestuurt. De tekst en
@@ -158,7 +159,7 @@ function giveBoardLine(v) {
 }
 
 function updateBusBoards(dt, w) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   for (const v of w.vehicles) {
     if (!v.isBus || v.wrecked) continue;
     if (!busLineOf(v)) giveBoardLine(v);
@@ -174,3 +175,4 @@ function updateBusBoards(dt, w) {
 }
 
 export const busBoardKind = { id: 'busboards', tickPhase: 'world', tick: updateBusBoards };
+

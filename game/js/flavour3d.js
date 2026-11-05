@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { fitText as sharedFitText } from './canvastex.js';
 import { buildHorseMesh } from './countryside.js';
@@ -446,7 +447,7 @@ function buildPlants() {
 }
 
 function updatePlants(world) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   let n = 0;
   for (const ped of world.pedestrians) {
     if (n >= PLANT_MAX) break;
@@ -558,7 +559,7 @@ function flowerBanner(spots) {
 export function updateFlavour3D(dt, world) {
   const F = world.flavour;
   if (!root || !F) return;
-  const p = world.player;
+  const p = hoofdspeler(world);
   const night = world.dayNight ? world.dayNight.night : 0;
   const nightStep = Math.round(night * 10);
   const near = (x, y, r) => Math.abs(x - p.x) < r && Math.abs(y - p.y) < r;
@@ -606,3 +607,4 @@ export function updateFlavour3D(dt, world) {
   if (flowerMarket) flowerMarket.g.visible = plantsOn;
   if (plantsOn) updatePlants(world);
 }
+

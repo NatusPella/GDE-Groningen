@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Oefenronde (#201): wires practicekit.js to the world. Started from Hulp in the
 // pause menu (event 'gde-oefenronde'); one hint card per step, shown again now
 // and then while the step is open, a closing card at the end. No mission, no
@@ -60,7 +61,7 @@ export function updatePractice(dt, w) {
   if (!st) { maybeOffer(dt, w); return; }
   if (st.done) return;
   t += dt;
-  const p = w.player;
+  const p = hoofdspeler(w);
   const inV = !!p.inVehicle;
   let dist = 0;
   if (last && !w.paused) {
@@ -94,3 +95,4 @@ if (typeof window !== 'undefined') {
   window.addEventListener('gde-oefenronde', () => { beginPractice(); shownAt = t - REMIND - 1; });
   window.__practice = { active: practiceActive, stop: stopPractice };
 }
+

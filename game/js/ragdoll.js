@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { pointInPolygon, closestPointOnSegment, isInWater, WATER_Y } from './util.js';
 import { PERSON_RIG as RIG } from './models3d_people.js';
@@ -139,7 +140,7 @@ export function knockDown(actor, world, o = {}) {
 // Called by scene3d for every person mesh it places. Returns true while the
 // ragdoll owns the mesh (the caller then skips its own placement/animation).
 export function driveRagdoll(actor, mesh, world, dt) {
-  const player = world.player;
+  const player = hoofdspeler(world);
   if (actor === player && !actor.ragdoll && world.pendingRespawn && !world.pendingRespawn.busted && world.health <= 0 && !player.inVehicle) {
     knockDown(actor, world, { kind: 'collapse', dead: true });
   }
@@ -772,3 +773,4 @@ export function syncBikeRider(mesh, v, time) {
     mesh.rotation.order = 'XYZ';
   }
 }
+

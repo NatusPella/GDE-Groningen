@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import { buildPersonMesh, swimPose, floatPose, seatPose, seatedY } from './models3d_people.js';
 import { waterClearance } from './waterindex.js';
 import { bankSeatsNear } from './quaywalls.js';
@@ -129,8 +130,8 @@ function remove(scene, sw) {
 const SIT = { recline: 0.22, footX: 0.4, footY: -0.62, splay: 0.12, arms: 'behind' };
 
 export function updateSwimmers3D(dt, world, scene, cam) {
-  if (!world.map || !world.player) return;
-  const player = world.player, time = world.time;
+  if (!world.map || !hoofdspeler(world)) return;
+  const player = hoofdspeler(world), time = world.time;
   const nice = niceSwimWeather(world);
   scanT -= dt;
   if (scanT <= 0) {
@@ -261,5 +262,6 @@ function updateSitter(sw, world, d, time, pv) {
     }
   }
 }
+
 
 

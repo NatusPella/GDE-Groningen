@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Zijmissie: cabaret in de Stadsschouwburg. The Frisian cabaret artist Ype Tjaarda
 // (invented) performs and you sit on row seven with one job: shout something
 // back on the beat. A sweeping marker crosses a green zone after each line;
@@ -70,7 +71,7 @@ export default {
 
   update(dt, c) {
     const { world } = c;
-    const d = c.data, p = world.player, input = world.input;
+    const d = c.data, p = hoofdspeler(world), input = world.input;
     world.minigameUntil = world.time + 0.25;
     if (d.flashT > 0) d.flashT -= dt;
     if (input.wasPressed('backspace')) {
@@ -176,3 +177,4 @@ function paintResult(c) {
     help: '',
   });
 }
+

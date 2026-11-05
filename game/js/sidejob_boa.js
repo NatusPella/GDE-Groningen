@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Zijmissie: BOA voor een dag. You wear the vest of the Hoofd-BOA for a shift:
 // walk up to an offender, read the invented rulebook (casework.js) and write the
 // fine it asks for: pick one of three amounts with 1, 2 or 3. Right = paid
@@ -20,7 +21,7 @@ const ensurePanel = () => panel || (panel = createChoicePanel('#d9a441'));
 
 function offenderSpot(c) {
   const { map } = c.world;
-  const base = c.spot || c.world.player;
+  const base = c.spot || hoofdspeler(c.world);
   for (const [r0, r1] of [[40, 110], [25, 160]]) {
     const rp = randomStreetPoint(map, base.x, base.y, r0, r1, { cats: ['normal', 'minor'] });
     if (!rp) continue;
@@ -92,7 +93,7 @@ export default {
 
   update(dt, c) {
     const { world } = c;
-    const d = c.data, p = world.player;
+    const d = c.data, p = hoofdspeler(world);
     const ped = d.ped;
     if (!pedAlive(world, ped)) { closePanel(c); c.skip('De overtreder is verdwenen. Volgende.'); return; }
     holdPed(ped, p.x, p.y);
@@ -185,3 +186,4 @@ function paint(c) {
     help: `${keycap('1')}${keycap('2')}${keycap('3')} boete kiezen · ${keycap('BACKSPACE')} laat maar`,
   });
 }
+

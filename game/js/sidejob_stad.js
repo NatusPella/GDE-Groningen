@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Zijmissies uit stadmissies.js (#26) op het sidejob-contract van sidejobs.js. De regels
 // zijn puur; deze adapter zet plekken en voertuig neer, voedt de regels met snelheid,
 // remvertraging en bochtkracht en vertaalt hun gebeurtenissen naar meldingen, HUD en
@@ -179,7 +180,7 @@ function maakRave() {
 
     update(dt, c) {
       const { world } = c;
-      const d = c.data, p = world.player, input = world.input;
+      const d = c.data, p = hoofdspeler(world), input = world.input;
       if (d.phase === 'lopen') {
         if (input.wasPressed('backspace')) { input.consume('backspace'); c.skip('Je laat de knoppen even met rust.'); return; }
         if (dist(p.x, p.y, d.dest.x, d.dest.y) <= 5.5 && !p.inVehicle) {
@@ -232,3 +233,4 @@ const schouwburg = maakRit(STAD_MISSIES[6]);
 const bernardrit = maakRit(STAD_MISSIES[7]);
 const telefoonrave = maakRave();
 export const STAD_JOBS = [museumbus, suikerbieten, herstelploeg, oogtv, telefoonrave, vandermeden, schouwburg, bernardrit];
+

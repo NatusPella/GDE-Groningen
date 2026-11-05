@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Bijbaantje: stadsbus lijn 3. Een rondje langs de haltes volgens de
 // dienstregeling: netjes stoppen, passagiers laten in- en uitstappen, niet
 // te vroeg vertrekken en niemand door het gangpad laten rollen.
@@ -174,7 +175,7 @@ export default {
 
   update(dt, c) {
     const { world } = c;
-    const d = c.data, p = world.player, v = c.vehicle;
+    const d = c.data, p = hoofdspeler(world), v = c.vehicle;
     d.clock += dt;
     const inBus = p.inVehicle === v;
     const idx = d.next % d.stops.length;
@@ -305,3 +306,4 @@ export default {
     for (const ped of c.data.waiting || []) freePed(ped);
   },
 };
+

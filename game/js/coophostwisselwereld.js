@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Samen spelen (#439): de haken tussen het overdragen en de wereld van het spel (deps van coophostwisselnet.js). Wat de nieuwe host na een
 // overdracht of een overname van de oude toepast: de lopende opdracht (op dezelfde plaats in de keten, #452), kapotte objecten, de voertuigen
 // waar spelers in zaten (met hun model en kleur, #452), de plek waar het spel stond en wat elke gast verdiende. Alleen wereldkennis,
@@ -86,7 +87,7 @@ export function modelVan(v) {
 // De voertuigen waar spelers in zaten, met hun uiterlijk en hun schade (de momentopname is de onze, zie maakMomentopname).
 export function leesVoertuigen(world) {
   const uit = [], gezien = new Set();
-  for (const b of [world.player, world.companion, ...Object.values(figures(world))]) {
+  for (const b of [hoofdspeler(world), world.companion, ...Object.values(figures(world))]) {
     const v = b && (b.inVehicle || b.inVeh);
     if (!v || typeof v !== 'object' || gezien.has(v)) continue;
     gezien.add(v);
@@ -130,3 +131,4 @@ export const gastGeld = (world) => (slot) => (world.coopNet && world.coopNet.bet
 export function wisselWereldHaken(world) {
   return { leesOpdracht, zetOpdracht, leesKapot, zetKapot, leesVoertuigen, zetVoertuigen, zetPlek, gastGeld: gastGeld(world) };
 }
+

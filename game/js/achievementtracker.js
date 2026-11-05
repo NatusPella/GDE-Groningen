@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Polling detectors for achievements.js: reads world state every frame, so
 // the other systems only need hooks for things that leave no trace (shops,
 // horeca, pigeon perches). Also runs the mission medal bookkeeping and the
@@ -141,7 +142,7 @@ export function initAchievementTracker(w) {
 export function updateAchievementTracker(dt, w) {
   world = w;
   if (!document.body.classList.contains('game-started')) return;
-  const p = w.player;
+  const p = hoofdspeler(w);
   const pv = p.inVehicle;
 
   processContacts(w, pv);
@@ -538,3 +539,4 @@ function updateEierballen(dt, w, p, pv) {
     if (q.length < 64) q.push({ kind: 'notify', x: e.x, y: e.y });
   }
 }
+

@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // De hengel in beeld (#437): een laag-poly hengel in de hand, een lijn met doorhang, een rood-wit dobbertje dat dobbert, zakt en
 // trilt bij een beet, een plons als hij landt en een vis die even springt en terug het water in gaat. De houding per fase staat in
 // hengelpose.js (puur, getest); dit tekent het. Werkt vanaf de kant en vanuit een boot.
@@ -41,7 +42,7 @@ export function maakHengelAnim() {
     update(dt, w, st, events, plek) {
       const nieuweFase = st.phase !== s.phase;
       if (nieuweFase) { s.phase = st.phase; s.t = 0; } else s.t += dt;
-      const p = w.player, v = p.inVehicle;
+      const p = hoofdspeler(w), v = p.inVehicle;
       const px = v ? v.x : p.x, py = v ? v.y : p.y;
       let ang = v ? v.angle : p.angle || 0;
       const dx = plek.x - px, dy = plek.y - py, afstandPlek = Math.hypot(dx, dy);
@@ -99,3 +100,4 @@ export function maakHengelAnim() {
     },
   };
 }
+

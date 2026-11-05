@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
 import { lotsNear, lotBays } from './parkinglots.js';
@@ -72,7 +73,7 @@ export function updateParkingLots3D(world) {
   if ((tick = (tick + 1) % 15) !== 0) return;
   const scene = getScene();
   if (!scene) return;
-  const p = world.player;
+  const p = hoofdspeler(world);
   const px = p.inVehicle ? p.inVehicle.x : p.x, py = p.inVehicle ? p.inVehicle.y : p.y;
   const near = new Set(lotsNear(px, py, STREAM_IN).filter((f) => f.poly && f._box && !f._noMesh &&
     Math.hypot(Math.max(0, f._box[0] - px, px - f._box[2]), Math.max(0, f._box[1] - py, py - f._box[3])) < STREAM_IN));
@@ -94,4 +95,5 @@ export function updateParkingLots3D(world) {
     live.set(f, g);
   }
 }
+
 

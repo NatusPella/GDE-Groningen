@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Stationsleven (#198, #14): het vertrekbord, de omroep en de perrondrukte van het station
 // bij de speler, uit dienstregeling.js. Het deel zonder wereld is puur (testbaar zonder
 // browser: scripts/stationlife_test.mjs); updateStationLife hangt het aan HUD en geluid.
@@ -119,7 +120,7 @@ export function updateStationLife(dt, world, opts) {
   const { routes, point, day, createBoard } = opts;
   const sig = routes.length + ':' + routes.map((r) => r.stops.length).join(',');
   if (!stations || sig !== routesSig) { stations = stationsFromRoutes(routes, point); routesSig = sig; }
-  const p = world.player;
+  const p = hoofdspeler(world);
   const hit = nearestStation(stations, p.x, p.y, CROWD_R);
   cur = hit ? { station: hit.station, d: hit.d, view: stationView(hit.station, world.clock || 0, day, opts.trains ? opts.trains.map((t) => ({ route: t.route, c: t.c, dir: t.dir, v: t.v, state: t.state, target: t.target, timer: t.timer, vmax: t.cfg && t.cfg.vmax })) : null, opts.schaal || 60) } : null;
   // een ander bord (machinist, minigame) gaat voor: het station laat zijn bord dan weg
@@ -145,3 +146,4 @@ export function updateStationLife(dt, world, opts) {
   const msg = omroepStap(ost, v, world.time);
   if (msg) world.addMessage(msg, 5);
 }
+

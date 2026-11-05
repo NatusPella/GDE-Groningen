@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Reisopties op de kaart (#97): de dunne laag tussen de wereld en de pure modules
 // ovopties.js / ovkaart.js. Bij het kiezen van een bestemming rekent reisOptiesVoor
 // de routes per vervoerswijze uit; tekenLijnen tekent de OV-lijnen op het canvas.
@@ -14,7 +15,7 @@ const MIN_OV_M = 1500;
 const cache = { key: '', opts: null };
 
 export function reisOptiesVoor(world, target) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   const key = `${Math.round(p.x)}|${Math.round(p.y)}|${Math.round(target.x)}|${Math.round(target.y)}|${world.money | 0}`;
   if (cache.key === key) return cache.opts;
   const a = [p.x, p.y], b = [target.x, target.y];
@@ -76,3 +77,4 @@ export function tekenLijnen(ctx, lagen, toScreen, scale = 1) {
 }
 
 export { lijnLagen };
+

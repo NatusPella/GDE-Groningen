@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Touch controls, the pure part (touch.js has the DOM): detecting a touch
 // device, the virtual stick, camera swipes and which on-screen buttons a
 // situation gets. The buttons are the controller's slots (controls.js
@@ -317,7 +318,7 @@ export function touchContext(w, { started = true, menuOpen = false, shiftMode = 
   if (w.coopHold) return 'menu';
   // een vraag van Samen spelen: A is ja, B is nee (#151), precies zoals op het pad
   if (coopVraag(w)) return 'coopvraag';
-  const v = w.player && w.player.inVehicle;
+  const v = hoofdspeler(w) && hoofdspeler(w).inVehicle;
   // #502: dezelfde keuze als gamepad.js, in dezelfde volgorde. Het vliegtuig staat vóór de skûtsje-tak omdat
   // planeflight.js world.noLookBack zet (Q is in de kist het roer): zonder deze tak werd een vliegtuig als zeilboot
   // behandeld en miste de speler de daling (Ctrl/B). De bus staat er ook, want alleen PAD_MAPS.bus heeft de deuren
@@ -400,3 +401,4 @@ export function pinchStep(prev, cur) {
 export function leftButtonX({ minimapRight = 0, scale = 1, base = 24, gap = 10 } = {}) {
   return minimapRight > 0 ? Math.max(base, Math.ceil((minimapRight + gap) / (scale || 1))) : base;
 }
+

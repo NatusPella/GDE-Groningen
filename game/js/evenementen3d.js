@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Props en menigte van de lopende evenementen (#203): lage-poly kramen, parasols, hekken,
 // podium, draaimolen en vlaggetjes rond het midden, en een menigte van instanced figuren
 // met een dichtheid uit evenementen.crowdAt. Alleen evenementen bij de speler (< SHOW_R).
@@ -65,7 +66,7 @@ function build(scene, ev, ground, free) {
 }
 
 export function updateEvenementen3D(scene, world, n, ground, free = () => true) {
-  const hour = ((world.clock % 24) + 24) % 24, p = world.player;
+  const hour = ((world.clock % 24) + 24) % 24, p = hoofdspeler(world);
   const live = new Set();
   for (const ev of activeEvents(n, hour)) {
     const c = centreOf(ev);
@@ -80,3 +81,4 @@ export function updateEvenementen3D(scene, world, n, ground, free = () => true) 
     built.delete(id);
   }
 }
+

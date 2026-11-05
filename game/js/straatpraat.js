@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import { areaOf, partOf, wetOf, rollGebabbel, AREA_NAMES } from './gebabbel.js';
 import { streekAt } from './regioleven.js';
 // Gesprekken van voorbijgangers in beeld (#190): twee wandelaars die dicht bij
@@ -85,7 +86,7 @@ export function tikStraatpraat(dt, w, rng = Math.random) {
   if (run) { stepRun(dt, w); return; }
   if ((gapT -= dt) > 0) return;
   gapT = GAP_MIN + rng() * (GAP_MAX - GAP_MIN);
-  const p = w.player;
+  const p = hoofdspeler(w);
   const talkers = pickTalkers(w.pedestrians || [], p.x, p.y, w.time, true, rng);
   if (!talkers) { gapT = 5; return; }
   const s = streekAt(p.x, p.y);
@@ -103,3 +104,4 @@ export function tikStraatpraat(dt, w, rng = Math.random) {
 }
 
 export { AREA_NAMES };
+

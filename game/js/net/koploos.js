@@ -1,4 +1,4 @@
-import { hoofdspeler } from '../../players.js';
+import { hoofdspeler } from '../players.js';
 // Samen spelen (#450): de gastheer zonder lokale speler. De rol van gastheer hoort bij de sessie, niet bij de speler die
 // het spel opende: een wereld zonder speler (koploos, zonder venster) draait dezelfde hub en dezelfde protocolberichten.
 // Dit is de enige plek die weet welke lichamen zo'n wereld heeft: plek 0 heeft er geen, elke gast (plek 1 en hoger) is een
@@ -45,4 +45,5 @@ export function koplozeWereld(opt = {}) {
     weatherState: opt.weatherState || null, calendar: opt.calendar || null, input: null,
   };
 }
+
 

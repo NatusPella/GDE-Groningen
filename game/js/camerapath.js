@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import { pointInPolygon } from './util.js';
 
 // Camera paths for cutscenes, free of DOM and three.js: poses use map
@@ -110,7 +111,7 @@ function roadStraightRun(road) {
 }
 
 function pickWijkStreet(w, wijk, R) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   const cx = (wijk.x + p.x) / 2, cy = (wijk.y + p.y) / 2;
   const reach = Math.max(120, Math.min(R, Math.hypot(wijk.x - p.x, wijk.y - p.y) / 2 + 90));
   let best = null;
@@ -174,7 +175,7 @@ function clearPath(w, keys) {
 }
 
 export function wijkStreetShot(w, wijk, a, behind) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   const pick = pickWijkStreet(w, wijk, wijkRadius(w, wijk));
   if (!pick) return null;
   let [ax, ay] = pick.run.a, [bx, by] = pick.run.b;
@@ -213,3 +214,4 @@ export function wijkStreetShot(w, wijk, a, behind) {
   const ease = (t) => (t < 0.2 ? (t * t) / 0.4 : 0.1 + (t - 0.2) * 1.125);
   return (u) => (u < SPLIT ? streetShot(ease(u / SPLIT)) : homeShot((u - SPLIT) / (1 - SPLIT)));
 }
+

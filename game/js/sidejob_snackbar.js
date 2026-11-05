@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Bijbaan: Overlast bij de snackbar (#400). Een groepje verzonnen jongeren met fatbikes hangt rond de snackbar van de Kroketkoning
 // in de Herenstraat; de snackbarhouder vraagt je ze weg te sturen. Loop erheen, kies per poging een grappige actie (1, 2 of 3) en
 // zie hoe ze reageren. De regels staan in missie_snackbar.js (puur, getest); dit is de adapter op het sidejob-contract van
@@ -83,7 +84,7 @@ export default {
 
   update(dt, c) {
     const { world } = c;
-    const d = c.data, p = world.player;
+    const d = c.data, p = hoofdspeler(world);
     const peds = d.peds.filter((q) => pedAlive(world, q));
     if (!peds.length) { closePanel(c); c.skip('De groep is verdwenen. Volgende.'); return; }
     const lead = peds[0];
@@ -180,3 +181,4 @@ function paint(c) {
     help: klaar ? '' : `${keycap('1')}${keycap('2')}${keycap('3')} actie kiezen · ${keycap('BACKSPACE')} laat maar`,
   });
 }
+

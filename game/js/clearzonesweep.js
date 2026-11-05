@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import { findProps, breakProp } from './breakables.js';
 import { clearZones, clearZoneAt, pushOutOfClearZone } from './clearzone.js';
 
@@ -9,11 +10,11 @@ let timer = 0;
 let propTimer = 0;
 
 export function updateClearZones(dt, world) {
-  if (!dt || world.paused || !world.player) return;
+  if (!dt || world.paused || !hoofdspeler(world)) return;
   timer -= dt;
   if (timer > 0) return;
   timer = 0.5;
-  const p = world.player;
+  const p = hoofdspeler(world);
   const zs = clearZones();
   if (!zs.length) return;
   let near = false;
@@ -48,3 +49,4 @@ export function updateClearZones(dt, world) {
     }
   }
 }
+

@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Zijmissies "Het Loket", "StudieStaat-balie" en "Borrel bij Vigilantia" (refs
 // #26): walk to the named building, answer three multiple-choice questions at
 // the desk. One factory, three jobs; the rules and all text live in
@@ -80,7 +81,7 @@ function makeJob(spec) {
 
     update(dt, c) {
       const { world } = c;
-      const d = c.data, p = world.player, input = world.input;
+      const d = c.data, p = hoofdspeler(world), input = world.input;
       if (d.phase !== 'carry') world.minigameUntil = world.time + 0.25;
       if (d.phase === 'carry') {
         if (input.wasPressed('backspace')) { input.consume('backspace'); c.skip('Je laat het even liggen. Een nieuwe ronde komt eraan.'); return; }
@@ -160,3 +161,4 @@ export const helix = makeJob(KEUZE_JOBS.helix);
 export const niemeyer = makeJob(KEUZE_JOBS.niemeyer);
 export const bernard = makeJob(KEUZE_JOBS.bernard);
 export const energielabel = makeJob(KEUZE_JOBS.energielabel);
+

@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { WATER_Y, inMapWater } from './util.js';
 
@@ -294,7 +295,7 @@ function updateWake(w, v, map, time, light) {
 export function syncBoatWakes3D(scene, world, boatHasMesh, night = 0) {
   const light = 0.3 + 0.7 * (1 - night);
   const seen = new Set();
-  const px = world.player.x, py = world.player.y;
+  const px = hoofdspeler(world).x, py = hoofdspeler(world).y;
   for (const v of world.vehicles) {
     if (!v.isBoat || !boatHasMesh(v)) continue;
     if (Math.abs(v.x - px) > 220 || Math.abs(v.y - py) > 220) continue;
@@ -309,3 +310,4 @@ export function syncBoatWakes3D(scene, world, boatHasMesh, night = 0) {
     wakes.delete(id);
   }
 }
+

@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // De bediening van de bus in het spel (#444): O deuren, K knielt, de halteknop-lamp en de prognose voor de volgende
 // halte in het HUD-kaartje van busboard3d.js. De regels staan in busbestuur.js (met tests); dit bestand is de lijm
 // met de wereld, de deuren van vehicledoors.js en het HUD. Meldt zich in main.js als kind.
@@ -56,7 +57,7 @@ function release(v, w) {
 }
 
 function updateBusBestuur(dt, w) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   const pv = p && p.inVehicle;
   const bus = pv && pv.isBus && !pv.wrecked ? pv : null;
   if (lastBus && lastBus !== bus) release(lastBus, w);
@@ -108,3 +109,4 @@ function updateBusBestuur(dt, w) {
 }
 
 export const busBestuurKind = { id: 'busbestuur', tickPhase: 'world', tick: updateBusBestuur };
+

@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Bijbaantje: maaltijdbezorger voor "Hap & Rap" op een e-fatbike. Ophalen
 // bij een zaak, bezorgen voor het koud is; tegenwind en regen werken tegen.
 
@@ -134,7 +135,7 @@ export default {
     d.customer = null;
     d.rainNoted = false;
     const o = d.order;
-    const p = c.world.player;
+    const p = hoofdspeler(c.world);
     const toZaak = Math.hypot(o.zaak.door.x - p.x, o.zaak.door.y - p.y);
     c.timeLeft = Math.max(35, toZaak * 1.5 / 7.5 + 25);
     c.msg(`Nieuwe bestelling: ${o.n}x ${o.dish}. Ophalen bij ${o.zaak.name}.`, 3.5);
@@ -148,7 +149,7 @@ export default {
 
   update(dt, c) {
     const { world } = c;
-    const d = c.data, o = d.order, p = world.player, v = c.vehicle;
+    const d = c.data, o = d.order, p = hoofdspeler(world), v = c.vehicle;
     decorateVehicle(v, 'box', thermoBox);
 
     if (p.inVehicle === v) {
@@ -242,3 +243,4 @@ export default {
     if (d.customer) freePed(d.customer);
   },
 };
+

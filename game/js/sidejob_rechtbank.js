@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Zijmissie: dossier naar de rechtbank. A clerk hands you a thin file with three
 // facts about a made-up case; carry it to the Gerechtsgebouw (or back to the
 // Politiebureau, round after round) and answer the three questions of the clerk
@@ -84,7 +85,7 @@ export default {
 
   update(dt, c) {
     const { world } = c;
-    const d = c.data, p = world.player, input = world.input;
+    const d = c.data, p = hoofdspeler(world), input = world.input;
     if (d.phase === 'read' || d.phase === 'reread' || d.phase === 'ask' || d.phase === 'result') world.minigameUntil = world.time + 0.25;
     if (d.phase === 'read') {
       d.readT -= dt;
@@ -207,3 +208,4 @@ function paintResult(c) {
     help: '',
   });
 }
+

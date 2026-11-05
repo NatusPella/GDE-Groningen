@@ -43,7 +43,7 @@ export function coopStep(c, dt, world, move) {
   const buk = !!(sp && sp.bukt), k = buk ? BUK_TEMPO : 1;
   stepSlot2(c, { ...inp, run: inp.run && !buk, x: (cs * -inp.y - sn * inp.x) * k, y: (sn * -inp.y + cs * inp.x) * k }, dt, null);
   move(c, dt, world);
-  const l = leash(world.player, c, world.coop.leash); // in een sessie Infinity (coopnet.js): daar doet het band het werk (#388)
+  const l = leash(hoofdspeler(world), c, world.coop.leash); // in een sessie Infinity (coopnet.js): daar doet het band het werk (#388)
   if (l.clamped) { c.x = l.x; c.y = l.y; }
   c.crouching = buk;
   c.pose = null;
@@ -114,3 +114,4 @@ export function missieGastVerzoek(world, body, van) {
   meld(MISSIE_TEKST.gestart(label));
   return true;
 }
+

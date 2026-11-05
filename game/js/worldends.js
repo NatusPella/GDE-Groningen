@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import { getScene } from './scene3d.js';
 import { setRealRoadBlocks } from './countrylife.js';
 import { roadNetRows } from './roadgraph.js';
@@ -164,7 +165,7 @@ function talk(w, s) {
 
 export function updateWorldEnds(dt, w) {
   if (!spots) return;
-  const p = w.player, v = p.inVehicle;
+  const p = hoofdspeler(w), v = p.inVehicle;
   const px = v ? v.x : p.x, py = v ? v.y : p.y;
   for (const s of spots) {
     const d = Math.hypot(s.x - px, s.y - py);
@@ -199,3 +200,4 @@ export function worldEndSolids(out) {
 export function worldEndDebug() {
   return ensureWorldEnds().map((s) => ({ id: s.def.id, x: Math.round(s.sx), y: Math.round(s.sy), road: s.road, found: hasUnique(SET, s.def.id), built: !!s.prop }));
 }
+
