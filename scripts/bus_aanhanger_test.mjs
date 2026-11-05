@@ -6,12 +6,10 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-const src = fs.readFileSync(new URL('../game/js/vehicle.js', import.meta.url), 'utf8');
-const BEGIN = '// --- aanhangerhoek begin ---';
-const EIND = '// --- aanhangerhoek eind ---';
-const van = src.indexOf(BEGIN), tot = src.indexOf(EIND);
-assert.ok(van >= 0 && tot > van, 'vehicle.js heeft het aanhangerblok met markers');
-const blok = src.slice(van + BEGIN.length, tot).replace(/^export /gm, '');
+const src = fs.readFileSync(new URL('../game/js/vehicle/trailer.js', import.meta.url), 'utf8');
+// #497: het blok staat nu in vehicle/trailer.js; de imports (clamp/lerp/normalizeAngle)
+// worden hieronder lokaal gezet, zodat de test geen three.js of andere module laadt.
+const blok = src.replace(/^import .*$/gm, '').replace(/^export /gm, '');
 
 // clamp, lerp en normalizeAngle komen in vehicle.js uit util.js; hier staan ze lokaal zodat
 // de test geen three.js of andere module hoeft te laden.
@@ -147,3 +145,4 @@ assert.ok(Math.abs(verschil(b)) < 0.02, `na 2 s rechtuit loopt hij weer recht ($
 }
 
 console.log('bus_aanhanger_test ok');
+
