@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Bijbaantje: studentenverhuizing tijdens de KEI-week. Spullen uit de oude
 // kamer in het busje sjouwen, voorzichtig door de stad rijden en alles heel
 // bij de nieuwe kamer afleveren.
@@ -130,7 +131,7 @@ export default {
 
   update(dt, c) {
     const { world } = c;
-    const d = c.data, p = world.player, v = c.vehicle;
+    const d = c.data, p = hoofdspeler(world), v = c.vehicle;
     if (!d.items) return;
     const door = d.phase === 'unload' || d.phase === 'drive' ? d.new : d.old;
     if (!d.ped && Math.hypot(door.x - p.x, door.y - p.y) < SHOW_R) {
@@ -165,7 +166,7 @@ export default {
 
   interact(c) {
     const { world } = c;
-    const d = c.data, p = world.player, v = c.vehicle;
+    const d = c.data, p = hoofdspeler(world), v = c.vehicle;
     if (p.inVehicle || !d.items) return false;
     const rear = vanRear(v);
     const carried = d.items.find((it) => it.state === 'carried');
@@ -210,7 +211,7 @@ export default {
 
   prompt(c) {
     const { world } = c;
-    const d = c.data, p = world.player, v = c.vehicle;
+    const d = c.data, p = hoofdspeler(world), v = c.vehicle;
     if (p.inVehicle || !d.items) return null;
     const rear = vanRear(v);
     const carried = d.items.find((it) => it.state === 'carried');
@@ -303,7 +304,7 @@ function deliveredCheck(c) {
 // Tammo/Tessa close by, the companion grabs the next item too, follows along
 // with it and puts it down on reaching the van or the new front door.
 function companionFree(world) {
-  const cp = world.companion, p = world.player;
+  const cp = world.companion, p = hoofdspeler(world);
   if (!cp || cp.state === 'dead' || cp.inVehicle || cp.water || cp.ragdoll) return null;
   return Math.hypot(cp.x - p.x, cp.y - p.y) < 7 ? cp : null;
 }
@@ -335,7 +336,7 @@ function updateBuddy(c) {
   const d = c.data, world = c.world, cp = world.companion, v = c.vehicle;
   const it = d.items && d.items.find((x) => x.state === 'buddy');
   if (!it) { if (cp && cp.carrying) cp.carrying = 0; return; }
-  if (!cp || cp.state === 'dead' || cp.inVehicle || cp.water || cp.ragdoll || Math.hypot(cp.x - world.player.x, cp.y - world.player.y) > 18) { dropBuddy(c); return; }
+  if (!cp || cp.state === 'dead' || cp.inVehicle || cp.water || cp.ragdoll || Math.hypot(cp.x - hoofdspeler(world).x, cp.y - hoofdspeler(world).y) > 18) { dropBuddy(c); return; }
   const a = cp.angle;
   it.mesh.position.set(cp.x + Math.cos(a) * 0.45, 0.55 + (cp.gz || 0), cp.y + Math.sin(a) * 0.45);
   it.mesh.rotation.set(0, -a, 0);
@@ -365,3 +366,4 @@ function placeStack(c, door) {
     k++;
   }
 }
+

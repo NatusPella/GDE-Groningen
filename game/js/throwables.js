@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { isInWater, WATER_Y } from './util.js';
 import { wallOnPath } from './wallpath.js';
@@ -35,7 +36,7 @@ function groundAt(map, x, y, z) {
 }
 
 function launchPoint(world, angle) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   const v = p.inVehicle;
   const base = v ? v.z || 0 : (p.gz || 0) + (p.z || 0);
   const rx = -Math.sin(angle) * 0.2, ry = Math.cos(angle) * 0.2;
@@ -62,7 +63,7 @@ export function throwExplosive(world, key, angle, weapon, dist = null) {
   const o = launchPoint(world, angle);
   const ca = Math.cos(angle), sa = Math.sin(angle);
   if (key === 'carbidbus') {
-    const place = world.player.crouching || world.player.inVehicle;
+    const place = hoofdspeler(world).crouching || hoofdspeler(world).inVehicle;
     const vz = place ? 0 : 3.6;
     const d = Math.max(2, Math.min(weapon.range, dist ?? 7));
     const flight = (vz + Math.sqrt(vz * vz + 2 * G * (o.z - o.base))) / G;
@@ -103,7 +104,7 @@ function stepDrop(world, d, dt) {
   for (const ped of world.pedestrians) {
     if (ped.state === 'dead' || Math.abs(ped.x - d.x) > 0.6 || Math.abs(ped.y - d.y) > 0.6) continue;
     if (Math.hypot(ped.x - d.x, ped.y - d.y) > ped.radius + 0.18 || d.z > (ped.gz || 0) + 1.9) continue;
-    soakPed(ped, world, world.player.x, world.player.y);
+    soakPed(ped, world, hoofdspeler(world).x, hoofdspeler(world).y);
     d.hit = 'ped';
     return false;
   }
@@ -145,7 +146,7 @@ function explode(world, it, scale) {
       breakProp(pr, { vx: (dx / d) * 6, vy: (dy / d) * 6, speed: 7, lift: 1.2, nx: dx / d, ny: dy / d, byPlayer: true });
     }
   }
-  const p = world.player;
+  const p = hoofdspeler(world);
   const pd = Math.hypot(x - p.x, y - p.y);
   const shake = scale > 0.8 ? 60 : 25;
   if (pd < shake) world.lastImpact = { strength: Math.max(0.15, Math.min(1, (1.25 - pd / 45) * (scale > 0.8 ? 1 : 0.4))), time: world.time, x, y, blast: true, own: true };
@@ -432,4 +433,5 @@ export function updateThrowables3D(dt, world, sc) {
 }
 
 throwablesHook.update3D = updateThrowables3D; // gunfx3d.js draws them (latehooks.js)
+
 

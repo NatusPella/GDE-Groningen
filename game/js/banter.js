@@ -180,7 +180,7 @@ function watchEvents(dt) {
   }
   st.hour = hour;
 
-  const v = w.player.inVehicle;
+  const v = hoofdspeler(w).inVehicle;
   st.fastT = v && !v.isHeli && Math.abs(v.speed || 0) > FAST ? st.fastT + dt : 0;
   if (st.fastT > FAST_HOLD && st.fastT - dt <= FAST_HOLD) pushSituation('speed');
   // a while up in the own helicopter, above the rooftops
@@ -234,7 +234,7 @@ function watchWijk() {
 
 function together() {
   const w = world;
-  const p = w.player, c = w.companion, v = p && p.inVehicle;
+  const p = hoofdspeler(w), c = w.companion, v = p && p.inVehicle;
   return !!(v && c && c.inVehicle === v && c.state !== 'dead' && !v.wrecked && !v.sinking && !w.pigeonMode && !w.pendingRespawn);
 }
 
@@ -297,7 +297,7 @@ function tryStart() {
   const now = w.time;
   st.pending = st.pending.filter((p) => now - p.at < AFTER_VALID);
   if (st.rest && now - st.rest.at > AFTER_VALID) st.rest = null;
-  const v = w.player.inVehicle;
+  const v = hoofdspeler(w).inVehicle;
   if (st.ride < MIN_RIDE || (Math.abs(v.speed || 0) < MIN_SPEED && !api.anySpeed) || voiceBusy()) return;
   const since = now - st.lastEnd;
 
@@ -321,7 +321,7 @@ function tryStart() {
   }
 
   for (const l of placeList()) {
-    if ((l.x - w.player.x) ** 2 + (l.y - w.player.y) ** 2 > PLACE_R * PLACE_R) continue;
+    if ((l.x - hoofdspeler(w).x) ** 2 + (l.y - hoofdspeler(w).y) ** 2 > PLACE_R * PLACE_R) continue;
     if (now < (st.placeCd.get(l.name) || 0)) continue;
     st.placeCd.set(l.name, now + PLACE_CD);
     const ex = pick('place:' + l.name, 'old');
@@ -437,3 +437,4 @@ const api = {
   count: () => ({ exchanges: BY_ID.size, lines: [...BY_ID.values()].reduce((a, ex) => a + ex.lines.length, 0) }),
 };
 if (typeof window !== 'undefined') window.__banter = api;
+

@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import { Vehicle, makeTwoWheeler } from './vehicle.js';
 import { getVehicleMesh } from './models3d_vehicles.js';
 import { buildPersonMesh, seatPerson, animatePersonWalk } from './models3d_people.js';
@@ -144,7 +145,7 @@ function dropYard() {
 function idleYard(w, dt) {
   const S = sites;
   if (!S || !isPostgameOpen()) { dropYard(); return; }
-  const p = w.player;
+  const p = hoofdspeler(w);
   const d = Math.hypot(S.farm.x - p.x, S.farm.y - p.y);
   if (!yard && d < 220) buildYard(w, S);
   else if (yard && d > 320) { dropYard(); return; }
@@ -288,7 +289,7 @@ function untie(run) {
 
 function cowStep(run, dt) {
   const w = run.world, d = run.data, c = d.cow;
-  const p = w.player, pv = p.inVehicle;
+  const p = hoofdspeler(w), pv = p.inVehicle;
   const lx = pv ? pv.x : p.x, ly = pv ? pv.y : p.y;
   const head = pv ? pv.angle : p.angle || 0;
   const dist = Math.hypot(lx - c.x, ly - c.y);
@@ -339,7 +340,7 @@ function tractorStep(run, dt) {
   if (t.disabled || t.wrecked) { breakDown(run); return Infinity; }
   if (run.t > d.chaseAt + DITCH_AT) { breakDown(run, 'De trekker-limo rijdt de sloot in. Durk en Douwe staan tot hun knieën in het water.'); return Infinity; }
   // a ram from the player's vehicle stalls the trekker
-  const pv = w.player.inVehicle;
+  const pv = hoofdspeler(w).inVehicle;
   if (pv && pv !== t && run.t > d.ramCool) {
     const gap = Math.hypot(pv.x - t.x, pv.y - t.y);
     if (gap < (pv.halfLen + t.halfLen) * 0.9 && Math.abs(pv.speed || 0) > 5.5) {
@@ -419,7 +420,7 @@ export const KOE = {
       run.data.stage = 'drive';
       setTarget({ x: sites.hide.x, y: sites.hide.y });
       // Ome Jan's old moped, for when you came by train
-      const p = w.player;
+      const p = hoofdspeler(w);
       const near = w.vehicles.some((v) => !v.wrecked && !v.isBoat && (v.playerOwned || v.isHeroCar || v.driver === 'player') && Math.hypot(v.x - p.x, v.y - p.y) < 80);
       if (!near) {
         const f = sites.farm;
@@ -437,7 +438,7 @@ export const KOE = {
   keys(run, input) {
     const d = run.data;
     if (d.stage !== 'untie' || !d.cow) return;
-    const p = run.world.player, v = p.inVehicle;
+    const p = hoofdspeler(run.world), v = p.inVehicle;
     if (Math.hypot(d.cow.x - (v ? v.x : p.x), d.cow.y - (v ? v.y : p.y)) > (v ? UNTIE_CAR : UNTIE_FOOT)) return;
     if (input.wasPressed('e') || input.wasPressed('f')) {
       input.consume('e');
@@ -446,7 +447,7 @@ export const KOE = {
     }
   },
   update(run, dt) {
-    const w = run.world, d = run.data, p = w.player;
+    const w = run.world, d = run.data, p = hoofdspeler(w);
     if (d.stage === 'intro' && !isCinematicActive('koe-intro')) d.go();
     if (d.stage === 'intro' || d.stage === 'outro') return;
     d.elapsed += dt;
@@ -519,7 +520,7 @@ export const KOE = {
       const i = w.vehicles.indexOf(d.tractor);
       if (i >= 0) w.vehicles.splice(i, 1);
     }
-    if (d.moped && w.player.inVehicle !== d.moped) {
+    if (d.moped && hoofdspeler(w).inVehicle !== d.moped) {
       const i = w.vehicles.indexOf(d.moped);
       if (i >= 0) w.vehicles.splice(i, 1);
     } else if (d.moped) d.moped.missionCar = false;
@@ -539,3 +540,5 @@ export const KOE = {
     return { stage: d.stage, grab: Math.round(d.grab), rams: d.rams, cow: d.cow ? [Math.round(d.cow.x), Math.round(d.cow.y)] : null, tractor: d.tractor ? [Math.round(d.tractor.x), Math.round(d.tractor.y)] : null };
   },
 };
+
+
