@@ -1,0 +1,17 @@
+name: Tag 0.55.0
+on: workflow_dispatch
+permissions:
+  contents: write
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Zet de tag op de release-commit
+        run: |
+          git config user.name "NatusPella"
+          git config user.email "natuspella@users.noreply.github.com"
+          git tag -a v0.55.0 7d6a36a49f54dac4ddb645b07badb64cc6e9d76d -m "GDE Groningen 0.55.0"
+          git push origin refs/tags/v0.55.0
