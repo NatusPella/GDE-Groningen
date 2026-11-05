@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import { markInstancesDirty } from './util.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { createTerrainMaterial } from './terrain3d.js';
@@ -1301,7 +1302,7 @@ function herdPool(key) {
 }
 
 function threatOf(world) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   const v = p.inVehicle;
   if (world.pigeonMode) return { x: p.x, y: p.y, r: 3, horn: false };
   if (v) {
@@ -1450,7 +1451,7 @@ function animateGoose(mesh, a, time) {
 }
 
 function updateAnimals(dt, world, time, simulate) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   const th = threatOf(world);
   const cands = [];
   for (const a of S.animals) {
@@ -1559,7 +1560,7 @@ function updateAnimals(dt, world, time, simulate) {
 // ------------------------------------------------------------------ gameplay
 
 function gameplay(dt, world) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   if (world.pigeonMode || world.paused) { S.prev = null; return; }
   const v = p.inVehicle;
   // AI vehicles out here (police giving chase, parked cars) stay out of barns too
@@ -1610,10 +1611,10 @@ function splash(world, x, y) {
 // the herds and applies the meadow/ditch effects on the player.
 export function updateCountryside(dt, world, scene, cam, viewDist) {
   // the map-edge layout is built once, well before the player can see it
-  if (!EDGE.ready && world.map && edgeDistance(world.player.x, world.player.y) > -1600) ensureCountryEdge(world.map);
+  if (!EDGE.ready && world.map && edgeDistance(hoofdspeler(world).x, hoofdspeler(world).y) > -1600) ensureCountryEdge(world.map);
   if (!S) init(scene);
   // streams around the camera's focus in a cutscene (scene3d.js updateStreamFocus)
-  const p = world.streamFocus || world.player;
+  const p = world.streamFocus || hoofdspeler(world);
   const t0 = performance.now();
   const near = edgeDistance(p.x, p.y) > -(propRadius(viewDist) + 200);
   updateGround(p.x, p.y);
@@ -1662,3 +1663,4 @@ export function countrysideStats() {
     farprops: farPropsStats(), life: lifeStats(), water: tileWaterStats(),
   };
 }
+

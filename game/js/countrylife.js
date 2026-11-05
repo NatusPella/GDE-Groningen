@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import { markInstancesDirty, WATER_Y } from './util.js';
 import { waterAt } from './waterlevels.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
@@ -336,7 +337,7 @@ function realJunction(a) {
 }
 
 function stepRealTraffic(a, dt, world) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   const v = p.inVehicle;
   const ox = v ? v.x : p.x, oy = v ? v.y : p.y;
   const [wx, wy] = realPos(a);
@@ -382,7 +383,7 @@ function stepRealTraffic(a, dt, world) {
 
 function stepTraffic(a, dt, world) {
   if (a.real) { stepRealTraffic(a, dt, world); return; }
-  const p = world.player;
+  const p = hoofdspeler(world);
   const v = p.inVehicle;
   const ox = v ? v.x : p.x, oy = v ? v.y : p.y;
   const [wx, wy] = roadPos(a);
@@ -440,7 +441,7 @@ function bodyContact(a, x, y, world) {
   // a real vehicle collides by itself; only a tractor's trailer is left here
   const box = a.veh ? a.trailer : a.body;
   if (!box) return;
-  const p = world.player, v = p.inVehicle;
+  const p = hoofdspeler(world), v = p.inVehicle;
   if ((v && v.isHeli && !v.onGround) || (!v && world.pigeonMode)) return;
   const ox = v ? v.x : p.x, oy = v ? v.y : p.y;
   const c = Math.cos(a.yaw), s = Math.sin(a.yaw);
@@ -502,7 +503,7 @@ function dropVehicle(a, world) {
 function syncVehicle(a, world) {
   if (a.left) return;
   const [x, y] = roadPos(a);
-  const p = world.player;
+  const p = hoofdspeler(world);
   const d = Math.hypot(x - p.x, y - p.y);
   const v = a.veh;
   if (!v) {
@@ -595,7 +596,7 @@ function stepBoat(b, dt, time, map) {
 // ------------------------------------------------------------------ birds
 
 function threat(world) {
-  const p = world.player, v = p.inVehicle;
+  const p = hoofdspeler(world), v = p.inVehicle;
   if (world.pigeonMode) return { x: p.x, y: p.y, r: 14 };
   if (v) {
     const sp = Math.abs(v.speed || 0);
@@ -633,7 +634,7 @@ function drawBird(sp, frame, x, h, y, yaw, bank, s) {
 
 function updateFlocks(dt, world, flocks, time) {
   const th = threat(world);
-  const p = world.player;
+  const p = hoofdspeler(world);
   for (const f of flocks) {
     const d = Math.hypot(f.x - p.x, f.y - p.y);
     if (d > FLOCK_R) continue;
@@ -678,7 +679,7 @@ function updateFlocks(dt, world, flocks, time) {
 }
 
 function updateSkeins(dt, world, time, active) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   L.skeinT -= dt;
   if (active && L.skeinT <= 0 && L.skeins.length < 2) {
     L.skeinT = 35 + Math.random() * 50;
@@ -708,7 +709,7 @@ export function updateCountryLife(dt, world, scene, flocks, fogFar) {
   if (!L) init(scene);
   L.map = world.map;
   const t0 = performance.now();
-  const p = world.player;
+  const p = hoofdspeler(world);
   const time = world.time || 0;
   // new road users only out in the Ommeland; the ones about stay until out of sight
   const active = edgeDistance(p.x, p.y) > 60 && !world.cinematicActive;
@@ -781,3 +782,4 @@ export function lifeStats() {
 export function countryTraffic() {
   return L ? L.traffic : [];
 }
+

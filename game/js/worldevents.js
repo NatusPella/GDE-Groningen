@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { canvasTex } from './canvastex.js';
 import { getScene } from './scene3d.js';
@@ -58,7 +59,7 @@ export function initWorldEvents(w) {
 }
 
 export function updateWorldEvents(dt, w) {
-  if (!dt || w.paused || !w.player || !w.map) return;
+  if (!dt || w.paused || !hoofdspeler(w) || !w.map) return;
   world = w;
   updateQuake(dt, w);
   updateAlgae(dt, w);
@@ -73,7 +74,7 @@ const hourOf = (w) => ((w.clock % 24) + 24) % 24;
 // --- earthquake ----------------------------------------------------------------------------------
 
 function situation(w) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   return {
     cinematic: isCinematicActive(), minigame: isActivityActive(), paused: w.paused, dead: p.dead || w.pendingRespawn,
     indoors: inHomeFlat(), heliRun: !!w.heliRun, pigeon: !!w.pigeonMode, wanted: w.wanted || 0,
@@ -87,7 +88,7 @@ function startQuake(mag) {
   const q = rollQuake();
   if (Number.isFinite(mag)) q.mag = mag;
   S.quake = { ...q, t: 0, strength: quakeStrength(q.mag), reacted: false, news: false, alarms: false };
-  pushAudioEvent(world, { kind: 'weapon', sub: 'rumble', x: world.player.x, y: world.player.y, dur: q.dur });
+  pushAudioEvent(world, { kind: 'weapon', sub: 'rumble', x: hoofdspeler(world).x, y: hoofdspeler(world).y, dur: q.dur });
   return true;
 }
 
@@ -104,7 +105,7 @@ function updateQuake(dt, w) {
   q.t += dt;
   const env = quakeEnvelope(q.t, q.dur);
   w.quake = { amp: env * q.strength, t: q.t };
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (q.t > 1.0 && !q.reacted) {
     q.reacted = true;
     let n = 0;
@@ -268,7 +269,7 @@ function updateAlgae(dt, w) {
     }
   }
   if (!on) { if (A.group) A.group = null; return; }
-  const p = w.player;
+  const p = hoofdspeler(w);
   // meshes only for the lakes near the player
   for (const [id, e] of A.byLake) {
     if (!e.patches.length) continue;
@@ -305,7 +306,7 @@ function updateFireworks(dt, w) {
   // no Ontzet show: a firework show of the summer agenda (evenementen.js, #131) goes up over its own town
   if (!st.on) st = showFor(today(w), hourOf(w));
   const where = st.at || GROTE_MARKT;
-  const p = w.player;
+  const p = hoofdspeler(w);
   const d = dist(p, where);
   // shells already in the air finish their flight
   for (let i = F.shells.length - 1; i >= 0; i--) {
@@ -364,7 +365,7 @@ function countTourists() {
 
 function updateTourists(dt, w) {
   const T = S.tourists;
-  const p = w.player;
+  const p = hoofdspeler(w);
   // a tourist says something when you walk past, once in a while
   if (w.time - (T.sayAt || 0) > 6) {
     for (const q of w.pedestrians) {
@@ -405,3 +406,4 @@ function updateTourists(dt, w) {
     return;
   }
 }
+

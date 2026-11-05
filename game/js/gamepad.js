@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Controller support through the Gamepad API (Xbox, PlayStation, Steam Deck;
 // anything in the browser's "standard" mapping). Polled once per animation
 // frame. Buttons become the keys the game already knows (controls.js
@@ -151,7 +152,7 @@ function context() {
   // de vliegschool (#397) blijft de hele les een activiteit, ook als je in het lesvliegtuig zit: in de lucht
   // de gewone vliegindeling, in het lesmenu de pijlen met A en B (anders stopte B de les en kon je niet bladeren)
   if (w.activityGame === 'vliegschool') {
-    const sv = w.player && w.player.inVehicle;
+    const sv = hoofdspeler(w) && hoofdspeler(w).inVehicle;
     if (sv && sv.isPlane) return 'plane';
     if (sv && sv.isHeli) return 'heli';
     return 'vliegschool';
@@ -165,7 +166,7 @@ function context() {
   if (w.coopHold) return 'menu';
   // een vraag van Samen spelen: A is ja, B is nee (#151)
   if (coopVraag(w)) return 'coopvraag';
-  const v = w.player && w.player.inVehicle;
+  const v = hoofdspeler(w) && hoofdspeler(w).inVehicle;
   // een zeilboot (boattypes.js `zeil`) vaart met de skûtsje-indeling: Q en Z op de bumpers, D-pad omlaag hengelt
   // in een boot die stilligt (#151); een trekker op het erf heeft zijn eigen werktuigknoppen (#151)
   if (v) return v.isPlane ? 'plane' : v.isHeli ? 'heli' : w.noLookBack || (v.model && v.model.zeil) ? 'skutsje' : v.farm ? 'trekker' : v.gb && getSettings().shiftMode !== 'auto' ? 'vehicleManual' : v.isBus ? 'bus' : 'vehicle';
@@ -358,7 +359,7 @@ function watchFeel() {
     rumble(0.35 + k * 0.6, 0.5 + k * 0.4, 120 + k * 220);
   }
   lastHealth = hp;
-  const v = w.player && w.player.inVehicle;
+  const v = hoofdspeler(w) && hoofdspeler(w).inVehicle;
   const sp = v && Number.isFinite(v.speed) ? v.speed : null;
   if (sp != null && lastSpeed != null && Math.abs(sp - lastSpeed) > 4.5) {
     const k = Math.min(1, (Math.abs(sp - lastSpeed) - 4.5) / 12);
@@ -467,3 +468,4 @@ export function initGamepad(inp, w, h = {}) {
   document.documentElement.dataset.padCtx = ctx;
   requestAnimationFrame(poll);
 }
+
