@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { poleVault, findVaultSpot } from './fierljep.js';
@@ -96,7 +97,7 @@ export const FIERLJEP = {
     });
     w.cinematicHidePlayers = true;
     w.challengeHoldPlayer = true;
-    const p = w.player;
+    const p = hoofdspeler(w);
     if (p.water) p.leaveWater();
     p.x = s.runup.x - s.dir.x * 3; p.y = s.runup.y - s.dir.y * 3;
     run.data.wait = 0.6;
