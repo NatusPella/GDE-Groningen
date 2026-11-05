@@ -14,7 +14,7 @@ import { PLAS, plasBaan, plasBeloning, kiesPlek } from './regattaplas.js';
 import { today as calendarToday } from './calendarday.js';
 import { Vehicle } from './vehicle.js';
 import { BOAT_KINDS } from './boattypes.js';
-import { hoofdspeler } from './spelersregister.js';
+import { hoofdspeler } from './players.js';
 import { lichaamVan, bestuurInstappenIn, bestuurLos } from './coopbestuur.js';
 import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHostBaan, wedBaanStand, wedScoreStop } from './multiplayerwedstrijd.js';
 
@@ -45,7 +45,7 @@ function loadMarinas() {
 }
 
 // de dichtstbijzijnde jachthaven of de Hoornse Plas (regattaplas.js kiesPlek)
-const nearestMarina = (w) => kiesPlek(marinas, w.player.x, w.player.y);
+const nearestMarina = (w) => kiesPlek(marinas, hoofdspeler(w).x, hoofdspeler(w).y);
 
 function buildMeshes(tonnen, bots) {
   const g = new THREE.Group();
@@ -99,7 +99,7 @@ function finish(w, { quit = false, extern = false, uitslag = null } = {}) {
   recordStat(w, 'regatta');
   const bel = plas ? plasBeloning(medal) : { geld: [0, 15, 25, 40][medal] || 0, xp: 18 + medal * 3 };
   const premie = loopbaanVerdien(w, 'race', bel.geld, { xp: bel.xp, n: 1, uniek: 'regatta', ...(plas ? { uniek: PLAS.record } : null) }); // loopbaan (#381)
-  const plaats = speelPlaats(rr, w.player.x, w.player.y, r.bots);
+  const plaats = speelPlaats(rr, hoofdspeler(w).x, hoofdspeler(w).y, r.bots);
   const stats = [['Plaats', plaatsTekst(plaats, r.bots.length + 1)], ['Tijd', fmtTime(rr.tijd)], ['Richttijd', fmtTime(rr.richttijd)], ['Tonnen', String(rr.gerond)]];
   if (medal) stats.push(['Medaille', MEDALS[medal]]);
   if (rec && rec.newBest) stats.push(['Record', 'Nieuw!']);
@@ -121,7 +121,7 @@ function start(w, sc = null) {
   const bots = maakBots(baan.tonnen, plas ? PLAS.bots : 3);
   meshes = buildMeshes(baan.tonnen, bots);
   // de baan kan een eind van de haven liggen (smal water, #384): de aanloop telt mee in de richttijd en de bots wachten er even mee
-  const aanloop = Math.max(0, Math.hypot(baan.tonnen[0].x - w.player.x, baan.tonnen[0].y - w.player.y) - 25) / snelheid;
+  const aanloop = Math.max(0, Math.hypot(baan.tonnen[0].x - hoofdspeler(w).x, baan.tonnen[0].y - hoofdspeler(w).y) - 25) / snelheid;
   run = { reg: createRegatta(baan.tonnen, { rondes, richttijd: Math.round(richtTijd(baan.tonnen, rondes, snelheid) + aanloop) }), bots, baan, haven: near.m.name, flash: null, flashT: 0, aanloop, plas };
   const tel = baan.tonnen.length === 5 ? 'vijf' : 'vier';
   gameUi.showCard(w, { kind: 'tip', kicker: plas ? 'Zeilwedstrijd' : 'Zeilregatta', title: plas ? 'Twee ronden over de Hoornse Plas' : 'Twee rondes langs de tonnen', body: `Ronde de ${tel} tonnen in volgorde, twee keer. Vaar niet recht tegen de wind in: kruis. [Q] haalt het zeil aan, [Z] viert het. [Backspace] stopt.${plas ? ' Een medaille levert geld op: hoe sneller, hoe meer.' : ''}`, duration: 11, key: plas ? 'regatta-plas-help' : 'regatta-help', voice: false });
@@ -202,7 +202,7 @@ function ruimBoten(w) {
 }
 function updateHud(w) {
   if (!run || !board) return;
-  const r = run.reg, p = hoofdspeler(w) || w.player;
+  const r = run.reg, p = hoofdspeler(w);
   const ton = r.tonnen[r.volgend];
   const afstand = ton ? Math.round(Math.hypot(ton.x - p.x, ton.y - p.y)) : 0;
   const wind = w.wind;
@@ -281,7 +281,7 @@ function tick(dt, w) {
   if (!run) return;
   if (run.online) { tickBaan(dt, w); return; }
   if (w.pendingRespawn || stopPressed(w.input)) { finish(w, { quit: true }); return; }
-  const v = w.player.inVehicle;
+  const v = hoofdspeler(w).inVehicle;
   const r = run.reg;
   const was = r.gerond;
   if (isZeil(v)) {
@@ -326,24 +326,24 @@ export const REGATTA_GAME = {
       voortgang: () => (run ? regattaVoortgang(run.reg) : 0),
       quit: () => { if (!run) return false; finish(w, { quit: true }); return true; },
       ronden: REGATTA.rondes,
-      hoek: () => (w.wind && w.player.inVehicle ? windHoek(w.player.inVehicle.angle, w.wind) : null),
+      hoek: () => (w.wind && hoofdspeler(w).inVehicle ? windHoek(hoofdspeler(w).inVehicle.angle, w.wind) : null),
     };
   },
   spots: () => [...(marinas || []).map((m) => ({ id: 'regatta-' + m.id, name: `${NAAM} ${m.name}`, x: m.x, y: m.y, mode: 'boat' })), { id: 'regatta-plas', name: PLAS.naam, x: PLAS.x, y: PLAS.y, mode: 'boat' }],
   prompt(w) {
-    if (run || !isZeil(w.player.inVehicle)) return null;
+    if (run || !isZeil(hoofdspeler(w).inVehicle)) return null;
     const near = nearestMarina(w);
     if (!near) return null;
     const why = activityBlock(w);
     return { id: 'regatta', x: near.m.x, y: near.m.y, h: 3, key: 'E', label: near.m.plas ? PLAS.naam : NAAM, sub: why || recText(!!near.m.plas) || (near.m.plas ? 'Twee ronden langs vijf tonnen · Hoornse Plas' : `Twee rondes langs vier tonnen · ${near.m.name}`), ring: true, dim: !!why };
   },
   secondary(w) {
-    if (run || isZeil(w.player.inVehicle)) return [];
+    if (run || isZeil(hoofdspeler(w).inVehicle)) return [];
     const near = nearestMarina(w);
     return near ? [{ id: 'regatta-2', x: near.m.x, y: near.m.y, h: 3, label: near.m.plas ? PLAS.naam : NAAM, sub: 'Vaar hier in een zeilboot en druk E', kind: 'place' }] : [];
   },
   interact(w) {
-    if (run || !isZeil(w.player.inVehicle) || !nearestMarina(w)) return false;
+    if (run || !isZeil(hoofdspeler(w).inVehicle) || !nearestMarina(w)) return false;
     const why = activityBlock(w);
     if (why) { w.addMessage(why, 2.5); return true; }
     // samen spelen (#443): met gasten eerst "Meedoen?", daarna de wedstrijd; alleen is het de gewone regatta
@@ -387,3 +387,4 @@ registreerWedstrijd('regatta', {
 });
 // Een gast bij een jachthaven of de Hoornse Plas kan de wedstrijd zelf aanvragen (#452).
 zetWedGastHaken('regatta', { dichtbij: (w) => !run && !!nearestMarina(w) });
+
