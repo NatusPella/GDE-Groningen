@@ -3121,3 +3121,4 @@ De eerste versie: alles wat er tot de eerste desktop-release gebouwd is.
 - Voor wie het liever zonder app doet: een ZIP met `START DE GAME.bat` die op
   Windows zelf Python regelt en de game in de browser opent.
 
+

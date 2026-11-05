@@ -42,7 +42,7 @@ for (const naam of REGISTER_NAMEN) {
 }
 ok(coopVoertuig('bike').stoelen === 1 && coopVoertuig('bike').passagiers === 0, 'fiets: één plek');
 ok(coopVoertuig('bus').passagiers === 6 && coopVoertuig('bus').bestuur === 'nee', 'bus: zes passagiers, geen gast aan het stuur');
-ok(coopVoertuig('heli').bestuur === 'nee' && coopVoertuig('plane').bestuur === 'nee', 'helikopter en vliegtuig: alleen in je eigen spel');
+ok(coopVoertuig('heli').bestuur === 'gast' && coopVoertuig('plane').bestuur === 'gast', 'helikopter en vliegtuig: de groep mag besturen (#525)');
 ok(coopVoertuig('train').bestuur === 'nee' && coopVoertuig('trein') === null, 'trein: openbaar vervoer, geen gast aan het stuur');
 ok(coopVoertuig('taxi').bestuur === 'gast', 'taxi: een gast mag sturen');
 ok(coopVoertuig('maaidorser').bestuur === 'gast', 'de machines van de boerderij deelt de boer');
@@ -113,3 +113,5 @@ ok(cutsceneBestanden.length >= 4, 'cutscene-bestanden gevonden', cutsceneBestand
 
 console.log(fails ? `vehicleregister_test: ${fails} van ${n} fout` : `vehicleregister_test: ${n}/${n} ok (${REGISTER_NAMEN.length} voertuigfamilies)`);
 process.exit(fails ? 1 : 0);
+
+

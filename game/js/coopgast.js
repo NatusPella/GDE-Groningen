@@ -202,10 +202,22 @@ export function wielInvoer(r) {
   const b = (r && r.buttons) | 0;
   return {
     axis: () => [mx, my],
-    isDown: (k) => (k === ' ' ? !!(b & 2) : k === 'shift' ? !!(b & 1) : false),
+    isDown: (k) => (k === ' ' ? !!(b & 2) : k === 'shift' ? !!(b & 1) : k === 'control' ? !!(b & 8) :
+      k === 'w' || k === 'arrowup' ? my < -0.3 : k === 's' || k === 'arrowdown' ? my > 0.3 :
+      k === 'a' || k === 'arrowleft' ? mx < -0.3 : k === 'd' || k === 'arrowright' ? mx > 0.3 : false),
     wasPressed: () => false,
     consume: () => {},
   };
+}
+
+// De invoer voor het voertuig dat een gast bestuurt: het stuur dat hij kreeg, of (bij een
+// vliegtuig of heli) zijn eigen plek in dat voertuig; anders de invoer van de gastheer.
+export function bestuurInvoer(world, v = null) {
+  if (!world) return null;
+  const figs = world.coopFigures || [];
+  const kandidaten = world.coopWielSlot != null ? [figs[world.coopWielSlot]] : figs.slice(1);
+  for (const f of kandidaten) if (f && f.input && (!v || f.inVeh === v)) return wielInvoer(f.input);
+  return world.input;
 }
 
 // De knoppen die een gast naar de host stuurt: bit 0 rennen, bit 1 handrem
@@ -225,3 +237,4 @@ export const WIEL_HOST_TEKST = {
   gegeven: (naam) => `Je geeft ${naam} het stuur. ${wielToets()} om het terug te nemen.`,
   terug: (naam) => `Je neemt het stuur terug van ${naam}.`,
 };
+
