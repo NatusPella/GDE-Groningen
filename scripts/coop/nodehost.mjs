@@ -6,6 +6,7 @@
 //   const h = await startNodeHost({ stage });   // h.code, h.world, h.step(), h.stop()
 import { createRequire } from 'node:module';
 import path from 'node:path';
+import fs from 'node:fs';
 import { createInterface } from 'node:readline';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 
@@ -169,7 +170,7 @@ export function eisKoplozeWereld(world) {
   return world;
 }
 
-export async function startKoplozeHost({ max = 4, wachtwoord = '', start = START, clock = 12, seed = 95, localIp = null, upnp = false, port = 0, maakWereld = null, openbaar = false, naam = '', kamer = '', lijstSocket = null, lijstInterval = 0 } = {}) {
+export async function startKoplozeHost({ max = 4, wachtwoord = '', start = START, clock = 12, seed = 95, localIp = null, upnp = false, port = 0, maakWereld = null, openbaar = false, naam = '', kamer = '', lijstSocket = null, lijstInterval = 0, staatPad = null } = {}) {
   const poort = leesPoort(port); // 0 = het spel kiest er zelf een
   const N = await imp('coopnet.js');
   const { koplozeWereld } = await imp('net/koploos.js');
@@ -187,6 +188,17 @@ export async function startKoplozeHost({ max = 4, wachtwoord = '', start = START
     openbareNaam = schoon.naam;
   }
   const world = eisKoplozeWereld((typeof maakWereld === 'function' ? maakWereld : koplozeWereld)({ start, clock }));
+  // #450 (slice C): de wereldstaat van de vorige run terugzetten. Een kapot of half
+  // bestand laat de host gewoon met een nieuwe wereld starten.
+  const staatMod = staatPad ? await imp('net/serverstaat.js') : null;
+  if (staatMod && staatPad) {
+    try { const staat = staatMod.leesStaat(fs.readFileSync(staatPad, 'utf8')); if (staat) staatMod.herstelStaat(world, staat); } catch (e) { console.warn('wereldstaat: ' + (e && e.message ? e.message : e)); }
+  }
+  let laatsteOpslag = 0;
+  const bewaarStaat = () => {
+    if (!staatMod || !staatPad) return;
+    try { const tmp = staatPad + '.tmp'; fs.writeFileSync(tmp, staatMod.schrijfStaat(staatMod.vangStaat(world))); fs.renameSync(tmp, staatPad); } catch (e) { console.warn('wereldstaat opslaan: ' + (e && e.message ? e.message : e)); }
+  };
   N.startHost(world, info, { seed, max, koploos: true, wachtwoord });
   if (!Array.isArray(world.coopRoster)) {
     try { N.stopCoopNet(world); } catch (e) { /* al weg */ }
@@ -212,6 +224,7 @@ export async function startKoplozeHost({ max = 4, wachtwoord = '', start = START
     const now = Date.now(), dt = Math.min(0.1, (now - last) / 1000); last = now;
     h.t += dt; world.time += dt; world.clock = (world.clock + dt / 120) % 24;
     N.tickCoopNet(world, dt);
+    if (staatMod && h.t - laatsteOpslag >= 30) { laatsteOpslag = h.t; bewaarStaat(); }
   }, 16);
   // de beheerderstaken: plek 0 is de server zelf en telt niet als speler
   h.spelers = () => {
@@ -278,7 +291,7 @@ export async function startKoplozeHost({ max = 4, wachtwoord = '', start = START
 
   h.stop = async () => {
     if (h.gestopt) return;
-    h.gestopt = true; clearInterval(h.timer);
+    h.gestopt = true; bewaarStaat(); clearInterval(h.timer);
     try { off(); } catch (e) { /* al weg */ }
     stopAankondiging(); // eerst de lijst: het vastgehouden bericht gaat eruit terwijl de verbinding nog open is
     try { N.stopCoopNet(world); } catch (e) { /* al weg */ }
@@ -298,9 +311,10 @@ export async function startKoplozeHost({ max = 4, wachtwoord = '', start = START
 async function main() {
   const args = process.argv.slice(2);
   if (args.includes('--help') || args.includes('-h')) {
-    console.log('Gebruik: node scripts/coop/nodehost.mjs [--max=4] [--wachtwoord=...] [--port=41234] [--openbaar] [--naam=...] [--upnp]');
+    console.log('Gebruik: node scripts/coop/nodehost.mjs [--max=4] [--wachtwoord=...] [--port=41234] [--openbaar] [--naam=...] [--upnp] [--staat=<bestand>]');
     console.log('De poort mag ook via de omgeving: PORT=41234. Zonder poort kiest het spel er zelf een.');
     console.log('Met --openbaar (of een --naam) staat de sessie in de openbare lijst: naam, spelers en versie, zonder adres.');
+    console.log('Met --staat=<bestand> bewaart de host de klok, het weer en de missiefase en leest hij die bij de start terug.');
     console.log('Commando\'s: spelers, kick <plek>, verbied <plek>, wachtwoord <tekst>, wachtwoord uit, max <aantal>, openbaar <naam>, openbaar uit, stop');
     return;
   }
@@ -316,7 +330,7 @@ async function main() {
   try { poort = leesPoort(opt('port') || process.env.PORT || ''); }
   catch (e) { console.error('De poort klopt niet: ' + (e && e.message ? e.message : e)); process.exit(1); }
   let h;
-  try { h = await startKoplozeHost({ max: Number(opt('max')) || 4, wachtwoord: ww, port: poort, openbaar: args.includes('--openbaar'), naam, upnp: args.includes('--upnp') }); }
+  try { h = await startKoplozeHost({ max: Number(opt('max')) || 4, wachtwoord: ww, port: poort, openbaar: args.includes('--openbaar'), naam, upnp: args.includes('--upnp'), staatPad: opt('staat') || null }); }
   catch (e) { console.error('De gastheer kon niet starten: ' + (e && e.message ? e.message : e)); process.exit(1); }
   const kamerTekst = (k) => (k ? `${k.slice(0, 5)}-${k.slice(5)}` : '');
   console.log('Koploze gastheer gestart (#450).');
@@ -371,6 +385,8 @@ async function main() {
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) await main();
+
+
 
 
 
