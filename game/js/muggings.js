@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import { Pedestrian, isSpawnHidden } from './pedestrians.js';
 import { isInsideBuilding } from './pedgeom.js';
 import { walkPed } from './sidejobkit.js';
@@ -33,7 +34,7 @@ export function initMuggings(w) {
 }
 
 function wijkOf(w) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   return w.map && p ? wijkProfileAt(w.map, p.x, p.y).wijk : '';
 }
 
@@ -56,7 +57,7 @@ function abort(w, silent = false) {
 }
 
 function spawnThief(w) {
-  const p = w.player, map = w.map;
+  const p = hoofdspeler(w), map = w.map;
   for (let tries = 0; tries < 14; tries++) {
     const a = Math.random() * Math.PI * 2, r = MUG.spawnDist[0] + Math.random() * (MUG.spawnDist[1] - MUG.spawnDist[0]);
     const [x, y] = map.escapeBuilding(p.x + Math.cos(a) * r, p.y + Math.sin(a) * r, 0.4);
@@ -108,10 +109,10 @@ function snatch(w) {
 }
 
 export function updateMuggings(dt, w) {
-  if (!dt || w.paused || !w.player || !w.map) return;
+  if (!dt || w.paused || !hoofdspeler(w) || !w.map) return;
   world = w;
   S.since += dt;
-  const p = w.player;
+  const p = hoofdspeler(w);
   const hour = hourOf(w);
   const wijk = wijkOf(w);
   const level = riskLevel(wijk, hour);
@@ -155,3 +156,4 @@ export function updateMuggings(dt, w) {
   if (!mayMug({ onFoot: !p.inVehicle && !p.swimming && !w.pigeonMode && !w.heliRun, busy: busy(w) || inHomeFlat(), dead: p.dead || w.pendingRespawn, wanted: w.wanted || 0, since: S.since, time: w.time || 0, money: w.money })) return;
   if (Math.random() < hazard(level) * dt) start(w);
 }
+

@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
 import { clamp, lerp } from './util.js';
 import { playSikkomLine } from './audio.js';
@@ -208,7 +209,7 @@ const forcedWeather = (w) => w.timer >= 1e8 || (w.active && w.kind === 'storm');
 
 function followRegionWeather(dt, world, w) {
   if (!world.weatherState) world.weatherState = createWeatherState((Math.random() * 0x7fffffff) | 0);
-  const p = world.player;
+  const p = hoofdspeler(world);
   const region = p ? regionAt(p.x, p.y) : 'stad';
   // samen spelen (#364): een gast volgt het weer van de gastheer (coopweer.js) en stapt zijn eigen machine niet
   if (world.coopRole !== 'client') stepWeather(world.weatherState, dt, typeof world.clock === 'number' ? world.clock : 12);
@@ -321,7 +322,7 @@ export function updateWeather(dt, world) {
 }
 
 function toppleRandomBike(world) {
-  const player = world.player;
+  const player = hoofdspeler(world);
   const nearby = world.vehicles.filter(
     (v) => v.isBike && !v.wrecked && Math.hypot(v.x - player.x, v.y - player.y) < TOPPLE_RANGE
   );
@@ -343,7 +344,7 @@ export function applyWeatherToScene3D(scene, renderer, world, dt, px, py, cam = 
   updateRain(dt, world, px, py, cam);
   const quality = getSettings().quality;
   const flash = updateLightning(dt, w.active ? t : 0, quality, scene);
-  const region = world.player ? regionAt(world.player.x, world.player.y) : 'stad';
+  const region = hoofdspeler(world) ? regionAt(hoofdspeler(world).x, hoofdspeler(world).y) : 'stad';
   const mist = clamp((w.mist || 0) * qualityLook(quality).mist * regionHaze(region).mistK, 0, 1);
   const cloud = Math.max(t, clamp(w.overcast || 0, 0, 1), mist * 0.6);
   const moodT = cloud * STORM_MOOD;
@@ -392,3 +393,4 @@ export function applyWeatherToScene3D(scene, renderer, world, dt, px, py, cam = 
     obj.intensity = obj.userData._weatherBaseIntensity * (1 - cloud * (sunLight ? 0.85 : 0.35)) + flash * (sunLight ? 3 : 1.2);
   }
 }
+

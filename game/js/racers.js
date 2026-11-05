@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // AI rivals for a lap race along a fixed centreline (see ringroute.js).
 // Rivals are ordinary Vehicles flagged racer/missionCar with driver 'racer'
 // and no road, so traffic AI, stealing and the population managers leave
@@ -199,7 +200,7 @@ export function createRace(world, route, cps, opts = {}) {
   const track = buildTrack(world.map, route, bikes ? 0.7 : EDGE);
   const cpS = cps.map((i) => track.s[i]);
   const race = { track, cpS, bikes, band: opts.band || 260, rivals: [], phase: 'grid', timer: 0, playerProg: 0, playerCar: null, finishers: 0, playerPos: 0, lastBeat: -1 };
-  const p = world.player;
+  const p = hoofdspeler(world);
   const pvh = p.inVehicle;
   const car = pvh && (bikes ? pvh.isBike : !pvh.isBoat && !pvh.isBike && !pvh.isScooter) ? pvh : null;
   const pv = car || p;
@@ -307,7 +308,7 @@ function standings(race) {
 // car round the next bend is seen where it really is on the road.
 function nearbyOnTrack(world, r, t, reach, bikes) {
   const v = r.v, out = [];
-  const p = world.player;
+  const p = hoofdspeler(world);
   const add = (ox, oy, speed, ang, half) => {
     if (Math.abs(ox - v.x) > reach || Math.abs(oy - v.y) > reach) return;
     const pr = project(t, ox, oy, r.i - 3, 40);
@@ -387,7 +388,7 @@ function driveRival(r, dt, world, race) {
 
   const sp = Math.max(0, v.speed);
   const at = sample(t, r.sLap);
-  const player = world.player;
+  const player = hoofdspeler(world);
   const pdist = Math.hypot((player.inVehicle || player).x - v.x, (player.inVehicle || player).y - v.y);
 
   if (far.dist > 30 || r.stuckCount > 3) {
@@ -521,7 +522,7 @@ export function disposeRace(world, race) {
 }
 
 export function updateRetiredRacers(dt, world) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   const px = (p.inVehicle || p).x, py = (p.inVehicle || p).y;
   for (let k = retired.length - 1; k >= 0; k--) {
     const { r, race } = retired[k];
@@ -537,3 +538,4 @@ export function updateRetiredRacers(dt, world) {
     driveRival(r, dt, world, race);
   }
 }
+

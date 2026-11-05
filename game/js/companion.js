@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import { dist, isInWater, inMapWater, WATER_Y, normalizeAngle, pointInPolygon, closestPointOnSegment } from './util.js';
 import { knockDown, isKnockedDown } from './ragdoll.js';
 import { resolveElevWalls } from './elevation.js';
@@ -16,7 +17,7 @@ import { registerPoseSource, unregisterPoseSource, TAMMO_APPEARANCE, ANITA_APPEA
 // controlling is this module's "companion" - an AI-controlled buddy that
 // follows on foot, rides along as a passenger when the player drives, and
 // respawns-and-walks-back if it gets killed. Swapping control (the 'c' key,
-// handled in player.js) just trades physical state between world.player
+// handled in player.js) just trades physical state between hoofdspeler(world)
 // and world.companion - this file never touches which one is "the player".
 
 const FOLLOW_DIST = 3.2;
@@ -61,7 +62,7 @@ const PED_SPACE = 1.3;
 const POSE_SEEDS = { tammo: TAMMO_APPEARANCE.seed, anita: ANITA_APPEARANCE.seed };
 
 export function initCompanion(world) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   // spawn shoulder-to-shoulder, not scattered off at follow-distance - they
   // arrive at the landmark together, the follow AI only kicks in once
   // the player actually starts moving away
@@ -92,7 +93,7 @@ export function initCompanion(world) {
     const c = world.companion;
     if (c.inVehicle) { c.inVehicle.passenger = null; c.inVehicle = null; }
     if (c.state === 'dead') { c.state = 'alive'; c.health = 100; }
-    teleportNearPlayer(c, world.player, world.map);
+    teleportNearPlayer(c, hoofdspeler(world), world.map);
   });
 }
 
@@ -744,7 +745,7 @@ function followGround(world) {
   if (!c) return;
   if (c.inVehicle) { c.gz = c.inVehicle.z || 0; return; }
   if (!map.elev || !map.elev.has || c.water) { c.gz = 0; return; }
-  const p = world.player;
+  const p = hoofdspeler(world);
   const pz = (p.gz || 0) + (p.z || 0);
   const hint = dist(c.x, c.y, p.x, p.y) < 4 ? pz : c.gz || 0;
   const w = map.terrainOn ? map.resolveWalls(c.x, c.y, hint, c.radius) : resolveElevWalls(map.elev, c.x, c.y, hint, c.radius);
@@ -756,7 +757,7 @@ function followGround(world) {
 // figuur in coopnet.js, geen lichaam van de metgezel meer; de oude coopGastGebruik-tak (E voor plek 1) bestaat daarom niet.
 function stepCompanion(dt, world) {
   const c = world.companion;
-  const p = world.player;
+  const p = hoofdspeler(world);
   c.character = p.character === 'tammo' ? 'anita' : 'tammo';
   clearIdle(c);
 
@@ -881,3 +882,4 @@ function stepCompanion(dt, world) {
     }
   }
 }
+

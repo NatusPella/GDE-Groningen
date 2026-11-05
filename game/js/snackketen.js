@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import { getShopsForRender } from './shops.js';
 import { unlockAchievement, setStatMax } from './achievements.js';
 import { iconDisc } from './activitykit.js';
@@ -47,7 +48,7 @@ function buildSpots(map) {
 }
 
 function nearest(w) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   let best = null, bd = USE_RADIUS;
   for (const s of spots) {
     const d = Math.hypot(p.x - s.x, p.y - s.y);
@@ -123,7 +124,7 @@ export const SNACKKETEN = {
   // op de kaart alleen je eigen vestigingen; de spotcheck (all) en de bot krijgen elke snackbar
   spots: (all = false) => spots.filter((s) => all || chain.outlets[s.id]).map((s) => ({ id: s.id, name: `${CHAIN_NAME} vestiging`, x: s.x, y: s.y })),
   prompt(w) {
-    if (isShopOpen() || w.player.inVehicle || w.player.swimming) return null;
+    if (isShopOpen() || hoofdspeler(w).inVehicle || hoofdspeler(w).swimming) return null;
     const s = nearest(w);
     if (!s) return null;
     const p = promptFor(s);
@@ -131,7 +132,7 @@ export const SNACKKETEN = {
   },
   secondary: () => [],
   interact(w) {
-    if (isShopOpen() || w.player.inVehicle) return false;
+    if (isShopOpen() || hoofdspeler(w).inVehicle) return false;
     const s = nearest(w);
     if (!s) return false;
     interactAt(w, s);
@@ -156,3 +157,4 @@ export const SNACKKETEN = {
   mapSub: () => `${outletCount(chain)} vestigingen · ${euro(tillTotal(chain))} in de kassa`,
   ubbo: () => null,
 };
+

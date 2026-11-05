@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // A still of a place in Grunn for the Overzicht hero: the main scene drawn
 // once from a fixed camera above the place into a small target, tone mapped
 // like the post chain's last pass and cached per place (in memory and in localStorage). Only rendered
@@ -68,7 +69,7 @@ function shoot(world, x, y) {
     quad = new FullScreenQuad(mat);
   }
   if (!shotCam) shotCam = new THREE.PerspectiveCamera(46, SHOT_W / SHOT_H, 0.5, 900);
-  const p = world.player;
+  const p = hoofdspeler(world);
   // look at the place from the player's side, where the city is streamed in
   let dx = p.x - x, dy = p.y - y;
   const d = Math.hypot(dx, dy);
@@ -120,7 +121,7 @@ export function placeShot(world, key, x, y, cb) {
   const k = placeKey(key, x, y, night);
   const cache = load();
   if (cache.has(k)) return cache.get(k);
-  if (Math.hypot(world.player.x - x, world.player.y - y) > NEAR_M) return null;
+  if (Math.hypot(hoofdspeler(world).x - x, hoofdspeler(world).y - y) > NEAR_M) return null;
   if (pending.has(k)) { pending.get(k).push(cb); return null; }
   pending.set(k, [cb]);
   // two frames later, so the menu itself is on screen first
@@ -140,3 +141,4 @@ export function placeShot(world, key, x, y, cb) {
   }));
   return null;
 }
+

@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // H16 "Iedereen heeft een rode auto gezien": the goods train to Leeuwarden that Durk and Douwe
 // load Tessa's Fjord onto. It waits on the line west of the Hoofdstation;
 // the fleeing Fjord drives up onto the last flat (or is already on it when
@@ -105,7 +106,7 @@ function release(world, v, spot) {
 
 // A drivable street spot by the crossing, on the player's side of the track.
 function unloadSpot(world) {
-  const p = world.player, c = ft.cross;
+  const p = hoofdspeler(world), c = ft.cross;
   const t = ft.t;
   const [ax, ay] = routePoint(t.route, c.s - 3), [bx, by] = routePoint(t.route, c.s + 3);
   const ux = (bx - ax) / 6, uy = (by - ay) / 6;
@@ -136,7 +137,7 @@ function stopShot(world) {
   const nose = t.cars[0];
   const dx = c.x - nose.x, dy = c.y - nose.y, d = Math.hypot(dx, dy) || 1;
   const nx = -dy / d, ny = dx / d;
-  const side = Math.sign((world.player.x - c.x) * nx + (world.player.y - c.y) * ny) || 1;
+  const side = Math.sign((hoofdspeler(world).x - c.x) * nx + (hoofdspeler(world).y - c.y) * ny) || 1;
   return (u) => ({
     position: { x: nose.x + dx * 0.5 + nx * side * (15 - u * 3), y: nose.y + dy * 0.5 + ny * side * (15 - u * 3), z: 4.5 - u * 1.2 },
     lookAt: { x: nose.x - (dx / d) * 18, y: nose.y - (dy / d) * 18, z: 2 },
@@ -175,7 +176,7 @@ export function loadFjordNow(world, v) {
 // into the Fjord on the train), 'lost' (it went over the crossing) or null.
 export function updateFjordTrain(dt, world) {
   if (!ft) return null;
-  const t = ft.t, v = ft.fjord, p = world.player;
+  const t = ft.t, v = ft.fjord, p = hoofdspeler(world);
   if (v && v.onTrain && p.inVehicle === v) {
     // Tessa got in up there: down off the flat, beside the train
     const car = rearFlat();
@@ -256,3 +257,4 @@ export function disposeFjordTrain(world) {
   removeMissionTrain(ft.t);
   ft = null;
 }
+
