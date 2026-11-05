@@ -76,7 +76,7 @@ const hostBestuur = []; // wat de gastheer van de auto ziet waar de gast in rijd
   host.at(82, (h) => { h.rit(true, { isBike: true, model: { len: 1.8, wid: 0.6, name: 'bike' } }); h.log.push('op de fiets'); });
   host.at(98, (h) => { h.rit(false); h.log.push('van de fiets'); });
   host.at(100, (h) => { h.parkeerAuto(2.5); h.log.push('een vrije auto naast de gast'); });
-  for (const sec of [104, 106, 108]) host.at(sec, (h) => { const car = h.world.vehicles.find((v) => v.id === 198); if (car) hostBestuur.push({ rij: car.coopBestuurder ?? null, driver: car.driver, speed: Math.round((car.speed || 0) * 10) / 10, mx: Math.round(car.x - ((h.world.coopFigures && (h.world.coopFigures[1] || h.world.coopFigures['1'])) || h.world.companion).x), zit: !!((h.world.coopFigures && (h.world.coopFigures[1] || h.world.coopFigures['1'])) || h.world.companion).coopBestuurt }); });
+  for (const sec of [60, 70, 80, 104, 106, 108]) host.at(sec, (h) => { const car = h.world.vehicles.find((v) => v.id === 198); const figs = Object.values(h.world.coopFigures || {}).map((f) => [f.slot, f.inVeh && f.inVeh.id, f.stoel, !!f.coopBestuurt]); hostBestuur.push({ sec, figs, rijders: Object.keys(h.world.coopRijders || {}), rij: car && (car.coopBestuurder ?? null), driver: car && car.driver, speed: car ? Math.round((car.speed || 0) * 10) / 10 : null }); });
   host.at(HOST_STOP, async (h) => { h.log.push('host stopt'); await h.stop(); });
 })();
 const res = await done;
@@ -129,6 +129,7 @@ fs.writeFileSync(path.join(OUT, 'result.json'), JSON.stringify({ problems, notes
 for (const x of notes) console.log('  - ' + x);
 console.log(problems.length ? 'PROBLEMEN:\n- ' + problems.join('\n- ') : 'ALLES OK');
 process.exit(problems.length ? 1 : 0);
+
 
 
 
