@@ -51,7 +51,7 @@ import { playTalk, stopTalk } from './storytalk.js';
 import { buildNieuwDefs, applyNieuw } from './missions_nieuw.js';
 import { buildZijDefs } from './missionsdata_zij.js';
 import { buildDefsVoorMuseum, buildDefsNaMuseum } from './missions_defs.js';
-import { createBake, updateBake, showBake, hideBake, bakeProgress, RECIPE_PRACTICE, RECIPE_CONTEST } from './bakeround.js';
+import { createBake, updateBake, showBake, hideBake, bakeProgress, bakePanel, RECIPE_PRACTICE, RECIPE_CONTEST } from './bakeround.js';
 import { startConvoy, spawnLimo, updateConvoy, convoyStatus, disposeConvoy } from './convoy.js';
 import { wgsToWorld } from './rdnew.js';
 import { enterChoice, updateChoice, closeChoice } from './stagechoice.js';
@@ -64,6 +64,7 @@ import { hoofdspeler } from './players.js';
 import { teamActor, doelStand, groepKlaar, groepsActeurs, WACHT_OP_ANDEREN } from './stagegroep.js';
 import { registreerWedstrijd, wedNodigUit, wedHostBaan, wedBaanStand } from './multiplayerwedstrijd.js';
 import { lichaamVan, bestuurInstappenIn, bestuurLos } from './coopbestuur.js';
+import { neemBakeDruk, neemVaultDruk, vergeetBakeDruk } from './coopgast.js'; // de toets van een gast bij de bakronde en de polsstok (#525)
 // a radio fragment of a stage that never got played within ten minutes is moot (refs #171; not tied to the mission: the clue in it must not be lost)
 const MISSION_RADIO_VALID = { ttl: 600 };
 import { registerBusyProbe } from './busy.js';
@@ -2756,10 +2757,12 @@ function spawnSkutsje(world, st) {
 function updateBoatChase(dt, world, def, st, S) {
   const B = S.boat;
   if (!B) { nextStage(world, def); return; }
-  const p = hoofdspeler(world), v = B.v;
+  const v = B.v;
   if (v.driver !== 'jelle') { fail(world, def, st.lost); return; }
   if (!world.vehicles.includes(v)) world.vehicles.push(v);
-  const d = dist(p.x, p.y, v.x, v.y);
+  // samen (#525): de dichtstbijzijnde meespeler bepaalt de afstand, en elke boot van de groep telt langszij
+  const naaste = teamActor(world, v);
+  const d = dist(naaste.x, naaste.y, v.x, v.y);
   // a chase does not wait for the player: the skûtsje keeps its pace however far behind you are
   const want = 7;
   B.speed += clamp(want - B.speed, -2 * dt, 1.4 * dt);
@@ -2773,7 +2776,7 @@ function updateBoatChase(dt, world, def, st, S) {
   // the mast folds aft to pass under the bridges (models3d_vehicles.js)
   const c = Math.cos(v.angle), sn = Math.sin(v.angle);
   animateSkutsjeRig(v, 0.55, [-2, 2, 6, 10].some((k) => world.map.isOnBridge(v.x + c * k, v.y + sn * k)) ? 1 : 0, world.time);
-  const alongside = !!(p.inVehicle && p.inVehicle.isBoat) && d < (st.board || 8);
+  const alongside = groepsActeurs(world).some((a) => a.inVehicle && a.inVehicle.isBoat && dist(a.x, a.y, v.x, v.y) < (st.board || 8));
   if (alongside) {
     if (!S.said) { S.said = 1; world.addMessage(st.near || 'Langszij! Hou hem vast...', 2.5); }
     S.hold += dt;
@@ -3460,10 +3463,17 @@ function updateStages(dt, world, def) {
       } else if (S.shotDone) nextStage(world, def);
       break;
     case 'garage': {
-      const site = inCar ? garageInside(world) : null;
-      if (!site || Math.abs(v.speed) > 1.5) { S.hold = 0; break; }
+      // samen (#525): elke meespeler met een stilstaande auto in de garage telt, niet alleen de hoofdspeler
+      let site = null, gv = null;
+      for (const a of groepsActeurs(world)) {
+        const av = a && a.inVehicle;
+        if (!av || Math.abs(av.speed || 0) > 1.5) continue;
+        const s = garageInside(world, a);
+        if (s) { site = s; gv = av; break; }
+      }
+      if (!site) { S.hold = 0; break; }
       if ((S.hold += dt) < 1.2) break;
-      repaintVehicle(world, v, RESPRAY_COLORS[Math.floor(Math.random() * RESPRAY_COLORS.length)]);
+      repaintVehicle(world, gv, RESPRAY_COLORS[Math.floor(Math.random() * RESPRAY_COLORS.length)]);
       world.wanted = 0;
       world.wantedDecayTimer = 0;
       world.addMessage('Nieuwe kleur, nieuwe kans. Gratis. De pliesie kent hem niet meer.', 4);
@@ -3610,21 +3620,33 @@ function sinkInMud(world, dt, k) {
   v.driftY = (v.driftY || 0) * 0.9;
 }
 
-// Act 5: the baking round (bakeround.js). The stage is on while you stand in the kitchen or at the stall.
+// Act 5: the baking round (bakeround.js). The stage is on while a member of the group stands in the kitchen
+// or at the stall: a guest at the stove counts too, and his ingredients count as the host's presses (#525).
 function updateBakeStage(dt, world, def, st, S) {
-  const p = hoofdspeler(world);
   const title = st.recipe === 'practice' ? "Oma's keuken: de oefenronde" : 'Gronings Ontzet: bak de eierbal';
   if (!S.bake) S.bake = createBake({ order: st.recipe === 'practice' ? RECIPE_PRACTICE : RECIPE_CONTEST, rounds: st.rounds || 1 });
-  if (!S.target) return true;
-  const near = dist(p.x, p.y, S.target.x, S.target.y) < (st.radius || HOLD_RADIUS);
-  if (!near) { hideBake(); S.shown = false; hint(world, st.farHint || ''); return false; }
-  if (!modeOk(p, st.mode)) { hideBake(); S.shown = false; hint(world, MODE_HINT[st.mode] || ''); return false; }
+  const stop = () => {
+    hideBake(); S.shown = false;
+    if (world.coopStagePanel) world.coopStagePanel = null;
+    vergeetBakeDruk(world); // de wachtrij van deze bakstand leeg (coopgast.js bezit world.coopPaneel)
+  };
+  if (!S.target) { stop(); return true; }
+  // de groep telt: een gast bij het fornuis of de kraam kan de ronde doen, ook als de gastheer wegloopt (#525)
+  const g = doelStand(world, S.target, st.radius || HOLD_RADIUS, st.mode, modeOk);
+  if (g.status !== 'binnen') {
+    stop();
+    hint(world, g.status === 'modus' ? (MODE_HINT[st.mode] || '') : (st.farHint || ''));
+    return false;
+  }
   if (!S.shown) { S.shown = true; showBake(S.bake, title); }
-  const res = updateBake(S.bake, world.input, title);
+  // de stand van de bakronde gaat naar de gasten; hun toets komt als de zijne terug (#525)
+  if (world.coopNet && world.coopNet.role === 'host') world.coopStagePanel = bakePanel(S.bake, title);
+  const druk = neemBakeDruk(world, S.bake.seq);
+  const res = updateBake(S.bake, world.input, title, druk[0] || null);
   if (res === 'round') world.addMessage(`Eierbal ${S.bake.round} van ${S.bake.rounds} is goud. Door!`, 2);
   else if (res === 'wrong' || res === 'redo') world.addMessage(S.bake.last, 3);
   if (res === 'done') {
-    hideBake();
+    stop();
     const bad = S.bake.wrongs + S.bake.redos * 3;
     if (st.recipe === 'contest') chainState().bakeTier = bad === 0 ? 'top' : bad < 3 ? 'goed' : 'mager';
     world.addMessage(st.recipe === 'contest' ? (bad === 0 ? 'Alle eierballen zijn goud, geen enkele mislukt. De jury gaat dit proeven.' : bad < 3 ? 'De eierballen zijn goud. Een paar mislukten, de jury merkt het niet.' : 'De eierballen zijn goud, na veel gedoe. De jury heeft het gezien.') : 'Alle eierballen zijn goud.', 3);
@@ -3636,19 +3658,20 @@ function updateBakeStage(dt, world, def, st, S) {
 // Act 5 (M23): the column. The first convoy stage brings the friends (and Jelle's limo after limoAfter seconds);
 // each stage ends when the leader is at the target and most of the column is with him. 'fail' when it falls apart.
 function updateConvoyStage(dt, world, def, st, S) {
-  if (!chainState().convoy) chainState().convoy = startConvoy(world);
+  const v = chainState().vehicle;
+  // samen (#525): de colonne volgt de meespeler die in de missieauto zit; zonder gast is dat de hoofdspeler
+  const lead = v ? teamActor(world, v, (a) => a.inVehicle === v) : hoofdspeler(world);
+  if (!chainState().convoy) chainState().convoy = startConvoy(world, undefined, lead);
   const c = chainState().convoy;
   // the ally chosen at the start (M23) can hold Jelle's limo back for a while (limoAfterIf: { tag: seconds })
   const held = st.limoAfterIf && Object.entries(st.limoAfterIf).find(([tag]) => choiceOn(tag));
   const limoAfter = held ? held[1] : st.limoAfter;
-  if (!S.limoDone && limoAfter && S.t > limoAfter) { S.limoDone = true; if (spawnLimo(world, c)) world.addMessage('Jelles limo komt op de colonne af.', 3.5); }
-  const r = updateConvoy(dt, world, c, (text) => world.addMessage(text, 2.5, { key: 'colonne-lag' }));
+  if (!S.limoDone && limoAfter && S.t > limoAfter) { S.limoDone = true; if (spawnLimo(world, c, lead)) world.addMessage('Jelles limo komt op de colonne af.', 3.5); }
+  const r = updateConvoy(dt, world, c, (text) => world.addMessage(text, 2.5, { key: 'colonne-lag' }), lead);
   if (r && r.split) { world.addMessage(`${r.split} is te ver achter: de colonne valt uiteen.`, 3.5); return 'fail'; }
-  const v = chainState().vehicle;
-  const p = hoofdspeler(world);
-  if (v && p.inVehicle !== v && dist(p.x, p.y, v.x, v.y) > 12) { hint(world, st.carHint || ''); return null; }
-  if (!S.target || dist(p.x, p.y, S.target.x, S.target.y) >= (st.radius || STAGE_RADIUS)) return null;
-  const sc = convoyStatus(world, c);
+  if (v && lead.inVehicle !== v && dist(lead.x, lead.y, v.x, v.y) > 12) { hint(world, st.carHint || ''); return null; }
+  if (!S.target || dist(lead.x, lead.y, S.target.x, S.target.y) >= (st.radius || STAGE_RADIUS)) return null;
+  const sc = convoyStatus(world, c, lead);
   if (sc.total && sc.near < Math.ceil(sc.total * 0.7)) { hint(world, `Wacht op de colonne: ${sc.near} van ${sc.total} bij elkaar.`); return null; }
   return 'done';
 }

@@ -27,6 +27,7 @@ function gastPaneel(world, input) {
   const n = world.coopNet;
   if (!ev || !n || n.role !== 'client' || !n.session || !n.session.sendEvent) return false;
   try { n.session.sendEvent(ev); } catch (e) { return false; }
+  if (input.consume) input.consume(k); // de toets is van het paneel: een cijfer wisselt geen wapen (#525)
   return true;
 }
 

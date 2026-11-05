@@ -398,9 +398,10 @@ export function schoonScene(sc) {
       if (vraag) p.tekst = vraag;
       if (ronde) p.ronde = ronde;
       // Het nummer van de ronde (#525): een druk van een gast hoort bij de ronde waarvan hij de balk zag. Zonder dat
-      // nummer telt de gastheer een te late druk op de volgende ronde, waar de naald ergens anders staat.
+      // nummer telt de gastheer een te late druk op de volgende ronde, waar de naald ergens anders staat. Bij bake is
+      // het nummer de bakstand (bakeround.js seq), zodat een druk uit een oude stand niet op de volgende ronde landt.
       const nr = Number(sc.paneel.nr);
-      if (p.stap === 'timing' && Number.isInteger(nr) && nr > 0 && nr < 1000) p.nr = nr;
+      if ((p.stap === 'timing' || p.stap === 'bake' || p.stap === 'vault') && Number.isInteger(nr) && nr > 0 && nr < 1000) p.nr = nr;
       // de balk van een timing (stagetiming.js paint): zonder naald drukt een gast blind en verpest hij de
       // opdracht van de gastheer, dus gaat de stand mee. Twee decimalen is genoeg voor een balk van 100 pixels.
       const m = p.stap === 'timing' ? sc.paneel.meter : null; // alleen een timing heeft een balk
@@ -424,11 +425,14 @@ export function leesSceneBericht(b) { return b && b.k === 'scene' ? schoonScene(
 // Tekst voor de gast bij een filmpje
 export const filmpjeTekst = (naam = 'De ander') => `${naam} kijkt een filmpje. Je wacht even.`;
 export const pauzeTekst = (naam = 'De ander') => `${naam} heeft het spel op pauze.`;
-// Wat een gast leest als de gastheer een keuze of een timing op het paneel heeft (#525): zijn toets telt mee.
+// Wat een gast leest als de gastheer een keuze, een timing, een bakronde of de polsstokscène op het paneel heeft
+// (#525): zijn toets telt mee.
 const TOETS_NAAM = { ' ': 'Spatie', e: 'E', f: 'F' };
 export const paneelTekst = (paneel) => {
   const toetsen = (paneel && paneel.toetsen) || [];
   if (!toetsen.length) return '';
+  if (paneel.stap === 'bake') return "Druk mee in Oma's volgorde: 1 ei, 2 zout, 3 meel, 4 vet, 5 mosterd, 6 bloem.";
+  if (paneel.stap === 'vault') return 'Druk E om de koffer te pakken.';
   const naam = toetsen.map((k) => TOETS_NAAM[k] || k).join(' of ');
   return paneel.stap === 'timing' ? `Druk mee: ${naam}.` : `Jouw antwoord telt mee: ${naam}.`;
 };

@@ -1,4 +1,5 @@
 // Test of the pure parts of the act 5 convoy (game/js/convoyrules.js): the leader's trail, the goals and the lag rule.
+import './node3d.mjs'; // convoy.js laadt de voertuigmodellen via three (net als het spel)
 import { CONVOY, pushTrail, trailGoal, lagStep } from '../game/js/convoyrules.js';
 
 let n = 0, bad = 0;
@@ -27,6 +28,15 @@ ok(r.split, 'further behind for longer than lagSecs: the column falls apart');
 const m2 = { lagT: 8 };
 lagStep(m2, 10, 3);
 ok(m2.lagT === 2, 'catching up lets the lag run out');
+
+// --- de colonne volgt een meespeler (#525): de teller telt vanaf zijn lichaam ------------------------
+const { convoyStatus } = await import('../game/js/convoy.js');
+const state = { members: [{ v: { x: 0, y: 0 } }, { v: { x: 10, y: 0 } }, { v: { x: 200, y: 0 } }] };
+const w = { player: { x: 0, y: 0, inVehicle: null } };
+const host = convoyStatus(w, state);
+ok(host.total === 3 && host.near === 2, 'vanaf de hoofdspeler tellen de twee dichtbij');
+const guest = { x: 200, y: 0, inVehicle: null };
+ok(convoyStatus(w, state, guest).near === 1, 'vanaf een gast in de missieauto telt de colonne bij hem');
 
 console.log(`${n - bad}/${n} convoy checks passed`);
 process.exit(bad ? 1 : 0);

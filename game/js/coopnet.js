@@ -1089,7 +1089,8 @@ export function tickCoopNet(world, dt) {
   n.tScene += dt;
   // Een filmpje, een regel, een keuze: voor de gasten. Loopt er een timing met een balk op het paneel, dan tien
   // keer per seconde in plaats van vier: de gast moet kunnen mikken op een naald van ongeveer een seconde (#525).
-  if (n.scene && n.tScene >= (n.sceneNu && n.sceneNu.paneel && n.sceneNu.paneel.meter ? 0.1 : 0.25)) {
+  // Een bakronde verandert per ingrediënt, dus die gaat ook tien keer per seconde mee.
+  if (n.scene && n.tScene >= (n.sceneNu && n.sceneNu.paneel && (n.sceneNu.paneel.meter || n.sceneNu.paneel.stap === 'bake') ? 0.1 : 0.25)) {
     const tScene = n.tScene; n.tScene = 0;
     let sc = null; try { sc = n.scene(); } catch (e) { sc = null; }
     n.filmpjeT = sc && sc.filmpje ? n.filmpjeT + tScene : 0;

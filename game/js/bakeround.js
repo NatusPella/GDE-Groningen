@@ -18,13 +18,16 @@ export const RECIPE_PRACTICE = ['ei', 'zout', 'meel', 'vet', 'mosterd'];
 export const RECIPE_CONTEST = ['ei', 'zout', 'meel', 'vet'];
 
 export function createBake({ order = RECIPE_CONTEST, rounds = 3, maxMisses = 3 } = {}) {
-  return { order: [...order], rounds, maxMisses, round: 0, step: 0, misses: 0, wrongs: 0, redos: 0, done: false, last: '' };
+  // seq telt elke poging: een gast die meedrukt, stuurt het nummer mee van de stand die hij zag (#525),
+  // zodat een druk uit een oudere stand niet op een volgende ronde landt.
+  return { order: [...order], rounds, maxMisses, round: 0, step: 0, misses: 0, wrongs: 0, redos: 0, done: false, last: '', seq: 1 };
 }
 
 // Een ingrediënt toevoegen. Geeft 'ok' (goed ingrediënt), 'round' (een bal klaar), 'done' (alle rondes
 // klaar), 'wrong' (verkeerd ingrediënt: mislukte bal, de bal begint opnieuw) of 'redo' (te veel mislukt).
 export function bakeAdd(b, id) {
   if (b.done) return 'done';
+  b.seq = (Number.isInteger(b.seq) ? b.seq : 1) + 1; // elke poging is een nieuwe paneelstand (#525)
   if (id !== b.order[b.step]) {
     b.misses++;
     b.wrongs++;
@@ -48,6 +51,21 @@ export function bakeAdd(b, id) {
 
 export function bakeProgress(b) {
   return { round: Math.min(b.round + 1, b.rounds), rounds: b.rounds, step: b.step, next: b.done ? null : b.order[b.step], misses: b.misses };
+}
+
+// De toets van een ingrediënt (1-6) en de stand die de gastheer naar de gasten stuurt (#525): de gast ziet
+// dezelfde ingrediënten en voortgang als de gastheer, en zijn toets telt als de zijne.
+const BY_KEY = new Map(INGREDIENTS.map((q) => [q.key, q.id]));
+export const bakeKeyId = (key) => (typeof key === 'string' ? BY_KEY.get(key) || null : null);
+export function bakePanel(b, title = '') {
+  const p = bakeProgress(b);
+  return {
+    stap: 'bake',
+    toetsen: INGREDIENTS.map((q) => q.key),
+    tekst: `${title ? title + ' · ' : ''}${INGREDIENTS.map((q) => `${q.key} ${q.label}`).join(' · ')}`.slice(0, 240),
+    ronde: `${p.round}/${p.rounds} · ${p.step}/${b.order.length} · mis ${p.misses}/${b.maxMisses}`.slice(0, 24),
+    nr: b.seq,
+  };
 }
 
 // --- het paneel (alleen in de browser) -----------------------------------------
@@ -82,13 +100,16 @@ export function hideBake() {
 }
 
 // Per beeld: leest de toetsen 1-6. Geeft het resultaat van de laatste toevoeging, of null.
-export function updateBake(b, input, title) {
-  let res = null;
+// `extraKey` is de toets van een gast die meedrukt (#525); de eigen toets van de gastheer gaat voor.
+export function updateBake(b, input, title, extraKey = null) {
+  let res = null, key = null;
   for (const q of INGREDIENTS) {
-    if (input && input.wasPressed && input.wasPressed(q.key)) {
-      if (input.consume) input.consume(q.key);
-      res = bakeAdd(b, q.id);
-    }
+    if (input && input.wasPressed && input.wasPressed(q.key)) { key = q.key; break; }
+  }
+  if (!key && bakeKeyId(extraKey)) key = extraKey;
+  if (key && bakeKeyId(key)) {
+    if (input && input.wasPressed && input.wasPressed(key) && input.consume) input.consume(key);
+    res = bakeAdd(b, bakeKeyId(key));
   }
   if (res) render(b, title);
   return res;

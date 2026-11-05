@@ -3,9 +3,10 @@
 // zijn eigen antwoord en de stap gaat verder. Puur: geen netwerk, geen DOM.
 import assert from 'node:assert/strict';
 import { schoonScene, sceneBericht, sceneLeeg, leesSceneBericht, paneelTekst } from '../game/js/coopworld.js';
-import { paneelEvent, paneelToets, paneelIndrukken, neemPaneelDruk, neemTimingDruk, PANEEL_WACHT_S } from '../game/js/coopgast.js';
+import { paneelEvent, paneelToets, paneelIndrukken, neemPaneelDruk, neemTimingDruk, neemBakeDruk, vergeetBakeDruk, PANEEL_WACHT_S } from '../game/js/coopgast.js';
 import { enterChoice, stepChoice } from '../game/js/stagechoice.js';
 import { enterTiming, stepTiming } from '../game/js/stagetiming.js';
+import { createBake, bakePanel } from '../game/js/bakeround.js';
 
 let n = 0, fails = 0;
 const t = (name, f) => {
@@ -200,6 +201,44 @@ t('de gast ziet het rondenummer in het scènebericht, zodat zijn druk bij de jui
   const onzin = schoonScene({ paneel: { stap: 'timing', toetsen: [' '], nr: 'x' } });
   assert.equal(onzin.paneel.nr, undefined);
   assert.equal(schoonScene({ paneel: { stap: 'choice', toetsen: ['1'], nr: 2 } }).paneel.nr, undefined, 'een keuze heeft geen ronde');
+});
+
+// --- de bakronde (#525): de gast ziet de ingrediënten en zijn toets 1-6 telt mee --------------------
+
+t('de bakstand gaat met zijn nummer naar de gast en zijn toets 1-6 komt terug', () => {
+  const sc = { paneel: schoonScene({ paneel: { stap: 'bake', toetsen: ['1', '2', '3', '4', '5', '6'], tekst: '1 ei · 2 zout', ronde: '1/2 · 0/4 · mis 0/3', nr: 7 } }).paneel };
+  assert.equal(sc.paneel.stap, 'bake');
+  assert.equal(sc.paneel.nr, 7, 'de stand hoort bij de druk');
+  assert.match(paneelTekst(sc.paneel), /1 ei/);
+  const ev = paneelEvent('3', sc.paneel);
+  assert.deepEqual(ev, { k: 'paneel', a: '3', r: 7 });
+  const w = hostWorld(sc);
+  assert.equal(paneelIndrukken(w, 1, ev.a, { kind: 'bake' }, sc, ev), true);
+  assert.deepEqual(neemBakeDruk(w, 7), ['3'], 'de gastheer leest hem bij deze bakstand');
+  assert.deepEqual(neemBakeDruk(w, 8), [], 'een oude stand landt niet op de volgende');
+});
+
+t('een bakdruk uit een oude stand blijft niet in de wachtrij hangen', () => {
+  const w = hostWorld(null);
+  w.coopPaneel = [];
+  const sc = { paneel: { stap: 'bake', toetsen: ['1'], nr: 2 } };
+  assert.equal(paneelIndrukken(w, 1, '1', { kind: 'bake' }, sc, { r: 2 }), true);
+  assert.deepEqual(neemBakeDruk(w, 3), [], 'de volgende stand ziet hem niet');
+  assert.deepEqual(w.coopPaneel, [], 'en hij is opgeruimd');
+  w.time += PANEEL_WACHT_S;
+  assert.equal(paneelIndrukken(w, 1, '1', { kind: 'bake' }, sc, { r: 2 }), true);
+  vergeetBakeDruk(w);
+  assert.deepEqual(w.coopPaneel, [], 'stoppen ruimt de bakdrukken op');
+});
+
+t('de bakstand van de gastheer komt ongewijzigd bij de gast aan', () => {
+  const b = createBake({ order: ['ei', 'zout'], rounds: 1 });
+  const sc = schoonScene({ paneel: bakePanel(b, "Oma's keuken") });
+  assert.deepEqual(sc.paneel.toetsen, ['1', '2', '3', '4', '5', '6']);
+  assert.equal(sc.paneel.stap, 'bake');
+  assert.equal(sc.paneel.nr, b.seq);
+  assert.match(sc.paneel.tekst, /Gekookt ei/);
+  assert.match(sc.paneel.ronde, /1\/1/);
 });
 
 console.log(fails ? '' : `cooppaneel_test: ${n}/${n} ok`);
