@@ -44,7 +44,7 @@ import { pickMotor, motorRoadAllowed, motorTarget } from './motortraffic.js';
 import { FLAGS } from './devflags.js';
 import { verkeerOpties } from './simlagen.js';
 import { SMOKE_HEALTH, kapRookt } from './vehicledamage.js';
-import { createWheelie, stepWheelie, HOP } from './bewegingrules.js';
+import { rideFiets, rideMotorbike } from './vehicle/twowheeler.js';
 import { hoofdspeler } from './players.js';
 export { MOTORBIKE_MODELS, GEARED_MOPED_MODEL, MOPED_LEGAL_SPEED } from './motomodels.js';
 
@@ -191,45 +191,6 @@ export class Vehicle {
     return [this.x - r, this.y - r, this.x + r, this.y + r];
   }
 
-  // Motorbike feel (player only): the bike leans into a turn (v.roll, drawn by scene3d.js) and the
-  // front wheel comes up on a wheelie or goes down on a stoppie while the trick key (Shift) is
-  // held. With the assist (setting bikeAssist) the lean is capped and a wheelie levels off; without
-  // it a wheelie held too long loops out, a lean past the limit is a low-side, and both throw the
-  // rider (this.crashed, handled in player.js).
-  rideMotorbike(dt, throttle, gb, top, absSpeed, yawRate) {
-    const assist = this.bikeAssist !== false;
-    const limit = assist ? 0.8 : 1.15;
-    const lean = clamp(Math.atan2(yawRate * absSpeed * Math.sign(this.speed || 1), 9.81), -1.4, 1.4);
-    this.roll += (clamp(lean, -limit, limit) - this.roll) * Math.min(1, dt * 7);
-    let want = 0;
-    const trick = !!this.trick && !this.disabled;
-    if (trick && throttle > 0 && absSpeed > 2.5 && absSpeed < top * 0.6) {
-      const gear = gb ? gb.gear : 1;
-      const k = gb && gb.p.wheelie ? gb.p.wheelie * (gear === 1 ? 1 : gear === 2 ? 0.7 : gear === 3 ? 0.35 : 0) : 0;
-      want = 0.62 * k;
-    } else if (trick && throttle < 0 && absSpeed > 9) want = -0.3;
-    const catchUp = Math.min(1, dt * (want > 0 ? 3.2 : 4));
-    if (want > 0 && !assist) {
-      this.wheelieT = (this.wheelieT || 0) + dt;
-      this.pitch += (want * (1 + Math.max(0, this.wheelieT - 0.8) * 1.4) - this.pitch) * catchUp;
-    } else {
-      this.wheelieT = 0;
-      this.pitch += (want - this.pitch) * catchUp;
-    }
-    if (!assist && (this.pitch > 1.3 || Math.abs(this.roll) >= limit - 0.001 && absSpeed > 8 && Math.abs(lean) > limit + 0.1)) this.crashed = true;
-    this.wheelie = this.pitch > 0.2;
-  }
-
-  // Pedal bike (player only): Ctrl held while pedalling lifts the front wheel (bewegingrules.js, #207).
-  rideFiets(dt, throttle, top, brake = 0) {
-    const w = this.wheelieState || (this.wheelieState = createWheelie());
-    stepWheelie(w, { trick: !!this.trick && !this.disabled, throttle, brake, speed: this.speed, top, dt, airborne: !!this.airborne, steer: this.steer });
-    if (w.hop && !this.airborne) { this.airborne = true; this.vz = HOP.vz; } // sprongetje (#207)
-    this.pitch = w.pitch;
-    this.wheelie = w.up;
-    if (w.up) this.speed *= w.slow;
-  }
-
   // Player/AI driving physics shared by both control sources. brakeInput may
   // be a boolean or a 0..1 pedal amount; throttle against the direction of
   // travel brakes first and only then reverses.
@@ -354,8 +315,8 @@ export class Vehicle {
       }
     }
 
-    if (isPlayer && this.isBike && !m.motorbike) this.rideFiets(dt, throttle, top, brake);
-    if (isPlayer && m.motorbike) this.rideMotorbike(dt, throttle, gb, top, absSpeed, normalizeAngle(this.angle - oldAngle) / (dt || 1));
+    if (isPlayer && this.isBike && !m.motorbike) rideFiets(this, dt, throttle, top, brake);
+    if (isPlayer && m.motorbike) rideMotorbike(this, dt, throttle, gb, top, absSpeed, normalizeAngle(this.angle - oldAngle) / (dt || 1));
 
     this.x += Math.cos(this.angle) * this.speed * dt;
     this.y += Math.sin(this.angle) * this.speed * dt;
@@ -2587,4 +2548,5 @@ export function updateSplashMesh3D(mesh, age) {
 }
 
 export { MODELS };
+
 
