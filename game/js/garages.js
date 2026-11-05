@@ -1,4 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { hoofdspeler } from './players.js';
 import { closestPointOnSegment, pointInPolygon, isInWater } from './util.js';
 import { addStaticCollider } from './breakables.js';
 import { getScene } from './scene3d.js';
@@ -225,7 +226,7 @@ function serviceable(v) {
 
 // De auto van een meespeler in een garage (#525): standaard die van de hoofdspeler, met een actor de zijne.
 export function garageInside(w, actor = null) {
-  const v = (actor || w.player).inVehicle;
+  const v = (actor || (w && w.player) || hoofdspeler(w)).inVehicle;
   if (!serviceable(v)) return null;
   for (const s of sites) {
     if (Math.abs(s.x - v.x) > 10 || Math.abs(s.y - v.y) > 10) continue;
@@ -237,7 +238,7 @@ export function garageInside(w, actor = null) {
 export function garagePrompt(w) {
   const s = garageInside(w);
   if (!s) return null;
-  const v = w.player.inVehicle;
+  const v = hoofdspeler(w).inVehicle;
   if (Math.abs(v.speed) > 1.5) return { id: 'gar-' + s.name, x: s.x, y: s.y, h: 2.8, key: 'R', label: 'Garagemenu', sub: 'Eerst even stilstaan', ring: true, dim: true };
   return { id: 'gar-' + s.name, x: s.x, y: s.y, h: 2.8, key: 'R', label: 'Garagemenu', sub: `${s.name}: repareren en opvoeren`, ring: true };
 }
@@ -327,7 +328,7 @@ function exitSpot(site) {
 
 function garageMenu(w, site) {
   const sections = () => {
-    const v = w.player.inVehicle;
+    const v = hoofdspeler(w).inVehicle;
     const out = [];
     if (serviceable(v)) {
       const price = repairPrice(v);
@@ -425,7 +426,7 @@ export function tryGarageInteract(w) {
   const input = w.input;
   if (!input || isShopOpen() || isCinematicActive() || !input.wasPressed('r')) return false;
   const s = garageInside(w);
-  if (!s || Math.abs(w.player.inVehicle.speed) > 1.5) return false;
+  if (!s || Math.abs(hoofdspeler(w).inVehicle.speed) > 1.5) return false;
   input.consume('r');
   openShopMenu(w, garageMenu(w, s));
   return true;
@@ -447,7 +448,7 @@ export function nearestRepairSite(x, y) {
 
 // Henk rings when the player's own car is in a bad way.
 function mechanicCall(w) {
-  const v = w.player.inVehicle;
+  const v = hoofdspeler(w).inVehicle;
   if (!v || !isOwn(v) || v.isBoat) return;
   const h = v.health ?? 100;
   if (h >= 90) v._mechCalled = false;
@@ -474,7 +475,7 @@ export function updateGarages(dt, w, gast = false) {
   world = w;
   if (!gast) mechanicCall(w); // een gast (#434) bouwt en opent alleen de garages: Henk belt de eigenaar van het spel
   const scene = getScene();
-  const p = w.player;
+  const p = hoofdspeler(w);
   const pv = p.inVehicle;
   for (const s of sites) {
     const d = Math.max(Math.abs(s.x - p.x), Math.abs(s.y - p.y));
@@ -588,3 +589,5 @@ function disposeGarage(root) {
     sign.geometry.dispose();
   }
 }
+
+

@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { disableVehicle } from './vehiclewreck.js';
 import { reportImpact, vehicleContacts, CRASH_DAMAGE_SCALE } from './vehicleimpact.js';
@@ -235,7 +236,7 @@ const _near = [];
 
 export function resolvePropCollisions(vehicles, w) {
   world = w;
-  const pl = w.player;
+  const pl = hoofdspeler(w);
   for (const v of vehicles) {
     if (v.wrecked || v.sinking || (v.isHeli && !v.onGround)) continue;
     const mine = v.driver === 'player';
@@ -353,7 +354,7 @@ export function breakProp(p, hit) {
 }
 
 function policeSees() {
-  const pl = world.player;
+  const pl = hoofdspeler(world);
   for (const v of world.vehicles) {
     if (!v.isPolice || v.hijacked || v.wrecked || v.driver === 'player') continue;
     if (v._sees && Math.hypot(v.x - pl.x, v.y - pl.y) < 70) return true;
@@ -591,7 +592,7 @@ function updateBodies(dt) {
 }
 
 function kickBodies() {
-  const pl = world.player;
+  const pl = hoofdspeler(world);
   for (const b of bodies) {
     if (b.topple || (b.mass > 150 && !b.slide) || b.sinking || world.time < b.kickAt || b.y > 1.8) continue;
     for (const v of world.vehicles) {
@@ -777,7 +778,7 @@ function burst(p, hit) {
 // --- player on foot kicks light props -------------------------------------------
 
 function footKicks() {
-  const pl = world.player;
+  const pl = hoofdspeler(world);
   if (pl.inVehicle) { playerPrev = null; return; }
   if (!playerPrev) { playerPrev = { x: pl.x, y: pl.y, t: world.time }; return; }
   const dt = Math.max(1e-3, world.time - playerPrev.t);
@@ -799,7 +800,7 @@ function footKicks() {
 // --- per-frame --------------------------------------------------------------
 
 function respawnCheck() {
-  const pl = world.player;
+  const pl = hoofdspeler(world);
   for (const [key, b] of broken) {
     if (world.time - b.t < RESPAWN_AFTER) continue;
     if (Math.hypot(b.x - pl.x, b.y - pl.y) < RESPAWN_DIST) continue;
@@ -823,7 +824,7 @@ export function updateBreakables(dt, w, sc) {
   streamTimer -= dt;
   if (streamTimer <= 0) {
     streamTimer = STREAM_INTERVAL;
-    const { x, y } = w.player.inVehicle || w.player;
+    const { x, y } = hoofdspeler(w).inVehicle || hoofdspeler(w);
     for (const fn of streamers) fn(w, x, y);
   }
   if (w.paused || !root) return;
@@ -975,3 +976,4 @@ export function addStaticCollider(kind, x, y, r, half = 0, angle = 0, water = fa
   addProp(p);
   return p;
 }
+

@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Streken (cheats): what is unlocked and switched on, per save and for
 // good, and what each one does to the game each frame. The list itself is
 // cheatlist.js; the pause-menu section cheatsui.js; the switches the
@@ -147,7 +148,7 @@ export function updateCheats(dt, w) {
   if (live('magazijn') && w.ammo) for (const k of Object.keys(w.ammo)) if (Number.isFinite(w.ammo[k]) && w.ammo[k] < 30) w.ammo[k] = 30;
 
   // a crash: a big loss of speed in one step
-  const v = w.player.inVehicle;
+  const v = hoofdspeler(w).inVehicle;
   const speed = v ? Math.abs(v.speed || 0) : 0;
   const now = performance.now();
   if (v && lastSpeed - speed > CRASH_DROP && !v.isBoat && !v.isHeli) {
@@ -204,7 +205,7 @@ export function applyCheatSave(d, save) {
 // Why a jump or a delivery can't happen now, or ''. reis: een snelreis voor jezelf (safehouse-anker), geen cheat: de anderen blijven waar ze zijn (#452).
 // bootOk: het doel heeft water waar de boot vrij ligt (#438), dan hoeft de boot niet eerst aan de kant.
 export function blockedReason(w = world, { vehicleOk = true, reis = false, bootOk = false } = {}) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (!reis && cheatsUit(w)) return CHEATS_UIT_TEKST;
   if (cheatsBusy(w)) return w.pigeonMode ? 'Eerst weer mens worden' : 'Niet tijdens een missie of filmpje';
   if (w.wanted > 0) return 'Met de politie op je hielen kan dat niet. Eerst ze kwijt!';
@@ -253,14 +254,14 @@ export function teleportSpot(map, x, y, car) {
 // Reizen met de boot (#438): sta je op het water, dan zoekt de sprong water bij het doel
 // in plaats van de kant. Zonder water in de buurt blijft de boot waar hij is.
 function bootDoel(w, x, y) {
-  const v = w.player && w.player.inVehicle;
+  const v = hoofdspeler(w) && hoofdspeler(w).inVehicle;
   if (!v || !v.isBoat) return null;
   return bootPlekOpKaart(w.map, v, x, y, v.angle);
 }
 
 function teleport(w, x, y, name, opts = null) {
   const boot = bootDoel(w, x, y);
-  if (w.player.inVehicle && w.player.inVehicle.isBoat && !boot) {
+  if (hoofdspeler(w).inVehicle && hoofdspeler(w).inVehicle.isBoat && !boot) {
     w.addMessage('Daar is geen water voor je boot. Kies een plek aan het water.', 3);
     return false;
   }
@@ -276,7 +277,7 @@ function teleport(w, x, y, name, opts = null) {
 }
 
 function teleportNow(w, x, y, name, stil = false, boot = null) {
-  const p = w.player, v = p.inVehicle, map = w.map;
+  const p = hoofdspeler(w), v = p.inVehicle, map = w.map;
   const spot = boot || teleportSpot(map, x, y, !!(v && !v.isBike && !v.isScooter));
   if (!spot) { w.addMessage('Daar kun je niet staan', 3); return false; }
   const angle = Number.isFinite(spot.hoek) ? spot.hoek : Number.isFinite(spot.angle) ? spot.angle : p.angle;
@@ -327,3 +328,4 @@ export function spawnVehicleHere(id, w = world) {
   if (res.ok) lastSpeed = 0;
   return res;
 }
+

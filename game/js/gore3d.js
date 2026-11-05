@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getSettings, onSettingsChange } from './settings.js';
 import { isInWater, pointInPolygon, WATER_Y } from './util.js';
@@ -699,14 +700,14 @@ function updateBleeders(world) {
     if (rd && !rd.sleeping && t < 3.5) continue;
     bleeders.splice(i, 1);
     if (world.map && isInWater(world.map, p.x, p.y)) continue;
-    if (Math.hypot(p.x - world.player.x, p.y - world.player.y) > FX_RANGE) continue;
+    if (Math.hypot(p.x - hoofdspeler(world).x, p.y - hoofdspeler(world).y) > FX_RANGE) continue;
     addDecal(pools, p.x + rand(-0.15, 0.15), p.y + rand(-0.15, 0.15), rand(1.1, 1.5) * b.size, { grow: rand(5, 7), life: POOL_LIFE, alpha: 0.9 });
   }
 }
 
 // Carmageddon rules: a corpse run over at speed bursts too.
 function runOverCorpses(world) {
-  const v = world.player.inVehicle;
+  const v = hoofdspeler(world).inVehicle;
   if (!v || v.isBoat || v.isBike || v.isScooter || Math.abs(v.speed) < GIB_SPEED * 0.8) return;
   const ca = Math.cos(v.angle), sa = Math.sin(v.angle);
   const reach = v.halfLen + 1;
@@ -727,7 +728,7 @@ const FEATHERS = { pigeon: [0x8d929c, 0xb6bac2, 0x5b6170], duck: [0x7a5b3c, 0xa9
 
 // Birds the player drives through go 'poof' in a cloud of feathers.
 function poofBirds(world) {
-  const v = world.player.inVehicle;
+  const v = hoofdspeler(world).inVehicle;
   const list = world.wildlife;
   if (!v || !list || v.isBoat || Math.abs(v.speed) < 6) return;
   const ca = Math.cos(v.angle), sa = Math.sin(v.angle);
@@ -799,7 +800,7 @@ export function updateGore3D(dt, world, sc) {
     return;
   }
   if (dt > 0) {
-    const px = world.player.x, py = world.player.y;
+    const px = hoofdspeler(world).x, py = hoofdspeler(world).y;
     for (const e of queue) {
       const ex = e.vehicle ? e.vehicle.x : e.x, ey = e.vehicle ? e.vehicle.y : e.y;
       if (Math.hypot(ex - px, ey - py) > FX_RANGE) continue;
@@ -819,3 +820,4 @@ export function updateGore3D(dt, world, sc) {
   updateDecals(pools);
   updateCarDecals();
 }
+
