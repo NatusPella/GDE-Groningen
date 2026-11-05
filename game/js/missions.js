@@ -3838,7 +3838,7 @@ export const missionDebug = {
     const v = p.inVehicle;
     if (v) { v.x = m.x; v.y = m.y; v.speed = 0; }
     p.x = m.x; p.y = m.y;
-    world.teleported = world.time;
+    void 0;
     return true;
   },
   // Samen spelen (#452): the mission carries on at the same place in the chain when the game changes hands. Starts mission i
@@ -3870,3 +3870,4 @@ export const missionDebug = {
 
 // The 3D markers live in missionmarker3d.js (a leaf, so scene3d.js need not import this module).
 export { MARKER_COLOR_ACTIVE, buildMissionMarker3D, updateMissionMarker3D, buildWaypointDotMesh3D } from './missionmarker3d.js';
+

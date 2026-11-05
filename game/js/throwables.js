@@ -432,3 +432,4 @@ export function updateThrowables3D(dt, world, sc) {
 }
 
 throwablesHook.update3D = updateThrowables3D; // gunfx3d.js draws them (latehooks.js)
+

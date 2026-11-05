@@ -1,7 +1,7 @@
 {
  "version": 1,
  "note": "Aantal schrijvende bestanden per world-veld (#498), gemeten met scripts/world_eigenaar.mjs. Alleen omlaag; nieuwe velden worden op hun huidige stand opgenomen.",
- "veldTotaal": 297,
+ "veldTotaal": 296,
  "velden": {
   "_balloonTimer": 1,
   "_goodMoney": 1,
@@ -229,7 +229,6 @@
   "storyFreePlay": 1,
   "storyGuide": 1,
   "streamFocus": 1,
-  "teleported": 4,
   "tileIndex": 1,
   "time": 1,
   "trainCam": 2,
