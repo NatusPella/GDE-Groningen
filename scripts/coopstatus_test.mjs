@@ -82,13 +82,13 @@ t('elke stap die missions.js kent heeft een status; goto, hold, board, escape en
   assert.ok(gebruikt.length >= 8, 'de stappen zijn gevonden: ' + gebruikt.join());
   for (const k of gebruikt) assert.ok(S.samenStatus('stap', k), 'stap zonder status: ' + k);
   for (const k of ['goto', 'hold', 'board', 'escape', 'chase']) assert.equal(S.samenStatus('stap', k), 'werkt', k);
-  for (const k of ['laser', 'crack', 'vault', 'plan']) assert.equal(S.samenStatus('stap', k), 'deels', k);
+  for (const k of ['laser', 'crack', 'vault', 'plan']) assert.equal(S.samenStatus('stap', k), 'werkt', k);
   assert.equal(S.samenStatus('stap', 'train'), 'nee');
 });
 
 t('een missie krijgt de slechtste status van zijn stappen', () => {
   assert.equal(S.missieStatus({ type: 'stages', stages: [{ kind: 'goto' }, { kind: 'hold' }, { kind: 'chase' }] }), 'werkt');
-  assert.equal(S.missieStatus({ type: 'stages', stages: [{ kind: 'goto' }, { kind: 'crack' }] }), 'deels');
+  assert.equal(S.missieStatus({ type: 'stages', stages: [{ kind: 'goto' }, { kind: 'crack' }] }), 'werkt');
   assert.equal(S.missieStatus({ type: 'stages', stages: [{ kind: 'crack' }, { kind: 'train' }, { kind: 'goto' }] }), 'nee');
   assert.equal(S.missieStatus({ type: 'stages', stages: [{ kind: 'iets-nieuws' }] }), 'deels', 'een onbekende stap telt als deels');
   assert.equal(S.missieStatus({ type: 'boat' }), 'nee');
@@ -164,3 +164,4 @@ t('een gast ziet hetzelfde: alleen de host-partner telt als tweede speler', () =
 });
 
 console.log(`coopstatus_test: ${n} groepen ok`);
+

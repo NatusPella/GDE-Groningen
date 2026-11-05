@@ -99,11 +99,11 @@ t('removeVehicle haalt een leenvoertuig weg, maar laat het voertuig van een best
   assert.deepEqual(w2.vehicles, [vanGast], 'de gast zit erin: niet onder hem vandaan halen');
 });
 
-t('een gast mag zijn eigen baanvoertuig besturen, een ander niet; de oude weigering van een opdrachtauto blijft', () => {
+t('een gast mag zijn eigen baanvoertuig besturen; een opdrachtauto mag de groep nu besturen (#525)', () => {
   const eigen = { missionCar: true, sideJob: true, jobOwner: 2 };
   assert.equal(CB.magBesturen(eigen, 2), true, 'de eigenaar bestuurt zijn eigen baanvoertuig');
   assert.equal(CB.magBesturen(eigen, 1), false, 'een ander komt er niet mee weg');
-  assert.equal(CB.magBesturen({ missionCar: true, sideJob: true }, 1), false, 'zonder jobOwner blijft een opdrachtauto verboden');
+  assert.equal(CB.magBesturen({ missionCar: true, sideJob: true }, 1), true, 'zonder jobOwner mag de groep de opdrachtauto besturen');
   const bus = { missionCar: true, sideJob: true, jobOwner: 3, isBus: true };
   assert.equal(CB.magBesturen(bus, 3), true, 'de eigenaar mag ook zijn eigen busbaanvoertuig besturen');
   assert.equal(CB.weigerReden(eigen, 1), 'niet');
@@ -293,3 +293,4 @@ t('de host wordt niet uitgenodigd voor een gastenbaan als hij zelf al werkt', ()
 });
 
 console.log(`sidejobcontext_test: ${n} tests ok`);
+

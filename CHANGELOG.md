@@ -6,8 +6,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
-- **Een gast bestuurt de duif (#525).** In de duifmodus van M04 en M24 vliegt een gast: de as, Spatie en Shift komen van zijn invoer, terwijl kijken, stoppen en de camera bij de gastheer blijven. De coop-audit gaat hierdoor van 25 naar 27 van de 30 missies volledig samen. Test: `pigeon_sync_test`.
-- **De museumrollen tellen als samen (#525).** Elke meespeler krijgt een eigen rol (uitkijk, loper, kluisspecialist, schipper) en de rolhouder doet zijn stap; de plan- en slotscènes ziet de groep samen en de vlucht is een checkpoint dat de groep leest. De coop-audit gaat hierdoor van 24 naar 25 van de 30 missies volledig samen. Tests: `heistrollen_test`, `coopmissie_test`.
+- **Een gast bestuurt de duif (#525).** In de duifmodus van M04 en M24 vliegt een gast: de as, Spatie en Shift komen van zijn invoer, terwijl kijken, stoppen en de camera bij wie het spel opende blijven. De coop-audit gaat hierdoor van 25 naar 27 van de 30 missies volledig samen. Test: `pigeon_sync_test`.
+- **De museumrollen tellen als samen (#525).** Elke meespeler krijgt een eigen rol (uitkijk, loper, kluisspecialist, schipper) en de rolhouder doet zijn stap; de plan- en slotscènes ziet de groep samen en de vlucht is een controlepunt dat de groep leest. De coop-audit gaat hierdoor van 24 naar 25 van de 30 missies volledig samen. Tests: `heistrollen_test`, `coopmissie_test`.
 - **De stoomtrein wacht op de hele groep (#525).** Bij de rit van M19 begint de machinist pas als iedereen op het perron staat; wie achterloopt krijgt "Wacht even: iedereen moet erbij zijn" en de trein blijft staan. De coop-audit gaat hierdoor van 23 naar 24 van de 30 missies volledig samen. Test: `coopmissie_test`, `train_ride_test`.
 - **De polsstokscène wacht op de hele groep (#525).** Bij de vault van M10 begint de scène pas als iedereen bij de gracht staat; wie achterloopt krijgt "Wacht even: iedereen moet erbij zijn" in plaats van de scène te missen. De coop-audit gaat hierdoor van 22 naar 23 van de 30 missies volledig samen. Test: `coopmissie_test`.
 - **Een gast wordt ook geschept door de fatbikes (#525).** In de fatbikestraat van M08 kiest elke fiets nu de dichtstbijzijnde meespeler te voet als doel, en elke meespeler houdt zijn eigen gezondheid: een gast gaat neer met zijn eigen lichaam, wie het spel opende met de wereldgezondheid. De coop-audit gaat hierdoor van 21 naar 22 van de 30 missies volledig samen. Tests: `coopmissie_test`, `coopmissie_audit`.
@@ -3120,6 +3120,7 @@ De eerste versie: alles wat er tot de eerste desktop-release gebouwd is.
   volledig offline, standaard op volledig scherm.
 - Voor wie het liever zonder app doet: een ZIP met `START DE GAME.bat` die op
   Windows zelf Python regelt en de game in de browser opent.
+
 
 
 
