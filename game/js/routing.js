@@ -1,4 +1,5 @@
 import { pointInPolygon } from './util.js';
+import { hoofdspeler } from './players.js';
 import { getHorecaForRender } from './horeca.js';
 import { getShopsForRender } from './shops.js';
 import { nearestRepairSite } from './garages.js';
@@ -530,7 +531,7 @@ const ownVehicle = (v) => !!(v && (v.isHeroCar || v.playerOwned) && !v.wrecked);
 function careNeed(world) {
   // dying or being arrested is no moment for a snack tip
   if (world.pendingRespawn || world.health <= 0) return care;
-  const v = world.player.inVehicle;
+  const v = hoofdspeler(world).inVehicle;
   const h = v ? v.health ?? 100 : 100;
   if (ownVehicle(v) && !v.isBoat && (h < CARE_DAMAGED || (care === 'repair' && h < CARE_FIXED))) return 'repair';
   if (world.health < CARE_HURT || (care === 'heal' && world.health < CARE_HEALED)) return 'heal';
@@ -538,7 +539,7 @@ function careNeed(world) {
 }
 
 function careTarget(world, why) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   if (why === 'repair') {
     const s = nearestRepairSite(p.x, p.y);
     return s ? { x: s.x, y: s.y, kind: 'care', name: s.name, why } : null;
@@ -604,7 +605,7 @@ function buildGateways(map, kind) {
 // to the city streets at the best gateway. An end out in a field gets one
 // straight leg to the nearest country road. null: the city graph handles it
 // (both ends in town) or there is no way.
-function countryRoute(world, target, from, to, graphMode, kind, p = world.player, force = false) {
+function countryRoute(world, target, from, to, graphMode, kind, p = hoofdspeler(world), force = false) {
   const map = world.map;
   const driveOnly = kind === 'drive';
   // a point counts as in the city when a city street is near and no country
@@ -798,7 +799,7 @@ export function planTrainTrip(map, a, b, opts = {}) {
 
 const ROUTE_TO_HUD = { walk: 'lopen', bike: 'fiets', drive: 'auto', boat: 'boot', ov: 'ov', fly: 'lucht' };
 
-function computeRoute(world, target, mode, start = world.player) {
+function computeRoute(world, target, mode, start = hoofdspeler(world)) {
   const t0 = performance.now();
   const map = world.map;
   const p = start;
@@ -811,7 +812,7 @@ function computeRoute(world, target, mode, start = world.player) {
     pts = r ? r.pts : [[p.x, p.y]];
     if (r) extra = { etaS: r.etaS, dock: r.dock, net: !!r.net };
   } else if (mode === 'fly') {
-    const plane = !!(world.player.inVehicle && world.player.inVehicle.isPlane);
+    const plane = !!(hoofdspeler(world).inVehicle && hoofdspeler(world).inVehicle.isPlane);
     const r = planAirRoute(map, [p.x, p.y], [target.x, target.y], { plane });
     pts = r.pts;
     extra = { etaS: r.etaS, alt: r.alt, landing: r.landing };
@@ -874,7 +875,7 @@ function landRoute(world, target, mode, p) {
   const driveOnly = mode === 'drive';
   const kind = mode;
   const avoid = driveOnly && prefs.avoidMotorways;
-  const zFrom = levelOf(p.x === world.player.x && p.y === world.player.y ? world.player : p);
+  const zFrom = levelOf(p.x === hoofdspeler(world).x && p.y === hoofdspeler(world).y ? hoofdspeler(world) : p);
   const lvlFrom = { z: Number.isFinite(zFrom) ? zFrom : 0, pen: LEVEL_PEN_START_M };
   const lvlTo = { z: Number.isFinite(target.z) ? target.z : 0, pen: Number.isFinite(target.z) ? LEVEL_PEN_START_M : LEVEL_PEN_TARGET_M / 2 };
   let to = snapToRoad(map, target.x, target.y, kind, lvlTo);
@@ -956,7 +957,7 @@ function trackProgress(r, x, y) {
 
 function updateSlot(world, slot, target, mode) {
   if (!target || !mode) { slot.route = null; slot.key = ''; return; }
-  const p = world.player;
+  const p = hoofdspeler(world);
   // already there: no line left to follow (it stayed on the map, #118)
   if (Math.hypot(target.x - p.x, target.y - p.y) < REACH_M * 2) { slot.route = null; slot.key = ''; return; }
   const key = `${target.kind}:${Math.round(target.x)}:${Math.round(target.y)}:${mode}:${prefs.avoidMotorways ? 1 : 0}:${closureSig}`;
@@ -978,7 +979,7 @@ function updateSlot(world, slot, target, mode) {
 
 export function updateRouting(dt, world) {
   if (!graph || graph.map !== world.map) buildGraph(world.map);
-  const p = world.player;
+  const p = hoofdspeler(world);
 
   const mode = world.pigeonMode || world.heliRun ? 'fly' : world.trainDriving || world.trainCam ? 'ov' : travelMode(p);
   // the big map may plan the waypoint for another way of travel than your own
@@ -1050,3 +1051,4 @@ export function formatDistance(m) {
 }
 
 walkPathHook.find = findWalkPath; // pedroutes.js walks over this router (latehooks.js)
+

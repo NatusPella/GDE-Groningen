@@ -18,6 +18,7 @@ import { refreshDayNight } from './daynight.js';
 import { clearDrunk } from './drunk.js';
 import { recordStat } from './achievements.js';
 import { saveGame } from './savehook.js';
+import { hoofdspeler } from './players.js';
 import { groepAkkoord } from './coopgroep.js';
 import { getScene, setBuildingHidden } from './scene3d.js';
 import { addStaticCollider, removeProp } from './breakables.js';
@@ -231,7 +232,7 @@ function haakGrond(map) {
 
 // De speler binnen neerzetten op (lx, lz), met de neus de kamer in.
 function zetBinnen(w, k, lx, lz) {
-  const p = w.player, q = naarWereld(k, lx, lz);
+  const p = hoofdspeler(w), q = naarWereld(k, lx, lz);
   if (p.water && p.leaveWater) p.leaveWater();
   p.x = q.x; p.y = q.y; p.vx = 0; p.vy = 0; p.z = 0; p.vz = 0; p.gz = k.floorY;
   p.vault = null; p.climb = null; p.sofaSeat = null;
@@ -241,7 +242,7 @@ function zetBinnen(w, k, lx, lz) {
 
 // En weer bij de voordeur, met de neus van de gevel af.
 function zetBijDeur(w, h) {
-  const p = w.player, d = deur(h);
+  const p = hoofdspeler(w), d = deur(h);
   p.x = d.x; p.y = d.y; p.vx = 0; p.vy = 0; p.z = 0; p.vz = 0;
   p.vault = null; p.climb = null; p.sofaSeat = null;
   p.gz = (w.map && w.map.groundHeightAt ? w.map.groundHeightAt(d.x, d.y, 0) : 0) || 0;
@@ -312,7 +313,7 @@ function verlaat(w, stil = false) {
   if (stil) {
     kamerGen++;
     opruimenKamer();
-    if (k.h.pand && k.h.pand.pts && pointInPolygon(w.player.x, w.player.y, k.h.pand.pts)) zetBijDeur(w, k.h);
+    if (k.h.pand && k.h.pand.pts && pointInPolygon(hoofdspeler(w).x, hoofdspeler(w).y, k.h.pand.pts)) zetBijDeur(w, k.h);
     return true;
   }
   return kamerFade(() => { opruimenKamer(); zetBijDeur(w, k.h); });
@@ -332,7 +333,7 @@ function kamerGebruik(p) {
 
 function kamerPrompt(w) {
   if (bezig) return null;
-  const u = kamerGebruik(w.player);
+  const u = kamerGebruik(hoofdspeler(w));
   if (!u) return null;
   const h = kamer.h, hgt = kamer.floorY + 1.3;
   if (u.k === 'bed') return { id: 'safehuis-bed', x: u.x, y: u.y, h: hgt, key: 'E', label: 'Slapen en opslaan', sub: 'Ook onderduiken, de kast, je voertuigen en de inrichting', ring: true };
@@ -466,7 +467,7 @@ function menu(w, h) {
 // --- de activiteit (activities.js) -----------------------------------------------------------------------------------
 
 function dichtbij(w) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   let best = null, bd = GEBRUIK_R;
   for (const h of huizen) {
     if (h.onbruikbaar) continue;
@@ -477,7 +478,7 @@ function dichtbij(w) {
   return best;
 }
 const kanNiet = (w) => {
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (!wereld || bezig || isShopOpen() || w.pigeonMode || w.heliRun || p.inVehicle || p.swimming) return 'x';
   return playerBusy(w, ['mission', 'activeRace']).busy ? 'Niet nu: maak eerst je missie af' : '';
 };
@@ -522,7 +523,7 @@ export const SAFEHUIS = {
   },
   secondary(w) {
     if (kamer) return [];
-    const p = w.player;
+    const p = hoofdspeler(w);
     const lijst = [];
     const hier = dichtbij(w);
     for (const h of huizen) {
@@ -534,7 +535,7 @@ export const SAFEHUIS = {
   interact(w) {
     if (kamer) {
       if (bezig || isShopOpen()) return false;
-      const u = kamerGebruik(w.player);
+      const u = kamerGebruik(hoofdspeler(w));
       if (!u) return false;
       if (u.k === 'deur') verlaat(w);
       else if (u.k === 'kast') openShopMenu(w, wardrobeMenu(w));
@@ -559,7 +560,7 @@ export const SAFEHUIS = {
   tick(dt, w) {
     wereld = w;
     ververs(w);
-    const p = w.player;
+    const p = hoofdspeler(w);
     // binnen in de kamer: de muren en de meubels houden je tegen, en wie er
     // buiten raakt (een sprong, een teleport, een respawn) is weer buiten
     if (kamer) {
@@ -624,3 +625,4 @@ export async function safehuisCheckSpots(world, onTiles) {
   }
   return uit;
 }
+
