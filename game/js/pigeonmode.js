@@ -1,4 +1,5 @@
 import { hoofdspeler } from './players.js';
+import { wielInvoer } from './coopgast.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
 import { buildBuildingMesh } from './models3d_buildings.js';
@@ -55,6 +56,23 @@ const LOFT_SPOT = { x: 261.5, y: -210.93 };
 const INTRO_S = 1.9;
 const CAM_BLEND_S = 0.7;
 const OUTRO_S = 2.6;
+
+// Samen spelen (#525): in de duifmodus bestuurt een gast de duif (as, spatie, shift);
+// kijken, stoppen en de camera blijven van de gastheer, zodat niemand vastzit.
+function duifInvoer(w) {
+  const f = w.coopFigures && w.coopFigures[1];
+  const g = f && f.input ? wielInvoer(f.input) : null;
+  if (!g) return w.input;
+  const host = w.input;
+  return {
+    axis: () => g.axis(),
+    isDown: (k) => (k === ' ' || k === 'shift' ? g.isDown(k) : host.isDown(k)),
+    wasPressed: (k) => host.wasPressed(k),
+    consume: (k) => host.consume(k),
+    lookActive: () => host.lookActive(),
+    look: (...a) => host.look(...a),
+  };
+}
 
 let world = null;
 let scene = null;
@@ -762,7 +780,7 @@ function moveFlying(dx, dy, dz) {
 }
 
 function updateFly(dt) {
-  const inp = world.input;
+  const inp = duifInvoer(world);
   const [ax, ay] = inp.axis();
   const m = mouseLook();
   const space = inp.isDown(' ');
@@ -827,7 +845,7 @@ function updateFly(dt) {
 }
 
 function updateGround(dt) {
-  const inp = world.input;
+  const inp = duifInvoer(world);
   const [ax, ay] = inp.axis();
   const m = mouseLook();
   P.yaw = normalizeAngle(P.yaw + ax * 2.6 * dt + m.dx);
@@ -870,7 +888,7 @@ function updateRide(dt) {
   const r = P.ride;
   const v = r && r.v;
   if (!v || v.wrecked || !world.vehicles.includes(v)) { takeOff(); return; }
-  const inp = world.input;
+  const inp = duifInvoer(world);
   const [ax] = inp.axis();
   const m = mouseLook();
   r.dyaw = normalizeAngle(r.dyaw + ax * 2.4 * dt + m.dx);
@@ -1241,7 +1259,7 @@ function toggleFlock() {
 
 function updateFlock(dt) {
   if (!flock.length) return;
-  const shift = world.input.isDown('shift');
+  const shift = duifInvoer(world).isDown('shift');
   if (P.mode === 'fly' && shift && P.speed > 15 && flockScatterT <= 0) {
     flockScatterT = 2.5;
     for (const b of flock) {
@@ -1827,3 +1845,4 @@ export function startPigeonMode(w, spot = null) {
   updatePigeonCamera(0.016, w);
   return true;
 }
+
