@@ -318,7 +318,7 @@ export class Vehicle {
       }
     }
 
-    if (isPlayer && this.isBike && !m.motorbike) rideFiets(this, dt, throttle, top, brake);
+    if (isPlayer && this.isBike && !m.motorbike) rideFiets(this, dt, throttle, top, brake, normalizeAngle(this.angle - oldAngle) / (dt || 1));
     if (isPlayer && m.motorbike) rideMotorbike(this, dt, throttle, gb, top, absSpeed, normalizeAngle(this.angle - oldAngle) / (dt || 1));
 
     this.x += Math.cos(this.angle) * this.speed * dt;
@@ -1573,7 +1573,7 @@ export function settleVehicleHeight(v, map, dt) {
     const q = rib && map.surfaceZ ? map.surfaceZ(x, y, zc, rib) : map.groundHeightAt(x, y, zc);
     return Math.abs(q - zc) > SLOPE_SAMPLE_MAX ? zc : q;
   };
-  let targetPitch = (v.pitch || 0) * 0.98, targetRoll = (v.roll || 0) * 0.95;
+  let targetPitch = (v.pitch || 0) * 0.98, targetRoll = v.isBike && v.driver === 'player' ? (v.roll || 0) : (v.roll || 0) * 0.95;
   if (!v.airborne) {
     const zf = probe(v.x + c * h, v.y + s * h), zr = probe(v.x - c * h, v.y - s * h);
     targetPitch = Math.atan2(zf - zr, 2 * h);
@@ -2351,6 +2351,8 @@ export function updateSplashMesh3D(mesh, age) {
 }
 
 export { MODELS };
+
+
 
 
 
