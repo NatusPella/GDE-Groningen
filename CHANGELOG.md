@@ -6,7 +6,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
-## [0.55.0] - 2026-11-04
+## [0.55.1] - 2026-11-05
 
 - **De klok van een gast springt niet meer terug na een pauze van de ander.** Stond het spel van wie het spel opende stil (pauzemenu, kaart, winkel), dan bleef de klok bij de gast op de oude snelheid doorlopen en sprong hij bij het hervatten minuten terug. De gast rekent nu hoogstens één melding vooruit en staat stil zodra de ander stil staat (#520).
 - **Samen spelen begint met één hub van drie stappen.** Escape > Spel > Samen spelen opent nu eerst de vraag *waar* je speelt (meedoen met een openbare sessie, zelf openen, of besloten), met daaronder wat de keuze doet. De bestaande wachtkamer, het spelersoverzicht en het kamercodescherm blijven erachter zitten en worden met die keuze geopend; Terug en Escape komen weer bij die eerste vraag uit in plaats van bij het oude beginscherm met vier knoppen. Escape beëindigt nooit een sessie: daarvoor is er de knop *Ontsnappen naar besloten*. De hub haalt zelf niets op en stuurt niets: de toestemming voor online spel vraag je pas op het aansluitscherm van de wachtkamer, en de hub zegt dat er ook (#527, #528, ADR 0022).
