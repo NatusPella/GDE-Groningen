@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import { dist, isInWater, closestPointOnSegment, pointInPolygon } from './util.js';
 import { trafficSignalsNear, pedestriansMayCross, getTrafficLights } from './trafficlights.js';
 import { isInsideBuilding, isOnRoad, CAR_ROAD_CATS, setPedPose, lineOfSight } from './pedgeom.js';
@@ -96,7 +97,7 @@ export function processPedPlanQueue(world) {
     const nav = ped.nav;
     nav.queued = false;
     if (!nav.pending || ped.state === 'dead') continue;
-    if (dist(ped.x, ped.y, world.player.x, world.player.y) > 220) { nav.pending = null; continue; }
+    if (dist(ped.x, ped.y, hoofdspeler(world).x, hoofdspeler(world).y) > 220) { nav.pending = null; continue; }
     n++;
     buildRoute(ped, world, nav.pending);
   }
@@ -789,3 +790,4 @@ export function makeCompanion(ped, leader) {
   ped.angle = leader.angle;
   navOf(ped);
 }
+

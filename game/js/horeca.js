@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import { dist, isInWater } from './util.js';
 import { countryFacilities, countryDoor, poiLayerPlaces } from './facilities.js';
 import { recordUnique } from './achievements.js';
@@ -100,8 +101,8 @@ const TOASTS = [
 export const HORECA_USE_RADIUS = 2.4;
 
 export function nearestHorecaSpot(world) {
-  if (!spots.length || world.player.inVehicle) return null;
-  const { x: px, y: py } = world.player;
+  if (!spots.length || hoofdspeler(world).inVehicle) return null;
+  const { x: px, y: py } = hoofdspeler(world);
   let best = null, bestD = HORECA_USE_RADIUS;
   for (const spot of spots) {
     const d = dist(px, py, spot.x, spot.y);
@@ -248,3 +249,4 @@ export function updateHorecaPads3D(m, px, py, r) {
   m.instanceMatrix.needsUpdate = true;
   if (ph) ph.needsUpdate = true;
 }
+

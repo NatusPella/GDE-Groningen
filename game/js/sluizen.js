@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Sluizen als mechaniek (#236, #184): elke schutsluis van de provincie (game/sluizen.json,
 // scripts/world/sluizen.mjs) heeft twee deuren, seinlichten en een schutcyclus. De cyclus zelf
 // (deur dicht, peil gelijk, andere deur open) is locks.js; de routeplanner telt dezelfde
@@ -230,7 +231,7 @@ export function stepSluis(lock, dt, world = null) {
 // De seinen en de tekst voor wie in de buurt is (zoals de brug: één melding per verandering).
 export const SLUIS_HINT = { red: 'Sluis: wacht op groen', amber: 'Sluis: de deur gaat open', green: 'Sluis: groen, invaren' };
 function hintNear(lock, world) {
-  const p = world && world.player;
+  const p = world && hoofdspeler(world);
   if (!p || !world.addMessage) return;
   const v = p.inVehicle;
   if (!v || !v.isBoat) return;
@@ -246,7 +247,7 @@ function hintNear(lock, world) {
 
 export function updateSluizen(dt, world) {
   if (!sluizen.length || dt <= 0) return;
-  const p = world && world.player;
+  const p = world && hoofdspeler(world);
   const px = p ? (p.inVehicle || p).x : 0, py = p ? (p.inVehicle || p).y : 0;
   for (const k of sluizen) {
     // ver van de speler: niets vragen, de sluis staat stil (een schutcyclus loopt wel af)
@@ -299,3 +300,4 @@ export function waitEstimate(lock, side) {
   const cyc = LOCK_TIMING.GATE_S * 2 + levelTime(lock) + 4;
   return Math.round(lock.at === side ? cyc : cyc * 1.5);
 }
+

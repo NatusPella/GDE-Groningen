@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { closestPointOnSegment, pointInPolygon } from './util.js';
 
@@ -189,7 +190,7 @@ export function updateStreetSigns(dt, world, scene) {
   if (refreshTimer > 0) return;
   refreshTimer = REFRESH_INTERVAL;
 
-  const px = world.player.x, py = world.player.y;
+  const px = hoofdspeler(world).x, py = hoofdspeler(world).y;
   const wanted = new Set();
   for (const s of signs) {
     if (Math.abs(s.x - px) > SIGN_RADIUS || Math.abs(s.y - py) > SIGN_RADIUS) continue;
@@ -208,3 +209,4 @@ export function updateStreetSigns(dt, world, scene) {
     active.delete(s);
   }
 }
+

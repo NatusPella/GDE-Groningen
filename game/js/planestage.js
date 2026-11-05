@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // The stages of a mission with the small plane (M15 Laag over het graan, docs/verhaal/nieuw): board Roelfien's
 // plane on its own strip, fly low through gates (the first one picks up the banner), land on the strip again.
 // The flight itself is the arcade plane of planeflight.js / planecontrol.js; this module only places the plane,
@@ -139,7 +140,7 @@ function placeBanner(v) {
 export function updatePlaneStage(dt, world, st, S) {
   if (!S0 || !S0.plane) return null;
   const v = S0.plane;
-  const p = world.player;
+  const p = hoofdspeler(world);
   const mine = p.inVehicle === v;
   if (st.kind === 'plane') {
     if (mine) return 'next';
@@ -193,7 +194,7 @@ export function planeStageProgress(st, S) {
 export function debugCompletePlaneStage(world, st, S) {
   if (!S0 || !S0.plane) return false;
   const v = S0.plane;
-  if (st.kind === 'plane') { world.player.enterVehicle(v, world); return true; }
+  if (st.kind === 'plane') { hoofdspeler(world).enterVehicle(v, world); return true; }
   if (st.kind === 'airgates' && S.air) {
     if (S.air.rings) S.air.rings.forEach((r) => r.material.color.setHex(0x5dff7a));
     if (st.banner) setBanner(world, st.banner);
@@ -230,3 +231,4 @@ export function releasePlaneStage(world) {
   world.planeStrip = S0.prevStrip;
   S0 = null;
 }
+
