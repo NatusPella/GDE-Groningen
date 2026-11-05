@@ -6,6 +6,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+- **De stoomtrein wacht op de hele groep (#525).** Bij de rit van M19 begint de machinist pas als iedereen op het perron staat; wie achterloopt krijgt "Wacht even: iedereen moet erbij zijn" en de trein blijft staan. De coop-audit gaat hierdoor van 23 naar 24 van de 30 missies volledig samen. Test: `coopmissie_test`, `train_ride_test`.
 - **De polsstokscène wacht op de hele groep (#525).** Bij de vault van M10 begint de scène pas als iedereen bij de gracht staat; wie achterloopt krijgt "Wacht even: iedereen moet erbij zijn" in plaats van de scène te missen. De coop-audit gaat hierdoor van 22 naar 23 van de 30 missies volledig samen. Test: `coopmissie_test`.
 - **Een gast wordt ook geschept door de fatbikes (#525).** In de fatbikestraat van M08 kiest elke fiets nu de dichtstbijzijnde meespeler te voet als doel, en elke meespeler houdt zijn eigen gezondheid: een gast gaat neer met zijn eigen lichaam, wie het spel opende met de wereldgezondheid. De coop-audit gaat hierdoor van 21 naar 22 van de 30 missies volledig samen. Tests: `coopmissie_test`, `coopmissie_audit`.
 - **Een gast bestuurt ook de missieauto (#525).** De opdrachtauto van een missie is niet langer alleen voor wie het spel opende: een gast stapt in en rijdt hem, en de aflevermissie telt de groep via `teamActor`, dus de rit en de stops gelden voor iedereen. De coop-audit gaat hierdoor van 20 naar 21 van de 30 missies volledig samen. Tests: `coopbestuur_test`, `coopmissie_test`, `coopbestuurflow_test`.

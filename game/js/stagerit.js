@@ -10,6 +10,7 @@ import { hoofdspeler } from './players.js';
 // platform (the tile world of the south may lack the museum line) the ride is told as a scene: the stage
 // passes by itself after a few seconds, so the story never dead-ends.
 import { getTrains, getRoutes, routePoint, addMissionTrain, parkTrain } from './railway.js';
+import { groepKlaar, WACHT_OP_ANDEREN } from './stagegroep.js';
 
 const NEAR_LINE = 120;   // m: a route this close to the platform counts as the line
 const NEAR_TRAIN = 70;   // m: a parked or dwelling train this close is the train
@@ -72,6 +73,12 @@ export function updateRit(dt, world, st, S, hint) {
     if (S.t < 1.2 && !R.said) { R.said = 1; world.addMessage(st.fallbackSay || 'De trein rijdt vanzelf het volgende perron in.', 4); }
     return S.t > FALLBACK_S ? 'done' : null;
   }
+  // Samen spelen (#525): de rit begint pas als de hele groep op het perron staat;
+  // wie achterloopt krijgt de wachtmelding en de trein blijft staan.
+  if (!R.boarded && !groepKlaar(world, { iedereen: true }, S.target || hoofdspeler(world), 45)) {
+    hint(world, WACHT_OP_ANDEREN);
+    return null;
+  }
   const driving = world.trainDriving;
   if (!driving) {
     if (R.boarded) {
@@ -103,4 +110,5 @@ export function updateRit(dt, world, st, S, hint) {
   if (!R.said && S.t > 6) { R.said = 1; world.addMessage('W is gas, S is rem. Het volgende perron ligt verderop langs het spoor.', 4); }
   return null;
 }
+
 
