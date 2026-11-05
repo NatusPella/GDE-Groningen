@@ -1,7 +1,7 @@
 {
  "version": 1,
  "note": "Aantal directe verwijzingen naar world.player per bestand (#500), inclusief de alias w.player. Alleen omlaag; zie scripts/player_singleton_audit.mjs.",
- "total": 70,
+ "total": 65,
  "files": {
   "game/js/aaien.js": 2,
   "game/js/coopbus.js": 4,
@@ -13,7 +13,6 @@
   "game/js/gebiedenlive.js": 4,
   "game/js/geheimen.js": 1,
   "game/js/intromontage.js": 5,
-  "game/js/kermis.js": 2,
   "game/js/main.js": 2,
   "game/js/missionstory.js": 2,
   "game/js/pg_fierljep.js": 6,
@@ -22,8 +21,8 @@
   "game/js/pigeonmode.js": 2,
   "game/js/pigeonspots.js": 1,
   "game/js/playerapi.js": 1,
-  "game/js/savegame.js": 3,
-  "game/js/sidejob_rondvaart.js": 2,
+  "game/js/savegame.js": 1,
+  "game/js/sidejob_rondvaart.js": 1,
   "game/js/sidejob_rondvaarttour.js": 1,
   "game/js/sidejobkit.js": 1,
   "game/js/spelersregister.js": 5,

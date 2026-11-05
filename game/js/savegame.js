@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import { getMissionProgress, setMissionProgress, getMissionDefs } from './missions.js';
 import { spawnHeroCarNear } from './vehicle.js';
 import { WEAPONS } from './combat.js';
@@ -201,7 +202,7 @@ export function currentSlot() {
 }
 
 function serialize(w) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   const ammo = {};
   for (const [k, v] of Object.entries(w.ammo || {})) ammo[k] = v === Infinity ? 'inf' : num(v, 0);
   const pos = p.inVehicle && p.inVehicle.isBoat ? null : { x: Math.round(p.x * 10) / 10, y: Math.round(p.y * 10) / 10 };
@@ -392,7 +393,7 @@ export function saveSoon(delay = 1.5) {
 
 function placeAt(w, x, y) {
   const map = w.map;
-  const p = w.player;
+  const p = hoofdspeler(w);
   const spot = map.findOpenSpawn(x, y, 80) || map.findOpenSpawn(x, y, 800) || { x, y };
   const sx = spot.x, sy = spot.y;
   if (p.inVehicle) {
