@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import { FLAGS, perfOff } from './devflags.js';
 import { sfxLinks } from './latehooks.js';
 import { MODS } from './cheatmods.js';
@@ -1870,7 +1871,7 @@ const streamAhead = streamAheadHere();
 const streamFocus = { x: 0, y: 0 };
 const lastOverrideFocus = { x: 0, y: 0 };
 function updateStreamFocus(world) {
-  const o = world.cameraOverride || (world.trainCam && world.trainCam.eye) || null, p = world.player; // de binnencamera van de trein telt mee (traindrive.js), anders blijft de focus hangen
+  const o = world.cameraOverride || (world.trainCam && world.trainCam.eye) || null, p = hoofdspeler(world); // de binnencamera van de trein telt mee (traindrive.js), anders blijft de focus hangen
   const cf = cameraFocus(o);
   if (cf) {
     streamFocus.x = lastOverrideFocus.x = cf.x;
@@ -2485,7 +2486,7 @@ function syncSpeechBubbles(world) {
 export function update3D(dt, world) {
   // animations freeze with gameplay (pause, cutscenes); the camera keeps using dt
   const animDt = world.paused ? 0 : dt;
-  const player = world.player;
+  const player = hoofdspeler(world);
   const focus = updateStreamFocus(world);
 
   noteStreamJump(focus.x, focus.y);
@@ -3984,7 +3985,7 @@ function applyCameraOverride(dt, world, lx, ly, lz) {
   if (t <= 0.5) applyDrunkCamera(cam);
   if (fovPunch) { cam.fov -= fovPunch; fovPunch = 0; }
   // snelheids-FOV (#216): groeit zacht mee met de snelheid, uit bij bewegingsreductie en in cutscenes
-  const pv = world && world.player && world.player.inVehicle;
+  const pv = world && hoofdspeler(world) && hoofdspeler(world).inVehicle;
   speedFov = stepFov(speedFov, valid || !pv || pv.isBoat ? 0 : pv.speed || 0, dt, effectsFor({ reduceMotion: reducedMotion() || getSettings().speedFeel === false }));
   const targetFov = valid && o.fov ? o.fov : (baseFov + speedFov) * (1 - 0.72 * scopeBlend);
   if (cam.fov !== targetFov) {
@@ -4214,3 +4215,4 @@ function normalizeAngleDelta(a) {
 // De route-ribbon en de wegwijzer-beacon wonen in scene3d/routeribbon3d.js (#502);
 // setRouteLinks blijft hier nog een export, zodat main.js niets hoeft te wijzigen.
 export { setRouteLinks } from './scene3d/routeribbon3d.js';
+

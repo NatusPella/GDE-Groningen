@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Samen spelen (#434): een gast werkt op zijn eigen akker, in de wereld van wie het spel opende. De trekker van de boerderij zou
 // een voertuig in die wereld zetten (boerderijwereld.js doet daarom niets bij een gast); in plaats daarvan speelt de gast de klus
 // als lokale minigame op zijn eigen scherm, net als hengelen (GAST_ACTIVITEITEN in coopgast.js, docs/COOP-GAST.md). Hij staat stil
@@ -55,9 +56,9 @@ export function volgendeKlus() {
   return o ? o.taak : null;
 }
 const dichtbij = (w) => {
-  if (!w || w.coopRole !== 'client' || w.coopInVoertuig || !w.player) return false;
+  if (!w || w.coopRole !== 'client' || w.coopInVoertuig || !hoofdspeler(w)) return false;
   const p = akkerPlek(w);
-  return Math.hypot(w.player.x - p.x, w.player.y - p.y) <= REIK;
+  return Math.hypot(hoofdspeler(w).x - p.x, hoofdspeler(w).y - p.y) <= REIK;
 };
 const geenKlus = (b) => (b.schuur.kg > 0 ? 'Je schuur is vol: laat de oogst afleveren' : B.wacht(b) ? `Het gewas groeit nog ${Math.ceil(B.wacht(b).uren)} uur` : 'Er is nu niets te doen');
 
@@ -134,3 +135,4 @@ export const BOEREN = {
   quit: (w) => einde(w, { stop: true }),
   debug: () => ({ state: () => (game ? { ...game } : null) }),
 };
+

@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Soft-lock safety nets: "Vastgelopen? Zet me vrij" (pause menu), "Missie
 // stoppen", and watchdogs that clear overlays, flags and positions that
 // would otherwise leave the player stuck until a reload.
@@ -86,7 +87,7 @@ export function resetWalker(a, x, y, gz) {
 export function placeCompanion(w, x, y, angle) {
   const c = w.companion;
   if (!c) return;
-  if (c.inVehicle && c.inVehicle !== w.player.inVehicle) { c.inVehicle.passenger = null; c.inVehicle = null; }
+  if (c.inVehicle && c.inVehicle !== hoofdspeler(w).inVehicle) { c.inVehicle.passenger = null; c.inVehicle = null; }
   if (c.state === 'dead') { c.state = 'alive'; c.health = 100; }
   if (c.inVehicle) return;
   let at = null;
@@ -135,7 +136,7 @@ function unstuck(w = world) {
   if (!w || w.pendingRespawn) return false;
   if (w.pigeonMode && w.pigeonActions) w.pigeonActions.stop();
   clearTransient(w);
-  const p = w.player;
+  const p = hoofdspeler(w);
   const map = w.map;
   const v = p.inVehicle;
   const spot = safeSpot(map, p.x, p.y);
@@ -229,7 +230,7 @@ function watchRespawn(dt, w) {
 }
 
 function watchPlayer(dt, w) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   const v = p.inVehicle;
   if (w.pigeonMode || w.pendingRespawn) return;
   const bad = !finite(p.x, p.y) || (v && !finite(v.x, v.y)) || (p.gz ?? 0) + (p.z ?? 0) < FALL_LIMIT || (v && (v.z ?? 0) < FALL_LIMIT && !v.sinking);
@@ -259,3 +260,4 @@ export function updateSafety(dt, w) {
     console.error('[safety]', e);
   }
 }
+

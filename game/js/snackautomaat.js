@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // The Muurkroket: a snack vending machine in the wall at the snack bars and
 // the stations (an invented brand). E puts a few euros in and out comes an
 // eierbal, a kroket or a frikandel that heals a little. Simple on purpose:
@@ -44,8 +45,8 @@ export function updateSnackMachines() {
 }
 
 export function nearestMachine(world) {
-  if (!machines.length || world.player.inVehicle || world.player.swimming) return null;
-  const { x, y } = world.player;
+  if (!machines.length || hoofdspeler(world).inVehicle || hoofdspeler(world).swimming) return null;
+  const { x, y } = hoofdspeler(world);
   let best = null, bd = MACHINE_RADIUS;
   for (const m of machines) {
     const d = dist(x, y, m.x, m.y);
@@ -133,3 +134,4 @@ function buildMeshes() {
     scene.add(g);
   }
 }
+

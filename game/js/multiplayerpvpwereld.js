@@ -29,7 +29,7 @@ export const naamVanSlot = (world, slot) => {
 // Alle lichamen die tegen elkaar kunnen vechten: [[plek, lichaam]]; plek 0 is de speler van wie het spel opende.
 export function pvpLichamen(world) {
   const uit = [];
-  if (world.player) uit.push([0, world.player]);
+  if (hoofdspeler(world)) uit.push([0, hoofdspeler(world)]);
   for (const g of gastLichamen(world)) uit.push(g);
   return uit;
 }
@@ -155,7 +155,7 @@ function hostRaak(world, schade, dader) {
 function hostOpstaan(world, dader) {
   world.health = 100; world.armor = 0;
   geefBescherming(world.coopPvp, 0, nuVan(world));
-  const p = world.player; if (p) { p.vx = 0; p.vy = 0; }
+  const p = hoofdspeler(world); if (p) { p.vx = 0; p.vy = 0; }
   arenaNeerHook(world, dader, 0); // de PvP-minigame: punten, respawn bij het eigen team (#454)
   if (world.addMessage) world.addMessage(PVP_TEKST.neergeslagen(naamVanSlot(world, dader)), 5);
   if (world.coopPvpMeld) world.coopPvpMeld(PVP_TEKST.neergeslagenAnderen(naamVanSlot(world, dader), naamVanSlot(world, 0)), 0);
@@ -236,7 +236,7 @@ function arenaKanMee(world, slot, l) {
   if (Math.hypot(l.x - ARENA_PLEK.x, l.y - ARENA_PLEK.y) > ARENA.straal + ARENA_MARGE) return { ok: false, reden: 'plek' };
   return { ok: true, reden: '' };
 }
-// Dezelfde regel op het scherm van een gast: zijn eigen lichaam is daar world.player (plek 0), zijn echte plek is die van de host.
+// Dezelfde regel op het scherm van een gast: zijn eigen lichaam is daar hoofdspeler(world) (plek 0), zijn echte plek is die van de host.
 function arenaKanMeeGast(world) {
   const n = world.coopNet, ik = (n && n.session && n.session.slot) || 1;
   if (!arenaToegestaan(world.coopPvp, ik)) return { ok: false, reden: 'passief' };
@@ -560,4 +560,5 @@ zetWedGastHaken(ARENA.id, { dichtbij: (world) => pvpArenaDichtbij(world) });
 
 // De eigen muziek van de arena (audio.js pvp_arena_loop) zolang deze speler een ronde speelt (host of gast).
 registerMusicProbe('pvp', (world) => !!world && ((world.pvpArena && world.pvpArena.fase === 'bezig') || (world.pvpArenaGast && !world.pvpArenaGast.klaar)));
+
 
