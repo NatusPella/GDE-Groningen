@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Het werk met je eigen machines in de wereld (#415, stap 2): je erf (huis, schuur, silo, dieselvat) met je trekkers, maaidorser en laadmachine op de
 // machineplekken, de werktuigen ernaast, koppelen met E (in de trekker of ernaast), aftakas aan of uit met G, hef omhoog of omlaag met T, ontkoppelen
 // met X, diesel bijtanken met R bij het dieselvat van je erf of bij een pomp, en het veldwerk op je percelen: de rijen veranderen zichtbaar per
@@ -96,7 +97,7 @@ function erfPlek(w, erfId) {
   const d = PC.erfDef(erfId);
   if (!d) return null;
   const [x, y] = wgsToWorld(d.lat, d.lon);
-  if (dist(w.player.x, w.player.y, x, y) > SPAWN_R) return null;     // de wereld hier is nog niet geladen: later
+  if (dist(hoofdspeler(w).x, hoofdspeler(w).y, x, y) > SPAWN_R) return null;     // de wereld hier is nog niet geladen: later
   const p = vindErfPlek(w, x, y);
   S.erven.set(erfId, p);
   return p;
@@ -195,7 +196,7 @@ function zetWerktuigPose(w, imp, omlaag) {
 const rigVan = (uid) => { for (const r of S.rigs.values()) if (r.werktuig === uid) return r; return null; };
 
 function syncWereld(w) {
-  const b = getBoerderij(), bd = b.bedrijf, p = w.player;
+  const b = getBoerderij(), bd = b.bedrijf, p = hoofdspeler(w);
   const items = itemsVan(bd);
   const heeft = new Set(items.map((i) => i.m.uid));
   // wat niet meer van jou is (terug naar de verhuurder, verkocht) gaat uit de wereld, behalve een machine waar je nog in zit
@@ -295,7 +296,7 @@ export function koppelKandidaatVoor(w, v) {
 }
 
 export function koppelKandidaat(w) {
-  const p = w.player, bd = getBedrijf();
+  const p = hoofdspeler(w), bd = getBedrijf();
   const vrijeImp = [...S.werktuigen.values()].filter((i) => !rigVan(i.uid) && WT.werktuigDef(recFrom(bd, i.uid)));
   const inV = p.inVehicle && p.inVehicle.farm ? p.inVehicle : null;
   const vrijeRig = (v) => { const r = S.rigs.get(v.farm); const m = recFrom(bd, v.farm); return r && !r.werktuig && m && PC.MACHINE_CATALOGUS[m.type].type === 'trekker' ? r : null; };
@@ -323,7 +324,7 @@ function machineAfstand(p) {
 
 // Te voet kan een gekoppeld werktuig ook los: de trekker staat stil en jij staat bij het werktuig.
 function losKandidaat(w) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (p.inVehicle) return null;
   for (const [muid, rig] of S.rigs) {
     if (!rig.werktuig) continue;
@@ -518,7 +519,7 @@ function ruimVeld(v) { if (v) ruimGroep(v.group); }
 const NUL = new THREE.Matrix4().makeScale(0, 0, 0);
 
 function syncVelden(w) {
-  const b = getBoerderij(), bd = b.bedrijf, p = w.player;
+  const b = getBoerderij(), bd = b.bedrijf, p = hoofdspeler(w);
   installeerVeldGat(w.map);
   for (const id of Object.keys(bd.percelen)) {
     const pos = B.veldPositie(b, id);
@@ -661,7 +662,7 @@ function zegUitleg(w, set, rig, speed) {
 // --- elk beeld ---------------------------------------------------------------------------------------------
 
 export function updateBoerderijWereld(dt, w) {
-  if (!w || !w.map || !w.player || w.coopRole === 'client' || !(dt > 0)) return;
+  if (!w || !w.map || !hoofdspeler(w) || w.coopRole === 'client' || !(dt > 0)) return;
   S.t += dt;
   const b = getBoerderij();
   // de staat van het bedrijf kan veranderen (kopen, huren, terug naar de verhuurder): synchroniseren
@@ -751,7 +752,7 @@ function loadPlek(w, v) {
 export function interactBoerderijWereld(w) {
   const input = w && w.input;
   if (!input || !w.map || w.coopRole === 'client') return false;
-  const p = w.player;
+  const p = hoofdspeler(w);
   const v = p.inVehicle && p.inVehicle.farm ? p.inVehicle : null;
   const e = input.wasPressed('e') || input.wasPressed('f');
   const b = getBoerderij(), bd = b.bedrijf;
@@ -855,7 +856,7 @@ const pctTxt = (x) => Math.round(x * 100) + '%';
 
 // Het wereldprompt boven je machine of werktuig (prompts.js): wat E nu doet, of de stand van de rig terwijl je rijdt.
 function bepaalPrompt(w) {
-  const p = w.player, bd = getBedrijf();
+  const p = hoofdspeler(w), bd = getBedrijf();
   const k = koppelKandidaat(w);
   if (k) {
     const naam = WT.naamVan(recFrom(bd, k.imp.uid));
@@ -904,3 +905,4 @@ export const _staat = () => S;
 
 // Eén kind voor activityhub.js: init, E-toetsen (slot 'pre') en tick (fase 'late').
 export const BOERDERIJ_WERELD_KIND = { id: 'boerderijwereld', init: () => resetBoerderijWereld(), slot: 'pre', interact: interactBoerderijWereld, tickPhase: 'late', tick: (dt, w) => updateBoerderijWereld(dt, w) };
+
