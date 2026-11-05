@@ -428,7 +428,7 @@ function rentBike(w, a) {
         bike.rental = true;
         w.vehicles.push(bike);
         w.player.x = bx; w.player.y = by;
-        w.player.enterVehicle(bike, w);
+        hoofdspeler(w).enterVehicle(bike, w);
         return 'Veel plezier!';
       },
     }] }],

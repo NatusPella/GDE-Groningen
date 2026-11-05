@@ -458,7 +458,7 @@ function updateOnline(w, dt) {
   if (klaar && !gast) { end(w); return; }
   syncKarts(w, dt);
   if (!gast) {
-    const me = g.karts[0], q = FR.toW(me.u, me.v), p = w.player;
+    const me = g.karts[0], q = FR.toW(me.u, me.v), p = hoofdspeler(w);
     p.x = q.x; p.y = q.y; p.angle = ROT + me.a; p.speed = 0; p.moving = false; p.vx = 0; p.vy = 0;
   }
 }
@@ -577,7 +577,7 @@ function updateGame(w, dt) {
     if (g.outro <= 0) { end(w); return; }
   }
   syncKarts(w, dt);
-  const p = w.player;
+  const p = hoofdspeler(w);
   const q = FR.toW(me.u, me.v);
   p.x = q.x; p.y = q.y; p.angle = ROT + me.a; p.speed = 0; p.moving = false; p.vx = 0; p.vy = 0;
 }
@@ -618,7 +618,7 @@ function end(w, { quit = false } = {}) {
     for (const l of built.lamps) l.material = materials().lampOff;
   }
   if (g.online === 'gast') return; // a guest's body belongs to the host's world: nothing to put back (#443)
-  const p = w.player;
+  const p = hoofdspeler(w);
   p.x = g.exit.x; p.y = g.exit.y; p.angle = ROT; p.vx = p.vy = 0;
   if (g.online) { endOnlineHost(w, g, quit); return; }
   if (quit) { w.addMessage('Karten gestopt', 2.5); return; }

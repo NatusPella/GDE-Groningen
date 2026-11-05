@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // first: copies the pre-0.29 'gte-*' storage keys before any module reads them
 import './storagekeys.js';
 import './oudmigratie.js';
@@ -347,7 +348,7 @@ const input = new Input();
 
 function maintainPedestrians(world) {
   // in a cutscene the street life fills round the camera's view, not round the hidden player (#157)
-  const f = world.cameraOverride && world.streamFocus ? world.streamFocus : world.player;
+  const f = world.cameraOverride && world.streamFocus ? world.streamFocus : hoofdspeler(world);
   world.pedestrians = world.pedestrians.filter(
     (p) => p.state === 'dead' || dist(p.x, p.y, f.x, f.y) < PED_DESPAWN_DIST
   );
@@ -666,13 +667,13 @@ async function boot() {
     }
     // the tiles follow the camera or the player (speed and heading prefetch)
     if (world.map.follow) {
-      const tf = tileFocus(world.player, world.cameraOverride, tileFollow, dt);
+      const tf = tileFocus(hoofdspeler(world), world.cameraOverride, tileFollow, dt);
       // a boat on the waterway network: the tiles of its route ahead come early (#184)
-      if (tf && world.player.inVehicle && world.player.inVehicle.isBoat && !world.cameraOverride) tf.opts = vaarPrefetch(tf.opts, tf.x, tf.y);
+      if (tf && hoofdspeler(world).inVehicle && hoofdspeler(world).inVehicle.isBoat && !world.cameraOverride) tf.opts = vaarPrefetch(tf.opts, tf.x, tf.y);
       if (tf && world.coopFoci && world.coopFoci.length > 1) tf.opts = { ...tf.opts, foci: tegelFoci(world.coopFoci) }; // spelers uit elkaar: ook tegels rond de losse groepen (#429)
       if (tf) world.map.follow(tf.x, tf.y, tf.opts, 1.5);
       // the open sea as water rows round the player (#233)
-      if (tf && world.map.addWaterPatches) ensureSeaRows(world.map, world.player.x, world.player.y);
+      if (tf && world.map.addWaterPatches) ensureSeaRows(world.map, hoofdspeler(world).x, hoofdspeler(world).y);
     }
     // The tile follower and the story systems are not audio (#473: this used
     // to be one section called "audio", and its 1945 ms peak was map
@@ -737,7 +738,7 @@ async function boot() {
     updatePhotoMode(dt, world);
     updateHud(dt, world);
     // a long jump (fast travel, teleport): the load screen while the city streams in
-    if (world.devJumpLoad) { world.devJumpLoad = false; resetJumpWatch(); startLoadScreen(world, { kind: 'travel', x: world.player.x, y: world.player.y, mission: world.loadMission }); }
+    if (world.devJumpLoad) { world.devJumpLoad = false; resetJumpWatch(); startLoadScreen(world, { kind: 'travel', x: hoofdspeler(world).x, y: hoofdspeler(world).y, mission: world.loadMission }); }
     watchJumps(world, { swallow: world.pigeonMode || !!world.pendingRespawn || isCinematicActive() || sinceCinematic() < 2 || !!world.cameraOverride, hold: world.paused && !world.uiPaused });
     probe.mark('hud');
   }
@@ -769,14 +770,14 @@ async function boot() {
       const fociN = world.coopFoci && world.coopFoci.length > 1 ? world.coopFoci.length : 1, fa = aandeel(fociN); // spelers uit elkaar (#429): de foci delen het budget
       manageTrafficPopulation(world, { target: Math.round(scaledTarget(30) * MODS.cars * fa) });
       // the centre is full of bikes: eight more cyclists while you are in it
-      const inCentre = Math.hypot(world.player.x - CITY_CENTRE.x, world.player.y - CITY_CENTRE.y) < CITY_CENTRE.r;
-      const rush = bikeBoost(wijkProfileAt(world.map, world.player.x, world.player.y).key, Math.hypot(world.player.x - CITY_CENTRE.x, world.player.y - CITY_CENTRE.y), hourOf(world));
+      const inCentre = Math.hypot(hoofdspeler(world).x - CITY_CENTRE.x, hoofdspeler(world).y - CITY_CENTRE.y) < CITY_CENTRE.r;
+      const rush = bikeBoost(wijkProfileAt(world.map, hoofdspeler(world).x, hoofdspeler(world).y).key, Math.hypot(hoofdspeler(world).x - CITY_CENTRE.x, hoofdspeler(world).y - CITY_CENTRE.y), hourOf(world));
       manageBikePopulation(world, { target: Math.round((scaledTarget(16) + (inCentre ? scaledTarget(8) : 0) + (rush ? scaledTarget(rush) : 0)) * MODS.bikes * fa) });
       // live bussen (#395): hooguit één opvraag per minuut, alleen met de instelling aan, nooit in de geautomatiseerde runs (buslive.js)
       busLive.tick(getBusLines());
       manageBusPopulation(world);
       manageScooterPopulation(world, { target: Math.round(scaledTarget(10) * MODS.scooters * fa) });
-      manageMotorPopulation(world, { target: Math.round(scaledTarget(motorTarget(wijkProfileAt(world.map, world.player.x, world.player.y).key, hourOf(world))) * MODS.motors * fa) });
+      manageMotorPopulation(world, { target: Math.round(scaledTarget(motorTarget(wijkProfileAt(world.map, hoofdspeler(world).x, hoofdspeler(world).y).key, hourOf(world))) * MODS.motors * fa) });
       if (fociN > 1) for (const f of world.coopFoci) if (!f.host) verkeerRondFocus(world, f, fa);
       manageBoatPopulation(world, { target: boatTarget() });
       tickRowingCoaches(world);

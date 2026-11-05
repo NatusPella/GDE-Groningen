@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Samen spelen (#439): het spel overdragen, de koppeling met de wereld en het netwerk. coophostwissel.js is de pure basis (momentopname en
 // toestandsmachines); dit bestand vult de momentopname uit de wereld van wie het spel opende, past hem toe bij de nieuwe speler, stuurt de
 // berichten over de bestaande sessies (hub en ClientSession, JSON-gebeurtenissen 'hw-*') en laat iedereen opnieuw verbinden.
@@ -31,8 +32,8 @@ const posOf = (b) => (b && b.inVehicle && Number.isFinite(b.inVehicle.x) && Numb
 // De eigen plek vóór het wisselen van rol. stopCoopNet zet een gast terug op de plek waar hij de sessie binnenkwam; na een
 // overdracht of overname is dat een sprong van tientallen meters terug (#452). Wie host wordt of bij de nieuwe host aansluit
 // hoort te blijven waar hij staat (een gast die later aansluit volgt daarna de nieuwe host via de band).
-const bewaarPlek = (world) => (world.player && Number.isFinite(world.player.x) && Number.isFinite(world.player.y) ? { x: world.player.x, y: world.player.y, z: world.player.z || 0 } : null);
-const zetPlekTerug = (world, p) => { const w = world.player; if (!w || !p) return; w.x = p.x; w.y = p.y; if (Number.isFinite(p.z)) w.z = p.z; };
+const bewaarPlek = (world) => (hoofdspeler(world) && Number.isFinite(hoofdspeler(world).x) && Number.isFinite(hoofdspeler(world).y) ? { x: hoofdspeler(world).x, y: hoofdspeler(world).y, z: hoofdspeler(world).z || 0 } : null);
+const zetPlekTerug = (world, p) => { const w = hoofdspeler(world); if (!w || !p) return; w.x = p.x; w.y = p.y; if (Number.isFinite(p.z)) w.z = p.z; };
 
 // De route en de wereldhaken. Verplicht: info(), verbind(kamer) -> Promise<transport>, opKamer({ aanvaard(transport) }) -> Promise<{ kamer, stop() }>.
 // Optioneel: hostOpts(), clientOpts(wens), bereikbaar() -> Promise<bool>, wacht(ms), rand(), gastGeld(slot), leesOpdracht(world), zetOpdracht(world, o),
@@ -43,7 +44,7 @@ const wacht = (d, ms) => (d.wacht ? d.wacht(ms) : new Promise((r) => setTimeout(
 
 // ---- de momentopname uit de wereld van de oude host -----------------------------------------------------------------------
 export function verzamelMomentopname(world, d = {}) {
-  const n = world.coopNet, hub = n.hub, p = world.player, c = world.companion;
+  const n = world.coopNet, hub = n.hub, p = hoofdspeler(world), c = world.companion;
   const lichaam = (slot) => lichaamVan(world, slot) || null;
   // Een plek zonder lichaam doet niet mee: een gastheer zonder lokale speler (#450) heeft er geen op plek 0, en wie net
   // weg is hoeft niet als spook in de momentopname te staan.
@@ -85,9 +86,9 @@ export function pasMomentopnameToe(world, m, d = {}, opt = {}) {
   // staan (opt.eigenPlek): zijn eigen plek is de zijne en een sprong terug naar een momentopname van 10 s oud is geen overname maar een hik (#452).
   const eerste = (opt.slot > 0 && m.spelers.find((s) => s.slot === opt.slot && Number.isFinite(s.x))) || m.spelers.find((s) => s.slot === 0);
   const opdrachtZetPlek = !!(m.opdracht && d.zetOpdracht);
-  const hier = world.player && Number.isFinite(world.player.x) && Number.isFinite(world.player.y) ? Math.hypot(world.player.x - (eerste ? eerste.x : 0), world.player.y - (eerste ? eerste.y : 0)) : Infinity;
+  const hier = hoofdspeler(world) && Number.isFinite(hoofdspeler(world).x) && Number.isFinite(hoofdspeler(world).y) ? Math.hypot(hoofdspeler(world).x - (eerste ? eerste.x : 0), hoofdspeler(world).y - (eerste ? eerste.y : 0)) : Infinity;
   uit.plek = 'geen';
-  if (eerste && !opdrachtZetPlek && !opt.eigenPlek && Number.isFinite(eerste.x) && Number.isFinite(eerste.y) && world.player) {
+  if (eerste && !opdrachtZetPlek && !opt.eigenPlek && Number.isFinite(eerste.x) && Number.isFinite(eerste.y) && hoofdspeler(world)) {
     if (hier > 2) { if (d.zetPlek) d.zetPlek(world, eerste.x, eerste.y, eerste.z); else { world.player.x = eerste.x; world.player.y = eerste.y; } uit.plek = 'bron'; }
     else uit.plek = 'eigen';
   }
