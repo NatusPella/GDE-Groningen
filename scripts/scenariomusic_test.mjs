@@ -134,8 +134,8 @@ for (const f of ['kart_loop.mp3', 'padel_loop.mp3', 'golf_loop.mp3', 'klimtoren_
   assert.ok(statSync(u).size > 1e6, f + ' te klein');
   assert.ok((b[0] === 0x49 && b[1] === 0x44 && b[2] === 0x33) || (b[0] === 0xff && (b[1] & 0xe0) === 0xe0), f + ' geen mp3-kop');
 }
-const audioSrc = readFileSync(new URL('../game/js/audio.js', import.meta.url), 'utf8');
-for (const f of ['kart_loop', 'padel_loop', 'golf_loop', 'klimtoren_loop', 'trein_loop', 'bus_loop']) assert.ok(audioSrc.includes(f + '.mp3'), f + ' niet in audio.js');
+const audioSrc = readFileSync(new URL('../game/js/audio/scenario.js', import.meta.url), 'utf8');
+for (const f of ['kart_loop', 'padel_loop', 'golf_loop', 'klimtoren_loop', 'trein_loop', 'bus_loop']) assert.ok(audioSrc.includes(f + '.mp3'), f + ' niet in scenario.js');
 
 console.log('scenariomusic_test: ok');
 
@@ -162,3 +162,4 @@ console.log('scenariomusic_test: ok');
   assert.equal(run(d, 1, { activity: 'menu', race: true }), 'menu');
   console.log('scenariomusic_test: menu ok');
 }
+
