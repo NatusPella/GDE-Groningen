@@ -1,7 +1,7 @@
 {
  "version": 1,
  "note": "Aantal directe verwijzingen naar world.player per bestand (#500), inclusief de alias w.player. Alleen omlaag; zie scripts/player_singleton_audit.mjs.",
- "total": 624,
+ "total": 579,
  "files": {
   "game/js/aaien.js": 2,
   "game/js/achievementtracker.js": 1,
@@ -42,7 +42,6 @@
   "game/js/countryside.js": 6,
   "game/js/crime.js": 1,
   "game/js/cutscenehost.js": 2,
-  "game/js/discgolf.js": 12,
   "game/js/dorpsuitjes.js": 5,
   "game/js/driftzone.js": 6,
   "game/js/drunk.js": 1,
@@ -110,7 +109,6 @@
   "game/js/ragdoll.js": 1,
   "game/js/railway.js": 8,
   "game/js/railway3d.js": 1,
-  "game/js/regatta.js": 13,
   "game/js/regiolevenrt.js": 5,
   "game/js/reiskaart.js": 1,
   "game/js/reisrit.js": 1,
@@ -174,8 +172,6 @@
   "game/js/touchlogic.js": 2,
   "game/js/trailer.js": 1,
   "game/js/traindrive.js": 4,
-  "game/js/vliegschool.js": 10,
-  "game/js/wandeling.js": 10,
   "game/js/waterski.js": 5,
   "game/js/weapondrops.js": 3,
   "game/js/weather.js": 5,

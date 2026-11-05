@@ -1,5 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { canvasTex as textTex, signBothSides } from './canvastex.js';
+import { hoofdspeler } from './players.js';
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
 import { showBanner } from './cinematics.js';
@@ -227,7 +228,7 @@ function buildCourse(w) {
 }
 
 function updateLod(w) {
-  const d = Math.hypot(w.player.x - CENTER.x, w.player.y - CENTER.y);
+  const d = Math.hypot(hoofdspeler(w).x - CENTER.x, hoofdspeler(w).y - CENTER.y);
   if (!built && d < DETAIL_M) built = buildCourse(w);
   if (!built) return;
   built.root.visible = d < DETAIL_M + 80 || !!game;
@@ -251,7 +252,7 @@ function drawIcon(ctx, s) {
 // --- prompt and start -----------------------------------------------------------------------------------
 
 function nearStand(w) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (game || w.pigeonMode || w.heliRun || p.inVehicle || p.swimming) return false;
   return Math.hypot(p.x - STAND.x, p.y - STAND.y) < USE_RADIUS;
 }
@@ -268,8 +269,8 @@ function prompt(w) {
 }
 
 function secondary(w) {
-  if (game || w.player.inVehicle) return [];
-  if (Math.hypot(w.player.x - CENTER.x, w.player.y - CENTER.y) > 160) return [];
+  if (game || hoofdspeler(w).inVehicle) return [];
+  if (Math.hypot(hoofdspeler(w).x - CENTER.x, hoofdspeler(w).y - CENTER.y) > 160) return [];
   return [{ id: 'discgolf-2', x: STAND.x, y: STAND.y, h: 2.2, label: 'Discgolf Stadspark', sub: 'Loop naar de eerste tee en druk E', kind: 'place' }];
 }
 
@@ -293,7 +294,7 @@ function start(w, { force = false, online = null } = {}) {
   if (game) return false;
   if (!force && !online && activityBlock(w)) return false;
   if (!built) built = buildCourse(w);
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (p.inVehicle && p.exitVehicle) p.exitVehicle(w.map, w);
   document.body.classList.add('discgolf-on');
   ensureBoard();
@@ -354,7 +355,7 @@ function setLie(w, fresh = false) {
   g.release = 0;
   g.charge = 0;
   g.charging = false;
-  const p = w.player;
+  const p = hoofdspeler(w);
   p.x = g.lie.x; p.y = g.lie.y; p.angle = g.yaw; p.speed = 0; p.moving = false; p.vx = 0; p.vy = 0; p.z = 0;
   const side = g.yaw + Math.PI / 2;
   w.companionHold = { x: g.lie.x - Math.cos(g.yaw) * 1.6 - Math.cos(side) * 2.2, y: g.lie.y - Math.sin(g.yaw) * 1.6 - Math.sin(side) * 2.2, face: g.yaw };
@@ -493,7 +494,7 @@ function updateGame(w, dt) {
   if (g.flash && (g.flash.t -= dt) <= 0) g.flash = null;
   if (g.online === 'gast' && (!w.coopNet || w.coopRole !== 'client')) { wedGastReset(w); end(w, { quit: true, extern: true }); return; } // the connection is gone
   if (stopPressed(input)) { end(w, { quit: true }); return; }
-  const p = w.player;
+  const p = hoofdspeler(w);
   p.speed = 0; p.moving = false; p.vx = 0; p.vy = 0; p.z = 0;
   const h = COURSE[g.hole];
   if (g.phase === 'mode') {
@@ -539,7 +540,7 @@ function end(w, { quit = false, extern = false, uitslag = null } = {}) {
   if (board) board.hide();
   clearBubbles(w, 'discgolf');
   if (built) { built.line.visible = false; built.marker.visible = false; built.disc.visible = false; built.lie.visible = false; built.caddie.visible = !quit; built.caddieUntil = w.time + 14; }
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (!lieOk(w.map, p.x, p.y)) { p.x = STAND.x; p.y = STAND.y; }
   if (g.online) { setCourse(BASE); eindeOnline(w, g, quit, extern, uitslag); return; }
   if (quit) { setCourse(BASE); w.addMessage('Discgolf gestopt', 2.5); return; }
@@ -772,9 +773,10 @@ export const DISCGOLF = {
   icon: drawIcon,
   mapSub: () => recText() || 'Discgolf: negen banen in het Stadspark',
   ubbo(w) {
-    const d = Math.hypot(STAND.x - w.player.x, STAND.y - w.player.y);
+    const d = Math.hypot(STAND.x - hoofdspeler(w).x, STAND.y - hoofdspeler(w).y);
     const rec = getChallengeRecord('discgolf');
     return { name: 'Discgolf Stadspark', sub: rec && rec.medal ? `record: ${MEDALS[rec.medal].toLowerCase()}` : 'negen banen, gratis', dist: d, x: STAND.x, y: STAND.y, play: 'discgolf', where: 'de eerste tee in het Stadspark', hint: 'loop naar de tee en druk E' };
   },
   runs: () => runs,
 };
+

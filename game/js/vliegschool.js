@@ -5,6 +5,7 @@ import { attachPlane, makeStrip } from './planecontrol.js';
 import { PLANE_MODEL } from './planeflight.js';
 import { makeHeli, HELI_MODEL, helipadById } from './heliflight.js';
 import { standActivity } from './standactivity.js';
+import { hoofdspeler } from './players.js';
 import { createBoard, mgThema, key, stopPressed } from './minigamekit.js';
 import { gameUi } from './minigamekit.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, MEDALS } from './achievements.js';
@@ -79,7 +80,7 @@ export function baliePlek(w = worldRef) {
 // platform staan, ook al staat het waypoint bij de ingang.
 export function lesPlek(w = worldRef) {
   const s = w && w.planeStrip;
-  const dichtbij = !!(w && w.player && s && Math.hypot(w.player.x - s.x, w.player.y - s.y) < 250);
+  const dichtbij = !!(w && hoofdspeler(w) && s && Math.hypot(hoofdspeler(w).x - s.x, hoofdspeler(w).y - s.y) < 250);
   if (lesCache && (lesCache.zeker || (lesCache.strip && !dichtbij) || !s)) return lesCache;
   const kand = s ? [] : [{ x: DEALER.x + 22, y: DEALER.y - 14 }];
   if (s) for (const langs of [10, 30, 60]) for (const dwars of [-18, 18, -26, 26]) kand.push(s.point(langs, dwars));
@@ -144,9 +145,9 @@ function bouwBalie(w) {
   return grp;
 }
 function updateBalie(w) {
-  if (!w || !w.player) return;
+  if (!w || !hoofdspeler(w)) return;
   const st = baliePlek(w);
-  const d = Math.hypot(w.player.x - st.x, w.player.y - st.y);
+  const d = Math.hypot(hoofdspeler(w).x - st.x, hoofdspeler(w).y - st.y);
   if (!balie && d < 600) balie = bouwBalie(w);
   if (balie) balie.visible = d < 800;
 }
@@ -371,7 +372,7 @@ function maakKist(w, les, baan) {
 }
 
 function steekIn(w, v) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   p.x = v.x; p.y = v.y; p.angle = v.angle; p.vx = p.vy = 0;
   p.enterVehicle(v, w);
   w.camYaw = v.angle;
@@ -416,7 +417,7 @@ function opruimen(w, { naarSchool = true } = {}) {
   if (!g) return;
   if (g.marks) ruimMarkeringenOp(g.marks);
   const v = g.v;
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (v) {
     v.driver = null; v.passenger = null;
     const i = w.vehicles.indexOf(v);
@@ -559,7 +560,7 @@ function monster(w, g) {
 }
 
 function updateVlucht(w, dt) {
-  const g = game, p = w.player, v = g.v;
+  const g = game, p = hoofdspeler(w), v = g.v;
   if (stopPressed(w.input)) { eindig(w, { afgebroken: true }); return; }
   if (p.inVehicle !== v || !w.vehicles.includes(v)) { eindig(w, { afgebroken: true }); return; }
   if (g.fase === 'intro') {
@@ -625,7 +626,7 @@ function start(w) {
   laadPlekken();
   game = { fase: 'menu', les: null, melding: '', meldingT: 0 };
   menu = { kist: null, cursor: 0 };
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (p.inVehicle) p.exitVehicle(w.map, w);
   openMenu(w);
   w.input.reset();
@@ -692,3 +693,4 @@ export const VLIEGSCHOOL = standActivity({
     };
   },
 });
+

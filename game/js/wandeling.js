@@ -6,6 +6,7 @@ import { isShopOpen } from './shopui.js';
 import { createBoard, mgThema, key, bubble, clearBubbles, pick, fmtTime } from './minigamekit.js';
 import { WANDEL_LINES } from './minigamelines3.js';
 import { registerQuitHook } from './busy.js';
+import { hoofdspeler } from './players.js';
 import { STAMPS, routePoints, routeLength, createWalk, stepWalk, averagePace, walkMedal, nextTarget, PACE_MEDAL_AT } from './wandelrules.js';
 
 // Wandeling Winsum (the Pieterpad at Winsum): an activity that does NOT take
@@ -79,7 +80,7 @@ function updateHud() {
 function tick(dt, w) {
   if (!run) return;
   if (w.pendingRespawn || w.input.wasPressed('backspace')) { w.input.consume('backspace'); finish(w, { quit: true }); return; }
-  const p = w.player;
+  const p = hoofdspeler(w);
   run.mounted = !!(p.inVehicle || p.swimming);
   if (run.mounted) { run.s.t += dt; run.s.last = null; } else {
     for (const e of stepWalk(run.s, { x: p.x, y: p.y }, dt)) {
@@ -99,7 +100,7 @@ function glyph(ctx) {
   ctx.beginPath(); ctx.moveTo(0, -1.2); ctx.lineTo(0, 1.4); ctx.moveTo(0, 1.4); ctx.lineTo(-1.5, 3); ctx.moveTo(0, 1.4); ctx.lineTo(1.5, 3); ctx.moveTo(-1.6, 0); ctx.lineTo(1.6, 0); ctx.stroke();
 }
 
-const near = (w) => !run && !w.player.inVehicle && !w.player.swimming && Math.hypot(w.player.x - START.x, w.player.y - START.y) < USE_RADIUS;
+const near = (w) => !run && !hoofdspeler(w).inVehicle && !hoofdspeler(w).swimming && Math.hypot(hoofdspeler(w).x - START.x, hoofdspeler(w).y - START.y) < USE_RADIUS;
 const recText = () => {
   const r = getChallengeRecord('wandeling');
   return r && r.best != null ? `Record: ${fmtTime(r.best)}${r.medal ? ' · ' + MEDALS[r.medal].toLowerCase() : ''}` : null;
@@ -131,7 +132,7 @@ export const WANDELING = {
     return { id: 'wandeling', x: START.x, y: START.y, h: 2.2, key: 'E', label: 'Wandeling Winsum', sub: why || recText() || 'Vijf stempelposten langs de dijk · gratis', ring: true, dim: !!why };
   },
   secondary(w) {
-    if (run || w.player.inVehicle || Math.hypot(w.player.x - START.x, w.player.y - START.y) > 160) return [];
+    if (run || hoofdspeler(w).inVehicle || Math.hypot(hoofdspeler(w).x - START.x, hoofdspeler(w).y - START.y) > 160) return [];
     return [{ id: 'wandeling-2', x: START.x, y: START.y, h: 2.2, label: 'Wandeling Winsum', sub: 'Loop naar de eerste paal en druk E', kind: 'place' }];
   },
   interact(w) {
@@ -156,6 +157,7 @@ export const WANDELING = {
   },
   mapSub: () => recText() || 'Pieterpad bij Winsum',
   ubbo(w) {
-    return { name: 'Wandeling Winsum', sub: 'vijf stempelposten langs de dijk, gratis', dist: Math.hypot(START.x - w.player.x, START.y - w.player.y), x: START.x, y: START.y, play: 'wandeling', where: 'Winsum', hint: 'loop naar de eerste paal en druk E' };
+    return { name: 'Wandeling Winsum', sub: 'vijf stempelposten langs de dijk, gratis', dist: Math.hypot(START.x - hoofdspeler(w).x, START.y - hoofdspeler(w).y), x: START.x, y: START.y, play: 'wandeling', where: 'Winsum', hint: 'loop naar de eerste paal en druk E' };
   },
 };
+
