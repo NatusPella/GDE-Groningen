@@ -186,7 +186,7 @@ function beloonOnline(w, res) {
 }
 
 function updateGame(w, dt) {
-  const g = game, input = w.input, p = w.player;
+  const g = game, input = w.input, p = hoofdspeler(w);
   if (g.online === 'gast' && (!w.coopNet || w.coopRole !== 'client')) { wedGastReset(w); einde(w, { quit: true, extern: true }); return; } // de verbinding is weg
   if (p.inVehicle) { p.inVehicle.speed = 0; if (p.inVehicle.vx !== undefined) { p.inVehicle.vx = 0; p.inVehicle.vy = 0; } }
   else { p.vx = p.vy = 0; p.speed = 0; p.moving = false; }
@@ -280,7 +280,7 @@ function startOfUitnodigen(w) {
 // tuig is dat precies zoals het was.
 function startVrij(w, plek) {
   if (game || !plek) return false;
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (!boardVrij) boardVrij = createBoard('hengelen');
   boardVrij.show();
   const kies = (rand) => {
@@ -413,3 +413,4 @@ const basis = standActivity({
   }),
 });
 export const HENGELEN = basis;
+

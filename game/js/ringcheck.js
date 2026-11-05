@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // The ring race lap (ringroute.js) and the other grade-separated ring roads
 // must be free of anything solid across the lanes. probeRingSolids lists
 // what a car would hit at driving height: building footprints (passages
@@ -185,7 +186,7 @@ function streamAround(world, x, y) {
 // A scripted car (the player's collision: buildings, walls, props, booms)
 // steered along the lap. Resolves with { ok, s, at, time }.
 async function scriptedLap(world, C) {
-  const map = world.map, p = world.player;
+  const map = world.map, p = hoofdspeler(world);
   const a0 = C.at(0), a1 = C.at(6);
   const v = new Vehicle(a0.x, a0.y, Math.atan2(a1.y - a0.y, a1.x - a0.x), { name: 'sport', len: 4.1, wid: 1.85, maxSpeed: 40, accel: 14, brake: 30, turnRate: 3.2, color: '#8a1414' });
   v.z = map.spawnZ ? map.spawnZ(v.x, v.y) : 0;
@@ -223,7 +224,7 @@ async function scriptedLap(world, C) {
 
 // The race's own rivals, driven by racers.js until every one has finished.
 async function aiLap(world, C) {
-  const map = world.map, p = world.player;
+  const map = world.map, p = hoofdspeler(world);
   const a0 = C.at(-20);
   p.x = a0.x; p.y = a0.y;
   const race = createRace(world, RING_ROUTE, RING_CHECKPOINTS, { topScale: 1.35, accelScale: 1.3, band: 320, jelle: true });
@@ -256,7 +257,7 @@ async function aiLap(world, C) {
 }
 
 export async function driveRingLap(world) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   const keep = { x: p.x, y: p.y, paused: world.uiPaused };
   world.uiPaused = true;
   const C = routeCursor();
@@ -404,7 +405,7 @@ export function offsetPath(map, path, o) {
 // opts.jump: a car in the air for more than 0.3 s fails too (a crest or a
 // step in the profile); opts.maxT: seconds before 'komt niet vooruit' (30).
 export async function driveAcross(world, path, speed, opts = {}) {
-  const map = world.map, p = world.player;
+  const map = world.map, p = hoofdspeler(world);
   const car = new Vehicle(path[0][0], path[0][1], Math.atan2(path[3][1] - path[0][1], path[3][0] - path[0][0]), { name: 'sport', len: 4.1, wid: 1.85, maxSpeed: 40, accel: 14, brake: 30, turnRate: 3.2, color: '#8a1414' });
   car.driver = 'player';
   // on the layer of the path's own road (its ribbon), not whatever overlaps it there
@@ -493,7 +494,7 @@ export async function driveAcross(world, path, speed, opts = {}) {
 // Every water crossing of the major and numbered roads, each carriageway in
 // both directions, driven at 80 km/h. One entry per failed drive.
 export async function driveWaterCrossings(world, speed = 80 / 3.6) {
-  const map = world.map, p = world.player;
+  const map = world.map, p = hoofdspeler(world);
   const keep = { x: p.x, y: p.y, paused: world.uiPaused };
   world.uiPaused = true;
   const out = [];
@@ -591,3 +592,4 @@ export function probeRailLifts(world) {
   });
   return out;
 }
+

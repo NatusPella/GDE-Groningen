@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import { showBanner } from './cinematics.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, setStatMax, MEDALS } from './achievements.js';
 import { showCard } from './hudcards.js';
@@ -23,7 +24,7 @@ let board = null;
 
 // A bell: the tower's own bell sample (sfx layer) at the pitch of this bell.
 function playBell(w, bell, vel = 1) {
-  pushAudioEvent(w, { kind: 'bell_note', x: w.player.x, y: w.player.y, rate: bellHz(bell) / BELL_REF_HZ, gain: vel });
+  pushAudioEvent(w, { kind: 'bell_note', x: hoofdspeler(w).x, y: hoofdspeler(w).y, rate: bellHz(bell) / BELL_REF_HZ, gain: vel });
 }
 
 function say(w, kind, ttl = 0) {
@@ -58,7 +59,7 @@ function end(w, { quit = false } = {}) {
 
 function updateGame(w, dt) {
   const g = game, input = w.input;
-  const p = w.player;
+  const p = hoofdspeler(w);
   p.vx = p.vy = 0; p.speed = 0; p.moving = false;
   if (stopPressed(input)) { end(w, { quit: true }); return; }
   if (g.phase === 'pick') {
@@ -109,7 +110,7 @@ function glyph(ctx) {
 
 function start(w) {
   if (game) return false;
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (p.inVehicle) p.exitVehicle(w.map, w);
   if (!board) board = createBoard('carillon');
   board.show();
@@ -153,3 +154,4 @@ export const CARILLON_GAME = standActivity({
     quit: () => { if (!game) return false; end(w, { quit: true }); return true; },
   }),
 });
+

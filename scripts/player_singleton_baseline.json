@@ -1,7 +1,7 @@
 {
  "version": 1,
  "note": "Aantal directe verwijzingen naar world.player per bestand (#500), inclusief de alias w.player. Alleen omlaag; zie scripts/player_singleton_audit.mjs.",
- "total": 553,
+ "total": 515,
  "files": {
   "game/js/aaien.js": 2,
   "game/js/achievementtracker.js": 1,
@@ -16,8 +16,6 @@
   "game/js/busboard3d.js": 1,
   "game/js/businterieur3d.js": 1,
   "game/js/camerapath.js": 2,
-  "game/js/carbid.js": 2,
-  "game/js/carillon.js": 4,
   "game/js/cashvan.js": 1,
   "game/js/cheats.js": 7,
   "game/js/cityprops.js": 3,
@@ -43,7 +41,6 @@
   "game/js/crime.js": 1,
   "game/js/cutscenehost.js": 2,
   "game/js/dorpsuitjes.js": 5,
-  "game/js/driftzone.js": 6,
   "game/js/drunk.js": 1,
   "game/js/edgeguard.js": 5,
   "game/js/emergency.js": 2,
@@ -65,7 +62,6 @@
   "game/js/gunfx3d.js": 2,
   "game/js/heliflight.js": 1,
   "game/js/hengelanim.js": 1,
-  "game/js/hengelen.js": 2,
   "game/js/horeca.js": 2,
   "game/js/indicators.js": 1,
   "game/js/intromontage.js": 6,
@@ -83,7 +79,6 @@
   "game/js/net/koploos.js": 2,
   "game/js/ommelandfun.js": 1,
   "game/js/ommelandtalk.js": 1,
-  "game/js/padel.js": 4,
   "game/js/pannenkoek.js": 2,
   "game/js/parkedcars.js": 2,
   "game/js/parkeergarage.js": 4,
@@ -96,7 +91,6 @@
   "game/js/phone.js": 4,
   "game/js/pigeonmode.js": 9,
   "game/js/pigeonspots.js": 8,
-  "game/js/pitchputt.js": 2,
   "game/js/placeshot.js": 3,
   "game/js/planeflight.js": 1,
   "game/js/planestage.js": 2,
@@ -111,8 +105,6 @@
   "game/js/reisrit.js": 1,
   "game/js/reklametaxi3d.js": 1,
   "game/js/respawn.js": 3,
-  "game/js/reuzenrad.js": 6,
-  "game/js/ringcheck.js": 5,
   "game/js/ringrace.js": 2,
   "game/js/roadaccess.js": 2,
   "game/js/roadrage.js": 4,
@@ -144,7 +136,6 @@
   "game/js/sidejob_vracht.js": 1,
   "game/js/sidejobkit.js": 1,
   "game/js/signalement.js": 4,
-  "game/js/skatepark.js": 2,
   "game/js/skyprops.js": 4,
   "game/js/sluizen.js": 2,
   "game/js/snackautomaat.js": 3,
@@ -178,7 +169,6 @@
   "game/js/worldends.js": 1,
   "game/js/worldevents.js": 8,
   "game/js/zeeschepen.js": 1,
-  "game/js/zeilvaren.js": 2,
-  "game/js/zwembad.js": 5
+  "game/js/zeilvaren.js": 2
  }
 }

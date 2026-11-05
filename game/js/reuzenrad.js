@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import { kermisOn, kermisWheel, kermisFrame } from './kermis.js';
 import { activityBlock, iconDisc } from './activitykit.js';
 import { easeStep } from './minigamekit.js';
@@ -25,7 +26,7 @@ const { toW, toL } = kermisFrame;
 const LOAD = toW(W.LOAD_AT.u, W.LOAD_AT.v);
 
 function nearLoading(w) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (p.inVehicle || p.swimming || w.pigeonMode || w.heliRun) return false;
   const l = toL(p.x, p.y);
   return W.nearLoading(l.u, l.v);
@@ -46,8 +47,8 @@ function prompt(w) {
 }
 
 function secondary(w) {
-  if (ride || !open(w) || w.player.inVehicle) return [];
-  if (Math.hypot(w.player.x - LOAD.x, w.player.y - LOAD.y) > 60) return [];
+  if (ride || !open(w) || hoofdspeler(w).inVehicle) return [];
+  if (Math.hypot(hoofdspeler(w).x - LOAD.x, hoofdspeler(w).y - LOAD.y) > 60) return [];
   return [{ id: 'hoogvlieger-2', x: LOAD.x, y: LOAD.y, h: 2.4, label: NAME, sub: 'Het reuzenrad · loop naar de instap en druk E', kind: 'place' }];
 }
 
@@ -78,7 +79,7 @@ function end(w, { quit = false } = {}) {
   w.cameraOverride = null;
   document.body.classList.remove('kermis-on');
   if (hud) hud.root.hidden = true;
-  const p = w.player;
+  const p = hoofdspeler(w);
   p.x = LOAD.x; p.y = LOAD.y; p.z = 0; p.angle = kermisFrame.rot + Math.PI / 2;
   p.speed = 0; p.moving = false;
   if (!quit) showCard(w, { kind: 'tip', title: NAME, body: 'Uitgestapt. Wat een uitzicht!' });
@@ -103,7 +104,7 @@ function update(dt, w) {
   }
   if ((g.exitReq || W.rideDone(g.plan, wheel.rot)) && W.mayExit(g.plan, wheel.rot)) { end(w); return; }
   const s = W.seatPose(g.plan.index, wheel.rot);
-  const p = w.player, m = toW(s.u, s.v);
+  const p = hoofdspeler(w), m = toW(s.u, s.v);
   p.x = m.x; p.y = m.y; p.z = 0; p.angle = kermisFrame.rot + g.look.yaw; p.speed = 0; p.moving = false;
   g.seat = s;
 }
@@ -222,3 +223,4 @@ export const HOOGVLIEGER = {
   icon: drawIcon,
   mapSub: (s, w) => (kermisOn(w) ? 'Kermis op de Grote Markt: het rad draait' : "Het reuzenrad van kermisbaas Jan, 's avonds op de kermis"),
 };
+
