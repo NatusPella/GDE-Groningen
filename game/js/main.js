@@ -131,7 +131,7 @@ import { updateStreetSigns } from './streetsigns.js';
 import { updatePhotoMode, wireFotoKey } from './fotomodusui.js';
 import { initPauseMenu, isPauseMenuOpen, openPauseMenu, pauseMenuCover } from './pausemenu.js';
 import { aandeel, tegelFoci, nietBijFoci } from './coopfoci.js';
-import { wantsOpenSamen, takeOpenSamen, samenGate } from './samenpanel.js';
+import { wantsOpenSamen, takeOpenSamen, samenGate, requestOpenSamen } from './samenpanel.js';
 import { maybeOpenOnlineStart } from './onlineconsentui.js';
 import { gateOn, setGate } from './coopgate.js';
 import { updateGastLokaal } from './coopgastlokaal.js';
@@ -204,7 +204,7 @@ import { stapSlaOver } from './simlagen.js';
 import { getSimBridge, setSimCarAttach } from './simbridge.js';
 setSimCarAttach(attachToNearestRoad);
 import { scaledTarget, simLevel, nextSimFrame, farAIDist, skipFar, takeDt, keepVehicle } from './simload.js';
-import { getSettings } from './settings.js';
+import { getSettings, magOnline } from './settings.js';
 import { MODS } from './cheatmods.js';
 import { makeDip, triggerDip, dipScale } from './gamefeel.js';
 import { effectsFor } from './a11ylogic.js';
@@ -563,6 +563,9 @@ async function boot() {
   // like the graphics measurement at the first start.
   if (!(FLAGS.noattract || FLAGS.storytest || FLAGS.stil || FLAGS.trailer || FLAGS.preview || FLAGS.benchmark || FLAGS.perf || FLAGS.spotsonly || FLAGS.autoplay || FLAGS.menu) && !document.hidden) {
     await maybeOpenOnlineStart();
+    // Samen spelen is de default: wie meedoen heeft gekozen, ziet na het starten meteen de
+    // openbare sessielijst (en kan daar alsnog alleen verder).
+    if (magOnline() && !document.hidden) requestOpenSamen({ rol: 'gast', lijst: true });
   }
   markLoad('title');
   // the garages, cafés and shops out in the Ommelanden get their doors from the
@@ -949,6 +952,7 @@ boot().catch((err) => {
   showLoadError(err.message);
   console.error(err);
 });
+
 
 
 

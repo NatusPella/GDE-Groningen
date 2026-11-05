@@ -64,6 +64,8 @@ export function mountOnlineStart(root, { naam = '', onKies = () => {} } = {}) {
     if (b) kies(b.getAttribute('data-keuze') === 'ja');
   });
   root.addEventListener('keydown', (e) => {
+    // Enter in het naamveld is hetzelfde als de eerste knop: Meedoen (samen spelen is de default).
+    if (e && e.key === 'Enter' && e.target && e.target.classList && e.target.classList.contains('os-naam')) { e.preventDefault(); kies(true); return; }
     if (!e || e.key !== 'Tab' || !root.querySelectorAll) return;
     const velden = [...root.querySelectorAll('.os-naam, [data-keuze]')];
     if (!velden.length) return;
@@ -102,3 +104,4 @@ export function maybeOpenOnlineStart(opts = {}) {
   const s = opts.settings || getSettings();
   return moetVragen(s) ? openOnlineStart(opts) : Promise.resolve(null);
 }
+
