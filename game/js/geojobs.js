@@ -64,6 +64,19 @@ function runSync(kind, data, done) {
   done(KERNELS[kind](data).result);
 }
 
+// De antwoorden van de worker worden niet meteen in het frame tot mesh gebouwd: een
+// tiental resultaten in één beeld gaf uitschieters van honderden milliseconden (#553).
+// geoFrame() bouwt er per beeld hooguit een paar milliseconden aan.
+const klaarQueue = [];
+const KLAAR_BUDGET_MS = 2.5;
+function leegKlaar() {
+  const t0 = performance.now();
+  while (klaarQueue.length && performance.now() - t0 < KLAAR_BUDGET_MS) {
+    const q = klaarQueue.shift();
+    try { q.done(q.result); } catch (e) { console.error('geo result', e); }
+  }
+}
+
 const queuedCount = () => queues[0].items.length + queues[1].items.length;
 function noteQueue() {
   geoStats.queued = queuedCount();
@@ -119,7 +132,7 @@ function getWorker(i = 0) {
       // the worker is free again: fill the slot from the queue (this does not
       // eat the frame's allowance: one out, one in keeps the worker busy)
       dispatch(i, Infinity);
-      j.done(result);
+      klaarQueue.push({ done: j.done, result });
     };
     worker.onerror = (e) => { e.preventDefault(); fail(e.message || 'error'); };
   } catch (e) {
@@ -136,6 +149,7 @@ export function geoWorkerActive() {
 // Once per frame from scene3d.js update3D, after the stream focus moved: give
 // each worker a fresh dispatch allowance and hand out what waits, best first.
 export function geoFrame() {
+  leegKlaar();
   for (let i = 0; i < workers.length; i++) {
     if (!workers[i]) continue;
     frameRoom[i] = GEO_DISPATCH_PER_FRAME;
@@ -165,3 +179,4 @@ export function runGeo(kind, data, done = () => {}, near = 0) {
   if (frameRoom[wi] > 0) frameRoom[wi] -= dispatch(wi, frameRoom[wi]);
   else if (open.size === 1 && inFlight[wi] === 0) dispatch(wi, 1);
 }
+
