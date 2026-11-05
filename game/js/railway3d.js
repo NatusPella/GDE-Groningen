@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // 3D railway: track bed (ballast, sleepers, rails) streamed per chunk, level
 // crossings with half barriers and flashing lights, and the trains from
 // railway.js.
@@ -772,7 +773,7 @@ export function buildTrackMeshes(mapRef) {
 // point in a cutscene); viewDist: the draw distance setting in metres.
 export function updateRailway3D(dt, world, focus, viewDist) {
   if (!scene) return;
-  const p = world.player;
+  const p = hoofdspeler(world);
   const f = focus || (p.inVehicle || p);
   const px = f.x, py = f.y;
   if (viewDist) VIEW = railViewDistance(viewDist);
@@ -784,3 +785,4 @@ export function updateRailway3D(dt, world, focus, viewDist) {
   updateCrossings(px, py, night);
   updateTrains(px, py, night, world, dt);
 }
+

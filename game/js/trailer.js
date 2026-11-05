@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { FLAGS } from './devflags.js';
 import { canvasTex as canvasTexture } from './canvastex.js';
@@ -1947,12 +1948,12 @@ function setBlack(r, to, dur) {
 
 // The player as the HUD sees it in a gameplay shot (in, where to put them).
 function hudPlayer(r, v, at = v) {
-  const p = r.w.player;
+  const p = hoofdspeler(r.w);
   p.inVehicle = v || null;
   if (at) { p.x = at.x; p.y = at.y; p.angle = at.angle ?? p.angle; r.w.camYaw = p.angle; }
 }
 function endHudShot(r) {
-  const p = r.w.player, s = r.savedPlayer;
+  const p = hoofdspeler(r.w), s = r.savedPlayer;
   Object.assign(p, s);
   r.w.camYaw = r.savedCamYaw;
   r.w.wanted = 0;
@@ -2206,7 +2207,7 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
     const starts = [];
     let total = 0;
     const r = { w: world, env, mode, cut, durs, beats, shots, starts, idx: -1, state: {}, cars: [], T: 0, pose: null, stats: [], fpsAcc: 0, fpsN: 0, done: false, camIdx: 0, black: { from: 1, to: 1, t0: 0, dur: 0 }, heap: mode === 'benchmark' ? { start: heapMb(), peak: 0, at: 0 } : null };
-    const pl = world.player;
+    const pl = hoofdspeler(world);
     r.savedPlayer = { x: pl.x, y: pl.y, angle: pl.angle, inVehicle: pl.inVehicle || null };
     r.savedCamYaw = world.camYaw;
     r.savedMission = world.mission;
@@ -2568,3 +2569,4 @@ export function showBenchmarkResults(res) {
     window.addEventListener('keydown', onKey, true);
   });
 }
+

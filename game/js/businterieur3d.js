@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // De passagiersruimte van de bus in beeld (#444, #442): stoelen, haltestangen, handrail en reizigers die zitten of staan,
 // door de ramen en de open deuren te zien en bij de binnenin-camera (V). De maten komen uit businterieur.js (met
 // tests). Alleen voor bussen dichtbij gebouwd (LOD, INT_R) en de geometrie is gedeeld: één mesh per busmaat voor de
@@ -99,7 +100,7 @@ export function coopStoelenIn(w, v) {
 }
 
 function updateInterieur(dt, w) {
-  const p = w.player;
+  const p = hoofdspeler(w);
   for (const v of w.vehicles) {
     // de gelede stadsbus en de midibus (buurtbus); een tram heeft zijn eigen wagenindeling
     if (!v.isBus || v.wrecked || !v.model || (v.model.name !== 'bus' && v.model.name !== 'midibus')) continue;
@@ -129,3 +130,4 @@ function updateInterieur(dt, w) {
 }
 
 export const busInterieurKind = { id: 'businterieur', tickPhase: 'world', tick: updateInterieur };
+

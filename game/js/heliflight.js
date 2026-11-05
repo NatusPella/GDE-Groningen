@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // The own helicopter (the Wieken Wubbo from Rotor Roelf on Eelde, shops.js):
 // a Vehicle with v.isHeli, flown with easy arcade controls.
 //
@@ -520,7 +521,7 @@ export function updateHelis(dt, w) {
   }
   const scene = getScene();
   let dustSrc = null, mine = null;
-  const pv = w.player.inVehicle;
+  const pv = hoofdspeler(w).inVehicle;
   for (const v of w.vehicles) {
     if (!v.isHeli) continue;
     if (v !== pv || v.wrecked) {
@@ -649,3 +650,4 @@ if (typeof window !== 'undefined') {
     surface: (x, y, z = 200) => world && surfaceAt(world.map, x, y, z),
   };
 }
+

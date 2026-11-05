@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { applyWetGround, WET_UNIFORMS } from './terrain3d.js';
 import { applyCutMask } from './cutmask3d.js';
@@ -1022,7 +1023,7 @@ function syncTufts(cam, dt) {
 
 function updatePushers(world) {
   const P = tuftUniforms.uGPush.value;
-  const p = world.player;
+  const p = hoofdspeler(world);
   let n = 0;
   const v = p.inVehicle;
   if (v && !v.isBoat) P[n++].set(v.x, v.y, (v.model ? v.model.len : 4) * 0.5 + 0.6, 1);
@@ -1038,7 +1039,7 @@ function updatePushers(world) {
 
 export function updateGrass(dt, world, cam, drawDist) {
   if (!chunks) return;
-  const p = world.streamFocus || world.player;
+  const p = world.streamFocus || hoofdspeler(world);
   syncChunks(p.x, p.y, drawDist);
   syncTufts(cam, dt);
   time = world.time || time + dt;
@@ -1073,3 +1074,4 @@ export function grassFarColor(g) {
 export function grassFarRank(g) {
   return kindOf(g).prio;
 }
+

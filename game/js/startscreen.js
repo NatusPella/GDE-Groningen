@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import { FLAGS, reseedAutoplay } from './devflags.js';
 import { hasSave, readSave, applySave, startNewSlot, getSaveSummary, ensureActiveSlot, ensureLatestSlot } from './savegame.js';
 import { openSaveSlots, isSaveSlotsOpen } from './saveslotsui.js';
@@ -493,7 +494,7 @@ function runMenuScreen(world, { render, relocate, tick, ready }, pending = null)
     let last = performance.now();
 
     const map = world.map;
-    const p = world.player;
+    const p = hoofdspeler(world);
     const home = { x: p.x, y: p.y };
     const homeClock = world.clock;
     const homeWeather = world.weather;
@@ -868,3 +869,4 @@ function runMenuScreen(world, { render, relocate, tick, ready }, pending = null)
     else gateReady.then(openMenu);
   });
 }
+

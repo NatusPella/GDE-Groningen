@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Ships against bridges in the world (#9): the rules are in bridgehit.js.
 // Every frame the heavy boats near a shut bridge are checked at the bow; a
 // hit damages the deck record (kept per road, this session only), dents the
@@ -63,7 +64,7 @@ export function updateBridgeHits(dt, world) {
   let any = false;
   for (const e of decks.values()) { if (e.d.level || e.d.cool) { H.stepDeckDamage(e.d, dt); any = true; } }
   if (any) syncBarriers();
-  const map = world.map, p = world.player;
+  const map = world.map, p = hoofdspeler(world);
   for (const v of world.vehicles || []) {
     if (!v.isBoat || v.wrecked || v.sinking || !v.model) continue;
     if (p && Math.hypot(v.x - p.x, v.y - p.y) > REACH + (v.model.len || 0)) continue;
@@ -104,7 +105,7 @@ export function updateBridgeHits(dt, world) {
 // nearest fixed bridge, on the water side, heading for the middle at 5 m/s.
 // Returns the bridge name, or null when nothing is near.
 export function startBridgeCrashDemo(world) {
-  const map = world.map, p = world.player;
+  const map = world.map, p = hoofdspeler(world);
   if (!map || !p || !map.roadsNear) return null;
   let bestR = null, bd = Infinity;
   for (const r of map.roadsNear(p.x, p.y, 300)) {
@@ -140,3 +141,4 @@ export function stepBridgeCrashDemo(dt, world) {
     v.applyControls(dt, 1, 0, false); // full ahead, straight
   }
 }
+

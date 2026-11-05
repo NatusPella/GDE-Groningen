@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Bijbaantje: Grunn Taxi. Klanten ophalen en heel (en een beetje op tijd)
 // afzetten. Studenten na het stappen, toeristen, een Ommelander, een oma.
 
@@ -162,7 +163,7 @@ export default {
 
   update(dt, c) {
     const { world } = c;
-    const d = c.data, p = world.player, v = c.vehicle;
+    const d = c.data, p = hoofdspeler(world), v = c.vehicle;
     decorateVehicle(v, 'sign', roofSign);
     const inTaxi = p.inVehicle === v;
     const speed = vehicleSpeed(v);
@@ -260,3 +261,4 @@ export default {
     if (d.ped) freePed(d.ped);
   },
 };
+

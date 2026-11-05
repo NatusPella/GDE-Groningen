@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Bijbaantje: vrachtwagenchauffeur voor "Hunze Vrachtvervoer". Eerst achteruit
 // onder een oplegger koppelen, dan laden, de lading rustig naar de klant brengen en
 // daar lossen: geen inklappers, geen harde klappen. De scharnierlogica staat in
@@ -211,7 +212,7 @@ export default {
 
   update(dt, c) {
     const { world } = c;
-    const d = c.data, v = c.vehicle, p = world.player, tr = d.tr;
+    const d = c.data, v = c.vehicle, p = hoofdspeler(world), tr = d.tr;
     if (!tr) return;
     if (d.phase === 'hook') {
       poseTrailer(tr, v);
@@ -324,3 +325,4 @@ export default {
     clearTrailer(c);
   },
 };
+

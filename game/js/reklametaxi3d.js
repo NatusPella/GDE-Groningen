@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // De reclametaxi (#404), de wereldkant: de pure regels staan in reklametaxi.js. Hier hoort het bij een taxi uit het
 // verkeer: een dakbord met lopende tekstband, het chiptune-deuntje op de plek van de taxi (audio.js: afstandsdemping
 // en Doppler), de megafoon als tekstballon met een kraakje, en een regel in de geluidsondertitels. Hooguit één taxi
@@ -88,7 +89,7 @@ function tick(dt, w) {
     window.__reklametaxi = { nu: () => { st.volgende = 0; }, staat: () => ({ taxi: st.taxi ? st.taxi.id : null, bord: !!bord, noten, kreten, songT: st.songT }) };
   }
   if (w.paused || w.pigeonMode || dt <= 0) return;
-  const speler = w.player;
+  const speler = hoofdspeler(w);
   const ev = stapReklame(st, dt, w.time, { voertuigen: w.vehicles, speler, mag: !isCinematicActive() });
   for (const e of ev) {
     if (e.type === 'slogan') omroep(w, e.taxi, e.tekst);
@@ -119,3 +120,4 @@ function tick(dt, w) {
 }
 
 export const reklameTaxiKind = { id: 'reklametaxi', tickPhase: 'world', tick };
+

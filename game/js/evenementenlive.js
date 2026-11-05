@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Evenementen in de wereld (#203): de agenda van evenementen.js aan de spelwereld gehangen.
 // Per ~1,5 s: wat hier te doen is (melding, eenmaal per evenement, onthouden onder
 // gde-evenementen-v1), wat het geluid van het evenement is (world.eventSound, gelezen door
@@ -92,12 +93,12 @@ let seen = null;
 const told = new Set();
 
 export function updateEvenementen(dt, world, n) {
-  if (!world || !world.player || !world.map) return;
+  if (!world || !hoofdspeler(world) || !world.map) return;
   timer -= dt;
   if (timer > 0) return;
   timer = TICK_S;
   const hour = ((world.clock % 24) + 24) % 24;
-  const p = world.player;
+  const p = hoofdspeler(world);
   const snd = soundAt(p.x, p.y, n, hour);
   world.eventSound = snd && !world.paused ? snd : null;
   world.eventsNow = activeEvents(n, hour);
@@ -120,3 +121,4 @@ export function updateEvenementen(dt, world, n) {
 }
 
 export { centreOf };
+

@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Turn signals and hazard lights. The player taps [ or ] (D-pad left/right) for
 // a turn signal and P (D-pad up) for the hazards; a signal switches itself off
 // after the turn. Other cars blink for a bend or a turn at a junction (read
@@ -66,7 +67,7 @@ function tickAiIndicator(v, dt) {
 }
 
 export function updateIndicators(dt, world) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   const pv = p && p.inVehicle;
   const input = world.input;
   if (pv && pv.driver === 'player' && canBlink(pv)) {
@@ -82,4 +83,5 @@ export function updateIndicators(dt, world) {
     tickAiIndicator(v, dt);
   }
 }
+
 

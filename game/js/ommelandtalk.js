@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import { lineVoiceFor } from './linevoice.js';
 import { playLineVoice } from './audio.js';
 import { DUO } from './ommelandlines.js';
@@ -14,7 +15,7 @@ const pending = [];
 const nameOf = (c) => (c === 'anita' ? 'Anita' : 'Tammo');
 
 export function duoSpeaker(w) {
-  const c = w.companion, p = w.player;
+  const c = w.companion, p = hoofdspeler(w);
   if (c && c.state !== 'dead' && Math.hypot(c.x - p.x, c.y - p.y) < 25) return { name: nameOf(c.character), follow: c.inVehicle || c };
   return { name: nameOf(p.character), follow: p.inVehicle || p };
 }
@@ -45,3 +46,4 @@ export function updateTalk(w) {
     if (w.time > q.until || playLineVoice(q.src, q.dur, 'react')) pending.splice(i, 1);
   }
 }
+

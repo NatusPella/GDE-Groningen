@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk, swimPose, PERSON_RIG } from './models3d_people.js';
@@ -657,7 +658,7 @@ export function debugVault(opts = {}) {
   const w = world || (window.__debug && window.__debug.world);
   if (!w) return null;
   world = w;
-  const p = w.player;
+  const p = hoofdspeler(w);
   const spot = findVaultSpot(w.map, p.x, p.y, opts.radius || 90);
   if (!spot) { w.addMessage('Geen sloot of gracht in de buurt om over te fierljeppen', 3); return null; }
   const npc = { x: spot.from.x - (spot.to.x - spot.from.x) * 0.9, y: spot.from.y - (spot.to.y - spot.from.y) * 0.9, angle: 0, appearance: JELLE_LOOK };
@@ -667,3 +668,4 @@ export function debugVault(opts = {}) {
 }
 
 if (typeof window !== 'undefined') window.__fierljep = { poleVault, findVaultSpot, debugVault, JELLE_LOOK, vaults };
+

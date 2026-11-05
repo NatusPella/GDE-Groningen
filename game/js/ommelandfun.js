@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import { updateEdgeGuard } from './edgeguard.js';
 import { ensureWorldEnds, updateWorldEnds, worldEndSolids, getWorldEndSpots, worldEndDebug, worldEndCount } from './worldends.js';
 import { setExtraEggs } from './furniture.js';
@@ -43,7 +44,7 @@ export function initOmmelandFun(w) {
       towns: () => townDebug(), villages: () => villageDebug(), use: (name, role) => villageUse(name, role),
       koe: () => { const s = getKoeSites(world.map); return s ? { farm: [Math.round(s.farm.x), Math.round(s.farm.y)], hide: [Math.round(s.hide.x), Math.round(s.hide.y)], dist: Math.round(s.dist) } : null; },
       koeCow: (x, y) => koeCowTo(x, y),
-      go: (x, y) => { const p = world.player; if (p.inVehicle) p.exitVehicle(world.map, world); p.x = x; p.y = y; return true; },
+      go: (x, y) => { const p = hoofdspeler(world); if (p.inVehicle) p.exitVehicle(world.map, world); p.x = x; p.y = y; return true; },
     };
   }
 }
@@ -92,3 +93,4 @@ export function getOmmelandSpots(w = world) {
   if (k) out.push({ kind: 'koe', id: 'schuur', x: k.hide.x, y: k.hide.y });
   return out;
 }
+

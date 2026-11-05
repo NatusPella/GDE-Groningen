@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // The HUD's attention budget, in one place: how important each kind of
 // interruption is and how often the game may interrupt the player with
 // something that isn't the story. cinematics.js asks before a non-story
@@ -29,7 +30,7 @@ function busy(w) {
 // May a cinematic moment of `kind` play now? Doesn't book it (noteMoment does).
 export function mayInterrupt(kind, w) {
   if (!MOMENTS[kind]) return true;
-  const v = w && w.player && w.player.inVehicle;
+  const v = w && hoofdspeler(w) && hoofdspeler(w).inVehicle;
   return mayShow('moment', {
     kind,
     now: clock(),
@@ -66,3 +67,4 @@ export function mayVoiceText(kind) {
 export function noteVoiceText(kind) { voicedAt[kind] = clock(); }
 
 export const attentionState = () => ({ ...last, groups: { ...last.groups }, now: clock() });
+

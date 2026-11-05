@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Samen spelen (#291): wat een gast zelf op zijn eigen scherm doet terwijl de wereld van de host via het net binnenkomt.
 // updateGameplay (main.js) draait voor een gast de wereld niet; alleen deze interacties lopen lokaal, met zijn eigen geld
 // en spullen (winkels voor spullen voor jezelf, de muurkroket, horeca) en een paar losse activiteiten (hengelen, boeren, pannenkoeken
@@ -50,7 +51,7 @@ export function updateGastLokaal(world, dt = 1 / 60) {
   // de muis draait de camera (player.js doet dat niet voor een gast, #388); niet tijdens een filmpje met een eigen camera
   if (input.lookActive && input.lookActive() && !world.cameraOverride && input.mouse) {
     const scoped = world.scoped ? 0.3 : 1;
-    world.camYaw = gastKijkHoek(world.camYaw ?? (world.player && world.player.angle), input.mouse.dx, getSettings().mouseSensitivity * scoped);
+    world.camYaw = gastKijkHoek(world.camYaw ?? (hoofdspeler(world) && hoofdspeler(world).angle), input.mouse.dx, getSettings().mouseSensitivity * scoped);
     const omgekeerd = getSettings().invertY ? -1 : 1; // dezelfde richting als bij de gastheer (scene3d.js)
     gastKijkHoogte(world, input.mouse.dy, getSettings().mouseSensitivity * scoped * omgekeerd); // omhoog en omlaag kijken (#434)
   }
@@ -77,3 +78,4 @@ export function updateGastLokaal(world, dt = 1 / 60) {
   input.consume('f');
   return gastGebruik(world);
 }
+

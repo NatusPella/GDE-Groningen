@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
 import { CEL, celVan, partsToWorld } from './streekplekken.js';
@@ -74,7 +75,7 @@ export function updateStreekplekken3D(world) {
   if (!cellen.size || (tick = (tick + 1) % 20) !== 0) return;
   const scene = getScene();
   if (!scene) return;
-  const p = world.player;
+  const p = hoofdspeler(world);
   const px = p.inVehicle ? p.inVehicle.x : p.x, py = p.inVehicle ? p.inVehicle.y : p.y;
   const dist = (k) => {
     const [i, j] = k.split(',').map(Number);
@@ -96,3 +97,4 @@ export function updateStreekplekken3D(world) {
     break;   // een cel per tik
   }
 }
+

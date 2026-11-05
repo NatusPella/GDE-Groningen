@@ -1,3 +1,4 @@
+import { hoofdspeler } from '../players.js';
 // Linkups (issue #173): which game events trigger which effect of fxbank.js,
 // for the events that carry no audio event of their own. Each rule watches
 // state the game already keeps (bridges, trains, the player) and emits one
@@ -144,7 +145,7 @@ export const LINK_RULES = [
     source: 'player.js: swimming wordt true (de speler valt in het water)',
     init: () => ({ was: null }),
     step(s, world, env, out) {
-      const p = world.player;
+      const p = hoofdspeler(world);
       const now = !!p.swimming;
       if (s.was === false && now) out.push(ev('splash_big', p.x, p.y));
       s.was = now;
@@ -164,3 +165,4 @@ export function createLinkups() {
     },
   };
 }
+

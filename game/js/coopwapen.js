@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Samen spelen (#434): een gast met een wapen. Het wapen en de patronen zijn die van zijn eigen opgeslagen spel (world.weapon en world.ammo
 // van de gast; coopsave.js GAST_VELDEN). De gast kiest zijn wapen zelf (1 tot 4, muiswiel) en houdt de aanvalsknop vast: dat gaat als een
 // knop (KNOP_AANVAL) in zijn invoer naar wie het spel opende. Die rekent de slag of het schot uit vanuit het lichaam van de gast (combat.js
@@ -74,7 +75,7 @@ function wiel(world, st, dt, inp) {
 const gastHaken = { effect: null, geluid: null };
 export function zetGastWapenHaken(h) { Object.assign(gastHaken, h || {}); }
 export function gastWapenTik(world, dt, meld) {
-  const inp = world.input, p = world.player;
+  const inp = world.input, p = hoofdspeler(world);
   if (!world.ammo) world.ammo = {};
   const st = world.coopGastWapen || (world.coopGastWapen = { klok: { timer: 0 }, verstuurd: null, sinds: 0, melding: 0 });
   if (!heeftWapen(world, world.weapon)) world.weapon = 'fists';
@@ -178,3 +179,4 @@ export function wapenTick(world, dt) {
   }
   return n;
 }
+

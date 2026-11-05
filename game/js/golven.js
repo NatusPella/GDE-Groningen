@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Golven op zee en het kielzog dat kleine vaartuigen laat wiebelen (#417). Het water zelf (water3d.js) kent al een deining die naar de
 // oever toe uitdooft; hier komt erbij: (1) op open water, 12 tot 24 m van de kust, wordt de deining hoger met de windsterkte
 // (seaExtra, de shader en de CPU-hoogtevraag waterSwellAt delen die factor), en (2) een snelle boot trekt een V-vormig kielzog
@@ -99,7 +100,7 @@ function boten(world, speler) {
 
 // De speler valt van zijn plank: het vaartuig blijft drijven, de speler ligt nat in het water (E klimt terug).
 export function valInHetWater(world, v) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   v.speed = 0; v.throttle = 0;
   v._golf.risico = 0; v._golf.genade = (world.time || 0) + GENADE_S;
   if (typeof p.ejectIntoWater === 'function') p.ejectIntoWater(v, world);
@@ -111,7 +112,7 @@ export function valInHetWater(world, v) {
 // Eén stap per frame. Telt het kielzog en de zeegang op bij kleine vaartuigen in de buurt, duwt lege wiegende vaartuigen weg en
 // laat de speler omvallen als de golf te hoog blijft. Alleen binnen de reikwijdte, met een vaste bovengrens aan doelen.
 export function updateGolven(world, dt) {
-  const speler = world.player;
+  const speler = hoofdspeler(world);
   if (!speler || !world.vehicles) { setKielzogVeld(null); return; }
   if (!(dt > 0)) return;
   const tijd = world.time || 0;
@@ -146,3 +147,4 @@ export function updateGolven(world, dt) {
     if (g.risico >= 1) valInHetWater(world, v);
   }
 }
+

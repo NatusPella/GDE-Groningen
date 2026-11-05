@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Zeeschepen op de Waddenzee, de Eems en de Dollard (#398): af en toe vaart er een vrachtschip, een containerschip, een tanker of
 // een sleper voorbij, met verschillende kleuren. Eén schip is één samengevoegde geometrie (zeeschip3d.js), dus dat kost per schip
 // één tekenaanroep; er varen er hooguit ZEE_MAX tegelijk rond de speler en wie ver weg raakt wordt opgeruimd. Puur deel: de keuze van
@@ -65,7 +66,7 @@ export function waterPast(model, poly) {
 // pas op als het ver weg én uit het zicht is. De kegel voor de boot volgt die van vehicle.js
 // (spawnWouldPop): wat recht voor je vaart zie je aankomen.
 export function inZicht(world, x, y) {
-  const p = world && world.player;
+  const p = world && hoofdspeler(world);
   if (!p) return false;
   const pv = p.inVehicle;
   if (pv) {
@@ -127,3 +128,4 @@ export function manageSeaShips(world, dt, env, rng = Math.random) {
 }
 
 export function resetZeeschepen() { timer = 0; }
+

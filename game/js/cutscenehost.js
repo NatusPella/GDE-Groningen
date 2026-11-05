@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, seatPose, seatedY, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
@@ -115,7 +116,7 @@ function buildScriptRun(def, scene, anchor, env = null, w = null) {
   // metgezel. Een tweede kopie van een rol wordt niet getekend, en elke rol krijgt één
   // acteurstaat in de animatielaag (actoranim.js), zodat de metgezel niet meebeweegt.
   const eigen = w && w.coopCutRol && w.coopCutRol.defId === def.id ? w.coopCutRol : null;
-  const rolScene = eigen || cutsceneScene({}, (w && w.player) || {});
+  const rolScene = eigen || cutsceneScene({}, (w && hoofdspeler(w)) || {});
   const verdeling = rolScene.verdeling || cutsceneVerdeling(def, rolScene);
   const verberg = new Set(verdeling.verberg);
   const rolVan = (id) => { const r = verdeling.perActeur[id]; return r === 'speler' || r === 'metgezel' ? acteurRol(id, (def.actors || {})[id]) : null; };
@@ -267,7 +268,7 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
   if (current) return false;
   const root = getScene();
   if (!root) return false;
-  const p = w.player;
+  const p = hoofdspeler(w);
   const a = anchor || { x: p.x, y: p.y, facing: p.angle || 0, z: 0 };
   let scene;
   try {
@@ -334,3 +335,4 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
   if (ok && !replay && w.coopNet && w.coopNet.role === 'host') cutHostStart(w, cutId, cutPakket({ def, lines, duration, anchor: at, cine }));
   return ok;
 }
+

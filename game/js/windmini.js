@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // De windaanwijzer op de minikaart (#399): zolang je zeilt staat er een windpijl met streepjes in de hoek van de
 // minikaart. Puur (geen DOM, geen THREE): hud_panel.js tekent hem, scripts/windmini_test.mjs test de regels.
 // De wind komt uit dezelfde bron als de zeilcode, dus de pijl klopt met wat de boot voelt:
@@ -7,7 +8,7 @@ import { WIND, WEER_WIND_SNELHEID, weerWindVan, wrap } from './zeilrules.js';
 
 // { van, snelheid } (van = waar de wind vandaan komt, radialen zoals de wereld) of null als je niet zeilt
 export function miniWind(world) {
-  const p = world && world.player;
+  const p = world && hoofdspeler(world);
   const v = p && p.inVehicle;
   if (!v || !v.isBoat || v.driver !== 'player') return null;
   if (v.model && v.model.zeil) {
@@ -29,3 +30,4 @@ export function windSterkte(snelheid) {
 export const windPijlHoek = (van, mapRotation) => wrap(van + Math.PI + mapRotation);
 
 export const windTekst = (snelheid) => `${Math.round(snelheid)} m/s`;
+

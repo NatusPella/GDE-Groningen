@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Zeilvaren in de open wereld (#197): een boot met model.zeil (zeilboot) vaart op de wind uit
 // zeilrules.js. De wind komt uit de dag en het uur (geen klok van buiten), Q haalt het zeil aan,
 // Z viert het. De boot laat de gewone vaarlaag het werk doen (v.sailTop is de snelheid die de
@@ -87,7 +88,7 @@ let textT = 0;
 
 // De boten die gasten zelf besturen (#436): die liggen in de simulatie van wie het spel opende, dus de
 // zeil- en roeiregels moeten daar lopen, met de invoer van de gast. Tot nu toe keek updateZeilvaren alleen
-// naar world.player.inVehicle: een gast kon een zeilboot wel sturen, maar niet op de wind varen (hij ging op
+// naar hoofdspeler(world).inVehicle: een gast kon een zeilboot wel sturen, maar niet op de wind varen (hij ging op
 // de motortop van het model) en een roeiboot niet roeien. Geeft [{ v, slot, invoer }].
 export function gastBoten(world) {
   const rijders = world && world.coopRijders, uit = [];
@@ -108,7 +109,7 @@ const vooruit = (invoer) => !!(invoer && (invoer.isDown
   : Number(invoer.my) < -0.35));
 
 export function updateZeilvaren(dt, world, dag) {
-  const eigen = world && world.player && world.player.inVehicle;
+  const eigen = world && hoofdspeler(world) && hoofdspeler(world).inVehicle;
   const boot = eigen && eigen.isBoat ? eigen : null;
   let gedaan = false;
   if (boot) gedaan = stapBoot(dt, world, dag, boot, world && world.input, null) || gedaan;
@@ -186,3 +187,4 @@ export function vaarStap(d, v, { dt = 0 } = {}) {
 export const vaarVoortgang = dienstVoortgang;
 export const vaarStand = dienstStand;
 export function vaarUitslag(d) { return dienstUitslag(d); }
+

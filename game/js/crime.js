@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Small offences build up "heat" before they cost a wanted star: one bump
 // into a patrol car or one pedestrian knocked over out of sight of the
 // police is forgiven (a witness may still phone it in, pedestrians.js).
@@ -19,7 +20,7 @@ let heat = 0;
 let heatAt = 0;
 
 function policeSees(world, slot = 0) {
-  const p = (slot > 0 && plekVan(world, slot)) || world.player;
+  const p = (slot > 0 && plekVan(world, slot)) || hoofdspeler(world);
   for (const v of world.vehicles) {
     if (!v.isPolice || v.hijacked || v.wrecked || v.disabled || v.driver === 'player') continue;
     if (v._sees && Math.hypot(v.x - p.x, v.y - p.y) < 55) return true;
@@ -66,4 +67,5 @@ export function reportCrime(world, kind, opts = {}) {
   }
   return serious;
 }
+
 

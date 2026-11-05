@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // De naam van de winkel op de gevel (issue #156, 3D-kant): voor panden binnen bereik met een
 // echte winkel erin (b.shopFront.name, gezet door models3d_buildings.js) hangt een bord in de
 // bovenband van de pui. Het vlak en de tekst komen uit shopsign.js (met test); dit bestand is
@@ -66,7 +67,7 @@ function tick(dt, w) {
   if (acc < 0.5) return;
   acc = 0;
   const scene = getScene();
-  const p = w.player;
+  const p = hoofdspeler(w);
   if (!scene || !p || !w.map || !w.map.buildingsNear) return;
   for (const [b, s] of signs) {
     const cx = (b.bounds[0] + b.bounds[2]) / 2, cy = (b.bounds[1] + b.bounds[3]) / 2;
@@ -85,3 +86,4 @@ function tick(dt, w) {
 
 export const shopSignKind = { id: 'shopsigns', tickPhase: 'world', tick };
 export const shopSignCount = () => signs.size;
+

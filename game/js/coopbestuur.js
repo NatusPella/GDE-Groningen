@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Samen spelen (#434): een gast bestuurt zelf een voertuig. Het voertuig blijft in de simulatie van wie het spel opende (de host); de
 // gast stuurt zijn invoer (stick, rennen, handrem: dezelfde bytes als bij het stuur van de bijrijder, coopgast.js wielInvoer) en de host
 // laat het voertuig rijden alsof een speler erin zit (driver 'player', dus geen verkeersAI). Elke gast is sinds #502 een eigen
@@ -302,7 +303,7 @@ export function bestuurTick(world, dt) {
     }
     // de wereld rond het voertuig moet geladen zijn; anders staat het stil en zet de host de gast na een paar seconden bij de groep
     const los = haken.los ? haken.los(world, +slot, v.x, v.y) : { ok: true, wacht: false };
-    const p = world.player, d = p ? Math.hypot(v.x - p.x, v.y - p.y) : 0;
+    const p = hoofdspeler(world), d = p ? Math.hypot(v.x - p.x, v.y - p.y) : 0;
     const geblokkeerd = !los.ok && d > 110 || los.wacht;
     r.buiten = geblokkeerd ? r.buiten + dt : 0;
     if (r.buiten >= TE_VER_S) {
@@ -330,3 +331,4 @@ export function bestuurdersLijst(world) {
   }
   return uit;
 }
+

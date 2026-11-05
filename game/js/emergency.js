@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Lights and sirens. Ambulances in the traffic get a call now and then and
 // race to it with the siren on; a police car or ambulance the player drives
 // can switch its lights and siren with L. Traffic ahead of any running siren
@@ -58,7 +59,7 @@ function hospitalAmbulances(world, dt) {
   hospitalTimer -= dt;
   if (hospitalTimer > 0) return;
   hospitalTimer = 3;
-  const p = world.player;
+  const p = hoofdspeler(world);
   const h = ambulanceBase(world, p.x, p.y);
   if (!h) return;
   if (world.vehicles.some((v) => v.hospitalCar)) return;
@@ -83,7 +84,7 @@ function hospitalAmbulances(world, dt) {
 
 export function updateEmergency(dt, world) {
   hospitalAmbulances(world, dt);
-  const p = world.player;
+  const p = hoofdspeler(world);
   const pv = p.inVehicle;
   const input = world.input;
   if (input && input.wasPressed('l') && pv && pv.driver === 'player') {
@@ -100,3 +101,4 @@ export function updateEmergency(dt, world) {
     } else if (v.road && Math.random() < CALL_CHANCE_PER_S * dt) startCall(v, world);
   }
 }
+

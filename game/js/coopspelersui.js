@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Samen spelen (#95, #377, #434): de spelerslijst in beeld. Twee plekken, nooit permanent: een compacte lijst links in het scherm zolang je
 // Tab ingedrukt houdt, en het tabblad Spelers onder Spel > Samen spelen (alleen in een sessie) met dezelfde gegevens en de roepjes.
 // In het pauzemenu stel je ook je online-avatar in (#455): de naam en kleur die anderen van je zien.
@@ -169,7 +170,7 @@ export function renderSpelersPanel(root, world, sluit = () => {}, opts = {}) {
       const kk = e.target.closest('[data-kleur]');
       if (kk) { profielFout = ''; setSetting('onlineKleur', profielKleur(kk.getAttribute('data-kleur'))); root.dataset.klaar = ''; teken(); return; }
       const p = e.target.closest('[data-ping]');
-      if (p && world.player) { if (pingGebaar(world, p.getAttribute('data-ping'))) sluit(); return; }
+      if (p && hoofdspeler(world)) { if (pingGebaar(world, p.getAttribute('data-ping'))) sluit(); return; }
       const ps = e.target.closest('[data-passief]');
       if (ps) { zetPassiefGebaar(world, ps.getAttribute('data-passief') === '1'); root.dataset.klaar = ''; teken(); return; } // omschakelen met afkoeling; de gast ziet de stand zodra de host antwoordt (#447)
       const k = e.target.closest('[data-eruit]');
@@ -193,3 +194,4 @@ export function renderSpelersPanel(root, world, sluit = () => {}, opts = {}) {
   if (timer) clearInterval(timer);
   timer = setInterval(teken, 500);
 }
+

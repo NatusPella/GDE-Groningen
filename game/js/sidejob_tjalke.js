@@ -1,3 +1,4 @@
+import { hoofdspeler } from './players.js';
 // Zijmissie "De rit naar Tjalke" (#411): één keer, van een café in de stad over de A7 naar het westen, met een paar biertjes op (world.drunk, drunk.js: een lichte
 // zwaai en zacht dubbelbeeld, nooit onbespeelbaar), door een met pionnen afgezette rijstrook (pionnen3d.js), met de politie erachter (het bestaande wanted-systeem:
 // sterren zetten, afschudden) tot de wereld ophoudt aan de provinciegrens. De regels staan in drachtenrit.js; deze adapter zet ze om in de wereld en betaalt via
@@ -59,7 +60,7 @@ export default {
   },
 
   update(dt, c) {
-    const w = c.world, p = w.player, d = c.data, v = c.vehicle;
+    const w = c.world, p = hoofdspeler(w), d = c.data, v = c.vehicle;
     if (!d.s || dt <= 0) return;
     // de zwaai blijft tot de aankomst (drunk.js laat hem anders na een paar minuten uitslijten); een rit van een kwartier mag niet nuchter eindigen
     if (!d.s.klaar) {
@@ -113,7 +114,7 @@ export default {
   },
 
   view(c) {
-    const d = c.data, p = c.world.player;
+    const d = c.data, p = hoofdspeler(c.world);
     if (!d.s) return {};
     const rest = dist(p.x, p.y, RIT.einde.x, RIT.einde.y);
     const labels = {
@@ -137,3 +138,4 @@ export default {
     if (c.data.s && !c.data.s.klaar) c.msg(TEKST.weg, 3);
   },
 };
+

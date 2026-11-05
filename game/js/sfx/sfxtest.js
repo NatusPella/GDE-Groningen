@@ -1,3 +1,4 @@
+import { hoofdspeler } from '../players.js';
 // ?sfxtest (loaded by main.js only then): a panel of every sound effect with a
 // play button and a distance slider. It pushes the same audio events the game
 // does (pedestrians.js pushAudioEvent), so what you hear is the real path,
@@ -35,8 +36,9 @@ ${groups.map(([g, list]) => `<h3>${esc(g)}</h3>${list.map((e) => `<button data-i
     const b = e.target.closest('button[data-id]');
     const entry = b && byId.get(b.dataset.id);
     if (!entry) return;
-    const p = world.player;
+    const p = hoofdspeler(world);
     pushAudioEvent(world, { ...entry.ev, x: p.x + Math.cos(angle) * dist, y: p.y + Math.sin(angle) * dist });
   });
   window.addEventListener('keydown', (e) => { if (e.key === 'F8') { e.preventDefault(); root.classList.toggle('hidden'); } });
 }
+
