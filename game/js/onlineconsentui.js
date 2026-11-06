@@ -64,8 +64,15 @@ export function mountOnlineStart(root, { naam = '', onKies = () => {} } = {}) {
     if (b) kies(b.getAttribute('data-keuze') === 'ja');
   });
   root.addEventListener('keydown', (e) => {
-    // Enter in het naamveld is hetzelfde als de eerste knop: Meedoen (samen spelen is de default).
-    if (e && e.key === 'Enter' && e.target && e.target.classList && e.target.classList.contains('os-naam')) { e.preventDefault(); kies(true); return; }
+    // Enter in het naamveld is géén toestemming (#556): het zet de focus op "Meedoen", zodat de
+    // speler de keuze met een tweede, bewuste Enter of klik maakt. Typen + Enter kan zo nooit
+    // ongemerkt een openbare sessie of een ja-keuze opleveren.
+    if (e && e.key === 'Enter' && e.target && e.target.classList && e.target.classList.contains('os-naam')) {
+      e.preventDefault();
+      const ja = root.querySelector ? root.querySelector('[data-keuze="ja"]') : null;
+      if (ja && typeof ja.focus === 'function') ja.focus();
+      return;
+    }
     if (!e || e.key !== 'Tab' || !root.querySelectorAll) return;
     const velden = [...root.querySelectorAll('.os-naam, [data-keuze]')];
     if (!velden.length) return;
