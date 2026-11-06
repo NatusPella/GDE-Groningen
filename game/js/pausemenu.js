@@ -19,7 +19,7 @@ import { skipCurrent, getStoryJournal, markCluesSeen } from './story.js';
 import { saveGame, hasSave, loadLatestSave, startNewSlot, coopSessieLoopt, COOP_NIEUW_TEKST, getSaveSummary, getPlaySeconds, loadSlot, currentSlot, preventCloseSave } from './savegame.js';
 import { openSaveSlots, isSaveSlotsOpen } from './saveslotsui.js';
 import { stopCoopNet } from './coopnet.js';
-import { coopLoadTekst, COOP_LOAD_FAIL, runCoopLoad } from './cooploadrules.js';
+import { coopLoadTekst, COOP_LOAD_FAIL, runCoopLoad, runCoopStop } from './cooploadrules.js';
 import { getClockText } from './clocktext.js';
 import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
 import { VERSION } from './version.js';
@@ -1279,9 +1279,14 @@ function runAction(a) {
     // Alleen een lopend spel bewaart: het menu boven het hoofdscherm (prestart)
     // draait in de menuscène en mag de laatste savegame niet overschrijven (#435).
     if (started() && !prestart && world && world.pigeonMode && world.pigeonActions) world.pigeonActions.stop();
-    if (started() && !prestart && world) saveGame(world);
-    if (a === 'exit' && DESKTOP) DESKTOP.quit();
-    else location.reload();
+    // #492: eerst de sessie netjes beëindigen (de anderen horen 'spel gestopt' in plaats van een
+    // weggevallen verbinding), dan bewaren en pas dan herladen of sluiten. Een solo-sessie van één
+    // gaat via stopSoloHost, zodat die vlag ook teruggaat; de volgorde staat in cooploadrules.js.
+    runCoopStop(world, {
+      stop: (w) => { if (isSoloHost(w)) stopSoloHost(w); else stopCoopNet(w); },
+      save: () => { if (started() && !prestart && world) saveGame(world); },
+      go: () => { if (a === 'exit' && DESKTOP) DESKTOP.quit(); else location.reload(); },
+    });
   } else if (a === 'pigeon-stop') {
     if (world.pigeonActions && world.pigeonActions.stop()) setOpen(false);
   } else if (a === 'job-stop') {
