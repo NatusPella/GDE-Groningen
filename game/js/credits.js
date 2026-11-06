@@ -1,10 +1,10 @@
-// Third-party credits and the parody disclaimer, shown in the start screen's
-// "Over" panel and after the ending. NOTICE.md in the repo root is the full
-// list; keep the two in line.
-
+// Third-party credits and the parody disclaimer, shown in the pause menu's Over section, the
+// old start screen (QA/trailer) and after the ending. NOTICE.md in the repo root is the full
+// list; keep the two in line. The Over screen folds credits and licences separately (#612), so
+// the two halves are also available on their own; ABOUT_HTML is both together.
 import { GAME_TITLE, SERIES, SERIES_MEANING } from './logo.js';
 
-// The one disclaimer (#72); README.md, NOTICE.md and docs/PRIVACY-EN-CREDITS.md carry the same text.
+// The one disclaimer (#72); README.md, NOTICE.md and docs/PRIVACY-CREDITS.md carry the same text.
 // This is the only place in the game that names the publisher (a required statement), so the end credits only say 'alles verzonnen'.
 const DISCLAIMER = `${SERIES} is een gratis fanparodie, niet gelieerd aan, gesponsord door of goedgekeurd door een gameontwikkelaar of -uitgever, in het bijzonder niet door Rockstar Games of Take-Two Interactive, de uitgever van GTA. Namen, personages, bedrijven, merken en gebeurtenissen zijn verzonnen; gelijkenis met bestaande personen of bedrijven berust op toeval.`;
 
@@ -27,7 +27,7 @@ export const THIRD_PARTY_CARDS = [
   ['Fanparodie', 'alles verzonnen'],
 ];
 
-export const ABOUT_HTML = `
+export const CREDITS_HTML = `
 <h3>${GAME_TITLE}</h3>
 <p>Een gratis, niet-commercieel fanproject uit Groningen. ${SERIES} staat voor ${SERIES_MEANING}. ${DISCLAIMER}</p>
 <h4>Kaart</h4>
@@ -44,9 +44,15 @@ export const ABOUT_HTML = `
 <li>Big Shoulders Display (het logo), © 2019 The Big Shoulders Project Authors, SIL Open Font License 1.1</li>
 <li>Desktopversie: Electron en electron-builder (MIT), met Chromium (diverse open-sourcelicenties, zie LICENSES.chromium.html bij de app)</li>
 </ul>
+`;
+
+export const LICENSES_HTML = `
 <h4>Licenties</h4>
 <p>De code is vrije software onder de GPL-3.0 (of later). Stemmen, muziek, verhaal en dialogen vallen onder CC BY-NC-SA 4.0. De naam ${SERIES} en het logo zijn niet vrij te gebruiken. Zie LICENSE, LICENSE-CONTENT.md en NOTICE.md bij de broncode.</p>
 <h4>Privacy</h4>
 <p>Het spel bewaart je voortgang en instellingen alleen op dit apparaat (localStorage). Er gaat niets naar een server: geen account, geen tracking, geen statistieken. Fouten schrijft het spel op in een eigen logboek op dit apparaat (Instellingen › Foutrapport); dat verstuurt niets, je kunt het zelf kopiëren als je een fout wilt melden. Alleen de browserversie haalt bij het laden three.js en de lettertypes op bij jsDelivr en Google Fonts.</p>
 <p>Samen spelen (alleen als je het zelf aanzet) deelt je IP-adres met je medespeler. Met een kamercode gebruikt het spel daarbij openbare servers om elkaar te vinden: een openbare STUN-server en openbare signaleringsservers, waar alleen versleutelde berichten langsgaan. Met een IP-adres verbindt de ander rechtstreeks met jou en opent je router een poort; die sluit weer als je stopt. Je krijgt altijd eerst een melding en je kiest zelf. Er is geen account, geen telemetrie en niets van je voortgang gaat mee.</p>
 `;
+
+// Both halves together: the old start screen's "Over" panel (startscreen.js) still uses this.
+export const ABOUT_HTML = CREDITS_HTML + LICENSES_HTML;
