@@ -219,7 +219,7 @@ the order of who may interrupt is story, then wanted and danger, then money and 
 One card at a time in zone A, one objective line, one phone card with a "+N" counter, at most two key hints, at most six elements besides the minimap, and nothing at all that takes a click.
 During a chase, fight or race only P0 to P2 show; during a call or a subtitle tips and the radio wait. A new element asks `mayShow()` in `hudbus.js` and is listed in `SURFACES` ([docs/KANALEN.md](docs/KANALEN.md)).
 Messages are Dutch sentences of at most 14 words; subtitles at most 18. Subtitles sit at the bottom centre, dim the objective, and a Frisian or Gronings line shows the Dutch under it in italic.
-The boot screen is dark green from the first paint and needs no key; the load screen shows a render of where you are going, the story so far and a real progress bar (details in the component page).
+The boot screen is dark green from the first paint and needs no key; the load screen shows a render of where you are going, the story so far and a real progress bar (details in the component page). Both bars name their steps in words instead of sitting at one percentage (#600).
 
 ## Menus
 
@@ -243,10 +243,11 @@ the mockups' 1920x1080 px and zoomed by `--mz` (`--ui` / 1.2), so it scales with
 **Spel** (tabs Overzicht, Samen spelen, Opslaan & stoppen, Spelen, Camera & richten, Hints & uitleg), **Verhaal** (Opdrachten, Personages, Aanwijzingen, Veroverd), **Loopbanen** (the vakken with their side jobs), **Activiteiten** (Alles, Dichtbij) /
 **Kaart** (full screen, no rail), **Spullen**, **Garage**, **Prestaties**, **Foto's** / **Instellingen** (Beeld, Geluid & ondertitels, Besturing, Interface, Toegankelijkheid, Foutrapport, Cheats), **Cheats** (its own place in the rail since #435).
 **Visboek** and **Boerderij** hang under Loopbanen and **Besturing** (Toetsenbord en muis, Controller, Toetsenoverzicht, Hulp) under Instellingen; each opens as its own screen and goes back to its parent.
+**Over** is not a rail row: it is a row under Instellingen > Interface (#601). The rail rows are 56 px at every window size (the stage is always laid out in 1920x1080 design px, so the rail never shrinks or scrolls on 1280x720 or 1920x1080).
 **Samen spelen** is a tab of Spel with its own two tabs, Samen spelen and Spelers; the players list only exists while you play together (#434).
 Spel > Overzicht is home: the menu opens there, Esc from another section goes back to it, then closes; from M or the phone Esc closes at once. A section that belongs under another goes back to its parent.
 The footer shows two to four hints per section (`HINTS`: keys or controller glyphs, clickable). Before a game has started only Spel, Instellingen and Besturing exist.
-**Q** and **E** switch the section's tabs (Garage and Prestaties switch their own category tabs), and only a screen without any tabs goes to the previous or next section; `[` and `]` (the controller's triggers) switch tabs too. The Q/E row in the Besturing table still promises "vorige of volgende sectie" (#480, [docs/DESIGN-SCHULD.md](docs/DESIGN-SCHULD.md)).
+**Q** and **E** switch the visible tab row of the section; on a screen with a second row (Spel > Samen spelen) that innermost row wins, and on a screen without any tabs they go to the previous or next section. `[` and `]` (the controller's triggers) do exactly the same. The footer hint names the outcome ("tabblad", "spelers-tab", "onderdeel"), and the Besturing table says the same (#601).
 Settings use switches, sliders and previous/value/next pickers; one setting per row with a line of explanation under it, rare options folded behind "Meer opties".
 A section has one focal point, at most 125 words (a choice screen) or 270 (a reference screen), pictures before words. In a session the rule is that the menu pauses only the player who opened it
 (see "Samen spelen in the design"); the code does not fully do that yet, it is in the debt list.
@@ -260,10 +261,10 @@ One icon language on the big map, the minimap and in the world. Every place is a
 The full map is the pause menu's one full-screen section (M opens and closes it). Chrome is the radial dark green with a 2 px green border and Bebas headings, drawn from the `INK` table, not from hexes in the file.
 
 - **Click on a place or an icon** opens a bar with exactly three actions, each with an icon and one line: **Zet waypoint** (a line and the distance), **Reis erheen** (cost and time), **Info**. A waypoint that is already there turns the first one into **Haal weg**;
-  a story place says **Volg het verhaal**. Travel is its own step: **Snel reizen** (costs time and money, the recommended mode is marked) or **Zelf gaan** (sets a waypoint and you drive or walk), never both at once. A first-time explanation of three lines is shown next to the map and stays findable in Besturing > Hulp.
+  a story place says **Volg het verhaal**. Travel is its own step: **Snel reizen** (costs time and money, the recommended mode is marked) or **Zelf gaan** (sets a waypoint and you drive or walk), never both at once. The bar is on the menu set (#602): 56 px rows, 26 px Bebas labels, 18 px explanation, all colours from the tokens. A first-time explanation is shown in the map column under the search field, so it never covers the title, the search field or the zoom buttons, and it stays findable in Besturing > Hulp.
 - **One waypoint at a time**: a line on the map, the distance, a beacon in the world (`worldmarker3d.js`). Clear it by clicking it again, right click, `Del`, or X on a controller. A click within 30 m of it counts as a click on it.
 - **Travel mode** selector in the header, opening on how you travel now; roads you may not use dim.
-- **Legend and layers**: a short list of icon and name in collapsible groups that are also switches, open the first time; the explanation sits in the tooltip, not in the legend. Footer hints at 13 px under the map.
+- **Legend and layers**: a short list of icon and name in collapsible groups that are also switches; the explanation sits in the tooltip, not in the legend. In the pause menu the map stays calm (the #132 choice): no permanent legend and no route bar, and the **Lagen** button top right opens the legend, the first time automatically; Esc closes it again. The footer hints at 13 px under the map.
 - **Controller**: a crosshair in the middle, A sets a goal under it, X clears it, Y goes to yourself; Shift+click moves you (on by default, switch it off in Instellingen > Interface; never during a mission, a cutscene or with police behind you).
 - **Routes** have a colour and a pattern each: story solid yellow, your goal dashed purple, a klus dotted orange, the care route (food, garage) dash-dotted pink (`ROUTE_COLORS`, `ROUTE_DASH`, up to three at once from `routing.js`).
 - A guest can set a waypoint but cannot travel (see Samen spelen).
@@ -276,7 +277,7 @@ The full map is the pause menu's one full-screen section (M opens and closes it)
 - **Lettergrootte:** geen tekst onder 13 px, behalve toetsplaatjes (WASD, LT/RT).
 - **Beeld boven tekst:** een scherm met een lijst van dingen (Garage, Prestaties, Personages, Overzicht) heeft pictogrammen of plaatjes per item; onbekende items zijn één regel, geen muur van vraagtekens.
 - **HUD:** de woordbudgetten van `hudtext.js` (`hud_text_audit`, ratchet 0 boven budget), hooguit zes elementen naast de minimap (hudrules.js) en geen overlappende vlakken (`scripts/ui/overlays2_scenes.js`).
-- Stand 20 oktober (1080p): 21 schermen gemeten, alle binnen de criteria; het drukste keuzescherm is Instellingen › Camera met 123 woorden. Daarna is het pauzemenu herschikt (#430: Spel, Verhaal, Loopbanen, Activiteiten, Instellingen); de meting en de namen hierboven zijn niet opnieuw gedaan.
+- Stand 20 oktober (1080p): 21 schermen gemeten, alle binnen de criteria; het drukste keuzescherm is Instellingen › Camera met 123 woorden. Daarna is het pauzemenu herschikt (#430: Spel, Verhaal, Loopbanen, Activiteiten, Instellingen) en verder opgeruimd (#601: Over uit de rail, "Snel instellen" ingevouwen op Overzicht, Over met twee vouwen). De meting van 20-10 is daarna **niet opnieuw gedaan**; de volgende run van `scripts/ui/menumeting_scenes.js` moet de getallen voor Overzicht, de Spel-tabs, Instellingen en Over opnieuw vastleggen. Tot die tijd gelden de criteria hierboven als de lat, niet de oude getallen.
 - Vloer voor de Steam Deck: geen zin onder 12 px, ook in de HUD (zie Typography); de plekken die dat nog breken staan in [docs/DESIGN-SCHULD.md](docs/DESIGN-SCHULD.md).
 
 ## Language rules
@@ -327,7 +328,7 @@ The wording, the players list (hold Tab), passive mode, Meedoen?, host handover 
 
 ## Known deviations and open UX debt
 
-The honest list (24 October) is [docs/DESIGN-SCHULD.md](docs/DESIGN-SCHULD.md). The ones that matter most: the map's action bar and its footer hint are not yet seen in the game (#445) and use an 11 px label;
+The honest list (24 October) is [docs/DESIGN-SCHULD.md](docs/DESIGN-SCHULD.md). The ones that matter most: the map's rebuilt action bar follows the menu set since #602 but has not been seen in the game by a human;
 the mouse and pointer lock on several monitors (#435); the Samen spelen screens do not use the shared menu set;
 messages that are longer than the 14-word budget; when the opener pauses, the world stops for the guests too; and the players list has no way on touch. Fix a row, delete the row.
 
