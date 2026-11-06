@@ -52,11 +52,11 @@ node scripts/release_builds.mjs
 De tag is `v<versie in desktop/package.json>`, of meegegeven (`v0.38.1`).
 Opties: `--only`, `--arm64`, `--notes-only`, `--droog` en `--ref <branch>`
 (`scripts/release_builds.mjs:5-14`). Het script start per build
-`gh workflow run <workflow> -f tag=<tag>` (`:142`), wacht tot de run klaar is,
-start een geannuleerde run één keer opnieuw (`:172`), rekent de gratis minuten
-uit (`billable`, `:92`) en zet een beheerd blok installatieregels onderaan de
-notities (`applyBlock`, `:79`). Alleen bijlagen die er echt staan komen erin
-(`notesFor`, `:38`).
+`gh workflow run <workflow> -f tag=<tag>` (`dispatch`, `:184`), wacht tot de run klaar is
+(`wait`, `:199`), start een geannuleerde run één keer opnieuw (`:221`), rekent de gratis minuten
+uit (`billable`, `:97`) en zet een beheerd blok installatieregels onderaan de
+notities (`applyBlock`, `:84`). Alleen bijlagen die er echt staan komen erin
+(`notesFor`, `:43`).
 
 De vier workflows in `.github/workflows/` (`windows-release.yml`,
 `mac-release.yml`, `linux-release.yml`, `android-release.yml`) starten alleen
@@ -67,6 +67,16 @@ provinciekaart komt dus lokaal. Bijlagen: `GDE-Groningen-<v>-windows-portable.ex
 `gde-world.tgz` (`scripts/release_builds.mjs:19`). Agents pushen, mergen,
 taggen en releasen nooit; dat doet de coördinator na de tests. Een agent werkt in
 een eigen worktree en draait alleen zijn eigen checks.
+
+**Alleen de eigenaar publiceert (#558).** Elke release-taak heeft
+`if: github.actor == github.repository_owner` en hangt aan het environment
+`release`; de eigenaar koppelt daar eenmalig een verplichte beoordelaar aan
+(GitHub → Settings → Environments → release). `scripts/publish_check.mjs` keurt
+een workflow die een release uploadt zonder environment én owner-guard af
+(`release-zonder-eigenaar`, FAIL), zodat een nieuwe workflow die fout niet stil
+kan invoeren. De lokale route (`desktop/release.sh`) draait met het account van
+de gebruiker: playtesters pull-only maken en immutable releases aanzetten is
+daarom een eigenaarsbesluit, geen code.
 
 ## Checks
 

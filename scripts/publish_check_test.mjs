@@ -1,7 +1,8 @@
 // Test voor scripts/publish_check.mjs: de patronen vangen wat ze moeten vangen, gewone tekst blijft schoon,
 // private-only bestanden worden op naam herkend. Testwaarden worden samengesteld, zodat dit bestand zelf schoon blijft.
 //   node scripts/publish_check_test.mjs
-import { isManualOnly, scanText, scanFileNames, scanSizes, scanRequired, scanWorkflow, scanAuthors, emailsIn } from './publish_check.mjs';
+import { isManualOnly, scanText, scanFileNames, scanSizes, scanRequired, scanWorkflow, scanAuthors, emailsIn, releaseGuard } from './publish_check.mjs';
+import { readFileSync } from 'node:fs';
 
 let failed = 0;
 const ok = (c, m) => { if (!c) { failed++; console.log('FAIL ' + m); } };
@@ -53,6 +54,27 @@ ok(!isManualOnly('on:\n  push:\n  workflow_dispatch:\n'), 'push erbij is niet ha
 ok(!isManualOnly('on:\n  pull_request:\n'), 'pull_request is niet handmatig');
 ok(scanWorkflow('w.yml', manualWf).length === 1 && scanWorkflow('w.yml', manualWf)[0].level === 'WARN', 'handmatige workflow met schrijfrechten is WARN');
 ok(scanWorkflow('w.yml', 'on:\n  push:\npermissions:\n  contents: write\n')[0].level === 'FAIL', 'automatische workflow met schrijfrechten is FAIL');
+
+// #558: een release-workflow mag niet zonder environment en owner-guard kunnen uploaden.
+const publishStep = '      - run: gh release upload "$TAG" app.zip --clobber\n';
+const releaseWf = ({ env = '', guard = '' } = {}) => 'on:\n  workflow_dispatch:\njobs:\n  release:\n' + guard + env + '    runs-on: ubuntu-latest\n    steps:\n' + publishStep;
+const guarded = '    if: github.actor == github.repository_owner\n';
+const withEnv = '    environment: release\n';
+ok(releaseGuard('gh release upload x').publishes && !releaseGuard('gh release upload x').environment, 'releaseGuard leest wat een workflow publiceert');
+ok(!releaseGuard('node scripts/test_all.mjs').publishes, 'een gewone workflow publiceert niets');
+const zonder = scanWorkflow('release.yml', releaseWf());
+ok(zonder.some((x) => x.rule === 'release-zonder-eigenaar' && x.level === 'FAIL'), 'release zonder environment en guard is FAIL');
+ok(scanWorkflow('release.yml', releaseWf({ guard: guarded })).some((x) => x.rule === 'release-zonder-eigenaar' && /environment/.test(x.detail)), 'alleen een owner-guard is niet genoeg');
+ok(scanWorkflow('release.yml', releaseWf({ env: withEnv })).some((x) => x.rule === 'release-zonder-eigenaar' && /owner-guard/.test(x.detail)), 'alleen een environment is niet genoeg');
+ok(!scanWorkflow('release.yml', releaseWf({ guard: guarded, env: withEnv })).some((x) => x.level === 'FAIL'), 'environment plus owner-guard is in orde');
+ok(!scanWorkflow('test.yml', 'on:\n  pull_request:\npermissions:\n  contents: read\njobs:\n  t:\n    runs-on: ubuntu-latest\n    steps:\n      - run: node x.mjs\n').some((x) => x.rule === 'release-zonder-eigenaar'), 'een test-workflow hoeft geen release-guard');
+
+// De vier release-workflows van deze repo hebben de guard echt (#558), niet alleen in theorie.
+for (const f of ['windows-release.yml', 'mac-release.yml', 'linux-release.yml', 'android-release.yml']) {
+  const tekst = readFileSync(new URL('../.github/workflows/' + f, import.meta.url), 'utf8');
+  const g = releaseGuard(tekst);
+  ok(g.publishes && g.environment && g.ownerOnly, f + ' heeft environment en owner-guard');
+}
 
 ok(scanAuthors(['NatusPella\t1+n@users.noreply.github.com']).length === 0, 'noreply-auteur');
 ok(scanAuthors(['G'+String.fromCharCode(9)+'noreply@github.com']).length === 0, 'GitHub-committer');

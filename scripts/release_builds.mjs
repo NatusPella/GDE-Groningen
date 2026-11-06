@@ -18,6 +18,9 @@
 // De workflows (.github/workflows/{mac,linux,android}-release.yml) hebben alleen workflow_dispatch en
 // halen de wereld uit het release-asset gde-world.tgz. Een run die door een capaciteitsprobleem van de
 // runner wordt geannuleerd (kost niets) wordt één keer opnieuw gestart; een mislukte run niet.
+// Publiceren mag alleen de eigenaar (#558): de release-taken hebben een owner-guard en hangen aan het
+// environment `release`; een run van iemand anders wordt overgeslagen en een run die op de eigenaar
+// wacht meldt dat hier.
 // Het script gebruikt alleen gh en GITHUB_TOKEN-rechten van de ingelogde gebruiker; geen geheimen.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -194,8 +197,11 @@ export async function main({ argv = process.argv.slice(2), exec = null, log = co
       throw new Error(`${b.workflow}: geen run gevonden na het starten`);
     };
     const wait = async (id) => {
+      let wachtGemeld = false;
       for (;;) {
         const r = json(['run', 'view', String(id), '--json', 'status,conclusion,jobs']);
+        // #558: het environment `release` kan een verplichte beoordelaar hebben; zeg waar de run op wacht.
+        if (r.status === 'waiting' && !wachtGemeld) { wachtGemeld = true; log(`${id}: wacht op goedkeuring van de eigenaar (environment release, #558)`); }
         if (r.status === 'completed') return r;
         await new Promise((res) => setTimeout(res, 20000));
       }
@@ -209,6 +215,7 @@ export async function main({ argv = process.argv.slice(2), exec = null, log = co
         log(`${b.label}: run ${id} gestart (poging ${attempt}) - https://github.com/${run(['repo', 'view', '--json', 'nameWithOwner', '-q', '.nameWithOwner'])}/actions/runs/${id}`);
         const r = await wait(id);
         const used = billable(r.jobs, b.factor);
+        if (r.conclusion === 'skipped') logErr(`${b.label}: overgeslagen - alleen de eigenaar mag publiceren (owner-guard en environment release, #558)`);
         results[key] = { id, conclusion: r.conclusion, attempt, ...used };
         log(`${b.label}: ${r.conclusion} - ${Math.round(used.seconds / 60 * 10) / 10} min, ${used.minutes} ${b.runner}-min = ${used.free} gratis minuten`);
         if (r.conclusion === 'cancelled' && attempt < 2) { log(`${b.label}: geannuleerd (runner?), nog één keer`); continue; }
