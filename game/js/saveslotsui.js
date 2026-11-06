@@ -281,7 +281,14 @@ export function openSaveSlots(opts = {}) {
     if (act === 'back') { const m = over && over.n; const nf = over && over.kind === 'newfull'; over = null; render(nf ? { newcard: true } : { more: m }); return; }
     if (act === 'new-ask') { over = { n: 0, kind: 'newfull' }; render(); return; }
     if ((act === 'newfull-ok' || (act === 'new' && mode === 'start')) && coopSessieLoopt(world)) { say(COOP_NIEUW_TEKST); return; }
-    if (act === 'newfull-ok') { close(() => { if (opts.onNew) opts.onNew(); }); return; }
+    if (act === 'newfull-ok') {
+      // #562: de speler bevestigde dat het nieuwe spel de plek van het actieve spel overneemt; die save gaat
+      // nu echt weg (met zijn herstelkopie), zodat er een vrije plek is en de boot niet de oude save laadt.
+      const active = S.listSlots().find((s) => s.active);
+      if (active && !S.deleteSlot(null, active.n)) { say('Verwijderen mislukt; er is geen plek vrijgemaakt.'); return; }
+      close(() => { if (opts.onNew) opts.onNew(); });
+      return;
+    }
     if (act === 'new') {
       if (mode === 'start') { close(() => { if (opts.onNew) opts.onNew(); }); return; }
       if (world && world.pigeonMode) { say('Je bent een duif. Stop de duif-modus om op te slaan.'); return; }
