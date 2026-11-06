@@ -237,5 +237,30 @@ ok(() => {
   assert.match(ui, /act === 'newfull-ok'\) \{[\s\S]{0,400}deleteSlot\(null, active\.n\)/, 'na de bevestiging wijkt het actieve spel echt voor het nieuwe spel');
 }, 'nieuw spel: de boot en de menu\'s gebruiken de vlag (#562)');
 
+// --- #569: Alleen spelen schrijft geen volledige save per minuut; een echte sessie doet dat wel ----------
+// De checkpoint is een pure klok (coopcheckpoint.js); we halen de tik uit de bron en draaien hem met de echte
+// klok en een nep-savefunctie, zodat het aantal schrijfacties in vijf minuten echt telt.
+const { maakCheckpoint } = await import('../game/js/coopcheckpoint.js');
+const checkpointTik = (saveGame) => new Function('scope', `with (scope) {
+  ${haalFunctie(sg, 'coopCheckpointTik')}
+  return coopCheckpointTik;
+}`)({ coopCheckpoint: maakCheckpoint(), isCinematicActive: () => false, saveGame });
+
+ok(() => {
+  let saves = 0;
+  const tik = checkpointTik(() => { saves++; return true; });
+  const loop = (w) => { for (let t = 0; t < 300; t++) tik(1, w); };
+  // Alleen spelen: intern een sessie van één, maar de speler ziet geen sessie en hoort geen checkpoint
+  loop({ coopRole: 'host', coopNet: { role: 'host', solo: true }, coopSolo: true, stats: { missionsDone: 0 } });
+  assert.equal(saves, 0, 'vijf minuten Alleen spelen schrijft geen volledige save');
+  loop({ coopRole: 'host', coopNet: { role: 'host' }, stats: { missionsDone: 0 } });
+  assert.equal(saves, 5, 'een echte sessie schrijft elke minuut een checkpoint');
+  loop({ coopRole: 'client', coopNet: { role: 'client' }, stats: { missionsDone: 0 } });
+  assert.equal(saves, 10, 'een gast bewaart zijn eigen voortgang ook elke minuut');
+  // zonder sessie gebeurt er niets en staat de klok klaar voor een latere sessie
+  loop({ stats: { missionsDone: 0 } });
+  assert.equal(saves, 10, 'zonder sessie geen checkpoint');
+}, 'de coop-checkpoint draait alleen in een echte sessie (#569)');
+
 console.log(`savegame_test: ${n - fails}/${n}`);
 process.exit(fails ? 1 : 0);

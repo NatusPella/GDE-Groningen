@@ -6,10 +6,11 @@
 import { saveGame, markDirty } from './savehook.js';
 
 // Na een uitbetaling: de autosave van deze speler is over een paar seconden aan de beurt (savegame.js, SAVE_DEBOUNCE),
-// niet pas bij het checkpoint van een minuut. Ook zonder gasten: de gastheer verdient in zijn eigen wereld en wil dat
-// net zo goed veilig hebben. Geeft true als er een seintje gegeven is.
+// niet pas bij het checkpoint van een minuut. Alleen in een echte sessie: de autosave-signatuur ziet het geld zelf al
+// en Alleen spelen (sinds #554 intern een sessie van één) hoort zijn eigen save-momenten te houden (#569).
+// Geeft true als er een seintje gegeven is.
 export function verrekenBeloning(world, bedrag = 0) {
-  if (!world || !world.coopRole) return false;
+  if (!world || !world.coopRole || !world.coopNet || world.coopSolo || world.coopNet.solo) return false;
   if (!(Math.floor(Number(bedrag)) > 0)) return false;
   markDirty();
   return true;
@@ -17,7 +18,8 @@ export function verrekenBeloning(world, bedrag = 0) {
 
 // Het einde van de sessie: nog een laatste keer de eigen save, met de beloningen en hun ids erin. Geeft terug wat de
 // schrijfweg zegt (false als er niets te bewaren was of als het schrijven mislukte); de vorige save staat er dan nog.
+// #569: een sessie van één (Alleen spelen) slaat hier niets extra's: het spel bewaart op zijn eigen momenten.
 export function verrekenEinde(world) {
-  if (!world || !world.coopRole) return false;
+  if (!world || !world.coopRole || !world.coopNet || world.coopSolo || world.coopNet.solo) return false;
   try { return saveGame(world, { toast: false }) === true; } catch (e) { return false; }
 }
