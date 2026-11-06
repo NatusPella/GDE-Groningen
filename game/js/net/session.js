@@ -42,7 +42,7 @@ class Base {
     this._attach(link);
   }
   _attach(link) { this.link = link; link.onmessage = (b) => this._raw(b); }
-  rebind(link) { this._attach(link); } // nieuw transport na wegvallen (hervatten met hetzelfde token)
+  rebind(link) { this._attach(link); this._herverbonden = true; } // nieuw transport na wegvallen (hervatten met hetzelfde token)
   // #589: na het afscheidsbericht (BYE, 'weg') gaat het transport ook echt dicht.
   // Niet meteen: een kanaal of TCP-verbinding moet het bericht nog kunnen
   // versturen. Daarna blijft er geen open datachannel of socket meer over.
@@ -150,9 +150,9 @@ export class HostSession extends Base {
     // herhaalde HELLO is ruis en mag geen WELCOME per bericht kosten (#589); een andere of ontbrekende
     // token blijft wel een geweigerde kennismaking, zodat de ander weet waarom. Na een weggevallen
     // verbinding (status 'lost') is een HELLO met hetzelfde token juist de hervatting.
-    if (this.guest && this.status !== 'lost' && this.guest.lastInputSeq != null && tok && tok === this.guest.token) return;
     if (this.guest && tok && tok === this.guest.token) { // hervatten of herhaalde hello
-      const resumed = this.status === 'lost';
+      const hervat = this._herverbonden; this._herverbonden = false;
+      const resumed = this.status === 'lost' || hervat;
       this.lastRecv = this.now; this.lostAt = null; this.badHellos = 0; this._setStatus('ok');
       reply(this._welkom({ ok: true, slot: this.slot, token: this.guest.token, seed: this.cfg.seed, resumed, caps: this.caps, ...this.extra }));
       if (resumed) { this.rel.reset(); this._sendResync(); }
@@ -193,7 +193,7 @@ export class HostSession extends Base {
   _sendResync() { this.sendEvent({ k: 'resync', state: this.cfg.sim.fullState() }); }
   _release(why) {
     if (this.guest && this.cfg.onRelease) this.cfg.onRelease(this.slot, why);
-    this.guest = null; this.lostAt = null; this.gesloten = true; this._setStatus('verbinden');
+    this.guest = null; this.lostAt = null; this._setStatus('verbinden');
     if (this.onrelease) this.onrelease(this.slot, why);
     this._sluitLink(); // #589: het afscheid is geweest, de verbinding gaat dicht
   }
@@ -394,3 +394,5 @@ export class ClientSession extends Base {
 }
 
 export { PROTO };
+
+
