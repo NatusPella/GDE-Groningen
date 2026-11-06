@@ -8,7 +8,7 @@ import { pingGebaar, zetPassiefGebaar, kanPassiefKiezen, passiefStandVan } from 
 import { isSoloHost } from './coopsolo.js';
 import { PVP_TEKST } from './cooppvp.js';
 import { PING_TOETSEN } from './coopping.js';
-import { VORM_TEKEN, kanEruitZetten, kanOverdragen, overdragenKnopTekst, eruitKnopTekst, eruitGezetTekst } from './coopspelers.js';
+import { VORM_TEKEN, kanEruitZetten, kanOverdragen, overdragenKnopTekst, eruitKnopTekst, eruitGezetTekst, veiligeKleur } from './coopspelers.js';
 import { removeGuest } from './coopnet.js';
 import { biedOver } from './coophostwisselnet.js';
 import { setUserWaypoint } from './routing.js';
@@ -29,7 +29,7 @@ function rijHtml(r, acties, rol = null, bevestig = null) {
   const naar = acties && !r.jij && r.x != null ? `<button type="button" class="cs-naar" data-naar="${r.slot}">Ga erheen</button>` : '';
   // de groep (#492): "leidt <label>" bij de leider, de groepsnaam bij de andere deelnemers, niets bij wie niet meedoet
   const groep = r.groep ? ` <small class="cs-groep${r.leidt ? ' cs-leidt' : ''}">${esc(r.groep)}</small>` : '';
-  return `<li class="cs-rij" data-slot="${r.slot}"><span class="cs-vorm" style="color:${esc(r.kleur)}" aria-hidden="true">${VORM_TEKEN[r.vorm] || '●'}</span>` +
+  return `<li class="cs-rij" data-slot="${r.slot}"><span class="cs-vorm" style="color:${esc(veiligeKleur(r.kleur))}" aria-hidden="true">${VORM_TEKEN[r.vorm] || '●'}</span>` +
     `<span class="cs-naam">${esc(r.naam)}${r.jij ? ' <small>(jij)</small>' : ''}${groep}</span><span class="cs-doet">${esc(r.doet)}${r.afstandTekst ? ' · ' + esc(r.afstandTekst) : ''}</span>` +
     `<span class="cs-net" title="Verbinding"><i style="background:${STIP[r.verbinding] || STIP.ok}" aria-hidden="true"></i>${esc(r.verbindingTekst)}${r.ms != null ? ` <small>${r.ms} ms</small>` : ''}</span>${naar}${geef}${eruit}</li>`;
 }

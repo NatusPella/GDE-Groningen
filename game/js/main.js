@@ -186,7 +186,7 @@ import { initBoerderij, boerderijTijd, boerderijKlokNul } from './boerderijlive.
 import { BOERDERIJ_WERELD_KIND } from './boerderijwereld.js';
 import { probe } from './hitchprobe.js';
 import { initSafety, updateSafety } from './safety.js';
-import { updateCinematics, isCinematicActive, sinceCinematic, setCinematicLinks } from './cinematics.js';
+import { updateCinematics, isCinematicActive, sinceCinematic, setCinematicLinks, skipCinematic } from './cinematics.js';
 import { initFlavour, updateFlavour } from './flavour.js';
 import { initFlavour3D, updateFlavour3D } from './flavour3d.js';
 import { prepareHomeMap, initHome, updateHome, updateHomeExterior, tryHomeInteract, homeSpawnPoint, parkHeroAtHome, garagePoortToestand } from './home.js';
@@ -976,6 +976,7 @@ boot().catch((err) => {
   showLoadError(err.message);
   console.error(err);
 });
+
 
 
 

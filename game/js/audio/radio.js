@@ -165,7 +165,13 @@ function trackArtist(title) {
 }
 
 function wireGmusicEl(el) {
-  try { ctx.createMediaElementSource(el).connect(musicBus); } catch (e) { /* ignore */ }
+  try {
+    // #592: bewaar de node op het element. Een weggegooid element met een node blijft anders via de
+    // audiograaf hangen (removeAttribute('src') + load() geven hem niet vrij) en elke revive lekt er een.
+    const node = ctx.createMediaElementSource(el);
+    node.connect(musicBus);
+    el.gmusicNode = node;
+  } catch (e) { /* geen graaf: dan speelt dit element gewoon zonder node */ }
   el.addEventListener('ended', onGmusicEnded);
   // a stub or silent file is no record: never picked again, and if it is the current one, on to the next
   el.addEventListener('loadedmetadata', () => {
@@ -178,12 +184,21 @@ function wireGmusicEl(el) {
   return el;
 }
 
+// Een element dat we loslaten (dode zender, vervangen jingle) eerst uit de graaf halen (#592).
+function discardGmusicEl(el) {
+  if (!el || !el.gmusicNode) return;
+  try { el.gmusicNode.disconnect(); } catch (e) { /* al los */ }
+  el.gmusicNode = null;
+}
+
 // one element per jingle, reused: a fresh one per cycle stayed wired to the
 // music bus for good and piled up media players over a long session
 const jingleEls = {};
 function makeJingleEl(key) {
   const old = jingleEls[key];
   if (old && !old.error && old !== gmusicCurrentEl) return old;
+  // een dode of vervangen jingle gaat de deur uit: zijn node hoort niet in de graaf te blijven (#592)
+  if (old && (old !== gmusicCurrentEl || old.error)) discardGmusicEl(old);
   const el = wireGmusicEl(new Audio(GMUSIC_JINGLES[key]));
   el.gmusicJingleKey = key;
   jingleEls[key] = el;
@@ -325,6 +340,7 @@ export function enqueueGmusicJingle(key) {
 // A music element that failed (network hiccup, decoder gone) is swapped for
 // a fresh one on the same file, so the station keeps going.
 function reviveGmusicEl(el) {
+  discardGmusicEl(el); // #592: eerst de node van het dode element loskoppelen; daarna pas het element loslaten
   const fresh = wireGmusicEl(new Audio(el.src));
   fresh.preload = 'auto';
   fresh.gmusicTitle = el.gmusicTitle;

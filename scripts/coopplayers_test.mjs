@@ -106,4 +106,24 @@ t('advies in het Nederlands vanaf 5 spelers, extra tekst voor de host over uploa
   assert.match(P.advies(5, 'gast'), /^Met 5 spelers kan het spel trager worden/); assert.doesNotMatch(P.advies(5, 'gast'), /uploaden/);
   assert.match(P.advies(12, 'host'), /uploaden/);
 });
+t('welkomstbericht (#592): de gast controleert de lijst net als het spelers-bericht', () => {
+  const r = P.createRoster(4); P.wijsPlekToe(r);
+  const welkom = { max: 4, lijst: P.lijstEvent(r).lijst };
+  const schoon = P.leesWelkomstLijst(welkom);
+  assert.deepEqual(schoon.map((x) => x.slot), [0, 1], 'de lijst komt door');
+  assert.equal(P.leesWelkomstLijst(null), null);
+  assert.equal(P.leesWelkomstLijst({ max: 4 }), null, 'zonder lijst niets');
+  assert.equal(P.leesWelkomstLijst({ max: 4, lijst: [{ slot: 0, char: 'bestaat-niet' }] }), null, 'onbekend personage: het hele bericht is ongeldig');
+  const dubbel = { max: 4, lijst: [{ slot: 0, char: 'tammo' }, { slot: 0, char: 'rik' }] };
+  assert.equal(P.leesWelkomstLijst(dubbel), null, 'dubbele plek: ongeldig');
+  // een (aangepaste) host kan een kleur meesturen die niet in een style-attribuut hoort
+  const vals = JSON.parse(JSON.stringify(welkom));
+  vals.lijst[0].avatar = { naam: 'Host', kleur: 'red;background-image:url(https://fout)' };
+  const veilig = P.leesWelkomstLijst(vals);
+  assert.equal(veilig[0].avatar.naam, 'Host', 'de naam blijft');
+  assert.equal(veilig[0].avatar.kleur, undefined, 'de ongeldige kleur valt weg');
+  const goed = JSON.parse(JSON.stringify(welkom));
+  goed.lijst[0].avatar = { naam: 'Host', kleur: '#e86a6a' };
+  assert.equal(P.leesWelkomstLijst(goed)[0].avatar.kleur, '#e86a6a', 'een geldige kleur blijft');
+});
 console.log(`coopplayers_test: ${n}/${n} ok`);

@@ -15,7 +15,7 @@ import { setFixedCharacters, applyHostState, makeClientInput, ensureFigure, remo
 import { bindCoop } from './coopglue.js';
 import { ververs } from './spelersregister.js';
 import { partnersInfo, createPings, addPing, tickPings, pingEvent } from './partnerhud.js';
-import { holdBeleid, vereistVoor, leesLijstEvent, lijst, zetAvatar } from './coopplayers.js';
+import { holdBeleid, vereistVoor, leesLijstEvent, leesWelkomstLijst, lijst, zetAvatar } from './coopplayers.js';
 import { cameraRelative, stepSlot2, sharedCamera } from './coop.js';
 import { coopStep, missieGastVerzoek } from './coopglue.js';
 import { gateOn, setGate, hekBericht } from './coopgate.js';
@@ -1051,7 +1051,8 @@ export function tickCoopNet(world, dt) {
       // #523: de keten van een gast hangt aan de sessie waarin hij meespeelt (dezelfde sleutel als de gastheer,
       // uit het welkom). Zijn eigen opdracht blijft eronder staan en komt bij het einde terug.
       zetKetenSleutel(world, s.sessie && s.sessie.id ? s.sessie.id : null);
-      if (!n.rosterEvent && s.welcome && Array.isArray(s.welcome.lijst)) world.coopRoster = s.welcome.lijst; // een 'spelers'-bericht dat vóór het welkom aankwam is nieuwer
+      const welkomst = leesWelkomstLijst(s.welcome); // #592: het welkomstbericht van de host is geen vertrouwd kanaal
+      if (!n.rosterEvent && welkomst) world.coopRoster = welkomst; // een 'spelers'-bericht dat vóór het welkom aankwam is nieuwer
     }
     if (n.fixed && (s.status === 'ok' || s.status === 'lag')) {
       const sample = s.world();
@@ -1630,6 +1631,7 @@ export function stopCoopNet(world) {
 
 // de overdracht (coophostwisselnet.js) gebruikt deze functies zonder coopnet.js zelf te importeren
 zetCoopNet({ addGuest, stopCoopNet, startHost, startClient, canJoin });
+
 
 
 

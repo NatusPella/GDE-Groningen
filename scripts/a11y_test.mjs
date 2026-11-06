@@ -5,6 +5,7 @@
 import { PALETTES } from '../game/js/a11y.js';
 import * as L from '../game/js/a11ylogic.js';
 import { COLOR_BLIND_MODES, SUBTITLE_SIZES } from '../game/js/settings.js';
+import { readFileSync } from 'node:fs';
 
 let fails = 0, n = 0;
 const ok = (c, name, extra = '') => { n++; if (!c) { fails++; console.log('FAIL', name, extra); } };
@@ -54,5 +55,44 @@ ok(L.effectsFor({ reduceMotion: true }).cameraShake === 0 && L.effectsFor({ redu
 ok(L.effectsFor({ reduceFlash: true }).screenFlash === 0 && L.effectsFor({ reduceFlash: true }).cameraShake === 1, 'reduceFlash stops flashes only');
 ok(base.flashMaxPerSecond <= 3, 'at most three flashes a second');
 ok(L.shakeAmount(0.03, { reduceMotion: true }) === 0 && L.shakeAmount(0.03, {}) === 0.03, 'shake amount follows the setting');
+// #592: "Flitsen beperken" dekt ook de schermvullende flits van de 3D-postprocessing (postfx3d.js
+// flashScreen), niet alleen de DOM-flitsen van montage en trailer. De functie wordt uit de bron gelezen
+// (postfx3d.js importeert three van een CDN en is niet in Node te laden) en met een nep-document gedraaid.
+function extractFn(src, name) {
+  const at = src.indexOf('function ' + name + '(');
+  if (at < 0) throw new Error(name + ' staat niet in de bron');
+  let depth = 0, i = src.indexOf('{', at);
+  for (; i < src.length; i++) {
+    const c = src[i];
+    if (c === "'" || c === '"' || c === '`') {
+      const q = c;
+      for (i++; i < src.length && src[i] !== q; i++) if (src[i] === '\\') i++;
+      continue;
+    }
+    if (c === '{') depth++;
+    else if (c === '}' && --depth === 0) return src.slice(at, i + 1);
+  }
+  throw new Error(name + ': geen sluitende accolade');
+}
+const postfx = readFileSync(new URL('../game/js/postfx3d.js', import.meta.url), 'utf8');
+const flashSrc = extractFn(postfx, 'flashScreen');
+function flashWith(settings, { pass = true } = {}) {
+  const doc = { body: { classList: { contains: (c) => pass && c === 'gpu-screenfx' } } };
+  const factory = new Function('document', 'effectsFor', 'getSettings', 'performance',
+    'let flashAt = 0, flashBig = false;\n' + flashSrc + '\nreturn flashScreen;');
+  return factory(doc, L.effectsFor, () => settings, { now: () => 1000 });
+}
+ok(flashWith({ reduceFlash: true })(true) === false, 'Flitsen beperken: de postfx-scermflits gaat niet af');
+ok(flashWith({ reduceFlash: false })(true) === true, 'zonder de instelling flitst de pass zoals altijd');
+ok(flashWith({ reduceFlash: true })(false) === false, 'ook de kleine flits valt onder de instelling');
+ok(flashWith({ reduceFlash: false }, { pass: false })(true) === false, 'zonder pass geeft hij false, zodat de trailer zijn DOM-flits gebruikt');
+const css = readFileSync(new URL('../game/js/a11y.css', import.meta.url), 'utf8');
+ok(/html\.reduce-flash :is\(#intro-montage \.im-flash, #trailer \.tr-flash\)/.test(css), 'de DOM-flits van de trailer is met de instelling verborgen');
+const trailer = readFileSync(new URL('../game/js/trailer.js', import.meta.url), 'utf8');
+ok(/if \(flashScreen\(big\)\) return;/.test(trailer), 'de trailer valt terug op die verborgen DOM-flits');
+for (const f of ['dorpsuitjes.js', 'storyfun.js']) {
+  const s = readFileSync(new URL('../game/js/' + f, import.meta.url), 'utf8');
+  ok(/import \{ flashScreen \} from '\.\/postfx3d\.js'/.test(s) && s.includes('flashScreen(true)'), f + ' flitst via dezelfde poort');
+}
 console.log(fails ? `${fails} of ${n} failed` : `a11y_test: ${n} checks ok`);
 process.exit(fails ? 1 : 0);
