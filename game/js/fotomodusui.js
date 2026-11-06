@@ -279,19 +279,26 @@ function takeShot(world) {
 
 // --- pauzemenu: sectie Foto's ---------------------------------------------------------------
 
+const CHEV = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6l6 6-6 6"/></svg>';
+
+// De galerij staat vooraan: beeld boven tekst (#611). De uitleg over de fotomodus
+// en de opslag zit achter "Meer opties"; de knop om te starten blijft in het eerste beeld.
 export function renderFotoPanel(el) {
   const list = F.loadGallery(store());
+  const gal = list.length
+    ? '<div class="foto-gal">' + list.map((s) =>
+      `<figure>${s.thumb ? `<img src="${s.thumb}" alt="Foto in ${esc(s.plaats)}">` : '<div class="foto-leeg">Geen voorbeeld</div>'}` +
+      `<figcaption><b>${esc(s.plaats)}</b><br>${esc(s.dagLabel)} ${esc(s.uur)}${s.weer ? ' · ' + esc(F.WEER_NAMEN[s.weer] || s.weer) : ''}<br><small>${esc(s.file)}</small>` +
+      `<br><button type="button" class="m-bg" data-foto-del="${esc(s.id)}">Weghalen</button></figcaption></figure>`).join('') + '</div>'
+    : '<p class="mut">Nog geen foto\'s. Het bestand zelf blijft staan als je een foto hier weghaalt.</p>';
   el.innerHTML =
-    '<div class="foto-panel"><p class="foto-lead">Zet de wereld stil, loop met een vrije camera rond, kies een filter en het weer en maak een foto. ' +
-    'De foto komt als bestand op je eigen schijf; er gaat niets het internet op.</p>' +
-    '<button type="button" class="m-bp" data-foto-start>Fotomodus starten</button>' +
-    `<h3>Galerij (${list.length} van ${F.GALLERY.max})</h3>` +
-    (list.length
-      ? '<div class="foto-gal">' + list.map((s) =>
-        `<figure>${s.thumb ? `<img src="${s.thumb}" alt="Foto in ${esc(s.plaats)}">` : '<div class="foto-leeg">Geen voorbeeld</div>'}` +
-        `<figcaption><b>${esc(s.plaats)}</b><br>${esc(s.dagLabel)} ${esc(s.uur)}${s.weer ? ' · ' + esc(F.WEER_NAMEN[s.weer] || s.weer) : ''}<br><small>${esc(s.file)}</small>` +
-        `<br><button type="button" class="m-bg" data-foto-del="${esc(s.id)}">Weghalen</button></figcaption></figure>`).join('') + '</div>'
-      : '<p class="mut">Nog geen foto\'s. Het bestand zelf blijft staan als je een foto hier weghaalt.</p>') + '</div>';
+    '<div class="foto-panel">' + gal +
+    `<p class="mut foto-count">${list.length} van ${F.GALLERY.max} foto's</p>` +
+    '<div class="m-acts"><button type="button" class="m-bp" data-foto-start>Fotomodus starten</button></div>' +
+    `<button type="button" class="m-disc" data-fold="foto-uitleg" aria-expanded="false">${CHEV}<b>Meer opties</b><span class="mut">Zo werkt de fotomodus en waar je foto's blijven</span></button>` +
+    '<div class="m-fold" data-fold-body="foto-uitleg" hidden><p class="foto-lead">Zet de wereld stil, loop met een vrije camera rond, kies een filter en het weer en maak een foto. ' +
+    'De foto komt als bestand op je eigen schijf; er gaat niets het internet op.</p></div>' +
+    '</div>';
 }
 
 // true als de klik van de fotomodus was
