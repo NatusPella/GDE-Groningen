@@ -86,12 +86,5 @@ export function achWhen(at, now, tzOffsetMin, fmtDate) {
   return fmtDate(at);
 }
 
-// A progress ring as an SVG circle: the stroke-dasharray of the filled part for `pct` (0-100)
-export function ringDash(pct, r = 40) {
-  const circ = 2 * Math.PI * r;
-  const p = Math.max(0, Math.min(100, Number.isFinite(pct) ? pct : 0));
-  return { circ: +circ.toFixed(2), dash: +((circ * p) / 100).toFixed(2), pct: Math.round(p) };
-}
-
 // The version line of the menu: shown once, in the pause menu. A development build has no number.
 export const versionLabel = (v) => (v && v !== 'dev' ? 'GDE Groningen v' + String(v).replace(/^v/i, '') : 'GDE Groningen · ontwikkelversie');

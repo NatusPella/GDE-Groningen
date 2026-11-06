@@ -86,5 +86,14 @@ check('E kantelt niet (E is instappen)', !/k === 'e'\)[^\n]*roll/.test(fu) && fu
 check('de knoppenbalk noemt C V bij Kantelen', fu.includes("KEYBTN('C V', 'Kantelen')"));
 check('Escape sluit de foto en opent het pauzemenu niet', fu.includes("k === 'escape'") && pm.includes('if (isPhotoMode()) return;'));
 
+// #611: beeld boven tekst: de galerij staat vooraan en de uitleg zit achter "Meer opties"
+const panel = fu.slice(fu.indexOf('export function renderFotoPanel'), fu.indexOf('// true als de klik van de fotomodus was'));
+check('de galerij staat vóór de uitleg in het paneel', panel.indexOf('foto-gal') >= 0 && panel.indexOf('foto-gal') < panel.indexOf('foto-lead'));
+check('de uitleg zit in een dichtgeklapte vouw', /class="m-disc" data-fold="foto-uitleg" aria-expanded="false"/.test(panel) && /data-fold-body="foto-uitleg" hidden/.test(panel));
+check('de knop om te starten staat in het eerste beeld, vóór de vouw', panel.indexOf('data-foto-start') < panel.indexOf('data-fold="foto-uitleg"'));
+check('geen leidende alinea meer vóór de galerij', !/<div class="foto-panel"><p class="foto-lead">/.test(panel));
+check('de telling staat als korte regel bij de galerij', /foto-count/.test(panel));
+check('de vouw gebruikt de gedeelde menu-set', panel.includes('m-disc') && panel.includes('m-fold') && pm.includes("closest('[data-fold]')"));
+
 console.log(bad ? `${bad} van ${n} mislukt` : `fotomodus_test ok (${n} checks)`);
 process.exit(bad ? 1 : 0);

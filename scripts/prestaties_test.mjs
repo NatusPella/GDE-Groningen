@@ -38,4 +38,13 @@ check('de ringen komen uit de gebiedenstand', ach.includes('export function setG
 check('de tracker telt de bezochte buurt en het deel van de kaart', tr.includes('bezoekPlek') && /setStatMax\(w, 'kaartVerkend'/.test(tr));
 check('de kaart telt buurten, geen mist', gb.includes('export function kaartVerkend') && gb.includes('export function bezoek') && gb.includes('MAX_BEZOEKT'));
 check('de prestaties van een laag tonen de laag als ring', /if \(s && a\.goal === 1\) \{ cur = s\.klaar; goal = s\.totaal; \}/.test(ach));
+
+// #611: één voortgangsweergave per scherm, als leesbare tekst, en beeld bij de cijfers
+const pcss = read('pausemenu.css');
+check('de kop toont de voortgang als één balk met het getal ernaast', /class="pa-total">\$\{bar\('total'/.test(ui) && /van \$\{sum\.total\} behaald/.test(ui));
+check('de detailvoortgang is een balk met het getal, geen tweede ring', /bar\('d-' \+ it\.id/.test(ui) && /class="pa-prog">/.test(ui));
+check('de gebiedenstanden zijn balken met het getal ernaast', /bar\('g-' \+ id/.test(ui) && /\$\{klaar\} van \$\{totaal\}/.test(ui));
+check('nergens in Prestaties nog een voortgangsring', !/pa-ring/.test(ui) && !/function ring\(/.test(ui) && !/pa-ring/.test(pcss) && !/ringDash/.test(ui));
+check('de cijfercellen hebben een eigen icoon per regel', /pa-fig-k/.test(ui) && /figIco\(ico\)/.test(ui) && /ICON_PATHS\[name\]/.test(ui));
+check('de medaille noemt zijn naam als tekst, niet alleen als kleur', /MEDALS\[m\] : 'Geen medaille'/.test(ui) && /m-medal m\$\{m\}" aria-hidden="true"/.test(ui));
 process.exit(fail ? 1 : 0);
