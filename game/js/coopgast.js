@@ -212,10 +212,12 @@ export function wielInvoer(r) {
 
 // De invoer voor het voertuig dat een gast bestuurt: het stuur dat hij kreeg, of (bij een
 // vliegtuig of heli) zijn eigen plek in dat voertuig; anders de invoer van de gastheer.
+// world.coopFigures is een object per plek ({ slot: figuur }, coopclient.js), geen array: alleen
+// de gasten zijn kandidaten en plek 0 zit er niet in (#555).
 export function bestuurInvoer(world, v = null) {
   if (!world) return null;
-  const figs = world.coopFigures || [];
-  const kandidaten = world.coopWielSlot != null ? [figs[world.coopWielSlot]] : figs.slice(1);
+  const figs = world.coopFigures || {};
+  const kandidaten = world.coopWielSlot != null ? [figs[world.coopWielSlot]] : Object.values(figs).filter((f) => f && f.slot >= 1);
   for (const f of kandidaten) if (f && f.input && (!v || f.inVeh === v || f.inVehicle === v)) return wielInvoer(f.input);
   return world.input;
 }
