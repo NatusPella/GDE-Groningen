@@ -25,7 +25,11 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest]
     steps:
+      # volledige geschiedenis: de geheimenscan leest alle commits (#593 punt 4); een
+      # shallow checkout van diepte 1 maakt die scan in de praktijk leeg.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -57,7 +61,7 @@ jobs:
       # GitHub Pro of een publieke repo). Deze scan is dan het vangnet achter de pre-commit-haak.
       - name: Geheimenscan (werkboom en geschiedenis)
         if: runner.os == 'Linux'
-        run: node scripts/secrets_scan.mjs
+        run: node scripts/secrets_scan.mjs --require-history
 
       - name: Python-tests
         shell: bash

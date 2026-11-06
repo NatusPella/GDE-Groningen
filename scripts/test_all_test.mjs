@@ -1,9 +1,12 @@
 // Tests van de pure delen van scripts/test_all.mjs: rapportage, diff, logscans, issue-concepten en PNG-checks.
 //   node scripts/test_all_test.mjs
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import * as R from './lib/testrapport.mjs';
 import { decodePng, encodePng, analyseImage, signature, signatureDiff } from './lib/pngcheck.mjs';
-import { statusVan } from './test_all.mjs';
+import { statusVan, eindCode, elektronProcesNamen, elektronStartReden } from './test_all.mjs';
 
 const it = (id, status, detail = '', secs = 1, extra = {}) => R.maakItem('licht', id, id, status, secs, detail, extra);
 
@@ -125,6 +128,38 @@ assert.equal(statusVan({ code: 0, out: 'SKIP geen index', timedOut: false }), 'S
 assert.equal(statusVan({ code: 1, out: 'Error', timedOut: false }), 'FAIL');
 assert.equal(statusVan({ code: null, out: '', timedOut: true }), 'TIMEOUT');
 assert.equal(statusVan({ code: 1, out: "Cannot find package 'three' imported", timedOut: false }), 'SKIP');
+
+// exitcode (#593): niets gemeten is geen succes, een bewuste deelrun mag met --allow-skip
+const run = (items) => ({ fases: { licht: { gedraaid: true, items } } });
+const run2 = (items, extra = {}) => ({ fases: { ...run(items).fases, ...extra } });
+assert.equal(eindCode(run([it('a', 'PASS')]), ['licht']), 0);
+assert.equal(eindCode(run([it('a', 'PASS'), it('b', 'SKIP')]), ['licht']), 0);
+assert.equal(eindCode(run([it('a', 'FAIL', 'Error')]), ['licht']), 1);
+assert.equal(eindCode(run([it('a', 'FAIL', 'Error'), it('b', 'PASS')]), ['licht']), 1);
+assert.equal(eindCode(run([it('a', 'TIMEOUT')]), ['licht']), 1);
+assert.equal(eindCode(run([it('a', 'SKIP')]), ['licht']), 3, 'alles SKIP is niets gemeten');
+assert.equal(eindCode(run([]), ['licht']), 3, 'nul items is niets gemeten');
+assert.equal(eindCode(run([it('a', 'PASS')]), ['licht', 'electron']), 3, 'een gevraagde fase zonder PASS telt niet als geslaagd');
+assert.equal(eindCode(run([it('a', 'SKIP')]), ['licht'], { allowSkip: true }), 0, '--allow-skip');
+assert.equal(eindCode(run([]), ['licht'], { allowSkip: true }), 0, '--allow-skip bij een lege run');
+assert.equal(eindCode(run([it('a', 'FAIL', 'Error')]), ['licht'], { allowSkip: true }), 1, '--allow-skip verbergt geen fout');
+assert.equal(eindCode({ fases: {} }, ['licht']), 3, 'geen rapport is niets gemeten');
+assert.equal(eindCode(run2([it('a', 'PASS')], { electron: { gedraaid: false, items: [] } }), ['licht', 'electron']), 3, 'een niet-gedraaide fase telt als fase zonder PASS');
+assert.equal(eindCode(run([it('a', 'PASS')]), ['licht'], { allowSkip: true }), 0);
+
+// Electron-detectie (#593): de geïnstalleerde app heet anders dan electron.exe, en de
+// lockmap schakelt de controle niet meer uit
+assert.deepEqual(elektronProcesNamen('win32'), ['electron.exe', 'GDE Groningen.exe']);
+assert.ok(elektronProcesNamen('linux').includes('GDE Groningen') && elektronProcesNamen('darwin').includes('GDE Groningen'), 'de packaged naam per platform');
+const reden = (o) => elektronStartReden({ exe: 'C:/electron.exe', exeBestaat: true, heeftWereld: true, draait: 0, force: false, ...o });
+assert.equal(reden({}), null, 'niets aan de hand: starten');
+assert.match(reden({ draait: 1 }), /al een Electron-instantie/);
+assert.equal(reden({ draait: 1, force: true }), null, '--force start toch');
+assert.match(reden({ exeBestaat: false }), /Electron ontbreekt/);
+assert.match(reden({ heeftWereld: false }), /game\/world ontbreekt/);
+const taSrc = fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), 'test_all.mjs'), 'utf8');
+assert.ok(!/!LOCKS && elektronDraait/.test(taSrc), 'de lockmap schakelt de draaiende-Electron-controle niet meer uit');
+assert.ok(/elektronProcesNamen/.test(taSrc) && /elektronStartReden/.test(taSrc), 'de fase gebruikt de pure controles');
 // poort zwarte wereld / fouten per frame
 const goed = { gestart: true, scene: true, meshes: 1500, nan: 0, tris: 90000, calls: 400, frames: 120, framesMetFout: 0, foutenTotaal: 0, voorbeeld: [] };
 assert.equal(R.beoordeelWereldpoort(goed).status, 'PASS');

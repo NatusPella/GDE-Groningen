@@ -22,7 +22,8 @@ let gitMode = 0;
 try { gitMode = Number((execFileSync('git', ['ls-files', '-s', 'scripts/hooks/pre-commit'], { encoding: 'utf8' }).trim().split(/\s+/)[0]) || 0); } catch { /* geen git */ }
 const uitvoerbaar = (mode & 0o111) !== 0 || (process.platform === 'win32' && (gitMode & 0o111) !== 0);
 ok(uitvoerbaar, `de haak is uitvoerbaar (mode ${(mode & 0o777).toString(8)}, git ${gitMode.toString(8)}): anders slaat git hem stil over`);
-ok(/secrets_scan\.mjs --tree/.test(src), 'de haak draait de geheimenscan op de werkboom');
+ok(/secrets_scan\.mjs --staged/.test(src), 'de haak draait de geheimenscan op de index (wat de commit wordt, #593)');
+ok(/--tree/.test(src), 'de haak noemt de losse werkboomscan voor ad-hoc gebruik');
 ok(/exit 1/.test(src), 'de haak breekt de commit af bij een treffer');
 ok(/--no-verify/.test(src), 'de haak noemt de nooduitgang');
 ok(fs.existsSync(path.join(ROOT, 'scripts/secrets_scan.mjs')), 'scripts/secrets_scan.mjs bestaat');

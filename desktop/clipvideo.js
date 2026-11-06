@@ -81,10 +81,15 @@ function setupClips({ ipcMain, win, dir, ffmpeg, fps = 60 }) {
 // Ontwikkelhulp (scripts/trailer/repl.mjs): laat de draaiende app een script uit <map>/_repl/cmd-N.js uitvoeren in de
 // pagina en schrijft het resultaat naar res-N.json; <map>/_repl/quit stopt de app. Zo hoeft niet elke proef opnieuw
 // een slot en een opstart van een minuut te kosten.
+// Opruimpatroon van de repl (#593): letterlijke d's matchten niets, dus bleven oude
+// cmd-N.js/res-N.json van een afgebroken run staan en voerde de volgende run cmd-1.js
+// opnieuw uit. \d+ matcht de echte namen.
+const REPL_ENTRY = /^(cmd-\d+\.js|res-\d+\.json|quit)$/;
+
 function setupRepl({ win, dir, app }) {
   const rd = path.join(dir, '_repl');
   fs.mkdirSync(rd, { recursive: true });
-  for (const f of fs.readdirSync(rd)) if (/^(cmd-d+.js|res-d+.json|quit)$/.test(f)) fs.unlinkSync(path.join(rd, f));
+  for (const f of fs.readdirSync(rd)) if (REPL_ENTRY.test(f)) fs.unlinkSync(path.join(rd, f));
   let n = 1;
   const timer = setInterval(async () => {
     if (fs.existsSync(path.join(rd, 'quit'))) { clearInterval(timer); try { fs.unlinkSync(path.join(rd, 'quit')); } catch (e) { /* weg */ } app.quit(); return; }
@@ -104,4 +109,4 @@ function setupRepl({ win, dir, app }) {
   }, 250);
 }
 
-module.exports = { findFfmpeg, setupClips, setupRepl };
+module.exports = { findFfmpeg, setupClips, setupRepl, REPL_ENTRY };

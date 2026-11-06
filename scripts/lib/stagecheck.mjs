@@ -84,3 +84,35 @@ export function checkAudio(dir) {
 }
 
 export const formatProblems = (problems) => problems.map((p) => '  ' + p).join('\n');
+
+// Niets in de stage mag bij het laden nog van internet komen (#593 punt 7). De build
+// rewritet de CDN- en fontlinks naar vendor/; wat hier overblijft is een nieuwe CDN
+// (of een dynamische import-URL) die niemand heeft gevendord. Levert de lijst met
+// overtredingen; de aanroeper laat de build falen. De vendor-map zelf is vrij: daar
+// staan de bestanden die de build bewust heeft binnengehaald.
+// Een uitzondering hoort hier met een reden te staan (bijvoorbeeld een attributielink),
+// nooit stil in de build.
+export const EXTERNAL_ALLOW = [];
+export function checkOffline(dir, { allow = EXTERNAL_ALLOW } = {}) {
+  const problems = [];
+  const re = /(?:from\s*|import\s*\(\s*|href=|src=|url\()\s*['"]?(https?:\/\/[^'"\s)>]+)/g;
+  const walk = (d, out = []) => {
+    for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+      const p = path.join(d, e.name);
+      if (e.isDirectory()) { if (e.name !== 'vendor') walk(p, out); } else out.push(p);
+    }
+    return out;
+  };
+  let files = [];
+  try { files = walk(dir).filter((p) => /\.(js|mjs|html|css)$/.test(p)); } catch (err) {
+    return { ok: false, files: 0, problems: [`stage onleesbaar: ${err.message}`] };
+  }
+  for (const f of files) {
+    const src = fs.readFileSync(f, 'utf8');
+    for (const m of src.matchAll(re)) {
+      if (allow.some((a) => a.match.test(m[1]))) continue;
+      problems.push(`externe URL in ${path.relative(dir, f).split(path.sep).join('/')}: ${m[1]}`);
+    }
+  }
+  return { ok: problems.length === 0, files: files.length, problems };
+}

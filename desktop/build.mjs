@@ -8,7 +8,9 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { BUILD_ONLY } from '../scripts/lib/buildonly.mjs';
-import { checkWorld, checkAudio, formatProblems } from '../scripts/lib/stagecheck.mjs';
+import { checkWorld, checkAudio, checkOffline, formatProblems } from '../scripts/lib/stagecheck.mjs';
+import { assertStageOut } from '../scripts/lib/stageout.mjs';
+import { loadLock, lockProblem, serializeLock, sha256, LOCK_FILE } from '../scripts/lib/vendorlock.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 import { createRequire } from 'module';
@@ -16,8 +18,12 @@ createRequire(import.meta.url)('./envcompat.js'); // GTE_* -> GDE_*
 // GDE_STAGE_SRC / GDE_STAGE_OUT stage another checkout (perf runs against main)
 const SRC = process.env.GDE_STAGE_SRC || path.join(HERE, '..', 'game');
 const VIADUCTS = process.env.GDE_VIADUCTS !== '0'; // province tiles with height profiles for bridges and viaducts (#235, #300); GDE_VIADUCTS=0 builds them flat
-const OUT = process.env.GDE_STAGE_OUT || path.join(HERE, 'build', 'game');
+const OUT = path.resolve(process.env.GDE_STAGE_OUT || path.join(HERE, 'build', 'game'));
 const CACHE = path.join(HERE, 'vendor-cache');
+const LOCK_PATH = path.join(HERE, LOCK_FILE);
+const LOCK = loadLock(LOCK_PATH);
+const UPDATE_LOCK = process.env.GDE_UPDATE_VENDOR_LOCK === '1';
+const usedVendor = new Map();
 // --no-world / GDE_NO_WORLD=1: vendor three.js and the fonts but skip the map tiles. The CI test
 // runner has no data/cache/province (a Geofabrik extract, not in git) and needs no world: the 3D
 // tests only ask for the vendored modules, and the world-bound tests skip themselves (#500-ci).
@@ -35,10 +41,25 @@ const { version } = JSON.parse(fs.readFileSync(path.join(HERE, 'package.json'), 
 
 async function cached(url, key) {
   const file = path.join(CACHE, key);
-  if (fs.existsSync(file)) return fs.readFileSync(file);
+  // #593: de lock is de waarheid. Zonder update flag moet elk bestand (vers gedownload of
+  // uit de cache) exact de gecommitte sha256 hebben; een oude of aangepaste cache wordt
+  // één keer opnieuw opgehaald en daarna alsnog geweigerd als de bytes afwijken.
+  const accept = (buf) => {
+    usedVendor.set(key, { url, sha256: sha256(buf) });
+    if (UPDATE_LOCK) return;
+    const probleem = lockProblem(LOCK, key, buf, url);
+    if (probleem) throw new Error('vendorcontrole: ' + probleem);
+  };
+  if (fs.existsSync(file)) {
+    const buf = fs.readFileSync(file);
+    const probleem = UPDATE_LOCK ? null : lockProblem(LOCK, key, buf, url);
+    if (!probleem) { accept(buf); return buf; }
+    console.warn(`vendor-cache wijkt af van ${LOCK_FILE}; opnieuw downloaden: ${key}`);
+  }
   const res = await fetch(url, { headers: { 'user-agent': UA } });
   if (!res.ok) throw new Error(`download failed ${res.status}: ${url}`);
   const buf = Buffer.from(await res.arrayBuffer());
+  accept(buf);
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, buf);
   return buf;
@@ -162,6 +183,9 @@ function packWorld() {
 
 async function main() {
   console.log(`staging GDE Groningen ${version}`);
+  // nooit de repo, de bron of een gebruikersmap recursief wissen (#593 punt 6)
+  assertStageOut(OUT, { repoRoot: path.join(HERE, '..'), desktopDir: HERE });
+  if (process.env.GDE_STAGE_OUT) console.log('stage: vervangt ' + OUT);
   fs.rmSync(process.env.GDE_STAGE_OUT ? OUT : path.join(HERE, 'build'), { recursive: true, force: true });
   // tts.json records how each voice clip was made; the game never reads it
   // build-only modules of game/js (scripts/lib/buildonly.mjs) stay out of the app
@@ -190,7 +214,8 @@ async function main() {
     if (done.has(url) || !url.startsWith(CDN)) continue;
     done.add(url);
     const rel = url.slice(CDN.length);
-    const buf = await cached(url, path.join('npm', rel));
+    // forward slashes: de lock moet op Windows en Linux dezelfde sleutels hebben (#593)
+    const buf = await cached(url, 'npm/' + rel);
     const dst = path.join(OUT, 'vendor', 'npm', rel);
     fs.mkdirSync(path.dirname(dst), { recursive: true });
     fs.writeFileSync(dst, buf);
@@ -201,18 +226,30 @@ async function main() {
   }
   console.log(`vendored ${done.size} modules`);
 
-  // 3. the fonts
-  let css = (await cached(FONT_CSS, 'fonts/fonts-v2.css')).toString('utf8');
+  // 3. the fonts. De CSS staat vast in desktop/vendor-fonts.css: Google serveert twee
+  // varianten van zijn CSS (met /s/- of /l/font?-URL's), dus een lock op de opgehaalde CSS
+  // of op index-genummerde bestanden zou per build verschillen. De vijf vaste
+  // gstatic-URL's uit die CSS moeten aan de sha256-lock voldoen (#593).
+  let css = fs.readFileSync(path.join(HERE, 'vendor-fonts.css'), 'utf8');
   const fontUrls = [...new Set([...css.matchAll(/url\((https:\/\/fonts\.gstatic\.com\/[^)]+)\)/g)].map((m) => m[1]))];
   for (const [i, u] of fontUrls.entries()) {
     const name = `font-${i}${path.extname(new URL(u).pathname) || '.woff2'}`;
-    const buf = await cached(u, path.join('fonts', name));
+    const buf = await cached(u, 'fonts/' + name);
     fs.mkdirSync(path.join(OUT, 'vendor', 'fonts'), { recursive: true });
     fs.writeFileSync(path.join(OUT, 'vendor', 'fonts', name), buf);
     css = css.split(u).join(RELATIVE ? name : `/vendor/fonts/${name}`);
   }
   fs.writeFileSync(path.join(OUT, 'vendor', 'fonts', 'fonts.css'), css);
   console.log(`vendored fonts (${fontUrls.length} files)`);
+  // #593: de lock hoort bij de bytes die zojuist zijn gecontroleerd; bewust bijwerken mag,
+  // stil meeschuiven nooit.
+  if (UPDATE_LOCK) {
+    fs.writeFileSync(LOCK_PATH, serializeLock(Object.fromEntries(usedVendor)));
+    console.log(`vendor-lock bijgewerkt: ${usedVendor.size} bestanden -> ${LOCK_FILE}`);
+  } else {
+    const ongebruikt = Object.keys(LOCK.files).filter((k) => !usedVendor.has(k));
+    if (ongebruikt.length) console.warn(`vendor-lock noemt ${ongebruikt.length} bestand(en) die deze build niet (meer) haalt: ${ongebruikt.join(', ')}`);
+  }
 
   // 4. point the game at the local copies
   const vendorDir = (f) => {
@@ -245,14 +282,10 @@ async function main() {
   if (!audio.ok) throw new Error('the stage is missing audio:\n' + formatProblems(audio.problems));
   console.log(`audio files present (${audio.files})`);
 
-  // 6. nothing may still come from the internet at load time
-  const left = [];
-  for (const f of walk(OUT).filter((p) => /\.(js|mjs|html|css)$/.test(p) && !p.includes(`${path.sep}vendor${path.sep}`))) {
-    const src = fs.readFileSync(f, 'utf8');
-    for (const m of src.matchAll(/(?:from\s*|import\s*\(\s*|href=|src=|url\()\s*['"]?(https?:\/\/[^'"\s)>]+)/g)) left.push(`${path.relative(OUT, f)}: ${m[1]}`);
-  }
-  if (left.length) console.log('WARNING - still external:\n  ' + left.join('\n  '));
-  else console.log('offline check: no external load-time URLs left');
+  // 6. nothing may still come from the internet at load time (#593: a failure, not a warning)
+  const offline = checkOffline(OUT);
+  if (!offline.ok) throw new Error('de stage laadt bij het starten nog van internet:\n' + formatProblems(offline.problems) + '\nVendor het bestand of voeg een uitzondering met reden toe in scripts/lib/stagecheck.mjs.');
+  console.log(`offline check: geen externe load-time-URL's in ${offline.files} bestanden`);
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });

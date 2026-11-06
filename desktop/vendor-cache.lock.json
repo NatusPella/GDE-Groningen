@@ -1,0 +1,66 @@
+{
+ "version": 1,
+ "note": "sha256 per binnengehaald vendorbestand (#593); bijwerken met GDE_UPDATE_VENDOR_LOCK=1 node desktop/build.mjs",
+ "files": {
+  "fonts/font-0.woff2": {
+   "url": "https://fonts.gstatic.com/s/bebasneue/v16/JTUSjIg69CK48gW7PXoo9Wdhyzbi.woff2",
+   "sha256": "16c95ce45a2922f52551d38d565d14c92cf257b8f219c89613407d81fdd21a39"
+  },
+  "fonts/font-1.woff2": {
+   "url": "https://fonts.gstatic.com/s/bebasneue/v16/JTUSjIg69CK48gW7PXoo9Wlhyw.woff2",
+   "sha256": "a7c90c89240c134f7fdd33d40c000ec90b79d675ea53e8cc5a6d423c073de412"
+  },
+  "fonts/font-2.woff2": {
+   "url": "https://fonts.gstatic.com/s/bigshouldersdisplay/v24/fC1_PZJEZG-e9gHhdI4-NBbfd2ys3SjJCx1cw9DuHpM.woff2",
+   "sha256": "4d97fd473083e39c42204492f23626787ea036cbb45dc3c9c926114dd62c2700"
+  },
+  "fonts/font-3.woff2": {
+   "url": "https://fonts.gstatic.com/s/bigshouldersdisplay/v24/fC1_PZJEZG-e9gHhdI4-NBbfd2ys3SjJCx1cwtDuHpM.woff2",
+   "sha256": "2239cea544338b4de9b0344f8ce6b2aed761afe2173d40edd6a7cf49fb9308f7"
+  },
+  "fonts/font-4.woff2": {
+   "url": "https://fonts.gstatic.com/s/bigshouldersdisplay/v24/fC1_PZJEZG-e9gHhdI4-NBbfd2ys3SjJCx1czNDu.woff2",
+   "sha256": "698f9960927e7b5a0c38e5bf388cd0a6e42d855062fe70366cf5057664e39401"
+  },
+  "npm/three@0.160.0/build/three.module.js": {
+   "url": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+   "sha256": "76dea8151bc9352aef3528b4262e249b2604f62543828328db978d060d61a495"
+  },
+  "npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js": {
+   "url": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js",
+   "sha256": "d073b438e6a07e1359741dd5d6c76c953420cc0d4fd84eb1bdde94315540e6a3"
+  },
+  "npm/three@0.160.0/examples/jsm/postprocessing/EffectComposer.js": {
+   "url": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/postprocessing/EffectComposer.js",
+   "sha256": "d234e578618fa816955ebdc059c049c577e203e650e33cf22bde3f232c29e669"
+  },
+  "npm/three@0.160.0/examples/jsm/postprocessing/MaskPass.js": {
+   "url": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/postprocessing/MaskPass.js",
+   "sha256": "328cf7db0da5d9be83ffe39d54b01d5ac1fddf108cc98182ddbb056f5c8b537f"
+  },
+  "npm/three@0.160.0/examples/jsm/postprocessing/Pass.js": {
+   "url": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/postprocessing/Pass.js",
+   "sha256": "b3c6128340eaa37e40a6a2f1b738e894c855239417d50959759b34a2b5e89f92"
+  },
+  "npm/three@0.160.0/examples/jsm/postprocessing/ShaderPass.js": {
+   "url": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/postprocessing/ShaderPass.js",
+   "sha256": "3b28a1ee27e0eb96c0eab137a1f442ccf127a926904eced2d51e125ec44af781"
+  },
+  "npm/three@0.160.0/examples/jsm/postprocessing/UnrealBloomPass.js": {
+   "url": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/postprocessing/UnrealBloomPass.js",
+   "sha256": "8f09315c0cec117a0ca2494d3e3586035b3c4323d6dcb037537cc51b04c3cdba"
+  },
+  "npm/three@0.160.0/examples/jsm/shaders/CopyShader.js": {
+   "url": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/shaders/CopyShader.js",
+   "sha256": "4e3346db194db56a596cd074e9bdb39fb5eb52040c333e0d29dc4eb1324d3b1d"
+  },
+  "npm/three@0.160.0/examples/jsm/shaders/LuminosityHighPassShader.js": {
+   "url": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/shaders/LuminosityHighPassShader.js",
+   "sha256": "3d841cc594a0c1767d1b0185720b32761a0133c5f1b70b56658e28f2fb9b7900"
+  },
+  "npm/three@0.160.0/examples/jsm/utils/BufferGeometryUtils.js": {
+   "url": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/utils/BufferGeometryUtils.js",
+   "sha256": "9be041e96308775d00e2695cc607645b9a9b64fd7c0e759dd8f7c00a8d92becb"
+  }
+ }
+}

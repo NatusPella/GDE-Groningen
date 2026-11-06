@@ -10,6 +10,7 @@ const fsSync = require('fs');
 const { argValue, hasFlag } = require('./args.cjs');
 const { steamSwitches } = require('./steamflags.cjs');
 const { isGameUrl, safeExternalUrl } = require('./externurl.cjs');
+const { devtoolsShortcut, insideDir } = require('./guards.cjs');
 
 // window mode survives restarts; fullscreen unless the player chose windowed
 const STATE_FILE = () => path.join(app.getPath('userData'), 'window-state.json');
@@ -22,8 +23,9 @@ function saveWindowState(state) {
 
 const SCHEME = 'app';
 const HOST = 'game';
-// GDE_GAME_DIR serves another staged copy (perf runs against an older build)
-const GAME_DIR = app.isPackaged ? path.join(process.resourcesPath, 'game') : process.env.GDE_GAME_DIR || path.join(__dirname, 'build', 'game');
+// GDE_GAME_DIR serves another staged copy (perf runs against an older build).
+// Resolved once, so the app:// path check compares real folders (#593).
+const GAME_DIR = path.resolve(app.isPackaged ? path.join(process.resourcesPath, 'game') : process.env.GDE_GAME_DIR || path.join(__dirname, 'build', 'game'));
 
 const MIME = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8',
@@ -72,7 +74,8 @@ async function serve(request) {
   let rel = decodeURIComponent(url.pathname);
   if (rel.endsWith('/')) rel += 'index.html';
   const file = path.normalize(path.join(GAME_DIR, rel));
-  if (!file.startsWith(GAME_DIR)) return new Response('Forbidden', { status: 403 });
+  // a folder boundary, not a string prefix: app://game/../game2/x must not be served (#593)
+  if (!insideDir(GAME_DIR, file)) return new Response('Forbidden', { status: 403 });
   try {
     const type = MIME[path.extname(file).toLowerCase()] || 'application/octet-stream';
     // media elements ask for byte ranges (seeking, buffering ahead): answer
@@ -190,7 +193,12 @@ function createWindow() {
       if (!input.isAutoRepeat) win.setFullScreen(!win.isFullScreen());
       e.preventDefault();
     }
-    if (input.key === 'F12' || (input.control && input.shift && input.key.toLowerCase() === 'i')) win.webContents.toggleDevTools();
+    // #593: DevTools only exists with the debug harness (unpackaged or GDE_DEV=1),
+    // so a release build cannot open a scripting console on the player's saves.
+    if (devtools && devtoolsShortcut(input)) {
+      e.preventDefault();
+      win.webContents.toggleDevTools();
+    }
   });
   // debug harness (test switches, benchmark, smoke/story test): not in a packaged install
   const query = [...(devtools ? devtools.queryParts() : [])].filter(Boolean).join('&');

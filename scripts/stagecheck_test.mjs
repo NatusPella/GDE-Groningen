@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { checkWorld, checkAudio } from './lib/stagecheck.mjs';
+import { checkWorld, checkAudio, checkOffline } from './lib/stagecheck.mjs';
 
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gde-stage-test-'));
 process.on('exit', () => fs.rmSync(dir, { recursive: true, force: true }));
@@ -112,6 +112,40 @@ t('een stage zonder audio.js is geen geldige stage', () => {
   const r = checkAudio(leeg);
   assert.equal(r.ok, false);
   assert.match(r.problems.join('\n'), /js\/audio\.js ontbreekt/);
+});
+
+// --- offline (#593 punt 7): wat de build binnenhaalt staat lokaal, de rest is een fout
+t('een stage zonder externe load-time-URL is goed', () => {
+  write('offline/index.html', '<link rel="stylesheet" href="/vendor/fonts/fonts.css"><script type="module" src="./js/main.js"></script>');
+  write('offline/js/main.js', "import * as THREE from '/vendor/npm/three/build/three.module.js';");
+  const r = checkOffline(path.join(dir, 'offline'));
+  assert.equal(r.ok, true, r.problems.join('; '));
+  assert.equal(r.files, 2);
+});
+
+t('een CDN-link of externe stylesheet in de stage is een fout', () => {
+  write('offline/js/cdn.js', "import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';");
+  write('offline/index.html', '<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue" rel="stylesheet">');
+  const r = checkOffline(path.join(dir, 'offline'));
+  assert.equal(r.ok, false);
+  assert.match(r.problems.join('\n'), /externe URL in js\/cdn\.js: https:\/\/cdn\.jsdelivr\.net/);
+  assert.match(r.problems.join('\n'), /externe URL in index\.html: https:\/\/fonts\.googleapis\.com/);
+});
+
+t('de vendor-map zelf is vrij: daar staan de bestanden die de build bewust binnenhaalt', () => {
+  write('offline/vendor/npm/three/build/three.module.js', "const u = 'https://example.invalid/attributie';");
+  const r = checkOffline(path.join(dir, 'offline'));
+  assert.equal(r.ok, false, 'de externe URL in js/cdn.js en index.html telt nog steeds');
+  fs.rmSync(path.join(dir, 'offline', 'js', 'cdn.js'));
+  write('offline/index.html', '<script type="module" src="./js/main.js"></script>');
+  assert.equal(checkOffline(path.join(dir, 'offline')).ok, true, 'alleen vendor heeft een URL');
+});
+
+t('een uitzondering met reden is de enige manier om een externe URL toe te staan', () => {
+  write('offline/js/link.js', "export const ATTRIBUTIE = url('https://www.openstreetmap.org/copyright');");
+  const r = checkOffline(path.join(dir, 'offline'), { allow: [{ match: /^https:\/\/www\.openstreetmap\.org\//, why: 'attributie' }] });
+  assert.equal(r.ok, true, r.problems.join('; '));
+  assert.equal(checkOffline(path.join(dir, 'offline')).ok, false, 'zonder uitzondering is het een fout');
 });
 
 console.log(`stagecheck_test: ${n}/${n} ok`);
