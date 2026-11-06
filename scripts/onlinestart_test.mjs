@@ -250,6 +250,16 @@ function nepRoot(startWaarde) {
   return r;
 }
 
+await t('meedoen uitzetten in een sessie van één noemt geen kamercode (#580)', async () => {
+  naar(true);
+  const solo = zetMeedoen(false, { world: { coopSolo: true, coopNet: { role: 'host', hub: {} } } });
+  assert.equal(solo.tekst, SCHAKELAAR.uit, 'solo: gewone uitleg');
+  naar(true);
+  const host = zetMeedoen(false, { world: { coopNet: { role: 'host', hub: {} } } });
+  assert.equal(host.tekst, SCHAKELAAR.uitSessie, 'echte host: sessie-uitleg');
+});
+
 console.log(`onlinestart_test: ${n}/${n} ok`);
 process.exit(0);
+
 
