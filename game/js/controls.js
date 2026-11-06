@@ -260,6 +260,11 @@ export const PAD_MAPS = {
 // verhaalstap en het lakmenu staan dan ook alleen op het toetsenbord.
 export const PAD_COOP = { vehicle: { up: 'y' }, bus: { up: 'y' }, vehicleManual: { up: 'y' }, skutsje: { up: 'y' }, foot: { up: 'b', left: '7', down: '8', right: '9' } };
 
+// De coöpindeling geldt alleen in een echte sessie (#560). Alleen spelen is sinds #554 wel een sessie
+// (van één), maar er is niemand om een roepje of het stuur aan te geven: daar blijven de gewone
+// D-pad-functies (radio, alarmlichten) werken.
+export const coopLayout = (w) => !!(w && w.coopNet && !w.coopSolo);
+
 // Vraagt Samen spelen om een antwoord (J of N)? Dat doen de wedstrijd (coopwedstrijd3d.js), de opdracht van een gast
 // (coopmissie.js), het overnemen van het spel (coophostwisselnet.js), de stemming en de uitnodiging (coopnet.js) en de
 // PvP-arena. Elk van die schermen leest de toetsen J en N. Deze vraag staat hier (#151) en niet in gamepad.js, zodat de
