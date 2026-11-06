@@ -1,7 +1,7 @@
 // Samen spelen (#377): de spelerslijst (game/js/coopspelers.js) voor Tab en het pauzemenu.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { spelersRijen, rijTekst, afstandTekst, VORM_TEKEN, kanEruitZetten, eruitKnopTekst, eruitGezetTekst, wegMelding, groepenVoor, groepTekstVoor } from '../game/js/coopspelers.js';
+import { spelersRijen, rijTekst, afstandTekst, VORM_TEKEN, veiligeKleur, kanEruitZetten, eruitKnopTekst, eruitGezetTekst, wegMelding, groepenVoor, groepTekstVoor } from '../game/js/coopspelers.js';
 import * as G from '../game/js/coopmissie.js';
 
 let n = 0;
@@ -140,6 +140,28 @@ t('een solo-sessie geeft geen spelerslijst, geen badge en geen avatar-hint', () 
     'de Spel-teller en de Spelers-badge blijven leeg in een sessie van één');
   assert.match(pm, /root\.dataset\.coop = world && world\.coopNet && !isSoloHost\(world\) \? '1' : '0';/,
     'en de rail wordt niet coöp-compact puur omdat de solo-hub bestaat');
+});
+
+// #592: een spelerskleur gaat in een style-attribuut. Alleen '#rrggbb' komt door; een (aangepaste) host kan
+// via het welkomstbericht geen CSS of een externe url meer in de lijst zetten.
+t('spelerskleuren (#592): alleen #rrggbb komt in de lijst en in het style-attribuut', () => {
+  assert.equal(veiligeKleur('#4fb3ff'), '#4fb3ff');
+  assert.equal(veiligeKleur('#ABCDEF'), '#ABCDEF');
+  assert.equal(veiligeKleur('red;background-image:url(https://fout)'), '#cccccc');
+  assert.equal(veiligeKleur('#12345'), '#cccccc');
+  assert.equal(veiligeKleur(null, '#123456'), '#123456');
+  const rijen = spelersRijen({ mijnSlot: 0, roster: [
+    { slot: 0, char: 'tammo', kleur: 'red;background-image:url(https://fout)' },
+    { slot: 1, char: 'rik', avatar: { naam: 'Piet', kleur: 'blue;x' } },
+  ] });
+  assert.ok(rijen.every((r) => /^#[0-9a-f]{6}$/i.test(r.kleur)), JSON.stringify(rijen.map((r) => r.kleur)));
+  assert.equal(rijen.find((r) => r.slot === 0).kleur, '#4fb3ff', 'de kleur van het personage is de terugval');
+  assert.equal(rijen.find((r) => r.slot === 1).naam, 'Piet', 'de naam zelf blijft');
+  const ui = fs.readFileSync(new URL('../game/js/coopspelersui.js', import.meta.url), 'utf8');
+  assert.match(ui, /style="color:\$\{esc\(veiligeKleur\(r\.kleur\)\)\}"/, 'ook bij het tekenen gaat de kleur door de controle');
+  const net = fs.readFileSync(new URL('../game/js/coopnet.js', import.meta.url), 'utf8');
+  assert.match(net, /leesWelkomstLijst\(s\.welcome\)/, 'het welkomstbericht wordt gevalideerd voordat het de spelerslijst wordt');
+  assert.doesNotMatch(net, /world\.coopRoster = s\.welcome\.lijst/, 'de ruwe welkomstlijst komt nergens meer binnen');
 });
 
 console.log(`coopspelers_test: ${n}/${n} ok`);

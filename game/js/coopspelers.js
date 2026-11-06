@@ -10,6 +10,12 @@ import { groepen as groepenLijst } from './coopmissie.js';
 export const VORM_TEKEN = { driehoek: '▲', ruit: '◆', vierkant: '■', cirkel: '●', vijfhoek: '⬟', ster: '★', plus: '✚', kruis: '✖', maan: '☾', hart: '♥', bliksem: 'ϟ', druppel: '◖', blok: '▮', golf: '≈', schild: '⬢', bloem: '✿' };
 export const VERBINDING_TEKST = { ok: 'goed', lag: 'haperd', lost: 'weg' };
 
+// Een spelerskleur komt in een style-attribuut (coopspelersui.js rijHtml): alleen '#rrggbb' komt door,
+// ook als een (aangepaste) host iets anders meestuurt (#592). Escapen alleen is niet genoeg: `;` en `(`
+// overleven esc() en zouden CSS (en daarmee een externe url) kunnen injecteren.
+const HEX_KLEUR = /^#[0-9a-f]{6}$/i;
+export const veiligeKleur = (kleur, terug = '#cccccc') => (HEX_KLEUR.test(String(kleur || '')) ? String(kleur) : terug);
+
 export function afstandTekst(d) {
   if (!Number.isFinite(d)) return '';
   return d < 15 ? 'bij je' : d >= 1000 ? `${(d / 1000).toFixed(1).replace('.', ',')} km` : `${Math.round(d / 10) * 10} m`;
@@ -58,7 +64,7 @@ export function spelersRijen({ mijnSlot = 0, roster = [], partners = [], mijn = 
     const av = r.avatar && typeof r.avatar === 'object' ? r.avatar : {}; // (#455) de eigen online-avatar gaat voor de naam en kleur van het personage
     const g = (groepen || []).find((x) => x && (x.leider === r.slot || (x.deelnemers || []).includes(r.slot))) || null; // de groep van deze speler (#492)
     rijen.push({
-      slot: r.slot, naam: av.naam || r.naam || c.naam || '?', kleur: av.kleur || r.kleur || c.kleur || '#cccccc', vorm: r.vorm || c.vorm || 'cirkel', jij,
+      slot: r.slot, naam: av.naam || r.naam || c.naam || '?', kleur: veiligeKleur(av.kleur, veiligeKleur(r.kleur, veiligeKleur(c.kleur))), vorm: r.vorm || c.vorm || 'cirkel', jij,
       verbinding: r.verbinding || 'ok', verbindingTekst: VERBINDING_TEKST[r.verbinding || 'ok'] || 'goed', ms: Number.isFinite(ms) ? Math.round(ms) : null,
       passief: isPassief(pvp, r.slot), pvpInSpel: pvpInSpel(pvp), // #447: wie passief is; de stand telt als zichtbaar zodra iemand bewust op actief staat
       groep: groepTekstVoor(g, r.slot), leidt: !!(g && g.leider === r.slot), // "leidt <label>" of alleen de groep; een niet-deelnemer niets (#492)

@@ -4,6 +4,7 @@ import { Pass, FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { getSettings } from './settings.js';
+import { effectsFor } from './a11ylogic.js';
 import { drunkVisual } from './drunk.js';
 import { noteGfxEvent } from './blackframe.js';
 import { FLAGS } from './devflags.js';
@@ -147,9 +148,12 @@ const fxNow = [1, 1, 1];
 let fxLast = 0, flashAt = -1e9, flashBig = false;
 
 // The trailer's cut flash; false when there is no pass (the caller then
-// uses its DOM overlay).
+// uses its DOM overlay). "Flitsen beperken" (#592) also covers this one: it
+// is a screen-wide white flash like the DOM ones, so without the setting the
+// callers either fall back to the (hidden) DOM flash or flash nothing.
 export function flashScreen(big = false) {
   if (!document.body.classList.contains('gpu-screenfx')) return false;
+  if (!effectsFor({ reduceFlash: getSettings().reduceFlash }).screenFlash) return false;
   flashAt = performance.now();
   flashBig = big;
   return true;

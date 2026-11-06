@@ -87,6 +87,15 @@ export function wijsPlekToe(r, wens = null) {
   r.spelers.push({ slot, char: gekozen.id, rol: 'gast', verbinding: 'ok' });
   return { slot, char: gekozen.id };
 }
+// Het welkomstbericht bevat dezelfde korte lijst als lijstEvent; de gast controleert hem net zo goed als het
+// latere 'spelers'-bericht (#592). Zonder deze controle komt een kleur van de host ongevalideerd in de
+// spelerslijst (style-attribuut) terecht. Geeft de schone lijst of null als het bericht niet klopt.
+export function leesWelkomstLijst(welcome) {
+  if (!welcome || !Array.isArray(welcome.lijst)) return null;
+  const l = leesLijstEvent({ k: 'spelers', max: welcome.max, lijst: welcome.lijst });
+  return l ? l.spelers : null;
+}
+
 export function verwijder(r, slot) {
   if (slot === 0) return false; // de host gaat nooit uit de lijst
   const i = r.spelers.findIndex((s) => s.slot === slot);
