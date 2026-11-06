@@ -18,6 +18,7 @@ When you fix one, remove the row in the same commit.
 | 8 | The players list has no way on touch and none in a vehicle on a controller (R3 means Tab on foot, but look back in a vehicle). The code comment says "left in the screen" while the CSS puts it top centre | `controls.js` `PAD_MAPS`, `coopspelersui.js` | every action has a way on every device | open |
 | 9 | The pause menu's Besturing table says Q/E mean "vorige of volgende sectie", but the code switches tabs first and sections only on a screen without tabs | `pausemenu.js:121` against the Q/E handler at `:826` | text says what the key does | docs fix in the code text |
 | 10 | Two focus rings: cream 2 px in menus, green 2 px with a controller (`!important`). Both visible, but the player sees two styles | `menu.css`, `a11y.css` | one visible focus | besluit nodig |
+| 11 | The in-world TV overlay (turning the Kiekdoar TV on or off) carries its own inline `<style>` with 17 px Arial and its own hexes; the Spullen screen itself is the shared `.gm` panel in `spullen.js` (no 3D preview), so only this HUD overlay is outside the set | `furniture.js:572` | one surface, one button set | open |
 
 ## Where equality of players is only partly true in the UI
 

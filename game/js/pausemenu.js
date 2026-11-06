@@ -32,7 +32,7 @@ import { renderLoopbaanPanel } from './loopbaanui.js';
 import { renderVisboekPanel } from './visboekui.js';
 import { renderBoerderijPanel } from './boerderijui.js';
 import { unseenAchievementCount } from './achievements.js';
-import { renderGaragePanel, selectGarageVehicle, disposeGarageViewer, garageNaarWinkel } from './garageui.js';
+import { renderGaragePanel, selectGarageVehicle, disposeGarageViewer, garageNaarWinkel, turnGarageViewer } from './garageui.js';
 import { deliverOwnedVehicle, locateOwnedVehicle } from './ownedvehicles.js';
 import { isShopOpen, closeShopMenu } from './shopui.js';
 import { benchmarkViaReload } from './trailerstate.js';
@@ -867,6 +867,9 @@ function onKey(e) {
     if (tab === 'map' && !inRail) cycleSection(e.shiftKey ? -1 : 1);
     else tabFocus(e.shiftKey ? -1 : 1);
   } else if (dir) {
+    // de draaitafel van de Garage: links en rechts draaien het model als de
+    // focus op het model staat (#610); omhoog/omlaag blijven focus verplaatsen
+    if (tab === 'garage' && (dir === 'left' || dir === 'right') && t && t.closest && t.closest('.gar-stage') && turnGarageViewer(dir === 'left' ? -1 : 1)) { consume(e); return; }
     // the map pans with the arrows (and WASD) unless the rail has focus
     if (tab === 'map' && !inRail) return;
     if (t && t.tagName === 'SELECT') return;
