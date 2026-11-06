@@ -29,7 +29,14 @@ export function parseRoom(text) {
 }
 
 const b64u = (u8) => btoa(String.fromCharCode(...u8)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-const unb64u = (s) => { const t = s.replace(/-/g, '+').replace(/_/g, '/'); const bin = atob(t + '==='.slice((t.length + 3) % 4)); return Uint8Array.from(bin, (c) => c.charCodeAt(0)); };
+// #589: alles wat van een broker komt is onbegrensd, dus de lengte wordt vóór atob/decryptie gecontroleerd.
+// Een versleuteld SDP-aanbod van 20.000 tekens past ruim in MAX_BLOB_CHARS; een publieke sleutel is 87 tekens.
+export const MAX_BLOB_CHARS = 65536;
+export const MAX_KEY_CHARS = 120;
+const unb64u = (s, max = MAX_BLOB_CHARS) => {
+  if (typeof s !== 'string' || s.length > max) throw new Error('te groot');
+  const t = s.replace(/-/g, '+').replace(/_/g, '/'); const bin = atob(t + '==='.slice((t.length + 3) % 4)); return Uint8Array.from(bin, (c) => c.charCodeAt(0));
+};
 
 const keyCache = new Map();
 async function keyFor(room) {
@@ -46,10 +53,11 @@ export async function encryptBlob(room, text) {
   const out = new Uint8Array(12 + ct.length); out.set(iv); out.set(ct, 12);
   return b64u(out);
 }
-// Geeft de tekst terug, of null bij een verkeerde code of een geknoeide blob.
+// Geeft de tekst terug, of null bij een verkeerde code, een geknoeide blob of een blob die te groot is (#589).
 export async function decryptBlob(room, blob) {
   try {
-    const raw = unb64u(String(blob));
+    if (typeof blob !== 'string' || blob.length > MAX_BLOB_CHARS) return null;
+    const raw = unb64u(blob);
     if (raw.length < 12 + 16) return null;
     const pt = await subtle().decrypt({ name: 'AES-GCM', iv: raw.slice(0, 12) }, await keyFor(room), raw.slice(12));
     return dec.decode(pt);
@@ -79,7 +87,8 @@ export async function sleutelTekst(paar) {
   return b64u(raw);
 }
 export async function sleutelVanTekst(tekst) {
-  const raw = unb64u(String(tekst));
+  if (typeof tekst !== 'string' || tekst.length > MAX_KEY_CHARS) throw new Error('Geen geldige sleutel.');
+  const raw = unb64u(tekst, MAX_KEY_CHARS);
   if (raw.length !== SLEUTEL_BYTES || raw[0] !== 4) throw new Error('Geen geldige sleutel.');
   return subtle().importKey('raw', raw, ECDH, false, []);
 }
@@ -96,7 +105,8 @@ export async function versleutelVoor(sleutel, tekst, nonce) {
 }
 export async function ontsleutelVoor(sleutel, blob, nonce) {
   try {
-    const raw = unb64u(String(blob));
+    if (typeof blob !== 'string' || blob.length > MAX_BLOB_CHARS) return null; // #589: vóór atob begrenzen
+    const raw = unb64u(blob);
     if (raw.length < 12 + 16) return null;
     const pt = await subtle().decrypt({ name: 'AES-GCM', iv: raw.slice(0, 12), additionalData: enc.encode(String(nonce)) }, sleutel, raw.slice(12));
     return dec.decode(pt);

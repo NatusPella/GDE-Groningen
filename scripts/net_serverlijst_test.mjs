@@ -134,6 +134,16 @@ t('misbruik: de oude aankondiging met een kamercode (formaat 1) komt er niet mee
   assert.equal(l.afgewezen.formaat, 1);
   assert.equal(l.lijst().length, 0);
 });
+t('misbruik: hetzelfde id verandert niet van versie of protocol (#589)', () => {
+  const l = lijst(); zend(l, {});
+  const ander = codeer(info({ versie: '9.9.9', nu: T0 + 15000 }));
+  assert.deepEqual(l.ontvang(ander, T0 + 15000), { ok: false, reason: 'ander' });
+  assert.equal(l.lijst()[0].versie, '0.46.0', 'de echte rij blijft staan');
+  assert.equal(l.afgewezen.ander, 1);
+  // naam en aantal zijn zelf gerapporteerd en niet te verifiëren; de lijst is een vindplaats, geen identiteit
+  assert.equal(l.ontvang(codeer(info({ naam: 'Andere naam', nu: T0 + 30000 })), T0 + 30000).ok, true);
+  assert.equal(l.lijst()[0].naam, 'Andere naam');
+});
 t('misbruik: een vloed van nieuwe afzenders wordt afgekapt (60 per minuut); de lijst bewaart alles en de pagina toont 20', () => {
   const l = lijst(); let toe = 0, af = 0;
   for (let i = 0; i < 100; i++) {

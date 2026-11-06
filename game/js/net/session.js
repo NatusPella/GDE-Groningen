@@ -21,6 +21,13 @@ export { INTERP_DELAY, EXTRA_MAX as MAX_EXTRAPOLATE } from './interp.js'; // de 
 export const STALE_INPUT = 0.5;    // s zonder invoer: de host neutraliseert (geen vastzittende toets)
 const PING_EVERY = 1;
 
+// #589: een verbinding die klaar is, gaat ook echt dicht. Het afscheidsbericht
+// (BYE, 'weg') krijgt eerst nog even de tijd om de deur uit te gaan.
+export const SLUIT_NA_MS = 250;      // ms: na het afscheid nog even de tijd om te versturen
+export const REJECTED_MAX = 16;      // host: zoveel weigeringsredenen onthouden we, niet meer (het is een diagnoselijst)
+export const BAD_HELLO_MAX = 5;      // host: zoveel mislukte kennismakingen op één verbinding, dan gaat hij dicht
+export const OVERFLOW_MAX_S = 5;     // s dat de betrouwbare wachtrij vol zit voordat de host de gast laat gaan
+
 export function makeToken(rand = Math.random) {
   let s = ''; for (let i = 0; i < 12; i++) s += Math.floor(rand() * 36).toString(36); return s;
 }
@@ -31,10 +38,25 @@ class Base {
     this.now = 0; this.tickN = 0; this.rel = new Reliable();
     this.lastRecv = 0; this.status = 'verbinden'; this.rtt = 0; this.pingT = 0;
     this.onstatus = null; this.onevent = null;
+    this._sluitTimer = null;
     this._attach(link);
   }
   _attach(link) { this.link = link; link.onmessage = (b) => this._raw(b); }
   rebind(link) { this._attach(link); } // nieuw transport na wegvallen (hervatten met hetzelfde token)
+  // #589: na het afscheidsbericht (BYE, 'weg') gaat het transport ook echt dicht.
+  // Niet meteen: een kanaal of TCP-verbinding moet het bericht nog kunnen
+  // versturen. Daarna blijft er geen open datachannel of socket meer over.
+  _sluitLink(ms = SLUIT_NA_MS) {
+    if (this._sluitTimer) return;
+    const link = this.link;
+    const dicht = () => {
+      this._sluitTimer = null;
+      try { if (link) { link.onmessage = null; if (link.close) link.close(); } } catch (e) { /* al weg */ }
+    };
+    if (!(ms > 0)) { dicht(); return; }
+    this._sluitTimer = setTimeout(dicht, ms);
+    if (this._sluitTimer && this._sluitTimer.unref) this._sluitTimer.unref(); // onder Node (de tests) houdt dit het proces niet open
+  }
   _emit(bytes) { return this.link.send(bytes); }
   _setStatus(s) { if (s !== this.status) { this.status = s; if (this.onstatus) this.onstatus(s); } }
   // geeft event-bodies door; ACK en ping zijn intern
@@ -74,8 +96,22 @@ export class HostSession extends Base {
     this.guest = null;             // { token, lastInputSeq, input, lastInputAt, joined }
     this.snapAcc = 0; this.snapSeq = 0; this.extraAcc = 0; this.extraSeq = 0; this.lostAt = null;
     this.onlost = null; this.onjoin = null; this.onrelease = null; this.rejected = [];
+    this.gesloten = false;      // na een kick, verbod of release: deze verbinding neemt niets meer aan (#589)
+    this.badHellos = 0;         // mislukte kennismakingen op deze verbinding; daarna gaat hij dicht (#589)
+    this.dropped = 0;           // betrouwbare berichten die niet in de wachtrij pasten (#589)
+    this.overflowSinds = null;  // wanneer de wachtrij vol liep (#589)
+    this._dropGemeld = false;   // één waarschuwing per sessie, geen regel per bericht
+  }
+  // Een geweigerde kennismaking: de reden in een korte lijst (begrensd), en na
+  // een paar pogingen gaat de verbinding dicht in plaats van WELCOME's te blijven sturen (#589).
+  _weiger(reden) {
+    this.rejected.push(reden);
+    if (this.rejected.length > REJECTED_MAX) this.rejected.splice(0, this.rejected.length - REJECTED_MAX);
+    this.badHellos++;
+    if (this.badHellos >= BAD_HELLO_MAX && !this.gesloten) { this.gesloten = true; this._sluitLink(); }
   }
   _raw(buf) {
+    if (this.gesloten) return; // #589: een gekickte of verbannen verbinding wordt niet meer gehoord
     const h = readHeader(buf); if (!h) return;
     if (h.type === T.HELLO) return this._hello(buf);
     if (!this.guest) return; // eerst een geldige hello
@@ -94,37 +130,47 @@ export class HostSession extends Base {
     else if (h.type === T.BYE) this._release('weg');
   }
   _hello(buf) {
+    if (this.gesloten) return;
     const m = decodeJson(buf); if (!m) return;
     const r = checkHandshake(this.cfg.info, m.body);
     const reply = (b) => this._emit(encodeJson(T.WELCOME, 0, this.tickN, 0, b));
-    if (!r.ok) { this.rejected.push(r.reason); return reply({ ok: false, reason: r.reason, version: String(this.cfg.info.version || '') }); }
+    const weiger = (reden, metVersie = false) => {
+      this._weiger(reden);
+      return reply({ ok: false, reason: reden, ...(metVersie ? { version: String(this.cfg.info.version || '') } : null) });
+    };
+    if (!r.ok) return weiger(r.reason, true);
     // Een sessie op slot (#450): ook een terugkerende gast moet het wachtwoord opnieuw noemen, en een verbannen token
     // komt er niet meer in. Dezelfde weg als elke andere weigering: het welkom zegt waarom, de verbinding blijft wachten.
     const ww = this.cfg.wachtwoord ? String(this.cfg.wachtwoord() || '') : '';
-    if (ww && String(m.body.wachtwoord == null ? '' : m.body.wachtwoord) !== ww) { this.rejected.push('wachtwoord'); return reply({ ok: false, reason: 'wachtwoord', version: String(this.cfg.info.version || '') }); }
+    if (ww && String(m.body.wachtwoord == null ? '' : m.body.wachtwoord) !== ww) return weiger('wachtwoord', true);
     const verboden = this.cfg.verboden ? this.cfg.verboden() : null;
-    if (verboden && m.body.token && verboden.has(String(m.body.token))) { this.rejected.push('verbod'); return reply({ ok: false, reason: 'verbod', version: String(this.cfg.info.version || '') }); }
+    if (verboden && m.body.token && verboden.has(String(m.body.token))) return weiger('verbod', true);
     const tok = m.body.token;
+    // Een gast die al speelt (zijn invoer kwam al binnen) hoeft geen tweede welkom. Een late of
+    // herhaalde HELLO is ruis en mag geen WELCOME per bericht kosten (#589); een andere of ontbrekende
+    // token blijft wel een geweigerde kennismaking, zodat de ander weet waarom. Na een weggevallen
+    // verbinding (status 'lost') is een HELLO met hetzelfde token juist de hervatting.
+    if (this.guest && this.status !== 'lost' && this.guest.lastInputSeq != null && tok && tok === this.guest.token) return;
     if (this.guest && tok && tok === this.guest.token) { // hervatten of herhaalde hello
       const resumed = this.status === 'lost';
-      this.lastRecv = this.now; this.lostAt = null; this._setStatus('ok');
+      this.lastRecv = this.now; this.lostAt = null; this.badHellos = 0; this._setStatus('ok');
       reply(this._welkom({ ok: true, slot: this.slot, token: this.guest.token, seed: this.cfg.seed, resumed, caps: this.caps, ...this.extra }));
       if (resumed) { this.rel.reset(); this._sendResync(); }
       return;
     }
     if (this.guest && !tok && this.guest.lastInputSeq == null) { // welkom ging verloren: herhaal
-      this.lastRecv = this.now; this._setStatus('ok');
+      this.lastRecv = this.now; this.badHellos = 0; this._setStatus('ok');
       return reply(this._welkom({ ok: true, slot: this.slot, token: this.guest.token, seed: this.cfg.seed, resumed: false, caps: this.caps, ...this.extra }));
     }
-    if (this.guest && this.status !== 'lost') { this.rejected.push('vol'); return reply({ ok: false, reason: 'vol' }); }
-    if (this.guest && tok !== this.guest.token) { this.rejected.push('token'); if (tok) return reply({ ok: false, reason: 'token' }); }
+    if (this.guest && this.status !== 'lost') return weiger('vol');
+    if (this.guest && tok !== this.guest.token) { this._weiger('token'); if (tok) return reply({ ok: false, reason: 'token' }); }
     if (this.cfg.assign) { // meerdere spelers: de hub wijst een plek en een figuur toe, of zegt dat het vol is
       const a = this.cfg.assign(m.body);
-      if (!a) { this.rejected.push('vol'); return reply({ ok: false, reason: 'vol' }); }
+      if (!a) return weiger('vol');
       this.slot = a.slot; this.extra = a.extra || {};
     }
     this.guest = { token: makeToken(this.rand), lastInputSeq: null, input: neutral(), lastInputAt: this.now, joinedAt: this.now };
-    this.lastRecv = this.now; this.lostAt = null; this.rel.reset(); this._setStatus('ok');
+    this.lastRecv = this.now; this.lostAt = null; this.rel.reset(); this.badHellos = 0; this._setStatus('ok');
     this.caps = negotiate(this.cfg.caps, m.body.caps);
     reply(this._welkom({ ok: true, slot: this.slot, token: this.guest.token, seed: this.cfg.seed, resumed: false, caps: this.caps, ...this.extra }));
     this._sendResync();
@@ -147,12 +193,24 @@ export class HostSession extends Base {
   _sendResync() { this.sendEvent({ k: 'resync', state: this.cfg.sim.fullState() }); }
   _release(why) {
     if (this.guest && this.cfg.onRelease) this.cfg.onRelease(this.slot, why);
-    this.guest = null; this.lostAt = null; this._setStatus('verbinden');
+    this.guest = null; this.lostAt = null; this.gesloten = true; this._setStatus('verbinden');
     if (this.onrelease) this.onrelease(this.slot, why);
+    this._sluitLink(); // #589: het afscheid is geweest, de verbinding gaat dicht
   }
   tick(dt) {
     this._tickCommon(dt);
     if (!this.guest) return;
+    // #589: een gast die zijn betrouwbare wachtrij structureel laat vollopen (tab op de achtergrond,
+    // kanaal hapert) houdt anders voor altijd 32 berichten vast. Na een paar seconden gaat hij met een
+    // gewoon afscheid weg; een gast met een oude missie/scène kan de hash-desync niet redden.
+    const vol = this.rel.pending.length >= this.rel.maxPending;
+    if (vol && this.overflowSinds == null) this.overflowSinds = this.now;
+    else if (!vol) this.overflowSinds = null;
+    if (this.overflowSinds != null && this.now - this.overflowSinds >= OVERFLOW_MAX_S) {
+      console.warn(`samen spelen: de wachtrij van plek ${this.slot} zit ${OVERFLOW_MAX_S} s vol; de verbinding wordt verbroken`);
+      this.leave();
+      return;
+    }
     const q = this._quiet();
     if (this.status === 'ok' && q >= LAG_AFTER) this._setStatus('lag');
     if ((this.status === 'ok' || this.status === 'lag') && q >= LOST_AFTER) {
@@ -182,7 +240,15 @@ export class HostSession extends Base {
     }
   }
   // gebeurtenis voor de gast (missie, cutscene-start, geld): betrouwbaar
-  announce(body) { return this.guest ? this.sendEvent(body) : false; }
+  announce(body) {
+    if (!this.guest) return false;
+    const ok = this.sendEvent(body);
+    if (!ok) { // #589: niet stil laten verdwijnen; de volgende snapshot/desync of het afscheid neemt het over
+      this.dropped++;
+      if (!this._dropGemeld) { this._dropGemeld = true; console.warn('samen spelen: een betrouwbaar bericht paste niet in de wachtrij (de gast reageert niet)'); }
+    }
+    return ok;
+  }
   leave() { this._emit(encodeSimple(T.BYE, 0, 0, 0)); this._release('weg'); }
 }
 // Uitbreidbaar: elke kant noemt wat hij kan (bijv. 'scene', 'spelers>2'); gebruikt wordt
@@ -273,7 +339,7 @@ export class ClientSession extends Base {
       if (this.lastExtraSeq != null && !seqNewer(x.seq, this.lastExtraSeq)) return; // oud of dubbel
       this.lastExtraSeq = x.seq;
       if (this.onextra) this.onextra(x.payload, x.seq);
-    } else if (h.type === T.BYE) { this.joined = false; this._setStatus('verbroken'); }
+    } else if (h.type === T.BYE) { this.joined = false; this._setStatus('verbroken'); this._sluitLink(); }
   }
   _onEvent(b) {
     if (b.k === 'resync' && this.onresync) this.onresync(b.state);
@@ -324,7 +390,7 @@ export class ClientSession extends Base {
   world() { return this.buf.sample(); }
   // de gast vraagt de host om zijn toestand opnieuw (desync, net/desync.js); het antwoord komt als 'resync' bij onresync
   requestResync() { this._emit(encodeSimple(T.RESYNC, 0, 0, 0)); }
-  leave() { this._emit(encodeSimple(T.BYE, 0, 0, 0)); this.joined = false; this._setStatus('verbroken'); }
+  leave() { this._emit(encodeSimple(T.BYE, 0, 0, 0)); this.joined = false; this._setStatus('verbroken'); this._sluitLink(); }
 }
 
 export { PROTO };

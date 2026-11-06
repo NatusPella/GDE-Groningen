@@ -1542,10 +1542,21 @@ export function payGuest(world, geld, slot = null, extra = null, id = null) {
 }
 zetBijbaanHaken({ betaalGast: (world, slot, geld, extra, id) => payGuest(world, geld, slot, extra, id) }); // de volledige beloning van een bijbaan, per ronde met een vaste id (#452)
 zetWedHaken({ betaalGast: (world, slot, geld, extra) => payGuest(world, geld, slot, extra) }); // een race tegen elkaar betaalt per plek in de eigen portemonnee en loopbaan van elke gast (#443)
-// Host: een speler verwijderen (eerst een bericht, dan verbreken).
+// Host: een speler verwijderen (eerst een bericht, dan verbreken). #589: eruit zetten is blijvend voor deze sessie:
+// zijn token gaat op de verbodenlijst, een late HELLO op deze verbinding wordt genegeerd en de verbinding gaat na
+// het afscheid dicht. Zonder dat kwam een griefer met dezelfde verbinding of een nieuwe code zo weer binnen.
 export function removeGuest(world, slot = 1) {
-  const n = world.coopNet; if (!n || n.role !== 'host') return false;
+  const n = world.coopNet; if (!n || n.role !== 'host' || !n.hub) return false;
+  const ses = n.hub.sessions.get(slot);
+  if (!ses) return false;
+  const token = ses.guest && ses.guest.token;
+  if (token) {
+    const lijst = n.hub.cfg.verboden || (n.hub.cfg.verboden = new Set());
+    lijst.add(String(token));
+    while (lijst.size > VERBODEN_MAX) lijst.delete(lijst.values().next().value);
+  }
   if (!n.hub.kick(slot)) return false;
+  ses.gesloten = true; // geen tweede kennismaking op deze verbinding (#589); de hub sluit hem na REMOVE_DELAY
   n.removing[slot] = REMOVE_DELAY; return true;
 }
 export function setMaxPlayers(world, max) {
@@ -1560,17 +1571,9 @@ export function zetWachtwoord(world, wachtwoord = '') {
   n.hub.cfg.wachtwoord = ww;
   return ww.length > 0;
 }
-// Beheerder van een sessie (#450): iemand verwijderen én de deur voor hem dichtdoen. De gastheer kent alleen het token
-// van die verbinding (geen naam, geen adres); het blijft in het geheugen tot de gastheer opnieuw start.
+// Beheerder van een sessie (#450): iemand verwijderen én de deur voor hem dichtdoen. Sinds #589 doet removeGuest dat
+// al; deze naam blijft voor de bestaande aanroepers en tests.
 export function verbiedGast(world, slot = 1) {
-  const n = world.coopNet; if (!n || n.role !== 'host' || !n.hub) return false;
-  const ses = n.hub.sessions.get(slot);
-  const token = ses && ses.guest && ses.guest.token;
-  if (token) {
-    const lijst = n.hub.cfg.verboden || (n.hub.cfg.verboden = new Set());
-    lijst.add(String(token));
-    while (lijst.size > VERBODEN_MAX) lijst.delete(lijst.values().next().value);
-  }
   return removeGuest(world, slot);
 }
 
