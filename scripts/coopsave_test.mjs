@@ -76,4 +76,25 @@ t('een gast bewaart zijn verdiensten meteen, ook achter het pauzemenu, en hoort 
   assert.match(src, /gastBewaarMeld\(w\)/, 'een mislukte schrijfbeurt wordt gemeld en opnieuw geprobeerd');
 });
 
+t('#566: de schade van de heldenauto van de gastheer komt niet in de eigen save van de gast', () => {
+  const data = { money: 40, shops: { hero: { health: 55, dents: [[1, 2, 0.5]] }, outfit: { tammo: 'stadjer' }, vehicles: [] } };
+  const mine = { money: 40, shops: { hero: { health: 100, dents: [] }, outfit: { tammo: 'zomer' }, vehicles: [] } };
+  const r = S.applyGuestChanges(data, mine, 0);
+  assert.equal(r.shops.hero.health, 55, 'de eigen schade van de gast blijft');
+  assert.deepEqual(r.shops.hero.dents, [[1, 2, 0.5]]);
+  assert.deepEqual(r.shops.outfit, { tammo: 'zomer' }, 'wat de gast zelf koos gaat wel mee');
+  // de gast rijdt bij de gastheer schade: dat is de auto van de gastheer (de proxy) en raakt zijn eigen save niet
+  const na = S.applyGuestChanges(r, { ...mine, money: 60, shops: { ...mine.shops, hero: { health: 20, dents: [[2, 1, 0]] } } }, 0);
+  assert.equal(na.shops.hero.health, 55, 'de proxy-auto van de gastheer raakt de eigen save niet');
+  assert.equal(na.money, 60);
+  // alleen het verschil in de auto van de gastheer: dan valt er niets te bewaren
+  assert.equal(S.applyGuestChanges({ money: 5, moneyBackup: 5, shops: { hero: { health: 10 } } }, { money: 5, shops: { hero: { health: 90 } } }, 0), null,
+    'alleen de schade van de gastheer is geen wijziging van de eigen save');
+  // nog geen heldenauto in de eigen save: er komt geen schade van de gastheer in
+  assert.deepEqual(S.applyGuestChanges({ money: 3, shops: { vehicles: [] } }, mine, 0).shops.hero, {});
+  // zonder shops in de momentopname blijft de eigen save zoals hij was
+  const zonder = S.applyGuestChanges({ money: 3, shops: { hero: { health: 7 } } }, { money: 4 }, 0);
+  assert.deepEqual(zonder.shops.hero, { health: 7 });
+});
+
 console.log(`coopsave_test: ${n}/${n} ok`);

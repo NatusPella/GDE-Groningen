@@ -120,8 +120,9 @@ ok(() => assert.match(ui, /over\.n === s\.n && over\.kind !== 'coop-load'/), 'sl
 ok(() => assert.match(ui, /class="ssl-over ssl-modal"/), 'slotpaneel: de vraag staat over het hele paneel');
 ok(() => assert.match(css, /#saveslots \.ssl-modal \{[^}]*inset: 0;/), 'css: het vraagscherm vult het paneel');
 ok(() => assert.match(css, /#saveslots \.ssl-modal \.ssl-box \{[^}]*overflow-y: auto;/), 'css: het vak scrolt als het niet past');
-ok(() => assert.match(ui, /act === 'delete' && cur\) \{\s*if \(cur\.active && coopSessieLoopt\(world\)\)/), 'slotpaneel: verwijderen van het actieve slot geblokkeerd');
-ok(() => assert.match(ui, /act === 'delete-ok' && cur\) \{\s*over = null;\s*if \(cur\.active && coopSessieLoopt\(world\)\)/), 'slotpaneel: bevestiging van verwijderen ook geblokkeerd');
+ok(() => assert.match(ui, /act === 'delete' && cur\) \{[\s\S]{0,300}if \(spelDatNuLoopt\(cur\)\) \{ over = null; message = NU_SPEL_NIET_WEG; render\(\{ more: cur\.n \}\); return; \}/), 'slotpaneel: het spel dat nu loopt kan niet verwijderd worden (#564)');
+ok(() => assert.match(ui, /act === 'delete' && cur\) \{[\s\S]{0,400}if \(cur\.active && coopSessieLoopt\(world\)\) \{ over = null; message = COOP_WISSEN_TEKST;/), 'slotpaneel: verwijderen van het actieve slot geblokkeerd tijdens een sessie');
+ok(() => assert.match(ui, /act === 'delete-ok' && cur\) \{\s*over = null;\s*if \(spelDatNuLoopt\(cur\)\) \{ message = NU_SPEL_NIET_WEG; render\(\); return; \}\s*if \(cur\.active && coopSessieLoopt\(world\)\) \{ message = COOP_WISSEN_TEKST; render\(\); return; \}/), 'slotpaneel: bevestiging van verwijderen ook geblokkeerd');
 ok(() => assert.match(ui, /act === 'newfull-ok'/) && assert.match(ui, /coopSessieLoopt\(world\)\) \{ say\(COOP_NIEUW_TEKST\)/), 'slotpaneel: nieuw spel geblokkeerd');
 
 // --- de pauzemenu: "Laatste spel laden" vraagt hetzelfde, in plaats van de oude blokkade ---

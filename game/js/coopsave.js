@@ -42,6 +42,7 @@ export function clearSession(storage) { try { storage.removeItem(KEYS.coopSessio
 // niets te doen is. Het geld blijft een geheel getal en nooit negatief.
 // Wat een gast in de wereld van de host zelf doet (winkelen, eten, #291) verandert zijn eigen geld en spullen; die velden
 // komen in zijn eigen save, de rest van die save (verhaal, plek, personage, missies) blijft zoals hij was.
+// Uitzondering (#566): `shops.hero` is de heldenauto van de gastheer in diens wereld; die schade blijft van de gastheer.
 export const GAST_VELDEN = ['money', 'health', 'armor', 'weapon', 'ammo', 'stats', 'shops', 'meubels', 'financien', 'prestaties'];
 // data = de save in de slot, mine = de toestand van de gast nu (savegame.js serialize), earned = verdiend in deze sessie,
 // ids = de gebeurtenis-ids die hij in deze sessie kreeg (coopbeloning.js): ze gaan mee zijn eigen save in (#429).
@@ -50,6 +51,12 @@ export function applyGuestChanges(data, mine, earned = 0, ids = []) {
   if (!isObj(data)) return null;
   let next = { ...data };
   if (isObj(mine)) for (const k of GAST_VELDEN) if (mine[k] !== undefined) next[k] = mine[k];
+  // #566: in de wereld van de gastheer staat de heldenauto van de gastheer in world.vehicles, en dus in
+  // `shops.hero` van deze momentopname. Die schade hoort niet in de eigen save: de eigen auto staat opzij
+  // en zijn eigen schade blijft precies zoals hij was.
+  if (isObj(mine) && isObj(mine.shops) && isObj(data.shops)) {
+    next.shops = { ...next.shops, hero: isObj(data.shops.hero) ? data.shops.hero : {} };
+  }
   if (!isObj(mine) || !Number.isFinite(mine.money)) {
     const e = Math.floor(Number(earned));
     const base = Number.isFinite(data.money) && data.money >= 0 ? Math.floor(data.money) : 0;
