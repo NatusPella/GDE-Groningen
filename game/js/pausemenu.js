@@ -2051,7 +2051,7 @@ export function openPauseMenu(name = HOME, opts = {}) {
   if (opts.select) selectTodo(opts.select);
   // de telefoon opent Activiteiten met de Dichtbij-filter (#607): één lijst, geen eigen weergave
   if (opts.view) setTodoFilter(opts.view === 'dichtbij');
-  if (opts.thread) { selectPhoneThread(opts.thread); selectVerhaalCharacter(characterForSender(opts.thread)); pref.sub.verhaal = 'personages'; if (name === 'telefoon') name = 'verhaal'; }
+  if (opts.thread) { selectVerhaalCharacter(characterForSender(opts.thread)); pref.sub.verhaal = 'personages'; if (name === 'telefoon') name = 'verhaal'; }
   if (name === 'telefoon') { pref.sub.verhaal = 'personages'; name = 'verhaal'; }
   setOpen(true, name, 'direct');
 }
