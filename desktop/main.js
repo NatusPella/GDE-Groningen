@@ -44,7 +44,7 @@ app.setName(APP_NAME);
 const devtools = !app.isPackaged || process.env.GDE_DEV === '1' ? require('./devtools.js') : null;
 // test runs get a throwaway profile, so they never touch the player's saves,
 // settings or achievements
-if (devtools && devtools.isTestRun) {
+if (devtools && (devtools.isTestRun || (process.env.GDE_DEV === '1' && process.env.GDE_TEST_PROFILE))) {
   // GDE_TEST_PROFILE picks another throwaway dir, so parallel test runs
   // don't block each other through the single-instance lock
   app.setPath('userData', path.join(require('os').tmpdir(), process.env.GDE_TEST_PROFILE || 'gde-test-profile'));
@@ -252,3 +252,4 @@ if (!app.requestSingleInstanceLock()) {
   });
   app.on('window-all-closed', () => app.quit());
 }
+
