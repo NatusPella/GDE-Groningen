@@ -7,7 +7,7 @@ import * as N from '../game/js/coopnet.js';
 import * as B from '../game/js/coopbestuur.js';
 import * as G from '../game/js/coopgezocht.js';
 import { reportCrime } from '../game/js/crime.js';
-import { wielInvoer } from '../game/js/coopgast.js';
+import { wielInvoer, bestuurInvoer } from '../game/js/coopgast.js';
 import * as D from '../game/js/vehicledoors.js';
 import { seatedOf } from '../game/js/occupants.js';
 import { PROTO } from '../game/js/net/protocol.js';
@@ -87,6 +87,26 @@ t('gast (plek 1) stapt in als bestuurder, de host ziet hem, en het voertuig krij
   w.coopFigures[1].input = { mx: 0, my: 0, buttons: 2, yaw: 0 }; const x0 = v.x;
   B.bestuurTick(w, 0.1);
   assert.equal(v.handbrake, true); assert.equal(v.x, x0, 'handrem: bit 1 van de knoppen');
+});
+
+t('#555: host of solo leest de eigen invoer; de figurenlijst is een object per plek', () => {
+  // world.coopFigures is een object ({ slot: figuur }), geen array. De oude figs.slice(1) gooide
+  // hier een TypeError: elke frame dat de host zelf een heli of vliegtuig bestuurde.
+  const eigen = { isDown: (k) => k === 'w', axis: () => [0, -1], wasPressed: () => false };
+  const leeg = { coopFigures: {}, input: eigen };
+  assert.equal(bestuurInvoer(leeg), eigen, 'zonder gasten: de invoer van de gastheer');
+  assert.equal(bestuurInvoer(leeg).isDown('w'), true, 'de heli en het vliegtuig lezen de toetsen van de speler');
+  const solo = mkWorld({ input: eigen }); solo.coopFigures = {}; // de host zonder gasten (Alleen spelen sinds #554)
+  assert.equal(bestuurInvoer(solo), eigen, 'solo: ook de eigen invoer');
+  assert.equal(bestuurInvoer(solo, auto(5, 2, 1)), eigen, 'zonder besturende gast: de eigen invoer');
+  // een gast achter het stuur levert zijn eigen invoer, ook als figuur 1 niet de eerste sleutel is
+  const v = auto(5, 2, 1); const w = mkWorld({ input: { axis: () => [0, 0], isDown: () => false, wasPressed: () => false } }); w.vehicles = [v];
+  w.coopFigures[1].inVeh = v; w.coopFigures[1].input = { mx: 0.5, my: -1, buttons: 0, yaw: 0 };
+  assert.deepEqual(bestuurInvoer(w, v).axis(), [0.5, -1], 'de gast die het toestel bestuurt, stuurt het');
+  w.coopFigures = { 2: { slot: 2, inVeh: v, input: { mx: -0.5, my: 0, buttons: 0, yaw: 0 } } };
+  assert.deepEqual(bestuurInvoer(w, v).axis(), [-0.5, 0], 'ook een gast op een latere plek');
+  w.coopFigures = { 1: { slot: 1, inVeh: auto(6, 9, 9), input: { mx: 1, my: 0, buttons: 0, yaw: 0 } } };
+  assert.equal(bestuurInvoer(w, v).axis()[0], 0, 'een gast in een ander voertuig stuurt dit toestel niet');
 });
 
 t('een gast stapt in bij een geparkeerde auto aan de stoep; de gastheer ziet dat hij meegaat (#434)', () => {
