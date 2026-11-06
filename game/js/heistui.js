@@ -373,7 +373,7 @@ export function skipChip(show, hold = 0) {
   if (!skipEl) {
     skipEl = document.createElement('div');
     skipEl.className = 'hx-skipchip';
-    skipEl.innerHTML = `<svg viewBox="0 0 20 20"><circle class="bg" cx="10" cy="10" r="8"/><circle class="fg" cx="10" cy="10" r="8"/></svg>${key('O')}<span>ingedrukt houden: sla dit stuk over</span>`;
+    skipEl.innerHTML = `<svg viewBox="0 0 20 20"><circle class="bg" cx="10" cy="10" r="8"/><circle class="fg" cx="10" cy="10" r="8"/></svg>${key('O')}<span>ingedrukt houden: sla dit stuk over · halve beloning</span>`;
     root.appendChild(skipEl);
   }
   skipEl.classList.toggle('on', !!show && !panel);

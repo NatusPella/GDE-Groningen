@@ -100,6 +100,13 @@ const STOP_RADIUS = 7;
 const STOP_WAIT = 1.6;
 const REQUIREMENT_HINT_EVERY = 25;
 
+// #591: skipping a heist stage with O pays half the mission reward, the same share a story skip pays.
+// The mission stays playable; only the payout is honest about the part that was skipped.
+export const HEIST_SKIP_SHARE = 0.5;
+export function skipReward(reward) {
+  return Math.round(((Number(reward) || 0) * HEIST_SKIP_SHARE) / 5) * 5;
+}
+
 // Fatbike-terreur: a stream of bikes both ways down a narrow street. Only
 // dying ends it; the hit count is for the medal.
 const LANE_SPAWN_EVERY = 0.9;
@@ -296,6 +303,9 @@ export function initMissions(world) {
     leftover: null,
     boarded: false,
     armed: true,
+    // #591: a heist stage skipped with O lowers the payout and earns no role point
+    heistSkip: false,
+    heistSkipStage: false,
     hintAt: -Infinity,
     reqHintAt: -Infinity,
     bikes: [],
@@ -674,6 +684,7 @@ export function startMissionVoorGast(world, i) {
   const def = chainState().defs[i];
   if (def.solo) return false;
   const eigenIndex = chainState().index; // de eigen volgende opdracht van de gastheer: die blijft staan als hij niet meedoet (#452)
+  const eigenWp = chainState().wpIndex;
   chainState().index = i;
   chainState().phase = 'idle';
   chainState().armed = true;
@@ -681,7 +692,18 @@ export function startMissionVoorGast(world, i) {
   chainState().gastStart = null;
   startMission(world, def);
   syncPub(world);
-  if (chainState().phase !== 'active') return false;
+  if (chainState().phase !== 'active') {
+    // #591: the mission never started (a lazyStart without road data). Without this the host's chain
+    // keeps pointing at the guest's mission, so his marker, goal and trigger are wrong for the rest of
+    // the run (story.js only repairs that much later).
+    chainState().index = eigenIndex;
+    chainState().phase = 'idle';
+    chainState().armed = true;
+    chainState().wpIndex = eigenWp;
+    chainState().cooldownTimer = 0;
+    syncPub(world);
+    return false;
+  }
   chainState().gastStart = { id: `${i}|${String(def.label || '').slice(0, 48)}`, eigenIndex };
   world.coopGastVraag = null; // een vraag van een vorige opdracht is niet meer aan de orde
   return true;
@@ -1143,7 +1165,9 @@ function succeed(world, def) {
   stopTalk();
   // a replay pays the klusloon; the first pass the full reward
   const replay = chainState().completed.has(i);
-  const base = replay ? klusloon(def.reward) : def.reward;
+  const volle = replay ? klusloon(def.reward) : def.reward;
+  // #591: a heist stage the player skipped with O (skipHeistStage) pays half, like a story skip
+  const base = def.heist && chainState().heistSkip ? skipReward(volle) : volle;
   closeChoice();
   closeTiming();
   // choices that matter later in the story (M23's ally, read again in M26)
@@ -1691,14 +1715,19 @@ function startMission(world, def) {
   removeLeftover(world);
   chainState().tags = new Set();
   chainState().bakeTier = null;
+  // #591: a new attempt starts without a skip from an earlier one
+  chainState().heistSkip = false;
+  chainState().heistSkipStage = false;
   // a start out in the province has no road data until the player is there (the tiles stream in): find the road now
   if (def.lazyStart && !def.start.road && !forceStart) {
     const spot = roadSpot(world.map, def.start.x, def.start.y, true);
     if (spot.road) Object.assign(def.start, spot);
     else {
-      // no road loaded here (yet): try again in a moment instead of starting without a vehicle
-      world.addMessage('De weg hier wordt nog geladen. Even wachten…', 3);
-      chainState().phase = 'cooldown'; chainState().cooldownTimer = RETRY_COOLDOWN; chainState().armed = false;
+      // no road loaded here (yet): try again in a moment instead of starting without a vehicle.
+      // Stay armed (#591): the player does exactly what the message asks - wait here - so after the
+      // cooldown the trigger tries again and the mission starts as soon as the road streams in.
+      world.addMessage('De weg hier wordt nog geladen. Even wachten…', 3, { key: 'missie-lazy-wacht' });
+      chainState().phase = 'cooldown'; chainState().cooldownTimer = RETRY_COOLDOWN;
       return;
     }
   }
@@ -2019,8 +2048,9 @@ function updateRetry(dt, world, def) {
   }
   if (r.missionIndex !== chainState().index || !retryOfferLive(r, world.time)) { chainState().retry = null; return; }
   if (chainState().phase !== 'idle') return;
-  const p = hoofdspeler(world);
-  if (dist(p.x, p.y, def.start.x, def.start.y) < (def.triggerRadius || TRIGGER_RADIUS) * 3 + 10) { chainState().retry = null; return; }
+  // #591: this used to drop the offer when the player was near the start. Together with `armed = false`
+  // after a failure that made a dead zone right around the marker: no offer and no re-trigger until he
+  // walked a few metres away. The offer is fine close by (Enter still restarts at the start).
   if (isCinematicActive() || world.pendingRespawn || (world.sideJob && world.sideJob.active) || playerBusy(world, ['challenge', 'padel', 'activityGame']).busy) return;
   if (!r.hintedAt || world.time - r.hintedAt > 10) {
     r.hintedAt = world.time;
@@ -2370,6 +2400,22 @@ export function chaseWaitMax(d0, st) {
   return CHASE_WAIT_MAX + Math.max(0, (d0 || 0) - (st.parked || 0)) / 10;
 }
 
+// #591: the road under a chase start may not be streamed in when the stage begins. Instead of failing
+// the mission at once, the stage waits for it and tries again a few times (a clean failure was an
+// unwinnable stage, and the player had done nothing wrong).
+export const CHASE_SPAWN_WAIT_S = 8;
+export const CHASE_SPAWN_RETRY_S = 0.5;
+
+// What a chase stage does while its target could not spawn yet: 'wait' (no new attempt this frame),
+// 'try' (spawn another one) or 'fail' (the road never came). Kept pure so a test can prove the timing.
+export function chaseSpawnStep(S, dt) {
+  S.spawnT = (S.spawnT || 0) + dt;
+  if (S.spawnT > CHASE_SPAWN_WAIT_S) return 'fail';
+  if (S.spawnT < (S.spawnTryAt || 0)) return 'wait';
+  S.spawnTryAt = S.spawnT + CHASE_SPAWN_RETRY_S;
+  return 'try';
+}
+
 function spawnChaseVehicle(world, def, st) {
   const from = st.from ? roadSpot(world.map, st.from[0], st.from[1], true) : null;
   const base = from && from.road ? from : def.start;
@@ -2627,6 +2673,8 @@ function enterStage(world, def, k) {
   if (st.kind === 'chase') {
     S.target = spawnChaseVehicle(world, def, st);
     S.hp0 = S.target ? S.target.health : 0;
+    // no target yet: the road is still streaming in, so the stage waits instead of failing at once (#591)
+    if (!S.target) S.spawnT = 0;
   }
   if (st.kind === 'train') {
     const ft = fjordTrainState();
@@ -2705,7 +2753,8 @@ function nextStage(world, def) {
   const cur = def.stages[chainState().stageIndex];
   dropPursuer(world);
   if (chainState().light && !(def.stages[chainState().stageIndex + 1] && def.stages[chainState().stageIndex + 1].light)) disposeLight();
-  if (def.heist) heistLeaveStage(world, cur);
+  // #591: a stage the player skipped with O has not been done, so it earns no role point for the loot
+  if (def.heist) heistLeaveStage(world, cur, { credit: !chainState().heistSkipStage });
   if (cur && cur.pay) {
     const amt = Math.min(cur.pay, Math.max(0, Math.floor(world.money)));
     world.money -= amt;
@@ -2713,6 +2762,29 @@ function nextStage(world, def) {
     world.addMessage(`Gekocht! ${cur.paid || 'Afgerekend'}, -€${amt}.${short}`, 4, { kind: 'missie', key: 'stage-paid' });
   }
   enterStage(world, def, chainState().stageIndex + 1);
+}
+
+// #591: the player holds O to skip a heist stage (heist.js offers it once the stage gives trouble).
+// This is a player action, not the debug hook: the stage advances, but the run pays half the reward
+// and the skipped stage earns no role point for the loot distribution. The mission stays playable.
+function skipHeistStage(world) {
+  const def = chainState().defs[chainState().index];
+  const cur = def && def.stages ? def.stages[chainState().stageIndex] : null;
+  if (!cur) return false;
+  if (!chainState().heistSkip) {
+    chainState().heistSkip = true;
+    world.addMessage('Stuk overgeslagen. De inbraak levert de halve beloning op.', 4);
+  }
+  chainState().heistSkipStage = true;
+  try {
+    if (cur.kind === 'getaway') heistSkipGetaway(world, true);
+    if (world.wanted) { world.wanted = 0; world.wantedDecayTimer = 0; } // an escape stage would wait for the police otherwise
+    nextStage(world, def);
+  } finally {
+    chainState().heistSkipStage = false;
+  }
+  syncPub(world);
+  return true;
 }
 
 // --- H14: Jelle's skûtsje sails the Diepenring (rondvaartchase.js route) -------
@@ -3364,11 +3436,7 @@ function updateStages(dt, world, def) {
   // seen by a guard or camera: the stage waits while you're sent back; O held: skip it
   if (def.heist) {
     const h = updateHeist(dt, world, st, S);
-    if (h === 'skip') {
-      if (st.kind === 'getaway') heistSkipGetaway(world, true);
-      missionDebug.complete(world);
-      return;
-    }
+    if (h === 'skip') { skipHeistStage(world); return; } // #591: the player's own skip, not the debug hook
     if (h) return;
   }
   if (def.boatStart && chainState().storyBoat && chainState().stageIndex <= (def.boatUntil ?? 3) && (chainState().storyBoat.wrecked || chainState().storyBoat.sinking || !world.vehicles.includes(chainState().storyBoat))) {
@@ -3511,7 +3579,19 @@ function updateStages(dt, world, def) {
       const t = S.target;
       if (st.race) { updateChaseRace(world, def, st, S); break; }
       if (S.swarm) { if (S.swarm === 'done') stopChaseVehicle(world, def, st); break; }
-      if (!t || !world.vehicles.includes(t)) { fail(world, def, st.gone || 'de tankwagen is foetsie'); break; }
+      if (!t) {
+        // #591: the road under the start was not streamed in yet. Give the streaming a few seconds
+        // (the flags and markers are already there), and only then fail with a reason that is true.
+        const stap = chaseSpawnStep(S, dt);
+        if (stap === 'try') {
+          S.target = spawnChaseVehicle(world, def, st);
+          if (S.target) { S.hp0 = S.target.health; break; }
+        }
+        if (stap === 'fail') { fail(world, def, st.gone || 'de tankwagen is niet gekomen: de weg was hier niet geladen'); break; }
+        hint(world, 'De weg hier wordt nog geladen. Even wachten…');
+        break;
+      }
+      if (!world.vehicles.includes(t)) { fail(world, def, st.gone || 'de tankwagen is foetsie'); break; }
       if (t.wrecked || t.disabled) { fail(world, def, st.burned || 'de tankwagen staat in de fik. Zonde van al dat vet'); break; }
       if (st.hijack && p.inVehicle === t) { hijackChase(world, def, st, t); break; }
       const d = afstandMeespeler(world, t.x, t.y); // de dichtstbijzijnde meespeler (#452)
@@ -3736,6 +3816,7 @@ function updatePigeonStage(dt, world, def, st, S) {
 export const missionDebug = {
   state: () => (chainState() ? {
     index: chainState().index, phase: chainState().phase, stage: chainState().stageIndex, wp: chainState().wpIndex, completed: [...chainState().completed],
+    armed: !!chainState().armed, retry: !!chainState().retry, heistSkip: !!chainState().heistSkip,
     stageInfo: chainState().stage ? { t: Math.round(chainState().stage.t * 10) / 10, flying: chainState().stage.flying, target: chainState().stage.target && { x: Math.round(chainState().stage.target.x), y: Math.round(chainState().stage.target.y) } } : null,
     player: worldRef && { x: Math.round(worldRef.player.x), y: Math.round(worldRef.player.y), inVehicle: !!worldRef.player.inVehicle },
   } : null),
@@ -3774,6 +3855,12 @@ export const missionDebug = {
     fail(world, chainState().defs[chainState().index], 'afgebroken in de testmodus');
     syncPub(world);
     return true;
+  },
+  // #591: the player's own O-skip of a heist stage, for the story test and the bot (half reward, no loot point)
+  skipStage(world) {
+    if (!chainState() || chainState().phase !== 'active') return false;
+    if (!chainState().defs[chainState().index].heist) return false;
+    return skipHeistStage(world);
   },
   // finishes the current objective: the next stage, checkpoint or stop
   complete(world) {
