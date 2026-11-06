@@ -23,6 +23,8 @@ const DESKTOP = typeof window !== 'undefined' && window.gdeDesktop && window.gde
 
 // snelle namen: hernoemen kan zo ook met alleen een controller (geen schermtoetsenbord)
 const NAME_PRESETS = ['Hoofdspel', 'Proefrit', 'Voor de missie', 'Veilig', 'Zomerrit', 'Reservekopie'];
+// #564: het spel dat je nu speelt kan niet weg: de autosave zou de verwijderde plek meteen weer aanmaken.
+const NU_SPEL_NIET_WEG = 'Dit is het spel dat je nu speelt. Speel eerst een ander spel om het te kunnen verwijderen.';
 
 let rootEl = null;
 
@@ -124,6 +126,9 @@ export function openSaveSlots(opts = {}) {
 
   const solo = mode === 'start' && !!opts.solo && !opts.pick;
   const primaryLabel = opts.loadLabel || (opts.pick ? 'Kiezen' : mode === 'start' && !solo ? 'Doorgaan' : 'Laden');
+  // #564: de plek waaraan deze sessie gebonden is (currentSlot) is het spel dat nu loopt; verwijderen zou
+  // niets opleveren, want de autosave schrijft hem meteen weer.
+  const spelDatNuLoopt = (s) => mode === 'game' && !opts.pick && !!s && s.n === currentSlot();
 
   const mi = (act, ic, label, extra = '') => `<button type="button" class="ssl-mi${extra}" role="menuitem" data-grp="menu" data-do="${act}">${svg(IC[ic])}<span>${label}</span></button>`;
 
@@ -381,9 +386,13 @@ export function openSaveSlots(opts = {}) {
       return;
     }
     if (act === 'delete' && cur) {
+      // #564/#606: het spel dat je nu speelt kan er niet onder je vandaan: de autosave zou de verwijderde
+      // plek meteen weer aanmaken. Verwijderen kan pas als je een ander spel speelt.
+      if (spelDatNuLoopt(cur)) { over = null; message = NU_SPEL_NIET_WEG; render({ more: cur.n }); return; }
       if (cur.active && coopSessieLoopt(world)) { over = null; message = COOP_WISSEN_TEKST; render({ more: cur.n }); return; } over = { n: cur.n, kind: 'delete' }; render(); return; }
     if (act === 'delete-ok' && cur) {
       over = null;
+      if (spelDatNuLoopt(cur)) { message = NU_SPEL_NIET_WEG; render(); return; }
       if (cur.active && coopSessieLoopt(world)) { message = COOP_WISSEN_TEKST; render(); return; }
       message = S.deleteSlot(null, cur.n) ? 'Opgeslagen spel verwijderd.' : 'Verwijderen mislukt.';
       render();
