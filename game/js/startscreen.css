@@ -52,8 +52,7 @@
 #start-screen .ss-news-body h3 { margin: 32px 0 4px; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 36px; letter-spacing: 0.04em; color: var(--ink); }
 #start-screen .ss-news-body h3:first-child { margin-top: 0; }
 #start-screen .ss-news-body h3 small { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 18px; color: var(--mut); margin-left: 12px; letter-spacing: 0; }
-#start-screen .ss-news-body h3.ss-news-new { color: var(--g); }
-#start-screen .ss-news-tag { display: inline-block; margin-left: 12px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 18px; letter-spacing: 0; color: var(--g); vertical-align: 4px; }
+#start-screen .ss-news-body h3 .m-eb { display: inline; margin-left: 12px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 18px; letter-spacing: 0; text-transform: none; color: var(--g); vertical-align: 4px; }
 #start-screen .ss-news-body h4 { margin: 16px 0 4px; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 22px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--mut); }
 #start-screen .ss-news-body ul { margin: 0; padding-left: 22px; }
 #start-screen .ss-news-body li { list-style: disc; margin: 4px 0; }
@@ -97,7 +96,7 @@ html.reduce-motion #start-screen, html.reduce-motion #start-screen * { animation
   #start-screen .ss-news-head { padding: 12px 20px 0; }
   #start-screen .ss-news-head h2 { font-size: 30px; }
   #start-screen .ss-news-body { padding: 8px 20px 14px; font-size: 15px; }
-  #start-screen .ss-news-body h3 small, #start-screen .ss-news-tag { font-size: 14px; }
+  #start-screen .ss-news-body h3 small, #start-screen .ss-news-body h3 .m-eb { font-size: 14px; }
   #start-screen .ss-news-body h4 { font-size: 17px; margin-top: 10px; }
 }
 @media (max-width: 760px) and (orientation: portrait) {

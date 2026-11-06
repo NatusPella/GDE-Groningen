@@ -89,6 +89,12 @@ body:has(#pause-menu.prestart.visible) #start-screen .ss-foot { visibility: hidd
 #pause-menu .pm-over p, #pause-menu .pm-over li { font-size: 14px; color: rgba(240, 237, 228, 0.76); }
 #pause-menu .pm-over ul { margin: 4px 0 10px 18px; }
 #pause-menu .pm-over .pm-over-news { margin-top: 16px; border-top: 1px solid rgba(240, 237, 228, 0.12); padding-top: 4px; }
+/* de nieuwmarkering is een gewone menu-eyebrow in het groen, geen eigen schermklasse meer (#612) */
+#pause-menu .pm-over h3 .m-eb { display: inline; margin-left: 12px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 18px; letter-spacing: 0; text-transform: none; color: var(--g); }
+/* changelog, credits en licenties zijn elk in te klappen; de vouw staat onder zijn regel */
+#pause-menu .pm-over .m-disc { margin-top: 8px; }
+#pause-menu .pm-over .m-fold { padding: 4px 24px 8px 64px; }
+#pause-menu .pm-over .m-fold > * { max-width: 640px; }
 #pause-menu .pm-ov { padding: 40px 64px 40px; overflow-y: auto; scrollbar-width: none; gap: 0; }
 #pause-menu .m-main, #pause-menu .pm-settab:not([hidden]) { flex: 1; min-height: 0; display: flex; padding: 32px 64px 48px; }
 #pause-menu .pm-settab[hidden], #pause-menu [data-sub][hidden] { display: none; }
