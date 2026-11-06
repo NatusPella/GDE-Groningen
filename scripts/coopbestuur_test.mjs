@@ -234,6 +234,14 @@ t('doelwit van de politie: hoogste niveau, gelijk is wie al gejaagd werd, anders
   const z = mkWorld(); assert.equal(G.zichtbaarWanted(z), 0); z.wanted = 3; assert.equal(G.zichtbaarWanted(z), 3, 'zonder gasten verandert er niets');
 });
 
+t('een solo-sessie leest de gast-lijst nooit, ook al staat coopWanted op een leeg object (#561)', () => {
+  const w = mkWorld(); w.coopSolo = true;
+  Object.defineProperty(w, 'coopWanted', { get() { throw new Error('solo las de gast-lijst'); } });
+  assert.deepEqual(G.kiesDoelwit(w), null, 'niemand gezocht: meteen terug');
+  w.wanted = 2;
+  assert.deepEqual(G.kiesDoelwit(w), { slot: 0, level: 2 }, 'de host is het enige doelwit');
+});
+
 t('de politie ziet de gast als speler: world.player en world.wanted wisselen tijdelijk, daarna staat alles terug', () => {
   B.zetBestuurHaken(haken());
   const w = mkWorld(); const v = auto(5, 2, 1); w.vehicles = [v]; w.coopWanted = { 1: 3 };

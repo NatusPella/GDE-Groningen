@@ -1,6 +1,7 @@
 // node scripts/gfx_profile_test.mjs: the GPU classification, the first-run
 // advice and the benchmark recommendation (game/js/gfxprofile.js).
 import { classifyGpu, adviseFromSample, presetFromSample, recommendPreset, describePreset, describeChanges, noteFrame, resetDynamic, dynamicScale, cpuLevel, currentPreset, isDefaultGfx, mobileProfileFor, MOBILE_PROFILES, noteBatchWork, perfSnapshot, resetPerfCounter, perfCounterOn } from '../game/js/gfxprofile.js';
+import { setSetting } from '../game/js/settings.js';
 import { VIEW_DISTANCES, viewDistanceFor, propRadius } from '../game/js/viewdist.js';
 
 let fail = 0;
@@ -110,6 +111,14 @@ eq('level 3: the shortest view', viewDistanceFor('heelver', 1, 3), 150);
 eq('level 3: the shortest view for ver too', viewDistanceFor('ver', 1, 3), 150);
 // slow for 4 s every 30 s: it settles low; each step back up waits longer
 eq('flapping: at most 9 steps in 3 min', steps(180, (i) => (i % 2350 < 115 ? [35, 8] : [12, 6])).length <= 9, true);
+// #561: de zuinige modus is een bewuste beeldcap, geen trage GPU. De cap levert op 60 Hz ~33,4 ms
+// per getekend beeld; noteFrame trekt dat wachten eraf, dus de renderschaal blijft staan.
+setSetting('zuinig', true);
+eq('zuinige modus op een snelle machine: geen stap omlaag', steps(120, () => [33.4, 5]), []);
+eq('zuinige modus op een 144 Hz-scherm: ook geen stap omlaag', steps(120, () => [34.7, 5]), []);
+eq('zuinige modus op een trage machine: een echt traag beeld stapt wel', steps(6, () => [80, 60]).length > 0, true);
+setSetting('zuinig', false);
+eq('zonder zuinige modus is 33,4 ms wel traag', steps(6, () => [33.4, 5]).length > 0, true);
 resetDynamic();
 eq('mobile: phone', mobileProfileFor({ width: 390, height: 844 }), 'telefoon');
 eq('mobile: phone landscape', mobileProfileFor({ width: 844, height: 390 }), 'telefoon');
