@@ -264,6 +264,29 @@ pad2.buttons[0].pressed = false; pad2.buttons[0].value = 0; frame(2);
   }
 }
 
+// #560: Alleen spelen is een sessie van één, maar geen Samen-sessie: de D-pad houdt de gewone functies
+// (radio, alarmlichten) en zet geen roepje of stuur dat niemand ziet.
+{
+  world.coopNet = {}; world.coopSolo = true;
+  zet('vehicle'); reset();
+  press('up'); frame(2); press('up', false); frame(2);
+  ok(seen.some((s) => s[0] === 'down' && s[1] === 'p') && !seen.some((s) => s[1] === 'y'), 'Alleen spelen: D-pad omhoog in het voertuig is de radio (p), niet het stuur', seen);
+  zet('foot'); reset();
+  press('up'); frame(2); press('up', false); frame(2);
+  ok(seen.some((s) => s[0] === 'down' && s[1] === 'n'), 'Alleen spelen: te voet is D-pad omhoog de radio (n)', seen);
+  for (const [knop, toets, coopToets] of [['left', 'o', '7'], ['down', 'k', '8'], ['right', 'r', '9']]) {
+    zet('foot'); reset();
+    press(knop); frame(2); press(knop, false); frame(2);
+    ok(seen.some((s) => s[0] === 'down' && s[1] === toets) && !seen.some((s) => s[1] === coopToets), 'Alleen spelen: te voet is D-pad ' + knop + ' de gewone toets ' + toets + ' (geen roepje)', seen);
+  }
+  // een echte sessie houdt de coöpindeling
+  world.coopSolo = false;
+  zet('vehicle'); reset();
+  press('up'); frame(2); press('up', false); frame(2);
+  ok(seen.some((s) => s[0] === 'down' && s[1] === 'y'), 'een echte sessie: D-pad omhoog in het voertuig is het stuur (y)', seen);
+  delete world.coopNet; delete world.coopSolo;
+}
+
 // trillen bij schade, als de controller een motor heeft en de speler het wil
 {
   const slagen = [];
