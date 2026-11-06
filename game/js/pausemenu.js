@@ -23,7 +23,7 @@ import { coopLoadTekst, COOP_LOAD_FAIL, runCoopLoad, runCoopStop } from './coopl
 import { getClockText } from './clocktext.js';
 import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
 import { VERSION } from './version.js';
-import { loadChangelog, newsOnStart, ABOUT_HTML } from './over.js';
+import { loadChangelogVersions, allVersionsHtml, overBodyHtml, newsOnStart, CREDITS_HTML, LICENSES_HTML } from './over.js';
 import { versionLabel } from './menumodels.js';
 import { storyDate } from './calendarday.js';
 import { isCinematicActive } from './cinematics.js';
@@ -952,21 +952,40 @@ function renderCheats(focusSel) {
 }
 
 // Over: version, the changelog, the credits and (since #604) the problems: a Dutch summary first,
-// the English technical details folded away. Opening it counts as "seen", so the news is
-// no longer marked as new on the next start.
+// the English technical details folded away. The newest version(s) and the folds are built by
+// over.js; "Alles" and the two reference blocks are filled in only when opened (#612). Opening
+// this section counts as "seen", so the news is no longer marked as new on the next start.
 function renderOverPanel(el) {
   if (!el) return;
   newsOnStart();
   el.innerHTML = `<div class="m-main"><div class="m-list pm-over">
-    <p class="mut">Versie ${esc(VERSION)} · NatusPella</p>
     <div class="pm-over-news" aria-live="polite"><p class="mut">De lijst met wijzigingen laden…</p></div>
-    <div class="pm-over-about">${ABOUT_HTML}</div>
     ${problemsHtml()}
   </div></div>`;
   renderErrorLog();
   const box = el.querySelector('.pm-over-news');
-  loadChangelog().then((html) => {
-    if (box && box.isConnected) box.innerHTML = `<h3>Wat is er nieuw</h3>${html}`;
+  loadChangelogVersions().then((versions) => {
+    if (!box || !box.isConnected) return;
+    if (!versions) { box.innerHTML = '<p class="mut">De lijst met wijzigingen kon niet worden geladen.</p>'; return; }
+    box.innerHTML = overBodyHtml(versions);
+    const credits = box.querySelector('[data-fold-body="over-credits"]');
+    if (credits) credits.innerHTML = CREDITS_HTML;
+    const licenses = box.querySelector('[data-fold-body="over-licenses"]');
+    if (licenses) licenses.innerHTML = LICENSES_HTML;
+  });
+  if (el.dataset.overBound) return;
+  el.dataset.overBound = '1';
+  // "Alles": the rest of the changelog, parsed once and filled in on the first open
+  el.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-over-alles]');
+    const body = btn && el.querySelector('[data-over-alles-body]');
+    if (!body) return;
+    const open = body.hidden;
+    body.hidden = !open;
+    btn.setAttribute('aria-expanded', String(open));
+    if (!open || body.dataset.filled) return;
+    body.dataset.filled = '1';
+    loadChangelogVersions().then((versions) => { if (versions && body.isConnected) body.innerHTML = allVersionsHtml(versions); });
   });
 }
 
