@@ -54,7 +54,7 @@ const subIds = [...sub.matchAll(/\['(\w+)', '([^']+)'\]/g)].map((x) => x[1]);
 ok(subIds.join() === 'overzicht,samen,acties,spelen,camera,hints', 'Spel heeft de tabbladen Overzicht, Samen spelen, Opslaan & stoppen, Spelen, Camera & richten en Hints & uitleg', subIds.join());
 ok(subIds.every((id) => ['overzicht', 'samen'].includes(id) || spelSrc.includes(`tab('${id}'`)) && spelSrc.includes('data-sub="overzicht" class="pm-ov pm-spelov"'),'elk tabblad heeft zijn inhoud (Overzicht tekent zich in Spel)');
 ok(/\['spel', 'Spel', '/.test(pm), "'spel' staat in de sectielijst");
-ok(pm.includes("RAIL_GROUPS = [['spel', 'verhaal', 'loopbaan', 'todo'], ['map', 'spullen', 'garage', 'prestaties', 'fotos'], ['settings', 'over', 'streken']];"), 'de rail: Spel, Verhaal, Loopbanen, Activiteiten | Kaart, Spullen, Garage, Prestaties, Foto’s | Instellingen, Over en Cheats (#430, #435)');
+ok(pm.includes("RAIL_GROUPS = [['spel', 'verhaal', 'loopbaan', 'todo'], ['map', 'spullen', 'garage', 'prestaties', 'fotos'], ['settings', 'streken']];"), 'de rail: Spel, Verhaal, Loopbanen, Activiteiten | Kaart, Spullen, Garage, Prestaties, Foto’s | Instellingen en Cheats (#430, #435, #601)');
 ok(/PRESTART_SECTIONS = \['spel', 'settings', 'controls'\]/.test(pm), 'ook in het hoofdmenu (voor de start) zijn de speelopties bereikbaar');
 ok(/^\s*spel: \[\[\['↑', '↓'\], 'kiezen'\]/m.test(pm), 'Spel heeft zijn voetregel');
 ok(/^\s*spel: '<rect/m.test(pm), 'Spel heeft een icoon in dezelfde lijnstijl');
@@ -154,7 +154,7 @@ ok(pm.includes("[data-of=\"verhaal\"][data-subtab=\"personages\"]") && pm.includ
 ok(!/data-goto="telefoon"/.test(pm) && !/'telefoon'\)/.test(pm.slice(pm.indexOf('function syncNavBadges'), pm.indexOf('function renderPhone'))), 'er is geen rijknop of teller voor de telefoon meer; ongelezen berichten tellen bij Verhaal');
 // oude namen verwijzen door
 for (const [oud, nieuw] of [["name === 'overzicht' || name === 'game'", "name = 'spel'"], ["name === 'telefoon'", "name = 'verhaal'"], ["name === 'cheats'", "name = 'streken'"], ["name === 'missions'", "name = 'todo'"]]) ok(pm.includes(oud) && pm.includes(nieuw), 'oude naam ' + oud.split("'")[1] + ' verwijst door');
-ok(/CHILD = {[^}]*controls: 'settings'/.test(pm) && !/streken: 'settings'/.test(pm) && pm.includes("['settings', 'over', 'streken']") && !/spelers: 'samen'/.test(pm), 'Cheats en Over staan sinds #435/#492 in de rail naast Instellingen, niet meer verstopt als tabblad; Samen spelen en Spelers zijn geen onderdeel of rijknop meer');
+ok(/CHILD = {[^}]*controls: 'settings'/.test(pm) && !/streken: 'settings'/.test(pm) && !pm.includes("['settings', 'over', 'streken']") && /rowName\('Over GDE'/.test(pm) && !/spelers: 'samen'/.test(pm), 'Over is sinds #601 een rij onder Instellingen; Cheats staat sinds #435 in de rail; Samen spelen en Spelers zijn geen onderdeel of rijknop meer');
 ok(pm.includes("['samen', 'Samen spelen'], ['spelers', 'Spelers']") && pm.includes('data-of="spel" data-sub="samen"') && pm.includes('data-of="samen" data-sub="spelers"') && pm.includes('renderSamenPanel(root.querySelector') && pm.includes('renderSpelersPanel(root.querySelector') && !pm.includes("id === 'spelers' && !(world && world.coopNet)"), 'Spelers is een tabblad onder Samen spelen, met dezelfde lijst als eerst; sinds #530 ook zonder sessie, want daar staat de schakelaar Meedoen met andere spelers');
 ok(!subIds.includes('spelers') && !pm.includes('data-of="spel" data-sub="spelers"') && !pm.includes('data-of="spel" data-subtab="spelers"'), 'Spelers is geen los tabblad of rijknop van Spel meer (#434)');
 ok(pm.includes("name === 'samen' || name === 'samenspelen' || name === 'spelers'") && pm.includes("setN('spel', coopN") && pm.includes('world.coopSpelers.length'), 'de oude namen samen, samenspelen en spelers verwijzen naar Spel > Samen spelen; de rijknop Spel toont het aantal spelers');
@@ -217,6 +217,7 @@ ok(mvs.includes("from './kaartactie.js'") && mvs.includes('actiesHtml(model, sta
 ok(mvs.includes('initKaartUitleg(overlay)') && mvs.includes('uitleg-sluit') && mvs.includes('UITLEG_ID'), 'Kaart: de eerste keer een uitleg, te sluiten, onthouden onder gde-hud-gezien');
 ok(read('game/js/helpoverview.js').includes("id: 'kaart'"), 'Besturing, Hulp: de uitleg over de kaart is terug te vinden');
 
+
 // #435: veilig afsluiten vanuit het hoofdmenu en de nieuw-bolletjes op de rail
 const exitBranch = pm.slice(pm.indexOf("a === 'menu' || a === 'exit'"), pm.indexOf("a === 'pigeon-stop'"));
 ok(/started\(\) && !prestart && world\) saveGame\(world\)/.test(exitBranch), 'Afsluiten bewaart alleen een lopend spel, niet de menuscene boven het hoofdmenu (#435)');
@@ -245,5 +246,38 @@ ok(pm.includes('rebinding.cancel = capturePadButton('), 'de controller-capture w
 ok(/if \(k === 'Escape' \|\| k === 'Backspace'\) \{ consume\(e\); cancelRebind\(\); \}/.test(pm), 'Escape annuleert de rebind zelf (en sluit het menu dan niet)');
 ok(pm.includes("if (prev === 'controls' && name !== 'controls') cancelRebind();"), 'een tabwissel weg van Besturing annuleert de rebind');
 ok(exitBranch.includes('cancelRebind(true)'), 'Afsluiten geeft de wachtstand vrij voordat het spel opslaat en sluit');
+
+// --- #601: vaste rail, rustig Overzicht, voorspelbare Q/E en een naslag-Over ---------
+// drie groepen, geen Over als twaalfde rij; Over hangt onder Instellingen
+const railGroepen = (pm.match(/const RAIL_GROUPS = \[([\s\S]*?)\];/) || [])[1] || '';
+const railDelen = [...railGroepen.matchAll(/\[([^\]]+)\]/g)].map((m) => [...m[1].matchAll(/'(\w+)'/g)].map((x) => x[1]));
+ok(railDelen.length === 3 && !railDelen.flat().includes('over'), 'de rail heeft drie groepen en geen Over-rij (#601)', JSON.stringify(railDelen));
+ok(/'over',\s*'Over'/.test(pm) && /data-goto="over"|data-goto-sub="[a-z]+:over"/.test(pm), 'Over bestaat nog als onderdeel met een ingang (#601)');
+ok(/rowName\('Over GDE'.*?data-goto="over"/.test(pm), 'Instellingen > Interface heeft een rij naar Over (#601)');
+// de rail is niet meer ingekrompen per vensterhoogte: de stage is altijd 1080 px ontwerp
+ok(/--ra-h: 56px/.test(pcss) && !/--ra-h: (38|36)px/.test(pcss) && !/max-height: 1000px/.test(pcss), 'de railrijen zijn 56 px en krimpen niet meer per vensterhoogte (#601)');
+// Q/E en [ ] doen hetzelfde en pakken de zichtbare (binnenste) tabrij, daarna het onderdeel
+ok(/lower === 'q' \|\| lower === 'e' \|\| k === '\[' \|\| k === '\]'/.test(pm) && /function cycleVisibleTabs/.test(pm) && /lists\[lists\.length - 1\]/.test(pm),
+  'Q/E en [ ] pakken de zichtbare tabrij, de binnenste eerst (#601)');
+ok(/if \(SUBTABS\[tab\] && cycleVisibleTabs\(dir\)\) return;\s*if \(cycleOwnTabs\(dir\)\) return;\s*cycleSection\(dir\);/.test(pm),
+  'Q/E en [ ] vallen terug op het onderdeel als er geen tabbladen zijn (#601)');
+ok(/spelers-tab/.test(pm) && /\(pref\.sub\.spel \|\| 'overzicht'\) === 'samen'/.test(pm), 'de voetregel noemt de uitkomst van Q/E op Spel > Samen spelen (#601)');
+const hintSecties = ['spullen', 'loopbaan', 'visboek', 'boerderij', 'fotos', 'streken', 'over', 'map'];
+for (const s of hintSecties) ok(new RegExp(`^\\s*${s}: .*\\[\\['Q', 'E'\\], '`, 'm').test(pm), `de voetregel van ${s} noemt Q/E (wat de toets daar doet)`);
+ok(/over: \[\[\['↑', '↓'\], 'kiezen'\], \[\['Enter'\], 'open of dicht'\]/.test(pm), 'Over heeft een eigen voetregel met de vouwen (#601)');
+// Over is een naslagscherm: 18 px body en twee vouwen, geen tweede tekststijl
+const overSrc = pm.slice(pm.indexOf('function renderOverPanel'), pm.indexOf('const ARROWS'));
+ok(/disclosure\('over-news'/.test(overSrc) && /disclosure\('over-about'/.test(overSrc) && !/pm-over-news/.test(overSrc),
+  'Over vouwt "Wat is er nieuw" en de credits in plaats van een tekstmuur (#601)');
+ok(/#pause-menu \.pm-over p, #pause-menu \.pm-over li \{ font-size: 18px/.test(pcss), 'Over heeft 18 px body (#601)');
+// één "Wat is er nieuw": het oude titelscherm heeft die ingang niet meer
+const ss = read('game/js/startscreen.js');
+ok(!/act: 'news'/.test(ss) && !/openNews/.test(ss), 'het titelscherm heeft geen tweede "Wat is er nieuw" meer (#601)');
+// Overzicht: "Snel instellen" is één gevouwen blok, geen rij instelschakelaars boven de kaart
+const todoSrc = read('game/js/todoui.js');
+ok(/folds: new Set\(\['clues', 'quick'\]\)/.test(todoSrc) && /disc\('quick', 'Snel instellen'/.test(todoSrc),
+  'Overzicht toont "Snel instellen" als één gevouwen blok (#601)');
+ok(/export function foldNote/.test(todoSrc) && /foldNote\(btn\.dataset\.fold, on\)/.test(pm), 'de vouwen van Over en Overzicht onthouden hun stand');
+
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

@@ -124,8 +124,8 @@ const CONTROL_GROUPS = [
     [['ESC'], 'Pauzemenu openen; in het menu: terug'],
     [['M'], 'Kaart'],
     [['ARROWS'], 'In het menu: kiezen, Enter: ok'],
-    [['Q', 'E'], 'In het menu: vorige of volgende sectie'],
-    [['[', ']'], 'In het menu: vorig of volgend tabblad'],
+    [['Q', 'E'], 'In het menu: het volgende tabblad; zonder tabbladen het volgende onderdeel'],
+    [['[', ']'], 'In het menu: hetzelfde als Q en E (ook bij een tweede tabrij, zoals Samen spelen en Spelers)'],
     [['N'], 'Radio aan of uit'],
     [['U'], 'Geluid uit of weer aan; staat het uit, dan staat linksboven een luidspreker met een streep en de toets U erbij'],
     [['O'], 'Verhaalstap overslaan (als dat in beeld staat)'],
@@ -256,9 +256,11 @@ const SECTIONS = [
   ['controls', 'Besturing', 'Toetsen en knoppen aanpassen en nalezen'],
   ['streken', 'Cheats', 'Een beetje vals spelen'],
 ];
-// the rail's three groups: playing, collected, system
+// the rail's three groups: playing, collected, system. Over hangs under Instellingen
+// (a row in that sheet) instead of being a twelfth rail row: the rail keeps its
+// fixed, scanable shape on 1280x720 and 1920x1080 (#601).
 // Cheats staat sinds #435 naast Instellingen in de rail: het was te verstopt onder Instellingen > Cheats.
-const RAIL_GROUPS = [['spel', 'verhaal', 'loopbaan', 'todo'], ['map', 'spullen', 'garage', 'prestaties', 'fotos'], ['settings', 'over', 'streken']];
+const RAIL_GROUPS = [['spel', 'verhaal', 'loopbaan', 'todo'], ['map', 'spullen', 'garage', 'prestaties', 'fotos'], ['settings', 'streken']];
 // Onderdelen zonder eigen plek in de rail die onder een ander onderdeel hangen (#430): Vissen en Farmen horen bij Loopbaan
 // (de tegels Bezigheden), de toetsen en knoppen bij Instellingen > Besturing. De rail markeert de ouder; Terug gaat naar de ouder.
 const CHILD = { visboek: 'loopbaan', boerderij: 'loopbaan', controls: 'settings' };
@@ -279,25 +281,28 @@ const SUBTABS = {
 const SUB_ALIAS = { settings: { controller: 'besturing', camera: 'besturing' } };
 
 // The footer: two to four hints, [keys, label, action]. ' back' is filled in.
+// Every hint names what Q/E (and [ ]) really do on that screen: the visible tab
+// row, or the previous/next section on a screen without tabs (#601).
 const BACK = '\u0000';
 const HINTS = {
   overzicht: [[['↑', '↓'], 'kiezen'], [['Enter'], 'ok'], [['Esc'], 'doorgaan', 'resume']],
   todo: [[['↑', '↓'], 'kiezen'], [['Enter'], 'zet als doel'], [['Q', 'E'], 'weergave'], [['Esc'], BACK, 'back']],
-  map: [[['Klik'], 'plek kiezen'], [['Scroll'], 'zoomen'], [['M'], 'sluiten', 'resume'], [['Esc'], BACK, 'back']],
+  map: [[['Klik'], 'plek kiezen'], [['Q', 'E'], 'onderdeel'], [['M'], 'sluiten', 'resume'], [['Esc'], BACK, 'back']],
   verhaal: [[['↑', '↓'], 'kiezen'], [['Enter'], 'kiezen of bellen'], [['Q', 'E'], 'tabblad'], [['Esc'], BACK, 'back']],
-  spullen: [[['↑', '↓'], 'kiezen'], [['Enter'], 'gebruiken'], [['Esc'], BACK, 'back']],
+  spullen: [[['↑', '↓'], 'kiezen'], [['Enter'], 'gebruiken'], [['Q', 'E'], 'onderdeel'], [['Esc'], BACK, 'back']],
   garage: [[['↑', '↓'], 'kiezen'], [['Enter'], 'afleveren of kopen'], [['Q', 'E'], 'soort'], [['Esc'], BACK, 'back']],
   prestaties: [[['↑', '↓'], 'kiezen'], [['Enter'], 'openen'], [['Q', 'E'], 'weergave'], [['Esc'], BACK, 'back']],
-  loopbaan: [[['↑', '↓'], 'kiezen'], [['Enter'], 'openen'], [['Esc'], BACK, 'back']],
-  visboek: [[['↑', '↓'], 'kiezen'], [['Esc'], BACK, 'back']],
-  boerderij: [[['↑', '↓'], 'kiezen'], [['Enter'], 'doen'], [['Esc'], BACK, 'back']],
-  fotos: [[['F8'], 'fotomodus'], [['Esc'], BACK, 'back']],
+  loopbaan: [[['↑', '↓'], 'kiezen'], [['Enter'], 'openen'], [['Q', 'E'], 'onderdeel'], [['Esc'], BACK, 'back']],
+  visboek: [[['↑', '↓'], 'kiezen'], [['Q', 'E'], 'onderdeel'], [['Esc'], BACK, 'back']],
+  boerderij: [[['↑', '↓'], 'kiezen'], [['Enter'], 'doen'], [['Q', 'E'], 'onderdeel'], [['Esc'], BACK, 'back']],
+  fotos: [[['F8'], 'fotomodus'], [['Q', 'E'], 'onderdeel'], [['Esc'], BACK, 'back']],
   spelers: [[['↑', '↓'], 'kiezen'], [['Enter'], 'roepen of erheen'], [['Esc'], BACK, 'back']],
-  streken: [[['↑', '↓'], 'kiezen'], [['Enter'], 'aan of uit'], [['Esc'], BACK, 'back']],
+  streken: [[['↑', '↓'], 'kiezen'], [['Enter'], 'aan of uit'], [['Q', 'E'], 'onderdeel'], [['Esc'], BACK, 'back']],
   samen: [[['↑', '↓'], 'kiezen'], [['Enter'], 'ok'], [['Esc'], BACK, 'back']],
+  over: [[['↑', '↓'], 'kiezen'], [['Enter'], 'open of dicht'], [['Q', 'E'], 'onderdeel'], [['Esc'], BACK, 'back']],
   spel: [[['↑', '↓'], 'kiezen'], [['Enter'], 'ok'], [['Q', 'E'], 'tabblad'], [['Esc'], BACK, 'back']],
   settings: [[['↑', '↓'], 'kiezen'], [['←', '→'], 'wijzigen'], [['Q', 'E'], 'tabblad'], [['Esc'], BACK, 'back']],
-  controls: [[['↑', '↓'], 'kiezen'], [['Enter'], 'toets wijzigen'], [['Q', 'E'], 'onderdeel'], [['Esc'], BACK, 'back']],
+  controls: [[['↑', '↓'], 'kiezen'], [['Enter'], 'toets wijzigen'], [['Q', 'E'], 'tabblad'], [['Esc'], BACK, 'back']],
 };
 // a line in the sheet header that replaces the section's hint
 const SHEET_NOTE = {};
@@ -459,7 +464,9 @@ function settingsHtml() {
       ${toggle('showMinimap', 'Minimap')}
       ${slider('minimapZoom', 'Inzoomen op het kaartje', 0.6, 1.6, 0.05)}
       ${picker('minimapNorth', 'Minimap met noord boven', [['nooit', 'Nooit'], ['lucht', 'In de lucht'], ['altijd', 'Altijd']], 'Standaard draait de kaart mee')}
-      ${toggle('showFog', 'Verkende gebieden op de kaart')}`, `${pane('Interface', 'Wat je ziet', '<p>Slim toont alleen wat nu telt; Altijd alles houdt alles in beeld; Minimaal laat alleen sterren, doel en ondertitels over.</p>')}`)}
+      ${toggle('showFog', 'Verkende gebieden op de kaart')}
+      <div class="m-gh"><span>Over het spel</span></div>
+      <div class="m-li pm-row">${rowName('Over GDE', 'Versie, wat er nieuw is, credits en licenties')}<button type="button" class="m-bg" data-goto="over">Openen</button></div>`, `${pane('Interface', 'Wat je ziet', '<p>Slim toont alleen wat nu telt; Altijd alles houdt alles in beeld; Minimaal laat alleen sterren, doel en ondertitels over.</p><p class="mut">Over GDE met de versie, de wijzigingen en de credits staat onderaan dit tabblad.</p>')}`)}
     ${tab('a11y', `
       ${picker('colorBlind', 'Kleurenblind', [['uit', 'Uit'], ['deuteranopie', 'Deuteranopie'], ['protanopie', 'Protanopie'], ['tritanopie', 'Tritanopie']], 'Andere kleuren voor markers, routes, kaart en HUD')}
       ${slider('uiScale', 'Grootte interface', 0.8, 1.5, 0.05)}
@@ -793,19 +800,20 @@ function renderCheats(focusSel) {
   if (back) back.focus({ preventScroll: true });
 }
 
-// Over: version, the changelog and the credits. Opening it counts as "seen", so the news is
-// no longer marked as new on the next start.
+// Over: version, the changelog and the credits as a reference screen (#601): two
+// folded blocks with 18 px body instead of one long wall of 14 px text. Opening it
+// counts as "seen", so the news is no longer marked new on the next start.
 function renderOverPanel(el) {
   if (!el) return;
   newsOnStart();
   el.innerHTML = `<div class="m-main"><div class="m-list pm-over">
     <p class="mut">Versie ${esc(VERSION)} · NatusPella</p>
-    <div class="pm-over-news" aria-live="polite"><p class="mut">De lijst met wijzigingen laden…</p></div>
-    <div class="pm-over-about">${ABOUT_HTML}</div>
+    ${disclosure('over-news', 'Wat is er nieuw', 'De wijzigingen per versie', '<p class="mut">De lijst met wijzigingen laden…</p>')}
+    ${disclosure('over-about', 'Credits en licenties', 'Wie en wat eraan meewerkte', ABOUT_HTML)}
   </div></div>`;
-  const box = el.querySelector('.pm-over-news');
+  const box = el.querySelector('[data-fold-body="over-news"]');
   loadChangelog().then((html) => {
-    if (box && box.isConnected) box.innerHTML = `<h3>Wat is er nieuw</h3>${html}`;
+    if (box && box.isConnected) box.innerHTML = html;
   });
 }
 
@@ -854,14 +862,16 @@ function onKey(e) {
     consume(e);
     if (tab === 'map') setOpen(false);
     else enterSection('map');
-  } else if (lower === 'q' || lower === 'e') {
+  } else if (lower === 'q' || lower === 'e' || k === '[' || k === ']') {
     consume(e);
-    // Q and E: the section's tabs; a section without tabs: the previous or next section
-    if (SUBTABS[tab]) { if (!e.repeat) cycleSubtab(lower === 'q' ? -1 : 1); } else if (!e.repeat && cycleOwnTabs(lower === 'q' ? -1 : 1)) { /* garage, prestaties: their own tabs */ } else cycleSection(lower === 'q' ? -1 : 1);
-  } else if ((k === '[' || k === ']') && SUBTABS[tab]) {
-    // [ and ] (a controller's triggers): the section's previous or next tab
-    consume(e);
-    if (!e.repeat) cycleSubtab(k === '[' ? -1 : 1);
+    if (e.repeat) return;
+    const dir = lower === 'q' || k === '[' ? -1 : 1;
+    // Q/E and [ ] do what the footer says (DESIGN_SYSTEM.md, "Menus"): the visible tab
+    // row first, the innermost one on a screen with a second row (Spel > Samen spelen),
+    // then the section's own tabs, then the previous or next section (#601).
+    if (SUBTABS[tab] && cycleVisibleTabs(dir)) return;
+    if (cycleOwnTabs(dir)) return;
+    cycleSection(dir);
   } else if (k === 'Tab') {
     consume(e);
     if (tab === 'map' && !inRail) cycleSection(e.shiftKey ? -1 : 1);
@@ -978,21 +988,27 @@ function visibleFocusables(scope) {
   return [...scope.querySelectorAll(FOCUSABLE)].filter((el) => !el.disabled && el.tabIndex >= 0 && el.getClientRects().length && !el.closest('[hidden]') && !(pad && el.type === 'search'));
 }
 
-function cycleSubtab(dir) {
-  const subs = subsOf(tab);
-  const cur = pref.sub[tab] || subs[0][0];
-  const i = Math.max(0, subs.findIndex(([id]) => id === cur));
-  const next = subs[(i + dir + subs.length) % subs.length][0];
-  showSubtab(tab, next);
-  if (tab === 'todo') renderTodoPanel();
-  if (tab === 'verhaal') renderVerhaalPanel();
-  if (tab === 'spel') afterSpelSub();
+// Q/E and [ ] switch the visible tab row of the section; Spel > Samen spelen has a
+// second row (Samen spelen, Spelers) inside the tab, and that innermost row wins
+// (#601). One rule, so the key always changes the row the footer points at.
+function cycleVisibleTabs(dir) {
+  const panel = activePanel();
+  if (!panel) return false;
+  const lists = [...panel.querySelectorAll('[role="tablist"]')].filter((l) => l.getClientRects().length && !l.closest('[hidden]'));
+  const list = lists[lists.length - 1];
+  if (!list) return false;
+  const tabs = [...list.querySelectorAll('[role="tab"]')].filter((t) => t.getClientRects().length && !t.disabled);
+  if (tabs.length < 2) return false;
+  const i = Math.max(0, tabs.findIndex((t) => t.getAttribute('aria-selected') === 'true'));
+  const next = tabs[(i + dir + tabs.length) % tabs.length];
+  next.click();
+  // the sliders of Spel and Instellingen show the values of the tab that is now open
   if (tab === 'settings' || tab === 'spel') syncControls();
-  if (tab === 'controls') renderBinds();
-  focusEl(root.querySelector(`[data-subtab="${next}"][data-of="${tab}"]`));
+  const again = activePanel().querySelector(`[data-of="${next.dataset.of}"][data-subtab="${next.dataset.subtab}"]`);
+  focusEl(again || next);
+  return true;
 }
 
-// Q/E in a section whose tabs the section draws itself (Garage, Prestaties).
 function cycleOwnTabs(dir) {
   const p = activePanel();
   const tabs = p ? [...p.querySelectorAll('[role="tab"]')].filter((t) => t.getClientRects().length) : [];
@@ -1689,6 +1705,8 @@ function syncFooter() {
   const pad = isPadActive();
   const back = prestart ? 'terug naar het hoofdmenu' : origin !== 'home' ? 'doorgaan' : 'terug';
   let hints = HINTS[atHome() ? 'overzicht' : tab] || HINTS.overzicht;
+  // Spel > Samen spelen has a second tab row: name the outcome of Q/E there (#601)
+  if (tab === 'spel' && (pref.sub.spel || 'overzicht') === 'samen') hints = hints.map(([k, l, a]) => (k.join() === 'Q,E' ? [k, 'spelers-tab', a] : [k, l, a]));
   if (prestart) hints = hints.map(([k, l, a]) => [k, l, a === 'resume' ? 'back' : a]);
   root.querySelector('.pm-footer').innerHTML = hints.map((h) => hintHtml(h, pad, back)).join('');
 }
