@@ -9,6 +9,15 @@
 // Er staat nooit een IP-adres, wachtwoord of persoonsgegeven in; de naam wordt gefilterd. Een sessie die niet meer aankondigt
 // verdwijnt na 45 s uit de lijst.
 
+// Trustmodel (#589): de lijst is een vindplaats, geen identiteit. De CRC16 is alleen een integriteitscontrole, geen
+// handtekening; iedereen kan een aankondiging maken en een bestaand id met een nieuwere tijdstempel overschrijven. Wat de
+// lijst daarom wél doet: hetzelfde id houdt zijn versie en protocol (een echte host verandert die niet midden in een sessie,
+// een vervalser die de rij onbruikbaar wil maken wel), dus zo'n rij wordt geweigerd. Wat de lijst niet kan: een vervalste
+// naam of spelersaantal herkennen, of een oude rij die door een derde levend wordt gehouden onderscheiden. Vertrouw die
+// velden daarom nooit als waarheid: de rij is alleen een ingang. Wie erop klikt, vraagt de kamercode via net/joingate.js aan
+// de host achter dat id; de host geeft hem alleen aan een deelnemer en de gastheer ziet en kan die deelnemer verwijderen.
+// Ondertekenen per sessie (sleutel via het join-kanaal) is de volgende stap als de lijst meer dan vindbaarheid moet beloven.
+
 import { crc16 } from './pairing.js';
 import { woordenVan, past } from '../zoektekst.js';
 
@@ -195,6 +204,9 @@ export class Serverlijst {
       if (a.t === oud.t) return { ok: false, reason: 'dubbel' };
       if (a.t < oud.t) return this._af('oud');
       if (a.t - oud.t < this.o.minTussen) return this._af('te-snel');
+      // #589: een sessie verandert niet halverwege van versie of protocol. Zo'n rij is niet van de host maar van
+      // iemand die de bestaande regel onbruikbaar wil maken; de oude rij blijft staan.
+      if (a.proto !== oud.proto || a.versie !== oud.versie) return this._af('ander');
     } else {
       this.nieuw = this.nieuw.filter((x) => nu - x < 60000);
       if (this.nieuw.length >= this.o.nieuwPerMinuut) return this._af('vloed');

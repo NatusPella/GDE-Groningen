@@ -163,4 +163,20 @@ await t('een broker die wegvalt terwijl de host wacht, wordt opnieuw verbonden e
   await waitFor(() => dood.status === 'fout', 3000);
   b.close(); dood.close();
 });
+await t('te grote frames worden vóór JSON.parse/TextDecoder weggegooid (#589)', async () => {
+  assert.ok(B.MAX_FRAME_BYTES >= 32768 && B.MAX_FRAME_BYTES <= 262144, 'groot genoeg voor een versleuteld SDP-aanbod, klein genoeg tegen MB\'s');
+  const groot = B.mqtt.publish('gde/lijst/x/y', 'x'.repeat(B.MAX_FRAME_BYTES + 10));
+  assert.equal(B.mqtt.parse(groot).filter((p) => p.type === 'publish').length, 0, 'geen publish-bericht uit een te grote payload');
+  const timers = { setTimeout: () => 0, clearTimeout() {}, setInterval: () => 0, clearInterval() {} };
+  const ws = { onopen: null, onmessage: null, onerror: null, onclose: null, send() {}, close() {} };
+  const be = new B.TrackerBackend({ url: 'wss://t.test', socket: () => ws, timers, rand: makeRng(5) });
+  let antwoord = 0;
+  be.host('topic', 'aanbod', () => { antwoord++; });
+  ws.onopen();
+  ws.onmessage({ data: JSON.stringify({ info_hash: be.hash, offer_id: be.offerId, answer: { sdp: 'x'.repeat(B.MAX_FRAME_BYTES + 10) } }) });
+  assert.equal(antwoord, 0, 'te groot frame is niet geparseerd of doorgegeven');
+  ws.onmessage({ data: JSON.stringify({ info_hash: be.hash, offer_id: be.offerId, answer: { sdp: 'klein' } }) });
+  assert.equal(antwoord, 1, 'een normaal antwoord komt er wel langs');
+  be.close();
+});
 console.log(`net_brokers_test: ${n}/${n} ok`);

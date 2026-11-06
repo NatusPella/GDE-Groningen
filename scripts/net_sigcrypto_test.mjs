@@ -40,6 +40,14 @@ await t('verkeerde code, geknoeide of rommelige blob geeft null', async () => {
   assert.equal(await C.decryptBlob('K3J9D8F2MN', 'kort'), null);
   assert.equal(await C.decryptBlob('K3J9D8F2MN', '!!!'), null);
 });
+await t('te grote blobs worden vóór atob/decryptie afgewezen (#589)', async () => {
+  const groot = 'A'.repeat(C.MAX_BLOB_CHARS + 1);
+  const t0 = Date.now();
+  assert.equal(await C.decryptBlob('K3J9D8F2MN', groot), null);
+  assert.equal(await C.ontsleutelVoor(null, groot, 'nonce'), null);
+  await assert.rejects(() => C.sleutelVanTekst(groot));
+  assert.ok(Date.now() - t0 < 1000, 'geen grote base64 gedecodeerd');
+});
 await t('onderwerp: deterministisch per kamer, 20 bytes hex, onthult de code niet', async () => {
   const a = await C.topicFor('K3J9D8F2MN'), b = await C.topicFor('K3J9D8F2MN'), c = await C.topicFor('ZZZZZZZZZZ');
   assert.equal(a, b); assert.notEqual(a, c); assert.match(a, /^[0-9a-f]{40}$/);

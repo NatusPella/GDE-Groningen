@@ -90,6 +90,21 @@ t('de gast: muisknop is de aanvalsknop, patronen gaan af, in een menu, voertuig 
 
 // een host met een gast als figuur (plek 2) of als metgezel (plek 1)
 const hostWereld = (extra = {}) => ({ time: 10, coop: { remote: true, remoteInput: null }, coopFigures: { 1: { slot: 1, x: 0, y: 0, angle: 0, gz: 0, input: null, char: 't' }, 2: { slot: 2, x: 10, y: 10, angle: 0, gz: 0, input: null, char: 'a' } }, pedestrians: [], vehicles: [], bullets: [], particles: [], stats: { kills: 0, copKills: 0, pedKills: 0 }, wanted: 0, ...extra }); // (#516) plek 1 is een eigen figuur
+t('bericht wapen (#589): een geweer is nooit oneindig, ook niet met n: -1 of zonder n', () => {
+  assert.deepEqual(W.leesWapen({ k: 'wapen', w: 'pistol', n: -1 }), { w: 'pistol', n: 0 });
+  assert.deepEqual(W.leesWapen({ k: 'wapen', w: 'uzi' }), { w: 'uzi', n: 0 });
+  assert.deepEqual(W.leesWapen({ k: 'wapen', w: 'knuppel', n: -1 }), { w: 'knuppel', n: Infinity });
+  assert.equal(W.wapenEvent('pistol', Infinity).n, 0, 'een geweer zonder echte patronen is leeg');
+  const w = hostWereld();
+  assert.equal(W.wapenVerwerk(w, 2, { k: 'wapen', w: 'pistol', n: -1 }), true);
+  const calls = [];
+  W.zetWapenHaken({ aanval: () => { calls.push(1); return { fx: { type: 'muzzle' } }; }, landing: null });
+  w.coopFigures[2].input = { mx: 0, my: 0, buttons: 16, yaw: 0 };
+  assert.equal(W.wapenTick(w, 0.016), 0, 'geen schot uit een leeg wapen');
+  assert.equal(W.wapens(w)[2].n, 0); assert.equal(calls.length, 0);
+  W.zetWapen(w, 3, 'pistol', -5);
+  assert.equal(W.wapens(w)[3].n, 0, 'ook een rauw bericht wordt door de host geklemd');
+});
 t('wapenTick (host): de knop in de invoer van de gast is een aanval vanuit zijn lichaam, met zijn kijkrichting, zijn patronen en zijn klok', () => {
   const calls = [];
   W.zetWapenHaken({ aanval: (w, slot, l, key, hoek) => { calls.push([slot, key, hoek, l.x, l.y]); return { fx: { type: 'muzzle' } }; }, landing: null });

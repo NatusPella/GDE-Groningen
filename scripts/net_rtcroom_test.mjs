@@ -1,7 +1,7 @@
 // Samen spelen (#95): WebRTC via kamercode (game/js/net/rtcroom.js) met nep-RTCPeerConnection
 // en een nep-signaleerder. Geen echt netwerk, geen echte STUN of brokers.
 import assert from 'node:assert/strict';
-import { hostRoom, joinRoom } from '../game/js/net/rtcroom.js';
+import { hostRoom, joinRoom, MAX_CHANNEL_BYTES } from '../game/js/net/rtcroom.js';
 import { HostSession, ClientSession } from '../game/js/net/session.js';
 import { decryptBlob } from '../game/js/net/sigcrypto.js';
 import { ICE_SERVERS } from '../game/js/net/netconfig.js';
@@ -163,5 +163,29 @@ await t('WebRTC valt weg midden in het spel: pauze (lost), een nieuw aanbod onde
   assert.equal(cs.status, 'ok', 'automatisch hersteld'); assert.equal(cs.slot, slot, 'dezelfde plek'); assert.equal(cs.token, token, 'hetzelfde token');
   for (let i = 0; i < 90; i++) { hs.tick(1 / 30); cs.tick(1 / 30); await tick(3); }
   assert.equal(cs.world().shared.money, 5, 'de toestand komt weer binnen');
+});
+await t('cancel sluit ook een open datachannel en peerconnection (#589)', async () => {
+  const h = hub(), pcs = [];
+  const host = await hostRoom('K3J9D8F2MN', { pcFactory: (ice) => makePc(ice, pcs), signaler: h.signaler(), timeouts: TO });
+  const guest = await joinRoom('K3J9D8F2MN', { pcFactory: (ice) => makePc(ice, pcs), signaler: h.signaler(), timeouts: TO });
+  const gt = await guest.opened; await waitFor(() => host.transport.isOpen() && gt.isOpen());
+  host.cancel();
+  assert.equal(pcs[0].closed, true, 'host-pc dicht');
+  guest.cancel();
+  assert.equal(pcs[1].closed, true, 'gast-pc dicht');
+});
+await t('een te groot datachannel-frame wordt niet aan de codec gegeven (#589)', async () => {
+  const h = hub(), pcs = [];
+  const host = await hostRoom('K3J9D8F2MN', { pcFactory: (ice) => makePc(ice, pcs), signaler: h.signaler(), timeouts: TO });
+  const guest = await joinRoom('K3J9D8F2MN', { pcFactory: (ice) => makePc(ice, pcs), signaler: h.signaler(), timeouts: TO });
+  const gt = await guest.opened; await waitFor(() => host.transport.isOpen() && gt.isOpen());
+  const got = []; gt.onmessage = (b) => got.push(b);
+  host.transport.send(new Uint8Array(MAX_CHANNEL_BYTES + 1));
+  await tick(20);
+  assert.equal(got.length, 0, 'te groot frame weggegooid');
+  host.transport.send(Uint8Array.from([1, 2]));
+  await waitFor(() => got.length === 1);
+  assert.deepEqual([...got[0]], [1, 2]);
+  host.cancel(); guest.cancel();
 });
 console.log(`net_rtcroom_test: ${n}/${n} ok`);

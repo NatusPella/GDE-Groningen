@@ -15,6 +15,18 @@ const bin = (hex) => hex.match(/../g).map((h) => String.fromCharCode(parseInt(h,
 const rid = (rand, n = 20) => { let s = ''; for (let i = 0; i < n; i++) s += String.fromCharCode(97 + Math.floor(rand() * 26)); return s; };
 const defaultTimers = () => ({ setTimeout: (...a) => setTimeout(...a), clearTimeout: (...a) => clearTimeout(...a), setInterval: (...a) => setInterval(...a), clearInterval: (...a) => clearInterval(...a) });
 
+// #589: geen enkel bericht van een broker komt onbegrensd binnen. Een SDP-aanbod van 20.000 tekens
+// wordt versleuteld en base64url bijna 27 kB, dus 64 kB laat het echte verkeer door en houdt MB's
+// tegen. Te grote frames worden stil weggegooid: geen JSON.parse, geen TextDecoder, geen allocatie
+// van de payload. De openbare lijst is met zijn eigen 600-tekengrens nog veel kleiner.
+export const MAX_FRAME_BYTES = 65536;
+const teGroot = (data) => {
+  if (typeof data === 'string') return data.length > MAX_FRAME_BYTES;
+  if (data && typeof data.byteLength === 'number') return data.byteLength > MAX_FRAME_BYTES;
+  if (data && typeof data.size === 'number') return data.size > MAX_FRAME_BYTES; // Blob
+  return false;
+};
+
 const HERSTEL_MAX = 6, HERSTEL_WACHT = 2000; // pogingen en eerste wachttijd (ms) na een weggevallen broker
 
 class Backend {
@@ -40,7 +52,7 @@ class Backend {
     this.ws = ws;
     const t = this.timers.setTimeout(() => { if (this.status === 'bezig') { this._set('fout'); this.close(); } }, timeoutMs);
     ws.onopen = () => { if (!this.closed) onopen(); };
-    ws.onmessage = (e) => { if (!this.closed) onmessage(e.data); };
+    ws.onmessage = (e) => { if (!this.closed && !teGroot(e.data)) onmessage(e.data); };
     const weg = () => { this.timers.clearTimeout(t); if (this.closed || ws !== this.ws) return; if (this.status === 'ok' || this.pogingen > 0) this._herstel(); else this._set('fout'); };
     ws.onerror = weg;
     ws.onclose = weg;
@@ -137,7 +149,10 @@ export const mqtt = {
       else if (type === 13) out.push({ type: 'pingresp' });
       else if (type === 3) {
         const tl = (body[0] << 8) | body[1];
+        if (tl > 1024) continue; // #589: een onderwerp is kort; een gek bericht hoeft niet gedecodeerd te worden
         const qos = (first >> 1) & 3; const start = 2 + tl + (qos ? 2 : 0);
+        const plen = body.length - start;
+        if (plen < 0 || plen > MAX_FRAME_BYTES) continue; // #589: geen TextDecoder over een enorme payload
         out.push({ type: 'publish', topic: td.decode(body.subarray(2, 2 + tl)), payload: td.decode(body.subarray(start)) });
       }
     }

@@ -42,12 +42,19 @@ export function stapAanvalKlok(st, dt, ingedrukt, key, n) {
 }
 
 // ---------------------------------------------------------------- berichten
-export const wapenEvent = (key, n) => ({ k: 'wapen', w: gastWapenKan(key) ? key : '', n: Number.isFinite(n) ? Math.max(0, Math.min(MAX_PATRONEN, Math.floor(n))) : -1 });
+// #589: alleen een slagwapen (of een wapen dat in de eigen wapentabel oneindig is) is oneindig. Een geweer
+// met een negatieve of ontbrekende n is leeg, niet onuitputtelijk: de gast stelt zijn patronen niet zelf vast.
+const oneindigWapen = (key) => !!WEAPONS[key] && (WEAPONS[key].kind === 'melee' || WEAPONS[key].ammo === Infinity);
+const klemPatronen = (n) => (Number.isFinite(n) ? Math.max(0, Math.min(MAX_PATRONEN, Math.floor(n))) : 0);
+export const wapenEvent = (key, n) => {
+  const w = gastWapenKan(key) ? key : '';
+  return { k: 'wapen', w, n: w && oneindigWapen(w) ? -1 : klemPatronen(n) };
+};
 export function leesWapen(b) {
   if (!b || b.k !== 'wapen') return null;
   const w = typeof b.w === 'string' && gastWapenKan(b.w) ? b.w : '';
-  const n = Number.isFinite(b.n) ? (b.n < 0 ? Infinity : Math.min(MAX_PATRONEN, Math.floor(b.n))) : 0;
-  return { w, n };
+  if (w && oneindigWapen(w)) return { w, n: Infinity };
+  return { w, n: klemPatronen(b.n) };
 }
 
 // ---------------------------------------------------------------- de gast (eigen scherm)
@@ -123,7 +130,7 @@ export function zetWapen(world, slot, key, n) {
   if (!Number.isInteger(slot) || slot < 1) return false;
   const lijst = wapens(world), w = typeof key === 'string' && gastWapenKan(key) ? key : '';
   const st = lijst[slot] || (lijst[slot] = { w: '', n: 0, klok: { timer: 0 }, fx: null, teller: 0, wacht: null });
-  st.w = w; st.n = n;
+  st.w = w; st.n = w && oneindigWapen(w) ? Infinity : klemPatronen(n); // #589: de host klemt zelf, ook na een rauw bericht
   return true;
 }
 export function wapenVerwerk(world, slot, body) { const r = leesWapen(body); return r ? zetWapen(world, slot, r.w, r.n) : false; }

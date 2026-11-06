@@ -193,15 +193,22 @@ t('vertrek van een gast: terug op de eigen plek, met eigen wanted, personage en 
   assert.deepEqual(s.hw.coopRoster.map((r) => r.slot), [0, 2], 'de plek van de eerste gast is vrij');
   assert.equal(s.gs[1].gw.coopNet.session.status, 'ok');
 });
-t('host verwijdert één speler: bericht, dan verbreken; de rest speelt door', () => {
+t('host verwijdert één speler: bericht, dan verbreken; de rest speelt door; het token is verboden (#589)', () => {
   const s = sessie(2, { gastExtra: [{}, { player: { x: 5, y: 0, angle: 0, character: 'anita', vx: 0, vy: 0 } }] }); s.step(2);
   const [a, b] = s.gs.map((x) => x.gw);
+  const tokenB = b.coopNet.session.token;
   assert.equal(N.removeGuest(a, 1), false, 'een gast kan niemand verwijderen');
   assert.equal(N.removeGuest(s.hw, 2), true); assert.equal(N.removeGuest(s.hw, 9), false);
+  assert.ok(s.hw.coopNet.hub.cfg.verboden.has(tokenB), 'kicken zet het token op de verbodenlijst');
   s.step(2);
   assert.equal(b.coopNet, null); assert.equal(b.player.x, 5); assert.equal(b.coopRole, null);
   assert.match(b.messages.join(' '), /Tammo heeft je uit het spel gezet/);
   assert.equal(a.coopNet.session.status, 'ok'); assert.deepEqual(s.hw.coopRoster.map((r) => r.slot), [0, 1]);
+  // een nieuwe verbinding met het oude token komt er niet meer in
+  const link = createLink({ latency: 0.03, seed: 21 }); N.addGuest(s.hw, link.a);
+  const terug = new ClientSession(link.b, { info: INFO, caps: N.CAPS, token: tokenB });
+  for (let k = 0; k < 120; k++) { N.tickCoopNet(s.hw, 1 / 60); terug.tick(1 / 60); link.advance(1 / 60); }
+  assert.equal(terug.status, 'geweigerd'); assert.equal(terug.rejected, 'verbod', 'de gekickte gast komt niet terug (#589)');
 });
 t('pings: komen bij iedereen aan met de afzender; cooldown; ongeldige of onbekende worden genegeerd', () => {
   const s = sessie(2); s.step(2);

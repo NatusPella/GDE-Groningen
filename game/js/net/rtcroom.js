@@ -11,6 +11,9 @@ import { ICE_SERVERS, TIMEOUTS } from './netconfig.js';
 
 export const rtcSupported = () => typeof RTCPeerConnection !== 'undefined';
 const MAX_SDP = 20000;
+// #589: een datachannel kan in theorie grote frames aan; alles wat groter is dan een snapshot of
+// EXTRA-bericht hoeft nooit in het spel te komen. Te grote frames worden stil weggegooid.
+export const MAX_CHANNEL_BYTES = 65536;
 
 export const defaultPc = (iceServers) => new RTCPeerConnection({ iceServers, iceCandidatePoolSize: 0 });
 const GEEN_RTC = 'Een kamercode werkt niet op dit apparaat. Gebruik het IP-adres, of probeer een andere computer.';
@@ -36,7 +39,12 @@ function wrapChannel(ch, pc) {
     send(bytes) { if (ch.readyState !== 'open') return false; try { ch.send(bytes); return true; } catch (e) { return false; } },
     close() { try { ch.close(); pc.close(); } catch (e) { /* al dicht */ } },
   };
-  ch.onmessage = (e) => { if (tr.onmessage) tr.onmessage(new Uint8Array(e.data)); };
+  ch.onmessage = (e) => {
+    const d = e.data;
+    const n = typeof d === 'string' ? d.length : (d && d.byteLength) || 0;
+    if (n > MAX_CHANNEL_BYTES) return; // #589: geen enorme frame doorgeven aan de codec
+    if (tr.onmessage) tr.onmessage(typeof d === 'string' ? new TextEncoder().encode(d) : new Uint8Array(d));
+  };
   ch.onopen = () => { if (tr.onstate) tr.onstate('open'); };
   ch.onclose = () => { if (tr.onstate) tr.onstate('closed'); };
   return tr;
@@ -57,7 +65,7 @@ export async function hostRoom(room, env) {
   const transport = wrapChannel(ch, pc);
   let ended = false, timer = null;
   const fail = (txt) => { if (!ended) { ended = true; onstate('fout', txt); cancel(); } };
-  const cancel = () => { ended = true; clearTimeout(timer); try { signaler.close(); } catch (e) { /* weg */ } if (!transport.isOpen()) { try { pc.close(); } catch (e) { /* weg */ } } };
+  const cancel = () => { ended = true; clearTimeout(timer); try { signaler.close(); } catch (e) { /* weg */ } try { pc.close(); } catch (e) { /* weg */ } }; // #589: ook een open kanaal hoort bij het opruimen dicht
   const opened = transport.onstate;
   transport.onstate = (s) => { if (s === 'open') { ended = true; clearTimeout(timer); try { signaler.close(); } catch (e) { /* weg */ } onstate('open'); } if (opened) opened(s); };
   // Eerst wachten tot een medespeler de code gebruikt (lang: tijd om de code door te geven), daarna pas de tijd om echt te verbinden.
@@ -89,7 +97,7 @@ export async function joinRoom(room, env) {
   const pc = maakPc(pcFactory, iceServers);
   let ended = false, transport = null;
   const fail = (txt) => { if (!ended) { ended = true; onstate('fout', txt); cancel(); } };
-  const cancel = () => { ended = true; clearTimeout(timer); try { signaler.close(); } catch (e) { /* weg */ } if (!transport || !transport.isOpen()) { try { pc.close(); } catch (e) { /* weg */ } } };
+  const cancel = () => { ended = true; clearTimeout(timer); try { signaler.close(); } catch (e) { /* weg */ } try { pc.close(); } catch (e) { /* weg */ } }; // #589: ook een open kanaal hoort bij het opruimen dicht
   const timer = setTimeout(() => fail('Er kwam geen verbinding tot stand. Controleer de code en of het spel open staat.'), timeouts.connect);
   const opened = new Promise((resolve) => {
     pc.ondatachannel = (e) => {
