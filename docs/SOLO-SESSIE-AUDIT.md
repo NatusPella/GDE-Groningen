@@ -6,6 +6,13 @@ bestond nog niet, dus dit rapport toetst het plan tegen de bestaande `startHost`
 tegen elke plek die nu op `world.coopNet`, `world.coopRole`, `world.coopRoster`, `world.coopPartner`
 of `world.coopFoci` leunt. Er is niets aan code veranderd en er is niets met `--write` gedraaid.
 
+**Stand na de fixronde (7-11-2026).** H4, M2, M3 en het solo-baken zijn opgelost (#559, #560, #568,
+#567); de aanbevelingen hieronder zijn een momentopname van de review en niet meer de bedoelde
+richting. De sessie van één zet `world.coop.local` juist op `false` (dan neemt de volg-AI de metgezel
+over; #559) en de consumenten vragen `isSamenSessie()` of kijken naar de gasten in de hub in plaats van
+naar `world.coopNet` alleen. Tests: `scripts/coopsolo_test.mjs`, `scripts/gamepad_live_test.mjs`,
+`scripts/onboarding_test.mjs` en `scripts/coopbestuur_test.mjs`.
+
 ## Uitgangspunt
 
 De eigenaar wil "Alleen spelen" als een gastheer-sessie van één: dezelfde multiplayer-code, een hub

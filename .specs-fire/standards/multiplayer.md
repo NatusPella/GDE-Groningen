@@ -34,6 +34,14 @@ Sinds #528 is Samen spelen de standaard, niet iets wat je erbij doet (ADR 0022).
   een doodlopende weg.
 - **Ontsnappen via Escape** gaat altijd: naar een besloten sessie, alleen of met
   vrienden via een kamercode, zonder de eigen voortgang te verliezen (#527).
+- **De sessie van één is gewoon je eigen spel** (#554, ADR [0024](adr/0024-eenspeler-is-een-sessie-van-een.md)):
+  `game/js/coopsolo.js` opent een gewone gastheer-sessie met `SOLO_MAX` 1 en alleen plek 0,
+  zonder aankondiging, poort of verbinding (`scripts/coopsolo_test.mjs`). Alles wat van een
+  gast afhangt valt terug op alleen spelen: de metgezel volgt de volg-AI omdat er geen
+  gast-invoer is (`coop.local` staat in elke sessie op `false`; zonder gasten doet de
+  volg-AI het werk, #559), de controller houdt de gewone D-pad-functies (#560), de
+  uitlegkaart Samen spelen komt na de eerste missie (#568) en 7/8/9 zet zonder gasten geen
+  baken (#567). Wie Samen spelen opent, stopt de sessie van één eerst.
 - **De openbare lijst** toont naam, aantal spelers en versie; nooit een adres en nooit
   een wachtwoord.
 - **Het bootpad** is `game/js/sessionboot.js`: zodra de wereld te besturen is
@@ -164,7 +172,11 @@ De eigen speler lees je via `players.js` (`hoofdspeler`, `isGast`, `medespelers`
 ## Tests
 
 Puur (`scripts/*_test.mjs`): per module hierboven, plus `net_*`, `coop_scenarios`,
-`coopregressie`, `vrijdag`, `coopduur`, `coopwedstrijd_padel`. De hele stroom van een
+`coopregressie`, `vrijdag`, `coopduur`, `coopwedstrijd_padel`. `coopsolo_test` dekt de
+sessie van één (ADR 0024) en wat daarvan afhangt: metgezel, baken en de overgang naar een
+echte sessie; `coopbestuur_test` de bestuurinvoer van de gastheer en de gast;
+`onboarding_test` en `gamepad_live_test` de uitlegkaart en de controllerindeling in
+alleen spelen. De hele stroom van een
 gast in een voertuig (instappen, meerijden, uitstappen, weer instappen; auto, meerijden
 bij de gastheer en boot) staat in `coopbestuurflow_test`. Electron
 (`scripts/coop/testbank.mjs`): `basis`, `net`, `opening`, `gastkant`, `bestuur`,
