@@ -629,9 +629,11 @@ let hiddenSaveBound = false;
 
 // Samen spelen (#448): elke speler (ook een gast, in zijn eigen save) schrijft zijn voortgang elke minuut en na elke gelukte opdracht weg,
 // ook achter het pauzemenu; een sessie die wegvalt of crasht kost dan hooguit een minuut.
+// #569: alleen in een echte sessie met een andere kant. Alleen spelen is sinds #554 intern een sessie van één
+// (coopRole 'host'), maar het hoort zijn eigen save-momenten te houden: geen checkpoint elke minuut.
 const coopCheckpoint = maakCheckpoint();
 function coopCheckpointTik(dt, w) {
-  if (!w.coopRole) { coopCheckpoint.reset(); return; }
+  if (!w.coopRole || !w.coopNet || w.coopSolo) { coopCheckpoint.reset(); return; }
   coopCheckpoint.opdrachtGelukt(w.stats ? w.stats.missionsDone : 0);
   const bezig = isCinematicActive() || w.pendingRespawn || w.health <= 0;
   if (coopCheckpoint.tik(dt, bezig)) saveGame(w, { toast: false });
