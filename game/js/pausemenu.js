@@ -41,6 +41,7 @@ import { glyphHtml } from './prompts.js';
 import { KEY_ACTIONS, KEY_GROUPS, PAD_REMAPPABLE, PAD_SLOT_NAMES, bindKey, bindButton, physicalKey, defaultKey, physicalButton, isBindableKey, keyName, slotUses } from './controls.js';
 import { capturePadButton, isPadActive, onPadChange } from './gamepad.js';
 import { padGlyphInner } from './glyphs.js';
+import { touchPlan, touchMore } from './touchlogic.js';
 import { openPadTest } from './padtest.js';
 import { isHelpOfferOpen } from './assistlive.js';
 import { getUiScale } from './uiscale.js';
@@ -65,75 +66,137 @@ const DESKTOP = typeof window !== 'undefined' && window.gdeDesktop && window.gde
 const CONTROL_GROUPS = [
   ['voet', 'Te voet', [
     [['WASD'], 'Lopen en draaien'],
-    [['MOUSE'], 'Camera draaien; laag houden om omhoog te kijken'],
-    [['SHIFT'], 'Rennen (vasthouden)'],
-    [['SPACE'], 'Springen, over hekjes en auto\'s, uit het water klimmen'],
+    [['MOUSE'], 'Camera draaien'],
+    [['SHIFT'], 'Rennen'],
+    [['SPACE'], 'Springen'],
     [['CTRL'], 'Bukken'],
-    [['E', 'F'], 'Instappen, winkel in, praten, bijbaantje beginnen'],
-    [['E'], 'Bij een duivenbord: word een duif'],
-    [['K'], 'Kusje geven aan Tammo of Tessa'],
-    [['I'], 'Hengelen, aan elk water (ook vanuit een boot die stilligt)'],
+    [['E', 'F'], 'Gebruiken'],
+    [['E'], 'Word een duif'],
+    [['K'], 'Kusje geven'],
+    [['I'], 'Hengelen'],
   ]],
   ['vervoer', 'Vervoer', [
-    [['WASD'], 'Gas, remmen en sturen; heli en vliegtuig: vooruit, achteruit, draaien of rollen; boot en trein: varen en rijden'],
-    [['SPACE'], 'Handrem; heli: omhoog; vliegtuig: neus omhoog; trein: noodrem'],
-    [['SHIFT'], 'Op de fiets: even flink doortrappen; op een motor: wheelie met gas, stoppie met remmen; heli: sneller; vliegtuig: remmen'],
-    [['CTRL'], 'Op de fiets: wheelie (vasthouden en trappen), stoppie (vasthouden en remmen), een sprongetje (vasthouden en de rem kort aantikken) of zonder handen rijden (vasthouden en snel doortrappen); heli: omlaag; vliegtuig: neus omlaag'],
-    [['.', ','], 'Handmatig schakelen: hoger, lager (Instellingen › Schakelen)'],
-    [['J'], 'Handmatig met koppeling: koppeling indrukken bij het schakelen'],
+    [['WASD'], 'Rijden en sturen'],
+    [['SPACE'], 'Handrem'],
+    [['SHIFT'], 'Doortrappen'],
+    [['CTRL'], 'Wheelie of stoppie'],
+    [['.', ','], 'Schakelen'],
+    [['J'], 'Koppeling'],
     [['E', 'F'], 'Uitstappen'],
-    [['Q', 'WHEEL'], 'Achterom kijken (vasthouden; middelste muisknop)'],
+    [['Q', 'WHEEL'], 'Achterom kijken'],
     [['H'], 'Toeteren'],
-    [['L'], 'Zwaailicht en sirene (politieauto, ambulance)'],
-    [['[', ']'], 'Richtingaanwijzer links en rechts (nog eens: uit; na de bocht gaat hij vanzelf uit)'],
+    [['L'], 'Sirene'],
+    [['[', ']'], 'Richting aangeven'],
     [['P'], 'Alarmlichten'],
-    [['C'], 'Binnen- of buitenzicht'],
+    [['C'], 'Binnen/buiten'],
     [['V'], 'Filmcamera'],
-    [['R'], 'Nieuwe lak bij Spuit & Klaar, garagemenu in een garage'],
-    [['Z'], 'Skûtsje: zeil vieren; trekker: ploeg aankoppelen, omhoog of omlaag'],
-    [['X'], 'Trekker: aftakas aan of uit'],
+    [['R'], 'Nieuwe lak'],
+    [['Z'], 'Zeil of ploeg'],
+    [['X'], 'Aftakas'],
   ]],
   ['vechten', 'Vechten', [
-    [['LMB'], 'Aanvallen, schieten, gooien'],
-    [['RMB'], 'Richten; jachtgeweer: door de kijker'],
-    [['TAB'], 'Tijdens het richten: volgend doelwit (of muis snel opzij)'],
-    [['1'], 'Slaan: vuisten, knuppel, hockeystick, bezem, fietspomp, klomp, polsstok (nog eens: wisselen)'],
-    [['2'], 'Pistool, uzi, waterpistool'],
-    [['3'], 'Hagelgeweer, jachtgeweer'],
-    [['4'], 'Carbidbus, vuurwerkpijlen'],
+    [['LMB'], 'Aanvallen'],
+    [['RMB'], 'Richten'],
+    [['TAB'], 'Volgend doel'],
+    [['1'], 'Slaan'],
+    [['2'], 'Pistool'],
+    [['3'], 'Hagelgeweer'],
+    [['4'], 'Carbid'],
     [['CTRL+LMB'], 'Carbidbus neerzetten'],
-    [['WHEEL'], 'Volgend of vorig wapen (scrollen)'],
+    [['WHEEL'], 'Wapen wisselen'],
   ]],
   ['duif', 'Duif', [
-    [['WASD'], 'Lopen, in de lucht: sturen'],
-    [['SPACE'], 'Opstijgen, klapwieken'],
+    [['WASD'], 'Lopen en sturen'],
+    [['SPACE'], 'Opstijgen'],
     [['SHIFT'], 'Duiken'],
     [['F', 'LMB'], 'Poepen'],
-    [['E', 'CTRL'], 'Pikken, opeten, landen'],
+    [['E', 'CTRL'], 'Pikken'],
     [['C'], 'Koeren'],
-    [['Q'], 'Zwerm roepen of wegsturen'],
+    [['Q'], 'Zwerm roepen'],
     [['X'], 'Weer mens worden'],
   ]],
   ['samen', 'Samen spelen', [
-    [['Y'], 'Het stuur aan je bijrijder geven of terugnemen; als bijrijder erom vragen of het teruggeven'],
-    [['7'], 'Roepen: Kom hier (een baken voor iedereen)'],
-    [['8'], 'Roepen: Help!'],
-    [['9'], 'Roepen: Kijk daar (een stuk voor je uit)'],
+    [['Y'], 'Stuur geven'],
+    [['7'], 'Kom hier'],
+    [['8'], 'Help'],
+    [['9'], 'Kijk daar'],
   ]],
   ['menu', 'Menu en radio', [
-    [['ESC'], 'Pauzemenu openen; in het menu: terug'],
+    [['ESC'], 'Pauzemenu'],
     [['M'], 'Kaart'],
-    [['ARROWS'], 'In het menu: kiezen, Enter: ok'],
-    [['Q', 'E'], 'In het menu: vorige of volgende sectie'],
-    [['[', ']'], 'In het menu: vorig of volgend tabblad'],
-    [['N'], 'Radio aan of uit'],
-    [['U'], 'Geluid uit of weer aan; staat het uit, dan staat linksboven een luidspreker met een streep en de toets U erbij'],
-    [['O'], 'Verhaalstap overslaan (als dat in beeld staat)'],
-    [['BACKSPACE'], 'Minigame of dienst stoppen'],
-    ...(DESKTOP ? [[['F11'], 'Volledig scherm (ook Alt+Enter)']] : []),
+    [['ARROWS'], 'Kiezen'],
+    [['Q', 'E'], 'Vorige of volgende sectie'],
+    [['[', ']'], 'Tabblad'],
+    [['N'], 'Radio'],
+    [['U'], 'Geluid'],
+    [['O'], 'Verhaalstap overslaan'],
+    [['BACKSPACE'], 'Minigame stoppen'],
+    ...(DESKTOP ? [[['F11'], 'Volledig scherm']] : []),
   ]],
 ];
 
+// De lange uitleg hoort niet in het Toetsenoverzicht (dat blijft scanbaar, #605) maar in Hulp, per
+// dezelfde situatie. Sleutel: de korte actie uit CONTROL_GROUPS hierboven; de waarde is de uitleg
+// die vroeger onder de toets stond.
+const CONTROL_LONG = [
+  ['voet', [
+    ['Lopen en draaien', 'W A S D lopen en draaien.'],
+    ['Camera draaien', 'De muis draait de camera; houd hem laag om omhoog te kijken.'],
+    ['Rennen', 'Rennen: houd Shift vast.'],
+    ['Springen', 'Springen, over hekjes en auto\'s, en uit het water klimmen.'],
+    ['Bukken', 'Bukken: houd Ctrl vast.'],
+    ['Gebruiken', 'Instappen, een winkel in, praten of een bijbaantje beginnen.'],
+    ['Word een duif', 'Bij een duivenbord: word een duif.'],
+    ['Kusje geven', 'Kusje geven aan Tammo of Tessa.'],
+    ['Hengelen', 'Hengelen, aan elk water (ook vanuit een boot die stilligt).'],
+  ]],
+  ['vervoer', [
+    ['Rijden en sturen', 'Gas, remmen en sturen; heli en vliegtuig: vooruit, achteruit, draaien of rollen; boot en trein: varen en rijden.'],
+    ['Handrem', 'Handrem; heli: omhoog; vliegtuig: neus omhoog; trein: noodrem.'],
+    ['Doortrappen', 'Op de fiets: even flink doortrappen; op een motor: wheelie met gas, stoppie met remmen; heli: sneller; vliegtuig: remmen.'],
+    ['Wheelie of stoppie', 'Op de fiets: wheelie (vasthouden en trappen), stoppie (vasthouden en remmen), een sprongetje (vasthouden en de rem kort aantikken) of zonder handen rijden (vasthouden en snel doortrappen); heli: omlaag; vliegtuig: neus omlaag.'],
+    ['Schakelen', 'Handmatig schakelen: hoger en lager (Instellingen › Schakelen).'],
+    ['Koppeling', 'Handmatig met koppeling: de koppeling indrukken bij het schakelen.'],
+    ['Achterom kijken', 'Achterom kijken: houd de toets vast, of de middelste muisknop.'],
+    ['Sirene', 'Zwaailicht en sirene (politieauto, ambulance).'],
+    ['Richting aangeven', 'Richtingaanwijzer links en rechts (nog eens: uit; na de bocht gaat hij vanzelf uit).'],
+    ['Binnen/buiten', 'Binnen- of buitenzicht.'],
+    ['Nieuwe lak', 'Nieuwe lak bij Spuit & Klaar, of het garagemenu in een garage.'],
+    ['Zeil of ploeg', 'Skûtsje: zeil vieren; trekker: ploeg aankoppelen, omhoog of omlaag.'],
+    ['Aftakas', 'Trekker: aftakas aan of uit.'],
+  ]],
+  ['vechten', [
+    ['Aanvallen', 'Aanvallen, schieten, gooien.'],
+    ['Richten', 'Richten; jachtgeweer: door de kijker.'],
+    ['Volgend doel', 'Tijdens het richten: volgend doelwit (of de muis snel opzij).'],
+    ['Slaan', 'Slaan: vuisten, knuppel, hockeystick, bezem, fietspomp, klomp, polsstok (nog eens: wisselen).'],
+    ['Pistool', 'Pistool, uzi, waterpistool.'],
+    ['Hagelgeweer', 'Hagelgeweer, jachtgeweer.'],
+    ['Carbid', 'Carbidbus, vuurwerkpijlen.'],
+    ['Wapen wisselen', 'Volgend of vorig wapen (scrollen).'],
+  ]],
+  ['duif', [
+    ['Lopen en sturen', 'Lopen; in de lucht: sturen.'],
+    ['Opstijgen', 'Opstijgen, klapwieken.'],
+    ['Pikken', 'Pikken, opeten, landen.'],
+    ['Zwerm roepen', 'De zwerm roepen of wegsturen.'],
+    ['Weer mens worden', 'Weer mens worden.'],
+  ]],
+  ['samen', [
+    ['Stuur geven', 'Het stuur aan je bijrijder geven of terugnemen; als bijrijder erom vragen of het teruggeven.'],
+    ['Kom hier', 'Roepen: Kom hier (een baken voor iedereen).'],
+    ['Help', 'Roepen: Help!'],
+    ['Kijk daar', 'Roepen: Kijk daar (een stuk voor je uit).'],
+  ]],
+  ['menu', [
+    ['Pauzemenu', 'Pauzemenu openen; in het menu: terug.'],
+    ['Kiezen', 'In het menu: kiezen, Enter: ok.'],
+    ['Verhaalstap overslaan', 'De verhaalstap overslaan (als dat in beeld staat).'],
+    ['Minigame stoppen', 'Een minigame of dienst stoppen.'],
+    ['Geluid', 'Geluid uit of weer aan; staat het uit, dan staat linksboven een luidspreker met een streep, met de knop erbij.'],
+    ['Volledig scherm', 'Volledig scherm (ook Alt+Enter).'],
+  ]],
+];
 const GROUP_ICONS = {
   voet: '<circle cx="13" cy="4.5" r="2"/><path d="M11 21l2-6-3-3 1-5 4 3 3 1M10 12l-3 2M13 15l3 6"/>',
   vervoer: '<path d="M4 16l1.5-5A2 2 0 0 1 7.4 9.6h9.2a2 2 0 0 1 1.9 1.4L20 16v3h-3M7 19H4v-3h16"/><circle cx="7.5" cy="17.5" r="1.8"/><circle cx="16.5" cy="17.5" r="1.8"/>',
@@ -146,39 +209,106 @@ const GROUP_ICONS = {
 const GROUP_CTX = { voet: 'foot', vervoer: 'vehicle', vechten: 'foot', duif: 'pigeon', samen: 'foot', menu: 'menu' };
 const MOUSE_WORDS = { LMB: 'linkermuisknop klik', RMB: 'rechtermuisknop', MOUSE: 'muis', WHEEL: 'scrollwiel middelste muisknop', SPACE: 'spatie', CTRL: 'ctrl control', SHIFT: 'shift', ESC: 'esc escape', WASD: 'w a s d wasd', ARROWS: 'pijltjes pijltjestoetsen' };
 
+const altKeys = (a) => a.split('+').map((t) => glyphHtml(t)).join('<span class="pm-k-sep">+</span>');
+// #605: de lange uitleg van een situatie, per korte actie. Stond vroeger onder elke toets in het
+// Toetsenoverzicht; daar is het nu te druk voor, dus het staat op één plek: het tabblad Hulp.
+const longRowsFor = (gid) => (CONTROL_LONG.find(([id]) => id === gid) || ['', []])[1];
+const longTextFor = (gid, desc) => (longRowsFor(gid).find(([d]) => d === desc) || [])[1] || '';
+
+// Het Toetsenoverzicht: per situatie alleen "toets + korte actie", scanbaar en binnen het
+// woordbudget van een naslagscherm (#605). De volledige uitleg staat in Hulp (controlsHelpHtml).
 function controlsHtml() {
-  const alt = (a) => a.split('+').map((t) => glyphHtml(t)).join('<span class="pm-k-sep">+</span>');
   return CONTROL_GROUPS.map(([id, title, rows]) => `<section class="pm-cgroup" data-cgroup="${id}" data-pad-ctx="${GROUP_CTX[id] || 'foot'}" tabindex="0" aria-label="${esc(title)}">` +
     `<h3><svg class="pm-ic" viewBox="0 0 24 24" aria-hidden="true">${GROUP_ICONS[id]}</svg>${esc(title)}</h3>` +
     rows.filter(([keys]) => keys[0] !== 'K' || (world && world.kissUnlocked)).map(([keys, desc]) => {
       const words = keys.flatMap((k) => k.split('+')).map((t) => MOUSE_WORDS[t] || t).join(' ');
-      return `<div class="pm-crow" data-search="${esc((title + ' ' + desc + ' ' + words).toLowerCase())}">` +
-        `<span class="pm-ckeys">${keys.map(alt).join('<span class="pm-k-sep">/</span>')}</span><span class="pm-cdesc">${esc(desc)}</span></div>`;
+      const lang = longTextFor(id, desc);
+      return `<div class="pm-crow" data-search="${esc((title + ' ' + desc + ' ' + lang + ' ' + words).toLowerCase())}">` +
+        `<span class="pm-ckeys">${keys.map(altKeys).join('<span class="pm-k-sep">/</span>')}</span><span class="pm-cdesc">${esc(desc)}</span></div>`;
     }).join('') + '</section>').join('');
+}
+
+// Dezelfde indeling als het overzicht, met de lange uitleg erbij (tabblad Hulp). Zo staat elke
+// uitleg op één plek en blijft het overzicht kort.
+function controlsHelpHtml() {
+  return CONTROL_GROUPS.map(([id, title, rows]) => {
+    const lang = rows.filter(([, desc]) => longTextFor(id, desc));
+    if (!lang.length) return '';
+    return `<section class="pm-cgroup pm-help" data-help="toetsen-${id}" tabindex="0" aria-label="${esc(title)}">` +
+      `<h3>${esc(title)}</h3>` + lang.map(([keys, desc]) => {
+        const words = keys.flatMap((k) => k.split('+')).map((t) => MOUSE_WORDS[t] || t).join(' ');
+        return `<div class="pm-crow" data-search="${esc((title + ' ' + desc + ' ' + longTextFor(id, desc) + ' ' + words).toLowerCase())}">` +
+          `<span class="pm-ckeys">${keys.map(altKeys).join('<span class="pm-k-sep">/</span>')}</span>` +
+          `<span class="pm-cdesc"><b class="one">${esc(desc)}</b> ${esc(longTextFor(id, desc))}</span></div>`;
+      }).join('') + '</section>';
+  }).join('');
+}
+
+// Aanraken (#605): welke knoppen er op het scherm staan, per situatie. De indeling komt uit
+// dezelfde bron als de touchbalk zelf (touchlogic.js touchPlan/touchMore), zodat het overzicht
+// niet kan afwijken van wat een touchspeler ziet.
+const TOUCH_CTX = [
+  ['foot', 'Te voet'],
+  ['vehicle', 'In een auto'],
+  ['bus', 'In de bus'],
+  ['trekker', 'Op de trekker'],
+  ['heli', 'In een helikopter'],
+  ['plane', 'In een vliegtuig'],
+  ['skutsje', 'In een skûtsje'],
+  ['train', 'In de trein'],
+  ['pigeon', 'Als duif'],
+];
+function touchOverviewHtml() {
+  const plaats = { left: 'linksonder', right: 'rechtsonder' };
+  return TOUCH_CTX.map(([ctx, title]) => {
+    const plan = touchPlan(ctx);
+    const more = touchMore(ctx);
+    if (!plan.length && !more.length) return '';
+    const rij = (label, waar) => `<div class="pm-crow" data-search="${esc((title + ' ' + label + ' ' + waar).toLowerCase())}">` +
+      `<span class="pm-ckeys"><span class="m-kc pm-touchcap">${esc(label)}</span></span><span class="pm-cdesc">${esc(waar)}</span></div>`;
+    return `<section class="pm-cgroup" data-cgroup="touch-${ctx}" tabindex="0" aria-label="${esc(title)}">` +
+      `<h3>${esc(title)}</h3>` +
+      '<div class="pm-crow"><span class="pm-ckeys"><span class="m-kc pm-touchcap">Stok</span></span><span class="pm-cdesc">Links: lopen of sturen; rechts: om je heen kijken</span></div>' +
+      plan.map((b) => rij(b.label, plaats[b.side] || 'op het scherm')).join('') +
+      (more.length ? `<div class="pm-crow"><span class="pm-ckeys"><span class="m-kc pm-touchcap">Meer</span></span><span class="pm-cdesc">${more.map((m) => esc(m.label)).join(', ')}</span></div>` : '') +
+      '</section>';
+  }).join('');
 }
 
 function filterControls(q) {
   const panel = root.querySelector('[data-panel="controls"]');
   const words = woordenVan(q);
-  let any = false;
-  for (const g of panel.querySelectorAll('.pm-cgroup:not(.pm-help)')) {
+  const hits = {};
+  for (const g of panel.querySelectorAll('.pm-cgroup')) {
+    const sub = g.closest('[data-sub]');
+    const key = sub ? sub.dataset.sub : 'overzicht';
+    if (g.classList.contains('pm-help')) {
+      // de hulpblokken hebben geen toetsrijen: ze tellen mee op hun eigen tekst
+      const hit = past(g.textContent, words);
+      g.hidden = !hit;
+      if (hit) hits[key] = (hits[key] || 0) + 1;
+      continue;
+    }
     let n = 0;
     for (const r of g.querySelectorAll('.pm-crow')) {
       const hit = past(r.dataset.search, words);
       r.hidden = !hit;
       if (hit) n++;
     }
-    // de hulpblokken (tabblad Hulp) hebben geen toetsrijen: ze tellen mee op hun eigen tekst
-    if (g.classList.contains('pm-help')) n = past(g.textContent, words) ? 1 : 0;
     g.hidden = !n;
-    any = any || n > 0;
+    if (n) hits[key] = (hits[key] || 0) + n;
   }
-  panel.querySelector('.pm-cempty').hidden = any;
-  filterBinds(words);
+  for (const [k, v] of Object.entries(filterBinds(words))) if (v) hits[k] = (hits[k] || 0) + v;
+  // #605: elke plek zegt het als er niets gevonden is, niet alleen het Toetsenoverzicht
+  for (const el of panel.querySelectorAll('.pm-cempty')) {
+    const sub = el.closest('[data-sub]');
+    if (sub) el.hidden = !!(hits[sub.dataset.sub]);
+  }
 }
-// dezelfde zoekopdracht op de rijen van Toetsenbord en muis en van Controller (#435)
+// dezelfde zoekopdracht op de rijen van Toetsenbord en muis, Controller en Aanraken (#435, #605)
 function filterBinds(words) {
   const panel = root.querySelector('[data-panel="controls"]');
+  const out = {};
   for (const sub of panel.querySelectorAll('[data-sub="toetsen"], [data-sub="knoppen"]')) {
     let kop = null, n = 0;
     const sluitKop = () => { if (kop) kop.hidden = !n; };
@@ -189,7 +319,9 @@ function filterBinds(words) {
       if (hit) n++;
     }
     sluitKop();
+    out[sub.dataset.sub] = n;
   }
+  return out;
 }
 
 const ICONS = {
@@ -275,7 +407,7 @@ const SUBTABS = {
   // foutrapport (diagnose) staat onder Over als "Problemen"; twee tabbladen met één knop naar elders
   // maakten van dit scherm een doolhof.
   settings: [['video', 'Beeld'], ['sound', 'Geluid & ondertitels'], ['besturing', 'Besturing'], ['display', 'Interface'], ['a11y', 'Toegankelijkheid']],
-  controls: [['toetsen', 'Toetsenbord en muis'], ['knoppen', 'Controller'], ['overzicht', 'Toetsenoverzicht'], ['hulp', 'Hulp']],
+  controls: [['toetsen', 'Toetsenbord en muis'], ['knoppen', 'Controller'], ['overzicht', 'Toetsenoverzicht'], ['aanraken', 'Aanraken'], ['hulp', 'Hulp']],
 };
 // old tab names (saved preferences, other modules)
 // de oude plekken: de telefoon is nu Verhaal > Contacten en Berichten, Overzicht is Spel > Overzicht (#430)
@@ -644,7 +776,8 @@ export function initPauseMenu(w) {
                 <p class="m-note pm-cempty" hidden>Niks gevonden. Probeer een ander woord of een toets.</p>
               </div></div>
             </div>
-            <div data-of="controls" data-sub="hulp" class="pm-csub" hidden><div class="m-main"><div class="m-list pm-clist"><div class="pm-cgrid"><section class="pm-cgroup pm-help" data-help="oefenronde"><h3>Oefenronde</h3><p class="pm-hline">Zeven korte stappen: lopen, rennen, de kaart, in- en uitstappen en het menu. Zonder missie en zonder gevolgen.</p><button type="button" class="m-bt" data-practice-start>Oefenen</button></section>${helpHtml((t) => glyphHtml(t), esc)}</div></div></div></div>
+            <div data-of="controls" data-sub="hulp" class="pm-csub" hidden><div class="m-main"><div class="m-list pm-clist"><p class="m-note pm-cempty" hidden>Niks gevonden. Probeer een ander woord of een toets.</p><div class="pm-cgrid"><section class="pm-cgroup pm-help" data-help="oefenronde"><h3>Oefenronde</h3><p class="pm-hline">Zeven korte stappen: lopen, rennen, de kaart, in- en uitstappen en het menu. Zonder missie en zonder gevolgen.</p><button type="button" class="m-bt" data-practice-start>Oefenen</button></section>${helpHtml((t) => glyphHtml(t), esc)}${controlsHelpHtml()}</div></div></div></div>
+            <div data-of="controls" data-sub="aanraken" class="pm-csub" hidden><div class="m-main"><div class="m-list pm-clist"><p class="m-note pm-hline">De knoppen op het scherm doen hetzelfde als de controller. Wat je hier ziet, staat ook op je scherm tijdens het spelen.</p><p class="m-note pm-cempty" hidden>Niks gevonden. Probeer een ander woord of een toets.</p><div class="pm-cgrid">${touchOverviewHtml()}</div></div></div></div>
             <div data-of="controls" data-sub="toetsen" class="pm-binds pm-csub m-main" hidden></div>
             <div data-of="controls" data-sub="knoppen" class="pm-binds pm-csub m-main" hidden></div>
           </div></section>
@@ -1078,7 +1211,7 @@ function bindRowsKeys() {
       `<span class="nm"><span class="one">${esc(desc)}</span>${changed ? `<span class="mut">Standaard: ${esc(keyName(defaultKey(k)))}</span>` : ''}</span><span class="m-kc" data-g-raw>${esc(keyName(phys))}</span></button>`;
   }).join('')).join('');
   const note = `Kies een actie en druk de nieuwe toets. Zit die toets al op iets anders, dan ruilen ze. Esc, Enter, de pijltjes en de muis liggen vast.${defaultKey('control') !== 'control' ? ' In de browser zit bukken en omlaag op C: Ctrl+W sluit daar het tabblad.' : ''}`;
-  return `<div class="m-list pm-slist">${groups}</div>${bindPane('keys', note)}`;
+  return `<p class="m-note pm-cempty" hidden>Niks gevonden. Probeer een ander woord of een toets.</p><div class="m-list pm-slist">${groups}</div>${bindPane('keys', note)}`;
 }
 
 function bindRowsPad() {
@@ -1089,7 +1222,7 @@ function bindRowsPad() {
     return `<button type="button" class="m-li pm-bind${changed ? ' pm-changed' : ''}" data-rebind-pad="${slot}" aria-label="${esc(PAD_SLOT_NAMES[slot])}. Kies om te wijzigen">` +
       `<span class="nm"><span class="one">${esc(slotUses(slot) || PAD_SLOT_NAMES[slot])}</span><span class="mut">${esc(PAD_SLOT_NAMES[slot])}${changed ? ' · aangepast' : ''}</span></span><span class="pm-padcap">${pg(phys)}</span></button>`;
   }).join('');
-  return `<div class="m-list pm-slist">${rows}</div>${bindPane('pad', 'Kies een rij en druk op de controller de knop die het voortaan moet doen. Ze ruilen van plek. Menu/Start opent altijd het pauzemenu; de sticks liggen vast.')}`;
+  return `<p class="m-note pm-cempty" hidden>Niks gevonden. Probeer een ander woord of een toets.</p><div class="m-list pm-slist">${rows}</div>${bindPane('pad', 'Kies een rij en druk op de controller de knop die het voortaan moet doen. Ze ruilen van plek. Menu/Start opent altijd het pauzemenu; de sticks liggen vast.')}`;
 }
 
 function renderBinds() {
@@ -1101,7 +1234,7 @@ function renderBinds() {
   if (k && !k.hidden) k.innerHTML = bindRowsKeys();
   if (p && !p.hidden) p.innerHTML = bindRowsPad();
   const zoek = root.querySelector('[data-controls-search]');
-  if (zoek && zoek.value) filterBinds(zoek.value.toLowerCase().trim().split(/\s+/).filter(Boolean));
+  if (zoek && zoek.value) filterControls(zoek.value);
   if (keep) {
     const el = root.querySelector(`[data-rebind-key="${CSS.escape(keep)}"], [data-rebind-pad="${CSS.escape(keep)}"], [data-action="${CSS.escape(keep)}"]`);
     if (el) el.focus({ preventScroll: true });
@@ -1118,8 +1251,9 @@ const actionWords = (c) => (KEY_ACTIONS.find(([k]) => k === c) || [c, c])[1];
 function startKeyRebind(btn) {
   cancelRebind(true);
   const canon = btn.dataset.rebindKey;
+  // #605: de wachtstand houdt de actienaam in beeld, zodat je weet wat je aan het indelen bent
   btn.classList.add('pm-waiting');
-  btn.innerHTML = '<span>Druk een toets…</span>';
+  btn.innerHTML = `<span class="nm"><span class="one">${esc(actionWords(canon))}</span><span class="mut">Druk een toets…</span></span><span class="m-kc">…</span>`;
   setBindMsg('Druk de nieuwe toets. Esc annuleert.');
   rebinding = { kind: 'key', canon };
   input.captureKey = (raw) => {
@@ -1138,8 +1272,9 @@ function startKeyRebind(btn) {
 function startPadRebind(btn) {
   cancelRebind(true);
   const slot = btn.dataset.rebindPad;
+  // #605: ook hier blijft de actienaam staan terwijl je op een knop wacht
   btn.classList.add('pm-waiting');
-  btn.innerHTML = '<span>Druk een knop…</span>';
+  btn.innerHTML = `<span class="nm"><span class="one">${esc(slotUses(slot) || PAD_SLOT_NAMES[slot])}</span><span class="mut">Druk een knop…</span></span><span class="pm-padcap">…</span>`;
   setBindMsg('Druk op de controller de nieuwe knop. Menu/Start of Esc annuleert.');
   rebinding = { kind: 'pad', slot };
   rebinding.cancel = capturePadButton((phys) => {

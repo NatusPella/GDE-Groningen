@@ -189,7 +189,7 @@ ok(td.includes("it.group !== 'missies';") && td.includes("g !== 'missies'"), 'Ac
 ok(pm.includes('class="ra pm-exit" data-action="exit"'), 'Afsluiten staat als eigen knop in de rail van het pauzemenu (alleen desktop)');
 ok(pm.includes("icon('spelers', 'pm-ic n-ic')"), 'de teller bij Spel heeft een poppetje-icoon');
 ok(read('game/js/hudcards.js').includes('menuMelding(text)'), 'meldingen staan direct in beeld als het menu open is');
-ok(pm.includes("[['U'], 'Geluid uit of weer aan;"), 'Besturing legt de dempknop uit');
+ok(pm.includes('Geluid uit of weer aan;'), 'Besturing legt de dempknop uit (in de lange uitleg onder Hulp)');
 
 // #435 (vervolg): garage, fotomodus, kaart, Spullen, Prestaties, Shift en Aanwijzingen
 const vp = read('game/js/vehiclepreview.js'), fu = read('game/js/fotomodusui.js'), sp = read('game/js/spullen.js'), vu = read('game/js/verhaalui.js');
