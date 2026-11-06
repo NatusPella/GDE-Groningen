@@ -65,7 +65,13 @@ export function politieAfstand(world, slot) {
 // Wie jaagt de politie nu? { slot, level } of null als niemand gezocht wordt. Hoogste niveau wint; gelijk: wie al gejaagd werd, anders wie het
 // dichtst bij de politie staat (zonder politie in de buurt: de host). Verdwijnt het doelwit (geen sterren meer, weg of gepakt), dan is de volgende aan de beurt.
 export function kiesDoelwit(world) {
-  const kand = [{ slot: 0, level: world.wanted | 0 }];
+  // Solo: geen coop-wanted en dus geen gast-doelwit. Dit is de hete pad-vraag van
+  // politieMetDoelwit (elk frame); zonder deze vroege return maakt hij per frame een
+  // array en een Object.entries() voor niets (#553).
+  const eigen = world.wanted | 0;
+  const coopWanted = world.coopWanted;
+  if (!coopWanted || typeof coopWanted !== 'object') return eigen > 0 ? { slot: 0, level: eigen } : null;
+  const kand = [{ slot: 0, level: eigen }];
   for (const [s, n] of Object.entries(world.coopWanted || {})) { const slot = +s; if ((n | 0) > 0 && lichaamVan(world, slot)) kand.push({ slot, level: n | 0 }); }
   const vorig = world.coopDoelwit == null ? 0 : world.coopDoelwit;
   let best = null;
@@ -112,3 +118,4 @@ export function politieMetDoelwit(dt, world, update) {
   }
   return d.slot;
 }
+
