@@ -582,3 +582,9 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .pm-a11y-text { display: flex; flex-direction: column; gap: 3px; color: var(--ink); }
 #pause-menu .pm-a11y-13 { font-size: 13px; }
 #pause-menu .pm-a11y-20 { font-size: 20px; }
+
+/* #605: het tabblad Aanraken toont de knoppen op het scherm in dezelfde capstijl als de rest;
+   de lange uitleg in Hulp zet de korte actie vooraan, zodat elke regel te scannen blijft. */
+#pause-menu .pm-touchcap { min-width: 44px; height: 30px; padding: 0 10px; font-size: 16px; }
+#pause-menu .pm-cdesc .one { display: block; color: var(--ink); font-size: 18px; margin-bottom: 2px; }
+#pause-menu .pm-cgroup.pm-help .pm-cdesc { font-size: 17px; line-height: 1.35; }
