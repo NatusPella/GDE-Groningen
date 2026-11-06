@@ -58,6 +58,9 @@ function hiddenIds() {
 
 // May the boot look for a session at this moment? Consent, a working route and a player who can walk
 // away from his own world (coopnet.canJoin) are the whole condition.
+// sessionBootBezig is voor de sessie van één (#554): zolang de startzoektocht loopt,
+// mag die niet als gastheer beginnen, anders sluit hij de zoektocht buiten.
+export function sessionBootBezig(world) { const st = world ? stand.get(world) : null; return !!(st && st.bezig); }
 export function canBootSession(world) {
   const st = world ? stand.get(world) : null;
   if (!world || world.coopNet || world.coopWissel) return false;
@@ -308,3 +311,4 @@ export async function bootSession(world, deps = {}) {
   meld(world, deps, keuze.reden); // "Er speelt nog niemand", "De sessie van X is vol": the player hears why
   return { doen: KEUZE.HOSTEN, sessie: null, pogingen, reden: keuze.reden };
 }
+

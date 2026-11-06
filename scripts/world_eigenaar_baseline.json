@@ -129,6 +129,7 @@
   "coopStemBeantwoord": 1,
   "coopStil": 2,
   "coopTrein": 1,
+  "coopSolo": 1,
   "coopTreinDeur": 4,
   "coopTreinDuw": 1,
   "coopTreinMeld": 1,
@@ -252,5 +253,7 @@
   "wind": 1
  }
 }
+
+
 
 
