@@ -94,5 +94,11 @@ for (const f of ['dorpsuitjes.js', 'storyfun.js']) {
   const s = readFileSync(new URL('../game/js/' + f, import.meta.url), 'utf8');
   ok(/import \{ flashScreen \} from '\.\/postfx3d\.js'/.test(s) && s.includes('flashScreen(true)'), f + ' flitst via dezelfde poort');
 }
+// #571: een aria-label op een kale span wordt genegeerd; het hart in de aftiteling is een afbeelding
+// met een Nederlandse naam, net als de leeftijdsbadge erboven.
+const html = readFileSync(new URL('../game/index.html', import.meta.url), 'utf8');
+ok(/<span class="heart" role="img" aria-label="liefde">/.test(html), 'het hart is role="img" met een Nederlandse naam');
+const spansMetLabel = html.match(/<span[^>]*aria-label="[^"]*"[^>]*>/g) || [];
+ok(spansMetLabel.every((s) => /role="img"/.test(s)), 'elke span met een aria-label heeft role="img"');
 console.log(fails ? `${fails} of ${n} failed` : `a11y_test: ${n} checks ok`);
 process.exit(fails ? 1 : 0);

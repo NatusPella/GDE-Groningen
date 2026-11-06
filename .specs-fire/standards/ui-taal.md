@@ -115,6 +115,11 @@ Prestaties, Foto's / Instellingen, Cheats. De tabs uit `SUBTABS`:
   zette Spelers als tab van Spel. Het document volgt nu de code: drie groepen
   (`:254`), Spelers onder Samen spelen (`:265`), en Cheats als eigen rail-item
   (`streken`, sinds #435) naast de tab onder Instellingen.
+- De hub van Samen spelen is een **wizard**, geen tabs: één zichtbare stap,
+  `aria-current="step"` op de actieve stap en de teller als `role="status"`
+  (`aria-live="polite"`) die de wissel aankondigt (#571). Een tablist zonder
+  panelen is verboden; een icoon met betekenis in een kale `span` krijgt
+  `role="img"` met een Nederlandse `aria-label`.
 
 ## Taal
 
