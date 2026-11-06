@@ -1,0 +1,32 @@
+[
+  {
+    "num": 729,
+    "title": "Cutscenes pauzeren de wereld en de speler niet (pause:true doet niets)",
+    "board": "Bugs"
+  },
+  {
+    "num": 730,
+    "title": "Regiehoogten en acteurs staan op absolute z=0; op dijken, viaducten en wierden zakken scènes weg",
+    "board": "Bugs"
+  },
+  {
+    "num": 731,
+    "title": "attachVoices rekt de scèneduur op ná compileScene: shots en cues lopen achter op de stem",
+    "board": "Bugs"
+  },
+  {
+    "num": 732,
+    "title": "Landmark- en Ommelanden-scènes starten op topsnelheid, tijdens een race of in pigeonmode",
+    "board": "Bugs"
+  },
+  {
+    "num": 733,
+    "title": "Stemmenbank laadt asynchroon zonder retry: een vroege of mislukte fetch maakt scènes stil",
+    "board": "Bugs"
+  },
+  {
+    "num": 734,
+    "title": "Regie/techniek: bundel de 14 midden- en 2 laagpunten uit de cutscene-review",
+    "board": "Wensen"
+  }
+]
