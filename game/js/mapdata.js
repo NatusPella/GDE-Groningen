@@ -380,6 +380,13 @@ export class GameMap {
     return !!waterPolyAt(this, x, y);
   }
 
+  // #524: does this map have a road raster to plan on? The city's rows may
+  // stream in as tiles instead of sitting in the whole `roads` array; the
+  // raster is filled by both paths and is what the near-queries use.
+  hasRoads() {
+    return !!this.roadGrid;
+  }
+
   buildingsNear(x, y, r) {
     return this.buildingGrid.query(x - r, y - r, x + r, y + r);
   }

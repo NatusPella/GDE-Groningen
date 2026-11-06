@@ -1217,7 +1217,7 @@ export function updatePedestrians(dt, world) {
   const frameDt = dt;
   const farAI = farAIDist();
   // ver weg lopende wandelaars worden door de simulatieworker gestuurd (simbridge.js, #58)
-  const simBridge = FLAGS.simworker && map.roads ? getSimBridge(map) : null;
+  const simBridge = FLAGS.simworker && map.hasRoads() ? getSimBridge(map) : null;
   if (simBridge) simBridge.update(dt, player, nietBijFoci(world, peds), world.time);
   for (let i = peds.length - 1; i >= 0; i--) {
     const ped = peds[i];

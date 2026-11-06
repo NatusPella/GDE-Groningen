@@ -858,7 +858,7 @@ async function boot() {
     const frameNoSim = nextSimFrame();
     const farAI = farAIDist();
     // ?simauto (#58): ver weg rijdende gewone auto's worden door de simulatieworker gestuurd (simbridge.js)
-    const simCars = FLAGS.simworker && FLAGS.simauto && map.roads ? getSimBridge(map) : null;
+    const simCars = FLAGS.simworker && FLAGS.simauto && map.hasRoads() ? getSimBridge(map) : null;
     if (simCars) simCars.updateCars(dt, player, nietBijFoci(world, world.vehicles));
     for (let i = 0; i < world.vehicles.length; i++) {
       const v = world.vehicles[i];
