@@ -182,7 +182,7 @@ await t('het profiel in het pauzemenu toont de schakelaar en de weg naar Samen s
   assert.match(ui, /meedoenSchakelaarHtml\(s\)/, 'de schakelaar staat bij je naam en kleur');
   assert.match(ui, /matches\('\[data-meedoen\]'\)/, 'en de klik wordt afgehandeld');
   assert.match(ui, /zetMeedoen\(/, 'via dezelfde regel als het eerste-startscherm');
-  assert.match(pm, /openSamen: \(\) => \{ closePauseMenu\(\); requestOpenSamen\(\); \}/, 'aanzetten opent het bestaande tabblad Samen spelen, geen nieuwe netwerklaag');
+  assert.match(pm, /openSamen: \(\) => \{ closePauseMenu\(\); stopSoloHost\(world\); requestOpenSamen\(\); \}/, 'aanzetten opent het bestaande tabblad Samen spelen, geen nieuwe netwerklaag');
   assert.ok(!/id === 'spelers' && !\(world && world\.coopNet\)/.test(pm), 'het tabblad Spelers is er ook zonder sessie, anders is alleen spelen een doodlopende weg');
 });
 
@@ -252,3 +252,4 @@ function nepRoot(startWaarde) {
 
 console.log(`onlinestart_test: ${n}/${n} ok`);
 process.exit(0);
+

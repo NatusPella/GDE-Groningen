@@ -233,6 +233,7 @@ export function hostSim(world, roster, opt = {}) {
 function prepareCoop(world) {
   if (!world.coop) bindCoop(world, world.input);
   world.coopPings = world.coopPings || createPings();
+  world.coopFigures = world.coopFigures || {}; // ook een gastheer zonder gasten heeft een lege figurenlijst (#554)
 }
 // #523: de missieketen hoort bij de sessie. De kleinste stabiele sleutel die er is, is de vaste id van de hub
 // (`hub.id`, #450): één per sessie, dezelfde voor de gastheer en elke gast, en hij wisselt niet als spelers
@@ -1629,6 +1630,7 @@ export function stopCoopNet(world) {
 
 // de overdracht (coophostwisselnet.js) gebruikt deze functies zonder coopnet.js zelf te importeren
 zetCoopNet({ addGuest, stopCoopNet, startHost, startClient, canJoin });
+
 
 
 
