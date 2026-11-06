@@ -14,6 +14,11 @@ on:
         description: 'Tag van de bestaande release, bijvoorbeeld v0.38.1'
         required: true
         type: string
+      arm64:
+        description: 'Ook de ARM64-variant bouwen (nog niet op echte ARM-hardware getest)'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: write
