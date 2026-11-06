@@ -860,6 +860,9 @@ export async function runStoryTest(world) {
                 entry.notes.push('duif boven doel');
                 continue;
               }
+              // De objectivesprong is een debughulp: zet de speler eerst bij de huidige marker,
+              // zodat een afstandspoort (zoals de polsstokscène sinds #525) de stap niet laat wachten.
+              if (k % 4 === 0) S().teleport();
               entry.last = S().mission();
               S().objective();
               await sleep(350);
@@ -1071,5 +1074,6 @@ export async function runStoryTest(world) {
   console.log('[storytest-done] ' + JSON.stringify(report));
   return report;
 }
+
 
 
