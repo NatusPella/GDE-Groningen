@@ -202,10 +202,16 @@ export function setWorldMarkerKind(group, kind) {
 }
 
 // colour, bob, distance scaling and the distance label; once per frame after positioning
+// Kleur en palet worden hergebruikt in plaats van per marker per frame opnieuw
+// gemaakt (#588): één Color en één palet per frame, dus geen allocatie op de
+// hete pad van de markers.
+const _markerHex = new THREE.Color();
+let _paletTijd = -Infinity, _palet = null;
 export function updateWorldMarker3D(group, time) {
   const wm = group.userData.wm;
   if (!wm) return;
-  const hex = new THREE.Color(markerColors()[MARKER_KINDS[wm.kind].color]);
+  if (time !== _paletTijd) { _paletTijd = time; _palet = markerColors(); }
+  const hex = _markerHex.set(_palet[MARKER_KINDS[wm.kind].color]);
   for (const m of [wm.ground, wm.disc, wm.column]) m.material.color.copy(hex);
   const ic = wm.icons[wm.kind];
   ic.userData.solid.material.color.copy(hex);

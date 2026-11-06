@@ -83,16 +83,61 @@ function noteQueue() {
   geoStats.maxQueued = Math.max(geoStats.maxQueued, geoStats.queued);
 }
 
+// De jobs die in de wachtrijen stonden toen de worker omviel, gaan begrensd per
+// beeld op de hoofdthread verder in plaats van verloren te gaan (#588): anders
+// bleef een stadscel zonder mesh en een oever zonder oever. De teller per soort
+// open job is een Map, zodat runGeo geen array hoeft te maken voor de statistiek.
+const retry = [];
+const RETRY_BUDGET_MS = 2.5;
+let retryTimer = null;
+const openByKind = new Map();
+function openTrack(kind, delta) {
+  const n = (openByKind.get(kind) || 0) + delta;
+  if (n > 0) openByKind.set(kind, n); else openByKind.delete(kind);
+  const ks = kindStat(kind);
+  ks.maxOpen = Math.max(ks.maxOpen || 0, n);
+  return n;
+}
+function drainRetry() {
+  retryTimer = null;
+  if (!retry.length) return;
+  const t0 = performance.now();
+  while (retry.length && performance.now() - t0 < RETRY_BUDGET_MS) {
+    const j = retry.shift();
+    try { runSync(j.kind, j.data, j.done); } catch (e) { console.error('geo retry', e); }
+  }
+  if (retry.length) retryTimer = setTimeout(drainRetry, 0);
+}
+
 function fail(err) {
   if (failed) return;
   console.warn('geometry worker unavailable, building on the main thread', err);
   failed = true;
   for (let i = 0; i < workers.length; i++) { if (workers[i]) workers[i].terminate(); workers[i] = null; }
-  const jobs = [...open.values()];
+  // niets stil weggooien (#588): de wachtende jobs gaan opnieuw, begrensd per beeld;
+  // set-upjobs kunnen alleen in de worker en krijgen hun done(null). Een job staat in `open`
+  // vanaf het aanvragen, dus de wachtenden moeten uit de in-flight-lijst blijven.
+  const wachtend = new Set();
+  let waiting = 0;
+  for (let i = 0; i < queues.length; i++) {
+    for (const j of queues[i].items) {
+      wachtend.add(j);
+      if (WORKER_ONLY.has(j.kind)) { try { j.done(null); } catch (e) { /* de aanroeper hoeft niets te doen */ } continue; }
+      retry.push(j);
+      waiting++;
+    }
+    queues[i].items.length = 0;
+    inFlight[i] = 0;
+  }
+  const jobs = [...open.values()].filter((j) => !wachtend.has(j));
   open.clear();
-  for (let i = 0; i < queues.length; i++) { queues[i].items.length = 0; inFlight[i] = 0; }
+  openByKind.clear();
   noteQueue();
-  for (const j of jobs) if (!WORKER_ONLY.has(j.kind)) runSync(j.kind, j.data, j.done);
+  if (waiting) console.warn(`geometry: ${waiting} wachtende jobs gaan op de hoofdthread verder`);
+  for (const j of jobs) if (!WORKER_ONLY.has(j.kind)) { try { runSync(j.kind, j.data, j.done); } catch (e) { console.error('geo fallback', e); } }
+  // de set-upjobs van de worker vallen af, maar hun aanroeper hoort te horen dat ze niet kwamen
+  for (const j of jobs) if (WORKER_ONLY.has(j.kind)) { try { j.done(null); } catch (e) { /* de aanroeper hoeft niets te doen */ } }
+  drainRetry();
 }
 
 // Hand worker `i` up to `allowance` waiting jobs, best first; never past the cap.
@@ -122,6 +167,7 @@ function getWorker(i = 0) {
       if (!j) return;
       if (error) { fail(error); return; }
       open.delete(id);
+      openTrack(j.kind, -1);
       inFlight[i] = Math.max(0, inFlight[i] - 1);
       geoStats.worker++;
       const rt = performance.now() - j.t0, ks = kindStat(j.kind);
@@ -173,8 +219,7 @@ export function runGeo(kind, data, done = () => {}, near = 0) {
   const job = { id, kind, data, done, t0: performance.now(), near };
   open.set(id, job);
   geoStats.maxOpen = Math.max(geoStats.maxOpen, open.size);
-  const ks = kindStat(kind);
-  ks.maxOpen = Math.max(ks.maxOpen, [...open.values()].filter((o) => o.kind === kind).length);
+  openTrack(kind, 1); // per soort open jobs, zonder een array per aanvraag (#588)
   geoPush(queues[wi], job, priorityOf(kind, near));
   noteQueue();
   // what still fits this frame goes out at once, the rest waits for geoFrame().

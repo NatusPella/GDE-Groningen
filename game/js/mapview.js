@@ -2295,6 +2295,9 @@ function followViewTiles(release) {
   }
   const next = new Set(want);
   for (const k of viewTiles.keys) if (!next.has(k)) store.unpin(k);
+  // De kaart is dicht of laat alle tegels los: lopende tegel-loads van de kaart mogen stoppen (#588).
+  // 'map' is het token van dit scherm alleen; de beloften zijn al afgevangen.
+  if (!next.size && store.cancel) store.cancel('map');
   for (const k of next) if (!viewTiles.keys.has(k)) { store.pin(k); store.request(k, { priority: -500, token: 'map' }).catch(() => {}); }
   viewTiles.keys = next;
   const n = state.map.resident ? state.map.resident.size : 0;

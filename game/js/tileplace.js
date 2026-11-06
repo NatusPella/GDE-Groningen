@@ -173,7 +173,7 @@ export async function withTiles(map, points, fn, { radius = 160, token = 'place'
   for (const k of keys) st.pin(k);
   try {
     const t0 = performance.now();
-    await Promise.all([...keys].map((k) => st.request(k, { priority: -500, token })));
+    await Promise.all([...keys].map((k) => st.request(k, { priority: -500 }))); // geen token: dit venster wacht zijn beurt af en trekt niets in (#588)
     const t1 = performance.now();
     if (slice > 0 && typeof requestAnimationFrame === 'function') {
       // (a frame, or 50 ms when the window is hidden and frames stop)

@@ -275,6 +275,22 @@ async function run(name, route, { speed, radius, ahead, hz = 60, budgetBytes = 1
   ok(store.stats.evictions > 0 && store.residentBytes <= 4e5 + Math.max(...sizes.map((s) => s[1])), 'after the release they can be evicted again');
 }
 
+// --- #588: een scène die stopt (of een nieuwe registratie) trekt de loads van zijn shots in
+{
+  const { source, store } = mkStore({}, 40);
+  const keys = Object.entries(index0.tiles).filter(([, x]) => x.n.buildings > 800).map(([k]) => k);
+  const at = (k) => { const [ox, oy] = G.tileOrigin(index0.tiles[k].i, index0.tiles[k].j); return [ox + 500, oy + 500]; };
+  const shots = keys.slice(0, 3).map((k) => ({ at: at(k) }));
+  const fake = { store, tileQueue: new S.FrameQueue(), registerShots: TileWorld.prototype.registerShots, shotsReady: TileWorld.prototype.shotsReady, releaseShots: TileWorld.prototype.releaseShots };
+  const voor = store.stats.cancels;
+  fake.registerShots(shots).catch(() => {}); // de scène stopt meteen: de belofte wordt afgebroken en afgevangen
+  fake.releaseShots();
+  await flush(source, 400);
+  const sleutels = shots.map((x) => G.tileKey(...G.tileIndexOf(x.at[0], x.at[1])));
+  ok(store.stats.cancels > voor, 'releaseShots trekt de lopende loads van de shots in (#588)', `${voor} -> ${store.stats.cancels}`);
+  ok(sleutels.every((k) => !store.ready(k)), 'releaseShots: de shots laden niet meer door');
+  ok(fake._shotKeys === null && fake._shotToken === null, 'releaseShots laat geen pins of token achter');
+}
 // --- the frame queue keeps its budget
 {
   const q = new S.FrameQueue();

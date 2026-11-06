@@ -402,12 +402,18 @@ export class TileWorld extends GameMap {
   registerShots(shots, { radius = 350, token = 'shots' } = {}) {
     this.releaseShots(); // (pins are counted: a second registration must not leak the first)
     this._shotKeys = new Set();
+    this._shotToken = token + ':' + (this._shotN = (this._shotN || 0) + 1); // eigen token, zodat deze ronde zijn loads kan intrekken (#588)
     for (const s of shots) for (const [x, y] of [s.at, s.look].filter(Boolean)) for (const k of this.store.keysAround(x, y, radius)) this._shotKeys.add(k);
     for (const k of this._shotKeys) this.store.pin(k);
-    return Promise.all([...this._shotKeys].map((k) => this.store.request(k, { priority: -1000, token }))).then(() => { this.tileQueue.run(1e9); return this._shotKeys.size; });
+    return Promise.all([...this._shotKeys].map((k) => this.store.request(k, { priority: -1000, token: this._shotToken }))).then(() => { this.tileQueue.run(1e9); return this._shotKeys.size; });
   }
   shotsReady() { return !this._shotKeys || this.store.missing([...this._shotKeys]).length === 0; }
-  releaseShots() { if (this._shotKeys) for (const k of this._shotKeys) this.store.unpin(k); this._shotKeys = null; }
+  releaseShots() {
+    if (this._shotKeys) for (const k of this._shotKeys) this.store.unpin(k);
+    // De shots zijn klaar of de scène stopt: hun lopende reads hoeven niet meer (#588).
+    if (this._shotToken && this.store.cancel) this.store.cancel(this._shotToken);
+    this._shotKeys = null; this._shotToken = null;
+  }
 
   // the tile keys of a camera shot or a destination, for a pre-roll
   prefetchPoints(points, { radius = 400, token = 'shot' } = {}) {
