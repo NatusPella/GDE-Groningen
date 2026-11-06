@@ -26,6 +26,9 @@ export const WORKER_TIMEOUT_MS = 10000; // one decode job in the worker pool
 export const DECODE_GUARD_MS = 15000;   // TileStore safety net around decode (after a worker fallback)
 
 export const timeoutError = (wat, ms) => Object.assign(new Error(`${wat} timed out after ${ms} ms`), { timeout: true, name: 'TimeoutError' });
+// Tijdens de boot geen time-outs: een koude portable start of een langzame schijf
+// mag het laadscherm niet laten stukgaan. Daarna bewaken ze tegen echte hangs (#582).
+const tijdensBoot = () => typeof document !== 'undefined' && document.body && !document.body.classList.contains('game-started');
 
 // --------------------------------------------------------------- sources
 
@@ -41,7 +44,7 @@ export class HttpRangeSource {
   // caller's cancellation also trips. The race covers the body too, so a body
   // that never finishes rejects instead of leaving the caller waiting.
   async _metTimeout(wat, signal, werk) {
-    if (typeof AbortController === 'undefined') return werk(undefined);
+    if (typeof AbortController === 'undefined' || tijdensBoot()) return werk(signal);
     const ctl = new AbortController();
     let klaar = false, verlopen = false;
     const afbreken = () => { if (!klaar) { try { ctl.abort(); } catch (e) { /* already gone */ } } };
@@ -285,7 +288,7 @@ export class TileStore {
   // is freed by _pump's finally like any other failure.
   _begrensd(maak, ms, wat, bijTimeout = null) {
     const p = Promise.resolve().then(maak);
-    if (!(ms > 0)) return p;
+    if (!(ms > 0) || tijdensBoot()) return p;
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
         if (bijTimeout) { try { bijTimeout(); } catch (e) { /* already gone */ } }
@@ -514,3 +517,7 @@ export function makeWorkerDecoder(url, size = 2, aside = null, opts = {}) {
   };
   return decode;
 }
+
+
+
+
