@@ -127,16 +127,21 @@ function newElevation(map) {
   return { segs: [], grid: new Grid(CELL), has: true, walls: [], skirts: [], floors: [], brkWalls: [], wallGrid: new Grid(WALL_CELL), cuts: [], map, flatGrid: new Grid(16), byRoad: new Map(), flatOf: new Map(), frame: map.terrainOn ? map.terrainFrame : null };
 }
 const isFlatSeg = (r, i) => !r.z || (Math.abs(r.z[i]) < 0.02 && Math.abs(r.z[i + 1]) < 0.02);
-function addFlatPiece(elev, r, i) {
+// Een vlak stuk wegdek van weg r, toegevoegd omdat een verhoogde weg in de buurt kwam.
+// owner is de verhoogde weg die het stuk nodig maakte: valt die weg (met zijn tegel) weg,
+// dan ruimt shrinkElevation dit stuk mee op, ook als r blijft (#588).
+function addFlatPiece(elev, r, i, owner = r) {
   const a = r.pts[i], b = r.pts[i + 1], hs = surfaceHalfWidth(r);
   const piece = { ax: a[0], ay: a[1], bx: b[0], by: b[1], hs, r };
   const box = [Math.min(a[0], b[0]) - hs, Math.min(a[1], b[1]) - hs, Math.max(a[0], b[0]) + hs, Math.max(a[1], b[1]) + hs];
   elev.flatGrid.insert(piece, box[0], box[1], box[2], box[3]);
   let list = elev.flatOf.get(r);
   if (!list) elev.flatOf.set(r, list = []);
-  list.push({ piece, box, i });
+  const entry = { piece, box, i, owners: new Set([owner]) };
+  list.push(entry);
+  return entry;
 }
-const flatHas = (elev, r, i) => { const l = elev.flatOf.get(r); return !!l && l.some((f) => f.i === i); };
+const flatPieceAt = (elev, r, i) => { const l = elev.flatOf.get(r); return l ? l.find((f) => f.i === i) : null; };
 
 // Returns the number of raised or sunken segments that came in.
 export function extendElevation(map, roads) {
@@ -150,29 +155,27 @@ export function extendElevation(map, roads) {
     elev.byRoad.set(r, segs);
     for (const s of segs) { elev.grid.insert(s, s.box[0], s.box[1], s.box[2], s.box[3]); elev.segs.push(s); added.push(s); }
   }
-  // street-level roads next to a raised segment of the new roads
-  const seen = new Set();
+  // street-level roads next to a raised segment of the new roads. Ook een weg met een profiel
+  // kan vlakke stukken hebben; die tellen hier net zo goed mee (de lege if die hier stond deed niets).
   for (const s of added) {
     const cx = (s.ax + s.bx) / 2, cy = (s.ay + s.by) / 2, reach = s.len / 2 + s.hs + 4;
     for (const o of map.roadsNear(cx, cy, reach)) {
-      if (!o.z || elev.byRoad.get(o)) { /* a road with a profile: its flat pieces count too */ }
       for (let i = 0; i < o.pts.length - 1; i++) {
-        if (!isFlatSeg(o, i) || flatHas(elev, o, i)) continue;
-        const k = o.pts[i][0] * 7 + o.pts[i][1] * 13 + i;
-        if (seen.has(k)) continue;
-        seen.add(k);
+        if (!isFlatSeg(o, i)) continue;
         const a = o.pts[i], b = o.pts[i + 1];
         if (Math.hypot((a[0] + b[0]) / 2 - cx, (a[1] + b[1]) / 2 - cy) > reach + Math.hypot(b[0] - a[0], b[1] - a[1]) / 2) continue;
-        addFlatPiece(elev, o, i);
+        const bestaand = flatPieceAt(elev, o, i);
+        if (bestaand) { bestaand.owners.add(s.r); continue; } // nog een verhoogde weg die dit stuk nodig heeft
+        addFlatPiece(elev, o, i, s.r);
       }
     }
   }
   // a new road's own street-level pieces beside raised segments that were already there
   for (const r of roads) {
     for (let i = 0; i < r.pts.length - 1; i++) {
-      if (!isFlatSeg(r, i) || flatHas(elev, r, i)) continue;
+      if (!isFlatSeg(r, i) || flatPieceAt(elev, r, i)) continue;
       const a = r.pts[i], b = r.pts[i + 1];
-      if (elev.grid.at(a[0], a[1]) || elev.grid.at(b[0], b[1]) || elev.grid.at((a[0] + b[0]) / 2, (a[1] + b[1]) / 2)) addFlatPiece(elev, r, i);
+      if (elev.grid.at(a[0], a[1]) || elev.grid.at(b[0], b[1]) || elev.grid.at((a[0] + b[0]) / 2, (a[1] + b[1]) / 2)) addFlatPiece(elev, r, i, r);
     }
   }
   if (!added.length) return 0;
@@ -196,6 +199,21 @@ export function shrinkElevation(map, roads) {
     }
     const flat = elev.flatOf.get(r);
     if (flat) { elev.flatOf.delete(r); for (const f of flat) elev.flatGrid.remove(f.piece, f.box); }
+  }
+  // Vlakke stukken van blijvende buurwegen die alleen voor een van deze gevallen wegen zijn
+  // toegevoegd, gaan mee (#588): anders groeiden de hoogte-grids op een lange rit.
+  for (const r of roads) {
+    for (const [o, list] of elev.flatOf) {
+      for (let i = list.length - 1; i >= 0; i--) {
+        const f = list[i];
+        if (!f.owners || !f.owners.has(r)) continue;
+        f.owners.delete(r);
+        if (f.owners.size) continue; // een andere verhoogde weg heeft dit stuk nog nodig
+        elev.flatGrid.remove(f.piece, f.box);
+        list.splice(i, 1);
+      }
+      if (!list.length) elev.flatOf.delete(o);
+    }
   }
   if (!gone.size) return 0;
   const keep = (arr) => { let j = 0; for (let i = 0; i < arr.length; i++) if (!gone.has(arr[i].seg || arr[i])) arr[j++] = arr[i]; arr.length = j; };

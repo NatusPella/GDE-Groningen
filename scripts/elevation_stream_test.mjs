@@ -89,5 +89,21 @@ ok(B.elev.walls.length === A.elev.walls.length && B.elev.skirts.length === A.ele
   ok(!C.elev.has, 'a flat map has no model');
   ok(extendElevation(C, [m]) > 0 && C.elev.has && near(C.groundHeightAt(0, 2, 6), 6), 'its first streamed bridge makes one');
 }
-console.log(`${n - fails}/${n} elevation stream checks passed`);
+// #588: een vlak stuk van een blijvende buurweg, toegevoegd omdat een verhoogde weg van deze
+// tegel ernaast kwam, gaat mee als die verhoogde weg (met zijn tegel) wegvalt.
+{
+  const D = new GameMap(data(false)); // streamed: nog geen profielen
+  const main = D.roads[0], buur = D.roads[2];
+  main.z = A.roads[0].z.slice();
+  ok(extendElevation(D, [main]) > 0, 'de verhoogde weg komt binnen');
+  const voor = (D.elev.flatOf.get(buur) || []).length;
+  ok(voor > 0, 'de buurweg kreeg een vlak stuk in het hoogtemodel', String(voor));
+  ok((D.elev.flatOf.get(main) || []).length > 0, 'de eigen vlakke stukken staan er ook');
+  const verwijderd = shrinkElevation(D, [main]);
+  ok(verwijderd > 0, 'de verhoogde weg valt weer weg');
+  ok((D.elev.flatOf.get(buur) || []).length === 0, 'het vlakke stuk van de buurweg is mee opgeruimd (#588)', `${voor} -> ${(D.elev.flatOf.get(buur) || []).length}`);
+  ok((D.elev.flatOf.get(main) || []).length === 0, 'en de eigen vlakke stukken ook');
+  const nogEen = shrinkElevation(D, [main]);
+  ok(nogEen === 0, 'twee keer opruimen is onschadelijk');
+}console.log(`${n - fails}/${n} elevation stream checks passed`);
 process.exit(fails ? 1 : 0);

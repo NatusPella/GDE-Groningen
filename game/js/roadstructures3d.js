@@ -82,6 +82,15 @@ export function structureTransfer(S, transfer) {
   return S;
 }
 
+// De geometry's van de civiele werken van één weg vrijgeven (#588). De materialen zijn
+// gedeeld (mats hierboven), dus die blijven; zonder dit lekte het GPU-geheugen van
+// brug, talud en muur zodra een verhoogde weg uit de koude cache viel.
+export function disposeStructureGeometries(S) {
+  if (!S || typeof S.traverse !== 'function') return 0;
+  let n = 0;
+  S.traverse((o) => { if (o && o.geometry) { o.geometry.dispose(); n++; } });
+  return n;
+}
 // The meshes of a structure from its arrays, on map's own elevation: a
 // breakable section (hide: its wall's place in elev.walls and its vertex
 // range) remembers its vertices, w.collapse() hides it when its prop is

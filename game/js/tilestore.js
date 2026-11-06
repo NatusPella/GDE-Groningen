@@ -236,6 +236,8 @@ export class TileStore {
     });
   }
 
+  // Wie zijn interesse intrekt (een venster dat sluit, een scène die stopt) laat zijn
+  // wachtenden hier afbreken; een laad die daarna niemand meer wil, stopt zelf (#588).
   cancel(token) {
     for (const e of this.entries.values()) {
       if (!e.waiters.length) continue;
@@ -353,7 +355,7 @@ export class TileStore {
   // `ahead` seconds of travel, ordered by (distance - speed * 8 s * cos to the
   // heading). Unwanted queued loads are cancelled; resident tiles outside
   // radius + unloadMargin for holdMs become evictable at once.
-  prefetch(x, y, { vx = 0, vy = 0, radius = 1500, ahead = 10, tokenPrefix = 'pf', extra = [], foci = [] } = {}) {
+  prefetch(x, y, { vx = 0, vy = 0, radius = 1500, ahead = 10, extra = [], foci = [] } = {}) {
     this.gen++;
     const speed = Math.hypot(vx, vy);
     const r = radius + speed * ahead;
@@ -392,7 +394,7 @@ export class TileStore {
       if (e.wanted) { e.outside = 0; e.last = now; }
       else {
         if (was) e.outside = now;
-        if (e.state === 'queued' || e.state === 'loading') { if (e.token === tokenPrefix || !e.waiters.length) this._maybeAbort(e); }
+        if (e.state === 'queued' || e.state === 'loading') { if (!e.waiters.length) this._maybeAbort(e); } // een prefetch zonder wachtenden stopt zelf
       }
     }
     for (const [key, score] of want) {

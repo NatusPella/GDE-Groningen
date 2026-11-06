@@ -60,7 +60,7 @@ import { noteStreamFocus, streamAheadHere, streamRank, streamNear } from './stre
 import { applyCutMask, initCutMask, setCutMaskCenter } from './cutmask3d.js';
 import { updatePortals } from './portalcut3d.js';
 import { inPassage } from './passages.js';
-import { buildRailDecks } from './roadstructures3d.js';
+import { buildRailDecks, disposeStructureGeometries } from './roadstructures3d.js';
 import { snapShadowCenter, shadowPassSkipped, actorShadowReach } from './shadowsnap.js';
 import { buildPoliceHeliMesh3D, updatePoliceHeliMesh3D } from './police.js';
 import { updateSkyProps3D, buildBalloonWarmup } from './skyprops3d.js';
@@ -2001,6 +2001,15 @@ function coolDown(cold, item, max, free) {
 function freeRoadGeometry(r) {
   for (const k of ['_geoSidewalk', '_geoRoad', '_geoMark']) if (r[k]) { r[k].dispose(); r[k] = null; }
   r._geoMarkQ = undefined;
+  // De civiele werken van deze weg (brugdek, talud, muur) hingen aan _geoStruct/_geoOverDeck
+  // en werden nooit vrijgegeven: op een lange rit langs verhoogde wegen liep het GPU-geheugen op
+  // (#588). Alleen de geometry's, want de materialen zijn gedeeld (roadstructures3d.js mats); bij
+  // terugkomst van de tegel worden de werken opnieuw gebouwd.
+  for (const k of ['_geoStruct', '_geoOverDeck']) {
+    const g = r[k];
+    if (g) disposeStructureGeometries(g);
+    r[k] = undefined;
+  }
 }
 function freeWaterGeometry(poly) {
   if (poly._geoWater) { poly._geoWater.dispose(); poly._geoWater = null; }
@@ -2008,8 +2017,10 @@ function freeWaterGeometry(poly) {
   poly._shore = undefined;
 }
 
+const _waterSeen = new Set();
 function syncWater(items, cache, y, map, px, py) {
-  const seen = new Set();
+  const seen = _waterSeen;
+  seen.clear();
   for (const poly of items) seen.add(poly);
   // Nieuw water in de rijrichting eerst (#247): bij 30 m/s komt de oever anders
   // achter de speler aan. Binnen het budget van dit frame, zoals voorheen.
@@ -2044,6 +2055,7 @@ function syncWater(items, cache, y, map, px, py) {
 
 let roadQuality = getRoadQualityVersion();
 const openSpans = new Set();
+const _roadSeen = new Set();
 let bridgeViews = false;
 function syncRoads(world, px, py) {
   setRoadNetwork(world.map);
@@ -2053,7 +2065,8 @@ function syncRoads(world, px, py) {
     roadMeshes.clear();
   }
   const view = world.map.roadsNear(px, py, DRAW_DIST);
-  const seen = new Set();
+  const seen = _roadSeen;
+  seen.clear();
   for (const r of view) seen.add(r);
   // nearest first within a budget; the far LOD's roads cover the rest. At speed
   // what lies ahead goes first (#247): the same lead streambudget.js gives the
@@ -2169,8 +2182,8 @@ function syncTrees(world, px, py) {
   }
 }
 
-function syncActors(list, cache, builder, idOf) {
-  const seen = new Set();
+function syncActors(list, cache, builder, idOf, seen = new Set()) {
+  seen.clear();
   for (const item of list) {
     const id = idOf(item);
     seen.add(id);
@@ -2192,6 +2205,7 @@ function syncActors(list, cache, builder, idOf) {
 // Peds never pop: they spawn out of sight (pedestrians.js asks world.pedView),
 // fade in/out with a screen-door dither, thin out towards DRAW_DIST, and
 // their meshes (~2 ms each) are built a few per frame instead of in bursts.
+const _wildlifeNear = [], _wildlifeSeen = new Set();
 const FADE_STEPS = 16;
 const PED_FADE_TIME = 0.6;
 const PED_EDGE_FADE = 14;
@@ -2719,12 +2733,10 @@ export function update3D(dt, world) {
   }
 
   if (world.wildlife) {
-    syncActors(
-      world.wildlife.filter((a) => Math.hypot(a.x - focus.x, a.y - focus.y) < DRAW_DIST),
-      wildlifeMeshes,
-      buildWildlifeActor,
-      (a) => a
-    );
+    // geen filter-array per frame (#588): dezelfde lijst en Set, elke frame geleegd
+    _wildlifeNear.length = 0;
+    for (const a of world.wildlife) if (Math.hypot(a.x - focus.x, a.y - focus.y) < DRAW_DIST) _wildlifeNear.push(a);
+    syncActors(_wildlifeNear, wildlifeMeshes, buildWildlifeActor, (a) => a, _wildlifeSeen);
     for (const a of world.wildlife) {
       const mesh = wildlifeMeshes.get(a);
       if (mesh) {
