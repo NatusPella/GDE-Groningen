@@ -47,7 +47,7 @@ import { isHelpOfferOpen } from './assistlive.js';
 import { getUiScale } from './uiscale.js';
 import { helpHtml } from './helpoverview.js';
 import { DEV, FLAGS } from './devflags.js';
-import { renderOverview, renderTodo, renderTodoStory, todoClick, todoFocus, todoEnter, todoSummary, selectTodo, foldNote } from './todoui.js';
+import { renderOverview, renderTodo, renderTodoStory, todoClick, todoFocus, todoEnter, todoSummary, selectTodo, setTodoFilter, foldNote } from './todoui.js';
 import { isPlayAheadOpen } from './todo.js';
 import { renderVerhaal, verhaalClick, verhaalSummary, disposeVerhaalViewer, selectVerhaalCharacter } from './verhaalui.js';
 import { anyFresh } from './characters.js';
@@ -396,7 +396,6 @@ const RAIL_GROUPS = [['spel', 'verhaal', 'loopbaan', 'todo'], ['map', 'spullen',
 const CHILD = { visboek: 'loopbaan', boerderij: 'loopbaan', controls: 'settings' };
 const PRESTART_SECTIONS = ['spel', 'settings', 'controls'];
 const SUBTABS = {
-  todo: [['alles', 'Alles'], ['dichtbij', 'Dichtbij']],
   verhaal: [['opdrachten', 'Opdrachten'], ['personages', 'Personages'], ['aanwijzingen', 'Aanwijzingen'], ['veroverd', 'Veroverd']],
   spel: [['overzicht', 'Overzicht'], ['samen', 'Samen spelen'], ['acties', 'Opslaan & stoppen'], ['spelen', 'Spelen'], ['camera', 'Camera & richten'], ['hints', 'Hints & uitleg']],
   // Samen spelen heeft twee eigen tabbladen (#434): uitnodigen en de spelerslijst. De lijst is geen
@@ -417,7 +416,7 @@ const SUB_ALIAS = { settings: { controller: 'besturing', camera: 'besturing' } }
 const BACK = '\u0000';
 const HINTS = {
   overzicht: [[['↑', '↓'], 'kiezen'], [['Enter'], 'ok'], [['Esc'], 'doorgaan', 'resume']],
-  todo: [[['↑', '↓'], 'kiezen'], [['Enter'], 'zet als doel'], [['Q', 'E'], 'weergave'], [['Esc'], BACK, 'back']],
+  todo: [[['↑', '↓'], 'kiezen'], [['Enter'], 'zet als doel'], [['Esc'], BACK, 'back']],
   map: [[['Klik'], 'plek kiezen'], [['Scroll'], 'zoomen'], [['M'], 'sluiten', 'resume'], [['Esc'], BACK, 'back']],
   verhaal: [[['↑', '↓'], 'kiezen'], [['Enter'], 'kiezen of bellen'], [['Q', 'E'], 'tabblad'], [['Esc'], BACK, 'back']],
   spullen: [[['↑', '↓'], 'kiezen'], [['Enter'], 'gebruiken'], [['Esc'], BACK, 'back']],
@@ -506,7 +505,6 @@ const subsOf = (of) => SUBTABS[of].filter(([id]) => !(prestart && inGameOnly(of,
 function subtabsHtml(of, label) {
   return `<div class="m-tabs"><nav class="m-tablist" role="tablist" aria-label="${label}">` + SUBTABS[of].map(([id, text]) =>
     `<button type="button" role="tab" class="m-tab${inGameOnly(of, id) ? ' pm-ingame' : ''}" data-of="${of}" data-subtab="${id}" aria-selected="false">${esc(text)}<small data-count="${id}"></small></button>`).join('') + '</nav>' +
-    (of === 'todo' ? '<span class="m-grow"></span><button type="button" class="m-bt" data-todo-sort aria-pressed="false" hidden>Dichtbij eerst</button>' : '') +
     (of === 'controls' ? '<span class="m-grow"></span><button type="button" class="m-bt" data-goto-sub="settings:besturing">Terug naar Instellingen</button>' : '') + '</div>';
 }
 
@@ -740,11 +738,8 @@ export function initPauseMenu(w) {
           <div class="m-hr pm-sheet-r"><span class="mut pm-sheet-sub"></span><button type="button" class="m-bt" data-action="reset" hidden>Standaard herstellen</button></div>
         </header>
         <div class="pm-sheet-body">
-          <section data-panel="todo" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-todo">
-            ${subtabsHtml('todo', 'Weergave')}
-            <div class="m-main"><div class="m-list td-list">
-              <div data-of="todo" data-sub="alles"></div><div data-of="todo" data-sub="dichtbij" hidden></div>
-            </div><aside class="m-pane td-detail" aria-label="Details"></aside></div>
+          <section data-panel="todo" class="pm-panel pm-col" hidden><div class="pm-inner pm-todo">
+            <div class="m-main"><div class="m-list td-list"><div data-of="todo" data-sub="alles"></div></div><aside class="m-pane td-detail" aria-label="Details"></aside></div>
           </div></section>
           <section data-panel="map" class="pm-panel pm-map" hidden></section>
           <section data-panel="spullen" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-spullen">
@@ -813,7 +808,7 @@ export function initPauseMenu(w) {
     const rp = e.target.closest('[data-rebind-pad]');
     if (rp) return startPadRebind(rp);
     const st = e.target.closest('[data-subtab]');
-    if (st) { showSubtab(st.dataset.of, st.dataset.subtab); if (st.dataset.of === 'todo') renderTodoPanel(); if (st.dataset.of === 'verhaal') renderVerhaalPanel(); if (st.dataset.of === 'controls') renderBinds(); if (st.dataset.of === 'spel' || st.dataset.of === 'samen') afterSpelSub(); return; }
+    if (st) { showSubtab(st.dataset.of, st.dataset.subtab); if (st.dataset.of === 'verhaal') renderVerhaalPanel(); if (st.dataset.of === 'controls') renderBinds(); if (st.dataset.of === 'spel' || st.dataset.of === 'samen') afterSpelSub(); return; }
     if (e.target.closest('[data-story-skip]')) {
       if (skipCurrent()) setOpen(false);
       else rerenderTodo();
@@ -932,7 +927,12 @@ const phoneApi = {
 
 const todoApi = {
   rerender: (keep) => rerenderTodo(keep),
-  showView: (view) => { if (view === 'verhaal') { pref.sub.verhaal = 'opdrachten'; enterSection('verhaal'); return; } pref.sub.todo = view; enterSection('todo'); },
+  showView: (view) => {
+    if (view === 'verhaal') { pref.sub.verhaal = 'opdrachten'; enterSection('verhaal'); return; }
+    // 'dichtbij' is een filter boven Activiteiten, geen eigen weergave met eigen klikgedrag (#607)
+    setTodoFilter(view === 'dichtbij');
+    enterSection('todo');
+  },
   showOnMap: (x, y) => { enterSection('map'); setMapView(x, y, 3); },
   close: () => setOpen(false),
 };
@@ -1163,7 +1163,6 @@ function cycleSubtab(dir) {
   const i = Math.max(0, subs.findIndex(([id]) => id === cur));
   const next = subs[(i + dir + subs.length) % subs.length][0];
   showSubtab(tab, next);
-  if (tab === 'todo') renderTodoPanel();
   if (tab === 'verhaal') renderVerhaalPanel();
   if (tab === 'spel') afterSpelSub();
   if (tab === 'settings' || tab === 'spel') syncControls();
@@ -1677,7 +1676,6 @@ function showSubtab(of, name) {
   if (pref.sub[of] !== name) { pref.sub[of] = name; savePref(); }
   const panel = root.querySelector(`[data-panel="${of}"]`);
   if (panel) panel.scrollTop = 0;
-  if (of === 'todo' && name === 'verhaal') { markCluesSeen(); syncNavBadges(); }
   if (of === 'settings') root.querySelector('[data-bench-confirm]').hidden = true;
 }
 
@@ -1786,11 +1784,9 @@ function renderOverviewPanel() {
 
 function renderTodoPanel() {
   const panel = root.querySelector('[data-panel="todo"]');
-  const view = pref.sub.todo || 'alles';
   try {
-    renderTodo(panel, world, view);
+    renderTodo(panel, world);
     const sum = todoSummary(world);
-    for (const [id] of SUBTABS.todo) { const c = panel.querySelector(`[data-count="${id}"]`); if (c) c.textContent = sum[id]; }
     if (tab === 'todo') sheetNote(sum.subTodo);
   } catch (err) { console.error('te doen', err); }
 }
@@ -1961,7 +1957,7 @@ function showTab(name, how) {
   if (name === 'missions') name = 'todo';
   if (name === 'cheats') name = 'streken';
   if (name === 'samen' || name === 'samenspelen' || name === 'spelers') { pref.sub.spel = 'samen'; pref.sub.samen = name === 'spelers' && world && world.coopNet && !isSoloHost(world) ? 'spelers' : 'samen'; name = 'spel'; }
-  if (name === 'jobs') { pref.sub.todo = 'alles'; name = 'todo'; }
+  if (name === 'jobs') name = 'todo';
   if (!ids.includes(name)) name = prestart ? 'settings' : HOME;
   if (how) origin = how;
   const prev = tab;
@@ -2005,7 +2001,7 @@ function showTab(name, how) {
     sheet.querySelector('.pm-sheet-eb').hidden = r < 0.01;
     if (r >= 0.01) sheet.querySelector('.pm-sheet-eb').textContent = `${Math.round(r * 100)}% van Grunn verkend`;
   } else sheet.querySelector('.pm-sheet-eb').hidden = true;
-  if (name === 'todo') { showSubtab('todo', pref.sub.todo || 'alles'); renderTodoPanel(); }
+  if (name === 'todo') renderTodoPanel();
   if (name === 'spullen') renderSpullenPanel();
   if (name === 'garage') { renderGaragePanel(garageEl(), world); syncSheetSub(); }
   if (name === 'verhaal') { showSubtab('verhaal', pref.sub.verhaal || 'opdrachten'); renderVerhaalPanel(); }
@@ -2034,8 +2030,9 @@ export function openPauseMenu(name = HOME, opts = {}) {
   if (name === 'samen' || name === 'samenspelen' || name === 'spelers') { pref.sub.spel = 'samen'; pref.sub.samen = name === 'spelers' && world && world.coopNet && !isSoloHost(world) ? 'spelers' : 'samen'; name = 'spel'; }
   if (opts.sub && SUBTABS[name]) pref.sub[name] = opts.sub;
   if (opts.select) selectTodo(opts.select);
-  if (opts.view) pref.sub.todo = opts.view;
-  if (opts.thread) { selectVerhaalCharacter(characterForSender(opts.thread)); pref.sub.verhaal = 'personages'; if (name === 'telefoon') name = 'verhaal'; }
+  // de telefoon opent Activiteiten met de Dichtbij-filter (#607): één lijst, geen eigen weergave
+  if (opts.view) setTodoFilter(opts.view === 'dichtbij');
+  if (opts.thread) { selectPhoneThread(opts.thread); selectVerhaalCharacter(characterForSender(opts.thread)); pref.sub.verhaal = 'personages'; if (name === 'telefoon') name = 'verhaal'; }
   if (name === 'telefoon') { pref.sub.verhaal = 'personages'; name = 'verhaal'; }
   setOpen(true, name, 'direct');
 }

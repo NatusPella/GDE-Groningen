@@ -229,6 +229,18 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .td-next p { margin: 0; font-size: 18px; }
 #pause-menu .td-h2 { font-size: 48px; }
 #pause-menu .td-fv { font-size: 24px; line-height: 1.3; color: var(--ink); max-width: 240px; }
+/* één vaste opmaak voor een feit (#607): het label ernaast, de waarde altijd in dezelfde
+   cijferstijl, niet afhankelijk van de lengte van de tekst */
+#pause-menu .m-facts .td-fact { flex-direction: row; align-items: baseline; gap: 12px; max-width: 100%; }
+#pause-menu .m-facts .td-fact > span:first-child { flex: none; }
+#pause-menu .m-facts .td-fact .m-num { font-size: 26px; line-height: 1.15; overflow-wrap: anywhere; }
+/* de medaille is een icoon plus het woord (#607) */
+#pause-menu .m-medal-t { font-size: 18px; color: var(--mut); }
+/* de catalogus in Activiteiten draagt het kaartpictogram van de activiteit (#607) */
+#pause-menu .m-li .td-ico { width: 22px; height: 22px; flex: none; display: block; }
+/* de Dichtbij-filter is een schakelaar, geen keuzerondje (#607) */
+#pause-menu .m-chip[aria-pressed="true"] { background: rgba(63, 201, 122, 0.12); color: var(--ink); }
+#pause-menu .m-chip[aria-pressed="true"] span { opacity: 1; }
 #pause-menu .m-facts .m-fact { max-width: 260px; }
 #pause-menu .td-acts { flex: none; }
 @media (max-height: 820px) {
