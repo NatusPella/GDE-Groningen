@@ -1010,7 +1010,10 @@ export function tickCoopNet(world, dt) {
   const n = world.coopNet; if (!n) return;
   if (world.coopPings) {
     tickPings(world.coopPings, now(world));
-    if (!world.paused && !world.uiPaused && !world.coopHold && world.input && world.input.wasPressed && (n.role === 'host' || n.joined)) for (const k of PING_TOETSEN) if (world.input.wasPressed(k.toets)) pingGebaar(world, k.soort); // 7, 8, 9 (#367)
+    // Een baken is voor de anderen (#367): in een sessie van één zonder gasten is er niemand om het te zien,
+    // dus 7/8/9 blijven stil in plaats van een zuil en een HUD-regel voor jezelf te zetten (#567).
+    const iemandOmTeZien = n.role !== 'host' || n.hub.roster.spelers.some((x) => x.slot >= 1);
+    if (!world.paused && !world.uiPaused && !world.coopHold && iemandOmTeZien && world.input && world.input.wasPressed && (n.role === 'host' || n.joined)) for (const k of PING_TOETSEN) if (world.input.wasPressed(k.toets)) pingGebaar(world, k.soort); // 7, 8, 9 (#367)
     world.coopPingMarks = pingMarkers(world.coopPings, world.coopRoster, n.role === 'client' && n.session ? n.session.slot : 0, now(world));
   }
   n.tSpelers += dt;
