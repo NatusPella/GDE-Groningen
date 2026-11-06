@@ -26,3 +26,15 @@ export function runCoopLoad(world, n, { stop, save, load }) {
   if (!load(world, n)) return { ok: false, reason: 'load' };
   return { ok: true };
 }
+
+// Herstarten of afsluiten tijdens Samen spelen (#492, wi-492-saves): dezelfde volgorde als bij laden.
+// Eerst eindigt de sessie, zodat de anderen 'spel gestopt' horen in plaats van een weggevallen
+// verbinding; daarna wordt de huidige voortgang bewaard; en pas dan wordt herladen of gesloten.
+// `save` mag null zijn (niets te bewaren) en `go` doet de herstart of het sluiten. Een fout in stop
+// of save houdt de herstart niet tegen: de vorige save blijft dan staan, net als in het oude pad.
+export function runCoopStop(world, { stop, save = null, go }) {
+  if (world && world.coopNet) { try { stop(world); } catch (e) { /* de sessie was al weg */ } }
+  if (save) { try { save(world); } catch (e) { /* de vorige save blijft staan */ } }
+  go();
+  return { ok: true };
+}

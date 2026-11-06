@@ -1,5 +1,7 @@
 // Samen spelen (#452 punt 4, #492): een ander opgeslagen spel laden vraagt eerst om de sessie te
 // beëindigen. De volgorde is de afspraak: stop de sessie, bewaar de huidige voortgang, laad dan pas.
+// Herstarten en afsluiten gebruiken dezelfde volgorde (eerst de sessie, dan bewaren, dan herladen of
+// sluiten), zodat de anderen 'spel gestopt' horen in plaats van een weggevallen verbinding.
 // Nieuw spel en het verwijderen van het actieve slot blijven geblokkeerd zolang een echte sessie
 // loopt. Alleen spelen is sinds #554 een sessie van één (world.coopSolo) en telt hier als geen
 // sessie: dat blokkeert niets en vraagt geen bevestiging (solo-sessie-audit H2).
@@ -8,7 +10,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { runCoopLoad, coopLoadTekst, COOP_LOAD_FAIL } from '../game/js/cooploadrules.js';
+import { runCoopLoad, runCoopStop, coopLoadTekst, COOP_LOAD_FAIL } from '../game/js/cooploadrules.js';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const src = (f) => fs.readFileSync(path.join(ROOT, 'game/js', f), 'utf8');
 let n = 0, fails = 0;
@@ -132,6 +134,51 @@ ok(() => assert.match(pm, /coopLoadTekst\(world, 'Het laatste opgeslagen spel'\)
 ok(() => assert.match(pm, /data-action="coop-load-cancel"\]'\)\.focus\(\)/), 'pauzemenu: de veilige keuze krijgt de focus');
 ok(() => assert.match(pm, /a === 'cancel'\) \{\s*root\.querySelector\('\[data-coop-load-confirm\]'\)\.hidden = true;/), 'pauzemenu: annuleren ruimt de coop-vraag op');
 ok(() => assert.ok(!/COOP_LADEN_TEKST/.test(sg + ui + pm)), 'de oude blokkade is weg');
+
+// --- stoppen, herstarten en afsluiten: dezelfde volgorde als laden (#492, wi-492-saves) ---
+ok(() => {
+  const seen = [];
+  const world = { coopNet: { role: 'host' }, coopRole: 'host' };
+  const res = runCoopStop(world, {
+    stop: (w) => { seen.push('stop'); w.coopNet = null; },
+    save: () => seen.push('save'),
+    go: () => seen.push('go'),
+  });
+  assert.deepEqual(res, { ok: true });
+  assert.deepEqual(seen, ['stop', 'save', 'go'], 'eerst de sessie, dan bewaren, dan pas herstarten of sluiten');
+}, 'stoppen: de sessie stopt voor het bewaren');
+ok(() => {
+  const seen = [];
+  runCoopStop({ coopRole: 'host' }, { stop: () => seen.push('stop'), save: () => seen.push('save'), go: () => seen.push('go') });
+  assert.deepEqual(seen, ['save', 'go'], 'zonder sessie valt er niets te stoppen');
+}, 'stoppen: geen sessie');
+ok(() => {
+  const seen = [];
+  runCoopStop({ coopNet: {} }, { stop: () => { throw new Error('kabel stuk'); }, save: () => seen.push('save'), go: () => seen.push('go') });
+  assert.deepEqual(seen, ['save', 'go'], 'een mislukte stop houdt de herstart niet tegen');
+}, 'stoppen: fout in de stop blokkeert niet');
+ok(() => {
+  const seen = [];
+  runCoopStop({ coopNet: {} }, { stop: (w) => { delete w.coopNet; }, save: () => { throw new Error('schijf vol'); }, go: () => seen.push('go') });
+  assert.deepEqual(seen, ['go'], 'een mislukte save houdt de herstart niet tegen');
+}, 'stoppen: fout in de save blokkeert niet');
+ok(() => {
+  const seen = [];
+  runCoopStop({ coopNet: {} }, { stop: () => seen.push('stop'), go: () => seen.push('go') });
+  assert.deepEqual(seen, ['stop', 'go'], 'zonder bewaarstap (prestart) blijft de volgorde kloppen');
+}, 'stoppen: save mag ontbreken');
+ok(() => {
+  const exitBranch = pm.slice(pm.indexOf("a === 'menu' || a === 'exit'"), pm.indexOf("a === 'pigeon-stop'"));
+  assert.match(exitBranch, /runCoopStop\(world, \{/, 'pauzemenu: herstarten en afsluiten gebruiken de vaste volgorde');
+  assert.match(exitBranch, /stop: \(w\) => \{ if \(isSoloHost\(w\)\) stopSoloHost\(w\); else stopCoopNet\(w\); \}/,
+    'pauzemenu: een solo-sessie stopt via stopSoloHost, een echte sessie via stopCoopNet');
+  const stopAt = exitBranch.indexOf('runCoopStop('), stopCb = exitBranch.indexOf('stop: (w)');
+  const saveCb = exitBranch.indexOf('save: () =>'), goCb = exitBranch.indexOf('go: () =>');
+  assert.ok(stopAt >= 0 && stopCb > stopAt && saveCb > stopCb && goCb > saveCb, 'pauzemenu: stop, dan bewaren, dan herstarten of sluiten');
+  assert.match(exitBranch, /save: \(\) => \{ if \(started\(\) && !prestart && world\) saveGame\(world\); \}/, 'pauzemenu: alleen een lopend spel bewaart (#435)');
+  assert.match(exitBranch, /go: \(\) => \{ if \(a === 'exit' && DESKTOP\) DESKTOP\.quit\(\); else location\.reload\(\); \}/, 'pauzemenu: de herstart of sluiting is de laatste stap');
+  assert.doesNotMatch(exitBranch, /if \(started\(\) && !prestart && world\) saveGame\(world\);\s*if \(a === 'exit'/, 'pauzemenu: geen bewaren-en-herladen meer buiten de vaste volgorde');
+}, 'pauzemenu: de sessie stopt vóór het bewaren en herstarten');
 
 console.log(`coopladen_test: ${n - fails}/${n}`);
 process.exit(fails ? 1 : 0);
