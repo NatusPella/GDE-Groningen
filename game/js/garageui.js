@@ -53,6 +53,8 @@ let selected = null;
 let lastList = [];
 // the viewer's own stills (a separate group, so a card that is still drawing is not dropped)
 const VIEWER_GROUP = 'garage-viewer';
+// how far one arrow press turns the model (rad); the drag follows the pointer
+const TURN_STEP = 0.4;
 
 const euro = (n) => `€${Number(n).toLocaleString('nl-NL')}`;
 const shownList = (list) => garageShown(list, view);
@@ -67,20 +69,26 @@ function endHtml(e) {
   return `<span class="t${e.status === 'driving' ? ' g' : ''}">${label}</span>`;
 }
 
-// a card of the grid: its picture (filled in by fillPics), name, status
+// a card of the grid: its picture (filled in by fillPics), name, status. The
+// silhouette stands in from the first paint, so a card is never a blank block
+// while its snapshot is still being drawn (#610).
 function row(e) {
   return `<button type="button" class="m-li gar-card${e.locked ? ' off' : ''}${e.id === selected ? ' sel' : ''}" data-garage-select="${esc(e.id)}" data-group="${groupOf(e)}"${e.id === selected ? ' aria-current="true"' : ''}>` +
-    `<span class="gar-ph" data-look="${garageCardLook(e)}"><i class="gar-sk"></i></span>` +
+    `<span class="gar-ph" data-look="${garageCardLook(e)}" aria-hidden="true">${vehicleGlyph(e.kind, e.locked ? '#6d756d' : e.color)}</span>` +
     `<span class="nm"><span class="one">${esc(e.model)}</span><span class="gar-st">${endHtml(e)}</span></span></button>`;
 }
 
 // The stage with the turning model. The silhouette and a still from the
 // shared renderer stand behind the live canvas, so the pane is never empty:
 // the first frame of the live preview (or the still) covers them (#435).
+// The canvas takes focus so the model turns on the arrow keys or the D-pad
+// too; the keycaps follow the last used device (#610).
 function stageHtml(e) {
+  const model = esc(e.model);
   return `<div class="gar-stage">${vehicleGlyph(e.kind, e.locked ? '#6d756d' : e.color)}` +
     '<img class="gar-still" alt="" draggable="false" hidden>' +
-    `<canvas aria-label="3D-model van ${esc(e.model)}"></canvas><span class="gar-hint">Sleep om te draaien</span></div>`;
+    `<canvas tabindex="0" role="img" aria-label="3D-model van ${model}: sleep of gebruik de pijltjes om te draaien"></canvas>` +
+    '<span class="gar-hint">Sleep of draai met <kbd class="m-kc" data-gk="arrowleft">←</kbd><kbd class="m-kc" data-gk="arrowright">→</kbd></span></div>';
 }
 
 // Everything beside the stage: name, facts, the message and the buttons.
@@ -161,6 +169,15 @@ export function selectGarageVehicle(el, id, msg = '') {
   showStill(box, previewSpec(e));
   // a tap selects the card: on touch that is the one to turn
   if (aim.touch) syncTurn(el);
+}
+
+// Draaien met de pijltjes of de D-pad (#610): de hint bij het model volgt via
+// data-gk vanzelf het laatst gebruikte apparaat. pausemenu.js stuurt de
+// richting hierheen als de focus op de draaitafel staat.
+export function turnGarageViewer(dir) {
+  if (!viewer || !dir) return false;
+  viewer.turn(dir * TURN_STEP);
+  return true;
 }
 
 // The silhouette and the still behind the live canvas: on while the preview
