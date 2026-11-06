@@ -38,5 +38,26 @@ ok(() => {
   assert.match(sg, /const saveTarget = \(\) => boundSlot \|\| activeSlot\(\);/);
 }, 'de schrijfplek van de autosave is de gebonden plek (#564)');
 
+// --- #565: een gast kan geen lege plek vullen; die wordt een dode schrijfplek ---
+ok(() => {
+  const m = ui.match(/const GAST_LEGE_PLEK_TEKST = '([^']+)'/);
+  assert.ok(m, 'er is een Nederlandse melding');
+  assert.match(m[1], /eigen opgeslagen spel/);
+  assert.match(ui, /const gastInSessie = \(\) => !!\(world && world\.coopRole === 'client' && coopSessieLoopt\(world\)\);/,
+    'een gast is een meespelende speler in een echte sessie');
+  const nieuw = ui.slice(ui.indexOf("if (act === 'new') {"), ui.indexOf("if (act === 'import') {"));
+  const blok = nieuw.indexOf('if (gastInSessie()) { say(GAST_LEGE_PLEK_TEKST); return; }');
+  const maak = nieuw.indexOf('S.createSlot(null');
+  assert.ok(blok >= 0 && maak > blok, 'de gast wordt geblokkeerd vóór er een plek wordt gemaakt');
+  assert.match(nieuw, /S\.deleteSlot\(null, m\);\s*S\.setActive\(null, was\);\s*bindSlot\(\);/, 'mislukt opslaan, dan gaat de nieuwe plek weg en komt de eigen schrijfplek terug');
+  assert.match(ui, /let emptyShown = solo \|\| gastInSessie\(\);/, 'een gast ziet de lege kaart niet');
+}, 'een gast op een lege kaart wordt tegengehouden (#565)');
+ok(() => {
+  // De gast-save routeert in savegame.js naar saveGuestEarnings; die kan alleen samenvoegen in een
+  // bestaande save. Zonder de blokkade zou elke checkpoint op een lege plek mislukken.
+  assert.match(sg, /if \(w\.coopRole === 'client'\) return saveGuestEarnings\(w\);/);
+  assert.match(sg, /const ok = r\.state === 'ok' \|\| r\.state === 'hersteld';/);
+}, 'de gast-schrijfweg kan alleen in een bestaande save werken (#565)');
+
 console.log(`saveslotsui_test: ${n - fails}/${n}`);
 process.exit(fails ? 1 : 0);
