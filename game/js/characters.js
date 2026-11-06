@@ -269,3 +269,15 @@ export function markCharactersSeen() {
 export function metCount() {
   return CHARACTERS.filter((c) => hasMet(c.id)).length;
 }
+
+// De personages die je al kent (#608): alleen die krijgen een tegel. Wie je nog niet
+// ontmoette is één rustige regel, geen grid van vraagtekens. Puur, zodat de UI-test
+// dezelfde regel natrekt.
+export function knownCharacters() {
+  return CHARACTERS.filter((c) => hasMet(c.id));
+}
+export function unknownLine(n) {
+  const aantal = Math.max(0, Number(n) || 0);
+  if (!aantal) return '';
+  return `Nog ${aantal} ${aantal === 1 ? 'persoon' : 'mensen'} die je kunt tegenkomen`;
+}
