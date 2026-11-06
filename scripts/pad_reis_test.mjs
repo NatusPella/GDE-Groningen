@@ -94,7 +94,7 @@ const pf = src('phonefeed.js');
 ok(/export function takeNoticeThread\(now\)/.test(pf) && /noticeThread\(now\)/.test(pf), 'phonefeed.js geeft het gesprek van de melding door (en verbruikt het één keer)');
 const pm = src('pausemenu.js');
 ok(/takeNoticeThread/.test(pm) && /openPauseMenu\('telefoon', \{ thread \}\)/.test(pm), 'pausemenu.js opent de telefoon op dat gesprek (Esc)');
-ok(/if \(opts\.thread\)/.test(pm) && /selectPhoneThread\(opts\.thread\)/.test(pm), 'pausemenu.js gebruikt de thread die het al kent');
+ok(/if \(opts\.thread\)/.test(pm) && /selectVerhaalCharacter\(characterForSender\(opts\.thread\)\)/.test(pm), 'pausemenu.js opent het personage van de melding (Esc)');
 // de B-uitzondering in de menu's (gamepad.js) leeft weer nu isPhoneOpen klopt
 ok(/phoneOpen/.test(src('gamepad.js')) && /hooks\.phoneOpen/.test(src('gamepad.js')), 'gamepad.js houdt de B-uitzondering');
 
