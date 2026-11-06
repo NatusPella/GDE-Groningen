@@ -11,15 +11,9 @@ export const DRAW_DISTANCE_LABELS = { kort: 'kort', normaal: 'normaal', ver: 've
 export function viewDistanceFor(setting, scale = 1, cpuLvl = 0) {
   // cpuLevel 3 (a machine that cannot even carry level 2, scripts/perf/zwak.mjs): the shortest view
   if (cpuLvl >= 3) return VIEW_DISTANCES.kort;
-  // Adaptive quality cuts the draw distance before it only lowers the resolution: a slower
-  // machine notices the shorter view much less than a blurry picture (#553).
-  if (setting === 'heelver') {
-    if (scale < 0.7 || cpuLvl >= 2) return VIEW_DISTANCES.normaal;
-    if (scale < 0.9 || cpuLvl >= 1) return VIEW_DISTANCES.ver;
-    return VIEW_DISTANCES.heelver;
-  }
-  if (setting === 'ver' && (scale < 0.7 || cpuLvl >= 2)) return VIEW_DISTANCES.normaal;
-  if (setting === 'normaal' && (scale < 0.6 || cpuLvl >= 2)) return VIEW_DISTANCES.kort;
+  // 'heel ver' zakt alleen naar 'ver' als adaptive quality al heeft ingegrepen; verdere
+  // stappen veranderen de kwaliteit en dat doen we niet stil (#554).
+  if (setting === 'heelver' && (scale < 0.9 || cpuLvl > 0)) setting = 'ver';
   return VIEW_DISTANCES[setting] || VIEW_DISTANCES.normaal;
 }
 
@@ -71,4 +65,5 @@ export function railChunkCount(view) {
 export function propRadius(viewDist) {
   return Math.min(Math.max(620, viewDist * 0.95), Math.max(260, viewDist + 60));
 }
+
 
