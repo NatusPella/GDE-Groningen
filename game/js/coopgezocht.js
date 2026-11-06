@@ -69,6 +69,10 @@ export function kiesDoelwit(world) {
   // politieMetDoelwit (elk frame); zonder deze vroege return maakt hij per frame een
   // array en een Object.entries() voor niets (#553).
   const eigen = world.wanted | 0;
+  // De sessie van één (#554) zet world.coopWanted op {} (coopnet.js startHost), waardoor de
+  // leeg-check hieronder hem als een coop-lijst ziet en de optimalisatie nooit vuurt. Solo heeft
+  // nooit een gast-doelwit: meteen terug (#561).
+  if (world.coopSolo) return eigen > 0 ? { slot: 0, level: eigen } : null;
   const coopWanted = world.coopWanted;
   if (!coopWanted || typeof coopWanted !== 'object') return eigen > 0 ? { slot: 0, level: eigen } : null;
   const kand = [{ slot: 0, level: eigen }];
