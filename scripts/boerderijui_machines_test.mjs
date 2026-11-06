@@ -24,7 +24,10 @@ t('Machines toont het machinepark, de catalogus met kopen en huren, en de machin
   assert.match(el.innerHTML, /data-mc="koop-cat" data-type="trekker-klein"/); assert.match(el.innerHTML, /data-mc="huur-cat" data-type="ploeg-3"/);
   assert.match(el.innerHTML, /Voor het loonwerk van de bijbaan/); assert.match(el.innerHTML, /data-bd-koop="ploeg"/);
   assert.match(el.innerHTML, /nog 10 plekken vrij/);
-  assert.match(el.innerHTML, /E koppelt/); assert.match(el.innerHTML, /G zet de aftakas/);
+  // de toetsen van het land staan als toetsplaatje naast de handeling (#609)
+  assert.match(el.innerHTML, /class="m-kc">E<\/span>instappen of koppelen/);
+  assert.match(el.innerHTML, /class="m-kc">G<\/span>aftakas/);
+  assert.match(el.innerHTML, /class="m-kc">R<\/span>tanken/);
   assert.ok(!/Balenpers/.test(el.innerHTML), 'wat nog geen gedrag heeft staat niet te koop');
 });
 
@@ -32,7 +35,10 @@ t('kopen en huren: geld, plek, melding en de rij in het machinepark; verkopen en
   klik({ mc: 'koop-cat', type: 'trekker-klein' });
   assert.match(el.innerHTML, /Wierdetrekker W60 gekocht voor €9\.000/);
   assert.equal(world.money, 91000);
-  assert.match(el.innerHTML, /diesel 100% · goed \(slijtage 0%\) · van jou · op Boerderij De Zonnehoek/);
+  assert.match(el.innerHTML, /diesel 100%/);
+  assert.match(el.innerHTML, /goed \(slijtage 0%\)/);
+  assert.match(el.innerHTML, /van jou/);
+  assert.match(el.innerHTML, /op Boerderij De Zonnehoek/);
   klik({ mc: 'huur-cat', type: 'ploeg-3' });
   assert.match(el.innerHTML, /gehuurd, €20 per dag/);
   assert.equal(world.money, 90980);
@@ -98,8 +104,8 @@ t('het kasboek toont per veld en per boekjaar met posten; de bank leent en lost 
 
 t('Gewas noemt graan en gras met hun soort', () => {
   klik({ bd: 'gewas' });
-  assert.match(el.innerHTML, /Graan/); assert.match(el.innerHTML, /Graanzolder Noorderveld/); assert.match(el.innerHTML, /alleen op weiland/);
-  assert.match(el.innerHTML, /Op een weiland teel je gras/);
+  assert.match(el.innerHTML, /Graan/); assert.match(el.innerHTML, /Graanzolder Noorderveld/); assert.match(el.innerHTML, /alleen op weiland/); assert.match(el.innerHTML, /op akkers/);
+  assert.match(el.innerHTML, /class="bd-feiten"/, 'de feiten van een gewas staan in kolommen');
   // de dagmarkt (#492): prijs per kilo met twee decimalen en de trend van vandaag
   assert.match(el.innerHTML, /€\d+,\d{2} per kg vandaag/);
   assert.match(el.innerHTML, /prijs (stijgt|daalt|gelijk)/);

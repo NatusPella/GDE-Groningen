@@ -10,6 +10,7 @@ import { voortgang } from './visboek.js';
 import { WATERTYPEN, SOORTEN, ZELDZAAM, soort, soortenVan, typenVan, watertype } from './visdata.js';
 import { hengelNaam, aasNaam, lijnsterkte } from './hengeltuig.js';
 import { fillBars } from './motion.js';
+import { sfeerVan, sfeerStijl, sfeerBandHtml, SFEER_BAND_CSS } from './carrieresfeer.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const nl = (n) => Math.round(n).toLocaleString('nl-NL');
@@ -17,7 +18,11 @@ const kg = (v) => v.toFixed(v < 1 ? 2 : 1).replace('.', ',') + ' kg';
 const VIS = '<path d="M3 12c3-4 8-5 12-3l4-3v12l-4-3c-4 2-9 1-12-3zM16.5 11h.01"/>';
 const icoon = (cls = 'pa-ico') => `<span class="${cls}"><svg viewBox="0 0 24 24" aria-hidden="true">${VIS}</svg></span>`;
 
-const CSS = `
+// Het Visboek hoort bij het vak Hengelen en draagt daarom dezelfde sfeerband als Loopbanen (#492, #609).
+const SFEER = 'hengelen';
+const band = () => sfeerBandHtml(SFEER, { icoon: icoon('lb-sfeer-ico'), klein: 'Vak Hengelen' });
+
+const CSS = `${SFEER_BAND_CSS}
 .vb-pane .pa-ico svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .vb-pane .lb-kop p { margin: 0; }
 .vb-pane p.lb-titel { margin: 0 0 2px; font-size: 24px; }
@@ -81,7 +86,7 @@ function detailHtml(boek, id) {
     const lijst = SOORTEN.map((s) => soortRij(boek, s)).join('');
     const t = getTuig();
     const tuigRegel = `<p class="mut">Je tuig: <b>${esc(hengelNaam(t))}</b>, ${esc(aasNaam(t))}, lijnsterkte ${Math.round(lijnsterkte(t) * 100)}%. Meer hengels, aas en een sterkere lijn bij de Avondwinkel en de botenverhuur aan de steiger.</p>`;
-    return `<div class="pm-pane-top"><span class="m-eb">Visboek</span><h2 class="m-h2 td-h2">${icoon('pa-ico big')}Alle vis</h2></div>` +
+    return band() + `<div class="pm-pane-top"><span class="m-eb">Visboek</span><h2 class="m-h2 td-h2">${icoon('pa-ico big')}Alle vis</h2></div>` +
       `<div class="lb-kop"><p class="lb-titel"><b>${sam.gevangen} van ${sam.totaal}</b> <span class="mut">soorten gevangen</span></p>` +
       `<p class="mut">${sam.plekken} verschillende wateren · ${nl(boek.totaal.n)} vissen · ${kg(boek.totaal.kg)} in totaal. Hoe meer soorten en wateren, hoe meer elke vis opbrengt.</p>${tuigRegel}${kopLoopbaan}</div>` +
       `<ul class="vb-soorten">${lijst}</ul>`;
@@ -90,7 +95,7 @@ function detailHtml(boek, id) {
   if (!t) return '<p class="mut">Kies een water om te zien welke vis erin zit.</p>';
   const p = typeRegel(boek, id);
   const soorten = soortenVan(id).map((x) => soort(x.id)).sort((a, b) => a.zeldzaam - b.zeldzaam || a.naam.localeCompare(b.naam, 'nl'));
-  return `<div class="pm-pane-top"><span class="m-eb">Water</span><h2 class="m-h2 td-h2">${icoon('pa-ico big')}${esc(t.naam)}</h2></div>` +
+  return band() + `<div class="pm-pane-top"><span class="m-eb">Water</span><h2 class="m-h2 td-h2">${icoon('pa-ico big')}${esc(t.naam)}</h2></div>` +
     `<div class="lb-kop"><p class="lb-titel"><b>${p.gevangen} van ${p.totaal}</b> <span class="mut">soorten ${p.gevangen === p.totaal ? '· compleet' : 'gevangen'}</span></p><p class="mut">${esc(t.wat)}</p>${kopLoopbaan}</div>` +
     `<ul class="vb-soorten">${soorten.map((s) => soortRij(boek, s)).join('')}</ul>`;
 }
@@ -102,7 +107,7 @@ export function renderVisboekPanel(el) {
   const sam = voortgang(boek);
   const lijst = rij('alles', 'Alle vis', { gevangen: sam.gevangen, totaal: sam.totaal, deel: sam.gevangen / sam.totaal }) +
     '<div class="lb-groep">Per water</div>' + WATERTYPEN.map((t) => rij(t.id, t.naam, typeRegel(boek, t.id))).join('');
-  el.innerHTML = `<div class="m-tabs"><span class="m-grow"></span><span class="pa-total"><span class="m-num">${sam.gevangen}</span><span class="mut">van ${sam.totaal} soorten</span></span></div>` +
+  el.innerHTML = `<div class="m-tabs"><span class="m-grow"></span><span class="pa-total"><span class="lb-sfeer-chip" style="${sfeerStijl(SFEER)}" aria-hidden="true"></span><span class="mut">${esc(sfeerVan(SFEER).naam)}</span><span class="m-num">${sam.gevangen}</span><span class="mut">van ${sam.totaal} soorten</span></span></div>` +
     `<div class="m-main"><div class="m-list pa-list lb-list">${lijst}</div><aside class="m-pane pa-pane lb-pane vb-pane" aria-live="polite">${detailHtml(boek, gekozen)}</aside></div>`;
   fillBars(el, bars);
   if (!el.dataset.bound) {
