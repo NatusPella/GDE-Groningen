@@ -11,6 +11,7 @@ import './geokernels.js'; // registers the geometry kernels with geojobs.js
 import { setErrorContext } from './errorlog.js';
 import { DEV, STORY_TEST, FLAGS } from './devflags.js';
 import { bindCoop } from './coopglue.js';
+import { startSoloHost, stopSoloHost } from './coopsolo.js';
 import { tickCoopNet, setCoopTreinen, coopWereldDoorloop } from './coopnet.js';
 import { zetTreinBron } from './cooptrein.js'; // de gast zoekt de trein van de gastheer op (#492)
 import { zetBestuurHaken } from './coopbestuur.js';
@@ -631,13 +632,19 @@ async function boot() {
   const feelDip = makeDip(), dipSeen = { imp: null, mh: null };
   let samenSince = null, gateMenu = false;
   function frameBody(dt) {
+    // Alleen spelen is een sessie van één (#553): start die zodra het spel loopt en er
+    // geen Samen-scherm open staat. Zo lopen alle functies door hetzelfde multiplayer-pad.
+    if (!world.coopNet && !world.coopWissel && !wantsOpenSamen() && !isPauseMenuOpen() && document.body.classList.contains('game-started')
+      && !FLAGS.storytest && !FLAGS.trailer && !FLAGS.perf && !FLAGS.benchmark && !FLAGS.spotsonly && !FLAGS.autoplay && !FLAGS.preview && !FLAGS.menu) {
+      startSoloHost(world, { seed: world.seed ?? 1 });
+    }
     // Samen spelen vanuit het hoofdmenu (#95): de lobby opent zodra het spel te besturen is (na de opening van een nieuw spel)
     // (een paar seconden wachten: de opening van een nieuw spel begint pas even na de start en zou de lobby anders overvallen)
     if (wantsOpenSamen()) {
       if (samenSince == null) samenSince = world.time;
       // met het wachtkamer-hek (nieuw spel samen) opent de lobby meteen, voordat de opening begint
       const klaar = samenGate() ? world.time - samenSince > 1.5 && document.body.classList.contains('game-started') && !isPauseMenuOpen() : world.time - samenSince > 5 && !isCinematicActive() && sinceCinematic() > 2 && !world.cameraOverride && !world.pendingRespawn && !isPauseMenuOpen();
-      if (klaar) { gateMenu = samenGate(); takeOpenSamen(); samenSince = null; openPauseMenu('samen'); }
+      if (klaar) { gateMenu = samenGate(); takeOpenSamen(); samenSince = null; stopSoloHost(world); openPauseMenu('samen'); }
     }
     // het hek gaat pas open met minstens twee spelers en een druk op Spel starten (samenpanel.js); tot dan blijft iedereen in de wachtkamer
     if (world.coopHekMenu) { world.coopHekMenu = false; if (gateOn()) gateMenu = true; } // een gast die midden in een spel aansloot bij een gastheer in de wachtkamer (coopgate.js)
@@ -956,6 +963,7 @@ boot().catch((err) => {
   showLoadError(err.message);
   console.error(err);
 });
+
 
 
 

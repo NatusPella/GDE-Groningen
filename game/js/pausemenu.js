@@ -11,6 +11,7 @@ import { setPauseMenuOpen, setPauseMenuTabState, setPauseMenuControls } from './
 import { PRESET_ORDER, presetLabel, describePreset, describeChanges, currentPreset, applyPreset, getBenchResult, dismissBenchBanner, GEAR_SVG } from './gfxprofile.js';
 import { mountMapView, setMapActive, setMapCloseHandler, setMapView, getDiscoveredRatio, setMapTeleport } from './mapview.js';
 import { renderSamenPanel, requestOpenSamen, samenHubTerug } from './samenpanel.js';
+import { stopSoloHost } from './coopsolo.js';
 import { renderVeroverdPanel } from './veroverdpanel.js';
 import { renderSpelersPanel } from './coopspelersui.js';
 import { renderCheatsPanel, cheatsClick, resetCheatsPanel, cheatsFocus } from './cheatsui.js';
@@ -1589,7 +1590,7 @@ function afterSpelSub() {
     // (samenpanel.js, coopspelersui.js); elk tekent zich in zijn eigen tabblad.
     if (sub === 'samen') {
       showSubtab('samen', pref.sub.samen || 'samen');
-      if (pref.sub.samen === 'spelers') renderSpelersPanel(root.querySelector('[data-of="samen"][data-sub="spelers"]'), world, closePauseMenu, { openSamen: () => { closePauseMenu(); requestOpenSamen(); } });
+      if (pref.sub.samen === 'spelers') renderSpelersPanel(root.querySelector('[data-of="samen"][data-sub="spelers"]'), world, closePauseMenu, { openSamen: () => { closePauseMenu(); stopSoloHost(world); requestOpenSamen(); } });
       else renderSamenPanel(root.querySelector('[data-of="samen"][data-sub="samen"]'), world, closePauseMenu);
     }
   }
@@ -1796,3 +1797,4 @@ function setOpen(value, name = HOME, how = 'direct') {
     if (p && p.onClose) p.onClose();
   }
 }
+

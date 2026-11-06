@@ -1073,6 +1073,18 @@ export function tickCoopNet(world, dt) {
   }
   for (const [slot, t] of Object.entries(n.removing)) { n.removing[slot] = t - dt; if (n.removing[slot] <= 0) { delete n.removing[slot]; n.hub.release(+slot); } }
   n.hub.tick(dt);
+  // De sessie van één (#553): zonder gasten is er niets te sturen en niets te melden.
+  // Alleen de hub, de kloktellers en de eigen spelerslijst blijven bij; de rest van de
+  // hostlus (foci, figuren, hostView, scene- en missieberichten) komt pas als er een
+  // gast is. Zo kost Alleen spelen geen netwerk- of snapshotwerk per frame.
+  if (!n.hub.roster.spelers.some((x) => x.slot >= 1)) {
+    n.tKlok += dt; n.tWeer += dt; n.tHash += dt; n.tScene += dt;
+    if (n.tHash >= HASH_EVERY) n.tHash = 0;
+    if (n.tScene >= 0.25) n.tScene = 0;
+    world.coopVrijLopen = true; world.coopHudWanted = 0; world.coopCam = null;
+    world.coopPartners = partnersInfo(0, [], world.coopRoster || []); ververs(world, 0); world.coopPartner = null;
+    return;
+  }
   if (world.input && world.input.wasPressed && world.input.wasPressed('y')) wielGebaar(world); // Y: het stuur geven of terugnemen (#291)
   const eigen = hoofdspeler(world);
   if (world.coopWielSlot != null && !(eigen && wereldStuur(world) && eigen.inVehicle && wereldStuur(world).inVeh === eigen.inVehicle)) wielLos(world);
@@ -1613,3 +1625,4 @@ export function stopCoopNet(world) {
 
 // de overdracht (coophostwisselnet.js) gebruikt deze functies zonder coopnet.js zelf te importeren
 zetCoopNet({ addGuest, stopCoopNet, startHost, startClient, canJoin });
+

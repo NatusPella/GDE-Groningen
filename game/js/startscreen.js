@@ -9,6 +9,7 @@ import { pointInPolygon } from './util.js';
 import { openPauseMenu, menuIcon } from './pausemenu.js';
 import { requestOpenSamen } from './samenpanel.js';
 import { openSamenKeuze, isSamenKeuzeOpen } from './samenkeuze.js';
+import { stopSoloHost } from './coopsolo.js';
 import { isPauseMenuOpen } from './pausestate.js';
 import { pendingTrailer } from './trailerstate.js';
 // trailer.js (2500 lines) is only loaded when a trailer or benchmark really runs
@@ -613,6 +614,7 @@ function runMenuScreen(world, { render, relocate, tick, ready }, pending = null)
       if (it.act === 'continue') {
         continueGame();
       } else if (it.act === 'samen') {
+        stopSoloHost(world);
         // een echte menustroom: Gastheer worden (kies een opgeslagen spel of Nieuw spel) of Meedoen; daarna staat de wachtkamer klaar (main.js)
         openSamenKeuze({
           onClose: () => focus(sel),
@@ -869,4 +871,5 @@ function runMenuScreen(world, { render, relocate, tick, ready }, pending = null)
     else gateReady.then(openMenu);
   });
 }
+
 

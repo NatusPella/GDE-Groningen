@@ -6,6 +6,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+- **Alleen spelen is een sessie van één (#554).** Elke start is nu een gastheer-sessie: alleen spelen draait dezelfde multiplayer-code met alleen plek 0, zonder gasten, aankondiging of poort. Open je Samen spelen, dan stopt die sessie en neemt de lobby het over. Zonder gasten slaat de hostlus foci, figuren, hostView en snapshots over, zodat dit geen netwerkwerk per frame kost. Besluit van de eigenaar (6-11), draait #486 om.
+
 - **Solo doet geen multiplayer-werk.** De politie-doelwitkeuze maakte ook zonder sessie elk frame een array en een Object.entries(); nu slaat hij dat over als er geen coop-wanted is. Alleen als je een sessie opent draait de netwerklaag (#553).
 
 - (nog niets)
@@ -3134,6 +3136,7 @@ De eerste versie: alles wat er tot de eerste desktop-release gebouwd is.
   volledig offline, standaard op volledig scherm.
 - Voor wie het liever zonder app doet: een ZIP met `START DE GAME.bat` die op
   Windows zelf Python regelt en de game in de browser opent.
+
 
 
 
