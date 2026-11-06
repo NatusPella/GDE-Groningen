@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { startSoloHost, stopSoloHost, isSoloHost } from '../game/js/coopsolo.js';
 import * as N from '../game/js/coopnet.js';
 import { wijsPlekToe, heeftPlek } from '../game/js/coopplayers.js';
+import { coopStep } from '../game/js/coopglue.js';
 
 let n = 0;
 const t = (name, f) => { f(); n++; };
@@ -18,7 +19,7 @@ t('sessie van één start als host met max 1', () => {
   assert.equal(w.coopRole, 'host');
   assert.equal(w.coopSolo, true);
   assert.equal(isSoloHost(w), true);
-  assert.equal(w.coop.local, true, 'het toetsenbord blijft van de speler');
+  assert.equal(w.coop.local, false, 'geen gast: de metgezel volgt de volg-AI, niet het toetsenbord (#559)');
   assert.ok(!w.coop.fixedChars, 'de verhaalpersonages blijven staan');
   assert.equal(net.hub.roster.spelers.length, 1, 'alleen plek 0');
   assert.equal(net.hub.roster.spelers[0].slot, 0);
@@ -44,9 +45,26 @@ t('de hub draait zonder gasten en zonder berichten naar buiten', () => {
   assert.equal(net.hub.roster.spelers.length, 1);
   assert.equal(w.messages.length, 0, 'geen sessiemeldingen in je eentje');
   assert.equal(w.coopPartner, null, 'geen partner in je eentje');
-  assert.equal(w.coop.local, true, 'toetsenbord blijft van de speler');
+  assert.equal(w.coop.local, false, 'geen gast: de metgezel volgt de volg-AI (#559)');
   stopSoloHost(w);
-  assert.equal(w.coop.local, true, 'na stoppen nog steeds lokaal');
+  assert.equal(w.coop.local, true, 'na stoppen is het toetsenbord weer van plek 2 (de oude stand)');
+});
+
+// #559: de metgezel bleef in Alleen spelen staan omdat coopStep (toetsenbord van plek 2) hem overnam.
+// De sessie van één is een gewone sessie: zonder gast is er geen gast-invoer en doet de volg-AI het werk.
+t('#559: de metgezel volgt zonder toetsen; coopStep laat hem met rust', () => {
+  const w = mkWorld();
+  const net = startSoloHost(w, { info: INFO, seed: 7 });
+  assert.ok(net);
+  const namOver = () => { throw new Error('coopStep nam de metgezel over in een sessie van één'); };
+  assert.equal(coopStep(w.companion, 1 / 60, w, namOver), false, 'de volg-AI van companion.js doet het werk');
+  // een gastheer met een gast houdt dezelfde regel; de gast-invoer komt via het net
+  const h = mkWorld();
+  N.startHost(h, INFO, { seed: 3, max: 4 });
+  assert.equal(h.coop.local, false, 'in een echte sessie stuurt geen toetsenbord de metgezel');
+  assert.equal(coopStep(h.companion, 1 / 60, h, namOver), false);
+  N.stopCoopNet(h);
+  stopSoloHost(w);
 });
 
 t('een echte sessie over de solo-sessie wist coopSolo', () => {
