@@ -1397,8 +1397,9 @@ function runAction(a) {
     if (world.pigeonActions && world.pigeonActions.home()) setOpen(false);
   } else if (a === 'new') {
     if (coopSessieLoopt(world)) { status(COOP_NIEUW_TEKST); return; }
+    // #562: eerst de plek echt maken; zonder vrije plek gebeurt er niets en blijft de huidige save staan
+    if (!startNewSlot()) { status('Alle plekken zijn in gebruik. Verwijder eerst een opgeslagen spel om opnieuw te beginnen.'); return; }
     preventCloseSave(); // #584: this reload starts a new game, so the old world must not be saved over the fresh slot
-    startNewSlot();
     location.reload();
   } else if (a === 'bench' || a === 'bench-cancel') {
     const box = root.querySelector('[data-bench-confirm]');

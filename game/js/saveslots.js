@@ -49,6 +49,7 @@ export function readIndex(ls) {
     if (isObj(d)) {
       if (Number.isInteger(d.active) && d.active >= 1 && d.active <= MAX_SLOTS) idx.active = d.active;
       if (isObj(d.names)) for (const [k, v] of Object.entries(d.names)) { const n = Number(k); if (Number.isInteger(n) && n >= 1 && n <= MAX_SLOTS && typeof v === 'string') idx.names[n] = cleanName(v); }
+      if (d.fresh === true) idx.fresh = true;
     }
   } catch (e) { /* no list yet: slot 1 is the active one */ }
   return idx;
@@ -174,10 +175,22 @@ export function activeSlot(ls) {
   return readIndex(ls).active;
 }
 
+// Een bewust gestart nieuw spel (#562): de aktieve plek is leeg en de boot moet die keuze respecteren
+// in plaats van de save met de hoogste savedAt te laden. Zodra die plek iets bevat is de vlag niet meer
+// nodig en verdwijnt hij bij de volgende boot (pickLatest/pickActive).
+export const isFresh = (ls) => readIndex(ls).fresh === true;
+export function clearFresh(ls) {
+  const idx = readIndex(ls);
+  if (!idx.fresh) return true;
+  delete idx.fresh;
+  return writeIndex(ls, idx);
+}
+
 // At boot: the active slot when it holds a save, else the slot saved last (a new game that never
 // got to save leaves an empty active slot behind). Returns the active slot.
 export function pickActive(ls) {
   const idx = readIndex(ls);
+  if (idx.fresh && readSlot(ls, idx.active).state === 'leeg') return idx.active;
   if (readSlot(ls, idx.active).state !== 'leeg') return idx.active;
   const best = listSlots(ls).filter((x) => x.summary).sort((a, b) => b.summary.savedAt - a.summary.savedAt)[0];
   if (best) { setActive(ls, best.n); return best.n; }
@@ -186,8 +199,13 @@ export function pickActive(ls) {
 
 // At boot: the slot that was saved last, whatever slot was active (the owner wants "last saved",
 // not "last active"). With no save at all the active slot stays, so a new game can use it.
+// #562: een bewust gestart nieuw spel op een lege plek gaat voor; die plek is dan "het spel".
 export function pickLatest(ls) {
   const idx = readIndex(ls);
+  if (idx.fresh) {
+    if (readSlot(ls, idx.active).state === 'leeg') return idx.active;
+    clearFresh(ls); // er staat inmiddels een save in: vanaf nu telt gewoon de laatste save
+  }
   const best = listSlots(ls).filter((x) => x.summary).sort((a, b) => b.summary.savedAt - a.summary.savedAt)[0];
   if (best) {
     // if the index cannot be written (full storage) there is no reliable "latest": report 0 so
@@ -249,13 +267,15 @@ export function writeSlot(ls, n, save) {
 }
 
 // A new empty slot (named), made the active one. Returns its number or 0 when all are in use.
-export function createSlot(ls, name, want = 0) {
+// fresh: dit is een bewust gestart nieuw spel (#562); de boot opent dan een lege wereld.
+export function createSlot(ls, name, want = 0, fresh = false) {
   const n = want >= 1 && want <= MAX_SLOTS && getRaw(ls, slotKey(want)) == null && getRaw(ls, slotRecoveryKey(want)) == null ? want : freeSlot(ls);
   if (!n) return 0;
   const idx = readIndex(ls);
   const nm = cleanName(name);
   if (nm && nm !== defaultName(n)) idx.names[n] = nm; else delete idx.names[n];
   idx.active = n;
+  if (fresh) idx.fresh = true; else delete idx.fresh;
   return writeIndex(ls, idx) ? n : 0;
 }
 

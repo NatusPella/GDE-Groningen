@@ -30,7 +30,7 @@ import { applyGuestChanges, applyGuestStory, applyGuestAchievements } from './co
 import { verhaalStatus } from './coopverhaal.js';
 import { gebeurtenissenVan, maakBoekhouding } from './coopbeloning.js';
 import { getRenderer, afterNextFrame } from './scene3d.js';
-import { readSlot, writeSlotRaw, writeThumb, activeSlot, setActive, createSlot, deleteSlot, nameOf, pickActive, pickLatest, repairSlot, writeBackupOnce } from './saveslots.js';
+import { readSlot, writeSlotRaw, writeThumb, activeSlot, setActive, createSlot, deleteSlot, nameOf, pickActive, pickLatest, repairSlot, writeBackupOnce, isFresh, clearFresh } from './saveslots.js';
 import { logError } from './errorlog.js';
 import { maakCheckpoint } from './coopcheckpoint.js';
 import { registerSaveGame, registerSaveTimers, registerGastVerhaal, registerGastBoek } from './savehook.js';
@@ -172,15 +172,22 @@ export function getSaveSummary() {
   return { slot: activeSlot(), name: nameOf(null, activeSlot()), playSeconds: Math.max(0, num(d.speeltijd, 0)), arc: savedArc(d), money: num(d.money, 0), missionsDone: done, savedAt: num(d.savedAt, 0), character: d.character === 'anita' ? 'Tessa' : 'Tammo', story: storySummary(d), goal: d.doel && typeof d.doel.name === 'string' ? d.doel.name : '' };
 }
 
-function clearSave() {
-  keepNewerSave();
-  try { localStorage.removeItem(slotKey(saveTarget())); } catch (e) { /* ignore */ }
+// "Nieuw spel": de oude savegames blijven staan. Er komt een lege plek bij en die wordt de actieve; de
+// boot respecteert die keuze (#562, saveslots.js isFresh). Zijn alle plekken in gebruik, dan gebeurt er
+// niets en zegt de aanroeper het: de save van het spel dat je speelt wordt niet stil gewist.
+export function startNewSlot(name) {
+  if (!createSlot(null, name, 0, true)) return false;
+  bindSlot();
+  return true;
 }
 
-// "Nieuw spel": the old saves stay. A new slot is made and becomes the active one; with every
-// slot in use the active one is cleared, as before (its recovery copy stays).
-export function startNewSlot(name) {
-  if (!createSlot(null, name)) clearSave();
+// #562: de boot ziet dat de speler bewust een nieuw spel is begonnen en opent een lege wereld in plaats
+// van de save die het laatst geschreven is. finishFreshStart() ruimt de vlag op nu het spel loopt.
+export function isFreshStart() {
+  return isFresh(null);
+}
+export function finishFreshStart() {
+  clearFresh(null);
   bindSlot();
 }
 
