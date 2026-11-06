@@ -4,7 +4,7 @@ Alle noemenswaardige wijzigingen in GDE Groningen, per versie. Nieuwste bovenaan
 Versies volgen SemVer: `0.x.y` tot de echte release (1.0.0); `x` voor
 nieuwe functies, `y` voor alleen bugfixes.
 
-## [Unreleased]
+## [0.57.1] - 2026-11-06
 
 - **Openbare sessies lekken je IP niet meer via de kamercode (#583).** De lijst draagt alleen nog een willekeurig sessie-id; wie via de lijst aansluit, vraagt wie de sessie opende om een eenmalige kamercode, die met ECDH + AES-GCM alleen voor die gast versleuteld wordt. Een derde met alleen de lijst kan het aanbod niet vinden of ontsleutelen. Test: `net_joingate_test`.
 
@@ -3158,6 +3158,7 @@ De eerste versie: alles wat er tot de eerste desktop-release gebouwd is.
   volledig offline, standaard op volledig scherm.
 - Voor wie het liever zonder app doet: een ZIP met `START DE GAME.bat` die op
   Windows zelf Python regelt en de game in de browser opent.
+
 
 
 
