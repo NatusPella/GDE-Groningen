@@ -73,7 +73,9 @@ export function foldNote(id, on) {
 
 // --- rows -------------------------------------------------------------------------
 
-const medalDot = (m) => (m == null ? '' : `<span class="m-medal m${m}" title="${m ? MEDALS[m] : 'Nog geen medaille'}"></span>`);
+// Een medaille is een icoon plus het woord (#607): de naam van de medaille staat niet meer
+// in een tooltip die je met een controller of schermlezer mist. Kleur wordt nooit de enige cue.
+const medalDot = (m) => (m == null || !MEDALS[m] ? '' : `<span class="m-medal m${m}" aria-hidden="true"></span><span class="m-medal-t">${esc(MEDALS[m])}</span>`);
 
 // the right-hand end of a row: your goal, its status, the distance
 function endOf(it) {
@@ -89,7 +91,10 @@ function endOf(it) {
 
 function row(it, extra = '') {
   const off = it.status === 'later' || it.status === 'slot' || (it.status === 'klaar' && it.medal == null);
-  return `<button type="button" class="m-li${off ? ' off' : ''}${extra}" data-todo="${esc(it.key)}" data-status="${it.status || ''}"${it.isGoal ? ' data-goal' : ''}${ui.sel === it.key ? ' aria-current="true"' : ''}>` +
+  // De catalogus (Activiteiten) heeft een eigen taal: het kaartpictogram van de activiteit (#607).
+  // De verhaalmissies in Verhaal > Opdrachten houden hun code en status, zonder pictogram.
+  const ico = it.icon && it.group !== 'missies' && it.group !== 'verhaal' ? `<img class="td-ico" src="${mapIconUrl(it.icon, 22)}" alt="">` : '';
+  return `<button type="button" class="m-li${off ? ' off' : ''}${extra}" data-todo="${esc(it.key)}" data-status="${it.status || ''}"${it.isGoal ? ' data-goal' : ''}${ui.sel === it.key ? ' aria-current="true"' : ''}>` + ico +
     `<span class="nm"><span class="one">${it.code ? `${esc(it.code)} · ` : ''}${esc(it.title)}</span><span class="mut one">${esc(it.record && it.status !== 'nu' && it.status !== 'later' ? it.record : it.meta)}</span></span>` +
     `${medalDot(it.medal)}${endOf(it)}</button>`;
 }
@@ -286,14 +291,27 @@ function storyHtml() {
 
 const SHOW_FIRST = 4;
 
+// De Dichtbij-filter (#607): het is een filter boven dezelfde lijst, geen eigen weergave met
+// eigen klikgedrag. Elke rij opent het detail, waar je hem ook aanklikt.
+export function setTodoFilter(near) { ui.near = !!near; }
+
 function allHtml() {
-  const counts = Object.fromEntries(SHOWN.map(([g]) => [g, items.filter((it) => it.group === g).length]));
-  const total = items.filter(isActiviteit).length;
+  const eigen = items.filter(isActiviteit);
+  const counts = Object.fromEntries(SHOWN.map(([g]) => [g, eigen.filter((it) => it.group === g).length]));
+  const total = eigen.length;
+  const metPlek = eigen.filter((it) => it.dist != null).length;
+  const filter = `<div class="m-chips" role="group" aria-label="Filter"><button type="button" class="m-chip" data-todo-near aria-pressed="${ui.near}">Dichtbij <span>${metPlek}</span></button></div>`;
   const chips = `<div class="m-chips" role="radiogroup" aria-label="Soort"><button type="button" class="m-chip" role="radio" data-todo-kind="alles" aria-checked="${ui.kind === 'alles'}">Alles <span>${total}</span></button>` +
     SHOWN.map(([g, label]) => `<button type="button" class="m-chip" role="radio" data-todo-kind="${g}" aria-checked="${ui.kind === g}">${label} <span>${counts[g]}</span></button>`).join('') + '</div>';
+  if (ui.near) {
+    const label = ((SHOWN.find(([g]) => g === ui.kind) || [])[1] || '');
+    const list = eigen.filter((it) => it.dist != null && (ui.kind === 'alles' || it.group === ui.kind))
+      .sort((a, b) => (a.dist ?? Infinity) - (b.dist ?? Infinity));
+    return filter + chips + `<div class="m-gh"><span>Dichtbij${label ? ` · ${esc(label)}` : ''}</span><span>${list.length} ${list.length === 1 ? 'ding' : 'dingen'} met een plek, dichtstbij eerst</span></div>` + list.map((it) => row(it)).join('') +
+      (!list.length ? '<p class="m-note">Niks met een plek in deze soort. Kies een andere soort of zet de filter uit.</p>' : '');
+  }
   const groups = SHOWN.filter(([g]) => ui.kind === 'alles' || ui.kind === g).map(([g, label, sub]) => {
-    let list = items.filter((it) => it.group === g);
-    if (ui.near) list = [...list].sort((a, b) => (a.dist ?? Infinity) - (b.dist ?? Infinity));
+    let list = eigen.filter((it) => it.group === g);
     if (!list.length) return '';
     const all = ui.kind !== 'alles' || ui.more.has('g:' + g);
     const shown = all ? list : list.slice(0, SHOW_FIRST);
@@ -304,17 +322,13 @@ function allHtml() {
     return `<div class="m-gh"><span>${label}</span><span>${rest > 0 || all ? `${list.length} · ` : ''}${sub}</span></div>${shown.map((it) => row(it)).join('')}` +
       (rest > 0 ? `<button type="button" class="m-more" data-grp-more="${g}">Nog ${rest} ${esc(label.toLowerCase())}</button>` : '');
   }).join('');
-  return chips + groups;
+  return filter + chips + groups;
 }
 
-function nearHtml() {
-  const list = items.filter((it) => it.dist != null && isActiviteit(it)).sort((a, b) => a.dist - b.dist);
-  return `<div class="m-gh"><span>Dichtbij</span><span>alles met een plek, dichtstbij eerst</span></div>${list.map((it) => row(it)).join('')}`;
-}
-
+// Eén vaste opmaak voor een feit, niet afhankelijk van de lengte van de tekst (#607): het
+// label staat ernaast, de waarde heeft altijd dezelfde cijferstijl.
 function factHtml(k, v) {
-  const s = String(v);
-  return `<div class="m-fact"><span>${esc(k)}</span><span class="${s.length > 13 ? 'td-fv' : 'm-num'}">${esc(s)}</span></div>`;
+  return `<div class="m-fact td-fact"><span>${esc(k)}</span><span class="m-num">${esc(String(v))}</span></div>`;
 }
 
 function detailHtml(world) {
@@ -352,7 +366,7 @@ export function todoSummary(world) {
   const end = getStoryView().ending;
   const toEnd = end && !end.done ? ` · nog ${end.count} tot het einde` : '';
   return {
-    verhaal: '', opdrachten: '', alles: String(items.filter(isActiviteit).length), dichtbij: String(items.filter((it) => isActiviteit(it) && it.dist != null && it.dist < 600).length || ''),
+    verhaal: '', opdrachten: '', alles: String(items.filter(isActiviteit).length),
     subTodo: `${items.filter(isActiviteit).length} dingen te doen · ${items.filter((it) => isActiviteit(it) && it.dist != null && it.dist < 600).length} dichtbij`,
     sub: `${sDone} van ${steps.length} verhaalstappen · ${ms.filter((it) => it.status === 'klaar').length} van ${ms.length} missies · ${jr.total - jr.found.length} aanwijzingen te vinden${toEnd}`,
   };
@@ -380,18 +394,15 @@ export function renderTodoStory(el, world) {
   animateChanges(el);
 }
 
-export function renderTodo(panel, world, view) {
+export function renderTodo(panel, world) {
   refresh(world);
-  if (!ui.sel || !byKey.has(ui.sel) || (view !== 'verhaal' && !isActiviteit(byKey.get(ui.sel)))) { // Activiteiten kiest nooit een verhaalitem (#435)
+  if (!ui.sel || !byKey.has(ui.sel) || !isActiviteit(byKey.get(ui.sel))) { // Activiteiten kiest nooit een verhaalitem (#435)
     const eigen = items.filter(isActiviteit);
     const cur = eigen.find((it) => it.status === 'nu') || eigen[0] || items[0];
     ui.sel = cur ? cur.key : null;
   }
-  const list = panel.querySelector(`[data-of="todo"][data-sub="${view}"]`);
-  if (list) list.innerHTML = view === 'verhaal' ? storyHtml() : view === 'alles' ? allHtml() : nearHtml();
-  for (const sub of panel.querySelectorAll('[data-of="todo"][data-sub]')) if (sub.dataset.sub !== view) sub.innerHTML = '';
-  const sort = panel.querySelector('[data-todo-sort]');
-  if (sort) { sort.hidden = view !== 'alles'; sort.setAttribute('aria-pressed', String(ui.near)); }
+  const list = panel.querySelector('[data-of="todo"][data-sub="alles"]');
+  if (list) list.innerHTML = allHtml();
   panel.querySelector('.td-detail').innerHTML = detailHtml(world);
   animateChanges(panel);
 }
@@ -441,7 +452,9 @@ export function todoClick(e, world, panel, api) {
   if (view) { api.showView(view.dataset.todoView); return true; }
   const kind = t.closest('[data-todo-kind]');
   if (kind) { ui.kind = kind.dataset.todoKind; api.rerender(kind); return true; }
-  if (t.closest('[data-todo-sort]')) { ui.near = !ui.near; api.rerender(t.closest('[data-todo-sort]')); return true; }
+  // de Dichtbij-filter aan of uit (#607): dezelfde lijst, hetzelfde detail, geen eigen weergave
+  const near = t.closest('[data-todo-near]');
+  if (near) { ui.near = !ui.near; api.rerender(near); return true; }
   const part = t.closest('[data-part-toggle]');
   if (part) { const p = part.dataset.partToggle; if (ui.open.has(p)) ui.open.delete(p); else ui.open.add(p); api.rerender(part); return true; }
   const more = t.closest('[data-part-more]');
@@ -450,7 +463,8 @@ export function todoClick(e, world, panel, api) {
   if (gmore) { ui.more.add('g:' + gmore.dataset.grpMore); api.rerender(); return true; }
   const c = t.closest('[data-todo]');
   if (c) {
-    // Overzicht's rows open the item in Te doen
+    // Eén selectiemodel (#607): de rij opent het detail. Overzicht heeft geen detailpaneel,
+    // dus daar opent dezelfde rij hetzelfde detail in Activiteiten, met de selectie bewaard.
     if (!panel.querySelector('.td-detail')) { ui.sel = c.dataset.todo; api.showView('dichtbij'); return true; }
     select(panel, world, c.dataset.todo);
     return true;
