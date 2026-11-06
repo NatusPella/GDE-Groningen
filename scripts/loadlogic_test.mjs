@@ -56,6 +56,7 @@ const bl = buildLines('travel', ['Onderweg', 'Een lijn'], p);
 ok(bl.length === 4 && bl[0][0] === 'Onderweg' && bl[1][0] === 'Wist je dat', 'lead then tips');
 ok(buildLines('travel', ['Onderweg', ''], p).length === 3, 'empty lead skipped');
 import { PICTURES, APPROVED, MISSION_PICTURE, missionPicture, pictureHtml, pictureOk } from '../game/js/loadscene.js';
+import { BOOT_PHASES, bootPhaseAt } from '../game/js/loadlogic.js';
 import fs from 'node:fs';
 ok(APPROVED.length === 7 && APPROVED.every((p) => fs.existsSync(new URL('../game/img/laad/' + p + '.jpg', import.meta.url))), 'every approved picture exists');
 ok(Object.values(MISSION_PICTURE).every(pictureOk) && missionPicture('nope') === 'vismarkt', 'every mission kind has an approved picture');
@@ -66,9 +67,23 @@ const src = fs.readFileSync(new URL('../game/js/loadscreen.js', import.meta.url)
 const pickBody = src.slice(src.indexOf('export function pickImage'), src.indexOf('function recapText'));
 const used = [...pickBody.matchAll(/'([a-z]+)'/g)].map((x) => x[1]).filter((w) => !['haven', 'kade', 'diep', 'gracht', 'water', 'markt', 'binnenstad', 'forum', 'toren', 'kerk'].includes(w));
 ok(used.length >= 5 && used.every(pictureOk), 'pickImage only names approved pictures', used.join());
-const cityList = [...src.slice(src.indexOf('CITY_IMAGES'), src.indexOf(']', src.indexOf('CITY_IMAGES'))).matchAll(/'([a-z]+)'/g)].map((x) => x[1]);
-ok(cityList.every(pictureOk), 'city images are approved');
+// #600: an unknown place gets the neutral render, and the country at night is never the chase picture
+ok(/return 'luchtfoto';\s*\}/.test(pickBody), 'pickImage falls back to the neutral aerial');
+ok(!/place\.country[^\n]*achtervolging/.test(pickBody), 'the country at night does not get the chase picture');
+ok(!/CITY_IMAGES/.test(src), 'no hash-picked random city picture');
 ok(!/sceneSvg|ls-scene/.test(src), 'load screen has no own svg scene');
+
+// #600: the boot bar has real steps with words, also at the last one
+ok(BOOT_PHASES.length === 5 && BOOT_PHASES[0].from === 0 && BOOT_PHASES[BOOT_PHASES.length - 1].from >= 0.9,
+  'the boot bar has measured steps and a last one at the end', BOOT_PHASES.length);
+ok(bootPhaseAt(0).id === 'kaart' && bootPhaseAt(0.91).final && bootPhaseAt(1).final, 'the last boot step is final and named');
+ok(BOOT_PHASES.every((p, i) => i === 0 || p.from > BOOT_PHASES[i - 1].from), 'the boot steps rise');
+ok(bootPhaseAt(-1).from === 0 && bootPhaseAt(5).from === BOOT_PHASES[BOOT_PHASES.length - 1].from, 'out-of-range progress is clamped');
+ok(!/firstSentence\(recapText/.test(src), 'the load screen keeps the whole recap instead of its first sentence');
+// #600: one progressbar on the bar, not on the whole screen, so the place, the story and the tip stay readable
+const ldHtml = src.slice(src.indexOf('el.innerHTML ='), src.indexOf('document.body.appendChild(el)'));
+ok(/class="ls-bar" role="progressbar"/.test(ldHtml) && !/el\.setAttribute\('role', 'progressbar'\)/.test(src), 'the load screen has one progressbar, on the bar');
+ok(/aria-valuenow/.test(src) && /aria-live="polite"/.test(ldHtml), 'the bar reports progress and the tip line is announced');
 // the first load screen (index.html #loading): only the age sign, no words, and a sharp picture
 const html = fs.readFileSync(new URL('../game/index.html', import.meta.url), 'utf8');
 const boot = html.slice(html.indexOf('<div id="loading"'), html.indexOf('<div id="start-screen"'));
