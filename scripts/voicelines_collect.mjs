@@ -393,7 +393,9 @@ export function collect() {
   const spoken = (t) => t.replace(/\bW\/S\b/g, 'W en S').replace(/\bA\/D\b/g, 'A en D').replace(/\(Ctrl\)/g, '(control)').replace(/\(Esc > Spel\)/g, '');
   // a line that names one of them (or Tessa's Fjord) is only said by the other
   const hintWho = (t) => (/\bTessa\b/.test(t) ? ['Tammo'] : /\bTammo\b|mijn Fjord/.test(t) ? ['Anita'] : ['Tammo', 'Anita']);
-  const hint = (t) => add('Hints (Tammo/Tessa)', 'hints', hintWho(t), cardSpoken(t), { tag: HINT_TAG, speak: spoken(cardSpoken(t)) });
+  // Een technische wachtmelding tijdens het laden is geen gesproken hint: geen opname nodig (#582).
+  const TECH_HINTS = new Set(['De weg hier wordt nog geladen. Even wachten…']);
+  const hint = (t) => { if (TECH_HINTS.has(t)) return; add('Hints (Tammo/Tessa)', 'hints', hintWho(t), cardSpoken(t), { tag: HINT_TAG, speak: spoken(cardSpoken(t)) }); };
   const mis = src('missions.js');
   for (const t of strings(mis, /\bsay: ('(?:[^'\\]|\\.)*')/g)) hint(t);
   for (const t of strings(mis, /\bhint\(world, ('(?:[^'\\]|\\.)*')/g)) hint(t);
@@ -418,3 +420,4 @@ const hasKey = (e, s) => {
 };
 export const isVoiced = (e) => (e.need === 'any' ? e.speakers.some((s) => hasKey(e, s)) : e.speakers.every((s) => hasKey(e, s)));
 export const missingKeys = (e) => e.speakers.filter((s) => !hasKey(e, s));
+
