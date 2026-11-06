@@ -1,6 +1,6 @@
 # 07 · TTS-raming (achterhaald: er wordt weer opgenomen)
 
-**Achterhaald op 25-10: nieuwe opnames mogen wel, op Gemini Flash-Lite en binnen een budget (ADR 0019, #462).** Wat hieronder staat is de raming van vóór dat besluit en blijft als historie staan; de stand van de opnames staat in de comments op #462.
+**Achterhaald op 25-10: nieuwe opnames mogen wel, op Gemini Flash-Lite en binnen een budget (ADR 0019, #462).** De raming in §1-3 en de kostenmaat in §4 blijven als historie staan; de **actuele stand** staat in de laatste alinea van §4 en de commando's in §6 (en in de comments op #462).
 
 Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Geen TTS gedraaid, geen netwerk gebruikt, `.env` niet gelezen. Alle cijfers komen uit de script-bestanden `09-script-akte1..5.md` (lokaal geteld met `node scripts/export_story.mjs`, dat nu ook radio-, telefoon- en appregels telt) en uit `docs/archief/2026-10/deel4-f4a.md` (de eerdere kostenmaat).
 
@@ -58,14 +58,47 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Geen TTS gedraaid, geen netwerk ge
 | Met heropnamen (aanname x1,5 voor tonen en fouten) | | **1,43-2,18** |
 
 **Kosten tot 27-10: $0,184.** Er wordt opgenomen in rondes op \`gemini-3.8-flash-lite-tts\` (ADR 0019,
-#462): 642 van de 1.450 verhaalregels hebben een stem, 163 opdrachten staan in de wachtrij.
+#462). Stand na de opnameronde van 29-10 en het opruimen van de wachtrij (6-11): **744 van de 1.450
+verhaalregels hebben een stem en 706 zijn nog alleen tekst** (`node scripts/voice_coverage.mjs --quiet`).
+Daarvan staan **63 opdrachten klaar in de wachtrij** (`scripts/tts_lines.json`; `python
+scripts/tts_lines.py --dry-run` laat ze zien, samen ca. 197 s audio en ca. $0,03), wachten **155 regels
+op een stemkeuze** (de 17 sprekers die nog niet in `CAST` van `scripts/tts_lines_list.mjs` staan) en
+**451 op een Groningse spreektekst** (`scripts/gronings_spoken.json`); `node scripts/tts_lines_list.mjs`
+print die drie getallen. De wachtrij had 163 opdrachten; 100 waren al opgenomen en zijn eruit gehaald.
+De overige 37 tekstregels zijn stille appjes en sms'en (`channel: app-stil`), die hoeven geen opname.
 
 **Onzekerheid.** (1) De kostenmaat is een schatting uit één eerder bedrag; het script waarop die gebaseerd was kan meer regels hebben gehad dan de 975 die dit bestand in het dialoogformaat laat zien (het bestand noemt zelf ca. 2.508 gesproken regels). Als de maat op 2.508 regels is gebaseerd, ligt de prijs per teken ruwweg de helft lager. (2) Tarief, model (nu Gemini 3.8 via OpenRouter, zie geheugen) en eventuele regels langer dan nu kunnen de prijs verschuiven. (3) De nieuwe stemmen voor de bondgenoten kosten een stemkeuze en tests, niet veel geld. **Orde van grootte, voor later: één tot twee dollar voor het hele nieuwe verhaal.**
 
 ## 5. Wat later moet gebeuren (pas na een nieuw besluit van de eigenaar)
 
 1. Besluit of en wanneer er opgenomen wordt: alles, of eerst alleen akte 1 en 5.
-2. Stemkeuze voor Wubbo, Geesje, Lammert, Tinus, Roelfien, de Bewaarder, de Loketbediende, de Accountmanager.
+2. Stemkeuze voor de sprekers zonder stem in `CAST`; welke dat zijn en hoeveel regels het kost, print `node scripts/tts_lines_list.mjs` (nu 155 regels van 17 sprekers, zie §4 en §6).
 3. Ondertitels: de Friese regels van Jelle en Mem (`FY`), eventuele Groningse regels (`GRO`).
 4. Per regel een tag (`speech_metadata.style`) in het Nederlands, in de stijl van `storyarc.js`; nu staan de tags niet in `09`.
 5. `node scripts/voice_coverage.mjs --quiet` na het ingeven van de nieuwe regels in de code; pas dan weet je het exacte aantal.
+
+## 6. Zo draai je een ronde (voor de eigenaar)
+
+Dit is de actuele stand van de pijplijn; de raming in §1-4 blijft historie. Nodig: Python met `ffmpeg` en `ffprobe` in het pad. De sleutel staat in `.env` (nooit lezen of printen, zie AGENTS.md); `gemini_tts.py` zoekt die zelf (`GOOGLE_AI_STUDIO_KEY` of `GEMINI_API_KEY`; `OPENROUTER_API_KEY` alleen voor de oude openrouter-route). Zonder sleutel werkt alleen de droogloop.
+
+1. **Lijst verversen** (schrijft `scripts/tts_lines.json`; neemt niets op, vraagt geen sleutel):
+   `node scripts/tts_lines_list.mjs` → nu 63 jobs, 0 re-recordings, 155 + 451 wachtenden.
+2. **Droogloop** (geen sleutel, geen netwerk, schrijft geen clip en geen manifest):
+   `python scripts/tts_lines.py --dry-run` (ook `--dry`) → 63 opdrachten, 0 al ingesproken, 0 zonder
+   Groningse spreektekst; ca. 197 s audio en ca. $0,03 via `gemini-3.8-flash-lite-tts`.
+3. **Echte ronde binnen een budget:** `python scripts/tts_lines.py --budget 2.5` → stopt zodra de eigen
+   meter (`gemini_tts.usage()`) het budget nadert; clips gaan naar de map van de opdracht
+   (`game/audio/voicelines/lines/` voor de huidige 63), waar `manifest.json` en `tts.json` worden
+   bijgewerkt. Kleiner of een proef kan ook:
+   `python scripts/tts_lines.py 12 --budget 0.5` (eerste 12) of `python scripts/tts_lines.py 12 --out proef`
+   (wegwerpmap, raakt het spelmanifest niet).
+4. **Verhaaldata bijwerken:** `node scripts/build_story_data.mjs` → werkt `game/storydata/script.json` bij,
+   zodat opgenomen regels niet meer `textOnly` zijn; `--check` faalt als het bestand verouderd is.
+5. **Controle:** `node scripts/voice_coverage.mjs --quiet` → moet slagen (nu 744/744 ok, 706 alleen tekst);
+   exitcode 1 betekent een ontbrekende opname of een Friese regel zonder Nederlandse ondertitel.
+
+**Niet blind regenereren: banter, barks en sidejobs.** De opruimactie gold alleen `scripts/tts_lines.json` (de verhaalregels). `scripts/tts_banter.json`, `scripts/tts_barks.json` en `scripts/tts_sidejobs.json` en de manifesten in `game/audio/voicelines/{banter,jobs}` hebben hun eigen pijplijn; draai die generators niet "even" mee:
+
+- `tts_banter.py` zonder `max_lines` is een volledige run die opruimt: alleen opnamen waarvan de tekst nog in `scripts/tts_banter.json` staat blijven, de rest gaat uit het manifest en de mp3's worden verwijderd. Nu staan er 932 regels in `game/audio/voicelines/banter/manifest.json` tegen 880 in de lijst; een blinde run wist 54 manifestregels en 55 clips (die teksten staan niet meer in `banterlines.js`, maar ze terugkrijgen kost een nieuwe opname).
+- `tts_barks.py` schrijft vaste paden die in `audio.js` hard-coded zijn en heeft geen manifest; de teksten in `tts_barks_lines.mjs` zijn uit Whisper-transcripten van de oude WAV's gereconstrueerd (zie `docs/archief/geheugen-mac-sessie/gemini-38-tts-findings.md`). Alle 111 clips zijn nu actueel, dus een run doet niets; maar na het opnieuw genereren van de lijst kunnen teksten of paden verschuiven en worden bestaande clips overschreven.
+- `tts_sidejobs.py` gebruikt index-bestandsnamen (`<job>/intro_0.mp3`, `<kind>_0.mp3`); wijzigt de volgorde in `sidejob_*.js` of `sidejobvoice.js`, dan komt een bestaande opname bij een andere regel te staan. Nieuwe verhaal- en jobsregels komen bewust in de `lines`-manifest terecht (waar `missionstory.js` op terugvalt), niet in `jobs`.

@@ -7,9 +7,13 @@
 # nears the budget, metered by gemini_tts.usage() (#462).
 # Flash is never used again (ADR 0019); --provider openrouter still exists.
 #   python3 scripts/tts_lines.py [max_jobs] [--budget 2.5]
+#   python3 scripts/tts_lines.py --dry-run             (only show what a run would record)
 #   python3 scripts/tts_lines.py 12 --out proef        (a listen, no manifest of the game)
 import json, os, sys, subprocess, urllib.error, wave, time
 from concurrent.futures import ThreadPoolExecutor
+# the dry run prints whole story lines (with ... and accents): keep them readable on a Windows console
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 import gemini_tts
 from gemini_tts import usage, speak, tries, check, current, load_log, save_log, logged, say_of, configure, LANG
 REPO = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
@@ -21,6 +25,10 @@ BATCH = 24
 POST = f'ffmpeg -af {TRIM},loudnorm=I={LUFS}:TP={TP}:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3'
 
 args = [a for a in sys.argv[1:]]
+# a dry run shows the jobs, the skipped clips and the lines still missing their Gronings spoken
+# text, without asking for a key, without network and without writing a clip or a manifest
+DRY = any(a in ('--dry', '--dry-run') for a in args)
+args = [a for a in args if a not in ('--dry', '--dry-run')]
 budget, OUT_DIR, JOBS = 2.5, None, os.path.join(REPO, 'scripts', 'tts_lines.json')
 for flag in ['--budget', '--provider', '--model', '--rpm', '--out', '--jobs']:
     if flag in args:
@@ -54,8 +62,12 @@ def job(l):
     dst = f"{VL}/{l['out']}/{l['file']}"
     if current(logs[l['out']], l['key'], dst, l.get('lang', LANG)):
         return l, 'skip', probe(dst), None
+    try:
+        say = say_of(l)
+    except KeyError:
+        # without the Gronings spoken text the take would be Dutch: leave it for a later round
+        return l, 'GEBLOKKEERD geen Groningse spreektekst', None, None
     os.makedirs(os.path.dirname(dst), exist_ok=True)
-    say = say_of(l)
 
     def take(style):
         wav = dst[:-4] + '.tmp.wav'
@@ -100,12 +112,41 @@ if args:
 mans, logs, ordered = {}, {}, set()
 for out in sorted({l['out'] for l in lines}):
     p = f'{VL}/{out}/manifest.json'
-    os.makedirs(os.path.dirname(p), exist_ok=True)
+    if not DRY:
+        os.makedirs(os.path.dirname(p), exist_ok=True)
     mans[out] = json.load(open(p, encoding='utf-8')) if os.path.exists(p) else {}
     logs[out] = load_log(os.path.dirname(p))
     # story/ keeps its hand-made mission order; the generated ones stay sorted
     if list(mans[out]) == sorted(mans[out]):
         ordered.add(out)
+if DRY:
+    # a dry run touches nothing: no key, no network, no clip, no manifest. It shows what a real run
+    # would record, what it would skip (already recorded) and which lines still miss their Gronings
+    # spoken text, with a rough estimate of the audio length and the price (#462).
+    todo, skipped, blocked = [], 0, []
+    for l in lines:
+        dst = f"{VL}/{l['out']}/{l['file']}"
+        if current(logs[l['out']], l['key'], dst, l.get('lang', LANG)):
+            skipped += 1
+            continue
+        try:
+            say_of(l)
+        except KeyError:
+            blocked.append(l)
+            continue
+        todo.append(l)
+    base = gemini_tts.CURRENT.split('/')[-1]
+    rate = gemini_tts.AUDIO_TPS * gemini_tts.PRICE.get(base, 6.0) / 1e6
+    secs = sum(len(say_of(l)) / 14.0 + 0.6 for l in todo)
+    print(f'droogloop: {len(todo)} opdrachten, {skipped} al ingesproken, {len(blocked)} zonder Groningse spreektekst')
+    for l in todo:
+        print(f"  [{l['out']}] {l['speaker']} ({l.get('voice', '?')}, {l.get('lang', LANG)}): {l['text']}")
+    for l in blocked:
+        print(f"  GEBLOKKEERD [{l['out']}] {l['speaker']}: {l['text']}")
+    print(f'geschat: {secs:.0f} s audio, ${secs * rate:.3f} via {gemini_tts.PROVIDER} ({gemini_tts.CURRENT}), budget ${budget:.2f}')
+    print('een echte run schrijft de clips naar game/audio/voicelines/ en werkt daar de manifesten en tts.json-logs bij.')
+    print('niets opgenomen en niets geschreven; draai zonder --dry-run om echt op te nemen.')
+    sys.exit(0)
 u0 = usage()
 print(f'{len(lines)} jobs via {gemini_tts.PROVIDER} ({gemini_tts.CURRENT}), budget ${budget:.2f}' + (f', out {OUT_DIR}' if OUT_DIR else ''))
 failed = []

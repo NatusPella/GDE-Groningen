@@ -1,6 +1,8 @@
 // Samen spelen (#452 punt 4, #492): een ander opgeslagen spel laden vraagt eerst om de sessie te
 // beëindigen. De volgorde is de afspraak: stop de sessie, bewaar de huidige voortgang, laad dan pas.
-// Nieuw spel en het verwijderen van het actieve slot blijven geblokkeerd zolang world.coopNet bestaat.
+// Nieuw spel en het verwijderen van het actieve slot blijven geblokkeerd zolang een echte sessie
+// loopt. Alleen spelen is sinds #554 een sessie van één (world.coopSolo) en telt hier als geen
+// sessie: dat blokkeert niets en vraagt geen bevestiging (solo-sessie-audit H2).
 //   node scripts/coopladen_test.mjs
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -82,10 +84,23 @@ ok(() => {
   }
 }, 'meldingen zijn Nederlands zonder het woord save');
 
-// --- de opslagkant blijft weigeren zolang de sessie loopt ---
-ok(() => assert.match(sg, /export const coopSessieLoopt = \(w\) => !!\(w && w\.coopNet\)/), 'coopSessieLoopt kijkt naar world.coopNet');
-ok(() => assert.match(sg, /export function applySave\(w, d\) \{\s*if \(!w \|\| !d\) return false;\s*if \(coopSessieLoopt\(w\)\) return false;/), 'applySave weigert tijdens een sessie');
-ok(() => assert.match(sg, /export function loadSlot\(w, n\) \{\s*if \(coopSessieLoopt\(w\)\) return false;/), 'loadSlot weigert voor het slot te wisselen');
+// --- de opslagkant blijft weigeren zolang een echte sessie loopt, maar niet in een sessie van één ---
+// savegame.js importeert Three.js en is in Node niet te laden; daarom halen we de pure poort uit de
+// bron en voeren die uit. Zo toetst deze test het gedrag (solo blokkeert niet, een echte sessie wel)
+// in plaats van alleen de vorm van de regel.
+const poort = sg.match(/export const coopSessieLoopt = (\(w\) => [^;]+);/);
+const coopSessieLoopt = poort ? new Function(`return (${poort[1]});`)() : null;
+ok(() => assert.equal(typeof coopSessieLoopt, 'function', 'coopSessieLoopt staat in savegame.js'), 'coopSessieLoopt vindbaar');
+ok(() => {
+  assert.equal(coopSessieLoopt({ coopNet: { role: 'host' }, coopRole: 'host', coopSolo: true }), false, 'een solo-sessie blokkeert niet');
+  assert.equal(coopSessieLoopt({ coopNet: { role: 'host' }, coopRole: 'host' }), true, 'een gastheer-sessie blokkeert');
+  assert.equal(coopSessieLoopt({ coopNet: { role: 'client' }, coopRole: 'client' }), true, 'een gast blokkeert');
+  assert.equal(coopSessieLoopt({ coopSolo: true }), false, 'zonder sessie blokkeert niets');
+  assert.equal(coopSessieLoopt(null), false);
+  assert.equal(coopSessieLoopt(undefined), false);
+}, 'solo telt als geen sessie, een echte sessie blokkeert');
+ok(() => assert.match(sg, /export function applySave\(w, d\) \{\s*if \(!w \|\| !d\) return false;\s*if \(coopSessieLoopt\(w\)\) return false;/), 'applySave weigert tijdens een echte sessie (en dus niet in solo)');
+ok(() => assert.match(sg, /export function loadSlot\(w, n\) \{\s*if \(coopSessieLoopt\(w\)\) return false;/), 'loadSlot weigert voor het slot te wisselen tijdens een echte sessie (en dus niet in solo)');
 for (const t of ['COOP_NIEUW_TEKST', 'COOP_WISSEN_TEKST']) {
   const m = sg.match(new RegExp(t + " = '([^']+)'"));
   ok(() => assert.ok(m && /^Samen spelen loopt nog\. Stop eerst de sessie/.test(m[1]), t), t + ' is Nederlands en wijst naar stoppen');

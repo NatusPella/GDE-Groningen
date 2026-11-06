@@ -5,6 +5,7 @@ import { hoofdspeler } from './players.js';
 // De gegevens komen uit world.coopSpelers (coopnet.js, gebouwd met coopspelers.js, getest); dit bestand is alleen DOM.
 // Niet door een mens in beeld bekeken.
 import { pingGebaar, zetPassiefGebaar, kanPassiefKiezen, passiefStandVan } from './coopnet.js';
+import { isSoloHost } from './coopsolo.js';
 import { PVP_TEKST } from './cooppvp.js';
 import { PING_TOETSEN } from './coopping.js';
 import { VORM_TEKEN, kanEruitZetten, kanOverdragen, overdragenKnopTekst, eruitKnopTekst, eruitGezetTekst } from './coopspelers.js';
@@ -18,6 +19,9 @@ import { zetMeedoen } from './onlineconsent.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const STIP = { ok: '#3fc97a', lag: '#f2c94c', lost: '#ff5a4f' };
+// Een sessie van één (#554, coopsolo.js) is geen samen-sessie: geen spelerslijst, geen "1 speler"-badge
+// en geen avatar-hint alsof je meedoet. In een echte sessie verandert er niets.
+const echteSessie = (world) => !!(world && world.coopNet && !isSoloHost(world));
 
 function rijHtml(r, acties, rol = null, bevestig = null) {
   const eruit = acties && kanEruitZetten(rol, r) ? `<button type="button" class="cs-eruit" data-eruit="${r.slot}">${eruitKnopTekst(bevestig === r.slot)}</button>` : '';
@@ -87,7 +91,7 @@ function zorgVoorStijl() {
 let overlay = null, laatste = '';
 export function updateSpelersOverlay(world) {
   if (typeof document === 'undefined') return;
-  const rijen = world.coopNet && world.coopSpelers;
+  const rijen = echteSessie(world) && world.coopSpelers;
   const menu = document.getElementById('pause-menu');
   const film = document.body.classList.contains('cine-hide-hud'); // een filmpje verbergt de HUD, dus ook de lijst
   const toon = !!(rijen && rijen.length && world.input && world.input.isDown && world.input.isDown('tab') && !world.paused && !(menu && menu.classList.contains('visible')) && !film); // niet over de kaart, een winkel of het pauzemenu
@@ -118,7 +122,7 @@ function profielHtml(world) {
     `<div class="cs-kleuren" role="group" aria-label="Kleur">${PROFIEL_KLEUREN.map((c) => `<button type="button" data-kleur="${c.hex}" aria-pressed="${c.hex === kleur}"><span style="color:${c.hex}" aria-hidden="true">●</span> ${esc(c.naam)}</button>`).join('')}</div>` +
     meedoenSchakelaarHtml(s) +
     (profielFout ? `<p class="cs-profiel-fout" role="alert">${esc(profielFout)}</p>` : '') +
-    `<p class="cs-profiel-hint">Je staat standaard op passief: medespelers kunnen je geen schade doen, en alleen als jij en de ander die stand allebei uitzetten, kunnen jullie elkaar raken. ${world && world.coopNet ? 'Je nieuwe naam en kleur gelden zodra je opnieuw meedoet.' : 'Het spel bewaart je naam en kleur op dit apparaat.'}</p></div>`;
+    `<p class="cs-profiel-hint">Je staat standaard op passief: medespelers kunnen je geen schade doen, en alleen als jij en de ander die stand allebei uitzetten, kunnen jullie elkaar raken. ${echteSessie(world) ? 'Je nieuwe naam en kleur gelden zodra je opnieuw meedoet.' : 'Het spel bewaart je naam en kleur op dit apparaat.'}</p></div>`;
 }
 export function renderSpelersPanel(root, world, sluit = () => {}, opts = {}) {
   if (!root) return;
@@ -126,10 +130,10 @@ export function renderSpelersPanel(root, world, sluit = () => {}, opts = {}) {
   root.classList.add('pm-spelers');
   const teken = () => {
     if (!root.isConnected || root.closest('[hidden]')) { if (timer) { clearInterval(timer); timer = null; } return; }
-    const rijen = (world.coopNet && world.coopSpelers) || [];
+    const rijen = (echteSessie(world) && world.coopSpelers) || [];
     const schermNaam = root.querySelector('.cs-profiel-naam');
     const zittend = root.contains(document.activeElement) && document.activeElement.matches('button, input');
-    const rol = world.coopNet && world.coopNet.role;
+    const rol = echteSessie(world) && world.coopNet.role;
     const prof = getSettings();
     const key = JSON.stringify([bevestig, kanPassiefKiezen(world), passiefStandVan(world), prof.onlineNaam, prof.onlineKleur, prof.onlineMeedoen, profielFout, ...rijen.map((r) => [r.slot, r.doet, r.verbinding, r.ms, r.afstandTekst, r.passief, r.pvpInSpel, r.groep, r.leidt])]);
     if (root.dataset.key === key && root.dataset.klaar) return;

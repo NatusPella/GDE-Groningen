@@ -42,7 +42,20 @@ t('de hub draait zonder gasten en zonder berichten naar buiten', () => {
   assert.equal(w.coopNet, net);
   assert.equal(net.hub.roster.spelers.length, 1);
   assert.equal(w.messages.length, 0, 'geen sessiemeldingen in je eentje');
+  assert.equal(w.coopPartner, null, 'geen partner in je eentje');
+  assert.equal(w.coop.local, true, 'toetsenbord blijft van de speler');
   stopSoloHost(w);
+  assert.equal(w.coop.local, true, 'na stoppen nog steeds lokaal');
+});
+
+t('een echte sessie over de solo-sessie wist coopSolo', () => {
+  const w = mkWorld();
+  startSoloHost(w, { info: INFO });
+  N.startHost(w, INFO, { seed: 3, max: 4 });
+  assert.equal(w.coopSolo, false);
+  assert.equal(w.coopRole, 'host');
+  assert.ok(w.coopNet);
+  N.stopCoopNet(w);
 });
 
 t('stoppen zonder sessie doet niets', () => {
@@ -51,6 +64,8 @@ t('stoppen zonder sessie doet niets', () => {
 });
 
 console.log(`coopsolo_test: ${n} controles ok`);
+
+
 
 
 
