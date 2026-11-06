@@ -100,6 +100,34 @@ for (const f of ['0.37-oud-verhaal-met-voortgang.json', '0.37-oud-verhaal-zonder
   ok(!r.save && ls.getItem(BASE_KEYS.oudGemigreerd) === null, 'a full storage: not marked, tried again next time');
 }
 
+// #590: after the one-time migration a downgraded 0.28 build can still write a newer save under an
+// old key. It is taken when its savedAt is later, never when it is older, and a deleted save is not
+// revived. The pre-migration backup is carried across to the key savegame.js reads.
+{
+  const arc = JSON.stringify({ v: 10, arc: 'nieuw', savedAt: 5000, money: 100 });
+  const older = JSON.stringify({ v: 9, arc: 'oud', savedAt: 1000, money: 10 });
+  const newer = JSON.stringify({ v: 9, arc: 'oud', savedAt: 9000, money: 50 });
+  const mk = (init) => { const ls = new MemStorage(init); ls.setItem(BASE_KEYS.oudGemigreerd, '1'); return ls; };
+  const a = mk({ [KEYS.save]: arc, 'gte-save-v1': newer });
+  const r = migrateOudeOpslag(a);
+  ok(r.skipped && r.laat && a.getItem(KEYS.save) === newer, 'a newer save from a downgraded build is taken');
+  const b = mk({ [KEYS.save]: arc, 'gte-save-v1': older });
+  ok(!migrateOudeOpslag(b).laat && b.getItem(KEYS.save) === arc, 'an older save from a downgraded build is not taken');
+  const c = mk({ [KEYS.save]: arc, [BASE_KEYS.save]: newer });
+  ok(migrateOudeOpslag(c).laat && c.getItem(KEYS.save) === newer, 'a newer old-story save is taken too');
+  const d = mk({ 'gte-save-v1': newer });
+  ok(!migrateOudeOpslag(d).laat && d.getItem(KEYS.save) === null, 'without a save of the story that is left nothing is revived');
+  // the backup: old key -> old story key -> the key savegame.js reads, on a first and on a later boot
+  const backup = JSON.stringify({ v: 9, at: 1, save: JSON.stringify({ v: 9, money: 1 }) });
+  const e = new MemStorage({ 'gte-save-backup': backup });
+  const re = migrateOudeOpslag(e);
+  ok(re.backup && e.getItem(KEYS.saveBackup) === backup, 'the old backup reaches the key savegame.js reads');
+  const f = mk({ [BASE_KEYS.saveBackup]: backup });
+  ok(migrateOudeOpslag(f).backup && f.getItem(KEYS.saveBackup) === backup, 'a later boot still carries the backup across');
+  const g = mk({ [KEYS.saveBackup]: 'already there' });
+  ok(!migrateOudeOpslag(g).backup && g.getItem(KEYS.saveBackup) === 'already there', 'an existing backup is never replaced');
+}
+
 // ids only grow
 ok(MISSION_IDS.slice(0, 18).join() === 'berend,chaos,kei,noorderzon,ringweg,kroegentocht,fatbike,rondvaart,pinautomaat,duifverkenning,museumkraak,vetgekaapt,vlag,skutsje,traumaduif,fjord,bod,ontzet', 'MISSION_IDS: the ids of the first version keep their places');
 ok(STEPS[0].id === 'M00', 'the story starts at M00');

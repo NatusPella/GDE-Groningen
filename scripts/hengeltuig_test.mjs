@@ -222,6 +222,46 @@ t('opslag: een eigen sleutel buiten elke savegame, standaard hetzelfde gedrag, e
   L.initHengeltuig({ opslag: nepOpslag() });
 });
 
+// #590: twee tabbladen die elk hun eigen tuig hebben, gooien bij het schrijven elkaars voortgang
+// niet meer weg: de beste hengel, de meeste verbeteringen en de hoogste aasstand blijven.
+t('voegSamen: de beste hengel, de meeste verbeteringen en de volste zak winnen', () => {
+  const a = { v: 1, hengel: 'werp', aas: { id: 'worm', n: 2 }, upgrades: 1 };
+  const b = { v: 1, hengel: 'karper', aas: { id: 'worm', n: 6 }, upgrades: 1 };
+  assert.deepEqual(T.voegSamen(a, b), { v: 1, hengel: 'karper', aas: { id: 'worm', n: 6 }, upgrades: 1 });
+  assert.deepEqual(T.voegSamen(b, a), T.voegSamen(a, b), 'de volgorde maakt niet uit');
+  const c = { v: 1, hengel: 'peur', aas: { id: 'deeg', n: 9 }, upgrades: 2 };
+  assert.deepEqual(T.voegSamen(a, c).aas, { id: 'deeg', n: 9 }, 'een andere aassoort: de volste zak blijft');
+  assert.deepEqual(T.voegSamen(T.leegTuig(), b), b, 'zonder eigen tuig telt wat de ander had');
+  assert.deepEqual(T.voegSamen(a, null), a, 'een lege of kapotte andere kant verandert niets');
+});
+t('opslag: een tweede tabblad schrijft zijn tuig nooit over dat van de eerste', () => {
+  const st = nepOpslag();
+  // tabblad A begint en bewaart zijn eerste tuig
+  L.initHengeltuig({ opslag: st });
+  L.zetTuig({ v: 1, hengel: 'peur', aas: { id: 'worm', n: 6 }, upgrades: 0 });
+  L.schrijfNu();
+  // tabblad B opent met de stand die er dan staat
+  L.initHengeltuig({ opslag: st });
+  // A speelt verder en bewaart: karperhengel en een lijnverbetering
+  st.setItem(KEYS.hengeltuig, JSON.stringify({ v: 1, hengel: 'karper', aas: { id: 'worm', n: 6 }, upgrades: 1 }));
+  // B bewaart daarna zijn eigen tuig: de karperhengel van A blijft, de verbetering van B komt erbij
+  L.zetTuig({ v: 1, hengel: 'voer', aas: { id: 'deeg', n: 3 }, upgrades: 2 });
+  L.schrijfNu();
+  const bewaard = JSON.parse(st.getItem(KEYS.hengeltuig));
+  assert.equal(bewaard.hengel, 'karper', 'de betere hengel blijft');
+  assert.equal(bewaard.upgrades, 2, 'de verbetering van het tweede tabblad blijft');
+  assert.deepEqual(bewaard.aas, { id: 'worm', n: 6 }, 'de volste zak blijft');
+  // een eigen worp blijft van het aas afgaan: geen aanvulling uit de vorige schrijfbeurt
+  const eigen = nepOpslag();
+  L.initHengeltuig({ opslag: eigen });
+  L.zetTuig({ v: 1, hengel: 'peur', aas: { id: 'worm', n: 6 }, upgrades: 0 });
+  L.schrijfNu();
+  L.gebruikAas();
+  L.schrijfNu();
+  assert.equal(JSON.parse(eigen.getItem(KEYS.hengeltuig)).aas.n, 5, 'een beet gaat van de zak af');
+  L.initHengeltuig({ opslag: nepOpslag() });
+});
+
 // ------------------------------------------------------------------ in het hengelen
 t('de hengelregels: het beetvenster uit het tuig rekt de beet op, zonder tuig blijft het zoals het was', () => {
   const vis = { id: 'voorn', name: 'Blankvoorn', kg: 0.3, window: 1 };

@@ -25,12 +25,13 @@ import { closeShopMenu } from './shopui.js';
 import { quitTrainDrive } from './traindrive.js';
 import { statsFromSave } from './world.js';
 import { getRadioSave, applyRadioSave } from './radio.js';
-import { KEYS, slotKey } from './storagekeys.js';
+import { slotKey } from './storagekeys.js';
 import { applyGuestChanges, applyGuestStory, applyGuestAchievements } from './coopsave.js';
 import { verhaalStatus } from './coopverhaal.js';
 import { gebeurtenissenVan, maakBoekhouding } from './coopbeloning.js';
 import { getRenderer, afterNextFrame } from './scene3d.js';
-import { readSlot, writeSlotRaw, writeThumb, activeSlot, setActive, createSlot, deleteSlot, nameOf, pickActive, pickLatest } from './saveslots.js';
+import { readSlot, writeSlotRaw, writeThumb, activeSlot, setActive, createSlot, deleteSlot, nameOf, pickActive, pickLatest, repairSlot, writeBackupOnce } from './saveslots.js';
+import { logError } from './errorlog.js';
 import { maakCheckpoint } from './coopcheckpoint.js';
 import { registerSaveGame, registerSaveTimers, registerGastVerhaal, registerGastBoek } from './savehook.js';
 import { STEPS, PARTS, stepDone, stepAvailable, nextStoryStep, ARC_ID } from './storyarc.js';
@@ -38,9 +39,8 @@ import { STEPS, PARTS, stepDone, stepAvailable, nextStoryStep, ARC_ID } from './
 // Several saves (saveslots.js): slot 1 is the old single save under its old key, the version inside
 // the save is what counts (savemigrate.js). All reads and writes here go to the active slot.
 const VERSION = SAVE_VERSION;
-// a copy of the save as it was before its first migration, and of a save
-// from a newer game before this one overwrites it
-const BACKUP_KEY = KEYS.saveBackup;
+// A copy of the save as it was before its first migration, and of a save
+// from a newer game before this one overwrites it (saveslots.js: writeBackupOnce).
 // Autosave follows the permanent state, not the clock: a purchase, repair,
 // upgrade, finished mission, unlocked achievement or side-job payout marks
 // the game dirty (markDirty, or the state check below) and it saves once
@@ -49,6 +49,10 @@ const SAVE_DEBOUNCE = 2.5;
 const STATE_CHECK_S = 1;
 const MISSION_SAVE_DELAY = 4;
 const TOAST_S = 2.2;
+// #590: a write that failed (storage full, temporarily blocked) is tried again: the state was not
+// saved, and `lastSig` already moved on, so without this the same state never marks itself dirty.
+const SAVE_RETRY_S = 20;
+const THUMB_EVERY_MS = 45000;
 
 let world = null;
 // The slot this tab is playing, fixed when a save is loaded or a game starts: a second tab that
@@ -103,26 +107,26 @@ function estimateLostMoney(d) {
 // shown once when a save of the first version of the story is opened (#187)
 const OUD_GEMIGREERD_TEKST = 'Het oude verhaal is vervangen door het nieuwe. Je geld, spullen, voertuigen, prestaties en instellingen zijn bewaard; het verhaal begint opnieuw bij het begin.';
 
-// The save of a slot (the active one by default), migrated; null when it is empty, broken,
-// from a newer game or (readSlot). A broken slot with a recovery
-// copy gives the recovery copy.
-export function readSave(n = activeSlot()) {
+// The save of a slot (the active one by default) with how it was read; data null when it is empty,
+// broken, from a newer game or unreadable (readSlot). A broken slot with a recovery copy gives that
+// copy and state 'hersteld' (#590): the boot and the load paths say so and repair the slot.
+export function readSaveInfo(n = activeSlot()) {
   try {
     const m = readSlot(null, n);
-    if (!m.data) return null;
+    if (!m.data) return { data: null, state: m.state, from: m.from, slot: n, why: m.why };
     if (m.from !== VERSION) backupOnce(m.raw, m.from);
-    return m.data;
+    return { data: m.data, state: m.state, from: m.from, slot: n };
   } catch (e) {
-    return null;
+    return { data: null, state: 'kapot', from: null, slot: n };
   }
 }
 
+export function readSave(n = activeSlot()) {
+  return readSaveInfo(n).data;
+}
+
 function backupOnce(raw, v) {
-  try {
-    const prev = JSON.parse(localStorage.getItem(BACKUP_KEY) || 'null');
-    if (prev && prev.v === v) return;
-    localStorage.setItem(BACKUP_KEY, JSON.stringify({ v, at: Date.now(), save: raw }));
-  } catch (e) { /* no room: the migration still runs */ }
+  writeBackupOnce(null, raw, v);
 }
 
 // A save written by a newer version of the game: kept aside before this
@@ -180,14 +184,25 @@ export function startNewSlot(name) {
   bindSlot();
 }
 
+// #590: a slot whose main save was broken is read from its recovery copy (readSlot state
+// 'hersteld'). Say so once and put the recovered save back, so the next autosave does not start
+// from a broken file and the player knows the progress went back one write.
+const HERSTELD_TEKST = 'Je opgeslagen spel was beschadigd. We hebben de vorige goede versie hersteld.';
+function afterLoad(w, info) {
+  if (!info || info.state !== 'hersteld') return;
+  if (w && w.addMessage) w.addMessage(HERSTELD_TEKST, 8, { key: 'save-hersteld' });
+  repairSlot(null, info.slot, info.data);
+}
+
 // Switches to another slot and loads it. false (and the old slot stays active) when the slot cannot be loaded.
 export function loadSlot(w, n) {
   if (coopSessieLoopt(w)) return false;
-  const d = readSave(n);
-  if (!d || !w) return false;
+  const info = readSaveInfo(n);
+  if (!info.data || !w) return false;
   const was = activeSlot();
   setActive(null, n);
-  if (!applySave(w, d)) { setActive(null, was); return false; }
+  if (!applySave(w, info.data)) { setActive(null, was); return false; }
+  afterLoad(w, info);
   return true;
 }
 
@@ -252,7 +267,7 @@ function serialize(w) {
   };
 }
 
-export function saveGame(w = world, { toast = true } = {}) {
+export function saveGame(w = world, { toast = true, manual = false } = {}) {
   if (!w) return false;
   // coöp (#95): de host bewaart zoals altijd; een gast bewaart het verhaal van de host niet,
   // alleen wat hij zelf verdiende komt in zijn eigen save (saveGuestEarnings)
@@ -261,25 +276,38 @@ export function saveGame(w = world, { toast = true } = {}) {
   try {
     if (!writeSlotRaw(null, saveTarget(), JSON.stringify(serialize(w)))) throw new Error('write failed');
   } catch (e) {
+    // #590: log it (Foutrapport) and try the same state again later; without the retry the pending
+    // autosave was dropped while the state really was not on disk.
+    logError('warn', 'Opslaan mislukt: ' + ((e && e.message) || e));
+    noteSaveFailed();
     if (toast) w.addMessage('Opslaan mislukt', 2.5);
     return false;
   }
   dirtyIn = -1;
   lastSig = stateSignature(w);
-  keepThumb(saveTarget(), toast);
+  keepThumb(saveTarget(), manual);
   if (toast) showToast();
   return true;
 }
 
+// #590: after a failed write the same state is tried again by the autosave, in 20 s. A mission save
+// that could not be written is picked up by that retry (missionSaveIn off), so a full storage is not
+// rewritten every second.
+function retryTimers() { return { dirtyIn: SAVE_RETRY_S, missionSaveIn: -1 }; }
+function noteSaveFailed() { ({ dirtyIn, missionSaveIn } = retryTimers()); }
+
 // The small screenshot for the savegame card, taken from the last drawn frame. A manual save always
-// takes one, the autosave at most once in 45 s; a failure only means a card without picture.
+// takes one, the autosave at most once in 45 s (#590: the toast flag is not "manual"); a failure
+// only means a card without picture.
 let thumbAt = 0;
 let thumbListener = null;
 // the savegame screen wants to know when a picture arrives (fn(slot) or null)
 export function onThumbKept(fn) { thumbListener = fn; }
+// Whether a picture may be taken now: a manual save always, the autosave once per 45 s.
+export function thumbDue(force, now = Date.now()) { return !!force || now - thumbAt >= THUMB_EVERY_MS; }
 function keepThumb(n, force) {
   const now = Date.now();
-  if (!force && now - thumbAt < 45000) return;
+  if (!thumbDue(force, now)) return;
   thumbAt = now;
   // the canvas holds a frame only right after it was drawn: take the picture then
   afterNextFrame(() => {
@@ -532,9 +560,19 @@ export function applySave(w, d) {
 }
 
 export function loadLatestSave(w = world) {
-  const d = readSave();
-  if (!d || !applySave(w, d)) return false;
-  w.addMessage('Laatste savegame geladen', 3);
+  const info = readSaveInfo();
+  if (!info.data || !applySave(w, info.data)) return false;
+  if (info.state === 'hersteld') afterLoad(w, info);
+  else w.addMessage('Laatste savegame geladen', 3);
+  return true;
+}
+
+// Boot: the save written last, with the same recovery message when the slot came from its
+// recovery copy instead of its own save (#590).
+export function loadBootSave(w = world) {
+  const info = readSaveInfo();
+  if (!info.data || !applySave(w, info.data)) return false;
+  afterLoad(w, info);
   return true;
 }
 
@@ -614,7 +652,7 @@ export function updateSaveGame(dt, w) {
   }
   if (missionSaveIn >= 0) {
     missionSaveIn -= dt;
-    if (missionSaveIn < 0 && !busy) saveGame(w);
+    if (missionSaveIn < 0 && !busy) { if (!saveGame(w)) noteSaveFailed(); }
     else if (missionSaveIn < 0) missionSaveIn = 0.5;
   }
 
@@ -629,7 +667,7 @@ export function updateSaveGame(dt, w) {
     dirtyIn -= dt;
     if (dirtyIn < 0) {
       if (busy) dirtyIn = 1;
-      else saveGame(w);
+      else if (!saveGame(w)) noteSaveFailed();
     }
   }
 }

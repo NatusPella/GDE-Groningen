@@ -11,6 +11,8 @@ let tuig = null;
 let opslagOverride = null;
 let timer = 0;
 let vuil = false;
+// what this tab wrote last: a different text in storage means another tab wrote since (#590)
+let laatstGeschreven = null;
 
 const opslag = () => {
   if (opslagOverride !== null) return opslagOverride;
@@ -35,7 +37,16 @@ export function schrijfNu() {
   const st = opslag();
   if (!st) { vuil = false; return; }
   try {
-    st.setItem(KEYS.hengeltuig, JSON.stringify(getTuig()));
+    // een tweede tabblad kan ook gekocht of gevist hebben: eerst lezen en samenvoegen (#590). Alleen
+    // wanneer de opgeslagen tekst niet is wat dit tabblad zelf schreef: anders zou een eigen worp
+    // (een beet minder aas) bij het bewaren weer worden aangevuld.
+    let nu = getTuig();
+    let bestaand = null;
+    try { bestaand = st.getItem(KEYS.hengeltuig); } catch (e) { bestaand = null; }
+    if (bestaand != null && bestaand !== laatstGeschreven) nu = tuig = H.voegSamen(nu, bestaand);
+    const tekst = JSON.stringify(nu);
+    st.setItem(KEYS.hengeltuig, tekst);
+    laatstGeschreven = tekst;
     vuil = false;
   } catch (e) { /* opslag vol of geblokkeerd: het tuig blijft in dit spel, de rest werkt */ }
 }
@@ -66,6 +77,8 @@ export function initHengeltuig({ opslag: st } = {}) {
   if (st !== undefined) opslagOverride = st;
   tuig = null;
   vuil = false;
+  laatstGeschreven = null;
+  try { const o = opslag(); laatstGeschreven = o ? o.getItem(KEYS.hengeltuig) : null; } catch (e) { laatstGeschreven = null; }
   return getTuig();
 }
 
@@ -73,6 +86,8 @@ export function zetTuigVoorTest(t, st) {
   tuig = t ? H.normaliseer(t) : null;
   if (st !== undefined) opslagOverride = st;
   vuil = false;
+  laatstGeschreven = null;
+  try { const o = opslag(); laatstGeschreven = o ? o.getItem(KEYS.hengeltuig) : null; } catch (e) { laatstGeschreven = null; }
   if (timer) { clearTimeout(timer); timer = 0; }
 }
 

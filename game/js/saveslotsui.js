@@ -241,6 +241,9 @@ export function openSaveSlots(opts = {}) {
     }
     const last = solo ? lastPlayed(slots) : null;
     const full = slots.length >= MAX_SLOTS;
+    // #590: the pre-migration backup (saveslots.js readBackup) is the last resort when a save is
+    // broken. It goes into a free place and never over an existing save.
+    const backup = slots.some((s) => s.state === 'kapot') ? S.readBackup(null) : null;
     rootEl.querySelector('.gm-stage')?.remove();
     const stage = document.createElement('div');
     stage.className = 'gm-stage';
@@ -250,6 +253,7 @@ export function openSaveSlots(opts = {}) {
       <div class="ssl-scroll"><div class="ssl-grid" role="list" aria-label="Opgeslagen spellen">${tiles.join('')}</div></div>
       <p class="ssl-msg" role="status">${esc(message)}</p>
       <footer class="ssl-foot"><button type="button" class="ssl-fb" data-grp="foot" data-do="import"${full ? ' disabled title="Alle plekken zijn in gebruik"' : ''}>${svg(IC.import)}<span>Spel importeren</span></button>
+        ${backup ? `<button type="button" class="ssl-fb" data-grp="foot" data-do="restore-backup"${full ? ' disabled title="Alle plekken zijn in gebruik"' : ''}>${svg(IC.save)}<span>Reservekopie herstellen</span></button>` : ''}
         <span class="ssl-fgrow"></span><button type="button" class="ssl-fb" data-grp="foot" data-do="close">${svg(IC.back)}<span>Terug</span></button></footer>
       ${coopQuestion()}
     </section>`;
@@ -284,11 +288,19 @@ export function openSaveSlots(opts = {}) {
       const m = S.freeSlot() ? S.createSlot(null, '', want) : 0;
       if (!m) { say('Alle plekken zijn in gebruik.'); return; }
       bindSlot();
-      if (!saveGame(world, { toast: false })) { S.deleteSlot(null, m); say('Opslaan mislukt.'); return; }
+      if (!saveGame(world, { toast: false, manual: true })) { S.deleteSlot(null, m); say('Opslaan mislukt.'); return; }
       sel = m; message = 'Opgeslagen.'; render({ slot: m });
       return;
     }
     if (act === 'import') { file.value = ''; file.click(); return; }
+    if (act === 'restore-backup') {
+      const b = S.readBackup(null);
+      if (!b) { say('Er is geen reservekopie meer.'); render(); return; }
+      const r = S.importAsNewSlot(null, b.raw);
+      if (!r.ok) { message = S.importErrorText(r.why); render(); return; }
+      sel = r.n; message = `Reservekopie hersteld in "${r.name}".`; render({ slot: r.n });
+      return;
+    }
     if (act === 'load' && cur) {
       const inSessie = coopSessieLoopt(world);
       const isHost = inSessie && world.coopRole === 'host';
@@ -326,7 +338,7 @@ export function openSaveSlots(opts = {}) {
       S.setActive(null, cur.n);
       bindSlot();
       over = null;
-      message = saveGame(world, { toast: false }) ? 'Opgeslagen.' : 'Opslaan mislukt.';
+      message = saveGame(world, { toast: false, manual: true }) ? 'Opgeslagen.' : 'Opslaan mislukt.';
       render({ slot: cur.n });
       return;
     }
@@ -334,7 +346,7 @@ export function openSaveSlots(opts = {}) {
       S.setActive(null, cur.n);
       bindSlot();
       over = null;
-      message = saveGame(world, { toast: false }) ? 'Overschreven.' : 'Opslaan mislukt.';
+      message = saveGame(world, { toast: false, manual: true }) ? 'Overschreven.' : 'Opslaan mislukt.';
       render({ slot: cur.n });
       return;
     }

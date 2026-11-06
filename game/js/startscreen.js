@@ -1,6 +1,6 @@
 import { hoofdspeler } from './players.js';
 import { FLAGS, reseedAutoplay } from './devflags.js';
-import { hasSave, readSave, applySave, startNewSlot, getSaveSummary, ensureActiveSlot, ensureLatestSlot } from './savegame.js';
+import { hasSave, loadBootSave, startNewSlot, getSaveSummary, ensureActiveSlot, ensureLatestSlot } from './savegame.js';
 import { openSaveSlots, isSaveSlotsOpen } from './saveslotsui.js';
 import { listSlots } from './saveslots.js';
 import { VERSION } from './version.js';
@@ -434,10 +434,10 @@ function runBootScreen(world, opts) {
       finish();
     };
     const continueGame = () => {
-      const d = readSave();
-      if (!d) { startNew(); return; }
+      if (!hasSave()) { startNew(); return; }
       startTheme();
-      applySave(world, d);
+      // #590: a save read from its recovery copy says so and is written back by loadBootSave
+      loadBootSave(world);
       // the load screen covers the boot screen until the city round the save has streamed in
       startLoadScreen(world, { kind: 'save' });
       finish();
@@ -603,7 +603,7 @@ function runMenuScreen(world, { render, relocate, tick, ready }, pending = null)
     const continueGame = () => {
       startTheme();
       restoreWorld();
-      applySave(world, readSave());
+      loadBootSave(world);
       // the load screen covers the menu until the city round the save has streamed in
       startLoadScreen(world, { kind: 'save' });
       finish('game');

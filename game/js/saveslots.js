@@ -96,6 +96,46 @@ export function readSlot(ls, n) {
   return { n, state: main.why, data: null, raw, why: main.why };
 }
 
+// The data recovered from the recovery copy goes back to the slot itself, so the next boot and the
+// next autosave carry on from the recovered save instead of reading the broken text again (#590).
+// The broken text is never kept as the new recovery copy (isSaveText refuses it).
+export function repairSlot(ls, n, data) {
+  let text;
+  try { text = JSON.stringify(data); } catch (e) { return false; }
+  return writeSlotRaw(ls, n, text);
+}
+
+// --- the pre-migration backup --------------------------------------------------------------
+// savegame.js keeps one copy of a save as it was before its first save migration, and of a save from
+// a newer game before this version overwrites it, under KEYS.saveBackup. Reading it back is the last
+// resort when every slot is broken, so the promise in ARCHITECTURE.md is reachable (#590).
+// Older backups stored the raw save text as a string ("save": "{...}"); new ones store the save
+// object itself, which costs about half the quota. Both are read.
+export function readBackup(ls) {
+  let d;
+  try { d = JSON.parse(ls0(ls).getItem(KEYS.saveBackup) || 'null'); } catch (e) { return null; }
+  if (!isObj(d) || !Number.isInteger(d.v)) return null;
+  let raw = null;
+  if (typeof d.save === 'string') raw = d.save;
+  else if (isObj(d.save)) { try { raw = JSON.stringify(d.save); } catch (e) { raw = null; } }
+  if (!raw) return null;
+  return { v: d.v, at: Number.isFinite(d.at) ? d.at : 0, raw, text: raw };
+}
+
+// Keeps `raw` (the save text) aside once per version `v`; never twice for the same version.
+export function writeBackupOnce(ls, raw, v, now = Date.now()) {
+  const s = ls0(ls);
+  if (!s || typeof raw !== 'string') return false;
+  try {
+    const prev = JSON.parse(s.getItem(KEYS.saveBackup) || 'null');
+    if (prev && prev.v === v) return false;
+    let save = raw;
+    try { save = JSON.parse(raw); } catch (e) { /* not JSON: keep the text */ }
+    s.setItem(KEYS.saveBackup, JSON.stringify({ v, at: now, save }));
+    return true;
+  } catch (e) { return false; } // no room: the migration still runs
+}
+
 // a short description for the lists, from a (migrated) save
 export function summarize(d) {
   if (!isObj(d)) return null;

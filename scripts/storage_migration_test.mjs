@@ -68,6 +68,25 @@ const SAVE = JSON.stringify({ v: 9, money: 1234, story: 'h7' });
   ok(r2.skipped && JSON.stringify([...ls.m]) === before, 'second run changes nothing');
 }
 
+// 2b. #590: after a downgraded 0.28 build wrote a newer save under the old key, it still comes
+// across (a later savedAt wins); an older one or a key without a timestamp never does, and a
+// deleted new key is not revived.
+{
+  const cur = JSON.stringify({ v: 9, savedAt: 5000, money: 100 });
+  const newer = JSON.stringify({ v: 8, savedAt: 9000, money: 50 });
+  const older = JSON.stringify({ v: 8, savedAt: 1000, money: 10 });
+  const ls = new MemStorage({ [MIGRATED_KEY]: '1', 'gte-save-v1': newer, [KEYS.save]: cur });
+  const r = migrateStorage(ls, null);
+  ok(r.skipped && r.copied.includes(KEYS.save) && ls.getItem(KEYS.save) === newer, 'a newer old-key save is copied after the marker', JSON.stringify(r));
+  const same = new MemStorage({ [MIGRATED_KEY]: '1', 'gte-save-v1': older, [KEYS.save]: cur });
+  const r2 = migrateStorage(same, null);
+  ok(!r2.copied.length && same.getItem(KEYS.save) === cur, 'an older old-key save never wins');
+  const gone = new MemStorage({ [MIGRATED_KEY]: '1', 'gte-save-v1': newer });
+  ok(!migrateStorage(gone, null).copied.length && gone.getItem(KEYS.save) === null, 'a deleted new key is not revived');
+  const settings = new MemStorage({ [MIGRATED_KEY]: '1', 'gte-settings': 'old', [KEYS.settings]: 'new' });
+  ok(!migrateStorage(settings, null).copied.length && settings.getItem(KEYS.settings) === 'new', 'keys without a timestamp are left alone');
+}
+
 // 3. a newer new key is never overwritten (marker missing, e.g. it ran out of space before)
 {
   const ls = new MemStorage({ 'gte-save-v1': 'old', [KEYS.save]: 'new', 'gte-settings': 'old settings' });

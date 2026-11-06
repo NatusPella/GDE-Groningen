@@ -150,5 +150,58 @@ ok(() => {
   assert.equal(stand.dirtyIn, 2.5, 'geld erbij plant de autosave');
 }, 'geldwijziging zonder andere status maakt dirty');
 
+// --- #590: retry na een mislukte autosave ------------------------------------------------
+const { retryTimers } = new Function('scope', `with (scope) {
+  ${haalFunctie(sg, 'retryTimers')}
+  return { retryTimers };
+}`)({ SAVE_RETRY_S: 20 });
+
+ok(() => {
+  const t = retryTimers();
+  assert.deepEqual(t, { dirtyIn: 20, missionSaveIn: -1 }, 'dezelfde stand wordt over 20 s opnieuw geprobeerd');
+}, 'een mislukte save plant een nieuwe poging');
+ok(() => {
+  assert.match(sg, /function noteSaveFailed\(\) \{ \(\{ dirtyIn, missionSaveIn \} = retryTimers\(\)\); \}/, 'noteSaveFailed zet beide timers');
+  assert.equal((sg.match(/if \(!saveGame\(w\)\) noteSaveFailed\(\);/g) || []).length, 2, 'beide autosave-paden proberen opnieuw na een fout');
+}, 'de autosave-retry hangt in beide paden');
+ok(() => assert.match(sg, /logError\('warn', 'Opslaan mislukt: '/), 'een mislukte save gaat naar het foutrapport');
+
+// --- #590: herstel uit de herstelkopie zegt het en schrijft de slot terug -------------------
+ok(() => {
+  assert.match(sg, /export function readSaveInfo\(n = activeSlot\(\)\)/, 'readSaveInfo geeft de stand van de slot mee');
+  assert.match(sg, /state: m\.state/, 'de state uit readSlot gaat mee naar boven');
+  assert.match(sg, /const HERSTELD_TEKST = 'Je opgeslagen spel was beschadigd\./, 'er is een Nederlandse melding');
+  assert.match(sg, /repairSlot\(null, info\.slot, info\.data\)/, 'de herstelde save gaat meteen terug');
+  assert.match(sg, /if \(info\.state === 'hersteld'\) afterLoad\(w, info\);/, 'loadLatestSave meldt en herstelt');
+  assert.match(sg, /export function loadBootSave\(/, 'de boot heeft een eigen laadpad');
+});
+const startscreen = src('startscreen.js');
+ok(() => {
+  assert.match(startscreen, /loadBootSave\(world\)/, 'de boot laadt via loadBootSave');
+  assert.doesNotMatch(startscreen, /applySave\(world, readSave\(\)\)/, 'de stille terugval is weg');
+}, 'de boot gebruikt het herstelpad');
+
+// --- #590: de thumbnail-throttle werkt alleen met een manual-vlag ---------------------------
+const thumbCtx = { thumbAt: 0, THUMB_EVERY_MS: 45000 };
+const thumbDue = new Function('ctx', `with (ctx) {
+  ${haalFunctie(sg, 'thumbDue')}
+  return (force, now) => thumbDue(force, now);
+}`)(thumbCtx);
+ok(() => {
+  assert.equal(thumbDue(false, 50000), true, 'de eerste autosave mag een plaatje maken');
+  thumbCtx.thumbAt = 50000;
+  assert.equal(thumbDue(false, 51000), false, 'binnen 45 s geen canvas-readback');
+  assert.equal(thumbDue(true, 51001), true, 'een handmatige save forceert altijd');
+  assert.equal(thumbDue(false, 50000 + 44999), false, 'net geen 45 s: nog niet');
+  assert.equal(thumbDue(false, 50000 + 45000), true, 'na 45 s mag de autosave weer');
+}, 'de 45-seconden-throttle is echt');
+ok(() => {
+  assert.match(sg, /export function saveGame\(w = world, \{ toast = true, manual = false \} = \{\}\)/, 'saveGame kent een manual-vlag');
+  assert.match(sg, /keepThumb\(saveTarget\(\), manual\)/, 'de thumbnail forceert alleen bij een handmatige save');
+  assert.match(src('pausemenu.js'), /saveGame\(world, \{ manual: true \}\)/, 'Spel opslaan is handmatig');
+  const ui = src('saveslotsui.js');
+  assert.equal((ui.match(/saveGame\(world, \{ toast: false, manual: true \}\)/g) || []).length, 3, 'opslaan/overschrijven in het opslagscherm is handmatig');
+}, 'handmatige saves vragen een plaatje, de autosave niet');
+
 console.log(`savegame_test: ${n - fails}/${n}`);
 process.exit(fails ? 1 : 0);

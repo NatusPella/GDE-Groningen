@@ -135,6 +135,29 @@ export const MIGRATED_KEY = 'gde-migrated-v1';
 
 const isQuota = (e) => e && (e.name === 'QuotaExceededError' || e.code === 22 || e.code === 1014);
 
+// #590: the marker makes the rename one-time, but a downgraded 0.28 build can still write a newer
+// save under an old key afterwards. Only a key that is provably newer (a later savedAt in the JSON)
+// is copied over the new one; old keys without a timestamp (settings, prestaties, ...) are left as
+// they are; that limitation is documented in ARCHITECTURE.md. Nothing is revived: both keys must exist.
+const savedAtOf = (text) => {
+  try { const d = JSON.parse(text); return d && typeof d === 'object' && Number.isFinite(d.savedAt) ? d.savedAt : null; } catch (e) { return null; }
+};
+function copyNewerLegacy(local, report) {
+  for (const [from, to] of LEGACY_KEYS) {
+    try {
+      const oldText = local.getItem(from);
+      if (oldText === null) continue;
+      const newText = local.getItem(to);
+      if (newText === null) continue;
+      const a = savedAtOf(oldText), b = savedAtOf(newText);
+      if (a === null || b === null || !(a > b)) continue;
+      local.setItem(to, oldText);
+      report.copied.push(to);
+    } catch (e) { report.failed.push(to); }
+  }
+  return report;
+}
+
 // Copies old -> new where the old key exists and the new one does not; a new
 // key that is already there is never overwritten. Also copies ?dev's own keys
 // ('gte-dev:gte-x' -> 'gde-dev:gde-x'). Sets MIGRATED_KEY when everything is
@@ -144,7 +167,7 @@ export function migrateStorage(local, session) {
   const report = { copied: [], kept: [], failed: [], skipped: false };
   if (local) {
     try {
-      if (local.getItem(MIGRATED_KEY)) report.skipped = true;
+      if (local.getItem(MIGRATED_KEY)) { report.skipped = true; return copyNewerLegacy(local, report); }
     } catch (e) { return report; }
   }
   if (local && !report.skipped) {

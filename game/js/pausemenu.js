@@ -1234,7 +1234,7 @@ function moveFocus(dir) {
 function runAction(a) {
   const confirmEl = root.querySelector('[data-restart-confirm]');
   if (a === 'resume') setOpen(false);
-  else if (a === 'save') status(saveGame(world) ? `Opgeslagen om ${new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}` : 'Opslaan mislukt');
+  else if (a === 'save') status(saveGame(world, { manual: true }) ? `Opgeslagen om ${new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}` : 'Opslaan mislukt');
   else if (a === 'load') {
     if (coopSessieLoopt(world)) {
       // een lopende sessie eindigt eerst; dezelfde volgorde als in het savepaneel (#492)
