@@ -4,6 +4,11 @@
 // never what the rest is. Choosing a weapon takes it in hand; furniture
 // puts home on the GPS; eten eet je hier op (#502). Vehicles stay in Garage,
 // clues and people in Verhaal.
+// It is its own pause-menu section (`markup in pausemenu.js` data-panel="spullen":
+// a list left and a detail pane right, the same `.m-*` set as the Garage) and it
+// has no 3D preview: a preview belongs to the Garage, which owns the one shared
+// renderer; Spullen only links to it. The in-world TV overlay in furniture.js is
+// HUD, not this screen (#610).
 import { WEAPONS, hasWeapon, isMeleeWeapon } from './combat.js';
 import { WEAPON_STOCK, OUTFITS, CAR_UPGRADES, BIKE_UPGRADES, MOTO_UPGRADES, inventoryShopState } from './shops.js';
 import { furnitureOwned, FURNITURE_TOTAL } from './furniture.js';

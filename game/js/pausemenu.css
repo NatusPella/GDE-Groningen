@@ -266,10 +266,14 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .gar-stage { position: relative; flex: none; height: 220px; background: radial-gradient(ellipse at 50% 80%, rgba(240, 237, 228, 0.07), rgba(240, 237, 228, 0) 60%); }
 #pause-menu .gar-stage canvas { position: relative; z-index: 1; width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; }
 #pause-menu .gar-stage canvas:active { cursor: grabbing; }
+/* toetsenbord- of padfocus: de ring valt binnen de stage, anders klipt de pane hem weg (#610) */
+#pause-menu .gar-stage canvas:focus-visible { outline-offset: -4px; }
 /* achter de live preview: het silhouet en een stilstaand beeld uit dezelfde renderer (#435) */
 #pause-menu .gar-stage > svg { position: absolute; inset: 0; margin: auto; width: 168px; height: 168px; opacity: 0.85; pointer-events: none; }
 #pause-menu .gar-stage .gar-still { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
-#pause-menu .gar-stage .gar-hint { position: absolute; left: 0; bottom: 0; font-size: 18px; color: var(--mut); pointer-events: none; }
+#pause-menu .gar-stage .gar-hint { position: absolute; left: 0; bottom: 0; display: flex; align-items: center; gap: 6px; font-size: 18px; color: var(--mut); pointer-events: none; }
+/* de toets- of padplaatjes in de draaihint blijven klein naast de 18 px-tekst (#610) */
+#pause-menu .gar-stage .gar-hint .m-kc { min-width: 26px; height: 26px; padding: 0 6px; font-size: 15px; }
 #pause-menu .gar-dot { display: inline-block; width: 16px; height: 16px; margin-right: 8px; border-radius: 50%; box-shadow: 0 0 0 1px rgba(240, 237, 228, 0.5); vertical-align: -2px; }
 #pause-menu .gar-msg { font-size: 18px; }
 #pause-menu .gar-viewer { width: auto; }
@@ -281,7 +285,6 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .gar-card .gar-ph { position: relative; display: flex; align-items: center; justify-content: center; height: 104px; overflow: hidden; border-radius: 6px; background: radial-gradient(ellipse at 50% 85%, rgba(240, 237, 228, 0.12), rgba(240, 237, 228, 0) 70%); }
 #pause-menu .gar-card .gar-ph svg { width: 76px; height: 76px; }
 #pause-menu .gar-card .gar-ph img, #pause-menu .gar-card .gar-ph .gar-turn { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
-#pause-menu .gar-card .gar-ph .gar-sk { position: absolute; left: 22%; right: 22%; bottom: 22%; height: 34%; border-radius: 40%; background: rgba(240, 237, 228, 0.06); }
 #pause-menu .gar-card .gar-ph.spin img { visibility: hidden; }
 #pause-menu .gar-card.sel .gar-ph, #pause-menu .gar-card:focus-visible .gar-ph { background: radial-gradient(ellipse at 50% 85%, rgba(240, 237, 228, 0.2), rgba(240, 237, 228, 0) 72%); }
 #pause-menu .gar-card .nm { padding: 0; }
