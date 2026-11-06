@@ -359,7 +359,8 @@ function saveGuestEarnings(w) {
     const ok = r.state === 'ok' || r.state === 'hersteld';
     const ids = w.coopBoek ? w.coopBoek.ids() : [];
     const next = ok ? applyGuestChanges(r.data, serialize(w), earned, ids) : null;
-    if (ok && !next) { w.coopVerdiend = 0; gastBewaarFout = 0; return false; } // niets te bewaren (het verdiende geld stond er al in)
+    // niets te bewaren (het verdiende geld stond er al in): dat is een geslaagde opslag, geen fout (#579)
+    if (ok && !next) { w.coopVerdiend = 0; gastBewaarFout = 0; return true; }
     if (!next || !writeSlotRaw(null, saveTarget(), JSON.stringify(next))) { gastBewaarMeld(w); return false; }
     w.coopVerdiend = 0;
     gastBewaarFout = 0;
