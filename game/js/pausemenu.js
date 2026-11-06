@@ -322,6 +322,8 @@ let tab = HOME;
 // to Overzicht) or 'direct' (M, the phone: Esc closes the menu)
 let origin = 'home';
 let prestart = null;
+// #563: welk commando (Herstarten of Afsluiten) wacht na een mislukte save op een keuze van de speler
+let closeAction = null;
 const lastFocus = {};
 
 const PREF_KEY = KEYS.menu;
@@ -505,6 +507,10 @@ function spelHtml() {
 <div class="m-li pm-row">${rowName('Missie stoppen', 'Staat bij Overzicht zodra er een missie loopt, met een vraag erbij')}<button type="button" class="m-bg" data-goto-sub="spel:overzicht">Naar Overzicht</button></div>
       <div class="m-li pm-row">${rowName('Spel herstarten', 'Slaat op en start het spel opnieuw')}<button type="button" class="m-bg" data-action="menu" title="Opslaan en het spel opnieuw starten">Herstarten</button></div>
       ${DESKTOP ? `<div class="m-li pm-row">${rowName('Spel sluiten', 'Slaat op en sluit het spel')}<button type="button" class="m-bg" data-action="exit" title="Opslaan en het spel sluiten">Afsluiten</button></div>` : ''}
+      <div class="pm-confirm" data-exit-confirm hidden>
+        <p data-exit-text></p>
+        <div class="m-acts"><button type="button" class="m-bp" data-action="exit-retry">Opnieuw proberen</button><button type="button" class="m-bg danger" data-action="exit-anyway">Toch sluiten</button><button type="button" class="m-bt" data-action="exit-cancel">Annuleren</button></div>
+      </div>
       <div class="m-gh"><span>Opnieuw beginnen</span></div>
       <div class="m-li pm-row">${rowName('Opnieuw beginnen', 'Alles sinds je laatste savegame gaat verloren')}<button type="button" class="m-bg danger" data-action="restart">Opnieuw beginnen</button></div>
       <div class="pm-confirm" data-restart-confirm hidden>
@@ -918,6 +924,14 @@ function goBack() {
     root.querySelector('[data-action="restart"]').focus();
     return;
   }
+  const exitBox = root.querySelector('[data-exit-confirm]');
+  if (exitBox && !exitBox.hidden) {
+    exitBox.hidden = true;
+    closeAction = null;
+    const b = root.querySelector('[data-action="menu"]');
+    if (b) b.focus();
+    return;
+  }
   const legend = tab === 'map' && root.querySelector('.mapview-legend:not([hidden])');
   if (legend) { root.querySelector('.mv-layers').click(); root.querySelector('.mv-layers').focus(); return; }
   const stop = root.querySelector('[data-stop-confirm]');
@@ -1231,6 +1245,22 @@ function moveFocus(dir) {
   }
 }
 
+// #563: de save bij Afsluiten of Herstarten mislukte (volle of geblokkeerde opslag). Het spel blijft open:
+// de speler ziet wat er misging en kiest tussen opnieuw proberen en toch sluiten.
+function askClose(a) {
+  closeAction = a;
+  const box = root.querySelector('[data-exit-confirm]');
+  if (!box) return;
+  const confirmEl = root.querySelector('[data-restart-confirm]');
+  if (confirmEl) confirmEl.hidden = true;
+  box.querySelector('[data-exit-text]').textContent = a === 'exit'
+    ? 'Opslaan mislukt. Je voortgang sinds je laatste savegame is niet bewaard. Wil je het spel toch sluiten?'
+    : 'Opslaan mislukt. Je voortgang sinds je laatste savegame is niet bewaard. Wil je het spel toch herstarten?';
+  box.hidden = false;
+  const b = box.querySelector('[data-action="exit-retry"]');
+  if (b) b.focus();
+}
+
 function runAction(a) {
   const confirmEl = root.querySelector('[data-restart-confirm]');
   if (a === 'resume') setOpen(false);
@@ -1282,11 +1312,28 @@ function runAction(a) {
     // #492: eerst de sessie netjes beëindigen (de anderen horen 'spel gestopt' in plaats van een
     // weggevallen verbinding), dan bewaren en pas dan herladen of sluiten. Een solo-sessie van één
     // gaat via stopSoloHost, zodat die vlag ook teruggaat; de volgorde staat in cooploadrules.js.
-    runCoopStop(world, {
+    // #563: mislukt het bewaren, dan blijft het spel open met een keuze in plaats van stil te sluiten.
+    const res = runCoopStop(world, {
       stop: (w) => { if (isSoloHost(w)) stopSoloHost(w); else stopCoopNet(w); },
-      save: () => { if (started() && !prestart && world) saveGame(world); },
+      save: () => (started() && !prestart && world ? saveGame(world) : undefined),
       go: () => { if (a === 'exit' && DESKTOP) DESKTOP.quit(); else location.reload(); },
     });
+    if (!res.ok) askClose(a);
+  } else if (a === 'exit-retry' || a === 'exit-anyway' || a === 'exit-cancel') {
+    const box = root.querySelector('[data-exit-confirm]');
+    if (box) box.hidden = true;
+    if (a === 'exit-retry') { const want = closeAction; closeAction = null; if (want) runAction(want); return; }
+    if (a === 'exit-cancel') {
+      closeAction = null;
+      status('Niet afgesloten: je spel staat nog open. Sla eerst op als dat lukt.');
+      const b = root.querySelector('[data-action="menu"]');
+      if (b) b.focus();
+      return;
+    }
+    const want = closeAction;
+    closeAction = null;
+    if (want === 'exit' && DESKTOP) DESKTOP.quit();
+    else location.reload();
   } else if (a === 'pigeon-stop') {
     if (world.pigeonActions && world.pigeonActions.stop()) setOpen(false);
   } else if (a === 'job-stop') {
@@ -1646,6 +1693,8 @@ function syncRail() {
   for (const b of root.querySelectorAll('[data-panel="spel"] [data-action="save"], [data-panel="spel"] [data-action="saves"]')) b.disabled = pigeon;
   root.querySelector('[data-restart-confirm]').hidden = true;
   root.querySelector('[data-coop-load-confirm]').hidden = true;
+  root.querySelector('[data-exit-confirm]').hidden = true;
+  closeAction = null;
   root.querySelector('[data-game-status]').textContent = '';
   syncSaveButtons();
 }

@@ -160,8 +160,27 @@ ok(() => {
 ok(() => {
   const seen = [];
   runCoopStop({ coopNet: {} }, { stop: (w) => { delete w.coopNet; }, save: () => { throw new Error('schijf vol'); }, go: () => seen.push('go') });
-  assert.deepEqual(seen, ['go'], 'een mislukte save houdt de herstart niet tegen');
-}, 'stoppen: fout in de save blokkeert niet');
+  assert.deepEqual(seen, [], 'een mislukte save houdt het herladen of sluiten tegen (#563)');
+}, 'stoppen: fout in de save houdt het spel open');
+// #563: een save die false teruggeeft betekent "niet bewaard": het spel blijft open met de keuze, de
+// herstart of sluiting gebeurt niet. undefined betekent "niets te bewaren" (een prestart-menu) en mag wel.
+ok(() => {
+  const seen = [];
+  const res = runCoopStop({ coopNet: {}, coopRole: 'host' }, { stop: (w) => { w.coopNet = null; }, save: () => false, go: () => seen.push('go') });
+  assert.deepEqual(res, { ok: false, reason: 'save' });
+  assert.deepEqual(seen, [], 'de knop "Slaat op en sluit het spel" liegt niet: er wordt niets gesloten');
+}, 'stoppen: een mislukte save geeft de fout terug');
+ok(() => {
+  const seen = [];
+  const res = runCoopStop({ coopRole: 'host' }, { save: () => undefined, go: () => seen.push('go') });
+  assert.deepEqual(res, { ok: true });
+  assert.deepEqual(seen, ['go'], 'niets te bewaren is geen fout');
+}, 'stoppen: niets te bewaren mag door');
+ok(() => {
+  const seen = [];
+  runCoopStop({ coopNet: {} }, { stop: () => {}, save: () => true, go: () => seen.push('go') });
+  assert.deepEqual(seen, ['go'], 'een geslaagde save gaat gewoon door naar herstarten of sluiten');
+}, 'stoppen: een geslaagde save sluit of herstart');
 ok(() => {
   const seen = [];
   runCoopStop({ coopNet: {} }, { stop: () => seen.push('stop'), go: () => seen.push('go') });
@@ -175,10 +194,24 @@ ok(() => {
   const stopAt = exitBranch.indexOf('runCoopStop('), stopCb = exitBranch.indexOf('stop: (w)');
   const saveCb = exitBranch.indexOf('save: () =>'), goCb = exitBranch.indexOf('go: () =>');
   assert.ok(stopAt >= 0 && stopCb > stopAt && saveCb > stopCb && goCb > saveCb, 'pauzemenu: stop, dan bewaren, dan herstarten of sluiten');
-  assert.match(exitBranch, /save: \(\) => \{ if \(started\(\) && !prestart && world\) saveGame\(world\); \}/, 'pauzemenu: alleen een lopend spel bewaart (#435)');
+  assert.match(exitBranch, /save: \(\) => \(started\(\) && !prestart && world \? saveGame\(world\) : undefined\)/, 'pauzemenu: alleen een lopend spel bewaart (#435)');
   assert.match(exitBranch, /go: \(\) => \{ if \(a === 'exit' && DESKTOP\) DESKTOP\.quit\(\); else location\.reload\(\); \}/, 'pauzemenu: de herstart of sluiting is de laatste stap');
   assert.doesNotMatch(exitBranch, /if \(started\(\) && !prestart && world\) saveGame\(world\);\s*if \(a === 'exit'/, 'pauzemenu: geen bewaren-en-herladen meer buiten de vaste volgorde');
 }, 'pauzemenu: de sessie stopt vóór het bewaren en herstarten');
+// #563: bij een mislukte save blijft het spel open met de melding en een keuze (opnieuw proberen of toch sluiten)
+ok(() => {
+  const exitBranch = pm.slice(pm.indexOf("a === 'menu' || a === 'exit'"), pm.indexOf("a === 'pigeon-stop'"));
+  assert.match(exitBranch, /if \(!res\.ok\) askClose\(a\);/);
+  assert.match(pm, /function askClose\(a\) \{[\s\S]{0,1200}if \(!box\) return;/, 'de vraag wordt opgebouwd');
+  assert.match(pm, /data-action="exit-retry">Opnieuw proberen<\/button><button type="button" class="m-bg danger" data-action="exit-anyway">Toch sluiten/, 'de keuze staat in de melding');
+  assert.match(pm, /data-exit-confirm/, 'de bevestiging bestaat');
+  assert.match(pm, /Opnieuw proberen/);
+  assert.match(pm, /Toch sluiten/);
+  assert.match(pm, /a === 'exit-retry'\) \{ const want = closeAction; closeAction = null; if \(want\) runAction\(want\); return; \}/, 'opnieuw proberen doet dezelfde stap nog eens');
+  assert.match(pm, /Opslaan mislukt\. Je voortgang sinds je laatste savegame is niet bewaard\./, 'de melding is Nederlands en eerlijk');
+  assert.match(pm, /const exitBox = root\.querySelector\('\[data-exit-confirm\]'\);[\s\S]{0,120}exitBox\.hidden = true;/, 'Escape ruimt de vraag op');
+  assert.match(pm, /root\.querySelector\('\[data-exit-confirm\]'\)\.hidden = true;\s*closeAction = null;/, 'het menu opent weer schoon');
+}, 'pauzemenu: een mislukte save bij Afsluiten of Herstarten blijft open met een keuze (#563)');
 
 console.log(`coopladen_test: ${n - fails}/${n}`);
 process.exit(fails ? 1 : 0);
