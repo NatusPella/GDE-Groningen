@@ -11,6 +11,7 @@ import { mayVoiceText, noteVoiceText } from './attention.js';
 import { hold as holdChannel, release as releaseChannel } from './speech.js';
 import { registerNarrative, mayStart, noteToast, heldBack } from './narrative.js';
 import { zones, P1, P2, hudNow } from './hudrules.js';
+import { appForNote, senderForNote, senderOf } from './phoneapp.js';
 
 // The folded phone (the Pixie Vouw 11's cover screen) on the HUD, bottom
 // left above the street name: notification cards and incoming calls. Both slide up out of the bottom like a phone
@@ -106,14 +107,16 @@ export function initPhoneFeed(w) {
 // --- notifications -------------------------------------------------------------------------
 
 // "KIEKDOAR MELDT: onrust in Grunn, politie op pad" -> app Kiekdoar, headline
-// "Onrust in Grunn", body "politie op pad".
+// "Onrust in Grunn", body "politie op pad". De app komt uit de afzender of uit wat de melder
+// meegeeft (#603), nooit uit een €-teken in de tekst: een winkelbericht met een bedrag erin
+// hoort geen Bank-icoon te krijgen.
 function parse(n) {
   let text = String(n.text || '').trim();
   let from = n.from || '';
-  let app = n.app || '';
   const m = /^KIEKDOAR( MELDT)?:\s*/i.exec(text);
   if (m) { text = text.slice(m[0].length); from = from || 'Kiekdoar'; }
-  if (!app) app = /kiekdoar/i.test(from) || m ? 'sikkom' : /€/.test(text) && !from ? 'geld' : from ? 'bericht' : 'sikkom';
+  const app = appForNote({ app: n.app || '', from, text: n.text || '' });
+  from = senderForNote({ app, from, text: n.text || '' });
   let title = n.title || '';
   let body = text;
   if (!title && app === 'sikkom') {
@@ -121,7 +124,6 @@ function parse(n) {
     if (c) { title = c[1]; body = c[3]; } else { title = text; body = ''; }
     title = title[0].toUpperCase() + title.slice(1);
   }
-  if (!from) from = app === 'geld' ? 'Bank' : 'Kiekdoar';
   return { from, app, title, body };
 }
 
@@ -131,10 +133,10 @@ export function notifyPhone(w, spec) {
 }
 
 // History entries: { text, at, from, body, read } (phone.js Berichten groups them by `from`).
-function remember(w, text, from = '', body = '') {
+function remember(w, text, from = '', body = '', read = false) {
   if (!w.phoneHistory) w.phoneHistory = [];
-  w.phoneHistory.unshift({ text, at: clockNow(w), ...(from ? { from, body: body || text } : {}) });
-  if (w.phoneHistory.length > 30) w.phoneHistory.length = 30;
+  w.phoneHistory.unshift({ text, at: clockNow(w), ...(from ? { from, body: body || text } : {}), read });
+  if (w.phoneHistory.length > 40) w.phoneHistory.length = 40;
 }
 
 // the HUD card just said it (a mission requirement is sent to both)
@@ -218,21 +220,37 @@ export const isCallActive = () => !!call;
 // The sender of the call or card that is (or just was) on screen: Esc then opens the
 // unfolded phone on that thread (pausemenu.js, #151).
 const NOTICE_HOLD_MS = 2500;
+// #603: de kaart is na een paar seconden weg, maar de afzender blijft nog een halve minuut
+// onthouden zolang er iets ongelezen staat: zo opent Esc alsnog het bericht in plaats van meteen
+// het menu op Overzicht. Daarna is de inbox onder Verhaal > Personages de vaste plek.
+const NOTICE_LONG_MS = 30000;
 let notice = { from: '', until: 0 };
+let longNotice = { from: '', until: 0 };
 function noticeFrom(from) {
-  notice = { from, until: performance.now() + NOTICE_HOLD_MS + 1500 };
+  const now = typeof performance !== 'undefined' ? performance.now() : 0;
+  notice = { from, until: now + NOTICE_HOLD_MS + 1500 };
+  longNotice = { from, until: now + NOTICE_LONG_MS };
 }
 // Wie er net een bericht of gesprek stuurde, zolang dat nog op het scherm staat (of net weg is);
 // '' als er niets ligt. pausemenu.js opent daarmee de telefoon op dat gesprek (#151).
 function noticeThread(now = typeof performance !== 'undefined' ? performance.now() : 0) {
   return now < notice.until ? notice.from : '';
 }
+function hasUnreadFrom(from) {
+  return ((world && world.phoneHistory) || []).some((e) => !e.read && senderOf(e) === from);
+}
 // Eén keer: de Escape die de telefoon opent, verbruikt de melding, zodat een tweede Escape gewoon
-// het menu op Overzicht opent.
-export function takeNoticeThread(now) {
+// het menu op Overzicht opent. Is de kaart al weg maar staat het bericht nog ongelezen, dan opent
+// Escape alsnog die afzender (#603).
+export function takeNoticeThread(now = typeof performance !== 'undefined' ? performance.now() : 0) {
   const t = noticeThread(now);
-  if (t) notice = { from: '', until: 0 };
-  return t;
+  if (t) { notice = { from: '', until: 0 }; return t; }
+  if (now < longNotice.until && hasUnreadFrom(longNotice.from)) {
+    const from = longNotice.from;
+    longNotice = { from: '', until: 0 };
+    return from;
+  }
+  return '';
 }
 
 function hangUp() {
@@ -298,7 +316,12 @@ function finishCall(cut) {
   const c = call;
   if (!c || c.phase === 'end') return;
   const said = c.lines.slice(0, cut ? Math.max(0, c.i + 1) : c.lines.length);
-  remember(world, `${c.live ? 'Live' : 'Gesprek'} · ${c.from}: ${said.map((l) => l.text).join(' ')}`, c.from, `${c.live ? 'Live' : 'Gesprek'}: ${said.map((l) => l.text).join(' ')}`);
+  // #603: één regel per uitspraak in de geschiedenis, niet één blok. Zo is een gesprek later
+  // regel voor regel terug te lezen bij het personage. Wat je live hoorde geldt als gelezen.
+  for (const l of said) {
+    const who = l.speaker || c.from;
+    remember(world, `${c.live ? 'Live' : 'Gesprek'} · ${who}: ${l.text}`, c.from, who === c.from ? l.text : `${who}: ${l.text}`, true);
+  }
   noticeFrom(c.from);
   c.phase = 'end';
   c.t = 0;

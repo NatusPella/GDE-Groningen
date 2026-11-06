@@ -28,6 +28,7 @@ import { lineVoiceFor } from './linevoice.js';
 // phone talk is a call on the speech.js channel
 import { playContactVoice as playBanterVoice, stopContactVoice as stopBanterVoice } from './audio.js';
 import { HERO_REPLACE_FEE as GARAGE_PRICE } from './economy.js';
+import { senderOf, bodyOf } from './phoneapp.js';
 
 export const PHONE_NAME = 'Pixie Vouw 11';
 const RING_TIME = 0.9;
@@ -37,7 +38,6 @@ let world = null;
 // the call in progress: { contact, phase: 'ringing' | 'talk', t, line, actions, offer }
 let call = null;
 let callIdx = -1;
-let thread = null;
 let note = '';
 let panelRef = null;
 let api = null;
@@ -217,56 +217,22 @@ function hangUp() {
 
 // --- Berichten: world.phoneHistory per sender ----------------------------------------------
 
-// An entry: { text, at, from?, body?, read? }. Older entries (before `from`)
-// carry the sender in the text: "Henk: ...", "Gesprek · Henk: ...".
-function senderOf(e) {
-  if (e.from) return e.from;
-  const m = /^(?:(?:Gesprek|Live) · )?([^:]{2,32}?)(?: (?:belde|sprak in|was live|op Kiekdoar|liet een kaartje achter|op Nachtstreek))?: /.exec(e.text || '');
-  return m ? m[1] : 'Kiekdoar';
-}
-function bodyOf(e) {
-  if (e.body) return e.body;
-  const m = /^(?:(?:Gesprek|Live) · )?[^:]{2,32}: (.*)$/s.exec(e.text || '');
-  return m ? m[1] : String(e.text || '');
-}
-
-function phoneThreads(w = world) {
-  const by = new Map();
-  for (const e of (w && w.phoneHistory) || []) {
-    const from = senderOf(e);
-    let t = by.get(from);
-    if (!t) { t = { from, items: [], unread: 0 }; by.set(from, t); }
-    t.items.push(e);
-    if (!e.read) t.unread++;
-  }
-  return [...by.values()];
-}
-
 export function phoneUnread(w = world) {
   return ((w && w.phoneHistory) || []).filter((e) => !e.read).length;
 }
 
-function markRead(from) {
-  for (const e of (world && world.phoneHistory) || []) if (senderOf(e) === from) e.read = true;
+// Alles wat nog ongelezen is, met de afzender erbij (#603): één lijst bovenaan Verhaal >
+// Personages, zodat een gemist bericht niet per personage gezocht hoeft te worden.
+export function unreadInbox(w = world) {
+  return ((w && w.phoneHistory) || []).filter((e) => !e.read).map((e) => {
+    const from = senderOf(e);
+    return { from, id: characterForSender(from), at: e.at || '', body: bodyOf(e) };
+  });
 }
 
-// --- the Telefoon section (pausemenu.js) ---------------------------------------------------
-
-function contactCard(c, i) {
-  const cur = callIdx === i && call;
-  return `<button type="button" class="m-li ph-card" data-ph-contact="${i}"${cur ? ' aria-current="true"' : ''}>` +
-    `<span class="av">${esc(initials(c.name))}</span>` +
-    `<span class="nm"><span class="one">${esc(c.name)}</span><span class="mut one">${dualHtml(c.sub)}</span></span>` +
-    `${cur ? `<span class="t g">${call.phase === 'ringing' ? 'Bellen…' : 'In gesprek'}</span>` : ''}</button>`;
-}
-
-function threadCard(t) {
-  const last = t.items[0];
-  return `<button type="button" class="m-li ph-card" data-ph-thread="${esc(t.from)}"${thread === t.from ? ' aria-current="true"' : ''}>` +
-    `<span class="av">${esc(initials(t.from))}</span>` +
-    `<span class="nm"><span class="one">${esc(t.from)}</span><span class="mut one">${dualHtml(bodyOf(last))}</span></span>` +
-    `${t.unread ? `<span class="v g" aria-label="${t.unread} ongelezen">${t.unread}</span>` : `<span class="t">${esc(last.at || '')}</span>`}</button>`;
-}
+// --- Verhaal > Personages (#430): de berichten, sms's, app-teksten en gesprekken staan bij het personage zelf; wat van niemand
+// is (nieuws, meldingen, een contact dat geen personage is) staat onder Overig. De telefoon is geen eigen onderdeel meer.
+// (OVERIG en de afzenderregel staan hieronder, bij de rest van die sectie.)
 
 function callHtml() {
   const c = call;
@@ -277,22 +243,12 @@ function callHtml() {
     '<span class="m-grow"></span>' + (acts ? `<div class="m-acts ph-acts">${acts}</div>` : '');
 }
 
-function threadHtml(from) {
-  const t = phoneThreads().find((x) => x.from === from);
-  if (!t) return '<p class="mut">Kies een gesprek.</p>';
-  return `<div class="ph-head"><span class="av lg">${esc(initials(t.from))}</span><div class="pm-pane-top"><span class="m-eb">${t.from === 'Kiekdoar' ? 'Nieuws' : 'Berichten'}</span><h2 class="m-h2 td-h2">${esc(t.from)}</h2></div></div>` +
-    `<div class="ph-thread">${[...t.items].reverse().map((e) => `<div class="ph-msg"><span class="mut">${esc(e.at || '')}</span><p>${dualHtml(bodyOf(e))}</p></div>`).join('')}</div>`;
-}
-
 function renderDetail(focusActs = false) {
   const panel = panelRef;
   if (!panel || !panel.isConnected) return;
   const aside = panel.querySelector('.td-detail');
-  const sub = panel.dataset.phSub;
-  if (sub === 'personage') aside.innerHTML = call ? callHtml() : note ? `<p class="mut">${esc(note)}</p>` : '';
-  else if (sub === 'berichten') aside.innerHTML = thread ? threadHtml(thread) : '<p class="mut">Kies een gesprek om het te lezen.</p>';
-  else if (call) aside.innerHTML = callHtml();
-  else aside.innerHTML = `<p class="mut">${note ? esc(note) : 'Kies iemand om te bellen.'}</p>`;
+  if (!aside) return;
+  aside.innerHTML = call ? callHtml() : note ? `<p class="mut">${esc(note)}</p>` : '';
   for (const b of panel.querySelectorAll('[data-ph-contact]')) {
     const on = !!call && Number(b.dataset.phContact) === callIdx;
     b.toggleAttribute('aria-current', on);
@@ -326,14 +282,17 @@ function messagesHtml(id) {
   const items = ((world && world.phoneHistory) || []).filter((e) => characterForSender(senderOf(e)) === id);
   if (!items.length) return '<p class="m-note">Nog geen berichten.</p>';
   let last = null;
-  return '<div class="ph-thread">' + items.map((e) => {
+  // Oudste bovenaan (#603): een gesprek leest als een gesprek, niet als een muur van tekst.
+  // Elk gesprek staat sinds #603 regel voor regel in de geschiedenis, dus dit is de leesbare volgorde.
+  return '<div class="ph-thread">' + [...items].reverse().map((e) => {
     const from = senderOf(e);
     const kop = id === OVERIG && from !== last ? `<h4 class="m-eb">${esc(from === 'Kiekdoar' ? 'Nieuws (Kiekdoar)' : from)}</h4>` : '';
     last = from;
     return `${kop}<div class="ph-msg"><span class="mut">${esc(e.at || '')}</span><p>${dualHtml(bodyOf(e))}</p></div>`;
   }).join('') + '</div>';
 }
-// Het blok onder een personage: bellen (als het een contact is), het gesprek, en de berichten, nieuwste eerst.
+// Het blok onder een personage: bellen (als het een contact is), het gesprek, en de berichten
+// van oud naar nieuw, zodat een gesprek van boven naar beneden te lezen is (#603).
 export function renderCharacterPhone(block, w, id) {
   if (!block) return;
   world = w;
@@ -344,26 +303,6 @@ export function renderCharacterPhone(block, w, id) {
   const bel = contacts(w).map((c, i) => ({ c, i })).filter(({ c }) => characterForSender(c.speaker || c.name) === id)
     .map(({ c, i }) => `<button type="button" class="m-bg ph-bel" data-ph-contact="${i}"${callIdx === i && call ? ' aria-current="true"' : ''}>Bel ${esc(c.name)}</button>`).join('');
   block.innerHTML = `<h3 class="m-eb">${id === OVERIG ? 'Berichten en contacten' : 'Berichten'}</h3>${bel ? `<div class="m-acts ph-acts">${bel}</div>` : ''}<div class="td-detail ph-detail" aria-live="polite"></div>${messagesHtml(id)}`;
-  renderDetail();
-}
-
-// Draws the section's list for `sub` ('contacten' | 'berichten').
-export function renderPhonePanel(panel, w, sub) {
-  world = w;
-  panelRef = panel;
-  panel.dataset.phSub = sub;
-  const list = panel.querySelector(`[data-of="telefoon"][data-sub="${sub}"]`);
-  if (sub === 'berichten') {
-    if (thread) markRead(thread);
-    const ts = phoneThreads(w);
-    if (thread && !ts.some((t) => t.from === thread)) thread = null;
-    list.innerHTML = ts.length
-      ? `<div class="m-gh"><span>Berichten</span><span>nieuwste eerst</span></div>${ts.map(threadCard).join('')}`
-      : '<p class="m-note">Nog geen berichten. Grunn is rustig… nog wel.</p>';
-  } else {
-    list.innerHTML = `<div class="m-gh"><span>Contacten</span><span>bel voor een rit, een klus of een praatje</span></div>${contacts(w).map(contactCard).join('')}`;
-  }
-  for (const el of panel.querySelectorAll('[data-of="telefoon"][data-sub]')) if (el.dataset.sub !== sub) el.innerHTML = '';
   renderDetail();
 }
 
@@ -393,19 +332,7 @@ export function phoneClick(e, w, panel, a) {
     if (!call && isPauseMenuOpen()) { const b = panel.querySelector(`[data-ph-contact="${callIdx}"]`); if (b) b.focus({ preventScroll: true }); }
     return true;
   }
-  const th = t.closest('[data-ph-thread]');
-  if (th) {
-    thread = th.dataset.phThread;
-    markRead(thread);
-    a.rerender(th);
-    return true;
-  }
   return false;
-}
-
-// Esc on a call or text card (pausemenu.js), or the trailer: the thread of `from`.
-export function selectPhoneThread(from) {
-  thread = from || null;
 }
 
 // The Steam trailer (trailer.js) showed the phone over a gameplay shot: now
