@@ -27,6 +27,12 @@ concurrency:
 
 jobs:
   dmg:
+    # Publicatieregel (constitutie 8, #558): alleen de eigenaar publiceert. Een collaborator met push
+    # kan deze workflow starten, maar de taak slaat over en er komt niets op de release. Het
+    # environment 'release' hoort daarnaast een verplichte beoordelaar (de eigenaar) te hebben; dat is
+    # een eenmalige instelling in GitHub (docs/RELEASEN.md).
+    if: github.actor == github.repository_owner
+    environment: release
     runs-on: macos-latest
     timeout-minutes: 20
     env:
