@@ -5,7 +5,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { REST_S, hangendeTeken, restMelding, restSleutel, telRest } from '../game/js/scenerest.js';
-import { cinematicLimit, CINE_MARGIN_S, CINE_MAX_S } from '../game/js/cinelimit.js';
+import { cinematicHang, cinematicLimit, CINE_MARGIN_S, CINE_MAX_S, OPENING_HANG_MS, SCENE_HANG_MS } from '../game/js/cinelimit.js';
 
 const lees = (f) => fs.readFileSync(new URL(`../game/js/${f}`, import.meta.url), 'utf8');
 let n = 0;
@@ -79,6 +79,35 @@ t('de waakhond kapt een lange treinrit niet na 150 s af', () => {
   assert.match(s, /const limit = cinematicLimit\(c\);/);
   assert.doesNotMatch(s, /CINE_MAX_S/, 'de grens staat in cinelimit.js, niet meer hier');
   assert.match(lees('stationtravel.js'), /id: 'train-ride', priority: 2, duration: minutes \* 60 \* 3 \+ 240, long: true/);
+});
+
+// Startvangnet (#635): de opening die de eerste seconde gameplay niet vrijgeeft, en de
+// scène die zijn eigen klok niet vooruit krijgt, worden door cinematics.js afgebroken.
+// Sinds #635 is dat de enige plek: main.js had een tweede 30 s-tak, en die deed niets
+// omdat de import ontbrak (undef_check ving hem).
+t('een hangende opening wordt na 30 s overgeslagen', () => {
+  assert.equal(OPENING_HANG_MS, 30000);
+  assert.equal(cinematicHang({ startedAt: 0, now: 29000, worldTime: 0.5, sceneT: 5 }), null, 'na 29 s nog niet');
+  assert.equal(cinematicHang({ startedAt: 0, now: 31000, worldTime: 0.5, sceneT: 5 }), 'opening');
+  assert.equal(cinematicHang({ startedAt: 0, now: 31000, worldTime: 3, sceneT: 5 }), null, 'de wereldklok loopt: geen opening meer');
+});
+
+t('een scène die zelf niet vooruitkomt wordt na 20 s afgebroken', () => {
+  assert.equal(SCENE_HANG_MS, 20000);
+  assert.equal(cinematicHang({ startedAt: 0, now: 19000, worldTime: 30, sceneT: 1.9 }), null);
+  assert.equal(cinematicHang({ startedAt: 0, now: 21000, worldTime: 30, sceneT: 1.9 }), 'frozen');
+  assert.equal(cinematicHang({ startedAt: 0, now: 21000, worldTime: 30, sceneT: 2.5 }), null, 'een scène die vooruitkomt speelt door');
+  assert.equal(cinematicHang({ startedAt: null, now: 21000, worldTime: 30, sceneT: 0 }), null, 'zonder starttijd niets doen');
+  assert.equal(cinematicHang({ startedAt: 0, now: NaN, worldTime: 30, sceneT: 0 }), null, 'zonder klok niets doen');
+});
+
+t('cinematics.js is de enige eigenaar van het startvangnet', () => {
+  const c = lees('cinematics.js');
+  assert.match(c, /cinematicHang\(\{ startedAt: active\._wStart, now, worldTime: w && w\.time, sceneT: active\.t \}\) === 'opening'/);
+  assert.match(c, /cinematicHang\(\{ startedAt: active\._wStart, now, worldTime: w && w\.time, sceneT: active\.t \}\) === 'frozen'/);
+  const m = lees('main.js');
+  assert.doesNotMatch(m, /startWatch/, 'de tweede 30 s-tak in main.js is weg (#635)');
+  assert.doesNotMatch(m, /skipCinematic/, 'main.js breekt geen scènes meer zelf af');
 });
 
 console.log(`safetywacht_test: ${n}/${n} ok`);
