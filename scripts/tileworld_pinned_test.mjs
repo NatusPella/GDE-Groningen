@@ -10,6 +10,7 @@
 //   node scripts/tileworld_pinned_test.mjs
 import './node3d.mjs';
 import zlib from 'node:zlib';
+import fs from 'node:fs';
 const G = await import('../game/js/gdt.js');
 const S = await import('../game/js/tilestore.js');
 const { TileWorld, loadTileWorld } = await import('../game/js/tileworld.js');
@@ -35,6 +36,30 @@ if (tw) {
   ok(tw.hedgeNear(30, 120, 5).length === 1 && tw.hedgeNear(30, 120, 5)[0].osm === 1, 'hedgeNear: de gemapte heg wordt gevonden');
   ok(tw.hedgeNear(500, 500, 5).length === 0, 'hedgeNear: ver weg niets');
   ok(tw.hedgeNear(5, 5, 3).length === 0, 'een lantaarn is geen heg');
+}
+
+// Dezelfde plas twee keer gemapt (#231): het gestreamde pad laat de tweeling helemaal weg (addTile). De gepinde set houdt
+// elke rij (de arrays zijn op gid gesorteerd en de kaartvragen moeten hetzelfde antwoorden als de kaart), maar de tweeling
+// gaat niet mee in wat het terrein en de watermeshes tekenen (map.duplicateWater, scene3d.js). Zo wordt hetzelfde water
+// niet twee keer over elkaar getekend (donkerder en rommelig) zonder dat waterNear of een andere vraag verandert.
+{
+  const meta = { sections: [{ type: G.SECTION.META, json: { counts: { water: 2 }, meta: {} } }] };
+  const tweeling = TileWorld.fromTiles(meta, [tile(0, 0, [{ type: G.SECTION.WATER, rows: [
+    { gid: 0, pts: sq(0, 0, 40), kind: 'meer', lv: 0, nav: 0 },
+    { gid: 1, pts: sq(0, 0, 36), kind: 'meer', lv: 0, nav: 0, name: 'Klein meer' },
+  ] }])]);
+  ok(tweeling.water.length === 2, 'een tweeling blijft in de waterarray (de gids blijven dicht)', String(tweeling.water.length));
+  ok(tweeling.duplicateWater && tweeling.duplicateWater.size === 1 && tweeling.duplicateWater.has(tweeling.water[1]), 'de kleinste van de twee is de tweeling');
+  ok(tweeling.waterNear(20, 20, 1).length === 2, 'waterNear: de plas wordt nog bij beide rijen gevonden (de kaart verandert niet)', String(tweeling.waterNear(20, 20, 1).length));
+  ok(tweeling.water[0].name === undefined && tweeling.water[1].name === 'Klein meer', 'de naam van de tweeling wordt niet verplaatst');
+  const anders = TileWorld.fromTiles(meta, [tile(0, 0, [{ type: G.SECTION.WATER, rows: [
+    { gid: 0, pts: sq(0, 0, 40), kind: 'meer', lv: 0, nav: 0 },
+    { gid: 1, pts: sq(0, 0, 36), kind: 'meer', lv: 0, nav: 2 },
+  ] }])]);
+  ok(!anders.duplicateWater, 'een andere vaarklasse is geen tweeling');
+  const scene = fs.readFileSync(new URL('../game/js/scene3d.js', import.meta.url), 'utf8');
+  ok(/const waterRows = \(map\) => \(map\.duplicateWater \? map\.water\.filter/.test(scene), 'scene3d: het terrein tekent de tweeling niet');
+  ok(/const waterNearDrawn = \(map, x, y, r\) =>/.test(scene) && /duplicateWater\.has\(w\)/.test(scene), 'scene3d: de watermeshes slaan de tweeling over');
 }
 
 // --- de pin: de stad blijft, de provincie stroomt ------------------------------------------------

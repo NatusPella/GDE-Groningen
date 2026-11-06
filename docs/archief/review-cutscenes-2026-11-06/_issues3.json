@@ -1,0 +1,58 @@
+{
+  "issues": [
+    {
+      "title": "M16-outro: kermis en dijk in één set — verkeerde plek, water en dagdeel",
+      "labels": ["bug", "impact-hoog", "kosten-M"],
+      "status": "Bugs",
+      "body": "**Wat:** één `M16.outro`-spec met de kermis/botsauto's als set volgt alle vier de scènes van de missie, maar M16.6 is de dijk bij Blauwestad bij zonsondergang. Plek, water en dagdeel gaan verloren; de kus/dijk-scène verliest haar beeld.\n\n**Waar:** `storyarc_nieuw.js:288`, `cutscenes_akte3.js:193-227`, `docs/verhaal/nieuw/09-script-akte3.md:239`.\n\n**Fix:** splits in M16.3-M16.5 (kermis) en M16.6 op een eigen dijk-anker met zonsondergang (of een eigen `playStaged` met sunset). Hergebruik de waterkant/skyline-shots uit de bestaande set.\n\n**Bron:** `02-verhaal-scenes.md` F1 (Hoog)."
+    },
+    {
+      "title": "M00-opening: trailerbeelden, naamkaarten en titelkaart ontbreken; klok start op 17:30",
+      "labels": ["bug", "impact-hoog", "kosten-M"],
+      "status": "Bugs",
+      "body": "**Wat:** de regie van C00.1 vraagt zon op d'Olle Grieze, een werkboot die een fiets uit de Diepenring vist, een meeuw met frikandel, naamkaarten TESSA/TAMMO en de titelkaart \"GDE, GRONINGEN, Zomer vol misdaad\". `ACT_TRAILER` bevat alleen fietsers, een postbode, een meeuw en de Escapade; `openingActs` geeft alleen regels door. Daarnaast start een nieuw spel op 17:30 terwijl C00.1 zonsopgang en C00.2 ochtend zeggen.\n\n**Waar:** `story.js:492,496-533`, `cutscenes.js:39-76,251-259`, `docs/verhaal/nieuw/09-script-akte1.md:6-13,39`, `daynight.js:13` (`START_HOUR = 17.5`).\n\n**Fix:** voeg de trailerbeelden en kaarten toe (of hergebruik de opgenomen montage, zie #717), zet de klok op dageraad vóór act 1 en laat hem daarna naar de ochtend lopen; anker de acts apart (zie #718).\n\n**Raakt:** #717 (montage), #718 (anker/bailout), #734 (F18 klok).\n\n**Bron:** `02-verhaal-scenes.md` F2 (Hoog)."
+    },
+    {
+      "title": "M21.4 is een dode scène: Tammo's dieptepunt komt niet in beeld",
+      "labels": ["bug", "impact-hoog", "kosten-S"],
+      "status": "Bugs",
+      "body": "**Wat:** de 59 s-scène \"Tammo, de vrienden\" (Tinus' schuur) staat in het script en in `STEPS.scenes`, maar `M21.4` wordt nergens aangeroepen; de Tammo-stage is een lege `scene` met keuzepaneel. Het dieptepunt (beiden alleen, de vrienden weg) is daardoor niet in beeld; een complete scène staat dood in de data.\n\n**Waar:** `storyarc_nieuw.js:307-308`, `missions_akte4.js:270`, `docs/verhaal/nieuw/09-script-akte4.md:317`.\n\n**Fix:** speel M21.4 als stage-outro van Tammo's deel, of verwijder de scène en neem de beats op in de keuzescène. Kies één; dood gewicht is duurder dan verwijderen.\n\n**Bron:** `02-verhaal-scenes.md` F3 (Hoog)."
+    },
+    {
+      "title": "M20.5 en M21.3 missen de klomp met briefje en de Escapade",
+      "labels": ["bug", "impact-hoog", "kosten-S"],
+      "status": "Bugs",
+      "body": "**Wat:** de regie vraagt een klomp met briefje (`M20.5`) en \"de Escapade staat veilig op de weg. Er ligt weer een klomp op de bijrijdersstoel\" (`M21.3`). Beide specs hebben `props: {}`, dus de speler hoort over de auto en het briefje maar ziet ze niet.\n\n**Waar:** `cutscenes_akte4.js:137-160,391-405`, `docs/verhaal/nieuw/09-script-akte4.md:244,298`.\n\n**Fix:** voeg `klomp`/`briefje` en `escapade` toe met een push-in; hergebruik de props uit M22.2. Controleer met `node scripts/cutscenes_propclip_test.mjs`.\n\n**Bron:** `02-verhaal-scenes.md` F4 (Hoog)."
+    },
+    {
+      "title": "Naamkaarten kloppen niet: Oma in M08.1, Durk & Douwe zonder kaart, Tessa/Tammo in C00.1",
+      "labels": ["bug", "impact-midden", "kosten-S"],
+      "status": "Bugs",
+      "body": "**Wat:** de naamkaarten staan op de verkeerde of geen plek: Oma's `Naamkaart` hangt aan M08.1 (een telefoonregel) in plaats van M08.3 (haar kamer), Durk & Douwe krijgen nergens een kaart (in M02 zitten ze verborgen; hun eerste zichtbare optreden is M10.1) en de Tessa/Tammo-kaarten uit C00.1 worden niet aangestuurd. Dat botst met de regel \"naamkaart bij de eerste ontmoeting\".\n\n**Waar:** `storytext.js:75-113`, `cutscenes_akte1.js:159-160,172`, `.specs-fire/standards/verhaal.md:78-81,104-105`, C00.1-regie.\n\n**Fix:** Oma-kaart naar M08.3, tweelingkaart in M10.1, openingkaarten via de bestaande `fx: 'naam'`-route (`cutscenehost.js:285-287`). Voeg een test toe die per personage de eerste zichtbare scène en de kaart vergelijkt.\n\n**Bron:** `02-verhaal-scenes.md` F5 (Midden)."
+    },
+    {
+      "title": "M11.5/M11.6: de nachtscène op de zandplaat heeft geen eigen regie",
+      "labels": ["wens", "impact-midden", "kosten-M"],
+      "status": "Wensen",
+      "body": "**Wat:** de 58 s nachtscène (Melkweg, \"de lange blik\") draait op de generieke `deckCam`-drift langs de scheepshuid. Geen sterren, geen zandplaat, geen close op de blik — een van de weinige romantische keerpunten is niet geregisseerd.\n\n**Waar:** `docs/verhaal/nieuw/09-script-akte2.md:260,271`, `cutscenes_akte2.js:8` (geen spec), `missions.js:3346`.\n\n**Fix:** schrijf een spec (Melkweg, zand, handen/gezichten) of hergebruik `playDeckMoment` met een zandplaat-anker en een sunset/night-shot. M11.3 (chocoladebal) heeft hetzelfde probleem, maar is korter en heeft een handmatige prop.\n\n**Bron:** `02-verhaal-scenes.md` F6 (Midden)."
+    },
+    {
+      "title": "M18.3: 54 s logboek-uitleg als talk tijdens de sluipstage",
+      "labels": ["bug", "impact-midden", "kosten-S"],
+      "status": "Bugs",
+      "body": "**Wat:** twaalf regels logboek-uitleg (de centrale clue over Jelle) worden als `talk` met `delay: 1` afgespeeld tijdens de stealth-stage. De speler kan de onthulling missen; het is een data-readout, geen gesprek.\n\n**Waar:** `missions_akte4.js:136`, `docs/verhaal/nieuw/09-script-akte4.md:82`.\n\n**Fix:** maak er een app/telefoonmoment of een korte scène ná de heist van, of blokkeer de stage even voor de clue (zoals andere missies een `hold` doen).\n\n**Bron:** `02-verhaal-scenes.md` F7 (Midden)."
+    },
+    {
+      "title": "Vijf te lange tekstscènes: M01 105 s, M16 96 s, M03/M08 85 s, M26 77 s",
+      "labels": ["wens", "impact-midden", "kosten-M"],
+      "status": "Wensen",
+      "body": "**Wat:** vijf scènes zijn te lang voor hun plek in het tempo: M01.intro (105 s, 23 regels, vóór de eerste gameplay), M16.outro (96 s, vier scènes op twee locaties), M03.outro (85 s, 17 regels na de wachtrijpuzzel), M08.outro (85 s, 21 regels exposition in één kamer) en M26.intro (77 s, juryregels vlak voor de wedstrijd). `BALANS-TEMPO.md:243-253` telt alleen M01 en M16 boven 90 s.\n\n**Waar:** `docs/verhaal/BALANS-TEMPO.md:243-253`, `09-script-akte1.md`/`09-script-akte3.md`, `cutscenes_akte1.js`/`cutscenes_akte2.js`/`cutscenes_akte4.js`.\n\n**Fix:** splitsen/inkorten: M01's complimentenladder naar latere banter, M16 splitsen (zie aparte M16-outro-issue), M03/M08 exposition deels naar app/kaart, M26 juryregels naar de telefoon of de jurytafel. Meet daarna opnieuw met `BALANS-TEMPO.md`.\n\n**Bron:** `02-verhaal-scenes.md` F8 (Midden)."
+    },
+    {
+      "title": "`stage`-parameter wordt genegeerd in playStoryIntro/Outro",
+      "labels": ["bug", "impact-midden", "kosten-S"],
+      "status": "Bugs",
+      "body": "**Wat:** `startMission` geeft `storyStage(i)` mee, maar `playStoryIntro` zet `stage = i` en `playStoryOutro` doet hetzelfde. Een missie die buiten de verhaallijn is gestart (replay, vrije volgorde) speelt dus altijd de volledige intro/outro in plaats van de korte/herhaalvariant.\n\n**Waar:** `missions.js:1815`, `missionstory.js:1308` (intro), `missionstory.js:1344` (outro).\n\n**Fix:** geef de meegegeven stage door aan de scènekeuze (de `quickScene`/replay-varianten bestaan al) en test met een missie die je vanuit het Activiteiten-menu opnieuw start.\n\n**Bron:** `02-verhaal-scenes.md` §4.6."
+    }
+  ]
+}

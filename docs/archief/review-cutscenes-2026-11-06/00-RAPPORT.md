@@ -10,9 +10,9 @@ geen GitHub-issues, `.env` niet gelezen.
 
 Deelrapporten (in deze map):
 
-Op verzoek van de eigenaar zijn de bevindingen omgezet in **32 GitHub-issues (#704-#734 en #736)**, met
-de labels `bug`/`wens`, één impact- en één kostenlabel, en op project 5 in de kolommen **Bugs** en
-**Wensen** gezet.
+Op verzoek van de eigenaar zijn de bevindingen omgezet in **41 GitHub-issues (#704-#734 en
+#736-#745)**, met de labels `bug`/`wens`, één impact- en één kostenlabel, en op project 5 in de
+kolommen **Bugs** en **Wensen** gezet.
 
 | Rapport | Onderwerp |
 |---|---|
@@ -225,27 +225,50 @@ De verhouding is scheef: de **beleefde** scènes (missie-intro's/outro's) zijn g
 
 ## 6. Verhaal- en missiescènes
 
-De inventaris (207 narratieve scènes, 169 script-id's) laat zien dat de **vorm** klopt: elke missie
-heeft een intro, de meeste een outro, en er zijn 34 scènes binnen missies. De zwakke plekken zitten
-in de details:
+De inventaris (deelreview 02, nu definitief) telt **30 missies, 166 missiescènes (169 script-id's
+inclusief C00.1-C00.3), 207 narratieve scènes, 89 staging-specs en ~98 min leestijd**. Elke missie
+heeft een intro-spec; 25 hebben er ook een outro. De vorm klopt dus; de zwakke plekken zitten in de
+details.
 
-- **Vijf missies hebben geen eigen outro-spec** (M06, M10, M21, M22, M24). Ze hebben wel in-missie-
-  regie (M06.3, M21.3/M21.6, M22.2/M22.4, M24.3), dus het is de vraag of dit bewust is; zo niet, dan
-  is dat de eerste plek om te controleren.
-- **Herhaling van vorm**: vrijwel elke missie-intro is "twee mensen + één NPC + orbit/dolly", en de
-  regels zijn vaak uitleg ("Jelle haalt vandaag in Veendam…"). De beste scènes (keuken, verhuisdag,
-  Oud-Oost) zijn de scènes waar iets *gebeurt*. Voor nieuwe scènes: één handeling per scène
-  (iemand loopt weg, een deur gaat open, een vlag valt) in plaats van één gesprek.
-- **Lange scènes zonder eigen regie**: in de inventaris staan scènes van 60-107 s die als kaart/tekst
-  kunnen afgaan (C00.2 = 107 s, E2 = 96 s, M03.2 = 89 s, M03.4 = 84 s, M08.3 = 84 s, M20.5 = 81 s,
-  M30.1 = 76 s). Niet allemaal zijn het cutscenes (radio, app, banter), maar elke scène boven de
-  ~60 s met alleen tekst is een kandidaat om te splitsen of te regisseren. Deelreview 02 toetst dit
-  per scène; de cijfers hierboven komen uit de inventaris.
-- **De openingsmontage** (C00.1, ingesproken) is de best geschreven opening van het spel en wordt
-  niet gebruikt (§5 van de samenvatting). Hergebruik hem als C00.1 (en laat de straatact van
-  `ACT_TRAILER` vervallen), of verwijder `intromontage.js` en de verwijzingen.
-- **Constitutie**: de teksten die ik zag zijn Nederlands, de personages verzonnen, "Grunn" staat
-  zonder "de", en de grappen zijn satire zonder leed. Geen schendingen gevonden in de scène-data.
+**Vijf missies zonder outro-spec — nu beoordeeld:**
+- **M06 en M10: bewust, zwak.** M06 heeft M06.3 plus radio/escape-talk en alleen de pass-banner; M10
+  heeft een handgemaakte fierljep-scène en optionele banter.
+- **M21: een gat.** Tessa's deel eindigt met M21.3/M21.6; Tammo's deel is een lege `scene` met
+  keuzepaneel. **M21.4 (59 s) staat in het script en in `STEPS.scenes` maar wordt nergens gespeeld**
+  — het dieptepunt (de vrienden weg) is niet in beeld (#739).
+- **M22 en M24: bewust.** M22.4 (schuur/knuffel) en M24.3 (de vlag valt) zijn in-missie-stages, niet
+  als outro gekeyd.
+
+**De vier "lange scènes zonder eigen regie" zijn géén gaten** (eerdere aanname gecorrigeerd):
+M03.4/M08.3/M20.5/M30.1 vallen onder `M03.outro`, `M08.outro`, `M20.outro` en `M30.intro`. Het
+probleem is lengte, niet dekking.
+
+**Wat er echt mist of fout is (met issue):**
+- **M16-outro (#737):** één kermis-spec volgt alle vier de scènes, maar M16.6 is de dijk bij
+  Blauwestad bij zonsondergang. Plek, water en dagdeel kloppen niet.
+- **M00-opening (#738):** de trailerbeelden (zon op d'Olle Grieze, werkboot met fiets, meeuw met
+  frikandel), de naamkaarten TESSA/TAMMO en de titelkaart ontbreken; de klok start op 17:30 terwijl
+  de regie zonsopgang/ochtend zegt; alle acts hangen aan de spelerpositie en de 40 s-bailout kan de
+  opening overslaan (zie ook #717/#718).
+- **M21.4 (#739):** dode scène; Tammo's dieptepunt niet in beeld.
+- **M20.5/M21.3 (#740):** de klomp met briefje en de Escapade ontbreken als prop; de tekst vertelt
+  wat de speler niet ziet.
+- **Naamkaarten (#741):** Oma's kaart hangt aan M08.1 (telefoon) in plaats van M08.3 (haar kamer),
+  Durk & Douwe krijgen geen kaart, Tessa/Tammo's C00.1-kaarten worden niet aangestuurd.
+- **M11.5/M11.6 (#742):** de 58 s nachtscène op de zandplaat draait op de generieke `deckCam`-drift;
+  geen sterren, geen close op de "lange blik".
+- **M18.3 (#743):** 54 s logboek-uitleg als `talk` tijdens de stealth-stage; de centrale clue kan
+  gemist worden.
+- **Te lange tekstscènes (#744):** M01.intro 105 s, M16.outro 96 s, M03/M08-outro 85 s en M26.intro
+  77 s.
+- **`stage`-parameter genegeerd (#745):** een missie die buiten de verhaallijn start, speelt altijd de
+  volledige intro/outro.
+
+**Twee algemene punten blijven staan:** de vorm is vaak "twee mensen + één NPC + orbit/dolly" met
+uitleg in plaats van handeling — de beste scènes (keuken, verhuisdag, Oud-Oost) zijn de scènes waar
+iets *gebeurt*; en de opgenomen openingsmontage is nog steeds onbereikbaar (#717).
+**Constitutie:** de teksten zijn Nederlands, de personages verzonnen, "Grunn" staat zonder "de", en de
+grappen zijn satire zonder leed — geen schendingen gevonden.
 
 ## 7. Samen spelen (samengevat uit 04)
 
@@ -365,7 +388,9 @@ Naast de 30 punten hierboven leverde deelreview 01 nog een kritieke vondst en vi
 snelheids-/race-/duifpoorten), **#733** (stemmenbank laadt zonder retry) en **#734** (bundel met de
 resterende 14 midden- en 2 laagpunten uit 01). Uit de wijk-scène-ontwerp-review kwam daar **#736**
 bij: geliefde buurten (Oosterparkwijk, Korrewegwijk, Selwerd, …) zijn met 0-1 taken niet veroverbaar,
-terwijl juist daar de emotionele scènes horen.
+terwijl juist daar de emotionele scènes horen. De verhaal-review leverde ten slotte **#737-#745** op:
+M16-outro, M00-opening, de dode M21.4, missende props, naamkaarten, M11.5/6, M18.3, te lange
+tekstscènes en de genegeerde `stage`-parameter.
 
 | # | Sev | Issue | Bewijs | Fix | Labels |
 |---|---|---|---|---|---|
@@ -430,12 +455,11 @@ terwijl juist daar de emotionele scènes horen.
 - **Niet runtime getest:** geen Electron, geen spel, geen netwerk, geen volledige suite, geen
   releasebouw. Alles wat met waarneming te maken heeft (staan de balken goed, hoort de gast dezelfde
   stem, is de HUD echt bedekt) is uit code/CSS afgeleid.
-- **Deelreview 02 (verhaal) heeft geen eindrapport opgeleverd:** de reviewer is gefaald; een tweede,
-  begrensde reviewer is gestart en levert mogelijk later `02-verhaal-scenes.md`. Tot die er is, is
-  §6 dekkend op mijn eigen lezing plus de inventaris, maar de systematische scène-voor-scène-audit
-  van alle 89 staging-specs en de volledige verhaal-/continuïteitsanalyse per akte ontbreken. De
-  inventariscijfers (207 scènes, 101 min, 44% zonder eigen regie) komen uit de tussenstand van de
-  eerste reviewer en zijn niet in een eindrapport verantwoord.
+- **Deelreview 02 (verhaal) is aangeleverd** (`02-verhaal-scenes.md`, 8 bevindingen: 4 Hoog en 4
+  Midden), na een eerste gefaalde poging. Daarmee zijn de scène-inventaris per akte, de beoordeling
+  van de vijf missies zonder outro, de vier "lange scènes zonder regie" (géén gaten) en de
+  continuïteit van opening/finale gedekt. Wat blijft: de durées zijn leestijd uit `script.json`, niet
+  uit een run; niet alle 207 scènes zijn volledig gelezen (M12-M15 en M23-M30 steekproefsgewijs).
 - **Deelreview 01 (regie/techniek) is wél aangeleverd** (`01-regie-techniek.md`, 20 bevindingen) en
   de kritieke vondst is door de Lead onafhankelijk in `main.js`/`cinematics.js` gecontroleerd.
 - **Niet in beeld gezien:** de wereldtegels (`game/world/` is lokaal niet gebouwd), dus geen echte
