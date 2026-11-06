@@ -181,9 +181,11 @@ van (`game/js/audio/scenario.js:127`).
 
 **Regels.** Prestaties staan in `gde-prestaties-v1` (`storagekeys.js:27`); tellers lopen via
 `recordStat` (`game/js/achievements.js:445`) en de gate (`:379`) zet ze stil bij een streek. Vier
-presets: laag, middel, vlot en hoog (`game/js/gfxprofile.js:9`). Automatische kwaliteit beoordeelt
-elke seconde op de mediaan, traag boven 27 ms (`:271`), schaalt de resolutie tot 50% (`:270`) en kent
-cpuniveau 0 tot 3 (`:273`); `simload.js` volgt dat niveau voor verkeer en voetgangers.
+presets: laag, middel, vlot en hoog (`game/js/gfxprofile.js:10`). Automatische kwaliteit beoordeelt
+elke seconde op de mediaan, traag boven 27 ms (`:282`), schaalt de resolutie tot 50% (`:281`) en kent
+cpuniveau 0 tot 3 (`:284`); `simload.js` volgt dat niveau voor verkeer en voetgangers. Het bewuste
+wachten van de zuinige modus telt daarbij niet mee (`capIdleMs` in `game/js/framecap.js`, #561), zodat
+30 fps op een snelle machine geen resolutieverlies oplevert.
 
 **Bestanden.** `achievements.js`, `gfxprofile.js`, `simload.js`, `viewdist.js`, `settings.js`.
 

@@ -48,7 +48,7 @@ import { initGamepad } from './gamepad.js';
 import { initPadKeyboard } from './padkeyboard.js';
 import { initTextFields } from './textfield.js';
 import { initInputDevice } from './inputdevice.js';
-import { skipFrame } from './framecap.js';
+import { skipFrame, frameWorkMs } from './framecap.js';
 import { initTouch } from './touch.js';
 import { initGlyphs } from './glyphs.js';
 import { initA11y } from './a11y.js';
@@ -605,10 +605,13 @@ async function boot() {
   const tileFollow = {};
   let pedTimer = 0;
   function frame(now) {
-    if (getSettings().zuinig && skipFrame(now - last)) { requestAnimationFrame(frame); return; }
+    const zuinig = getSettings().zuinig;
+    if (zuinig && skipFrame(now - last)) { requestAnimationFrame(frame); return; }
     const frameMs = now - last;
     const dt = Math.min(0.05, frameMs / 1000);
-    laatsteFrameMs = frameMs;
+    // Het bewuste wachten van de zuinige modus is geen traag beeld (#561): de adaptieve kwaliteit
+    // (noteFrame doet dezelfde aftrek) en het tegelbudget mogen de cap niet als GPU-drukte lezen.
+    laatsteFrameMs = frameWorkMs(frameMs, zuinig);
     last = now;
     probe.begin(now);
     const t0 = performance.now();

@@ -5,6 +5,7 @@ import { getSettings, setSetting } from './settings.js';
 import { DRAW_DISTANCE_LABELS } from './viewdist.js';
 import { KEYS } from './storagekeys.js';
 import { FLAGS } from './devflags.js';
+import { frameWorkMs } from './framecap.js';
 
 export const GFX_PRESETS = {
   laag: { quality: 'laag', shadows: false, drawDistance: 'kort', resolution: 0.75, autoResolution: true },
@@ -270,7 +271,9 @@ export function startGfxAdvisor(gl) {
 // With autoResolution on, sustained slow frames step the view down and a
 // long run of good ones steps it back up. Each second is judged by its
 // median frame time and median main-thread time, so hitches (streaming, GC,
-// a worker burst) never count. GPU-bound (the frame much longer than the
+// a worker burst) never count. The deliberate wait of the frame cap (Zuinige
+// modus, #96) is subtracted first (#561): 30 fps on a 60 Hz screen is the cap
+// holding the frame back, not a slow GPU. GPU-bound (the frame much longer than the
 // main thread's work, for at least two seconds; three on Hoog): render scale,
 // down to 60%. CPU-bound: cpuLevel 1-2, fewer facade details and a shadow
 // map every other frame (scene3d.js). A step back up that has to be undone
@@ -391,7 +394,8 @@ function notePerfFrame(ms, cpuMs) {
 // something changed.
 export function noteFrame(ms, cpuMs) {
   if (perfCounterOn()) notePerfFrame(ms, cpuMs);
-  if (!getSettings().autoResolution) {
+  const st = getSettings();
+  if (!st.autoResolution) {
     if (dyn.scale === 1 && dyn.cpuLevel === 0) return false;
     dyn.scale = 1; dyn.cpuLevel = 0;
     return true;
@@ -400,15 +404,17 @@ export function noteFrame(ms, cpuMs) {
   // a frame past 250 ms is a hitch (or a hidden window) to the judgement, but a machine that only manages 3 fps must still be seen as slow:
   // it counts as 250 (each second is judged by its median, so single hitches do not move it)
   ms = Math.min(ms, 250); cpuMs = Math.min(cpuMs, 250);
+  // Zuinige modus (#96): het bewuste wachten van de frame-cap telt niet als traag beeld (#561).
+  const meetMs = frameWorkMs(ms, !!st.zuinig);
   dyn.now += ms;
   if (dyn.cool > 0) { dyn.cool -= ms; return false; }
-  dyn.ms.push(ms); dyn.cpu.push(cpuMs); dyn.sum += ms;
+  dyn.ms.push(meetMs); dyn.cpu.push(cpuMs); dyn.sum += meetMs;
   if (dyn.sum < 1000) return false;
   const med = median(dyn.ms), cpu = median(dyn.cpu);
   dyn.ms = []; dyn.cpu = []; dyn.sum = 0;
   const was = dyn.scale + dyn.cpuLevel * 10;
   const gpuBound = med - cpu > Math.max(6, med * 0.35);
-  const hoog = getSettings().quality === 'hoog';
+  const hoog = st.quality === 'hoog';
   if (med > SLOW_MS) {
     dyn.good = 0;
     // far over budget (a weak machine): each such second counts double, so the steps come twice as fast
