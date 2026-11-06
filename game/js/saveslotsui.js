@@ -25,6 +25,8 @@ const DESKTOP = typeof window !== 'undefined' && window.gdeDesktop && window.gde
 const NAME_PRESETS = ['Hoofdspel', 'Proefrit', 'Voor de missie', 'Veilig', 'Zomerrit', 'Reservekopie'];
 // #564: het spel dat je nu speelt kan niet weg: de autosave zou de verwijderde plek meteen weer aanmaken.
 const NU_SPEL_NIET_WEG = 'Dit is het spel dat je nu speelt. Speel eerst een ander spel om het te kunnen verwijderen.';
+// #565: een gast bewaart zijn eigen verdiensten in de save die hij al heeft; een lege plek kan hij niet vullen.
+const GAST_LEGE_PLEK_TEKST = 'Een lege plek kan een gast niet vullen: je verdiensten worden in je eigen opgeslagen spel bewaard. Kies een bestaand opgeslagen spel.';
 
 let rootEl = null;
 
@@ -129,6 +131,9 @@ export function openSaveSlots(opts = {}) {
   // #564: de plek waaraan deze sessie gebonden is (currentSlot) is het spel dat nu loopt; verwijderen zou
   // niets opleveren, want de autosave schrijft hem meteen weer.
   const spelDatNuLoopt = (s) => mode === 'game' && !opts.pick && !!s && s.n === currentSlot();
+  // #565: een gast speelt in de wereld van de gastheer en bewaart alleen zijn eigen verdiensten in zijn
+  // eigen save; een lege plek zou een dode schrijfplek zijn waar elke checkpoint op stukloopt.
+  const gastInSessie = () => !!(world && world.coopRole === 'client' && coopSessieLoopt(world));
 
   const mi = (act, ic, label, extra = '') => `<button type="button" class="ssl-mi${extra}" role="menuitem" data-grp="menu" data-do="${act}">${svg(IC[ic])}<span>${label}</span></button>`;
 
@@ -238,7 +243,8 @@ export function openSaveSlots(opts = {}) {
     const byN = new Map(slots.map((s) => [s.n, s]));
     const tiles = [];
     // the games there are, then one empty card: the other empty places stay out of sight (calm)
-    let emptyShown = solo;
+    // #565: een gast ziet geen lege kaart: die kan hij niet vullen.
+    let emptyShown = solo || gastInSessie();
     if (solo) tiles.push(newCard(S.freeSlot(null), slots.find((s) => s.active)));
     for (let n = 1; n <= MAX_SLOTS; n++) {
       if (byN.has(n)) tiles.push(card(byN.get(n)));
@@ -297,10 +303,22 @@ export function openSaveSlots(opts = {}) {
     if (act === 'new') {
       if (mode === 'start') { close(() => { if (opts.onNew) opts.onNew(); }); return; }
       if (world && world.pigeonMode) { say('Je bent een duif. Stop de duif-modus om op te slaan.'); return; }
+      // #565: een gast bewaart alleen in een bestaand opgeslagen spel; een lege plek wordt een dode
+      // schrijfplek omdat zijn eigen save al bestaat.
+      if (gastInSessie()) { say(GAST_LEGE_PLEK_TEKST); return; }
+      const was = S.activeSlot();
       const m = S.freeSlot() ? S.createSlot(null, '', want) : 0;
       if (!m) { say('Alle plekken zijn in gebruik.'); return; }
       bindSlot();
-      if (!saveGame(world, { toast: false, manual: true })) { S.deleteSlot(null, m); say('Opslaan mislukt.'); return; }
+      if (!saveGame(world, { toast: false, manual: true })) {
+        // de nieuwe plek gaat weer weg en de oude actieve plek (en de schrijfplek) komt terug
+        S.deleteSlot(null, m);
+        S.setActive(null, was);
+        bindSlot();
+        say('Opslaan mislukt.');
+        render();
+        return;
+      }
       sel = m; message = 'Opgeslagen.'; render({ slot: m });
       return;
     }
