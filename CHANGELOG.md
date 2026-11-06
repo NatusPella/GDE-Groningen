@@ -4,25 +4,13 @@ Alle noemenswaardige wijzigingen in GDE Groningen, per versie. Nieuwste bovenaan
 Versies volgen SemVer: `0.x.y` tot de echte release (1.0.0); `x` voor
 nieuwe functies, `y` voor alleen bugfixes.
 
-## [Unreleased]
-
-- (nog niets)
-
-## [0.57.0] - 2026-11-06
+## [Unreleased]`n`n## [0.57.0] - 2026-11-06
 
 - **Alleen spelen is een sessie van één (#554).** Elke start is nu een sessie waarin je zelf de opening doet: alleen spelen draait dezelfde code als Samen spelen, met alleen plek 0, zonder andere spelers, aankondiging of poort. Open je Samen spelen, dan stopt die sessie en neemt het Samen-scherm het over. Zonder andere spelers slaat de hostlus foci, figuren, hostView en snapshots over, zodat dit geen netwerkwerk per frame kost. Besluit van de eigenaar (6-11), draait #486 om.
 
-- **Solo doet geen multiplayer-werk.** De politie-doelwitkeuze maakte ook zonder sessie elk frame een array en een Object.entries(); nu slaat hij dat over als er geen coop-wanted is. Alleen als je een sessie opent draait de netwerklaag (#553).
+- **Solo doet geen multiplayer-werk.** De politie-doelwitkeuze maakte ook zonder sessie elk frame een array en een Object.entries(); nu slaat hij dat over als er geen coop-wanted is. Alleen als je een sessie opent draait de netwerklaag (#553).`n`n## [0.56.1] - 2026-11-06
 
-- (nog niets)
-
-## [0.56.1] - 2026-11-06
-
-- **Minder CPU-werk per frame zonder beeldverlies.** De wegenlaag wordt niet meer elke frame opnieuw bevraagd en vergeleken als de speler stil staat en er geen brug open is; gebouwen krijgen een bevroren modelmatrix omdat ze niet bewegen. Beide leveren dezelfde beelden op, met minder allocaties en matrixwerk per frame (#553).
-
-- (nog niets)
-
-## [0.56.0] - 2026-11-06
+- **Minder CPU-werk per frame zonder beeldverlies.** De wegenlaag wordt niet meer elke frame opnieuw bevraagd en vergeleken als de speler stil staat en er geen brug open is; gebouwen krijgen een bevroren modelmatrix omdat ze niet bewegen. Beide leveren dezelfde beelden op, met minder allocaties en matrixwerk per frame (#553).`n`n## [0.56.0] - 2026-11-06
 
 - **Fiets- en stepronde in het skatepark (#537).** Rijd op je eigen fiets of step naar de ingang van het skatepark en druk E: een minuut lang tellen wheelies (meters), sprongetjes en stoppies, met een medaille en een record. De skateboard-activiteit blijft ernaast bestaan. Regels: `skatefietsrules.js`; test: `skatefiets_test`.
 - **Fietsen leunen de bocht in (#537).** De fiets krijgt een eigen leunregel (`fietsLeun`): in een bocht helt hij mee, met de fietshulp gecapt op 0,28 rad en zonder hulp op 0,45; de vering dempt die leun niet meer weg. Test: `fietsleun_test`.
@@ -36,10 +24,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Een gast haalt het skûtsje ook in (#525).** Bij de bootachtervolging van M11 bepaalt nu de dichtstbijzijnde meespeler de afstand, en elke boot van de groep telt langszij; de achtervolging mislukt dus niet meer omdat wie het spel opende ver weg is. De coop-audit gaat hierdoor van 19 naar 20 van de 30 missies volledig samen.
 - **Een gast leidt de colonne (#525).** Bij de colonnestappen van M23 volgt de stoet nu de meespeler die in de missieauto zit, en de teller "bij elkaar" telt vanaf hem; zonder gast blijft de hoofdspeler de leider. De coop-audit gaat hierdoor van 18 naar 19 van de 30 missies volledig samen. Test: `convoy_test`.
 - **Een gast schudt de politie ook af in de garage (#525).** Bij de garage-stap van M02 kiest de missie nu uit de groep de meespeler met een stilstaande auto in de bay (`garageInside` met een actor), in plaats van alleen de auto van wie het spel opende; die auto krijgt een nieuwe kleur en de politie is hem kwijt. De coop-audit gaat hierdoor van 17 naar 18 van de 30 missies volledig samen. Test: `garage_zone_test`.
-- **Een gast bakt mee aan de eierballen (#525).** Bij de oefenronde in Oma's keuken (M25) en de wedstrijd op de Grote Markt (M26) telt nu de hele groep: staat een gast bij het fornuis of de kraam, dan loopt de bakronde door, ook als wie het spel opende wegloopt. De gast ziet dezelfde ingrediënten (1-6), de eierbal, de stap en het aantal missers, en zijn toets telt als de zijne; de bakstand gaat mee zodat een druk uit een oude stand niet op de volgende ronde landt. Een verkeerde toets van een gast telt als een mis, net als bij wie het spel opende. De coop-audit gaat hierdoor van 15 naar 17 van de 30 missies volledig samen. Tests: `bakeround_test`, `cooppaneel_test`.
-
-
-## [0.55.0] - 2026-11-05
+- **Een gast bakt mee aan de eierballen (#525).** Bij de oefenronde in Oma's keuken (M25) en de wedstrijd op de Grote Markt (M26) telt nu de hele groep: staat een gast bij het fornuis of de kraam, dan loopt de bakronde door, ook als wie het spel opende wegloopt. De gast ziet dezelfde ingrediënten (1-6), de eierbal, de stap en het aantal missers, en zijn toets telt als de zijne; de bakstand gaat mee zodat een druk uit een oude stand niet op de volgende ronde landt. Een verkeerde toets van een gast telt als een mis, net als bij wie het spel opende. De coop-audit gaat hierdoor van 15 naar 17 van de 30 missies volledig samen. Tests: `bakeround_test`, `cooppaneel_test`.`n`n## [0.55.0] - 2026-11-05
 
 - **De klok van een gast springt niet meer terug na een pauze van de ander.** Stond het spel van wie het spel opende stil (pauzemenu, kaart, winkel), dan bleef de klok bij de gast op de oude snelheid doorlopen en sprong hij bij het hervatten minuten terug. De gast rekent nu hoogstens één melding vooruit en staat stil zodra de ander stil staat (#520).
 - **Samen spelen begint met één hub van drie stappen.** Escape > Spel > Samen spelen opent nu eerst de vraag *waar* je speelt (meedoen met een openbare sessie, zelf openen, of besloten), met daaronder wat de keuze doet. De bestaande wachtkamer, het spelersoverzicht en het kamercodescherm blijven erachter zitten en worden met die keuze geopend; Terug en Escape komen weer bij die eerste vraag uit in plaats van bij het oude beginscherm met vier knoppen. Escape beëindigt nooit een sessie: daarvoor is er de knop *Ontsnappen naar besloten*. De hub haalt zelf niets op en stuurt niets: de toestemming voor online spel vraag je pas op het aansluitscherm van de wachtkamer, en de hub zegt dat er ook (#527, #528, ADR 0022).
@@ -284,10 +269,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 - Samen spelen (#428): je eigen voertuigen (auto, boten) staan niet meer vast in beeld in de wereld van een ander terwijl je meespeelt; ze gaan opzij en staan er na het verlaten van de sessie weer, ook na het overdragen van het spel.
 - Samen spelen (#434): na het overdragen van het spel toont het paneel Samen spelen bij iedereen de sessie (kamercode voor wie het spel nu draait, Iedereen stoppen of Spel verlaten) en springt het niet meer terug naar het beginscherm.
 - Samen spelen (#434): wie door wie het spel draait uit het spel is gezet ziet de kamercode in de melding en heeft hem klaar staan in het invoervak om opnieuw aan te sluiten.
-- Muis na een menu (#435): sluit je het pauzemenu, de kaart of de winkel met een klik of een toets, dan pakt het spel de muis meteen weer; je hoeft niet eerst nog eens in het spel te klikken. Opent de vraag "nu al spelen?" of het hulpaanbod terwijl je de muis vast hebt, dan komt het pauzemenu er niet meer overheen (je hoefde soms meerdere keren Escape te drukken).
-
-
-## [0.48.0] - 2026-10-24
+- Muis na een menu (#435): sluit je het pauzemenu, de kaart of de winkel met een klik of een toets, dan pakt het spel de muis meteen weer; je hoeft niet eerst nog eens in het spel te klikken. Opent de vraag "nu al spelen?" of het hulpaanbod terwijl je de muis vast hebt, dan komt het pauzemenu er niet meer overheen (je hoefde soms meerdere keren Escape te drukken).`n`n## [0.48.0] - 2026-10-24
 
 ### Nieuw
 - Muis omhoog en omlaag voelt nu hetzelfde als links en rechts: met de kijker van het jachtgeweer ging de hoogte te snel en de camera volgde omhoog en omlaag met vertraging.
@@ -727,10 +709,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Kleine tekst op het telefoonscherm, de kraakkaart en de heist-notitie is iets groter (12 px, voor het kleine scherm van de een handheld; nog niet in beeld bekeken en niet op een echte Deck, Refs #64).**
 - **Stad te voet: 2 tot 3 ms minder CPU-tijd per frame, de 60 fps zijn niet gehaald (#246, beeld-gelijk bedoeld, niet door een mens in beeld bekeken):** de schaduwpas liep door alle ~9000 knopen van de scene; groepen zonder schaduwwerper (terrein, losse wegen, verre LOD) en mensen, voertuigen en dieren buiten het schaduwbereik doen daar niet meer aan mee. Actoren en gebouwen, wegen en water buiten beeld blijven uit de hoofdpas, de schaduwkaart wordt op een rustige straat om het andere frame bijgewerkt (de schaduw van iets dat beweegt loopt dan een frame achter), de wielen van voertuigen buiten beeld krijgen geen dubbele matrixupdate, terreintegels worden per twee bij twee samengevoegd en `syncBuildings`, de verre LOD en de voertuig-gebouwbotsingen doen in rust niets of minder. Gemeten op de echte videokaart met varianten die in één proces afwisselen (16 vensters van 4 s; CPU-tijd van de hoofdthread per frame): alles aan tegen alles uit 31,4 tegen 33,7 ms staand en 36,6 tegen 40,4 ms lopend (mediaan van het verschil per paar 3,5 en 3,4 ms, 9 tot 10%); vijf van zulke runs geven 1,2 tot 3,6 ms. Matrixwandelingen per frame -21% staand en -34% lopend, frustumtests -20%. Controle dat niets dat zichtbaar is wordt weggelaten: 0 missers in 431.662 controles van afgekapte actoren en groepen en 11,9 miljoen controles van groepen buiten de schaduwpas. Machine niet leeg tijdens het meten, dus op een rustige pc is de winst ongeveer 1,5 tot 2 ms. Tellers en tabellen: `docs/PERF-METING-2026-10-19.md` Vervolg 7; `?perfoff=<stap>` zet een stap uit voor een A/B.
 - **Alle kaarticons opnieuw ontworpen (#180, #92; in Electron bekeken op minimap en grote kaart in stad, dorp en Ommeland, dag en nacht, niet door de eigenaar):** elke plek is een badge met een eigen vorm per soort naast de kleur (zorg een rode cirkel, politie een blauw schild, garage een zeshoek, station een paarse afgeronde balk, bijbaan een ruit, winkel een roze vierkant, activiteit een groene cirkel), een groter symbool in crème of donker, een lichtere rand, een zachte schaduw en een dunne lichte lijn voor contrast op elke ondergrond. Jij bent een groene pijl met gloed en lichte rand. Zeldzame soorten komen zacht in beeld bij het inzoomen. Een plek kan aanwezig, ontdekt of vergrendeld zijn (nog nergens aangesloten). `scripts/ui/kaarticons_scenes.js` maakt het iconenblad en de kaartbeelden.
-- **Shift+klik op de kaart verplaatst je weer (#180, nog niet in beeld bekeken):** op de grote kaart en de provinciekaart zet shift+klik je op begaanbare grond bij die plek, met je voertuig mee en met dezelfde bewakers als de cheat Overal en nergens (niet tijdens een missie of filmpje, niet met de politie achter je aan, niet op het water). Uit te zetten onder Instellingen › Interface; een regel staat in Hulp.
-
-
-### Opgelost
+- **Shift+klik op de kaart verplaatst je weer (#180, nog niet in beeld bekeken):** op de grote kaart en de provinciekaart zet shift+klik je op begaanbare grond bij die plek, met je voertuig mee en met dezelfde bewakers als de cheat Overal en nergens (niet tijdens een missie of filmpje, niet met de politie achter je aan, niet op het water). Uit te zetten onder Instellingen › Interface; een regel staat in Hulp.`n`n### Opgelost
 - **Suikerbieten naar de fabriek mislukte meteen (#337, door een bot gespeeld, niet door een mens):** de plek lag buiten de geladen wegen, de vrachtwagen stond 100 m weg en de baan eindigde met 'je liet je voertuig staan'. Zonder weg bij de plek start het baantje niet meer half, en de plek verplaatst zich naar de weg zodra die geladen is.
 - **Verkeer op kruispunten in dorpen en gehuchten (nog niet in beeld bekeken):** wegen die met een provinciegebied meekomen kenden geen kruispuntregels voor het verkeer (afslaan, voorrang, route); die doen nu mee. Auto's die elkaar op een kruising kruisen worden uit elkaar geduwd in plaats van in elkaar te blijven staan. In een headless simulatie bij Wildeplaats gaan 70 in plaats van 32 auto's door het kruispunt en blijft overlap alleen kortdurend bestaan (#265).
 - **Samen spelen: een gast die het spel verlaat meldt zich nu af (#310):** de gastheer houdt de plek van Tessa niet meer vast en toont geen wachtscherm meer na een bewuste stop; bij opnieuw aansluiten krijgt de gast zijn plek terug. Alleen lokaal getest.
@@ -3139,21 +3118,4 @@ De eerste versie: alles wat er tot de eerste desktop-release gebouwd is.
 - Standalone desktop-app voor macOS (Apple Silicon en Intel) en Windows,
   volledig offline, standaard op volledig scherm.
 - Voor wie het liever zonder app doet: een ZIP met `START DE GAME.bat` die op
-  Windows zelf Python regelt en de game in de browser opent.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  Windows zelf Python regelt en de game in de browser opent.`n`n`n`n`n`n`n`n`n`n`n`n
