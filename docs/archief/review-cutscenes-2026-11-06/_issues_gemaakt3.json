@@ -1,0 +1,47 @@
+[
+  {
+    "num": 737,
+    "title": "M16-outro: kermis en dijk in één set — verkeerde plek, water en dagdeel",
+    "board": "Bugs"
+  },
+  {
+    "num": 738,
+    "title": "M00-opening: trailerbeelden, naamkaarten en titelkaart ontbreken; klok start op 17:30",
+    "board": "Bugs"
+  },
+  {
+    "num": 739,
+    "title": "M21.4 is een dode scène: Tammo's dieptepunt komt niet in beeld",
+    "board": "Bugs"
+  },
+  {
+    "num": 740,
+    "title": "M20.5 en M21.3 missen de klomp met briefje en de Escapade",
+    "board": "Bugs"
+  },
+  {
+    "num": 741,
+    "title": "Naamkaarten kloppen niet: Oma in M08.1, Durk & Douwe zonder kaart, Tessa/Tammo in C00.1",
+    "board": "Bugs"
+  },
+  {
+    "num": 742,
+    "title": "M11.5/M11.6: de nachtscène op de zandplaat heeft geen eigen regie",
+    "board": "Wensen"
+  },
+  {
+    "num": 743,
+    "title": "M18.3: 54 s logboek-uitleg als talk tijdens de sluipstage",
+    "board": "Bugs"
+  },
+  {
+    "num": 744,
+    "title": "Vijf te lange tekstscènes: M01 105 s, M16 96 s, M03/M08 85 s, M26 77 s",
+    "board": "Wensen"
+  },
+  {
+    "num": 745,
+    "title": "`stage`-parameter wordt genegeerd in playStoryIntro/Outro",
+    "board": "Bugs"
+  }
+]

@@ -138,6 +138,16 @@ import { gameBusy } from './busy.js';
 // Classic third-person follow camera. World mapping: three.x = world.x,
 // three.z = world.y, three.y = up (meters, roughly 3m per building level).
 
+// De wateren die getekend worden: van de gepinde stad zonder de tweeling die een meer twee keer mapt
+// (#231; tileworld.js fromTiles zet die in map.duplicateWater: het gestreamde pad laat hem helemaal weg).
+// Alle kaartvragen (waterNear, waterIndexAt, varen) houden beide rijen: alleen het tekenen slaat de
+// dubbel gemapte over, anders wordt hetzelfde water twee keer over elkaar getekend (donkerder en rommelig).
+const waterRows = (map) => (map.duplicateWater ? map.water.filter((w) => !map.duplicateWater.has(w)) : map.water);
+const waterNearDrawn = (map, x, y, r) => {
+  const list = map.waterNear(x, y, r);
+  return map.duplicateWater ? list.filter((w) => !map.duplicateWater.has(w)) : list;
+};
+
 // The night-light pool keeps a fixed number of point/spot lights in every lit
 // shader. A light that is dark (daytime) or out of range contributes exactly
 // zero, so its BRDF evaluation is skipped per fragment instead of summed.
@@ -1018,15 +1028,15 @@ export function init3D(map) {
     terrainMesh = new THREE.Group();
     terrainMesh.material = createTerrainMaterial();
     const group = terrainMesh;
-    const water = map.water.map((w) => ({ pts: w.pts, bounds: w.bounds }));
-    terrainPending = new Promise((done) => runGeo('terrain', { bounds: map.meta.bounds, water }, (T) => {
+    const water = waterRows(map);
+    terrainPending = new Promise((done) => runGeo('terrain', { bounds: map.meta.bounds, water: water.map((w) => ({ pts: w.pts, bounds: w.bounds })) }, (T) => {
       if (T) terrainGroup(T, group);
-      else terrainGroup(terrainArrays(map.meta.bounds, map.water), group);
+      else terrainGroup(terrainArrays(map.meta.bounds, water), group);
       freezeStatic(group);
       done();
     }));
   } else {
-    terrainMesh = buildTerrainMesh3D(map.meta.bounds, map.water);
+    terrainMesh = buildTerrainMesh3D(map.meta.bounds, waterRows(map));
     freezeStatic(terrainMesh);
   }
   scene.add(freezeStatic(terrainMesh));
@@ -2526,7 +2536,7 @@ export function update3D(dt, world) {
   updatePortals(focus.x, focus.y);
   updateGrass(dt, world, cam, DRAW_DIST);
   probe.mark('3d:grass');
-  syncWater(world.map.waterNear(focus.x, focus.y, Math.max(DRAW_DIST, viewDist)), waterMeshes, WATER_Y, world.map, focus.x, focus.y);
+  syncWater(waterNearDrawn(world.map, focus.x, focus.y, Math.max(DRAW_DIST, viewDist)), waterMeshes, WATER_Y, world.map, focus.x, focus.y);
   const waterNight = world.dayNight ? world.dayNight.night : 0;
   updateWaterMaterial(waterMaterial, world.time, world.weather ? world.weather.intensity : 0, waterNight, seaExtra(world));
   updateShore(waterNight, cam);

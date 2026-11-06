@@ -12,6 +12,7 @@ netwerk, geen volledige suite. Dat staat ook eerlijk in `00-RAPPORT.md` §12.
 |---|---|
 | `00-RAPPORT.md` | het eindrapport: samenvatting, inventaris, visuele invulling, logica, flow, Samen spelen, waar scènes missen of te veel zijn, de issue-tabel (C1-C30 + C0), drie golven en de dekking |
 | `01-regie-techniek.md` | deelreview regie/techniek: 20 bevindingen (1 Kritiek, 3 Hoog, 14 Midden, 2 Laag), waaronder de kritieke `pause:true`-vondst (#729) |
+| `02-verhaal-scenes.md` | deelreview verhaal: 8 bevindingen (4 Hoog, 4 Midden), de beoordeling van de vijf missies zonder outro, de inventaris per akte en de continuïteit van opening/finale (#737-#745) |
 | `00-WIJK-VEROVER-FILM.md` | het kernvoorstel: één lange intocht per veroverde wijk (trigger, camera, data-gedreven stops, eenmalig, Samen spelen, codeplan, per-wijk scènes) |
 | `05-wijk-verovering.md` | de harde inventaris van veroverbare wijken (8 bewezen + 23 kandidaten) en het technische raamwerk, met 14 bevindingen |
 | `07-wijk-scenes-ontwerp.md` | acht volledig uitgewerkte intocht-scènes (shots, cast, props, tekst, geluid, techniek) + generieke template; conclusie: geliefde buurten als Oosterparkwijk/Korrewegwijk/Selwerd zijn met 0-1 taken niet veroverbaar (zie #736) en het hoofdstukkenmodel (drie ankers) is het enige nieuwe raamwerkstuk |
@@ -19,17 +20,13 @@ netwerk, geen volledige suite. Dat staat ook eerlijk in `00-RAPPORT.md` §12.
 | `_issues.json` / `_issues2.json` / `_issues_gemaakt*.json` | de issue-teksten en de nummers die op het bord zijn gezet |
 | `_maak_issues.mjs` | het wegwerpscript waarmee de issues zijn aangemaakt en op project 5 gezet |
 
-Deelreview 01 (regie/techniek) is aangeleverd en staat hierboven. Deelreview 02 (verhaal) heeft
-geen eindrapport opgeleverd: de eerste reviewer is gefaald, een tweede begrensde reviewer is gestart
-en levert mogelijk later `02-verhaal-scenes.md`. Tot die er is, is het verhaalonderwerp deels door
-het eindrapport en door 04/05/07 gedekt, maar de systematische scène-voor-scène-audit van alle 89
-staging-specs en de volledige verhaal-/continuïteitsanalyse per akte ontbreken. De inventariscijfers
-(207 scènes, 101 min tekst, 44% zonder eigen regie) komen uit de tussenstand van de eerste reviewer
-en zijn daarom in het eindrapport als "inventaris" en niet als eindconclusie opgenomen.
+Deelreview 01 (regie/techniek) en 02 (verhaal) zijn aangeleverd en staan hierboven. De verhaalreview
+kwam na een eerste gefaalde poging; de durées daarin zijn leestijd uit `script.json` (geen run) en
+niet alle 207 scènes zijn volledig gelezen (M12-M15 en M23-M30 steekproefsgewijs).
 
 ## Waar de bevindingen nu leven
 
-De **32 issues** staan op het bord (project 5 van NatusPella), in de kolommen **Bugs** (bug-issues) en
+De **41 issues** staan op het bord (project 5 van NatusPella), in de kolommen **Bugs** (bug-issues) en
 **Wensen** (wens-issues):
 
 - **#704-#728**: van de epic "Intocht: één lange cutscene per veroverde wijk" (#704) en het
@@ -44,6 +41,9 @@ De **32 issues** staan op het bord (project 5 van NatusPella), in de kolommen **
 - **#736**: de veroverlaag laat geliefde buurten (Oosterparkwijk, Korrewegwijk, Selwerd, …) buiten
   beeld; drie opties (MIN_TAKEN voor buurten op 1, taken toevoegen, of de intocht ook op de
   buurtlaag laten vuren).
+- **#737-#745** (uit deelreview 02): M16-outro (#737), M00-opening (#738), de dode M21.4 (#739), de
+  missende klomp/Escapade-props (#740), de naamkaarten (#741), M11.5/6 zonder regie (#742), M18.3 als
+  54 s talk (#743), de vijf te lange tekstscènes (#744) en de genegeerde `stage`-parameter (#745).
 - Verwante bestaande issues die niet gedupliceerd zijn: #662 (opening comprimeren), #642
   (filmpje-overslaan), #687 (menu pauzeert alleen eigen speler), #676/#608 (Veroverd-UI),
   #581 (verweesde code), #633/#688 (uitjes-presentatie), #644 (ondertitels).
