@@ -16,8 +16,13 @@ Sinds #528 is Samen spelen de standaard, niet iets wat je erbij doet (ADR 0022).
   en de vraag of hij met andere spelers meedoet. Ja of nee, en die keuze blijft bewaard
   in \gde-settings\ als \onlineMeedoen\.
 - **Ja** → het spel zoekt een sessie met ruimte en dezelfde versie en sluit aan; is er
-  geen, dan host het zelf en zet de sessie in de openbare lijst (#438). **Nee** → een
-  besloten sessie van één: niets naar buiten, niets in een lijst, niemand komt binnen.
+  geen, dan host het zelf **besloten** (#556): geen aankondiging en geen plek in de
+  openbare lijst. Openbaar maken doet alleen de host zelf in de lobby, met de
+  #438-melding (`hub.zetOpenbaar`); het bootpad gaat nooit ongevraagd naar buiten.
+  **Nee** → een besloten sessie van één: niets naar buiten, niets in een lijst,
+  niemand komt binnen.
+- **Enter in het naamveld is geen toestemming** (#556): typen + Enter zet alleen de
+  focus op "Meedoen"; de keuze telt pas bij een knop of een tweede, bewuste Enter.
 - **Ontbrekende waarde is geen ja.** Is \onlineMeedoen\ niet gezet, dan vraagt het spel
   het één keer en zoekt het intussen geen contact. Een oude installatie wordt nooit
   stil openbaar.
