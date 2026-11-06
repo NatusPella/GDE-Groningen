@@ -1,6 +1,6 @@
 // De testrunner zelf: indeling van uitkomsten, uitsluitingen en --quick/--list.
 import { spawnSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { classify, EXCLUDED, SLOW, MISSING_DATA } from './run_tests.mjs';
@@ -26,4 +26,14 @@ const all = list([]), quick = list(['--quick']);
 ok(all.length > 50 && quick.length < all.length, `--quick is kleiner (${quick.length} < ${all.length})`);
 ok(!all.includes('province_test.mjs') && !all.includes('run_tests.mjs'), 'lijst bevat geen uitgesloten tests');
 ok(all.includes('run_tests_test.mjs'), 'de runner-test draait zelf mee');
+
+// #593: CI deelt de poorten van de lichte fase en de syntaxcontrole dekt ook .cjs
+const rt = readFileSync(join(HERE, 'run_tests.mjs'), 'utf8');
+const ta = readFileSync(join(HERE, 'test_all.mjs'), 'utf8');
+ok(/\.\(js\|mjs\|cjs\)/.test(rt) && /\.\(js\|mjs\|cjs\)/.test(ta), 'beide runners controleren .js, .mjs en .cjs');
+ok(rt.includes('world_eigenaar.mjs'), 'CI draait world_eigenaar (punt 3)');
+ok(ta.includes("['world_eigenaar', ['scripts/world_eigenaar.mjs']]"), 'de lichte fase draait dezelfde keuring');
+for (const naam of ['import_check', 'undef_check', 'voice_coverage', 'text_audit', 'player_singleton_audit', 'world_eigenaar', 'spec_check']) {
+  ok(rt.includes(`scripts/${naam}.mjs`), `CI deelt de losse controle ${naam} met de lichte fase`);
+}
 process.exit(fails ? 1 : 0);

@@ -91,14 +91,18 @@ AGENTS.md: fasen `licht`, `zwaar` en `electron`, met rapport en trend.
 `scripts/run_tests.mjs` is de snelle selectie die CI draait; hij deelt zijn lijsten
 (`EXCLUDED`, `SLOW`, `MISSING_DATA`, `listFiles`) met `test_all`, zodat CI niets
 anders meet dan de lichte fase. Sinds #482 draait hij ook `undef_check` en
-`text_audit` — de twee poorten die een echte fout vingen die CI miste.
+`text_audit` — de twee poorten die een echte fout vingen die CI miste — en sinds
+#593 ook `world_eigenaar`, de veldkeuring op het gedeelde World uit #498.
 Wat hij niet kent: de zware en de Electron-fase, dode-code-bewaking en het rapport
 met trend. Die draait de coördinator lokaal.
 
 **CI draait** `.github/workflows/test.yml` bij `pull_request` en met de hand
 (niet bij elke push), op Linux en Windows: `npm ci --ignore-scripts`,
 `npm run stage` en `node scripts/run_tests.mjs`, plus drie Python-tests in
-`scripts/world/`. De zware fasen en de verhaaltest draaien lokaal.
+`scripts/world/`. De checkout haalt de volle geschiedenis op (`fetch-depth: 0`),
+zodat de geheimenscan over alle commits echt iets ziet (#593); die stap draait met
+`--require-history` en weigert een shallow kloon. De zware fasen en de
+verhaaltest draaien lokaal.
 
 ## Publicatiestatus
 
@@ -155,7 +159,11 @@ signalering via openbare brokers, alleen na toestemming in het spel. De
 openbare sessielijst is opt-in en toont naam, aantal spelers, versie en
 kamercode, nooit een IP-adres. Er is geen tekstchat en geen spraak. De
 desktopversie laadt na de build niets van internet; de webbuild levert three.js
-en de lettertypen zelf mee.
+en de lettertypen zelf mee. De build controleert dat ook: een externe load-time-URL
+in de stage laat hem falen (#593), en de binnengehaalde three.js en fonts moeten
+exact overeenkomen met de sha256-lock in `desktop/vendor-cache.lock.json` (bewust
+bijwerken met `GDE_UPDATE_VENDOR_LOCK=1`; de font-CSS staat vast in
+`desktop/vendor-fonts.css`).
 
 ### Merken
 

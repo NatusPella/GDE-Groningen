@@ -39,8 +39,8 @@ if (VIDEO) {
     video = { tv, ffmpeg, out: tv.resolveOutput(VIDEO.includes('=') ? VIDEO.slice(VIDEO.indexOf('=') + 1) : null, __dirname) };
   } catch (e) { console.error('[video]', e.message); process.exit(1); }
 }
-// --benchmark[=N] runs the benchmark N times from the title screen, logs every
-// shot's fps / draw calls / GPU memory and quits (throwaway profile)
+// --benchmark[=N] runs the benchmark N times after the boot (the game starts like a player, #581),
+// logs every shot's fps / draw calls / GPU memory and quits (throwaway profile)
 const BENCH = findArg('--benchmark');
 
 // test runs (--stil / --smoke-test) get a throwaway profile, so they never
@@ -62,6 +62,9 @@ function queryParts() {
   return [(silent || storyTest) && 'stil', hasFlag('--audio-graph') && 'audiograf', hasFlag('--coop') && 'coop', hasFlag('--hitch') && 'hitch', hasFlag('--zwartcheck') && 'zwartcheck', hasFlag('--dev') && 'dev', hasFlag('--reizen') && 'reizen', findArg('--autoplay') && (argValue('--autoplay') ? `autoplay=${encodeURIComponent(argValue('--autoplay'))}` : 'autoplay'), storyTest && 'storytest', spotsOnly && 'spotsonly',
     // automated runs never get the first-launch attract intro
     (smoke !== null || storyTest || hasFlag('--perf-test') || findArg('--autoplay')) && !TRAILER && 'noattract',
+    // #581: only the QA scripts that drive the old title screen themselves (GDE_MENU_TEST) still get
+    // it; every other test run starts like the player: boot, then the world
+    process.env.GDE_MENU_TEST && 'menu',
     TRAILER && 'trailer', TRAILER && trailerShot && `shot=${encodeURIComponent(trailerShot)}`, (TRAILER || hasFlag('--trailer-preview')) && trailerCut && `cut=${encodeURIComponent(trailerCut)}`,
     TRAILER && (trailerFrames || video) && 'frames', video && 'video', video && 'stil', hasFlag('--attract') && 'attract', hasFlag('--trailer-preview') && 'preview',
     !TRAILER && BENCH && `benchmark=${argValue('--benchmark') || 1}`,
@@ -188,6 +191,8 @@ function attach(win, { gameDir }) {
           font: document.fonts.check('40px Bebas Neue'),
           desktop: !!window.gdeDesktop, fullscreen: window.gdeDesktop ? window.gdeDesktop.isFullscreen() : null,
           menu: [...document.querySelectorAll('#start-screen .ss-item')].map((e) => e.firstChild && e.firstChild.textContent).join(' | '),
+          started: document.body.classList.contains('game-started'),
+          loading: !!document.querySelector('#loading:not(.done)'),
           pauseButtons: [...document.querySelectorAll('#pause-menu .pm-game [data-action], #pause-menu [data-panel="spel"] [data-action]')].map((b) => b.dataset.action).join(','),
           fullscreenToggle: !!document.querySelector('[data-desktop="fullscreen"]'),
         })`);
@@ -226,14 +231,15 @@ function attach(win, { gameDir }) {
           await win.webContents.executeJavaScript(`(async () => {
             const key = (k, code) => { for (const t of [window, document]) { t.dispatchEvent(new KeyboardEvent('keydown', { key: k, code, bubbles: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: k, code, bubbles: true })); } };
             if (!${JSON.stringify(!!process.env.GDE_MENU_TEST)}) { // GDE_MENU_TEST=1: het script krijgt het hoofdmenu zelf (coöp-testbank --menu)
-            // the menu waits for its gate (world drawn, streaming quiet) and ignores keys before: press Enter until the title screen is gone
-            // (on a loaded machine the game ran under a menu that stayed)
+            // #581: a test run starts like the player (boot → world). Only when the old QA menu is up
+            // (?menu) press Enter until the title screen is gone; otherwise go on as soon as the game runs.
             const ss = document.getElementById('start-screen');
             let seen = false;
             for (let i = 0; i < 60; i++) {
               const up = !!ss && ss.classList.contains('visible');
               if (up) { seen = true; key('Enter', 'Enter'); }
-              await new Promise((r) => setTimeout(r, up ? 2500 : 1000));
+              await new Promise((r) => setTimeout(r, up ? 2500 : 500));
+              if (document.body.classList.contains('game-started') && !up) break;
               if (seen && !ss.classList.contains('visible')) break;
             }
             const w = window.__debug && window.__debug.world;

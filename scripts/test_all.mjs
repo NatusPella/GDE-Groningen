@@ -1,11 +1,15 @@
 // Eén commando dat alles test en een leesbaar rapport maakt (#186, #5, #4). Zie docs/TESTEN.md.
 //   node scripts/test_all.mjs [--fase=licht|zwaar|electron|alles] [--rapport=<map>]
 //        [--only=<tekst>] [--jobs=2] [--test-timeout=120] [--issues [--create]] [--force] [--locks=<map>] [--stage [--cache=<map>]] [--list]
+//        [--allow-skip|--partial]  een bewuste deelrun mag met 0 eindigen ook als er niets geslaagd is
 // Fasen (standaard licht):
 //   licht     module-check, import_check, voice_coverage, text_audit, spec_check, de player-singleton-audit,
 //             dode-code-bewaking en alle scripts/*_test.mjs (met duur en tijdslimiet; import_cycles_test bewaakt de cycli)
 //   zwaar     de wereldchecks en audits (ring_probe, seat_audit, province_test, drive_audit, ...)
 //   electron  smoke-run, verhaaltest, geocheck, spelbot-sweeps en de beeldrondes, met beeldchecks
+// Exitcodes (#593): 0 = minstens één item geslaagd en niets gefaald; 1 = een fout of timeout;
+//   2 = het script crashte; 3 = er is niets gemeten (nul PASS of een gevraagde fase zonder PASS;
+//   een SKIP heet niet geslaagd). --allow-skip/--partial maakt van 3 een 0.
 // Uitvoer in <rapport>/<tijdstempel>/: fase-<naam>.json|md, rapport.json|md (samenvatting bovenaan),
 // issues-concept.md (met --issues). <rapport>/state.json onthoudt de laatste run per fase voor de trend.
 // Standaard <rapport> = %TEMP%/gde-testall (buiten de repo). Schrijft nooit naar echte opslag: de
@@ -89,6 +93,20 @@ function itemUitRes(fase, id, naam, res, ms) {
   return R.maakItem(fase, id, naam, st, res.secs, detail);
 }
 
+// De exitcode van een run (#593): 0 alleen als er iets geslaagd is en niets faalde.
+// 1 = een fout of timeout; 3 = er is niets gemeten (nul PASS, of een gevraagde fase
+// zonder PASS, bijvoorbeeld alle Electron-stappen SKIP of een --only dat niets raakt).
+// --allow-skip/--partial maakt van 3 een 0 voor een bewuste deelrun; de rapportregel
+// "Er is niets gedraaid." blijft dan staan.
+export function eindCode(report, fasen, { allowSkip = false } = {}) {
+  const items = (f) => ((report.fases && report.fases[f] && report.fases[f].items) || []);
+  const alle = fasen.flatMap(items);
+  if (alle.some((i) => R.isFout(i.status))) return 1;
+  const zonderPass = fasen.filter((f) => !items(f).some((i) => i.status === 'PASS'));
+  if (!alle.some((i) => i.status === 'PASS') || zonderPass.length) return allowSkip ? 0 : 3;
+  return 0;
+}
+
 const heeftWereld = () => fs.existsSync(path.join(ROOT, 'game', 'world', 'index-provincie.json'));
 const skip = (fase, id, naam, reden) => R.maakItem(fase, id, naam, 'SKIP', 0, 'niet gedraaid: ' + reden);
 const wilDit = (id) => !ONLY || id.includes(ONLY);
@@ -130,7 +148,7 @@ async function faseLicht(prev) {
   // 1. module-check van alle JS (module-aware, zie lib/syntaxcheck.mjs)
   if (!ONLY || 'module-check'.includes(ONLY) || ONLY === 'module') {
     const t0 = Date.now();
-    const files = ['game', 'scripts', 'desktop', 'web'].filter((d) => fs.existsSync(path.join(ROOT, d))).flatMap((d) => listFiles(path.join(ROOT, d), /\.(js|mjs)$/)).sort();
+    const files = ['game', 'scripts', 'desktop', 'web'].filter((d) => fs.existsSync(path.join(ROOT, d))).flatMap((d) => listFiles(path.join(ROOT, d), /\.(js|mjs|cjs)$/)).sort();
     let bad = 0;
     for (const f of files) {
       const r = checkSyntax(f);
@@ -290,13 +308,35 @@ function electronExe() {
   if (process.env.ELECTRON_EXE) return process.env.ELECTRON_EXE;
   return path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : (process.platform === 'darwin' ? 'Electron.app/Contents/MacOS/Electron' : 'electron'));
 }
+// De geïnstalleerde game heet "GDE Groningen" (productName in desktop/package.json),
+// niet electron.exe; een spelende eigenaar werd daardoor niet herkend (#593).
+export function elektronProcesNamen(platform = process.platform) {
+  if (platform === 'win32') return ['electron.exe', 'GDE Groningen.exe'];
+  return ['electron', 'GDE Groningen'];
+}
 function elektronDraait() {
+  const namen = elektronProcesNamen();
   if (process.platform === 'win32') {
-    const r = spawnSync('powershell', ['-NoProfile', '-Command', "(Get-CimInstance Win32_Process -Filter \"Name='electron.exe'\" | Where-Object { $_.CommandLine -notmatch '--type=' } | Measure-Object).Count"], { encoding: 'utf8' });
+    const filter = namen.map((n) => `Name='${n}'`).join(' OR ');
+    const r = spawnSync('powershell', ['-NoProfile', '-Command', `(Get-CimInstance Win32_Process -Filter "${filter}" | Where-Object { $_.CommandLine -notmatch '--type=' } | Measure-Object).Count`], { encoding: 'utf8' });
     return Number((r.stdout || '').trim()) || 0;
   }
-  const r = spawnSync('pgrep', ['-x', process.platform === 'darwin' ? 'Electron' : 'electron'], { encoding: 'utf8' });
-  return split(r.stdout).filter(Boolean).length;
+  let n = 0;
+  for (const naam of namen) {
+    const r = spawnSync('pgrep', ['-x', naam], { encoding: 'utf8' });
+    n += split(r.stdout).filter(Boolean).length;
+  }
+  return n;
+}
+
+// Waarom de Electron-fase niet start (#593); null = starten. De controle hangt niet
+// meer aan het bestaan van de lockmap: die coördineert alleen test-Electrons, een
+// spelende eigenaar telt altijd (tenzij --force).
+export function elektronStartReden({ exe, exeBestaat, heeftWereld: wereld, draait, force }) {
+  if (!exeBestaat) return `Electron ontbreekt (${exe}); cd desktop && npm install, of zet ELECTRON_EXE`;
+  if (!wereld) return 'game/world ontbreekt (cd desktop && npm run stage)';
+  if (!force && draait > 0) return 'er draait al een Electron-instantie (de eigenaar speelt?); niets is gestart. Gebruik --force om toch te draaien';
+  return null;
 }
 
 // Beeldcheck van alle PNG's in een map. -> items (één samenvatting + één per mislukt of afwijkend beeld)
@@ -332,10 +372,9 @@ function consoleItem(stap, tekst, secs) {
 async function faseElectron(prev, staat) {
   const items = [];
   const exe = electronExe();
-  const reden = !fs.existsSync(exe) ? `Electron ontbreekt (${exe}); cd desktop && npm install, of zet ELECTRON_EXE`
-    : !heeftWereld() ? 'game/world ontbreekt (cd desktop && npm run stage)'
-      : (!flag('force') && !LOCKS && elektronDraait() > 0) ? 'er draait al een Electron-instantie (de eigenaar speelt?); niets is gestart. Gebruik --force om toch te draaien'
-        : null;
+  const exeBestaat = fs.existsSync(exe), wereld = heeftWereld();
+  const draait = !flag('force') && exeBestaat && wereld ? elektronDraait() : 0;
+  const reden = elektronStartReden({ exe, exeBestaat, heeftWereld: wereld, draait, force: flag('force') });
   const STAPPEN = ['smoke', 'wereldpoort', 'verhaaltest', 'geocheck', 'bot-missies', 'bot-minigames', 'qa-provincie-1', 'qa-provincie-2', 'qa-features', 'qa-visueel', 'ui-shots', 'coop'];
   if (reden) { for (const s of STAPPEN.filter(wilDit)) items.push(skip('electron', 'electron:' + s, s, reden)); return { items, sigs: {} }; }
 
@@ -569,8 +608,9 @@ async function main() {
   log('\n' + R.samenvatting(report).map((r) => '* ' + r).join('\n'));
   if (flag('issues')) log(`* Issue-concepten: ${nieuweIssues}${flag('create') ? '' : ' (droge run, --create maakt ze aan)'}.`);
   log(`\nRapport: ${path.join(RUN, 'rapport.md')}`);
-  const alle = fasen.flatMap((f) => report.fases[f].items);
-  return alle.some((i) => R.isFout(i.status)) ? 1 : 0;
+  const code = eindCode(report, fasen, { allowSkip: flag('allow-skip') || flag('partial') });
+  if (code === 3) log('\nEr is niets gemeten (0 geslaagd of een gevraagde fase zonder geslaagd item). Een bewuste deelrun kan met --allow-skip of --partial.');
+  return code;
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {

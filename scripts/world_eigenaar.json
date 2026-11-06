@@ -1365,7 +1365,7 @@
     {
       "veld": "wanted",
       "bestand": "game/js/missions.js",
-      "max": 4,
+      "max": 5,
       "reden": "verhoogt of verlaagt de gezochtheid; police.js bezit alleen het verval",
       "issue": "#498"
     },
@@ -1449,7 +1449,7 @@
     {
       "veld": "wantedDecayTimer",
       "bestand": "game/js/missions.js",
-      "max": 4,
+      "max": 5,
       "reden": "raakt de vervalteller van de politie aan",
       "issue": "#498"
     },
@@ -1560,3 +1560,4 @@
     }
   ]
 }
+

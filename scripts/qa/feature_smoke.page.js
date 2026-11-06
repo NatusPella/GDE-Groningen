@@ -773,6 +773,9 @@ const CHECKS = [
     return { winkels: out, opmerking: 'per type de eerste winkel; het eerste item is gekocht met €5000 op zak; niet beoordeeld: prijzen, voorraad, of het gekochte voertuig of kledingstuk er goed uitziet' };
   } },
   { id: 'titel', issues: [34], run: async () => {
+    // #581: the old title screen only exists in the QA/recording route (?menu, GDE_MENU_TEST); a
+    // normal start and this run go boot → world, so there is no menu to photograph or click.
+    if (!window.__menuStart) return { overgeslagen: 'geen oud titelscherm (#581: de gewone start gaat via de boot)' };
     const SS = await imp('startscreen');
     SS.runStartScreen(w, { render() {}, relocate() {}, tick() {} });
     await sleep(1500);
