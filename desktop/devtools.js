@@ -64,7 +64,7 @@ function queryParts() {
     (smoke !== null || storyTest || hasFlag('--perf-test') || findArg('--autoplay')) && !TRAILER && 'noattract',
     // #581: only the QA scripts that drive the old title screen themselves (GDE_MENU_TEST) still get
     // it; every other test run starts like the player: boot, then the world
-    process.env.GDE_MENU_TEST && 'menu',
+    process.env.GDE_MENU_TEST && 'menutest',
     TRAILER && 'trailer', TRAILER && trailerShot && `shot=${encodeURIComponent(trailerShot)}`, (TRAILER || hasFlag('--trailer-preview')) && trailerCut && `cut=${encodeURIComponent(trailerCut)}`,
     TRAILER && (trailerFrames || video) && 'frames', video && 'video', video && 'stil', hasFlag('--attract') && 'attract', hasFlag('--trailer-preview') && 'preview',
     !TRAILER && BENCH && `benchmark=${argValue('--benchmark') || 1}`,
@@ -232,7 +232,7 @@ function attach(win, { gameDir }) {
             const key = (k, code) => { for (const t of [window, document]) { t.dispatchEvent(new KeyboardEvent('keydown', { key: k, code, bubbles: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: k, code, bubbles: true })); } };
             if (!${JSON.stringify(!!process.env.GDE_MENU_TEST)}) { // GDE_MENU_TEST=1: het script krijgt het hoofdmenu zelf (coöp-testbank --menu)
             // #581: a test run starts like the player (boot → world). Only when the old QA menu is up
-            // (?menu) press Enter until the title screen is gone; otherwise go on as soon as the game runs.
+            // (?menutest) press Enter until the title screen is gone; otherwise go on as soon as the game runs.
             const ss = document.getElementById('start-screen');
             let seen = false;
             for (let i = 0; i < 60; i++) {

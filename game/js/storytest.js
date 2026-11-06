@@ -536,12 +536,16 @@ export async function runStoryTest(world) {
   const capture = (name) => console.log('[storytest-capture] ' + name);
 
   try {
-    // Wacht tot het menu echt klaar is (de poort opent pas als de wereld erachter rustig is);
-    // anders slikt een trage machine de Enter in en test de rest van de run het menu (#553).
-    await waitFor(() => document.querySelector('#start-screen.visible .ss-item'), 180000);
-    await sleep(1500);
-    key('Enter', 'Enter');
-    check('game started', await waitFor(() => document.body.classList.contains('game-started'), 30000));
+    // #581: the story test starts like a player: boot → world. Only in the QA/recording route
+    // (?menutest) the old title screen is up; then press Enter like before (#553: wait until its gate
+    // opened, or a slow machine swallows the key and the rest of the run tests the menu).
+    const ss = document.getElementById('start-screen');
+    if (ss && ss.classList.contains('visible')) {
+      await waitFor(() => document.querySelector('#start-screen.visible .ss-item'), 180000);
+      await sleep(1500);
+      key('Enter', 'Enter');
+    }
+    check('game started', await waitFor(() => document.body.classList.contains('game-started'), 180000));
     await drain(world, 1500);
     world.devInvuln = true;
 

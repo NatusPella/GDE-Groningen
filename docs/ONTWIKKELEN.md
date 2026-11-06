@@ -233,10 +233,10 @@ Debug hooks on `window` (`window.__x`, read by scripts/perf, the story test and 
 | `?autoplay` | Spelbot (#186; `window.__bot.speed(1..8)` of `run.mjs --speed=N` versnelt de speltijd; `run.mjs --reizen` zet de reisbeats aan, de bot kiest dan Meerijden): window.__bot (playerapi.js) levert de spelstatus en neemt acties aan; vaste seed (autoplay=seed), opslag alleen in het geheugen |
 | `?stil` | Geen audio en geen pauze bij verborgen tabblad (testsessies) |
 | `?audiograf` | Met stil: de audiograaf draait wel, maar eindigt in een gedempte uitgang |
-| `?noattract` | Geen aantrekkingsfilmpje op het titelscherm; door naar het menu |
-| `?menu` | Forceer het oude startscherm (QA en opnames); normaal start het spel meteen in de laatste save |
+| `?noattract` | Sla het aantrekkingsfilmpje en de eerste-start-meting over; een testrun start meteen in de wereld |
+| `?menutest` | Houd het oude startscherm voor de QA-harnassen (`GDE_MENU_TEST=1`, devtools zet deze vlag); elke gewone start en elke testrun begint meteen in de wereld |
 | `?attract` | Speel het aantrekkingsfilmpje (trailer.js) |
-| `?perf` | Prestatierun: titelscherm automatisch voorbij |
+| `?perf` | Prestatierun: start meteen in de wereld (geen titelscherm) |
 | `?spotsonly` | Verhaaltest: alleen de plekkenronde |
 | `?trailer` | Trailer-opnamemodus |
 | `?benchmark` | Benchmarkrun; de waarde is het aantal rondes |
