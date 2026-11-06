@@ -6,6 +6,10 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+- (nog niets)
+
+## [0.56.0] - 2026-11-06
+
 - **Fiets- en stepronde in het skatepark (#537).** Rijd op je eigen fiets of step naar de ingang van het skatepark en druk E: een minuut lang tellen wheelies (meters), sprongetjes en stoppies, met een medaille en een record. De skateboard-activiteit blijft ernaast bestaan. Regels: `skatefietsrules.js`; test: `skatefiets_test`.
 - **Fietsen leunen de bocht in (#537).** De fiets krijgt een eigen leunregel (`fietsLeun`): in een bocht helt hij mee, met de fietshulp gecapt op 0,28 rad en zonder hulp op 0,45; de vering dempt die leun niet meer weg. Test: `fietsleun_test`.
 - **Een gast bestuurt de duif (#525).** In de duifmodus van M04 en M24 vliegt een gast: de as, Spatie en Shift komen van zijn invoer, terwijl kijken, stoppen en de camera bij wie het spel opende blijven. De coop-audit gaat hierdoor van 25 naar 27 van de 30 missies volledig samen. Test: `pigeon_sync_test`.
@@ -3122,6 +3126,8 @@ De eerste versie: alles wat er tot de eerste desktop-release gebouwd is.
   volledig offline, standaard op volledig scherm.
 - Voor wie het liever zonder app doet: een ZIP met `START DE GAME.bat` die op
   Windows zelf Python regelt en de game in de browser opent.
+
+
 
 
 

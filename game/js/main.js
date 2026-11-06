@@ -597,6 +597,7 @@ async function boot() {
 
   wireFotoKey(world, () => !isMapOpen() && !isPauseMenuOpen() && !isShopOpen() && !isCinematicActive() && !world.pigeonMode);
   let last = performance.now();
+  let laatsteFrameMs = 16;
   let menuDt = 0;
   let trafficTimer = 0;
   const tileFollow = {};
@@ -605,6 +606,7 @@ async function boot() {
     if (getSettings().zuinig && skipFrame(now - last)) { requestAnimationFrame(frame); return; }
     const frameMs = now - last;
     const dt = Math.min(0.05, frameMs / 1000);
+    laatsteFrameMs = frameMs;
     last = now;
     probe.begin(now);
     const t0 = performance.now();
@@ -675,7 +677,9 @@ async function boot() {
       // a boat on the waterway network: the tiles of its route ahead come early (#184)
       if (tf && hoofdspeler(world).inVehicle && hoofdspeler(world).inVehicle.isBoat && !world.cameraOverride) tf.opts = vaarPrefetch(tf.opts, tf.x, tf.y);
       if (tf && world.coopFoci && world.coopFoci.length > 1) tf.opts = { ...tf.opts, foci: tegelFoci(world.coopFoci) }; // spelers uit elkaar: ook tegels rond de losse groepen (#429)
-      if (tf) world.map.follow(tf.x, tf.y, tf.opts, 1.5);
+      // In een traag beeld minder tegelwerk op de hoofdthread, zodat een hapering niet
+    // nog een frame lang doorwerkt (#553).
+    if (tf) world.map.follow(tf.x, tf.y, tf.opts, laatsteFrameMs > 25 ? 0.6 : 1.5);
       // the open sea as water rows round the player (#233)
       if (tf && world.map.addWaterPatches) ensureSeaRows(world.map, hoofdspeler(world).x, hoofdspeler(world).y);
     }
@@ -952,6 +956,7 @@ boot().catch((err) => {
   showLoadError(err.message);
   console.error(err);
 });
+
 
 
 
