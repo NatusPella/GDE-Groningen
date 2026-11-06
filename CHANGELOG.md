@@ -6,6 +6,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [0.57.1] - 2026-11-06
 
+- **De laadscherm-time-outs van #582 staan tijdens de boot uit.** Een koude portable start of langzame schijf mag niet op de nieuwe tegel-time-outs stuklopen; vanaf het spel bewaken ze wel tegen een hangende bron of dode decoder.
+
 - **Openbare sessies lekken je IP niet meer via de kamercode (#583).** De lijst draagt alleen nog een willekeurig sessie-id; wie via de lijst aansluit, vraagt wie de sessie opende om een eenmalige kamercode, die met ECDH + AES-GCM alleen voor die gast versleuteld wordt. Een derde met alleen de lijst kan het aanbod niet vinden of ontsleutelen. Test: `net_joingate_test`.
 
 - **Sluiten bewaart je spel (#584).** Naast de bestaande verberg-tik bewaren `pagehide` en `beforeunload` nu synchroon als het spel gestart is; met "Nieuw spel" wordt dat tijdelijk uitgezet zodat de oude wereld niet in de nieuwe plek belandt. Test: `savegame_test`.
@@ -3158,6 +3160,7 @@ De eerste versie: alles wat er tot de eerste desktop-release gebouwd is.
   volledig offline, standaard op volledig scherm.
 - Voor wie het liever zonder app doet: een ZIP met `START DE GAME.bat` die op
   Windows zelf Python regelt en de game in de browser opent.
+
 
 
 
