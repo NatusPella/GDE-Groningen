@@ -33,6 +33,9 @@ ok(/gar-ph[^`]*aria-hidden="true">\$\{vehicleGlyph\(/.test(gu), 'elke kaart begi
 ok(!/gar-sk/.test(gu), 'de lege skeleton-placeholder is weg');
 ok(!/gar-sk/.test(read('pausemenu.css')), 'en de bijbehorende CSS ook, zodat er geen dood vlak achterblijft');
 ok(/gar-ph[^`]*aria-hidden="true"/.test(gu), 'het plaatje is decoratief: de naam en de status ernaast dragen de tekst');
+// de padfocus op de draaitafel blijft zichtbaar: alleen de kaart-canvas legt de focusring weg
+const a11yCss = read('a11y.css');
+ok(!/html\.pad-active #pause-menu canvas:focus/.test(a11yCss) && /\[data-panel="map"\] canvas:focus/.test(a11yCss), 'de focusring van de draaitafel wordt niet door de kaartregel weggelegd');
 
 // --- waar woont Spullen -------------------------------------------------------
 ok(B.SURFACES.menu.files.includes('spullen.js'), 'SURFACES.menu noemt spullen.js: het Spullen-scherm woont in het pauzemenu');

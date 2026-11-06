@@ -32,7 +32,9 @@
 
 /* a controller moves the focus: always show where it is */
 html.pad-active :is(button, a, input, select, [tabindex]):focus { outline: 2px solid #3fc97a !important; outline-offset: 2px; }
-html.pad-active #pause-menu canvas:focus { outline: none !important; }
+/* de kaart is zelf een focusbare canvas: geen ring om het hele scherm. De
+   garage-draaitafel houdt zijn ring wel, want die is met de pad te bedienen (#610). */
+html.pad-active #pause-menu [data-panel="map"] canvas:focus { outline: none !important; }
 
 /* the map: A sets a goal under the crosshair in the middle */
 .map-pad-reticle { display: none; position: absolute; left: 50%; top: 50%; width: 34px; height: 34px; margin: -17px 0 0 -17px; pointer-events: none; z-index: 3; }
