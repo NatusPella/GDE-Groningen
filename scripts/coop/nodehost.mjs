@@ -188,10 +188,11 @@ export async function startKoplozeHost({ max = 4, wachtwoord = '', start = START
     openbareNaam = schoon.naam;
   }
   const world = eisKoplozeWereld((typeof maakWereld === 'function' ? maakWereld : koplozeWereld)({ start, clock }));
-  // #450 (slice C): de wereldstaat van de vorige run terugzetten. Een kapot of half
-  // bestand laat de host gewoon met een nieuwe wereld starten.
+  // #450 (slice C): de wereldstaat van de vorige run terugzetten. Een nog niet bestaand bestand is
+  // de eerste run; een kapot of half geschreven bestand laat de host gewoon met een nieuwe wereld
+  // starten in plaats van te crashen.
   const staatMod = staatPad ? await imp('net/serverstaat.js') : null;
-  if (staatMod && staatPad) {
+  if (staatMod && staatPad && fs.existsSync(staatPad)) {
     try { const staat = staatMod.leesStaat(fs.readFileSync(staatPad, 'utf8')); if (staat) staatMod.herstelStaat(world, staat); } catch (e) { console.warn('wereldstaat: ' + (e && e.message ? e.message : e)); }
   }
   let laatsteOpslag = 0;
