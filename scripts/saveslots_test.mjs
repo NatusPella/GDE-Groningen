@@ -155,6 +155,36 @@ ok(S.exportFileName('Mijn Grunn-save!', new Date('2026-08-01T10:00:00Z')) === 'g
   blocked.setItem = (k, v) => { if (k === KEYS.saveSlots) throw new Error('full'); set(k, v); };
   ok(S.pickLatest(blocked) === 0 && S.activeSlot(blocked) === 1, 'pickLatest reports no reliable latest when the list cannot be written');
 }
+// #562: een bewust gestart nieuw spel op een lege plek gaat bij de boot voor de laatst geschreven save
+{
+  const ls = new Mem();
+  S.writeSlot(ls, 1, save(5));
+  const n = S.createSlot(ls, '', 0, true);
+  ok(n === 2 && S.activeSlot(ls) === 2 && S.isFresh(ls), 'nieuw spel: lege plek actief en gemarkeerd');
+  ok(S.pickLatest(ls) === 2, 'de boot respecteert de nieuwe lege plek in plaats van de oude save');
+  ok(S.pickActive(ls) === 2, 'ook het menu respecteert de nieuwe lege plek');
+  ok(S.readSlot(ls, 2).state === 'leeg' && S.listSlots(ls).length === 1, 'de nieuwe plek is leeg; de oude save blijft staan');
+  // zodra de nieuwe plek een save heeft, telt gewoon weer de laatst geschreven save (en verdwijnt de vlag)
+  S.writeSlot(ls, 2, save(1));
+  ok(S.pickLatest(ls) === 1, 'na de eerste save telt de laatst geschreven save weer');
+  ok(!S.isFresh(ls), 'de vlag is opgeruimd');
+}
+{
+  // volle opslag: er komt geen nieuwe plek bij, maar er gaat ook niets weg
+  const ls = new Mem();
+  for (let i = 1; i <= MAX_SLOTS; i++) S.writeSlot(ls, i, save(i));
+  const before = Array.from({ length: MAX_SLOTS }, (_, i) => S.readSlot(ls, i + 1).data.money);
+  ok(S.createSlot(ls, '', 0, true) === 0 && S.freeSlot(ls) === 0, 'volle opslag: geen nieuwe plek');
+  ok(Array.from({ length: MAX_SLOTS }, (_, i) => S.readSlot(ls, i + 1).data.money).join() === before.join(), 'volle opslag: geen enkele save is gewist');
+  const leeg = new Mem();
+  S.writeSlot(leeg, 1, save(1));
+  S.createSlot(leeg, '', 0, true);
+  ok(S.clearFresh(leeg) && !S.isFresh(leeg) && S.activeSlot(leeg) === 2, 'clearFresh ruimt alleen de vlag op');
+  const gewoon = new Mem();
+  S.writeSlot(gewoon, 1, save(1));
+  ok(S.createSlot(gewoon, '', 0) === 2 && !S.isFresh(gewoon), 'een gewone nieuwe plek is geen nieuw spel');
+}
+
 // all slots full
 {
   const ls = new Mem();
