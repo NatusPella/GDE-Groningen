@@ -432,12 +432,15 @@ function placeAt(w, x, y) {
   }
 }
 
-// Samen spelen: nieuw spel en het verwijderen van het actieve slot blijven geblokkeerd zolang de sessie
-// loopt (#452). Een ander opgeslagen spel laden mag wel, maar eerst met bevestiging: de sessie eindigt,
-// de voortgang wordt bewaard en pas dan wordt er geladen (cooploadrules.js, #492).
+// Samen spelen: nieuw spel en het verwijderen van het actieve slot blijven geblokkeerd zolang een echte
+// sessie loopt (#452). Een ander opgeslagen spel laden mag wel, maar eerst met bevestiging: de sessie
+// eindigt, de voortgang wordt bewaard en pas dan wordt er geladen (cooploadrules.js, #492).
+// Alleen spelen is sinds #554 een sessie van één (world.coopSolo): die telt hier als geen sessie, want er
+// is geen zichtbare sessie en geen stopknop om hem te beëindigen (solo-sessie-audit H2). Alleen een echte
+// sessie blokkeert dus nog: een gastheer van Samen spelen (ook in de wachtkamer) of een gast.
 export const COOP_NIEUW_TEKST = 'Samen spelen loopt nog. Stop eerst de sessie om een nieuw spel te beginnen.';
 export const COOP_WISSEN_TEKST = 'Samen spelen loopt nog. Stop eerst de sessie om dit spel te verwijderen.';
-export const coopSessieLoopt = (w) => !!(w && w.coopNet);
+export const coopSessieLoopt = (w) => !!(w && w.coopNet && !w.coopSolo);
 
 export function applySave(w, d) {
   if (!w || !d) return false;

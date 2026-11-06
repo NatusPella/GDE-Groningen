@@ -122,4 +122,24 @@ t('eruit zetten', () => {
   assert.doesNotMatch(wegMelding('spel gestopt', 'Tammo', 'ABCDE-FGHJK'), /ABCDE/, 'bij stoppen voor iedereen is er niets om opnieuw bij aan te sluiten');
 });
 
+// Alleen spelen is een gastheer-sessie van één (#554): die is geen "samen", dus geen spelerslijst, geen
+// teller en geen avatar-hint alsof je meedoet. In een echte sessie blijft alles zoals het was.
+t('een solo-sessie geeft geen spelerslijst, geen badge en geen avatar-hint', () => {
+  const ui = fs.readFileSync(new URL('../game/js/coopspelersui.js', import.meta.url), 'utf8');
+  assert.match(ui, /import \{ isSoloHost \} from '\.\/coopsolo\.js';/, 'de solo-markering komt uit coopsolo.js');
+  assert.match(ui, /const echteSessie = \(world\) => !!\(world && world\.coopNet && !isSoloHost\(world\)\);/,
+    'een solo-sessie telt hier niet als samen-sessie; een echte sessie verandert niet');
+  const overlay = ui.slice(ui.indexOf('export function updateSpelersOverlay'), ui.indexOf('export const spelersOverlayZichtbaar'));
+  assert.match(overlay, /const rijen = echteSessie\(world\) && world\.coopSpelers;/, 'Tab blijft leeg zonder echte sessie');
+  const panel = ui.slice(ui.indexOf('export function renderSpelersPanel'), ui.indexOf('if (timer) clearInterval(timer);'));
+  assert.match(panel, /const rijen = \(echteSessie\(world\) && world\.coopSpelers\) \|\| \[\];/, 'de Spelers-lijst is leeg');
+  assert.match(panel, /const rol = echteSessie\(world\) && world\.coopNet\.role;/, 'geen hostknoppen zonder sessie');
+  assert.match(ui, /echteSessie\(world\) \? 'Je nieuwe naam en kleur gelden zodra je opnieuw meedoet\.'/, 'de avatar-hint belooft geen "opnieuw meedoen" in solo');
+  const pm = fs.readFileSync(new URL('../game/js/pausemenu.js', import.meta.url), 'utf8');
+  assert.match(pm, /const coopN = world && world\.coopNet && !isSoloHost\(world\) && world\.coopSpelers \? world\.coopSpelers\.length : 0;/,
+    'de Spel-teller en de Spelers-badge blijven leeg in een sessie van één');
+  assert.match(pm, /root\.dataset\.coop = world && world\.coopNet && !isSoloHost\(world\) \? '1' : '0';/,
+    'en de rail wordt niet coöp-compact puur omdat de solo-hub bestaat');
+});
+
 console.log(`coopspelers_test: ${n}/${n} ok`);

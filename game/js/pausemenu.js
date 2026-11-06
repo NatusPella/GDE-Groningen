@@ -11,7 +11,7 @@ import { setPauseMenuOpen, setPauseMenuTabState, setPauseMenuControls } from './
 import { PRESET_ORDER, presetLabel, describePreset, describeChanges, currentPreset, applyPreset, getBenchResult, dismissBenchBanner, GEAR_SVG } from './gfxprofile.js';
 import { mountMapView, setMapActive, setMapCloseHandler, setMapView, getDiscoveredRatio, setMapTeleport } from './mapview.js';
 import { renderSamenPanel, requestOpenSamen, samenHubTerug } from './samenpanel.js';
-import { stopSoloHost } from './coopsolo.js';
+import { isSoloHost, stopSoloHost } from './coopsolo.js';
 import { renderVeroverdPanel } from './veroverdpanel.js';
 import { renderSpelersPanel } from './coopspelersui.js';
 import { renderCheatsPanel, cheatsClick, resetCheatsPanel, cheatsFocus } from './cheatsui.js';
@@ -1558,7 +1558,8 @@ function syncNavBadges() {
   const aNav = root.querySelector('[data-goto="prestaties"]');
   if (aNav) aNav.toggleAttribute('data-new', unseenAchievementCount() > 0);
   // samen spelen is geen rijknop meer: de rail toont bij Spel hoeveel spelers er zijn
-  const coopN = world && world.coopNet && world.coopSpelers ? world.coopSpelers.length : 0;
+  // een sessie van één (#554) is geen samen-sessie: dan blijft de teller leeg, net als zonder sessie
+  const coopN = world && world.coopNet && !isSoloHost(world) && world.coopSpelers ? world.coopSpelers.length : 0;
   setN('spel', coopN ? String(coopN) : '', coopN ? `${coopN} spelers` : '');
   // het tabblad Spelers onder Samen spelen zegt hetzelfde als de rail: een poppetje en het aantal spelers (#435)
   const tabN = root.querySelector('[data-panel="spel"] [data-count="spelers"]');
@@ -1686,7 +1687,7 @@ function showTab(name, how) {
   if (name === 'telefoon') { pref.sub.verhaal = 'personages'; name = 'verhaal'; }
   if (name === 'missions') name = 'todo';
   if (name === 'cheats') name = 'streken';
-  if (name === 'samen' || name === 'samenspelen' || name === 'spelers') { pref.sub.spel = 'samen'; pref.sub.samen = name === 'spelers' && world && world.coopNet ? 'spelers' : 'samen'; name = 'spel'; }
+  if (name === 'samen' || name === 'samenspelen' || name === 'spelers') { pref.sub.spel = 'samen'; pref.sub.samen = name === 'spelers' && world && world.coopNet && !isSoloHost(world) ? 'spelers' : 'samen'; name = 'spel'; }
   if (name === 'jobs') { pref.sub.todo = 'alles'; name = 'todo'; }
   if (!ids.includes(name)) name = prestart ? 'settings' : HOME;
   if (how) origin = how;
@@ -1694,7 +1695,7 @@ function showTab(name, how) {
   tab = name;
   setPauseMenuTabState(name);
   root.dataset.activeTab = name;
-  root.dataset.coop = world && world.coopNet ? '1' : '0';
+  root.dataset.coop = world && world.coopNet && !isSoloHost(world) ? '1' : '0';
   for (const b of root.querySelectorAll('.pm-game [data-goto]')) {
     b.setAttribute('aria-current', String(b.dataset.goto === (CHILD[name] || name)));
     b.hidden = !ids.includes(b.dataset.goto);
@@ -1748,7 +1749,7 @@ export function openPauseMenu(name = HOME, opts = {}) {
   if (opts.prestart) prestart = { onClose: opts.onClose || null };
   if (name === 'overzicht') { pref.sub.spel = 'overzicht'; name = 'spel'; }
   if (name === 'cheats') name = 'streken';
-  if (name === 'samen' || name === 'samenspelen' || name === 'spelers') { pref.sub.spel = 'samen'; pref.sub.samen = name === 'spelers' && world && world.coopNet ? 'spelers' : 'samen'; name = 'spel'; }
+  if (name === 'samen' || name === 'samenspelen' || name === 'spelers') { pref.sub.spel = 'samen'; pref.sub.samen = name === 'spelers' && world && world.coopNet && !isSoloHost(world) ? 'spelers' : 'samen'; name = 'spel'; }
   if (opts.sub && SUBTABS[name]) pref.sub[name] = opts.sub;
   if (opts.select) selectTodo(opts.select);
   if (opts.view) pref.sub.todo = opts.view;

@@ -431,4 +431,19 @@ await t('een hub op een vak waar een oude lobby nog aan luistert, houdt die lobb
   assert.match(sp, /replaceChild\(vak, eerste\)/, 'en zet de kloon op dezelfde plek in het menu');
   assert.match(sp, /let vak = eerste;/, 'zonder DOM-API (tests) blijft het vak zoals het is');
 });
+await t('een sessie van één (#554) wordt niet geadopteerd: geen kamercode en geen wachtrij', () => {
+  // Alleen spelen is een gastheer-sessie van één (#554, coopsolo.js). Zo'n hub heeft geen transport en dus
+  // geen kamer waarin iemand kan binnenkomen: het paneel moet hem negeren en het gewone "nog geen sessie"-
+  // scherm tonen. De markering zelf is getest in coopsolo_test.mjs; hier gaat het om de bedrading.
+  const sp = lees('samenpanel.js');
+  assert.match(sp, /import \{ isSoloHost \} from '\.\/coopsolo\.js';/, 'de solo-markering komt uit coopsolo.js');
+  assert.match(sp, /const samenNet = \(world\) => \{\s*const n = world && world\.coopNet;\s*return n && !isSoloHost\(world\) \? n : null;\s*\};/,
+    'een solo-hub telt voor dit paneel niet als sessie');
+  const hs = sp.slice(sp.indexOf('function huidigeSessie'), sp.indexOf('function huidigeSessie') + 500);
+  assert.match(hs, /const n = samenNet\(world\);/, 'huidigeSessie leest via samenNet: een solo-hub geeft null (dus geen rol, route of code)');
+  assert.match(sp, /const nu = samenNet\(world\);/, 'ook de hub-keuze in renderSamenPanel negeert de solo-hub en opent "nog geen sessie"');
+  assert.match(sp, /\.\.\.\(loopt \? \{ adopt: \{ code: loopt\.code, route: loopt\.route \}/,
+    'de lobby krijgt alleen bij een echte sessie een kamercode/route (adopt) mee; zonder loopt blijft die weg');
+  assert.doesNotMatch(sp, /Wacht op een medespeler/, 'dit paneel schrijft zelf geen wachtrijtekst');
+});
 console.log(`samenhub_test: ${n} controles ok`);

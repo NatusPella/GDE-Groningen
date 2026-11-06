@@ -3,6 +3,7 @@
 // Nieuw spel of Doorgaan. Dit is lijm tussen lobbyui.js en coopnet.js; niet in beeld bekeken.
 import { mountLobby } from './lobbyui.js';
 import { startHost, startClient, addGuest, stopCoopNet, handshakeInfo, canJoin, removeGuest, setMaxPlayers, openHek, genoegSpelers } from './coopnet.js';
+import { isSoloHost } from './coopsolo.js';
 import { fadeFlash } from './coophud.js';
 import { openHold } from './coophold.js';
 import { koppelWissel } from './multiplayerhostwisselui.js';
@@ -43,10 +44,18 @@ let vanHub = false, laatste = null;
 // zijn eigen Terug en Annuleren, en die weten wat er afgebroken moet worden.
 const HUB_TERUG_STAPPEN = ['start', 'methode', 'gast-typt'];
 
+// Een sessie van één (coopsolo.js, #554) is voor dit paneel geen samen-sessie: er is geen kamer, geen
+// uitnodiging en dus geen wachtrij. Wie Samen opent terwijl die sessie nog loopt, krijgt het gewone
+// "nog geen sessie"-scherm; de sessie zelf stopt hier niet (dat doen main.js en pausemenu.js).
+const samenNet = (world) => {
+  const n = world && world.coopNet;
+  return n && !isSoloHost(world) ? n : null;
+};
+
 // De sessie loopt al maar dit paneel heeft hem niet zelf gemaakt (het spel is overgedragen, of het paneel is opnieuw getekend): dan tekent het paneel
 // de huidige sessie (rol, kamercode, spelers, Iedereen stoppen of Spel verlaten) en niet het beginscherm. De nieuwe host kent zijn kamercode uit de overdracht.
 function huidigeSessie(world, oudeCode = '') {
-  const n = world && world.coopNet;
+  const n = samenNet(world);
   if (!n || (n.role === 'host' ? !n.hub : !n.session)) return null;
   const wisselKamer = world.coopWissel && world.coopWissel.rm && world.coopWissel.rm.kamer;
   let code = oudeCode; if (!code && n.role === 'host' && wisselKamer) { try { code = formatRoom(wisselKamer); } catch (e) { code = ''; } }
@@ -82,7 +91,7 @@ function volgSessie(world, sluit) {
 export function renderSamenPanel(root, world, sluit = () => {}) {
   volgSessie(world, sluit);
   laatste = { root, world, sluit };
-  const nu = world && world.coopNet;
+  const nu = samenNet(world);
   if (nu) { vanHub = false; hubOpen = false; } // een lopende sessie: de hub is niet meer aan de orde
   if (view && mountedOn === root && (!nu || nu === gebonden)) return;
   // Hub (#527): zolang er geen sessie loopt en de speler nog geen rol koos, eerst de drie stappen. Zodra een keuze
