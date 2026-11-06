@@ -186,7 +186,7 @@ import { initBoerderij, boerderijTijd, boerderijKlokNul } from './boerderijlive.
 import { BOERDERIJ_WERELD_KIND } from './boerderijwereld.js';
 import { probe } from './hitchprobe.js';
 import { initSafety, updateSafety } from './safety.js';
-import { updateCinematics, isCinematicActive, sinceCinematic, setCinematicLinks, skipCinematic } from './cinematics.js';
+import { updateCinematics, isCinematicActive, sinceCinematic, setCinematicLinks } from './cinematics.js';
 import { initFlavour, updateFlavour } from './flavour.js';
 import { initFlavour3D, updateFlavour3D } from './flavour3d.js';
 import { prepareHomeMap, initHome, updateHome, updateHomeExterior, tryHomeInteract, homeSpawnPoint, parkHeroAtHome, garagePoortToestand } from './home.js';
@@ -600,7 +600,6 @@ async function boot() {
   let last = performance.now();
   let laatsteFrameMs = 16;
   let soloWachtS = 0;
-  let startWatch = 0;
   let menuDt = 0;
   let trafficTimer = 0;
   const tileFollow = {};
@@ -634,10 +633,6 @@ async function boot() {
   const feelDip = makeDip(), dipSeen = { imp: null, mh: null };
   let samenSince = null, gateMenu = false;
   function frameBody(dt) {
-    // Startvangnet: een opening die de eerste seconde gameplay maar niet vrijgeeft
-    // (vastgelopen filmpje) wordt na 30 s overgeslagen; de speler komt altijd in de wereld.
-    startWatch = world.time > 1 ? 0 : startWatch + dt;
-    if (startWatch > 30 && world.time <= 1 && isCinematicActive()) { startWatch = -1e9; try { skipCinematic(); } catch (e) { /* al weg */ } }
     // Alleen spelen is een sessie van één (#554): start die zodra het spel loopt en er
     // geen Samen-scherm open staat. Zo lopen alle functies door hetzelfde multiplayer-pad.
     // Wie online meedoet, wacht eerst op de startzoektocht (#528); die host of sluit aan, of
