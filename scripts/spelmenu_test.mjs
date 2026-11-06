@@ -221,7 +221,7 @@ ok(read('game/js/helpoverview.js').includes("id: 'kaart'"), 'Besturing, Hulp: de
 
 // #435: veilig afsluiten vanuit het hoofdmenu en de nieuw-bolletjes op de rail
 const exitBranch = pm.slice(pm.indexOf("a === 'menu' || a === 'exit'"), pm.indexOf("a === 'pigeon-stop'"));
-ok(/started\(\) && !prestart && world\) saveGame\(world\)/.test(exitBranch), 'Afsluiten bewaart alleen een lopend spel, niet de menuscene boven het hoofdmenu (#435)');
+ok(/started\(\) && !prestart && world \? saveGame\(world\) : undefined/.test(exitBranch), 'Afsluiten bewaart alleen een lopend spel, niet de menuscene boven het hoofdmenu (#435); de uitslag gaat naar #563');
 ok(!/if \(world\) saveGame\(world\)/.test(exitBranch), 'geen onvoorwaardelijke save meer bij Spel herstarten of Afsluiten');
 const pcss = read('game/js/pausemenu.css');
 ok(pcss.includes('.ra[data-new] .ra-t::after'), 'de nieuw-bolletjes op de rail (Verhaal, Prestaties) hebben een eigen stijl (#435)');

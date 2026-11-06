@@ -1,6 +1,6 @@
 import { hoofdspeler } from './players.js';
 import { FLAGS, reseedAutoplay } from './devflags.js';
-import { hasSave, loadBootSave, startNewSlot, getSaveSummary, ensureActiveSlot, ensureLatestSlot } from './savegame.js';
+import { hasSave, loadBootSave, startNewSlot, getSaveSummary, ensureActiveSlot, ensureLatestSlot, isFreshStart, finishFreshStart, currentSlot } from './savegame.js';
 import { openSaveSlots, isSaveSlotsOpen } from './saveslotsui.js';
 import { listSlots } from './saveslots.js';
 import { VERSION } from './version.js';
@@ -426,14 +426,17 @@ async function benchmarkFromBoot(world, opts) {
 
 function runBootScreen(world, opts, pending = null) {
   // Nieuws en credits (wi-492-over) hangen hier nog aan; de eerste-start-test zit hieronder.
-  const slot = ensureLatestSlot();
+  // #562: een bewust gestart nieuw spel op een lege plek gaat voor op "de save die het laatst geschreven
+  // is"; de boot opent dan een lege wereld in plaats van de oude save te laden.
+  const fresh = isFreshStart();
+  const slot = fresh ? currentSlot() : ensureLatestSlot();
   // No reliable latest (a full list, a broken save, or a save from a newer version): the old
   // save screen stays available instead of silently loading or overwriting the wrong save.
-  if (!slot || (!hasSave() && listSlots(null).length)) return runMenuScreen(world, opts, pending);
+  if (!slot || (!fresh && !hasSave() && listSlots(null).length)) return runMenuScreen(world, opts, pending);
   return new Promise((resolve) => {
     const screen = el('start-screen');
     if (screen) { screen.classList.remove('visible'); screen.style.display = 'none'; }
-    const save = hasSave() ? getSaveSummary() : null;
+    const save = !fresh && hasSave() ? getSaveSummary() : null;
     let done = false;
     const finish = () => {
       if (done) return;
@@ -452,7 +455,9 @@ function runBootScreen(world, opts, pending = null) {
     const startNew = () => {
       startTheme();
       reseedAutoplay();
-      startNewSlot();
+      // #562: stond de verse plek al klaar (na "Nieuw spel" en de herlaad), dan begint het spel daar en
+      // hoeft er geen tweede lege plek bij te komen.
+      if (fresh) finishFreshStart(); else startNewSlot();
       finish();
     };
     const continueGame = () => {

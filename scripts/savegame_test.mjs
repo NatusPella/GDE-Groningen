@@ -35,7 +35,7 @@ ok(() => assert.match(sg, /window\.addEventListener\('beforeunload', saveOnLeave
 ok(() => assert.match(sg, /window\.addEventListener\('pageshow', \(\) => \{ leaveSaved = false; \}\)/), 'na terugkeer uit de bfcache mag een volgende keer weer bewaren');
 ok(() => assert.match(sg, /document\.addEventListener\('visibilitychange', \(\) => \{\s*if \(document\.hidden && !closeSaveOff && world/), 'de bestaande verberg-tik blijft en respecteert de uitzondering');
 ok(() => assert.match(sg, /export function preventCloseSave\(\)/), 'preventCloseSave bestaat');
-ok(() => assert.match(pm, /preventCloseSave\(\);[\s\S]{0,200}startNewSlot\(\);\s*location\.reload\(\);/), 'pauzemenu: Nieuw spel zet bewaren-bij-sluiten uit vóór de herstart, zodat de oude wereld niet over de nieuwe plek gaat');
+ok(() => assert.match(pm, /if \(!startNewSlot\(\)\)[\s\S]{0,300}preventCloseSave\(\);[\s\S]{0,300}location\.reload\(\);/, 'pauzemenu: Nieuw spel zet bewaren-bij-sluiten uit vóór de herstart, zodat de oude wereld niet over de nieuwe plek gaat'));
 
 // De handler zelf uit de bron halen en met een nep-venster draaien: pagehide bewaart, maar niet
 // twee keer voor hetzelfde vertrek, niet als bewaren is uitgezet en niet buiten een gestart spel.
@@ -202,6 +202,40 @@ ok(() => {
   const ui = src('saveslotsui.js');
   assert.equal((ui.match(/saveGame\(world, \{ toast: false, manual: true \}\)/g) || []).length, 3, 'opslaan/overschrijven in het opslagscherm is handmatig');
 }, 'handmatige saves vragen een plaatje, de autosave niet');
+
+// --- #562: "Nieuw spel" begint echt een nieuw spel en wist niets bij een volle opslag ---------------
+const startNewSlot = (scope) => new Function('scope', `with (scope) {
+  ${haalFunctie(sg, 'startNewSlot')}
+  return startNewSlot;
+}`)(scope);
+
+ok(() => {
+  const calls = [];
+  const scope = { createSlot: (ls, name, want, fresh) => { calls.push(['create', ls, want, fresh]); return 4; }, bindSlot: () => calls.push(['bind']) };
+  assert.equal(startNewSlot(scope)(), true);
+  assert.deepEqual(calls, [['create', null, 0, true], ['bind']], 'een nieuw spel maakt een lege plek met de vlag en bindt die');
+}, 'nieuw spel: lege plek met de vlag');
+
+ok(() => {
+  const calls = [];
+  const scope = { createSlot: () => { calls.push('create'); return 0; }, bindSlot: () => calls.push('bind') };
+  assert.equal(startNewSlot(scope)(), false);
+  assert.deepEqual(calls, ['create'], 'zonder vrije plek wordt er niets gewist en niets gebonden');
+  assert.doesNotMatch(sg, /localStorage\.removeItem\(slotKey\(saveTarget\(\)\)\)/, 'de save van het spel dat je speelt wordt niet meer stil gewist');
+}, 'nieuw spel: volle opslag wist niets');
+
+ok(() => {
+  const start = src('startscreen.js');
+  assert.match(start, /function runBootScreen\(world, opts, pending = null\) \{[\s\S]{0,400}const fresh = isFreshStart\(\);/, 'de boot vraagt of er een nieuw spel klaarstaat');
+  assert.match(start, /const slot = fresh \? currentSlot\(\) : ensureLatestSlot\(\);/, 'de boot kiest bij een nieuw spel de lege plek in plaats van de laatste save');
+  assert.match(start, /if \(!slot \|\| \(!fresh && !hasSave\(\) && listSlots\(null\)\.length\)\)/, 'een nieuw spel valt niet terug naar het oude titelscherm');
+  assert.match(start, /if \(fresh\) finishFreshStart\(\); else startNewSlot\(\);/, 'na de herlaad begint het spel in de verse plek zonder een tweede lege plek');
+  const pm = src('pausemenu.js');
+  assert.match(pm, /if \(!startNewSlot\(\)\) \{ status\('Alle plekken zijn in gebruik\. Verwijder eerst een opgeslagen spel om opnieuw te beginnen\.'\); return; \}/, 'de pauzemenu meldt een volle opslag in plaats van stil te herstarten');
+  assert.ok(pm.indexOf('if (!startNewSlot())') < pm.indexOf('preventCloseSave(); // #584'), 'pas na een gelukte nieuwe plek gaat bewaren-bij-sluiten uit');
+  const ui = src('saveslotsui.js');
+  assert.match(ui, /act === 'newfull-ok'\) \{[\s\S]{0,400}deleteSlot\(null, active\.n\)/, 'na de bevestiging wijkt het actieve spel echt voor het nieuwe spel');
+}, 'nieuw spel: de boot en de menu\'s gebruiken de vlag (#562)');
 
 console.log(`savegame_test: ${n - fails}/${n}`);
 process.exit(fails ? 1 : 0);
