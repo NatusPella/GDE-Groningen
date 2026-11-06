@@ -9,9 +9,9 @@ import {
 } from './achievements.js';
 import { SIDE_JOBS } from './sidejobs.js';
 import { getOverzicht } from './gebiedenlive.js';
-import { iconSvg } from './achievementicons.js';
+import { iconSvg, ICON_PATHS } from './achievementicons.js';
 import { fillBars, countTo } from './motion.js';
-import { achPct as pctOf, achNear, achDone, achCategoryOrder, achCategoryPct, achWhen, ringDash } from './menumodels.js';
+import { achPct as pctOf, achNear, achDone, achCategoryOrder, achCategoryPct, achWhen } from './menumodels.js';
 
 const CHEV = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6l6 6-6 6"/></svg>';
 const LOCK = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5.5" y="11" width="13" height="9" rx="1.5"/><path d="M8.5 11V8a3.5 3.5 0 0 1 7 0v3"/></svg>';
@@ -53,10 +53,10 @@ function disc(id, title, hintHtml, inner, open, attr) {
     `<div class="m-fold" ${open ? '' : 'hidden'}>${inner}</div>`;
 }
 
-// a progress ring with the figure in the middle
-function ring(pct, label, size = 96) {
-  const { circ, dash, pct: p } = ringDash(pct);
-  return `<span class="pa-ring" style="width:${size}px;height:${size}px"><svg viewBox="0 0 100 100" aria-hidden="true"><circle class="bg" cx="50" cy="50" r="40"/><circle class="fg" cx="50" cy="50" r="40" stroke-dasharray="${dash} ${circ}" transform="rotate(-90 50 50)"/></svg><span class="bebas">${label != null ? label : p + '%'}</span></span>`;
+// a progress bar with its own fill animation; the number is written next to it,
+// so the same figure is never shown three different ways (#611)
+function bar(id, pct) {
+  return `<span class="m-bar on"><i data-bar="${esc(id)}" data-w="${Number(pct).toFixed(1)}"></i></span>`;
 }
 
 function medalsBlock() {
@@ -65,7 +65,7 @@ function medalsBlock() {
     if (isRetiredMission(i) && !(r && (r.medal || r.runs))) return '';
     const m = r ? r.medal : 0;
     const best = r && r.best != null ? `record ${formatMissionTime(r.best)}` : 'nog niet gespeeld';
-    return `<div class="pa-cell"><span>${esc(g.name)}</span><span class="mut"><span class="m-medal m${m}"></span> ${m ? MEDALS[m] : 'Geen medaille'} · ${best}</span></div>`;
+    return `<div class="pa-cell"><span>${esc(g.name)}</span><span class="mut"><span class="m-medal m${m}" aria-hidden="true"></span> ${m ? MEDALS[m] : 'Geen medaille'} · ${best}</span></div>`;
   }).join('') + '</div>';
 }
 
@@ -77,25 +77,30 @@ function jobRecordsBlock() {
   }).join('') + '</div>';
 }
 
-function figuresBlock(st) {
-  const figs = [
-    ['Gelopen', fmtAmount(st.walked, 'm')], ['Gezwommen', fmtAmount(st.swum, 'm')], ['Rakelings', nl(st.nearMiss)], ['Gejat', nl(st.stolen)],
-    ['Wrakken', nl(st.wrecks)], ['Kusjes', nl(st.kisses)], ['Treinritten', nl(st.trainTrips)], ['Bijbaan-loon', `€${nl(getStat('sjEarned'))}`],
-    ['Eierballen', `${st.eierballen}/${EIERBAL_TOTAL}`], ['Wijken', `${st.wijken}/66`], ['Gereden', fmtAmount(st.driven, 'm')], ['Topsnelheid', fmtAmount(st.topSpeed, 'km/u')],
-  ];
-  return `<div class="pa-grid">${figs.map(([k, v]) => `<div class="pa-cell"><span class="mut">${k}</span><span class="bebas">${v}</span></div>`).join('')}</div>`;
+// a small line icon per figure, so the cijferkolommen are not a wall of text (#611)
+function figIco(name) {
+  return `<span class="pa-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="${ICON_PATHS[name]}"/></svg></span>`;
 }
 
-// De gebieden en de kaart als ringen (#435): dezelfde stand die de prestaties hierboven tellen (buurt tot provincie).
+function figuresBlock(st) {
+  const figs = [
+    ['Gelopen', fmtAmount(st.walked, 'm'), 'voet'], ['Gezwommen', fmtAmount(st.swum, 'm'), 'boot'], ['Rakelings', nl(st.nearMiss), 'wiel'], ['Gejat', nl(st.stolen), 'tas'],
+    ['Wrakken', nl(st.wrecks), 'wiel'], ['Kusjes', nl(st.kisses), 'ster'], ['Treinritten', nl(st.trainTrips), 'trein'], ['Bijbaan-loon', `€${nl(getStat('sjEarned'))}`, 'munt'],
+    ['Eierballen', `${st.eierballen}/${EIERBAL_TOTAL}`, 'mand'], ['Wijken', `${st.wijken}/66`, 'kompas'], ['Gereden', fmtAmount(st.driven, 'm'), 'wiel'], ['Topsnelheid', fmtAmount(st.topSpeed, 'km/u'), 'rad'],
+  ];
+  return `<div class="pa-grid">${figs.map(([k, v, ico]) => `<div class="pa-cell"><span class="pa-fig-k">${figIco(ico)}<span class="mut">${k}</span></span><span class="bebas">${v}</span></div>`).join('')}</div>`;
+}
+
+// De gebieden en de kaart als balken (#435, #611): dezelfde stand die de prestaties hierboven tellen (buurt tot provincie).
 function gebiedenBlock() {
   const o = getOverzicht();
   if (!o) return '<p class="m-note">De kaart wordt nog ingeladen. Probeer het zo nog eens.</p>';
-  const cel = (naam, klaar, totaal) => {
+  const cel = (id, naam, klaar, totaal) => {
     const pct = totaal ? (klaar / totaal) * 100 : 0;
-    return `<div class="pa-cell"><span>${esc(naam)}</span><span class="mut" style="display:flex;align-items:center;gap:12px">${ring(pct, null, 64)}<span>${klaar} van ${totaal}</span></span></div>`;
+    return `<div class="pa-cell"><span>${esc(naam)}</span><span class="mut pa-inline">${bar('g-' + id, pct)}<span>${klaar} van ${totaal}</span></span></div>`;
   };
-  const rijen = [cel('Kaart verkend', o.kaart.gedaan, o.kaart.totaal)];
-  for (const n of o.overzicht) rijen.push(cel(n.niveau.naam, n.voltooid, n.gebieden.length));
+  const rijen = [cel('kaart', 'Kaart verkend', o.kaart.gedaan, o.kaart.totaal)];
+  for (const n of o.overzicht) rijen.push(cel(n.niveau.id, n.niveau.naam, n.voltooid, n.gebieden.length));
   return `<div class="pa-grid">${rijen.join('')}</div>`;
 }
 
@@ -116,7 +121,7 @@ function detailHtml(it, catLabel) {
   let prog = '';
   if (!it.hidden && it.progress && !it.unlocked) {
     const { cur, goal, unit } = it.progress;
-    prog = `<div class="pa-prog">${ring(pctOf(it), null, 120)}<span class="m-num">${fmtAmount(cur, unit)} <span class="mut">/ ${fmtAmount(goal, unit)}</span></span><span class="m-bar on"><i data-bar="d-${esc(it.id)}" data-w="${pctOf(it).toFixed(1)}"></i></span></div>`;
+    prog = `<div class="pa-prog"><span class="m-num">${fmtAmount(cur, unit)} <span class="mut">/ ${fmtAmount(goal, unit)}</span></span>${bar('d-' + it.id, pctOf(it))}</div>`;
   }
   return `<div class="pm-pane-top"><span class="m-eb">${esc(catLabel || 'Prestatie')}</span><h2 class="m-h2 td-h2"><span class="pa-ico big">${iconSvg(it)}</span>${title}</h2></div><p>${desc}</p>${prog}${it.hidden ? '' : layerText(it.id)}` +
     (it.unlocked ? `<p class="g">Behaald${it.at ? ` · ${whenText(it.at)}` : ''}</p>` : '') +
@@ -152,7 +157,7 @@ export function renderAchievementsPanel(el, { keepFresh = false } = {}) {
   }
   el.dataset.sub = `${all.some((a) => a.hidden) ? `${all.filter((a) => a.hidden).length} verborgen · ` : ''}blijven bewaard`;
   el.innerHTML = `<div class="m-tabs"><nav class="m-tablist" role="tablist" aria-label="Weergave">${tab('alles', 'Alles')}${tab('bijna', 'Bijna binnen', near.length)}${tab('behaald', 'Behaald', done.length)}</nav>` +
-    `<span class="m-grow"></span><span class="pa-total">${ring(sum.total ? (sum.done / sum.total) * 100 : 0, null, 56)}<span class="m-num" data-pa-pct>${sum.done}</span><span class="mut">van ${sum.total} behaald</span></span></div>` +
+    `<span class="m-grow"></span><span class="pa-total">${bar('total', sum.total ? (sum.done / sum.total) * 100 : 0)}<span class="m-num" data-pa-pct>${sum.done}</span><span class="mut">van ${sum.total} behaald</span></span></div>` +
     `<div class="m-main"><div class="m-list pa-list">${list}</div><aside class="m-pane pa-pane" aria-live="polite">${detailHtml(selItem, selItem && selItem.catLabel)}</aside></div>`;
   fillBars(el, bars);
   const pct = el.querySelector('[data-pa-pct]');
