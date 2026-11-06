@@ -4,6 +4,10 @@ Alle noemenswaardige wijzigingen in GDE Groningen, per versie. Nieuwste bovenaan
 Versies volgen SemVer: `0.x.y` tot de echte release (1.0.0); `x` voor
 nieuwe functies, `y` voor alleen bugfixes.
 
+## [0.57.4] - 2026-11-06
+
+- **Laaddeadlock tijdens de boot opgelost (#582).** De geometry-worker-resultaten werden sinds de perf-fix pas in de spellus geledigd; vóór de eerste gameplay wachtte het laadscherm daardoor eeuwig op de terrain. Tijdens de boot worden die resultaten nu direct afgeleverd. Als vangnet wordt een opening die de eerste seconde gameplay 30 s tegenhoudt overgeslagen.
+
 ## [0.57.3] - 2026-11-06
 
 - **Sessie en online-zoektocht wachten tot het laadscherm weg is (#582).** Anders kon het starten van de sessie van één of het zoeken naar een openbare sessie tijdens het laden de wereld laten wachten.
@@ -3169,6 +3173,7 @@ De eerste versie: alles wat er tot de eerste desktop-release gebouwd is.
   volledig offline, standaard op volledig scherm.
 - Voor wie het liever zonder app doet: een ZIP met `START DE GAME.bat` die op
   Windows zelf Python regelt en de game in de browser opent.
+
 
 
 

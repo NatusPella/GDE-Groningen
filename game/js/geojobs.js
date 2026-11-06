@@ -132,7 +132,12 @@ function getWorker(i = 0) {
       // the worker is free again: fill the slot from the queue (this does not
       // eat the frame's allowance: one out, one in keeps the worker busy)
       dispatch(i, Infinity);
-      klaarQueue.push({ done: j.done, result });
+      // Tijdens de boot draait geoFrame() nog niet (de spellus start pas na het
+      // laadscherm): terrain/builds wachten dan op deze callback. Direct afleveren
+      // tijdens de boot, en pas in het spel over frames uitsmeren (#553).
+      const inSpel = typeof document !== 'undefined' && document.body && document.body.classList.contains('game-started');
+      if (inSpel) klaarQueue.push({ done: j.done, result });
+      else { try { j.done(result); } catch (err) { console.error('geo result', err); } }
     };
     worker.onerror = (e) => { e.preventDefault(); fail(e.message || 'error'); };
   } catch (e) {
@@ -179,4 +184,5 @@ export function runGeo(kind, data, done = () => {}, near = 0) {
   if (frameRoom[wi] > 0) frameRoom[wi] -= dispatch(wi, frameRoom[wi]);
   else if (open.size === 1 && inFlight[wi] === 0) dispatch(wi, 1);
 }
+
 
