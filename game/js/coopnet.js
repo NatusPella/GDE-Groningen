@@ -304,6 +304,9 @@ export function guestView(sample, info) {
 //         koploos: de wereld heeft geen lokale speler (een dedicated server, #450); de hub en de berichten blijven dezelfde,
 //         wachtwoord: een sessie op slot (#450): zonder dat woord krijgt niemand een plek, ook een terugkerende gast niet }
 export function startHost(world, info, opts = {}) {
+  // Een echte sessie over een solo-sessie heen (#554): ruim de solo-hub eerst op,
+  // anders blijft world.coopSolo staan en negeert de UI de nieuwe sessie.
+  if (world.coopSolo) { world.coopSolo = false; if (world.coopNet) { try { stopCoopNet(world); } catch (e) { /* al weg */ } } }
   prepareCoop(world);
   const koploos = !!opts.koploos;
   const solo = !!opts.solo; // Alleen spelen (#554): geen gasten, dus het toetsenbord blijft van de speler en de verhaalpersonages blijven staan
@@ -438,6 +441,7 @@ export function addGuest(world, transport) {
 // ---------------------------------------------------------------- gast
 // opts: { onHold, fade, route, wens (gewenste figuur voor plek 2 en hoger), wachtwoord (de sessie op slot, #450) }
 export function startClient(world, transport, info, opts = {}) {
+  if (world.coopSolo) { world.coopSolo = false; if (world.coopNet) { try { stopCoopNet(world); } catch (e) { /* al weg */ } } }
   const ok = canJoin(world);
   if (!ok.ok) throw new Error(ok.reason);
   // Checkpoint bij binnenkomst (#448): eerst het eigen spel van deze speler veiligstellen, dan pas meespelen. Wat hij
@@ -1625,6 +1629,7 @@ export function stopCoopNet(world) {
 
 // de overdracht (coophostwisselnet.js) gebruikt deze functies zonder coopnet.js zelf te importeren
 zetCoopNet({ addGuest, stopCoopNet, startHost, startClient, canJoin });
+
 
 
 
