@@ -56,7 +56,9 @@ export function zetMeedoen(aan, { world = null, zet = setSetting, nu = magOnline
   const n = world && world.coopNet;
   const hub = n && n.role === 'host' ? n.hub : null;
   const openbaar = !!(hub && hub.openbaar);
+  const solo = !!(world && world.coopSolo); // Alleen spelen (#554): geen kamercode en geen medespelers (#580)
   if (openbaar && typeof hub.zetOpenbaar === 'function') hub.zetOpenbaar(false);
-  const tekst = openbaar ? SCHAKELAAR.uitOpenbaar : hub ? SCHAKELAAR.uitSessie : n && n.role === 'client' ? SCHAKELAAR.uitGast : SCHAKELAAR.uit;
+  const tekst = openbaar ? SCHAKELAAR.uitOpenbaar : hub && !solo ? SCHAKELAAR.uitSessie : n && n.role === 'client' ? SCHAKELAAR.uitGast : SCHAKELAAR.uit;
   return { ok: true, meedoen: false, veranderd: true, openbaarGesloten: openbaar, tekst };
 }
+
