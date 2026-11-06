@@ -332,6 +332,17 @@ function addPolyGeometry(B, geo, c) {
   }
 }
 
+// (#524) De verre laag leest de rasters in plaats van de hele kaartarrays: zo blijft
+// hij werken als de stad niet meer gepind is en een tegel zijn eigen rijen aan de
+// rasters toevoegt. Elke SpatialGrid houdt een object in elke cel die het raakt, dus
+// één keer per object teruggeven (de volgorde is cel-voor-cel; die doet er hier niet toe).
+function gridItems(grid) {
+  if (!grid || !grid.map) return [];
+  const out = [], seen = new Set();
+  for (const arr of grid.map.values()) for (const it of arr) if (!seen.has(it)) { seen.add(it); out.push(it); }
+  return out;
+}
+
 export function createFarLOD(scene, map, opts) {
   const { flatGeometry, colors, sidewalkExtra, roadColorOf } = opts;
   const roadColor = Object.fromEntries(Object.entries(colors.roads).map(([k, hex]) => {
@@ -355,17 +366,17 @@ export function createFarLOD(scene, map, opts) {
     }
     return t;
   };
-  for (const b of map.buildings) {
+  for (const b of gridItems(map.buildingGrid)) {
     if (b.landmark || !b.bounds) continue;
     tileOf((b.bounds[0] + b.bounds[2]) / 2, (b.bounds[1] + b.bounds[3]) / 2).buildings.push(b);
   }
-  for (const r of map.roads) {
+  for (const r of gridItems(map.roadGrid)) {
     for (let i = 0; i < r.pts.length - 1; i++) {
       const a = r.pts[i], c = r.pts[i + 1];
       tileOf((a[0] + c[0]) / 2, (a[1] + c[1]) / 2).segs.push(r, i);
     }
   }
-  for (const g of map.green) {
+  for (const g of gridItems(map.greenGrid)) {
     if (!g.bounds || g.pts.length < 3) continue;
     tileOf((g.bounds[0] + g.bounds[2]) / 2, (g.bounds[1] + g.bounds[3]) / 2).green.push(g);
   }

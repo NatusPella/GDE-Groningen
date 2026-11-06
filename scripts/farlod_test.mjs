@@ -24,7 +24,12 @@ const building = (cx, cy, w, d, h, type = 'yes') => ({ pts: rect(cx, cy, w, d), 
 // een stadje in een tegel: een hoog pakhuis, een lange hal, een huis en een
 // lage schuur (de muur van een schuur is de laagste die de bouwer maakt)
 const buildings = [building(40, 40, 20, 14, 4), building(80, 60, 60, 22, 3, 'warehouse'), building(20, 80, 9, 8, 2, 'house'), building(30, 15, 7, 5, 0.2, 'shed')];
-const map = { buildings, roads: [], green: [], terrainOn: false };
+// #524: de verre laag leest de rasters (buildingGrid/roadGrid/greenGrid), niet de
+// hele kaartarrays; de test bouwt dezelfde rasters als GameMap.
+const { SpatialGrid } = await import('../game/js/spatialgrid.js');
+const buildingGrid = new SpatialGrid(40);
+for (const b of buildings) buildingGrid.insert(b, b.bounds);
+const map = { buildingGrid, roadGrid: new SpatialGrid(40), greenGrid: new SpatialGrid(80), terrainOn: false };
 const scene = new THREE.Scene();
 const lod = createFarLOD(scene, map, {
   flatGeometry: (g) => g,
