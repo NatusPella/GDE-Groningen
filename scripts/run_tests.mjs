@@ -18,6 +18,7 @@ import { existsSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { checkSyntax } from './lib/syntaxcheck.mjs';
+import { foutUittreksel } from './lib/testrapport.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
@@ -79,7 +80,9 @@ function main() {
     results.push({ name, status, secs: res.secs, out: res.out });
     const extra = status === 'SKIP' ? ' (game/world of data/cache ontbreekt)' : '';
     console.log(`${status.padEnd(7)} ${name} ${res.secs.toFixed(1)}s${extra}`);
-    if (status === 'FAIL' || status === 'TIMEOUT') console.log(tail(res.out).replace(/^/gm, '    '));
+    // #570: de foutregels en de eerste en laatste regels van de uitvoer, niet alleen de staart. Een
+    // FAIL boven regel 25 viel buiten tail(25) en dan leek een rode test in de CI-log groen.
+    if (status === 'FAIL' || status === 'TIMEOUT') console.log(foutUittreksel(res.out).replace(/^/gm, '    '));
   };
 
   const tests = readdirSync(join(ROOT, 'scripts'))
