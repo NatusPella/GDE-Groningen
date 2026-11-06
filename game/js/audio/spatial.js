@@ -55,7 +55,9 @@ export function inverseGain(d, ref, rolloff) {
 // A ref-counted panner that every node of one positional one-shot feeds;
 // it disconnects once the last of them has ended. null = out of range.
 export function spatialOut(x, y, opts = {}) {
-  if (!host.ctx() || host.muted() || !host.voiceOk(opts.prio ?? 1)) return null;
+  // Vóór initAudio (testruns, het eerste beeld) is er nog geen host: dan is er ook
+  // geen ruimtelijk geluid, en geen crash in de verhaaltest (#553).
+  if (!host || !host.ctx() || host.muted() || !host.voiceOk(opts.prio ?? 1)) return null;
   const h = opts.h ?? SOURCE_HEIGHT;
   if (distToListener(x, y, h) > (opts.range ?? MAX_DISTANCE)) return null;
   // HRTF only where it is heard as such: far one-shots pan with equal power
@@ -126,4 +128,5 @@ export function updateListener(world) {
     L.setOrientation(fwd[0], fwd[1], fwd[2], up[0], up[1], up[2]);
   }
 }
+
 
