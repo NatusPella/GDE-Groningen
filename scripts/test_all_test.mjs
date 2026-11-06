@@ -15,6 +15,28 @@ assert.equal(R.normalizeFoutregel('Fout op regel 42 in C:\\Users\\user\\a.js na 
 assert.equal(R.normalizeFoutregel('\n\nAssertionError: 12 !== 13\nstack'), 'AssertionError: # !== #');
 assert.equal(R.eersteFout('ok\nregel\nAssertionError: x\nlaatste'), 'AssertionError: x');
 
+// #570: foutUittreksel laat de echte foutregel zien, ook als die boven de oude staart van 25 regels staat
+{
+  const okRegels = Array.from({ length: 60 }, (_, i) => `ok ${i + 1}`);
+  const lang = ['start', ...okRegels.slice(0, 20), 'FAIL gfx_profile_test.mjs: viewDistanceFor gaf 350 i.p.v. 600', ...okRegels.slice(20)].join('\n');
+  const u = R.foutUittreksel(lang);
+  assert.match(u, /FAIL gfx_profile_test\.mjs: viewDistanceFor gaf 350 i\.p\.v\. 600/, 'de FAIL-regel staat in het uittreksel');
+  assert.equal(u.split('\n')[0], 'FAIL gfx_profile_test.mjs: viewDistanceFor gaf 350 i.p.v. 600', 'de foutregels staan bovenaan');
+  assert.match(u, /^start$/m);
+  assert.match(u, /^ok 60$/m, 'de laatste regels blijven zichtbaar');
+  assert.ok(!/^ok 35$/m.test(u), 'het midden valt weg');
+  assert.ok(u.split('\n').length < lang.split('\n').length, 'korter dan de hele uitvoer');
+  // korte uitvoer blijft helemaal staan, met de fout erin
+  assert.equal(R.foutUittreksel('ok\nAssertionError: 12 !== 13'), 'ok\nAssertionError: 12 !== 13');
+  assert.equal(R.foutUittreksel(''), '');
+  assert.equal(R.foutUittreksel(null), '');
+  // zonder foutregel: eerste en laatste regels, geen kernblok en geen dubbele regels
+  const zonder = Array.from({ length: 80 }, (_, i) => `regel ${i}`).join('\n');
+  const z = R.foutUittreksel(zonder);
+  assert.ok(z.startsWith('regel 0\n') && z.endsWith('regel 79') && !z.includes('regel 40'));
+  assert.equal(new Set(z.split('\n')).size, z.split('\n').length, 'geen dubbele regels');
+}
+
 // fingerprint: stabiel bij andere getallen, anders bij een andere fout of id
 const a = it('t1', 'FAIL', 'Error: 5 items'), b = it('t1', 'FAIL', 'Error: 9 items'), c = it('t1', 'FAIL', 'Error: iets anders'), d = it('t2', 'FAIL', 'Error: 5 items');
 assert.equal(R.fingerprint(a), R.fingerprint(b));
@@ -173,4 +195,10 @@ assert.equal(perFrame.status, 'FAIL'); assert.ok(/ReferenceError/.test(perFrame.
 assert.equal(R.beoordeelWereldpoort({ ...goed, framesMetFout: 1, foutenTotaal: 1 }).status, 'PASS');
 assert.equal(R.parseWereldpoort('x\n[perf-script] ' + JSON.stringify(goed) + '\n').meshes, 1500);
 assert.equal(R.parseWereldpoort('[perf-script] {"ok":true}'), null);
+
+// #570: de CI-runner en de rapportage gebruiken hetzelfde foutuittreksel, en de oude staart is weg
+const rtSrc = fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), 'run_tests.mjs'), 'utf8');
+assert.match(rtSrc, /foutUittreksel\(res\.out\)/, 'run_tests.mjs toont bij een FAIL de echte foutregels');
+assert.ok(!/tail\(res\.out\)/.test(rtSrc), 'de oude tail(25) is weg uit run_tests.mjs');
+assert.match(taSrc, /R\.foutUittreksel\(res\.out\)/, 'test_all.mjs zet het uittreksel in het rapport');
 console.log('test_all_test: ok');

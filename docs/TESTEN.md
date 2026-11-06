@@ -182,6 +182,8 @@ Standaard in `%TEMP%/gde-testall` (buiten de repo); met `--rapport=<map>` elders
 
 `state.json` in de hoofdmap onthoudt per fase de laatste run (resultaten en kleine beeldhandtekeningen). Daarmee toont het rapport per item pass, fail, timeout en niet gedraaid, **nieuwe fouten** (een andere of nieuwe foutregel dan de vorige run), wat opgelost is, wat trager is geworden (minstens 1,5 keer en 5 seconden) en welke fasen niet gedraaid zijn. Met `--only` worden alleen de gedraaide items vervangen.
 
+Faalt een item, dan staan de foutregels (`FAIL`, `Error`, `AssertionError`, ...) bovenaan en daaronder de eerste en laatste regels van de testuitvoer, zowel in de console als in het rapport (#570). `run_tests.mjs` (CI) print hetzelfde uittreksel. Zo blijft een `FAIL`-regel die boven de oude staart van 25 regels stond zichtbaar; voorheen leek zo'n test in de log geslaagd.
+
 Het exitcode is 0 als minstens één item geslaagd is en niets faalde, 1 bij een mislukt item of timeout, 2 bij een crash van het script zelf en **3 als er niets gemeten is** (#593): nul geslaagde items, of een gevraagde fase zonder geslaagd item (bijvoorbeeld `--fase=electron` terwijl elke stap SKIP is, of een `--only` dat niets raakt). Een SKIP heet niet geslaagd. Voor een bewuste deelrun maakt `--allow-skip` (of `--partial`) van die 3 een 0; het rapport zegt dan nog steeds "Er is niets gedraaid.". Een fase die crasht wordt als mislukt item vermeld; er faalt niets stil.
 
 ### Beeldchecks (fase electron)

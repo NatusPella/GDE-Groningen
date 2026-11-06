@@ -89,7 +89,7 @@ function itemUitRes(fase, id, naam, res, ms) {
   let detail = '';
   if (st === 'TIMEOUT') detail = `tijdslimiet van ${Math.round(ms / 1000)}s overschreden`;
   else if (st === 'SKIP') detail = 'niet gedraaid: ' + (split(res.out).find((l) => /^SKIP\b/.test(l.trim())) || 'game/world, data/cache of de gestagede three.js ontbreekt (cd desktop && npm run stage)');
-  else if (st === 'FAIL') detail = (R.eersteFout(res.out) + '\n' + tail(res.out)).slice(0, 1500);
+  else if (st === 'FAIL') detail = (R.eersteFout(res.out) + '\n' + R.foutUittreksel(res.out)).slice(0, 1500);
   return R.maakItem(fase, id, naam, st, res.secs, detail);
 }
 
@@ -585,6 +585,14 @@ async function main() {
       else if (f === 'zwaar') items = await faseZwaar();
       else { const e = await faseElectron(prev, staat); items = e.items; extra = { sigs: e.sigs }; }
     } catch (e) { items = [R.maakItem(f, 'fase:' + f, 'fase ' + f, 'FAIL', 0, 'de fase crashte: ' + (e && e.stack || e))]; }
+    // #570: een gefaald item meteen met zijn echte foutregels in de console (en niet pas in het
+    // rapport): wie in de terminal of de CI-log meekijkt, moet de FAIL-regel uit de testuitvoer zien.
+    const fouten = items.filter((i) => R.isFout(i.status));
+    for (const it of fouten.slice(0, 15)) {
+      log(`\n${it.status.padEnd(7)} ${it.id}`);
+      for (const regel of split(it.detail).slice(0, 12)) log('    ' + regel);
+    }
+    if (fouten.length > 15) log(`    ... en ${fouten.length - 15} meer (zie het rapport)`);
     // een deel-run (--only) vergelijkt alleen wat nu gedraaid is
     const diff = R.diffRuns(ONLY ? [...prev.values()].filter((i) => items.some((n) => n.id === i.id)) : [...prev.values()], items);
     const secs = (Date.now() - f0) / 1000;

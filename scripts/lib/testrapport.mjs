@@ -29,6 +29,22 @@ export function eersteFout(out) {
   return lines.find((l) => /\b(FAIL|Error|TypeError|ReferenceError|SyntaxError|AssertionError|fout|mislukt)\b/i.test(l)) || lines[lines.length - 1] || '';
 }
 
+const FOUTREGEL = /\b(FAIL|Error|TypeError|ReferenceError|SyntaxError|AssertionError|fout|mislukt)\b/i;
+// Het stuk uitvoer dat een gefaalde test verklaart (#570): de foutregels staan bovenaan, daarna de
+// eerste `kop` regels en de laatste `staart` regels. De oude tail(25) liet een FAIL boven regel 25
+// buiten beeld, waardoor een rode test in de log groen leek. Korte uitvoer blijft helemaal staan.
+export function foutUittreksel(out, { kop = 10, staart = 20, kern = 8 } = {}) {
+  const regels = String(out || '').split(/\r?\n/).filter((l) => l.trim());
+  if (!regels.length) return '';
+  if (regels.length <= kop + staart) return regels.join('\n');
+  const kernRegels = regels.filter((l) => FOUTREGEL.test(l)).slice(0, kern);
+  const rest = regels.filter((l) => !kernRegels.includes(l));
+  if (rest.length <= kop + staart) return regels.join('\n');
+  const uit = kernRegels.length ? [...kernRegels, '...'] : [];
+  uit.push(...rest.slice(0, kop), '...', ...rest.slice(-staart));
+  return uit.join('\n');
+}
+
 export function fingerprint(item) {
   const basis = `${item.id}|${isFout(item.status) ? normalizeFoutregel(item.detail) : ''}`;
   let h = 5381;
