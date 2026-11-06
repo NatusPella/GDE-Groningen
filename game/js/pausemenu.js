@@ -52,7 +52,7 @@ import { isPlayAheadOpen } from './todo.js';
 import { renderVerhaal, verhaalClick, verhaalSummary, disposeVerhaalViewer, selectVerhaalCharacter } from './verhaalui.js';
 import { anyFresh } from './characters.js';
 import { renderSpullen, spullenClick, spullenFocus, spullenEnter, zetSpullenZoek, DELEN } from './spullen.js';
-import { phoneClick, phoneUnread, selectPhoneThread, characterForSender } from './phone.js';
+import { phoneClick, phoneUnread, characterForSender } from './phone.js';
 import { takeNoticeThread } from './phonefeed.js';
 import { getErrorLog, errorReport, clearErrorLog, onErrorLogChange } from './errorlog.js';
 import { KEYS } from './storagekeys.js';
@@ -920,12 +920,8 @@ function renderSpullenPanel() {
 }
 
 const phoneApi = {
-  rerender: (keep) => {
-    const sel = keep && keep.dataset && keep.dataset.phThread ? `[data-ph-thread="${CSS.escape(keep.dataset.phThread)}"]` : '';
-    renderPhone();
-    const back = sel && activePanel().querySelector(sel);
-    if (back) back.focus({ preventScroll: true });
-  },
+  // #603: na een gesprek of bericht opnieuw tekenen; de inbox en het personage blijven staan
+  rerender: () => renderPhone(),
 };
 
 const todoApi = {
@@ -1986,7 +1982,7 @@ export function openPauseMenu(name = HOME, opts = {}) {
   if (opts.sub && SUBTABS[name]) pref.sub[name] = opts.sub;
   if (opts.select) selectTodo(opts.select);
   if (opts.view) pref.sub.todo = opts.view;
-  if (opts.thread) { selectPhoneThread(opts.thread); selectVerhaalCharacter(characterForSender(opts.thread)); pref.sub.verhaal = 'personages'; if (name === 'telefoon') name = 'verhaal'; }
+  if (opts.thread) { selectVerhaalCharacter(characterForSender(opts.thread)); pref.sub.verhaal = 'personages'; if (name === 'telefoon') name = 'verhaal'; }
   if (name === 'telefoon') { pref.sub.verhaal = 'personages'; name = 'verhaal'; }
   setOpen(true, name, 'direct');
 }
