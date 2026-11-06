@@ -114,6 +114,8 @@ export function initPlayerApi(world, input) {
         active: m.phase === 'active', phase: m.phase || 'idle', index: m.index ?? -1, id: defs[m.index] ? defs[m.index].id : '', code: m.code || '', label: m.label || '', type: m.type || '',
         stage: stage ? stage.kind : '', marker: m.marker ? { x: r1(m.marker.x), y: r1(m.marker.y) } : null, distance: Number.isFinite(m.distanceToMarker) ? r1(m.distanceToMarker) : null,
         timeLeft: m.timeLeft ?? null, armed: !!m.armed, triggerRadius: m.triggerRadius ?? null, onFoot: false,
+        // de race van deze missie (M05 KEI-fietsrace, de ringweg): stand, aantal, fase en of het een fietsrace is (#312)
+        race: (world.race || m.race) ? { pos: (m.race || world.race).pos, total: (m.race || world.race).total, finished: (m.race || world.race).finished, bikes: !!(m.race || world.race).bikes, phase: (m.race || world.race).phase, checkpoint: (m.race || world.race).checkpoint, checkpoints: (m.race || world.race).checkpoints } : null,
         stunt: m.stunt ? { score: m.stunt.score, target: m.stunt.target, combo: m.stunt.combo, hits: m.stunt.hits } : null,
         // the stunt of the mission (M01: its score only runs once the square is reached): where and how many points
         stuntSpec: defs[m.index] && defs[m.index].stunt ? { x: defs[m.index].stunt.center.x, y: defs[m.index].stunt.center.y, radius: defs[m.index].stunt.radius, target: defs[m.index].stunt.target } : null,

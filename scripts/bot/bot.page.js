@@ -38,6 +38,9 @@ if (!Bd) B.log('board', { what: 'window.__botBoard ontbreekt: start via scripts/
 // #312: de stuntavond van M01 (scripts/bot/stunt.mjs, door run.mjs meegegeven)
 const St = window.__botStunt || null;
 if (!St) B.log('stunt', { what: 'window.__botStunt ontbreekt: start via scripts/bot/run.mjs' });
+// #312: de fietsrace van M05 op de KEI-route (scripts/bot/bikerace.mjs, door run.mjs meegegeven)
+const Bk = window.__botBikeRace || null;
+if (!Bk) B.log('bikerace', { what: 'window.__botBikeRace ontbreekt: start via scripts/bot/run.mjs' });
 const world = B.world, player = B.player;
 const PART = CFG.sweep && CFG.sweep.length ? 'all' : CFG.part || 'kop';
 const MAX_GAME = CFG.maxGameS || 3600;
@@ -471,6 +474,68 @@ async function rescue(s, stepKey, info) {
   detector.acknowledge(s.t);
 }
 
+// #312: de fietsrace van M05 (KEI-week). De missie geeft negen checkpointmarkers; de straat ertussen is
+// de KEI-route (game/js/keiroute.js). Wie van marker naar marker stuurt, snijdt door de bebouwing van de
+// binnenstad: deze halve volgt de routelijn met de pure regels van scripts/bot/bikerace.mjs, houdt Shift
+// vast (de sprint van player.js begint vanzelf opnieuw) en telt de checkpoints zelf, met een time-out als
+// hij niet dichterbij komt. Alleen wanneer de bot echt op de fiets zit en de race loopt.
+let KEI = null, KEI_ERR = null;
+async function keiRoute() {
+  if (KEI || KEI_ERR) return KEI;
+  try { KEI = await imp('keiroute'); } catch (e) { KEI_ERR = e && e.message ? e.message : String(e); B.log('bikerace', { what: 'keiroute niet geladen', fout: KEI_ERR }); }
+  return KEI;
+}
+function keiCheckpoints() {
+  if (!KEI) return [];
+  const R = KEI.KEI_ROUTE, CP = KEI.KEI_CHECKPOINTS;
+  // de wegpunten van de missie: KEI_CHECKPOINTS.slice(1) en dan de finish (0), net als missions_defs.js
+  return CP.slice(1).map((i) => ({ x: R[i][0], y: R[i][1] })).concat([{ x: R[0][0], y: R[0][1] }]);
+}
+async function bikeRaceStage(s, stepKey) {
+  const race = s.mission && s.mission.race;
+  if (!Bk || !race || !race.bikes) return false;
+  const KR = await keiRoute();
+  if (!KR) return false;
+  // niet op de fiets (of er net af): de gewone stappen regelen de fiets en de start
+  if (!s.player.vehicle || s.player.vehicle.kind !== 'fiets') return false;
+  if (!mem.bike || mem.bike.step !== stepKey) mem.bike = { step: stepKey, routeFrom: 0, cpIndex: 0, mem: {} };
+  const bm = mem.bike;
+  // de startlichten: wachten tot het spel de race laat lopen. Na een mislukte poging begint de race
+  // opnieuw bij de startlichten: dan tellen de checkpoints weer vanaf nul.
+  if (race.phase && race.phase !== 'race') {
+    if (bm.gestart) mem.bike = { step: stepKey, routeFrom: 0, cpIndex: 0, mem: {} };
+    B.stick(0, 0); B.up('shift'); return true;
+  }
+  if (!bm.gestart) {
+    bm.gestart = true;
+    B.log('race', { stap: stepKey, baan: 'kei', punten: KR.KEI_ROUTE.length, checkpoints: race.checkpoints || KEI.KEI_CHECKPOINTS.length, bots: race.total || null });
+  }
+  const cps = keiCheckpoints();
+  const step = Bk.raceStep({
+    pos: { x: s.player.x, y: s.player.y, angle: s.player.vehicle.angle || 0, speed: s.player.vehicle.speed || 0 },
+    route: KR.KEI_ROUTE, cps, routeFrom: bm.routeFrom, cpIndex: bm.cpIndex, t: s.t,
+    sprintRest: bm.sprintRest || 0,
+  }, bm.mem);
+  if (step.type === 'timeout') {
+    B.log('timeout', { step: stepKey, what: 'fietsrace: ' + step.why, forS: Math.round(step.forS || 0), x: Math.round(s.player.x), y: Math.round(s.player.y), checkpoint: bm.cpIndex, race: race.pos ? { pos: race.pos, total: race.total } : null });
+    mem.bike = null;
+    B.up('shift'); B.stick(0, 0);
+    await rescue(s, stepKey, { idleFor: step.forS || 30, quiet: true });
+    return true;
+  }
+  if (step.type === 'klaar') {
+    if (!bm.klaarGelogd) { bm.klaarGelogd = true; B.log('race-klaar', { stap: stepKey, seconden: Math.round(s.t - (bm.mem.startedAt || s.t)), plek: race.pos || null, van: race.total || null }); }
+    B.up('shift'); B.stick(0, 0);
+    return true; // de missie telt de finish en rondt zelf af
+  }
+  bm.routeFrom = step.routeIndex;
+  if (step.cpIndex !== bm.cpIndex) { bm.cpIndex = step.cpIndex; B.log('race-cp', { stap: stepKey, cp: step.cpIndex, van: cps.length }); }
+  B.stick(step.steer, step.throttle);
+  if (step.sprint) B.down('shift'); else B.up('shift');
+  detector.hold(s.t); // een race is geen wachten: de wachttijd loopt niet
+  return true;
+}
+
 // #312: a board stage with a vehicle, handled by the pure rules of scripts/bot/board.mjs: which vehicle
 // (the mission's own, not a bike or a car with a driver), where to stand (at the door on the bot's side)
 // and how long one attempt may take (a timeout is a finding, not four blind presses of E). This half
@@ -812,6 +877,10 @@ while (true) {
   // nothing else owns the screen.
   if (Bd && s.mission.active && s.mission.stage === 'board' && !s.blocking.cinematic && !s.blocking.banner && !s.blocking.talk && !s.blocking.pauseMenu && !s.blocking.paused && !s.blocking.respawn && !s.blocking.loading && !s.blocking.shop && !s.blocking.ride && !(s.blocking.dialog && s.blocking.dialog.options && s.blocking.dialog.options.length)) {
     if (await boardStage(s, stepKey)) continue;
+  }
+  // #312: de fietsrace van M05: de KEI-route volgen in plaats van van checkpoint naar checkpoint
+  if (Bk && s.mission.active && s.mission.race && s.mission.race.bikes && !s.blocking.cinematic && !s.blocking.banner && !s.blocking.talk && !s.blocking.pauseMenu && !s.blocking.paused && !s.blocking.respawn && !s.blocking.loading && !s.blocking.shop && !s.blocking.ride && !(s.blocking.dialog && s.blocking.dialog.options && s.blocking.dialog.options.length)) {
+    if (await bikeRaceStage(s, stepKey)) continue;
   }
   const act = L.decide(s, mem);
   if (s.mission.active && s.mission.stage === 'choice' && act.type !== 'choose' && s.t - (mem.choiceDbgT || -99) > 10) {
