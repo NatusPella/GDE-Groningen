@@ -283,6 +283,9 @@ export function sessionBootTick(world, deps = {}) {
   if (nu < volgendeControle) return;
   volgendeControle = nu + 1000;
   if (typeof document === 'undefined' || !document.body || !document.body.classList.contains('game-started')) return;
+  // Niet tijdens het laadscherm: de wereld is dan nog niet klaar en een sessie
+  // beginnen of zoeken kan het laden laten wachten (#582).
+  if ((typeof document.getElementById === 'function' && document.getElementById('load-screen')) || world.uiPaused) return;
   if (isPauseMenuOpen() || isMapOpen()) return;
   if (!canBootSession(world)) return; // no consent, still in a filmpje or in a vehicle: try a later frame
   st.bezig = true;
@@ -349,5 +352,7 @@ export async function bootSession(world, deps = {}) {
   meld(world, deps, keuze.reden); // "Er speelt nog niemand", "De sessie van X is vol": the player hears why
   return { doen: KEUZE.HOSTEN, sessie: null, pogingen, reden: keuze.reden };
 }
+
+
 
 
