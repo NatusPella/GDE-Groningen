@@ -417,9 +417,17 @@ export function updateCinematics(dt, w) {
     lastImpactSeen = w.lastImpact || null;
     playGameStart(w);
   }
+  // Vangnet voor de allereerste opening: als een filmpje de gameplay nog steeds
+  // tegenhoudt terwijl de wereldklok nog niet loopt, sla het na 30 s over.
+  if (active && w && w.paused && !(w.time > 1) && !active._wStart) active._wStart = now;
+  if (active && active._wStart && now - active._wStart > 30000 && w && w.time <= 1) { finish(true); return; }
   const frozen = isPauseMenuOpen() || isMapOpen();
   if (!frozen) {
     if (active) {
+      // Vangnet: een filmpje dat veel wandkloktijd krijgt maar zelf niet vooruitkomt
+      // (een vastgelopen intro of scène) mag de game niet blokkeren.
+      if (!active._wStart) active._wStart = now;
+      if (now - active._wStart > 20000 && active.t < 2) { finish(true); return; }
       active.t += (active.realtime ? Math.max(dt, wallDt) : dt) * (active.rate ?? 1);
       updateSubtitles();
       if (active.t >= active.duration) finish(false);
@@ -1217,3 +1225,5 @@ export function skipAllCinematics() {
   swallowSpace = false;
   skipHoldSince = null;
 }
+
+
