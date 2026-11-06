@@ -19,7 +19,7 @@ export const isSoloHost = (world) => !!(world && world.coopSolo && world.coopNet
 export function startSoloHost(world, opts = {}) {
   if (!world || world.coopNet || world.coopWissel) return null;
   const info = opts.info || handshakeInfo({ tiles: opts.tiles || '-', story: opts.story || 'nieuw' });
-  startHost(world, info, { seed: opts.seed ?? 1, max: SOLO_MAX, ...(opts.host || {}) });
+  startHost(world, info, { seed: opts.seed ?? 1, max: SOLO_MAX, solo: true, ...(opts.host || {}) });
   world.coopSolo = true;
   return world.coopNet || null;
 }
@@ -30,5 +30,6 @@ export function stopSoloHost(world) {
   try { stopCoopNet(world); } catch (e) { /* de sessie was al weg */ }
   return true;
 }
+
 
 

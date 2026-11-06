@@ -21,7 +21,7 @@ import { reportCrime } from './crime.js';
 import { findEnterableVehicle } from './vehicle.js';
 import { findRideableProp, rideProp } from './rideprops.js';
 import { isHoldOpen, checkHold, openHold } from './coophold.js';
-import { sessionBootTick, canBootSession, sessionBootBezig } from './sessionboot.js'; // een sessie vanaf de start (#528, ADR 0022)
+import { sessionBootTick, sessionBootDone } from './sessionboot.js'; // een sessie vanaf de start (#528, ADR 0022)
 import { updatePartnerChip } from './coophud.js';
 import { syncFigures, hasFigureMeshes } from './coopfigures3d.js';
 import { syncHostEntities, hasHostEntities, clearHostEntities } from './coopentities3d.js';
@@ -599,6 +599,7 @@ async function boot() {
   wireFotoKey(world, () => !isMapOpen() && !isPauseMenuOpen() && !isShopOpen() && !isCinematicActive() && !world.pigeonMode);
   let last = performance.now();
   let laatsteFrameMs = 16;
+  let soloWachtS = 0;
   let menuDt = 0;
   let trafficTimer = 0;
   const tileFollow = {};
@@ -634,8 +635,14 @@ async function boot() {
   function frameBody(dt) {
     // Alleen spelen is een sessie van één (#554): start die zodra het spel loopt en er
     // geen Samen-scherm open staat. Zo lopen alle functies door hetzelfde multiplayer-pad.
+    // Wie online meedoet, wacht eerst op de startzoektocht (#528); die host of sluit aan, of
+    // geeft na een paar pogingen op. Duurt het te lang of kan hij niet beginnen, dan valt de
+    // sessie van één na 12 s in (de zoektocht stopt dan zelf zodra hij een sessie ziet).
+    const onlineNu = magOnline();
+    soloWachtS = onlineNu ? soloWachtS + dt : 0;
+    const soloKlaar = !onlineNu || sessionBootDone(world) || soloWachtS > 12;
     if (!world.coopNet && !world.coopWissel && !wantsOpenSamen() && !isPauseMenuOpen() && document.body.classList.contains('game-started')
-      && !FLAGS.coop && !canBootSession(world) && !sessionBootBezig(world)
+      && !FLAGS.coop && soloKlaar
       && !FLAGS.storytest && !FLAGS.trailer && !FLAGS.perf && !FLAGS.benchmark && !FLAGS.spotsonly && !FLAGS.autoplay && !FLAGS.preview && !FLAGS.menu) {
       startSoloHost(world, { seed: world.seed ?? 1 });
     }
@@ -964,6 +971,7 @@ boot().catch((err) => {
   showLoadError(err.message);
   console.error(err);
 });
+
 
 
 
