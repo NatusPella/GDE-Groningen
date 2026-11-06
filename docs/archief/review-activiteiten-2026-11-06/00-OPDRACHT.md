@@ -1,8 +1,9 @@
 # Opdracht: inhoudelijke review van alle activiteiten (deelreviews)
 
-Datum: 6-11-2026. Repo: `C:\Users\abuis\GIT\GDE-Groningen`, branch `main`, HEAD `9430d5b6`
-("Release 0.57.3"). De werkboom heeft vier gewijzigde bestanden die niet van deze review zijn
-(`desktop/main.js`, `game/js/cinematics.js`, `game/js/geojobs.js`, `game/js/main.js`).
+Datum: 6-11-2026. Repo: `C:\Users\abuis\GIT\GDE-Groningen`, branch `main`, HEAD `41340dd4`
+("Docs: reviewarchieven van de andere sessies bewaard"). De werkboom is schoon. Let op: dit
+commit bevat ook een kopie van deze opdracht onder `docs/archief/review-activiteiten-2026-11-06/`;
+werk in `.review-activiteiten-2026-11-06/` in de werkmap, niet in `docs/archief/`.
 
 ## Wat we reviewen
 
@@ -10,8 +11,8 @@ GDE Groningen – Zomer vol misdaad: een Nederlandse open-wereldkomedie in low-p
 (three.js + Electron, webversie). Spelers zijn Tammo en Tessa; 18+. Doel van deze reviewronde is
 **geen code review** maar een **spelontwerp-review**: hoe goed werken alle activiteiten voor de
 speler, en hoe kunnen ze beter (samen spelen, plezier, uitdaging, UI/UX, gameplay, diepgang,
-duidelijkheid)? Vorige reviewronde (`.review-archief-2026-11-06/`) deed techniek/bugs; die
-bevindingen niet herhalen, wel lezen zodat je ze niet dupliceert.
+duidelijkheid)? Vorige reviewronde (`docs/archief/review-archief-2026-11-06/`) deed techniek/bugs;
+die bevindingen niet herhalen, wel lezen zodat je ze niet dupliceert.
 
 De Lead schrijft uit jouw rapport en de vijf andere een eindrapport. Jij levert één deelrapport.
 
@@ -46,8 +47,8 @@ De Lead schrijft uit jouw rapport en de vijf andere een eindrapport. Jij levert 
    (wat de eigenaar zelf al als speeltestpunten noteert), `docs/MULTIPLAYER-VISIE.md`.
 4. `CHANGELOG.md`: grep `## \[Unreleased\]` en de laatste twee releases; daar staat wat er recent
    veranderd is en wat "nog niet in beeld bekeken" is.
-5. `.review-archief-2026-11-06/RAPPORT.md` + het deelrapport dat bij jouw gebied past, om
-   technische bevindingen niet te dupliceren.
+5. `docs/archief/review-archief-2026-11-06/RAPPORT.md` + het deelrapport dat bij jouw gebied past,
+   om technische bevindingen niet te dupliceren.
 6. Jouw eigen systeem: de modules in je opdracht, plus de bijbehorende `scripts/*_test.mjs`
    (tests vertellen vaak wat de bedoeling is en welke randen al gedekt zijn) en de docs die het
    systeem beschrijven.
@@ -58,7 +59,7 @@ De Lead schrijft uit jouw rapport en de vijf andere een eindrapport. Jij levert 
 # Deelreview: <onderwerp>
 
 Datum: 6-11-2026. Scope: <bestanden/systemen>. Status: statische leesreview, niets runtime getest.
-Commit: 9430d5b6.
+Commit: 41340dd4.
 
 ## Samenvatting
 - 6-10 bullets: wat werkt, wat het meest stoort, de grootste kansen.
