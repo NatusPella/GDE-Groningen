@@ -641,7 +641,7 @@ async function boot() {
     const onlineNu = magOnline();
     soloWachtS = onlineNu ? soloWachtS + dt : 0;
     const soloKlaar = !onlineNu || sessionBootDone(world) || soloWachtS > 12;
-    if (!world.coopNet && !world.coopWissel && !wantsOpenSamen() && !isPauseMenuOpen() && document.body.classList.contains('game-started')
+    if (!world.coopNet && !world.coopWissel && !wantsOpenSamen() && !isPauseMenuOpen() && !document.getElementById('load-screen') && document.body.classList.contains('game-started')
       && !FLAGS.coop && soloKlaar
       && !FLAGS.storytest && !FLAGS.trailer && !FLAGS.perf && !FLAGS.benchmark && !FLAGS.spotsonly && !FLAGS.autoplay && !FLAGS.preview && !FLAGS.menu) {
       startSoloHost(world, { seed: world.seed ?? 1 });
@@ -971,6 +971,7 @@ boot().catch((err) => {
   showLoadError(err.message);
   console.error(err);
 });
+
 
 
 
