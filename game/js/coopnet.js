@@ -310,8 +310,11 @@ export function startHost(world, info, opts = {}) {
   if (world.coopSolo) { world.coopSolo = false; if (world.coopNet) { try { stopCoopNet(world); } catch (e) { /* al weg */ } } }
   prepareCoop(world);
   const koploos = !!opts.koploos;
-  const solo = !!opts.solo; // Alleen spelen (#554): geen gasten, dus het toetsenbord blijft van de speler en de verhaalpersonages blijven staan
-  if (!solo) { world.coop.prevLocal = world.coop.local !== false; world.coop.local = false; } // in een sessie sturen de gasten, niet het toetsenbord
+  const solo = !!opts.solo; // Alleen spelen (#554): geen gasten, dus de verhaalpersonages blijven staan
+  // In elke sessie sturen gasten de metgezel, niet het toetsenbord; zonder gast (ook in een sessie van één) neemt de
+  // gewone volg-AI het over (#559). Het oude toetsenbordpad komt terug zodra de sessie stopt.
+  world.coop.prevLocal = world.coop.local !== false;
+  world.coop.local = false;
   const { onHold = null, fade = null, route = null, onChange = null, scene = null, wachtwoord = '' } = opts;
   let hub;
   hub = new HostHub({
