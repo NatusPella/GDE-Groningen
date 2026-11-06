@@ -306,7 +306,8 @@ export function guestView(sample, info) {
 export function startHost(world, info, opts = {}) {
   prepareCoop(world);
   const koploos = !!opts.koploos;
-  world.coop.prevLocal = world.coop.local !== false; world.coop.local = false; // in een sessie sturen de gasten, niet het toetsenbord
+  const solo = !!opts.solo; // Alleen spelen (#554): geen gasten, dus het toetsenbord blijft van de speler en de verhaalpersonages blijven staan
+  if (!solo) { world.coop.prevLocal = world.coop.local !== false; world.coop.local = false; } // in een sessie sturen de gasten, niet het toetsenbord
   const { onHold = null, fade = null, route = null, onChange = null, scene = null, wachtwoord = '' } = opts;
   let hub;
   hub = new HostHub({
@@ -358,8 +359,7 @@ export function startHost(world, info, opts = {}) {
   hub.onchange = (roster) => { world.coopRoster = lijst(roster); if (onChange) onChange(roster); };
   zetKetenSleutel(world, hub.id); // #523: de missieketen van de gastheer hangt vanaf nu aan deze sessie
   if (info && info.avatar) zetAvatar(hub.roster, 0, info.avatar); // je eigen online-avatar in de lijst voor de anderen (#455)
-  setFixedCharacters(world, 0);
-  if (world.coop) world.coop.leash = Infinity; // geen harde lijn van 38 m om Tessa: ze kon niet verder dan dat van de gastheer, en hij kon niet weten waarom (#388); bandMetgezel doet het werk
+  if (!solo) { setFixedCharacters(world, 0); if (world.coop) world.coop.leash = Infinity; } // geen harde lijn van 38 m om Tessa: ze kon niet verder dan dat van de gastheer, en hij kon niet weten waarom (#388); bandMetgezel doet het werk
   world.coopRole = 'host';
   world.coopRoster = lijst(hub.roster);
   world.coopUitslag = (ok, label, reden, loon, gestopt, id) => uitslagMelden(world, ok, label, reden, loon, gestopt, id || (world.mission && world.mission.id) || null); // gelukt, mislukt of gestopt, per groep (#371, #390, #452)
@@ -1625,5 +1625,6 @@ export function stopCoopNet(world) {
 
 // de overdracht (coophostwisselnet.js) gebruikt deze functies zonder coopnet.js zelf te importeren
 zetCoopNet({ addGuest, stopCoopNet, startHost, startClient, canJoin });
+
 
 

@@ -61,6 +61,9 @@ function hiddenIds() {
 // sessionBootBezig is voor de sessie van één (#554): zolang de startzoektocht loopt,
 // mag die niet als gastheer beginnen, anders sluit hij de zoektocht buiten.
 export function sessionBootBezig(world) { const st = world ? stand.get(world) : null; return !!(st && st.bezig); }
+// De startzoektocht is klaar (gelukt of opgegeven) of er loopt al een sessie: vanaf dan
+// mag de sessie van één beginnen (#554).
+export function sessionBootDone(world) { const st = world ? stand.get(world) : null; return !!(world && (world.coopNet || world.coopWissel || (st && st.uit))); }
 export function canBootSession(world) {
   const st = world ? stand.get(world) : null;
   if (!world || world.coopNet || world.coopWissel) return false;
@@ -311,4 +314,5 @@ export async function bootSession(world, deps = {}) {
   meld(world, deps, keuze.reden); // "Er speelt nog niemand", "De sessie van X is vol": the player hears why
   return { doen: KEUZE.HOSTEN, sessie: null, pogingen, reden: keuze.reden };
 }
+
 

@@ -17,6 +17,8 @@ t('sessie van één start als host met max 1', () => {
   assert.equal(w.coopRole, 'host');
   assert.equal(w.coopSolo, true);
   assert.equal(isSoloHost(w), true);
+  assert.equal(w.coop.local, true, 'het toetsenbord blijft van de speler');
+  assert.ok(!w.coop.fixedChars, 'de verhaalpersonages blijven staan');
   assert.equal(net.hub.roster.spelers.length, 1, 'alleen plek 0');
   assert.equal(net.hub.roster.spelers[0].slot, 0);
   stopSoloHost(w);
@@ -49,4 +51,6 @@ t('stoppen zonder sessie doet niets', () => {
 });
 
 console.log(`coopsolo_test: ${n} controles ok`);
+
+
 
