@@ -32,10 +32,12 @@ dan joinen" de logische volgorde, geen omweg.
   sessie te verlaten.
 - **Een save blijft een gewone save.** Co-op krijgt geen vlag en geen aparte
   sessie-save; de wereld is van de host, de voortgang per speler.
-- **De oude menu-achtergrond blijft voor QA, trailer en attract.** `?menu`,
-  `--trailer`, `--preview`, `--attract`, `--benchmark`, `--storytest` en `--noattract`
-  houden hun pad; `__menuStart` bestaat alleen in die menuflow. Het normale spelen
-  slaat het menu over.
+- **De oude menu-achtergrond blijft voor QA en opnames.** Alleen `?menutest` (de QA-scripts die
+  het scherm zelf bedienen) en `--trailer`, `--preview` en `--attract` houden hun pad;
+  `__menuStart` bestaat alleen in die menuflow. Sinds #581 starten de testruns (`--stil`,
+  `--story-test`, `--benchmark`, `--noattract`, `--perf`, `--spotsonly`) net als de speler met
+  de boot en de wereld, zodat het oude titelscherm niet meer in de testbeelden staat. Het
+  normale spelen slaat het menu over.
 
 ## Afgewezen
 
@@ -53,7 +55,9 @@ dan joinen" de logische volgorde, geen omweg.
 ## Gevolgen
 
 - `startscreen.js` krijgt een bootpad zonder menu; de oude menuflow blijft voor de
-  QA- en trailerpaden.
+  QA- en trailerpaden. Sinds #581 nemen alle test- en benchmarkruns het bootpad en geven
+  alleen de QA-harnassen die het scherm zelf bedienen `GDE_MENU_TEST=1` mee (devtools zet
+  dan `?menutest` in de URL).
 - Het pauzemenu wordt de enige plek voor savebeheer, Samen spelen, nieuws en credits.
 - #486 (solo is geen sessie van één) en #434/#388 (gast-pauze en camera) blijven
   nodig voor de naadloze overgang; dit besluit lost ze niet op.

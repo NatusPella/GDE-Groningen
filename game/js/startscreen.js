@@ -123,13 +123,14 @@ export function yieldToPaint() {
 }
 
 // A run that no person sits at (the story test, the smoke test, recordings,
-// the benchmark) goes straight on to the menu.
+// the benchmark) starts the game like a player does; AUTO only skips the
+// first-run graphics measurement and the boot animations.
 const AUTO = FLAGS.noattract || FLAGS.storytest || FLAGS.stil || FLAGS.trailer || FLAGS.preview || FLAGS.benchmark || FLAGS.perf || FLAGS.spotsonly;
 
-// Fills the bar to 100% and goes straight on (#226): no key to press. The boot screen stays up until the
-// menu is there (dismissLoading) and runStartScreen only shows the menu when the world behind it is drawn
-// and calm (menuready.js), so there is no black gap and no frozen menu. The sound starts at the first real
-// key or click (audio.js unlockAudio), the browsers allow nothing earlier.
+// Fills the bar to 100% and goes straight on (#226): no key to press. The boot screen stays up until
+// the world is there (dismissLoading here, or the menu gate in the QA/trailer route), so there is no
+// black gap. The sound starts at the first real key or click (audio.js unlockAudio), the browsers
+// allow nothing earlier.
 export async function finishLoading() {
   progress = 1;
   shown = 1;
@@ -332,10 +333,11 @@ function holdTiles(map, spot) {
   try { return Promise.resolve(map.registerShots([{ at: [spot.x, spot.y] }], { radius, token: 'menu' })).catch(() => {}); } catch (e) { return Promise.resolve(); }
 }
 // The first viewpoint is picked and its tiles are asked for while the boot screen is still up (main.js, once the map is in), so the
-// province round it streams in next to the rest of the loading and the menu does not wait for it afterwards.
+// province round it streams in next to the rest of the loading and the menu does not wait for it afterwards. Only the
+// QA/trailer route still shows that menu (#581); a player start and every test run go straight into the world.
 let planned = null;
 export function planMenuStart(map) {
-  if (planned || FLAGS.trailer || FLAGS.preview || FLAGS.attract || FLAGS.benchmark) return;
+  if (planned || !(FLAGS.menutest || FLAGS.trailer || FLAGS.preview || FLAGS.attract)) return;
   try {
     const spot = kiesVolgende(menuPool(map), leesVerleden(menuStorage()), Math.random);
     planned = { spot, tiles: holdTiles(map, spot) };
@@ -343,14 +345,14 @@ export function planMenuStart(map) {
 }
 
 // The normal boot: no menu. The save written last is loaded; without a save the story starts
-// at once (the owner's choice, 25-10). The start screen stays for the QA, trailer and attract
-// paths, which still need the menu and its backdrop.
+// at once (the owner's choice, 25-10). Only the QA/recording route (?menutest, trailer, preview,
+// attract) keeps the old title screen (#581); a benchmark runs from the boot too.
 export function runStartScreen(world, opts) {
   // pendingTrailer() reads and clears the pending benchmark: ask it once and hand the answer on,
   // otherwise the menu asks again and the benchmark from Instellingen > Beeld is gone.
   const pending = pendingTrailer();
-  const forceMenu = FLAGS.menu || FLAGS.trailer || FLAGS.preview || FLAGS.attract || FLAGS.benchmark || FLAGS.storytest || FLAGS.stil || FLAGS.perf || FLAGS.spotsonly || FLAGS.noattract || !!pending;
-  return forceMenu ? runMenuScreen(world, opts, pending) : runBootScreen(world, opts);
+  const menu = FLAGS.menutest || FLAGS.trailer || FLAGS.preview || FLAGS.attract;
+  return menu ? runMenuScreen(world, opts, pending) : runBootScreen(world, opts, pending);
 }
 
 const FIRST_RUN_MS = 3500;
@@ -402,12 +404,32 @@ function benchmarkFirstRun(opts, done) {
   requestAnimationFrame(step);
 }
 
-function runBootScreen(world, opts) {
+// #581: the benchmark (--benchmark and the one from Instellingen > Beeld, which reloads into it)
+// runs after the boot, on the same fresh world the menu route measured; only the menu around it is
+// gone. Returns after the results card; the caller then starts the game as usual.
+async function benchmarkFromBoot(world, opts) {
+  dismissLoading();
+  const T = await import('./trailer.js');
+  const env = { tick: opts.tick, render: opts.render, relocate: opts.relocate };
+  let next = 'back';
+  for (;;) {
+    const res = await T.runBenchmarkSuite(world, env);
+    if (res.aborted) break;
+    next = await T.showBenchmarkResults(res);
+    if (next !== 'again') break;
+  }
+  await T.fadeOutTrailer(false);
+  stopTheme();
+  // the result and its one-click preset wait in Instellingen > Beeld
+  if (next === 'settings') world.openSettingsOnStart = 'video';
+}
+
+function runBootScreen(world, opts, pending = null) {
   // Nieuws en credits (wi-492-over) hangen hier nog aan; de eerste-start-test zit hieronder.
   const slot = ensureLatestSlot();
   // No reliable latest (a full list, a broken save, or a save from a newer version): the old
   // save screen stays available instead of silently loading or overwriting the wrong save.
-  if (!slot || (!hasSave() && listSlots(null).length)) return runMenuScreen(world, opts);
+  if (!slot || (!hasSave() && listSlots(null).length)) return runMenuScreen(world, opts, pending);
   return new Promise((resolve) => {
     const screen = el('start-screen');
     if (screen) { screen.classList.remove('visible'); screen.style.display = 'none'; }
@@ -442,11 +464,16 @@ function runBootScreen(world, opts) {
       startLoadScreen(world, { kind: 'save' });
       finish();
     };
-    // QA and trailer runs that need the old menu use ?menu; this path starts immediately.
-    // A fresh profile first gets a short graphics measurement; everything else starts at once.
+    // #581: testruns start like the player: no menu, straight on to the world. A fresh profile
+    // first gets a short graphics measurement; everything else starts at once. A benchmark that was
+    // asked for (--benchmark, or Instellingen > Beeld via a reload) runs first, on this same world.
     const firstRun = !save && !AUTO && !FLAGS.autoplay && !document.hidden && isDefaultGfx() && !readAdvice();
-    if (firstRun) benchmarkFirstRun(opts, () => startNew());
-    else if (save) continueGame(); else startNew();
+    const begin = () => {
+      if (firstRun) benchmarkFirstRun(opts, () => startNew());
+      else if (save) continueGame(); else startNew();
+    };
+    if (pending && pending.mode === 'benchmark') benchmarkFromBoot(world, opts).then(begin, (e) => { console.error('benchmark', e); begin(); });
+    else begin();
   });
 }
 

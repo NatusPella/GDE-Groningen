@@ -562,7 +562,7 @@ async function boot() {
   // world takes keys: typing a name must not drive the player, and nothing connects either way.
   // The answer lands in gde-settings and the boot goes on. A test or QA run skips the question,
   // like the graphics measurement at the first start.
-  if (!(FLAGS.noattract || FLAGS.storytest || FLAGS.stil || FLAGS.trailer || FLAGS.preview || FLAGS.benchmark || FLAGS.perf || FLAGS.spotsonly || FLAGS.autoplay || FLAGS.menu) && !document.hidden) {
+  if (!(FLAGS.noattract || FLAGS.storytest || FLAGS.stil || FLAGS.trailer || FLAGS.preview || FLAGS.benchmark || FLAGS.perf || FLAGS.spotsonly || FLAGS.autoplay || FLAGS.menutest) && !document.hidden) {
     await maybeOpenOnlineStart();
     // Samen spelen is de default: wie meedoen heeft gekozen, ziet na het starten meteen de
     // openbare sessielijst (en kan daar alsnog alleen verder).
@@ -648,7 +648,7 @@ async function boot() {
     const soloKlaar = !onlineNu || sessionBootDone(world) || soloWachtS > 12;
     if (!world.coopNet && !world.coopWissel && !wantsOpenSamen() && !isPauseMenuOpen() && !document.getElementById('load-screen') && document.body.classList.contains('game-started')
       && !FLAGS.coop && soloKlaar
-      && !FLAGS.storytest && !FLAGS.trailer && !FLAGS.perf && !FLAGS.benchmark && !FLAGS.spotsonly && !FLAGS.autoplay && !FLAGS.preview && !FLAGS.menu) {
+      && !FLAGS.storytest && !FLAGS.trailer && !FLAGS.perf && !FLAGS.benchmark && !FLAGS.spotsonly && !FLAGS.autoplay && !FLAGS.preview && !FLAGS.menutest) {
       startSoloHost(world, { seed: world.seed ?? 1 });
     }
     // Samen spelen vanuit het hoofdmenu (#95): de lobby opent zodra het spel te besturen is (na de opening van een nieuw spel)
