@@ -301,17 +301,16 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 /* Prestaties */
 #pause-menu .pa-list { width: 640px; }
 #pause-menu .pa-total { display: flex; align-items: baseline; gap: 12px; font-size: 18px; }
+#pause-menu .pa-total .m-bar { width: 120px; }
 #pause-menu .pa-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 24px; padding: 8px 24px 16px; }
 #pause-menu .pa-cell { display: flex; flex-direction: column; gap: 2px; font-size: 18px; min-width: 0; }
 #pause-menu .pa-cell .bebas { font-size: 28px; color: var(--ink); }
+#pause-menu .pa-fig-k { display: flex; align-items: center; gap: 8px; }
+#pause-menu .pa-fig-k .pa-ico { margin-right: 0; }
+#pause-menu .pa-inline { display: flex; align-items: center; gap: 12px; }
+#pause-menu .pa-inline .m-bar { width: 120px; }
 #pause-menu .pa-prog { display: flex; flex-direction: column; gap: 12px; max-width: 480px; }
 #pause-menu .pa-prog .m-bar { height: 6px; }
-#pause-menu .pa-ring { position: relative; display: inline-flex; align-items: center; justify-content: center; flex: none; }
-#pause-menu .pa-ring svg { position: absolute; inset: 0; width: 100%; height: 100%; fill: none; stroke-width: 9; }
-#pause-menu .pa-ring .bg { stroke: rgba(240, 237, 228, 0.14); }
-#pause-menu .pa-ring .fg { stroke: var(--g); stroke-linecap: round; }
-#pause-menu .pa-ring .bebas { font-size: 24px; color: var(--ink); }
-#pause-menu .pa-prog .pa-ring .bebas { font-size: 34px; }
 #pause-menu .pa-total { align-items: center; }
 #pause-menu .m-disc .bebas { font-size: 22px; color: var(--mut); margin-left: auto; }
 #pause-menu .m-disc .m-bar + .bebas { margin-left: 0; }
@@ -485,6 +484,11 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .pm-samen .coop-title { display: none; }
 #pause-menu .pm-fotos { overflow-y: auto; scrollbar-width: none; }
 #pause-menu .pm-fotos .foto-panel { padding: 32px 64px 40px; }
+/* Foto's: de galerij eerst, de telling en de uitleg erachter (#611) */
+#pause-menu .pm-fotos .foto-count { margin: 0; font-size: 18px; }
+#pause-menu .pm-fotos .foto-panel .m-disc { width: min(760px, 100%); }
+#pause-menu .pm-fotos .foto-panel .m-fold { align-self: stretch; width: min(760px, 100%); }
+#pause-menu .pm-fotos .foto-panel .m-fold .foto-lead { font-size: 18px; }
 .pm-samen, .coop-hold { font-family: 'Arial Narrow', Arial, sans-serif; color: var(--ink, #f0ede4); }
 .pm-samen .coop-title, .coop-hold .coop-title { margin: 0 0 4px; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 40px; letter-spacing: 0.04em; }
 .pm-samen p, .coop-hold p { margin: 0; max-width: 640px; font-size: 22px; line-height: 1.35; }
