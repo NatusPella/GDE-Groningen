@@ -124,7 +124,7 @@ function injectStyles() {
       position: absolute; inset: 0; z-index: auto;
       border: none; border-radius: 0; box-shadow: none; background: transparent;
     }
-    .mapview-overlay.embedded .mapview-title, .mapview-overlay.embedded .mapview-footer { display: none; }
+    .mapview-overlay.embedded .mapview-title { display: none; }
     .mapview-canvas:focus { outline: none; }
     .mapview-header {
       display: flex;
@@ -191,14 +191,6 @@ function injectStyles() {
     .mapview-route .care { color: var(--mk-care, ${ROUTE_COLORS.care}); }
     .mapview-route > span + span { margin-left: 14px; }
     .mapview-route button { margin-left: 6px; padding: 0 6px; font: inherit; font-size: 13px; color: inherit; background: transparent; border: 1px solid currentColor; border-radius: 3px; cursor: pointer; }
-    .mapview-footer {
-      padding: 6px 14px;
-      font: 13px 'Arial Narrow', Arial, sans-serif;
-      letter-spacing: 0.3px;
-      color: ink(cream 0.75);
-      border-top: 1px solid ink(greenLight 0.35);
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
     .mapview-footer b { color: ink(greenLight); font-weight: normal; }
     .mapview-body { position: relative; flex: 1; min-height: 0; display: flex; }
     .mapview-canvas {
@@ -212,7 +204,7 @@ function injectStyles() {
       display: flex; flex-direction: column; gap: 4px; pointer-events: auto;
     }
     .mapview-zoom button {
-      width: 30px; height: 30px; font: bold 20px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif;
+      width: 44px; height: 44px; font: bold 22px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif;
       color: ink(greenLight); background: ink(dark 0.85);
       border: 1px solid ink(greenLight 0.6); border-radius: 4px; cursor: pointer; line-height: 1;
     }
@@ -291,7 +283,6 @@ function injectStyles() {
     .mapview-card .mv-pip[data-on] { color: ink(dark); border-color: transparent; }
     .mapview-card .mv-pip[data-m="1"][data-on] { background: ink(medalBronze); } .mapview-card .mv-pip[data-m="2"][data-on] { background: ink(medalSilver); } .mapview-card .mv-pip[data-m="3"][data-on] { background: ink(yellow); }
     .mapview-card .mv-btns { display: flex; gap: 6px; margin-top: 4px; }
-    @media (max-width: 900px) { .mapview-footer { display: none; } }
     @media (max-width: 700px) { .mapview-legend { display: none; } .mapview-title { display: none; } }
   `);
   document.head.appendChild(style);
@@ -1911,15 +1902,17 @@ function initKaartUitleg(overlay) {
   document.head.appendChild(st);
 }
 // De uitleg past bij je rol (#445): een gast leest er de Samen spelen-regel bij.
-// Bij het openen, want of je gast bent kan na het starten veranderen.
+// Bij het openen, want of je gast bent kan na het starten veranderen. De uitleg
+// staat in de kaartkolom onder het zoekveld, zodat hij nooit over de titel,
+// het zoekveld of de zoemknoppen valt (#602).
 function syncKaartUitleg(world) {
-  const body = state.overlay.querySelector('.mapview-body');
-  if (!body) return;
+  const kolom = state.overlay.querySelector('.mv-hl');
+  if (!kolom) return;
   const gast = !!world && world.coopRole === 'client' && !!world.coopNet;
-  const box = body.querySelector('.mv-uitleg');
+  const box = kolom.querySelector('.mv-uitleg');
   if (box) {
     if ((box.dataset.gast === '1') !== gast) box.outerHTML = uitlegHtml({ gast });
-  } else if (!kaartGezien()) body.insertAdjacentHTML('beforeend', uitlegHtml({ gast }));
+  } else if (!kaartGezien()) kolom.insertAdjacentHTML('beforeend', uitlegHtml({ gast }));
   // de legenda bovenaan Lagen zegt hetzelfde in het kort (#445)
   const leg = state.overlay.querySelector('.mv-leg-hint');
   if (leg && (leg.dataset.gast === '1') !== gast) leg.outerHTML = legendaHintHtml({ gast });
@@ -2637,7 +2630,10 @@ export function setMapActive(world, on) {
   if (!state || on === state.open) return;
   if (on) {
     openMap(world);
-    if (!state.legendGezien) { state.legendGezien = true; toggleLegend(true); } // legenda en filters staan de eerste keer open: ze zaten achter de knop Lagen (#435)
+    // de legenda en de laagschakelaars staan de eerste keer open (#435); daarna opent
+    // de kaart rustig en haalt de knop Lagen ze erbij (#602)
+    if (!state.legendGezien) { state.legendGezien = true; toggleLegend(true); }
+    else toggleLegend(false);
     const ik = hoofdspeler(world);
     centreOn(ik.x, ik.y, 2);
     state.canvas.focus({ preventScroll: true });
