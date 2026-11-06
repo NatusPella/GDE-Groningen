@@ -4,7 +4,6 @@ import { hasSave, loadBootSave, startNewSlot, getSaveSummary, ensureActiveSlot, 
 import { openSaveSlots, isSaveSlotsOpen } from './saveslotsui.js';
 import { listSlots } from './saveslots.js';
 import { VERSION } from './version.js';
-import { loadChangelog, newsOnStart } from './over.js';
 import { pointInPolygon } from './util.js';
 import { openPauseMenu, menuIcon } from './pausemenu.js';
 import { requestOpenSamen } from './samenpanel.js';
@@ -20,6 +19,7 @@ import { makeMenuGate, GATE } from './menuready.js';
 import { isAdvisorSampling, startGfxAdvisor, classifyGpu, readGpu, presetFromSample, currentPreset, applyPreset, isDefaultGfx, readAdvice, writeAdvice, presetLabel } from './gfxprofile.js';
 import { ABOUT_HTML } from './credits.js';
 import { startLoadScreen, setLoadTips } from './loadscreen.js';
+import { bootPhaseAt } from './loadlogic.js';
 import { padGlyphInner } from './glyphs.js';
 import { onDeviceChange, getDevice } from './inputdevice.js';
 import { MENU_PLEKKEN, stadPlek, leesVerleden, bewaarVerleden, kiesVolgende, noteer, maakBeeld } from './menuplekken.js';
@@ -58,6 +58,22 @@ let tipTimer = 0;
 let fakeTimer = 0;
 let progress = 0;
 let shown = 0;
+let bootStatusLocked = false;
+
+// The status line of the boot screen: Groningse flavour while the real steps
+// run, and a plain sentence when the last step waits (#600). Locked once
+// another part (the first-run measurement, an error, "klaar") owns the line.
+function bootStatus(text, swap = false) {
+  const status = document.querySelector('#loading .ld-status');
+  if (!status || bootStatusLocked) return;
+  if (swap && !reducedMotion()) {
+    status.classList.add('swap');
+    setTimeout(() => { if (!status.isConnected) return; status.textContent = text; status.classList.remove('swap'); }, 250);
+  } else {
+    status.classList.remove('swap');
+    status.textContent = text;
+  }
+}
 
 function el(id) {
   return document.getElementById(id);
@@ -89,11 +105,12 @@ export function initLoading() {
   const status = document.querySelector('#loading .ld-status');
   if (status) {
     let i = 0;
-    const pace = reducedMotion() ? 0 : 250;
     tipTimer = setInterval(() => {
+      const phase = bootPhaseAt(progress);
+      // the last step is a real wait: say what it waits for instead of rotating flavour
+      if (phase.final) { bootStatus(phase.label); return; }
       i = (i + 1) % BOOT_LINES.length;
-      status.classList.add('swap');
-      setTimeout(() => { status.textContent = BOOT_LINES[i]; status.classList.remove('swap'); }, pace);
+      bootStatus(BOOT_LINES[i], true);
     }, 2400);
   }
   fakeTimer = setInterval(() => {
@@ -110,7 +127,13 @@ function paint() {
   const fill = document.querySelector('#loading .ld-fill');
   if (fill) fill.style.transform = `scaleX(${Math.min(1, shown).toFixed(3)})`;
   const bar = document.querySelector('#loading .ld-bar');
-  if (bar) bar.setAttribute('aria-valuenow', String(Math.round(Math.min(1, shown) * 100)));
+  const phase = bootPhaseAt(progress);
+  if (bar) {
+    bar.setAttribute('aria-valuenow', String(Math.round(Math.min(1, shown) * 100)));
+    // the real step as text, so a screen reader hears what the bar is doing
+    bar.setAttribute('aria-valuetext', phase.label);
+  }
+  if (phase.final) bootStatus(phase.label);
 }
 
 export function setLoadProgress(p) {
@@ -136,6 +159,7 @@ export async function finishLoading() {
   shown = 1;
   clearInterval(fakeTimer);
   clearInterval(tipTimer);
+  bootStatusLocked = true;
   paint();
   const l = el('loading');
   if (!l) return;
@@ -156,6 +180,7 @@ export function dismissLoading() {
 export function showLoadError(msg) {
   clearInterval(fakeTimer);
   clearInterval(tipTimer);
+  bootStatusLocked = true;
   document.querySelector('#loading .ld-status') && document.querySelector('#loading .ld-status').classList.remove('swap');
   const status = document.querySelector('#loading .ld-status');
   if (status) {
@@ -361,6 +386,7 @@ const FIRST_RUN_MS = 3500;
 // and pick the best preset that still runs smoothly. Skipped with Esc/Space; stored so it runs
 // once. The full benchmark in Instellingen > Beeld stays available for a deeper measurement.
 function benchmarkFirstRun(opts, done) {
+  bootStatusLocked = true;
   const status = document.querySelector('#loading .ld-status');
   if (status) status.textContent = 'Beeld instellen…';
   let gpu = { tier: 'hoog' };
@@ -490,7 +516,7 @@ function runMenuScreen(world, { render, relocate, tick, ready }, pending = null)
     const items = [];
     items.push({ act: 'solo', label: 'Alleen spelen' });
     items.push({ act: 'samen', label: 'Samen spelen' });
-    items.push({ act: 'news', label: 'Wat is er nieuw' });
+    // "Wat is er nieuw" has one home: Over in the pause menu (#601), also on this QA/trailer screen
     items.push({ act: 'settings', label: 'Instellingen' });
     items.push({ act: 'about', label: 'Over' });
     if (window.gdeDesktop && window.gdeDesktop.isDesktop) items.push({ act: 'exit', label: 'Afsluiten' });
@@ -637,7 +663,7 @@ function runMenuScreen(world, { render, relocate, tick, ready }, pending = null)
     };
     const activate = (i) => {
       const it = items[i];
-      if (it.act !== 'news' && it.act !== 'about') news.hidden = true;
+      if (it.act !== 'about') news.hidden = true;
       if (it.act === 'continue') {
         continueGame();
       } else if (it.act === 'samen') {
@@ -666,8 +692,6 @@ function runMenuScreen(world, { render, relocate, tick, ready }, pending = null)
           if (!done && JSON.stringify(now && [now.slot, now.savedAt, now.name]) !== JSON.stringify(save && [save.slot, save.savedAt, save.name])) location.reload();
           else focus(sel);
         } });
-      } else if (it.act === 'news') {
-        openNews();
       } else if (it.act === 'about') {
         openAbout();
       } else if (it.act === 'settings') {
@@ -687,10 +711,6 @@ function runMenuScreen(world, { render, relocate, tick, ready }, pending = null)
       news.hidden = false;
       newsBody.scrollTop = 0;
       newsBody.focus({ preventScroll: true });
-    };
-    const openNews = () => {
-      showPanel('Wat is er nieuw');
-      loadChangelog().then((html) => { if (!news.hidden && newsTitle.textContent === 'Wat is er nieuw') newsBody.innerHTML = html; });
     };
     const openAbout = () => {
       showPanel('Over GDE');
@@ -782,9 +802,6 @@ function runMenuScreen(world, { render, relocate, tick, ready }, pending = null)
     };
     const onBenchmark = () => benchmark(false);
     window.addEventListener('gde-benchmark', onBenchmark);
-    // after an update the menu opens on "Wat is er nieuw"; the pause menu's Over tab owns
-    // the same bookkeeping now, this path only keeps the QA/trailer menu working
-    const update = FLAGS.storytest ? null : newsOnStart();
     const intro = pending;
     // the first viewpoint is there before the gate starts to look, so the world streams in round it while the boot screen is up (#380)
     if (!intro) {
@@ -849,11 +866,6 @@ function runMenuScreen(world, { render, relocate, tick, ready }, pending = null)
       hangMax = 0;
       showMenu(false);
       startGfxAdvisor(getRenderer().getContext());
-      if (update) {
-        const n = items.findIndex((it) => it.act === 'news');
-        focus(n);
-        openNews();
-      }
     };
 
     let renderDt = 0;

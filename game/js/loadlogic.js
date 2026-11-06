@@ -41,6 +41,24 @@ export const startProgress = () => ({ total: 0, shown: 0, calm: 0, frames: 0 });
 export const BAR_PHASES = ['boot', 'save', 'travel', 'snel'];
 export const barsFor = (phase) => (BAR_PHASES.includes(phase) ? 1 : 0);
 
+// The boot bar's real steps (#600). main.js reports six measured moments
+// (setLoadProgress 0.05-0.92); each step says what the boot is doing, and the
+// last one explains the wait at the end instead of leaving the bar at one
+// percentage without words. Pure, so scripts/loadlogic_test.mjs can walk it.
+export const BOOT_PHASES = [
+  { from: 0, id: 'kaart', label: 'De kaart van Grunn komt binnen' },
+  { from: 0.3, id: 'wereld', label: 'De wereld wordt opgebouwd' },
+  { from: 0.55, id: 'straten', label: 'Straten, huizen en bruggen komen erbij' },
+  { from: 0.8, id: 'systemen', label: 'De laatste systemen worden gestart' },
+  { from: 0.9, id: 'tegels', label: 'Nog even: de tegels rond je opslagpunt worden geladen' },
+];
+export function bootPhaseAt(progress) {
+  const p = Math.max(0, Math.min(1, Number.isFinite(progress) ? progress : 0));
+  let phase = BOOT_PHASES[0];
+  for (const step of BOOT_PHASES) if (p >= step.from) phase = step;
+  return { ...phase, final: phase.id === 'tegels' };
+}
+
 const firstSentence = (t) => (t.match(/^.*?[.!?](\s|$)/) || [t])[0].trim();
 export const tipText = (t) => firstSentence(String(t).replace(/^Tip: /, '')).replace(/^./, (c) => c.toUpperCase());
 
