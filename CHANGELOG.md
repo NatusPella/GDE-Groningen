@@ -4,6 +4,11 @@ Alle noemenswaardige wijzigingen in GDE Groningen, per versie. Nieuwste bovenaan
 Versies volgen SemVer: `0.x.y` tot de echte release (1.0.0); `x` voor
 nieuwe functies, `y` voor alleen bugfixes.
 
+## [0.57.2] - 2026-11-06
+
+- **Laadscherm op koude portable start niet meer stuk door tegel-time-outs (#582).** Tijdens de boot wachten de nieuwe read- en decode-guards zonder time-out; vanaf het spel bewaken ze weer tegen een hangende bron of dode decoder.
+- **Alleen spelen: 'Meedoen' uitzetten noemt geen kamercode meer (#580).** In een sessie van één krijg je de gewone uitleg; een echte host houdt de sessie-uitleg.
+
 ## [0.57.1] - 2026-11-06
 
 - **De laadscherm-time-outs van #582 staan tijdens de boot uit.** Een koude portable start of langzame schijf mag niet op de nieuwe tegel-time-outs stuklopen; vanaf het spel bewaken ze wel tegen een hangende bron of dode decoder.
@@ -3160,6 +3165,7 @@ De eerste versie: alles wat er tot de eerste desktop-release gebouwd is.
   volledig offline, standaard op volledig scherm.
 - Voor wie het liever zonder app doet: een ZIP met `START DE GAME.bat` die op
   Windows zelf Python regelt en de game in de browser opent.
+
 
 
 
