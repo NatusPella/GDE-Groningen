@@ -99,6 +99,12 @@ let pre = `window.__botCfg = ${JSON.stringify(cfg)};\n`;
   const board = fs.readFileSync(path.join(HERE, 'board.mjs'), 'utf8').replace(/^export (const|function|class) /gm, '$1 ');
   pre += `window.__botBoard = (() => {\n${board}\nreturn { BOARD, bodyDistance, approachPoint, pickVehicle, boardStep, driveStep, pressed, missed };\n})();\n`;
 }
+// #312: de fietsrace van M05 (de KEI-route volgen, mikken, sprinten, time-out) staat in
+// scripts/bot/bikerace.mjs, om dezelfde reden buiten game/js.
+{
+  const bikerace = fs.readFileSync(path.join(HERE, 'bikerace.mjs'), 'utf8').replace(/^export (const|function|class) /gm, '$1 ');
+  pre += `window.__botBikeRace = (() => {\n${bikerace}\nreturn { BIKE_RACE, wrap, routeInfo, aimAlong, nearestAhead, rivalBoundS, raceStep };\n})();\n`;
+}
 // #312: de kartrace (sturen, gas, drift en de time-outs) staat in scripts/bot/race.mjs; de
 // minigame-run van de kartbaan gebruikt hem.
 {
