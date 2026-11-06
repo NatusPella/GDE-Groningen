@@ -248,7 +248,7 @@ const SECTIONS = [
   ['garage', 'Garage', 'Jouw voertuigen'],
   ['prestaties', 'Prestaties', 'Blijven bewaard, ook bij een nieuw spel'],
   ['fotos', "Foto's", 'Fotomodus en je galerij'],
-  ['settings', 'Instellingen', 'Beeld, geluid, besturing, hulp en cheats'],
+  ['settings', 'Instellingen', 'Beeld, geluid, besturing, toegankelijkheid en hulp'],
   ['over', 'Over', 'Nieuws, credits, versie en licenties'],
   // onderdelen onder een ander onderdeel (CHILD), niet los in de rail
   ['visboek', 'Visboek', 'Alle vis van de provincie, van jou'],
@@ -271,7 +271,10 @@ const SUBTABS = {
   // los tabblad van Spel en geen rijknop in de rail; hij hoort bij Samen spelen, en sinds #530 staat
   // er ook je profiel met de schakelaar (dus hij is er ook zonder sessie).
   samen: [['samen', 'Samen spelen'], ['spelers', 'Spelers']],
-  settings: [['video', 'Beeld'], ['sound', 'Geluid & ondertitels'], ['besturing', 'Besturing'], ['display', 'Interface'], ['a11y', 'Toegankelijkheid'], ['fouten', 'Foutrapport'], ['cheats', 'Cheats']],
+  // #604: alleen echte instellingen. Cheats staat sinds #435 als eigen onderdeel in de rail en het
+  // foutrapport (diagnose) staat onder Over als "Problemen"; twee tabbladen met één knop naar elders
+  // maakten van dit scherm een doolhof.
+  settings: [['video', 'Beeld'], ['sound', 'Geluid & ondertitels'], ['besturing', 'Besturing'], ['display', 'Interface'], ['a11y', 'Toegankelijkheid']],
   controls: [['toetsen', 'Toetsenbord en muis'], ['knoppen', 'Controller'], ['overzicht', 'Toetsenoverzicht'], ['hulp', 'Hulp']],
 };
 // old tab names (saved preferences, other modules)
@@ -361,7 +364,7 @@ const CHEV_R = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6l6 6-
 const plain = (t) => String(t).replace(/<[^>]*>/g, '').replace(/&shy;/g, '');
 
 // the tabs of a section that are there in the main menu too (Opslaan & stoppen of Spel needs a running game)
-const inGameOnly = (of, id) => (of === 'spel' && (id === 'acties' || id === 'overzicht' || id === 'samen' || id === 'spelers')) || (of === 'settings' && id === 'cheats');
+const inGameOnly = (of, id) => of === 'spel' && (id === 'acties' || id === 'overzicht' || id === 'samen' || id === 'spelers');
 // Spelers (wie er meespeelt) staat onder Samen spelen. Sinds #530 staat daar ook je eigen profiel
 // met de schakelaar Meedoen met andere spelers, dus het tabblad is er ook zonder sessie: anders is
 // "Alleen spelen" bij de eerste start een doodlopende weg (ADR 0022: later alsnog kunnen meedoen).
@@ -403,13 +406,21 @@ function settingsHtml() {
   const qualities = Object.keys(QUALITY_PRESETS).map((q) => [q, q[0].toUpperCase() + q.slice(1)]);
   const tab = (id, rows, side = '') => `<div data-of="settings" data-sub="${id}" class="pm-settab" hidden><div class="m-list pm-slist">${rows}</div>${side}</div>`;
   return `${subtabsHtml('settings', 'Onderdeel')}
+    <div class="pm-confirm pm-resetbox" data-reset-confirm hidden>
+      <p><b>Alles terug naar de standaard?</b> Beeld, geluid, ondertitels, beweging, tekstgrootte en de hulpinstellingen gaan terug naar hoe het spel begon. Je toetsen en knoppen, je naam en de keuze voor Samen spelen blijven staan.</p>
+      <div class="m-acts"><button type="button" class="m-bp" data-action="reset-go">Ja, herstellen</button><button type="button" class="m-bt" data-action="reset-cancel">Annuleren</button></div>
+    </div>
+    <div class="pm-confirm pm-resetbox" data-reset-undo hidden>
+      <p data-reset-undo-text>Alles staat weer op de standaard.</p>
+      <div class="m-acts"><button type="button" class="m-bg" data-action="reset-undo">Ongedaan maken</button><button type="button" class="m-bt" data-action="reset-dismiss">Sluiten</button></div>
+    </div>
     ${tab('video', `
       <div class="pm-advice" data-bench-banner hidden></div>
       <div class="m-li pm-row"><span class="nm" id="pm-l-presetknoppen">Voorinstelling<span class="mut" data-preset-now></span></span><span class="pm-chips" role="group" aria-labelledby="pm-l-presetknoppen">${PRESET_ORDER.map((n) => `<button type="button" class="m-chip" data-preset-btn="${n}" aria-pressed="false">${presetLabel(n)}</button>`).join('')}</span></div>
       ${picker('resolution', 'Resolutie', [['1', '100%'], ['0.85', '85%'], ['0.75', '75%'], ['0.6', '60%']])}
       ${toggle('autoResolution', 'Automatische resolutie', 'bij haperen')}
       ${toggle('zuinig', 'Zuinige modus', '30 beelden per seconde, spaart batterij en warmte')}
-      ${toggle('shadows', 'Schaduwen')}
+      ${toggle('shadows', 'Schaduwen', 'Schaduwen geven de wereld diepte; uit is soepeler op een lichte computer')}
       ${picker('drawDistance', 'Zichtafstand', [['kort', 'Kort'], ['normaal', 'Normaal'], ['ver', 'Ver'], ['heelver', 'Heel ver']])}
       ${DESKTOP ? '<label class="m-li pm-row"><span class="nm">Volledig scherm<span class="mut">F11 of Alt+Enter</span></span><input type="checkbox" class="m-sw" data-desktop="fullscreen"></label>' : ''}
       ${slider('brightness', 'Helderheid', 0.6, 1.6, 0.05)}
@@ -472,17 +483,13 @@ function settingsHtml() {
       ${picker('helpTime', 'Meer tijd', [['uit', 'Uit'], ['ruimer', '+25%'], ['ruim', '+50%'], ['heel ruim', 'Dubbel']], 'Langere tijdslimieten en vensters in missies')}
       ${picker('helpDamage', 'Minder schade', [['normaal', 'Normaal'], ['minder', 'Minder'], ['veel minder', 'Veel minder']], 'Je eigen voertuig houdt meer over na een klap')}
       ${picker('helpGates', 'Ruimere vliegpoorten', [['normaal', 'Normaal'], ['ruimer', 'Ruimer'], ['ruim', 'Ruim']], 'Grotere ringen en een bredere hoogteband')}
-      ${toggle('helpOffer', 'Hulp aanbieden', 'Na twee keer mislukken van dezelfde stap vraagt het spel of je hulp wilt')}`, `${pane('Toegankelijkheid', 'Lekker lezen', '<p>Vormen en patronen helpen altijd, ook als je geen kleurenstand kiest. Menu’s, kaarten en tellers springen meteen naar hun nieuwe stand als je beweging beperkt.</p><p class="mut">Ondertitels stel je in onder Geluid & ondertitels.</p>')}`)}
-    ${tab('cheats', `<div class="m-li pm-row">${rowName('Cheats', 'Een beetje vals spelen')}<button type="button" class="m-bg" data-goto="streken">Openen</button></div>`, `${pane('Cheats', 'Vals spelen', '<p>Geld, wapens, teleporteren en meer. Handig om iets uit te proberen.</p>')}`)}
-    ${tab('fouten', `<div class="m-list pm-slist pm-wide">
-      <p class="pm-note">Gaat er iets mis, dan schrijft het spel dat hier op. Alleen op dit apparaat: er wordt niets verstuurd. Wil je helpen? Kopieer het rapport en stuur het zelf mee met je melding. Er staat niets persoonlijks in: de melding, waar in de code, de versie, je verhaalstap, een paar instellingen en het soort videokaart.</p>
-      <div class="m-acts pm-errlog-actions">
-        <button type="button" class="m-bg" data-action="errlog-copy">Kopieer naar klembord</button>
-        ${DESKTOP && DESKTOP.saveTextFile ? '<button type="button" class="m-bg" data-action="errlog-save">Opslaan als bestand</button>' : ''}
-        <button type="button" class="m-bt" data-action="errlog-clear">Wissen</button>
-      </div>
-      <p class="pm-status" data-errlog-status role="status"></p>
-      <ol class="pm-errlog" data-errlog></ol></div>`)}`;
+      ${toggle('helpOffer', 'Hulp aanbieden', 'Na twee keer mislukken van dezelfde stap vraagt het spel of je hulp wilt')}`, `${pane('Toegankelijkheid', 'Lekker lezen', `<p>Vormen en patronen helpen altijd, ook als je geen kleurenstand kiest. Menu’s, kaarten en tellers springen meteen naar hun nieuwe stand als je beweging beperkt.</p>
+<div class="pm-a11yprev" role="img" aria-label="Proef: markerkleuren, routelijnen en tekst op deze stand">
+  <div class="pm-a11y-marks">${['ok', 'danger', 'mission', 'user', 'job', 'care', 'police'].map((r) => `<span class="pm-a11y-mk" data-mk="${r}">${r === 'user' ? 'doel' : r}</span>`).join('')}</div>
+  <div class="pm-a11y-routes"><span class="pm-a11y-route" data-route="verhaal"></span><span class="pm-a11y-route" data-route="doel"></span><span class="pm-a11y-route" data-route="klus"></span></div>
+  <div class="pm-a11y-text"><span class="pm-a11y-13">13 px: een bericht op het scherm</span><span class="pm-a11y-20">20 px: een regel in het menu</span></div>
+</div>
+<p class="mut">Zo zie je de kleuren, lijnen en letters nu. Ondertitels stel je in onder Geluid &amp; ondertitels.</p>`)}`)}`;
 }
 // Spel (#416): how the game itself plays, apart from the system settings of Instellingen. The same keys in the same settings (settings.js):
 // only the place in the menu changed, nothing is lost and nothing is saved differently.
@@ -520,7 +527,7 @@ function spelHtml() {
     ${tab('spelen', `
       <div class="m-gh"><span>Verkeer en geweld</span></div>
       ${picker('ruzie', 'Verkeersruzie', [['uit', 'Uit'], ['weinig', 'Weinig'], ['normaal', 'Normaal'], ['veel', 'Veel']], 'Hoe vaak een boze bestuurder uitstapt na een botsing of getoeter. Zonder bloed; sommigen hebben iets in de hand')}
-      ${picker('drunkFx', 'Dronken effecten', [['aan', 'Aan'], ['mild', 'Mild'], ['uit', 'Uit']])}
+      ${picker('drunkFx', 'Dronken effecten', [['aan', 'Aan'], ['mild', 'Mild'], ['uit', 'Uit']], 'Het wiebelende beeld en de dubbele tong als je gedronken hebt')}
       ${toggle('gore', 'Bloed en ledematen', 'Uit: mensen vallen gewoon om, zonder bloed of rondvliegende ledematen')}
       <div class="m-gh"><span>Rijden</span></div>
       ${picker('shiftMode', 'Schakelen', [['auto', 'Automaat'], ['manual', 'Handmatig'], ['clutch', 'Handmatig + koppeling']], 'Automaat is de standaard; handmatig schakel je met . en , (of de bumpers), met koppeling houd je ook J ingedrukt')}
@@ -529,19 +536,35 @@ function spelHtml() {
       ${toggle('bikeAssist', 'Motor met hulp', 'Houdt een motor of brommer rechtop in bochten; uit is realistischer')}
       ${toggle('liveBussen', 'Live bussen', 'Bussen rijden waar ze in het echt rijden. Het spel haalt alleen publieke buslocaties op; er worden geen gegevens van jou verstuurd. Uit: de bussen rijden hun eigen dienst')}
       <div class="m-gh"><span>Kaart</span></div>
-      <div class="m-li pm-row pm-ingame">${rowName('Cheats', 'Een beetje vals spelen')}<button type="button" class="m-bg" data-goto="streken">Openen</button></div>
       ${toggle('mapShiftTeleport','Shift+klik op de kaart verplaatst je', 'Niet tijdens een missie of met de politie achter je aan')}`, `${pane('Spel', 'Zo speelt het', '<p>Hoe het verkeer, het geweld en het rijden aanvoelen. Alles wordt meteen bewaard.</p><p class="mut">Beeld, geluid, besturing en toegankelijkheid staan onder Instellingen.</p>')}`)}
     ${tab('camera', `
-      ${slider('fov', 'Beeldhoek', 50, 90, 1)}
-      ${slider('cameraDistance', 'Camera-afstand', 0.8, 1.6, 0.05)}
+      ${slider('fov', 'Beeldhoek', 50, 90, 1, 'Hoe wijd je kijkt: hoger laat meer zien, maar maakt alles kleiner')}
+      ${slider('cameraDistance', 'Camera-afstand', 0.8, 1.6, 0.05, 'Hoe ver de camera achter je staat, te voet en in elk voertuig')}
       ${toggle('autoAim', 'Automatisch richten', 'Rechtermuisknop zoekt zelf het beste doelwit')}
       ${toggle('cinematicMoments', 'Filmische momenten', 'Bij bezienswaardigheden, crashes en vijf sterren; intro’s, missies en de filmcamera (V) staan altijd aan')}
       ${toggle('wijkFilm', 'Filmpje bij nieuwe wijken', 'Uit: een korte naamkaart met wat er te zien is; aan: de volledige rondvlucht')}`, `${pane('Camera & richten', 'Zicht', '<p>De camera-afstand en beeldhoek gelden te voet en in elk voertuig.</p>')}`)}
     ${tab('hints', `
-      ${toggle('showHints', 'Toetshints')}
+      ${toggle('showHints', 'Toetshints', 'De toetsen onderin beeld bij wat je nu kunt doen')}
       ${picker('hintSource', 'Hints tonen voor', [['auto', 'Automatisch'], ['keys', 'Toetsenbord'], ['pad', 'Controller']], 'Automatisch volgt wat je het laatst gebruikte')}
       ${toggle('onboardingTips', 'Uitleg voor nieuwe spelers', 'Korte tips, elk één keer: je eerste klus, geld en winkels, de telefoon, de kaart en Activiteiten')}`, `${pane('Hints & uitleg', 'Hulp in beeld', '<p>Toetshints en korte tips voor nieuwe spelers. Je kunt ze altijd uitzetten.</p>')}`)}`;
 }
+// Problemen (#604): het foutrapport staat onder Over, niet meer als tabblad onder Instellingen. De
+// Nederlandse samenvatting staat vooraan; de ruwe, Engelse meldingen zitten achter de vouw.
+function problemsHtml() {
+  return `<div class="pm-problems">
+      <div class="m-gh"><span>Problemen</span></div>
+      <p class="pm-note">Gaat er iets mis, dan schrijft het spel dat hier op. Alleen op dit apparaat: er wordt niets verstuurd. Kopieer het rapport en stuur het zelf mee met je melding. Er staat niets persoonlijks in: de melding, waar in de code, de versie, je verhaalstap, een paar instellingen en het soort videokaart.</p>
+      <p class="pm-errsum" data-errsum role="status"></p>
+      <div class="m-acts pm-errlog-actions">
+        <button type="button" class="m-bg" data-action="errlog-copy">Kopieer het rapport</button>
+        ${DESKTOP && DESKTOP.saveTextFile ? '<button type="button" class="m-bg" data-action="errlog-save">Opslaan als bestand</button>' : ''}
+        <button type="button" class="m-bt" data-action="errlog-clear">Wissen</button>
+      </div>
+      <p class="pm-status" data-errlog-status role="status"></p>
+      <details class="pm-errfold"><summary>Technische details <span class="mut">(in het Engels)</span></summary><ol class="pm-errlog" data-errlog></ol></details>
+    </div>`;
+}
+
 export function initPauseMenu(w) {
   world = w;
   input = w.input;
@@ -793,7 +816,8 @@ function renderCheats(focusSel) {
   if (back) back.focus({ preventScroll: true });
 }
 
-// Over: version, the changelog and the credits. Opening it counts as "seen", so the news is
+// Over: version, the changelog, the credits and (since #604) the problems: a Dutch summary first,
+// the English technical details folded away. Opening it counts as "seen", so the news is
 // no longer marked as new on the next start.
 function renderOverPanel(el) {
   if (!el) return;
@@ -802,7 +826,9 @@ function renderOverPanel(el) {
     <p class="mut">Versie ${esc(VERSION)} · NatusPella</p>
     <div class="pm-over-news" aria-live="polite"><p class="mut">De lijst met wijzigingen laden…</p></div>
     <div class="pm-over-about">${ABOUT_HTML}</div>
+    ${problemsHtml()}
   </div></div>`;
+  renderErrorLog();
   const box = el.querySelector('.pm-over-news');
   loadChangelog().then((html) => {
     if (box && box.isConnected) box.innerHTML = `<h3>Wat is er nieuw</h3>${html}`;
@@ -912,6 +938,13 @@ function goBack() {
   // afsluit (de uitweg heet daar Ontsnappen naar besloten). Pas op de eerste stap doet Escape wat het altijd deed.
   // Het tabblad Spelers heeft zijn eigen lijst zonder hub; daar blijft Escape dus buiten.
   if (tab === 'spel' && pref.sub.spel === 'samen' && (pref.sub.samen || 'samen') !== 'spelers' && samenHubTerug()) return;
+  // #604: de vraag "alles terug naar de standaard?" gaat eerst weg met Escape
+  const resetBox = root.querySelector('[data-reset-confirm]');
+  if (resetBox && !resetBox.hidden) {
+    resetBox.hidden = true;
+    root.querySelector('[data-action="reset"]').focus();
+    return;
+  }
   const confirmEl = root.querySelector('[data-restart-confirm]');
   if (!confirmEl.hidden) {
     confirmEl.hidden = true;
@@ -1008,6 +1041,10 @@ function cycleOwnTabs(dir) {
 // --- Besturing: rebinding keys and buttons (controls.js) ------------------------
 let rebinding = null;
 let bindMsg = '';
+// #604: "Standaard herstellen" vraagt eerst en kan daarna ongedaan gemaakt worden; deze
+// momentopname houdt de stand van vlak voor het herstellen vast (niets wordt bewaard als
+// de speler niets doet).
+let resetBackup = null;
 
 function bindPane(kind, note, extra = '') {
   return `<aside class="m-pane"><div class="pm-pane-top"><span class="m-eb">${kind === 'keys' ? 'Toetsenbord en muis' : 'Controller'}</span><h2 class="m-h2 td-h2">Toets wijzigen</h2></div>` +
@@ -1342,8 +1379,35 @@ function runAction(a) {
     clearErrorLog();
     errlogStatus('Gewist.');
   } else if (a === 'reset') {
+    // #604: eerst vragen en noemen wat er teruggezet wordt; Annuleren laat alles staan
+    const box = root.querySelector('[data-reset-confirm]');
+    root.querySelector('[data-reset-undo]').hidden = true;
+    box.hidden = false;
+    box.querySelector('[data-action="reset-cancel"]').focus();
+  } else if (a === 'reset-cancel') {
+    root.querySelector('[data-reset-confirm]').hidden = true;
+    root.querySelector('[data-action="reset"]').focus();
+  } else if (a === 'reset-go') {
+    resetBackup = { ...getSettings() };
     resetSettings();
     syncControls();
+    root.querySelector('[data-reset-confirm]').hidden = true;
+    const undo = root.querySelector('[data-reset-undo]');
+    undo.hidden = false;
+    undo.querySelector('[data-reset-undo-text]').textContent = 'Alles staat weer op de standaard.';
+    undo.querySelector('[data-action="reset-undo"]').focus();
+  } else if (a === 'reset-undo') {
+    if (resetBackup) for (const [k, v] of Object.entries(resetBackup)) setSetting(k, v);
+    resetBackup = null;
+    syncControls();
+    root.querySelector('[data-reset-undo]').hidden = true;
+    const b = root.querySelector('[data-action="reset"]');
+    if (b) b.focus();
+  } else if (a === 'reset-dismiss') {
+    resetBackup = null;
+    root.querySelector('[data-reset-undo]').hidden = true;
+    const b = root.querySelector('[data-action="reset"]');
+    if (b) b.focus();
   } else if (a === 'binds-reset-keys' || a === 'binds-reset-pad') {
     setSetting(a === 'binds-reset-keys' ? 'keyBinds' : 'padBinds', {});
     setBindMsg('Alles staat weer op de standaard.');
@@ -1399,10 +1463,23 @@ async function copyText(text) {
   }
 }
 
+// #604: het foutrapport onder Over. Eerst één Nederlandse regel die zegt hoeveel en wat, de ruwe
+// Engelse meldingen zitten achter de vouw "Technische details".
 function renderErrorLog() {
-  const list = root && root.querySelector('[data-errlog]');
-  if (!list || list.closest('[hidden]')) return;
   const log = getErrorLog().reverse();
+  const sum = root && root.querySelector('[data-errsum]');
+  if (sum) {
+    if (!log.length) sum.textContent = 'Geen problemen gemeld. Mooi zo.';
+    else {
+      const fouten = log.filter((e) => e.level !== 'warn').length;
+      const waars = log.length - fouten;
+      const laatste = new Date(log[0].t);
+      const wanneer = isNaN(laatste) ? '' : ` De nieuwste is van ${laatste.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })}, ${laatste.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}.`;
+      sum.textContent = `${log.length} ${log.length === 1 ? 'melding' : 'meldingen'}: ${fouten} ${fouten === 1 ? 'fout' : 'fouten'} en ${waars} ${waars === 1 ? 'waarschuwing' : 'waarschuwingen'}.${wanneer} Er is niets verstuurd.`;
+    }
+  }
+  const list = root && root.querySelector('[data-errlog]');
+  if (!list) return;
   list.innerHTML = log.length ? log.slice(0, 25).map((e) => `<li class="${e.level === 'warn' ? 'warn' : 'err'}"><b>${e.level === 'warn' ? 'Waarschuwing' : 'Fout'}${e.count > 1 ? ` · ${e.count}×` : ''}</b> <small>${esc(e.t.slice(0, 16).replace('T', ' '))}${e.step ? ' · ' + esc(e.step) : ''}</small><span>${esc(e.msg)}</span></li>`).join('')
     : '<li class="none">Geen fouten. Mooi zo.</li>';
 }
@@ -1420,7 +1497,6 @@ function showSubtab(of, name) {
   if (panel) panel.scrollTop = 0;
   if (of === 'todo' && name === 'verhaal') { markCluesSeen(); syncNavBadges(); }
   if (of === 'settings') root.querySelector('[data-bench-confirm]').hidden = true;
-  if (of === 'settings' && name === 'fouten') { errlogStatus(''); renderErrorLog(); }
 }
 
 function syncDesktopControls() {
@@ -1725,6 +1801,15 @@ function showTab(name, how) {
   sheet.querySelector('.pm-sheet-sub').textContent = SHEET_NOTE[name] || hint;
   if (name !== 'map') sheetNote('');
   root.querySelector('[data-action="reset"]').hidden = name !== 'settings';
+  if (name !== 'settings') {
+    // #604: de herstelvraag en de ongedaan-maakstrook horen bij Instellingen; een andere sectie
+    // begint zonder die twee blokken in beeld
+    const rc = root.querySelector('[data-reset-confirm]');
+    if (rc) rc.hidden = true;
+    const ru = root.querySelector('[data-reset-undo]');
+    if (ru) ru.hidden = true;
+    resetBackup = null;
+  }
   if (prev !== name) {
     sheet.classList.remove('pm-enter', 'pm-swap');
     void sheet.offsetWidth;
