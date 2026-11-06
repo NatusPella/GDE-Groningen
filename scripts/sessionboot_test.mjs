@@ -160,11 +160,12 @@ await t('sessionBootTick doet niets zonder toestemming: geen socket, geen hub', 
   assert.deepEqual([log.ws.length - w0, log.pc.length - p0], [0, 0], 'geen enkele verbinding');
 });
 
-await t('hostSession opent een echte sessie (zonder uitnodiging of lijst) en sluit weer netjes', async () => {
+await t('hostSession opent een echte sessie zonder lijst: besloten (#556), en sluit weer netjes', async () => {
   const { hostSession, stopSessionBoot, sessionBootState } = await import('../game/js/sessionboot.js');
   const w = wereld();
-  const hub = hostSession(w, { openbaar: false, invites: false });
+  const hub = hostSession(w, { invites: false });
   assert.ok(hub && hub.roster, 'de gastheerhub bestaat');
+  assert.equal(hub.openbaar, null, 'het bootpad maakt de sessie nooit openbaar (#556)');
   assert.equal(w.coopNet && w.coopNet.role, 'host', 'de wereld is nu een sessie');
   assert.ok(sessionBootState(w), 'de boot houdt de sessie bij');
   stopSessionBoot(w);
@@ -173,11 +174,12 @@ await t('hostSession opent een echte sessie (zonder uitnodiging of lijst) en slu
   assert.ok(!w.coopNet, 'stoppen laat de wereld weer alleen achter');
 });
 
-await t('de standaard hostweg van bootSession werkt: lege lijst, toestemming, en dan een echte hub', async () => {
+await t('de standaard hostweg van bootSession werkt: lege lijst, toestemming, en dan een besloten hub', async () => {
   const w = wereld();
-  const uit = await bootSession(w, deps({ haalLijst: lijstVan([]), hostOpties: { openbaar: false, invites: false } }));
+  const uit = await bootSession(w, deps({ haalLijst: lijstVan([]), hostOpties: { invites: false } }));
   assert.equal(uit.doen, KEUZE.HOSTEN);
   assert.equal(w.coopNet && w.coopNet.role, 'host', 'de gastheer draait de wereld');
+  assert.equal(w.coopNet.hub.openbaar, null, 'hosten na een mislukte zoektocht is besloten (#556)');
   assert.match(meldingen[meldingen.length - 1], /Er speelt nog niemand/, 'en de reden staat bij de speler');
   const { stopSessionBoot } = await import('../game/js/sessionboot.js');
   stopSessionBoot(w);
@@ -308,6 +310,13 @@ await t('de module verstuurt zelf pas iets na een ja: de bron leest magOnline() 
   assert.match(body, /if \(!mag\(\)\) return/, 'bootSession keert terug zonder toestemming, voor elke aanroep');
   assert.ok(body.indexOf('if (!mag()) return') < body.indexOf('deps.haalLijst || haalLijst'), 'de controle staat voor het ophalen van de lijst');
   assert.match(src, /if \(!magOnline\(\)\) return false/, 'canBootSession vraagt dezelfde instelling');
+});
+
+await t('de module maakt zelf nooit een sessie openbaar (#556): geen aankondiging en geen poort', () => {
+  const src = fs.readFileSync(fileURLToPath(new URL('../game/js/sessionboot.js', import.meta.url)), 'utf8');
+  assert.doesNotMatch(src, /zetOpenbaar/, 'het bootpad zet nooit een openbare regel');
+  assert.doesNotMatch(src, /maakAankondiger|bedienKamer/, 'geen aankondiger en geen poort in het bootpad');
+  assert.doesNotMatch(src, /openbaar\s*=\s*true/, 'geen standaard openbaar');
 });
 
 console.log(`sessionboot_test: ${n}/${n} ok`);

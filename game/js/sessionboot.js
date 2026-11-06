@@ -8,20 +8,21 @@
 // socket, and the game simply plays locally. There is no path here that contacts anyone after "no".
 //
 // The work of a session itself stays where it already was: startHost/startClient (coopnet.js) over the
-// same rtcroom.js + brokers.js route the lobby uses, and the public line of #438 (hub.zetOpenbaar +
-// maakAankondiger + LijstSignaler). Since #583 the public line carries no room code: a guest asks the
-// host for a one-time room over net/joingate.js first. This module only wires those together for the boot.
+// same rtcroom.js + brokers.js route the lobby uses, with an invitation (a room code) for friends.
+// A session hosted here is always private (#556): the public line of #438 is only opened by the lobby,
+// after the host chose "Maak deze sessie openbaar" and read the #438 message. Nothing in this module
+// announces a session, so "meedoen" never turns into an unasked public listing.
 //   node scripts/sessionboot_test.mjs
-import { magOnline, getSettings } from './settings.js';
+import { magOnline } from './settings.js';
 import { kies, volgende, KEUZE } from './sessiekeuze.js';
 import { handshakeInfo, canJoin, startHost, startClient, addGuest, stopCoopNet } from './coopnet.js';
 import { readHostScene } from './coopscene.js';
 import { readSession, writeSession, toSession } from './coopsave.js';
-import { LIJST, Serverlijst, schoonNaam, maakAankondiger, STANDAARD_NAAM } from './net/serverlijst.js';
+import { LIJST, Serverlijst } from './net/serverlijst.js';
 import { MultiSignaler, LijstSignaler } from './net/brokers.js';
 import { hostRoom, joinRoom, rtcSupported } from './net/rtcroom.js';
 import { makeRoom, formatRoom, topicFor } from './net/sigcrypto.js';
-import { JOIN, bedienKamer, vraagKamer } from './net/joingate.js';
+import { JOIN, vraagKamer } from './net/joingate.js';
 import { PROTO } from './net/protocol.js';
 import { KEYS } from './storagekeys.js';
 import { VERSION } from './version.js';
@@ -162,21 +163,22 @@ export async function openSession(world, rij, { onHold = null, onCode = null, op
 }
 
 // ------------------------------------------------------------------ hosting
-// A new invitation per free seat, under one room code, plus the public line of #438. Nothing is sent that
-// #438 did not already send: the session name (filtered), the player count, the version and the session id.
+// A new invitation per free seat, under one room code. Nothing is sent that #438 did not already
+// send: the session name (filtered), the player count, the version and the session id.
 // No room code (#583), no address and no password. A guest from the list asks the host for a one-time room
 // over net/joingate.js and only then gets it.
-export function hostSession(world, { openbaar = true, invites = true, onHold = null } = {}) {
+// De sessie is hier altijd besloten (#556): openbaar maken is een eigen keuze met de #438-melding in de
+// lobby (lobbyui.js). Zo kan "meedoen" nooit ongemerkt een openbare sessie in de lijst zetten.
+export function hostSession(world, { invites = true, onHold = null } = {}) {
   const hub = startHost(world, handshakeInfo({ tiles: '-', story: 'nieuw' }), {
     route: 'kamer',
     scene: () => readHostScene(world),
     onHold: onHold ? (rol, slot, reden) => onHold(rol, slot, reden) : null,
   });
-  const boot = { hub, room: null, handles: [], sig: null, timer: null, gate: null };
+  const boot = { hub, room: null, handles: [], timer: null };
   standVan(world).boot = boot;
   if (invites) openInvite(world, boot);
-  if (openbaar) { announce(world, boot); openGate(world, boot); }
-  // the session ends (the player stops it in the pause menu): the announcement and the invitation go too
+  // the session ends (the player stops it in the pause menu): the invitation goes too
   boot.timer = setInterval(() => { if (!world.coopNet) stopSessionBoot(world); }, 2000);
   if (boot.timer && boot.timer.unref) boot.timer.unref();
   return hub;
@@ -198,9 +200,8 @@ function openInvite(world, boot) {
   openSeat(world, boot, room, () => { if (sessionBootState(world) === boot) openInvite(world, boot); }); // a new seat for the next guest, under the same code
 }
 
-// Een kamer klaarzetten voor één gast en hem aan de hub geven. De kamer is eenmalig (uitnodiging of
-// een verzoek via de lijst, #583); `bijOpen` draait zodra de gast er is en bepaalt of er nog een
-// volgende plek klaargezet moet worden.
+// Een kamer klaarzetten voor één gast en hem aan de hub geven. De kamer is eenmalig (uitnodiging,
+// #583); `bijOpen` draait zodra de gast er is en bepaalt of er nog een volgende plek klaargezet moet worden.
 function openSeat(world, boot, room, bijOpen = null) {
   hostRoom(room, {
     signaler: newSignaler(), timeouts: CONFIG.TIMEOUTS,
@@ -215,50 +216,13 @@ function openSeat(world, boot, room, bijOpen = null) {
   }, (e) => console.warn('sessie', e));
 }
 
-// De openbare lijst draagt het sessie-id; een gast vraagt hier een eenmalige kamer aan (#583). Wie
-// zelf een verzoek stuurt, is een deelnemer die de host ziet; wie alleen de lijst leest, krijgt niets.
-function openGate(world, boot) {
-  const hub = boot.hub;
-  if (!hub || !hub.publiek || !hasSocket() || !rtcSupported()) return;
-  const pub = hub.publiek();
-  if (!pub || !pub.id) return;
-  const gate = bedienKamer({
-    id: pub.id,
-    maakSignaler: () => newLijstSignaler(JOIN.interval),
-    mag: () => {
-      const p = boot.hub && boot.hub.publiek ? boot.hub.publiek() : null;
-      return !!(p && boot.hub.vrijePlekken && p.spelers < p.max);
-    },
-    onKamer: (room) => { if (sessionBootState(world) === boot) openSeat(world, boot, room); },
-  });
-  if (gate) boot.gate = gate;
-}
-
-function announce(world, boot) {
-  const hub = boot.hub;
-  if (!hub || !hub.zetOpenbaar || !hasSocket()) return;
-  const naam = schoonNaam(getSettings().onlineNaam || STANDAARD_NAAM);
-  const gezet = hub.zetOpenbaar(true, naam.ok ? naam.naam : STANDAARD_NAAM);
-  if (!gezet.ok) return;
-  const pub = hub.publiek ? hub.publiek() : null;
-  if (!pub || !pub.naam) return;
-  const sig = newLijstSignaler();
-  boot.sig = sig;
-  const maak = maakAankondiger({ naam: pub.naam, versie: VERSION, proto: PROTO, id: pub.id, hub: () => (hub.publiek ? hub.publiek() : null) });
-  topicFor(LIJST.sleutel).then((topic) => {
-    if (sessionBootState(world) === boot && world.coopNet) sig.kondig(topic, maak);
-  }, () => { /* no topic: then no line in the list */ });
-}
-
-// The announced session is over: stop the announcement, the gate, the last invitation and the guard.
+// The session is over: stop the last invitation and the guard.
 export function stopSessionBoot(world) {
   const st = world && stand.get(world);
   const boot = st && st.boot;
   if (!boot) return;
   st.boot = null;
   if (boot.timer) clearInterval(boot.timer);
-  if (boot.sig) { try { boot.sig.close(); } catch (e) { /* al weg */ } }
-  if (boot.gate) { try { boot.gate.stop(); } catch (e) { /* al weg */ } }
   for (const h of boot.handles) { try { h.cancel(); } catch (e) { /* al weg */ } }
 }
 

@@ -108,6 +108,25 @@ await t('Meedoen: onlineMeedoen wordt true, met de naam erbij', async () => {
   assert.equal(moetVragen(), false);
 });
 
+// --- 4b. Enter in the name field is not consent (#556) --------------------------------
+await t('Enter in het naamveld is geen toestemming: het zet de focus op Meedoen', async () => {
+  naar(null);
+  S.setSetting('onlineNaam', '');
+  let gekozen = 0;
+  const root = nepRoot('Bouwer');
+  mountOnlineStart(root, { onKies: () => { gekozen++; } });
+  root.toets('Enter', root.veld());
+  assert.equal(gekozen, 0, 'geen ja zonder knop of keuze');
+  assert.equal(S.getSettings().onlineMeedoen, null, 'er is niets bewaard');
+  assert.equal(S.getSettings().onlineNaam, '', 'de getypte naam is nog niet bewaard');
+  assert.equal(root.focus, 'ja', 'de focus staat op Meedoen, klaar voor een bewuste Enter');
+  assert.deepEqual([log.ws.length, log.pc.length], [0, 0], 'en er ging niets naar buiten');
+  root.klik('ja');
+  assert.equal(gekozen, 1, 'de knop is de keuze');
+  assert.equal(S.getSettings().onlineMeedoen, true);
+  naar(null);
+});
+
 // --- 5. a refused name shows a fault and writes nothing --------------------------
 await t('een ongeldige naam geeft een fout en zet niets', async () => {
   naar(null);
@@ -234,13 +253,21 @@ await t('de boot vraagt het alleen als er nog geen antwoord is', async () => {
 
 // A DOM element for the card, as small as the card needs. A key gets its keyup too (AGENTS.md).
 function nepRoot(startWaarde) {
+  const knoppen = {
+    ja: { keuze: 'ja', getAttribute: () => 'ja', focus() { r.focus = 'ja'; } },
+    nee: { keuze: 'nee', getAttribute: () => 'nee', focus() { r.focus = 'nee'; } },
+  };
   const r = {
-    innerHTML: '', waarde: startWaarde, listeners: {},
+    innerHTML: '', waarde: startWaarde, listeners: {}, focus: null,
+    veld() { return { value: r.waarde, classList: { contains: (c) => c === 'os-naam' }, focus() { r.focus = 'naam'; }, closest: () => null }; },
     querySelector(sel) {
-      if (sel !== '.os-naam') return null;
-      return { value: r.waarde, focus() {}, closest: () => null };
+      if (sel === '.os-naam') return r.veld();
+      if (sel === '[data-keuze="ja"]') return knoppen.ja;
+      if (sel === '[data-keuze="nee"]') return knoppen.nee;
+      return null;
     },
     addEventListener(ev, f) { (r.listeners[ev] || (r.listeners[ev] = [])).push(f); },
+    toets(key, target) { (r.listeners.keydown || []).forEach((h) => h({ key, target, shiftKey: false, preventDefault() {} })); },
     klik(keuze) {
       const knop = { getAttribute: () => keuze };
       const target = { closest: (s) => (s === '[data-keuze]' ? knop : null) };
