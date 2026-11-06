@@ -1754,6 +1754,8 @@ function syncBuildingsPass(world, px, py) {
     prefetchedBuildings.delete(b);
     mesh.visible = !hiddenBuildings.has(b);
     if (!mesh.name) mesh.name = b.landmark ? 'landmark' : 'building';
+    // statisch: de matrix hoeft niet elk frame opnieuw samengesteld te worden (#553)
+    mesh.matrixAutoUpdate = false; mesh.updateMatrix();
     buildingMeshes.set(b, mesh);
     scene.add(mesh);
   }
@@ -2045,6 +2047,11 @@ function syncWater(items, cache, y, map, px, py) {
 let roadQuality = getRoadQualityVersion();
 const openSpans = new Set();
 let bridgeViews = false;
+// De wegenlaag wordt niet elke frame opnieuw opgebouwd als de focus stil staat en er
+// geen brug open is: dezelfde wegen (zelfde kwaliteit en afstand) leveren hetzelfde
+// beeld, en de grid-bevraging plus de Set hieronder kost anders elke frame allocaties
+// en CPU (#553).
+let roadSyncIdle = null, roadSyncFrame = 0;
 function syncRoads(world, px, py) {
   setRoadNetwork(world.map);
   if (roadQuality !== getRoadQualityVersion()) {
@@ -2052,6 +2059,9 @@ function syncRoads(world, px, py) {
     for (const mesh of roadMeshes.values()) scene.remove(mesh);
     roadMeshes.clear();
   }
+  roadSyncFrame++;
+  if (roadSyncIdle && !openSpans.size && !world.quake && roadSyncIdle.q === roadQuality && roadSyncIdle.dist === DRAW_DIST && roadSyncIdle.meshes === roadMeshes.size && roadSyncFrame - roadSyncIdle.frame < 6 && Math.hypot(px - roadSyncIdle.x, py - roadSyncIdle.y) < 0.15) return;
+  roadSyncIdle = null;
   const view = world.map.roadsNear(px, py, DRAW_DIST);
   const seen = new Set();
   for (const r of view) seen.add(r);
@@ -2086,6 +2096,7 @@ function syncRoads(world, px, py) {
       const group = buildRoadGroup(r);
       const mesh = freezeStatic(world.map.terrainOn ? liftRoadGroup(group, world.map, r) : group);
       if (!mesh.name) mesh.name = 'road';
+      mesh.matrixAutoUpdate = false; mesh.updateMatrix();
       scene.add(mesh);
       roadMeshes.set(r, mesh);
       built++;
@@ -2529,6 +2540,7 @@ export function update3D(dt, world) {
   syncMovableBridges3D(focus.x, focus.y, world.map);
   openBridgeRoads(openSpans);
   if (!NO_BATCH) roadBatcher.update({ scene, meshes: roadMeshes, hidden: openSpans.size ? openSpans : null, px: focus.x, py: focus.y, detailR: DRAW_DIST, drawDist: DRAW_DIST, withDetail: true, compile: batchCompile, ready: batchReady, budgetMs: 3 });
+  roadSyncIdle = { x: focus.x, y: focus.y, q: roadQuality, dist: DRAW_DIST, meshes: roadMeshes.size, frame: roadSyncFrame };
   for (const b of getMovableBridges()) { const m = roadMeshes.get(b.r); if (m) m.visible = !openSpans.has(b.r); }
   updateMovableBridges3D(focus.x, focus.y, waterNight);
   updateSluizen3D(scene, focus.x, focus.y, waterNight);
@@ -4215,4 +4227,7 @@ function normalizeAngleDelta(a) {
 // De route-ribbon en de wegwijzer-beacon wonen in scene3d/routeribbon3d.js (#502);
 // setRouteLinks blijft hier nog een export, zodat main.js niets hoeft te wijzigen.
 export { setRouteLinks } from './scene3d/routeribbon3d.js';
+
+
+
 

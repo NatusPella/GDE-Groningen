@@ -8,6 +8,12 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 - (nog niets)
 
+## [0.56.1] - 2026-11-06
+
+- **Minder CPU-werk per frame zonder beeldverlies.** De wegenlaag wordt niet meer elke frame opnieuw bevraagd en vergeleken als de speler stil staat en er geen brug open is; gebouwen krijgen een bevroren modelmatrix omdat ze niet bewegen. Beide leveren dezelfde beelden op, met minder allocaties en matrixwerk per frame (#553).
+
+- (nog niets)
+
 ## [0.56.0] - 2026-11-06
 
 - **Fiets- en stepronde in het skatepark (#537).** Rijd op je eigen fiets of step naar de ingang van het skatepark en druk E: een minuut lang tellen wheelies (meters), sprongetjes en stoppies, met een medaille en een record. De skateboard-activiteit blijft ernaast bestaan. Regels: `skatefietsrules.js`; test: `skatefiets_test`.
@@ -3126,6 +3132,7 @@ De eerste versie: alles wat er tot de eerste desktop-release gebouwd is.
   volledig offline, standaard op volledig scherm.
 - Voor wie het liever zonder app doet: een ZIP met `START DE GAME.bat` die op
   Windows zelf Python regelt en de game in de browser opent.
+
 
 
 
