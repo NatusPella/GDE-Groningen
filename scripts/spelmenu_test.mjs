@@ -129,7 +129,8 @@ for (const [gid, titel, rijen] of groepen) {
 }
 ok(/data-goto-sub="settings:besturing"/.test(pm.slice(pm.indexOf('function subtabsHtml'), pm.indexOf('function subtabsHtml') + 1200)), 'toetsen en knoppen hebben een knop terug naar Instellingen');
 // Te doen: losse activiteiten; Verhaal: de opdrachten
-ok(/todo: \[\['alles', 'Alles'\], \['dichtbij', 'Dichtbij'\]\]/.test(pm), 'Te doen heeft Alles en Dichtbij (losse activiteiten)');
+// Te doen: losse activiteiten in één lijst, met Dichtbij als filter (#607, was een eigen weergave)
+ok(/data-todo-near/.test(read('game/js/todoui.js')) && /setTodoFilter/.test(pm) && !/data-sub="dichtbij"/.test(pm) && !/data-todo-sort/.test(pm), 'Activiteiten heeft één lijst met een Dichtbij-filter in plaats van twee weergaven');
 ok(pm.includes("verhaal: [['opdrachten', 'Opdrachten'], ['personages', 'Personages'], ['aanwijzingen', 'Aanwijzingen'], ['veroverd', 'Veroverd']]"),'Verhaal heeft Opdrachten, Personages, en Aanwijzingen (geen aparte Berichten)');
 ok(/data-of="verhaal" data-sub="opdrachten" data-keep/.test(pm) && /renderTodoStory\(/.test(pm) && /export function renderTodoStory/.test(read('game/js/todoui.js')), 'de verhaalopdrachten staan onder Verhaal, met dezelfde lijst en details');
 ok(/data-todo-view="verhaal"/.test(read('game/js/todoui.js')) && /view === 'verhaal'\) \{ pref\.sub\.verhaal = 'opdrachten'/.test(pm), 'Alle opdrachten in Overzicht leidt naar Verhaal > Opdrachten');
@@ -165,7 +166,7 @@ ok(pm.includes('const inGameOnly') && /prestart && inGameOnly/.test(pm), 'voor d
 ok(pm.includes("if (tab === 'spel' && !atHome())"), 'Esc in Spel gaat eerst terug naar Overzicht en sluit dan pas');
 // Activiteiten: geen bijbanen (die staan onder Loopbanen) en de banen zijn daar te kiezen
 const tui = read('game/js/todoui.js');
-ok(/isActiviteit = \(it\) => it\.group !== 'verhaal' && it\.group !== 'bijbaantjes'/.test(tui) && /SHOWN = GROUPS\.filter/.test(tui) && /isActiviteit\(it\)\)\.sort/.test(tui), 'Activiteiten (Alles en Dichtbij) heeft geen bijbanen meer');
+ok(/isActiviteit = \(it\) => it\.group !== 'verhaal' && it\.group !== 'bijbaantjes'/.test(tui) && /SHOWN = GROUPS\.filter/.test(tui) && /eigen\.filter\(\(it\) => it\.dist != null/.test(tui), 'Activiteiten (één lijst met Dichtbij-filter) heeft geen bijbanen meer');
 ok(/data-todo-goal="job:/.test(lb) && /baanDoelen/.test(lb) && /tab === 'loopbaan' && todoClick/.test(pm), 'een bijbaan kies je onder Loopbanen met Zet als doel (niet dubbel)');
 const bron = pm.slice(0, pm.indexOf('export function initPauseMenu('));
 for (const act of [...ACTIES, 'bench', 'bench-go', 'errlog-copy']) {
