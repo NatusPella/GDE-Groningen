@@ -4,6 +4,10 @@ Alle noemenswaardige wijzigingen in GDE Groningen, per versie. Nieuwste bovenaan
 Versies volgen SemVer: `0.x.y` tot de echte release (1.0.0); `x` voor
 nieuwe functies, `y` voor alleen bugfixes.
 
+## [Unreleased]
+
+- **Een helikopter of vliegtuig besturen werkt weer in Alleen spelen en als host (#555).** De bestuurinvoer zocht de gasten in een lijst die sinds de sessie van één altijd een leeg object is en gooide elke frame een fout. Nu leest hij de figurenlijst zoals hij is: één figuur per plek. Test: `coopbestuur_test`.
+
 ## [0.57.4] - 2026-11-06
 
 - **Laaddeadlock tijdens de boot opgelost (#582).** De geometry-worker-resultaten werden sinds de perf-fix pas in de spellus geledigd; vóór de eerste gameplay wachtte het laadscherm daardoor eeuwig op de terrain. Tijdens de boot worden die resultaten nu direct afgeleverd. Als vangnet wordt een opening die de eerste seconde gameplay 30 s tegenhoudt overgeslagen.
