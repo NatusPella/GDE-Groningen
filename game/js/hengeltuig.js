@@ -69,6 +69,20 @@ export function normaliseer(raw) {
   return { v: TUIG_VERSIE, hengel, aas, upgrades };
 }
 
+// Twee tabbladen: het tuig samenvoegen zonder iets weg te gooien (#590). De beste hengel en de
+// meeste verbeteringen winnen; bij dezelfde aassoort telt de hoogste stand (wie in het ene tabblad
+// viste en in het andere bijkocht, houdt wat er over is). Er past maar één aassoort in de zak: bij
+// twee verschillende soorten blijft de soort met de meeste beten over.
+export function voegSamen(a, b) {
+  const x = normaliseer(a), y = normaliseer(b);
+  const rang = (t) => (hengelById(t.hengel) || HENGELS[0]).rang;
+  const beste = rang(y) > rang(x) ? y : x;
+  let aas = null;
+  if (x.aas && y.aas) aas = x.aas.id === y.aas.id ? { id: x.aas.id, n: Math.max(x.aas.n, y.aas.n) } : (x.aas.n >= y.aas.n ? x.aas : y.aas);
+  else aas = x.aas || y.aas;
+  return { v: TUIG_VERSIE, hengel: beste.hengel, upgrades: Math.max(x.upgrades, y.upgrades), aas };
+}
+
 const klem01 = (x) => Math.max(0, Math.min(1, Number.isFinite(x) ? x : LIJN_STANDAARD));
 
 // De lijnsterkte van een hengel met zoveel verbeteringen (0-1).

@@ -218,6 +218,38 @@ ok(S.exportFileName('Mijn Grunn-save!', new Date('2026-08-01T10:00:00Z')) === 'g
   const now = Date.UTC(2026, 6, 10, 12);
   ok(S.agoText(now - 5000, now) === 'zojuist' && S.agoText(now - 12 * 60000, now) === '12 min geleden' && S.agoText(now - 3 * 3600000, now) === '3 u geleden' && S.agoText(now - 30 * 3600000, now) === 'gisteren' && S.agoText(now - 5 * 86400000, now) === '5 dagen geleden' && S.agoText(now - 40 * 86400000, now) === '' && S.agoText(0, now) === '', 'agoText');
 }
+// #590: a slot read from its recovery copy says so and can be repaired; the pre-migration backup is
+// written once per version, in half the room (the save object, not the raw text twice), and both the
+// old and the new form are read back
+{
+  const ls = new Mem();
+  S.writeSlot(ls, 1, save(1));
+  S.writeSlot(ls, 1, save(2));
+  ls.setItem(slotKey(1), '{"v":9,"money":');
+  const r = S.readSlot(ls, 1);
+  ok(r.state === 'hersteld' && r.data.money === 1, 'hersteld before repair');
+  ok(S.repairSlot(ls, 1, r.data) && S.readSlot(ls, 1).state === 'ok' && S.readSlot(ls, 1).data.money === 1, 'repairSlot puts the recovered save back');
+  ok(JSON.parse(ls.getItem(slotRecoveryKey(1))).money === 1, 'repair keeps the good recovery copy');
+
+  const raw = JSON.stringify(save(7));
+  ok(S.writeBackupOnce(ls, raw, 8, 1000), 'backup written');
+  ok(!S.writeBackupOnce(ls, JSON.stringify(save(8)), 8, 2000), 'backup not written twice for the same version');
+  ok(S.writeBackupOnce(ls, JSON.stringify(save(9)), 9, 2000), 'backup for a newer version');
+  const b = S.readBackup(ls);
+  ok(b && b.v === 9 && b.at === 2000 && JSON.parse(b.raw).money === 9, 'backup round trip', JSON.stringify(b && b.v));
+  ok(!S.writeBackupOnce(ls, null, 9) && !S.writeBackupOnce(null, raw, 9), 'backup refuses junk storage');
+  // a backup from the first form (the save as a double-encoded string) is still read
+  ls.setItem(KEYS.saveBackup, JSON.stringify({ v: 7, at: 500, save: raw }));
+  ok(JSON.parse(S.readBackup(ls).raw).money === 7, 'old double-encoded backup read');
+  ls.setItem(KEYS.saveBackup, 'nonsense');
+  ok(S.readBackup(ls) === null, 'unreadable backup is ignored');
+  // the backup becomes a normal save in a free place, never over an existing one
+  const target = new Mem();
+  S.writeSlot(target, 1, save(3));
+  ls.setItem(KEYS.saveBackup, JSON.stringify({ v: 8, at: 1000, save: JSON.parse(raw) }));
+  const im = S.importAsNewSlot(target, S.readBackup(ls).raw);
+  ok(im.ok && im.n === 2 && S.readSlot(target, 2).data.money === 7 && S.readSlot(target, 1).data.money === 3, 'backup restored as a new slot, over nothing');
+}
 // blocked storage never throws
 {
   const blocked = { getItem() { throw new Error('x'); }, setItem() { throw new Error('x'); }, removeItem() { throw new Error('x'); } };

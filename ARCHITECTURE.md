@@ -1588,10 +1588,18 @@ every step, `n -> n + 1`, on a copy, before anything reads it.
   keep their own tolerant loaders (unknown ids are dropped, missing fields get
   defaults); their own `v` stays 1. Only the top-level `v` moves.
 - `readSave` migrates, and before the first migration of a save keeps the
-  untouched JSON in `gde-save-backup`. A save from a newer game (`v` above
+  untouched JSON in the backup key (`gde-save-backup-nieuw`; the old
+  `gde-save-backup` and `gte-save-backup` are carried across at boot). A save from a newer game (`v` above
   `SAVE_VERSION`) is not read, and is copied to the backup before this
   version saves over it or Nieuw spel clears it. `applySave` migrates too, so
-  a test can hand it an old save directly.
+  a test can hand it an old save directly. The backup is reachable: when a slot
+  is broken, Opgeslagen spellen offers "Reservekopie herstellen", which puts it
+  in a free slot and never over an existing save.
+  After the one-time `gte-` → `gde-` rename (its marker is set) a save that a
+  downgraded 0.28 build wrote later is still taken when its `savedAt` is later;
+  old keys without a timestamp (settings, prestaties) cannot be dated that way
+  and are left as they are. That is the deliberate limit of the one-way
+  migration.
 - Versions: save 1 (0.2-0.24), 2 (0.25: the kill counters become
   `knockouts`/`pedKnockouts`/`copKnockouts`, the steps 0.22 retired leave the
   story save), 3 (0.27: one radio station), 4 (0.28: the streken), 5 (0.28, 18+: the knockout
