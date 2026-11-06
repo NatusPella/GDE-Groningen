@@ -550,3 +550,32 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .pm-hub-rijen li[data-hub-rij="code"] { font-family: Consolas, 'Courier New', monospace; letter-spacing: 0.02em; }
 #pause-menu .pm-hub-uitleg { margin: 0; max-width: 720px; font-size: 18px; line-height: 1.4; opacity: 0.85; }
 #pause-menu .pm-hub-knoppen { display: flex; flex-wrap: wrap; gap: 12px; }
+
+/* #604: "Standaard herstellen" vraagt eerst (met een lijst van wat teruggaat) en kan daarna ongedaan
+   gemaakt worden; de twee stroken staan boven de tabbladen van Instellingen. */
+#pause-menu .pm-inner.pm-settings > .pm-confirm { margin: 0 64px 12px; flex: none; max-width: 720px; }
+/* #604: het foutrapport onder Over: één Nederlandse samenvatting, de Engelse meldingen achter de vouw */
+#pause-menu .pm-errsum { padding: 0 24px 12px; font-size: 18px; line-height: 1.4; color: var(--ink); max-width: 860px; }
+#pause-menu .pm-errsum:empty { display: none; }
+#pause-menu .pm-errfold { padding: 0 24px 8px; max-width: 860px; }
+#pause-menu .pm-errfold > summary { cursor: pointer; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 20px; letter-spacing: 0.04em; color: var(--mut); }
+#pause-menu .pm-errfold > summary:hover, #pause-menu .pm-errfold[open] > summary { color: var(--g); }
+#pause-menu .pm-errfold > .pm-errlog { padding: 12px 0 0; }
+/* #604: kleine proef bij Toegankelijkheid: de markerkleuren, de routelijnen en 13/20 px-tekst zoals ze nu zijn */
+#pause-menu .pm-a11yprev { display: flex; flex-direction: column; gap: 14px; margin: 4px 0 14px; padding: 16px; border-radius: 12px; background: rgba(12, 20, 14, 0.55); box-shadow: inset 0 0 0 1px var(--line2); }
+#pause-menu .pm-a11y-marks { display: flex; flex-wrap: wrap; gap: 8px; }
+#pause-menu .pm-a11y-mk { padding: 3px 10px; border-radius: 999px; background: var(--mk-ok, #3fc97a); color: #0c140e; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 16px; letter-spacing: 0.04em; }
+#pause-menu .pm-a11y-mk[data-mk="ok"] { background: var(--mk-ok, #3fc97a); }
+#pause-menu .pm-a11y-mk[data-mk="danger"] { background: var(--mk-danger, #d93f3f); }
+#pause-menu .pm-a11y-mk[data-mk="mission"] { background: var(--mk-mission, #e8c93a); }
+#pause-menu .pm-a11y-mk[data-mk="user"] { background: var(--mk-user, #c068ff); }
+#pause-menu .pm-a11y-mk[data-mk="job"] { background: var(--mk-job, #ff9a3c); }
+#pause-menu .pm-a11y-mk[data-mk="care"] { background: var(--mk-care, #ff5fb4); }
+#pause-menu .pm-a11y-mk[data-mk="police"] { background: var(--mk-police, #3f6fd9); }
+#pause-menu .pm-a11y-routes { display: flex; flex-direction: column; gap: 6px; }
+#pause-menu .pm-a11y-route { height: 0; border-top: 3px solid var(--mk-mission, #e8c93a); }
+#pause-menu .pm-a11y-route[data-route="doel"] { border-top-color: var(--mk-user, #c068ff); border-top-style: dashed; }
+#pause-menu .pm-a11y-route[data-route="klus"] { border-top-color: var(--mk-job, #ff9a3c); border-top-style: dotted; }
+#pause-menu .pm-a11y-text { display: flex; flex-direction: column; gap: 3px; color: var(--ink); }
+#pause-menu .pm-a11y-13 { font-size: 13px; }
+#pause-menu .pm-a11y-20 { font-size: 20px; }

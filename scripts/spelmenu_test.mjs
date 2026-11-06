@@ -160,8 +160,10 @@ ok(!subIds.includes('spelers') && !pm.includes('data-of="spel" data-sub="spelers
 ok(pm.includes("name === 'samen' || name === 'samenspelen' || name === 'spelers'") && pm.includes("setN('spel', coopN") && pm.includes('world.coopSpelers.length'), 'de oude namen samen, samenspelen en spelers verwijzen naar Spel > Samen spelen; de rijknop Spel toont het aantal spelers');
 ok(read('game/js/main.js').includes("openPauseMenu('samen')"), 'de coöp-melding opent nog openPauseMenu(samen), dat nu naar Spel > Samen spelen gaat');
 ok(!read('scripts/coop/coop.page.js').includes('.ra[data-goto="samen"]') && !read('scripts/coop/coop.page.js').includes('.ra[data-goto="spelers"]'), 'de coöp-QA zoekt geen oude rijknoppen meer');
-ok(settingsSrc.includes("tab('cheats'") && settingsSrc.includes('data-goto="streken"') && /\['fouten', 'Foutrapport'\], \['cheats', 'Cheats'\]/.test(pm), 'Instellingen heeft het tabblad Cheats');
-ok(pm.includes('const inGameOnly') && /prestart && inGameOnly/.test(pm), 'voor de start zijn Overzicht, Opslaan & stoppen en Cheats er niet');
+ok(!settingsSrc.includes("tab('cheats'") && /\['video', 'Beeld'\], \['sound', 'Geluid & ondertitels'\], \['besturing', 'Besturing'\], \['display', 'Interface'\], \['a11y', 'Toegankelijkheid'\]/.test(pm), 'Instellingen heeft vijf echte instellingstabbladen; Cheats staat als eigen onderdeel in de rail (#604)');
+ok(!/\['fouten', 'Foutrapport'\]/.test(pm) && pm.includes('<span>Problemen</span>') && pm.includes('data-errsum'), 'het foutrapport staat onder Over als Problemen met een Nederlandse samenvatting (#604)');
+ok(pm.includes('data-reset-confirm') && pm.includes('data-action="reset-go"') && pm.includes('data-action="reset-undo"') && pm.includes('data-action="reset-cancel"'), 'Standaard herstellen vraagt eerst en kan daarna ongedaan gemaakt worden (#604)');
+ok(pm.includes('const inGameOnly') && /prestart && inGameOnly/.test(pm), 'voor de start zijn Overzicht, Opslaan & stoppen en Samen spelen er niet');
 ok(pm.includes("if (tab === 'spel' && !atHome())"), 'Esc in Spel gaat eerst terug naar Overzicht en sluit dan pas');
 // Activiteiten: geen bijbanen (die staan onder Loopbanen) en de banen zijn daar te kiezen
 const tui = read('game/js/todoui.js');
