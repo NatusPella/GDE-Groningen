@@ -262,5 +262,35 @@ ok(() => {
   assert.equal(saves, 10, 'zonder sessie geen checkpoint');
 }, 'de coop-checkpoint draait alleen in een echte sessie (#569)');
 
+// --- #579: "niets te bewaren" is een geslaagde opslag, geen fout ------------------------------------
+const saveGuest = (scope) => new Function('scope', `with (scope) {
+  ${haalFunctie(sg, 'saveGuestEarnings')}
+  return saveGuestEarnings;
+}`)(scope);
+
+ok(() => {
+  const meldingen = [];
+  const scope = { saveTarget: () => 1, serialize: () => ({ money: 5 }), readSlot: () => ({ state: 'ok', data: { money: 5 } }), applyGuestChanges: () => null, writeSlotRaw: () => true, gastBewaarMeld: (w) => meldingen.push(w) };
+  const w = { coopVerdiend: 0, addMessage(t) { meldingen.push(t); } };
+  assert.equal(saveGuest(scope)(w), true, 'niets te bewaren telt als gelukt');
+  assert.equal(meldingen.length, 0, 'geen valse melding "Opslaan mislukt"');
+  assert.equal(w.coopVerdiend, 0);
+}, 'gast: niets te bewaren is geen fout (#579)');
+ok(() => {
+  let written = 0;
+  const scope = { saveTarget: () => 1, serialize: () => ({ money: 5 }), readSlot: () => ({ state: 'ok', data: { money: 1 } }), applyGuestChanges: () => ({ money: 7 }), writeSlotRaw: () => { written++; return true; }, gastBewaarMeld: () => {} };
+  const w = { coopVerdiend: 12 };
+  assert.equal(saveGuest(scope)(w), true, 'wel iets te bewaren: gelukt');
+  assert.equal(written, 1);
+  assert.equal(w.coopVerdiend, 0);
+}, 'gast: iets te bewaren wordt geschreven (#579)');
+ok(() => {
+  const meldingen = [];
+  const scope = { saveTarget: () => 1, serialize: () => ({ money: 5 }), readSlot: () => ({ state: 'ok', data: { money: 1 } }), applyGuestChanges: () => ({ money: 7 }), writeSlotRaw: () => false, gastBewaarMeld: () => meldingen.push('m') };
+  const w = { coopVerdiend: 3 };
+  assert.equal(saveGuest(scope)(w), false, 'een echte schrijffout blijft een fout');
+  assert.deepEqual(meldingen, ['m'], 'en wordt gemeld');
+}, 'gast: een mislukte schrijfbeurt blijft een fout (#579)');
+
 console.log(`savegame_test: ${n - fails}/${n}`);
 process.exit(fails ? 1 : 0);
