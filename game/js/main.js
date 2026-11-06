@@ -21,7 +21,7 @@ import { reportCrime } from './crime.js';
 import { findEnterableVehicle } from './vehicle.js';
 import { findRideableProp, rideProp } from './rideprops.js';
 import { isHoldOpen, checkHold, openHold } from './coophold.js';
-import { sessionBootTick } from './sessionboot.js'; // een sessie vanaf de start (#528, ADR 0022)
+import { sessionBootTick, canBootSession, sessionBootBezig } from './sessionboot.js'; // een sessie vanaf de start (#528, ADR 0022)
 import { updatePartnerChip } from './coophud.js';
 import { syncFigures, hasFigureMeshes } from './coopfigures3d.js';
 import { syncHostEntities, hasHostEntities, clearHostEntities } from './coopentities3d.js';
@@ -632,9 +632,10 @@ async function boot() {
   const feelDip = makeDip(), dipSeen = { imp: null, mh: null };
   let samenSince = null, gateMenu = false;
   function frameBody(dt) {
-    // Alleen spelen is een sessie van één (#553): start die zodra het spel loopt en er
+    // Alleen spelen is een sessie van één (#554): start die zodra het spel loopt en er
     // geen Samen-scherm open staat. Zo lopen alle functies door hetzelfde multiplayer-pad.
     if (!world.coopNet && !world.coopWissel && !wantsOpenSamen() && !isPauseMenuOpen() && document.body.classList.contains('game-started')
+      && !FLAGS.coop && !canBootSession(world) && !sessionBootBezig(world)
       && !FLAGS.storytest && !FLAGS.trailer && !FLAGS.perf && !FLAGS.benchmark && !FLAGS.spotsonly && !FLAGS.autoplay && !FLAGS.preview && !FLAGS.menu) {
       startSoloHost(world, { seed: world.seed ?? 1 });
     }
@@ -963,6 +964,8 @@ boot().catch((err) => {
   showLoadError(err.message);
   console.error(err);
 });
+
+
 
 
 

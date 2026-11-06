@@ -1,4 +1,4 @@
-// Alleen spelen is sinds #553 een sessie van één: dezelfde gastheer-sessie als
+// Alleen spelen is sinds #554 een sessie van één: dezelfde gastheer-sessie als
 // Samen spelen, maar met ruimte voor alleen de speler zelf (#553, besluit van de
 // eigenaar). Zo lopen alle functies door hetzelfde multiplayer-pad en werkt een
 // latere gast of hostwissel precies zoals in een gewone sessie; de hub heeft
@@ -30,3 +30,5 @@ export function stopSoloHost(world) {
   try { stopCoopNet(world); } catch (e) { /* de sessie was al weg */ }
   return true;
 }
+
+

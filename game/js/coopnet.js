@@ -1073,7 +1073,7 @@ export function tickCoopNet(world, dt) {
   }
   for (const [slot, t] of Object.entries(n.removing)) { n.removing[slot] = t - dt; if (n.removing[slot] <= 0) { delete n.removing[slot]; n.hub.release(+slot); } }
   n.hub.tick(dt);
-  // De sessie van één (#553): zonder gasten is er niets te sturen en niets te melden.
+  // De sessie van één (#554): zonder gasten is er niets te sturen en niets te melden.
   // Alleen de hub, de kloktellers en de eigen spelerslijst blijven bij; de rest van de
   // hostlus (foci, figuren, hostView, scene- en missieberichten) komt pas als er een
   // gast is. Zo kost Alleen spelen geen netwerk- of snapshotwerk per frame.
@@ -1625,4 +1625,5 @@ export function stopCoopNet(world) {
 
 // de overdracht (coophostwisselnet.js) gebruikt deze functies zonder coopnet.js zelf te importeren
 zetCoopNet({ addGuest, stopCoopNet, startHost, startClient, canJoin });
+
 
