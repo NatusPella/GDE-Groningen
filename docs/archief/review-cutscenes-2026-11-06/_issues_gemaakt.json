@@ -1,0 +1,127 @@
+[
+  {
+    "num": 704,
+    "title": "Intocht: één lange cutscene per veroverde wijk (epic)",
+    "board": "Wensen"
+  },
+  {
+    "num": 705,
+    "title": "Intocht-fundament: betaal-haak, wachtrij, rust-poort en MOMENTS.veroverd",
+    "board": "Wensen"
+  },
+  {
+    "num": 706,
+    "title": "Intocht-camera: veroverTourShot met data-gedreven stops uit de catalogus",
+    "board": "Wensen"
+  },
+  {
+    "num": 707,
+    "title": "Intocht-content: 8-11 handgeschreven scènes per veroverbare wijk",
+    "board": "Wensen"
+  },
+  {
+    "num": 708,
+    "title": "Intocht: eenmalig per save, herspeelbaar via Veroverd en in de preview",
+    "board": "Wensen"
+  },
+  {
+    "num": 709,
+    "title": "Eerste bezoek aan een wijk: kaart, flyover en wijkFilm herzien",
+    "board": "Wensen"
+  },
+  {
+    "num": 710,
+    "title": "Veroverde gebieden heten 'Wijk 00' of 'Wijk 14' in titel, HUD en safehouse",
+    "board": "Bugs"
+  },
+  {
+    "num": 711,
+    "title": "Samen spelen: gast hoort een andere stem en ziet andere ondertiteltijden (own valt uit het scenepakket)",
+    "board": "Bugs"
+  },
+  {
+    "num": 712,
+    "title": "Samen spelen: filmpjes zonder script zijn host-only; gast ziet alleen balken of niets",
+    "board": "Wensen"
+  },
+  {
+    "num": 713,
+    "title": "Samen spelen: hostwissel of hostuitval midden in een scène breekt de scènereeks",
+    "board": "Bugs"
+  },
+  {
+    "num": 714,
+    "title": "Samen spelen: gast in menu, winkel of minigame mist de scène of springt erna",
+    "board": "Bugs"
+  },
+  {
+    "num": 715,
+    "title": "Samen spelen: scenepakket groter dan 32.000 tekens valt stil weg",
+    "board": "Bugs"
+  },
+  {
+    "num": 716,
+    "title": "Wijkterminologie: 66 buurtpunten versus 123 CBS-wijken — één keuze, één UI",
+    "board": "Wensen"
+  },
+  {
+    "num": 717,
+    "title": "Openingsmontage: hergebruiken als C00.1 of opruimen (besluit + docs)",
+    "board": "Wensen"
+  },
+  {
+    "num": 718,
+    "title": "Opening: anker de keuken en straat bij thuis en laat de stap niet na 40 s vallen",
+    "board": "Bugs"
+  },
+  {
+    "num": 719,
+    "title": "Finale: geen harde teleport naar de Grote Markt; fade en voertuig afhandelen",
+    "board": "Bugs"
+  },
+  {
+    "num": 720,
+    "title": "Activiteitenscènes: één gedeelde helper, één standaard en vier onthullingen",
+    "board": "Wensen"
+  },
+  {
+    "num": 721,
+    "title": "Landmark-ontdekking: Kardinge, Suikerfabriek, Eemshaven en Vesting Bourtange missen een scène",
+    "board": "Wensen"
+  },
+  {
+    "num": 722,
+    "title": "Vijf missies zonder eigen outro-regie: M06, M10, M21, M22, M24",
+    "board": "Wensen"
+  },
+  {
+    "num": 723,
+    "title": "Cutscene-docs, preview en specs bijwerken na deze review",
+    "board": "Wensen"
+  },
+  {
+    "num": 724,
+    "title": "Tests: gast-kant van scriptscènes en de verover-intocht",
+    "board": "Wensen"
+  },
+  {
+    "num": 725,
+    "title": "wijkHighlights kan bezienswaardigheden van een andere wijk tonen",
+    "board": "Bugs"
+  },
+  {
+    "num": 726,
+    "title": "Nieuw spel wist de 'gezien'-lijst van wijken voor alle saves",
+    "board": "Bugs"
+  },
+  {
+    "num": 727,
+    "title": "cutvervang is onbereikbaar en heeft geen gast-handler",
+    "board": "Wensen"
+  },
+  {
+    "num": 728,
+    "title": "Polsstok- en duifcamera gebruiken playCinematic als camerawrapper",
+    "board": "Wensen"
+  }
+]
