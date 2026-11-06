@@ -774,6 +774,10 @@ export function createBank(ctx, { sync = false } = {}) {
   const store = (name, sr, chs) => {
     const buf = ctx.createBuffer(chs.length, chs[0].length, sr);
     chs.forEach((d, i) => buf.getChannelData(i).set(d));
+    // #186: the spelbot's audio tap reads the name back off the buffer (botaudio.js), so a played
+    // effect can be reported per game event instead of per buffer length. A browser that refuses
+    // expando properties just keeps the old buffer-length label.
+    try { buf.__sfx = name; } catch (e) { /* geen naam, geen ramp */ }
     cache.set(name, buf);
   };
   if (!sync && typeof Worker !== 'undefined') {

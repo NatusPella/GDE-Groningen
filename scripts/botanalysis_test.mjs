@@ -1,6 +1,8 @@
 // Spelbot fase 4 en 5 (#186): scripts/bot/analysis.mjs zonder Electron en zonder netwerk:
 //   node scripts/botanalysis_test.mjs
 import zlib from 'node:zlib';
+import fs from 'node:fs';
+import os from 'node:os';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 import path from 'node:path';
 
@@ -82,6 +84,82 @@ ok(M.minigames === 2 && M.minigamesStarted === 1, 'minigamecijfers');
   ok(plan.find((p) => p.f.fp === bug.fp).action === 'comment' && plan.find((p) => p.f.fp === bug.fp).number === 12, 'bestaand open issue: comment, geen dubbel');
   ok(plan.find((p) => p.f.kind === 'cheat').action === 'heropen-comment', 'gesloten issue: terug melden');
   ok(plan.some((p) => p.action === 'nieuw') && plan.every((p) => p.f.severity === 'bug'), 'rest is nieuw, opmerkingen worden geen issue');
+}
+
+// --- geluid per gebeurtenis (#186) -------------------------------------------------------------------
+// De audiotap (game/js/botaudio.js) noemt elk effect bij zijn naam uit de dsp-bank en neemt direct na
+// de start een monster van de mix; de analyse hangt dat monster aan dat ene effect. Hier met dezelfde
+// events als een echte run: een hoorbaar effect, een stil effect (twee keer) en een effect zonder meting.
+{
+  const B = await import(pathToFileURL(path.join(root, 'game', 'js', 'botaudio.js')).href);
+  ok(B.sfxLabel({ __sfx: 'deur', length: 96000, sampleRate: 48000 }) === 'deur', 'buffer met een naam geeft de naam');
+  ok(B.sfxLabel({ length: 96000, sampleRate: 48000 }) === 'buf96000@48000', 'zonder naam de oude bufferlengte');
+  ok(B.sfxLabel(null) === 'buf?', 'geen buffer');
+  const dsp = fs.readFileSync(new URL('../game/js/sfx/dsp.js', import.meta.url), 'utf8');
+  ok(/buf\.__sfx = name/.test(dsp), 'de dsp-bank tagt zijn buffers met de naam');
+
+  const audio = [
+    { t: 0, type: 'audio', rms: 0.2, peak: 0.5 },
+    { t: 1, type: 'sfx', name: 'deur', dur: 1.2 },
+    { t: 1.02, type: 'audio', rms: 0.18, peak: 0.42, sfx: 'deur' },
+    { t: 1.5, type: 'audio', rms: 0.05, peak: 0.1 },
+    { t: 3, type: 'sfx', name: 'toeter', dur: 0.5 },
+    { t: 3.02, type: 'audio', rms: 0.0001, peak: 0.0002, sfx: 'toeter' },
+    { t: 4, type: 'sfx', name: 'toeter', dur: 0.5 },
+    { t: 4.02, type: 'audio', rms: 0.0001, peak: 0.0003, sfx: 'toeter' },
+    { t: 6, type: 'sfx', name: 'onmeetbaar', dur: 0.1 },
+  ];
+  const S = A.audioSummary(audio);
+  ok(S.perSfx.deur && S.perSfx.deur.count === 1 && S.perSfx.deur.measured === 1 && S.perSfx.deur.maxPeak === 0.42, 'hoorbaar effect krijgt zijn eigen piek (uit zijn venster)');
+  ok(S.perSfx.deur.silent === 0, 'een hoorbaar effect is niet stil');
+  ok(S.perSfx.toeter.count === 2 && S.perSfx.toeter.measured === 2 && S.perSfx.toeter.silent === 2 && S.perSfx.toeter.maxPeak === 0.0003, 'stil effect wordt per keer geteld');
+  ok(S.perSfx.onmeetbaar.count === 1 && S.perSfx.onmeetbaar.measured === 0 && S.perSfx.onmeetbaar.silent === 0, 'zonder meting telt niet als stil');
+  ok(S.silentSfx.length === 1 && S.silentSfx[0] === 'toeter', 'alleen het herhaald stille effect staat in de lijst');
+  ok(Object.keys(S.sfx).length === 3 && S.sfx.toeter === 2, 'de oude effectentelling blijft');
+
+  const FA = A.findings(audio);
+  ok(FA.some((f) => f.kind === 'audio-stil' && /toeter/.test(f.title) && f.severity === 'opmerking'), 'stil effect is een opmerking-bevinding');
+  ok(!FA.some((f) => f.kind === 'audio-stil' && /deur/.test(f.title)), 'hoorbaar effect is geen bevinding');
+  const som = A.nlSummary({ title: 'x', metrics: A.metrics([]), findings: FA, audio: S });
+  ok(/per gebeurtenis 2 van 3 gemeten/.test(som) && /stil: toeter/.test(som), 'de samenvatting noemt de meting en het stille effect');
+  ok(/Zachtste effecten: toeter \(piek 0.0003\)/.test(som), 'de samenvatting noemt het zachtste effect');
+
+  // een missiestart zonder enig geluid eromheen is ook een opmerking (#186)
+  const stil = A.audioSummary([{ t: 10, type: 'mission', event: 'start', id: 'M01' }, { t: 11, type: 'audio', rms: 0.3, peak: 0.5 }]);
+  ok(stil.quiet.length === 1 && stil.quiet[0].id === 'M01', 'missiestart zonder effect is een stille gebeurtenis');
+  const FQ = A.findings([{ t: 10, type: 'mission', event: 'start', id: 'M01' }, { t: 11, type: 'audio', rms: 0.3, peak: 0.5 }]);
+  ok(FQ.some((f) => f.kind === 'audio-gebeurtenis' && /M01/.test(f.title) && f.severity === 'opmerking'), 'stille gebeurtenis is een opmerking-bevinding');
+  const met = A.audioSummary([{ t: 10, type: 'mission', event: 'start', id: 'M01' }, { t: 11, type: 'sfx', name: 'intro', dur: 2 }]);
+  ok(met.quiet.length === 0, 'met een effect is de missiestart niet stil');
+  ok(A.audioSummary([]).samples === 0 && A.audioSummary([]).silentSfx.length === 0, 'zonder audio-events blijft de samenvatting leeg');
+
+  // de tap nummert elke start en geeft die meting mee: ook bij een hogere --speed hoort hij erbij
+  const SS = A.audioSummary([{ t: 2.5, type: 'sfx', name: 'snel', dur: 0.1, seq: 7 }, { t: 4, type: 'audio', rms: 0.02, peak: 0.04, sfx: 'snel', seq: 7 }]);
+  ok(SS.perSfx.snel && SS.perSfx.snel.measured === 1 && SS.perSfx.snel.maxPeak === 0.04, 'de eigen meting van de tap hangt aan het effect, ook buiten het tijdsvenster');
+
+  // analyse.mjs schrijft het geluid per gebeurtenis als audio.json naast de andere runbestanden
+  const AN = await import(pathToFileURL(path.join(root, 'scripts', 'bot', 'analyse.mjs')).href);
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'gde-botanalyse-'));
+  try {
+    const regels = [
+      { type: 'meta', started: '2026-11-06T10:00:00Z', part: 'test', seed: 1 },
+      { t: 0, type: 'step', event: 'begin', id: 'M01', label: 'Een' },
+      { t: 1, type: 'audio', rms: 0.2, peak: 0.5 },
+      { t: 2, type: 'sfx', name: 'deur', dur: 0.5 },
+      { t: 2.02, type: 'audio', rms: 0.1, peak: 0.2, sfx: 'deur' },
+      { t: 3, type: 'sfx', name: 'stil', dur: 0.5 },
+      { t: 3.02, type: 'audio', rms: 0.0001, peak: 0.0002, sfx: 'stil' },
+    ];
+    fs.writeFileSync(path.join(tmp, 'events.jsonl'), regels.map((r) => JSON.stringify(r)).join('\n') + '\n');
+    fs.writeFileSync(path.join(tmp, 'result.json'), JSON.stringify({ result: 'KLAAR', gameSeconds: 5 }));
+    AN.analyseRun(tmp);
+    ok(fs.existsSync(path.join(tmp, 'audio.json')), 'analyse schrijft audio.json');
+    const geluid = JSON.parse(fs.readFileSync(path.join(tmp, 'audio.json'), 'utf8'));
+    ok(geluid.perSfx.deur && geluid.perSfx.deur.measured === 1 && geluid.perSfx.stil && geluid.perSfx.stil.silent === 1, 'audio.json heeft het niveau per effect');
+    ok(/per gebeurtenis 2 van 2 gemeten/.test(fs.readFileSync(path.join(tmp, 'summary.md'), 'utf8')), 'de samenvatting noemt het geluid per gebeurtenis');
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
 }
 
 // --- PNG ------------------------------------------------------------------------------------------------------

@@ -38,6 +38,15 @@ export function findings(events) {
   for (const e of events.filter((x) => x.type === 'race-uitslag' && !x.klaar)) add('race', 'opmerking', 'mg-kartbaan', 'Kartrace niet uitgereden', `Plek ${e.plek} van ${e.karts} na ${e.rondes} ronde(s)`);
   for (const e of events.filter((x) => x.type === 'schema')) add('schema', 'bug', '', 'De status van playerapi.js klopt niet met het schema', (e.problems || []).join('; '));
   if (S.unbalanced.length) add('invoer', 'bug', '', 'Toets zonder keyup', S.unbalanced.join(', '));
+  // #186: geluid per gebeurtenis. Een opmerking, geen bug: een effect kan ook ver weg of zacht zijn,
+  // maar een effect dat twee keer meetbaar stil bleef of een missiestart zonder enig geluid is het
+  // bekijken waard. De beoordelaar ziet de cijfers per effect in audio.json en summary.md.
+  const audio = audioSummary(events);
+  for (const name of audio.silentSfx) {
+    const p = audio.perSfx[name];
+    add('audio-stil', 'opmerking', '', `Geluid "${name}" bleef stil`, `${p.measured} meting(en), hoogste piek ${p.maxPeak} (onder ${audio.silentPeak}); het effect start wel maar is niet te horen`);
+  }
+  for (const q of audio.quiet) add('audio-gebeurtenis', 'opmerking', String(q.id || ''), `Geen geluid bij ${q.what}`, `Geen enkel effect binnen 3 s na de gebeurtenis (t=${Math.round(q.t)} s)`);
   // één vingerafdruk komt maar één keer voor
   const seen = new Set();
   return out.filter((f) => (seen.has(f.fp) ? false : seen.add(f.fp)));
@@ -287,8 +296,18 @@ export function checklistMarkdown(shots) {
 }
 
 // --- audio -------------------------------------------------------------------------------------------
-// Events: { type: 'audio', rms, peak } elke 250 ms en { type: 'sfx', name } per afgespeeld effect.
-export function audioSummary(events, { silentS = 20 } = {}) {
+// Events: { type: 'audio', rms, peak, sfx? } elke 500 ms en direct na een start (met de naam van dat
+// effect), en { type: 'sfx', name, dur } per afgespeeld effect. Sinds #186 heeft elk effect een eigen
+// naam (game/js/sfx/dsp.js tagt de buffer) en een eigen niveau: de metingen in het venster van dat
+// effect horen erbij, en zo is per gebeurtenis te zien of er ook echt geluid was.
+const floorIndex = (tijden, t) => {
+  let lo = 0, hi = tijden.length;
+  while (lo < hi) { const m = (lo + hi) >> 1; if (tijden[m] < t) lo = m + 1; else hi = m; }
+  return lo;
+};
+const afronden = (v, n) => Math.round((Number(v) || 0) * n) / n;
+
+export function audioSummary(events, { silentS = 20, silentPeak = 0.005 } = {}) {
   const samples = events.filter((e) => e.type === 'audio');
   let clips = 0, silentRun = 0, longestSilent = 0, last = null;
   for (const s of samples) {
@@ -298,9 +317,36 @@ export function audioSummary(events, { silentS = 20 } = {}) {
   }
   const sfx = {};
   for (const e of events.filter((x) => x.type === 'sfx')) sfx[e.name] = (sfx[e.name] || 0) + 1;
+  // per effect: hoeveel keer, hoeveel metingen, en het hoogste niveau in zijn venster
+  const tijden = samples.map((s) => s.t);
+  // de tap geeft elk gestart effect een nummer en een eigen meting (botaudio.js): die hoort er altijd
+  // bij, ook als de speltijd sneller loopt dan de muisklok en het venster hem zou missen
+  const perSeq = new Map();
+  for (const s of samples) if (s.seq != null) perSeq.set(s.seq, s);
+  const perSfx = {};
+  for (const e of events.filter((x) => x.type === 'sfx')) {
+    const name = String(e.name || 'onbekend');
+    const p = perSfx[name] || (perSfx[name] = { name, count: 0, measured: 0, silent: 0, maxRms: 0, maxPeak: 0 });
+    p.count++;
+    const dur = Number(e.dur) > 0 ? Number(e.dur) : 0.25;
+    const tot = e.t + Math.max(dur, 0.25) + 0.15;
+    let n = 0, peak = 0, rms = 0;
+    const meet = (s) => { n++; peak = Math.max(peak, Number(s.peak) || 0); rms = Math.max(rms, Number(s.rms) || 0); };
+    for (let i = floorIndex(tijden, e.t - 0.05); i < tijden.length && tijden[i] <= tot; i++) meet(samples[i]);
+    const eigen = e.seq != null ? perSeq.get(e.seq) : null;
+    if (eigen) meet(eigen);
+    if (!n) continue;
+    p.measured++;
+    p.maxPeak = Math.max(p.maxPeak, peak);
+    p.maxRms = Math.max(p.maxRms, rms);
+    if (peak < silentPeak) p.silent++;
+  }
+  for (const p of Object.values(perSfx)) { p.maxPeak = afronden(p.maxPeak, 10000); p.maxRms = afronden(p.maxRms, 10000); }
+  // een effect dat je nooit hoort: minstens twee metingen en allemaal onder de stille piek
+  const silentSfx = Object.values(perSfx).filter((p) => p.measured >= 2 && p.silent === p.measured).map((p) => p.name).sort();
   // gebeurtenissen die een geluid horen te hebben: een missiestart of -mislukking zonder effect binnen 3 s
   const quiet = events.filter((e) => e.type === 'mission' && (e.event === 'start' || e.event === 'fail')).filter((e) => !events.some((x) => (x.type === 'sfx' || x.type === 'voice') && x.t >= e.t - 0.5 && x.t <= e.t + 3));
-  return { samples: samples.length, clips, longestSilent: Math.round(longestSilent * 10) / 10, silentTooLong: longestSilent >= silentS, sfx, quiet: quiet.map((e) => ({ t: e.t, what: `${e.event} ${e.id || ''}` })) };
+  return { samples: samples.length, clips, longestSilent: Math.round(longestSilent * 10) / 10, silentTooLong: longestSilent >= silentS, silentPeak, sfx, perSfx, silentSfx, quiet: quiet.map((e) => ({ t: e.t, what: `${e.event} ${e.id || ''}`, id: e.id || '' })) };
 }
 
 // --- Nederlandse samenvatting --------------------------------------------------------------------------
@@ -324,7 +370,17 @@ export function nlSummary({ title, date, metrics: m, cmp, findings: fs, issues =
     out.push('', '## Ten opzichte van de vorige run', '', `- Nieuw: ${cmp.nieuw.length}${cmp.nieuw.length ? ' (' + cmp.nieuw.map((f) => f.title).slice(0, 5).join('; ') + ')' : ''}`, `- Opgelost: ${cmp.opgelost.length}${cmp.opgelost.length ? ' (' + cmp.opgelost.map((f) => f.title).slice(0, 5).join('; ') + ')' : ''}`);
     out.push(`- Regressies: ${cmp.regressies.length ? cmp.regressies.map((r) => `${r.metric} ${r.was} naar ${r.nu}`).join('; ') : 'geen'}`);
   } else out.push('', 'Dit is de eerste run: er is nog niets om mee te vergelijken.');
-  if (audio) out.push('', `Geluid: ${audio.samples ? `langste stilte ${audio.longestSilent} s, ${audio.clips} keer clipping, ${Object.keys(audio.sfx).length} verschillende effecten (onder --stil is de uitgang gedempt: lange stilte zegt dan weinig)` : 'niet gemeten (start met --audio)'}.`);
+  if (audio) {
+    if (!audio.samples) out.push('', 'Geluid: niet gemeten (start met --audio).');
+    else {
+      const effecten = Object.values(audio.perSfx || {});
+      const gemeten = effecten.filter((p) => p.measured).length;
+      out.push('', `Geluid: ${audio.samples} metingen, langste stilte ${audio.longestSilent} s, ${audio.clips} keer clipping, ${Object.keys(audio.sfx).length} verschillende effecten; per gebeurtenis ${gemeten} van ${effecten.length} gemeten${audio.silentSfx && audio.silentSfx.length ? `, stil: ${audio.silentSfx.slice(0, 3).join(', ')}${audio.silentSfx.length > 3 ? ` en ${audio.silentSfx.length - 3} meer` : ''}` : ''} (onder --stil is de uitgang gedempt: lange stilte zegt dan weinig).`);
+      if (audio.quiet && audio.quiet.length) out.push(`Zonder geluid: ${audio.quiet.slice(0, 3).map((q) => q.what).join('; ')}${audio.quiet.length > 3 ? ` en ${audio.quiet.length - 3} meer` : ''}.`);
+      const laag = effecten.filter((p) => p.measured).sort((a, b) => a.maxPeak - b.maxPeak).slice(0, 3);
+      if (laag.length) out.push(`Zachtste effecten: ${laag.map((p) => `${p.name} (piek ${p.maxPeak})`).join(', ')}.`);
+    }
+  }
   out.push('', '## Bevindingen', '');
   if (!fs.length) out.push('Geen.');
   for (const f of fs) { const i = issues.find((x) => x.f.fp === f.fp); out.push(`- [${f.severity}] ${f.title}${i ? ` (${i.action === 'nieuw' ? 'nieuw issue' : 'issue #' + i.number}${i.created ? ' ' + i.created : ''})` : ''}`); }

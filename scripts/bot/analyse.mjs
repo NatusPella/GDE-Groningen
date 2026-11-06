@@ -25,6 +25,9 @@ export function analyseRun(dir, { prev = null, base = null } = {}) {
   const fs1 = [...A.findings(log.events), ...A.imageFindings(shots)];
   const metrics = A.metrics(log.events, result);
   const audio = A.audioSummary(log.events);
+  // #186: het geluid per gebeurtenis als eigen bestand, zodat een beoordelaar de effecten naast de
+  // screenshots kan leggen zonder de hele analysis.json te lezen
+  fs.writeFileSync(path.join(dir, 'audio.json'), JSON.stringify(audio, null, 1));
   const { acts, extra } = A.perAct(log.events);
   const cur = { run: path.basename(dir), dir, date: (log.meta.started || '').slice(0, 10), metrics, acts, extra, findings: fs1, audio, shots };
   let before = prev;
