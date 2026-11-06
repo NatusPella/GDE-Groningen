@@ -624,14 +624,6 @@ function renderTile(L, tx, ty) {
     c.lineWidth = px(wpx2);
     c.stroke();
     c.globalAlpha = 1;
-    // "niet voor jou": a trunk road you may not walk or cycle on, red and dashed
-    if (allowed === false && r.cat === 'major') {
-      c.setLineDash([px(6), px(4)]);
-      c.strokeStyle = EMPHASIS.forbidden;
-      c.lineWidth = px(Math.max(1.4, wpx * 0.5));
-      c.stroke();
-      c.setLineDash([]);
-    }
   }
   drawCountryDetail(c, wx0, wy0, wx0 + tws, wy0 + tws, cssPerM, MAP_STYLE);
   drawRailsOnMap(c, state.map, wx0, wy0, wx0 + tws, wy0 + tws, px(lay.railPx * look.rail));
@@ -2200,10 +2192,9 @@ function refreshLegend(world) {
 }
 
 // The map's travel mode (Lopen, Fiets, Auto, Boot, OV, Lucht): it opens on how
-// you travel now; the roads that are for you stand out, the others step back
-// and a trunk road you may not walk or cycle on is dashed red.
+// you travel now; the roads that are for you stand out and the others step back.
+// A mode without a note gets no line (#594: no "niet voor jou"-dash any more).
 const MODE_NOTE = {
-  lopen: 'Rood gestreept: niet voor jou.',
   fiets: 'Fietspaden lichten op.',
   auto: 'Doorgaande wegen.',
   boot: 'Vaarwater en bruggen.',
@@ -2213,7 +2204,11 @@ const MODE_NOTE = {
 function setMode(m) {
   if (!MODES.includes(m)) return;
   state.mode = m;
-  if (state.modeNote) state.modeNote.textContent = MODE_NOTE[m];
+  if (state.modeNote) {
+    const note = MODE_NOTE[m] || '';
+    state.modeNote.textContent = note;
+    state.modeNote.hidden = !note;
+  }
   if (state.avoidBtn) state.avoidBtn.hidden = m !== 'auto';
   clearTiles();
   state.dirty = true;

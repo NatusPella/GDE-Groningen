@@ -439,8 +439,9 @@ HUD zoom at 1920x1080), `--hud-edge` is the 46 px margin.
   cycling on trunk roads, no cars on footways and cycleways) and the
   minimap's zoom per mode. The minimap and the big map (`mapview.js`, mode
   selector in its header, opens on how you travel) emphasise the roads for
-  your mode, dim the others and dash trunk roads red for walkers and cyclists
-  ("niet voor jou"). A road may carry `acc` (bits foot 1, bike 2, car 4,
+  your mode and dim the others; which roads belong to another mode is not
+  marked separately (#594: the old red dashed "niet voor jou" is gone). A road
+  may carry `acc` (bits foot 1, bike 2, car 4,
   bus 8) from the OSM tags (`foot/bicycle/motor_vehicle/motorcar/access/
   motorroad/bus/psv`, written by `scripts/process_osm.py` `access_mask` only
   when they differ from the class; the next `fetch_osm.py` run brings the

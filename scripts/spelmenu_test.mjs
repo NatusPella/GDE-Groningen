@@ -229,5 +229,21 @@ ok(pm.includes("setN('todo', '');") && !pm.includes("setN('todo', fresh"), "'nie
 ok(pm.includes('data-preset-btn="${n}" aria-pressed="false"') && pm.includes("setAttribute('aria-pressed'") && !pm.includes('data-preset-pick'), 'de voorinstellingen zijn knoppen en de oude kiezer is weg');
 ok(pm.includes('[data-preset-now]') && pm.includes("cur ? '' : 'Eigen instellingen'"), 'de huidige stand is zichtbaar, ook als je zelf aan de schuiven zat');
 ok(pcss.includes('.pm-chips .m-chip[aria-pressed="true"]'), 'de gekozen voorinstelling staat in het groen met een vinkje');
+// #586: een lopende toetsen-/controller-rebind mag niet blijven hangen als het pauzemenu sluit
+const setOpenSrc = pm.slice(pm.indexOf('function setOpen('));
+const sluitTak = setOpenSrc.slice(setOpenSrc.indexOf('if (!value)'), setOpenSrc.indexOf('open = value;'));
+ok(sluitTak.includes('cancelRebind(true)'), 'elke sluiting van het pauzemenu (setOpen(false)) annuleert een lopende rebind en geeft de input-capture vrij');
+const resumeSluit = pm.slice(pm.indexOf("if (a === 'resume')"), pm.indexOf("if (a === 'resume')") + 60);
+ok(resumeSluit.includes('setOpen(false)'), 'Doorgaan en de rail-Terug (runAction resume) sluiten via setOpen(false) en komen dus langs die annulering');
+ok(pm.includes('class="ra pm-back" data-action="resume">Terug'), 'de railknop Terug heeft data-action resume (dezelfde route als Doorgaan)');
+const cancelSrc = pm.slice(pm.indexOf('function cancelRebind('), pm.indexOf('function focusEl('));
+ok(cancelSrc.includes('rebinding.cancel()') && cancelSrc.includes('input.captureKey = null') && cancelSrc.includes('renderBinds()'),
+  'cancelRebind ruimt de controller-capture en de toetscapture op en haalt de wachtstand van de knop weg');
+ok(cancelSrc.includes('if (input) input.captureKey = null;') && /if \(!rebinding\) \{[\s\S]*?input\.captureKey = null/.test(cancelSrc),
+  'de toetscapture gaat ook vrij als de wachtstand al weg was (geen ingeslikte toets meer)');
+ok(pm.includes('rebinding.cancel = capturePadButton('), 'de controller-capture wordt met zijn eigen cancel-functie opgeruimd');
+ok(/if \(k === 'Escape' \|\| k === 'Backspace'\) \{ consume\(e\); cancelRebind\(\); \}/.test(pm), 'Escape annuleert de rebind zelf (en sluit het menu dan niet)');
+ok(pm.includes("if (prev === 'controls' && name !== 'controls') cancelRebind();"), 'een tabwissel weg van Besturing annuleert de rebind');
+ok(exitBranch.includes('cancelRebind(true)'), 'Afsluiten geeft de wachtstand vrij voordat het spel opslaat en sluit');
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

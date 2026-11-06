@@ -61,3 +61,44 @@ export async function topicFor(room, bytes = 20) {
   const h = new Uint8Array(await subtle().digest('SHA-256', enc.encode('gde-coop-topic:' + room)));
   return [...h.slice(0, bytes)].map((b) => b.toString(16).padStart(2, '0')).join('');
 }
+
+// ------------------------------------------------------------------ eenmalige sleutelruil (#583)
+// De openbare lijst draagt geen sleutelmateriaal meer. Een gast die via de lijst meedoet, stuurt een
+// eenmalige publieke sleutel mee; de host stuurt de kamercode versleuteld voor precies die gast terug
+// (ECDH P-256 → AES-GCM, met de nonce van het verzoek als additional data). Wie alleen de lijst leest,
+// heeft geen privésleutel en kan het antwoord niet ontsleutelen; de kamercode komt zo nooit op straat.
+const ECDH = { name: 'ECDH', namedCurve: 'P-256' };
+export const SLEUTEL_BYTES = 65; // ongecomprimeerd P-256-punt (0x04 + x + y)
+
+export async function maakSleutelpaar() {
+  try { return await subtle().generateKey(ECDH, false, ['deriveKey']); } catch (e) { throw new Error('Een sleutel maken lukt hier niet.'); }
+}
+// De publieke sleutel als base64url (87 tekens), veilig om te publiceren.
+export async function sleutelTekst(paar) {
+  const raw = new Uint8Array(await subtle().exportKey('raw', paar.publicKey));
+  return b64u(raw);
+}
+export async function sleutelVanTekst(tekst) {
+  const raw = unb64u(String(tekst));
+  if (raw.length !== SLEUTEL_BYTES || raw[0] !== 4) throw new Error('Geen geldige sleutel.');
+  return subtle().importKey('raw', raw, ECDH, false, []);
+}
+// De gedeelde AES-sleutel uit eigen privé en andermans publieke sleutel.
+export async function gedeeldeSleutel(eigen, anderPub) {
+  return subtle().deriveKey({ name: 'ECDH', public: anderPub }, eigen.privateKey, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+}
+// Versleutelt tekst met een gedeelde sleutel; de nonce bindt het bericht aan dit ene verzoek.
+export async function versleutelVoor(sleutel, tekst, nonce) {
+  const iv = globalThis.crypto.getRandomValues(new Uint8Array(12));
+  const ct = new Uint8Array(await subtle().encrypt({ name: 'AES-GCM', iv, additionalData: enc.encode(String(nonce)) }, sleutel, enc.encode(tekst)));
+  const out = new Uint8Array(12 + ct.length); out.set(iv); out.set(ct, 12);
+  return b64u(out);
+}
+export async function ontsleutelVoor(sleutel, blob, nonce) {
+  try {
+    const raw = unb64u(String(blob));
+    if (raw.length < 12 + 16) return null;
+    const pt = await subtle().decrypt({ name: 'AES-GCM', iv: raw.slice(0, 12), additionalData: enc.encode(String(nonce)) }, sleutel, raw.slice(12));
+    return dec.decode(pt);
+  } catch (e) { return null; }
+}

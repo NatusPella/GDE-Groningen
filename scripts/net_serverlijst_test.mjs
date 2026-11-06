@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 import { LIJST, STANDAARD_NAAM, schoonNaam, verboden, codeer, decodeer, maakId, Serverlijst, maakAankondiger, filterEnSorteer, leeftijdTekst, leeftijdLang, SORTERINGEN } from '../game/js/net/serverlijst.js';
 import { crc16 } from '../game/js/net/pairing.js';
-import { makeRoom } from '../game/js/net/sigcrypto.js';
+
 import { PROTO } from '../game/js/net/protocol.js';
 import { createLobby, reduce, view, ROLES, ROUTES, OPENBAAR_TEXT, LIJST_TEXT } from '../game/js/lobby.js';
 
@@ -44,38 +44,37 @@ t('codeer en decodeer: rondreis zonder verlies', () => {
   assert.equal(typeof tekst, 'string'); assert.ok(tekst.length < LIJST.maxBytes);
   const r = decodeer(tekst, T0);
   assert.equal(r.ok, true);
-  assert.deepEqual(r.a, { naam: 'Zomeravond', spelers: 2, max: 4, versie: '0.46.0', proto: PROTO, room: ROOM, id: 'abcd1234ef', t: T0 });
+  assert.deepEqual(r.a, { naam: 'Zomeravond', spelers: 2, max: 4, versie: '0.46.0', proto: PROTO, id: 'abcd1234ef', t: T0 });
 });
 t('de aankondiging bevat geen IP-adres, wachtwoord of persoonsgegeven: alleen de vaste velden', () => {
   const o = JSON.parse(codeer(info()));
-  assert.deepEqual(Object.keys(o).sort(), ['c', 'g', 'i', 'k', 'm', 'n', 'p', 's', 't', 'v']);
+  assert.deepEqual(Object.keys(o).sort(), ['c', 'g', 'i', 'm', 'n', 'p', 's', 't', 'v']);
   assert.ok(!/\d+\.\d+\.\d+\.\d+/.test(JSON.stringify(o)), 'geen IP-adres');
   assert.ok(!/GDE2|password|wachtwoord/i.test(JSON.stringify(o)));
 });
 t('codeer weigert slechte gegevens in plaats van iets half te sturen', () => {
   assert.equal(codeer(info({ naam: 'Kanker' })), null);
   assert.equal(codeer(info({ spelers: 0 })), null); assert.equal(codeer(info({ spelers: 5, max: 4 })), null); assert.equal(codeer(info({ max: 17 })), null);
-  assert.equal(codeer(info({ room: 'GDE2-84.12.34.56:41000-AAAAAAAA-0000' })), null, 'de koppelcode van de IP-route hoort er nooit in');
-  assert.equal(codeer(info({ room: 'abc' })), null); assert.equal(codeer(info({ id: 'X!' })), null); assert.equal(codeer(info({ versie: 'a b' })), null);
+  assert.equal(codeer(info({ id: 'X!' })), null); assert.equal(codeer(info({ versie: 'a b' })), null); assert.equal(codeer(info({ id: '' })), null);
   assert.equal(codeer(info({ nu: NaN })), null);
 });
 t('decodeer: rommel, andere formaten, kapotte som, te groot, te oud of te nieuw', () => {
   const goed = codeer(info()), o = JSON.parse(goed);
   const mis = (x, reden) => { const r = decodeer(typeof x === 'string' ? x : JSON.stringify(x), T0); assert.equal(r.ok, false); assert.equal(r.reason, reden, JSON.stringify(x).slice(0, 60)); };
   mis('geen json', 'json'); mis('[]', 'json'); mis('null', 'json'); mis('12', 'json');
-  mis({ ...o, v: 2 }, 'formaat');
-  mis({ ...o, s: '2' }, 'velden'); mis({ ...o, s: 5 }, 'velden'); mis({ ...o, m: 1 }, 'velden'); mis({ ...o, p: -1 }, 'velden'); mis({ ...o, k: 'abc' }, 'velden'); mis({ ...o, i: 'ab' }, 'velden'); mis({ ...o, t: 'nu' }, 'velden');
-  mis({ ...o, n: 'Andere naam' }, 'som'); mis({ ...o, s: 3 }, 'som'); mis({ ...o, k: 'K3J9D8F2MM' }, 'som');
+  mis({ ...o, v: 1 }, 'formaat'); mis({ ...o, v: 3 }, 'formaat');
+  mis({ ...o, s: '2' }, 'velden'); mis({ ...o, s: 5 }, 'velden'); mis({ ...o, m: 1 }, 'velden'); mis({ ...o, p: -1 }, 'velden'); mis({ ...o, i: 'ab' }, 'velden'); mis({ ...o, t: 'nu' }, 'velden'); mis({ ...o, c: 5 }, 'velden');
+  mis({ ...o, n: 'Andere naam' }, 'som'); mis({ ...o, s: 3 }, 'som'); mis({ ...o, i: 'abcd1234eg' }, 'som');
   mis('x'.repeat(LIJST.maxBytes + 1), 'groot');
   assert.equal(decodeer(goed, T0 + LIJST.scheef + 1).reason, 'tijd'); assert.equal(decodeer(goed, T0 - LIJST.scheef - 1).reason, 'tijd');
   assert.equal(decodeer(goed, T0 + LIJST.scheef).ok, true);
   assert.equal(decodeer(undefined, T0).ok, false); assert.equal(decodeer(5, T0).ok, false);
 });
 t('decodeer: een niet-gefilterde naam met een goede som komt er niet doorheen (de host heeft zijn eigen filter overgeslagen)', () => {
-  const o = { v: 1, n: 'Kanker', s: 1, m: 4, g: '0.46.0', p: PROTO, k: ROOM, i: 'abcd1234ef', t: T0 };
-  o.c = crc16(`${o.v}|${o.n}|${o.s}|${o.m}|${o.g}|${o.p}|${o.k}|${o.i}|${o.t}`);
+  const o = { v: LIJST.formaat, n: 'Kanker', s: 1, m: 4, g: '0.46.0', p: PROTO, i: 'abcd1234ef', t: T0 };
+  o.c = crc16(`${o.v}|${o.n}|${o.s}|${o.m}|${o.g}|${o.p}|${o.i}|${o.t}`);
   assert.equal(decodeer(JSON.stringify(o), T0).reason, 'naam');
-  const p = { ...o, n: ' Zomer' }; p.c = crc16(`${p.v}|${p.n}|${p.s}|${p.m}|${p.g}|${p.p}|${p.k}|${p.i}|${p.t}`);
+  const p = { ...o, n: ' Zomer' }; p.c = crc16(`${p.v}|${p.n}|${p.s}|${p.m}|${p.g}|${p.p}|${p.i}|${p.t}`);
   assert.equal(decodeer(JSON.stringify(p), T0).reason, 'naam', 'niet schoon genoeg: spatie voor de naam');
 });
 
@@ -86,9 +85,9 @@ const zend = (l, o, nu) => l.ontvang(codeer(info({ nu: nu ?? l.klok.now, ...o })
 t('lijst: een aankondiging verschijnt, met aantal, max en versie; andere versie of vol is niet aan te sluiten', () => {
   const l = lijst();
   assert.deepEqual(zend(l, {}), { ok: true });
-  zend(l, { id: 'anderversie', room: 'A2B3C4D5E6', versie: '0.45.0', naam: 'Oud' });
-  zend(l, { id: 'andereproto', room: 'B2B3C4D5E6', proto: PROTO + 1, naam: 'Nieuw' });
-  zend(l, { id: 'volvolvol1', room: 'C2B3C4D5E6', spelers: 4, naam: 'Vol' });
+  zend(l, { id: 'anderversie', versie: '0.45.0', naam: 'Oud' });
+  zend(l, { id: 'andereproto', proto: PROTO + 1, naam: 'Nieuw' });
+  zend(l, { id: 'volvolvol1', spelers: 4, naam: 'Vol' });
   const v = l.lijst();
   assert.equal(v.length, 4);
   const per = Object.fromEntries(v.map((x) => [x.naam, x]));
@@ -96,7 +95,7 @@ t('lijst: een aankondiging verschijnt, met aantal, max en versie; andere versie 
   assert.deepEqual([per.Oud.kan, per.Oud.anders], [false, true]); assert.deepEqual([per.Nieuw.kan, per.Nieuw.anders], [false, true]);
   assert.deepEqual([per.Vol.kan, per.Vol.vol, per.Vol.anders], [false, true, false]);
   assert.equal(v[0].naam, 'Zomeravond', 'wat je kunt joinen staat bovenaan');
-  assert.equal(per.Zomeravond.room, ROOM); assert.equal(per.Zomeravond.spelers, 2); assert.equal(per.Zomeravond.max, 4);
+  assert.equal(per.Zomeravond.id, 'abcd1234ef'); assert.equal(per.Zomeravond.spelers, 2); assert.equal(per.Zomeravond.max, 4); assert.ok(!('room' in per.Zomeravond), 'geen kamercode in de lijst (#583)');
 });
 t('lijst: verloop na 45 s zonder nieuwe aankondiging; een nieuwe aankondiging verlengt', () => {
   const l = lijst(); zend(l, {});
@@ -125,15 +124,20 @@ t('misbruik: een oudere tijdstempel (herhaling van een oud bericht) wordt genege
   l.ontvang(nieuw, T0 + 15000);
   assert.deepEqual(l.ontvang(oud, T0 + 16000), { ok: false, reason: 'oud' });
 });
-t('misbruik: dezelfde kamer onder steeds een ander id telt één keer', () => {
+t('misbruik: de oude aankondiging met een kamercode (formaat 1) komt er niet meer in (#583)', () => {
+  // Een oude of kwaadwillende host kan een aankondiging met een kamercode blijven sturen; die telt niet
+  // meer, zodat de lijst nooit per ongeluk sleutelmateriaal toont.
+  const oud = { v: 1, n: 'Zomeravond', s: 1, m: 4, g: '0.46.0', p: PROTO, k: ROOM, i: 'abcd1234ef', t: T0 };
+  oud.c = crc16(`${oud.v}|${oud.n}|${oud.s}|${oud.m}|${oud.g}|${oud.p}|${oud.k}|${oud.i}|${oud.t}`);
   const l = lijst();
-  for (let i = 0; i < 30; i++) zend(l, { id: 'vervalser' + String(i).padStart(2, '0'), naam: 'Gratis spel' + i });
-  assert.equal(l.lijst().length, 1);
+  assert.equal(l.ontvang(JSON.stringify(oud), T0).ok, false);
+  assert.equal(l.afgewezen.formaat, 1);
+  assert.equal(l.lijst().length, 0);
 });
 t('misbruik: een vloed van nieuwe afzenders wordt afgekapt (60 per minuut); de lijst bewaart alles en de pagina toont 20', () => {
   const l = lijst(); let toe = 0, af = 0;
   for (let i = 0; i < 100; i++) {
-    const r = zend(l, { id: 'vloed' + String(i).padStart(5, '0'), room: makeRoom((() => { let s = i + 1; return () => (s = (s * 16807) % 2147483647) / 2147483647; })()), naam: 'Spel ' + i });
+    const r = zend(l, { id: 'vloed' + String(i).padStart(5, '0'), naam: 'Spel ' + i });
     if (r.ok) toe++; else af++;
   }
   assert.equal(toe, 60); assert.equal(af, 40); assert.equal(l.afgewezen.vloed, 40);
@@ -142,28 +146,28 @@ t('misbruik: een vloed van nieuwe afzenders wordt afgekapt (60 per minuut); de l
   assert.equal(l.zoek(l.klok.now, { aantal: 40 }).rijen.length, 40);
   assert.equal(l.zoek(l.klok.now, { aantal: LIJST.maxVolgen }).rijen.length, 60);
   l.klok.now += 61000; assert.equal(l.items.size > 0, true);
-  const r = zend(l, { id: 'laterlater1', room: 'Z2B3C4D5E6', naam: 'Later' }); assert.equal(r.ok, true, 'na een minuut kan er weer iemand bij');
+  const r = zend(l, { id: 'laterlater1', naam: 'Later' }); assert.equal(r.ok, true, 'na een minuut kan er weer iemand bij');
 });
 t('misbruik: het aantal gevolgde afzenders is begrensd', () => {
   const l = lijst({ nieuwPerMinuut: 10000, maxVolgen: 50 });
   let vol = 0;
-  for (let i = 0; i < 80; i++) { const r = zend(l, { id: 'x' + String(i).padStart(7, '0'), room: 'ABCDE' + String(23456 + i).slice(0, 5).replace(/[01]/g, '2'), naam: 'S' + i }); if (!r.ok) vol++; }
+  for (let i = 0; i < 80; i++) { const r = zend(l, { id: 'x' + String(i).padStart(7, '0'), naam: 'S' + i }); if (!r.ok) vol++; }
   assert.ok(l.items.size <= 50);
 });
 t('misbruik: rommel telt per reden mee en komt niet in de lijst', () => {
   const l = lijst();
-  l.ontvang('rommel', T0); l.ontvang('{"v":1}', T0); l.ontvang(codeer(info({ id: 'toekomst001', nu: T0 + 10 * LIJST.scheef })), T0);
+  l.ontvang('rommel', T0); l.ontvang('{"v":2}', T0); l.ontvang(codeer(info({ id: 'toekomst001', nu: T0 + 10 * LIJST.scheef })), T0);
   assert.deepEqual(l.afgewezen, { json: 1, velden: 1, tijd: 1 }); assert.equal(l.lijst().length, 0);
 });
 t('melden: de sessie verdwijnt uit jouw lijst en komt niet terug bij de volgende aankondiging', () => {
-  const l = lijst(); zend(l, {}); zend(l, { id: 'tweedetweede', room: 'D2B3C4D5E6', naam: 'Andere' });
+  const l = lijst(); zend(l, {}); zend(l, { id: 'tweedetweede', naam: 'Andere' });
   assert.deepEqual(l.meld('abcd1234ef'), ['abcd1234ef']);
   assert.deepEqual(l.lijst().map((x) => x.naam), ['Andere']);
   l.klok.now += 15000; zend(l, {}); assert.deepEqual(l.lijst().map((x) => x.naam), ['Andere'], 'blijft verborgen');
   assert.deepEqual(lijst({ verborgen: ['abcd1234ef'] }).lijst(), []);
 });
 // ----- de query (#464): leeftijd, zoeken, filters, sorteren en de pagina
-const rij = (o = {}) => ({ id: 'aaaaaaaaaa', naam: 'Zomeravond', spelers: 2, max: 4, versie: '0.46.0', room: ROOM, anders: false, vol: false, kan: true, gezien: T0, ouderdom: 0, dim: false, ...o });
+const rij = (o = {}) => ({ id: 'aaaaaaaaaa', naam: 'Zomeravond', spelers: 2, max: 4, versie: '0.46.0', anders: false, vol: false, kan: true, gezien: T0, ouderdom: 0, dim: false, ...o });
 const rijen = () => [
   rij({ id: 'aaaaaaaaaa', naam: 'Zomeravond', spelers: 2, max: 4, ouderdom: 1000, gezien: T0 - 1000 }),
   rij({ id: 'bbbbbbbbbb', naam: 'Groningen Groen', spelers: 4, max: 4, vol: true, kan: false, ouderdom: 25000, gezien: T0 - 25000 }),
@@ -224,14 +228,14 @@ t('de pagina: meer dan 20 regels blijven bereikbaar, in stappen en met een eigen
   assert.deepEqual([leeg.rijen, leeg.totaal, leeg.alles], [[], 0, 0], 'een lege lijst is geen fout');
   assert.equal(filterEnSorteer(veel, { alleenVers: true }).totaal, 21, 'de leeftijd telt per regel');
 });
-t('de host: maakAankondiger levert een nieuwe tekst met de stand van dat moment, en niets zonder kamer of spelers', () => {
-  let sp = { spelers: 1, max: 4 }, room = ROOM, nu = T0;
-  const maak = maakAankondiger({ naam: 'Zomeravond', versie: '0.46.0', proto: PROTO, hub: () => sp, room: () => room, id: maakId(() => 0.5), nu: () => nu });
+t('de host: maakAankondiger levert een nieuwe tekst met de stand van dat moment, en niets zonder spelers', () => {
+  let sp = { spelers: 1, max: 4 }, nu = T0;
+  const maak = maakAankondiger({ naam: 'Zomeravond', versie: '0.46.0', proto: PROTO, hub: () => sp, id: maakId(() => 0.5), nu: () => nu });
   assert.equal(decodeer(maak(), T0).a.spelers, 1);
   sp = { spelers: 3, max: 8 }; nu += 15000;
   const a = decodeer(maak(), nu).a; assert.deepEqual([a.spelers, a.max, a.t], [3, 8, T0 + 15000]);
-  room = null; assert.equal(maak(), null);
-  room = ROOM; sp = null; assert.equal(maak(), null);
+  assert.ok(!/room|kamer/i.test(JSON.stringify(a)), 'de aankondiging draagt geen kamercode (#583)');
+  sp = null; assert.equal(maak(), null);
   assert.match(maakId(() => 0.5), /^[a-z0-9]{10}$/);
 });
 
@@ -246,7 +250,7 @@ t('lobby: Maak deze sessie openbaar vraagt eerst toestemming en zegt wat er open
   let s = reduce(host(), { t: 'openbaar-vraag' });
   assert.equal(s.step, 'openbaar-vraag'); assert.equal(s.openbaar, false, 'nog niet openbaar');
   const v = view(s); const tekst = v.lines.join(' ');
-  for (const w of ['naam', 'aantal spelers', 'versie', 'kamercode', 'IP-adres', 'privé']) assert.match(tekst, new RegExp(w, 'i'), w);
+  for (const w of ['naam', 'aantal spelers', 'versie', 'IP-adres', 'privé']) assert.match(tekst, new RegExp(w, 'i'), w);
   assert.ok(v.input, 'een tekstvak voor de naam'); assert.deepEqual(v.buttons.map((b) => b.act), ['openbaar-ja', 'openbaar-terug']);
   assert.equal(OPENBAAR_TEXT.length > 0, true);
 });

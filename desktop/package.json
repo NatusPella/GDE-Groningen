@@ -35,6 +35,7 @@
       "steamflags.cjs",
       "coopcore.cjs",
       "livebussen.cjs",
+      "externurl.cjs",
       "devtools.js",
       "preload.js",
       "trailervideo.js",

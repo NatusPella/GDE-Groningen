@@ -9,7 +9,8 @@
 //
 // The work of a session itself stays where it already was: startHost/startClient (coopnet.js) over the
 // same rtcroom.js + brokers.js route the lobby uses, and the public line of #438 (hub.zetOpenbaar +
-// maakAankondiger + LijstSignaler). This module only wires those together for the boot.
+// maakAankondiger + LijstSignaler). Since #583 the public line carries no room code: a guest asks the
+// host for a one-time room over net/joingate.js first. This module only wires those together for the boot.
 //   node scripts/sessionboot_test.mjs
 import { magOnline, getSettings } from './settings.js';
 import { kies, volgende, KEUZE } from './sessiekeuze.js';
@@ -20,6 +21,7 @@ import { LIJST, Serverlijst, schoonNaam, maakAankondiger, STANDAARD_NAAM } from 
 import { MultiSignaler, LijstSignaler } from './net/brokers.js';
 import { hostRoom, joinRoom, rtcSupported } from './net/rtcroom.js';
 import { makeRoom, formatRoom, topicFor } from './net/sigcrypto.js';
+import { JOIN, bedienKamer, vraagKamer } from './net/joingate.js';
 import { PROTO } from './net/protocol.js';
 import { KEYS } from './storagekeys.js';
 import { VERSION } from './version.js';
@@ -45,7 +47,7 @@ const standVan = (world) => { let st = stand.get(world); if (!st) { st = { bezig
 
 const socketFor = (url) => { const ws = new WebSocket(url); ws.binaryType = 'arraybuffer'; return ws; };
 const newSignaler = () => new MultiSignaler(CONFIG, { socket: socketFor }, { fallbackAfter: CONFIG.TIMEOUTS.fallbackAfter, brokerTimeout: CONFIG.TIMEOUTS.broker });
-const newLijstSignaler = () => new LijstSignaler(CONFIG, { socket: socketFor }, { brokerTimeout: CONFIG.TIMEOUTS.broker, interval: LIJST.interval });
+const newLijstSignaler = (interval = LIJST.interval) => new LijstSignaler(CONFIG, { socket: socketFor }, { brokerTimeout: CONFIG.TIMEOUTS.broker, interval });
 const store = () => { try { return localStorage; } catch (e) { return null; } };
 
 // The sessions the player reported stay hidden on this device (#438), exactly as in the list of the lobby.
@@ -138,11 +140,15 @@ function openRoomTransport(room) {
 
 // Join one row. A refused or silent host leaves no half session behind: the world is ours again before
 // the error goes up, so the boot can try the next candidate and finally host.
-export async function openSession(world, rij, { onHold = null, onCode = null, openTransport = openRoomTransport } = {}) {
-  const transport = await openTransport(rij.room);
+// Since #583 the row carries no room: the boot asks the host for a one-time room (net/joingate.js). `haalKamer`
+// is a seam for the test, exactly like openTransport.
+export async function openSession(world, rij, { onHold = null, onCode = null, openTransport = openRoomTransport, haalKamer = null } = {}) {
+  const vraag = haalKamer || ((r) => vraagKamer({ id: r.id, maakSignaler: () => newLijstSignaler(JOIN.interval), wacht: BOOT.verbindWacht }));
+  const room = rij.room || await vraag(rij);
+  const transport = await openTransport(room);
   // The own game is checkpointed by startClient itself (#448) before we play in someone else's world.
   const session = startClient(world, transport, handshakeInfo({ tiles: '-', story: 'nieuw' }), {
-    route: 'kamer', code: formatRoom(rij.room), wens: null,
+    route: 'kamer', code: rij.room ? formatRoom(rij.room) : '', wens: null,
     onHold: onHold ? (rol, slot, reden) => onHold(rol, slot, reden) : null,
   });
   if (!(await waitForWelcome(session))) {
@@ -150,24 +156,26 @@ export async function openSession(world, rij, { onHold = null, onCode = null, op
     try { stopCoopNet(world); } catch (e) { /* al weg */ }
     throw new Error(reason);
   }
-  if (onCode) onCode(formatRoom(rij.room));
+  // Een eenmalige kamer uit de lijst is geen code om te bewaren: opnieuw aansluiten gaat via de lijst.
+  if (rij.room && onCode) onCode(formatRoom(rij.room));
   return session;
 }
 
 // ------------------------------------------------------------------ hosting
 // A new invitation per free seat, under one room code, plus the public line of #438. Nothing is sent that
-// #438 did not already send: the session name (filtered), the player count, the version and the room code.
-// No address and no password.
+// #438 did not already send: the session name (filtered), the player count, the version and the session id.
+// No room code (#583), no address and no password. A guest from the list asks the host for a one-time room
+// over net/joingate.js and only then gets it.
 export function hostSession(world, { openbaar = true, invites = true, onHold = null } = {}) {
   const hub = startHost(world, handshakeInfo({ tiles: '-', story: 'nieuw' }), {
     route: 'kamer',
     scene: () => readHostScene(world),
     onHold: onHold ? (rol, slot, reden) => onHold(rol, slot, reden) : null,
   });
-  const boot = { hub, room: null, handles: [], sig: null, timer: null };
+  const boot = { hub, room: null, handles: [], sig: null, timer: null, gate: null };
   standVan(world).boot = boot;
   if (invites) openInvite(world, boot);
-  if (openbaar) announce(world, boot);
+  if (openbaar) { announce(world, boot); openGate(world, boot); }
   // the session ends (the player stops it in the pause menu): the announcement and the invitation go too
   boot.timer = setInterval(() => { if (!world.coopNet) stopSessionBoot(world); }, 2000);
   if (boot.timer && boot.timer.unref) boot.timer.unref();
@@ -187,17 +195,43 @@ function openInvite(world, boot) {
   boot.room = room;
   const ls = store();
   if (ls) writeSession(ls, toSession(readSession(ls), { code: formatRoom(room) })); // the code for the pause menu and a retry
+  openSeat(world, boot, room, () => { if (sessionBootState(world) === boot) openInvite(world, boot); }); // a new seat for the next guest, under the same code
+}
+
+// Een kamer klaarzetten voor één gast en hem aan de hub geven. De kamer is eenmalig (uitnodiging of
+// een verzoek via de lijst, #583); `bijOpen` draait zodra de gast er is en bepaalt of er nog een
+// volgende plek klaargezet moet worden.
+function openSeat(world, boot, room, bijOpen = null) {
   hostRoom(room, {
     signaler: newSignaler(), timeouts: CONFIG.TIMEOUTS,
     onstate: (state, info) => {
       if (state === 'fout') console.warn('sessie', info);
-      if (state === 'open') openInvite(world, boot); // a new seat for the next guest, under the same code
+      if (state === 'open' && bijOpen) bijOpen();
     },
   }).then((h) => {
     if (sessionBootState(world) !== boot) { try { h.cancel(); } catch (e) { /* al weg */ } return; }
     boot.handles.push(h);
     addGuest(world, h.transport);
   }, (e) => console.warn('sessie', e));
+}
+
+// De openbare lijst draagt het sessie-id; een gast vraagt hier een eenmalige kamer aan (#583). Wie
+// zelf een verzoek stuurt, is een deelnemer die de host ziet; wie alleen de lijst leest, krijgt niets.
+function openGate(world, boot) {
+  const hub = boot.hub;
+  if (!hub || !hub.publiek || !hasSocket() || !rtcSupported()) return;
+  const pub = hub.publiek();
+  if (!pub || !pub.id) return;
+  const gate = bedienKamer({
+    id: pub.id,
+    maakSignaler: () => newLijstSignaler(JOIN.interval),
+    mag: () => {
+      const p = boot.hub && boot.hub.publiek ? boot.hub.publiek() : null;
+      return !!(p && boot.hub.vrijePlekken && p.spelers < p.max);
+    },
+    onKamer: (room) => { if (sessionBootState(world) === boot) openSeat(world, boot, room); },
+  });
+  if (gate) boot.gate = gate;
 }
 
 function announce(world, boot) {
@@ -210,13 +244,13 @@ function announce(world, boot) {
   if (!pub || !pub.naam) return;
   const sig = newLijstSignaler();
   boot.sig = sig;
-  const maak = maakAankondiger({ naam: pub.naam, versie: VERSION, proto: PROTO, room: () => boot.room, id: pub.id, hub: () => (hub.publiek ? hub.publiek() : null) });
+  const maak = maakAankondiger({ naam: pub.naam, versie: VERSION, proto: PROTO, id: pub.id, hub: () => (hub.publiek ? hub.publiek() : null) });
   topicFor(LIJST.sleutel).then((topic) => {
     if (sessionBootState(world) === boot && world.coopNet) sig.kondig(topic, maak);
   }, () => { /* no topic: then no line in the list */ });
 }
 
-// The announced session is over: stop the announcement, the last invitation and the guard.
+// The announced session is over: stop the announcement, the gate, the last invitation and the guard.
 export function stopSessionBoot(world) {
   const st = world && stand.get(world);
   const boot = st && st.boot;
@@ -224,6 +258,7 @@ export function stopSessionBoot(world) {
   st.boot = null;
   if (boot.timer) clearInterval(boot.timer);
   if (boot.sig) { try { boot.sig.close(); } catch (e) { /* al weg */ } }
+  if (boot.gate) { try { boot.gate.stop(); } catch (e) { /* al weg */ } }
   for (const h of boot.handles) { try { h.cancel(); } catch (e) { /* al weg */ } }
 }
 

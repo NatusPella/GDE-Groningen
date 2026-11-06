@@ -9,6 +9,7 @@ const fs = require('fs/promises');
 const fsSync = require('fs');
 const { argValue, hasFlag } = require('./args.cjs');
 const { steamSwitches } = require('./steamflags.cjs');
+const { isGameUrl, safeExternalUrl } = require('./externurl.cjs');
 
 // window mode survives restarts; fullscreen unless the player chose windowed
 const STATE_FILE = () => path.join(app.getPath('userData'), 'window-state.json');
@@ -112,6 +113,35 @@ function buildMenu() {
   ]));
 }
 
+// every window the game opens (also the extra cutpreview one) gets the same
+// webPreferences: context isolation on, Node off and the sandbox on
+function pageWebPreferences() {
+  return { contextIsolation: true, nodeIntegration: false, sandbox: true, backgroundThrottling: false, preload: path.join(__dirname, 'preload.js') };
+}
+
+// #587: the page never chooses what the OS opens. An http(s) link goes to the
+// player's browser, a page of the game itself opens in its own window and
+// everything else (file:, ms-msdt:, search-ms:, javascript:, data:, ...) is
+// refused instead of handed to shell.openExternal.
+function guardPage(contents) {
+  contents.setWindowOpenHandler(({ url }) => {
+    if (isGameUrl(url, SCHEME, HOST)) {
+      return { action: 'allow', overrideBrowserWindowOptions: { width: 1280, height: 800, backgroundColor: '#0c140e', autoHideMenuBar: true, webPreferences: pageWebPreferences() } };
+    }
+    const external = safeExternalUrl(url);
+    if (external) shell.openExternal(external);
+    return { action: 'deny' };
+  });
+  contents.on('will-navigate', (e, url) => {
+    if (isGameUrl(url, SCHEME, HOST)) return;
+    e.preventDefault();
+    const external = safeExternalUrl(url);
+    if (external) shell.openExternal(external);
+  });
+  // a game window opened from the page (window.open) is guarded too
+  contents.on('did-create-window', (child) => guardPage(child.webContents));
+}
+
 function createWindow() {
   // --trailer=3840x2160: that many device pixels of page, whatever the screen
   // --window-size=1280x720: a test run's window in CSS px (HUD layout checks with --smoke-test)
@@ -133,10 +163,7 @@ function createWindow() {
     ...(devtools && devtools.clipMode ? { frame: false, x: 0, y: 0 } : {}),
     show: false,
     fullscreen: !rec && !hasFlag('--windowed') && loadWindowState().fullscreen,
-    webPreferences: {
-      contextIsolation: true, nodeIntegration: false, sandbox: true, backgroundThrottling: false,
-      preload: path.join(__dirname, 'preload.js'),
-    },
+    webPreferences: pageWebPreferences(),
   });
   win.once('ready-to-show', () => {
     if (devtools && devtools.clipMode && rec) win.setBounds({ x: 0, y: 0, width: Math.round(rec[0] / recScale), height: Math.round(rec[1] / recScale) });
@@ -151,11 +178,9 @@ function createWindow() {
   win.on('leave-full-screen', syncFullscreen);
   // the page's own <title> would overwrite the window title; keep it short
   win.on('page-title-updated', (e) => e.preventDefault());
-  // anything that is not the game opens in the normal browser
-  win.webContents.setWindowOpenHandler(({ url }) => { shell.openExternal(url); return { action: 'deny' }; });
-  win.webContents.on('will-navigate', (e, url) => {
-    if (!url.startsWith(`${SCHEME}://${HOST}/`)) { e.preventDefault(); shell.openExternal(url); }
-  });
+  // #587: see guardPage; cutpreview.html opens in its own window, http(s) in the
+  // browser and every other scheme is refused
+  guardPage(win.webContents);
   win.webContents.on('before-input-event', (e, input) => {
     if (input.type !== 'keyDown') return;
     // F11, Alt+Enter (the Windows habit) and Ctrl+Cmd+F on the Mac toggle

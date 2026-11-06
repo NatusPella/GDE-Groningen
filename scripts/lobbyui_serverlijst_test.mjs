@@ -117,7 +117,7 @@ await t('de lijst toont sessies, markeert een andere versie, verbergt een gemeld
   const s1 = start(); root.click('sluit-0');
   // (#526) het akkoord voor de lijst geldt voor de rest van de sessie: aansluiten vraagt geen tweede scherm meer,
   // maar er gaat nog steeds niets naar buiten voor dat ene akkoord
-  assert.equal(lobby.state().step, 'verbinden'); assert.equal(lobby.state().invoer.room, 'D2B3C4D5E6'); assert.equal(lobby.state().rol, 'gast');
+  assert.equal(lobby.state().step, 'verbinden'); assert.equal(lobby.state().invoer.room, '@cccccccccc', 'de rij verwijst naar het sessie-id; de kamer vraagt de gast straks (#583)'); assert.equal(lobby.state().rol, 'gast');
   assert.equal(start(), s1, 'nog steeds geen verbinding voor het akkoord');
   assert.ok(nieuw(s0).every((s) => s.closed), 'de lijst luistert niet meer');
   aanbod = null; lobby.close();
@@ -162,7 +162,7 @@ await t('host: akkoord zet de sessie openbaar (naam, spelers, versie, kamercode,
   const lijstSockets = nieuw(s0).filter((s) => s.sent.some((d) => d.includes('Zomeravond')));
   assert.ok(lijstSockets.length >= 1, 'de aankondiging is geplaatst');
   const tekst = lijstSockets.flatMap((s) => s.sent).filter((d) => d.includes('Zomeravond')).join('\n');
-  assert.ok(tekst.includes(codeVoor.replace('-', '')) , 'met de kamercode');
+  assert.ok(!tekst.includes(codeVoor.replace('-', '')) , 'zonder de kamercode (#583): die vraagt een gast apart');
   assert.ok(tekst.includes(VERSION), 'met de versie');
   assert.ok(tekst.includes('"i":"hubbhubhub"') || tekst.includes('hubbhubhub'), 'met het vaste id van de sessie (#450)');
   assert.ok(!/\d+\.\d+\.\d+\.\d+/.test(tekst.replace(new RegExp(VERSION.replace(/\./g, '\\.'), 'g'), '')), 'geen IP-adres');
@@ -191,7 +191,7 @@ await t('host: stoppen of het scherm sluiten haalt de sessie meteen uit de lijst
   assert.equal(l2.state().openbaar, false); assert.ok(ann2.every((s) => s.closed));
   l2.close();
 });
-await t('een lopende openbare sessie (#450): het paneel opnieuw openen plaatst dezelfde regel, met hetzelfde id en dezelfde kamercode', async () => {
+await t('een lopende openbare sessie (#450): het paneel opnieuw openen plaatst dezelfde regel met hetzelfde id, zonder de kamercode (#583)', async () => {
   const h = hub('Zomeravond'); // de hub van de sessie die al loopt: openbaar, met een vast id
   const s0 = start(); const root = fakeRoot();
   const lobby = mountLobby(root, hooks({ startHost: () => h }), { adopt: { code: 'K3J9D-8F2MN', route: 'kamer' }, rol: 'host', hub: h });
@@ -202,7 +202,7 @@ await t('een lopende openbare sessie (#450): het paneel opnieuw openen plaatst d
   assert.ok(ann.length >= 1, 'de lopende sessie staat meteen weer in de lijst');
   const tekst = ann.flatMap((x) => x.sent).join('\n');
   assert.ok(tekst.includes(h.id), 'met het vaste id: dezelfde regel in de lijst');
-  assert.ok(tekst.includes('K3J9D8F2MN'), 'met de kamercode van de lopende sessie');
+  assert.ok(!tekst.includes('K3J9D8F2MN'), 'zonder de kamercode: die vraagt een gast apart (#583)');
   // weer privé: de hub gaat uit en de aankondiging stopt
   root.click('privaat'); await tick(150);
   assert.equal(h.openbaar, null, 'de hub weet het ook'); assert.equal(lobby.state().openbaar, false);

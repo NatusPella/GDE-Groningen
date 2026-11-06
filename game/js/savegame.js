@@ -58,6 +58,10 @@ const saveTarget = () => boundSlot || activeSlot();
 // follows the shared active slot (after the saves screen or a new game chose it)
 export function bindSlot() { boundSlot = activeSlot(); }
 let dirtyIn = -1;
+// #584: a deliberate reload that starts a new game throws the current progress away. That flow
+// calls preventCloseSave() so the leave handlers cannot write the old world over the fresh slot.
+let closeSaveOff = false;
+export function preventCloseSave() { closeSaveOff = true; }
 let checkTimer = STATE_CHECK_S;
 let lastSig = null;
 let lastMissionsDone = 0;
@@ -373,13 +377,16 @@ export function markDirty() {
 }
 
 // Everything that should survive a reload, without positions and other
-// values that change all the time.
+// values that change all the time. Money and its ledger are in here (#585):
+// cash from a money van or a stolen wallet changes nothing else, and without
+// them that income waited for the next purchase or mission before it was saved.
 function stateSignature(w) {
   try {
     const sh = getShopSave();
     const vehicles = (sh.vehicles || []).map((o) => [o.key, o.color, o.upgrades, !!o.lost]);
     return JSON.stringify([sh.outfit, sh.ownedOutfits, sh.hair, sh.heroColor, sh.heroUpgrades, vehicles,
       getMissionProgress(), getStorySave(), getAchievementSaveData(), getPigeonSaveData(), getSideJobSave(), getPostgameSave(), getFurnitureSave(), getGoalSave(), getHomeSave(), getCheatSave(), getRadioSave(),
+      w.money, getFinanceSave(),
       w.visitedLandmarks instanceof Set ? w.visitedLandmarks.size : 0, w.stats.missionsDone]);
   } catch (e) {
     return lastSig;
@@ -554,8 +561,23 @@ export function initSaveGame(w) {
   if (!hiddenSaveBound && typeof document !== 'undefined') {
     hiddenSaveBound = true;
     document.addEventListener('visibilitychange', () => {
-      if (document.hidden && world && document.body.classList.contains('game-started')) saveGame(world, { toast: false });
+      if (document.hidden && !closeSaveOff && world && document.body.classList.contains('game-started')) saveGame(world, { toast: false });
     });
+    // Closing the window or the tab does not always fire a visibility change (#584): pagehide and
+    // beforeunload do, and they run while the page can still write, so the last position, playtime
+    // and money survive a close. Both events share one save per unload; a page restored from the
+    // back/forward cache gets a fresh chance on its next leave (#584).
+    if (typeof window !== 'undefined') {
+      let leaveSaved = false;
+      const saveOnLeave = () => {
+        if (leaveSaved || closeSaveOff) return;
+        leaveSaved = true;
+        if (world && document.body.classList.contains('game-started')) saveGame(world, { toast: false });
+      };
+      window.addEventListener('pagehide', saveOnLeave);
+      window.addEventListener('beforeunload', saveOnLeave);
+      window.addEventListener('pageshow', () => { leaveSaved = false; });
+    }
   }
 }
 let hiddenSaveBound = false;

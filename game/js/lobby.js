@@ -39,13 +39,13 @@ export const hasConsent = (s) => !!(s && (s.consented || s.consentSaved));
 // per sessie, na deze toestemming; wie de lijst opent geeft eerst toestemming voor het verbinden met de openbare servers.
 export const OPENBAAR_TEXT = [
   'Een openbare sessie staat in de lijst Openbare sessies, die iedereen kan zien die dit spel heeft. Zo kunnen spelers aansluiten zonder dat je ze een kamercode geeft.',
-  'Dit wordt openbaar: de naam van je sessie, het aantal spelers en het maximum, de versie van het spel en de kamercode waarmee anderen aansluiten. Je IP-adres, een wachtwoord en andere gegevens staan er niet bij. De naam wordt gecontroleerd op scheldwoorden en echte merken en namen.',
+  'Dit wordt openbaar: de naam van je sessie, het aantal spelers en het maximum, de versie van het spel en een willekeurig sessie-id. Je IP-adres, een wachtwoord en je kamercode staan er niet bij; wie via de lijst aansluit, krijgt een eenmalige kamercode die alleen voor hem is versleuteld. De naam wordt gecontroleerd op scheldwoorden en echte merken en namen.',
   'Dit gaat elke 15 seconden naar dezelfde openbare servers als de kamercode, en die zien het onversleuteld. Uitzetten kan altijd: kies Sessie weer privé maken. Dan stopt het, je sessie verdwijnt binnen een minuut uit de lijsten en je krijgt een nieuwe kamercode, zodat de oude niet meer werkt.',
 ];
 // De lijst en de test (#526) leggen alleen nog uit wat zij zelf doen: de uitleg over het IP-adres staat al
 // één keer in CONSENT_TEXT.
 export const LIJST_TEXT = [
-  'De lijst zelf komt van diezelfde openbare servers. Wat erin staat is door spelers geplaatst: de naam, het aantal spelers, de versie en de kamercode, onversleuteld. Sluit je aan, dan loopt dat via de gewone versleutelde kamercode.',
+  'De lijst zelf komt van diezelfde openbare servers. Wat erin staat is door spelers geplaatst: de naam, het aantal spelers, de versie en een sessie-id, onversleuteld. Sluit je aan, dan vraag je wie de sessie opende om een eenmalige kamercode; die krijg je versleuteld voor jouw sleutel en daarmee verbind je.',
   'Staat er iets vervelends in? Kies Melden: die sessie verdwijnt dan uit jouw lijst. Er wordt niets verstuurd.',
 ];
 
@@ -590,3 +590,5 @@ export function lagPolicy(quietSec) {
   if (quietSec < 5) return { freezeRemote: true, badge: true, hold: false };
   return { freezeRemote: true, badge: true, hold: true };
 }
+
+

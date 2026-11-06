@@ -6,6 +6,19 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+- **Openbare sessies lekken je IP niet meer via de kamercode (#583).** De lijst draagt alleen nog een willekeurig sessie-id; wie via de lijst aansluit, vraagt wie de sessie opende om een eenmalige kamercode, die met ECDH + AES-GCM alleen voor die gast versleuteld wordt. Een derde met alleen de lijst kan het aanbod niet vinden of ontsleutelen. Test: `net_joingate_test`.
+
+- **Sluiten bewaart je spel (#584).** Naast de bestaande verberg-tik bewaren `pagehide` en `beforeunload` nu synchroon als het spel gestart is; met "Nieuw spel" wordt dat tijdelijk uitgezet zodat de oude wereld niet in de nieuwe plek belandt. Test: `savegame_test`.
+
+- **Geld uit de geldwagen of portemonnee gaat mee in de autosave (#585).** `money` en het kasboek zitten nu in de autosave-signatuur; een geldwijziging zonder andere status wordt binnen ~2,5 s bewaard. Test: `savegame_test`.
+
+- **Een lopende toetsen- of controller-rebind stopt als het pauzemenu sluit (#586).** Rail-Terug, Doorgaan, Afsluiten, Escape en een tabwissel geven de capture vrij; een volgende toets verandert de besturing niet meer stil. Test: `spelmenu_test`.
+
+- **De desktop-app opent alleen nog http(s)-links in de systeembrowser (#587).** `file:`, `ms-msdt:`, `search-ms:`, `javascript:`, `data:` en andere schema's worden geweigerd; `app://game/`-vensters blijven in de app. Test: `externurl_test`.
+
+- **Een hangende tegel of dode tegel-decoder bevriest de wereld niet meer (#582).** Elke tegel-read heeft nu een time-out van 10 s, inclusief het binnenhalen van de body; de store bewaakt de hele read en de decode met een ruimere grens (12 s en 15 s), zodat ook een eigen bytebron die zijn annuleersignaal negeert de vier laadslots vrijmaakt. Een decoder-worker die sterft of blijft zwijgen wordt beëindigd en vervangen; zijn werk gaat naar de hoofdthread en zonder levende worker decodeert de store daar verder. Test: `tilestore_timeout_test`.
+- **De kaart markeert geen "niet voor jou"-wegen meer (#594).** De rode streeplijn voor wegen waar je met je reismodus niet mag komen, en de legendaregel "Rood gestreept: niet voor jou.", zijn weg van de volledige kaart en de minimap. De rest van de kaart blijft gelijk (wijken, winkels, doelen en de echte afsluitingen); de wegen die niet bij je reismodus horen dimmen nog steeds. De wereld- en verkeersregels veranderen niets. Test: `mapstyle_test`.
+
 ## [0.57.0] - 2026-11-06
 
 - **Alleen spelen is een sessie van één (#554).** Elke start is nu een sessie waarin je zelf de opening doet: alleen spelen draait dezelfde code als Samen spelen, met alleen plek 0, zonder andere spelers, aankondiging of poort. Open je Samen spelen, dan stopt die sessie en neemt het Samen-scherm het over. Zonder andere spelers slaat de hostlus foci, figuren, hostView en snapshots over, zodat dit geen netwerkwerk per frame kost. Besluit van de eigenaar (6-11), draait #486 om.
@@ -3145,6 +3158,8 @@ De eerste versie: alles wat er tot de eerste desktop-release gebouwd is.
   volledig offline, standaard op volledig scherm.
 - Voor wie het liever zonder app doet: een ZIP met `START DE GAME.bat` die op
   Windows zelf Python regelt en de game in de browser opent.
+
+
 
 
 

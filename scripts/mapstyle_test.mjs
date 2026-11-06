@@ -171,5 +171,14 @@ ok(mv.includes("from './grenzen.js'") && mv.includes('gebiedIn(') && mv.includes
 ok(mv.includes('gebiedBij(...toWorld(sx, sy))') && mv.includes('gebiedSub(gebied)') && mv.includes('showCard(world, { name: gebied.gebied.naam'), 'hover en klik gebruiken het gevonden gebied');
 ok(mv.includes('data-act="layers"') && mv.includes('toggleLegend(true)') && mv.includes("layerOn('veroverd')"), 'legenda en filters komen terug achter Lagen');
 
+// --- #594: geen "niet voor jou" op de kaart en de minimap -------------------------
+// De rode streeplijn voor wegen die niet voor je reismodus zijn, en de legendaregel
+// die hem uitlegde, zijn weg; de andere reismodi en de dim-regel blijven staan.
+const mvCode = stripComments(mv), hudCode = stripComments(src('game/js/hud_panel.js'));
+ok(!/niet voor jou|Rood gestreept/.test(mvCode + hudCode), 'kaart en minimap hebben geen "niet voor jou"-markering meer (#594)');
+ok(!/EMPHASIS\.forbidden/.test(mvCode + hudCode), 'en tekenen de rode streeplijn niet meer (#594)');
+ok(!/forbidden/.test(stripComments(src('game/js/mapstyle.js'))), 'de kleur van de streeplijn is uit de stijl (#594)');
+ok(/fiets: 'Fietspaden lichten op\.'/.test(mvCode) && /lucht: 'Oriëntatiepunten\.'/.test(mvCode) && !/lopen: '/.test(mvCode), 'de legenda houdt de reismodi zonder de "niet voor jou"-regel (#594)');
+
 console.log(fails ? `${fails} of ${n} FAILED` : `ok: ${n} checks`);
 process.exit(fails ? 1 : 0);
