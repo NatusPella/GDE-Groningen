@@ -3,6 +3,7 @@
 import assert from 'node:assert/strict';
 import { startSoloHost, stopSoloHost, isSoloHost } from '../game/js/coopsolo.js';
 import * as N from '../game/js/coopnet.js';
+import { wijsPlekToe, heeftPlek } from '../game/js/coopplayers.js';
 
 let n = 0;
 const t = (name, f) => { f(); n++; };
@@ -61,6 +62,49 @@ t('een echte sessie over de solo-sessie wist coopSolo', () => {
 t('stoppen zonder sessie doet niets', () => {
   assert.equal(stopSoloHost(mkWorld()), false);
   assert.equal(stopSoloHost(null), false);
+});
+
+// ADR 0024: de sessie van één is besloten en heeft ruimte voor alleen plek 0. Deze test bewijst de
+// beloftes die de rest van het spel op de hub bouwt: geen tweede plek, geen aankondiging, niets naar buiten.
+t('ADR 0024: ruimte voor alleen plek 0, niets naar buiten', () => {
+  const w = mkWorld();
+  // Niets mag een verbinding openen: een sessie van één kondigt zich niet aan en opent geen poort.
+  const OrigWS = globalThis.WebSocket, OrigPC = globalThis.RTCPeerConnection;
+  let verbindingen = 0;
+  const nep = function () { verbindingen++; throw new Error('geen verbinding in een sessie van één'); };
+  globalThis.WebSocket = nep; globalThis.RTCPeerConnection = nep;
+  try {
+    const net = startSoloHost(w, { info: INFO, seed: 7 });
+    assert.ok(net, 'de sessie van één start');
+    assert.equal(net.hub.roster.max, 1, 'ruimte voor één speler: plek 0, geen gasten');
+    assert.equal(net.hub.roster.spelers.length, 1, 'alleen plek 0');
+    assert.equal(heeftPlek(net.hub.roster), false, 'de sessie is vol');
+    assert.equal(wijsPlekToe(net.hub.roster), null, 'een gast kan geen plek krijgen');
+    assert.equal(net.hub.openbaar, null, 'geen openbare aankondiging');
+    for (let i = 0; i < 600; i++) { w.time += 1 / 60; N.tickCoopNet(w, 1 / 60); }
+    assert.equal(verbindingen, 0, 'geen WebSocket en geen RTCPeerConnection');
+    assert.equal(w.coopRole, 'host', 'de host is plek 0');
+    assert.equal(w.coopNet, net, 'de sessie loopt nog');
+  } finally {
+    if (OrigWS === undefined) delete globalThis.WebSocket; else globalThis.WebSocket = OrigWS;
+    if (OrigPC === undefined) delete globalThis.RTCPeerConnection; else globalThis.RTCPeerConnection = OrigPC;
+  }
+  stopSoloHost(w);
+});
+
+t('ADR 0024: een echte sessie stopt de solo-sessie voor hij begint', () => {
+  // main.js: wie Samen spelen opent, stopt eerst de sessie van één (pauzemenu, hoofdmenu, openbare lijst).
+  const w = mkWorld();
+  startSoloHost(w, { info: INFO });
+  const solo = w.coopNet;
+  stopSoloHost(w); // de volgorde van het Samen-scherm
+  assert.equal(w.coopNet, null); assert.equal(w.coopSolo, false);
+  const echt = N.startHost(w, INFO, { seed: 3, max: 4 });
+  assert.ok(echt && echt !== solo.hub, 'de echte sessie is een nieuwe hub');
+  assert.equal(echt.roster.max, 4, 'een echte sessie houdt de gewone ruimte');
+  assert.equal(isSoloHost(w), false, 'en is geen sessie van één meer');
+  assert.equal(w.coopNet.hub, echt);
+  N.stopCoopNet(w);
 });
 
 console.log(`coopsolo_test: ${n} controles ok`);

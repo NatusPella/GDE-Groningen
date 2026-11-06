@@ -63,8 +63,11 @@ export function advies(aantal, rol = 'host') {
   return rol === 'host' ? `${basis} Als je het spel hebt geopend stuur je alles naar iedereen; een trage internetverbinding (uploaden) kan het spel laten haperen.` : basis;
 }
 
+// Een sessie van één (#554, ADR 0024) heeft precies plek 0 en dat mag geen 4 worden: MIN_MAX geldt
+// voor een online sessie met gasten, niet voor de host die alleen speelt. Alleen 1 is die uitzondering.
+const sessieVanEen = (n) => n === 1;
 export function createRoster(max = DEFAULT_MAX) {
-  return { max: clampMax(max), spelers: [{ slot: 0, char: 'tammo', rol: 'host', verbinding: 'ok' }] };
+  return { max: sessieVanEen(max) ? 1 : clampMax(max), spelers: [{ slot: 0, char: 'tammo', rol: 'host', verbinding: 'ok' }] };
 }
 export const bezet = (r) => r.spelers.map((s) => s.slot);
 export const heeftPlek = (r) => r.spelers.length < r.max;
