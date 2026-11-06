@@ -1,7 +1,8 @@
 // Streams .gdt tiles (docs/PROVINCIE-PLAN.md 2.4, 2.4b): one code path for the
 // browser, Electron and Node; only the byte source differs.
 //
-//   ByteSource   read(file, off, len, signal) -> Uint8Array, readAll(file) -> Uint8Array
+//   ByteSource   read(file, off, len, signal) -> Uint8Array, readAll(file, signal) -> Uint8Array
+//                (the signal is the store's cancellation; a source is bounded by the store anyway)
 //     HttpRangeSource  fetch with a Range header: the web version (browser
 //                      cache does the rest) and Electron, whose gde:// file
 //                      server answers ranges (desktop/main.js serve)
@@ -14,26 +15,72 @@
 //   FrameQueue   work for the main thread, run with a time budget per frame
 import { decodeBlob, tileIndexOf, tileKey, tileOrigin, TILE_M } from './gdt.js';
 
+// #582: a hanging tile fetch or a dead decoder worker must never freeze the
+// world or leave the four load slots taken. Every bound is in milliseconds and
+// every one of them can be shortened for a test. The HTTP source bounds a read
+// itself; the store has a wider safety net for any other ByteSource and for the
+// decoder, so the queue always moves on even when a source ignores its signal.
+export const HTTP_TIMEOUT_MS = 10000;   // one fetch (headers and body) in HttpRangeSource
+export const READ_GUARD_MS = 12000;     // TileStore safety net around source.read
+export const WORKER_TIMEOUT_MS = 10000; // one decode job in the worker pool
+export const DECODE_GUARD_MS = 15000;   // TileStore safety net around decode (after a worker fallback)
+
+export const timeoutError = (wat, ms) => Object.assign(new Error(`${wat} timed out after ${ms} ms`), { timeout: true, name: 'TimeoutError' });
+
 // --------------------------------------------------------------- sources
 
 export class HttpRangeSource {
-  constructor(base = '') { this.base = base; this.requests = 0; this.bytes = 0; }
+  // timeoutMs: 0 disables the time-out (an in-process source that cannot hang)
+  constructor(base = '', { timeoutMs = HTTP_TIMEOUT_MS } = {}) {
+    this.base = base;
+    this.timeoutMs = Number.isFinite(timeoutMs) && timeoutMs > 0 ? timeoutMs : 0;
+    this.requests = 0;
+    this.bytes = 0;
+  }
+  // Races `werk` against the time-out and passes it an AbortSignal that the
+  // caller's cancellation also trips. The race covers the body too, so a body
+  // that never finishes rejects instead of leaving the caller waiting.
+  async _metTimeout(wat, signal, werk) {
+    if (typeof AbortController === 'undefined') return werk(undefined);
+    const ctl = new AbortController();
+    let klaar = false, verlopen = false;
+    const afbreken = () => { if (!klaar) { try { ctl.abort(); } catch (e) { /* already gone */ } } };
+    if (signal) { if (signal.aborted) afbreken(); else signal.addEventListener('abort', afbreken, { once: true }); }
+    try {
+      if (this.timeoutMs > 0) {
+        let timer = null, timeout = null;
+        const mis = new Promise((_, reject) => { timeout = reject; });
+        timer = setTimeout(() => { verlopen = true; afbreken(); timeout(timeoutError(wat, this.timeoutMs)); }, this.timeoutMs);
+        try { return await Promise.race([Promise.resolve().then(() => werk(ctl.signal)), mis]); }
+        catch (err) { throw verlopen ? timeoutError(wat, this.timeoutMs) : err; }
+        finally { clearTimeout(timer); }
+      }
+      return await werk(ctl.signal);
+    } finally {
+      klaar = true;
+      if (signal) signal.removeEventListener('abort', afbreken);
+    }
+  }
   async read(file, off, len, signal) {
     this.requests++;
-    const res = await fetch(this.base + file, { headers: { Range: `bytes=${off}-${off + len - 1}` }, signal });
-    if (!res.ok) { const err = new Error(`tile read ${file} ${off}+${len}: ${res.status}`); err.status = res.status; throw err; }
-    const buf = new Uint8Array(await res.arrayBuffer());
-    this.bytes += buf.length;
-    // a server that ignores Range answers 200 with the whole file
-    return res.status === 206 || buf.length === len ? buf : buf.subarray(off, off + len);
+    return this._metTimeout(`tile read ${file} ${off}+${len}`, signal, async (sig) => {
+      const res = await fetch(this.base + file, { headers: { Range: `bytes=${off}-${off + len - 1}` }, signal: sig });
+      if (!res.ok) { const err = new Error(`tile read ${file} ${off}+${len}: ${res.status}`); err.status = res.status; throw err; }
+      const buf = new Uint8Array(await res.arrayBuffer());
+      this.bytes += buf.length;
+      // a server that ignores Range answers 200 with the whole file
+      return res.status === 206 || buf.length === len ? buf : buf.subarray(off, off + len);
+    });
   }
-  async readAll(file) {
+  async readAll(file, signal) {
     this.requests++;
-    const res = await fetch(this.base + file);
-    if (!res.ok) { const err = new Error(`read ${file}: ${res.status}`); err.status = res.status; throw err; }
-    const buf = new Uint8Array(await res.arrayBuffer());
-    this.bytes += buf.length;
-    return buf;
+    return this._metTimeout(`read ${file}`, signal, async (sig) => {
+      const res = await fetch(this.base + file, { signal: sig });
+      if (!res.ok) { const err = new Error(`read ${file}: ${res.status}`); err.status = res.status; throw err; }
+      const buf = new Uint8Array(await res.arrayBuffer());
+      this.bytes += buf.length;
+      return buf;
+    });
   }
 }
 
@@ -126,7 +173,7 @@ export class FrameQueue {
 // are 92 MB raw), so nothing was ever evicted and a long trip piled up 0.6 MB per tile on the heap, up to 2.4 GB for the whole province. 40e6 raw
 // is the pinned city (14e6) plus ~830 tiles (~530 MB of heap) at the hard cap, and from 20e6 the tiles that lie beyond the wanted ring
 // (hysteresis in prefetch) go first.
-const DEFAULTS = { budgetBytes: 40e6, concurrency: 4, holdMs: 10000, unloadMargin: 300 };
+const DEFAULTS = { budgetBytes: 40e6, concurrency: 4, holdMs: 10000, unloadMargin: 300, readMs: READ_GUARD_MS, decodeMs: DECODE_GUARD_MS };
 
 export class TileStore {
   // index: parsed index.json; decode(bytes) -> Promise<tile> (default: inflate + decode on this thread)
@@ -232,14 +279,35 @@ export class TileStore {
     else console.warn(`tegel laden mislukt: ${file}: ${err.message}`);
   }
 
+  // #582: await a read or a decode with a hard bound. `bijTimeout` aborts the
+  // read so a timed-out entry does not keep a fetch open. A promise that settles
+  // after the time-out is ignored (it already has a handler here), and the slot
+  // is freed by _pump's finally like any other failure.
+  _begrensd(maak, ms, wat, bijTimeout = null) {
+    const p = Promise.resolve().then(maak);
+    if (!(ms > 0)) return p;
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        if (bijTimeout) { try { bijTimeout(); } catch (e) { /* already gone */ } }
+        reject(timeoutError(wat, ms));
+      }, ms);
+      if (timer && typeof timer.unref === 'function') timer.unref(); // Node: a stopped world does not keep the process open
+      p.then((v) => { clearTimeout(timer); resolve(v); }, (err) => { clearTimeout(timer); reject(err); });
+    });
+  }
+
   async _load(e) {
     const ctl = typeof AbortController !== 'undefined' ? new AbortController() : null;
     e.ctl = ctl;
     const { pack, off, len } = e.meta;
+    const file = this.index.packs[pack].file;
     try {
-      const bytes = await this.source.read(this.index.packs[pack].file, off, len, ctl && ctl.signal);
+      const bytes = await this._begrensd(
+        () => this.source.read(file, off, len, ctl && ctl.signal),
+        this.readMs, `tile read ${file} ${off}+${len}`,
+        () => { try { if (ctl) ctl.abort(); } catch (err) { /* already gone */ } });
       if (e.state === 'cancelled') throw Object.assign(new Error('cancelled'), { cancelled: true });
-      const tile = await this.decode(bytes, e.meta);
+      const tile = await this._begrensd(() => this.decode(bytes, e.meta), this.decodeMs, `tile decode ${file} ${off}+${len}`);
       if (e.state === 'cancelled') throw Object.assign(new Error('cancelled'), { cancelled: true });
       e.tile = tile;
       e.state = 'ready';
@@ -362,31 +430,87 @@ export class TileStore {
 
 // decode(bytes) running in module workers (tileworker.js); the compressed
 // bytes go over as a transferable, the decoded tile comes back as a clone.
-export function makeWorkerDecoder(url, size = 2, aside = null) {
+// #582: a worker that dies or stays silent is terminated and removed from the
+// pool, the work that hung on it is decoded on the main thread instead, and the
+// pool tries to take a new worker. With no live worker left the decoder falls
+// back to the main thread altogether, so a broken worker never blocks a slot.
+// opts: { timeoutMs, fallback } (a test shortens the time-out and spies on the
+// fallback; the default decoder is decodeCompressed on this thread).
+export function makeWorkerDecoder(url, size = 2, aside = null, opts = {}) {
   if (typeof Worker === 'undefined') return null;
-  const workers = [];
-  const open = new Map();
-  let next = 1, rr = 0;
-  try {
-    for (let k = 0; k < size; k++) {
-      const w = new Worker(url, { type: 'module' });
-      w.onmessage = (e) => {
-        const { id, tile, error } = e.data;
-        const j = open.get(id);
-        if (!j) return;
-        open.delete(id);
-        if (error) j.reject(new Error(error)); else j.resolve(tile);
-      };
-      w.onerror = (e) => { for (const j of open.values()) j.reject(new Error(e.message || 'tile worker error')); open.clear(); };
-      workers.push(w);
+  const aantal = Math.max(1, Math.min(8, Number(size) || 1));
+  const timeoutMs = Number.isFinite(opts.timeoutMs) && opts.timeoutMs > 0 ? opts.timeoutMs : WORKER_TIMEOUT_MS;
+  const fallback = typeof opts.fallback === 'function' ? opts.fallback : (bytes) => decodeCompressed(bytes, aside);
+  const pool = []; // { w, dood }; a dead worker is gone from this list
+  const open = new Map(); // id -> { resolve, reject, timer, rec, bron }
+  let next = 1, rr = 0, gestopt = false;
+
+  const hoofdthread = (bytes) => Promise.resolve().then(() => fallback(bytes, aside));
+  const maak = () => {
+    const rec = { w: null, dood: false };
+    rec.w = new Worker(url, { type: 'module' });
+    rec.w.onmessage = (e) => {
+      const { id, tile, error } = (e && e.data) || {};
+      const j = open.get(id);
+      if (!j || j.rec !== rec) return;
+      clearTimeout(j.timer);
+      open.delete(id);
+      if (error) j.reject(new Error(error)); else j.resolve(tile);
+    };
+    rec.w.onmessageerror = () => sterf(rec, 'tile worker message error');
+    rec.w.onerror = (e) => sterf(rec, (e && e.message) || 'tile worker error');
+    return rec;
+  };
+  // De taken die aan deze worker hingen gaan naar de hoofdthread (de bytes zijn
+  // hier nog niet overgedragen: `bron` is de originele buffer), de dode worker
+  // gaat weg en er komt zo mogelijk een nieuwe voor in de plaats. `bron` in de
+  // open-tabel is precies daarvoor: na postMessage is de kopie overgedragen.
+  function sterf(rec, reden) {
+    if (rec.dood || gestopt) return;
+    rec.dood = true;
+    for (const [id, j] of [...open]) {
+      if (j.rec !== rec) continue;
+      clearTimeout(j.timer);
+      open.delete(id);
+      hoofdthread(j.bron).then(j.resolve, j.reject);
     }
-  } catch (e) { return null; }
+    try { if (rec.w && typeof rec.w.terminate === 'function') rec.w.terminate(); } catch (e) { /* already gone */ }
+    const k = pool.indexOf(rec);
+    if (k >= 0) pool.splice(k, 1);
+    try { pool.push(maak()); } catch (e) { /* no new worker: the pool stays smaller (or empty) */ }
+    if (!pool.length) console.warn(`tegel-decoder: ${reden}; decoderen gebeurt nu op de hoofdthread`);
+  }
+  try { for (let k = 0; k < aantal; k++) pool.push(maak()); }
+  catch (e) { for (const rec of pool) { rec.dood = true; try { rec.w.terminate && rec.w.terminate(); } catch (er) { /* already gone */ } } return null; }
+
   const decode = (bytes) => new Promise((resolve, reject) => {
+    if (gestopt) { reject(Object.assign(new Error('tile worker stopped'), { cancelled: true })); return; }
+    const levend = pool.filter((rec) => !rec.dood);
+    if (!levend.length) { hoofdthread(bytes).then(resolve, reject); return; }
+    const rec = levend[rr++ % levend.length];
     const id = next++;
-    open.set(id, { resolve, reject });
     const copy = bytes.slice();
-    workers[rr++ % workers.length].postMessage({ id, bytes: copy, aside }, [copy.buffer]);
+    const timer = setTimeout(() => {
+      const j = open.get(id);
+      if (!j) return;
+      open.delete(id);
+      sterf(rec, 'tile worker timeout'); // the worker's other jobs also go to the main thread
+      hoofdthread(bytes).then(resolve, reject);
+    }, timeoutMs);
+    open.set(id, { resolve, reject, timer, rec, bron: bytes });
+    try { rec.w.postMessage({ id, bytes: copy, aside }, [copy.buffer]); }
+    catch (e) {
+      clearTimeout(timer);
+      open.delete(id);
+      sterf(rec, 'tile worker postMessage');
+      hoofdthread(bytes).then(resolve, reject);
+    }
   });
-  decode.terminate = () => workers.forEach((w) => w.terminate());
+  decode.terminate = () => {
+    if (gestopt) return;
+    gestopt = true;
+    for (const [id, j] of [...open]) { clearTimeout(j.timer); open.delete(id); j.reject(Object.assign(new Error('tile worker stopped'), { cancelled: true })); }
+    for (const rec of pool.splice(0)) { rec.dood = true; try { if (rec.w && rec.w.terminate) rec.w.terminate(); } catch (e) { /* already gone */ } }
+  };
   return decode;
 }

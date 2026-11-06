@@ -6,6 +6,8 @@
 //
 // Wie het spel opende houdt de uitnodiging open zolang er plek is: na elke gast die verbindt,
 // wordt er een nieuw aanbod klaargezet onder dezelfde kamercode (of luistert de TCP-poort verder).
+// Een gast die via de openbare lijst binnenkomt, krijgt een eigen eenmalige kamer (net/joingate.js, #583):
+// de lijst draagt geen kamercode meer, zodat niemand met alleen de lijst het aanbod kan ontsleutelen.
 //
 // hooks: { startHost(route, onChange) -> hub, addGuest(transport), startClient(transport, route, wens, { wachtwoord }) -> session,
 //          setMax(n), kick(slot), overdragen(slot) -> { ok } | { ok: false, tekst } (#439), joined(rol), disconnect(act, rol, slot), onCode(code), canJoin() -> {ok, reason}, laatsteCode, resumed() }
@@ -20,13 +22,14 @@ import { MultiSignaler, LijstSignaler } from './net/brokers.js';
 import * as CONFIG from './net/netconfig.js';
 import { makeRoom, formatRoom, topicFor } from './net/sigcrypto.js';
 import { LIJST, Serverlijst, maakAankondiger } from './net/serverlijst.js';
+import { JOIN, bedienKamer, vraagKamer } from './net/joingate.js';
 import { PROTO } from './net/protocol.js';
 import { lijst as rosterLijst, charInfo } from './coopplayers.js';
 import { meet, beoordeel, foutrapport, verbindingslog } from './net/diagnose.js';
 import { maakEnv } from './net/diagnoseenv.js';
 import { VERSION } from './version.js';
 
-const newLijstSignaler = () => new LijstSignaler(CONFIG, { socket: (url) => { const ws = new WebSocket(url); ws.binaryType = 'arraybuffer'; return ws; } }, { brokerTimeout: CONFIG.TIMEOUTS.broker, interval: LIJST.interval });
+const newLijstSignaler = (interval = LIJST.interval) => new LijstSignaler(CONFIG, { socket: (url) => { const ws = new WebSocket(url); ws.binaryType = 'arraybuffer'; return ws; } }, { brokerTimeout: CONFIG.TIMEOUTS.broker, interval });
 // Gemelde sessies (#438) blijven op dit apparaat verborgen: alleen id's, hoogstens 50, en nooit stuk als de opslag ontbreekt
 const VERBORGEN_SLEUTEL = 'gde-serverlijst-verborgen';
 const leesVerborgen = () => { try { const a = JSON.parse(localStorage.getItem(VERBORGEN_SLEUTEL) || '[]'); return Array.isArray(a) ? a.filter((x) => typeof x === 'string').slice(-50) : []; } catch (e) { return []; } };
@@ -268,22 +271,50 @@ export function mountLobby(root, hooks, opts = {}) {
     if (!hub || !hub.zetOpenbaar) return;
     hub.opOpenbaar = (p) => { if (p) startAankondiging(); else stopAankondiging(); };
   }
-  const roomTekst = () => { // de kamercode van deze sessie: die van dit paneel, of die uit de overname
-    const c = String(state.code || (opts.adopt && opts.adopt.code) || '').replace(/-/g, '');
-    return /^[A-HJ-NP-Z2-9]{10}$/.test(c) ? c : null;
-  };
   async function startAankondiging() {
     stopAankondiging();
-    const p = hub && hub.publiek ? hub.publiek() : null, room = roomTekst();
-    if (!p || !room) return; // geen hub, geen kamercode of niet openbaar: niets plaatsen
+    const p = hub && hub.publiek ? hub.publiek() : null;
+    if (!p || !p.id) return; // geen hub of niet openbaar: niets plaatsen
     const sig = newLijstSignaler();
     aankondiger = sig;
-    const maak = maakAankondiger({ naam: p.naam, versie: VERSION, proto: PROTO, room, id: p.id,
+    // De lijst draagt alleen naam, spelers, versie en het sessie-id; de kamercode staat er niet in (#583).
+    const maak = maakAankondiger({ naam: p.naam, versie: VERSION, proto: PROTO, id: p.id,
       hub: () => (hub && hub.publiek ? hub.publiek() : null) });
     const topic = await topicFor(LIJST.sleutel);
-    if (aankondiger === sig) sig.kondig(topic, maak); // intussen weer privé gemaakt: niets plaatsen
+    if (aankondiger !== sig) return; // intussen weer privé gemaakt: niets plaatsen
+    sig.kondig(topic, maak);
+    openGate(p.id); // een gast die op de rij klikt, vraagt hier een eenmalige kamer aan
   }
-  function stopAankondiging() { const s = aankondiger; aankondiger = null; if (s) { try { s.close(); } catch (e) { /* weg */ } } }
+  function stopAankondiging() { const s = aankondiger; aankondiger = null; if (s) { try { s.close(); } catch (e) { /* weg */ } } stopGate(); }
+
+  // ----- deelnemen via de lijst zonder de kamercode te publiceren (#583)
+  // De host antwoordt op een verzoek met een eenmalige kamer, versleuteld voor die gast (net/joingate.js).
+  // Wie alleen de lijst leest, krijgt geen sleutel en geen kamercode, en kan het aanbod dus niet ontsleutelen.
+  let gate = null;
+  const gateHandles = [];
+  function openGate(id) {
+    stopGate();
+    if (!id || !rtcSupported()) return;
+    const g = bedienKamer({
+      id,
+      maakSignaler: () => newLijstSignaler(JOIN.interval),
+      mag: () => { const p = hub && hub.publiek ? hub.publiek() : null; return !!(p && p.spelers < p.max); }, // de hub weigert zelf als er geen plek is
+      onKamer: (room) => openGateKamer(room),
+    });
+    if (g) gate = g;
+  }
+  async function openGateKamer(room) {
+    try {
+      const h = await hostRoom(room, { signaler: newSignaler(), timeouts: CONFIG.TIMEOUTS, onstate: (s, info) => { if (s === 'fout') console.warn('sessie', info); } });
+      gateHandles.push(h);
+      hooks.addGuest(h.transport);
+    } catch (e) { /* deze gast krijgt geen kamer; de volgende probeert het opnieuw */ }
+  }
+  function stopGate() {
+    const g = gate; gate = null;
+    if (g) { try { g.stop(); } catch (e) { /* al weg */ } }
+    for (const h of gateHandles.splice(0)) { try { h.cancel(); } catch (e) { /* al weg */ } }
+  }
   // Weer privé: de oude kamercode is openbaar geweest en werkt niet meer; wie nog kan aansluiten krijgt een nieuwe
   async function nieuweKamer() {
     room = null; wacht = false;
@@ -293,6 +324,10 @@ export function mountLobby(root, hooks, opts = {}) {
   }
 
   // ----- de lijst met openbare sessies bekijken (#438)
+  // Een rij draagt geen kamercode (#583); het sessie-id is de ingang. De lobby geeft de rij een
+  // `room` mee in de vorm '@<id>', zodat de bestaande stap in lobby.js er een verwijzing van maakt
+  // en guestStart hieronder eerst een eenmalige kamer vraagt.
+  const lijstRijen = (rijen) => (Array.isArray(rijen) ? rijen : []).map((r) => (r && r.room ? r : { ...r, room: '@' + r.id }));
   async function startLuisteren() {
     stopLuisteren();
     const sig = newLijstSignaler(), lijst = new Serverlijst({ proto: PROTO, versie: VERSION, verborgen: leesVerborgen() });
@@ -308,13 +343,13 @@ export function mountLobby(root, hooks, opts = {}) {
       // opnieuw tekenen zodat "12 s" ook echt ouder wordt (het zoekveld houdt zijn focus, zie draw())
       const kern = rijen.map((r) => [r.id, r.naam, r.spelers, r.max, r.versie, r.kan ? 1 : 0, r.anders ? 1 : 0, r.vol ? 1 : 0].join('|')).join(';');
       const nu = Date.now();
-      if (kern !== l.laatste || nu - l.getekend >= 5000) { l.laatste = kern; l.getekend = nu; set({ t: 'lijst-data', lijst: rijen }); }
+      if (kern !== l.laatste || nu - l.getekend >= 5000) { l.laatste = kern; l.getekend = nu; set({ t: 'lijst-data', lijst: lijstRijen(rijen) }); }
       if (sig.alleFout() && !state.error) set({ t: 'fout', msg: 'Er is geen verbinding met de openbare servers. Controleer je internet en probeer het later opnieuw.' });
     };
     l.ververs = () => { // Lijst verversen: geen nieuw abonnement, alleen opnieuw lezen en tekenen
       if (luis !== l) return;
       l.laatste = ''; l.getekend = Date.now();
-      set({ t: 'lijst-data', lijst: lijst.lijst() });
+      set({ t: 'lijst-data', lijst: lijstRijen(lijst.lijst()) });
     };
     l.timer = setInterval(tik, opts.lijstMs || 2000);
     setTimeout(tik, 400);
@@ -357,12 +392,26 @@ export function mountLobby(root, hooks, opts = {}) {
       set({ t: 'laatste-code', code: inv.code });
       return bind(tr);
     }
-    handle = await joinRoom(inv.room, {
+    // Een rij uit de lijst draagt geen kamercode (#583): de lobby gaf hem '@<sessie-id>' mee. Eerst
+    // vraagt de gast hier een eenmalige kamer aan (net/joingate.js); daarna loopt het gewone pad.
+    let kamer = inv.room;
+    const viaLijst = typeof kamer === 'string' && kamer.startsWith('@');
+    if (viaLijst) {
+      const id = kamer.slice(1);
+      try { kamer = await (opts.haalKamer ? opts.haalKamer(id) : vraagKamer({ id, maakSignaler: () => newLijstSignaler(JOIN.interval) })); }
+      catch (e) { set({ t: 'kies', rol: ROLES.GAST }); return set({ t: 'fout', msg: 'Deze sessie antwoordt niet. Kies opnieuw uit de lijst of vraag de kamercode.' }); }
+      if (!kamer) { set({ t: 'kies', rol: ROLES.GAST }); return set({ t: 'fout', msg: 'Deze sessie antwoordt niet. Kies opnieuw uit de lijst of vraag de kamercode.' }); }
+    }
+    handle = await joinRoom(kamer, {
       signaler: newSignaler(), timeouts: CONFIG.TIMEOUTS,
       onstate: (s, info) => { if (s === 'fout') { set({ t: 'kies', rol: ROLES.GAST }); set({ t: 'fout', msg: info }); } },
     });
-    if (hooks.onCode) hooks.onCode(inv.room.slice(0, 5) + '-' + inv.room.slice(5));
-    set({ t: 'laatste-code', code: inv.room.slice(0, 5) + '-' + inv.room.slice(5) }); // wordt de gast eruit gezet, dan staat de code klaar om opnieuw aan te sluiten
+    if (viaLijst) {
+      // Een eenmalige kamer is geen code om te bewaren: opnieuw aansluiten gaat via de lijst.
+    } else {
+      if (hooks.onCode) hooks.onCode(formatRoom(kamer));
+      set({ t: 'laatste-code', code: formatRoom(kamer) }); // wordt de gast eruit gezet, dan staat de code klaar om opnieuw aan te sluiten
+    }
     handle.opened.then(bind).catch((e) => set({ t: 'fout', msg: e && e.message ? e.message : 'Er ging iets mis.' }));
   }
 
@@ -408,7 +457,7 @@ export function mountLobby(root, hooks, opts = {}) {
       else if (a.startsWith('sluit-')) { set({ t: 'lijst-kies', i: +a.slice(6) }); await startAlsKlaar(); }
       else if (a.startsWith('meld-')) {
         const e = state.lijst[+a.slice(5)];
-        if (e && luis) { schrijfVerborgen(luis.lijst.meld(e.id)); luis.laatste = ''; luis.getekend = 0; set({ t: 'lijst-data', lijst: luis.lijst.lijst() }); }
+        if (e && luis) { schrijfVerborgen(luis.lijst.meld(e.id)); luis.laatste = ''; luis.getekend = 0; set({ t: 'lijst-data', lijst: lijstRijen(luis.lijst.lijst()) }); }
       }
       else if (a === 'diag') { set({ t: 'diag' }); await startAlsKlaar(); } // (#526) met toestemming meteen meten, anders eerst de vraag
       else if (a === 'diag-go') { const vraag = state.step === 'diag-vraag'; set({ t: 'diag-go' }); if (vraag) bewaarToestemming(); await diagnose(); } // (#526) wie de test start, is akkoord: de rest van de sessie vraagt het niet meer

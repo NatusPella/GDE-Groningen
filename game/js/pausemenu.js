@@ -16,7 +16,7 @@ import { renderVeroverdPanel } from './veroverdpanel.js';
 import { renderSpelersPanel } from './coopspelersui.js';
 import { renderCheatsPanel, cheatsClick, resetCheatsPanel, cheatsFocus } from './cheatsui.js';
 import { skipCurrent, getStoryJournal, markCluesSeen } from './story.js';
-import { saveGame, hasSave, loadLatestSave, startNewSlot, coopSessieLoopt, COOP_NIEUW_TEKST, getSaveSummary, getPlaySeconds, loadSlot, currentSlot } from './savegame.js';
+import { saveGame, hasSave, loadLatestSave, startNewSlot, coopSessieLoopt, COOP_NIEUW_TEKST, getSaveSummary, getPlaySeconds, loadSlot, currentSlot, preventCloseSave } from './savegame.js';
 import { openSaveSlots, isSaveSlotsOpen } from './saveslotsui.js';
 import { stopCoopNet } from './coopnet.js';
 import { coopLoadTekst, COOP_LOAD_FAIL, runCoopLoad } from './cooploadrules.js';
@@ -1099,7 +1099,11 @@ function startPadRebind(btn) {
 }
 
 function cancelRebind(quiet = false) {
-  if (!rebinding) return;
+  if (!rebinding) {
+    // #586: ook zonder wachtstand mag er geen toets meer door de capture worden opgeslokt
+    if (input) input.captureKey = null;
+    return;
+  }
   if (rebinding.cancel) rebinding.cancel();
   if (input) input.captureKey = null;
   rebinding = null;
@@ -1267,6 +1271,9 @@ function runAction(a) {
     confirmEl.hidden = true;
     root.querySelector('[data-action="restart"]').focus();
   } else if (a === 'menu' || a === 'exit') {
+    // #586: Afsluiten gaat niet via setOpen(false); geef een lopende rebind hier ook vrij voordat het spel
+    // opslaat en herstart of sluit, zodat er geen toets of knop meer in de capture blijft hangen.
+    cancelRebind(true);
     // save, then restart the game (the boot flow loads that save again) or close the app; a
     // pigeon first turns back into Tammo/Tessa so the save has a street spot.
     // Alleen een lopend spel bewaart: het menu boven het hoofdscherm (prestart)
@@ -1298,6 +1305,7 @@ function runAction(a) {
     if (world.pigeonActions && world.pigeonActions.home()) setOpen(false);
   } else if (a === 'new') {
     if (coopSessieLoopt(world)) { status(COOP_NIEUW_TEKST); return; }
+    preventCloseSave(); // #584: this reload starts a new game, so the old world must not be saved over the fresh slot
     startNewSlot();
     location.reload();
   } else if (a === 'bench' || a === 'bench-cancel') {
@@ -1770,7 +1778,13 @@ function setOpen(value, name = HOME, how = 'direct') {
     if (value) { showTab(name, how); focusSheet(); }
     return;
   }
-  if (!value) { try { markCluesSeen(); } catch (e) { /* verhaal niet klaar */ } }
+  if (!value) {
+    // #586: een lopende toetsen- of controller-rebind hoort bij dit scherm. Elke sluiting (de rail-Terug
+    // en Doorgaan via runAction('resume'), Afsluiten, closePauseMenu, de toets M, een prestart-sluiting)
+    // komt hier langs, dus de wachtstand en de input-capture gaan hier altijd vrij.
+    cancelRebind(true);
+    try { markCluesSeen(); } catch (e) { /* verhaal niet klaar */ }
+  }
   open = value;
   setPauseMenuOpen(value);
   if (open && isShopOpen()) closeShopMenu();

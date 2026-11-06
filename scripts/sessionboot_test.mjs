@@ -292,13 +292,14 @@ await t('de lijst van de boot gebruikt de echte Serverlijst: een aankondiging wo
 
   // And a real announcement from the host side becomes a row the boot can choose from.
   const lijst = new Serverlijst({ proto: 2, versie: 'dev', nu: () => 5000 });
-  const tekst = codeer({ naam: 'Groningen', spelers: 2, max: 4, versie: 'dev', proto: 2, room: 'ABCDEFGHJK', id: 'abcdefghij', nu: 5000 });
+  const tekst = codeer({ naam: 'Groningen', spelers: 2, max: 4, versie: 'dev', proto: 2, id: 'abcdefghij', nu: 5000 });
   assert.ok(tekst, 'de aankondiging van #438 is geldig');
   assert.equal(lijst.ontvang(tekst, 5000).ok, true);
   const rijen = lijst.lijst(5000);
   assert.equal(rijen.length, 1);
-  assert.equal(rijen[0].room, 'ABCDEFGHJK', 'de kamercode zit in de lijst: daarmee sluit de gast aan');
-  assert.equal(kies({ rijen, meedoen: true }).sessie.room, 'ABCDEFGHJK', 'en kies() geeft hem door');
+  assert.equal(rijen[0].id, 'abcdefghij', 'het sessie-id is de ingang: daarmee vraagt de gast een kamer (#583)');
+  assert.ok(!('room' in rijen[0]), 'de kamercode staat niet in de lijst');
+  assert.equal(kies({ rijen, meedoen: true }).sessie.id, 'abcdefghij', 'en kies() geeft het door');
 });
 
 await t('de module verstuurt zelf pas iets na een ja: de bron leest magOnline() als eerste', () => {

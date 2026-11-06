@@ -212,7 +212,7 @@ rgba(23,48,31,.84), rgba(12,20,14,.84))` with a 1 px green ring, 10 px radius;
 the minimap is a rounded square (18 px) with a green ring that turns red when
 you are wanted; keys at the bottom right are the canonical white keycaps with a hard
 `#a9a69b` shadow. Red `#d93f3f` only for danger (search box, vehicle
-damage, the "niet voor jou" dash, the age badge).
+damage, the age badge).
 
 **Attention budget** (`attention.js`, `hudbus.js`, `hudrules.js`; numbers in [docs/DESIGN-COMPONENTEN.md](docs/DESIGN-COMPONENTEN.md)):
 the order of who may interrupt is story, then wanted and danger, then money and achievement, then discovery and flavour, then tips (P0 to P3 on the HUD).
@@ -262,7 +262,7 @@ The full map is the pause menu's one full-screen section (M opens and closes it)
 - **Click on a place or an icon** opens a bar with exactly three actions, each with an icon and one line: **Zet waypoint** (a line and the distance), **Reis erheen** (cost and time), **Info**. A waypoint that is already there turns the first one into **Haal weg**;
   a story place says **Volg het verhaal**. Travel is its own step: **Snel reizen** (costs time and money, the recommended mode is marked) or **Zelf gaan** (sets a waypoint and you drive or walk), never both at once. A first-time explanation of three lines is shown next to the map and stays findable in Besturing > Hulp.
 - **One waypoint at a time**: a line on the map, the distance, a beacon in the world (`worldmarker3d.js`). Clear it by clicking it again, right click, `Del`, or X on a controller. A click within 30 m of it counts as a click on it.
-- **Travel mode** selector in the header, opening on how you travel now; roads you may not use dim and trunk roads dash red for walkers and cyclists ("niet voor jou").
+- **Travel mode** selector in the header, opening on how you travel now; roads you may not use dim.
 - **Legend and layers**: a short list of icon and name in collapsible groups that are also switches, open the first time; the explanation sits in the tooltip, not in the legend. Footer hints at 13 px under the map.
 - **Controller**: a crosshair in the middle, A sets a goal under it, X clears it, Y goes to yourself; Shift+click moves you (on by default, switch it off in Instellingen > Interface; never during a mission, a cutscene or with police behind you).
 - **Routes** have a colour and a pattern each: story solid yellow, your goal dashed purple, a klus dotted orange, the care route (food, garage) dash-dotted pink (`ROUTE_COLORS`, `ROUTE_DASH`, up to three at once from `routing.js`).

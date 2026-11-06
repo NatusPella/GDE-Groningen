@@ -3,8 +3,9 @@
 // (LijstSignaler); de knoppen en teksten in lobby.js en lobbyui.js.
 //
 // Een host die zijn sessie openbaar maakt, plaatst elke 15 s een korte, onversleutelde aankondiging op een vast onderwerp van
-// dezelfde brokers als de kamercode. Wat erin staat: de naam van de sessie, het aantal spelers en het maximum, de versie, de
-// kamercode (daarmee sluit een speler aan, via de bestaande versleutelde route), een willekeurig id en een tijdstempel.
+// dezelfde brokers als de kamercode. Wat erin staat: de naam van de sessie, het aantal spelers en het maximum, de versie en een
+// willekeurig sessie-id (#583). De kamercode staat er niet meer in: een gast die op een rij klikt, vraagt hem eenmalig
+// versleuteld op bij de host (net/joingate.js), zodat niemand met alleen de lijst het aanbod van de host kan ontsleutelen.
 // Er staat nooit een IP-adres, wachtwoord of persoonsgegeven in; de naam wordt gefilterd. Een sessie die niet meer aankondigt
 // verdwijnt na 45 s uit de lijst.
 
@@ -12,7 +13,7 @@ import { crc16 } from './pairing.js';
 import { woordenVan, past } from '../zoektekst.js';
 
 export const LIJST = {
-  formaat: 1,
+  formaat: 2,
   sleutel: 'serverlijst-v1', // vast onderwerp: topicFor(sleutel) geeft de info_hash van de tracker en het MQTT-onderwerp
   interval: 15000,           // ms tussen twee aankondigingen van een host
   verloop: 45000,            // ms zonder nieuwe aankondiging: weg uit de lijst
@@ -139,41 +140,41 @@ export function schoonNaam(tekst) {
 }
 
 // ---------------------------------------------------------------- de aankondiging
-const KAMER_RE = /^[A-HJ-NP-Z2-9]{10}$/;
 const ID_RE = /^[a-z0-9]{8,16}$/;
 const VERSIE_RE = /^[0-9A-Za-z.+-]{1,16}$/;
-const som = (a) => crc16(`${a.v}|${a.n}|${a.s}|${a.m}|${a.g}|${a.p}|${a.k}|${a.i}|${a.t}`);
+const som = (a) => crc16(`${a.v}|${a.n}|${a.s}|${a.m}|${a.g}|${a.p}|${a.i}|${a.t}`);
 
 export const maakId = (rand = Math.random, n = 10) => { let s = ''; for (let i = 0; i < n; i++) s += 'abcdefghijklmnopqrstuvwxyz0123456789'[Math.floor(rand() * 36)]; return s; };
 
-// info: { naam, spelers, max, versie, proto, room, id, nu }. Geeft een tekst, of null als de gegevens niet kloppen (nooit een halve aankondiging).
+// info: { naam, spelers, max, versie, proto, id, nu }. Geeft een tekst, of null als de gegevens niet kloppen (nooit een halve aankondiging).
+// Er zit geen kamercode en geen sleutel in: het id is het enige waar een gast op af gaat (net/joingate.js).
 export function codeer(info) {
   const nm = schoonNaam(info.naam);
   const spelers = info.spelers | 0, max = info.max | 0;
   if (!nm.ok || spelers < 1 || spelers > 16 || max < 2 || max > 16 || spelers > max) return null;
-  const a = { v: LIJST.formaat, n: nm.naam, s: spelers, m: max, g: String(info.versie), p: info.proto | 0, k: String(info.room), i: String(info.id), t: Math.floor(info.nu) };
-  if (!VERSIE_RE.test(a.g) || !KAMER_RE.test(a.k) || !ID_RE.test(a.i) || !Number.isFinite(a.t) || a.p < 0 || a.p > 255) return null;
+  const a = { v: LIJST.formaat, n: nm.naam, s: spelers, m: max, g: String(info.versie), p: info.proto | 0, i: String(info.id), t: Math.floor(info.nu) };
+  if (!VERSIE_RE.test(a.g) || !ID_RE.test(a.i) || !Number.isFinite(a.t) || a.p < 0 || a.p > 255) return null;
   a.c = som(a);
   const tekst = JSON.stringify(a);
   return tekst.length <= LIJST.maxBytes ? tekst : null;
 }
 
 // Leest een aankondiging van de lijn (ongeveer: alles kan van iedereen komen). nu = onze klok in ms.
-// Geeft { ok: true, a: { naam, spelers, max, versie, proto, room, id, t } } of { ok: false, reason }.
+// Geeft { ok: true, a: { naam, spelers, max, versie, proto, id, t } } of { ok: false, reason }.
 export function decodeer(tekst, nu) {
   if (typeof tekst !== 'string' || tekst.length > LIJST.maxBytes) return { ok: false, reason: 'groot' };
   let o; try { o = JSON.parse(tekst); } catch (e) { return { ok: false, reason: 'json' }; }
   if (!o || typeof o !== 'object' || Array.isArray(o)) return { ok: false, reason: 'json' };
   if (o.v !== LIJST.formaat) return { ok: false, reason: 'formaat' };
   const geheel = (x, lo, hi) => Number.isInteger(x) && x >= lo && x <= hi;
-  if (typeof o.n !== 'string' || typeof o.g !== 'string' || typeof o.k !== 'string' || typeof o.i !== 'string' || typeof o.c !== 'string') return { ok: false, reason: 'velden' };
+  if (typeof o.n !== 'string' || typeof o.g !== 'string' || typeof o.i !== 'string' || typeof o.c !== 'string') return { ok: false, reason: 'velden' };
   if (!geheel(o.s, 1, 16) || !geheel(o.m, 2, 16) || o.s > o.m || !geheel(o.p, 0, 255) || !Number.isFinite(o.t)) return { ok: false, reason: 'velden' };
-  if (!VERSIE_RE.test(o.g) || !KAMER_RE.test(o.k) || !ID_RE.test(o.i)) return { ok: false, reason: 'velden' };
+  if (!VERSIE_RE.test(o.g) || !ID_RE.test(o.i)) return { ok: false, reason: 'velden' };
   if (o.c !== som(o)) return { ok: false, reason: 'som' };
   const nm = schoonNaam(o.n);
   if (!nm.ok || nm.naam !== o.n) return { ok: false, reason: 'naam' }; // ook een lege of niet-gefilterde naam telt niet: een host die zijn eigen filter overslaat, komt er niet mee langs
   if (Number.isFinite(nu) && Math.abs(nu - o.t) > LIJST.scheef) return { ok: false, reason: 'tijd' };
-  return { ok: true, a: { naam: o.n, spelers: o.s, max: o.m, versie: o.g, proto: o.p, room: o.k, id: o.i, t: o.t } };
+  return { ok: true, a: { naam: o.n, spelers: o.s, max: o.m, versie: o.g, proto: o.p, id: o.i, t: o.t } };
 }
 
 // ---------------------------------------------------------------- de lijst bij de speler
@@ -200,8 +201,7 @@ export class Serverlijst {
       if (this.items.size >= this.o.maxVolgen) { this._schoon(nu); if (this.items.size >= this.o.maxVolgen) return this._af('vol'); }
       this.nieuw.push(nu);
     }
-    // dezelfde kamer onder een ander id telt één keer: de nieuwste wint (een vervalser kan zo geen sessie vermenigvuldigen)
-    for (const [id, x] of this.items) if (id !== a.id && x.room === a.room) this.items.delete(id);
+    // hetzelfde id onder een nieuwe tijdstempel is dezelfde sessie; de nieuwste stand wint
     this.items.set(a.id, { ...a, gezien: nu });
     return { ok: true };
   }
@@ -216,7 +216,7 @@ export class Serverlijst {
       const anders = (this.proto != null && x.proto !== this.proto) || (this.versie != null && x.versie !== this.versie);
       const vol = x.spelers >= x.max;
       const ouderdom = Math.max(0, nu - x.gezien);
-      uit.push({ id: x.id, naam: x.naam, spelers: x.spelers, max: x.max, versie: x.versie, room: x.room, anders, vol, kan: !anders && !vol, gezien: x.gezien, ouderdom, dim: ouderdom >= this.o.verloop - this.o.dimLaatste });
+      uit.push({ id: x.id, naam: x.naam, spelers: x.spelers, max: x.max, versie: x.versie, anders, vol, kan: !anders && !vol, gezien: x.gezien, ouderdom, dim: ouderdom >= this.o.verloop - this.o.dimLaatste });
     }
     uit.sort(SORTERING.standaard);
     return uit;
@@ -230,11 +230,10 @@ export class Serverlijst {
 }
 
 // De host: een aankondiging maken zolang de sessie openbaar is. Geeft een functie die elke keer de tekst van dat moment maakt (of null).
-export function maakAankondiger({ naam, versie, proto, hub, room, id, nu = () => Date.now() }) {
+export function maakAankondiger({ naam, versie, proto, hub, id, nu = () => Date.now() }) {
   return () => {
-    const r = typeof room === 'function' ? room() : room;
     const sp = hub ? hub() : null;
-    if (!r || !sp) return null;
-    return codeer({ naam, spelers: sp.spelers, max: sp.max, versie, proto, room: r, id, nu: nu() });
+    if (!sp) return null;
+    return codeer({ naam, spelers: sp.spelers, max: sp.max, versie, proto, id, nu: nu() });
   };
 }

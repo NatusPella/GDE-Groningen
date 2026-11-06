@@ -26,7 +26,7 @@ export const MINI_PALETTE = {
 };
 
 // travel-mode highlights, the same on every map (the two that draw them)
-export const EMPHASIS = { foot: '#d9d4c4', cycle: '#ff8a5c', forbidden: '#d93f3f', bridgeCasing: '#0c140e' };
+export const EMPHASIS = { foot: '#d9d4c4', cycle: '#ff8a5c', bridgeCasing: '#0c140e' };
 
 // The ink of everything the maps draw on top of the land: label text and
 // halos, the full map's panel chrome, markers, route and ring colours, region

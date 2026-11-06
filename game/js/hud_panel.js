@@ -2495,15 +2495,6 @@ function drawMinimap(dt, world) {
     ctx.strokeStyle = color;
     ctx.lineWidth = w;
     ctx.stroke();
-    // "niet voor jou": a trunk road you may not walk or cycle on gets a red dash
-    if (allowed === false && r.cat === 'major') {
-      ctx.globalAlpha = 1;
-      ctx.setLineDash([5, 4]);
-      ctx.strokeStyle = EMPHASIS.forbidden;
-      ctx.lineWidth = Math.max(2, w * 0.4);
-      ctx.stroke();
-      ctx.setLineDash([]);
-    }
   }
   ctx.globalAlpha = landAlpha;
   drawRailsOnMap(ctx, world.map, player.x - MM_RADIUS_M, player.y - MM_RADIUS_M, player.x + MM_RADIUS_M, player.y + MM_RADIUS_M, 3.2, MINI_STYLE);
