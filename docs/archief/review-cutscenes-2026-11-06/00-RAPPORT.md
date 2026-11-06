@@ -10,8 +10,8 @@ geen GitHub-issues, `.env` niet gelezen.
 
 Deelrapporten (in deze map):
 
-Op verzoek van de eigenaar zijn de bevindingen omgezet in **31 GitHub-issues (#704-#734)**, met de
-labels `bug`/`wens`, één impact- en één kostenlabel, en op project 5 in de kolommen **Bugs** en
+Op verzoek van de eigenaar zijn de bevindingen omgezet in **32 GitHub-issues (#704-#734 en #736)**, met
+de labels `bug`/`wens`, één impact- en één kostenlabel, en op project 5 in de kolommen **Bugs** en
 **Wensen** gezet.
 
 | Rapport | Onderwerp |
@@ -309,7 +309,19 @@ gebieden is buurt/woonplaats/gemeente/provincie en vraagt om een kortere of data
 **Vorm.** 20-40 s: overzicht (0-6 s) → 3-5 stops op ooghoogte (6-24 s) → detail/gevoel (3-5 s) →
 eindbeeld met titel "Wijkheld van …" (5-7 s). Eén stem (Rikus), maximaal één bewoner met naamkaart.
 Sluit aan op de volgpose van de speler (`behindPose`, zoals `playWijk`) zodat de camera niet in de
-lucht blijft hangen.
+lucht blijft hangen. De uitgewerkte 07-variant kiest per scène **drie hoofdstukken (A/B/C) met elk een
+eigen anker**; dat hoofdstukkenmodel bestaat nog niet in `cutscript.js`/`cutscenehost.js` en is het
+enige nieuwe raamwerkstuk. Alternatief is één `playCinematic`-tour met een eigen `shot` (goedkoper,
+maar niet als data naar gasten te sturen). Kies dit vóór #706 wordt gebouwd.
+
+**Ontwerp-spanning die eerst beslist moet worden.** De veroverlaag is de CBS-wijk, maar de
+emotionele buurten — Oosterparkwijk (het thuis van Tammo en Tessa), Korrewegwijk,
+Noorderplantsoenbuurt, Selwerd, Herewegbuurt, De Hoogte, Westerhaven, Ebbingekwartier — halen op de
+vaste taakankers **0-1 taken** en zijn dus niet veroverbaar; een intocht die daar hangt, vuurt nooit.
+Drie opties: `MIN_TAKEN` voor de buurtlaag op 1, twee taken per geliefde buurt toevoegen, of de
+intocht ook op de buurtlaag laten vuren (de scène hangt aan een plek + coördinaat, niet aan een
+polygoon). Advies: het laatste, zodat de buurt de emotionele eenheid blijft en de CBS-wijk de
+verover-eenheid met titel en huis. Zie **#736**.
 
 **Techniek.** Nieuwe `veroverTourShot(w, gebied, stops)` op `camerapath.js` (`pathShot`, `clearKeys`,
 `buildingReach`, `roofAt`), stops data-gedreven uit `ind.gebied.get(gid).taken` + landmarks binnen de
@@ -351,7 +363,9 @@ Naast de 30 punten hierboven leverde deelreview 01 nog een kritieke vondst en vi
 **#729** (`pause:true` pauzeert niet — Kritiek), **#730** (regiehoogten op absolute z=0), **#731**
 (`attachVoices` rekt de duur na `compileScene`), **#732** (landmark/Ommelanden zonder
 snelheids-/race-/duifpoorten), **#733** (stemmenbank laadt zonder retry) en **#734** (bundel met de
-resterende 14 midden- en 2 laagpunten uit 01).
+resterende 14 midden- en 2 laagpunten uit 01). Uit de wijk-scène-ontwerp-review kwam daar **#736**
+bij: geliefde buurten (Oosterparkwijk, Korrewegwijk, Selwerd, …) zijn met 0-1 taken niet veroverbaar,
+terwijl juist daar de emotionele scènes horen.
 
 | # | Sev | Issue | Bewijs | Fix | Labels |
 |---|---|---|---|---|---|
@@ -416,11 +430,12 @@ resterende 14 midden- en 2 laagpunten uit 01).
 - **Niet runtime getest:** geen Electron, geen spel, geen netwerk, geen volledige suite, geen
   releasebouw. Alles wat met waarneming te maken heeft (staan de balken goed, hoort de gast dezelfde
   stem, is de HUD echt bedekt) is uit code/CSS afgeleid.
-- **Deelreview 02 (verhaal) is niet als eindrapport aangeleverd** binnen deze sessie; het onderwerp is
-  deels door mij gedekt (§6) en door de inventariscijfers, maar de systematische
-  scène-voor-scène-audit van alle 89 staging-specs en de volledige verhaal-/continuïteitsanalyse per
-  akte ontbreken. De inventariscijfers (207 scènes, 101 min, 44% zonder eigen regie) komen uit de
-  tussenstand van 02 en zijn niet in een eindrapport verantwoord.
+- **Deelreview 02 (verhaal) heeft geen eindrapport opgeleverd:** de reviewer is gefaald; een tweede,
+  begrensde reviewer is gestart en levert mogelijk later `02-verhaal-scenes.md`. Tot die er is, is
+  §6 dekkend op mijn eigen lezing plus de inventaris, maar de systematische scène-voor-scène-audit
+  van alle 89 staging-specs en de volledige verhaal-/continuïteitsanalyse per akte ontbreken. De
+  inventariscijfers (207 scènes, 101 min, 44% zonder eigen regie) komen uit de tussenstand van de
+  eerste reviewer en zijn niet in een eindrapport verantwoord.
 - **Deelreview 01 (regie/techniek) is wél aangeleverd** (`01-regie-techniek.md`, 20 bevindingen) en
   de kritieke vondst is door de Lead onafhankelijk in `main.js`/`cinematics.js` gecontroleerd.
 - **Niet in beeld gezien:** de wereldtegels (`game/world/` is lokaal niet gebouwd), dus geen echte
