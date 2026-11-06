@@ -2,11 +2,15 @@
 // Electron. Twee nep-gasten (scripts/coop/mockclient.mjs) verbinden over ECHTE TCP met dezelfde coopcore.cjs en dezelfde
 // hub als de app. Dekt: de wereld zonder speler (geen plek 0 in de snapshot, elke gast een eigen figuur), de klok die
 // doorloopt, kicken, verbieden (het token komt er niet meer in), een wachtwoord per sessie, een vaste poort (en de nette
-// fout als die bezet is), starten zonder document/window, een ontbrekende wereld of spelerslijst, en het wachtwoordveld
-// in de lobby (game/js/lobby.js): leeg is open, gevuld vraagt erom.
+// fout als die bezet is), starten zonder document/window, een ontbrekende wereld of spelerslijst, de wereldstaat die een
+// herstart overleeft (en een half geschreven bestand dat terugvalt), en het wachtwoordveld in de lobby (game/js/lobby.js):
+// leeg is open, gevuld vraagt erom.
 //   node scripts/nodehost_test.mjs
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import net from 'node:net';
+import os from 'node:os';
+import path from 'node:path';
 import { startKoplozeHost } from './coop/nodehost.mjs';
 import { startMockGuest } from './coop/mockclient.mjs';
 import * as L from '../game/js/lobby.js';
@@ -71,6 +75,41 @@ try {
     assert.equal(host.gestopt, false, 'de bestaande gastheer draait gewoon door');
     assert.equal(host.poort, poort);
     return `poort ${poort}`;
+  });
+
+  await t('de wereldstaat overleeft een herstart: klok, tijd, weer en missie staan terug', async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gde-wereldstaat-'));
+    const staatPad = path.join(dir, 'wereldstaat.json');
+    try {
+      // eerste run: de wereld verstrijkt en de host bewaart de staat bij het stoppen
+      const h1 = await startKoplozeHost({ port: await vrijePoort(), localIp: '127.0.0.1', upnp: false, staatPad, clock: 9 });
+      h1.world.clock = 21.25; h1.world.time = 4321.5; h1.world.wanted = 3;
+      h1.world.weatherState = { kind: 'regen', t: 7 };
+      h1.world.mission = { phase: 'active', id: 'M01' };
+      await h1.stop();
+      assert.ok(fs.existsSync(staatPad), 'de staat staat in het bestand na het stoppen');
+      const tekst = fs.readFileSync(staatPad, 'utf8');
+      assert.match(tekst, /"clock": 21\.25/, 'het bestand noemt de klok: ' + tekst.slice(0, 80));
+      // tweede run: dezelfde staat komt terug, met de klok en het weer zoals ze waren
+      const h2 = await startKoplozeHost({ port: await vrijePoort(), localIp: '127.0.0.1', upnp: false, staatPad });
+      try {
+        assert.ok(Math.abs(h2.world.clock - 21.25) < 0.1, 'de klok staat terug: ' + h2.world.clock);
+        assert.ok(Math.abs(h2.world.time - 4321.5) < 0.2, 'de speeltijd staat terug: ' + h2.world.time);
+        assert.equal(h2.world.wanted, 3, 'de wanted-staat staat terug');
+        assert.deepEqual(h2.world.weatherState, { kind: 'regen', t: 7 }, 'het weer staat terug');
+        assert.equal(h2.world.mission.phase, 'active', 'de missiefase staat terug');
+        assert.equal(h2.world.mission.id, 'M01', 'de missie-id staat terug');
+        assert.equal(h2.world.player, null, 'de herstarte host heeft nog steeds geen speler');
+      } finally { await h2.stop(); }
+      // een half geschreven bestand: geen crash, de host begint met een nieuwe wereld
+      fs.writeFileSync(staatPad, '{"clock": 1');
+      const h3 = await startKoplozeHost({ port: await vrijePoort(), localIp: '127.0.0.1', upnp: false, staatPad, clock: 7 });
+      try {
+        assert.ok(h3.world.clock >= 7 && h3.world.clock < 8, 'een kapot bestand valt terug op de nieuwe wereld: ' + h3.world.clock);
+        assert.notEqual(h3.world.mission && h3.world.mission.phase, 'active', 'geen missie uit het kapotte bestand');
+      } finally { await h3.stop(); }
+      return 'klok, tijd, weer en missie terug; kapot bestand valt terug';
+    } finally { fs.rmSync(dir, { recursive: true, force: true }); }
   });
 
   await t('kicken: plek 2 gaat weg, plek 1 speelt door', async () => {
