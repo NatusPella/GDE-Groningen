@@ -84,8 +84,24 @@ t('een uitbetaling zet de eigen save van de gastheer meteen klaar, niet pas na e
     const { hw } = sessie(1);
     assert.equal(hw.coopDeel(100), 1); const na = seintjes; assert.ok(na >= 1);
     hw.coopDeel(0); assert.equal(seintjes, na, 'zonder bedrag geen seintje');
-    const solo = sessie(0); solo.hw.coopDeel(400); assert.ok(seintjes > na, 'de gastheer verdient ook zonder gasten in zijn eigen wereld');
+    // #569: Alleen spelen is sinds #554 intern een sessie van één, maar het hoort geen extra seintje te krijgen;
+    // de autosave-signatuur ziet het geld zelf al.
+    const solo = sessie(0); solo.hw.coopSolo = true; solo.hw.coopNet.solo = true;
+    solo.hw.coopDeel(400); assert.equal(seintjes, na, 'een sessie van één zet geen verreken-seintje');
   } finally { registerSaveTimers(null, null); }
+});
+
+t('Alleen spelen doet bij het einde van de sessie geen extra synchrone save (#569)', () => {
+  let saves = 0;
+  const echt = sessie(1), solo = sessie(0);
+  solo.hw.coopSolo = true; solo.hw.coopNet.solo = true;
+  registerSaveGame(() => { saves++; return true; });
+  try {
+    N.stopCoopNet(echt.gs[0]);
+    assert.equal(saves, 1, 'een gast bewaart bij het einde van een echte sessie');
+    N.stopCoopNet(solo.hw);
+    assert.equal(saves, 1, 'een sessie van één bewaart niets extra\'s');
+  } finally { registerSaveGame(null); }
 });
 
 t('het einde van de sessie verrekent nog een keer: de eigen save van de gast krijgt de laatste beloning', () => {
