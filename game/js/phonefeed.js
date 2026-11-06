@@ -11,6 +11,7 @@ import { mayVoiceText, noteVoiceText } from './attention.js';
 import { hold as holdChannel, release as releaseChannel } from './speech.js';
 import { registerNarrative, mayStart, noteToast, heldBack } from './narrative.js';
 import { zones, P1, P2, hudNow } from './hudrules.js';
+import { appForNote, senderForNote, senderOf } from './phoneapp.js';
 
 // The folded phone (the Pixie Vouw 11's cover screen) on the HUD, bottom
 // left above the street name: notification cards and incoming calls. Both slide up out of the bottom like a phone
@@ -106,14 +107,16 @@ export function initPhoneFeed(w) {
 // --- notifications -------------------------------------------------------------------------
 
 // "KIEKDOAR MELDT: onrust in Grunn, politie op pad" -> app Kiekdoar, headline
-// "Onrust in Grunn", body "politie op pad".
+// "Onrust in Grunn", body "politie op pad". De app komt uit de afzender of uit wat de melder
+// meegeeft (#603), nooit uit een €-teken in de tekst: een winkelbericht met een bedrag erin
+// hoort geen Bank-icoon te krijgen.
 function parse(n) {
   let text = String(n.text || '').trim();
   let from = n.from || '';
-  let app = n.app || '';
   const m = /^KIEKDOAR( MELDT)?:\s*/i.exec(text);
   if (m) { text = text.slice(m[0].length); from = from || 'Kiekdoar'; }
-  if (!app) app = /kiekdoar/i.test(from) || m ? 'sikkom' : /€/.test(text) && !from ? 'geld' : from ? 'bericht' : 'sikkom';
+  const app = appForNote({ app: n.app || '', from, text: n.text || '' });
+  from = senderForNote({ app, from, text: n.text || '' });
   let title = n.title || '';
   let body = text;
   if (!title && app === 'sikkom') {
@@ -121,7 +124,6 @@ function parse(n) {
     if (c) { title = c[1]; body = c[3]; } else { title = text; body = ''; }
     title = title[0].toUpperCase() + title.slice(1);
   }
-  if (!from) from = app === 'geld' ? 'Bank' : 'Kiekdoar';
   return { from, app, title, body };
 }
 
@@ -131,10 +133,10 @@ export function notifyPhone(w, spec) {
 }
 
 // History entries: { text, at, from, body, read } (phone.js Berichten groups them by `from`).
-function remember(w, text, from = '', body = '') {
+function remember(w, text, from = '', body = '', read = false) {
   if (!w.phoneHistory) w.phoneHistory = [];
-  w.phoneHistory.unshift({ text, at: clockNow(w), ...(from ? { from, body: body || text } : {}) });
-  if (w.phoneHistory.length > 30) w.phoneHistory.length = 30;
+  w.phoneHistory.unshift({ text, at: clockNow(w), ...(from ? { from, body: body || text } : {}), read });
+  if (w.phoneHistory.length > 40) w.phoneHistory.length = 40;
 }
 
 // the HUD card just said it (a mission requirement is sent to both)
@@ -231,8 +233,11 @@ function noticeThread(now = typeof performance !== 'undefined' ? performance.now
 // het menu op Overzicht opent.
 export function takeNoticeThread(now) {
   const t = noticeThread(now);
-  if (t) notice = { from: '', until: 0 };
-  return t;
+  if (t) { notice = { from: '', until: 0 }; return t; }
+  // De kaart is al weg: open dan de nieuwste ongelezen afzender (#603), zodat een gemist bericht
+  // blijft te vinden; de inbox onder Verhaal > Personages is de vaste plek.
+  const unread = ((world && world.phoneHistory) || []).find((e) => !e.read);
+  return unread ? senderOf(unread) : '';
 }
 
 function hangUp() {
@@ -298,7 +303,12 @@ function finishCall(cut) {
   const c = call;
   if (!c || c.phase === 'end') return;
   const said = c.lines.slice(0, cut ? Math.max(0, c.i + 1) : c.lines.length);
-  remember(world, `${c.live ? 'Live' : 'Gesprek'} · ${c.from}: ${said.map((l) => l.text).join(' ')}`, c.from, `${c.live ? 'Live' : 'Gesprek'}: ${said.map((l) => l.text).join(' ')}`);
+  // #603: één regel per uitspraak in de geschiedenis, niet één blok. Zo is een gesprek later
+  // regel voor regel terug te lezen bij het personage. Wat je live hoorde geldt als gelezen.
+  for (const l of said) {
+    const who = l.speaker || c.from;
+    remember(world, `${c.live ? 'Live' : 'Gesprek'} · ${who}: ${l.text}`, c.from, who === c.from ? l.text : `${who}: ${l.text}`, true);
+  }
   noticeFrom(c.from);
   c.phase = 'end';
   c.t = 0;

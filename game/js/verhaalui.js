@@ -12,7 +12,7 @@ import { PARTS, CLUES, WHY } from './storyarc.js';
 import { speakerColor } from './speakers.js';
 import { dutchFor } from './subtitles.js';
 import { fillBars, pop } from './motion.js';
-import { renderCharacterPhone, phoneUnreadFor, OVERIG } from './phone.js';
+import { renderCharacterPhone, phoneUnreadFor, unreadInbox, OVERIG } from './phone.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const PIC = 120;
@@ -26,8 +26,16 @@ let viewer = null;
 const CSS = `
 #pause-menu .pm-vsub { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
 #pause-menu .vh-layout { display: flex; flex: 1; min-height: 0; }
-#pause-menu .vh-left { flex: 1; min-width: 0; display: flex; flex-direction: column; padding-right: 48px; min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(240,237,228,0.18) transparent; }
+#pause-menu .vh-left { flex: 1 1 46%; min-width: 0; display: flex; flex-direction: column; padding-right: 48px; min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(240,237,228,0.18) transparent; }
 #pause-menu .vh-left .m-gh { padding-left: 0; padding-top: 0; }
+#pause-menu .vh-inbox { flex: none; margin-bottom: 18px; }
+#pause-menu .vh-inbox .m-gh { padding-top: 0; }
+#pause-menu .vh-inbox-list { display: flex; flex-direction: column; gap: 2px; }
+#pause-menu .vh-inbox-item { width: 100%; text-align: left; }
+#pause-menu .vh-inbox-item .nm { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+#pause-menu .vh-inbox-item .one { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#pause-menu .vh-inbox-item .t { flex: none; font-size: 18px; color: var(--mut); }
+#pause-menu .vh-inbox-more { font-size: 18px; padding: 4px 24px 0; }
 #pause-menu .vh-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
 #pause-menu .vh-card { --spk: #3fc97a; position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 14px 8px 12px; border-radius: 8px; text-align: center; transition: background 0.2s, box-shadow 0.2s; }
 #pause-menu .vh-card:hover { background: rgba(240,237,228,0.04); }
@@ -45,8 +53,8 @@ const CSS = `
 #pause-menu .vh-name { display: flex; flex-direction: column; gap: 2px; min-width: 0; max-width: 100%; }
 #pause-menu .vh-name b { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 24px; letter-spacing: 0.05em; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #pause-menu .vh-name small { font-size: 18px; line-height: 1.2; color: var(--mut); }
-#pause-menu .vh-viewer { width: 460px; flex: none; }
-#pause-menu .vh-stage { position: relative; flex: none; height: 280px; border-radius: 12px; overflow: hidden; background: radial-gradient(ellipse at 50% 80%, rgba(240,237,228,0.07), rgba(240,237,228,0) 60%); }
+#pause-menu .vh-viewer { flex: 1 1 54%; min-width: 0; }
+#pause-menu .vh-stage { position: relative; flex: none; height: 280px; max-width: 460px; border-radius: 12px; overflow: hidden; background: radial-gradient(ellipse at 50% 80%, rgba(240,237,228,0.07), rgba(240,237,228,0) 60%); }
 #pause-menu .vh-stage canvas { width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; }
 #pause-menu .vh-stage canvas:active { cursor: grabbing; }
 #pause-menu .vh-stage[data-locked] canvas { filter: brightness(0); opacity: 0.8; cursor: default; }
@@ -102,6 +110,24 @@ function lookOf(c) {
 }
 
 const initial = (name) => esc(String(name).replace(/^(Oma|Ome|Dokter|Kapitein|Schipper|Boer|Duivenmelker|Bommen) /, '')[0] || '?');
+const initials = (name) => esc(String(name).replace(/\(.*\)/, '').trim().split(/\s+/).map((s) => s[0]).slice(0, 2).join('').toUpperCase());
+
+// #603: één zichtbare plek met alle ongelezen berichten bovenaan Verhaal > Personages. Een klik
+// opent het personage (of Overig) waar het bericht bij hoort; daar staan alle regels van oud naar
+// nieuw. Zo hoeft een gemist bericht niet per personage gezocht te worden.
+function inboxHtml() {
+  const items = worldRef ? unreadInbox(worldRef) : [];
+  const shown = items.slice(0, 6);
+  return '<div class="vh-inbox" aria-label="Berichten">' +
+    `<div class="m-gh"><span>Berichten</span><span>${items.length ? `${items.length} ongelezen · nieuwste eerst` : 'niets ongelezen'}</span></div>` +
+    (shown.length ? '<div class="vh-inbox-list">' + shown.map((m) =>
+      `<button type="button" class="m-li vh-inbox-item" data-char="${esc(m.id)}">` +
+      `<span class="av">${initials(m.from)}</span>` +
+      `<span class="nm"><span class="one">${esc(m.from)}</span><span class="mut one">${esc(m.body)}</span></span>` +
+      `<span class="t">${esc(m.at)}</span></button>`).join('') + '</div>' : '') +
+    (items.length > shown.length ? `<p class="vh-inbox-more">en ${items.length - shown.length} meer bij de personages</p>` : '') +
+    '</div>';
+}
 
 function charCard(c) {
   const met = hasMet(c.id);
@@ -186,7 +212,7 @@ function overigCard() {
 
 function peopleHtml() {
   const n = metCount();
-  return `<div class="vh-layout"><div class="vh-left"><div class="m-gh"><span>Personages</span><span>${n} van ${CHARACTERS.length} ontmoet · wie je spreekt, komt erbij</span></div><div class="vh-grid">${CHARACTERS.map(charCard).join('')}${overigCard()}</div></div><aside class="vh-viewer m-pane" aria-live="polite" aria-label="Personage"></aside></div>`;
+  return `<div class="vh-layout"><div class="vh-left">${inboxHtml()}<div class="m-gh"><span>Personages</span><span>${n} van ${CHARACTERS.length} ontmoet · wie je spreekt, komt erbij</span></div><div class="vh-grid">${CHARACTERS.map(charCard).join('')}${overigCard()}</div></div><aside class="vh-viewer m-pane" aria-live="polite" aria-label="Personage"></aside></div>`;
 }
 
 // The plakjesbord of the new story: Jelle buys Grunn up slice by slice; each slice shows how it ended.
