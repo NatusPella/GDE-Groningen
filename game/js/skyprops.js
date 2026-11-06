@@ -49,7 +49,10 @@ export function helipadInfo(map) {
   map._helipad = null;
   if (!h) return null;
   let carrier = null, top = 0;
-  for (const b of map.buildings) {
+  // #524: het gebouw onder het pad vraag je per plek op; de hele gebouwenlijst
+  // is niet nodig (het draaggebouw bevat dit punt, dus het zit in deze query).
+  const near = typeof map.buildingsNear === 'function' ? map.buildingsNear(h.x, h.y, 2) : [];
+  for (const b of near) {
     const [x0, y0, x1, y1] = b.bounds;
     if (h.x < x0 || h.x > x1 || h.y < y0 || h.y > y1 || !pointInPolygon(h.x, h.y, b.pts)) continue;
     const d = Math.max(2.4, b.h * LEVEL_HEIGHT) + (b.lift || 0);
