@@ -87,6 +87,14 @@ function detail(o, id) {
   return `<div class="pm-pane-top"><span class="m-eb">${esc(niv.enkel)}${pad ? ` · ${pad}` : ''}</span><h2 class="m-h2 td-h2">${esc(g.naam)}</h2></div>${kop}${bar}${huisHtml(o, id, v)}${blokken}`;
 }
 
+// De kop van Veroverd (#608): het getal krijgt woorden, zodat niemand hoeft te raden of het
+// gebieden, procenten of punten zijn. Puur, zodat een test hem kan natrekken.
+export function veroverdKop(sam) {
+  const klaar = Number(sam && sam.voltooid) || 0;
+  const totaal = Number(sam && sam.totaal) || 0;
+  return `<span class="mut">Gebieden:</span><span class="m-num">${klaar}</span><span class="mut">van ${totaal} veroverd</span>`;
+}
+
 // Het overzicht: { lijst, pane, totaal } als html, voor loopbaanui.js.
 export function gebiedenHtml(kies = gekozen) {
   const o = getOverzicht();
@@ -98,7 +106,7 @@ export function gebiedenHtml(kies = gekozen) {
   const lijst = `<div class="gb-groep">Kaart verkend<span class="gb-n">${o.kaart.gedaan} van ${o.kaart.totaal} buurten · ${o.kaart.pct}%</span></div>` +
     o.overzicht.map((n) => `<div class="gb-groep">${esc(n.niveau.naam)}<span class="gb-n">${n.voltooid} van ${n.gebieden.length} veroverd</span></div>` + n.gebieden.map((r) => rij(r, o.ind)).join('')).join('');
   const sam = G.samenvatting(o.profiel, o.ind);
-  return { lijst, pane: detail(o, gekozen), totaal: `<span class="m-num">${sam.voltooid}</span><span class="mut">van ${sam.totaal} gebieden veroverd</span>` };
+  return { lijst, pane: detail(o, gekozen), totaal: veroverdKop(sam) };
 }
 
 export const gekozenGebied = () => gekozen;
