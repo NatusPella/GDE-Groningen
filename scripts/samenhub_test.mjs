@@ -188,6 +188,7 @@ class Element {
     return uit(this);
   }
   get textContent() { return this.childNodes.map((c) => (c.tekst !== undefined ? c.tekst : c.textContent)).join(' '); }
+  set textContent(v) { this.childNodes = [{ tekst: String(v) }]; }
   get isConnected() { let p = this; while (p.parent) p = p.parent; return p === document; }
   addEventListener(type, f) { (this.handlers[type] ||= []).push(f); }
   removeEventListener(type, f) { this.handlers[type] = (this.handlers[type] || []).filter((x) => x !== f); }
@@ -254,7 +255,7 @@ const { mountSamenHub, hubTerug, isHubOpen, closeSamenHub } = await import('../g
 
 const knop = (root, attr, waarde) => [...root.querySelectorAll(`[${attr}]`)].find((e) => e.getAttribute(attr) === waarde);
 
-await t('de hub opent op stap 1 met de drie stappen en de drie keuzes, als echte knoppen', () => {
+await t('de hub opent op stap 1 als wizard: geen tabsemantiek, wel een statusregel en één zichtbare stap (#571)', () => {
   closeSamenHub();
   const root = document.createElement('div');
   const keuzes = [];
@@ -264,9 +265,23 @@ await t('de hub opent op stap 1 met de drie stappen en de drie keuzes, als echte
   assert.deepEqual(stappen.map((b) => b.getAttribute('data-hub-stap')), ['waar', 'metwie', 'start']);
   for (const b of stappen) {
     assert.equal(b.tagName, 'BUTTON', 'een stap is een echte knop, dus ook met de controller te kiezen');
-    assert.equal(b.getAttribute('role'), 'tab');
+    assert.equal(b.getAttribute('role'), null, 'geen tabrol: dit is een wizard met één zichtbare stap');
+    assert.equal(b.getAttribute('aria-controls'), null, 'en dus geen tabpanel om naar te verwijzen');
   }
-  assert.equal(stappen[0].getAttribute('aria-selected'), 'true', 'de hub opent op Waar speel je');
+  assert.equal(stappen[0].getAttribute('aria-current'), 'step', 'de hub opent op Waar speel je');
+  assert.deepEqual(stappen.slice(1).map((b) => b.getAttribute('aria-current')), ['false', 'false'], 'de andere stappen zijn niet de huidige');
+  const groep = root.querySelector('.pm-hub-stappen');
+  assert.equal(groep.getAttribute('role'), 'group', 'de stappen zijn een groep knoppen, geen tablist');
+  assert.equal(groep.getAttribute('aria-label'), 'Stappen van Samen spelen');
+  assert.equal(root.querySelector('[role="tablist"]'), null, 'nergens een tablist zonder panelen');
+  assert.equal(root.querySelector('[role="tabpanel"]'), null, 'en geen tabpanel dat niet bestaat');
+  assert.equal(root.querySelectorAll('.pm-hub-inhoud').length, 1, 'één zichtbare stap inhoud');
+  const teller = root.querySelector('.pm-hub-teller');
+  assert.equal(teller.getAttribute('role'), 'status', 'de teller kondigt de stapwissel aan');
+  assert.equal(teller.getAttribute('aria-live'), 'polite');
+  assert.equal(teller.getAttribute('id'), 'pm-hub-teller');
+  assert.match(teller.textContent, /Stap 1 van 3/, 'de teller noemt de stap');
+  assert.equal(root.querySelector('.pm-hub-inhoud').getAttribute('aria-labelledby'), 'pm-hub-teller', 'de inhoud hangt aan de teller');
   const k = root.querySelectorAll('[data-hub-keuze]').map((b) => b.getAttribute('data-hub-keuze'));
   assert.deepEqual(k, [ACT.MEEDOEN, ACT.HOSTEN, ACT.BESLOTEN]);
   assert.match(root.innerHTML, /Waar speel je/, 'de speler ziet de vraag');
@@ -279,6 +294,8 @@ await t('de drie stappen zijn met het toetsenbord te bereiken en te openen (Tab 
   const root = document.createElement('div');
   document.body.appendChild(root);
   mountSamenHub(root, {});
+  const teller = root.querySelector('.pm-hub-teller');
+  assert.equal(teller.getAttribute('role'), 'status', 'de statusregel staat er vanaf het begin, zodat een schermlezer de wissel hoort');
   const gezien = [];
   for (let i = 0; i < 3; i++) {
     // na elke klik tekent de hub opnieuw, dus de knoppen worden elke ronde vers opgehaald
@@ -289,8 +306,9 @@ await t('de drie stappen zijn met het toetsenbord te bereiken en te openen (Tab 
     assert.equal(document.activeElement.getAttribute('data-hub-stap'), doel.getAttribute('data-hub-stap'), 'de focus blijft op de gekozen stap staan na het hertekenen (anders begint het toetsenbord weer bovenaan)');
     gezien.push(doel.getAttribute('data-hub-stap'));
     const nu = root.querySelectorAll('[data-hub-stap]')[i];
-    assert.equal(nu.getAttribute('aria-selected'), 'true', `stap ${i + 1} is geopend met het toetsenbord`);
-    assert.match(root.innerHTML, new RegExp(`Stap ${i + 1} van 3`), 'de teller volgt de stap');
+    assert.equal(nu.getAttribute('aria-current'), 'step', `stap ${i + 1} is geopend met het toetsenbord`);
+    assert.equal(root.querySelector('.pm-hub-teller'), teller, 'de statusregel blijft dezelfde knoop: alleen de tekst wisselt, zodat de schermlezer hem aankondigt');
+    assert.match(teller.textContent, new RegExp(`Stap ${i + 1} van 3`), 'de teller volgt de stap');
   }
   assert.deepEqual(gezien, ['waar', 'metwie', 'start'], 'alle drie de stappen komen langs');
   document.body.removeChild(root);

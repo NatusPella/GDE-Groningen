@@ -46,15 +46,35 @@ export function mountSamenHub(root, opts = {}, stap = STAP.WAAR) {
 
   const teken = () => {
     const v = hubView(nu, opts);
+    const stap = STAPPEN.find((s) => s.id === nu) || {};
     tree.classList.add('pm-hub');
-    tree.innerHTML = `
-      <div class="pm-hub-stappen" role="tablist" aria-label="Samen spelen">
-        ${STAPPEN.map((s, i) => `<button type="button" role="tab" class="m-tab pm-hub-stap" data-hub-stap="${s.id}" aria-selected="${s.id === nu}"><span class="pm-hub-nr">${i + 1}</span>${esc(s.label)}</button>`).join('')}
-      </div>
-      <p class="pm-hub-teller mut">Stap ${v.nummer} van ${v.totaal}: ${esc((STAPPEN.find((s) => s.id === nu) || {}).hint || '')}</p>
-      ${nu === STAP.WAAR ? keuzes(v) : nu === STAP.METWIE ? rijen(v) : ''}
+    // De stappen zijn een wizard, geen tabs (#571): er is één zichtbare stap en de teller is een
+    // statusregel die de wissel aankondigt. aria-current="step" markeert waar je staat; role="tab"
+    // zou panelen beloven die er niet zijn, en "tabpanel" past niet bij één zichtbare stap.
+    for (const b of tree.querySelectorAll('[data-hub-stap]')) {
+      b.setAttribute('aria-current', b.getAttribute('data-hub-stap') === nu ? 'step' : 'false');
+    }
+    const teller = tree.querySelector('.pm-hub-teller');
+    if (teller) teller.textContent = `Stap ${v.nummer} van ${v.totaal}: ${stap.hint || ''}`;
+    const inhoud = tree.querySelector('.pm-hub-inhoud');
+    if (inhoud) {
+      inhoud.innerHTML = `${nu === STAP.WAAR ? keuzes(v) : nu === STAP.METWIE ? rijen(v) : ''}
       <p class="pm-hub-uitleg">${esc(v.uitleg || '')}</p>
       <div class="pm-hub-knoppen">${knoppen(v)}</div>`;
+    }
+  };
+
+  // Het geraamte komt één keer in de boom: de statusregel en de inhoud wisselen van tekst, maar
+  // worden niet vervangen. Een schermlezer hoort daardoor de stapwissel, en de focus blijft op de
+  // gekozen stapknop staan (zonder dit begint het toetsenbord na elke stap weer bovenaan).
+  const bouw = () => {
+    tree.classList.add('pm-hub');
+    tree.innerHTML = `
+      <div class="pm-hub-stappen" role="group" aria-label="Stappen van Samen spelen">
+        ${STAPPEN.map((s, i) => `<button type="button" class="m-tab pm-hub-stap" data-hub-stap="${s.id}"${s.id === nu ? ' aria-current="step"' : ' aria-current="false"'}><span class="pm-hub-nr">${i + 1}</span>${esc(s.label)}</button>`).join('')}
+      </div>
+      <p class="pm-hub-teller mut" id="pm-hub-teller" role="status" aria-live="polite"></p>
+      <div class="pm-hub-inhoud" aria-labelledby="pm-hub-teller"></div>`;
   };
 
   // De hub tekent zichzelf opnieuw bij elke stap. In een browser verdwijnt daarmee de focus (de knop wordt
@@ -99,6 +119,7 @@ export function mountSamenHub(root, opts = {}, stap = STAP.WAAR) {
     tree.innerHTML = '';
   };
   open = { zet, stap: () => nu, close: sluit };
+  bouw();
   teken();
   return { stap: () => nu, zet, close: sluit };
 }
