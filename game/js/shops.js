@@ -412,7 +412,12 @@ export function initShops(world) {
     const p = placeJetty(map, street, horeca, placed);
     if (p && !placed.some((q) => q.type === 'boot' && dist(q.x, q.y, p.x, p.y) < 150)) placed.push({ ...p, type: 'boot', wijk: street });
   }
-  const eikea = map.buildings.find((b) => b.landmark === 'EIKEA');
+  // #524: het EIKEA-pand vraag je op rond het landmark uit de meta (de kaart
+  // heeft dat punt en het gebouw bevat het), niet door de hele gebouwenlijst.
+  const eikeaLm = ((map.meta && map.meta.landmarks) || []).find((l) => l.name === 'EIKEA');
+  const eikea = eikeaLm && typeof map.buildingsNear === 'function'
+    ? (map.buildingsNear(eikeaLm.x, eikeaLm.y, 2).find((b) => b.landmark === 'EIKEA') || null)
+    : null;
   if (eikea) {
     const cx = eikea.pts.reduce((a, q) => a + q[0], 0) / eikea.pts.length, cy = eikea.pts.reduce((a, q) => a + q[1], 0) / eikea.pts.length;
     const p = placeAtPoi(map, { x: cx, y: cy }, horeca, placed);
