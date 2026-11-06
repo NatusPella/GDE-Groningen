@@ -30,11 +30,17 @@ export function runCoopLoad(world, n, { stop, save, load }) {
 // Herstarten of afsluiten tijdens Samen spelen (#492, wi-492-saves): dezelfde volgorde als bij laden.
 // Eerst eindigt de sessie, zodat de anderen 'spel gestopt' horen in plaats van een weggevallen
 // verbinding; daarna wordt de huidige voortgang bewaard; en pas dan wordt herladen of gesloten.
-// `save` mag null zijn (niets te bewaren) en `go` doet de herstart of het sluiten. Een fout in stop
-// of save houdt de herstart niet tegen: de vorige save blijft dan staan, net als in het oude pad.
+// `save` mag null zijn (niets te bewaren) en `go` doet de herstart of het sluiten. Mislukt het
+// bewaren, dan gebeurt `go` niet (#563): het spel blijft open met de melding en de keuze om het
+// opnieuw te proberen of toch te sluiten, zodat de knop "Slaat op en sluit het spel" niet liegt.
+// Alleen een save die echt `false` teruggeeft telt als mislukt; `undefined` is "niets te bewaren".
 export function runCoopStop(world, { stop, save = null, go }) {
   if (world && world.coopNet) { try { stop(world); } catch (e) { /* de sessie was al weg */ } }
-  if (save) { try { save(world); } catch (e) { /* de vorige save blijft staan */ } }
+  if (save) {
+    let saved = true;
+    try { saved = save(world) !== false; } catch (e) { saved = false; }
+    if (!saved) return { ok: false, reason: 'save' };
+  }
   go();
   return { ok: true };
 }
