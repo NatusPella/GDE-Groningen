@@ -630,7 +630,9 @@ export function heistEnterStage(world, st, S, k) {
 }
 
 // A stage is left (passed or skipped): doors it opens, lasers it switches off.
-export function heistLeaveStage(world, st) {
+// `credit: false` when the player skipped the stage with O (#591): the stage is left the same way,
+// but the loot point of a role stage is not handed out for work that was not done.
+export function heistLeaveStage(world, st, { credit = true } = {}) {
   if (!H || !st) return;
   if (st.opens) openHeistDoor(st.opens);
   if (st.kind === 'plan') finishPlan(world, H.approach);
@@ -641,8 +643,10 @@ export function heistLeaveStage(world, st) {
   if (st.kind === 'scene' && st.reveal) revealCase();
   if (isRolstap(st.kind)) {
     // de rolhouder rondde zijn stuk af: dat is zijn punt voor de buit (#438)
-    const houder = houderVan(rolVerdeling(world), st.kind);
-    if (houder && H) rolPunt(H.punten, houder.slot);
+    if (credit) {
+      const houder = houderVan(rolVerdeling(world), st.kind);
+      if (houder && H) rolPunt(H.punten, houder.slot);
+    }
     beginRolstap(world, null); world.coopHeistDial = null; UI.roleChip('');
   }
   world.missionPrompt = null;
