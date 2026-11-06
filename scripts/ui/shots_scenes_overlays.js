@@ -212,9 +212,9 @@ if (want('bus')) {
 }
 if (want('menus')) {
   // #34: subtabs en schermen die de basisscenes niet vangen
-  for (const [name, tab, sub] of [['aanwijzingen', 'verhaal', 'aanwijzingen'], ['personages', 'verhaal', 'personages'], ['controller', 'controls', 'knoppen'], ['toetsenoverzicht', 'controls', 'overzicht'], ['instellingen-interface', 'settings', 'display'], ['berichten', 'telefoon', 'berichten'], ['todo-alles', 'todo', 'alles']]) {
+  for (const [name, tab, sub] of [['aanwijzingen', 'verhaal', 'aanwijzingen'], ['personages', 'verhaal', 'personages'], ['controller', 'controls', 'knoppen'], ['toetsenoverzicht', 'controls', 'overzicht'], ['aanraken', 'controls', 'aanraken'], ['instellingen-interface', 'settings', 'display'], ['berichten', 'telefoon', 'berichten'], ['problemen', 'over', null], ['todo-alles', 'todo', 'alles']]) {
     teleport(...P(100, 77));
-    PM.openPauseMenu(tab, { sub });
+    PM.openPauseMenu(tab, sub ? { sub } : {});
     await shot('menu-' + name, 1500);
     PM.closePauseMenu();
     done.push('menu-' + name);

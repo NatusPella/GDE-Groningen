@@ -41,7 +41,7 @@ t('Besturing en Spullen gebruiken dezelfde regel', () => {
   assert.match(pm, /import \{ woordenVan, past \} from '\.\/zoektekst\.js'/, 'pausemenu gebruikt de gedeelde regel');
   assert.match(pm, /const words = woordenVan\(q\)/, 'de zoekopdracht wordt op dezelfde manier geknipt');
   assert.match(pm, /const hit = past\(r\.dataset\.search, words\)/, 'de toetsenrijen zoeken met dezelfde regel');
-  assert.match(pm, /n = past\(g\.textContent, words\)/, 'de hulpteksten ook');
+  assert.match(pm, /const hit = past\(g\.textContent, words\)|n = past\(g\.textContent, words\)/, 'de hulpteksten ook');
   assert.match(pm, /filterBinds\(words\)/, 'dezelfde woorden gaan naar Toetsenbord en muis én Controller (#435)');
   const sp = lees('spullen.js');
   assert.match(sp, /import \{ woordenVan, past \} from '\.\/zoektekst\.js'/);
