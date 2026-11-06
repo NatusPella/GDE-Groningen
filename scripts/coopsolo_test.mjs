@@ -110,6 +110,17 @@ t('ADR 0024: ruimte voor alleen plek 0, niets naar buiten', () => {
   stopSoloHost(w);
 });
 
+// #567: de ping-tak draaide vóór de solo-vroege-terugkeer; 7/8/9 zette daardoor een baken in je eentje.
+t('#567: 7/8/9 zet in een sessie van één geen baken', () => {
+  const w = mkWorld({ input: { axis: () => [0, 0], isDown: () => false, wasPressed: (k) => k === '7' } });
+  startSoloHost(w, { info: INFO, seed: 7 });
+  for (let i = 0; i < 30; i++) { w.time += 1 / 60; N.tickCoopNet(w, 1 / 60); }
+  assert.deepEqual(w.coopPingMarks, [], 'geen baken: er is niemand om het te zien');
+  assert.equal(w.coopPings.lijst.length, 0, 'en geen ping in de lijst');
+  assert.ok(!w.messages.some((m) => /Je riep/.test(m)), 'en geen melding alsof er iemand meespeelt');
+  stopSoloHost(w);
+});
+
 t('ADR 0024: een echte sessie stopt de solo-sessie voor hij begint', () => {
   // main.js: wie Samen spelen opent, stopt eerst de sessie van één (pauzemenu, hoofdmenu, openbare lijst).
   const w = mkWorld();
