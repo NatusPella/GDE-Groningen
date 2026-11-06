@@ -11,6 +11,7 @@ import * as WT from './werktuigen.js';
 import { fillBars } from './motion.js';
 import { setUserWaypoint } from './routing.js';
 import { wgsToWorld } from './rdnew.js';
+import { sfeerVan, sfeerStijl, sfeerBandHtml, SFEER_BAND_CSS } from './carrieresfeer.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const euro = (n) => `€${Math.round(n).toLocaleString('nl-NL')}`;
@@ -29,15 +30,25 @@ const ICOON = {
 const ONDERDELEN = [['perceel', 'Perceel'], ['percelen', 'Percelen'], ['erf', 'Erf'], ['gewas', 'Gewas'], ['machines', 'Machines'], ['kas', 'Kasboek'], ['bank', 'Bank']];
 const icoon = (n, cls = 'pa-ico') => `<span class="${cls}"><svg viewBox="0 0 24 24" aria-hidden="true">${ICOON[n]}</svg></span>`;
 
-const CSS = `
+// De boerderij hoort bij het vak Landbouw en draagt dezelfde sfeerband als Loopbanen (#492, #609).
+const SFEER = 'landbouw';
+const band = () => sfeerBandHtml(SFEER, { icoon: icoon('machines', 'lb-sfeer-ico'), klein: 'Bij Hoogkerk' });
+
+const CSS = `${SFEER_BAND_CSS}
 .bd-pane .pa-ico svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .m-pane.bd-pane { gap: 12px; }
 .bd-pane p { margin: 4px 0; }
 .bd-voort { display: flex; align-items: center; gap: 14px; margin: 4px 0; }
 .bd-voort .m-bar { flex: 1; max-width: 360px; height: 6px; }
-.bd-rij { display: flex; align-items: center; gap: 16px; padding: 10px 0; border-bottom: 1px solid rgba(240,237,228,0.08); max-width: 720px; }
+.bd-rij { display: flex; align-items: center; gap: 16px; padding: 10px 0; border-bottom: 1px solid var(--line); max-width: 720px; }
 .bd-rij .bd-naam { flex: 1; }
-.bd-rij .mut { font-size: 16px; }
+.bd-rij .mut { font-size: 18px; }
+/* de feiten van een rij in kolommen naast elkaar (#609): geen lange prozaregel meer */
+.bd-feiten { display: flex; flex-wrap: wrap; gap: 2px 18px; margin-top: 2px; font-size: 18px; color: var(--mut); }
+.bd-feiten > span { white-space: nowrap; }
+/* de toetsen van het land naast de handeling, als echte toetsplaatjes (#609) */
+.bd-toetsen { display: flex; flex-wrap: wrap; gap: 8px 22px; align-items: center; margin: 8px 0; font-size: 18px; color: var(--mut); }
+.bd-toetsen > span { display: inline-flex; align-items: center; gap: 8px; }
 .bd-keus.aan { box-shadow: inset 0 0 0 2px var(--g, #3fc97a); }
 .bd-kas { display: grid; grid-template-columns: auto auto; gap: 6px 36px; justify-content: start; margin: 4px 0; }
 .bd-kas span:nth-child(odd) { opacity: 0.7; }
@@ -79,8 +90,8 @@ function perceel(b, geld) {
     `<div><p>${volgende ? `Volgende klus: <b>${esc(volgende)}</b>${k && k.totaal ? ` (kost ${euro(k.totaal)})` : ''}.` : wacht ? 'Nu is er niets te doen: het gewas groeit.' : 'Nu is er niets te doen.'}</p>` +
     (s.schuurKg ? `<p>In de schuur: ${nl(s.schuurKg)} kg ${esc(B.GEWASSEN[s.schuurGewas].naam.toLowerCase())}, klaar om af te leveren.</p>` : '') +
     `<p class="mut">${waar}</p></div>` +
-    (gast ? `<p class="mut">Je speelt mee in het spel van een ander. De klussen op het land (de trekker) doe je in je eigen spel; je gewas groeit ondertussen gewoon door, en je kunt gewassen kiezen en machines kopen.</p><p><button type="button" class="m-bt" data-bd-weg="1">Zet de akker op je kaart</button></p>`
-      : `<p class="mut">Werk zelf op het land met je eigen trekker en werktuigen (koop of huur ze onder Machines), of start de bijbaan Eigen boerderij bij Hoogkerk (zie de kaart) voor loonwerk met een gehuurde machine. Het gewas groeit in speltijd, ook als je iets anders doet.</p>`) +
+    (gast ? `<p class="mut">Je speelt mee in het spel van een ander: de klussen op het land doe je in je eigen spel. Je gewas groeit ondertussen door, en gewassen kiezen en machines kopen kan hier wel.</p><p><button type="button" class="m-bt" data-bd-weg="1">Zet de akker op je kaart</button></p>`
+      : `<p class="mut">Werk zelf op het land met je eigen trekker en werktuigen, of start de bijbaan Eigen boerderij bij Hoogkerk voor loonwerk met een gehuurde machine.</p>`) +
     veldenBlok(b) + loonwerkBlok(b, geld, gast);
 }
 
@@ -91,7 +102,8 @@ function veldenBlok(b) {
     const d = PC.perceelDef(v.id), actief = v.id === b.bedrijf.actief;
     const g = B.GEWASSEN[v.gewas];
     const bk = b.boek.velden[v.id];
-    return `<div class="bd-rij"><span class="bd-naam"><b>${esc(d.naam)}</b>${actief ? ' · werkt hier' : ''}<span class="mut"> · ${esc(FASE_KORT[v.fase] || v.fase)}${g ? ` · ${esc(g.naam.toLowerCase())}${v.fase === 'groeit' ? ` ${Math.round(v.groei * 100)}%` : ''}` : ''}${B.uitputting(b, v.id) > 0.01 ? ` · grond ${Math.round((1 - B.uitputting(b, v.id)) * 100)}%` : ''}${bk ? ` · ${nl(bk.kg)} kg geoogst` : ''}</span></span></div>`;
+    const feiten = [esc(FASE_KORT[v.fase] || v.fase), g ? `${esc(g.naam.toLowerCase())}${v.fase === 'groeit' ? ` ${Math.round(v.groei * 100)}%` : ''}` : '', B.uitputting(b, v.id) > 0.01 ? `grond ${Math.round((1 - B.uitputting(b, v.id)) * 100)}%` : '', bk ? `${nl(bk.kg)} kg geoogst` : ''].filter(Boolean).map((x) => `<span>${x}</span>`).join('');
+    return `<div class="bd-rij"><span class="bd-naam"><b>${esc(d.naam)}</b>${actief ? ' · werkt hier' : ''}<span class="bd-feiten">${feiten}</span></span></div>`;
   }).join('');
   return `<div><p class="lb-titel"><b>Je percelen</b></p>${rijen}</div>`;
 }
@@ -117,7 +129,17 @@ function gewas(b) {
     const g = B.GEWASSEN[id];
     const m = s.prijzen[id] || { prijs: g.prijsKg, trend: 'gelijk' };
     const aan = gekozen === id;
-    return `<div class="bd-rij"><span class="bd-naam"><b>${esc(g.naam)}</b><span class="mut"> · ${cent(m.prijs)} per kg vandaag, ${esc(TREND_TEKST[m.trend] || TREND_TEKST.gelijk)} · zaaigoed ${euro(g.zaaigoed)} · rijp na ${g.groeiUren} speluren · ${nl(g.kgBasis)} kg per perceel · ${esc(g.afnemer)} · ${g.soort === 'weiland' ? 'alleen op weiland' : 'op akkers'}</span></span>` +
+    // de feiten van een gewas als kolommen, niet als één lange zin (#609)
+    const feiten = [
+      `${cent(m.prijs)} per kg vandaag`,
+      esc(TREND_TEKST[m.trend] || TREND_TEKST.gelijk),
+      `zaaigoed ${euro(g.zaaigoed)}`,
+      `rijp na ${g.groeiUren} speluren`,
+      `${nl(g.kgBasis)} kg per perceel`,
+      esc(g.afnemer),
+      g.soort === 'weiland' ? 'alleen op weiland' : 'op akkers',
+    ].map((x) => `<span>${x}</span>`).join('');
+    return `<div class="bd-rij"><span class="bd-naam"><b>${esc(g.naam)}</b><span class="bd-feiten">${feiten}</span></span>` +
       `<button type="button" class="m-bt bd-keus${aan ? ' aan' : ''}" data-bd-gewas="${id}" aria-pressed="${aan}">${aan ? 'Gekozen' : 'Kies'}</button></div>`;
   }).join('');
   // Het plan per perceel: welk gewas er bij het volgende zaaien in de grond gaat en wat het vandaag per kilo opbrengt.
@@ -126,7 +148,7 @@ function gewas(b) {
     return `<div class="bd-rij"><span class="bd-naam"><b>${esc(d.naam)}</b>${v.id === b.bedrijf.actief ? ' · werkt hier' : ''}<span class="mut"> · plan: ${esc(g.naam)} · ${cent(m.prijs)} per kg vandaag${d.soort === 'weiland' ? ' · weiland' : ''}</span></span></div>`;
   }).join('');
   return `<div class="pm-pane-top"><span class="m-eb">Boerderij De Zonnehoek</span><h2 class="m-h2 td-h2">${icoon('gewas', 'pa-ico big')}Gewas</h2></div>` +
-    `<p class="mut">Je teeltplan is het gewas dat je bij het volgende zaaien in de grond doet, per perceel. Kies je een gewas, dan geldt het voor het perceel waar je werkt; de andere percelen houden hun eigen plan. Wat er al groeit blijft zoals het is. Op een weiland teel je gras, op een akker de akkerbouwgewassen. De prijs per kilo kan per speldag veranderen, hooguit twintig procent boven of onder de basisprijs; je verkoopt tegen de prijs van de dag dat je aflevert.</p>` +
+    `<p class="mut">Je teeltplan is het gewas dat bij het volgende zaaien in de grond gaat, per perceel. De dagprijs kan per speldag veranderen; je verkoopt tegen de prijs van de dag dat je aflevert.</p>` +
     `<p class="lb-titel"><b>Je teeltplan</b></p>${plannen}` +
     `<p class="lb-titel"><b>Gewassen</b></p>${rijen}` +
     contractenBlok();
@@ -148,7 +170,7 @@ function contractenBlok() {
     return `<div class="bd-rij"><span class="bd-naam"><b>${esc(B.GEWASSEN[c.gewas].naam)}</b><span class="mut"> · ${nl(c.geleverd)} van ${nl(c.kg)} kg · nog ${over} speluren · bonus ${euro(c.bonus)}</span></span></div>`;
   }).join('') || '<p class="mut">Je hebt nog geen contract aangenomen.</p>';
   return `<div><p class="lb-titel"><b>Contracten</b> <span class="mut">· speldag ${k.dag + 1}</span></p>` +
-    '<p class="mut">De afnemers vragen deze speldag om een vracht van een gewas. De kilo\'s tellen mee als je dat gewas aflevert; een vol contract betaalt de bonus bovenop de dagprijs. De tijd loopt in speluren, en een contract dat verloopt kost je niets.</p>' +
+    '<p class="mut">De afnemers vragen deze speldag om een vracht van een gewas; de kilo\'s tellen mee als je dat gewas aflevert. Een vol contract betaalt de bonus bovenop de dagprijs, en een contract dat verloopt kost je niets.</p>' +
     `<p class="lb-titel"><b>Aanbod van vandaag</b></p>${aanbod}` +
     `<p class="lb-titel"><b>Lopend</b></p>${actief}` +
     `<p class="bd-melding" aria-live="polite">${esc(melding)}</p></div>`;
@@ -165,7 +187,6 @@ function machinepark(b, geld) {
   const rijen = eigen.map((m) => {
     const c = PC.MACHINE_CATALOGUS[m.type], isM = c.soort === 'machine';
     const staat = `${M.staat(m)} (slijtage ${Math.round(m.slijtage)}%)`;
-    const wat = isM ? `diesel ${pct(M.brandstofPct(m))} · ${staat}` : staat;
     const erfNaam = PC.erfDef(m.erf).naam;
     const bezit = m.bezit === 'gehuurd' ? `gehuurd, ${euro(c.huurDag)} per dag${m.achterstand ? ' · <b>achterstand</b>' : ''}` : 'van jou';
     const ob = M.onderhoudKosten(m);
@@ -173,24 +194,27 @@ function machinepark(b, geld) {
       ob > 0 ? knop('onderhoud', `Onderhoudsbeurt ${euro(ob)}`, { uid: m.uid }, geld < ob) : '',
       m.bezit === 'gehuurd' ? knop('terug', 'Breng terug', { uid: m.uid }) : knop('verkoop', `Verkoop ${euro(M.verkoopWaarde(m))}`, { uid: m.uid }),
     ].filter(Boolean).join(' ');
-    return `<div class="bd-rij bd-pc"><span class="bd-naam"><b>${esc(c.naam)}</b><span class="mut"> · ${esc(wat)} · ${bezit} · op ${esc(erfNaam)}</span></span><span class="bd-acties">${knoppen}</span></div>`;
+    const feiten = [isM ? `diesel ${pct(M.brandstofPct(m))}` : '', staat, bezit, `op ${esc(erfNaam)}`].filter(Boolean).map((x) => `<span>${x}</span>`).join('');
+    return `<div class="bd-rij bd-pc"><span class="bd-naam"><b>${esc(c.naam)}</b><span class="bd-feiten">${feiten}</span></span><span class="bd-acties">${knoppen}</span></div>`;
   }).join('') || '<p class="mut">Je hebt nog geen machines of werktuigen. Koop of huur ze hieronder: ze staan op je thuis.</p>';
   const vrij = PC.vrijePlekken(bd, bd.thuis);
   const cat = (ids) => ids.map((id) => {
     const c = PC.MACHINE_CATALOGUS[id];
-    const extra = c.soort === 'machine' ? `${c.pk} pk · tank ${M.SPEC[id].tank} liter` : (WT.WERKTUIG[c.type].taak ? `voor ${B.TAKEN[WT.WERKTUIG[c.type].taak].naam.toLowerCase()}` : 'vervoert de oogst');
+    const feiten = c.soort === 'machine' ? [`${c.pk} pk`, `tank ${M.SPEC[id].tank} liter`] : (WT.WERKTUIG[c.type].taak ? [`voor ${B.TAKEN[WT.WERKTUIG[c.type].taak].naam.toLowerCase()}`] : ['vervoert de oogst']);
     const k = knop('koop-cat', `Koop ${euro(c.koop)}`, { type: id }, geld < c.koop || vrij <= 0), h = knop('huur-cat', `Huur ${euro(c.huurDag)} per dag`, { type: id }, geld < c.huurDag || vrij <= 0);
-    return `<div class="bd-rij bd-pc"><span class="bd-naam"><b>${esc(c.naam)}</b><span class="mut"> · ${esc(extra)}</span></span><span class="bd-acties">${k} ${h}</span></div>`;
+    return `<div class="bd-rij bd-pc"><span class="bd-naam"><b>${esc(c.naam)}</b><span class="bd-feiten">${feiten.map((x) => `<span>${x}</span>`).join('')}</span></span><span class="bd-acties">${k} ${h}</span></div>`;
   }).join('');
   const ploegen = B.MACHINE_IDS.map((id) => {
     const m = B.MACHINES[id];
     const e = b.machines[id] === 'eigen';
     const taken = m.taken.map((t) => B.TAKEN[t].naam.toLowerCase()).join(' en ');
-    return `<div class="bd-rij"><span class="bd-naam"><b>${esc(m.naam)}</b><span class="mut"> · ${esc(taken)} · ${e ? 'van jou: geen huur en een ruimere rij' : `gehuurd, ${euro(m.huur)} per keer`}</span></span>` +
+    const feiten = [esc(taken), e ? 'van jou: geen huur en een ruimere rij' : `gehuurd, ${euro(m.huur)} per keer`].map((x) => `<span>${x}</span>`).join('');
+    return `<div class="bd-rij"><span class="bd-naam"><b>${esc(m.naam)}</b><span class="bd-feiten">${feiten}</span></span>` +
       (e ? '<span class="g">Van jou</span>' : `<button type="button" class="m-bt" data-bd-koop="${id}"${geld >= m.koop ? '' : ' disabled'}>Koop ${euro(m.koop)}</button>`) + '</div>';
   }).join('');
   return `<div class="pm-pane-top"><span class="m-eb">Boerderij De Zonnehoek</span><h2 class="m-h2 td-h2">${icoon('machines', 'pa-ico big')}Machines</h2></div>` +
-    `<p class="mut">Je machines en werktuigen staan op je thuis, ${esc(thuis.naam)} (nog ${vrij} plekken vrij). In de wereld stap je in een trekker met E; E koppelt een werktuig dat vlakbij staat, G zet de aftakas aan of uit, T hef omhoog of omlaag, X koppelt los en R tankt diesel bij het dieselvat van je erf of een pomp. Slijt een machine, dan rijdt hij trager en gebruikt hij meer diesel: een onderhoudsbeurt helpt.</p>` +
+    `<p class="mut">Je machines en werktuigen staan op je thuis, ${esc(thuis.naam)} (nog ${vrij} plekken vrij). Een versleten machine rijdt trager en gebruikt meer diesel; een onderhoudsbeurt helpt.</p>` +
+    `<div class="bd-toetsen">${[['E', 'instappen of koppelen'], ['G', 'aftakas'], ['T', 'heffen'], ['X', 'loskoppelen'], ['R', 'tanken']].map(([k, t]) => `<span><span class="m-kc">${k}</span>${t}</span>`).join('')}</div>` +
     `<p class="lb-titel"><b>Je machinepark</b></p>${rijen}` +
     `<p class="lb-titel"><b>Machines</b></p>${cat(PC_MACHINES())}<p class="lb-titel"><b>Werktuigen</b></p>${cat(PC_WERKTUIGEN())}` +
     `<p class="lb-titel"><b>Voor het loonwerk van de bijbaan</b></p><p class="mut">De bijbaan Eigen boerderij huurt een machine per klus; koop je hem, dan werk je zonder huur en met meer ruimte in de rij.</p>${ploegen}` +
@@ -233,10 +257,12 @@ function percelen(b, geld) {
   const rijen = PC.overzichtPercelen(bd).map((s) => {
     const d = s.def;
     const wat = s.van === 'jou' ? (s.status === 'gehuurd' ? `gehuurd per ${s.betaling}` : 'van jou') : 'van ' + d.eigenaar;
-    return `<div class="bd-rij bd-pc"><span class="bd-naam"><b>${esc(d.naam)}</b><span class="mut"> · ${d.soort === 'akker' ? 'akker' : 'weiland'} · ${String(d.ha).replace('.', ',')} ha · bodem ${PC.bodemNaam(d.bodem)} · ${esc(d.plaats)} · ${esc(wat)}</span></span><span class="bd-acties">${acties(s, 'perceel', d.id, geld)}</span></div>`;
+    const feiten = [d.soort === 'akker' ? 'akker' : 'weiland', `${String(d.ha).replace('.', ',')} ha`, `bodem ${PC.bodemNaam(d.bodem)}`, esc(d.plaats), esc(wat)].map((x) => `<span>${x}</span>`).join('');
+    return `<div class="bd-rij bd-pc"><span class="bd-naam"><b>${esc(d.naam)}</b><span class="bd-feiten">${feiten}</span></span><span class="bd-acties">${acties(s, 'perceel', d.id, geld)}</span></div>`;
   }).join('');
   return `<div class="pm-pane-top"><span class="m-eb">Boerderij De Zonnehoek</span><h2 class="m-h2 td-h2">${icoon('percelen', 'pa-ico big')}Percelen</h2></div>` + bedrijfRegel(bd) +
-    `<p class="mut">Koop of huur akkers en weilanden bij Hoogkerk, Zuidhorn en Winsum. Betaal je de huur te laat (twee periodes mis), dan gaat het perceel terug naar de verhuurder. Goede bodem geeft meer oogst. De bijbaan werkt op het perceel waar je Werk hier koos. Bieten rooien hoort bij je eigen boerderij: zodra je akker vastligt, valt het losse loonwerk (bietenoogst) weg en oogst je je bieten hier.</p>${rijen}<p class="bd-melding" aria-live="polite">${esc(melding)}</p>`;
+    `<p class="mut">Koop of huur akkers en weilanden bij Hoogkerk, Zuidhorn en Winsum. Betaal je de huur te laat, dan gaat het perceel terug naar de verhuurder.</p>${rijen}` +
+    '<p class="mut">Bieten rooien hoort bij je eigen boerderij: met een akker vervalt het losse loonwerk en oogst je je bieten hier.</p><p class="bd-melding" aria-live="polite">' + esc(melding) + '</p>';
 }
 
 function erf(b, geld) {
@@ -248,12 +274,14 @@ function erf(b, geld) {
     const wat = jou ? (s.status === 'gehuurd' ? `gehuurd per ${s.betaling}` : 'van jou') : 'van ' + d.eigenaar;
     const opslag = jou ? Object.entries(bd.opslag[d.id] || {}).map(([g, kg]) => `${nl(kg)} kg ${esc(B.GEWASSEN[g] ? B.GEWASSEN[g].naam.toLowerCase() : g)}`).join(', ') : '';
     const machs = jou ? PC.machinesOp(bd, d.id).length : 0;
-    const extra = jou ? `<br><span class="mut">Opslag ${nl(PC.opslagGebruikt(bd, d.id))} van ${nl(d.opslagKg)} kg${opslag ? ': ' + opslag : ''} · machineplekken ${machs} van ${d.machinePlekken}</span>` : '';
+    const feiten = [esc(gebouwen), `${d.machinePlekken} plekken voor machines`, esc(d.plaats), esc(wat)].map((x) => `<span>${x}</span>`).join('');
+    const extra = jou ? `<span class="bd-feiten">Opslag ${nl(PC.opslagGebruikt(bd, d.id))} van ${nl(d.opslagKg)} kg${opslag ? ': ' + opslag : ''} · machineplekken ${machs} van ${d.machinePlekken}</span>` : '';
     const opslagKnoppen = jou ? ' ' + (bd.thuis === d.id && b.schuur.kg > 0 ? `<button type="button" class="m-bt" data-pc="inschuur">Oogst uit de schuur opslaan</button>` : '') + Object.keys(bd.opslag[d.id] || {}).filter((g) => B.GEWASSEN[g]).map((g) => `<button type="button" class="m-bt" data-pc="uitschuur" data-id="${d.id}" data-gewas="${g}">${esc(B.GEWASSEN[g].naam)} naar de schuur</button>`).join(' ') : '';
-    return `<div class="bd-rij bd-pc"><span class="bd-naam"><b>${esc(d.naam)}</b><span class="mut"> · ${esc(gebouwen)}, ${d.machinePlekken} plekken voor machines · ${esc(d.plaats)} · ${esc(wat)}</span>${extra}</span><span class="bd-acties">${acties(s, 'erf', d.id, geld)}${opslagKnoppen}</span></div>`;
+    return `<div class="bd-rij bd-pc"><span class="bd-naam"><b>${esc(d.naam)}</b><span class="bd-feiten">${feiten}</span>${extra}</span><span class="bd-acties">${acties(s, 'erf', d.id, geld)}${opslagKnoppen}</span></div>`;
   }).join('');
   return `<div class="pm-pane-top"><span class="m-eb">Boerderij De Zonnehoek</span><h2 class="m-h2 td-h2">${icoon('erf', 'pa-ico big')}Erf</h2></div>` + bedrijfRegel(bd) +
-    `<p class="mut">Een erf heeft een huis, een schuur, soms silo's en plekken voor machines. Je thuis is ${esc(PC.erfDef(bd.thuis).naam)}. De Zonnehoek blijft altijd van jou; de oogst uit de werkschuur kun je op je thuis bewaren.</p>${rijen}<p class="bd-melding" aria-live="polite">${esc(melding)}</p>`;
+    `<p class="mut">Een erf heeft een huis, een schuur, soms silo's en plekken voor machines. Je thuis is ${esc(PC.erfDef(bd.thuis).naam)}.</p>${rijen}` +
+    '<p class="mut">De Zonnehoek blijft altijd van jou; de oogst uit de werkschuur kun je op je thuis bewaren.</p><p class="bd-melding" aria-live="polite">' + esc(melding) + '</p>';
 }
 
 
@@ -283,7 +311,7 @@ function bank(b, geld) {
   const ruimte = B.leenRuimte(b);
   const stap = [1000, 5000, 10000];
   return `<div class="pm-pane-top"><span class="m-eb">Boerderij De Zonnehoek</span><h2 class="m-h2 td-h2">${icoon('bank', 'pa-ico big')}Bank</h2></div>` +
-    `<p class="mut">${esc(B.LENING.bank)} leent je tot ${euro(B.LENING.max)}. De rente is ${(B.LENING.renteDag * 100).toFixed(2).replace('.', ',')}% per speldag en komt bij je schuld: je betaalt niets uit je zak tot je aflost, en niemand neemt iets af. Een lening is een keuze, geen noodzaak.</p>` +
+    `<p class="mut">${esc(B.LENING.bank)} leent je tot ${euro(B.LENING.max)}. De rente is ${(B.LENING.renteDag * 100).toFixed(2).replace('.', ',')}% per speldag en komt bij je schuld; een lening is een keuze, geen noodzaak.</p>` +
     `<div class="bd-kas"><span>Schuld</span><span>${euro(l.schuld)}</span><span>Nog te lenen</span><span>${euro(ruimte)}</span><span>Opgenomen tot nu toe</span><span>${euro(l.opgenomen)}</span><span>Afgelost</span><span>${euro(l.afgelost)}</span><span>Rente betaald</span><span>${euro(l.rente)}</span></div>` +
     `<p class="lb-titel"><b>Lenen</b></p><div class="bd-acties">${stap.map((x) => knop('leen', `Leen ${euro(x)}`, { bedrag: x }, x > ruimte)).join(' ')}</div>` +
     `<p class="lb-titel"><b>Aflossen</b></p><div class="bd-acties">${stap.map((x) => knop('los', `Los ${euro(x)} af`, { bedrag: x }, l.schuld <= 0 || geld < Math.min(x, l.schuld))).join(' ')}${l.schuld > 0 ? knop('los', `Los alles af (${euro(l.schuld)})`, { bedrag: l.schuld }, geld < l.schuld) : ''}</div>` +
@@ -291,7 +319,9 @@ function bank(b, geld) {
 }
 
 function detail(b, geld) {
-  return gekozen === 'percelen' ? percelen(b, geld) : gekozen === 'erf' ? erf(b, geld) : gekozen === 'gewas' ? gewas(b) : gekozen === 'machines' ? machines(b, geld) : gekozen === 'kas' ? kas(b) : gekozen === 'bank' ? bank(b, geld) : perceel(b, geld);
+  const inhoud = gekozen === 'percelen' ? percelen(b, geld) : gekozen === 'erf' ? erf(b, geld) : gekozen === 'gewas' ? gewas(b) : gekozen === 'machines' ? machines(b, geld) : gekozen === 'kas' ? kas(b) : gekozen === 'bank' ? bank(b, geld) : perceel(b, geld);
+  // Elke subpagina van de boerderij draagt dezelfde sfeerband (#609).
+  return band() + inhoud;
 }
 
 // Een knop in Percelen of Erf: doe het en geef de melding terug. Alles gaat via boerderijlive.js (geld en opslag).
@@ -356,7 +386,7 @@ export function renderBoerderijPanel(el, world) {
     const sub = id === 'perceel' ? (s.volgende ? B.TAKEN[s.volgende].naam : B.fase(b) === 'groeit' ? 'Groeit' : '-') : id === 'percelen' ? `${Object.keys(b.bedrijf.percelen).length} van jou` : id === 'erf' ? PC.erfDef(b.bedrijf.thuis).naam : id === 'gewas' ? B.GEWASSEN[B.actiefGewas(b)].naam : id === 'machines' ? `${b.bedrijf.machinepark.machines.length} machines, ${b.bedrijf.machinepark.werktuigen.length} werktuigen` : id === 'bank' ? (b.boek.lening.schuld > 0 ? `schuld ${euro(b.boek.lening.schuld)}` : 'geen schuld') : euro(s.winst);
     return `<button type="button" class="m-li lb-li${gekozen === id ? ' sel' : ''}" data-bd="${id}"${gekozen === id ? ' aria-current="true"' : ''}>${icoon(id)}<span class="nm"><span class="one">${esc(naam)}</span><span class="mut one">${esc(sub)}</span></span></button>`;
   }).join('');
-  el.innerHTML = `<div class="m-tabs"><span class="m-grow"></span><span class="pa-total"><span class="mut">Je geld</span><span class="m-num">${euro(geld)}</span></span></div>` +
+  el.innerHTML = `<div class="m-tabs"><span class="m-grow"></span><span class="pa-total"><span class="lb-sfeer-chip" style="${sfeerStijl(SFEER)}" aria-hidden="true"></span><span class="mut">${esc(sfeerVan(SFEER).naam)}</span><span class="mut">Je geld</span><span class="m-num">${euro(geld)}</span></span></div>` +
     `<div class="m-main"><div class="m-list pa-list lb-list">${rijen}</div><aside class="m-pane pa-pane bd-pane" aria-live="polite">${detail(b, geld)}</aside></div>`;
   fillBars(el, bars);
   if (!el.dataset.bound) {
