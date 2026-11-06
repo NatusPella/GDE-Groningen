@@ -18,7 +18,7 @@ import { mayStart, narrativeState } from './narrative.js';
 import { isCinematicActive, sinceCinematic } from './cinematics.js';
 import { isPauseMenuOpen } from './pausestate.js';
 import { getSettings } from './settings.js';
-import { physicalKey, keyName, tokenKey } from './controls.js';
+import { physicalKey, keyName, tokenKey, isSamenSessie } from './controls.js';
 import { hintUses, glyphHtml } from './prompts.js';
 import { KEYS } from './storagekeys.js';
 import { playerBusy } from './busy.js';
@@ -66,8 +66,10 @@ const LESSONS = [
   },
   {
     id: 'samen',
-    // na de eerste missie, niet tijdens een missie of een dienst, en niet als je al samen speelt
-    when: (w) => w.stats.missionsDone > startDone && !busy(w) && !w.coopNet,
+    // na de eerste missie, niet tijdens een missie of een dienst, en niet als je al samen speelt. Alleen
+    // spelen is sinds #554 een sessie van één (wel een hub), maar geen samen-sessie: daar hoort de kaart
+    // juist wel te komen (#568).
+    when: (w) => w.stats.missionsDone > startDone && !busy(w) && !isSamenSessie(w),
     card: () => ({ title: 'Samen spelen', body: 'Met vrienden in dezelfde wereld? Druk op {ESC} en kies Samen spelen. Je eigen geld, spullen en loopbaan gaan mee; de wereld en het verhaal zijn van wie het spel opende.' }),
   },
 ];

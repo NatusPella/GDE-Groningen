@@ -217,8 +217,9 @@ vanzelf spreekt.
 
 **Bestanden.** `onboarding.js`, `prompts.js`, `hudcards.js`, `narrative.js`.
 
-**Tests.** Geen eigen test; alleen de schakelaar `onboardingTips` wordt gedekt door
-`spelmenu_test.mjs`.
+**Tests.** `onboarding_test.mjs` dekt de regel en de bedrading van de kaarten (welke kaart wanneer, en
+dat de kaart "Samen spelen" ook in een sessie van één komt, #568); de schakelaar `onboardingTips` dekt
+`spelmenu_test.mjs`. De kaarten in beeld zijn niet getest.
 
 ## Meten
 
