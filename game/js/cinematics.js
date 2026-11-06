@@ -25,6 +25,7 @@ import { hasCarInterior } from './carinteriorlayout.js';
 import { defaultKey } from './controls.js';
 import { playerBusy } from './busy.js';
 import { hoofdspeler } from './players.js';
+import { cinematicHang } from './cinelimit.js';
 
 // world.cameraOverride poses use map coordinates: x/y on the map, z = height in metres.
 // world.timeScale (0..1) slows gameplay; main.js multiplies the gameplay dt by it.
@@ -418,16 +419,18 @@ export function updateCinematics(dt, w) {
     playGameStart(w);
   }
   // Vangnet voor de allereerste opening: als een filmpje de gameplay nog steeds
-  // tegenhoudt terwijl de wereldklok nog niet loopt, sla het na 30 s over.
-  if (active && w && w.paused && !(w.time > 1) && !active._wStart) active._wStart = now;
-  if (active && active._wStart && now - active._wStart > 30000 && w && w.time <= 1) { finish(true); return; }
+  // tegenhoudt terwijl de wereldklok nog niet loopt, sla het na 30 s over. Dit is de
+  // enige plek met een time-out voor een hangende opening (#635): main.js had een
+  // tweede, 30 s-tak die door een ontbrekende import nooit werkte.
+  if (active && !active._wStart && w && w.time <= 1) active._wStart = now;
+  if (active && cinematicHang({ startedAt: active._wStart, now, worldTime: w && w.time, sceneT: active.t }) === 'opening') { finish(true); return; }
   const frozen = isPauseMenuOpen() || isMapOpen();
   if (!frozen) {
     if (active) {
       // Vangnet: een filmpje dat veel wandkloktijd krijgt maar zelf niet vooruitkomt
       // (een vastgelopen intro of scène) mag de game niet blokkeren.
       if (!active._wStart) active._wStart = now;
-      if (now - active._wStart > 20000 && active.t < 2) { finish(true); return; }
+      if (cinematicHang({ startedAt: active._wStart, now, worldTime: w && w.time, sceneT: active.t }) === 'frozen') { finish(true); return; }
       active.t += (active.realtime ? Math.max(dt, wallDt) : dt) * (active.rate ?? 1);
       updateSubtitles();
       if (active.t >= active.duration) finish(false);
