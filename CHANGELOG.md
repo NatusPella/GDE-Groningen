@@ -6,22 +6,22 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
-- **Een helikopter of vliegtuig besturen werkt weer in Alleen spelen en als host (#555).** De bestuurinvoer zocht de gasten in een lijst die sinds de sessie van één een leeg object is, en gooide elke frame een fout.
+- **Een helikopter of vliegtuig besturen werkt weer in Alleen spelen en als wie het spel opende (#555).** De bestuurinvoer zocht de gasten in een lijst die sinds de sessie van één een leeg object is, en gooide elke frame een fout.
 - **Alleen spelen: de metgezel volgt weer (#559).** Zonder gast neemt de volg-AI Tessa over in plaats van het toetsenbord van plek 2; na stoppen komt de oude stand terug.
 - **Alleen spelen: de controller houdt de gewone indeling (#560).** D-pad omhoog is weer de radio (en in een voertuig de alarmlichten), niet het stuur geven aan een gast die er niet is; de roepjes 7/8/9 staan uit.
 - **Alleen spelen: 7/8/9 zet geen baken meer (#567).** Zonder medespelers verschijnt er geen zuil of HUD-regel meer als je roept.
 - **De uitlegkaart Samen spelen verschijnt weer (#568).** Nieuwe spelers krijgen na de eerste missie weer de uitleg, ook in de standaardmodus Alleen spelen.
 - **Samen spelen: je leest niet meer alleen wat niet kan (#684).** In de wachtkamer en bij de eerste "Meedoen?" staat wat samen wél kan (bijbanen, hengelen, boeren, pannenkoeken bakken, de beiaard, padel, karten, golf en meer); bij een activiteit die alleen de opener kan krijg je eenmalig een "eigen plan"-kaart met vier dingen die je zelf kunt doen.
-- **Sessie starten is altijd besloten (#556).** Wie "Meedoen" kiest en zelf een sessie opent, staat niet meer ongevraagd in de openbare lijst; openbaar maken is een eigen keuze in de lobby. Enter in het naamveld geldt niet meer als toestemming.
+- **Sessie starten is altijd besloten (#556).** Wie "Meedoen" kiest en zelf een sessie opent, staat niet meer ongevraagd in de openbare lijst; openbaar maken is een eigen keuze in de wachtkamer. Enter in het naamveld geldt niet meer als toestemming.
 - **Zuinige modus maakt het beeld niet meer onscherp (#561).** De bewuste 30 fps-grens telt niet langer als trage GPU, dus de resolutie blijft staan; het tegelbudget en de solo-politie-optimalisatie doen weer mee.
 - **Samen spelen-hub en het hart in de aftiteling werken beter met een schermlezer (#571).** De hubstappen zijn een wizard met een aangekondigde stapwissel in plaats van tabs zonder panelen; het hart is een afbeelding met een Nederlandse naam.
 - **De testrunner toont bij een falende test weer de echte foutregel (#570).** De foutregel staat bovenaan in plaats van achter de laatste 25 regels.
-- **Je nieuwe spel laadt na de herlaad niet meer de oude save (#562).**
-- **Een mislukte save bij Afsluiten of Herstarten wordt niet meer genegeerd (#563).** Het spel waarschuwt en bewaart eerst.
+- **Je nieuwe spel laadt na de herlaad niet meer het oude opgeslagen spel (#562).**
+- **Een mislukt opslaan bij Afsluiten of Herstarten wordt niet meer genegeerd (#563).** Het spel waarschuwt en bewaart eerst.
 - **Een spel dat je nu speelt kun je niet meer per ongeluk verwijderen (#564).** De autosave maakt het niet meteen weer aan.
 - **Een gast die niets te bewaren heeft krijgt geen valse foutmelding meer (#579).** En een gast op een lege plek houdt geen dode schrijfplek meer over (#565).
-- **Een checkpoint van een gast schrijft geen schade van de heldenauto van de gastheer meer in de eigen save (#566).**
-- **Alleen spelen schrijft niet elke minuut een volledige save meer (#569).**
+- **Een controlepunt van een gast schrijft geen schade van de heldenauto van wie het spel opende meer in het eigen opgeslagen spel (#566).**
+- **Alleen spelen schrijft niet elke minuut een volledig opgeslagen spel meer (#569).**
 - **Instellingen uit een nieuwere versie worden niet meer bij de eerste wijziging teruggezet (#578).**
 - **Opgeslagen spellen: verwijderen, autosave en wat een gast bewaart zijn duidelijker (#606).**
 - **Laadscherm eerlijker (#600).** De bootbalk noemt de echte laadstappen en zegt op de laatste stap waarop hij wacht; bestemming, verhaal en tip zijn leesbare tekst voor schermlezers, de foto past bij de plek en de logo-ondertitel klopt weer.
@@ -3219,6 +3219,7 @@ De eerste versie: alles wat er tot de eerste desktop-release gebouwd is.
   volledig offline, standaard op volledig scherm.
 - Voor wie het liever zonder app doet: een ZIP met `START DE GAME.bat` die op
   Windows zelf Python regelt en de game in de browser opent.
+
 
 
 

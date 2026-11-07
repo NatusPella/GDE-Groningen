@@ -15,7 +15,7 @@ const md = fs.readFileSync(new URL('../CHANGELOG.md', import.meta.url), 'utf8');
 const versions = changelogVersions(md);
 
 // --- de parser ---------------------------------------------------------------
-const eersteKop = (md.match(/^## \[([^\]]+)\]/m) || [])[1];
+const eersteKop = (md.match(/^## \[(?!Unreleased\])([^\]]+)\]/m) || [])[1];
 ok(versions.length > 50, 'de changelog levert alle versies als losse blokken', String(versions.length));
 ok(versions[0].version === eersteKop, 'de nieuwste versie staat vooraan', versions[0].version);
 ok(versions.every((v) => v.version && v.html), 'elke versie heeft een nummer en inhoud');
@@ -86,3 +86,4 @@ globalThis.fetch = echtFetch;
 
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);
+

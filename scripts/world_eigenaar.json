@@ -85,6 +85,10 @@
     "weapon": {
       "eigenaar": "game/js/combat.js",
       "notitie": "combat.js wisselt en gebruikt het wapen."
+    },
+    "coopCutWacht": {
+      "eigenaar": "game/js/coophold.js",
+      "notitie": "De wachtstand van de gezamenlijke scène (#713); coophold schrijft hem."
     }
   },
   "uitzonderingen": [
@@ -1557,7 +1561,13 @@
       "max": 1,
       "reden": "wist de solo-sessie als een echte sessie start (#554)",
       "issue": "#554"
+    },
+    {
+      "veld": "coopCutWacht",
+      "bestand": "game/js/coophold.js",
+      "max": 1,
+      "reden": "de wachtstand van de gezamenlijke scène; alleen coophold schrijft hem",
+      "issue": "#713"
     }
   ]
 }
-
