@@ -58,6 +58,15 @@ export function klasseIcoon(slagen, par) {
   return slagen < par ? golfIcon('vlag', 13) : slagen === par ? golfIcon('bal', 13) : golfIcon('zand', 13);
 }
 
+// #597: de borddrukte als bron, zodat de test 1280x720 kan natrekken: de rij (6 spans), de
+// scorekaart (kop + een rij per speler) en de hoogte in CSS-px bij de HUD-matenschaal.
+export function bordDrukte({ spelers = 4, banen = 6, ui = 1 } = {}) {
+  const scoreRijen = 1 + Math.max(0, Math.floor(spelers));
+  const elementen = 6 + Math.max(0, Math.floor(banen)) + 1; // row-spans + baankolommen + totaal
+  const hoogte = Math.round((18 + 26 + 6 + 6 + scoreRijen * 22) * (ui || 1));
+  return { elementen, scoreRijen, hoogte };
+}
+
 export const GOLF_CSS = `
 #hud .mg-board .gf-ic { vertical-align: -3px; margin-right: 4px; }
 #hud .mg-board .gf-wie { display: inline-flex; align-items: baseline; }

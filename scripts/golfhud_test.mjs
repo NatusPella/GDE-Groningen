@@ -5,7 +5,8 @@ import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { golfIcon, GOLF_ICONEN } from '../game/js/golficons.js';
-import { golfRij, krachtTekst, scoreTabel, scoreCel, afstandTekst, GOLF_CSS, klasseVan, klasseIcoon } from '../game/js/golfhud.js';
+import { golfRij, krachtTekst, scoreTabel, scoreCel, afstandTekst, GOLF_CSS, klasseVan, klasseIcoon, bordDrukte } from '../game/js/golfhud.js';
+import { boardBox } from '../game/js/minigamekit.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (f) => fs.readFileSync(path.join(root, f), 'utf8');
@@ -104,6 +105,18 @@ ok(new Set(GOLF_ICONEN.map((i) => golfIcon(i))).size === GOLF_ICONEN.length, 'el
   const pitchputt = read('game/js/pitchputt.js');
   ok(/meerdere\(game\)\) \{[\s\S]{0,700}key: 'golf-etiquette'/.test(pitchputt), 'met 2 tot 4 spelers leest de etiquette als bordregel');
   ok(/var\(--mk-job, #ff9a3c\)[\s\S]{0,120}var\(--mk-mission, #e8c93a\)/.test(pitchputt), 'de krachtbalk gebruikt dezelfde tokens');
+}
+
+// #597: de hulpbalk noemt hooguit zes toetsen en de borddrukte past op 1280x720.
+{
+  const pp = read('game/js/pitchputt.js');
+  const blok = (pp.match(/const help = g\.phase === 'aim'[\s\S]*?: `Totaal/) || [''])[0];
+  const toetsen = (blok.match(/key\('/g) || []).length;
+  ok(toetsen > 0 && toetsen <= 6, 'golf-HUD-hulp noemt hooguit 6 toetsen', String(toetsen));
+  const d = bordDrukte({ spelers: 4, banen: 6 });
+  ok(d.elementen <= 13 && d.scoreRijen === 5, 'de borddrukte blijft binnen het budget', JSON.stringify(d));
+  ok(d.hoogte <= 260, 'het bord past met de scoretabel op 1280x720', String(d.hoogte));
+  ok(boardBox(1280).max >= 360 && d.hoogte <= 720, 'de bordmaat en -hoogte passen op 1280x720');
 }
 
 console.log(`golfhud_test ok (${n} controles)`);

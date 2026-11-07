@@ -34,11 +34,11 @@ const S = (naam, tint, vorm, accent, icoon, bordvorm, typo, toon) => ({
 // Per activiteit-id (activities.js, in de volgorde van LIST). Het accent is een bestaande waarde uit
 // MG_THEMA: zo blijft er één accenttabel en kan er geen nieuwe hex binnensluipen.
 export const ACTIVITEIT_SFEER = {
-  carbid: S('Buskruit en buren', 'nacht', 'vizier', '#e8523a', 'winnaar', 'kermisbord', 'kapitaal',
+  carbid: S('Knal in de klei', 'nacht', 'terrein', '#d9662e', 'disc', 'kermisbord', 'kapitaal',
     ['De buurman heeft de politie al gebeld.', 'Vijftig decibel is hier een traditie.']),
-  kermis: S('Suikerspin', 'veld', 'vlaggen', '#c9568a', 'kart', 'kermisbord', 'kapitaal',
+  kermis: S('Suikerspin', 'veld', 'vlaggen', '#d45c86', 'vlaggen', 'kermisbord', 'kapitaal',
     ['De suikerspin plakt aan je jas.', 'Alles erop, ook de rekening.']),
-  hoogvlieger: S('Boven de kermis', 'melk', 'horizon', '#d9d4be', 'oog', 'entreekaartje', 'klein',
+  hoogvlieger: S('Boven de kermis', 'veld', 'vlaggen', '#b9a27a', 'gondel', 'entreekaartje', 'klein',
     ['Het rad gaat rond en de stad blijft staan.', 'Zwaaien naar mensen die je niet kent.']),
   geheimen: S('Kleine dingen', 'bos', 'schub', '#c9a227', 'oog', 'prikbord', 'klein',
     ['Het zit altijd net achter een heg.', 'Niemand gelooft dat je het gevonden hebt.']),
@@ -86,6 +86,16 @@ export const ACTIVITEIT_SFEER = {
     ['De passagier kijkt, de piloot zweet.', 'Op tijd is een mening.']),
   vaardienst: S('Halte op het water', 'veld', 'golf', '#cf7f5a', 'water', 'vertrekbord', 'klein',
     ['De brug is de baas van de gracht.', 'De dienstregeling is een suggestie.']),
+  // padel is geen activiteit uit activities.js maar wel een eigen bord (#599): dezelfde sfeertabel,
+  // zodat het padelbord dezelfde drager krijgt als de rest en niet buiten het systeem valt.
+  padel: S('Bal over het hek', 'veld', 'grid', '#c068ff', 'bal', 'startbord', 'kapitaal',
+    ['De baan is van glas, het hek ook.', 'Bal over het hek is een punt. Voor de buren.']),
+  // de machinist is een dienst met een eigen bord (#625); ook die hoort op de sfeerroute (#595).
+  machinist: S('Vertrek op tijd', 'nacht', 'spoor', '#b3b3a2', 'beurt', 'vertrekbord', 'kapitaal',
+    ['De trein wacht niet.', 'De conducteur wel.']),
+  // het station heeft het vertrekbord (#596): dezelfde sfeerfamilie als de machinist, andere naam.
+  station: S('Perron', 'nacht', 'halte', '#b3b3a2', 'beurt', 'vertrekbord', 'klein',
+    ['De trein heeft vertraging.', 'Dat staat er tenminste.']),
 };
 
 // De sfeer van een activiteit; onbekend id geeft null (de HUD valt dan terug op geen sfeer).
@@ -111,4 +121,6 @@ export function sfeerRegel(id) {
   const s = sfeerVan(id);
   return s ? `${s.naam}. ${s.toon[0]}` : '';
 }
+
+
 
