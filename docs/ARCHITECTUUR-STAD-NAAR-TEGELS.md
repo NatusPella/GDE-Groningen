@@ -768,6 +768,18 @@ weg bij zijn gid op, en `splitOverlay` scheidt stad en overlay op de gids
 Een gat in de array is de enige vorm die klopt, en dan moet elke lezer die op
 gid/index rekent een gat kunnen velen.
 
+**Sinds #314 C2 (7 november 2026) geldt de dichte eis niet meer voor spoor en
+meubels.** De wereldbouw schrijft `index.sparse = ['rails', 'furniture']`; `fromTiles`
+laat die twee arraylagen dan helemaal leeg (geen gaten, geen slots: de rijen leven in
+`_res` en in de rasters), de dichte-gid-controle slaat ze over, en de rijen van een
+gepinde tegel gaan mee in `_tileRows`. `dropTile` haalt ze per tegel uit `_res` en de
+rasters en `addTile` zet ze terug, zonder tweede kopie; de andere soorten blijven
+dicht en hun gepinde rijen blijven bij een drop staan (de pin). Zo hoeft er voor deze
+twee lagen geen `rowOf`/gaten-pad te komen: de arraylaag is er simpelweg niet meer.
+Bewijs: `scripts/tileworld_sparse_test.mjs` (dichte en sparse wereld uit dezelfde
+tegels, drop+add-pariteit, en de echte wereld twee keer geladen: dezelfde 342 sporen
+en 2137 meubels in de rasters).
+
 Wat er moet gebeuren, in vijf stappen:
 
 1. **Gaten in plaats van dichte arrays.** `dropTile` zet het slot van een rij uit

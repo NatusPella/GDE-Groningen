@@ -161,7 +161,11 @@ function releaseFrom(e, tk) {
 
 export class TileWorld extends GameMap {
   // global: decoded global blob; tiles: decoded tiles of the pinned set
-  static fromTiles(global, tiles, { terrain = false } = {}) {
+  // sparse: de soorten waarvan de gepinde arraylaag weg mag (index.sparse: rails, furniture).
+  // Hun rijen leven dan alleen in _res en de rasters; dropTile haalt ze er per tegel uit en
+  // addTile zet ze terug, zonder dat er een array-slot of een tweede kopie bestaat (#314 C1/C2).
+  static fromTiles(global, tiles, { terrain = false, sparse = null } = {}) {
+    const sparseKinds = new Set(sparse || []);
     const info = {};
     for (const s of global.sections) if (s.type === SECTION.META) Object.assign(info, s.json);
     // the places of the meta (shops, horeca, garages, ...) are rows of their tiles (poisections.js)
@@ -171,32 +175,56 @@ export class TileWorld extends GameMap {
     for (const kind of KIND_OF.values()) arrays[kind] = new Array((info.counts && info.counts[kind]) || 0);
     const res = {};
     for (const kind of KIND_OF.values()) res[kind] = new Map();
+    // De rijen die een gepinde tegel vasthoudt (voor dropTile): per tegel [soort, gid, ...].
+    const tileRows = new Map();
     for (const tile of tiles) {
       const key = `${tile.i},${tile.j}`;
+      const held = [];
       for (const s of tile.sections) {
         const kind = KIND_OF.get(s.type);
         if (!kind) continue;
         for (const { gid, obj } of rowsOf(kind, s)) {
           let e = res[kind].get(gid);
-          if (!e) { e = { obj }; res[kind].set(gid, e); arrays[kind][gid] = obj; }
+          if (!e) {
+            e = { obj, pinned: true };
+            res[kind].set(gid, e);
+            if (!sparseKinds.has(kind)) arrays[kind][gid] = obj;
+          }
           holdIn(e, key);
+          held.push(kind, gid);
         }
       }
+      tileRows.set(key, held);
     }
-    for (const kind of Object.keys(arrays)) for (let i = 0; i < arrays[kind].length; i++) if (!arrays[kind][i]) throw new Error(`tiles lack ${kind} ${i}: the pinned set is not the whole map`);
+    // Een soort met een sparse arraylaag (rails, meubels) hoeft niet dicht te zijn: zijn rijen
+    // staan in _res en in de rasters; de andere soorten moeten nog de hele kaart zijn.
+    for (const kind of Object.keys(arrays)) {
+      if (sparseKinds.has(kind)) continue;
+      for (let i = 0; i < arrays[kind].length; i++) if (!arrays[kind][i]) throw new Error(`tiles lack ${kind} ${i}: the pinned set is not the whole map`);
+    }
     for (const tile of tiles) attachProfiles(tile, (gid) => arrays.roads[gid], terrain);
     // the AHN terrain of the tiles that carry one (terrainraster.js); flat elsewhere
     const terrainField = new TerrainField();
     for (const tile of tiles) for (const s of tile.sections) if (s.type === SECTION.RASTER) terrainField.add(`${tile.i},${tile.j}`, s.raster);
     const clipped = (info.clippedWays || []).map((c) => ({ ...c, building: c.building >= 0 ? arrays.buildings[c.building] : null }));
+    // een sparse soort krijgt een lege arraylaag: zijn rijen staan in _res en in de rasters
+    const parts = { ...arrays };
+    if (sparseKinds.has('rails')) parts.rails = [];
+    if (sparseKinds.has('furniture')) parts.furniture = [];
     const map = GameMap.fromParts.call(this, {
       meta: info.meta,
-      ...arrays,
+      ...parts,
       stations: info.stations, levelCrossings: info.levelCrossings, railRoutes: info.railRoutes, railLifts: info.railLifts, perrons: info.perrons,
       dryCrossings: info.dryCrossings, clippedWays: clipped,
       terrain: terrainField, terrainOn: terrain,
     });
     map._res = res;
+    // #314 C1/C2: de rasters van de sparse soorten uit de rijen van de gepinde tegels (de
+    // arraylaag is leeg); dropTile en addTile houden ze daarna per tegel bij.
+    map.sparse = sparseKinds;
+    map._tileRows = tileRows;
+    if (sparseKinds.has('rails')) map.indexRails([...res.rails.values()].map((e) => e.obj));
+    if (sparseKinds.has('furniture')) map.indexFurniture([...res.furniture.values()].map((e) => e.obj));
     // The same lake mapped twice (#231): the streamed path leaves the twin out (addTile, waterdupes.js). The pinned set
     // keeps every row: the arrays are indexed by gid and the queries have to answer what the map answers, so the twin is
     // only marked in `map.duplicateWater` and the terrain and the water meshes do not draw it a second time (scene3d.js).
@@ -439,6 +467,9 @@ export class TileWorld extends GameMap {
     }
     const goneRoads = [];
     const release = (kind, gid, e) => {
+      // Een rij van de gepinde stad blijft in de arrays en rasters zolang zijn soort nog
+      // dicht is (de pin). Alleen een sparse soort (rails, meubels) laat hem per tegel gaan.
+      if (e.pinned && !(this.sparse && this.sparse.has(kind))) return;
       if (!releaseFrom(e, tk)) return;
       this._res[kind].delete(gid);
       if (kind === 'roads' && e.obj.z) goneRoads.push(e.obj);
@@ -521,7 +552,7 @@ export async function loadTileWorld(base = 'world/', { source = new HttpRangeSou
   for (const k of keys) store.pin(k);
   const tiles = await Promise.all(keys.map((k) => store.request(k, { priority: 0 }).then((t) => { if (onProgress) onProgress(++done / keys.length); return t; })));
   const split = tiles.map(splitOverlay);
-  const world = TileWorld.fromTiles(globalBlob, split.map((x) => x.city), { terrain }).attachStore(store);
+  const world = TileWorld.fromTiles(globalBlob, split.map((x) => x.city), { terrain, sparse: index.sparse }).attachStore(store);
   world.tileIndex = index;
   // the overlays of the city's tiles (the rows of build_province.mjs the city's data leaves out, merged into their tile by
   // scripts/world/merge_overlays.mjs): into the grids like a streamed tile, held for good with the city
