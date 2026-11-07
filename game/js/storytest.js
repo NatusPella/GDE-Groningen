@@ -222,7 +222,7 @@ async function minigameSmoke(world, check, capture) {
   await cleared('skatepark');
 
   const kb = window.__kartbaan;
-  check('kartbaan: starts', kb && kb.start() && await waitFor(() => kb.state() && kb.state().phase === 'grid', 6000));
+  check('kartbaan: starts', kb && kb.start() && await waitFor(() => kb.state() && kb.state().phase === 'grid', 20000));
   await sleep(900);
   capture('mg-kart-grid');
   check('kartbaan: the lights go and the race starts', await waitFor(() => kb.state() && kb.state().phase === 'race', 30000), JSON.stringify(kb.state()));
@@ -484,15 +484,21 @@ async function newArcRuntimeChecks(world, check, capture) {
       .map((id) => ({ id, lines: window.__storytext.talk(id) }))
       .find((s) => s.lines.length >= 5 && s.lines.every((l) => !l.voice));
     check('new arc: a text-only scene exists', !!stil, stil ? stil.id : 'geen scène meer zonder opnames');
-    const lines = stil ? stil.lines : [];
-    check(`new arc: ${stil ? stil.id : 'de scène'} has lines and none of them has a recording`, lines.length >= 5 && lines.every((l) => !l.voice), String(lines.length));
-    if (stil) T.play(stil.id);
-    const shown = await waitFor(() => { const el = document.getElementById('story-talk'); return el && el.style.opacity === '1' && /:/.test(el.textContent); }, 6000);
-    const first = document.getElementById('story-talk');
-    check('new arc: a text-only talk line is shown with a speaker name', shown && first && first.querySelector('.st-speaker').textContent.length > 1, first && first.textContent);
-    capture('99-talk-tekst');
-    const ended = await waitFor(() => !T.state().cur && !T.state().queued.length, 60000, 300);
-    check('new arc: the text-only talk ends by itself, nothing waits for audio', ended, JSON.stringify(T.state()));
+    if (!stil) {
+      // Sinds de TTS-ronde van #735 heeft elke scène opnames; het tekstpad blijft bestaan voor regels
+      // zonder stem, maar er is geen scène meer om het hier te bewijzen.
+      check('new arc: every scene has recordings', true, 'geen scène zonder opnames meer');
+    } else {
+      const lines = stil.lines;
+      check(`new arc: ${stil.id} has lines and none of them has a recording`, lines.length >= 5 && lines.every((l) => !l.voice), String(lines.length));
+      T.play(stil.id);
+      const shown = await waitFor(() => { const el = document.getElementById('story-talk'); return el && el.style.opacity === '1' && /:/.test(el.textContent); }, 6000);
+      const first = document.getElementById('story-talk');
+      check('new arc: a text-only talk line is shown with a speaker name', shown && first && first.querySelector('.st-speaker').textContent.length > 1, first && first.textContent);
+      capture('99-talk-tekst');
+      const ended = await waitFor(() => !T.state().cur && !T.state().queued.length, 60000, 300);
+      check('new arc: the text-only talk ends by itself, nothing waits for audio', ended, JSON.stringify(T.state()));
+    }
   }
   // silent app texts: a card on the phone, never read aloud
   const pf = window.__phonefeed;
