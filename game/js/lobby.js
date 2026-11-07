@@ -27,7 +27,7 @@ export const ROUTES = { KAMER: 'kamer', DIRECT: 'direct' };
 
 // Eén uitleg voor elke route (#526): hetzelfde verhaal, want het is dezelfde vraag. Alleen de directe route
 // voegt zijn poort toe; de lijst en de test leggen erbij uit wat zij zelf doen.
-export const CONSENT_TEXT = 'Voor samen spelen gaat je IP-adres naar je medespeler en naar de openbare servers die jullie helpen elkaar te vinden. Naar een server van ons gaat er niets.';
+export const CONSENT_TEXT = 'Je IP-adres gaat naar je medespeler en naar de openbare servers die jullie helpen elkaar te vinden, niet naar een server van ons.';
 export const CONSENT_DETAIL = {
   direct: 'Deze route gaat rechtstreeks naar jou: er worden geen servers van anderen gebruikt, maar je router opent een poort die sluit zodra je stopt. Iedereen met de code kan zolang die poort open staat proberen te verbinden. Windows kan nu vragen of GDE Groningen het netwerk mag gebruiken: kies Toestaan (privé netwerk), anders kan de ander je niet bereiken.',
 };

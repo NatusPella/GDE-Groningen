@@ -173,5 +173,5 @@ export function uitnodigingTekst(u, naam = 'De ander') {
   if (!u) return '';
   if (u.start) return `${u.label} is begonnen: je doet mee.`;
   if (u.status && !u.verplicht) return statusTekst(u.status, u.label, u.rest);
-  return u.verplicht ? `${naam} speelt ${u.label}. Het verhaal heeft jou nodig: je doet mee.` : `Meedoen met ${u.label}? J = ja, N = nee (zonder antwoord kijk je mee).`;
+  return u.verplicht ? `${naam} speelt ${u.label}. Het verhaal heeft jou nodig: je doet mee.` : `Meedoen met ${u.label}? J = ja, N = nee.`;
 }

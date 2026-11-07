@@ -7,6 +7,10 @@ import { PROFIEL_KLEUREN as LOBBY_KLEUREN, STANDAARD_KLEUR as LOBBY_STANDAARD, p
 import { PARTNER, partnersInfo } from '../game/js/partnerhud.js';
 import { overlayHtml } from '../game/js/coopoverlay.js';
 import { consentOnthoudenHtml } from '../game/js/onlineconsentui.js';
+import { uitnodigingTekst } from '../game/js/coopmeedoen.js';
+import { bodTekst } from '../game/js/coophostwissel.js';
+import { wordCount, WORD_BUDGET } from '../game/js/hudtext.js';
+import fs from 'node:fs';
 
 let n = 0;
 const t = (naam, f) => { f(); n++; console.log(`ok ${naam}`); };
@@ -62,6 +66,26 @@ t('toestemmingsvinkje: één component met de menu-set', () => {
   assert.match(html, /<span class="ss-label">Niet meer vragen<\/span>/);
   assert.ok(!/style=/.test(html), 'geen inline stijl');
   assert.match(consentOnthoudenHtml({ label: '<x>' }), /&lt;x&gt;/);
+});
+
+t('kaartbudget: Meedoen? en de overdracht passen op de kaart (#636)', () => {
+  const u = { label: 'Karten in Ulrum', verplicht: false };
+  assert.ok(wordCount(uitnodigingTekst(u, 'Tammo')) <= WORD_BUDGET.cardBody, 'Meedoen? blijft binnen het kaartbudget');
+  assert.ok(wordCount(bodTekst('Timo')) <= WORD_BUDGET.cardBody, 'overdracht blijft binnen het kaartbudget');
+});
+
+t('spelerslijst: tokens, 44px-aanraakknop en een controllerweg in het voertuig (#636)', () => {
+  const ui = fs.readFileSync(new URL('../game/js/coopspelersui.js', import.meta.url), 'utf8');
+  const controls = fs.readFileSync(new URL('../game/js/controls.js', import.meta.url), 'utf8');
+  const hud = fs.readFileSync(new URL('../game/js/coophud.js', import.meta.url), 'utf8');
+  assert.ok(!/#[0-9a-f]{6}/i.test(ui), 'geen losse hex meer in de spelerslijst');
+  assert.match(ui, /cs-open/);
+  assert.match(ui, /min-width: 44px; min-height: 44px/);
+  assert.match(ui, /cs-stip-ok/);
+  assert.match(controls, /vehicle: \{[^}]*rs: 'tab'[^}]*\}/, 'rs opent de lijst ook in een voertuig');
+  assert.ok(!/cssText/.test(hud) && !/#[0-9a-f]{6}/i.test(hud), 'de Meedoen-chip en de fade hebben geen eigen inline stijl meer');
+  const scene = fs.readFileSync(new URL('../game/js/coopscene.js', import.meta.url), 'utf8');
+  assert.ok(!/#[0-9a-f]{6}/i.test(scene), 'de gastlaag gebruikt tokens in plaats van losse hex');
 });
 
 console.log(`coopui_test: ${n}/${n} ok`);

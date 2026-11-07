@@ -12,6 +12,7 @@ import { makeRoom } from './net/sigcrypto.js';
 import { wisselWereldHaken } from './coophostwisselwereld.js';
 import { meet, beoordeel, verbindingslog } from './net/diagnose.js';
 import { maakEnv } from './net/diagnoseenv.js';
+import { mountOverlay } from './coopoverlay.js';
 
 const newSignaler = () => new MultiSignaler(CONFIG, { socket: (url) => { const ws = new WebSocket(url); ws.binaryType = 'arraybuffer'; return ws; } },
   { fallbackAfter: CONFIG.TIMEOUTS.fallbackAfter, brokerTimeout: CONFIG.TIMEOUTS.broker });
@@ -60,8 +61,7 @@ export function koppelWissel(world, opts = {}) {
 }
 
 // ---- het scherm -----------------------------------------------------------------------------------------------------------------
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-let overlay = null, timer = null, laatste = '', eindTot = 0, huidige = null;
+let overlay = null, houder = null, timer = null, laatste = '', eindTot = 0, huidige = null;
 
 export function startWisselUi(world) {
   if (timer || typeof document === 'undefined') return;
@@ -88,27 +88,32 @@ function teken(world) {
   const nu = Date.now();
   if (u && u.einde && !u.einde.gezien) { u.einde.gezien = true; eindTot = nu + 5000; }
   const toon = u && (u.vraag || u.pauze || (u.einde && nu < eindTot));
-  if (!toon) { if (overlay) { overlay.remove(); overlay = null; laatste = ''; } return; }
+  if (!toon) { if (houder) { houder.close(); houder = null; overlay = null; laatste = ''; } return; }
   const sleutel = JSON.stringify([u.vraag && [u.vraag.tekst, u.vraag.rest], u.pauze && u.pauze.tekst, u.einde && u.einde.tekst]);
   if (sleutel === laatste && overlay) return;
   laatste = sleutel;
-  if (!overlay) {
-    overlay = document.createElement('div');
-    overlay.className = 'gm coop-wissel'; overlay.setAttribute('role', 'alertdialog'); overlay.setAttribute('aria-live', 'assertive');
-    overlay.style.cssText = 'position:fixed;inset:0;z-index:9000;display:flex;align-items:center;justify-content:center;background:rgba(8,16,10,0.72);';
-    document.body.appendChild(overlay);
-    overlay.addEventListener('click', (e) => {
-      const b = e.target.closest('[data-wissel]'); if (!b) return;
-      const a = b.getAttribute('data-wissel');
-      if (a === 'ja') antwoordVraag(world, true); else if (a === 'nee') antwoordVraag(world, false); else if (a === 'stop') annuleerOverdracht(world);
+  if (!houder) {
+    houder = mountOverlay({
+      label: 'Spel overdragen', target: document.body,
+      onAction: (a) => {
+        if (a === 'ja') antwoordVraag(world, true);
+        else if (a === 'nee') antwoordVraag(world, false);
+        else if (a === 'stop') annuleerOverdracht(world);
+      },
     });
+    overlay = houder && houder.el;
   }
-  const knop = (act, label) => `<button type="button" data-wissel="${act}" style="margin:14px 10px 0 0;padding:8px 20px;border:0;border-radius:4px;background:rgba(240,237,228,0.18);color:inherit;font:inherit;cursor:pointer;">${label}</button>`;
+  if (!houder) return;
   const w = world.coopWissel;
   const kanStoppen = !!(w && w.oud && w.oud.bezig);
-  let html;
-  if (u.vraag) html = `<h3 style="margin:0 0 8px;font:normal 26px 'Bebas Neue','Arial Narrow',Arial,sans-serif;letter-spacing:0.06em;">Het spel overnemen?</h3><p style="margin:0;">${esc(u.vraag.tekst)}</p><p style="margin:8px 0 0;opacity:0.7;">Nog ${u.vraag.rest} seconden. Zonder antwoord is het nee.</p>${knop('ja', 'Ja (J)')}${knop('nee', 'Nee (N)')}`;
-  else if (u.pauze) html = `<h3 style="margin:0 0 8px;font:normal 26px 'Bebas Neue','Arial Narrow',Arial,sans-serif;letter-spacing:0.06em;">Even wachten</h3><p style="margin:0;">${esc(u.pauze.tekst)}</p>${kanStoppen ? knop('stop', 'Stoppen') : ''}`;
-  else html = `<p style="margin:0;">${esc(u.einde.tekst)}</p>`;
-  overlay.innerHTML = `<div style="max-width:560px;padding:28px 32px;background:rgba(15,40,26,0.96);border:1px solid rgba(240,237,228,0.16);border-radius:6px;color:#f0ede4;font:20px/1.35 'Arial Narrow',Arial,sans-serif;">${html}</div>`;
+  if (u.vraag) houder.render({
+    title: 'Het spel overnemen?',
+    text: `${u.vraag.tekst} Nog ${u.vraag.rest} seconden. Zonder antwoord is het nee.`,
+    buttons: [{ action: 'ja', label: 'Ja (J)', primary: true }, { action: 'nee', label: 'Nee (N)' }],
+  });
+  else if (u.pauze) houder.render({
+    title: 'Even wachten', text: u.pauze.tekst,
+    buttons: kanStoppen ? [{ action: 'stop', label: 'Stoppen', primary: true }] : [],
+  });
+  else houder.render({ text: u.einde.tekst });
 }
