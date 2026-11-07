@@ -74,7 +74,8 @@ function roadGraph(map) {
   if (g && g.geoVer === map.geoVer) return g;
   const nodes = new Map();
   const nodeOf = new LazyNodeMap(map, nodes);
-  const drivable = map.orderedRoads().filter((r) => r.cat !== 'foot' && r.pts.length > 1);
+  // platte testkaarten zonder raster vallen terug op hun eigen wegenlijst
+  const drivable = (map.orderedRoads ? map.orderedRoads() : map['roads'] || []).filter((r) => r.cat !== 'foot' && r.pts.length > 1);
   for (const r of drivable) nodeOf.register(r);
   nodeOf.expanded = new Set(drivable);
   // OSM ways that should meet sometimes stop a metre or two short
@@ -857,4 +858,5 @@ export function updateTrafficAI(v, dt, map, world, rng = Math.random, opts = nul
   }
   v.applyControls(dt, throttle, steer, brake);
 }
+
 

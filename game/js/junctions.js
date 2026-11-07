@@ -295,6 +295,7 @@ export function tileJunctionNodes(map) {
 // (m), enters], ...] }, the road gid being its place in map.roads.
 export const RULES = ['free', 'signal', 'priority', 'yield', 'exit', 'right'];
 export function junctionRows(map, roads) {
+  roads = roads || (map.orderedRoads ? map.orderedRoads() : map['roads'] || []) || [];
   const gid = new Map(roads.map((r, i) => [r, i]));
   const out = [];
   for (const J of junctionModel(map).values()) {
@@ -333,3 +334,4 @@ export function yieldAt(map, road, idx, approachDir) {
   if (!s.yieldSet) yieldArms(map);
   return s.yieldSet.has(idx + ':' + -approachDir + ':' + nodeKey(road.pts[idx]) + ':' + mapRoadId(map, road));
 }
+

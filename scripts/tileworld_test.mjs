@@ -28,7 +28,9 @@ const legacy = src.map;
 const built = P.build(src);
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gde-tileworld-test-'));
 process.on('exit', () => fs.rmSync(dir, { recursive: true, force: true }));
-const index0 = P.writeWorld(dir, built, new Set(built.blobs.keys()));
+// Deze test vergelijkt de tilewereld 1-op-1 met de JSON-kaart, inclusief de hele arrays;
+// de productiestage schrijft een sparse index (#314 C2), dus hier bewust de dichte variant.
+const index0 = P.writeWorld(dir, built, new Set(built.blobs.keys()), { sparse: false });
 const files = {};
 for (const f of fs.readdirSync(dir)) files[f] = new Uint8Array(fs.readFileSync(path.join(dir, f)));
 
@@ -121,19 +123,29 @@ for (const [name, f] of Object.entries(queries)) {
 }
 
 // --- 2. the grids follow tiles in and out
+// De productiestage schrijft een sparse index (#314 C2): daar gaan de rijen van een tegel
+// echt uit de rasters en komen ze met addTile terug. De dichte kaart hierboven houdt zijn
+// gepinde rijen (de pin), dus voor dit blok gebruiken we de sparse variant.
 {
+  const dirS = fs.mkdtempSync(path.join(os.tmpdir(), 'gde-tileworld-sparse-'));
+  process.on('exit', () => fs.rmSync(dirS, { recursive: true, force: true }));
+  const indexS = P.writeWorld(dirS, built, new Set(built.blobs.keys()));
+  const filesS = {};
+  for (const f of fs.readdirSync(dirS)) filesS[f] = new Uint8Array(fs.readFileSync(path.join(dirS, f)));
+  const TS = await loadTileWorld('world/', { source: new S.MemorySource(filesS), pool: false });
+  const twS = TS.world;
   const total = (m) => m.buildingGrid.query(-1e5, -1e5, 1e5, 1e5).length;
-  const t0 = total(tw);
-  const keyA = [...Object.keys(index0.tiles)].find((k) => (index0.tiles[k].n.buildings || 0) > 500);
-  const e = index0.tiles[keyA];
+  const t0 = total(twS);
+  const keyA = [...Object.keys(indexS.tiles)].find((k) => (indexS.tiles[k].n.buildings || 0) > 500);
+  const e = indexS.tiles[keyA];
   const inTile = (m) => m.buildingsNear(...G.tileOrigin(e.i, e.j).map((v) => v + 500), 700).length;
-  const before = inTile(tw);
-  ok(tw.dropTile(`${e.i},${e.j}`), 'dropTile removes a resident tile');
-  const mid = inTile(tw);
-  ok(mid < before && total(tw) < t0, 'its buildings left the grid', `${before} -> ${mid}`);
-  const tile = await T.store.request(keyA);
-  ok(tw.addTile(tile) && inTile(tw) === before && total(tw) === t0, 'and came back with addTile, no duplicates', `${inTile(tw)}/${before} ${total(tw)}/${t0}`);
-  ok(!tw.addTile(tile), 'adding a resident tile twice does nothing');
+  const before = inTile(twS);
+  ok(twS.dropTile(`${e.i},${e.j}`), 'dropTile removes a resident tile');
+  const mid = inTile(twS);
+  ok(mid < before && total(twS) < t0, 'its buildings left the grid', `${before} -> ${mid}`);
+  const tile = await TS.store.request(keyA);
+  ok(twS.addTile(tile) && inTile(twS) === before && total(twS) === t0, 'and came back with addTile, no duplicates', `${inTile(twS)}/${before} ${total(twS)}/${t0}`);
+  ok(!twS.addTile(tile), 'adding a resident tile twice does nothing');
 }
 
 // --- 3. the store: LRU, pins, cancellation, priorities, budget
