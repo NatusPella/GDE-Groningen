@@ -7,7 +7,7 @@ import { noteSpoken } from './characters.js';
 import { getSettings } from './settings.js';
 import { isPauseMenuOpen, isMapOpen } from './pausestate.js';
 import { respawnPlayer } from './world.js';
-import { V, W, clamp01, easeInOut, easeOut, pathShot, roofAt, clearKeys, buildingReach } from './camerapath.js';
+import { V, W, clamp01, easeInOut, easeOut, pathShot, roofAt, clearKeys, buildingReach, groundLift } from './camerapath.js';
 import { playStoryVoice, setStoryScene, setStoryProbe, playTextMumble } from './audio.js';
 import { isIntroPlaying } from './trailerstate.js';
 import { logoHtml, GAME_NAME, SUBTITLE } from './logo.js';
@@ -291,6 +291,32 @@ export function skipCinematic() {
   if (active) finish(true);
 }
 
+// (#728) Een eigen camerastand buiten de scènewachtrij: de polsstok- en duifcamera zijn
+// gameplay-camera's, geen cutscene. Ze bezetten geen prioriteitsslot (waardoor een echte
+// scène uren kon wachten), zijn niet skipbaar en hebben geen duur van 600 s: de minigame
+// stopt ze zelf, en een vergeten take ruimt stopCameraTake op.
+let take = null;
+export function startCameraTake(id, shot, { letterbox = true, hideHud = false } = {}) {
+  if (typeof shot !== 'function') return false;
+  take = { id, shot, letterbox, hideHud, t: 0 };
+  if (els) {
+    els.root.classList.toggle('letterbox', !!letterbox);
+    document.body.classList.toggle('cine-hide-hud', !!hideHud);
+  }
+  return true;
+}
+export function stopCameraTake(id) {
+  if (!take || (id != null && take.id !== id)) return false;
+  take = null;
+  if (els) {
+    els.root.classList.remove('letterbox');
+    document.body.classList.remove('cine-hide-hud');
+  }
+  if (world && !active) world.cameraOverride = null;
+  return true;
+}
+export const cameraTakeActive = (id) => !!take && (id == null || take.id === id);
+
 // De stemmen van een scène (ook als pure functie te testen, #711): regels zonder eigen opname krijgen er een uit de
 // 'lines'-bank; een regel met `own` (de scène speelt hem zelf) of met een eigen `voice` blijft staan, zodat de gast
 // dezelfde opname en dezelfde ondertiteltijden houdt als de gastheer.
@@ -327,6 +353,7 @@ function begin(spec) {
     ...spec, t: 0,
   };
   holdShotTiles(spec.prewarm);
+  take = null; // een scène neemt de camera over van een camerastand (#728)
   attachVoices(active);
   if (active.pause) pauseOn(); // (#729) de wereld en de speler staan stil zolang de scène duurt
 
@@ -496,6 +523,11 @@ export function updateCinematics(dt, w) {
       finish(true);
     }
   }
+  else if (!active && take) {
+    // (#728) camerastand zonder scène: eigen klok, geen wachtrij, geen skip
+    take.t += dt;
+    try { pose = take.shot(take.t, w); } catch (err) { console.error('camera take', take && take.id, err); stopCameraTake(); }
+  }
   else if (!active && camMode && lichaam.inVehicle) pose = cinemaCamPose(w);
   if (pose && active) notePose(active.id, pose);
   w.cameraOverride = pose;
@@ -594,11 +626,13 @@ function playOmmelanden(w) {
   ox /= ol; oy /= ol;
   const nx = -oy, ny = ox;
   const b = behindPose(w);
+  // (#730) ook hier boven de grond op deze plek (dijk, wierde), niet op absolute z=0
+  const gz = groundLift(w.map, p.x, p.y, p.gz || 0);
   const keys = [
-    { pos: W(p.x - ox * 10 + nx * 4, 6, p.y - oy * 10 + ny * 4), look: W(p.x + ox * 30, 2, p.y + oy * 30) },
-    { pos: W(p.x - ox * 6 + nx * 18, 38, p.y - oy * 6 + ny * 18), look: W(p.x + ox * 220, 0, p.y + oy * 220) },
-    { pos: W(p.x + ox * 40 - nx * 26, 52, p.y + oy * 40 - ny * 26), look: W(p.x + ox * 320 + nx * 120, 0, p.y + oy * 320 + ny * 120) },
-    { pos: W(p.x - ox * 14, 12, p.y - oy * 14), look: W(p.x + ox * 20, 1.5, p.y + oy * 20) },
+    { pos: W(p.x - ox * 10 + nx * 4, gz + 6, p.y - oy * 10 + ny * 4), look: W(p.x + ox * 30, gz + 2, p.y + oy * 30) },
+    { pos: W(p.x - ox * 6 + nx * 18, gz + 38, p.y - oy * 6 + ny * 18), look: W(p.x + ox * 220, gz + 0, p.y + oy * 220) },
+    { pos: W(p.x + ox * 40 - nx * 26, gz + 52, p.y + oy * 40 - ny * 26), look: W(p.x + ox * 320 + nx * 120, gz + 0, p.y + oy * 320 + ny * 120) },
+    { pos: W(p.x - ox * 14, gz + 12, p.y - oy * 14), look: W(p.x + ox * 20, gz + 1.5, p.y + oy * 20) },
     b,
   ];
   playCinematic({
@@ -963,16 +997,19 @@ function keyHits(w, keys) {
 // lines: [{ speaker, text, at?, dur?, voice? }]; duration defaults to 4.8 s.
 export function playMissionIntro(w, { title, kicker, lines, objective, duration = 4.8 }) {
   const p = hoofdspeler(w);
+  // (#730) de camera staat boven de grond onder de speler, niet op absolute z=0: op een
+  // dijk, viaduct of wierde zakte de scène anders onder het maaiveld.
+  const gz = groundLift(w.map, p.x, p.y, p.gz || 0);
   let a = objective ? Math.atan2(objective.y - p.y, objective.x - p.x) : heading(w);
   if (!Number.isFinite(a)) a = heading(w);
   const dx = Math.cos(a), dy = Math.sin(a);
   const build = (side) => {
     const nx = -dy * side, ny = dx * side;
     return [
-      { pos: W(p.x + dx * 4.5 + nx * 1.5, 1.7, p.y + dy * 4.5 + ny * 1.5), look: W(p.x, 1.35, p.y), fov: 50 },
-      { pos: W(p.x + nx * 5, 2.3, p.y + ny * 5), look: W(p.x, 1.3, p.y), fov: 55 },
-      { pos: W(p.x - dx * 5 + nx * 2, 3.2, p.y - dy * 5 + ny * 2), look: W(p.x + dx * 6, 1.5, p.y + dy * 6), fov: 60 },
-      { pos: W(p.x - dx * 8, 5.5, p.y - dy * 8), look: W(p.x + dx * 40, 2, p.y + dy * 40), fov: 62 },
+      { pos: W(p.x + dx * 4.5 + nx * 1.5, gz + 1.7, p.y + dy * 4.5 + ny * 1.5), look: W(p.x, gz + 1.35, p.y), fov: 50 },
+      { pos: W(p.x + nx * 5, gz + 2.3, p.y + ny * 5), look: W(p.x, gz + 1.3, p.y), fov: 55 },
+      { pos: W(p.x - dx * 5 + nx * 2, gz + 3.2, p.y - dy * 5 + ny * 2), look: W(p.x + dx * 6, gz + 1.5, p.y + dy * 6), fov: 60 },
+      { pos: W(p.x - dx * 8, gz + 5.5, p.y - dy * 8), look: W(p.x + dx * 40, groundLift(w.map, p.x + dx * 40, p.y + dy * 40, gz) + 2, p.y + dy * 40), fov: 62 },
     ];
   };
   const left = build(1), right = build(-1);
@@ -984,6 +1021,8 @@ function orbitShot(w, { radius = 8, height = 3, sweep = 1, start = null, lookY =
   const a0 = start ?? heading(w) + Math.PI * 0.75;
   const p0 = fixed ? null : hoofdspeler(w);
   const c0 = fixed || { x: p0.x, y: p0.y };
+  // (#730) de baan hangt boven de grond op die plek (dijk, viaduct, wierde), niet op z=0
+  const gz = groundLift(w.map, c0.x, c0.y, p0 ? p0.gz || 0 : 0);
   let best = null;
   for (const [rk, dir] of [[1, 1], [1, -1], [0.65, 1], [0.65, -1], [0.45, 1]]) {
     const r = radius * rk;
@@ -1000,7 +1039,7 @@ function orbitShot(w, { radius = 8, height = 3, sweep = 1, start = null, lookY =
   return (u) => {
     const c = fixed || hoofdspeler(w);
     const a = a0 + easeInOut(u) * sweep * dir;
-    return { position: W(c.x + Math.cos(a) * r, h, c.y + Math.sin(a) * r), lookAt: W(c.x, lookY, c.y) };
+    return { position: W(c.x + Math.cos(a) * r, gz + h, c.y + Math.sin(a) * r), lookAt: W(c.x, gz + lookY, c.y) };
   };
 }
 
@@ -1010,9 +1049,10 @@ export function playMissionFailed(w, info, withShot = true) {
   if (!withShot) return false;
   const p = hoofdspeler(w), a = heading(w);
   const px = p.x, py = p.y;
+  const gz = groundLift(w.map, px, py, p.gz || 0); // (#730) boven de grond, niet op z=0
   const keys = [
-    { pos: W(px - Math.cos(a) * 6, 3, py - Math.sin(a) * 6), look: W(px, 1.2, py) },
-    { pos: W(px - Math.cos(a) * 9, 9, py - Math.sin(a) * 9), look: W(px, 0.8, py) },
+    { pos: W(px - Math.cos(a) * 6, gz + 3, py - Math.sin(a) * 6), look: W(px, gz + 1.2, py) },
+    { pos: W(px - Math.cos(a) * 9, gz + 9, py - Math.sin(a) * 9), look: W(px, gz + 0.8, py) },
   ];
   return playCinematic({ id: 'mission-fail', priority: 2, duration: 2.4, letterbox: false, timeScale: 0.5, shot: pathShot(clearKeys(w, keys), easeOut) });
 }
@@ -1021,13 +1061,14 @@ function playDeath(w, pending) {
   const opts = { busted: !!pending.busted, moneyPenalty: pending.moneyPenalty || 0, announced: !!pending.announced };
   const p = hoofdspeler(w), a = heading(w);
   const px = p.x, py = p.y;
+  const gz = groundLift(w.map, px, py, p.gz || 0); // (#730) op een dijk of viaduct niet onder het maaiveld
   const bx = -Math.cos(a + 0.5), by = -Math.sin(a + 0.5);
   // Genre-style: slow motion, the colour drains, a slow rise over the spot,
   // the title on a band, then a dip to black into the trip (respawn.js)
   const keys = [
-    { pos: W(px + bx * 4, 2.2, py + by * 4), look: W(px, 0.7, py), fov: 52 },
-    { pos: W(px + bx * 6, 5, py + by * 6), look: W(px, 0.5, py), fov: 50 },
-    { pos: W(px + bx * 8, 10, py + by * 8), look: W(px, 0.3, py), fov: 48 },
+    { pos: W(px + bx * 4, gz + 2.2, py + by * 4), look: W(px, gz + 0.7, py), fov: 52 },
+    { pos: W(px + bx * 6, gz + 5, py + by * 6), look: W(px, gz + 0.5, py), fov: 50 },
+    { pos: W(px + bx * 8, gz + 10, py + by * 8), look: W(px, gz + 0.3, py), fov: 48 },
   ];
   const DUR = 3.2;
   const shot = pathShot(clearKeys(w, keys), easeOut);
@@ -1081,14 +1122,17 @@ function tryCrashReplay(w, x, y) {
   const fx = Math.cos(a), fy = Math.sin(a), nx = -fy, ny = fx;
   let side = Math.random() < 0.5 ? 1 : -1;
   if (roofAt(w.map, x + nx * 6 * side, y + ny * 6 * side)) side = -side;
-  const lift = roofAt(w.map, x + nx * 6 * side, y + ny * 6 * side);
+  const cx = x + nx * 6 * side, cy = y + ny * 6 * side;
+  const dak = roofAt(w.map, cx, cy); // gebouw bovenop de grond (0 op open grond)
+  const gz = groundLift(w.map, cx, cy, 0); // (#730) grond onder de camera, geen absolute z=0
+  const gzl = groundLift(w.map, x, y, 0);
   playCinematic({
     id: 'crash', priority: 1, duration: 1.2, timeScale: 0.22, letterbox: true, hideHud: true,
     // (#712) één regel, zodat een gast niet alleen twee balken ziet
     lines: [{ speaker: '', text: 'Krak. Iemand lette even niet op.' }],
     shot: (u) => ({
-      position: W(x + nx * 6 * side - fx * (2 - u * 2.5), 0.7 + lift + u * 0.4, y + ny * 6 * side - fy * (2 - u * 2.5)),
-      lookAt: W(x, 0.9, y),
+      position: W(cx - fx * (2 - u * 2.5), gz + dak + 0.7 + u * 0.4, cy - fy * (2 - u * 2.5)),
+      lookAt: W(x, gzl + 0.9, y),
       fov: 48,
       cut: true,
     }),
@@ -1104,16 +1148,18 @@ function playWantedFive(w) {
     for (const v of w.vehicles) {
       if (!v.isPolice || v.wrecked) continue;
       const d = Math.hypot(v.x - p.x, v.y - p.y);
-      if (d < best) { best = d; target = { x: v.x, y: v.y, h: 1 }; }
+      if (d < best) { best = d; target = { x: v.x, y: v.y, h: groundLift(w.map, v.x, v.y, v.z || 0) + 1 }; }
     }
   }
   let shot;
   if (target) {
     const dx = p.x - target.x, dy = p.y - target.y, d = Math.hypot(dx, dy) || 1;
     const ux = dx / d, uy = dy / d;
+    const gz = groundLift(w.map, p.x, p.y, p.gz || 0); // (#730) geen absolute z=0
+    const gzt = groundLift(w.map, target.x, target.y, 0);
     const cam = target.h > 5
-      ? W(p.x + ux * 5, 1.6, p.y + uy * 5)
-      : W(target.x - uy * 5 + ux * 2, 1.1, target.y + ux * 5 + uy * 2);
+      ? W(p.x + ux * 5, gz + 1.6, p.y + uy * 5)
+      : W(target.x - uy * 5 + ux * 2, gzt + 1.1, target.y + ux * 5 + uy * 2);
     shot = (u) => ({ position: V(cam.x, cam.y, cam.z + u * 0.6), lookAt: W(target.x, target.h, target.y), fov: 45 - u * 6, cut: true });
   } else {
     shot = orbitShot(w, { radius: 6, height: 1.6, sweep: 0.4, lookY: 2 });

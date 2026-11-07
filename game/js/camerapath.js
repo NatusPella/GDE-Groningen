@@ -52,6 +52,19 @@ function edgeDistance(x, y, pts) {
   return best;
 }
 
+// (#730) De absolute grondhoogte op een plek: dijken, viaducten, wierden en verdiepte
+// wegen liggen niet op z=0. Handgemaakte camera-keys en acteursposities gingen daarvan
+// uit en zakten op zulke plekken onder het maaiveld. map.groundHeightAt is dezelfde
+// hoogtevraag als de speler gebruikt; zonder hoogtemodel is de wereld vlak (0).
+export function groundLift(map, x, y, zHint = 0) {
+  try {
+    if (map && typeof map.groundHeightAt === 'function') {
+      const h = map.groundHeightAt(x, y, zHint);
+      if (Number.isFinite(h)) return h;
+    }
+  } catch (e) { /* zonder hoogtemodel: vlak */ }
+  return 0;
+}
 // How far the building at (x, y) reaches from that point (the farthest corner of its bounds) and how high its roof
 // is. A landmark orbit has to start outside this reach: the Forum is 85 m wide, so an orbit of 28 m around its
 // point runs through the building (#329). Only the buildings that hold the point count; a landmark point beside its building (within `pad` m) takes the

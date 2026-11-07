@@ -4,7 +4,7 @@ import { getScene } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk, swimPose, PERSON_RIG } from './models3d_people.js';
 import { pushAudioEvent } from './pedgeom.js';
 import { pointInPolygon as inPoly, isInWater, inMapWater, clamp, WATER_Y } from './util.js';
-import { playCinematic, isCinematicActive, skipCinematic } from './cinematics.js';
+import { startCameraTake, stopCameraTake } from './cinematics.js';
 import { bridgeWithin } from './vaultkit.js';
 import { getWaterIndex, insideWaterObstacle } from './waterindex.js';
 import { rand } from './rng.js';
@@ -341,15 +341,12 @@ function camSide(v) {
 function startCamera(v) {
   v.camAt = camSide(v);
   v.side = v.camAt.sx;
-  const est = v.runLen / RUN_SPEED + JUMP_S + 1.2 + v.L * 0.09 + (v.opts.slowmo ? 1.2 : 0) + (v.fail ? 6 : 4.5);
-  v.cine = playCinematic({
-    id: 'fierljep', priority: 2, duration: est, letterbox: true, skippable: false, hideHud: true, pause: false,
-    shot: () => v.cam && v.cam.last,
-  });
+  // (#728) een camerastand voor de sprong, geen scène van st seconden die het slot bezet
+  v.cine = startCameraTake('fierljep', () => v.cam && v.cam.last, { letterbox: true, hideHud: true });
 }
 
 function endCamera(v) {
-  if (v.cine && isCinematicActive('fierljep')) skipCinematic();
+  stopCameraTake('fierljep'); // (#728) de minigame stopt zijn eigen camerastand
   v.cine = false;
   v.cam = null;
 }

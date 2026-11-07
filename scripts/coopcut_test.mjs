@@ -251,10 +251,18 @@ for (const [i, act] of acts.entries()) {
     ok(w.coopNet.cutNu === null && w.coopCutRol === null, 'de gastheer ruimt de vervangen scène op, net als bij een gewoon einde');
     ok(w.coopCutSpoor.some((r) => r.includes('host-vervangen')) && !w.coopCutSpoor.some((r) => r.includes('host-einde')), 'het spoor zegt "vervangen" en niet "overgeslagen"');
     ok(!cutHostEinde(w, id, { skipped: false, replaced: true }), 'het einde gaat maar één keer');
-    // achterwaarts compatibel: een gast die het bericht niet kent laat het liggen en speelt door tot de
-    // nieuwe scène hem overneemt (coopcut.js cutGastSpeel); hij valt dus niet stil
-    const gast = { coopNet: { role: 'client', cutVerzamelaar: { reset() {} } }, coopCutBezig: id };
-    ok(handleEvent(gast, sent[0]) === false && gast.coopCutBezig === id, 'een gast die de vlag niet kent speelt door in plaats van te stoppen');
+    // (#727) de gast leest cutvervang nu zelf: hij stopt zijn oude kopie stil (zonder skip-effect) en
+    // wacht op de nieuwe scène. De import van cinematics is lui, dus even wachten.
+    const gast = { coopNet: { role: 'client', cutVerzamelaar: { reset() {} } }, coopCutBezig: id, coopCutWacht: [{ id }, { id: id + 1 }] };
+    ok(handleEvent(gast, sent[0]) === true, 'de gast leest het cutvervang-bericht');
+    await new Promise((r) => setTimeout(r, 40));
+    ok(gast.coopCutBezig == null, 'de gast stopt zijn vervangen kopie (zonder skip-effect)');
+    ok(gast.coopCutWacht == null || gast.coopCutWacht.every((p) => p.id !== id), 'de vervangen scène gaat ook uit de wachtrij');
+    // een gast die al een nieuwe scène speelt, houdt die: cutvervang mag nooit de nieuwe wegkieperen
+    const nieuw = { coopNet: { role: 'client', cutVerzamelaar: { reset() {} } }, coopCutBezig: id + 1 };
+    ok(handleEvent(nieuw, sent[0]) === true && nieuw.coopCutBezig === id + 1, 'een nieuwere scène blijft staan');
+    // en een gast zonder lopende scène doet niets
+    ok(handleEvent({ coopNet: { role: 'client' } }, sent[0]) === true, 'geen lopende scène: geen fout');
   }
   { // de speler sloeg zelf over: dat blijft precies zoals het was
     const { w, id, sent } = gastheer();
@@ -270,4 +278,21 @@ for (const [i, act] of acts.entries()) {
     ok(cutHostEinde(w, id + 99, { replaced: true }) === false, 'alleen voor de lopende scène');
   }
 }
-console.log(`coopcut_test: ${n} ok`);
+// (#727) cutvervang: de gastheer verving een scène (nieuw bedrijf in dezelfde reeks) en de gast
+// stopt zijn kopie. De bedrading: coopnet kent het bericht, en de handler controleert na de (lui)
+// import nog eens of de kopie niet intussen door een nieuwe scène is vervangen.
+{
+  const fs = await import('node:fs');
+  const path = await import('node:path');
+  const { fileURLToPath } = await import('node:url');
+  const root = path.dirname(fileURLToPath(import.meta.url));
+  const net = fs.readFileSync(path.join(root, '..', 'game/js/coopnet.js'), 'utf8');
+  const cut = fs.readFileSync(path.join(root, '..', 'game/js/coopcut.js'), 'utf8');
+  const host = fs.readFileSync(path.join(root, '..', 'game/js/cutscenehost.js'), 'utf8');
+  ok(/case 'cutvervang':/.test(net) && /cutGastVervangen\(world, body\.id\)/.test(net), 'coopnet heeft een gast-handler voor cutvervang');
+  ok(/export async function cutGastVervangen\(w, id\)/.test(cut), 'de handler staat in coopcut.js');
+  const h = cut.slice(cut.indexOf('export async function cutGastVervangen'));
+  ok(/if \(w\.coopCutBezig !== id\) return true;/.test(h.slice(0, h.indexOf('skipCinematic'))), 'na de import nog eens kijken of de kopie nog dezelfde is');
+  ok(/k: 'cutvervang'/.test(host), 'de gastheer stuurt cutvervang bij vervangen (blijft zo)');
+  ok(/if \(skipped \|\| !replaced\) return cutHostEnd\(w, id, skipped\);/.test(host) && /return n\.hub\.announce\(\{ k: 'cutvervang', id, skip: false \}\);/.test(host), 'en alleen bij vervangen, niet bij gewoon einde of zelf overslaan');
+}console.log(`coopcut_test: ${n} ok`);
