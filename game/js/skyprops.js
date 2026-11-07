@@ -1,3 +1,4 @@
+import { gridItems } from './spatialgrid.js';
 import { hoofdspeler } from './players.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { pointInPolygon, normalizeAngle } from './util.js';
@@ -67,7 +68,7 @@ function launchSites(map) {
   if (map._balloonSites) return map._balloonSites;
   const sites = [];
   const [ox, oy] = [-0.84, 0.33];
-  for (const g of map.green || []) {
+  for (const g of gridItems(map.greenGrid)) {
     if (g.kind !== 'park' && g.kind !== 'meadow') continue;
     const [x0, y0, x1, y1] = g.bounds || [0, 0, 0, 0];
     if ((x1 - x0) * (y1 - y0) < 40000) continue;

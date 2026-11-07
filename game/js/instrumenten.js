@@ -3,6 +3,9 @@
 // maakPaneel() zet het paneel in #hud en tekent met twee kleine canvassen. Altijd zomer: de wind is een bries (0 tot 7 m/s),
 // nooit storm, en de lucht blijft zonnig met hooguit een beetje bewolking.
 
+import { markerColors } from './a11y.js';
+import { COCKPIT_CLASS, mountCockpitCss } from './cockpit.js';
+
 const TWEEPI = Math.PI * 2;
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 
@@ -158,3 +161,4 @@ export function maakPaneel() {
     },
   };
 }
+

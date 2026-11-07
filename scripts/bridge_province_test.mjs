@@ -38,7 +38,7 @@ for (const k of keys) {
   for (const r of map.roadsNear(o[0] + 500, o[1] + 500, 720)) if (r.movable && r.bridge) roads.add(r);
 }
 RS.setRoadNetwork(map);
-const bridges = MB.buildMovableBridges({ roads: [...roads] });
+const bridges = MB.buildMovableBridges({}, [...roads]);
 const kinds = {};
 for (const b of bridges) kinds[b.kind] = (kinds[b.kind] || 0) + 1;
 console.log(`${bridges.length} movable bridges in the province:`, JSON.stringify(kinds));

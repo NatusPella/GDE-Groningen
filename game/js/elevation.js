@@ -73,7 +73,10 @@ function segsOfRoad(r) {
 export function buildElevation(map) {
   const segs = [];
   const grid = new Grid(CELL);
-  for (const r of map.roads) {
+  // (#314 C2b) de wegen uit het wegraster: dezelfde wegen als de array, en een
+  // gestroomde tegel voegt zijn eigen weg toe (extendElevation doet dat al per tegel).
+  const allRoads = gridItems(map.roadGrid);
+  for (const r of allRoads) {
     for (const s of segsOfRoad(r)) {
       grid.insert(s, s.box[0], s.box[1], s.box[2], s.box[3]);
       segs.push(s);
@@ -84,7 +87,7 @@ export function buildElevation(map) {
   // street-level road ribbons near the raised/sunken ones: they pass under
   // embankments (which then need an abutment, not a slope) and over cuttings
   const near = (x, y) => grid.at(x, y);
-  for (const r of map.roads) {
+  for (const r of allRoads) {
     const hs = surfaceHalfWidth(r);
     const P = r.pts, Z = r.z;
     for (let i = 0; i < P.length - 1; i++) {

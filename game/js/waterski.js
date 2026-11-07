@@ -284,10 +284,13 @@ function updateHud() {
   const g = game;
   if (!g || !board) return;
   const s = g.s;
-  const row = `<span>Score <b>${Math.round(s.score).toLocaleString('nl-NL')}</b></span><span>Afstand <b>${Math.round(s.dist)}/${SKI.len} m</b></span><span>Boeien <b>${s.gateHits}/${s.gates.length}</b></span><span>Reeks <b>x${s.mult}</b></span><span>Valpogingen <b>${Math.max(0, SKI.tries - s.falls)}</b></span>`;
+  const over = Math.max(0, SKI.tries - s.falls);
+  // #614: de baan als boeiencellen en de laatste valpoging zichtbaar anders
+  const row = `<span>Score <b>${Math.round(s.score).toLocaleString('nl-NL')}</b></span><span>Afstand <b>${Math.round(s.dist)}/${SKI.len} m</b></span><span>Boeien <b>${s.gateHits}/${s.gates.length}</b></span><span>Reeks <b>x${s.mult}</b></span><span>${over === 1 ? 'Laatste kans' : 'Valpogingen'} <b>${over}</b>${over === 1 ? ' (1/3)' : ''}</span>`;
+  const cells = s.gates.map((_, i) => ({ t: String(i + 1), cls: i < s.gateHits ? 'good' : '' }));
   const flash = g.flash ? g.flash.text : g.phase === 'intro' ? 'Houd de lijn strak...' : '';
   const help = `${key('A')}${key('D')} uitleunen (in de lucht: draaien) · ${key('SPATIE')} sprong over de golf · ${key('E')} grab · ${key('BACKSPACE')} stoppen`;
-  board.set({ row, flash, bad: !!(g.flash && g.flash.bad), help });
+  board.set({ row, cells, flash, bad: !!(g.flash && g.flash.bad), help });
 }
 
 function glyph(ctx) {

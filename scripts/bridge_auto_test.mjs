@@ -11,7 +11,7 @@ const ok = (c, m) => { n++; if (!c) { fails++; console.log('FAIL ' + m); } };
 // a bridge over a channel running north-south: the span lies along x, the water along y
 const mkBridge = () => {
   const road = { movable: 'bascule', bridge: true, pts: [[0, 0], [20, 0]], width: 6, cat: 'normal' };
-  return MB.buildMovableBridges({ roads: [road] })[0];
+  return MB.buildMovableBridges({}, [road])[0];
 };
 const T = MB.BRIDGE_TIMING;
 const world = { vehicles: [], pedestrians: [], player: { x: 900, y: 900 }, time: 0 };
@@ -123,7 +123,7 @@ ok(b.state === 'closed', `a hornblower that lies still does not keep it open (${
     { bridge: true, cat: 'foot', width: 1.8, pts: [[500, 500], [510, 520]] },
     { bridge: true, cat: 'normal', width: 6, pts: [[357, 784], [345, 759]] },
   ];
-  const bs = MB.buildMovableBridges({ roads });
+  const bs = MB.buildMovableBridges({}, roads);
   ok(roads[1].movable === 'bascule' && bs.length === 2, 'a parallel footway beside the span becomes part of the movable bridge');
   ok(!roads[2].movable && !roads[3].movable, 'a far footway and a car road beside it stay as they are');
 }
@@ -163,7 +163,7 @@ ok(maxOpen <= MB.AUTO.MAX_OPEN_S + 1, `the bridge never stays open longer than t
 // 12. the province's movable bridges join with the streamed tiles and leave with them (#235: they never opened before)
 {
   const city = { movable: 'bascule', bridge: true, pts: [[0, 0], [20, 0]], width: 6, cat: 'normal' };
-  const list = MB.buildMovableBridges({ roads: [city] });
+  const list = MB.buildMovableBridges({}, [city]);
   const v0 = MB.movableBridgesVersion();
   const tileRoad = { movable: 'lift', bridge: true, pts: [[5000, 0], [5030, 0]], width: 6, cat: 'normal' };
   const side = { bridge: true, cat: 'foot', width: 1.8, pts: [[5003, 6], [5027, 6]] };

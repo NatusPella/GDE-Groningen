@@ -6,6 +6,7 @@ import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
 import { showBanner } from './cinematics.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, MEDALS } from './achievements.js';
 import { showCard } from './hudcards.js';
+import { onthullingScene } from './uitjescene.js';
 import { spawnFxPuff } from './fx3d.js';
 import { pushAudioEvent } from './pedgeom.js';
 import { standActivity, recLine } from './standactivity.js';
@@ -270,10 +271,10 @@ function updateHud() {
   const row = `<span>Tijd <b>${fmtTime(s.time)}</b></span><span>Baan <b>${Math.min(POOL.lengths, s.length + 1)}/${POOL.lengths}</b></span><span>Afstand <b>${Math.round(s.dist)} m</b></span>`;
   let meter, flash = g.flash ? g.flash.text : g.phase === 'intro' ? 'Op het startblok...' : '';
   if (s.phase === 'block' && g.phase === 'run') {
-    meter = { v: diveMarker(s.t), mark: 0.52, color: '#46b36a' };
-    flash = flash || 'Spatie als de balk in het groen is';
+    meter = { v: diveMarker(s.t), mark: 0.52, color: 'var(--mk-ok, #3fc97a)', text: 'duik' };
+    flash = flash || 'Spatie bij het streepje op de balk'; // #615: vorm boven kleur
   } else {
-    meter = { v: s.stamina, color: s.stamina < SWIM.tired ? '#ff9a3c' : ACCENT };
+    meter = { v: s.stamina, color: s.stamina < SWIM.tired ? 'var(--mk-job, #ff9a3c)' : ACCENT, text: 'arm' };
     if (!flash && s.stamina < SWIM.tired) flash = 'Moe! Rustig aan, ritme vasthouden';
   }
   const help = `${key('A')}${key('D')} om en om zwemmen · ${key('SPATIE')} duik en keerpunt · ${key('BACKSPACE')} stoppen`;
@@ -291,8 +292,19 @@ function glyph(ctx) {
 
 // --- start -----------------------------------------------------------------------------------------------
 
-function start(w, { force = false } = {}) {
+function start(w, { force = false, revealed = false } = {}) {
   if (game) return false;
+  // #720: korte onthulling van het bad vóór de honderd meter begint.
+  if (!revealed) {
+    const ok = onthullingScene(w, {
+      id: 'zwembad-reveal', kicker: 'Zwembad', title: 'Honderd meter',
+      x: STAND.x, y: STAND.y, height: 7, radius: 18,
+      lines: [{ speaker: '', text: 'Het bad ligt klaar. Honderd meter, twee slagen per seconde.' }],
+      onEnd: () => start(w, { force, revealed: true }),
+    });
+    if (!ok) return start(w, { force, revealed: true });
+    return true;
+  }
   if (!built) built = buildPool();
   const p = hoofdspeler(w);
   if (p.inVehicle) p.exitVehicle(w.map, w);

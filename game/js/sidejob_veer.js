@@ -5,6 +5,7 @@
 import { startRonde, stapRonde, rondeResultaat, bijbaanById } from './bijbaanregels.js';
 import { LINE } from './sidejob_rondvaart.js';
 import { spawnJobBoat, vehicleSpeed } from './sidejobkit.js';
+import { accentVan } from './sidejobprofiel.js';
 
 const BOAT = { name: 'boat', len: 7.2, wid: 2.4, maxSpeed: 4.8, accel: 1.5, brake: 2.2, turnRate: 1.0, color: '#2f6a4f', cabin: '#f2ede0' };
 const VAN = 34, NAAR = 55, HAVEN_R = 30;
@@ -15,7 +16,7 @@ const MELDING = { harbourSpeed: 'In de haven stapvoets!' };
 const regel = bijbaanById('veerdienst');
 
 export const veerdienst = {
-  id: 'veerdienst', name: regel.naam, color: '#2f6a4f', glyph: 'rondvaart', boss: 'Kapitein Lauwers', vehicleWord: 'de veerboot', boardText: 'Ga aan boord van de veerboot',
+  id: 'veerdienst', name: regel.naam, color: accentVan('veerdienst'), glyph: 'rondvaart', boss: 'Kapitein Lauwers', vehicleWord: 'de veerboot', boardText: 'Ga aan boord van de veerboot',
   blurb: regel.blurb, tagline: regel.bedrijf, intro: regel.intro,
   sikkom: (c) => `${regel.naam} (${regel.bedrijf}): ${c.streak} overtochten op tijd`,
 

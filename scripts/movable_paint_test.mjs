@@ -75,7 +75,7 @@ const worldOf = (piv, x, y, z) => new THREE.Vector3(x, y, z).applyMatrix4(piv.ma
   const data = await loadCityData();
   const map = new GameMap(data);
   RS.setRoadNetwork(map);
-  const bridges = MB.buildMovableBridges(map);
+  const bridges = MB.buildMovableBridges(map, map.roads);
   M3.initMovableBridges3D({ add() {}, remove() {} });
   const views = M3._bridgeViewsForTest();
   ok(views.length === bridges.length && views.length > 5, `a view per movable bridge (${views.length})`);

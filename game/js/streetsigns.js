@@ -1,3 +1,4 @@
+import { gridItems } from './spatialgrid.js';
 import { hoofdspeler } from './players.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { closestPointOnSegment, pointInPolygon } from './util.js';
@@ -73,7 +74,7 @@ function findFacade(map, x, y, ux, uy, cx, cy) {
 function buildSignIndex(map) {
   const list = [];
   const byName = new Map();
-  for (const road of map.roads) {
+  for (const road of gridItems(map.roadGrid)) {
     if (!road.name || road.pts.length < 2 || road.bridge || road.z) continue;
     if (road.cat === 'foot' || road.cat === 'cycle') continue;
     for (const [a, b] of roadEnds(road)) {

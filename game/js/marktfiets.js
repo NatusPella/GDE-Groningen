@@ -1,3 +1,4 @@
+import { gridItems } from './spatialgrid.js';
 import { hoofdspeler } from './players.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
@@ -43,7 +44,7 @@ function plateTexture() {
 // Where the signs stand: the outer ends of the bike-route ways, a metre beside the way.
 export function signSpots(map) {
   const out = [];
-  for (const r of map.roads) {
+  for (const r of gridItems(map.roadGrid)) {
     if (!isMarktFietsRoad(r)) continue;
     const n = r.pts.length;
     for (const [a, b] of [[r.pts[0], r.pts[1]], [r.pts[n - 1], r.pts[n - 2]]]) {

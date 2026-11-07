@@ -9,6 +9,7 @@ import { pick, randomStreetPoint, kerbSide, spawnPed, pedAlive, holdPed, freePed
 import { createChoicePanel, keycap } from './choicepanel.js';
 import { pickBoaCase, boaOptions, boaVerdict, euroText, BOA_SAY } from './casework.js';
 import { dist } from './util.js';
+import { accentVan } from './sidejobprofiel.js';
 
 const REACH = 3.4;
 const FAR = 42;
@@ -17,7 +18,7 @@ const SHOW_RESULT_S = 2.4;
 const SHIRTS = ['#c04a3a', '#3a7ab8', '#d8b030', '#6a9a5a', '#a05ab0', '#e0e0d8'];
 
 let panel = null;
-const ensurePanel = () => panel || (panel = createChoicePanel('#d9a441'));
+const ensurePanel = () => panel || (panel = createChoicePanel(accentVan('boa')));
 
 function offenderSpot(c) {
   const { map } = c.world;
@@ -47,7 +48,7 @@ function closePanel(c) {
 export default {
   id: 'boa',
   name: 'BOA voor een dag',
-  color: '#c98a2a',
+  color: accentVan('boa'),
   glyph: 'boa',
   boss: 'Hoofd-BOA Vermeer',
   kicker: 'Zijmissie',

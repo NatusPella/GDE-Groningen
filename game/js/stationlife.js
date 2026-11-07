@@ -132,7 +132,7 @@ export function updateStationLife(dt, world, opts) {
     if (!cur) lastName = '';
     return;
   }
-  if (!board) board = createBoard(`${VERVOERDER} · vertrekbord`, '#e8b02a');
+  if (!board) board = createBoard('station'); // #596: het vertrekbord uit de thematabel, geen eigen hex meer
   const v = cur.view;
   if (v.name !== lastName) { lastName = v.name; ost = omroepToestand(); }
   board.show();
@@ -146,4 +146,5 @@ export function updateStationLife(dt, world, opts) {
   const msg = omroepStap(ost, v, world.time);
   if (msg) world.addMessage(msg, 5);
 }
+
 

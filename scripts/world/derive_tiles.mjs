@@ -350,7 +350,7 @@ export function deriveFeatures(feats, { clear = true, clip = true } = {}) {
       roads: roads.slice(), buildings: kept, buildingGrid: grid, passageWays: [],
       roadsNear: (x, y, r) => roadGrid.query(x - r, y - r, x + r, y + r),
     };
-    const cut = clipWaysInBuildings(map);
+    const cut = clipWaysInBuildings(map, map);
     stats.clipped = cut.length;
     if (cut.length) {
       const was = new Map(rFeats.map((f) => [f.row, f]));

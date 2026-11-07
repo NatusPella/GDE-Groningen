@@ -1,3 +1,4 @@
+import { gridItems } from './spatialgrid.js';
 import { speedOutcome, SPEED_MARGIN_KMH, FINE_COOLDOWN } from './flitspaalrules.js';
 import { dist } from './util.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
@@ -28,7 +29,7 @@ function makeCamera(road, p) {
 }
 
 export function initFlitspaal(world) {
-  const roads = world.map.roads.filter((r) => (r.cat === 'major' || r.cat === 'normal') && !r.z && r.pts && r.pts.length >= 5);
+  const roads = gridItems(world.map.roadGrid).filter((r) => (r.cat === 'major' || r.cat === 'normal') && !r.z && r.pts && r.pts.length >= 5);
   const shuffled = roads.slice().sort(() => Math.random() - 0.5);
   const cams = [];
   const used = new Set();

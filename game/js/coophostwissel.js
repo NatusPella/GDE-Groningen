@@ -294,7 +294,7 @@ export class HerstelOntvanger {
 
 // ---- teksten voor de spelers (zonder rolnaam, met namen) ---------------------------------------------------------------------
 export const vraagWachtTekst = (naam) => `Je vroeg ${naam || 'de ander'} het spel over te nemen. Wachten op het antwoord.`;
-export const bodTekst = (naam) => `${naam || 'De ander'} wil het spel aan je overdragen: jij houdt de wereld dan draaiend. J = ja, N = nee.`;
+export const bodTekst = (naam) => `${naam || 'De ander'} wil het spel overdragen: J = ja, N = nee.`;
 export const pauzeTekst = (naam) => `${naam || 'De ander'} neemt het spel over. Even wachten, het duurt een paar seconden.`;
 export const overTekst = (naam) => `${naam || 'De ander'} heeft het spel overgenomen. Je speelt nu mee in dat spel.`;
 export const verbindMisluktTekst = 'Verbinden met het nieuwe spel lukte niet. Je speelt weer in je eigen spel.';
