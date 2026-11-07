@@ -234,7 +234,8 @@ export function collect() {
   bubble('Voetgangers', ['Ze komen der aan!'], { tag: 'opgelucht, wijzend' });
   bubble('Voetgangers', lit(pe, 'const GREET_LINES = '), { tag: ['vrolijk, zwaaiend', 'hartelijk, roepend over het water'] });
   bubble('Politie', lit(pe, 'const COP_LINES = '), { who: 'agent', tag: ['streng, bevelend, schreeuwend', 'gehaast, autoritair'] }, [BUBBLE.m]);
-  const mm = src('missions.js');
+  // #497: de dronken figuranten zitten sinds de split in missionlanes.js, niet meer in missions.js
+  const mm = src('missionlanes.js');
   bubble('Missie-figuranten', lit(mm, 'const DRUNK_LINES = '), { tag: ['dronken, lallend en vrolijk', 'aangeschoten, zingerig', 'dronken, sentimenteel'] });
   bubble('Missie-figuranten', lit(mm, 'const CHARGE_LINES = '), { tag: ['dronken, overenthousiast, schreeuwend', 'lallend, uitgelaten'] });
   // the night guards in the museum (heist.js, H6): one voice for the night shift
