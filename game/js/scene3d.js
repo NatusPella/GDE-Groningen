@@ -1,5 +1,6 @@
 import { hoofdspeler } from './players.js';
-import { RAY_CHUNK_TRIS, rayChunks, segmentHitsChunk } from './scene/raychunks.js'; // #497: de raycast-chunks van de camera-occlusie
+import { RAY_CHUNK_TRIS, rayChunks, segmentHitsChunk } from './scene/raychunks.js';
+import { setBlobHost, initBlobPool, addBlobShadow, zetBlobPool } from './scene/blobschaduw.js'; // #497: de blobschaduw-pool
 import { FLAGS, perfOff } from './devflags.js';
 import { sfxLinks } from './latehooks.js';
 import { MODS } from './cheatmods.js';
@@ -7,6 +8,14 @@ import { setDualText } from './subtitles.js';
 import { gridItems } from './spatialgrid.js';
 import { speakerHtml } from './speakers.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+
+const _camHits = [];
+const _camSphere = new THREE.Sphere();
+const _camRay = new THREE.Ray();
+const _camSphereHit = new THREE.Vector3();
+const _camInv = new THREE.Matrix4();
+const _segA = new THREE.Vector3();
+const _segB = new THREE.Vector3();
 import { buildBuildingMesh, setBuildingMap, setNightFactor } from './models3d_buildings.js';
 import { updateDiscoLamp } from './discolight.js';
 import { buildVehicleMesh, updateVehicleWheelSpin, applyFlatTire, setBusRearAngle, updatePoliceLamps, updateIndicatorLamps, syncPoliceMount, boatHullProfile, riderSeatFor, attachHelmet } from './models3d_vehicles.js';
@@ -560,90 +569,13 @@ export function disposeObject(root) {
   });
 }
 
-// Soft blob shadow: one texture/geometry/material for every actor. The
-// polygon offset outranks every ground decal layer (GROUND_LAYER tops out
-// at -8/-32), so it sits on roads and markings instead of under them.
-const BLOB_SHADOW_GEO = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2);
-const BLOB_SHADOW_MAT = new THREE.MeshBasicMaterial({
-  map: buildBlobShadowTexture(),
-  color: 0x000000,
-  transparent: true,
-  depthWrite: false,
-  polygonOffset: true,
-  polygonOffsetFactor: -10,
-  polygonOffsetUnits: -40,
+// #497: de blobschaduw-pool woont in scene/blobschaduw.js; hier krijgt hij de scène en de THREE-kant.
+setBlobHost({
+  THREE,
+  get scene() { return scene; }, // scene bestaat pas na init3D; de getter houdt de host actueel
+  addShared: (g, m) => { SHARED_GEOMETRIES.add(g); SHARED_MATERIALS.add(m); },
+  maakCanvas: (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; },
 });
-SHARED_GEOMETRIES.add(BLOB_SHADOW_GEO);
-SHARED_MATERIALS.add(BLOB_SHADOW_MAT);
-
-function buildBlobShadowTexture() {
-  const c = document.createElement('canvas');
-  c.width = c.height = 64;
-  const ctx = c.getContext('2d');
-  const g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
-  g.addColorStop(0, 'rgba(0,0,0,0.38)');
-  g.addColorStop(0.5, 'rgba(0,0,0,0.24)');
-  g.addColorStop(1, 'rgba(0,0,0,0)');
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, 64, 64);
-  return new THREE.CanvasTexture(c);
-}
-
-// The blobs are drawn as one InstancedMesh (same geometry, material, polygon offset and render order as before: they are black with
-// the same alpha, so their order among themselves does not show): every blob made here goes off the render layer and its world matrix
-// becomes an instance, filled just before the pool is drawn (the matrices are final by then). A blob that is hidden, whose actor is
-// out of the scene or beyond the pool's room is drawn on its own as before.
-const BLOB_HIDDEN_LAYER = 30;
-const BLOB_POOL_CAP = 768;
-const blobShadows = new Set();
-let blobPool = null;
-let blobPoolOn = true; // false: every blob draws on its own again (A/B checks of the pooling, window.__scene3d.setBlobPool)
-function initBlobPool() {
-  const m = new THREE.InstancedMesh(BLOB_SHADOW_GEO, BLOB_SHADOW_MAT, BLOB_POOL_CAP);
-  m.frustumCulled = false;
-  m.renderOrder = 1;
-  m.matrixAutoUpdate = false;
-  m.count = 0;
-  m.name = 'blob-instances';
-  m.userData.shared = true;
-  m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-  m.onBeforeRender = fillBlobPool;
-  scene.add(m);
-  blobPool = m;
-}
-function fillBlobPool() {
-  if (!blobPoolOn) { blobPool.count = 0; for (const sh of blobShadows) sh.layers.set(0); return; }
-  const arr = blobPool.instanceMatrix.array;
-  let n = 0;
-  for (const sh of blobShadows) {
-    let vis = true, a = sh;
-    for (; a && a !== scene; a = a.parent) if (!a.visible) { vis = false; break; }
-    if (a !== scene && vis) {
-      // not in the scene: forget it after a long absence (a pooled actor comes back well before)
-      if ((sh.userData.away = (sh.userData.away || 0) + 1) > 900) blobShadows.delete(sh);
-      sh.layers.set(0);
-      continue;
-    }
-    sh.userData.away = 0;
-    if (!vis || n >= BLOB_POOL_CAP) { sh.layers.set(vis ? 0 : BLOB_HIDDEN_LAYER); continue; }
-    sh.layers.set(BLOB_HIDDEN_LAYER);
-    sh.matrixWorld.toArray(arr, n * 16);
-    n++;
-  }
-  blobPool.count = n;
-  blobPool.instanceMatrix.needsUpdate = true;
-}
-
-function addBlobShadow(parent, sx, sz, x = 0) {
-  const shadow = new THREE.Mesh(BLOB_SHADOW_GEO, BLOB_SHADOW_MAT);
-  shadow.position.set(x, 0.02, 0);
-  shadow.scale.set(sx, 1, sz);
-  shadow.renderOrder = 1;
-  parent.add(shadow);
-  parent.userData.shadow = shadow;
-  blobShadows.add(shadow);
-  return shadow;
-}
 
 function buildVehicleActor(v) {
   const mesh = buildVehicleMesh(v);
@@ -1000,7 +932,7 @@ export function init3D(map) {
   onSettingsChange(applyViewSettings);
   resize3D();
   window.addEventListener('resize', resize3D);
-  window.__scene3d = { THREE, scene, cam, renderer, postfx, farLod, actors: () => ({ vehicles: vehicleMeshes, peds: pedMeshes, wildlife: wildlifeMeshes, culled: culledActors }), setBlobPool: (on) => { blobPoolOn = !!on; }, cullPass: () => { cullOffscreenActors(); skipHiddenMatrixWalk(); }, restorePass: restoreCulledActors, dists: () => ({ DRAW_DIST, buildingDetailR, facadeDetailDist, roadDetailR, viewDist, speed: focusSpeed, lead: streamAhead.lead }), batches: () => ({ buildings: buildingBatcher.info(), facades: facadeBatcher.info(), roads: roadBatcher.info(), shores: shoreBatcher.info(), pool: drawHub.stats() }) };
+  window.__scene3d = { THREE, scene, cam, renderer, postfx, farLod, actors: () => ({ vehicles: vehicleMeshes, peds: pedMeshes, wildlife: wildlifeMeshes, culled: culledActors }), setBlobPool: (on) => { zetBlobPool(on); }, cullPass: () => { cullOffscreenActors(); skipHiddenMatrixWalk(); }, restorePass: restoreCulledActors, dists: () => ({ DRAW_DIST, buildingDetailR, facadeDetailDist, roadDetailR, viewDist, speed: focusSpeed, lead: streamAhead.lead }), batches: () => ({ buildings: buildingBatcher.info(), facades: facadeBatcher.info(), roads: roadBatcher.info(), shores: shoreBatcher.info(), pool: drawHub.stats() }) };
 }
 
 // increments each time the scene is drawn to the canvas (blackframe.js)
@@ -2462,7 +2394,7 @@ export function update3D(dt, world) {
   noteStreamFocus(focus.x, focus.y, dt);
   focusSpeed = streamAhead.speed;
   geoFrame();
-  if (!blobPool) initBlobPool();
+  initBlobPool();
   stepPrewarm(world);
   syncBuildings(world, focus.x, focus.y);
   if (!NO_BATCH) {
@@ -4183,6 +4115,9 @@ function normalizeAngleDelta(a) {
 // De route-ribbon en de wegwijzer-beacon wonen in scene3d/routeribbon3d.js (#502);
 // setRouteLinks blijft hier nog een export, zodat main.js niets hoeft te wijzigen.
 export { setRouteLinks } from './scene3d/routeribbon3d.js';
+
+
+
 
 
 
