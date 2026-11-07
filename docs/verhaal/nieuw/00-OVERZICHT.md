@@ -16,6 +16,8 @@ Deze versie verwerkt de besluiten na drie reviews door andere taalmodellen (twis
 | `09-script-akte1.md` … `09-script-akte5.md` | het volledige script, machineleesbaar (`SPREKER: tekst [BEHOUDEN\|NIEUW]`) |
 | `DEEL4.md` | Deel 4 (Nazomer, M27-M30) na de epiloog; dit deel staat in de code |
 | `09-script-akte6.md` | het script van Deel 4 (act 6 in `game/storydata/script.json`) |
+| `TRAILER-SCRIPT.md` | de trailer (teaser en hoofdtrailer), met `[BEHOUDEN]`/`[NIEUW]` per regel |
+| `ronde2-besluiten.md` | de besluiten uit de tweede schrijfronde (samengevat per akte) |
 
 ## 1. Titel, logline, doel en motief
 
@@ -73,11 +75,16 @@ Bestaand = uit `docs/personages.md` en `storyarc.js`; **nieuw** alleen waar nodi
 | Akte | Regio | Missies | Reisbeats | Tijd (incl. reizen) | Dagen |
 |---|---|---|---|---|---|
 | **1 · Moi, Grunn** | Stad | 6 (M01-M06) | 0 | 62 min | vr 14 - ma 17 aug |
-| **2 · Het Noorden is groot** | Stad, Hogeland, Waddenzee | 5 (M07-M11) | 2 (trein Winsum, bus Zoutkamp) | 55 min | di 18 - do 20 aug |
+| **2 · Het Noorden is groot** | Stad, Hogeland, Waddenzee | 5 (M07-M11) | 2 (trein Warffum, bus Zoutkamp) | 55 min | di 18 - do 20 aug |
 | **3 · Aan de Eems** | Eemsdelta, Oldambt, de Dollard | 5 (M12-M16) | 1 (trein Winschoten) | 55 min | vr 21 - zo 23 aug |
 | **4 · Zuidwaarts** | Veenkoloniën, Westerwolde (Bourtange), Westerkwartier | 5 (M17-M21) | 1 (bus Bourtange) | 58 min | zo 23 - wo 26 aug |
 | **5 · Ontzet** | Westerkwartier, Stad | 5 (M22-M26) | 0 | 47 min | wo 26 - vr 28 aug |
-| **Totaal** | **alle 7 regio's + Stad** | **26** | **4** | **277 min = 4:37** (bandbreedte 4:00-5:10) | |
+| **Totaal** | **alle 7 regio's + Stad** | **30** (M01-M30) | **5** (T1-T5) | **277 min = 4:37** voor de vijf akten (bandbreedte 4:00-5:10) | |
+
+De vijf akten samen zijn 26 missies en 4 reisbeats (de 4:37 hierboven); **Deel 4
+"Nazomer"** voegt daarna M27-M30 en T5 toe (14-19 september, zie
+[DEEL4.md](DEEL4.md)). Daarmee komt de code op M01-M30 en T1-T5; de afzonderlijke
+tijdschatting van Deel 4 staat in dat document.
 
 **Van 30 naar 26 missies (de vier samenvoegingen):** M01 + M03 (Berends bakkie wordt voor de stunt gebruikt en moet zonder kras terug), M12 + M13 (skûtsje-afleiding en zout in één kustmissie, met sluipen langs de kustwacht), M17 + M19 (kroegentocht en één rit botsauto's waarin Durk en Douwe de informatie weggeven, met de kus), en M23 (de vestingbus) wordt een reisbeat met relatiegesprek. Elke regio houdt minstens één verplichte hoofdmissie (Stad, Hogeland, Waddenzee, Eemsdelta, Oldambt, Veenkoloniën, Westerwolde, Westerkwartier).
 
@@ -93,11 +100,11 @@ Bestaand = uit `docs/personages.md` en `storyarc.js`; **nieuw** alleen waar nodi
 | 2 | za 15 | M02 (07:30), M03 (10:00-12:00) | Loket open tot twaalf |
 | 3 | zo 16 | M04, M05 | Kiezelrace |
 | 4 | ma 17 | M06 (nacht) | de kraak |
-| 5 | di 18 | M07, M08, trein naar Winsum | |
+| 5 | di 18 | M07, M08, trein naar Warffum | |
 | 6 | wo 19 | M09, M10 | |
 | 7 | do 20 | bus, M11 (middag en nacht) | het Plantsoenfestijn opent (op de radio; verzonnen festival) |
 | 8 | vr 21 | M12, M13 (nacht) | Zomerkermis opent in Stad (radio) |
-| 9 | za 22 | M14 (zonsopgang), trein, M15, M16 (avond) | **Kermis in Winschoten (nieuw: za 22 - zo 23; staat nu op di 29 sep)** |
+| 9 | za 22 | M14 (zonsopgang), trein, M15, M16 (avond) | **Kermis in Winschoten (za 22 - zo 23 aug)** |
 | 10 | zo 23 | rustdag: reis naar Veendam, radio, appjes | |
 | 11 | ma 24 | M17, M18, M19 | |
 | 12 | di 25 | bus naar Bourtange (20:15), M20 (avond en nacht), M21 Tessa (nacht) | **Beleg van Bourtange (nieuw)** |
@@ -115,8 +122,8 @@ Elke reis heeft een vertrek, een bestemming, een reden en een aankomst; dit is d
 | Beat | Van | Naar | Reden | Vertrek | Aankomst | Datum |
 |---|---|---|---|---|---|---|
 | opening | Oosterparkwijk | Paddepoel | verhuisdag | 08:30 | 09:00 | vr 14 aug |
-| T1 trein | Station Grunn | Winsum (17 km) | Oma stuurt hen naar Geesje | 16:40 | 16:55 | di 18 aug |
-| los | Winsum | Warffum (12 km), overnachten bij Geesje | de eieren | 17:15 | 17:30 | di 18 aug |
+| T1 trein | Station Grunn | Warffum (22 km) | Oma stuurt hen naar Geesje | 16:40 | 17:10 | di 18 aug |
+| los | Warffum | Geesje, overnachten bij haar | de eieren | 17:15 | 17:45 | di 18 aug |
 | M10 | Usquert | Uithuizen (6 km, quad) | Jelle schudden | 14:00 | 14:10 | wo 19 aug |
 | T2 bus | Uithuizen | Zoutkamp (30 km) | Klaas wacht | 11:00 | 11:35 | do 20 aug |
 | M11 | Zoutkamp | Lauwersoog, Noordpolderzijl en terug (boot, wad) | skûtsje, dan het zout | 13:00 | 23:30 | do 20 aug |
@@ -178,7 +185,7 @@ Elke reis heeft een vertrek, een bestemming, een reden en een aankomst; dit is d
 | M26 | 5 | **Ontzet, net als in 1672** | Stad, Grote Markt en Oude Boteringestraat | 1 en 2 | de regels, **bakken**, blokkade van Jelles laatste plakje, Mem kiest eerlijk proeven, jury 4-1 | de notaris (zijn laatste plakje) | **"Ik wil bij jou blijven."** "Dat bedoelde ik ook." (10) | 10 | alles |
 | E | 5 | Epiloog en slot | Stad, Vismarkt | | standplaats; Jelle houdt drie plakjes en geeft drie terug | | tweeëntwintig graden (9) | 0 | cutscène |
 
-**Tellingen:** 26 hoofdmissies (6, 5, 5, 5, 5), 4 reisbeats, 12 nieuwe missies, 14 bestaande missies in een nieuwe plek en volgorde. Voertuigen en systemen: auto, bakkie, fiets, scooter (e-step), bus, trein (meerijden en machinist), heli (licht), klein vliegtuig (één missie), boten, trekker en quad, tankwagen, duif. **Drie signature-systemen:** de duif (M04, M24, finale), de boot (M11, M17) en de finale-colonne (M23, M26); de rest is bestaand of licht (zie 08 §3c).
+**Tellingen:** 30 hoofdmissies (M01-M30; de vijf akten zijn 26, Deel 4 voegt M27-M30 toe), 5 reisbeats (T1-T5), 12 nieuwe missies, 14 bestaande missies in een nieuwe plek en volgorde. Voertuigen en systemen: auto, bakkie, fiets, scooter (e-step), bus, trein (meerijden en machinist), heli (licht), klein vliegtuig (één missie), boten, trekker en quad, tankwagen, duif. **Drie signature-systemen:** de duif (M04, M24, finale), de boot (M11, M17) en de finale-colonne (M23, M26); de rest is bestaand of licht (zie 08 §3c).
 
 ### Het plakjesbord: wat Jelle wint en wat niet
 
@@ -325,7 +332,7 @@ Alle scènes volgen dezelfde regel: **context in de gesproken tekst** (wie, waar
 
 Wie het spel al kent, ziet bekende regels en mechaniek op nieuwe plekken in één nieuw verhaal. Dat levert op:
 
-1. **De hele provincie in plaats van de stad:** 7 regio's, 15 van de 26 missies spelen buiten Stad. Bekende beats keren terug op andere plekken.
+1. **De hele provincie in plaats van de stad:** 7 regio's, 15 van de 26 missies van de vijf akten spelen buiten Stad (met Deel 4 erbij: 20 van de 30). Bekende beats keren terug op andere plekken.
 2. **Een nieuw doel en een plan dat je volgt:** het plakjesbord en het koopboek; Jelle heeft een motief en grijpt actief in.
 3. **Een nieuw mysterie en een keerpunt:** Jelle heeft de bal echt; in M16 verklapt Durk waar; in M20 neemt zijn moeder hem af, en jij houdt hem vast.
 4. **Een dieptepunt van twee missies vlak voor de finale** (M20-M21): de ruzie, de verloren bal en wagen, de vrienden die weglopen.

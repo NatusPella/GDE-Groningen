@@ -6,7 +6,8 @@ Een release is een pre-release in de privé-repo (AGENTS.md, "Releases"). De co�
 
 1. **Lokaal, op de Windows-machine (of in Actions, zie onder):** `CHANGELOG.md` bijwerken (sectie `## [X.Y.Z]`), schone werkboom, dan
    `cd desktop && npm run release -- minor|patch --world`.
-   Dat bouwt de Windows-exe, maakt de tag en de release en uploadt de exe en `gde-world.tgz` (de gestagede kaarttegels).
+   `release.sh` draait eerst de CI-selectie (`node scripts/run_tests.mjs`) en stopt bij een rode suite (#576; nooduitgang `GDE_RELEASE_SKIP_TESTS=1`, dan staat het in de uitvoer).
+   Daarna bouwt het de Windows-exe, maakt de tag en de release en uploadt de exe en `gde-world.tgz` (de gestagede kaarttegels).
    De provinciekaart wordt alleen hier gebouwd: hij komt uit `data/cache`, die niet in git en niet op een runner staat.
 2. **In Actions, met één commando:** `node scripts/release_builds.mjs` (tag = versie in `desktop/package.json`, of `node scripts/release_builds.mjs v0.38.1`).
    Het script start `windows-release.yml`, `mac-release.yml`, `linux-release.yml` en `android-release.yml` (alle vier, behalve wat als bijlage al op de release staat: de lokale exe blijft dus staan; `--only windows` bouwt hem toch in Actions) met `gh workflow run` (de workflows moeten op `main` staan), wacht tot ze klaar zijn, start een door de runner geannuleerde run één keer opnieuw, meldt per workflow de duur en de gebruikte gratis minuten, en zet de installatieregels (macOS, Linux/Steam Deck, Android-sideloaden) in een beheerd blok onderaan de releasenotities. Alleen bijlagen die er echt staan komen erin; twee keer draaien geeft hetzelfde.
@@ -25,6 +26,24 @@ Alleen de eigenaar publiceert. De vier release-workflows hebben daarvoor twee sl
 `scripts/publish_check.mjs` keurt een workflow die een release uploadt zonder environment én owner-guard af (`release-zonder-eigenaar`, FAIL), zodat een nieuwe workflow die fout niet stil kan invoeren.
 
 Wat dit niet afdekt, en dus een eigenaarsbesluit is (hier niet gedaan): `desktop/release.sh` draait lokaal met het GitHub-account van de gebruiker, dus een collaborator met schrijfrechten kan daarmee nog steeds een release maken. Geef playtesters daarom een **pull-rol** in plaats van push, en zet **immutable releases** aan (GitHub → Settings → General → Releases): dan kunnen bestaande assets niet meer vervangen worden en is de lokale upload de enige, door de eigenaar gemaakte release. Tot dat is gedaan is dit voor de lokale route een afspraak, geen technische grendel. Releases zijn nu `immutable:false` (gemeten op 7-11); de environments bestaan nog niet (`total_count: 0`).
+
+## Poorten vóór een release (#576)
+
+- **CI op main.** De Tests-workflow draait sinds #576 ook bij een push naar `main`; op een push alleen de Linux-run (de Windows-run kost dubbele gratis minuten en draait al op elke PR). Zo staat er een groene meting op de commit waaruit getagd wordt.
+- **Lokaal vóór de tag.** `desktop/release.sh` draait vóór de versiebump `node scripts/run_tests.mjs` (dezelfde selectie als CI) en stopt bij rood. Nooduitgang voor een hotfix: `GDE_RELEASE_SKIP_TESTS=1`; de uitvoer zegt dan expliciet dat de suite niet gedraaid is.
+- **Tagvalidatie.** `scripts/release_builds.mjs` weigert een tag die niet `^v\d+\.\d+\.\d+$` is (de release 0.55.0 staat zonder `v`; zo'n tag valt niet stil terug op `desktop/package.json` meer).
+- **Hashes.** De Windows-workflow regenereert `SHA256SUMS.txt` na zijn `--clobber`-upload, zodat de hash bij de nieuwe exe hoort en de regel van `gde-world.tgz` blijft staan.
+
+## Voorstel aan de eigenaar: release-rechten (#558)
+
+De workflows hebben twee technische sloten (owner-guard en `environment: release`, zie hierboven), maar de omgeving zelf en de rollen zijn nog niet ingesteld (gemeten 7-11: `total_count: 0`). Concreet voorstel, uit te voeren door de eigenaar:
+
+1. **Environment met verplichte beoordeling:** GitHub → Settings → Environments → New environment `release`; zet **Required reviewers** op de eigenaar (en eventueel **Deployment branches** op `main`). Daarna moet elke release-run van een workflow door de eigenaar zelf worden goedgekeurd voordat er iets uploadt.
+2. **Playtesters naar pull:** Settings → Collaborators: geef de acht push-collaborators **Read** in plaats van **Write**. Wie alleen pull heeft, kan geen release-workflow starten en geen `release.sh` met schrijfrechten gebruiken.
+3. **Immutable releases aan:** Settings → General → Releases → **Immutable releases**. Dan kan een bestaande asset niet meer vervangen worden; de lokale release van de eigenaar is dan de enige die blijft staan.
+4. **Controleren:** `node scripts/release_builds.mjs --droog` en een test-run van `windows-release.yml` moeten daarna op de goedkeuringsvraag stuiten; `scripts/publish_check.mjs` keurt een nieuwe workflow zonder environment én owner-guard al af (`release-zonder-eigenaar`).
+
+Zonder stap 1 blijft de owner-guard het enige slot; zonder 2 en 3 kan een push-collaborator nog steeds lokaal een release maken of een asset vervangen. Dat is de eigenaarsbeslissing uit #558, geen technische vraag meer.
 
 ## Wat er in Actions gebouwd wordt
 

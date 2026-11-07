@@ -63,7 +63,7 @@ Een keuze die duur is om terug te draaien, of die iemand opnieuw gaat voorstelle
 
 ## Code
 
-- **Taal:** code in het **Engels** (bestandsnamen, modules, functies, variabelen, comments); wat de speler ziet of hoort in het **Nederlands**; proza (docs, specs, ADR's, changelog, issues, commits, testuitvoer) in het **Nederlands**. Bestaande Nederlandse namen en comments blijven staan: hernoem ze alleen in de commit die dat bestand toch al aanraakt, met imports, tests en docs mee. Geen massale hernoeming. Zie ADR [0017](.specs-fire/standards/adr/0017-code-in-het-engels.md).
+- **Taal:** code in het **Engels** (bestandsnamen, modules, functies, variabelen, comments); wat de speler ziet of hoort in het **Nederlands**; proza (docs, specs, ADR's, changelog, issues, commits, testuitvoer) in het **Nederlands**. Bestaande Nederlandse namen en comments blijven staan: hernoem ze alleen in de commit die dat bestand toch al aanraakt, met imports, tests en docs mee. Geen massale hernoeming. Zie ADR [0017](.specs-fire/standards/adr/0017-code-in-het-engels.md). TypeScript valt hier niet onder: JavaScript blijft de taal ([ADR 0023](.specs-fire/standards/adr/0023-javascript-blijft-de-taal.md), voorgesteld; main is en blijft `.js`).
 - Eén generator voor stad en platteland (`worldbuilder.js`); één hoogtevraag per net (`surfaceAt`); tegels in `.gdt`-formaat, RD New (EPSG:28992) als projectie.
 - Zelfde streaming-pad in Electron en web; de wereld is data (`game/world/` wordt bij het bouwen gemaakt en staat niet in git).
 - Opslagsleutels heten `gde-*` (met migratie van oude `gte-*`); laat saves nooit stuk gaan.

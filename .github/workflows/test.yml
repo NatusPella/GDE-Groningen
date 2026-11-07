@@ -6,6 +6,11 @@ name: Tests
 
 on:
   pull_request:
+  # sinds #576: ook op main, zodat een tag niet op een ongeteste commit kan staan.
+  # Op een push draait alleen de Linux-run (zie de matrix): de Windows-run kost dubbele
+  # gratis minuten en de PR-run dekt Windows al.
+  push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -23,7 +28,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: ${{ github.event_name == 'push' && fromJSON('["ubuntu-latest"]') || fromJSON('["ubuntu-latest","windows-latest"]') }}
     steps:
       # volledige geschiedenis: de geheimenscan leest alle commits (#593 punt 4); een
       # shallow checkout van diepte 1 maakt die scan in de praktijk leeg.

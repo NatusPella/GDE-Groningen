@@ -63,7 +63,7 @@ for t in scripts/*_test.mjs; do node "$t" || echo "FAIL $t"; done   # includes r
 
 ### Test runner and audits
 
-`scripts/run_tests.mjs` runs the standard set in one go: `node --check` on all JS, `voice_coverage`, every `scripts/*_test.mjs` and the Python tests, with plain `node` (no `timeout` needed, it has its own). CI (`.github/workflows/test.yml`) runs the same on Linux and Windows for every pull request.
+`scripts/run_tests.mjs` runs the standard set in one go: the module-aware syntax check on all JS (`.js`, `.mjs` and `.cjs`), `voice_coverage`, `import_check`, `undef_check`, `text_audit`, `player_singleton_audit`, `world_eigenaar`, `spec_check` and every `scripts/*_test.mjs`, with plain `node` (no `timeout` needed, it has its own). The three Python tests in `scripts/world/` are **not** in the runner: CI runs them as a separate step (`.github/workflows/test.yml`). CI runs the same set on Linux and Windows for every pull request, and since #576 also on every push to `main` (Linux job; the Windows matrix only on PRs, to stay within the Free minutes).
 
 ```bash
 node scripts/run_tests.mjs --quick        # fast subset: no full syntax sweep, no slow tests (30 s per test)
@@ -255,7 +255,7 @@ Debug hooks on `window` (`window.__x`, read by scripts/perf, the story test and 
 | `?gpu` | Doe alsof de GPU deze renderer-tekst heeft (test van het advies) |
 | `?preset` | Instellingen alleen voor deze run, bv. quality:laag,drawDistance:kort |
 | `?pixeldebug` | Nabewerking verft NaN/Inf-pixels magenta en negatieve HDR-waarden cyaan (issue #35) |
-| `?coop` | Lokale co-op voor twee spelers: speler 2 stuurt de metgezel (coop.js, issue #95) |
+| `?coop` | Oude lokale twee-speler-test (coop.js): speler 2 stuurt de metgezel. De gewone Samen spelen-modus staat in het pauzemenu en is er zonder vlag (#554) |
 | `?marker` | `?marker=vorm`: de vaste 3D-vormen van de wereldmarker in plaats van het zachte glyph |
 | `?touch` | Raakbediening aan (touch=1) of uit (touch=0), ook zonder touchscherm |
 | `?hitch` | Meet haperingen (hitchprobe) |
@@ -272,7 +272,7 @@ Debug hooks on `window` (`window.__x`, read by scripts/perf, the story test and 
 Every switch above is **off by default**: nothing changes for a player unless the name is in the URL. Value switches (`?shot=3`, `?marker=vorm`, `?touch=1`, `?preset=quality:laag`, `?gpu=<renderer>`, `?benchmark=<rounds>`) are null when absent. The ones to reach for most often:
 
 - Testing without touching your save: `?dev` (F9 panel) or `?storytest`; both use `gde-dev:` storage or memory.
-- Features still in trial, off by default so the game stays as it was: `?coop`.
+- Historical/dev path only: `?coop` (the old local two-player test, `coop.js`); Samen spelen itself is a normal mode in the pause menu and needs no flag (#554).
 - Diagnosis: `?pixeldebug` (NaN/Inf pixels magenta), `?hitch`, `?zwartcheck`, `?shaderdebug`, `?noworker`, `?nobatch`.
 - `?marker=vorm` brings back the old fixed 3D marker shapes. A new switch is added to `FLAGS` and `FLAG_DOCS` only, and to the table above; `devflags_test.mjs` fails otherwise.
 
@@ -401,47 +401,21 @@ from the end of the radio intro. Used three ways:
 
 ## Desktop builds and releases
 
-`desktop/` wraps the game in Electron: a standalone macOS app (universal,
-Apple Silicon + Intel), a portable Windows `.exe` and, optionally, a Linux
-x64 AppImage + tar.gz (for the Steam Deck), all fully offline (three.js and
-the fonts are vendored at build time). Built locally, no CI:
+Zie [RELEASEN.md](RELEASEN.md) en [.specs-fire/standards/publicatie.md](../.specs-fire/standards/publicatie.md)
+voor het volledige proces; dit is de korte versie.
 
-```bash
-cd desktop && npm install
-npm start                       # run the desktop app from source
-npm run dist:linux              # only the Linux build, in dist/
-npm run release -- minor        # new features:  0.3.1 -> 0.4.0
-npm run release -- patch        # bug fixes:     0.3.1 -> 0.3.2
-npm run release -- minor --linux --web --steam   # optional extras, any combination
-```
-
-`release` bumps the version (SemVer, `0.x.y` until the real launch at
-1.0.0), builds both platforms, tags `vX.Y.Z` and publishes a GitHub release
-with `GDE-Groningen-<version>-mac.dmg` and
-`GDE-Groningen-<version>-windows-portable.exe`. The apps are unsigned (no Apple Developer ID /
-Windows certificate), so testers confirm them once in macOS Privacy &
-Security or Windows SmartScreen. Afterwards it deletes `dist/` and `build/`
-(the builds are on GitHub). Flags:
-
-- `--linux` also builds `GDE-Groningen-<version>-linux.AppImage` and
-  `-linux.tar.gz` and uploads both to the release. This works on macOS
-  without Docker or Rosetta: `toolsets.appimage` is pinned to `1.0.3`
-  (electron-builder's newer, still "beta" AppImage toolset, with native
-  macOS tools and a static runtime that needs no libfuse2). The legacy
-  default (`0.0.0`) ships an x86_64-only `mksquashfs`, which fails on Apple
-  Silicon without Rosetta 2 ("spawn Unknown system error -86"). The AppImage
-  adds `--no-sandbox` itself when the system has no user namespaces.
-- `--web` also runs `npm run web:zip` and leaves
-  `GDE-Groningen-<version>-web.zip` in the repo root (gitignored). It is
-  **not** uploaded or published anywhere; `web-dist/` is deleted after
-  zipping.
-- `--steam` copies the unpacked builds into `steam/content/` before `dist/`
-  is cleaned (see [steam/README.md](../steam/README.md)). Nothing contacts
-  Steam.
-
-Disk: each platform build is ~250-300 MB, plus ~450 MB unpacked per
-platform in `dist/`; the web build adds ~500 MB (`web-dist/` + zip). All of
-it is gitignored.
+- **Lokaal (Windows):** `cd desktop && npm run release -- minor|patch --world`. `--world` is
+  verplicht: de provinciekaart komt uit `data/cache` (niet in git) en gaat als
+  `gde-world.tgz` mee. `current` houdt de versie; `--linux`/`--web`/`--steam` zijn extra's.
+- **Actions:** daarna `node scripts/release_builds.mjs` (tag = versie, of `vX.Y.Z` mee).
+  Dat start de vier handmatige workflows `windows-release.yml`, `mac-release.yml`,
+  `linux-release.yml` en `android-release.yml` (alle `workflow_dispatch`, elk met
+  `environment: release` en de owner-guard, zie [RELEASEN.md](RELEASEN.md) §"Wie mag publiceren").
+- De apps zijn niet ondertekend; testers bevestigen ze één keer in macOS Privacy & Security
+  of Windows SmartScreen. De wereld voor de runners komt uit `gde-world.tgz`.
+- `npm start` draait de app uit de bron, `npm run stage` bouwt alleen de stage,
+  `npm run dist:win`/`dist:mac`/`dist:linux` bouwen één platform lokaal.
+- Disk: ~250-300 MB per platformbuild en ~450 MB uitgepakt in `dist/`; alles gitignored.
 
 ## Webversie
 
@@ -642,24 +616,23 @@ Stand 22 oktober (#269, tweede pas, branch `claude/s11-ahn-ff51c9`): `?terrain` 
 
 ## Samen spelen (issue #95)
 
-Achter `?coop`; zonder die vlag verandert er niets. In het pauzemenu staat dan het onderdeel "Samen spelen" (Watch Dogs 2-achtig): **Iemand uitnodigen** (host, speelt zijn eigen verhaalrol) of **Code of adres invoeren** (gast, speelt zijn eigen verhaalrol; anderen zien hem als zijn online-avatar, #516). Er is geen keuze per save of bij het starten. Iedereen houdt zijn eigen voortgang: de gast verlaat zijn wereld, speelt in die van de host en komt terug op zijn eigen plek; zijn geld, spullen en prestaties blijven van hem (de sessie schrijft zijn save niet: `saveGame()` doet niets bij `world.coopRole === 'client'`). Er is geen coöp-save; alleen `gde-coop-sessie` onthoudt de laatste code van een gast.
+Samen spelen is een gewone modus in het pauzemenu (Spel > Samen spelen), niet achter een
+dev-vlag. De canonieke regels staan in
+[.specs-fire/standards/multiplayer.md](../.specs-fire/standards/multiplayer.md) en
+[../docs/MULTIPLAYER-VISIE.md](MULTIPLAYER-VISIE.md); de spelerskant in
+[SAMEN-SPELEN-HANDLEIDING.md](SAMEN-SPELEN-HANDLEIDING.md) en de gastregels in
+[COOP-GAST.md](COOP-GAST.md). In het kort:
 
-**Twee routes, naast elkaar** (de speler kiest in het uitnodigscherm):
-
-- **Kamercode** (`net/rtcroom.js`, `net/brokers.js`, `net/sigcrypto.js`, `net/netconfig.js`): WebRTC-datakanaal met openbare STUN-servers, signalering zonder eigen server via openbare brokers (BitTorrent-trackers en MQTT, PeerJS Cloud alleen als terugval). Het SDP/ICE-aanbod en -antwoord worden end-to-end versleuteld met de kamercode (PBKDF2 → AES-GCM); een broker ziet alleen onleesbare blobs en een uit de code afgeleid onderwerp, de code zelf gaat nooit over de lijn. Werkt ook in de webversie. Alle servers staan in **één bestand**: `game/js/net/netconfig.js` (STUN-lijst, trackers, MQTT-brokers, PeerJS, time-outs). Pas daar aan; controleer de adressen vóór een release.
-- **IP-adres** (`net/upnp.js`, `net/pairing.js`, `desktop/coopcore.cjs`): alleen Electron. De host opent via UPnP (NAT-PMP als terugval) een poort op de eigen router, leest het externe adres uit de router zelf en toont een code met adres, poort, sessiesleutel en controlesom (`GDE2-...`). De gast verbindt rechtstreeks (TCP). Geen derde partij. Bij geen UPnP, CGNAT of een weigering toont het scherm een Nederlandse melding met de terugval op het lokale netwerk. De mapping sluit bij stoppen en bij afsluiten (lease 2 uur).
-
-**Privacy en toestemming.** Beide routes delen het IP-adres met de medespeler. Vóór elk verbinden toont het spel een melding met een bevestigingsknop ("Akkoord en verbinden"); er wordt nooit stilzwijgend verbonden (`lobby.js`, stap `toestemming`). De kamercode-route stuurt bovendien het IP-adres naar de STUN-server en versleutelde signalering naar de brokers: de eigenaar heeft dat goedgekeurd (comment op #95). Geen telemetrie, geen accounts, niets van de save gaat mee. De tekst voor spelers staat bij Over › Privacy (`game/js/credits.js`).
-
-**N spelers (minimaal 4, tot 8).** Sterntopologie: de host (plek 0) heeft per gast een eigen verbinding (`net/hub.js`, `HostHub`), met eigen invoer, token en status. Elke gast, ook plek 1, is een eigen figuur uit een vaste lijst met verzonnen namen, kleuren, vormen en kleding (`coopplayers.js`, `EXTRA_CHARS`), met zijn eigen online-avatar (#516); de computermetgezel (de andere verhaalrol) is een computerfiguur in het beeld van de host en hoort bij geen plek. Het maximum staat standaard op 8 en is door de host instelbaar (4, 8, 12, 16; de codec kent 16 plekken, in de praktijk bepaalt de internetverbinding van de host het); de lobby toont vanaf 5 spelers een Nederlands advies over prestaties en, voor de host, uploadbandbreedte (`coopplayers.advies`). Een extra speler houdt het spel niet op als hij wegvalt, tenzij de opdracht hem nodig heeft (`holdBeleid`, `world.coopVereist`). Elke client ziet alle anderen met naam, kleur en vorm (HUD-label, `partnerhud.partnersInfo`); de host stuurt iedereen de lijst met spelers (`spelers`-bericht), pings gaan naar iedereen. Extra spelers volgen hun eigen figuur met hun eigen camera (het eenvoudigste dat werkt); de gedeelde camera voor de eerste twee is nog niet aan `scene3d` gekoppeld. Kamercode-route: na elke gast zet de host een nieuw aanbod klaar onder dezelfde code; de IP-route accepteert tot `max - 1` verbindingen (`desktop/coopcore.cjs`, id per verbinding).
-
-**De wereld van de host bij een gast.** Een gast draait de wereld van de host niet zelf: `updateGameplay` (main.js) doet niets zolang `world.coopRole === 'client'` en de verbinding staat; de gast tekent wat de host stuurt. Dat zijn de posities van alle spelers, wanted, voertuigen binnen 150 m van een speler (als blokken in maat en kleur, `coopentities3d.js`, `coopworld.js`), het doel van de lopende opdracht (lichtzuil) en een melding van wat de host speelt (`missie`-bericht). Tot 20 voetgangers en agenten binnen 70 m van een speler gaan ook mee (soort 12 en 13, eigen id-bereik vanaf 0x8000, getekend als eenvoudige poppetjes); verkeer verder weg, weer en schade blijven lokaal. Een passagier staat in de snapshot op de plek van het voertuig (`posOf`). Wat de host op het scherm heeft, gaat als `scene`-bericht naar de gasten (`coopscene.js`, `readHostScene`): een filmpje (na 0,7 s, zodat een kort kaartje bij dood geen filmpje is), de regel die iemand zegt, de opties van een keuze en of de host op pauze staat. Een gast tekent daar een laag met zwarte balken en tekst van (`updateHostScene`), stuurt tijdens een filmpje geen invoer en kiest niet: de host beslist. Een gast kan alleen lopen en rennen (#291). De figuren van andere spelers zijn echte persoonsmodellen met eigen uiterlijk, naamlabel en loopanimatie (`coopfigures3d.js`, `coopfigures.js`). Medespelers staan met eigen vorm en kleur op de kaart (`mapview.js`, soort `partner` in `mapicons.js`/`hud_panel.js`) en op de minimap (pijl aan de rand als ze buiten beeld zijn). De eerste twee spelers delen een camera op het midden tussen hen zolang ze te voet en binnen 60 m van elkaar zijn (`coop.sharedCamera`, `world.coopCam`, een kleine aanpassing in `scene3d.js`); extra spelers volgen hun eigen figuur.
-
-**Testbank.** `docs/COOP-TESTBANK.md`: pure scenario's met een slecht netwerk (`coop_scenarios_test`), vier headless gasten over echte TCP (`coop_tcp_test`) en `scripts/coop/testbank.mjs` met echte Electron-instanties (suites `basis`, `net`, `kamer`, `verhaal`, `touch`). Een Electron-run in een worktree vraagt `ELECTRON_EXE` en een gestagede map (`scripts/coop/restage.mjs`), en neemt de sloten van de slotenmap (`$GDE_LOCKS`, standaard `~/gde-locks`).
-
-**Tests** gebruiken nooit echte brokers, STUN of routers: `net_codec_test`, `net_protocol_test`, `net_hostmodel_test` (in-memory transport met verlies en jitter), `net_hub_test` (4 tot 8 spelers), `net_ipctransport_test`, `coopplayers_test`, `coopfigures_test`, `coopworld_test`, `net_sigcrypto_test`, `net_brokers_test` (nepbrokers voor tracker, MQTT en PeerJS), `net_rtcroom_test` (nep-RTCPeerConnection), `net_upnp_test` (nepper-router), `net_pairing_test`, `coopcore_test` (alleen 127.0.0.1), `coopnet_test`, `lobby_test`, `partnerhud_test`, `cooproles_test`, `coopstate_test`, `coopsave_test`, `coop_test`. Niet getest: een echte verbinding, echte STUN/brokers/UPnP, de schermen in beeld.
-
-**Uitbreiden.** Nieuwe scènes, minigames, voertuigen en coöp-activiteiten registreren hun regel met `registerCoop(soort, id, regel)` in `game/js/cooproles.js`; de netcode hoeft niet te veranderen. Het protocol heeft een versie en onderhandelde `caps` (`net/session.js`); onbekende gebeurtenissen worden genegeerd.
+- 4-16 spelers (standaard 8, door de host instelbaar); de host draait de wereld en is de
+  enige die spelers kan verwijderen (#439). Iedereen is verder gelijkwaardig.
+- Iedereen speelt lokaal zijn eigen hoofdrol en houdt eigen geld, verhaal en bezit
+  (#429, #455); er is geen coöp-save.
+- Een sessie is standaard besloten; alleen de host maakt hem zelf openbaar, na de
+  #438-melding (#556). De kamercode gaat eenmalig versleuteld mee (ECDH + AES-GCM, #583).
+- Alleen spelen is een sessie van één (#554, ADR 0024); de oude lokale twee-speler-test
+  (`?coop`, `coop.js`) bestaat nog als dev-pad en is geen spelersroute.
+- Netwerk: WebRTC met openbare STUN/signalering via openbare brokers; alle servers in
+  `game/js/net/netconfig.js`. Testbank: [COOP-TESTBANK.md](COOP-TESTBANK.md).
 
 ## Simulatielagen en worker (#18, #58)
 
