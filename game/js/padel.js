@@ -17,7 +17,8 @@ import { bubbleVoiceFor } from './linevoice.js';
 import { playLineVoice } from './audio.js';
 import { rand } from './rng.js';
 import { SET_GAMES, scorePoint, pointCall, judgeServeHit, serveInBox, serveFault, wallKind, judgeWall } from './padelrules.js';
-import { mgThema } from './minigamekit.js';
+import { mgThema, sfeerVan, sfeerVlakHtml } from './minigamekit.js';
+import { getSettings } from './settings.js';
 import { loadEchtePlekken, padelDefs } from './echteplekken.js';
 import { tilesIn, withTiles } from './tileplace.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
@@ -1306,17 +1307,22 @@ const CSS = `
 #hud .padel-board { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 14px; padding: 8px 20px 9px 12px;
   color: #f0ede4; text-shadow: var(--hud-shadow); pointer-events: none; z-index: 4;
   background: linear-gradient(90deg, rgba(12,20,14,0.88), rgba(23,48,31,0.62) 80%, rgba(23,48,31,0.2)); border-left: 3px solid ${ACCENT}; }
-#hud .padel-board small { display: block; font-size: 12px; letter-spacing: 3px; color: ${ACCENT}; }
-#hud .padel-board .pb-teams { display: grid; grid-template-columns: auto auto auto; gap: 0 14px; align-items: baseline; font-size: 20px; letter-spacing: 1px; line-height: 1.15; }
-#hud .padel-board .pb-teams b { font-weight: normal; font-size: 24px; text-align: right; }
-#hud .padel-board .pb-teams i { font-style: normal; font-size: 24px; color: var(--mk-mission, #e8c93a); text-align: right; min-width: 30px; }
-#hud .padel-board .pb-side { display: flex; flex-direction: column; align-items: flex-end; font: 13px 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.75); letter-spacing: .3px; }
+#hud .padel-board small { display: block; font-size: max(12px, calc(13px * var(--ui, 1))); letter-spacing: 3px; color: ${ACCENT}; }
+#hud .padel-board .mg-sfeer { display: block; margin-top: 2px; font: max(12px, calc(12px * var(--ui, 1))) 'Arial Narrow', Arial, sans-serif; letter-spacing: 2px; text-transform: uppercase; color: rgba(240,237,228,0.62); font-style: normal; }
+#hud .padel-board .pb-teams { display: grid; grid-template-columns: auto auto auto; gap: 0 14px; align-items: baseline; font-size: calc(20px * var(--ui, 1)); letter-spacing: 1px; line-height: 1.15; }
+#hud .padel-board .pb-teams b { font-weight: normal; font-size: calc(24px * var(--ui, 1)); text-align: right; }
+#hud .padel-board .pb-teams i { font-style: normal; font-size: calc(24px * var(--ui, 1)); color: var(--mk-mission, #e8c93a); text-align: right; min-width: 30px; }
+#hud .padel-board .pb-side { display: flex; flex-direction: column; align-items: flex-end; font: max(13px, calc(13px * var(--ui, 1))) 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.75); letter-spacing: .3px; }
 #hud .padel-board .hud-key { margin: 0 2px; vertical-align: middle; }
 #hud .padel-board .pb-help { display: flex; align-items: center; gap: 3px; margin-top: 3px; }
-#hud .padel-board .pb-flash { font-size: 22px; letter-spacing: 1.5px; color: var(--mk-ok, #3fc97a); min-height: 1em; }
+#hud .padel-board .pb-flash { font-size: calc(22px * var(--ui, 1)); letter-spacing: 1.5px; color: var(--mk-ok, #3fc97a); min-height: 1em; }
 #hud .padel-board .pb-flash.them { color: var(--mk-job, #ff9a3c); }
+/* #599/#596: dezelfde vormdrager als de createBoard-borden */
+#hud .padel-board[data-sfeer] { padding-left: 78px; }
+#hud .padel-board .mg-vorm { position: absolute; left: 0; top: 0; bottom: 0; width: 64px; opacity: 0.5; pointer-events: none; clip-path: polygon(0 0, 100% 0, 78% 100%, 0 100%); }
+#hud .padel-board .mg-watermark { display: none; }
 body.padel-on #hud .hud-speedo, body.padel-on #hud .hud-route, body.padel-on #hud .phonefeed .pf-card { display: none !important; }
-@media (max-width: 480px) { #hud .padel-board { top: 64px; } }
+@media (max-width: 480px) { #hud .padel-board { top: 64px; padding-left: 12px; } #hud .padel-board .mg-vorm { display: none; } }
 `;
 
 function ensureHud() {
@@ -1326,8 +1332,12 @@ function ensureHud() {
   document.head.appendChild(st);
   const root = document.createElement('div');
   root.className = 'padel-board';
+  // #599: het padelbord staat op dezelfde sfeerdrager als de createBoard-borden (zelfde tabel).
+  const sfeer = sfeerVan('padel');
+  root.dataset.sfeer = 'padel';
+  if (sfeer) root.dataset.sfeerbord = sfeer.bordvorm;
   root.hidden = true;
-  root.innerHTML = '<div><small>PADEL</small><div class="pb-teams"></div></div><div class="pb-side"><span class="pb-flash"></span><span class="pb-help"></span></div>';
+  root.innerHTML = `${sfeerVlakHtml('padel')}<div><small>PADEL${sfeer ? `<em class="mg-sfeer">${sfeer.naam}</em>` : ''}</small><div class="pb-teams"></div></div><div class="pb-side"><span class="pb-flash"></span><span class="pb-help"></span></div>`;
   (document.getElementById('hud') || document.body).appendChild(root);
   hud = { root, teams: root.querySelector('.pb-teams'), flash: root.querySelector('.pb-flash'), help: root.querySelector('.pb-help'), key: '' };
   return hud;
@@ -1340,7 +1350,11 @@ function callOf(g, team) {
 function updateHud(w) {
   const g = game;
   if (!g || !hud) return;
-  const us = hoofdspeler(w).character === 'anita' ? 'Tessa & Tammo' : 'Tammo & Tessa';
+  // #599: de teamnaam van de opener is de spelersnaam (profielnaam als die er is), niet een vast verhaalduo.
+  const profiel = String(getSettings().onlineNaam || '').trim();
+  const eigen = hoofdspeler(w).character === 'anita' ? 'Tessa' : 'Tammo';
+  const maat = hoofdspeler(w).character === 'anita' ? 'Tammo' : 'Tessa';
+  const us = `${profiel || eigen} & ${maat}`;
   const them = `${g.names[0]} & ${g.names[1]}`;
   const serve = (t) => (g.server === t && g.phase !== 'intro' ? ' •' : '');
   const left = Math.max(0, Math.ceil(MATCH_CAP - g.t));

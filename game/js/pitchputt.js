@@ -773,8 +773,9 @@ function updateHud(w) {
   }) : '';
   const mark = putting ? straightPower(dist) : powerForCarry(dist);
   const flash = g.flash ? g.flash.text : g.phase === 'wacht' ? 'Alle banen af: wachten op de anderen' : g.phase === 'aim' ? (putting ? slopeText(g) : g.bunker ? 'Uit het zand: meer spreiding' : 'Mik op de vlag') : '';
+  // #597: de hulptekst noemt hooguit zes toetsen; de rest staat in Besturing > Hulp.
   const help = g.phase === 'aim'
-    ? `${key('A')}${key('D')} richten (${key('SHIFT')} fijn) · houd ${key('SPATIE')} en laat los bij het streepje · ${key('BACKSPACE')} stoppen · totaal ${relText(t.rel)}${g.hole === 0 && g.b.spelers.every((s) => s.slagen === 0) ? ` · ${key('2')}-${key('4')} meer spelers` : ''}`
+    ? `${key('A')}${key('D')} richten (Shift: fijn) · ${key('SPATIE')} kracht · ${key('BACKSPACE')} stoppen · totaal ${relText(t.rel)}${g.hole === 0 && g.b.spelers.every((s) => s.slagen === 0) ? ' · met 2-4 spelers samen op dit scherm' : ''}`
     : `Totaal ${relText(t.rel)} · ${key('BACKSPACE')} stoppen`;
   // de krachtbalk: de kleur zegt hoe dicht je bij het streepje zit (groen ver, geel dichtbij, oranje te hard), de tekst het getal
   const v = g.charge, nabij = Math.abs(v - mark);

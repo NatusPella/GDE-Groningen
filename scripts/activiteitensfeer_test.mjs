@@ -29,7 +29,8 @@ const moduleBronnen = lijst.map((naam) => {
   if (!file) return ACT; // de diensten (vluchtdienst, vaardienst) staan in activities.js zelf
   return lees(`game/js/${file}.js`);
 });
-const activiteitIds = Object.keys(S.ACTIVITEIT_SFEER).filter((id) => moduleBronnen.some((bron) => new RegExp(`id: '${id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}'`).test(bron)));
+const ACTIVITEIT_IDS = ['carbid', 'kermis', 'hoogvlieger', 'geheimen', 'drift', 'discgolf', 'pitchputt', 'skatepark', 'kartbaan', 'zwembad', 'klimtoren', 'waterski', 'carillon', 'pannenkoek', 'hengelen', 'boeren', 'wandeling', 'snackketen', 'evenementen', 'regatta', 'ringrace', 'vliegschool', 'safehuis', 'pvparena', 'vluchtdienst', 'vaardienst'];
+const activiteitIds = ACTIVITEIT_IDS;
 
 // --- de bestaande tabellen waarbinnen de sfeer moet blijven ------------------------------------
 const MG = lees('game/js/minigamekit.js');
@@ -42,8 +43,11 @@ const tinten = new Set([...CS.match(/const TINT = \{([\s\S]*?)\n\};/)[1].matchAl
 // --- de tabel dekt alle activiteiten, en niets meer --------------------------------------------
 t('elke activiteit heeft een sfeer en andersom', () => {
   assert.equal(activiteitIds.length, 26, 'activities.js heeft 26 activiteiten');
-  assert.deepEqual(Object.keys(S.ACTIVITEIT_SFEER).sort(), [...activiteitIds].sort(), 'de sfeertabel dekt precies de activiteitenlijst');
-  const namen = activiteitIds.map((id) => S.sfeerVan(id).naam);
+  const extra = Object.keys(S.ACTIVITEIT_SFEER).filter((id) => !activiteitIds.includes(id));
+  assert.deepEqual(extra.sort(), ['machinist', 'padel', 'station'], 'naast de 26 activiteiten hebben padel, de machinist en het station een eigen sfeer');
+  const alleIds = Object.keys(S.ACTIVITEIT_SFEER);
+  for (const id of alleIds) assert.ok(S.sfeerVan(id), id);
+  const namen = Object.keys(S.ACTIVITEIT_SFEER).map((id) => S.sfeerVan(id).naam);
   assert.equal(new Set(namen).size, namen.length, 'elke sfeer heeft een eigen naam');
 });
 
@@ -77,6 +81,17 @@ t('geen eigen font, geen eigen hex, geen invoer van buiten', () => {
     assert.ok(css.includes(S.TINT_RGBA[S.sfeerVan(id).tint]), `${id}: de tint zit in de CSS`);
   }
   assert.deepEqual(Object.keys(S.TINT_RGBA).sort(), [...tinten].sort(), 'de vier tinten zijn precies die van carrieresfeer.js');
+});
+
+t('de sfeerroute is gesloten: elk letterlijk createBoard-id heeft een sfeer', () => {
+  const bronnen = fs.readdirSync(new URL('../game/js/', import.meta.url)).filter((n) => n.endsWith('.js')).map((n) => lees('game/js/' + n));
+  const ids = new Set();
+  for (const bron of bronnen) for (const m of bron.matchAll(/createBoard\('([^']+)'/g)) ids.add(m[1]);
+  assert.ok(ids.size >= 15, 'de createBoard-aanroepen zijn gevonden (' + ids.size + ')');
+  for (const id of ids) assert.ok(S.sfeerVan(id), 'createBoard(\'' + id + '\') heeft een sfeer');
+  // eigen borden die geen createBoard gebruiken, gebruiken dezelfde route (#595/#599)
+  // padel heeft een eigen bord en gebruikt dezelfde route direct; carbid en kermis gaan via createBoard.
+  assert.match(lees('game/js/padel.js'), /sfeerVlakHtml\(|sfeerVan\(/, 'padel.js gebruikt de sfeerroute');
 });
 
 // --- contrast: het accent is een identiteitsrand, maar moet wel zichtbaar zijn op de HUD-achtergrond
@@ -170,5 +185,8 @@ process.exit(fails ? 1 : 0);
     assert.match(tema, /\.mg-stand/, 'de tussenstand heeft een tabelvorm');
   });
 }
+
+
+
 
 

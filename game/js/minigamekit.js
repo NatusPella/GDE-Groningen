@@ -188,6 +188,11 @@ const MG_ICONEN = {
   kart: `<polygon points="3,2.5 4.6,2.5 4.6,21.5 3,21.5" fill="#cfcbbd"/><polygon points="4.6,3 21,3 21,13.5 4.6,13.5" fill="#f0ede4"/><polygon points="4.6,3 8.7,3 8.7,8.2 4.6,8.2" fill="#17301f"/><polygon points="12.8,3 16.9,3 16.9,8.2 12.8,8.2" fill="#17301f"/><polygon points="8.7,8.2 12.8,8.2 12.8,13.5 8.7,13.5" fill="#17301f"/><polygon points="16.9,8.2 21,8.2 21,13.5 16.9,13.5" fill="#17301f"/>`,
   // de golfset (golficons.js): bal, wedge, putter, zand, water, beurt, oog en winnaar
   ...GOLF_VORM,
+  // #627: drie vlaggetjes (de kermis) en de gondel van het rad
+  vlaggen: `<polygon points="3,5 3,20 4.5,20 4.5,5" fill="#cfcbbd"/><polygon points="4.5,5 12,7 4.5,10" fill="#e8523a"/><polygon points="12,3 12,18 13.5,18 13.5,3" fill="#cfcbbd"/><polygon points="13.5,3 21,5 13.5,8" fill="#f2c744"/>`,
+  gondel: `<polygon points="9,3 15,3 15,5 9,5" fill="#cfcbbd"/><polygon points="11.4,5 12.6,5 12.6,15 11.4,15" fill="#cfcbbd"/><polygon points="5,16 19,16 16.5,21 7.5,21" fill="#f0ede4"/><polygon points="7.5,17.5 16.5,17.5 16.5,19 7.5,19" fill="#b9a27a"/>`,
+  // #630: de duif van de duivenmelker
+  duif: `<path d="M15.5 5.2a2.6 2.6 0 0 1 2.6 2.1l2.4.9-2.3.9c-.2 2.4-1.3 4.5-3.2 5.9l1 3.5h-1.6l-1-3a8 8 0 0 1-2.4.4l-.6 2.6H8.8l.6-2.9C6 14.6 3.8 12 3.5 8.8c2.4 1.8 5.3 2.4 8.4 1.8L13 7.7a2.6 2.6 0 0 1 2.5-2.5zm.3 1.7a.7.7 0 1 0 0 1.4.7.7 0 0 0 0-1.4z" fill="#f0ede4"/>`,
 };
 
 export const MG_THEMA = {
@@ -221,6 +226,12 @@ export const MG_THEMA = {
   // #596: de twee borden die buiten de tabel vielen: boerenwerk (het weiland) en het vertrekbord.
   boeren: { titel: 'BOERENWERK', accent: '#a3c94a', icoon: 'beurt' }, // hergebruikt het groen van de wandeling
   station: { titel: 'VERTREKBORD', accent: '#b3b3a2', icoon: 'beurt' }, // hergebruikt het perrongrijs van de machinist
+  // #627/#628/#630: kermis, reuzenrad, carbid en de duif stonden buiten de tabel; nu hebben ze één
+  // accent, titel en icoon, zodat hun eigen bord-CSS kon verdwijnen.
+  kermis: { titel: "BOTSAUTO'S", accent: '#d45c86', icoon: 'vlaggen' },
+  hoogvlieger: { titel: 'HOOGVLIEGER', accent: '#b9a27a', icoon: 'gondel' },
+  carbid: { titel: 'CARBID', accent: '#d9662e', icoon: 'disc' },
+  duivenmelker: { titel: 'DUIVENMELKER', accent: '#8a9aa6', icoon: 'duif' },
 };
 
 export function mgIcoon(naam, px = 16) {
@@ -235,6 +246,15 @@ export const mgThema = (id) => MG_THEMA[id] || null;
 // A board at the top centre for one game: title, a row of figures, optional
 // cells (a scorecard) and meter, a flash line and one line of key hints.
 // Leave `accent` out and pass an id from MG_THEMA for the game's own title, colour and icon.
+// Het vormvlak als HTML voor borden die hun eigen DOM hebben (#595, #599): dezelfde sfeertabel en
+// hetzelfde patroon als createBoard, zodat er geen tweede sfeersysteem ontstaat.
+export function sfeerVlakHtml(id) {
+  const sfeer = sfeerVan(id);
+  if (!sfeer) return '';
+  const vlak = vormStijl(sfeer.vorm);
+  return vlak ? `<span class="mg-vorm" aria-hidden="true" style="${vlak}background-color:${TINT_RGBA[sfeer.tint]};background-repeat:repeat;"></span>` : '';
+}
+
 export function createBoard(title, accent) {
   const thema = MG_THEMA[title];
   const titel = thema ? thema.titel : title;

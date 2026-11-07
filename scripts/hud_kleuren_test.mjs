@@ -132,6 +132,12 @@ ok(/\[data-sfeer="vaardienst"\] \{ border-bottom: 2px solid var\(--ink/.test(mg)
 ok((mg.match(/clip-path: polygon/g) || []).length >= 8, 'de bordvormen hebben eigen silhouetten (#596)');
 ok(/function boardBox\(vw, ui = 1\)/.test(mg), 'de bordmaat is als pure functie na te rekenen (#596)');
 
+
+// #599 padel: het eigen bord staat op dezelfde sfeerroute, schaalt mee en noemt de opener bij naam.
+const padelHud = read('padel.js');
+ok(/sfeerVlakHtml\('padel'\)/.test(padelHud) && /dataset\.sfeer = 'padel'/.test(padelHud), 'padel: eigen bord op de sfeerroute (#599/#595)');
+ok(/getSettings\(\)\.onlineNaam/.test(padelHud) && /profiel \|\| eigen/.test(padelHud), 'padel: de teamnaam is de spelersnaam van de opener, niet vast Tammo/Tessa');
+ok(/calc\(20px \* var\(--ui, 1\)\)/.test(padelHud), 'padel: het bord schaalt mee met --ui');
 // De identiteitskleuren staan op één plek: de accenttabel. Zo kan niemand er stilletjes een
 // statuskleur tussen schuiven zonder dat deze test het ziet.
 const accenten = [...mg.matchAll(/accent:\s*'(#[0-9a-fA-F]{6})'/g)].map((m) => m[1].toLowerCase());
@@ -150,11 +156,11 @@ const HUD_DRIFT = {
   'achievements.js': ['#3fc97a', '#6fe39d', '#1e9e56', '#e8c93a', '#fff0a8', '#d9a91e'],
   'golfhud.js': [],
   'padel.js': ['#3f8a4a', '#2f6fb8', '#f4f4ee', '#f2ede0', '#dff04a'],
-  'carbid.js': ['#e8823a', '#e9e0c8', '#b8352a', '#1d1d1d', '#f2ede0', '#ffd23f', '#5aa6e0', '#8ad85a', '#ff9a3c', '#5dff7a'],
-  'kermis.js': ['#e0457a', '#fff6d8', '#ffd23f', '#c8261e', '#f2e8d0', '#1d2a6a', '#7a1e1e', '#f2ede0', '#5dff7a'],
+  'carbid.js': ['#e9e0c8', '#b8352a', '#1d1d1d', '#f2ede0', '#ffd23f'],
+  'kermis.js': ['#fff6d8', '#ffd23f', '#c8261e', '#f2e8d0', '#1d2a6a', '#7a1e1e', '#f2ede0'],
   'treincabine.js': [],
   'heistui.js': ['#3fc97a', '#d93f3f', '#0f1c13'],
-  'pigeonmode.js': ['#3fc97a', '#8a9aa6', '#2a333a', '#eef2f4', '#f2c744', '#1a1a1a', '#d93f3f'],
+  'pigeonmode.js': [],
   'kaartactieui.js': [],
 };
 for (const [f, basis] of Object.entries(HUD_DRIFT)) {
@@ -185,8 +191,23 @@ for (const f of ['hudcards.css', 'pausemenu.css', 'postgame.js', 'helirun.js', '
   ok(!/system-ui/.test(read(f)), `${f}: geen system-ui in een HUD-overlay`);
 }
 
+// #627/#628/#630: kermis, reuzenrad, carbid en de duif lezen bord en accent uit MG_THEMA/createBoard.
+const kermisSrc = read('kermis.js'), radSrc = read('reuzenrad.js'), carbidSrc = read('carbid.js'), pigeonSrc = read('pigeonmode.js');
+ok(/const ACCENT = mgThema\('kermis'\)\.accent/.test(kermisSrc) && /createBoard\('kermis'\)/.test(kermisSrc) && !/\.kermis-board/.test(kermisSrc),
+  'kermis: één bord en accent uit MG_THEMA, geen eigen bord-CSS meer');
+ok(/const ACCENT = mgThema\('hoogvlieger'\)\.accent/.test(radSrc) && /createBoard\('hoogvlieger'\)/.test(radSrc) && !/\.rad-board/.test(radSrc),
+  'reuzenrad: hetzelfde bord als de kermis, accent uit MG_THEMA');
+ok(/const ACCENT = mgThema\('carbid'\)\.accent/.test(carbidSrc) && /createBoard\('carbid'\)/.test(carbidSrc) && !/\.carbid-board/.test(carbidSrc),
+  'carbid: één bord en accent uit MG_THEMA, geen eigen bord-CSS meer');
+ok(!/\[W\] \[S\]|\[A\] \[D\]/.test(kermisSrc + carbidSrc), 'kermis en carbid: geen brackettekst meer in de kaarten');
+ok(strayHexes('pigeonmode.js').length === 0 && /const thema = mgThema\('duivenmelker'\)/.test(pigeonSrc), 'duif: geen losse hex, titel en accent uit MG_THEMA');
+ok(/font: 12px\/18px/.test(pigeonSrc) && /prefers-reduced-motion/.test(pigeonSrc) && /class="hud-key"/.test(pigeonSrc), 'duif: chips 12 px, keycaps via .hud-key en reduce-motion');
+
 console.log((fails ? 'FAIL ' : '') + 'hud_kleuren_test: ' + (fails ? fails + ' fout' : 'ok — de HUD-kleuren komen uit de tokens, de accenten uit één tabel'));
 process.exit(fails ? 1 : 0);
+
+
+
 
 
 
