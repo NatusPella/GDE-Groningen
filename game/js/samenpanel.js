@@ -2,7 +2,7 @@
 // Hier komen de uitnodiging (host) en het aansluiten (gast) samen; geen keuze bij
 // Nieuw spel of Doorgaan. Dit is lijm tussen lobbyui.js en coopnet.js; niet in beeld bekeken.
 import { mountLobby } from './lobbyui.js';
-import { startHost, startClient, addGuest, stopCoopNet, handshakeInfo, canJoin, removeGuest, setMaxPlayers, openHek, genoegSpelers } from './coopnet.js';
+import { startHost, startClient, addGuest, stopCoopNet, handshakeInfo, canJoin, removeGuest, setMaxPlayers, openHek, genoegSpelers, vraagStart, vraagStop } from './coopnet.js';
 import { isSoloHost } from './coopsolo.js';
 import { fadeFlash } from './coophud.js';
 import { openHold } from './coophold.js';
@@ -125,11 +125,21 @@ export function renderSamenPanel(root, world, sluit = () => {}) {
     onCode: (code) => { if (ls) writeSession(ls, toSession(readSession(ls), { code })); },
     canJoin: () => eigenFilmpjeOverslaan(world, canJoin(world)),
     joined: () => {},
-    // 'Spel starten' (alleen de gastheer, in de wachtkamer van een nieuw spel): het menu sluit en de opening begint
+    // 'Spel starten' (de gastheer in de wachtkamer van een nieuw spel): het menu sluit en de opening begint.
+    // #642: een gast kan het ook vragen; de gastheer opent dan het hek en de gast start bij het hek-bericht.
     startSpel: () => {
       const n = world.coopNet;
       if (!n || n.role === 'host') { if (!genoegSpelers(world)) return; openHek(world); } // alleen met minstens twee spelers
       else setGate(false); // een gast: de ander startte
+      sluit();
+    },
+    // #642: een gast vraagt de wachtkamer te starten (de knop in de wachtkamer)
+    vraagStart: () => vraagStart(world),
+    // 'Iedereen stoppen': de gastheer stopt de sessie; een gast vraagt de groep om akkoord (#642)
+    stopIedereen: () => {
+      const n = world.coopNet;
+      if (n && n.role === 'client') vraagStop(world);
+      else stopCoopNet(world);
       sluit();
     },
     // 'Iedereen stoppen' (host) of 'Spel verlaten' (gast); bij 'terug' is er nog geen sessie

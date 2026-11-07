@@ -8,7 +8,7 @@
 // - Stemming: een tijdsprong vraagt akkoord van alle andere spelers (J of N, STEM_SEC seconden, geen antwoord is nee). Wie alleen is, beslist zelf.
 
 export const STEM_SEC = 10;
-export const STEM_SOORTEN = ['slapen', 'onderduiken'];
+export const STEM_SOORTEN = ['slapen', 'onderduiken', 'stoppen'];
 
 // ---- wie speelt er mee
 // Host: minstens een verbonden gast. Gast: altijd (hij zit in iemands sessie). Zonder sessie: nee.
@@ -76,6 +76,8 @@ export const stemWachtOp = (st) => Object.keys(st.keuze).map(Number).filter((s) 
 export const STEM_TEKST = {
   slapen: (naam) => `${naam} wil slapen. De tijd springt dan voor iedereen vooruit.`,
   onderduiken: (naam) => `${naam} wil onderduiken. De tijd springt dan voor iedereen vooruit.`,
+  // #642: iedereen stoppen is ook een gezamenlijke keuze, net als de tijd
+  stoppen: (naam) => `${naam} wil het spel voor iedereen stoppen.`,
 };
 export const stemVraagTekst = (tekst) => `${tekst} Akkoord? J = ja, N = nee (geen antwoord is nee).`;
 export const STEM_HOST = {
@@ -86,7 +88,10 @@ export const STEM_HOST = {
   bezig: 'Er loopt al een stemming. Even geduld.',
   gast: 'De tijd verspringt alleen als iedereen akkoord is. Vraag het aan wie het spel opende, of speel in je eigen spel.',
 };
-export const stemUitslagTekst = (ok, reden = '') => (ok ? STEM_HOST.ja : reden === 'geen antwoord' ? STEM_HOST.geenAntwoord : STEM_HOST.nee);
+export const stemUitslagTekst = (ok, reden = '', soort = '') => {
+  if (soort === 'stoppen') return ok ? 'Iedereen is akkoord: het spel stopt.' : (reden === 'geen antwoord' ? 'Niet iedereen antwoordde; het spel gaat door.' : 'Niet iedereen is akkoord; het spel gaat door.');
+  return ok ? STEM_HOST.ja : reden === 'geen antwoord' ? STEM_HOST.geenAntwoord : STEM_HOST.nee;
+};
 
 // ---- het bericht naar de gasten en hun antwoord (gecontroleerd bij ontvangst)
 export const stemEvent = (st) => ({ k: 'stem', id: st.id, soort: st.soort, tekst: st.tekst, sec: Math.max(1, Math.ceil(st.rest)) });

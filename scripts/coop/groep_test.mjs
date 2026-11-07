@@ -3,9 +3,13 @@
 // Dezelfde koppeling als in het spel (coopnet.js, hub, sessies) op een nep-wereld per speler, over een geheugentransport. Geen DOM, geen Electron.
 //   node scripts/coop/groep_test.mjs
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import { createLink } from '../../game/js/net/memtransport.js';
 import * as N from '../../game/js/coopnet.js';
 import * as G from '../../game/js/coopgroep.js';
+import { gateOn, setGate } from '../../game/js/coopgate.js';
+
+const mainSrc = fs.readFileSync(new URL('../../game/js/main.js', import.meta.url), 'utf8');
 
 let n = 0;
 const t = (name, f) => { f(); n++; };
@@ -52,8 +56,30 @@ t('zachte pauze: met één speler blijft alles zoals het is', () => {
   assert.equal(N.coopWereldDoorloop(hw, false), false, 'wel een sessie, nog geen gast');
   assert.equal(G.meerSpelers(solo), false); assert.equal(G.meerSpelers(hw), false);
 });
-t('zachte pauze: bronnen komen en gaan los van elkaar', () => {
-  const w = mkWorld(); G.zachtePauze(w, 'a', true); G.zachtePauze(w, 'b', true); G.zachtePauze(w, 'a', false);
+// #687: het pauzemenu, de kaart en een winkel zijn van de speler die ze opent: de wereld van de
+// opener (en dus de klok en de anderen) loopt door; alleen zijn eigen invoer staat stil. Een film
+// die iedereen ziet en het wachtscherm pauzeren nog wél voor iedereen.
+t('#687: pauzemenu, kaart en winkel pauzeren alleen de eigen speler', () => {
+  const s = sessie(1); s.step(2);
+  const hw = s.hw;
+  hw.paused = true;
+  for (const scherm of ['pauzemenu', 'kaart', 'winkel']) {
+    assert.equal(N.coopWereldDoorloop(hw, true), true, `${scherm}: de wereld van de opener loopt door`);
+    G.zachtePauze(hw, scherm, true);
+  }
+  assert.equal(G.zachtAan(hw), true, 'de drie schermen staan als zachte bron geregistreerd');
+  // de hoofdlus zet world.paused voor precies deze drie schermen en geeft dat ook aan de doorloop mee
+  assert.match(mainSrc, /world\.paused = isMapOpen\(\) \|\| isPauseMenuOpen\(\) \|\| isShopOpen\(\)/);
+  assert.match(mainSrc, /coopWereldDoorloop\(world, isMapOpen\(\) \|\| isPauseMenuOpen\(\) \|\| isShopOpen\(\)\)/);
+  // harde pauze blijft: een film die iedereen ziet en het wachtscherm
+  hw.uiPaused = true; // een film zet uiPaused én uiHard (cinematics.js)
+  hw.uiHard = true; assert.equal(N.coopWereldDoorloop(hw, true), false, 'een film pauzeert voor iedereen'); hw.uiHard = false;
+  hw.coopHold = true; assert.equal(N.coopWereldDoorloop(hw, true), false, 'het wachtscherm pauzeert'); hw.coopHold = false;
+  hw.uiPaused = false;
+  // en een gast draait de wereld niet zelf: die loopt bij de opener door
+  assert.equal(N.coopWereldDoorloop(s.gs[0].gw, true), false, 'de gast simuleert niet');
+});
+t('zachte pauze: bronnen komen en gaan los van elkaar', () => {  const w = mkWorld(); G.zachtePauze(w, 'a', true); G.zachtePauze(w, 'b', true); G.zachtePauze(w, 'a', false);
   assert.equal(G.zachtAan(w), true); G.zachtePauze(w, 'b', false); assert.equal(G.zachtAan(w), false);
   w.uiPaused = true; assert.equal(G.zachtAlleen(w), false, 'geen bron: geen zachte pauze');
 });
@@ -182,6 +208,25 @@ t('cheats en testmenu: uit in een sessie met meer spelers, aan met één speler'
   s.gs[0].link.cut(); s.step(8);
   assert.equal(G.cheatsUit(s.hw), false, 'de gast is weggevallen: weer alleen');
   assert.match(G.CHEATS_UIT_TEKST, /Samen spelen/);
+});
+
+// #642: de opener is geen baas — starten en "iedereen stoppen" kunnen ook van een gast
+t('#642: een gast kan de wachtkamer starten en iedereen stoppen voorstellen', () => {
+  const s = sessie(1); s.step(1);
+  setGate(true);
+  assert.equal(N.vraagStart(s.gs[0].gw), true, 'de gast stuurt een startverzoek');
+  s.step(0.2);
+  assert.equal(gateOn(), false, 'de host opende het hek');
+  // stoppen: de gast vraagt het, de host legt het de groep voor (J/N)
+  assert.equal(N.vraagStop(s.gs[0].gw), true, 'de gast stuurt een stopverzoek');
+  s.step(0.2);
+  const stem = s.hw.coopNet && s.hw.coopNet.stem;
+  assert.ok(stem && stem.st.soort === 'stoppen', 'de host start een stemming over stoppen');
+  assert.ok(s.gs[0].gw.coopStem, 'de gast ziet de stemming');
+  assert.equal(N.gastStem(s.gs[0].gw, true), true, 'de gast stemt ja');
+  s.step(0.5);
+  assert.equal(s.hw.coopNet, null, 'iedereen akkoord: de host stopt de sessie');
+  assert.equal(s.gs[0].gw.coopNet, null, 'de gast gaat mee terug naar zijn eigen spel');
 });
 
 console.log(`groep_test: ${n} tests ok`);

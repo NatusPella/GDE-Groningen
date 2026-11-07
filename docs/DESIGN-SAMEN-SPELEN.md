@@ -22,7 +22,7 @@ The 600 or so `world.player` references mean new code must not add another singl
 
 - The mode is **Samen spelen**, never co-op, coöp or multiplayer; the waiting room is the **wachtkamer** or **kamer**, never "lobby". The main menu has **Alleen spelen** and **Samen spelen**.
 - **Do not name a role.** Not "gastheer", "gastgever" or "host" in anything shown. Use the player's name (the character: Tammo, Tessa, or the profile name): "Tammo heeft het spel geopend",
-  "Wacht tot Tammo het spel start". Without a name: "de ander". "Gast" only where it cannot be avoided. The buttons are **Een spel openen** and **Meedoen**. In code and docs the name stays `host`.
+  "Wacht op de anderen, of druk zelf op 'Spel starten'". Without a name: "de ander". "Gast" only where it cannot be avoided. The buttons are **Een spel openen** and **Meedoen**. In code and docs the name stays `host`.
 - Everything is the player's own words: "Je speelt weer in je eigen spel." Always say where the player lands after something ends ("je komt terug waar je was").
 - No real names in session names (24 characters at most, with a word filter).
 
@@ -78,13 +78,13 @@ Rule for any handover or drop message: it says what happened, who has the game n
 ## Waiting
 
 - **Lobby / wachtkamer** (`lobby.js`, `lobbyui.js`, the `.gm` surface): steps "Iemand uitnodigen" (a code to copy; "Kopieer" is primary until the start gate is open), "Aansluiten" (type the code; a figure to choose when you are third or later; every player picks their own local lead, #455 — there is no role per seat),
-  "Je speelt samen" (the list, "Spel starten" primary but disabled until two players are connected, "Wacht tot X het spel start", **Spel verlaten** or **Iedereen stoppen**).
+  "Je speelt samen" (the list, "Spel starten" primary and open to every player once two players are connected — a guest asks the opener, #642 — **Spel verlaten** for a guest, or **Iedereen stoppen**: the opener stops at once, a guest asks the group, which then votes J/N).
 - **Consent first**: "Eerst even toestemming" with the route's text; the primary button is **Akkoord en verbinden**, the other **Annuleren**. Nothing goes out before it. "Maak deze sessie openbaar" and "Openbare sessies" ask separately
   (name, player count and version only; no IP address, no password; constitution 4).
 - **Connection lost** ("Verbinding weg", `coophold.js`): the game pauses for the player, the text names who is unreachable ("X is niet meer bereikbaar. Het spel staat stil tot jullie weer verbonden zijn."), and offers
   **Opnieuw verbinden** (primary), **Niet wachten** (the opener removes that player and goes on) or **Stoppen** (a guest leaves and lands in their own game), and **Verbinding testen**. It sits at z-index 9000 over everything.
 - **While the opener watches a cutscene** a guest plays the same scene itself and may skip its own view (hold Space); if it cannot, a layer shows black bars, "X kijkt een filmpje. Je wacht even.", the spoken line with its speaker, and a choice
-  the opener faces with "X kiest:" (`coopscene.js`). The choice is the opener's because the story belongs to that world. The notice "X heeft het spel op pauze" was **removed on 24-10** at the owner's request: no message when the opener opens a menu. The world itself still stands still for the guests while the opener is in a menu, the map or a shop (see debt); the design rule is that a menu pauses only the person who opened it.
+  the opener faces with "X kiest:" (`coopscene.js`). The choice is the opener's because the story belongs to that world. The notice "X heeft het spel op pauze" was **removed on 24-10** at the owner's request: no message when the opener opens a menu. Since #434/#687 the world itself keeps running for the guests while the opener is in the pause menu, the map or a shop — only the opener's own input stops (`coopWereldDoorloop`); a film everyone sees and the wait screen still pause hard. The design rule is that a menu pauses only the person who opened it.
 - **Guest and the map**: "Reis erheen" is disabled for a guest with the reason "Reizen kan alleen in je eigen spel. Zet wel een waypoint en ga zelf." (`kaartactie.js`). A waypoint always works.
 - **Joining or leaving** is a 0.35 s black fade (`fadeFlash`), not a message and not a flash.
 

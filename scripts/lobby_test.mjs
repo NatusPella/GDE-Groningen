@@ -218,7 +218,16 @@ t('N spelers: de gast ziet de lijst en kiest zijn eigen figuur; alleen figuren u
   s = L.reduce(s, { t: 'wens', char: 'bram' }); assert.equal(s.wens, 'bram'); assert.equal(L.view(s).wensen.find((w) => w.id === 'bram').gekozen, true);
   assert.equal(L.reduce(s, { t: 'wens', char: 'tammo' }).wens, null);
   const v = L.reduce(L.reduce(s, { t: 'status', status: 'ok' }), { t: 'spelers', lijst: LIJST(3), max: 4 });
-  assert.match(L.view(v).lines[0], /Spelers \(3 van 4\)/); assert.equal(L.view(v).buttons.length, 1);
+  assert.match(L.view(v).lines[0], /Spelers \(3 van 4\)/);
+  // #642: een gast kan het spel ook verlaten én iedereen stoppen voorstellen
+  assert.equal(L.view(v).buttons.length, 2);
+  assert.deepEqual(L.view(v).buttons.map((b) => b.act), ['verbreek', 'stop-iedereen']);
+});
+t('#642: de gast ziet Spel starten in de wachtkamer en vraagt het de opener', () => {
+  const s = L.reduce(run(APP, { t: 'kies', rol: 'gast' }, { t: 'status', status: 'ok' }, { t: 'spelers', lijst: LIJST(3), max: 4 }), { t: 'gate', aan: true });
+  const acts = L.view(s).buttons.map((b) => b.act);
+  assert.ok(acts.includes('start-spel'), 'ook een gast mag de wachtkamer starten', acts);
+  assert.match(L.view(s).lines.join(' '), /druk zelf op 'Spel starten'/);
 });
 t('advies bij meer dan 4 spelers: prestaties, en voor de host uploadbandbreedte; niet bij 4 of minder', () => {
   const lijst = (n) => Array.from({ length: n }, (_, i) => ({ slot: i, char: i ? 'rik' : 'tammo', naam: i ? 'Rik' : 'Tammo' }));
@@ -245,7 +254,7 @@ t('Spel starten: uit zolang je alleen bent, aan met minstens twee spelers; een g
   const verloren = L.view(L.reduce(run(GATE, { t: 'kies', rol: 'host' }, { t: 'status', status: 'ok' }), { t: 'spelers', lijst: lijst(2).map((p) => ({ ...p, verbinding: p.slot ? 'lost' : 'ok' })), max: 8 }));
   assert.equal(verloren.buttons.find((b) => b.act === 'start-spel').disabled, true, 'een weggevallen speler telt niet mee');
   const gast = L.view(L.reduce(run(GATE, { t: 'kies', rol: 'gast' }, { t: 'status', status: 'ok' }), { t: 'spelers', lijst: lijst(2), max: 8 }));
-  assert.match(gast.lines.join(' '), /Wacht tot Tammo het spel start/); assert.match(gast.lines.join(' '), /Tammo heeft het spel geopend/); assert.doesNotMatch(gast.lines.join(' '), /gastheer|gastgever/i); assert.equal(gast.buttons.some((b) => b.act === 'start-spel'), false, 'een gast heeft geen Spel starten');
+  assert.match(gast.lines.join(' '), /Wacht op de anderen, of druk zelf op 'Spel starten'/); assert.match(gast.lines.join(' '), /Tammo heeft het spel geopend/); assert.doesNotMatch(gast.lines.join(' '), /gastheer|gastgever/i); assert.equal(gast.buttons.some((b) => b.act === 'start-spel'), true, 'een gast mag ook starten (#642)'); // #642: de gast vraagt het de opener
   const open = L.view(L.reduce(L.reduce(run(GATE, { t: 'kies', rol: 'gast' }, { t: 'status', status: 'ok' }), { t: 'spelers', lijst: lijst(2), max: 8 }), { t: 'gate', aan: false }));
   assert.doesNotMatch(open.lines.join(' '), /Wacht tot/, 'na het starten staat de wachttekst er niet meer');
 });

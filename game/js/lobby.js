@@ -463,10 +463,16 @@ export function view(s) {
       } else {
         lines.push(`${opener} heeft het spel geopend.`);
         const jij = jijRegel(s, lijst, ik); if (jij) lines.push(jij);
-        if (s.caps.startGate) lines.push(`Wacht tot ${opener} het spel start.`);
+        if (s.caps.startGate) { // #642: ook een gast mag de wachtkamer starten; hij vraagt het de opener
+          const genoeg = lijst.filter((p) => p.verbinding !== 'lost').length >= MIN_SPELERS;
+          lines.push(genoeg ? "Wacht op de anderen, of druk zelf op 'Spel starten'." : 'Wacht op een medespeler.');
+          buttons.push({ act: 'start-spel', label: 'Spel starten', primary: true, disabled: !genoeg });
+        }
         lines.push(GAST_BEWAREN(s.caps.spelNaam, opener));
         lines.push('Je kunt er elk moment uit; je komt terug waar je was.');
         buttons.push({ act: 'verbreek', label: 'Spel verlaten' });
+        // #642: iedereen stoppen is ook van de gast; de opener legt het de groep voor (J/N)
+        buttons.push({ act: 'stop-iedereen', label: 'Iedereen stoppen' });
       }
       return V({ title: 'Je speelt samen', lines, code: host && s.code && lijst.length < s.max ? s.code : null, spelers: lijst, ik, ...(host ? { wachtwoord: wachtwoordVeld() } : null), buttons });
     }
