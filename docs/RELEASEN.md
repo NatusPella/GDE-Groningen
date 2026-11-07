@@ -1,5 +1,7 @@
 # Releasen: wat lokaal, wat in Actions
 
+> **Naslag.** De regels staan in de canonieke spec [`.specs-fire/standards/publicatie.md`](../.specs-fire/standards/publicatie.md); dit document is uitleg en geschiedenis. Bij verschil wint de spec (en bij twijfel `AGENTS.md`).
+
 Een release is een pre-release in de privé-repo (AGENTS.md, "Releases"). De coördinator maakt hem; agents pushen, taggen en releasen niet.
 
 ## Stappen
@@ -96,8 +98,7 @@ Nu bouwen we alleen x64 (Windows en Linux), macOS universal (arm64 en x64 in é�
 
 - De Windows-exe uit Actions (v0.38.1, onder een testnaam; daarna weggehaald) is gebouwd en heeft de MZ-header, maar is niet gestart; hij is even groot als de lokale exe (310,47 MB).
 - De AppImage en de tar zijn op de runner gecontroleerd (ELF-header, `gde-groningen` in de tar) maar niet op een echte Linux-machine of Steam Deck gestart.
-- De APK is gecontroleerd op een geldige zip, `AndroidManifest.xml`, `classes.dex` en `aapt2 dump badging`, maar niet op een toestel of emulator geïnstalleerd; zie `docs/ANDROID.md` ("Niet getest").
-- `versionName` in `android/android/app/build.gradle` blijft `0.35.0-android-test` tot iemand hem met de release laat meelopen.
+- De APK is gecontroleerd op een geldige zip, `AndroidManifest.xml`, `classes.dex` en `aapt2 dump badging`, maar niet op een toestel of emulator geïnstalleerd; zie `docs/ANDROID.md` ("Niet getest"). De APK-versie komt uit `desktop/package.json` via `android/scripts/version.mjs` → `android/version.properties`; `android/android/app/build.gradle` leest dat bestand en heeft geen eigen testversie meer. `android/package.json` is de versie van het Android-toolpakket en wordt met de release gelijkgehouden (test: `release_docs_test`).
 
 ## Webversie publiceren (#57)
 
@@ -145,8 +146,9 @@ Het eindspel, in deze volgorde (de eigenaar kiest het startmoment; agents doen n
    Anita, besluit over shot 11 (lege vitrine), daarna de Steam-cut met HUD. Niets uploaden zonder
    akkoord.
 3. **Versie 1.0.0.** `desktop/package.json`, `CHANGELOG.md` (`## [1.0.0] - <datum>`, alle
-   spelerzichtbare regels uit `[Unreleased]`), `android/android/app/build.gradle` (`versionName`;
-   die staat nu op een oude testwaarde).
+   spelerzichtbare regels uit `[Unreleased]`), `android/package.json` (toolpakket) en
+   `android/version.properties` (schrijft `android/scripts/version.mjs` uit `desktop/package.json`;
+   `build.gradle` leest dat bestand).
 4. **Builds.** `npm run release -- minor` (macOS/Windows) of de Actions-workflows met
    `workflow_dispatch`; Linux/Android optioneel. Het script schrijft `SHA256SUMS.txt` en zet de
    bestanden op de release; de comment op #116 noemt de testers (geen namen in de notities).

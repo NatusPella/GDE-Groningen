@@ -86,9 +86,13 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 - **Solo doet geen multiplayer-werk.** De politie-doelwitkeuze maakte ook zonder sessie elk frame een array en een Object.entries(); nu slaat hij dat over als er geen coop-wanted is. Alleen als je een sessie opent draait de netwerklaag (#553).
 
+## [0.56.2] - 2026-11-06
+
+- **De twee prestatie-wijzigingen van 0.56.1 zijn teruggedraaid (#553).** De wegenlaag-cache en de bevroren gebouwenmatrix bleken de laadhang op koude schijven te veroorzaken; de bewezen route staat weer aan. De meting en het veilige voorstel staan in `docs/PERF-LAADHANG-0.56.1.md`. Latere prestatie-ideeën komen pas terug met een bewaakte test.
+
 ## [0.56.1] - 2026-11-06
 
-- **Minder CPU-werk per frame zonder beeldverlies.** De wegenlaag wordt niet meer elke frame opnieuw bevraagd en vergeleken als de speler stil staat en er geen brug open is; gebouwen krijgen een bevroren modelmatrix omdat ze niet bewegen. Beide leveren dezelfde beelden op, met minder allocaties en matrixwerk per frame (#553).
+- **Prestatie-experiment: minder CPU-werk per frame (#553).** De wegenlaag werd niet meer elke frame opnieuw bevraagd en gebouwen kregen een bevroren modelmatrix. **Deze twee wijzigingen zijn in 0.56.2 teruggedraaid** wegens de laadhang; zie `docs/PERF-LAADHANG-0.56.1.md`. Ze tellen dus niet als blijvende verbetering.
 
 ## [0.56.0] - 2026-11-06
 

@@ -22,10 +22,9 @@ const SPOT = arg('spot', ''); // 123.4,56.7,0.3 = x,y,hoek: de plek in de echte 
 const DENSE = arg('dense', ''); // M02.intro:6:5 = vijf beelden verspreid over shot 6
 
 fs.mkdirSync(OUT, { recursive: true });
-// het startscherm weg (Enter zolang het zichtbaar is): op een drukke machine verschijnt het na de Enter van de harnas
+// #581: een testrun start als de speler (boot → wereld); geen startscherm of menu-aanroep meer.
 const WACHT = 'for (let i = 0; i < 240 && !(window.__debug && window.__debug.world); i++) await new Promise((r) => setTimeout(r, 500));\n'
-  + `const kEnter = () => { for (const t of [window, document]) { t.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', bubbles: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter', code: 'Enter', bubbles: true })); } };
-for (let i = 0; i < 40; i++) { const s = document.querySelector('#start-screen'); if (!s || !s.classList.contains('visible')) break; const klik = (q) => { const e = document.querySelector(q); if (e) e.click(); return !!e; }; if (!klik('#saveslots .ssl-new [data-do]') && !(window.__menuStart && window.__menuStart('nieuw'))) klik('#start-screen .ss-item[data-act="solo"]'); await new Promise((r) => setTimeout(r, 3000)); }
+  + `for (let i = 0; i < 120; i++) { if (document.body.classList.contains('game-started')) break; const w = window.__debug && window.__debug.world; if (w && w.paused) { for (const t of [window, document]) { t.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', code: 'Space', bubbles: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', code: 'Space', bubbles: true })); } } await new Promise((r) => setTimeout(r, 500)); }
 await new Promise((r) => setTimeout(r, 4000));\n`;
 const profile = `gde-test-cs-${process.pid}`;
 const script = path.join(OUT, '_page.js');

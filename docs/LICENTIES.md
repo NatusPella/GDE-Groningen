@@ -363,6 +363,16 @@ appnaam, releasebestanden, README. Sinds 0.29 ook de interne namen
 `GDE Groningen`), met een eenmalige kopie van de oude, zodat saves blijven
 werken (ARCHITECTURE.md, "Name and logo").
 
+**Vaste merknaam, bewuste taaluitzondering (#577).** "Grootste Diefstal
+Ever" is de vastgelegde merknaam en tagline, geen vertaalbare spelzin. De
+combinatie Nederlands-Engels is met opzet gekozen en staat in het logo, de
+credits en de merkdocumentatie; daarom blijft "Ever" staan en gebruiken we
+nergens de variant "Grootste Diefstal Ooit". Dit is de enige uitzondering
+op constitutie 1 (Nederlands in spelerstekst); alle overige spelers- en
+creditteksten zijn Nederlands. Wie de merknaam wijzigt, moet ook
+`MERKENCHECK.md` en de conflictanalyse hieronder opnieuw doen.
+
+
 **Conflictcheck** (3 okt 2026, via webzoekopdrachten; de registers van
 [EUIPO/TMview](https://www.tmdn.org/tmview/), [BOIP](https://register.boip.int/)
 en [WIPO Global Brand Database](https://branddb.wipo.int) konden niet
