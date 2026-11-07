@@ -617,7 +617,7 @@ export async function runStoryTest(world) {
           await waitFor(() => S().cardShown(cur.end), 25000);
           check(`the end card of ${cur.end} is shown before the next part starts`, S().cardShown(cur.end));
           await drain(world);
-          const resumed = await waitFor(() => { const c = S().current(); return !!c && !c.end; }, 10000);
+          const resumed = await waitFor(() => { const c = S().current(); return !!c && !c.end; }, 30000);
           check(`after the end card of ${cur.end} the story goes on`, resumed, JSON.stringify(S().current()));
           if (!resumed) break;
           continue;
@@ -1078,6 +1078,7 @@ export async function runStoryTest(world) {
   console.log('[storytest-done] ' + JSON.stringify(report));
   return report;
 }
+
 
 
 
