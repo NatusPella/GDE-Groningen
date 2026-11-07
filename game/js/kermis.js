@@ -12,7 +12,7 @@ import { notifyPhone } from './phonefeed.js';
 import { spawnFxSpark } from './fx3d.js';
 import { addStaticCollider, addProp, removeProp } from './breakables.js';
 import { activityBlock, iconDisc } from './activitykit.js';
-import { easeStep } from './minigamekit.js';
+import { easeStep, createBoard, mgThema } from './minigamekit.js';
 import { KERMIS_LINES, BOTS_BUMPED, BOTS_HIT, KERMIS_NEWS, KERMIS_TWINS } from './funlines.js';
 import { DURK_LOOK, DOUWE_LOOK } from './storycast.js';
 import { isToday } from './calendarday.js';
@@ -40,7 +40,8 @@ const PRIZE = [0, 5, 12, 25];
 const MEDAL_AT = [0, 60, 110, 160];
 const USE_RADIUS = 2.4;
 const DETAIL_M = 230;
-const ACCENT = '#e0457a';
+// #627: het accent komt uit de ene MG_THEMA-tabel, niet meer uit een tweede hex hier.
+const ACCENT = mgThema('kermis').accent;
 const WHEEL = WHEEL_AT;
 const STALLS = [
   { u: -9, v: -12.5, sign: 'EIERBALLEN', c: 0xc8261e },
@@ -442,10 +443,8 @@ function start(w, { free = false } = {}) {
   w.cinematicHidePlayers = true;
   if (built.roof) built.roof.visible = false;
   document.body.classList.add('kermis-on');
-  ensureHud();
-  hud.root.hidden = false;
-  if (story) showCard(w, { kind: 'missie', kicker: "Botsauto's", title: 'Durk en Douwe rijden mee', body: 'De twee rode hoodies. [W] [S] gas en achteruit, [A] [D] sturen: bots ze in de flank. 75 seconden.', duration: 7, key: 'kermis-help', voice: false });
-  else toonStartkaart(w, 'kermis');
+  showBoard();
+  toonStartkaart(w, 'kermis');
   janSay(w, story ? 'story' : 'start');
   return true;
 }
@@ -607,7 +606,7 @@ function end(w, { quit = false } = {}) {
   w.cinematicHidePlayers = false;
   w.cameraOverride = null;
   document.body.classList.remove('kermis-on');
-  if (hud) hud.root.hidden = true;
+  if (board) board.hide();
   if (built.roof) built.roof.visible = true;
   built.cars.forEach((car, i) => {
     if (car.rider) {
@@ -722,48 +721,23 @@ function camera(w) {
 
 // --- HUD -------------------------------------------------------------------------------------
 
-const CSS = `
-#hud .kermis-board[hidden] { display: none; }
-#hud .kermis-board { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); min-width: 330px; padding: 8px 18px 9px 12px; color: #f0ede4; text-shadow: var(--hud-shadow); pointer-events: none; z-index: 4;
-  background: linear-gradient(90deg, rgba(12,20,14,0.9), rgba(60,20,40,0.66) 80%, rgba(60,20,40,0.2)); border-left: 3px solid ${ACCENT}; }
-#hud .kermis-board small { display: block; font-size: 12px; letter-spacing: 3px; color: ${ACCENT}; }
-#hud .kermis-board .kb-row { display: flex; gap: 16px; align-items: baseline; font-size: 20px; letter-spacing: 1px; }
-#hud .kermis-board .kb-row b { font-weight: normal; color: #ffd23f; font-size: 24px; }
-#hud .kermis-board .kb-help { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; font: 13px 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.78); }
-#hud .kermis-board .hud-key { margin: 0 2px; vertical-align: middle; }
-#hud .kermis-board .kb-flash { font-size: 22px; letter-spacing: 1.5px; color: #5dff7a; min-height: 1em; }
-body.kermis-on #hud .hud-speedo, body.kermis-on #hud .hud-route, body.kermis-on #hud .phonefeed .pf-card { display: none !important; }
-@media (max-width: 480px) { #hud .kermis-board { top: 64px; min-width: 0; } }
-`;
+// #627: hetzelfde bord als het reuzenrad (minigamekit createBoard), met de Suikerspin-sfeer.
+let board = null;
 
-function ensureHud() {
-  if (hud) return hud;
-  const st = document.createElement('style');
-  st.textContent = CSS;
-  document.head.appendChild(st);
-  const root = document.createElement('div');
-  root.className = 'kermis-board';
-  root.hidden = true;
-  root.innerHTML = "<small>BOTSAUTO'S</small><div class=\"kb-row\"></div><div class=\"kb-flash\"></div><div class=\"kb-help\"></div>";
-  (document.getElementById('hud') || document.body).appendChild(root);
-  hud = { root, row: root.querySelector('.kb-row'), flash: root.querySelector('.kb-flash'), help: root.querySelector('.kb-help'), key: '' };
-  return hud;
+function showBoard() {
+  if (!board) board = createBoard('kermis');
+  board.show();
 }
 
 function updateHud() {
   const g = game;
-  if (!g || !hud) return;
+  if (!board || !g) return;
   const k = (t) => `<span class="hud-key">${t}</span>`;
   const left = g.phase === 'ride' ? Math.max(0, Math.ceil(g.phaseT)) : g.phase === 'intro' ? RIDE_S : 0;
   const row = `<span>Tijd <b>${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}</b></span><span>Punten <b>${g.score}</b></span><span>Reeks <b>${g.phase === 'ride' && g.t - g.comboT < 2.2 ? g.combo : 0}</b></span>`;
   const flash = g.flash ? g.flash.text : g.phase === 'intro' ? 'Wacht op de bel...' : g.phase === 'outro' ? 'Afstappen!' : '';
   const help = `${k('W')}${k('S')} gas / achteruit · ${k('A')}${k('D')} sturen · ${k('BACKSPACE')} uitstappen`;
-  const key = [row, flash, help].join('|');
-  if (key === hud.key) return;
-  hud.key = key;
-  hud.row.innerHTML = row;
-  hud.flash.textContent = flash;
-  hud.help.innerHTML = help;
+  board.set({ row, flash, bad: !!(g.flash && g.flash.bad), help });
 }
 
 // --- the activity --------------------------------------------------------------------------
@@ -813,3 +787,5 @@ export const KERMIS = {
   },
   runs: () => rides,
 };
+
+

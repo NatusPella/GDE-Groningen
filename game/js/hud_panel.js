@@ -78,6 +78,8 @@ const HUD_ACCENT = INK.greenLight;
 
 // the minimap's square, in HUD px (CSS --mm-size follows it)
 const MINIMAP_SIZE = 250;
+// #638: een totaalplafond voor de losse minimapiconen (de straten blijven zichtbaar).
+const MM_ICON_BUDGET = 10;
 let mmScale = 1.45;
 let mmSkip = 0, mmDt = 0;
 let mmMode = 'lopen';
@@ -2415,7 +2417,7 @@ function drawVillageNames(ctx, player, radius, toScreen) {
     boxes.push([sx, sy, w]);
     ctx.strokeText(label, sx, sy);
     ctx.fillText(label, sx, sy);
-    if (++n >= 4) break;
+    if (++n >= 3) break; // #638: hoogstens drie plaatsnamen op de minimap
   }
   ctx.restore();
 }
@@ -2542,11 +2544,15 @@ function drawMinimap(dt, world) {
   // a minigame on the spot (padel, carbid, the kermis) or a heli run: no other mission or story marks
   const busyGame = gameBusy(world);
   const placed = [];
+  // #638: de minimap heeft een totaalbudget; de straten zijn waar hij voor bestaat, dus losse
+  // iconen (politie, cash, doelen) mogen hem niet volzetten.
+  let iconCount = 0;
   const icon = (kind, x, y, opts) => {
-    if (!inRange(x, y)) return false;
+    if (iconCount >= MM_ICON_BUDGET || !inRange(x, y)) return false;
     const [sx, sy] = toScreen(x, y);
     drawMapIcon(ctx, kind, sx, sy, MM_ICON, { t, ...opts });
     placed.push(sx, sy);
+    iconCount++;
     return true;
   };
   const edgeAngle = (x, y) => Math.atan2(y - player.y, x - player.x) + mapRotation;
@@ -2638,8 +2644,27 @@ function drawMinimap(dt, world) {
   // roepjes van de medespelers (samen spelen, #367): een ster of kruis in de kleur van wie riep
   for (const m of world.coopPingMarks || []) if (!icon('partner', m.x, m.y, { kleur: m.kleur, vorm: m.vorm, angle: 0 })) partnerEdges.push({ a: edgeAngle(m.x, m.y), kleur: m.kleur });
 
-  forEachPoliceUnit(world, (x, y, kind) => icon(kind, x, y));
-  forEachCashTarget(world, (x, y) => icon('cash', x, y));
+  // #638: bij vijf sterren stonden er tien schilden over de straten. De politie is nu één badge
+  // met het aantal erbij; losse cash-doelen krijgen hoogstens drie plekken naast de rest.
+  const polities = [];
+  forEachPoliceUnit(world, (x, y, kind) => polities.push({ x, y, kind }));
+  if (polities.length === 1) icon(polities[0].kind, polities[0].x, polities[0].y);
+  else if (polities.length > 1) {
+    let best = polities[0], bestD = Infinity;
+    for (const q of polities) { const d = (q.x - player.x) ** 2 + (q.y - player.y) ** 2; if (d < bestD) { bestD = d; best = q; } }
+    if (icon('police', best.x, best.y)) {
+      const [sx, sy] = toScreen(best.x, best.y);
+      ctx.save();
+      ctx.font = "bold 9px 'Arial Narrow', Arial, sans-serif";
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.lineWidth = 2; ctx.strokeStyle = inkA('dark', 0.85); ctx.fillStyle = INK.cream;
+      ctx.strokeText(String(polities.length), sx + 7, sy - 7);
+      ctx.fillText(String(polities.length), sx + 7, sy - 7);
+      ctx.restore();
+    }
+  }
+  let cashN = 0;
+  forEachCashTarget(world, (x, y) => { if (cashN < 3 && icon('cash', x, y)) cashN++; });
 
   drawMapIcon(ctx, 'player', cx, cy, 1.8, { angle: player.angle + mapRotation });
 

@@ -1,5 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { toonStartkaart } from './startkaart.js';
+import { createBoard, mgThema } from './minigamekit.js';
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
 import { showBanner } from './cinematics.js';
@@ -37,7 +38,8 @@ const POUR_RATE = 0.5;
 const G = 9.81, DRAG = 0.0035, WIND_PUSH = 0.35;
 const USE_RADIUS = 2.4;
 const DETAIL_M = 260;
-const ACCENT = '#e8823a';
+// #628: het accent komt uit de ene MG_THEMA-tabel.
+const ACCENT = mgThema('carbid').accent;
 const PRIZE = [0, 20, 45, 90];
 const MEDAL_AT = [0, 45, 80, 120];
 const POINTS = { baal: 10, ton: 20, pop: 40 };
@@ -51,7 +53,7 @@ const TARGETS = [
 
 let game = null;
 let built = null;
-let hud = null;
+let board = null;
 let lodT = 0;
 let runs = 0;
 
@@ -266,8 +268,7 @@ function start(w) {
     clock: w.clock,
   };
   runs++;
-  ensureHud();
-  hud.root.hidden = false;
+  showBoard();
   document.body.classList.add('carbid-on');
   toonStartkaart(w, 'carbid');
   say(w, 'Roelf', 'start', true);
@@ -549,7 +550,7 @@ function end(w, { quit = false } = {}) {
   w.companionHold = null;
   w.cameraOverride = null;
   document.body.classList.remove('carbid-on');
-  if (hud) hud.root.hidden = true;
+  if (board) board.hide();
   if (built) { built.ring.visible = false; placeLid(null); }
   if (quit) { w.addMessage('Carbid schieten gestopt', 2.5); return; }
   const medal = medalOf(g.score);
@@ -651,69 +652,43 @@ function camera(w) {
 
 // --- HUD -------------------------------------------------------------------------------------
 
-const CSS = `
-#hud .carbid-board[hidden] { display: none; }
-#hud .carbid-board { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); min-width: 360px; padding: 8px 18px 9px 12px; color: #f0ede4; text-shadow: var(--hud-shadow); pointer-events: none; z-index: 4;
-  background: linear-gradient(90deg, rgba(12,20,14,0.9), rgba(48,34,20,0.66) 80%, rgba(48,34,20,0.2)); border-left: 3px solid ${ACCENT}; }
-#hud .carbid-board small { display: block; font-size: 12px; letter-spacing: 3px; color: ${ACCENT}; }
-#hud .carbid-board .cb-row { display: flex; gap: 16px; align-items: baseline; font-size: 20px; letter-spacing: 1px; }
-#hud .carbid-board .cb-row b { font-weight: normal; color: #ffd23f; font-size: 24px; }
-#hud .carbid-board .cb-meter { position: relative; height: 9px; margin: 6px 0 4px; background: rgba(240,237,228,0.16); border-radius: 2px; overflow: hidden; }
-#hud .carbid-board .cb-meter i { position: absolute; left: 0; top: 0; bottom: 0; background: #5aa6e0; }
-#hud .carbid-board .cb-meter i.gas { background: #8ad85a; }
-#hud .carbid-board .cb-meter i.leak { background: #ff9a3c; }
-#hud .carbid-board .cb-meter em { position: absolute; top: -2px; bottom: -2px; width: 2px; background: #f0ede4; }
-#hud .carbid-board .cb-help { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; font: 13px 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.78); }
-#hud .carbid-board .hud-key { margin: 0 2px; vertical-align: middle; }
-#hud .carbid-board .cb-flash { font-size: 22px; letter-spacing: 1.5px; color: #5dff7a; min-height: 1em; }
-#hud .carbid-board .cb-flash.bad { color: #ff9a3c; }
-body.carbid-on #hud .hud-speedo, body.carbid-on #hud .hud-route, body.carbid-on #hud .phonefeed .pf-card { display: none !important; }
-@media (max-width: 480px) { #hud .carbid-board { top: 64px; min-width: 0; } }
-`;
-
-function ensureHud() {
-  if (hud) return hud;
-  const st = document.createElement('style');
-  st.textContent = CSS;
-  document.head.appendChild(st);
-  const root = document.createElement('div');
-  root.className = 'carbid-board';
-  root.hidden = true;
-  root.innerHTML = '<small>CARBID SCHIETEN</small><div class="cb-row"></div><div class="cb-meter"><i></i><em></em></div><div class="cb-flash"></div><div class="cb-help"></div>';
-  (document.getElementById('hud') || document.body).appendChild(root);
-  hud = { root, row: root.querySelector('.cb-row'), bar: root.querySelector('.cb-meter i'), mark: root.querySelector('.cb-meter em'), flash: root.querySelector('.cb-flash'), help: root.querySelector('.cb-help'), key: '' };
-  return hud;
+// #628: hetzelfde bord als de andere uitjes (minigamekit createBoard), met de sfeer van de polder.
+function showBoard() {
+  if (!board) board = createBoard('carbid');
+  board.show();
 }
 
 function windText(g) {
   const v = g.wind.v;
   const bft = Math.round(Math.abs(v) * 1.2 + Math.abs(g.wind.u) * 0.5);
-  return bft < 1 ? 'Windstil' : `Wind ${bft} Bft ${v > 0 ? '←' : '→'}`;
+  // #628: niet alleen uit welke kant de wind komt, maar wat hij met het schot doet.
+  if (bft < 1) return 'Windstil';
+  return `Wind ${bft} Bft: duwt de deksel ${v > 0 ? 'naar links' : 'naar rechts'}`;
 }
 
 function updateHud() {
   const g = game;
-  if (!g || !hud) return;
+  if (!g || !board) return;
   const k = (t) => `<span class="hud-key">${t}</span>`;
+  // #628: hooguit drie toetsgroepen per fase.
   const help = g.phase === 'aim'
-    ? `${k('A')}${k('D')} draaien · ${k('W')}${k('S')} hoger/lager · houd ${k('SPATIE')} water op het carbid · ${k('BACKSPACE')} stoppen`
+    ? `${k('A')}${k('D')} draaien · ${k('W')}${k('S')} richten · houd ${k('SPATIE')} water op het carbid`
     : g.phase === 'gas' ? `${k('E')} aansteken als de ring goed ligt · ${k('A')}${k('D')}${k('W')}${k('S')} bijsturen` : 'Kijk hem gaan...';
-  let fill = 0, cls = '', mark = -1;
+  let fill = 0, mark = -1, color = 'var(--mk-mission, #f2c744)', tekst = '';
   if (g.phase === 'aim') { fill = g.water; mark = 0.65; }
-  else if (g.phase === 'gas') { const gv = gasAt(g, g.gasT); fill = gv; cls = g.gasT > g.rise + 1.1 ? 'leak' : 'gas'; mark = g.peak; }
+  else if (g.phase === 'gas') {
+    fill = gasAt(g, g.gasT); mark = g.peak;
+    // #628: naast de kleur zegt de balk wat hij doet: gas opladen of lekken.
+    const lek = g.gasT > g.rise + 1.1;
+    color = lek ? 'var(--mk-danger, #d93f3f)' : 'var(--mk-ok, #3fc97a)';
+    tekst = lek ? 'lekt' : 'goed';
+  }
   const row = `<span>Schot <b>${Math.min(SHOTS, g.shot + 1)}</b>/${SHOTS}</span><span>Punten <b>${g.score}</b></span><span>${windText(g)}</span>`;
-  const flash = g.flash ? g.flash.text : g.phase === 'aim' ? (g.water > 0 ? `Water: ${Math.round(g.water * 100)}%` : 'Houd Spatie voor water') : g.phase === 'gas' ? 'Gas...' : '';
-  const key = [row, Math.round(fill * 60), cls, Math.round(mark * 60), flash, g.flash && g.flash.bad, help].join('|');
-  if (key === hud.key) return;
-  hud.key = key;
-  hud.row.innerHTML = row;
-  hud.bar.style.width = `${Math.round(fill * 100)}%`;
-  hud.bar.className = cls;
-  hud.mark.style.display = mark < 0 ? 'none' : '';
-  hud.mark.style.left = `${Math.round(mark * 100)}%`;
-  hud.flash.textContent = flash;
-  hud.flash.classList.toggle('bad', !!(g.flash && g.flash.bad));
-  hud.help.innerHTML = help;
+  const flash = g.flash ? g.flash.text : g.phase === 'aim' ? (g.water > 0 ? `Water: ${Math.round(g.water * 100)}%` : 'Houd Spatie voor water') : g.phase === 'gas' ? `Gas: ${tekst}` : '';
+  board.set({
+    row, cells: Array.from({ length: SHOTS }, (_, i) => ({ t: String(i + 1), cls: i < g.shot ? 'done' : '' })),
+    meter: { v: fill, mark, color, text: tekst }, flash, bad: !!(g.flash && g.flash.bad), help,
+  });
 }
 
 // --- the activity --------------------------------------------------------------------------

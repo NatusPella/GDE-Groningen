@@ -10,6 +10,7 @@ import { unlockAchievement } from './achievements.js';
 import { saveGame } from './savehook.js';
 import { pointInPolygon, isInWater, clamp, angleLerp, normalizeAngle, WATER_Y } from './util.js';
 import { KEYS } from './storagekeys.js';
+import { mgThema } from './minigamekit.js';
 import { quitRunningActivities } from './busy.js';
 import { waterNearby } from './waterlevels.js';
 import { poiLayerPlace } from './facilities.js';
@@ -478,48 +479,59 @@ body.pigeon-mode #hud .hud-money-delta, body.pigeon-mode #hud .hud-weapon, body.
 body.pigeon-mode #hud .hud-speedo, body.pigeon-mode #hud .hud-route,
 body.pigeon-mode #hud .hud-damage { display: none !important; }
 #pigeon-hud[hidden] { display: none; }
-#pigeon-hud { position: fixed; inset: 0; pointer-events: none; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; color: #f0ede4; z-index: 5; zoom: var(--ui, 1); }
-#pigeon-hud .ph-panel { position: absolute; top: 12px; left: 14px; width: 232px; padding: 6px 12px 8px 6px; background: linear-gradient(90deg, rgba(10,14,18,0.8), rgba(10,14,18,0.45) 75%, rgba(10,14,18,0)); border-left: 3px solid #3fc97a; text-shadow: 0 1px 3px rgba(0,0,0,0.9); }
+#pigeon-hud { position: fixed; inset: 0; pointer-events: none; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; color: #f0ede4; z-index: 5; zoom: var(--ui, 1); --ph-acc: var(--mk-ok, #3fc97a); }
+#pigeon-hud .ph-panel { position: absolute; top: 12px; left: 14px; width: 240px; padding: 6px 12px 8px 6px; background: linear-gradient(90deg, rgba(10,14,18,0.8), rgba(10,14,18,0.45) 75%, rgba(10,14,18,0)); border-left: 3px solid var(--ph-acc); text-shadow: 0 1px 3px rgba(0,0,0,0.9); }
 #pigeon-hud .ph-head { display: flex; align-items: center; gap: 10px; }
-#pigeon-hud .ph-badge { flex: 0 0 46px; width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; background: radial-gradient(circle at 50% 35%, #8a9aa6, #2a333a); box-shadow: 0 0 0 2px #3fc97a, 0 0 12px rgba(63,201,122,0.35); }
-#pigeon-hud .ph-badge svg { width: 30px; height: 30px; fill: #eef2f4; }
+#pigeon-hud .ph-badge { flex: 0 0 46px; width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; background: radial-gradient(circle at 50% 35%, rgba(240,237,228,0.55), rgba(12,20,14,0.9)); box-shadow: 0 0 0 2px var(--ph-acc), 0 0 12px rgba(63,201,122,0.35); }
+#pigeon-hud .ph-badge svg { width: 30px; height: 30px; fill: #f0ede4; }
 #pigeon-hud .ph-headtext { flex: 1; min-width: 0; }
-#pigeon-hud .ph-title { font-size: 19px; letter-spacing: 2px; color: #3fc97a; line-height: 1; }
+#pigeon-hud .ph-title { font-size: 19px; letter-spacing: 2px; color: var(--ph-acc); line-height: 1; text-transform: uppercase; }
+#pigeon-hud .ph-kicker { font: 12px 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.5px; color: rgba(240,237,228,0.72); margin-top: 2px; }
 #pigeon-hud .ph-score { display: flex; align-items: baseline; gap: 6px; margin-top: 2px; }
 #pigeon-hud .ph-score b { font-weight: normal; font-size: 30px; line-height: 1; color: #f0ede4; }
 #pigeon-hud .ph-score span { font: 12px 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.7); }
 #pigeon-hud .ph-meters { display: flex; gap: 14px; margin-top: 6px; padding-left: 2px; font: 14px 'Arial Narrow', Arial, sans-serif; font-variant-numeric: tabular-nums; }
 #pigeon-hud .ph-meters span { display: inline-flex; align-items: center; gap: 4px; }
-#pigeon-hud .ph-meters svg { width: 13px; height: 13px; fill: none; stroke: #3fc97a; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+#pigeon-hud .ph-meters svg { width: 13px; height: 13px; fill: none; stroke: var(--ph-acc); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 #pigeon-hud .ph-best { margin-top: 3px; padding-left: 2px; font: 12px 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.6); }
 #pigeon-hud .ph-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
 #pigeon-hud .ph-chips:not(:has(:not(:empty))) { display: none; }
-#pigeon-hud .ph-combo, #pigeon-hud .ph-tag { padding: 0 6px; border-radius: 4px; font: 11px/16px 'Arial Narrow', Arial, sans-serif; white-space: nowrap; }
-#pigeon-hud .ph-combo { background: #3fc97a; color: #0c140e; font-weight: bold; }
-#pigeon-hud .ph-tag { background: rgba(0,0,0,0.55); border: 1px solid rgba(242,199,68,0.5); color: #f2c744; }
+#pigeon-hud .ph-combo, #pigeon-hud .ph-tag { padding: 0 6px; border-radius: 4px; font: 12px/18px 'Arial Narrow', Arial, sans-serif; white-space: nowrap; }
+#pigeon-hud .ph-combo { background: var(--mk-ok, #3fc97a); color: #0c140e; font-weight: bold; }
+#pigeon-hud .ph-tag { background: rgba(0,0,0,0.55); border: 1px solid var(--mk-mission, #f2c744); color: var(--mk-mission, #f2c744); }
 #pigeon-hud .ph-combo:empty, #pigeon-hud .ph-tag:empty { display: none; }
 #pigeon-hud .ph-boost { margin-top: 5px; height: 5px; background: rgba(240,237,228,0.15); border-radius: 3px; overflow: hidden; }
-#pigeon-hud .ph-boost i { display: block; height: 100%; background: linear-gradient(90deg, #f2c744, #3fc97a); transform-origin: left; }
-#pigeon-hud .ph-hints { position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 14px; max-width: min(720px, calc(100vw / var(--ui, 1) - 380px)); padding: 6px 14px; background: linear-gradient(0deg, rgba(10,14,18,0.72), rgba(10,14,18,0.5)); border-radius: 6px; font: 13px 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; text-shadow: 0 1px 2px rgba(0,0,0,0.9); }
+#pigeon-hud .ph-boost i { display: block; height: 100%; background: linear-gradient(90deg, var(--mk-mission, #f2c744), var(--mk-ok, #3fc97a)); transform-origin: left; }
+#pigeon-hud .ph-hints { position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 14px; max-width: min(760px, calc(100vw / var(--ui, 1) - 380px)); padding: 6px 14px; background: linear-gradient(0deg, rgba(10,14,18,0.72), rgba(10,14,18,0.5)); border-radius: 6px; font: 13px 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; text-shadow: 0 1px 2px rgba(0,0,0,0.9); }
 #pigeon-hud .ph-hints span { display: inline-flex; align-items: center; white-space: nowrap; color: rgba(240,237,228,0.88); }
-#pigeon-hud .ph-hints .hot { color: #f2c744; }
-#pigeon-hud kbd { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 5px; margin-right: 5px; background: #fbfaf5; border: 0; border-radius: 5px; color: #0c140e; font-weight: bold; text-shadow: none; box-shadow: 0 2px 0 #a9a69b, 0 0 0 1px rgba(0, 0, 0, 0.18); font: bold 12px 'Arial Narrow', Arial, sans-serif; }
+#pigeon-hud .ph-hints .hot { color: var(--mk-mission, #f2c744); }
+#pigeon-hud .ph-hints .ph-guest, #pigeon-hud .ph-hints .ph-touch { color: rgba(240,237,228,0.62); }
+#pigeon-hud .hud-key { margin-right: 5px; }
 #pigeon-hud .ph-pops { position: absolute; top: 18%; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 2px; }
 #pigeon-hud .ph-pop { font-size: 30px; letter-spacing: 2px; color: #f0ede4; text-shadow: 0 2px 8px rgba(0,0,0,0.8); animation: ph-pop 1.4s ease-out forwards; }
-#pigeon-hud .ph-pop em { font-style: normal; color: #3fc97a; }
+#pigeon-hud .ph-pop em { font-style: normal; color: var(--ph-acc); }
 @keyframes ph-pop { 0% { opacity: 0; transform: translateY(12px) scale(0.8); } 12% { opacity: 1; transform: translateY(0) scale(1.08); } 25% { transform: scale(1); } 80% { opacity: 1; } 100% { opacity: 0; transform: translateY(-26px); } }
-#pigeon-hud .ph-card { position: absolute; top: 150px; left: 14px; max-width: min(calc(44vw / var(--ui, 1)), 470px); padding: 9px 20px 11px 12px; background: linear-gradient(90deg, rgba(12,20,14,0.86), rgba(23,48,31,0.5) 78%, rgba(23,48,31,0)); border-left: 3px solid #3fc97a; text-shadow: 0 1px 3px rgba(0,0,0,0.9); opacity: 0; transform: translateX(-24px); transition: opacity 0.4s, transform 0.5s cubic-bezier(0.2,0.7,0.2,1); }
+#pigeon-hud .ph-card { position: absolute; top: 150px; left: 14px; max-width: min(calc(44vw / var(--ui, 1)), 470px); padding: 9px 20px 11px 12px; background: linear-gradient(90deg, rgba(12,20,14,0.86), rgba(23,48,31,0.5) 78%, rgba(23,48,31,0)); border-left: 3px solid var(--ph-acc); text-shadow: 0 1px 3px rgba(0,0,0,0.9); opacity: 0; transform: translateX(-24px); transition: opacity 0.4s, transform 0.5s cubic-bezier(0.2,0.7,0.2,1); }
 #pigeon-hud .ph-card.on { opacity: 1; transform: none; }
-#pigeon-hud .ph-card small { display: block; font-size: 14px; letter-spacing: 3px; color: #3fc97a; }
+#pigeon-hud .ph-card small { display: block; font-size: 14px; letter-spacing: 3px; color: var(--ph-acc); }
 #pigeon-hud .ph-card b { display: block; margin-top: 3px; font-weight: normal; font-size: 32px; letter-spacing: 1px; line-height: 1; }
 #pigeon-hud .ph-card i { display: block; font: 16px 'Arial Narrow', Arial, sans-serif; margin-top: 3px; color: rgba(240,237,228,0.85); }
 #pigeon-hud .ph-card i:empty { display: none; }
-#pigeon-hud .ph-sikkom { position: absolute; top: 96px; right: 14px; width: 270px; padding: 8px 12px 10px; background: rgba(240,237,228,0.95); color: #1a1a1a; border-radius: 10px; box-shadow: 0 6px 20px rgba(0,0,0,0.4); font: 14px/1.3 'Arial Narrow', Arial, sans-serif; transform: translateX(120%); transition: transform 0.35s ease; }
+/* #630: geen eigen wit vlak meer; de sfeerkaart is donkere chrome met dezelfde tokens als de rest. */
+#pigeon-hud .ph-sikkom { position: absolute; top: 96px; right: 14px; width: 280px; padding: 8px 12px 10px; background: rgba(12,20,14,0.92); color: #f0ede4; border-left: 3px solid var(--mk-mission, #f2c744); border-radius: 4px; box-shadow: 0 6px 20px rgba(0,0,0,0.4); font: 14px/1.3 'Arial Narrow', Arial, sans-serif; transform: translateX(120%); transition: transform 0.35s ease; }
 #pigeon-hud .ph-sikkom.on { transform: translateX(0); }
-#pigeon-hud .ph-sikkom b { display: block; font: 16px 'Bebas Neue', 'Arial Narrow', sans-serif; letter-spacing: 2px; color: #d93f3f; }
-#pigeon-hud .ph-warn { position: absolute; top: 30%; left: 50%; transform: translateX(-50%); font-size: 34px; letter-spacing: 3px; color: #d93f3f; text-shadow: 0 2px 10px rgba(0,0,0,0.8); animation: ph-blink 0.6s steps(2) infinite; }
+#pigeon-hud .ph-sikkom b { display: block; font: 16px 'Bebas Neue', 'Arial Narrow', sans-serif; letter-spacing: 2px; color: var(--mk-danger, #d93f3f); }
+#pigeon-hud .ph-warn { position: absolute; top: 30%; left: 50%; transform: translateX(-50%); font-size: 34px; letter-spacing: 3px; color: var(--mk-danger, #d93f3f); text-shadow: 0 2px 10px rgba(0,0,0,0.8); animation: ph-blink 0.6s steps(2) infinite; }
 #pigeon-hud .ph-warn:empty { display: none; }
 @keyframes ph-blink { 50% { opacity: 0.45; } }
+/* #630: beweging beperken wordt gerespecteerd, net als in de rest van de HUD. */
+@media (prefers-reduced-motion: reduce) {
+  #pigeon-hud .ph-pop { animation: none; }
+  #pigeon-hud .ph-warn { animation: none; }
+  #pigeon-hud .ph-card, #pigeon-hud .ph-sikkom { transition: none; }
+}
+html.reduce-motion #pigeon-hud .ph-pop, html.reduce-motion #pigeon-hud .ph-warn { animation: none; }
+html.reduce-motion #pigeon-hud .ph-card, html.reduce-motion #pigeon-hud .ph-sikkom { transition: none; }
 @media (max-width: 700px) { #pigeon-hud .ph-hints { max-width: calc(100vw / var(--ui, 1) - 32px); bottom: 190px; } #pigeon-hud .ph-sikkom { width: 220px; } }
 `;
 
@@ -534,7 +546,7 @@ function initHudDom() {
       <div class="ph-head">
         <div class="ph-badge" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M15.5 5.2a2.6 2.6 0 0 1 2.6 2.1l2.4.9-2.3.9c-.2 2.4-1.3 4.5-3.2 5.9l1 3.5h-1.6l-1-3a8 8 0 0 1-2.4.4l-.6 2.6H8.8l.6-2.9C6 14.6 3.8 12 3.5 8.8c2.4 1.8 5.3 2.4 8.4 1.8L13 7.7a2.6 2.6 0 0 1 2.5-2.5zm.3 1.7a.7.7 0 1 0 0 1.4.7.7 0 0 0 0-1.4z"/></svg></div>
         <div class="ph-headtext">
-          <div class="ph-title">Duif-modus</div>
+          <div class="ph-title">Duivenmelker</div><div class="ph-kicker">Mooi weer. Voor een duif.</div>
           <div class="ph-score" role="status" aria-label="Poepscore"><b data-score>0</b><span>poepscore</span></div>
         </div>
       </div>
@@ -549,6 +561,8 @@ function initHudDom() {
     <div class="ph-sikkom" data-sikkom><b>Kiekdoar</b><span></span></div>
     <div class="ph-hints" data-hints></div>`;
   document.body.appendChild(root);
+  const thema = mgThema('duivenmelker');
+  if (thema) root.style.setProperty('--ph-acc', thema.accent);
   const q = (s) => root.querySelector(s);
   hud = {
     root, alt: q('[data-alt]'), spd: q('[data-spd]'), score: q('[data-score]'), best: q('[data-best]'), total: q('[data-total]'), combo: q('[data-combo]'),
@@ -590,7 +604,7 @@ function sikkom(text) {
   sfx('notify', P.x, P.y, 0.5);
 }
 
-const K = (k, label, hot = false) => `<span${hot ? ' class="hot"' : ''}><kbd>${k}</kbd>${label}</span>`;
+const K = (k, label, hot = false) => `<span${hot ? ' class="hot"' : ''}><kbd class="hud-key">${k}</kbd>${label}</span>`;
 
 function updateHud(dt) {
   if (!hud) return;
@@ -624,6 +638,9 @@ function updateHud(dt) {
     else if (key.startsWith('landing')) html = K('E', 'landen afbreken', true) + K('Spatie', 'klapwieken') + K('F', 'poepen') + stop;
     else if (key.startsWith('ride')) html = K('Spatie', 'opstijgen') + K('A / D', 'draaien') + K('F', 'poepen') + K('C', 'koeren') + stop;
     else html = K('WASD', 'lopen') + K('Spatie', 'opstijgen') + (key.startsWith('ground-food') ? K('E', 'patat pikken', true) : key.startsWith('ground-carry') ? K('E', 'opeten', true) : K('E', 'pikken')) + K('C', 'koeren') + K('F', 'poepen') + zw + K('X', 'weer mens worden', true);
+    // #630: de duif gaat alleen op toetsenbord en pad, en een gast hoort wat hij doet.
+    html += '<span class="ph-touch">Toetsenbord of pad</span>';
+    if (world && world.coopNet && world.coopNet.role === 'client') html += '<span class="ph-guest">Je vliegt mee; de eigenaar landt.</span>';
     hud.hints.innerHTML = html;
   }
   if (hud.cardT > 0 && (hud.cardT -= dt) <= 0) hud.card.classList.remove('on');
@@ -1845,4 +1862,5 @@ export function startPigeonMode(w, spot = null) {
   updatePigeonCamera(0.016, w);
   return true;
 }
+
 

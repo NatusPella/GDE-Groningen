@@ -2,7 +2,7 @@ import { hoofdspeler } from './players.js';
 import { toonStartkaart } from './startkaart.js';
 import { kermisOn, kermisWheel, kermisFrame } from './kermis.js';
 import { activityBlock, iconDisc } from './activitykit.js';
-import { easeStep } from './minigamekit.js';
+import { easeStep, createBoard, mgThema } from './minigamekit.js';
 import { showCard } from './hudcards.js';
 import { recordStat } from './achievements.js';
 import { getSettings } from './settings.js';
@@ -14,14 +14,15 @@ import * as W from './reuzenradrules.js';
 // de camera hangt rustig in de gondel en je kijkt vrij rond met de muis of de
 // pijltjes. BACKSPACE of E: uitstappen zodra je weer onderaan hangt. Doet mee aan
 // het activiteitencontract (activities.js / busy.js). `window.__hoogvlieger` debug.
-const ACCENT = '#e0457a';
+// #627: hetzelfde accent als het kermissbord komt uit MG_THEMA.
+const ACCENT = mgThema('hoogvlieger').accent;
 const LOOK_PER_PX = 0.0025;
 const LOOK_KEYS = 1.3; // rad/s met de pijltjes
 const EYE = 1.0; // oog boven de zitting
 const NAME = 'Hoogvlieger';
 
 let ride = null;
-let hud = null;
+let board = null;
 
 const { toW, toL } = kermisFrame;
 const LOAD = toW(W.LOAD_AT.u, W.LOAD_AT.v);
@@ -70,6 +71,7 @@ function start(w, index) {
   w.cinematicHidePlayers = true;
   document.body.classList.add('kermis-on');
   w.addMessage(`${NAME}: veel plezier!`, 2.2);
+  showBoard();
   toonStartkaart(w, 'hoogvlieger');
   recordStat(w, 'reuzenradRides');
 }
@@ -80,7 +82,7 @@ function end(w, { quit = false } = {}) {
   w.cinematicHidePlayers = false;
   w.cameraOverride = null;
   document.body.classList.remove('kermis-on');
-  if (hud) hud.root.hidden = true;
+  if (board) board.hide();
   const p = hoofdspeler(w);
   p.x = LOAD.x; p.y = LOAD.y; p.z = 0; p.angle = kermisFrame.rot + Math.PI / 2;
   p.speed = 0; p.moving = false;
@@ -157,47 +159,21 @@ const TODO = {
 
 // --- HUD: dezelfde kaart als het botsautobord (kermis.js) ---------------------------------
 
-const CSS = `
-#hud .rad-board[hidden] { display: none; }
-#hud .rad-board { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); min-width: 300px; padding: 8px 18px 9px 12px; color: #f0ede4; text-shadow: var(--hud-shadow); pointer-events: none; z-index: 4;
-  background: linear-gradient(90deg, rgba(12,20,14,0.9), rgba(60,20,40,0.66) 80%, rgba(60,20,40,0.2)); border-left: 3px solid ${ACCENT}; }
-#hud .rad-board small { display: block; font-size: 12px; letter-spacing: 3px; color: ${ACCENT}; }
-#hud .rad-board .rb-row { display: flex; gap: 16px; align-items: baseline; font-size: 20px; letter-spacing: 1px; }
-#hud .rad-board .rb-row b { font-weight: normal; color: #ffd23f; font-size: 24px; }
-#hud .rad-board .rb-help { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; font: 13px 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.78); }
-#hud .rad-board .hud-key { margin: 0 2px; vertical-align: middle; }
-@media (max-width: 480px) { #hud .rad-board { top: 64px; min-width: 0; } }
-`;
-
-function ensureHud() {
-  if (hud) return hud;
-  const st = document.createElement('style');
-  st.textContent = CSS;
-  document.head.appendChild(st);
-  const root = document.createElement('div');
-  root.className = 'rad-board';
-  root.hidden = true;
-  root.innerHTML = `<small>${NAME.toUpperCase()}</small><div class="rb-row"></div><div class="rb-help"></div>`;
-  (document.getElementById('hud') || document.body).appendChild(root);
-  hud = { root, row: root.querySelector('.rb-row'), help: root.querySelector('.rb-help'), key: '' };
-  return hud;
+// #627: hetzelfde bord als de botsauto's (minigamekit createBoard), met de kermissfeer-band.
+function showBoard() {
+  if (!board) board = createBoard('hoogvlieger');
+  board.show();
 }
 
 function updateHud() {
-  if (!ride) { if (hud) hud.root.hidden = true; return; }
-  const h = ensureHud();
+  if (!ride) { if (board) board.hide(); return; }
   const wheel = kermisWheel();
   const k = (t) => `<span class="hud-key">${t}</span>`;
   const left = wheel ? Math.ceil(W.rideSecondsLeft(ride.plan, wheel.rot)) : 0;
   const hoogte = ride.seat ? Math.max(0, Math.round(ride.seat.h)) : 0;
-  const row = `<span>Hoogte <b>${hoogte} m</b></span><span>Nog <b>${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}</b></span>`;
-  const help = ride.exitReq ? 'Je stapt uit zodra je beneden bent...' : `Rondkijken met de muis of ${k('←')}${k('→')}${k('↑')}${k('↓')} · ${k('BACKSPACE')} uitstappen`;
-  const key = row + '|' + help;
-  h.root.hidden = false;
-  if (key === h.key) return;
-  h.key = key;
-  h.row.innerHTML = row;
-  h.help.innerHTML = help;
+  const row = `<span>Hoogte <b>${hoogte} m</b></span><span>Rondes <b>${W.LAPS}</b></span><span>Nog <b>${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}</b></span>`;
+  const help = ride.exitReq ? `Je stapt uit zodra je beneden bent... ${k('BACKSPACE')}` : `Rondkijken met de muis of ${k('←')}${k('→')}${k('↑')}${k('↓')} · ${k('BACKSPACE')} uitstappen`;
+  board.set({ row, help });
 }
 
 export const HOOGVLIEGER = {

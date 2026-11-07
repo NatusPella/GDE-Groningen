@@ -30,7 +30,8 @@
 // then the clock, then the money. Of what talks (a message, the radio or an
 // achievement, a subtitle) at most two show at once: the P3 one gives way.
 // Never: cutscenes, photo mode, the big map. "Minimaal": stars, objective,
-// subtitles and P0 only.
+// subtitles and P0 only, plus the navigational minimum (the minimap and the
+// speedometer in a vehicle): a mode that promises calm must not take the wheel away (#638).
 
 import { P0, P1, P2, P3, CARD_P, cardPrio, cardZone, mayShow as busMayShow } from './hudbus.js';
 
@@ -137,6 +138,8 @@ export function decideHud(s = {}) {
     show.stars = wanted;
     show.objective = !!s.objective;
     show.subtitle = !!s.subtitle;
+    show.minimap = true;            // #638: zonder kaart moet je blind navigeren
+    show.vehicle = !!s.inVehicle;   // en zonder snelheidsmeter blind rijden
     show.cardA = p0Card;
     out.dimObjective = !!s.subtitle;
     out.count = countShown(show);
