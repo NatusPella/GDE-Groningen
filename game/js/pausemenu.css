@@ -341,7 +341,7 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .pm-binds[hidden] { display: none; }
 #pause-menu .pm-binds:not([hidden]) { overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: rgba(240, 237, 228, 0.18) transparent; }
 /* the canonical keycap (DESIGN_SYSTEM.md) also in the menu */
-#pause-menu .pm-ckeys .hud-key { display: inline-flex; align-items: center; justify-content: center; min-width: 26px; height: 26px; padding: 0 7px; margin: 0; box-sizing: border-box; background: #fbfaf5; border: 0; border-radius: 5px; color: #0c140e; font: bold 14px/1 system-ui, sans-serif; text-shadow: none; box-shadow: 0 2px 0 #a9a69b, 0 0 0 1px rgba(0, 0, 0, 0.18); }
+#pause-menu .pm-ckeys .hud-key { display: inline-flex; align-items: center; justify-content: center; min-width: 26px; height: 26px; padding: 0 7px; margin: 0; box-sizing: border-box; background: #fbfaf5; border: 0; border-radius: 5px; color: #0c140e; font: bold 14px/1 'Arial Narrow', Arial, sans-serif; text-shadow: none; box-shadow: 0 2px 0 #a9a69b, 0 0 0 1px rgba(0, 0, 0, 0.18); }
 #pause-menu .pm-ckeys .hud-wasd { display: inline-grid; grid-template-columns: repeat(3, auto); gap: 2px; }
 #pause-menu .pm-ckeys .hud-wasd .hud-key { min-width: 22px; height: 22px; font-size: 12px; }
 #pause-menu .pm-ckeys .hud-wasd .hud-key:first-child { grid-column: 2; }

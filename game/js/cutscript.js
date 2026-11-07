@@ -23,7 +23,7 @@ export const ACTOR_ANIMS = ['idle', 'walk', 'run', 'talk', 'wave', 'point', 'shr
 import { propKindIssue, propFoot } from './cutscenemodels.js';
 export const PROP_KINDS = ['doos', 'tas', 'bestelbus', 'fiets', 'duif', 'radio', 'bord', 'koffer', 'bal', 'auto', 'matras', 'bakkie', 'automaat', 'aanhanger', 'trekker', 'politie', 'duiventil', 'zuil', 'klembord', 'briefje', 'kat'];
 const VERBS = ['walk', 'anim', 'face', 'gaze', 'carry', 'drop', 'move', 'path', 'spin', 'bob', 'show', 'hide', 'sit'];
-const SHOTS = ['cut', 'dolly', 'orbit', 'follow'];
+export const SHOTS = ['cut', 'dolly', 'orbit', 'follow', 'close', 'reaction', 'ots', 'insert', 'tracking', 'crane', 'handheld'];
 // The host can scale or remove camera shake (a11y.js: Beweging beperken).
 let shakeFilter = (a) => a;
 export function setShakeFilter(fn) { shakeFilter = typeof fn === 'function' ? fn : (a) => a; }
@@ -341,6 +341,61 @@ export function compileScene(def, opts = {}) {
         const d = sh.dist ?? 3.2;
         pos = { f: p.f - Math.cos(af) * d + Math.cos(af + Math.PI / 2) * (sh.side ?? 0.6), s: p.s - Math.sin(af) * d + Math.sin(af + Math.PI / 2) * (sh.side ?? 0.6), h: sh.h ?? 1.7 };
         look = { f: p.f + Math.cos(af) * 1.5, s: p.s + Math.sin(af) * 1.5, h: EYE_H - 0.15 };
+        break;
+      }
+      // #734 (F16): de ontbrekende shotgrammatica. Alle maten zijn lokaal
+      // (f/s/h) en dezelfde als de bestaande typen, zodat host en tests niets
+      // extra hoeven te weten.
+      case 'close':
+      case 'reaction': {
+        const id = stripRef(sh.target ?? 'speaker');
+        const c = tg(sh.target ?? 'speaker');
+        const af = actorFacing(id, t);
+        const d = sh.dist ?? (sh.shot === 'close' ? 1.2 : 1.8);
+        const side = sh.side ?? (sh.shot === 'close' ? 0.18 : 0.4);
+        pos = { f: c.f - Math.cos(af) * d + Math.cos(af + Math.PI / 2) * side, s: c.s - Math.sin(af) * d + Math.sin(af + Math.PI / 2) * side, h: c.h + (sh.hEye ?? 0.12) };
+        look = { f: c.f, s: c.s, h: c.h + 0.02 };
+        sh.fov = sh.fov ?? (sh.shot === 'close' ? 30 : 36);
+        break;
+      }
+      case 'ots': {
+        const van = stripRef(sh.from ?? 'speaker');
+        const naar = stripRef(sh.target ?? 'speaker');
+        const a = actorPos(van, t), af = actorFacing(van, t);
+        const c = tg(sh.target ?? 'speaker');
+        pos = { f: a.f - Math.cos(af) * (sh.dist ?? 1.1) + Math.cos(af + Math.PI / 2) * (sh.side ?? 0.55), s: a.s - Math.sin(af) * (sh.dist ?? 1.1) + Math.sin(af + Math.PI / 2) * (sh.side ?? 0.55), h: EYE_H + 0.12 };
+        look = { f: c.f, s: c.s, h: c.h + 0.02 };
+        sh.fov = sh.fov ?? 38;
+        break;
+      }
+      case 'insert': {
+        const target = sh.at != null ? (isVec(sh.at, 3) ? { f: sh.at[0], s: sh.at[1], h: sh.at[2] } : tg(sh.at)) : tg(sh.target ?? 'speaker');
+        pos = { f: target.f - Math.cos(rad(sh.angle ?? 0)) * (sh.dist ?? 1.1), s: target.s - Math.sin(rad(sh.angle ?? 0)) * (sh.dist ?? 1.1), h: target.h + (sh.hEye ?? -0.05) };
+        look = sh.look ? tg(sh.look) : target;
+        sh.fov = sh.fov ?? 32;
+        break;
+      }
+      case 'tracking': {
+        const id = stripRef(sh.target);
+        const p = actorPos(id, t), af = actorFacing(id, t);
+        const d = sh.dist ?? 4.2, side = sh.side ?? 1.5;
+        pos = { f: p.f - Math.cos(af) * d + Math.cos(af + Math.PI / 2) * side, s: p.s - Math.sin(af) * d + Math.sin(af + Math.PI / 2) * side, h: sh.h ?? 1.6 };
+        look = { f: p.f, s: p.s, h: EYE_H - 0.15 };
+        sh.fov = sh.fov ?? 40;
+        break;
+      }
+      case 'crane': {
+        const k = ease(u);
+        pos = { f: lerp(sh.from[0], sh.to[0], k), s: lerp(sh.from[1], sh.to[1], k), h: lerp(sh.from[2], sh.to[2], k) };
+        look = tg(sh.look ?? sh.target ?? 'speaker');
+        break;
+      }
+      case 'handheld': {
+        const k = ease(u);
+        pos = { f: lerp(sh.from[0], sh.to[0], k), s: lerp(sh.from[1], sh.to[1], k), h: lerp(sh.from[2], sh.to[2], k) };
+        look = tg(sh.look ?? sh.target ?? 'speaker');
+        const amt = shakeFilter(sh.amount ?? 0.035);
+        pos.f += Math.sin(t * 2.7) * amt; pos.s += Math.sin(t * 3.1 + 1.2) * amt; pos.h += Math.sin(t * 2.2 + 0.4) * amt * 0.6;
         break;
       }
     }

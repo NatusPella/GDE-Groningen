@@ -74,9 +74,20 @@ t('F19: de wijkkaart stopt als de speler niet meer in die wijk staat', () => {
   assert.match(cin, /const hier = currentWijk\(w\);\s*\n\s*if \(!hier \|\| hier\.name !== wijk\.name\) return false;/);
 });
 
-t('F11: clearKeys beoordeelt meer punten langs elk camerasegment', () => {
-  assert.match(bron('camerapath.js'), /for \(let k = 1; k < 4; k\+\+\)/);
-  assert.match(cin, /for \(let s = 1; s < 4; s\+\+\)/);
+t('F11: handgemaakte camera’s gaan door de fitCamera-env', () => {
+  assert.match(cin, /function cameraFit\(w, shot\)/);
+  assert.match(cin, /const env = \{ solid: \(x, y, z\) => roofAt\(w\.map, x, y\) > z - 0\.2 \}/);
+  for (const id of ["id: 'mission-intro'", "id: 'mission-fail'", "id: 'death'", "id: 'crash'", "id: 'wanted5'"]) {
+    const start = cin.indexOf(id);
+    assert.ok(start > 0, id);
+    assert.match(cin.slice(start, start + 400), /cameraFit\(w,/, id + ' gebruikt cameraFit');
+  }
+});
+
+t('F16: de shotgrammatica is uitgebreid met de zeven ontbrekende soorten', () => {
+  const cut = bron('cutscript.js');
+  for (const s of ['close', 'reaction', 'ots', 'insert', 'tracking', 'crane', 'handheld']) assert.ok(new RegExp(`case '${s}'`).test(cut), s);
+  assert.match(cut, /export const SHOTS = \[[^\]]*'close'[^\]]*'handheld'/);
 });
 
 // #738: de M00-opening hergebruikt de opgenomen trailer (zon, fietsers, meeuw

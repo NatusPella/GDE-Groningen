@@ -75,7 +75,7 @@ function ensurePanel() {
   if (panel || typeof document === 'undefined') return panel;
   panel = document.createElement('div');
   panel.id = 'bakeround';
-  panel.style.cssText = 'position:fixed;left:50%;bottom:18%;transform:translateX(-50%);z-index:30;background:rgba(32,24,16,.88);color:#fdf3dc;border:2px solid #e9b44c;border-radius:10px;padding:10px 16px;font:15px/1.4 system-ui,sans-serif;text-align:center;pointer-events:none;min-width:280px';
+  panel.style.cssText = 'position:fixed;left:50%;bottom:18%;transform:translateX(-50%);z-index:30;background:rgba(32,24,16,.88);color:#fdf3dc;border:2px solid #e9b44c;border-radius:10px;padding:10px 16px;font:15px/1.4 'Arial Narrow', Arial, sans-serif;text-align:center;pointer-events:none;min-width:280px';
   document.body.appendChild(panel);
   return panel;
 }

@@ -50,6 +50,12 @@ export function trimWords(text, max) {
 
 export const overBudget = (text, kind) => wordCount(text) > (WORD_BUDGET[kind] ?? WORD_BUDGET.label);
 
+// #645: runtime-inkorting voor dynamische kaarten en ondertitels (namen, bedragen
+// en missietitels maken een tekst pas op het laatste moment lang). De aanroeper
+// beslist waar hij dit toepast; de ratel hierboven blijft de bron van de maten.
+export const fitCard = (text) => trimWords(text, WORD_BUDGET.cardBody);
+export const fitSubtitle = (text) => trimWords(text, WORD_BUDGET.subtitle);
+
 // --- the 'seen' counter --------------------------------------------------------
 
 export const emptySeen = () => ({});

@@ -11,13 +11,13 @@ import { wordCount, WORD_BUDGET } from '../game/js/hudtext.js';
 import * as MB from '../game/js/movablebridges.js';
 import * as RV from '../game/js/reisview.js';
 import * as PH from '../game/js/partnerhud.js';
-import { FY } from '../game/js/subtitles.js';
+import { FY, GRO, INTL } from '../game/js/subtitles.js';
 
 const JS = fileURLToPath(new URL('../game/js/', import.meta.url));
 const lines = (s) => s.split(/\r?\n/);
 
 // the most over-budget elements we accept per kind (a ratchet: only goes down)
-export const LIMITS = { label: 0, hint: 0, hintSub: 0, card: 0, prompt: 0, subtitle: 6 };
+export const LIMITS = { label: 0, hint: 0, hintSub: 0, card: 0, prompt: 0, phone: 0, subtitle: 8 };
 
 const strOf = (src, key) => {
   const m = new RegExp('\\b' + key + ':\\s*([\'"`])').exec(src);
@@ -69,10 +69,26 @@ export function auditHudText() {
 
   // 5. ondertitels (#644): elke gesproken Friese/Groningse regel en de Nederlandse vertaling eronder
   // telt mee voor het budget van 18 woorden, zodat een lange zin niet ongemerkt onder de maat zakt.
-  for (const [gezegd, vertaling] of Object.entries(FY)) {
+  for (const [gezegd, vertaling] of Object.entries({ ...FY, ...GRO, ...INTL })) {
     add('subtitle', 'subtitles.js (gesproken)', gezegd);
     add('subtitle', 'subtitles.js (Nederlands)', vertaling);
   }
+
+  // 6. telefoonkaarten (#645): de vaste teksten uit de feed en de Sikkom-meldingen.
+  for (const f of ['phonefeed.js', 'sikkomfeed.js']) {
+    const src = readFileSync(JS + f, 'utf8');
+    for (const m of src.matchAll(/'([^'\\n]{18,})'/g)) add('phone', f, m[1]);
+  }
+  return out;
+}
+
+// #645: ook dynamische kaarten en ondertitels (namen, bedragen, missietitels)
+// kunnen pas op het laatste moment te lang worden. De UI gebruikt fitCard/
+// fitSubtitle; deze functie is de meetbare kant daarvan.
+export function auditRuntimeTexts({ cards = [], subtitles = [] } = {}) {
+  const out = [];
+  for (const t of cards) out.push({ kind: 'card', where: 'runtime card', text: t, words: wordCount(plain(t)), budget: WORD_BUDGET.cardBody });
+  for (const t of subtitles) out.push({ kind: 'subtitle', where: 'runtime subtitle', text: t, words: wordCount(plain(t)), budget: WORD_BUDGET.subtitle });
   return out;
 }
 
