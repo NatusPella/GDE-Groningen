@@ -59,8 +59,9 @@ Tokens staan in `game/js/hud_panel.css` (`:root`), `game/js/menu.css` (`.gm`) en
 menus 13 px and up") noemt 12 als vloer voor een zin en 13 voor menu's, en
   `DESIGN-COMPONENTEN.md:41-43` noemt 12 als vloer met 13 in de HUD. De code doet 13
   in de HUD en 20/18 in de menu's; 12 is de ondergrens voor een zin, niet het doel.
-- De 11 px in de kaartbalk is schuld: `DESIGN-SCHULD.md:11` noemt
-  `kaartactieui.js:44`, hij staat op `:58`.
+- De 11 px in de kaartbalk is weg sinds #602: `kaartactieui.js` gebruikt 26 px Bebas
+  labels en 18 px uitleg, met de kleuren uit de tokens (`DESIGN-SCHULD.md` rij 1 is
+  daarmee bijgewerkt; de balk is nog niet door een mens in het spel gezien).
 
 ## Bediening
 
@@ -78,9 +79,11 @@ roepen.
   nu kunt, hooguit twee regels.
 - Touch: knoppen 64 px rond (`touch.js:22`), elk ander element minstens 44 px hoog
   (`:46`). Esc of B gaat altijd terug.
-- Conflict: `pausemenu.js:121` zegt dat Q/E de sectie wisselen, maar de afhandeling
-  (`:826`) wisselt eerst het tabblad, net als `DESIGN-BEDIENING.md:35`. De code wint;
-  de menutekst is fout (#480, nog open).
+- Q/E en `[`/`]` doen hetzelfde: ze wisselen de zichtbare tabrij van het onderdeel, de
+  binnenste eerst (Spel > Samen spelen heeft Samen spelen en Spelers), en op een scherm
+  zonder tabbladen gaan ze naar het vorige of volgende onderdeel; de voetregel noemt de
+  uitkomst ("tabblad", "spelers-tab", "onderdeel") en de Besturing-tabel zegt hetzelfde
+  (#601; het oude conflict met de tabel is daarmee weg).
 
 ## Menu's
 
@@ -99,8 +102,12 @@ Prestaties, Foto's / Instellingen, Cheats. De tabs uit `SUBTABS`:
 | Besturing | Toetsenbord en muis, Controller, Toetsenoverzicht, Hulp |
 
 - De kaart is één scherm zonder rail; Visboek en Boerderij hangen onder Loopbanen,
-  Besturing onder Instellingen. Spelers alleen in een sessie (`:358`); voor een spel
-  begint alleen Spel, Instellingen en Besturing (`:258`).
+  Besturing onder Instellingen en **Over** onder Instellingen > Interface. Spelers
+  alleen in een sessie (`:358`); voor een spel begint alleen Spel, Instellingen en
+  Besturing (`:258`). De rail heeft tien vaste rijen van 56 px in drie groepen; de stage
+  is altijd 1920x1080 ontwerp-px, dus de rail krimpt of scrollt niet op 1280x720 en
+  1920x1080 (#601). Over is een naslagscherm met twee vouwen (Wat is er nieuw, Credits
+  en licenties) en 18 px body; "Snel instellen" op Overzicht is één gevouwen blok.
 - Spel > Overzicht is thuis: daar opent het menu, en Esc gaat van een kindscherm naar
   de ouder, dan naar Overzicht en sluit. Eén primaire knop per scherm, de rest ghost
   of stille tekst; groen voor gekozen of primair, rood alleen wat iets verwoest.
@@ -203,6 +210,7 @@ een personage met een vast geslacht mogen blijven. `text_audit.mjs` (regel
   QA-poging trof de countdown en de puntflits niet). Het issue blijft open tot dat beeld
   er is.
 - **#480 en #481 zijn op 25-10 gesloten:** de 3D-brief noemt geen merk meer en kiest
-  kantig boven chibi; `DESIGN_SYSTEM.md` volgt nu de echte menustructuur van
+  kantig boven chibi; `DESIGN_SYSTEM.md` volgt de echte menustructuur van
   `pausemenu.js` (Cheats is sinds #435 een eigen rail-item, Spelers een tab onder
-  Samen spelen), met de Q/E-fout als bekend punt erbij.
+  Samen spelen). De Q/E-fout uit #480 is met #601 rechtgezet: de code, de voetregel en
+  de Besturing-tabel zeggen nu alle drie hetzelfde.

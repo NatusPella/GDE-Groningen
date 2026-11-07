@@ -16,7 +16,6 @@ import { LANDMARK_LINES } from './placelines.js';
 import { pictureHtml, missionPicture } from './loadscene.js';
 import { JUMP_M as JM, loadKind, stepProgress, startProgress, pickTips, buildLines, LINE_S } from './loadlogic.js';
 
-const CITY_IMAGES = ['vismarkt', 'luchtfoto', 'rondvaart', 'duif'];
 let tips = [];
 export const setLoadTips = (list) => { tips = [...list]; };
 let lastTip = '';
@@ -27,18 +26,19 @@ let css = false;
 let active = null;
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const hash = (s) => { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return Math.abs(h); };
 
 // The picture for a place: the open road in the country, the fair at night,
-// the harbours by the water, otherwise one of the city views by name.
+// the harbours by the water, otherwise one of the city views by name. Only a
+// place we know picks a specific picture (#600): an unknown place gets the
+// neutral aerial, never the chase picture.
 export function pickImage(world, place, mission) {
   if (mission) return missionPicture(mission);
   const night = !!(world.dayNight && (world.dayNight.night ?? 0) > 0.5);
-  if (place.country) return night ? 'achtervolging' : 'ringrace';
-  if (night) return 'kermis';
+  if (place.country) return night ? 'luchtfoto' : 'ringrace';
   if (/haven|kade|diep|gracht|water/i.test(place.name || '')) return 'rondvaart';
-  if (/markt|binnenstad|forum|toren|kerk/i.test(place.name || '')) return 'vismarkt';
-  return CITY_IMAGES[hash(place.name || '') % CITY_IMAGES.length];
+  if (/markt|binnenstad|forum|toren|kerk/i.test(place.name || '')) return night ? 'kermis' : 'vismarkt';
+  if (night) return 'kermis';
+  return 'luchtfoto';
 }
 
 function recapText(view) {
@@ -76,8 +76,8 @@ export function startLoadScreen(world, opts = {}) {
   const img = pickImage(world, place, opts.mission);
   const line = place.line || LANDMARK_LINES[place.name] || '';
   // one short line at a time: where you are going or the story so far, then tips
-  const firstSentence = (t) => (t.match(/^.*?[.!?](\s|$)/) || [t])[0].trim();
-  const lead = kind === 'save' ? ['Eerder in het verhaal', firstSentence(recapText(view))] : ['Onderweg', line];
+  // (#600: the recap keeps two to three sentences instead of only the first)
+  const lead = kind === 'save' ? ['Eerder in het verhaal', recapText(view)] : ['Onderweg', line];
   const picked = kind === 'snel' ? [] : pickTips(tips, 3, Math.random, lastTip);
   if (picked.length) lastTip = picked[picked.length - 1];
   const pool = buildLines(kind, lead, picked);
@@ -85,8 +85,9 @@ export function startLoadScreen(world, opts = {}) {
   const el = document.createElement('div');
   el.id = 'load-screen';
   el.className = 'ls ls-' + kind + ' instant';
-  el.setAttribute('role', 'progressbar');
-  el.setAttribute('aria-label', 'Laden');
+  // #600: the bar is the one progressbar; the destination, the story and the tip
+  // stay ordinary text a screen reader can read (children of a progressbar are
+  // presentational, so the role used to be on the whole screen).
   el.innerHTML =
     pictureHtml(img) +
     '<div class="ls-shade"></div><div class="ls-foot-shade"></div>' +
@@ -98,8 +99,8 @@ export function startLoadScreen(world, opts = {}) {
         (date.special ? `<div class="ls-when"><span class="ls-badge">${esc(date.special)}</span></div>` : '') +
       '</div>' +
       '<div class="ls-bottom">' +
-        '<div class="ls-tip"><span class="ls-tip-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.8.8 1 1.5 1 2.5h6c0-1 .2-1.7 1-2.5A6 6 0 0 0 12 3z"/></svg></span><div><span></span><p></p></div></div>' +
-        '<div class="ls-prog"><div class="ls-bar"><i></i></div></div>' +
+        '<div class="ls-tip" aria-live="polite"><span class="ls-tip-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.8.8 1 1.5 1 2.5h6c0-1 .2-1.7 1-2.5A6 6 0 0 0 12 3z"/></svg></span><div><span></span><p></p></div></div>' +
+        '<div class="ls-prog"><div class="ls-bar" role="progressbar" aria-label="Voortgang laden" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i></div></div>' +
       '</div>' +
     '</div>';
   document.body.appendChild(el);
@@ -112,6 +113,7 @@ export function startLoadScreen(world, opts = {}) {
   world.uiPaused = true;
   zachtePauze(world, 'laden', true); // met meer spelers loopt de wereld door (#452)
   const fill = el.querySelector('.ls-bar i');
+  const barEl = el.querySelector('.ls-bar');
   const lineKick = el.querySelector('.ls-tip div span');
   const lineText = el.querySelector('.ls-tip p');
   const tipBox = el.querySelector('.ls-tip');
@@ -146,7 +148,7 @@ export function startLoadScreen(world, opts = {}) {
     const st = streamPending();
     prog = stepProgress(prog, st.buildings + st.roads, (now - t0) / 1000, kind);
     fill.style.transform = `scaleX(${prog.bar.toFixed(3)})`;
-    el.setAttribute('aria-valuenow', String(Math.round(prog.bar * 100)));
+    barEl.setAttribute('aria-valuenow', String(Math.round(prog.bar * 100)));
     if (now - lineAt >= lineS * 1000) nextLine(now);
     if (prog.done) { finish(); return; }
     requestAnimationFrame(step);
