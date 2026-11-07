@@ -58,7 +58,24 @@ export function rasterWater(polys, cx, cy, mask = new Uint8Array(MASK_N * MASK_N
   return { x0, y0, mask };
 }
 
-const S = { tex: null, bed: null, cx: 0, cy: 0, ver: -1, on: false, map: null, polys: 0, far: null, fcx: 0, fcy: 0, fver: -1, fat: -99, fpolys: 0 };
+const S = { tex: null, bed: null, cx: 0, cy: 0, ver: -1, on: false, map: null, polys: 0, far: null, fcx: 0, fcy: 0, fver: -1, fat: -99, fpolys: 0,
+  // #649: tellers voor de meting: herdraaiingen, overgeslagen (water buiten het
+  // venster veranderde) en de tijd van de laatste rasterpas
+  bakes: 0, farBakes: 0, skipped: 0, deferred: 0, lastMs: 0, lastFarMs: 0, sig: 0, farSig: 0 };
+
+// Een goedkope vingerafdruk van het water in een venster (#649): alleen als die
+// verandert hoeft het masker opnieuw gerasterd te worden; een waterrij die
+// ver buiten het venster in- of uitstroomt laat het masker met rust.
+function windowWater(map, cx, cy, r) {
+  const polys = map.waterNear(cx, cy, r);
+  let sig = polys.length;
+  for (const w of polys) {
+    const b = w.bounds;
+    if (!b) continue;
+    sig = (sig * 31 + Math.round(b[0] * 8) + Math.round(b[1] * 16) + Math.round(b[2] * 32) + Math.round(b[3] * 64)) | 0;
+  }
+  return { polys, sig };
+}
 
 function init(scene) {
   const data = new Uint8Array(MASK_N * MASK_N);
@@ -83,28 +100,32 @@ function init(scene) {
   S.bed = bed;
 }
 
-function bake(map, cx, cy) {
-  const polys = map.waterNear(cx, cy, MASK_SIZE * 0.75);
+function bake(cx, cy, polys) {
+  const t0 = performance.now();
   const r = rasterWater(polys, cx, cy, S.tex.image.data);
   S.tex.needsUpdate = true;
   S.cx = cx; S.cy = cy;
   S.polys = polys.length;
+  S.bakes++;
+  S.lastMs = performance.now() - t0;
   COUNTRY_UNIFORMS.uTileWaterRect.value = [r.x0, r.y0, MASK_SIZE, 1];
 }
 
 // The wide mask: the water of every tile in, ~4 km round (cx, cy).
-function bakeFar(map, cx, cy) {
-  const polys = map.waterNear(cx, cy, FAR_SIZE * 0.75);
+function bakeFar(cx, cy, polys) {
+  const t0 = performance.now();
   const r = rasterWater(polys, cx, cy, S.far.image.data, FAR_CELL);
   S.far.needsUpdate = true;
   S.fcx = cx; S.fcy = cy;
   S.fpolys = polys.length;
+  S.farBakes++;
+  S.lastFarMs = performance.now() - t0;
   COUNTRY_UNIFORMS.uTileWaterFarRect.value = [r.x0, r.y0, FAR_SIZE, 1];
 }
 
 // Per frame: the mask round the player, where the ground opens over the
 // water (radius 0 when the countryside is idle) and the bed under it.
-export function updateTileWater(map, scene, px, py, radius, time) {
+export function updateTileWater(map, scene, px, py, radius, time, dt = 0) {
   if (!S.tex) init(scene);
   const u = COUNTRY_UNIFORMS.uWaterNear.value;
   const on = radius > 0 && !!map && !!map.waterNear;
@@ -114,23 +135,51 @@ export function updateTileWater(map, scene, px, py, radius, time) {
   if (!on) { COUNTRY_UNIFORMS.uTileWaterRect.value[3] = 0; COUNTRY_UNIFORMS.uTileWaterFarRect.value[3] = 0; S.ver = -1; S.fver = -1; return; }
   const ver = map._waterVer || 0;
   const moved = Math.abs(px - S.cx) > RECENTRE || Math.abs(py - S.cy) > RECENTRE;
-  if (S.ver < 0 || moved || (ver !== S.ver && time - (S.at || 0) > 1)) {
-    bake(map, px, py);
-    S.ver = ver;
-    S.at = time;
-  }
-  // the wide mask, a few times a minute at most while tiles stream in
+  // Een traag vorig beeld (dt > 30 ms): de rasterpas van 5-25 ms niet bovenop een
+  // hapering stapelen; de volgende rustige frame haalt hem in (#649).
+  const calm = !(dt > 0.03);
+  let baked = false;
+  const nearForced = S.ver < 0 || moved;
+  if (calm && (nearForced || ver !== S.ver)) {
+    const near = windowWater(map, px, py, MASK_SIZE * 0.75);
+    if (nearForced || near.sig !== S.sig) {
+      if (nearForced || time - (S.at || 0) > 1) { // cadans: hooguit 1x per seconde
+        bake(px, py, near.polys);
+        S.sig = near.sig;
+        S.ver = ver;
+        S.at = time;
+        baked = true;
+      }
+    } else {
+      // het water in het venster is niet veranderd: geen herdraai (#649)
+      S.ver = ver;
+      S.skipped++;
+    }
+  } else if (!calm && ver !== S.ver) S.deferred++;
+  // Het verre masker: alleen als het water in dat venster echt veranderde, op
+  // zijn eigen cadans, en nooit in hetzelfde beeld als het nabije masker.
   const farMoved = Math.abs(px - S.fcx) > FAR_RECENTRE || Math.abs(py - S.fcy) > FAR_RECENTRE;
-  if (S.fver < 0 || farMoved || (ver !== S.fver && time - S.fat > 4)) {
-    bakeFar(map, px, py);
-    S.fver = ver;
-    S.fat = time;
-  }
+  const farForced = S.fver < 0 || farMoved;
+  if (!baked && calm && (farForced || ver !== S.fver)) {
+    const far = windowWater(map, px, py, FAR_SIZE * 0.75);
+    if (farForced || far.sig !== S.farSig) {
+      if (farForced || time - S.fat > 4) {
+        bakeFar(px, py, far.polys);
+        S.farSig = far.sig;
+        S.fver = ver;
+        S.fat = time;
+      }
+    } else {
+      S.fver = ver;
+      S.skipped++;
+    }
+  } else if (!calm && ver !== S.fver) S.deferred++;
   S.bed.position.set(px, BED_Y, py);
   S.bed.scale.set(r * 2 + 40, 1, r * 2 + 40);
   S.bed.updateMatrix();
 }
 
 export function tileWaterStats() {
-  return { polys: S.polys, window: S.tex ? MASK_SIZE : 0, farPolys: S.fpolys, farWindow: S.far ? FAR_SIZE : 0 };
+  return { polys: S.polys, window: S.tex ? MASK_SIZE : 0, farPolys: S.fpolys, farWindow: S.far ? FAR_SIZE : 0,
+    bakes: S.bakes, farBakes: S.farBakes, skipped: S.skipped, deferred: S.deferred, lastMs: S.lastMs, lastFarMs: S.lastFarMs };
 }
