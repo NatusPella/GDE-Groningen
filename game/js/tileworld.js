@@ -188,7 +188,9 @@ export class TileWorld extends GameMap {
           if (!e) {
             e = { obj, pinned: true };
             res[kind].set(gid, e);
-            if (!sparseKinds.has(kind)) arrays[kind][gid] = obj;
+            // ook een sparse soort vult de bronlijst (voor de rasters en de gid-opzoekingen);
+            // de map-arraylaag blijft leeg (fromParts, `layer`).
+            arrays[kind][gid] = obj;
           }
           holdIn(e, key);
           held.push(kind, gid);
@@ -207,24 +209,25 @@ export class TileWorld extends GameMap {
     const terrainField = new TerrainField();
     for (const tile of tiles) for (const s of tile.sections) if (s.type === SECTION.RASTER) terrainField.add(`${tile.i},${tile.j}`, s.raster);
     const clipped = (info.clippedWays || []).map((c) => ({ ...c, building: c.building >= 0 ? arrays.buildings[c.building] : null }));
-    // een sparse soort krijgt een lege arraylaag: zijn rijen staan in _res en in de rasters
+    // Een sparse soort krijgt een lege arraylaag (fromParts zet die op []); de rasters
+    // worden uit dezelfde bron (de rijen van de gepinde tegels) gebouwd. De sparse rijen
+    // zitten als gaten in `arrays` (voor de gid-opzoekingen hierboven), dus het bouwpad
+    // krijgt de compacte lijst.
     const parts = { ...arrays };
-    if (sparseKinds.has('rails')) parts.rails = [];
-    if (sparseKinds.has('furniture')) parts.furniture = [];
+    for (const kind of sparseKinds) parts[kind] = arrays[kind].filter(Boolean);
     const map = GameMap.fromParts.call(this, {
       meta: info.meta,
       ...parts,
+      sparse: sparseKinds,
       stations: info.stations, levelCrossings: info.levelCrossings, railRoutes: info.railRoutes, railLifts: info.railLifts, perrons: info.perrons,
       dryCrossings: info.dryCrossings, clippedWays: clipped,
       terrain: terrainField, terrainOn: terrain,
     });
     map._res = res;
-    // #314 C1/C2: de rasters van de sparse soorten uit de rijen van de gepinde tegels (de
-    // arraylaag is leeg); dropTile en addTile houden ze daarna per tegel bij.
+    // #314 C1/C2: de sparse soorten leven per tegel (dropTile/addTile); de gepinde tegelrijen
+    // staan in _tileRows zodat een drop niet de hele kaart hoeft te scannen.
     map.sparse = sparseKinds;
     map._tileRows = tileRows;
-    if (sparseKinds.has('rails')) map.indexRails([...res.rails.values()].map((e) => e.obj));
-    if (sparseKinds.has('furniture')) map.indexFurniture([...res.furniture.values()].map((e) => e.obj));
     // The same lake mapped twice (#231): the streamed path leaves the twin out (addTile, waterdupes.js). The pinned set
     // keeps every row: the arrays are indexed by gid and the queries have to answer what the map answers, so the twin is
     // only marked in `map.duplicateWater` and the terrain and the water meshes do not draw it a second time (scene3d.js).
@@ -393,6 +396,10 @@ export class TileWorld extends GameMap {
     const trimmed = trimTileGreenery(this, [ox, oy, ox + TILE_M, oy + TILE_M], { trees: ownTrees, hedges: ownHedges, roads: hasRoads });
     const gs = this.greeneryStats || (this.greeneryStats = { removed: 0, moved: 0, hedges: 0 });
     gs.removed += trimmed.removed; gs.moved += trimmed.moved; gs.hedges += trimmed.hedges;
+    // #314 C2 (stap 4): één geo-versie voor de caches die uit de rasters/arrays bouwen
+    // (farlod, scene3d, grass, routing, ...): per add/drop opgehoogd, zodat een cache zich
+    // kan verversen. De pin houdt de stad nog vast; dit is de haak voor de volgende ronde.
+    this.geoVer = (this.geoVer || 0) + 1;
     return true;
   }
 
@@ -492,6 +499,7 @@ export class TileWorld extends GameMap {
       for (const kind of Object.keys(this._res)) for (const [gid, e] of this._res[kind]) release(kind, gid, e);
     }
     if (goneRoads.length) shrinkElevation(this, goneRoads);
+    this.geoVer = (this.geoVer || 0) + 1; // caches verversen (#314 C2, stap 4)
     return true;
   }
 

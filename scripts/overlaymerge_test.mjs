@@ -38,6 +38,13 @@ const global = G.encodeBlob({ builder: 1, sections: [{ type: G.SECTION.META, jso
 // een wereld in een tijdelijke map: de stad (index.json) en de provincie met de overlay als eigen tegel (index-provincie.json)
 function makeWorld(dir) {
   P.writeWorld(dir, { blobs: new Map([[key, { bytes: cityBlob, i: ci, j: cj, flags: 1, n: { buildings: 2, roads: 1, trees: 1 }, maxH: 0 }]]), global, counts }, new Set([key]));
+  // Deze test bewaakt het dichte-array-pad van de overlay-splitsing (#314 C2); de sparse
+  // variant heeft zijn eigen test (tileworld_sparse_test.mjs). Zet de nieuwe sparse-lijst
+  // daarom terug voor deze synthetische wereld.
+  const idxFile = path.join(dir, 'index.json');
+  const idx = JSON.parse(fs.readFileSync(idxFile, 'utf8'));
+  delete idx.sparse;
+  fs.writeFileSync(idxFile, JSON.stringify(idx));
   const z = new Uint8Array(zlib.deflateRawSync(ovBlob));
   const file = 'v0_0-test.gdp';
   fs.writeFileSync(path.join(dir, file), z);

@@ -1,4 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { gridItems } from './spatialgrid.js';
 import {
   BLOCK, ROAD_IN, ROAD_W, COUNTRY_UNIFORMS,
   edgeDistance, countryWeight, edgeRoad, setCountryMask,
@@ -48,14 +49,15 @@ function buildMask(map, B) {
       for (let t = 0; t <= n; t++) mark(a[0] + ((b[0] - a[0]) * t) / n, a[1] + ((b[1] - a[1]) * t) / n);
     }
   };
-  for (const r of map.roads) line(r.pts);
-  for (const b of map.buildings || []) {
+  // #314 C1/C2: de databedekking uit de rasters, ook als een arraylaag sparse is
+  for (const r of map.roadGrid ? gridItems(map.roadGrid) : []) line(r.pts);
+  for (const b of map.buildingGrid ? gridItems(map.buildingGrid) : []) {
     const q = b.bounds;
     if (!q) continue;
     mark(q[0], q[1]); mark(q[2], q[3]); mark(q[0], q[3]); mark(q[2], q[1]); mark((q[0] + q[2]) / 2, (q[1] + q[3]) / 2);
   }
-  for (const q of map.water || []) if (q.pts) line(q.pts);
-  for (const t of map.trees || []) { const p = t.pts ? t.pts[0] : t; if (p && p.length >= 2) mark(p[0], p[1]); else if (t.x !== undefined) mark(t.x, t.y); }
+  for (const q of map.waterGrid ? gridItems(map.waterGrid) : []) if (q.pts) line(q.pts);
+  for (const t of map.treeGrid ? gridItems(map.treeGrid) : []) { const p = t.pts ? t.pts[0] : t; if (p && p.length >= 2) mark(p[0], p[1]); else if (t.x !== undefined) mark(t.x, t.y); }
   // close gaps (parks, fields inside town) and fill enclosed holes
   const R = 3;
   const morph = (src, keep) => {

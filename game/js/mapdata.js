@@ -192,23 +192,28 @@ export class GameMap {
   // dryCrossings and clippedWays [{ road, building, x, y, len }].
   static fromParts(p) {
     const m = Object.create(this.prototype);
+    // (#314 C1/C2) Een sparse soort houdt geen arraylaag: de rasters en _res zijn de bron.
+    const sparse = p.sparse instanceof Set ? p.sparse : new Set(p.sparse || []);
+    const layer = (kind, list) => (sparse.has(kind) ? [] : list);
     m.meta = p.meta;
-    m.roads = p.roads;
+    m.roads = layer('roads', p.roads);
     m.canopies = p.canopies || [];
-    m.buildings = p.buildings;
-    m.water = p.water;
-    m.green = p.green;
-    m.trees = p.trees || [];
-    m.rails = p.rails || [];
+    m.buildings = layer('buildings', p.buildings);
+    m.water = layer('water', p.water);
+    m.green = layer('green', p.green);
+    m.trees = [];
+    m.rails = layer('rails', p.rails || []);
     m.stations = p.stations || [];
     m.levelCrossings = p.levelCrossings || [];
     m.railRoutes = p.railRoutes || [];
     m.railLifts = p.railLifts || [];
     m.perrons = p.perrons || [];
-    m.furniture = p.furniture || [];
+    m.furniture = layer('furniture', p.furniture || []);
+    m.sparse = sparse;
     m.passageWays = (p.passageWays || []).map((q) => ({ ...q, bounds: polygonBounds(q.pts) }));
     m.dryCrossings = p.dryCrossings || 0;
-    // (#314 C2) Ook dit bouwpad leest de bronlijst `p`, niet de live map-arrays.
+    // (#314 C2) Ook dit bouwpad leest de bronlijst `p`, niet de live map-arrays; de
+    // rasters worden ook voor een sparse soort uit die bron gebouwd.
     m.buildingGrid = new SpatialGrid(CELL);
     for (const b of p.buildings) {
       b.bounds = polygonBounds(b.pts);
@@ -232,15 +237,15 @@ export class GameMap {
       g.bounds = polygonBounds(g.pts);
       m.greenGrid.insert(g, g.bounds);
     }
-    m.indexRails(p.rails);
-    m.indexFurniture(p.furniture);
+    m.indexRails(p.rails || []);
+    m.indexFurniture(p.furniture || []);
     // (?terrain: the elevation model builds its walls in the frame of the terrain, so the terrain is in before it)
     if (p.terrain) { m.terrain = p.terrain; m.terrainOn = !!p.terrainOn; }
     m.elev = addPerrons(m, buildElevation(m));
     // (a mapped tree on the kerb or the carriageway is set beside the road, or goes: treeclear.js, #324)
     m.treeClearStats = { moved: 0, removed: 0 };
     const keptTrees = clearTreesFromRoads(m, p.trees || [], m.treeClearStats);
-    m.trees = keptTrees;
+    m.trees = layer('trees', keptTrees);
     m.treeGrid = new SpatialGrid(CELL * 2);
     for (const t of keptTrees) m.treeGrid.insert(t, [t[0], t[1], t[0], t[1]]);
     return m;
