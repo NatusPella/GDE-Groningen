@@ -49,7 +49,7 @@ for (const naam of ['checkLandmarks', 'checkOmmelanden']) {
 ok(/playerBusy\(w, \['missionPhase', 'sideJob', 'challenge', 'activeRace'\]\)/.test(bron), 'een race telt als bezig voor alle momenten');
 // #709: de wijk is een korte kaart met de highlights, geen flyover meer (de verover-intocht is het filmmoment)
 ok(!/wijkFilm|playWijk|prepWijk/.test(bron), 'de wijkflyover is weg');
-ok(/showWijkCard\(w, p\);/.test(bron), 'de wijkkaart gaat altijd af');
+ok(/showWijkCard\(w, p\)/.test(bron), 'de wijkkaart gaat altijd af');
 ok(/import \{ momentReason \} from '\.\/cutgates\.js';/.test(bron), 'cinematics laadt de poortregels');
 
 console.log(fails ? `cinematics_gates_test: ${fails} van ${n} mislukt` : `cinematics_gates_test: ${n}/${n} ok`);

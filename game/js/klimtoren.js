@@ -5,6 +5,7 @@ import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
 import { showBanner } from './cinematics.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, MEDALS } from './achievements.js';
 import { showCard } from './hudcards.js';
+import { onthullingScene } from './uitjescene.js';
 import { standActivity, recLine } from './standactivity.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
 import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHostTijd, wedGastTijd, wedScoreStop, wedGastVerlaat, wedGastReset, wedScoreRijen } from './multiplayerwedstrijd.js';
@@ -237,12 +238,12 @@ function updateHud(w) {
   // #620: de online stand is een tabel met tijd, hoogte en status per klimmer, geen rij stukjes tekst
   const online = g.online ? wedScoreRijen(w) : [];
   const esc = (t) => String(t ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  const extra = online.length ? `<table class="mg-stand"><thead><tr><th scope="col">#</th><th scope="col">Klimmer</th><th scope="col">Tijd</th><th scope="col">Stand</th></tr></thead><tbody>${online.map((r) => `<tr class="${r.weg ? 'weg' : ''}"><td>${online.indexOf(r) + 1}</td><th scope="row">${esc(r.naam)}</th><td>${r.banen === 1 ? fmtTime(r.slagen / 10) : '-'}</td><td>${r.banen === 1 ? 'boven' : r.banen === 2 ? 'niet boven' : 'bezig'}</td></tr>`).join('')}</tbody></table>` : '';
+  const stand = online.length ? `<table class="mg-stand"><thead><tr><th scope="col">#</th><th scope="col">Klimmer</th><th scope="col">Tijd</th><th scope="col">Stand</th></tr></thead><tbody>${online.map((r) => `<tr class="${r.weg ? 'weg' : ''}"><td>${online.indexOf(r) + 1}</td><th scope="row">${esc(r.naam)}</th><td>${r.banen === 1 ? fmtTime(r.slagen / 10) : '-'}</td><td>${r.banen === 1 ? 'boven' : r.banen === 2 ? 'niet boven' : 'bezig'}</td></tr>`).join('')}</tbody></table>` : '';
   const row = `<span>Tijd <b>${fmtTime(s.time)}</b></span><span>Hoogte <b>${height.toFixed(1).replace('.', ',')} m</b></span><span>Pogingen <b>${Math.max(0, WALL.tries - s.falls)}</b></span>`;
   const meter = { v: s.arms, text: 'arm', color: s.arms < 0.25 ? 'var(--mk-danger, #d93f3f)' : ACCENT }; // #620: geen tweede rood
   const flash = g.flash ? g.flash.text : g.phase === 'wacht' ? (s.phase === 'top' ? 'Boven! Wachten op de anderen' : 'Klaar: wachten op de anderen') : g.phase === 'intro' ? 'Pak de eerste grepen...' : s.ground && g.phase === 'run' ? 'Houd A of D ingedrukt om te grijpen' : '';
   const help = `${key('A')} linkerhand · ${key('D')} rechterhand · houd vast, laat één hand los om hem hoger te zetten · ${key('SPATIE')} magnesium · ${key('BACKSPACE')} stoppen`;
-  board.set({ row, extra, meter, flash, bad: !!(g.flash && g.flash.bad), help });
+  board.set({ row, extra: stand, meter, flash, bad: !!(g.flash && g.flash.bad), help });
 }
 
 function updateRings() {
@@ -273,8 +274,19 @@ function glyph(ctx) {
 // --- start -----------------------------------------------------------------------------------------------
 
 // online: 'host' (who opened the game, at the mat) or 'gast' (on his own screen): everybody climbs the same wall at once, the host keeps the board (#443)
-function start(w, { online = null } = {}) {
+function start(w, { online = null, revealed = false } = {}) {
   if (game) return false;
+  // #720: korte onthulling van de toren vóór de klim begint.
+  if (!revealed) {
+    const ok = onthullingScene(w, {
+      id: 'klimtoren-reveal', kicker: 'Klimtoren', title: 'Twaalf meter',
+      x: STAND.x, y: STAND.y, height: 10, radius: 20,
+      lines: [{ speaker: '', text: 'Twaalf meter klimmen. De ringen hangen te wachten.' }],
+      onEnd: () => start(w, { online, revealed: true }),
+    });
+    if (!ok) return start(w, { online, revealed: true });
+    return true;
+  }
   if (!built) built = buildTower();
   const p = hoofdspeler(w);
   if (p.inVehicle) p.exitVehicle(w.map, w);

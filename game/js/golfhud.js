@@ -18,7 +18,7 @@ export function golfRij({ wie = '', baan, banen, par, slag, vlag, club, ondergro
     `<span>Par <b>${par}</b></span>`,
     `<span>Slag <b>${slag}</b>${straf ? ` <small class="gf-straf">+${straf} straf</small>` : ''}</span>`,
     `<span>${golfIcon('vlag', 18)}<b>${afstandTekst(vlag)}</b></span>`,
-    `<span>${golfIcon(stok, 18)}${bij}${naamStok}</span>`,
+    `<span title="${stok === 'putter' ? 'Putter' : 'Wedge'}">${golfIcon(stok, 18)}${bij}${naamStok}</span>`,
   ].join('');
 }
 

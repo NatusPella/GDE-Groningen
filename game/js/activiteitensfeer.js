@@ -64,7 +64,7 @@ export const ACTIVITEIT_SFEER = {
     ['Alles erop, ook de rekening.', 'De keuken is de baas.']),
   hengelen: S('Weer een laars', 'veld', 'schub', '#7aa63a', 'water', 'boeienkaart', 'klein',
     ['De vis lacht terug.', 'Geduld is je enige aas.']),
-  boeren: S('Boerenzakdoek', 'bos', 'zakdoek', '#a3c94a', 'beurt', 'meetlat', 'klein',
+  boeren: S('Boerenzakdoek', 'bos', 'zakdoek', '#8fae45', 'beurt', 'meetlat', 'klein',
     ['De klei wint altijd.', 'De koeien hebben geen mening.']),
   wandeling: S('Heuvel op', 'melk', 'terrein', '#a3c94a', 'beurt', 'routebord', 'klein',
     ['De heuvel is altijd hoger.', 'Onderweg telt de grutto mee.']),
@@ -88,7 +88,7 @@ export const ACTIVITEIT_SFEER = {
     ['De brug is de baas van de gracht.', 'De dienstregeling is een suggestie.']),
   // padel is geen activiteit uit activities.js maar wel een eigen bord (#599): dezelfde sfeertabel,
   // zodat het padelbord dezelfde drager krijgt als de rest en niet buiten het systeem valt.
-  padel: S('Bal over het hek', 'veld', 'grid', '#c068ff', 'bal', 'startbord', 'kapitaal',
+  padel: S('Bal over het hek', 'veld', 'grid', '#cf6fb0', 'bal', 'startbord', 'kapitaal',
     ['De baan is van glas, het hek ook.', 'Bal over het hek is een punt. Voor de buren.']),
   // de machinist is een dienst met een eigen bord (#625); ook die hoort op de sfeerroute (#595).
   machinist: S('Vertrek op tijd', 'nacht', 'spoor', '#b3b3a2', 'beurt', 'vertrekbord', 'kapitaal',
