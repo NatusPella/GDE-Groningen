@@ -73,6 +73,20 @@ if (tw) {
   ok(Array.isArray(near[0].bounds) && near[0].bounds.length === 4, 'het spoor heeft bounds voor het raster');
 }
 
+// Het straatmeubilair van de gepinde stad in één raster (#314 C2b): streetfurniture3d
+// en nightlights3d lezen de meubelrijen daaruit, en een gestroomde tegel voegt ze toe.
+{
+  const meta = { sections: [{ type: G.SECTION.META, json: { counts: { furniture: 2 }, meta: {} } }] };
+  const fmap = TileWorld.fromTiles(meta, [tile(0, 0, [{ type: G.SECTION.FURNITURE, rows: [
+    { gid: 0, k: 'hedge', pts: [[10, 120], [60, 120]] },
+    { gid: 1, k: 'lamp', pts: [[5, 5]] },
+  ] }])]);
+  const items = [...fmap.furnitureGrid.map.values()].flat();
+  ok(fmap.furnitureGrid && items.length === 2 && items.every((it, i) => items.indexOf(it) === i), 'de gepinde kaart bouwt een meubelraster met elk item één keer');
+  ok(items.every((it) => fmap.furniture.includes(it)), 'dezelfde objecten als de meubelarray');
+  ok(fmap.furnitureGrid.query(20, 120, 20, 120).length === 1, 'een heg is op zijn plek te vinden');
+}
+
 // --- de pin: de stad blijft, de provincie stroomt ------------------------------------------------
 // Twee tegels in een eigen pakket: de stad op (0, 0) uit index.pins.city, de provincie op (3, 0) — 3 km verderop. De stad
 // is opzettelijk de grootste van de twee (8 gebouwen tegen 1): alleen dan blijft de stad na het wegvallen van de provincie

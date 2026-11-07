@@ -80,11 +80,13 @@ function buildRingGrid(map) {
   };
   const key = (p) => Math.round(p[0] * 10) + ',' + Math.round(p[1] * 10);
   const localNodes = new Set();
-  for (const r of map.roads) {
+  // (#314 C2b) de ringwegen en hun aansluitingen uit het wegraster, niet uit de hele array
+  const ringRoads = gridItems(map.roadGrid);
+  for (const r of ringRoads) {
     if (isRingRoad(r) || !DRY_CATS.has(r.cat) || r.cat === 'service' || r.z) continue;
     for (const p of r.pts) localNodes.add(key(p));
   }
-  for (const r of map.roads) {
+  for (const r of ringRoads) {
     if (!isRingRoad(r)) continue;
     const hw = r.width / 2 + 0.3, P = r.pts;
     for (let i = 0; i < P.length - 1; i++) {
@@ -159,6 +161,7 @@ export class GameMap {
       this.greenGrid.insert(g, g.bounds);
     }
     this.indexRails();
+    this.indexFurniture();
 
     markDryCrossings(this);
     // (?terrain: the terrain goes in before the elevation model, which builds its walls in the frame of the terrain)
@@ -223,6 +226,7 @@ export class GameMap {
       m.greenGrid.insert(g, g.bounds);
     }
     m.indexRails();
+    m.indexFurniture();
     // (?terrain: the elevation model builds its walls in the frame of the terrain, so the terrain is in before it)
     if (p.terrain) { m.terrain = p.terrain; m.terrainOn = !!p.terrainOn; }
     m.elev = addPerrons(m, buildElevation(m));
@@ -242,6 +246,17 @@ export class GameMap {
     for (const r of this.rails) {
       r.bounds = polygonBounds(r.pts || r);
       this.railGrid.insert(r, r.bounds);
+    }
+  }
+
+  // (#314 C2b) Het straatmeubilair in één raster, net als de andere kaartlagen: de
+  // tekenlaag (streetfurniture3d, nightlights3d) leest hieruit, en een gestroomde
+  // tegel voegt zijn eigen meubelrijen aan hetzelfde raster toe (tileworld.js addTile).
+  indexFurniture() {
+    this.furnitureGrid = new SpatialGrid(CELL);
+    for (const m of this.furniture) {
+      m.bounds = m.pts ? polygonBounds(m.pts) : [m.x, m.y, m.x, m.y];
+      this.furnitureGrid.insert(m, m.bounds);
     }
   }
 

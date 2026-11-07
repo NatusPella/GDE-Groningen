@@ -5,7 +5,7 @@ import { makeProp, addProp, removeProp, isPropBroken, propKey } from './breakabl
 import { policeFlash } from './models3d_vehicles.js';
 import { lampRule, lampSpot, LAMP_AWNING } from './streetfurniture.js';
 import { hash2 as hash } from './rng.js';
-import { SpatialGrid } from './spatialgrid.js';
+import { SpatialGrid, gridItems } from './spatialgrid.js';
 import { koplampenFactor } from './weerlook.js';
 
 // Night lighting: instanced street lamps along road edges with additive
@@ -418,7 +418,8 @@ function rebuildVisible(world, px, py) {
   visible = [];
   const seen = new Set();
   // street lamps claim their spots before the path lamps fill the gaps
-  for (const m of world.map.furniture || []) {
+  // #314 C2b: de straatlantaarns uit het meubelraster (ook de tegels' lampen)
+  for (const m of gridItems(world.map.furnitureGrid)) {
     if (m.k !== 'lamp' || !m.pts || Math.abs(m.pts[0][0] - px) > LAMP_VIEW || Math.abs(m.pts[0][1] - py) > LAMP_VIEW) continue;
     const l = m._lamp || (m._lamp = mappedLamp(world.map, m));
     if (!l) continue;
