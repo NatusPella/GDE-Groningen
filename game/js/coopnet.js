@@ -20,7 +20,7 @@ import { cameraRelative, stepSlot2, sharedCamera } from './coop.js';
 import { coopStep, missieGastVerzoek } from './coopglue.js';
 import { gateOn, setGate, hekBericht } from './coopgate.js';
 import { WIEL_TEKST, WIEL_HOST_TEKST, WIEL_VERZOEK_S, kanUitstappen, paneelIndrukken } from './coopgast.js';
-import { nieuwCutVerzamelaar, cutGastSpeel, cutGastStop, leesCutTijd, cutSpoor } from './coopcut.js';
+import { nieuwCutVerzamelaar, cutGastSpeel, cutGastStop, cutGastBezet, cutGastWacht, cutGastWachtTik, leesCutTijd, cutSpoor } from './coopcut.js';
 import { verzamelExtra, codeerExtra, leesExtra, nieuwGeheugen, nieuweStand, pasExtraToe, doelenVan } from './coopextra.js';
 import { maakGroepen, begin as groepBegin, zetStand as groepZet, beeindig as groepBeeindig, ruimOp as groepRuimOp, groepen as groepLijst, doelenVoor as groepDoelenVoor, groep as groepRecord, leiderVan as groepLeider, groepVan as groepVanSlot } from './coopmissie.js';
 import { wapenCode, aanvalCode, volgendeStoel, stapSprong, BUK_TEMPO } from './coopspeler.js';
@@ -1026,6 +1026,7 @@ export function tickCoopNet(world, dt) {
   if (n.tSpelers >= 0.25) { n.tSpelers = 0; bouwSpelers(world, n); }
   if (n.role === 'host') { wedHostTik(world, dt); bijbaanHostTik(world, dt); } // een uitnodiging voor een race, minigame of bijbaan loopt af (#443, #452)
   else bijbaanGastTik(world, dt);
+  if (n.role === 'client') cutGastWachtTik(world); // (#714) een scène die wachtte tot de gast vrij was, begint nu
   wedKaartTik(world, dt); // Meedoen? J of N en de uitslag met een rematch
   pvpArenaGastTik(world, dt); // de PvP-arena op het scherm van een gast: zijn eigen bord en de klok (#454)
   if (n.role === 'host' && world.pvpArenaUitn && world.pvpArenaUitn.keuze[0] === 'wacht' && !world.coopGastVraag && !(n.wed && n.wed.u) && !world.paused && !world.uiPaused && world.input && world.input.wasPressed) {
@@ -1323,7 +1324,8 @@ export function handleEvent(world, body, van = 0) {
       const v = n.cutVerzamelaar || (n.cutVerzamelaar = nieuwCutVerzamelaar());
       const p = v.voegToe(body); if (body.i === 0) cutSpoor(world, 'gast-stuk0', body.id, body.n); if (!p) return true;
       cutSpoor(world, 'gast-compleet', p.id);
-      cutGastSpeel(world, p);
+      // (#714) zit de gast in zijn eigen menu, kaart, winkel, telefoon of minigame, dan wacht de kopie tot hij vrij is
+      if (cutGastBezet(world)) cutGastWacht(world, p); else cutGastSpeel(world, p);
       return true;
     }
     case 'hek': { // het spel is nog niet begonnen (aan) of begint nu (uit): de wachtkamer

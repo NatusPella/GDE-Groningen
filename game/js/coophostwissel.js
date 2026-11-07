@@ -22,6 +22,8 @@ const r2 = (v) => Math.round(num(v) * 100) / 100;
 // de lopende opdracht (met de stand binnen de opdracht, #452), geld en toestand per speler, kapotte objecten en de voertuigen van spelers.
 export function maakMomentopname(inv = {}) {
   const t = inv.tijd || {}, o = inv.opdracht || null, w = inv.wanted || {};
+  // (#713) liep er een scène? Dan weet de nieuwe host dat hij hem niet kan afmaken en hem netjes moet stoppen.
+  const s = inv.scène && typeof inv.scène === 'object' ? inv.scène : null;
   return {
     v: MOMENTOPNAME_V,
     ver: { game: tekst(inv.ver && inv.ver.game), proto: num(inv.ver && inv.ver.proto), version: tekst(inv.ver && inv.ver.version), tiles: tekst(inv.ver && inv.ver.tiles), story: tekst(inv.ver && inv.ver.story) },
@@ -30,6 +32,7 @@ export function maakMomentopname(inv = {}) {
     weer: tekst(inv.weer, 30),
     weerstaat: inv.weerstaat && typeof inv.weerstaat === 'object' && JSON.stringify(inv.weerstaat).length <= 700 ? JSON.parse(JSON.stringify(inv.weerstaat)) : null, // de weermachine (coopweer.js weerEvent zonder k)
     wanted: { niveau: Math.min(5, Math.max(0, Math.floor(num(w.niveau)))), hitte: r2(w.hitte) },
+    scène: s && Number.isInteger(Math.floor(num(s.id))) && Math.floor(num(s.id)) > 0 ? { id: Math.floor(num(s.id)), soort: tekst(s.soort, 20), t: Math.max(0, r2(s.t)) } : null,
     opdracht: o ? {
       id: tekst(o.id), stap: Math.max(0, Math.floor(num(o.stap))), staat: tekst(o.staat, 30), t: r2(o.t),
       deel: Math.max(0, Math.floor(num(o.deel))), // de stage in de keten, of het waypoint van een race (#452)

@@ -109,10 +109,15 @@ apparaat. Bij het starten gaat het verder met de save die je het laatst hebt opg
 oudere savegames worden bij het laden bijgewerkt (`game/js/savemigrate.js`).
 Een savegame van het oude verhaal (dat niet meer bestaat) gaat door in het nieuwe verhaal: geld, spullen, voertuigen, prestaties en instellingen blijven, het verhaal begint opnieuw. Je oude savegame blijft ongemoeid op je apparaat staan.
 
-Er is geen account, geen tracking en geen statistiek; de desktopapp
-gebruikt geen internet. Fouten komen in een logboek op je eigen apparaat
-(**Instellingen › Foutrapport**) dat nergens heen gaat: je kunt het zelf
-kopiëren als je een bug meldt.
+Er is geen account, geen tracking en geen statistiek, en de desktopapp heeft
+geen internet nodig om te spelen. Er zijn twee uitzonderingen, en alleen als jij
+ze zelf aanzet: (1) **Samen spelen** — na je toestemming gaat je IP-adres naar
+een openbare STUN-server en lopen de versleutelde signaleringsberichten via
+openbare brokers; (2) **live busposities** — een openbare leesopvraag zonder
+gegevens van jou, met een uitzetter in **Instellingen**. Zonder die twee gaat er
+niets van of over jou naar buiten; zie [docs/PRIVACY-EN-CREDITS.md](docs/PRIVACY-EN-CREDITS.md).
+Fouten komen in een logboek op je eigen apparaat (**Instellingen › Foutrapport**)
+dat nergens heen gaat: je kunt het zelf kopiëren als je een bug meldt.
 
 ## Spelen in de browser of vanaf de broncode
 

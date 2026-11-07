@@ -13,6 +13,8 @@
 import { KEYS } from './storagekeys.js';
 import { noteMoney } from './finance.js';
 import * as G from './gebieden.js';
+import { wachtOpIntocht, MOMENT } from './wijkintocht.js';
+import { noteMoment } from './attention.js';
 
 const SCHRIJF_VERTRAGING_MS = 1500;
 const CACHE_MS = 5000;
@@ -132,6 +134,10 @@ function meldVoortgang(w, ind, taakId) {
 function betaal(w, b) {
   if (!w) return;
   if (b.geld > 0) { noteMoney('Overig inkomsten'); w.money = (w.money || 0) + b.geld; }
+  // #705: de beloning gaat in de wachtrij; de intocht speelt pas als de speler rustig is
+  // (int ochten.js), niet midden in de uitslag van een missie of minigame.
+  wachtOpIntocht(w, b, w.time);
+  noteMoment(MOMENT);
   if (w.addMessage) w.addMessage(`${b.titel}! ${b.regel} (+€${b.geld})${b.huis ? ' En de sleutel van je safehouse ligt op de mat.' : ''}`, 7, { kind: 'prestatie', kicker: `${G.niveauInfo(b.niveau).enkel[0].toUpperCase()}${G.niveauInfo(b.niveau).enkel.slice(1)} veroverd`, key: 'gebied-' + b.gebied });
 }
 
@@ -159,6 +165,18 @@ export function opSleutel(w, sleutel) {
 export const gebiedenOpUniek = (w, uniek) => opSleutel(w, 'u:' + uniek);
 export const gebiedenOpStat = (w, key) => opSleutel(w, 's:' + key);
 export const gebiedenOpVondst = (w, set, waarde) => opSleutel(w, 'v:' + waarde);
+
+// #708: de intocht van een gebied is één keer per speler te zien; daarna is hij terug te kijken via
+// Loopbaan › Veroverd. Geeft true als hij nieuw was.
+export function noteerIntocht(gebiedId) {
+  const p = getProfiel();
+  if (!G.markeerIntocht(p, gebiedId)) return false;
+  markeer();
+  return true;
+}
+export const intochtGezien = (gebiedId) => G.intochtGezien(getProfiel(), gebiedId);
+export const intochtenGezien = () => (getProfiel().intochten || []).slice();
+export const intochtenOverzicht = () => { const ind = getIndeling(); return ind ? G.intochtenVan(getProfiel(), ind) : []; };
 
 // De kaart verkennen (#435): de buurt waar de speler is telt mee zodra hij er komt. achievementtracker.js vraagt dit
 // elke seconde; geeft het id van een nieuwe buurt terug, anders null. Samen spelen: elke speler verkent op zijn eigen

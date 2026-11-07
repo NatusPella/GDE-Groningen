@@ -2067,6 +2067,17 @@ let roadQuality = getRoadQualityVersion();
 const openSpans = new Set();
 const _roadSeen = new Set();
 let bridgeViews = false;
+// An idle road pass is skipped, mirroring the building guard (syncBuildings): the
+// grid query, the Set and the missing list cost time every frame while nothing
+// changes. Two extra conditions make it safe for the load screen (0.56.1 hung on a
+// guard that did not have them): the last full pass must have found nothing left
+// to build (`streamStat.r === 0`, the counter the load screen waits on) and the
+// game must already be running (`game-started`), so boot and load screens never
+// take the shortcut. The record is refreshed only after a full pass, so
+// ROAD_SYNC_IDLE_FRAMES really bounds the skip; ?perfoff=wegsync turns the guard
+// off for the A/B measurement. See docs/PERF-LAADHANG-0.56.1.md (#553).
+const ROAD_SYNC_IDLE_FRAMES = 6;
+let roadSyncIdle = null, roadSyncFrame = 0;
 function syncRoads(world, px, py) {
   setRoadNetwork(world.map);
   if (roadQuality !== getRoadQualityVersion()) {
@@ -2074,6 +2085,13 @@ function syncRoads(world, px, py) {
     for (const mesh of roadMeshes.values()) scene.remove(mesh);
     roadMeshes.clear();
   }
+  roadSyncFrame++;
+  if (roadSyncIdle && !perfOff('wegsync') && streamStat.r === 0
+    && document.body.classList.contains('game-started')
+    && !openSpans.size && !world.quake && roadSyncIdle.q === roadQuality && roadSyncIdle.dist === DRAW_DIST
+    && roadSyncIdle.meshes === roadMeshes.size && roadSyncFrame - roadSyncIdle.frame < ROAD_SYNC_IDLE_FRAMES
+    && Math.hypot(px - roadSyncIdle.x, py - roadSyncIdle.y) < SYNC_IDLE_MOVE) return;
+  roadSyncIdle = null;
   const view = world.map.roadsNear(px, py, DRAW_DIST);
   const seen = _roadSeen;
   seen.clear();
@@ -2134,6 +2152,9 @@ function syncRoads(world, px, py) {
     roadMeshes.delete(r);
     coolDown(coldRoads, r, ROAD_CACHE_MAX, freeRoadGeometry);
   }
+  // Remember a finished pass, and only here: a record written every frame would
+  // keep the frame escape above permanently true (that was the 0.56.1 bug).
+  if (streamStat.r === 0) roadSyncIdle = { x: px, y: py, q: roadQuality, dist: DRAW_DIST, meshes: roadMeshes.size, frame: roadSyncFrame };
 }
 
 function syncTrees(world, px, py) {

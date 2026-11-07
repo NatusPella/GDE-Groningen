@@ -130,6 +130,9 @@ function boundsOfObj(kind, o) {
 
 // The key a tile is resident under: its place, or for an overlay (the part of
 // a city tile the city's data leaves empty, store key 'o' + the tile's) 'o' + its place.
+// rijen per FrameQueue-stuk van een gestroomde tegel (#650); ruim onder het
+// frame-budget van 1,5 ms (0,6 ms in een traag beeld)
+export const ROW_CHUNK = 300;
 const residentKey = (i, j, key) => (key && key[0] === 'o' ? 'o' : '') + `${i},${j}`;
 
 // The tiles an object is resident in. Nearly every object lies in one tile: that key sits in `t`, and only an object that
@@ -229,17 +232,58 @@ export class TileWorld extends GameMap {
 
   attachStore(store) {
     this.store = store;
-    store.on('tile', (tile, key) => this.tileQueue.add(() => this.addTile(tile, key), 1, `add:${residentKey(tile.i, tile.j, key)}`));
-    store.on('drop', (key) => { const e = store.index.tiles[key]; if (e) this.tileQueue.add(() => this.dropTile(residentKey(e.i, e.j, key)), 0, `drop:${residentKey(e.i, e.j, key)}`); });
+    this._tileJobs = new Map();
+    store.on('tile', (tile, key) => this.queueTile(tile, key));
+    store.on('drop', (key) => {
+      const e = store.index.tiles[key];
+      if (!e) return;
+      const tk = residentKey(e.i, e.j, key);
+      // een tegel die halverwege zijn rijen wegvalt: het chunkwerk stopt meteen,
+      // ook als het eerste stuk nog in de wachtrij staat (#650)
+      const job = this._tileJobs && this._tileJobs.get(tk);
+      if (job) { job.cancelled = true; this._tileJobs.delete(tk); }
+      this.tileQueue.add(() => this.dropTile(tk), 0, `drop:${tk}`);
+    });
     return this;
   }
 
-  // tiles that came in by streaming (not the pinned city) go into the grids
+  // #650: een gestroomde tegel is geen onbegrensd FrameQueue-item meer. De rijen
+  // gaan in stukken van hooguit ROW_CHUNK door de wachtrij (het budget knipt
+  // alleen tussen items, niet binnen een item), met dezelfde volgorde en
+  // dezelfde listeners als voorheen. De pinned/overlay-tegels en de tests
+  // gebruiken addTile hieronder, dat de generator in één keer leegmaakt.
+  queueTile(tile, key) {
+    const tk = residentKey(tile.i, tile.j, key);
+    const old = this._tileJobs && this._tileJobs.get(tk);
+    if (old) old.cancelled = true;
+    const job = { cancelled: false };
+    (this._tileJobs || (this._tileJobs = new Map())).set(tk, job);
+    const steps = this.addTileSteps(tile, key);
+    const step = () => {
+      if (job.cancelled) { this._tileJobs.delete(tk); return; }
+      const r = steps.next();
+      if (r.done) { this._tileJobs.delete(tk); return; }
+      this.tileQueue.add(step, 1, `add:${tk}`); // volgende stuk, volgende frame
+    };
+    this.tileQueue.add(step, 1, `add:${tk}`);
+    return tk;
+  }
+
+  // synchronous variant (pinned/overlay tiles and the tests): the same steps in one go
   addTile(tile, key) {
+    const steps = this.addTileSteps(tile, key);
+    let r = steps.next();
+    while (!r.done) r = steps.next();
+    return r.value;
+  }
+
+  // tiles that came in by streaming (not the pinned city) go into the grids
+  *addTileSteps(tile, key) {
     const tk = residentKey(tile.i, tile.j, key);
     if (this.resident.has(tk)) return false;
     this.resident.add(tk);
     const newRoads = [], newWater = [];
+    let rows = 0; // rijen sinds de vorige yield (#650)
     // de bomen en heggen van deze tegel, voor de groenopruiming onderaan (#508), en of de tegel wegen meebrengt:
     // ook een rij die een buurtegel al invoegde, reikt met zijn zoom deze tegel in en moet de ring laten kijken
     const ownTrees = [], ownHedges = [];
@@ -284,8 +328,10 @@ export class TileWorld extends GameMap {
         }
         holdIn(e, tk);
         held.push(kind, gid);
+        if (++rows >= ROW_CHUNK) { rows = 0; yield; }
       }
     }
+    yield; // de profielen/hoogtes en het droogmaken zijn eigen stukken (#650)
     // the profiles of streamed bridges and viaducts (build_province.mjs, #235): the roads of the tile join the elevation
     // model with them (surfaceAt, embankments, walls, a deck a boat sails under: #300). ?vlakbruggen leaves them flat.
     if (this.streamProfiles !== false) {
@@ -295,10 +341,12 @@ export class TileWorld extends GameMap {
     // a road over water without a bridge tag is a culvert or a dry deck (mapdata.js markDryRoad)
     for (const r of newRoads) markDryRoad(this, r);
     for (const w of newWater) {
+      if (++rows >= ROW_CHUNK) { rows = 0; yield; }
       if (!w.bounds) continue;
       const cx = (w.bounds[0] + w.bounds[2]) / 2, cy = (w.bounds[1] + w.bounds[3]) / 2;
       for (const r of this.roadsNear(cx, cy, Math.hypot(w.bounds[2] - w.bounds[0], w.bounds[3] - w.bounds[1]) / 2)) markDryRoad(this, r);
     }
+    yield; // de listeners (far-LOD, canopies) hoeven niet in hetzelfde stuk (#650)
     for (const fn of this._tileListeners || []) fn('add', tile, tk);
     // het groen van deze tegel naast de weg (#508): de vulbomen van bos en kerkhof kwamen per tegel op de weg te
     // staan waar de weg in de buurtegel ligt, en de gemapte heggen liepen over de rijbaan. Met deze tegel erbij zijn
@@ -367,6 +415,8 @@ export class TileWorld extends GameMap {
   }
 
   dropTile(tk) {
+    const job = this._tileJobs && this._tileJobs.get(tk);
+    if (job) { job.cancelled = true; this._tileJobs.delete(tk); }
     if (!this.resident.delete(tk)) return false;
     for (const fn of this._tileListeners || []) fn('drop', null, tk);
     if (this.terrain) this.terrain.drop(tk);

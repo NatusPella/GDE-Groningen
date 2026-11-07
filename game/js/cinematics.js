@@ -270,10 +270,10 @@ export function skipCinematic() {
   if (active) finish(true);
 }
 
-// Subtitles without their own recording get one from the lines manifest
-// (narration without a speaker is Rikus, the narrator); a line marked `own` is voiced by its scene. Voiced lines then stay up
-// until their recording has finished, pushing the rest (and the scene) later.
-function attachVoices(a) {
+// De stemmen van een scène (ook als pure functie te testen, #711): regels zonder eigen opname krijgen er een uit de
+// 'lines'-bank; een regel met `own` (de scène speelt hem zelf) of met een eigen `voice` blijft staan, zodat de gast
+// dezelfde opname en dezelfde ondertiteltijden houdt als de gastheer.
+export function attachVoices(a) {
   if (!a.lines || !a.lines.length) return;
   let found = false;
   const lines = a.lines.map((l) => {
@@ -424,7 +424,12 @@ export function updateCinematics(dt, w) {
   // tweede, 30 s-tak die door een ontbrekende import nooit werkte.
   if (active && !active._wStart && w && w.time <= 1) active._wStart = now;
   if (active && cinematicHang({ startedAt: active._wStart, now, worldTime: w && w.time, sceneT: active.t }) === 'opening') { finish(true); return; }
-  const frozen = isPauseMenuOpen() || isMapOpen();
+  // (#714) Een gastkopie (cutId) loopt door achter het eigen pauzemenu of de kaart van de gast: anders bevriest zijn
+  // kopie en springt hij na het sluiten van het menu bij. De gastheer bepaalt de tijd (coopcut.cutGastTik), niet het menu.
+  // (#713) Tijdens het wachtscherm van samen spelen (coopHold) staat alles stil, ook de kopie: de sessie wordt opnieuw opgezet.
+  const gastKopie = !!(active && active.cutId != null);
+  const hold = !!(w && w.coopHold);
+  const frozen = isPauseMenuOpen() || isMapOpen() || hold;
   if (!frozen) {
     if (active) {
       // Vangnet: een filmpje dat veel wandkloktijd krijgt maar zelf niet vooruitkomt
@@ -439,6 +444,12 @@ export function updateCinematics(dt, w) {
     if (started) checkTriggers(dt, w);
     updateBanner(dt);
     if (chipTimer > 0 && (chipTimer -= dt) <= 0) els.chip.classList.remove('visible');
+  } else if (gastKopie && !hold) {
+    // alleen de scène van de gastheer loopt door; de rest van de wereld blijft stil staan onder het menu
+    active.t += (active.realtime ? Math.max(dt, wallDt) : dt) * (active.rate ?? 1);
+    updateSubtitles();
+    if (active.t >= active.duration) finish(false);
+    skipHoldSince = null;
   } else skipHoldSince = null;
 
   if (started && w.input.wasPressed('v') && !active) cycleCinemaCam(w);
@@ -1027,6 +1038,8 @@ function playLandmark(w, lm) {
   playCinematic({
     id: 'landmark', priority: 1, duration: 3.8, pause: true,
     kicker: 'Ontdekt', title: lm.name,
+    // (#712) ook een filmpje zonder script heeft een regel: de gast leest waar het over gaat
+    lines: [{ speaker: '', text: 'Weer een stukje Grunn dat je nu kent.' }],
     shot: orbitShot(w, { fixed: lm, radius, height: h * 0.45 + 9, lookY: h * 0.42, sweep: 1.3, start }),
   });
 }
@@ -1044,6 +1057,8 @@ function tryCrashReplay(w, x, y) {
   const lift = roofAt(w.map, x + nx * 6 * side, y + ny * 6 * side);
   playCinematic({
     id: 'crash', priority: 1, duration: 1.2, timeScale: 0.22, letterbox: true, hideHud: true,
+    // (#712) één regel, zodat een gast niet alleen twee balken ziet
+    lines: [{ speaker: '', text: 'Krak. Iemand lette even niet op.' }],
     shot: (u) => ({
       position: W(x + nx * 6 * side - fx * (2 - u * 2.5), 0.7 + lift + u * 0.4, y + ny * 6 * side - fy * (2 - u * 2.5)),
       lookAt: W(x, 0.9, y),
@@ -1079,6 +1094,8 @@ function playWantedFive(w) {
   playCinematic({
     id: 'wanted5', priority: 2, duration: 1.6, timeScale: 0.4, letterbox: true,
     kicker: '★★★★★', title: 'Heel Grunn zit achter je aan', accent: 'wanted', shot,
+    // (#712) één regel voor de gast (de gastheer ziet de sterren en de titel)
+    lines: [{ speaker: '', text: 'Vijf sterren. Nu even rustig aan doen.' }],
   });
 }
 

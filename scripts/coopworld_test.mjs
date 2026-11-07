@@ -181,7 +181,14 @@ t('scène van de host: filmpje, regel en keuze worden gereinigd en alleen bij ve
   assert.equal(W.sceneBericht(a.huidig, sc).event, null, 'zelfde stand: geen bericht');
   const b = W.sceneBericht(a.huidig, { filmpje: false }); assert.equal(b.event.filmpje, false); assert.ok(W.sceneLeeg(b.huidig));
   assert.equal(W.sceneBericht(null, null).event, null, 'leeg naar leeg: niets');
-  assert.deepEqual(W.leesSceneBericht({ k: 'scene', filmpje: true }), { filmpje: true, pauze: false, regel: null, keuze: null, paneel: null });
+  assert.deepEqual(W.leesSceneBericht({ k: 'scene', filmpje: true }), { filmpje: true, pauze: false, regel: null, keuze: null, kaart: null, paneel: null });
+  // (#712) de titelkaart van een host-filmpje gaat mee, gereinigd, zodat de gast hem kan tekenen
+  const kaart = W.schoonScene({ filmpje: true, kaart: { kicker: 'Ontdekt', title: 'Martinitoren', big: '', accent: 'wanted', tint: 'bust' } });
+  assert.deepEqual(kaart.kaart, { kicker: 'Ontdekt', title: 'Martinitoren', big: '', accent: 'wanted', tint: 'bust' });
+  assert.deepEqual(W.schoonScene({ kaart: { kicker: 'x'.repeat(99), title: 'y'.repeat(199), big: 'z'.repeat(99), accent: '<script>', tint: 'a b' } }).kaart, { kicker: 'x'.repeat(60), title: 'y'.repeat(80), big: 'z'.repeat(60), accent: '', tint: '' });
+  assert.equal(W.schoonScene({ kaart: { kicker: '', title: '', big: '', accent: '', tint: '' } }).kaart, null, 'een lege kaart is geen kaart');
+  assert.equal(W.sceneLeeg(W.schoonScene({ kaart: { title: 'Iets' } })), false, 'een kaart alleen is ook iets om te melden');
+  assert.equal(W.sceneBericht(null, { kaart: { title: 'Iets' } }).event.kaart.title, 'Iets');
   assert.equal(W.sceneLeeg(W.schoonScene({ pauze: true })), false, 'een pauze van de host is ook iets om te melden'); assert.equal(W.sceneBericht(null, { pauze: true }).event.pauze, true); assert.equal(W.leesSceneBericht({ k: 'x' }), null);
   assert.ok(JSON.stringify(W.schoonScene({ filmpje: true, regel: { wie: 'w'.repeat(99), tekst: 't'.repeat(999) }, keuze: { tekst: 'k'.repeat(999), opties: Array(9).fill('o'.repeat(99)) } })).length < 1500, 'past ruim in een bericht');
 });

@@ -89,10 +89,34 @@ export function gebiedenVan(ind, x, y) {
   return uit;
 }
 
+// De dichtstbijzijnde woonplaats van een gebied, binnen dezelfde gemeente (#710): de kale wijken van het CBS ("Wijk 14") zijn
+// anders een interne naam in de titel, de HUD en het safehouse. Geeft de naam of null.
+function dichtstbijzijndePlaats(g, plaatsen, gemeenteNaam) {
+  const heeftC = !!g && getal(g.c && g.c[0]) && getal(g.c && g.c[1]);
+  let best = null, bd = Infinity;
+  if (heeftC && Array.isArray(plaatsen)) for (const p of plaatsen) {
+    if (!p || p === g || !naamOk(p.naam)) continue;
+    if (g.gm && p.gm && p.gm !== g.gm) continue;
+    if (!getal(p.c && p.c[0]) || !getal(p.c && p.c[1])) continue;
+    const d = afstand(g.c[0], g.c[1], p.c[0], p.c[1]);
+    if (d < bd) { bd = d; best = p; }
+  }
+  if (best) return best.naam;
+  // geen woonplaats in de buurt: dan de gemeente, zodat er nooit een kaal nummer overblijft
+  return (g && g.gm && gemeenteNaam && gemeenteNaam.get(g.gm)) || null;
+}
+
 // De naam die de speler ziet: zonder het wijknummer van het CBS ("Wijk 03 Veendam-kern" wordt "Veendam-kern") en met de gemeente
-// erbij als dezelfde naam in een laag vaker voorkomt ("Centrum (Veendam)").
-export function weergaveNamen(laag, gemeenteNaam) {
-  const kaal = laag.map((g) => { const k = String(g.naam).replace(/^Wijk \d+\s+/, ''); return k.trim() || String(g.naam); });
+// erbij als dezelfde naam in een laag vaker voorkomt ("Centrum (Veendam)"). Een kale wijknaam ("Wijk 14") krijgt de dichtstbijzijnde
+// woonplaats erbij ("Wijk 14 (Zuidhorn)"), zodat titel, HUD, kaart en safehouse samen kloppen (#710).
+export function weergaveNamen(laag, gemeenteNaam, plaatsen = null) {
+  const kaal = laag.map((g) => {
+    const naam = String(g.naam);
+    const k = naam.replace(/^Wijk \d+(?:\s+|$)/, '').trim();
+    if (k) return k;
+    const bij = dichtstbijzijndePlaats(g, plaatsen, gemeenteNaam);
+    return bij ? `${naam} (${bij})` : naam;
+  });
   const tel = new Map();
   for (const k of kaal) tel.set(k, (tel.get(k) || 0) + 1);
   return laag.map((g, i) => (tel.get(kaal[i]) > 1 && g.gm && gemeenteNaam.get(g.gm) ? `${kaal[i]} (${gemeenteNaam.get(g.gm)})` : kaal[i]).slice(0, MAX_ID));
@@ -118,9 +142,9 @@ export function bouwIndeling(invoer) {
     const gemNaam = new Map(grenzen.gemeenten.map((g) => [g.id, g.naam]));
     maak(pv, grenzen.provincie, grenzen.provincie.naam, null);
     for (const g of grenzen.gemeenten) maak(gm, g, g.naam, gebiedId(pv, grenzen.provincie.id));
-    const pad = (laag, niveau, ouderVan) => { const namen = weergaveNamen(laag, gemNaam); laag.forEach((g, i) => maak(niveau, g, namen[i], ouderVan(g))); };
+    const pad = (laag, niveau, ouderVan, extra = null) => { const namen = weergaveNamen(laag, gemNaam, extra); laag.forEach((g, i) => maak(niveau, g, namen[i], ouderVan(g))); };
     pad(grenzen.woonplaatsen, wp, (g) => gebiedId(gm, g.gm));
-    pad(grenzen.wijken, wk, (g) => gebiedId(gm, g.gm));
+    pad(grenzen.wijken, wk, (g) => gebiedId(gm, g.gm), grenzen.woonplaatsen);
     pad(grenzen.buurten, bu, (g) => (g.wk ? gebiedId(wk, g.wk) : gebiedId(gm, g.gm)));
   }
   for (const t of taken) {
@@ -164,7 +188,7 @@ export function kiesTaak(ind, sleutel, x, y) {
 
 // --- het profiel van de speler -------------------------------------------------------------------------------------
 
-export const nieuwProfiel = () => ({ v: SLEUTEL_VERSIE, gedaan: [], beloond: [], huizen: [], bezocht: [] });
+export const nieuwProfiel = () => ({ v: SLEUTEL_VERSIE, gedaan: [], beloond: [], huizen: [], bezocht: [], intochten: [] });
 
 const lijstVan = (a, max) => (Array.isArray(a) ? [...new Set(a.filter((x) => typeof x === 'string' && x && x.length <= MAX_ID + 2))].slice(0, max) : []);
 
@@ -180,6 +204,7 @@ export function normaliseer(raw) {
   if (d.v === SLEUTEL_VERSIE) {
     p.beloond = lijstVan(d.beloond, 600);
     p.huizen = lijstVan(d.huizen, 600);
+    p.intochten = lijstVan(d.intochten, 600); // #708: de intochten die deze speler al zag
     if (d.zaad === true) p.zaad = true;
   }
   return p;
@@ -192,12 +217,27 @@ export function voegSamen(a, b) {
   p.gedaan = lijstVan([...x.gedaan, ...y.gedaan], MAX_GEDAAN);
   p.beloond = lijstVan([...x.beloond, ...y.beloond], 600);
   p.huizen = lijstVan([...x.huizen, ...y.huizen], 600);
+  p.intochten = lijstVan([...x.intochten, ...y.intochten], 600);
   p.bezocht = lijstVan([...x.bezocht, ...y.bezocht], MAX_BEZOEKT);
   if (x.zaad || y.zaad) p.zaad = true;
   return p;
 }
 
 const isGedaan = (p, id) => p.gedaan.includes(id);
+
+// De intocht (#708): één keer per speler per veroverd gebied, en later terug te kijken. De lijst staat
+// in het eigen profiel, niet in de savegame: net als de rest van het veroveren is hij van de speler.
+export const intochtGezien = (p, gebiedId) => !!p && Array.isArray(p.intochten) && p.intochten.includes(gebiedId);
+export function markeerIntocht(p, gebiedId) {
+  if (!p || typeof gebiedId !== 'string' || !gebiedId || intochtGezien(p, gebiedId)) return false;
+  if (!Array.isArray(p.intochten)) p.intochten = [];
+  p.intochten.push(gebiedId);
+  return true;
+}
+// De intochten die je al zag, nieuwste laatst: voor Loopbaan › Veroverd en de preview.
+export function intochtenVan(p, ind) {
+  return (p.intochten || []).filter((id) => ind && ind.gebied && ind.gebied.has(id)).map((id) => beloningVan(ind, id));
+}
 
 // Voortgang van een gebied: { klaar, totaal, deel, voltooid, veroverbaar, perSoort }. voltooid: alles gedaan, of eerder beloond.
 export function voortgang(p, ind, gebiedId) {

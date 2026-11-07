@@ -104,6 +104,8 @@ export const MOMENTS = {
   wijk: { level: 'discovery', group: 'discovery', cooldown: 210, fast: false },
   landmark: { level: 'discovery', group: 'discovery', cooldown: 210, fast: false },
   ommelanden: { level: 'discovery', group: 'discovery', cooldown: 210, fast: false },
+  // de intocht na een verovering (#705): verhaal, geen ontdekking, en hij wacht zelf op rust
+  veroverd: { level: 'story', group: 'veroverd', cooldown: 0, fast: true },
   crash: { level: 'danger', group: 'crash', cooldown: 60, fast: true },
   wanted5: { level: 'danger', group: 'wanted5', cooldown: 120, fast: true },
 };
