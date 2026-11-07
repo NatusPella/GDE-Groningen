@@ -12,7 +12,7 @@ import { KEYS } from './storagekeys.js';
 import { betaal } from './economy.js';
 
 export const BELEID = [
-  { id: 'flits', naam: 'Flitspalen madera', prijs: 250, tekst: 'Verkeersboetes zijn 25% lager.', effect: 'boete' },
+  { id: 'flits', naam: 'Soepel flitsbeleid', prijs: 250, tekst: 'Verkeersboetes zijn 25% lager.', effect: 'boete' },
   { id: 'subsidie', naam: 'Bijbaansubsidie', prijs: 350, tekst: 'Elke bijbaanronde betaalt 5% meer.', effect: 'loon' },
   { id: 'markt', naam: 'Altijd marktdag', prijs: 300, tekst: 'De Vismarkt is elke dag marktdag: de Fjord Frituur is er drukker.', effect: 'markt' },
 ];

@@ -93,6 +93,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - **Minder geheugen en snellere start (#655/#656/#657/#658/#660).** De service worker laadt vooraf, de webversie start direct, G-Music laadt alleen het spelende nummer plus twee wachtenden (118 MB minder), voetgangersmeshes komen uit een LRU en een migratie van een opgeslagen spel kopieert niet onnodig diep.
 - **Kaart, mist en HUD-geld zuiniger (#654/#661).** De kaart tekent bij stilstand op 15 Hz, mist uploadt alleen de geraakte cel, HUD-geld formatteert alleen bij een wijziging en de discgolf-streefstreep gebruikt weer een echte template.
 - **De smalle letter in de HUD breekt niet meer af bij aanhalingstekens (#645).**
+- **Doorzichtiger namen in de HUD en de Beleidswinkel (#595/#492).** Twee activiteitensferen heten nu in het Nederlands (Skateboard in de beton, Wakeboard en water) en het beleid voor lagere boetes heet Soepel flitsbeleid in plaats van Flitspalen madera.
+
 ## [0.57.5] - 2026-11-06
 
 - **Je save herstelt nu echt (#590).** Een mislukte autosave wordt na 20 s opnieuw geprobeerd en gelogd; een beschadigde save meldt dat de vorige goede versie is hersteld en schrijft die meteen terug; de reservekopie is leesbaar en te herstellen via de save-UI. Handmatig opslaan forceert een thumbnail.
