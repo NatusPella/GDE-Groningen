@@ -35,6 +35,34 @@ export class SpatialGrid {
       }
     }
   }
+  // #653: dezelfde query, maar in een bestaande array (geen nieuwe array/Set per
+  // aanroep en geen dedupe-Set als de beller de cellen niet dubbel heeft).
+  queryInto(out, minx, miny, maxx, maxy) {
+    out.length = 0;
+    const { cx0, cy0, cx1, cy1 } = this.cellRange(minx, miny, maxx, maxy);
+    if (cx0 === cx1 && cy0 === cy1) {
+      const arr = this.map.get(this.key(cx0, cy0));
+      if (arr) for (let i = 0; i < arr.length; i++) out.push(arr[i]);
+      return out.length;
+    }
+    // meerdere cellen: dedupe via de _intoSeen-set (hergebruikt, net als de uit-array)
+    const seen = this._intoSeen || (this._intoSeen = new Set());
+    seen.clear();
+    for (let cx = cx0; cx <= cx1; cx++) {
+      for (let cy = cy0; cy <= cy1; cy++) {
+        const arr = this.map.get(this.key(cx, cy));
+        if (!arr) continue;
+        for (let i = 0; i < arr.length; i++) {
+          const item = arr[i];
+          if (seen.has(item)) continue;
+          seen.add(item); out.push(item);
+        }
+      }
+    }
+    seen.clear();
+    return out.length;
+  }
+  queryRadiusInto(out, x, y, r) { return this.queryInto(out, x - r, y - r, x + r, y + r); }
   query(minx, miny, maxx, maxy) {
     const { cx0, cy0, cx1, cy1 } = this.cellRange(minx, miny, maxx, maxy);
     // one cell: its list as it is (a copy), no dedupe needed

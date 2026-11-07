@@ -204,7 +204,8 @@ export function geoFrame() {
   for (let i = 0; i < workers.length; i++) {
     if (!workers[i]) continue;
     frameRoom[i] = GEO_DISPATCH_PER_FRAME;
-    frameRoom[i] -= dispatch(i, GEO_DISPATCH_PER_FRAME);
+    // #651: de rest van het budget, niet opnieuw de volle constante (dubbel zoveel jobs)
+    frameRoom[i] -= dispatch(i, frameRoom[i]);
     if (!workers[i]) return; // a failing worker terminated both
   }
 }
