@@ -614,7 +614,7 @@ function buildTorso(B, L, skin) {
       break;
     case 'jacket':
     case 'blazer': {
-      const open = L.top === 'blazer' || L.forceOpen || L.r(30) < 0.6;
+      const open = L.coatOpen !== undefined ? L.coatOpen : (L.top === 'blazer' || L.forceOpen || L.r(30) < 0.6);
       if (open) {
         B.box(front(1.25) * 1.02, 1.22, 0, 0.012, 0.36, 0.08, L.under);
         for (const s of [1, -1]) B.box(front(1.34) + 0.006, 1.34, s * 0.05, 0.014, 0.16, 0.035, shade(top, 0.85), 0, s * 0.3, s * 0.35, 0);
@@ -791,6 +791,23 @@ function buildArms(B, L, skin, shZ) {
 // Shared by every person: vertex colours carry all the per-person variation.
 const PERSON_MAT = markShared(vcMaterial({ roughness: 0.82 }));
 const BOUNDS = new THREE.Sphere(new THREE.Vector3(0, 0.9, 0), 1.5);
+// #658: de rompgeometrie hangt alleen van de look af (kleuren zitten in de vertexkleuren). Gelijke
+// looks delen daarom één geometry; de rig, het skelet en de bone-texture blijven per persoon.
+// De cache is een LRU met een kleine bovengrens. Bij evictie wordt de geometry NIET disposed: hij kan
+// nog door levende voetgangers gebruikt worden en is met userData.shared gemarkeerd, zodat
+// scene3d.disposeObject hem met rust laat.
+export const PERSON_TEMPLATE_CACHE_MAX = 120;
+const personGeometries = new Map();
+const personCache = { hits: 0, misses: 0, evictions: 0, builds: 0 };
+export const personCacheStats = () => ({ ...personCache, size: personGeometries.size });
+export function resetPersonCacheStats() { personCache.hits = 0; personCache.misses = 0; personCache.evictions = 0; personCache.builds = 0; }
+function geometryKey(shirt, skin, L) {
+  // Alle velden die buildTorso/buildHead/buildLegs/buildArms echt in de geometrie bakken.
+  return JSON.stringify([shirt, skin, L.coatOpen, L.character, L.cop, L.female, L.age, L.build, L.top, L.topColor,
+    L.bottom, L.pants, L.skirtColor, L.hairStyle, L.hair, L.hat, L.hatColor, L.hijabColor, L.hood, L.hoodUp,
+    L.scarf, L.scarfColor, L.bag, L.bagColor, L.glasses, L.facial, L.swim, L.raincoatColor, L.shoes, L.shoeType,
+    L.under, L.rolled, L.tights, L.forceOpen, L.shortCoat]);
+}
 
 function autoKnee(z) {
   return z > 0 ? -z * 1.05 : z * 0.35;
@@ -907,13 +924,35 @@ export function buildPersonMesh(shirt, skin, opts = {}) {
     if (L.hairStyle === 'hijab') L.hairStyle = 'bun';
   }
 
+  // #658: dezelfde look (expliciete seed, kleding, kleuren) hergebruikt dezelfde rompgeometrie.
+  L.coatOpen = L.top === 'blazer' || L.forceOpen || L.r(30) < 0.6;
   const shZ = (L.female ? 0.172 : 0.198) * (L.build === 'heavy' ? 1.06 : L.build === 'slim' ? 0.95 : 1) + 0.03;
-  const B = new SkinBuilder(1);
-  buildTorso(B, L, skin);
-  buildHead(B, L, skin);
-  buildLegs(B, L, skin);
-  buildArms(B, L, skin, shZ);
-  const geometry = B.build();
+  const key = geometryKey(shirt, skin, L);
+  let geometry = personGeometries.get(key);
+  if (geometry) {
+    personCache.hits++;
+    personGeometries.delete(key); personGeometries.set(key, geometry); // LRU: weer achteraan
+  } else {
+    personCache.misses++;
+    const B = new SkinBuilder(1);
+    buildTorso(B, L, skin);
+    buildHead(B, L, skin);
+    buildLegs(B, L, skin);
+    buildArms(B, L, skin, shZ);
+    geometry = markShared(B.build());
+    personGeometries.set(key, geometry);
+    personCache.builds++;
+    if (personGeometries.size > PERSON_TEMPLATE_CACHE_MAX) {
+      // oudste eruit; niet disposen: een levende voetganger kan hem nog tekenen (userData.shared)
+      const oud = personGeometries.keys().next().value;
+      const oudGeo = personGeometries.get(oud);
+      personGeometries.delete(oud);
+      personCache.evictions++;
+      // veilig: alleen vrijgeven als geen levende voetganger hem meer gebruikt; anders pas bij de laatste release
+      if (oudGeo) { if ((oudGeo.userData.personRefs || 0) > 0) oudGeo.userData.personRetired = true; else oudGeo.dispose(); }
+    }
+  }
+  geometry.userData.personRefs = (geometry.userData.personRefs || 0) + 1;
 
   const group = new THREE.Group();
   const rig = buildRig(L, shZ);
@@ -954,6 +993,17 @@ export function buildPersonMesh(shirt, skin, opts = {}) {
   group.scale.set(L.buildScale, L.heightScale, L.buildScale);
   if (opts.seed !== undefined) ud.lookSeed = opts.seed;
   return group;
+}
+
+// #658: een mesh die verdwijnt geeft zijn gedeelde rompgeometrie terug. De laatste gebruiker van
+// een geëvictte template ruimt hem op; zolang iemand hem tekent blijft hij staan.
+export function releasePersonGeometry(mesh) {
+  const body = mesh && mesh.userData && mesh.userData.body;
+  const g = body ? body.geometry : (mesh && mesh.geometry);
+  if (!g || !g.userData || !g.userData.personRefs) return false;
+  g.userData.personRefs--;
+  if (g.userData.personRefs <= 0 && g.userData.personRetired) { g.dispose(); return true; }
+  return false;
 }
 
 const umbrellaGeos = new Map();

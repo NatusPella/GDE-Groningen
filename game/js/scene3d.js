@@ -18,7 +18,7 @@ import {
 } from './vehicle.js';
 import { DEAD_DURATION } from './pedconst.js';
 import { attachCarry, carryPose } from './streetlife3d.js';
-import { buildPersonMesh, animatePersonWalk, applyAttackPose, applyHitReaction, setHeldWeapon, seatPose, seatedY, waveOverlay, juichOverlay, carryOverlay, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
+import { buildPersonMesh, releasePersonGeometry, animatePersonWalk, applyAttackPose, applyHitReaction, setHeldWeapon, seatPose, seatedY, waveOverlay, juichOverlay, carryOverlay, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { syncDoorsNear, vraagVoorAnim } from './vehicledoors3d.js';
 import { syncCabins } from './cabin3d.js';
 import { syncAutoStuur } from './autointerieur.js';
@@ -2275,6 +2275,7 @@ function disposePedMesh(mesh) {
   applyPedFade(mesh, 1);
   scene.remove(mesh);
   disposeObject(mesh);
+  releasePersonGeometry(mesh); // #658: de gedeelde rompgeometrie gaat pas weg bij de laatste gebruiker
 }
 
 const _pedFrustum = new THREE.Frustum();
