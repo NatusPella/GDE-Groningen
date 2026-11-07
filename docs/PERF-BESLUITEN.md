@@ -41,3 +41,6 @@ inventarisatie, dan de template-LRU.
   motorpolice 60 -> 1 per 1,5 s, streetlife-dress 60 -> 1 per 2 s.
 - #654: updateStory ~5x/s i.p.v. 60x/s, missionstory 0 array-allocaties per
   frame per scène, Ommeland-solids 60 -> 4/s.
+
+## #657.1c: web-bundel (aanvulling)
+Er zit geen bundler in desktop/node_modules (geen esbuild, rollup, vite of webpack). Een eigen één-bestandsbundel is hier niet veilig: 20 plekken gebruiken import.meta.url (CSS/worklet/modelpaden) en 3 plekken starten een worker via new URL(...); in één bestand wijzen die naar de verkeerde map. In plaats daarvan is de "import-map-bundel" gebouwd: de web-build genereert nu voor alle modules één modulepreload-lijst in index.html (web/preload.mjs), zodat de browser de 892 modules in één parallelle golf ophaalt in plaats van via de ontdekkingswaterfall. Gemeten op de werkboom: 983 js-bestanden, 12,4 MB; de preloadlijst telt 892 modules (web_shell/webboot/webprecache blijven groen, scripts/webpreload_test.mjs dekt de lijst en de meting). Een echte één-bestandsbundel blijft een besluit voor later: daar is een buildafhankelijkheid (esbuild) en een browsercontrole van de worker-/import.meta-paden voor nodig. Lazy story-JSON blijft zoals eerder besloten (niet zonder veilige wacht/fallback).
