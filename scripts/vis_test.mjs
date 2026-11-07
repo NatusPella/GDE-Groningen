@@ -360,18 +360,20 @@ function speelUur(startSoorten, startPlekken, type = 'meer', uren = 1) {
   return { euro: euro / uren, xp: xp / uren, vangsten: vangsten / uren, perVis: euro / vangsten, xpPerVis: xp / vangsten, soorten: gezien.size };
 }
 
-t('balans: vrij hengelen levert op het eerste niveau tussen 100 en 300 euro per uur en met alles gevonden tussen 150 en 450', () => {
+t('balans: vrij hengelen levert op het eerste niveau tussen 60 en 200 euro per uur en met alles gevonden tot 300 (#680)', () => {
   const nieuw = speelUur(0, 0);
   const rijk = speelUur(29, 60);
   assert.ok(nieuw.vangsten > 150 && nieuw.vangsten < 450, 'vissen per uur ' + Math.round(nieuw.vangsten));
-  assert.ok(nieuw.euro > 100 && nieuw.euro < 300, 'eerste niveau: ' + Math.round(nieuw.euro) + ' euro per uur');
-  assert.ok(rijk.euro > nieuw.euro * 1.4 && rijk.euro < 450, 'alles gevonden: ' + Math.round(rijk.euro) + ' euro per uur');
+  // #680: het uurloon blijft in de orde van de beste bijbanen (taxi 25-60 per ronde van enkele minuten), niet erboven.
+  assert.ok(nieuw.euro > 60 && nieuw.euro < 200, 'eerste niveau: ' + Math.round(nieuw.euro) + ' euro per uur');
+  assert.ok(rijk.euro > nieuw.euro * 1.4 && rijk.euro < 300, 'alles gevonden: ' + Math.round(rijk.euro) + ' euro per uur');
+  assert.ok(nieuw.euro < 200, 'in lijn met de bijbanen (geen geldautomaat)');
   // en een uur meer op het hoogste niveau van het vak blijft binnen +30%
-  assert.ok(rijk.euro * L.LOON_FACTOR[L.MAX_NIVEAU - 1] < 600, 'met de loonfactor: ' + Math.round(rijk.euro * 1.3));
+  assert.ok(rijk.euro * L.LOON_FACTOR[L.MAX_NIVEAU - 1] < 450, 'met de loonfactor: ' + Math.round(rijk.euro * 1.3));
   // het geld per minuut blijft ver onder een bijbaan (loopbaan_balans_test.mjs: de bijbaan is de grootste bron)
-  assert.ok(rijk.euro / 60 < 8, 'per minuut ' + (rijk.euro / 60).toFixed(1));
-  // het model van loopbaan_balans_test.mjs: een vis per ~11 s, 1,9 punt en 0,6 euro per vis
-  assert.ok(nieuw.perVis > 0.5 && nieuw.perVis < 0.85, 'euro per vis ' + nieuw.perVis.toFixed(2));
+  assert.ok(rijk.euro / 60 < 6, 'per minuut ' + (rijk.euro / 60).toFixed(1));
+  // het model van loopbaan_balans_test.mjs: een vis per ~11 s, 1,9 punt en ~0,36 euro per vis
+  assert.ok(nieuw.perVis > 0.25 && nieuw.perVis < 0.55, 'euro per vis ' + nieuw.perVis.toFixed(2));
   assert.ok(nieuw.xpPerVis > 1.2 && nieuw.xpPerVis < 2.4, 'punten per vis ' + nieuw.xpPerVis.toFixed(2));
   const min = 60 / nieuw.vangsten;
   assert.ok(min > 0.1 && min < 0.3, 'minuten per vis ' + min.toFixed(2));

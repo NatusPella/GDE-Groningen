@@ -5,6 +5,7 @@
 // their node tests can import it.
 import { wgsToWorld } from './rdnew.js';
 import { GOLF_VORM } from './golficons.js';
+import { STOP_DIRECT, STOP_VRAAG, STOP_BEVESTIG, STOP_DOORGAAN, stopUitkomst } from './stopconventie.js';
 
 // Scene, banner and card of the running game, set by activities.js: a minigame that imports them
 // itself would sit in the big import cycle through scene3d/cinematics/hudcards (#108).
@@ -347,14 +348,24 @@ function cancelStopAsk() {
   stopAsk = null;
 }
 export function stopPressed(input) {
-  if (input.wasPressed('backspace')) { input.consume('backspace'); cancelStopAsk(); return true; }
-  if (stopAsk) {
-    for (const k of ['escape', 'enter']) {
-      if (input.wasPressed(k)) { input.consume(k); cancelStopAsk(); return true; }
-    }
-    if (input.wasPressed(' ')) { input.consume(' '); cancelStopAsk(); }
-  } else if (input.wasPressed('escape') && typeof document !== 'undefined') {
-    input.consume('escape');
+  // #688: één stopconventie, ook voor de pad-B (die komt als backspace binnen) en touch (de knoppen).
+  const direct = STOP_DIRECT.some((k) => input.wasPressed(k));
+  const start = input.wasPressed(STOP_VRAAG);
+  const bevestig = STOP_BEVESTIG.some((k) => input.wasPressed(k));
+  const doorgaan = STOP_DOORGAAN.some((k) => input.wasPressed(k));
+  const uitkomst = stopUitkomst({ direct, vraagOpen: !!stopAsk, bevestig, doorgaan, start });
+  if (uitkomst === 'stop') {
+    for (const k of [...STOP_DIRECT, ...STOP_BEVESTIG]) if (input.wasPressed(k)) input.consume(k);
+    cancelStopAsk();
+    return true;
+  }
+  if (uitkomst === 'door') {
+    for (const k of STOP_DOORGAAN) if (input.wasPressed(k)) input.consume(k);
+    cancelStopAsk();
+    return false;
+  }
+  if (uitkomst === 'vraag' && typeof document !== 'undefined') {
+    input.consume(STOP_VRAAG);
     const el = document.createElement('div');
     el.className = 'mg-stopask';
     el.setAttribute('role', 'alertdialog');

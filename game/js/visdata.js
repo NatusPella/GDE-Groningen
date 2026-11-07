@@ -122,12 +122,15 @@ export function vangstGewicht(s, rand) {
 // deel plus het gewicht, keer de zeldzaamheid, keer het groeiende loon van het visboek (meer soorten en meer plekken).
 export const VANGST_BASIS = 0.2;
 export const VANGST_PER_KG = 0.2;
+// #680: het uurloon van vrij hengelen moet in de orde van de bijbanen liggen, niet erboven. De schaal
+// verlaagt alleen de opbrengst per vangst; soorten, plekken en het visboek blijven ongewijzigd.
+export const PRIJS_SCHAAL = 0.6;
 export const GROEI_PER_SOORT = 0.03;
 export const GROEI_PER_PLEK = 0.02;
 export const GROEI_MAX = 1.8;
 export function vangstWaarde(s, kg, soorten = 0, plekken = 0) {
   const groei = Math.min(GROEI_MAX, 1 + soorten * GROEI_PER_SOORT + plekken * GROEI_PER_PLEK);
-  return (VANGST_BASIS + kg * VANGST_PER_KG) * zeldzaamheid(s).waarde * groei;
+  return PRIJS_SCHAAL * (VANGST_BASIS + kg * VANGST_PER_KG) * zeldzaamheid(s).waarde * groei;
 }
 // Punten voor het vak Hengelen: een vaste en een deel per zeldzaamheid; een nieuwe soort geeft extra.
 export const NIEUWE_SOORT_XP = 6;
