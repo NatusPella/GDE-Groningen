@@ -239,5 +239,33 @@ ok(guardIsSafe("if (roadSyncIdle && streamStat.r === 0 && document.body.classLis
   ok(!/roadSyncIdle\s*=/.test(update), 'update3D ververst het wegen-idle-record niet elke frame');
 }
 
+// 6. Dezelfde veilige vorm voor het water (#651): bij een stilstaande focus en
+//    een gelijk blijvende waterversie slaat de guard 5 van 6 passen over; een
+//    nieuwe waterversie dwingt meteen weer een volledige pas af.
+{
+  const dist = 220;
+  let idle = null, frame = 0, passes = 0, skips = 0;
+  const ctx = { x: 100, y: 200, ver: 7, size: 40, view: 700, started: true };
+  const step = (ver) => {
+    frame++;
+    ctx.ver = ver;
+    const skip = !!idle && idle.ver === ver && idle.size === ctx.size && idle.dist === dist && idle.view === ctx.view
+      && ctx.started && frame - idle.frame < 6 && Math.hypot(ctx.x - idle.x, ctx.y - idle.y) < 0.15;
+    if (skip) { skips++; return; }
+    passes++;
+    idle = { x: ctx.x, y: ctx.y, ver, size: ctx.size, dist, view: ctx.view, frame };
+  };
+  for (let i = 0; i < 300; i++) step(7);
+  ok(passes >= 45 && passes <= 55, 'water: een op de zes frames een volledige pas', passes);
+  ok(skips >= 245, 'water: de rest overgeslagen', skips);
+  const p0 = passes;
+  step(8);
+  ok(passes === p0 + 1, 'water: een nieuwe waterversie dwingt een pas af');
+  const water = fs.readFileSync(new URL('../game/js/scene3d.js', import.meta.url), 'utf8');
+  ok(/function waterIdle\(/.test(water) && /_waterVer/.test(water) && /waterMeshes\.size/.test(water) && /game-started/.test(water), 'water-guard toetst versie, meshes en game-started');
+  ok(!/waterSyncIdle\s*=/.test(water.slice(water.indexOf('export function update3D'))), 'update3D ververst het water-record niet elke frame');
+  console.log(`#651 meting: water 300 frames -> ${passes - 1} volledige passen, ${skips} overgeslagen (model)`);
+}
+
 console.log(`${n - fails}/${n} loadstall`);
 process.exit(fails ? 1 : 0);

@@ -1,6 +1,7 @@
 // first: copies the pre-0.29 'gte-*' storage keys before any module reads them
 import './storagekeys.js';
 import { hoofdspeler } from './players.js';
+import { beginVehicleFrame } from './vehicleindex.js';
 import './oudmigratie.js';
 import { streamTreeProps } from './treeprops.js';
 import { updateSkatefiets } from './skatefiets.js';
@@ -264,6 +265,7 @@ function waitForStart(world, ready) {
   };
   const tick = (dt) => {
     world.time += dt;
+    beginVehicleFrame(world); // #653: de actoren-index van dit frame
     updateAudio(dt, world);
     updateTrafficLights(dt, world);
     for (const v of world.vehicles) {

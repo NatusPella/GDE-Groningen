@@ -11,6 +11,7 @@ import { bridgeSpeedLimit } from '../movablebridges.js';
 import { vehicleHooks } from '../vehiclehooks.js';
 import { hoofdspeler } from '../players.js';
 import { motorRoadAllowed } from '../motortraffic.js';
+import { vehiclesNear } from '../vehicleindex.js';
 
 // Wat dit blok uit vehicle.js nodig heeft, komt van buiten: vehicle.js geeft het hier bij het laden
 // door met setTrafficHost. Zo importeert deze module niets terug en blijft de modulecyclus op 0.
@@ -370,6 +371,7 @@ function buildPathInto(v, map, rng, goal) {
 }
 
 const _pa = [0, 0], _pb = [0, 0], _pc = [0, 0];
+const _nearVeh = []; // #653: hergebruikte kandidatenlijst
 function pointAlongInto(path, s, out) {
   for (let i = 1; i < path.length; i++) {
     if (path[i].s < s) continue;
@@ -481,7 +483,8 @@ function followSpeedLimit(v, path, world, decel, chase) {
   const timeGap = chase ? 0.35 : 0.9;
   const corridor = v.halfLen + 3 + Math.abs(v.speed) * 0.8;
   const creeping = world.time < (v.creepUntil || 0);
-  for (const o of world.vehicles) {
+  // #653: alleen de buren uit de index; de checks binnen de lus blijven gelijk
+  for (const o of vehiclesNear(world, v.x, v.y, PATH_LEN + 5, _nearVeh)) {
     if (o === v || o.isBoat || o.sinking || o.id === ignoring || Math.abs((o.z || 0) - (v.z || 0)) > 3) continue;   // (a car in the garage under the street is no leader, parkeergarage.js)
     if (chase && v.chaseDodge && o.driver === 'player') continue;
     const dx = o.x - v.x, dy = o.y - v.y;

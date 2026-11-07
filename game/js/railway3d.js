@@ -14,7 +14,10 @@ import { railViewDistance, railChunkWanted, RAIL_VIEW } from './viewdist.js';
 
 const CHUNK = 250;
 let VIEW = RAIL_VIEW.min; // the view distance for rails and trains (railViewDistance)
-const MAX_CHUNK_BUILDS = 3; // per frame, nearest first
+import { railChunkAllowed, RAIL_CHUNK_BUDGET_MS } from './railbudget.js';
+
+// #651: een tijdsbudget in plaats van een vast aantal chunks per frame
+export const railChunkStats = { frames: 0, chunks: 0, maxChunks: 0, lastMs: 0, budget: RAIL_CHUNK_BUDGET_MS };
 const STEP = 2;
 const SLEEPER_STEP = 0.75;
 const GAUGE_HALF = 0.7175;
@@ -398,9 +401,19 @@ function syncChunks(px, py) {
     if (want && !c.group) todo.push(c);
     if (c.group) c.group.visible = want;
   }
-  // a wider reach must not build a whole ring in one frame: nearest first
-  if (todo.length > MAX_CHUNK_BUILDS) todo.sort((a, b) => Math.hypot(a.x - px, a.y - py) - Math.hypot(b.x - px, b.y - py));
-  for (const c of todo.slice(0, MAX_CHUNK_BUILDS)) { c.group = buildChunk(c); scene.add(c.group); }
+  // #651: nearest first en een tijdsbudget (minstens één per frame), zodat één
+  // dure chunk het frame niet meer dan het budget laat overschrijden.
+  if (todo.length > 1) todo.sort((a, b) => Math.hypot(a.x - px, a.y - py) - Math.hypot(b.x - px, b.y - py));
+  const t0 = performance.now();
+  let made = 0;
+  for (const c of todo) {
+    if (!railChunkAllowed(t0, performance.now(), made)) break;
+    c.group = buildChunk(c); scene.add(c.group); made++;
+  }
+  railChunkStats.frames++;
+  railChunkStats.chunks += made;
+  railChunkStats.maxChunks = Math.max(railChunkStats.maxChunks, made);
+  railChunkStats.lastMs = performance.now() - t0;
 }
 
 // A cutscene is about to show (x, y): build the track chunks round it now

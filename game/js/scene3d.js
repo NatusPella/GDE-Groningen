@@ -2030,6 +2030,21 @@ function freeWaterGeometry(poly) {
 }
 
 const _waterSeen = new Set();
+// #651: water had als enige sync-lus geen idle-guard. Zelfde patroon als de
+// wegen: alleen overslaan als de waterversie, het aantal meshes, de kijkafstand
+// en de focus niet veranderden en het spel loopt; het record wordt alleen na een
+// volledige pas gezet, zodat de frame-ontsnapping echt werkt.
+const WATER_SYNC_IDLE_FRAMES = 6;
+let waterSyncIdle = null, waterSyncFrame = 0;
+function waterIdle(world, px, py) {
+  waterSyncFrame++;
+  const id = waterSyncIdle;
+  if (!id || perfOff('watersync')) return false;
+  return id.ver === (world.map._waterVer || 0) && id.size === waterMeshes.size && id.dist === DRAW_DIST
+    && id.view === viewDist && document.body.classList.contains('game-started')
+    && waterSyncFrame - id.frame < WATER_SYNC_IDLE_FRAMES
+    && Math.hypot(px - id.x, py - id.y) < SYNC_IDLE_MOVE;
+}
 function syncWater(items, cache, y, map, px, py) {
   const seen = _waterSeen;
   seen.clear();
@@ -2063,6 +2078,9 @@ function syncWater(items, cache, y, map, px, py) {
     if (cache === waterMeshes) dropShoreItems(poly);
     coolDown(coldWater, poly, WATER_CACHE_MAX, freeWaterGeometry);
   }
+  // pas hier het record: alleen na een volledige pas, zodat de frame-ontsnapping
+  // van waterIdle echt werkt (#651)
+  if (cache === waterMeshes) waterSyncIdle = { x: px, y: py, ver: map._waterVer || 0, size: cache.size, dist: DRAW_DIST, view: viewDist, frame: waterSyncFrame };
 }
 
 let roadQuality = getRoadQualityVersion();
@@ -2559,7 +2577,9 @@ export function update3D(dt, world) {
   updatePortals(focus.x, focus.y);
   updateGrass(dt, world, cam, DRAW_DIST);
   probe.mark('3d:grass');
-  syncWater(waterNearDrawn(world.map, focus.x, focus.y, Math.max(DRAW_DIST, viewDist)), waterMeshes, WATER_Y, world.map, focus.x, focus.y);
+  if (!waterIdle(world, focus.x, focus.y)) {
+    syncWater(waterNearDrawn(world.map, focus.x, focus.y, Math.max(DRAW_DIST, viewDist)), waterMeshes, WATER_Y, world.map, focus.x, focus.y);
+  }
   const waterNight = world.dayNight ? world.dayNight.night : 0;
   updateWaterMaterial(waterMaterial, world.time, world.weather ? world.weather.intensity : 0, waterNight, seaExtra(world));
   updateShore(waterNight, cam);
