@@ -216,6 +216,23 @@ export function cutsceneVerdeling(def, scène) {
   return { perActeur, teken, verberg, spelRol, metgezelRol };
 }
 
+// (#727) De gastheer verving zijn scène (een volgend bedrijf in dezelfde reeks): de gast
+// stopt zijn oude kopie zonder "overgeslagen"-effect, maar alleen als die kopie nog de
+// zijne is. Is de nieuwe scène al begonnen (coopCutBezig is dan al de nieuwe id), dan
+// blijft die staan: cutvervang mag nooit de nieuwe scène wegkieperen.
+export async function cutGastVervangen(w, id) {
+  cutSpoor(w, 'gast-vervang-bericht', id, w && w.coopCutBezig);
+  if (!w || w.coopCutBezig == null || (id != null && w.coopCutBezig !== id)) return false;
+  if (w.coopCutWacht) { w.coopCutWacht = w.coopCutWacht.filter((p) => p.id !== id); if (!w.coopCutWacht.length) w.coopCutWacht = null; }
+  let c = null;
+  try { c = await import('./cinematics.js'); } catch (e) { return false; }
+  // tussen het bericht en de import kan de nieuwe scène al begonnen zijn: dan niets doen
+  if (w.coopCutBezig !== id) return true;
+  try { c.skipCinematic(); } catch (e) { /* al weg */ }
+  cutsceneKlaar(w, w.coopCutRol);
+  if (w.coopCutBezig === id) w.coopCutBezig = null;
+  return true;
+}
 // ---- de gast: de scène spelen (lui geladen: three.js en de cutscene-spelers horen niet bij het net)
 // (#714) Een gast die in zijn eigen pauzemenu, kaart, winkel, telefoon of minigame zit, ziet de scène van de gastheer
 // niet: hij speelde achter het paneel door. Zulke scènes wachten daarom tot de gast weer vrij is; de gastheer speelt

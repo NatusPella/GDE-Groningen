@@ -14,6 +14,8 @@ import { roofAt } from './camerapath.js';
 import { animateActor, beginSceneActors } from './actoranim.js';
 import { showNameCard } from './namecard.js';
 import { audioPlan } from './cutaudio.js';
+import { lineVoiceFor } from './linevoice.js';
+import { plannedVoiceLines } from './voicetiming.js';
 import { cutPakket, cutHostId, cutHostStart, cutHostEnd, cutHostTik, cutGastTik, cutsceneScene, cutsceneVerdeling, acteurRol, cutSpoor } from './coopcut.js';
 
 const STEL = { tempo: setCinematicRate, tijd: setCinematicTime };
@@ -278,9 +280,15 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
   if (!root) return false;
   const p = hoofdspeler(w);
   const a = anchor || { x: p.x, y: p.y, facing: p.angle || 0, z: 0 };
+  // (#731) De stemmen plannen vóór het compileren: shots, cues en L-tijden horen dezelfde
+  // (opgerekte) duur te hebben als de stemmen. Anders lopen beeld en stem aan het eind uit
+  // elkaar en vuren deuren/props op de oude tijd. attachVoices in cinematics.js doet
+  // hetzelfde werk en ziet daarna niets meer te doen (de regels hebben al een opname).
+  const vt = plannedVoiceLines(lines, duration, lineVoiceFor);
+  const sceneLines = vt.lines, sceneDur = vt.duration;
   let scene;
   try {
-    scene = compileScene(def, { lines, duration });
+    scene = compileScene(def, { lines: sceneLines, duration: sceneDur });
   } catch (e) {
     console.error('cutscript', e);
     return false;
@@ -293,21 +301,21 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
   // name cards (fx 'naam' { text, dur }): a character is introduced at the lower left (#159); a line's own `card`
   // (missionstory.js, #711) counts too, so a guest's replay shows the same name card as the host.
   const cards = [
-    ...(def.fx || []).filter((f) => f.fx === 'naam').map((f) => ({ text: f.text, t0: resolveTime(f.t, lines, duration) ?? 0, dur: f.dur ?? 2.4 })),
+    ...(def.fx || []).filter((f) => f.fx === 'naam').map((f) => ({ text: f.text, t0: resolveTime(f.t, sceneLines, sceneDur) ?? 0, dur: f.dur ?? 2.4 })),
   ];
   // (#711) een gast ziet de naamkaarten die de gastheer bij zijn regie toont (missionstory.js speelt ze daar zelf af):
   // een regel met `card` (de sleutel uit storyarc.js CHARACTERS) komt mee in het pakket en verschijnt alleen bij de replay,
   // zodat de gastheer hem niet twee keer ziet.
-  const lineCards = replay ? (lines || []).filter((l) => l && l.card).map((l) => ({ key: l.card, t0: Number.isFinite(l.at) ? l.at : 0, dur: Number.isFinite(l.dur) ? l.dur : 2.4 })) : [];
+  const lineCards = replay ? (sceneLines || []).filter((l) => l && l.card).map((l) => ({ key: l.card, t0: Number.isFinite(l.at) ? l.at : 0, dur: Number.isFinite(l.dur) ? l.dur : 2.4 })) : [];
   let lineCardNow = null;
   let cardNow = null;
   // the tiles round the camera's path are built ahead and held, so no shot cuts to the far LOD or a hole (#157, #20)
-  const prewarm = cine.prewarm || shotPoints(scene, at, duration);
+  const prewarm = cine.prewarm || shotPoints(scene, at, sceneDur);
   const cutId = replay ? 0 : cutHostId();
   const ok = playCinematic({
     priority: 4, pause: true, letterbox: true, skippable: true, hideHud: true, hidePlayers: true, mumble: true,
     prewarm,
-    ...cine, id: cine.id || def.id, duration, lines,
+    ...cine, id: cine.id || def.id, duration: sceneDur, lines: sceneLines,
     onStart() {
       if (cine.onStart) cine.onStart();
       try {
@@ -352,7 +360,7 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
     },
   });
   // samen spelen: de gasten spelen dezelfde scène (na de start, zodat een scène die niet begint ook niet wordt doorgestuurd)
-  if (ok && !replay && w.coopNet && w.coopNet.role === 'host') cutHostStart(w, cutId, cutPakket({ def, lines, duration, anchor: at, cine, voices }));
+  if (ok && !replay && w.coopNet && w.coopNet.role === 'host') cutHostStart(w, cutId, cutPakket({ def, lines: sceneLines, duration: sceneDur, anchor: at, cine, voices }));
   return ok;
 }
 

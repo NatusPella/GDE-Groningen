@@ -91,7 +91,10 @@ function maakBank(dir) {
     poging(0);
     return b._klaar;
   };
-  if (typeof fetch === 'function' && typeof window !== 'undefined') poging(0);
+  // Alleen in een echte browser/Electron (met DOM): in Node-tests staat window soms als
+  // kale global en dan is een fetch naar file:// alleen maar ruis (#733).
+  const browser = typeof fetch === 'function' && typeof window !== 'undefined' && typeof window.document !== 'undefined' && typeof window.location !== 'undefined';
+  if (browser) poging(0);
   else { b.geenBrowser = true; klaar(false); b.failed = false; } // geen browser: niets te melden
   return b;
 }

@@ -20,7 +20,7 @@ import { cameraRelative, stepSlot2, sharedCamera } from './coop.js';
 import { coopStep, missieGastVerzoek } from './coopglue.js';
 import { gateOn, setGate, hekBericht } from './coopgate.js';
 import { WIEL_TEKST, WIEL_HOST_TEKST, WIEL_VERZOEK_S, kanUitstappen, paneelIndrukken } from './coopgast.js';
-import { nieuwCutVerzamelaar, cutGastSpeel, cutGastStop, cutGastBezet, cutGastWacht, cutGastWachtTik, leesCutTijd, cutSpoor } from './coopcut.js';
+import { nieuwCutVerzamelaar, cutGastSpeel, cutGastStop, cutGastVervangen, cutGastBezet, cutGastWacht, cutGastWachtTik, leesCutTijd, cutSpoor } from './coopcut.js';
 import { verzamelExtra, codeerExtra, leesExtra, nieuwGeheugen, nieuweStand, pasExtraToe, doelenVan } from './coopextra.js';
 import { maakGroepen, begin as groepBegin, zetStand as groepZet, beeindig as groepBeeindig, ruimOp as groepRuimOp, groepen as groepLijst, doelenVoor as groepDoelenVoor, groep as groepRecord, leiderVan as groepLeider, groepVan as groepVanSlot } from './coopmissie.js';
 import { wapenCode, aanvalCode, volgendeStoel, stapSprong, BUK_TEMPO } from './coopspeler.js';
@@ -1401,6 +1401,11 @@ export function handleEvent(world, body, van = 0) {
       if (!n || n.role !== 'client') return false;
       const k = leesCutTijd(body); if (!k) return false;
       world.coopCutHost = { id: k.id, t: k.t, stil: k.stil, at: Date.now() };
+      return true;
+    }
+    case 'cutvervang': { // (#727) de gastheer verving zijn scène: de gast stopt zijn oude kopie stil, de nieuwe volgt
+      if (!n || n.role !== 'client' || !Number.isInteger(body.id)) return false;
+      cutGastVervangen(world, body.id);
       return true;
     }
     case 'cutend': { // de gastheer is klaar of slaat over

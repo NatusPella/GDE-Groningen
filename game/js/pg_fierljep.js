@@ -3,7 +3,7 @@ import { getScene } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { poleVault, findVaultSpot } from './fierljep.js';
 import { JELLE_LOOK } from './storycast.js';
-import { playCinematic, isCinematicActive, skipCinematic } from './cinematics.js';
+import { startCameraTake, stopCameraTake } from './cinematics.js';
 import { pushAudioEvent } from './pedgeom.js';
 import { pointInPolygon as inPoly, isInWater, clamp } from './util.js';
 import { finish, jelle } from './pghost.js';
@@ -131,7 +131,7 @@ export const FIERLJEP = {
     const w = run.world, d = run.data;
     w.cinematicHidePlayers = false;
     w.challengeHoldPlayer = false;
-    if (isCinematicActive('pg-aim')) skipCinematic();
+    stopCameraTake('pg-aim'); // (#728) camerastand, geen scène
     if (d.vault) d.vault.dispose();
     for (const m of [d.me, d.jl]) if (m) m.removeFromParent();
     const s = d.s;
@@ -154,7 +154,7 @@ function aimCamera(run) {
   // behind the runner's shoulder, looking down the run-up over the canal
   const cx = s.runup.x - s.dir.x * 5 + n.x * 1.8, cy = s.runup.y - s.dir.y * 5 + n.y * 1.8;
   const shot = { position: { x: cx, y: cy, z: 2.5 }, lookAt: { x: s.from.x + s.dir.x * 4, y: s.from.y + s.dir.y * 4, z: 0.6 }, fov: 58 };
-  playCinematic({ id: 'pg-aim', priority: 1, duration: 600, pause: false, letterbox: false, skippable: false, hideHud: false, passKeys: true, shot: () => shot });
+  startCameraTake('pg-aim', () => shot, { letterbox: false, hideHud: false }); // (#728) geen 600 s durende scène
 }
 
 function jelleJump(run, bonus) {
@@ -224,7 +224,7 @@ function playerJump(run) {
   d.attempt++;
   d.phase = 'pvault';
   d.me.visible = false;
-  if (isCinematicActive('pg-aim')) skipCinematic();
+  stopCameraTake('pg-aim');
   run.ui.root.hidden = true;
   const npc = { x: s.runup.x, y: s.runup.y, angle: d.yaw, appearance: d.look };
   d.vault = poleVault(npc, s.from, landingFor(w.map, s, bonus * 0.6), { fail, appearance: d.look, camera: true, slowmo: quality > 0.8, keepActor: true, say: false, swimTime: 2.5 });
