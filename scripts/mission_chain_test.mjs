@@ -5,6 +5,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import * as ML from '../game/js/missielus.js';
+import * as MG from '../game/js/missiegroepen.js';
 
 const src = fs.readFileSync(new URL('../game/js/missions.js', import.meta.url), 'utf8');
 const BEGIN = '// --- ketenhouder begin ---';
@@ -221,6 +222,40 @@ const ok = (c, naam) => { n++; if (!c) { console.log(`FAIL ${naam}`); process.ex
   ok(/world\.coopGroepSleutel = sleutel/.test(src) && /updateMissionKern\(deel, world\)/.test(src), 'de sleutel staat om de update van die groep');
   ok(/updateMissionsAlgemeen\(dt, world\)/.test(src), 'de wereldtaken staan buiten de lus');
   ok(/st\.phase === 'active' \|\| st\.phase === 'cooldown' \|\| k === eigen/.test(src), 'een gastketen doet alleen mee als die loopt');
+}
+
+// --- #492: de keten van een gastgroep (missiegroepen.js): eigen keten, eigen index, eigen pub
+{
+  const bron = { defs: [{ label: 'A' }, { label: 'B' }], completed: new Set([1]), seen: new Set(), medalPaid: {}, checkpoints: new Map(), pub: { id: '0|A', phase: 'idle', label: 'A', index: 0 } };
+  const houder = new Map();
+  const sleutel = MG.openGroepKeten(houder, '5|B', 1, bron);
+  ok(sleutel === 'groep:5|B' && MG.isGroepSleutel(sleutel), 'de keten van de gastgroep heeft een groepssleutel');
+  ok(MG.groepIdVanSleutel(sleutel) === '5|B', 'de sleutel wijst terug naar de groep');
+  const st = MG.groepKeten(houder, '5|B');
+  ok(st && st.index === 1 && st.phase === 'active', 'de groepsketen begint bij zijn eigen stap');
+  ok(st.pub.id === '5|B' && st.pub.phase === 'active' && st.pub.index === 1, 'de pub is van de groep');
+  ok(st.completed.has(1) && st.completed !== bron.completed, 'de voortgang is gekopieerd, niet gedeeld');
+  ok(bron.index === undefined && bron.phase === undefined && bron.completed.size === 1, 'de bronketen blijft ongemoeid');
+  ok(MG.groepKetens(houder).length === 1 && MG.groepKetens(houder)[0].id === '5|B', 'de houder kent de groepsketen');
+  MG.sluitGroepKeten(houder, '5|B');
+  ok(!MG.groepKeten(houder, '5|B') && !houder.has(sleutel), 'sluiten haalt de keten weg');
+}
+
+// --- #492: de gastmissie en het per-groep bericht in de bedrading
+{
+  ok(/import \{ openGroepKeten, sluitGroepKeten, groepKeten, groepKetens, isGroepSleutel, groepIdVanSleutel \}/.test(src), 'missions.js haalt de groepsketen binnen');
+  ok(/function startGroepMissie\(world, i, van\)/.test(src), 'een gastverzoek opent een groepsketen');
+  ok(/world\.player = lichaam/.test(src) && /world\.input = groepInvoer\.get\(sleutel\)/.test(src), 'de gastmissie speelt met het lichaam en de invoer van die gast');
+  ok(/world\.coopMissieStart = \(i, van = 0\) => \(van >= 1 \? startGroepMissie/.test(src), 'de start-haak kiest de groepsketen voor een gast');
+  ok(/world\.coopGroepToets = \(slot, toets\)/.test(src), 'de toetsen van de gast gaan naar zijn groepsinvoer');
+  ok(/world\.coopGroepMissieVoor = \(id\) => groepMissieVoor\(id\)/.test(src), 'de opdracht van een groep is op te vragen voor het bericht');
+  const glue = fs.readFileSync(new URL('../game/js/coopglue.js', import.meta.url), 'utf8');
+  ok(/coopMissieStart\(v\.i, van\)/.test(glue), 'coopglue geeft de vragende gast mee');
+  const net = fs.readFileSync(new URL('../game/js/coopnet.js', import.meta.url), 'utf8');
+  ok(/coopGroepMissieIds\(\).filter\(\(id\) => id && id !== n\.groepId\)/.test(net), 'coopnet stuurt de eigen opdracht van een gastgroep apart');
+  ok(/missieBericht\(vorige, world\.coopGroepMissieVoor\(id\), null\)/.test(net), 'per groep een eigen missiebericht');
+  ok(/for \(const slot of groepLeden\(n, id\)\) n\.hub\.announce\(gmb\.event, slot\)/.test(net), 'alleen de leden van die groep krijgen hem');
+  ok(/coopGroepToets\(van, 'e'\)/.test(net), 'E van een gast gaat naar zijn eigen opdracht');
 }
 
 console.log(`mission_chain_test: ${n}/${n} ok`);
