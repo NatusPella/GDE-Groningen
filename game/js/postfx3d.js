@@ -1,5 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { postSampleCount, postNeedsRebuild } from './postsamples.js';
 import { Pass, FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
@@ -238,10 +239,13 @@ export function createPostFX(renderer, scene, cam) {
     composer.renderTarget2.dispose();
     composer.passes[0].dispose();
     if (bloom) bloom.dispose();
+    // #658: de grade-pass lekte bij elke rebuild (alleen de scene-pass werd disposed)
+    if (grade) { try { grade.material.dispose(); grade.dispose(); } catch (e) { /* al weg */ } }
     composer = bloom = grade = null;
   }
 
-  const samplesFor = (pr) => (level === 'laag' ? 4 : pr >= 1.75 ? 2 : 4);
+  // #658: de keuze hangt aan het niveau (en dus niet meer aan de pixelratio)
+  const samplesFor = () => postSampleCount(level);
 
   function build() {
     noteGfxEvent(`postfx ${level} opnieuw`);
@@ -259,7 +263,7 @@ export function createPostFX(renderer, scene, cam) {
     // One NaN/Inf pixel from any shader would otherwise be smeared by the
     // bloom blur into large black blocks over the whole screen: the scene
     // pass resolves through SanitizeShader.
-    composer.addPass(new SceneMSAAPass(scene, cam, samplesFor(pr)));
+    composer.addPass(new SceneMSAAPass(scene, cam, samplesFor()));
     if (level === 'hoog') {
       bloom = new UnrealBloomPass(new THREE.Vector2(width, height), 0.2, 0.35, 2.5);
       // Bloom at CSS-pixel resolution regardless of devicePixelRatio: it is
@@ -295,7 +299,7 @@ export function createPostFX(renderer, scene, cam) {
     setSize(w, h, pr = renderer.getPixelRatio()) {
       width = w; height = h;
       if (!composer) return;
-      if (composer.passes[0].target.samples !== samplesFor(pr)) { build(); return; }
+      if (postNeedsRebuild(composer.passes[0].target.samples, level)) { build(); return; }
       composer.setPixelRatio(pr);
       composer.setSize(w, h);
     },

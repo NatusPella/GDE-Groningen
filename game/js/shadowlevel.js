@@ -9,3 +9,17 @@ export function levelShadow(sh, mesh, drop) {
   sh.position.set(0, -drop, 0).applyQuaternion(untilt);
   sh.quaternion.copy(untilt);
 }
+
+// #658: de schaduwmap stond vast op 'hoog' (4096², ~67 MB) terwijl de adaptieve
+// kwaliteit alleen renderschaal en zichtafstand verlaagde. Op een machine die
+// zichzelf terugschroeft (dynamicScale < 1) of een hoge cpuLevel heeft, gebruiken
+// we de zuinige 'hoog'-variant: 2048² is nog 3,1 cm per texel en scheelt 50 MB.
+export function adaptedShadowLevel(level, dynamicScale = 1, cpuLvl = 0) {
+  if (level !== 'hoog') return level; // laag en middel blijven zoals ze zijn
+  if (cpuLvl > 0 || dynamicScale < 1) return 'hoog2048';
+  return 'hoog';
+}
+
+export const SHADOW_SIZES = { laag: 1024, middel: 2048, hoog: 4096, hoog2048: 2048 };
+// Volle rgba8-schaduwtarget in MB (4 bytes per texel), voor de meting.
+export const shadowTargetMB = (size) => (size * size * 4) / 1e6;
