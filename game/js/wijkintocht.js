@@ -101,7 +101,7 @@ export function tourKeys(gebied, stops, behind, { hoog = 26 } = {}) {
   const keys = [];
   const gx = Number.isFinite(g.x) ? g.x : (stops[0] && stops[0].x) || 0;
   const gy = Number.isFinite(g.y) ? g.y : (stops[0] && stops[0].y) || 0;
-  keys.push({ pos: { x: gx - 24, y: gy - 34, z: hoog }, look: { x: gx, y: 4, z: gy }, fov: 55 });
+  keys.push({ pos: { x: gx - 24, y: gy - 34, z: hoog }, look: { x: gx, y: gy, z: 4 }, fov: 55 });
   let vorige = { x: gx, y: gy };
   for (let i = 0; i < stops.length; i++) {
     const s = stops[i];
@@ -109,7 +109,7 @@ export function tourKeys(gebied, stops, behind, { hoog = 26 } = {}) {
     const d = Math.hypot(dx, dy) || 1;
     const af = 9;
     const z = i % 2 ? 12 : 2.2;
-    keys.push({ pos: { x: s.x - (dx / d) * af, y: s.y - (dy / d) * af, z }, look: { x: s.x, y: 1.6, z: s.y }, fov: i % 2 ? 52 : 58 });
+    keys.push({ pos: { x: s.x - (dx / d) * af, y: s.y - (dy / d) * af, z }, look: { x: s.x, y: s.y, z: 1.6 }, fov: i % 2 ? 52 : 58 });
     vorige = s;
   }
   if (behind && behind.pos && behind.look) keys.push({ pos: { ...behind.pos }, look: { ...behind.look }, fov: 60 });
@@ -349,3 +349,4 @@ export function thuiskomstVoor(ind, profiel, punten, x, y, { landmarks = [], str
   const film = buurtIntocht(ind, g.id, { landmarks });
   return film && film.stops.length >= MIN_STOPS ? film : null;
 }
+
