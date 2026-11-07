@@ -135,6 +135,7 @@ export class Pedestrian {
 let spawnBudget = 45;
 let spawnWorld = null;
 let lastPlayerX = null, lastPlayerY = null;
+let pedAvoidTick = 0; // #653
 
 const HIDDEN_MIN_DIST = 18;
 const HIDDEN_MAX_DIST = 70;
@@ -1188,7 +1189,8 @@ export function updatePedestrians(dt, world) {
   greetPassingBoat(world);
   knockOffRiders(world);
   processPedPlanQueue(world);
-  buildPedAvoidGrid(peds);
+  // #653: de avoid-grid om de twee frames i.p.v. elke frame
+  if (++pedAvoidTick % 2 === 0) buildPedAvoidGrid(peds);
 
   spawnWorld = world;
   // after a teleport the new surroundings are empty and the view has just cut,

@@ -415,10 +415,13 @@ export function buildPedAvoidGrid(peds) {
   }
 }
 
+// #653: geen nieuwe array + Set per voetganger per frame; de grid vult een vaste lijst
+const _avoidOut = [];
 function avoidBias(ped, ang) {
   const hx = Math.cos(ang), hy = Math.sin(ang);
   let bias = 0;
-  for (const o of grid.queryRadius(ped.x, ped.y, AVOID_CELL)) {
+  grid.queryRadiusInto(_avoidOut, ped.x, ped.y, AVOID_CELL);
+  for (const o of _avoidOut) {
     if (o === ped || o === ped.leader || o.leader === ped) continue;
     const dx = o.x - ped.x, dy = o.y - ped.y;
     const d = Math.hypot(dx, dy);
