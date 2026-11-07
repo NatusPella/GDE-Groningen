@@ -36,5 +36,9 @@ for (const id of ['M06', 'M10', 'M21', 'M22', 'M24']) {
   ok(st && st.story && st.story.outro === null, `${id}: geen eigen outro-spec, bewust (laatste stage vertelt het)`);
 }
 
+// #734 (laag): de aftiteling heeft geen achttien identieke kaarten meer: elke kaart een eigen shot.
+ok(/function creditShot/.test(story) && /CREDITS\.forEach\(\(\[name, role\], k\) => q\(\{ duration: 3\.2,[\s\S]*?creditShot\(k\)/.test(story),
+  'aftiteling: elke kaart krijgt een eigen camerashot');
+
 console.log(fails ? `${fails} of ${n} story regie checks failed` : `storyregie_test: ${n} checks ok`);
 process.exit(fails ? 1 : 0);
