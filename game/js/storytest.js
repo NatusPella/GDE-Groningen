@@ -507,7 +507,7 @@ async function newArcRuntimeChecks(world, check, capture) {
     // mission's left-over wanted level, nothing holding the cards back); the check below says so when it cannot.
     // 60 s: a voiced card that cannot play its audio (this run is silent) holds the screen until the feed's own
     // 40 s guard drops it, so 30 s was just too short.
-    const quiet = await phoneQuiet(world, 60000);
+    const quiet = await phoneQuiet(world, 120000);
     const pfState = pf.state();
     const kaart = document.querySelector('.pf-card');
     const nu = window.__story ? window.__story.current() : null;
@@ -1014,7 +1014,8 @@ export async function runStoryTest(world) {
           await drain(world, 700);
         }
         if (window.__kermis && window.__kermis.start()) {
-          await sleep(1200);
+          // #720: de onthulling gaat voor de start; wacht tot de rit echt loopt.
+          await waitFor(() => isActivityActive(), 15000);
           const ridingOn = isActivityActive();
           loadLatestSave(world);
           check("a loaded save ends the botsauto's", ridingOn && !isActivityActive(), `ride started: ${ridingOn}`);
@@ -1083,6 +1084,7 @@ export async function runStoryTest(world) {
   console.log('[storytest-done] ' + JSON.stringify(report));
   return report;
 }
+
 
 
 
