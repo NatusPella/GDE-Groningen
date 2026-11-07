@@ -256,7 +256,8 @@ function buildSites(map) {
   sites = new SpatialGrid(SITE_CELL);
   const nodes = new Map();
   const key = (p) => Math.round(p[0] * 10) * 1e6 + Math.round(p[1] * 10);
-  for (const r of map.orderedRoads()) {
+  // platte testkaarten zonder raster vallen terug op hun eigen wegenlijst
+  for (const r of (map.orderedRoads ? map.orderedRoads() : map['roads'] || [])) {
     r.pts.forEach((p, i) => {
       const k = key(p);
       let a = nodes.get(k);
@@ -795,4 +796,5 @@ export function makeCompanion(ped, leader) {
   ped.angle = leader.angle;
   navOf(ped);
 }
+
 

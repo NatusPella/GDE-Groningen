@@ -210,7 +210,10 @@ function staticWater(map) {
   // gestroomde tegel en de vaarnet-patches dragen `tile` en horen er niet bij.
   if (map._staticWater && map._staticGeoVer === map.geoVer) return map._staticWater;
   map._staticGeoVer = map.geoVer;
-  return (map._staticWater = new Set(gridItems(map.waterGrid).filter((w) => !w.tile)));
+  // een platte testkaart zonder rasters valt terug op zijn eigen rijen; de spellogica heeft
+  // altijd een waterraster (#314 C2).
+  const rows = map.waterGrid ? gridItems(map.waterGrid) : map['water'] || [];
+  return (map._staticWater = new Set(rows.filter((w) => !w.tile)));
 }
 export function getWaterIndex(map, poly = null) {
   if (poly && map.waterNear && !staticWater(map).has(poly)) return polyWaterIndex(map, poly);
@@ -325,11 +328,14 @@ export function setSeaClearance(fn) { seaFn = fn || null; }
 const OB_CELL = 16;
 
 function obstacleGrid(map) {
-  if (map._waterObstacles && map._waterObstaclesGeoVer === map.geoVer) return map._waterObstacles;
-  map._waterObstaclesGeoVer = map.geoVer;
+  // Obstakels komen niet uit een raster maar worden er expliciet bijgezet en afgehaald
+  // (addWaterObstacle/dropMooredBuilding, ook bij addTile/dropTile); een geoVer-verversing
+  // zou de zojuist toegevoegde woonboot weer weggooien.
+  if (map._waterObstacles) return map._waterObstacles;
   const g = map._waterObstacles = new SpatialGrid(OB_CELL);
   // (#314 C2b) de woonboten uit het bouwraster, ook die van de gestroomde tegels
-  for (const b of gridItems(map.buildingGrid)) if (b.type === 'houseboat' && !b._moor) addMooredBuilding(map, b);
+  const buildings = map.buildingGrid ? gridItems(map.buildingGrid) : map['buildings'] || [];
+  for (const b of buildings) if (b.type === 'houseboat' && !b._moor) addMooredBuilding(map, b);
   return g;
 }
 

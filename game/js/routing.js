@@ -146,7 +146,8 @@ function buildGraph(map) {
     }
     return id;
   };
-  const graphRoads = map.orderedRoads();
+  // platte testkaarten zonder raster vallen terug op hun eigen wegenlijst
+  const graphRoads = map.orderedRoads ? map.orderedRoads() : map['roads'] || [];
   for (let ri = 0; ri < graphRoads.length; ri++) {
     const road = graphRoads[ri];
     const n = road.pts.length;
@@ -1055,4 +1056,5 @@ export function formatDistance(m) {
 }
 
 walkPathHook.find = findWalkPath; // pedroutes.js walks over this router (latehooks.js)
+
 
