@@ -18,6 +18,10 @@ const Z = await import(pathToFileURL(path.join(root, 'game', 'js', 'zeilrules.js
 // #312: de achtervolging (scripts/bot/chase.mjs) en de kraak-minigame (scripts/bot/kraak.mjs)
 const Ch = await import(pathToFileURL(path.join(root, 'scripts', 'bot', 'chase.mjs')).href);
 const Kr = await import(pathToFileURL(path.join(root, 'scripts', 'bot', 'kraak.mjs')).href);
+// #312: het Ommeland (landroute.mjs), de bootachtervolging (boat.mjs) en de menu's (menu.mjs)
+const Lr = await import(pathToFileURL(path.join(root, 'scripts', 'bot', 'landroute.mjs')).href);
+const Bo = await import(pathToFileURL(path.join(root, 'scripts', 'bot', 'boat.mjs')).href);
+const Mn = await import(pathToFileURL(path.join(root, 'scripts', 'bot', 'menu.mjs')).href);
 let fails = 0, n = 0;
 const ok = (c, name) => { n++; if (!c) { fails++; console.log('FAIL', name); } };
 const near = (a, b, e = 1e-6) => Math.abs(a - b) < e;
@@ -731,6 +735,51 @@ ok(L.decide({ ...b(), mission: { active: true, stage: 'hold' }, target: { x: 8, 
   ok(Kr.kraakStep({ fase: 'naald', naald: 0.5, doel: 0.55 }).toets.includes(' '), 'kraak: in de marge drukken');
   ok(Kr.kraakStep({ fase: 'naald', naald: 0.2, doel: 0.55 }).toets.length === 0, 'kraak: buiten de marge wachten');
   ok(Kr.kraakStep({ fase: 'klaar' }).toets.includes('e'), 'kraak: klaar is bevestigen');
+}
+
+// --- #312: Ommeland, bootachtervolging en menu's ----------------------------------
+{
+  // een sloot van x = 4..6 tussen de bot (0,0) en het doel (10,0): een droog tussenpunt links of rechts
+  const sloot = (x) => x > 4 && x < 6;
+  const om = Lr.landOmweg({ ik: { x: 0, y: 0 }, doel: { x: 10, y: 0 }, isWater: sloot });
+  ok(om.droog === true && om.punt && Math.abs(om.punt.x - 5) >= 0, 'landroute: droog tussenpunt gevonden');
+  ok(!sloot(om.punt.x), 'landroute: het tussenpunt ligt niet in de sloot');
+  ok(Lr.landOmweg({ ik: { x: 0, y: 0 }, doel: { x: 10, y: 10 }, isWater: () => false }).waarom.includes('droog'), 'landroute: droog doel is recht');
+  ok(Lr.landRecht({ ik: { x: 0, y: 0 }, doel: { x: 3, y: 0 }, isWater: sloot }) === true, 'landroute: korte droge lijn is recht');
+  ok(Lr.landRecht({ ik: { x: 0, y: 0 }, doel: { x: 10, y: 0 }, isWater: sloot }) === false, 'landroute: natte lijn is niet recht');
+}
+{
+  const dicht = Bo.bootAchtervolgStap({ ik: { x: 0, y: 0 }, doel: { x: 2, y: 0 }, inBoot: true });
+  ok(dicht.actie === 'langszij' && dicht.gas < 0.5, 'boot: langszij rustig gas');
+  const ver = Bo.bootAchtervolgStap({ ik: { x: 0, y: 0 }, doel: { x: 100, y: 0 }, inBoot: true });
+  ok(ver.actie === 'achtervolgen' && ver.gas === 1, 'boot: ver weg vol gas');
+  ok(Bo.bootAchtervolgStap({ ik: { x: 0, y: 0 }, doel: { x: 5, y: 0 }, inBoot: false }).actie === 'instappen', 'boot: eerst instappen');
+}
+{
+  ok(Mn.menuStap({ scherm: null }).toets.includes('e'), 'menu: openen met E');
+  ok(Mn.menuStap({ scherm: 'telefoon', items: [], index: 0 }).toets.includes('escape'), 'menu: lege telefoon sluiten');
+  ok(Mn.menuStap({ scherm: 'telefoon', items: [{ id: 'kaart' }, { id: 'banen' }], index: 1, doel: 'banen' }).toets.includes('enter'), 'telefoon: app kiezen');
+  ok(Mn.menuStap({ scherm: 'pauze', items: [{ id: 'a' }, { id: 'b' }], index: 0, doel: 'b' }).toets.includes('down'), 'pauze: naar het volgende item');
+  ok(Mn.menuStap({ scherm: 'trein', items: [{ id: 'Haren' }], index: 0, doel: 'Haren' }).toets.includes('enter'), 'trein: bestemming kiezen');
+  ok(Mn.menuIndex('telefoon', [{ id: 'a' }, { id: 'b' }], 0, 'down') === 1, 'menu: down gaat naar het volgende');
+  ok(Mn.menuIndex('pauze', [{ id: 'a' }, { id: 'b' }], 0, 'up') === 1, 'menu: up wikkelt rond');
+}
+
+// --- #312: board-stage met een specifiek voertuig ---------------------------------
+{
+  const s = {
+    t: 0, player: { x: 0, y: 0 },
+    nearby: { vehicles: [
+      { x: 3, y: 0, kind: 'car', model: { name: 'sedan' }, free: true, distance: 3 },
+      { x: 8, y: 0, kind: 'car', model: { name: 'quad' }, free: true, distance: 8 },
+    ] },
+  };
+  const kies = Bd.pickStageVehicle(s, { name: 'quad' });
+  ok(kies.vehicle && kies.vehicle.model.name === 'quad', 'board-stage: kiest de quad, niet de dichtere sedan');
+  ok(Bd.pickStageVehicle(s, { name: 'limo' }).vehicle === null, 'board-stage: geen passend voertuig is eerlijk null');
+  const mem = { skip: {} };
+  mem.skip[String(Math.round(8 * 10) / 10) + ',0'] = 100; // de quad is even overgeslagen
+  ok(Bd.pickStageVehicle({ ...s, t: 10 }, { name: 'quad' }, mem).vehicle === null, 'board-stage: een overgeslagen voertuig telt niet');
 }
 
 console.log(`${n - fails}/${n} ok`);

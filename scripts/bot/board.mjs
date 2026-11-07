@@ -32,6 +32,36 @@ export function bodyDistance(v, p) {
   return Math.hypot(Math.max(0, lx), Math.max(0, ly));
 }
 
+// #312: een board-stage met een specifiek voertuig (M10 quad, M14 trekker-limo, M22/M23 Fjord Frituur). De oude
+// pickVehicle koos de dichtstbijzijnde; deze kiest op soort/model/naam en zegt eerlijk wanneer er niets past.
+export function pickStageVehicle(s, vereist = {}, mem = {}) {
+  const lijst = (s && s.nearby && s.nearby.vehicles) || [];
+  const eis = typeof vereist === 'string' ? { name: vereist } : (vereist || {});
+  const now = Number.isFinite(s && s.t) ? s.t : 0;
+  const namen = (c) => [c.model && c.model.name, c.model && c.model.soort, c.name, c.kind].filter(Boolean).map((x) => String(x).toLowerCase());
+  const past = (c) => {
+    const ns = namen(c);
+    const eisNaam = eis.name ? String(eis.name).toLowerCase() : '';
+    const eisModel = eis.model ? String(eis.model).toLowerCase() : '';
+    if (eisNaam && !ns.some((n) => n === eisNaam || n.includes(eisNaam))) return false;
+    if (eisModel && !ns.some((n) => n.includes(eisModel))) return false;
+    if (eis.kind && String(c.kind || '').toLowerCase() !== String(eis.kind).toLowerCase()) return false;
+    return true;
+  };
+  const skip = (mem && mem.skip) || {};
+  let best = null, bestD = Infinity;
+  for (const c of lijst) {
+    if (!c.free && !c.mission) continue;
+    if (c.occupied && !c.mission) continue;
+    if ((skip[key(c)] || 0) > now) continue;
+    if (!past(c)) continue;
+    const p = (s && s.player) || { x: 0, y: 0 };
+    const d = Number.isFinite(c.distance) ? c.distance : Math.hypot(p.x - c.x, p.y - c.y);
+    if (d < bestD) { bestD = d; best = c; }
+  }
+  return best ? { vehicle: best, why: 'stagevoertuig' } : { vehicle: null, why: 'geen passend voertuig: ' + JSON.stringify(eis) };
+}
+
 // Waar de bot moet staan om in te stappen: bij de deur (het midden van de wagen, niet de bumper),
 // een halve meter van de romp, aan de kant waar hij zelf staat. `side` (-1 of 1) dwingt een kant af.
 export function approachPoint(v, from, side = 0) {
