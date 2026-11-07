@@ -1,18 +1,25 @@
-// Samen spelen (#683): drie herhaalbare banen met een helper-rol — rondvaart en veerdienst (de gast vaart mee
-// als passagier) en de rechtbank (de gast zit als tweede jurylid in de jury). De banen zelf laden three van een
-// CDN en zijn hier niet te importeren; deze test dekt de regels, de uitnodiging, de volledige beloning per speler,
-// de juryregel en de bron van de haak. De echte TCP-kant staat in scripts/coop/bijbaan_test.mjs.
+// Samen spelen (#683): acht herhaalbare banen met een helper-rol — rondvaart en veerdienst (de gast vaart mee
+// als passagier), de rechtbank (tweede jurylid) en de vijf met een eigen E-hulp: cabaret (mede-optreder), loket
+// (tweede balie), snackoverlast (handhaver), tjalke (bemanning) en bietenoogst (helper). De banen zelf laden
+// three van een CDN en zijn hier niet te importeren; deze test dekt de regels, de uitnodiging, de volledige
+// beloning per speler, de hulpregels en de bron van elke haak. De echte TCP-kant staat in scripts/coop/bijbaan_test.mjs.
 //   node scripts/coop/bijbaanrollen_test.mjs
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import * as B from '../../game/js/coopbijbaan.js';
 import * as S from '../../game/js/coopstatus.js';
 import { juryGenade } from '../../game/js/casework.js';
+import { medeGrapje, hulpStap, hulpTip, HULP_MAX } from '../../game/js/bijbaanhulp.js';
+import { BAAN_IDS, vakVanBaan } from '../../game/js/loopbaan.js';
+import { sfeerVan } from '../../game/js/carrieresfeer.js';
 
 const bron = (p) => fs.readFileSync(new URL('../../game/js/' + p, import.meta.url), 'utf8');
 let n = 0, fails = 0;
 const t = (name, f) => { n++; try { f(); } catch (e) { fails++; console.log('FAIL', name, '\n  ', e.message.split('\n')[0]); } };
-const ROL = { rondvaart: 'passagier', veerdienst: 'passagier', rechtbank: 'tweede jurylid' };
+const ROL = {
+  rondvaart: 'passagier', veerdienst: 'passagier', rechtbank: 'tweede jurylid',
+  cabaret: 'mede-optreder', loket: 'tweede balie', snackoverlast: 'handhaver', tjalke: 'bemanning', bietenoogst: 'helper',
+};
 
 t('#683: de drie banen hebben een regel met een helper-rol en staan op werkt', () => {
   for (const [id, rol] of Object.entries(ROL)) {
@@ -20,7 +27,7 @@ t('#683: de drie banen hebben een regel met een helper-rol en staan op werkt', (
     assert.equal(B.BIJBAAN_REGELS[id].rol, rol, id + ': rol');
     assert.ok(B.BIJBAAN_REGELS[id].hulp.length > 30, id + ': hulptekst');
     assert.equal(S.samenStatus('bijbaan', id), S.WERKT, id + ': status');
-    const label = id === 'rondvaart' ? 'de rondvaart' : id === 'veerdienst' ? 'de veerdienst' : 'de rechtbank';
+    const label = { rondvaart: 'de rondvaart', veerdienst: 'de veerdienst', rechtbank: 'de rechtbank', cabaret: 'het cabaret', loket: 'het loket', snackoverlast: 'de snackoverlast', tjalke: 'de tjalke', bietenoogst: 'de bietenoogst' }[id];
     assert.ok(S.samenKan().includes(label), id + ' staat in de positieve lijst');
   }
   // een passagier hoeft niet bij een deur te staan; de juryleden drukken geen hulpactie
@@ -63,14 +70,45 @@ t('#683: de rechtbank: een tweede jurylid vergeeft één fout antwoord', () => {
   assert.match(rb, /tweede jurylid/, 'de melding noemt de rol');
 });
 
+t('#683: de vijf E-hulpjes rekenen met dezelfde regels als de baan (mede-optreden, balie, handhaver, bemanning, oogst)', () => {
+  const perfect = medeGrapje(10, 10.1), vroeg = medeGrapje(10, 9.2), laat = medeGrapje(10, 11.5);
+  assert.equal(perfect.soort, 'perfect'); assert.ok(perfect.punten > 0);
+  assert.equal(vroeg.soort, 'te-vroeg'); assert.equal(laat.soort, 'te-laat');
+  assert.equal(medeGrapje(10, 10.1, true).ok, false, 'één keer per grap');
+  let h = 0;
+  for (let i = 0; i < 5; i++) h = hulpStap(h).help;
+  assert.equal(h, HULP_MAX, 'nooit meer dan drie hulpen');
+  assert.equal(hulpStap(HULP_MAX).ok, false);
+  assert.equal(hulpTip('balie', 2), 20); assert.equal(hulpTip('handhaver', 1), 15);
+  assert.equal(hulpTip('bemanning', 3), 30); assert.equal(hulpTip('oogst', 1), 12); assert.equal(hulpTip('balie', 0), 0);
+  // elke baan heeft de haak en publiceert dat er nu iets te helpen is
+  for (const f of ['sidejob_cabaret.js', 'sidejob_keuze.js', 'sidejob_snackbar.js', 'sidejob_tjalke.js', 'sidejob_bieten.js']) {
+    const src = bron(f);
+    assert.match(src, /helperActie\(c\)/, f + ': helperActie');
+    assert.match(src, /help: /, f + ': help in de publicatie');
+  }
+  assert.match(bron('sidejob_cabaret.js'), /medeGrapje/, 'cabaret: mede-optreden');
+  assert.match(bron('sidejob_keuze.js'), /hulpTip\('balie'/, 'loket: tweede balie telt tip');
+  assert.match(bron('sidejob_snackbar.js'), /hulpTip\('handhaver'/, 'snackoverlast: handhaver');
+  assert.match(bron('sidejob_tjalke.js'), /hulpTip\('bemanning'/, 'tjalke: bemanning');
+  assert.match(bron('sidejob_bieten.js'), /hulpTip\('oogst'/, 'bietenoogst: helper');
+});
+
 t('#683: de haak en de uitleg staan in de bron, het register en de docs', () => {
   assert.match(bron('sidejob_rondvaart.js'), /id: 'rondvaart'/, 'de rondvaart-baan bestaat');
   assert.match(bron('sidejob_veer.js'), /id: 'veerdienst'/, 'de veerdienst-baan bestaat');
   const cg = bron('coopgast.js');
   for (const w of ['rondvaart', 'veerdienst', 'rechtbank']) assert.match(cg, new RegExp(w), w + ' staat in de gast-uitleg');
   const doc = bron('../../docs/COOP-GAST.md');
-  for (const w of ['rondvaart', 'veerdienst', 'rechtbank']) assert.match(doc, new RegExp(w), w + ' staat in docs/COOP-GAST.md');
-  assert.match(bron('coopstatus.js'), /rondvaart: WERKT, veerdienst: WERKT, rechtbank: WERKT/, 'de statussen staan op werkt');
+  for (const w of ['rondvaart', 'veerdienst', 'rechtbank', 'cabaret', 'loket', 'snackoverlast', 'tjalke', 'bietenoogst']) assert.match(doc, new RegExp(w), w + ' staat in docs/COOP-GAST.md');
+  assert.match(bron('coopstatus.js'), /cabaret: WERKT, loket: WERKT, snackoverlast: WERKT, tjalke: WERKT, bietenoogst: WERKT/, 'de vijf statussen staan op werkt');
+});
+
+t('#631: elke bijbaan heeft een sfeer uit carrieresfeer.js en de startkaart noemt hem', () => {
+  for (const id of BAAN_IDS) assert.ok(sfeerVan(vakVanBaan(id)).naam, id + ': sfeer');
+  const sj = bron('sidejobs.js');
+  assert.match(sj, /sfeerVan\(vakVanBaan\(job\.id\)\)/, 'de baan leest de sfeer van zijn vak');
+  assert.match(sj, /sfeerKop/, 'de sfeer staat in de kaart en de herhaaltoast');
 });
 
 console.log(`bijbaanrollen_test: ${n - fails}/${n} ok`);

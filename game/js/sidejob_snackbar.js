@@ -6,6 +6,7 @@ import { hoofdspeler } from './players.js';
 import { pick, kerbSide, nearestOnStreet, namedBuildingSpot, spawnPed, pedAlive, holdPed, freePed, walkPed, say, euro } from './sidejobkit.js';
 import { createChoicePanel, keycap } from './choicepanel.js';
 import { SNACKBAR, MAX_POGINGEN, maakRonde, kies, rondeResultaat, voortgang } from './missie_snackbar.js';
+import { hulpTip } from './bijbaanhulp.js';
 import { dist } from './util.js';
 
 const REACH = 4.2;
@@ -75,6 +76,7 @@ export default {
     d.ronde = maakRonde(Math.random);
     d.flash = '';
     d.tekst = `${SNACKBAR.groep} hangt bij de snackbar, met drie fatbikes tegen de gevel.`;
+    d.help = 0;
     d.farFor = 0;
     d.resultT = 0;
     const spots = groepSpots(c.world.map, c.spot);
@@ -130,9 +132,18 @@ export default {
         closePanel(c);
         for (const q of peds) freePed(q);
         const r = rondeResultaat(d.ronde);
-        c.complete({ base: r.base, tip: r.tip, flawless: r.flawless, text: r.text });
+        c.complete({ base: r.base, tip: r.tip + hulpTip('handhaver', d.help), flawless: r.flawless, text: r.text });
       }
     }
+  },
+
+  // Samen spelen (#683): de handhaver fluit de groep tot bedaren; één keer per ronde extra fooi.
+  helperActie(c) {
+    const d = c.data;
+    if ((d.phase !== 'actie' && d.phase !== 'walk') || d.help) return false;
+    d.help = 1;
+    c.msg('Je mede-handhaver fluit: de groep kijkt verrast op. Extra fooi: €' + hulpTip('handhaver', 1) + '.', 3);
+    return true;
   },
 
   view(c) {
@@ -141,6 +152,7 @@ export default {
     if (!lead) return {};
     return {
       marker: d.phase === 'walk' ? { x: lead.x, y: lead.y } : null,
+      help: d.phase === 'actie',
       progress: `Overlast ${c.streak + 1}${c.earned ? ` · verdiend ${euro(c.earned)}` : ''}`,
       goal: { label: d.phase === 'walk' ? 'De fatbikers' : 'Stuur ze weg', desc: d.phase === 'walk' ? 'Loop erheen, tot 4 meter' : 'Kies een grappige actie' },
     };

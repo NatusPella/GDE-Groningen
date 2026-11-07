@@ -37,6 +37,12 @@ export const BIJBAAN_REGELS = {
   rondvaart: { rol: 'passagier', hulp: 'Stap met E aan boord van de rondvaartboot en vaar mee; je hoort het verhaal en deelt de fooi.', positie: false, actie: false },
   veerdienst: { rol: 'passagier', hulp: 'Stap met E aan boord van de veerboot en vaar mee; elke overtocht levert jou ook het volle loon op.', positie: false, actie: false },
   rechtbank: { rol: 'tweede jurylid', hulp: 'Zit in de jury: je ziet de zaak mee, deelt de vergoeding en één fout antwoord wordt door de jury vergeven.', positie: false, actie: false },
+  // #683: de vijf banen uit het groeipad, elk met een eigen E-hulp (vanaf de grond of vanuit het voertuig).
+  cabaret: { rol: 'mede-optreder', hulp: 'Roep met E op de maat mee met de cabaretier: samen krijg je meer applaus en een hogere fooi.', positie: true, actie: true },
+  loket: { rol: 'tweede balie', hulp: 'Help met E aan de tweede balie: elke klant die je overneemt is extra fooi voor jullie beiden.', positie: true, actie: true },
+  snackoverlast: { rol: 'handhaver', hulp: 'Loop mee en help met E: je fluit de groep tot bedaren en dat levert een extra fooi op.', positie: true, actie: true },
+  tjalke: { rol: 'bemanning', hulp: 'Zit naast de chauffeur en help met E met de kaart en de route; elke hulp maakt de rit meer waard.', positie: false, actie: true },
+  bietenoogst: { rol: 'helper', hulp: 'Help met E op de akker: je trekt bieten los en laadt mee; elke hulp geeft extra loon.', positie: true, actie: true },
 };
 export const bijbaanMetCoop = (id) => Object.prototype.hasOwnProperty.call(BIJBAAN_REGELS, id);
 

@@ -7,6 +7,7 @@ import { hoofdspeler } from './players.js';
 import { namedBuildingSpot, pick, euro } from './sidejobkit.js';
 import { createChoicePanel, keycap } from './choicepanel.js';
 import { KEUZE_JOBS, pickKeuzeRound, keuzePay } from './keuzewerk.js';
+import { hulpStap, hulpTip } from './bijbaanhulp.js';
 import { dist } from './util.js';
 import { wgsToWorld } from './rdnew.js';
 
@@ -76,7 +77,7 @@ function makeJob(spec) {
       d.lastQs = d.questions.map((q) => q.q);
       d.dest = spot(c.world.map);
       d.phase = 'carry';
-      d.qi = 0; d.right = 0; d.picked = null; d.resultT = 0;
+      d.qi = 0; d.right = 0; d.picked = null; d.resultT = 0; d.help = 0;
     },
 
     update(dt, c) {
@@ -129,9 +130,20 @@ function makeJob(spec) {
         if (d.resultT <= 0) {
           closePanel(c);
           const pay = d.pay;
-          c.complete({ base: pay.base, tip: pay.tip, flawless: pay.flawless, text: pay.verdict });
+          c.complete({ base: pay.base, tip: pay.tip + hulpTip('balie', d.help), flawless: pay.flawless, text: pay.verdict });
         }
       }
+    },
+
+    // Samen spelen (#683): de tweede balie neemt een klant over (E), elke klant is extra fooi voor beiden.
+    helperActie(c) {
+      const d = c.data;
+      if (d.phase !== 'ask' && d.phase !== 'answered') return false;
+      const r = hulpStap(d.help);
+      if (!r.ok) return false;
+      d.help = r.help;
+      c.msg('De tweede balie neemt een klant over. Extra fooi: €' + hulpTip('balie', r.help) + '.', 3);
+      return true;
     },
 
     view(c) {
@@ -139,6 +151,7 @@ function makeJob(spec) {
       if (!d.dest) return {};
       return {
         marker: d.phase !== 'result' ? { x: d.dest.x, y: d.dest.y } : null,
+        help: d.phase === 'ask',
         progress: `Ronde ${c.streak + 1}${c.earned ? ` · verdiend ${euro(c.earned)}` : ''}`,
         goal: { label: d.dest.name, desc: d.phase === 'ask' || d.phase === 'answered' ? 'Beantwoord de vragen' : `Loop naar ${d.dest.name}` },
       };

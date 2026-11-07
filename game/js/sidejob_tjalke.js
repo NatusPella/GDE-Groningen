@@ -10,6 +10,7 @@ import { roadUnder } from './trafficlaw.js';
 import { hasUnique } from './achievements.js';
 import { plaatsPionnen, pionnenOmgetikt, stopPionnen } from './pionnen3d.js';
 import { RIT, TEKST, VRIEND, nieuweRit, stapRit, ritResultaat, langsAfzetting, slalomPionnen } from './drachtenrit.js';
+import { hulpStap, hulpTip } from './bijbaanhulp.js';
 
 // een gewone middenklasser die de A7 aankan; mission-flags zorgt dat het verkeer er geen aanspraak op maakt
 const AUTO = { kind: 'car', model: { name: 'wagon', len: 4.8, wid: 1.9, maxSpeed: 40, accel: 6, brake: 14, turnRate: 2.4, color: '#6a8fa8' } };
@@ -50,6 +51,7 @@ export default {
     const d = c.data;
     if (d.s) return;   // de ene ronde is gespeeld; het sidejob-contract beëindigt de dienst
     d.s = nieuweRit();
+    d.help = 0;
     d.nextTik = 0;
     d.soberT = 0;
     c.timeLeft = null;
@@ -107,10 +109,21 @@ export default {
         stopPionnen();
         const r = ritResultaat(d.s);
         c.msg(TEKST.grens, 3.5);
-        c.complete({ base: r.base, tip: r.tip, flawless: r.flawless, text: r.text });
+        c.complete({ base: r.base, tip: r.tip + hulpTip('bemanning', d.help), flawless: r.flawless, text: r.text });
         return;
       }
     }
+  },
+
+  // Samen spelen (#683): de bemanning leest de kaart en houdt de route bij (E vanuit de auto).
+  helperActie(c) {
+    const d = c.data;
+    if (!d.s || d.s.klaar) return false;
+    const r = hulpStap(d.help);
+    if (!r.ok) return false;
+    d.help = r.help;
+    c.msg(`De bemanning leest de kaart. Extra fooi: €${hulpTip('bemanning', r.help)}.`, 3);
+    return true;
   },
 
   view(c) {
@@ -127,6 +140,7 @@ export default {
     };
     return {
       marker: { x: RIT.einde.x, y: RIT.einde.y },
+      help: !d.s.klaar,
       progress: `Tjalke · nog ${km(rest)} km${d.s.pionnen ? ` · pionnen omgetikt ${d.s.pionnen}` : ''}`,
       goal: { label: labels[d.s.fase] || 'Naar Tjalke', desc: `${VRIEND} woont in Drachten: de wereld houdt op bij de provinciegrens` },
     };

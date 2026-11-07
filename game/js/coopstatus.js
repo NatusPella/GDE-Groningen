@@ -65,9 +65,11 @@ const BIJBAAN = {
   taxi: WERKT, bezorger: WERKT, krantenwijk: WERKT, vracht: WERKT, bus: WERKT,
   // #683: drie herhaalbare banen met een helper-rol (passagier op de boot, tweede jurylid in de rechtbank).
   rondvaart: WERKT, veerdienst: WERKT, rechtbank: WERKT,
+  // #683: de vijf banen uit het groeipad, elk met een eigen E-hulp (mede-optreder, tweede balie, handhaver, bemanning, helper).
+  cabaret: WERKT, loket: WERKT, snackoverlast: WERKT, tjalke: WERKT, bietenoogst: WERKT,
   boerderij: NEE, // de trekker
-  rondvaarttour: NEE, tjalke: NEE,
-  bietenoogst: NEE, boa: NEE, cabaret: NEE, fietsdepot: NEE, lijn: NEE, snackoverlast: NEE, verhuizing: NEE,
+  rondvaarttour: NEE,
+  boa: NEE, fietsdepot: NEE, lijn: NEE, verhuizing: NEE,
 };
 
 // Activiteiten (activities.js, LIST): coöp-wedstrijden (registreerWedstrijd) en de lokale activiteiten van een gast (GAST_ACTIVITEITEN)
@@ -127,13 +129,9 @@ export const deelsKeuzeVan = (id) => (typeof id === 'string' && Object.prototype
 // per baan staan de helper-rol die we willen en de haak die in de baan zelf nog moet komen. Zo is de keuze
 // vastgelegd zonder te doen alsof het al samen werkt. Rondvaart, veerdienst en rechtbank zijn inmiddels
 // gebouwd en staan in BIJBAAN_REGELS; wat hier staat is het restant.
-export const BIJBAAN_GROEIPAD = [
-  { id: 'cabaret', rol: 'mede-optreder', wat: 'Sta samen op het podium en verdeel de grappen.', haak: 'Het optreden heeft een tweede rol en deelt de opbrengst per speler.' },
-  { id: 'loket', rol: 'tweede balie', wat: 'Help aan de balie met E als de rij te lang wordt.', haak: 'Het loket kent een tweede balie met een eigen teller en beloning.' },
-  { id: 'snackoverlast', rol: 'handhaver', wat: 'Loop mee en help met E bij het bekeuren.', haak: 'De dienst leest de hulpactie van een meespeler en telt hem mee.' },
-  { id: 'tjalke', rol: 'bemanning', wat: 'Help aan dek met E bij het zeilen en aanleggen.', haak: 'De tjalk kent een bemanningsrol en deelt de opbrengst per speler.' },
-  { id: 'bietenoogst', rol: 'helper', wat: 'Rooi mee op de akker en laad de bieten.', haak: 'De oogst telt de hulp van een meespeler en deelt de rondebeloning.' },
-];
+// #683: het groeipad voor de herhaalbare inhoud is leeg: alle acht banen die erin stonden zijn gebouwd en
+// hebben een regel in BIJBAAN_REGELS. De lijst blijft bestaan zodat een volgende baan er weer in kan.
+export const BIJBAAN_GROEIPAD = [];
 
 // De status van één onderdeel, of null als het onderdeel onbekend is (dan waarschuwt niets).
 // Uitzondering: een bijbaan die hier niet staat blijft bij wie het spel opende (docs/COOP-GAST.md), dus 'nee'; dat zijn er veel (paneel-, stad- en keuzebanen).
@@ -149,8 +147,10 @@ export function samenStatus(soort, id) {
 const SAMEN_KAN = [
   ['bijbaan', 'taxi', 'taxi'], ['bijbaan', 'bezorger', 'bezorgen'], ['bijbaan', 'krantenwijk', 'de krantenwijk'],
   ['bijbaan', 'vracht', 'vracht'], ['bijbaan', 'bus', 'de bus'],
-  // #683: de drie banen met een passagiers- of juryrol
+  // #683: de drie banen met een passagiers- of juryrol, en de vijf met een eigen E-hulp
   ['bijbaan', 'rondvaart', 'de rondvaart'], ['bijbaan', 'veerdienst', 'de veerdienst'], ['bijbaan', 'rechtbank', 'de rechtbank'],
+  ['bijbaan', 'cabaret', 'het cabaret'], ['bijbaan', 'loket', 'het loket'], ['bijbaan', 'snackoverlast', 'de snackoverlast'],
+  ['bijbaan', 'tjalke', 'de tjalke'], ['bijbaan', 'bietenoogst', 'de bietenoogst'],
   ['activiteit', 'hengelen', 'hengelen'], ['activiteit', 'pannenkoek', 'pannenkoeken bakken'],
   ['activiteit', 'carillon', 'de beiaard'], ['activiteit', 'boeren', 'boeren'],
   ['minigame', 'padel', 'padel'], ['activiteit', 'kartbaan', 'karten'], ['activiteit', 'pitchputt', 'golf'],
