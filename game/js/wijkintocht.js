@@ -67,8 +67,12 @@ export function kiesStops(ind, gebiedId, { scene = null, landmarks = [], max = M
   const uit = [];
   const seen = new Set();
   const duw = (s) => { if (s && !seen.has(s.id) && uit.length < max) { seen.add(s.id); uit.push(s); } };
-  for (const a of (scene && scene.ankers) || []) duw({ id: 'a:' + a.naam, soort: 'plek', naam: a.naam, x: a.x, y: a.y, hoog: a.h || 0 });
   const g = ind && ind.gebied && ind.gebied.get(gebiedId);
+  // een anker dat buiten de eigen polygoon valt (de catalogus is handwerk) is geen stop van deze wijk
+  for (const a of (scene && scene.ankers) || []) {
+    if (g && g.grens && Number.isFinite(a.x) && Number.isFinite(a.y) && !puntInGebied(g.grens, a.x, a.y)) continue;
+    duw({ id: 'a:' + a.naam, soort: 'plek', naam: a.naam, x: a.x, y: a.y, hoog: a.h || 0 });
+  }
   if (!g) return uit;
   const taken = (g.taken || []).map((id) => ind.taak && ind.taak.get(id)).filter(Boolean)
     .sort((a, b) => (SOORT_RANG[a.soort] ?? 9) - (SOORT_RANG[b.soort] ?? 9) || String(a.id).localeCompare(String(b.id)));

@@ -8,6 +8,7 @@ import fs from 'node:fs';
 import * as W from '../game/js/wijkintocht.js';
 import * as G from '../game/js/gebieden.js';
 import { ontvouw } from '../game/js/grenzen.js';
+import { puntInGebied } from '../game/js/grenzen.js';
 import { veroverTourShot } from '../game/js/camerapath.js';
 import { MOMENTS, LEVEL } from '../game/js/hudbus.js';
 
@@ -207,6 +208,59 @@ t('#708: de intocht is één keer per speler en terug te kijken vanuit Veroverd'
   const it = bron('intochten.js');
   assert.match(it, /intochtGezien\(front\.gebied\)/, 'een geziene intocht gaat uit de wachtrij');
   assert.match(it, /noteerIntocht\(film\.gebied\)/, 'na de film wordt hij als gezien bewaard');
+});
+
+// --- #724: de intocht op de echte data en na zaaien -----------------------------------------
+t('#724: elke veroverbare wijk in de echte grenzen levert een geldige intocht', () => {
+  const echteGrenzen = ontvouw(JSON.parse(fs.readFileSync(new URL('../game/grenzen.json', import.meta.url), 'utf8')));
+  const stad = JSON.parse(fs.readFileSync(new URL('../game/stad.json', import.meta.url), 'utf8'));
+  const landmarks = stad.meta.landmarks || [];
+  // twee taken in het midden van elke wijk: dan is elke wijk veroverbaar (MIN_TAKEN)
+  const echteTaken = [];
+  for (const g of echteGrenzen.wijken) {
+    for (let k = 0; k < G.MIN_TAKEN; k++) echteTaken.push({ id: `taak:${g.id}:${k}`, soort: 'spel', naam: 'Klus', x: g.c[0], y: g.c[1], sleutels: [`s:${g.id}:${k}`] });
+  }
+  const echt = G.bouwIndeling({ grenzen: echteGrenzen, taken: echteTaken });
+  const map = { buildingsNear: () => [], roadsNear: () => [], meta: {} };
+  let gedaan = 0;
+  for (const wijk of echt.gebieden.filter((g) => g.niveau === 'wijk' && g.veroverbaar)) {
+    const film = W.maakIntocht(echt, G.beloningVan(echt, wijk.id), { landmarks });
+    assert.ok(film, `${wijk.naam}: geen intocht`);
+    assert.ok(film.stops.length >= W.MIN_STOPS && film.stops.length <= W.MAX_STOPS, `${wijk.naam}: ${film.stops.length} stops`);
+    for (const stop of film.stops) {
+      assert.ok(Number.isFinite(stop.x) && Number.isFinite(stop.y), `${wijk.naam}: stop ${stop.naam} is niet eindig`);
+      assert.ok(puntInGebied(wijk.grens, stop.x, stop.y), `${wijk.naam}: stop ${stop.naam} ligt buiten de wijk`);
+    }
+    const behind = { pos: { x: wijk.x - 8, y: wijk.y - 8, z: 3.4 }, look: { x: wijk.x, y: wijk.y, z: 1.3 } };
+    const shot = veroverTourShot({ map }, { x: wijk.x, y: wijk.y }, film.stops, behind);
+    assert.equal(typeof shot, 'function', `${wijk.naam}: geen baan`);
+    for (const u of [0, 0.25, 0.5, 0.75, 1]) {
+      const pose = shot(u);
+      assert.ok(Number.isFinite(pose.position.x) && Number.isFinite(pose.position.y) && Number.isFinite(pose.position.z), `${wijk.naam}: pose ${u}`);
+      assert.ok(Number.isFinite(pose.lookAt.x) && Number.isFinite(pose.lookAt.y), `${wijk.naam}: kijklijn ${u}`);
+    }
+    gedaan++;
+  }
+  assert.ok(gedaan > 50, 'te weinig veroverbare wijken in de echte data: ' + gedaan);
+});
+t('#724: een gezaaide speler (bestaande voortgang) zet niets in de intochtwachtrij', () => {
+  const echteGrenzen = ontvouw(JSON.parse(fs.readFileSync(new URL('../game/grenzen.json', import.meta.url), 'utf8')));
+  const echteTaken = [];
+  for (const g of echteGrenzen.wijken) {
+    for (let k = 0; k < G.MIN_TAKEN; k++) echteTaken.push({ id: `taak:${g.id}:${k}`, soort: 'spel', naam: 'Klus', x: g.c[0], y: g.c[1], sleutels: [`s:${g.id}:${k}`] });
+  }
+  const echt = G.bouwIndeling({ grenzen: echteGrenzen, taken: echteTaken });
+  const p = G.nieuwProfiel();
+  const w = {};
+  const aantal = G.zaai(p, echt, new Set(echteTaken.map((x) => x.sleutels[0])));
+  assert.ok(aantal > 50, 'zaaien neemt de oude voortgang over: ' + aantal);
+  assert.deepEqual(W.wachtrij(w), [], 'zaaien zet geen intocht in de wachtrij');
+  assert.deepEqual(p.intochten, [], 'zaaien markeert geen intochten als gezien');
+  // en de bedrading: alleen het echte einde van een verovering (betalen) gaat de wachtrij in
+  const live = fs.readFileSync(new URL('../game/js/gebiedenlive.js', import.meta.url), 'utf8');
+  const zaaiPad = live.slice(live.indexOf('function zaaiAlsNodig'), live.indexOf('function meldVoortgang'));
+  assert.ok(!/wachtOpIntocht/.test(zaaiPad), 'zaaien roept de intochtwachtrij niet aan');
+  assert.match(live, /wachtOpIntocht\(w, b, w\.time\)/, 'de beloning gaat de wachtrij in');
 });
 
 console.log(`wijkintocht_test: ${n - fails}/${n} ok`);
