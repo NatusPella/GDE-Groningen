@@ -162,6 +162,11 @@ const TINT_VAN = {
   golf: 'melk', hengelen: 'veld', race: 'nacht', buiten: 'melk', kade: 'nacht',
 };
 
+// De tint van een sfeer (bestaande rgba-tokens, geen nieuwe hex): bruikbaar als accent van een paneel of kaart.
+export function sfeerTint(id) {
+  return TINT[TINT_VAN[id]] || '';
+}
+
 // De sfeer van een vak; onbekend vak geeft een lege sfeer (de UI valt dan terug op geen band).
 export function sfeerVan(id) {
   return SFEER[id] || LEGE;

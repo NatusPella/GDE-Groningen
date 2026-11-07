@@ -234,12 +234,13 @@ function jobItems() {
   const best = new Map(getSideJobList().map((j) => [j.id, j]));
   return getSideJobOffers(worldRef).map((o) => {
     const j = best.get(o.id) || {};
+    const fam = o.familieNaam || (j.familieNaam || 'Bijbaantje');
     return {
       key: 'job:' + o.id, group: 'bijbaantjes', icon: 'sj-' + o.id, title: o.name, status: o.active ? 'nu' : '',
-      meta: `Niveau ${o.level} · ${o.title} · ${euro(o.pay[0])}–${euro(o.pay[1])} per ronde`, medal: null,
+      meta: `${fam} · niveau ${o.level} · ${o.title} · ${euro(o.pay[0])}–${euro(o.pay[1])} per ronde`, medal: null,
       record: j.bestStreak ? `Record ${j.bestStreak} op rij` : j.rounds ? `${j.rounds} rondes gedaan` : 'Nog niet gedaan',
-      x: o.x, y: o.y, goal: { kind: 'job', id: o.id, name: o.name, sub: 'Bijbaantje', x: o.x, y: o.y }, stopJob: !!o.active,
-      detail: { kicker: 'Bijbaantje', text: o.blurb, rows: [['Niveau', `${o.level} · ${o.title}`], ['Verdienen', `${euro(o.pay[0])}–${euro(o.pay[1])} per ronde`], ...(o.blocked ? [['Nu', o.blocked]] : [])] },
+      x: o.x, y: o.y, goal: { kind: 'job', id: o.id, name: o.name, sub: fam, x: o.x, y: o.y }, stopJob: !!o.active,
+      detail: { kicker: fam, text: `${o.uitleg || ''}${o.uitleg ? ' ' : ''}${o.blurb}`, rows: [['Niveau', `${o.level} · ${o.title}`], ['Verdienen', `${euro(o.pay[0])}–${euro(o.pay[1])} per ronde`], ...(o.blocked ? [['Nu', o.blocked]] : [])] },
     };
   });
 }
