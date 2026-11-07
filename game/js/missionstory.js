@@ -1096,7 +1096,7 @@ function pushIn(p, k) {
 }
 
 // own: the scene plays the voices itself (its shot callback), so cinematics.js must not look them up and start them a second time (#326)
-const cineLines = (lines) => lines.map((l) => ({ speaker: l.speaker, text: l.text, at: l.at, dur: l.dur, clue: l.clue || undefined, own: true }));
+const cineLines = (lines) => lines.map((l) => ({ speaker: l.speaker, text: l.text, at: l.at, dur: l.dur, clue: l.clue || undefined, card: l.card || undefined, own: true }));
 
 // Runs a staged scene: voices, gestures, clue push-ins and the camera
 // (camera(t, cur) returns a pose). keep: the caller cleans up (a queued card).
@@ -1220,6 +1220,9 @@ function playStaged(w, key, tl, { anchor, facing, kicker = '', title = '', cardF
   const ok = playScript(w, def, {
     lines: cineLines(lines), duration: tl.total,
     anchor: { x: anchor.x, y: anchor.y, facing, z },
+    // (#711) de gast hoort dezelfde opname als de gastheer: de scène speelt haar stemmen zelf, dus de opnames gaan
+    // als hulplijst mee in het pakket in plaats van dat de gast ze in de 'lines'-bank zoekt (dat schoof de tijden op)
+    voices: lines.map((l) => (l.voice ? { src: VOICE_DIR + l.voice.src, dur: l.voice.dur } : null)),
     cine: {
       id: 'mission-scene', priority: 3, kicker, title, cardFor, shotOverride,
       frame: (t, dt) => {

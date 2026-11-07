@@ -72,21 +72,30 @@ iets bij komt (stemlijnen in `game/audio`) verandert dit antwoord naar "ja".
 
 ## 6. Interactie, privacy, locatie
 
-Het spel heeft sinds 0.38 (#95, #316-#318) een modus **Samen spelen** (peer-to-peer, tot een
-paar spelers, met een kamercode). Er is geen tekstchat, geen spraak, geen profielen en geen uitwisseling van eigen inhoud; spelers zien elkaar
-alleen als figuren in de wereld en delen de voortgang van het verhaal.
+Sinds 0.57 (#528, #554; ADR 0022/0024) is elke start een sessie: alleen spelen is
+een sessie van één, zonder aankondiging, poort of verbinding. Wie Samen spelen
+opent, krijgt een lobby voor 4 tot 16 spelers (standaard 8); iedereen speelt lokaal
+zijn eigen hoofdrol en houdt eigen geld, verhaal en bezit (#429, #455). Er is geen
+tekstchat, geen spraak en geen account; wel kiest de speler bij de eerste start een
+lokale naam en kleur, die het spel op het apparaat bewaart en aan medespelers toont.
+Die eerste start vraagt één keer "Meedoen met andere spelers?"; zonder antwoord
+zoekt het spel geen contact (een ontbrekende waarde is geen ja). Een sessie is
+standaard besloten; alleen de host maakt hem zelf openbaar, na de #438-melding. De
+openbare lijst toont een sessie-id, de naam, het aantal spelers en de versie — geen
+IP-adres, geen kamercode, geen profiel en geen chat. De kamercode gaat sinds #583
+eenmalig versleuteld mee (ECDH + AES-GCM), ook bij aansluiten via de lijst.
 
 | Vraag | Antwoord | Toelichting |
 |---|---|---|
 | Spelers kunnen met elkaar communiceren (chat, voice, berichten) | Nee | Alleen speltoestand en posities; geen tekst of spraak (`game/js/net/` bevat geen chat- of microfooncode). |
-| Gebruikers kunnen elkaar ontmoeten of vinden | Ja, optioneel: met een kamercode, of via een lijst met openbare sessies (#438, standaard uit) | De lijst toont alleen de sessienaam (gefilterd, max. 24 tekens), het aantal spelers, de versie en een willekeurig sessie-id; geen IP-adres, geen kamercode, geen profiel, geen chat. Een sessie start altijd besloten; alleen de host maakt hem zelf openbaar na een melding (#556). Wie via de lijst aansluit, krijgt een eenmalige kamercode die alleen voor hem versleuteld is (#583). Bij een vraag over "sociale interactie" of "gebruikers ontmoeten": Ja, beperkt. |
-| Online multiplayer | **Ja, optioneel** (Samen spelen) | Peer-to-peer (WebRTC). Het hele spel werkt ook volledig offline voor één speler. |
-| Gebruikersgegenereerde inhoud delen of ontvangen | Nee | |
-| Deelt de game gegevens met derden | Alleen na toestemming in het spel | IP-adres naar openbare STUN-servers; versleutelde signalering (kamercode als sleutel) via openbare brokers. Geen account, geen telemetrie. Zie `game/js/net/netconfig.js`, `net/consent.js` en [PRIVACY-EN-CREDITS.md](PRIVACY-EN-CREDITS.md). |
+| Gebruikers kunnen elkaar ontmoeten of vinden | Ja, optioneel: met een kamercode, of via een lijst met openbare sessies (#438); een sessie is standaard besloten | De lijst toont alleen de sessienaam (gefilterd, max. 24 tekens), het aantal spelers, de versie en een willekeurig sessie-id; geen IP-adres, geen kamercode, geen profiel, geen chat. Alleen de host maakt een sessie zelf openbaar, na een melding. Wie via de lijst aansluit, krijgt een eenmalige kamercode die alleen voor hem versleuteld is (#583). Bij een vraag over "sociale interactie" of "gebruikers ontmoeten": Ja, beperkt. |
+| Online multiplayer | **Ja, optioneel** (Samen spelen) | Peer-to-peer (WebRTC), 4-16 spelers (standaard 8). Het hele spel werkt ook volledig offline, alleen of als sessie van één. |
+| Gebruikersgegenereerde inhoud delen of ontvangen | Nee | Alleen de lokale naam en kleur die de speler zelf kiest; geen upload, geen profiel. |
+| Deelt de game gegevens met derden | Alleen na toestemming in het spel | IP-adres naar openbare STUN-servers; versleutelde signalering (ECDH + AES-GCM, #583) via openbare brokers. Zet de speler de live busposities aan, dan is dat een openbare leesopvraag zonder gegevens van de speler (#395). Geen account, geen telemetrie. Zie `game/js/net/netconfig.js`, `net/consent.js`, `sessionboot.js` en [PRIVACY-EN-CREDITS.md](PRIVACY-EN-CREDITS.md). |
 | Deelt de game de **locatie** van de gebruiker | Nee | Geen geolocatie; het IP-adres bij Samen spelen is geen locatiegegeven dat het spel gebruikt. |
-| Verzamelt of deelt persoonsgegevens, account, e-mail | Nee | Opslag is lokaal (savegame op het apparaat). |
+| Verzamelt of deelt persoonsgegevens, account, e-mail | Nee | Opslag is lokaal (savegame, instellingen en de gekozen naam op het apparaat); de naam gaat alleen naar de medespelers in de sessie. |
 | Digitale aankopen, abonnement | Nee | |
-| Internetverbinding nodig | Alleen voor Samen spelen | De desktopversie draait zonder internet. De webbuild (`web/build.mjs`) levert three.js en de lettertypen zelf mee (24 okt gemeten: geen externe laad-URL's); alleen de losse dev-server (`game/index.html`) haalt ze nog van een CDN. Een vraag over "verbinding met internet" voor Samen spelen: Ja. |
+| Internetverbinding nodig | Nee om te spelen; optioneel voor Samen spelen en live busposities | De desktopversie draait zonder internet. De webbuild (`web/build.mjs`) levert three.js en de lettertypen zelf mee; alleen de losse dev-server (`game/index.html`) haalt ze van een CDN. Een vraag over "verbinding met internet" voor Samen spelen: Ja. |
 | Verwijzingen naar of links naar internet, sociale media | Beperkt | Externe links openen in de systeembrowser (`desktop/main.js`). Vermeld ze als "link naar externe pagina". |
 
 ## 7. Overig
@@ -122,7 +131,7 @@ alleen als figuren in de wereld en delen de voortgang van het verhaal.
    Console). Dat vraagt een account en e-mailadres; dat doet de eigenaar zelf.
 4. Verstuur het certificaat nooit zonder de eigenaar; deze notitie vult niets in.
 
-## Gecontroleerd tegen de code (21 okt 2026, herhaald op `main` na 0.38.1)
+## Gecontroleerd tegen de code (21 okt 2026, herhaald op 7 nov 2026 tegen main 0.57.4)
 
 Zoekopdrachten in `game/js`, `game/index.html` en `game/storydata/script.json`
 (stand `main`, niets gestart of ingevuld):
@@ -135,7 +144,7 @@ Zoekopdrachten in `game/js`, `game/index.html` en `game/storydata/script.json`
 - gokken: alleen kraskaarten en loten voor spelgeld in `shops.js`/`shopmodels3d.js`;
 - alcohol: horeca, kroegmissie, dronken-effect (`drunk.js`);
 - wapens (`weapons.js`): vuisten, knuppel, hockeystick, bezem, fietspomp, klomp, polsstok, pistool, uzi, waterpistool (onschadelijk), shotgun, jachtgeweer, carbidbus en vuurwerk; geen nieuwe soort sinds de eerste versie van dit blad;
-- Samen spelen staat sinds 0.38.0 in de releases (CHANGELOG `[0.38.1]`); de antwoorden in §6 gelden dus voor wat spelers nu downloaden;
+- Samen spelen staat sinds 0.38.0 in de releases (CHANGELOG `[0.38.1]`); de antwoorden in §6 gelden dus voor wat spelers nu downloaden. Sinds 0.57 is elke start een sessie van één (ADR 0024): de eerste start vraagt één keer `onlineMeedoen` (`settings.js:112`, `onlineconsent.js:12`), de lobby kent 4-16 spelers (`coopplayers.js:7-9`) en de kamercode gaat via ECDH + AES-GCM (`net/sigcrypto.js`, #583); een sessie gaat pas openbaar na de eigen keuze van de host (#438, #556);
 - beroving: `muggingrules.js` (deel van het geld, niemand geraakt, geen geweld in beeld);
 - angst/horror: de schaapontvoering door een ufo (#333) is slapstick (een straal en een schaap dat omhoog zweeft), geen horror.
 

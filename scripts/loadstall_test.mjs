@@ -3,15 +3,14 @@
 // node scripts/loadstall_test.mjs  (puur, geen DOM/THREE, ruim onder 1 s)
 //
 // game/js/scene3d.js heeft THREE en de DOM nodig en is hier daarom nagebouwd:
-// de guard van 0.56.1 (tag v0.56.1; syncRoads regel 2062-2064) plus de
-// idle-verversing die in update3D op regel 2543 bij elke frame gebeurde. De
-// laadschermen zijn wel echt: stepProgress uit loadlogic.js en makeMenuGate uit
-// menuready.js bepalen wanneer een scherm klaar is.
+// de guard van 0.56.1 (tag v0.56.1) plus de idle-verversing die in update3D bij
+// elke frame gebeurde. De laadschermen zijn wel echt: stepProgress uit
+// loadlogic.js en makeMenuGate uit menuready.js bepalen wanneer een scherm klaar is.
 //
 // De test bewijst:
 //   1. de guard van 0.56.1 laat roads > 0 staan zolang de focus stil staat: de
 //      bedoelde ontsnapping van 6 frames is dode code omdat het idle-record
-//      elke frame opnieuw gezet wordt (ook na een overgeslagen pas);
+//      elke frame opnieuw gezet werd (ook na een overgeslagen pas);
 //   2. daardoor haalt het laadscherm alleen de time-out (MAX_S = 12 s) en niet
 //      de rust-teller van 12 frames, en opent het startscherm pas op zijn
 //      time-out (GATE.timeoutMs = 20 s);
@@ -20,10 +19,12 @@
 //      herstelt zichzelf (hoogstens 5 overgeslagen frames), waaruit blijkt dat
 //      het de combinatie is: geen nul-toets én de per-frame verversing;
 //   5. een veilige guard (zoals de gebouw-guard in syncBuildings: alleen
-//      skippen als er niets meer ontbreekt, en het record alleen na een echte
-//      pas zetten) bouwt de wegen normaal af en slaat daarna nog steeds werk
-//      over. De broncheck onderaan weigert een vroege return in syncRoads
-//      zonder nul-toets, zodat de gevaarlijke guard niet terug kan sluipen.
+//      skippen als er niets meer ontbreekt en het spel al gestart is, en het
+//      record alleen na een echte pas zetten) bouwt de wegen normaal af en
+//      slaat daarna nog steeds werk over. Die guard staat sinds #553 weer in
+//      syncRoads; de broncheck onderaan weigert elke vroege return zonder de
+//      nul-toets én de game-started-toets, zodat de gevaarlijke guard niet kan
+//      terugsluipen.
 import fs from 'node:fs';
 import { stepProgress, startProgress, MAX_S } from '../game/js/loadlogic.js';
 import { makeMenuGate, GATE } from '../game/js/menuready.js';
@@ -211,13 +212,16 @@ for (const naam of ['geen', 'veilig']) {
 
 // ------------------------------------------------- broncheck op de echte code
 // Een vroege return in syncRoads die de teller overslaat mag alleen als er
-// niets meer open staat; anders kan streamStat.r weer bevriezen.
+// niets meer open staat én het spel al gestart is; anders kan streamStat.r weer
+// bevriezen (0.56.1) of staat de guard tijdens het laden in de weg.
 const zeroCheck = /streamStat\.r\s*===?\s*0|streamPending\(\)\.roads\s*===?\s*0/;
+const startedCheck = /game-started|gameStarted/;
 const earlyReturns = (text) => [...text.matchAll(/if\s*\(([^;]*?)\)\s*return\b/g)].map((m) => m[1]);
-const guardIsSafe = (text) => earlyReturns(text).every((c) => zeroCheck.test(c));
+const guardIsSafe = (text) => earlyReturns(text).every((c) => zeroCheck.test(c) && startedCheck.test(c));
 const gevaarlijkeRegel = 'if (roadSyncIdle && !openSpans.size && !world.quake && roadSyncIdle.q === roadQuality && roadSyncIdle.dist === DRAW_DIST && roadSyncIdle.meshes === roadMeshes.size && roadSyncFrame - roadSyncIdle.frame < 6 && Math.hypot(px - roadSyncIdle.x, py - roadSyncIdle.y) < 0.15) return;';
 ok(!guardIsSafe(gevaarlijkeRegel), 'de broncheck keurt de guard van 0.56.1 af');
-ok(guardIsSafe('if (roadSyncIdle && !openSpans.size && streamStat.r === 0) return;'), 'de broncheck keurt een guard met de nul-toets goed');
+ok(!guardIsSafe('if (roadSyncIdle && streamStat.r === 0) return;'), 'zonder game-started keurt de broncheck een guard af');
+ok(guardIsSafe("if (roadSyncIdle && streamStat.r === 0 && document.body.classList.contains('game-started')) return;"), 'de broncheck keurt de veilige guard goed');
 {
   const src = fs.readFileSync(new URL('../game/js/scene3d.js', import.meta.url), 'utf8');
   const start = src.indexOf('function syncRoads(');
@@ -227,8 +231,12 @@ ok(guardIsSafe('if (roadSyncIdle && !openSpans.size && streamStat.r === 0) retur
   const firstAssign = body.indexOf('streamStat.r =');
   ok(firstAssign > 0, 'syncRoads zet streamStat.r');
   const head = firstAssign > 0 ? body.slice(0, firstAssign) : '';
-  const risks = earlyReturns(head).filter((c) => !zeroCheck.test(c));
-  ok(risks.length === 0, 'elke vroege return in syncRoads toetst eerst dat er geen wegen meer open staan', risks.join(' | '));
+  const risks = earlyReturns(head).filter((c) => !zeroCheck.test(c) || !startedCheck.test(c));
+  ok(risks.length === 0, 'elke vroege return in syncRoads toetst roads === 0 én game-started', risks.join(' | '));
+  // de guard mag de wegenbouw alleen overslaan als de laatste pas klaar was: het
+  // idle-record hoort daarom binnen syncRoads te staan, niet in de per-frame lus
+  const update = src.slice(src.indexOf('export function update3D('));
+  ok(!/roadSyncIdle\s*=/.test(update), 'update3D ververst het wegen-idle-record niet elke frame');
 }
 
 console.log(`${n - fails}/${n} loadstall`);

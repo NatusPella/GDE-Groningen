@@ -12,6 +12,7 @@ import { propSource } from './cutscenemodels.js';
 import { compileScene, fitAnchor, resolveTime, shotPoints } from './cutscript.js';
 import { roofAt } from './camerapath.js';
 import { animateActor, beginSceneActors } from './actoranim.js';
+import { showNameCard } from './namecard.js';
 import { audioPlan } from './cutaudio.js';
 import { cutPakket, cutHostId, cutHostStart, cutHostEnd, cutHostTik, cutGastTik, cutsceneScene, cutsceneVerdeling, acteurRol, cutSpoor } from './coopcut.js';
 
@@ -264,7 +265,9 @@ export function cutHostEinde(w, id, { skipped = false, replaced = false } = {}) 
 }
 
 // replay: een gast speelt de scène van de gastheer na (coopcut.js); die stuurt niets door en slaat niets over
-export function playScript(w, def, { lines, duration, anchor, cine = {}, env: envIn = null, fit = null, replay = false } = {}) {
+// voices: de opnames die de scène zelf afspeelt (missionstory.js), op volgorde van lines; ze gaan alleen mee in het
+// pakket voor de gasten (#711), zodat die dezelfde stem horen en dezelfde ondertiteltijden houden.
+export function playScript(w, def, { lines, duration, anchor, cine = {}, env: envIn = null, fit = null, replay = false, voices = null } = {}) {
   if (current) return false;
   const root = getScene();
   if (!root) return false;
@@ -282,8 +285,16 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
   const env = envIn || (indoors ? kitchenEnv({ x: a.x, y: a.y, z: a.z || 0 }) : { solid: (x, y, z) => roofAt(w.map, x, y) > z - 0.2 });
   const at = indoors ? { ...a, facing: 0 } : fitAnchor(scene, a, env, fit || {});
   let run = null, lastT = 0;
-  // name cards (fx 'naam' { text, dur }): a character is introduced at the lower left (#159)
-  const cards = (def.fx || []).filter((f) => f.fx === 'naam').map((f) => ({ text: f.text, t0: resolveTime(f.t, lines, duration) ?? 0, dur: f.dur ?? 2.4 }));
+  // name cards (fx 'naam' { text, dur }): a character is introduced at the lower left (#159); a line's own `card`
+  // (missionstory.js, #711) counts too, so a guest's replay shows the same name card as the host.
+  const cards = [
+    ...(def.fx || []).filter((f) => f.fx === 'naam').map((f) => ({ text: f.text, t0: resolveTime(f.t, lines, duration) ?? 0, dur: f.dur ?? 2.4 })),
+  ];
+  // (#711) een gast ziet de naamkaarten die de gastheer bij zijn regie toont (missionstory.js speelt ze daar zelf af):
+  // een regel met `card` (de sleutel uit storyarc.js CHARACTERS) komt mee in het pakket en verschijnt alleen bij de replay,
+  // zodat de gastheer hem niet twee keer ziet.
+  const lineCards = replay ? (lines || []).filter((l) => l && l.card).map((l) => ({ key: l.card, t0: Number.isFinite(l.at) ? l.at : 0, dur: Number.isFinite(l.dur) ? l.dur : 2.4 })) : [];
+  let lineCardNow = null;
   let cardNow = null;
   // the tiles round the camera's path are built ahead and held, so no shot cuts to the far LOD or a hole (#157, #20)
   const prewarm = cine.prewarm || shotPoints(scene, at, duration);
@@ -315,6 +326,10 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
         const cur = cards.find((k) => t >= k.t0 && t < k.t0 + k.dur) || null;
         if (cur !== cardNow) { cardNow = cur; setNameCard(cur ? cur.text : null); }
       }
+      if (lineCards.length) {
+        const cur = lineCards.find((k) => t >= k.t0 && t < k.t0 + k.dur) || null;
+        if (cur !== lineCardNow) { lineCardNow = cur; if (cur) showNameCard(cur.key); }
+      }
       const pose = run.frame(t, dt);
       // a hand-made camera for part of the scene (cine.shotOverride(t): a pose, or null to leave it to the script), e.g. the falling flag (M24.3)
       const own = cine.shotOverride ? cine.shotOverride(t) : null;
@@ -332,7 +347,7 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
     },
   });
   // samen spelen: de gasten spelen dezelfde scène (na de start, zodat een scène die niet begint ook niet wordt doorgestuurd)
-  if (ok && !replay && w.coopNet && w.coopNet.role === 'host') cutHostStart(w, cutId, cutPakket({ def, lines, duration, anchor: at, cine }));
+  if (ok && !replay && w.coopNet && w.coopNet.role === 'host') cutHostStart(w, cutId, cutPakket({ def, lines, duration, anchor: at, cine, voices }));
   return ok;
 }
 

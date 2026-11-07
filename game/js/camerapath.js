@@ -1,5 +1,6 @@
 import { hoofdspeler } from './players.js';
 import { pointInPolygon } from './util.js';
+import { tourKeys } from './wijkintocht.js';
 
 // Camera paths for cutscenes, free of DOM and three.js: poses use map
 // coordinates (x/y on the map, z = height in metres).
@@ -174,8 +175,15 @@ function clearPath(w, keys) {
   return keys;
 }
 
-export function wijkStreetShot(w, wijk, a, behind) {
-  const p = hoofdspeler(w);
+// De intocht (#706): één lange tocht van het overzicht door de stops naar het eindbeeld achter
+// de speler. De keyframes komen uit wijkintocht.js (data-gedreven), clearPath tilt ze over de
+// daken en pathShot maakt er een vloeiende baan van. Puur: alleen de kaart en de poses.
+export function veroverTourShot(w, gebied, stops, behind, opts = {}) {
+  if (!w || !w.map || !gebied || !Array.isArray(stops) || !stops.length) return null;
+  return pathShot(clearPath(w, tourKeys(gebied, stops, behind, opts)), (t) => t);
+}
+
+export function wijkStreetShot(w, wijk, a, behind) {  const p = hoofdspeler(w);
   const pick = pickWijkStreet(w, wijk, wijkRadius(w, wijk));
   if (!pick) return null;
   let [ax, ay] = pick.run.a, [bx, by] = pick.run.b;

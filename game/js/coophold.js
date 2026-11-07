@@ -6,7 +6,7 @@
 import { stopCoopNet, removeGuest } from './coopnet.js';
 import { readSession } from './coopsave.js';
 
-let overlay = null, view = null, focusWacht = null;
+let overlay = null, view = null, focusWacht = null, opent = false;
 
 export function isHoldOpen() { return !!overlay; }
 // de sessie is voorbij terwijl het wachtscherm openstaat (de gastheer stopte, of je werd verwijderd): het scherm en de pauze gaan weg
@@ -16,13 +16,28 @@ function closeHold(world) {
   if (focusWacht) { focusWacht.disconnect(); focusWacht = null; }
   if (view) { view.close(); view = null; }
   if (overlay) { overlay.remove(); overlay = null; }
+  opent = false;
   world.coopHold = false;
+}
+
+// (#713) valt er iemand weg midden in een scène, dan eindigen de lopende scènes hier netjes in plaats van te blijven hangen:
+// de gastkopie, een wachtende kopie en het eigen filmpje van de gastheer. Geeft of er iets liep.
+async function eindigScenes(world) {
+  let liep = false;
+  if (world.coopCutBezig != null || (world.coopCutWacht && world.coopCutWacht.length)) {
+    try { const m = await import('./coopcut.js'); liep = (await m.cutGastStop(world, null, true)) || liep; } catch (e) { /* al weg */ }
+    if (world.coopCutWacht) { world.coopCutWacht = null; liep = true; }
+  }
+  try { const c = await import('./cinematics.js'); if (c.isCinematicActive()) { c.skipCinematic(); liep = true; } } catch (e) { /* al weg */ }
+  return liep;
 }
 
 // role: 'host' | 'client'; slot: de plek die is weggevallen (host) of onze eigen plek (gast)
 export async function openHold(world, role, slot = 1, reden = '') {
-  if (overlay || !world.coopNet) return;
+  if (overlay || opent || !world.coopNet) return;
+  opent = true;
   world.coopHold = true; // een eigen vlag: world.uiPaused wordt door phone.js, het laadscherm en andere schermen steeds teruggezet
+  if (await eindigScenes(world)) { try { world.addMessage('De scène stopt: er viel een speler weg.', 5); } catch (e) { /* geen HUD */ } }
   overlay = document.createElement('div');
   overlay.className = 'gm coop-hold';
   overlay.setAttribute('role', 'dialog');

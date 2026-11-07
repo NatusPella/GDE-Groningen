@@ -97,7 +97,47 @@ t('weergaveNamen: het CBS-wijknummer valt weg en dubbele namen krijgen hun gemee
   assert.equal(i.gebied.get('wk:WK002').naam, 'Oosterpoort');
   assert.equal(i.gebied.get('wp:WP0001').naam, 'Groningen');
   const nm = new Map([['GM1', 'Eemsdelta']]);
-  assert.deepEqual(G.weergaveNamen([{ naam: 'Wijk 16', gm: 'GM1' }, { naam: 'Wijk 02 Noord', gm: 'GM1' }], nm), ['Wijk 16', 'Noord']);
+  assert.deepEqual(G.weergaveNamen([{ naam: 'Wijk 16', gm: 'GM1' }, { naam: 'Wijk 02 Noord', gm: 'GM1' }], nm), ['Wijk 16 (Eemsdelta)', 'Noord']);
+});
+// (#710) een kale CBS-wijknaam ("Wijk 14") is een interne naam in titel, HUD en safehouse: de dichtstbijzijnde woonplaats erbij
+t('weergaveNamen: een kale wijknaam krijgt de dichtstbijzijnde woonplaats van dezelfde gemeente erbij', () => {
+  const nm = new Map([['GM1969', 'Westerkwartier'], ['GM0014', 'Groningen']]);
+  const plaatsen = [
+    { naam: 'Zuidhorn', gm: 'GM1969', c: [-11028, -2879] },
+    { naam: 'Grijpskerk', gm: 'GM1969', c: [-17230, -4586] },
+    { naam: 'Groningen', gm: 'GM0014', c: [0, 0] }, // andere gemeente: telt niet mee
+  ];
+  const laag = [
+    { naam: 'Wijk 14', gm: 'GM1969', c: [-11461, -3247] },
+    { naam: 'Wijk 15', gm: 'GM1969', c: [-18066, -5833] },
+    { naam: 'Wijk 03 Veendam-kern', gm: 'GM1969', c: [-11000, -3000] },
+  ];
+  const namen = G.weergaveNamen(laag, nm, plaatsen);
+  assert.deepEqual(namen, ['Wijk 14 (Zuidhorn)', 'Wijk 15 (Grijpskerk)', 'Veendam-kern']);
+  // zonder woonplaatsen blijft er geen kaal nummer over: de gemeente erbij
+  assert.deepEqual(G.weergaveNamen([{ naam: 'Wijk 00', gm: 'GM1969' }], nm), ['Wijk 00 (Westerkwartier)']);
+  assert.deepEqual(G.weergaveNamen([{ naam: 'Wijk 00', gm: 'GMonbekend' }], nm), ['Wijk 00']);
+  // de veilige kant: nooit twee dezelfde weergavenamen zonder onderscheid
+  assert.equal(new Set(G.weergaveNamen(laag, nm, plaatsen)).size, 3);
+});
+// (#710) dezelfde naam in de titel, het safehouse en de HUD: één bron, via de gewone indeling
+t('weergaveNamen: een kale wijknaam komt ook zo in de titel en het safehouse', () => {
+  const grenzen = ontvouw({
+    v: 1, jaar: 2025, bron: ['test'],
+    provincie: vk('PV20', 'Groningen', -1000, -1000, 50000, 30000),
+    gemeenten: [vk('GM1969', 'Westerkwartier', 0, 0, 20000, 10000)],
+    woonplaatsen: [vk('WP0001', 'Zuidhorn', 0, 0, 10000, 10000, { gm: 'GM1969' })],
+    wijken: [vk('WK14', 'Wijk 14', 9000, 9000, 20000, 10000, { gm: 'GM1969' })],
+    buurten: [],
+  });
+  const i = G.bouwIndeling({ grenzen, taken: [
+    { id: 'a:1', soort: 'spel', naam: 'Padel', x: 10000, y: 9500, sleutels: ['u:1'] },
+    { id: 'a:2', soort: 'spel', naam: 'Padel 2', x: 12000, y: 9600, sleutels: ['u:2'] },
+  ] });
+  assert.equal(i.gebied.get('wk:WK14').naam, 'Wijk 14 (Zuidhorn)');
+  assert.equal(G.beloningVan(i, 'wk:WK14').titel, 'Wijkheld van Wijk 14 (Zuidhorn)');
+  assert.equal(G.huisVan(i, 'wk:WK14').naam, 'Safehouse Wijk 14 (Zuidhorn)');
+  assert.ok(!/Wijk \d+$/.test(G.beloningVan(i, 'wk:WK14').titel), 'geen kale interne naam meer');
 });
 t('keten: van de provincie af tot het gebied, met de wijk tussen de gemeente en de buurt', () => {
   const i = ind();

@@ -21,6 +21,8 @@ Alleen de nieuwste release krijgt fixes.
 - Het spel heeft geen account en geen telemetrie. Saves en instellingen staan alleen
   op je eigen apparaat. Alleen bij samen spelen (na jouw toestemming) gaat je IP-adres
   naar een openbare STUN-server en gaat versleutelde signalering via openbare brokers;
+  zet je de live busposities aan, dan is dat een openbare leesopvraag zonder gegevens
+  van jou (wel ziet die dienst je IP-adres, zoals bij elke webopvraag);
   zie [docs/PRIVACY-EN-CREDITS.md](docs/PRIVACY-EN-CREDITS.md).
 - De builds zijn niet ondertekend (zie de README). Download ze alleen van
   de Releases van deze repo.

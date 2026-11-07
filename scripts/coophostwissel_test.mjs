@@ -29,6 +29,13 @@ ok(m.voertuigen[0].uiterlijk.naam === 'hatch' && m.voertuigen[0].uiterlijk.kleur
 const oud = leesMomentopname(JSON.stringify({ ...m, opdracht: { id: 'M12', stap: 3, staat: 'bezig', t: 61.2 }, voertuigen: [{ id: 'v7', soort: 'auto', x: 1, y: 2 }] }));
 ok(oud && oud.opdracht.deel === 0 && oud.opdracht.tijd === null && oud.voertuigen[0].uiterlijk === null, 'een oudere momentopname zonder de nieuwe velden blijft leesbaar');
 ok(maakMomentopname({ opdracht: { id: 'x', deel: -4, tijd: Infinity } }).opdracht.deel === 0 && maakMomentopname({ opdracht: { id: 'x', tijd: Infinity } }).opdracht.tijd === null, 'de stage en de tijd worden begrensd');
+// (#713) liep er een scène van de gastheer? De momentopname zegt het, zodat de nieuwe host hem netjes kan stoppen
+const metScene = maakMomentopname({ ...inv(), scène: { id: 7, soort: 'script', t: 12.345 } });
+ok(metScene.scène && metScene.scène.id === 7 && metScene.scène.soort === 'script' && metScene.scène.t === 12.35, 'de scènestand gaat mee in de momentopname');
+ok(leesMomentopname(JSON.stringify(metScene)).scène.id === 7, 'en komt er heel terug');
+ok(maakMomentopname(inv()).scène === null, 'zonder scène: niets');
+ok(maakMomentopname({ ...inv(), scène: { id: 0 } }).scène === null && maakMomentopname({ ...inv(), scène: { id: 'x' } }).scène === null, 'een onzin-scène id telt niet');
+ok(leesMomentopname(JSON.stringify({ ...m, scène: null })).scène === null, 'een oudere momentopname zonder scène blijft leesbaar');
 const pak = codeerMomentopname(m);
 ok(pak.len === pak.json.length && pak.sum === controlegetal(pak.json) && pak.stukken.join('') === pak.json, 'stukken, lengte en controlegetal');
 ok(controlegetal('a') !== controlegetal('b') && controlegetal('') === '811c9dc5', 'controlegetal');

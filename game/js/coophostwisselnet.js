@@ -65,6 +65,9 @@ export function verzamelMomentopname(world, d = {}) {
     tijd: { dag: world.calendar && world.calendar.day, uur: world.clock, tempo: 1 },
     weerstaat: (() => { const e = weerEvent(world.weatherState); if (!e) return null; const { k, ...rest } = e; return rest; })(),
     wanted: { niveau: world.wanted | 0, hitte: (world.police && world.police.heat) || 0 },
+    // (#713) liep er een scène van de gastheer? De nieuwe host kan hem niet afmaken (de camera en de data zijn van deze
+    // wereld) en stopt hem netjes: de momentopname zegt alleen dát er een scène liep.
+    scène: n.cutNu != null ? { id: n.cutNu, soort: 'script', t: 0 } : null,
     opdracht: o, spelers, kapot: d.leesKapot ? d.leesKapot(world) : [], voertuigen,
   });
 }
@@ -98,6 +101,14 @@ export function pasMomentopnameToe(world, m, d = {}, opt = {}) {
   }
   if (d.zetKapot && m.kapot.length) d.zetKapot(world, m.kapot);
   if (d.zetVoertuigen && m.voertuigen.length) d.zetVoertuigen(world, m.voertuigen);
+  // (#713) de vorige gastheer stond midden in een scène: die kan hier niet verder (camera en data zijn van zijn wereld) en
+  // eindigt netjes bij iedereen in plaats van te blijven hangen. De gasten horen hetzelfde.
+  if (m.scène) {
+    const tekst = 'De scène van de vorige speler is gestopt.';
+    meld(world, tekst, 6);
+    try { if (world.coopNet && world.coopNet.role === 'host' && world.coopNet.hub) world.coopNet.hub.announce({ k: 'melding', tekst }); } catch (e) { /* nog geen hub */ }
+    import('./cinematics.js').then((c) => { if (c.isCinematicActive()) c.skipCinematic(); }).catch(() => {});
+  }
   erf.klaar = true;
   return uit;
 }
@@ -114,7 +125,12 @@ function vanHost(world, uit, doel) {
 }
 function zetHold(world, aan) {
   const w = st(world);
-  if (aan) { w.hold = true; world.coopHold = true; } else if (w.hold) { w.hold = false; world.coopHold = false; }
+  if (aan) {
+    w.hold = true; world.coopHold = true;
+    // (#713) een gast die midden in een scène van de gastheer zit: bij een overdracht eindigt zijn kopie netjes in plaats
+    // van te blijven hangen; de nieuwe gastheer begint met een schone lei.
+    if (world.coopCutBezig != null) import('./coopcut.js').then((m) => m.cutGastStop(world, null, true)).catch(() => { /* al weg */ });
+  } else if (w.hold) { w.hold = false; world.coopHold = false; }
 }
 function zetPauze(world, tekst, id, tot) { const w = st(world); w.pauze = { id, tot }; ui(world).pauze = { tekst }; zetHold(world, true); }
 function eindPauze(world) { const w = st(world); w.pauze = null; ui(world).pauze = null; zetHold(world, false); }

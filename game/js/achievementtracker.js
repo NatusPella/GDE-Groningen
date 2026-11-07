@@ -23,6 +23,7 @@ import { noteMoney } from './finance.js';
 import { initVisboek } from './visboeklive.js';
 import { initLoopbaan, loopbaanOpStat, loopbaanKm, loopbaanTel, getProfiel } from './loopbaanlive.js';
 import { initGebieden, updateGebieden, gebiedenOpVondst, getOverzicht, bezoekPlek } from './gebiedenlive.js';
+import { probeerIntocht } from './intochten.js';
 import { maakBron } from './gebiedenbronnen.js';
 
 const NEAR_MISS_SPEED = 12; // m/s: 50 km/u is 13,9 m/s, dus een gewone stadsweg valt binnen bereik
@@ -154,6 +155,7 @@ export function updateAchievementTracker(dt, w) {
     trackRail(dt, w, p, pv);
     trackMission(dt, w, pv);
     updateGebieden(dt, w, () => getMissionList().filter((m) => m.done).map((m) => m.id));
+    probeerIntocht(dt, w); // #705: de intocht speelt zodra de speler rustig is
     trackBezoek(dt, w);
     syncGebiedStats(dt, w);
     updateEierballen(dt, w, p, pv);

@@ -119,6 +119,18 @@ Een verhaalstap met een `choice` (een gesprek met een vraag en twee of drie antw
 
 Nog niet gedaan: bij een keuze met een eigen invoerveld (een naam of een bedrag) is er geen paneel om mee te drukken, en de uitleg onder de balk (`help`) gaat niet mee in het bericht.
 
+## Filmpjes zonder script: wat een gast ziet (#712)
+
+Alleen scènes met een scènebeschrijving (`playScript`, `cutscenehost.js`) gaan als data naar de gasten; die speelt een gast lokaal na. Alle andere momenten zijn `playCinematic` met een eigen camerabaan, en die zijn **host-only**: de wijkflyover, het eerste-bezoek-kaartje, het landmerk, de Ommelanden, de crash, wanted5, missie-intro's en -outro's, de dood, uitslagen, de heist-ontsnapping, de treinreis, de finale en de aftiteling. De gast speelt ze niet mee, maar ziet ook niet meer alleen twee zwarte balken:
+
+- De gastheer leest zijn titelkaart (`readHostScene` in `coopscene.js`): `kicker`, `title`, `big`, `accent` en `tint` gaan mee in het scènebericht (`schoonScene` in `coopworld.js`) en de gast tekent ze als kaart in de laag over zijn scherm (`updateHostScene`), met de regel eronder als de host die heeft.
+- Elk host-only moment heeft minstens één regel, zodat er iets te lezen valt: het landmerk ("Weer een stukje Grunn dat je nu kent."), de crash ("Krak. Iemand lette even niet op."), wanted5 ("Vijf sterren. Nu even rustig aan doen."). De wijk heeft zijn eigen regel, de Ommelanden ook.
+- Wat een gast **niet** ziet: de camera en het beeld zelf. Voor korte kaarten (enkele seconden) is dat de bedoeling; een lange film (treinreis, heist, finale) is bij een gast dus een lange balk met een kaart. Dat lokaal naspelen is nog niet gedaan (zie "Niet gedaan").
+
+Een scène die binnenkomt terwijl een gast in zijn eigen menu, kaart, winkel, telefoon of minigame zit, speelt niet achter het paneel door: hij wacht in een kleine wachtrij tot de gast weer vrij is (`cutGastBezet`/`cutGastWacht` in `coopcut.js`, elke beeld getikt vanuit `tickCoopNet`) en vervalt als de gastheer intussen klaar is. Staat de gast in zijn eigen pauzemenu of kaart terwijl zijn kopie al loopt, dan loopt die kopie door met de tijd van de gastheer, zodat hij na het sluiten niet bevriest en niet bijspringt (#714).
+
+Valt de gastheer weg of draagt hij het spel over midden in een scène (#713), dan eindigt die scène netjes in plaats van te blijven hangen: het wachtscherm van samen spelen stopt de lopende kopie en het eigen filmpje, en de gast ziet "De scène stopt: er viel een speler weg." De herstelmomentopname zegt alleen dát er een scène liep (`scène` in `coophostwissel.js`); de nieuwe gastheer kan hem niet afmaken (de camera en de scène-data zijn van de oude wereld) en meldt "De scène van de vorige speler is gestopt." aan iedereen.
+
 ## Hoe het werkt
 
 **Winkelen.** In `updateGameplay` (main.js) draait voor een gast alleen `updateGastLokaal`: eerst `tryShopInteract`, `tryMachineInteract`

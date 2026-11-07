@@ -16,15 +16,23 @@ import('./storytalk.js').then((m) => { talkState = m.talkState; }).catch(() => {
 
 const text = (el) => (el ? String(el.textContent || '').replace(/\s+/g, ' ').trim() : '');
 
-// De host: wat staat er nu op het scherm? { filmpje, regel: {wie, tekst}|null, keuze: {tekst, opties}|null }
+// De host: wat staat er nu op het scherm? { filmpje, regel: {wie, tekst}|null, keuze: {tekst, opties}|null, kaart }
 export function readHostScene(world) {
   const cine = document.getElementById('cine');
   const filmpje = !!(world && world.cameraOverride) || isCinematicActive();
   let regel = null;
+  let kaart = null;
   if (cine && cine.classList.contains('has-sub')) regel = { wie: text(cine.querySelector('.cine-speaker')), tekst: text(cine.querySelector('.cine-line')) };
   else {
     const ts = talkState();
     if (ts.cur && ts.cur.line) regel = { wie: text(document.querySelector('#story-talk .st-speaker')), tekst: String(ts.cur.line) };
+  }
+  // (#712) een filmpje zonder script (wijk, landmark, crash, wanted5, missie-intro's) is host-only: de gast zag alleen
+  // twee zwarte balken. De titelkaart van de host gaat daarom mee; updateHostScene tekent hem bij de gast.
+  if (filmpje && cine) {
+    const k = text(cine.querySelector('.cine-kicker')), t = text(cine.querySelector('.cine-title')), b = text(cine.querySelector('.cine-big'));
+    const accent = cine.dataset.accent || '', tint = cine.dataset.tint || '';
+    if (k || t || b || accent || tint) kaart = { kicker: k, title: t, big: b, accent, tint };
   }
   let keuze = null, meter = null, kicker = '', nr = null;
   const panel = document.querySelector('#hud .cw-panel:not([hidden])');
@@ -39,7 +47,7 @@ export function readHostScene(world) {
   // Een stap die zijn eigen paneel zet (de bakronde, #525) gaat voor: de keuze/timing hierboven leest de DOM,
   // maar een bakstand staat niet in de HUD.
   const eigen = world && world.coopStagePanel;
-  return { filmpje, pauze, regel, keuze, paneel: eigen || paneelStand(world, keuze, meter, kicker, nr) };
+  return { filmpje, pauze, regel, keuze, kaart, paneel: eigen || paneelStand(world, keuze, meter, kicker, nr) };
 }
 
 // De balk van een timing zoals de gastheer hem ziet (choicepanel.js zet de naald op `left: v%` en de zone op
@@ -107,7 +115,9 @@ export function updateHostScene(world) {
   const balken = sc.filmpje ? `<div style="${bar}top:0;height:11%"></div><div style="${bar}bottom:0;height:11%"></div>` : '';
   const eigenMenu = !!document.querySelector('#pause-menu.visible'); // de gast zit zelf in zijn pauzemenu: de regel zou over de kop liggen
   const pauze = ''; // de melding 'X heeft het spel op pauze' is op verzoek van de eigenaar weggehaald (24-10): de wereld loopt door of staat stil zonder melding;
-  const kop = sc.filmpje ? `<div style="position:absolute;left:0;right:0;top:12.5%;text-align:center;font-size:22px;text-shadow:0 1px 3px #000">${esc(filmpjeTekst(naam))}</div>` : '';
+  const kop = sc.filmpje && !sc.kaart ? `<div style="position:absolute;left:0;right:0;top:12.5%;text-align:center;font-size:22px;text-shadow:0 1px 3px #000">${esc(filmpjeTekst(naam))}</div>` : '';
+  // (#712) de titelkaart van het host-filmpje: de gast ziet waar het over gaat in plaats van alleen twee balken
+  const kaart = sc.kaart ? `<div style="position:absolute;left:0;right:0;top:13%;text-align:center;text-shadow:0 1px 3px #000,0 0 2px #000">${sc.kaart.kicker ? `<div style="font-size:18px;letter-spacing:.2em;color:#3fc97a">${esc(sc.kaart.kicker)}</div>` : ''}${sc.kaart.title ? `<div style="font-size:44px;font-family:'Bebas Neue','Arial Narrow',Arial,sans-serif;line-height:.95;text-transform:uppercase">${esc(sc.kaart.title)}</div>` : ''}${sc.kaart.big ? `<div style="font-size:36px;font-family:'Bebas Neue','Arial Narrow',Arial,sans-serif;line-height:.95;text-transform:uppercase">${esc(sc.kaart.big)}</div>` : ''}</div>` : '';
   const regel = sc.regel ? `<div style="position:absolute;left:10%;right:10%;bottom:${sc.filmpje ? '13' : '16'}%;text-align:center;font-size:26px;line-height:1.3;text-shadow:0 1px 3px #000,0 0 2px #000"><b style="color:#3fc97a">${esc(sc.regel.wie)}</b>${sc.regel.wie ? ': ' : ''}${esc(sc.regel.tekst)}</div>` : '';
   const keuze = sc.keuze ? `<div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);max-width:620px;padding:18px 24px;border-radius:8px;background:rgba(12,20,14,0.88);box-shadow:inset 0 0 0 1px rgba(240,237,228,0.24)"><div style="font-size:24px;line-height:1.3">${esc(sc.keuze.tekst)}</div><div style="margin-top:10px;font-size:20px;opacity:.85">${esc(naam)} kiest:</div><ul style="margin:6px 0 0;padding-left:22px;font-size:22px">${sc.keuze.opties.map((o) => `<li>${esc(o)}</li>`).join('')}</ul></div>` : '';
   // de choice-stap toont zijn opties ook als tekstblok in het midden; dan staat er alleen de toetsregel bij (#525)
@@ -117,5 +127,5 @@ export function updateHostScene(world) {
     ? `${sc.paneel.ronde ? `<div style="font-size:17px;opacity:.85">${esc(sc.paneel.ronde)}</div>` : ''}${sc.paneel.tekst ? `<div style="font-size:22px;margin-top:2px">${esc(sc.paneel.tekst)}</div>` : ''}`
     : '';
   const paneel = sc.paneel ? `<div style="position:absolute;left:0;right:0;bottom:${sc.filmpje ? '13' : (los ? '16' : '9')}%;text-align:center;font-size:19px;opacity:.9;text-shadow:0 1px 3px #000">${vraag}${esc(paneelTekst(sc.paneel))}${balk}</div>` : '';
-  el.innerHTML = balken + kop + pauze + regel + los + paneel;
+  el.innerHTML = balken + kop + kaart + pauze + regel + los + paneel;
 }
