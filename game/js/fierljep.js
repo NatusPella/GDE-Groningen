@@ -341,7 +341,7 @@ function camSide(v) {
 function startCamera(v) {
   v.camAt = camSide(v);
   v.side = v.camAt.sx;
-  // (#728) een camerastand voor de sprong, geen scène van st seconden die het slot bezet
+  // (#728) een camerastand voor de sprong, geen scène van 600 seconden die het slot bezet
   v.cine = startCameraTake('fierljep', () => v.cam && v.cam.last, { letterbox: true, hideHud: true });
 }
 
@@ -665,4 +665,5 @@ export function debugVault(opts = {}) {
 }
 
 if (typeof window !== 'undefined') window.__fierljep = { poleVault, findVaultSpot, debugVault, JELLE_LOOK, vaults };
+
 

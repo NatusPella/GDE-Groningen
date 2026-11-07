@@ -327,7 +327,7 @@ let stemmenStilGemeld = false;
 // De stemmen van een scène (#711): regels zonder eigen opname krijgen er een uit de
 // 'lines'-bank. De pure regels staan in voicetiming.js, zodat cutscenehost ze al vóór
 // compileScene kan toepassen (#731: de shots en cues compilen met dezelfde duur als de
-// stemmen). Een scène die de opname zelf afspeelt (own) of al een oice heeft, blijft
+// stemmen). Een scène die de opname zelf afspeelt (own) of al een voice heeft, blijft
 // staan; de gast houdt zo dezelfde opname en ondertiteltijden als de gastheer.
 // Export voor test en voor de gastkant (coopcut_test).
 export function attachVoices(a) {
@@ -1318,5 +1318,7 @@ export function skipAllCinematics() {
   swallowSpace = false;
   skipHoldSince = null;
 }
+
+
 
 
