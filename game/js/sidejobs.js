@@ -25,7 +25,7 @@ import { recordStat, setStatMax, recordUnique, unlockAchievement } from './achie
 import { dist, isInWater } from './util.js';
 import { releaseVehicle, removeVehicle, removePed, euro, maakContextregister } from './sidejobkit.js';
 import { jobVoiceFor, sayJobLine, sayDuoJobLine } from './sidejobvoice.js';
-import { metGroepsbonus } from './groepsbonus.js';
+import { metGroepsbonus, bonusDelen, GROEPSBONUS_UITLEG } from './groepsbonus.js';
 import bezorger from './sidejob_bezorger.js';
 import krantenwijk from './sidejob_krantenwijk.js';
 import taxi from './sidejob_taxi.js';
@@ -58,6 +58,7 @@ import { noteMoney } from './finance.js';
 import { loopbaanLoon, loopbaanTel, loopbaanDeel } from './loopbaanlive.js';
 import { vakVanBaan } from './loopbaan.js';
 import { sfeerVan } from './carrieresfeer.js'; // #631: de sfeer van het vak bij de baan (naam in de kaart)
+import { jobLevel as niveauVanRondes, titelVanNiveau, rondeWaarde, sidejobProfiel } from './sidejobprofiel.js'; // #631/#667/#668
 import { hoofdspeler } from './spelersregister.js'; // de speler achter dit scherm doet de dienst (#446); een gast heeft zijn eigen wereldstaat (contexts, #492) en ziet die via coopbijbaan.js
 
 export const SIDE_JOBS = [bezorger, krantenwijk, taxi, bus, rondvaart, fietsdepot, verhuizing, rondvaarttour, boa, rechtbank, cabaret, vracht, loket, studiestaat, vigilantia, promotie, kamerkoning, wolkenhal, helix, niemeyer, bernard, energielabel, tjalke, lijn, ...BIJBAAN_JOBS, veerdienst, zeeschipLauwersoog, zeeschipEemshaven, ...PANEEL_JOBS, ...STAD_JOBS, bietenoogst, boerderij, snackoverlast];
@@ -71,8 +72,6 @@ const ABANDON_DIST = 70;
 const ABANDON_TIME = 60;
 const NEXT_ROUND_DELAY = 1.6;
 const RESTART_COOLDOWN = 3;
-const LEVEL_AT = [0, 5, 12, 25, 45];
-const LEVEL_TITLES = ['Nieuweling', 'Invaller', 'Vaste kracht', 'Routinier', 'Legende'];
 
 let world = null;
 let spots = [];
@@ -159,21 +158,20 @@ function rec(id) {
 }
 
 export function jobLevel(id) {
-  const r = rec(id).rounds;
-  let lvl = 1;
-  for (let i = 0; i < LEVEL_AT.length; i++) if (r >= LEVEL_AT[i]) lvl = i + 1;
-  return lvl;
+  const r = rec(id);
+  return niveauVanRondes(Number.isFinite(r.levelRondes) ? r.levelRondes : r.rounds);
 }
 
 export function levelTitle(lvl) {
-  return LEVEL_TITLES[Math.max(0, Math.min(LEVEL_TITLES.length - 1, lvl - 1))];
+  return titelVanNiveau(lvl);
 }
 
 export function getSideJobList() {
   return spots.map((s) => {
     const r = rec(s.job.id);
     const lvl = jobLevel(s.job.id);
-    return { id: s.job.id, name: s.job.name, blurb: s.job.blurb, x: s.x, y: s.y, level: lvl, title: levelTitle(lvl), rounds: r.rounds, earned: r.earned, bestStreak: r.bestStreak, active: !!ctx && ctx.job === s.job };
+    const pr = sidejobProfiel(s.job.id);
+    return { id: s.job.id, name: s.job.name, blurb: s.job.blurb, x: s.x, y: s.y, level: lvl, title: levelTitle(lvl), rounds: r.rounds, earned: r.earned, bestStreak: r.bestStreak, active: !!ctx && ctx.job === s.job, familie: pr.familie, familieNaam: pr.familieNaam, sfeer: pr.sfeer };
   });
 }
 
@@ -188,10 +186,11 @@ export function getSideJobOffers(w) {
     const r = rec(s.job.id);
     const [lo, hi] = r.rounds >= 2 ? [Math.round(r.earned / r.rounds * 0.75), Math.round(r.earned / r.rounds * 1.25)] : PAY_GUESS[s.job.id] || [25, 60];
     const lvl = jobLevel(s.job.id);
+    const pr = sidejobProfiel(s.job.id);
     return {
       id: s.job.id, name: s.job.name, blurb: s.job.blurb, x: s.x, y: s.y, level: lvl, title: levelTitle(lvl),
       pay: [lo, Math.max(lo + 5, hi)], dist: dist(s.x, s.y, p.x, p.y), active: !!ctx && ctx.job === s.job,
-      blocked: ctx && ctx.job === s.job ? '' : why,
+      blocked: ctx && ctx.job === s.job ? '' : why, familie: pr.familie, familieNaam: pr.familieNaam, sfeer: pr.sfeer, uitleg: pr.uitleg,
     };
   }).sort((a, b) => a.dist - b.dist);
 }
@@ -490,6 +489,9 @@ function completeRound(c, res = {}) {
   if (host) {
     const r = rec(c.job.id);
     const before = jobLevel(c.job.id);
+    // #668: de eerste ronde van een baan telt dubbel voor het niveau; de ruwe rondeteller blijft eerlijk.
+    const gewogen = Number.isFinite(r.levelRondes) ? r.levelRondes : r.rounds;
+    r.levelRondes = gewogen + rondeWaarde(gewogen);
     r.rounds++;
     r.earned += total;
     if (c.streak > r.bestStreak) r.bestStreak = c.streak;
@@ -501,10 +503,11 @@ function completeRound(c, res = {}) {
     const after = jobLevel(c.job.id);
     c.levelUp = after > before ? after : 0;
   }
-  const bits = [`+${euro(host ? total : deelBasis)}`];
+  const bits = [bonusDelen(pay + tip, aantal, total, SIDEJOB_LEVEL_BONUS * (Math.max(1, c.level) - 1)).tekst];
   if (tip) bits.push(`fooi ${euro(tip)}`);
-  if (aantal > 1 && total > pay + tip) bits.push(`groepsbonus x${(total / Math.max(1, pay + tip)).toFixed(1).replace('.', ',')}`);
   bits.push(`reeks ${c.streak}`);
+  // #685: 1+1=3 één keer uitleggen, bij de eerste gedeelde beloning
+  if (aantal > 1 && !c.world.groepsbonusUitleg) { c.world.groepsbonusUitleg = true; bits.push(GROEPSBONUS_UITLEG); }
   c.world.addMessage(`${res.text ? res.text + ' ' : ''}${bits.join(' · ')}`, 3.6);
   if (host) {
     if (c.levelUp) sayJobLine(c.job, 'level');
@@ -851,6 +854,12 @@ function vulStand(p, c) {
   p.id = c.job.id;
   p.label = c.job.name;
   p.color = c.job.color;
+  // #631/#667: sfeer en familie mee met de publicatie, zodat de HUD-kaart en het doel dezelfde bron lezen.
+  const pr = sidejobProfiel(c.job.id);
+  p.sfeer = pr.sfeer;
+  p.sfeerVak = pr.vak;
+  p.familie = pr.familie;
+  p.familieNaam = pr.familieNaam;
   p.marker = v.marker && Number.isFinite(v.marker.x) ? v.marker : null;
   p.dots = v.dots || [];
   p.progress = v.progress || '';
@@ -1272,7 +1281,7 @@ export function applySideJobSave(w, d) {
   const n = (v) => (Number.isFinite(v) && v >= 0 ? Math.floor(v) : 0);
   for (const [id, r] of Object.entries(d.jobs || {})) {
     if (!BY_ID.has(id) || !r || typeof r !== 'object') continue;
-    progress[id] = { rounds: n(r.rounds), earned: n(r.earned), bestStreak: n(r.bestStreak), shifts: n(r.shifts) };
+    progress[id] = { rounds: n(r.rounds), earned: n(r.earned), bestStreak: n(r.bestStreak), shifts: n(r.shifts), levelRondes: n(Number.isFinite(r.levelRondes) ? r.levelRondes : r.rounds) };
   }
   if (Array.isArray(d.seen)) for (const id of d.seen) if (BY_ID.has(id)) seen.add(id);
 }

@@ -8,6 +8,7 @@ import { namedBuildingSpot, pick, euro } from './sidejobkit.js';
 import { createChoicePanel, keycap } from './choicepanel.js';
 import { KEUZE_JOBS, pickKeuzeRound, keuzePay } from './keuzewerk.js';
 import { hulpStap, hulpTip } from './bijbaanhulp.js';
+import { sidejobProfiel } from './sidejobprofiel.js';
 import { dist } from './util.js';
 import { wgsToWorld } from './rdnew.js';
 
@@ -19,7 +20,7 @@ const BAD_SAY = ['Dat staat er net niet.', 'Helaas, de volgende.', 'Bijna.'];
 
 function makeJob(spec) {
   let panel = null;
-  const ensurePanel = () => panel || (panel = createChoicePanel(spec.color));
+  const ensurePanel = () => panel || (panel = createChoicePanel(sidejobProfiel(spec.id).accent || spec.color));
   const closePanel = (c) => { if (panel) panel.hide(); if (c) c.data.open = false; };
   const spot = (map) => {
     const s = namedBuildingSpot(map, spec.building);

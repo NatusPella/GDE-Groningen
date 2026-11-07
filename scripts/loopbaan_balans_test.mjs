@@ -10,6 +10,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import * as P from '../game/js/sidejobprofiel.js';
 import * as L from '../game/js/loopbaan.js';
 import { SIDEJOB_PAY_MULT } from '../game/js/economy.js';
 
@@ -119,6 +120,22 @@ t('een bijbaanronde levert op het hoogste niveau per uur hooguit 30% meer dan op
   const eerder = bestaandMax, nu = bestaandMax * L.LOON_FACTOR[L.MAX_NIVEAU - 1];
   assert.ok(nu / eerder <= 1.3 + 1e-9);
   assert.ok(nu < 5 * 90 * 1.6, 'een ronde blijft onder 5 keer een gemiddeld basisbedrag, ook met alles op het hoogst');
+});
+
+// #668: variatie telt mee in het bijbaanniveau — de eerste ronde van een baan telt dubbel, daarna één.
+// De drempels en het loon blijven gelijk; dit is alleen de teller, zodat ontdekken niet slechter is dan grinden.
+t('#668: de eerste ronde van een baan telt dubbel voor het niveau, de drempels blijven gelijk', () => {
+  let rondes = 0;
+  const waarden = [];
+  for (let i = 0; i < 5; i++) { const w = P.rondeWaarde(rondes); rondes += w; waarden.push(w); }
+  assert.deepEqual(waarden, [2, 1, 1, 1, 1], 'alleen de eerste ronde telt dubbel');
+  assert.equal(P.jobLevel(rondes), 2, 'vijf rondes bij één baan is niveau 2');
+  assert.deepEqual(P.LEVEL_AT, [0, 5, 12, 25, 45], 'dezelfde drempels');
+  assert.equal(P.rondeWaarde(1), 1);
+  const sj = fs.readFileSync(new URL('../game/js/sidejobs.js', import.meta.url), 'utf8');
+  assert.match(sj, /rondeWaarde\(gewogen\)/, 'de baan gebruikt dezelfde regel');
+  assert.doesNotMatch(sj, /const LEVEL_AT =/, 'geen tweede drempeltabel in sidejobs.js');
+  assert.match(sj, /levelRondes: n\(/, 'de gewogen teller overleeft een save');
 });
 
 console.log(`loopbaan_balans_test: ${n - fails}/${n} ok`);

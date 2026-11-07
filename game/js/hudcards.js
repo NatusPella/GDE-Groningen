@@ -31,6 +31,7 @@ import { enqueueCard } from './hudbus.js';
 import { CAL_ICONS } from './calendar.js';
 import { menuMelding } from './menumelding.js';
 import { hoofdspeler } from './players.js';
+import { sfeerVan, sfeerStijl } from './carrieresfeer.js'; // #631: de sfeerband van de bijbaan op de kaart
 
 // the HUD's attention budget: one prominent card at a time
 const MAX_VISIBLE = 1;
@@ -217,8 +218,13 @@ function keycaps(html) {
 function cardHtml(c) {
   const s = c.spec;
   const kicker = s.kicker || CARD_KINDS[s.kind].label;
+  // #631: een bijbaankaart draagt de sfeer van zijn vak als klein bandje (bestaande tint en motief).
+  const sfeer = s.sfeerVak ? sfeerVan(s.sfeerVak) : null;
+  const band = sfeer && sfeer.naam
+    ? `<div class="hc-sfeer" style="display:flex;gap:6px;align-items:center;margin:2px 0 3px;padding:3px 6px;border-radius:4px;${sfeerStijl(s.sfeerVak)}"><small style="opacity:.85">${esc(sfeer.naam)}</small><span style="opacity:.7;font-size:11px">${esc(sfeer.motief || '')}</span></div>`
+    : '';
   return `<div class="hc-icon">${svg(s.icon || s.kind)}</div>` +
-    `<div class="hc-text"><small>${esc(kicker)}</small>${s.title ? `<b>${keycaps(dualHtml(s.title))}</b>` : ''}${s.body ? `<span${s.title ? '' : ' class="solo"'}>${s.bodyHtml || keycaps(dualHtml(s.body))}</span>` : ''}</div>` +
+    `<div class="hc-text"><small>${esc(kicker)}</small>${band}${s.title ? `<b>${keycaps(dualHtml(s.title))}</b>` : ''}${s.body ? `<span${s.title ? '' : ' class="solo"'}>${s.bodyHtml || keycaps(dualHtml(s.body))}</span>` : ''}</div>` +
     '<i class="hc-timer"></i>';
 }
 
@@ -357,6 +363,8 @@ export function updateCards(dt, w) {
   if (i >= 0) {
     const next = queue.splice(i, 1)[0];
     if (next.spec.kind === 'tip') noteTip();
+    // #631: de sfeer van de lopende bijbaan mee de kaart in (de baan publiceert sfeerVak).
+    if (next.spec.kind === 'bijbaan' && w && w.sideJob && w.sideJob.active && w.sideJob.sfeerVak) next.spec.sfeerVak = w.sideJob.sfeerVak;
     noteToast();
     mount(next);
     return;
