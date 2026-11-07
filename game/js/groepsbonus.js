@@ -24,3 +24,16 @@ export function metGroepsbonus(bedrag, aantal) {
   if (!Number.isFinite(b) || b <= 0) return 0;
   return Math.max(0, Math.round(b * groepsbonus(aantal)));
 }
+
+// #685: de beloning zichtbaar splitsen in de uitslag/banner: de basis, de groepsfactor en (als de
+// speler een eigen loopbaanfactor heeft) die er apart bij, met het totaal. Presentatie: de bedragen
+// komen van de aanroeper, zodat er precies staat wat er is uitbetaald.
+export const GROEPSBONUS_UITLEG = 'Samen spelen levert meer op: elke extra speler geeft iedereen 50% meer loon, tot 3× per persoon.';
+export function bonusDelen(basis, aantal, totaal = null, niveau = 0) {
+  const b = Math.max(0, Math.round(Number(basis) || 0));
+  const f = groepsbonus(aantal);
+  const t = totaal != null && Number.isFinite(Number(totaal)) && Number(totaal) >= 0 ? Math.round(Number(totaal)) : metGroepsbonus(b, aantal);
+  const n = Math.round((Number(niveau) || 0) * 100);
+  const tekst = [`basis €${b}`, n > 0 ? `jouw niveau +${n}%` : null, `groep x${f.toFixed(1).replace('.', ',')}`, `totaal €${t}`].filter(Boolean).join(' · ');
+  return { basis: b, factor: f, totaal: t, tekst };
+}

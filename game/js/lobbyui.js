@@ -435,7 +435,12 @@ export function mountLobby(root, hooks, opts = {}) {
   async function act(a) {
     const input = root.querySelector('.coop-input');
     try {
-      if (a === 'start-spel') { if (hooks.startSpel) hooks.startSpel(); if (state.rol === ROLES.HOST) set({ t: 'gate', aan: false }); } // het spel loopt: Spel starten verdwijnt (#434)
+      if (a === 'start-spel') {
+        // #642: de gastheer start het spel; een gast vraagt het hem (de knop in de wachtkamer)
+        if (state.rol === ROLES.GAST) { if (hooks.vraagStart) hooks.vraagStart(); }
+        else { if (hooks.startSpel) hooks.startSpel(); set({ t: 'gate', aan: false }); }
+      }
+      else if (a === 'stop-iedereen') { if (hooks.stopIedereen) hooks.stopIedereen(); } // #642: gast vraagt de groep om akkoord
       else if (a === 'openbaar') set({ t: 'openbaar-vraag' });
       else if (a === 'openbaar-ja') {
         const naam = input ? input.value : '';

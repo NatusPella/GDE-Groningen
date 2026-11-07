@@ -66,6 +66,16 @@ Sinds #528 is Samen spelen de standaard, niet iets wat je erbij doet (ADR 0022).
 - **Lokaal is iedereen de hoofdpersoon** van zijn eigen verhaal en ziet de anderen
   als online-avatar; geen rol per plek (#455).
 - **Enige extra recht:** kicken en de wachtkamer van zijn sessie.
+- **Pauzeren is voor jezelf (#687).** Het pauzemenu, de kaart en een winkel zetten
+  alleen de invoer van wie ze opent stil; de wereld (en dus de klok en de andere
+  spelers) loopt door (`coopnet.js` `coopWereldDoorloop`, `main.js`). Een film die
+  iedereen ziet en het wachtscherm pauzeren wél hard (`world.uiHard`, `coopHold`).
+- **Starten en stoppen zijn gezamenlijk (#642).** Elke speler start de wachtkamer
+  (een gast vraagt het de opener: `vraagStart`/`startverzoek`) en elke speler mag
+  "iedereen stoppen" voorstellen; de opener legt dat als stemming aan de groep
+  voor (`vraagStop`/`stopverzoek`, J/N, net als de tijd). Een filmpje voor
+  iedereen overslaan blijft de gedocumenteerde uitzondering van de opener; een
+  gast slaat zijn eigen weergave over (ADR 0007).
 
 ## Opdrachtstand per groep
 
@@ -203,8 +213,10 @@ bij de gastheer en boot) staat in `coopbestuurflow_test`. Electron
 
 ## Open punten (met issue)
 
-1. Hostrechten zijn incompleet: startknop, "Iedereen stoppen" en
-   filmpje-overslaan zijn ook van de opener.
+1. **Opgelost (#642):** starten kan elke speler (een gast vraagt het de opener;
+   `vraagStart`) en "iedereen stoppen" is een stemming over de groep
+   (`vraagStop`). Een filmpje voor iedereen overslaan blijft als uitzondering bij
+   de opener (ADR 0007); een gast slaat zijn eigen weergave over.
 2. Opdrachtstand per groep gaat nog niet mee bij overdracht (#452); bloed in PvP:
    regel zegt mag, code niet.
 3. Gastenkant arena, chat/voice (#451) en dedicated servers (#450) staan open.
