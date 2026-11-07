@@ -124,6 +124,21 @@ t('de module is puur: geen imports, geen DOM, geen THREE', () => {
     const neutraal = MK.createBoard('onbekend-spel');
     assert.equal(neutraal.root.dataset.sfeer, undefined, 'een bord zonder sfeer blijft neutraal');
   });
+  t('het vormvlak komt uit de patroontabel', () => {
+    const bord = MK.createBoard('pitchputt');
+    assert.match(bord.root.innerHTML, /class="mg-vorm"/, 'het vormvlak staat op het bord');
+    assert.match(bord.root.innerHTML, /background-image:/, 'met het patroon uit carrieresfeer.js');
+    assert.match(lees('game/js/minigamekit.js'), /data-sfeerbord="clubschild"[\s\S]{0,200}clip-path/, 'de bordvorm heeft een eigen silhouet');
+  });
+  t('de bordmaat past op 1280x720, 1920x1080 en 390x844', () => {
+    const groot = MK.boardBox(1280);
+    assert.ok(groot.max >= 360 && groot.max <= 760, `1280: ${groot.max}`);
+    assert.equal(MK.boardBox(1920).max, 760, '1920: het bord is op zijn breedst');
+    const mobiel = MK.boardBox(390);
+    assert.equal(mobiel.mobile, true);
+    assert.equal(mobiel.max, 358, '390: het bord past met 16 px marge');
+    assert.ok(MK.boardBox(1600, 2).max >= 0 && MK.boardBox(390, 2).max === 358, 'de maat blijft geldig bij ui-schaal 2');
+  });
   t('het stopvenster staat in de HUD-stijl met knoppen', () => {
     const input = { wasPressed: (k) => k === 'escape', consume() {} };
     MK.stopPressed(input);
@@ -155,4 +170,5 @@ process.exit(fails ? 1 : 0);
     assert.match(tema, /\.mg-stand/, 'de tussenstand heeft een tabelvorm');
   });
 }
+
 

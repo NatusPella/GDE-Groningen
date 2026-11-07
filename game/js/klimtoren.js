@@ -234,12 +234,15 @@ function updateHud(w) {
   if (!g || !board) return;
   const s = g.s;
   const height = s.ground ? 0 : Math.max(0, s.body + 1.15);
-  const stand = g.online ? wedScoreRijen(w).map((r) => `${r.weg ? '<s>' : ''}${r.naam} ${r.banen === 1 ? fmtTime(r.slagen / 10) : r.banen === 2 ? 'niet boven' : 'bezig'}${r.weg ? '</s>' : ''}`).join(' · ') : '';
-  const row = `${stand ? `<span>${stand}</span>` : ''}<span>Tijd <b>${fmtTime(s.time)}</b></span><span>Hoogte <b>${height.toFixed(1).replace('.', ',')} m</b></span><span>Pogingen <b>${Math.max(0, WALL.tries - s.falls)}</b></span>`;
+  // #620: de online stand is een tabel met tijd, hoogte en status per klimmer, geen rij stukjes tekst
+  const online = g.online ? wedScoreRijen(w) : [];
+  const esc = (t) => String(t ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const extra = online.length ? `<table class="mg-stand"><thead><tr><th scope="col">#</th><th scope="col">Klimmer</th><th scope="col">Tijd</th><th scope="col">Stand</th></tr></thead><tbody>${online.map((r) => `<tr class="${r.weg ? 'weg' : ''}"><td>${online.indexOf(r) + 1}</td><th scope="row">${esc(r.naam)}</th><td>${r.banen === 1 ? fmtTime(r.slagen / 10) : '-'}</td><td>${r.banen === 1 ? 'boven' : r.banen === 2 ? 'niet boven' : 'bezig'}</td></tr>`).join('')}</tbody></table>` : '';
+  const row = `<span>Tijd <b>${fmtTime(s.time)}</b></span><span>Hoogte <b>${height.toFixed(1).replace('.', ',')} m</b></span><span>Pogingen <b>${Math.max(0, WALL.tries - s.falls)}</b></span>`;
   const meter = { v: s.arms, text: 'arm', color: s.arms < 0.25 ? 'var(--mk-danger, #d93f3f)' : ACCENT }; // #620: geen tweede rood
   const flash = g.flash ? g.flash.text : g.phase === 'wacht' ? (s.phase === 'top' ? 'Boven! Wachten op de anderen' : 'Klaar: wachten op de anderen') : g.phase === 'intro' ? 'Pak de eerste grepen...' : s.ground && g.phase === 'run' ? 'Houd A of D ingedrukt om te grijpen' : '';
   const help = `${key('A')} linkerhand · ${key('D')} rechterhand · houd vast, laat één hand los om hem hoger te zetten · ${key('SPATIE')} magnesium · ${key('BACKSPACE')} stoppen`;
-  board.set({ row, meter, flash, bad: !!(g.flash && g.flash.bad), help });
+  board.set({ row, extra, meter, flash, bad: !!(g.flash && g.flash.bad), help });
 }
 
 function updateRings() {

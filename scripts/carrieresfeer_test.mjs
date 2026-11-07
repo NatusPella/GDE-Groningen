@@ -100,5 +100,13 @@ t('een onbekend vak geeft geen sfeer en geen crash', () => {
   assert.equal(S.sfeerStijl('kade').includes('background-image:'), true, 'de kadevorm blijft bruikbaar');
 });
 
+
+t('de activiteitenborden gebruiken dezelfde patroontabel', () => {
+  for (const id of L.VAK_IDS) assert.ok(S.VORM_IDS.includes(S.sfeerVan(id).vorm), 'vorm van ' + id);
+  assert.ok(S.vormStijl('zakdoek').startsWith('background-image:'), 'patroon-css');
+  assert.ok(S.vormStijl('zakdoek').includes('background-size:'), 'patroon-maat');
+  assert.equal(S.vormStijl('onbekend'), '');
+});
+
 if (process.exitCode) console.log(`carrieresfeer_test: ${n} tests, mislukt`);
 else console.log(`carrieresfeer_test: ${n}/${n} ok`);

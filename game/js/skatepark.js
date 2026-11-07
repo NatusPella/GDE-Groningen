@@ -491,13 +491,16 @@ function updateHud(w) {
   const run = g.beurten ? `<span>Beurt <b>${Math.min(g.beurten.beurten, beurtNu(g.beurten) + 1)}/${g.beurten.beurten}</b></span>` : '';
   const scoreTxt = g.beurten ? `${(somVan(g.beurten) + c.total).toLocaleString('nl-NL')}` : c.total.toLocaleString('nl-NL'); // de som van de runs tot nu toe
   const row = `${stand}${run}<span>Tijd <b>${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}</b></span><span>${g.beurten ? 'Totaal' : 'Score'} <b>${scoreTxt}</b></span><span>Keten <b>${cur.toLocaleString('nl-NL')}</b> x${c.chain ? c.mult : 1}</span><span>Beste <b>${c.best.toLocaleString('nl-NL')}</b></span>`;
-  let meter = null, flash = g.flash ? g.flash.text : g.phase === 'intro' ? 'Daar gaan we...' : g.phase === 'outro' ? 'Tijd!' : '';
+  let meter = null, extra = '', flash = g.flash ? g.flash.text : g.phase === 'intro' ? 'Daar gaan we...' : g.phase === 'outro' ? 'Tijd!' : '';
   if (g.b.grind) {
     meter = { v: 0.5 + g.b.grind.bal / 2.4, mark: 0.5, text: 'balans', color: Math.abs(g.b.grind.bal) > 0.65 ? 'var(--mk-danger, #d93f3f)' : ACCENT }; // #619: gevaar via de token, middenstreep als vorm
-    flash = g.b.grind.bal > 0.1 ? 'Balans: je leunt rechts, stuur links' : g.b.grind.bal < -0.1 ? 'Balans: je leunt links, stuur rechts' : 'Grind!';
+    // #619: de balanstip heeft een eigen regel onder de meter; de flitsregel houdt de punten en trucs
+    const tip = g.b.grind.bal > 0.1 ? 'Balans: je leunt rechts, stuur links' : g.b.grind.bal < -0.1 ? 'Balans: je leunt links, stuur rechts' : 'Grind!';
+    extra = `<span class="sk-bal">${tip}</span>`;
+    if (!flash) flash = 'Grind!';
   }
   const help = `${key('W')} duwen · ${key('A')}${key('D')} sturen/draaien · ${key('SPATIE')} ollie · ${key('E')} kickflip · ${key('F')} heelflip · ${key('S')} grab · ${key('BACKSPACE')} stoppen`;
-  board.set({ row, meter, flash, bad: !!(g.flash && g.flash.bad), help });
+  board.set({ row, meter, extra, flash, bad: !!(g.flash && g.flash.bad), help });
 }
 
 // --- the activity ---------------------------------------------------------------------------------------------

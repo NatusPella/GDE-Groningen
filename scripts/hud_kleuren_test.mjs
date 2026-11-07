@@ -21,6 +21,8 @@ const CHROOM = new Set(['#f0ede4', '#f2f2f2', '#0c140e', '#17301f', '#ffffff', '
 function strayHexes(file, allow = new Set()) {
   let text = read(file);
   text = text.replace(/var\(--[a-z-]+,\s*#[0-9a-fA-F]{3,6}\)/g, 'var()');
+  // een tokendefinitie is de plek waar een hex mag staan; de fallback erbij is dezelfde kleur
+  text = text.replace(/--[a-z0-9-]+:\s*#[0-9a-fA-F]{3,6}/g, '--token');
   text = text.replace(/accent:\s*'#[0-9a-fA-F]{6}'/g, 'accent');
   text = text.replace(/(fill|stroke)="#[0-9a-fA-F]{3,6}"/g, '$1=""');
   const hexes = [...text.matchAll(/#[0-9a-fA-F]{6}\b/g)].map((m) => m[0].toLowerCase());
@@ -120,6 +122,16 @@ const dienst = read('simdienst.js');
 ok(/Kade bij de brug/.test(dienst) && !/naam: Kade \$\{k\}/.test(dienst), 'rondvaart: kades hebben een droge naam');
 const acts = read('activities.js');
 ok(/kade\(s\) gemist/.test(acts) && /Meer eerst aan bij een jachthaven/.test(acts), 'rondvaart: uitslag noemt de gemiste kade en het Nederlands klopt');
+// De vijf restpunten van de activiteit-HUD's.
+const disc = read('discgolf.js');
+ok(/powerForBasket/.test(disc) && (disc.match(/mark: doelKracht\(g, dist\)/g) || []).length === 2, 'discgolf: de laadbaar heeft een streefstreep uit powerForBasket (#598)');
+const sk = read('skatepark.js');
+ok(/extra = `<span class="sk-bal">/.test(sk) && !/flash = g\.b\.grind\.bal >/.test(sk), 'skatepark: de balanstip staat op een eigen regel (#619)');
+ok(/class="mg-stand"/.test(klim) && !/stand \? `<span>/.test(klim), 'klimtoren: de online stand is een tabel (#620)');
+ok(/\[data-sfeer="vaardienst"\] \{ border-bottom: 2px solid var\(--ink/.test(mg), 'rondvaart: de kadeband staat op het bord (#621)');
+ok((mg.match(/clip-path: polygon/g) || []).length >= 8, 'de bordvormen hebben eigen silhouetten (#596)');
+ok(/function boardBox\(vw, ui = 1\)/.test(mg), 'de bordmaat is als pure functie na te rekenen (#596)');
+
 // De identiteitskleuren staan op één plek: de accenttabel. Zo kan niemand er stilletjes een
 // statuskleur tussen schuiven zonder dat deze test het ziet.
 const accenten = [...mg.matchAll(/accent:\s*'(#[0-9a-fA-F]{6})'/g)].map((m) => m[1].toLowerCase());
@@ -129,8 +141,54 @@ const paren = [...mg.matchAll(/(\w+): \{ titel: '[^']*', accent: '(#[0-9a-fA-F]{
 const uniek = paren.filter(([k]) => !['boeren', 'station'].includes(k)).map(([, a]) => a);
 ok(new Set(uniek).size === uniek.length, 'minigamekit.js: elke minigame heeft een eigen accentkleur (behalve de twee hergebruikte sfeerranden)');
 
+// #645: dezelfde ratchet voor de HUD-modules die nog niet in de lijst hierboven stonden.
+// De baseline is de stand bij #645; een nieuwe hex buiten tokens/chroom laat de test
+// vallen. Alleen naar beneden bijwerken (haakjes eruit als een kleur weg is).
+const HUD_DRIFT = {
+  'hud_panel.css': ['#f3dc6a', '#e8c93a', '#7a6610', '#d93f3f', '#ff9a9a', '#3fc97a', '#2b5f8f', '#ffd36a', '#1e9e56', '#c8d0c9', '#8f2626', '#f07a5a', '#a3b2a6', '#ff6f61', '#ffd23f', '#f2d36b', '#f2c14e', '#9cc1f0', '#f39a8c'],
+  'phonefeed.css': ['#d93f3f', '#111613', '#1a201c', '#070a08', '#2b332d', '#050806', '#1f2622'],
+  'achievements.js': ['#3fc97a', '#6fe39d', '#1e9e56', '#e8c93a', '#fff0a8', '#d9a91e'],
+  'golfhud.js': [],
+  'padel.js': ['#3f8a4a', '#2f6fb8', '#f4f4ee', '#f2ede0', '#dff04a'],
+  'carbid.js': ['#e8823a', '#e9e0c8', '#b8352a', '#1d1d1d', '#f2ede0', '#ffd23f', '#5aa6e0', '#8ad85a', '#ff9a3c', '#5dff7a'],
+  'kermis.js': ['#e0457a', '#fff6d8', '#ffd23f', '#c8261e', '#f2e8d0', '#1d2a6a', '#7a1e1e', '#f2ede0', '#5dff7a'],
+  'treincabine.js': [],
+  'heistui.js': ['#3fc97a', '#d93f3f', '#0f1c13'],
+  'pigeonmode.js': ['#3fc97a', '#8a9aa6', '#2a333a', '#eef2f4', '#f2c744', '#1a1a1a', '#d93f3f'],
+  'kaartactieui.js': [],
+};
+for (const [f, basis] of Object.entries(HUD_DRIFT)) {
+  const nieuw = strayHexes(f).filter((h) => !basis.includes(h));
+  ok(nieuw.length === 0, `${f}: nieuwe kleur buiten de tokens/baseline: ${nieuw.join(', ') || 'geen'}`);
+}
+
+// Iedere surface uit hudbus.js moet of geauditeerd zijn, of met een reden als beeld
+// (canvas/3D/wereld) buiten de HUD-chroom vallen. Zo kan een nieuwe HUD-module er
+// niet stilletjes tussen glippen (#645).
+const { SURFACES } = await import('../game/js/hudbus.js');
+const HUD_AUDIT = new Set([...Object.keys(HUD_DRIFT), 'hudcards.css', 'choicepanel.js', 'minigamekit.js', 'kaartactieui.js']);
+// beeld/canvas/wereld: kleuren horen bij het spelbeeld of de 3D-wereld, niet bij HUD-chroom
+const BUITEN = new Set(['aimassist.js', 'banter.js', 'bakeround.js', 'boerderijui.js', 'busbestuurhud.js', 'busboard3d.js', 'casework.js', 'cinematics.js', 'coophold.js', 'coophud.js', 'coopscene.js', 'coopspelersui.js', 'coopwedstrijd3d.js', 'dorpsuitjes.js', 'drunk.js', 'furniture.js', 'garageui.js', 'gfxprofile.js', 'heliflight.js', 'helirun.js', 'hud_panel.js', 'hudcards.js', 'hudgps.js', 'hudtext.js', 'input.js', 'instrumenten.js', 'intromontage.js', 'loopbaanui.js', 'lowhealth.js', 'mapview.js', 'menumelding.js', 'multiplayerhostwisselui.js', 'namecard.js', 'padtest.js', 'partnerhud.js', 'pausemenu.js', 'phone.js', 'phonefeed.js', 'planeflight.js', 'postfx3d.js', 'postgame.js', 'profileoverlay.js', 'prompts.js', 'radiosub.js', 'reisrit.js', 'respawn.js', 'reuzenrad.js', 'rondvaartchase.js', 'samenkeuze.js', 'savegame.js', 'scene3d.js', 'shopui.js', 'sikkomfeed.js', 'speech.js', 'spullen.js', 'startscreen.js', 'stationtravel.js', 'story.js', 'storycontact.js', 'storydev.js', 'storytalk.js', 'storytest.js', 'stunthud.js', 'subtitles.js', 'testmenu.js', 'textfield.js', 'todoui.js', 'touch.js', 'trailer.js', 'verhaalui.js', 'veroverdpanel.js', 'visboekui.js']);
+for (const [naam, s] of Object.entries(SURFACES)) {
+  for (const f of s.files || []) ok(HUD_AUDIT.has(f) || BUITEN.has(f), `surface ${naam}: ${f} is niet geauditeerd en niet als beeld gemarkeerd`);
+}
+
+// #645: geen vaste magische maten meer voor voertuignaam en prestatie-toast, en één font-stack.
+const panelCss = read('hud_panel.css');
+ok(!/bottom:\s*calc\(var\(--hud-edge\) \+ 300px\)/.test(panelCss) && /bottom:\s*calc\(var\(--hud-edge\) \+ var\(--mm-size\) \+ 50px\)/.test(panelCss), 'hud_panel.css: voertuignaam op de gemeten kolom');
+ok(!/top:\s*330px/.test(panelCss) && /top:\s*calc\(var\(--hud-top\) \+ var\(--mm-size\) \+ 46px\)/.test(panelCss), 'hud_panel.css: nowplaying op de gemeten kolom');
+ok(!/left:\s*max\(50%,\s*700px\)/.test(read('achievements.js')), 'achievements.js: prestatie-toast zonder vaste 700px');
+const a11yCss = read('a11y.css');
+ok(!/system-ui/.test(a11yCss), 'a11y.css: één font-stack, geen system-ui');
+// #645: HUD-overlays gebruiken dezelfde Arial Narrow-stack; system-ui blijft voor dev/preview.
+for (const f of ['hudcards.css', 'pausemenu.css', 'postgame.js', 'helirun.js', 'bakeround.js', 'coopwedstrijd3d.js', 'furniture.js']) {
+  ok(!/system-ui/.test(read(f)), `${f}: geen system-ui in een HUD-overlay`);
+}
+
 console.log((fails ? 'FAIL ' : '') + 'hud_kleuren_test: ' + (fails ? fails + ' fout' : 'ok — de HUD-kleuren komen uit de tokens, de accenten uit één tabel'));
 process.exit(fails ? 1 : 0);
+
+
 
 
 

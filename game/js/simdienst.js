@@ -198,7 +198,7 @@ export function kadesLangsRoute(pts, aantal = 3) {
     while (i < p.length - 1 && lang[i] < doel) i++;
     const stuk = lang[i] - lang[i - 1] || 1;
     const t = clamp((doel - lang[i - 1]) / stuk, 0, 1);
-    out.push({ x: p[i - 1].x + (p[i].x - p[i - 1].x) * t, y: p[i - 1].y + (p[i].y - p[i - 1].y) * t, naam: `Kade ${k}` });
+    out.push({ x: p[i - 1].x + (p[i].x - p[i - 1].x) * t, y: p[i - 1].y + (p[i].y - p[i - 1].y) * t, naam: ['Kade bij de brug', 'Kade bij de sluis', 'Kade bij het botenhuis'][(k - 1) % 3] });
   }
   return out;
 }
