@@ -133,6 +133,12 @@ export function recentVersions(versions, { maxVersions = OVER_MAX_VERSIONS, maxW
     if (out.length >= maxVersions) break;
     const w = wordCount(versionHead(v, false)) + wordCount(v.html);
     if (out.length && words + w > maxWords) break;
+    // Een release met heel veel regels (bijv. 0.58.0) past niet op het eerste beeld; toon een korte
+    // samenvatting en laat de volledige lijst achter "Alles".
+    if (!out.length && w > maxWords) {
+      out.push({ ...v, html: '<p class="mut">Deze release heeft veel regels; open Alles voor de volledige lijst.</p>' });
+      break;
+    }
     out.push(v);
     words += w;
   }
