@@ -555,8 +555,18 @@ export async function loadTileWorld(base = 'world/', { source = new HttpRangeSou
   const store = new TileStore({ source, index, decode, ...opts });
   const g = index.global;
   const globalBlob = decodeBlob(await inflateRaw(await source.read(index.packs[g.pack].file, g.off, g.len)));
-  const keys = (index.pins.city && index.pins.city.tiles) || Object.keys(index.tiles);
+  // De stadstegels: uit de nieuwe cityTiles, de oude pins.city of (zonder beide) de
+  // tegels zonder overlay/stub-velden (die horen bij een extra laag).
+  const keys = index.cityTiles || (index.pins.city && index.pins.city.tiles)
+    || Object.keys(index.tiles).filter((k) => { const t = index.tiles[k]; return t && !t.ov && !t.in; });
+  // (#314 C1) Een volledig sparse wereld houdt de stad niet vast: de tegels komen binnen
+  // voor de eerste opbouw en mogen daarna door de store worden gestroomd. Een oude,
+  // dichte wereld (zonder index.sparse) blijft gepind zoals voorheen.
+  const ALL_SPARSE = ['roads', 'buildings', 'water', 'trees', 'rails', 'furniture', 'green'];
+  const unpinCity = Array.isArray(index.sparse) && ALL_SPARSE.every((k) => index.sparse.includes(k));
   let done = 0;
+  // tijdens de eerste opbouw moet de hele stad binnenblijven (fromTiles eist de hele set);
+  // daarna laat unpinCity haar los zodat de store kan streamen.
   for (const k of keys) store.pin(k);
   const tiles = await Promise.all(keys.map((k) => store.request(k, { priority: 0 }).then((t) => { if (onProgress) onProgress(++done / keys.length); return t; })));
   const split = tiles.map(splitOverlay);
@@ -579,6 +589,8 @@ export async function loadTileWorld(base = 'world/', { source = new HttpRangeSou
   for (const k of loose) store.pin(k);
   await Promise.all(loose.map((k) => store.request(k, { priority: 0 })));
   world.tileQueue.run(1e9);
+  // De eerste opbouw is klaar: laat de stad los zodat de store haar kan streamen.
+  if (unpinCity) for (const k of keys) store.unpin(k);
   return { world, store, index, global: globalBlob, source };
 }
 

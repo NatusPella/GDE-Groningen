@@ -796,14 +796,18 @@ tegels, drop+add- en geoVer-pariteit, en de echte wereld twee keer geladen: deze
 voor de array-gebaseerde audits nog de dichte variant; de productiestage
 (`scripts/world/pack_tiles.mjs`) schrijft de sparse index.
 
-**Wat de pin zelf nog doet.** De stadstegels worden in `loadTileWorld` nog gepind
-(`index.pins.city`), maar geen enkele spellogica leest nog een hele array: de teller
-staat op 0. Wat resteert is het tekenwerk dat zijn eigen deel van een gedropte of
-teruggekomen tegel moet opruimen (stap 5: `scene3d.js` sync-lagen; de LOD
-(`farlod.js`), gras-chunks, meubels en lantaarns verversen al op `map.geoVer`). Pas
-als die lagen zich per tegel abonneren kan de pin uit en is #314 C1 klaar. De
-meetlat blijft `scripts/tileworld_pinned_test.mjs` en
-`scripts/tileworld_sparse_test.mjs`.
+**De pin is weg voor sparse werelden.** `pack_tiles.mjs` schrijft geen
+`index.pins.city` meer, alleen nog `index.cityTiles` als vertrekpunt voor de eerste
+opbouw; `loadTileWorld` houdt die tegels tijdens het laden vast (fromTiles eist de
+hele set) en laat ze daarna met `store.unpin` los. Een oude, dichte wereld (zonder
+`index.sparse`) blijft gepind zoals voorheen. De scene3d-synclagen volgen de
+kaartstand nu zelf: gebouwen/wegen verwijderen hun meshes als ze uit de view vallen,
+de landmarklijst wordt via `onTiles` bijgehouden en opgeschoond, en de idle-guards
+van de bouw- en wegsync kijken naar `map.geoVer`; de LOD, gras-chunks, meubels,
+lantaarns en waterindex verversen al op `geoVer`. De teller blijft **0**.
+Bewijs: `scripts/tileworld_sparse_test.mjs` laadt de echte tegels twee keer, ziet
+geen city-pin in de sparse wereld, laat een stadstegel vallen en weer terugkomen;
+`tileworld_pinned_test` bewaakt de oude dichte wereld.
 
 Wat er moet gebeuren, in vijf stappen:
 

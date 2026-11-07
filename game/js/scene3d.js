@@ -190,6 +190,7 @@ const TREE_DIST = 130;
 let viewDist = VIEW_DISTANCES.normaal;
 let farLod = null;
 const landmarkBuildings = [];
+let landmarkDirty = false; // (#314 C1) een tegel met een landmark ging weg: de lijst opschonen
 // Per quality level: shadow map size and frustum half-width (m).
 const SHADOW_LEVELS = {
   laag: { size: 1024, half: 40, radius: 1.5, normalBias: 0.05 },
@@ -915,10 +916,13 @@ export function init3D(map) {
   // come and go; up close the detail streamers find them in the map's grids.
   // A meadow or grass (Dutch farmland is mapped as either) is the ground shader's fields
   if (map.onTiles) map.onTiles((kind, tile, key) => {
-    if (kind === 'drop') { farLod.dropStreamTile(key); return; }
+    if (kind === 'drop') { farLod.dropStreamTile(key); landmarkDirty = true; return; }
     const rows = (type) => (tile.sections.find((q) => q.type === type) || { rows: [] }).rows;
     const [ox, oy] = tileOrigin(tile.i, tile.j);
     farLod.addStreamTile(key, ox, oy, TILE_M, { buildings: rows(SECTION.BUILDINGS), roads: rows(SECTION.ROADS), green: rows(SECTION.GREEN).filter((g) => g.kind !== 'meadow' && g.kind !== 'grass'), water: rows(SECTION.WATER) });
+    // #314 C1: een teruggekomen tegel kan een landmark meebrengen; de detailring slaat
+    // landmarks in zijn view-lus over, dus deze lijst is hun enige bron.
+    for (const b of map.buildingsNear(ox + TILE_M / 2, oy + TILE_M / 2, TILE_M * 0.72)) if (b.landmark && !landmarkBuildings.includes(b)) landmarkBuildings.push(b);
   });
   initRailway3D(scene, map);
   initStreetFurniture3D(scene, map);
@@ -1536,12 +1540,25 @@ function syncBuildings(world, px, py) {
   syncFrame++;
   if (syncIdle && !perfOff('bouwsync') && syncFrame - syncIdle.frame < SYNC_IDLE_FRAMES && Math.hypot(px - syncIdle.x, py - syncIdle.y) < SYNC_IDLE_MOVE
     && syncIdle.dist === DRAW_DIST && syncIdle.view === viewDist && syncIdle.facade === facadeDetailDist && syncIdle.hidden === hiddenBuildings.size
-    && syncIdle.meshes === buildingMeshes.size && syncIdle.landmarks === landmarkBuildings.length) return;
+    && syncIdle.meshes === buildingMeshes.size && syncIdle.landmarks === landmarkBuildings.length && syncIdle.geoVer === world.map.geoVer) return;
   syncIdle = null;
   syncBuildingsPass(world, px, py);
 }
 
 function syncBuildingsPass(world, px, py) {
+  // #314 C1: een landmark van een weggevallen tegel uit de lijst en de scène halen; een
+  // teruggekomen tegel heeft zijn landmark al via onTiles toegevoegd.
+  if (landmarkDirty) {
+    landmarkDirty = false;
+    for (let i = landmarkBuildings.length - 1; i >= 0; i--) {
+      const b = landmarkBuildings[i];
+      const bb = b.bounds || [0, 0, 0, 0];
+      if (world.map.buildingGrid.query(bb[0], bb[1], bb[2], bb[3]).includes(b)) continue;
+      landmarkBuildings.splice(i, 1);
+      const mesh = buildingMeshes.get(b);
+      if (mesh) { scene.remove(mesh); buildingMeshes.delete(b); }
+    }
+  }
   // Detail set must be exactly "centre within detailR": farlod.js hides its
   // copy of a building by the same test, so no unload hysteresis here.
   // Missing meshes are built nearest first within a per-frame budget (a
@@ -1646,7 +1663,7 @@ function syncBuildingsPass(world, px, py) {
     prefetchedBuildings.set(b, mesh);
   }
   if (prefetchDone && missing.length === 0) {
-    syncIdle = { x: px, y: py, frame: syncFrame, dist: DRAW_DIST, view: viewDist, facade: facadeDetailDist, hidden: hiddenBuildings.size, meshes: buildingMeshes.size, landmarks: landmarkBuildings.length };
+    syncIdle = { x: px, y: py, frame: syncFrame, dist: DRAW_DIST, view: viewDist, facade: facadeDetailDist, hidden: hiddenBuildings.size, meshes: buildingMeshes.size, landmarks: landmarkBuildings.length, geoVer: world.map.geoVer };
   }
 }
 
@@ -1939,7 +1956,7 @@ function syncRoads(world, px, py) {
   if (roadSyncIdle && !perfOff('wegsync') && streamStat.r === 0
     && document.body.classList.contains('game-started')
     && !openSpans.size && !world.quake && roadSyncIdle.q === roadQuality && roadSyncIdle.dist === DRAW_DIST
-    && roadSyncIdle.meshes === roadMeshes.size && roadSyncFrame - roadSyncIdle.frame < ROAD_SYNC_IDLE_FRAMES
+    && roadSyncIdle.meshes === roadMeshes.size && roadSyncIdle.geoVer === world.map.geoVer && roadSyncFrame - roadSyncIdle.frame < ROAD_SYNC_IDLE_FRAMES
     && Math.hypot(px - roadSyncIdle.x, py - roadSyncIdle.y) < SYNC_IDLE_MOVE) return;
   roadSyncIdle = null;
   const view = world.map.roadsNear(px, py, DRAW_DIST);
@@ -2004,7 +2021,7 @@ function syncRoads(world, px, py) {
   }
   // Remember a finished pass, and only here: a record written every frame would
   // keep the frame escape above permanently true (that was the 0.56.1 bug).
-  if (streamStat.r === 0) roadSyncIdle = { x: px, y: py, q: roadQuality, dist: DRAW_DIST, meshes: roadMeshes.size, frame: roadSyncFrame };
+  if (streamStat.r === 0) roadSyncIdle = { x: px, y: py, q: roadQuality, dist: DRAW_DIST, meshes: roadMeshes.size, frame: roadSyncFrame, geoVer: world.map.geoVer };
 }
 
 function syncTrees(world, px, py) {
