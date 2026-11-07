@@ -184,6 +184,15 @@ export function sfeerStijl(id) {
 
 export const SFEER_IDS = Object.keys(SFEER).filter((id) => id !== 'kade');
 
+// Het patroon van een vorm, zonder tint of sfeer-id (#595): de activiteitenborden gebruiken
+// dezelfde grote vlakken als de loopbaanbanden, zodat er geen tweede patroontabel ontstaat.
+export function vormStijl(naam) {
+  const v = VORMEN[naam];
+  return v ? `background-image:${v.beeld};background-size:${v.maat};` : '';
+}
+
+export const VORM_IDS = Object.keys(VORMEN);
+
 // De sfeerband boven een scherm met een eigen sfeer (#492, #609): het patroon van het vak,
 // het icoon van het scherm als watermerk, de droge sfeernaam en een korte, echte regel
 // erboven (13 px, geen ontwerptaal). Eén bron voor Loopbanen, Visboek en Boerderij, zodat
