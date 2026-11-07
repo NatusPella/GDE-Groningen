@@ -7,7 +7,7 @@
 
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import * as B from './boerderij.js';
-import { init, step, result, fractie, RIJEN, RIJ_LEN, BAND } from './werkgang.js';
+import { init, step, result, fractie, rijCue, RIJEN, RIJ_LEN, BAND } from './werkgang.js';
 import { akkerRijen, rijPositie } from './bietenrules.js';
 import { vindAkker } from './sidejob_bieten.js';
 import { getBoerderij, neemTaak, rondAf, leverAf, zetPerceel } from './boerderijlive.js';
@@ -263,7 +263,7 @@ export default {
       const vaak = e.type === 'tehard' || e.type === 'scheef' || e.type === 'lading';
       if (MELDING[e.type] && (!vaak || d.melT < c.world.time)) { c.msg(MELDING[e.type], 2.2); if (vaak) d.melT = c.world.time + 3; }
       // de rij die nu begint, niet de rij die net klaar is: na de eerste rij begin je aan rij 2
-      if (e.type === 'rij' && s.rij < RIJEN) c.msg(`Rij ${s.rij + 1} van ${RIJEN}${s.rij + 1 === RIJEN ? ', de laatste' : ''}.`, 2.5);
+      if (e.type === 'rij' && s.rij < RIJEN) c.msg(rijCue(s) + (s.rij + 1 === RIJEN ? ' De laatste.' : ''), 2.5);
       if (e.type === 'fail') {
         if (s.soort === 'rit' && b.schuur.kg > 0) b.schuur.kg = Math.floor(b.schuur.kg * 0.5); // de helft bleef op de weg liggen
         c.fail(e.why); return;

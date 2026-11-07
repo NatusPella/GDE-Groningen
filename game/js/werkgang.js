@@ -79,3 +79,9 @@ export const result = (s) => ({ fractie: fractie(s), gemist: s.soort === 'rijen'
 
 // Hoeveel rijen er nog liggen, voor de melding.
 export const rijenOver = (s) => (s.soort === 'rijen' ? Math.max(0, s.rijen - s.rij) : 0);
+
+// #669: de cue per rij in gewone taal, met de snelheidsband erbij zodat het geen herhaling van dezelfde toets is.
+export function rijCue(s) {
+  if (!s || s.soort !== 'rijen' || s.klaar) return '';
+  return `Rij ${Math.min(s.rij + 1, s.rijen)} van ${s.rijen}: houd ${s.vMin.toFixed(1)} tot ${s.vMax.toFixed(1)} m/s.`;
+}
