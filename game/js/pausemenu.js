@@ -687,8 +687,7 @@ function spelHtml() {
       ${slider('fov', 'Beeldhoek', 50, 90, 1, 'Hoe wijd je kijkt: hoger laat meer zien, maar maakt alles kleiner')}
       ${slider('cameraDistance', 'Camera-afstand', 0.8, 1.6, 0.05, 'Hoe ver de camera achter je staat, te voet en in elk voertuig')}
       ${toggle('autoAim', 'Automatisch richten', 'Rechtermuisknop zoekt zelf het beste doelwit')}
-      ${toggle('cinematicMoments', 'Filmische momenten', 'Bij bezienswaardigheden, crashes en vijf sterren; intro’s, missies en de filmcamera (V) staan altijd aan')}
-      ${toggle('wijkFilm', 'Filmpje bij nieuwe wijken', 'Uit: een korte naamkaart met wat er te zien is; aan: de volledige rondvlucht')}`, `${pane('Camera & richten', 'Zicht', '<p>De camera-afstand en beeldhoek gelden te voet en in elk voertuig.</p>')}`)}
+      ${toggle('cinematicMoments', 'Filmische momenten', 'Bij bezienswaardigheden, crashes en vijf sterren; intro’s, missies en de filmcamera (V) staan altijd aan')}`, `${pane('Camera & richten', 'Zicht', '<p>De camera-afstand en beeldhoek gelden te voet en in elk voertuig.</p>')}`)}
     ${tab('hints', `
       ${toggle('showHints', 'Toetshints', 'De toetsen onderin beeld bij wat je nu kunt doen')}
       ${picker('hintSource', 'Hints tonen voor', [['auto', 'Automatisch'], ['keys', 'Toetsenbord'], ['pad', 'Controller']], 'Automatisch volgt wat je het laatst gebruikte')}

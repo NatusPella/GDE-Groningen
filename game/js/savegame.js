@@ -2,7 +2,7 @@ import { hoofdspeler } from './players.js';
 import { getMissionProgress, setMissionProgress, getMissionDefs } from './missions.js';
 import { spawnHeroCarNear } from './vehicle.js';
 import { WEAPONS } from './combat.js';
-import { isCinematicActive, skipAllCinematics } from './cinematics.js';
+import { isCinematicActive, skipAllCinematics, getWijkenSeen, applyWijkenSeen } from './cinematics.js';
 import { getShopSave, applyShopSave } from './shops.js';
 import { getAchievementSaveData, applyAchievementSaveData, getChallengeRecord, EIERBAL_TOTAL, missieKlaarId } from './achievements.js';
 import { PG_PRIZE, EIERBAL_FIND_PAY, EIERBAL_ALL_BONUS, START_MONEY } from './economy.js';
@@ -255,6 +255,8 @@ function serialize(w) {
     missions: getMissionProgress(),
     story: getStorySave(),
     visitedLandmarks: [...(w.visitedLandmarks instanceof Set ? w.visitedLandmarks : [])],
+    // the wijk cards this save already showed (#726): per save, so a new game does not reset them
+    wijken: getWijkenSeen(),
     shops: getShopSave(),
     prestaties: getAchievementSaveData(),
     duif: getPigeonSaveData(),
@@ -533,6 +535,8 @@ export function applySave(w, d) {
     setMissionProgress(w, d.missions);
     applyStorySave(d.story);
     w.visitedLandmarks = new Set(Array.isArray(d.visitedLandmarks) ? d.visitedLandmarks.filter((s) => typeof s === 'string') : []);
+    // the wijk cards of this save (#726); an old save without the field takes the device list
+    applyWijkenSeen(d.wijken);
     applyShopSave(w, d.shops);
     applyAchievementSaveData(d.prestaties);
     applyPigeonSaveData(d.duif);

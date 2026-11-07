@@ -1,4 +1,3 @@
-import { hoofdspeler } from './players.js';
 import { pointInPolygon } from './util.js';
 import { tourKeys } from './wijkintocht.js';
 
@@ -88,58 +87,6 @@ export function clearKeys(w, keys) {
   return keys;
 }
 
-// A calm, low flyover through one characteristic street of the new wijk:
-// a named residential street near the player (long, straight-ish, close to
-// the wijk), glided along a little above the rooftops looking down the
-// street, then a gentle rise and glide back to behind the player.
-const WIJK_STREET_CATS = new Set(['minor', 'normal', 'major']);
-const WIJK_RUN = 110; // metres of street the camera travels
-
-function roadStraightRun(road) {
-  const p = road.pts;
-  let best = null, start = 0, len = 0, prevA = null;
-  const close = (i) => { if (!best || len > best.len) best = { a: p[start], b: p[i], len }; };
-  for (let i = 0; i < p.length - 1; i++) {
-    const a = Math.atan2(p[i + 1][1] - p[i][1], p[i + 1][0] - p[i][0]);
-    let turn = prevA == null ? 0 : Math.abs(a - prevA);
-    if (turn > Math.PI) turn = Math.PI * 2 - turn;
-    if (turn > 0.3) { close(i); start = i; len = 0; }
-    len += Math.hypot(p[i + 1][0] - p[i][0], p[i + 1][1] - p[i][1]);
-    prevA = a;
-  }
-  close(p.length - 1);
-  return best;
-}
-
-function pickWijkStreet(w, wijk, R) {
-  const p = hoofdspeler(w);
-  const cx = (wijk.x + p.x) / 2, cy = (wijk.y + p.y) / 2;
-  const reach = Math.max(120, Math.min(R, Math.hypot(wijk.x - p.x, wijk.y - p.y) / 2 + 90));
-  let best = null;
-  for (const r of w.map.roadsNear(cx, cy, reach)) {
-    if (!r.name || !WIJK_STREET_CATS.has(r.cat) || r.bridge || r.z || r.pts.length < 2) continue;
-    const run = roadStraightRun(r);
-    if (!run || run.len < 45) continue;
-    const mx = (run.a[0] + run.b[0]) / 2, my = (run.a[1] + run.b[1]) / 2;
-    const dPlayer = Math.hypot(mx - p.x, my - p.y), dWijk = Math.hypot(mx - wijk.x, my - wijk.y);
-    if (dPlayer > 260) continue;
-    // skip streets that run under buildings (passages, poorten, data overlap):
-    // the camera would look straight into a wall
-    let covered = 0;
-    const n = Math.ceil(run.len / 6);
-    for (let i = 0; i <= n; i++) {
-      const f = i / n;
-      if (roofAt(w.map, run.a[0] + (run.b[0] - run.a[0]) * f, run.a[1] + (run.b[1] - run.a[1]) * f) > 0) covered++;
-    }
-    if (covered > n * 0.05) continue;
-    // long residential streets close to the player and inside the wijk win
-    const catK = r.cat === 'major' ? 0.6 : r.cat === 'normal' ? 1.1 : 1;
-    const score = Math.min(run.len, 220) * catK / (1 + dPlayer / 90) / (1 + dWijk / (R * 1.5));
-    if (!best || score > best.score) best = { r, run, score };
-  }
-  return best;
-}
-
 // Highest roof within `side` metres of the line a-b (sampled).
 function roofline(w, ax, ay, bx, by, side) {
   const len = Math.hypot(bx - ax, by - ay) || 1;
@@ -151,15 +98,6 @@ function roofline(w, ax, ay, bx, by, side) {
     for (const o of [-side, -side / 2, 0, side / 2, side]) top = Math.max(top, roofAt(w.map, x + nx * o, y + ny * o));
   }
   return top;
-}
-
-function wijkRadius(w, wijk) {
-  const d = (w.map.meta.neighbourhoodPoints || [])
-    .filter((q) => q !== wijk && q.name !== wijk.name)
-    .map((q) => Math.hypot(q.x - wijk.x, q.y - wijk.y))
-    .sort((a, b) => a - b);
-  const near = d.length >= 3 ? (d[0] + d[1] + d[2]) / 3 : d[0] || 300;
-  return Math.min(420, Math.max(130, near * 0.55));
 }
 
 // a: the player's heading; behind: the closing pose behind the player {pos, look}.
@@ -182,44 +120,3 @@ export function veroverTourShot(w, gebied, stops, behind, opts = {}) {
   if (!w || !w.map || !gebied || !Array.isArray(stops) || !stops.length) return null;
   return pathShot(clearPath(w, tourKeys(gebied, stops, behind, opts)), (t) => t);
 }
-
-export function wijkStreetShot(w, wijk, a, behind) {  const p = hoofdspeler(w);
-  const pick = pickWijkStreet(w, wijk, wijkRadius(w, wijk));
-  if (!pick) return null;
-  let [ax, ay] = pick.run.a, [bx, by] = pick.run.b;
-  // travel towards the player's end of the street, so the glide home is short
-  if (Math.hypot(ax - p.x, ay - p.y) < Math.hypot(bx - p.x, by - p.y)) [ax, ay, bx, by] = [bx, by, ax, ay];
-  let len = Math.hypot(bx - ax, by - ay);
-  const ux = (bx - ax) / len, uy = (by - ay) / len;
-  if (len > WIJK_RUN) { ax = bx - ux * WIJK_RUN; ay = by - uy * WIJK_RUN; len = WIJK_RUN; }
-  const nx = -uy, ny = ux;
-  const roofs = roofline(w, ax, ay, bx, by, 14);
-  const h = Math.min(30, Math.max(12, roofs + 3));
-  const side = 2.5;
-  const at = (d, off, hh) => W(ax + ux * d + nx * off, hh, ay + uy * d + ny * off);
-  // look down the street, never past its straight end (round a bend is a wall)
-  const ahead = (d) => { const k = Math.min(d + 34, len + 6); return W(ax + ux * k, 1.5, ay + uy * k); };
-  const street = [
-    { pos: at(-12, side, h + 6), look: ahead(-4), fov: 56 },
-    { pos: at(len * 0.35, side * 0.6, h + 2), look: ahead(len * 0.35), fov: 56 },
-    { pos: at(len * 0.72, 0, h), look: ahead(len * 0.72), fov: 56 },
-    { pos: at(len, -side * 0.5, h), look: ahead(len), fov: 56 },
-  ];
-  // the rise over the rooftops and down behind the player
-  const bxP = p.x - Math.cos(a) * 16, byP = p.y - Math.sin(a) * 16;
-  const over = Math.max(h + 4, roofline(w, bx, by, bxP, byP, 6) + 6);
-  const b = behind;
-  const home = [
-    { pos: { ...street[3].pos }, look: { ...street[3].look }, fov: 56 },
-    { pos: W((bx + bxP) / 2, over, (by + byP) / 2), look: W(p.x, 2, p.y), fov: 56 },
-    { pos: W(bxP, Math.max(9, roofline(w, bxP, byP, p.x, p.y, 4) + 3), byP), look: W(p.x, 1.4, p.y), fov: 58 },
-    { pos: b.pos, look: b.look, fov: 60 },
-  ];
-  const streetShot = pathShot(clearPath(w, street), (t) => t);
-  const homeShot = pathShot(clearPath(w, home), (t) => 1 - (1 - t) ** 2);
-  const SPLIT = 0.66;
-  // ease into the street glide, keep a steady drift, blend into the rise
-  const ease = (t) => (t < 0.2 ? (t * t) / 0.4 : 0.1 + (t - 0.2) * 1.125);
-  return (u) => (u < SPLIT ? streetShot(ease(u / SPLIT)) : homeShot((u - SPLIT) / (1 - SPLIT)));
-}
-
