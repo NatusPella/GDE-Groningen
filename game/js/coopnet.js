@@ -842,6 +842,12 @@ export function uitslagMelden(world, ok, label, reden = '', loon = 0, gestopt = 
 }
 
 // De opdrachtstand per groep (#452): de lopende opdracht van deze wereld krijgt een eigen record met stap, doelen en deelnemers.
+// #492: de leden (gastplekken) van een missiegroep, voor een bericht dat alleen die groep aangaat.
+const groepLeden = (n, id) => {
+  const g = n && n.groepen && groepRecord(n.groepen, id);
+  return g && Array.isArray(g.deelnemers) ? g.deelnemers.filter((s) => Number.isInteger(s) && s >= 1) : [];
+};
+
 // Een nieuwe opdracht sluit de vorige groep af; een andere groep die nog loopt, blijft staan. Zo lopen twee opdrachten niet door
 // elkaar: de stap van de een verandert niets aan de stand van de ander.
 function werkGroepenBij(world, n, huidig) {
@@ -1172,6 +1178,24 @@ export function tickCoopNet(world, dt) {
   const mb = missieBericht(n.missie || null, world.mission, n.groepId ? groepLeider(n.groepen, n.groepId) : null);
   if (mb.event) { n.hub.announce(mb.event); }
   nodigUit(world, n, mb.huidig); n.missie = mb.huidig;
+  // #492: de eigen opdracht van een gastgroep gaat alleen naar die groep, met een eigen laatste stand per
+  // groep; de eigen opdracht van de host is hierboven al gegaan. Stopt de groep, dan hoort zij dat ook.
+  if (typeof world.coopGroepMissieIds === 'function' && n.hub) {
+    const ids = world.coopGroepMissieIds().filter((id) => id && id !== n.groepId);
+    const laatste = n.groepMissie || (n.groepMissie = {});
+    for (const id of ids) {
+      const vorige = laatste[id] || null;
+      const gmb = missieBericht(vorige, world.coopGroepMissieVoor(id), null);
+      if (gmb.event) for (const slot of groepLeden(n, id)) n.hub.announce(gmb.event, slot);
+      laatste[id] = gmb.huidig;
+    }
+    for (const id of Object.keys(laatste)) {
+      if (ids.includes(id)) continue;
+      const vorige = laatste[id];
+      if (vorige) { const gmb = missieBericht(vorige, null); if (gmb.event) for (const slot of groepLeden(n, id)) n.hub.announce(gmb.event, slot); }
+      delete laatste[id];
+    }
+  }
   world.coopVrijLopen = loopVrij(n.meedoen, 1); // Tessa wordt niet vastgezet als haar speler niet meedoet (#429)
   world.coopHudWanted = world.coopWanted ? hudWanted(world) : 0; // de sterren van een gezochte gast in het scherm van de host (#434)
   meldNeer(world, n); // de gastheer of Tessa gaat neer of wordt gearresteerd (#369)
@@ -1385,6 +1409,9 @@ export function handleEvent(world, body, van = 0) {
     case 'paneel': return !!n && n.role === 'host' && van >= 1 && paneelGast(world, van, body.a, body); // een gast drukt mee op de keuze of timing van de gastheer (#525)
     case 'trek': { // E van een gast (#459): eerst iemand uit een voertuig trekken, anders gewoon in- of uitstappen
       if (!n || n.role !== 'host' || van < 1) return false;
+      // #492: speelt deze gast zijn eigen opdracht, dan is zijn E voor die opdracht (en niet voor het
+      // lichaam van de gastheer).
+      if (typeof world.coopGroepToets === 'function' && world.coopGroepToets(van, 'e')) return true;
       const nu = now(world), at = n.trekAt || (n.trekAt = {});
       if (nu - (at[van] ?? -Infinity) >= TREK_WACHT_S) { // hetzelfde bericht vaker achter elkaar is begrensd
         at[van] = nu;
@@ -1392,7 +1419,7 @@ export function handleEvent(world, body, van = 0) {
       }
       return gebruikGast(world, van);
     }
-    case 'gebruik': return !!n && n.role === 'host' && van >= 1 && gebruikGast(world, van); // het oude bericht (docs/COOP-GAST.md): hetzelfde als 'trek' zonder de trekpoging
+    case 'gebruik': return !!n && n.role === 'host' && van >= 1 && ((typeof world.coopGroepToets === 'function' && world.coopGroepToets(van, 'e')) || gebruikGast(world, van)); // het oude bericht (docs/COOP-GAST.md): hetzelfde als 'trek' zonder de trekpoging
     case 'bus': return !!n && n.role === 'host' && van >= 1 && (body.a === 'deur' || body.a === 'valideer') && busCoopActie(world, van, body.a); // O en E van een medespeler in de bus (#444)
     case 'bijgroep': return bijGroepHost(world, van); // een gast die los loopt wil terug bij de groep (#429)
     case 'bezorg': return !!n && n.role === 'host' && van >= 1 && bezorgHost(world, van, body); // een gast brengt zijn eigen voertuig mee (#449)

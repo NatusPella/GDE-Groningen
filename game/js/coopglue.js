@@ -94,7 +94,7 @@ export function missieGastVerzoek(world, body, van) {
   const def = getMissionDefs()[v.i];
   const reden = startReden({ verzoek: v, def, lichaam: lichaamVan(world, van) });
   if (reden) { meld(reden); return false; }
-  if (typeof world.coopMissieStart !== 'function' || !world.coopMissieStart(v.i)) { meld(MISSIE_TEKST.onbekend); return false; }
+  if (typeof world.coopMissieStart !== 'function' || !world.coopMissieStart(v.i, van)) { meld(MISSIE_TEKST.onbekend); return false; }
   // De opdracht loopt nu in deze wereld: de vrager is de deelnemer die hem begon, de andere gasten én de gastheer krijgen de gewone
   // vraag. De gastheer is ook een speler (#452): zegt hij nee, dan kijkt hij toe zonder beloning of verhaalstap.
   const label = String(def.label || '').slice(0, 80);

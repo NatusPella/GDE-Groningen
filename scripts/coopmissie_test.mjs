@@ -479,7 +479,8 @@ t('missions.js dempt beloning en voortgang van een gastheer die niet meedeed (#4
   // (#492: de keten komt uit de houder per groep, chainState())
   assert.match(src, /chainState\(\)\.gastStart = \{ id: `\$\{i\}\|\$\{String\(def\.label \|\| ''\)\.slice\(0, 48\)\}`, eigenIndex \}/);
   assert.match(src, /const gastStartMee = \(world\) => !chainState\(\)\.gastStart \|\| gastheerMee\(world, chainState\(\)\.gastStart\.id\)/);
-  assert.match(src, /function sluitGastStart\(world, mee\)[\s\S]{0,200}chainState\(\)\.index = g\.eigenIndex; chainState\(\)\.retry = null;/, 'zijn eigen keten springt terug');
+  assert.match(src, /function sluitGastStart\(world, mee\)[\s\S]{0,400}if \(groep\) \{ chainState\(\)\.phase = 'idle'; return g; \}/, 'de groepsketen sluit zonder de hostketen');
+  assert.match(src, /if \(g && !mee\) \{ chainState\(\)\.index = g\.eigenIndex; chainState\(\)\.retry = null; \}/, 'zijn eigen keten springt terug');
   // geen geld, geen stap verder en geen medaille als hij toekeek; de gasten krijgen hun deel wel
   assert.match(src, /if \(mee\) \{ noteMoney\('Missies'\); world\.money \+= reward; \}/);
   assert.match(src, /if \(mee\) chainState\(\)\.completed\.add\(chainState\(\)\.index\)/);
@@ -543,6 +544,34 @@ t('#492: de missielus tikt twee groepen missiestand los van elkaar', () => {
   ML.tik(lus, 0.2, (id) => { const g = G.groep(st, id); G.zetStand(st, id, { index: g.index, stap: `nog-${id}` }); });
   assert.equal(G.groep(st, 'b|B').stap, 'nog-b|B');
   assert.equal(G.groep(st, 'a|A').stap, '', 'a deed niet mee');
+});
+
+// #492: per groep een eigen missiebericht, en alleen de leden van die groep horen hem
+t('#492: het missiebericht van een gastgroep gaat naar die groep, niet naar iedereen', () => {
+  const st = G.maakGroepen();
+  const a = G.beginVerzoek(st, { index: 5, label: 'Bezorgen' }, 1, 0);
+  const b = G.beginVerzoek(st, { index: 9, label: 'Bruggen' }, 2, 0);
+  assert.ok(a && b && a.id !== b.id, 'twee groepen naast elkaar');
+  const berA = missieBericht(null, { phase: 'active', id: a.id, label: 'Bezorgen', type: 'deliver', index: 5, progressText: 'Naar de kerk', lateInstap: true });
+  const berB = missieBericht(null, { phase: 'active', id: b.id, label: 'Bruggen', type: 'stages', index: 9, progressText: 'Naar de brug', lateInstap: true });
+  assert.equal(berA.event.id, a.id); assert.equal(berB.event.id, b.id);
+  assert.notEqual(berA.event.id, berB.event.id);
+  // de leden van a zijn alleen plek 1; b alleen plek 2 — de berichten gaan dus niet naar dezelfde gast
+  assert.deepEqual(G.groep(st, a.id).deelnemers, [1]);
+  assert.deepEqual(G.groep(st, b.id).deelnemers, [2]);
+  // een bericht van een andere groep dan de eigen groep wordt apart gehouden (bestaande regel)
+  const eigen = { id: a.id };
+  assert.equal(berB.event.id !== eigen.id, true);
+  // en de bedrading in coopnet/coopglue/missions noemt de groepsroute
+  const net = fs.readFileSync(new URL('../game/js/coopnet.js', import.meta.url), 'utf8');
+  const glue = fs.readFileSync(new URL('../game/js/coopglue.js', import.meta.url), 'utf8');
+  const mis = fs.readFileSync(new URL('../game/js/missions.js', import.meta.url), 'utf8');
+  assert.match(net, /world\.coopGroepMissieVoor\(id\)/);
+  assert.match(net, /groepLeden\(n, id\)/);
+  assert.match(net, /world\.coopGroepToets\(van, 'e'\)/);
+  assert.match(glue, /coopMissieStart\(v\.i, van\)/);
+  assert.match(mis, /startGroepMissie\(world, i, van\)/);
+  assert.match(mis, /world\.coopGroepMissieVoor = \(id\) => groepMissieVoor\(id\)/);
 });
 
 console.log(`coopmissie_test: ${n}/${n} ok`);
