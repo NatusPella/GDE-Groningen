@@ -56,8 +56,6 @@ const BASE_DEFAULTS = {
   stapAnimatie: true,
   showFog: true,
   cinematicMoments: true,
-  // a new wijk: false = a name card with a spoken line, true = the full flyover
-  wijkFilm: false,
   gore: true,
   // Zichtafstand (viewdist.js): 'ver', not Hoog's 'heelver', so a first
   // launch on an iGPU laptop stays at 600 m

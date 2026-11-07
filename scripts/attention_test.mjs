@@ -8,12 +8,14 @@ let fails = 0, n = 0;
 const ok = (c, name) => { n++; if (!c) { fails++; console.log('FAIL', name, JSON.stringify(A.attentionState())); } };
 const idle = { player: { inVehicle: null } };
 
-ok(A.mayInterrupt('wijk', idle), 'a flyover may play when nothing happened');
+ok(A.mayInterrupt('wijk', idle), 'a wijk card may play when nothing happened');
 A.noteMoment('wijk');
 t += 30;
-ok(!A.mayInterrupt('landmark', idle), 'no landmark scene 30 s after a flyover (global gap)');
+ok(!A.mayInterrupt('landmark', idle), 'no landmark scene 30 s after a wijk card (discovery cooldown)');
 t += 60;
-ok(!A.mayInterrupt('landmark', idle), 'discovery scenes share a 3.5 min cooldown');
+ok(!A.mayInterrupt('landmark', idle), 'discovery scenes share a 2 min cooldown');
+t += 35;
+ok(A.mayInterrupt('landmark', idle), 'after the discovery cooldown a discovery scene may follow (#709)');
 ok(A.mayInterrupt('crash', idle), 'a crash replay is not a discovery scene');
 A.noteMoment('crash');
 t += 45;
@@ -50,6 +52,9 @@ ok(A.mayVoiceText('news'), 'Kiekdoar news is read aloud again after the gap');
 const B = await import('../game/js/hudbus.js');
 const momentKinds = B.SURFACES.moment.gates.map(([, k]) => k);
 ok(momentKinds.length === Object.keys(B.MOMENTS).length && momentKinds.every((k) => k in B.MOMENTS), 'the moment surface lists every moment');
+// #709: de ontdekking is losser dan vroeger (210 s en de 40 s globale marge hielden de wijkkaart te lang tegen)
+ok(B.MOMENTS.wijk.cooldown === 120 && B.MOMENTS.landmark.cooldown === 120 && B.MOMENTS.ommelanden.cooldown === 120, 'discovery scenes share a 2 min cooldown');
+ok(B.RATION.DISCOVERY_GAP === 15 && B.RATION.GLOBAL_GAP === 40, 'a discovery scene may follow after 15 s, other moments keep the 40 s gap');
 const asSurface = (kind, w) => B.mayShowSurface('moment', {
   moment: { now: t, busy: false, callOn: false, narrativeBusy: false, speed: w.player.inVehicle ? w.player.inVehicle.speed : 0, last: A.attentionState() },
 }, kind);

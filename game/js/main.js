@@ -188,6 +188,7 @@ import { BOERDERIJ_WERELD_KIND } from './boerderijwereld.js';
 import { probe } from './hitchprobe.js';
 import { initSafety, updateSafety } from './safety.js';
 import { updateCinematics, isCinematicActive, sinceCinematic, setCinematicLinks } from './cinematics.js';
+import { getGrenzen } from './gebiedenbronnen.js';
 import { initFlavour, updateFlavour } from './flavour.js';
 import { initFlavour3D, updateFlavour3D } from './flavour3d.js';
 import { prepareHomeMap, initHome, updateHome, updateHomeExterior, tryHomeInteract, homeSpawnPoint, parkHeroAtHome, garagePoortToestand } from './home.js';
@@ -587,7 +588,7 @@ async function boot() {
   setNieuwsBronnen({ bridges: getMovableBridges });
   setAudioCamera(getCamera);
   setRouteLinks({ getActiveRoute, getRouteAhead, getUserWaypoint });
-  setCinematicLinks({ getFollowPose, prewarmStreamAt });
+  setCinematicLinks({ getFollowPose, prewarmStreamAt, getGrenzen });
   setSfxLinks({ bridges: getMovableBridges, trains: getTrains, vehicles: () => world.vehicles, locks: getSluizen });
   await waitForStart(world, countryPlaced);
   await countryPlaced;

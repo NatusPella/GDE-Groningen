@@ -1579,6 +1579,12 @@ holds both migration chains (`SAVE_MIGRATIONS`, `SETTINGS_MIGRATIONS`) and
 the generic `runMigrations(data, migrations, to)`: an older file runs through
 every step, `n -> n + 1`, on a copy, before anything reads it.
 
+A few small top-level fields are optional the same way: `visitedLandmarks`
+(the visited landmarks of this save) and `wijken` (the wijk cards this save
+already showed, #726). A save from before `wijken` takes the old device list
+(`gde-wijken-seen-nieuw`) once, so the cards do not replay; the device key is
+no longer written (the save is the source).
+
 ### Save slots
 
 There are eight save slots (`saveslots.js`, pure; the Opgeslagen spellen screen
