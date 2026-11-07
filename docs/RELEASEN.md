@@ -18,6 +18,27 @@ Een release is een pre-release in de privé-repo (AGENTS.md, "Releases"). De co�
 
 De workflows starten nooit vanzelf (alleen `workflow_dispatch`), gebruiken alleen `GITHUB_TOKEN` met `contents: write` en hebben geen geheimen. Ze bouwen uit de tag, dus een fout in de workflow zelf herstel je op `main` en start je opnieuw; de tag hoeft niet mee. Elke workflow heeft een eigen `concurrency`-groep per tag en een time-out (macOS 20, Linux 25, Android 30 min).
 
+## Versienummers bij een release
+
+Een release raakt deze plekken; `scripts/release_docs_test.mjs` bewaakt de eerste twee en de
+versiebron.
+
+- **`desktop/package.json` + `desktop/package-lock.json`** — de versiebron. `release.sh` doet de
+  bump (`minor`/`patch`) en weigert zonder een `## [X.Y.Z]`-sectie in `CHANGELOG.md`.
+- **`android/package.json` + `android/package-lock.json`** — het Android-toolpakket. `release.sh`
+  zet die bij de bump gelijk aan de releaseversie; de test `release_docs_test` eist gelijkheid.
+- **`android/version.properties`** — de APK-versie, gegenereerd uit `desktop/package.json` door
+  `android/scripts/version.mjs` in de Android-workflow (geen tweede handmatig getal).
+- **`CHANGELOG.md`** — eerst de `[Unreleased]`-regels naar `## [X.Y.Z] - datum` verplaatsen; de
+  release weigert een lege sectie.
+- **Documentatie met een stand-datum** — `docs/1.0-TRACK.md`, `docs/PUBLICATIECHECKLIST.md`,
+  `docs/LICENTIES.md`, `docs/MUZIEK.md`, `docs/PROVINCIE-PLAN.md`, `docs/STEAM-CHECKLIST.md` en de
+  versieregel in `.specs-fire/standards/publicatie.md` bijwerken zodra de versie vaststaat.
+- **Web-cache** — `web/build.mjs` print `gde-<versie>-<hash>`; alleen informatief, geen invoer.
+
+Controle vóór de tag: `node scripts/release_docs_test.mjs`, `node scripts/release_builds_test.mjs`
+en `node scripts/spec_check.mjs`, plus de changelog-sectie van de nieuwe versie.
+
 ## Wie mag publiceren (#558)
 
 Alleen de eigenaar publiceert. De vier release-workflows hebben daarvoor twee sloten:

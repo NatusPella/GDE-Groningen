@@ -38,4 +38,14 @@ t('de releasecomment claimt geen immutable releases die uit staan', () => {
   assert.ok(!/dan staan latere uploads en vervangingen niet meer toe/.test(sh));
 });
 
+
+t('release.sh houdt het Android-toolpakket gelijk aan de releaseversie', () => {
+  const sh = read('desktop/release.sh');
+  assert.match(sh, /\.\.\/android\/package\.json/, 'release.sh noemt android/package.json');
+  assert.match(sh, /j\.version=v/, 'release.sh schrijft de versie in het Android-toolpakket');
+  assert.match(sh, /git add package\.json package-lock\.json \.\.\/android\//, 'de Android-versie gaat mee in de releasecommit');
+  assert.match(read('docs/RELEASEN.md'), /## Versienummers bij een release/, 'RELEASEN.md heeft de versiechecklist');
+  assert.match(read('docs/RELEASEN.md'), /android\/package\.json/, 'de checklist noemt het Android-toolpakket');
+});
+
 console.log(`release_docs_test: ${n}/${n} ok`);
