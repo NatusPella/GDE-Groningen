@@ -67,6 +67,12 @@ import { heistRolGebruik, heistGastTik } from './heistrollen.js'; // de rolstap 
 import { activeStage, getMissionDefs } from './missionquery.js'; // de lopende stap van de opdracht (#438)
 import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
 
+// (#684) De positieve "samen kan"-kaart naast de eerste "Meedoen?" is HUD-werk (samenplan.js →
+// hudcards.js) en dat laadt niet in elke Node-test. main.js zet de haak, net als bij de bestuurhaken;
+// zonder haak (tests, koploze host) gebeurt er niets.
+let samenKanHaak = null;
+export function zetSamenKanHaak(fn) { samenKanHaak = typeof fn === 'function' ? fn : null; }
+
 export const CAPS = ['scene', 'spelers', 'snaptijd', 'pvp']; // wat dit spel kent; uitbreidbaar (net/session.js negotiate). snaptijd: de tijd van een snapshot (ms van de klok van de host) staat in de kop, #434
 export const REMOVE_DELAY = 0.5; // s tussen "je bent verwijderd" en het verbreken
 export const MAX_REWARD = 1000000;
@@ -1226,6 +1232,7 @@ export function handleEvent(world, body, van = 0) {
       }
       world.coopUitnodiging = u.verplicht ? null : u; world.coopMeedoenNee = !u.verplicht; world.coopMeedoenJa = null; // geen antwoord is nee (#452)
       if (world.addMessage) world.addMessage(uitnodigingTekst(u, openerNaam(world.coopRoster, true)), u.verplicht ? 5 : Math.min(u.status === 'vooruit' ? 30 : 10, u.rest));
+      if (samenKanHaak) samenKanHaak(world); // (#684) één keer naast de eerste "Meedoen?": wat kan samen
       if (u.status === 'vooruit' && !u.verplicht && n.session) n.session.sendEvent({ k: 'meedoenwacht' }); // geen standaard-ja bij een spoilerwaarschuwing
       return true;
     }

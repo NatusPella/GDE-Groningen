@@ -50,6 +50,7 @@ import { pickTrip, getSharedNet } from './vaarnet.js';
 import { isShopOpen } from './shopui.js';
 import { GAST_ACTIVITEITEN, MELDING_ALLEEN_OPENER } from './coopgast.js';
 import { waarschuwVoorStart, samenWaarschuwing } from './coopstatus.js';
+import { toonEigenPlan } from './samenplan.js'; // (#684) de eigen-plan-kaart voor een gast
 import { isCinematicActive, showBanner } from './cinematics.js';
 import { getScene } from './scene3d.js';
 import { showCard } from './hudcards.js';
@@ -456,7 +457,12 @@ export function tryActivityInteractGast(w) {
     if (GAST_ACTIVITEITEN.has(a.id)) { if (a.interact(w)) return true; continue; }
     let dichtbij = false;
     try { dichtbij = !!(a.prompt && a.prompt(w)); } catch (e) { dichtbij = false; }
-    if (dichtbij) { const sw = samenWaarschuwing(w, 'activiteit', a.id); w.addMessage(sw ? sw.tekst : MELDING_ALLEEN_OPENER, 3); return true; } // een gast hoort ook dat dit nog niet samen werkt
+    if (dichtbij) {
+      const sw = samenWaarschuwing(w, 'activiteit', a.id);
+      w.addMessage(sw ? sw.tekst : MELDING_ALLEEN_OPENER, 3); // een gast hoort ook dat dit nog niet samen werkt
+      toonEigenPlan(w); // (#684) en wat hij intussen zelf kan doen
+      return true;
+    }
   }
   return false;
 }

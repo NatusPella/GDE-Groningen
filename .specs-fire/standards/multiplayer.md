@@ -139,6 +139,14 @@ zetten, heli besturen, een filmpje voor iedereen overslaan (wel de eigen weergav
 snelreizen via de kaart (het safehouse-anker wel), de tijd verzetten, cheats of
 testmenu, en de hostrol.
 
+Een "nee" is geen dood spoor (#684): de melding noemt wat wél kan ("Dit kan alleen in je
+eigen spel; samen kan hengelen en boeren."), de wachtkamer en het samen-scherm tonen de
+volledige positieve lijst uit het register (`coopstatus.js` `SAMEN_KAN_REGEL`), naast de
+eerste "Meedoen?" komt één keer een korte kaart (`samenplan.js` `meldSamenKan`) en bij een
+host-only-activiteit krijgt de gast eenmalig de "eigen plan"-kaart met de vier lokale
+activiteiten en hun plek (`toonEigenPlan`; de haak zet `main.js`, zodat de netcode geen
+HUD laadt).
+
 De figuren van plek 2 en 3 gebruiken dezelfde botsing, water- en terrainregel als
 Tessa; een nieuwe of uitgestapte figuur komt op een droge vrije plek of in de boot.
 De afstandsregel is er één: spelers binnen 150 m van elkaar delen een focus
@@ -155,7 +163,7 @@ aantal foci (8) en het tegelbudget (#366, #429).
 
 Net: `net/hub|session|brokers|codec|protocol|interp.js`, `coopnet.js`,
 `coopfoci.js`, `coopextra*.js`. Regels:
-`coopmeedoen|missie|gast|gastlokaal|bestuur|gezocht|wapen|pvp|pvpwereld|wedstrijd*|bijbaan|status|hostwissel*|beloning|deel|checkpoint|save|bezit.js`,
+`coopmeedoen|missie|gast|gastlokaal|bestuur|gezocht|wapen|pvp|pvpwereld|wedstrijd*|bijbaan|status|hostwissel*|beloning|deel|checkpoint|save|bezit|samenplan.js`,
 `spelersregister.js`, `players.js`, `pvparena.js`. Schermen: `lobby.js`, `lobbyui.js`,
 `samenpanel.js`, `coopgate.js`, `coopspelersui.js`, `coopscene.js`, `coophold.js`.
 
@@ -171,7 +179,8 @@ Puur (`scripts/*_test.mjs`): per module hierboven, plus `net_*`, `coop_scenarios
 sessie van één (ADR 0024) en wat daarvan afhangt: metgezel, baken en de overgang naar een
 echte sessie; `coopbestuur_test` de bestuurinvoer van de gastheer en de gast;
 `onboarding_test` en `gamepad_live_test` de uitlegkaart en de controllerindeling in
-alleen spelen. De hele stroom van een
+alleen spelen; `coopstatus_test` en `samenplan_test` de positieve "samen kan"-lijst, de
+concrete tips en de bedrading van de eigen-plan-kaart. De hele stroom van een
 gast in een voertuig (instappen, meerijden, uitstappen, weer instappen; auto, meerijden
 bij de gastheer en boot) staat in `coopbestuurflow_test`. Electron
 (`scripts/coop/testbank.mjs`): `basis`, `net`, `opening`, `gastkant`, `bestuur`,
