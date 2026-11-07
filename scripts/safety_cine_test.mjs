@@ -37,5 +37,14 @@ ok(!/if \(cineT > limit\) \{/.test(blok), 'de oude regel "wandklok boven de limi
 ok(/if \(isPauseMenuOpen\(\) \|\| isMapOpen\(\)\) return;/.test(blok), 'in het pauzemenu en op de kaart telt de tijd niet mee');
 ok(/cinematicLimit\(c\)/.test(blok), 'de limiet komt nog steeds uit cinelimit.js');
 
+// 6. één eigenaar voor een hangende opening (#635): cinematics.js heeft de time-out,
+//    main.js heeft geen tweede tak meer (die riep skipCinematic zonder import en deed niets).
+{
+  const cin = fs.readFileSync(path.join(ROOT, 'game', 'js', 'cinematics.js'), 'utf8');
+  const main = fs.readFileSync(path.join(ROOT, 'game', 'js', 'main.js'), 'utf8');
+  ok(/cinematicHang\(/.test(cin), 'cinematics.js heeft de time-out voor een hangende opening');
+  ok(/enige plek met een time-out voor een hangende opening \(#635\)/.test(cin), 'de bron noemt de enige eigenaar (#635)');
+  ok(!/skipCinematic\(/.test(main), 'main.js heeft geen tweede time-out-tak meer (en dus geen ontbrekende import)');
+}
 console.log(`safety_cine: ${n - fails}/${n} checks`);
 process.exit(fails ? 1 : 0);

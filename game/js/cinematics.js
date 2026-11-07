@@ -7,13 +7,15 @@ import { noteSpoken } from './characters.js';
 import { getSettings } from './settings.js';
 import { isPauseMenuOpen, isMapOpen } from './pausestate.js';
 import { respawnPlayer } from './world.js';
-import { V, W, clamp01, easeInOut, easeOut, pathShot, roofAt, clearKeys, wijkStreetShot, buildingReach } from './camerapath.js';
+import { V, W, clamp01, easeInOut, easeOut, pathShot, roofAt, clearKeys, buildingReach } from './camerapath.js';
 import { playStoryVoice, setStoryScene, setStoryProbe, playTextMumble } from './audio.js';
 import { isIntroPlaying } from './trailerstate.js';
 import { logoHtml, GAME_NAME, SUBTITLE } from './logo.js';
 import { mayInterrupt, noteMoment } from './attention.js';
+import { momentReason } from './cutgates.js';
 import { registerNarrative } from './narrative.js';
-import { lineVoiceFor } from './linevoice.js';
+import { lineVoiceFor, lineVoicesFailed } from './linevoice.js';
+import { plannedVoiceLines } from './voicetiming.js';
 // What cinematics.js asks of respawn.js and scene3d.js comes in through setCinematicLinks
 // (respawn.js and main.js call it), so it imports neither (#108).
 import { cinematicLinks as links } from './latehooks.js';
@@ -25,6 +27,7 @@ import { hasCarInterior } from './carinteriorlayout.js';
 import { defaultKey } from './controls.js';
 import { playerBusy } from './busy.js';
 import { hoofdspeler } from './players.js';
+import { gebiedIn, puntInGebied } from './grenzen.js';
 import { cinematicHang } from './cinelimit.js';
 
 // world.cameraOverride poses use map coordinates: x/y on the map, z = height in metres.
@@ -45,7 +48,6 @@ let endedAt = -Infinity;
 // Real seconds since the last cinematic ended (the HUD needs a beat before the next text).
 export const sinceCinematic = () => (performance.now() - endedAt) / 1000;
 const WIJK_DWELL = 1.5;
-const WIJK_MAX_SPEED = 12; // m/s: faster than this the flyover waits
 
 const LANDMARK_HEIGHT = {
   Martinitoren: 97, Martinikerk: 32, 'Der Aa-kerk': 45, Academiegebouw: 30, 'Groninger Museum': 28,
@@ -55,6 +57,8 @@ const LANDMARK_HEIGHT = {
 let world = null;
 let els = null;
 let active = null;
+// De wereld van de lopende sessie, voor de intocht die vanuit een menu wordt teruggekeken (#708).
+export const cinematicWorld = () => world;
 let queue = [];
 let scale = 1;
 let started = false;
@@ -73,7 +77,6 @@ let wijkSeen = null;
 let wijkCand = null;
 let wijkDwell = 0;
 let wijkTimer = 0;
-let wijkPrep = null;
 // hold-to-skip: when Space went down (performance.now ms), and whether the
 // press started during a cutscene - then it is swallowed until its keyup
 let skipHoldSince = null;
@@ -187,6 +190,24 @@ export function cinematicPausesGameplay() {
   return !!(active && active.pause);
 }
 
+// #729: een scène met pause:true zet de wereld echt stil. De wereldpauze loopt via
+// world.uiPaused (main.js rekent die mee in world.paused); phone.js zet hem elke
+// frame uit cinematicPausesGameplay(). Deze twee regels zorgen dat de pauze ook op
+// paden zonder updatePhone staat (duif/heli) en dat de vorige stand terugkomt.
+let pauseWasOn = false, pausePrevUi = false;
+function pauseOn() {
+  if (!world || pauseWasOn) return;
+  pauseWasOn = true;
+  pausePrevUi = !!world.uiPaused;
+  world.uiPaused = true;
+  world.cinematicPause = true;
+}
+function pauseOff() {
+  if (!pauseWasOn) return;
+  pauseWasOn = false;
+  if (world) { world.uiPaused = pausePrevUi; world.cinematicPause = false; }
+}
+
 export function getCinemaCamMode() {
   return camMode;
 }
@@ -273,26 +294,28 @@ export function skipCinematic() {
 // De stemmen van een scène (ook als pure functie te testen, #711): regels zonder eigen opname krijgen er een uit de
 // 'lines'-bank; een regel met `own` (de scène speelt hem zelf) of met een eigen `voice` blijft staan, zodat de gast
 // dezelfde opname en dezelfde ondertiteltijden houdt als de gastheer.
+export // #733: één keer melden als scènes zonder stem spelen omdat de stemmenbank
+// definitief niet laadde (dan blijven de ondertitels staan).
+let stemmenStilGemeld = false;
+
+// De stemmen van een scène (#711): regels zonder eigen opname krijgen er een uit de
+// 'lines'-bank. De pure regels staan in voicetiming.js, zodat cutscenehost ze al vóór
+// compileScene kan toepassen (#731: de shots en cues compilen met dezelfde duur als de
+// stemmen). Een scène die de opname zelf afspeelt (own) of al een oice heeft, blijft
+// staan; de gast houdt zo dezelfde opname en ondertiteltijden als de gastheer.
+// Export voor test en voor de gastkant (coopcut_test).
 export function attachVoices(a) {
-  if (!a.lines || !a.lines.length) return;
-  let found = false;
-  const lines = a.lines.map((l) => {
-    const v = !l.voice && !l.own && lineVoiceFor(l.speaker, l.text);
-    if (!v) return l;
-    found = true;
-    return { ...l, voice: v.src, vdur: v.dur };
-  });
-  if (!found) return;
-  const start = 0.5, even = Math.max(0.5, a.duration - start - 0.2) / lines.length;
-  let shift = 0;
-  a.lines = lines.map((l, i) => {
-    const dur0 = l.dur ?? even;
-    const out = { ...l, at: (l.at ?? start + i * even) + shift, dur: l.vdur ? Math.max(dur0, l.vdur + 0.25) : dur0 };
-    shift += out.dur - dur0;
-    return out;
-  });
-  const end = a.lines[a.lines.length - 1];
-  a.duration = Math.max(a.duration + shift, end.at + end.dur + 0.2);
+  if (!a || !a.lines || !a.lines.length) return;
+  const r = plannedVoiceLines(a.lines, a.duration, lineVoiceFor);
+  if (!r.changed) {
+    if (lineVoicesFailed() && !stemmenStilGemeld) {
+      stemmenStilGemeld = true;
+      console.warn('scène zonder stem: de stemmenbank is niet geladen; de ondertitels blijven staan');
+    }
+    return;
+  }
+  a.lines = r.lines;
+  a.duration = r.duration;
 }
 
 // the internal codes of playTextMumble (audio.js): A = Tessa, T = Tammo, V = Rikus; anyone else keeps the default pitch
@@ -305,6 +328,8 @@ function begin(spec) {
   };
   holdShotTiles(spec.prewarm);
   attachVoices(active);
+  if (active.pause) pauseOn(); // (#729) de wereld en de speler staan stil zolang de scène duurt
+
   const r = els.root;
   r.classList.toggle('letterbox', !!active.letterbox);
   r.classList.toggle('show-skip', !!active.skippable && active.duration > 1.6);
@@ -343,6 +368,7 @@ function begin(spec) {
 function finish(skipped, replaced = false) {
   const a = active;
   active = null;
+  pauseOff(); // (#729) de wereld loopt weer door (de volgende scène zet hem zo nodig weer stil)
   releaseShotTiles();
   const r = els.root;
   r.classList.remove('active', 'letterbox', 'has-card', 'has-big', 'has-sub', 'show-skip', 'sub-clue');
@@ -546,6 +572,8 @@ function realMapBox(map) {
 function checkOmmelanden(w) {
   if (active || !momentsOn() || w.wanted > 0 || w.pendingRespawn || w.pigeonMode) return;
   if (busyWithJob(w)) return;
+  // #732: geen scène in een race, op snelheid of in de lucht (dezelfde poorten als de andere momenten)
+  if (momentReason(w, { vehicle: hoofdspeler(w).inVehicle })) return;
   const seen = visited(w);
   if (seen.has(OMMELANDEN)) return;
   const [x0, y0, x1, y1] = realMapBox(w.map);
@@ -588,6 +616,8 @@ function visited(w) {
 function checkLandmarks(w) {
   if (active || !momentsOn() || w.wanted > 0 || w.pendingRespawn) return;
   if (busyWithJob(w)) return;
+  // #732: ook niet als duif, in een race, in de lucht of op snelheid: deze scène pauzeert de wereld
+  if (momentReason(w, { vehicle: hoofdspeler(w).inVehicle })) return;
   const seen = visited(w);
   const p = hoofdspeler(w);
   for (const lm of w.map.meta.landmarks || []) {
@@ -675,7 +705,9 @@ export function replayIntro(w = world) {
 
 function playGameStart(w) {
   markNearbyLandmarksVisited(w, 70);
-  loadWijken(!w.loadedFromSave);
+  // a new save starts with its own empty list; a loaded save brought its list in through
+  // applyWijkenSeen (savegame.js applySave), so nothing is read or wiped here (#726)
+  if (!w.loadedFromSave) wijkSeen = new Set();
   const here = currentWijk(w);
   if (here) markWijk(here);
   w.messages = w.messages.filter((m) => !m.text.startsWith('Je begint bij'));
@@ -786,26 +818,35 @@ function currentWijk(w) {
   return best;
 }
 
-function loadWijken(fresh) {
+// The wijk cards this save already showed (#726). The list travels in the savegame, so a new
+// game no longer wipes it for the other saves on the device; a save from before the field
+// (no `wijken`) falls back to the device list, which used to be the only place. markWijk keeps
+// the list in memory only: saving the game writes it (savegame.js getWijkenSeen).
+export function getWijkenSeen() {
+  return wijkSeen ? [...wijkSeen] : [];
+}
+
+// Called by savegame.js when a save is loaded: an array (also an empty one) is this save's list,
+// a missing field is a save from before #726 and takes the device list.
+export function applyWijkenSeen(list) {
   wijkSeen = new Set();
-  if (fresh) {
-    try { localStorage.removeItem(WIJK_KEY); } catch (e) { /* ignore */ }
+  if (Array.isArray(list)) {
+    for (const n of list) if (typeof n === 'string') wijkSeen.add(n);
     return;
   }
   try {
-    const list = JSON.parse(localStorage.getItem(WIJK_KEY) || '[]');
-    if (Array.isArray(list)) for (const n of list) if (typeof n === 'string') wijkSeen.add(n);
+    const old = JSON.parse(localStorage.getItem(WIJK_KEY) || '[]');
+    if (Array.isArray(old)) for (const n of old) if (typeof n === 'string') wijkSeen.add(n);
   } catch (e) { /* ignore */ }
 }
 
 function markWijk(p) {
   if (!wijkSeen) wijkSeen = new Set();
   wijkSeen.add(p.name);
-  try { localStorage.setItem(WIJK_KEY, JSON.stringify([...wijkSeen])); } catch (e) { /* ignore */ }
 }
 
 function busyWithJob(w) {
-  return playerBusy(w, ['missionPhase', 'sideJob', 'challenge']).busy;
+  return playerBusy(w, ['missionPhase', 'sideJob', 'challenge', 'activeRace']).busy; // race: nooit een scène erdoorheen (#732)
 }
 
 function checkWijk(dt, w) {
@@ -818,35 +859,45 @@ function checkWijk(dt, w) {
   if (!p || wijkSeen.has(p.name)) { wijkCand = null; return; }
   if (!wijkCand || wijkCand.name !== p.name) { wijkCand = p; wijkDwell = 0; return; }
   wijkDwell += step;
-  // a second before the flyover can start, its street is picked and built ahead
-  const film = momentsOn() && getSettings().wijkFilm === true;
-  if (film && wijkDwell >= WIJK_DWELL - 1 && (!wijkPrep || wijkPrep.name !== wijkCand.name) && !active && !busyWithJob(w)) prepWijk(w, wijkCand);
   if (wijkDwell < WIJK_DWELL || active || w.pendingRespawn || w.wanted > 0 || w.time < (w.quietUntil || 0)) return;
   // never during a mission, race or bijbaantje: the wijk stays unseen and
   // plays once the player is free again (and still in it)
   if (busyWithJob(w)) return;
-  // at speed a paused flyover is jarring: wait until the player slows down
-  const v = hoofdspeler(w).inVehicle;
-  if (film && v && Math.abs(v.speed || 0) > WIJK_MAX_SPEED) return;
   // over the attention budget: waits while the player is still in the wijk
   if (aloft(w) || !mayInterrupt('wijk', w)) return;
   noteMoment('wijk');
   markWijk(p);
   wijkCand = null;
-  if (film) playWijk(w, p);
-  else showWijkCard(w, p);
+  showWijkCard(w, p);
 }
 
-// The landmarks that belong to a wijk (it is their nearest wijk point), the
-// closest first; the card lists a few of them.
+// The card's own area (#725): the real boundary (grenzen.json) around the wijk point, so a
+// landmark of a neighbouring wijk never ends up on this card. The buurt is the card's own
+// scale; only when the boundaries are not loaded yet it stays null.
+function wijkGrens(w, name) {
+  const grenzen = links.getGrenzen ? links.getGrenzen() : null;
+  const p = (w.map.meta.neighbourhoodPoints || []).find((q) => q.name === name);
+  if (!grenzen || !p) return null;
+  return gebiedIn(grenzen.buurten || [], p.x, p.y) || gebiedIn(grenzen.wijken || [], p.x, p.y);
+}
+
+// The landmarks that belong to a wijk: inside its own boundary, the closest first; the card
+// lists a few of them. Without the boundaries (old world data) the nearest wijk point decides,
+// as it did before #725.
 export function wijkHighlights(w, name, max = 3) {
   const pts = w.map.meta.neighbourhoodPoints || [];
+  const here = pts.find((q) => q.name === name) || null;
+  const grens = wijkGrens(w, name);
   const out = [];
   for (const l of w.map.meta.landmarks || []) {
+    if (grens) {
+      if (puntInGebied(grens, l.x, l.y)) out.push({ name: l.name, d2: here ? (here.x - l.x) ** 2 + (here.y - l.y) ** 2 : 0 });
+      continue;
+    }
     let best = null, bestD2 = Infinity;
     for (const q of pts) {
-      const d2 = (q.x - l.x) ** 2 + (q.y - l.y) ** 2;
-      if (d2 < bestD2) { bestD2 = d2; best = q; }
+      const q2 = (q.x - l.x) ** 2 + (q.y - l.y) ** 2;
+      if (q2 < bestD2) { bestD2 = q2; best = q; }
     }
     if (best && best.name === name && bestD2 < 700 * 700) out.push({ name: l.name, d2: bestD2 });
   }
@@ -897,30 +948,6 @@ function showWijkCard(w, wijk, left = 30) {
 }
 
 export { pathShot, roofAt, clearKeys, showWijkCard };
-
-// The flyover's camera path, its pose samples prewarmed (the path is pure:
-// pathShot keyframes). Reused by playWijk while the player is still about
-// where it was planned.
-function prepWijk(w, wijk) {
-  const p = hoofdspeler(w);
-  const shot = wijkStreetShot(w, wijk, heading(w), behindPose(w, 8, 3.8));
-  wijkPrep = { name: wijk.name, shot, x: p.x, y: p.y, at: performance.now() };
-  if (shot) prewarmPoints([0, 0.25, 0.5, 0.7].map((u) => poseFocus(shot(u))));
-}
-
-function playWijk(w, wijk) {
-  const pr = wijkPrep && wijkPrep.name === wijk.name ? wijkPrep : null;
-  const p = hoofdspeler(w);
-  const fresh = pr && pr.shot && Math.hypot(p.x - pr.x, p.y - pr.y) < 6 && performance.now() - pr.at < 8000;
-  const shot = fresh ? pr.shot : wijkStreetShot(w, wijk, heading(w), behindPose(w, 8, 3.8));
-  wijkPrep = null;
-  if (!shot) return false;
-  return playCinematic({
-    id: 'wijk', priority: 1, duration: 11, pause: true, keepMotion: true,
-    lines: [{ speaker: '', text: wijkLine(wijk.name) }],
-    shot,
-  });
-}
 
 function keyHits(w, keys) {
   let hits = 0;
