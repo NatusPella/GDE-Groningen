@@ -24,6 +24,13 @@ const flag = (naam, standaard) => {
 const DRY = args.includes('--dry') || args.includes('--dry-run');
 const BUDGET = flag('--budget', '2.5');
 const MAX = flag('--max', null);
+if (args.includes('--help') || args.includes('-h')) {
+  console.log('Gebruik: node scripts/tts_opnameronde.mjs [--dry] [--budget 2.5] [--max 8]');
+  console.log('  --dry        alleen tonen wat er zou gebeuren (geen sleutel of netwerk)');
+  console.log('  --budget N   maximaal N dollar aan clips in deze ronde');
+  console.log('  --max N      hooguit N clips in deze ronde');
+  process.exit(0);
+}
 
 const node = process.execPath;
 const py = ['python', 'python3', 'py'].find((k) => {
@@ -79,3 +86,4 @@ if (!run('verhaaldata bijwerken', node, ['scripts/build_story_data.mjs'])) proce
 if (!run('dekking controleren', node, ['scripts/voice_coverage.mjs', '--quiet'])) process.exit(1);
 if (!run('opnamelijst verversen', node, ['scripts/tts_opnamelijst.mjs'])) process.exit(1);
 console.log('\nKlaar. Werk issue #735 bij met de nieuwe stand en draai daarna node scripts/tts_opnamelijst.mjs --check.');
+
