@@ -6,6 +6,9 @@ export const FOG_SAVE_MS = 15000;
 
 // De cellen die het verkennen rond (cx, cy) raakt, als tekenrechthoek (incl. rand).
 export function revealRect(cx, cy, reveal, w, h) {
+  // putImageData eist gehele getallen; een zwevende of NaN-positie liet de canvas-upload crashen (#661).
+  if (!Number.isFinite(cx) || !Number.isFinite(cy)) return null;
+  cx = Math.round(cx); cy = Math.round(cy);
   const x0 = Math.max(0, cx - reveal), y0 = Math.max(0, cy - reveal);
   const x1 = Math.min(w - 1, cx + reveal), y1 = Math.min(h - 1, cy + reveal);
   if (x1 < x0 || y1 < y0) return null;
