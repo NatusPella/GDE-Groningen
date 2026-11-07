@@ -6,6 +6,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { SkinBuilder, vcMaterial, composeMatrix, tubeGeometry, loftGeometry, markShared } from './pixelart3d.js';
 import { setLeashHolder, setPeopleWeather } from './models3d_people.js';
 import { resolveWalker } from './collision.js';
+import { vehiclesNear } from './vehicleindex.js';
 import { pushCircleOutOfVehicle, vehicleHitBody } from './vehicle.js';
 import { splatterAnimal, GIB_SPEED } from './gore3d.js';
 import { MODS } from './cheatmods.js';
@@ -767,12 +768,14 @@ function keepOffRoad(a, dt, world) {
 // Animals on the ground are bodies like any walker: walls and posts stop
 // them, cars shove them aside (and scare them off), the player bumps them.
 const GROUND_RADIUS = { grazer: 0.5, gans: 0.22, cat: 0.2, dog: 0.25, pigeon: 0.1, seagull: 0.15 };
+const _nearVeh = []; // #653: hergebruikte kandidatenlijst
 function groundContacts(a, world) {
   if (a.kind === 'duck' || a.kind === 'vis' || a.kind === 'zeehond' || a.gone) return;
   if ((a.kind === 'pigeon' || a.kind === 'seagull' || a.kind === 'reiger') && a.state !== 'ground' && a.state !== 'stand') return;
   const r = GROUND_RADIUS[a.kind] || 0.3;
   let moved = a.speed > 0;
-  for (const v of world.vehicles) {
+  // #653: buren uit de index; de checks blijven gelijk
+  for (const v of vehiclesNear(world, a.x, a.y, 16, _nearVeh)) {
     if (v.isBoat || v.sinking || Math.abs(v.x - a.x) > v.halfLen + 1 || Math.abs(v.y - a.y) > v.halfLen + 1) continue;
     const push = pushCircleOutOfVehicle(a.x, a.y, r, v);
     if (!push) continue;

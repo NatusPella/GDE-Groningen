@@ -6,6 +6,7 @@ import { scaledTarget, farAIDist, skipFar, takeDt } from './simload.js';
 import { aandeel, nietBijFoci } from './coopfoci.js';
 import { hoofdspeler, naasteSpeler } from './spelersregister.js';
 import { inClearZone } from './clearzone.js';
+import { vehiclesNear } from './vehicleindex.js';
 import { openDriverDoor, uitstapPunt, openDeurVoorRol } from './vehicledoors.js';
 import { profileOf } from './signalement.js';
 import { createVictim, stepVictim, victimDone, VICTIM, stepOutPlan, stepOutPos, trekUitPlan } from './carjackvictim.js';
@@ -1043,8 +1044,10 @@ const PED_SEAT_OPTS = { ped: true, kick: false, skipSeats: true };
 
 const FAR_REACH = 14;
 
+const _nearVeh = []; // #653: hergebruikte kandidatenlijst
 function checkVehicleImpact(ped, world) {
-  for (const v of world.vehicles) {
+  // #653: buren uit de index; de afstands- en hoogtechecks hieronder blijven gelijk
+  for (const v of vehiclesNear(world, ped.x, ped.y, 16, _nearVeh)) {
     if (Math.abs(v.x - ped.x) > FAR_REACH || Math.abs(v.y - ped.y) > FAR_REACH) continue;
     if (v.isBoat || v.sinking) continue;
     if (Math.abs(v.x - ped.x) > v.halfLen + 1 || Math.abs(v.y - ped.y) > v.halfLen + 1) continue;
