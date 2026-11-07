@@ -27,8 +27,9 @@ registerMusicProbe('trein', (w) => !!svc && !svc.finished && !!w.trainDriving); 
 let hud = null;
 
 const HELP_METER = 'Balk: remweg tegenover de afstand tot de halte (rood: nu remmen)';
-const HELP_CAB = `${key('W')}${key('S')} hendel &middot; ${key('K')} waak &middot; ${key('O')} deuren &middot; ${key('Spatie')} noodrem &middot; ${key('H')} toeter &middot; ${key('C')} binnenzicht &middot; ${key('T')} rondlopen &middot; ${key('G')} dienst &middot; ${key('Backspace')} stoppen`;
-const INTRO = `<b>TREIN BESTUREN</b>${key('W')} trekt de hendel omhoog: tractie. ${key('S')} zet hem terug en dan op Rem 1 tot 3. ${key('Spatie')} is de noodrem.<br>${key('K')} is de waakzaamheidsknop: druk hem als de trein erom vraagt. ${key('O')} doet de deuren op een halte. ${key('G')} start de dienst. ${key('C')} kijkt binnen, ${key('T')} laat je rondlopen.`;
+const HELP_CAB = `${key('W')}${key('S')} hendel &middot; ${key('K')} waak &middot; ${key('O')} deuren &middot; ${key('G')} dienst &middot; ${key('BACKSPACE')} stoppen`; // #625: de kern; de rest staat in Besturing > Hulp
+// #625: de intro blijft binnen het HUD-kaartbudget; de volledige bediening staat in HELP_CAB en Besturing > Hulp.
+const INTRO = `<b>TREIN BESTUREN</b>${key('W')} tractie, ${key('S')} rem, ${key('Spatie')} noodrem. ${key('K')} waakzaamheid, ${key('O')} deuren, ${key('G')} dienst.`;
 
 // The service as the map layer reads it (missionmaplive.js, #180): the halten
 // of the timetable with the next one marked, and the track ahead of the train.
@@ -218,10 +219,11 @@ export function updateMachinist(dt, world, t, cab) {
     row: `<b>${v.name}</b> &middot; remweg ${v.brakeM} m`,
     cells: v.cells,
     extra: `${svc.dienst ? `<span>${dienstTekst(svc.dienst)}</span> ` : ''}<span>Reizigers <b>${v.reizigers}</b></span>${v.bloksein ? ` <span>Bloksein <b>${v.bloksein}</b></span>` : ''}${v.lastStop ? ` <span>${v.lastStop.name}: <b>${v.lastStop.alight}</b> uit, <b>${v.lastStop.board}</b> in</span>` : ''}`,
-    meter: { v: Math.min(1, v.brakeFrac), color: v.brakeFrac > 0.9 ? '#d94a3a' : v.brakeFrac > 0.7 ? '#e0a030' : '#46a35e' },
+    meter: { v: Math.min(1, v.brakeFrac), color: v.brakeFrac > 0.9 ? 'var(--mk-danger, #d93f3f)' : v.brakeFrac > 0.7 ? 'var(--mk-mission, #e8c93a)' : 'var(--mk-ok, #3fc97a)' }, // #625: status via de tokens
     flash: v.doors ? `Deuren open${v.lastStop ? `: ${v.lastStop.alight} uit, ${v.lastStop.board} in` : ''}` : v.tooFast ? 'Te hard: rem af' : (v.storing || v.flash),
     bad: v.tooFast || v.bad || !!v.storing,
     help: HELP_METER,
   });
   if (hud) hud.set(cabView(cab, t.v, v, vmaxV), HELP_CAB);
 }
+

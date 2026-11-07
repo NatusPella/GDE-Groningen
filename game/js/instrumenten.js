@@ -58,10 +58,10 @@ export const BEDIENING_PAD = 'Linkerstick rollen en gas · A of RT omhoog · B o
 export const UITLEG_INSTAPPEN = 'Gas met W, bij 30 m/s optrekken met Spatie of het pijltje omhoog. Rollen doet A en D, het roer zit op Q en E (een klein duwtje de kant op). Kleppen (K) helpen bij start en landing. Haal het landingsgestel in met G en zet het weer uit voor je landt. Op de baan, met de wielen uit, rem je met Shift en landen is zacht; hard of te snel telt niet.';
 
 // --- het paneel ------------------------------------------------------------------------------------------------------------
-const CSS = `#hud .hud-instr{position:absolute;right:var(--hud-edge,46px);bottom:var(--hud-edge,46px);display:none;width:372px;padding:8px 12px 8px 12px;color:#f0ede4;text-shadow:var(--hud-shadow);background:linear-gradient(90deg,rgba(12,20,14,.88),rgba(23,48,31,.62) 85%,rgba(23,48,31,.15));border-left:3px solid #3fc97a}
+const CSS = `#hud .hud-instr{position:absolute;right:var(--hud-edge,46px);bottom:var(--hud-edge,46px);display:none;width:372px;padding:8px 12px 8px 12px;color:#f0ede4;text-shadow:var(--hud-shadow);background:linear-gradient(90deg,rgba(12,20,14,.88),rgba(23,48,31,.62) 85%,rgba(23,48,31,.15));border-left:3px solid var(--mk-ok, #3fc97a)}
 body.plane-flying #hud .hud-instr{display:block}
 body.plane-flying #hud .hud-speedo{display:none}
-#hud .hud-instr small{display:block;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#3fc97a}
+#hud .hud-instr small{display:block;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--mk-ok, #3fc97a)}
 #hud .hud-instr .hi-top{display:flex;gap:10px;align-items:center;margin-top:4px}
 #hud .hud-instr canvas{width:96px;height:96px;flex:none}
 #hud .hud-instr .hi-num{flex:1;display:grid;grid-template-columns:auto auto;gap:2px 14px}
@@ -69,10 +69,10 @@ body.plane-flying #hud .hud-speedo{display:none}
 #hud .hud-instr .hi-num span{display:block;font-size:12px;letter-spacing:1px;color:rgba(240,237,228,.7)}
 #hud .hud-instr .hi-row{display:flex;gap:12px;align-items:center;margin-top:6px;font-size:13px}
 #hud .hud-instr .hi-bar{flex:1;height:8px;background:rgba(255,255,255,.18)}
-#hud .hud-instr .hi-bar i{display:block;height:100%;background:#3fc97a}
+#hud .hud-instr .hi-bar i{display:block;height:100%;background:var(--mk-ok, #3fc97a)}
 #hud .hud-instr .hi-lamp{padding:1px 8px;border:1px solid rgba(240,237,228,.4);font-size:12px;letter-spacing:1px}
-#hud .hud-instr .hi-lamp.on{background:#2f8f58;border-color:#3fc97a}
-#hud .hud-instr .hi-lamp.warn{background:#a8431f;border-color:#ff8a5c}
+#hud .hud-instr .hi-lamp.on{background:#2f8f58;border-color:var(--mk-ok, #3fc97a)}
+#hud .hud-instr .hi-lamp.warn{background:#a8431f;border-color:var(--mk-job, var(--mk-job, #ff9a3c))}
 #hud .hud-instr .hi-st{margin-top:5px;font-size:14px;min-height:18px}
 #hud .hud-instr .hi-keys{margin-top:4px;font-size:12px;line-height:15px;color:rgba(240,237,228,.62)}`;
 

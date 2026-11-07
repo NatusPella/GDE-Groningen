@@ -8,6 +8,8 @@
   --hud-shadow: 0 1px 3px rgba(0, 0, 0, 0.9), 0 0 1px rgba(0, 0, 0, 0.9);
   --gron-green: #1e9e56;
   --gron-green-light: #3fc97a;
+  --hud-red: #d93f3f;
+  --hud-redtx: #f08a8a;
   --hud-edge: max(46px, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
   /* smallest text, 13 device px whatever the zoom (hudlook.js READABLE_MIN) */
   --hud-min: calc(13px / var(--ui, 1));
@@ -200,8 +202,9 @@ body.tc-on #hud .hud-mission { bottom: calc(var(--hud-g-floor, 225px) + 10px); }
 @keyframes obj-pop { from { opacity: 0; transform: translateY(-8px) scale(1.06); } }
 @keyframes obj-spin { from { transform: rotate(-90deg) scale(1.6); } }
 @media (prefers-reduced-motion: reduce) { #hud .hud-mission.pop .hud-obj-text, #hud .hud-mission.pop .hud-obj-icon, #hud .hud-place.on { animation: none; opacity: 1; } }
-/* the subtitles of car talk sit in G too, under the objective */
-#banter-sub, #radio-sub { bottom: calc(46px * var(--ui, 1)) !important; }
+/* the subtitles of car talk sit in G too, under the objective.
+   #644: niet onder de snelheidsmeter of de minimap: een vaste, smallere kolom in het midden. */
+#banter-sub, #radio-sub { bottom: calc(46px * var(--ui, 1)) !important; width: auto !important; max-width: min(56vw, 560px) !important; padding: 0 12px; }
 
 /* --- zone F: the minimap, the street, you ---------------------------------- */
 #hud .hud-minimap-wrap {
@@ -423,7 +426,7 @@ body.cine-tint-bust:not(.gpu-screenfx) #game3d { filter: grayscale(1) brightness
 .spk.bubble { text-shadow: none; }
 .spk, #cine .cine-speaker, .bt-speaker, .rv-speaker, #hud .pf-speaker { font-weight: bold; text-shadow: 0 0 2px rgba(0, 0, 0, 0.9), 0 1px 3px rgba(0, 0, 0, 0.8); }
 /* Dutch translation under a Frisian or Gronings line (subtitles.js) */
-.nl-sub { display: block; margin-top: 2px; font-size: 0.8em; font-style: italic; font-weight: normal; letter-spacing: 0; opacity: 0.82; }
+.nl-sub { display: block; margin-top: 2px; font-size: max(12px, 0.8em); font-style: italic; font-weight: normal; letter-spacing: 0; opacity: 0.82; }
 .nl-gloss { font-size: 0.85em; font-style: italic; font-weight: normal; letter-spacing: 0; opacity: 0.82; }
 #cine .cine-big .nl-sub { font-size: 0.42em; margin-top: 0.3em; }
 #cine .cine-skip {

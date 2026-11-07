@@ -49,12 +49,14 @@ import { loopbaanVerdien } from './loopbaanlive.js';
 import { pickTrip, getSharedNet } from './vaarnet.js';
 import { isShopOpen } from './shopui.js';
 import { GAST_ACTIVITEITEN, MELDING_ALLEEN_OPENER } from './coopgast.js';
-import { waarschuwVoorStart, samenWaarschuwing } from './coopstatus.js';
+import { waarschuwVoorStart, samenWaarschuwing, samenStatus } from './coopstatus.js';
 import { toonEigenPlan } from './samenplan.js'; // (#684) de eigen-plan-kaart voor een gast
 import { isCinematicActive, showBanner } from './cinematics.js';
 import { getScene } from './scene3d.js';
 import { showCard } from './hudcards.js';
 import { gameUi, mgThema, createBoard, key, stopPressed } from './minigamekit.js';
+import { toonStartkaart, startkaartRegel } from './startkaart.js';
+import { standaardTodo } from './activitytodo.js';
 import { activityBlock, iconDisc } from './activitykit.js';
 import { registerBusyProbe, registerQuitHook } from './busy.js';
 import { hoofdspeler } from './players.js';
@@ -146,7 +148,8 @@ function dienstActiviteit(cfg) {
     run = { d, v, flash: '', flashT: 0, bad: false, klok: 0 };
     if (!board) board = createBoard(mgThema(cfg.id) ? cfg.id : cfg.titel, cfg.accent); // een dienst met een thema (#453) haalt titel, kleur en icoon uit de tabel
     board.show();
-    gameUi.showCard(w, { kind: 'tip', kicker: cfg.label, title: cfg.kaartTitel, body: cfg.kaartBody, duration: 11, key: cfg.id + '-help', voice: false });
+    // #678: één standaard startkaart (doel, medailles, beloning, samen, record) voor elke dienst
+    toonStartkaart(w, cfg.id);
     return true;
   }
 
@@ -385,6 +388,10 @@ const VAARDIENST = dienstActiviteit({
 
 const LIST = [CARBID, KERMIS, HOOGVLIEGER, GEHEIMEN, DRIFT_ZONE, DISCGOLF, PITCHPUTT, SKATEPARK, KARTBAAN, ZWEMBAD, KLIMTOREN, WATERSKI, CARILLON_GAME, PANNENKOEK, HENGELEN, BOEREN, WANDELING, SNACKKETEN, EVENEMENTEN, REGATTA_GAME, RINGRACE, VLIEGSCHOOL, SAFEHUIS, PVP_ARENA_ACT, VLUCHTDIENST, VAARDIENST];
 
+// Alle id's in de lijst, in dezelfde volgorde: één bron voor de sfeer (#595), de startkaart (#678)
+// en de catalogus van "Te doen" (#677), zodat geen activiteit buiten een van die drie kan vallen.
+export const ACTIVITEIT_IDS = LIST.map((a) => a.id);
+
 export function initActivities(w) {
   for (const a of LIST) {
     try { a.init(w); } catch (e) { console.error('activity', a.id, e); }
@@ -519,7 +526,7 @@ export function activityMapIcons(w) {
   const out = [];
   for (const a of LIST) {
     if (!a.legend) continue;
-    for (const s of a.spots()) out.push({ id: a.id, layer: a.layer, kind: a.legend.kind, x: s.x, y: s.y, name: s.name, sub: a.mapSub ? a.mapSub(s, w) : a.legend.note });
+    for (const s of a.spots()) out.push({ id: a.id, layer: a.layer, kind: a.legend.kind, x: s.x, y: s.y, name: s.name, sub: [a.mapSub ? a.mapSub(s, w) : a.legend.note, startkaartRegel(a.id)].filter(Boolean).join(' · ') });
   }
   return out;
 }
@@ -533,16 +540,25 @@ export function drawActivityMapIcon(ctx, kind, s) {
 
 // Het item onder Activiteiten van een attractie die nog niet in de catalogus van todo.js staat
 // (#436, het reuzenrad): de activiteit levert zelf de regel (het `todo`-veld), todoui.js zet hem
-// in de lijst. Zo blijft de lijst kloppen met wat er op de kaart staat.
+// in de lijst. Sinds #677 krijgt elke activiteit zonder eigen `todo` een standaardregel, zodat
+// "Te doen" dezelfde bron gebruikt als de kaart en er geen activiteit meer buiten de lijst valt.
 export function activityTodoItems(world) {
   const out = [];
   for (const a of LIST) {
-    const t = a.todo;
-    const s = t && a.spots()[0];
+    const t = typeof a.todo === 'function' ? a.todo(world) : a.todo;
+    const s = (t && t.spots && t.spots(world)[0]) || a.spots()[0];
     if (!s) continue;
+    const samen = samenStatus('activiteit', a.id);
+    if (!t || !t.key) {
+      const rij = standaardTodo(a, s);
+      if (!rij) continue;
+      out.push({ ...rij, samen, samenId: a.id });
+      continue;
+    }
     out.push({
       key: t.key, group: t.group || 'minigames', icon: t.icon || (a.legend && a.legend.kind), title: t.title, code: '',
       meta: t.meta, status: !t.open || t.open(world) ? '' : 'later', medal: null, record: '',
+      samen, samenId: a.id,
       x: s.x, y: s.y,
       // een plek als doel: het rad is geen wedstrijd met een uitslag, je gaat erheen en stapt in
       goal: { kind: 'place', id: a.id, name: t.title, sub: s.name, x: s.x, y: s.y },

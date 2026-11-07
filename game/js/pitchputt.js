@@ -1,4 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { toonStartkaart } from './startkaart.js';
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
 import { showBanner } from './cinematics.js';
@@ -274,7 +275,8 @@ function start(w, { force = false, online = null, venueId = null } = {}) {
   zetSpelers(game, 1);
   beginHole(w);
   if (online === 'gast') return true; // a guest reads the keys on the board; the host's invitation said what is played
-  showCard(w, { kind: 'tip', kicker: 'Pitch & putt', title: 'Zes korte banen', body: '[A] [D] richten (Shift: fijn), houd [Spatie] en laat los. Het witte streepje op de meter is de kracht voor een rechte slag naar de vlag. Lees de pijltjes op de green. Met [2], [3] of [4] spelen meer mensen om de beurt op dit scherm.', duration: 10, key: 'pitchputt-help', voice: false });
+  // #678: één startkaart met doel, medailles, beloning, samen-status en record
+  toonStartkaart(w, 'pitchputt', { record: recText() });
   say(w, 'start', true);
   return true;
 }
@@ -596,7 +598,13 @@ function eindeMeerdere(w, g) {
 let etqQ = [];
 let etqNext = { sir: 0, wolfie: 0 };
 function etqSay(w, events) {
-  if (game && meerdere(game)) return;   // Sir Cedric en Wolfie praten alleen met één speler
+  if (game && meerdere(game)) {
+    // #597: met 2 tot 4 spelers staan er geen drie 3D-figuren klaar voor tekstballonnen; de etiquette
+    // leest dan als één regel op het bord, zodat de club ook in gezelschap bekakt blijft.
+    const regel = [].concat(events || []).map((e) => e && e.tekst).find(Boolean);
+    if (regel) w.addMessage(regel, 4, { key: 'golf-etiquette' });
+    return;
+  }
   ({ rij: etqQ, volgende: etqNext } = etqPlan(etqQ, etqNext, events, w.time));
 }
 function etqFlush(w) {
@@ -770,7 +778,7 @@ function updateHud(w) {
     : `Totaal ${relText(t.rel)} · ${key('BACKSPACE')} stoppen`;
   // de krachtbalk: de kleur zegt hoe dicht je bij het streepje zit (groen ver, geel dichtbij, oranje te hard), de tekst het getal
   const v = g.charge, nabij = Math.abs(v - mark);
-  const kleur = v > mark + 0.12 ? '#ff9a3c' : nabij < 0.04 ? '#ffd23f' : ACCENT;
+  const kleur = v > mark + 0.12 ? 'var(--mk-job, #ff9a3c)' : nabij < 0.04 ? 'var(--mk-mission, #e8c93a)' : ACCENT; // status via de tokens (#479, #597)
   board.set({ row, cells: multi ? null : cells, extra, meter: g.phase === 'aim' ? { v, mark: clamp(mark, 0, 1), color: kleur, text: krachtTekst(v) } : null, flash, bad: !!(g.flash && g.flash.bad), help });
 }
 
@@ -863,4 +871,5 @@ export const PITCHPUTT = {
   },
   runs: () => runs,
 };
+
 

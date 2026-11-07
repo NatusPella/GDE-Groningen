@@ -17,6 +17,7 @@ import { bubbleVoiceFor } from './linevoice.js';
 import { playLineVoice } from './audio.js';
 import { rand } from './rng.js';
 import { SET_GAMES, scorePoint, pointCall, judgeServeHit, serveInBox, serveFault, wallKind, judgeWall } from './padelrules.js';
+import { mgThema } from './minigamekit.js';
 import { loadEchtePlekken, padelDefs } from './echteplekken.js';
 import { tilesIn, withTiles } from './tileplace.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
@@ -64,7 +65,8 @@ const FIT_WIN_S = 300, FIT_LOSE_S = 180, FIT_RATE = 1.2;
 const PRIZE = [0, 0, 40, 60];
 const USE_RADIUS = 2.6;
 const DETAIL_M = 170, VIS_M = 520;
-const ACCENT = '#3aa6e8';
+// #599: het accent komt uit de ene accenttabel (#453); geen eigen blauw meer.
+const ACCENT = mgThema('padel').accent;
 const CALL = ['0', '15', '30', '40'];
 // per pair: the chance they miss a return, and of an unforced error when they
 // do reach it (into the net or straight into the glass) and of a smash on a
@@ -1307,12 +1309,12 @@ const CSS = `
 #hud .padel-board small { display: block; font-size: 12px; letter-spacing: 3px; color: ${ACCENT}; }
 #hud .padel-board .pb-teams { display: grid; grid-template-columns: auto auto auto; gap: 0 14px; align-items: baseline; font-size: 20px; letter-spacing: 1px; line-height: 1.15; }
 #hud .padel-board .pb-teams b { font-weight: normal; font-size: 24px; text-align: right; }
-#hud .padel-board .pb-teams i { font-style: normal; font-size: 24px; color: #ffd23f; text-align: right; min-width: 30px; }
+#hud .padel-board .pb-teams i { font-style: normal; font-size: 24px; color: var(--mk-mission, #e8c93a); text-align: right; min-width: 30px; }
 #hud .padel-board .pb-side { display: flex; flex-direction: column; align-items: flex-end; font: 13px 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.75); letter-spacing: .3px; }
 #hud .padel-board .hud-key { margin: 0 2px; vertical-align: middle; }
 #hud .padel-board .pb-help { display: flex; align-items: center; gap: 3px; margin-top: 3px; }
-#hud .padel-board .pb-flash { font-size: 22px; letter-spacing: 1.5px; color: #5dff7a; min-height: 1em; }
-#hud .padel-board .pb-flash.them { color: #ff9a3c; }
+#hud .padel-board .pb-flash { font-size: 22px; letter-spacing: 1.5px; color: var(--mk-ok, #3fc97a); min-height: 1em; }
+#hud .padel-board .pb-flash.them { color: var(--mk-job, #ff9a3c); }
 body.padel-on #hud .hud-speedo, body.padel-on #hud .hud-route, body.padel-on #hud .phonefeed .pf-card { display: none !important; }
 @media (max-width: 480px) { #hud .padel-board { top: 64px; } }
 `;
@@ -1345,7 +1347,9 @@ function updateHud(w) {
   const flash = g.flash ? g.flash.text : g.phase === 'serve' && g.server === 0 ? 'Jij serveert: Spatie' : '';
   const clock = g.capped ? 'Laatste punt' : `${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}`;
   const k = (t) => `<span class="hud-key">${t}</span>`;
-  const help = `${clock} · ${k('A')}${k('D')}${k('W')}${k('S')} lopen · ${k('SPATIE')} slaan · ${k('BACKSPACE')} opgeven`;
+  // #599: "GP" staat voor de gouden punt; leg hem één keer op het bord uit als hij in beeld staat.
+  const gp = (callOf(g, 0) === 'GP' || callOf(g, 1) === 'GP') && g.phase !== 'intro' ? ' · GP = gouden punt: de volgende punt is de game' : '';
+  const help = `${clock} · ${k('A')}${k('D')}${k('W')}${k('S')} lopen · ${k('SPATIE')} slaan · ${k('BACKSPACE')} opgeven${gp}`;
   const key = [us, them, g.games, g.points, g.server, g.phase === 'intro', flash, help, g.lastWinner].join('|');
   if (key === hud.key) return;
   hud.key = key;
@@ -1354,4 +1358,5 @@ function updateHud(w) {
   hud.flash.classList.toggle('them', !!g.flash && g.lastWinner === 1 && !g.flash.small);
   hud.help.innerHTML = help;
 }
+
 

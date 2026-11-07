@@ -56,6 +56,16 @@ export function windText(wind) {
   return bft < 1 ? 'Windstil' : `Wind ${bft} Bft`;
 }
 
+// De windrichting als kompasletter (#616): de richting waar de wind naartoe waait, 0 = noord.
+// Zo leest "Wind 3 Bft NO" op de regatta, waar de wind de hele sport bepaalt.
+export function windDirection(wind) {
+  const labels = ['N', 'NO', 'O', 'ZO', 'Z', 'ZW', 'W', 'NW'];
+  const d = Number(wind && wind.dir);
+  if (!Number.isFinite(d)) return '';
+  const i = Math.round((((d % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2)) / (Math.PI / 4)) % 8;
+  return labels[i];
+}
+
 export function newWind(rand = Math.random, max = 5) {
   return { speed: rand() * max, dir: rand() * Math.PI * 2 };
 }
@@ -70,7 +80,7 @@ const CSS = `
 #hud .mg-board .mg-ic { flex: none; }
 #hud .mg-board .mg-row { display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: baseline; font-size: 20px; letter-spacing: 1px; }
 #hud .mg-board .mg-row b { font-weight: normal; color: var(--mk-mission, #e8c93a); font-size: 24px; }
-#hud .mg-board .mg-cells { display: flex; gap: 3px; margin: 5px 0 2px; }
+#hud .mg-board .mg-cells { display: flex; flex-wrap: wrap; gap: 3px; margin: 5px 0 2px; }
 #hud .mg-board .mg-cells i { flex: 1; min-width: 26px; text-align: center; font-style: normal; font-size: 13px; padding: 2px 0; background: rgba(240,237,228,0.1); color: rgba(240,237,228,0.75); }
 /* touch: a cell with a key is a button (carillon bells) */
 html.touch-play #hud .mg-board .mg-cells i[data-k] { pointer-events: auto; touch-action: none; min-height: 44px; display: flex; align-items: center; justify-content: center; }
@@ -143,9 +153,13 @@ export const MG_THEMA = {
   // het luchtruim: de school en de rondvlucht kijken van boven (het oog)
   vliegschool: { titel: 'VLIEGSCHOOL DE WINDWIJZER', accent: '#d9d4be', icoon: 'oog' },
   vluchtdienst: { titel: 'VLUCHT', accent: '#8fb04a', icoon: 'oog' },
-  // de arena en de machinist: een wedstrijd met een uitslag (de kroon en de finishvlag)
+  // de ring: een rondje stad tegen de klok, de richting-pijl in het groen van de startlampen (#618)
+  ringrace: { titel: 'RINGRACE', accent: '#1e9e56', icoon: 'beurt' },
+  // padel (#599): geen eigen blauw meer; het accent komt uit de bestaande a11y-paletten, het icoon is de bal
+  padel: { titel: 'PADEL', accent: '#c068ff', icoon: 'bal' },
+  // de arena en de machinist: een wedstrijd met een uitslag (de kroon) en een dienst met een perron (de pijl, #625)
   pvparena: { titel: 'PVP-ARENA', accent: '#c9568a', icoon: 'winnaar' },
-  machinist: { titel: 'MACHINIST', accent: '#b3b3a2', icoon: 'kart' },
+  machinist: { titel: 'MACHINIST', accent: '#b3b3a2', icoon: 'beurt' },
 };
 
 export function mgIcoon(naam, px = 16) {

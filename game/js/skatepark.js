@@ -9,6 +9,7 @@ import { activityBlock, iconDisc } from './activitykit.js';
 import { createBoard, mgThema, key, bubble, clearBubbles, pick, stopPressed, easeCamera, geo, frame, clamp } from './minigamekit.js';
 import { SKATE_LINES } from './minigamelines.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
+import { medailleBedrag, volgendeTredeTekst } from './medalrules.js';
 import { skateFx, pushFoley } from './sfx/minigamefoley.js';
 import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHostPunt, wedGastPunt, wedScoreStop, wedGastVerlaat, wedGastReset, wedScoreRijen } from './multiplayerwedstrijd.js';
 import { maakBeurten, beurtKlaar, beurtNu, somVan } from './coopwedstrijdpunt.js';
@@ -431,7 +432,10 @@ function end(w, { quit = false, extern = false, uitslag = null } = {}) {
   if (medal >= 3) unlockAchievement(w, 'skate_goud');
   if (c.best >= 2000) unlockAchievement(w, 'skate_combo');
   const stats = [['Score', score.toLocaleString('nl-NL')], ['Beste keten', c.best.toLocaleString('nl-NL')], ['Gevallen', String(g.b.bails)], ['Grindtrucs', String(g.b.grinds)]];
-  if (medal) stats.push(['Medaille', MEDALS[medal]]);
+  // #672: de medaille met wat de ronde opleverde en de volgende trede.
+  if (medal) stats.push(['Medaille', medailleBedrag('activiteit', medal, { geld: 0, xp: 10 }).tekst]);
+  const volgende = volgendeTredeTekst(MEDAL_AT, score);
+  if (volgende) stats.push(['Volgende', volgende]);
   if (rec && rec.newBest) stats.push(['Record', 'Nieuw!']);
   showBanner({ kind: medal ? 'pass' : 'fail', title: medal >= 3 ? 'KONING VAN HET SKATEPARK' : medal ? 'MOOIE RONDE' : 'NOG EEN RONDE?', reason: medal ? `Beste keten: ${c.best.toLocaleString('nl-NL')} punten` : 'Hou je keten vast: elk nieuw kunstje telt zwaarder', reward: 0, stats });
   const bench = built && built.skater;

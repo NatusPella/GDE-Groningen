@@ -54,6 +54,47 @@ const actieStray = strayHexes('kaartactieui.js');
 ok(actieStray.length === 0, 'kaartactieui.js: kleuren buiten de tokens: ' + (actieStray.join(', ') || 'geen'));
 ok(!/#5dff7a|#ff9a8a|#9aa3ad|rgba\(95,\s*180,\s*217/.test(kaartactie), 'kaartactieui.js: geen eigen groen, rood, grijs of blauw meer');
 
+// De golf-HUD (#597): de statuskleuren staan als token met terugval, dus de kleurenblindmodi doen mee.
+const golf = read('golfhud.js');
+const golfStray = strayHexes('golfhud.js');
+ok(golfStray.length === 0, 'golfhud.js: kleuren buiten de tokens: ' + (golfStray.join(', ') || 'geen'));
+ok(!/#ff9a3c|#ffd23f|#5dff7a/.test(golf.replace(/var\(--[a-z-]+,\s*#[0-9a-fA-F]{3,6}\)/g, 'var()')), 'golfhud.js: geen losse statushexen meer');
+
+// De padel-HUD (#599): geen eigen blauw meer, puntstand en flits via de tokens, GP uitgelegd.
+const padel = read('padel.js');
+ok(/const ACCENT = mgThema\('padel'\)\.accent/.test(padel), 'padel.js: het accent komt uit de accenttabel');
+ok(!/#3aa6e8|#ffd23f|#5dff7a/.test(padel.replace(/var\(--[a-z-]+,\s*#[0-9a-fA-F]{3,6}\)/g, 'var()')), 'padel.js: geen eigen blauw of losse statushexen in de HUD');
+ok(/var\(--mk-mission/.test(padel) && /GP = gouden punt/.test(padel), 'padel.js: de puntstand is een token en GP heeft uitleg');
+
+
+// De machinist (#625): de cabine gebruikt de tokens (geen eigen blauw/rood), en de knipperende
+// waarschuwingsbalk stopt bij "Beweging beperken" en "Flitsen beperken".
+const cab = read('treincabine.js');
+ok(!/#3a7bd5|#7fb2ff|#d94a3a|#ffd23f|#ff9a3c|#5dff7a/.test(cab.replace(/var\(--[a-z-]+,\s*#[0-9a-fA-F]{3,6}\)/g, 'var()')), 'treincabine.js: geen eigen blauw of losse statushexen in de cabine');
+ok(/prefers-reduced-motion: reduce\) \{ #hud \.tc-cab \.tc-alert \{ animation: none; \}/.test(cab) && /html\.reduce-motion #hud \.tc-cab \.tc-alert, html\.reduce-flash #hud \.tc-cab \.tc-alert \{ animation: none !important; \}/.test(cab), 'treincabine.js: de waarschuwing stopt bij Beweging/Flitsen beperken');
+const mach = read('machinist.js');
+ok(/var\(--mk-danger[\s\S]{0,140}var\(--mk-mission[\s\S]{0,140}var\(--mk-ok/.test(mach), 'machinist.js: de remmeter gebruikt de tokens');
+ok(/key\('BACKSPACE'\)/.test(mach) && /const INTRO = /.test(mach) && /tractie, .{0,80}noodrem\./.test(mach), 'machinist.js: korte intro en kern-help');
+
+// De cockpit-HUD's (#632): de CSS van bus, heli en vliegtuig haalt zijn kleuren uit de tokens; de
+// canvas- en 3D-kleuren van de instrumenten en wereldborden blijven beeld, geen HUD-chroom.
+for (const f of ['helirun.js', 'heliflight.js', 'busbestuurhud.js', 'busboard3d.js', 'instrumenten.js']) {
+  const bron = read(f);
+  const cssBlokken = [...bron.matchAll(/const CSS = \x60([\s\S]*?)\x60;/g)].map((m) => m[1]).join('\n');
+  const zonderTerugval = cssBlokken.replace(/var\(--[a-z-]+,\s*#[0-9a-fA-F]{3,6}\)/g, 'var()');
+  ok(!/#f0c21a|#ff7ab6|#ffb21a|#d93a2b|#ffc21a|#ff6a4a|#ff5a4a|#5dff7a/.test(zonderTerugval), f + ': cockpit-CSS zonder losse statushexen');
+  if (cssBlokken) ok(/var\(--mk-/.test(cssBlokken), f + ': de cockpit gebruikt de tokens');
+}
+
+// De heist-UI (#629): geen handgeschreven font en geen eigen goud meer; de bouwtekening haalt het
+// goud uit de mission-token (per kleurenblindmodus) en de rolchip is 44 px op touch.
+const heistCss = read('heist.css');
+ok(!/Segoe Print|Bradley Hand|Comic Sans|#f2c14e/.test(heistCss), 'heist.css: geen handgeschreven font of eigen goud');
+ok(/font-family: 'Arial Narrow', Arial, sans-serif; font-style: italic;/.test(heistCss), 'heist.css: de notitie is cursief Arial Narrow');
+const heistUi = read('heistui.js');
+ok(/GOLD = \(\) => markerColors\(\)\.mission/.test(heistUi), 'heistui.js: het goud komt uit de mission-token');
+ok(!/Segoe Print|Bradley Hand|Comic Sans|system-ui/.test(heistUi), 'heistui.js: geen handgeschreven font of system-ui meer');
+ok(/min-height:44px/.test(heistUi), 'heistui.js: de rolchip is 44 px op touch');
 // De identiteitskleuren staan op één plek: de accenttabel. Zo kan niemand er stilletjes een
 // statuskleur tussen schuiven zonder dat deze test het ziet.
 const accenten = [...mg.matchAll(/accent:\s*'(#[0-9a-fA-F]{6})'/g)].map((m) => m[1].toLowerCase());
@@ -62,3 +103,6 @@ ok(new Set(accenten).size === accenten.length, 'minigamekit.js: elke minigame he
 
 console.log((fails ? 'FAIL ' : '') + 'hud_kleuren_test: ' + (fails ? fails + ' fout' : 'ok — de HUD-kleuren komen uit de tokens, de accenten uit één tabel'));
 process.exit(fails ? 1 : 0);
+
+
+

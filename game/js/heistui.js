@@ -142,7 +142,9 @@ export function crackPanel(C) {
 // data.samen: één regel per speler met zijn rollen (#438), alleen met meer dan één speler.
 
 const CW = 960, CH = 640;
-const INK = '#3fc97a', INK_SOFT = 'rgba(63, 201, 122, 0.35)', PAPER = '#f0ede4', GOLD = '#f2c14e', RED = '#d93f3f';
+import { markerColors } from './a11y.js';
+// #629: het goud komt uit de mission-token (per kleurenblindmodus), niet uit een eigen hex.
+const INK = '#3fc97a', INK_SOFT = 'rgba(63, 201, 122, 0.35)', PAPER = '#f0ede4', GOLD = () => markerColors().mission, RED = '#d93f3f';
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 export function showPlan(data) {
@@ -264,16 +266,16 @@ function drawPlan() {
   // marks
   const ring = (x, y, r, color) => { g.beginPath(); g.arc(X(x), Y(y), r + pulse * 5, 0, Math.PI * 2); g.strokeStyle = color; g.lineWidth = 2.5; g.stroke(); };
   const label = (x, y, text, color = PAPER, dy = -14) => {
-    g.font = "17px 'Segoe Print', 'Bradley Hand', 'Comic Sans MS', cursive";
+    g.font = "italic 17px 'Arial Narrow', Arial, sans-serif";
     g.fillStyle = color;
     g.fillText(text, X(x), Y(y) + dy);
   };
   const m = data.marks;
-  if (m.start) { g.fillStyle = GOLD; g.beginPath(); g.arc(X(m.start.x), Y(m.start.y), 6, 0, Math.PI * 2); g.fill(); label(m.start.x, m.start.y, 'wij', GOLD); }
+  if (m.start) { g.fillStyle = GOLD(); g.beginPath(); g.arc(X(m.start.x), Y(m.start.y), 6, 0, Math.PI * 2); g.fill(); label(m.start.x, m.start.y, 'wij', GOLD()); }
   if (m.fuse) {
-    g.fillStyle = lit('fuse') ? GOLD : PAPER;
+    g.fillStyle = lit('fuse') ? GOLD() : PAPER;
     g.fillRect(X(m.fuse.x) - 6, Y(m.fuse.y) - 8, 12, 16);
-    if (lit('fuse') || lit('cams')) { ring(m.fuse.x, m.fuse.y, 14, GOLD); label(m.fuse.x, m.fuse.y, 'stroomkast', GOLD, -24); }
+    if (lit('fuse') || lit('cams')) { ring(m.fuse.x, m.fuse.y, 14, GOLD()); label(m.fuse.x, m.fuse.y, 'stroomkast', GOLD(), -24); }
   }
   for (const c of m.cams || []) {
     g.save();
@@ -284,7 +286,7 @@ function drawPlan() {
     g.fillStyle = PAPER; g.fillRect(-4, -4, 8, 8);
     g.restore();
   }
-  if (lit('cams') && m.cams && m.cams[0]) label(m.cams[0].x, m.cams[0].y, 'camera\'s: op herhaling', GOLD, -22);
+  if (lit('cams') && m.cams && m.cams[0]) label(m.cams[0].x, m.cams[0].y, 'camera\'s: op herhaling', GOLD(), -22);
   for (const q of m.guards || []) {
     g.save();
     g.translate(X(q.x), Y(q.y));
@@ -304,12 +306,12 @@ function drawPlan() {
     const v = m.vitrine;
     g.save();
     g.translate(X(v.x), Y(v.y));
-    g.fillStyle = GOLD;
+    g.fillStyle = GOLD();
     g.beginPath();
     for (let i = 0; i < 10; i++) { const r = i % 2 ? 4 : 10, a = (i / 10) * Math.PI * 2 - Math.PI / 2; g.lineTo(Math.cos(a) * r, Math.sin(a) * r); }
     g.closePath(); g.fill();
     g.restore();
-    if (lit('vitrine') || lit('island')) { ring(v.x, v.y, 16, GOLD); label(v.x, v.y, lit('vitrine') ? 'code: 1953?' : 'de Eierbal', GOLD, 34); }
+    if (lit('vitrine') || lit('island')) { ring(v.x, v.y, 16, GOLD()); label(v.x, v.y, lit('vitrine') ? 'code: 1953?' : 'de Eierbal', GOLD(), 34); }
   }
   if (m.achterdeur && (lit('routeA') || f === 'choice')) { ring(m.achterdeur.x, m.achterdeur.y, 9, INK); label(m.achterdeur.x, m.achterdeur.y, 'achterdeur', INK, -18); }
   if (m.glasdeur && (lit('routeB') || f === 'choice')) { ring(m.glasdeur.x, m.glasdeur.y, 9, PAPER); label(m.glasdeur.x, m.glasdeur.y, 'glazen deur', PAPER, 30); }
@@ -345,8 +347,8 @@ export function roleChip(text) {
     roleEl = document.createElement('div');
     roleEl.className = 'hx-rolechip';
     // eigen vorm, zodat er geen stylesheet bij hoeft (heist.css blijft zoals hij is)
-    roleEl.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);bottom:104px;z-index:60;display:flex;gap:8px;align-items:center;max-width:min(560px,86vw);padding:8px 14px;border-radius:10px;background:rgba(12,16,14,.82);color:#f0ede4;font:14px/1.35 system-ui,sans-serif;box-shadow:0 2px 12px rgba(0,0,0,.35);opacity:0;transition:opacity .2s;pointer-events:none;';
-    roleEl.innerHTML = '<b style="color:#f2c14e;white-space:nowrap">Jouw rol</b><span data-r></span>';
+    roleEl.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);bottom:104px;z-index:60;display:flex;gap:8px;align-items:center;max-width:min(560px,86vw);padding:8px 14px;border-radius:10px;background:rgba(12,16,14,.82);color:#f0ede4;font:14px/1.35 "Arial Narrow", Arial, sans-serif;min-height:44px;box-shadow:0 2px 12px rgba(0,0,0,.35);opacity:0;transition:opacity .2s;pointer-events:none;';
+    roleEl.innerHTML = '<b style="color:var(--mk-mission, #e8c93a);white-space:nowrap">Jouw rol</b><span data-r></span>';
     root.appendChild(roleEl);
   }
   const s = roleEl.querySelector('[data-r]');
@@ -389,3 +391,4 @@ export function disposeHeistUi() {
   if (roleEl) { roleEl.remove(); roleEl = null; }
   setAlarmUi(0);
 }
+

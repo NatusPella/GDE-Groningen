@@ -1,5 +1,6 @@
 import { hoofdspeler } from './players.js';
 import { activityBlock, iconDisc } from './activitykit.js';
+import { toonStartkaart } from './startkaart.js';
 
 // The activity object (activities.js) for a minigame that starts where you
 // stand on one spot: the E prompt at the spot, the place label nearby, the map
@@ -35,6 +36,8 @@ export function standActivity(c) {
       if (!near(w)) return false;
       const why = activityBlock(w);
       if (why) { w.addMessage(why, 2.5); return true; }
+      // #678: één standaard startkaart (doel, medailles, beloning, samen, record), daarna het spel zelf
+      toonStartkaart(w, c.id, { record: c.recText ? c.recText() : null });
       c.start(w, {});
       return true;
     },
