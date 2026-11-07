@@ -47,7 +47,10 @@ const VERSION = SAVE_VERSION;
 // the game dirty (markDirty, or the state check below) and it saves once
 // things have been quiet for SAVE_DEBOUNCE seconds.
 const SAVE_DEBOUNCE = 2.5;
-const STATE_CHECK_S = 1;
+// #655: de stateSignature (JSON.stringify van alle persistente secties) hoeft niet
+// 60x/min: 2 s is ruim genoeg voor een autosave-detector, en markDirty() vangt
+// de belangrijke wijzigingen meteen.
+const STATE_CHECK_S = 2;
 const MISSION_SAVE_DELAY = 4;
 const TOAST_S = 2.2;
 // #590: a write that failed (storage full, temporarily blocked) is tried again: the state was not
