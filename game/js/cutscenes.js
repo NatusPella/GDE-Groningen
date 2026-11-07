@@ -62,6 +62,10 @@ const ACT_TRAILER = {
   fx: [
     { t: 1.2, fx: 'sfx', kind: 'bell' },
     { t: 'L1+0.2', fx: 'sfx', kind: 'caw' },
+    // #741: de regie van C00.1 vraagt de naamkaarten bij het stilstaande trailerbeeld (Tessa, dan Tammo);
+    // de kaarten hingen aan de keuken (C00.2) in plaats van aan de openingsact.
+    { t: 0.8, fx: 'naam', text: 'Tessa', dur: 2.6 },
+    { t: 'L2-3.0', fx: 'naam', text: 'Tammo', dur: 2.6 },
   ],
   shots: [
     // a crane over the street, a low cut onto the bikes, the gull, the postman, then up over the street (the look stays
@@ -88,8 +92,6 @@ const ACT_KEUKEN = {
   // Constitution 6: nothing suggestive or about an animal as a joke. The line itself stays (voiced).
   fx: [
     { t: 0, fx: 'pulse', dur: 12 },
-    { t: 0.8, fx: 'naam', text: 'Tessa', dur: 2.6 },
-    { t: 'L2-3.0', fx: 'naam', text: 'Tammo', dur: 2.6 },
     { t: 'L2-3.6', fx: 'sfx', kind: 'door_open' },
     { t: 'L2-3.6', fx: 'door', open: 1, dur: 0.9 },
     { t: 'L2-3.6', fx: 'cups', actor: 'tammo', on: true },

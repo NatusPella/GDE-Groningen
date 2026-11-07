@@ -119,7 +119,10 @@ export const SPECS_AKTE2 = {};
       lijstje: { kind: 'klembord', at: [2.7, 0.2, 1.0] },
       brij: { kind: 'doos', at: [1.6, 0.5, 0.85] },
     },
-    open: [{ actor: 'trijntje', face: 'actor:tammo' }, { actor: 'trijntje', carry: 'lijstje' }, { actor: 'tessa', face: 'actor:trijntje' }],
+    // #741: Oma's naamkaart hoort bij haar eerste zichtbare scène (haar kamer, M08.3); de regie van de
+  // telefoonscène (M08.1) noemde hem al, maar daar is ze alleen aan de lijn.
+  fx: [{ t: 0.4, fx: 'naam', text: 'Oma Trijntje', dur: 2.8 }],
+  open: [{ actor: 'trijntje', face: 'actor:tammo' }, { actor: 'trijntje', carry: 'lijstje' }, { actor: 'tessa', face: 'actor:trijntje' }],
     beats: [
       { on: 'Eet je krentjebrij', actor: 'trijntje', face: 'prop:brij' },
       { on: 'Ik ben vierendertig', actor: 'tammo', anim: 'shrug' },
@@ -230,9 +233,11 @@ export const SPECS_AKTE2 = {};
       douwe: { key: 'douwe', at: [7.4, 3.2], face: 200, anim: 'walk', gest: ['idle', 'shrug'] },
     },
     props: {
-      limo: { kind: 'auto', at: [8.6, 4.0, 0], face: 180 },
+      limo: { kind: 'trekker', at: [8.6, 4.0, 0], face: 180 },
       koffer: { kind: 'koffer', at: [7.4, 4.0, 0.9], face: 0 },
     },
+    // #741: Durk en Douwe zaten in M02 achter de kast; hun eerste zichtbare optreden is hier (M10.1).
+    fx: [{ t: 2.2, fx: 'naam', text: 'Durk & Douwe', dur: 2.8 }],
     open: [
       // out of the limo, to the pair
       { actor: 'jelle', walk: [[3.4, 0.4]], speed: 1.1 },

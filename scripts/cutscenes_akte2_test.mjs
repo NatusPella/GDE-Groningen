@@ -102,5 +102,12 @@ ok(missionScene('X99.intro', [{ speaker: 'Tammo', text: 'x', at: 1, dur: 2 }], {
   ok(end.actors.tammo.visible === false && end.actors.tessa.visible === false, 'M02: they get into the car');
 }
 
+// #741: naamkaarten bij de eerste zichtbare ontmoeting, niet bij een telefoonregel of een verborgen plek
+ok(SPECS['M08.outro'].fx && SPECS['M08.outro'].fx.some((f) => f.fx === 'naam' && f.text === 'Oma Trijntje'),
+  "M08.3 (Oma's kamer): Oma Trijntje krijgt daar haar naamkaart");
+ok(!SPECS['M08.intro'].fx || !SPECS['M08.intro'].fx.some((f) => f.fx === 'naam'), 'M08.1 (telefoon): daar geen naamkaart in beeld');
+ok(SPECS['M10.intro'].fx && SPECS['M10.intro'].fx.some((f) => f.fx === 'naam' && f.text === 'Durk & Douwe'),
+  'M10.1: Durk en Douwe krijgen hun kaart bij hun eerste zichtbare optreden');
+
 console.log(fails ? `${fails} of ${n} failed` : `cutscenes_akte2_test: ${n} checks ok`);
 process.exit(fails ? 1 : 0);

@@ -103,5 +103,15 @@ ok(missionScene('X99.intro', [{ speaker: 'Tammo', text: 'x', at: 1, dur: 2 }], {
   ok(end.actors.tammo.visible === false && end.actors.tessa.visible === false, 'M02: they get into the car');
 }
 
+// #741: de openingkaarten van Tessa en Tammo horen bij C00.1 (de trailerregie: stilstaand beeld met hun
+// namen), niet bij de keuken; daar staan ze al in persoon en zou de kaart dubbel zijn.
+{
+  const opening = readFileSync(new URL('../game/js/cutscenes.js', import.meta.url), 'utf8');
+  const trailer = opening.slice(opening.indexOf('const ACT_TRAILER'), opening.indexOf('const ACT_KEUKEN'));
+  const keuken = opening.slice(opening.indexOf('const ACT_KEUKEN'), opening.indexOf('export const OPENING_ACTS'));
+  ok(/fx: 'naam', text: 'Tessa'/.test(trailer) && /fx: 'naam', text: 'Tammo'/.test(trailer), 'C00.1: Tessa en Tammo krijgen daar hun naamkaarten');
+  ok(!/fx: 'naam'/.test(keuken), 'C00.2 (keuken): geen dubbele naamkaarten');
+}
+
 console.log(fails ? `${fails} of ${n} failed` : `cutscenes_akte1_test: ${n} checks ok`);
 process.exit(fails ? 1 : 0);
