@@ -1550,7 +1550,10 @@ export function disposeHeist() {
 // debug: window.__heist
 if (typeof window !== 'undefined') {
   window.__heist = {
-    state: () => H && { approach: H.approach, group: H.group, spotted: H.spotted, trouble: H.trouble, alarm: H.alarm, watchers: H.watchers.map((w) => ({ kind: w.kind, group: w.group, x: Math.round(w.x * 10) / 10, y: Math.round(w.y * 10) / 10, asleep: !!w.asleep })), lasers: H.lasers && H.lasers.hits, boat: H.boat && { x: Math.round(H.boat.x), y: Math.round(H.boat.y) }, doors: Object.fromEntries(Object.entries(H.doors).map(([k, d]) => [k, !d.room.shut])) },
+    state: () => H && { approach: H.approach, group: H.group, spotted: H.spotted, trouble: H.trouble, alarm: H.alarm, watchers: H.watchers.map((w) => ({ kind: w.kind, group: w.group, x: Math.round(w.x * 10) / 10, y: Math.round(w.y * 10) / 10, asleep: !!w.asleep,
+      // #186: de bot leest de bundel (richting, bereik, halve hoek) om eromheen te schuilen; on/aan en
+      // chase zeggen of deze wachter op dit moment echt kijkt
+      a: Math.round(w.angle * 100) / 100, r: w.range, h: w.half, on: !!w.on, chase: !!w.chase })), lasers: H.lasers && H.lasers.hits, boat: H.boat && { x: Math.round(H.boat.x), y: Math.round(H.boat.y) }, doors: Object.fromEntries(Object.entries(H.doors).map(([k, d]) => [k, !d.room.shut])) },
     spots: (map) => Object.fromEntries(Object.keys(SPOT_LABELS).map((k) => [k, heistSpotAt(map, k)])),
     minigame: () => H && { fuse: H.fuse, lock: H.lock && { cur: H.lock.cur, zone: H.lock.zone, y: H.lock.pins.map((q) => q.y) }, crack: H.crack, zap: !!H.zap, seen: !!H.seen },
   };

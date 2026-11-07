@@ -71,7 +71,9 @@ const LABELS = {
   // #502: Shift remt in een vliegtuig op de baan; "Rennen" zou daar niets betekenen. V is de filmcamera, maar in de
   // kist is een filmknop tussen de vliegknoppen alleen maar verwarrend: daar dus geen knop.
   shift: { _: 'Rennen', plane: 'Rem' }, tab: 'Doel', c: 'Koer', v: { _: 'Film', plane: '' }, r: { _: 'Lak', pannenkoek: 'Kaas', trekker: 'Tanken' }, z: 'Zeil vieren', '[': 'Links', ']': 'Rechts', p: 'Alarm',
-  backspace: 'Stop', ',': 'Lager', '.': 'Hoger', s: 'Rem', w: { _: 'Gas', pannenkoek: 'Spek', train: 'Trek' },
+  backspace: { _: 'Stop', vliegschool: 'Terug' }, ',': 'Lager', '.': 'Hoger', s: 'Rem', w: { _: 'Gas', pannenkoek: 'Spek', train: 'Trek' },
+  // #151: de vliegschool (#397) leest Enter en de pijlen; de balk noemt ze zoals ze daar werken
+  enter: 'Kies', arrowup: 'Vorige', arrowdown: 'Volgende', arrowleft: 'Links', arrowright: 'Rechts',
   '@fire': 'Vuur', '@aim': 'Richt', '@gas': 'Gas', '@brake': 'Rem', '@wheel+': 'Wapen', '@wheel-': 'Wapen',
 };
 
@@ -137,6 +139,8 @@ const ICONS = {
   'Roer links': '<path d="M19 9H7"/><path d="M11 5L7 9l4 4"/><path d="M5 18h14"/>',
   'Roer rechts': '<path d="M5 9h12"/><path d="M13 5l4 4-4 4"/><path d="M5 18h14"/>',
   OK: '<path d="M4.5 12.5l5 5L19.5 6.5"/>',
+  // #151: de vliegschool kiest met A (Enter)
+  Kies: '<path d="M4.5 12.5l5 5L19.5 6.5"/><path d="M20 4l-9 9"/>',
   Koppeling: '<path d="M9.5 14.5l5-5"/><path d="M7 12l-1.5 1.5a3.5 3.5 0 0 0 5 5L12 17"/><path d="M17 12l1.5-1.5a3.5 3.5 0 0 0-5-5L12 7"/>',
   // #151: de knoppen van de nieuwe situaties (vraag, hengelen, trekker) hebben dezelfde lijnstijl als de rest
   Ja: '<path d="M4.5 12.5l5 5L19.5 6.5"/>',
@@ -308,6 +312,15 @@ export function touchContext(w, { started = true, menuOpen = false, shiftMode = 
   if (w.pigeonMode) return 'pigeon';
   if (w.trainDriving) return 'train';
   if (w.challenge && w.challenge.id === 'fjord') return 'foodtruck';
+  // de vliegschool (#397, #151): het lesmenu bij de balie is een eigen situatie (A kiest, B gaat terug,
+  // de pijlen bladeren); zit de speler in het lesvliegtuig of de lesheli, dan geldt de gewone
+  // vliegindeling. Precies dezelfde keuze als gamepad.js, zodat pad en aanraakbediening gelijk lopen.
+  if (w.activityGame === 'vliegschool') {
+    const sv = hoofdspeler(w) && hoofdspeler(w).inVehicle;
+    if (sv && sv.isPlane) return 'plane';
+    if (sv && sv.isHeli) return 'heli';
+    return 'vliegschool';
+  }
   if (GAME_PAD_CTX[w.activityGame]) return GAME_PAD_CTX[w.activityGame];
   if (playerBusy(w, ['padel', 'activityGame']).busy) return 'minigame';
   // de wandeling neemt de speler niet over, maar de stopknop hoort er wel te zijn (net als op het pad)
