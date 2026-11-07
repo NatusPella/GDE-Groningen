@@ -277,12 +277,14 @@ function ommelandData(world) {
   try { routes = getRailRoutes() || []; } catch (e) { routes = []; }
   return {
     uitjes: getSaveSet(SET_DONE), eieren: getSaveSet(SET_EGGS), vondsten,
-    gezien: loadSeen(storage), dag: calendarDay(world), uur: ((world.clock % 24) + 24) % 24, routes,
+    gezien: loadSeen(storage), dag: calendarDay(world),
+    uur: Number.isFinite(world && world.clock) ? ((world.clock % 24) + 24) % 24 : 12, routes,
   };
 }
 
 // The overview the Te-doen header shows: totals, the 80% hint and the per-village rows below.
 export function paspoortOverzicht(world) {
+  if (!world) return { dorpen: [], klaar: 0, totaal: 0, pct: 0, onderdelenKlaar: 0, onderdelenTotaal: 0, eierballen: { klaar: 0, totaal: 0 }, vondsten: { klaar: 0, totaal: 0 }, bijna: [], hint: [] };
   const data = ommelandData(world);
   const p = paspoort(data);
   return { ...p, hint: hint80(p), dorpen: p.dorpen.map((d) => ({ ...d, trein: treinPlan(d.dorp, data.routes, { dag: data.dag, uur: data.uur }) })) };
