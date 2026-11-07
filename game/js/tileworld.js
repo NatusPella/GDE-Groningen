@@ -37,7 +37,7 @@ const SIGNAL_RULE = RULES.indexOf('signal');
 const hasSignalArm = (rows) => rows.some((row) => (row.a || []).some((a) => a[3] === SIGNAL_RULE));
 // the sections whose rows the game keeps without their id (rowsOf)
 const ID_ASIDE = [...KIND_OF.keys()];
-const GRID_OF = { buildings: 'buildingGrid', roads: 'roadGrid', water: 'waterGrid', green: 'greenGrid', trees: 'treeGrid', rails: 'railGrid', parcels: 'parcelGrid' };
+const GRID_OF = { buildings: 'buildingGrid', roads: 'roadGrid', water: 'waterGrid', green: 'greenGrid', trees: 'treeGrid', rails: 'railGrid', furniture: 'furnitureGrid', parcels: 'parcelGrid' };
 // A province tile's water row carries kind, lv, dp and nav (waterlevels.js
 // annotateProvinceWater): it joins the water grid like the city's, so boats,
 // swimmers and waterAt see it. An older tile has `flat` only: it stays out of
@@ -330,8 +330,6 @@ export class TileWorld extends GameMap {
           if (kind === 'buildings' && obj.type === 'houseboat') addMooredBuilding(this, obj); // (boats keep off it, #343)
           const grid = gridOf(kind, obj);
           if (grid) (this[grid] || (this[grid] = new SpatialGrid(64))).insert(obj, boundsOfObj(kind, obj));
-          // a streamed tile's mapped furniture joins the list streetfurniture3d.js reads
-          if (kind === 'furniture' && this.furniture) this.furniture.push(obj);
           // the mapped hedges (OSM barrier=hedge): the countryside draws none of its own beside them (hedgeNear)
           if (kind === 'furniture' && obj.k === 'hedge' && obj.pts) {
             obj.bounds = polygonBounds(obj.pts);
@@ -447,7 +445,6 @@ export class TileWorld extends GameMap {
       if (kind === 'buildings' && e.obj.type === 'houseboat') dropMooredBuilding(this, e.obj);
       const grid = gridOf(kind, e.obj);
       if (grid && this[grid]) this[grid].remove(e.obj, boundsOfObj(kind, e.obj));
-      if (kind === 'furniture' && this.furniture) { const q = this.furniture.indexOf(e.obj); if (q >= 0) this.furniture.splice(q, 1); }
       if (kind === 'furniture' && e.obj.k === 'hedge' && e.obj.pts && this.hedgeGrid) this.hedgeGrid.remove(e.obj, e.obj.bounds || polygonBounds(e.obj.pts));
     };
     const held = this._tileRows && this._tileRows.get(tk);

@@ -18,6 +18,7 @@ import { mergeGeometries, tint } from './geomerge.js';
 import { makeProp, addProp, removeProp, isPropBroken, addStaticCollider, addPropStreamer } from './breakables.js';
 import { TILE_M, GRID_X0, GRID_Y0, tileIndexOf } from './gdt.js';
 import { markInstancesDirty } from './util.js';
+import { gridItems } from './spatialgrid.js';
 
 // the game draws its own lamps and path bollards (see above)
 export const GAME_OPTS = { lamps: false, bollards: false, livingBumps: false };
@@ -282,7 +283,9 @@ function tileItems(i, j) {
   if (t) return t.items;
   const x0 = GRID_X0 + i * TILE_M, y0 = GRID_Y0 + j * TILE_M;
   const roads = map.roadsNear(x0 + TILE_M / 2, y0 + TILE_M / 2, TILE_M * 0.71 + 220);
-  const mapped = (map.furniture || []).filter((m) => {
+  // #314 C2b: het gecombineerde straatmeubilair uit het meubelraster (pinned stad
+  // plus gestroomde tegels), niet uit de hele array.
+  const mapped = (map.furnitureGrid ? map.furnitureGrid.query(x0 - 50, y0 - 50, x0 + TILE_M + 50, y0 + TILE_M + 50) : []).filter((m) => {
     const p = m.pts ? m.pts : [[m.x, m.y]];
     return p.some((q) => q[0] >= x0 - 50 && q[0] < x0 + TILE_M + 50 && q[1] >= y0 - 50 && q[1] < y0 + TILE_M + 50);
   });
@@ -290,7 +293,7 @@ function tileItems(i, j) {
   const wx = x0 + TILE_M / 2, wy = y0 + TILE_M / 2, wr = TILE_M * 0.71 + 60;
   const water = map.waterNear(wx, wy, wr).concat(map.flatWaterNear ? map.flatWaterNear(wx, wy, wr) : []);
   // the track and the houses of the tiles round it: a mapped fence is not drawn through them (#124)
-  const rails = (map.railNear ? map.railNear(wx, wy, wr) : []).concat(map.rails || []);
+  const rails = map.railNear ? map.railNear(wx, wy, wr) : gridItems(map.railGrid);
   const buildings = map.buildingsNear ? map.buildingsNear(wx, wy, wr) : [];
   const res = furnitureForTile({ x0, y0, size: TILE_M, roads, mapped, water, rails, buildings, places: worldSignPlaces() || DESTINATIONS, opts: { ...GAME_OPTS, towns: worldTownSigns() } });
   // nothing that stands on one spot goes on the asphalt, into a house or into

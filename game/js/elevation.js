@@ -11,7 +11,7 @@
 // Pure data, built once per map (map.elev); the roads of streamed tiles join it, and leave it with their tile
 // (extendElevation, shrinkElevation: #300).
 import { closestPointOnSegment } from './util.js';
-import { SpatialGrid } from './spatialgrid.js';
+import { SpatialGrid, gridItems } from './spatialgrid.js';
 import { buildPerrons, perronHitAt, perronWallSide, wallBox } from './perrons.js';
 
 export const DECK_T = 1.0;           // viaduct deck thickness below the road surface
@@ -285,10 +285,12 @@ export function railLiftZ(lifts, x, y) {
 function addRailLifts(elev, map) {
   const lifts = map.railLifts || [];
   // the solved track profile (rail.z, railprofile.js) when the map has one,
-  // else the radial lifts
-  const profiled = (map.rails || []).some((r) => r.z);
+  // else the radial lifts. De sporen komen uit het railraster (#314 C2b): dezelfde
+  // objecten als de array, ook als een gestroomde tegel zijn eigen spoor meebrengt.
+  const rails = gridItems(map.railGrid);
+  const profiled = rails.some((r) => r.z);
   if (!profiled && !lifts.length) return;
-  for (const rail of map.rails || []) {
+  for (const rail of rails) {
     const P = rail.pts || rail, Z = rail.z;
     if (profiled && !Z) continue;
     for (let i = 0; i < P.length - 1; i++) {
