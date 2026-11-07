@@ -1,8 +1,9 @@
 // Samen spelen (#95): wat de host op het scherm heeft (een filmpje, de regel die iemand zegt, een keuze in een
 // gesprek) en hoe een gast dat meekijkt. De host leest zijn eigen scherm (readHostScene), coopnet.js stuurt de
 // verandering naar de gasten (coopworld.js sceneBericht), en een gast tekent het als een kleine laag met zwarte
-// balken en tekst (updateHostScene). Een gast drukt mee op een keuze of timing (#525), maar slaat niets over en
-// beslist niets: de gastheer leest de druk als zijn eigen antwoord. Alleen DOM.
+// balken en tekst (updateHostScene). Een gast drukt mee op een keuze of timing (#525); bij een keuze is dat
+// sinds #686 een stem in de groepsstemming ("Jullie kiezen samen"), bij een timing leest de gastheer de druk
+// als zijn eigen antwoord. Alleen DOM.
 import { sceneLeeg, filmpjeTekst, pauzeTekst, paneelTekst } from './coopworld.js';
 import { openerNaam } from './coopplayers.js';
 // Leaf-module (#108): alleen een leesvraag over de lopende opdracht, geen cyclus.
@@ -100,7 +101,7 @@ export function updateHostScene(world) {
   // de gast speelt de scène van de gastheer zelf af (coopcut.js): dan geen laag eroverheen
   const sc = world && world.coopCutBezig == null && world.coopScene && !sceneLeeg(world.coopScene) ? world.coopScene : null;
   if (!sc) { if (el) { el.remove(); el = null; last = ''; } return; }
-  const key = JSON.stringify(sc);
+  const key = JSON.stringify(sc) + (world && world.coopKeuze ? `|${world.coopKeuze.id}:${world.coopKeuze.eigen}:${world.coopKeuze.uitslag}` : '');
   if (el && key === last) return;
   last = key;
   if (!el) {
@@ -111,6 +112,9 @@ export function updateHostScene(world) {
     document.body.appendChild(el);
   }
   const naam = openerNaam(world && world.coopRoster, true);
+  // #686: een verhaal-keuze is van de groep: de gast leest "Jullie kiezen samen" en stemt mee, niet "X kiest".
+  const stemt = !!(world && world.coopKeuze);
+  const stemRegel = stemt ? (world.coopKeuze.uitslag != null ? `Jullie kozen: ${world.coopKeuze.opties[world.coopKeuze.uitslag] || ''}.` : (world.coopKeuze.eigen != null ? `Je stemde: ${world.coopKeuze.opties[world.coopKeuze.eigen] || ''}. Wachten op de anderen.` : 'Jullie kiezen samen:')) : '';
   const bar = 'position:absolute;left:0;right:0;background:rgba(0,0,0,.92);';
   const balken = sc.filmpje ? `<div style="${bar}top:0;height:11%"></div><div style="${bar}bottom:0;height:11%"></div>` : '';
   const eigenMenu = !!document.querySelector('#pause-menu.visible'); // de gast zit zelf in zijn pauzemenu: de regel zou over de kop liggen
@@ -119,7 +123,7 @@ export function updateHostScene(world) {
   // (#712) de titelkaart van het host-filmpje: de gast ziet waar het over gaat in plaats van alleen twee balken
   const kaart = sc.kaart ? `<div style="position:absolute;left:0;right:0;top:13%;text-align:center;text-shadow:0 1px 3px rgba(0,0,0,.92),0 0 2px rgba(0,0,0,.92)">${sc.kaart.kicker ? `<div style="font-size:18px;letter-spacing:.2em;color:var(--gron-green-light)">${esc(sc.kaart.kicker)}</div>` : ''}${sc.kaart.title ? `<div style="font-size:44px;font-family:'Bebas Neue','Arial Narrow',Arial,sans-serif;line-height:.95;text-transform:uppercase">${esc(sc.kaart.title)}</div>` : ''}${sc.kaart.big ? `<div style="font-size:36px;font-family:'Bebas Neue','Arial Narrow',Arial,sans-serif;line-height:.95;text-transform:uppercase">${esc(sc.kaart.big)}</div>` : ''}</div>` : '';
   const regel = sc.regel ? `<div style="position:absolute;left:10%;right:10%;bottom:${sc.filmpje ? '13' : '16'}%;text-align:center;font-size:26px;line-height:1.3;text-shadow:0 1px 3px rgba(0,0,0,.92),0 0 2px rgba(0,0,0,.92)"><b style="color:var(--gron-green-light)">${esc(sc.regel.wie)}</b>${sc.regel.wie ? ': ' : ''}${esc(sc.regel.tekst)}</div>` : '';
-  const keuze = sc.keuze ? `<div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);max-width:620px;padding:18px 24px;border-radius:8px;background:rgba(12,20,14,0.88);box-shadow:inset 0 0 0 1px rgba(240,237,228,0.24)"><div style="font-size:24px;line-height:1.3">${esc(sc.keuze.tekst)}</div><div style="margin-top:10px;font-size:20px;opacity:.85">${esc(naam)} kiest:</div><ul style="margin:6px 0 0;padding-left:22px;font-size:22px">${sc.keuze.opties.map((o) => `<li>${esc(o)}</li>`).join('')}</ul></div>` : '';
+  const keuze = sc.keuze ? `<div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);max-width:620px;padding:18px 24px;border-radius:8px;background:rgba(12,20,14,0.88);box-shadow:inset 0 0 0 1px rgba(240,237,228,0.24)"><div style="font-size:24px;line-height:1.3">${esc(sc.keuze.tekst)}</div><div style="margin-top:10px;font-size:20px;opacity:.85">${esc(stemt ? stemRegel : `${naam} kiest:`)}</div><ul style="margin:6px 0 0;padding-left:22px;font-size:22px">${sc.keuze.opties.map((o) => `<li>${esc(o)}</li>`).join('')}</ul></div>` : '';
   // de choice-stap toont zijn opties ook als tekstblok in het midden; dan staat er alleen de toetsregel bij (#525)
   const los = sc.keuze && sc.paneel && sc.paneel.stap === 'choice' ? '' : keuze;
   const balk = meterBalk(sc.paneel);

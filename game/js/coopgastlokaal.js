@@ -29,6 +29,11 @@ function gastPaneel(world, input) {
   if (!ev || !n || n.role !== 'client' || !n.session || !n.session.sendEvent) return false;
   try { n.session.sendEvent(ev); } catch (e) { return false; }
   if (input.consume) input.consume(k); // de toets is van het paneel: een cijfer wisselt geen wapen (#525)
+  // #686: bij een keuze-stemming is dit je stem; je ziet meteen dat hij binnen is (de uitslag komt van de host)
+  if (world.coopKeuze && /^[1-9]$/.test(k)) {
+    world.coopKeuze.eigen = Number(k) - 1;
+    if (world.addMessage) world.addMessage('Je stem is binnen.', 2);
+  }
   return true;
 }
 

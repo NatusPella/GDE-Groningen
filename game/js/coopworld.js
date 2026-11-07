@@ -375,7 +375,9 @@ export function missieTekst(m, rol = 'wereld', naam = 'De ander') {
 //
 // `paneel` zegt welke stap van een opdracht op het paneel staat (`choice`, `timing`) en welke toetsen die
 // aanneemt (#525). Zonder die twee velden wist een gast niet dat er iets te drukken valt; met `paneel`
-// stuurt hij zijn toets als 'paneel'-bericht naar de gastheer, die het als zijn eigen antwoord leest.
+// stuurt hij zijn toets als 'paneel'-bericht naar de gastheer. Bij een keuze is dat sinds #686 een stem:
+// de host telt de stemmen en de meerderheid wint (coopgroep.js stemKeuze); bij een timing leest de
+// gastheer de druk als zijn eigen antwoord.
 const tekst = (v, n) => (typeof v === 'string' ? v.slice(0, n) : '');
 const PANEEL_TOETSEN = /^[1-9ef ]$/; // 1-9 voor een keuze, Spatie/e/f voor een timing (stagetiming.js)
 export const SCENE_LEEG = Object.freeze({ filmpje: false, pauze: false, regel: null, keuze: null, kaart: null, paneel: null });
@@ -441,5 +443,6 @@ export const paneelTekst = (paneel) => {
   if (paneel.stap === 'bake') return "Druk mee in Oma's volgorde: 1 ei, 2 zout, 3 meel, 4 vet, 5 mosterd, 6 bloem.";
   if (paneel.stap === 'vault') return 'Druk E om de koffer te pakken.';
   const naam = toetsen.map((k) => TOETS_NAAM[k] || k).join(' of ');
-  return paneel.stap === 'timing' ? `Druk mee: ${naam}.` : `Jouw antwoord telt mee: ${naam}.`;
+  // #686: bij een keuze stemt de gast mee; de gastheer telt de stemmen en de meerderheid wint.
+  return paneel.stap === 'timing' ? `Druk mee: ${naam}.` : paneel.stap === 'choice' ? `Stem mee: ${naam}.` : `Jouw antwoord telt mee: ${naam}.`;
 };

@@ -210,7 +210,75 @@ t('cheats en testmenu: uit in een sessie met meer spelers, aan met één speler'
   assert.match(G.CHEATS_UIT_TEKST, /Samen spelen/);
 });
 
-// #642: de opener is geen baas — starten en "iedereen stoppen" kunnen ook van een gast
+// #686: de groep stemt over een verhaal-keuze: meerderheid wint, gelijkspel beslist de opener, geen antwoord telt niet
+t('#686: de keuzestemming is puur: meerderheid, gelijkspel → opener, geen antwoord telt niet', () => {
+  let st = G.stemKeuzeBegin(1, ['A', 'B', 'C'], [0, 1, 2], { fallback: 2 });
+  assert.equal(st.soort, 'keuze');
+  assert.equal(G.stemKeuzeUitslag(st), 2, 'zonder stemmen: de standaardkeuze van de ronde');
+  assert.equal(G.stemKeuzeAntwoord(st, 1, 0), true);
+  assert.equal(G.stemKeuzeAntwoord(st, 1, 1), false, 'twee keer stemmen telt niet');
+  assert.equal(G.stemKeuzeAntwoord(st, 2, 9), false, 'een optie die niet bestaat telt niet');
+  assert.equal(G.stemKeuzeAntwoord(st, 9, 0), false, 'een onbekende speler telt niet');
+  G.stemKeuzeAntwoord(st, 0, 1); G.stemKeuzeAntwoord(st, 2, 1);
+  assert.equal(G.stemKeuzeUitslag(st), 1, 'de meerderheid wint');
+  assert.equal(G.stemKeuzeTik(st, 0), 1, 'iedereen antwoordde: meteen klaar');
+  // gelijkspel: de stem van de opener beslist
+  st = G.stemKeuzeBegin(2, ['A', 'B'], [0, 1, 2], { fallback: 1 });
+  G.stemKeuzeAntwoord(st, 0, 0); G.stemKeuzeAntwoord(st, 1, 1); G.stemKeuzeAntwoord(st, 2, 0);
+  assert.equal(G.stemKeuzeUitslag(st), 0, 'de opener stemde mee en beslist het gelijkspel');
+  st = G.stemKeuzeBegin(3, ['A', 'B'], [1, 2], { fallback: 1 });
+  G.stemKeuzeAntwoord(st, 1, 0); G.stemKeuzeAntwoord(st, 2, 1);
+  assert.equal(G.stemKeuzeUitslag(st), 0, 'zonder stem van de opener telt de laagste optie');
+  // geen antwoord telt niet: een enkele stem is de meerderheid
+  st = G.stemKeuzeBegin(4, ['A', 'B', 'C'], [0, 1, 2], { fallback: 2 });
+  G.stemKeuzeAntwoord(st, 1, 2);
+  assert.equal(G.stemKeuzeUitslag(st), 2, 'wie niet antwoordt telt niet mee');
+  assert.equal(G.stemKeuzeWacht(st).length, 2, 'de anderen staan nog op wacht');
+  // de tijd om: geen antwoord van de rest, de stemmen die er zijn tellen
+  st = G.stemKeuzeBegin(5, ['A', 'B'], [0, 1], { fallback: 0 });
+  G.stemKeuzeAntwoord(st, 0, 1);
+  assert.equal(G.stemKeuzeTik(st, 0.1), null);
+  assert.equal(G.stemKeuzeTik(st, G.KEUZE_SEC + 1), 1);
+  // iemand valt weg: telt niet meer mee
+  st = G.stemKeuzeBegin(6, ['A', 'B'], [0, 1, 2], { fallback: 0 });
+  assert.equal(G.stemKeuzeVerval(st, 2), true);
+  assert.equal(Object.prototype.hasOwnProperty.call(st.keuze, 2), false);
+});
+
+t('#686: de keuze-berichten dragen opties en de gekozen optie', () => {
+  const st = G.stemKeuzeBegin(7, ['De auto', 'De bal'], [0, 1], { fallback: 1, tekst: 'Wat pak je?' });
+  const ev = G.stemEvent(st);
+  assert.equal(ev.k, 'stem');
+  assert.equal(ev.soort, 'keuze');
+  assert.deepEqual(ev.opties, ['De auto', 'De bal']);
+  const q = G.leesStemEvent(ev);
+  assert.ok(q && q.soort === 'keuze' && q.opties.length === 2 && q.tekst === 'Wat pak je?', JSON.stringify(q));
+  assert.equal(G.leesStemEvent({ k: 'stem', id: 1, soort: 'keuze' }), null, 'zonder opties geen keuze-stemming');
+  assert.equal(G.leesStemEvent({ k: 'stem', id: 1, soort: 'keuze', opties: [] }), null);
+  assert.equal(G.leesStemEvent({ k: 'stem', id: 1, soort: 'slapen', tekst: 'x' }).tekst, 'x', 'de tijdsprong werkt zoals eerst');
+  const a = G.leesStemAntwoord(G.stemAntwoordEvent(7, true, 1));
+  assert.equal(a.keuze, 1);
+  assert.equal(G.leesStemAntwoord({ k: 'stemantwoord', id: 7, ja: true }).keuze, undefined, 'een ja/nee-antwoord houdt geen optie');
+  const u = G.leesStemUitslag(G.stemUitslagEvent(7, true, '', 0));
+  assert.equal(u.keuze, 0);
+  assert.deepEqual(G.leesStemUitslag({ k: 'stemuitslag', id: 7, ok: true, reden: 'iets' }), { id: 7, ok: true, reden: '' }, 'de oude uitslagvorm blijft gelijk');
+});
+
+t('#686: de host en de gast stemmen samen over een keuze', () => {
+  const s = sessie(1); s.step(1);
+  const st = s.hw.coopKeuzeBegin(['De auto', 'De bal'], 'Wat pak je?', 1);
+  assert.ok(st && st.soort === 'keuze' && st.opties.length === 2, 'de host opent de keuze-stemming');
+  s.step(0.15);
+  assert.ok(s.gs[0].gw.coopKeuze && s.gs[0].gw.coopKeuze.opties.length === 2, 'de gast ziet de stemming');
+  assert.equal(N.handleEvent(s.hw, { k: 'paneel', a: '2' }, 1), true, 'de gast stemt op 2');
+  assert.equal(s.hw.coopKeuzeAntwoord(0), true, 'de opener stemt op 1');
+  assert.equal(s.hw.coopKeuzeTik(0), 0, 'gelijkspel: de stem van de opener wint');
+  s.step(0.2);
+  assert.equal(s.gs[0].gw.coopKeuze.uitslag, 0, 'de gast hoort welke optie gekozen is');
+  assert.ok(tekstIn(s.gs[0].gw, /Jullie kozen/), 'de gast leest de uitslag');
+});
+
+
 t('#642: een gast kan de wachtkamer starten en iedereen stoppen voorstellen', () => {
   const s = sessie(1); s.step(1);
   setGate(true);
