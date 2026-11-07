@@ -110,6 +110,13 @@ const hits = (a, b) => a.left < b.right && a.right > b.left && a.top < b.bottom 
 // (en komt terug zodra de hint weg is). Staat de hint elders, dan blijft de
 // kaart gewoon staan; een hint achter het treinpaneel kost de speler zijn
 // prestatie dus niet. hud_panel.js geeft de gemeten vakken door.
+// #638: de voertuignaam staat boven een zichtbaar racepaneel in de gemeten rechterkolom.
+// raceTop is de bovenkant van het racepaneel in beeld; viewH de vensterhoogte. Geeft de CSS-bottom.
+export function vehnameBottom({ raceTop = null, viewH = 720, gap = 8 } = {}) {
+  if (!Number.isFinite(raceTop) || !Number.isFinite(viewH)) return null;
+  return Math.max(0, Math.round(viewH - raceTop + gap));
+}
+
 export function cardYields(card, hints = []) {
   return !!card && hints.some((h) => !!h && hits(card, h));
 }

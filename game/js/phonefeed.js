@@ -1,5 +1,5 @@
 import { dualHtml, dutchFor } from './subtitles.js';
-import { fitCard } from './hudtext.js';
+import { fitCard, phoneCard } from './hudtext.js';
 import { isStale } from './validity.js';
 import { paintSpeaker } from './speakers.js';
 import { noteSpoken } from './characters.js';
@@ -20,9 +20,8 @@ import { appForNote, senderForNote, senderOf } from './phoneapp.js';
 //
 // Notifications: notifyPhone(world, { from, app, title, text, duration }),
 // or push { from, text, duration } onto world.phoneNotifications (the old
-// way, still read every frame). At most two cards are up at once, the
-// newest at the bottom; the older one steps back. A card whose text the
-// HUD just showed as a card is only written to the history. A card pings and
+// way, still read every frame). One card is up at a time (attention budget); a
+// card whose text the HUD just showed as a card is only written to the history. A card pings and
 // is read aloud in the sender's voice (smsvoice.js; `say` = the fixed line
 // for a text with numbers or names, `voiced: true` = already spoken); the
 // card stays up until the voice is done. `silent: true` (the new story's app texts) is only shown and pinged, never read aloud.
@@ -40,8 +39,7 @@ import { appForNote, senderForNote, senderOf } from './phoneapp.js';
 
 const HOLD_MIN = 6;
 const HOLD_MAX = 13;
-// attention budget: one phone card at a time, a counter for the rest
-const MAX_UP = 1;
+// attention budget: one phone card at a time; the rest waits on the counter
 const HOLD_BUSY = 4.5;
 const RING_TIME = 1.6;
 const LINE_GAP = 0.35;
@@ -125,7 +123,9 @@ function parse(n) {
     if (c) { title = c[1]; body = c[3]; } else { title = text; body = ''; }
     title = title[0].toUpperCase() + title.slice(1);
   }
-  return { from, app, title, body };
+  // #643: één telefoonkaart met een gemeten woordbudget (ook bij dynamische tekst)
+  const kaart = phoneCard(title, body);
+  return { from, app, title: kaart.title, body: kaart.body, over: kaart.over };
 }
 
 export function notifyPhone(w, spec) {

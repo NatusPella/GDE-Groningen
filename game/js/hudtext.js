@@ -33,7 +33,7 @@ export function wordCount(text) {
   return m ? m.length : 0;
 }
 
-// The first `max` words of a text; adds nothing, so it is safe in a label.
+// De eerste `max` woorden van een tekst; adds nothing, so it is safe in a label.
 export function trimWords(text, max) {
   const s = String(text ?? '').trim();
   if (wordCount(s) <= max) return s;
@@ -55,6 +55,18 @@ export const overBudget = (text, kind) => wordCount(text) > (WORD_BUDGET[kind] ?
 // beslist waar hij dit toepast; de ratel hierboven blijft de bron van de maten.
 export const fitCard = (text) => trimWords(text, WORD_BUDGET.cardBody);
 export const fitSubtitle = (text) => trimWords(text, WORD_BUDGET.subtitle);
+
+// #643: één telefoonkaart van hooguit WORD_BUDGET.phone woorden (kop + body samen). De titel is een
+// kop, de body wordt op het budget afgekapt; `over` zegt of dat nodig was, zodat de audit een te
+// lange (ook dynamische) melding kan markeren in plaats van hem stil te laten groeien.
+export function phoneCard(title, body) {
+  const t = String(title ?? '').trim();
+  const b = String(body ?? '').trim();
+  const woorden = wordCount(t) + wordCount(b);
+  const titel = trimWords(t, 8);
+  const rest = trimWords(b, Math.max(0, WORD_BUDGET.phone - wordCount(titel)));
+  return { title: titel, body: rest, words: woorden, over: woorden > WORD_BUDGET.phone };
+}
 
 // --- the 'seen' counter --------------------------------------------------------
 

@@ -7,7 +7,7 @@
 // elements than its ceiling in LIMITS (lower the ceiling when you shorten texts).
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { wordCount, WORD_BUDGET } from '../game/js/hudtext.js';
+import { wordCount, WORD_BUDGET, phoneCard } from '../game/js/hudtext.js';
 import * as MB from '../game/js/movablebridges.js';
 import * as RV from '../game/js/reisview.js';
 import * as PH from '../game/js/partnerhud.js';
@@ -17,7 +17,7 @@ const JS = fileURLToPath(new URL('../game/js/', import.meta.url));
 const lines = (s) => s.split(/\r?\n/);
 
 // the most over-budget elements we accept per kind (a ratchet: only goes down)
-export const LIMITS = { label: 0, hint: 0, hintSub: 0, card: 0, prompt: 0, phone: 0, subtitle: 8 };
+export const LIMITS = { label: 0, hint: 0, hintSub: 0, card: 0, prompt: 0, phone: 0, subtitle: 0 };
 
 const strOf = (src, key) => {
   const m = new RegExp('\\b' + key + ':\\s*([\'"`])').exec(src);

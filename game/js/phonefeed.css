@@ -16,7 +16,7 @@
   --pf: var(--gron-green-light);
   position: relative;
   color: #f0ede4;
-  background: linear-gradient(180deg, rgba(30, 36, 31, 0.96), rgba(14, 19, 15, 0.96));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--gron-green, #1e9e56) 10%, #0c140e), #0c140e 92%); /* #643: HUD-behuizing, geen eigen bijna-zwart */
   border: 1px solid rgba(240, 237, 228, 0.12);
   border-top: 3px solid var(--pf);
   border-radius: 14px;
@@ -28,9 +28,8 @@
   transition: opacity 0.35s ease, transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.4s;
 }
 #hud .pf-card.on, #hud .pf-callcard.on { opacity: 1; transform: none; }
-#hud .pf-card.back { opacity: 0.72; transform: scale(0.95); filter: saturate(0.6); }
 #hud .pf-card.out, #hud .pf-callcard.out { opacity: 0; transform: translateY(-30px) scale(0.96); transition-duration: 0.45s; }
-#hud .pf-card[data-app="bericht"] { --pf: var(--mk-info, #8fd3ff); }
+#hud .pf-card[data-app="bericht"] { --pf: var(--mk-user, #c068ff); }
 #hud .pf-card[data-app="geld"] { --pf: var(--mk-ok, #3fc97a); }
 #hud .pf-card::after {
   content: '';
@@ -67,7 +66,7 @@
 
 /* calls and livestreams */
 #hud .pf-callcard { --pf: var(--mk-ok, #3fc97a); border-radius: 18px; }
-#hud .pf-callcard.live { --pf: var(--mk-danger, #ff5a4a); }
+#hud .pf-callcard.live { --pf: var(--mk-danger, #d93f3f); }
 #hud .pf-call-head { display: flex; align-items: center; gap: 11px; padding: 11px 14px 6px 12px; }
 #hud .pf-avatar {
   position: relative;
