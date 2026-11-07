@@ -108,9 +108,14 @@ Sinds #528 is Samen spelen de standaard, niet iets wat je erbij doet (ADR 0022).
   aparte laag uit `game/js/groepsbonus.js:16` en gaat op de betaalhaak over het bedrag
   van die speler; wedstrijden belonen per plek.
 - Iedere speler schrijft zijn eigen save: elke 60 s, na een gelukte opdracht, bij
-  binnenkomst en bij het einde van de sessie.
+  binnenkomst en bij het einde van de sessie. Alleen in een echte sessie: Alleen
+  spelen (de sessie van één, #554) houdt zijn eigen save-momenten en schrijft geen
+  checkpoint en geen extra verrekening aan het eind (#569).
 - Geld, loopbaan, gebieden, prestaties en de eigen verhaalstap gaan naar de eigen
-  save; wereld en klok van de wereld.
+  save; wereld en klok van de wereld. Van de voertuigen gaat alleen de eigen schade
+  mee: de gastheerauto uit de momentopname (`shops.hero`) niet (#566). Niets te
+  bewaren is een geslaagde opslag (#579), en een gast ziet in de bevestiging dat
+  alleen zijn verdiensten bewaard zijn (#606).
 
 ## Wat een gast wel en niet kan
 
