@@ -276,6 +276,22 @@ function markdown() {
   return out.join('\n');
 }
 
+if (process.argv.includes('--check')) {
+  // #696: het gegenereerde doc mag niet stil achterlopen; de lichte fase draait deze stand.
+  const doel = path.join(root, 'docs', 'KANALEN.md');
+  const nieuw = markdown();
+  const oud = fs.existsSync(doel) ? fs.readFileSync(doel, 'utf8') : '';
+  if (oud === nieuw) { console.log('KANALEN.md is actueel'); process.exit(0); }
+  console.log('KANALEN.md loopt achter: draai node scripts/hudbus_inventory.mjs --md en commit het resultaat');
+  const a = oud.split('\n'), b = nieuw.split('\n');
+  let tonen = 0;
+  for (let i = 0; i < Math.max(a.length, b.length) && tonen < 12; i++) {
+    if (a[i] === b[i]) continue;
+    tonen++;
+    console.log(`regel ${i + 1}:\n  oud:   ${a[i] ?? '(einde)'}\n  nieuw: ${b[i] ?? '(einde)'}`);
+  }
+  process.exit(1);
+}
 if (process.argv.includes('--md')) {
   fs.writeFileSync(path.join(root, 'docs', 'KANALEN.md'), markdown());
   console.log('docs/KANALEN.md geschreven: ' + Object.keys(B.SURFACES).length + ' kanalen');

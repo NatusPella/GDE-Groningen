@@ -5,7 +5,8 @@
 //   --only=<tekst>   alleen tests waarvan de naam de tekst bevat
 //   --list           toon wat er zou draaien
 // Tests die game/world of data/cache nodig hebben en die niet hebben, worden
-// overgeslagen met een SKIP-melding. Provincie- en zware wereldchecks
+// overgeslagen met een SKIP-melding. De dode-code-poort meet dezelfde drempel als de
+// lichte fase van test_all (#646): scripts/dead_code_budget.json, dat alleen mag dalen. Provincie- en zware wereldchecks
 // (province_test, ring_probe, drive_audit, ...) staan er bewust niet in.
 //
 // Verhouding tot scripts/test_all.mjs (#482): test_all is de standaard uit AGENTS.md en kent de
@@ -15,6 +16,8 @@
 // en de Electron-fase: die vragen de gestagede wereld en minuten, en draait de coördinator lokaal.
 import { spawnSync } from 'node:child_process';
 import { existsSync, readdirSync, statSync } from 'node:fs';
+import fsMod from 'node:fs';
+import osMod from 'node:os';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { checkSyntax } from './lib/syntaxcheck.mjs';
@@ -29,16 +32,23 @@ const timeoutMs = (Number(opt('timeout')) || (quick ? 30 : 120)) * 1000;
 const only = opt('only');
 
 // Nooit in de standaardrun: hebben de provinciedata of minuten nodig.
-// scripts/perf en audio_check.js zijn snippets voor de browser/CDP: geen node --check.
+// scripts/perf en scripts/ui en scripts/weer zijn CDP-snippets (top-level await/return): die
+// controleert lib/syntaxcheck.mjs door ze als async-functielichaam te compileren; audio_check.js
+// en *.page.js worden overgeslagen omdat ze niet meer zijn dan een losse expressie.
 export const EXCLUDED = new Set([
   'province_test.mjs', 'province_detail_test.mjs', 'network_drive_test.mjs',
   'junction_sim_test.mjs', 'ring_probe.mjs', 'drive_audit.mjs', 'vaarnet_province_test.mjs', 'prop_conflict_audit_test.mjs',
+  // Deze twee staan ook in de zware fase (test_all.mjs ZWAAR, met --stad en met de wereld);
+  // in de lichte fase en CI zouden ze dubbel draaien en zonder wereld alleen SKIP opleveren (#646).
+  'terrain_pariteit_test.mjs', 'bridge_province_test.mjs',
 ]);
 // Niet in --quick: tests van meer dan ~5 s.
 export const SLOW = new Set([
   'swim_escape_test.mjs', 'corridor_test.mjs', 'barge_test.mjs', 'tileworld_test.mjs',
   'mode_route_test.mjs', 'world_tiles_test.mjs', 'navgraph_test.mjs', 'minigames_test.mjs',
   'import_cycles_test.mjs', 'stad_test.mjs', 'overlap_test.mjs', 'road_route_test.mjs', 'water_look_test.mjs', 'route_quality_test.mjs',
+  'coop_licht_test.mjs', // start alle coop-tests als eigen Node-processen (samen ±1 min)
+
 ]);
 // Waar een test op stukloopt als de wereld ontbreekt.
 export const MISSING_DATA = /(ENOENT|Cannot find|no such file|not found)[^\n]*(game[\\/]+world|data[\\/]+cache)|(game[\\/]+world|data[\\/]+cache)[^\n]*(ENOENT|no such file|not found)/i;
@@ -51,7 +61,7 @@ export function listFiles(dir, re, out = []) {
     try { st = statSync(p); } catch { continue; }
     if (name === 'audio_check.js' || /\.page\.js$/.test(name)) continue; // snippets voor de browserconsole/CDP (top-level await)
     if (st.isDirectory()) {
-      if (['build', 'dist', 'vendor', '.claude', 'perf', 'ui', 'weer'].includes(name)) continue;
+      if (['build', 'dist', 'vendor', '.claude'].includes(name)) continue;
       listFiles(p, re, out);
     } else if (re.test(name)) out.push(p);
   }
@@ -73,6 +83,37 @@ export function classify(res) {
 }
 
 function tail(s, n = 25) { return s.split(/\r?\n/).filter(Boolean).slice(-n).join('\n'); }
+
+// De dode-code-drempel (#646): wees-modules en ongebruikte exports mogen niet groeien.
+// De vaste drempel staat in scripts/dead_code_budget.json; een volgende sessie mag hem
+// alleen verlagen. -> { wees, ongebruikt, mag, fout }
+export function deadCodeGate(lijst, budget) {
+  const wees = lijst.filter((m) => m.kind === 'wees').length;
+  const ongebruikt = lijst.reduce((s, m) => s + (m.unused ? m.unused.length : 0), 0);
+  const mag = { wees: Number(budget.wees) || 0, ongebruikt: Number(budget.ongebruikt) || 0 };
+  const fout = wees > mag.wees || ongebruikt > mag.ongebruikt
+    ? `dode code is gegroeid: ${wees} wees-modules en ${ongebruikt} ongebruikte exports (drempel ${mag.wees} en ${mag.ongebruikt})`
+    : '';
+  return { wees, ongebruikt, mag, fout };
+}
+
+// Draait dead_code met een bestand in plaats van een pijp (#140) en vergelijkt met de drempel.
+export function deadCodeRun() {
+  const os = requireOs();
+  const tmp = join(os.tmpdir(), `gde-deadcode-${process.pid}.json`);
+  const r = run(process.execPath, ['scripts/dead_code.mjs', '--json=' + tmp], timeoutMs);
+  let lijst = null;
+  try { lijst = JSON.parse(requireFs().readFileSync(tmp, 'utf8')); } catch { /* geen JSON */ }
+  try { requireFs().rmSync(tmp, { force: true }); } catch { /* al weg */ }
+  if (!Array.isArray(lijst)) return { ...r, code: 1, out: r.out + '\ngeen bruikbaar dead_code-rapport' };
+  const budget = JSON.parse(requireFs().readFileSync(join(ROOT, 'scripts', 'dead_code_budget.json'), 'utf8'));
+  const g = deadCodeGate(lijst, budget);
+  return { ...r, code: g.fout ? 1 : 0, out: `${g.wees} wees-modules, ${g.ongebruikt} ongebruikte exports (drempel ${g.mag.wees} en ${g.mag.ongebruikt})${g.fout ? ': ' + g.fout : ''}` };
+}
+
+// require in een ESM-bestand zonder extra import in de test te hoeven doen
+function requireFs() { return fsMod; }
+function requireOs() { return osMod; }
 
 function main() {
   const results = [];
@@ -128,6 +169,10 @@ function main() {
     // De specs tegen de code (#499): regelverwijzingen en de tellers in proza.
     const sc = run(process.execPath, ['scripts/spec_check.mjs'], timeoutMs);
     note('spec_check.mjs', sc, classify(sc));
+    // De dode-code-poort (#646): de lichte fase van test_all bewaakt dit met de vorige run;
+    // CI heeft geen vorige run en gebruikt daarom de gecommitte drempel. Alleen omlaag.
+    const dc = deadCodeRun();
+    note('dead_code.mjs (drempel)', dc, classify(dc));
   }
 
   for (const t of tests) {

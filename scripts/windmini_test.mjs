@@ -65,3 +65,12 @@ check('windtekst: afgerond in m/s', windTekst(5.6) === '6 m/s' && windTekst(2) =
 
 console.log(bad ? `${bad} van ${n} mislukt` : `windmini_test ok (${n} checks)`);
 process.exit(bad ? 1 : 0);
+
+// #616: de regatta toont de wind met een richting, en de hulp noemt de schootstand.
+import { windDirection } from '../game/js/minigamekit.js';
+import fs from 'node:fs';
+check('windrichting: 0 = noord, kwartslag = oost', windDirection({ dir: 0 }) === 'N' && windDirection({ dir: Math.PI / 2 }) === 'O' && windDirection({ dir: Math.PI }) === 'Z' && windDirection({ dir: 3 * Math.PI / 2 }) === 'W');
+check('windrichting: onbekend geeft niets', windDirection({}) === '' && windDirection(null) === '');
+const regattaBron = fs.readFileSync(new URL('../game/js/regatta.js', import.meta.url), 'utf8');
+check('regatta toont wind met richting', /windText\(wind\) \$\{windDirection\(wind\)\}/.test(regattaBron), 'de rij noemt Bft en de kompasletter');
+

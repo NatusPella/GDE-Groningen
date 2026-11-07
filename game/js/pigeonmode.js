@@ -505,7 +505,7 @@ body.pigeon-mode #hud .hud-damage { display: none !important; }
 #pigeon-hud .ph-hints { position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 14px; max-width: min(760px, calc(100vw / var(--ui, 1) - 380px)); padding: 6px 14px; background: linear-gradient(0deg, rgba(10,14,18,0.72), rgba(10,14,18,0.5)); border-radius: 6px; font: 13px 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; text-shadow: 0 1px 2px rgba(0,0,0,0.9); }
 #pigeon-hud .ph-hints span { display: inline-flex; align-items: center; white-space: nowrap; color: rgba(240,237,228,0.88); }
 #pigeon-hud .ph-hints .hot { color: var(--mk-mission, #f2c744); }
-#pigeon-hud .ph-hints .ph-guest, #pigeon-hud .ph-hints .ph-touch { color: rgba(240,237,228,0.62); }
+#pigeon-hud .ph-hints .ph-gast, #pigeon-hud .ph-hints .ph-touch { color: rgba(240,237,228,0.62); }
 #pigeon-hud .hud-key { margin-right: 5px; }
 #pigeon-hud .ph-pops { position: absolute; top: 18%; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 2px; }
 #pigeon-hud .ph-pop { font-size: 30px; letter-spacing: 2px; color: #f0ede4; text-shadow: 0 2px 8px rgba(0,0,0,0.8); animation: ph-pop 1.4s ease-out forwards; }
@@ -640,7 +640,7 @@ function updateHud(dt) {
     else html = K('WASD', 'lopen') + K('Spatie', 'opstijgen') + (key.startsWith('ground-food') ? K('E', 'patat pikken', true) : key.startsWith('ground-carry') ? K('E', 'opeten', true) : K('E', 'pikken')) + K('C', 'koeren') + K('F', 'poepen') + zw + K('X', 'weer mens worden', true);
     // #630: de duif gaat alleen op toetsenbord en pad, en een gast hoort wat hij doet.
     html += '<span class="ph-touch">Toetsenbord of pad</span>';
-    if (world && world.coopNet && world.coopNet.role === 'client') html += '<span class="ph-guest">Je vliegt mee; de eigenaar landt.</span>';
+    if (world && world.coopNet && world.coopNet.role === 'client') html += '<span class="ph-gast">Je vliegt mee; de eigenaar landt.</span>';
     hud.hints.innerHTML = html;
   }
   if (hud.cardT > 0 && (hud.cardT -= dt) <= 0) hud.card.classList.remove('on');
@@ -1862,5 +1862,6 @@ export function startPigeonMode(w, spot = null) {
   updatePigeonCamera(0.016, w);
   return true;
 }
+
 
 

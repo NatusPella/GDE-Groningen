@@ -13,7 +13,7 @@ er is geen server en geen buildstap in dev.
 ## Besluit
 
 Geen bundler. `game/index.html` laadt `game/js/main.js` als enige module, Three.js
-komt via een import map, al het andere via relatieve paden. De webversie
+komt via de CDN-URL (jsDelivr) en wordt bij de build gevendord; al het andere via relatieve paden. De webversie
 (`web/build.mjs`) is het enige buildpad en levert three.js en de lettertypen zelf
 mee.
 
@@ -23,8 +23,8 @@ mee.
   module kan laden; een fout in dev is dan niet dezelfde fout als in de build.
 - **Eén gebundeld bestand.** Wint weinig laadtijd en maakt debuggen slechter: geen
   bestandsnaam en regelnummer meer in een stacktrace.
-- **Three.js als npm-afhankelijkheid met een eigen kopie.** De import map houdt
-  één versie vast en de webversie kan hem meevendoren.
+- **Three.js als npm-afhankelijkheid met een eigen kopie.** De vendor-stap
+  (`desktop/build.mjs`) houdt één versie vast en de webversie vendort die mee.
 
 ## Gevolgen
 

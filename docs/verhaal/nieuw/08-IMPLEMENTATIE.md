@@ -1,12 +1,14 @@
 # 08 · Implementatie (alleen voor een latere bouwronde)
 
+> **Momentopname 17-10-2026.** Dit document beschrijft de stand van toen. Vier genoemde bronnen bestaan niet meer (`gen_ringroute.py`, `data/helipads_raw.json`, `add_helipad.py`, `scripts/storytest.js`); de akten staan in `game/js/storyarc_nieuw.js` en de implementatie in `game/js/cutscenes_akte*.js`. De actuele regels staan in `.specs-fire/standards/verhaal.md`.
+
 Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Dit is een momentopname: alles hieronder is gelezen uit `game/js` op `main` van 17 oktober 2026 of gelabeld **AANNAME** (niet geverifieerd). Daarna is Deel 4 (Nazomer, M27-M30) wel gebouwd: `game/js/missions_akte6.js`, `game/js/storyarc_nieuw.js` en [DEEL4.md](DEEL4.md). Volgens AGENTS.md: werk in een eigen worktree en branch, kleine commits, geen push of merge door agents; vóór elke merge `node --check`, `node scripts/voice_coverage.mjs --quiet` en alle `scripts/*_test.mjs`; vóór een release één Electron-verhaaltest.
 
 ## 1. Waar de wijzigingen vallen
 
 | Plek | Wat verandert | Bestaand of nieuw |
 |---|---|---|
-| `game/js/storyarc.js` `STEPS` | volgorde en `id`'s: de 26 hoofdmissies als stappen; `part` wordt van 3 naar 5 akten | bestaat; uitbreiden |
+| `game/js/storyarc_nieuw.js` `STEPS` | volgorde en `id`'s: de 26 hoofdmissies als stappen; `part` wordt van 3 naar 5 akten | bestaat; uitbreiden |
 | `storyarc.js` `PARTS` | `kop/romp/staart` blijven intern (saves); er komen twee extra delen of de titels/data veranderen (AANNAME: de ids blijven, alleen `title`, `name`, `date`, recaps veranderen; twee nieuwe ids voor akte 4 en 5) | bestaat; uitbreiden |
 | `storyarc.js` `MISSION_IDS` | **alleen achteraan toevoegen**: indices staan in saves en medailles; de nieuwe missies krijgen nieuwe `mission`-id's (`loket`, `wierde`, `containers`, `dijk`, `graan`, `bruggen`, `wiebelwerk`, `stoom`, `beleg`, `luik`, `colonne`, `eieren`). De samengevoegde missies hergebruiken bestaande id's: M01 `berend` (met de `chaos`-stunt als eerste stage), M11 `skutsje` (met het zout als tweede deel), M16 `kroegentocht` (met de `kermis`-botsauto's als tweede deel). **Vervallen ten opzichte van het vorige voorstel:** `laagwater` (zit in M11) en `vestingbus` (M23 is een reisbeat) | bestaat; toevoegen |
 | `storyarc.js` `RETIRED_STEPS` | `r-avond`, `s-boot`, `s-proefvlucht`, `s-carbid`, `s-padel`, `k-fiets`, `H7`, `H9`, `H13`, en de stap `H3` (`chaos`, nu in M01) gaan op `RETIRED_STEPS` of blijven als optionele klus; saves laten ze vallen (`story.js` `applyStorySave`) | bestaat |

@@ -8,7 +8,7 @@
 ## Wat hier geldt, in het kort
 
 - **Nederlands** is de taal van alles wat een speler ziet of hoort. Code,
-  commentaar en commitberichten mogen Engels zijn.
+  commentaar is Engels; proza (docs, specs, ADR's, changelog, issues, commits) is Nederlands (AGENTS.md).
 - **Geen echte merken, bedrijven of personen**; verzonnen namen voor parodieën.
   Echte straten en openbare gebouwen mogen als decor.
 - **Altijd zomer.** Geen winter, sneeuw of natuurijs.

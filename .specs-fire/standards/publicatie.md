@@ -120,7 +120,7 @@ verhaaltest draaien lokaal.
   (`docs/PUBLICATIECHECKLIST.md:3`). Vóór Public: `node scripts/publish_check.mjs
   --history` zonder FAIL, plus `secrets_scan`, `text_audit` en
   `merkenregister_check`.
-- **Versie:** `0.53.0` in `desktop/package.json:4`, met `## [0.53.0] - 2026-10-25`
+- **Versie:** `0.57.5` in `desktop/package.json:4`, met `## [0.57.5] - 2026-11-06`
   als nieuwste changelogsectie; elke versie die met `0.` begint, wordt een
   pre-release (`desktop/release.sh:139`).
 - **Ondertekening:** niets is ondertekend. Windows `signExecutable: false`,
@@ -166,8 +166,9 @@ instellingen en prestaties staan alleen lokaal (`gde-save-v1`, `gde-settings`,
 `gde-prestaties-v1`); het foutenlogboek blijft op het apparaat. Bij Samen spelen
 gaat het IP-adres naar een openbare STUN-server en loopt de versleutelde
 signalering via openbare brokers, alleen na toestemming in het spel. De
-openbare sessielijst is opt-in en toont naam, aantal spelers, versie en
-kamercode, nooit een IP-adres. Er is geen tekstchat en geen spraak. De
+openbare sessielijst is opt-in en toont naam, aantal spelers, versie en een sessie-id,
+nooit een IP-adres, wachtwoord of kamercode (#583: een gast vraagt de kamercode eenmalig
+versleuteld op bij de host). Er is geen tekstchat en geen spraak. De
 desktopversie laadt na de build niets van internet; de webbuild levert three.js
 en de lettertypen zelf mee. De build controleert dat ook: een externe load-time-URL
 in de stage laat hem falen (#593), en de binnengehaalde three.js en fonts moeten

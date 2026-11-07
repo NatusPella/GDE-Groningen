@@ -1,6 +1,8 @@
 # De hele provincie spelen: ontwerp en besluiten
 
-*Ontwerpdocument, oktober 2026 (ingekort op 0.34). De eigenaar vroeg: "Ik wil de
+> **Naslag.** De regels staan in de canonieke spec [`.specs-fire/standards/wereld.md`](../.specs-fire/standards/wereld.md); dit document is uitleg en geschiedenis. Bij verschil wint de spec (en bij twijfel `AGENTS.md`).
+
+*Ontwerpdocument, oktober 2026; statusregel bijgewerkt op 7 november 2026 (0.57.5). Delen zijn historie: de actuele regels staan in de spec en in docs/TESTEN.md. De eigenaar vroeg: "Ik wil de
 hele provincie kunnen spelen." Dit document houdt de techniek, de besluiten, de
 metingen en de bekende beperkingen vast. Openstaand werk staat uitsluitend als
 GitHub-issue (destijds onder meer #1 water per tegel, #2 3D BAG, #3 oude
@@ -415,7 +417,7 @@ L0 rond camera én kijkpunt vóór de cut (niet klaar: vorige shot ≤ 1 s lange
 een dichter shot; nooit lage LOD of gaten in beeld). Gameplay staat stil dus
 de L0/L1-straal is groter en de LOD-bias schuift naar het frustum; LOD per shot
 vastgezet (wissel alleen bij een cut, korte cross-fade); schaduw, far-LOD en
-shaders per shot. Test `scripts/world/cine_lod_test.mjs`: 0 ontbrekende tegels
+shaders per shot. Test `scripts/world/cine_lod_test.mjs` (dit pad bestaat niet meer; zie docs/TESTEN.md): 0 ontbrekende tegels
 en 0 LOD-wissels per shot. Gebouwd: API (`prefetchPoints`, `missing`); de
 shotlijsten en de test per cutscène zijn open.
 
@@ -458,7 +460,7 @@ op de graaf zonder physics; ver niets (behalve lichtstrepen 's nachts). Spawnen
 en verdwijnen alleen buiten beeld; een agent leeft op de graaf, niet in een
 tegel. Wagenpark per regio (landbouwverkeer, vrachtwagens naar Eemshaven en
 Delfzijl, bussen op echte lijnen); `countrylife.js` en `countryDrive` gaan op in
-`vehicle.js`. Test: `scripts/world/traffic_soak.mjs` per regio. Open: #18.
+`vehicle.js`. Test: `scripts/world/traffic_soak.mjs` per regio (dit pad bestaat niet meer; zie docs/TESTEN.md). Open: #18.
 
 ### 2.22 Streaming in Electron en web
 
@@ -750,13 +752,13 @@ machine staat open (#4, #56).
 
 ### 4.2 Teststrategie
 
-Bouwaudit per tegel (`scripts/world/audit.mjs`; de build faalt bij fouten);
+Bouwaudit per tegel (`scripts/world/audit.mjs` bestaat niet meer; de bouw faalt bij fouten via de huidige poorten in docs/TESTEN.md);
 routetests provinciebreed (500 paren, 50 echt gereden); wegcheck over A7, A28 en
 N-wegen; perf-routes in één Electron-slotronde (A7 naar Nieuweschans op 40 m/s,
 heli Stad > Eemshaven op 60 m/s, trein naar Delfzijl versneld, rondje lopen in
 Appingedam); geocheck per tegel (worker = hoofdthread = vorige build, byte voor
 byte); visuele pariteit van de stad met vaste camerashots (`placeshot.js`);
-stresstest streaming (`scripts/perf/stream_stress.mjs`: heli 60 m/s dwars door de
+stresstest streaming (`scripts/perf/streamdrive.mjs`: heli 60 m/s dwars door de
 provincie, trein 4×, "Rijd me erheen" 3×, 100 sprongen, 30 min met heap en GPU
 elke 10 s, en `--cpu-throttle=4`) tegen de budgetten uit 2.4b.
 

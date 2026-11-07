@@ -1,5 +1,7 @@
 # 3D-modelprompts voor GDE Groningen
 
+> **Naslag.** De regels staan in de canonieke spec [`.specs-fire/standards/ui-taal.md`](../.specs-fire/standards/ui-taal.md); dit document is uitleg en geschiedenis. Bij verschil wint de spec (en bij twijfel `AGENTS.md`).
+
 Kant-en-klare prompts voor Claude Design, om de procedurele wereld uit
 `game/js/models3d_buildings.js` / `models3d_vehicles.js` / `models3d_people.js`
 stukje bij beetje te vervangen door echte, hand-af 3D-modellen in de stijl van het

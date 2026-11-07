@@ -17,7 +17,8 @@ import { bubbleVoiceFor } from './linevoice.js';
 import { playLineVoice } from './audio.js';
 import { rand } from './rng.js';
 import { SET_GAMES, scorePoint, pointCall, judgeServeHit, serveInBox, serveFault, wallKind, judgeWall } from './padelrules.js';
-import { mgThema, sfeerVan, sfeerVlakHtml } from './minigamekit.js';
+import { mgThema, sfeerVlakHtml } from './minigamekit.js';
+import { sfeerVan } from './activiteitensfeer.js';
 import { getSettings } from './settings.js';
 import { loadEchtePlekken, padelDefs } from './echteplekken.js';
 import { tilesIn, withTiles } from './tileplace.js';
@@ -1372,5 +1373,6 @@ function updateHud(w) {
   hud.flash.classList.toggle('them', !!g.flash && g.lastWinner === 1 && !g.flash.small);
   hud.help.innerHTML = help;
 }
+
 
 

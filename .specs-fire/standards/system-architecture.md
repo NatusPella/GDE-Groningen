@@ -107,8 +107,9 @@ De afweging per beslissing staat in `.specs-fire/standards/adr/`: de projectie, 
 wereld als tegels, pinnen versus streamen, één `World`, de pure regelmodule, geen
 bundler, de opener is geen baas, de opdrachtstand per groep, de saves, de kleurtokens,
 tekst als data, Nederlands en verzonnen namen, de testrunner, de releaseketen, het
-safehouse, de ingang, code in het Engels, de speleringang, spraak op Flash-Lite en
-1+1=3. De index met nummers, statussen en de reserveringen staat in `adr/README.md`;
+safehouse, de ingang, code in het Engels, de speleringang, spraak op Flash-Lite,
+1+1=3, de twee lagen verhaal en mechanica, altijd online met toestemming, JavaScript
+blijft de taal, de sessie van één en de bootorde (0020-0026). De index met nummers, statussen en de reserveringen staat in `adr/README.md`;
 dat is de enige lijst.
 
 ## Waar de bestandskaart staat

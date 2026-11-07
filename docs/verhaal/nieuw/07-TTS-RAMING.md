@@ -57,7 +57,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Geen TTS gedraaid, geen netwerk ge
 | **Eerste opnameronde** | ca. 45.400 | **0,95-1,45** |
 | Met heropnamen (aanname x1,5 voor tonen en fouten) | | **1,43-2,18** |
 
-**Kosten tot 27-10: $0,184.** Er wordt opgenomen in rondes op \`gemini-3.8-flash-lite-tts\` (ADR 0019,
+**Momentopname van 29-10/6-11; de generator is de bron.** Draai `node scripts/voice_coverage.mjs --quiet` en `node scripts/tts_lines_list.mjs` voor de actuele stand; de getallen hieronder zijn geschiedenis. **Kosten tot 27-10: $0,184.** Er wordt opgenomen in rondes op \`gemini-3.8-flash-lite-tts\` (ADR 0019,
 #462). Stand na de opnameronde van 29-10 en het opruimen van de wachtrij (6-11): **744 van de 1.450
 verhaalregels hebben een stem en 706 zijn nog alleen tekst** (`node scripts/voice_coverage.mjs --quiet`).
 Daarvan staan **63 opdrachten klaar in de wachtrij** (`scripts/tts_lines.json`; `python

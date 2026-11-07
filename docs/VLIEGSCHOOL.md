@@ -1,5 +1,7 @@
 # Vliegschool De Windwijzer: lessen voor het vliegtuig en de helikopter (#397)
 
+> **Naslag.** De regels staan in de canonieke spec [`.specs-fire/standards/mechanica.md`](../.specs-fire/standards/mechanica.md); dit document is uitleg en geschiedenis. Bij verschil wint de spec (en bij twijfel `AGENTS.md`).
+
 Voor wie aan `vliegschool.js`, `vliegschoolrules.js` of `game/vliegplekken.json` werkt. Tests: `scripts/vliegschool_test.mjs`.
 
 ## Wat de speler ziet

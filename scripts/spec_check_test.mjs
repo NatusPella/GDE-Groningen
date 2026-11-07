@@ -144,5 +144,32 @@ const meldingen = (r) => r.problems.map((p) => `${p.where}: ${p.message}`).join(
   ok(w.changed.length === 0 && voor === fs.readFileSync(p, 'utf8'), 'een kloppende spec blijft byte voor byte gelijk');
 }
 
+
+// --- drift (#648): versie, spelersteller en CI-trigger komen uit de bron
+{
+  const maakDrift = (aan = {}) => {
+    const root = maak();
+    const put = (f, s) => { const q = path.join(root, f); fs.mkdirSync(path.dirname(q), { recursive: true }); fs.writeFileSync(q, s); };
+    put('desktop/package.json', JSON.stringify({ version: '1.2.3' }));
+    put('AGENTS.md', 'De 65 verwijzingen naar world.player zijn de reden.');
+    put('scripts/player_singleton_baseline.json', JSON.stringify({ total: 65 }));
+    put('.github/workflows/test.yml', 'on:\n  pull_request:\n  push:\n    branches: [main]\n  workflow_dispatch:\n');
+    put('.specs-fire/standards/publicatie.md', '- **Versie:** `1.2.3` in `desktop/package.json`, met `## [1.2.3]`');
+    put('.specs-fire/standards/testing-standards.md', 'CI draait op een pull request, op een push naar main en met de hand (workflow_dispatch).');
+    if (aan.versie) put('.specs-fire/standards/publicatie.md', '- **Versie:** `1.2.4` in `desktop/package.json`, met `## [1.2.4]`');
+    if (aan.speler) put('AGENTS.md', 'De 66 verwijzingen naar world.player zijn de reden.');
+    if (aan.trigger) put('.specs-fire/standards/testing-standards.md', 'CI draait bij elke push.');
+    return root;
+  };
+  const schoon = await check({ repo: maakDrift() });
+  ok(schoon.problems.length === 0, 'drift: een kloppende fixture geeft geen fouten: ' + meldingen(schoon));
+  const versie = await check({ repo: maakDrift({ versie: true }) });
+  ok(versie.problems.some((q) => /versie 1\.2\.4/.test(q.message)), 'drift: een andere versie in de spec is een fout');
+  const speler = await check({ repo: maakDrift({ speler: true }) });
+  ok(speler.problems.some((q) => /verwijzingen naar world\.player/.test(q.message)), 'drift: een andere spelersteller is een fout');
+  const trigger = await check({ repo: maakDrift({ trigger: true }) });
+  ok(trigger.problems.some((q) => /pull_request/.test(q.message)), 'drift: een verkeerde CI-trigger is een fout');
+}
+
 console.log(failed ? `${failed} fouten` : 'spec_check_test: alles goed');
 process.exit(failed ? 1 : 0);

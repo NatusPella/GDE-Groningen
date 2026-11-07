@@ -17,7 +17,7 @@ naar `world.coopNet` alleen. Tests: `scripts/coopsolo_test.mjs`, `scripts/gamepa
 
 De eigenaar wil "Alleen spelen" als een gastheer-sessie van één: dezelfde multiplayer-code, een hub
 met alleen plek 0, geen gasten en geen aankondiging. Dat sluit aan op ADR
-[0022](.specs-fire/standards/adr/0022-altijd-online-met-toestemming.md) ("Nee: het spel start een
+[0022](../.specs-fire/standards/adr/0022-altijd-online-met-toestemming.md) ("Nee: het spel start een
 besloten sessie van één; er gaat niets naar buiten, er staat niets in een lijst en niemand kan
 binnenkomen") en op docs/MULTIPLAYER-VISIE.md punt 2. De sessie is dus een implementatiedetail van
 het solospel en mag voor de speler nergens als "Samen spelen" voelen.

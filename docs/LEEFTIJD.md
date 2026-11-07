@@ -1,5 +1,7 @@
 # Leeftijdsclassificatie: PEGI 18 / USK 18
 
+> **Naslag.** De regels staan in de canonieke spec [`.specs-fire/standards/publicatie.md`](../.specs-fire/standards/publicatie.md); dit document is uitleg en geschiedenis. Bij verschil wint de spec (en bij twijfel `AGENTS.md`).
+
 De game is **18+**. De eigenaar heeft besloten dat dat mag, en daarmee zijn
 de beperkingen voor PEGI 16 (versie 0.24, branches `claude/pegi16` en
 `claude/geen-gokken`) teruggedraaid in branch `claude/pegi18`. Dit document

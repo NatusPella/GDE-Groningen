@@ -15,7 +15,7 @@ function nepWereld(spelers = ROSTER()) {
   const log = [];
   const hub = { roster: { spelers }, announce: (b, slot) => { log.push([slot, b]); return true; } };
   const inv = { 1: { mx: 0, my: -1, buttons: 0 }, 2: { mx: 0, my: -1, buttons: 0 }, 3: { mx: 0, my: -1, buttons: 0 } };
-  const world = { coopNet: { role: 'host', hub }, companion: { x: 0, y: 0 }, coop: { remote: true, remoteInput: inv[1] }, coopFigures: { 2: { slot: 2, x: 0, y: 0, input: inv[2] }, 3: { slot: 3, x: 0, y: 0, input: inv[3] } }, messages: [], addMessage(t) { this.messages.push(t); }, coopMeld(slot, t) { this.meldingen.push([slot, t]); }, meldingen: [], time: 100 };
+  const world = { coopNet: { role: 'host', hub }, companion: { x: 0, y: 0 }, coop: { remote: true, remoteInput: inv[1] }, coopFigures: { 1: { slot: 1, x: 0, y: 0, input: inv[1] }, 2: { slot: 2, x: 0, y: 0, input: inv[2] }, 3: { slot: 3, x: 0, y: 0, input: inv[3] } }, messages: [], addMessage(t) { this.messages.push(t); }, coopMeld(slot, t) { this.meldingen.push([slot, t]); }, meldingen: [], time: 100 };
   return { world, log, hub, inv, spelers };
 }
 const betaald = [];

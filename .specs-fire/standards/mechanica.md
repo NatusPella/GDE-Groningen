@@ -257,5 +257,6 @@ zijn de latere meting (#477).
 - De audiowieken op de hoofdthread zijn weerlegd (#473): de `audio`-sectie van de hitchprobe bevatte ook de tegelvolger en de verhaalsystemen, en de perfrun draait met `--stil` (geen AudioContext). Echte audio staat in de worker; het zoeken van de loop-punten van scènemuziek gaat nu in stappen van 32768 samples per frame.
 - Gast en boerderijgroei: de documentatie zegt dat een gast zijn gewassen niet ziet groeien, maar
   `main.js:723` roept `boerderijTijd` ook op het gastpad aan (#471).
-- Twee testrunners naast elkaar (#481): `scripts/run_tests.mjs` en `scripts/test_all.mjs`.
+- Twee testrunners naast elkaar (#481, opgelost 25-10): `scripts/run_tests.mjs` (CI) en
+  `scripts/test_all.mjs` (fasen en rapport) delen hun lijsten; zie ADR 0013 en `docs/TESTEN.md`.
 

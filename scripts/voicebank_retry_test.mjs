@@ -24,6 +24,8 @@ function nepFetch(script) {
 }
 
 globalThis.window = globalThis.window || {};
+if (!globalThis.window.document) globalThis.window.document = {}; // een echte browser heeft een DOM; Node-tests niet
+if (!globalThis.window.location) globalThis.window.location = { href: 'http://test.invalid/' }; // en een location
 const bankModule = await import(pathToFileURL(path.join(ROOT, 'game/js/voicebank.js')).href);
 const VOICE_ROOT = pathToFileURL(path.join(ROOT, 'game/audio/voicelines') + path.sep).href;
 const warn = console.warn;

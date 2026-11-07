@@ -1,5 +1,7 @@
 # Gebieden veroveren: de hele provincie, van buurt tot gemeente (#414)
 
+> **Naslag.** De regels staan in de canonieke spec [`.specs-fire/standards/wereld.md`](../.specs-fire/standards/wereld.md); dit document is uitleg en geschiedenis. Bij verschil wint de spec (en bij twijfel `AGENTS.md`).
+
 Voor wie aan `gebieden.js`, `grenzen.js`, `gebiedenlive.js`, `gebiedenbronnen.js`, `gebiedenui.js`, `gebiedenkaart.js`, `safehuizen.js` of de grenzenscripts werkt,
 of een nieuwe plek met iets te doen toevoegt.
 Tests: `scripts/gebieden_test.mjs`, `scripts/grenzen_test.mjs`. Beeldcheck: `scripts/qa/gebieden_shots.mjs`.
@@ -66,7 +68,7 @@ bestaan voor het leven in de regio (evenementen, vondsten), maar zijn geen verov
 | Minigame | `activitySpots()` (activities.js) en de padelbanen | de plek | de teller van de prestaties telt (`s:<teller>`, bv. `discgolfRounds`) of de loopbaanplek meldt (`u:kart`, `u:<padelbaan>`) |
 | Vondst, geheim | `FINDS` van `regioleven.js` | de plek van de vondst | de vondst is gevonden (`v:<id>`, via `recordUnique`) |
 
-In de echte wereld: 151 dingen (30 missies, 39 bijbanen, 50 minigame-plekken, 24 vondsten, 8 geheimen). Welke minigames meetellen en bij welke teller staat in `SPEL_SLEUTELS`
+In de echte wereld: 151 dingen (30 missies, 39 bijbanen, 50 minigame-plekken, 24 vondsten, 8 geheimen; geteld op 7-11-2026 uit `getMissionList()`, `getSideJobList()`, `activitySpots()` en `FINDS`). Welke minigames meetellen en bij welke teller staat in `SPEL_SLEUTELS`
 (gebieden.js); `gebieden_test.mjs` controleert dat elke genoemde teller en plek echt ergens in de code geteld of gemeld wordt. Een nieuwe plek met iets te doen: een regel in
 `verzamelTaken()` of in `SPEL_SLEUTELS`.
 

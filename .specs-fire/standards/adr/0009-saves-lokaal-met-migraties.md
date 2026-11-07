@@ -16,6 +16,8 @@ Opslag in `localStorage` onder `gde-*`-sleutels (`gde-save-v1`, `gde-settings`,
 `gde-prestaties-v1`, `gde-loopbaan-v1`, …), met een versienummer en een migratie in
 `savemigrate.js`. Oude of kapotte data levert een geldig leeg profiel op, geen
 crash. Oude `gte-*`-sleutels worden gemigreerd.
+Eén uitzondering: `OLD_MINIMAP_KEY = 'gte-minimap-layers'` staat in `game/js/mapfilters.js`
+(historische sleutel van de minimap-lagen); alle andere `gde-*`-sleutels staan in `game/js/storagekeys.js`.
 
 ## Afgewezen
 

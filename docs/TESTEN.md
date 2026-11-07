@@ -2,7 +2,7 @@
 
 `node scripts/test_all.mjs` draait de tests in fasen en schrijft een rapport met een korte Nederlandse samenvatting bovenaan. Het hoort bij #186 (spelbot), #5 en #4. De werkafspraken staan in [AGENTS.md](../AGENTS.md) (sectie Testen); dit document beschrijft het commando.
 
-Er is één andere runner: `node scripts/run_tests.mjs` is de snelle selectie die CI draait (`.github/workflows/test.yml`). Hij deelt zijn lijsten met `test_all` en draait sinds #482 ook `undef_check` en `text_audit`, sinds #500 de `player_singleton_audit`, sinds #499 `spec_check` en sinds #593 `world_eigenaar`; de zware en Electron-fase zitten er bewust niet in (zie `.specs-fire/standards/adr/0013-een-testrunner-met-fasen.md`).
+Er is één andere runner: `node scripts/run_tests.mjs` is de snelle selectie die CI draait (`.github/workflows/test.yml`). Hij deelt zijn lijsten met `test_all` en draait sinds #482 ook `undef_check` en `text_audit`, sinds #500 de `player_singleton_audit`, sinds #499 `spec_check`, sinds #593 `world_eigenaar` en sinds #646 de dode-code-poort met de vaste drempel `scripts/dead_code_budget.json`; de zware en Electron-fase zitten er bewust niet in (zie `.specs-fire/standards/adr/0013-een-testrunner-met-fasen.md`).
 
 ```
 node scripts/test_all.mjs [--fase=licht|zwaar|electron|alles] [--rapport=<map>]
@@ -20,12 +20,19 @@ Het onderstaande over duur en belasting zijn schattingen op een gewone ontwikkel
 
 | Fase | Wat | Duur (schatting) | Belasting |
 |---|---|---|---|
-| `licht` | module-check van alle JS (`node --check`, module-bewust), `import_check`, `undef_check` (ongedefinieerde namen), `voice_coverage`, `text_audit`, `player_singleton_audit` (directe `world.player`-lezers mogen niet groeien, #500), `spec_check` (specs tegen de code: regelverwijzingen en tellers), dode-code-bewaking, alle `scripts/*_test.mjs` (dus ook `import_cycles_test` voor de cyclusbewaking) met duur en tijdslimiet per test | 5 tot 15 minuten | 2 Node-processen tegelijk (`--jobs`), geen GPU |
+| `licht` | module-check van alle JS (`node --check`, module-bewust; ook de CDP-snippets in `scripts/perf`, `scripts/ui` en `scripts/weer` via `lib/syntaxcheck.mjs`), `import_check`, `undef_check` (ongedefinieerde namen), `voice_coverage`, `text_audit`, `player_singleton_audit` (directe `world.player`-lezers mogen niet groeien, #500), `spec_check` (specs tegen de code: regelverwijzingen en tellers), dode-code-bewaking, alle `scripts/*_test.mjs` (dus ook `import_cycles_test` voor de cyclusbewaking) en via `coop_licht_test.mjs` de vijftien tests onder `scripts/coop/` (elk als eigen Node-proces; vijf staan daar met reden als bekend kapot, #646), met duur en tijdslimiet per test | 5 tot 18 minuten | 2 Node-processen tegelijk (`--jobs`), geen GPU |
 | `zwaar` | de wereldchecks uit AGENTS.md en de audits: `ring_probe`, `seat_audit`, `province_test`, `province_detail_test`, `drive_audit`, `junction_sim_test`, `network_drive_test`, `vaarnet_province_test`, `bridge_province_test`, weiland-randen (`prop_conflict_audit`), water-lagen, `landmark_audit`, `overlap_check`, `prop_water_audit`, placement, rand-, hoogte-, terrein-, spoor- en wateraudits, de overspanning onder viaducten (`clearance_audit`) en de controllerinvoer (`pad_input_audit`) | 20 tot 60 minuten | één Node-proces tegelijk, veel geheugen en een kern vol |
 | `electron` | smoke-run, Electron-verhaaltest (`--story-test`), `geocheck`, spelbot-sweeps (missies, minigames) en de beeldrondes (`scripts/qa/*`, `scripts/ui_shots.mjs`) met beeldchecks | 1,5 tot 2 uur (gemeten 27-10: 3 uur 45 na elkaar, daarna 1,5 uur met drie tegelijk) | drie Electron-stappen tegelijk, elk met een eigen slot uit `gde-locks`; de coöp-testbank komt daarna, want die heeft twee sloten nodig |
 
 `zwaar` en `electron` hebben `game/world` nodig (`cd desktop && npm run stage`); `clearance_audit` ook `data/cache/province` (anders SKIP); `electron` ook `desktop/node_modules` (`cd desktop && npm install`, of `ELECTRON_EXE=<pad>`). Ontbreekt dat, dan staat het item in het rapport als **niet gedraaid** met de reden, en niet als geslaagd. `clearance_audit --paden` telt naast de rijbanen ook de as van een fiets- of voetpad onder de rand van een dek (#510); zonder de vlag blijft de strenge meting van de rijbanen over.
 
+### Wat de keten bewaakt (#646)
+
+- **Coop-tests.** De vijftien tests onder `scripts/coop/` zijn geen `scripts/*_test.mjs` en werden daarom nooit gedraaid. `scripts/coop_licht_test.mjs` start ze elk als eigen Node-proces (sommige openen echte TCP-poorten) en telt ze als PASS, SKIP of FAIL. Vijf staan daar met een reden als **bekend kapot** (verwachtingen die achterlopen op #452/#502/#583); die lijst hoort te krimpen. Een onverwachte fout laat de wrapper en dus de lichte fase falen.
+- **Geen dubbele registraties.** `terrain_pariteit_test.mjs` en `bridge_province_test.mjs` draaiden in de lichte fase én in `zwaar`; ze staan nu in `EXCLUDED` met reden en draaien alleen nog in `zwaar` (met `--stad` en met de wereld).
+- **CDP-snippets.** De 66 bestanden in `scripts/perf`, `scripts/ui` en `scripts/weer` worden in de browser als async-functielichaam uitgevoerd (top-level `await`/`return`) en zijn geen geldige Node-modules. `scripts/lib/syntaxcheck.mjs` compileert ze als functielichaam, zodat een syntaxfout daar niet pas bij een handmatige run boven komt.
+- **Dode code in CI.** De lichte fase vergelijkt met de vorige run; CI heeft geen vorige run en gebruikt `scripts/dead_code_budget.json`. De drempel mag alleen dalen: staat er meer wees-code of meer ongebruikte exports in, dan faalt `run_tests.mjs`. Werk de drempel bij in dezelfde commit als het opruimen.
+- **De keten zelf** wordt bewaakt door `scripts/testketen_test.mjs` (lijsten, wrapper, snippetcontrole en de drempel).
 ### Aanbevolen volgorde
 
 1. `licht` na elke wijziging en vóór elke merge.

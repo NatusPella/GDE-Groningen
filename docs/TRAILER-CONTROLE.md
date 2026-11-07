@@ -1,7 +1,7 @@
 # Trailers: wat is gecontroleerd (#63)
 
 Drie trailers uit het echte spel (geen nagebouwde beelden): een **gameplaytrailer** (78,0 s), een **verhaaltrailer** (87,4 s) en een langere **showcase-trailer** (162,9 s, schaal en proces; staat alleen in het uploadpakket, niet in git), alle 1920x1080 op 60 beelden per seconde, H.264 + AAC. Reproduceren: [scripts/trailer/README.md](../scripts/trailer/README.md).
-Het pakket staat buiten git in `C:UsersabuisGITGDE-uploadpakket2` (het oude pakket `GDE-uploadpakket` is ongemoeid gelaten). Er is **niets** geüpload of gepubliceerd (constitution 8); in het pakket staat een uploadplan met alles op Privé.
+Het pakket staat buiten git, lokaal in een uploadmap buiten de repo (het oude pakket `GDE-uploadpakket` is ongemoeid gelaten). Er is **niets** geüpload of gepubliceerd (constitution 8); in het pakket staat een uploadplan met alles op Privé.
 
 ## Eisen van de eigenaar en hoe ze zijn aangepakt
 
@@ -28,7 +28,7 @@ Het pakket staat buiten git in `C:UsersabuisGITGDE-uploadpakket2` (het oude pakk
 
 - **De hele provincie:** het kaartscherm van het spel uitgezoomd over heel Groningen met Friesland, Drenthe en Duitsland en daarna inzoomend op de stad (de mist van de stadskaart is vooraf op een speelbaar niveau gezet, nu 16% verkend; de basiskaarttegels zijn voor de opname doorlopen, dus ze laden niet in beeld), korte vluchten laag boven kust, dorpen, polder, vesting en haven, en een rit/vlucht door meerdere streken.
 - **Minigames:** zeven opgenomen met hun eigen HUD (kermis, kartbaan, zwembad, discgolf, waterski, klimtoren, skatepark, pitch & putt); het aantal komt uit het cijferblad (17 activiteiten, zonder de minigames van de verhaalmissies).
-- **Cijferoverlays:** alleen cijfers uit het cijferblad van de schaalmeting (commit 50b43834, 21 oktober); de montage leest ze per id en stopt als een id ontbreekt. Er staat geen getal hard in een plan. Bij "Samen spelen" staat "tot vier spelers" (het spel ondersteunt tot vier; in beeld zijn er twee).
+- **Cijferoverlays:** alleen cijfers uit het cijferblad van de schaalmeting (commit 50b43834, 21 oktober); de montage leest ze per id en stopt als een id ontbreekt. Er staat geen getal hard in een plan. Bij "Samen spelen" staat "tot vier spelers" in de oude montage; de lobby ondersteunt 4 tot 16 plaatsen (in beeld zijn er twee).
 - **Slotregel:** "Gebouwd met AI in 34 dagen. Gestuurd door mensen." (de 34 uit het cijferblad).
 - **Showcase-trailer:** kaarten voor cijfers, commits per dag (uit het blad), AI-sessies (een ondergrens), projectbord als gemeten aantallen, de echte uitvoer van vier testscripts, het laatste testrapport (niet groener gemaakt) en een schatting in rood met bandbreedte. Alleen die ene video noemt het bedrijf en het event, op verzoek van de eigenaar.
 

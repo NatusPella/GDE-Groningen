@@ -70,5 +70,5 @@ Er is geen procentueel doel. Wat dekking moet hebben:
 
 ## CI
 
-`.github/workflows/test.yml` draait `scripts/run_tests.mjs` op Linux en Windows bij
-elke push. De zware fases en de Electron-verhaaltest draaien lokaal, niet in CI.
+`.github/workflows/test.yml` draait `scripts/run_tests.mjs` op een pull request, op een push
+naar `main` (alleen Linux) en met de hand (`workflow_dispatch`). De zware fases en de Electron-verhaaltest draaien lokaal, niet in CI.

@@ -1,5 +1,7 @@
 # Eigen boerderij: een perceel, gewassen, machines en een kasboek (#415)
 
+> **Naslag.** De regels staan in de canonieke spec [`.specs-fire/standards/mechanica.md`](../.specs-fire/standards/mechanica.md); dit document is uitleg en geschiedenis. Bij verschil wint de spec (en bij twijfel `AGENTS.md`).
+
 Voor wie aan `boerderij.js`, `werkgang.js`, `boerderijlive.js`, `sidejob_boerderij.js` of `boerderijui.js` werkt. Tests: `scripts/boerderij_test.mjs`.
 Het vak in de loopbaan is Landbouw ([LOOPBAAN.md](LOOPBAAN.md)); de losse oogstbaan is Bietenoogst (`sidejob_bieten.js`, #393).
 
@@ -29,6 +31,7 @@ kopen: dan geen huur en een ruimere rij) en het kasboek.
 | Suikerbieten | €30 | 48 speluren | 4000 kg | €0,10 |
 | Graan | €35 | 40 speluren | 2600 kg | €0,15 |
 | Gras (weiland) | €20 | 20 speluren | 5000 kg | €0,07 |
+| Uien | €45 | 36 speluren | 3000 kg | €0,16 |
 
 Een speldag is 24 minuten (`DAY_LENGTH_S`) en een speluur is een minuut: aardappelen zijn na 1,25 speldag rijp, bieten na twee, graan na
 1,7 en gras na 0,8. De opbrengst is `kgBasis` keer de
@@ -80,7 +83,7 @@ Modules: `machines.js` (pure regels voor kopen, huren, diesel, slijtage, onderho
 
 ## Niet gedaan (de uitbreiding)
 
-Eggen als aparte stap, uien en koolzaad, balenpers, de bijbaan op een gekozen ander perceel dan Hoogkerk (de vrije klussen werken wel op elk perceel), de rest van samen spelen (stap 3: de gast ziet je kasboek of erf niet en heeft zelf geen toets voor tanken), een kleine veestapel of weide (koeien, schapen en paarden bestaan als
+Eggen als aparte stap, koolzaad, balenpers, de bijbaan op een gekozen ander perceel dan Hoogkerk (de vrije klussen werken wel op elk perceel), de rest van samen spelen (stap 3: de gast ziet je kasboek of erf niet en heeft zelf geen toets voor tanken), een kleine veestapel of weide (koeien, schapen en paarden bestaan als
 wereldleven), controllerknoppen voor koppelen, aftakas en hef, en een eigen interieur voor maaidorser en laadmachine (zitplek en cabine: de besturing en interieurs zijn van de voertuigagent). De
 tabellen in `boerderij.js` (`GEWASSEN`, `MACHINES`, `TAKEN`) en `BAND` zijn de plekken waar je ze toevoegt. Een
 nieuw gewas krijgt ook een regel in `PRIJS_KG` (`gewasmarkt.js`): daar staan de basisprijzen van de dagmarkt, en zonder die regel

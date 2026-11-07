@@ -352,7 +352,7 @@ basis. Wat je daarin kunt (slapen, opslaan), staat bij de mechanic en niet hier.
 - de **kaart** begint met mist buiten Stad en het Ommeland; reizen en
   uitkijkpunten halen die weg.
 
-**Reisregels:** zie plan §3.7-3.8. Kort: ≤ 3-5 min tussen regio's de eerste
+**Reisregels:** zie plan §3.7 en §3b. Kort: ≤ 3-5 min tussen regio's de eerste
 keer, daarna snelreizen. Missies bieden de trein zelf aan als stap ("Pak de
 trein naar Delfzijl"), met versneld meerijden en een gesprek.
 

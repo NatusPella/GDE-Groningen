@@ -1,5 +1,7 @@
 # Verhaalronde 3: reviews van de hele keten M01-M26
 
+> **Status:** verslag van een eerdere ronde (geen actuele canon); de actuele regels staan in de spec en de 09-scripts. Er is niets gespeeld of in beeld bekeken.
+
 Doel: nog een ronde over de nieuwste main, met onafhankelijke lezers per perspectief, de zwakke plekken verwerken in teksten en scène-data
 (zonder nieuwe opnames) en herhalen tot koude lezers de keten kunnen navertellen. Het werk staat in de branch `verhaal-ronde3`;
 de tests zijn gedraaid, het spel is **niet gespeeld** en niet in beeld bekeken. De opnamevragen komen uit `node scripts/opnamelijst.mjs` (het bestand staat niet in git).

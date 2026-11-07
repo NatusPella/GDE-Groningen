@@ -1,5 +1,7 @@
 # Design system: components and patterns
 
+> **Naslag.** De regels staan in de canonieke spec [`.specs-fire/standards/ui-taal.md`](../.specs-fire/standards/ui-taal.md); dit document is uitleg en geschiedenis. Bij verschil wint de spec (en bij twijfel `AGENTS.md`).
+
 Details behind [DESIGN_SYSTEM.md](../DESIGN_SYSTEM.md): sizes, buttons and states, messages, dialogs, shops, minigame panels, sound and the boot and load screens.
 Every value below is read from the code at the file named; if the code and this page disagree, the code is the fact and this page is a bug
 (fix the page, or fix the code when the page states the rule, see [DESIGN-SCHULD.md](DESIGN-SCHULD.md)).

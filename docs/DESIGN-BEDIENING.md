@@ -1,5 +1,7 @@
 # Design system: controls, hints and accessibility
 
+> **Naslag.** De regels staan in de canonieke spec [`.specs-fire/standards/ui-taal.md`](../.specs-fire/standards/ui-taal.md); dit document is uitleg en geschiedenis. Bij verschil wint de spec (en bij twijfel `AGENTS.md`).
+
 Details behind [DESIGN_SYSTEM.md](../DESIGN_SYSTEM.md). Keyboard and mouse, controller and touch drive the same actions; the game code only knows the default keys and everything that changes
 controls sits in front of it (ARCHITECTURE.md "Controls and accessibility"). Values are read from the code at the file named.
 Sizes, buttons and messages: [DESIGN-COMPONENTEN.md](DESIGN-COMPONENTEN.md). Known gaps: [DESIGN-SCHULD.md](DESIGN-SCHULD.md).

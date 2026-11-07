@@ -1,5 +1,7 @@
 # Personages van GDE Groningen
 
+> **Let op:** de H-nummers hieronder zijn historie. De canon gebruikt M01-M30 en T1-T5; de mapping staat in [verhaal/nieuw/00-OVERZICHT.md](verhaal/nieuw/00-OVERZICHT.md) §6.
+
 Deze personagebijbel houdt de personages consistent: in dialogen, telefoontjes, gesprekjes in de auto, TTS-tags en cutscenes. Per personage staat hier hoe hij of zij praat, wat ze leuk vinden, wat ze haten, hun running gags, en wat ze nooit zouden zeggen.
 
 Regels die voor iedereen gelden:

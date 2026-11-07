@@ -1,5 +1,7 @@
 # Woordenlijst voor schrijvers
 
+> **Naslag.** De regels staan in de canonieke spec [`.specs-fire/standards/ui-taal.md`](../.specs-fire/standards/ui-taal.md); dit document is uitleg en geschiedenis. Bij verschil wint de spec (en bij twijfel `AGENTS.md`).
+
 Alles wat een speler ziet of hoort is Nederlands (constitution 1 in [AGENTS.md](../AGENTS.md)).
 Deze lijst legt vast welk Nederlands woord we kiezen waar een Engels leenwoord voor de hand ligt.
 `node scripts/text_audit.mjs` (regel `anglicisme`) faalt op de Engelse vorm in speltekst; zie de lijst `ANGLICISMEN` in dat script.
@@ -23,6 +25,9 @@ Code-identifiers, bestandsnamen en opslagsleutels (`gde-save-v1`, `saveslots.js`
 | checkpoint (opnieuw beginnen na mislukken) | **hervatpunt** | "Je begint opnieuw bij het laatste hervatpunt." |
 | ghost(s) | **spook**, **spookrijder(s)** | de doorzichtige rijder van je beste tijd |
 | chain | **keten** | |
+| klus, dienst, baan (voor een bijbaan) | **bijbaan** | het werk dat je even doet (taxi, bezorgen, de krantenwijk); in de lijst staat de baan bij zijn naam |
+| potje, ronde, keer (voor een minigame) | **ronde** | één keer spelen; "nog een ronde" is de knop na de uitslag |
+| activiteit (als scherm) / spelletje | **Activiteiten** (scherm), **minigame** (het spelletje) | het scherm heet Activiteiten, de groep eronder Minigames; in lopende tekst mag "minigame" |
 | run | **ronde**, **rit**, **poging** | kies per context; skate/waterski/drift: ronde |
 | tricks | **kunstjes**, **toeren** | skatepark: "kunstjes" |
 | ramps, rails | **hellingen**, **leuningen** | ollie, kickflip, heelflip en grind blijven (vakterm) |

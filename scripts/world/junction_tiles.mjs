@@ -57,7 +57,10 @@ export function snapSignals(feats) {
 // as `signals` furniture feats.
 export function junctionsOf(feats, lights) {
   const roads = feats.filter((f) => f.kind === 'roads').map((f) => f.row);
-  const map = { roads, meta: { trafficLights: lights } };
+  // junctionIndex leest het wegraster (#314 C2b): de bouwer maakt er een uit zijn eigen rijen.
+  const roadGrid = new SpatialGrid(80);
+  for (const r of roads) roadGrid.insert(r, polygonBounds(r.pts));
+  const map = { roads, roadGrid, meta: { trafficLights: lights } };
   const nodes = [...junctionModel(map).values()];
   const auto = allSignals(map).filter((l) => l.auto).map((l) => ({ kind: 'furniture', row: { k: 'signals', pts: [[r2(l.x), r2(l.y)]], auto: 1 } }));
   return { nodes, auto };

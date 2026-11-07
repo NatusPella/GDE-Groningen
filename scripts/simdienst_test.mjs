@@ -188,7 +188,7 @@ assert.strictEqual(stand.volgende ?? null, null);
   const pts = [[0, 0], [300, 0], [300, 400]];
   const kades = kadesLangsRoute(pts, 3);
   assert.strictEqual(kades.length, 3);
-  assert.strictEqual(kades[0].naam, 'Kade 1');
+  assert.strictEqual(kades[0].naam, 'Kade bij de brug'); // #621: droge kadenaam
   assert.ok(Math.abs(kades[0].x - 700 / 3) < 1e-6 && Math.abs(kades[0].y) < 1e-6, 'na een derde van de route: ' + JSON.stringify(kades[0]));
   assert.ok(Math.abs(kades[1].x - 300) < 1e-6 && Math.abs(kades[1].y - (700 * 2 / 3 - 300)) < 1e-6, 'de tweede kade: ' + JSON.stringify(kades[1]));
   assert.ok(Math.abs(kades[2].x - 300) < 1e-6 && Math.abs(kades[2].y - 400) < 1e-6, 'de laatste kade op het eind');
@@ -223,3 +223,4 @@ assert.strictEqual(stand.volgende ?? null, null);
 }
 
 console.log('simdienst_test ok');
+

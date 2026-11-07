@@ -36,11 +36,11 @@ de vraag of "alleen" een eigen pad moet zijn of dezelfde sessie met één speler
   sessie.
 - **Alleen spelen blijft alleen.** Zolang er geen gast is, pauzeert het menu de wereld
   gewoon: de doorloop achter het menu eist minstens twee spelers
-  (`game/js/coopnet.js:1588`), en de metgezel volgt via de gewone volg-AI omdat de
+  (de check in `game/js/coopnet.js`), en de metgezel volgt via de gewone volg-AI omdat de
   gast-invoer ontbreekt (`game/js/coopglue.js:35`).
 - **Overgang zonder herstart.** Wie Samen spelen opent (pauzemenu, hoofdmenu of de
   openbare lijst), stopt de sessie van één en de lobby neemt over
-  (`game/js/main.js:639`, `game/js/pausemenu.js:1593`,
+  (`game/js/main.js`, `startWatch`, `game/js/pausemenu.js`, `afterSpelSub`,
   `game/js/startscreen.js:617`); andersom start de sessie van één weer zodra er geen
   Samen-scherm open staat. De voortgang gaat mee.
 - **Geen snapshotwerk zonder gasten.** `tickCoopNet` heeft een snelle route zonder
@@ -80,7 +80,7 @@ de vraag of "alleen" een eigen pad moet zijn of dezelfde sessie met één speler
   `startHost`/`stopCoopNet`, anders blijft de vlag `coopSolo` achter.
 - De automatische zoektocht naar een sessie bij de start (#528, ADR 0022) kan niet meer
   aansluiten of zelf een sessie openen zolang de sessie van één draait:
-  `canBootSession` ziet een lopende sessie (`game/js/sessionboot.js:61`). Wie met
+  `canBootSession` ziet een lopende sessie (`game/js/sessionboot.js`). Wie met
   anderen wil spelen, opent Samen spelen. De volgorde sinds #639 staat in
   [ADR 0026](0026-bootorde.md): na "Ja" eerst de expliciete lijst, daarna de automatische
   zoektocht als terugval, en de sessie van één pas als de zoektocht klaar is

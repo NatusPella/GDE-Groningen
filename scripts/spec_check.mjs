@@ -247,6 +247,38 @@ export async function check({ repo = REPO, specDir = path.join(repo, SPECS) } = 
     }
   }
 
+  // ---------------------------------------------------------------- drift (#648)
+  // Adminstratieve drift die geen teller is: de versie in publicatie.md, de spelersteller in
+  // AGENTS.md en de CI-trigger in testing-standards.md. Ze komen uit de bron, niet uit proza.
+  const drift = (where, message) => problems.push({ where, message });
+  const pkg = read(repo, 'desktop/package.json');
+  const pub = texts.get('publicatie.md');
+  if (pkg && pub) {
+    try {
+      const versie = JSON.parse(pkg).version;
+      const gevonden = [...pub.join('\n').matchAll(/`(\d+\.\d+\.\d+)` in `desktop\/package\.json/g)];
+      if (!gevonden.length) drift(`${SPECS}/publicatie.md`, 'de versieregel "`x.y.z` in `desktop/package.json`" ontbreekt');
+      for (const m of gevonden) if (m[1] !== versie) drift(`${SPECS}/publicatie.md`, `spec zegt versie ${m[1]}, desktop/package.json zegt ${versie}`);
+    } catch { /* kapotte package.json: geen uitspraak */ }
+  }
+  const agents = read(repo, 'AGENTS.md');
+  const baseline = read(repo, 'scripts/player_singleton_baseline.json');
+  if (agents && baseline) {
+    try {
+      const totaal = JSON.parse(baseline).total;
+      const m = /De ([\d.]+) verwijzingen naar world\.player/.exec(agents);
+      if (m && getal(m[1]) !== totaal) drift('AGENTS.md', `AGENTS.md zegt ${m[1]} verwijzingen naar world.player, de baseline zegt ${totaal}`);
+    } catch { /* geen uitspraak */ }
+  }
+  const ci = read(repo, '.github/workflows/test.yml');
+  const testdoc = texts.get('testing-standards.md');
+  if (ci && testdoc) {
+    const tekst = testdoc.join('\n');
+    if (/^on:\s*[\s\S]*?pull_request/m.test(ci) && !/pull request|pull_request/i.test(tekst)) drift(`${SPECS}/testing-standards.md`, 'de CI draait op pull_request, maar de spec noemt dat niet');
+    if (/^\s*push:/m.test(ci) && !/push/i.test(tekst)) drift(`${SPECS}/testing-standards.md`, 'de CI draait ook op een push naar main, maar de spec noemt dat niet');
+    if (/workflow_dispatch/.test(ci) && !/workflow_dispatch|met de hand/i.test(tekst)) drift(`${SPECS}/testing-standards.md`, 'de CI kent workflow_dispatch, maar de spec noemt dat niet');
+  }
+
   return { refs, counters, skipped, problems };
 }
 

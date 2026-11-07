@@ -1,5 +1,7 @@
 # Balans en tempo van akte 1 t/m 5
 
+> **Status:** meting van een eerdere botversie (geen actuele canon). De bot speelt inmiddels anders; draai `node scripts/bot/balans.mjs` opnieuw voor de huidige stand.
+
 Meting met de spelbot voor #147 (verbeterronde van alle missies). **Geen mens heeft gespeeld.** De tabellen hieronder komen uit
 `node scripts/bot/balans.mjs` (leest alleen `events.jsonl` van de spelbot); de runs staan in de notitiemap van de sessie
 (`r41-balans-runs/<akte>/`) en zijn met hetzelfde commando opnieuw te verwerken.

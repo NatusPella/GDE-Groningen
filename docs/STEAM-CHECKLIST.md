@@ -1,5 +1,7 @@
 # Steam-checklist (#64): per punt klaar, open of eigenaar
 
+> **Naslag.** De regels staan in de canonieke spec [`.specs-fire/standards/publicatie.md`](../.specs-fire/standards/publicatie.md); dit document is uitleg en geschiedenis. Bij verschil wint de spec (en bij twijfel `AGENTS.md`).
+
 Stand 24 oktober 2026 (nagelopen tegen versie 0.47.0; eerste versie van 20 oktober). Alles is lokaal voorbereid, op besluit van de eigenaar
 ("alles lokaal voorbereiden"): er is niets naar Steam gestuurd, er is geen
 account of app-id, en geen enkel bestand in de repo maakt contact met Steam.
