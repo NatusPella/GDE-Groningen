@@ -2,6 +2,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { makeProp, addProp, removeProp } from './breakables.js';
 import { allSignals } from './junctions.js';
 import { MODS } from './cheatmods.js';
+import { gridItems } from './spatialgrid.js';
 
 // Conflict-free fixed-time controllers. Every car approach belongs to an
 // axis (streams that are parallel or opposite); each axis gets its own green
@@ -108,7 +109,9 @@ let nodes = null;
 
 function buildNodes(m) {
   nodes = new Map();
-  for (const r of m.roads) {
+  // #524: het verkeerslichtennet komt uit het wegraster, niet uit de hele wegenarray;
+  // zo kan een gestroomde tegel zijn eigen wegen aanleveren.
+  for (const r of gridItems(m.roadGrid)) {
     if (r.cat === 'foot' || r.pts.length < 2) continue;
     r.pts.forEach((p, idx) => {
       const k = nodeKey(p);

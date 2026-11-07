@@ -9,6 +9,7 @@ import { terrainArrays } from './terrain3d.js';
 import { structureArrays, overpassDeckArrays, structureTransfer } from './roadstructures3d.js';
 import { shoreParts } from './quaywalls.js';
 import { adoptSideSpans } from './movablebridges.js';
+import { gridItems } from './spatialgrid.js';
 
 // Geometry jobs that run in the geometry worker (geoworker.js) or, as a
 // fallback, on the main thread (geojobs.js): data in, typed arrays out. Only
@@ -84,7 +85,7 @@ let roadLoad = null;
 export const roadMapLoader = { load: loadMapAuto };
 function roadMapLoad(url) {
   return roadLoad || (roadLoad = roadMapLoader.load(url, null, { pool: false }).then((map) => {
-    adoptSideSpans(map.roads); // the same movable side spans as the main thread, so the shores draw no static deck under them
+    adoptSideSpans(gridItems(map.roadGrid)); // the same movable side spans as the main thread, so the shores draw no static deck under them
     return map;
   }));
 }
@@ -97,19 +98,18 @@ async function roadInit({ url, keys }) {
   roadLoad = null; // a second roadInit reads the files again: this map is pruned below
   const map = await loading;
   const want = new Set(keys);
-  for (let i = map.roads.length - 1; i >= 0; i--) {
-    const r = map.roads[i];
-    if (want.has(roadKey(r))) continue;
-    map.roads.splice(i, 1);
-    for (const arr of map.roadGrid.map.values()) { const j = arr.indexOf(r); if (j >= 0) arr.splice(j, 1); }
-  }
+  // De kaart van de worker is een gewone GameMap met rasters: snoei via het wegraster (#524),
+  // niet via de hele array. De array blijft daarna voor de modules die hem nog lezen.
+  for (const r of gridItems(map.roadGrid)) if (!want.has(roadKey(r))) map.roadGrid.remove(r, r.bounds);
+  const kept = gridItems(map.roadGrid);
+  map.roads = kept;
   slimWorkerMap(map);
   setRoadNetwork(map);
   RD.map = map;
-  RD.byKey = new Map(map.roads.map((r) => [roadKey(r), r]));
+  RD.byKey = new Map(kept.map((r) => [roadKey(r), r]));
   let missing = 0;
   for (const k of keys) if (!RD.byKey.has(k)) missing++;
-  return { result: { roads: map.roads.length, missing }, transfer: [] };
+  return { result: { roads: kept.length, missing }, transfer: [] };
 }
 
 // struct: also the civil works (roadstructures3d.js), once per road

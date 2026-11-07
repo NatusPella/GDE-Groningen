@@ -3,6 +3,7 @@ import { FLAGS, perfOff } from './devflags.js';
 import { sfxLinks } from './latehooks.js';
 import { MODS } from './cheatmods.js';
 import { setDualText } from './subtitles.js';
+import { gridItems } from './spatialgrid.js';
 import { speakerHtml } from './speakers.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { buildBuildingMesh, setBuildingMap, setNightFactor } from './models3d_buildings.js';
@@ -138,11 +139,12 @@ import { gameBusy } from './busy.js';
 // Classic third-person follow camera. World mapping: three.x = world.x,
 // three.z = world.y, three.y = up (meters, roughly 3m per building level).
 
-// De wateren die getekend worden: van de gepinde stad zonder de tweeling die een meer twee keer mapt
-// (#231; tileworld.js fromTiles zet die in map.duplicateWater: het gestreamde pad laat hem helemaal weg).
+// De wateren die getekend worden: uit het waterraster (niet uit de hele array, #524),
+// zonder de tweeling die een meer twee keer mapt (#231; tileworld.js fromTiles zet die
+// in map.duplicateWater: het gestreamde pad laat hem helemaal weg).
 // Alle kaartvragen (waterNear, waterIndexAt, varen) houden beide rijen: alleen het tekenen slaat de
 // dubbel gemapte over, anders wordt hetzelfde water twee keer over elkaar getekend (donkerder en rommelig).
-const waterRows = (map) => (map.duplicateWater ? map.water.filter((w) => !map.duplicateWater.has(w)) : map.water);
+const waterRows = (map) => gridItems(map.waterGrid).filter((w) => !map.duplicateWater || !map.duplicateWater.has(w));
 const waterNearDrawn = (map, x, y, r) => {
   const list = map.waterNear(x, y, r);
   return map.duplicateWater ? list.filter((w) => !map.duplicateWater.has(w)) : list;
@@ -1076,7 +1078,7 @@ export function init3D(map) {
 
   postfx = createPostFX(renderer, scene, cam);
   initNightLights(scene);
-  for (const b of map.buildings) if (b.landmark) landmarkBuildings.push(b);
+  for (const b of gridItems(map.buildingGrid)) if (b.landmark) landmarkBuildings.push(b);
   farLod = createFarLOD(scene, map, {
     flatGeometry: (poly) => poly._geoFlat || (poly._geoFlat = buildPolyGeometry(poly.pts)),
     colors: { roads: ROAD_COLORS3D, sidewalk: SIDEWALK_COLOR, green: GREEN_COLOR, greenOf: grassFarColor, greenRank: grassFarRank },
@@ -3858,7 +3860,8 @@ const warmupBuilt = [];
 let warmupId = -1e6;
 function queueWarmup(world) {
   const map = world.map;
-  const road = map.roads.find((r) => r.cat === 'normal' && !r.z && r.pts.length >= 2) || map.roads[0];
+  const roads = gridItems(map.roadGrid);
+  const road = roads.find((r) => r.cat === 'normal' && !r.z && r.pts.length >= 2) || roads[0];
   const veh = (o = {}) => () => {
     const v = spawnVehicleOnRoad(map, road, !!o.police, Math.random, !!o.bike, !!o.bus, null, !!o.scooter);
     v.id = warmupId--;
@@ -3869,7 +3872,7 @@ function queueWarmup(world) {
   // every traffic model once, so their cached geometry exists before they spawn
   const models = TRAFFIC_MODELS().map((model) => veh({ model, bus: model.name === 'bus', scooter: model.name === 'scooter', bike: model.name !== 'bus' && model.name !== 'scooter' && model.len < 2.5 }));
   const boat = (police) => () => {
-    const poly = map.water && map.water.find((w) => w.bounds && w.bounds[2] - w.bounds[0] > 40);
+    const poly = gridItems(map.waterGrid).find((w) => w.bounds && w.bounds[2] - w.bounds[0] > 40);
     const v = poly && (police ? spawnPoliceBoatOnWater(map, poly) : spawnBoatOnWater(map, poly));
     if (!v) return null;
     v.id = warmupId--;
