@@ -67,7 +67,7 @@ op een stemkeuze** (de 17 sprekers die nog niet in `CAST` van `scripts/tts_lines
 print die drie getallen. De wachtrij had 163 opdrachten; 100 waren al opgenomen en zijn eruit gehaald.
 De overige 37 tekstregels zijn stille appjes en sms'en (`channel: app-stil`), die hoeven geen opname.
 
-**Onzekerheid.** (1) De kostenmaat is een schatting uit één eerder bedrag; het script waarop die gebaseerd was kan meer regels hebben gehad dan de 975 die dit bestand in het dialoogformaat laat zien (het bestand noemt zelf ca. 2.508 gesproken regels). Als de maat op 2.508 regels is gebaseerd, ligt de prijs per teken ruwweg de helft lager. (2) Tarief, model (nu Gemini 3.8 via OpenRouter, zie geheugen) en eventuele regels langer dan nu kunnen de prijs verschuiven. (3) De nieuwe stemmen voor de bondgenoten kosten een stemkeuze en tests, niet veel geld. **Orde van grootte, voor later: één tot twee dollar voor het hele nieuwe verhaal.**
+**Onzekerheid.** (1) De kostenmaat is een schatting uit één eerder bedrag; het script waarop die gebaseerd was kan meer regels hebben gehad dan de 975 die dit bestand in het dialoogformaat laat zien (het bestand noemt zelf ca. 2.508 gesproken regels). Als de maat op 2.508 regels is gebaseerd, ligt de prijs per teken ruwweg de helft lager. (2) Tarief, model (nu Gemini 3.8 via de LiteLLM-gateway van de eigenaar, #689) en eventuele regels langer dan nu kunnen de prijs verschuiven. (3) De nieuwe stemmen voor de bondgenoten kosten een stemkeuze en tests, niet veel geld. **Orde van grootte, voor later: één tot twee dollar voor het hele nieuwe verhaal.**
 
 ## 5. Wat later moet gebeuren (pas na een nieuw besluit van de eigenaar)
 
@@ -79,7 +79,7 @@ De overige 37 tekstregels zijn stille appjes en sms'en (`channel: app-stil`), di
 
 ## 6. Zo draai je een ronde (voor de eigenaar)
 
-Dit is de actuele stand van de pijplijn; de raming in §1-4 blijft historie. Nodig: Python met `ffmpeg` en `ffprobe` in het pad. De sleutel staat in `.env` (nooit lezen of printen, zie AGENTS.md); `gemini_tts.py` zoekt die zelf (`GOOGLE_AI_STUDIO_KEY` of `GEMINI_API_KEY`; `OPENROUTER_API_KEY` alleen voor de oude openrouter-route). Zonder sleutel werkt alleen de droogloop.
+Dit is de actuele stand van de pijplijn; de raming in §1-4 blijft historie. Nodig: Python met `ffmpeg` en `ffprobe` in het pad. De sleutel staat in `.env` (nooit lezen of printen, zie AGENTS.md); `gemini_tts.py` zoekt zelf `LITELLM_API_KEY` (gateway `LITELLM_BASE_URL`); de oude OpenRouter- en AI Studio-routes bestaan niet meer (#689). Zonder sleutel werkt alleen de droogloop.
 
 1. **Lijst verversen** (schrijft `scripts/tts_lines.json`; neemt niets op, vraagt geen sleutel):
    `node scripts/tts_lines_list.mjs` → nu 63 jobs, 0 re-recordings, 155 + 451 wachtenden.

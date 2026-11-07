@@ -1,4 +1,4 @@
-# #438 Kluis en lasers per rol
+# #438 Openbare sessielijst (historisch verkeerd gekoppeld als "Kluis en lasers per rol")
 
 - **Issue:** #438
 - **Complexity:** medium

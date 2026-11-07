@@ -62,7 +62,8 @@ vervangt die teksten door eigen teksten.
 
 ## Door AI gemaakte stemmen en muziek
 
-De stemmen zijn gemaakt met Google Gemini TTS via OpenRouter, de muziek met
+De stemmen zijn gemaakt met Google Gemini TTS (nieuwe clips via de LiteLLM-gateway van de
+eigenaar; oudere clips via OpenRouter), de muziek met
 Google Gemini (zie [NOTICE.md](NOTICE.md)). We bieden ze aan onder
 CC BY-NC-SA 4.0 **voor zover er rechten op rusten**. Puur door AI gemaakte
 audio is in de EU mogelijk niet auteursrechtelijk beschermd; dan geeft
@@ -73,11 +74,12 @@ Gebruik je de audio, dan moet je je ook houden aan de voorwaarden van die
 diensten, voor zover die voor jou gelden: de
 [Google Terms of Service](https://policies.google.com/terms), de
 [Generative AI Prohibited Use Policy](https://policies.google.com/terms/generative-ai/use-policy),
-de [Gemini API Additional Terms](https://ai.google.dev/gemini-api/terms) en
-de [OpenRouter Terms](https://openrouter.ai/terms). Doe bijvoorbeeld niet
+de [Gemini API Additional Terms](https://ai.google.dev/gemini-api/terms); voor de oudere
+clips gelden daarnaast de [OpenRouter Terms](https://openrouter.ai/terms). Doe bijvoorbeeld niet
 alsof de audio door mensen is gemaakt.
 
-*The voices (Google Gemini TTS via OpenRouter) and the music (Google
+*The voices (Google Gemini TTS; new clips through the owner's LiteLLM gateway, older clips
+via OpenRouter) and the music (Google
 Gemini) are offered under CC BY-NC-SA 4.0 to the extent any rights subsist
 in them; purely AI-generated audio may not be protected by copyright in the
 EU. Users must also respect the terms of those providers where they apply.*

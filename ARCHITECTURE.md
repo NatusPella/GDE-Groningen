@@ -1,5 +1,9 @@
 # GDE Groningen – architecture
 
+> **Leeswijzer (Nederlands).** Dit document is technische naslag (de systeemkaart; grep erin op onderwerp en lees hem nooit in zijn geheel); de tekst is daarom Engels (uitzondering in ADR 0017, #692). De regels staan in [system-architecture.md](.specs-fire/standards/system-architecture.md) en `AGENTS.md` wint bij twijfel. Nederlands is de taal van proza en van alles wat de speler ziet of hoort.
+
+> **Naslag.** De regels staan in de canonieke spec [`.specs-fire/standards/system-architecture.md`](../.specs-fire/standards/system-architecture.md); dit document is uitleg en geschiedenis. Bij verschil wint de spec (en bij twijfel `AGENTS.md`).
+
 A browser game in plain ES modules: `game/index.html` loads `js/main.js`,
 and Three.js is resolved through an import map (the module also imports it
 by its full CDN URL; both resolve to the same instance). There is no bundler.
@@ -253,8 +257,10 @@ registered in `scripts/voicelines_collect.mjs`. To fill the gaps:
 are trimmed and normalised to -18 LUFS, the level of the story lines; the
 run stops at `--budget`).
 
-All TTS scripts call Gemini 3.8 Flash TTS through `scripts/gemini_tts.py`
-(OpenRouter, paid from its balance; key in `.env`). 3.8 reads the input
+All TTS scripts call Gemini 3.8 Flash TTS through `scripts/gemini_tts.py`, which uses the
+owner's LiteLLM gateway (`LITELLM_BASE_URL`, default `https://litellm.natuspella.nl`; the
+virtual key `LITELLM_API_KEY` in `.env`). The gateway holds the Google key. Clips of the
+OpenRouter era keep that origin in their own `tts.json`; new clips log `via: litellm`. 3.8 reads the input
 verbatim, so the delivery goes in `speech_metadata.style`, built by
 `styleOf(who, tag, accent)` in `scripts/tts_cast.mjs`; that file also holds
 Tammo's and Tessa's voices for every pipeline.
@@ -389,7 +395,7 @@ discovery scenes not while driving faster than 50 km/u). A blocked
 flyover or landmark stays unseen and plays later if the player is still
 (or again) there. Story cutscenes, mission intros/outros and death/busted
 are exempt, but when one ends it books a story-level moment, so no flyover
-follows straight after an outro or the opening montage; the next story
+follows straight after an outro or the C00.1 trailer-montage; the next story
 step's text waits 2.5 s after any scene (`sinceCinematic`) and its
 voorschot follows that text. On the HUD: one card at a time (`hudcards.js`, tips at most
 one per 20 s via `mayShowTip`), one objective line, one phone card with a

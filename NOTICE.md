@@ -112,8 +112,8 @@ meegeleverd.
   treindeur) komen van Freesound onder Creative Commons 0 (publiek domein); de bron per bestand staat in `game/audio/sfx/manifest.json`.
 - **Stemmen**: alle stemmen (`game/audio/voicelines`, `npc`, `police`,
   `nieuws`, G-Music-jingles) zijn gemaakt met Google Gemini TTS
-  (`google/gemini-3.8-flash-tts`) via OpenRouter. Per map
-  legt `tts.json` vast hoe elke clip is gemaakt.
+  (`google/gemini-3.8-flash-tts`); de opnames van vóór #689 zijn via OpenRouter gemaakt, de
+  nieuwe via de LiteLLM-gateway van de eigenaar. Per map legt `tts.json` vast hoe elke clip is gemaakt.
 - Muziek en stemmen staan onder CC BY-NC-SA 4.0 **voor zover er rechten
   op rusten**; wie ze gebruikt, houdt zich ook aan de voorwaarden van
   Google (Gemini) en OpenRouter, voor zover die gelden. Zie

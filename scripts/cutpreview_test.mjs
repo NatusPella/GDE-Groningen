@@ -3,7 +3,8 @@
 // The catalogue holds every staged scene, a broken scene is reported with a reason,
 // scrubbing returns finite frames, and the stills cover every shot.
 import { readFileSync } from 'node:fs';
-import { buildCatalog, frameAt, stillTimes, stillName, sceneBounds, summary, linesOf, sceneIdsFor, npcNamesFromSource, STATUS } from '../game/js/cutpreview.js';
+import { buildCatalog, frameAt, stillTimes, stillName, sceneBounds, summary, linesOf, sceneIdsFor, npcNamesFromSource, STATUS, MOMENT_PREVIEW } from '../game/js/cutpreview.js';
+import { INTOCHTEN } from '../game/js/wijkintocht.js';
 import { MAX_CAMERA_STILL, projectFrame } from '../game/js/cutpreview.js';
 import { STEPS } from '../game/js/storyarc_nieuw.js';
 import { SPECS, MORE_SPECS } from '../game/js/cutscenes_akte1.js';
@@ -20,11 +21,33 @@ ok(sceneIdsFor('M08.intro').length > 0 && sceneIdsFor('M01.3')[0] === 'M01.3', '
 
 const cat = buildCatalog({ script, npcSource });
 const keys = new Set([...Object.keys(SPECS), ...Object.keys(MORE_SPECS)]);
-ok(cat.length === keys.size + 4 + 3, 'catalogue: every spec, three acts, the end card and the three evenings at home', `${cat.length} vs ${keys.size + 7}`);
+ok(cat.length === keys.size + 4 + 3 + MOMENT_PREVIEW.length + INTOCHTEN.length, 'catalogue: every spec, three acts, the end card, the three evenings at home, the momenten and the intochten (#723)', `${cat.length} vs ${keys.size + 7 + MOMENT_PREVIEW.length + INTOCHTEN.length}`);
+ok(['Momenten', 'Intochten'].every((g) => cat.some((e) => e.group === g)), 'catalogue: the momenten and intochten are in the list');
+// #708: de vier handgeschreven intochten zijn camera-only scrubbaar en lokaal per speler
+{
+  const ints = cat.filter((e) => e.group === 'Intochten' && e.scene);
+  ok(ints.length === 4, 'intochten: vier pilotscènes in de preview', String(ints.length));
+  for (const e of ints) {
+    ok(e.coop === 'lokaal per speler', e.id + ' is lokaal per speler');
+    ok(frameAt(e, e.duration / 2) && stillTimes(e).length >= 1, e.id + ' is scrubbaar');
+  }
+}
+
 ok(['M06.0', 'story-eikea', 'story-avond'].every((id) => cat.some((e) => e.id === id && e.group === 'Thuisavonden' && e.scene && e.lines.length > 2)), 'catalogue: the evenings at home (flatScene) are in the list with lines from the script');
 ok(new Set(cat.map((e) => e.id)).size === cat.length, 'catalogue ids are unique');
 for (const e of cat) {
   ok(Object.values(STATUS).includes(e.status), e.id + ' has a status', e.status);
+  if (!e.scene) {
+    if (e.id.startsWith('moment:') || e.id.startsWith('intocht:')) { // #723: geen pure scène, wel duur en skipbaarheid
+      ok(Number.isFinite(e.duration) && e.duration > 0, e.id + ' has a duration', String(e.duration));
+      ok(typeof e.skippable === 'boolean' && (e.hostOnly === true || /alleen voor wie het spel opende/.test(e.issues.join(' '))), e.id + ' says host-only and is skippable or not');
+    } else {
+      // #723: een mime-/split-scène heeft wel regie maar geen eigen dialoog; de preview toont hem
+      // als waarschuwing met duur, geen crash en geen valse fout.
+      ok(e.status === STATUS.warn && Number.isFinite(e.duration) && e.duration > 0 && e.issues.some((m) => /mime- of split-scène/.test(m)), e.id + ' is a documented mime/split scene', e.issues.join(' | '));
+    }
+    continue;
+  }
   ok(e.status !== STATUS.error, e.id + ' validates', e.issues.join(' | '));
   const f = frameAt(e, e.duration / 2);
   ok(f && Number.isFinite(f.camera.position.x) && Number.isFinite(f.t), e.id + ' frame at the middle is finite');
@@ -38,7 +61,7 @@ for (const e of cat) {
 }
 ok(summary(cat).fout === 0, 'summary counts');
 // rhythm rule (#136): no camera holds still longer than MAX_CAMERA_STILL seconds, in every act
-for (const e of cat) if (e.scene) ok(e.rhythm && e.rhythm.longestStill <= MAX_CAMERA_STILL, e.id + ' camera rhythm', e.rhythm && String(e.rhythm.longestStill));
+for (const e of cat) if (e.scene && e.def) ok(e.rhythm && e.rhythm.longestStill <= MAX_CAMERA_STILL, e.id + ' camera rhythm', e.rhythm && String(e.rhythm.longestStill));
 // coverage: every intro/outro of the new story has a staged scene (M21.intro is the solo ride: staged with a moving bakkie, #352)
 {
   const SOLO = new Set();

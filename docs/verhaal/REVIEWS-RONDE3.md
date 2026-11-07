@@ -2,6 +2,8 @@
 
 > **Status:** verslag van een eerdere ronde (geen actuele canon); de actuele regels staan in de spec en de 09-scripts. Er is niets gespeeld of in beeld bekeken.
 
+**#698 besloten (7-11-2026):** het UMCG en "House of Groningen" blijven als echte openbare gebouwen staan (decor, geen merk); vastgelegd in `verhaal.md` en `MERKENREGISTER.md`. Er is dus geen hernoeming en geen nieuwe TTS nodig.
+
 Doel: nog een ronde over de nieuwste main, met onafhankelijke lezers per perspectief, de zwakke plekken verwerken in teksten en scène-data
 (zonder nieuwe opnames) en herhalen tot koude lezers de keten kunnen navertellen. Het werk staat in de branch `verhaal-ronde3`;
 de tests zijn gedraaid, het spel is **niet gespeeld** en niet in beeld bekeken. De opnamevragen komen uit `node scripts/opnamelijst.mjs` (het bestand staat niet in git).

@@ -1,5 +1,6 @@
 # Gebieden veroveren: de hele provincie, van buurt tot gemeente (#414)
 
+> **Terminologie (#716):** het spel kent twee geografische lagen. De **66 buurtpunten** uit `stad.json` (`meta.neighbourhoodPoints`) zijn de **buurten** van de HUD, de kaart en de prestatie "Ontdek alle 66 buurten"; ze geven sfeerregels en een kaartje "Nieuwe buurt". De **CBS-indeling** uit `grenzen.json` (buurt, wijk, woonplaats, gemeente, provincie) is de laag van **Veroverd**: daar verover je gebieden en zie je de CBS-naam (bijvoorbeeld Oud-Zuid of Oosterparkwijk). Eén woord per laag: buurt = 66 punten, gebied/wijk = CBS-laag; de verover-UI en de intocht gebruiken de CBS-naam.
 > **Naslag.** De regels staan in de canonieke spec [`.specs-fire/standards/wereld.md`](../.specs-fire/standards/wereld.md); dit document is uitleg en geschiedenis. Bij verschil wint de spec (en bij twijfel `AGENTS.md`).
 
 Voor wie aan `gebieden.js`, `grenzen.js`, `gebiedenlive.js`, `gebiedenbronnen.js`, `gebiedenui.js`, `gebiedenkaart.js`, `safehuizen.js` of de grenzenscripts werkt,

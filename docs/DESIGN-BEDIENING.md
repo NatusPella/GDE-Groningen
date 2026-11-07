@@ -1,5 +1,7 @@
 # Design system: controls, hints and accessibility
 
+> **Leeswijzer (Nederlands).** Dit document is technische naslag (bediening en invoer; de regels staan in ui-taal.md); de tekst is daarom Engels (uitzondering in ADR 0017, #692). De regels staan in [ui-taal.md](../.specs-fire/standards/ui-taal.md) en `AGENTS.md` wint bij twijfel. Nederlands is de taal van proza en van alles wat de speler ziet of hoort.
+
 > **Naslag.** De regels staan in de canonieke spec [`.specs-fire/standards/ui-taal.md`](../.specs-fire/standards/ui-taal.md); dit document is uitleg en geschiedenis. Bij verschil wint de spec (en bij twijfel `AGENTS.md`).
 
 Details behind [DESIGN_SYSTEM.md](../DESIGN_SYSTEM.md). Keyboard and mouse, controller and touch drive the same actions; the game code only knows the default keys and everything that changes

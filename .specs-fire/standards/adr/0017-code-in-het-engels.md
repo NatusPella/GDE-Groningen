@@ -33,6 +33,23 @@ Bestaande Nederlandse namen en comments **blijven staan**. Je hernoemt ze alleen
 commit die dat bestand toch al aanraakt — dezelfde regel als coop → multiplayer. Geen
 massale hernoeming, geen aparte vertaalronde.
 
+## Uitzonderingen (#692, besloten 7-11-2026)
+
+Pure technische naslag mag Engels blijven, mits er bovenaan een **Nederlandse leeswijzer** staat
+(doel, doelgroep, waar de regels staan). Dat is geen stille uitzondering maar een keuze van de
+eigenaar (#692) en ze staat hier zodat elke sessie hem kent.
+
+| Document | Waarom Engels |
+|---|---|
+| `ARCHITECTURE.md` | 205 KB technische kaart; grep-naslag voor ontwikkelaars, geen beleid |
+| `DESIGN_SYSTEM.md`, `docs/DESIGN-BEDIENING.md`, `docs/DESIGN-COMPONENTEN.md`, `docs/DESIGN-SCHULD.md`, `docs/DESIGN-SAMEN-SPELEN.md` | ontwerpnootities en token-/componentnamen; de regels staan in `ui-taal.md` |
+| `docs/ONTWIKKELEN.md` (de Engelstalige secties) | build- en gereedschapsuitleg; de release- en testregels staan in `publicatie.md` en `docs/TESTEN.md` |
+| `steam/README.md` | SteamPipe-gereedschap; de regels staan in `publicatie.md` |
+
+Alles daarbuiten is Nederlands proza. Het Engelse blok "In English, briefly" bovenaan `README.md`
+is de enige toegestane tweetalige uitzondering: een korte intro voor buitenlandse lezers; de rest
+van de README is Nederlands.
+
 ## Afgewezen
 
 - **Alles Nederlands, ook de code.** Dan leest de API als `maakRace()` naast

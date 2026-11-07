@@ -74,5 +74,6 @@ deze lijst voordat een andere sessie begint te schrijven:
 | [0022](0022-altijd-online-met-toestemming.md) | Altijd een online sessie, met toestemming bij de eerste start | besloten |
 | [0023](0023-javascript-blijft-de-taal.md) | JavaScript blijft de taal; TypeScript afgewezen | voorgesteld |
 | [0024](0024-eenspeler-is-een-sessie-van-een.md) | Eenspeler is een sessie van één | besloten |
+| [0025](0025-openingsmontage-als-c00-1.md) | De openingsmontage is C00.1 (teruggezet als eerste bedrijf) | besloten |
 | [0026](0026-bootorde.md) | Bootorde: de expliciete lijst eerst, de zoektocht als terugval | besloten |
 

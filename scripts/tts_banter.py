@@ -4,7 +4,7 @@
 # in the same voices as their bijbaantje lines, loudness-normalised (two-pass
 # loudnorm to -16 LUFS, like the story clips). Needs ffmpeg. Current clips
 # (logged with gemini_tts.MODEL) are skipped, so a rerun only records new,
-# edited or outdated lines; the spend is measured on the OpenRouter credits
+# edited or outdated lines; the spend is measured on what the LiteLLM gateway reports per clip
 # endpoint before and after, and a run stops starting new lines once it
 # passes the budget.
 #   node scripts/tts_banter_lines.mjs && python3 scripts/tts_banter.py [max_lines] [budget_usd]

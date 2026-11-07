@@ -774,28 +774,6 @@ function skyFlyInShot(w) {
   return flyInShot(w, { pos: W(p.x - fx * 60 + fy * 70, 130, p.y - fy * 60 - fx * 70), look: W(p.x, 0, p.y) });
 }
 
-function playIntro(w) {
-  if (!introMod) return false;
-  return introMod.playIntroMontage(w, {
-    flyShot: () => skyFlyInShot(w),
-    onDone: (skipped) => {
-      if (!skipped || active) return;
-      const b = behindPose(w);
-      playCinematic({
-        id: 'intro-out', priority: 3, duration: 0.6, pause: true, letterbox: false, skippable: false,
-        shot: () => ({ position: b.pos, lookAt: b.look, cut: true }),
-      });
-    },
-  });
-}
-
-// Pause menu: replays the opening montage from wherever the player is now.
-export function replayIntro(w = world) {
-  if (!w || !gameStarted() || w.pendingRespawn) return false;
-  if (active) finish(true);
-  return playIntro(w);
-}
-
 function playGameStart(w) {
   markNearbyLandmarksVisited(w, 70);
   // a new save starts with its own empty list; a loaded save brought its list in through
@@ -1026,7 +1004,7 @@ function showWijkCard(w, wijk, left = 30) {
     wijkCardEl = document.createElement('div');
     wijkCardEl.id = 'wijk-card';
     wijkCardEl.setAttribute('aria-live', 'polite');
-    wijkCardEl.innerHTML = '<div class="wc-kick">Nieuwe wijk</div><div class="wc-name"></div><div class="wc-line"></div><div class="wc-hi"></div>';
+    wijkCardEl.innerHTML = '<div class="wc-kick">Nieuwe buurt</div><div class="wc-name"></div><div class="wc-line"></div><div class="wc-hi"></div>';
     document.body.appendChild(wijkCardEl);
   }
   // onder de resultaatkaart of een keuzepaneel wacht de wijkkaart (#292), hooguit 12 s

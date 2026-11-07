@@ -1,5 +1,8 @@
 # Spec: Verhaal, personages en stem
 
+> **Terminologie (#716):** in speltekst zijn de 66 punten uit `stad.json` **buurten** (kaartje "Nieuwe buurt"); de CBS-lagen uit `grenzen.json` zijn **gebieden/wijken** (Veroverd, intocht, titels). Zie `docs/GEBIEDEN.md` en `ui-taal.md`.
+
+**Echte openbare gebouwen (#698).** Het UMCG (een openbaar ziekenhuis) en de woontoren "House of Groningen" blijven als echte, openbare plek in de tekst: ze zijn decor, geen merk of bedrijf, en er wordt niets verkocht of aanbevolen. Ze staan niet op de verboden lijst van `text_audit`; in `MERKENREGISTER.md` staan ze als "echte openbare plaats/gebouw — toegestaan (constitutie 2)". Een nieuwe echte instelling of bedrijfsnaam komt er niet zomaar bij: die gaat eerst langs de eigenaar en `MERKENREGISTER.md`.
 > Canonieke spec. `AGENTS.md` wint bij twijfel (constitutie 1, 2, 5 en 6). Bron: de
 > code en `docs/verhaal/nieuw/`; `docs/verhaal/STIJLGIDS.md` is naslag. Eén verhaal:
 > *Alles voor één eierbal*, in het spel *GDE Groningen - Zomer vol misdaad*
@@ -108,7 +111,7 @@ Femke, Harm, Hilly, Hilje en Boer Roelf (`docs/verhaal/nieuw/00-OVERZICHT.md:67`
    (`game/js/storytext.js:53`).
 7. **Eén functie per missie** met een oorzaak-gevolg-beat, anders wordt het een
    zijmissie of reisbeat (`docs/verhaal/nieuw/00-OVERZICHT.md:142`).
-8. **Samen spelen**: één regel per missie of scène — doet een gast mee (J of N), wat
+8. **Samen spelen en film**: elke scène met een scènebeschrijving (`playScript`) gaat als data naar de gasten en speelt een gast lokaal na; alle andere momenten (`playCinematic`: wijkflyover, landmerk, crash, wanted5, missie-intro's, intocht, thuiskomst, dood, aftiteling) zijn **host-only** en hebben minstens één regel voor de gastkaart (#712, `COOP-GAST.md`). Eén regel per missie of scène — doet een gast mee (J of N), wat
    ziet hij (snapshot of EXTRA-bericht), wie krijgt de beloning en de eigen voortgang
    (#429), wat gebeurt er bij wegvallen of later aansluiten, en welke test het dekt.
    Een gast krijgt geen gesprekken met personages en geen verhaalstap van een ander

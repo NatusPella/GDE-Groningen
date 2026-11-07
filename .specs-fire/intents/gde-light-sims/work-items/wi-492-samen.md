@@ -10,7 +10,7 @@
 
 ### Slice 1: 1+1=3 — klaar
 - `groepsbonus.js:11-19`: 0,5 per extra speler, max 3×, solo 1× (ADR 0020), over het bedrag van die
-  speler (`standards/multiplayer.md:44-48`), in missies, bijbanen, wedstrijden en de treincrew; toets
+  speler (`standards/multiplayer.md (de sectie Rollen; regelnummers schuiven, #703)`), in missies, bijbanen, wedstrijden en de treincrew; toets
   `scripts/groepsbonus_test.mjs` en een late deelnemer (`coopnet.js:358`). Niets te bouwen.
 
 ### Slice 2: naadloos in

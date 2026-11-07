@@ -1,5 +1,7 @@
 # GDE Groningen - UI Design System
 
+> **Leeswijzer (Nederlands).** Dit document is technische naslag (het designsysteem; de regels voor wat de speler ziet staan in ui-taal.md); de tekst is daarom Engels (uitzondering in ADR 0017, #692). De regels staan in [ui-taal.md](.specs-fire/standards/ui-taal.md) en `AGENTS.md` wint bij twijfel. Nederlands is de taal van proza en van alles wat de speler ziet of hoort.
+
 Small, deliberately simple. Every UI surface in this game (HUD, start screen,
 map view, phone notifications, future menus) should read as *one* system:
 fresh Gronings green, on dark crime-poster chrome, in a tall condensed

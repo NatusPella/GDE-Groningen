@@ -1,5 +1,7 @@
 # Ontwikkelen
 
+> **Leeswijzer (Nederlands).** Dit document is technische naslag (bouwen en draaien; de release- en testregels staan in publicatie.md en docs/TESTEN.md); de tekst is daarom Engels (uitzondering in ADR 0017, #692). De regels staan in [publicatie.md](../.specs-fire/standards/publicatie.md) en `AGENTS.md` wint bij twijfel. Nederlands is de taal van proza en van alles wat de speler ziet of hoort.
+
 Developer notes (in English, like ARCHITECTURE.md): test switches,
 performance runs, the trailer mode, desktop and web builds, and how the map
 is built. How the code fits together: [ARCHITECTURE.md](../ARCHITECTURE.md).

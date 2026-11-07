@@ -162,3 +162,10 @@ Vaste namen van huisstijl en personages staan in [personages.md](personages.md).
 (`CAFE_NAMES` in `game/js/horeca.js`) en horecanamen (`HORECA_NAMES` in `game/js/shopbind.js`)
 zijn losse woorden en zinnetjes ("De Lallende Koe", "de Dorstige Wierde") zonder merk;
 de tekstaudit toetst ze mee.
+
+### Echte openbare gebouwen en instellingen (toegestaan als decor, #698)
+
+| Naam | Waar | Waarom toegestaan |
+|---|---|---|
+| UMCG | `game/js/facilities.js`, `game/js/characters.js`, `cutscenes_akte2.js` (telefoonregel), `achievements.js` (heli-landing) | openbaar ziekenhuis, echte plek als decor; geen merkuiting, geen aanbeveling |
+| House of Groningen | `game/js/home.js`, `intromontage.js`, `ownedvehicles.js`, `banterlines.js` | openbare woontoren in Paddepoel, de woning van de personages; decor, geen bedrijf |

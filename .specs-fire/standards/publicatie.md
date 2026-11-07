@@ -188,7 +188,7 @@ merk of een andere game. De disclaimer staat in README, `NOTICE.md` en Over.
 Zichtbaarheid van de repo, GitHub Pages, posts, uploads, een
 geschiedenisherscrijving en een force push gebeuren alleen met akkoord van de
 eigenaar (constitutie 8). Geheimen blijven geheim: nooit `.env` lezen, printen of
-committen; de OpenRouter-sleutel is alleen voor de TTS-scripts.
+committen; de LiteLLM-sleutel (gateway) is alleen voor de TTS-scripts; oude clips via OpenRouter zijn historische herkomst.
 
 ## Eigenaarsbesluiten die open staan
 
