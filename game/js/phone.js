@@ -261,9 +261,6 @@ function renderDetail(focusActs = false) {
   }
 }
 
-// --- Verhaal > Personages (#430): de berichten, sms's, app-teksten en gesprekken staan bij het personage zelf; wat van niemand
-// is (nieuws, meldingen, een contact dat geen personage is) staat onder Overig. De telefoon is geen eigen onderdeel meer.
-export const OVERIG = '__overig';
 const lc = (x) => String(x || '').toLowerCase();
 // het personage (dat je kent) bij een afzender of contactnaam, of null
 function characterOf(name) {
