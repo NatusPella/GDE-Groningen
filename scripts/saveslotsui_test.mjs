@@ -59,5 +59,54 @@ ok(() => {
   assert.match(sg, /const ok = r\.state === 'ok' \|\| r\.state === 'hersteld';/);
 }, 'de gast-schrijfweg kan alleen in een bestaande save werken (#565)');
 
+// --- #606: het scherm Opgeslagen spellen zelf -------------------------------------------------------
+const start = src('startscreen.js'), pm = src('pausemenu.js');
+
+ok(() => {
+  // 3. "Autosave" was Engels en stond alleen in een tooltip; nu een Nederlandse chip plus een schermregel.
+  assert.match(ui, /chips\.push\('<span class="ssl-chip on">Bewaard vanzelf<\/span>'\)/);
+  assert.doesNotMatch(ui, />Autosave</, 'het Engelse woord staat niet meer op het scherm');
+  assert.match(ui, /class="ssl-note">Het spel bewaart vanzelf na een aankoop, een missie of als je stopt; je kunt altijd zelf opslaan\.</, 'de uitleg staat als gewone regel op het scherm');
+  assert.ok(ui.indexOf('ssl-note') > ui.indexOf("role=\"list\" aria-label=\"Opgeslagen spellen\""), 'de regel staat onder het raster, bij de spelers zichtbaar');
+  assert.match(css, /#saveslots \.ssl-note \{[^}]*font-size: 17px;[^}]*color: var\(--mut\);/);
+}, 'autosave-uitleg is Nederlands en leesbaar voor pad en touch (#606 punt 3)');
+
+ok(() => {
+  // 2. Op 1280x720 paste het '…'-menu met vijf rijen niet in een kaart; het is daar compacter en scrollbaar.
+  assert.match(css, /@media \(max-height: 820px\) \{[\s\S]{0,200}#saveslots \.ssl-mi \{ height: 40px; font-size: 22px;/);
+  assert.match(css, /#saveslots \.ssl-over \{[^}]*overflow-y: auto;/);
+}, 'het kaartmenu past op een laag venster (#606 punt 2)');
+
+ok(() => {
+  // 5. Een gast ziet dezelfde bevestiging als de opener terwijl er alleen verdiensten worden bijgeschreven.
+  const m = sg.match(/export const GAST_BEWAARD_TEKST = '([^']+)'/);
+  assert.ok(m, 'de gasttekst staat in savegame.js');
+  assert.match(m[1], /Je verdiensten zijn bewaard/);
+  assert.match(m[1], /het verhaal van de sessie staat in het opgeslagen spel van wie het spel opende/);
+  assert.match(sg, /export const GAST_BEWAARD_TEKST =/);
+  assert.match(pm, /else if \(world && world\.coopRole === 'client'\) status\(GAST_BEWAARD_TEKST\)/, 'de pauzemenu zegt het bij Spel opslaan');
+  assert.match(ui, /const saveMelding = \(ok, normaal\) => \(ok \? \(gastInSessie\(\) \? GAST_BEWAARD_TEKST : normaal\) : 'Opslaan mislukt\.'\)/);
+  assert.match(ui, /saveMelding\(saveGame\(world, \{ toast: false, manual: true \}\), 'Opgeslagen\.'\)/);
+  assert.match(ui, /saveMelding\(saveGame\(world, \{ toast: false, manual: true \}\), 'Overschreven\.'\)/);
+  assert.doesNotMatch(pm, /Opslaan mislukt'\)[^;]*Opgeslagen om/, 'geen algemene bevestiging meer in het gastpad');
+}, 'een gast hoort wat zijn opslag wel en niet bevat (#606 punt 5)');
+
+ok(() => {
+  // 4. Een kapotte save zonder laadbare plek leidt naar dit scherm met een melding, niet naar het oude titelscherm.
+  assert.match(start, /if \(!slot \|\| \(!fresh && !hasSave\(\) && listSlots\(null\)\.length\)\) \{/);
+  assert.match(start, /return runBootSaveScreen\(world, opts\);/, 'de boot opent Opgeslagen spellen');
+  assert.doesNotMatch(start, /\(!fresh && !hasSave\(\) && listSlots\(null\)\.length\)\) return runMenuScreen/, 'het oude titelscherm is uit dit pad');
+  const boot = start.slice(start.indexOf('function runBootSaveScreen('), start.indexOf('// Title screen over the live city'));
+  assert.match(boot, /openSaveSlots\(\{[\s\S]{0,300}mode: 'start', solo: true, noBack: true/, 'de speler kiest een spel en kan niet terug naar een scherm dat er niet is');
+  assert.match(boot, /hint: BOOT_SAVE_TEKST/);
+  assert.match(start, /const BOOT_SAVE_TEKST = 'We konden je opgeslagen spel niet automatisch openen\. Kies een opgeslagen spel om verder te gaan of begin een nieuw spel\.'/);
+  assert.match(boot, /openSaveSlots/);
+  const noBack = ui.slice(ui.indexOf('const noBack'), ui.indexOf('const primaryLabel'));
+  assert.match(noBack, /const noBack = !!opts\.noBack;/);
+  assert.match(ui, /\$\{noBack \? '' : `<button type="button" class="ssl-fb" data-grp="foot" data-do="close">/, 'Terug valt weg als er niets is om naar terug te gaan');
+  assert.match(ui, /if \(over\) doAction\('back'\);\s*else if \(!noBack\) close\(\);/, 'Escape sluit dat scherm niet');
+  assert.match(start, /if \(pending && pending\.mode === 'benchmark'\) return runMenuScreen\(world, opts, pending\);/, 'een benchmark-herlaad houdt zijn eigen route');
+}, 'een kapotte save leidt naar Opgeslagen spellen met een melding (#606 punt 4)');
+
 console.log(`saveslotsui_test: ${n - fails}/${n}`);
 process.exit(fails ? 1 : 0);
