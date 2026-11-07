@@ -593,7 +593,7 @@ function busLaneUser(v) {
   return !!(v.isBus || v.isTaxi || v.isAmbulance || v.isPolice || v.sirenOn);
 }
 
-function lanePoint(map, road, i, dir, v) {
+function lanePoint(map, road, i, dir, v, out = null) {
   const half = roadHalfWidths(map, road)[i];
   let lane = laneOffset(road, v, half, dir);
   const small = v.isBike || v.isScooter;
@@ -612,7 +612,10 @@ function lanePoint(map, road, i, dir, v) {
   else if (v.laneMode === 'squeeze' && !road.oneway) lane = Math.max(lane, half - v.halfWid + 0.4);
   else if (v.laneMode === 'pass') lane = road.oneway || half < 3.5 ? -Math.max(0.5, half - v.halfWid + 0.6) : -half / 2;
   const p = road.pts[i], nrm = roadNormals(road)[i];
-  return [p[0] + nrm[0] * lane * dir, p[1] + nrm[1] * lane * dir];
+  const x = p[0] + nrm[0] * lane * dir, y = p[1] + nrm[1] * lane * dir;
+  // out: hergebruik een bestaand [x, y] (de verkeers-AI, #652); anders zoals voorheen
+  if (out) { out[0] = x; out[1] = y; return out; }
+  return [x, y];
 }
 
 export function spawnVehicleOnRoad(map, road, isPolice = false, rng = Math.random, isBike = false, isBus = false, atPoint = null, isScooter = false, forcedModel = null, wantAngle = null) {

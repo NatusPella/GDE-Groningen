@@ -1641,7 +1641,7 @@ export function updateCountryside(dt, world, scene, cam, viewDist) {
     world.countryAudible = [];
   }
   S.idle = !(near || S.tiles.size);
-  updateTileWater(world.map, scene, p.x, p.y, S.idle ? 0 : propRadius(viewDist) - 50, world.time);
+  updateTileWater(world.map, scene, p.x, p.y, S.idle ? 0 : propRadius(viewDist) - 50, world.time, dt);
   gameplay(dt, world);
   updateFarProps(dt, world, scene, cam);
   updateCountryLife(dt, world, scene, S.idle ? [] : S.flocks, scene.fog ? scene.fog.far : viewDist);

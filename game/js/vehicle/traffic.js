@@ -295,15 +295,15 @@ function wantsTurnLane(v) {
 function advanceAlongRoad(v, map, rng, goal) {
   for (let k = 0; k < 6; k++) {
     const road = v.road, b = v.segIdx + v.dir;
-    const A = lanePoint(map, road, v.segIdx, v.dir, v), B = lanePoint(map, road, b, v.dir, v);
-    const cur = closestPointOnSegment(v.x, v.y, A[0], A[1], B[0], B[1]);
+    const A = lanePoint(map, road, v.segIdx, v.dir, v, _la), B = lanePoint(map, road, b, v.dir, v, _lb);
+    const cur = closestPointOnSegment(v.x, v.y, A[0], A[1], B[0], B[1], _cpA);
     let t = null, nRoad = road, nDir = v.dir, nIdx = b;
     if (isJunction(map, road, b)) {
       t = nextTurn(v, map, rng, goal, 0, road, b, v.dir);
       nRoad = t.road; nDir = t.dir; nIdx = t.idx;
     }
-    const C = lanePoint(map, nRoad, nIdx, nDir, v), D = lanePoint(map, nRoad, nIdx + nDir, nDir, v);
-    const nxt = closestPointOnSegment(v.x, v.y, C[0], C[1], D[0], D[1]);
+    const C = lanePoint(map, nRoad, nIdx, nDir, v, _lc), D = lanePoint(map, nRoad, nIdx + nDir, nDir, v, _ld);
+    const nxt = closestPointOnSegment(v.x, v.y, C[0], C[1], D[0], D[1], _cpB);
     if (cur.t < 1 && !(nxt.t > 0 && nxt.dist2 < cur.dist2)) break;
     if (t) {
       v.plan.shift();
@@ -316,34 +316,56 @@ function advanceAlongRoad(v, map, rng, goal) {
 const PATH_LEN = 45;
 const PLAN_DEPTH = 4;
 
+// #652: één vaste buffer per voertuig in plaats van een nieuwe padpolyline per
+// frame. De puntobjecten (v._path) worden hergebruikt en de lane-punten,
+// segmentprojecties en tussenstanden schrijven in deze scratch-objecten; alleen
+// de eerste frame van een voertuig alloceert nog. trafficPathStats() is de
+// teller voor de meting.
+const PATH_STATS = { builds: 0, newPoints: 0 };
+export function trafficPathStats() { return { ...PATH_STATS }; }
+const _la = [0, 0], _lb = [0, 0], _lc = [0, 0], _ld = [0, 0];
+const _cpA = { x: 0, y: 0, t: 0, dist2: 0 }, _cpB = { x: 0, y: 0, t: 0, dist2: 0 }, _cpP = { x: 0, y: 0, t: 0, dist2: 0 };
+const _prA = { s: 0, lat: 0, tx: 0, ty: 0 }, _prB = { s: 0, lat: 0, tx: 0, ty: 0 }, _prC = { s: 0, lat: 0, tx: 0, ty: 0 }, _prD = { s: 0, lat: 0, tx: 0, ty: 0 };
+
 // Lane-offset polyline ahead of the vehicle, following its planned turns.
-// Points flagged j are junction nodes.
-function buildPath(v, map, rng, goal) {
+// Points flagged j are junction nodes. #652: it fills the vehicle's own buffer
+// (v._path) with reused point objects instead of building a new array and a new
+// object per point every frame.
+function buildPathInto(v, map, rng, goal) {
   let road = v.road, dir = v.dir, idx = v.segIdx + dir;
-  const A = lanePoint(map, road, v.segIdx, dir, v), B = lanePoint(map, road, idx, dir, v);
-  const start = closestPointOnSegment(v.x, v.y, A[0], A[1], B[0], B[1]);
-  const path = [{ x: start.x, y: start.y, s: 0, j: false }];
+  const A = lanePoint(map, road, v.segIdx, dir, v, _la), B = lanePoint(map, road, idx, dir, v, _lb);
+  const start = closestPointOnSegment(v.x, v.y, A[0], A[1], B[0], B[1], _cpA);
+  const path = v._path || (v._path = []);
+  let n = 0;
+  const point = () => { let p = path[n]; if (!p) { p = path[n] = {}; PATH_STATS.newPoints++; } n++; return p; };
+  const p0 = point();
+  p0.x = start.x; p0.y = start.y; p0.s = 0; p0.j = false; p0.r = undefined; p0.i = undefined; p0.node = undefined; p0.from = undefined; p0.fromDir = undefined;
   let px = start.x, py = start.y, s = 0, k = 0;
-  const push = (q, j) => {
-    s += Math.hypot(q[0] - px, q[1] - py);
-    px = q[0]; py = q[1];
-    path.push({ x: px, y: py, s, j, r: road, i: idx });
+  const push = (junction) => {
+    lanePoint(map, road, idx, dir, v, _lc);
+    s += Math.hypot(_lc[0] - px, _lc[1] - py);
+    px = _lc[0]; py = _lc[1];
+    const p = point();
+    p.x = px; p.y = py; p.s = s; p.j = junction; p.r = road; p.i = idx;
+    p.node = undefined; p.from = undefined; p.fromDir = undefined;
+    return p;
   };
   for (let guard = 0; guard < 120 && s < PATH_LEN; guard++) {
     const junction = isJunction(map, road, idx);
-    push(lanePoint(map, road, idx, dir, v), junction);
+    const jp = push(junction);
     if (junction) {
-      const jp = path[path.length - 1];
       jp.node = roadNode(map, road, idx);
       jp.from = road;
       jp.fromDir = dir;
       if (k >= PLAN_DEPTH) break;
       const t = nextTurn(v, map, rng, goal, k++, road, idx, dir);
       road = t.road; dir = t.dir; idx = t.idx;
-      push(lanePoint(map, road, idx, dir, v), false);
+      push(false);
     }
     idx += dir;
   }
+  path.length = n;
+  PATH_STATS.builds++;
   return path;
 }
 
@@ -362,30 +384,27 @@ function pointAlongInto(path, s, out) {
   return out;
 }
 
-function pointAlong(path, s) {
-  for (let i = 1; i < path.length; i++) {
-    if (path[i].s < s) continue;
-    const a = path[i - 1], b = path[i];
-    const span = b.s - a.s;
-    const t = span > 1e-6 ? (s - a.s) / span : 0;
-    return [lerp(a.x, b.x, t), lerp(a.y, b.y, t)];
-  }
-  const last = path[path.length - 1];
-  return [last.x, last.y];
-}
 
-function projectOnPath(path, x, y) {
-  let best = null, bestD2 = Infinity;
+
+function projectOnPathInto(path, x, y, out) {
+  let bestI = -1, bestT = 0, bestD2 = Infinity;
   for (let i = 1; i < path.length; i++) {
     const a = path[i - 1], b = path[i];
     if (b.s - a.s < 0.05) continue;
-    const cp = closestPointOnSegment(x, y, a.x, a.y, b.x, b.y);
-    if (cp.dist2 < bestD2) { bestD2 = cp.dist2; best = { i, t: cp.t }; }
+    const cp = closestPointOnSegment(x, y, a.x, a.y, b.x, b.y, _cpP);
+    if (cp.dist2 < bestD2) { bestD2 = cp.dist2; bestI = i; bestT = cp.t; }
   }
-  if (!best) return null;
-  const a = path[best.i - 1], b = path[best.i];
+  if (bestI < 0) return null;
+  const a = path[bestI - 1], b = path[bestI];
   const L = b.s - a.s;
-  return { s: a.s + L * best.t, lat: Math.sqrt(bestD2), tx: (b.x - a.x) / L, ty: (b.y - a.y) / L };
+  out.s = a.s + L * bestT; out.lat = Math.sqrt(bestD2); out.tx = (b.x - a.x) / L; out.ty = (b.y - a.y) / L;
+  return out;
+}
+
+// De hooks (vehicleHooks.crossingSpeedLimit, bridgeSpeedLimit, zebraSpeedLimit)
+// krijgen een functie; die houdt de oude, allockerende vorm (3 per frame).
+function projectOnPath(path, x, y) {
+  return projectOnPathInto(path, x, y, { s: 0, lat: 0, tx: 0, ty: 0 });
 }
 
 // Fastest speed now that still lets the vehicle take every upcoming bend at
@@ -439,7 +458,7 @@ function walkerAheadLimit(v, path, world, decel) {
     const dx = w.x - v.x, dy = w.y - v.y;
     const fwd = dx * fx + dy * fy;
     if (fwd < v.halfLen - 0.5 || fwd > 32 || Math.abs(dy * fx - dx * fy) > 6) continue;
-    const pr = projectOnPath(path, w.x, w.y);
+    const pr = projectOnPathInto(path, w.x, w.y, _prA);
     if (!pr || pr.lat > v.halfWid + 0.9) continue;
     const stopS = pr.s - v.halfLen - 1.4;
     const attn = Math.abs(v.speed) > 4 ? rollDistraction(v, world) : 'ok';
@@ -480,7 +499,7 @@ function followSpeedLimit(v, path, world, decel, chase) {
       const qx = o.x + ofx * o.halfLen * k, qy = o.y + ofy * o.halfLen * k;
       const fwd = (qx - v.x) * fx + (qy - v.y) * fy;
       if (fwd < 0.3) continue;
-      const pr = projectOnPath(path, qx, qy);
+      const pr = projectOnPathInto(path, qx, qy, k === 0 ? _prA : k === 0.8 ? _prB : _prC);
       if (pr && pr.lat < reach && (!hit || pr.s < hit.s)) hit = pr;
       // right in front of the bumper counts even where the path bends away
       const side = Math.abs((qy - v.y) * fx - (qx - v.x) * fy);
@@ -489,7 +508,7 @@ function followSpeedLimit(v, path, world, decel, chase) {
     if (!hit) continue;
     let along = (ofx * o.speed + o.driftX) * hit.tx + (ofy * o.speed + o.driftY) * hit.ty;
     if (along < -1) {
-      const pc = projectOnPath(path, o.x, o.y);
+      const pc = projectOnPathInto(path, o.x, o.y, _prD);
       if (!pc || pc.lat > v.halfWid + o.halfWid - 0.1) continue;
       along = 0;
     }
@@ -522,10 +541,11 @@ function trafficLightLimit(v, path, world) {
     if (A.broken || (A.bike && !small) || A.ctrl === cleared) continue;
     const dx = A.x - v.x, dy = A.y - v.y;
     if (dx * dx + dy * dy > 55 * 55) continue;
-    const pr = projectOnPath(path, A.x, A.y);
+    const pr = projectOnPathInto(path, A.x, A.y, _prA);
     if (!pr || pr.lat > reach) continue;
     // tangent over a few metres: lane joins at way ends leave tiny kinks
-    const [ax, ay] = pointAlong(path, Math.max(0, pr.s - 2)), [bx, by] = pointAlong(path, pr.s + 2);
+    pointAlongInto(path, Math.max(0, pr.s - 2), _pa); pointAlongInto(path, pr.s + 2, _pb);
+    const ax = _pa[0], ay = _pa[1], bx = _pb[0], by = _pb[1];
     if ((bx - ax) * A.hx + (by - ay) * A.hy < 0.6 * Math.hypot(bx - ax, by - ay)) continue;
     const stopS = pr.s - v.halfLen - 1.2;
     const phase = trafficLightPhaseMove(A, !A.bike && turnsLeftAfter(path, pr.s, A));
@@ -544,7 +564,8 @@ function trafficLightLimit(v, path, world) {
 // heading at the stop line with the heading ~8 m past the junction centre.
 function turnsLeftAfter(path, s, A) {
   const sj = s + Math.hypot(A.ax - A.x, A.ay - A.y);
-  const [ex0, ey0] = pointAlong(path, sj + 4), [ex1, ey1] = pointAlong(path, sj + 10);
+  pointAlongInto(path, sj + 4, _pa); pointAlongInto(path, sj + 10, _pb);
+  const ex0 = _pa[0], ey0 = _pa[1], ex1 = _pb[0], ey1 = _pb[1];
   const el = Math.hypot(ex1 - ex0, ey1 - ey0);
   if (el < 1) return false;
   return (A.hx * (ey1 - ey0) - A.hy * (ex1 - ex0)) / el < -0.4;
@@ -578,8 +599,9 @@ function junctionYieldLimit(v, path, world, decel, claim) {
   if (!first || first.s > 18) return Infinity;
   const claims = first.node.claims || (first.node.claims = new Map());
   const eta = first.s / Math.max(Math.abs(v.speed), 1.5);
-  const [ax, ay] = pointAlong(path, Math.max(0, first.s - 3));
-  const [bx, by] = pointAlong(path, first.s + 4);
+  pointAlongInto(path, Math.max(0, first.s - 3), _pa);
+  pointAlongInto(path, first.s + 4, _pb);
+  const ax = _pa[0], ay = _pa[1], bx = _pb[0], by = _pb[1];
   const la = Math.hypot(first.x - ax, first.y - ay) || 1, lb = Math.hypot(bx - first.x, by - first.y) || 1;
   const hx = (first.x - ax) / la, hy = (first.y - ay) / la;
   const turnLeft = hx * (by - first.y) / lb - hy * (bx - first.x) / lb < -0.4;
@@ -731,12 +753,13 @@ export function updateTrafficAI(v, dt, map, world, rng = Math.random, opts = nul
   }
 
   advanceAlongRoad(v, map, rng, goal);
-  const path = buildPath(v, map, rng, goal);
+  const path = buildPathInto(v, map, rng, goal);
   const m = v.model;
   const small = v.isBike || v.isScooter;
 
   const lookahead = clamp(2 + Math.abs(v.speed) * 0.55, small ? 2.5 : 3.2, 15) + (v.isBus ? 3 : 0);
-  const [tx, ty] = pointAlong(path, lookahead);
+  pointAlongInto(path, lookahead, _pa);
+  const tx = _pa[0], ty = _pa[1];
   const fx = Math.cos(v.angle), fy = Math.sin(v.angle);
   const dx = tx - v.x, dy = ty - v.y;
   const fwd = dx * fx + dy * fy, lat = dy * fx - dx * fy;

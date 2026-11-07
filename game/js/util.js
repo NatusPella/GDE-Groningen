@@ -42,12 +42,14 @@ export function nearestOnRoadList(roads, x, y, ok = null) {
   return best;
 }
 
-export function closestPointOnSegment(px, py, ax, ay, bx, by) {
+export function closestPointOnSegment(px, py, ax, ay, bx, by, out = null) {
   const abx = bx - ax, aby = by - ay;
   const len2 = abx * abx + aby * aby;
   let t = len2 > 1e-9 ? ((px - ax) * abx + (py - ay) * aby) / len2 : 0;
   t = clamp(t, 0, 1);
   const cx = ax + abx * t, cy = ay + aby * t;
+  // out: hergebruik een bestaand object (de verkeers-AI, #652); anders zoals voorheen
+  if (out) { out.x = cx; out.y = cy; out.t = t; out.dist2 = dist2(px, py, cx, cy); return out; }
   return { x: cx, y: cy, t, dist2: dist2(px, py, cx, cy) };
 }
 
