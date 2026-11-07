@@ -16,7 +16,7 @@ import { renderVeroverdPanel } from './veroverdpanel.js';
 import { renderSpelersPanel } from './coopspelersui.js';
 import { renderCheatsPanel, cheatsClick, resetCheatsPanel, cheatsFocus } from './cheatsui.js';
 import { skipCurrent, getStoryJournal, markCluesSeen } from './story.js';
-import { saveGame, hasSave, loadLatestSave, startNewSlot, coopSessieLoopt, COOP_NIEUW_TEKST, getSaveSummary, getPlaySeconds, loadSlot, currentSlot, preventCloseSave } from './savegame.js';
+import { saveGame, hasSave, loadLatestSave, startNewSlot, coopSessieLoopt, COOP_NIEUW_TEKST, GAST_BEWAARD_TEKST, getSaveSummary, getPlaySeconds, loadSlot, currentSlot, preventCloseSave } from './savegame.js';
 import { openSaveSlots, isSaveSlotsOpen } from './saveslotsui.js';
 import { stopCoopNet } from './coopnet.js';
 import { coopLoadTekst, COOP_LOAD_FAIL, runCoopLoad, runCoopStop } from './cooploadrules.js';
@@ -1264,7 +1264,13 @@ function askClose(a) {
 function runAction(a) {
   const confirmEl = root.querySelector('[data-restart-confirm]');
   if (a === 'resume') setOpen(false);
-  else if (a === 'save') status(saveGame(world, { manual: true }) ? `Opgeslagen om ${new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}` : 'Opslaan mislukt');
+  else if (a === 'save') {
+    // #606: een gast bewaart alleen zijn eigen verdiensten; zeg dat ook, in plaats van "Opgeslagen om ..."
+    const ok = saveGame(world, { manual: true });
+    if (!ok) status('Opslaan mislukt');
+    else if (world && world.coopRole === 'client') status(GAST_BEWAARD_TEKST);
+    else status(`Opgeslagen om ${new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}`);
+  }
   else if (a === 'load') {
     if (coopSessieLoopt(world)) {
       // een lopende sessie eindigt eerst; dezelfde volgorde als in het savepaneel (#492)
