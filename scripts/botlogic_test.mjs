@@ -15,6 +15,9 @@ const Bd = await import(pathToFileURL(path.join(root, 'scripts', 'bot', 'board.m
 const Rc = await import(pathToFileURL(path.join(root, 'scripts', 'bot', 'race.mjs')).href);
 const St = await import(pathToFileURL(path.join(root, 'scripts', 'bot', 'stunt.mjs')).href);
 const Z = await import(pathToFileURL(path.join(root, 'game', 'js', 'zeilrules.js')).href);
+// #312: de achtervolging (scripts/bot/chase.mjs) en de kraak-minigame (scripts/bot/kraak.mjs)
+const Ch = await import(pathToFileURL(path.join(root, 'scripts', 'bot', 'chase.mjs')).href);
+const Kr = await import(pathToFileURL(path.join(root, 'scripts', 'bot', 'kraak.mjs')).href);
 let fails = 0, n = 0;
 const ok = (c, name) => { n++; if (!c) { fails++; console.log('FAIL', name); } };
 const near = (a, b, e = 1e-6) => Math.abs(a - b) < e;
@@ -705,6 +708,29 @@ ok(L.decide({ ...b(), mission: { active: true, stage: 'hold' }, target: { x: 8, 
   ok(veilig.schuil === true && L.inCone({ x: 0, y: 0 }, w) === false, 'schuil: de bot zoekt een tussenpunt');
   ok(L.coneExposure({ x: 0, y: 0 }, { x: veilig.x, y: veilig.y }, [w]) < L.coneExposure({ x: 0, y: 0 }, { x: 20, y: 0 }, [w]), 'schuil: het tussenpunt is beter dan recht door');
   ok(L.stealthAim([], { x: 0, y: 0 }, { x: 20, y: 0 }).schuil === false, 'schuil: zonder wachters gewoon recht door');
+}
+
+// --- #312: achtervolging te voet/voertuig -----------------------------------------
+{
+  const ver = Ch.chaseStep({ afstand: 40, doelInVoertuig: true, heeftVoertuig: true });
+  ok(ver.actie === 'instappen' && ver.toets.includes('e'), 'chase: doel rijdt weg, bot pakt zijn voertuig');
+  const geen = Ch.chaseStep({ afstand: 40, doelInVoertuig: true, heeftVoertuig: false });
+  ok(geen.actie === 'achtervolgen' && geen.toets.length === 0, 'chase: zonder voertuig gewoon rennen');
+  const dichtbij = Ch.chaseStep({ afstand: 1.5, doelInVoertuig: false });
+  ok(dichtbij.actie === 'grijpen' && dichtbij.toets.includes('e'), 'chase: te voet dichtbij grijpen');
+  const inAuto = Ch.chaseStep({ afstand: 60, inVoertuig: true });
+  ok(inAuto.actie === 'achtervolgen' && inAuto.why.includes('gas'), 'chase: met voertuig gas houden');
+  ok(Ch.chaseStep({ doelWeg: true }).actie === 'klaar', 'chase: doel weg is klaar');
+}
+
+// --- #312: kraak-minigame (M06) ---------------------------------------------------
+{
+  const kies = Kr.kraakStep({ fase: 'kies', opties: [{ id: 'b' }, { id: 'a' }] });
+  ok(kies.toets.includes('a'), 'kraak: kiest A');
+  ok(Kr.kraakStep({ fase: 'kies', opties: [{ id: 'b' }] }).toets.length === 0, 'kraak: zonder A geen druk');
+  ok(Kr.kraakStep({ fase: 'naald', naald: 0.5, doel: 0.55 }).toets.includes(' '), 'kraak: in de marge drukken');
+  ok(Kr.kraakStep({ fase: 'naald', naald: 0.2, doel: 0.55 }).toets.length === 0, 'kraak: buiten de marge wachten');
+  ok(Kr.kraakStep({ fase: 'klaar' }).toets.includes('e'), 'kraak: klaar is bevestigen');
 }
 
 console.log(`${n - fails}/${n} ok`);
