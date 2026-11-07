@@ -603,3 +603,19 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .pm-touchcap { min-width: 44px; height: 30px; padding: 0 10px; font-size: 16px; }
 #pause-menu .pm-cdesc .one { display: block; color: var(--ink); font-size: 18px; margin-bottom: 2px; }
 #pause-menu .pm-cgroup.pm-help .pm-cdesc { font-size: 17px; line-height: 1.35; }
+
+/* #634: wachtkamer-formulieren op de menu-set; kleuren uit coopidentiteit.js als klassen */
+.coop-wensen { display: flex; flex-wrap: wrap; gap: 10px; }
+.coop-profiel, .coop-wachtwoord-veld { display: flex; flex-direction: column; gap: 8px; margin: 10px 0; }
+.coop-profiel-label, .coop-wachtwoord-label { display: flex; gap: 8px; align-items: center; }
+.coop-profiel-naam { min-width: 0; flex: 1; max-width: 260px; }
+.coop-kleuren { display: flex; flex-wrap: wrap; gap: 6px; }
+.coop-kleuren .coop-kleur { min-height: 44px; }
+.coop-profiel-hint { margin: 0; }
+.coop-wachtwoord-veld .coop-wachtwoord-label { max-width: 360px; }
+.coop-wachtwoord { min-width: 0; flex: 1; }
+.coop-wachtwoord-hint { margin: 4px 0 0; }
+.coop-chip[aria-pressed="true"] { background: rgba(240, 237, 228, 0.12); color: var(--ink); }
+.coop-kleur-stip { font-size: 0.9em; }
+.coop-kleur-0 { color: #4fb3ff; } .coop-kleur-1 { color: #5bd6a0; } .coop-kleur-2 { color: #f2b134; } .coop-kleur-3 { color: #ff9a62; }
+.coop-kleur-4 { color: #ff7ab8; } .coop-kleur-5 { color: #b78cff; } .coop-kleur-6 { color: #e86a6a; } .coop-kleur-7 { color: #6fd3e0; }
