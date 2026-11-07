@@ -1,4 +1,5 @@
 import { hoofdspeler } from './players.js';
+import { gridItems } from './spatialgrid.js';
 import { SMS_SAY } from './smsvoice.js';
 import { lineVoiceFor, NARRATOR } from './linevoice.js';
 import { playLineVoice } from './audio.js';
@@ -235,7 +236,7 @@ export function krolLevel() {
 function ringPoints() {
   if (ringPts) return ringPts;
   ringPts = [];
-  for (const r of world.map.roads) {
+  for (const r of gridItems(world.map.roadGrid)) {
     if (!(r.name === 'Weg der Verenigde Naties' || r.name === 'Julianaweg' || (r.ref === 'N7' && r.cat === 'major' && L(r.pts[0][0], r.pts[0][1])[1] > 900))) continue;
     for (const q of r.pts) if (!ringPts.some((o) => Math.abs(o[0] - q[0]) + Math.abs(o[1] - q[1]) < 50)) ringPts.push(q);
   }

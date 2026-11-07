@@ -41,7 +41,9 @@ export async function loadCityWorld({ src = worldSrc() } = {}) {
     const built = P.build(await P.loadSourcesLaag());
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gde-loadworld-'));
     try {
-      P.writeWorld(dir, built, new Set(built.blobs.keys()));
+      // tests die de hele arrays lezen (audits, mode/route-tests) krijgen de dichte variant;
+      // de sparse productievariant wordt door tileworld_sparse_test op de echte tegels gedekt.
+      P.writeWorld(dir, built, new Set(built.blobs.keys()), { sparse: false });
       const files = {};
       for (const f of fs.readdirSync(dir)) files[f] = new Uint8Array(fs.readFileSync(path.join(dir, f)));
       const tw = await loadTileWorld('world/', { source: new S.MemorySource(files), pool: false });

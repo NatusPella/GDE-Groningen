@@ -1,4 +1,5 @@
 import { hoofdspeler } from './players.js';
+import { gridItems } from './spatialgrid.js';
 // Movable bridges (docs/PROVINCIE-PLAN.md 2.11, "Water"): every road that OSM
 // tags bridge:movable (scripts/world/water.mjs sets road.movable) opens for
 // boats that do not fit under it, and for a skipper who sounds the horn in
@@ -146,11 +147,13 @@ function makeBridge(r, pinned) {
 // The bridges of a map: one per movable road. Span along the road from its
 // first to its last vertex; `half` the deck's half width.
 let bridgeMap = null; // the map the bridges stand on: where a barrier post may stand (not on another carriageway)
-export function buildMovableBridges(map) {
+export function buildMovableBridges(map, roads = null) {
   bridgeMap = map;
   bridges = [];
-  adoptSideSpans(map.roads || []);
-  for (const r of map.roads || []) { const b = makeBridge(r, true); if (b) bridges.push(b); }
+  // #314 C2: de lijst van de aanroeper (tests/bouwer) of de wegen uit het raster.
+  const list = roads || (map.roadGrid ? gridItems(map.roadGrid) : []);
+  adoptSideSpans(list);
+  for (const r of list) { const b = makeBridge(r, true); if (b) bridges.push(b); }
   ready = true;
   version++;
   return bridges;

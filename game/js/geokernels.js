@@ -136,7 +136,8 @@ function shoreInit({ bounds }) {
 // wi: the polygon's place in map.water (both maps come from the same file);
 // its point count and first point make sure it is the same one
 function shore({ wi, n, x, y, waterY, withApron }) {
-  const poly = RD.map && RD.map.water[wi];
+  // (#314 C2) de waterrij via zijn bouw-id, niet via de arraylaag (die kan sparse zijn)
+  const poly = RD.map && RD.map._waterByWi && RD.map._waterByWi[wi];
   if (!poly || poly.pts.length !== n || poly.pts[0][0] !== x || poly.pts[0][1] !== y) return { result: null, transfer: [] };
   const s = shoreParts(poly, RD.map, waterY, withApron);
   const transfer = [];

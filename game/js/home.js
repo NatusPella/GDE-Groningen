@@ -313,8 +313,7 @@ export function prepareHomeMap(map) {
   // the parking aisles and the deck ramp inside the plinth are ours now
   for (const r of map.roadsNear(c.x, c.y, 40).slice()) {
     if (!r.pts.every(([x, y]) => inPoly(PLINTH, x, y, 1.2))) continue;
-    const i = map.roads.indexOf(r);
-    if (i >= 0) map.roads.splice(i, 1);
+    map.dropRoad(r);
     regrid(map.roadGrid, r, null);
   }
   // the garage itself, for traffic and police spawns (vehicle.js, police.js)

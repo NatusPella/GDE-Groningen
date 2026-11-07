@@ -355,7 +355,7 @@ export class TileWorld extends GameMap {
           this._res[kind].set(gid, e);
           if (kind === 'buildings' || kind === 'roads' || kind === 'water' || kind === 'green' || kind === 'rails' || kind === 'parcels') obj.bounds = boundsOfObj(kind, obj);
           if (kind === 'water') { obj.tile = true; promoteMainWaterway(obj); this._waterVer = (this._waterVer || 0) + 1; newWater.push(obj); }
-          if (kind === 'roads') newRoads.push(obj);
+          if (kind === 'roads') { obj._ord = 1e7 + (this._ordSeq = (this._ordSeq || 0) + 1); newRoads.push(obj); }
           if (kind === 'trees') ownTrees.push(obj);
           if (kind === 'furniture' && obj.k === 'hedge' && obj.pts) ownHedges.push(obj);
           if (kind === 'buildings' && obj.type === 'houseboat') addMooredBuilding(this, obj); // (boats keep off it, #343)

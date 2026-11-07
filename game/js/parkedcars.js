@@ -9,7 +9,7 @@ import { buildingAt, boxOf, waterGap } from './tileplace.js';
 import { blockPlan, farmDetail, farmWorld, pushOutOfPlan, FARM_TYPES } from './countryplan.js';
 import { roadGap } from './countryedge.js';
 import { baysIn } from './parkinglots.js';
-import { SpatialGrid } from './spatialgrid.js';
+import { SpatialGrid, gridItems } from './spatialgrid.js';
 import { hash3 as hash } from './rng.js';
 
 // Kerbside parking along residential streets: half a car length up on the
@@ -47,7 +47,8 @@ function stateOf(world) {
   let st = states.get(world);
   if (!st) {
     st = { cells: new Map(), active: new Set(), sleeping: new Set(), grid: new SpatialGrid(GRID), genQueue: [], roadIdx: new Map() };
-    world.map.roads.forEach((r, i) => st.roadIdx.set(r, i));
+    // #314: de bouw-id (_ord) is stabiel over een drop/add; de rasterpositie niet.
+    gridItems(world.map.roadGrid).forEach((r, i) => st.roadIdx.set(r, Number.isFinite(r._ord) ? r._ord : i));
     states.set(world, st);
   }
   return st;

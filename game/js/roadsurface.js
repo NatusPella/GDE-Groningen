@@ -1,4 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { gridItems } from './spatialgrid.js';
 import { applyWetGround } from './terrain3d.js';
 import { buildRoadStructure, buildOverpassDeck, structureGroup, jointAway, jointMiter } from './roadstructures3d.js';
 import { onSettingsChange, QUALITY_PRESETS } from './settings.js';
@@ -402,7 +403,7 @@ function netState(map) {
   let s = nets.get(map);
   if (s) return s;
   s = { nodeIndex: new Map(), lights: allSignals(map).filter((l) => !l.bike) };
-  for (const r of map.roads) {
+  for (const r of gridItems(map.roadGrid)) {
     for (let i = 0; i < r.pts.length; i++) {
       const k = nodeKey(r.pts[i]);
       let a = s.nodeIndex.get(k);

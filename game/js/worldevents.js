@@ -1,4 +1,5 @@
 import { hoofdspeler } from './players.js';
+import { gridItems } from './spatialgrid.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { canvasTex } from './canvastex.js';
 import { getScene } from './scene3d.js';
@@ -152,16 +153,19 @@ function updateQuake(dt, w) {
 
 function lakesOf(map) {
   const out = [];
-  map.water.forEach((poly, i) => {
-    if (!poly.bounds || !poly.pts || poly.pts.length < 12) return;
+  // (#314 C2) het vaste water uit het waterraster, met de bouw-id (_wi) als stabiele meren-id;
+  // de volgorde blijft die van de bron, zodat de blauwalgplekken niet verschuiven.
+  for (const poly of map.waterGrid ? gridItems(map.waterGrid) : []) {
+    if (poly.tile || poly._wi === undefined || !poly.bounds || !poly.pts || poly.pts.length < 12) continue;
     let a = 0;
     for (let j = 0; j < poly.pts.length; j++) {
       const q = poly.pts[j], r = poly.pts[(j + 1) % poly.pts.length];
       a += q[0] * r[1] - r[0] * q[1];
     }
     const area = Math.abs(a / 2);
-    if (area >= ALGAE.minArea) out.push({ id: i + 1, bounds: poly.bounds, area, poly });
-  });
+    if (area >= ALGAE.minArea) out.push({ id: poly._wi + 1, _wi: poly._wi, bounds: poly.bounds, area, poly });
+  }
+  out.sort((x, y) => x._wi - y._wi);
   return out;
 }
 

@@ -406,12 +406,14 @@ function wayLength(P) {
 // The first piece keeps the way's place in map.roads, the others are
 // appended. Returns what was cut.
 const underground = (r) => (r.tunnel || r.layer < 0) && !(r.z && r.z.some((z) => Math.abs(z) > 1.5));
-export function clipWaysInBuildings(map) {
+export function clipWaysInBuildings(map, source) {
+  // #314 C2: de bronlijst komt van de aanroeper (het bouwpad), niet uit de live map-array;
+  // een sparse wegenlaag bestaat op dit pad niet.
   const cut = [];
-  const n0 = map.roads.length;
+  const n0 = source.roads.length;
   let removed = false;
   for (let ri = 0; ri < n0; ri++) {
-    const r = map.roads[ri];
+    const r = source.roads[ri];
     if (r.pts.length < 2 || (!underground(r) && ((r.cat !== 'foot' && r.cat !== 'cycle') || offGradeWay(r)))) continue;
     const rb = r.bounds;
     let spans = null;
@@ -437,13 +439,13 @@ export function clipWaysInBuildings(map) {
     // (the pieces of an area's outline end at the wall without a door)
     const P = r.pts, ring = Math.hypot(P[0][0] - P[P.length - 1][0], P[0][1] - P[P.length - 1][1]) < 0.5;
     const ways = cutSpans(P, merged).filter((q) => wayLength(q) >= 1).map((pts) => ({ ...r, pts, bounds: polygonBounds(pts), clipped: true, noDoors: ring }));
-    if (ways.length) map.roads[ri] = ways[0];
-    else { map.roads[ri] = null; removed = true; }
-    for (let i = 1; i < ways.length; i++) map.roads.push(ways[i]);
+    if (ways.length) source.roads[ri] = ways[0];
+    else { source.roads[ri] = null; removed = true; }
+    for (let i = 1; i < ways.length; i++) source.roads.push(ways[i]);
   }
   if (!cut.length) return cut;
-  if (removed) map.roads = map.roads.filter(Boolean);
+  if (removed) source.roads = source.roads.filter(Boolean);
   // passages and doors are worked out again with the cut ways
-  for (const b of map.buildings) if (b.passages) { b.passages = null; b._doors = null; }
+  for (const b of source.buildings) if (b.passages) { b.passages = null; b._doors = null; }
   return cut;
 }

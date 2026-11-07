@@ -21,6 +21,8 @@ function mkTiles() {
       { type: G.SECTION.BUILDINGS, rows: [{ gid: 0, pts: sq(200, 200, 20), type: 'house', h: 6 }] },
       { type: G.SECTION.GREEN, rows: [{ gid: 0, pts: sq(300, 300, 30), kind: 'gras' }] },
       { type: G.SECTION.TREES, rows: [{ g: 0, p: [[400, 400]] }] },
+      { type: G.SECTION.WATER, rows: [{ gid: 0, pts: sq(500, 500, 40), kind: 'meer', lv: 0, nav: 0 }] },
+      { type: G.SECTION.ROADS, rows: [{ gid: 0, pts: [[600, 600], [700, 600]], cat: 'normal', type: 'residential', width: 6, name: 'Straat' }] },
     ] },
     { i: 1, j: 0, sections: [
       { type: G.SECTION.RAILS, rows: [{ gid: 1, pts: [[1010, 10], [1110, 10]], z: [0, 0] }] },
@@ -28,13 +30,15 @@ function mkTiles() {
       { type: G.SECTION.BUILDINGS, rows: [{ gid: 1, pts: sq(1200, 200, 20), type: 'house', h: 6 }] },
       { type: G.SECTION.GREEN, rows: [{ gid: 1, pts: sq(1300, 300, 30), kind: 'gras' }] },
       { type: G.SECTION.TREES, rows: [{ g: 1, p: [[1400, 400]] }] },
+      { type: G.SECTION.WATER, rows: [{ gid: 1, pts: sq(1500, 500, 40), kind: 'meer', lv: 0, nav: 0 }] },
+      { type: G.SECTION.ROADS, rows: [{ gid: 1, pts: [[1600, 600], [1700, 600]], cat: 'normal', type: 'residential', width: 6, name: 'Straat' }] },
     ] },
   ];
 }
 const sq = (x, y, s) => [[x, y], [x + s, y], [x + s, y + s], [x, y + s], [x, y]];
-const global = { sections: [{ type: G.SECTION.META, json: { counts: { rails: 2, furniture: 2, buildings: 2, trees: 2, green: 2 }, meta: {} } }] };
-const KINDS = ['rails', 'furniture', 'buildings', 'trees', 'green'];
-const GRIDS = { rails: 'railGrid', furniture: 'furnitureGrid', buildings: 'buildingGrid', trees: 'treeGrid', green: 'greenGrid' };
+const global = { sections: [{ type: G.SECTION.META, json: { counts: { rails: 2, furniture: 2, buildings: 2, trees: 2, green: 2, water: 2, roads: 2 }, meta: {} } }] };
+const KINDS = ['roads', 'buildings', 'water', 'trees', 'rails', 'furniture', 'green'];
+const GRIDS = { roads: 'roadGrid', rails: 'railGrid', furniture: 'furnitureGrid', buildings: 'buildingGrid', trees: 'treeGrid', green: 'greenGrid', water: 'waterGrid' };
 const opts = { sparse: KINDS };
 
 // dichte wereld (oud gedrag) en sparse wereld (nieuw) uit dezelfde rijen
@@ -42,7 +46,8 @@ const dense = TileWorld.fromTiles(global, mkTiles());
 const sparse = TileWorld.fromTiles(global, mkTiles(), opts);
 
 ok(dense.rails.length === 2 && dense.furniture.length === 2, 'de dichte wereld heeft de arraylaag nog');
-ok(KINDS.every((k) => sparse[k].length === 0), 'de sparse wereld heeft voor alle vijf soorten geen arraylaag', KINDS.map((k) => `${k}:${sparse[k].length}`).join(','));
+ok(KINDS.every((k) => sparse[k].length === 0), 'de sparse wereld heeft voor alle zeven soorten geen arraylaag', KINDS.map((k) => `${k}:${sparse[k].length}`).join(','));
+ok(sparse.orderedRoads().length === 2 && sparse.orderedRoads()[0]._ord <= sparse.orderedRoads()[1]._ord, 'de wegen komen in bouwvolgorde uit het raster (geen array nodig)');
 ok(KINDS.every((k) => gridItems(sparse[GRIDS[k]]).length === 2), 'de rasters van de sparse wereld zijn gevuld');
 for (const k of KINDS) ok(JSON.stringify(sig(gridItems(sparse[GRIDS[k]]))) === JSON.stringify(sig(gridItems(dense[GRIDS[k]]))), `dezelfde ${k} in het raster als bij de dichte wereld`);
 ok(sparse.railNear(60, 10, 5).length === 1, 'railNear vindt het spoor van de sparse wereld');
@@ -50,6 +55,8 @@ ok(sparse.furnitureGrid.query(15, 15, 25, 25).length === 1, 'de meubelvraag vind
 ok(sparse.buildingsNear(205, 205, 1).length === 1, 'buildingsNear vindt het huis van de sparse wereld');
 ok(sparse.greenNear(305, 305, 1).length === 1, 'greenNear vindt het groen van de sparse wereld');
 ok(gridItems(sparse.treeGrid).length === 2, 'de bomen staan in het boomraster');
+ok(sparse.waterNear(510, 510, 1).length === 1, 'waterNear vindt de plas van de sparse wereld');
+ok(sparse._waterByWi && sparse._waterByWi.length === 2 && sparse._waterByWi[0]._wi === 0 && sparse._waterByWi[1]._wi === 1, 'de waterrijen houden hun bouw-id voor de geo-werker');
 
 // drop-pad: een gepinde tegel valt weg; sparse soorten gaan mee, dichte soorten blijven (pin)
 const tk = '0,0';
@@ -57,7 +64,7 @@ const geo0 = sparse.geoVer || 0;
 ok(sparse.dropTile(tk) === true, 'de gepinde tegel valt uit de sparse wereld');
 ok(sparse.geoVer === geo0 + 1, 'de geo-versie stijgt bij een drop (caches kunnen verversen)');
 ok(KINDS.every((k) => gridItems(sparse[GRIDS[k]]).length === 1), 'alleen de rijen van die tegel zijn uit de rasters');
-ok(!sparse._res.rails.has(0) && sparse._res.rails.has(1) && !sparse._res.buildings.has(0) && !sparse._res.green.has(0) && !sparse._res.trees.has(0), 'de rijen zijn ook uit _res');
+ok(!sparse._res.rails.has(0) && sparse._res.rails.has(1) && !sparse._res.buildings.has(0) && !sparse._res.green.has(0) && !sparse._res.trees.has(0) && !sparse._res.water.has(0) && !sparse._res.roads.has(0), 'de rijen zijn ook uit _res (ook het water en de weg)');
 const denseBefore = Object.fromEntries(KINDS.map((k) => [k, gridItems(dense[GRIDS[k]]).length]));
 ok(dense.dropTile(tk) === true, 'dezelfde tegel valt ook uit de dichte wereld');
 for (const k of KINDS) ok(dense[k].length === 2 && gridItems(dense[GRIDS[k]]).length === denseBefore[k], `de dichte wereld houdt zijn ${k} (de pin)`);
@@ -74,7 +81,8 @@ for (const k of KINDS) ok(JSON.stringify(sig(gridItems(sparse[GRIDS[k]]))) === J
 const broken = mkTiles();
 broken[0].sections.push({ type: G.SECTION.ROADS, rows: [{ gid: 0, pts: [[0, 0], [10, 0]] }] });
 let threw = '';
-try { TileWorld.fromTiles({ sections: [{ type: G.SECTION.META, json: { counts: { rails: 2, furniture: 2, roads: 2 }, meta: {} } }] }, broken); } catch (e) { threw = String(e.message); }
+// alleen deze tegel: het tweede wegslot (gid 1) ontbreekt in een dichte wereld
+try { TileWorld.fromTiles({ sections: [{ type: G.SECTION.META, json: { counts: { roads: 2 }, meta: {} } }] }, [broken[0]]); } catch (e) { threw = String(e.message); }
 ok(/tiles lack roads/.test(threw), 'een dicht soort met een gat is nog steeds een fout', threw.slice(0, 60));
 
 // Echte wereld: dezelfde opgeslagen tegels één keer dicht en één keer met een sparse
@@ -95,13 +103,22 @@ if (heeftWereld()) {
   sparseFiles['index.json'] = new TextEncoder().encode(JSON.stringify({ ...idx, sparse: KINDS }));
   const sparseWorld = (await loadTileWorld('world/', { source: new T.MemorySource(sparseFiles), pool: false })).world;
   const wsig = (g) => gridItems(g).map((o) => JSON.stringify({ k: o.k || o.type || '', pts: o.pts && o.pts.slice(0, 2), z: o.z && o.z.slice(0, 2) })).sort();
-  ok(KINDS.every((k) => sparseWorld[k].length === 0), 'de echte wereld laadt zonder arraylaag voor de vijf sparse soorten');
+  ok(KINDS.every((k) => sparseWorld[k].length === 0), 'de echte wereld laadt zonder arraylaag voor de zeven sparse soorten');
   ok(KINDS.every((k) => denseWorld[k].length === (idx.counts[k] || 0)), 'de dichte wereld heeft de arraylaag nog (even groot als de telling)');
+  ok(sparseWorld.orderedRoads().length === gridItems(denseWorld.roadGrid).length, 'de echte wereld: alle wegen in bouwvolgorde uit het raster');
   for (const k of KINDS) {
     ok(gridItems(sparseWorld[GRIDS[k]]).length === gridItems(denseWorld[GRIDS[k]]).length, `de echte wereld: evenveel ${k} in het raster`, `${gridItems(sparseWorld[GRIDS[k]]).length} vs ${gridItems(denseWorld[GRIDS[k]]).length}`);
     ok(JSON.stringify(wsig(sparseWorld[GRIDS[k]])) === JSON.stringify(wsig(denseWorld[GRIDS[k]])), `de echte wereld: dezelfde ${k} (pariteit)`);
   }
   console.log(`(echte wereld meegeteld: ${KINDS.map((k) => `${gridItems(sparseWorld[GRIDS[k]]).length} ${k}`).join(', ')})`);
+}
+
+// #314: de router bouwt zijn graaf uit het wegenraster en haalt de weg bij een
+// knooppunt uit dezelfde lijst, niet uit de sparse arraylaag.
+{
+  const R = await import('../game/js/routing.js');
+  const route = R.findWalkPath(sparse, 605, 600, 695, 600);
+  ok(route && route.pts.length >= 2 && route.legs.length >= 1 && route.legs.every(Boolean), 'routing werkt op de sparse wegenlaag');
 }
 
 console.log(`tileworld_sparse_test: ${fails ? fails + ' FAILED' : 'ok'} (${n} checks)`);

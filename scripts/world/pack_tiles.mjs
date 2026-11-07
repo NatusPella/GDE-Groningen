@@ -253,7 +253,7 @@ export function build({ map }, attrs = loadAttrs(), terrain = loadTerrainRasters
     });
   }
   // the junction model (junctions.js): a junction sits in the tile of its node
-  for (const row of junctionRows(map)) {
+  for (const row of junctionRows(map, map.roads)) {
     const [i, j] = G.tileIndexOf(row.p[0][0], row.p[0][1]);
     const t = tileOf(i, j);
     (t.kinds.junctions || (t.kinds.junctions = [])).push(row);
@@ -294,7 +294,7 @@ export function build({ map }, attrs = loadAttrs(), terrain = loadTerrainRasters
 
 const deflate = (b) => new Uint8Array(zlib.deflateRawSync(b, { level: 9 }));
 
-export function writeWorld(out, { blobs, global, counts, pois }, citySet = null) {
+export function writeWorld(out, { blobs, global, counts, pois }, citySet = null, { sparse = true } = {}) {
   fs.mkdirSync(out, { recursive: true });
   for (const f of fs.readdirSync(out)) if (f.endsWith('.gdp') || f === 'index.json') fs.rmSync(path.join(out, f));
   const packs = new Map();
@@ -305,8 +305,8 @@ export function writeWorld(out, { blobs, global, counts, pois }, citySet = null)
   const index = { format: G.GDT_FORMAT, builder: BUILDER, frame: 'rd-new', tileM: G.TILE_M, grid: [G.GRID_X0, G.GRID_Y0], rdTile0: [G.RD_TILE_X0, G.RD_TILE_Y0], counts, pois, packs: {}, tiles: {}, global: null, pins: {},
     // #314 C1/C2: deze soorten mogen een sparse arraylaag hebben (rijen alleen in _res en de
     // rasters): fromTiles slaat hun array over en dropTile/addTile houden ze per tegel bij.
-    // Wegen en water blijven dicht tot hun resterende lezers (stable ids/writers) om zijn.
-    sparse: ['rails', 'furniture', 'buildings', 'trees', 'green'] };
+    // De teller staat op 0 hele-array-lezers; de grafen en tekenlagen lezen de rasters.
+    ...(sparse ? { sparse: ['roads', 'buildings', 'water', 'trees', 'rails', 'furniture', 'green'] } : {}) };
   const writePack = (name, entries) => {
     const parts = [];
     let off = 0;

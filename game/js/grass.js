@@ -810,6 +810,7 @@ export function generateCell(map, ci, cj, Q, full) {
 
 let scene = null, map = null, polyGeometry = null;
 let chunks = null;
+let chunksGeoVer = null; // (#314 C2) de kaartstand waar de chunks bij horen
 let quality = null;
 let qualityName = 'hoog';
 const cells = new Map();
@@ -839,20 +840,7 @@ export function initGrass(sc, mp, opts) {
   scene = sc;
   map = mp;
   polyGeometry = opts.polyGeometry;
-  chunks = new Map();
-  // #314 C1/C2: de gras-chunks over de groenlaag uit het raster (de arraylaag kan sparse zijn)
-  for (const g of map.greenGrid ? gridItems(map.greenGrid) : []) {
-    if (!g.bounds || g.pts.length < 3) continue;
-    const i = Math.floor((g.bounds[0] + g.bounds[2]) / 2 / CHUNK), j = Math.floor((g.bounds[1] + g.bounds[3]) / 2 / CHUNK);
-    const key = i + ',' + j;
-    let c = chunks.get(key);
-    if (!c) chunks.set(key, c = { polys: [], bounds: [Infinity, Infinity, -Infinity, -Infinity], group: null });
-    c.polys.push(g);
-    c.bounds[0] = Math.min(c.bounds[0], g.bounds[0]); c.bounds[1] = Math.min(c.bounds[1], g.bounds[1]);
-    c.bounds[2] = Math.max(c.bounds[2], g.bounds[2]); c.bounds[3] = Math.max(c.bounds[3], g.bounds[3]);
-  }
-  for (const c of chunks.values()) c.polys.sort((a, b) => kindOf(a).prio - kindOf(b).prio);
-  assignSubLayers(map);
+  buildGrassChunks();
 
   const mat = tuftMaterial(0.82, grassFade);
   const shrubMat = tuftMaterial(0.9, shrubFade);
@@ -948,7 +936,27 @@ function rectDist(b, x, y) {
   return Math.hypot(dx, dy);
 }
 
+// (#314 C2) De chunks over de groenlaag; opnieuw opgebouwd als map.geoVer verandert.
+function buildGrassChunks() {
+  if (chunks) for (const c of chunks.values()) if (c.group) disposeChunk(c);
+  chunks = new Map();
+  for (const g of map.greenGrid ? gridItems(map.greenGrid) : []) {
+    if (!g.bounds || g.pts.length < 3) continue;
+    const i = Math.floor((g.bounds[0] + g.bounds[2]) / 2 / CHUNK), j = Math.floor((g.bounds[1] + g.bounds[3]) / 2 / CHUNK);
+    const key = i + ',' + j;
+    let c = chunks.get(key);
+    if (!c) chunks.set(key, c = { polys: [], bounds: [Infinity, Infinity, -Infinity, -Infinity], group: null });
+    c.polys.push(g);
+    c.bounds[0] = Math.min(c.bounds[0], g.bounds[0]); c.bounds[1] = Math.min(c.bounds[1], g.bounds[1]);
+    c.bounds[2] = Math.max(c.bounds[2], g.bounds[2]); c.bounds[3] = Math.max(c.bounds[3], g.bounds[3]);
+  }
+  for (const c of chunks.values()) c.polys.sort((a, b) => kindOf(a).prio - kindOf(b).prio);
+  assignSubLayers(map);
+  chunksGeoVer = map.geoVer;
+}
+
 function syncChunks(px, py, dist) {
+  if (map && chunksGeoVer !== map.geoVer) buildGrassChunks(); // #314 C2: tegel erbij/weg
   const t0 = performance.now();
   for (const c of chunks.values()) {
     const d = rectDist(c.bounds, px, py);

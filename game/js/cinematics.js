@@ -1,4 +1,5 @@
 import { screenFx } from './postfx3d.js';
+import { gridItems } from './spatialgrid.js';
 import { isOverlayHeld } from './overlayhold.js';
 import { cutsceneTakesSpace } from './spacegate.js';
 import { setDualText } from './subtitles.js';
@@ -648,7 +649,7 @@ let cityBox = null;
 function realMapBox(map) {
   if (cityBox) return cityBox;
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
-  for (const r of map.roads) {
+  for (const r of gridItems(map.roadGrid)) {
     const b = r.bounds;
     if (!b) continue;
     if (b[0] < x0) x0 = b[0];
