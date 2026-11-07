@@ -33,6 +33,10 @@ export const BIJBAAN_REGELS = {
   bezorger: { rol: 'tweede bezorger', hulp: 'Loop zelf naar de zaak en naar de klant: wie het eerst bij de deur staat, haalt op en geeft af.', positie: true, actie: false },
   krantenwijk: { rol: 'helper', hulp: 'Loop mee en gooi kranten met E naar de brievenbussen. De stapel is gedeeld.', positie: true, actie: true },
   vracht: { rol: 'bijrijder', hulp: 'Rijd mee in de truck van de chauffeur en help met E bij laden en lossen. De chauffeur rijdt.', positie: false, actie: true },
+  // #683: drie banen waar een meespeler als passagier of tweede jurylid meedoet en de volle beloning deelt.
+  rondvaart: { rol: 'passagier', hulp: 'Stap met E aan boord van de rondvaartboot en vaar mee; je hoort het verhaal en deelt de fooi.', positie: false, actie: false },
+  veerdienst: { rol: 'passagier', hulp: 'Stap met E aan boord van de veerboot en vaar mee; elke overtocht levert jou ook het volle loon op.', positie: false, actie: false },
+  rechtbank: { rol: 'tweede jurylid', hulp: 'Zit in de jury: je ziet de zaak mee, deelt de vergoeding en één fout antwoord wordt door de jury vergeven.', positie: false, actie: false },
 };
 export const bijbaanMetCoop = (id) => Object.prototype.hasOwnProperty.call(BIJBAAN_REGELS, id);
 

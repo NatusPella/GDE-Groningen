@@ -117,8 +117,8 @@ const druk = (w, k) => w.input.s.add(k);
 const geld = (s) => s.gs.map((g) => g.gw.money);
 
 // ------------------------------------------------------------------ het kader: de regels en de berichten
-t('de tabel: taxi, bezorger, krantenwijk en vracht met een rol en een hulptekst; een andere baan is niet gedeeld', () => {
-  assert.deepEqual(Object.keys(B.BIJBAAN_REGELS).sort(), ['bezorger', 'krantenwijk', 'taxi', 'vracht']);
+t('de tabel: taxi, bezorger, krantenwijk, vracht, rondvaart, veerdienst en rechtbank met een rol en een hulptekst; een andere baan is niet gedeeld', () => {
+  assert.deepEqual(Object.keys(B.BIJBAAN_REGELS).sort(), ['bezorger', 'krantenwijk', 'rechtbank', 'rondvaart', 'taxi', 'veerdienst', 'vracht']);
   for (const [id, r] of Object.entries(B.BIJBAAN_REGELS)) assert.ok(r.rol.length > 3 && r.hulp.length > 20, id);
   assert.equal(B.bijbaanMetCoop('taxi'), true); assert.equal(B.bijbaanMetCoop('bus'), false); assert.equal(B.bijbaanMetCoop('constructor'), false);
   const alles = JSON.stringify(B.BIJBAAN_REGELS) + [B.BIJBAAN_TEKST.hostStart('A','B'), B.BIJBAAN_TEKST.laat('B'), B.BIJBAAN_TEKST.ja('B','h'), B.BIJBAAN_TEKST.gevraagd('B'), B.BIJBAAN_TEKST.bezig, B.BIJBAAN_TEKST.nee, B.BIJBAAN_TEKST.eindOk].join(' ');

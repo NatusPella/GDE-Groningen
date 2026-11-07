@@ -7,7 +7,7 @@ import { hoofdspeler } from './players.js';
 // recordings. All cases and names are invented.
 import { namedBuildingSpot, pick, euro } from './sidejobkit.js';
 import { createChoicePanel, keycap } from './choicepanel.js';
-import { pickDossier, dossierQuestions, verklaringPay, COURT_SAY } from './casework.js';
+import { pickDossier, dossierQuestions, verklaringPay, juryGenade, COURT_SAY } from './casework.js';
 import { dist } from './util.js';
 import { poiLayerPlaces } from './facilities.js';
 
@@ -76,11 +76,15 @@ export default {
     d.readT = READ_MIN_S;
     d.qi = 0;
     d.right = 0;
+    d.wrong = 0;
+    // #683: doen er meer spelers mee, dan zit er een tweede jurylid naast je (één fout telt niet).
+    d.jury = c.world && c.world.coopBijbaanAantal ? Math.max(1, c.world.coopBijbaanAantal(c.owner || 0)) : 1;
     d.picked = null;
     d.resultT = 0;
     ensurePanel().show();
     d.open = true;
     c.msg(COURT_SAY.pickup, 4.5);
+    if (d.jury > 1) c.msg('Er zit een tweede jurylid naast je: één fout antwoord wordt door de jury vergeven.', 4);
   },
 
   update(dt, c) {
@@ -124,6 +128,7 @@ export default {
           input.consume(k);
           d.picked = i;
           if (q.options[i].ok) d.right++;
+          else d.wrong++;
           d.phase = 'answered';
           d.resultT = 1.4;
           paintQuestion(c);
@@ -140,7 +145,7 @@ export default {
       if (d.resultT <= 0) {
         d.qi++;
         d.picked = null;
-        if (d.qi >= d.questions.length) { d.phase = 'result'; d.resultT = RESULT_S; d.pay = verklaringPay(d.right, d.questions.length); paintResult(c); }
+        if (d.qi >= d.questions.length) { d.phase = 'result'; d.resultT = RESULT_S; d.goed = Math.min(d.questions.length, juryGenade(d.right, d.wrong, d.jury)); d.pay = verklaringPay(d.goed, d.questions.length); paintResult(c); }
         else { d.phase = 'ask'; paintQuestion(c); }
       }
       return;
@@ -162,7 +167,7 @@ export default {
     const carrying = d.phase !== 'result';
     return {
       marker: carrying ? { x: d.dest.x, y: d.dest.y } : null,
-      progress: `Dossier ${c.streak + 1}${c.earned ? ` · verdiend ${euro(c.earned)}` : ''}`,
+      progress: `Dossier ${c.streak + 1}${c.earned ? ` · verdiend ${euro(c.earned)}` : ''}${d.jury > 1 ? ' · met tweede jurylid' : ''}`,
       goal: { label: d.dest.name, desc: d.phase === 'ask' || d.phase === 'answered' ? 'Beantwoord de vragen van de griffier' : 'Breng het dossier naar de balie (Tab: feiten lezen)' },
     };
   },
@@ -200,11 +205,12 @@ function paintQuestion(c) {
 
 function paintResult(c) {
   const d = c.data;
+  const goed = Number.isFinite(d.goed) ? d.goed : d.right;
   ensurePanel().set({
     kicker: 'VERKLARING AFGELEGD',
-    text: `${d.right} van ${d.questions.length} vragen goed`,
+    text: `${goed} van ${d.questions.length} vragen goed`,
     flash: d.pay.verdict,
-    bad: d.right < d.questions.length,
+    bad: goed < d.questions.length,
     help: '',
   });
 }

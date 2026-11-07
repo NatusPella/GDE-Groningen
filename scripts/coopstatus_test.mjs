@@ -61,7 +61,14 @@ t('elke bijbaan uit de code heeft een status; de coöp-bijbanen en de bus werken
   // #492: de vrachtbijbaan werkt samen met een bijrijder; de status volgt de regel in coopbijbaan.js
   assert.equal(BIJBAAN_REGELS.vracht.rol, 'bijrijder');
   assert.equal(S.samenStatus('bijbaan', 'vracht'), 'werkt');
-  for (const id of ['boerderij', 'rondvaart', 'tjalke']) assert.equal(S.samenStatus('bijbaan', id), 'nee', id);
+  for (const id of ['boerderij', 'tjalke', 'cabaret']) assert.equal(S.samenStatus('bijbaan', id), 'nee', id);
+  // #683: de drie nieuwe banen hebben een eigen helper-rol en staan op werkt
+  for (const [id, rol] of [['rondvaart', 'passagier'], ['veerdienst', 'passagier'], ['rechtbank', 'tweede jurylid']]) {
+    assert.equal(S.samenStatus('bijbaan', id), 'werkt', id);
+    assert.equal(BIJBAAN_REGELS[id].rol, rol, id + ': rol');
+    assert.ok(BIJBAAN_REGELS[id].hulp.length > 20, id + ': hulp');
+  }
+  assert.ok(S.samenKan().includes('de rondvaart') && S.samenKan().includes('de veerdienst') && S.samenKan().includes('de rechtbank'));
   for (const [id, st] of Object.entries(S.REGISTER.bijbaan)) if (st === 'werkt') assert.ok(id in BIJBAAN_REGELS || id === 'bus', 'werkt zonder coöp-regel: ' + id);
 });
 
@@ -186,7 +193,7 @@ t('twee of meer spelers: nee grijs, deels met markering, werkt niets; de start m
     for (const [soort, id] of [['activiteit', 'discgolf'], ['bijbaan', 'taxi'], ['bijbaan', 'bus'], ['stap', 'goto'], ['minigame', 'padel']]) assert.equal(S.samenWaarschuwing(w, soort, id), null, id);
   }
   const w = samen();
-  const r = S.waarschuwVoorStart(w, 'bijbaan', 'rondvaart');
+  const r = S.waarschuwVoorStart(w, 'bijbaan', 'tjalke');
   assert.equal(r.status, 'nee');
   assert.deepEqual(w.meldingen, ['Dit kan alleen in je eigen spel; samen kan hengelen, boeren of pannenkoeken bakken.']);
   assert.equal(S.waarschuwVoorStart(w, 'bijbaan', 'taxi'), null);
