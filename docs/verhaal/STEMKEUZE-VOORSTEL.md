@@ -1,16 +1,16 @@
-# Stemkeuze: de zeventien sprekers zonder stem
+# Stemkeuze: de zeventien sprekers van het nieuwe verhaal
 
-Zeventien personages uit het nieuwe verhaal hebben regels maar geen stem in `CAST`
-(`scripts/tts_lines_list.mjs`). Zonder stem maakt de takenlijst geen opdracht voor ze, dus
-**155 verhaalregels kunnen nu niet worden ingesproken** — daarvan hebben er 153 ook nog een
-Groningse spreektekst nodig (zie `DIALECT-CONCEPT.md`).
+Zeventien personages uit het nieuwe verhaal hebben regels maar hadden geen stem in `CAST`
+(`scripts/tts_lines_list.mjs`); zonder stem maakt de takenlijst geen opdracht voor ze. Op
+**6-11-2026** heeft de eigenaar de keuze aan de agent overgelaten. Hieronder de gekozen stemmen,
+meteen vastgelegd in `CAST` met stem, wie-beschrijving, stijlpoelen en `accent: GRO_ACCENT`; ze
+spreken dus Gronings, net als hun regels.
 
-Hieronder een voorstel: per personage een van de dertig vooraf ingesproken stemmen van Gemini, met
-dezelfde soort beschrijving als de bestaande cast (wie het is, hoe hij praat). De stemmen zijn met
-het oor gekozen door de eigenaar; dit voorstel is op papier gedaan en moet dus nog langs dat oor.
-Delen met een bestaand personage mag: `Leda` is nu bijvoorbeeld zowel Femke als het kind.
+De keuze is op papier gedaan: per stem is de beschrijving van de dertig vaste Gemini-stemmen
+gevolgd. Er is nog niets beluisterd of opgenomen. Delen met een bestaand personage mag: `Leda` is
+nu bijvoorbeeld zowel Femke, het kind als "Kind in het publiek".
 
-| Spreker | Regels | Voorstel | Personage | Waarom | Deelt stem met |
+| Spreker | Regels | Stem | Personage | Waarom | Deelt stem met |
 |---|---:|---|---|---|---|
 | Wubbo | 24 | `Sadaltager` | brugwachter met een werkfilosofie | "Knowledgeable": droog en bedachtzaam, past bij iemand die zijn hele werk in twee zinnen vat | Henk |
 | Willemien | 24 | `Aoede` | gastvrouw, nuchter en hartelijk | "Breezy": warm zonder zoetig te worden | Boerin Geesje |
@@ -30,18 +30,22 @@ Delen met een bestaand personage mag: `Leda` is nu bijvoorbeeld zowel Femke als 
 | Kind in het publiek | 1 | `Leda` | kind | "Youthful": dezelfde stem als Kind | Femke, Kind |
 | Buurvrouw | 1 | `Despina` | buurvrouw die voor twintig kookt | "Smooth": hartelijk en kletserig | Hilly, Strandtent Tineke |
 
-## Goedkeuren
+## Wat dit betekent
 
-- **Zo akkoord:** zeg het, dan zet ik deze zeventien in `CAST` met de beschrijving erbij, en dan komen
-  hun 155 regels in de takenlijst. Hun Groningse spreekteksten schrijf ik in dezelfde ronde als de
-  rest (het is dezelfde soort tekst als in `DIALECT-CONCEPT.md`).
-- **Anders:** noem per persoon een andere stem uit de dertig (`Orus`, `Callirrhoe`, `Charon`, `Puck`,
-  `Iapetus`, `Umbriel`, `Alnilam`, `Rasalgethi`, `Enceladus`, `Schedar`, `Sadaltager`,
-  `Zubenelgenubi`, `Aoede`, `Leda`, `Autonoe`, `Despina`, `Erinome`, `Laomedeia`, `Pulcherrima`,
-  `Vindemiatrix`, `Sulafat`, `Achernar`, `Gacrux`, `Kore`, `Fenrir`, `Algieba`, `Algenib`,
-  `Sadachbia`, `Zephyr`, `Achird`), of een van de honderden stemmen uit de Extended Voice Library —
-  die staan in AI Studio onder "Voices" en zijn met dezelfde `voice`-naam te gebruiken.
-- **Niets zeggen:** dan blijven deze 155 regels stil, en dat is geen fout: ze staan als ondertitel in
-  het spel.
+- De 155 regels van deze zeventien staan niet meer op "wacht op een stemkeuze": **2** hadden al een
+  Groningse spreektekst en staan sinds 6-11 in de wachtrij (65 jobs), voor de andere **153** staat
+  het concept in `docs/verhaal/DIALECT-CONCEPT.md`. Na het nalezen en `node scripts/gronings_merge_draft.mjs
+  --write` komen ook die in de wachtrij, samen met de overige regels zonder spreektekst.
+- De stemkeuze verandert niets aan het model of de route: nog steeds Gemini Flash-Lite TTS via de
+  LiteLLM-gateway (ADR 0019, #689).
+- Een andere stem later is één regel in `CAST`; bestaande opnames blijven geldig zolang het model in
+  `ACCEPTED` staat, maar de stem vraagt wel een nieuwe opname.
 
-Nog niet gedaan: geen enkele stem is beluisterd of opgenomen, en er is niets aan de code veranderd.
+## Wat nu nog moet
+
+1. De 65 klaarstaande clips opnemen (zie #735 §1).
+2. De concept-spreekteksten in `docs/verhaal/DIALECT-CONCEPT.md` nalopen (eerst de 67
+   twijfelgevallen) en samenvoegen; daarna komen de 592 wachtende regels in de wachtrij.
+3. Daarna de volgende opnameronde; dit bestand hoeft dan niet meer te veranderen.
+
+Nog niet gedaan: geen van deze stemmen is beluisterd of opgenomen.
