@@ -1,4 +1,5 @@
 import { wantedPhase } from './wantedstate.js';
+import { moneyLabel, moneyNeedsUpdate } from './hudmoney.js';
 import { getMissionLayer, updateMissionNotices } from './missionmaplive.js';
 import { missionMinimapScale, selectMiniItems } from './missionmap.js';
 import { drawMissionLayerIcon, drawLayerAreas, drawLayerLines } from './missionmapdraw.js';
@@ -1216,6 +1217,8 @@ let moneyShown = null;
 let moneyTarget = 0;
 let deltaSum = 0;
 let deltaTimer = 0;
+// #661: cache de geformatteerde geldregel en de twee wapen-kind-elementen
+let moneyRounded = null, weaponTextEl = null, weaponAmmoEl = null;
 function updateMoneyWeapon(dt, world) {
   const target = Math.max(0, Math.floor(world.money));
   if (moneyShown == null) moneyShown = moneyTarget = target;
@@ -1237,7 +1240,8 @@ function updateMoneyWeapon(dt, world) {
     const step = Math.max(1, Math.abs(diff) * Math.min(1, dt * 5));
     moneyShown = Math.abs(diff) <= step ? moneyTarget : moneyShown + Math.sign(diff) * step;
   }
-  setText(els.money, '€ ' + Math.round(moneyShown).toLocaleString('nl-NL'));
+  const rounded = Math.round(moneyShown);
+  if (moneyNeedsUpdate(rounded, moneyRounded)) { moneyRounded = rounded; setText(els.money, moneyLabel(rounded)); }
   els.money.classList.toggle('rolling', diff !== 0);
   const ammo = world.ammo ? world.ammo[world.weapon] : undefined;
   const weaponKey = WEAPON_ICONS[world.weapon] ? world.weapon : 'fists';
@@ -1245,12 +1249,13 @@ function updateMoneyWeapon(dt, world) {
   if (els.weapon.dataset.key !== weaponKey) {
     els.weapon.dataset.key = weaponKey;
     els.weapon.innerHTML = `<svg class="hud-weapon-icon" viewBox="0 0 48 24" aria-hidden="true">${WEAPON_ICONS[weaponKey]}</svg><span class="hud-weapon-col"><span class="hud-weapon-text"></span><small class="hud-weapon-ammo"></small></span>`;
+    weaponTextEl = weaponAmmoEl = null; // nieuwe kinderen
     restartClass(els.weapon, 'switched');
   }
   const label = WEAPON_LABELS[world.weapon] || 'VUISTEN';
-  const textEl = els.weapon.querySelector('.hud-weapon-text');
+  const textEl = weaponTextEl || (weaponTextEl = els.weapon.querySelector('.hud-weapon-text'));
   if (textEl.textContent !== label) textEl.textContent = label;
-  const ammoEl = els.weapon.querySelector('.hud-weapon-ammo');
+  const ammoEl = weaponAmmoEl || (weaponAmmoEl = els.weapon.querySelector('.hud-weapon-ammo'));
   if (ammoEl.textContent !== sub) {
     ammoEl.textContent = sub;
     ammoEl.dataset.num = /^\d+$/.test(sub) ? '1' : '';

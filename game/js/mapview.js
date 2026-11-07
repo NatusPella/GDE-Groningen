@@ -89,6 +89,9 @@ const DRAG_PX = 4;
 const HOVER_PX = 12;
 const FOG_CELL = 50;
 const FOG_REVEAL = 2;
+// #661: alleen het geraakte venster uploaden en de mist minder vaak bewaren
+import { revealRect, fogSaveDue, FOG_SAVE_MS } from './mapfog.js';
+import { mapRenderDue } from './mapcache.js';
 const FOG_KEY = KEYS.fog;
 const FOG_FEATHER = 16; // cells
 
@@ -375,14 +378,16 @@ function updateFog(world) {
       }
     }
     if (changed) {
-      f.fctx.putImageData(f.img, 0, 0);
+      // #661: alleen de geraakte cellen (het venster) uploaden, niet de hele kaart
+      const r = revealRect(cx, cy, FOG_REVEAL, f.w, f.h);
+      if (r) f.fctx.putImageData(f.img, 0, 0, r.x0, r.y0, r.w, r.h);
       f.dirtySave = true;
       state.dirty = true;
     }
   }
   const now = performance.now();
-  if (f.dirtySave && now > f.saveAt) {
-    f.saveAt = now + 3000;
+  if (f.dirtySave && fogSaveDue(now, f.saveAt)) {
+    f.saveAt = now + FOG_SAVE_MS; // #661: was elke 3 s een volledige serialisatie
     saveFog();
   }
 }
@@ -2659,5 +2664,8 @@ export function updateMapView(dt, world) {
   if (!state.open) return;
   if (syncMapPhase(world) !== state.phase) { state.phase = syncMapPhase(world); clearTiles(); }
   handleKeys(dt, world);
-  render(world);
+  // #661: stilstaand (gepauzeerd) en niets vuil: 15 Hz is genoeg; bewegen of
+  // invoer tekent gewoon elke frame.
+  const now = performance.now();
+  if (mapRenderDue(now, state.lastRender || 0, !!world.paused, !!state.dirty)) { state.lastRender = now; render(world); }
 }

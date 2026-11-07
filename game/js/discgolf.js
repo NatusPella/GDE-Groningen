@@ -17,7 +17,7 @@ import { loopbaanVerdien } from './loopbaanlive.js';
 import { discgolfFx, pushFoley } from './sfx/minigamefoley.js';
 import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHostScore, wedGastScore, wedScoreStop, wedGastVerlaat, wedGastReset, wedScoreRijen } from './multiplayerwedstrijd.js';
 import {
-  courseHoles, simulateFlight, DISCS, DISC_ORDER, RELEASES, suggestDisc, newCard, finishHole, cardTotals, courseMedal, holeName, relText,
+  courseHoles, simulateFlight, DISCS, DISC_ORDER, RELEASES, suggestDisc, newCard, finishHole, cardTotals, courseMedal, holeName, relText, powerForBasket,
   MAX_OVER_PAR, CIRCLE_M,
 } from './discgolfrules.js';
 
@@ -678,6 +678,12 @@ function ensureBoard() {
   return board;
 }
 
+// #598: de kracht waarbij een vlakke worp de basket op 1 m hoogte haalt; het streepje op de laadbaar.
+function doelKracht(g, dist) {
+  if (!(dist > 0)) return null;
+  try { return Math.max(0.12, Math.min(1, powerForBasket(dist, g.disc, g.loft, g.release))); } catch (e) { return null; }
+}
+
 function updateHud(w) {
   const g = game;
   if (!g || !board) return;
@@ -692,7 +698,7 @@ function updateHud(w) {
   if (g.ctp) {
     const ds = g.ctp.dists.map((d) => (d == null ? 'plons' : `${d.toFixed(1).replace('.', ',')} m`)).join(' · ') || 'nog niets';
     const info = g.phase === 'aim' ? `${DISCS[g.disc].name} · ${RELEASES.find((r) => r.id === g.release).name} · hoek ${Math.round(g.loft * 57.3)}°` : '';
-    board.set({ row: `<span>Worp <b>${Math.min(CTP.throws, g.ctp.dists.length + 1)}/${CTP.throws}</b></span><span>Mand <b>${Math.round(dist)} m</b></span><span>${windText(g.wind)} ${windArrow(g)}</span><span>${ds}</span>`, meter: g.phase === 'aim' ? { v: g.charge, color: ACCENT } : null, flash: g.flash ? g.flash.text : info, bad: !!(g.flash && g.flash.bad), help: g.phase === 'aim' ? `${key('A')}${key('D')} richten · ${key('W')}${key('S')} hoek · ${key('E')} release · ${key('F')} disc · houd ${key('SPATIE')} en laat los · ${key('BACKSPACE')} stoppen` : key('BACKSPACE') + ' stoppen' });
+    board.set({ row: `<span>Worp <b>${Math.min(CTP.throws, g.ctp.dists.length + 1)}/${CTP.throws}</b></span><span>Mand <b>${Math.round(dist)} m</b></span><span>${windText(g.wind)} ${windArrow(g)}</span><span>${ds}</span>`, meter: g.phase === 'aim' ? { v: g.charge, mark: doelKracht(g, dist), color: ACCENT, text: doelKracht(g, dist) ? `${Math.round(doelKracht(g, dist) * 100)}%` : '' } : null, flash: g.flash ? g.flash.text : info, bad: !!(g.flash && g.flash.bad), help: g.phase === 'aim' ? `${key('A')}${key('D')} richten · ${key('W')}${key('S')} hoek · ${key('E')} release · ${key('F')} disc · houd ${key('SPATIE')} en laat los · ${key('BACKSPACE')} stoppen` : key('BACKSPACE') + ' stoppen' });
     return;
   }
   const online = g.online ? wedScoreRijen(w) : [];
@@ -706,7 +712,7 @@ function updateHud(w) {
   const help = g.phase === 'aim'
     ? `${key('A')}${key('D')} richten · ${key('W')}${key('S')} hoek · ${key('E')} release · ${key('F')} disc · houd ${key('SPATIE')} en laat los · ${key('BACKSPACE')} stoppen · totaal ${relText(t.rel)}`
     : `Totaal ${relText(t.rel)} · ${key('BACKSPACE')} stoppen`;
-  board.set({ row, cells, meter: g.phase === 'aim' ? { v: g.charge, color: ACCENT } : null, flash, bad: !!(g.flash && g.flash.bad), help });
+  board.set({ row, cells, meter: g.phase === 'aim' ? { v: g.charge, mark: doelKracht(g, dist), color: ACCENT, text: doelKracht(g, dist) ? `${Math.round(doelKracht(g, dist) * 100)}%` : '' } : null, flash, bad: !!(g.flash && g.flash.bad), help }); // #598: streefstreep uit powerForBasket
 }
 
 // --- the activity ------------------------------------------------------------------------------------------------
@@ -781,4 +787,5 @@ export const DISCGOLF = {
   },
   runs: () => runs,
 };
+
 
