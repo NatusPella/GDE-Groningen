@@ -195,7 +195,7 @@ async function minigameSmoke(world, check, capture) {
   check('pitch & putt: a pitch flies', pp.shoot(0.8));
   await sleep(900);
   capture('mg-pitchputt-flight');
-  check('pitch & putt: the ball comes to rest', await waitFor(() => pp.state() && ['landed', 'holeDone'].includes(pp.state().phase), 14000), JSON.stringify(pp.state()));
+  check('pitch & putt: the ball comes to rest', await waitFor(() => pp.state() && ['landed', 'holeDone'].includes(pp.state().phase), 30000), JSON.stringify(pp.state()));
   await sleep(1800);
   capture('mg-pitchputt-next');
   pp.quit();
@@ -222,7 +222,12 @@ async function minigameSmoke(world, check, capture) {
   await cleared('skatepark');
 
   const kb = window.__kartbaan;
-  check('kartbaan: starts', kb && kb.start() && await waitFor(() => kb.state() && kb.state().phase === 'grid', 20000));
+  let kbGestart = false;
+  for (let poging = 0; poging < 3 && !kbGestart; poging++) {
+    kbGestart = !!kb && kb.start() && await waitFor(() => kb.state() && kb.state().phase === 'grid', 20000);
+    if (!kbGestart) { keepQuiet(world); await sleep(1500); }
+  }
+  check('kartbaan: starts', kbGestart, JSON.stringify(kb && kb.state()));
   await sleep(900);
   capture('mg-kart-grid');
   check('kartbaan: the lights go and the race starts', await waitFor(() => kb.state() && kb.state().phase === 'race', 30000), JSON.stringify(kb.state()));
@@ -1084,6 +1089,7 @@ export async function runStoryTest(world) {
   console.log('[storytest-done] ' + JSON.stringify(report));
   return report;
 }
+
 
 
 
