@@ -1,5 +1,7 @@
 # Steam-klaar: wat er staat en wat de eigenaar nog zelf moet doen
 
+> **Naslag.** De regels staan in de canonieke spec [`.specs-fire/standards/publicatie.md`](../.specs-fire/standards/publicatie.md); dit document is uitleg en geschiedenis. Bij verschil wint de spec (en bij twijfel `AGENTS.md`).
+
 Issue #64. Alles hieronder is lokaal voorbereid. Er is niets naar Steam
 gestuurd, er is geen Steam-account of app-id, en geen enkel bestand maakt
 contact met Steam. `scripts/steam_test.mjs` controleert dat de bestanden in

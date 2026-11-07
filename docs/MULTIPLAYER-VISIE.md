@@ -1,5 +1,7 @@
 # Multiplayer-visie ("Samen spelen")
 
+> **Naslag.** De regels staan in de canonieke spec [`.specs-fire/standards/multiplayer.md`](../.specs-fire/standards/multiplayer.md); dit document is de visie en uitleg. Bij verschil wint de spec (en bij twijfel `AGENTS.md`).
+
 De visie van de eigenaar (besluiten van 23-10, 24-10 en 6-11), op één plek. In gesprekken zeggen we multiplayer; in het spel heet het "Samen spelen" en "wie het spel opende" (nooit "gastheer"). Details van de bouw staan in het hoofdstuk Multiplayer van [ARCHITECTURE.md](../ARCHITECTURE.md), [COOP-GAST.md](COOP-GAST.md), [COOP-OPSLAAN.md](COOP-OPSLAAN.md) en [COOP-OVERDRAGEN.md](COOP-OVERDRAGEN.md). De constitutie (punt 4, 6, 10) staat in [AGENTS.md](../AGENTS.md).
 
 ## Principes

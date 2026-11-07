@@ -1,11 +1,13 @@
 # Inclusieve taal: audit van de speltekst
 
+> **Naslag.** De regels staan in de canonieke spec [`.specs-fire/standards/ui-taal.md`](../.specs-fire/standards/ui-taal.md); dit document is uitleg en geschiedenis. Bij verschil wint de spec (en bij twijfel `AGENTS.md`).
+
 De eigenaar wil een spel dat inclusief is en niemand kwetst. Deze audit loopt langs alle speltekst en legt vast wat is aangepast en wat bewust bleef.
 De woorden en voorkeursvormen staan in [WOORDENLIJST.md](WOORDENLIJST.md), sectie "Inclusieve taal". `node scripts/text_audit.mjs` (regel `inclusief`) houdt het vast.
 
 ## Wat is bekeken
 
-Alle tekst die een speler ziet of hoort: elke tekenreeks in `game/js` (14.970 unieke teksten die als zin of naam gelden), `game/index.html`, de tekst in `game/storydata/script.json` (gebouwd uit `docs/verhaal/nieuw/09-script-akte1..5.md`), cutscenes, dialogen, banter, radio, bordjes, prestaties, hulpteksten en de Gronings-gesproken versies. Daarnaast `docs/verhaal` en de rest van `docs` op harde woorden.
+Alle tekst die een speler ziet of hoort: elke tekenreeks in `game/js` (14.970 unieke teksten die als zin of naam gelden), `game/index.html`, de tekst in `game/storydata/script.json` (gebouwd uit `docs/verhaal/nieuw/09-script-akte1..6.md`), cutscenes, dialogen, banter, radio, bordjes, prestaties, hulpteksten en de Gronings-gesproken versies. Daarnaast `docs/verhaal` en de rest van `docs` op harde woorden.
 
 Zoekopdrachten met woordgrens (`(?<![\p{L}\p{N}])woord(?![\p{L}\p{N}])`), in zes categorieën:
 

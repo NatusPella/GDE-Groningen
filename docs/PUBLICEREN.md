@@ -1,5 +1,7 @@
 # Publiceren: wat besloten en gedaan is
 
+> **Naslag.** De regels staan in de canonieke spec [`.specs-fire/standards/publicatie.md`](../.specs-fire/standards/publicatie.md); dit document is uitleg en geschiedenis. Bij verschil wint de spec (en bij twijfel `AGENTS.md`).
+
 De repo is nog **privé**; er is niets gepubliceerd. Wat nog te doen staat,
 staat als issue: [#83](https://github.com/NatusPella/GDE-Groningen/issues/83)
 (checklist), met #37 (publiek maken), #62 (merken en secrets-scan), #72

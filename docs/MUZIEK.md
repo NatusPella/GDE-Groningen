@@ -1,6 +1,8 @@
 # Muziek voor de radio: wat er is en wat erbij kan
 
-Bijgewerkt: 4 oktober 2026, na de speeltest van Maus (0.26.1). De eigenaar
+> **Naslag.** De regels staan in de canonieke spec [`.specs-fire/standards/mechanica.md`](../.specs-fire/standards/mechanica.md); dit document is uitleg en geschiedenis. Bij verschil wint de spec (en bij twijfel `AGENTS.md`).
+
+Bijgewerkt: 7 november 2026 (0.57.5). De tellingen komen uit docs/LICENTIES.md en de mappen `game/audio/`: 34 G-Music-nummers, 15 scenario-loops en 1 titelnummer. De eigenaar
 vindt dat de muziek te vaak hetzelfde is. Dit document zegt wat er nu draait
 en welke nummers erbij kunnen. Elk voorstel heeft een stijlomschrijving die
 je als prompt in Google Gemini kunt plakken, een aantal en het programmablok
@@ -24,7 +26,7 @@ De dagpool duurt ongeveer 37 minuten, de nachtpool ongeveer 16 minuten
 (De Geest van Oosterpark, Suikerbuiken in de nacht, Onder de Martinitoren,
 Oosterpark is m'n droom, Wie stoan nait stil, Kleur in de Wind, en de drillnummers Geen stoplicht houdt ons tegen en Goud in de Nacht, en de punk van Hatchback op de Ring en de eurodance van Zomerse droom in de Stad en de Grunneger boerenrock van Trots op mien grond en de dark trap van Koplampen in de Mist). Daarnaast:
 4 jingles (station_id, nummerovergang, rij_knipoog, hoge_wanted, 2 tot 4 s)
-en 15 scenario-loops (`audio/scenario/`): race en achtervolging, en sinds 24 okt de eigen loops van de eigenaar voor kart, padel, golf (Pitch & putt en discgolf), klimtoren, trein en bus (`kart_loop`, `padel_loop`, `golf_loop`, `klimtoren_loop`, `trein_loop`, `bus_loop`) de boerderij (`boerderij_loop`, High Noon Shuffle: trekker, maaidorser en laadmachine), het vliegen (`vlucht_loop`, Above the Summer Clouds: vliegtuig en helikopter), de lopende verhaalmissie (`missie_spanning_loop`, Midnight at the Embassy), het fietsen (`fiets_loop`, Bicycles and Blueprints), je eigen safehouse en de fotomodus (`thuis_loop`, Afternoon in Amber) en het pauzemenu met de lobby van Samen spelen (`menu_loop`, Westbound Sunset: wint voor deze speler van alles, ook van een achtervolging) alle van de eigenaar, Gemini, en de PvP-arena (`pvp_arena_loop`, wacht op de PvP-minigame #454; Gemini, aangeleverd door de eigenaar). De
+en 15 scenario-loops (`audio/scenario/`): race en achtervolging, en sinds 24 okt de eigen loops van de eigenaar voor kart, padel, golf (Pitch & putt en discgolf), klimtoren, trein en bus (`kart_loop`, `padel_loop`, `golf_loop`, `klimtoren_loop`, `trein_loop`, `bus_loop`) de boerderij (`boerderij_loop`, High Noon Shuffle: trekker, maaidorser en laadmachine), het vliegen (`vlucht_loop`, Above the Summer Clouds: vliegtuig en helikopter), de lopende verhaalmissie (`missie_spanning_loop`, Midnight at the Embassy), het fietsen (`fiets_loop`, Bicycles and Blueprints), je eigen safehouse en de fotomodus (`thuis_loop`, Afternoon in Amber) en het pauzemenu met de lobby van Samen spelen (`menu_loop`, Westbound Sunset: wint voor deze speler van alles, ook van een achtervolging) alle van de eigenaar, Gemini, en de PvP-arena (`pvp_arena_loop`, voor de PvP-minigame #454; Gemini, aangeleverd door de eigenaar). De
 praatjes zijn bestaande opnames: Geesje van Radio Proat, de Kiekdoar-clips
 uit `audio/nieuws/`, de verkeersinformatie, de koeien en Rikus.
 
@@ -32,7 +34,7 @@ De indeling van Nachtstreek is gekozen op de titels, niet op het geluid.
 Luister ze even na en zet `stations` en `time` in `manifest.json` goed als
 een nummer daar niet past.
 
-**Waarom het snel gaat herhalen.** 14 nummers van gemiddeld 2:40 zijn samen
+**Waarom het snel gaat herhalen.** 34 nummers van gemiddeld 2:40 zijn samen
 37 minuten. Wie een uur rijdt, hoort alles minstens één keer opnieuw. De
 praatjes rekken dat wat op, maar 's nachts is de nachtpool al na een
 kwartier rond. Tot 0.26.1 kwam er ook

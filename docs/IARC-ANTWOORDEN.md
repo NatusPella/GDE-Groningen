@@ -1,5 +1,7 @@
 # IARC-vragenlijst: antwoorden om te plakken (#60)
 
+> **Naslag.** De regels staan in de canonieke spec [`.specs-fire/standards/publicatie.md`](../.specs-fire/standards/publicatie.md); dit document is uitleg en geschiedenis. Bij verschil wint de spec (en bij twijfel `AGENTS.md`).
+
 Stand 7 november 2026: de antwoorden hieronder zijn klaar om over te nemen; het invullen en
 indienen is een eigenaarstaak (account en handtekening). Zie ook [1.0-TRACK.md](1.0-TRACK.md) #60.
 

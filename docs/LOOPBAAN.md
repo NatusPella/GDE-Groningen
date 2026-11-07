@@ -1,5 +1,7 @@
 # Loopbaan: een vak per soort werk, met niveaus en titels (#381)
 
+> **Naslag.** De regels staan in de canonieke spec [`.specs-fire/standards/mechanica.md`](../.specs-fire/standards/mechanica.md); dit document is uitleg en geschiedenis. Bij verschil wint de spec (en bij twijfel `AGENTS.md`).
+
 Voor wie aan `loopbaan.js`, `loopbaanlive.js`, `loopbaanui.js` of een vak werkt dat geld uitbetaalt. Tests: `scripts/loopbaan_test.mjs`,
 `scripts/loopbaan_balans_test.mjs`, `scripts/loopbaan_coop_test.mjs`.
 

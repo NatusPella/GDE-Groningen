@@ -1,9 +1,11 @@
 # Stijlgids voor schrijvers: GDE Groningen, Zomer vol misdaad
 
+> **Naslag.** De regels staan in de canonieke spec [`.specs-fire/standards/verhaal.md`](../.specs-fire/standards/verhaal.md); dit document is uitleg en geschiedenis. Bij verschil wint de spec (en bij twijfel `AGENTS.md`).
+
 Voor wie tekst schrijft of herschrijft in het verhaal: mensen, Claude Code en andere agents.
 Lees eerst [AGENTS.md](../../AGENTS.md) (de constitution) en [nieuw/00-OVERZICHT.md](nieuw/00-OVERZICHT.md).
 
-De bron van het verhaal is de markdown in [nieuw/09-script-akte1..5.md](nieuw/). Bewerk die, nooit
+De bron van het verhaal is de markdown in [nieuw/09-script-akte1..6.md](nieuw/) (Deel 4 staat in akte 6). Bewerk die, nooit
 `game/storydata/script.json` zelf. Daarna:
 
 ```bash
@@ -119,7 +121,7 @@ Dit zijn de feiten die elke scène moet delen. Wijkt een regel af, dan gaat het 
 1. `node scripts/build_story_data.mjs` (maakt `script.json`; de test controleert dat hij actueel is).
 2. `node scripts/story_similarity_test.mjs` (identieke of bijna-identieke regels, verboden zinsbouw).
 3. `node scripts/storydata_test.mjs`, `node scripts/storychoice_test.mjs`, `node scripts/storyflow_nieuw_test.mjs`, `node scripts/voice_coverage.mjs --quiet`, `node scripts/text_audit.mjs`.
-4. Heb je een scène toegevoegd, zet hem dan op zijn stap in `game/js/storyarc_nieuw.js` en geef hem een staging in `game/js/cutscenes_akte4.js` (de test `cutscenes_akte4_test.mjs` vraagt erom).
+4. Heb je een scène toegevoegd, zet hem dan op zijn stap in `game/js/storyarc_nieuw.js` en geef hem een staging in `game/js/cutscenes_akte4.js` (of `cutscenes_akte6.js` voor Deel 4; de bijbehorende test vraagt erom).
 5. Zeg eerlijk wat je niet hebt gespeeld. Wat niemand in beeld heeft gezien, staat in het issue als "nog niet bekeken".
 
 Wil je een regel toestaan die de test vlagt (een bedoelde terugkeer, zoals *Net fertelle, hè?*), zet hem dan met een reden in

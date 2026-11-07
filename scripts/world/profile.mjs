@@ -36,7 +36,7 @@ export const flatTerrain = () => 0;
 // (railprofile.mjs; the radial rail lifts on a map without one) and the level
 // crossings, where road and track meet at one height.
 export function railItems(data) {
-  const zAt = railHeightFn(data, railLiftZ);
+  const zAt = railHeightFn(data, railLiftZ, data.rails);
   const lcs = data.levelCrossings || [];
   return (data.rails || []).map((r) => ({ pts: r.pts || r, rail: true, cat: 'rail', type: 'rail', ly: r.ly || null, zAt, lcs }));
 }

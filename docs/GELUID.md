@@ -1,5 +1,7 @@
 # Geluid: opnames naast de synth (#460)
 
+> **Naslag.** De regels staan in de canonieke spec [`.specs-fire/standards/mechanica.md`](../.specs-fire/standards/mechanica.md); dit document is uitleg en geschiedenis. Bij verschil wint de spec (en bij twijfel `AGENTS.md`).
+
 Het meeste geluid wordt in het spel zelf gesynthetiseerd (`game/js/audio.js`, `game/js/sfx/`). Een paar opnames van Freesound
 (CC0) staan er naast in `game/audio/sfx/`. Het manifest `game/audio/sfx/manifest.json` beschrijft elk bestand: bron, auteur,
 licentie, de gekozen knip en de meting waarop die is gekozen, en de bewerking.

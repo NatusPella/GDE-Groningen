@@ -1,5 +1,7 @@
 # Trailerscript v2: "Alles voor één eierbal" (concept, zonder spoilers)
 
+> **Status:** concept voor #63, niet leidend. De leidende trailer staat in [../E-trailer.md](../E-trailer.md); dit script is een alternatief met open `[CHECK: …]`-punten.
+
 Voor issue #63. Herzien na de beoordelingen van Gemini, Copilot en ChatGPT. Twee versies uit één opnameset: **teaser (40 s, ook verticaal)** en **hoofdtrailer (90 s)**. Maak eerst de teaser. Regels met **[BEHOUDEN]** zijn al opgenomen (zeker te controleren tegen de 09-scripts vóór opname); **[NIEUW]** moet later ingesproken worden (nu niet). Alleen verzonnen namen; echte plekken mogen.
 
 ## Wat is veranderd ten opzichte van v1

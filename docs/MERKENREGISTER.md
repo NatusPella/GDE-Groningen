@@ -31,7 +31,7 @@ een treffer in een merkenregister is niet nagegaan (MERKENCHECK.md).
 | Media | **Kiekdoar** (nieuwssite), **Radio Proat** (radio), **G-Music** (muziekzender), **Pompeblêd** (blad) |
 | Automerken en modellen | verzonnen merken naar Groninger streekwoorden: Dollard, Eemsmond, Hunze, Wadden, Reitdiep, Oldambt, Eemshaven, Ommelander, Wierde, Terpstra, Tweetakt; held-auto *Fjord Escapade* (zie `game/js/vehiclenames.js`) |
 | Winkels en horeca | echte ketens uit OpenStreetMap worden herkend (`CHAINS` in `game/js/shopbind.js`, ruim gekozen) en krijgen een verzonnen naam; echte caféeigenaars krijgen een verzonnen café (`CAFE_NAMES` in `game/js/horeca.js`, zie [LICENTIES.md](LICENTIES.md)) |
-| Grappen met een knipoog | *Albert Hijgt* (woordspeling, geen merk), *Henk van Garage*, *Femke van Noorderzon*, *Sjoerd van de KEI-commissie* (staan op de allowlist van de audit, met reden) |
+| Grappen met een knipoog | *Albert Hijgt* (woordspeling, geen merk), *Henk van Garage*, *Sjoerd van de KEI-commissie* (staan op de allowlist van de audit, met reden) |
 
 ## 3. Echte merken die bewust niet voorkomen
 
@@ -64,8 +64,7 @@ De lijsten zijn een vangnet, geen uitputtende opsomming van wat er bestaat.
   zeggen dat er *geen* verband is. Dit staat op de allowlist.
 - **Platformnamen** (Windows, Mac) staan in de eindkaart van de trailer en in de
   README om te zeggen waar het spel draait.
-- Het festival **Noorderzon** (bij het personage Femke) is een echt evenement
-  in Groningen; het personage is verzonnen. Dit is een aandachtspunt voor de
+- Het festival **Noorderzon** (een echt evenement in Groningen, in de kalender) is een aandachtspunt: het personage dat erbij hoorde (Femke) is uit het verhaal geschrapt (#150). De eigenaar beslist of de festivalnaam blijft of een verzonnen naam wordt.
   eigenaar: laat het zo, of vervang door een verzonnen festivalnaam.
 
 ## 5. Audit
@@ -154,7 +153,7 @@ met een echt merk; bewuste parodie, op de allowlist, de eigenaar kan kiezen te h
 | G-Music | muziekzender | `game/js/radio.js` | generieke naam; registercheck in MERKENCHECK.md | ok |
 | Pompeblêd | blad | `game/js/missionstory.js` | Fries woord voor waterleliebladeren | ok |
 | Lichtje Tjoek | lamp bij EIKEA | `game/js/furniture.js` | niets | ok |
-| Noorderzon | festival en jas (Femke, kalender, uitrusting) | `game/js/calendar.js` | het echte festival in Groningen | besluit |
+| Noorderzon | festival en jas (Tessa, kalender, uitrusting) | `game/js/calendar.js` | het echte festival in Groningen | besluit |
 | Kiezelweek | verzonnen introductieweek in de kalender (verving de echte KEI-week, #489) | `game/js/calendar.js` | de echte introductieweek | ok |
 | Gerrit Krolbrug | brug | `game/js/flavour.js` | echte brug (plaats), vernoemd naar een persoon; staat op de allowlist | besluit |
 | Qbuzz | alleen in een codecommentaar bij de stadsbuskleur, nooit in beeld | `game/js/vehicle.js` | echte busmaatschappij | ok (commentaar) |

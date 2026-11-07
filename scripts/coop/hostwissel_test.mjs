@@ -64,7 +64,7 @@ await t('overdracht aan gast 2: de nieuwe host draait de wereld, de anderen verb
   const r = W.biedOver(s.hw, 2); assert.ok(r.ok, 'bieden lukt: ' + JSON.stringify(r));
   assert.ok(s.hw.coopHold, 'wie het spel opende staat stil tot het antwoord er is');
   await s.step(1.5, () => g2.coopWisselUi && g2.coopWisselUi.vraag);
-  assert.match(g2.coopWisselUi.vraag.tekst, /wil het spel aan je overdragen.*J = ja, N = nee/, 'de J/N-vraag staat bij de gekozen speler');
+  assert.match(g2.coopWisselUi.vraag.tekst, /wil het spel overdragen.*J = ja, N = nee/, 'de J/N-vraag staat bij de gekozen speler');
   assert.ok(!g1.coopWisselUi || !g1.coopWisselUi.vraag, 'alleen de gekozen speler krijgt de vraag');
   g2.input.s.add('j'); // J
   await s.step(2, () => g1.coopHold && g3.coopHold);

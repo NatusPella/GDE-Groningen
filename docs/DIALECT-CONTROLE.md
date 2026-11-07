@@ -1,12 +1,14 @@
 # Dialectcontrole: Gronings en Fries in de speltekst (#13)
 
+> **Naslag.** De regels staan in de canonieke spec [`.specs-fire/standards/ui-taal.md`](../.specs-fire/standards/ui-taal.md); dit document is uitleg en geschiedenis. Bij verschil wint de spec (en bij twijfel `AGENTS.md`).
+
 Stand: 20 oktober 2026. Besluit van de eigenaar: geen echte nalezer, maar zelf controleren; een speler die een fout
 vindt, meldt die zelf. Dit document zegt **wat er is nagezocht, waarin, en wat er uitkwam**. De opzoekingen zijn echt
 gedaan in openbare woordenboeken; het is geen oordeel van een moedertaalspreker.
 
 ## Wat er in het spel staat
 
-- **Gronings, ingesproken:** `scripts/gronings_spoken.json` (2508 regels: getoonde Nederlandse tekst -> gesproken spelling; de ondertitel blijft Nederlands). Dit levert 585 verschillende Groningse woorden op.
+- **Gronings, ingesproken:** `scripts/gronings_spoken.json` (2508 regels: getoonde Nederlandse tekst -> gesproken spelling; de ondertitel blijft Nederlands). Dit levert 589 verschillende Groningse woorden op (het register hieronder is de bron).
 - **Gronings, getoond:** 410 regels in speltekst (banter, voorbijgangers, Ommeland, missies) bevatten Groningse woorden of zinnen.
 - **Fries, getoond:** vooral de regels van Jelle Terpstra en de skûtsje-uitdaging (`pg_lines.js`, `missions.js`, `casework.js`, `ommelandlines.js`, prestatienamen), met Nederlandse ondertitels in `subtitles.js`. 89 Friese woorden.
 

@@ -1,5 +1,7 @@
 # Publicatiechecklist (#83, met #37, #62, #72, #57)
 
+> **Naslag.** De regels staan in de canonieke spec [`.specs-fire/standards/publicatie.md`](../.specs-fire/standards/publicatie.md); dit document is uitleg en geschiedenis. Bij verschil wint de spec (en bij twijfel `AGENTS.md`).
+
 Stand: 7 november 2026 (0.57.5; de laatste meting staat in §7). De repo is **privé**; niets hieronder is gedaan of
 aangezet. Laatste run van de controles op 21 oktober: `publish_check --history` 0 FAIL
 (3 WARN: de handmatige workflow), `secrets_scan` 0 treffers (3597 commits, 12931 tekstbestanden),
