@@ -11,7 +11,7 @@ import { isCinematicActive, isBannerUp, sinceCinematic, playCinematic, cinematic
 import { playerBusy } from './busy.js';
 import { isMapOpen } from './pausestate.js';
 import { veroverTourShot } from './camerapath.js';
-import { magIntocht, isRustig, neemIntocht, wachtrij, maakIntocht, thuiskomstVoor } from './wijkintocht.js';
+import { magIntocht, isRustig, neemIntocht, wachtrij, maakIntocht, thuiskomstVoor, tourPrewarm } from './wijkintocht.js';
 import { getOverzicht, noteerIntocht, intochtGezien } from './gebiedenlive.js';
 
 const TIK_S = 0.5;
@@ -51,14 +51,15 @@ function filmLijnen(film) {
 
 function speel(w, film) {
   if (!w || !w.map) return false;
-  const shot = veroverTourShot(w, { x: film.x, y: film.y }, film.stops, achterPose(w));
+  const achter = achterPose(w);
+  const shot = veroverTourShot(w, { x: film.x, y: film.y }, film.stops, achter);
   if (!shot) return false;
   const ok = playCinematic({
     id: film.titel === 'Thuiskomst' ? 'thuiskomst' : 'intocht',
     priority: 2, duration: film.seconden, pause: true, keepMotion: true,
     lines: filmLijnen(film),
     shot,
-    prewarm: film.stops.map((s) => ({ x: s.x, y: s.y })),
+    prewarm: tourPrewarm({ x: film.x, y: film.y }, film.stops, achter),
   });
   if (ok) noteerIntocht(film.gebied);
   return ok;

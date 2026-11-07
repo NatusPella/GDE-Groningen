@@ -116,12 +116,57 @@ export function tourKeys(gebied, stops, behind, { hoog = 26 } = {}) {
   return keys;
 }
 
+// #706: de punten die de streamer alvast bouwt: niet alleen de stops, maar ook
+// de tussenliggende punten van de baan (het overzicht en het eindbeeld).
+export function tourPrewarm(gebied, stops, behind, n = 8) {
+  const keys = tourKeys(gebied, stops, behind);
+  const out = [];
+  for (let i = 0; i < keys.length; i++) {
+    out.push({ x: keys[i].pos.x, y: keys[i].pos.y });
+    const next = keys[i + 1];
+    if (next) out.push({ x: (keys[i].pos.x + next.pos.x) / 2, y: (keys[i].pos.y + next.pos.y) / 2 });
+  }
+  return out.filter((p, i) => Number.isFinite(p.x) && Number.isFinite(p.y) && out.findIndex((q) => q.x === p.x && q.y === p.y) === i).slice(0, n);
+}
+
 // --- de scenecatalogus (#707: één bewezen wijk) --------------------------------------------
 
 // Eén volledig uitgewerkte scène als eerste slice (docs/archief/review-cutscenes-2026-11-06/
 // 07-wijk-scenes-ontwerp.md §3): Oud-Oost "De stoep". De andere wijken volgen in dezelfde vorm:
 // { wijk, titel, seconden, sfeer, ankers: [{ naam, x, y, h? }], regels: [{ stem, tekst }] }.
 export const INTOCHTEN = [
+  {
+    wijk: 'Centrum',
+    titel: 'Klokslag',
+    seconden: 32,
+    sfeer: 'opgetogen',
+    ankers: [
+      { naam: 'Grote Markt', x: 214, y: 10, h: 1.6 },
+      { naam: 'Vismarkt', x: 17, y: 256, h: 1.5 },
+      { naam: 'Forum Groningen', x: 357, y: 58, h: 46 },
+    ],
+    regels: [
+      { stem: 'Tessa', tekst: 'Allemaal doen ze alsof ze hier per ongeluk lopen.' },
+      { stem: 'Tammo', tekst: 'Ik kom voor de klok.' },
+      { stem: 'Tessa', tekst: 'Je komt voor de friet.' },
+    ],
+  },
+  {
+    wijk: 'Oud-Zuid',
+    titel: 'Aankomen',
+    seconden: 30,
+    sfeer: 'warm, weemoedig',
+    ankers: [
+      { naam: 'Stationsplein', x: -45, y: 956, h: 1.5 },
+      { naam: 'Groninger Museum', x: 83, y: 803, h: 4 },
+      { naam: 'Herebrug', x: 330, y: 830, h: 2.2 },
+    ],
+    regels: [
+      { stem: 'Tessa', tekst: 'Iedereen komt hier aan. Niemand blijft.' },
+      { stem: 'Tammo', tekst: 'Wij zijn twee haltes opgeschoven.' },
+      { stem: 'Tessa', tekst: 'Paddepoel is geen halte, Tammo.' },
+    ],
+  },
   {
     wijk: 'Oud-Oost',
     titel: 'De stoep',
@@ -136,6 +181,22 @@ export const INTOCHTEN = [
       { stem: 'Rikus', tekst: 'Hier repeteert elke band die later beroemd wordt. Of niet.' },
       { stem: 'Tammo', tekst: 'Hij had een mengtafel van karton.' },
       { stem: 'Rikus', tekst: 'En twee luisteraars.' },
+    ],
+  },
+  {
+    wijk: 'Nieuw-Noord',
+    titel: 'Tegenwind',
+    seconden: 34,
+    sfeer: 'vrolijk, komisch',
+    ankers: [
+      { naam: 'Klimtoren Zernike', x: -1844, y: -1844, h: 12 },
+      { naam: 'Padel Paddepoel-Noord', x: -2270, y: -1855, h: 1.5 },
+      { naam: 'Pleiadenlaan', x: -1285, y: -1083, h: 18 },
+    ],
+    regels: [
+      { stem: 'Tessa', tekst: 'Iedereen fietst hier tegen de wind in.' },
+      { stem: 'Tammo', tekst: 'En terug ook.' },
+      { stem: 'Tessa', tekst: 'Dat is de grap.' },
     ],
   },
 ];
