@@ -116,7 +116,7 @@ ok(!Object.values(d({ hidden: true, wanted: 3, objective: true }).show).some(Boo
 ok(d({ banner: true }).dimAll, 'a P0 banner dims the rest');
 // minimaal
 const mm = d({ mode: 'minimaal', wanted: 2, objective: true, subtitle: true, armed: true, inVehicle: true, moneyAgo: 1, cardA: R.P3, hpFull: false });
-ok(mm.show.stars && mm.show.objective && mm.show.subtitle && !mm.show.minimap && !mm.show.money && !mm.show.weapon && !mm.show.vehicle && !mm.show.cardA, 'Minimaal: stars, objective, subtitles only');
+ok(mm.show.stars && mm.show.objective && mm.show.subtitle && mm.show.minimap && mm.show.vehicle && !mm.show.money && !mm.show.weapon && !mm.show.cardA, 'Minimaal: stars, objective, subtitles plus kaart en snelheidsmeter (#638)');
 ok(d({ mode: 'minimaal', cardA: R.P0 }).show.cardA, 'Minimaal keeps P0');
 // ceiling: at most 6 besides the minimap, P3 then clock then money go first
 const full = d({ wanted: 3, moneyAgo: 1, armed: true, hpFull: false, inVehicle: true, vehFull: false, keys: 2, objective: true, subtitle: true, cardA: R.P3, cardE: R.P3, gps: true, place: false });
@@ -305,5 +305,17 @@ ok(A.planModeFor('ov', 'lopen') === 'ov' && A.planModeFor('boot', 'auto') === 'b
   ok(/rs-firma bt-speaker/.test(radio) && !/font-weight:bold;margin-right/.test(radio), 'de radio gebruikt dezelfde sprekerstijl als de andere ondertitels');
 }
 
+// #638: de minimap heeft een totaalbudget, politie is één badge en de kaart houdt hoogstens drie namen.
+{
+  const panel = readFileSync(new URL('../game/js/hud_panel.js', import.meta.url), 'utf8');
+  ok(/const MM_ICON_BUDGET = \d+/.test(panel), 'minimap: een totaalplafond voor de losse iconen');
+  ok(/iconCount >= MM_ICON_BUDGET/.test(panel), 'minimap: de icoonhelper stopt bij het budget');
+  ok(/polities\.length > 1/.test(panel) && /strokeText\(String\(polities\.length\)/.test(panel), 'minimap: politie is één badge met het aantal');
+  ok(/cashN < 3/.test(panel), 'minimap: hoogstens drie cash-doelen');
+  ok(/if \(\+\+n >= 3\) break; \/\/ #638/.test(panel), 'minimap: hoogstens drie plaatsnamen');
+}
+
 console.log(`${n} checks, ${fails} failed`);
 process.exit(fails ? 1 : 0);
+
+

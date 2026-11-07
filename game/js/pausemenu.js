@@ -612,7 +612,7 @@ function settingsHtml() {
       ${picker('minimapNorth', 'Minimap met noord boven', [['nooit', 'Nooit'], ['lucht', 'In de lucht'], ['altijd', 'Altijd']], 'Standaard draait de kaart mee')}
       ${toggle('showFog', 'Verkende gebieden op de kaart')}
       <div class="m-gh"><span>Over het spel</span></div>
-      <div class="m-li pm-row">${rowName('Over GDE', 'Versie, wat er nieuw is, credits en licenties')}<button type="button" class="m-bg" data-goto="over">Openen</button></div>`, `${pane('Interface', 'Wat je ziet', '<p>Slim toont alleen wat nu telt; Altijd alles houdt alles in beeld; Minimaal laat alleen sterren, doel en ondertitels over.</p><p class="mut">Over GDE met de versie, de wijzigingen en de credits staat onderaan dit tabblad.</p>')}`)}
+      <div class="m-li pm-row">${rowName('Over GDE', 'Versie, wat er nieuw is, credits en licenties')}<button type="button" class="m-bg" data-goto="over">Openen</button></div>`, `${pane('Interface', 'Wat je ziet', '<p>Slim toont alleen wat nu telt; Altijd alles houdt alles in beeld; Minimaal laat alleen sterren, doel, ondertitels, de kaart en de snelheidsmeter over.</p><p class="mut">Over GDE met de versie, de wijzigingen en de credits staat onderaan dit tabblad.</p>')}`)}
     ${tab('a11y', `
       ${picker('colorBlind', 'Kleurenblind', [['uit', 'Uit'], ['deuteranopie', 'Deuteranopie'], ['protanopie', 'Protanopie'], ['tritanopie', 'Tritanopie']], 'Andere kleuren voor markers, routes, kaart en HUD')}
       ${slider('uiScale', 'Grootte interface', 0.8, 1.5, 0.05)}
@@ -2174,6 +2174,7 @@ function setOpen(value, name = HOME, how = 'direct') {
     if (p && p.onClose) p.onClose();
   }
 }
+
 
 
 
