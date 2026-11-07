@@ -27,11 +27,23 @@ staat per stap en scène, met de stem waaronder de regel moet worden opgenomen; 
 speeluren (M00-M03) staan bovenaan. `node scripts/opnamelijst.mjs --check` faalt als het
 bestand achterloopt op `game/storydata/script.json`.
 
+**Per clip, met bron, stem, bestandsnaam en LiteLLM-commando.** Voor de uitvoering is er één
+regel per clip, gegenereerd uit dezelfde bronnen:
+
+- `docs/verhaal/TTS-OPNAMELIJST-735.md` — overzicht: de klaarstaande clips per scène, de
+  wachtende regels per stap en de technische laadhint als aparte beslissing.
+- `docs/verhaal/TTS-OPNAMELIJST-735.jsonl` — één regel per clip met `source`, `speaker`,
+  `voice`, `file`, `endpoint`, `model` en (voor de klaarstaande clips) de exacte `curl` met
+  `$LITELLM_API_KEY` uit de omgeving; wachtende regels hebben `reason` (`stemkeuze` of
+  `spreektekst`) en nog geen commando.
+- `node scripts/tts_opnamelijst.mjs --check` faalt als deze lijst achterloopt op de wachtrij
+  of `script.json`.
+
 ## Runbook (in deze volgorde)
 
 ### 0. Eenmalig: de sleutel (eigenaar)
 
-Zet in `.env` buiten de repo (nooit committen, nooit printen):
+Zet in `.env` in de repo-root (staat in `.gitignore`; nooit committen, nooit printen):
 
 ```bash
 LITELLM_API_KEY=sk-...            # de virtuele sleutel van de LiteLLM-gateway
@@ -43,12 +55,23 @@ LITELLM_API_KEY=sk-...            # de virtuele sleutel van de LiteLLM-gateway
 
 ### 1. Nu opnemen: de 63 klaarstaande jobs
 
+Eén commando voor de hele ronde (dezelfde stappen, stopt bij de eerste fout; leest geen sleutel
+en print hem niet):
+
+```powershell
+node scripts/tts_opnameronde.mjs --budget 2.5
+```
+
+Droogloop zonder sleutel of netwerk: `node scripts/tts_opnameronde.mjs --dry`. Beperkte ronde:
+`--max 8`. Losse stappen (hetzelfde, met de hand):
+
 ```bash
 node scripts/tts_lines_list.mjs                 # toont de jobs en de wachtenden
 python scripts/tts_lines.py --dry-run           # alleen tonen, geen sleutel nodig
 python scripts/tts_lines.py --budget 0.5        # echt opnemen (±197 s audio, ±$0,03)
 node scripts/build_story_data.mjs               # script.json/ manifesten bijwerken
 node scripts/voice_coverage.mjs --quiet         # moet groen blijven
+node scripts/tts_opnamelijst.mjs                # de lijst per clip verversen
 ```
 
 Elke clip wordt gelogd in het `tts.json` van zijn map met `model`, `via: litellm` en de
