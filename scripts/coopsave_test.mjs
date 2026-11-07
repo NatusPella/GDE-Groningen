@@ -91,7 +91,7 @@ t('#566: de schade van de heldenauto van de gastheer komt niet in de eigen save 
   assert.equal(S.applyGuestChanges({ money: 5, moneyBackup: 5, shops: { hero: { health: 10 } } }, { money: 5, shops: { hero: { health: 90 } } }, 0), null,
     'alleen de schade van de gastheer is geen wijziging van de eigen save');
   // nog geen heldenauto in de eigen save: er komt geen schade van de gastheer in
-  assert.deepEqual(S.applyGuestChanges({ money: 3, shops: { vehicles: [] } }, mine, 0).shops.hero, {});
+  assert.equal('hero' in S.applyGuestChanges({ money: 3, shops: { vehicles: [] } }, mine, 0).shops, false, 'geen heldenauto in de eigen save, dan ook geen hero-veld erbij');
   // zonder shops in de momentopname blijft de eigen save zoals hij was
   const zonder = S.applyGuestChanges({ money: 3, shops: { hero: { health: 7 } } }, { money: 4 }, 0);
   assert.deepEqual(zonder.shops.hero, { health: 7 });

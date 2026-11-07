@@ -53,9 +53,11 @@ export function applyGuestChanges(data, mine, earned = 0, ids = []) {
   if (isObj(mine)) for (const k of GAST_VELDEN) if (mine[k] !== undefined) next[k] = mine[k];
   // #566: in de wereld van de gastheer staat de heldenauto van de gastheer in world.vehicles, en dus in
   // `shops.hero` van deze momentopname. Die schade hoort niet in de eigen save: de eigen auto staat opzij
-  // en zijn eigen schade blijft precies zoals hij was.
+  // en zijn eigen schade blijft precies zoals hij was. Zonder heldenauto in de eigen save komt er ook geen.
   if (isObj(mine) && isObj(mine.shops) && isObj(data.shops)) {
-    next.shops = { ...next.shops, hero: isObj(data.shops.hero) ? data.shops.hero : {} };
+    const eigen = isObj(data.shops.hero) ? data.shops.hero : undefined;
+    next.shops = { ...next.shops };
+    if (eigen === undefined) delete next.shops.hero; else next.shops.hero = eigen;
   }
   if (!isObj(mine) || !Number.isFinite(mine.money)) {
     const e = Math.floor(Number(earned));

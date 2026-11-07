@@ -394,7 +394,7 @@ export function startHost(world, info, opts = {}) {
   world.coopWanted = {}; world.coopHeat = {}; world.coopDoelwit = 0; // een gezocht-niveau per gast (#434, coopgezocht.js)
   world.coopWantedMeld = (slot, na, voor) => gezochtMelden(world, slot, na, voor);
   world.coopGepakt = (slot, level) => gastGepakt(world, slot, level);
-  world.coopNet = { role: 'host', hub, fade, route, removing: {}, info, koploos, sessieId: maakSessieId(), tKlok: 0, tHash: 0, tWeer: 0, tSpelers: 1, hashN: 0, scene, tScene: 0, filmpjeT: 0, sceneNu: null, meedoen: maakMeedoen(), foci: maakRegister(), groepen: maakGroepen(), groepId: null };
+  world.coopNet = { role: 'host', hub, fade, route, removing: {}, info, koploos, solo, sessieId: maakSessieId(), tKlok: 0, tHash: 0, tWeer: 0, tSpelers: 1, hashN: 0, scene, tScene: 0, filmpjeT: 0, sceneNu: null, meedoen: maakMeedoen(), foci: maakRegister(), groepen: maakGroepen(), groepId: null };
   world.coopGroepen = world.coopNet.groepen; // de opdrachtstand per groep (#452), ook voor de tests en de kaart
   // Een groep kan ook buiten de missie bestaan: iedereen mag een activiteit starten en is dan de leider van die groep.
   // De host blijft de wereld simuleren; dit is alleen de groepsboekhouding en de per-slot doelen (#492).
@@ -1613,7 +1613,9 @@ export function stopCoopNet(world) {
     treinStop(world); // de gasten in de trein van de gastheer (conducteur en passagiers) staan weer naast de wagen (#492)
     if (world.sideJobActions && world.sideJobActions.stopGasten) world.sideJobActions.stopGasten(); // de eigen banen van de gasten stoppen met de groep (#492)
   } else if (n.role === 'client') { world.coopTrein = null; gastTreinWeg(world); } // je rijdt niet meer mee in de trein van de gastheer (#492)
-  if (!isKoploos(n)) verrekenEinde(world); // de laatste verrekening: de eigen save van host en gast, met de beloningen en hun ids (#448); een gastheer zonder speler bewaart niets (#450)
+  // #569: een sessie van één (Alleen spelen, solo: true) bewaart niets extra's bij het einde; het spel bewaart op zijn
+  // eigen momenten. Een echte sessie verrekent hier nog een laatste keer voor host en gast (#448).
+  if (!isKoploos(n) && !n.solo) verrekenEinde(world);
   if (world.coopCutBezig != null) cutGastStop(world, null, true); // een scène van de gastheer stopt met het samen spelen
   if (n.role === 'host') bezorgAllesWeg(world, (s) => bestuurLos(world, s)); // de eigen voertuigen van de gasten gaan mee terug (#449)
   if (n.role === 'host') { try { n.hub.announce({ k: 'weg', reden: 'spel gestopt' }); n.hub.closeAll(); } catch (e) { /* al weg */ } } else { try { if (n.session.status !== 'geweigerd' && n.session.status !== 'verbroken') n.session.leave(); } catch (e) { /* al weg */ } }
