@@ -347,6 +347,7 @@ export function createFarLOD(scene, map, opts) {
   const tintCache = new Map();
 
   const tiles = new Map();
+  let geoSeen = map.geoVer; // (#314 C2) de kaartstand van de LOD-tegels
   let tilesVersion = 0, lastPass = null, passFrame = 0; // idle-pass bookkeeping of update()
   const tileOf = (x, y) => {
     const i = Math.floor(x / TILE), j = Math.floor(y / TILE);
@@ -475,6 +476,14 @@ export function createFarLOD(scene, map, opts) {
   // went, or FAR_IDLE_FRAMES frames: the pass walks every tile of the world with a hypot each and sorts the queue.
   const FAR_IDLE_FRAMES = 30;
   function update(px, py, viewDist, visibleDist, detailR) {
+    // #314 C2: komt er een tegel bij of gaat die weg, dan zijn de LOD-tegels oud.
+    if (geoSeen !== map.geoVer) {
+      geoSeen = map.geoVer;
+      for (const t of tiles.values()) if (t.meshes || t.job) disposeTile(t);
+      tiles.clear();
+      queue.length = 0;
+      lastPass = null;
+    }
     shared.uLodPlayer.value.set(px, py);
     shared.uLodDetailR.value = detailR;
     shared.uLodInnerR.value = detailR - 8;

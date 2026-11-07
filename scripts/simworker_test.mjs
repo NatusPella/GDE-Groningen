@@ -120,11 +120,18 @@ console.log('simworker_test ok');
 
 // static world data
 import { buildSimRoads, projectOnRoad } from '../game/js/simworld.js';
-const fakeMap = { roads: [
+import { SpatialGrid } from '../game/js/spatialgrid.js';
+const fakeRoads = [
   { cat: 'major', pts: [[0, 0], [100, 0]] }, { cat: 'foot', pts: [[0, 0], [50, 0]] },
-  { cat: 'minor', pts: [[0, 0], [5, 0]] }, { cat: 'normal', pts: [[0, 0]] }, { cat: 'minor', pts: [[0, 10], [0, 60]] }] };
-assert.deepEqual(buildSimRoads(fakeMap, 'car').map((r) => r.id), [0, 4]);
-assert.deepEqual(buildSimRoads(fakeMap, 'ped').map((r) => r.id), [1]);
+  { cat: 'minor', pts: [[0, 0], [5, 0]] }, { cat: 'normal', pts: [[0, 0]] }, { cat: 'minor', pts: [[0, 10], [0, 60]] }];
+const fakeGrid = new SpatialGrid(64);
+for (const r of fakeRoads) {
+  const xs = r.pts.map((p) => p[0]), ys = r.pts.map((p) => p[1]);
+  fakeGrid.insert(r, [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)]);
+}
+const fakeMap = { roads: fakeRoads, roadGrid: fakeGrid };
+assert.deepEqual(buildSimRoads(fakeMap, 'car').map((r) => r.id), [0, 1]);
+assert.deepEqual(buildSimRoads(fakeMap, 'ped').map((r) => r.id), [0]);
 const pr = projectOnRoad(buildSimRoads(fakeMap)[0].pts, 40, 3);
 assert.ok(Math.abs(pr.s - 40) < 1e-4 && Math.abs(pr.d - 3) < 1e-4);
 console.log('simworld ok');

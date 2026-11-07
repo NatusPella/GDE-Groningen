@@ -1,4 +1,5 @@
 import { pointInPolygon } from './util.js';
+import { gridItems } from './spatialgrid.js';
 import { hoofdspeler } from './players.js';
 import { getHorecaForRender } from './horeca.js';
 import { getShopsForRender } from './shops.js';
@@ -145,8 +146,9 @@ function buildGraph(map) {
     }
     return id;
   };
-  for (let ri = 0; ri < map.roads.length; ri++) {
-    const road = map.roads[ri];
+  const graphRoads = map.orderedRoads();
+  for (let ri = 0; ri < graphRoads.length; ri++) {
+    const road = graphRoads[ri];
     const n = road.pts.length;
     const rn = new Int32Array(n);
     for (let i = 0; i < n; i++) rn[i] = nodeOf(road.pts[i][0], road.pts[i][1]);
@@ -231,6 +233,8 @@ function buildGraph(map) {
   const driveFree = csr(driveUndirected);
   graph = {
     map,
+    geoVer: map.geoVer,
+    roadList: graphRoads, // #314: de wegen uit het raster, niet uit de (sparse) arraylaag
     N,
     walkComp: components(walkAdj),
     driveComp: components(driveFree),
@@ -442,7 +446,7 @@ function astar(fromSnap, toSnap, walkMode, nodesOut = null) {
 // Walking path for pedestrians: the polyline plus the road each leg follows
 // (legs[i] is the road between pts[i] and pts[i + 1]).
 export function findWalkPath(map, ax, ay, bx, by) {
-  if (!graph || graph.map !== map) buildGraph(map);
+  if (!graph || graph.map !== map || graph.geoVer !== map.geoVer) buildGraph(map);
   const from = snapToRoad(map, ax, ay, false), to = snapToRoad(map, bx, by, false);
   if (!from || !to) return null;
   const nodes = [];
@@ -454,7 +458,7 @@ export function findWalkPath(map, ax, ay, bx, by) {
     const a = nodes[i], b = nodes[i + 1];
     let road = legs[legs.length - 1];
     for (let e = W.start[a]; e < W.start[a + 1]; e++) {
-      if (W.to[e] === b) { road = map.roads[W.road[e]]; break; }
+      if (W.to[e] === b) { road = graph.roadList[W.road[e]]; break; }
     }
     legs.push(road);
   }
@@ -670,7 +674,7 @@ function countryRoute(world, target, from, to, graphMode, kind, p = hoofdspeler(
 // az, bz } (the heights at the ends, for bridge or below). Returns
 // { pts, roads } (roads[i]: the road between pts[i] and pts[i + 1]) or null.
 export function planLandRoute(map, kind, a, b, opts = {}) {
-  if (!graph || graph.map !== map) buildGraph(map);
+  if (!graph || graph.map !== map || graph.geoVer !== map.geoVer) buildGraph(map);
   const lvl = (z, pen) => (Number.isFinite(z) ? { z, pen } : null);
   // De start is waar de speler staat: die snap hoeft niet per se buiten een gevel
   // te liggen (je kunt in een deuropening staan). Alleen het doel moet dat (#502).
@@ -686,7 +690,7 @@ export function planLandRoute(map, kind, a, b, opts = {}) {
   for (let i = 0; i < nodes.length - 1; i++) {
     const u = nodes[i], v = nodes[i + 1];
     let road = roads[roads.length - 1];
-    for (let e = adj.start[u]; e < adj.start[u + 1]; e++) if (adj.to[e] === v) { road = map.roads[adj.road[e]]; break; }
+    for (let e = adj.start[u]; e < adj.start[u + 1]; e++) if (adj.to[e] === v) { road = graph.roadList[adj.road[e]]; break; }
     roads.push(road);
   }
   if (nodes.length) roads.push(used.to.road);
@@ -696,7 +700,7 @@ export function planLandRoute(map, kind, a, b, opts = {}) {
 // Where a waypoint clicks onto for a mode: the nearest road that is for the
 // mode, on the level asked for (z: 0 street level, a bridge deck's height).
 export function snapWaypoint(map, kind, x, y, z) {
-  if (!graph || graph.map !== map) buildGraph(map);
+  if (!graph || graph.map !== map || graph.geoVer !== map.geoVer) buildGraph(map);
   return snapToRoad(map, x, y, kind, Number.isFinite(z) ? { z, pen: LEVEL_PEN_TARGET_M } : { z: 0, pen: LEVEL_PEN_TARGET_M / 2 });
 }
 
@@ -978,7 +982,7 @@ function updateSlot(world, slot, target, mode) {
 }
 
 export function updateRouting(dt, world) {
-  if (!graph || graph.map !== world.map) buildGraph(world.map);
+  if (!graph || graph.map !== world.map || graph.geoVer !== world.map.geoVer) buildGraph(world.map);
   const p = hoofdspeler(world);
 
   const mode = world.pigeonMode || world.heliRun ? 'fly' : world.trainDriving || world.trainCam ? 'ov' : travelMode(p);

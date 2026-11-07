@@ -35,6 +35,7 @@ const POINT_KINDS = new Set(['bench', 'bin', 'bikerack', 'shelter', 'bollard', '
 let scene = null;
 let map = null;
 const tiles = new Map();    // key -> { items }
+let tilesGeoVer = null;     // de kaartstand waar de tegelcache bij hoort (#314 C2)
 const meshes = new Map();   // kind -> InstancedMesh
 let signMesh = null, signKey = '';
 let boardMesh = null, boardKey = '';
@@ -278,6 +279,8 @@ function rebuildBoards(boards) {
 // --- tiles ---------------------------------------------------------------------
 
 function tileItems(i, j) {
+  // #314 C2: komt er een tegel bij of gaat die weg (map.geoVer), dan is de cache oud
+  if (map && map.geoVer !== tilesGeoVer) { tiles.clear(); tilesGeoVer = map.geoVer; }
   const key = `${i},${j}`;
   let t = tiles.get(key);
   if (t) return t.items;

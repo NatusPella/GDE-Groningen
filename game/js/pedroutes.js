@@ -245,16 +245,18 @@ const DETOUR_SCAN_M = 45;
 const DETOUR_MAX_EXTRA = 55;
 const DETOUR_CATS = ['major', 'normal'];
 let sites = null;
+let sitesGeo = null; // { map, geoVer }: de sites horen bij deze kaartstand
 
 function addSite(x, y, kind) {
   sites.insertPoint({ x, y, kind }, x, y);
 }
 
 function buildSites(map) {
+  sitesGeo = { map, geoVer: map.geoVer };
   sites = new SpatialGrid(SITE_CELL);
   const nodes = new Map();
   const key = (p) => Math.round(p[0] * 10) * 1e6 + Math.round(p[1] * 10);
-  for (const r of map.roads) {
+  for (const r of map.orderedRoads()) {
     r.pts.forEach((p, i) => {
       const k = key(p);
       let a = nodes.get(k);
@@ -724,7 +726,7 @@ export function walkRoute(ped, world, dt, dPlayer) {
     const a = r.i > 0 ? r.pts[r.i - 1] : [ped.x, ped.y];
     r.cross = detectCrossing(map, a[0], a[1], tgt[0], tgt[1]);
     if (r.cross) {
-      if (!sites) buildSites(map);
+      if (!sites || sitesGeo.map !== map || sitesGeo.geoVer !== map.geoVer) buildSites(map);
       r.cross.site = siteKind(r.cross);
       const mayDetour = !a.detour && !tgt.detour && (r.detours || 0) < 6;
       if (mayDetour && !r.cross.site && !r.cross.ok && planDetour(map, r, r.cross, ped.x, ped.y)) {

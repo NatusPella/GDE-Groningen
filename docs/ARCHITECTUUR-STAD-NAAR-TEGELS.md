@@ -768,31 +768,42 @@ weg bij zijn gid op, en `splitOverlay` scheidt stad en overlay op de gids
 Een gat in de array is de enige vorm die klopt, en dan moet elke lezer die op
 gid/index rekent een gat kunnen velen.
 
-**Sinds #314 C2 (7 november 2026) geldt de dichte eis voor vijf van de zeven soorten
-niet meer: spoor, meubels, gebouwen, bomen en groen.** De wereldbouw schrijft
-`index.sparse = ['rails', 'furniture', 'buildings', 'trees', 'green']`; `fromTiles`
-laat die arraylagen dan helemaal leeg (geen gaten, geen slots: de rijen leven in
-`_res` en in de rasters), de dichte-gid-controle slaat ze over, en de rijen van een
-gepinde tegel gaan mee in `_tileRows`. `dropTile` haalt ze per tegel uit `_res` en de
-rasters en `addTile` zet ze terug, zonder tweede kopie; de nog dichte soorten (wegen
-en water) houden hun gepinde rijen bij een drop (de pin). `map.geoVer` stijgt bij
-elke add/drop zodat een cache uit stap 4 zich kan verversen. Zo hoeft er voor deze
-vijf lagen geen `rowOf`/gaten-pad te komen: de arraylaag is er simpelweg niet meer.
-De lezers die daarvoor weg moesten zijn omgezet: `countryedge.js` (de databedekking
-uit de vier rasters) en `grass.js` (de gras-chunks uit het groenraster).
+**Sinds #314 C2 (7 november 2026) geldt de dichte eis voor geen van de zeven soorten
+meer.** De wereldbouw schrijft `index.sparse = ['roads', 'buildings', 'water', 'trees',
+'rails', 'furniture', 'green']`; `fromTiles` laat die arraylagen dan helemaal leeg
+(geen gaten, geen slots: de rijen leven in `_res` en in de rasters), de
+dichte-gid-controle slaat ze over, en de rijen van een gepinde tegel gaan mee in
+`_tileRows`. `dropTile` haalt ze per tegel uit `_res` en de rasters en `addTile` zet
+ze terug, zonder tweede kopie. `map.geoVer` stijgt bij elke add/drop; de caches die
+uit de rasters bouwen (routing, verkeersgraaf, pedroutes, waterindex,
+streetfurniture3d, farlod, gras-chunks) verversen daarop. Zo hoeft er geen
+`rowOf`/gaten-pad te komen: de arraylaag is er simpelweg niet meer.
+
+De laatste lezers die daarvoor weg moesten: `passages.js` (knipbron expliciet),
+`home.js` (`dropRoad` op de bouwlijst), `parkedcars.js` (weg-id's uit het raster),
+`quaywalls.js`/`worldevents.js` (stabiele `_wi` in plaats van de array-index, ook in
+de geo-werker via `_waterByWi`), `routing.js`/`pedroutes.js`/`simworld.js`/
+`vehicle/traffic.js` (grafen uit het raster, in bouwvolgorde via `orderedRoads()`),
+`cinematics.js`/`flavour.js` (kaartdoos/ringpunten uit het raster),
+`movablebridges.js` (lijst van de aanroeper of het raster) en `roadsurface.js`
+(netwerkindex uit het raster). `node scripts/tegellezers_test.mjs` staat op **0
+lezers in 0 bestanden**.
+
 Bewijs: `scripts/tileworld_sparse_test.mjs` (dichte en sparse wereld uit dezelfde
 tegels, drop+add- en geoVer-pariteit, en de echte wereld twee keer geladen: dezelfde
-342 sporen, 2137 meubels, 79.321 gebouwen, 40.836 bomen en 6877 groenvlakken in de
-rasters).
+18.454 wegen, 79.321 gebouwen, 1755 water, 40.836 bomen, 342 sporen, 2137 meubels en
+6877 groenvlakken in de rasters). De testloader (`scripts/lib/loadworld.mjs`) bouwt
+voor de array-gebaseerde audits nog de dichte variant; de productiestage
+(`scripts/world/pack_tiles.mjs`) schrijft de sparse index.
 
-**Wegen en water blijven nog dicht.** Hun resterende lezers zijn geen rasters maar
-schrijvers of stabiele ids: `passages.js` knipt de wegen/buildings bij het bouwen,
-`home.js` haalt huis-paden uit de wegenlijst, `parkedcars.js` en `quaywalls.js`/
-`worldevents.js` gebruiken de array-index als stabiele sleutel, en
-`routing.js`/`pedroutes.js`/`simworld.js`/`vehicle/traffic.js` bouwen een graaf uit
-de platte wegenlijst (worker). Die moeten eerst naar raster/tegel-id; daarna kan de
-laatste dichte laag weg en is de pin zelf aan de beurt (stap 4-5: caches en
-tekenlagen).
+**Wat de pin zelf nog doet.** De stadstegels worden in `loadTileWorld` nog gepind
+(`index.pins.city`), maar geen enkele spellogica leest nog een hele array: de teller
+staat op 0. Wat resteert is het tekenwerk dat zijn eigen deel van een gedropte of
+teruggekomen tegel moet opruimen (stap 5: `scene3d.js` sync-lagen; de LOD
+(`farlod.js`), gras-chunks, meubels en lantaarns verversen al op `map.geoVer`). Pas
+als die lagen zich per tegel abonneren kan de pin uit en is #314 C1 klaar. De
+meetlat blijft `scripts/tileworld_pinned_test.mjs` en
+`scripts/tileworld_sparse_test.mjs`.
 
 Wat er moet gebeuren, in vijf stappen:
 
@@ -1008,12 +1019,12 @@ de bestaanscheck en de `push`; regel 372 drie keer: de check, `indexOf` en
 meer afzonderlijke aanrakingen. Ze staan er allebei omdat een volgende fase ze
 allebei moet wegwerken: 103 regels in de tabel, 107 aanrakingen in de teller.
 
-## Bijlage B: de stand na #314 C2b (7 november 2026): 25 lezers in 16 bestanden
+## Bijlage B: de stand na #314 C2b (7 november 2026): 0 lezers
 
-De teller is van 107 (29 oktober) via 98, 86, 76, 65, 45 en 25 teruggebracht tot
-**19 lezers in 14 bestanden** (`node scripts/tegellezers_test.mjs`). De pin in
-`tileworld.js` (`loadTileWorld`) staat er nog; wat er nog leest is geen runtime-
-blokkade meer maar bouw-, werker- of stabiliteitswerk.
+De teller is van 107 (29 oktober) via 98, 86, 76, 65, 45, 25 en 19 teruggebracht tot
+**0 lezers in 0 bestanden** (`node scripts/tegellezers_test.mjs`). Alle zeven
+kaartarrays mogen sparse zijn; de pin in `tileworld.js` (`loadTileWorld`) blijft nog
+voor het tekenwerk (stap 5: de scene3d-sync-lagen).
 
 **Wat weg is.** `mapdata.js` (20 → 0): de klasse en `fromParts` bouwen alle rasters
 uit de bronlijsten die zij meekrijgen (`data`/`p`), niet uit de live arrays; de

@@ -9,7 +9,7 @@
 //   yieldArms(map)         arms that must give way (haaientanden + B6 sign)
 //   yieldAt(map, road, i)  whether `road` gives way at its vertex i
 
-import { SpatialGrid } from './spatialgrid.js';
+import { SpatialGrid, gridItems } from './spatialgrid.js';
 import { poiLayerPlaces } from './poisections.js';
 
 const CAR_CATS = new Set(['major', 'normal', 'minor']);
@@ -41,7 +41,9 @@ export function junctionIndex(map) {
   const s = store(map);
   if (s.nodes) return s.nodes;
   const at = new Map();
-  for (const r of map.roads) {
+  // (#314 C2b) het stadsmodel uit het wegraster; de tegelrijen (JUNCTIONS) houden hun
+  // gidsen en komen via tileJunctionNodes binnen.
+  for (const r of gridItems(map.roadGrid)) {
     if (!CAR_CATS.has(r.cat) || r.pts.length < 2) continue;
     r.pts.forEach((p, idx) => {
       const k = nodeKey(p);
@@ -292,8 +294,8 @@ export function tileJunctionNodes(map) {
 // { k: node key, p: [[x, y]], c: control, a: [[road gid, idx, d, rule, stop
 // (m), enters], ...] }, the road gid being its place in map.roads.
 export const RULES = ['free', 'signal', 'priority', 'yield', 'exit', 'right'];
-export function junctionRows(map) {
-  const gid = new Map(map.roads.map((r, i) => [r, i]));
+export function junctionRows(map, roads) {
+  const gid = new Map(roads.map((r, i) => [r, i]));
   const out = [];
   for (const J of junctionModel(map).values()) {
     out.push({

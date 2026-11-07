@@ -859,8 +859,9 @@ function shoreWorker() {
 export function requestShore(poly, map, opts, done) {
   if (poly._shore !== undefined) { done(poly._shore); return; }
   if (poly._shoreWait) { poly._shoreWait.push(done); return; }
-  const wi = map.water.indexOf(poly);
-  if (wi < 0 || !shoreWorker()) { done(buildShore(poly, map, opts)); return; }
+  // (#314 C2) de bouw-id van de waterrij; een rij zonder id (overlay/tegel) bouwt lokaal
+  const wi = poly._wi;
+  if (wi === undefined || !shoreWorker()) { done(buildShore(poly, map, opts)); return; }
   const wait = poly._shoreWait = [done];
   const near = streamNearHere((poly.bounds[0] + poly.bounds[2]) / 2, (poly.bounds[1] + poly.bounds[3]) / 2);
   runGeo('shore', { wi, n: poly.pts.length, x: poly.pts[0][0], y: poly.pts[0][1], waterY: opts.waterY, withApron: !!opts.apronMaterial }, (res) => {

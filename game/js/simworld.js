@@ -1,3 +1,4 @@
+import { gridItems } from './spatialgrid.js';
 // Static world data for the simulation worker (#58, step 2): drivable roads
 // as flat Float32Arrays, sent once with the init message. The road id is the
 // index in map.roads, so the main thread can map a snapshot's road back to
@@ -8,9 +9,11 @@ const CAR_CATS = new Set(['major', 'normal', 'minor']);
 // kinds: 'car' (drivable roads) or 'ped' (footways and paths).
 export function buildSimRoads(map, kind = 'car', { minLen = 20 } = {}) {
   const out = [];
-  const roads = (map && map.roads) || [];
-  for (let id = 0; id < roads.length; id++) {
-    const r = roads[id];
+  // #314 C2: de wegen uit het raster; het wegobject gaat mee, zodat de hoofdthread
+  // een id terug kan vinden (simbridge.js roadOf) ook zonder arraylaag.
+  const roads = map && map.orderedRoads ? map.orderedRoads() : map && map.roadGrid ? gridItems(map.roadGrid) : [];
+  for (let i = 0; i < roads.length; i++) {
+    const r = roads[i];
     if (!r || !r.pts || r.pts.length < 2) continue;
     const isFoot = r.cat === 'foot';
     if (kind === 'car' ? !CAR_CATS.has(r.cat) || r.z : !isFoot) continue; // bridges and tunnels (z) stay on the main thread
@@ -19,7 +22,7 @@ export function buildSimRoads(map, kind = 'car', { minLen = 20 } = {}) {
     if (len < minLen) continue;
     const pts = new Float32Array(r.pts.length * 2);
     for (let i = 0; i < r.pts.length; i++) { pts[2 * i] = r.pts[i][0]; pts[2 * i + 1] = r.pts[i][1]; }
-    out.push({ id, pts });
+    out.push({ id: out.length, road: r, pts });
   }
   return out;
 }

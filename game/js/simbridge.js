@@ -160,6 +160,8 @@ export function getSimBridge(map) {
   if (shared && sharedMap === map) return shared;
   if (shared) shared.dispose();
   sharedMap = map;
-  shared = createSimBridge({ host: createSimHost(), roads: buildSimRoads(map, 'ped'), carRoads: cars ? buildSimRoads(map, 'car') : [], roadOf: (id) => map.roads[id], attach: cars ? (v) => carAttach(v, map) : null });
+  const pedRoads = buildSimRoads(map, 'ped'), carRoads = cars ? buildSimRoads(map, 'car') : [];
+  const byId = new Map(carRoads.map((r) => [r.id, r.road]));
+  shared = createSimBridge({ host: createSimHost(), roads: pedRoads, carRoads, roadOf: (id) => byId.get(id) || null, attach: cars ? (v) => carAttach(v, map) : null });
   return shared;
 }

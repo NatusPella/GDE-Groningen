@@ -3,6 +3,7 @@
 // verkeerslichten) en het voertuig als staatje daarop; de voertuigfysica blijft in vehicle.js.
 
 import { normalizeAngle, clamp, lerp, closestPointOnSegment } from '../util.js';
+import { gridItems } from '../spatialgrid.js';
 import { busMagWeg, stepRunner, pointAt as linePointAt } from '../busroutes.js';
 import { trafficSignalsNear, trafficLightPhaseMove } from '../trafficlights.js';
 import { roadPriority, junctionArm } from '../junctions.js';
@@ -70,10 +71,10 @@ class LazyNodeMap extends Map {
 
 function roadGraph(map) {
   let g = graphCache.get(map);
-  if (g) return g;
+  if (g && g.geoVer === map.geoVer) return g;
   const nodes = new Map();
   const nodeOf = new LazyNodeMap(map, nodes);
-  const drivable = map.roads.filter((r) => r.cat !== 'foot' && r.pts.length > 1);
+  const drivable = map.orderedRoads().filter((r) => r.cat !== 'foot' && r.pts.length > 1);
   for (const r of drivable) nodeOf.register(r);
   nodeOf.expanded = new Set(drivable);
   // OSM ways that should meet sometimes stop a metre or two short
@@ -94,7 +95,7 @@ function roadGraph(map) {
       if (best) { best.push({ road: r, idx }); arr[idx] = best; }
     }
   }
-  g = { nodeOf };
+  g = { nodeOf, geoVer: map.geoVer };
   graphCache.set(map, g);
   return g;
 }
