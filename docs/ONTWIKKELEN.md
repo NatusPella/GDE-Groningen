@@ -356,6 +356,10 @@ A profile taken on a busy machine starts with a huge first time delta (the wait 
 
 ## Trailer mode
 
+> **Welke set:** de `~91 s` hieronder is de oude montage in `game/js/trailer.js`
+> (ook de benchmark). De actuele uploadpakketten (gameplay 78,0 s, verhaal
+> 87,4 s, showcase 162,9 s) staan in [TRAILER-CONTROLE.md](TRAILER-CONTROLE.md).
+
 "GDE Groningen — Een zomer in Grunn": one scripted sequence of 24 shots through
 Grunn (`js/trailer.js`, shot list in `docs/verhaal/E-trailer.md`), ~91 s,
 with name cards over freeze frames (Tessa, Tammo, Jelle Terpstra, Durk &

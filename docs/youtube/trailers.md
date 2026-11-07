@@ -81,7 +81,7 @@ GDE staat voor Grootste Diefstal Ever. Een gratis, niet-commerciële parodie, ni
 **Instellingen:**
 - Gemaakt voor kinderen: **Nee**. Categorie Gaming, taal Nederlands, standaardlicentie.
 - AI-melding ("veranderde content"): **Nee** (gestileerde game, geen kloon van een echt persoon; zie kanaal.md).
-- **Leeftijdsvoorstel:** de game is **18+** (`docs/LEEFTIJD.md`, IARC-antwoorden in `docs/IARC-ANTWOORDEN.md`, #60). kanaal.md zegt nog PEGI 16: verouderd. Het script toont geen bloed of geweld, dus voorstel: de trailers **zonder** YouTube-leeftijdsbeperking, met "18+ game" in de eerste regels van de beschrijving. Staan er na de opname toch geraakte burgers of bloed in beeld, dan de beperking aanzetten.
+- **Leeftijdsvoorstel:** de game is **18+** (`docs/LEEFTIJD.md`, IARC-antwoorden in `docs/IARC-ANTWOORDEN.md`, #60). Het script toont geen bloed of geweld, dus voorstel: de trailers **zonder** YouTube-leeftijdsbeperking, met "18+ game" in de eerste regels van de beschrijving. Staan er na de opname toch geraakte burgers of bloed in beeld, dan de beperking aanzetten.
 - Eerst **Privé**, dan Niet vermeld; openbaar pas na akkoord van de eigenaar.
 
 ## Speltrailer of verhaaltrailer met Tessa

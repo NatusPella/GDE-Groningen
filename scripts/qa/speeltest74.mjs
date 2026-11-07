@@ -30,8 +30,8 @@ if (process.argv.includes('--slot')) {
   }
 }
 const WACHT = 'for (let i = 0; i < 240 && !(window.__debug && window.__debug.world); i++) await new Promise((r) => setTimeout(r, 500));\n'
-  + `const kEnter = () => { for (const t of [window, document]) { t.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', bubbles: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter', code: 'Enter', bubbles: true })); } };
-for (let i = 0; i < 40; i++) { const s = document.querySelector('#start-screen'); if (!s || s.offsetParent === null || getComputedStyle(s).display === 'none' || getComputedStyle(s).opacity === '0') break; kEnter(); await new Promise((r) => setTimeout(r, 3000)); }
+  // #581: een testrun start als de speler (boot → wereld); geen startscherm of Enter-lus meer.
+  + `for (let i = 0; i < 120; i++) { if (document.body.classList.contains('game-started')) break; const w = window.__debug && window.__debug.world; if (w && w.paused) { for (const t of [window, document]) { t.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', code: 'Space', bubbles: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', code: 'Space', bubbles: true })); } } await new Promise((r) => setTimeout(r, 500)); }
 await new Promise((r) => setTimeout(r, 4000));\n`;
 const script = path.join(OUT, '_page.js');
 fs.writeFileSync(script, WACHT + `window.__s74 = ${JSON.stringify(cfg)};\n` + fs.readFileSync(path.join(HERE, 'speeltest74.page.js'), 'utf8'));

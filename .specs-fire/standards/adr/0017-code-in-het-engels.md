@@ -1,6 +1,6 @@
 # 0017 - Code in het Engels, teksten in het Nederlands
 
-- **Status:** besloten
+- **Status:** vervangen door [0027](0027-code-taal-meetbaar.md)
 - **Datum:** 2026-10-25
 - **Spec:** [coding-standards.md](../coding-standards.md) (Naamgeving), `AGENTS.md` (Code)
 

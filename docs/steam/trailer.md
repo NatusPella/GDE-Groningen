@@ -1,5 +1,10 @@
 # Steam-trailers
 
+> **Welke set:** de 63/80 s hieronder zijn de oude cuts in `game/js/trailer.js`
+> (de benchmark en de eerste Steam-varianten). De actuele uploadpakketten zijn
+> de gameplaytrailer (78,0 s), verhaaltrailer (87,4 s) en showcase (162,9 s) uit
+> [docs/TRAILER-CONTROLE.md](../TRAILER-CONTROLE.md); die zijn opnieuw gemeten.
+
 Twee trailers voor de winkelpagina, naast de oude YouTube-trailer "Een
 zomer in Grunn" (de cut `vol`, die ook de benchmark blijft):
 

@@ -16,7 +16,9 @@ reproductieprobleem.
 `World` (`game/js/world.js`) is het enige mutabele stateobject. Elk systeem bezit
 zijn eigen arrays en velden en leest de rest. `frame()` in `main.js` heeft één
 vaste volgorde: populatie, speler, verkeer, politie en botsingen, combat en peds,
-missies en verhaal, audio en weer, dan HUD en `input.endFrame()`.
+missies en verhaal, audio en weer, dan HUD en `input.endFrame()`. Audio loopt
+bewust vóór het verhaal en daarna nog één keer (de comment bij `main.js` noemt de
+reden, #473); die uitzondering hoort in de volgordetekst, niet alleen in de code.
 
 ## Afgewezen
 
@@ -49,4 +51,9 @@ In die gevallen wordt het een eigen module met een expliciete API; de velden
 verhuizen mee en de keuring (`node scripts/world_eigenaar.mjs`, in de lichte
 testfase) moet daarna weer groen zijn. De keuring is de grens: een nieuw veld of
 een nieuwe schrijver is pas toegestaan als het register hem noemt, met reden en
-issue.
+issue. Het register is de afgelopen tijd gegroeid tot 21 velden met eigenaar en
+210 uitzonderingen over 24 velden; de uitzonderingen zijn daarmee de feitelijke
+regel. Nieuwe gedeelde/meerschrijvende velden krijgen daarom een baseline-groei-
+poort: een uitzondering erbij vraagt een expliciet besluit, geen stille regel.
+Leaf-state met een eigen levensduur (zoals `pausestate.js`) mag buiten `World`
+blijven.

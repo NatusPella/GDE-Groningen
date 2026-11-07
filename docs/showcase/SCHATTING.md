@@ -1,5 +1,9 @@
 # Schatting: traditioneel gebouwd of met AI
 
+**Peildatum: 2026-11-07.** De harde cijfers komen uit [schaal-cijfers.json](schaal-cijfers.json) (gegenereerd met
+`node scripts/stats/schaal.mjs`) en [SCHAAL.md](SCHAAL.md); waar dit document oudere waarden noemt (bijv. 3.572 commits
+of 187 prestaties) zijn die historisch en niet de actuele stand.
+
 **Dit is een schatting, geen meting.** De harde cijfers (commits, regels, issues, wereld) staan in [SCHAAL.md](SCHAAL.md) en komen uit
 `node scripts/stats/schaal.mjs`. Dit document zet daar een aanname-gedreven vergelijking naast. Wie het gebruikt (presentatie, video, gesprek)
 noemt het een schatting en noemt de bandbreedte, nooit één getal.

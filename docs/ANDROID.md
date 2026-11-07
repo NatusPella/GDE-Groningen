@@ -1,5 +1,7 @@
 # Android-testversie (#227, #96)
 
+> **Naslag.** De regels staan in de canonieke spec [`.specs-fire/standards/publicatie.md`](../.specs-fire/standards/publicatie.md); dit document is uitleg en geschiedenis. Bij verschil wint de spec. De APK-versie komt uit `desktop/package.json` via `android/scripts/version.mjs` → `version.properties`; `android/package.json` is de toolpakketversie.
+
 Lokaal bouwbare **debug-APK** van het spel (Capacitor-WebView rond de webversie). Alleen voor testen: niets uploaden, geen Play Console, geen eigen sleutels (constitution 8); ondertekend wordt met de debug-keystore van Gradle.
 Stand 20 oktober: de APK bouwt (162 MB), draait op een Android-emulator (Pixel 6, Android 15) en is daar met echte aanrakingen gespeeld. **Nog niet op een echt toestel getest.**
 

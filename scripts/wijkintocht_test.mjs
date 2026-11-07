@@ -126,8 +126,8 @@ t('#706: tourKeys en veroverTourShot geven een vloeiende baan van overzicht tot 
 });
 
 // --- #707: de scenecatalogus (één bewezen wijk) ---------------------------------------------
-t('#707: de catalogus heeft vier pilotscènes met ankers, regels en een duur', () => {
-  assert.deepEqual(W.INTOCHTEN.map((s) => s.wijk).sort(), ['Centrum', 'Nieuw-Noord', 'Oud-Oost', 'Oud-Zuid'], 'de vier pilots');
+t('#707: de catalogus heeft acht handgeschreven scènes met ankers, regels en een duur', () => {
+  assert.deepEqual(W.INTOCHTEN.map((s) => s.wijk).sort(), ['Centrum', 'Hoogkerk', 'Nieuw-Noord', 'Oud-Noord', 'Oud-Oost', 'Oud-West', 'Oud-Zuid', 'Zuidwest'], 'de acht handgeschreven intochten');
   for (const scene of W.INTOCHTEN) {
     assert.ok(scene.titel && Number.isFinite(scene.seconden) && scene.seconden >= 20 && scene.seconden <= W.MAX_INTOCHT_SECONDEN, scene.wijk + ': duur');
     assert.ok(Array.isArray(scene.ankers) && scene.ankers.length >= 2 && scene.ankers.length <= 3, scene.wijk + ': ankers');
