@@ -112,6 +112,8 @@ export const SNACKKETEN = {
   id: 'snackketen',
   layer: 'snackketen',
   legend: { kind: 'act-snackketen', label: 'Kroketkoning', note: 'snackbarketen: koop snackbars, bouw ze om en leeg de kassa' },
+  // #679: een klein meetbaar doel met een teller, per speler (de keten zit in zijn eigen opslag).
+  doel: () => ({ tekst: `${outletCount(chain)} van 5 vestigingen` }),
   init(w) {
     load();
     buildSpots(w.map);

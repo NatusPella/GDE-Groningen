@@ -7,7 +7,8 @@ export function standaardTodo(a, spot) {
   if (!a || !spot || !a.id) return null;
   const titel = String(a.todoTitel || a.label || a.titel || a.name || a.id);
   const note = (a.legend && a.legend.note) || a.mapSub && a.mapSub(spot) || 'Vrije activiteit in de stad';
-  const meta = spot.name ? `${spot.name} · ${note}` : note;
+  const doel = (typeof a.doel === 'function' ? a.doel() : a.doel) || null;
+  const meta = (spot.name ? `${spot.name} · ${note}` : note) + (doel && doel.tekst ? ` · ${doel.tekst}` : '');
   return {
     key: `act:${a.id}`,
     group: 'minigames',
@@ -27,6 +28,7 @@ export function standaardTodo(a, spot) {
       rows: [
         ['Waar', spot.name || 'Op de kaart'],
         ['Hoe', 'Loop erheen en druk E om mee te doen'],
+        ...(doel && doel.tekst ? [['Doel', doel.tekst]] : []),
       ],
     },
   };

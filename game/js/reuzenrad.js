@@ -4,7 +4,7 @@ import { kermisOn, kermisWheel, kermisFrame } from './kermis.js';
 import { activityBlock, iconDisc } from './activitykit.js';
 import { easeStep, createBoard, mgThema } from './minigamekit.js';
 import { showCard } from './hudcards.js';
-import { recordStat } from './achievements.js';
+import { recordStat, getStat } from './achievements.js';
 import { getSettings } from './settings.js';
 import * as W from './reuzenradrules.js';
 
@@ -40,7 +40,10 @@ function blockReason(w) {
   return activityBlock(w) || (w.money < W.PRICE ? `Te weinig geld: een ritje kost €${W.PRICE}` : null);
 }
 
+let announced = false;
 function prompt(w) {
+  // #679: wie overdag bij het rad staat hoort één keer wanneer het draait.
+  if (!ride && !open(w) && nearLoading(w) && !announced) { announced = true; w.addMessage('Het reuzenrad Hoogvlieger draait vanavond vanaf 19:00.', 4); }
   if (ride || !open(w) || !nearLoading(w)) return null;
   const why = blockReason(w);
   const wait = W.secondsToNextGondola(kermisWheel().rot);
@@ -145,16 +148,21 @@ function drawIcon(ctx, s) {
 
 // Het item onder Activiteiten. Het reuzenrad staat nog niet in de catalogus van todo.js (#436),
 // dus de attractie levert de regel zelf; activities.js geeft hem aan todoui.js door.
-const TODO = {
+// #679: het reuzenrad krijgt een meetbaar doel (vijf ritjes) en een aankondiging van de avonduren;
+// de teller komt uit de bestaande statistiek per speler.
+const TODO = (world) => {
+  const ritten = getStat('reuzenradRides') || 0;
+  return {
   key: 'mg:hoogvlieger',
   group: 'minigames',
   icon: 'act-hoogvlieger',
   title: 'Reuzenrad',
-  meta: `Grote Markt · €${W.PRICE} per ritje · 's avonds op de kermis`,
+  meta: `Grote Markt · €${W.PRICE} per ritje · vanavond 19:00-01:00`,
   kicker: 'Attractie · Grote Markt',
   text: `Kermisbaas Jan laat je ${W.LAPS} rondes meedraaien in het reuzenrad ${NAME}. Loop naar de instap en druk E als er een gondel onderaan hangt; met de muis of de pijltjes kijk je rond en met Backspace stap je weer uit.`,
-  rows: [['Prijs', `€${W.PRICE} per ritje`], ['Wanneer', "elke avond vanaf 19:00, en de hele dag als de kermis op de markt staat"]],
+  rows: [['Prijs', `€${W.PRICE} per ritje`], ['Wanneer', "elke avond 19:00-01:00, en de hele dag als de kermis op de markt staat"], ['Doel', `${ritten} van 5 ritjes · haal de titel`]],
   open,
+  };
 };
 
 // --- HUD: dezelfde kaart als het botsautobord (kermis.js) ---------------------------------
