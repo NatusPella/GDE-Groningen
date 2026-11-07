@@ -12,14 +12,15 @@ export { meerdereSpelers };
 export const WERKT = 'werkt', DEELS = 'deels', NEE = 'nee';
 export const STATUSSEN = [WERKT, DEELS, NEE];
 
-// De meldingen (meldingenbudget: 14 woorden)
+// De meldingen (meldingenbudget: 14 woorden). Sinds #684 noemt een 'nee' ook wat wél kan, in plaats
+// van alleen "dit werkt niet": een gast die alleen "kan niet" leest, weet niet wat hij zelf kan doen.
 export const SAMEN_TEKST = {
-  [NEE]: 'Dit werkt nog niet samen.',
+  [NEE]: 'Dit kan alleen in je eigen spel; samen kan hengelen en boeren.',
   [DEELS]: 'Dit werkt nog maar deels samen.',
 };
 // Vóór de start: de speler mag toch doorgaan
 export const START_TEKST = {
-  [NEE]: 'Dit werkt nog niet samen. Je kunt het toch proberen.',
+  [NEE]: 'Dit kan alleen in je eigen spel; samen kan hengelen, boeren of pannenkoeken bakken.',
   [DEELS]: 'Dit werkt nog maar deels samen. Je kunt het toch proberen.',
 };
 
@@ -111,6 +112,36 @@ export function samenStatus(soort, id) {
   if (t && typeof id === 'string' && Object.prototype.hasOwnProperty.call(t, id)) return t[id];
   return soort === 'bijbaan' && typeof id === 'string' && id ? NEE : null;
 }
+
+// De positieve kant (#684): wat samen wél kan, uit hetzelfde register. De volledige lijst staat in de
+// wachtkamer en op het Samen-scherm; een kortere regel past in een melding of een kaart. Alleen wat
+// 'werkt' is komt erin, zodat de lijst niet kan liegen over een onderdeel dat nog niet samen werkt.
+const SAMEN_KAN = [
+  ['bijbaan', 'taxi', 'taxi'], ['bijbaan', 'bezorger', 'bezorgen'], ['bijbaan', 'krantenwijk', 'de krantenwijk'],
+  ['bijbaan', 'vracht', 'vracht'], ['bijbaan', 'bus', 'de bus'],
+  ['activiteit', 'hengelen', 'hengelen'], ['activiteit', 'pannenkoek', 'pannenkoeken bakken'],
+  ['activiteit', 'carillon', 'de beiaard'], ['activiteit', 'boeren', 'boeren'],
+  ['minigame', 'padel', 'padel'], ['activiteit', 'kartbaan', 'karten'], ['activiteit', 'pitchputt', 'golf'],
+  ['activiteit', 'discgolf', 'discgolf'], ['activiteit', 'klimtoren', 'klimmen'],
+  ['activiteit', 'skatepark', 'skaten'], ['activiteit', 'ringrace', 'de ringrace'],
+];
+export const samenKan = () => SAMEN_KAN.filter(([soort, id]) => samenStatus(soort, id) === WERKT).map(([, , label]) => label);
+export const SAMEN_KAN_REGEL = 'Samen kan nu: ' + samenKan().join(', ') + '.';
+// Voor een kaart of een korte tip: de vier dingen die een gast het makkelijkst zelf doet (#429, #434).
+export const SAMEN_KAN_KORT = 'Samen kan ook: hengelen, boeren, pannenkoeken bakken en de beiaard.';
+export const SAMEN_KAN_TITEL = 'Wat kan samen';
+
+// De "eigen plan"-kaart (#684): als de opener iets doet dat alleen de opener kan, hoeft de gast niet
+// werkloos toe te kijken. Naam en waar, zodat hij weet waar hij moet zijn; de kaart zelf staat in
+// samenplan.js (hudcards).
+export const EIGEN_PLAN_TITEL = 'Doe intussen je eigen ding';
+export const EIGEN_PLAN = [
+  ['hengelen', 'aan elk water met I'],
+  ['pannenkoeken bakken', 'op het pannenkoekenschip'],
+  ['de beiaard', 'bij de Martinitoren'],
+  ['boeren', 'op je eigen akker bij Hoogkerk'],
+];
+export const EIGEN_PLAN_TEKST = 'Doe intussen je eigen ding: ' + EIGEN_PLAN.map(([naam, waar]) => `${naam} ${waar}`).join(', ') + '.';
 
 const SLECHTST = { [WERKT]: 0, [DEELS]: 1, [NEE]: 2 };
 export function slechtste(lijst) {

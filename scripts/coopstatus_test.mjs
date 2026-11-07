@@ -29,8 +29,25 @@ const t = (name, f) => { f(); n++; };
 t('elke status in het register is werkt, deels of nee; elke melding past in het meldingenbudget', () => {
   for (const [soort, tabel] of Object.entries(S.REGISTER)) for (const [id, st] of Object.entries(tabel)) assert.ok(S.STATUSSEN.includes(st), `${soort}/${id}`);
   for (const k of [S.SAMEN_TEKST, S.START_TEKST]) for (const tekst of Object.values(k)) assert.ok(woorden(tekst) <= 14, tekst);
-  assert.equal(S.SAMEN_TEKST.nee, 'Dit werkt nog niet samen.');
+  assert.equal(S.SAMEN_TEKST.nee, 'Dit kan alleen in je eigen spel; samen kan hengelen en boeren.');
   assert.equal(S.SAMEN_TEKST.deels, 'Dit werkt nog maar deels samen.');
+});
+
+t('#684: een nee noemt wat wél kan en de positieve lijst komt uit het register', () => {
+  assert.match(S.SAMEN_TEKST.nee, /samen kan hengelen/);
+  assert.match(S.START_TEKST.nee, /samen kan hengelen/);
+  assert.match(S.START_TEKST.nee, /pannenkoeken bakken/);
+  const kan = S.samenKan();
+  assert.ok(kan.length >= 12, 'de lijst is gevuld: ' + kan.join(', '));
+  for (const label of kan) assert.ok(label && label === label.toLowerCase(), 'kleine letters: ' + label);
+  // de volledige regel noemt elk onderdeel dat werkt, en niets dat 'nee' is
+  assert.match(S.SAMEN_KAN_REGEL, /^Samen kan nu: .+\.$/);
+  for (const label of kan) assert.ok(S.SAMEN_KAN_REGEL.includes(label), label);
+  assert.doesNotMatch(S.SAMEN_KAN_REGEL, /zwembad|kermis|vliegschool|trein|heli\b/);
+  // de korte regel past in het meldingenbudget en noemt de vier lokale activiteiten van een gast
+  assert.ok(woorden(S.SAMEN_KAN_KORT) <= 14, S.SAMEN_KAN_KORT);
+  for (const w of ['hengelen', 'boeren', 'pannenkoeken', 'beiaard']) assert.match(S.SAMEN_KAN_KORT, new RegExp(w), w);
+  assert.equal(S.SAMEN_KAN_TITEL, 'Wat kan samen');
 });
 
 t('elke bijbaan uit de code heeft een status; de coöp-bijbanen en de bus werken', () => {
@@ -138,7 +155,7 @@ t('twee of meer spelers: nee grijs, deels met markering, werkt niets; de start m
     const w = wereld(extra);
     assert.equal(S.meerdereSpelers(w), true, 'spelers ' + (extra + 1));
     const nee = S.samenWaarschuwing(w, 'activiteit', 'kermis');
-    assert.deepEqual([nee.status, nee.grijs, nee.deels, nee.tekst], ['nee', true, false, 'Dit werkt nog niet samen.']);
+    assert.deepEqual([nee.status, nee.grijs, nee.deels, nee.tekst], ['nee', true, false, 'Dit kan alleen in je eigen spel; samen kan hengelen en boeren.']);
     const deels = S.samenWaarschuwing(w, 'activiteit', 'safehuis');
     assert.deepEqual([deels.status, deels.grijs, deels.deels, deels.tekst], ['deels', false, true, 'Dit werkt nog maar deels samen.']);
     for (const [soort, id] of [['activiteit', 'discgolf'], ['bijbaan', 'taxi'], ['bijbaan', 'bus'], ['stap', 'goto'], ['minigame', 'padel']]) assert.equal(S.samenWaarschuwing(w, soort, id), null, id);
@@ -146,7 +163,7 @@ t('twee of meer spelers: nee grijs, deels met markering, werkt niets; de start m
   const w = samen();
   const r = S.waarschuwVoorStart(w, 'bijbaan', 'rondvaart');
   assert.equal(r.status, 'nee');
-  assert.deepEqual(w.meldingen, ['Dit werkt nog niet samen. Je kunt het toch proberen.']);
+  assert.deepEqual(w.meldingen, ['Dit kan alleen in je eigen spel; samen kan hengelen, boeren of pannenkoeken bakken.']);
   assert.equal(S.waarschuwVoorStart(w, 'bijbaan', 'taxi'), null);
   assert.equal(w.meldingen.length, 1, 'een onderdeel dat werkt meldt niets');
   assert.equal(S.waarschuwVoorStart(w, 'stap', 'x', 'deels').status, 'deels', 'een bekende status (missieStatus) mag meegegeven worden');

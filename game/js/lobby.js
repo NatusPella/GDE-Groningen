@@ -19,6 +19,7 @@ import { parseRoom } from './net/sigcrypto.js';
 import { parseCode } from './net/pairing.js';
 import { schoonNaam, filterEnSorteer, leeftijdTekst, leeftijdLang, LIJST, SORTERINGEN, SORTERING_LABEL } from './net/serverlijst.js';
 import { EXTRA_CHARS, DEFAULT_MAX, MIN_MAX, ABS_MAX, advies, openerNaam } from './coopplayers.js';
+import { SAMEN_KAN_REGEL } from './coopstatus.js'; // (#684) de positieve "samen kan"-lijst in de wachtkamer
 
 export const ROLES = { HOST: 'host', GAST: 'gast' };
 export const ROUTES = { KAMER: 'kamer', DIRECT: 'direct' };
@@ -423,6 +424,7 @@ export function view(s) {
       if (s.caps.startGate) lines.push('Wacht op een medespeler: je kunt het spel starten zodra er minstens twee spelers zijn.');
       if (s.openbaar) lines.push(openbaarRegel(s));
       lines.push(wachtwoordRegel());
+      lines.push(SAMEN_KAN_REGEL); // (#684) wat kan samen, terwijl je wacht
       return V({ title: 'Iemand uitnodigen', lines, code: s.code, wachtwoord: wachtwoordVeld(), buttons: [...(s.caps.startGate ? [{ act: 'start-spel', label: 'Spel starten', primary: true, disabled: true }] : []), { act: 'kopieer', label: 'Kopieer', primary: !s.caps.startGate }, ...openbaarKnop(s), { act: 'diag', label: 'Verbinding testen' }, { act: 'terug', label: 'Stoppen' }] });
     }
     case 'gast-typt':
@@ -447,6 +449,7 @@ export function view(s) {
       if (lag) lines.push('De verbinding haperde even; we wachten op de ander.');
       const tip = advies(lijst.length, host ? 'host' : 'gast'); if (tip) lines.push(tip);
       lines.push(profielTekst(s.profil), PASSIEF_REGEL);
+      lines.push(SAMEN_KAN_REGEL); // (#684) de positieve lijst staat ook op het scherm waar je samen speelt
       const buttons = [];
       if (host && s.caps.startGate) { // het spel begint pas met minstens twee spelers en een druk op Spel starten
         const genoeg = lijst.filter((p) => p.verbinding !== 'lost').length >= MIN_SPELERS;

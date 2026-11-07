@@ -12,8 +12,9 @@ import { setErrorContext } from './errorlog.js';
 import { DEV, STORY_TEST, FLAGS } from './devflags.js';
 import { bindCoop } from './coopglue.js';
 import { startSoloHost, stopSoloHost } from './coopsolo.js';
-import { tickCoopNet, setCoopTreinen, coopWereldDoorloop } from './coopnet.js';
+import { tickCoopNet, setCoopTreinen, coopWereldDoorloop, zetSamenKanHaak } from './coopnet.js';
 import { zetTreinBron } from './cooptrein.js'; // de gast zoekt de trein van de gastheer op (#492)
+import { meldSamenKan } from './samenplan.js'; // (#684) de positieve "samen kan"-kaart
 import { zetBestuurHaken } from './coopbestuur.js';
 import { zetDeelHaken } from './coopbezit.js';
 import { politieMetDoelwit } from './coopgezocht.js';
@@ -472,6 +473,7 @@ async function boot() {
   zetBestuurHaken({ misdaad: (w, slot, kind) => reportCrime(w, kind, { dader: slot }), vind: findEnterableVehicle, vindProp: findRideableProp, rijProp: rideProp, enter: (l, v, w) => Player.prototype.enterVehicle.call(l, v, w), exit: (l, map, w, th) => Player.prototype.exitVehicle.call(l, map, w, th), drive: (l, dt, inv, map, w) => Player.prototype.driveVehicle.call(l, dt, inv, map, w), stap: (l, v, map, uit) => Player.prototype.stapNaastDeur.call(l, v, map, uit), trekUit: (w, v, rol) => ejectPassenger(w, v, rol) }); // trekUit: een gast trekt een passagier uit zijn deur (#459); stap: de gast stapt naast de deur van zijn stoel uit (#502)
   // samen spelen (#449): de gastheer zet het eigen voertuig van een gast neer (coopbezit.js)
   zetDeelHaken({ spec: eigenSpec, plek: (w, x, y, model, opts) => findParkingSpot(w, x, y, model, opts), maak: spawnSharedVehicle });
+  zetSamenKanHaak(meldSamenKan); // (#684) de positieve "samen kan"-kaart naast de eerste "Meedoen?"
   buildMovableBridges(world.map);
   // the province's movable bridges come with the streamed tiles, not with map.roads (#235)
   if (world.map.onTiles) {
