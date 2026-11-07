@@ -85,7 +85,7 @@ def job(l):
         except urllib.error.HTTPError as e:
             err = f'HTTP {e.code} {e.read()[:160]!r}'
             # a rate limit is not a reason to change the style: wait and ask again
-            for wait in ([10, 20, 30] if e.code == 429 else []):
+            for wait in ([15, 30, 60, 90] if e.code == 429 else []):
                 time.sleep(wait)
                 try:
                     take(style)
@@ -149,7 +149,7 @@ if DRY:
 u0 = usage()
 print(f'{len(lines)} jobs via litellm ({gemini_tts.CURRENT}), budget ${budget:.2f}' + (f', out {OUT_DIR}' if OUT_DIR else ''))
 failed = []
-with ThreadPoolExecutor(4) as ex:
+with ThreadPoolExecutor(max(1, int(os.environ.get('TTS_CONCURRENCY', '2')))) as ex:
     for b in range(0, len(lines), BATCH):
         spent = usage() - u0
         if spent > budget:
@@ -178,3 +178,4 @@ time.sleep(3)
 print(f'spent ${usage() - u0:.4f} via litellm')
 for f in failed:
     print('missing:', f)
+

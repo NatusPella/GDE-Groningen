@@ -29,6 +29,8 @@ ENV = os.environ.get('GDE_ENV') or next((p for p in [os.path.join(REPO, '.env'),
 # The owner's LiteLLM gateway (#689): one entrance for AI traffic; the Google key lives there.
 GATEWAY = (os.environ.get('LITELLM_BASE_URL') or 'https://litellm.natuspella.nl').rstrip('/')
 ENDPOINT = GATEWAY + '/v1beta/interactions'
+# LiteLLM's OpenAI-compatible TTS-route; de Gemini-TTS-modellen werken hier met response_format=pcm.
+SPEECH_ENDPOINT = GATEWAY + '/v1/audio/speech'
 MODELS_ENDPOINT = GATEWAY + '/v1/models'
 # the model alias on the gateway; the price list through 31-12-2026 is only a fallback when the
 # gateway does not report a cost per clip (`x-litellm-response-cost`)
@@ -118,32 +120,37 @@ def usage():
 
 
 def speak(voice, text, style):
-    """24 kHz mono 16-bit PCM, via the gateway's native Interactions route."""
-    part = {'type': 'text', 'text': text}
-    if style:
-        part['annotations'] = [{'type': 'speech_metadata', 'style': style}]
+    """24 kHz mono 16-bit PCM via de gateway se OpenAI-compatibele /v1/audio/speech-route.
+
+    De native Interactions-route van dezelfde gateway wees dit model op een gegeven moment
+    naar chat/completions (400: "is a text-to-speech model and cannot be used with the
+    chat/completions endpoint"). LiteLLM's audio/speech-route levert voor dit model wel PCM
+    (response_format=pcm); de stijl gaat als `instructions` mee en wordt door de gateway
+    doorgegeven voor zover het model hem ondersteunt.
+    """
     body = {
         'model': CURRENT,
-        'input': [{'type': 'user_input', 'content': [part]}],
-        # raw PCM, so the wave wrapper and the length check below stay as they are: a unary 3.8 call
-        # returns WAV (RIFF) by default
-        'response_format': {'type': 'audio', 'mime_type': 'audio/l16', 'sample_rate': 24000},
-        'generation_config': {'speech_config': [{'voice': voice}]},
+        'input': text,
+        'voice': voice,
+        'response_format': 'pcm',
     }
-    req = urllib.request.Request(ENDPOINT, data=json.dumps(body).encode(),
+    if style:
+        body['instructions'] = style
+    req = urllib.request.Request(SPEECH_ENDPOINT, data=json.dumps(body).encode(),
                                  headers={'Authorization': f'Bearer {api_key()}', 'Content-Type': 'application/json'})
     throttle()
     try:
         with urllib.request.urlopen(req, timeout=180) as r:
-            data = json.loads(r.read())
+            pcm = r.read()
             cost = r.headers.get('x-litellm-response-cost')
     except urllib.error.HTTPError as e:
-        body = e.read().decode('utf-8', 'replace')
+        err = e.read().decode('utf-8', 'replace')
         # a daily limit is not worth retrying: the run stops with the message the gateway gives
-        if e.code == 429 and ('per day' in body or 'budget' in body.lower()):
-            raise QuotaExhausted(body[:300])
-        raise urllib.error.HTTPError(e.url, e.code, e.msg, e.headers, io.BytesIO(body.encode()))
-    pcm = pcm_of(data)
+        if e.code == 429 and ('per day' in err or 'budget' in err.lower()):
+            raise QuotaExhausted(err[:300])
+        raise urllib.error.HTTPError(e.url, e.code, e.msg, e.headers, io.BytesIO(err.encode()))
+    if not pcm:
+        raise ValueError('no audio in the speech response')
     global _SPENT
     if cost is not None:
         try:
