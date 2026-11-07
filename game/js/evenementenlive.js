@@ -5,6 +5,7 @@ import { hoofdspeler } from './players.js';
 // sfx/ambience.js), en het autoverkeer dat in een afgesloten gebied staat (weg, buiten beeld).
 // Het deel dat geen wereld nodig heeft staat in evenementen.js (scripts/evenementen_test.mjs);
 // de regels hier in scripts/evenementenlive_test.mjs.
+import { toonUitje } from './uitjepaneel.js';
 import { eventHere, soundAt, trafficFactor, loadSeen, markSeen, activeEvents, centreOf, KINDS, routePenalty } from './evenementen.js';
 
 export const TICK_S = 1.5;
@@ -109,7 +110,7 @@ export function updateEvenementen(dt, world, n) {
     let st = null;
     try { st = typeof localStorage !== 'undefined' ? localStorage : null; } catch (e) { st = null; }
     if (!seen) seen = loadSeen(st);
-    if (!seen.includes(here.ev.id)) world.addMessage(arrivalText(here.ev), 5);
+    if (!seen.includes(here.ev.id)) toonUitje(world, 'evenementen', { regel: arrivalText(here.ev), hint: '[E] meedoen', secs: 5 });
     seen = markSeen(st, seen, here.ev.id);
   }
   if (world.coopRole !== 'client' && world.eventsNow.length && Array.isArray(world.vehicles)) { // een gast ruimt niets op: zijn voertuigen komen uit het snapshot (#452)
