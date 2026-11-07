@@ -1,4 +1,5 @@
 import { hoofdspeler } from './players.js';
+import { RAY_CHUNK_TRIS, rayChunks, segmentHitsChunk } from './scene/raychunks.js'; // #497: de raycast-chunks van de camera-occlusie
 import { FLAGS, perfOff } from './devflags.js';
 import { sfxLinks } from './latehooks.js';
 import { MODS } from './cheatmods.js';
@@ -464,65 +465,6 @@ function nearbyCamTargets(px, py) {
 // that only hands three.js the triangle runs whose (lazily cached, local)
 // bounding box the ray segment actually crosses, instead of every triangle of
 // every building part whose bounding sphere it touches.
-const RAY_CHUNK_TRIS = 32;
-const RAY_BOX_EPS = 1e-3;
-const _camHits = [];
-const _camInv = new THREE.Matrix4();
-const _camSphere = new THREE.Sphere();
-const _camRay = new THREE.Ray();
-const _camSphereHit = new THREE.Vector3();
-const _segA = new THREE.Vector3();
-const _segB = new THREE.Vector3();
-
-function rayChunks(g) {
-  const pos = g.attributes.position, idx = g.index;
-  const version = (idx ? idx.version : 0) + pos.version;
-  let c = g.userData.rayChunks;
-  if (c && c.version === version && c.pos === pos && c.idx === idx) return c;
-  const triCount = ((idx ? idx.count : pos.count) / 3) | 0;
-  const n = Math.ceil(triCount / RAY_CHUNK_TRIS);
-  const boxes = new Float32Array(n * 6);
-  for (let k = 0; k < n; k++) {
-    let x0 = Infinity, y0 = Infinity, z0 = Infinity, x1 = -Infinity, y1 = -Infinity, z1 = -Infinity;
-    const end = Math.min(triCount, (k + 1) * RAY_CHUNK_TRIS) * 3;
-    for (let v = k * RAY_CHUNK_TRIS * 3; v < end; v++) {
-      const i = idx ? idx.getX(v) : v;
-      const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
-      if (x < x0) x0 = x;
-      if (x > x1) x1 = x;
-      if (y < y0) y0 = y;
-      if (y > y1) y1 = y;
-      if (z < z0) z0 = z;
-      if (z > z1) z1 = z;
-    }
-    const o = k * 6;
-    boxes[o] = x0 - RAY_BOX_EPS; boxes[o + 1] = y0 - RAY_BOX_EPS; boxes[o + 2] = z0 - RAY_BOX_EPS;
-    boxes[o + 3] = x1 + RAY_BOX_EPS; boxes[o + 4] = y1 + RAY_BOX_EPS; boxes[o + 5] = z1 + RAY_BOX_EPS;
-  }
-  c = { boxes, n, triCount, version, pos, idx };
-  g.userData.rayChunks = c;
-  return c;
-}
-
-function segmentHitsChunk(boxes, o) {
-  let t0 = 0, t1 = 1;
-  for (let k = 0; k < 3; k++) {
-    const a = k === 0 ? _segA.x : k === 1 ? _segA.y : _segA.z;
-    const d = (k === 0 ? _segB.x : k === 1 ? _segB.y : _segB.z) - a;
-    const lo = boxes[o + k], hi = boxes[o + 3 + k];
-    if (d === 0) {
-      if (a < lo || a > hi) return false;
-      continue;
-    }
-    let ta = (lo - a) / d, tb = (hi - a) / d;
-    if (ta > tb) { const t = ta; ta = tb; tb = t; }
-    if (ta > t0) t0 = ta;
-    if (tb < t1) t1 = tb;
-    if (t0 > t1) return false;
-  }
-  return true;
-}
-
 function camRaycastMesh(m, rc) {
   const g = m.geometry;
   if (m.material === undefined) return;
@@ -543,7 +485,7 @@ function camRaycastMesh(m, rc) {
   const dr = g.drawRange, start = dr.start, count = dr.count;
   try {
     for (let k = 0; k < c.n; k++) {
-      if (!segmentHitsChunk(c.boxes, k * 6)) continue;
+      if (!segmentHitsChunk(c.boxes, k * 6, _segA.x, _segA.y, _segA.z, _segB.x, _segB.y, _segB.z)) continue;
       const lo = Math.max(k * RAY_CHUNK_TRIS * 3, start);
       const hi = Math.min(Math.min(c.triCount, (k + 1) * RAY_CHUNK_TRIS) * 3, start + count);
       if (hi <= lo) continue;
