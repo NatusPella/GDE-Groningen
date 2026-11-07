@@ -73,6 +73,7 @@ import { stepFov } from './gamefeel.js';
 import { effectsFor, shakeAmount } from './a11ylogic.js';
 import { reducedMotion } from './motion.js';
 import { dynamicScale, cpuLevel } from './gfxprofile.js';
+import { adaptedShadowLevel } from './shadowlevel.js';
 import { VIEW_DISTANCES, viewDistanceFor, detailDistanceFor, DETAIL_BASE } from './viewdist.js';
 import { compareOpaque } from './drawpool.js';
 import { buildingBatcher, roadBatcher, facadeBatcher, shoreBatcher, drawHub } from './staticbatch3d.js';
@@ -179,9 +180,12 @@ const SHADOW_LEVELS = {
   laag: { size: 1024, half: 40, radius: 1.5, normalBias: 0.05 },
   middel: { size: 2048, half: 36, radius: 1.5, normalBias: 0.03 },
   hoog: { size: 4096, half: 32, radius: 1.2, normalBias: 0.02 },
+  // #658: de zuinige 'hoog'-variant voor een machine die zich terugschroeft
+  hoog2048: { size: 2048, half: 32, radius: 1.2, normalBias: 0.02 },
 };
 
 let renderer = null, scene = null, cam = null, canvas3 = null;
+let shadowBaseLevel = 'hoog'; // #658: kwaliteitsniveau uit de instellingen
 let terrainMesh = null;
 // ?terrain (#269): the map (what stands flat is lifted by the relief under it) and the patches of ground that rise above the flat ground
 let liftMap = null, reliefPatches = null;
@@ -1168,7 +1172,8 @@ function applyViewSettings(st) {
   if (postfx.level !== level) postfx.setLevel(level);
   const shadows = st.shadows && preset.shadows;
   if (sun.castShadow !== shadows) { sun.castShadow = shadows; renderer.shadowMap.needsUpdate = true; }
-  applyShadowLevel(level);
+  shadowBaseLevel = level;
+  applyShadowLevel(adaptedShadowLevel(level, dynamicScale(), cpuLevel()));
   applyViewDistance(st);
   cam.fov = baseFov = cameraVerticalFov(st.fov);
   cam.updateProjectionMatrix();
@@ -1201,6 +1206,8 @@ export function refreshRenderScale() {
   noteGfxEvent(`renderschaal ${wantRatio.toFixed(2)}->${ratio.toFixed(2)}`);
   wantRatio = ratio;
   sizeDirty = true;
+  // #658: een lagere adaptieve schaal maakt de schaduwkaart ook zuiniger
+  applyShadowLevel(adaptedShadowLevel(shadowBaseLevel, dynamicScale(), cpuLevel()));
 }
 
 function applyShadowLevel(level) {
