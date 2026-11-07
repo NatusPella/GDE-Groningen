@@ -1,5 +1,6 @@
 import { pointInPolygon } from './util.js';
 import { tourKeys } from './wijkintocht.js';
+import { reducedMotion } from './motion.js';
 
 // Camera paths for cutscenes, free of DOM and three.js: poses use map
 // coordinates (x/y on the map, z = height in metres).
@@ -19,7 +20,9 @@ function cr(a, b, c, d, t) {
 // Smooth Catmull-Rom camera move through evenly timed keyframes {pos, look, fov?}.
 export function pathShot(keys, ease = easeInOut) {
   return (u) => {
-    const s = ease(clamp01(u)) * (keys.length - 1);
+    // #734 (F17): met "Beweging beperken" blijft de camera op het eerste kader
+    // staan in plaats van de grote fly-over/aanrijdbeweging te maken.
+    const s = ease(clamp01(reducedMotion() ? 0 : u)) * (keys.length - 1);
     const i = Math.min(keys.length - 2, Math.floor(s));
     const t = s - i;
     const k0 = keys[Math.max(0, i - 1)], k1 = keys[i], k2 = keys[i + 1], k3 = keys[Math.min(keys.length - 1, i + 2)];
@@ -91,10 +94,15 @@ export function buildingReach(map, x, y, pad = 12) {
 // Lifts any keyframe that would sit inside a building up over its roof.
 export function clearKeys(w, keys) {
   const lift = keys.map((k) => roofAt(w.map, k.pos.x, k.pos.y));
+  // #734 (F11): keur meer punten langs elk segment, niet alleen het midden:
+  // een gevel of hijskraan tussen twee keys werd anders gemist.
   for (let i = 0; i + 1 < keys.length; i++) {
-    const m = roofAt(w.map, (keys[i].pos.x + keys[i + 1].pos.x) / 2, (keys[i].pos.y + keys[i + 1].pos.y) / 2);
-    lift[i] = Math.max(lift[i], m);
-    lift[i + 1] = Math.max(lift[i + 1], m);
+    for (let k = 1; k < 4; k++) {
+      const u = k / 4;
+      const m = roofAt(w.map, keys[i].pos.x + (keys[i + 1].pos.x - keys[i].pos.x) * u, keys[i].pos.y + (keys[i + 1].pos.y - keys[i].pos.y) * u);
+      lift[i] = Math.max(lift[i], m);
+      lift[i + 1] = Math.max(lift[i + 1], m);
+    }
   }
   keys.forEach((k, i) => { if (lift[i] && k.pos.z < lift[i] + 1.5) k.pos.z = lift[i] + 1.5; });
   return keys;
