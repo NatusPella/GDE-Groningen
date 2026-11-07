@@ -1,4 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { toonStartkaart } from './startkaart.js';
 import { getScene } from './scene3d.js';
 import { signBothSides } from './canvastex.js';
 import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
@@ -273,7 +274,7 @@ function start(w, { force = false, online = null } = {}) {
   place(w, 0);
   const side = FR.toW(-PARK.hu - 2, PARK.hv + 1);
   w.companionHold = { x: side.x, y: side.y, face: ROT };
-  if (online !== 'gast') showCard(w, { kind: 'tip', kicker: 'Skatepark', title: online ? 'Twee beurten' : 'Negentig seconden', body: `[W] duwen, [A] [D] sturen en draaien, [Spatie] ollie, [E] kickflip, [F] heelflip, [S] in de lucht een grab. Op een leuning: houd je balans met [A] [D].${online ? ' Twee beurten van 45 seconden: de punten tellen op.' : ''}`, duration: 10, key: 'skatepark-help', voice: false });
+  if (online !== 'gast') toonStartkaart(w, 'skatepark');
   say(w, 'start', true);
   return true;
 }
@@ -492,7 +493,7 @@ function updateHud(w) {
   const row = `${stand}${run}<span>Tijd <b>${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}</b></span><span>${g.beurten ? 'Totaal' : 'Score'} <b>${scoreTxt}</b></span><span>Keten <b>${cur.toLocaleString('nl-NL')}</b> x${c.chain ? c.mult : 1}</span><span>Beste <b>${c.best.toLocaleString('nl-NL')}</b></span>`;
   let meter = null, flash = g.flash ? g.flash.text : g.phase === 'intro' ? 'Daar gaan we...' : g.phase === 'outro' ? 'Tijd!' : '';
   if (g.b.grind) {
-    meter = { v: 0.5 + g.b.grind.bal / 2.4, mark: 0.5, color: Math.abs(g.b.grind.bal) > 0.65 ? '#d93f3f' : ACCENT };
+    meter = { v: 0.5 + g.b.grind.bal / 2.4, mark: 0.5, text: 'balans', color: Math.abs(g.b.grind.bal) > 0.65 ? 'var(--mk-danger, #d93f3f)' : ACCENT }; // #619: gevaar via de token, middenstreep als vorm
     flash = g.b.grind.bal > 0.1 ? 'Balans: je leunt rechts, stuur links' : g.b.grind.bal < -0.1 ? 'Balans: je leunt links, stuur rechts' : 'Grind!';
   }
   const help = `${key('W')} duwen · ${key('A')}${key('D')} sturen/draaien · ${key('SPATIE')} ollie · ${key('E')} kickflip · ${key('F')} heelflip · ${key('S')} grab · ${key('BACKSPACE')} stoppen`;

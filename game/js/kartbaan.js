@@ -1,4 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { toonStartkaart } from './startkaart.js';
 import { canvasTex, signBothSides } from './canvastex.js';
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk, seatPerson, seatedY, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
@@ -365,7 +366,7 @@ function start(w, { force = false } = {}) {
   game = { ghostRun, rec: createRecorder(), t: 0, phase: 'grid', karts, raceT: 0, flash: null, cam: null, camA: karts[0].a, said: 0, lights: 0, result: null, finishAt: 0, hits: 0, outro: 0, lastLap: -1, boostFx: 0, exit: { ...STAND }, gapSay: 0 };
   syncKarts(w, 0);
   w.companionHold = { x: STAND.x + 2, y: STAND.y + 1, face: ROT };
-  showCard(w, { kind: 'tip', kicker: 'Karten in Ulrum', title: 'Drie ronden, drie rijders', body: '[W] gas, [S] rem, [A] [D] sturen. Houd [Spatie] (handrem) in een bocht voor een drift: een lange drift geeft een versnelling.', duration: 10, key: 'kart-help', voice: false });
+  toonStartkaart(w, 'kartbaan');
   say(w, 'start', true);
   return true;
 }
@@ -415,7 +416,7 @@ function startOnline(w, race) {
   race.uit = { ...STAND }; // where a guest who stops or finishes is put back
   beginOnline(w, race, 'host');
   w.companionHold = { x: STAND.x + 2, y: STAND.y + 1, face: ROT };
-  showCard(w, { kind: 'tip', kicker: 'Karten in Ulrum', title: 'Drie ronden tegen elkaar', body: '[W] gas, [S] rem, [A] [D] sturen. Houd [Spatie] (handrem) in een bocht voor een drift: een lange drift geeft een versnelling. Iedereen rijdt dezelfde kart op dezelfde baan.', duration: 10, key: 'kart-help', v: 1 });
+  toonStartkaart(w, 'kartbaan');
   return true;
 }
 
@@ -789,11 +790,12 @@ function updateHud() {
   const best = bestLap(me);
   const kmh = Math.round(Math.abs(me.f) * 3.6);
   const row = `<span>Ronde <b>${lap}</b>/${LAPS}</span><span>Plaats <b>${pos}</b>/4</span><span>Tijd <b>${fmtTime(t)}</b></span><span><b>${kmh}</b> km/u</span>${best != null ? `<span>Beste <b>${fmtTime(best)}</b></span>` : ''}`;
-  let flash = g.flash ? g.flash.text : g.phase === 'grid' ? (g.lights ? 'Startlichten...' : 'Rijders, op uw plaatsen') : me.finished ? `Gefinisht als ${ordinal(pos)}` : me.drift ? 'Drift...' : '';
-  const meter = me.drift ? { v: me.driftT / KART.charge2, mark: KART.charge1 / KART.charge2, color: me.driftT >= KART.charge2 ? '#ff9a3c' : me.driftT >= KART.charge1 ? ACCENT : '#f2f0e6' } : null;
+  let flash = g.flash ? g.flash.text : g.phase === 'grid' ? (g.lights ? `Startlichten... (${Math.min(g.lights, 3)}/3)` : 'Rijders, op uw plaatsen') : me.finished ? `Gefinisht als ${ordinal(pos)}` : me.drift ? 'Drift...' : '';
+  const meter = me.drift ? { v: me.driftT / KART.charge2, mark: KART.charge1 / KART.charge2, color: me.driftT >= KART.charge2 ? 'var(--mk-job, #ff9a3c)' : me.driftT >= KART.charge1 ? ACCENT : 'var(--ink, #f0ede4)' } : null;
   const help = `${key('W')} gas · ${key('S')} rem · ${key('A')}${key('D')} sturen · houd ${key('SPATIE')} (handrem) in een bocht voor een drift · ${key('BACKSPACE')} stoppen`;
-  const cells = g.online ? raceStand(g).map((s) => ({ t: `${s.plek}. ${String(s.naam).slice(0, 12)} ${s.klaar && s.tijd != null ? fmtTime(s.tijd) : `r${s.ronde}`}`, cls: s.eigen ? 'on' : s.weg ? 'bad' : '' })) : null; // de tussenstand van iedereen, met tijd of ronde (#443)
-  board.set({ row, meter, flash, bad: !!(g.flash && g.flash.bad), help, ...(cells ? { cells } : null) });
+  // #617: de tussenstand is een tabel met kolommen (naam, ronde, tijd), geen rij chips
+  const extra = g.online ? `<table class="mg-stand"><thead><tr><th scope="col">#</th><th scope="col">Speler</th><th scope="col">Ronde</th><th scope="col">Tijd</th></tr></thead><tbody>${raceStand(g).map((s) => `<tr class="${s.eigen ? 'on' : ''}"><td>${s.plek}</td><th scope="row">${String(s.naam).slice(0, 12)}</th><td>${Math.min(s.ronde, 3)}/3</td><td>${s.klaar && s.tijd != null ? fmtTime(s.tijd) : '-'}</td></tr>`).join('')}</tbody></table>` : '';
+  board.set({ row, meter, flash, bad: !!(g.flash && g.flash.bad), help, ...(extra ? { extra } : null) });
 }
 
 // Read-only race state for the map layer (missionmap.js): the track in world

@@ -95,14 +95,48 @@ const heistUi = read('heistui.js');
 ok(/GOLD = \(\) => markerColors\(\)\.mission/.test(heistUi), 'heistui.js: het goud komt uit de mission-token');
 ok(!/Segoe Print|Bradley Hand|Comic Sans|system-ui/.test(heistUi), 'heistui.js: geen handgeschreven font of system-ui meer');
 ok(/min-height:44px/.test(heistUi), 'heistui.js: de rolchip is 44 px op touch');
+
+// De per-bord issues (#596/#614/#615/#617/#619/#620): de statuskleuren komen uit de tokens en de
+// borden dragen hun eigen vorm (boeiencellen, duikstreep, startlichten, balansmidden, klimvlag).
+const waterski = read('waterski.js');
+ok(/cells = s\.gates\.map/.test(waterski) && /Laatste kans/.test(waterski) && /text: 'arm'/.test(read('zwembad.js')), 'waterski/zwembad: baan als vorm en laatste kans');
+const zwembad = read('zwembad.js');
+ok(/var\(--mk-ok/.test(zwembad) && /var\(--mk-job/.test(zwembad) && /Spatie bij het streepje/.test(zwembad), 'zwembad: duik- en vermoeidheidsmeter via tokens en vorm');
+const kart = read('kartbaan.js');
+ok(/mg-stand/.test(kart) && /Startlichten\.\.\. \(\$\{Math\.min\(g\.lights, 3\)\}\/3\)/.test(kart) && /var\(--mk-job/.test(kart), 'kartbaan: tussenstand als tabel, startlichten in de HUD, driftkleur via token');
+const skate = read('skatepark.js');
+ok(/mark: 0\.5/.test(skate) && /var\(--mk-danger, #d93f3f\)/.test(skate) && /text: 'balans'/.test(skate), 'skatepark: balansmeter via token met middenstreep');
+const klim = read('klimtoren.js');
+ok(/var\(--mk-danger, #d93f3f\)/.test(klim) && /text: 'arm'/.test(klim) && /klimtoren: \{ titel: 'KLIMTOREN ZERNIKE', accent: '#d9455f', icoon: 'vlag' \}/.test(mg), 'klimtoren: armenbalk via token, vlag als icoon');
+
+// #613 hengelen: één bord voor wedstrijd en vrij hengelen, met modusregel, beetvorm en beloningskaart.
+const hengelen = read('hengelen.js');
+ok(!/boardVrij/.test(hengelen) && (hengelen.match(/if \(!board\) board = createBoard\('hengelen'\)/g) || []).length === 2, 'hengelen: één bord voor beide modi');
+ok(/Vrij hengelen<\/span>/.test(hengelen) && /Wedstrijd<\/span>/.test(hengelen), 'hengelen: de modus staat op het bord');
+ok(/text: 'BEET'/.test(hengelen) && /kind: 'prestatie', kicker: 'Hengelen', key: 'hengel-vrij-klaar'/.test(hengelen), 'hengelen: beet als eigen vorm en het sessie-einde als beloningskaart');
+
+// #621 rondvaart: droge kadenaam, krom Nederlands weg, uitslag noemt de gemiste kade en de seconden.
+const dienst = read('simdienst.js');
+ok(/Kade bij de brug/.test(dienst) && !/naam: Kade \$\{k\}/.test(dienst), 'rondvaart: kades hebben een droge naam');
+const acts = read('activities.js');
+ok(/kade\(s\) gemist/.test(acts) && /Meer eerst aan bij een jachthaven/.test(acts), 'rondvaart: uitslag noemt de gemiste kade en het Nederlands klopt');
 // De identiteitskleuren staan op één plek: de accenttabel. Zo kan niemand er stilletjes een
 // statuskleur tussen schuiven zonder dat deze test het ziet.
 const accenten = [...mg.matchAll(/accent:\s*'(#[0-9a-fA-F]{6})'/g)].map((m) => m[1].toLowerCase());
 ok(accenten.length >= 15, 'minigamekit.js: de accenttabel is gevonden (' + accenten.length + ' spellen)');
-ok(new Set(accenten).size === accenten.length, 'minigamekit.js: elke minigame heeft een eigen accentkleur');
+// #596: boeren en het vertrekbord hergebruiken bewust een bestaand accent (geen nieuwe hex).
+const paren = [...mg.matchAll(/(\w+): \{ titel: '[^']*', accent: '(#[0-9a-fA-F]{6})'/g)].map((m) => [m[1], m[2].toLowerCase()]);
+const uniek = paren.filter(([k]) => !['boeren', 'station'].includes(k)).map(([, a]) => a);
+ok(new Set(uniek).size === uniek.length, 'minigamekit.js: elke minigame heeft een eigen accentkleur (behalve de twee hergebruikte sfeerranden)');
 
 console.log((fails ? 'FAIL ' : '') + 'hud_kleuren_test: ' + (fails ? fails + ' fout' : 'ok — de HUD-kleuren komen uit de tokens, de accenten uit één tabel'));
 process.exit(fails ? 1 : 0);
+
+
+
+
+
+
 
 
 

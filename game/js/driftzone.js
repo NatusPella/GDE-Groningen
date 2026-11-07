@@ -1,4 +1,5 @@
 import { hoofdspeler } from './players.js';
+import { toonStartkaart } from './startkaart.js';
 // Drift zones: three big roundabouts where drifting counts. Drive into a zone
 // in a car, hold the handbrake into a bend, keep your foot down and chain
 // slides; the run ends when you leave the zone, crash for good or after 90
@@ -77,7 +78,7 @@ function startRun(w, zone) {
   outside = 0;
   w.driftRun = zone.id;
   const rec = best(zone);
-  showCard(w, { kind: 'tip', kicker: 'Driftzone', title: zone.name, body: `Handrem de bocht in, gas erop en blijf glijden.${rec ? ` Record: ${rec.best} punten.` : ''}`, duration: 5, key: 'drift-start-' + zone.id, voice: false });
+  toonStartkaart(w, 'drift');
 }
 
 function finalize(w, why) {

@@ -72,12 +72,23 @@ export function newWind(rand = Math.random, max = 5) {
 
 // --- HUD board ----------------------------------------------------------------------------------
 
+// De sfeer van een activiteit (#595, #596): de gedeelde balk is de drager. Bordvorm, sfeernaam en tint
+// komen uit de ene sfeertabel; een bord zonder sfeer houdt de neutrale balk.
+import { sfeerVan } from './activiteitensfeer.js';
+
 const CSS = `
 #hud .mg-board[hidden] { display: none; }
 #hud .mg-board { position: absolute; top: var(--hud-top, 14px); left: 50%; transform: translateX(-50%); min-width: 360px; max-width: min(760px, calc(100vw / var(--ui, 1) - 2 * (var(--hud-edge, 46px) + 360px)), calc(100vw - 32px)); padding: 8px 18px 9px 12px; color: #f0ede4; text-shadow: var(--hud-shadow); pointer-events: none; z-index: 4;
   background: linear-gradient(90deg, rgba(12,20,14,0.9), rgba(24,34,28,0.66) 80%, rgba(24,34,28,0.2)); border-left: 3px solid var(--mg-acc, var(--mk-ok, #3fc97a)); }
-#hud .mg-board small { display: flex; align-items: center; gap: 6px; font-size: 12px; letter-spacing: 3px; color: var(--mg-acc, var(--mk-ok, #3fc97a)); }
+#hud .mg-board small { display: flex; align-items: center; gap: 6px; font-size: max(12px, calc(13px * var(--ui, 1))); letter-spacing: 3px; color: var(--mg-acc, var(--mk-ok, #3fc97a)); }
 #hud .mg-board .mg-ic { flex: none; }
+/* de sfeernaam klein naast de titel en één watermark in de marge (#595): geen tweede balk */
+#hud .mg-board .mg-sfeer { font: max(12px, calc(12px * var(--ui, 1))) 'Arial Narrow', Arial, sans-serif; letter-spacing: 2px; text-transform: uppercase; color: rgba(240,237,228,0.62); font-style: normal; }
+#hud .mg-board .mg-watermark { position: absolute; right: 10px; bottom: -4px; font: 54px/1 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 4px; text-transform: uppercase; color: var(--mg-acc, var(--mk-ok, #3fc97a)); opacity: 0.11; pointer-events: none; white-space: nowrap; }
+#hud .mg-board[data-sfeerbord="scorekaart"], #hud .mg-board[data-sfeerbord="meetlat"] { border-radius: 0 10px 10px 0; }
+#hud .mg-board[data-sfeerbord="clubschild"], #hud .mg-board[data-sfeerbord="entreekaartje"] { border-radius: 14px 4px 4px 14px; }
+#hud .mg-board[data-sfeerbord="cockpitstrip"], #hud .mg-board[data-sfeerbord="startbord"], #hud .mg-board[data-sfeerbord="routebord"] { border-radius: 4px; }
+#hud .mg-board[data-sfeer] { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mg-acc, #3fc97a) 22%, transparent); }
 #hud .mg-board .mg-row { display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: baseline; font-size: 20px; letter-spacing: 1px; }
 #hud .mg-board .mg-row b { font-weight: normal; color: var(--mk-mission, #e8c93a); font-size: 24px; }
 #hud .mg-board .mg-cells { display: flex; flex-wrap: wrap; gap: 3px; margin: 5px 0 2px; }
@@ -86,7 +97,7 @@ const CSS = `
 html.touch-play #hud .mg-board .mg-cells i[data-k] { pointer-events: auto; touch-action: none; min-height: 44px; display: flex; align-items: center; justify-content: center; }
 #hud .mg-board .mg-cells i.on { background: color-mix(in srgb, var(--mk-mission, #e8c93a) 28%, transparent); color: #fff; }
 #hud .mg-board .mg-cells i.good { color: var(--mk-ok, #3fc97a); }
-#hud .mg-board .mg-cells i.bad { color: var(--mk-job, #ff9a3c); }
+#hud .mg-board .mg-cells i.bad { color: var(--mk-danger, #d93f3f); }
 /* good and bad also differ by shape, not by colour alone */
 #hud .mg-board .mg-cells i.good::before { content: '\\2713\\a0'; }
 #hud .mg-board .mg-cells i.bad::before, #hud .mg-board .mg-flash.bad::before { content: '\\2715\\a0'; }
@@ -95,13 +106,26 @@ html.touch-play #hud .mg-board .mg-cells i[data-k] { pointer-events: auto; touch
 #hud .mg-board .mg-meter .mg-bar { position: relative; flex: 1; height: 11px; background: rgba(240,237,228,0.16); border-radius: 2px; overflow: hidden; box-shadow: inset 0 0 0 1px rgba(240,237,228,0.18); }
 #hud .mg-board .mg-meter i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--mg-acc, var(--mk-ok, #3fc97a)); }
 #hud .mg-board .mg-meter em { position: absolute; top: 0; bottom: 0; width: 3px; margin-left: -1px; background: #f0ede4; box-shadow: 0 0 0 1px rgba(12,20,14,0.7); }
-#hud .mg-board .mg-meter-t { min-width: 3.2em; text-align: right; font-size: 14px; letter-spacing: 0.5px; color: #f0ede4; }
+#hud .mg-board .mg-meter-t { min-width: 3.2em; text-align: right; font-size: max(13px, calc(14px * var(--ui, 1))); letter-spacing: 0.5px; color: #f0ede4; }
 #hud .mg-board .mg-extra[hidden] { display: none; }
-#hud .mg-board .mg-help { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; font: 14px 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.78); }
+/* een tussenstand als echte tabel (#617), geen rij chips */
+#hud .mg-board .mg-stand { border-collapse: collapse; margin: 5px 0 2px; font: max(12px, calc(13px * var(--ui, 1))) 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.82); }
+#hud .mg-board .mg-stand th, #hud .mg-board .mg-stand td { padding: 1px 9px; font-weight: normal; text-align: right; }
+#hud .mg-board .mg-stand th[scope="row"], #hud .mg-board .mg-stand thead th:first-child { text-align: left; }
+#hud .mg-board .mg-stand thead th { font-size: 12px; letter-spacing: 1px; color: rgba(240,237,228,0.6); }
+#hud .mg-board .mg-stand tr.on { background: rgba(63,201,122,0.18); color: #f0ede4; }
+#hud .mg-board .mg-help { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; font: max(13px, calc(14px * var(--ui, 1))) 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.78); }
 #hud .mg-board .hud-key { margin: 0 2px; vertical-align: middle; }
-#hud .mg-board .mg-flash { font-size: 22px; letter-spacing: 1.5px; color: var(--mk-ok, #3fc97a); min-height: 1em; }
-#hud .mg-board .mg-flash.bad { color: var(--mk-job, #ff9a3c); }
+#hud .mg-board .mg-flash { font-size: calc(22px * var(--ui, 1)); letter-spacing: 1.5px; color: var(--mk-ok, #3fc97a); min-height: 1em; }
+#hud .mg-board .mg-flash.bad { color: var(--mk-danger, #d93f3f); }
 body.mg-on #hud .hud-speedo, body.mg-on #hud .hud-route, body.mg-on #hud .hud-gps, body.mg-on #hud .hud-place, body.mg-on #hud .phonefeed .pf-card { display: none !important; }
+/* het stopvenster in de HUD-stijl (#596): Bebas + Arial Narrow, toetsplaatjes en 44 px-knoppen */
+.mg-stopask { position: fixed; left: 50%; top: 38%; transform: translateX(-50%); z-index: 60; pointer-events: auto; padding: 14px 22px; border-radius: 10px; background: rgba(12,20,14,0.94); box-shadow: inset 0 0 0 1px rgba(240,237,228,0.16); color: #f0ede4; text-align: center; text-shadow: var(--hud-shadow); }
+.mg-stopask b { display: block; font: normal calc(26px * var(--ui, 1))/1.1 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.04em; }
+.mg-stopask .mg-stopbtns { display: flex; justify-content: center; gap: 8px; margin-top: 10px; }
+.mg-stopask button { min-height: 44px; min-width: 44px; padding: 0 18px; border: 0; border-radius: 8px; background: var(--g, #3fc97a); color: var(--gd, #0f5c30); font: normal calc(20px * var(--ui, 1)) 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.04em; cursor: pointer; }
+.mg-stopask button[data-do="stop"] { background: var(--mk-danger, #d93f3f); color: #fff; }
+.mg-stopask small { display: block; margin-top: 8px; font: max(12px, calc(13px * var(--ui, 1))) 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.72); }
 /* smal scherm: de spel-HUD begint rechts van de uitlegkaart (linksboven, 350 px) in plaats van eroverheen (#294) */
 @media (max-width: 1500px) { #hud .mg-board { left: calc(var(--hud-edge, 46px) + 372px); transform: none; max-width: calc(100vw / var(--ui, 1) - var(--hud-edge, 46px) - 372px - 330px); } }
 @media (max-width: 480px) { #hud .mg-board { top: 64px; left: 50%; transform: translateX(-50%); min-width: 0; max-width: calc(100vw - 32px); } }
@@ -138,7 +162,7 @@ export const MG_THEMA = {
   skatepark: { titel: 'SKATEPARK STADSPARK', accent: '#e8523a', icoon: 'skate' },
   kartbaan: { titel: 'KARTEN IN ULRUM', accent: '#f2b82a', icoon: 'kart' },
   // de toren: wie boven is wint (kroon)
-  klimtoren: { titel: 'KLIMTOREN ZERNIKE', accent: '#d9455f', icoon: 'winnaar' },
+  klimtoren: { titel: 'KLIMTOREN ZERNIKE', accent: '#d9455f', icoon: 'vlag' }, // #620: de vlag op de top zegt klimmen, niet 'winnaar'
   // het water: baantjes, skiën, hengelen, zeilen en de rondvaart delen het golf-icoon van de golven
   zwembad: { titel: 'ZWEMBAD HET NATTE PAPIER', accent: '#2fc4c9', icoon: 'water' },
   waterski: { titel: 'WATERSKIBAAN GRUNOPARK', accent: '#1f9e86', icoon: 'water' },
@@ -160,6 +184,9 @@ export const MG_THEMA = {
   // de arena en de machinist: een wedstrijd met een uitslag (de kroon) en een dienst met een perron (de pijl, #625)
   pvparena: { titel: 'PVP-ARENA', accent: '#c9568a', icoon: 'winnaar' },
   machinist: { titel: 'MACHINIST', accent: '#b3b3a2', icoon: 'beurt' },
+  // #596: de twee borden die buiten de tabel vielen: boerenwerk (het weiland) en het vertrekbord.
+  boeren: { titel: 'BOERENWERK', accent: '#a3c94a', icoon: 'beurt' }, // hergebruikt het groen van de wandeling
+  station: { titel: 'VERTREKBORD', accent: '#b3b3a2', icoon: 'beurt' }, // hergebruikt het perrongrijs van de machinist
 };
 
 export function mgIcoon(naam, px = 16) {
@@ -178,6 +205,9 @@ export function createBoard(title, accent) {
   const thema = MG_THEMA[title];
   const titel = thema ? thema.titel : title;
   const kleur = thema ? thema.accent : accent;
+  // #595/#596: de sfeer van de activiteit (als dit bord bij een activiteit-id hoort) draagt de balk:
+  // sfeernaam naast de titel, één watermark in de marge en de bordvorm als data-attribuut.
+  const sfeer = sfeerVan(title);
   if (!cssDone && typeof document !== 'undefined') {
     const st = document.createElement('style');
     st.textContent = CSS;
@@ -188,8 +218,9 @@ export function createBoard(title, accent) {
   root.className = 'mg-board';
   root.style.setProperty('--mg-acc', kleur || 'var(--mk-ok, #3fc97a)');
   if (thema) root.dataset.mg = title;
+  if (sfeer) { root.dataset.sfeer = title; root.dataset.sfeerbord = sfeer.bordvorm; }
   root.hidden = true;
-  root.innerHTML = `<small>${thema ? mgIcoon(thema.icoon) : ''}<span>${titel}</span></small><div class="mg-row"></div><div class="mg-cells" hidden></div><div class="mg-extra" hidden></div><div class="mg-meter" hidden><span class="mg-bar"><i></i><em></em></span><span class="mg-meter-t"></span></div><div class="mg-flash"></div><div class="mg-help"></div>`;
+  root.innerHTML = `<small>${thema ? mgIcoon(thema.icoon) : ''}<span>${titel}</span>${sfeer ? `<em class="mg-sfeer">${sfeer.naam}</em>` : ''}</small>${sfeer ? `<b class="mg-watermark" aria-hidden="true">${sfeer.naam}</b>` : ''}<div class="mg-row"></div><div class="mg-cells" hidden></div><div class="mg-extra" hidden></div><div class="mg-meter" hidden><span class="mg-bar"><i></i><em></em></span><span class="mg-meter-t"></span></div><div class="mg-flash"></div><div class="mg-help"></div>`;
   (document.getElementById('hud') || document.body).appendChild(root);
   const q = (s) => root.querySelector(s);
   const el = { row: q('.mg-row'), cells: q('.mg-cells'), extra: q('.mg-extra'), meter: q('.mg-meter'), bar: q('.mg-meter i'), mark: q('.mg-meter em'), meterT: q('.mg-meter-t'), flash: q('.mg-flash'), help: q('.mg-help') };
@@ -271,10 +302,23 @@ export function stopPressed(input) {
     const el = document.createElement('div');
     el.className = 'mg-stopask';
     el.setAttribute('role', 'alertdialog');
-    el.style.cssText = 'position:fixed;left:50%;top:38%;transform:translateX(-50%);z-index:60;background:rgba(10,12,18,.92);color:#fff;padding:14px 22px;border-radius:12px;font:600 18px/1.4 system-ui,sans-serif;text-align:center;pointer-events:none';
-    el.innerHTML = 'Stoppen?<br><small style="font-weight:400">Esc of Enter = stoppen &middot; Spatie = doorgaan</small>';
+    el.setAttribute('aria-label', 'Stoppen?');
+    // #596: het venster staat in de HUD-stijl, met echte knoppen zodat touch ook een uitweg heeft.
+    el.innerHTML = '<b>Stoppen?</b><div class="mg-stopbtns" role="group" aria-label="Stoppen?">' +
+      '<button type="button" data-do="door">Doorgaan</button><button type="button" data-do="stop">Stoppen</button></div>' +
+      '<small>Esc of Enter = stoppen &middot; Spatie = doorgaan</small>';
+    const kies = (k) => {
+      // dezelfde toetsweg als de rest van het spel: keydown + keyup via input.js
+      inputMod = inputMod || import('./input.js');
+      inputMod.then((m) => { m.sendKey('keydown', k, 'touch'); m.sendKey('keyup', k, 'touch'); });
+    };
+    el.addEventListener('click', (e) => {
+      const b = e.target.closest && e.target.closest('button[data-do]');
+      if (!b) return;
+      kies(b.dataset.do === 'stop' ? 'enter' : ' ');
+    });
     document.body.appendChild(el);
-    stopAsk = { el, timer: setTimeout(cancelStopAsk, 5000) };
+    stopAsk = { el, timer: setTimeout(cancelStopAsk, 8000) };
   }
   return false;
 }
@@ -309,3 +353,5 @@ export function makeRng(seed = 1) {
     return s / 4294967296;
   };
 }
+
+

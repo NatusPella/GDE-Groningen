@@ -1,4 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { toonStartkaart } from './startkaart.js';
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
 import { showBanner } from './cinematics.js';
@@ -268,7 +269,7 @@ function start(w) {
   ensureHud();
   hud.root.hidden = false;
   document.body.classList.add('carbid-on');
-  showCard(w, { kind: 'tip', kicker: 'Carbid schieten', title: waited ? 'Een paar uur later: het schemert' : 'De melkbus ligt klaar', body: '[A] [D] [W] [S] richten, houd [Spatie] voor water, [E] aansteken als de ring goed ligt. Vijf schoten.', duration: 8, key: 'carbid-help', voice: false });
+  toonStartkaart(w, 'carbid');
   say(w, 'Roelf', 'start', true);
   return true;
 }

@@ -1,4 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { toonStartkaart } from './startkaart.js';
 import { recordChallengeResult, getChallengeRecord, recordStat, MEDALS } from './achievements.js';
 import { iconDisc, activityBlock } from './activitykit.js';
 import { createBoard, mgThema, key, fmtTime, stopPressed, windText, windDirection, gameUi } from './minigamekit.js';
@@ -124,7 +125,7 @@ function start(w, sc = null) {
   const aanloop = Math.max(0, Math.hypot(baan.tonnen[0].x - hoofdspeler(w).x, baan.tonnen[0].y - hoofdspeler(w).y) - 25) / snelheid;
   run = { reg: createRegatta(baan.tonnen, { rondes, richttijd: Math.round(richtTijd(baan.tonnen, rondes, snelheid) + aanloop) }), bots, baan, haven: near.m.name, flash: null, flashT: 0, aanloop, plas };
   const tel = baan.tonnen.length === 5 ? 'vijf' : 'vier';
-  gameUi.showCard(w, { kind: 'tip', kicker: plas ? 'Zeilwedstrijd' : 'Zeilregatta', title: plas ? 'Twee ronden over de Hoornse Plas' : 'Twee rondes langs de tonnen', body: `Ronde de ${tel} tonnen in volgorde, twee keer. Vaar niet recht tegen de wind in: kruis. [Q] haalt het zeil aan, [Z] viert het. [Backspace] stopt.${plas ? ' Een medaille levert geld op: hoe sneller, hoe meer.' : ''}`, duration: 11, key: plas ? 'regatta-plas-help' : 'regatta-help', voice: false });
+  toonStartkaart(w, 'regatta');
   return true;
 }
 
@@ -163,7 +164,7 @@ function startBaan(w, sc, near, baan, plas, rondes, snelheid) {
   meshes = buildMeshes(baan.tonnen, bots);
   const eigen = deeln.find((p) => !p.slot) || deeln[0];
   run = { online: true, deeln, baan, bots, haven: near.m.name, flash: null, flashT: 0, plas, af: 3.5, said: 99, reg: eigen.reg };
-  gameUi.showCard(w, { kind: 'tip', kicker: 'Zeilwedstrijd', title: 'Iedereen dezelfde boot', body: 'Ronde de tonnen in volgorde, twee keer. De schoot staat voor iedereen automatisch goed: sturen en kruisen is het enige verschil. [Q] en [Z] doen in een wedstrijd niets. [Backspace] stopt de wedstrijd voor iedereen.', duration: 11, key: 'regatta-wedstrijd-help', voice: false });
+  toonStartkaart(w, 'regatta'); // #678: dezelfde startkaart als de solo-regatta
   return true;
 }
 

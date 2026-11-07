@@ -1,4 +1,5 @@
 import { hoofdspeler } from './players.js';
+import { toonStartkaart } from './startkaart.js';
 import { kermisOn, kermisWheel, kermisFrame } from './kermis.js';
 import { activityBlock, iconDisc } from './activitykit.js';
 import { easeStep } from './minigamekit.js';
@@ -69,6 +70,7 @@ function start(w, index) {
   w.cinematicHidePlayers = true;
   document.body.classList.add('kermis-on');
   w.addMessage(`${NAME}: veel plezier!`, 2.2);
+  toonStartkaart(w, 'hoogvlieger');
   recordStat(w, 'reuzenradRides');
 }
 

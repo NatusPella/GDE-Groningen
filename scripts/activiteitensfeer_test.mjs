@@ -106,7 +106,53 @@ t('de module is puur: geen imports, geen DOM, geen THREE', () => {
   assert.ok(!/\bdocument\.|\bwindow\.|localStorage|\bTHREE\./.test(bron), 'geen DOM, opslag of THREE');
 });
 
+// --- #595/#596: createBoard draagt de sfeer (data-sfeer, sfeernaam, watermark, bordvorm) ----------
+{
+  const maakEl = () => ({
+    dataset: {}, style: { setProperty() {}, cssText: '' }, hidden: false, innerHTML: '', className: '',
+    children: [], addEventListener() {}, appendChild(c) { this.children.push(c); }, setAttribute() {}, removeAttribute() {}, remove() {},
+    querySelector: () => maakEl(), querySelectorAll: () => [], classList: { add() {}, remove() {}, toggle() {} },
+  });
+  globalThis.document = { createElement: maakEl, getElementById: () => maakEl(), body: maakEl(), head: maakEl() };
+  const MK = await import(new URL('../game/js/minigamekit.js', import.meta.url).href);
+  t('createBoard zet de sfeer op de balk', () => {
+    const bord = MK.createBoard('pitchputt');
+    assert.equal(bord.root.dataset.sfeer, 'pitchputt', 'data-sfeer');
+    assert.equal(bord.root.dataset.sfeerbord, 'clubschild', 'de bordvorm uit de sfeertabel');
+    assert.match(bord.root.innerHTML, /BESLOTEN CLUB|De club betreurt uw slag/i, 'de sfeernaam staat op het bord');
+    assert.match(bord.root.innerHTML, /mg-watermark/, 'één watermark in de marge');
+    const neutraal = MK.createBoard('onbekend-spel');
+    assert.equal(neutraal.root.dataset.sfeer, undefined, 'een bord zonder sfeer blijft neutraal');
+  });
+  t('het stopvenster staat in de HUD-stijl met knoppen', () => {
+    const input = { wasPressed: (k) => k === 'escape', consume() {} };
+    MK.stopPressed(input);
+    const modal = globalThis.document.body.children[globalThis.document.body.children.length - 1];
+    const html = String(modal.innerHTML);
+    assert.match(html, /mg-stopbtns/, 'de knoppenrij');
+    assert.match(html, /data-do="stop"/, 'een Stoppen-knop');
+    assert.match(html, /data-do="door"/, 'een Doorgaan-knop');
+    assert.match(html, /Spatie = doorgaan/, 'de toetsuitleg blijft');
+  });
+}
+
 console.log(`activiteitensfeer_test: ${n - fails}/${n}`);
 process.exit(fails ? 1 : 0);
 
+// --- #596: de thematabel dekt de drie borden die erbuiten vielen, en de balk schaalt/kleurt goed ------
+{
+  const tema = lees('game/js/minigamekit.js');
+  t('de thematabel dekt ringrace, boerenwerk en het vertrekbord', () => {
+    assert.match(tema, /ringrace: \{ titel: 'RINGRACE'/, 'ringrace heeft een rij');
+    assert.match(tema, /boeren: \{ titel: 'BOERENWERK'/, 'boerenwerk heeft een rij');
+    assert.match(tema, /station: \{ titel: 'VERTREKBORD'/, 'het vertrekbord heeft een rij');
+  });
+  t('de balk schaalt mee en gebruikt gevaar voor fouten', () => {
+    assert.match(tema, /font-size: max\(12px, calc\(13px \* var\(--ui, 1\)\)\)/, 'de titel schaalt mee met --ui');
+    assert.match(tema, /\.mg-flash\.bad \{ color: var\(--mk-danger, #d93f3f\); \}/, 'fout leest als gevaar');
+    assert.match(tema, /\.mg-cells i\.bad \{ color: var\(--mk-danger, #d93f3f\); \}/, 'ook de cellen');
+    assert.match(tema, /mg-stopask button \{ min-height: 44px/, 'het stopvenster heeft 44 px-knoppen');
+    assert.match(tema, /\.mg-stand/, 'de tussenstand heeft een tabelvorm');
+  });
+}
 
