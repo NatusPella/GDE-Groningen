@@ -1,6 +1,6 @@
 # Licenties, rechten en risico's
 
-Stand van 7 november 2026 (0.57.5). Dit is een inventaris en een advies, geen
+Stand van 7 november 2026 (0.58.0). Dit is een inventaris en een advies, geen
 juridisch advies van een advocaat. Waar iets onzeker is staat dat erbij
 (**ONDUIDELIJK** of **RISICO**). Beslissingen voor de eigenaar staan in §9.
 

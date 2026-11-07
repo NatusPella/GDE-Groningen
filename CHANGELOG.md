@@ -7,7 +7,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 versies staan op datum op volgorde. Er zijn geen aparte kopstijlen per sectie:
 elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
-## [Unreleased]
+## [0.58.0] - 2026-11-07
 
 - **Een helikopter of vliegtuig besturen werkt weer in Alleen spelen en als wie het spel opende (#555).** De bestuurinvoer zocht de gasten in een lijst die sinds de sessie van één een leeg object is, en gooide elke frame een fout.
 - **Alleen spelen: de metgezel volgt weer (#559).** Zonder gast neemt de volg-AI Tessa over in plaats van het toetsenbord van plek 2; na stoppen komt de oude stand terug.

@@ -2,7 +2,7 @@
 
 > **Naslag.** De regels staan in de canonieke spec [`.specs-fire/standards/mechanica.md`](../.specs-fire/standards/mechanica.md); dit document is uitleg en geschiedenis. Bij verschil wint de spec (en bij twijfel `AGENTS.md`).
 
-Bijgewerkt: 7 november 2026 (0.57.5). De tellingen komen uit docs/LICENTIES.md en de mappen `game/audio/`: 34 G-Music-nummers, 15 scenario-loops en 1 titelnummer. De eigenaar
+Bijgewerkt: 7 november 2026 (0.58.0). De tellingen komen uit docs/LICENTIES.md en de mappen `game/audio/`: 34 G-Music-nummers, 15 scenario-loops en 1 titelnummer. De eigenaar
 vindt dat de muziek te vaak hetzelfde is. Dit document zegt wat er nu draait
 en welke nummers erbij kunnen. Elk voorstel heeft een stijlomschrijving die
 je als prompt in Google Gemini kunt plakken, een aantal en het programmablok
