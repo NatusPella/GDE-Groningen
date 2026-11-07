@@ -89,7 +89,7 @@
 #heist-ui .hx-card b { display: flex; align-items: center; gap: 8px; font-weight: normal; font-size: 22px; letter-spacing: 2px; color: var(--gron-green-light, #3fc97a); }
 #heist-ui .hx-card span { display: block; margin-top: 3px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 14px; letter-spacing: 0.2px; opacity: 0.85; }
 #heist-ui .hx-card em { display: block; margin-top: 4px; font-family: 'Arial Narrow', Arial, sans-serif; font-style: normal; font-size: 12px; opacity: 0.55; }
-#heist-ui .hx-pad { font-size: 11px; letter-spacing: 1px; opacity: 0.7; margin-left: 4px; }
+#heist-ui .hx-pad { font-size: 12px; letter-spacing: 1px; opacity: 0.7; margin-left: 4px; }
 #heist-ui .hx-rolechip { position: fixed; left: 50%; transform: translateX(-50%); bottom: 104px; z-index: 60; display: flex; gap: 8px; align-items: center; max-width: min(560px, 86vw); padding: 8px 14px; border-radius: 10px; background: rgba(12,16,14,0.82); color: #f0ede4; font: 14px/1.35 'Arial Narrow', Arial, sans-serif; min-height: 44px; box-shadow: 0 2px 12px rgba(0,0,0,0.35); opacity: 0; transition: opacity 0.2s; pointer-events: none; }
 #heist-ui .hx-rolechip b { color: var(--mk-mission, #e8c93a); white-space: nowrap; }
 #heist-ui .hx-choice-note { display: none; margin-top: 6px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 12px; opacity: 0.6; text-align: center; }

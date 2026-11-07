@@ -412,7 +412,7 @@
     {
       "id": "wijken_10",
       "titel": "Stadjer in wording",
-      "omschrijving": "Ontdek 10 wijken",
+      "omschrijving": "Ontdek 10 buurten",
       "verborgen": false,
       "voorstelApiNaam": "ACH_WIJKEN_10",
       "steamApiNaam": ""
@@ -420,7 +420,7 @@
     {
       "id": "wijken_33",
       "titel": "Halve Stadjer",
-      "omschrijving": "Ontdek 33 wijken",
+      "omschrijving": "Ontdek 33 buurten",
       "verborgen": false,
       "voorstelApiNaam": "ACH_WIJKEN_33",
       "steamApiNaam": ""
@@ -428,7 +428,7 @@
     {
       "id": "wijken_alle",
       "titel": "Kenner van Grunn",
-      "omschrijving": "Ontdek alle 66 wijken",
+      "omschrijving": "Ontdek alle 66 buurten",
       "verborgen": false,
       "voorstelApiNaam": "ACH_WIJKEN_ALLE",
       "steamApiNaam": ""
@@ -467,8 +467,8 @@
     },
     {
       "id": "gebied_buurt",
-      "titel": "Buurtheld",
-      "omschrijving": "Verover een buurt: doe alles wat er te doen is (Veroverd, op de kaart)",
+      "titel": "Deelgebied-held",
+      "omschrijving": "Verover een deelgebied: doe alles wat er te doen is (Veroverd, op de kaart)",
       "verborgen": false,
       "voorstelApiNaam": "ACH_GEBIED_BUURT",
       "steamApiNaam": ""
