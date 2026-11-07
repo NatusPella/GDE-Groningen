@@ -6,8 +6,9 @@ import './node3d.mjs';
 let seed = +(process.env.SEED || 4242);
 Math.random = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
 await import('../game/js/player.js');
-const { GameMap } = await import('../game/js/mapdata.js');
-const { loadCityData } = await import('./lib/loadworld.mjs');
+// game/world (de gestagede stad) in plaats van de provincie-opbouw: die laatste
+// hangt aan data/cache en is in deze werkboom niet altijd heel.
+const { loadGameWorld } = await import('./worldload.mjs');
 const V = await import('../game/js/vehicle.js');
 const TL = await import('../game/js/trafficlights.js');
 const { trafficPathStats } = await import('../game/js/vehicle/traffic.js');
@@ -15,7 +16,9 @@ const { trafficPathStats } = await import('../game/js/vehicle/traffic.js');
 let n = 0, fails = 0;
 const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${name}${info !== '' ? ` (${info})` : ''}`); } };
 
-const map = new GameMap(await loadCityData());
+const T = await loadGameWorld();
+if (!T) { console.log('SKIP trafficpath_test: geen game/world'); process.exit(0); }
+const map = T.world;
 const road = map.roads.find((r) => r.pts && r.pts.length > 2 && r.cat !== 'foot' && r.cat !== 'cycle') || map.roads[0];
 const [cx, cy] = road.pts[Math.floor(road.pts.length / 2)];
 const world = { map, vehicles: [], pedestrians: [], bullets: [], particles: [], time: 0, wanted: 0, player: { x: cx, y: cy, inVehicle: {}, radius: 0.35 }, addMessage() {}, stats: {}, props: [] };
@@ -64,6 +67,20 @@ for (const v of live()) {
 }
 ok(bad === 0, 'geen NaN in de voertuigen');
 ok(moved >= 5, 'de paden zijn geldig', moved);
+
+// #652-restpunt: de lane-offset/modelLane-uitkomst komt per weg uit de cache,
+// zodat ook de filter-array per aanroep weg is.
+{
+  const laneRoads = map.roads.filter((r) => r.lanesFwd != null);
+  const l0 = V.laneCacheStats();
+  for (let f = 0; f < 15; f++) frame();
+  const l1 = V.laneCacheStats();
+  const hits = l1.hits - l0.hits, computed = l1.calls - l0.calls;
+  ok(laneRoads.length > 0, 'er zijn wegen met een lane-model', laneRoads.length);
+  ok(hits > 0, 'de lane-cache wordt gebruikt', `${hits} hits`);
+  ok(hits > computed * 4, 'de lane-uitkomst komt bijna altijd uit de cache', `${hits} hits, ${computed} berekend`);
+  console.log(`#652-restpunt meting: ${hits} lane-cache-hits, ${computed} berekeningen in 15 frames (was: een filter-array per aanroep, ~${hits + computed} per 15 frames)`);
+}
 
 console.log(`#652 meting: ${builds} padbuilds -> ${created} nieuwe puntobjecten (${(created / builds).toFixed(2)} per build; oud ±6-12 per build), ${same}/${cars.length} buffers hergebruikt`);
 console.log(`${n - fails}/${n} trafficpath`);
