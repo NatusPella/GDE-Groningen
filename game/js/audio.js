@@ -1240,6 +1240,20 @@ export function stopStoryVoice() {
   releaseEl(v.el);
 }
 
+// #734 (F9): de scèneklok en de stem moeten samen stilstaan. Alleen het
+// media-element van de verteller wordt hier gepauzeerd; ambience en muziek
+// houden hun eigen demping.
+export function pauseStoryVoice() {
+  const v = storyVoice;
+  if (v && v.el && typeof v.el.pause === 'function' && !v.el.paused) { try { v.el.pause(); return true; } catch (e) { /* al weg */ } }
+  return false;
+}
+export function resumeStoryVoice() {
+  const v = storyVoice;
+  if (v && v.el && typeof v.el.play === 'function' && v.el.paused) { try { const p = v.el.play(); if (p && p.catch) p.catch(() => {}); return true; } catch (e) { /* al weg */ } }
+  return false;
+}
+
 // The shared body of the one-at-a-time voices (story, banter, contact): own
 // handle (get/set/stop), straight into the voice bus (radio: the broadcast
 // band), channel token from speech.js, ducking once the length is known.

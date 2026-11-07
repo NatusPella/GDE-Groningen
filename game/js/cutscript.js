@@ -331,7 +331,8 @@ export function compileScene(def, opts = {}) {
         const a = rad(sh.start ?? 0) + rad(sh.sweep ?? 60) * u;
         const h = lerp(sh.h0 ?? 2, sh.h1 ?? sh.h0 ?? 2, ease(u));
         pos = { f: c.f + Math.cos(a) * sh.radius, s: c.s + Math.sin(a) * sh.radius, h };
-        look = { f: c.f, s: c.s, h: c.h };
+        // #734 (F16): een eigen look op een orbit werd genegeerd; gebruik hem nu
+        look = sh.look ? tg(sh.look) : { f: c.f, s: c.s, h: c.h };
         break;
       }
       case 'follow': {

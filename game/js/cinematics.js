@@ -8,7 +8,7 @@ import { getSettings } from './settings.js';
 import { isPauseMenuOpen, isMapOpen } from './pausestate.js';
 import { respawnPlayer } from './world.js';
 import { V, W, clamp01, easeInOut, easeOut, pathShot, roofAt, clearKeys, buildingReach, groundLift } from './camerapath.js';
-import { playStoryVoice, setStoryScene, setStoryProbe, playTextMumble } from './audio.js';
+import { playStoryVoice, setStoryScene, setStoryProbe, playTextMumble, pauseStoryVoice, resumeStoryVoice } from './audio.js';
 import { isIntroPlaying } from './trailerstate.js';
 import { logoHtml, GAME_NAME, SUBTITLE } from './logo.js';
 import { mayInterrupt, noteMoment } from './attention.js';
@@ -29,6 +29,7 @@ import { playerBusy } from './busy.js';
 import { hoofdspeler } from './players.js';
 import { gebiedIn, puntInGebied } from './grenzen.js';
 import { cinematicHang } from './cinelimit.js';
+import { reducedMotion } from './motion.js';
 
 // world.cameraOverride poses use map coordinates: x/y on the map, z = height in metres.
 // world.timeScale (0..1) slows gameplay; main.js multiplies the gameplay dt by it.
@@ -82,6 +83,7 @@ let wijkTimer = 0;
 let skipHoldSince = null;
 let swallowSpace = false;
 let skipShown = -1;
+let voicePaused = false;
 
 function heading(w) {
   const p = hoofdspeler(w);
@@ -111,7 +113,6 @@ export function initCinematics(w) {
   registerNarrative('sub-cine', { active: () => !!els && els.root.classList.contains('has-sub') });
   const root = document.createElement('div');
   root.id = 'cine';
-  root.setAttribute('aria-live', 'polite');
   root.innerHTML =
     '<div class="cine-tint"></div>' +
     '<div class="cine-bar top"></div><div class="cine-bar bottom"></div>' +
@@ -125,6 +126,8 @@ export function initCinematics(w) {
     '<div class="cb-reason"></div><div class="cb-fact"><span>Beloning</span><div class="cb-reward"></div></div><div class="cb-stats"></div></div></div>' +
     '<div class="cine-chip"></div>';
   document.body.appendChild(root);
+  const sub = root.querySelector('.cine-sub');
+  if (sub) { sub.setAttribute('role', 'status'); sub.setAttribute('aria-live', 'polite'); sub.setAttribute('aria-atomic', 'true'); }
   els = {
     root,
     kicker: root.querySelector('.cine-kicker'),
@@ -234,9 +237,14 @@ function holdShotTiles(points) {
   releaseShotTiles();
   const m = world && world.map;
   const pts = (points || []).filter((p) => p && Number.isFinite(p.x) && Number.isFinite(p.y));
-  if (!pts.length || !m || !m.store || !m.registerShots) return;
+  if (!pts.length || !m || !m.store || !m.registerShots) return null;
   shotsHeld = true;
-  m.registerShots(pts.map((p) => ({ at: [p.x, p.y] }))).catch(() => {});
+  // #734 (F12): de eerste frames mogen niet op ongeladen tegels wijzen; de
+  // scène wacht kort op de pins (met een bovengrens, zodat streamen nooit hangt).
+  return Promise.race([
+    Promise.resolve(m.registerShots(pts.map((p) => ({ at: [p.x, p.y] }))).catch(() => {})),
+    new Promise((resolve) => setTimeout(resolve, 1500)),
+  ]);
 }
 function releaseShotTiles() {
   if (!shotsHeld) return;
@@ -352,7 +360,11 @@ function begin(spec) {
     priority: 1, duration: 3, letterbox: true, skippable: true, hideHud: true, pause: false, timeScale: 1,
     ...spec, t: 0,
   };
-  holdShotTiles(spec.prewarm);
+  resetSkip();
+  const tiles = holdShotTiles(spec.prewarm);
+  active._tilesDone = !tiles;
+  voicePaused = false;
+  if (tiles) tiles.then(() => { active._tilesDone = true; }).catch(() => { active._tilesDone = true; });
   take = null; // een scène neemt de camera over van een camerastand (#728)
   attachVoices(active);
   if (active.pause) pauseOn(); // (#729) de wereld en de speler staan stil zolang de scène duurt
@@ -376,7 +388,7 @@ function begin(spec) {
   document.body.classList.toggle('cine-hide-hud', !!active.hideHud);
   r.classList.add('active');
   // lines with a recording ({ voice }) are spoken as their subtitle comes up
-  active.voiced = !!(active.lines && active.lines.some((l) => l.voice));
+  active.voiced = !!(active.lines && active.lines.some((l) => l.voice)) || !!active.mumble;
   if (active.voiced) setStoryScene(true, 'cine');
   // a pausing cutscene brings the player's vehicle to a stop, so resuming
   // doesn't launch you onward at full speed - except the ones that ask to
@@ -397,6 +409,9 @@ function finish(skipped, replaced = false) {
   active = null;
   pauseOff(); // (#729) de wereld loopt weer door (de volgende scène zet hem zo nodig weer stil)
   releaseShotTiles();
+  resetSkip();
+  if (voicePaused) { resumeStoryVoice(); voicePaused = false; }
+  clearCinematicUi();
   const r = els.root;
   r.classList.remove('active', 'letterbox', 'has-card', 'has-big', 'has-sub', 'show-skip', 'sub-clue');
   r.dataset.tint = '';
@@ -413,6 +428,35 @@ function finish(skipped, replaced = false) {
   } finally {
     // a replaced scene makes way for the new one, the queue waits for that
     if (!active && !replaced && queue.length) begin(queue.shift());
+  }
+}
+
+// #734 (F8): één hold mag nooit twee scènes skippen. Reset de holdstand bij het
+// begin en het einde van elke scène (ook als de vorige natuurlijk afliep of
+// door een hogere prioriteit werd vervangen).
+function resetSkip() {
+  skipHoldSince = null;
+  skipShown = -1;
+  if (els && els.skip) {
+    els.skip.style.setProperty('--hold', '0');
+    els.skip.classList.remove('holding');
+  }
+}
+
+// #734 (F10): één plek die alle scène-UI opruimt. De banner kan uit een onEnd
+// komen en wordt daarom vóór onEnd gewist; de HUD-flags en timeScale gaan mee.
+function clearCinematicUi() {
+  if (!els) return;
+  els.banner.hidden = true;
+  els.banner.classList.remove('in', 'out');
+  banner = null;
+  els.chip.classList.remove('visible');
+  chipTimer = 0;
+  setNameCard(null);
+  if (world) {
+    world.timeScale = 1;
+    world.cinematicHidePlayers = false;
+    world.cinematicHideNav = false;
   }
 }
 
@@ -482,22 +526,34 @@ export function updateCinematics(dt, w) {
   // (#713) Tijdens het wachtscherm van samen spelen (coopHold) staat alles stil, ook de kopie: de sessie wordt opnieuw opgezet.
   const gastKopie = !!(active && active.cutId != null);
   const hold = !!(w && w.coopHold);
-  const frozen = isPauseMenuOpen() || isMapOpen() || hold;
+  const menuOpen = isPauseMenuOpen() || isMapOpen();
+  // #734 (F9): niet alleen het pauzemenu en de kaart, maar elke wereldpauze
+  // (winkel, telefoon, coopHold) stopt de scèneklok; de stem gaat mee. De eigen
+  // cinematicPause (#729) telt niet: die zet de scène zelf.
+  const wereldPauze = !!(w && w.paused && !w.cinematicPause);
+  const frozen = menuOpen || hold || wereldPauze;
+  if (active && (active.voiced || active.mumble)) {
+    if (frozen && !voicePaused) { if (pauseStoryVoice()) voicePaused = true; }
+    else if (!frozen && voicePaused) { resumeStoryVoice(); voicePaused = false; }
+  }
   if (!frozen) {
     if (active) {
       // Vangnet: een filmpje dat veel wandkloktijd krijgt maar zelf niet vooruitkomt
       // (een vastgelopen intro of scène) mag de game niet blokkeren.
       if (!active._wStart) active._wStart = now;
       if (cinematicHang({ startedAt: active._wStart, now, worldTime: w && w.time, sceneT: active.t }) === 'frozen') { finish(true); return; }
-      active.t += (active.realtime ? Math.max(dt, wallDt) : dt) * (active.rate ?? 1);
-      updateSubtitles();
-      if (active.t >= active.duration) finish(false);
+      // #734 (F12): de eerste frames pas laten lopen als de shottegels klaar zijn (met time-out)
+      if (active._tilesDone) {
+        active.t += (active.realtime ? Math.max(dt, wallDt) : dt) * (active.rate ?? 1);
+        updateSubtitles();
+        if (active.t >= active.duration) finish(false);
+      }
     }
     updateSkipHold();
     if (started) checkTriggers(dt, w);
     updateBanner(dt);
     if (chipTimer > 0 && (chipTimer -= dt) <= 0) els.chip.classList.remove('visible');
-  } else if (gastKopie && !hold) {
+  } else if (gastKopie && !hold && menuOpen) {
     // alleen de scène van de gastheer loopt door; de rest van de wereld blijft stil staan onder het menu
     active.t += (active.realtime ? Math.max(dt, wallDt) : dt) * (active.rate ?? 1);
     updateSubtitles();
@@ -900,9 +956,10 @@ function checkWijk(dt, w) {
   // over the attention budget: waits while the player is still in the wijk
   if (aloft(w) || !mayInterrupt('wijk', w)) return;
   noteMoment('wijk');
-  markWijk(p);
+  // #734 (F6): pas als de kaart echt getoond kan worden de wijk als gezien
+  // markeren; anders blijft de kaart/film voorgoed weg.
   wijkCand = null;
-  showWijkCard(w, p);
+  if (showWijkCard(w, p)) markWijk(p);
 }
 
 // The card's own area (#725): the real boundary (grenzen.json) around the wijk point, so a
@@ -944,6 +1001,11 @@ let wijkCardEl = null;
 let wijkCardT = 0;
 function showWijkCard(w, wijk, left = 30) {
   if (typeof document === 'undefined') return false;
+  // #734 (F19): de kaart mag niet alsnog voor een oude wijk verschijnen als de
+  // speler intussen ergens anders staat (bijvoorbeeld na het sluiten van een
+  // resultaatkaart of keuzepaneel).
+  const hier = currentWijk(w);
+  if (!hier || hier.name !== wijk.name) return false;
   if (!wijkCardEl) {
     const st = document.createElement('style');
     st.textContent = `
@@ -989,7 +1051,13 @@ function keyHits(w, keys) {
     const k = keys[i];
     if (roofAt(w.map, k.pos.x, k.pos.y) > k.pos.z) hits++;
     const n = keys[i + 1];
-    if (n && roofAt(w.map, (k.pos.x + n.pos.x) / 2, (k.pos.y + n.pos.y) / 2) > (k.pos.z + n.pos.z) / 2) hits++;
+    if (!n) continue;
+    // #734 (F11): keur meer punten langs het segment, niet alleen het midden
+    for (let s = 1; s < 4; s++) {
+      const u = s / 4;
+      const x = k.pos.x + (n.pos.x - k.pos.x) * u, y = k.pos.y + (n.pos.y - k.pos.y) * u;
+      if (roofAt(w.map, x, y) > k.pos.z + (n.pos.z - k.pos.z) * u) hits++;
+    }
   }
   return hits;
 }
@@ -1017,7 +1085,7 @@ export function playMissionIntro(w, { title, kicker, lines, objective, duration 
   return playCinematic({ id: 'mission-intro', priority: 3, duration, pause: true, kicker, title, lines, shot: pathShot(clearKeys(w, keys)) });
 }
 
-function orbitShot(w, { radius = 8, height = 3, sweep = 1, start = null, lookY = 1.3, fixed = null }) {
+function orbitShot(w, { radius = 8, height = 3, sweep = 1, start = null, lookY = 1.3, fixed = null, fov = null }) {
   const a0 = start ?? heading(w) + Math.PI * 0.75;
   const p0 = fixed ? null : hoofdspeler(w);
   const c0 = fixed || { x: p0.x, y: p0.y };
@@ -1038,8 +1106,8 @@ function orbitShot(w, { radius = 8, height = 3, sweep = 1, start = null, lookY =
   const r = best.r, dir = best.dir, h = best.hits ? Math.max(height, best.roof + 2) : height;
   return (u) => {
     const c = fixed || hoofdspeler(w);
-    const a = a0 + easeInOut(u) * sweep * dir;
-    return { position: W(c.x + Math.cos(a) * r, gz + h, c.y + Math.sin(a) * r), lookAt: W(c.x, gz + lookY, c.y) };
+    const a = a0 + easeInOut(reducedMotion() ? 0 : u) * sweep * dir;
+    return { position: W(c.x + Math.cos(a) * r, gz + h, c.y + Math.sin(a) * r), lookAt: W(c.x, gz + lookY, c.y), ...(fov != null ? { fov } : {}) };
   };
 }
 
@@ -1097,18 +1165,25 @@ export function respawnFromScene(w, opts) {
 
 // The orbit runs outside the building it films (a wide one like the Forum has a reach of 47 m from its point, the orbit used
 // to be 28 m) and its title card names the place on screen, as the first version did (#329).
-function playLandmark(w, lm) {
+export function playLandmark(w, lm) {
   const fp = buildingReach(w.map, lm.x, lm.y);
-  const h = Math.max(LANDMARK_HEIGHT[lm.name] || 16, Math.min(60, fp.top));
+  const h = Math.max(LANDMARK_HEIGHT[lm.name] || 16, Math.min(120, fp.top));
   const p = hoofdspeler(w);
   const start = Math.atan2(p.y - lm.y, p.x - lm.x);
-  const radius = Math.min(Math.max(Math.min(60, Math.max(28, h * 0.6)), fp.reach + 18), 80);
+  const radius = Math.min(Math.max(Math.min(80, Math.max(34, h * 0.9)), fp.reach + 18), 95);
+  // #734 (F14): frame ook de spits. De camera kijkt naar het midden-bovenstuk
+  // en staat hoog genoeg; de fov dekt de top van hoge gebouwen (Martinitoren,
+  // Forum) zodat de titelklap niet boven het beeld valt.
+  const lookY = h * 0.52;
+  const height = h * 0.62 + 5;
+  const fov = Math.max(45, Math.min(66, 2 * Math.atan((h * 0.55) / Math.max(20, radius)) * 180 / Math.PI + 8));
   playCinematic({
     id: 'landmark', priority: 1, duration: 3.8, pause: true,
     kicker: 'Ontdekt', title: lm.name,
     // (#712) ook een filmpje zonder script heeft een regel: de gast leest waar het over gaat
     lines: [{ speaker: '', text: 'Weer een stukje Grunn dat je nu kent.' }],
-    shot: orbitShot(w, { fixed: lm, radius, height: h * 0.45 + 9, lookY: h * 0.42, sweep: 1.3, start }),
+    mumble: true,
+    shot: orbitShot(w, { fixed: lm, radius, height, lookY, sweep: 1.3, start, fov }),
   });
 }
 
@@ -1130,6 +1205,7 @@ function tryCrashReplay(w, x, y) {
     id: 'crash', priority: 1, duration: 1.2, timeScale: 0.22, letterbox: true, hideHud: true,
     // (#712) één regel, zodat een gast niet alleen twee balken ziet
     lines: [{ speaker: '', text: 'Krak. Iemand lette even niet op.' }],
+    mumble: true,
     shot: (u) => ({
       position: W(cx - fx * (2 - u * 2.5), gz + dak + 0.7 + u * 0.4, cy - fy * (2 - u * 2.5)),
       lookAt: W(x, gzl + 0.9, y),
@@ -1169,6 +1245,7 @@ function playWantedFive(w) {
     kicker: '★★★★★', title: 'Heel Grunn zit achter je aan', accent: 'wanted', shot,
     // (#712) één regel voor de gast (de gastheer ziet de sterren en de titel)
     lines: [{ speaker: '', text: 'Vijf sterren. Nu even rustig aan doen.' }],
+    mumble: true,
   });
 }
 
@@ -1316,7 +1393,9 @@ export function skipAllCinematics() {
   queue.length = 0;
   for (let i = 0; i < 8 && active; i++) finish(true);
   swallowSpace = false;
-  skipHoldSince = null;
+  resetSkip();
+  if (voicePaused) { resumeStoryVoice(); voicePaused = false; }
+  clearCinematicUi();
 }
 
 

@@ -1372,7 +1372,15 @@ function cleanup(r, skipped) {
 }
 
 // flyShot(): the camera path from the sky down to behind the player; built by cinematics.js.
-export function playIntroMontage(w, { startAt = 0, flyShot, onDone } = {}) {
+// #738: `maxShots` speelt alleen het eerste deel (de trailerbeelden: zon op
+// d'Olle Grieze, fietsers, meeuw met frikandel, werkboot, naam- en titelkaart).
+// story.js hergebruikt dat deel als C00.1 en speelt daarna de keuken en de
+// verhuisdag uit cutscenes.js.
+export function playTrailerMontage(w, { onDone } = {}) {
+  return playIntroMontage(w, { maxShots: 12, onDone });
+}
+
+export function playIntroMontage(w, { startAt = 0, flyShot, onDone, maxShots = Infinity } = {}) {
   if (run) return false;
   ensureUi();
   const scene = getScene();
@@ -1383,7 +1391,8 @@ export function playIntroMontage(w, { startAt = 0, flyShot, onDone } = {}) {
   const anita = makeActor(ANITA_APPEARANCE);
   tammo.visible = anita.visible = false;
   group.add(tammo, anita);
-  const shots = buildShots(w);
+  const alle = buildShots(w);
+  const shots = Number.isFinite(maxShots) ? alle.slice(0, Math.max(1, Math.floor(maxShots))) : alle;
   const total = timeShots(shots);
   const starts = [];
   let acc = 0;
