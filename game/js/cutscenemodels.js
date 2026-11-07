@@ -20,7 +20,7 @@ export const PROP_SOURCES = {
   ...Object.fromEntries(DIEREN.filter((d) => d.cutscene).map((d) => [d.cutscene, { animal: d.kind, dier: d.id }])),
 };
 
-export const DECOR_KINDS = ['doos', 'tas', 'radio', 'bord', 'koffer', 'bal', 'matras', 'automaat', 'duiventil', 'zuil', 'klembord'];
+export const DECOR_KINDS = ['doos', 'tas', 'radio', 'bord', 'koffer', 'bal', 'matras', 'automaat', 'duiventil', 'zuil', 'klembord', 'briefje'];
 
 // geen spelobject: er is geen register voor, dus niet in een cutscene
 export const PLACEHOLDER_KINDS = ['aanhanger'];

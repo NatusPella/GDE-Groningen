@@ -96,6 +96,8 @@ const PROP_MAKERS = {
   },
   zuil: () => { const g = new THREE.Group(); g.add(box(0.4, 1.25, 0.4, 0xb23a3a, 0.62), box(0.3, 0.2, 0.02, 0xe8d98a, 1.2, 0.0, 0.21), box(0.1, 0.06, 0.02, 0xf2f0ea, 0.9, 0.0, 0.21)); return g; },
   klembord: () => { const g = new THREE.Group(); g.add(box(0.3, 0.02, 0.4, 0x8a6a46, 0.01), box(0.26, 0.012, 0.34, 0xf2f0ea, 0.026)); return g; },
+  // een los briefje (#740: het dankbriefje op de klomp): een vel papier met één geschreven regel
+  briefje: () => { const g = new THREE.Group(); g.add(box(0.21, 0.012, 0.15, 0xf7f4e8, 0.01), box(0.15, 0.006, 0.014, 0x5b4a36, 0.017)); return g; },
 };
 
 function disposeTree(o) {
@@ -196,6 +198,9 @@ function buildScriptRun(def, scene, anchor, env = null, w = null) {
       return s.camera;
     },
     dispose() {
+      // #734 (F13): de keukenset heeft eigen materialen en canvas-textures (introkitchen3d.js `own`);
+      // die gingen nooit mee de deur uit. `kit.dispose()` ruimt ze op, zoals intromontage.js al doet.
+      if (kit && typeof kit.dispose === 'function') kit.dispose();
       group.removeFromParent();
       disposeTree(group);
     },

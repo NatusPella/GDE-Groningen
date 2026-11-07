@@ -140,10 +140,16 @@ S['M20.outro'] = {
     mem: { key: 'mem', at: [3.6, -1.2], face: 175, anim: 'idle', gest: ['talk', 'shrug'] },
     berend: { key: 'berend', at: [5.2, 0], face: 180, anim: 'idle', bg: true, gest: ['nod', 'hips'] },
   },
-  props: {},
+  // #740: het briefje op de klomp ("Tige tank foar de auto. – J.") staat naast de twee, zodat de
+  // eerste regel een beeld heeft; het is dezelfde klomp-prop als in de marktkraam (cutscenes_akte1.js).
+  props: {
+    klomp: { kind: 'tas', at: [2.4, -1.7, 1] },
+    briefje: { kind: 'briefje', at: [2.4, -1.7, 1.16], face: 20 },
+  },
   open: [{ actor: 'tessa', face: 'actor:tammo' }, { actor: 'tammo', face: 'actor:tessa' }],
   beats: [
     { on: 0, dt: 0.4, actor: 'trijntje', walk: [[2.2, 1.0]], speed: 0.8 },
+    { on: '"Tige tank foar de auto', actor: 'tammo', face: 'prop:klomp' },
     { on: 'Wie heb je verteld', actor: 'tammo', face: 'actor:tessa' },
     { on: 'Niemand.', actor: 'tessa', anim: 'shake' },
     { on: '…Ga je dit', actor: 'tessa', anim: 'hips' },
@@ -156,7 +162,8 @@ S['M20.outro'] = {
     { on: 'Eén zin, jong', actor: 'trijntje', anim: 'point' },
     { on: 'Ik heb er geen', actor: 'tammo', anim: 'shrug' },
   ],
-  shots: [],
+  // #740: een lage push-in over de klomp met het briefje, met Tammo (die de regel zegt) in beeld.
+  shots: [{ on: '"Tige tank foar de auto', dt: 0.2, shot: 'dolly', from: [0.8, -2.9, 1.0], to: [1.7, -2.2, 1.15], look: 'tammo@1.3', fov: 34 }],
   wide: WIDE([-5.5, 4.5, 3.4], [-3.5, 3.2, 2.5], 'mid:tammo,tessa@1'),
 };
 
@@ -393,15 +400,25 @@ S['M21.3'] = {
     berend: { key: 'berend', at: [3.2, 0.8], face: 185, anim: 'idle', gest: ['shrug', 'point', 'hips'] },
     henk: { key: 'henk', at: [12, -6], face: 150, anim: 'idle', gest: ['talk', 'point'] },
   },
-  props: {},
+  // #740: de Escapade staat weer heel op de weg en er ligt een klomp met briefje op de bijrijdersstoel
+  // ("Tige tank foar de bal. – J."), zoals de regie en de tekst zeggen.
+  props: {
+    escapade: { kind: 'auto', at: [4.6, 3.6, 0], face: 250 },
+    klomp: { kind: 'tas', at: [4.6, 3.6, 1.05], face: 250 },
+    briefje: { kind: 'briefje', at: [4.6, 3.6, 1.36], face: 250 },
+  },
   open: [{ actor: 'tessa', face: 'actor:berend' }, { actor: 'tammo', face: 'actor:berend' }, { t: 0, actor: 'henk', walk: [[3.8, -1.6]], speed: 1.4 }],
   beats: [
+    { on: '"Tige tank foar de bal', actor: 'tammo', face: 'prop:escapade' },
     { on: 'Nul krassen op de auto', actor: 'berend', anim: 'shrug' },
     { on: 'Dat tel je niet', actor: 'tessa', anim: 'hips' },
     { on: 'Ik tel alles', actor: 'berend', anim: 'point' },
     { on: 'Tinus\' schuur is hier vlakbij', actor: 'henk', anim: 'point' },
   ],
-  shots: [],
+  shots: [
+    { on: '"Tige tank foar de bal', dt: 0.2, shot: 'dolly', from: [1.2, 1.0, 1.1], to: [2.6, 2.4, 1.3], look: 'tessa@1.2', fov: 34 },
+    { on: 'Zonder wagen kunnen we niet bakken', dt: 0.2, shot: 'cut', at: [-2.6, 2.8, 1.7], look: 'tessa@1.2', fov: 40 },
+  ],
   wide: WIDE([-5, 4, 3.2], [-3, 3, 2.4], 'mid:berend,tessa@1'),
 };
 
@@ -465,7 +482,8 @@ S['M23.3'] = {
     durk: { key: 'durk', at: [3.4, 1.4], face: 190, anim: 'idle', gest: ['point', 'talk', 'hips'] },
     douwe: { key: 'douwe', at: [3.6, -1.4], face: 170, anim: 'idle', gest: ['nod', 'shrug'], carry: 'jas' },
   },
-  props: { jas: { kind: 'doos', at: [3.6, -1.4, 1] } },
+  // #734 (F20): Tammo's jas was een kartonnen doos; een tas leest als kledingstuk met een rits en een handvat.
+  props: { jas: { kind: 'tas', at: [3.6, -1.4, 1] } },
   open: [{ actor: 'tessa', face: 'actor:durk' }, { actor: 'tammo', face: 'actor:durk' }],
   beats: [
     { on: 'Douwe. Jelle is niet onze baas', actor: 'durk', anim: 'point' },
@@ -513,7 +531,8 @@ S['M26.5'] = {
     jelle: { key: 'jelle', at: [3.4, -1.0], face: 160, anim: 'idle', gest: ['shrug', 'hips', 'shake'] },
     ...PASSER('toerist', 'toerist', [7, -6], [-3, -6.5], 1.0, 'phone').cast,
   },
-  props: { limo: { kind: 'auto', at: [5.6, -3.4, 0], face: 80 } },
+  // #734 (F20): de limo van Jelle is de trekker-limo, net als in M26.4; een gewone auto was de Escapade.
+  props: { limo: { kind: 'trekker', at: [5.6, -3.4, 0], face: 80 } },
   open: [{ actor: 'tessa', face: 'actor:jelle' }, { actor: 'tammo', face: 'actor:jelle' }, ...PASSER('toerist', 'toerist', [7, -6], [-3, -6.5], 1.0, 'phone').cues],
   beats: [
     { on: 0, dt: 0.3, actor: 'mem', walk: [[2.4, -0.2]], speed: 1.0 },
