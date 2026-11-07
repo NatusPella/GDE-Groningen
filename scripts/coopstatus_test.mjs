@@ -8,7 +8,6 @@ import * as S from '../game/js/coopstatus.js';
 import { GAST_ACTIVITEITEN } from '../game/js/coopgast.js';
 import { BIJBAAN_REGELS } from '../game/js/coopbijbaan.js';
 import { REGISTRY } from '../game/js/cooproles.js';
-import { BAAN_IDS } from '../game/js/loopbaan.js';
 import { ververs } from '../game/js/spelersregister.js';
 
 const dir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'game', 'js');
@@ -61,7 +60,7 @@ t('elke bijbaan uit de code heeft een status; de coöp-bijbanen en de bus werken
   // #492: de vrachtbijbaan werkt samen met een bijrijder; de status volgt de regel in coopbijbaan.js
   assert.equal(BIJBAAN_REGELS.vracht.rol, 'bijrijder');
   assert.equal(S.samenStatus('bijbaan', 'vracht'), 'werkt');
-  for (const id of ['boerderij', 'tjalke', 'cabaret']) assert.equal(S.samenStatus('bijbaan', id), 'nee', id);
+  for (const id of ['boerderij', 'rondvaarttour', 'boa']) assert.equal(S.samenStatus('bijbaan', id), 'nee', id);
   // #683: de drie nieuwe banen hebben een eigen helper-rol en staan op werkt
   for (const [id, rol] of [['rondvaart', 'passagier'], ['veerdienst', 'passagier'], ['rechtbank', 'tweede jurylid']]) {
     assert.equal(S.samenStatus('bijbaan', id), 'werkt', id);
@@ -174,12 +173,17 @@ t('#683: elke deels-activiteit heeft een bewuste keuze en het groeipad noemt ech
   assert.equal(S.deelsKeuzeVan('bestaatniet'), null);
   assert.equal(S.deelsKeuzeVan(null), null);
   // het groeipad: banen die het spel kent, nu nog host-only (geen BIJBAAN_REGELS), met een helper-rol en de haak
-  assert.ok(S.BIJBAAN_GROEIPAD.length >= 5, 'minstens vijf kandidaten');
-  for (const g of S.BIJBAAN_GROEIPAD) {
-    assert.ok(BAAN_IDS.includes(g.id), g.id + ' is een echte baan');
-    assert.equal(S.samenStatus('bijbaan', g.id), S.NEE, g.id + ' is nu nog host-only');
-    assert.ok(g.rol && g.wat && g.haak, g.id + ': rol, wat en de ontbrekende haak');
+  // het groeipad is leeg: alle acht banen die erin stonden zijn gebouwd en hebben een regel (#683)
+  assert.equal(S.BIJBAAN_GROEIPAD.length, 0, 'het groeipad is gesloten');
+  // #683: de vijf banen uit het groeipad hebben een eigen E-hulp en staan op werkt
+  for (const [id, rol] of [['cabaret', 'mede-optreder'], ['loket', 'tweede balie'], ['snackoverlast', 'handhaver'], ['tjalke', 'bemanning'], ['bietenoogst', 'helper']]) {
+    assert.equal(S.samenStatus('bijbaan', id), 'werkt', id);
+    assert.equal(BIJBAAN_REGELS[id].rol, rol, id + ': rol');
+    assert.equal(BIJBAAN_REGELS[id].actie, true, id + ': E-hulp');
+    assert.ok(S.samenKan().some((l) => l.includes(id === 'bietenoogst' ? 'bietenoogst' : id)), id + ' staat in de positieve lijst');
   }
+  const RB = BIJBAAN_REGELS;
+  assert.equal(RB.cabaret.positie, true); assert.equal(RB.tjalke.positie, false);
 });
 
 t('twee of meer spelers: nee grijs, deels met markering, werkt niets; de start meldt maar blokkeert niet', () => {
@@ -193,7 +197,7 @@ t('twee of meer spelers: nee grijs, deels met markering, werkt niets; de start m
     for (const [soort, id] of [['activiteit', 'discgolf'], ['bijbaan', 'taxi'], ['bijbaan', 'bus'], ['stap', 'goto'], ['minigame', 'padel']]) assert.equal(S.samenWaarschuwing(w, soort, id), null, id);
   }
   const w = samen();
-  const r = S.waarschuwVoorStart(w, 'bijbaan', 'tjalke');
+  const r = S.waarschuwVoorStart(w, 'bijbaan', 'boa');
   assert.equal(r.status, 'nee');
   assert.deepEqual(w.meldingen, ['Dit kan alleen in je eigen spel; samen kan hengelen, boeren of pannenkoeken bakken.']);
   assert.equal(S.waarschuwVoorStart(w, 'bijbaan', 'taxi'), null);

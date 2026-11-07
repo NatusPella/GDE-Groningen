@@ -57,12 +57,15 @@ import { jobBonusHook } from './latehooks.js';
 import { noteMoney } from './finance.js';
 import { loopbaanLoon, loopbaanTel, loopbaanDeel } from './loopbaanlive.js';
 import { vakVanBaan } from './loopbaan.js';
+import { sfeerVan } from './carrieresfeer.js'; // #631: de sfeer van het vak bij de baan (naam in de kaart)
 import { hoofdspeler } from './spelersregister.js'; // de speler achter dit scherm doet de dienst (#446); een gast heeft zijn eigen wereldstaat (contexts, #492) en ziet die via coopbijbaan.js
 
 export const SIDE_JOBS = [bezorger, krantenwijk, taxi, bus, rondvaart, fietsdepot, verhuizing, rondvaarttour, boa, rechtbank, cabaret, vracht, loket, studiestaat, vigilantia, promotie, kamerkoning, wolkenhal, helix, niemeyer, bernard, energielabel, tjalke, lijn, ...BIJBAAN_JOBS, veerdienst, zeeschipLauwersoog, zeeschipEemshaven, ...PANEEL_JOBS, ...STAD_JOBS, bietenoogst, boerderij, snackoverlast];
 const BY_ID = new Map(SIDE_JOBS.map((j) => [j.id, j]));
 
-export const JOB_TARGET_COLOR = '#ff9a3c';
+import { markerColors } from './a11y.js';
+// #631: de klus-marker volgt de kleurenblindmodus (dezelfde bron als de kaartmarkers), geen eigen oranje.
+export const JOB_TARGET_COLOR = markerColors().job;
 const USE_RADIUS = 2.4;
 const ABANDON_DIST = 70;
 const ABANDON_TIME = 60;
@@ -397,11 +400,14 @@ function startJob(job, takeover = null, owner = 0, cw = null) {
   if (owner === 0) waarschuwVoorStart(world, 'bijbaan', job.id); // samen spelen: een melding als deze bijbaan nog niet samen werkt; de start gaat door
   if (world.coopBijbaanStart) { try { world.coopBijbaanStart(job.id, job.name, verzoekVan, owner); } catch (e) { console.error(e); } } // uitnodiging voor de andere spelers (#452)
   const lvl = c.level;
-  const kicker = `Bijbaantje · niveau ${lvl}: ${levelTitle(lvl)}`;
+  // #631: de eerste dienst leest als de sfeer van het vak, niet als een missie.
+  const sfeer = sfeerVan(vakVanBaan(job.id));
+  const sfeerKop = sfeer && sfeer.naam ? ` · ${sfeer.naam}` : '';
+  const kicker = `Bijbaantje${sfeerKop} · niveau ${lvl}: ${levelTitle(lvl)}`;
   const intro = owner === 0 && !takeover && verzoekVan == null && !job.noIntro && !seen.has(job.id) && playMissionIntro(world, { kicker, title: job.name, objective: c.vehicle || null, ...introLines(job) });
   if (intro) seen.add(job.id);
   else {
-    w.addMessage(`${job.name}: ${job.tagline || job.blurb}`, 3.5);
+    w.addMessage(`${job.name}${sfeerKop}: ${job.tagline || job.blurb}`, 3.5);
     if (owner === 0) {
       if (Math.random() < 0.65) sayJobLine(job, 'greet');
       else sayDuoJobLine(hoofdspeler(world).character, 'start');
@@ -1270,3 +1276,4 @@ export function applySideJobSave(w, d) {
   }
   if (Array.isArray(d.seen)) for (const id of d.seen) if (BY_ID.has(id)) seen.add(id);
 }
+

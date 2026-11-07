@@ -10,6 +10,7 @@ import { namedBuildingSpot, pick, euro } from './sidejobkit.js';
 import { createChoicePanel, keycap } from './choicepanel.js';
 import { bubble, clearBubbles } from './minigamekit.js';
 import { CABARET, heckleTiming, cabaretSchedule, cabaretPay } from './casework.js';
+import { medeGrapje } from './bijbaanhulp.js';
 import { dist } from './util.js';
 
 const SPEAK_S = 3.2;
@@ -129,11 +130,29 @@ export default {
     paintAct(c);
   },
 
+  // Samen spelen (#683): een mede-optreder roept met E op de maat mee; de helft van de punten, één keer per grap.
+  helperActie(c) {
+    const d = c.data;
+    if (d.phase !== 'act' || !d.sched) return false;
+    const b = d.sched.beats[d.cur];
+    if (!b || b.cueAt == null) return false;
+    d.mede = d.mede || {};
+    if (d.mede[b.i]) return false;
+    const res = medeGrapje(b.cueAt, d.t);
+    if (!res.ok) return false;
+    d.mede[b.i] = true;
+    d.points += res.punten;
+    d.flash = res.soort === 'perfect' ? 'Je mede-optreder raakt de maat: de zaal lacht.' : 'Je mede-optreder roept mee: het is leuk.';
+    d.flashT = 2.5;
+    return true;
+  },
+
   view(c) {
     const d = c.data;
     if (!d.home) return {};
     return {
       marker: null,
+      help: d.phase === 'act',
       progress: `Voorstelling ${c.streak + 1}${c.earned ? ` · verdiend ${euro(c.earned)}` : ''}`,
       goal: { label: 'Rij zeven', desc: d.phase === 'result' ? 'Applaus' : 'Druk Spatie in het groen' },
     };

@@ -10,6 +10,7 @@ import {
   init, step, result, akkerRijen, rijPositie, oogstFractie, RIJEN, RIJ_LEN, RIJ_AFSTAND, V_MIN,
 } from './bietenrules.js';
 import { wgsToWorld } from './rdnew.js';
+import { hulpStap, hulpTip } from './bijbaanhulp.js';
 import { spawnJobVehicle, vehicleSpeed } from './sidejobkit.js';
 import { TRACTOR_MODEL } from './vehicle.js';
 import { ankerMetWeg } from './bijbaananker.js';
@@ -153,6 +154,7 @@ export default {
     d.akker = bouwAkker(d.rijen, c.world.map);
     c.addMesh(d.akker.group);
     d.ronde = init(c.level);
+    d.help = 0;
     d.hoop = { x: c.spot.x, y: c.spot.y };
     d.prev = null;
     d.melT = 0;
@@ -186,13 +188,24 @@ export default {
       if (e.type === 'done') {
         const r = result(s);
         if (r.failed) c.fail(r.text);
-        else c.complete({ base: r.base, tip: r.tip, flawless: r.flawless, text: r.text });
+        else c.complete({ base: r.base, tip: r.tip + hulpTip('oogst', d.help), flawless: r.flawless, text: r.text });
         return;
       }
     }
     // de gerooide bieten verdwijnen: afgeronde rijen helemaal, de lopende rij tot de afgelegde meters
     rooiWeg(d.akker, Math.min(s.rij, RIJEN), s.voortgang, false);
     if (s.rij > rijVoor) rooiWeg(d.akker, s.rij, 0, false);
+  },
+
+  // Samen spelen (#683): de helper trekt bieten los en laadt mee; elke hulp geeft extra loon.
+  helperActie(c) {
+    const d = c.data;
+    if (!d.ronde || d.ronde.klaar) return false;
+    const r = hulpStap(d.help);
+    if (!r.ok) return false;
+    d.help = r.help;
+    c.msg(`Je helper trekt bieten los. Extra loon: €${hulpTip('oogst', r.help)}.`, 3);
+    return true;
   },
 
   view(c) {
@@ -206,12 +219,14 @@ export default {
       return {
         marker: naarBegin ? { x: rij.ax, y: rij.ay } : { x: rij.bx, y: rij.by },
         dots: d.rijen.slice(s.rij + 1).map((r) => ({ x: r.ax, y: r.ay })),
+        help: true,
         progress: `Bietenoogst · rij ${Math.min(s.rij + 1, RIJEN)}/${RIJEN} · geoogst ${Math.round(oogstFractie(s) * 100)}%`,
         goal: { label: naarBegin ? 'Naar het begin van de rij' : 'Rooi de rij tot het eind', desc: `Rij recht door met ${V_MIN} tot ${Math.floor(s.vMax)} meter per seconde` },
       };
     }
     return {
       marker: { x: d.hoop.x, y: d.hoop.y },
+      help: true,
       progress: `Bietenoogst · lading ${Math.round(s.kwaliteit)}% · geoogst ${Math.round(oogstFractie(s) * 100)}%`,
       goal: { label: 'Naar de bietenhoop', desc: 'Rustig rijden: de bieten rollen van de kar' },
     };
