@@ -1579,6 +1579,30 @@ holds both migration chains (`SAVE_MIGRATIONS`, `SETTINGS_MIGRATIONS`) and
 the generic `runMigrations(data, migrations, to)`: an older file runs through
 every step, `n -> n + 1`, on a copy, before anything reads it.
 
+### Save slots
+
+There are eight save slots (`saveslots.js`, pure; the Opgeslagen spellen screen
+is `saveslotsui.js`): slot 1 is the old single save under `gde-save-v1`, the
+others have their own keys, and the list (names, active slot) lives under
+`gde-save-slots`. Every write keeps the previous good save of that slot as its
+recovery copy, and a slot that no longer parses is read from that copy.
+
+- The save a tab plays is its `boundSlot` (`savegame.js`), fixed when a game is
+  loaded or a new game starts. The index's active slot can differ (a second tab,
+  the save screen), so an autosave never overwrites a slot another tab chose.
+- The boot loads the save written last (`pickLatest`), except when the player
+  deliberately started a new game on an empty slot: that empty slot is marked
+  `fresh` and is the game (#562). With every place in use, a new game says so and
+  clears nothing (#562); the save that is being played cannot be deleted (#564).
+- A guest only ever saves his own earnings and purchases into his own save: never
+  the story, the world or the host's car damage (#565, #566), and "nothing to
+  save" is a success (#579). A save that cannot be loaded brings the player to
+  Opgeslagen spellen with a message, not to the old title screen (#606; that one
+  is only for QA/trailer, #581).
+- A settings file from a newer game keeps its higher `v` and the keys this build
+  does not know, also when a setting changes (a downgrade must not throw the
+  newer stand away, #578).
+
 - **The guarantee:** a save or settings file from 1.0 on keeps loading in
   every later version. A change to what is saved raises `SAVE_VERSION` (or
   `SETTINGS_VERSION`) and adds the step from the old version; a released step

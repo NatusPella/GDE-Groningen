@@ -41,7 +41,7 @@
 #saveslots .ssl-ic { width: 24px; height: 24px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; opacity: 0.8; }
 
 /* the layer over a card: the '…' menu or one question */
-#saveslots .ssl-over { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; justify-content: center; gap: 4px; padding: 12px 16px; background: #0b130d; }
+#saveslots .ssl-over { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; justify-content: center; gap: 4px; padding: 12px 16px; background: #0b130d; overflow-y: auto; overscroll-behavior: contain; }
 #saveslots .ssl-x { position: absolute; top: 8px; right: 8px; width: 44px; height: 44px; display: grid; place-items: center; border-radius: 22px; color: var(--mut); }
 #saveslots .ssl-x:hover, #saveslots .ssl-x:focus-visible { color: var(--ink); background: rgba(240, 237, 228, 0.12); }
 #saveslots .ssl-x:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
@@ -51,6 +51,13 @@
 #saveslots .ssl-mi:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
 #saveslots .ssl-mi.danger { color: var(--redtx); }
 #saveslots .ssl-mi.danger:hover .ssl-ic, #saveslots .ssl-mi.danger:focus-visible .ssl-ic { stroke: var(--redtx); }
+/* #606: op 1280x720 is een kaart lager dan het '…'-menu met vijf rijen. Het menu wordt daar compacter, zodat
+   "Spel verwijderen" en de sluitknop altijd in beeld en klikbaar zijn. */
+@media (max-height: 820px) {
+  #saveslots .ssl-over { padding: 8px 10px; gap: 0; }
+  #saveslots .ssl-mi { height: 40px; font-size: 22px; gap: 12px; }
+  #saveslots .ssl-x { top: 4px; right: 4px; width: 36px; height: 36px; }
+}
 #saveslots .ssl-q { gap: 14px; }
 #saveslots .ssl-q p { font-size: 19px; line-height: 1.35; color: rgba(240, 237, 228, 0.9); }
 #saveslots .ssl-qacts { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
@@ -70,7 +77,9 @@
 #saveslots .ssl-chipbtn:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
 
 /* the status line and the small row at the bottom */
-#saveslots .ssl-msg { flex: none; height: 28px; padding: 0 56px; line-height: 28px; font-size: 18px; color: var(--g); }
+#saveslots .ssl-msg { flex: none; min-height: 28px; padding: 0 56px; line-height: 28px; font-size: 18px; color: var(--g); }
+/* #606: waar het spel vanzelf bewaart staat als gewone schermregel, niet alleen in een tooltip */
+#saveslots .ssl-note { flex: none; padding: 2px 56px 0; font-size: 17px; line-height: 1.35; color: var(--mut); }
 #saveslots .ssl-foot { flex: none; display: flex; align-items: center; gap: 12px; padding: 0 56px 16px; }
 #saveslots .ssl-fgrow { flex: 1; }
 #saveslots .ssl-fb { display: inline-flex; align-items: center; gap: 12px; height: 48px; padding: 0 16px; border-radius: 8px; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 24px; letter-spacing: 0.05em; color: rgba(240, 237, 228, 0.78); transition: background 0.2s, color 0.2s; }
@@ -93,7 +102,7 @@ html.reduce-motion #saveslots .ssl-card, html.reduce-motion #saveslots .ssl-more
 @media (max-width: 1100px) {
   #saveslots .ssl-panel { left: 2%; right: 2%; top: 3%; bottom: 3%; }
   #saveslots .ssl-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
-  #saveslots .m-head, #saveslots .ssl-msg, #saveslots .ssl-foot { padding-left: 20px; padding-right: 20px; }
+  #saveslots .m-head, #saveslots .ssl-msg, #saveslots .ssl-note, #saveslots .ssl-foot { padding-left: 20px; padding-right: 20px; }
   #saveslots .ssl-scroll { padding: 16px 20px 8px; }
 }
 #saveslots .ssl-intro { margin: 8px 0 0; font-size: 20px; max-width: 760px; }

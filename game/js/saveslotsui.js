@@ -15,7 +15,7 @@
 //     (the host of Samen spelen picks the game to play with); an empty card calls onNew() as usual.
 import * as S from './saveslots.js';
 import { MAX_SLOTS } from './storagekeys.js';
-import { saveGame, loadSlot, readSave, bindSlot, storySummary, onThumbKept, coopSessieLoopt, currentSlot, COOP_NIEUW_TEKST, COOP_WISSEN_TEKST } from './savegame.js';
+import { saveGame, loadSlot, readSave, bindSlot, storySummary, onThumbKept, coopSessieLoopt, currentSlot, COOP_NIEUW_TEKST, COOP_WISSEN_TEKST, GAST_BEWAARD_TEKST } from './savegame.js';
 import { stopCoopNet } from './coopnet.js';
 import { coopLoadTekst, COOP_LOAD_FAIL, runCoopLoad } from './cooploadrules.js';
 
@@ -127,6 +127,9 @@ export function openSaveSlots(opts = {}) {
   };
 
   const solo = mode === 'start' && !!opts.solo && !opts.pick;
+  // #606: de boot opent dit scherm als de laatste save niet automatisch te laden viel; er is dan geen
+  // titelscherm om naar terug te gaan, dus Terug valt weg.
+  const noBack = !!opts.noBack;
   const primaryLabel = opts.loadLabel || (opts.pick ? 'Kiezen' : mode === 'start' && !solo ? 'Doorgaan' : 'Laden');
   // #564: de plek waaraan deze sessie gebonden is (currentSlot) is het spel dat nu loopt; verwijderen zou
   // niets opleveren, want de autosave schrijft hem meteen weer.
@@ -134,6 +137,8 @@ export function openSaveSlots(opts = {}) {
   // #565: een gast speelt in de wereld van de gastheer en bewaart alleen zijn eigen verdiensten in zijn
   // eigen save; een lege plek zou een dode schrijfplek zijn waar elke checkpoint op stukloopt.
   const gastInSessie = () => !!(world && world.coopRole === 'client' && coopSessieLoopt(world));
+  // #606: een gast bewaart alleen zijn eigen verdiensten in zijn eigen opgeslagen spel; de bevestiging zegt dat.
+  const saveMelding = (ok, normaal) => (ok ? (gastInSessie() ? GAST_BEWAARD_TEKST : normaal) : 'Opslaan mislukt.');
 
   const mi = (act, ic, label, extra = '') => `<button type="button" class="ssl-mi${extra}" role="menuitem" data-grp="menu" data-do="${act}">${svg(IC[ic])}<span>${label}</span></button>`;
 
@@ -184,7 +189,7 @@ export function openSaveSlots(opts = {}) {
     const currentBlocked = isCurrent && !(inSessie && world.coopRole !== 'host');
     const label = isCurrent ? 'Huidig spel' : primaryLabel;
     const chips = [];
-    if (isCurrent) chips.push('<span class="ssl-chip on" title="Het spel slaat vanzelf op in dit opgeslagen spel">Autosave</span>');
+    if (isCurrent) chips.push('<span class="ssl-chip on">Bewaard vanzelf</span>');
     if (s.state === 'hersteld') chips.push('<span class="ssl-chip warn">Hersteld</span>');
     if (bad) chips.push('<span class="ssl-chip warn">Kan niet laden</span>');
     const pic = thumb ? `<img src="${thumb}" alt="" draggable="false">` : `<span class="ssl-nopic">${svg(IC.person, 'ssl-nopic-ic')}</span>`;
@@ -262,10 +267,11 @@ export function openSaveSlots(opts = {}) {
       <header class="m-head"><div><span class="m-eb">${esc(opts.eyebrow || (mode === 'start' ? 'Spel' : 'Pauze'))}</span><h1 class="m-h1" id="ssl-title">${esc(opts.titel || 'Opgeslagen spellen')}</h1>${opts.hint ? `<p class="mut ssl-intro">${esc(opts.hint)}</p>` : ''}</div><div class="m-hr"><span class="mut">${slots.length} van ${MAX_SLOTS}</span></div></header>
       ${last ? `<div class="ssl-hero-wrap">${heroHtml(last)}</div>` : ''}
       <div class="ssl-scroll"><div class="ssl-grid" role="list" aria-label="Opgeslagen spellen">${tiles.join('')}</div></div>
+      ${mode === 'game' ? '<p class="ssl-note">Het spel bewaart vanzelf na een aankoop, een missie of als je stopt; je kunt altijd zelf opslaan.</p>' : ''}
       <p class="ssl-msg" role="status">${esc(message)}</p>
       <footer class="ssl-foot"><button type="button" class="ssl-fb" data-grp="foot" data-do="import"${full ? ' disabled title="Alle plekken zijn in gebruik"' : ''}>${svg(IC.import)}<span>Spel importeren</span></button>
         ${backup ? `<button type="button" class="ssl-fb" data-grp="foot" data-do="restore-backup"${full ? ' disabled title="Alle plekken zijn in gebruik"' : ''}>${svg(IC.save)}<span>Reservekopie herstellen</span></button>` : ''}
-        <span class="ssl-fgrow"></span><button type="button" class="ssl-fb" data-grp="foot" data-do="close">${svg(IC.back)}<span>Terug</span></button></footer>
+        <span class="ssl-fgrow"></span>${noBack ? '' : `<button type="button" class="ssl-fb" data-grp="foot" data-do="close">${svg(IC.back)}<span>Terug</span></button>`}</footer>
       ${coopQuestion()}
     </section>`;
     rootEl.insertBefore(stage, file);
@@ -368,7 +374,7 @@ export function openSaveSlots(opts = {}) {
       S.setActive(null, cur.n);
       bindSlot();
       over = null;
-      message = saveGame(world, { toast: false, manual: true }) ? 'Opgeslagen.' : 'Opslaan mislukt.';
+      message = saveMelding(saveGame(world, { toast: false, manual: true }), 'Opgeslagen.');
       render({ slot: cur.n });
       return;
     }
@@ -376,7 +382,7 @@ export function openSaveSlots(opts = {}) {
       S.setActive(null, cur.n);
       bindSlot();
       over = null;
-      message = saveGame(world, { toast: false, manual: true }) ? 'Overschreven.' : 'Opslaan mislukt.';
+      message = saveMelding(saveGame(world, { toast: false, manual: true }), 'Overschreven.');
       render({ slot: cur.n });
       return;
     }
@@ -500,7 +506,8 @@ export function openSaveSlots(opts = {}) {
     const inInput = e.target && e.target.tagName === 'INPUT' && e.target.dataset.input !== undefined;
     if (k === 'Escape' || k === 'Backspace' && !inInput) {
       e.preventDefault(); e.stopPropagation();
-      if (over) doAction('back'); else close();
+      if (over) doAction('back');
+      else if (!noBack) close();
       return;
     }
     if (inInput) {
