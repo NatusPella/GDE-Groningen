@@ -9,13 +9,13 @@ opgenomen** en er is **geen sleutel gebruikt**.
 
 | Meting | Uitkomst |
 |---|---|
-| Verhaalregels zonder stem | **657** (waarvan **53** in de opening en M01-M03) |
-| Klaar in de wachtrij (`scripts/tts_lines.json`) | **65** jobs (2.316 tekens, ca. 200 s audio, ca. $0,03) |
+| Verhaalregels zonder stem | **57** (waarvan **37** stille appjes en **20** die nog op een Groningse spreektekst wachten) |
+| Klaar in de wachtrij (`scripts/tts_lines.json`) | **0** jobs — de ronde is opgenomen (ca. $0,27) |
 | Wacht op een stemkeuze (`scripts/tts_lines_list.mjs` CAST) | **0** regels — de zeventien sprekers hebben sinds 7-11 een stem (`docs/verhaal/STEMKEUZE-VOORSTEL.md`) |
-| Wacht op Groningse spreektekst (`scripts/gronings_spoken.json`) | **592** regels |
-| `node scripts/voice_coverage.mjs --quiet` | **2027/2027 ok**, 694 regels alleen tekst (vrijgesteld) |
+| Wacht op Groningse spreektekst (`scripts/gronings_spoken.json`) | **20** regels |
+| `node scripts/voice_coverage.mjs --quiet` | **2664/2664 ok**, 57 regels alleen tekst (vrijgesteld) |
 | Stille appjes/sms'en | 37, bewust geen stem |
-| Volledige lijst per scène | `docs/verhaal/OPNAMELIJST.md` (lokaal, gitignored; 1.605 regels bestand) |
+| Volledige lijst per scène | `docs/verhaal/OPNAMELIJST.md` (lokaal, gitignored; 20 regels zonder stem) |
 
 > De cijfers in issue #735 (670 regels / 671 clips, 0 wachtend op een stemkeuze) zijn die
 > van 6-11 vóór #689 en de nieuwe sprekers. De metingen hierboven zijn de actuele stand;
@@ -53,7 +53,7 @@ LITELLM_API_KEY=sk-...            # de virtuele sleutel van de LiteLLM-gateway
 `python scripts/gemini_tts.py` toont daarna gateway, pad en of het model in de lijst staat
 (zonder de sleutelwaarde te tonen). Zonder sleutel werkt alleen de droogloop.
 
-### 1. Nu opnemen: de 63 klaarstaande jobs
+### 1. Nu opnemen: de wachtrij (nu 0 jobs)
 
 Eén commando voor de hele ronde (dezelfde stappen, stopt bij de eerste fout; leest geen sleutel
 en print hem niet):
@@ -78,7 +78,7 @@ Elke clip wordt gelogd in het `tts.json` van zijn map met `model`, `via: litellm
 kosten uit de gateway (`x-litellm-response-cost`, anders de audiolengte-terugval). De
 clips worden getrimd en op -18 LUFS gezet; `ffmpeg`/`ffprobe` moeten in het pad staan.
 
-### 2. Groningse spreekteksten: 439 regels
+### 2. Groningse spreekteksten: 20 regels
 
 1. Lees de concepten in [`DIALECT-CONCEPT.md`](DIALECT-CONCEPT.md) na (eerst de
    twijfelgevallen bovenaan).
@@ -86,7 +86,7 @@ clips worden getrimd en op -18 LUFS gezet; `ffmpeg`/`ffprobe` moeten in het pad 
 3. Zet ze in de wachtrij: `node scripts/tts_lines_list.mjs`, dan opnieuw
    `python scripts/tts_lines.py --budget 0.5` in rondes.
 
-### 3. Stemkeuze: 154 regels, 16 sprekers
+### 3. Stemkeuze: 0 regels (alle sprekers hebben een stem)
 
 De sprekers staan sinds 7-11-2026 in `CAST` van `scripts/tts_lines_list.mjs`. Kies per spreker een stem
 (zie [`STEMKEUZE-VOORSTEL.md`](STEMKEUZE-VOORSTEL.md)), zet die in `CAST`, en draai

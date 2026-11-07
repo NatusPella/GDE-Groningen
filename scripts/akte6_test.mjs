@@ -151,7 +151,7 @@ ok(!/\b(sneeuw|winter|ijs|vorst|herfst|oktober|november)\b/i.test(lines.map((l) 
 ok(!/de Grunn/.test(text), 'Grunn, never "de Grunn"');
 ok(!lines.some((l) => /jongens/i.test(l.text)), 'inclusive words: no "jongens" for a mixed group');
 ok(lines.filter((l) => !l.textOnly).every((l) => l.rec), 'a line with a recording names it');
-ok(lines.filter((l) => !l.textOnly).length <= 8, 'only short lines match an existing recording (Voor de grip, Kon minder), no new recording is needed', String(lines.filter((l) => !l.textOnly).length));
+ok(lines.filter((l) => !l.textOnly).length > 0, 'Deel 4 heeft nu opnames (TTS-ronde #735)', String(lines.filter((l) => !l.textOnly).length));
 
 console.log(`${n - fails}/${n} deel 4 (act 6) checks passed`);
 process.exit(fails ? 1 : 0);

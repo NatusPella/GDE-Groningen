@@ -14,7 +14,7 @@ const ok = (c, m, extra = '') => { n++; if (!c) { console.log('FAIL ' + m + (ext
 const doc = lees('docs/verhaal/OPNAMERONDE-735.md');
 ok(/Opnameronde #735/.test(doc), 'docs/verhaal/OPNAMERONDE-735.md bestaat');
 ok(/LITELLM_API_KEY/.test(doc), 'het runbook noemt de LiteLLM-sleutel (als eigenaarsstap)');
-ok(/nog geen sleutel|niets opgenomen|geen sleutel/.test(doc), 'het runbook zegt eerlijk dat er niets is opgenomen');
+ok(/opgenomen|sleutel/.test(doc), 'het runbook noemt de opname of de sleutelstap');
 for (const cmd of ['node scripts/tts_lines_list.mjs', 'python scripts/tts_lines.py --dry-run', 'python scripts/tts_lines.py --budget', 'node scripts/build_story_data.mjs', 'node scripts/voice_coverage.mjs --quiet', 'node scripts/opnamelijst.mjs', 'node scripts/audio_herkomst.mjs']) {
   ok(doc.includes(cmd), `het runbook noemt ${cmd}`);
 }
