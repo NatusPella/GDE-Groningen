@@ -30,5 +30,7 @@ ok(beatFor('M01', script) === null, 'no beat for a step in the city');
 // nothing silently over the 14 minute budget of act 2 when driving everything yourself? report only the heavy one
 const act = (a) => Object.values(REISBEATS).filter((b) => b.act === a).map((b) => ({ length: b.length }));
 ok(actBudget(4, act(4)).over, 'driving all of act 4 yourself is over budget (that is why riding along is the default)');
+// #664: het gat tussen M12 (Lauwersoog) en M13 (Eemshaven) heeft een reisbeat met dezelfde presentatie
+ok(!!REISBEATS.M13 && REISBEATS.M13.length === 43000 && REISBEATS.M13.ride === 'lift' && REISBEATS.M13.scene === 'M13.1', 'M12-M13: een reisbeat met praatmoment');
 console.log(`${n - fails}/${n} reisbeats`);
 process.exit(fails ? 1 : 0);

@@ -19,6 +19,9 @@ export const REISBEATS = {
   M14: { act: 3, from: 'Eemshaven', to: 'Bierum', length: 22000, ride: 'lift' },
   // by rail Delfzijl to Winschoten goes by way of Station Grunn: about 80 km
   T3: { act: 3, from: 'Delfzijl', to: 'Winschoten', length: 80000, ride: 'trein', scene: 'T3' },
+  // #664: M12 eindigt bij Lauwersoog, M13 begint in de Eemshaven. Zonder reisstap was dat 43 km
+  // stilte; dezelfde keuze als T1-T5 (meerijden, zelf rijden, overslaan), met de rit als praatmoment.
+  M13: { act: 3, from: 'Lauwersoog', to: 'Eemshaven', length: 43000, ride: 'lift', scene: 'M13.1' },
   // M16 ends at the Oldambtmeer, M17 starts at the Oosterdiep in Veendam (about 20 km)
   M17: { act: 4, from: 'Winschoten', to: 'Veendam', length: 20000, ride: 'lift' },
   // Wildervank to Bourtange by way of Ter Apel (about 45 km): the beat sits on the step that ends at Bourtange

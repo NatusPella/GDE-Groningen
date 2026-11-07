@@ -40,9 +40,12 @@ export function buildNieuwDefs({ map, walk, drive, models = {} }) {
       label: 'Het Loket',
       intro: ['Het Loket in het Stadhuis aan de Grote Markt: om twaalf uur sluit de inschrijving voor de Noordelijke Snackprijs, en het loket neemt alleen contant.', 'De rij staat buiten, voor de gevel. Trek een wachtnummer, haal formulier 7B en de stempel, en schrijf in. Voor twaalf uur.'],
       outro: 'Ingeschreven voor de Noordelijke Snackprijs. Jelle wil de Gouden Eierbal: pak hem eerst. Nieuw doel: naar Bert op het Stationsplein.',
-      timeLimit: 180,
+      // #664: geen ruime fail-timer meer; binnen een minuut is de medaille-eis (tag 'snel').
+      timeLimit: null,
+      medalTime: 60,
+      tagRows: { snel: ['Medaille', 'Binnen 1:00: het Loket op tijd'] },
+      tagAdjust: { snel: 40 },
       costRow: ['Inschrijfgeld', '-€150, contant betaald'],
-      timeUp: 'het Loket is dicht. Om twaalf uur sloot de inschrijving',
       reward: 0,
       onFoot: true,
       start: loketAt(-10, 14),
@@ -208,8 +211,11 @@ export function applyNieuw(list) {
     // the goal said aloud, and the fuse box too (09-script: three cameras, two guards, a fuse box)
     duif.stages[0].label = 'Fotografeer 3 camera\'s, 2 bewakers en de stroomkast';
     duif.stages[0].targets.push({ landmark: 'Groninger Museum', off: [-29, -38], label: 'De stroomkast achter de fietsenstalling' });
-    duif.timeLimit = 230;
-    duif.timeUp = 'tijd op. Bert fluit de duif terug naar de duiventil';
+    // #664: ook hier geen ruime fail-timer; binnen een minuut is de medaille-eis (tag 'snel').
+    duif.timeLimit = null;
+    duif.medalTime = 60;
+    duif.tagRows = { ...(duif.tagRows || {}), snel: ['Medaille', 'Binnen 1:00: alle foto\'s'] };
+    duif.tagAdjust = { ...(duif.tagAdjust || {}), snel: 40 };
   }
   const kei = by('Wind tegen, beide kanten op');
   // what each mission leaves you with, on the success card (#147): the clue or the consequence

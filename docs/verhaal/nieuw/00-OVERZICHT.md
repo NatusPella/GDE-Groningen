@@ -400,3 +400,23 @@ Zet een vinkje bij "ja". Een verhaal dat minder dan 8 vinkjes heeft, moet worden
 - [ ] Is elke scène te volgen op de gesproken tekst alleen (wie, waar, waarom nu, wat nu), zonder contextkaartjes?
 - [ ] Houden radio, telefoon, gesprek, appjes en pop-ups zich aan hun eigen kanaal?
 - [ ] Is er voor spelers die het oude verhaal kennen genoeg nieuws (nieuwe plekken, een nieuwe twist, 12 nieuwe missies)?
+
+## Ronde: keuzes, tegenslag en reisritme (#664, #665, #666)
+
+**#666 — één keuze met een gevolg dat terugkomt.** De wagonkeuze in M21 (de auto redden of de
+bal houden) wordt bewaard als `keuze:bal` (`fj.remember`, `story.js` `rememberStoryChoice`). Wie de
+bal hield, krijgt in de volgende missie M22 eerst een eigen doel en tekst over de kras van de wagon;
+de andere keuze blijft bewust smaak. De vlag reist mee in de save en in het coöp-pakket, zodat een
+gast hetzelfde doel ziet.
+
+**#665 — één tegenslag en de Ontzet-teller.** De tegenslag in de tweede helft is M20: Jelle neemt
+na Bourtange de Escapade mee (kostenregel op de uitslag) en M21 begint met de auto van de
+goederentrein halen. Niemand verliest blijvend geld of spullen. In de laatste week voor het
+Gronings Ontzet toont de HUD-datumregel de aftelling ("Ontzet over 3 dagen"), uit
+`calendar.js` `ontzetCountdown`; op de dag zelf neemt de speciale Ontzet-dag het over.
+
+**#664 — reisgat en tijd als medaille.** Tussen M12 (Lauwersoog) en M13 (Eemshaven) staat nu
+reisbeat `M13` (43 km, meerijden/zelf rijden/overslaan, met M13.1 als praatmoment), dezelfde
+presentatie als T1-T5. M03 en M04 hebben geen ruime fail-timer meer (`timeLimit: null`): binnen
+1:00 is de medaille-eis (`medalTime: 60`), die als resultaatregel en bonus op de uitslag komt
+(tag `snel`). De krappe limieten van M01 en M05 blijven echte uitdagingen.

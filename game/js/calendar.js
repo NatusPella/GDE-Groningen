@@ -206,6 +206,16 @@ export function specialDay(n) {
 }
 export const dayOfSummer = (n) => n;
 export const weekdayShort = (n) => WD_SHORT[weekdayOf(n)];
+// #665: de aftelling naar het Gronings Ontzet voor de HUD in de laatste akte ("Ontzet over 3 dagen").
+// Alleen de laatste week telt mee; op de dag zelf zegt de speciale dag het al.
+export function ontzetCountdown(n) {
+  const d = Math.floor(Number(n));
+  if (!Number.isFinite(d)) return '';
+  const left = ONTZET_DAY - d;
+  if (left < 0 || left > 7) return '';
+  if (left === 0) return '';
+  return left === 1 ? 'Ontzet over 1 dag' : `Ontzet over ${left} dagen`;
+}
 export const isSpecial = (id, n) => { const s = SPECIAL_BY_ID.get(id); return !!s && on(s, n); };
 
 // The card for day n: the most important special day with a card not seen yet.

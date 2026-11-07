@@ -63,7 +63,9 @@ ok(loket.stages.map((q) => q.kind).join() === 'goto,hold,scene,goto,goto,goto', 
 for (const q of loket.stages) ok(!!q.label, `loket: stage ${q.kind} has a label`);
 const hold = loket.stages.find((q) => q.kind === 'hold');
 ok(hold.time > 0 && hold.ticks.length === 2, 'loket: the wait has a time and two ticks');
-ok(loket.timeLimit > hold.time * 3 + 60, 'loket: enough time left after the wait with the clock at x3');
+// #664: het Loket heeft geen ruime fail-timer meer; de tijd is een medaille-eis (binnen 1:00)
+ok(loket.timeLimit == null && loket.medalTime === 60 && Array.isArray(loket.tagRows.snel), 'loket: geen fail-timer, wel een medaille-eis van 1:00');
+ok(loket.timeLimit == null && hold.time > 0, 'loket: de wachtrij blijft voelbaar zonder de klok als faalreden');
 // M03 (#335): the counters stand at the Stadhuis, a real office, and not at the Goudkantoor (a restaurant): every stage target is open ground
 // within 25 m of the Stadhuis footprint
 const stadhuis = map.buildingsNear(131, 108, 40).find((b) => b.name === 'Stadhuis');
@@ -83,10 +85,10 @@ ok(/Schud de politie af/.test(msrc) && /Breng de automaat naar Sjabbe/.test(msrc
 ok(/De stroomkast achter de fietsenstalling/.test(msrc) && /Fotografeer 3 camera/.test(msrc), 'duifverkenning: goal names cameras, guards and fuse box');
 ok(/Podium in de Kiezelrace/.test(msrc), 'kei: the start message names the goal');
 // failure paths (#147): own time-up and lost-vehicle messages instead of the generic ones
-ok(/Loket is dicht/.test(loket.timeUp), 'loket: own time-up message');
+ok(!loket.timeUp, 'loket: geen eigen time-up meer (de tijd faalt niet meer)');
 const bak = byId('bakkiestunt');
 ok(/kattenfilmpje/.test(bak.timeUp) && bak.vehicleFail.gone && bak.vehicleFail.wrecked && bak.vehicleFail.left, 'bakkiestunt: time-up and lost-bakkie messages');
-ok(/vehicleFail = \{ gone/.test(msrc) && /duif\.timeUp/.test(msrc) && /kei\.timeUp/.test(msrc), 'pinautomaat, duif and kei have own failure messages');
+ok(/duif\.timeLimit = null/.test(msrc) && /duif\.medalTime = 60/.test(msrc) && /duif\.tagRows/.test(msrc) && /kei\.timeUp/.test(msrc), 'duif: medaille-eis in plaats van fail-timer; pinautomaat en kei houden hun eigen faalbericht');
 ok(/def\.timeUp \? def\.timeUp/.test(missionsSrc) && /vf\.wrecked/.test(missionsSrc), 'missions.js honours timeUp and vehicleFail');
 // rewards and consequences are visible on the success card (#147)
 ok(Array.isArray(loket.costRow) && /150/.test(loket.costRow[1]), 'loket: the card shows the entry fee (reward is 0)');

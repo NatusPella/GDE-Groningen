@@ -78,6 +78,16 @@ ok(fj.fjordTrain === false && fj.stages.filter((q) => q.kind === 'choice').lengt
 // #739: M21.4 is geen dode scène meer: hij speelt als stage-outro van Tammo's deel, na de keuzepuzzel
 const laatste = fj.stages[fj.stages.length - 1];
 ok(laatste && laatste.kind === 'scene' && (laatste.script?.ids || []).includes('M21.4'), 'fjord: M21.4 speelt als stage-outro van Tammo\'s deel');
+// #666: de wagonkeuze (auto of bal) blijft hangen en komt terug in M22: een eigen doel en tekst over de kras
+ok(Array.isArray(fj.remember) && fj.remember.includes('bal'), 'fjord: de bal-keuze wordt bewaard als keuze:bal (storyflags)');
+{
+  const metLuik = [{ label: 'Iedereen heeft een rode auto gezien', stages: [], start: {} }, { label: 'Een luik erin', stages: [], start: { x: 1, y: 2 } }];
+  applyAkte4(metLuik);
+  const luik = metLuik[1];
+  ok(luik.stages.some((q) => q.ifTag === 'bal' && /kras van de wagon/.test(q.label)), 'luik: de bewaarde keuze geeft in M22 een eigen eerste doel');
+}
+// #665: de tegenslag in de tweede helft is de Escapade die Jelle meeneemt; M20 toont dat op de uitslag en M21 begint met de auto terughalen
+ok(fj.intro.some((t) => /goederentrein|wagen/.test(t)) && mine[3].costRow && /Escapade/.test(mine[3].costRow[1]), 'beleg: de Escapade is weg (kostenregel); M21 opent met de auto op de trein');
 void applyNieuw;
 
 // --- places: near the real town, inside the province
