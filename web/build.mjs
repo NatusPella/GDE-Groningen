@@ -11,6 +11,7 @@ import path from 'path';
 import crypto from 'crypto';
 import { execFile, execFileSync } from 'child_process';
 import { shellFiles } from './precache.mjs';
+import { modulePreloadTags, preloadStats } from './preload.mjs';
 import { fileURLToPath } from 'url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -146,11 +147,15 @@ async function main() {
   const stamp = (src) => src.split('__GDE_CACHE__').join(cacheName).split('__GDE_SIZES__').join(JSON.stringify(sizes)).split('__GDE_SHELL__').join(JSON.stringify(shell));
   fs.writeFileSync(path.join(OUT, 'web.js'), stamp(fs.readFileSync(path.join(HERE, 'web.js'), 'utf8')));
   fs.writeFileSync(path.join(OUT, 'sw.js'), stamp(fs.readFileSync(path.join(HERE, 'sw.js'), 'utf8')));
+  // #657: modulepreload-hints voor alle modules (één parallelle golf)
+  const tags = modulePreloadTags(files.map(rel)).join('\n');
+  const stats = preloadStats(files.map(rel), (f) => fs.statSync(path.join(OUT, f)).size);
+  console.log('modulepreload: ' + stats.files + ' modules, ' + mb(stats.bytes) + ' in één golf');
   const html = path.join(OUT, 'index.html');
   let page = fs.readFileSync(html, 'utf8');
   const main = '<script type="module" src="js/main.js"></script>';
   if (!page.includes(main)) throw new Error('index.html: main.js script tag not found');
-  page = page.replace(main, '<script src="web.js"></script>');
+  page = page.replace(main, tags + '\n<script src="web.js"></script>');
   fs.writeFileSync(html, page);
 
   // 4. report and the itch.io limits
