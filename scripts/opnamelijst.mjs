@@ -38,6 +38,8 @@ out.push('Gegenereerd door `node scripts/opnamelijst.mjs` uit `game/storydata/sc
 out.push('');
 out.push(`Van de ${all.length} gesproken verhaalregels (zonder de bewust stille appjes) hebben er ${all.length - total} een opname en ${total} nog niet. Een regel zonder opname wordt als ondertitel getoond (spreker, kleur, leestijd) en er klinkt niets: het gesprek wacht niet op geluid. Een speler hoort dat als "stukken zonder voiceover" (#326).`);
 out.push('');
+out.push('Een regel met **[BEHOUDEN]** hoort een opname te hebben (ADR 0011). De regels die er nog geen hebben staan hieronder met "BEHOUDEN" in de kolom Toon en zijn met een reden vrijgesteld in `scripts/story_behouden_allow.json`; `node scripts/build_story_data.mjs --check` faalt op een nieuwe [BEHOUDEN]-regel zonder opname of uitzondering (#647).');
+out.push('');
 out.push('Een regel krijgt een opname door hem op te nemen onder de stem uit de kolom **Stem**, met de tekst letterlijk zoals hij hier staat (het spel zoekt de opname op "<stem>|<tekst>"), en hem in het manifest van `audio/voicelines/story` of `lines` te zetten. Daarna zet `node scripts/build_story_data.mjs` de vlag `textOnly` uit. Een andere hoofdletter, punt of een "…" vooraan telt als een andere tekst, behalve die laatste: een opname met "…" vooraan wordt ook onder de tekst zonder gevonden.');
 out.push('');
 out.push(`Eerst de opening en missie 1 t/m 3 (${first} regels): die ziet iedere speler in het eerste uur.`);
