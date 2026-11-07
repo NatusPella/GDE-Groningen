@@ -2,7 +2,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { getScene } from './scene3d.js';
 import { getStationsForRender, getTrainTripCount } from './stationtravel.js';
 import { isMissionActive, getActiveRace } from './missionquery.js';
-import { isCinematicActive, playCinematic } from './cinematics.js';
+import { isCinematicActive } from './cinematics.js';
+import { uitjeScene } from './uitjescene.js';
 import { isShopOpen, openShopMenu, closeShopMenu } from './shopui.js';
 import { shopIconUrl } from './shopicon.js';
 import { showCard } from './hudcards.js';
@@ -374,14 +375,12 @@ function say(w, a, text) {
 const W3 = (x, y, z) => ({ x, y, z });
 
 // A short scene: [who, text] lines (DUO = the companion), a camera function.
+// #720: de vlaggen, skip en opruiming komen uit de gedeelde uitjescene-standaard.
 function scene(w, a, { id, title, lines, duration, shot, onEnd, hide = false }) {
   const duo = duoSpeaker(w).name;
   const L = lines.map(([who, text]) => ({ speaker: who === DUO ? duo : who, text }));
-  return playCinematic({
-    id, priority: 2, duration, pause: true, letterbox: true, skippable: true, hideHud: true,
-    kicker: a.village.V.gro || a.village.name, title, cardFor: 2.2, lines: L, shot,
-    onStart() { if (hide) w.cinematicHidePlayers = true; },
-    onEnd() { if (hide) w.cinematicHidePlayers = false; w.cameraOverride = null; if (onEnd) onEnd(); },
+  return uitjeScene(w, {
+    id, title, kicker: a.village.V.gro || a.village.name, lines: L, duration, shot, hide, onEnd,
   });
 }
 

@@ -54,6 +54,8 @@ const WIJK_DWELL = 1.5;
 const LANDMARK_HEIGHT = {
   Martinitoren: 97, Martinikerk: 32, 'Der Aa-kerk': 45, Academiegebouw: 30, 'Groninger Museum': 28,
   'Hoofdstation Groningen': 24, Euroborg: 30, 'Forum Groningen': 45, Goudkantoor: 14,
+  // #721: de set pieces buiten de binnenstad
+  Kardinge: 40, Suikerfabriek: 35, Eemshaven: 110, 'Vesting Bourtange': 25,
 };
 
 let world = null;

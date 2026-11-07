@@ -1,5 +1,7 @@
 # Design system: components and patterns
 
+> **Leeswijzer (Nederlands).** Dit document is technische naslag (componenten en tokens; de regels staan in ui-taal.md); de tekst is daarom Engels (uitzondering in ADR 0017, #692). De regels staan in [ui-taal.md](../.specs-fire/standards/ui-taal.md) en `AGENTS.md` wint bij twijfel. Nederlands is de taal van proza en van alles wat de speler ziet of hoort.
+
 > **Naslag.** De regels staan in de canonieke spec [`.specs-fire/standards/ui-taal.md`](../.specs-fire/standards/ui-taal.md); dit document is uitleg en geschiedenis. Bij verschil wint de spec (en bij twijfel `AGENTS.md`).
 
 Details behind [DESIGN_SYSTEM.md](../DESIGN_SYSTEM.md): sizes, buttons and states, messages, dialogs, shops, minigame panels, sound and the boot and load screens.
@@ -139,6 +141,19 @@ A minigame HUD is the **board** of `minigamekit.js` (or the choice panel for tex
 - **Medals** (`medalFrom`): 0 to 3 against [bronze, silver, gold], shown on the one result banner, not in a new screen. The key help is one line of caps (`.mg-help`) under the board.
 - Keys: the controller's `minigame` table keeps B as stop; a minigame with its own layout names it in `GAME_PAD_CTX`.
 - Samen spelen: say in the issue and `docs/COOP-GAST.md` who sees the board (see [DESIGN-SAMEN-SPELEN.md](DESIGN-SAMEN-SPELEN.md)).
+
+### Activiteitenscène (#720)
+
+Een set piece dat een filmisch moment verdient, gebruikt **één** standaard:
+`uitjeScene()` in `game/js/uitjescene.js` (of `onthullingScene()` voor een korte
+orbit). Die zet `pause`, `letterbox`, `skippable`, `hideHud`, de titelkaart en de
+`kicker`, en ruimt bij het einde `cameraOverride` en de hide-vlaggen op; `hide`
+verbergt de echte spelers zolang de scène loopt. `dorpsuitjes.js` gebruikt
+dezelfde standaard via zijn `scene()`-wrapper. Een onthulling duurt 3-5 s, heeft
+hooguit één regel en is geen tweede scherm; de kleine activiteiten houden hun
+HUD-helpkaart. Nieuwe activiteitenscènes gebruiken deze helper, geen eigen
+`playCinematic`-vlaggen. Test: `cutscene_shots_test` voor de scènetaal en
+`uitjescene_test` voor de standaard.
 
 ## Sound in the UI
 
