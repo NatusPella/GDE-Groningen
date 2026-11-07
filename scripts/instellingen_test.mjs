@@ -19,7 +19,8 @@ t('Instellingen heeft vijf echte instellingstabbladen; Cheats en Foutrapport zij
   assert.deepEqual(tabs, ['video', 'sound', 'besturing', 'display', 'a11y'], 'Beeld, Geluid, Besturing, Interface, Toegankelijkheid');
   assert.ok(!pm.includes("tab('cheats'"), 'Cheats is geen tabblad van Instellingen meer');
   assert.ok(!pm.includes('data-sub="fouten"'), 'Foutrapport is geen tabblad van Instellingen meer');
-  assert.ok(pm.includes("[['settings', 'over', 'streken']]") || pm.includes("['settings', 'over', 'streken']"), 'Cheats staat als eigen onderdeel in de rail');
+  assert.match(pm, /RAIL_GROUPS = \[[^\]]*\], \[[^\]]*\], \['settings', 'streken'\]\]/, 'Cheats staat als eigen onderdeel in de rail');
+  assert.match(pm, /rowName\('Over GDE'[\s\S]*?data-goto="over"/, 'Over heeft een ingang via Instellingen > Interface (#601)');
 });
 
 t('Standaard herstellen vraagt eerst en noemt wat teruggezet wordt', () => {
