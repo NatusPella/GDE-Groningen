@@ -52,7 +52,7 @@ t('kopen kost geld, één keer; zonder geld gebeurt er niets', () => {
   const st = mem();
   resetBeleidVoorTest(st);
   const w = wereld(1000);
-  assert.match(koopBeleid(w, 'flits'), /Flitspalen madera aangenomen/);
+  assert.match(koopBeleid(w, 'flits'), /Soepel flitsbeleid aangenomen/);
   assert.equal(w.money, 750);
   assert.equal(koopBeleid(w, 'flits'), 'Dat heb je al');
   assert.equal(w.money, 750, 'een tweede aankoop kost niets');
