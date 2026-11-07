@@ -9,6 +9,10 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [0.58.0] - 2026-11-07
 
+- **Het Over-scherm opent met een samenvatting van deze release (#612).** De nieuwste versie staat bovenaan; de rest van de changelog zit achter Alles.
+- **Een cutscene die tijdens het laden stopt, laat geen openstaande tegelpromise meer achter (#729).**
+- **Racers vallen niet meer om als hun projectie leeg is (#312).**
+
 - **Een helikopter of vliegtuig besturen werkt weer in Alleen spelen en als wie het spel opende (#555).** De bestuurinvoer zocht de gasten in een lijst die sinds de sessie van één een leeg object is, en gooide elke frame een fout.
 - **Alleen spelen: de metgezel volgt weer (#559).** Zonder gast neemt de volg-AI Tessa over in plaats van het toetsenbord van plek 2; na stoppen komt de oude stand terug.
 - **Alleen spelen: de controller houdt de gewone indeling (#560).** D-pad omhoog is weer de radio (en in een voertuig de alarmlichten), niet het stuur geven aan een gast die er niet is; de roepjes 7/8/9 staan uit.
