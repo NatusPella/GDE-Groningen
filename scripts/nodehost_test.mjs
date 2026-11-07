@@ -3,15 +3,15 @@
 // hub als de app. Dekt: de wereld zonder speler (geen plek 0 in de snapshot, elke gast een eigen figuur), de klok die
 // doorloopt, kicken, verbieden (het token komt er niet meer in), een wachtwoord per sessie, een vaste poort (en de nette
 // fout als die bezet is), starten zonder document/window, een ontbrekende wereld of spelerslijst, de wereldstaat die een
-// herstart overleeft (en een half geschreven bestand dat terugvalt), en het wachtwoordveld in de lobby (game/js/lobby.js):
-// leeg is open, gevuld vraagt erom.
+// herstart overleeft (en een half geschreven bestand dat terugvalt), het beheer/CLI-scherm (status, spelers, kicken met
+// vier gasten tegelijk) en het wachtwoordveld in de lobby (game/js/lobby.js): leeg is open, gevuld vraagt erom.
 //   node scripts/nodehost_test.mjs
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import net from 'node:net';
 import os from 'node:os';
 import path from 'node:path';
-import { startKoplozeHost } from './coop/nodehost.mjs';
+import { startKoplozeHost, beheerTekst } from './coop/nodehost.mjs';
 import { startMockGuest } from './coop/mockclient.mjs';
 import * as L from '../game/js/lobby.js';
 import { REASON_TEXT } from '../game/js/net/protocol.js';
@@ -189,6 +189,34 @@ try {
     g = L.reduce(g, { t: 'probeer' });
     assert.equal(g.step, 'gast-typt'); assert.equal(g.wachtwoord, 'zomer', 'het woord blijft staan');
     return `max ${L.WACHTWOORD_MAX} tekens`;
+  });
+
+  await t('vier gasten: de host telt ze, het beheer/CLI-scherm toont status en spelers, kicken houdt de rest over', async () => {
+    const h = await startKoplozeHost({ port: await vrijePoort(), localIp: '127.0.0.1', upnp: false, max: 6 });
+    const vier = [];
+    try {
+      for (let i = 0; i < 4; i++) {
+        const g = await startMockGuest({ code: h.code, net: { latency: 0.02 }, seed: 11 + i });
+        vier.push(g);
+        await until(() => g.session.status === 'ok', 8000, 'gast ' + (i + 1));
+      }
+      const slots = h.spelers().map((r) => r.slot).sort((a, b) => a - b);
+      assert.deepEqual(slots, [1, 2, 3, 4], 'vier plekken naast de server');
+      const status = beheerTekst(h.beheer());
+      assert.ok(status.includes('Spelers: 4 van 6'), status.join(' | '));
+      assert.ok(status.some((regel) => /plek 4:/.test(regel)), 'het scherm noemt plek 4');
+      assert.ok(status.some((regel) => /plek 1:/.test(regel)));
+      assert.ok(status.some((regel) => regel.startsWith('Wereld: klok ')), 'en de wereldstand');
+      // een gast wegsturen: de rest blijft en de telling zakt
+      assert.equal(h.kick(4), true, 'plek 4 is weggestuurd');
+      await until(() => h.spelers().length === 3, 5000, 'drie spelers over');
+      assert.ok(beheerTekst(h.beheer()).includes('Spelers: 3 van 6'));
+      assert.equal(h.spelers().some((r) => r.slot === 4), false);
+      return 'vier gasten, status en kick';
+    } finally {
+      for (const g of vier) { try { await g.stop(); } catch (e) { /* al weg */ } }
+      await h.stop();
+    }
   });
 
   klaar = true;
