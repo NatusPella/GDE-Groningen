@@ -163,10 +163,9 @@ export async function openSession(world, rij, { onHold = null, onCode = null, op
 }
 
 // ------------------------------------------------------------------ hosting
-// A new invitation per free seat, under one room code. Nothing is sent that #438 did not already
-// send: the session name (filtered), the player count, the version and the session id.
-// No room code (#583), no address and no password. A guest from the list asks the host for a one-time room
-// over net/joingate.js and only then gets it.
+// A new invitation per free seat, under one room code. Nothing about this session is sent to the
+// public list: a guest gets that one-time room over net/joingate.js (list route) or uses the room code
+// the host shares. No room code in a public line (#583), no address and no password.
 // De sessie is hier altijd besloten (#556): openbaar maken is een eigen keuze met de #438-melding in de
 // lobby (lobbyui.js). Zo kan "meedoen" nooit ongemerkt een openbare sessie in de lijst zetten.
 export function hostSession(world, { invites = true, onHold = null } = {}) {

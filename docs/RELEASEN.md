@@ -15,6 +15,17 @@ Een release is een pre-release in de privé-repo (AGENTS.md, "Releases"). De co�
 
 De workflows starten nooit vanzelf (alleen `workflow_dispatch`), gebruiken alleen `GITHUB_TOKEN` met `contents: write` en hebben geen geheimen. Ze bouwen uit de tag, dus een fout in de workflow zelf herstel je op `main` en start je opnieuw; de tag hoeft niet mee. Elke workflow heeft een eigen `concurrency`-groep per tag en een time-out (macOS 20, Linux 25, Android 30 min).
 
+## Wie mag publiceren (#558)
+
+Alleen de eigenaar publiceert. De vier release-workflows hebben daarvoor twee sloten:
+
+- **Owner-guard:** de release-taak heeft `if: github.actor == github.repository_owner`. Een collaborator met push kan de workflow nog starten (dat kost alleen bouwminuten), maar de taak wordt overgeslagen en er komt niets op de release; `node scripts/release_builds.mjs` meldt dat als "overgeslagen".
+- **Environment `release`:** de taak hangt aan dat environment. Zet daar één keer een verplichte beoordelaar op (GitHub → Settings → Environments → release → Required reviewers: de eigenaar). Zonder die instelling is de owner-guard het enige slot; met die instelling moet de eigenaar elke release-run ook zelf goedkeuren.
+
+`scripts/publish_check.mjs` keurt een workflow die een release uploadt zonder environment én owner-guard af (`release-zonder-eigenaar`, FAIL), zodat een nieuwe workflow die fout niet stil kan invoeren.
+
+Wat dit niet afdekt, en dus een eigenaarsbesluit is (hier niet gedaan): `desktop/release.sh` draait lokaal met het GitHub-account van de gebruiker, dus een collaborator met schrijfrechten kan daarmee nog steeds een release maken. Geef playtesters daarom een **pull-rol** in plaats van push, en zet **immutable releases** aan (GitHub → Settings → General → Releases): dan kunnen bestaande assets niet meer vervangen worden en is de lokale upload de enige, door de eigenaar gemaakte release. Tot dat is gedaan is dit voor de lokale route een afspraak, geen technische grendel. Releases zijn nu `immutable:false` (gemeten op 7-11); de environments bestaan nog niet (`total_count: 0`).
+
 ## Wat er in Actions gebouwd wordt
 
 | Build | Workflow | Runner | Uitvoer |
