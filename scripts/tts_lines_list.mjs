@@ -151,6 +151,7 @@ const scriptFile = path.join(REPO, 'game', 'storydata', 'script.json');
 const groFile = path.join(REPO, 'scripts', 'gronings_spoken.json');
 const REC = ['story', 'lines', 'banter']; // the manifests the game plays a story line from
 const waiting = { gronings: [], cast: [] };
+const wacht = []; // #735: the same lines with their scene and reason, for the definitive recording list
 // the clip of a recorded line, and whether it is still there and current
 const recorded = (key) => {
   for (const m of REC) {
@@ -174,8 +175,8 @@ if (fs.existsSync(scriptFile)) {
       const c = CAST[sp];
       const accent = c?.accent || (isGronings(l.text) ? GRO_ACCENT : ACCENT);
       const gronings = /Gronings/.test(accent);
-      if (!c) { waiting.cast.push(`${sp} (${l.text})`); continue; }
-      if (gronings && !(l.text in spoken)) { waiting.gronings.push(`${sp}: ${l.text}`); continue; }
+      if (!c) { waiting.cast.push(`${sp} (${l.text})`); wacht.push({ reason: 'stemkeuze', speaker: sp, text: l.text, scene: sc.id }); continue; }
+      if (gronings && !(l.text in spoken)) { waiting.gronings.push(`${sp}: ${l.text}`); wacht.push({ reason: 'spreektekst', speaker: sp, text: l.text, scene: sc.id }); continue; }
       const tag = mood(sp, l.text, key);
       push({
         key, speaker: sp, text: l.text, area: sc.id, out: have?.out || 'lines', lang: gronings ? TTS_LANG : 'own',
@@ -197,6 +198,7 @@ for (const e of collect()) {
   }
 }
 fs.writeFileSync(path.join(REPO, 'scripts', 'tts_lines.json'), JSON.stringify(jobs, null, 1));
+fs.writeFileSync(path.join(REPO, 'scripts', 'tts_waiting.json'), JSON.stringify(wacht, null, 1)); // #735
 const redo = jobs.filter((j) => manifest(j.out)[j.key]).length;
 console.log(jobs.length, 'jobs', `(${redo} re-recordings)`, jobs.reduce((a, j) => a + j.text.length, 0), 'chars');
 // what cannot be recorded yet, and why (docs/verhaal/nieuw/07-TTS-RAMING.md §5)
