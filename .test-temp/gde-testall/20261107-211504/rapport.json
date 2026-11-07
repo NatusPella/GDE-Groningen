@@ -1,0 +1,167 @@
+{
+ "stamp": "20261107-211504",
+ "gestart": "2026-11-07T21:15:04.665Z",
+ "fases": {
+  "electron": {
+   "gedraaid": true,
+   "items": [
+    {
+     "id": "electron:verhaaltest",
+     "fase": "electron",
+     "naam": "Electron-verhaaltest (--story-test)",
+     "status": "FAIL",
+     "secs": 1101.1,
+     "detail": "FAIL: 32 stappen, 9 mislukte checks, 0 NaN-waarschuwingen\nFAIL all 1420 spots reachable missie-doel luik stage 0 goto \"Eerst de kras van de wagon: Tinus kijkt ernaar\" (NaN, NaN): geen positie; postgame skutsje Skûtsje-sprint in de Oosterhaven (747.3, 384.5): in het water -> vrij op (747.3, 394.5), 10 m; postgame fjord Fjord Frituur: Euroborg (1771.6, 1400.\nFAIL ways through buildings are passages or doors ({\"opening\":463,\"door\":10,\"graze\":1812,\"clipped\":2,\"hole\":3,\"solid\":2}) solid minor:service in Linnaeusborg (-1877.3, -2399.2); hole minor:service in apartments (2663.5, 4690.8); hole minor:service in apartments (2629.1, 4590.4); solid minor:service \nFAIL ring roads free of solid obstacles service +51 m muur keerwand/vangrail (12957, 7151, z 6.1); service +60 m muur keerwand/vangrail (12958, 7146, z 6); service +73 m muur keerwand/vangrail (12971, 7146, z 5.2); service +81 m muur keerwand/vangrail (12975, 7149, z 4.4)\nFAIL kartbaan: the race ends by itself \nFAIL minigames: kartbaan ends cleanly (hub, input claim, HUD) {\"active\":true,\"game\":\"kartbaan\",\"board\":true,\"cam\":true}\nFAIL new arc: a text-only scene exists geen scène meer zonder opnames\nFAIL new arc: the HUD is quiet before the app text (no chase, race or skipped mission keeps it busy) {\"busy\":false,\"wanted\":0,\"paused\":false,\"raceHud\":false,\"challengeHud\":false,\"race\":false,\"card\":false,\"held\":false,\"zone\":\"card\",\"zoneFree\":false,\"mayStart\":true,\"visible\":true,\"ready\":false,\"pf\":0,\nFAIL no cutscene camera off the map "
+    },
+    {
+     "id": "nan-geometrie:verhaaltest",
+     "fase": "electron",
+     "naam": "NaN-waarschuwingen in geometrie",
+     "status": "PASS",
+     "secs": 0,
+     "detail": ""
+    },
+    {
+     "id": "console:verhaaltest",
+     "fase": "electron",
+     "naam": "consolefouten verhaaltest",
+     "status": "PASS",
+     "secs": 1101.1,
+     "detail": ""
+    },
+    {
+     "id": "beeld:verhaaltest",
+     "fase": "electron",
+     "naam": "beeldcheck verhaaltest",
+     "status": "PASS",
+     "secs": 0,
+     "detail": "61 beelden: 0 zwart/leeg/ongeldig, 0 onleesbaar, 10 wijkt af van vorige run (42 vergeleken)"
+    },
+    {
+     "id": "beeld:verhaaltest/01-M01.png",
+     "fase": "electron",
+     "naam": "beeld:verhaaltest/01-M01.png",
+     "status": "PASS",
+     "secs": 0,
+     "detail": "9.4% anders dan vorige run",
+     "warn": true,
+     "diff": 0.09383169934640523
+    },
+    {
+     "id": "beeld:verhaaltest/02-M02.png",
+     "fase": "electron",
+     "naam": "beeld:verhaaltest/02-M02.png",
+     "status": "PASS",
+     "secs": 0,
+     "detail": "11.5% anders dan vorige run",
+     "warn": true,
+     "diff": 0.11485566448801743
+    },
+    {
+     "id": "beeld:verhaaltest/03-M03.png",
+     "fase": "electron",
+     "naam": "beeld:verhaaltest/03-M03.png",
+     "status": "PASS",
+     "secs": 0,
+     "detail": "10.9% anders dan vorige run",
+     "warn": true,
+     "diff": 0.10923883442265796
+    },
+    {
+     "id": "beeld:verhaaltest/job-boa-case.png",
+     "fase": "electron",
+     "naam": "beeld:verhaaltest/job-boa-case.png",
+     "status": "PASS",
+     "secs": 0,
+     "detail": "11.7% anders dan vorige run",
+     "warn": true,
+     "diff": 0.11662581699346405
+    },
+    {
+     "id": "beeld:verhaaltest/mg-kart-grid.png",
+     "fase": "electron",
+     "naam": "beeld:verhaaltest/mg-kart-grid.png",
+     "status": "PASS",
+     "secs": 0,
+     "detail": "20.5% anders dan vorige run",
+     "warn": true,
+     "diff": 0.20530364923747277
+    },
+    {
+     "id": "beeld:verhaaltest/mg-kart-race.png",
+     "fase": "electron",
+     "naam": "beeld:verhaaltest/mg-kart-race.png",
+     "status": "PASS",
+     "secs": 0,
+     "detail": "9.7% anders dan vorige run",
+     "warn": true,
+     "diff": 0.09682053376906317
+    },
+    {
+     "id": "beeld:verhaaltest/mg-pitchputt-next.png",
+     "fase": "electron",
+     "naam": "beeld:verhaaltest/mg-pitchputt-next.png",
+     "status": "PASS",
+     "secs": 0,
+     "detail": "23.5% anders dan vorige run",
+     "warn": true,
+     "diff": 0.23474264705882353
+    },
+    {
+     "id": "beeld:verhaaltest/mg-skatepark-air.png",
+     "fase": "electron",
+     "naam": "beeld:verhaaltest/mg-skatepark-air.png",
+     "status": "PASS",
+     "secs": 0,
+     "detail": "8.4% anders dan vorige run",
+     "warn": true,
+     "diff": 0.08374183006535948
+    },
+    {
+     "id": "beeld:verhaaltest/mg-skatepark-ride.png",
+     "fase": "electron",
+     "naam": "beeld:verhaaltest/mg-skatepark-ride.png",
+     "status": "PASS",
+     "secs": 0,
+     "detail": "8.1% anders dan vorige run",
+     "warn": true,
+     "diff": 0.08118191721132897
+    },
+    {
+     "id": "beeld:verhaaltest/om-dorp.png",
+     "fase": "electron",
+     "naam": "beeld:verhaaltest/om-dorp.png",
+     "status": "PASS",
+     "secs": 0,
+     "detail": "13.0% anders dan vorige run",
+     "warn": true,
+     "diff": 0.1295343137254902
+    }
+   ],
+   "secs": 1103.307,
+   "diff": {
+    "nieuweFouten": [],
+    "opgelost": [],
+    "blijftFout": [
+     "electron:verhaaltest"
+    ],
+    "traag": [],
+    "nieuw": [
+     "beeld:verhaaltest/01-M01.png",
+     "beeld:verhaaltest/02-M02.png",
+     "beeld:verhaaltest/03-M03.png",
+     "beeld:verhaaltest/job-boa-case.png",
+     "beeld:verhaaltest/mg-kart-grid.png",
+     "beeld:verhaaltest/mg-kart-race.png",
+     "beeld:verhaaltest/mg-pitchputt-next.png",
+     "beeld:verhaaltest/mg-skatepark-air.png",
+     "beeld:verhaaltest/mg-skatepark-ride.png",
+     "beeld:verhaaltest/om-dorp.png"
+    ],
+    "verdwenen": []
+   },
+   "vorige": "20261107-205552"
+  }
+ },
+ "duurSecs": 1103
+}

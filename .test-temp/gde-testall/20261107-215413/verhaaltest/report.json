@@ -1,0 +1,3285 @@
+{
+  "result": "FAIL",
+  "steps": [
+    {
+      "id": "M01",
+      "kind": "mission",
+      "title": "Nul krassen, vijftienhonderd punten",
+      "moneyBefore": 507,
+      "ok": true,
+      "notes": [],
+      "last": {
+        "index": 19,
+        "phase": "active",
+        "wp": 0,
+        "completed": [],
+        "armed": true,
+        "retry": false,
+        "heistSkip": false,
+        "stageInfo": null,
+        "player": {
+          "x": 227,
+          "y": -36,
+          "inVehicle": false
+        }
+      },
+      "moneyAfter": 707,
+      "seconds": 3.3
+    },
+    {
+      "id": "M02",
+      "kind": "mission",
+      "title": "Even pinnen",
+      "moneyBefore": 707,
+      "ok": true,
+      "notes": [],
+      "last": {
+        "index": 8,
+        "phase": "active",
+        "stage": 2,
+        "wp": 0,
+        "completed": [
+          19
+        ],
+        "armed": true,
+        "retry": false,
+        "heistSkip": false,
+        "stageInfo": {
+          "t": 0.7,
+          "flying": false,
+          "target": {
+            "x": 87,
+            "y": -125
+          }
+        },
+        "player": {
+          "x": 204,
+          "y": 403,
+          "inVehicle": false
+        }
+      },
+      "moneyAfter": 1107,
+      "seconds": 3.9
+    },
+    {
+      "id": "M03",
+      "kind": "mission",
+      "title": "Het Loket",
+      "moneyBefore": 1107,
+      "ok": true,
+      "notes": [
+        "kan €150 betalen"
+      ],
+      "last": {
+        "index": 18,
+        "phase": "active",
+        "stage": 5,
+        "wp": 0,
+        "completed": [
+          19,
+          8
+        ],
+        "armed": true,
+        "retry": false,
+        "heistSkip": false,
+        "stageInfo": {
+          "t": 0.7,
+          "flying": false,
+          "target": {
+            "x": 112,
+            "y": 107
+          }
+        },
+        "player": {
+          "x": 112,
+          "y": 107,
+          "inVehicle": false
+        }
+      },
+      "moneyAfter": 997,
+      "seconds": 5.3
+    },
+    {
+      "id": "M04",
+      "kind": "mission",
+      "title": "Kieken van boven",
+      "moneyBefore": 997,
+      "ok": true,
+      "notes": [
+        "duif boven doel",
+        "duif boven doel",
+        "duif boven doel",
+        "duif boven doel",
+        "duif boven doel",
+        "duif boven doel",
+        "duif boven doel",
+        "duif boven doel",
+        "duif boven doel"
+      ],
+      "moneyAfter": 1387,
+      "seconds": 15.7
+    },
+    {
+      "id": "M05",
+      "kind": "mission",
+      "title": "Wind tegen, beide kanten op",
+      "moneyBefore": 1387,
+      "ok": true,
+      "notes": [
+        "trigger startte niet, debug-start"
+      ],
+      "last": {
+        "index": 2,
+        "phase": "active",
+        "stage": 1,
+        "wp": 0,
+        "completed": [
+          19,
+          8,
+          18,
+          9
+        ],
+        "armed": true,
+        "retry": false,
+        "heistSkip": false,
+        "stageInfo": null,
+        "player": {
+          "x": 17,
+          "y": 94,
+          "inVehicle": false
+        }
+      },
+      "moneyAfter": 2382,
+      "seconds": 6.5
+    },
+    {
+      "id": "M06",
+      "kind": "mission",
+      "title": "Het museum stond er al zo",
+      "moneyBefore": 2382,
+      "ok": true,
+      "notes": [
+        "trigger startte niet, debug-start"
+      ],
+      "last": {
+        "index": 10,
+        "phase": "active",
+        "stage": 13,
+        "wp": 0,
+        "completed": [
+          19,
+          8,
+          18,
+          9,
+          2
+        ],
+        "armed": true,
+        "retry": false,
+        "heistSkip": false,
+        "stageInfo": {
+          "t": 0.7,
+          "flying": false,
+          "target": {
+            "x": -27,
+            "y": 855
+          }
+        },
+        "player": {
+          "x": 87,
+          "y": 825,
+          "inVehicle": false
+        }
+      },
+      "moneyAfter": 5282,
+      "seconds": 14.1
+    },
+    {
+      "id": "M07",
+      "kind": "mission",
+      "title": "Al het vet van Grunn",
+      "moneyBefore": 5282,
+      "ok": true,
+      "notes": [],
+      "last": {
+        "index": 11,
+        "phase": "active",
+        "stage": 3,
+        "wp": 0,
+        "completed": [
+          19,
+          8,
+          18,
+          9,
+          2,
+          10
+        ],
+        "armed": true,
+        "retry": false,
+        "heistSkip": false,
+        "stageInfo": {
+          "t": 0.7,
+          "flying": false,
+          "target": {
+            "x": 614,
+            "y": 666
+          }
+        },
+        "player": {
+          "x": 1903,
+          "y": 331,
+          "inVehicle": false
+        }
+      },
+      "moneyAfter": 6232,
+      "seconds": 14.1
+    },
+    {
+      "id": "M08",
+      "kind": "mission",
+      "title": "Fatbikes tellen niet als fiets",
+      "moneyBefore": 6232,
+      "ok": true,
+      "notes": [],
+      "last": {
+        "index": 6,
+        "phase": "active",
+        "stage": 4,
+        "wp": 0,
+        "completed": [
+          19,
+          8,
+          18,
+          9,
+          2,
+          10,
+          11
+        ],
+        "armed": true,
+        "retry": false,
+        "heistSkip": false,
+        "stageInfo": null,
+        "player": {
+          "x": -289,
+          "y": -107,
+          "inVehicle": false
+        }
+      },
+      "moneyAfter": 7132,
+      "seconds": 2.6
+    },
+    {
+      "id": "M09",
+      "kind": "mission",
+      "title": "Heel aankomen is ook een kunst",
+      "moneyBefore": 7132,
+      "ok": true,
+      "notes": [
+        "trigger startte niet, debug-start"
+      ],
+      "last": {
+        "index": 29,
+        "phase": "active",
+        "stage": 3,
+        "wp": 0,
+        "completed": [
+          19,
+          8,
+          18,
+          9,
+          2,
+          10,
+          11,
+          6
+        ],
+        "armed": true,
+        "retry": false,
+        "heistSkip": false,
+        "stageInfo": {
+          "t": 0.7,
+          "flying": false,
+          "target": {
+            "x": 2779,
+            "y": -20401
+          }
+        },
+        "player": {
+          "x": -633,
+          "y": -19170,
+          "inVehicle": false
+        }
+      },
+      "moneyAfter": 7832,
+      "seconds": 8.9
+    },
+    {
+      "id": "M10",
+      "kind": "mission",
+      "title": "Een trekker-limo op de wierde",
+      "moneyBefore": 7832,
+      "ok": true,
+      "notes": [
+        "trigger startte niet, debug-start"
+      ],
+      "last": {
+        "index": 30,
+        "phase": "active",
+        "stage": 4,
+        "wp": 0,
+        "completed": [
+          19,
+          8,
+          18,
+          9,
+          2,
+          10,
+          11,
+          6,
+          29
+        ],
+        "armed": true,
+        "retry": false,
+        "heistSkip": false,
+        "stageInfo": {
+          "t": 0.1,
+          "flying": false,
+          "target": {
+            "x": 6901,
+            "y": -21267
+          }
+        },
+        "player": {
+          "x": 5960,
+          "y": -21133,
+          "inVehicle": false
+        }
+      },
+      "moneyAfter": 8732,
+      "seconds": 11.5
+    },
+    {
+      "id": "M11",
+      "kind": "mission",
+      "title": "Geleend van de Friezen",
+      "moneyBefore": 8732,
+      "ok": true,
+      "notes": [],
+      "last": {
+        "index": 13,
+        "phase": "active",
+        "stage": 10,
+        "wp": 0,
+        "completed": [
+          19,
+          8,
+          18,
+          9,
+          2,
+          10,
+          11,
+          6,
+          29,
+          30
+        ],
+        "armed": true,
+        "retry": false,
+        "heistSkip": false,
+        "stageInfo": {
+          "t": 0.7,
+          "flying": false,
+          "target": {
+            "x": 728,
+            "y": -23756
+          }
+        },
+        "player": {
+          "x": 525,
+          "y": -23696,
+          "inVehicle": false
+        }
+      },
+      "moneyAfter": 10032,
+      "seconds": 13.6
+    },
+    {
+      "id": "M12",
+      "kind": "mission",
+      "title": "Het staat niet in het rooster",
+      "moneyBefore": 10032,
+      "ok": true,
+      "notes": [],
+      "last": {
+        "index": 14,
+        "phase": "active",
+        "stage": 0,
+        "wp": 0,
+        "completed": [
+          19,
+          8,
+          18,
+          9,
+          2,
+          10,
+          11,
+          6,
+          29,
+          30,
+          13
+        ],
+        "armed": true,
+        "retry": false,
+        "heistSkip": false,
+        "stageInfo": {
+          "t": 0.2,
+          "flying": false,
+          "target": {
+            "x": -24227,
+            "y": -20278
+          }
+        },
+        "player": {
+          "x": -24227,
+          "y": -20278,
+          "inVehicle": true
+        }
+      },
+      "moneyAfter": 11532,
+      "seconds": 4
+    },
+    {
+      "id": "M14",
+      "kind": "mission",
+      "title": "De dijk",
+      "moneyBefore": 11532,
+      "ok": true,
+      "notes": [],
+      "last": {
+        "index": 21,
+        "phase": "active",
+        "stage": 1,
+        "wp": 0,
+        "completed": [
+          19,
+          8,
+          18,
+          9,
+          2,
+          10,
+          11,
+          6,
+          29,
+          30,
+          13,
+          14
+        ],
+        "armed": true,
+        "retry": false,
+        "heistSkip": false,
+        "stageInfo": {
+          "t": 0.2,
+          "flying": false,
+          "target": null
+        },
+        "player": {
+          "x": 23926,
+          "y": -12140,
+          "inVehicle": false
+        }
+      },
+      "moneyAfter": 12532,
+      "seconds": 4.7
+    },
+    {
+      "id": "T3",
+      "kind": "activity",
+      "title": "De trein naar Winschoten",
+      "moneyBefore": 12532,
+      "ok": true,
+      "notes": [],
+      "moneyAfter": 12532,
+      "seconds": 2.5
+    },
+    {
+      "id": "M15",
+      "kind": "mission",
+      "title": "Laag over het graan",
+      "moneyBefore": 12532,
+      "ok": true,
+      "notes": [],
+      "last": {
+        "index": 22,
+        "phase": "active",
+        "stage": 1,
+        "wp": 0,
+        "completed": [
+          19,
+          8,
+          18,
+          9,
+          2,
+          10,
+          11,
+          6,
+          29,
+          30,
+          13,
+          14,
+          21
+        ],
+        "armed": true,
+        "retry": false,
+        "heistSkip": false,
+        "stageInfo": {
+          "t": 0.1,
+          "flying": false,
+          "target": {
+            "x": 30209,
+            "y": 2113
+          }
+        },
+        "player": {
+          "x": 30112,
+          "y": 1725,
+          "inVehicle": true
+        }
+      },
+      "moneyAfter": 13432,
+      "seconds": 7.2
+    },
+    {
+      "id": "M16",
+      "kind": "mission",
+      "title": "Nog eentje dan",
+      "moneyBefore": 13432,
+      "ok": true,
+      "notes": [
+        "trigger startte niet, debug-start"
+      ],
+      "last": {
+        "index": 5,
+        "phase": "active",
+        "stage": 3,
+        "wp": 5,
+        "completed": [
+          19,
+          8,
+          18,
+          9,
+          2,
+          10,
+          11,
+          6,
+          29,
+          30,
+          13,
+          14,
+          21,
+          22
+        ],
+        "armed": true,
+        "retry": false,
+        "heistSkip": false,
+        "stageInfo": null,
+        "player": {
+          "x": 30112,
+          "y": 1725,
+          "inVehicle": true
+        }
+      },
+      "moneyAfter": 14512,
+      "seconds": 16.3
+    },
+    {
+      "id": "M17",
+      "kind": "mission",
+      "title": "Open, dicht",
+      "moneyBefore": 14512,
+      "ok": true,
+      "notes": [
+        "trigger startte niet, debug-start"
+      ],
+      "last": {
+        "index": 23,
+        "phase": "active",
+        "stage": 4,
+        "wp": 0,
+        "completed": [
+          19,
+          8,
+          18,
+          9,
+          2,
+          10,
+          11,
+          6,
+          29,
+          30,
+          13,
+          14,
+          21,
+          22,
+          5
+        ],
+        "armed": true,
+        "retry": false,
+        "heistSkip": false,
+        "stageInfo": {
+          "t": 0.2,
+          "flying": false,
+          "target": {
+            "x": 22060,
+            "y": 12284
+          }
+        },
+        "player": {
+          "x": 22060,
+          "y": 12284,
+          "inVehicle": true
+        }
+      },
+      "moneyAfter": 15212,
+      "seconds": 10.7
+    },
+    {
+      "id": "M18",
+      "kind": "mission",
+      "title": "Wie draaide de camera's uit?",
+      "moneyBefore": 15212,
+      "ok": true,
+      "notes": [
+        "trigger startte niet, debug-start"
+      ],
+      "last": {
+        "index": 24,
+        "phase": "active",
+        "stage": 8,
+        "wp": 0,
+        "completed": [
+          19,
+          8,
+          18,
+          9,
+          2,
+          10,
+          11,
+          6,
+          29,
+          30,
+          13,
+          14,
+          21,
+          22,
+          5,
+          23
+        ],
+        "armed": true,
+        "retry": false,
+        "heistSkip": false,
+        "stageInfo": {
+          "t": 0.3,
+          "flying": false,
+          "target": {
+            "x": 21033,
+            "y": 12490
+          }
+        },
+        "player": {
+          "x": 30112,
+          "y": 1725,
+          "inVehicle": true
+        }
+      },
+      "moneyAfter": 15812,
+      "seconds": 10.1
+    },
+    {
+      "id": "M19",
+      "kind": "mission",
+      "title": "Stoom",
+      "moneyBefore": 15812,
+      "ok": true,
+      "notes": [
+        "trigger startte niet, debug-start"
+      ],
+      "last": {
+        "index": 25,
+        "phase": "active",
+        "stage": 1,
+        "wp": 0,
+        "completed": [
+          19,
+          8,
+          18,
+          9,
+          2,
+          10,
+          11,
+          6,
+          29,
+          30,
+          13,
+          14,
+          21,
+          22,
+          5,
+          23,
+          24
+        ],
+        "armed": true,
+        "retry": false,
+        "heistSkip": false,
+        "stageInfo": {
+          "t": 0.7,
+          "flying": false,
+          "target": {
+            "x": 21506,
+            "y": 12536
+          }
+        },
+        "player": {
+          "x": 30112,
+          "y": 1725,
+          "inVehicle": true
+        }
+      },
+      "moneyAfter": 16612,
+      "seconds": 7.4
+    },
+    {
+      "id": "T4",
+      "kind": "activity",
+      "title": "De bus naar Bourtange",
+      "moneyBefore": 16612,
+      "ok": true,
+      "notes": [],
+      "moneyAfter": 16612,
+      "seconds": 1.6
+    },
+    {
+      "id": "M20",
+      "kind": "mission",
+      "title": "Het beleg van Bourtange",
+      "moneyBefore": 16612,
+      "ok": true,
+      "notes": [
+        "trigger startte niet, debug-start"
+      ],
+      "last": {
+        "index": 26,
+        "phase": "active",
+        "stage": 14,
+        "wp": 0,
+        "completed": [
+          19,
+          8,
+          18,
+          9,
+          2,
+          10,
+          11,
+          6,
+          29,
+          30,
+          13,
+          14,
+          21,
+          22,
+          5,
+          23,
+          24,
+          25
+        ],
+        "armed": true,
+        "retry": false,
+        "heistSkip": false,
+        "stageInfo": {
+          "t": 0.7,
+          "flying": false,
+          "target": {
+            "x": 42381,
+            "y": 23001
+          }
+        },
+        "player": {
+          "x": 42381,
+          "y": 23001,
+          "inVehicle": true
+        }
+      },
+      "moneyAfter": 17812,
+      "seconds": 14.5
+    },
+    {
+      "id": "M21",
+      "kind": "mission",
+      "title": "Iedereen heeft een rode auto gezien",
+      "moneyBefore": 17812,
+      "ok": true,
+      "notes": [
+        "trigger startte niet, debug-start"
+      ],
+      "last": {
+        "index": 15,
+        "phase": "active",
+        "stage": 6,
+        "wp": 0,
+        "completed": [
+          19,
+          8,
+          18,
+          9,
+          2,
+          10,
+          11,
+          6,
+          29,
+          30,
+          13,
+          14,
+          21,
+          22,
+          5,
+          23,
+          24,
+          25,
+          26
+        ],
+        "armed": true,
+        "retry": false,
+        "heistSkip": false,
+        "stageInfo": {
+          "t": 0.3,
+          "flying": false,
+          "target": null
+        },
+        "player": {
+          "x": 30112,
+          "y": 1725,
+          "inVehicle": true
+        }
+      },
+      "moneyAfter": 18912,
+      "seconds": 13.1
+    },
+    {
+      "id": "M22",
+      "kind": "mission",
+      "title": "Een luik erin",
+      "moneyBefore": 18912,
+      "ok": true,
+      "notes": [
+        "trigger startte niet, debug-start"
+      ],
+      "last": {
+        "index": 27,
+        "phase": "active",
+        "stage": 7,
+        "wp": 0,
+        "completed": [
+          19,
+          8,
+          18,
+          9,
+          2,
+          10,
+          11,
+          6,
+          29,
+          30,
+          13,
+          14,
+          21,
+          22,
+          5,
+          23,
+          24,
+          25,
+          26,
+          15
+        ],
+        "armed": true,
+        "retry": false,
+        "heistSkip": false,
+        "stageInfo": {
+          "t": 0.6,
+          "flying": false,
+          "target": null
+        },
+        "player": {
+          "x": 30112,
+          "y": 1725,
+          "inVehicle": true
+        }
+      },
+      "moneyAfter": 19212,
+      "seconds": 12.1
+    },
+    {
+      "id": "M23",
+      "kind": "mission",
+      "title": "De colonne",
+      "moneyBefore": 19212,
+      "ok": true,
+      "notes": [
+        "trigger startte niet, debug-start"
+      ],
+      "last": {
+        "index": 28,
+        "phase": "active",
+        "stage": 6,
+        "wp": 0,
+        "completed": [
+          19,
+          8,
+          18,
+          9,
+          2,
+          10,
+          11,
+          6,
+          29,
+          30,
+          13,
+          14,
+          21,
+          22,
+          5,
+          23,
+          24,
+          25,
+          26,
+          15,
+          27
+        ],
+        "armed": true,
+        "retry": false,
+        "heistSkip": false,
+        "stageInfo": {
+          "t": 0.7,
+          "flying": false,
+          "target": {
+            "x": 89,
+            "y": -23
+          }
+        },
+        "player": {
+          "x": 89,
+          "y": -23,
+          "inVehicle": true
+        }
+      },
+      "moneyAfter": 19712,
+      "seconds": 10.6
+    },
+    {
+      "id": "M24",
+      "kind": "mission",
+      "title": "Er hangt iets Fries aan d'Olle Grieze",
+      "moneyBefore": 19712,
+      "ok": true,
+      "notes": [
+        "trigger startte niet, debug-start",
+        "duif-modus gestart",
+        "duif boven doel",
+        "duif boven doel",
+        "duif boven doel",
+        "duif boven doel",
+        "duif boven doel",
+        "duif boven doel",
+        "duif boven doel",
+        "duif boven doel",
+        "duif boven doel",
+        "duif boven doel"
+      ],
+      "waitedPigeon": true,
+      "last": {
+        "index": 12,
+        "phase": "active",
+        "stage": 1,
+        "wp": 0,
+        "completed": [
+          19,
+          8,
+          18,
+          9,
+          2,
+          10,
+          11,
+          6,
+          29,
+          30,
+          13,
+          14,
+          21,
+          22,
+          5,
+          23,
+          24,
+          25,
+          26,
+          15,
+          27,
+          28
+        ],
+        "armed": true,
+        "retry": false,
+        "heistSkip": false,
+        "stageInfo": {
+          "t": 0.8,
+          "flying": false,
+          "target": null
+        },
+        "player": {
+          "x": 211,
+          "y": 22,
+          "inVehicle": false
+        }
+      },
+      "moneyAfter": 20942,
+      "seconds": 25.9
+    },
+    {
+      "id": "M25",
+      "kind": "mission",
+      "title": "Het bod viel tegen",
+      "moneyBefore": 20942,
+      "ok": true,
+      "notes": [],
+      "last": {
+        "index": 16,
+        "phase": "active",
+        "stage": 0,
+        "wp": 0,
+        "completed": [
+          19,
+          8,
+          18,
+          9,
+          2,
+          10,
+          11,
+          6,
+          29,
+          30,
+          13,
+          14,
+          21,
+          22,
+          5,
+          23,
+          24,
+          25,
+          26,
+          15,
+          27,
+          28,
+          12
+        ],
+        "armed": true,
+        "retry": false,
+        "heistSkip": false,
+        "stageInfo": {
+          "t": 0.2,
+          "flying": false,
+          "target": {
+            "x": -289,
+            "y": -107
+          }
+        },
+        "player": {
+          "x": -289,
+          "y": -107,
+          "inVehicle": false
+        }
+      },
+      "moneyAfter": 21542,
+      "seconds": 3.4
+    },
+    {
+      "id": "M26",
+      "kind": "mission",
+      "title": "Ontzet, net als in 1672",
+      "moneyBefore": 21542,
+      "ok": true,
+      "notes": [],
+      "last": {
+        "index": 17,
+        "phase": "active",
+        "stage": 9,
+        "wp": 0,
+        "completed": [
+          19,
+          8,
+          18,
+          9,
+          2,
+          10,
+          11,
+          6,
+          29,
+          30,
+          13,
+          14,
+          21,
+          22,
+          5,
+          23,
+          24,
+          25,
+          26,
+          15,
+          27,
+          28,
+          12,
+          16
+        ],
+        "armed": true,
+        "retry": false,
+        "heistSkip": false,
+        "stageInfo": {
+          "t": 0.3,
+          "flying": false,
+          "target": null
+        },
+        "player": {
+          "x": 7,
+          "y": 82,
+          "inVehicle": false
+        }
+      },
+      "moneyAfter": 25542,
+      "seconds": 15
+    },
+    {
+      "id": "M27",
+      "kind": "mission",
+      "title": "Inpakken",
+      "moneyBefore": 25542,
+      "ok": true,
+      "notes": [],
+      "last": {
+        "index": 31,
+        "phase": "active",
+        "stage": 4,
+        "wp": 0,
+        "completed": [
+          19,
+          8,
+          18,
+          9,
+          2,
+          10,
+          11,
+          6,
+          29,
+          30,
+          13,
+          14,
+          21,
+          22,
+          5,
+          23,
+          24,
+          25,
+          26,
+          15,
+          27,
+          28,
+          12,
+          16,
+          17
+        ],
+        "armed": true,
+        "retry": false,
+        "heistSkip": false,
+        "stageInfo": {
+          "t": 0.7,
+          "flying": false,
+          "target": {
+            "x": 12013,
+            "y": -12597
+          }
+        },
+        "player": {
+          "x": 12039,
+          "y": -12622,
+          "inVehicle": true
+        }
+      },
+      "moneyAfter": 25942,
+      "seconds": 6.1
+    },
+    {
+      "id": "M28",
+      "kind": "mission",
+      "title": "De wisselwoning",
+      "moneyBefore": 25942,
+      "ok": true,
+      "notes": [],
+      "last": {
+        "index": 32,
+        "phase": "active",
+        "stage": 1,
+        "wp": 0,
+        "completed": [
+          19,
+          8,
+          18,
+          9,
+          2,
+          10,
+          11,
+          6,
+          29,
+          30,
+          13,
+          14,
+          21,
+          22,
+          5,
+          23,
+          24,
+          25,
+          26,
+          15,
+          27,
+          28,
+          12,
+          16,
+          17,
+          31
+        ],
+        "armed": true,
+        "retry": false,
+        "heistSkip": false,
+        "stageInfo": {
+          "t": 0.5,
+          "flying": false,
+          "target": {
+            "x": 12304,
+            "y": -12722
+          }
+        },
+        "player": {
+          "x": 12020,
+          "y": -12603,
+          "inVehicle": true
+        }
+      },
+      "moneyAfter": 26342,
+      "seconds": 4
+    },
+    {
+      "id": "M29",
+      "kind": "mission",
+      "title": "Terug",
+      "moneyBefore": 26342,
+      "ok": true,
+      "notes": [],
+      "last": {
+        "index": 33,
+        "phase": "active",
+        "stage": 2,
+        "wp": 0,
+        "completed": [
+          19,
+          8,
+          18,
+          9,
+          2,
+          10,
+          11,
+          6,
+          29,
+          30,
+          13,
+          14,
+          21,
+          22,
+          5,
+          23,
+          24,
+          25,
+          26,
+          15,
+          27,
+          28,
+          12,
+          16,
+          17,
+          31,
+          32
+        ],
+        "armed": true,
+        "retry": false,
+        "heistSkip": false,
+        "stageInfo": {
+          "t": 0.3,
+          "flying": false,
+          "target": {
+            "x": 12039,
+            "y": -12622
+          }
+        },
+        "player": {
+          "x": 12071,
+          "y": -12647,
+          "inVehicle": true
+        }
+      },
+      "moneyAfter": 26842,
+      "seconds": 3.3
+    },
+    {
+      "id": "T5",
+      "kind": "activity",
+      "title": "De weg naar Bourtange",
+      "moneyBefore": 26842,
+      "ok": true,
+      "notes": [],
+      "moneyAfter": 26842,
+      "seconds": 3.9
+    },
+    {
+      "id": "M30",
+      "kind": "mission",
+      "title": "Het proefbeleg",
+      "moneyBefore": 26842,
+      "ok": "nazomer",
+      "notes": [],
+      "last": {
+        "index": 34,
+        "phase": "active",
+        "stage": 12,
+        "wp": 0,
+        "completed": [
+          19,
+          8,
+          18,
+          9,
+          2,
+          10,
+          11,
+          6,
+          29,
+          30,
+          13,
+          14,
+          21,
+          22,
+          5,
+          23,
+          24,
+          25,
+          26,
+          15,
+          27,
+          28,
+          12,
+          16,
+          17,
+          31,
+          32,
+          33
+        ],
+        "armed": true,
+        "retry": false,
+        "heistSkip": false,
+        "stageInfo": {
+          "t": 0.3,
+          "flying": false,
+          "target": {
+            "x": 42470,
+            "y": 22800
+          }
+        },
+        "player": {
+          "x": 42498,
+          "y": 22892,
+          "inVehicle": true
+        }
+      },
+      "moneyAfter": 28342,
+      "seconds": 11.1
+    }
+  ],
+  "checks": [
+    {
+      "name": "game started",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "all 1420 spots reachable",
+      "ok": false,
+      "info": "missie-doel luik stage 0 goto \"Eerst de kras van de wagon: Tinus kijkt ernaar\" (NaN, NaN): geen positie; postgame skutsje Skûtsje-sprint in de Oosterhaven (747.3, 384.5): in het water -> vrij op (747.3, 394.5), 10 m; postgame fjord Fjord Frituur: Euroborg (1771.6, 1400.5): te ver van een rijweg -> vrij op (1771.6, 1370.5), 30 m"
+    },
+    {
+      "name": "ways through buildings are passages or doors ({\"opening\":443,\"door\":9,\"graze\":1748,\"clipped\":2,\"hole\":3,\"solid\":2})",
+      "ok": false,
+      "info": "solid minor:service in Linnaeusborg (-1877.3, -2399.2); hole minor:service in apartments (2663.5, 4690.8); hole minor:service in apartments (2629.1, 4590.4); solid minor:service in Jachtstede (3086, 5063.8); hole normal:unclassified Laan van de Sport in Sportcentrum De Kalkwijck (13259.6, 6965.2)"
+    },
+    {
+      "name": "ring roads free of solid obstacles",
+      "ok": false,
+      "info": "service +51 m muur keerwand/vangrail (12957, 7151, z 6.1); service +60 m muur keerwand/vangrail (12958, 7146, z 6); service +73 m muur keerwand/vangrail (12971, 7146, z 5.2); service +81 m muur keerwand/vangrail (12975, 7149, z 4.4)"
+    },
+    {
+      "name": "rail lifts can be walked, driven and cycled up",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "cars cross all 478 major-road water crossings at 80 km/h",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "scripted car drives a full ring lap",
+      "ok": true,
+      "info": "{\"ok\":true,\"s\":17548,\"time\":588}"
+    },
+    {
+      "name": "AI racers finish a full ring lap",
+      "ok": true,
+      "info": "{\"ok\":true,\"time\":588,\"rivals\":[{\"finished\":true,\"prog\":19868,\"respawns\":0,\"at\":[-1151,1077]},{\"finished\":true,\"prog\":19505,\"respawns\":0,\"at\":[-990,1393]},{\"finished\":true,\"prog\":18347,\"respawns\":0,\"at\":[-298,1915]},{\"finished\":true,\"prog\":17595,\"respawns\":0,\"at\":[409,1658]}]}"
+    },
+    {
+      "name": "minigames: four activities in the hub, each with a spot",
+      "ok": true,
+      "info": "[\"carbid:1\",\"kermis:1\",\"hoogvlieger:1\",\"geheimen:0\",\"drift:3\",\"discgolf:1\",\"pitchputt:7\",\"skatepark:1\",\"kartbaan:1\",\"zwembad:1\",\"klimtoren:1\",\"waterski:1\",\"carillon:1\",\"pannenkoek:1\",\"hengelen:1\",\"boeren:0\",\"wandeling:1\",\"snackketen:0\",\"evenementen:0\",\"regatta:9\",\"ringrace:1\",\"vliegschool:1\",\"safehuis:40\",\"pvparena:1\",\"vluchtdienst:1\",\"vaardienst:0\"]"
+    },
+    {
+      "name": "minigames: their spots are registered for the spot check",
+      "ok": true,
+      "info": "[]"
+    },
+    {
+      "name": "discgolf: starts",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "discgolf: board shows and the hub claims the input",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "discgolf: a throw flies",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "discgolf: the disc comes down",
+      "ok": true,
+      "info": "{\"phase\":\"landed\",\"hole\":0,\"strokes\":1,\"lie\":{\"x\":-1145.1546327867786,\"y\":1665.848306868739},\"yaw\":-3.0903431375160086,\"card\":{\"strokes\":0,\"par\":0,\"rel\":0},\"wind\":{\"speed\":1.291084463373748,\"dir\":5.2918247498956426},\"disc\":\"driver\"}"
+    },
+    {
+      "name": "minigames: discgolf ends cleanly (hub, input claim, HUD)",
+      "ok": true,
+      "info": "{\"active\":false,\"game\":null,\"board\":false,\"cam\":false}"
+    },
+    {
+      "name": "pitch & putt: starts",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "pitch & putt: board shows",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "pitch & putt: a pitch flies",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "pitch & putt: the ball comes to rest",
+      "ok": true,
+      "info": "{\"phase\":\"landed\",\"hole\":0,\"strokes\":1,\"lie\":{\"x\":1968.4895854371262,\"y\":-2497.6081336627444},\"mode\":\"pitch\",\"card\":{\"strokes\":0,\"par\":0,\"rel\":0}}"
+    },
+    {
+      "name": "minigames: pitch & putt ends cleanly (hub, input claim, HUD)",
+      "ok": true,
+      "info": "{\"active\":false,\"game\":null,\"board\":false,\"cam\":false}"
+    },
+    {
+      "name": "skatepark: starts",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "skatepark: the board gets going",
+      "ok": true,
+      "info": "7.857777777777792"
+    },
+    {
+      "name": "skatepark: an ollie leaves the ground",
+      "ok": true,
+      "info": "{\"phase\":\"run\",\"left\":88.07639999999982,\"b\":{\"u\":-12.826445340601023,\"v\":0,\"z\":0.7105370370370372,\"speed\":7.871702174652118,\"grounded\":false},\"combo\":{\"cur\":0,\"mult\":1,\"total\":0,\"best\":0}}"
+    },
+    {
+      "name": "skatepark: the board stays in the park",
+      "ok": true,
+      "info": "{\"phase\":\"run\",\"left\":86.47669999999977,\"b\":{\"u\":-3.2601570747939257,\"v\":0,\"z\":0,\"speed\":-0.7271026608489175,\"grounded\":true},\"combo\":{\"cur\":46,\"mult\":1,\"total\":0,\"best\":0}}"
+    },
+    {
+      "name": "skatepark: the run ends by itself",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "minigames: skatepark ends cleanly (hub, input claim, HUD)",
+      "ok": true,
+      "info": "{\"active\":false,\"game\":null,\"board\":false,\"cam\":false}"
+    },
+    {
+      "name": "kartbaan: starts",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "kartbaan: the lights go and the race starts",
+      "ok": true,
+      "info": "{\"phase\":\"race\",\"raceT\":0.10420000000001164,\"lights\":4,\"karts\":[{\"name\":\"jij\",\"prog\":-4.243555543704815,\"lap\":0,\"f\":0,\"off\":-1.6000000000000023,\"finished\":false,\"bumps\":0},{\"name\":\"Jelmer\",\"prog\":-7.243555367777742,\"lap\":0,\"f\":1.7818917891584218,\"off\":1.599842138618494,\"finished\":false,\"bumps\":0},{\"name\":\"Marlies\",\"prog\":-11.743555244292645,\"lap\":0,\"f\":1.78231616229305,\"off\":-1.6000595522116388,\"finished\":false,\"bumps\":0},{\"name\":\"Hendrik\",\"prog\":-13.243555009440094,\"lap\":0,\"f\":1.7822804049594023,\"off\":1.6000675464967038,\"finished\":false,\"bumps\":0}]}"
+    },
+    {
+      "name": "kartbaan: karts drive and stay on the track",
+      "ok": true,
+      "info": "[{\"name\":\"jij\",\"prog\":7.499999998841784,\"lap\":0,\"f\":14.372661773512972,\"off\":-1.6725068216293806,\"finished\":false,\"bumps\":0},{\"name\":\"Jelmer\",\"prog\":4.499999998923368,\"lap\":0,\"f\":8.451222245935895,\"off\":0.8065958574015255,\"finished\":false,\"bumps\":0},{\"name\":\"Marlies\",\"prog\":1.4999999994502884,\"lap\":0,\"f\":9.364862986649106,\"off\":-2.1586522988061905,\"finished\":false,\"bumps\":0},{\"name\":\"Hendrik\",\"prog\":2.1316282072803006e-14,\"lap\":0,\"f\":9.809178963357166,\"off\":2.198879003313537,\"finished\":false,\"bumps\":0}]"
+    },
+    {
+      "name": "kartbaan: the race can be finished",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "kartbaan: the race ends by itself",
+      "ok": false,
+      "info": ""
+    },
+    {
+      "name": "minigames: kartbaan ends cleanly (hub, input claim, HUD)",
+      "ok": false,
+      "info": "{\"active\":true,\"game\":\"kartbaan\",\"board\":true,\"cam\":true}"
+    },
+    {
+      "name": "discgolf: running before the load",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "discgolf: a loaded save ends it",
+      "ok": true,
+      "info": "{\"game\":null,\"board\":false}"
+    },
+    {
+      "name": "kartbaan: running before the load",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "kartbaan: a loaded save ends it",
+      "ok": true,
+      "info": "{\"game\":null,\"board\":false}"
+    },
+    {
+      "name": "skatepark: running before the load",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "skatepark: a loaded save ends it",
+      "ok": true,
+      "info": "{\"game\":null,\"board\":false}"
+    },
+    {
+      "name": "pitch & putt: running before the load",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "pitch & putt: a loaded save ends it",
+      "ok": true,
+      "info": "{\"game\":null,\"board\":false}"
+    },
+    {
+      "name": "minigames 2: three activities in the hub, one spot each",
+      "ok": true,
+      "info": "[\"carbid\",\"kermis\",\"hoogvlieger\",\"geheimen\",\"drift\",\"discgolf\",\"pitchputt\",\"skatepark\",\"kartbaan\",\"zwembad\",\"klimtoren\",\"waterski\",\"carillon\",\"pannenkoek\",\"hengelen\",\"boeren\",\"wandeling\",\"snackketen\",\"evenementen\",\"regatta\",\"ringrace\",\"vliegschool\",\"safehuis\",\"pvparena\",\"vluchtdienst\",\"vaardienst\"]"
+    },
+    {
+      "name": "minigames 2: their spots are registered for the spot check",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "zwembad: starts",
+      "ok": false,
+      "info": ""
+    },
+    {
+      "name": "zwembad: board shows and the hub claims the input",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "zwembad: the intro gives way to the block",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "zwembad: the dive starts the swim",
+      "ok": true,
+      "info": "{\"phase\":\"run\",\"swim\":{\"phase\":\"swim\",\"x\":0.3576954042479286,\"v\":1.3183226698171089,\"length\":0,\"dist\":0.3576954042479286,\"time\":0.26379999999993015}}"
+    },
+    {
+      "name": "zwembad: strokes move the swimmer",
+      "ok": true,
+      "info": "{\"phase\":\"run\",\"swim\":{\"phase\":\"swim\",\"x\":4.0164514722446825,\"v\":1.2862419573385835,\"length\":0,\"dist\":4.0164514722446825,\"time\":3.2546999999999557}}"
+    },
+    {
+      "name": "zwembad: the swim ends by itself",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "minigames 2: zwembad ends cleanly (hub, input claim, HUD)",
+      "ok": true,
+      "info": "{\"active\":false,\"game\":null,\"board\":false,\"cam\":false}"
+    },
+    {
+      "name": "klimtoren: starts",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "klimtoren: holding A grips the first hold",
+      "ok": true,
+      "info": "{\"phase\":\"run\",\"climb\":{\"phase\":\"climb\",\"body\":0,\"arms\":1,\"falls\":0,\"time\":1.3378000000000467,\"best\":0.68}}"
+    },
+    {
+      "name": "klimtoren: the climb ends by itself",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "minigames 2: klimtoren ends cleanly (hub, input claim, HUD)",
+      "ok": true,
+      "info": "{\"active\":false,\"game\":null,\"board\":false,\"cam\":false}"
+    },
+    {
+      "name": "waterski: starts",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "waterski: the boat tows the skier along the lake",
+      "ok": true,
+      "info": "{\"phase\":\"run\",\"ski\":{\"phase\":\"run\",\"sS\":3.077396307786664,\"px\":0.03241223729523895,\"score\":0,\"falls\":0,\"air\":0}}"
+    },
+    {
+      "name": "waterski: leaning moves the skier sideways",
+      "ok": true,
+      "info": "{\"phase\":\"run\",\"ski\":{\"phase\":\"run\",\"sS\":9.52643791214988,\"px\":4.21416910370065,\"score\":0,\"falls\":0,\"air\":0}}"
+    },
+    {
+      "name": "waterski: the run ends by itself",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "minigames 2: waterski ends cleanly (hub, input claim, HUD)",
+      "ok": true,
+      "info": "{\"active\":false,\"game\":null,\"board\":false,\"cam\":false}"
+    },
+    {
+      "name": "events: the debug hook exists",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "events: a quake starts",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "events: the picture shakes during the quake",
+      "ok": true,
+      "info": "{\"amp\":0.6154672708429076,\"t\":1.6260000000000003}"
+    },
+    {
+      "name": "events: the quake ends by itself",
+      "ok": true,
+      "info": "{\"quakeIn\":588.0184524127956,\"quake\":null,\"algaeDay\":false,\"patches\":0,\"shells\":0,\"tourists\":0}"
+    },
+    {
+      "name": "events: nothing is NaN after the quake",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "events: algae patches appear in the lakes",
+      "ok": true,
+      "info": "96"
+    },
+    {
+      "name": "events: the swim code finds a patch",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "events: fireworks launch shells",
+      "ok": true,
+      "info": "{\"quakeIn\":585.3368524127897,\"quake\":null,\"algaeDay\":false,\"patches\":0,\"shells\":1,\"tourists\":0}"
+    },
+    {
+      "name": "events: German tourists walk the market",
+      "ok": true,
+      "info": "{\"quakeIn\":585.0491524127898,\"quake\":null,\"algaeDay\":false,\"patches\":0,\"shells\":1,\"tourists\":3}"
+    },
+    {
+      "name": "muggings: a thief shows up",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "muggings: the wallet is snatched (a share is lost)",
+      "ok": true,
+      "info": "{\"money\":240,\"st\":{\"phase\":\"chase\",\"lost\":60,\"since\":1000000083.601198,\"wijk\":\"Florabuurt\",\"level\":0,\"thief\":true}}"
+    },
+    {
+      "name": "muggings: the thief runs and nothing is NaN",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "muggings: catching him gives the money back",
+      "ok": true,
+      "info": "{\"money\":300,\"st\":{\"phase\":null,\"lost\":60,\"since\":0.06820000000006984,\"wijk\":\"Florabuurt\",\"level\":0,\"thief\":false}}"
+    },
+    {
+      "name": "boa: starts",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "boa: an offender waits",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "boa: the case panel opens with three fines",
+      "ok": true,
+      "info": "{\"ph\":\"case\",\"o\":3,\"inV\":false,\"sw\":false,\"d\":2}"
+    },
+    {
+      "name": "boa: a right fine pays and the panel closes",
+      "ok": true,
+      "info": "300 -> 357"
+    },
+    {
+      "name": "boa: quitting leaves no panel, no input claim",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "rechtbank: starts",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "rechtbank: the dossier with three facts is handed over",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "rechtbank: Space starts the walk",
+      "ok": true,
+      "info": "carry"
+    },
+    {
+      "name": "rechtbank: at the desk the questions start",
+      "ok": true,
+      "info": "ask"
+    },
+    {
+      "name": "rechtbank: three right answers pay",
+      "ok": true,
+      "info": "357 -> 507"
+    },
+    {
+      "name": "cabaret: starts",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "cabaret: the act starts with a panel",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "cabaret: a heckle on the beat scores",
+      "ok": true,
+      "info": "{\"pts\":3,\"r\":[\"perfect\"]}"
+    },
+    {
+      "name": "cabaret: the act ends with applause and pay",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "text jobs: all gone, nothing claims the input",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "money timeline never below zero",
+      "ok": true,
+      "info": "laagste marge €800, eind €24550"
+    },
+    {
+      "name": "money timeline comfortable margin",
+      "ok": true,
+      "info": "laagste marge €800, minimaal €150"
+    },
+    {
+      "name": "money timeline ok when every mission is skipped",
+      "ok": true,
+      "info": "laagste marge €650, minimaal €100"
+    },
+    {
+      "name": "economy: the only story cost is the Loket fee",
+      "ok": true,
+      "info": "M03"
+    },
+    {
+      "name": "economy: the fee is within reach (M01 and M02 come first)",
+      "ok": true,
+      "info": "€950 na M02"
+    },
+    {
+      "name": "every step has a player",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "phone lines come from the companion",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "reward M01 matches missions.js",
+      "ok": true,
+      "info": "arc €200, def €200"
+    },
+    {
+      "name": "reward M02 matches missions.js",
+      "ok": true,
+      "info": "arc €400, def €400"
+    },
+    {
+      "name": "reward M03 matches missions.js",
+      "ok": true,
+      "info": "arc €0, def €0"
+    },
+    {
+      "name": "reward M04 matches missions.js",
+      "ok": true,
+      "info": "arc €350, def €350"
+    },
+    {
+      "name": "reward M05 matches missions.js",
+      "ok": true,
+      "info": "arc €550, def €550"
+    },
+    {
+      "name": "reward M06 matches missions.js",
+      "ok": true,
+      "info": "arc €400, def €400"
+    },
+    {
+      "name": "reward M07 matches missions.js",
+      "ok": true,
+      "info": "arc €950, def €950"
+    },
+    {
+      "name": "reward M08 matches missions.js",
+      "ok": true,
+      "info": "arc €500, def €500"
+    },
+    {
+      "name": "reward M09 matches missions.js",
+      "ok": true,
+      "info": "arc €700, def €700"
+    },
+    {
+      "name": "reward M10 matches missions.js",
+      "ok": true,
+      "info": "arc €900, def €900"
+    },
+    {
+      "name": "reward M11 matches missions.js",
+      "ok": true,
+      "info": "arc €1300, def €1300"
+    },
+    {
+      "name": "reward M12 matches missions.js",
+      "ok": true,
+      "info": "arc €1500, def €1500"
+    },
+    {
+      "name": "reward M13 matches missions.js",
+      "ok": true,
+      "info": "arc €900, def €900"
+    },
+    {
+      "name": "reward M14 matches missions.js",
+      "ok": true,
+      "info": "arc €1000, def €1000"
+    },
+    {
+      "name": "reward M15 matches missions.js",
+      "ok": true,
+      "info": "arc €900, def €900"
+    },
+    {
+      "name": "reward M16 matches missions.js",
+      "ok": true,
+      "info": "arc €600, def €600"
+    },
+    {
+      "name": "reward M17 matches missions.js",
+      "ok": true,
+      "info": "arc €700, def €700"
+    },
+    {
+      "name": "reward M18 matches missions.js",
+      "ok": true,
+      "info": "arc €600, def €600"
+    },
+    {
+      "name": "reward M19 matches missions.js",
+      "ok": true,
+      "info": "arc €800, def €800"
+    },
+    {
+      "name": "reward M20 matches missions.js",
+      "ok": true,
+      "info": "arc €1200, def €1200"
+    },
+    {
+      "name": "reward M21 matches missions.js",
+      "ok": true,
+      "info": "arc €1100, def €1100"
+    },
+    {
+      "name": "reward M22 matches missions.js",
+      "ok": true,
+      "info": "arc €300, def €300"
+    },
+    {
+      "name": "reward M23 matches missions.js",
+      "ok": true,
+      "info": "arc €500, def €500"
+    },
+    {
+      "name": "reward M24 matches missions.js",
+      "ok": true,
+      "info": "arc €600, def €600"
+    },
+    {
+      "name": "reward M25 matches missions.js",
+      "ok": true,
+      "info": "arc €600, def €600"
+    },
+    {
+      "name": "reward M26 matches missions.js",
+      "ok": true,
+      "info": "arc €4000, def €4000"
+    },
+    {
+      "name": "reward M27 matches missions.js",
+      "ok": true,
+      "info": "arc €400, def €400"
+    },
+    {
+      "name": "reward M28 matches missions.js",
+      "ok": true,
+      "info": "arc €400, def €400"
+    },
+    {
+      "name": "reward M29 matches missions.js",
+      "ok": true,
+      "info": "arc €500, def €500"
+    },
+    {
+      "name": "reward M30 matches missions.js",
+      "ok": true,
+      "info": "arc €1500, def €1500"
+    },
+    {
+      "name": "M01: on its day",
+      "ok": true,
+      "info": "Vrijdag 14 augustus (dag 1)"
+    },
+    {
+      "name": "M01: no skip offered before a first try",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "mission M01 finished",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "step M01 advances",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "M02: on its day",
+      "ok": true,
+      "info": "Zaterdag 15 augustus (dag 2)"
+    },
+    {
+      "name": "M02: no skip offered before a first try",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "mission M02 finished",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "step M02 advances",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "money ok before M03",
+      "ok": true,
+      "info": "€1107 voor €150"
+    },
+    {
+      "name": "M03: on its day",
+      "ok": true,
+      "info": "Zaterdag 15 augustus (dag 2)"
+    },
+    {
+      "name": "M03: no skip offered before a first try",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "mission M03 finished",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "step M03 advances",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "M04: on its day",
+      "ok": true,
+      "info": "Zondag 16 augustus (dag 3)"
+    },
+    {
+      "name": "M04: no skip offered before a first try",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "mission M04 finished",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "step M04 advances",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "M05: on its day",
+      "ok": true,
+      "info": "Zondag 16 augustus (dag 3)"
+    },
+    {
+      "name": "M05: no skip offered before a first try",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "mission M05 finished",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "step M05 advances",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "M06: on its day",
+      "ok": true,
+      "info": "Maandag 17 augustus (dag 4)"
+    },
+    {
+      "name": "M06: no skip offered before a first try",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "mission M06 finished",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "step M06 advances",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "M07: on its day",
+      "ok": true,
+      "info": "Dinsdag 18 augustus (dag 5)"
+    },
+    {
+      "name": "M07: no skip offered before a first try",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "mission M07 finished",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "step M07 advances",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "M08: on its day",
+      "ok": true,
+      "info": "Dinsdag 18 augustus (dag 5)"
+    },
+    {
+      "name": "M08: no skip offered before a first try",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "mission M08 finished",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "step M08 advances",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "M09: on its day",
+      "ok": true,
+      "info": "Woensdag 19 augustus (dag 6)"
+    },
+    {
+      "name": "M09: no skip offered before a first try",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "mission M09 finished",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "step M09 advances",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "M10: on its day",
+      "ok": true,
+      "info": "Woensdag 19 augustus (dag 6)"
+    },
+    {
+      "name": "M10: no skip offered before a first try",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "mission M10 finished",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "step M10 advances",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "M11: on its day",
+      "ok": true,
+      "info": "Donderdag 20 augustus (dag 7)"
+    },
+    {
+      "name": "M11: no skip offered before a first try",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "mission M11 finished",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "step M11 advances",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "M12: on its day",
+      "ok": true,
+      "info": "Vrijdag 21 augustus (dag 8)"
+    },
+    {
+      "name": "M12: no skip offered before a first try",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "mission M12 finished",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "step M12 advances",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "M14: on its day",
+      "ok": true,
+      "info": "Zaterdag 22 augustus (dag 9)"
+    },
+    {
+      "name": "M14: no skip offered before a first try",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "mission M14 finished",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "step M14 advances",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "T3: on its day",
+      "ok": true,
+      "info": "Zaterdag 22 augustus (dag 9)"
+    },
+    {
+      "name": "T3: no skip offered before a first try",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "money ok at T3",
+      "ok": true,
+      "info": "€12532"
+    },
+    {
+      "name": "step T3 advances",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "M15: on its day",
+      "ok": true,
+      "info": "Zaterdag 22 augustus (dag 9)"
+    },
+    {
+      "name": "M15: no skip offered before a first try",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "mission M15 finished",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "step M15 advances",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "M16: on its day",
+      "ok": true,
+      "info": "Zaterdag 22 augustus (dag 9)"
+    },
+    {
+      "name": "M16: no skip offered before a first try",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "mission M16 finished",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "step M16 advances",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "M17: on its day",
+      "ok": true,
+      "info": "Maandag 24 augustus (dag 11)"
+    },
+    {
+      "name": "M17: no skip offered before a first try",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "mission M17 finished",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "step M17 advances",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "M18: on its day",
+      "ok": true,
+      "info": "Maandag 24 augustus (dag 11)"
+    },
+    {
+      "name": "M18: no skip offered before a first try",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "mission M18 finished",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "step M18 advances",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "M19: on its day",
+      "ok": true,
+      "info": "Maandag 24 augustus (dag 11)"
+    },
+    {
+      "name": "M19: no skip offered before a first try",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "mission M19 finished",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "step M19 advances",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "T4: on its day",
+      "ok": true,
+      "info": "Dinsdag 25 augustus (dag 12)"
+    },
+    {
+      "name": "T4: no skip offered before a first try",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "money ok at T4",
+      "ok": true,
+      "info": "€16612"
+    },
+    {
+      "name": "step T4 advances",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "M20: on its day",
+      "ok": true,
+      "info": "Dinsdag 25 augustus (dag 12)"
+    },
+    {
+      "name": "M20: no skip offered before a first try",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "mission M20 finished",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "step M20 advances",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "M21: plays as anita",
+      "ok": true,
+      "info": "anita"
+    },
+    {
+      "name": "M21: on its day",
+      "ok": true,
+      "info": "Dinsdag 25 augustus (dag 12)"
+    },
+    {
+      "name": "M21: no skip offered before a first try",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "mission M21 finished",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "step M21 advances",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "M22: on its day",
+      "ok": true,
+      "info": "Woensdag 26 augustus (dag 13)"
+    },
+    {
+      "name": "M22: no skip offered before a first try",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "mission M22 finished",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "step M22 advances",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "M23: on its day",
+      "ok": true,
+      "info": "Donderdag 27 augustus (dag 14)"
+    },
+    {
+      "name": "M23: no skip offered before a first try",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "mission M23 finished",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "step M23 advances",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "M24: on its day",
+      "ok": true,
+      "info": "Donderdag 27 augustus (dag 14)"
+    },
+    {
+      "name": "M24: no skip offered before a first try",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "M24: pigeon mode starts",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "mission M24 finished",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "step M24 advances",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "M25: on its day",
+      "ok": true,
+      "info": "Donderdag 27 augustus (dag 14)"
+    },
+    {
+      "name": "M25: no skip offered before a first try",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "mission M25 finished",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "step M25 advances",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "M26: on its day",
+      "ok": true,
+      "info": "Vrijdag 28 augustus (dag 15)"
+    },
+    {
+      "name": "M26: no skip offered before a first try",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "mission M26 finished",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "step M26 advances",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "M27: on its day",
+      "ok": true,
+      "info": "Maandag 14 september (dag 32)"
+    },
+    {
+      "name": "M27: no skip offered before a first try",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "mission M27 finished",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "step M27 advances",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "M28: on its day",
+      "ok": true,
+      "info": "Dinsdag 15 september (dag 33)"
+    },
+    {
+      "name": "M28: no skip offered before a first try",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "mission M28 finished",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "step M28 advances",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "M29: on its day",
+      "ok": true,
+      "info": "Donderdag 17 september (dag 35)"
+    },
+    {
+      "name": "M29: no skip offered before a first try",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "mission M29 finished",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "step M29 advances",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "T5: on its day",
+      "ok": true,
+      "info": "Zaterdag 19 september (dag 37)"
+    },
+    {
+      "name": "T5: no skip offered before a first try",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "money ok at T5",
+      "ok": true,
+      "info": "€26842"
+    },
+    {
+      "name": "step T5 advances",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "M30: on its day",
+      "ok": true,
+      "info": "Zaterdag 19 september (dag 37)"
+    },
+    {
+      "name": "M30: no skip offered before a first try",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "mission M30 finished",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "step M30 advances",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "new arc: the script data is loaded",
+      "ok": true,
+      "info": "{\"scenes\":207,\"lines\":1435}"
+    },
+    {
+      "name": "new arc: every scene has recordings",
+      "ok": true,
+      "info": "geen scène zonder opnames meer"
+    },
+    {
+      "name": "new arc: the HUD is quiet before the app text (no chase, race or skipped mission keeps it busy)",
+      "ok": true,
+      "info": "{\"busy\":false,\"wanted\":0,\"paused\":false,\"raceHud\":false,\"challengeHud\":false,\"race\":false,\"card\":false,\"held\":false,\"zone\":\"vrij\",\"zoneFree\":true,\"mayStart\":true,\"visible\":true,\"ready\":true,\"pf\":0,\"kaart\":null}"
+    },
+    {
+      "name": "new arc: a silent app text shows as a phone card",
+      "ok": true,
+      "info": "{\"busy\":false,\"wanted\":0,\"paused\":false,\"raceHud\":false,\"challengeHud\":false,\"race\":false,\"card\":true,\"held\":false,\"zone\":\"phone\",\"zoneFree\":true,\"mayStart\":false,\"visible\":true,\"ready\":false,\"pf\":{\"cards\":1,\"call\":null,\"queued\":0},\"narrative\":{\"now\":1008.7901000000089,\"active\":[],\"pending\":[],\"since\":{\"banter\":null,\"sub-banter\":null,\"call\":84.12,\"text\":32.38,\"say\":null,\"contact\":65.86,\"scene\":70.04,\"sub-cine\":440.86}},\"pending\":0}"
+    },
+    {
+      "name": "new arc: the silent app text is not read aloud",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "new arc: the radio is not ducked when no mission or conversation runs",
+      "ok": true,
+      "info": "{\"mission\":\"idle\",\"contact\":false,\"talk\":{\"cur\":null,\"queued\":[]}}"
+    },
+    {
+      "name": "flow reaches \"Wordt vervolgd\" (nazomer)",
+      "ok": true,
+      "info": "{\"end\":\"nazomer\"}"
+    },
+    {
+      "name": "\"Wordt vervolgd\" card shown",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "all available steps passed",
+      "ok": true,
+      "info": "32 stappen; niet gelopen en niet open: geen"
+    },
+    {
+      "name": "Tammo and Tessa take turns",
+      "ok": true,
+      "info": "0 wissels"
+    },
+    {
+      "name": "after the story the calendar is in September",
+      "ok": true,
+      "info": "Zaterdag 19 september"
+    },
+    {
+      "name": "no cutscene camera off the map",
+      "ok": false,
+      "info": "[{\"id\":\"intocht\",\"position\":{\"x\":-10720,\"y\":-2552,\"z\":31.540000000000003},\"lookAt\":{\"x\":-10696,\"y\":4,\"z\":-2518}}]"
+    },
+    {
+      "name": "Rotor Roelf took his demo heli back",
+      "ok": true,
+      "info": "{\"activity\":null,\"demo\":null,\"balloon\":null,\"pending\":false,\"played\":{\"meet\":0,\"spot\":0,\"kermis\":0,\"carbid\":0,\"lift\":0,\"court\":0}}"
+    },
+    {
+      "name": "post-game opens after the ending",
+      "ok": true,
+      "info": "[\"bruggen\",\"fierljep\",\"skutsje\",\"fjord\",\"fjord\",\"fjord\",\"fjord\",\"fjord\",\"koe\"]"
+    },
+    {
+      "name": "post-game bruggen runs and records a medal",
+      "ok": true,
+      "info": "{\"best\":422.9,\"medal\":3,\"runs\":1,\"lower\":true}"
+    },
+    {
+      "name": "post-game fierljep runs and records a medal",
+      "ok": true,
+      "info": "{\"best\":30.2,\"medal\":3,\"runs\":1,\"lower\":false}"
+    },
+    {
+      "name": "post-game skutsje runs and records a medal",
+      "ok": true,
+      "info": "{\"best\":0,\"medal\":3,\"runs\":1,\"lower\":true}"
+    },
+    {
+      "name": "post-game fjord runs and records a medal",
+      "ok": true,
+      "info": "{\"best\":120,\"medal\":3,\"runs\":1,\"lower\":false}"
+    },
+    {
+      "name": "post-game koe runs and records a medal",
+      "ok": true,
+      "info": "{\"best\":60,\"medal\":3,\"runs\":1,\"lower\":true}"
+    },
+    {
+      "name": "Fjord Frituur unlocked in the garage",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "ending: all challenges count as done",
+      "ok": true,
+      "info": "[]"
+    },
+    {
+      "name": "ending: skipped missions keep the credits back",
+      "ok": true,
+      "info": "[{\"code\":\"M13\",\"title\":\"Het containerlabyrint\",\"passed\":false}]"
+    },
+    {
+      "name": "ending: Overzicht counts down to the end",
+      "ok": true,
+      "info": "Nog 1 missie tot het einde"
+    },
+    {
+      "name": "every Ommeland station has its dorpsuitjes (8)",
+      "ok": true,
+      "info": "[]"
+    },
+    {
+      "name": "a dorpsuitje can be done (Loppersum, de klok)",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "the Escapade is delivered in the Ommeland",
+      "ok": true,
+      "info": "{\"del\":{\"ok\":true,\"text\":\"Je Escapade staat in de Parallelweg. Je ziet hem op je kaart\",\"x\":11861.996517616897,\"y\":-13031.796249119088},\"at\":[11862,-13032],\"p\":[11930,-13077]}"
+    },
+    {
+      "name": "heli run keeps the players hidden past the safety watchdog",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "a loaded save ends a heli run",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "a loaded save ends a padel match",
+      "ok": true,
+      "info": "match started: true"
+    },
+    {
+      "name": "a loaded save ends village tennis",
+      "ok": true,
+      "info": "tennis started: true"
+    },
+    {
+      "name": "a loaded save ends the botsauto's",
+      "ok": true,
+      "info": "ride started: true"
+    },
+    {
+      "name": "an old v1 save is migrated into the new arc and keeps its money",
+      "ok": true,
+      "info": "{\"loaded\":true,\"money\":1234}"
+    },
+    {
+      "name": "a new-arc save carries its arc",
+      "ok": true,
+      "info": "{\"v\":10,\"arc\":\"nieuw\",\"savedAt\":1794089514304,\"speeltijd\":0,\"money\":34987,\"money"
+    },
+    {
+      "name": "a new-arc save loads again",
+      "ok": true,
+      "info": ""
+    },
+    {
+      "name": "death at UMCG -> UMCG",
+      "ok": true,
+      "info": "65 m from it, at (759, -133)"
+    },
+    {
+      "name": "arrest at Bedum -> Politiepost Bedum",
+      "ok": true,
+      "info": "7 m from it, at (1919, -9140)"
+    },
+    {
+      "name": "death at Zuidhorn -> Huisartsenpraktijk Zuidhorn",
+      "ok": true,
+      "info": "64 m from it, at (-10743, -3012)"
+    },
+    {
+      "name": "arrest at Stad -> Politiebureau Groningen Centrum",
+      "ok": true,
+      "info": "9 m from it, at (503, 431)"
+    }
+  ],
+  "errors": [],
+  "startedAt": "2026-11-07T21:54:21.690Z",
+  "timeline": [
+    {
+      "id": "M00",
+      "part": "kop",
+      "title": "Opening: verhuisdag",
+      "built": true,
+      "before": 500,
+      "cost": 0,
+      "pay": 0,
+      "after": 500,
+      "margin": null
+    },
+    {
+      "id": "M01",
+      "part": "kop",
+      "title": "Nul krassen, vijftienhonderd punten",
+      "built": true,
+      "before": 500,
+      "cost": 0,
+      "pay": 50,
+      "after": 550,
+      "margin": null
+    },
+    {
+      "id": "M02",
+      "part": "kop",
+      "title": "Even pinnen",
+      "built": true,
+      "before": 550,
+      "cost": 0,
+      "pay": 400,
+      "after": 950,
+      "margin": null
+    },
+    {
+      "id": "M03",
+      "part": "kop",
+      "title": "Het Loket",
+      "built": true,
+      "before": 950,
+      "cost": 150,
+      "pay": 0,
+      "after": 800,
+      "margin": 800
+    },
+    {
+      "id": "M04",
+      "part": "kop",
+      "title": "Kieken van boven",
+      "built": true,
+      "before": 800,
+      "cost": 0,
+      "pay": 350,
+      "after": 1150,
+      "margin": null
+    },
+    {
+      "id": "M05",
+      "part": "kop",
+      "title": "Wind tegen, beide kanten op",
+      "built": true,
+      "before": 1150,
+      "cost": 0,
+      "pay": 550,
+      "after": 1700,
+      "margin": null
+    },
+    {
+      "id": "M06",
+      "part": "kop",
+      "title": "Het museum stond er al zo",
+      "built": true,
+      "before": 1700,
+      "cost": 0,
+      "pay": 400,
+      "after": 2100,
+      "margin": null
+    },
+    {
+      "id": "M07",
+      "part": "romp",
+      "title": "Al het vet van Grunn",
+      "built": true,
+      "before": 2100,
+      "cost": 0,
+      "pay": 950,
+      "after": 3050,
+      "margin": null
+    },
+    {
+      "id": "M08",
+      "part": "romp",
+      "title": "Fatbikes tellen niet als fiets",
+      "built": true,
+      "before": 3050,
+      "cost": 0,
+      "pay": 500,
+      "after": 3550,
+      "margin": null
+    },
+    {
+      "id": "T1",
+      "part": "romp",
+      "title": "De trein naar Warffum",
+      "built": true,
+      "before": 3550,
+      "cost": 0,
+      "pay": 0,
+      "after": 3550,
+      "margin": null
+    },
+    {
+      "id": "M09",
+      "part": "romp",
+      "title": "Heel aankomen is ook een kunst",
+      "built": true,
+      "before": 3550,
+      "cost": 0,
+      "pay": 700,
+      "after": 4250,
+      "margin": null
+    },
+    {
+      "id": "M10",
+      "part": "romp",
+      "title": "Een trekker-limo op de wierde",
+      "built": true,
+      "before": 4250,
+      "cost": 0,
+      "pay": 900,
+      "after": 5150,
+      "margin": null
+    },
+    {
+      "id": "T2",
+      "part": "romp",
+      "title": "De streekbus naar Zoutkamp",
+      "built": true,
+      "before": 5150,
+      "cost": 0,
+      "pay": 0,
+      "after": 5150,
+      "margin": null
+    },
+    {
+      "id": "M11",
+      "part": "romp",
+      "title": "Geleend van de Friezen",
+      "built": true,
+      "before": 5150,
+      "cost": 0,
+      "pay": 1300,
+      "after": 6450,
+      "margin": null
+    },
+    {
+      "id": "M12",
+      "part": "staart",
+      "title": "Het staat niet in het rooster",
+      "built": true,
+      "before": 6450,
+      "cost": 0,
+      "pay": 1500,
+      "after": 7950,
+      "margin": null
+    },
+    {
+      "id": "M13",
+      "part": "staart",
+      "title": "Het containerlabyrint",
+      "built": true,
+      "before": 7950,
+      "cost": 0,
+      "pay": 900,
+      "after": 8850,
+      "margin": null
+    },
+    {
+      "id": "M14",
+      "part": "staart",
+      "title": "De dijk",
+      "built": true,
+      "before": 8850,
+      "cost": 0,
+      "pay": 1000,
+      "after": 9850,
+      "margin": null
+    },
+    {
+      "id": "T3",
+      "part": "staart",
+      "title": "De trein naar Winschoten",
+      "built": true,
+      "before": 9850,
+      "cost": 0,
+      "pay": 0,
+      "after": 9850,
+      "margin": null
+    },
+    {
+      "id": "M15",
+      "part": "staart",
+      "title": "Laag over het graan",
+      "built": true,
+      "before": 9850,
+      "cost": 0,
+      "pay": 900,
+      "after": 10750,
+      "margin": null
+    },
+    {
+      "id": "M16",
+      "part": "staart",
+      "title": "Nog eentje dan",
+      "built": true,
+      "before": 10750,
+      "cost": 0,
+      "pay": 600,
+      "after": 11350,
+      "margin": null
+    },
+    {
+      "id": "M17",
+      "part": "zuid",
+      "title": "Open, dicht",
+      "built": true,
+      "before": 11350,
+      "cost": 0,
+      "pay": 700,
+      "after": 12050,
+      "margin": null
+    },
+    {
+      "id": "M18",
+      "part": "zuid",
+      "title": "Wie draaide de camera's uit?",
+      "built": true,
+      "before": 12050,
+      "cost": 0,
+      "pay": 600,
+      "after": 12650,
+      "margin": null
+    },
+    {
+      "id": "M19",
+      "part": "zuid",
+      "title": "Stoom",
+      "built": true,
+      "before": 12650,
+      "cost": 0,
+      "pay": 800,
+      "after": 13450,
+      "margin": null
+    },
+    {
+      "id": "T4",
+      "part": "zuid",
+      "title": "De bus naar Bourtange",
+      "built": true,
+      "before": 13450,
+      "cost": 0,
+      "pay": 0,
+      "after": 13450,
+      "margin": null
+    },
+    {
+      "id": "M20",
+      "part": "zuid",
+      "title": "Het beleg van Bourtange",
+      "built": true,
+      "before": 13450,
+      "cost": 0,
+      "pay": 1200,
+      "after": 14650,
+      "margin": null
+    },
+    {
+      "id": "M21",
+      "part": "zuid",
+      "title": "Iedereen heeft een rode auto gezien",
+      "built": true,
+      "before": 14650,
+      "cost": 0,
+      "pay": 1100,
+      "after": 15750,
+      "margin": null
+    },
+    {
+      "id": "M22",
+      "part": "ontzet",
+      "title": "Een luik erin",
+      "built": true,
+      "before": 15750,
+      "cost": 0,
+      "pay": 300,
+      "after": 16050,
+      "margin": null
+    },
+    {
+      "id": "M23",
+      "part": "ontzet",
+      "title": "De colonne",
+      "built": true,
+      "before": 16050,
+      "cost": 0,
+      "pay": 500,
+      "after": 16550,
+      "margin": null
+    },
+    {
+      "id": "M24",
+      "part": "ontzet",
+      "title": "Er hangt iets Fries aan d'Olle Grieze",
+      "built": true,
+      "before": 16550,
+      "cost": 0,
+      "pay": 600,
+      "after": 17150,
+      "margin": null
+    },
+    {
+      "id": "M25",
+      "part": "ontzet",
+      "title": "Het bod viel tegen",
+      "built": true,
+      "before": 17150,
+      "cost": 0,
+      "pay": 600,
+      "after": 17750,
+      "margin": null
+    },
+    {
+      "id": "M26",
+      "part": "ontzet",
+      "title": "Ontzet, net als in 1672",
+      "built": true,
+      "before": 17750,
+      "cost": 0,
+      "pay": 4000,
+      "after": 21750,
+      "margin": null
+    },
+    {
+      "id": "E",
+      "part": "ontzet",
+      "title": "Epiloog en slot",
+      "built": true,
+      "before": 21750,
+      "cost": 0,
+      "pay": 0,
+      "after": 21750,
+      "margin": null
+    },
+    {
+      "id": "M27",
+      "part": "nazomer",
+      "title": "Inpakken",
+      "built": true,
+      "before": 21750,
+      "cost": 0,
+      "pay": 400,
+      "after": 22150,
+      "margin": null
+    },
+    {
+      "id": "M28",
+      "part": "nazomer",
+      "title": "De wisselwoning",
+      "built": true,
+      "before": 22150,
+      "cost": 0,
+      "pay": 400,
+      "after": 22550,
+      "margin": null
+    },
+    {
+      "id": "M29",
+      "part": "nazomer",
+      "title": "Terug",
+      "built": true,
+      "before": 22550,
+      "cost": 0,
+      "pay": 500,
+      "after": 23050,
+      "margin": null
+    },
+    {
+      "id": "T5",
+      "part": "nazomer",
+      "title": "De weg naar Bourtange",
+      "built": true,
+      "before": 23050,
+      "cost": 0,
+      "pay": 0,
+      "after": 23050,
+      "margin": null
+    },
+    {
+      "id": "M30",
+      "part": "nazomer",
+      "title": "Het proefbeleg",
+      "built": true,
+      "before": 23050,
+      "cost": 0,
+      "pay": 1500,
+      "after": 24550,
+      "margin": null
+    }
+  ],
+  "economy": [
+    [
+      "start / na M02 / na M06 / eind",
+      "€500 / €950 / €2100 / €24550"
+    ]
+  ],
+  "finishedAt": "2026-11-07T22:12:06.147Z"
+}

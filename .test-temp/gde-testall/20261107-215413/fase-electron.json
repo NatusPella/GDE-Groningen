@@ -1,0 +1,131 @@
+{
+ "stamp": "20261107-215413",
+ "gestart": "2026-11-07T21:54:13.495Z",
+ "fases": {
+  "electron": {
+   "gedraaid": true,
+   "items": [
+    {
+     "id": "electron:verhaaltest",
+     "fase": "electron",
+     "naam": "Electron-verhaaltest (--story-test)",
+     "status": "FAIL",
+     "secs": 1073.8,
+     "detail": "FAIL: 32 stappen, 7 mislukte checks, 0 NaN-waarschuwingen\nFAIL all 1420 spots reachable missie-doel luik stage 0 goto \"Eerst de kras van de wagon: Tinus kijkt ernaar\" (NaN, NaN): geen positie; postgame skutsje Skûtsje-sprint in de Oosterhaven (747.3, 384.5): in het water -> vrij op (747.3, 394.5), 10 m; postgame fjord Fjord Frituur: Euroborg (1771.6, 1400.\nFAIL ways through buildings are passages or doors ({\"opening\":443,\"door\":9,\"graze\":1748,\"clipped\":2,\"hole\":3,\"solid\":2}) solid minor:service in Linnaeusborg (-1877.3, -2399.2); hole minor:service in apartments (2663.5, 4690.8); hole minor:service in apartments (2629.1, 4590.4); solid minor:service i\nFAIL ring roads free of solid obstacles service +51 m muur keerwand/vangrail (12957, 7151, z 6.1); service +60 m muur keerwand/vangrail (12958, 7146, z 6); service +73 m muur keerwand/vangrail (12971, 7146, z 5.2); service +81 m muur keerwand/vangrail (12975, 7149, z 4.4)\nFAIL kartbaan: the race ends by itself \nFAIL minigames: kartbaan ends cleanly (hub, input claim, HUD) {\"active\":true,\"game\":\"kartbaan\",\"board\":true,\"cam\":true}\nFAIL zwembad: starts \nFAIL no cutscene camera off the map [{\"id\":\"intocht\",\"position\":{\"x\":-10720,\"y\":-2552,\"z\":31.540000000000003},\"lookAt\":{\"x\":-10696,\"y\":4,\"z\":-2518}}]"
+    },
+    {
+     "id": "nan-geometrie:verhaaltest",
+     "fase": "electron",
+     "naam": "NaN-waarschuwingen in geometrie",
+     "status": "PASS",
+     "secs": 0,
+     "detail": ""
+    },
+    {
+     "id": "console:verhaaltest",
+     "fase": "electron",
+     "naam": "consolefouten verhaaltest",
+     "status": "PASS",
+     "secs": 1073.8,
+     "detail": ""
+    },
+    {
+     "id": "beeld:verhaaltest",
+     "fase": "electron",
+     "naam": "beeldcheck verhaaltest",
+     "status": "PASS",
+     "secs": 0,
+     "detail": "61 beelden: 0 zwart/leeg/ongeldig, 0 onleesbaar, 7 wijkt af van vorige run (61 vergeleken)"
+    },
+    {
+     "id": "beeld:verhaaltest/01-M01.png",
+     "fase": "electron",
+     "naam": "beeld:verhaaltest/01-M01.png",
+     "status": "PASS",
+     "secs": 0,
+     "detail": "10.2% anders dan vorige run",
+     "warn": true,
+     "diff": 0.10245098039215686
+    },
+    {
+     "id": "beeld:verhaaltest/05-M05.png",
+     "fase": "electron",
+     "naam": "beeld:verhaaltest/05-M05.png",
+     "status": "PASS",
+     "secs": 0,
+     "detail": "12.6% anders dan vorige run",
+     "warn": true,
+     "diff": 0.12632761437908496
+    },
+    {
+     "id": "beeld:verhaaltest/14-T3.png",
+     "fase": "electron",
+     "naam": "beeld:verhaaltest/14-T3.png",
+     "status": "PASS",
+     "secs": 0,
+     "detail": "12.3% anders dan vorige run",
+     "warn": true,
+     "diff": 0.12327069716775599
+    },
+    {
+     "id": "beeld:verhaaltest/29-M28.png",
+     "fase": "electron",
+     "naam": "beeld:verhaaltest/29-M28.png",
+     "status": "PASS",
+     "secs": 0,
+     "detail": "10.8% anders dan vorige run",
+     "warn": true,
+     "diff": 0.10836056644880174
+    },
+    {
+     "id": "beeld:verhaaltest/job-boa-case.png",
+     "fase": "electron",
+     "naam": "beeld:verhaaltest/job-boa-case.png",
+     "status": "PASS",
+     "secs": 0,
+     "detail": "13.4% anders dan vorige run",
+     "warn": true,
+     "diff": 0.13446350762527232
+    },
+    {
+     "id": "beeld:verhaaltest/mg-kart-grid.png",
+     "fase": "electron",
+     "naam": "beeld:verhaaltest/mg-kart-grid.png",
+     "status": "PASS",
+     "secs": 0,
+     "detail": "19.0% anders dan vorige run",
+     "warn": true,
+     "diff": 0.1899714052287582
+    },
+    {
+     "id": "beeld:verhaaltest/mg-kart-race.png",
+     "fase": "electron",
+     "naam": "beeld:verhaaltest/mg-kart-race.png",
+     "status": "PASS",
+     "secs": 0,
+     "detail": "9.9% anders dan vorige run",
+     "warn": true,
+     "diff": 0.09892429193899782
+    }
+   ],
+   "secs": 1075.954,
+   "diff": {
+    "nieuweFouten": [],
+    "opgelost": [],
+    "blijftFout": [
+     "electron:verhaaltest"
+    ],
+    "traag": [],
+    "nieuw": [
+     "beeld:verhaaltest/14-T3.png",
+     "beeld:verhaaltest/29-M28.png"
+    ],
+    "verdwenen": []
+   },
+   "vorige": "20261107-213544"
+  }
+ },
+ "toon": [
+  "electron"
+ ]
+}
