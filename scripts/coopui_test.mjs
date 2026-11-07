@@ -88,4 +88,18 @@ t('spelerslijst: tokens, 44px-aanraakknop en een controllerweg in het voertuig (
   assert.ok(!/#[0-9a-f]{6}/i.test(scene), 'de gastlaag gebruikt tokens in plaats van losse hex');
 });
 
+t('wachtkamer: geen inline stijl meer, profiel en wachtwoord op klassen (#634)', () => {
+  for (const f of ['lobbyui.js', 'sessiekeuze.js', 'onlineconsentui.js']) {
+    const src = fs.readFileSync(new URL(`../game/js/${f}`, import.meta.url), 'utf8');
+    assert.ok(!/style="/.test(src), `${f} heeft geen inline style meer`);
+  }
+  const ui = fs.readFileSync(new URL('../game/js/lobbyui.js', import.meta.url), 'utf8');
+  const css = fs.readFileSync(new URL('../game/js/pausemenu.css', import.meta.url), 'utf8');
+  assert.match(ui, /class="coop-profiel"/);
+  assert.match(ui, /coop-wachtwoord-label/);
+  assert.match(ui, /coop-kleur-stip/);
+  assert.match(css, /\.coop-kleur-0 \{ color: #4fb3ff; \}/);
+  assert.match(css, /\.coop-chip\[aria-pressed="true"\]/);
+});
+
 console.log(`coopui_test: ${n}/${n} ok`);
