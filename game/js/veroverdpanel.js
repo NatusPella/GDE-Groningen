@@ -2,6 +2,7 @@
 // weergave van Loopbanen). De gegevens en de tekst komen uit gebiedenui.js; dit bestand tekent het tabblad en bindt de klikken.
 // Niet door een mens in beeld bekeken.
 import { gebiedenHtml, kiesGebied, reisNaar, GEBIEDEN_CSS } from './gebiedenui.js';
+import { bekijkIntocht } from './intochten.js';
 import { fillBars } from './motion.js';
 
 const bars = new Map();
@@ -37,6 +38,9 @@ export function renderVeroverdPanel(el, sluit = null) {
   el.addEventListener('click', (e) => {
     const r = e.target.closest('[data-reis]');
     if (r) { reisNaar(r.dataset.reis, r, sluitMenu); return; }
+    // #708: de intocht terugkijken vanuit Veroverd
+    const i = e.target.closest('[data-intocht]');
+    if (i) { bekijkIntocht(i.dataset.intocht); return; }
     const g2 = e.target.closest('[data-gebied]');
     if (g2) kies(g2.dataset.gebied);
   });

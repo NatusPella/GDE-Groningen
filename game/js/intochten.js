@@ -7,12 +7,12 @@
 // waar je bent als de ouder-wijk al veroverd is. Een film die al gezien is, wordt overgeslagen;
 // de intocht gaat één keer per speler af (#708) en is daarna terug te kijken via het profiel.
 import { hoofdspeler } from './players.js';
-import { isCinematicActive, isBannerUp, sinceCinematic, playCinematic } from './cinematics.js';
+import { isCinematicActive, isBannerUp, sinceCinematic, playCinematic, cinematicWorld } from './cinematics.js';
 import { playerBusy } from './busy.js';
+import { isMapOpen } from './pausestate.js';
 import { veroverTourShot } from './camerapath.js';
-import { magIntocht, isRustig, neemIntocht, wachtrij, maakIntocht, buurtIntocht, geliefdeBuurt } from './wijkintocht.js';
+import { magIntocht, isRustig, neemIntocht, wachtrij, maakIntocht, thuiskomstVoor } from './wijkintocht.js';
 import { getOverzicht, noteerIntocht, intochtGezien } from './gebiedenlive.js';
-import { gebiedenVan } from './gebieden.js';
 
 const TIK_S = 0.5;
 let tik = 0;
@@ -34,7 +34,7 @@ function context(w, front) {
     respawn: !!w.pendingRespawn,
     busy: playerBusy(w, ['missionPhase', 'sideJob', 'challenge', 'race']).busy,
     menu: !!w.paused,
-    map: false,
+    map: isMapOpen(),
     wanted: w.wanted,
     sindsFilm: sinceCinematic(),
     sindsBeloning: Number.isFinite(w.time) && front && Number.isFinite(front.in) ? w.time - front.in : NaN,
@@ -50,6 +50,7 @@ function filmLijnen(film) {
 }
 
 function speel(w, film) {
+  if (!w || !w.map) return false;
   const shot = veroverTourShot(w, { x: film.x, y: film.y }, film.stops, achterPose(w));
   if (!shot) return false;
   const ok = playCinematic({
@@ -63,21 +64,28 @@ function speel(w, film) {
   return ok;
 }
 
+// #708: een intocht van een al veroverd gebied terugkijken vanuit Loopbaan › Veroverd. De wereld
+// komt van de cinematics (die kent de lopende sessie), dus het paneel hoeft hem niet mee te geven.
+export function bekijkIntocht(gebiedId) {
+  if (!gebiedId || isCinematicActive()) return false;
+  const w = cinematicWorld();
+  const o = getOverzicht();
+  if (!w || !w.map || !o || !o.ind) return false;
+  if (!Array.isArray(o.profiel.beloond) || !o.profiel.beloond.includes(gebiedId)) return false;
+  const g = o.ind.gebied.get(gebiedId);
+  if (!g) return false;
+  const film = maakIntocht(o.ind, { gebied: gebiedId, naam: g.naam }, { landmarks: (w.map.meta && w.map.meta.landmarks) || [] });
+  return film ? speel(w, film) : false;
+}
+
 // De korte thuiskomst in een geliefde buurt (#736): alleen als de ouder-wijk veroverd is, de
-// buurt nog niet gezien is en de speler er echt is.
+// buurt nog niet gezien is en de speler er echt is. De regel zelf staat puur in wijkintocht.js.
 function probeerThuiskomst(w, ind, profiel, landmarks, ctx) {
+  if (!isRustig(ctx)) return false;
   const p = hoofdspeler(w);
   const punten = (w.map && w.map.meta && w.map.meta.neighbourhoodPoints) || [];
-  const buurt = geliefdeBuurt(punten, p.x, p.y);
-  if (!buurt || !isRustig(ctx)) return false;
-  const ids = gebiedenVan(ind, p.x, p.y);
-  const g = ids.buurt && ind.gebied.get(ids.buurt);
-  if (!g || g.naam !== buurt.naam || intochtGezien(g.id)) return false;
-  const ouder = g.ouder && ind.gebied.get(g.ouder);
-  if (!ouder || !Array.isArray(profiel.beloond) || !profiel.beloond.includes(ouder.id)) return false;
-  const film = buurtIntocht(ind, g.id, { landmarks });
-  if (!film || film.stops.length < 3) return false;
-  return speel(w, film);
+  const film = thuiskomstVoor(ind, profiel, punten, p.x, p.y, { landmarks });
+  return film ? speel(w, film) : false;
 }
 
 // Elke halve seconde (main.js na de tracker): eerst een verovering uit de wachtrij, dan de buurt.

@@ -12,7 +12,7 @@
 // CBS-wijk als verover-eenheid.
 
 import { puntInGebied } from './grenzen.js';
-import { huisVan } from './gebieden.js';
+import { huisVan, gebiedenVan, intochtGezien } from './gebieden.js';
 
 export const MOMENT = 'veroverd';          // de attention-groep van deze film (hudbus.js)
 export const WACHTVELD = 'veroverWacht';   // de wachtrij staat op de wereld van deze speler
@@ -203,4 +203,20 @@ export function buurtIntocht(ind, buurtId, { landmarks = [] } = {}) {
     regels: [{ stem: 'Rikus', tekst: `Weer op de stoep van ${g.naam}. Niemand vraagt waar je was.` }],
     stops: kiesStops(ind, buurtId, { landmarks, max: MIN_STOPS }),
   };
+}
+
+// #736: de thuiskomst die nu past, of null. De buurt is de emotionele eenheid (waar je woont en
+// waar het verhaal begint), de CBS-wijk de verover-eenheid. De film komt pas als de ouder-wijk
+// veroverd is, de speler echt in de buurt staat en de buurt nog niet gezien is.
+export function thuiskomstVoor(ind, profiel, punten, x, y, { landmarks = [], straal = BUURT_STRAAL } = {}) {
+  const buurt = geliefdeBuurt(punten, x, y, straal);
+  if (!buurt || !ind) return null;
+  const ids = gebiedenVan(ind, x, y);
+  const g = ids.buurt && ind.gebied.get(ids.buurt);
+  if (!g || g.naam !== buurt.naam) return null;
+  if (intochtGezien(profiel, g.id)) return null;
+  const ouder = g.ouder && ind.gebied.get(g.ouder);
+  if (!ouder || !profiel || !Array.isArray(profiel.beloond) || !profiel.beloond.includes(ouder.id)) return null;
+  const film = buurtIntocht(ind, g.id, { landmarks });
+  return film && film.stops.length >= MIN_STOPS ? film : null;
 }

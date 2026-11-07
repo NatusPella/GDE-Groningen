@@ -128,12 +128,23 @@ activiteitenlaag, met een eigen laag `safehuis` en een eigen legenda-regel.
   gaat alleen open voor de eigenaar met zijn eigen menu (een koper-menu voor wie het niet heeft). Gasten en gastheer kopen dus elk hun eigen sleutel. **Bezoeken bij een ander** (binnen kijken in
   het huisje van een medespeler) is niet gedaan.
 
+## Intocht na een verovering (#704)
+
+De beloning van een veroverd gebied is sinds #705 geen los kaartje meer maar het begin van een korte film: de **intocht** door de wijk.
+
+- **Wachtrij en rust-poort (#705).** `betaal()` (`gebiedenlive.js`) zet de beloning in `world.veroverWacht` en noteert het attention-moment `veroverd` (verhaal, geen ontdekkingsquotum). `probeerIntocht()` (`intochten.js`) speelt hem pas als de speler rustig is: geen film, banner, respawn, missie/bijbaan/race/minigame, pauzemenu of kaart, geen wanted, 2,5 s na de vorige film en 2 s na de beloning. De pure regels staan in `game/js/wijkintocht.js` (`wachtOpIntocht`, `isRustig`, `magIntocht`, `kiesStops`, `tourKeys`); de test is `scripts/wijkintocht_test.mjs`.
+- **Camera en stops (#706).** De stops komen data-gedreven uit de catalogus: de vaste ankers van de scène, de taken van het gebied (belangrijkste eerst, per beurt een andere soort), landmarks binnen de wijkpolygoon en het safehouse. `camerapath.js` `veroverTourShot()` maakt van overzicht → 3-5 stops → eindbeeld achter de speler één vloeiende baan en tilt hem met `clearPath` over de daken. Het eindbeeld is dezelfde pose achter de speler als de wijk-flyover.
+- **Eenmalig en terugkijken (#708).** Het profiel (`gde-gebieden-v1`) houdt in `intochten` bij welke intochten deze speler zag; `markeerIntocht` zet er één bij en `intochtenVan` geeft ze als beloningen terug voor Loopbaan › Veroverd en de preview. De lijst gaat mee in `normaliseer`/`voegSamen` en nooit in `zaai`. De knop "Bekijk de intocht" in het Veroverd-paneel en de preview-catalogus zijn nog niet gebouwd.
+- **Terminologie (#716).** Twee lagen met elk één term: de **buurt** is de plek waar je woont en die je bij naam kent (de 66 buurtpunten van de HUD/kaart), de **wijk** is de verover-eenheid met titel en vlag (de 123 CBS-wijken). De intocht gebruikt de CBS-naam en de titel "Wijkheld van …"; de HUD en de kaart houden de buurtregels als stem. `termVoor`/`termUitleg` in `wijkintocht.js` leggen dat vast.
+- **Geliefde buurten (#736).** Oosterparkwijk, Korrewegwijk, Noorderplantsoenbuurt, Selwerd, Herewegbuurt, De Hoogte, Westerhaven en Ebbingekwartier halen op de vaste taakankers 0-1 taken en zijn dus niet veroverbaar, terwijl juist daar de verhaal- en sfeerscènes hangen. Gekozen is de combinatie uit het advies: de buurt is de emotionele eenheid, de CBS-wijk blijft de verover-eenheid. `thuiskomstVoor()` geeft de korte "Thuiskomst"-film (12 s, dezelfde motor) zodra de ouder-wijk veroverd is, je echt in de buurt staat en je hem nog niet zag. De veroverdrempel (`MIN_TAKEN`) is niet verlaagd: een buurt met één vondst meteen "veroverd" laten zijn is een aparte eigenaarskeuze.
+- **Content (#707).** Eén scène is volledig uitgewerkt als eerste slice: Oud-Oost "De stoep" (34 s, drie ankers, drie regels, Rikus). De andere zeven wijken uit het ontwerp (`07-wijk-scenes-ontwerp.md`) volgen in dezelfde vorm; elke verovering zonder eigen scène krijgt de generieke intocht. De titel/vlag-kaart in beeld, de camera-afstelling in het echt en de gedeelde coöp-versie zijn nog niet gedaan.
+
 ## Bekende grenzen
 
 - De catalogus is wat er nu in de code ligt. Komt er een nieuwe missie of baan bij, dan krijgt een gebied er een taak bij: een eerder veroverd gebied blijft veroverd (de titel blijft), maar de balk laat dan een nieuwe taak zien.
 - De minimap kent de laag niet; alleen de grote kaart.
 - De meeste buurten en wijken buiten de stad hebben niets te doen: het overzicht toont alleen gebieden met minstens twee dingen. Het veroveren van de hele provincie loopt dus via de grote lagen.
-- Er is geen aparte cutscène bij een veroverd gebied: een kaartje met titel, grapje en geld, en een vlag op de kaart.
+- Er is een intocht per veroverd gebied (zie **Intocht na een verovering**): één film per speler, met een wachtrij en een rust-poort; de knop om hem terug te kijken en de preview volgen nog.
 - Een safehouse heeft geen binnenkant en geen bezoek van medespelers; de inrichting is buiten te zien en in het menu te lezen.
 - Het binnenpunt van een woonplaats of wijk kan in het water vallen (Delfzijl ligt deels in de Eems): bij het plaatsen zoekt het spel in ringen tot 1,8 km naar droge, open grond binnen het land van de provincie (`provinceLandAt`, dus niet de Eems of de Waddenzee). Vindt het die niet, dan is dat huisje onbruikbaar (geen deur, geen reizen). Het kaartpictogram staat tot de plek vastgezet is (binnen 200 m) nog op het binnenpunt.
 - Peiljaar 2025: nieuwe gemeentelijke herindelingen komen pas mee na een nieuwe `fetch_grenzen.mjs --haal-op`, `grenzen.mjs` en een commit van `game/grenzen.json`.
