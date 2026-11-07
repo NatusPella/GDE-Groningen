@@ -11,7 +11,7 @@ export function fadeFlash(richting = 'in') {
   if (typeof document === 'undefined') return;
   if (!fadeEl) {
     fadeEl = document.createElement('div');
-    fadeEl.style.cssText = 'position:fixed;inset:0;z-index:8000;background:#000;opacity:0;pointer-events:none;transition:opacity 0.35s;';
+    fadeEl.className = 'cp-fade';
     document.body.appendChild(fadeEl);
   }
   fadeEl.style.opacity = '1';
@@ -29,8 +29,8 @@ function updateMeedoenChip(world) {
   if (!u) { if (meedoenEl) meedoenEl.style.display = 'none'; return; }
   if (!meedoenEl) {
     meedoenEl = document.createElement('div');
+    meedoenEl.className = 'cp-meedoen';
     meedoenEl.setAttribute('role', 'status');
-    meedoenEl.style.cssText = 'position:fixed;left:50%;bottom:96px;transform:translateX(-50%);z-index:7000;max-width:min(560px,92vw);padding:8px 14px;border-radius:10px;background:rgba(20,24,32,0.88);color:#fff;font:600 14px/1.35 system-ui,sans-serif;text-align:center;pointer-events:none;';
     document.body.appendChild(meedoenEl);
   }
   const t = uitnodigingTekst(u);

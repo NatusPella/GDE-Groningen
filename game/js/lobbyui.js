@@ -133,10 +133,10 @@ export function mountLobby(root, hooks, opts = {}) {
     const chip = (act, label, aan) => `<button type="button" class="m-chip coop-chip" data-act="${act}" aria-pressed="${aan}"${aan ? ' style="background:rgba(240,237,228,.12);color:var(--ink)"' : ''}>${esc(label)}</button>`;
     const li = v.lijstInfo;
     const sessies = li ? `<div class="coop-lijst" role="region" aria-label="Openbare sessies">
-      <div class="coop-lijst-balk" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0">
-        <label class="m-inp" style="flex:1;min-width:180px"><span class="ss-label">Zoeken</span><input class="coop-lijst-zoek" type="search" placeholder="Zoek op naam" aria-label="Zoek in openbare sessies" autocomplete="off" spellcheck="false" maxlength="60" value="${esc(li.zoek)}"></label>
+      <div class="coop-lijst-balk">
+        <label class="m-inp coop-lijst-zoek-veld"><span class="ss-label">Zoeken</span><input class="coop-lijst-zoek" type="search" placeholder="Zoek op naam" aria-label="Zoek in openbare sessies" autocomplete="off" spellcheck="false" maxlength="60" value="${esc(li.zoek)}"></label>
       </div>
-      <div class="coop-lijst-filters" role="group" aria-label="Filters" style="display:flex;flex-wrap:wrap;gap:6px;margin:6px 0">
+      <div class="coop-lijst-filters" role="group" aria-label="Filters">
         ${chip('lijst-filter-alleenAansluitbaar', 'Aansluitbaar', li.filters.alleenAansluitbaar)}
         ${chip('lijst-filter-alleenFavorieten', 'Favorieten', li.filters.alleenFavorieten)}
         ${chip('lijst-filter-alleenVers', 'Vers', li.filters.alleenVers)}
@@ -144,12 +144,12 @@ export function mountLobby(root, hooks, opts = {}) {
         ${chip('lijst-plek-vrij', 'Vrij', li.filters.plek === 'vrij')}
         ${chip('lijst-plek-vol', 'Vol', li.filters.plek === 'vol')}
       </div>
-      <div class="coop-lijst-sorteren" role="group" aria-label="Sorteren" style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0 10px">
+      <div class="coop-lijst-sorteren" role="group" aria-label="Sorteren">
         <span class="mut">Sorteren:</span>${li.sorteringen.map((x) => chip('lijst-sorteer-' + x.id, x.label, x.gekozen)).join('')}
       </div>
       <p class="coop-lijst-teller mut" role="status"${li.telling ? '' : ' hidden'}>${esc(li.telling)}</p>
-      <div class="coop-sessies" role="list">${v.sessies.map((x) => `<div class="coop-sessie" role="listitem" style="display:flex;gap:8px;align-items:stretch;margin:6px 0${x.dim ? ';opacity:.55' : ''}"><button type="button" class="m-bt coop-btn coop-ster" data-act="${x.ster}" aria-pressed="${x.favoriet}" aria-label="${x.favoriet ? 'Favoriet af: ' : 'Favoriet: '}${esc(x.naam)}" title="Favoriet"><span class="ss-label" aria-hidden="true">${x.favoriet ? '★' : '☆'}</span></button><button type="button" class="${x.kan ? 'm-bp' : 'm-bg'} coop-btn coop-sessie-knop" data-act="${x.act}" style="flex:1;text-align:left"${x.kan ? '' : ' aria-disabled="true"'}><span class="ss-label">${esc(x.tekst)}</span>${x.leeftijd ? `<span class="coop-leeftijd mut" aria-label="${esc(x.leeftijdLang)}"> · ${esc(x.leeftijd)}</span>` : ''}</button><button type="button" class="m-bt coop-btn" data-act="${x.meld}" aria-label="Melden: ${esc(x.naam)}"><span class="ss-label">Melden</span></button></div>`).join('')}</div>
-      ${li.meer ? `<div style="margin:10px 0"><button type="button" class="m-bg coop-btn" data-act="lijst-meer"><span class="ss-label">Meer laden</span></button></div>` : ''}
+      <div class="coop-sessies" role="list">${v.sessies.map((x) => `<div class="coop-sessie" role="listitem"${x.dim ? ' data-dim="1"' : ''}><button type="button" class="m-bt coop-btn coop-ster" data-act="${x.ster}" aria-pressed="${x.favoriet}" aria-label="${x.favoriet ? 'Favoriet af: ' : 'Favoriet: '}${esc(x.naam)}" title="Favoriet"><span class="ss-label" aria-hidden="true">${x.favoriet ? '★' : '☆'}</span></button><button type="button" class="${x.kan ? 'm-bp' : 'm-bg'} coop-btn coop-sessie-knop" data-act="${x.act}"${x.kan ? '' : ' aria-disabled="true"'}><span class="ss-label">${esc(x.tekst)}</span>${x.leeftijd ? `<span class="coop-leeftijd mut" aria-label="${esc(x.leeftijdLang)}"> · ${esc(x.leeftijd)}</span>` : ''}</button><button type="button" class="m-bt coop-btn" data-act="${x.meld}" aria-label="Melden: ${esc(x.naam)}"><span class="ss-label">Melden</span></button></div>`).join('')}</div>
+      ${li.meer ? `<div class="coop-meer"><button type="button" class="m-bg coop-btn" data-act="lijst-meer"><span class="ss-label">Meer laden</span></button></div>` : ''}
     </div>` : '';
     // het kleine formulier voor je online-avatar (#455): naam (hoogstens 16 tekens) en een kleur uit de vaste set
     const prof = v.profiel ? `<div class="coop-profiel" style="display:flex;flex-direction:column;gap:8px;margin:10px 0"><label class="coop-profiel-label" style="display:flex;gap:8px;align-items:center"><span>Online naam</span><input class="coop-profiel-naam" type="text" spellcheck="false" autocomplete="off" maxlength="${v.profiel.maxLength}" placeholder="Je figuur" value="${esc(v.profiel.naam)}" style="min-width:0;flex:1;max-width:260px"></label><div class="coop-kleuren" role="group" aria-label="Kleur" style="display:flex;flex-wrap:wrap;gap:6px">${v.profiel.kleuren.map((c) => `<button type="button" class="m-bg coop-kleur" data-kleur="${c.hex}" aria-pressed="${c.hex === v.profiel.kleur}" title="${esc(c.naam)}"><span class="ss-label"><span style="color:${c.hex}" aria-hidden="true">●</span> ${esc(c.naam)}</span></button>`).join('')}</div><p class="coop-profiel-hint" style="margin:0">${esc(v.profiel.tekst)} Laat je de naam leeg, dan zien de anderen de naam van je figuur. Je staat standaard op passief: medespelers kunnen je geen schade doen.</p>${v.profiel.fout ? `<p class="coop-error" role="alert">${esc(v.profiel.fout)}</p>` : ''}</div>` : '';

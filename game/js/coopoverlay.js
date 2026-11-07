@@ -34,6 +34,18 @@ export function mountOverlay({ title = '', text = '', buttons = [], label = '', 
   focus();
   return {
     el, pane,
+    // Tekent dezelfde surface opnieuw (andere titel/tekst/knoppen); de klikafhandeling blijft.
+    render(nieuw = {}) {
+      const o = { title, text, buttons, label, ...nieuw };
+      const tmp = document.createElement('div');
+      tmp.innerHTML = overlayHtml(o);
+      const vers = tmp.firstElementChild;
+      if (!vers) return;
+      el.className = vers.className;
+      for (const a of ['role', 'aria-modal', 'aria-label']) { const v = vers.getAttribute(a); if (v) el.setAttribute(a, v); }
+      el.innerHTML = vers.innerHTML;
+      focus();
+    },
     close() { try { el.removeEventListener('click', klik); el.remove(); } catch (e) { /* al weg */ } },
     focus,
   };
