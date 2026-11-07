@@ -23,6 +23,8 @@ const SCENES = {
   'M07.intro': ['M07.1'], 'M07.outro': ['M07.3'], 'M08.intro': ['M08.1'], 'M08.outro': ['M08.3'], 'M09.intro': ['M09.1'], 'M09.outro': ['M09.4'],
   'M10.intro': ['M10.1'], 'M11.intro': ['M11.1'], 'M11.outro': ['M11.8'],
 };
+// #742: de nachtscène heeft eigen specs per scriptscène (M11.5, M11.6), net als de akte-4-slices
+for (const k of Object.keys(SPECS)) if (/^M\d+\.\d+$/.test(k)) SCENES[k] = [k];
 const NAME = { T: 'Tammo', A: 'Anita' };
 // the timeline of missionstory.js without recordings: reading time, 0.6 s lead, 0.1 s between
 function linesOf(ids) {

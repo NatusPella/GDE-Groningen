@@ -65,13 +65,19 @@ for (const d of mine) {
   for (const q of d.stages) for (const kind of [q.kind]) ok(new RegExp(`case '${kind}'`).test(src) || kind === 'board', `${d.label}: missions.js handles ${kind}`);
 }
 ok(mine[0].boatAt && mine[0].boatModel === 'sloep' && mine[0].stages[0].kind === 'board', 'bruggen: a sloep to board');
-ok(mine[1].stages.map((q) => q.kind).join() === 'goto,choice,scene,goto,timing,timing,hold,goto', 'wiebelwerk: walk in, intake, how wary the manager got, servers (sneak past the cameras, harder when he is wary), logbook, out');
+ok(mine[1].stages.map((q) => q.kind).join() === 'goto,choice,scene,goto,timing,timing,hold,scene,goto', 'wiebelwerk: walk in, intake, how wary the manager got, servers (sneak past the cameras, harder when he is wary), logbook as its own scene, out');
+// #743: de clue is een eigen, skippbare scène in de serverkamer; geen 54 s talk meer tijdens het sluipen
+ok(!mine[1].stages.some((q) => q.talk && (q.talk.ids || []).includes('M18.3')), 'wiebelwerk: het logboek is geen talk meer tijdens het sluipen');
+ok(mine[1].stages.some((q) => q.kind === 'scene' && (q.script?.ids || []).includes('M18.3')), 'wiebelwerk: M18.3 speelt als eigen scène');
 ok(mine[2].stages.some((q) => q.kind === 'rit' && q.exit), 'stoom: a train ride that ends outside the train');
 ok(mine[3].stages.filter((q) => q.kind === 'hold' && q.fireworks).length >= 5, 'beleg: two walls and three cellar doors are held against the bangs, with a run in between');
 const list = [{ label: 'Iedereen heeft een rode auto gezien', stages: [], start: {} }];
 applyAkte4(list);
 const fj = list[0];
 ok(fj.fjordTrain === false && fj.stages.filter((q) => q.kind === 'choice').length === 2, 'fjord: Tessa\'s wagon choice and Tammo\'s friends');
+// #739: M21.4 is geen dode scène meer: hij speelt als stage-outro van Tammo's deel, na de keuzepuzzel
+const laatste = fj.stages[fj.stages.length - 1];
+ok(laatste && laatste.kind === 'scene' && (laatste.script?.ids || []).includes('M21.4'), 'fjord: M21.4 speelt als stage-outro van Tammo\'s deel');
 void applyNieuw;
 
 // --- places: near the real town, inside the province
@@ -117,5 +123,12 @@ ok(friends.rounds.length === 4 && friends.rounds.every((r) => r.options.every((o
 ok(mine.some((d) => d.stages.some((q) => q.kind === 'timing' && q.vaultJump)), 'M20: the duel timing stage has vaultJump');
 const ms = fs.readFileSync(new URL('js/missionstory.js', root), 'utf8');
 ok(/export function playDuelJump/.test(ms) && /playDuelJump/.test(src), 'playDuelJump exists and missions.js uses it');
+// #745: de meegegeven stage blijft in missionstory staan; een replay of vrij gestarte missie speelt de korte variant
+{
+  const msrc = fs.readFileSync(new URL('js/missionstory.js', root), 'utf8');
+  ok(!/\n  stage = i;\n/.test(msrc), 'playStoryIntro zet de stage van de aanroeper niet terug op i');
+  ok(!/opts = \{ \.\.\.opts, stage: i \};/.test(msrc), 'playStoryOutro zet de stage van de aanroeper niet terug op i');
+  ok(/export function playStoryIntro\(w, i, \{ stage = i,/.test(msrc) && /export function playStoryOutro\(w, i, opts = \{\}\) \{/.test(msrc), 'beide houden de stage-parameter');
+}
 console.log(`${n - fails}/${n} akte 4 checks passed`);
 process.exit(fails ? 1 : 0);
