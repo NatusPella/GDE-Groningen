@@ -1,7 +1,7 @@
 # 0013 - Eén testrunner met drie fasen
 
-- **Status:** besloten (25-10-2026)
-- **Datum:** 2026-10-25
+- **Status:** besloten
+- **Datum:** 2026-10-25 (#481)
 - **Spec:** `.specs-fire/standards/publicatie.md` en `testing-standards.md`
 
 ## Context

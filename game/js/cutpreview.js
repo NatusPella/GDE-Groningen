@@ -15,14 +15,61 @@ import './cutscenes_akte3.js';
 import './cutscenes_akte4.js';
 import './cutscenes_akte6.js';
 import { OPENING_ACTS, openingActs, END_CARD, flatScene } from './cutscenes.js';
+import { INTOCHTEN, tourKeys } from './wijkintocht.js';
+import { pathShot } from './camerapath.js';
 import { STEPS } from './storyarc_nieuw.js';
 import { propFoot } from './cutscenemodels.js';
 
 export const STATUS = { ok: 'ok', warn: 'waarschuwing', error: 'fout' };
 export const STATUS_LABEL = { ok: 'In orde', waarschuwing: 'Let op', fout: 'Fout' };
 const NOT_CHECKED = 'Botsing met gebouwen is niet gecontroleerd: daar is de wereld voor nodig.';
+// #723: de momenten en de intochten staan als catalogusregel in de preview, met hun duur en of ze
+// overgeslagen kunnen worden. Hun camera hangt aan de wereld (playCinematic of de intocht-tour), dus
+// er is geen pure scène: `scene` is null en de preview toont de melding in plaats van een beeld.
+export const MOMENT_PREVIEW = [
+  { id: 'moment:landmark', title: 'Landmerk', duration: 8, pause: true, skippable: true },
+  { id: 'moment:ommelanden', title: 'Ommelanden', duration: 9, pause: true, skippable: true },
+  { id: 'moment:crash', title: 'Crash', duration: 1.2, pause: false, skippable: false, timeScale: 0.22 },
+  { id: 'moment:wanted5', title: 'Vijf sterren', duration: 1.6, pause: false, skippable: false, timeScale: 0.4 },
+  { id: 'moment:mission-intro', title: 'Missie-intro', duration: 4.8, pause: true, skippable: true },
+  { id: 'moment:death', title: 'Dood of opgepakt', duration: 3.2, pause: false, skippable: true },
+];
 
 const SPEAKER_NAME = { T: 'Tammo', A: 'Anita' };
+
+// #708: een intocht is een wereldfilm, maar de camera-baan is puur: de catalogus
+// kan hem met de ankers uit de scenecatalogus wél scrubben. acteurs/props blijven
+// leeg; de preview toont de camera en de regels, niet de echte wereld.
+function intochtPreview(scene) {
+  const stops = (scene.ankers || []).map((a, i) => ({ id: 'a:' + i, naam: a.naam, x: a.x, y: a.y, hoog: a.h || 0 }));
+  const cx = stops.reduce((s, a) => s + a.x, 0) / (stops.length || 1);
+  const cy = stops.reduce((s, a) => s + a.y, 0) / (stops.length || 1);
+  const keys = tourKeys({ x: cx, y: cy }, stops, null, { hoog: 20 });
+  const shot = pathShot(keys, (t) => t);
+  const duration = scene.seconden || 30;
+  const lines = (scene.regels || []).map((r, i) => ({ speaker: r.stem, text: r.tekst, at: 1 + i * 4, dur: 3.2 }));
+  const sceneSample = {
+    duration,
+    shots: keys.map((_, i) => ({ t: i ? (i / Math.max(1, keys.length - 1)) * duration : 0 })),
+    sample(t) {
+      const u = Math.max(0, Math.min(1, t / duration));
+      const pose = shot(u);
+      return {
+        actors: {}, props: {}, speaker: null,
+        camera: { ...pose, shotIndex: Math.min(keys.length - 1, Math.floor(u * keys.length)), cut: false },
+      };
+    },
+  };
+  return {
+    id: 'intocht:' + scene.wijk, group: 'Intochten', title: scene.titel,
+    status: 'waarschuwing', scene: sceneSample, def: null, lines, duration,
+    skippable: true, pause: true, hostOnly: false, coop: 'lokaal per speler',
+    warnings: ['camera-preview zonder wereld: de echte intocht speelt op de kaart, de gast kan hem lokaal herkijken'],
+    issues: [], shots: sceneSample.shots,
+    rhythm: { longestStill: 0, stillAt: 0, shots: keys.length },
+  };
+}
+
 const MAX_STEP = 0.45; // m between two frames of 0.1 s: more is a jump
 export const MAX_CAMERA_STILL = 8; // s the camera may hold still (ritme-regel, #136)
 const NEAR = 45; // m the camera may stray from the anchor
@@ -166,8 +213,11 @@ export function buildCatalog({ script, npcSource = '', looks = null }) {
     const sl = sliceOf(key);
     const { lines, total } = linesOf(script, ids, L, sl ? [sl.from, sl.to] : null);
     if (!ids.length || !lines.length) {
-      out.push(entryFor({ id: key, group: 'Missies', title: key, def: null, lines: [], duration: 0 }));
-      out[out.length - 1].issues = ['geen scriptregels voor ' + (ids.join(', ') || key)];
+      // #723: een scène zonder eigen dialoog (een mime- of split-scène zoals M16.dijk, die zijn regie
+      // van een andere scène leent) is geen fout in de preview maar een waarschuwing: er is wel regie,
+      // alleen geen pure sample. Zo blijft hij zichtbaar in de lijst zonder de catalogus rood te maken.
+      const its = ['geen eigen scriptregels voor ' + (ids.join(', ') || key) + ': mime- of split-scène, alleen de regie is bekend'];
+      out.push({ ...entryFor({ id: key, group: 'Missies', title: key, def: null, lines: [], duration: 12 }), status: 'waarschuwing', scene: null, duration: 12, skippable: false, issues: its, warnings: [] });
       continue;
     }
     const def = missing ? null : missionScene(key, lines, { looks: L });
@@ -181,6 +231,17 @@ export function buildCatalog({ script, npcSource = '', looks = null }) {
       out.push(entryFor({ id, group: 'Thuisavonden', title, def: flatScene(variant, home.lines), lines: home.lines, duration: home.total }));
     }
   }
+  // #723: de momenten en intochten (host-only, camera aan de wereld)
+  for (const m of MOMENT_PREVIEW) {
+    out.push({
+      id: m.id, group: m.id.startsWith('intocht:') ? 'Intochten' : 'Momenten', title: m.title,
+      status: 'waarschuwing', scene: null, duration: m.duration, skippable: m.skippable,
+      pause: !!m.pause, hostOnly: !!m.hostOnly, lines: [], warnings: [],
+      issues: ['alleen voor wie het spel opende: een film met een eigen camerabaan; de preview heeft de wereld nodig en toont geen beeld'],
+    });
+  }
+  // #708: de handgeschreven intochten zijn met hun ankers wel scrubbaar (camera-only).
+  for (const scene of INTOCHTEN) out.push(intochtPreview(scene));
   return out;
 }
 

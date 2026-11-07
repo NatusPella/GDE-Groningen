@@ -1,5 +1,7 @@
 # Design system: known deviations and open UX debt
 
+> **Leeswijzer (Nederlands).** Dit document is technische naslag (bekende ontwerpschuld; de regels staan in ui-taal.md); de tekst is daarom Engels (uitzondering in ADR 0017, #692). De regels staan in [ui-taal.md](../.specs-fire/standards/ui-taal.md) en `AGENTS.md` wint bij twijfel. Nederlands is de taal van proza en van alles wat de speler ziet of hoort.
+
 Where the code differs from [DESIGN_SYSTEM.md](../DESIGN_SYSTEM.md) and its detail pages, found by reading the code on 24 October. It is a list of facts, not a plan; the issue board decides the order.
 Nothing here was seen on screen by a human unless it says so; most was found by reading CSS and strings. Status words: **open** (code breaks the rule), **besluit nodig** (the rule or the code has to change, the owner decides), **docs** (the text was wrong, fixed or to fix).
 When you fix one, remove the row in the same commit.

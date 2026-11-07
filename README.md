@@ -177,7 +177,7 @@ beperken". Het volledige overzicht staat in
 | 3D en spel | [three.js](https://threejs.org/) r160, gewone JavaScript ES-modules, geen bundler en geen npm-pakketten in het spel |
 | Desktopapp | [Electron](https://www.electronjs.org/), gebouwd met electron-builder, volledig offline |
 | Kaart | [OpenStreetMap](https://www.openstreetmap.org/) via Overpass, omgezet met de Python-scripts in `scripts/` |
-| Stemmen | Google Gemini TTS (via OpenRouter), ingesproken in het Gronings; per map vastgelegd in `tts.json` |
+| Stemmen | Google Gemini TTS via de LiteLLM-gateway van de eigenaar (nieuwe clips; oude clips zijn via OpenRouter gemaakt), ingesproken in het Gronings; per map vastgelegd in `tts.json` |
 | Muziek | gemaakt met Google Gemini |
 | Geluidseffecten, texturen, modellen | in de code zelf gemaakt (procedureel); de Martinitoren is gemodelleerd met Claude Design |
 

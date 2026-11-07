@@ -5,7 +5,7 @@
 # (logged with an accepted model, see gemini_tts.ACCEPTED) are skipped; clips are
 # loudness-matched to the story lines (-18 LUFS). Stops once the run's spend
 # nears the budget, metered by gemini_tts.usage() (#462).
-# Flash is never used again (ADR 0019); --provider openrouter still exists.
+# Flash is never used again (ADR 0019). All takes go through the owner's LiteLLM gateway (#689).
 #   python3 scripts/tts_lines.py [max_jobs] [--budget 2.5]
 #   python3 scripts/tts_lines.py --dry-run             (only show what a run would record)
 #   python3 scripts/tts_lines.py 12 --out proef        (a listen, no manifest of the game)
@@ -30,13 +30,12 @@ args = [a for a in sys.argv[1:]]
 DRY = any(a in ('--dry', '--dry-run') for a in args)
 args = [a for a in args if a not in ('--dry', '--dry-run')]
 budget, OUT_DIR, JOBS = 2.5, None, os.path.join(REPO, 'scripts', 'tts_lines.json')
-for flag in ['--budget', '--provider', '--model', '--rpm', '--out', '--jobs']:
+for flag in ['--budget', '--model', '--rpm', '--out', '--jobs']:
     if flag in args:
         i = args.index(flag)
         if i + 1 >= len(args): raise SystemExit(f'{flag} needs a value')
         value = args[i + 1]; del args[i:i + 2]
         if flag == '--budget': budget = float(value)
-        elif flag == '--provider': configure(provider=value)
         elif flag == '--model': configure(model=value)
         elif flag == '--rpm': configure(rpm=float(value))
         elif flag == '--out': OUT_DIR = value  # a scratch folder for a listen (a proef, not a manifest)
@@ -143,12 +142,12 @@ if DRY:
         print(f"  [{l['out']}] {l['speaker']} ({l.get('voice', '?')}, {l.get('lang', LANG)}): {l['text']}")
     for l in blocked:
         print(f"  GEBLOKKEERD [{l['out']}] {l['speaker']}: {l['text']}")
-    print(f'geschat: {secs:.0f} s audio, ${secs * rate:.3f} via {gemini_tts.PROVIDER} ({gemini_tts.CURRENT}), budget ${budget:.2f}')
+    print(f'geschat: {secs:.0f} s audio, ${secs * rate:.3f} via litellm ({gemini_tts.CURRENT}), budget ${budget:.2f}')
     print('een echte run schrijft de clips naar game/audio/voicelines/ en werkt daar de manifesten en tts.json-logs bij.')
     print('niets opgenomen en niets geschreven; draai zonder --dry-run om echt op te nemen.')
     sys.exit(0)
 u0 = usage()
-print(f'{len(lines)} jobs via {gemini_tts.PROVIDER} ({gemini_tts.CURRENT}), budget ${budget:.2f}' + (f', out {OUT_DIR}' if OUT_DIR else ''))
+print(f'{len(lines)} jobs via litellm ({gemini_tts.CURRENT}), budget ${budget:.2f}' + (f', out {OUT_DIR}' if OUT_DIR else ''))
 failed = []
 with ThreadPoolExecutor(4) as ex:
     for b in range(0, len(lines), BATCH):
@@ -176,6 +175,6 @@ with ThreadPoolExecutor(4) as ex:
             print(f'{len(lines) - b} regels blijven liggen; de teller van AI Studio reset vanzelf.')
             break
 time.sleep(3)
-print(f'spent ${usage() - u0:.4f} via {gemini_tts.PROVIDER}')
+print(f'spent ${usage() - u0:.4f} via litellm')
 for f in failed:
     print('missing:', f)

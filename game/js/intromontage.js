@@ -50,10 +50,6 @@ const voices = openBank('story').entries;
 const SEEN_KEY = KEYS.introSeen;
 const PED_TARGET = 40;
 
-export function introSeen() {
-  try { return localStorage.getItem(SEEN_KEY) === '1'; } catch (e) { return false; }
-}
-
 function markIntroSeen() {
   try { localStorage.setItem(SEEN_KEY, '1'); } catch (e) { /* ignore */ }
 }

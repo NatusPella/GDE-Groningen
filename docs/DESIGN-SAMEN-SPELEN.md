@@ -1,5 +1,7 @@
 # Design system: Samen spelen
 
+> **Leeswijzer (Nederlands).** Dit document is technische naslag (ontwerp van Samen spelen; de regels staan in multiplayer.md); de tekst is daarom Engels (uitzondering in ADR 0017, #692). De regels staan in [multiplayer.md](../.specs-fire/standards/multiplayer.md) en `AGENTS.md` wint bij twijfel. Nederlands is de taal van proza en van alles wat de speler ziet of hoort.
+
 How the UI of Samen spelen (multiplayer) looks and behaves, and what every new screen has to answer about it. The rules of the model are in ARCHITECTURE.md "Multiplayer" and AGENTS.md
 ("Multiplayer bij ontwerp"); the player's manual is [SAMEN-SPELEN-HANDLEIDING.md](SAMEN-SPELEN-HANDLEIDING.md); what a guest sees in game is in [COOP-GAST.md](COOP-GAST.md) and the handover in [COOP-OVERDRAGEN.md](COOP-OVERDRAGEN.md).
 Back to [DESIGN_SYSTEM.md](../DESIGN_SYSTEM.md). None of the screens below has been seen by a human in the finished game; the lists and cards were checked in code and in the bot tests only.

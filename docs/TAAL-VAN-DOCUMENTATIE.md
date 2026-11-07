@@ -1,6 +1,6 @@
 # Taal van de documentatie: besluit voor de eigenaar (#692)
 
-**Status: wacht op de eigenaar.** [ADR 0017](../../.specs-fire/standards/adr/0017-code-in-het-engels.md)
+**Status: besloten op 7 november 2026 — optie 1.** De eigenaar koos Nederlands proza, behalve pure technische naslag; de uitzondering staat in ADR 0017 en elk uitgezonderd document heeft een Nederlandse leeswijzer bovenaan. [ADR 0017](../../.specs-fire/standards/adr/0017-code-in-het-engels.md)
 en [AGENTS.md](../../AGENTS.md) schrijven Nederlands voor als proza-taal (docs, specs, ADR's,
 changelog, issues, commits). Een groot deel van de documentatie is in de praktijk (bijna) Engels.
 Dat is geen stille uitzondering: het is een besluit dat de eigenaar moet nemen, anders is de regel

@@ -1,5 +1,6 @@
 # Spec: UI, menu's en taal
 
+> **Wijk of buurt (#716):** de 66 punten van de HUD/kaart heten **buurt**; de CBS-laag van Veroverd heet **gebied/wijk** en gebruikt de CBS-naam. Gebruik nooit "wijk" voor de 66 punten en nooit "buurt" voor de veroverlaag als geheel.
 > Canonieke spec voor alles wat de speler ziet en leest. Vervangt de regels uit
 > `DESIGN_SYSTEM.md`, `docs/DESIGN-BEDIENING.md`, `docs/DESIGN-COMPONENTEN.md`,
 > `docs/INCLUSIEVE-TAAL.md`, `docs/WOORDENLIJST.md`, `docs/DIALECT-CONTROLE.md` en
