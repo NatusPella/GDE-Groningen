@@ -250,18 +250,29 @@ function policeUnitActive(world, v) {
   return v.sirenOn || (v.isPolice && !v._mount && !v._commandeered && world.wanted > 0 && !v.hijacked && v.driver !== 'player');
 }
 
+const _polNear = [], _polPool = [], _polKeep = [];
+let _polPoolI = 0;
 function updatePoliceLights(world, vehicleMeshes, px, py, night) {
   if (!policeLights.length) return;
-  const near = [];
+  // #658: bij dag en geen wanted-of-sirene is er niets te doen; geen scan/allocaties
+  if (night < 0.05 && !(world.wanted > 0) && !world.vehicles.some((v) => v.sirenOn && !v.wrecked)) {
+    for (const l of policeLights) l.intensity = 0;
+    return;
+  }
+  _polNear.length = 0; _polKeep.length = 0; _polPoolI = 0;
   for (const v of world.vehicles) {
     if (!policeUnitActive(world, v) || !vehicleMeshes.has(v.id)) continue;
     const d = Math.hypot(v.x - px, v.y - py);
-    if (d < POLICE_VIEW) near.push({ v, d });
+    if (d < POLICE_VIEW) {
+      let e = _polPool[_polPoolI];
+      if (!e) e = _polPool[_polPoolI] = { v: null, d: 0 };
+      _polPoolI++; e.v = v; e.d = d; _polNear.push(e);
+    }
   }
-  near.sort((a, b) => a.d - b.d);
-  const keep = new Set(near.slice(0, policeLights.length).map((n) => n.v));
-  for (const l of policeLights) if (l.userData.unit && !keep.has(l.userData.unit)) l.userData.unit = null;
-  for (const v of keep) {
+  _polNear.sort((a, b) => a.d - b.d);
+  for (let i = 0; i < _polNear.length && i < policeLights.length; i++) _polKeep.push(_polNear[i].v);
+  for (const l of policeLights) if (l.userData.unit && !_polKeep.includes(l.userData.unit)) l.userData.unit = null;
+  for (const v of _polKeep) {
     if (policeLights.some((l) => l.userData.unit === v)) continue;
     const free = policeLights.find((l) => !l.userData.unit);
     if (free) free.userData.unit = v;
@@ -476,20 +487,28 @@ function updateLampColors(night, wet) {
 }
 const _c2 = new THREE.Color();
 
+// #658: hergebruikte lijsten en objecten i.p.v. een nieuwe array + Set per frame
+const _lampNear = [], _lampPool = [], _lampKeep = [];
+let _lampPoolI = 0;
 function updateRealLampLights(px, py) {
   if (!pointLights.length) return;
-  const near = [];
+  _lampNear.length = 0; _lampKeep.length = 0; _lampPoolI = 0;
   for (const l of visible) {
     if (l.on <= 0.01) continue;
     const d = Math.hypot(l.lx - px, l.ly - py);
-    if (d < LAMP_REAL_RANGE) near.push({ l, d });
+    if (d < LAMP_REAL_RANGE) {
+      let e = _lampPool[_lampPoolI];
+      if (!e) e = _lampPool[_lampPoolI] = { l: null, d: 0 };
+      _lampPoolI++; e.l = l; e.d = d; _lampNear.push(e);
+    }
   }
-  near.sort((a, b) => a.d - b.d);
-  const keep = new Set(near.slice(0, pointLights.length).map((n) => n.l));
+  _lampNear.sort((a, b) => a.d - b.d);
+  for (let i = 0; i < _lampNear.length && i < pointLights.length; i++) _lampKeep.push(_lampNear[i].l);
   for (const light of pointLights) {
-    if (light.userData.lamp && !keep.has(light.userData.lamp)) light.userData.lamp = null;
+    if (light.userData.lamp && !_lampKeep.includes(light.userData.lamp)) light.userData.lamp = null;
   }
-  for (const n of near.slice(0, pointLights.length)) {
+  for (let i = 0; i < _lampNear.length && i < pointLights.length; i++) {
+    const n = _lampNear[i];
     if (pointLights.some((pl) => pl.userData.lamp === n.l)) continue;
     const free = pointLights.find((pl) => !pl.userData.lamp);
     if (free) free.userData.lamp = n.l;
