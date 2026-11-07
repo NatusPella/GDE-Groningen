@@ -1,4 +1,5 @@
 import { hoofdspeler } from './players.js';
+import { gridItems } from './spatialgrid.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { applyWetGround, WET_UNIFORMS } from './terrain3d.js';
 import { applyCutMask } from './cutmask3d.js';
@@ -839,7 +840,8 @@ export function initGrass(sc, mp, opts) {
   map = mp;
   polyGeometry = opts.polyGeometry;
   chunks = new Map();
-  for (const g of map.green) {
+  // #314 C1/C2: de gras-chunks over de groenlaag uit het raster (de arraylaag kan sparse zijn)
+  for (const g of map.greenGrid ? gridItems(map.greenGrid) : []) {
     if (!g.bounds || g.pts.length < 3) continue;
     const i = Math.floor((g.bounds[0] + g.bounds[2]) / 2 / CHUNK), j = Math.floor((g.bounds[1] + g.bounds[3]) / 2 / CHUNK);
     const key = i + ',' + j;
@@ -891,7 +893,7 @@ function polysOverlap(a, b) {
 // would fight; the later one moves half a depth step up.
 function assignSubLayers(map) {
   const seen = new Set();
-  for (const g of map.green) {
+  for (const g of map.greenGrid ? gridItems(map.greenGrid) : []) {
     if (!g.bounds || g.pts.length < 3) continue;
     const b = g.bounds;
     const used = [false, false];

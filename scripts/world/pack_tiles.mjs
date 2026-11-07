@@ -305,7 +305,8 @@ export function writeWorld(out, { blobs, global, counts, pois }, citySet = null)
   const index = { format: G.GDT_FORMAT, builder: BUILDER, frame: 'rd-new', tileM: G.TILE_M, grid: [G.GRID_X0, G.GRID_Y0], rdTile0: [G.RD_TILE_X0, G.RD_TILE_Y0], counts, pois, packs: {}, tiles: {}, global: null, pins: {},
     // #314 C1/C2: deze soorten mogen een sparse arraylaag hebben (rijen alleen in _res en de
     // rasters): fromTiles slaat hun array over en dropTile/addTile houden ze per tegel bij.
-    sparse: ['rails', 'furniture'] };
+    // Wegen en water blijven dicht tot hun resterende lezers (stable ids/writers) om zijn.
+    sparse: ['rails', 'furniture', 'buildings', 'trees', 'green'] };
   const writePack = (name, entries) => {
     const parts = [];
     let off = 0;
