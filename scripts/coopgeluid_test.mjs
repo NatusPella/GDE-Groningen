@@ -75,11 +75,14 @@ t('de demptoets werkt ook zonder audio-context (een gast met een bewaarde dempst
   assert.match(audio, /if \(!menuAudio && !SILENT_MODE && world\.input && world\.input\.wasPressed\('u'\)\) toggleMute\(\)/);
 });
 t('na dempen start de audio-context weer en blijft de stand bewaard', () => {
+  // #497: de mute-stand woont in audiomute.js; audio.js levert de host-naad
   const fn = audio.slice(audio.indexOf('export function setMuted'), audio.indexOf('export function toggleMute'));
-  assert.match(fn, /saveMuted\(\)/);
-  assert.match(fn, /resumeCtx\('unmute'\)/);
-  assert.match(fn, /unlockAudio\(\)/);
-  assert.match(fn, /dempMelding\(muted/);
+  assert.match(fn, /muteController\.setMuted\(on\)/);
+  const mute = src('game/js/audiomute.js');
+  assert.match(mute, /saveMuted\(key, next, st\)/);
+  assert.match(audio, /resume: \(\) => resumeCtx\('unmute'\)/);
+  assert.match(audio, /unlock: \(\) => unlockAudio\(\)/);
+  assert.match(audio, /notify: \(aan, \{ touch \}\) => dempMelding\(aan, \{ touch \}\)/);
 });
 t('de HUD-indicator is een knop die het geluid weer aanzet, met de toets erbij', () => {
   assert.match(hud, /<button[^>]*class="hud-chip hud-mute"/);

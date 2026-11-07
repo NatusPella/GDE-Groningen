@@ -221,7 +221,7 @@ function cardHtml(c) {
   // #631: een bijbaankaart draagt de sfeer van zijn vak als klein bandje (bestaande tint en motief).
   const sfeer = s.sfeerVak ? sfeerVan(s.sfeerVak) : null;
   const band = sfeer && sfeer.naam
-    ? `<div class="hc-sfeer" style="display:flex;gap:6px;align-items:center;margin:2px 0 3px;padding:3px 6px;border-radius:4px;${sfeerStijl(s.sfeerVak)}"><small style="opacity:.85">${esc(sfeer.naam)}</small><span style="opacity:.7;font-size:11px">${esc(sfeer.motief || '')}</span></div>`
+    ? `<div class="hc-sfeer" style="display:flex;gap:6px;align-items:center;margin:2px 0 3px;padding:3px 6px;border-radius:4px;${sfeerStijl(s.sfeerVak)}"><small style="opacity:.85">${esc(sfeer.naam)}</small><span style="opacity:.7;font-size:12px">${esc(sfeer.motief || '')}</span></div>`
     : '';
   return `<div class="hc-icon">${svg(s.icon || s.kind)}</div>` +
     `<div class="hc-text"><small>${esc(kicker)}</small>${band}${s.title ? `<b>${keycaps(dualHtml(s.title))}</b>` : ''}${s.body ? `<span${s.title ? '' : ' class="solo"'}>${s.bodyHtml || keycaps(dualHtml(s.body))}</span>` : ''}</div>` +
