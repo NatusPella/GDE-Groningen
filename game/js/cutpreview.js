@@ -201,8 +201,8 @@ export function buildCatalog({ script, npcSource = '', looks = null }) {
   const open = linesOf(script, ['C00.1', 'C00.2', 'C00.3'], L);
   const acts = openingActs(open.lines);
   OPENING_ACTS.forEach((def, i) => {
-    const a = acts.find((x) => x.def === def);
-    out.push(entryFor({ id: def.id, group: 'Opening', title: `Opening, deel ${i + 1}`, def, lines: a ? a.lines : [], duration: a ? a.duration : 10 }));
+    const a = acts.find((x) => x.def.id === def.id);
+    out.push(entryFor({ id: def.id, group: 'Opening', title: `Opening, deel ${i + 1}`, def: a ? a.def : def, lines: a ? a.lines : [], duration: a ? a.duration : 10 }));
   });
   out.push(entryFor({ id: END_CARD.id, group: 'Opening', title: 'Eindkaart (Wordt vervolgd)', def: END_CARD, lines: [], duration: 6.5 }));
   // the missions of the new story

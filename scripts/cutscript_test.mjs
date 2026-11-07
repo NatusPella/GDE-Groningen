@@ -32,7 +32,7 @@ ok(resolveTime('end', lines, duration) === duration, 'end');
 
 // the opening: three acts (trailer in the street, the kitchen, moving day), each on its own share of the lines
 const acts = openingActs(lines);
-ok(acts.length === 3 && acts.map((x) => x.lines.length).join() === '3,23,5', 'the opening splits into 3 + 23 + 5 lines', acts.map((x) => x.lines.length).join());
+ok(acts.length === 3 && acts.map((x) => x.lines.length).join() === '3,23,5', 'the opening splits into 3 + 23 + 5 line slots (five kitchen lines cut in #662)', acts.map((x) => x.lines.length).join());
 ok(acts.every((x) => x.lines.every((l, i) => i === 0 || l.at > x.lines[i - 1].at)), 'lines keep their order in every act');
 for (const x of acts) {
   const iss = validateScene(x.def, { lines: x.lines, duration: x.duration });

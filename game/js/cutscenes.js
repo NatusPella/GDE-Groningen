@@ -159,7 +159,7 @@ const ACT_KEUKEN = {
     { t: 'L5', shot: 'cut', at: [-0.4, 0.7, 1.4], look: 'tammo@1.2', fov: 28 },
     { t: 'L6', shot: 'cut', at: [0.6, -0.8, 1.45], look: 'tessa@1.15', fov: 26 },
     { t: 'L7', shot: 'dolly', from: [-0.5, 0.75, 1.35], to: [-0.1, 0.3, 1.3], look: 'tammo@1.2', fov: 30 },
-    { t: 'L7+0.3', shot: 'dolly', from: [0.7, -0.75, 1.35], to: [0.3, -0.75, 1.3], look: 'tessa@1.15', fov: 24 },
+    { t: 'L7+0.3', shot: 'dolly', from: [0.7, -0.75, 1.35], to: [0.3, -0.75, 1.3], look: 'tammo@1.2', fov: 24 },
     { t: 'L8', shot: 'orbit', target: 'mid:tammo,tessa@1.2', radius: 1.7, start: 90, sweep: -50, h0: 1.5, h1: 1.6, fov: 44 },
     { t: 'L10', shot: 'dolly', from: [0.35, -0.85, 1.4], to: [0.1, -0.8, 1.25], look: 'tessa@1.0', fov: 34 },
     { t: 'L10+0.3', shot: 'dolly', from: [-0.5, 0.75, 1.3], to: [-0.3, 0.75, 1.28], look: 'tammo@1.2', fov: 24 },
@@ -174,8 +174,8 @@ const ACT_KEUKEN = {
     { t: 'L15', shot: 'dolly', from: [-0.5, 0.75, 1.3], to: [-0.2, 0.45, 1.27], look: 'tammo@1.2', fov: 22 },
     { t: 'L15+1.0', shot: 'cut', at: [-0.1, -0.7, 1.25], look: [-0.46, -0.3, 0.78], fov: 24 },
     { t: 'L16', shot: 'dolly', from: [0.5, -0.75, 1.4], to: [0.2, -0.75, 1.3], look: 'tessa@1.15', fov: 24 },
-    { t: 'L17', shot: 'cut', at: [1.7, -1.2, 1.7], look: 'mid:tammo,tessa@1.0', fov: 52 },
-    { t: 'L17+1.3', shot: 'follow', target: 'tessa', dist: 2.4, side: -0.6, h: 1.55, fov: 44 },
+    { t: 'L17', shot: 'cut', at: [1.4, -1.2, 1.7], look: 'mid:tammo,tessa@1.0', fov: 52 },
+    { t: 'L17+1.3', shot: 'follow', target: 'tessa', dist: 1.1, side: -0.2, h: 1.55, fov: 44 },
     { t: 'L17+2.6', shot: 'dolly', from: [-1.0, -0.8, 1.4], to: [-1.0, -0.8, 1.6], look: [1.3, 1.7, 1.2], fov: 42 },
   ],
 };
@@ -262,18 +262,58 @@ const OPENING_CUT = [
 const openingLineCut = (l) => OPENING_CUT.some((t) => (l.text || '').startsWith(t));
 
 // The opening lines (story.js timing) cut into the acts, each rebased to start at its own zero.
+// #662 schrapt regels uit C00.2. De cues/shots verwijzen met L-nummers naar de
+// lokale regelindex; daarom blijven de geschrapte regels als lege placeholders
+// staan (duur 0), zodat L15 nog steeds dezelfde gebeurtenis aanwijst.
 export function openingActs(lines) {
   return OPENING_ACTS.map((def, i) => {
-    const part = lines.slice(ACT_SPLIT[i], ACT_SPLIT[i + 1]).filter((l) => !openingLineCut(l));
-    // #662: de geschrapte regels mogen geen stilte achterlaten: de overgebleven
-    // regels krijgen opnieuw hun leestijd achter elkaar (zelfde cadans als story.js).
-    let at = part.length ? part[0].at : 0;
-    for (const l of part) { l.at = at; at += l.dur + 0.12; }
-    if (!part.length) return null;
-    const shift = ACT_LEAD[i] - part[0].at;
-    const rebased = part.map((l) => ({ ...l, at: l.at + shift }));
+    const all = lines.slice(ACT_SPLIT[i], ACT_SPLIT[i + 1]);
+    const kept = all.filter((l) => !openingLineCut(l));
+    if (!kept.length) return null;
+    let at = kept[0].at;
+    let firstKept = null;
+    const sparse = all.map((l) => {
+      if (openingLineCut(l)) {
+        const p = { ...l, text: '', dur: 0, at, silent: true, speaker: null };
+        at += 0.001; // houd de plaatsen strikt oplopend
+        return p;
+      }
+      if (firstKept == null) firstKept = l;
+      const q = { ...l, at };
+      at += l.dur + 0.12;
+      return q;
+    });
+    const shift = ACT_LEAD[i] - sparse[all.indexOf(firstKept)].at;
+    for (const l of sparse) l.at += shift;
+    const rebased = sparse.filter((l) => l.text !== '');
     const last = rebased[rebased.length - 1];
-    return { def, lines: rebased, duration: last.at + last.dur + ACT_TAIL[i] };
+    // Cues en shots zijn geschreven op de bewaarde regels (L17 = de laatste
+    // regel), niet op de oorspronkelijke C00.2-index. Zet ze terug naar de
+    // plaats in de placeholders, zodat elke cut bij dezelfde acteur blijft.
+    const origOfKept = [];
+    all.forEach((l, n) => { if (!openingLineCut(l)) origOfKept.push(n); });
+    const cueMap = (value) => {
+      if (typeof value === 'string') return value.replace(/\bL(\d+)\b/g, (m, n) => `L${origOfKept[+n] ?? +n}`);
+      if (Array.isArray(value)) return value.map(cueMap);
+      if (value && typeof value === 'object') { const out = {}; for (const [k, v] of Object.entries(value)) out[k] = cueMap(v); return out; }
+      return value;
+    };
+    // Door de geschrapte regels kan een shot op een latere L-index vóór de
+    // volgende komen; houd de shots strikt oplopend (latere shot vervalt).
+    const resolveT = (t) => {
+      if (typeof t === 'number') return t;
+      const m = /^L(\d+)(?:([+-])([\d.]+))?$/.exec(t);
+      if (!m || !sparse[+m[1]]) return null;
+      return sparse[+m[1]].at + (m[2] ? (m[2] === '-' ? -1 : 1) * +m[3] : 0);
+    };
+    let prevT = -Infinity;
+    const shots = cueMap(def.shots || []).filter((s) => {
+      const t = resolveT(s.t);
+      if (t == null || t <= prevT) return false;
+      prevT = t; return true;
+    });
+    const scene = { ...def, shots, cues: cueMap(def.cues || []) };
+    return { def: scene, lines: sparse, duration: last.at + last.dur + ACT_TAIL[i] };
   }).filter(Boolean);
 }
 
