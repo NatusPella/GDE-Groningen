@@ -56,5 +56,15 @@ t('#670: de dienst gebruikt dezelfde regel en de vaardigheid staat op het bord',
   assert.match(bron('treincabine.js'), /brakeFrac|brakeM/, 'het bord toont de remweg al (de feedback van de vaardigheid)');
 });
 
+t('#670: de conducteurskeuze hangt aan toets 1/2 in de cabine en de fooi telt mee', () => {
+  const m = bron('machinist.js');
+  assert.match(m, /conducteurKeuze\(svc\.plan\.length \* 5 \+ Math\.floor\(world\.time\)\)/, 'de keuze hoort bij de dienst');
+  assert.match(m, /world\.addMessage\(`\$\{kz\.vraag\}/, 'de vraag staat met de twee opties in beeld');
+  assert.match(m, /for \(const toets of \['1', '2'\]\)/, 'toets 1 en 2 kiezen');
+  assert.match(m, /pasConducteur\(svc\.conducteur\.keuze, optie && optie\.id\)/, 'de keuze gebruikt de pure regel');
+  assert.match(m, /svc\.conducteur\.gekozen = optie\.id/, 'de keuze wordt één keer bewaard');
+  assert.match(m, /\+ \(svc\.conducteur && svc\.conducteur\.gekozen \? svc\.conducteur\.tip \| 0 : 0\)/, 'de fooi telt mee in de beloning');
+});
+
 console.log(`machinistdienst_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

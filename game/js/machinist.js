@@ -13,7 +13,7 @@ import { registerMusicProbe } from './scenariomusic.js';
 import { pushAudioEvent } from './pedgeom.js';
 import {
   startService, stepService, abandonService, boardView, doorsOpen, MEDAL_NAMES, STOPPED_V, payFor, wantedNaDienst,
-  pressDoors, deadmanFault, dienstMedaille,
+  pressDoors, deadmanFault, dienstMedaille, conducteurKeuze, pasConducteur,
 } from './machinistrules.js';
 import { createCabHud, cabView } from './treincabine.js';
 
@@ -112,6 +112,12 @@ function begin(world, t) {
   world.trainSteal = 0;
   const wat = svc.dienst ? `Dienst ${dienstTekst(svc.dienst)}: ${svc.plan.length} halten` : `Geen dienst meer vandaag: ${svc.plan.length} halten`;
   world.addMessage(`${wat}, eerst ${svc.plan[0].name}${vergeven ? '. Je staat als machinist genoteerd' : ''}`, 3.5);
+  // #670: de conducteur krijgt per dienst één echte keuze (toets 1 of 2); de fooi telt mee in de uitslag.
+  svc.conducteur = { keuze: conducteurKeuze(svc.plan.length * 5 + Math.floor(world.time)), gekozen: null, tip: 0, tekst: '' };
+  if (svc.conducteur.keuze) {
+    const kz = svc.conducteur.keuze;
+    world.addMessage(`${kz.vraag} 1: ${kz.opties[0].tekst} · 2: ${kz.opties[1].tekst}`, 6);
+  }
 }
 
 const STORING_MSG = {
@@ -149,6 +155,17 @@ export function dienstBeloning(world, pay, xp = 0) {
 // controls are read into t.ctl. cab: de hendel (treincabine.js).
 export function updateMachinist(dt, world, t, cab) {
   const input = world.input;
+  // #670: het antwoord van de conducteur op de keuze van deze dienst (1 of 2), één keer.
+  if (svc && svc.conducteur && !svc.conducteur.gekozen && svc.conducteur.keuze) {
+    for (const toets of ['1', '2']) {
+      if (!input.wasPressed(toets)) continue;
+      input.consume(toets);
+      const optie = svc.conducteur.keuze.opties[Number(toets) - 1];
+      const keuze = pasConducteur(svc.conducteur.keuze, optie && optie.id);
+      if (keuze.ok) { svc.conducteur.gekozen = optie.id; svc.conducteur.tip = keuze.tip; svc.conducteur.tekst = keuze.tekst; world.addMessage(keuze.tekst, 3.5); }
+      break;
+    }
+  }
   if (!board) board = createBoard('machinist');
   if (!hud) hud = createCabHud();
   const vmaxV = t.cfg.vmax * LINE_SPEED_K;
@@ -201,7 +218,7 @@ export function updateMachinist(dt, world, t, cab) {
     const r = svc.result;
     if (!svc.paid) {
       svc.paid = true;
-      const pay = payFor(r, svc.abandoned);
+      const pay = payFor(r, svc.abandoned) + (svc.conducteur && svc.conducteur.gekozen ? svc.conducteur.tip | 0 : 0);
       // #670: de uitslag van de dienst in één medaille (op tijd, veilig, alle halten), naast de bestaande beloning.
       const dm = dienstMedaille({ gemiddelde: r.score, halten: r.stops, opTijd: r.punct, veilig: r.veilig, fouten: r.faults });
       r.dienstMedaille = dm.naam;

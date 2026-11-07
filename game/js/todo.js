@@ -21,7 +21,7 @@ import { getHeliSpotsForRender, HELI_MEDAL_SCORES } from './helirun.js';
 import { getPigeonSpotsForRender } from './pigeonspots.js';
 import { getPigeonSaveData } from './pigeonmode.js';
 import { activityMapIcons } from './activities.js';
-import { LES_IDS } from './vliegschoolrules.js';
+import { LES_IDS, LESSEN } from './vliegschoolrules.js';
 import { isPostgameOpen, CHALLENGES } from './postgame.js';
 import { SET_DONE, SET_EGGS } from './dorpsuitjes.js';
 import { VILLAGES } from './ommelandlines.js';
@@ -38,7 +38,8 @@ import { missieMagVanuitMenu, MISSIE_VIA_STARTPUNT } from './coopgast.js';
 export const GROUPS = [
   ['missies', 'Missies', 'het verhaal en je klussen'],
   ['minigames', 'Minigames', 'altijd opnieuw te spelen'],
-  ['bijbaantjes', 'Bijbaantjes', 'geld verdienen tussendoor'],
+  ['diensten', 'Diensten', 'ritten met een voertuig, tijd en een doel'],
+  ['kantoorklussen', 'Kantoorklussen', 'kort werk achter een balie of met een tekstpaneel'],
   ['ommeland', 'Ommeland', 'buiten de stad'],
   ['verzamelen', 'Verzamelen', 'zoek ze zelf'],
   ['nahetverhaal', 'Na het verhaal', 'Jelle wil revanche'],
@@ -207,10 +208,14 @@ function minigameItems(world) {
     'Achter de boot over het meer: zwaai om de boeien, spring over de golven en sla een salto of grab voor extra punten. Drie valpogingen.', [[1, '650 punten'], [2, '1.300 punten'], [3, '2.200 punten']]);
   {
     const lessen = LES_IDS.map((id) => getChallengeRecord('vlieg-' + id));
+    // #682: de aantallen in de spelerstekst komen uit LESSEN, niet uit de hand;
+    // de oude regel zei "zes met het vliegtuig en zeven met de helikopter" (13) naast "twintig lessen".
+    const vliegtuigLessen = LESSEN.filter((l) => l.kist === 'vliegtuig').length;
+    const heliLessen = LESSEN.filter((l) => l.kist === 'heli' || l.kist === 'helikopter').length;
     const gehaald = lessen.filter((r) => r && r.medal > 0).length, goud = lessen.filter((r) => r && r.medal === 3).length;
-    add({ key: 'mg:vliegschool', playId: 'vliegschool', icon: 'act-vliegschool', title: 'Vliegschool De Windwijzer', meta: 'Eelde · twintig lessen · gratis',
+    add({ key: 'mg:vliegschool', playId: 'vliegschool', icon: 'act-vliegschool', title: 'Vliegschool De Windwijzer', meta: `Eelde · ${LESSEN.length} lessen · gratis`,
       medal: goud === LES_IDS.length ? 3 : gehaald === LES_IDS.length ? 2 : gehaald > 0 ? 1 : 0, record: gehaald ? `${gehaald} van ${LES_IDS.length} lessen gehaald${goud ? ` · ${goud}× goud` : ''}` : 'Nog niet gevlogen',
-      detail: { kicker: 'Minigame · het vliegveld bij Eelde', text: 'Zes lessen met het vliegtuig en zeven met de helikopter: ringen, landen op een markering, laag over water, een slalom langs de molens, een noodlanding, tussen hoge gebouwen door en hoveren. Per les een medaille en een beloning.', rows: [],
+      detail: { kicker: 'Minigame · het vliegveld bij Eelde', text: `${vliegtuigLessen} lessen met het vliegtuig en ${heliLessen} met de helikopter: ringen, landen op een markering, laag over water, een slalom langs de molens, een noodlanding, tussen hoge gebouwen door en hoveren. Per les een medaille en een beloning.`, rows: [],
         medals: [[1, 'één les gehaald'], [2, 'alle lessen gehaald'], [3, 'overal goud']] } }, acts.filter((a) => a.layer === 'vliegschool'));
   }
   const heli = getHeliSpotsForRender();
@@ -236,7 +241,7 @@ function jobItems() {
     const j = best.get(o.id) || {};
     const fam = o.familieNaam || (j.familieNaam || 'Bijbaantje');
     return {
-      key: 'job:' + o.id, group: 'bijbaantjes', icon: 'sj-' + o.id, title: o.name, status: o.active ? 'nu' : '',
+      key: 'job:' + o.id, group: o.familie === 'kantoorklus' ? 'kantoorklussen' : 'diensten', icon: 'sj-' + o.id, title: o.name, status: o.active ? 'nu' : '',
       meta: `${fam} · niveau ${o.level} · ${o.title} · ${euro(o.pay[0])}–${euro(o.pay[1])} per ronde`, medal: null,
       record: j.bestStreak ? `Record ${j.bestStreak} op rij` : j.rounds ? `${j.rounds} rondes gedaan` : 'Nog niet gedaan',
       x: o.x, y: o.y, goal: { kind: 'job', id: o.id, name: o.name, sub: fam, x: o.x, y: o.y }, stopJob: !!o.active,

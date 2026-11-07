@@ -1,4 +1,5 @@
 import { hoofdspeler } from './players.js';
+import { accentVan } from './sidejobprofiel.js';
 // Bijbaantje: Grunn Taxi. Klanten ophalen en heel (en een beetje op tijd)
 // afzetten. Studenten na het stappen, toeristen, een Ommelander, een oma.
 
@@ -101,7 +102,7 @@ function kerbFor(map, place) {
 export default {
   id: 'taxi',
   name: 'Grunn Taxi',
-  color: '#d9a81e',
+  color: accentVan('taxi'),
   glyph: 'taxi',
   boss: 'Centrale Grunn Taxi',
   boardFirst: true,
@@ -261,4 +262,5 @@ export default {
     if (d.ped) freePed(d.ped);
   },
 };
+
 

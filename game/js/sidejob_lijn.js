@@ -3,6 +3,7 @@
 // niet te vroeg weg en niet te laat. De ritlogica staat in busride.js.
 
 import { getBusLines } from './vehicle.js';
+import { accentVan } from './sidejobprofiel.js';
 import { startAt, nearestLine } from './busroutes.js';
 import { spawnJobVehicle, pick } from './sidejobkit.js';
 import { queueHalte } from './haltefiguren.js';
@@ -28,7 +29,7 @@ const WORDS = {
 export default {
   id: 'lijn',
   name: 'Streekbus Hunzedal',
-  color: '#2e8b6a',
+  color: accentVan('lijn'),
   glyph: 'bezorger',
   boss: 'Dienstleider Streekbus Hunzedal',
   vehicleWord: 'de streekbus',
@@ -176,3 +177,4 @@ export default {
     if (v && c.takeover && c.takeover.vehicle === v) { v.rideLine = null; c.vehicle = null; }
   },
 };
+

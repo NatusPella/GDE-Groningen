@@ -1,4 +1,5 @@
 import { hoofdspeler } from './players.js';
+import { accentVan } from './sidejobprofiel.js';
 // Bijbaantje: studentenverhuizing tijdens de KEI-week. Spullen uit de oude
 // kamer in het busje sjouwen, voorzichtig door de stad rijden en alles heel
 // bij de nieuwe kamer afleveren.
@@ -70,7 +71,7 @@ function stackMesh(item) {
 export default {
   id: 'verhuizing',
   name: 'KEI-week verhuizer',
-  color: '#a0673a',
+  color: accentVan('verhuizing'),
   glyph: 'verhuizing',
   boss: 'Verhuisbedrijf Van Kamer naar Kamer',
   vehicleWord: 'het verhuisbusje',
@@ -366,4 +367,5 @@ function placeStack(c, door) {
     k++;
   }
 }
+
 

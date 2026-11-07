@@ -21,6 +21,8 @@ export const KANTOORKLUS = new Set([
 
 export const familieVan = (id) => (KANTOORKLUS.has(id) ? 'kantoorklus' : 'dienst');
 export const familieInfo = (id) => FAMILIES[familieVan(id)];
+// Het accent van een baan: de bestaande sfeertint (rgba, werkt in CSS én in THREE.Color) en nooit een nieuwe hex.
+export const accentVan = (id) => sidejobProfiel(id).accent;
 
 // Het profiel van één baan: vak, sfeernaam, familie en de korte uitleg voor de kaart en de banen-app.
 export function sidejobProfiel(id) {

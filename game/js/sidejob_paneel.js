@@ -9,6 +9,7 @@ import { spawnJobVehicle, randomStreetPoint, vehicleSpeed, euro } from './sidejo
 import { createChoicePanel, keycap } from './choicepanel.js';
 import { dist } from './util.js';
 import { ankerMetWeg, ankerBijBrug } from './bijbaananker.js';
+import { accentVan } from './sidejobprofiel.js';
 
 const STAD = { x: 213.81, y: 9.9 };
 const STAY_R = 45;
@@ -94,7 +95,7 @@ export const strandpost = {
 
 // ---- Paneelbanen: kermisdraai en brugdienst ----
 let panel = null;
-const ensurePanel = () => panel || (panel = createChoicePanel('#e0a030'));
+const ensurePanel = () => panel || (panel = createChoicePanel(accentVan('strandpost')));
 function sluit(c) {
   if (panel) panel.hide();
   if (c) c.data.open = false;
@@ -154,7 +155,7 @@ function paneelBaan(id, kleur, baas, glyph, anker, teken, melding) {
 const FASE = { laden: 'Instappen', draaien: 'Draaien', laden_uit: 'Uitstappen' };
 const LEN = { laden: 4, draaien: 5, laden_uit: 3 };
 
-export const kermisdraai = paneelBaan('kermisdraai', '#e04f8a', 'Kermisbaas De Vrolijke Tol', 'cabaret', STAD,
+export const kermisdraai = paneelBaan('kermisdraai', accentVan('kermisdraai'), 'Kermisbaas De Vrolijke Tol', 'cabaret', STAD,
   (d, pn, regel) => {
     const s = d.ronde.s, len = LEN[s.phase];
     const [from, span] = s.window;
@@ -170,7 +171,7 @@ export const kermisdraai = paneelBaan('kermisdraai', '#e04f8a', 'Kermisbaas De V
   },
   { goed: ['Precies op tijd!', false], fout: ['Te vroeg of te laat: de rij kijkt.', true], rit: ['Een rit erop, volgende groep!', false] });
 
-export const brugdienst = paneelBaan('brugdienst', '#4a8fc0', 'Brugmeester Damsterdiep', 'rondvaart', (map) => ankerBijBrug(map),
+export const brugdienst = paneelBaan('brugdienst', accentVan('brugdienst'), 'Brugmeester Damsterdiep', 'rondvaart', (map) => ankerBijBrug(map),
   (d, pn) => {
     const s = d.ronde.s;
     pn.set({

@@ -7,6 +7,7 @@
 // Verzonnen kranten, folders en bedrijven.
 
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { accentVan } from './sidejobprofiel.js';
 import {
   pick, nearestOnStreet, doorSpot, randomStreetPoint, spawnJobVehicle, pointAlongRoad, decorateVehicle, streetNameAt, afstandNaast,
 } from './sidejobkit.js';
@@ -137,7 +138,7 @@ function zoekVijver(map, mx, my) {
 export default {
   id: 'krantenwijk',
   name: 'Krantenwijk',
-  color: '#2e6f9e',
+  color: accentVan('krantenwijk'),
   glyph: 'krant',
   boss: R.BAAS,
   boardFirst: false,
@@ -425,3 +426,4 @@ function klaar(c) {
   const res = R.rondeLoon(d.worpen);
   c.complete({ base: res.base, tip: res.tip, text: res.perfect ? 'Elke krant in de bus!' : pick(R.KLAAR_NETJES), flawless: res.schoon });
 }
+
