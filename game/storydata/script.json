@@ -576,40 +576,6 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Berend geeft complimenten op een ladder. \"Goidag\" is trede één.",
-     "tag": "NIEUW",
-     "channel": "stem",
-     "textOnly": true
-    },
-    {
-     "speaker": "Tessa",
-     "key": "A",
-     "text": "En de bovenste?",
-     "tag": "NIEUW",
-     "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
-     "voice": "Anita"
-    },
-    {
-     "speaker": "Tammo",
-     "key": "T",
-     "text": "\"Kon minder.\" Daarboven zwijgt hij. Daar is nog niemand gekomen.",
-     "tag": "NIEUW",
-     "channel": "stem",
-     "textOnly": true
-    },
-    {
-     "speaker": "Berend Bos",
-     "key": "berend",
-     "text": "Ik zit in het gips, niet in een doos. Ik hoor alles.",
-     "tag": "NIEUW",
-     "channel": "stem",
-     "textOnly": true
-    },
-    {
-     "speaker": "Tammo",
-     "key": "T",
      "text": "Jij rijdt als een fietser met een deadline.",
      "tag": "BEHOUDEN",
      "channel": "stem",
@@ -679,14 +645,6 @@
      "voice": "Anita"
     },
     {
-     "speaker": "Tammo",
-     "key": "T",
-     "text": "Stunten in Berends bakkie.",
-     "tag": "NIEUW",
-     "channel": "stem",
-     "textOnly": true
-    },
-    {
      "speaker": "Tessa",
      "key": "A",
      "text": "Zonder krassen.",
@@ -695,14 +653,6 @@
      "textOnly": false,
      "rec": "lines",
      "voice": "Anita"
-    },
-    {
-     "speaker": "Tammo",
-     "key": "T",
-     "text": "Dat is geen stunt. Dat is een ramp met regels.",
-     "tag": "NIEUW",
-     "channel": "stem",
-     "textOnly": true
     },
     {
      "speaker": "Streamer",
@@ -2102,14 +2052,6 @@
      "voice": "Anita"
     },
     {
-     "speaker": "Tammo",
-     "key": "T",
-     "text": "Dan wint Jelle.",
-     "tag": "NIEUW",
-     "channel": "stem",
-     "textOnly": true
-    },
-    {
      "speaker": "Tessa",
      "key": "A",
      "text": "Tenzij iemand de bal eerder pakt.",
@@ -2127,24 +2069,6 @@
      "channel": "stem",
      "textOnly": false,
      "rec": "banter",
-     "voice": "Anita"
-    },
-    {
-     "speaker": "Tammo",
-     "key": "T",
-     "text": "Waarom bellen we het museum niet?",
-     "tag": "NIEUW",
-     "channel": "stem",
-     "textOnly": true
-    },
-    {
-     "speaker": "Tessa",
-     "key": "A",
-     "text": "En dan zeggen? Dat Jelle naar alarmen vroeg? Er hangt een doek om de koepel en dat noemen ze restauratie.",
-     "tag": "NIEUW",
-     "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -4432,24 +4356,6 @@
      "textOnly": true
     },
     {
-     "speaker": "Tammo",
-     "key": "T",
-     "text": "Je kijkt raar.",
-     "tag": "NIEUW",
-     "channel": "stem",
-     "textOnly": true
-    },
-    {
-     "speaker": "Tessa",
-     "key": "A",
-     "text": "Ik kijk altijd zo.",
-     "tag": "NIEUW",
-     "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
-     "voice": "Anita"
-    },
-    {
      "speaker": "Oma Trijntje",
      "key": "trijntje",
      "text": "Het recept van 1953 had vijf dingen van vijf vrienden: vet, eieren, zout, meel en mosterd. Jelle koopt ze allemaal. Hier is het lijstje.",
@@ -4491,22 +4397,6 @@
      "speaker": "Oma Trijntje",
      "key": "trijntje",
      "text": "Ik weet waar hij was. In een vitrine.",
-     "tag": "NIEUW",
-     "channel": "stem",
-     "textOnly": true
-    },
-    {
-     "speaker": "Tammo",
-     "key": "T",
-     "text": "Jelle zegt: bij hem.",
-     "tag": "NIEUW",
-     "channel": "stem",
-     "textOnly": true
-    },
-    {
-     "speaker": "Oma Trijntje",
-     "key": "trijntje",
-     "text": "Jelle zegt veel.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -13391,14 +13281,6 @@
     {
      "speaker": "Berend Bos",
      "key": "berend",
-     "text": "Dat is een bewijs. Ik bewaar het.",
-     "tag": "NIEUW",
-     "channel": "stem",
-     "textOnly": true
-    },
-    {
-     "speaker": "Berend Bos",
-     "key": "berend",
      "text": "Regel een: wie partij is, zit niet voor. Dat is Jelle.",
      "tag": "NIEUW",
      "channel": "stem",
@@ -13408,14 +13290,6 @@
      "speaker": "Berend Bos",
      "key": "berend",
      "text": "Regel twee: mevrouw Hoving zit nog in de trein, met volpension. Dan zit het oudste jurylid voor. Dat ben ik. Ik heb nog nooit iets gewonnen en nu moet ik oordelen.",
-     "tag": "NIEUW",
-     "channel": "stem",
-     "textOnly": true
-    },
-    {
-     "speaker": "Berend Bos",
-     "key": "berend",
-     "text": "Regel drie: vijf juryleden, de meerderheid beslist. Mijn mening is niet het hele oordeel.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true

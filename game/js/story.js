@@ -737,11 +737,26 @@ export function requestCredits() {
   return true;
 }
 
+// #734 (laag): de aftiteling was 18 identieke kaarten op één langzaam draaiend shot. Elke kaart krijgt
+// nu een eigen hoek op de stad (toren, straat, wijde boog, hoge kraan, laag over de Markt), zodat de
+// aftiteling beeldritme heeft in plaats van achttien keer hetzelfde beeld.
+function creditShot(k) {
+  const lm = (world.map.meta.landmarks || []).find((l) => l.name === 'Martinitoren') || { x: 213.81, y: 9.9 };
+  const soort = k % 5;
+  return (u, t) => {
+    const a = 0.6 + k * 1.7 + t * 0.05;
+    const r = soort === 0 ? 140 : soort === 1 ? 90 : soort === 2 ? 220 : soort === 3 ? 60 : 165;
+    const z = soort === 0 ? 55 : soort === 1 ? 20 : soort === 2 ? 85 : soort === 3 ? 7 : 32;
+    const look = soort === 3 ? { x: lm.x + 40, y: lm.y + 22, z: 6 } : { x: lm.x, y: lm.y, z: soort === 2 ? 28 : 38 };
+    return { position: { x: lm.x + Math.cos(a) * r, y: lm.y + Math.sin(a) * r, z: z + u * 1.5 }, lookAt: look, fov: soort === 1 ? 64 : soort === 3 ? 42 : 50 };
+  };
+}
+
 function playCredits() {
   const q = (spec) => playCinematic({ id: 'story-credits', priority: 2, pause: true, letterbox: true, skippable: true, hideHud: true, queue: true, ...spec });
   const ok = q({ duration: 5, big: 'Alles voor één eierbal', kicker: GAME_TITLE, shot: finaleShot(40) });
   if (!ok) return false;
-  CREDITS.forEach(([name, role], k) => q({ duration: 3.2, kicker: role, title: name, cardFor: 3.2, shot: finaleShot(45 + k * 3.2) }));
+  CREDITS.forEach(([name, role], k) => q({ duration: 3.2, kicker: role, title: name, cardFor: 3.2, shot: creditShot(k) }));
   q({ duration: 4.5, logo: true, shot: finaleShot(46 + CREDITS.length * 3.2) });
   q({ duration: 4, big: 'Einde', kicker: 'Grunn is van jou', shot: finaleShot(50.5 + CREDITS.length * 3.2) });
   return true;

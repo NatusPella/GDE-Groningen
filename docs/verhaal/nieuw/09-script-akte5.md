@@ -251,10 +251,8 @@ TESSA: Je doet alles onder druk. Daarom werkt het. [BEHOUDEN]
 (regie: Tessa legt het geprinte logboek van Wiebelwerk op de jurytafel. Berend staat op en klopt met zijn bisschopsstaf.)
 BEREND: Voor iedereen. De beste eierbal wint de standplaats. De Gouden Eierbal zelf gaat terug naar het museum. Dat zijn twee aparte dingen. [NIEUW]
 TESSA: Berend, dit is het logboek van Wiebelwerk. Twaalf augustus. Jelle nam de bal vijf dagen vóór ons. [NIEUW]
-BEREND: Dat is een bewijs. Ik bewaar het. [NIEUW]
 BEREND: Regel een: wie partij is, zit niet voor. Dat is Jelle. [NIEUW]
 BEREND: Regel twee: mevrouw Hoving zit nog in de trein, met volpension. Dan zit het oudste jurylid voor. Dat ben ik. Ik heb nog nooit iets gewonnen en nu moet ik oordelen. [NIEUW]
-BEREND: Regel drie: vijf juryleden, de meerderheid beslist. Mijn mening is niet het hele oordeel. [NIEUW]
 JELLE: Een notaris gaat boven een bisschop. Om drie uur schrijf ik mij in als de nieuwe bewaarder. Dan teken ik de uitslag zelf. [NIEUW]
 (regie: Jelle loopt naar zijn limo, de gouden koffer onder zijn arm.)
 

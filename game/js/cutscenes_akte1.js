@@ -291,7 +291,7 @@ Object.assign(SPECS, SPECS_AKTE2);
       { on: 'Plakje één is', actor: 'tessa', anim: 'point' },
       { on: 'Plakje één is', dt: 0.1, actor: 'tammo', anim: 'shake' },
       { on: 'Jelle vroeg waar', actor: 'tessa', anim: 'talk' },
-      { on: 'Dan wint Jelle', actor: 'tammo', anim: 'hips' },
+      { on: 'Tenzij iemand de bal eerder pakt', actor: 'tessa', anim: 'look' },
       { on: 'Tenzij iemand', actor: 'tessa', anim: 'point' },
       { on: 'Als iemand die bal', actor: 'tessa', face: 'actor:tammo' },
       { on: 'Als iemand die bal', dt: 0.3, actor: 'tessa', anim: 'talk' },

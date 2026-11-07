@@ -142,8 +142,6 @@ export const SPECS_AKTE2 = {};
       { on: 'We halen de ingredi', actor: 'tessa', anim: 'nod' },
       { on: 'Weet u waar de bal', actor: 'tessa', face: 'actor:trijntje' },
       { on: 'Ik weet waar hij was', actor: 'trijntje', face: 'prop:foto' },
-      { on: 'Jelle zegt: bij hem', actor: 'tammo', anim: 'shrug' },
-      { on: 'Jelle zegt veel', actor: 'trijntje', anim: 'hips' },
       { on: 'Eerst Geesje', actor: 'trijntje', anim: 'point' },
       { on: 'Die bal is gien geld', actor: 'trijntje', walk: [[1.5, 0.6]], speed: 0.9 },
       { on: 'Die bal is gien geld', dt: 0.5, actor: 'trijntje', face: 'actor:tammo' },
