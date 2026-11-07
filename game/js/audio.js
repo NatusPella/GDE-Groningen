@@ -14,6 +14,7 @@ import { initFoley, updateFoley, propHit, foleyStats } from './sfx/foley.js';
 import { initUiSfx, uiWorldInit, updateUiSfx, uiDomEvent, isUiGestureTarget } from './sfx/ui.js';
 import { updateSkySfx } from './sfx/sky.js';
 import { setScenarioHost, updateScenarioMusic, scenarioPlaying, scenarioKey } from './audio/scenario.js';
+import { bouwSireneVoice, maakHoornWave } from './audiosirene.js';
 import { setSpatialHost, makePanner, setPannerPos, distToListener, inverseGain, spatialOut, updateListener, MAX_DISTANCE, SOURCE_HEIGHT, HRTF_NEAR } from './audio/spatial.js';
 import { MIN_TRACK_S } from './musicpick.js';
 import * as speech from './speech.js';
@@ -21,6 +22,7 @@ import { drunkLevel } from './drunk.js';
 import { SPEAKER_MAX, SPEAKER_STOP, SPEAKER_LEVEL, SPEAKER_REF, SPEAKER_ROLLOFF, dopplerRate, edgeFade, pannerGain, pickSpeakers, pickSpeakerTrack } from './bikespeaker.js';
 import { rammelInterval } from './studentenfiets.js';
 import { KEYS } from './storagekeys.js';
+import { loadMuted, createMuteController } from './audiomute.js';
 import { noteSound } from './soundcaptions.js';
 import { stingNoten, stingDuur, createStingGate } from './stings.js';
 import { GMUSIC_VOLUME, masterGain, musicVolume, musicBusGain, volumeValue } from './sfx/volume.js';
@@ -190,17 +192,23 @@ const CRASH_MIN_GAP = 0.35;
 const MUTE_STORAGE_KEY = KEYS.muted;
 const PLAYER_HURT_MIN_GAP = 0.4;
 
-function loadMuted() {
-  try { return localStorage.getItem(MUTE_STORAGE_KEY) === '1'; } catch (e) { return false; }
-}
-
-function saveMuted() {
-  try { localStorage.setItem(MUTE_STORAGE_KEY, muted ? '1' : '0'); } catch (e) { /* ignore */ }
-}
-
 let prev = null;
 let seenMessages = null;
-let muted = loadMuted();
+let muted = loadMuted(MUTE_STORAGE_KEY, typeof localStorage !== 'undefined' ? localStorage : null);
+const muteController = createMuteController({
+  key: MUTE_STORAGE_KEY,
+  storage: typeof localStorage !== 'undefined' ? localStorage : null,
+  get: () => muted,
+  set: (v) => { muted = v; },
+  apply: () => { if (ctx) applyOutputGains(0.05); },
+  refresh: () => refreshThemeVolume(),
+  ensure: () => { if (!ctx) ensureCtx(); },
+  unlock: () => unlockAudio(),
+  resume: () => resumeCtx('unmute'),
+  world: () => lastWorld,
+  touch: () => isTouchDevice(),
+  notify: (aan, { touch }) => dempMelding(aan, { touch }),
+});
 let lastHurtAt = -Infinity;
 const engineState = { freq: 42, gain: 0, gear: 0, shiftUntil: 0, startAt: 0, vehicle: null, kind: 0, startDelay: -1, prevThr: 0 };
 const sirenState = { gain: 0 };
@@ -250,24 +258,11 @@ export function isMuted() {
 // een echte handeling weer, en een gast die niet meer hoort hoe hij terug moet,
 // blijft anders stil zitten.
 export function setMuted(on) {
-  const next = !!on;
-  if (next === muted) return muted;
-  muted = next;
-  saveMuted();
-  if (ctx) applyOutputGains(0.05);
-  refreshThemeVolume(); // the theme song is its own media element: mute it now, not 250 ms later
-  if (!muted) {
-    if (!ctx) ensureCtx();
-    unlockAudio();
-    resumeCtx('unmute');
-  }
-  const world = lastWorld;
-  if (world && world.addMessage) world.addMessage(dempMelding(muted, { touch: isTouchDevice() }), 2.5, { key: 'mute' });
-  return muted;
+  return muteController.setMuted(on);
 }
 
 export function toggleMute() {
-  return setMuted(!muted);
+  return muteController.toggleMute();
 }
 
 // touch-device is the class of touch.js: there the U key does not exist, so
@@ -316,24 +311,7 @@ const listenerVel = { x: 0, y: 0 };
 
 // NL/EU two-tone "hi-lo" wail, one pooled voice per nearby police unit.
 function buildSirenVoice() {
-  const filter = ctx.createBiquadFilter();
-  filter.type = 'lowpass';
-  filter.frequency.value = 1800;
-  filter.Q.value = 0.5;
-
-  const osc = ctx.createOscillator();
-  osc.setPeriodicWave(sirenTone());
-  osc.frequency.value = SIREN_LOW_FREQ;
-
-  const gain = ctx.createGain();
-  gain.gain.value = 0;
-  const level = ctx.createGain();
-  level.gain.value = 0.7;
-  const panner = makePanner({ ref: 8, rolloff: 0.9, model: 'equalpower' });
-  osc.connect(filter).connect(level).connect(gain).connect(panner).connect(sirenBus);
-  osc.start();
-
-  return { osc, gain, panner, target: null, level: 0, toneHigh: false, nextToggle: Math.random() * 0.6 };
+  return bouwSireneVoice({ ctx, bestemming: sirenBus, maakPanner: (o) => makePanner(o), laagFrequentie: SIREN_LOW_FREQ });
 }
 
 // --- synthesized engines (sfx/engineworklet.js) ---------------------------
@@ -382,35 +360,13 @@ async function loadEngineWorklet() {
 
 let engineEarly = null;
 
-let brassWave = null;
-let sirenWave = null;
-
-// Horn discs and siren compression drivers: bright, buzzy harmonic series.
-function hornWave() {
-  if (!brassWave) {
-    const n = 18, re = new Float32Array(n), im = new Float32Array(n);
-    for (let k = 1; k < n; k++) im[k] = Math.pow(k, -0.8) * (k % 2 ? 1 : 0.6);
-    brassWave = ctx.createPeriodicWave(re, im);
-  }
-  return brassWave;
-}
-
-function sirenTone() {
-  if (!sirenWave) {
-    const n = 12, re = new Float32Array(n), im = new Float32Array(n);
-    for (let k = 1; k < n; k++) im[k] = k % 2 ? Math.pow(k, -2.2) : 0.06 / (k * k);
-    sirenWave = ctx.createPeriodicWave(re, im);
-  }
-  return sirenWave;
-}
-
 function playTone({ freq, freqEnd, type = 'sine', duration = 0.15, gain = 0.3, delay = 0, filterFreq = null, out = null, bus = null, prio = 1 }) {
   if (!voiceOk(prio)) return;
   activeVoices++;
   const t0 = ctx.currentTime + delay;
   const t1 = t0 + duration;
   const osc = ctx.createOscillator();
-  if (type === 'horn') osc.setPeriodicWave(hornWave());
+  if (type === 'horn') osc.setPeriodicWave(maakHoornWave(ctx));
   else osc.type = type;
   osc.frequency.setValueAtTime(freq, t0);
   if (freqEnd !== undefined) osc.frequency.exponentialRampToValueAtTime(Math.max(1, freqEnd), t1);
@@ -2128,10 +2084,10 @@ function buildHornVoice() {
   const gain = ctx.createGain();
   gain.gain.value = 0;
   const a = ctx.createOscillator();
-  a.setPeriodicWave(hornWave());
+  a.setPeriodicWave(maakHoornWave(ctx));
   a.frequency.value = 415;
   const b = ctx.createOscillator();
-  b.setPeriodicWave(hornWave());
+  b.setPeriodicWave(maakHoornWave(ctx));
   b.frequency.value = 523;
   const bGain = ctx.createGain();
   bGain.gain.value = 0.8;
