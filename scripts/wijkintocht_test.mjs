@@ -119,10 +119,21 @@ t('#706: tourKeys en veroverTourShot geven een vloeiende baan van overzicht tot 
   }
   assert.equal(veroverTourShot(null, wk, stops, behind), null);
   assert.equal(veroverTourShot({ map }, wk, [], behind), null);
+  // #706: prewarm over de hele baan, niet alleen de stops
+  const pre = W.tourPrewarm(wk, stops, behind);
+  assert.ok(pre.length > stops.length && pre.length <= 8, 'prewarm-punten: ' + pre.length);
+  assert.ok(pre.every((p) => Number.isFinite(p.x) && Number.isFinite(p.y)));
 });
 
 // --- #707: de scenecatalogus (één bewezen wijk) ---------------------------------------------
-t('#707: de catalogus heeft één volledig uitgewerkte scène met ankers, regels en een duur', () => {
+t('#707: de catalogus heeft vier pilotscènes met ankers, regels en een duur', () => {
+  assert.deepEqual(W.INTOCHTEN.map((s) => s.wijk).sort(), ['Centrum', 'Nieuw-Noord', 'Oud-Oost', 'Oud-Zuid'], 'de vier pilots');
+  for (const scene of W.INTOCHTEN) {
+    assert.ok(scene.titel && Number.isFinite(scene.seconden) && scene.seconden >= 20 && scene.seconden <= W.MAX_INTOCHT_SECONDEN, scene.wijk + ': duur');
+    assert.ok(Array.isArray(scene.ankers) && scene.ankers.length >= 2 && scene.ankers.length <= 3, scene.wijk + ': ankers');
+    assert.ok(scene.ankers.every((a) => a.naam && Number.isFinite(a.x) && Number.isFinite(a.y)), scene.wijk + ': ankerplekken');
+    assert.ok(Array.isArray(scene.regels) && scene.regels.length >= 3, scene.wijk + ': regels');
+  }
   const scene = W.intochtVoor('Oud-Oost');
   assert.ok(scene, 'Oud-Oost "De stoep" staat in de catalogus');
   assert.equal(scene.titel, 'De stoep');
