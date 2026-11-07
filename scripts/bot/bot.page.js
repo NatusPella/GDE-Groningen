@@ -266,7 +266,9 @@ function steerTowards(s, mode, tgt, stopAt, top = 24, stopR = null, direct0 = fa
     if (direct < radius) { B.stick(0, 0); B.up('shift'); return direct; }
     const [x, y] = L.footStick(L.headingTo(me, aim), s.player.camYaw);
     B.stick(x, y);
-    if (direct > 40) B.down('shift'); else B.up('shift');
+    // #186: een getimede missie te voet (M16, de kroegentocht in honderd seconden) rent altijd; te
+    // voet kost Shift geen uithoudingsvermogen. Buiten een klok rent de bot alleen over een lang stuk.
+    if (direct > 40 || L.footSprint(s)) B.down('shift'); else B.up('shift');
   }
   return direct;
 }
@@ -984,7 +986,22 @@ while (true) {
     let aim = s.target, top = act.top || 24;
     // eggs break on a rough road above 8.5 m/s (M09) and a convoy falls apart when the lead car runs away (M23)
     const mdef = (M.getMissionDefs() || [])[s.mission.index];
-    if (mdef && mdef.eggs) top = Math.min(top, 7);
+    top = L.stageTop(mdef, top);
+    // #186/M13: de museumkraak en het containerlabyrint hebben wachters met een lichtbundel (heist.js
+    // `sees`); de bot leest de bundels via window.__heist en schuift het mikpunt naar een plek
+    // buiten de bundels, in plaats van er dwars doorheen te lopen.
+    if (!s.player.vehicle && window.__heist && s.mission.active) {
+      try {
+        const hs = window.__heist.state();
+        if (hs && hs.watchers && hs.watchers.length) {
+          const veilig = L.stealthAim(hs.watchers, { x: s.player.x, y: s.player.y }, aim);
+          if (veilig && veilig.schuil) {
+            aim = { ...aim, x: veilig.x, y: veilig.y };
+            if (!mem.schuilLog || s.t - mem.schuilLog > 3) { mem.schuilLog = s.t; B.log('schuil', { x: Math.round(veilig.x), y: Math.round(veilig.y), doel: [Math.round(s.target.x), Math.round(s.target.y)], wachters: hs.watchers.length }); }
+          }
+        }
+      } catch (e) { /* geen heist of geen status: gewoon lopen */ }
+    }
     if (s.mission.stage === 'convoy') {
       // the leader waits for the slowest friend (the tractor, the scooter): beyond 170 m for 12 s the column falls apart
       const members = (world.vehicles || []).filter((v) => v.convoyMember && !v.wrecked);

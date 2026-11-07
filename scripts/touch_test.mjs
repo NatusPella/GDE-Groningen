@@ -55,6 +55,13 @@ eq('ctx foot', touchContext({ player: {} }), 'foot');
 eq('ctx pannenkoek', touchContext({ player: {}, activityGame: 'pannenkoek' }), 'pannenkoek');
 eq('ctx klokken', touchContext({ player: {}, activityGame: 'carillon' }), 'klokken');
 eq('ctx car', touchContext({ player: { inVehicle: {} } }), 'vehicle');
+eq('ctx bus', touchContext({ player: { inVehicle: { isBus: true } } }), 'bus');
+// #151: het lesmenu van de vliegschool is een eigen situatie; in het lesvliegtuig of de lesheli geldt
+// de gewone vliegindeling (dezelfde keuze als gamepad.js)
+eq('ctx plane', touchContext({ player: { inVehicle: { isPlane: true } } }), 'plane');
+eq('ctx vliegschool', touchContext({ player: {}, activityGame: 'vliegschool' }), 'vliegschool');
+eq('ctx vliegschool plane', touchContext({ player: { inVehicle: { isPlane: true } }, activityGame: 'vliegschool' }), 'plane');
+eq('ctx vliegschool heli', touchContext({ player: { inVehicle: { isHeli: true } }, activityGame: 'vliegschool' }), 'heli');
 eq('ctx heli', touchContext({ player: { inVehicle: { isHeli: true } } }), 'heli');
 eq('ctx manual', touchContext({ player: { inVehicle: { gb: {} } } }, { shiftMode: 'hand' }), 'vehicleManual');
 eq('ctx pigeon', touchContext({ pigeonMode: true }), 'pigeon');

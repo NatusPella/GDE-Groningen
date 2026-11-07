@@ -165,6 +165,17 @@ puts its menu on the D-pad and bumpers. Buttons can be swapped under
 Besturing › Controller; rumble, the button style and the stick speed are under
 Instellingen › Controller.
 
+Touch uses the same tables: `touchPlan` in `touchlogic.js` builds its buttons
+from `PAD_MAPS`, so a situation that exists for the pad exists on a touchscreen
+too. The bus (Deuren/Knielen), the plane (Kleppen/Gestel/roer) and the flying
+school (its own menu: Kies, Terug, and the arrows behind Meer) each have their
+own situation, chosen by `touchContext` exactly as `gamepad.js` chooses it. One
+deliberate exception stays: in the helicopter **B descends** (Ctrl), so B is not
+a stop button there; the stop is on the D-pad right (Backspace) and therefore
+behind Meer on touch. That choice was made with a real controller (22-10) and
+is pinned by `pad_reis_test` and `touch_situaties_test`; move B only together
+with another descent button.
+
 ## Accessibility
 
 Instellingen › Toegankelijk: subtitle size (klein to extra groot, for

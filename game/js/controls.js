@@ -215,7 +215,10 @@ export const PAD_MAPS = {
   // manual shifting (setting shiftMode): the bumpers shift, L3 is the clutch, the hef moves to the D-pad
   vehicleManual: { a: ' ', b: 'l', x: 'h', y: 'e', lb: ',', rb: '.', lt: '@brake', rt: '@gas', ls: 'j', rs: 'q', up: 't', down: 'i', left: '[', right: ']', view: 'm', start: 'escape', stick: 'steer' },
   skutsje: { a: ' ', b: 'l', x: 'h', y: 'e', lb: 'z', rb: 'q', lt: '@brake', rt: '@gas', ls: 'shift', rs: null, up: null, down: 'i', left: 'o', right: 'r', view: 'm', start: 'escape', stick: 'steer' },
-  // the helicopter: left stick flies (forward/back, turn), A or RT up, B or LT down, RB or L3 faster
+  // the helicopter: left stick flies (forward/back, turn), A or RT up, B or LT down, RB or L3 faster.
+  // #151: B blijft Ctrl (dalen); de heli zakt zonder die knop niet. Daarom is B hier geen stopknop: de
+  // stop staat op de D-pad rechts (Backspace) en dus achter Meer op aanraak. Die keuze van de eigenaar
+  // (test met een echte controller, 22-10) blijft staan; verplaats B niet zonder de daalknop elders te zetten.
   heli: { a: ' ', b: 'control', x: null, y: 'e', lb: null, rb: 'shift', lt: 'control', rt: ' ', ls: 'shift', rs: null, up: null, down: 'v', left: 'o', right: 'backspace', view: 'm', start: 'escape', stick: 'move' },
   // het vliegtuig (#502): als de heli, met de kleppen op LB en het gestel op X. De D-pad links/rechts is het roer
   // (Q en E, precies de toetsen die planecontrol.js leest); daar stonden Overslaan (O) en Stop (Backspace), die in de
@@ -258,7 +261,7 @@ export const PAD_MAPS = {
 // Te voet: D-pad links, omlaag en rechts zijn de roepjes Kom hier (7), Help! (8) en Kijk daar (9, #367); D-pad omhoog
 // brengt je bij de groep (B, #429): de radio staat dan alleen op het toetsenbord. Het kusje, het overslaan van een
 // verhaalstap en het lakmenu staan dan ook alleen op het toetsenbord.
-export const PAD_COOP = { vehicle: { up: 'y' }, bus: { up: 'y' }, vehicleManual: { up: 'y' }, skutsje: { up: 'y' }, foot: { up: 'b', left: '7', down: '8', right: '9' } };
+export const PAD_COOP = { vehicle: { up: 'y', rs: 'tab' }, bus: { up: 'y', rs: 'tab' }, vehicleManual: { up: 'y', rs: 'tab' }, skutsje: { up: 'y', rs: 'tab' }, foot: { up: 'b', left: '7', down: '8', right: '9' } }; // #636: rs opent de spelerslijst ook in een voertuig
 
 // Is er een echte samen-sessie? Een sessie van één (Alleen spelen, #554) telt niet mee: de speler is alleen
 // en houdt de gewone indeling en uitleg (#560, #568). De hub is er wel, maar er is niemand om iets mee te delen.

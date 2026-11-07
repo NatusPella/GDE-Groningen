@@ -327,6 +327,72 @@ const OPENING = {
 };
 const GENERIC_OPENING = ['e', 'e', 'f', 'interact', 'jitter', 'e', ' ', 'interact'];
 export const startAttempts = (id) => (OPENING[id] || GENERIC_OPENING).slice();
+// #186: de twee regels die een missie zonder cheat door de bestaande botsecties laten komen.
+// Te voet sprinten (Shift) kost geen uithoudingsvermogen: WALK_SPEED 3,0 -> RUN_SPEED 6,8 m/s
+// (player.js). Een getimede missie te voet (M16, de kroegentocht in 100 s) is dus altijd rennen;
+// zonder klok blijft de bot rustig lopen.
+export function footSprint(s) {
+  const m = s && s.mission;
+  return !!(s && s.player && !s.player.vehicle && m && m.active && Number.isFinite(m.timeLeft) && m.timeLeft > 0 && m.timeLeft < 600);
+}
+// #186/M09: de eierenmissie heeft een eigen breekregel (missions.js updateEggs): op de wierdepaden
+// breekt er een ei boven def.eggs.rough.speed (M09: 8,5 m/s), en hard remmen (>13 m/s²) ook. De bot
+// mikt met marge onder die snelheid; carControls krijgt daarnaast `gentle` (bot.page.js).
+export const EGG_MARGIN = 1.5;
+export function stageTop(def, top) {
+  if (!def || !def.eggs) return top;
+  const rough = def.eggs.rough && Number.isFinite(def.eggs.rough.speed) ? def.eggs.rough.speed : 8.5;
+  return Math.min(top, rough - EGG_MARGIN);
+}
+// #186/M13: de museumkraak en het containerlabyrint hebben wachters met een lichtbundel (heist.js,
+// `sees`): binnen hun bereik en halve hoek zien ze de speler, als er vrij zicht is. De bot krijgt de
+// bundels via window.__heist.state() (heist.js) en kiest met deze pure regel een tussenpunt buiten
+// de bundels. De zichtlijn zelf kent de bot niet; daarom telt elke kruising als exposure en blijft
+// hij er met een marge omheen.
+export function inCone(p, w) {
+  if (!p || !w || w.on === false || w.chase || w.asleep) return false;
+  const d = Math.hypot(p.x - w.x, p.y - w.y);
+  if (!(d <= w.r)) return false;
+  return Math.abs(normAngle(Math.atan2(p.y - w.y, p.x - w.x) - w.a)) <= w.h;
+}
+// Hoeveel meter van het stuk a->b door een bundel loopt (gesampeld, 0 = vrij).
+export function coneExposure(a, b, watchers, step = 3) {
+  const n = Math.max(1, Math.ceil(distance(a, b) / step));
+  let seen = 0;
+  for (let i = 0; i <= n; i++) {
+    const p = { x: a.x + (b.x - a.x) * (i / n), y: a.y + (b.y - a.y) * (i / n) };
+    if ((watchers || []).some((w) => inCone(p, w))) seen++;
+  }
+  return seen;
+}
+// Kies een tussenpunt naar het doel dat zo min mogelijk door bundels loopt: eerst rechtstreeks, dan
+// een zijstap links of rechts (16 tot 40 m), en anders verder vooruit langs dezelfde koers. Geeft
+// het gekozen punt terug (het doel zelf als niets beter is); `schuil` zegt of het een omweg is.
+export function stealthAim(watchers, me, aim, { step = 8, tries = 10 } = {}) {
+  if (!watchers || !watchers.length || !me || !aim) return { ...aim, schuil: false };
+  const direct = coneExposure(me, aim, watchers);
+  const base = { ...aim, schuil: direct > 0 };
+  if (!direct) return base;
+  const d = distance(me, aim) || 1;
+  const ux = (aim.x - me.x) / d, uy = (aim.y - me.y) / d;
+  const nx = -uy, ny = ux;
+  let best = null;
+  const consider = (x, y) => {
+    const k = Math.min(d, Math.hypot(x - me.x, y - me.y) + Math.hypot(aim.x - x, aim.y - y));
+    const e = coneExposure(me, { x, y }, watchers) + coneExposure({ x, y }, aim, watchers);
+    if (!best || e < best.e || (e === best.e && k < best.k)) best = { x, y, e, k };
+  };
+  // eerst dichter bij het doel een zijstap, dan verder vooruit
+  for (let i = 1; i <= tries; i++) {
+    const off = step * Math.ceil(i / 2) * (i % 2 ? 1 : -1);
+    for (const f of [0.5, 0.75, 1]) {
+      const px = me.x + (aim.x - me.x) * f, py = me.y + (aim.y - me.y) * f;
+      consider(px + nx * off, py + ny * off);
+    }
+  }
+  if (!best || best.e >= direct) return base;
+  return { x: best.x, y: best.y, schuil: true };
+}
 // the nth jitter: a spot beside the spot, round the compass (metres)
 export function jitterOffset(n, r = 3) {
   const a = (n % 8) * (Math.PI / 4);

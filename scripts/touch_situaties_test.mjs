@@ -177,6 +177,27 @@ ok(![...touchPlan('plane'), ...touchMore('plane')].some((b) => b.label === 'Film
 ok(labelFor('plane', 'shift') === 'Rem' && labelFor('foot', 'shift') === 'Rennen', 'vliegtuig: Shift remt op de baan in plaats van te rennen', [labelFor('plane', 'shift'), labelFor('foot', 'shift')]);
 for (const l of ['Omhoog', 'Omlaag', 'Kleppen', 'Gestel', 'Roer links', 'Roer rechts']) ok(iconFor(l) !== '', `vliegtuig: "${l}" heeft een icoon`);
 
+// --- 8b. de vliegschool (#397, #151): het lesmenu bij de balie heeft zijn eigen indeling ----------
+// Het lesmenu leest Enter (A), Backspace (B) en de pijlen; zonder eigen situatie kreeg de balie de
+// voetindeling, stopte B de les en waren de pijlen niet te bereiken. In het lesvliegtuig of de lesheli
+// geldt de gewone vliegindeling, precies zoals op het pad (gamepad.js).
+const school = wereld({ activityGame: 'vliegschool' });
+ok(touchContext(school) === 'vliegschool', 'vliegschool: het lesmenu kiest de lesindeling', touchContext(school));
+ok(touchContext(wereld({ activityGame: 'vliegschool', player: { inVehicle: { isPlane: true } } })) === 'plane', 'vliegschool: in het lesvliegtuig geldt de vliegindeling');
+ok(touchContext(wereld({ activityGame: 'vliegschool', player: { inVehicle: { isHeli: true } } })) === 'heli', 'vliegschool: in de lesheli geldt de heli-indeling');
+ok(!!PAD_MAPS.vliegschool, 'vliegschool: de indeling bestaat');
+ok(btn('vliegschool', 'a') && btn('vliegschool', 'a').action === 'enter' && btn('vliegschool', 'a').label === 'Kies', 'vliegschool: A kiest de les (Enter)', btn('vliegschool', 'a'));
+ok(btn('vliegschool', 'b') && btn('vliegschool', 'b').action === 'backspace' && btn('vliegschool', 'b').label === 'Terug', 'vliegschool: B gaat terug, in plaats van de les te stoppen', btn('vliegschool', 'b'));
+ok(extra('vliegschool', 'arrowup') && extra('vliegschool', 'arrowup').label === 'Vorige', 'vliegschool: D-pad omhoog bladert terug (Vorige)', touchMore('vliegschool'));
+ok(extra('vliegschool', 'arrowdown') && extra('vliegschool', 'arrowdown').label === 'Volgende', 'vliegschool: D-pad omlaag bladert verder (Volgende)', touchMore('vliegschool'));
+ok(extra('vliegschool', 'arrowleft') && extra('vliegschool', 'arrowleft').label === 'Links' && extra('vliegschool', 'arrowright') && extra('vliegschool', 'arrowright').label === 'Rechts', 'vliegschool: links en rechts houden hun naam');
+ok(PAD_MAPS.vliegschool.stick === 'arrows' && !stickless('vliegschool'), 'vliegschool: de stick bladert door de lessen');
+ok(iconFor('Kies') !== '', 'vliegschool: de kiesknop heeft een icoon');
+// #151: de heli-B-keuze blijft zoals de eigenaar hem na de controllertest (22-10) liet: B is Ctrl
+// (dalen) en kan dus geen stopknop zijn; de stop staat op de D-pad rechts (Backspace), achter Meer.
+ok(PAD_MAPS.heli.b === 'control' && btn('heli', 'b') && btn('heli', 'b').label === 'Omlaag', 'heli: B blijft dalen (Ctrl), geen stopknop', btn('heli', 'b'));
+ok(extra('heli', 'backspace') && extra('heli', 'backspace').label === 'Stop', 'heli: de stopknop staat achter Meer; de B-keuze is ongemoeid', touchMore('heli'));
+
 // --- 9. de bedrading: dezelfde hint en dezelfde vraag als het pad -------------------------
 // Zonder deze twee regels zou de pure functie hierboven kloppen terwijl de echte touch.js de hint nooit doorgeeft
 // of gamepad.js een eigen kopie van de vraag houdt; dan lopen de twee bedieningen alsnog uit elkaar.
@@ -190,6 +211,7 @@ ok(/import .*coopVraag/.test(padSrc) && /import .*coopVraag/.test(logicSrc), 'ga
 ok(!/function coopVraag/.test(padSrc), 'gamepad.js heeft geen eigen kopie van de coopvraag meer');
 ok(/'trekker'/.test(touchSrc), 'touch.js stuurt ook op de trekker met de stick (zijwaarts)');
 ok(/v\.isPlane \? 'plane'/.test(logicSrc) && /v\.isPlane \? 'plane'/.test(padSrc), 'touch en gamepad zetten het vliegtuig op dezelfde plek, vóór de skûtsje-tak');
+ok(/w\.activityGame === 'vliegschool'/.test(logicSrc) && /w\.activityGame === 'vliegschool'/.test(padSrc), 'touch en gamepad kiezen de vliegschool op dezelfde plek');
 ok(/v\.isBus \? 'bus'/.test(logicSrc) && /v\.isBus \? 'bus'/.test(padSrc), 'touch en gamepad kennen allebei de busindeling');
 ok(labelFor('trekker', 'x') === 'Ontkoppelen' && labelFor('pigeon', 'x') === 'Mens', 'dezelfde toets houdt per situatie zijn eigen naam', [labelFor('trekker', 'x'), labelFor('pigeon', 'x')]);
 

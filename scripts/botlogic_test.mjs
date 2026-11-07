@@ -673,5 +673,39 @@ ok(L.decide({ ...b(), mission: { active: true, stage: 'hold' }, target: { x: 8, 
   ok(op.phase === 'timeout' && /punten/.test(op.why) && op.forS >= St.STUNT.budget, 'stunt: zonder punten een time-out');
 }
 
+// #186: de twee regels voor een cheat-vrij pad — M16 (getimede kroegentocht te voet) en M09 (eieren)
+{
+  const voet = { player: {}, mission: { active: true, timeLeft: 90 } };
+  ok(L.footSprint(voet) === true, 'te voet met een klok: rennen');
+  ok(L.footSprint({ player: {}, mission: { active: true, timeLeft: null } }) === false, 'zonder klok: gewoon lopen');
+  ok(L.footSprint({ player: { vehicle: { kind: 'fiets' } }, mission: { active: true, timeLeft: 90 } }) === false, 'in een voertuig doet de voetregel niets');
+  ok(L.footSprint({ player: {}, mission: { active: false, timeLeft: 90 } }) === false, 'geen missie: geen rennen');
+  ok(L.footSprint(null) === false && L.footSprint({}) === false, 'zonder staat geen rennen');
+  ok(L.stageTop({ eggs: { rough: { speed: 8.5 } } }, 24) === 7, 'eieren: de doelsnelheid zakt onder de breekgrens (8,5 - 1,5)');
+  ok(L.stageTop({ eggs: { rough: { speed: 10 } } }, 24) === 8.5, 'eieren: de grens komt uit de missiedefinitie');
+  ok(L.stageTop({ eggs: { rough: { speed: 8.5 } } }, 5) === 5, 'eieren: een lagere grens blijft staan');
+  ok(L.stageTop({ eggs: {} }, 24) === 7, 'eieren zonder ruwe weg: de standaardgrens');
+  ok(L.stageTop({}, 24) === 24 && L.stageTop(null, 18) === 18, 'zonder eieren blijft de doelsnelheid');
+  ok(L.stageTop({ eggs: { rough: { speed: 8.5 } } }, 24) < 8.5, 'de eiergrens ligt onder de breekgrens');
+}
+
+// #186/M13: de wachtersbundels van heist.js (museumkraak, containerlabyrint): de bot kiest een
+// tussenpunt buiten de bundel in plaats van er dwars doorheen te lopen
+{
+  const w = { kind: 'guard', x: 10, y: 0, a: 0, r: 20, h: 0.5, on: true };
+  ok(L.inCone({ x: 15, y: 0 }, w) === true, 'schuil: recht voor de wachter in de bundel');
+  ok(L.inCone({ x: 5, y: 0 }, w) === false, 'schuil: achter de wachter is buiten de bundel');
+  ok(L.inCone({ x: 15, y: 15 }, w) === false, 'schuil: naast de bundel is veilig');
+  ok(L.inCone({ x: 15, y: 0 }, { ...w, asleep: true }) === false, 'schuil: een slapende wachter ziet niets');
+  ok(L.inCone({ x: 15, y: 0 }, { ...w, on: false }) === false, 'schuil: een uitgezette wachter ziet niets');
+  ok(L.inCone({ x: 35, y: 0 }, w) === false, 'schuil: buiten bereik');
+  ok(L.coneExposure({ x: 0, y: 0 }, { x: 20, y: 0 }, [w]) > 0, 'schuil: het rechte stuk loopt door de bundel');
+  ok(L.coneExposure({ x: 0, y: 0 }, { x: 20, y: 30 }, [w]) === 0, 'schuil: een boog eromheen is vrij');
+  const veilig = L.stealthAim([w], { x: 0, y: 0 }, { x: 20, y: 0 });
+  ok(veilig.schuil === true && L.inCone({ x: 0, y: 0 }, w) === false, 'schuil: de bot zoekt een tussenpunt');
+  ok(L.coneExposure({ x: 0, y: 0 }, { x: veilig.x, y: veilig.y }, [w]) < L.coneExposure({ x: 0, y: 0 }, { x: 20, y: 0 }, [w]), 'schuil: het tussenpunt is beter dan recht door');
+  ok(L.stealthAim([], { x: 0, y: 0 }, { x: 20, y: 0 }).schuil === false, 'schuil: zonder wachters gewoon recht door');
+}
+
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);
