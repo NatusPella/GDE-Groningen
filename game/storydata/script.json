@@ -10485,11 +10485,10 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Ik wist niet waar de bal lag. Ik wist wel dat Mem iets voor Jelle verborgen hield. Dat had ik tegen jou moeten zeggen.",
+     "text": "Ik wist niet waar de bal lag. Mem hield iets voor Jelle verborgen.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     },
     {
