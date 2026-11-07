@@ -1,4 +1,5 @@
 import { hoofdspeler } from './players.js';
+import { makeTick } from './tickbudget.js';
 import { updateEdgeGuard } from './edgeguard.js';
 import { ensureWorldEnds, updateWorldEnds, worldEndSolids, getWorldEndSpots, worldEndDebug, worldEndCount } from './worldends.js';
 import { setExtraEggs } from './furniture.js';
@@ -58,6 +59,9 @@ function refreshSolids() {
   townSolids(solids);
 }
 
+// #654: de lijst verandert alleen als er een prop gebouwd of opgeruimd wordt;
+// 4 Hz is ruim genoeg voor botsingen en de camera-ray.
+const solidsTick = makeTick(250);
 export function updateOmmelandFun(dt, w) {
   world = w;
   if (!w.map.store) return;
@@ -67,7 +71,7 @@ export function updateOmmelandFun(dt, w) {
   updateTalk(w);
   updateStadsleven(dt, w);
   updateEdgeGuard(dt, w);
-  refreshSolids();
+  if (solidsTick(performance.now())) refreshSolids();
 }
 
 export function tryOmmelandInteract(w) {
