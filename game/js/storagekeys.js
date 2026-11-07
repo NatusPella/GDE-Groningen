@@ -76,6 +76,8 @@ export const BASE_KEYS = {
   help: 'gde-hulp-v1',
   // the career of this player per trade (loopbaan.js, #381): new, no legacy name, never part of a savegame (everyone has their own, also when playing together)
   loopbaan: 'gde-loopbaan-v1',
+  // het gemeentebeleid van deze speler (beleidswinkel.js, #492): per speler, nooit in een savegame of in de wereld van een ander
+  beleid: 'gde-beleid-v1',
   // the fish book of this player (visboek.js, #412): new, no legacy name, never part of a savegame (everyone has their own, also when playing together)
   visboek: 'gde-visboek-v1',
   // the fishing gear of this player (hengeltuig.js, #492): rods, bait, line and upgrades; new, no legacy name, never part of a savegame (everyone has their own)

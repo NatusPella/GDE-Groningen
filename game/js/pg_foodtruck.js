@@ -6,6 +6,7 @@ import { isInWater } from './util.js';
 import { FJORD_BUBBLES, FJORD_DUO } from './pg_lines.js';
 import { finish, say, esc } from './pghost.js';
 import { FJORD_SHIFT_BONUS } from './economy.js';
+import { beleidMarktdag } from './beleidswinkel.js'; // #492: 'Altijd marktdag' maakt de Vismarkt elke dag druk
 import { FJORD_UPGRADE_DAG, fjordDagomzet, fjordPassief } from './fjordcijfers.js';
 export { fjordDagomzet, fjordPassief } from './fjordcijfers.js';
 import { isToday } from './calendarday.js';
@@ -56,7 +57,7 @@ const SPOTS = [
   } },
   { id: 'vismarkt', name: 'Vismarkt', at: [16.07, 237.62], busy: (w) => {
     const h = hour(w);
-    if (between(h, 8, 17) && isToday('markt', w)) return { level: 1.2, label: 'marktdag' };
+    if (between(h, 8, 17) && (isToday('markt', w) || beleidMarktdag())) return { level: 1.2, label: 'marktdag' };
     if (between(h, 11, 18)) return { level: 0.8, label: 'gezellig' };
     return { level: between(h, 22, 6) ? 0.2 : 0.5, label: 'rustig' };
   } },

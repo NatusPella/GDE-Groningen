@@ -484,7 +484,7 @@ t('missions.js dempt beloning en voortgang van een gastheer die niet meedeed (#4
   assert.match(src, /if \(mee\) chainState\(\)\.completed\.add\(chainState\(\)\.index\)/);
   assert.match(src, /if \(mee\) \{\s*world\.stats\.missionsDone\+\+;/);
   assert.match(src, /if \(mee\) hooks\.passed\(world, i\)/);
-  assert.match(src, /if \(world\.coopDeel\) world\.coopDeel\(reward\);/, 'de meespelende gasten worden altijd uitbetaald');
+  assert.match(src, /if \(world\.coopDeel\) world\.coopDeel\(reward(?:, \{ groepsbasis: rewardRuw, groepsn: aantal \})?\);/, 'de meespelende gasten worden altijd uitbetaald');
   // de gastheer krijgt dezelfde vraag, elke frame bijgehouden in updateMissions
   assert.match(src, /gastheerVraagTik\(world, dt\);/);
 });

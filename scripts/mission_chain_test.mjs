@@ -16,7 +16,7 @@ const blok = src.slice(van + BEGIN.length, tot);
 // `worldRef` hoort in missions.js bij het bestand (de wereld waarmee het start); hier is het een
 // lokale variabele zodat de test hem kan omzetten, precies zoals initMissions dat doet.
 const houder = () => new Function(
-  `let worldRef = null;\n${blok}\nreturn { chains, chainKey, chainState, setChainState, setChainKey, zetWereld: (w) => { worldRef = w; } };`,
+  `let worldRef = null;\n${blok}\nreturn { chains, missionPubs, chainKey, chainState, setChainState, setChainKey, missionPub, setMissionPub, zetWereld: (w) => { worldRef = w; } };`,
 )();
 
 let n = 0;
@@ -64,6 +64,40 @@ const ok = (c, naam) => { n++; if (!c) { console.log(`FAIL ${naam}`); process.ex
   ok(h.chainState(host).index === 2 && h.chainState(gast).index === 8 && h.chainState(derde).index === 0, 'drie ketens naast elkaar');
 }
 
+// --- #492 slice 2b: de wereldvelden van de opdracht (pub: missie, marker, waypoints, deuren en vlaggen) per groep
+{
+  const h = houder();
+  const host = { coopGroepSleutel: 0 };
+  const gast = { coopGroepSleutel: 1 };
+  h.zetWereld(host);
+  h.setChainState({ index: 2, pub: { label: 'host' } });
+  const hostPub = { label: 'host', marker: { x: 1, y: 2 }, doors: { poort: true }, flags: { toren: 'op' } };
+  h.setMissionPub(host, hostPub);
+  ok(h.missionPub(host) === hostPub, 'de pub van de host staat er');
+  ok(h.missionPub(gast) === null, 'de gast heeft nog geen pub');
+  const gastPub = { label: 'gast', marker: { x: 9, y: 8 }, doors: { poort: false }, flags: { toren: 'neer' } };
+  h.setMissionPub(gast, gastPub);
+  ok(h.missionPub(host) === hostPub && h.missionPub(gast) === gastPub, 'twee groepen houden twee pubs');
+  ok(h.missionPub(host).marker.x === 1 && h.missionPub(gast).marker.x === 9, 'de markers raken elkaar niet');
+  ok(h.missionPub(host).doors.poort === true && h.missionPub(gast).doors.poort === false, 'de deuren raken elkaar niet');
+  ok(h.missionPub(host).flags.toren === 'op' && h.missionPub(gast).flags.toren === 'neer', 'de vlaggen raken elkaar niet');
+
+  // de pub verhuist mee met de keten (#523), zoals de keten zelf
+  h.setChainKey(host, 'sessie-a');
+  ok(h.missionPub(host) === hostPub, 'de pub verhuist mee naar de sessiesleutel');
+  ok(h.missionPubs.has(0) === false, 'onder de oude sleutel blijft geen pub achter');
+  h.setChainKey(host, null);
+  ok(h.missionPub(host) === hostPub && h.missionPub(gast) === gastPub, 'na de sessie staan beide pubs nog goed');
+
+  // een lege of onbekende wereld: null, en het gooit niet
+  h.zetWereld(null);
+  ok(h.missionPub(null) === null, 'zonder wereld geen pub');
+  h.zetWereld(host);
+  h.setMissionPub(host, null);
+  ok(h.missionPub(host) === null, 'null wist de pub van die groep');
+  ok(h.missionPub(gast) === gastPub, 'en laat de andere groep staan');
+}
+
 // --- de bedrading in missions.js zelf
 {
   ok(!/^\s*let chain = null;/m.test(src), 'de oude modulevariabele chain is weg');
@@ -74,6 +108,13 @@ const ok = (c, naam) => { n++; if (!c) { console.log(`FAIL ${naam}`); process.ex
   ok((src.match(/(^|[^.\w$])chain\./gm) || []).length === 0, 'geen chain.veld-toegang meer');
   ok((src.match(/(^|[^.\w$])chain\s*=/gm) || []).length === 0, 'geen toewijzing aan chain meer');
   ok((src.match(/chain: chainState\(\),/g) || []).length === 1, 'de shorthand in makeCheckpoint is mee omgezet');
+  // #492 slice 2b: de pub (missie, marker, waypoints, deuren, vlaggen) hangt per groep aan world.mission
+  ok(/const missionPubs = new Map\(\);/.test(src), 'de pubs staan per sleutel');
+  ok(/Object\.defineProperty\(world, 'mission', \{/.test(src), 'world.mission is een accessor per groep');
+  ok(/get: \(\) => missionPub\(world\)/.test(src), 'de accessor leest de pub van de eigen groep');
+  ok(/set: \(pub\) => setMissionPub\(world, pub\)/.test(src), 'de accessor schrijft de pub van de eigen groep');
+  ok(/world\.mission = chainState\(\)\.pub;/.test(src), 'initMissions zet de eerste pub via de accessor');
+  ok(/const pub = missionPubs\.get\(current\);/.test(src) && /missionPubs\.set\(next, pub\)/.test(src), 'de pub verhuist mee met setChainKey');
 }
 
 // --- de keten verhuist mee naar de sleutel van de sessie (#523)
