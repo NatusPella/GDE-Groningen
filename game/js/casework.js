@@ -136,6 +136,13 @@ export function verklaringPay(right, total = 3) {
   return { base: 30 + 20 * n, tip: n === total ? 15 : 0, flawless: n === total, verdict: n === total ? 'Uw verklaring is volledig.' : n === 0 ? 'De rechter zucht. Dit komt in het proces-verbaal.' : 'Uw verklaring is bijna volledig.' };
 }
 
+// #683: een tweede jurylid (een meespeler bij de rechtbank-bijbaan) vergeeft één fout antwoord: de eerste
+// fout telt voor de uitslag als goed. Puur, zodat de rechtbank-baan en de test dezelfde regel gebruiken.
+export function juryGenade(right, fouten, juryleden = 0) {
+  const goed = Math.max(0, right | 0);
+  return goed + (juryleden > 1 && (fouten | 0) > 0 ? 1 : 0);
+}
+
 export const COURT_SAY = {
   pickup: 'De agent aan de balie geeft je het dossier. "Lees het goed. De griffier stelt straks vragen."',
   arrive: 'Het Gerechtsgebouw. De griffier kijkt over zijn bril: "Eerst de verklaring, dan de koffie."',
