@@ -1156,7 +1156,7 @@ export function updateStory(dt, w) {
   updateStoryEikea(dt, w, step, rt.base);
   if (!step) return;
   if (step.end) {
-    if (rt.cardPending && !isMissionActive() && !isCinematicActive() && !narrativeBusy() && !w.pigeonMode && playEndCard(rt.cardPending)) rt.cardPending = null;
+    if (rt.cardPending && !isMissionActive() && !isCinematicActive() && !narrativeBusy() && !w.pigeonMode && playEndCard(rt.cardPending)) { rt.cardPending = null; rt.cur = undefined; }
     else if (!rt.cardPending && step.finale && state.cards.has(step.end)) updateCredits(dt, w);
     return;
   }
@@ -1467,4 +1467,5 @@ export const storyApi = {
   character: () => hoofdspeler(world).character,
   swapInfo: () => ({ want: rt.cur && rt.cur.player, me: hoofdspeler(world).character, comp: world.companion && world.companion.character, paused: !!world.paused, cine: isCinematicActive(), pigeon: !!world.pigeonMode, mission: isMissionActive(), ragdoll: !!hoofdspeler(world).ragdoll, respawn: !!world.pendingRespawn, banner: isBannerUp(), card: document.body.classList.contains('hud-card-on'), narrative: narrativeState() }),
 };
+
 
