@@ -287,3 +287,28 @@ Niets gaat openbaar tot de eigenaar het besluit.
 - [ ] Geen Content ID-claims na de privé-upload.
 - [ ] Steam- en itch-links kloppen of staan op "(link volgt)".
 - [ ] Banner op telefoon gecontroleerd (alles binnen de veilige zone).
+
+## Stand 7 november 2026: wat klaar staat voor #63 en #65
+
+**Klaar (documenten en beelden, niets geüpload):** kanaalteksten, beschrijvingen, tags,
+hoofdstukken, brandingbeelden (`docs/youtube/beelden/`), uploadchecklist en de twee trailerscripts
+(`docs/youtube/trailers.md`). De beelden zijn volgens de specificaties van oktober 2026 gemaakt;
+`node scripts/youtube_images.mjs --compose` maakt de composities opnieuw uit de bestaande renders.
+
+**Eigenaar (kanaal en uploads):**
+1. Kanaal als **merkaccount** aanmaken (eigen thumbnails vragen een geverifieerd kanaal:
+   telefoonnummer, eenmalig), branding uploaden (profielfoto, banner, watermerk) en de
+   kanaalnaam/beschrijving uit `docs/youtube/kanaal.md` overnemen.
+2. De **gameplaytrailer** uploaden (Steam-cut met HUD staat in `docs/steam/trailer.md`; de
+   YouTube-versie zonder HUD in `docs/youtube/trailers.md`).
+3. De **verhaaltrailer** opnieuw exporteren: shot 5 heeft nog de naamkaart **ANITA** en moet
+   **Tessa** worden (het personage heet sinds het eigenaarsbesluit van 3 oktober Tessa); daarna
+   thumbnail en beschrijving uit `docs/youtube/kanaal.md`.
+4. **Besluit shot 11** (de lege vitrine): wel of niet in de definitieve cut. Zonder besluit blijft
+   de oude versie staan en gaat #65 niet mee.
+5. Video's uploaden met de beschrijving, tags en hoofdstukken uit `docs/youtube/kanaal.md`;
+   reacties/opmerkingen bewust aan of uit (eigenaarskeuze).
+
+**Wat een agent nog kan doen zonder akkoord:** de trailer opnieuw exporteren naar een lokaal
+bestand (geen upload), de beelden opnieuw componeren, de beschrijvingen en hoofdstukken
+controleren tegen de nieuwste versie, en de checklist bijwerken. Publiceren niet.

@@ -3,7 +3,7 @@
 Review van de cutscene- en filmpjeslaag in Samen spelen: wat de gastheer ziet, wat een gast ziet, wie
 welke rol krijgt, wat er bij onderbrekingen gebeurt, en wat er aan eerlijkheid en tests ontbreekt.
 
-- **Repo/branch:** `C:\Users\abuis\GIT\GDE-Groningen`, `main`.
+- **Repo/branch:** `<repo>`, `main`.
 - **Stand van de werkboom (belangrijk):** de opdracht noemt HEAD `e5e8b712`, maar `git log` laat twee
   commits daarna zien (`41340dd4`, `400acbeb`) en de werkboom heeft niet-gecommitte wijzigingen, onder
   meer in `game/js/coopnet.js`, `game/js/coopplayers.js` en `game/js/coopspelers.js`. Ik heb de

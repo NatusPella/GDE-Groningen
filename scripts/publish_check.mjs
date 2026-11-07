@@ -32,7 +32,14 @@ export const SECRET_PATTERNS = [
 
 export const EMAIL_RE = /[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}/g;
 const EMAIL_OK = /(?:^noreply@github\.com$|@users\.noreply\.github\.com|@example\.(?:com|org|nl)|@localhost)$/i;
-export const emailsIn = (line) => (line.match(EMAIL_RE) || []).filter((e) => !EMAIL_OK.test(e));
+export const emailsIn = (line) => (line.match(EMAIL_RE) || []).filter((e) => {
+  if (EMAIL_OK.test(e)) return false;
+  // De userinfo van een URL (app://game@evil.com/x) is geen e-mailadres: de tests van de
+  // URL-guard gebruiken dat als aanvalsvoorbeeld. Een gewoon adres blijft gewoon FAIL.
+  const i = line.indexOf(e);
+  const voor = i > 0 ? line.slice(Math.max(0, i - 80), i) : '';
+  return !/[a-z][a-z0-9+.-]*:\/\/[^\s/]*$/i.test(voor);
+});
 
 // Persoonlijke paden: thuismappen met een gebruikersnaam.
 export const HOME_PATH_RE = /(?:[A-Za-z]:[\\/]+Users[\\/]+(?!Public\b|runneradmin\b|Default\b|<|%|\$|\{|user\b|name\b)[A-Za-z0-9._-]+|(?<![\w/.-])\/(?:Users|home)\/(?!runner\b|user\b|name\b|<|\$|\{|you\b)[a-z][A-Za-z0-9._-]*)/;

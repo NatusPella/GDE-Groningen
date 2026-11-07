@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 
-const ROOT = 'C:\\Users\\abuis\\GIT\\GDE-Groningen';
+const ROOT = '<repo>';
 const REPO = 'NatusPella/GDE-Groningen';
 const OWNER = 'NatusPella';
 const PROJECT = '5';

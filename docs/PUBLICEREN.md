@@ -7,6 +7,9 @@ staat als issue: [#83](https://github.com/NatusPella/GDE-Groningen/issues/83)
 achtergrond: [LICENTIES.md](LICENTIES.md). Zichtbaarheid wijzigen alleen
 met akkoord van de eigenaar.
 
+De actuele volgorde, de per-issue checklists en de comment-teksten voor #37, #83, #72, #60, #64,
+#65, #62, #63, #57, #59 en #116 staan in [1.0-TRACK.md](1.0-TRACK.md).
+
 ## Gedaan (stand 15-17 okt 2026, 0.34)
 
 - **Licenties:** code GPL-3.0-or-later (`LICENSE`), eigen inhoud CC BY-NC-SA 4.0
