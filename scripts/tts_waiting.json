@@ -186,7 +186,7 @@
   "scene": "M02.5"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Loketbediende",
   "text": "Nummer 4117 aan loket A. Op het scherm staat 4093.",
   "scene": "M03.1"
@@ -198,7 +198,7 @@
   "scene": "M03.1"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Loketbediende",
   "text": "Formulier 7B, in drievoud. Niet vouwen.",
   "scene": "M03.1"
@@ -210,7 +210,7 @@
   "scene": "M03.1"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Loketbediende",
   "text": "Loket C is vandaag een stempel-loket. Loket B is vandaag Loket C.",
   "scene": "M03.1"
@@ -234,43 +234,43 @@
   "scene": "M03.2"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Mevrouw Hoving",
   "text": "Ik bewaar de Gouden Eierbal, de wisselprijs van de Snackprijs, al sinds 1998. Wie de bal bewaart, zit de jury voor en tekent de uitslag.",
   "scene": "M03.2"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Loketbediende",
   "text": "Is de bewaarder er niet, dan zit het oudste jurylid voor. Dat is Berend Bos, jurylid sinds 1982.",
   "scene": "M03.2"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Mevrouw Hoving",
   "text": "Meneer Terpstra heeft de vier andere juryleden en mij uitgenodigd voor een treinreis met volpension: alle maaltijden erbij. Vanaf maandag, tot na het Ontzet.",
   "scene": "M03.2"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Mevrouw Hoving",
   "text": "Berend Bos bedankte, want hij heeft een bakkie. Een bijzonder aardige man, meneer Terpstra.",
   "scene": "M03.2"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Mevrouw Hoving",
   "text": "Het museum. De koepel hangt sinds woensdag onder een doek, wegens restauratie.",
   "scene": "M03.2"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Loketbediende",
   "text": "Uw formulier is gevouwen.",
   "scene": "M03.3"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Loketbediende",
   "text": "Dan was het gisteren ongevouwen.",
   "scene": "M03.3"
@@ -282,7 +282,7 @@
   "scene": "M03.3"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Loketbediende",
   "text": "Loket B is nu loket A.",
   "scene": "M03.3"
@@ -294,7 +294,7 @@
   "scene": "M03.3"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Loketbediende",
   "text": "Gefeliciteerd. U bent ingeschreven voor de Noordelijke Snackprijs, met wagen. Zonder wagen vervalt uw inschrijving.",
   "scene": "M03.4"
@@ -312,7 +312,7 @@
   "scene": "M03.4"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Loketbediende",
   "text": "Weer bij ons? Loket B is nog steeds Loket C.",
   "scene": "M03.5"
@@ -666,7 +666,7 @@
   "scene": "M09.1"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Boer",
   "text": "Een eierkoek per week, levenslang. Daar zeg je geen nee tegen.",
   "scene": "M09.2"
@@ -774,7 +774,7 @@
   "scene": "M10.4"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Buschauffeur",
   "text": "Ik rijd tot Winsum. Daar stapt u over op de lijn naar Zoutkamp. Dat is de laatste halte, daarna is er alleen nog water.",
   "scene": "T2"
@@ -786,7 +786,7 @@
   "scene": "T2"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Buschauffeur",
   "text": "Uitstappen bij de haven, allemaal. Dan zie je het water.",
   "scene": "T2"
@@ -924,7 +924,7 @@
   "scene": "M11.6"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Kustwachter",
   "text": "Kustwacht. Melding van twee mensen in zwarte kleding op het wad. Waarschijnlijk schapen.",
   "scene": "M11.7"
@@ -1122,19 +1122,19 @@
   "scene": "M12.4"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Lammert",
   "text": "Hier vaart de Borkum-veerboot en daar zoemt het datacenter. Ik ben de havenmeester en ik vertel altijd wat er niet is: een leeg schip en een volle kabel.",
   "scene": "M13.1"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Lammert",
   "text": "Mijn vader danste in 1953 met Trijntje. Dat vergeet zij niet.",
   "scene": "M13.1"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Lammert",
   "text": "Hier zijn de papieren. Jullie wisselen ze om. Dan blijft alles hier.",
   "scene": "M13.1"
@@ -1146,13 +1146,13 @@
   "scene": "M13.1"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Lammert",
   "text": "Wij hebben geen containerterminal. Wij hebben één container en weten niet van wie.",
   "scene": "M13.1"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Lammert",
   "text": "Hij staat onder een stapel kabelrollen, naast de rode.",
   "scene": "M13.1"
@@ -1164,13 +1164,13 @@
   "scene": "M13.1"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Lammert",
   "text": "Dan moet je de blauwe zoeken.",
   "scene": "M13.1"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Lammert",
   "text": "De kraan piept. De bewaker kijkt bij het tweede piepje omhoog.",
   "scene": "M13.2"
@@ -1194,31 +1194,31 @@
   "scene": "M13.2"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Lammert",
   "text": "Het schip vaart leeg weg. Jelle krijgt zijn lading nooit.",
   "scene": "M13.3"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Lammert",
   "text": "Mijn vrachtwagen brengt alles wat jullie hebben gered vannacht naar mijn woonschip in Delfzijl.",
   "scene": "M13.3"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Lammert",
   "text": "Dit vat is van mijn vader: het vet van 1953. Voor Oma.",
   "scene": "M13.3"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Lammert",
   "text": "Vanochtend om acht uur tekent Trijntje op de sluis de overdracht van mijn woonschip. Dan mag de deurwaarder er niet meer bij.",
   "scene": "M13.3"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Lammert",
   "text": "Jullie slapen in mijn havenkantoor.",
   "scene": "M13.3"
@@ -1230,13 +1230,13 @@
   "scene": "M13.3"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Lammert",
   "text": "Met een bed. Twee bedden.",
   "scene": "M13.3"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Lammert",
   "text": "De bewaker kijkt nog steeds omhoog. Hij wacht al een uur.",
   "scene": "M13.4"
@@ -1260,13 +1260,13 @@
   "scene": "M14.2"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Lammert",
   "text": "De overdracht is getekend, om vijf voor acht. Het beslag mislukt. Alleen mijn kade is verhuurd, voor een evenement.",
   "scene": "M14.3"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Deurwaarder",
   "text": "Dat is nu officieel. Daar kan ik niets tegen doen.",
   "scene": "M14.3"
@@ -1332,25 +1332,25 @@
   "scene": "T3"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Roelfien",
   "text": "Trijntje zei dat Tammo niks kan, maar het met overtuiging doet. Ik zeg het maar meteen, dan weten we dat allebei.",
   "scene": "M15.1"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Roelfien",
   "text": "Dan laten we de hele kermis zien wat hij doet. Mijn vliegtuigje sleept al twintig jaar een spandoek voor de kermis.",
   "scene": "M15.1"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Roelfien",
   "text": "Vlieg laag, houd de molen rechts en trek de neus pas omhoog na de kermis.",
   "scene": "M15.1"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Roelfien",
   "text": "Het graan staat er nog. Dat wacht op het weer, niet op Jelle.",
   "scene": "M15.1"
@@ -1374,7 +1374,7 @@
   "scene": "M15.2"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Roelfien",
   "text": "Het spandoek staat recht. Ze lezen het.",
   "scene": "M15.2"
@@ -1386,37 +1386,37 @@
   "scene": "M15.2"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Jurylid",
   "text": "Is dit waar? Jelle koopt de jury?",
   "scene": "M15.3"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Jurylid",
   "text": "Ik stap eruit.",
   "scene": "M15.3"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Jurylid",
   "text": "Ik ook.",
   "scene": "M15.3"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Roelfien",
   "text": "Twee van de vier andere juryleden zijn weggelopen. De andere twee zitten nog bij Jelle.",
   "scene": "M15.3"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Roelfien",
   "text": "De molen in Midwolda is van Jelle. Fijn meel krijg je daar niet meer. Ik heb mijn eigen graan. Dat is grof.",
   "scene": "M15.3"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Roelfien",
   "text": "Oma's recept lust grof. Hier is het meel. Voor Trijntje.",
   "scene": "M15.3"
@@ -1428,13 +1428,13 @@
   "scene": "M15.3"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Roelfien",
   "text": "Doe de groeten aan Trijntje. En zeg dat de kermis mooi is.",
   "scene": "M15.3"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Roelfien",
   "text": "Het spandoek is gewassen. Het graan heeft niks gezien.",
   "scene": "M15.4"
@@ -1458,7 +1458,7 @@
   "scene": "M16.1"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Student",
   "text": "Proost! Nog eentje dan!",
   "scene": "M16.2"
@@ -1467,12 +1467,6 @@
   "reason": "spreektekst",
   "speaker": "Tammo",
   "text": "Een eerstejaars. Ze zijn overal.",
-  "scene": "M16.2"
- },
- {
-  "reason": "stemkeuze",
-  "speaker": "Student",
-  "text": "Ik hou van jullie allemaal!",
   "scene": "M16.2"
  },
  {
@@ -1494,7 +1488,7 @@
   "scene": "M16.4"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Kermisexploitant",
   "text": "Eruit! Hier wordt gebotst, niet gekust! Wie wil er een lolly?",
   "scene": "M16.4"
@@ -1584,13 +1578,13 @@
   "scene": "B3"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Wubbo",
   "text": "Open of dicht. Nooit allebei. Dat is mijn hele werkfilosofie. Trijntje zocht iemand die kan wachten, en ik ben brugwachter.",
   "scene": "M17.1"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Wubbo",
   "text": "Vaar jij voor zijn schip uit, dan sluit ik de bruggen achter je. Dan zit zijn schip vast.",
   "scene": "M17.1"
@@ -1602,13 +1596,13 @@
   "scene": "M17.1"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Wubbo",
   "text": "Elf bruggen. Toeter bij een gesloten brug, dan open ik op het ritme van de fanfare. Mis je de maat, dan wacht je.",
   "scene": "M17.1"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Wubbo",
   "text": "Mijn brug is op tijd. Laat je boot dat ook zijn.",
   "scene": "M17.1"
@@ -1620,13 +1614,13 @@
   "scene": "M17.1"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Wubbo",
   "text": "De fanfare is vertrokken. Iemand heeft ze een contract gegeven voor een optocht.",
   "scene": "M17.2"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Wubbo",
   "text": "Ik fluit. Eén keer fluiten is open. Twee keer is dicht.",
   "scene": "M17.2"
@@ -1638,7 +1632,7 @@
   "scene": "M17.2"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Wubbo",
   "text": "Brug acht. Open. Nu.",
   "scene": "M17.2"
@@ -1650,7 +1644,7 @@
   "scene": "M17.2"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Wubbo",
   "text": "Brug negen. Dicht. Nog niet.",
   "scene": "M17.2"
@@ -1662,7 +1656,7 @@
   "scene": "M17.2"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Wubbo",
   "text": "Nu pas.",
   "scene": "M17.2"
@@ -1674,19 +1668,19 @@
   "scene": "M17.3"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Wubbo",
   "text": "Die brug draait niet voor een limo.",
   "scene": "M17.3"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Wubbo",
   "text": "Het schip zit vast. De mosterd is van jullie. Grove mosterd, niet dat zoete spul.",
   "scene": "M17.3"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Wubbo",
   "text": "Er is een webbureau in Veendam dat alles om middernacht bijwerkt. Ook mijn bruggen.",
   "scene": "M17.3"
@@ -1704,7 +1698,7 @@
   "scene": "M17.3"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Wubbo",
   "text": "Weer elf bruggen? Open. Dicht. Ik heb het al geleerd.",
   "scene": "M17.4"
@@ -1728,31 +1722,31 @@
   "scene": "M18.1"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Accountmanager",
   "text": "Welkom bij Wiebelwerk. Wij maken websites. Wat is uw behoefte?",
   "scene": "M18.1"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Accountmanager",
   "text": "Prachtig. Dan beginnen we met een intake.",
   "scene": "M18.1"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Accountmanager",
   "text": "Warm, droog en een beetje Gronings. Sinds deze zomer, jong maar eerlijk. Ik zie het voor me.",
   "scene": "M18.2"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Accountmanager",
   "text": "Ik maak een offerte. Dat duurt een uur. Ik haal koffie.",
   "scene": "M18.2"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Accountmanager",
   "text": "De serverkamer is niet voor klanten. De koffieautomaat staat in de andere gang.",
   "scene": "M18.2"
@@ -1764,13 +1758,13 @@
   "scene": "M18.2"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Accountmanager",
   "text": "Interessant. Bijna alle antwoorden klopten. Eén niet.",
   "scene": "M18.6"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Accountmanager",
   "text": "Iedereen is nieuw bij een intake. Ik loop even mee naar de koffieautomaat. In de gang.",
   "scene": "M18.6"
@@ -1782,13 +1776,13 @@
   "scene": "M18.6"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Accountmanager",
   "text": "Dan is dat uw route.",
   "scene": "M18.6"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Accountmanager",
   "text": "Twee antwoorden die geen klant geeft. Ik nodig u uit voor een rondleiding. Met de beveiliging.",
   "scene": "M18.7"
@@ -1800,7 +1794,7 @@
   "scene": "M18.7"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Accountmanager",
   "text": "Bij Wiebelwerk is alles gratis, behalve de website.",
   "scene": "M18.7"
@@ -1842,7 +1836,7 @@
   "scene": "M18.3"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Accountmanager",
   "text": "Wiebelwerk doet niets verkeerds. Wij maken alleen websites.",
   "scene": "M18.4"
@@ -1860,7 +1854,7 @@
   "scene": "M18.4"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Accountmanager",
   "text": "Nog een intake? De koffie is nog warm.",
   "scene": "M18.5"
@@ -1902,31 +1896,31 @@
   "scene": "M19.2"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Jurylid",
   "text": "Heerlijk. Wie is die mevrouw?",
   "scene": "M19.2"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Jurylid",
   "text": "Dat is toch niet waar.",
   "scene": "M19.2"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Jurylid",
   "text": "Ik stap hier uit. Ik laat me niet kopen met een eierbal.",
   "scene": "M19.3"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Jurylid",
   "text": "Ik niet. Ik heb een contract. Levenslang eierballen en elke kermis een kaartje.",
   "scene": "M19.3"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Mevrouw Hoving",
   "text": "Ik stap niet uit. Ik blijf in de trein tot na het Ontzet, dat stond op de uitnodiging. Dan zit het oudste jurylid voor: Berend Bos, sinds 1982.",
   "scene": "M19.3"
@@ -1992,7 +1986,7 @@
   "scene": "T4.1"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Tinus",
   "text": "Ik ben Tinus. Ik beleg mee. Mijn trekker staat thuis, in het Westerkwartier.",
   "scene": "T4.1"
@@ -2286,7 +2280,7 @@
   "scene": "M21.4"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Tinus",
   "text": "Laat ze gaan, jong. Praten kun je niet.",
   "scene": "M21.4"
@@ -2316,13 +2310,13 @@
   "scene": "M21.4"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Lammert",
   "text": "Mijn kade is verhuurd voor een evenement. Ik mag er zelf niet meer komen.",
   "scene": "M21.4"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Wubbo",
   "text": "De brug draait op tijd. Maar vandaag draait hij voor een evenement.",
   "scene": "M21.4"
@@ -2334,13 +2328,13 @@
   "scene": "M21.4"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Roelfien",
   "text": "Mijn vliegvergunning is ingetrokken. Zeg het tegen Trijntje.",
   "scene": "M21.4"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Tinus",
   "text": "Mijn schuur is leeg, maar Henk komt met een luik. Voor jou en je ruzie.",
   "scene": "M21.4"
@@ -2394,7 +2388,7 @@
   "scene": "B4"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Tinus",
   "text": "Welkom in mijn schuur. Henk belde. Jullie zoeken een luik.",
   "scene": "M22.1"
@@ -2466,19 +2460,19 @@
   "scene": "M22.2"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Tinus",
   "text": "De modder pakt eerst je auto. Je plannen komen daarna.",
   "scene": "M22.3"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Tinus",
   "text": "Met een luik is de zijkant zwakker, en een friteuse weegt vierhonderd kilo. Houdt de achteras het niet, dan breekt hij op de Grote Markt. Rij hem dus de modder in.",
   "scene": "M22.3"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Tinus",
   "text": "Dan trekt mijn trekker hem eruit. Aan de trekhaak. Aan Tammo hebben we hier niks.",
   "scene": "M22.3"
@@ -2490,13 +2484,13 @@
   "scene": "M22.3"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Tinus",
   "text": "Dan trek ik je los. Houd vast.",
   "scene": "M22.3"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Tinus",
   "text": "Aan je zelfvertrouwen.",
   "scene": "M22.3"
@@ -2508,7 +2502,7 @@
   "scene": "M22.3"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Tinus",
   "text": "Dan aan de trekker.",
   "scene": "M22.3"
@@ -2568,13 +2562,13 @@
   "scene": "M23.1"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Wubbo",
   "text": "Ik rij de bus. Een bus is een brug op wielen. Ik zet de zijstraten dicht.",
   "scene": "M23.1"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Tinus",
   "text": "Ik rij de trekker. Wat Jelle ook neerzet, ik trek het weg.",
   "scene": "M23.1"
@@ -2592,25 +2586,25 @@
   "scene": "M23.1"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Lammert",
   "text": "Ik zit achterin bij Wubbo in de bus. Dit is de mooiste optocht van de provincie.",
   "scene": "M23.2"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Roelfien",
   "text": "Ik vlieg boven jullie. Mijn vergunning is ingetrokken, maar ze kunnen me niet vinden.",
   "scene": "M23.2"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Wubbo",
   "text": "Brug open. Ga maar.",
   "scene": "M23.2"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Tinus",
   "text": "Ik trek hem weg.",
   "scene": "M23.2"
@@ -2640,13 +2634,13 @@
   "scene": "M23.3"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Wubbo",
   "text": "Ik rijd naast jullie. Een bus is breed. Ik zet elke zijstraat dicht waar Jelle langs wil.",
   "scene": "M23.6"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Wubbo",
   "text": "Die open ik op afstand, met mijn sleutel. Open of dicht, nooit allebei.",
   "scene": "M23.6"
@@ -2658,19 +2652,19 @@
   "scene": "M23.6"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Wubbo",
   "text": "Die komt een minuut later. Zijn vergunningen hebben een loket. Mijn brug niet.",
   "scene": "M23.6"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Tinus",
   "text": "Ik rij naast jullie, met de trekker. Hier kijk je niet ver: houtwallen. Maar ik trek alles weg wat Jelle neerzet.",
   "scene": "M23.7"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Tinus",
   "text": "Ook een limo. Aan de trekhaak, als het moet.",
   "scene": "M23.7"
@@ -2868,13 +2862,13 @@
   "scene": "M26.4"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Wubbo",
   "text": "Poelestraat dicht. Bus dwars. De deuren heb ik open gelaten, voor de sfeer.",
   "scene": "M26.14"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Wubbo",
   "text": "Open of dicht, Tessa. Vandaag allebei.",
   "scene": "M26.14"
@@ -2886,13 +2880,13 @@
   "scene": "M26.14"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Tinus",
   "text": "Gelkingestraat dicht. Trekker dwars. Wie er langs wil, moet eerst met mij praten.",
   "scene": "M26.15"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Tinus",
   "text": "Ik trek hem weg. De limo, niet de trekker.",
   "scene": "M26.15"
@@ -2928,25 +2922,25 @@
   "scene": "M26.6"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Jurylid",
   "text": "Fjord Frituur.",
   "scene": "M26.10"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Jurylid",
   "text": "Fjord Frituur.",
   "scene": "M26.10"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Jurylid",
   "text": "Fjord Frituur.",
   "scene": "M26.10"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Jurylid",
   "text": "Fjord Frituur.",
   "scene": "M26.10"
@@ -2958,25 +2952,25 @@
   "scene": "M26.10"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Jurylid",
   "text": "Fjord Frituur.",
   "scene": "M26.11"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Jurylid",
   "text": "Fjord Frituur.",
   "scene": "M26.11"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Jurylid",
   "text": "Fjord Frituur.",
   "scene": "M26.11"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Jurylid",
   "text": "Us Mem Snacks. Ik heb een contract.",
   "scene": "M26.11"
@@ -2988,25 +2982,25 @@
   "scene": "M26.11"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Jurylid",
   "text": "Fjord Frituur.",
   "scene": "M26.12"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Jurylid",
   "text": "Us Mem Snacks. Ik heb een contract.",
   "scene": "M26.12"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Jurylid",
   "text": "Fjord Frituur.",
   "scene": "M26.12"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Jurylid",
   "text": "Us Mem Snacks. De korrel is te grof.",
   "scene": "M26.12"
@@ -3096,13 +3090,13 @@
   "scene": "E2"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Willemien",
   "text": "Jullie zijn van Trijntje. Kom binnen. Schoenen mogen aan. Het huis is toch even niet van mij.",
   "scene": "M27.1"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Willemien",
   "text": "Een paar weken, zeggen ze. Dat zeggen ze al twee jaar. Koffie?",
   "scene": "M27.1"
@@ -3114,13 +3108,13 @@
   "scene": "M27.1"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Willemien",
   "text": "Delfstof Noord zet het huis op nieuwe poten. De ploeg is aardig. Het duurt alleen langer dan een kopje koffie.",
   "scene": "M27.1"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Willemien",
   "text": "Dat zegt Trijntje van alles. Breekbaar in de krant. Boeken in kleine dozen, anders krijg je ze niet getild. En de kat is het moeilijkst.",
   "scene": "M27.1"
@@ -3132,13 +3126,13 @@
   "scene": "M27.2"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Willemien",
   "text": "Hij wil nergens in. Hij woont hier. Hij snapt het nog minder dan ik.",
   "scene": "M27.2"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Willemien",
   "text": "Mijn oma. En Trijntje. Negentienhonderddrieënvijftig. Ze fietsten naar Stad, voor de prijs.",
   "scene": "M27.2"
@@ -3150,31 +3144,31 @@
   "scene": "M27.2"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Willemien",
   "text": "Tegen de wind in. Dat stond er niet bij, maar zo was het.",
   "scene": "M27.2"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Willemien",
   "text": "Het is een huis. Het moet alleen even blijven staan.",
   "scene": "M27.3"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Willemien",
   "text": "Dat zeggen ze. Ik zeg het ook. Dan zijn we het eens.",
   "scene": "M27.3"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Willemien",
   "text": "Nog een doos? Er is altijd nog een doos.",
   "scene": "M27.4"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Willemien",
   "text": "Rustig rijden. Niet om de spullen. Om mij.",
   "scene": "M28.1"
@@ -3186,7 +3180,7 @@
   "scene": "M28.1"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Willemien",
   "text": "Dat zei Trijntje al. Ze zei: dat is het enige wat hij altijd doet.",
   "scene": "M28.1"
@@ -3198,7 +3192,7 @@
   "scene": "M28.2"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Willemien",
   "text": "Daar woonde mijn buurvrouw. Die is al terug. Ze zegt dat het nu beter is dan eerst.",
   "scene": "M28.2"
@@ -3210,13 +3204,13 @@
   "scene": "M28.2"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Willemien",
   "text": "Ik geloof het als ik het zie. Dat is niet boos. Dat is Gronings.",
   "scene": "M28.2"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Willemien",
   "text": "Hij vindt het niks.",
   "scene": "M28.3"
@@ -3228,7 +3222,7 @@
   "scene": "M28.3"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Willemien",
   "text": "Hij niet. Ik wel. Dank je, jong. Zeg tegen Trijntje dat ik niet klaag.",
   "scene": "M28.3"
@@ -3240,19 +3234,19 @@
   "scene": "M28.3"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Willemien",
   "text": "Nog een ritje? De kat blijft hier. Die heeft het wel gezien.",
   "scene": "M28.4"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Willemien",
   "text": "Een paar weken, zeiden ze. Dit keer klopte het.",
   "scene": "M29.1"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Willemien",
   "text": "De kat was eerder terug dan ik. Hij liep gewoon. Twee kilometer.",
   "scene": "M29.1"
@@ -3264,7 +3258,7 @@
   "scene": "M29.1"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Willemien",
   "text": "Die wist het al die tijd.",
   "scene": "M29.1"
@@ -3276,25 +3270,25 @@
   "scene": "M29.2"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Buurvrouw",
   "text": "Ik ben de buurvrouw. Ik heb gekookt voor twintig. We zijn met twaalf. Dat is hier normaal.",
   "scene": "M29.2"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Boer",
   "text": "Ik heb de tafels gebracht. En weer opgehaald. En weer gebracht. Ze wisten niet waar ze moesten.",
   "scene": "M29.2"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Willemien",
   "text": "In de gang. Waar je hem ziet als je weggaat. En als je terugkomt.",
   "scene": "M29.2"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Willemien",
   "text": "Zeg tegen Trijntje: ik ben thuis.",
   "scene": "M29.3"
@@ -3306,13 +3300,13 @@
   "scene": "M29.3"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Willemien",
   "text": "Eén keer is genoeg. Dan is het waar.",
   "scene": "M29.3"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Willemien",
   "text": "Kom maar binnen. Koffie staat. Het huis ook.",
   "scene": "M29.4"
@@ -3378,7 +3372,7 @@
   "scene": "M30.1"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Lammert",
   "text": "Ik heb de sleutel van de sluis. Vrij genomen. Mijn neef houdt de sluis in Delfzijl. Hij meldt alleen.",
   "scene": "M30.1"
@@ -3390,19 +3384,19 @@
   "scene": "M30.1"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Roelfien",
   "text": "Ik vlieg boven. Meel. Zes zakken. Eén keer wit. Daarna sta ik stil.",
   "scene": "M30.1"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Wubbo",
   "text": "Ik doe de lier van de brug. Open of dicht. Vandaag een tel te vroeg. Ik oefen het al vanochtend.",
   "scene": "M30.1"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Tinus",
   "text": "Trekker heeft een toren. Hij trekt hem. Zonder motor ging het niet. Met motor wel.",
   "scene": "M30.1"
@@ -3426,7 +3420,7 @@
   "scene": "M30.1"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Lammert",
   "text": "Sluis open. Het water komt. Het komt niet snel. Het komt op tijd.",
   "scene": "M30.2"
@@ -3450,13 +3444,13 @@
   "scene": "M30.2"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Wubbo",
   "text": "Lier. Nu. Een tel te vroeg. Het is gelukt.",
   "scene": "M30.3"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Wubbo",
   "text": "Te vroeg. Dat is ook een soort op tijd. Het is mijn beste dag.",
   "scene": "M30.3"
@@ -3468,7 +3462,7 @@
   "scene": "M30.3"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Roelfien",
   "text": "Boven jullie. Meel komt. Hoofd omlaag.",
   "scene": "M30.4"
@@ -3480,7 +3474,7 @@
   "scene": "M30.4"
  },
  {
-  "reason": "stemkeuze",
+  "reason": "spreektekst",
   "speaker": "Tinus",
   "text": "Toren trekt. Hij leunt. Hij leunt goed.",
   "scene": "M30.4"

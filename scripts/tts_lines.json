@@ -1,5 +1,31 @@
 [
  {
+  "key": "Student|Ik hou van jullie allemaal!",
+  "speaker": "Student",
+  "text": "Ik hou van jullie allemaal!",
+  "area": "M16.2",
+  "out": "lines",
+  "lang": "gro",
+  "voice": "Puck",
+  "who": "aangeschoten student in de kroeg, jong en uitbundig",
+  "tag": "opgewonden, luid",
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; aangeschoten student in de kroeg, jong en uitbundig. Tone: opgewonden, luid.",
+  "file": "student/ik_hou_van_jullie_allemaal_9b1c42a0.mp3"
+ },
+ {
+  "key": "Anita|Ik wist niet waar de bal lag. Mem hield iets voor Jelle verborgen.",
+  "speaker": "Anita",
+  "text": "Ik wist niet waar de bal lag. Mem hield iets voor Jelle verborgen.",
+  "area": "M20.5",
+  "out": "lines",
+  "lang": "own",
+  "voice": "Callirrhoe",
+  "who": "Nederlandse vrouw, lacherig en ad rem",
+  "tag": "plagend, zelfverzekerd",
+  "style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: plagend, zelfverzekerd.",
+  "file": "anita/ik_wist_niet_waar_de_bal_lag_mem_24249717.mp3"
+ },
+ {
   "key": "Anita|Berend, dit is het logboek van Wiebelwerk. Twaalf augustus. Jelle nam de bal vijf dagen vóór ons.",
   "speaker": "Anita",
   "text": "Berend, dit is het logboek van Wiebelwerk. Twaalf augustus. Jelle nam de bal vijf dagen vóór ons.",

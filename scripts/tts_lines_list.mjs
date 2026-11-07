@@ -80,6 +80,26 @@ const CAST = {
   // Geesje presents Radio Proat, the talk programmes on G-Music (radio.js)
   Geesje: { voice: 'Pulcherrima', who: 'Groningse radiopresentatrice van praatzender Radio Proat, warm en droog', pool: ['warm, ontspannen, als radiopresentatrice', 'droog, met een knipoog, als radiopresentatrice'] },
   Ubbo: { voice: 'Laomedeia', who: 'de vriendelijke stem van de telefoon-app Ubbo', pool: ['vriendelijke, gladde app-stem, kalm', 'behulpzame app-assistent, opgewekt'], accent: 'spoken in Gronings dialect (Grunnegs) exactly as written, clear and friendly like a phone assistant' },
+  // De zeventien sprekers van het nieuwe verhaal die op 6-11-2026 een stem kregen (de keuze is op
+  // papier gedaan en staat in docs/verhaal/STEMKEUZE-VOORSTEL.md); ze spreken allemaal Gronings,
+  // hun spreekteksten staan in docs/verhaal/DIALECT-CONCEPT.md.
+  Loketbediende: { voice: 'Autonoe', who: 'loketbediende van de gemeente, vriendelijk en volstrekt onverschillig', pool: ['vlak, ambtelijk', 'vriendelijk, onverschillig', 'dreunend, precies'], accent: GRO_ACCENT },
+  'Mevrouw Hoving': { voice: 'Gacrux', who: 'deftige, oudere bewaarder van de Gouden Eierbal, statig en beleefd', pool: ['statig, op leeftijd', 'deftig, vriendelijk', 'plechtig, warm'], accent: GRO_ACCENT },
+  Boer: { voice: 'Charon', who: 'boer op het erf, nuchter en kortaf', pool: ['nuchter, boers', 'kortaf, gemoedelijk'], accent: GRO_ACCENT },
+  Buschauffeur: { voice: 'Alnilam', who: 'streekbuschauffeur die omroept, zakelijk door de speaker', pool: ['zakelijk, door de speaker', 'kortaf, vriendelijk'], accent: GRO_ACCENT },
+  Kustwachter: { voice: 'Achird', who: 'kustwachter die een melding doorgeeft, rustig door de radio', pool: ['rustig, door de radio', 'zakelijk, vriendelijk'], accent: GRO_ACCENT },
+  Lammert: { voice: 'Iapetus', who: 'havenmeester van Delfzijl, op leeftijd, vertelt graag', pool: ['droog, vertellend', 'op leeftijd, ironisch', 'kalm, precies'], accent: GRO_ACCENT },
+  Deurwaarder: { voice: 'Rasalgethi', who: 'deurwaarder, ambtelijk en formeel', pool: ['vlak, ambtelijk', 'onherroepelijk, formeel'], accent: GRO_ACCENT },
+  Roelfien: { voice: 'Laomedeia', who: 'kordate graanboerin en vlieger, vrolijk en praktisch', pool: ['vrolijk, praktisch', 'kordaat, opgewekt', 'droog, daadkrachtig'], accent: GRO_ACCENT },
+  Jurylid: { voice: 'Umbriel', who: 'verontwaardigd jurylid van de Snackprijs', pool: ['verontwaardigd, droog', 'ongelovig, schamper', 'eigenwijs, verontwaardigd'], accent: GRO_ACCENT },
+  Student: { voice: 'Puck', who: 'aangeschoten student in de kroeg, jong en uitbundig', pool: ['aangeschoten, uitbundig', 'jong, luid'], accent: GRO_ACCENT },
+  Kermisexploitant: { voice: 'Erinome', who: 'kermisexploitant die over de kermis heen schreeuwt', pool: ['schreeuwend over de kermis', 'vrolijk, luid'], accent: GRO_ACCENT },
+  Wubbo: { voice: 'Sadaltager', who: 'brugwachter met een werkfilosofie, droog en bedachtzaam', pool: ['droog, bedachtzaam', 'praktisch, kalm', 'kortaf, wijs'], accent: GRO_ACCENT },
+  Accountmanager: { voice: 'Zubenelgenubi', who: 'gladde verkoper van Wiebelwerk, soepel en gemaakt vriendelijk', pool: ['glad, verkoperig', 'vriendelijk, gemaakt', 'soepel, zakelijk'], accent: GRO_ACCENT },
+  Tinus: { voice: 'Enceladus', who: 'oude boer met een trekker uit het Westerkwartier, schor en joviaal', pool: ['joviaal, boers', 'schor, droog', 'gemoedelijk, praktisch'], accent: GRO_ACCENT },
+  'Kind in het publiek': { voice: 'Leda', who: 'kind in het publiek op de Grote Markt, roept luid en dapper', pool: ['kind, luid', 'dapper, roepend'], accent: GRO_ACCENT },
+  Willemien: { voice: 'Aoede', who: 'gastvrouw in een huis dat op nieuwe poten staat, nuchter en hartelijk', pool: ['hartelijk, nuchter', 'gastvrij, droog', 'warm, berustend'], accent: GRO_ACCENT },
+  Buurvrouw: { voice: 'Despina', who: 'buurvrouw die voor twintig kookt, hartelijk en kletserig', pool: ['hartelijk, kletserig', 'nuchter, gastvrij'], accent: GRO_ACCENT },
 };
 const MALE = ['Charon', 'Puck', 'Iapetus', 'Umbriel', 'Alnilam', 'Rasalgethi', 'Enceladus', 'Schedar', 'Sadaltager', 'Zubenelgenubi'];
 const FEMALE = ['Aoede', 'Leda', 'Autonoe', 'Despina', 'Erinome', 'Laomedeia', 'Pulcherrima', 'Vindemiatrix', 'Sulafat', 'Achernar'];

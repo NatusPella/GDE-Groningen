@@ -9,11 +9,11 @@ opgenomen** en er is **geen sleutel gebruikt**.
 
 | Meting | Uitkomst |
 |---|---|
-| Verhaalregels zonder stem | **656** (waarvan **53** in de opening en M01-M03) |
-| Klaar in de wachtrij (`scripts/tts_lines.json`) | **63** jobs (2.223 tekens, ca. 197 s audio, ca. $0,03) |
-| Wacht op een stemkeuze (`scripts/tts_cast.mjs` CAST) | **154** regels, 16 sprekers |
-| Wacht op Groningse spreektekst (`scripts/gronings_spoken.json`) | **439** regels |
-| `node scripts/voice_coverage.mjs --quiet` | **2028/2028 ok**, 693 regels alleen tekst (vrijgesteld) |
+| Verhaalregels zonder stem | **657** (waarvan **53** in de opening en M01-M03) |
+| Klaar in de wachtrij (`scripts/tts_lines.json`) | **65** jobs (2.316 tekens, ca. 200 s audio, ca. $0,03) |
+| Wacht op een stemkeuze (`scripts/tts_lines_list.mjs` CAST) | **0** regels — de zeventien sprekers hebben sinds 7-11 een stem (`docs/verhaal/STEMKEUZE-VOORSTEL.md`) |
+| Wacht op Groningse spreektekst (`scripts/gronings_spoken.json`) | **592** regels |
+| `node scripts/voice_coverage.mjs --quiet` | **2027/2027 ok**, 694 regels alleen tekst (vrijgesteld) |
 | Stille appjes/sms'en | 37, bewust geen stem |
 | Volledige lijst per scène | `docs/verhaal/OPNAMELIJST.md` (lokaal, gitignored; 1.605 regels bestand) |
 
@@ -88,7 +88,7 @@ clips worden getrimd en op -18 LUFS gezet; `ffmpeg`/`ffprobe` moeten in het pad 
 
 ### 3. Stemkeuze: 154 regels, 16 sprekers
 
-De sprekers staan nog niet in `CAST` van `scripts/tts_cast.mjs`. Kies per spreker een stem
+De sprekers staan sinds 7-11-2026 in `CAST` van `scripts/tts_lines_list.mjs`. Kies per spreker een stem
 (zie [`STEMKEUZE-VOORSTEL.md`](STEMKEUZE-VOORSTEL.md)), zet die in `CAST`, en draai
 daarna stap 1 opnieuw: `node scripts/tts_lines_list.mjs` zet ze in de wachtrij.
 
