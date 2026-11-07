@@ -234,8 +234,22 @@ export async function startKoplozeHost({ max = 4, wachtwoord = '', start = START
   };
   h.kick = (slot) => N.removeGuest(world, slot | 0);
   h.verbied = (slot) => N.verbiedGast(world, slot | 0);
-  h.zetWachtwoord = (ww = '') => N.zetWachtwoord(world, ww);
+  let wachtwoordNu = !!wachtwoord;
+  h.zetWachtwoord = (ww = '') => { const r = N.zetWachtwoord(world, ww); wachtwoordNu = !!String(ww || '').trim(); return r; };
   h.max = (n) => N.setMaxPlayers(world, n);
+  // #450: het beheer/CLI-scherm leest hier zijn stand (status, spelers, wereld) en stopt via h.stop().
+  h.beheer = () => {
+    const spelers = h.spelers().map((r) => ({ slot: r.slot, naam: (r.avatar && r.avatar.naam) || r.naam || 'speler', rol: r.rol || '', verbinding: r.verbinding || '' }));
+    const p2 = h.publiek();
+    return {
+      code: h.code, lanCode: h.lanCode, poort: h.poort, vast: !!poort,
+      max: (hub && hub.roster && hub.roster.max) || max, wachtwoord: wachtwoordNu,
+      openbaarNaam: p2 ? p2.naam : '', kamer: lijst.kamer ? `${lijst.kamer.slice(0, 5)}-${lijst.kamer.slice(5)}` : '',
+      spelers,
+      wereld: { clock: world.clock, weer: (world.weatherState && (world.weatherState.kind || world.weatherState.weer)) || '', missie: world.mission && world.mission.phase && world.mission.phase !== 'idle' ? (world.mission.id || world.mission.phase) : '' },
+      seconden: h.t,
+    };
+  };
 
   // #450 (slice B): dezelfde aankondiging als een gewone gastheer (net/serverlijst.js + LijstSignaler op de brokers van de
   // kamercode), maar geplaatst door dit proces in plaats van door het lobbypaneel. De hub houdt de regel vast: naam, id en
@@ -302,6 +316,28 @@ export async function startKoplozeHost({ max = 4, wachtwoord = '', start = START
   return h;
 }
 
+// Het beheer/CLI-scherm van de koploze gastheer (#450): status, spelers en stoppen in gewone taal. Puur, zodat de
+// test hetzelfde beeld leest als de beheerder; `startKoplozeHost` levert de gegevens via h.beheer().
+export function beheerTekst(info = {}) {
+  const regels = ['Koploze gastheer (#450)'];
+  if (info.code) regels.push(`Koppelcode: ${info.code}`);
+  if (info.lanCode && info.lanCode !== info.code) regels.push(`In het eigen netwerk: ${info.lanCode}`);
+  if (Number.isFinite(info.poort)) regels.push(`Poort: ${info.poort}${info.vast ? ' (vast)' : ' (zelf gekozen)'}`);
+  const spelers = Array.isArray(info.spelers) ? info.spelers : [];
+  const max = Number.isFinite(info.max) ? info.max : '?';
+  regels.push(`Spelers: ${spelers.length} van ${max}${info.wachtwoord ? ' · wachtwoord aan' : ''}`);
+  regels.push(info.openbaarNaam ? `Openbaar: "${info.openbaarNaam}"${info.kamer ? ` · kamercode ${info.kamer}` : ''}` : 'Niet in de openbare lijst.');
+  if (info.wereld) {
+    const klok = Number.isFinite(info.wereld.clock) ? `${String(Math.floor(info.wereld.clock)).padStart(2, '0')}:${String(Math.floor((info.wereld.clock % 1) * 60)).padStart(2, '0')}` : '?';
+    regels.push(`Wereld: klok ${klok}${info.wereld.weer ? ` · weer ${info.wereld.weer}` : ''}${info.wereld.missie ? ` · missie ${info.wereld.missie}` : ''}`);
+  }
+  if (Number.isFinite(info.seconden)) regels.push(`Sinds de start: ${Math.floor(info.seconden / 60)} min ${Math.round(info.seconden % 60)} s`);
+  regels.push(spelers.length ? 'Spelers:' : 'Er is nu niemand.');
+  for (const r of spelers) regels.push(`  plek ${r.slot}: ${r.naam || 'speler'}${r.rol ? ` (${r.rol})` : ''}${r.verbinding ? ` · ${r.verbinding}` : ''}`);
+  regels.push('Commando\'s: status, spelers, kick <plek>, verbied <plek>, wachtwoord <tekst>, wachtwoord uit, max <aantal>, openbaar <naam>, openbaar uit, stop');
+  return regels;
+}
+
 // Het start/stop-commando van de server (#450), zonder venster:
 //   node scripts/coop/nodehost.mjs [--max=4] [--wachtwoord=...] [--port=41234] [--openbaar] [--naam=...] [--upnp]
 // De poort mag ook uit de omgeving komen (PORT=41234). Zonder poort kiest het spel er zelf een (41000-41999); met een poort
@@ -316,7 +352,7 @@ async function main() {
     console.log('De poort mag ook via de omgeving: PORT=41234. Zonder poort kiest het spel er zelf een.');
     console.log('Met --openbaar (of een --naam) staat de sessie in de openbare lijst: naam, spelers en versie, zonder adres.');
     console.log('Met --staat=<bestand> bewaart de host de klok, het weer en de missiefase en leest hij die bij de start terug.');
-    console.log('Commando\'s: spelers, kick <plek>, verbied <plek>, wachtwoord <tekst>, wachtwoord uit, max <aantal>, openbaar <naam>, openbaar uit, stop');
+    console.log('Commando\'s: status, spelers, kick <plek>, verbied <plek>, wachtwoord <tekst>, wachtwoord uit, max <aantal>, openbaar <naam>, openbaar uit, stop');
     return;
   }
   // --naam=waarde en --naam waarde
@@ -340,7 +376,8 @@ async function main() {
   console.log(`Poort: ${h.poort}${poort ? ' (vast)' : ''}.`);
   console.log(`Wachtwoord: ${ww ? 'ja' : 'nee'}. Spelers: hoogstens ${h.world.coopNet.hub.roster.max}.`);
   console.log(h.publiek() ? `Openbaar: "${h.publiek().naam}", kamercode ${kamerTekst(h.kamer)} (in de lijst Openbare sessies).` : 'Niet in de openbare lijst.');
-  console.log('Commando\'s: spelers, kick <plek>, verbied <plek>, wachtwoord <tekst>, wachtwoord uit, max <aantal>, openbaar <naam>, openbaar uit, stop');
+  console.log(beheerTekst(h.beheer()).join('\n'));
+  console.log('Commando\'s: status, spelers, kick <plek>, verbied <plek>, wachtwoord <tekst>, wachtwoord uit, max <aantal>, openbaar <naam>, openbaar uit, stop');
   const rl = createInterface({ input: process.stdin, output: process.stdout, terminal: false });
   let bezig = false;
   const stoppen = async () => {
@@ -356,6 +393,10 @@ async function main() {
     if (!cmd) return;
     try {
       switch (cmd.toLowerCase()) {
+        case 'status': case 'beheer': {
+          console.log(beheerTekst(h.beheer()).join('\n'));
+          break;
+        }
         case 'spelers': {
           const lijst = h.spelers();
           console.log(lijst.length ? lijst.map((r) => `plek ${r.slot}: ${(r.avatar && r.avatar.naam) || r.naam || 'speler'} (${r.verbinding})`).join('\n') : 'Er is nu niemand.');
@@ -377,7 +418,7 @@ async function main() {
           break;
         }
         case 'stop': case 'quit': case 'exit': await stoppen(); break;
-        default: console.log('Onbekend commando. Gebruik: spelers, kick <plek>, verbied <plek>, wachtwoord <tekst>, wachtwoord uit, max <aantal>, openbaar <naam>, openbaar uit, stop');
+        default: console.log('Onbekend commando. Gebruik: status, spelers, kick <plek>, verbied <plek>, wachtwoord <tekst>, wachtwoord uit, max <aantal>, openbaar <naam>, openbaar uit, stop');
       }
     } catch (e) { console.log('Dat lukte niet: ' + (e && e.message ? e.message : e)); } // een ontbrekende lijst of wereld stopt de server niet
   });
