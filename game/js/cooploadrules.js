@@ -17,6 +17,21 @@ export const COOP_LOAD_FAIL = {
   'geen-sessie': 'Samen spelen loopt niet meer.',
 };
 
+// Een nieuw spel beginnen of een opgeslagen spel verwijderen tijdens Samen spelen (#492, slices
+// 1-2): dezelfde volgorde als bij laden en stoppen (eerst de sessie, dan bewaren, dan de actie).
+// De bevestiging zegt wat er met de sessie gebeurt; een gast verlaat hem, de host beëindigt hem.
+export function coopActieTekst(world, wat = 'Dit') {
+  if (world && world.coopRole === 'host') {
+    return `Je zit in een sessie. ${wat} beëindigt de sessie voor iedereen; de andere spelers gaan terug naar hun eigen spel. Je huidige voortgang wordt eerst bewaard.`;
+  }
+  return `Je zit in een sessie. ${wat} verlaat de sessie; de anderen spelen door. Je eigen voortgang wordt eerst bewaard.`;
+}
+
+// De actie kon niet doorgaan: alleen het bewaren kan mislukken (de sessie is dan al gestopt).
+export const COOP_ACTIE_FAIL = {
+  save: 'De sessie is gestopt, maar opslaan mislukt; er is niets begonnen of verwijderd.',
+};
+
 // stop(world) beeindigt de sessie, save(world, {toast:false}) bewaart de huidige voortgang,
 // load(world, n) laadt het gekozen opgeslagen spel. Elk geeft aan of het lukte.
 export function runCoopLoad(world, n, { stop, save, load }) {

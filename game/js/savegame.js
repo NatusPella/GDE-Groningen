@@ -483,8 +483,6 @@ function placeAt(w, x, y) {
 // Alleen spelen is sinds #554 een sessie van één (world.coopSolo): die telt hier als geen sessie, want er
 // is geen zichtbare sessie en geen stopknop om hem te beëindigen (solo-sessie-audit H2). Alleen een echte
 // sessie blokkeert dus nog: een gastheer van Samen spelen (ook in de wachtkamer) of een gast.
-export const COOP_NIEUW_TEKST = 'Samen spelen loopt nog. Stop eerst de sessie om een nieuw spel te beginnen.';
-export const COOP_WISSEN_TEKST = 'Samen spelen loopt nog. Stop eerst de sessie om dit spel te verwijderen.';
 // #606: een gast bewaart alleen zijn eigen verdiensten in zijn eigen opgeslagen spel; het verhaal en de wereld
 // zijn van de opener. De bevestiging zegt dat, zodat hij niet denkt dat het hele spel bewaard is.
 export const GAST_BEWAARD_TEKST = 'Je verdiensten zijn bewaard; het verhaal van de sessie staat in het opgeslagen spel van wie het spel opende.';

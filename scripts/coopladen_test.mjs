@@ -1,16 +1,16 @@
 // Samen spelen (#452 punt 4, #492): een ander opgeslagen spel laden vraagt eerst om de sessie te
 // beëindigen. De volgorde is de afspraak: stop de sessie, bewaar de huidige voortgang, laad dan pas.
 // Herstarten en afsluiten gebruiken dezelfde volgorde (eerst de sessie, dan bewaren, dan herladen of
-// sluiten), zodat de anderen 'spel gestopt' horen in plaats van een weggevallen verbinding.
-// Nieuw spel en het verwijderen van het actieve slot blijven geblokkeerd zolang een echte sessie
-// loopt. Alleen spelen is sinds #554 een sessie van één (world.coopSolo) en telt hier als geen
-// sessie: dat blokkeert niets en vraagt geen bevestiging (solo-sessie-audit H2).
+// sluiten), zodat de anderen 'spel gestopt' horen in plaats van een weggevallen verbinding. Een nieuw
+// spel en het verwijderen van het actieve slot vragen dezelfde bevestiging en volgen dezelfde
+// volgorde (#492 slices 1-2). Alleen spelen is sinds #554 een sessie van één (world.coopSolo) en telt
+// hier als geen sessie: dat blokkeert niets en vraagt geen bevestiging (solo-sessie-audit H2).
 //   node scripts/coopladen_test.mjs
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { runCoopLoad, runCoopStop, coopLoadTekst, COOP_LOAD_FAIL } from '../game/js/cooploadrules.js';
+import { runCoopLoad, runCoopStop, coopLoadTekst, coopActieTekst, COOP_LOAD_FAIL, COOP_ACTIE_FAIL } from '../game/js/cooploadrules.js';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const src = (f) => fs.readFileSync(path.join(ROOT, 'game/js', f), 'utf8');
 let n = 0, fails = 0;
@@ -103,15 +103,24 @@ ok(() => {
 }, 'solo telt als geen sessie, een echte sessie blokkeert');
 ok(() => assert.match(sg, /export function applySave\(w, d\) \{\s*if \(!w \|\| !d\) return false;\s*if \(coopSessieLoopt\(w\)\) return false;/), 'applySave weigert tijdens een echte sessie (en dus niet in solo)');
 ok(() => assert.match(sg, /export function loadSlot\(w, n\) \{\s*if \(coopSessieLoopt\(w\)\) return false;/), 'loadSlot weigert voor het slot te wisselen tijdens een echte sessie (en dus niet in solo)');
-for (const t of ['COOP_NIEUW_TEKST', 'COOP_WISSEN_TEKST']) {
-  const m = sg.match(new RegExp(t + " = '([^']+)'"));
-  ok(() => assert.ok(m && /^Samen spelen loopt nog\. Stop eerst de sessie/.test(m[1]), t), t + ' is Nederlands en wijst naar stoppen');
-}
+ok(() => assert.ok(!/COOP_NIEUW_TEKST|COOP_WISSEN_TEKST/.test(sg + ui + pm), 'de oude blokkadeteksten zijn weg'), 'oude blokkade-teksten weg');
+// #492 slices 1-2: de bevestiging voor een nieuw spel of verwijderen kent host en gast
+ok(() => {
+  assert.match(coopActieTekst({ coopRole: 'host' }, 'Een nieuw spel beginnen'), /beëindigt de sessie voor iedereen/);
+  assert.match(coopActieTekst({ coopRole: 'host' }, 'Een nieuw spel beginnen'), /Een nieuw spel beginnen/);
+  assert.match(coopActieTekst({ coopRole: 'host' }, 'Een nieuw spel beginnen'), /eerst bewaard/);
+  assert.match(coopActieTekst({ coopRole: 'client' }, 'Dit opgeslagen spel verwijderen'), /verlaat de sessie/);
+  assert.match(coopActieTekst({ coopRole: 'client' }, 'Dit opgeslagen spel verwijderen'), /Dit opgeslagen spel verwijderen/);
+  assert.match(coopActieTekst(null, 'x'), /verlaat de sessie/);
+}, 'bevestiging: host beëindigt de sessie, gast verlaat hem');
+ok(() => {
+  for (const [reason, text] of Object.entries(COOP_ACTIE_FAIL)) assert.ok(text && !/\bsave\b/i.test(text), `${reason}: ${text}`);
+}, 'mislukte actie: Nederlandse melding zonder "save"');
 
 // --- het savepaneel: bevestigen, annuleren, en de gast die zijn eigen spel kiest ---
 ok(() => assert.match(ui, /act === 'load' && cur\) \{[\s\S]{0,500}if \(inSessie\) \{ sel = cur\.n; over = \{ n: cur\.n, kind: 'coop-load' \}; render\(\); return; \}/), 'slotpaneel: laden vraagt eerst om de sessie te beëindigen');
 ok(() => assert.match(ui, /runCoopLoad\(world, cur\.n, \{ stop: stopCoopNet, save: saveGame, load: loadSlot \}\)/), 'slotpaneel: de bevestiging gebruikt de vaste volgorde');
-ok(() => assert.match(ui, /data-do="coop-load-ok"/), 'slotpaneel: de bevestigingsknop bestaat');
+ok(() => assert.match(ui, /const okDo = over\.kind === 'coop-load' \? 'coop-load-ok' : 'coop-actie-ok';/) && assert.match(ui, /data-do="\$\{okDo\}"/), 'slotpaneel: de bevestigingsknop bestaat');
 ok(() => assert.match(ui, /if \(act === 'back'\) \{[^}]*over = null; render\(/), 'slotpaneel: annuleren sluit de vraag zonder de sessie te stoppen');
 ok(() => assert.ok(!/if \(act === 'back'\) \{[^}]*runCoopLoad/.test(ui), 'slotpaneel: annuleren raakt de sessie niet aan'));
 ok(() => assert.match(ui, /message = COOP_LOAD_FAIL\[res\.reason\][\s\S]{0,80}render\(\{ slot: cur\.n \}\)/), 'slotpaneel: na een mislukte stap wordt de kaart opnieuw getekend');
@@ -121,16 +130,29 @@ ok(() => assert.match(ui, /class="ssl-over ssl-modal"/), 'slotpaneel: de vraag s
 ok(() => assert.match(css, /#saveslots \.ssl-modal \{[^}]*inset: 0;/), 'css: het vraagscherm vult het paneel');
 ok(() => assert.match(css, /#saveslots \.ssl-modal \.ssl-box \{[^}]*overflow-y: auto;/), 'css: het vak scrolt als het niet past');
 ok(() => assert.match(ui, /act === 'delete' && cur\) \{[\s\S]{0,300}if \(spelDatNuLoopt\(cur\)\) \{ over = null; message = NU_SPEL_NIET_WEG; render\(\{ more: cur\.n \}\); return; \}/), 'slotpaneel: het spel dat nu loopt kan niet verwijderd worden (#564)');
-ok(() => assert.match(ui, /act === 'delete' && cur\) \{[\s\S]{0,400}if \(cur\.active && coopSessieLoopt\(world\)\) \{ over = null; message = COOP_WISSEN_TEKST;/), 'slotpaneel: verwijderen van het actieve slot geblokkeerd tijdens een sessie');
-ok(() => assert.match(ui, /act === 'delete-ok' && cur\) \{\s*over = null;\s*if \(spelDatNuLoopt\(cur\)\) \{ message = NU_SPEL_NIET_WEG; render\(\); return; \}\s*if \(cur\.active && coopSessieLoopt\(world\)\) \{ message = COOP_WISSEN_TEKST; render\(\); return; \}/), 'slotpaneel: bevestiging van verwijderen ook geblokkeerd');
-ok(() => assert.match(ui, /act === 'newfull-ok'/) && assert.match(ui, /coopSessieLoopt\(world\)\) \{ say\(COOP_NIEUW_TEKST\)/), 'slotpaneel: nieuw spel geblokkeerd');
+ok(() => assert.match(ui, /act === 'delete' && cur\) \{[\s\S]{0,1200}act: 'delete', wat: 'Dit opgeslagen spel verwijderen'/), 'slotpaneel: verwijderen van het actieve slot vraagt tijdens een sessie om bevestiging');
+ok(() => assert.match(ui, /act === 'delete-ok' && cur\) \{[\s\S]{0,400}act: 'delete', wat: 'Dit opgeslagen spel verwijderen'/), 'slotpaneel: bevestigen van verwijderen vraagt hetzelfde');
+ok(() => assert.match(ui, /act === 'newfull-ok' && coopSessieLoopt\(world\)\) \{[\s\S]{0,300}act: 'new', wat: 'Een nieuw spel beginnen'/), 'slotpaneel: nieuw spel vraagt tijdens een sessie om bevestiging');
+ok(() => {
+  const actie = ui.slice(ui.indexOf("act === 'coop-actie-ok'"), ui.indexOf('file.addEventListener'));
+  assert.match(actie, /runCoopStop\(world, \{/, 'slotpaneel: de bevestiging gebruikt de vaste volgorde');
+  assert.match(actie, /stop: stopCoopNet,/, 'slotpaneel: eerst de sessie');
+  assert.match(actie, /save: \(\) => saveGame\(world, \{ toast: false \}\)/, 'slotpaneel: dan bewaren');
+  assert.match(actie, /S\.deleteSlot\(null, active\.n\)/, 'slotpaneel: daarna maakt nieuw spel de actieve plek vrij');
+  assert.match(actie, /S\.deleteSlot\(null, doelSlot\.n\)/, 'slotpaneel: daarna wordt het gekozen opgeslagen spel verwijderd');
+  assert.doesNotMatch(actie, /COOP_NIEUW_TEKST|COOP_WISSEN_TEKST/, 'slotpaneel: geen blokkade meer');
+}, 'slotpaneel: de actie volgt na stop en bewaren');
 
 // --- de pauzemenu: "Laatste spel laden" vraagt hetzelfde, in plaats van de oude blokkade ---
 ok(() => assert.match(pm, /a === 'load'\) \{\s*if \(coopSessieLoopt\(world\)\) \{[\s\S]{0,400}coopLoadTekst\(world[,)]/), 'pauzemenu: laden tijdens een sessie vraagt eerst om bevestiging');
 ok(() => assert.match(pm, /data-coop-load-confirm/), 'pauzemenu: de bevestiging bestaat');
 ok(() => assert.match(pm, /a === 'coop-load-go'\) \{[\s\S]{0,300}runCoopLoad\(world, currentSlot\(\), \{ stop: stopCoopNet, save: saveGame, load: loadSlot \}\)/), 'pauzemenu: bevestigen gebruikt de vaste volgorde');
 ok(() => assert.match(pm, /a === 'coop-load-cancel'\) \{[^}]*hidden = true;[^}]*confirmEl\.hidden = false/), 'pauzemenu: annuleren gaat terug naar de vraag');
-ok(() => assert.match(pm, /a === 'new'\) \{\s*if \(coopSessieLoopt\(world\)\)/), 'pauzemenu: nieuw spel geblokkeerd');
+ok(() => assert.match(pm, /a === 'new'\) \{\s*if \(coopSessieLoopt\(world\)\) \{[\s\S]{0,400}data-coop-new-confirm/), 'pauzemenu: nieuw spel vraagt tijdens een sessie eerst om bevestiging');
+ok(() => assert.match(pm, /coopActieTekst\(world, 'Een nieuw spel beginnen'\)/), 'pauzemenu: de uitleg past bij een nieuw spel');
+ok(() => assert.match(pm, /a === 'coop-new-go'\) \{[\s\S]{0,400}runCoopStop\(world, \{[\s\S]{0,200}stop: stopCoopNet,[\s\S]{0,200}save: \(\) => saveGame\(world\)/), 'pauzemenu: bevestigen stopt de sessie en bewaart daarna');
+ok(() => assert.match(pm, /go: \(\) => \{[\s\S]{0,320}startNewSlot\(\)[\s\S]{0,160}preventCloseSave\(\)[\s\S]{0,120}location\.reload\(\)/), 'pauzemenu: daarna pas een nieuw spel en herladen');
+ok(() => assert.match(pm, /a === 'coop-new-cancel'\) \{[^}]*hidden = true;[^}]*confirmEl\.hidden = false/), 'pauzemenu: annuleren gaat terug naar de vraag');
 ok(() => assert.match(pm, /coopLoadTekst\(world, 'Het laatste opgeslagen spel'\)/), 'pauzemenu: de uitleg past bij het laatste spel');
 ok(() => assert.match(pm, /data-action="coop-load-cancel"\]'\)\.focus\(\)/), 'pauzemenu: de veilige keuze krijgt de focus');
 ok(() => assert.match(pm, /a === 'cancel'\) \{\s*root\.querySelector\('\[data-coop-load-confirm\]'\)\.hidden = true;/), 'pauzemenu: annuleren ruimt de coop-vraag op');

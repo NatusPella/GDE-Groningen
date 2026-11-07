@@ -15,9 +15,9 @@
 //     (the host of Samen spelen picks the game to play with); an empty card calls onNew() as usual.
 import * as S from './saveslots.js';
 import { MAX_SLOTS } from './storagekeys.js';
-import { saveGame, loadSlot, readSave, bindSlot, storySummary, onThumbKept, coopSessieLoopt, currentSlot, COOP_NIEUW_TEKST, COOP_WISSEN_TEKST, GAST_BEWAARD_TEKST } from './savegame.js';
+import { saveGame, loadSlot, readSave, bindSlot, storySummary, onThumbKept, coopSessieLoopt, currentSlot, GAST_BEWAARD_TEKST } from './savegame.js';
 import { stopCoopNet } from './coopnet.js';
-import { coopLoadTekst, COOP_LOAD_FAIL, runCoopLoad } from './cooploadrules.js';
+import { coopLoadTekst, coopActieTekst, COOP_LOAD_FAIL, COOP_ACTIE_FAIL, runCoopLoad, runCoopStop } from './cooploadrules.js';
 
 const DESKTOP = typeof window !== 'undefined' && window.gdeDesktop && window.gdeDesktop.isDesktop ? window.gdeDesktop : null;
 
@@ -169,11 +169,14 @@ export function openSaveSlots(opts = {}) {
 
   // Een vraag die niet in een kaartje past (hij is te lang voor vier kolommen): over het hele
   // paneel, met een eigen vak, zodat de bevestiging altijd met muis, touch en toetsenbord te
-  // bereiken is (#492).
+  // bereiken is (#492). Laden en een nieuw spel/verwijderen gebruiken dezelfde vorm.
   const coopQuestion = () => {
-    if (!over || over.kind !== 'coop-load') return '';
-    return `<div class="ssl-over ssl-modal" role="alertdialog" aria-label="Sessie beëindigen"><div class="ssl-box"><p>${esc(coopLoadTekst(world))}</p>` +
-      '<div class="ssl-qacts"><button type="button" class="m-bp" data-grp="menu" data-do="back">Nee</button><button type="button" class="m-bg danger" data-grp="menu" data-do="coop-load-ok">Ja, sessie beëindigen en laden</button></div></div></div>';
+    if (!over || (over.kind !== 'coop-load' && over.kind !== 'coop-actie')) return '';
+    const tekst = over.kind === 'coop-load' ? coopLoadTekst(world) : coopActieTekst(world, over.wat || 'Dit');
+    const okDo = over.kind === 'coop-load' ? 'coop-load-ok' : 'coop-actie-ok';
+    const okLabel = over.kind === 'coop-load' ? 'Ja, sessie beëindigen en laden' : over.act === 'new' ? 'Ja, sessie beëindigen en nieuw spel' : 'Ja, sessie beëindigen en verwijderen';
+    return `<div class="ssl-over ssl-modal" role="alertdialog" aria-label="Sessie beëindigen"><div class="ssl-box"><p>${esc(tekst)}</p>` +
+      `<div class="ssl-qacts"><button type="button" class="m-bp" data-grp="menu" data-do="back">Nee</button><button type="button" class="m-bg danger" data-grp="menu" data-do="${okDo}">${esc(okLabel)}</button></div></div></div>`;
   };
 
   const card = (s) => {
@@ -197,7 +200,7 @@ export function openSaveSlots(opts = {}) {
     const ago = sm ? S.agoText(sm.savedAt) || dateText(sm.savedAt) : '';
     const meta = sm ? `${S.formatPlaytime(sm.playSeconds)} · ${ago}` : '';
     const tip = story && story.next && !bad ? `Volgende stap: ${story.next}` : '';
-    const open = over && over.n === s.n && over.kind !== 'coop-load';
+    const open = over && over.n === s.n && over.kind !== 'coop-load' && over.kind !== 'coop-actie';
     return `<div class="ssl-card${s.n === sel ? ' sel' : ''}${bad ? ' bad' : ''}${open ? ' open' : ''}" role="listitem" data-slot="${s.n}">` +
       `<button type="button" class="ssl-main" data-grp="list" data-slot="${s.n}" data-do="load"${bad || !sm || currentBlocked ? ' disabled' : ''} aria-label="${esc(s.name)}: ${label}"${tip ? ` title="${esc(tip)}"` : ''}>` +
       `<span class="ssl-pic">${pic}<span class="ssl-chips">${chips.join('')}</span><span class="ssl-go">${esc(label)}</span></span>` +
@@ -297,7 +300,14 @@ export function openSaveSlots(opts = {}) {
     if (act === 'close') { close(); return; }
     if (act === 'back') { const m = over && over.n; const nf = over && over.kind === 'newfull'; over = null; render(nf ? { newcard: true } : { more: m }); return; }
     if (act === 'new-ask') { over = { n: 0, kind: 'newfull' }; render(); return; }
-    if ((act === 'newfull-ok' || (act === 'new' && mode === 'start')) && coopSessieLoopt(world)) { say(COOP_NIEUW_TEKST); return; }
+    // #492 slices 1-2: een nieuw spel tijdens een echte sessie vraagt eerst om bevestiging; daarna
+    // stopt de sessie, wordt de voortgang bewaard en pas dan begint het nieuwe spel (dezelfde
+    // volgorde als bij laden en stoppen, cooploadrules.js).
+    if (act === 'newfull-ok' && coopSessieLoopt(world)) {
+      over = { n: 0, kind: 'coop-actie', act: 'new', wat: 'Een nieuw spel beginnen' };
+      render();
+      return;
+    }
     if (act === 'newfull-ok') {
       // #562: de speler bevestigde dat het nieuwe spel de plek van het actieve spel overneemt; die save gaat
       // nu echt weg (met zijn herstelkopie), zodat er een vrije plek is en de boot niet de oude save laadt.
@@ -413,13 +423,39 @@ export function openSaveSlots(opts = {}) {
       // #564/#606: het spel dat je nu speelt kan er niet onder je vandaan: de autosave zou de verwijderde
       // plek meteen weer aanmaken. Verwijderen kan pas als je een ander spel speelt.
       if (spelDatNuLoopt(cur)) { over = null; message = NU_SPEL_NIET_WEG; render({ more: cur.n }); return; }
-      if (cur.active && coopSessieLoopt(world)) { over = null; message = COOP_WISSEN_TEKST; render({ more: cur.n }); return; } over = { n: cur.n, kind: 'delete' }; render(); return; }
+      // #492 slices 1-2: het actieve spel verwijderen tijdens een echte sessie vraagt eerst om
+      // bevestiging; daarna stopt de sessie, wordt de voortgang bewaard en pas dan wordt het spel gewist.
+      if (cur.active && coopSessieLoopt(world)) { over = { n: cur.n, kind: 'coop-actie', act: 'delete', wat: 'Dit opgeslagen spel verwijderen' }; render(); return; }
+      over = { n: cur.n, kind: 'delete' }; render(); return; }
     if (act === 'delete-ok' && cur) {
       over = null;
       if (spelDatNuLoopt(cur)) { message = NU_SPEL_NIET_WEG; render(); return; }
-      if (cur.active && coopSessieLoopt(world)) { message = COOP_WISSEN_TEKST; render(); return; }
+      if (cur.active && coopSessieLoopt(world)) { over = { n: cur.n, kind: 'coop-actie', act: 'delete', wat: 'Dit opgeslagen spel verwijderen' }; render(); return; }
       message = S.deleteSlot(null, cur.n) ? 'Opgeslagen spel verwijderd.' : 'Verwijderen mislukt.';
       render();
+    }
+    if (act === 'coop-actie-ok' && over) {
+      const doel = over;
+      const doelSlot = S.listSlots().find((s) => s.n === doel.n) || null;
+      const res = runCoopStop(world, {
+        stop: stopCoopNet,
+        save: () => saveGame(world, { toast: false }),
+        go: () => {
+          over = null;
+          if (doel.act === 'new') {
+            // #562: dezelfde route als Nieuw spel bij een volle lijst: de actieve save maakt plaats
+            const active = S.listSlots().find((s) => s.active);
+            if (active && !S.deleteSlot(null, active.n)) { message = 'Verwijderen mislukt; er is geen plek vrijgemaakt.'; render({ newcard: true }); return; }
+            close(() => { if (opts.onNew) opts.onNew(); });
+            return;
+          }
+          if (!doelSlot) { message = 'Dit opgeslagen spel bestaat niet meer.'; render(); return; }
+          message = S.deleteSlot(null, doelSlot.n) ? 'Opgeslagen spel verwijderd.' : 'Verwijderen mislukt.';
+          render();
+        },
+      });
+      if (!res.ok) { over = null; message = COOP_ACTIE_FAIL[res.reason] || 'De actie is niet doorgegaan.'; render(); }
+      return;
     }
   };
 
