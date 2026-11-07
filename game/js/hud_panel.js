@@ -69,6 +69,7 @@ import { townProfile } from './stadsprofielen.js';
 import { getSettings } from './settings.js';
 import { heldBack } from './narrative.js';
 import { isPauseMenuOpen } from './pausestate.js';
+import { hudExpensiveDue } from './hudgate.js';
 import { isOverlayHeld } from './overlayhold.js';
 import { hoofdspeler } from './spelersregister.js';
 // portraits share the HUD's green (DESIGN_SYSTEM: no blue accents); speaker
@@ -522,6 +523,8 @@ function updateMute() {
 }
 
 export function updateHud(dt, world) {
+  // #659: achter het pauzemenu is de HUD onzichtbaar; dan het dure werk overslaan
+  const expensive = hudExpensiveDue(isPauseMenuOpen());
   sense(dt, world);
   updateVehicleName(dt, world);
   updateCharacter(dt, world);
@@ -532,14 +535,14 @@ export function updateHud(dt, world) {
   updateClock(world);
   updateDamage(dt, world);
   updateSpeedo(world);
-  updateSpeedoPrefetch(dt, world);
+  if (expensive) updateSpeedoPrefetch(dt, world);
   updateTrainBand(els.root);
   updateMission(world);
   updateGps(dt, world);
   updatePlace(dt, world);
   updateRaceHud(world);
   updateCards(dt, world);
-  updateAchievementCard(els.root, dt);
+  if (expensive) updateAchievementCard(els.root, dt);
   updateNowPlaying(dt, world);
   updateLocation(dt, world);
   updatePrompts(dt, world);
@@ -547,6 +550,7 @@ export function updateHud(dt, world) {
   // very CPU-bound (simload.js level 2): the minimap redraws every second
   // frame, its zoom easing over the time in between. It turns with the
   // player, so a lower rate shows as stutter; the whole HUD costs ~1 ms.
+  if (!expensive) return; // #659: geen minimap achter het pauzemenu
   mmDt += dt;
   if (mmSkip-- > 0) return;
   // a redraw that costs a lot (vector map of the whole province) gets at most a quarter of the time: measured on

@@ -1,4 +1,5 @@
 import { hoofdspeler } from './players.js';
+import { guestRetryDue, GUEST_RETRY_MS } from './guestsave.js';
 import { getMissionProgress, setMissionProgress, getMissionDefs } from './missions.js';
 import { spawnHeroCarNear } from './vehicle.js';
 import { WEAPONS } from './combat.js';
@@ -645,6 +646,8 @@ function coopCheckpointTik(dt, w) {
   if (coopCheckpoint.tik(dt, bezig)) saveGame(w, { toast: false });
 }
 
+// #655: na een mislukte gast-save pas na de backoff opnieuw proberen
+let guestRetryAt = 0;
 export function updateSaveGame(dt, w) {
   world = w;
   if (toastTimer > 0 && (toastTimer -= dt) <= 0) toastEl.classList.remove('visible');
@@ -652,7 +655,9 @@ export function updateSaveGame(dt, w) {
   coopCheckpointTik(dt, w);
   // Een gast bewaart zijn verdiensten meteen, ook achter het pauzemenu (#452, punt 19): het geld staat
   // dan in zijn eigen save voordat hij verder speelt of de sessie wegvalt.
-  if (w.coopRole === 'client' && w.coopVerdiend > 0) saveGuestEarnings(w);
+  if (w.coopRole === 'client' && w.coopVerdiend > 0 && guestRetryDue(Date.now(), guestRetryAt)) {
+    guestRetryAt = saveGuestEarnings(w) ? 0 : Date.now() + GUEST_RETRY_MS;
+  }
   if (w.paused) return;
   if (restoredMoney >= 0) {
     w.addMessage(`We hebben je geld hersteld: €${restoredMoney.toLocaleString('nl-NL')}`, 6, { key: 'money-restored' });
