@@ -4,6 +4,7 @@
 import zlib from 'node:zlib';
 import crypto from 'node:crypto';
 import { summarise } from '../../game/js/botlogic.js';
+import { cheatSweepTable } from './cheatplan.mjs'; // #186: cheats-sweep per missie in het rapport
 
 // --- vingerafdruk ------------------------------------------------------------------
 // Getallen, coordinaten en hexwaarden eruit, zodat dezelfde fout in elke run dezelfde afdruk krijgt.
@@ -162,7 +163,7 @@ export function whereHung(acts, max = 10) {
 
 // Een korte samenvatting die als comment op het spelbot-issue kan (#186): per akte de tijd, waar
 // hij hing en wat er nog open is. Nederlands, geen interne paden, geen screenshot-lijst.
-export function issueComment({ title = 'run', date = '', run = '', metrics: m = {}, acts = [], extra = null, findings: fs = [] }) {
+export function issueComment({ title = 'run', date = '', run = '', metrics: m = {}, acts = [], extra = null, findings: fs = [], events = [] }) {
   const out = [`## Spelbot: ${title}${date ? ` (${date})` : ''}`, ''];
   out.push(`Uitkomst **${m.result || 'onbekend'}**, speltijd ${fmtClock(m.gameSeconds || 0)}, ${m.stepsDone || 0} van ${m.stepsStarted || 0} stappen klaar${run ? ` (run ${run})` : ''}.`);
   out.push(`Vastgezeten ${m.stuck || 0}, time-outs ${m.timeouts || 0}, cheat nodig ${m.cheats || 0}, consolefouten ${m.consoleErrors || 0}, NaN ${m.nan || 0}.`);
@@ -183,6 +184,7 @@ export function issueComment({ title = 'run', date = '', run = '', metrics: m = 
   out.push('', '### Wat open blijft', '');
   if (m.result && !/^(KLAAR|REPLAY)/.test(String(m.result))) out.push(`- De run is niet uitgespeeld (${m.result}); de laatste stap was ${m.lastStep || '?'}.`);
   if (m.cheats) out.push(`- ${m.cheats} keer een cheat nodig: dat zegt iets over de bot én over het spel.`);
+  if (m.cheats) out.push('', '### Cheats per missie', '', cheatSweepTable(events));
   if (!m.races) out.push('- Geen kartrace gereden in deze run.');
   out.push('- Of het leuk is, hoe de besturing voelt, geluid en beeld bij 1080p of 4K: dat beoordeelt de bot niet.');
   return out.join('\n');
