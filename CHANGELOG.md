@@ -41,6 +41,58 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - **Over blijft leesbaar (#612).** Het Over-scherm toont de nieuwste twee versies binnen het tekstbudget; de rest van de changelog zit achter "Alles", credits en licenties zijn aparte vouwen en de nieuwmarkering werkt weer in het pauzemenu.
 - **Het startvangnet heeft weer een eigenaar en de CI-controle op ongedefinieerde namen is groen (#635).**
 
+- **Scènes op dijken, viaducten en wierden staan weer op de grond (#730).** De handgemaakte camera's van missie-intro, dood, crash, vijf sterren en de Ommelanden rekenen met de hoogte onder de speler in plaats van met z=0.
+- **Stem en ondertitels lopen gelijk met de scène (#731).** De voice-duren worden vóór het compileren van de scène verwerkt, zodat shots, cues en stemmen dezelfde duur houden; de stemmenbank probeert een mislukte download opnieuw in plaats van de rest van de sessie stil te blijven (#733).
+- **Een scène met pause:true pauzeert nu echt (#729), en een gast stopt zijn oude scène netjes als wie het spel opende hem vervangt (#727).** De polsstok- en duifcamera bezetten geen scènewachtrij meer (#728), en de losse momenten starten niet meer tijdens een race, in duifmodus of op snelheid (#732).
+- **Het laadscherm blijft niet meer op 92% hangen (#557).** De geometry-worker levert zijn resultaten tijdens de boot direct af, in plaats van te wachten op een spellus die nog niet loopt.
+- **Thuiskomst in een geliefde buurt (#736).** Kom je terug in een buurt waar je herinneringen hebt, dan krijg je een korte thuiskomstfilm in plaats van alleen de wijkkaart.
+- **Eén toestemmingsoverlay voor Samen spelen (#639).** De identiteit en de toestemming voor de openbare lijst staan in één overlay, zodat je niet per scherm opnieuw hoeft te bevestigen.
+- **De wijknaam staat in titel, HUD en safehouse (#710).** Geen "Wijk 00" of "Wijk 14" meer in beeld.
+- **Elke verovering eindigt in een intocht (#704/#705/#706/#708).** Een veroverd gebied levert geen los kaartje meer maar een skipbare tocht door de wijk van 20-40 s: overzicht, 3-5 stops op ooghoogte en een eindbeeld achter de speler met titel, vlag en geld. De film wacht op een rustig moment (geen missie, race, filmpje, menu of politie) en is één keer per speler te zien; terugkijken kan via Loopbaan › Veroverd en in de cutscene-preview.
+- **Acht handgeschreven intochten (#707).** Centrum, Oud-Zuid, Oud-Oost, Oud-West, Nieuw-Noord, Zuidwest, Hoogkerk en Oud-Noord hebben elk een eigen scène met ankers, camera en drie regels; een veroverd gebied zonder eigen scène krijgt de korte generieke variant.
+- **Veroverd heeft een eigen rij in het pauzemenu (#676).** Met de eerstvolgende drie taken, de titelregel en een catalogusregel die naar Te doen verwijst.
+- **Het eerste bezoek aan een wijk is weer een kaart (#709/#725/#726).** De oude flyover is weg: je krijgt de korte kaart met een Rikus-regel en highlights binnen de echte buurtgrens, en de gezien-lijst gaat mee in je opgeslagen spel.
+- **Buurten en wijken hebben elk één naam (#716/#710).** De 66 plekken van kaart en HUD heten voortaan buurt; de veroverlaag heet wijk (CBS-naam), en de prestaties en het kaartje volgen die keuze.
+- **Cockpit en toetsen op één rand (#622).** De cockpit-rand en de toetsplaatjes gebruiken dezelfde vorm in elke HUD.
+- **Vliegschool: rapportkaart en touchbediening (#623/#151).** De vliegschool heeft een rapportkaart per les en de aanraakbediening noemt de juiste knoppen.
+- **Vluchtdienst: torenbord (#624).** Het vluchtdienstbord toont de toren en de dienst in één overzicht.
+- **PvP: teamkleuren met een vorm (#625).** Teams zijn ook zonder kleur te onderscheiden; de teamkleur en -vorm staan in de HUD.
+- **Boeren: keycaps, thema en contractkaarten (#626).** Het boerenwerk leest als één bord met dezelfde toetsen en een contractkaart per klus.
+- **Heist: sfeerband en Esc-terugweg (#629).** De inbraak heeft een eigen sfeerband en Esc brengt je terug naar de vorige stap.
+- **Machinist: twee borden in één (#632).** De machinist ziet dienst en trein in twee gescheiden borden naast elkaar.
+- **Duiven-HUD (#630).** De duivenmodus heeft een eigen sfeer en een gastregel.
+- **Kermis en reuzenrad op het bord (#627).** Kermis en reuzenrad gebruiken hetzelfde activiteitenbord en thema als de andere uitjes.
+- **Carbid met gasfase en windregel (#628).** Het carbidschieten noemt de gasfase en de wind in de HUD.
+- **Rustiger minimap (#638).** Hooguit tien iconen, politie als badge en maximaal drie cash- of plaatsnamen; Minimaal houdt kaart en snelheidsmeter.
+- **Voertuignaam, dempchip en telefoonkaarten (#643).** De voertuignaam wijkt voor het racepaneel, de dempchip is 44 px op touch, meldingen blijven in hun zone en telefoonkaarten hebben een woordbudget.
+- **Ondertitels blijven staan tot je ze gelezen hebt (#644).** De ratel voorkomt dat een regel te snel verdwijnt.
+- **Attracties hebben duidelijke doelen (#679).** Elke attractie noemt wat je moet doen en wat je ervoor krijgt.
+- **Eén gedeelde uitje-kaart (#633).** Uitjes gebruiken dezelfde kaart met sfeer, regel en hint.
+- **Vier nieuwe onthullingen (#720/#721).** Klimtoren, zwembad, kartbaan en kermis krijgen een onthullingsscène; Kardinge, Suikerfabriek, Eemshaven en Bourtange zijn als landmark toegevoegd.
+- **Activiteiten: startkaarten, sfeer en HUD (#595-#621).** Nieuwe startkaarten per activiteit, één sfeerdrager voor de borden, een golf-HUD met vier toetsen, padel met profielnaam, een standtabel voor de klimtoren en een kadeband voor de rondvaart.
+- **Bijbanen: sfeerprofiel, variatiebeloning en dienst/kantoorklus (#631/#667/#668).** Elke baan heeft één profiel met sfeer, accent en familie; de eerste ronde telt dubbel voor je niveau en Te doen splitst diensten en kantoorklussen.
+- **Alle acht bijbaanrollen samen speelbaar (#683).** Rondvaart, veerdienst en rechtbank doen nu mee in Samen spelen, met de rol, de uitnodiging en de beloning per speler.
+- **Boerderij: dagkeuze (#669); machinist: conducteurskeuze en fooi (#670).** De boerderij laat je de dag kiezen en de machinist leest 1/2 voor de conducteur en telt de fooi mee.
+- **Loopbaan: de eerstvolgende stap en waar (#671).** De loopbaan zegt hoeveel punten je nog nodig hebt, via welke baan of ronde, en je kunt die baan als Te-doen-doel zetten.
+- **Voortgang: varianten, loopbaanvoordeel en endgame-economie (#673/#674/#675).** Drie activiteitvarianten met eigen record en medaille, het hoogste loopbaanniveau geeft een titel op de kaart plus garagekorting en gratis kermis, en het postgame heeft goud, Fjord-passief en een prestigebord met vier eisen.
+- **Lichte loopbanen: missieketen-pub en beleidswinkel (#492).** Elke keten heeft een pub met de volgende stap en de beleidswinkel verkoopt drie eenmalige maatregelen, met eigen opslag per speler.
+- **Ommeland-paspoort per dorp (#681).** Te doen toont per dorp één regel met voortgang (uitje, eierbal, vondst, evenement), een 80%-hint en een treinknop; de kaart leest dezelfde lijst.
+- **Hengelen: nieuwe prijsschaal (#680).** De vangsten en de loopbaan gaan uit van 70-160 per uur.
+- **Eén stopconventie en aantallen uit de bron (#688/#682).** Stoppen werkt overal met E, Backspace of Esc (op de aangegeven uitzondering na); de vliegschool zegt nu overal twintig lessen (elf vliegtuig, negen heli) en de Ommeland-aantallen komen uit de bron.
+- **De opening duurt nu 147,7 s (#662/#663).** Het eerste speelbare moment blijft onder de drie minuten; M09 krijgt een tussenstop op de wierde en een tweede kans, en de M10-achtervolging is in twee stukken geknipt.
+- **M00 gebruikt de trailerbeelden (#717/#738).** De opening begint met de opgenomen montage (zon, fietsers, meeuw, werkboot) en loopt van dageraad naar ochtend, met naam- en titelkaart.
+- **Cutscene-regie strakker (#737/#739/#740/#741/#742/#743/#745/#718/#719/#722/#734).** De M16-outro is gesplitst, M21.4 is een stage-outro, M11.5/6 hebben eigen scènes, M18.3 is een gesprek geworden, de finale stapt netjes uit het voertuig en vijf missies hebben een gedocumenteerde outro.
+- **Vier lange scènes ingekort (#744).** De vier uitschieters in het script zijn compacter en `script.json` en de tellers zijn bijgewerkt.
+- **Reisbeat M13, kalenderteller en wagonkeuze (#664/#665/#666).** De reis Lauwersoog-Eemshaven is een reisbeat, de Ontzet-countdown staat in de HUD en de wagonkeuze in M21 geeft in M22 een extra stage.
+- **Verhaal-keuzes zijn een groepsstemming (#686).** Iedere speler stemt met zijn cijfertoets; de meerderheid wint, een gelijkspel beslist de stem van wie het spel opende en wie niet antwoordt telt niet mee.
+- **Samen spelen: bonus zichtbaar, eigen menu pauzeert alleen jou, gezamenlijk starten en stoppen (#685/#687/#642).** De groepsbonus splitst basis, niveau, groep en totaal; het pauzemenu, de kaart en de winkel pauzeren alleen je eigen invoer; een gast kan het starten aanvragen en iedereen-stoppen voorstellen via een stemming.
+- **Wachtkamer en spelerslijst netter (#634/#636).** Profiel- en wachtwoordvelden, de kleurenrij en de chip gebruiken gewone klassen; de identiteitskleur volgt de coop-kleur.
+- **Lange films van wie het spel opende speelt een gast lokaal na (#712).** Die films reizen compact mee (maximaal tien regels) en de gast speelt ze zelf af in plaats van naar een lange balk te kijken.
+- **Een server zonder venster kan de wereld draaien (#450).** De wereld zonder speler heeft een vaste poort, wachtwoord, een wereldstaat die een herstart overleeft en een CLI voor status, spelers, kicken, verbieden en openbaar maken; zie docs/SERVER-HOSTING.md.
+- **Soepeler op drukke plekken (#650/#651/#652/#653/#654).** Tegels worden in stukken gebouwd, politie en Ommeland scannen minder vaak, verkeerspaden worden hergebruikt, het watermasker verandert alleen als het moet en de publicatie-sync en state-handtekening kosten minder per frame.
+- **Minder geheugen en snellere start (#655/#656/#657/#658/#660).** De service worker laadt vooraf, de webversie start direct, G-Music laadt alleen het spelende nummer plus twee wachtenden (118 MB minder), voetgangersmeshes komen uit een LRU en een migratie van een opgeslagen spel kopieert niet onnodig diep.
+- **Kaart, mist en HUD-geld zuiniger (#654/#661).** De kaart tekent bij stilstand op 15 Hz, mist uploadt alleen de geraakte cel, HUD-geld formatteert alleen bij een wijziging en de discgolf-streefstreep gebruikt weer een echte template.
+- **De smalle letter in de HUD breekt niet meer af bij aanhalingstekens (#645).**
 ## [0.57.5] - 2026-11-06
 
 - **Je save herstelt nu echt (#590).** Een mislukte autosave wordt na 20 s opnieuw geprobeerd en gelogd; een beschadigde save meldt dat de vorige goede versie is hersteld en schrijft die meteen terug; de reservekopie is leesbaar en te herstellen via de save-UI. Handmatig opslaan forceert een thumbnail.

@@ -59,6 +59,10 @@ fi
 
 if [ "$BUMP" != "current" ]; then
   npm version "$BUMP" --no-git-tag-version >/dev/null
+  # android/package.json is het toolpakket van de Android-build; release_docs_test eist dat die
+  # versie gelijk is aan desktop/package.json. De APK-versie zelf komt uit
+  # android/version.properties (android/scripts/version.mjs), dat de Android-workflow uit de tag zet.
+  node -e 'const fs=require("fs");const v=process.argv[1];for(const p of ["../android/package.json","../android/package-lock.json"]){const j=JSON.parse(fs.readFileSync(p,"utf8"));j.version=v;if(j.packages&&j.packages[""])j.packages[""].version=v;fs.writeFileSync(p,JSON.stringify(j,null,2)+"\n");}' "$(node -p "require('./package.json').version")"
 fi
 VERSION="$(node -p "require('./package.json').version")"
 TAG="v$VERSION"
@@ -68,7 +72,7 @@ TAG="v$VERSION"
 CHANGES="$(node scripts/changelog_section.cjs "$VERSION")"
 if [ -z "$(printf '%s' "$CHANGES" | tr -d '[:space:]')" ]; then
   echo "No changelog entry for $VERSION in CHANGELOG.md - add a '## [$VERSION] - date' section first."
-  if [ "$BUMP" != "current" ]; then git checkout -- package.json package-lock.json; fi
+  if [ "$BUMP" != "current" ]; then git checkout -- package.json package-lock.json ../android/package.json ../android/package-lock.json; fi
   exit 1
 fi
 if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
@@ -76,7 +80,7 @@ if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
   exit 1
 fi
 if [ "$BUMP" != "current" ]; then
-  git add package.json package-lock.json
+  git add package.json package-lock.json ../android/package.json ../android/package-lock.json
   git commit -q -m "Release $TAG"
 fi
 
