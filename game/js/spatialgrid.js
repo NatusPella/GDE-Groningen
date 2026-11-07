@@ -71,3 +71,13 @@ export class SpatialGrid {
   cellItems(cx, cy) { return this.map.get(this.key(cx, cy)); }
   clear() { this.map.clear(); }
 }
+
+// Elk object één keer, uit alle cellen van het raster (#524): de lezers van de hele
+// kaartarrays gaan via de rasters, zodat een tegel zijn eigen rijen kan toevoegen en
+// weghalen zonder dat de array de waarheid hoeft te zijn. De volgorde is cel-voor-cel.
+export function gridItems(grid) {
+  if (!grid || !grid.map) return [];
+  const out = [], seen = new Set();
+  for (const arr of grid.map.values()) for (const it of arr) if (!seen.has(it)) { seen.add(it); out.push(it); }
+  return out;
+}

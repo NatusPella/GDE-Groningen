@@ -1,5 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { buildingLodStyle } from './models3d_buildings.js';
+import { gridItems } from './spatialgrid.js';
 import { perfOff } from './devflags.js';
 import { buildingLift, roadBaseAt } from './terrainlift.js';
 import { drawHub } from './multidraw3d.js';
@@ -334,15 +335,7 @@ function addPolyGeometry(B, geo, c) {
 
 // (#524) De verre laag leest de rasters in plaats van de hele kaartarrays: zo blijft
 // hij werken als de stad niet meer gepind is en een tegel zijn eigen rijen aan de
-// rasters toevoegt. Elke SpatialGrid houdt een object in elke cel die het raakt, dus
-// één keer per object teruggeven (de volgorde is cel-voor-cel; die doet er hier niet toe).
-function gridItems(grid) {
-  if (!grid || !grid.map) return [];
-  const out = [], seen = new Set();
-  for (const arr of grid.map.values()) for (const it of arr) if (!seen.has(it)) { seen.add(it); out.push(it); }
-  return out;
-}
-
+// rasters toevoegt. `gridItems` staat in spatialgrid.js, want meer lezers gebruiken hem.
 export function createFarLOD(scene, map, opts) {
   const { flatGeometry, colors, sidewalkExtra, roadColorOf } = opts;
   const roadColor = Object.fromEntries(Object.entries(colors.roads).map(([k, hex]) => {

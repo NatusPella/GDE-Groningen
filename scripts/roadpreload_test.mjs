@@ -5,6 +5,7 @@ import './node3d.mjs';
 const { KERNELS, roadMapLoader } = await import('../game/js/geokernels.js');
 const { roadKey } = await import('../game/js/roadsurface.js');
 const { WORKER_ONLY_KINDS } = await import('../game/js/geojobs.js');
+const { SpatialGrid } = await import('../game/js/spatialgrid.js');
 
 let n = 0, fails = 0;
 const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${name}${info ? ' (' + info + ')' : ''}`); } };
@@ -12,7 +13,10 @@ const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL $
 const road = (x) => ({ cat: 'minor', type: 'residential', width: 6, pts: [[x, 0], [x + 50, 0]], bounds: [x, -3, x + 50, 3] });
 const fakeMap = () => {
   const roads = [road(0), road(100), road(200)];
-  return { roads, roadGrid: { map: new Map([['0,0', roads.slice()]]) }, buildingGrid: { map: new Map() }, buildings: [], canopies: [], clippedWays: [], trees: [], treeGrid: null };
+  // #524: roadInit snoeit via het wegraster, dus de fake map heeft echte rasters
+  const roadGrid = new SpatialGrid(40);
+  for (const r of roads) roadGrid.insert(r, r.bounds);
+  return { roads, roadGrid, buildingGrid: new SpatialGrid(40), buildings: [], canopies: [], clippedWays: [], trees: [], treeGrid: null };
 };
 let loads = 0, delay = 0;
 roadMapLoader.load = async (url) => { loads++; await new Promise((r) => setTimeout(r, delay)); return fakeMap(); };
