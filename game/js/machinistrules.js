@@ -451,3 +451,60 @@ export function boardView(svc, s) {
     lastStop: served ? { name: served.name, alight: served.alight, board: served.board } : null,
   };
 }
+
+// --- #670: de machinist heeft één actieve vaardigheid --------------------------------------
+// Vloeiend remmen voor het perron: de balk op het bord laat de remweg tegenover de afstand zien; hier staat wat
+// die verhouding waard is. Puur, zodat het bord en de test dezelfde regel gebruiken.
+export function remVloeiend({ speed = 0, toStop = Infinity, remweg = null } = {}) {
+  const v = Math.max(0, Number(speed) || 0);
+  const d = Number(toStop);
+  if (!Number.isFinite(d)) return { punten: 0, tekst: 'Geen halte in zicht.' };
+  const nodig = Number.isFinite(remweg) && remweg > 0 ? remweg : (v * v) / (2 * BRAKE);
+  if (v <= STOPPED_V) return { punten: 100, tekst: 'Stil en netjes op de halte.' };
+  if (d <= 0) return { punten: 20, tekst: 'Voorbij de halte: te laat geremd.' };
+  if (d >= nodig * 1.35) return { punten: 80, tekst: 'Ruim op tijd: rem rustig.' };
+  if (d >= nodig) return { punten: 100, tekst: 'Vloeiend geremd.' };
+  if (d >= nodig * 0.7) return { punten: 60, tekst: 'Iets laat, maar binnen de marge.' };
+  return { punten: 15, tekst: 'Te laat geremd: harde stop.' };
+}
+
+// De conducteur krijgt per dienst één echte keuze; de effecten zijn klein (fooi en punctualiteit), geen geweld.
+export const CONDUCTEUR_KEUZES = [
+  { id: 'kaartje', vraag: 'Een reiziger heeft geen kaartje.', opties: [
+    { id: 'bon', tekst: 'Bon uitschrijven', effect: { tip: 8, punct: -2, tekst: 'De bon is uitgeschreven; de halte kostte twee seconden.' } },
+    { id: 'laten', tekst: 'Laten lopen', effect: { tip: 0, punct: 2, tekst: 'De reiziger stapt vriendelijk uit; de dienst loopt door.' } },
+  ] },
+  { id: 'stoel', vraag: 'Twee reizigers ruziën om dezelfde stoel.', opties: [
+    { id: 'scheiden', tekst: 'Ze uit elkaar zetten', effect: { tip: 5, punct: -1, tekst: 'De rust is terug; de dienst loopt iets uit.' } },
+    { id: 'negeren', tekst: 'Laten uitpraten', effect: { tip: -3, punct: 0, tekst: 'Ze praten het zelf uit; de fooi blijft uit.' } },
+  ] },
+  { id: 'halte', vraag: 'Iemand wil er net te laat uit, na de halte.', opties: [
+    { id: 'stoppen', tekst: 'Extra stoppen', effect: { tip: 4, punct: -3, tekst: 'De reiziger is blij; de dienst loopt uit.' } },
+    { id: 'doorrijden', tekst: 'Doorrijden naar de volgende halte', effect: { tip: 0, punct: 0, tekst: 'De dienst blijft op tijd; de reiziger zucht.' } },
+  ] },
+];
+
+// De keuze van deze dienst: deterministisch uit het aantal halten en de klok, zodat een gast dezelfde ziet.
+export function conducteurKeuze(seed = 0) {
+  const n = CONDUCTEUR_KEUZES.length;
+  const i = Math.abs(Math.floor(Number(seed) || 0)) % n;
+  return CONDUCTEUR_KEUZES[i];
+}
+
+// Het effect van de gekozen optie; onbekende opties doen niets.
+export function pasConducteur(keuze, optieId) {
+  const optie = keuze && Array.isArray(keuze.opties) ? keuze.opties.find((o) => o.id === optieId) : null;
+  if (!optie) return { ok: false, tip: 0, punct: 0, tekst: '' };
+  return { ok: true, tip: optie.effect.tip | 0, punct: optie.effect.punct | 0, tekst: optie.effect.tekst || '' };
+}
+
+// De uitslag van de hele dienst in één medaille: op tijd, veilig en alle halten. Geen economiewijziging: de
+// bestaande payFor/MEDAL_AT blijven de beloning doen; dit is de samenvatting voor bord, melding en test.
+export const DIENST_MEDAILLES = ['Geen medaille', 'Brons', 'Zilver', 'Goud'];
+export function dienstMedaille({ gemiddelde = 0, halten = 0, opTijd = 0, veilig = 0, fouten = 0 } = {}) {
+  const score = Math.max(0, Number(gemiddelde) || 0);
+  const punten = Math.round(score * 0.5 + Math.min(100, opTijd || 0) * 0.25 + Math.min(100, veilig || 0) * 0.25 - (fouten | 0) * 5);
+  const index = punten >= 85 ? 3 : punten >= 65 ? 2 : punten >= 45 ? 1 : 0;
+  const tekst = index === 3 ? 'Goud: op tijd, veilig en alle halten.' : index === 2 ? 'Zilver: een nette dienst.' : index === 1 ? 'Brons: het reed, en dat telt.' : 'Geen medaille: volgende dienst beter.';
+  return { punten, index, naam: DIENST_MEDAILLES[index], halten: halten | 0, tekst };
+}

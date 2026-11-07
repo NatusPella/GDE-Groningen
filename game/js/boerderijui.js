@@ -12,6 +12,7 @@ import { fillBars } from './motion.js';
 import { setUserWaypoint } from './routing.js';
 import { wgsToWorld } from './rdnew.js';
 import { sfeerVan, sfeerStijl, sfeerBandHtml, SFEER_BAND_CSS } from './carrieresfeer.js';
+import { dagKeuze, dagKeuzeTekst } from './boerderijdag.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const euro = (n) => `€${Math.round(n).toLocaleString('nl-NL')}`;
@@ -375,6 +376,15 @@ function machineActie(d, world) {
   }
 }
 
+// #669: bij aankomst bovenaan het scherm de keuze van vandaag (gewas, contract, verwachte winst), zodat de speler
+// eerst plant en kiest en niet eerst drie tabbladen hoeft te lezen. De lange uitleg blijft in de tabbladen/Hulp.
+function dagKaart() {
+  const k = dagKeuze(getBoerderij());
+  if (!k) return '';
+  const machine = k.machine ? ` Machine: ${esc(k.machine.naam)}${k.machine.eigen ? ' (van jou)' : ` (huur ${euro(k.machine.huur)}/dag)`}.` : '';
+  return `<div class="bd-dag" style="margin:0 0 8px"><p class="lb-titel"><b>Vandaag</b> <span class="mut">speldag ${k.dag + 1}</span></p><p class="mut">${esc(dagKeuzeTekst(k))}${machine}</p></div>`;
+}
+
 export function renderBoerderijPanel(el, world) {
   if (!el) return;
   zetCss();
@@ -387,6 +397,7 @@ export function renderBoerderijPanel(el, world) {
     return `<button type="button" class="m-li lb-li${gekozen === id ? ' sel' : ''}" data-bd="${id}"${gekozen === id ? ' aria-current="true"' : ''}>${icoon(id)}<span class="nm"><span class="one">${esc(naam)}</span><span class="mut one">${esc(sub)}</span></span></button>`;
   }).join('');
   el.innerHTML = `<div class="m-tabs"><span class="m-grow"></span><span class="pa-total"><span class="lb-sfeer-chip" style="${sfeerStijl(SFEER)}" aria-hidden="true"></span><span class="mut">${esc(sfeerVan(SFEER).naam)}</span><span class="mut">Je geld</span><span class="m-num">${euro(geld)}</span></span></div>` +
+    dagKaart() +
     `<div class="m-main"><div class="m-list pa-list lb-list">${rijen}</div><aside class="m-pane pa-pane bd-pane" aria-live="polite">${detail(b, geld)}</aside></div>`;
   fillBars(el, bars);
   if (!el.dataset.bound) {

@@ -13,7 +13,7 @@ import { registerMusicProbe } from './scenariomusic.js';
 import { pushAudioEvent } from './pedgeom.js';
 import {
   startService, stepService, abandonService, boardView, doorsOpen, MEDAL_NAMES, STOPPED_V, payFor, wantedNaDienst,
-  pressDoors, deadmanFault,
+  pressDoors, deadmanFault, dienstMedaille,
 } from './machinistrules.js';
 import { createCabHud, cabView } from './treincabine.js';
 
@@ -202,10 +202,14 @@ export function updateMachinist(dt, world, t, cab) {
     if (!svc.paid) {
       svc.paid = true;
       const pay = payFor(r, svc.abandoned);
+      // #670: de uitslag van de dienst in één medaille (op tijd, veilig, alle halten), naast de bestaande beloning.
+      const dm = dienstMedaille({ gemiddelde: r.score, halten: r.stops, opTijd: r.punct, veilig: r.veilig, fouten: r.faults });
+      r.dienstMedaille = dm.naam;
       const betaald = dienstBeloning(world, pay, pay > 0 ? Math.round(r.made * 4 + r.medal * 8) : 0); // samen spelen (#365), loopbaan (#381), elk crewlid (#492)
       t.service = false; // de dienst is klaar: een gast mag weer instappen (#492)
       svc.pay = betaald;
-      if (betaald > 0) world.addMessage(`Dienst betaald: €${betaald}${r.reizigers ? `, met ${r.reizigers} reizigers` : ''}`, 3);
+      if (betaald > 0) world.addMessage(`Dienst betaald: €${betaald}${r.reizigers ? `, met ${r.reizigers} reizigers` : ''} · ${dm.naam}`, 3);
+      else if (dm.index > 0) world.addMessage(`${dm.naam}: ${dm.tekst}`, 3);
     }
     board.hide();
     if (hud) {
