@@ -1,5 +1,7 @@
 # Steam (SteamPipe) template
 
+> **Leeswijzer (Nederlands).** Dit document is technische naslag (SteamPipe-gereedschap; de regels staan in publicatie.md en docs/STEAM-CHECKLIST.md); de tekst is daarom Engels (uitzondering in ADR 0017, #692). De regels staan in [publicatie.md](../.specs-fire/standards/publicatie.md) en `AGENTS.md` wint bij twijfel. Nederlands is de taal van proza en van alles wat de speler ziet of hoort.
+
 Prepared for when GDE Groningen gets a Steam app (Steam Direct, $100; see
 the "Steam-klaar" issue on the GitHub board). There is no Steam account or app id yet, so
 nothing here has been uploaded, and nothing in this repo contacts Steam.

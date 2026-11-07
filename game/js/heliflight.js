@@ -563,11 +563,11 @@ const CSS = `
 #hud .hud-heli { position: absolute; right: var(--hud-edge, 46px); bottom: var(--hud-edge, 46px); display: none; min-width: 188px;
   padding: 8px 16px 10px 12px; color: #f0ede4; text-shadow: var(--hud-shadow);
   background: linear-gradient(90deg, rgba(12, 20, 14, 0.86), rgba(23, 48, 31, 0.55) 80%, rgba(23, 48, 31, 0.1));
-  border-left: 3px solid var(--hh, #3fc97a); }
+  border-left: 3px solid var(--hh, var(--mk-ok, #3fc97a)); }
 body.heli-flying #hud .hud-heli { display: block; }
 body.heli-flying #hud .hud-speedo { display: none; }
 body.hide-minimap #hud .hud-heli { right: 16px; bottom: 50px; }
-#hud .hud-heli small { display: block; font-size: 13px; letter-spacing: 3px; text-transform: uppercase; color: var(--hh, #3fc97a); }
+#hud .hud-heli small { display: block; font-size: 13px; letter-spacing: 3px; text-transform: uppercase; color: var(--hh, var(--mk-ok, #3fc97a)); }
 #hud .hud-heli .hh2-row { display: flex; gap: 16px; align-items: baseline; margin-top: 2px; }
 #hud .hud-heli .hh2-row div { display: flex; flex-direction: column; line-height: 1; }
 #hud .hud-heli .hh2-row b { font-weight: normal; font-size: 30px; letter-spacing: 1px; }
@@ -575,7 +575,7 @@ body.hide-minimap #hud .hud-heli { right: 16px; bottom: 50px; }
 #hud .hud-heli .hh2-vs { font-size: 16px; }
 #hud .hud-heli .hh2-st { margin-top: 5px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 15px; letter-spacing: 0.2px; }
 #hud .hud-heli .hh2-bar { margin-top: 5px; height: 4px; background: rgba(240,237,228,0.15); }
-#hud .hud-heli .hh2-bar i { display: block; height: 100%; background: var(--hh, #3fc97a); }
+#hud .hud-heli .hh2-bar i { display: block; height: 100%; background: var(--hh, var(--mk-ok, #3fc97a)); }
 `;
 
 function initCard() {

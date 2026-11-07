@@ -103,7 +103,7 @@ body.bus-driving #hud .hud-mission{bottom:calc(var(--hud-edge,46px) + 120px)}
 #hud .hud-busnext span{font-size:14px;color:rgba(240,237,228,.7);margin-left:8px}
 #hud .hud-busnext em{display:none;font-style:normal;font-size:13px;margin-top:4px;color:rgba(240,237,228,.85)}
 #hud .hud-busnext.offer em{display:block}
-}
+}`;
   document.head.appendChild(st);
   const el = document.createElement('div');
   el.className = 'hud-busnext ' + COCKPIT_CLASS;

@@ -128,7 +128,7 @@ export function probeRingSolids(world) {
   const lap = samplesOf(RING_ROUTE, (i) => RING_ROUTE[i][2], true);
   const out = probe(world, lap, 'ringrace', cache);
   // the rest of the ring: every raised or sunken road and the ring's numbered roads
-  out.push(...probeRoadSolids(world, world.map.roads.filter((r) => r.z || RING_REFS.has(r.ref)), cache));
+  out.push(...probeRoadSolids(world, gridItems(world.map.roadGrid).filter((r) => r.z || RING_REFS.has(r.ref)), cache));
   return out;
 }
 
@@ -279,7 +279,7 @@ export async function driveRingLap(world) {
 // carriageway: { road, x, y, s0, s1 } with s0..s1 the wet stretch along it.
 export function waterCrossings(map) {
   const out = [];
-  for (const r of map.roads) {
+  for (const r of gridItems(map.roadGrid)) {
     if (!(r.cat === 'major' || (r.ref && (r.cat === 'normal' || r.cat === 'minor')))) continue;
     let s = 0, run = null;
     const P = r.pts;

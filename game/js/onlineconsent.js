@@ -4,7 +4,7 @@
 // onlineMeedoen through here, so no third truth appears.
 // No network here: an answer only records a permission. The session itself still starts
 // through the lobby (lobbyui.js, coopnet.js), which is the one place that connects.
-import { profielNaam } from './lobby.js';
+import { profielNaam, CONSENT_TEXT } from './lobby.js';
 import { getSettings, setSetting, magOnline } from './settings.js';
 
 // null means the question was never asked, so it still has to be asked; true and false are
@@ -14,7 +14,7 @@ export const moetVragen = (settings = getSettings()) => settings.onlineMeedoen !
 // What the first start shows: a name, and one honest question with two answers.
 export const EERSTE_START = {
   titel: 'Meedoen met andere spelers?',
-  uitleg: 'Je IP-adres gaat naar je medespeler en naar de openbare servers die jullie bij elkaar brengen, niet naar een server van ons. Je kunt dit later altijd veranderen.',
+  uitleg: `${CONSENT_TEXT} Je kunt dit later altijd veranderen.`,
   naamLabel: 'Je naam',
   naamHint: 'Leeg mag: dan zien anderen de naam van je figuur.',
   meedoen: 'Meedoen',
@@ -24,7 +24,7 @@ export const EERSTE_START = {
 // The switch in the players panel, with one line of explanation.
 export const SCHAKELAAR = {
   label: 'Meedoen met andere spelers',
-  uitleg: 'Je IP-adres gaat naar je medespeler en naar de openbare servers die jullie bij elkaar brengen.',
+  uitleg: CONSENT_TEXT,
   aan: 'Je mag nu meedoen. Open Samen spelen om een sessie te openen of aan te sluiten.',
   uitOpenbaar: 'De sessie staat niet meer in de openbare lijst. Wie al meespeelt blijft; nieuwe spelers komen er alleen nog bij met de kamercode.',
   uitSessie: 'Deze sessie blijft besloten: wie al meespeelt blijft, nieuwe spelers komen er alleen nog bij met de kamercode.',

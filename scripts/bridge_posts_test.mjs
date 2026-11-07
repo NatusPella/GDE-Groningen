@@ -9,7 +9,7 @@ if (!heeftWereld()) { console.log('SKIP bridge_posts_test.mjs: geen game/world (
 const MB = await import('../game/js/movablebridges.js');
 const M3 = await import('../game/js/movablebridges3d.js');
 const map = (await laadStadTegels()).world;
-MB.buildMovableBridges(map);
+MB.buildMovableBridges(map, map.roads);
 const bridges = MB.getMovableBridges();
 assert.ok(bridges.length >= 30, `te weinig beweegbare bruggen: ${bridges.length}`);
 

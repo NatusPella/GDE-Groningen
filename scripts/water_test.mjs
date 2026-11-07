@@ -65,7 +65,7 @@ const rect = (x0, y0, x1, y1, name = '') => ({ pts: [[x0, y0], [x1, y0], [x1, y1
 // 3. a movable bridge's cycle
 {
   const road = { movable: 'bascule', bridge: true, pts: [[0, 0], [20, 0]], width: 6, cat: 'normal' };
-  const [b] = MB.buildMovableBridges({ roads: [road] });
+  const [b] = MB.buildMovableBridges({}, [road]);
   ok(b && b.len === 20 && b.half === 4.8, 'bridge from its road');
   const T = MB.BRIDGE_TIMING;
   const world = { vehicles: [], pedestrians: [], player: { x: 500, y: 500 } };

@@ -1,3 +1,4 @@
+import { gridItems } from './spatialgrid.js';
 // Shared helpers for the bijbaantjes (sidejobs.js and the sidejob_*.js
 // jobs): placing things on streets and at doors, handing the player a job
 // vehicle, customers that wait or walk, and small carryable props.
@@ -66,7 +67,7 @@ export function streetNameAt(map, x, y) {
 // { x, y, cx, cy } with the walkable ground nearest its middle, or null.
 export function namedBuildingSpot(map, name) {
   let best = null, area = -1;
-  for (const b of map.buildings) {
+  for (const b of gridItems(map.buildingGrid)) {
     if (b.name !== name || !b.pts || b.pts.length < 3) continue;
     let a = 0, cx = 0, cy = 0;
     for (let i = 0; i < b.pts.length; i++) {

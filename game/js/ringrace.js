@@ -12,6 +12,7 @@
 // Wie wegvalt of stopt zet zijn auto stil en de rest rijdt door; zonder gasten
 // blijft het de solo-race.
 import { Vehicle } from './vehicle.js';
+import { toonStartkaart } from './startkaart.js';
 import { RING_ROUTE, RING_CHECKPOINTS } from './ringroute.js';
 import { createRace, updateRace, disposeRace, buildTrack, sample, racewagenModel } from './racers.js';
 import { createBoard, key, fmtTime, stopPressed, gameUi, mgThema } from './minigamekit.js';
@@ -53,11 +54,7 @@ function startSolo(w) {
   if (!board) board = createBoard('ringrace');
   board.show();
   run = { online: false, race, cp: 0, t: 0, gestopt: false };
-  gameUi.showCard(w, {
-    kind: 'tip', kicker: 'Ringrace', title: 'Eén rondje ringweg',
-    body: `Volg de poorten in volgorde: ${CP_TOTAAL} in totaal, de finish ligt op de startlijn. Stap in je racewagen en wacht op het aftellen. [Backspace] stopt.`,
-    duration: 10, key: 'ringrace-help', voice: false,
-  });
+  toonStartkaart(w, 'ringrace');
   return true;
 }
 
@@ -160,11 +157,7 @@ function startBaan(w, sc) {
   if (!board) board = createBoard('ringrace');
   board.show();
   run = { online: true, deeln: rijders, af: COUNTDOWN, said: null, t: 0, gestopt: false, sc };
-  if (hostMee) gameUi.showCard(w, {
-    kind: 'tip', kicker: 'Ringrace', title: 'Iedereen dezelfde auto',
-    body: `Eén rondje ringweg, ${CP_TOTAAL} poorten in volgorde, de finish op de startlijn. Dezelfde auto en dezelfde start voor iedereen. [Backspace] stopt de wedstrijd voor iedereen.`,
-    duration: 11, key: 'ringrace-wedstrijd-help', voice: false,
-  });
+  if (hostMee) toonStartkaart(w, 'ringrace');
   return true;
 }
 

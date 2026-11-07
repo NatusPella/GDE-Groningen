@@ -7,7 +7,7 @@ let n = 0, fails = 0;
 const ok = (c, m) => { n++; if (!c) { fails++; console.log('FAIL ' + m); } };
 
 const road = { movable: 'bascule', bridge: true, pts: [[0, 0], [20, 0]], width: 6, cat: 'normal' };
-const [b] = MB.buildMovableBridges({ roads: [road] });
+const [b] = MB.buildMovableBridges({}, [road]);
 const T = MB.BRIDGE_TIMING;
 const msgs = [];
 const player = { x: 10, y: 30, inVehicle: null };

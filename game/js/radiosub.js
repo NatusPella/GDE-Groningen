@@ -13,7 +13,7 @@ function subEl() {
     letterSpacing: '0.3px', textShadow: '0 1px 3px rgba(0,0,0,0.95), 0 0 12px rgba(0,0,0,0.6)', pointerEvents: 'none',
     opacity: '0', transition: 'opacity 0.25s', zIndex: '40',
   });
-  el.innerHTML = '<span class="rs-firma" style="font-weight:bold;margin-right:6px"></span><span class="rs-line"></span>';
+  el.innerHTML = '<span class="rs-firma bt-speaker"></span><span class="rs-line"></span>'; // #644: dezelfde sprekerstijl als de andere ondertitels
   document.body.appendChild(el);
   return el;
 }
@@ -29,3 +29,4 @@ export function showRadioSub(firma, text) {
 export function hideRadioSub() {
   if (el) el.style.opacity = '0';
 }
+

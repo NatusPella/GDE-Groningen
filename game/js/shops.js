@@ -1,3 +1,4 @@
+import { gridItems } from './spatialgrid.js';
 import { KEYS } from './storagekeys.js';
 import { loadTuning, tuningEffects } from './tuningplan.js';
 import { DIEREN, dierById } from './dierenregister.js';
@@ -304,7 +305,7 @@ function kioskAt(map, poi, st, horeca, taken) {
 
 function placeJetty(map, street, horeca, taken) {
   let best = null;
-  for (const road of map.roads) {
+  for (const road of gridItems(map.roadGrid)) {
     if (road.name !== street) continue;
     for (const [px, py] of road.pts) {
       for (const w of map.waterNear(px, py, 30)) {

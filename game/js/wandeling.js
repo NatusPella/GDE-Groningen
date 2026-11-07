@@ -1,4 +1,5 @@
 import { showBanner } from './cinematics.js';
+import { toonStartkaart } from './startkaart.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, setStatMax, MEDALS } from './achievements.js';
 import { showCard } from './hudcards.js';
 import { iconDisc, activityBlock } from './activitykit.js';
@@ -63,7 +64,7 @@ function start(w) {
   // De wandeling neemt de speler niet over (active: false), maar een controller en de tastbare knoppen moeten
   // hem wel kunnen stoppen: de indeling 'minigame' zet B op Backspace. Zie gamepad.js en touchlogic.js.
   w.wandelingActief = true;
-  showCard(w, { kind: 'tip', kicker: 'Wandeling', title: 'Pieterpad bij Winsum', body: 'Loop in volgorde langs de vijf stempelposten. Lopend tellen tijd en afstand; in een voertuig telt niets. [Backspace] stopt.', duration: 11, key: 'wandel-help', voice: false });
+  toonStartkaart(w, 'wandeling');
   say(w, 'start');
   return true;
 }
