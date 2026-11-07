@@ -41,6 +41,12 @@ if (!St) B.log('stunt', { what: 'window.__botStunt ontbreekt: start via scripts/
 // #312: de fietsrace van M05 op de KEI-route (scripts/bot/bikerace.mjs, door run.mjs meegegeven)
 const Bk = window.__botBikeRace || null;
 if (!Bk) B.log('bikerace', { what: 'window.__botBikeRace ontbreekt: start via scripts/bot/run.mjs' });
+// #312/#186: de nieuwe pure modules (Ommeland, bootachtervolging, menu's en de cheat-ladder) komen op
+// dezelfde manier mee; zonder run.mjs blijven ze leeg en doet de bot het oude pad.
+const Lr = window.__botLandRoute || null;
+const Bo = window.__botBoat || null;
+const Mn = window.__botMenu || null;
+const Cp = window.__botCheat || null;
 const world = B.world, player = B.player;
 const PART = CFG.sweep && CFG.sweep.length ? 'all' : CFG.part || 'kop';
 const MAX_GAME = CFG.maxGameS || 3600;
@@ -131,6 +137,14 @@ function plan(s, mode, tgt) {
       if (e && L.distance({ x: e[0], y: e[1] }, tgt) < 80) { pts = R.getRouteAhead(1e9) || pts; src = pts ? 'gps' : src; }
     } catch (e) { /* geen route */ }
   }
+  // #312: geen route in het Ommeland (planLandRoute kent de sloten niet): zoek een droog tussenpunt en
+  // stuur daar eerst heen; de rechte lijn naar het doel is dan niet meer de lijn die de bot volgt.
+  if (!pts && mode === 'drive' && Lr && !CFG.zonderWater) {
+    try {
+      const om = Lr.landOmweg({ ik: me, doel: tgt, isWater: (x, y) => Un.isInWater(world.map, x, y) });
+      if (om.droog && om.omweg) { tgt = om.punt; src = 'landomweg'; B.log('landomweg', { naar: [Math.round(tgt.x), Math.round(tgt.y)], waarom: om.waarom }); }
+    } catch (e) { /* geen waterkaart: gewoon recht */ }
+  }
   let line = pts || [[me.x, me.y]];
   line.push([tgt.x, tgt.y]);
   // on foot the planned route knows no stall poles, bins or benches: every blocked stretch gets a way round it (#218)
@@ -202,6 +216,13 @@ function steerTowards(s, mode, tgt, stopAt, top = 24, stopR = null, direct0 = fa
     // #312: a sailing boat runs on wind and trim, a rowing boat on rhythm; the normal throttle/steer layer
     // (carControls) knows neither. The pure rules are in scripts/bot/nav.mjs.
     const boot = mode === 'boat' ? player.inVehicle : null;
+    // #312: bootachtervolging (M11): de pure keuze zegt of de bot moet instappen, vol gas moet houden of
+    // langszij moet komen; de pagina voert de toetsen uit zoals altijd.
+    if (Bo && boot && s.mission.active) {
+      const st = Bo.bootAchtervolgStap({ ik: { x: boot.x, y: boot.y }, doel: s.target || { x: boot.x, y: boot.y }, inBoot: true, afstand: s.target ? s.target.distance : null, snelheid: boot.speed });
+      if (ticks % 60 === 0) B.log('bootchase', { actie: st.actie, gas: st.gas, afstand: st.afstand, doel: s.mission.stage || '' });
+      if (st.actie === 'langszij' && s.target && s.target.distance < 3) { B.press('e'); }
+    }
     if (boot && boot.model && Nav) {
       const vk = (s.story.id || '?') + ':' + (s.mission.stage || '-');
       const w = sailWatch.update('vaar', vk, s.t);
@@ -455,6 +476,15 @@ async function rescue(s, stepKey, info) {
   // the ladder counts per story step (a failed mission restarts the detector, not the ladder); every fail is a rung higher
   const sid = s.story.id || '?';
   const rung = L.rescueFor((ladder[sid] = (ladder[sid] || 0) + 1) - 1 + (fails[sid] || 0));
+  // #186: de cheat-ladder per stap uit cheatplan.mjs: onthoud welke rungs deze stap al had, zodat de
+  // analyse per missie kan zien wat er nodig was en de volgende rung niet dubbel gaat.
+  let volgende = null;
+  if (Cp && rung !== 'nudge') {
+    mem.cheatGeprobeerd = mem.cheatGeprobeerd || {};
+    const gep = (mem.cheatGeprobeerd[stepKey] = mem.cheatGeprobeerd[stepKey] || []);
+    if (!gep.includes(rung)) gep.push(rung);
+    volgende = Cp.cheatVoor({ vast: true, geprobeerd: gep });
+  }
   // quiet: the branch already logged a 'timeout' with the same spot (a pigeon, a plane): no second line for the same moment
   if (!info.quiet) {
     B.log('stuck', { step: stepKey, x: s.player.x, y: s.player.y, idleFor: info.idleFor, goalDist: s.target ? s.target.distance : null, rung, doel: s.target && { x: s.target.x, y: s.target.y, vehicle: !!s.target.vehicle, source: s.target.source }, prompt: s.hud.prompt || undefined, dichtbij: (s.nearby.vehicles || []).slice(0, 3).map((c) => [c.kind, c.distance, c.free]) });
@@ -471,7 +501,7 @@ async function rescue(s, stepKey, info) {
   else ok = B.cheat.skip();
   let state = null;
   try { state = window.__story.mission(); } catch (e) { /* none */ }
-  B.log('cheat', { rung, ok: !!ok, step: stepKey, why: `${Math.round(info.idleFor)} s zonder voortgang`, mission: state && { phase: state.phase, stage: state.stage }, blocking: Object.keys(s.blocking).filter((k) => s.blocking[k] && k !== 'dialog') });
+  B.log('cheat', { rung, ok: !!ok, step: stepKey, volgende, why: `${Math.round(info.idleFor)} s zonder voortgang`, mission: state && { phase: state.phase, stage: state.stage }, blocking: Object.keys(s.blocking).filter((k) => s.blocking[k] && k !== 'dialog') });
   follower = null;
   detector.acknowledge(s.t);
 }
@@ -556,7 +586,10 @@ async function boardStage(s, stepKey) {
   mem.board = mem.board || {};
   // in a vehicle that is not the mission's own (a bike, last mission's car): out first, then the right one
   const inWrong = !!s.player.vehicle && !s.player.vehicle.mission;
-  const pick = inWrong ? null : Bd.pickVehicle(s, mem.board);
+  // #312: een board-stage met een specifiek voertuig (quad, trekker-limo, Fjord Frituur): kies op
+  // soort/model/naam als de run dat vraagt, anders blijft de dichtstbijzijnde van pickVehicle gelden.
+  const stagePick = !inWrong && Bd.pickStageVehicle && CFG.stageVehicle ? Bd.pickStageVehicle(s, CFG.stageVehicle, mem.board) : null;
+  const pick = inWrong ? null : (stagePick && stagePick.vehicle ? stagePick : Bd.pickVehicle(s, mem.board));
   const v = pick && pick.vehicle;
   if (!v && !inWrong) {
     // nothing within reach: walk to the marker (the stage's vehicle stands there)
@@ -940,7 +973,7 @@ while (true) {
       continue;
     }
   } else heldSince = null;
-  if (act.type === 'closemenu') { await B.press('escape'); continue; }
+  if (act.type === 'closemenu') { const sluit = (Mn && Mn.menuStap({ scherm: 'pauze', items: [] }).toets[0]) || 'escape'; await B.press(sluit); continue; }
   if (act.type === 'choose') { B.log('keuze', { dialog: s.blocking.dialog.text, key: act.key }); shot(`${stepKey}-keuze`); await B.choose(act.key); continue; }
   if (act.type === 'skip') {
     // --watch=<s>: a cutscene is watched instead of skipped, with a beam every 2.5 s (at most 16 per scene), to look at staging in the real game (#352)

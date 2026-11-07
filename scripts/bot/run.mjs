@@ -15,6 +15,9 @@
 //   --from=T1 springt eerst naar die stap en speelt dan door (de sprong van een sweep slaat reisstappen over, dit niet)
 //   --skip-from slaat die stap na de sprong over (cheat): de volgende stap, bv. een reisstap, begint dan bij jouw plek
 //   node scripts/bot/run.mjs --report=<map>           (rapport opnieuw uit events.jsonl)
+//   node scripts/bot/run.mjs --mode=cheatsweep [--only=M03,M04] [--stappen=3] [--events=<events.jsonl>]
+//        (code-only, geen Electron: print het cheatplan per missie en met --events de cheattabel van een run)
+//   --stage-vehicle=<naam>   kies bij een board-stage dat voertuig (quad, limo, frituur) in plaats van de dichtstbijzijnde
 //   node scripts/bot/run.mjs --replay=<events.jsonl> [--out=<map>]   (invoer terugspelen)
 // ELECTRON_EXE=<pad> als desktop/node_modules/electron/dist ontbreekt. Vereist
 // `cd desktop && npm run stage` (game/world; stage opnieuw na elke wijziging aan game/js, de app draait de gestagede kopie). Geen netwerkpoorten: de pagina wordt
@@ -35,6 +38,25 @@ const flag = (k) => process.argv.includes(`--${k}`);
 const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
 const OUT = path.resolve(arg('out', path.join(os.tmpdir(), 'gde-spelbot', stamp)));
 const L = await import(pathToFileURL(path.join(ROOT, 'game', 'js', 'botlogic.js')).href);
+
+// #186: `--mode=cheatsweep` is code-only: geen Electron, geen stage. Het print het sweep-plan per missie
+// (cheatplan.mjs) en, met `--events=<events.jsonl>` van een echte run, de cheattabel voor het analysecommentaar.
+if (arg('mode', '') === 'cheatsweep') {
+  const C = await import(pathToFileURL(path.join(HERE, 'cheatplan.mjs')).href);
+  const missies = (arg('only', '') || 'M01,M02,M03,M04,M05').split(',').filter(Boolean);
+  const stappen = Math.max(1, Number(arg('stappen', 3)) || 3);
+  console.log('# Cheats-sweep (droog, geen Electron)');
+  console.log(`Missies: ${missies.join(', ')} · ${stappen} stap(pen) per missie · ladder ${C.SWEEP_RUNGS.join(' → ')}`);
+  for (const p of C.sweepPlan(missies, { stappen })) console.log(`- ${p.missie}: stappen ${p.stappen.join(', ')}; cheats ${p.cheats.join(' → ')}; ${p.waarom}`);
+  const evPad = arg('events', '');
+  if (evPad) {
+    const events = fs.readFileSync(path.resolve(evPad), 'utf8').trim().split('\n').filter(Boolean).map((r) => { try { return JSON.parse(r); } catch (e) { return null; } }).filter(Boolean);
+    console.log('\n## Cheats per missie uit de run\n');
+    console.log(C.cheatSweepTable(events));
+  }
+  console.log('\nGeen Electron gestart: dit is het plan en de analyse van de cheats-sweep.');
+  process.exit(0);
+}
 
 function buildFiles(out, meta) {
   const text = fs.readFileSync(path.join(out, 'events.jsonl'), 'utf8');
@@ -85,7 +107,7 @@ const seed = Number(arg('seed', 1)) || 1;
 const replayFile = arg('replay');
 const profile = `gde-test-spelbot-${process.pid}`;
 const script = path.join(OUT, '_page.js');
-const cfg = { part: arg('part', 'kop'), maxGameS: Number(arg('max-game', 3600)), maxWallS: Number(arg('max-wall', 1800)), stuckS: Number(arg('stuck', 30)), only: arg('only', ''), from: arg('from', ''), skipFrom: flag('skip-from'), playS: Number(arg('play', 40)), perS: Number(arg('per', 60)), mode: arg('mode', 'story'), sweep: arg('mode') === 'missions' ? arg('only', '').split(',').filter(Boolean) : [], perStepS: Number(arg('per-step', 600)), watch: Number(arg('watch', 0)) || 0, annuleer: Number(arg('annuleer', 0)) || 0, zonderWater: flag('zonder-water'), zonderStartplek: flag('zonder-startplek'), skipStages: /:/.test(arg('skip-stages', '')) ? Object.fromEntries(arg('skip-stages', '').split(',').map((q) => q.split(':')).map(([k, v]) => [k, Number(v) || 0])) : Number(arg('skip-stages', 0)) || 0, shots: Number(arg('shots', 80)), speed: Number(arg('speed', 1)) || 1, waitS: Number(arg('wait', 45)) || 45, until: arg('until', ''), invulnerable: flag('invuln') };
+const cfg = { part: arg('part', 'kop'), maxGameS: Number(arg('max-game', 3600)), maxWallS: Number(arg('max-wall', 1800)), stuckS: Number(arg('stuck', 30)), only: arg('only', ''), from: arg('from', ''), skipFrom: flag('skip-from'), playS: Number(arg('play', 40)), perS: Number(arg('per', 60)), mode: arg('mode', 'story'), sweep: arg('mode') === 'missions' ? arg('only', '').split(',').filter(Boolean) : [], perStepS: Number(arg('per-step', 600)), watch: Number(arg('watch', 0)) || 0, annuleer: Number(arg('annuleer', 0)) || 0, zonderWater: flag('zonder-water'), zonderStartplek: flag('zonder-startplek'), stageVehicle: arg('stage-vehicle', ''), skipStages: /:/.test(arg('skip-stages', '')) ? Object.fromEntries(arg('skip-stages', '').split(',').map((q) => q.split(':')).map(([k, v]) => [k, Number(v) || 0])) : Number(arg('skip-stages', 0)) || 0, shots: Number(arg('shots', 80)), speed: Number(arg('speed', 1)) || 1, waitS: Number(arg('wait', 45)) || 45, until: arg('until', ''), invulnerable: flag('invuln') };
 let pre = `window.__botCfg = ${JSON.stringify(cfg)};\n`;
 // #312: de pure heli- en zeilbesturing staat in scripts/bot/nav.mjs (buiten game/js) en gaat
 // als window.__botNav mee de pagina in; bot.page.js gebruikt hem voor de toetsen en de timing.
@@ -115,6 +137,24 @@ let pre = `window.__botCfg = ${JSON.stringify(cfg)};\n`;
 {
   const stunt = fs.readFileSync(path.join(HERE, 'stunt.mjs'), 'utf8').replace(/^export (const|function|class) /gm, '$1 ');
   pre += `window.__botStunt = (() => {\n${stunt}\nreturn { STUNT, stuntStep };\n})();\n`;
+}
+// #312: het Ommeland (een droog tussenpunt om sloten heen), de bootachtervolging, de menu's en de
+// cheat-ladder (#186) gaan als dezelfde soort vensters mee de pagina in.
+{
+  const land = fs.readFileSync(path.join(HERE, 'landroute.mjs'), 'utf8').replace(/^export (const|function|class) /gm, '$1 ');
+  pre += `window.__botLandRoute = (() => {\n${land}\nreturn { LAND, landOmweg, landRecht };\n})();\n`;
+}
+{
+  const boat = fs.readFileSync(path.join(HERE, 'boat.mjs'), 'utf8').replace(/^export (const|function|class) /gm, '$1 ');
+  pre += `window.__botBoat = (() => {\n${boat}\nreturn { BOOT, bootAchtervolgStap };\n})();\n`;
+}
+{
+  const menu = fs.readFileSync(path.join(HERE, 'menu.mjs'), 'utf8').replace(/^export (const|function|class) /gm, '$1 ');
+  pre += `window.__botMenu = (() => {\n${menu}\nreturn { MENU, menuStap, menuIndex };\n})();\n`;
+}
+{
+  const cheat = fs.readFileSync(path.join(HERE, 'cheatplan.mjs'), 'utf8').replace(/^export (const|function|class) /gm, '$1 ');
+  pre += `window.__botCheat = (() => {\n${cheat}\nreturn { SWEEP_RUNGS, cheatVoor, sweepPlan, cheatSweep, cheatSweepTable };\n})();\n`;
 }
 if (replayFile) {
   const rl = L.RunLog.parse(fs.readFileSync(path.resolve(replayFile), 'utf8'));
