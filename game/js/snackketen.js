@@ -2,6 +2,7 @@ import { hoofdspeler } from './players.js';
 import { getShopsForRender } from './shops.js';
 import { unlockAchievement, setStatMax } from './achievements.js';
 import { iconDisc } from './activitykit.js';
+import { toonUitje } from './uitjepaneel.js';
 import { isShopOpen } from './shopui.js';
 import { isInWater, pointInPolygon } from './util.js';
 import { pushAudioEvent } from './pedgeom.js';
@@ -77,19 +78,19 @@ function interactAt(w, s) {
     const r = buy(chain, s.id, w.money);
     if (!r.ok) { w.addMessage(r.why + (r.cost ? ` (${euro(r.cost)})` : ''), 2.8); return; }
     w.money -= r.cost;
-    w.addMessage(`Snackbar gekocht voor ${euro(r.cost)}: nu ${outletCount(chain)} ${outletCount(chain) === 1 ? 'vestiging' : 'vestigingen'}`, 3.2);
+    toonUitje(w, 'snackketen', { regel: `Snackbar gekocht voor ${euro(r.cost)}: nu ${outletCount(chain)} ${outletCount(chain) === 1 ? 'vestiging' : 'vestigingen'}`, hint: '[E] kassa legen', secs: 4 });
     unlockAchievement(w, 'snackketen_eerste');
     ding(w, s);
   } else if (o.till >= 1) {
     const euros = collect(chain, s.id);
     w.money += euros;
-    w.addMessage(`Kassa geleegd: ${euro(euros)}`, 2.5);
+    toonUitje(w, 'snackketen', { regel: `Kassa geleegd: ${euro(euros)}`, hint: '[E] verbouwen', secs: 3 });
     ding(w, s);
   } else if (o.level < SNACK.maxLevel) {
     const r = upgrade(chain, s.id, w.money);
     if (!r.ok) { w.addMessage(r.why + (r.cost ? ` (${euro(r.cost)})` : ''), 2.8); return; }
     w.money -= r.cost;
-    w.addMessage(`Verbouwd tot ${LEVEL_NAMES[o.level].toLowerCase()} voor ${euro(r.cost)}`, 3);
+    toonUitje(w, 'snackketen', { regel: `Verbouwd tot ${LEVEL_NAMES[o.level].toLowerCase()} voor ${euro(r.cost)}`, hint: '[E] volgende', secs: 3 });
   } else {
     w.addMessage('De kassa is leeg. Kom later terug.', 2.2);
   }

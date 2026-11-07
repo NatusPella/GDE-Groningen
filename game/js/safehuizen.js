@@ -20,6 +20,7 @@ import { recordStat } from './achievements.js';
 import { saveGame } from './savehook.js';
 import { hoofdspeler } from './players.js';
 import { groepAkkoord } from './coopgroep.js';
+import { toonUitje } from './uitjepaneel.js';
 import { getScene, setBuildingHidden } from './scene3d.js';
 import { addStaticCollider, removeProp } from './breakables.js';
 import { iconDisc } from './activitykit.js';
@@ -296,7 +297,7 @@ function binnen(w, h) {
     kamer = k;
     setBuildingHidden(h.pand, true);
     zetBinnen(w, k, k.spots.binnen.x, k.spots.binnen.z);
-    w.addMessage(`Binnen bij ${h.naam}. Bed: slapen en opslaan, kast: je kleren, deur: naar buiten`, 5, { kind: 'tip' });
+    toonUitje(w, 'safehuis', { regel: `Binnen bij ${h.naam}`, hint: '[E] bed · [Kast] kleren · [Deur] naar buiten', secs: 5 });
   });
 }
 

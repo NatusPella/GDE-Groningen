@@ -315,7 +315,46 @@ ok(A.planModeFor('ov', 'lopen') === 'ov' && A.planModeFor('boot', 'auto') === 'b
   ok(/if \(\+\+n >= 3\) break; \/\/ #638/.test(panel), 'minimap: hoogstens drie plaatsnamen');
 }
 
+// #638: de voertuignaam in de gemeten kolom, de 44 px-dempknop, één rood en het minimap-budget.
+{
+  const css = readFileSync(new URL('../game/js/hud_panel.css', import.meta.url), 'utf8');
+  const panel = readFileSync(new URL('../game/js/hud_panel.js', import.meta.url), 'utf8');
+  const hudjs = panel;
+  ok(R.vehnameBottom({ raceTop: 173, viewH: 720 }) === 555, 'de naamkaart staat boven het racepaneel (720 - 173 + 8)', String(R.vehnameBottom({ raceTop: 173, viewH: 720 })));
+  ok(R.vehnameBottom({}) === null && R.vehnameBottom({ raceTop: NaN, viewH: 720 }) === null, 'zonder racepaneel geen meting');
+  ok(/bottom: var\(--hud-vehname-bottom/.test(css), 'de naamkaart gebruikt de gemeten onderkant');
+  ok(/html\.touch-play \.hud-chip\.hud-mute \{ min-height: 44px/.test(css), 'de dempknop haalt 44 px op touch');
+  ok(/hud-money-delta\[data-sign="min"\] \{ color: var\(--mk-danger/.test(css), 'geld eraf is het ene gevaar-rood via de tokens');
+  ok(/MM_ICON_BUDGET = 10/.test(panel), 'de minimap heeft een totaalbudget');
+  ok(/polities\.length > 1/.test(panel) && /strokeText\(String\(polities\.length\)/.test(panel), 'de politie is één badge met aantal');
+  // #638: op 1280x720 en 1280x800 raakt de naamkaart het racepaneel niet en blijft de telefoonkolom links.
+  for (const vh of [720, 800]) {
+    const raceTop = 173;
+    const bottom = R.vehnameBottom({ raceTop, viewH: vh, gap: 8 });
+    ok(vh - bottom === raceTop - 8, `naamkaart blijft 8 px boven het racepaneel op 1280x${vh}`, String(vh - bottom));
+    const telefoonRechts = 46 + Math.min(350, 0.3 * 1280);
+    ok(telefoonRechts < 1280 - 46 - 300, `telefoonkolom links van de rechterkolom op 1280x${vh}`, String(telefoonRechts));
+  }
+}
+
+// #643: het telefoonbudget geldt ook voor dynamische tekst; de prestatiekaart en de telefoon volgen de tokens.
+{
+  const T = await import('../game/js/hudtext.js');
+  const lang = 'Dit is een veel te lange dynamische telefoonmelding met meer dan veertien woorden erin en nog wat extra woorden';
+  const k = T.phoneCard('Kop', lang);
+  ok(k.over && T.wordCount(k.title + ' ' + k.body) <= T.WORD_BUDGET.phone, 'een lange dynamische telefoontekst wordt geknipt en gemeld', String(k.words));
+  const cardsCss = readFileSync(new URL('../game/js/hudcards.css', import.meta.url), 'utf8');
+  ok(!/rgba\(232, 201, 58/.test(cardsCss) && /color-mix\(in srgb, var\(--hc\) 45%/.test(cardsCss), 'de prestatiekaart heeft één accent uit --hc');
+  const pfCss = readFileSync(new URL('../game/js/phonefeed.css', import.meta.url), 'utf8');
+  ok(!/#8fd3ff|#ff5a4a|rgba\(30, 36, 31|rgba\(14, 19, 15/.test(pfCss) && /var\(--mk-user/.test(pfCss) && /var\(--mk-danger, #d93f3f\)/.test(pfCss), 'de telefoon gebruikt de tokens');
+  const ach = readFileSync(new URL('../game/js/achievements.js', import.meta.url), 'utf8');
+  ok(/zones\.occupy\('E', 'ach', P3\)/.test(ach) && /zones\.vacate\('E', 'ach'\)/.test(ach), 'de prestatie-toast bezet zone E via het zonebord');
+}
+
 console.log(`${n} checks, ${fails} failed`);
 process.exit(fails ? 1 : 0);
+
+
+
 
 

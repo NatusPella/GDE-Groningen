@@ -138,6 +138,13 @@ const padelHud = read('padel.js');
 ok(/sfeerVlakHtml\('padel'\)/.test(padelHud) && /dataset\.sfeer = 'padel'/.test(padelHud), 'padel: eigen bord op de sfeerroute (#599/#595)');
 ok(/getSettings\(\)\.onlineNaam/.test(padelHud) && /profiel \|\| eigen/.test(padelHud), 'padel: de teamnaam is de spelersnaam van de opener, niet vast Tammo/Tessa');
 ok(/calc\(20px \* var\(--ui, 1\)\)/.test(padelHud), 'padel: het bord schaalt mee met --ui');
+// #643: de telefoon en de prestatiekaart volgen dezelfde tokens; ook rgba() telt mee.
+const telefoonCss = read('phonefeed.css');
+ok(!/#8fd3ff|#ff5a4a|rgba\(30, 36, 31|rgba\(14, 19, 15/.test(telefoonCss), 'phonefeed.css: geen eigen blauw, tweede rood of eigen bijna-zwart');
+ok(/var\(--mk-user/.test(telefoonCss) && /var\(--mk-danger, #d93f3f\)/.test(telefoonCss), 'de telefoon gebruikt de tokens');
+const prestatieCss = read('hudcards.css');
+ok(!/rgba\(232, 201, 58/.test(prestatieCss) && /color-mix\(in srgb, var\(--hc\) 45%/.test(prestatieCss), 'de prestatiekaart heeft één accent uit --hc, ook voor rgba()');
+
 // De identiteitskleuren staan op één plek: de accenttabel. Zo kan niemand er stilletjes een
 // statuskleur tussen schuiven zonder dat deze test het ziet.
 const accenten = [...mg.matchAll(/accent:\s*'(#[0-9a-fA-F]{6})'/g)].map((m) => m[1].toLowerCase());
@@ -161,6 +168,8 @@ const HUD_DRIFT = {
   'treincabine.js': [],
   'heistui.js': ['#3fc97a', '#d93f3f', '#0f1c13'],
   'pigeonmode.js': [],
+  // #633: de gedeelde uitje-kaart leent alles van de sfeer- en thematabellen.
+  'uitjepaneel.js': [],
   'kaartactieui.js': [],
 };
 for (const [f, basis] of Object.entries(HUD_DRIFT)) {
@@ -181,7 +190,7 @@ for (const [naam, s] of Object.entries(SURFACES)) {
 
 // #645: geen vaste magische maten meer voor voertuignaam en prestatie-toast, en één font-stack.
 const panelCss = read('hud_panel.css');
-ok(!/bottom:\s*calc\(var\(--hud-edge\) \+ 300px\)/.test(panelCss) && /bottom:\s*calc\(var\(--hud-edge\) \+ var\(--mm-size\) \+ 50px\)/.test(panelCss), 'hud_panel.css: voertuignaam op de gemeten kolom');
+ok(!/bottom:\s*calc\(var\(--hud-edge\) \+ 300px\)/.test(panelCss) && /bottom:\s*(?:var\(--hud-vehname-bottom,\s*)?calc\(var\(--hud-edge\) \+ var\(--mm-size\) \+ 50px\)/.test(panelCss), 'hud_panel.css: voertuignaam op de gemeten kolom');
 ok(!/top:\s*330px/.test(panelCss) && /top:\s*calc\(var\(--hud-top\) \+ var\(--mm-size\) \+ 46px\)/.test(panelCss), 'hud_panel.css: nowplaying op de gemeten kolom');
 ok(!/left:\s*max\(50%,\s*700px\)/.test(read('achievements.js')), 'achievements.js: prestatie-toast zonder vaste 700px');
 const a11yCss = read('a11y.css');
@@ -205,6 +214,8 @@ ok(/font: 12px\/18px/.test(pigeonSrc) && /prefers-reduced-motion/.test(pigeonSrc
 
 console.log((fails ? 'FAIL ' : '') + 'hud_kleuren_test: ' + (fails ? fails + ' fout' : 'ok — de HUD-kleuren komen uit de tokens, de accenten uit één tabel'));
 process.exit(fails ? 1 : 0);
+
+
 
 
 
