@@ -303,7 +303,7 @@ await t('#464: leeftijd en dimmen per regel; melden gebruikt de juiste regel ook
   const nu = Date.now();
   lobby.event({ t: 'lijst-data', lijst: [rijVan(0, nu, { naam: 'Vers spel' }), rijVan(1, nu, { naam: 'Bijna weg', ouderdom: 40000, gezien: nu - 40000, dim: true })] });
   assert.match(root.innerHTML, /net/); assert.match(root.innerHTML, /40 s/);
-  assert.match(root.innerHTML, /opacity:\.55/, 'de laatste seconden zijn gedimd');
+  assert.match(root.innerHTML, /data-dim="1"/, 'de laatste seconden zijn gedimd');
   root.typ('bijna');
   root.click('meld-1');
   assert.deepEqual(JSON.parse(geheugen.get('gde-serverlijst-verborgen')), ['lijst00001'], 'het juiste id, ook na filteren');

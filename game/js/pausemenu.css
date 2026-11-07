@@ -509,7 +509,7 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 .coop-lijst-filters { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
 .coop-lijst-sorteren { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 6px 0 10px; }
 .coop-sessie { display: flex; gap: 8px; align-items: stretch; margin: 6px 0; }
-.coop-sessie[data-dim] { opacity: 0.55; }
+.coop-sessie[data-dim] { opacity:.55; }
 .coop-sessie-knop { flex: 1; text-align: left; min-height: 56px; }
 .coop-meer { margin: 10px 0; }
 

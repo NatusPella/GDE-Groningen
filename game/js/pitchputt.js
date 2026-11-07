@@ -761,7 +761,7 @@ function updateHud(w) {
   const wie = multi ? g.players[g.pi].naam : '';
   const online = g.online ? wedScoreRijen(w) : [];
   const stand2 = online.length ? `<span>${online.map((r) => `${r.weg ? '<s>' : ''}${r.naam} ${relText(r.rel)} (${r.banen}/${HOLES.length})${r.weg ? '</s>' : ''}`).join(' · ')}</span>` : '';
-  const row = stand2 + golfRij({ wie, baan: h.n, banen: HOLES.length, par: h.par, slag: g.phase === 'aim' ? g.strokes + 1 : g.strokes, vlag: dist, club: putting ? 'putter' : 'wedge', ondergrond: g.bunker ? 'zand' : 'gras' });
+  const row = stand2 + golfRij({ wie, baan: h.n, banen: HOLES.length, par: h.par, slag: g.phase === 'aim' ? g.strokes + 1 : g.strokes, vlag: dist, club: putting ? 'Putter' : 'Wedge', ondergrond: g.bunker ? 'zand' : 'gras' });
   const cells = g.card.holes.map((c, i) => ({ t: c.done ? String(c.strokes) : i === g.hole ? `${g.strokes || '·'}` : String(c.n), cls: `${i === g.hole ? 'on' : ''} ${c.done ? (c.strokes <= c.par ? 'good' : 'bad') : ''}` }));
   const extra = multi ? scoreTabel({
     nummers: HOLES.map((hh) => hh.n),

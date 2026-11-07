@@ -193,7 +193,7 @@ const MG_ICONEN = {
   vlaggen: `<polygon points="3,5 3,20 4.5,20 4.5,5" fill="#cfcbbd"/><polygon points="4.5,5 12,7 4.5,10" fill="#e8523a"/><polygon points="12,3 12,18 13.5,18 13.5,3" fill="#cfcbbd"/><polygon points="13.5,3 21,5 13.5,8" fill="#f2c744"/>`,
   gondel: `<polygon points="9,3 15,3 15,5 9,5" fill="#cfcbbd"/><polygon points="11.4,5 12.6,5 12.6,15 11.4,15" fill="#cfcbbd"/><polygon points="5,16 19,16 16.5,21 7.5,21" fill="#f0ede4"/><polygon points="7.5,17.5 16.5,17.5 16.5,19 7.5,19" fill="#b9a27a"/>`,
   // #630: de duif van de duivenmelker
-  duif: `<path d="M15.5 5.2a2.6 2.6 0 0 1 2.6 2.1l2.4.9-2.3.9c-.2 2.4-1.3 4.5-3.2 5.9l1 3.5h-1.6l-1-3a8 8 0 0 1-2.4.4l-.6 2.6H8.8l.6-2.9C6 14.6 3.8 12 3.5 8.8c2.4 1.8 5.3 2.4 8.4 1.8L13 7.7a2.6 2.6 0 0 1 2.5-2.5zm.3 1.7a.7.7 0 1 0 0 1.4.7.7 0 0 0 0-1.4z" fill="#f0ede4"/>`,
+  duif: `<polygon points="4,8 7,6 10,4 14,5 16,7 20,6 17,10 19,13 15,13 14,17 11,15 8,16 7,13 4,12 6,10" fill="#f0ede4"/><polygon points="6,10 9,8 12,9 10,12" fill="#cfcbbd"/><polygon points="15,7 17,9 16,11 14,9" fill="#cfcbbd"/><ellipse cx="7" cy="10" rx="2.4" ry="1.6" fill="#f0ede4"/><polygon points="22,11 19,9 19,13" fill="#d9662e"/>`,
 };
 
 export const MG_THEMA = {
@@ -220,13 +220,13 @@ export const MG_THEMA = {
   // de ring: een rondje stad tegen de klok, de richting-pijl in het groen van de startlampen (#618)
   ringrace: { titel: 'RINGRACE', accent: '#1e9e56', icoon: 'beurt' },
   // padel (#599): geen eigen blauw meer; het accent komt uit de bestaande a11y-paletten, het icoon is de bal
-  padel: { titel: 'PADEL', accent: '#c068ff', icoon: 'bal' },
+  padel: { titel: 'PADEL', accent: '#cf6fb0', icoon: 'bal' },
   // de arena en de machinist: een wedstrijd met een uitslag (de kroon) en een dienst met een perron (de pijl, #625)
   pvparena: { titel: 'PVP-ARENA', accent: '#c9568a', icoon: 'winnaar' },
   machinist: { titel: 'MACHINIST', accent: '#b3b3a2', icoon: 'beurt' },
   // #596: de twee borden die buiten de tabel vielen: boerenwerk (het weiland) en het vertrekbord.
-  boeren: { titel: 'BOERENWERK', accent: '#a3c94a', icoon: 'beurt' }, // hergebruikt het groen van de wandeling
-  station: { titel: 'VERTREKBORD', accent: '#b3b3a2', icoon: 'beurt' }, // hergebruikt het perrongrijs van de machinist
+  boeren: { titel: 'BOERENWERK', accent: '#8fae45', icoon: 'beurt' },
+  station: { titel: 'VERTREKBORD', accent: '#a6a695', icoon: 'beurt' },
   // #627/#628/#630: kermis, reuzenrad, carbid en de duif stonden buiten de tabel; nu hebben ze één
   // accent, titel en icoon, zodat hun eigen bord-CSS kon verdwijnen.
   kermis: { titel: "BOTSAUTO'S", accent: '#d45c86', icoon: 'vlaggen' },
