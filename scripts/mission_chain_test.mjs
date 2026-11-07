@@ -4,6 +4,7 @@
 // laadt niet in node (three.js via een https-import), vandaar deze route.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import * as ML from '../game/js/missielus.js';
 
 const src = fs.readFileSync(new URL('../game/js/missions.js', import.meta.url), 'utf8');
 const BEGIN = '// --- ketenhouder begin ---';
@@ -193,6 +194,33 @@ const ok = (c, naam) => { n++; if (!c) { console.log(`FAIL ${naam}`); process.ex
   N.stopCoopNet(gast);
   ok(gast.coopGroepSleutel === 0, 'ook de gast staat weer op zijn eigen wereld');
   ok(hg.chainState(gast).index === 5, 'met zijn eigen keten');
+}
+
+// --- #492: de missielus per groep: welke ketens doen mee en hoeveel tijd krijgt elk
+{
+  const lus = ML.maakMissielus();
+  const tellers = new Map([['a', 0], ['b', 0]]);
+  ML.zetGroep(lus, 'a', true); ML.zetGroep(lus, 'b', true);
+  ok(ML.aantalActief(lus) === 2 && ML.actieveGroepen(lus).join() === 'a,b', 'twee groepen in vaste volgorde');
+  const r = ML.tik(lus, 0.3, (sleutel, dt) => tellers.set(sleutel, (tellers.get(sleutel) || 0) + dt));
+  ok(r.aantal === 2 && Math.abs(r.deel - 0.15) < 1e-9, 'de frame-tijd wordt verdeeld');
+  ok(Math.abs(tellers.get('a') - 0.15) < 1e-9 && Math.abs(tellers.get('b') - 0.15) < 1e-9, 'beide groepen krijgen hun deel');
+  // een uitgezette groep doet niet meer mee; de andere loopt door
+  ML.zetGroep(lus, 'a', false);
+  const r2 = ML.tik(lus, 0.2, (sleutel, dt) => tellers.set(sleutel, tellers.get(sleutel) + dt));
+  ok(r2.aantal === 1 && tellers.get('a') === 0.15 && Math.abs(tellers.get('b') - 0.35) < 1e-9, 'uit is uit, de ander loopt');
+  // een fout in de ene groep laat de andere niet vallen
+  ML.zetGroep(lus, 'a', true);
+  const r3 = ML.tik(lus, 0.2, (sleutel) => { if (sleutel === 'a') throw new Error('kapot'); tellers.set('b', tellers.get('b') + 0.1); });
+  ok(r3.fouten.length === 1 && r3.fouten[0].sleutel === 'a' && Math.abs(tellers.get('b') - 0.45) < 1e-9, 'de ene fout stopt de andere groep niet');
+  // de eigen keten en de loop staan vast in missions.js
+  ok(/import \{ maakMissielus, zetGroep, actieveGroepen, tik as tikMissielus \}/.test(src), 'missions.js haalt de missielus binnen');
+  ok(/const missieLus = maakMissielus\(\)/.test(src), 'de lus is er één per wereld');
+  ok(/const sleutels = \[\.\.\.chains\.keys\(\)\]\.filter/.test(src), 'alle ketens uit de houder doen mee');
+  ok(/tikMissielus\(missieLus, dt, \(sleutel, deel\) => \{/.test(src), 'de lus tikt per ketensleutel');
+  ok(/world\.coopGroepSleutel = sleutel/.test(src) && /updateMissionKern\(deel, world\)/.test(src), 'de sleutel staat om de update van die groep');
+  ok(/updateMissionsAlgemeen\(dt, world\)/.test(src), 'de wereldtaken staan buiten de lus');
+  ok(/st\.phase === 'active' \|\| st\.phase === 'cooldown' \|\| k === eigen/.test(src), 'een gastketen doet alleen mee als die loopt');
 }
 
 console.log(`mission_chain_test: ${n}/${n} ok`);

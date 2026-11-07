@@ -12,6 +12,7 @@ import { ververs, opdrachtSpelers, inVoertuig, dichtstbijzijndeMeespeler, afstan
 import { teamActor, doelStand, groepKlaar } from '../game/js/stagegroep.js';
 import { registerMissionQueries } from '../game/js/missionquery.js';
 import { missieGastE } from '../game/js/coopglue.js';
+import * as ML from '../game/js/missielus.js'; // #492: de missielus per groep
 
 let n = 0;
 const t = (name, f) => { f(); n++; };
@@ -512,6 +513,36 @@ t('de kluis en de lasers van de inbraak tellen de hele groep (#452, punt 3)', ()
   // de poort in updateMissions vraagt iedereen bij een stap met de vlag, tenzij de stap zelf de groep leest
   assert.match(src, /if \(st\.iedereen && !GROEPSTAPPEN\.has\(st\.kind\) && !groepKlaar\(world, st, S\.target\)\)/);
   assert.match(src, /const GROEPSTAPPEN = new Set\(\['goto', 'hold', 'board', 'escape', 'chase'\]\)/);
+});
+
+// #492: de missielus laat twee groepen los van elkaar opschieten; de een stopt of valt niet over de ander
+t('#492: de missielus tikt twee groepen missiestand los van elkaar', () => {
+  const st = G.maakGroepen();
+  G.begin(st, { id: 'a|A', label: 'A', index: 1, stap: '', deelnemers: [1] }, 1);
+  G.begin(st, { id: 'b|B', label: 'B', index: 2, stap: '', deelnemers: [2] }, 2);
+  const lus = ML.maakMissielus();
+  ML.zetGroep(lus, 'a|A', true); ML.zetGroep(lus, 'b|B', true);
+  let fout = false;
+  const tick = ML.tik(lus, 0.4, (id, dt) => {
+    if (id === 'a|A') throw new Error('kapot');
+    const g = G.groep(st, id);
+    assert.ok(g && g.stap === '', 'de andere groep heeft nog zijn eigen stand');
+    G.zetStand(st, id, { index: g.index, stap: `stap-${id}` });
+    assert.ok(dt > 0);
+  });
+  assert.equal(fout, false);
+  // de fout van a is opgevangen; b heeft zijn eigen stap gezet
+  assert.equal(tick.fouten.length, 1);
+  assert.equal(tick.fouten[0].sleutel, 'a|A');
+  assert.equal(G.groep(st, 'a|A').stap, '');
+  assert.equal(G.groep(st, 'b|B').stap, 'stap-b|B');
+  assert.equal(G.groep(st, 'a|A').index, 1, 'de index van a is niet meegeschoven');
+  assert.equal(G.groep(st, 'b|B').index, 2, 'de index van b is niet meegeschoven');
+  // a uitzetten laat b doorlopen
+  ML.zetGroep(lus, 'a|A', false);
+  ML.tik(lus, 0.2, (id) => { const g = G.groep(st, id); G.zetStand(st, id, { index: g.index, stap: `nog-${id}` }); });
+  assert.equal(G.groep(st, 'b|B').stap, 'nog-b|B');
+  assert.equal(G.groep(st, 'a|A').stap, '', 'a deed niet mee');
 });
 
 console.log(`coopmissie_test: ${n}/${n} ok`);
