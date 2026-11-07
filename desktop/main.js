@@ -119,7 +119,8 @@ function buildMenu() {
 // every window the game opens (also the extra cutpreview one) gets the same
 // webPreferences: context isolation on, Node off and the sandbox on
 function pageWebPreferences() {
-  return { contextIsolation: true, nodeIntegration: false, sandbox: true, backgroundThrottling: false, preload: path.join(__dirname, 'preload.js') };
+  // #656: een geminimaliseerd/achtergrondvenster niet op volle snelheid laten doorrenderen
+  return { contextIsolation: true, nodeIntegration: false, sandbox: true, backgroundThrottling: true, preload: path.join(__dirname, 'preload.js') };
 }
 
 // #587: the page never chooses what the OS opens. An http(s) link goes to the

@@ -189,5 +189,8 @@
   }
   const s = status();
   if (s) s.textContent = 'Opstarten…';
-  worker().catch((e) => console.warn('service worker', e)).then(start);
+  // #657: de eerste module hoeft niet op de service worker te wachten; die
+  // installeert op de achtergrond en pakt de volgende start.
+  start();
+  worker().catch((e) => console.warn('service worker', e));
 })();

@@ -13,6 +13,7 @@ import { MIN_TRACK_S, normalizeTrack, pickTrack, pushHistory, pickJingle, STATIO
 import { createMusicWatch } from '../musicwatch.js';
 import * as speech from '../speech.js';
 import { GMUSIC_VOLUME, musicBusGain } from '../sfx/volume.js';
+import { GMUSIC_PRELOAD_AHEAD } from './gmusicpreload.js';
 
 const GMUSIC_MANIFEST_URL = './audio/gmusic/manifest.json';
 const GMUSIC_DUCK_VOLUME = 0.5;
@@ -82,7 +83,8 @@ export async function loadGMusicManifest() {
     const tracks = (Array.isArray(data.tracks) ? data.tracks : []).map(normalizeTrack).filter(Boolean);
     gmusicTracks = tracks.map((t) => {
       const el = wireGmusicEl(new Audio('./audio/gmusic/' + t.file));
-      el.preload = 'auto';
+      // #660: geen preload='auto' meer voor alle 34 nummers (~128 MB); het
+      // speelvenster wordt pas gearmd als het aan de beurt is (armGmusicQueue).
       const raw = t.id.replace(/_/g, ' ');
       el.gmusicTitle = GMUSIC_TITLES[raw] || raw;
       if (!t.artist) t.artist = trackArtist(el.gmusicTitle);
@@ -165,6 +167,8 @@ function trackArtist(title) {
 }
 
 function wireGmusicEl(el) {
+  // #660: pas belasten als dit nummer (of de volgende) aan de beurt is
+  el.preload = 'none';
   try {
     // #592: bewaar de node op het element. Een weggegooid element met een node blijft anders via de
     // audiograaf hangen (removeAttribute('src') + load() geven hem niet vrij) en elke revive lekt er een.
@@ -281,6 +285,17 @@ function playGmusicCurrent() {
 
 // "Tune in" like a real running station: start mid-way through a random
 // track (or occasionally a jingle) with a subtle fade-in.
+// #660: alleen het nummer dat speelt en de volgende in de wachtrij bufferen
+function armGmusicEl(el) {
+  if (!el || el.preload === 'auto') return;
+  el.preload = 'auto';
+  try { el.load(); } catch (e) { /* geen bron meer */ }
+}
+function armGmusicQueue() {
+  armGmusicEl(gmusicCurrentEl);
+  for (let i = 0; i < GMUSIC_PRELOAD_AHEAD && i < gmusicQueue.length; i++) armGmusicEl(gmusicQueue[i]);
+}
+
 function startGmusicRandomly() {
   gmusicStarted = true;
   gmusicPendingSince = nowSec();
@@ -293,6 +308,7 @@ function startGmusicRandomly() {
   gmusicQueue = startAsJingle ? [nextTrackEl()] : buildGmusicCycle();
   gmusicCurrentEl = el;
   gmusicAnnounceOnPlay = true;
+  armGmusicQueue();
 
   const startPlayback = () => {
     if (gmusicPendingSince === null || el !== gmusicCurrentEl) return;
@@ -323,6 +339,7 @@ function advanceGmusicQueue() {
   if (prevEl && prevEl !== el && !prevEl.paused) prevEl.pause();
   try { el.currentTime = 0; } catch (e) { /* not seekable yet */ }
   gmusicAnnounceOnPlay = true;
+  armGmusicQueue();
   playGmusicCurrent();
 }
 
@@ -342,7 +359,6 @@ export function enqueueGmusicJingle(key) {
 function reviveGmusicEl(el) {
   discardGmusicEl(el); // #592: eerst de node van het dode element loskoppelen; daarna pas het element loslaten
   const fresh = wireGmusicEl(new Audio(el.src));
-  fresh.preload = 'auto';
   fresh.gmusicTitle = el.gmusicTitle;
   fresh.gmusicJingleKey = el.gmusicJingleKey;
   fresh.gmusicTrack = el.gmusicTrack;
