@@ -100,7 +100,7 @@ Wat sinds 20 oktober is veranderd en wat dat voor Steam betekent. Gecontroleerd 
 7. Proefbouw uploaden met `steamcmd` (eerst Preview, dan een bètatak), Deck- en overlaytest op echte hardware.
 8. Zelf op "live" zetten: het publicatiebesluit blijft bij de eigenaar (constitution 8).
 
-## Stand 7 november 2026 (0.57.5)
+## Stand 7 november 2026 (0.58.0)
 
 Lokaal nagelopen; er is nog steeds geen Steam-account, app-id of upload en geen enkel bestand
 maakt contact met Steam.

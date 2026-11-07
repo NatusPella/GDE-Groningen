@@ -2,7 +2,7 @@
 
 > **Naslag.** De regels staan in de canonieke spec [`.specs-fire/standards/publicatie.md`](../.specs-fire/standards/publicatie.md); dit document is uitleg en geschiedenis. Bij verschil wint de spec (en bij twijfel `AGENTS.md`).
 
-Stand: 7 november 2026 (0.57.5; de laatste meting staat in §7). De repo is **privé**; niets hieronder is gedaan of
+Stand: 7 november 2026 (0.58.0; de laatste meting staat in §7). De repo is **privé**; niets hieronder is gedaan of
 aangezet. Laatste run van de controles op 21 oktober: `publish_check --history` 0 FAIL
 (3 WARN: de handmatige workflow), `secrets_scan` 0 treffers (3597 commits, 12931 tekstbestanden),
 `merkenregister_check` 45 rijen en 0 afwijkingen, `text_audit` 0 bevindingen, `audio_herkomst`
@@ -81,7 +81,7 @@ voor later.
 - `node scripts/text_audit.mjs`: 0 bevindingen; `node scripts/merkenregister_check.mjs`: 45 rijen, 0 afwijkingen.
 - Besluit voor de eigenaar: de thuispaden en OSM-contactgegevens staan in de geschiedenis. Openbaar maken zonder herschrijven laat ze zichtbaar; herschrijven mag alleen met akkoord (constitution 8).
 
-## 7. Zevende ronde: 7 november 2026 (0.57.5)
+## 7. Zevende ronde: 7 november 2026 (0.58.0, release-kandidaat)
 
 Opnieuw gedraaid na de cutscene-/engine- en multiplayer-ronde, op main `4c2103f3`. Er is nog
 steeds **niets** openbaar, geüpload of ingesteld.

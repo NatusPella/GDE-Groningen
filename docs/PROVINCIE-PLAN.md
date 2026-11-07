@@ -2,7 +2,7 @@
 
 > **Naslag.** De regels staan in de canonieke spec [`.specs-fire/standards/wereld.md`](../.specs-fire/standards/wereld.md); dit document is uitleg en geschiedenis. Bij verschil wint de spec (en bij twijfel `AGENTS.md`).
 
-*Ontwerpdocument, oktober 2026; statusregel bijgewerkt op 7 november 2026 (0.57.5). Delen zijn historie: de actuele regels staan in de spec en in docs/TESTEN.md. De eigenaar vroeg: "Ik wil de
+*Ontwerpdocument, oktober 2026; statusregel bijgewerkt op 7 november 2026 (0.58.0). Delen zijn historie: de actuele regels staan in de spec en in docs/TESTEN.md. De eigenaar vroeg: "Ik wil de
 hele provincie kunnen spelen." Dit document houdt de techniek, de besluiten, de
 metingen en de bekende beperkingen vast. Openstaand werk staat uitsluitend als
 GitHub-issue (destijds onder meer #1 water per tegel, #2 3D BAG, #3 oude
