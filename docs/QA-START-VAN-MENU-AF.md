@@ -18,14 +18,16 @@ inventaris per harnas en wat er nodig is om de oude route los te laten.
 | `scripts/qa/speeltest74.mjs` | Enter op `#start-screen` | wachten op `game-started`; geen menu-aanroep | **omgezet** |
 | `scripts/qa/stadvergelijk.mjs` | verbergt `#start-screen` voor de foto | verbergen kan weg zodra de wereldstart de enige route is | **omgezet** |
 | `scripts/qa/menuplekken_shots.mjs` | startscherm zelf (menuachtergrond) | kan niet weg zonder dev-haak die het menu als *onderwerp* opent; blijft bewust op `GDE_MENU_TEST` | bewust |
+| `scripts/qa/benchmark_run.mjs` | `GDE_MENU_TEST=1`: de benchmark start vanaf het titelscherm via het `gde-benchmark`-event/de bench-route | het menu is hier het *onderwerp* (benchmarkknop en herlaadroute); de pagina leest daarna de kaart | bewust |
+| `scripts/qa/tester_bugs.mjs` + `tester_*.page.js` (intro, audio, garage, garagediag, caption, kort, lock, pad, padalles, padhints, padscreens, radioads, wereld, achtervolging, cutnabij) | wrapper zet `GDE_MENU_TEST=1`; de pagina's drukken zelf `__menuStart('nieuw')` of Enter | de tester-groep test de opening, het menu, de garage of de controller vanaf het titelscherm; dat is onderdeel van de meting | bewust (per pagina) |
 | `scripts/qa/testbank.mjs`, `playtest_sim.mjs`, coop-harnassen | `--menu`/wachtkamer | die testen het menuscherm of de coop-flow; houden hun eigen menu-ingang tot er een kleine dev-haak is | bewust |
 
-Bewijs dat de eerste drie weg kunnen: ze starten met `--smoke-test`/`--perf-script`,
+Bewijs dat de eerste acht weg kunnen: ze starten met `--smoke-test`/`--perf-script`,
 krijgen van `desktop/devtools.js` geen `GDE_MENU_TEST`, en devtools drukt zelf
 Enter tot `game-started` als er toch een scherm staat. Daarna is `__menuStart`
-alleen nog een dode terugval. De nieuwe wachttest `scripts/qa_start_test.mjs`
-bewaakt dat de eerste drie geen menu-aanroep meer hebben. `readme_shots` is de
-volgende kandidaat; de menu- en coop-harnassen blijven bewust, omdat het menu
-daar het onderwerp is.
+alleen nog een dode terugval. De wachttest `scripts/qa_start_test.mjs` bewaakt
+de acht omgezette harnassen. `benchmark_run` en de `tester_*`-groep blijven
+bewust op `GDE_MENU_TEST`, omdat ze het titelscherm, de benchmarkknop of de
+opening vanaf het menu als onderwerp hebben; de menu- en coop-harnassen idem.
 
 **Volgende kandidaat:** de `tester_bugs`-harnassen (`scripts/qa/tester_*.page.js`, 15 stuks). Die hebben hun menu-start nog nodig voor de pad-schermen (het menu is daar het onderwerp) en voor een echte Electron-run; de overige checks kunnen daarna dezelfde `game-started`-route krijgen.

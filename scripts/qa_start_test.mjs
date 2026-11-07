@@ -51,4 +51,13 @@ t('de menu- en coop-harnassen blijven bewust, met reden', () => {
   assert.match(doc, /bewust/);
 });
 
+t('benchmark_run en de tester-groep zijn per harnas gedocumenteerd', () => {
+  const doc = read('docs/QA-START-VAN-MENU-AF.md');
+  assert.match(doc, /benchmark_run/);
+  assert.match(doc, /tester_bugs/);
+  assert.match(doc, /tester_\*\.page\.js/);
+  assert.match(read('scripts/qa/benchmark_run.mjs'), /GDE_MENU_TEST/);
+  assert.match(read('scripts/qa/tester_bugs.mjs'), /GDE_MENU_TEST/);
+});
+
 console.log(`qa_start_test: ${n}/${n} ok`);

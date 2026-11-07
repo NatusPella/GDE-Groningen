@@ -2,6 +2,7 @@ import { SMS_SAY } from './smsvoice.js';
 import { pubStaticKey } from './pubstatic.js';
 import { dijkPrijs } from './ringrace.js';
 import { assistTime } from './assistlive.js';
+import { missionStats, fmtTime } from './missionstats.js';
 import { dist, pointInPolygon, closestPointOnSegment, boatDryPoints, clamp, isInWater } from './util.js';
 import { waterPolyAt } from './waterlevels.js';
 import { isNight, setHomePlace, getHomePlace, registerMissionQueries } from './missionquery.js';
@@ -234,6 +235,10 @@ function buildDefs(world) {
 // Dit blok staat bewust los: scripts/mission_chain_test.mjs haalt het tussen de markers uit en test het.
 // --- ketenhouder begin ---
 const chains = new Map();
+// #492 slice 2b: de wereldvelden van de opdracht horen bij dezelfde groep als de keten. De pub draagt de
+// missie, de marker, de waypoints, de deuren en de vlaggen; die staat hier per sleutel, zodat twee groepen
+// elkaars opdracht niet overschrijven. world.mission is sinds deze slice een accessor daarop.
+const missionPubs = new Map();
 // De sleutel van de keten van deze wereld: de eigen sessie (#523), of 0 zolang er geen sessie is.
 function chainKey(world) {
   const w = world || worldRef;
@@ -243,7 +248,8 @@ function chainKey(world) {
 
 // #523: de keten verhuist mee naar de sleutel van de sessie: dezelfde keten (index, completed en armed lopen
 // door), maar onder de oude sleutel blijft niets achter, zodat een volgende sessie niet erft wat een vorige
-// achterliet. Zonder sleutel (null) komt de keten terug op 0: de eigen wereld van deze speler.
+// achterliet. Zonder sleutel (null) komt de keten terug op 0: de eigen wereld van deze speler. De pub van de
+// lopende opdracht verhuist mee (#492 slice 2b), anders wijst world.mission na de wissel naar niets.
 function setChainKey(world, key) {
   const w = world || worldRef;
   if (!w) return null;
@@ -253,6 +259,9 @@ function setChainKey(world, key) {
     const state = chains.get(current);
     if (state) chains.set(next, state);
     chains.delete(current);
+    const pub = missionPubs.get(current);
+    if (pub) missionPubs.set(next, pub);
+    missionPubs.delete(current);
   }
   w.coopGroepSleutel = next;
   return next;
@@ -270,6 +279,19 @@ function setChainState(next, world) {
   if (key === null) return next;
   chains.set(key, next);
   return next;
+}
+
+// #492 slice 2b: de pub van de opdracht van deze wereld, en het zetten ervan. `null` wist hem (geen lopende
+// opdracht); de keten zelf blijft staan, want die hoort bij het verhaal van de groep.
+function missionPub(world) {
+  const key = chainKey(world);
+  return key === null ? null : missionPubs.get(key) || null;
+}
+function setMissionPub(world, pub) {
+  const key = chainKey(world);
+  if (key === null) return pub;
+  if (pub) missionPubs.set(key, pub); else missionPubs.delete(key);
+  return pub;
 }
 // --- ketenhouder eind ---
 
@@ -312,6 +334,15 @@ export function initMissions(world) {
     bikes: [],
     crowd: [],
     pub: { type: null, label: '', phase: 'idle', timeLeft: 0, index: 0, total: defs.length, marker: { x: 0, y: 0 }, distanceToMarker: 0, remainingWaypoints: [] },
+  });
+  // #492 slice 2b: world.mission is de pub van de groep van deze wereld. Een accessor, zodat alle bestaande
+  // lezers (de HUD, de kaart, coopnet, de missiemarker) zonder wijziging de opdracht van hun eigen groep zien
+  // en een schrijfactie niet meer één wereldveld voor alle groepen zet.
+  Object.defineProperty(world, 'mission', {
+    configurable: true,
+    enumerable: true,
+    get: () => missionPub(world),
+    set: (pub) => setMissionPub(world, pub),
   });
   world.mission = chainState().pub;
   // #523: de keten hoort bij de sessie, niet bij de wereld. coopnet.js zet deze haak bij de start van een
@@ -766,28 +797,21 @@ export function setMissionProgress(world, prog) {
   syncPub(world);
 }
 
-function fmtTime(s) {
-  const t = Math.max(0, Math.round(s));
-  return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;
-}
-
 const killCount = (world) => world.stats.pedKills + world.stats.copKills;
 
+// #497: de opmaak staat in missionstats.js; deze naad levert alleen de
+// momentopname van deze missie aan de pure functie.
 function runStats(world, def) {
   const r = chainState().run;
   if (!r) return [];
-  const stats = [['Tijd', fmtTime(r.elapsed)]];
-  const kills = killCount(world) - r.kills;
-  if (kills > 0 && def.type !== 'stunt') stats.push(['Kills', String(Math.max(0, kills))]);
-  const rv = def.type === 'boat' ? rondvaartStatus() : null;
-  if (rv) stats.push(['Toeristen', `${rv.joy}%`], ['Verhalen verteld', `${rv.told}/${rv.stops}`], ['Botsingen', String(rv.bumps)]);
-  if (r.vehicleUsed && !rv) stats.push([def.fragile ? def.fragile.label : 'Schade voertuig', def.fragile ? `${Math.round(cargoLeft(def))}%` : `${Math.round(r.vehDamage)}%`]);
-  if (def.type === 'fatbike') stats.push(['Geschept', String(chainState().fatbikeHits || 0)]);
-  const su = def.type === 'stunt' ? stuntStatus() : null;
-  if (su) stats.push(['Punten', String(su.score)], ['Omver', String(su.broken)]);
-  if (r.hurt > 0.5 || (!rv && !r.vehicleUsed)) stats.push(['Verwondingen', `${Math.round(r.hurt)}%`]);
-  if (r.racePos) stats.push(['Positie', `${r.racePos}/${r.raceTotal}`]);
-  return stats;
+  return missionStats(def, {
+    run: r,
+    kills: killCount(world),
+    rondvaart: def.type === 'boat' ? rondvaartStatus() : null,
+    stunt: def.type === 'stunt' ? stuntStatus() : null,
+    fatbikeHits: chainState().fatbikeHits || 0,
+    cargoLeft: def.fragile ? cargoLeft(def) : 0,
+  });
 }
 
 // The vehicle whose damage counts for the run: the mission car/boat, the
