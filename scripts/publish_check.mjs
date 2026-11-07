@@ -127,6 +127,22 @@ export function isManualOnly(text) {
   return keys.length > 0 && keys.every((k) => k === 'workflow_dispatch');
 }
 
+// Release-workflows (#558): een collaborator met push mag geen release of asset publiceren. Zo'n
+// workflow moet twee dingen hebben: een environment (waar de eigenaar een verplichte beoordelaar aan
+// koppelt) en een job-guard die alleen de repository-eigenaar laat publiceren. De eigenaar zelf houdt
+// de knoppen: de guard blokkeert alleen anderen, de environment vraagt hem om akkoord.
+export const RELEASE_PUBLISH_RE = /gh\s+release\s+(?:create|upload)|softprops\/action-gh-release|actions\/upload-release-asset/;
+export const OWNER_GUARD_RE = /github\.actor\s*==\s*github\.repository_owner/;
+export const ENVIRONMENT_RE = /^\s*environment\s*:\s*\S+/m;
+
+export function releaseGuard(text) {
+  return {
+    publishes: RELEASE_PUBLISH_RE.test(text),
+    environment: ENVIRONMENT_RE.test(text),
+    ownerOnly: OWNER_GUARD_RE.test(text),
+  };
+}
+
 export function scanWorkflow(file, text) {
   const out = [];
   const manual = isManualOnly(text);
@@ -139,6 +155,13 @@ export function scanWorkflow(file, text) {
         : { level: 'FAIL', rule: 'workflow-publiceert', file, line: i + 1, detail: r.name });
     }
   });
+  const g = releaseGuard(text);
+  if (g.publishes && !(g.environment && g.ownerOnly)) {
+    const mis = [];
+    if (!g.environment) mis.push('geen environment met verplichte beoordelaar');
+    if (!g.ownerOnly) mis.push('geen owner-guard (github.actor == github.repository_owner)');
+    out.push({ level: 'FAIL', rule: 'release-zonder-eigenaar', file, line: 0, detail: mis.join('; ') + ' (#558)' });
+  }
   return out;
 }
 

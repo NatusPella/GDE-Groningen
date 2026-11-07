@@ -77,9 +77,9 @@ export function mountSamenHub(root, opts = {}, stap = STAP.WAAR) {
       <div class="pm-hub-inhoud" aria-labelledby="pm-hub-teller"></div>`;
   };
 
-  // De hub tekent zichzelf opnieuw bij elke stap. In een browser verdwijnt daarmee de focus (de knop wordt
-  // vervangen); zonder deze regel begint het toetsenbord na elke stap weer bovenaan. De nieuwe knop van dezelfde
-  // stap krijgt de focus terug, zodat Tab, Enter en de pijlen van pausemenu.js gewoon doorlopen.
+  // De stapknoppen blijven staan; alleen de inhoud en de statusregel wisselen. Deze focus zet de
+  // nadruk expliciet op de gekozen stap, zodat Tab, Enter en de pijlen van pausemenu.js daar
+  // doorlopen en een klik met de muis dezelfde stand geeft als een toets.
   const focusStap = (id) => {
     const b = tree.querySelector(`[data-hub-stap="${id}"]`);
     if (b && b.focus) b.focus();

@@ -182,9 +182,10 @@ HASHES="dist/SHA256SUMS.txt"
 for f in $UPLOADS; do
   node ../scripts/release_hashes.mjs "$f" >> "$HASHES" || { echo "sha256 van $f mislukt"; exit 1; }
 done
-# De release wordt in één keer met alle bestanden aangemaakt. GitHub's immutable releases
-# (instelling van de eigenaar) staan geen uploads toe nadat de release bestaat; zo werkt het
-# met en zonder die instelling. Bij een mislukte upload blijven de builds in dist/ staan.
+# De release wordt in één keer met alle bestanden aangemaakt. Zet de eigenaar "immutable releases"
+# aan (GitHub → Settings → General → Releases), dan staan latere uploads en vervangingen niet meer toe
+# en is dit de enige manier; met of zonder die instelling werkt deze aanroep. Bij een mislukte upload
+# blijven de builds in dist/ staan.
 gh release create "$TAG" --title "GDE Groningen $VERSION" --notes-file "$NOTES" $PRE $UPLOADS "$HASHES" \
   || { echo "Release aanmaken of uploaden mislukt (builds stay in dist/)"; exit 1; }
 rm -f "$NOTES"
