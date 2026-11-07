@@ -17,6 +17,13 @@ export function lineVoiceFor(speaker, text) {
   return bank.lookup(speaker || NARRATOR, text);
 }
 
+// #733: de bank laadt met retry (voicebank.js). Een scène kan hieraan zien of
+// een ontbrekende stem aan het laden ligt (even wachten) of definitief mislukt is.
+export const lineVoicesReady = () => bank.ready;
+export const lineVoicesFailed = () => bank.failed;
+export const lineVoicesWhenReady = () => bank.whenReady();
+export const lineVoicesRetry = () => bank.retry();
+
 // Same entry with src relative to audio/voicelines/story/, for the story
 // cutscenes that resolve recordings against that folder.
 export function storyLineVoice(speaker, text) {
