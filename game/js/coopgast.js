@@ -20,7 +20,7 @@ export const GAST_ACTIVITEITEN = new Set(['hengelen', 'pannenkoek', 'carillon', 
 export const activiteitMagLokaal = (id) => GAST_ACTIVITEITEN.has(id);
 // Wat een gast aan de host meldt als hij zo'n activiteit speelt (alleen bij een wisseling; een oudere host negeert het bericht)
 export const bezigEvent = (id) => ({ k: 'bezig', a: GAST_ACTIVITEITEN.has(id) ? id : null });
-export const MELDING_ALLEEN_OPENER = 'Alleen bij wie het spel opende.';
+export const MELDING_ALLEEN_OPENER = 'Alleen bij wie het spel opende; doe intussen je eigen ding.';
 
 // Een gast drukt mee op het paneel van de gastheer (#525): een keuze of een timing van een verhaalstap.
 // Alleen de toetsen die de gastheer hem noemde komen door, zodat een gast geen willekeurige toets kan sturen.
