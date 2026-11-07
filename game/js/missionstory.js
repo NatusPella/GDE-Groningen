@@ -917,7 +917,8 @@ function cleanupRun(r) {
 const JELLE_GESTURES = ['self', 'point', 'shrug', null];
 
 function animate(r, t, dt, talker, poses, cur = null) {
-  const list = [[r.tammo, 'T'], [r.anita, 'A'], [r.npc, 'N'], ...r.extras.map((e) => [e.mesh, e.key, e])];
+  // #654: de actorenlijst is per scène vast; één keer opbouwen i.p.v. per frame
+  const list = r._actorList || (r._actorList = [[r.tammo, 'T'], [r.anita, 'A'], [r.npc, 'N'], ...r.extras.map((e) => [e.mesh, e.key, e])]);
   for (const p of r.props) if (p.update) p.update(t, dt, cur);
   for (const [m, key, e] of list) {
     if (!m || (!m.visible && !(e && e.jump))) continue;

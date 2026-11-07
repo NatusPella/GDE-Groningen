@@ -7,6 +7,7 @@
 // magnet); this module dresses them, gives them lines and the E prompt.
 // Text only: no recordings, no voice. All names are invented.
 import { dist, isInWater } from './util.js';
+import { makeTick } from './tickbudget.js';
 import { naasteSpeler, hoofdspeler } from './spelersregister.js';
 import { spawnPedestriansNear, Pedestrian } from './pedestrians.js';
 import { isInsideBuilding } from './pedgeom.js';
@@ -384,6 +385,10 @@ function spawnCourier(world, p, hour) {
   }
 }
 
+// #653: dressWalkers scant de hele voetgangerslijst; alleen bij een nieuwe
+// voetganger of elke 2 s, niet 60x/s.
+const DRESS_SCAN_S = 2;
+let dressT = 0, lastPedCount = -1;
 export function updateStreetLife(dt, world) {
   const p = hoofdspeler(world); // wie hier achter het scherm zit (#446); het straatleven speelt zich om hem heen af
   if (!dt || world.paused || !p) return;
@@ -400,7 +405,8 @@ export function updateStreetLife(dt, world) {
       break;
     }
   }
-  dressWalkers(world);
+  dressT += dt;
+  if (world.pedestrians.length !== lastPedCount || dressT >= DRESS_SCAN_S) { dressT = 0; lastPedCount = world.pedestrians.length; dressWalkers(world); }
   skateTimer -= dt;
   if (skateTimer <= 0) {
     skateTimer = 30 + Math.random() * 30;
