@@ -3,6 +3,7 @@
 // the player (#17). Pure logic apart from reading world.vehicles;
 // scripts/motorpolice_test.mjs checks it.
 import { MOPED_LEGAL_SPEED } from './motomodels.js';
+import { makeTick } from './tickbudget.js';
 
 const NOTICE_M = 35;
 export const NOTICE_COOLDOWN_S = 40;
@@ -32,11 +33,17 @@ export function spottedTunedMoped(vehicles, radius = NOTICE_M) {
 
 let cool = 0;
 let n = 0;
-export function resetMotorPolice() { cool = 0; n = 0; }
+export function resetMotorPolice() { cool = 0; n = 0; scanT = MOTOR_SCAN_S; }
 
 // Call once per frame; returns the text said (or '').
+// #653: de dubbele scan hoeft niet elke frame; 1x per 1,5 s is ruim genoeg
+const MOTOR_SCAN_S = 1.5;
+let scanT = MOTOR_SCAN_S; // de eerste scan meteen
 export function updateMotorPolice(dt, world) {
-  if (cool > 0) { cool -= dt; return ''; }
+  if (cool > 0) { cool -= dt; if (cool <= 0) scanT = MOTOR_SCAN_S; return ''; }
+  scanT += dt;
+  if (scanT < MOTOR_SCAN_S) return '';
+  scanT = 0;
   const v = spottedTunedMoped(world.vehicles);
   if (!v) return '';
   v._copNoticed = true;

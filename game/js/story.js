@@ -8,6 +8,7 @@
 // built story the last step's character stays.
 
 import { STEPS, STEP_BY_ID, PARTS, CLUES, WHY, CHARACTERS, SPEAKERS, stepAvailable, missionIndexOf, computeMoneyTimeline, partNumber, stepDone, stapAfgeleidGedaan, nextStoryStep, FINALE_PART } from './storyarc.js';
+import { makeTick } from './tickbudget.js';
 import { tickStoryTravel, rideWith } from './storytravel.js';
 import { askTravel, travelPromptOpen } from './reispanel.js';
 import { gateOn } from './coopgate.js';
@@ -1115,19 +1116,30 @@ function kissUnlockedNow() {
   return STEPS.slice(0, k).every((s, j) => s.kind !== 'mission' || !stepAvailable(s) || isDone(s, j));
 }
 
+// #654: throttle voor de per-frame herberekening
+const storyTick = makeTick(200);
+let curCache = null, storyDoneSize = -1;
 export function updateStory(dt, w) {
   if (!ready) return;
   world = w;
   if (document.body.classList.contains('game-started')) {
     // set on the first frame in play (no card for a loaded save), the card
     // only when it unlocks while playing
-    const kiss = kissUnlockedNow();
-    if (kiss && w.kissUnlocked === false) w.addMessage('Nieuw: geef elkaar een kusje met K', 4, { key: 'kiss-unlock' });
-    w.kissUnlocked = kiss;
+    // #654: de kus-unlock en de volgende stap hoeven niet 60x/s herberekend
+    if (storyTick(performance.now())) {
+      const kiss = kissUnlockedNow();
+      if (kiss && w.kissUnlocked === false) w.addMessage('Nieuw: geef elkaar een kusje met K', 4, { key: 'kiss-unlock' });
+      w.kissUnlocked = kiss;
+    }
   }
   if (w.devInvuln) { w.health = 100; if (w.pendingRespawn && !w.pendingRespawn.busted) w.pendingRespawn = null; }
   if (!document.body.classList.contains('game-started')) return;
-  const cur = currentStep();
+  // #654: currentStep() (37 stappen met Set-lookups) op ~5 Hz of bij een afgeronde stap
+  if (storyTick(performance.now()) || state.done.size !== storyDoneSize || curCache === null) {
+    curCache = currentStep();
+    storyDoneSize = state.done.size;
+  }
+  const cur = curCache;
   const same = cur === rt.cur || (cur.end && rt.cur && rt.cur.end === cur.end);
   if (!same) enter(cur);
   const step = rt.cur;
