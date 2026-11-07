@@ -2101,7 +2101,7 @@ function showTab(name, how) {
   if (name === 'fotos') renderFotoPanel(root.querySelector('[data-panel="fotos"] .pm-inner'));
   if (name === 'prestaties') { renderAchievementsPanel(root.querySelector('[data-panel="prestaties"] .pm-inner')); syncSheetSub(); }
   if (name === 'loopbaan') renderLoopbaanPanel(root.querySelector('[data-panel="loopbaan"] .pm-inner'), closePauseMenu, world);
-  if (name === 'veroverd') renderVeroverdPanel(root.querySelector('[data-panel="veroverd"] .pm-inner'), closePauseMenu);
+  if (name === 'veroverd') renderVeroverdPanel(root.querySelector('[data-panel="veroverd"] .pm-inner'), closePauseMenu, world);
   if (name === 'visboek') renderVisboekPanel(root.querySelector('[data-panel="visboek"] .pm-inner'));
   if (name === 'boerderij') renderBoerderijPanel(root.querySelector('[data-panel="boerderij"] .pm-inner'), world);
   if (name === 'controls') { const q = root.querySelector('[data-controls-search]'); q.value = ''; filterControls(''); showSubtab('controls', pref.sub.controls || 'toetsen'); bindMsg = ''; renderBinds(); }

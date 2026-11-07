@@ -26,6 +26,7 @@ import { dist, isInWater } from './util.js';
 import { releaseVehicle, removeVehicle, removePed, euro, maakContextregister } from './sidejobkit.js';
 import { jobVoiceFor, sayJobLine, sayDuoJobLine } from './sidejobvoice.js';
 import { metGroepsbonus, bonusDelen, GROEPSBONUS_UITLEG } from './groepsbonus.js';
+import { beleidBijbaanfactor } from './beleidswinkel.js'; // #492: de bijbaansubsidie van deze speler (lokaal)
 import bezorger from './sidejob_bezorger.js';
 import krantenwijk from './sidejob_krantenwijk.js';
 import taxi from './sidejob_taxi.js';
@@ -452,7 +453,7 @@ function introLines(job) {
 function basisFor(c, base) {
   const lvlMul = SIDEJOB_PAY_MULT * (1 + SIDEJOB_LEVEL_BONUS * (c.level - 1));
   const streakMul = 1 + 0.06 * Math.min(c.streak, 10);
-  return Math.max(1, Math.round(base * lvlMul * streakMul * jobBonusHook.get()));
+  return Math.max(1, Math.round(base * lvlMul * streakMul * jobBonusHook.get() * beleidBijbaanfactor()));
 }
 function payFor(c, base) {
   return Math.max(1, loopbaanLoon(vakVanBaan(c.job.id), basisFor(c, base)));
