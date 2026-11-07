@@ -1,4 +1,5 @@
 import { clamp, closestPointOnSegment, pointInPolygon } from './util.js';
+import { makeLosBudget } from './losbudget.js';
 import { spawnVehicleOnRoad, updateTrafficAI, resolveVehicleBuildingCollision, spawnPoliceBoatOnWater, attachToNearestRoad, maxCurvature } from './vehicle.js';
 import { requestRespawn } from './world.js';
 import { mulberry32 } from './rng.js';
@@ -301,6 +302,8 @@ function randomPointInSearch(pol) {
 // Far away or around a corner the car drives the road network toward the
 // player; with a clear line of sight close by it goes straight for them.
 // While searching it patrols random points inside the search circle instead.
+// #653: hooguit 3 lijncontroles per 100 ms over alle eenheden samen
+const polLosBudget = makeLosBudget(3, 100);
 function updateChase(v, dt, world) {
   const p = hoofdspeler(world);
   const pv = p.inVehicle;
@@ -309,6 +312,7 @@ function updateChase(v, dt, world) {
   v._losTimer = (v._losTimer || 0) - dt;
   if (v._losTimer <= 0) {
     v._losTimer = 0.25;
+    if (!polLosBudget(performance.now())) { v._losTimer = 0.05; tunePoliceCar(v, world, d, v._sees); return; } // #653: budget op
     v._sees = d < SEE_RANGE_CAR && (aloftInSight(world) || hasLineOfSight(world.map, v.x, v.y, p.x, p.y));
     // out in the fields the last stretch from the road nearest the player is
     // across the grass (countryFollow sets _fieldRun at the end of its way)

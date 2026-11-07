@@ -14,6 +14,7 @@
 //                speed and heading
 //   FrameQueue   work for the main thread, run with a time budget per frame
 import { decodeBlob, tileIndexOf, tileKey, tileOrigin, tileIndexX, tileIndexY, tileOriginX, tileOriginY, TILE_M } from './gdt.js';
+import { serialQueue } from './decodequeue.js';
 
 // #582: a hanging tile fetch or a dead decoder worker must never freeze the
 // world or leave the four load slots taken. Every bound is in milliseconds and
@@ -448,7 +449,8 @@ export function makeWorkerDecoder(url, size = 2, aside = null, opts = {}) {
   const open = new Map(); // id -> { resolve, reject, timer, rec, bron }
   let next = 1, rr = 0, gestopt = false;
 
-  const hoofdthread = (bytes) => Promise.resolve().then(() => fallback(bytes, aside));
+  // #651: één tegel tegelijk op de hoofdthread, met een yield ertussen
+  const hoofdthread = serialQueue((bytes) => fallback(bytes, aside));
   const maak = () => {
     const rec = { w: null, dood: false };
     rec.w = new Worker(url, { type: 'module' });
