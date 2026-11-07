@@ -1,5 +1,7 @@
 # Het spel overdragen (#439)
 
+> Canonieke regels: [.specs-fire/standards/multiplayer.md](../.specs-fire/standards/multiplayer.md). Dit document beschrijft de kant van de spelers; bij tegenspraak wint de spec.
+
 Voor wie aan `coophostwissel.js`, `coophostwisselnet.js`, `multiplayerhostwisselui.js` of `coopnet.js` werkt.
 Het ontwerp staat als comment op issue #439; dit is wat er nu is en wat er nog moet.
 
@@ -28,7 +30,7 @@ Het ontwerp staat als comment op issue #439; dit is wat er nu is en wat er nog m
 
 Mee: tijd van de dag en dag van de kalender, de weermachine, gezocht niveau, de lopende opdracht met de stage of het waypoint en de resterende tijd (#452), kapotte objecten, voertuigen waar spelers in zaten (model, kleur en schade), het zaad en de plek waar het spel stond (de nieuwe host komt daar).
 Niet mee: verkeer, voetgangers en dieren (ontstaan opnieuw), ieders geld en voortgang (blijven op het eigen apparaat en in de eigen save), het verhaal van de nieuwe host zelf.
-Na de overdracht kunnen plekken en figuren anders zijn: de nieuwe host is plek 0 en wie het spel opende sluit als eerste gast aan (plek 1, Tessa). Wie host wordt blijft wel op zijn eigen plek staan (geen sprong) en houdt de opdrachtstand: de opdracht loopt door op de stage waar zij was.
+Na de overdracht kunnen plekken en figuren anders zijn: de nieuwe host is plek 0 en wie het spel opende sluit als eerste gast aan (plek 1, met zijn eigen figuur; er is geen rol per plek, #455). Wie host wordt blijft wel op zijn eigen plek staan (geen sprong) en houdt de opdrachtstand: de opdracht loopt door op de stage waar zij was.
 
 ## Haken in de wereld (`deps`)
 

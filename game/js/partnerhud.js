@@ -6,10 +6,11 @@
 // de veilige standaard als er nog geen avatar of figuur bekend is.
 
 import { charInfo } from './coopplayers.js';
+import { PROFIEL_KLEUREN, identiteitsKleur } from './coopidentiteit.js';
 
 export const PARTNER = {
-  host: { naam: 'Tessa', kleur: '#ff7ab8', vorm: 'ruit' },   // standaard als er nog geen avatar bekend is
-  gast: { naam: 'Tammo', kleur: '#4fb3ff', vorm: 'driehoek' }, // standaard als er nog geen avatar bekend is
+  host: { naam: 'Tessa', kleur: PROFIEL_KLEUREN[0].hex, vorm: 'ruit' },   // standaard als er nog geen avatar bekend is
+  gast: { naam: 'Tammo', kleur: PROFIEL_KLEUREN[1].hex, vorm: 'driehoek' }, // standaard als er nog geen avatar bekend is
 };
 export const PING_COOLDOWN = 1.5;
 export const PING_TTL = 8;
@@ -99,7 +100,7 @@ export function partnersInfo(mySlot, players, roster, naam = (id) => charInfo(id
     const sample = (players || []).find((p) => p.slot === r.slot) || null;
     const st = partnerInfo('host', sample, r.verbinding || 'ok');
     // De avatar gaat voor (#455); de figuur van de gastheer mag zijn eigen naam meesturen (#502, coopnet.js bouwt die lijst).
-    out.push({ ...st, slot: r.slot, naam: av.naam || (sample && sample.naam) || c.naam || st.naam, kleur: av.kleur || c.kleur || st.kleur, vorm: c.vorm || st.vorm });
+    out.push({ ...st, slot: r.slot, naam: av.naam || (sample && sample.naam) || c.naam || st.naam, kleur: av.kleur || c.kleur || identiteitsKleur(r.slot), vorm: c.vorm || st.vorm });
   }
   return out;
 }

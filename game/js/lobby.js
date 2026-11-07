@@ -18,6 +18,7 @@ import { REASON_TEXT } from './net/protocol.js';
 import { parseRoom } from './net/sigcrypto.js';
 import { parseCode } from './net/pairing.js';
 import { schoonNaam, filterEnSorteer, leeftijdTekst, leeftijdLang, LIJST, SORTERINGEN, SORTERING_LABEL } from './net/serverlijst.js';
+import { PROFIEL_KLEUREN, STANDAARD_KLEUR, isProfielKleur } from './coopidentiteit.js';
 import { EXTRA_CHARS, DEFAULT_MAX, MIN_MAX, ABS_MAX, advies, openerNaam } from './coopplayers.js';
 import { SAMEN_KAN_REGEL } from './coopstatus.js'; // (#684) de positieve "samen kan"-lijst in de wachtkamer
 
@@ -68,23 +69,16 @@ export function schoonWachtwoord(tekst) {
 // set, zodat twee spelers nooit toevallig dezelfde kleur krijgen zonder het te weten.
 // Bewaard per apparaat in de gewone instellingen (settings.js: onlineNaam, onlineKleur).
 export const ONLINE_NAAM_MAX = 16;
-export const PROFIEL_KLEUREN = [
-  { hex: '#4fb3ff', naam: 'Blauw' },
-  { hex: '#5bd6a0', naam: 'Groen' },
-  { hex: '#f2b134', naam: 'Geel' },
-  { hex: '#ff9a62', naam: 'Oranje' },
-  { hex: '#ff7ab8', naam: 'Roze' },
-  { hex: '#b78cff', naam: 'Paars' },
-  { hex: '#e86a6a', naam: 'Rood' },
-  { hex: '#6fd3e0', naam: 'Turquoise' },
-];
-export const STANDAARD_KLEUR = PROFIEL_KLEUREN[0].hex;
+
+// De identiteitstabel staat in coopidentiteit.js, zodat de lobby en de partner-HUD
+// dezelfde kleuren gebruiken (#636). Hier alleen de avatarregels eromheen.
+export { PROFIEL_KLEUREN, STANDAARD_KLEUR } from './coopidentiteit.js';
 const VERHAALNAMEN = ['tammo', 'tessa', 'anita']; // die horen bij het verhaal, niet bij een speler
 
 // Een kleur uit de vaste set; alles anders wordt de standaardkleur.
 export function profielKleur(kleur) {
   const k = String(kleur || '').toLowerCase();
-  return PROFIEL_KLEUREN.some((c) => c.hex === k) ? k : STANDAARD_KLEUR;
+  return isProfielKleur(k) ? k : STANDAARD_KLEUR;
 }
 export const kleurNaam = (kleur) => (PROFIEL_KLEUREN.find((c) => c.hex === profielKleur(kleur)) || PROFIEL_KLEUREN[0]).naam;
 

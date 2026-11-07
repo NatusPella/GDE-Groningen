@@ -15,10 +15,12 @@ Sinds #528 is Samen spelen de standaard, niet iets wat je erbij doet (ADR 0022).
 - **Bij de eerste start** ziet de speler één scherm: zijn naam (die het spel onthoudt)
   en de vraag of hij met andere spelers meedoet. Ja of nee, en die keuze blijft bewaard
   in \gde-settings\ als \onlineMeedoen\.
-- **Ja** → het spel zoekt een sessie met ruimte en dezelfde versie en sluit aan; is er
-  geen, dan host het zelf **besloten** (#556): geen aankondiging en geen plek in de
-  openbare lijst. Openbaar maken doet alleen de host zelf in de lobby, met de
-  #438-melding (`hub.zetOpenbaar`); het bootpad gaat nooit ongevraagd naar buiten.
+- **Ja** → het spel opent de expliciete lijst met openbare sessies; de speler kiest daar
+  zelf. Sluit hij dat scherm zonder sessie, dan zoekt de automatische terugval alsnog een
+  passende sessie en host anders zelf **besloten** (#556): geen aankondiging en geen plek
+  in de openbare lijst. Openbaar maken doet alleen de host zelf in de lobby, met de
+  #438-melding (`hub.zetOpenbaar`); het bootpad gaat nooit ongevraagd naar buiten. De
+  volgorde staat in ADR [0026](adr/0026-bootorde.md).
   **Nee** → een besloten sessie van één: niets naar buiten, niets in een lijst,
   niemand komt binnen.
 - **Enter in het naamveld is geen toestemming** (#556): typen + Enter zet alleen de
@@ -44,13 +46,15 @@ Sinds #528 is Samen spelen de standaard, niet iets wat je erbij doet (ADR 0022).
   baken (#567). Wie Samen spelen opent, stopt de sessie van één eerst.
 - **De openbare lijst** toont naam, aantal spelers en versie; nooit een adres en nooit
   een wachtwoord.
-- **Het bootpad** is `game/js/sessionboot.js`: zodra de wereld te besturen is
-  (`coopnet.canJoin`) en `magOnline()` waar is, haalt het de lijst op (hooguit 2,5 s,
-  daarna zonder lijst verder), laat `sessiekeuze.kies()` beslissen en sluit aan, opent
-  zelf een sessie of blijft besloten. Mislukt een verbinding, dan volgt
-  `sessiekeuze.volgende()`; na twee pogingen opent het spel zelf een sessie. De wereld
-  speelt intussen door en de `reden` staat als korte regel in beeld
-  (`scripts/sessionboot_test.mjs`).
+- **Het bootpad** is `game/js/sessionboot.js` en is de terugval na de expliciete lijst
+  (ADR [0026](adr/0026-bootorde.md)): zodra de wereld te besturen is (`coopnet.canJoin`)
+  en `magOnline()` waar is, haalt het de lijst op (hooguit 2,5 s, daarna zonder lijst
+  verder), laat `sessiekeuze.kies()` beslissen en sluit aan, opent zelf een sessie of
+  blijft besloten. Mislukt een verbinding, dan volgt `sessiekeuze.volgende()`; na twee
+  pogingen opent het spel zelf een sessie. De wereld speelt intussen door en de `reden`
+  staat als korte regel in beeld (`scripts/sessionboot_test.mjs`). De sessie van één
+  start pas als `sessionBootDone(world)` waar is en `canBootSession` weigert zolang er
+  een sessie of overdracht loopt; er komt nooit een tweede hub.
 
 ## Rollen
 

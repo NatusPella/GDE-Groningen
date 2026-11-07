@@ -15,6 +15,7 @@
 // opts:  { start: 'verbroken', rol, route, session (gast), hub (host), holdSlot, holdNaam }  (hervatten in het spel)
 //        { adopt: { code, route }, rol, session | hub }  (de sessie loopt al: na het overdragen van het spel kent het paneel rol, kamercode en spelers)
 import { createLobby, reduce, view, profielNaam, ROLES, ROUTES } from './lobby.js';
+import { consentOnthoudenHtml } from './onlineconsentui.js';
 import { getSettings, setSetting } from './settings.js';
 import { ipcTransport, listenForGuests, onlineSupported } from './net/ipctransport.js';
 import { hostRoom, joinRoom, rtcSupported } from './net/rtcroom.js';
@@ -154,7 +155,7 @@ export function mountLobby(root, hooks, opts = {}) {
     const prof = v.profiel ? `<div class="coop-profiel" style="display:flex;flex-direction:column;gap:8px;margin:10px 0"><label class="coop-profiel-label" style="display:flex;gap:8px;align-items:center"><span>Online naam</span><input class="coop-profiel-naam" type="text" spellcheck="false" autocomplete="off" maxlength="${v.profiel.maxLength}" placeholder="Je figuur" value="${esc(v.profiel.naam)}" style="min-width:0;flex:1;max-width:260px"></label><div class="coop-kleuren" role="group" aria-label="Kleur" style="display:flex;flex-wrap:wrap;gap:6px">${v.profiel.kleuren.map((c) => `<button type="button" class="m-bg coop-kleur" data-kleur="${c.hex}" aria-pressed="${c.hex === v.profiel.kleur}" title="${esc(c.naam)}"><span class="ss-label"><span style="color:${c.hex}" aria-hidden="true">●</span> ${esc(c.naam)}</span></button>`).join('')}</div><p class="coop-profiel-hint" style="margin:0">${esc(v.profiel.tekst)} Laat je de naam leeg, dan zien de anderen de naam van je figuur. Je staat standaard op passief: medespelers kunnen je geen schade doen.</p>${v.profiel.fout ? `<p class="coop-error" role="alert">${esc(v.profiel.fout)}</p>` : ''}</div>` : '';
     // het vinkje op het toestemmingsscherm (#526): "Niet meer vragen" geldt per apparaat en wordt pas bewaard
     // als de speler daarna akkoord gaat (settings.js: multiplayerConsentRemembered)
-    const toestemming = v.consent ? `<label class="coop-consent" style="display:flex;gap:8px;align-items:center;margin:10px 0"><input class="coop-consent-vink" type="checkbox"${v.consent.remember ? ' checked' : ''}><span class="ss-label">${esc(v.consent.label)}</span></label>` : '';
+    const toestemming = v.consent ? consentOnthoudenHtml(v.consent) : '';
     // het wachtwoordveld (#450): dezelfde stijl als het zoekveld (m-inp + ss-label), met de uitleg eronder
     const ww = v.wachtwoord ? `<div class="coop-wachtwoord-veld" style="margin:10px 0"><label class="m-inp" style="display:flex;gap:8px;align-items:center;max-width:360px"><span class="ss-label">${esc(v.wachtwoord.label)}</span><input class="coop-wachtwoord" type="password" spellcheck="false" autocomplete="off" maxlength="${v.wachtwoord.maxLength}" placeholder="${esc(v.wachtwoord.placeholder)}" value="${esc(v.wachtwoord.value)}" style="min-width:0;flex:1"></label><p class="coop-wachtwoord-hint mut" style="margin:4px 0 0">${esc(v.wachtwoord.hint)}</p></div>` : '';
     root.innerHTML =

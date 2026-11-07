@@ -147,6 +147,27 @@ await t('zonder toestemming: magOnline() === false opent geen enkele verbinding'
 await t('canBootSession: niet in een voertuig, geen tweede sessie, geen wissel', () => {
   const w = wereld();
   assert.equal(canBootSession(w), false, 'zonder toestemming (de instelling staat op null in deze run)');
+  assert.equal(canBootSession(wereld({ coopNet: { role: 'host' } })), false, 'een lopende sessie: geen tweede zoektocht');
+  assert.equal(canBootSession(wereld({ coopWissel: {} })), false, 'tijdens een overdracht: geen zoektocht');
+});
+
+// #639: de bootorde is vastgelegd in sessionboot.js (comment bij canBootSession): de
+// expliciete lijst gaat voor, de automatische zoektocht is de terugval, en de sessie van
+// één start pas als de zoektocht klaar is. Deze test bewijst dat een bestaande sessie van
+// één nooit een tweede hub of een stille join oplevert.
+await t('bootorde (#639): een lopende sessie van één geeft nooit een tweede hub of stille join', async () => {
+  const w = wereld({ coopNet: { role: 'host' }, coopSolo: true });
+  let gehost = 0, verbonden = 0;
+  assert.equal(canBootSession(w), false, 'de zoektocht begint niet naast een lopende sessie');
+  const uit = await bootSession(w, deps({
+    haalLijst: lijstVan([rij('ander', 1, 8)]),
+    verbind: async () => { verbonden++; },
+    host: async () => { gehost++; },
+    meld: () => {},
+  }));
+  assert.equal(uit.doen, KEUZE.BESLOTEN, 'de bestaande sessie wint');
+  assert.equal(gehost, 0, 'geen tweede hub');
+  assert.equal(verbonden, 0, 'geen stille join');
 });
 
 await t('sessionBootTick doet niets zonder toestemming: geen socket, geen hub', async () => {

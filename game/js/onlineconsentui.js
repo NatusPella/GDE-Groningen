@@ -34,6 +34,13 @@ export function meedoenSchakelaarHtml(settings = getSettings()) {
     `<p class="cs-profiel-hint">${esc(SCHAKELAAR.uitleg)}</p></div>`;
 }
 
+// Het vinkje "Niet meer vragen" in de wachtkamer (#526): dezelfde toestemmingsvorm
+// als de eerste-startkaart, maar compact. Eén component voor elk scherm dat dit vraagt
+// (#634), met de menu-set in plaats van eigen inline stijl.
+export function consentOnthoudenHtml({ label = 'Niet meer vragen', checked = false } = {}) {
+  return `<label class="coop-consent m-li"><input type="checkbox" class="m-sw coop-consent-vink"${checked ? ' checked' : ''}> <span class="ss-label">${esc(label)}</span></label>`;
+}
+
 // Draws the card in any element that supports innerHTML and addEventListener (the real
 // document, or a fake one in a test). A refused name stays on the screen with the reason
 // (role="alert"), and nothing is written; the focus goes back to the name field.

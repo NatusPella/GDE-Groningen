@@ -4,7 +4,7 @@
 - **Datum:** 2026-11-06
 - **Spec:** `.specs-fire/standards/multiplayer.md`
 - **Gebied:** Samen spelen, de ingang, opslaan en laden
-- **Gerelateerd:** #554 (het besluit), #486 (omgedraaid), #553 (performance zonder gasten), ADR 0022 (altijd een sessie), ADR 0007 (wie het spel opent is geen baas)
+- **Gerelateerd:** #554 (het besluit), #486 (omgedraaid), #553 (performance zonder gasten), ADR 0022 (altijd een sessie), ADR 0026 (de bootorde), ADR 0007 (wie het spel opent is geen baas)
 
 ## Context
 
@@ -81,10 +81,10 @@ de vraag of "alleen" een eigen pad moet zijn of dezelfde sessie met één speler
 - De automatische zoektocht naar een sessie bij de start (#528, ADR 0022) kan niet meer
   aansluiten of zelf een sessie openen zolang de sessie van één draait:
   `canBootSession` ziet een lopende sessie (`game/js/sessionboot.js:61`). Wie met
-  anderen wil spelen, opent Samen spelen; de keuze "ja" bij de eerste start leidt
-  daardoor niet meer vanzelf naar een sessie met anderen. Dat gedrag moet nog worden
-  bijgesteld in `multiplayer.md` ("Het bootpad") of de volgorde in `main.js` moet
-  veranderen; tot die tijd is de spec op dit punt te ruim.
+  anderen wil spelen, opent Samen spelen. De volgorde sinds #639 staat in
+  [ADR 0026](0026-bootorde.md): na "Ja" eerst de expliciete lijst, daarna de automatische
+  zoektocht als terugval, en de sessie van één pas als de zoektocht klaar is
+  (`sessionBootDone`). Zo is er nooit een tweede hub en nooit een stille join.
 - De performance van de sessie zonder gasten moet gemeten worden (#553): de snelle
   route is er, maar de vaste last per frame (hub, spelerslijst, hosttikken) blijft.
 - De koploze gastheer (#450) en de sessie van één zijn niet hetzelfde: de een heeft

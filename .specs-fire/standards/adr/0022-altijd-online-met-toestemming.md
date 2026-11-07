@@ -4,7 +4,7 @@
 - **Datum:** 2026-10-31
 - **Spec:** `.specs-fire/standards/multiplayer.md`
 - **Gebied:** Samen spelen, de ingang, instellingen
-- **Gerelateerd:** #528 (epic), #526, #527, #438, #486, constitutie 4 en 10
+- **Gerelateerd:** #528 (epic), #526, #527, #438, #486, constitutie 4 en 10, ADR 0026 (de bootorde)
 
 ## Context
 
@@ -29,10 +29,13 @@ Bij de eerste start ziet de speler één scherm met twee dingen: zijn naam (éé
 het spel onthoudt hem) en de vraag of hij met andere spelers meedoet. Die twee staan bij
 elkaar omdat ze hetzelfde verhaal vertellen: dit is wie je bent, en dit is wie je ziet.
 
-- **Ja** — het spel zoekt een sessie met ruimte en dezelfde versie en sluit aan; is er
-  geen, dan host het zelf en zet die sessie in de openbare lijst. De speler ziet vóór
-  het akkoord wat er dan gebeurt: zijn IP-adres gaat naar zijn medespeler en naar de
-  openbare brokers om elkaar te vinden, niet naar een server van ons.
+- **Ja** — het spel opent de expliciete lijst met openbare sessies; de speler kiest daar
+  zelf een sessie of host er een. Sluit hij dat scherm zonder sessie, dan zoekt de
+  automatische terugval (`sessionboot.js`, ADR 0026) alsnog een passende sessie en host
+  anders zelf een **besloten** sessie (geen aankondiging, geen plek in de lijst). De
+  speler ziet vóór het akkoord wat er dan gebeurt: zijn IP-adres gaat naar zijn
+  medespeler en naar de openbare brokers om elkaar te vinden, niet naar een server van
+  ons.
 - **Nee** — het spel start een besloten sessie van één. Er gaat niets naar buiten, er
   staat niets in een lijst, en niemand kan binnenkomen. De speler kan op elk moment
   alsnog meedoen (via Escape, of via dezelfde vraag in de instellingen).
@@ -65,9 +68,9 @@ Nooit een IP-adres, nooit een wachtwoord.
 
 ## Gevolgen
 
-- Het bootpad krijgt één beslismoment voordat de wereld begint. Wie "ja" zegt, staat
-  daarna in een sessie zonder er nog over na te denken; wie "nee" zegt, merkt geen
-  verschil met alleen spelen.
+- Het bootpad krijgt één beslismoment voordat de wereld begint. Wie "ja" zegt, ziet eerst
+  de expliciete lijst en daarna pas de automatische terugval; wie "nee" zegt, merkt geen
+  verschil met alleen spelen. De volgorde staat in ADR 0026.
 - `onlineMeedoen` is een instelling met een migratie: ontbreekt hij, dan is de waarde
   "onbekend" (en vraagt het spel het één keer), niet "aan" en niet "nee". Dat verschil
   moet in de code zichtbaar blijven, anders wordt een ontbrekende waarde stil een "ja".
