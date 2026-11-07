@@ -311,6 +311,14 @@ const gastLichaam = (world, slot) => {
   const lijst = world && Array.isArray(world.coopPartners) ? world.coopPartners : [];
   return lijst.find((p) => p && p.slot === slot && p.zichtbaar !== false) || null;
 };
+// #492: speel een blok met het lichaam van een gastgroep. De wissel gaat via world.lokaalLichaam (gelezen
+// door spelersregister/players.js), zodat world.player en zijn directe lezers ongemoeid blijven; daarna
+// staat precies de oude waarde terug. missions.js is de eigenaar van dit veld.
+function metLokaalLichaam(world, lichaam, fn) {
+  const was = world.lokaalLichaam;
+  if (lichaam) world.lokaalLichaam = lichaam;
+  try { return fn(); } finally { if (was === undefined) delete world.lokaalLichaam; else world.lokaalLichaam = was; }
+}
 // De pub van de lopende opdracht van een groep (voor het bericht per groep), of null.
 const groepMissieVoor = (id) => {
   const st = groepKeten(chains, id);
@@ -331,13 +339,12 @@ function startGroepMissie(world, i, van) {
   st.gastStart = { id, eigenIndex: bron.index }; // de gast is de starter: de host krijgt de gewone J/N-vraag
   groepSlots.set(sleutel, van);
   groepInvoer.set(sleutel, maakGroepInvoer());
-  const was = { key: world.coopGroepSleutel, player: world.player, input: world.input };
+  const was = { key: world.coopGroepSleutel, input: world.input };
   world.coopGroepSleutel = sleutel;
   const lichaam = gastLichaam(world, van);
-  if (lichaam) world.player = lichaam;
   world.input = groepInvoer.get(sleutel);
-  try { startMission(world, def); } catch (e) { console.error('groepsmiddie', e); }
-  finally { world.player = was.player; world.input = was.input; world.coopGroepSleutel = was.key; }
+  try { metLokaalLichaam(world, lichaam, () => startMission(world, def)); } catch (e) { console.error('groepsmiddie', e); }
+  finally { world.input = was.input; world.coopGroepSleutel = was.key; }
   return true;
 }
 
@@ -1821,24 +1828,21 @@ export function updateMissions(dt, world) {
   for (const k of sleutels) zetGroep(missieLus, k, true);
   for (const k of actieveGroepen(missieLus)) if (!sleutels.includes(k)) zetGroep(missieLus, k, false);
   const was = world.coopGroepSleutel;
-  const wasSpeler = world.player;
   const wasInvoer = world.input;
   tikMissielus(missieLus, dt, (sleutel, deel) => {
     world.coopGroepSleutel = sleutel;
     // een gastgroep speelt met het lichaam en de invoer van die gast; de eigen groep van de host houdt
-    // gewoon de lokale speler en invoer (en met één keten is dit exact het oude beeld).
+    // gewoon de lokale speler en invoer (en met één keten is dit exact het oude beeld). Het lichaam
+    // wisselt via spelersregister.metLokaalLichaam, zodat hier geen directe world.player-lezer staat.
     if (isGroepSleutel(sleutel)) {
       const lichaam = gastLichaam(world, groepSlots.get(sleutel) || 0);
-      if (lichaam) world.player = lichaam;
       world.input = groepInvoer.get(sleutel) || wasInvoer;
-    }
-    try { updateMissionKern(deel, world); } finally {
-      world.player = wasSpeler;
-      world.input = wasInvoer;
-      world.coopGroepSleutel = was;
+      try { metLokaalLichaam(world, lichaam, () => updateMissionKern(deel, world)); }
+      finally { world.input = wasInvoer; world.coopGroepSleutel = was; }
+    } else {
+      try { updateMissionKern(deel, world); } finally { world.coopGroepSleutel = was; }
     }
   });
-  world.player = wasSpeler;
   world.input = wasInvoer;
   world.coopGroepSleutel = was;
   // #492: een gastgroep die klaar is (of wegvalt) houdt geen keten, slot of invoer meer vast. Het laatste
