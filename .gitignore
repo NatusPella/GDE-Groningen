@@ -51,3 +51,6 @@ android/android/version.properties
 .opencode/
 .specsmd/
 
+
+# testuitvoer en tijdelijke Electron-profielen
+.test-temp/

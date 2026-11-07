@@ -1,6 +1,0 @@
-
-(electron) 'console-message' arguments are deprecated and will be removed. Please use Event<WebContentsConsoleMessageEventParams> object instead.
-[story-test] FAIL: 29 steps, 3 failed checks, report in C:\Users\abuis\GIT\GDE-Groningen\.test-temp\gde-testall\20261107-223151\verhaaltest
-[story-test] FAIL all 1420 spots reachable missie-doel luik stage 0 goto "Eerst de kras van de wagon: Tinus kijkt ernaar" (NaN, NaN): geen positie; postgame fjord Fjord Frituur: Euroborg (1771.6, 1400.5): te ver van een rijweg -> vrij op (1771.6, 1370.5), 30 m
-[story-test] FAIL ways through buildings are passages or doors ({"opening":434,"door":9,"graze":1696,"clipped":2,"hole":3,"solid":2}) solid minor:service in Linnaeusborg (-1877.3, -2399.2); hole normal:unclassified Laan van de Sport in Sportcentrum De Kalkwijck (13259.6, 6965.2); hole minor:service in apartments (2663.5, 4690.8); hole minor:service in apartments (2629.1, 4590.4); solid minor:service in Jachtstede (3086, 5063.8)
-[story-test] FAIL ring roads free of solid obstacles service +51 m muur keerwand/vangrail (12957, 7151, z 6.1); service +60 m muur keerwand/vangrail (12958, 7146, z 6); service +73 m muur keerwand/vangrail (12971, 7146, z 5.2); service +81 m muur keerwand/vangrail (12975, 7149, z 4.4)
