@@ -35,6 +35,13 @@ geld uit de game. Elk punt alleen is al genoeg.
 - **Tellers**: `kills`, `pedKills` en `copKills`. De regel "Kills" staat
   weer in de uitslag van een missie. Saves met de knock-outtellers van 0.24
   tot 0.27 worden omgezet (`savemigrate.js`).
+- **Spelers tegen elkaar (PvP, #454).** In Samen spelen kan een speler een andere
+  speler te lijf met de echte wapens van het spel, bloed en ledematen inbegrepen.
+  Dat kan alleen als **beide** spelers bewust de passieve stand hebben uitgezet;
+  iedereen begint op passief en ziet dat van elkaar. Wie neerslaat, betaalt niets:
+  de ander staat zonder kosten en even beschermd weer op (tegen spawnkillen), en
+  dood door de wereld blijft gewoon dood. Zie game/js/cooppvp.js en
+  docs/MULTIPLAYER-VISIE.md.
 - **Kraskaarten en loten** bij **Rook & Geluk** (Tabak & loterij):
   "Grunneger Gokje", "Duivenkraslot" en het Stadsloterij-lot, met de
   kras-animatie in het winkelmenu. De spaarkaart van 0.24 blijft als extra.
@@ -55,6 +62,7 @@ geld uit de game. Elk punt alleen is al genoeg.
 | Seksuele inhoud of naakt | Nee | Alleen een kusje tussen de twee hoofdpersonen. |
 | Grof taalgebruik | Licht | Scheldwoorden in het Gronings ("Bist betoeterd?", "Rot op, joh!"). Geen vloeken of seksuele woorden. |
 | Grove humor | Ja, licht | Duiven die op mensen poepen (duifmodus), een student die in de taxi kotst. |
+| PvP tussen spelers (online) | Ja, optioneel | Alleen in Samen spelen en alleen als beide spelers de passieve stand uitzetten; met de echte wapens, bloed en ledematen. Zonder blijvend verlies; standaard staat iedereen op passief, dus zonder afspraak is er geen PvP. |
 | Alcohol | Ja, gebruik | Een kroegentocht in missie H11 "Nog eentje dan", biertjes bij de horeca, en dronken effecten (`drunk.js`). Dronken rijden is een overtreding. |
 | Tabak | Verwijzing | De winkel heet "Tabak & loterij", maar er wordt niet gerookt en geen tabak verkocht. |
 | Drugs | Nee | ("Wiet" is Fries voor "nat".) |

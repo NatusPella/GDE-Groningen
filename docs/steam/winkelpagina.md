@@ -82,7 +82,7 @@ De stad is gebouwd uit OpenStreetMap: de echte straten, grachten, bruggen en geb
 [h2]Gratis, offline, zonder gedoe[/h2]
 [list]
 [*]Helemaal gratis. Geen aankopen in de game, geen lootboxes, geen advertenties.
-[*]Singleplayer en offline te spelen. Geen account, geen tracking. Samen spelen met een kamercode kan ook, of via de lijst met openbare sessies (internet nodig; het spel vraagt eerst toestemming; geen tekstchat).
+[*]Singleplayer en offline te spelen. Geen account, geen tracking. Samen spelen (online co-op én PvP) met een kamercode kan ook, of via de lijst met openbare sessies (internet nodig; het spel vraagt eerst toestemming; geen tekstchat).
 [*]Toetsenbord en muis of controller, ook op de Steam Deck; alles opnieuw in te delen.
 [*]Ondertitels in vier maten, kleurenblinde paletten, en een benchmark die zegt welke instelling bij je pc past.
 [/list]
@@ -272,11 +272,13 @@ Uit [`docs/LEEFTIJD.md`](../LEEFTIJD.md). De game is **18+**: verwacht
 
 NL:
 
-> Grof geweld met bloed en rondvliegende ledematen (uit te zetten in de instellingen): vuurwapens, vechtpartijen en explosies tegen politie en voorbijgangers, die daarbij doodgaan. Auto's stelen en mensen aanrijden. Gesimuleerd gokken met kraskaarten en loten, alleen met geld uit de game. Alcohol in kroegen, met een dronken effect. Licht grof taalgebruik in het Gronings en wat grove humor. Geen tabak, geen drugs, geen aankopen met echt geld.
+> Grof geweld met bloed en rondvliegende ledematen (uit te zetten in de instellingen): vuurwapens, vechtpartijen en explosies tegen politie en voorbijgangers, die daarbij doodgaan. Auto's stelen en mensen aanrijden. Gesimuleerd gokken met kraskaarten en loten, alleen met geld uit de game. Alcohol in kroegen, met een dronken effect. Licht grof taalgebruik in het Gronings en wat grove humor. Geen tabak, geen drugs, geen aankopen met echt geld. In Samen spelen kunnen spelers elkaar te lijf als beide spelers de passieve stand uitzetten, met dezelfde wapens, bloed en ledematen; standaard staat iedereen op passief.
 
 EN:
 
-> Intense violence with blood and flying body parts (can be turned off in the settings): firearms, fist fights and explosions against police and bystanders, who can be killed. Car theft and running people over. Simulated gambling with scratch cards and lottery tickets, using in-game money only. Alcohol in pubs, with a drunk effect. Mild language in Gronings dialect and some crude humour. No tobacco, no drugs, no real-money purchases.
+> Intense violence with blood and flying body parts (can be turned off in the settings): firearms, fist fights and explosions against police and bystanders, who can be killed. Car theft and running people over. Simulated gambling with scratch cards and lottery tickets, using in-game money only. Alcohol in pubs, with a drunk effect. Mild language in Gronings dialect and some crude humour. No tobacco, no drugs, no real-money purchases. In online co-op players can fight each other when both switch passive mode off, with the same weapons, blood and flying body parts; everyone starts passive, so there is no PvP by default.
+
+**Categorieën in Steamworks:** Single-player, Multi-player, Online Co-op, Online PvP, Steam Achievements, Steam Cloud.**Verwachte labels:** PEGI 18
 
 **Verwachte labels:** PEGI 18 (Geweld, Gokken, Alcohol), USK 18 (Gewalt,
 Glücksspielelemente, Alkohol), IARC/ESRB-stijl Blood and Gore, Intense

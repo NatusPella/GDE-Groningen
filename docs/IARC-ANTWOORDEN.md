@@ -33,6 +33,7 @@ Algemene keuzes:
 | Gore, verminking, ledematen? | Ja | Body parts fly off on hard hits, explosions and trains. Can be disabled; on by default. |
 | Vuurwapens? | Ja | Pistol, SMG, shotgun, scoped hunting rifle. |
 | Marteling, seksueel geweld? | Nee | |
+| Spelers tegen elkaar (online PvP)? | Ja, optioneel | Only when both players switch their passive mode off (everyone starts passive, so there is no PvP by default). Players fight with the game's real weapons; blood and flying body parts apply here too. Going down against another player costs nothing: you get up protected. |
 
 ## 2. Seks en naakt
 
@@ -95,6 +96,7 @@ eenmalig versleuteld mee (ECDH + AES-GCM), ook bij aansluiten via de lijst.
 | Spelers kunnen met elkaar communiceren (chat, voice, berichten) | Nee | Alleen speltoestand en posities; geen tekst of spraak (`game/js/net/` bevat geen chat- of microfooncode). |
 | Gebruikers kunnen elkaar ontmoeten of vinden | Ja, optioneel: met een kamercode, of via een lijst met openbare sessies (#438); een sessie is standaard besloten | De lijst toont alleen de sessienaam (gefilterd, max. 24 tekens), het aantal spelers, de versie en een willekeurig sessie-id; geen IP-adres, geen kamercode, geen profiel, geen chat. Alleen de host maakt een sessie zelf openbaar, na een melding. Wie via de lijst aansluit, krijgt een eenmalige kamercode die alleen voor hem versleuteld is (#583). Bij een vraag over "sociale interactie" of "gebruikers ontmoeten": Ja, beperkt. |
 | Online multiplayer | **Ja, optioneel** (Samen spelen) | Peer-to-peer (WebRTC), 4-16 spelers (standaard 8). Het hele spel werkt ook volledig offline, alleen of als sessie van één. |
+| Online PvP | **Ja, optioneel** | Alleen in Samen spelen en alleen als beide spelers de passieve stand uitzetten; standaard staat iedereen op passief, dus zonder afspraak is er geen PvP. Zonder blijvend verlies. Zet in Steam de categorie Online PvP aan en in IARC Users Interact op Ja. |
 | Gebruikersgegenereerde inhoud delen of ontvangen | Nee | Alleen de lokale naam en kleur die de speler zelf kiest; geen upload, geen profiel. |
 | Deelt de game gegevens met derden | Alleen na toestemming in het spel | IP-adres naar openbare STUN-servers; versleutelde signalering (ECDH + AES-GCM, #583) via openbare brokers. Zet de speler de live busposities aan, dan is dat een openbare leesopvraag zonder gegevens van de speler (#395). Geen account, geen telemetrie. Zie `game/js/net/netconfig.js`, `net/consent.js`, `sessionboot.js` en [PRIVACY-EN-CREDITS.md](PRIVACY-EN-CREDITS.md). |
 | Deelt de game de **locatie** van de gebruiker | Nee | Geen geolocatie; het IP-adres bij Samen spelen is geen locatiegegeven dat het spel gebruikt. |
@@ -122,7 +124,7 @@ eenmalig versleuteld mee (ECDH + AES-GCM), ook bij aansluiten via de lijst.
   Gambling, Use of Alcohol, Crude Humor, Mild Language.
 - PEGI 18: Geweld, Gokken, Alcohol (taal mogelijk).
 - USK 18: Gewalt, Glücksspielelemente, Alkohol.
-- Als IARC "Users Interact: Nee" en "Shares Location: Nee" toont, is dat juist.
+- IARC toont "Users Interact: Ja" (online samen spelen kan) en "Shares Location: Nee"; dat is juist.
 
 ## Waar op te letten
 
