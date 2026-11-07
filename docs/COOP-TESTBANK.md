@@ -1,5 +1,7 @@
 # Coöp-testbank (#95)
 
+> Canonieke regels: [.specs-fire/standards/multiplayer.md](../.specs-fire/standards/multiplayer.md). Dit document beschrijft de kant van de spelers; bij tegenspraak wint de spec.
+
 Echte Electron-instanties die op `127.0.0.1` met elkaar verbinden, een headless gast voor de vierde speler, en pure tests zonder Electron.
 
 ## Zonder Electron (altijd draaien vóór een merge)
@@ -89,4 +91,4 @@ Programma's staan in `testbank.mjs` (`P`), fasen in `coop.page.js` (`PHASES`): `
 
 Gedraaid op 2026-10-20 (alleen lokaal, één computer): `gastkant` (ALLES OK), `verhaal --gasten=0` met M01 t/m M08 (ALLES OK, de spelbot had dezelfde cheats nodig als zonder coöp), `kamer` (ALLES OK, lokale nep-tracker), `net` met host, een Electron-gast en twee headless gasten (alles groen behalve een rit die niet altijd lukt: E bij een voertuig deed niets of Tessa liep vast; de rit is verder gedekt door `gastkant` en `net --gasten=0`). In een run zit eigen geluk: een rit en de snelheid van opnieuw verbinden zijn afhankelijk van de omgeving.
 
-Niet getest: twee echte computers, NAT en UPnP, de openbare brokers en STUN-servers (alleen een lokale nep-tracker, zonder STUN), een echte telefoon (de aanraakstick wordt met synthetische pointer-events bediend), drie Electron-instanties tegelijk met de laatste versie (eerder wel, met de basissuite), schade aan voertuigen bij een gast (komt niet mee), winkels, instappen en besturen door een gast (kan niet, #291) en de bandbreedte (alleen aantallen pakketten per gast: ongeveer 22 per seconde bij vier spelers; `mockclient.mjs` telt bytes, maar de suites melden dat nog alleen bij `net --gasten=0`).
+Niet getest: twee echte computers, NAT en UPnP, de openbare brokers en STUN-servers (alleen een lokale nep-tracker, zonder STUN), een echte telefoon (de aanraakstick wordt met synthetische pointer-events bediend), drie Electron-instanties tegelijk met de laatste versie (eerder wel, met de basissuite), schade aan voertuigen bij een gast (komt niet mee), winkels, instappen en besturen door een gast van een vrij voertuig (kan sinds #291; de grens per model staat in `vehicleregister.js`, sinds #525 ook een vrije heli of vliegtuig) en de bandbreedte (alleen aantallen pakketten per gast: ongeveer 22 per seconde bij vier spelers; `mockclient.mjs` telt bytes, maar de suites melden dat nog alleen bij `net --gasten=0`).

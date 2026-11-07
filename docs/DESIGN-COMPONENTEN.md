@@ -111,7 +111,7 @@ The narrative scheduler (`narrative.js`) lets one talking item run at a time, 2 
   Esc or B means "no". A panel the player opens (pause, map, shop, phone) releases the mouse (`exitPointerLock`) and holds the game.
 - **Choice panel** (`choicepanel.js`, top centre, text jobs): kicker, the case, up to three numbered answers, one line of key hints, `body.mg-on` clears the speedometer and phone cards;
   each answer is a row with a badge; good and bad answers also differ by a mark, not only by colour. Width `min(640px, ...)`, left border 3 px in the job's accent.
-- **Question with J or N** (Meedoen, host handover): a card in zone A with the question and "J = ja, N = nee", a countdown in words, and a default that is stated ("anders doe je over 10 seconden mee").
+- **Question with J or N** (Meedoen, host handover): a card in zone A with the question and "J = ja, N = nee", a countdown in words, and a default that is stated ("zonder antwoord kijk je mee").
 - Buttons in a dialog are real `<button>`s, so the controller's arrows walk them and A clicks the focused one even without own key handling.
 
 ## Shops and horeca

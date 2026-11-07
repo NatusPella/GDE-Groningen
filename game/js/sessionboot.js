@@ -59,6 +59,10 @@ function hiddenIds() {
   } catch (e) { return []; }
 }
 
+// De bootorde (#639, ADR 0022/0024): na toestemming opent main.js eerst de expliciete
+// lijst (requestOpenSamen); deze automatische zoektocht is de terugval als de speler dat
+// scherm sluit. De sessie van één start pas als de zoektocht klaar is (sessionBootDone,
+// zie main.js), zodat er één eigenaar van de sessie is en nooit een tweede hub ontstaat.
 // May the boot look for a session at this moment? Consent, a working route and a player who can walk
 // away from his own world (coopnet.canJoin) are the whole condition.
 // sessionBootBezig is voor de sessie van één (#554): zolang de startzoektocht loopt,

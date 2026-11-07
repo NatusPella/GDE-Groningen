@@ -72,5 +72,7 @@ deze lijst voordat een andere sessie begint te schrijven:
 | [0020](0020-1plus1is3.md) | 1+1=3: meer spelers, meer loon per persoon (max 3×) | besloten |
 | [0021](0021-twee-lagen-verhaal-en-mechanic.md) | Twee lagen, één afspraak: het verhaal noemt de plek, de mechanic rekent | besloten |
 | [0022](0022-altijd-online-met-toestemming.md) | Altijd een online sessie, met toestemming bij de eerste start | besloten |
+| [0023](0023-javascript-blijft-de-taal.md) | JavaScript blijft de taal; TypeScript afgewezen | voorgesteld |
 | [0024](0024-eenspeler-is-een-sessie-van-een.md) | Eenspeler is een sessie van één | besloten |
+| [0026](0026-bootorde.md) | Bootorde: de expliciete lijst eerst, de zoektocht als terugval | besloten |
 

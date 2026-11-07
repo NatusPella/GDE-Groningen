@@ -5,8 +5,9 @@
 // Tekst en keuzes komen uit lobby.js (stap 'verbroken'); tekenen via lobbyui.js.
 import { stopCoopNet, removeGuest } from './coopnet.js';
 import { readSession } from './coopsave.js';
+import { mountOverlay } from './coopoverlay.js';
 
-let overlay = null, view = null, focusWacht = null, opent = false;
+let overlay = null, view = null, focusWacht = null, opent = false, houder = null;
 
 export function isHoldOpen() { return !!overlay; }
 // de sessie is voorbij terwijl het wachtscherm openstaat (de gastheer stopte, of je werd verwijderd): het scherm en de pauze gaan weg
@@ -15,7 +16,9 @@ export function checkHold(world) { if (overlay && !world.coopNet) closeHold(worl
 function closeHold(world) {
   if (focusWacht) { focusWacht.disconnect(); focusWacht = null; }
   if (view) { view.close(); view = null; }
-  if (overlay) { overlay.remove(); overlay = null; }
+  if (houder) { houder.close(); houder = null; }
+  else if (overlay) overlay.remove();
+  overlay = null;
   opent = false;
   world.coopHold = false;
 }
@@ -38,15 +41,10 @@ export async function openHold(world, role, slot = 1, reden = '') {
   opent = true;
   world.coopHold = true; // een eigen vlag: world.uiPaused wordt door phone.js, het laadscherm en andere schermen steeds teruggezet
   if (await eindigScenes(world)) { try { world.addMessage('De scène stopt: er viel een speler weg.', 5); } catch (e) { /* geen HUD */ } }
-  overlay = document.createElement('div');
-  overlay.className = 'gm coop-hold';
-  overlay.setAttribute('role', 'dialog');
-  overlay.setAttribute('aria-modal', 'true');
-  overlay.style.cssText = 'position:fixed;inset:0;z-index:9000;display:flex;align-items:center;justify-content:center;background:rgba(8,16,10,0.82);';
-  const panel = document.createElement('div');
-  panel.style.cssText = 'max-width:640px;padding:32px;background:rgba(15,40,26,0.96);border:1px solid rgba(240,237,228,0.16);border-radius:6px;color:#f0ede4;';
-  overlay.appendChild(panel);
-  document.body.appendChild(overlay);
+  houder = mountOverlay({ label: 'Samen spelen', target: document.body });
+  if (!houder) { opent = false; world.coopHold = false; return; }
+  overlay = houder.el;
+  const panel = houder.pane;
   const { mountLobby } = await import('./lobbyui.js');
   const host = role === 'host';
   const naam = host ? ((world.coopRoster || []).find((r) => r.slot === slot) || {}).naam || '' : '';

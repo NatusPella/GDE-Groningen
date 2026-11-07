@@ -26,6 +26,16 @@
 .gm :focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
 .gm .m-li:focus-visible, .gm .m-disc:focus-visible, .gm .m-tab:focus-visible, .gm .ra:focus-visible { outline-offset: -2px; }
 .gm .mut, .gm .m-mut { color: var(--mut); }
+/* Samen spelen (#636): één overlaycomponent voor wachten, wegvallen en overdragen */
+.gm .cp-overlay { position: fixed; inset: 0; z-index: 9000; display: grid; place-items: center; background: rgba(8, 16, 10, 0.82); }
+.gm .cp-pane { box-sizing: border-box; width: min(640px, 92vw); max-height: 90vh; overflow-y: auto; padding: 32px; border-radius: 16px;
+  background: rgba(15, 40, 26, 0.96); box-shadow: inset 0 0 0 1px rgba(240, 237, 228, 0.16); color: var(--ink); font: 20px/1.45 'Arial Narrow', Arial, sans-serif; }
+.gm .cp-title { margin: 0 0 8px; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 32px; letter-spacing: 0.05em; }
+.gm .cp-text { margin: 0; color: var(--mut); max-width: 56ch; }
+.gm .cp-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+.gm .cp-btn { min-height: 44px; padding: 0 24px; border: 0; border-radius: 8px; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 24px; letter-spacing: 0.06em; cursor: pointer; }
+.gm .cp-btn.m-bp { background: var(--g); color: #0c140e; box-shadow: none; }
+.gm .cp-btn.m-bg { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 1px rgba(240, 237, 228, 0.24); }
 .gm .bebas, .gm .m-bebas { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.04em; font-weight: normal; }
 .gm .m-eb { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 20px; letter-spacing: 0.18em; color: var(--mut); text-transform: uppercase; }
 .gm .m-h1 { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 80px; line-height: 0.9; letter-spacing: 0.02em; }

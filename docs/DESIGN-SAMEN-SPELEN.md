@@ -48,9 +48,9 @@ Roepen: **Kom hier** (7), **Help!** (8), **Kijk daar** (9); the beacon in the wo
 
 ## Meedoen? (J or N)
 
-When the opener starts a mission, side job or prize, every guest gets a card in zone A: **"Meedoen met X? J = ja, N = nee (anders doe je over 10 seconden mee)."** (`coopmeedoen.js`, `MEEDOEN_WACHT` 10 s.)
+When the opener starts a mission, side job or prize, every guest gets a card in zone A: **"Meedoen met X? J = ja, N = nee (zonder antwoord kijk je mee)."** (`coopmeedoen.js`, `MEEDOEN_WACHT` 10 s.)
 
-- No answer means yes after 10 s. **N** means "je kijkt even mee": the guest is free to walk, shop and eat, and gets no share of that reward; the world stays the opener's.
+- **No answer is no**: the guest is a spectator, free to walk, shop and eat, and gets no share of that reward; the world stays the opener's (#452).
 - Where the story needs the guest's lead (`presence 'beide'` or `needsTwo`) the card says **"X speelt Y. Het verhaal heeft jou nodig: je doet mee."** and there is no choice. Spoiler warnings need an explicit answer (no default yes).
 - Races and rounds: a "Meedoen?" card on the board with the line "Wie finisht krijgt een beloning in het eigen geld." Nobody joins halfway a race or a golf round.
 - Use the same two keys everywhere (J and N), shown as caps, and the same wording of the default.
@@ -77,7 +77,7 @@ Rule for any handover or drop message: it says what happened, who has the game n
 
 ## Waiting
 
-- **Lobby / wachtkamer** (`lobby.js`, `lobbyui.js`, the `.gm` surface): steps "Iemand uitnodigen" (a code to copy; "Kopieer" is primary until the start gate is open), "Aansluiten" (type the code; a figure to choose when you are third or later; the first guest is always Tessa because she belongs to the story),
+- **Lobby / wachtkamer** (`lobby.js`, `lobbyui.js`, the `.gm` surface): steps "Iemand uitnodigen" (a code to copy; "Kopieer" is primary until the start gate is open), "Aansluiten" (type the code; a figure to choose when you are third or later; every player picks their own local lead, #455 — there is no role per seat),
   "Je speelt samen" (the list, "Spel starten" primary but disabled until two players are connected, "Wacht tot X het spel start", **Spel verlaten** or **Iedereen stoppen**).
 - **Consent first**: "Eerst even toestemming" with the route's text; the primary button is **Akkoord en verbinden**, the other **Annuleren**. Nothing goes out before it. "Maak deze sessie openbaar" and "Openbare sessies" ask separately
   (name, player count and version only; no IP address, no password; constitution 4).
