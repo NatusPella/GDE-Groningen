@@ -179,7 +179,12 @@ export async function check({ repo = REPO, specDir = path.join(repo, SPECS) } = 
 
   const specFiles = fs.readdirSync(specDir).filter((n) => n.endsWith('.md')).sort();
   const texts = new Map();
-  for (const name of specFiles) texts.set(name, readLines(repo, path.posix.join(SPECS, name)));
+  // #648: lees de specs uit specDir zelf (niet uit repo/SPECS): anders negeert een
+  // test met een tijdelijke specmap de mutatie en lijkt de driftpoort altijd groen.
+  for (const name of specFiles) {
+    const p = path.join(specDir, name);
+    texts.set(name, fs.existsSync(p) ? fs.readFileSync(p, 'utf8').split(/\r?\n/) : null);
+  }
 
   // 1. regelverwijzingen
   for (const name of specFiles) {
