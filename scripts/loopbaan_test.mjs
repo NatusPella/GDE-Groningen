@@ -392,5 +392,47 @@ t('elke loopbaan heeft een weg naar de volgende klus (#435)', () => {
   assert.ok(!/data-sub="veroverd"[^\n]*loopbaan/.test(pm), 'Veroverd staat niet onder Loopbaan');
 });
 
+// (#671) de eerstvolgende stap in gewone taal: hoeveel punten nog, hoeveel nieuwe plekken of rondes dat is,
+// waar je die doet, en dat de regel uit het eigen profiel komt (dus per speler anders bij Samen spelen)
+t('#671: volgendeStap zegt in gewone taal wat de eerstvolgende stap is en waar', () => {
+  const p = L.nieuwProfiel();
+  const golf = L.volgendeStap(p, 'golf');
+  assert.equal(golf.niveau, 1);
+  assert.equal(golf.volgendNiveau, 2);
+  assert.equal(golf.nodig, 50);
+  assert.equal(golf.plekken, Math.ceil(50 / L.UNIEK_XP), 'nieuwe banen: 8 punten per plek');
+  assert.equal(golf.rondes, Math.ceil(50 / 40), 'discgolf geeft 40 punten per ronde');
+  assert.match(golf.tekst, /^Nog 50 punten tot niveau 2 \(/);
+  assert.match(golf.tekst, new RegExp(`${Math.ceil(50 / L.UNIEK_XP)} banen`), golf.tekst);
+  assert.match(golf.tekst, new RegExp(`${Math.ceil(50 / 40)} rondes`), golf.tekst);
+  assert.equal(golf.plek, 'Het Stadspark of een golfbaan', 'waar je het doet');
+  const taxi = L.volgendeStap(p, 'taxi');
+  assert.equal(taxi.waar, 'taxi', 'de eerste nog niet gedane baan van het vak');
+  assert.match(taxi.tekst, /diensten of \d+ ritten/, taxi.tekst);
+  const trein = L.volgendeStap(p, 'trein');
+  assert.match(trein.tekst, /stations of \d+ km/, 'bij km-vakken zegt de regel kilometers: ' + trein.tekst);
+  assert.equal(trein.plek, 'Station Groningen');
+  // de volgende baan schuift op als je er een gedaan hebt
+  p.vakken.taxi.uniek.push('taxi');
+  assert.equal(L.volgendeStap(p, 'taxi').waar, 'taxinacht');
+  // het hoogste niveau: geen stap meer, maar wel een eerlijke regel
+  p.vakken.golf.xp = L.XP_DREMPELS[L.MAX_NIVEAU - 1];
+  const klaar = L.volgendeStap(p, 'golf');
+  assert.equal(klaar.klaar, true);
+  assert.equal(klaar.nodig, 0);
+  assert.match(klaar.tekst, /Hoogste niveau van Golf bereikt/);
+  // per speler: dezelfde functie met een ander profiel geeft een andere stap
+  const ander = L.nieuwProfiel();
+  ander.vakken.golf.xp = 300;
+  assert.notEqual(L.volgendeStap(ander, 'golf').tekst, L.volgendeStap(L.nieuwProfiel(), 'golf').tekst);
+  assert.equal(L.volgendeStap(p, 'bestaatniet'), null);
+  assert.equal(L.volgendeStap(null, 'golf'), null);
+  // het scherm toont de regel en de knop naar Te doen
+  const ui = fs.readFileSync(JS + 'loopbaanui.js', 'utf8');
+  assert.match(ui, /Eerstvolgende stap:/, 'de regel staat in het paneel');
+  assert.match(ui, /Waar kan ik dat doen\?/, 'de knop bestaat');
+  assert.match(ui, /data-todo-goal="job:\$\{esc\(stap\.waar\)\}"/, 'en zet de baan als doel');
+});
+
 console.log(`loopbaan_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

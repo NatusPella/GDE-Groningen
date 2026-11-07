@@ -87,6 +87,8 @@ const CSS = `${SFEER_BAND_CSS}
 .lb-start p { margin: 4px 0; }
 .lb-start .lb-link { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
 .lb-start.klaar { background: none; box-shadow: none; padding: 0; }
+.lb-stap { margin: 6px 0 2px; }
+.lb-stap-actie { margin: 2px 0 8px; }
 `;
 let cssAan = false;
 function zetCss() {
@@ -173,6 +175,14 @@ function detailHtml(profiel, id, w = null) {
   const doel = d.volgend
     ? `Nog ${nl(d.nodig)} punten tot ${esc(d.volgend)}, met ${d.extra}% meer loon.`
     : 'Hoogste niveau bereikt.';
+  // #671: één regel in gewone taal met de eerstvolgende stap en waar je die doet, plus de knop naar Te doen.
+  const stap = L.volgendeStap(profiel, id);
+  const waar = stap && stap.waar ? NAMEN.get(stap.waar) || stap.waar : '';
+  const waarTekst = [waar, stap && stap.plek].filter(Boolean).join(' · ');
+  const stapHtml = stap
+    ? `<p class="lb-stap"><b>Eerstvolgende stap:</b> ${esc(stap.tekst)}${!stap.klaar && waarTekst ? ` <span class="mut">Waar: ${esc(waarTekst)}.</span>` : ''}</p>` +
+      (!stap.klaar && stap.waar && doelen.has(stap.waar) ? `<p class="lb-stap-actie"><button type="button" class="m-bt lb-doel" data-todo-goal="job:${esc(stap.waar)}">Waar kan ik dat doen?</button></p>` : '')
+    : '';
   const voort = `<div class="lb-voort"><span class="m-bar${d.deel > 0 ? ' on' : ''}"><i data-bar="lbd-${id}" data-w="${(d.deel * 100).toFixed(1)}"></i></span><span class="m-num">${d.volgend ? `${nl(v.xp - L.XP_DREMPELS[d.niveau - 1])} / ${nl(L.XP_DREMPELS[d.niveau] - L.XP_DREMPELS[d.niveau - 1])}` : 'klaar'}</span></div>`;
   const telt = [L.tellerTekst(profiel, id)];
   if (v.uniek.length) telt.push(`${v.uniek.length} verschillende ${esc(info.uniek)}`);
@@ -189,7 +199,7 @@ function detailHtml(profiel, id, w = null) {
   const vaardigheid = kan ? `<p class="lb-kan"><b>${esc(kan.titel)}:</b> ${esc(kan.wat)}</p>` : '';
   return `<div class="pm-pane-top">${sfeerBandHtml(id, { icoon: loopbaanIcoon(info.icoon, 'lb-sfeer-ico'), klein: groep })}<h2 class="m-h2 td-h2">${loopbaanIcoon(info.icoon, 'pa-ico big')}${esc(info.naam)}</h2></div>` +
     `<div class="lb-kop"><p class="lb-titel"><b>${esc(d.titel)}</b> <span class="mut">· niveau ${d.niveau} van ${L.MAX_NIVEAU}</span></p><p class="mut">${esc(info.wat)}</p></div>` +
-    `<div class="lb-blok">${voort}<p class="mut">${doel}</p>` +
+    `<div class="lb-blok">${voort}<p class="mut">${doel}</p>${stapHtml}` +
     `<p>${v.xp > 0 ? esc(telt.join(' · ')) : L.isGestart(profiel, id) ? 'Begonnen, nog geen klus gedaan.' : 'Nog niet begonnen.'}</p>` +
     `<p class="${factor > 1 ? 'g' : 'mut'}">${factor > 1 ? `Dit vak betaalt nu ${L.percentage(factor)}% meer. ` : ''}${esc(L.loonTekst(id))}</p>${vaardigheid}${kaartjesHtml(id, d.niveau)}${dienstHtml(id, w)}</div>` +
     startHtml(profiel, id) + bezigheden + trap;

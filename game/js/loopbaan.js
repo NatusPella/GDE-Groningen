@@ -301,6 +301,48 @@ export function volgendDoel(profiel, vak) {
   return { niveau: nu, titel: titelVan(vak, nu), volgend: titelVan(vak, nu + 1), volgendNiveau: nu + 1, nodig: tot - xp, deel: Math.max(0, Math.min(1, (xp - van) / (tot - van))), xp, tot, extra: percentage(factorVoorNiveau(nu + 1)) };
 }
 
+// De eerstvolgende stap in gewone taal (#671): hoeveel punten nog, hoeveel nieuwe plekken, rondes of kilometers dat
+// is, en waar je die doet. De drempels en de puntentelling blijven ongewijzigd; dit is alleen uitleg bij de balk.
+// `ind` is optioneel (de verover-indeling); de banen komen uit BAAN_VAK en de startplek uit START.
+const ENKEL = { km: 'km', ritten: 'rit', potjes: 'potje', rondes: 'ronde', races: 'race', diensten: 'dienst', optredens: 'optreden', vluchten: 'vlucht', klussen: 'klus', activiteiten: 'activiteit', vangsten: 'vangst', oogsten: 'oogst' };
+
+// De punten van één gemiddelde ronde in dit vak: de bekende STAT_VAK-xp (discgolf, hengelen, padel, ...), anders
+// de km-punten van een rit van 10 km, anders een kleine aanname zodat de regel altijd iets zegt.
+function xpPerRonde(vak) {
+  let best = 0;
+  for (const s of Object.values(STAT_VAK)) if (s.vak === vak) best = Math.max(best, s.xp || 0);
+  if (best > 0) return best;
+  const km = KM_XP[vak];
+  return km ? km * 10 : 10;
+}
+
+export function volgendeStap(profiel, vak, ind = null) {
+  const info = BY_ID.get(vak);
+  const v = profiel && profiel.vakken ? profiel.vakken[vak] : null;
+  if (!info || !v) return null;
+  const d = volgendDoel(profiel, vak);
+  const banen = banenVan(vak);
+  const start = startVan(vak);
+  // Waar je het doet: de eerste nog niet gedane baan van dit vak, anders de eerste baan van het vak.
+  const gedaan = new Set(Array.isArray(v.uniek) ? v.uniek : []);
+  const baan = banen.find((b) => !gedaan.has(b)) || banen[0] || null;
+  const plek = start ? start.plek : '';
+  if (!d.volgend) {
+    return { vak, niveau: d.niveau, klaar: true, nodig: 0, tekst: `Hoogste niveau van ${info.naam} bereikt: ${d.titel}.`, waar: baan, banen, plek, eenheid: info.eenheid };
+  }
+  const perRonde = xpPerRonde(vak);
+  const plekken = Math.max(0, Math.ceil(d.nodig / UNIEK_XP));
+  const rondes = perRonde > 0 ? Math.max(0, Math.ceil(d.nodig / perRonde)) : 0;
+  const tel = (n, eenheid) => `${n} ${n === 1 ? ENKEL[eenheid] || eenheid : eenheid}`;
+  const opties = [];
+  if (plekken > 0 && info.uniek) opties.push(tel(plekken, info.uniek));
+  if (info.eenheid === 'km' && KM_XP[vak]) opties.push(`${Math.max(1, Math.ceil(d.nodig / KM_XP[vak]))} km`);
+  else if (rondes > 0) opties.push(tel(rondes, info.eenheid));
+  const hoe = opties.length > 1 ? opties.join(' of ') : opties[0] || 'een volgende klus';
+  const tekst = `Nog ${Math.round(d.nodig)} punten tot niveau ${d.volgendNiveau} (${d.volgend}): ${hoe}.`;
+  return { vak, niveau: d.niveau, volgendNiveau: d.volgendNiveau, titel: d.volgend, nodig: Math.round(d.nodig), plekken, rondes, tekst, waar: baan, banen, plek, eenheid: info.eenheid };
+}
+
 // --- punten tellen ---------------------------------------------------------
 
 // Tel een gebeurtenis bij een vak: n (de teller), xp, en een nieuwe plek (uniek). Verandert het profiel.
