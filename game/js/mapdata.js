@@ -143,19 +143,26 @@ export class GameMap {
 
     const indexRoads = (list = data.roads) => {
       this.roadGrid = new SpatialGrid(CELL);
-      for (const r of list) {
+      for (let i = 0; i < list.length; i++) {
+        const r = list[i];
         if (!r) continue; // een weg die het knippen (passages.js) weghaalde
+        r._ord = i;
         r.bounds = polygonBounds(r.pts);
         this.roadGrid.insert(r, r.bounds);
       }
     };
     indexRoads();
     // footways and cycleways through a solid block end at its facade (passages.js)
-    this.clippedWays = clipWaysInBuildings(this);
+    this.clippedWays = clipWaysInBuildings(this, data);
     if (this.clippedWays.length) indexRoads(); // de bronlijst heeft de geknipte stukken: nullen slaan we over
 
     this.waterGrid = new SpatialGrid(CELL * 2);
-    for (const w of data.water) {
+    // #314 C2: elke waterrij houdt zijn bouw-id (_wi) vast; de geo-werker vindt hem via
+    // _waterByWi terug, ook als de arraylaag sparse is (index.sparse).
+    this._waterByWi = data.water;
+    for (let i = 0; i < data.water.length; i++) {
+      const w = data.water[i];
+      w._wi = i;
       w.bounds = polygonBounds(w.pts);
       this.waterGrid.insert(w, w.bounds);
     }
@@ -167,6 +174,7 @@ export class GameMap {
     }
     this.indexRails(data.rails);
     this.indexFurniture(data.furniture);
+    this._roadsLive = data.roads; // home.js haalt de parkeeraisles hieruit (dropRoad)
 
     markDryCrossings(this);
     // (?terrain: the terrain goes in before the elevation model, which builds its walls in the frame of the terrain)
@@ -222,13 +230,18 @@ export class GameMap {
     attachMuseumPlan(p.buildings);
     attachInteriorPlans(p.buildings);
     m.roadGrid = new SpatialGrid(CELL);
-    for (const r of p.roads) {
+    for (let i = 0; i < p.roads.length; i++) {
+      const r = p.roads[i];
+      r._ord = i;
       r.bounds = polygonBounds(r.pts);
       m.roadGrid.insert(r, r.bounds);
     }
     m.clippedWays = p.clippedWays || [];
     m.waterGrid = new SpatialGrid(CELL * 2);
-    for (const w of p.water) {
+    m._waterByWi = p.water;
+    for (let i = 0; i < p.water.length; i++) {
+      const w = p.water[i];
+      w._wi = i;
       w.bounds = polygonBounds(w.pts);
       m.waterGrid.insert(w, w.bounds);
     }
@@ -239,6 +252,7 @@ export class GameMap {
     }
     m.indexRails(p.rails || []);
     m.indexFurniture(p.furniture || []);
+    m._roadsLive = p.roads;
     // (?terrain: the elevation model builds its walls in the frame of the terrain, so the terrain is in before it)
     if (p.terrain) { m.terrain = p.terrain; m.terrainOn = !!p.terrainOn; }
     m.elev = addPerrons(m, buildElevation(m));
@@ -272,6 +286,20 @@ export class GameMap {
       m.bounds = m.pts ? polygonBounds(m.pts) : [m.x, m.y, m.x, m.y];
       this.furnitureGrid.insert(m, m.bounds);
     }
+  }
+
+  // (#314 C2) Een weg uit de live bouwlijst halen (home.js: de parkeeraisles in de plint).
+  // Alleen op het dichte bouwpad; in een sparse wereld bestaat de arraylaag niet en is de
+  // rasterverwijdering (regrid) genoeg.
+  // De wegen in bouwvolgorde (dezelfde volgorde als de oude array): de grafen en
+  // routezoekers zijn daar deterministisch op. Uit het raster, dus ook sparse veilig.
+  orderedRoads() {
+    return gridItems(this.roadGrid).sort((a, b) => (a._ord ?? 0) - (b._ord ?? 0));
+  }
+
+  dropRoad(r) {
+    const i = this._roadsLive ? this._roadsLive.indexOf(r) : -1;
+    if (i >= 0) this._roadsLive.splice(i, 1);
   }
 
   // Height of the surface under (x, y) for something at zHint (absolute m):

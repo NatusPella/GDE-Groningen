@@ -4,6 +4,7 @@ import { dijkPrijs } from './ringrace.js';
 import { assistTime } from './assistlive.js';
 import { missionStats, fmtTime } from './missionstats.js';
 import { createMissionLanes } from './missionlanes.js';
+import { createMissionGates } from './missiongates.js';
 import { dist, pointInPolygon, closestPointOnSegment, boatDryPoints, clamp, isInWater } from './util.js';
 import { waterPolyAt } from './waterlevels.js';
 import { isNight, setHomePlace, getHomePlace, registerMissionQueries } from './missionquery.js';
@@ -49,6 +50,7 @@ import { addDrunk } from './drunk.js';
 import { klusloon, medalBonus } from './economy.js';
 import { metGroepsbonus, bonusDelen, GROEPSBONUS_UITLEG } from './groepsbonus.js';
 import { maakMissielus, zetGroep, actieveGroepen, tik as tikMissielus } from './missielus.js'; // #492: de missielus per groep
+import { openGroepKeten, sluitGroepKeten, groepKeten, groepKetens, isGroepSleutel, groepIdVanSleutel } from './missiegroepen.js'; // #492: de keten van een gastgroep
 import { startStunt, updateStunt, stopStunt, stuntStatus } from './stuntavond.js';
 import { storyLines, talkLines, storyDataReady, readingTime } from './storytext.js';
 import { playTalk, stopTalk } from './storytalk.js';
@@ -289,6 +291,55 @@ const lanes = createMissionLanes(chainState);
 // verdeelt de frame-tijd over de groepen die echt lopen (en houdt de eigen keten ook in de gaten zolang
 // die nog niet gestart is). Met één sleutel is dit precies het oude beeld.
 const missieLus = maakMissielus();
+// #492: een gastgroep die zijn eigen opdracht start, krijgt een eigen keten onder een groepssleutel.
+// Hier hoort bij welke gast (slot) hem speelt en welke invoer die groep heeft (de toetsen die de gast
+// stuurt; zijn lichaam komt uit world.coopPartners, want de gastheer simuleert dat figuur).
+const groepSlots = new Map();      // groepssleutel -> slot van de gast
+const groepInvoer = new Map();     // groepssleutel -> { wasPressed, consume, isDown, axis }
+function maakGroepInvoer() {
+  const q = new Map();
+  return {
+    _q: q,
+    push(k) { q.set(k, (q.get(k) || 0) + 1); },
+    wasPressed(k) { const n = q.get(k) || 0; if (!n) return false; q.set(k, n - 1); return true; },
+    consume(k) { const n = q.get(k) || 0; if (n > 0) q.set(k, n - 1); },
+    isDown: () => false,
+    axis: () => [0, 0],
+  };
+}
+const gastLichaam = (world, slot) => {
+  const lijst = world && Array.isArray(world.coopPartners) ? world.coopPartners : [];
+  return lijst.find((p) => p && p.slot === slot && p.zichtbaar !== false) || null;
+};
+// De pub van de lopende opdracht van een groep (voor het bericht per groep), of null.
+const groepMissieVoor = (id) => {
+  const st = groepKeten(chains, id);
+  return st && st.phase === 'active' ? st.pub : null;
+};
+// Een gast begon zijn eigen opdracht: open een keten onder de groepssleutel en zet de opdracht klaar met
+// het lichaam en de invoer van die gast, zodat niet de keten (en het verhaal) van de host opschuift.
+function startGroepMissie(world, i, van) {
+  const bron = chainState(world);
+  if (!bron || !bron.defs) return false;
+  const def = bron.defs[i];
+  if (!def) return false;
+  const id = `${i | 0}|${String(def.label || '').slice(0, 48)}`;
+  const sleutel = openGroepKeten(chains, id, i, bron);
+  if (!sleutel) return false;
+  const st = chains.get(sleutel);
+  st.groepKeten = true;
+  st.gastStart = { id, eigenIndex: bron.index }; // de gast is de starter: de host krijgt de gewone J/N-vraag
+  groepSlots.set(sleutel, van);
+  groepInvoer.set(sleutel, maakGroepInvoer());
+  const was = { key: world.coopGroepSleutel, player: world.player, input: world.input };
+  world.coopGroepSleutel = sleutel;
+  const lichaam = gastLichaam(world, van);
+  if (lichaam) world.player = lichaam;
+  world.input = groepInvoer.get(sleutel);
+  try { startMission(world, def); } catch (e) { console.error('groepsmiddie', e); }
+  finally { world.player = was.player; world.input = was.input; world.coopGroepSleutel = was.key; }
+  return true;
+}
 
 export function initMissions(world) {
   worldRef = world;
@@ -344,8 +395,26 @@ export function initMissions(world) {
   // sessie op de vaste id van de hub (de gast leest hem uit het welkom) en wist hem bij het einde. De keten
   // verhuist mee, dus de gastheer loopt zijn eigen opdracht door en een volgende sessie erft niets.
   world.coopKetenZet = (key) => setChainKey(world, key);
-  // een gast kan zelf een verhaalopdracht starten (#452): coopglue.js vraagt het, deze wereld begint hem op het startpunt
-  world.coopMissieStart = (i) => startMissionVoorGast(world, i);
+  // een gast kan zelf een verhaalopdracht starten (#452): coopglue.js vraagt het, deze wereld begint hem
+  // op het startpunt. Sinds #492 krijgt een gastgroep daarvoor een eigen keten (startGroepMissie), zodat
+  // de eigen keten van de host blijft staan.
+  world.coopMissieStart = (i, van = 0) => (van >= 1 ? startGroepMissie(world, i, van) : startMissionVoorGast(world, i));
+  // #492: de toetsen van een gast in zijn eigen opdracht gaan naar de invoer van zijn groep (E en de
+  // paneeltoetsen); zo leest de missielus de opdracht van die groep met de invoer van die speler.
+  world.coopGroepToets = (slot, toets) => {
+    for (const [sleutel, s] of groepSlots) {
+      if (s !== slot) continue;
+      const st = chains.get(sleutel);
+      if (!st || st.phase !== 'active') continue;
+      const invoer = groepInvoer.get(sleutel);
+      if (invoer && typeof invoer.push === 'function') invoer.push(String(toets));
+      return true;
+    }
+    return false;
+  };
+  // #492: de lopende opdracht van een groep, voor het missiebericht per groep in coopnet.js.
+  world.coopGroepMissieVoor = (id) => groepMissieVoor(id);
+  world.coopGroepMissieIds = () => groepKetens(chains).filter((g) => g.keten.phase === 'active').map((g) => g.id);
   // zaal 3's case is empty once H6 has been played
   setMuseumCaseStolen(() => isMissionCompleted(missionIndexById('museumkraak')));
   syncPub(world);
@@ -537,85 +606,19 @@ export function setMissionHooks(h) {
 // night by the sun (sunrules.js): the same answer as the street lights
 export { isNight };
 
-const reqList = (def) => (Array.isArray(def.requires) ? def.requires : def.requires ? [def.requires] : []);
-
-// First requirement of def the player doesn't meet yet (key), or null.
-export function unmetRequirement(w, def) {
-  for (const key of reqList(def)) {
-    const req = REQUIREMENTS[key];
-    if (req && !req.met(w) && !hooks.waived(key)) return key;
-  }
-  return null;
-}
-
-export function requirementMet(w, key) {
-  const req = REQUIREMENTS[key];
-  return !req || req.met(w) || hooks.waived(key);
-}
-
-// Where to get requirement key: nearest shop of its type(s), or a garage.
-// home.js registers where home is: waiting for the dark happens there.
 export { setHomePlace };
 
-export function requirementPlace(w, key) {
-  const req = REQUIREMENTS[key];
-  if (!req) return null;
-  const homePlace = getHomePlace();
-  const h = req.home && homePlace && homePlace();
-  if (h) return h;
-  if (req.garage) {
-    let best = null, bd = Infinity;
-    const eigen = hoofdspeler(w); // één keer ophalen: de lus leest steeds dezelfde speler
-    for (const g of getGaragesForRender()) {
-      const d = dist(g.x, g.y, eigen.x, eigen.y);
-      if (d < bd) { bd = d; best = g; }
-    }
-    return best ? { x: best.x, y: best.y, name: best.name } : null;
-  }
-  return nearestShopOf(w, req.shop);
-}
-
-function nearestShopOf(w, type) {
-  const types = Array.isArray(type) ? type : [type];
-  let best = null, bd = Infinity;
-  const eigen = hoofdspeler(w);
-  for (const s of getShopsForRender()) {
-    if (!types.includes(s.type)) continue;
-    const d = dist(s.x, s.y, eigen.x, eigen.y);
-    if (d < bd) { bd = d; best = s; }
-  }
-  return best;
-}
-
-function chainName(req) {
-  const t = Array.isArray(req.shop) ? req.shop[0] : req.shop;
-  return t && SHOP_TYPES[t] ? SHOP_TYPES[t].chain : '';
-}
-
-function requirementText(w, def) {
-  const key = unmetRequirement(w, def);
-  if (!key) return null;
-  const req = REQUIREMENTS[key];
-  const place = requirementPlace(w, key);
-  return req.text(place ? place.name : chainName(req));
-}
-
-// Tells the player (toast + phone) what is missing; story.js points the
-// guide at the nearest place that sells it. Returns true when the mission
-// may start.
-function checkRequirement(w, def, force = false) {
-  const key = unmetRequirement(w, def);
-  if (!key) return true;
-  if (w.time - chainState().reqHintAt < (force ? 3 : REQUIREMENT_HINT_EVERY)) return false;
-  chainState().reqHintAt = w.time;
-  const place = requirementPlace(w, key);
-  const text = REQUIREMENTS[key].text(place ? place.name : chainName(REQUIREMENTS[key]));
-  w.addMessage(text, 5);
-  if (w.phoneNotifications) w.phoneNotifications.push({ from: 'GDE', text: `${def.label}: ${text}${place ? ' Staat op je kaart.' : ''}`, duration: 6, say: SMS_SAY.gate.lines[0] });
-  hooks.gated(w, chainState().index, key);
-  return false;
-}
-
+// #497: de poortwachters en hun teksten staan in missiongates.js; deze naad
+// levert de ketenstaat, de hooks en de winkelbron.
+const gates = createMissionGates({
+  state: chainState, hooks, requirements: REQUIREMENTS, shops: getShopsForRender, homePlace: getHomePlace,
+});
+export const unmetRequirement = (...a) => gates.unmetRequirement(...a);
+export const requirementMet = (...a) => gates.requirementMet(...a);
+export const requirementPlace = (...a) => gates.requirementPlace(...a);
+const nearestShopOf = (...a) => gates.nearestShopOf(...a);
+const requirementText = (...a) => gates.requirementText(...a);
+function checkRequirement(...a) { return gates.checkRequirement(...a); }
 export function getNextMission() {
   if (!chainState()) return null;
   const d = chainState().defs[chainState().index];
@@ -744,8 +747,11 @@ const gastStartMee = (world) => !chainState().gastStart || gastheerMee(world, ch
 // Opnieuw-aanbod van de opdracht van de gast.
 function sluitGastStart(world, mee) {
   const g = chainState().gastStart;
+  const groep = !!chainState().groepKeten;
   chainState().gastStart = null;
   if (world) world.coopGastVraag = null; // een openstaande vraag hoort bij deze opdracht
+  // #492: de eigen keten van een gastgroep is klaar; de keten van de host is nooit opgeschoven
+  if (groep) { chainState().phase = 'idle'; return g; }
   if (g && !mee) { chainState().index = g.eigenIndex; chainState().retry = null; }
   return g;
 }
@@ -1815,11 +1821,36 @@ export function updateMissions(dt, world) {
   for (const k of sleutels) zetGroep(missieLus, k, true);
   for (const k of actieveGroepen(missieLus)) if (!sleutels.includes(k)) zetGroep(missieLus, k, false);
   const was = world.coopGroepSleutel;
+  const wasSpeler = world.player;
+  const wasInvoer = world.input;
   tikMissielus(missieLus, dt, (sleutel, deel) => {
     world.coopGroepSleutel = sleutel;
-    try { updateMissionKern(deel, world); } finally { world.coopGroepSleutel = was; }
+    // een gastgroep speelt met het lichaam en de invoer van die gast; de eigen groep van de host houdt
+    // gewoon de lokale speler en invoer (en met één keten is dit exact het oude beeld).
+    if (isGroepSleutel(sleutel)) {
+      const lichaam = gastLichaam(world, groepSlots.get(sleutel) || 0);
+      if (lichaam) world.player = lichaam;
+      world.input = groepInvoer.get(sleutel) || wasInvoer;
+    }
+    try { updateMissionKern(deel, world); } finally {
+      world.player = wasSpeler;
+      world.input = wasInvoer;
+      world.coopGroepSleutel = was;
+    }
   });
+  world.player = wasSpeler;
+  world.input = wasInvoer;
   world.coopGroepSleutel = was;
+  // #492: een gastgroep die klaar is (of wegvalt) houdt geen keten, slot of invoer meer vast. Het laatste
+  // bericht (actief: false) volgt uit het ontbreken van de keten in coopnet.
+  for (const sleutel of [...groepSlots.keys()]) {
+    const st = chains.get(sleutel);
+    if (st && st.phase !== 'idle') continue;
+    const id = groepIdVanSleutel(sleutel);
+    groepSlots.delete(sleutel);
+    groepInvoer.delete(sleutel);
+    if (id) sluitGroepKeten(chains, id);
+  }
 }
 
 // De algemene tik van de opdrachtwereld (niet per groep): de dijkrace telt ook als de opdrachtstap al

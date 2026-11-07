@@ -37,6 +37,7 @@ let wegen = true;
 const KAART = {
   meta: { bounds: null, shops: [], garages: [], neighbourhoodPoints: [] }, water: [], roads: [], buildings: [], tiles: [],
   isOpenSpot: () => true, nearestRoadPoint: (x, y) => (wegen ? maakRoad(x, y) : null),
+  orderedRoads: () => KAART.roads,
   openSpotNear: (x, y) => spot(x, y), findOpenSpawn: (x, y) => spot(x, y), spawnZ: () => 0,
   buildingsNear: () => [], roadsNear: () => [], isOnBridge: () => false, escapeBuilding: (x, y) => [x + 1, y + 1], roadAt: () => null,
   groundHeightAt: () => 0, surfaceAt: () => ({ z: 0 }), spawnState: () => ({}),
