@@ -27,6 +27,8 @@ const HOST = 'game';
 // Resolved once, so the app:// path check compares real folders (#593).
 const GAME_DIR = path.resolve(app.isPackaged ? path.join(process.resourcesPath, 'game') : process.env.GDE_GAME_DIR || path.join(__dirname, 'build', 'game'));
 
+const { cacheHeaders } = require('./httpcache.cjs');
+
 const MIME = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8',
   '.css': 'text/css; charset=utf-8', '.json': 'application/json', '.md': 'text/markdown; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png',
@@ -78,6 +80,11 @@ async function serve(request) {
   if (!insideDir(GAME_DIR, file)) return new Response('Forbidden', { status: 403 });
   try {
     const type = MIME[path.extname(file).toLowerCase()] || 'application/octet-stream';
+    // #657: ETag/Last-Modified: een ongewijzigd bestand wordt een 304
+    const st = await fs.stat(file);
+    const cc = cacheHeaders(st, { 'if-none-match': request.headers.get('if-none-match'), 'if-modified-since': request.headers.get('if-modified-since') });
+    const validators = { etag: cc.etag, 'last-modified': cc.lastModified, 'cache-control': cc.cacheControl };
+    if (cc.fresh) return new Response(null, { status: 304, headers: validators });
     // media elements ask for byte ranges (seeking, buffering ahead): answer
     // with just that slice, so the player never re-reads a track from byte 0
     const range = /^bytes=(\d*)-(\d*)$/.exec(request.headers.get('range') || '');
@@ -90,13 +97,13 @@ async function serve(request) {
         if (start >= size || start > end) return new Response(null, { status: 416, headers: { 'content-range': `bytes */${size}` } });
         const buf = Buffer.alloc(end - start + 1);
         await fh.read(buf, 0, buf.length, start);
-        return new Response(buf, { status: 206, headers: { 'content-type': type, 'cache-control': 'no-cache', 'accept-ranges': 'bytes', 'content-range': `bytes ${start}-${end}/${size}`, 'content-length': String(buf.length) } });
+        return new Response(buf, { status: 206, headers: { 'content-type': type, ...validators, 'accept-ranges': 'bytes', 'content-range': `bytes ${start}-${end}/${size}`, 'content-length': String(buf.length) } });
       } finally {
         await fh.close();
       }
     }
     const body = await fs.readFile(file);
-    return new Response(body, { status: 200, headers: { 'content-type': type, 'cache-control': 'no-cache', 'accept-ranges': 'bytes', 'content-length': String(body.length) } });
+    return new Response(body, { status: 200, headers: { 'content-type': type, ...validators, 'accept-ranges': 'bytes', 'content-length': String(body.length) } });
   } catch (e) {
     return new Response('Not found', { status: 404 });
   }
