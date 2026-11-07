@@ -13,7 +13,7 @@
 //                LRU memory budget with pins, hysteresis, prefetch by
 //                speed and heading
 //   FrameQueue   work for the main thread, run with a time budget per frame
-import { decodeBlob, tileIndexOf, tileKey, tileOrigin, TILE_M } from './gdt.js';
+import { decodeBlob, tileIndexOf, tileKey, tileOrigin, tileIndexX, tileIndexY, tileOriginX, tileOriginY, TILE_M } from './gdt.js';
 
 // #582: a hanging tile fetch or a dead decoder worker must never freeze the
 // world or leave the four load slots taken. Every bound is in milliseconds and
@@ -359,14 +359,14 @@ export class TileStore {
     this.gen++;
     const speed = Math.hypot(vx, vy);
     const r = radius + speed * ahead;
-    const [i0, j0] = tileIndexOf(x - r, y - r), [i1, j1] = tileIndexOf(x + r, y + r);
+    // #651: scalaire indexen en origin, zodat de hot loop geen arrays alloceert
+    const i0 = tileIndexX(x - r), j0 = tileIndexY(y - r), i1 = tileIndexX(x + r), j1 = tileIndexY(y + r);
     const want = new Map();
     const half = TILE_M * Math.SQRT1_2;
     const consider = (i, j, bonus = 0) => {
       const key = tileKey(i, j);
       if (!this.index.tiles[key]) return;
-      const [ox, oy] = tileOrigin(i, j);
-      const cx = ox + TILE_M / 2, cy = oy + TILE_M / 2;
+      const cx = tileOriginX(i) + TILE_M / 2, cy = tileOriginY(j) + TILE_M / 2;
       const d = Math.hypot(cx - x, cy - y);
       if (d - half > r && !bonus) return;
       let score = d;
@@ -378,23 +378,29 @@ export class TileStore {
     for (const [i, j, bonus] of extra) consider(i, j, bonus ?? 500);
     // samen spelen, spelers uit elkaar (#429, coopfoci.js): ook rond elke losse groep, met een eigen (kleinere) straal; de ene wensenlijst is de unie
     for (const f of foci) {
-      const fr = f.radius || 800, [fi0, fj0] = tileIndexOf(f.x - fr, f.y - fr), [fi1, fj1] = tileIndexOf(f.x + fr, f.y + fr);
+      const fr = f.radius || 800, fi0 = tileIndexX(f.x - fr), fj0 = tileIndexY(f.y - fr), fi1 = tileIndexX(f.x + fr), fj1 = tileIndexY(f.y + fr);
       for (let i = fi0; i <= fi1; i++) for (let j = fj0; j <= fj1; j++) {
         const key = tileKey(i, j);
         if (!this.index.tiles[key]) continue;
-        const [ox, oy] = tileOrigin(i, j), d = Math.hypot(ox + TILE_M / 2 - f.x, oy + TILE_M / 2 - f.y);
+        const d = Math.hypot(tileOriginX(i) + TILE_M / 2 - f.x, tileOriginY(j) + TILE_M / 2 - f.y);
         if (d - half > fr) continue;
         if (!want.has(key) || d < want.get(key)) want.set(key, d);
       }
     }
     const now = this.now();
+    // #651: één scan over de entries i.p.v. drie (wanted bijwerken, aflopende
+    // aanvragen afbreken en de hysteresis-evictie in dezelfde ronde).
+    const far = r + this.unloadMargin + half;
+    const evict = this.residentBytes > this.budgetBytes * 0.5;
     for (const e of this.entries.values()) {
       const was = e.wanted;
       e.wanted = want.has(e.key);
-      if (e.wanted) { e.outside = 0; e.last = now; }
-      else {
-        if (was) e.outside = now;
-        if (e.state === 'queued' || e.state === 'loading') { if (!e.waiters.length) this._maybeAbort(e); } // een prefetch zonder wachtenden stopt zelf
+      if (e.wanted) { e.outside = 0; e.last = now; continue; }
+      if (was) e.outside = now;
+      if (e.state === 'queued' || e.state === 'loading') { if (!e.waiters.length) this._maybeAbort(e); } // een prefetch zonder wachtenden stopt zelf
+      if (evict && e.state === 'ready' && !e.pinned && now - e.outside >= this.holdMs) {
+        const d = Math.hypot(tileOriginX(e.meta.i) + TILE_M / 2 - x, tileOriginY(e.meta.j) + TILE_M / 2 - y);
+        if (d > far) this._drop(e);
       }
     }
     for (const [key, score] of want) {
@@ -406,14 +412,6 @@ export class TileStore {
     }
     this.stats.maxQueue = Math.max(this.stats.maxQueue, this.queue.length);
     this._pump();
-    // hysteresis: only tiles that have been unwanted for holdMs and lie beyond the margin go first
-    const far = r + this.unloadMargin + half;
-    for (const e of this.entries.values()) {
-      if (e.state !== 'ready' || e.pinned || e.wanted) continue;
-      const [ox, oy] = tileOrigin(e.meta.i, e.meta.j);
-      const d = Math.hypot(ox + TILE_M / 2 - x, oy + TILE_M / 2 - y);
-      if (d > far && now - e.outside >= this.holdMs && this.residentBytes > this.budgetBytes * 0.5) this._drop(e);
-    }
     this._evict();
     return want;
   }

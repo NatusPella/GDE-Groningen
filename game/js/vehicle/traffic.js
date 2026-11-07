@@ -689,7 +689,7 @@ function resolveDeadlocks(v, dt, world, follow, lightV) {
   const fx = Math.cos(v.angle), fy = Math.sin(v.angle);
   // the vehicle in our way is pinned trying to manoeuvre: back off a little
   if (held && (o.stuckFor || 0) > 1 && Math.cos(o.angle - v.angle) < 0.5 && now - (v.backOffAt || -99) > 6 &&
-    !world.vehicles.some((q) => q !== v && Math.hypot(q.x - v.x + fx * v.halfLen, q.y - v.y + fy * v.halfLen) < v.halfLen + 2.5)) {
+    !vehiclesNear(world, v.x + fx * v.halfLen, v.y + fy * v.halfLen, v.halfLen + 2.5, _nearVeh).some((q) => q !== v)) {
     v.backOffAt = now;
   }
   const half = (v.road.width || 6) / 2;
@@ -699,7 +699,8 @@ function resolveDeadlocks(v, dt, world, follow, lightV) {
   if (!held || v.laneMode === 'squeeze') return;
   const obstacle = o.wrecked || !o.road || (o.driver === 'player' && Math.abs(o.speed) < 0.3) || (o.stuckFor || 0) > 3;
   if (!obstacle || Math.cos(o.angle - v.angle) < -0.5 && !o.wrecked) return;
-  for (const q of world.vehicles) {
+  // #653: alleen de buren uit de index (was een scan over alle voertuigen)
+  for (const q of vehiclesNear(world, v.x, v.y, 30, _nearVeh)) {
     if (q === v || q === o || q.isBoat) continue;
     const dx = q.x - v.x, dy = q.y - v.y;
     const fwd = dx * fx + dy * fy, lat = dy * fx - dx * fy;
