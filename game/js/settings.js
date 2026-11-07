@@ -131,14 +131,21 @@ const PAD_LAYOUT_CHOICES = ['auto', 'xbox', 'ps', 'switch', 'deck'];
 const HINT_SOURCE_CHOICES = ['auto', 'keys', 'pad'];
 const TOUCH_CONTROLS_CHOICES = ['auto', 'aan', 'uit'];
 
+// #578: een instellingenbestand uit een nieuwere versie blijft van die versie. Onbekende sleutels en een
+// hogere `v` worden bewaard, zodat een downgrade niets van de nieuwere build weggooit en die build niet
+// opnieuw vanaf de oude versie hoeft te migreren.
+let storedVersion = SETTINGS_VERSION;
+const newerExtras = {};
+
 function load() {
   if (typeof localStorage === 'undefined') return { ...DEFAULTS };
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     // older files run through the migrations (savemigrate.js) and are written
     // back once; a file from a newer game is read as it is
-    const mig = migrateSettings(JSON.parse(stored || '{}'));
-    const raw = mig ? mig.data : JSON.parse(stored);
+    const parsed = JSON.parse(stored || '{}');
+    const mig = migrateSettings(parsed);
+    const raw = mig ? mig.data : parsed;
     const out = { ...DEFAULTS };
     for (const k of Object.keys(DEFAULTS)) {
       if (typeof raw[k] === typeof DEFAULTS[k]) out[k] = raw[k];
@@ -175,6 +182,12 @@ function load() {
     if (stored && mig && mig.from < SETTINGS_VERSION) {
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...out, v: SETTINGS_VERSION })); } catch (e) { /* ignore */ }
     }
+    // #578: een nieuwer bestand wordt niet teruggezet: bewaar de hogere versie en de sleutels die deze
+    // build niet kent, zodat de eerste wijziging ze niet weggooit.
+    if (!mig && parsed && Number.isInteger(parsed.v) && parsed.v > SETTINGS_VERSION) {
+      storedVersion = parsed.v;
+      for (const [k, v] of Object.entries(parsed)) if (k !== 'v' && !(k in DEFAULTS)) newerExtras[k] = v;
+    }
     return out;
   } catch (e) {
     return { ...DEFAULTS };
@@ -208,7 +221,9 @@ export function setSetting(key, value) {
   if (VOLUME_KEYS.includes(key)) value = volumeValue(value, DEFAULTS[key]);
   if (!(key in DEFAULTS) || settings[key] === value) return;
   settings[key] = value;
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...settings, v: SETTINGS_VERSION })); } catch (e) { /* ignore */ }
+  // #578: nooit onder de versie van het geladen bestand schrijven en de onbekende sleutels van een
+  // nieuwere build bewaren; anders verliest een downgrade de stand van de nieuwere versie.
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...newerExtras, ...settings, v: Math.max(storedVersion, SETTINGS_VERSION) })); } catch (e) { /* ignore */ }
   applyHudClasses();
   for (const cb of listeners) cb(settings, key);
 }
