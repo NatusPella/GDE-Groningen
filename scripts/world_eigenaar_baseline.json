@@ -1,7 +1,7 @@
 {
  "version": 1,
  "note": "Aantal schrijvende bestanden per world-veld (#498), gemeten met scripts/world_eigenaar.mjs. Alleen omlaag; nieuwe velden worden op hun huidige stand opgenomen.",
- "veldTotaal": 296,
+ "veldTotaal": 299,
  "velden": {
   "_balloonTimer": 1,
   "_goodMoney": 1,
@@ -50,6 +50,7 @@
   "coopBoot": 1,
   "coopCam": 1,
   "coopCutHost": 1,
+  "coopCutWacht": 1,
   "coopDag": 1,
   "coopDeel": 1,
   "coopDesync": 1,
@@ -123,13 +124,13 @@
   "coopSideJobs": 2,
   "coopSirenDbg": 1,
   "coopSirenUnits": 2,
+  "coopSolo": 2,
   "coopSpelers": 1,
   "coopStagePanel": 1,
   "coopStem": 1,
   "coopStemBeantwoord": 1,
   "coopStil": 2,
   "coopTrein": 1,
-  "coopSolo": 2,
   "coopTreinDeur": 4,
   "coopTreinDuw": 1,
   "coopTreinMeld": 1,
@@ -253,7 +254,3 @@
   "wind": 1
  }
 }
-
-
-
-

@@ -217,10 +217,10 @@ t('de teksten: Nederlands, rustig, geen geweld en geen echte merken', () => {
 t('normaliseer: kapot, oud of vreemd geeft een geldig profiel; v1 houdt zijn taken maar niet zijn gebieden', () => {
   for (const raw of [null, undefined, '', '{kapot', 'null', 7, [], { v: 0 }, { v: 3, gedaan: ['x'] }]) assert.deepEqual(G.normaliseer(raw), G.nieuwProfiel());
   const p = G.normaliseer(JSON.stringify({ v: 2, gedaan: ['a', 'a', 5, '', null, 'b'], beloond: 'nee', zaad: true, rommel: 1 }));
-  assert.deepEqual(p, { v: 2, gedaan: ['a', 'b'], beloond: [], huizen: [], bezocht: [], zaad: true });
+  assert.deepEqual(p, { v: 2, gedaan: ['a', 'b'], beloond: [], huizen: [], bezocht: [], intochten: [], zaad: true });
   assert.deepEqual(G.normaliseer(JSON.parse(JSON.stringify(p))), p, 'heen en terug is stabiel');
   const v1 = G.normaliseer({ v: 1, gedaan: ['m:a', 'b:taxi'], beloond: ['w:Oosterpark'], huizen: ['h:w:Oosterpark'], zaad: true });
-  assert.deepEqual(v1, { v: 2, gedaan: ['m:a', 'b:taxi'], beloond: [], huizen: [], bezocht: [] }, 'de oude gebieden bestaan niet meer: opnieuw gezaaid');
+  assert.deepEqual(v1, { v: 2, gedaan: ['m:a', 'b:taxi'], beloond: [], huizen: [], bezocht: [], intochten: [] }, 'de oude gebieden bestaan niet meer: opnieuw gezaaid');
   assert.equal(G.normaliseer({ v: 2, gedaan: Array.from({ length: 5000 }, (_, k) => 'x' + k) }).gedaan.length, 2000);
   assert.deepEqual(G.normaliseer({ v: 2, gedaan: ['x'.repeat(200), 'ok'] }).gedaan, ['ok']);
 });
@@ -605,9 +605,11 @@ t('de bronnen zijn alleen de bronnen: gebieden.js en gebiedenlive.js importeren 
   const imports = (f) => [...bron(f).matchAll(/^import .* from '(.+?)';/gm)].map((m) => m[1]);
   assert.deepEqual(imports('gebieden.js'), ['./grenzen.js', './ankerpunten.js']);
   assert.deepEqual(imports('grenzen.js'), []);
-  assert.deepEqual(imports('gebiedenlive.js').sort(), ['./finance.js', './gebieden.js', './storagekeys.js']);
+  assert.deepEqual(imports('gebiedenlive.js').sort(), ['./attention.js', './finance.js', './gebieden.js', './storagekeys.js', './wijkintocht.js']);
   assert.ok(!/document\.|window\./.test(bron('gebieden.js').replace(/\/\/.*$/gm, '')));
 });
 
 console.log(`${n - fails}/${n} geslaagd`);
 process.exit(fails ? 1 : 0);
+
+

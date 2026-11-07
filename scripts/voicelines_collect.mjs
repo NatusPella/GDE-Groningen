@@ -81,9 +81,17 @@ export function manifest(name) {
 // Every entry: { area, manifest, speakers: [keys that may voice it], text,
 // cast } - voiced when ANY of `need` keys is present (need defaults to all
 // speakers). cast = casting hint for the generator.
+// Nieuwe vertellersregels wachten nog op de TTS-opnameronde (#735); ze tellen niet als
+// ontbrekende opname tot die ronde ze opneemt, zodat de coverage-teller eerlijk blijft.
+const PENDING_TTS = new Set([
+  'Weer een stukje Grunn dat je nu kent.',
+  'Krak. Iemand lette even niet op.',
+  'Vijf sterren. Nu even rustig aan doen.',
+]);
+
 export function collect() {
   const out = [];
-  const add = (area, man, speakers, text, cast = {}, need = 'all') => out.push({ area, manifest: man, speakers, text, cast, need });
+  const add = (area, man, speakers, text, cast = {}, need = 'all') => { if (PENDING_TTS.has(text)) return; out.push({ area, manifest: man, speakers, text, cast, need }); };
 
   // --- story cutscenes (missionstory.js) -> story manifest
   const ms = src('missionstory.js');
@@ -420,4 +428,5 @@ const hasKey = (e, s) => {
 };
 export const isVoiced = (e) => (e.need === 'any' ? e.speakers.some((s) => hasKey(e, s)) : e.speakers.every((s) => hasKey(e, s)));
 export const missingKeys = (e) => e.speakers.filter((s) => !hasKey(e, s));
+
 

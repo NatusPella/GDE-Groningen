@@ -125,11 +125,11 @@ const CONTROL_GROUPS = [
     [['ESC'], 'Pauzemenu'],
     [['M'], 'Kaart'],
     [['ARROWS'], 'In het menu: kiezen, Enter: ok'],
-    [['Q', 'E'], 'In het menu: het volgende tabblad; zonder tabbladen het volgende onderdeel'],
-    [['[', ']'], 'In het menu: hetzelfde als Q en E (ook bij een tweede tabrij, zoals Samen spelen en Spelers)'],
+    [['Q', 'E'], 'Volgend tabblad of onderdeel'],
+    [['[', ']'], 'Zelfde als Q en E'],
     [['N'], 'Radio aan of uit'],
-    [['U'], 'Geluid uit of weer aan; staat het uit, dan staat linksboven een luidspreker met een streep en de toets U erbij'],
-    [['O'], 'Verhaalstap overslaan (als dat in beeld staat)'],
+    [['U'], 'Geluid aan of uit'],
+    [['O'], 'Verhaalstap overslaan'],
     [['BACKSPACE'], 'Minigame of dienst stoppen'],
     ...(DESKTOP ? [[['F11'], 'Volledig scherm (ook Alt+Enter)']] : []),
   ]],
@@ -2129,4 +2129,6 @@ function setOpen(value, name = HOME, how = 'direct') {
     if (p && p.onClose) p.onClose();
   }
 }
+
+
 
