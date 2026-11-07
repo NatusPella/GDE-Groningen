@@ -42,7 +42,10 @@ export function beginVehicleFrame(world) {
 // De voertuigen rond (x, y) binnen r, in de volgorde van world.vehicles.
 export function vehiclesNear(world, x, y, r, out) {
   const stamp = world._vehStamp || 0;
-  if (stamp !== built || ref !== world.vehicles) build(world.vehicles, stamp);
+  // #653: zonder frame-stempel (een test of een ander hoofd dat beginVehicleFrame niet per
+  // frame aanroept) is er geen rebuild-moment: dan per vraag bouwen, anders ziet de AI alleen
+  // de voertuigen die er bij de eerste vraag al waren.
+  if (!stamp || stamp !== built || ref !== world.vehicles) build(world.vehicles, stamp);
   const x0 = Math.floor((x - r) / CELL), x1 = Math.floor((x + r) / CELL);
   const y0 = Math.floor((y - r) / CELL), y1 = Math.floor((y + r) / CELL);
   out.length = 0;
