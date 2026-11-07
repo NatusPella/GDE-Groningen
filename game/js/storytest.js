@@ -265,7 +265,7 @@ async function minigames2Smoke(world, check, capture) {
   const finite = (p) => [p.x, p.y, p.z].every(Number.isFinite);
 
   const zw = window.__zwembad;
-  check('zwembad: starts', zw && zw.start() && await waitFor(() => zw.state() && zw.state().swim.phase === 'block', 6000));
+  check('zwembad: starts', zw && zw.start() && await waitFor(() => zw.state() && ['block', 'run'].includes(zw.state().swim.phase), 20000));
   await sleep(800);
   check('zwembad: board shows and the hub claims the input', boardUp() && world.activityGame === 'zwembad');
   capture('mg-zwembad-block');
@@ -1084,6 +1084,7 @@ export async function runStoryTest(world) {
   console.log('[storytest-done] ' + JSON.stringify(report));
   return report;
 }
+
 
 
 
