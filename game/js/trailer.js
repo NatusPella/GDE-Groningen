@@ -1,3 +1,4 @@
+import { gridItems } from './spatialgrid.js';
 import { hoofdspeler } from './players.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { FLAGS } from './devflags.js';
@@ -427,7 +428,7 @@ function canalNear(x, y) {
 function cityBox(map) {
   if (map._trailerBox) return map._trailerBox;
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
-  for (const r of map.roads) {
+  for (const r of gridItems(map.roadGrid)) {
     const b = r.bounds;
     if (!b) continue;
     x0 = Math.min(x0, b[0]); y0 = Math.min(y0, b[1]); x1 = Math.max(x1, b[2]); y1 = Math.max(y1, b[3]);

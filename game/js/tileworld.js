@@ -323,7 +323,7 @@ export class TileWorld extends GameMap {
           e = { obj };
           this._res[kind].set(gid, e);
           if (kind === 'buildings' || kind === 'roads' || kind === 'water' || kind === 'green' || kind === 'rails' || kind === 'parcels') obj.bounds = boundsOfObj(kind, obj);
-          if (kind === 'water') { promoteMainWaterway(obj); this._waterVer = (this._waterVer || 0) + 1; newWater.push(obj); }
+          if (kind === 'water') { obj.tile = true; promoteMainWaterway(obj); this._waterVer = (this._waterVer || 0) + 1; newWater.push(obj); }
           if (kind === 'roads') newRoads.push(obj);
           if (kind === 'trees') ownTrees.push(obj);
           if (kind === 'furniture' && obj.k === 'hedge' && obj.pts) ownHedges.push(obj);
@@ -411,6 +411,7 @@ export class TileWorld extends GameMap {
   // They stay for good (no tile drops them); the ground's water mask follows.
   addWaterPatches(rows) {
     for (const w of rows) {
+      w.tile = true; // een patch is geen vast water van de kaart (waterindex.js staticWater)
       w.bounds = polygonBounds(w.pts);
       this.waterGrid.insert(w, w.bounds);
     }

@@ -1,3 +1,4 @@
+import { gridItems } from './spatialgrid.js';
 // Bridge railings: one list of 2 m railing sections per bridge way, shared by
 // streetclutter.js (which draws each section as a breakable 'bridgerail'
 // prop) and the walker collision here, so the drawn railing and its collision
@@ -80,7 +81,7 @@ export function railingItems(map, r) {
 
 function buildRails(map) {
   const lines = [];
-  for (const r of map.roads) {
+  for (const r of gridItems(map.roadGrid)) {
     if (!hasRailings(r)) continue;
     const items = railingItems(map, r);
     const bySide = { 1: [], '-1': [] };

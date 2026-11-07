@@ -7,6 +7,7 @@
 import assert from 'node:assert/strict';
 import { allSignals, junctionModel } from '../game/js/junctions.js';
 import { snapSignals, junctionsOf } from './world/junction_tiles.mjs';
+import { SpatialGrid } from '../game/js/spatialgrid.js';
 
 let n = 0;
 const ok = (v, wat) => { assert.ok(v, wat); n++; };
@@ -23,7 +24,13 @@ ok(built.nodes.some((node) => node.arms.some((arm) => arm.rule === 'signal')), '
 
 // De volgorde die de verse cache liet vallen: eerst allSignals (dat bouwde en leegde de
 // signaalgrid), daarna junctionModel → signalised. Dit mag geen null-grid meer geven.
-const map = { roads: feats.filter((f) => f.kind === 'roads').map((f) => f.row), meta: { trafficLights: snapped.lights } };
+const mapRoads = feats.filter((f) => f.kind === 'roads').map((f) => f.row);
+const roadGrid = new SpatialGrid(80);
+for (const r of mapRoads) {
+  const xs = r.pts.map((q) => q[0]), ys = r.pts.map((q) => q[1]);
+  roadGrid.insert(r, [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)]);
+}
+const map = { roads: mapRoads, roadGrid, meta: { trafficLights: snapped.lights } };
 const lights = allSignals(map);
 ok(lights.length >= 1, 'allSignals op de bouwmap werkt', String(lights.length));
 const model = junctionModel(map);

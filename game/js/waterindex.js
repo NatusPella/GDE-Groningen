@@ -4,7 +4,7 @@
 // builder and the quay walls.
 
 import { GRID_X0, GRID_Y0, TILE_M } from './gdt.js';
-import { SpatialGrid } from './spatialgrid.js';
+import { SpatialGrid, gridItems } from './spatialgrid.js';
 
 const ROW = 8;
 const CELL = 16;
@@ -206,11 +206,13 @@ function segSeg(p0x, p0y, p1x, p1y, q0x, q0y, q1x, q1y) {
 // the tiles gets an index over itself and its neighbours (cached on it, for
 // its shore and surface); a point query uses the index of the tile it is in.
 function staticWater(map) {
-  return map._staticWater || (map._staticWater = new Set(map.water));
+  // (#314 C2b) het statische (gepinde) water uit het waterraster; de rijen van een
+  // gestroomde tegel en de vaarnet-patches dragen `tile` en horen er niet bij.
+  return map._staticWater || (map._staticWater = new Set(gridItems(map.waterGrid).filter((w) => !w.tile)));
 }
 export function getWaterIndex(map, poly = null) {
   if (poly && map.waterNear && !staticWater(map).has(poly)) return polyWaterIndex(map, poly);
-  return map._waterIndex || (map._waterIndex = createWaterIndex(map.water));
+  return map._waterIndex || (map._waterIndex = createWaterIndex([...staticWater(map)]));
 }
 
 // the index that has (x, y) in its water: the tile polygons' where they hold it, else the city's
@@ -321,7 +323,8 @@ const OB_CELL = 16;
 function obstacleGrid(map) {
   if (map._waterObstacles) return map._waterObstacles;
   const g = map._waterObstacles = new SpatialGrid(OB_CELL);
-  for (const b of map.buildings || []) if (b.type === 'houseboat' && !b._moor) addMooredBuilding(map, b);
+  // (#314 C2b) de woonboten uit het bouwraster, ook die van de gestroomde tegels
+  for (const b of gridItems(map.buildingGrid)) if (b.type === 'houseboat' && !b._moor) addMooredBuilding(map, b);
   return g;
 }
 
