@@ -83,8 +83,11 @@ function detail(o, id) {
       ids.map((t) => `<li class="${gedaan.has(t) ? 'klaar' : ''}">${CHECK}<span>${esc(o.ind.taak.get(t).naam)}</span></li>`).join('') + '</ul>';
   }).join('');
   const bar = `<div class="lb-voort"><span class="m-bar${v.deel > 0 ? ' on' : ''}"><i data-bar="gbd-${esc(id)}" data-w="${(v.deel * 100).toFixed(1)}"></i></span><span class="m-num">${v.klaar} / ${v.totaal}</span></div>`;
+  // #708: de intocht van een veroverd gebied is terug te kijken (alleen als je hem al zag)
+  const gezien = Array.isArray(o.profiel.intochten) && o.profiel.intochten.includes(id);
+  const intocht = v.voltooid && gezien ? `<button type="button" class="m-bp gb-reis" data-intocht="${esc(id)}">Bekijk de intocht</button>` : '';
   const pad = G.keten(o.ind, id).slice(0, -1).map((x) => esc(x.naam)).join(' › ');
-  return `<div class="pm-pane-top"><span class="m-eb">${esc(niv.enkel)}${pad ? ` · ${pad}` : ''}</span><h2 class="m-h2 td-h2">${esc(g.naam)}</h2></div>${kop}${bar}${huisHtml(o, id, v)}${blokken}`;
+  return `<div class="pm-pane-top"><span class="m-eb">${esc(niv.enkel)}${pad ? ` · ${pad}` : ''}</span><h2 class="m-h2 td-h2">${esc(g.naam)}</h2></div>${kop}${bar}${intocht}${huisHtml(o, id, v)}${blokken}`;
 }
 
 // De kop van Veroverd (#608): het getal krijgt woorden, zodat niemand hoeft te raden of het

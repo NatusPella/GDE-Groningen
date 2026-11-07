@@ -234,6 +234,32 @@ t('voegSamen: wat in een van beide gedaan is, is gedaan; de invoer blijft heel',
   assert.equal(JSON.stringify([a, b]), voor);
   assert.deepEqual(G.voegSamen(null, '{kapot'), G.nieuwProfiel());
 });
+// (#708) de intocht is één keer per speler te zien en daarna terug te kijken; de lijst staat in het
+// eigen profiel (net als de rest van het veroveren) en gaat mee in normaliseer/voegSamen.
+t('#708: intochten: één keer per speler, in het profiel, en terug te kijken als lijst', () => {
+  const i = ind();
+  const p = G.nieuwProfiel();
+  assert.equal(G.intochtGezien(p, 'wk:WK002'), false);
+  assert.equal(G.markeerIntocht(p, 'wk:WK002'), true);
+  assert.equal(G.markeerIntocht(p, 'wk:WK002'), false, 'dezelfde intocht niet twee keer');
+  assert.deepEqual(p.intochten, ['wk:WK002']);
+  assert.equal(G.intochtGezien(p, 'wk:WK002'), true);
+  assert.equal(G.markeerIntocht(p, ''), false);
+  assert.equal(G.markeerIntocht(p, 42), false);
+  // terugkijken: de geziene intochten als beloningen, onbekende ids vallen weg
+  p.intochten.push('wk:bestaatniet');
+  const lijst = G.intochtenVan(p, i);
+  assert.equal(lijst.length, 1);
+  assert.equal(lijst[0].gebied, 'wk:WK002');
+  assert.equal(lijst[0].titel, G.beloningVan(i, 'wk:WK002').titel);
+  assert.deepEqual(G.intochtenVan(G.nieuwProfiel(), i), []);
+  assert.deepEqual(G.intochtenVan(p, null), []);
+  // een oude of kapotte profiellijst wordt schoon en begrensd geladen
+  assert.deepEqual(G.normaliseer({ v: 2, intochten: ['wk:WK002', 'wk:WK002', 7, ''] }).intochten, ['wk:WK002']);
+  // twee tabbladen: de intochten van beide blijven
+  const m = G.voegSamen({ v: 2, intochten: ['wk:WK002'] }, { v: 2, intochten: ['bu:BU001'] });
+  assert.deepEqual(m.intochten.sort(), ['bu:BU001', 'wk:WK002']);
+});
 t('bezoek: de buurt waar je bent telt eenmaal; kaartVerkend telt de bezochte buurten en rondt naar beneden af', () => {
   const i = ind(), p = G.nieuwProfiel();
   assert.equal(G.bezoek(p, i, 10, 10), 'bu:BU001');
