@@ -140,11 +140,11 @@ const CONTROL_GROUPS = [
 // die vroeger onder de toets stond.
 const CONTROL_LONG = [
   ['voet', [
-    ['Lopen en draaien', 'W A S D lopen en draaien.'],
+    ['Lopen en draaien', '{WASD} lopen en draaien.'],
     ['Camera draaien', 'De muis draait de camera; houd hem laag om omhoog te kijken.'],
-    ['Rennen', 'Rennen: houd Shift vast.'],
+    ['Rennen', 'Rennen: houd {SHIFT} vast.'],
     ['Springen', 'Springen, over hekjes en auto\'s, en uit het water klimmen.'],
-    ['Bukken', 'Bukken: houd Ctrl vast.'],
+    ['Bukken', 'Bukken: houd {CTRL} vast.'],
     ['Gebruiken', 'Instappen, een winkel in, praten of een bijbaantje beginnen.'],
     ['Word een duif', 'Bij een duivenbord: word een duif.'],
     ['Kusje geven', 'Kusje geven aan Tammo of Tessa.'],
@@ -157,7 +157,7 @@ const CONTROL_LONG = [
     ['Wheelie of stoppie', 'Op de fiets: wheelie (vasthouden en trappen), stoppie (vasthouden en remmen), een sprongetje (vasthouden en de rem kort aantikken) of zonder handen rijden (vasthouden en snel doortrappen); heli: omlaag; vliegtuig: neus omlaag.'],
     ['Schakelen', 'Handmatig schakelen: hoger en lager (Instellingen › Schakelen).'],
     ['Koppeling', 'Handmatig met koppeling: de koppeling indrukken bij het schakelen.'],
-    ['Achterom kijken', 'Achterom kijken: houd de toets vast, of de middelste muisknop.'],
+    ['Achterom kijken', 'Achterom kijken: houd {Q} vast, of de middelste muisknop.'],
     ['Sirene', 'Zwaailicht en sirene (politieauto, ambulance).'],
     ['Richting aangeven', 'Richtingaanwijzer links en rechts (nog eens: uit; na de bocht gaat hij vanzelf uit).'],
     ['Binnen/buiten', 'Binnen- of buitenzicht.'],
@@ -190,11 +190,11 @@ const CONTROL_LONG = [
   ]],
   ['menu', [
     ['Pauzemenu', 'Pauzemenu openen; in het menu: terug.'],
-    ['Kiezen', 'In het menu: kiezen, Enter: ok.'],
+    ['Kiezen', 'In het menu: kiezen, {ENTER}: ok.'],
     ['Verhaalstap overslaan', 'De verhaalstap overslaan (als dat in beeld staat).'],
     ['Minigame stoppen', 'Een minigame of dienst stoppen.'],
     ['Geluid', 'Geluid uit of weer aan; staat het uit, dan staat linksboven een luidspreker met een streep, met de knop erbij.'],
-    ['Volledig scherm', 'Volledig scherm (ook Alt+Enter).'],
+    ['Volledig scherm', 'Volledig scherm (ook Alt+{ENTER}).'],
   ]],
 ];
 const GROUP_ICONS = {
@@ -214,6 +214,9 @@ const altKeys = (a) => a.split('+').map((t) => glyphHtml(t)).join('<span class="
 // Toetsenoverzicht; daar is het nu te druk voor, dus het staat op één plek: het tabblad Hulp.
 const longRowsFor = (gid) => (CONTROL_LONG.find(([id]) => id === gid) || ['', []])[1];
 const longTextFor = (gid, desc) => (longRowsFor(gid).find(([d]) => d === desc) || [])[1] || '';
+// Een toets in de lange uitleg staat als token ({SHIFT}, {ENTER}), net als in Hulp; nooit als
+// losse letter, zodat herbinden en het glyph van het actieve apparaat vanzelf volgen.
+const keyText = (t) => esc(t).replace(/\{([A-Z0-9]+)\}/g, (_, k) => glyphHtml(k));
 
 // Het Toetsenoverzicht: per situatie alleen "toets + korte actie", scanbaar en binnen het
 // woordbudget van een naslagscherm (#605). De volledige uitleg staat in Hulp (controlsHelpHtml).
@@ -239,7 +242,7 @@ function controlsHelpHtml() {
         const words = keys.flatMap((k) => k.split('+')).map((t) => MOUSE_WORDS[t] || t).join(' ');
         return `<div class="pm-crow" data-search="${esc((title + ' ' + desc + ' ' + longTextFor(id, desc) + ' ' + words).toLowerCase())}">` +
           `<span class="pm-ckeys">${keys.map(altKeys).join('<span class="pm-k-sep">/</span>')}</span>` +
-          `<span class="pm-cdesc"><b class="one">${esc(desc)}</b> ${esc(longTextFor(id, desc))}</span></div>`;
+          `<span class="pm-cdesc"><b class="one">${esc(desc)}</b> ${keyText(longTextFor(id, desc))}</span></div>`;
       }).join('') + '</section>';
   }).join('');
 }
