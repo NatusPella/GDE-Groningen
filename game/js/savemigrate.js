@@ -28,6 +28,9 @@ export function runMigrations(input, migrations, to, fallback = null) {
   if (!isObj(input)) return null;
   const from = Number.isInteger(input.v) ? input.v : fallback;
   if (!Number.isInteger(from) || from < 1 || from > to) return null;
+  // #655: een save die al bij is hoeft niet gediepcopieerd te worden; alleen een
+  // echte migratiestap werkt op een kopie.
+  if (from === to) return { data: input, from, steps: [] };
   let data = JSON.parse(JSON.stringify(input));
   const steps = [];
   for (let v = from; v < to; v++) {

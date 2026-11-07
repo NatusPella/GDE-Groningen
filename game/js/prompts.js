@@ -37,6 +37,7 @@ import { WEAPONS, isMeleeWeapon, isRangedWeapon } from './combat.js';
 import { gameBusy } from './busy.js';
 import { aaiPrompt } from './aaien.js';
 import { kaartjesPrompt } from './kaartjescontrole.js';
+import { makePromptClock } from './prompttick.js';
 
 const USES_KEY = KEYS.hintUses;
 const LEARN_USES = 3;
@@ -59,6 +60,9 @@ let usesDirty = false;
 let saveTimer = 0;
 let secondaryTimer = 0;
 let secondary = [];
+// #659: de primaire zoeker draait op een klok (8 Hz) in plaats van elke frame
+const primaryClock = makePromptClock();
+let primary = null;
 let kissUntil = 0;
 let pressFlash = 0;
 let prev = { inVehicle: false, mouseDown: false };
@@ -203,11 +207,13 @@ export function updatePrompts(dt, world) {
   if (hidden) {
     // after a scene or a respawn the hints build up again from nothing
     if ((hiddenT += dt) > 1.5) { admitted.clear(); rowGate = ROWS_DELAY; }
+    primary = null;
+    primaryClock.reset();
     return;
   }
   hiddenT = 0;
 
-  const primary = findPrimary(world);
+  if (primaryClock.due(dt)) primary = findPrimary(world);
   secondaryTimer -= dt;
   if (secondaryTimer <= 0) {
     secondaryTimer = SECONDARY_INTERVAL;
