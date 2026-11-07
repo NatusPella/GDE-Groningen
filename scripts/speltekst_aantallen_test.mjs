@@ -32,7 +32,8 @@ ok(!/Eelde · twintig lessen/.test(todo), 'geen handgeschreven twintig lessen me
 // 3. de andere tellingen die al uit een bron kwamen blijven dat doen
 ok(/EIERBAL_TOTAL/.test(todo), 'eierballen komen uit EIERBAL_TOTAL');
 ok(/SECRETS_TOTAL/.test(todo), 'geheimen komen uit SECRETS_TOTAL');
-ok(/const total =/.test(todo) && /total - 3/.test(todo), 'het aantal dorpen komt uit de lijst, niet uit de hand');
+ok(/const total = Object\.keys\(VILLAGES\)\.length/.test(todo), 'het aantal dorpen komt uit VILLAGES');
+ok(/p\.klaar} van \$\{p\.totaal} dorpen/.test(lees('game/js/todoui.js')), 'de dorpenstand in de UI komt uit de berekende totalen');
 
 // 4. de woordenlijst is de plek voor de termen (activiteit/minigame/bijbaan/ronde)
 const wl = lees('docs/WOORDENLIJST.md');

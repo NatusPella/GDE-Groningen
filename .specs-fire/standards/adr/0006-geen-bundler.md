@@ -12,10 +12,12 @@ er is geen server en geen buildstap in dev.
 
 ## Besluit
 
-Geen bundler. `game/index.html` laadt `game/js/main.js` als enige module, Three.js
-komt via de CDN-URL (jsDelivr) en wordt bij de build gevendord; al het andere via relatieve paden. De webversie
-(`web/build.mjs`) is het enige buildpad en levert three.js en de lettertypen zelf
-mee.
+Geen bundler. `game/index.html` laadt `game/js/main.js` als enige module. Three.js
+komt in de bestaande modules via de CDN-URL (jsDelivr) en de import map is de bron
+voor `three/addons/`; de build vendort één versie. `web/build.mjs` en
+`desktop/build.mjs` stagen/vendoren allebei, maar er is geen bundelstap in dev.
+Dev-tooling is toegestaan als controle, nooit als runtime- of dev-buildstap
+(ADR 0028).
 
 ## Afgewezen
 
@@ -31,4 +33,6 @@ mee.
 Importcycli zijn verboden en worden getest (`import_cycles_test`, grens 0). Een
 nieuwe afhankelijkheid is een import-map-regel plus een bestand, geen
 `package.json`-wijziging in de game. De webversie moet alles meedragen wat anders
-van het net kwam.
+van het net kwam. De vijf eigen statische poorten (`import_check`,
+`undef_check`, `spec_check`, `dead_code`, `player_singleton_audit`) draaien in
+de lichte fase; ADR 0028 legt vast dat dev-tooling controle is, geen buildstap.

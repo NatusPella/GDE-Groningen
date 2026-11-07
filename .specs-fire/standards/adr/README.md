@@ -44,7 +44,7 @@ deze lijst voordat een andere sessie begint te schrijven:
 
 | # | Gereserveerd voor | Door |
 |---|---|---|
-| — | (vrij; 0016 is gebruikt door `gde-light-sims`, 0017 door de taalregel, 0018 door de speleringang #500, 0019 door spraak #462, 0020 door 1+1=3 #492, 0021 door de verhaal- en mechaniclaag #470, 0022 door multiplayer first #528) | — |
+| — | (0017 vervangen door 0027; 0025 openingsmontage, 0026 bootorde, 0027 taal, 0028 dev-tooling) | — |
 
 ## Lijst
 
@@ -75,5 +75,5 @@ deze lijst voordat een andere sessie begint te schrijven:
 | [0023](0023-javascript-blijft-de-taal.md) | JavaScript blijft de taal; TypeScript afgewezen | voorgesteld |
 | [0024](0024-eenspeler-is-een-sessie-van-een.md) | Eenspeler is een sessie van één | besloten |
 | [0025](0025-openingsmontage-als-c00-1.md) | De openingsmontage is C00.1 (teruggezet als eerste bedrijf) | besloten |
-| [0026](0026-bootorde.md) | Bootorde: de expliciete lijst eerst, de zoektocht als terugval | besloten |
+| [0026](0026-bootorde.md) | Bootorde: de expliciete lijst eerst, de zoektocht als terugval | besloten |\n| [0027](0027-code-taal-meetbaar.md) | Code in het Engels, meetbaar en met vaste uitzonderingen | besloten |\n| [0028](0028-dev-tooling-zonder-buildstap.md) | Dev-tooling zonder buildstap | besloten |
 

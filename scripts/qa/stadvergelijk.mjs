@@ -32,7 +32,7 @@ if (!flag('alleen-vergelijken')) {
   }
   const planFile = path.join(OUT, 'stadplan.json');
   fs.writeFileSync(planFile, JSON.stringify({ wereld }));
-  const PRE = "{ const st = document.createElement('style'); st.textContent = '#hud, #start-screen, #subtitles { visibility: hidden !important; }'; document.head.appendChild(st); }\n";
+  const PRE = "{ const st = document.createElement('style'); st.textContent = '#hud, #subtitles { visibility: hidden !important; }'; document.head.appendChild(st); }\n"; // #581: het oude startscherm bestaat niet meer op deze route
   for (const run of RUNS) {
     const out = path.join(OUT, run.label);
     fs.mkdirSync(out, { recursive: true });

@@ -16,10 +16,9 @@ const OUT = path.resolve(arg('out', path.join(os.tmpdir(), 'gde-qa-wachtbeeld'))
 const jobs = JSON.parse(fs.readFileSync(path.resolve(arg('jobs')), 'utf8'));
 for (const j of jobs) if (j.file) j.code = fs.readFileSync(path.resolve(path.dirname(path.resolve(arg('jobs'))), j.file), 'utf8'); // kind 'code': de job staat in een los bestand
 fs.mkdirSync(OUT, { recursive: true });
-// zoals de sweep: wachten op de wereld, het startscherm weg (Enter), even rust
+// #581: een testrun start als de speler (boot → wereld); geen startscherm of menu-aanroep meer.
 const WACHT = 'for (let i = 0; i < 240 && !(window.__debug && window.__debug.world); i++) await new Promise((r) => setTimeout(r, 500));\n'
-  + `const kEnter = () => { for (const t of [window, document]) { t.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', bubbles: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter', code: 'Enter', bubbles: true })); } };
-for (let i = 0; i < 40; i++) { const s = document.querySelector('#start-screen'); if (!s || !s.classList.contains('visible')) break; const it = (window.__menuStart ? { click: () => window.__menuStart('nieuw') } : null); if (it) it.click(); else kEnter(); await new Promise((r) => setTimeout(r, 3000)); }
+  + `for (let i = 0; i < 120; i++) { if (document.body.classList.contains('game-started')) break; const w = window.__debug && window.__debug.world; if (w && w.paused) { for (const t of [window, document]) { t.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', code: 'Space', bubbles: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', code: 'Space', bubbles: true })); } } await new Promise((r) => setTimeout(r, 500)); }
 await new Promise((r) => setTimeout(r, 4000));\n`;
 const profile = `gde-test-wb-${process.pid}`;
 const script = path.join(OUT, '_page.js');

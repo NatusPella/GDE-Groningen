@@ -15,7 +15,7 @@ omliggende code al gelden. Bij twijfel: kijk hoe de buren het doen en volg dat.
 
 ## Taal
 
-Drie talen, elk met een eigen domein (ADR [0017](adr/0017-code-in-het-engels.md)):
+Drie talen, elk met een eigen domein (ADR [0027](adr/0027-code-taal-meetbaar.md), dat 0017 vervangt):
 
 | Wat | Taal |
 | --- | --- |
@@ -23,8 +23,7 @@ Drie talen, elk met een eigen domein (ADR [0017](adr/0017-code-in-het-engels.md)
 | Wat de speler ziet of hoort | **Nederlands** (constitution, ADR 0012) |
 | Proza: docs, specs, ADR's, CHANGELOG, issues, commits, testuitvoer | **Nederlands** |
 
-Bestaande Nederlandse namen en comments blijven staan; je hernoemt ze alleen in de commit
-die dat bestand toch al aanraakt. Geen massale hernoeming.
+Nieuwe code is Engels en er komen geen nieuwe Nederlandse identifiers of nieuwe `coop`-namen bij; `scripts/naamtaal_check.mjs` bewaakt dat met een baseline. Bestaande Nederlandse namen en comments blijven staan; je hernoemt ze alleen in de commit die dat bestand toch al aanraakt. Geen massale hernoeming. **Vaste uitzonderingen:** de Nederlandse spelers-API van ADR 0018 is bevroren, speltermen blijven Nederlands, en `ARCHITECTURE.md` blijft Engels als technische naslag.
 
 ## Naamgeving
 

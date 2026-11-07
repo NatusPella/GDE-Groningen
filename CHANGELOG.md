@@ -3,6 +3,9 @@
 Alle noemenswaardige wijzigingen in GDE Groningen, per versie. Nieuwste bovenaan.
 Versies volgen SemVer: `0.x.y` tot de echte release (1.0.0); `x` voor
 nieuwe functies, `y` voor alleen bugfixes.
+**Navigatie:** de nieuwste release staat direct onder `[Unreleased]`; oudere
+versies staan op datum op volgorde. Er zijn geen aparte kopstijlen per sectie:
+elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
