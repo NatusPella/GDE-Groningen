@@ -1,3 +1,4 @@
+import { gridItems } from './spatialgrid.js';
 // Roads through buildings: every stretch of a street, cycleway or footway
 // that runs inside a building footprint, and what the game makes of it
 // (passages.js). `auditPassages(map)` counts them per class; the story test
@@ -16,7 +17,7 @@ import { offGradeWay, runsInside, classifyRun } from './passages.js';
 export function auditPassages(map, opts = {}) {
   const counts = { opening: 0, door: 0, graze: 0, clipped: (map.clippedWays || []).length, hole: 0, solid: 0 };
   const list = (opts.all ? map.clippedWays || [] : []).map((c) => ({ cls: 'clipped', depth: 0, len: +c.len.toFixed(1), road: label(c.road), building: c.building.name || c.building.type || '', x: +c.x.toFixed(1), y: +c.y.toFixed(1) }));
-  for (const r of map.roads) {
+  for (const r of gridItems(map.roadGrid)) {
     if (offGradeWay(r) || r.pts.length < 2) continue;
     const [minx, miny, maxx, maxy] = r.bounds;
     for (const b of map.buildingGrid.query(minx, miny, maxx, maxy)) {

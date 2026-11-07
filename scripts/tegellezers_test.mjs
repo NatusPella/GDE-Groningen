@@ -125,12 +125,34 @@ export function compare(meting, basis) {
 }
 
 // --- basislijn (begin) -------------------------------------------------------------------------
-// Gemeten op 29-10-2026 met de definitie hierboven: 45 lezers in 31 bestanden.
+// Gemeten op 07-11-2026 met de definitie hierboven: 25 lezers in 16 bestanden.
 // De verkenning van 25-10 noemde 112 met een ruimere greep (elke vermelding van
 // map.<array>, ook toewijzingen van een hele array en losse rijen); dit is de
 // strakke maat die vanaf nu geldt, en dezelfde voor elke volgende ronde.
-const BASIS = {"totaal":45,"bestanden":31,"per":{"game/js/bridgerails.js":1,"game/js/canopies3d.js":0,"game/js/cinematics.js":1,"game/js/countryedge.js":4,"game/js/elevation.js":2,"game/js/farlod.js":0,"game/js/flavour.js":1,"game/js/flitspaal.js":1,"game/js/geokernels.js":0,"game/js/grass.js":2,"game/js/home.js":2,"game/js/junctions.js":2,"game/js/main.js":0,"game/js/mapdata.js":0,"game/js/mapview.js":1,"game/js/marktfiets.js":1,"game/js/movablebridges.js":2,"game/js/nightlights3d.js":0,"game/js/ommelandplace.js":0,"game/js/parkedcars.js":1,"game/js/passagecheck.js":1,"game/js/passages.js":4,"game/js/pedestrians.js":0,"game/js/pedroutes.js":1,"game/js/quaywalls.js":1,"game/js/railprofile.js":0,"game/js/railway.js":0,"game/js/railway3d.js":0,"game/js/ringcheck.js":2,"game/js/roadstructures3d.js":0,"game/js/roadsurface.js":1,"game/js/routing.js":1,"game/js/scene3d.js":0,"game/js/shops.js":1,"game/js/sidejobkit.js":1,"game/js/simworld.js":1,"game/js/skyprops.js":1,"game/js/stationtravel.js":0,"game/js/streetfurniture3d.js":0,"game/js/streetsigns.js":1,"game/js/testmenu.js":1,"game/js/thuis3d.js":1,"game/js/tileworld.js":0,"game/js/trafficlights.js":0,"game/js/trailer.js":1,"game/js/vehicle/traffic.js":1,"game/js/waterindex.js":3,"game/js/worldevents.js":1}};
+const BASIS = {"totaal":25,"bestanden":16,"per":{"game/js/bridgerails.js":0,"game/js/canopies3d.js":0,"game/js/cinematics.js":1,"game/js/countryedge.js":4,"game/js/elevation.js":0,"game/js/farlod.js":0,"game/js/flavour.js":1,"game/js/flitspaal.js":0,"game/js/geokernels.js":0,"game/js/grass.js":2,"game/js/home.js":2,"game/js/junctions.js":1,"game/js/main.js":0,"game/js/mapdata.js":0,"game/js/mapview.js":0,"game/js/marktfiets.js":0,"game/js/movablebridges.js":2,"game/js/nightlights3d.js":0,"game/js/ommelandplace.js":0,"game/js/parkedcars.js":1,"game/js/passagecheck.js":0,"game/js/passages.js":4,"game/js/pedestrians.js":0,"game/js/pedroutes.js":1,"game/js/quaywalls.js":1,"game/js/railprofile.js":0,"game/js/railway.js":0,"game/js/railway3d.js":0,"game/js/ringcheck.js":0,"game/js/roadstructures3d.js":0,"game/js/roadsurface.js":1,"game/js/routing.js":1,"game/js/scene3d.js":0,"game/js/shops.js":0,"game/js/sidejobkit.js":0,"game/js/simworld.js":1,"game/js/skyprops.js":0,"game/js/stationtravel.js":0,"game/js/streetfurniture3d.js":0,"game/js/streetsigns.js":0,"game/js/testmenu.js":0,"game/js/thuis3d.js":0,"game/js/tileworld.js":0,"game/js/trafficlights.js":0,"game/js/trailer.js":0,"game/js/vehicle/traffic.js":1,"game/js/waterindex.js":0,"game/js/worldevents.js":1}};
 // --- basislijn (eind) --------------------------------------------------------------------------
+
+// Waarom een resterende lezer blijft (#314 C1/C2, sluiting): elke plek hieronder is een
+// bewuste keuze, geen vergeten hoek. Bij een nieuwe lezer hoort hier een regel bij.
+const REDEN = {
+  'game/js/countryedge.js': 'bouwmal van de databedekking bij het laden, vóór de tegelstroom (de rand van de data, geen live vraag)',
+  'game/js/passages.js': 'knipt de wegen- en gebouwenlijst bij het bouwen (schrijver/afleiding, hetzelfde bouwpad als mapdata; per tegel knippen is C2 zelf)',
+  'game/js/grass.js': 'graschunks over al het groen bij het laden; de provincie doet zijn gras per tegel',
+  'game/js/home.js': 'schrijver: haalt de huis-paden uit de wegenlijst (indexOf/splice)',
+  'game/js/movablebridges.js': 'krijgt een wegenlijst van de bouwer en de tests en leidt daar de bruggen uit af',
+  'game/js/cinematics.js': 'de verhaalcamera bepaalt de kaartdoos over alle wegen (eenmalig per scène)',
+  'game/js/flavour.js': 'provincie-flavourpunten over de wegenlijst bij het bouwen',
+  'game/js/junctions.js': 'junctionRows schrijft de tegelrijen met de gidsen in de volgorde van map.roads (bron voor de JUNCTIONS-sectie)',
+  'game/js/parkedcars.js': 'de array-index van de weg is de stabiele sleutel per weg',
+  'game/js/pedroutes.js': 'de loopgraaf wordt uit de wegenlijst gebouwd (worker en tests)',
+  'game/js/quaywalls.js': 'de array-index van het water is de stabiele sleutel',
+  'game/js/roadsurface.js': 'verfronde over alle wegen bij het laden en in de tests',
+  'game/js/routing.js': 'routeringsgraaf uit de wegenlijst; tests bouwen hem met een nepkaart',
+  'game/js/simworld.js': 'de simulatiewerker krijgt platte kaartdata, geen rasters',
+  'game/js/vehicle/traffic.js': 'verkeersgraaf in de werker over de platte wegenlijst',
+  'game/js/worldevents.js': 'de array-index van het water is de stabiele meren-id (save en belevenissen)',
+};
+// --- redenen (eind) ----------------------------------------------------------------------------
 
 const SCRIPT = fileURLToPath(import.meta.url);
 
@@ -175,7 +197,7 @@ function schrijfBasis(nieuw) {
   nieuw = { totaal, bestanden, per };
   const blok = [
     begin + ' -------------------------------------------------------------------------',
-    `// Gemeten op 29-10-2026 met de definitie hierboven: ${nieuw.totaal} lezers in ${nieuw.bestanden} bestanden.`,
+    `// Gemeten op 07-11-2026 met de definitie hierboven: ${nieuw.totaal} lezers in ${nieuw.bestanden} bestanden.`,
     '// De verkenning van 25-10 noemde 112 met een ruimere greep (elke vermelding van',
     '// map.<array>, ook toewijzingen van een hele array en losse rijen); dit is de',
     '// strakke maat die vanaf nu geldt, en dezelfde voor elke volgende ronde.',
@@ -224,8 +246,13 @@ function main() {
     for (const r of meting.regels[bestand]) soorten[r.soort] = (soorten[r.soort] || 0) + 1;
     const verdeling = Object.entries(soorten).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k} ${v}`).join(', ');
     console.log(`  ${String(n).padStart(3)}  ${bestand.padEnd(28)} ${verdeling}`);
-    if (verbose) console.log(`       regel ${meting.regels[bestand].map((r) => r.regel).join(', ')}`);
+    if (verbose) {
+      console.log(`       regel ${meting.regels[bestand].map((r) => r.regel).join(', ')}`);
+      if (REDEN[bestand]) console.log(`       reden: ${REDEN[bestand]}`);
+    }
   }
+  const ongedocumenteerd = top.filter(([bestand]) => !REDEN[bestand]).map(([bestand]) => bestand);
+  if (ongedocumenteerd.length) console.log(`FOUT  lezers zonder reden in de basislijn: ${ongedocumenteerd.join(', ')}`);
   for (const regel of dalingen) console.log(`OK    ${regel}`);
   for (const regel of fouten) console.log(`FOUT  ${regel}`);
   if (dalingen.length) console.log('Werk de basislijn bij met --update (dat verlaagt hem; hij gaat nooit omhoog).');

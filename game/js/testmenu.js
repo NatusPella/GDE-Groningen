@@ -1,3 +1,4 @@
+import { gridItems } from './spatialgrid.js';
 // Testmenu (?testmenu, loaded by main.js only then). F10 opens it: every URL
 // switch of devflags.js with its Dutch explanation and a toggle (the page
 // reloads with the switch changed), and shortcuts to a test situation per new
@@ -104,7 +105,7 @@ function runShortcut(id) {
   if (a.kind === 'bridge') {
     const p = hoofdspeler(world); // startpunt van de sprong: het eigen lichaam (#500)
     let best = null, bd = Infinity;
-    for (const r of (map && map.roads) || []) {
+    for (const r of (map && map.roadGrid) ? gridItems(map.roadGrid) : []) {
       if (!r.bridge || !r.pts || r.pts.length < 2) continue;
       const m = r.pts[Math.floor(r.pts.length / 2)], d = Math.hypot(m[0] - p.x, m[1] - p.y);
       if (d > 30 && d < bd) { bd = d; best = m; }

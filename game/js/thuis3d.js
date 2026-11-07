@@ -1,3 +1,4 @@
+import { gridItems } from './spatialgrid.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { registerBuildingModel, modelKit, LANDMARK_MATERIALS } from './landmarks3d.js';
 import { GeoBuilder } from './pixelart3d.js';
@@ -425,7 +426,7 @@ defer('boumaRij', (B, b, ring) => {
 // street towards the park) its lit dakkapel.
 export function tagKorenbloemstraat(map) {
   kitReady();
-  const road = map.roads.find((r) => r.name === 'Korenbloemstraat');
+  const road = gridItems(map.roadGrid).find((r) => r.name === 'Korenbloemstraat');
   if (!road) return;
   const [a, c] = [road.pts[0], road.pts[road.pts.length - 1]];
   const L = Math.hypot(c[0] - a[0], c[1] - a[1]);

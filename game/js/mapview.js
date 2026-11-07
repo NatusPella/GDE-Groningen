@@ -1,3 +1,4 @@
+import { gridItems } from './spatialgrid.js';
 import { setMapOpenState } from './pausestate.js';
 import { sfxLinks } from './latehooks.js';
 import { onPaletteChange } from './a11y.js';
@@ -66,6 +67,7 @@ import { gastDoelen } from './coopextra.js';
 import { kaartDoelen, KAART_ANDER_ALPHA } from './coopmissie.js';
 import { samenWaarschuwing } from './coopstatus.js';
 import { warnsOn, riskWhy } from './muggingrules.js';
+import { loopbaanTeken } from './loopbaanlive.js'; // #674: de hoogste titel naast je eigen plek op de kaart
 
 const PADDING = 0.94;
 const ICON = 1.25;
@@ -1412,10 +1414,13 @@ function drawDynamicMarkers(ctx, world) {
     icon(null, 'userWaypoint', wp.x, wp.y, `Waypoint: ${wp.name}`, {}, 'klik voor Haal weg · rechtsklik of Del om te wissen', { isGoal: true });
   }
 
-  // de hint bij je eigen plek (#445): waar je staat, ook als je even niet weet waar je bent
+  // de hint bij je eigen plek (#445): waar je staat, ook als je even niet weet waar je bent. #674: met de
+  // hoogste titel erbij (alleen je eigen scherm; een gast leest zijn eigen titel, niet die van de opener).
   const ik = hoofdspeler(world);
   const hier = plekHier(ik);
-  icon(null, 'player', ik.x, ik.y, 'Jij', { angle: ik.angle }, hier ? `Je staat hier · ${hier}` : 'Je staat hier', { self: true, hier });
+  const teken = loopbaanTeken();
+  const mijnTitel = teken ? ` · ${teken.titel}` : '';
+  icon(null, 'player', ik.x, ik.y, 'Jij', { angle: ik.angle }, hier ? `Je staat hier · ${hier}${mijnTitel}` : `Je staat hier${mijnTitel}`, { self: true, hier });
   // medespelers (samen spelen, #95): eigen kleur en vorm, naam en status bij de aanwijzer
   for (const p of world.coopPartners || []) if (p.zichtbaar) icon(null, 'partner', p.x, p.y, p.naam, { angle: p.heading, kleur: grijsBijPassief(world.coopPvp, p.slot) ? INK.passiefGrijs : p.kleur, vorm: p.vorm }, p.tekst + (grijsBijPassief(world.coopPvp, p.slot) ? ' · passief' : '')); // passief is grijs zodra er PvP in het spel is (#447)
   for (const m of world.coopPingMarks || []) icon(null, 'partner', m.x, m.y, m.naam ? `${m.naam}: ${m.tekst}` : m.tekst, { angle: 0, kleur: m.kleur, vorm: m.vorm }, 'roep');
@@ -1561,7 +1566,7 @@ function drawChrome(ctx) {
 function buildSearchIndex(world) {
   const entries = [];
   const byName = new Map();
-  for (const r of world.map.roads) {
+  for (const r of gridItems(world.map.roadGrid)) {
     if (!r.name || r.pts.length < 2) continue;
     let len = 0;
     for (let i = 1; i < r.pts.length; i++) len += Math.hypot(r.pts[i][0] - r.pts[i - 1][0], r.pts[i][1] - r.pts[i - 1][1]);

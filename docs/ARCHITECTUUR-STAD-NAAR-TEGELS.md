@@ -981,3 +981,52 @@ de bestaanscheck en de `push`; regel 372 drie keer: de check, `indexOf` en
 `splice`; regel 3769 twee keer: de check en de `find`), dan staan er op die regel
 meer afzonderlijke aanrakingen. Ze staan er allebei omdat een volgende fase ze
 allebei moet wegwerken: 103 regels in de tabel, 107 aanrakingen in de teller.
+
+## Bijlage B: de stand na #314 C2b (7 november 2026): 25 lezers in 16 bestanden
+
+De teller is van 107 (29 oktober) via 98, 86, 76, 65 en 45 teruggebracht tot
+**25 lezers in 16 bestanden** (`node scripts/tegellezers_test.mjs`). De pin in
+`tileworld.js` (`loadTileWorld`) staat er nog; wat er nog leest is geen runtime-
+blokkade meer maar bouw-, werker- of stabiliteitswerk.
+
+**Wat weg is.** `mapdata.js` (20 → 0): de klasse en `fromParts` bouwen alle rasters
+uit de bronlijsten die zij meekrijgen (`data`/`p`), niet uit de live arrays; de
+`deriveBuildings`-lijst voedt de gebouwen. Daarna zijn per laag de rasters de bron
+geworden: `elevation.js` (wegen/rails), `ringcheck.js`, `junctions.js`
+(stadsmodel), `waterindex.js` (statisch water, woonboten), `tileworld.js`
+(meubels), `streetfurniture3d.js`, `nightlights3d.js` en de kleine lezers in
+`flitspaal`, `skyprops`, `shops`, `streetsigns`, `mapview`, `trailer`, `testmenu`,
+`thuis3d`, `bridgerails`, `passagecheck`, `marktfiets` en `sidejobkit`. De
+gestroomde tegel markeert zijn water (`tile`), zodat `staticWater` het vaste water
+van de kaart blijft.
+
+**Wat bewust blijft** (met de reden in `scripts/tegellezers_test.mjs`, `REDEN`):
+
+| bestand | lezers | reden |
+|---|---:|---|
+| `countryedge.js` | 4 | bouwmal van de databedekking, eenmalig bij het laden vóór de tegelstroom |
+| `passages.js` | 4 | knipt de wegen/gebouwen bij het bouwen (schrijver; per tegel knippen is C2 zelf) |
+| `grass.js` | 2 | graschunks over al het groen bij het laden; de provincie doet zijn gras per tegel |
+| `home.js` | 2 | schrijver: haalt de huis-paden uit de wegenlijst |
+| `movablebridges.js` | 2 | krijgt een wegenlijst van de bouwer/tests en leidt daar bruggen uit af |
+| `cinematics.js` | 1 | verhaalcamera bepaalt de kaartdoos over alle wegen, eenmalig per scène |
+| `flavour.js` | 1 | provincie-flavourpunten over de wegenlijst bij het bouwen |
+| `junctions.js` | 1 | `junctionRows` schrijft de tegelrijen met de gidsen in de volgorde van `map.roads` |
+| `parkedcars.js` | 1 | de array-index van de weg is de stabiele sleutel |
+| `pedroutes.js` | 1 | loopgraaf uit de wegenlijst (worker en tests) |
+| `quaywalls.js` | 1 | de array-index van het water is de stabiele sleutel |
+| `roadsurface.js` | 1 | verfronde over alle wegen bij het laden en in de tests |
+| `routing.js` | 1 | routeringsgraaf; tests bouwen hem met een nepkaart |
+| `simworld.js` | 1 | de simulatiewerker krijgt platte kaartdata, geen rasters |
+| `vehicle/traffic.js` | 1 | verkeersgraaf in de werker over de platte wegenlijst |
+| `worldevents.js` | 1 | de array-index van het water is de stabiele meren-id (save) |
+
+Een nieuwe lezer zonder regel in `REDEN` laat de teller met een `FOUT` eindigen:
+elke resterende plek is daarmee een bewuste keuze in plaats van een vergeten hoek.
+
+**Wat de pin nog tegenhoudt** zijn de stappen 1 en 2 uit het ontwerp hierboven: de
+dichte gid-eis (`fromTiles`) en het drop-pad dat gaten in de zeven arrays moet
+zetten, plus de caches/per-tegel tekenlagen (stap 4 en 5). De meetlat blijft
+`scripts/tileworld_pinned_test.mjs` (26/26, inclusief de dichte gids) en
+`scripts/world/stad_pariteit_c2.mjs`; die twee moeten groen blijven voordat de pin
+eruit gaat.
