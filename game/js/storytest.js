@@ -483,7 +483,6 @@ async function newArcRuntimeChecks(world, check, capture) {
     const stil = (window.__storytext.scenes() || [])
       .map((id) => ({ id, lines: window.__storytext.talk(id) }))
       .find((s) => s.lines.length >= 5 && s.lines.every((l) => !l.voice));
-    check('new arc: a text-only scene exists', !!stil, stil ? stil.id : 'geen scène meer zonder opnames');
     if (!stil) {
       // Sinds de TTS-ronde van #735 heeft elke scène opnames; het tekstpad blijft bestaan voor regels
       // zonder stem, maar er is geen scène meer om het hier te bewijzen.
@@ -1084,6 +1083,7 @@ export async function runStoryTest(world) {
   console.log('[storytest-done] ' + JSON.stringify(report));
   return report;
 }
+
 
 
 
