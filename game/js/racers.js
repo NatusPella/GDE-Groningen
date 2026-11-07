@@ -178,6 +178,10 @@ function project(t, px, py, from, count) {
     const cp = closestPointOnSegment(px, py, t.x[i], t.y[i], t.x[j], t.y[j]);
     if (cp.dist2 < bd) { bd = cp.dist2; best = { i, u: cp.t, cx: cp.x, cy: cp.y }; }
   }
+  if (!best) { // lege selectie (bv. een net gestarte race): val terug op het eerste punt van het bereik
+    const i = ((from % t.n) + t.n) % t.n;
+    return { i, s: t.s[i], lat: 0, dist: Infinity };
+  }
   const { i, u } = best;
   const sl = t.s[i] + (t.s[i + 1] - t.s[i]) * u;
   const lat = (px - best.cx) * t.nx[i] + (py - best.cy) * t.ny[i];
