@@ -16,8 +16,8 @@ const OUT = path.resolve(arg('out', path.join(os.tmpdir(), 'gde-cutaudio-live'))
 fs.mkdirSync(OUT, { recursive: true });
 const cfg = { only: arg('only', '').split(',').filter(Boolean), prop: arg('prop', '').split(',').filter(Boolean), max: Number(arg('max', 12)), speed: Number(arg('speed', 2)) };
 const WACHT = 'for (let i = 0; i < 240 && !(window.__debug && window.__debug.world); i++) await new Promise((r) => setTimeout(r, 500));\n'
-  + "const kEnter = () => { for (const t of [window, document]) { t.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', bubbles: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter', code: 'Enter', bubbles: true })); } };\n"
-  + "for (let i = 0; i < 40; i++) { const s = document.querySelector('#start-screen'); if (!s || !s.classList.contains('visible')) break; const it = (window.__menuStart ? { click: () => window.__menuStart('nieuw') } : null); if (it) it.click(); else kEnter(); await new Promise((r) => setTimeout(r, 2500)); }\n"
+  // #581: een testrun start als de speler (boot → wereld); geen startscherm of menu-aanroep meer.
+  + "for (let i = 0; i < 120; i++) { if (document.body.classList.contains('game-started')) break; const w = window.__debug && window.__debug.world; if (w && w.paused) { for (const t of [window, document]) { t.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', code: 'Space', bubbles: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', code: 'Space', bubbles: true })); } } await new Promise((r) => setTimeout(r, 500)); }\n"
   + 'await new Promise((r) => setTimeout(r, 4000));\n';
 const script = path.join(OUT, '_page.js');
 fs.writeFileSync(script, WACHT + `window.__cl = ${JSON.stringify(cfg)};\n` + fs.readFileSync(path.join(HERE, 'cutaudio_live.page.js'), 'utf8'));

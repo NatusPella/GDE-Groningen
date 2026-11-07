@@ -146,9 +146,8 @@ fs.mkdirSync(OUT, { recursive: true });
 const profile = `gde-test-qa-${process.pid}`;
 const script = path.join(OUT, '_page.js');
 const WACHT = 'for (let i = 0; i < 240 && !(window.__debug && window.__debug.world); i++) await new Promise((r) => setTimeout(r, 500));\n'
-  + `const kEnter = () => { for (const t of [window, document]) { t.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', bubbles: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter', code: 'Enter', bubbles: true })); } };
-let seen = false;
-for (let i = 0; i < 60; i++) { const s = document.querySelector('#start-screen'); const up = !!s && s.classList.contains('visible'); if (up) { seen = true; const it = (window.__menuStart ? { click: () => window.__menuStart('nieuw') } : null); if (it) it.click(); else kEnter(); } await new Promise((r) => setTimeout(r, up ? 2500 : 1000)); if (seen && !up) break; if (document.body.classList.contains('game-started')) break; }
+  // #581: een testrun start als de speler (boot → wereld); geen startscherm of menu-aanroep meer.
+  + `for (let i = 0; i < 120; i++) { if (document.body.classList.contains('game-started')) break; const w = window.__debug && window.__debug.world; if (w && w.paused) { for (const t of [window, document]) { t.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', code: 'Space', bubbles: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', code: 'Space', bubbles: true })); } } await new Promise((r) => setTimeout(r, 500)); }
 await new Promise((r) => setTimeout(r, 4000));\n`;
 fs.writeFileSync(script, WACHT + (RONDE >= 2 ? `window.__qa2 = ${JSON.stringify({ spots: SPOTSX, settle: SETTLE, drive: DRIVE, only: ONLY, noPlay: RONDE === 3 })};
 ` + fs.readFileSync(path.join(HERE, 'province_shots2.page.js'), 'utf8') : `window.__qaSpots = ${JSON.stringify(SPOTS)}; window.__qaSettle = ${SETTLE}; window.__qaOnly = ${JSON.stringify(ONLY)};\n` + fs.readFileSync(path.join(HERE, 'province_shots.page.js'), 'utf8')));

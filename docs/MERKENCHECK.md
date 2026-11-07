@@ -47,7 +47,9 @@ merken met status "registered" of "pending/filed".
   beschermt (games, entertainment).
 - "Grootste Diefstal Ever" is een beschrijvende zin; die heeft weinig
   onderscheidend vermogen en is dus moeilijk te registreren, maar ook minder
-  conflictgevoelig.
+  conflictgevoelig. De Engels-Nederlandse vorm is de vaste merknaam en
+  tagline (#577); hij wordt niet vertaald naar "Grootste Diefstal Ooit" en
+  staat als bewuste uitzondering op constitutie 1 in `docs/LICENTIES.md`.
 - Het spel is gratis en niet commercieel; het risico is vooral een
   verwijderverzoek van een platform (Steam, itch.io) bij een conflict. Een eigen
   merkregistratie is niet nodig voor publicatie; de naam is wel te

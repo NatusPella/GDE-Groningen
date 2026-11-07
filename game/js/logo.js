@@ -4,6 +4,8 @@
 // loading and title screens, which show before any module has loaded.
 
 export const SERIES = 'GDE';
+// #577: vaste merknaam/tagline (Nederlands-Engelse eigennaam), geen vertaalbare
+// spelzin; de bewuste uitzondering op constitutie 1 staat in docs/LICENTIES.md.
 export const SERIES_MEANING = 'Grootste Diefstal Ever';
 const PLACE = 'Groningen';
 export const SUBTITLE = 'Zomer vol misdaad';
