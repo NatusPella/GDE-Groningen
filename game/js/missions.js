@@ -3255,10 +3255,11 @@ function updateEggs(dt, world, def) {
   chainState().eggVeh = v;
   chainState().eggPrev = sp;
   chainState().eggHp = v.health;
-  for (const lvl of [75, 50]) {
+  // #663: twee waarschuwingen vóór de faalgrens (75, 60, 45; M09 faalt onder 38%)
+  for (const lvl of [75, 60, 45]) {
     if (chainState().eggs < lvl && chainState().eggWarn > lvl) {
       chainState().eggWarn = lvl;
-      world.addMessage(lvl > 60 ? `Krak. Achterin breekt een ei. ${eggText(def)}` : `Nog zo'n remmer en het wordt omelet! (${eggText(def)})`, 2.8);
+      world.addMessage(lvl > 70 ? `Krak. Achterin breekt een ei. ${eggText(def)}` : lvl > 50 ? `Nog een krat omgegooid en het is omelet. ${eggText(def)}` : `Nog één stoot en de missie mislukt. ${eggText(def)}`, 2.8);
     }
   }
   if (chainState().eggs <= def.eggs.failAt) fail(world, def, def.eggs.fail);
