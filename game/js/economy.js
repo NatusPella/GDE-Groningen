@@ -38,14 +38,28 @@ export const SIDEJOB_ACCIDENT_FINE = 10;
 export const SIDEJOB_PAY_MULT = 1.5;
 export const SIDEJOB_LEVEL_BONUS = 0.15;
 
-// Post-game: challenge prize per medal, and the Fjord Frituur shift bonus
-// on top of the takings.
-export const PG_PRIZE = [0, 200, 400, 700];
+// Post-game: challenge prize per medal, and the Fjord Frituur shift bonus on top of the takings.
+// #675: de revanche-uitdagingen betalen in verhouding tot de missies en Veroverd: goud is nu €1.500.
+export const PG_PRIZE = [0, 500, 1000, 1500];
 export const FJORD_SHIFT_BONUS = [0, 120, 250, 450];
 
-// After the story the Fjord Frituur earns a daily wage (paid at FJORD_DAY_HOUR).
-export const FJORD_DAY_PAY = 250;
+// #675: geen gratis geldautomaat meer. De Fjord levert passief alleen iets op als de wagen openstaat,
+// en de dagomzet groeit met de upgrades (pg_foodtruck.js fjordDagomzet). De oude vaste dagomzet blijft
+// als ondergrens staan voor de eerste dag.
+export const FJORD_DAY_PAY = 80;
 export const FJORD_DAY_HOUR = 7;
+
+// #674: de garagekorting van een meester in een vervoersvak komt via deze haak, zodat garages.js de
+// loopbaan niet hoeft te importeren (de balanstest bewaakt dat geld uit reparaties niet via de loopbaan
+// loopt). loopbaanlive.js zet de haak; zonder loopbaan is de korting 0.
+let garageKortingFn = null;
+export const zetGarageKorting = (fn) => { garageKortingFn = typeof fn === 'function' ? fn : null; };
+export function garageKorting() {
+  try {
+    const v = garageKortingFn ? Number(garageKortingFn()) : 0;
+    return Number.isFinite(v) && v > 0 && v < 1 ? v : 0;
+  } catch (e) { return 0; }
+}
 
 // Hidden eierballen.
 export const EIERBAL_FIND_PAY = 50;

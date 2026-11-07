@@ -117,3 +117,10 @@ hoort bij `hengelen.js`; de soorten en het geld staan in `visdata.js`, het water
   afgerond. Zonder niveaus: 70 tot 160 euro per uur, met alles ontdekt tot ongeveer 240; `visdata.js` `PRIJS_SCHAAL` (0,6) houdt dat in de orde van de bijbanen (#680), en `vis_test.mjs` en `loopbaan_balans_test.mjs` bewaken de verhouding met de bijbanen. De gasten bij samen spelen krijgen er niets van (`deel: false`): ze hengelen op hun eigen apparaat in hun eigen boek.
 - **Punten:** een vangst geeft 1 tot 15 punten naar zeldzaamheid, een nieuwe soort 6 extra en een nieuw water 8.
 - **Prestaties:** tien, twintig en alle soorten, vijf en vijftien wateren, honderd vissen, per watertype alle soorten, en de meerval.
+
+## Een zichtbaar hoogste niveau (#674)
+
+Op het hoogste niveau van een vak is de titel niet meer alleen in het Loopbanen-scherm te zien:
+
+- **Op de kaart**, naast je eigen plek (`mapview.js`: "Je staat hier · Meesterklusser"). Alleen je eigen scherm: een gast leest zijn eigen titel uit zijn eigen profiel, de opener neemt die niet over.
+- **Eén concreet voordeel per groep** op niveau 6 in minstens één vak (`loopbaan.js` `GROEP_VOORDELEN`): vervoer geeft 20% korting op een garage-reparatie (via de haak `economy.js` `zetGarageKorting`, zodat `garages.js` de loopbaan niet importeert), werk maakt een ritje in de botsauto's gratis, en spel zet de titel ook bij wedstrijden. De loonfactor blijft zoals hij is (max 1,30); dit is een extra teken en gemak, geen economie-explosie. Tests: `scripts/loopbaan_teken_test.mjs` en `loopbaan_balans_test.mjs`.

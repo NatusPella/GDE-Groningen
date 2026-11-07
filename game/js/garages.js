@@ -8,7 +8,7 @@ import { isCinematicActive } from './cinematics.js';
 import { tuningKind, optionsFor, PARTS, PART_LABELS, tuningEffects, installPrice, withOption, loadTuning, saveTuning, optionById } from './tuningplan.js';
 import { KEYS } from './storagekeys.js';
 import { vehicleUpgradeItems, paintItems, getOwnedEntries, spawnOwnedEntry, replacementFee, getHeroLook, vehiclePreviewOf } from './shops.js';
-import { repairCost, platesCost, HERO_REPLACE_FEE } from './economy.js';
+import { repairCost, platesCost, HERO_REPLACE_FEE, garageKorting } from './economy.js';
 import { spawnHeroCarNear } from './vehicle.js';
 import { markDirty } from './savehook.js';
 import { recordStat } from './achievements.js';
@@ -254,7 +254,10 @@ function twoWheel(v) {
 function repairPrice(v) {
   const dmg = 100 - Math.max(0, Math.min(100, v.health ?? 100));
   const dents = v.damage ? Math.min(3, v.damage.total || 0) : 0;
-  return repairCost(dmg, dents, twoWheel(v)) + (v.flat ? (twoWheel(v) ? 3 : 15) : 0) + onderdelenPrijs(losseOnderdelen(zoneTotals(v.dentLog, v.model.len, v.model.wid))) + deelPrijs(v);
+  const basis = repairCost(dmg, dents, twoWheel(v)) + (v.flat ? (twoWheel(v) ? 3 : 15) : 0) + onderdelenPrijs(losseOnderdelen(zoneTotals(v.dentLog, v.model.len, v.model.wid))) + deelPrijs(v);
+  // #674: een meester in een vervoersvak betaalt 20% minder voor de reparatie (het eigen voordeel per groep)
+  const korting = garageKorting();
+  return Math.max(0, Math.round(basis * (1 - korting)));
 }
 
 // Health back to 100 and every dent, crack and hanging bumper gone:

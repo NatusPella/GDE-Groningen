@@ -21,10 +21,10 @@ import { JELLE, JELLE_LINES, INTROS } from './pg_lines.js';
 import { BRUGGEN } from './pg_bruggenrace.js';
 import { FIERLJEP } from './pg_fierljep.js';
 import { SKUTSJE } from './pg_skutsje.js';
-import { FJORD, fjordSave, applyFjordSave, fjordUpgradeOffers } from './pg_foodtruck.js';
+import { FJORD, fjordSave, applyFjordSave, fjordUpgradeOffers, fjordPassief } from './pg_foodtruck.js';
 import { KOE } from './pg_koe.js';
 import { setPostgameHost } from './pghost.js';
-import { PG_PRIZE, FJORD_DAY_PAY, FJORD_DAY_HOUR } from './economy.js';
+import { PG_PRIZE, FJORD_DAY_HOUR } from './economy.js';
 import { getOwnedEntries, spawnOwnedEntry } from './shops.js';
 import { findParkingSpot } from './ownedvehicles.js';
 import { Vehicle } from './vehicle.js';
@@ -545,16 +545,21 @@ const INVITE_CALL = [
   { speaker: 'Anita', text: 'En de Fjord Frituur is van ons! Hij staat in de garage. Parkeer hem bij de drukte en open het luik.' },
 ];
 
-// The Fjord Frituur keeps earning while you're away: a daily wage each morning.
+// The Fjord Frituur keeps earning while you're away: a daily wage each morning, but only once the truck
+// is open (revealed and parked in the world) and only a share of the day's turnover — the rest is the
+// active investment loop (#675). Upgrades raise the day's turnover in pg_foodtruck.js.
 let lastClock = null;
 function dayWage(w) {
   const c = w.clock;
   if (!Number.isFinite(c)) return;
   const prev = lastClock;
   lastClock = c;
-  if (!open || prev == null || !(prev < FJORD_DAY_HOUR && c >= FJORD_DAY_HOUR && c - prev < 1)) return;
-  w.money += FJORD_DAY_PAY;
-  if (w.phoneNotifications) w.phoneNotifications.push({ from: 'Fjord Frituur', app: 'geld', text: `Goeiemorgen! Gisteren lekker gedraaid: €${FJORD_DAY_PAY} dagomzet op de rekening.`, duration: 6, say: SMS_SAY.fjordPay.lines[0] });
+  if (!open || !state.revealed || prev == null || !(prev < FJORD_DAY_HOUR && c >= FJORD_DAY_HOUR && c - prev < 1)) return;
+  if (!ownTruck(w)) return; // zonder wagen in de wereld geen omzet
+  const pay = fjordPassief(fjordSave().upgrades, { open: true });
+  if (pay <= 0) return;
+  w.money += pay;
+  if (w.phoneNotifications) w.phoneNotifications.push({ from: 'Fjord Frituur', app: 'geld', text: `Goeiemorgen! Gisteren lekker gedraaid: €${pay} dagomzet op de rekening.`, duration: 6, say: SMS_SAY.fjordPay.lines[0] });
 }
 
 // --- automatic route after the ending ------------------------------------------------

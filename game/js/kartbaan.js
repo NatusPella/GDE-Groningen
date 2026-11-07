@@ -6,7 +6,9 @@ import { buildPersonMesh, animatePersonWalk, seatPerson, seatedY, TAMMO_APPEARAN
 import { showBanner } from './cinematics.js';
 import { pushAudioEvent } from './pedgeom.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, MEDALS } from './achievements.js';
+import { variantVan, variantMedal } from './activiteitvariant.js'; // #673: de tijdattack-variant (snelste ronde)
 import { showCard } from './hudcards.js';
+import { onthullingScene } from './uitjescene.js';
 import { spawnFxPuff, spawnFxSpark } from './fx3d.js';
 import { ambientOut } from './audio.js';
 import { activityBlock, iconDisc } from './activitykit.js';
@@ -341,9 +343,20 @@ function ghostStore() {
   try { return localStorage; } catch { return { getItem: () => null, setItem: () => {} }; }
 }
 
-function start(w, { force = false } = {}) {
+function start(w, { force = false, revealed = false } = {}) {
   if (game) return false;
   if (!force && activityBlock(w)) return false;
+  // #720: korte onthulling van de kartbaan vóór de drie ronden beginnen.
+  if (!revealed) {
+    const ok = onthullingScene(w, {
+      id: 'kartbaan-reveal', kicker: 'Kartbaan', title: 'Drie ronden',
+      x: CENTER.x, y: CENTER.y, height: 9, radius: 30,
+      lines: [{ speaker: '', text: 'Drie ronden op de kartbaan. De lichten springen zo op groen.' }],
+      onEnd: () => start(w, { force, revealed: true }),
+    });
+    if (!ok) return start(w, { force, revealed: true });
+    return true;
+  }
   if (!built) built = buildTrackScene();
   const p = hoofdspeler(w);
   if (p.inVehicle) p.exitVehicle(w.map, w);
@@ -636,7 +649,7 @@ function end(w, { quit = false } = {}) {
     newBest = !!(rec && rec.newBest);
   }
   if (total != null && saveGhost(ghostStore(), 'kart-ulrum', finishGhost(g.rec, total), KEYS.ghosts)) w.addMessage('Je beste race is bewaard: de spookkart rijdt hem de volgende keer mee', 4);
-  if (lap != null) recordChallengeResult(w, 'kart-lap', { value: lap, medal: 0, lower: true });
+  if (lap != null) recordChallengeResult(w, 'kart-lap', { value: lap, medal: variantMedal(variantVan('kart-tijdattack'), lap), lower: true }); // #673: de tijdattack heeft een eigen medaille
   recordStat(w, 'kartRaces');
   const xpRace = me.finished ? 16 - pos * 2 : 6;
   const premie = loopbaanVerdien(w, 'race', me.finished ? ([0, 30, 20, 12, 6][pos] || 0) : 0, { xp: xpRace, n: 1, uniek: 'kart' }); // loopbaan (#381)

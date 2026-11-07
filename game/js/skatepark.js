@@ -5,6 +5,7 @@ import { signBothSides } from './canvastex.js';
 import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
 import { showBanner } from './cinematics.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, setStatMax, MEDALS } from './achievements.js';
+import { variantVan, variantMedal } from './activiteitvariant.js'; // #673: de combo-run-variant (beste keten)
 import { showCard } from './hudcards.js';
 import { activityBlock, iconDisc } from './activitykit.js';
 import { createBoard, mgThema, key, bubble, clearBubbles, pick, stopPressed, easeCamera, geo, frame, clamp } from './minigamekit.js';
@@ -429,6 +430,8 @@ function end(w, { quit = false, extern = false, uitslag = null } = {}) {
   const rec = recordChallengeResult(w, 'skatepark', { value: score, medal });
   recordStat(w, 'skateRuns');
   setStatMax(w, 'skateBestChain', c.best);
+  // #673: de combo-run-variant heeft een eigen record en medaille (de beste keten, niet de som)
+  recordChallengeResult(w, 'skatepark-combo', { value: c.best, medal: variantMedal(variantVan('skate-combo'), c.best) });
   unlockAchievement(w, 'skate_klaar');
   if (medal >= 3) unlockAchievement(w, 'skate_goud');
   if (c.best >= 2000) unlockAchievement(w, 'skate_combo');

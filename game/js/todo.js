@@ -14,7 +14,7 @@ import { getSettings } from './settings.js';
 import { getMissionList, getMissionDefs, trackMission, isMissionActive, activeMissionIndex, medalBonusLeft } from './missions.js';
 import { getStorySteps, storyMissionAhead } from './story.js';
 import { STEP_BY_ID } from './storyarc.js';
-import { getMissionRecord, getChallengeRecord, MISSION_GOALS, MEDALS, formatMissionTime, getStat, isUnlocked, getSaveSet, uniqueCount, EIERBAL_TOTAL } from './achievements.js';
+import { getMissionRecord, getChallengeRecord, MISSION_GOALS, MEDALS, formatMissionTime, getStat, isUnlocked, getSaveSet, uniqueCount, EIERBAL_TOTAL, getLifetimeStats } from './achievements.js';
 import { getSideJobOffers, getSideJobList } from './sidejobs.js';
 import { getPadelSpotsForRender } from './padel.js';
 import { getHeliSpotsForRender, HELI_MEDAL_SCORES } from './helirun.js';
@@ -24,8 +24,16 @@ import { activityMapIcons } from './activities.js';
 import { LES_IDS, LESSEN } from './vliegschoolrules.js';
 import { isPostgameOpen, CHALLENGES } from './postgame.js';
 import { VARIANTEN, variantOpen, variantTekst } from './activiteitvariant.js'; // #673: variant met eigen record
+import { getBoek } from './visboeklive.js'; // #675: het prestige-bord telt de vissen
+import { SOORT_IDS } from './visdata.js';
+import { prestigeStand } from './prestige.js'; // #675: Grunn is van jou
 import { SET_DONE, SET_EGGS } from './dorpsuitjes.js';
 import { VILLAGES, WORLD_END_TOTAL } from './ommelandlines.js';
+import { SET_VERZAMEL, SET_GEHEIM } from './regioleven.js';
+import { loadSeen } from './evenementen.js';
+import { today as calendarDay } from './calendarday.js';
+import { getRoutes as getRailRoutes } from './railway.js';
+import { paspoort, hint80, treinPlan } from './ommelandpaspoort.js';
 import { getStationsForRender } from './stationtravel.js';
 import { SECRETS_TOTAL } from './geheimen.js';
 import { DRIFT_ZONE, DRIFT_MEDAL_AT } from './driftzone.js';
@@ -260,7 +268,52 @@ function jobItems() {
   });
 }
 
+// #681: het paspoort leest de eigen sets van deze speler en de kalender van de groep.
+function ommelandData(world) {
+  let storage = null;
+  try { storage = typeof localStorage !== 'undefined' ? localStorage : null; } catch (e) { storage = null; }
+  const vondsten = new Set([...getSaveSet(SET_VERZAMEL), ...getSaveSet(SET_GEHEIM)]);
+  let routes = [];
+  try { routes = getRailRoutes() || []; } catch (e) { routes = []; }
+  return {
+    uitjes: getSaveSet(SET_DONE), eieren: getSaveSet(SET_EGGS), vondsten,
+    gezien: loadSeen(storage), dag: calendarDay(world), uur: ((world.clock % 24) + 24) % 24, routes,
+  };
+}
+
+// The overview the Te-doen header shows: totals, the 80% hint and the per-village rows below.
+export function paspoortOverzicht(world) {
+  const data = ommelandData(world);
+  const p = paspoort(data);
+  return { ...p, hint: hint80(p), dorpen: p.dorpen.map((d) => ({ ...d, trein: treinPlan(d.dorp, data.routes, { dag: data.dag, uur: data.uur }) })) };
+}
+
+function ommelandPaspoortItems(world) {
+  const data = ommelandData(world);
+  const p = paspoort(data);
+  const stations = new Map(getStationsForRender().map((st) => [st.name, st]));
+  const rows = p.dorpen.map((d) => {
+    const st = stations.get(d.dorp);
+    const trein = treinPlan(d.dorp, data.routes, { dag: data.dag, uur: data.uur });
+    const rows2 = d.onderdelen.map((o) => [o.label, o.klaar ? `${o.tekst} · klaar` : o.tekst]);
+    if (trein.volgende) rows2.push(['Volgende trein', `${trein.volgende.vertrekTekst} · ${trein.volgende.lijn}`]);
+    rows2.push(['Voortgang', `${d.klaar} van ${d.totaal} onderdelen`]);
+    return {
+      key: 'om:dorp:' + d.dorp, group: 'ommeland', icon: 'station', title: d.dorp,
+      status: d.klaar >= d.totaal ? 'klaar' : '', medal: null,
+      meta: 'Uitje, eierbal, vondst en evenement · met de trein',
+      record: `${d.klaar} van ${d.totaal} · ${d.pct}%`, progress: { klaar: d.klaar, totaal: d.totaal, pct: d.pct },
+      x: st ? st.x : undefined, y: st ? st.y : undefined,
+      goal: st ? { kind: 'place', name: d.dorp, sub: 'Met de trein naar het dorp', x: st.x, y: st.y } : null,
+      trein,
+      detail: { kicker: `Ommeland · ${d.streekNaam}`, text: `${d.dorp}: het uitje, de eierbal, de vondst en het evenement van dit dorp. Neem de trein vanaf het station.`, rows: rows2 },
+    };
+  });
+  return rows;
+}
+
 function ommelandItems(world) {
+
   const total = Object.keys(VILLAGES).length;
   const done = uniqueCount(SET_DONE), eggs = uniqueCount(SET_EGGS);
   const city = getStationsForRender().filter((s) => !VILLAGES[s.name]);
@@ -268,11 +321,7 @@ function ommelandItems(world) {
   const names = Object.keys(VILLAGES);
   const ends = uniqueCount('wereldeinden');
   return [
-    { key: 'om:dorp', group: 'ommeland', icon: 'station', title: 'Dorpsuitjes', status: done >= total ? 'klaar' : '',
-      meta: `${names.slice(0, 3).join(', ')} en ${total - 3} andere dorpen · met de trein`, medal: null,
-      record: `${done} van ${total} gedaan · ${eggs} van ${total} eierballen`, x: st ? st.x : undefined, y: st ? st.y : undefined,
-      goal: st ? { kind: 'place', name: st.name, sub: 'Met de trein naar de dorpen', x: st.x, y: st.y } : null,
-      detail: { kicker: 'Ommeland · met de trein', text: 'In elk dorp is iets te doen, valt er wat te eten en ligt er een eierbal verstopt. Neem de trein vanaf het station.', rows: [['Dorpen', names.join(', ')]] } },
+    ...ommelandPaspoortItems(world),
     { key: 'om:einde', group: 'ommeland', icon: 'landmark', title: 'Einde van de wereld', status: ends >= WORLD_END_TOTAL ? 'klaar' : '',
       meta: 'Waar het Ommeland ophoudt · zoek ze zelf', medal: null, record: `${ends} van ${WORLD_END_TOTAL} gevonden`, goal: null,
       detail: { kicker: 'Ommeland · verkennen', text: 'Ergens houden de wegen van het Ommeland op. Waar, dat zeggen we niet.', rows: [] } },
@@ -310,6 +359,27 @@ export function buyFjordUpgrade(world, id) {
   return u ? u.buy() : 'Niet te koop';
 }
 
+// #675: het laatste bord na het verhaal. Eén rij per grote verzameling; de aantallen komen uit de
+// systemen die ze al bijhouden (missies, buurten, het visboek, de eierballen).
+function prestigeItem() {
+  const missies = getMissionList();
+  const goud = missies.filter((m) => ((getMissionRecord(m.index) || {}).medal || 0) === 3).length;
+  const stats = getLifetimeStats();
+  const boek = getBoek();
+  const vissen = SOORT_IDS.filter((id) => boek && boek.soorten && boek.soorten[id]).length;
+  const stand = prestigeStand({
+    missiesGoud: goud, missiesTotaal: missies.length,
+    buurten: stats.wijken, buurtenTotaal: 66,
+    vissen, vissenTotaal: SOORT_IDS.length,
+    eierballen: getSaveSet('eierballen').size, eierballenTotaal: EIERBAL_TOTAL,
+  });
+  return {
+    key: 'pg:prestige', group: 'nahetverhaal', icon: 'missionIdle', title: stand.naam,
+    meta: 'Het laatste bord · ' + `${stand.gedaan} van ${stand.totaal}`, medal: stand.klaar ? 3 : null, record: `${stand.gedaan} van ${stand.totaal}`,
+    detail: { kicker: 'Na het verhaal · alles van Grunn', text: stand.uitleg, rows: stand.rijen.map((r) => [r.naam, r.tekst]) },
+  };
+}
+
 function postgameItems(world) {
   const open = isPostgameOpen();
   const offers = open && world.postgameActions ? world.postgameActions.offers() : [];
@@ -323,7 +393,7 @@ function postgameItems(world) {
       goal: o ? { kind: 'challenge', id: d.id, name: d.name, sub: o.where, x: o.x, y: o.y } : null,
       detail: { kicker: open ? 'Na het verhaal · Jelle wil revanche' : 'Op slot', text: open ? d.blurb : 'Gaat open als het verhaal uit is.', rows: o ? [['Waar', o.where]] : [] },
     };
-  }), ...fjordUpgradeItems(world)];
+  }), ...(open ? [prestigeItem()] : []), ...fjordUpgradeItems(world)];
 }
 
 // The current story step when it is an activity (a mission step is in the missions).

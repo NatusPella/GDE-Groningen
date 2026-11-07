@@ -421,3 +421,34 @@ export function loonTekst(vak) {
   if (info.groep === 'spel') return 'Meer prijzengeld en premie per keer.';
   return 'Meer loon voor elke dienst in dit vak.';
 }
+
+// --- #674: het hoogste niveau is buiten het Loopbanen-scherm te zien en geeft één concreet voordeel ---
+// De loonfactor blijft begrensd (LOON_FACTOR, max 1,30); dit is een extra teken en gemak, geen economie.
+// Per groep (vervoer, werk, spel) op niveau 6 in minstens één vak:
+//  - vervoer: 20% korting op een reparatie bij de garage;
+//  - werk: een ritje in de botsauto's is gratis;
+//  - spel: de titel staat naast je naam op de kaart en bij wedstrijden (zichtbaarheid, geen geld).
+export const TITEL_GROEP_KLEUR = { vervoer: '#4fb3ff', werk: '#f2c230', spel: '#5dff7a' };
+export const GROEP_VOORDELEN = {
+  vervoer: { id: 'garage', korting: 0.2, tekst: 'Bij de garage betaal je 20% minder voor een reparatie aan je eigen wagen.' },
+  werk: { id: 'kermis', gratis: 'kermis', tekst: 'Een ritje in de botsauto\'s is gratis voor jou.' },
+  spel: { id: 'titel', tekst: 'Je titel staat naast je naam op de kaart en bij wedstrijden.' },
+};
+// De hoogste titel van deze speler, als hij ergens op het hoogste niveau staat; anders null.
+export function loopbaanTeken(profiel) {
+  const s = samenvatting(profiel);
+  if (!s.hoogste || s.hoogste.niveau < MAX_NIVEAU) return null;
+  const info = BY_ID.get(s.hoogste.vak);
+  if (!info) return null;
+  return { vak: s.hoogste.vak, titel: s.hoogste.titel, niveau: s.hoogste.niveau, groep: info.groep, kleur: TITEL_GROEP_KLEUR[info.groep] || '#f0ede4' };
+}
+// Het voordeel van één groep, alleen als deze speler daar op het hoogste niveau staat.
+export function groepVoordeel(profiel, groep) {
+  if (!GROUP_IDS.has(groep)) return null;
+  for (const info of VAKKEN) if (info.groep === groep && niveauVoorVak(profiel, info.id) >= MAX_NIVEAU) return GROEP_VOORDELEN[groep] || null;
+  return null;
+}
+export const voordelenVan = (profiel) => GROEPEN.map((g) => groepVoordeel(profiel, g.id)).filter(Boolean);
+export const garageKorting = (profiel) => (groepVoordeel(profiel, 'vervoer') ? GROEP_VOORDELEN.vervoer.korting : 0);
+export const kermisGratis = (profiel) => !!groepVoordeel(profiel, 'werk');
+const GROUP_IDS = new Set(GROEPEN.map((g) => g.id));

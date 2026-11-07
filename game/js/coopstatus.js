@@ -87,7 +87,7 @@ const ACTIVITEIT = {
 // Minigames (cooproles.js, registerCoop('minigame')) en wat verder een eigen plek op de kaart heeft (de heli, de duif)
 const MINIGAME = {
   padel: WERKT, kartrace: WERKT,
-  racers: NEE, pg_bruggenrace: WERKT, carbid: NEE, kermis: NEE, pg_fierljep: NEE, pg_foodtruck: NEE, pg_koe: NEE, pg_skutsje: NEE,
+  racers: NEE, pg_bruggenrace: WERKT, carbid: NEE, kermis: NEE, pg_fierljep: NEE, pg_foodtruck: DEELS, pg_koe: NEE, pg_skutsje: NEE, // #675: de Fjord is lokaal (eigen wagen/omzet)
   heli: NEE, duif: NEE,
 };
 
@@ -124,6 +124,9 @@ export const DEELS_KEUZE = {
   snackketen: { route: 'host-only', rol: 'klant', reden: 'De snackketen draait op de voorraad en de keten van wie het spel opende.', kandidaat: 'lokaal', nodig: 'Een eigen ketenstand per speler in de eigen opslag.' },
   evenementen: { route: 'host-only', rol: 'bezoeker', reden: 'De evenementen hangen aan de kalender en de wereld van wie het spel opende.', kandidaat: 'lokaal', nodig: 'Per speler bijhouden welke evenementen hij meemaakte.' },
   pvparena: { route: 'host-only', rol: 'deelnemer', reden: 'Wie het spel opende rekent en zet het bord; de kant van de meespeler is nog niet af.', kandidaat: 'wedstrijd', nodig: 'Het bord en de uitslag per speler over de netlaag (#454).' },
+  // #675: de Fjord Frituur is van de speler, niet van de wereld. Een gast opent zijn eigen wagen in
+  // zijn eigen spel; de dagomzet en de upgrades horen bij zijn eigen save, dus er is geen gedeelde pot.
+  fjord: { route: 'lokaal', rol: 'eigen wagen', reden: 'De Fjord Frituur en zijn dagomzet zijn van jouw eigen opgeslagen spel; een gast opent zijn eigen wagen in zijn eigen spel.', kandidaat: 'lokaal', nodig: 'Een eigen Fjord per speler in de eigen opslag.' },
 };
 export const deelsKeuzeVan = (id) => (typeof id === 'string' && Object.prototype.hasOwnProperty.call(DEELS_KEUZE, id) ? DEELS_KEUZE[id] : null);
 
