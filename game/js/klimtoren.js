@@ -236,7 +236,7 @@ function updateHud(w) {
   const height = s.ground ? 0 : Math.max(0, s.body + 1.15);
   const stand = g.online ? wedScoreRijen(w).map((r) => `${r.weg ? '<s>' : ''}${r.naam} ${r.banen === 1 ? fmtTime(r.slagen / 10) : r.banen === 2 ? 'niet boven' : 'bezig'}${r.weg ? '</s>' : ''}`).join(' · ') : '';
   const row = `${stand ? `<span>${stand}</span>` : ''}<span>Tijd <b>${fmtTime(s.time)}</b></span><span>Hoogte <b>${height.toFixed(1).replace('.', ',')} m</b></span><span>Pogingen <b>${Math.max(0, WALL.tries - s.falls)}</b></span>`;
-  const meter = { v: s.arms, color: s.arms < 0.25 ? '#ff6f61' : ACCENT };
+  const meter = { v: s.arms, text: 'arm', color: s.arms < 0.25 ? 'var(--mk-danger, #d93f3f)' : ACCENT }; // #620: geen tweede rood
   const flash = g.flash ? g.flash.text : g.phase === 'wacht' ? (s.phase === 'top' ? 'Boven! Wachten op de anderen' : 'Klaar: wachten op de anderen') : g.phase === 'intro' ? 'Pak de eerste grepen...' : s.ground && g.phase === 'run' ? 'Houd A of D ingedrukt om te grijpen' : '';
   const help = `${key('A')} linkerhand · ${key('D')} rechterhand · houd vast, laat één hand los om hem hoger te zetten · ${key('SPATIE')} magnesium · ${key('BACKSPACE')} stoppen`;
   board.set({ row, meter, flash, bad: !!(g.flash && g.flash.bad), help });

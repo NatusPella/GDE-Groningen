@@ -69,10 +69,18 @@ t('dezelfde gegevens gaan naar de kaart-hover en "Te doen"', () => {
 t('elke start toont de kaart: standactivity, de losse spellen en de diensten', () => {
   assert.match(lees('game/js/standactivity.js'), /toonStartkaart\(w, c\.id, \{ record: c\.recText/, 'standactivity toont de kaart met het record');
   assert.match(lees('game/js/activities.js'), /toonStartkaart\(w, cfg\.id\)/, 'de vlucht- en vaardienst tonen de kaart');
-  for (const f of ['discgolf.js', 'pitchputt.js']) assert.match(lees('game/js/' + f), /toonStartkaart\(w, '/, `${f} toont de kaart`);
-  // de oude losse startkaart van deze twee spellen is weg
-  for (const f of ['discgolf.js', 'pitchputt.js']) assert.ok(!/key: '(discgolf|pitchputt)-help'/.test(lees('game/js/' + f)), `${f} heeft geen eigen startkaart meer`);
+  // alle losse spellen en attracties met een eigen bord tonen dezelfde kaart (#678 vervolg)
+  for (const f of ['discgolf.js', 'pitchputt.js', 'kartbaan.js', 'skatepark.js', 'ringrace.js', 'carbid.js',
+    'kermis.js', 'driftzone.js', 'wandeling.js', 'regatta.js', 'hengelen.js', 'reuzenrad.js']) {
+    assert.match(lees('game/js/' + f), /toonStartkaart\(w, '/, `${f} toont de startkaart`);
+  }
+  // de oude losse startkaarten van deze spellen zijn weg (de verhaalvariant van de kermis blijft)
+  for (const f of ['discgolf.js', 'pitchputt.js', 'kartbaan.js', 'skatepark.js', 'ringrace.js', 'carbid.js',
+    'driftzone.js', 'wandeling.js', 'regatta.js', 'hengelen.js']) {
+    assert.ok(!/key: '(discgolf|pitchputt|kart|skate|ringrace|carbid|kermis|drift|wandeling|regatta|hengelen)[^']*help/.test(lees('game/js/' + f)), `${f} heeft geen eigen startkaart meer`);
+  }
 });
 
 console.log(`startkaart_test: ${n - fails}/${n}`);
 process.exit(fails ? 1 : 0);
+

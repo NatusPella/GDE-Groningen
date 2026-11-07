@@ -1,4 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { toonStartkaart } from './startkaart.js';
 import { canvasTex } from './canvastex.js';
 import { bumperCarGeometry, bumperCarMaterial } from './bumpercar3d.js';
 import { getScene } from './scene3d.js';
@@ -444,7 +445,7 @@ function start(w, { free = false } = {}) {
   ensureHud();
   hud.root.hidden = false;
   if (story) showCard(w, { kind: 'missie', kicker: "Botsauto's", title: 'Durk en Douwe rijden mee', body: 'De twee rode hoodies. [W] [S] gas en achteruit, [A] [D] sturen: bots ze in de flank. 75 seconden.', duration: 7, key: 'kermis-help', voice: false });
-  else showCard(w, { kind: 'tip', kicker: "Botsauto's", title: 'Instappen!', body: '[W] [S] gas en achteruit, [A] [D] sturen. Bots ze in de flank voor extra punten. 75 seconden.', duration: 7, key: 'kermis-help', voice: false });
+  else toonStartkaart(w, 'kermis');
   janSay(w, story ? 'story' : 'start');
   return true;
 }

@@ -1,4 +1,5 @@
 import { showBanner, isCinematicActive } from './cinematics.js';
+import { toonStartkaart } from './startkaart.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, setStatMax, recordUnique, MEDALS } from './achievements.js';
 import { showCard } from './hudcards.js';
 import { pushAudioEvent } from './pedgeom.js';
@@ -38,7 +39,6 @@ const ZOEK_TUSSENTIJD = 0.4;        // s tussen twee keer het water zoeken
 
 let game = null;
 let board = null;
-let boardVrij = null;
 let plekNu = null;                  // het hengelwater bij de speler nu (of null)
 let zoekT = 0;
 
@@ -137,7 +137,6 @@ function einde(w, { quit = false, extern = false, uitslag = null } = {}) {
   if (g.anim) { g.anim.dispose(); g.anim = null; }
   stopHouding();
   if (board) board.hide();
-  if (boardVrij) boardVrij.hide();
   clearBubbles(w, 'hengelen');
   const s = g.s;
   // de kas die nog niet vol was wordt afgerond: wat je ving is wat het opbrengt
@@ -149,7 +148,7 @@ function einde(w, { quit = false, extern = false, uitslag = null } = {}) {
     if (g.vangsten > 0) {
       const soorten = g.soorten.size;
       const vis = `${g.vangsten} vis${g.vangsten === 1 ? '' : 'sen'}`, soortTekst = `${soorten} soort${soorten === 1 ? '' : 'en'}`, betaald = g.betaald > 0 ? `, ${euro(g.betaald)} van de visboer` : '';
-      w.addMessage(`Hengelen klaar op ${waar}: ${vis} (${soortTekst}), ${kgTekst(s.kg)}${betaald}`, 5, { kind: 'tip', kicker: 'Hengelen', key: 'hengel-vrij-klaar' });
+      w.addMessage(`Hengelen klaar op ${waar}: ${vis} (${soortTekst}), ${kgTekst(s.kg)}${betaald}`, 5, { kind: 'prestatie', kicker: 'Hengelen', key: 'hengel-vrij-klaar' });
     } else if (!quit) w.addMessage('Niets aan de haak. Probeer een andere plek.', 3);
     return;
   }
@@ -224,23 +223,25 @@ function updateHud(w) {
   const g = game;
   if (!g) return;
   const s = g.s;
-  const cells = ['idle', 'cast', 'wait', 'bite'].map((ph, i) => ({ t: ['Uitgooien', 'Lijn', 'Wachten', 'Beet'][i], cls: s.phase === ph ? (ph === 'bite' ? 'on good' : 'on') : '' }));
+  const cells = ['idle', 'cast', 'wait', 'bite'].map((ph, i) => ({ t: ['Uit', 'Worp', 'Wacht', 'Beet'][i], cls: s.phase === ph ? (ph === 'bite' ? 'on good' : 'on') : '' }));
   const flash = g.flash ? g.flash.text : PHASE_TEXT[s.phase];
   const tuig = getTuig();
   // het tuig in de HUD (#492): de hengel en het aas dat er nu op zit
   const tuigRij = `<span>Hengel <b>${hengelNaam(tuig)}</b> · aas <b>${aasNaam(tuig)}</b></span>`;
   const hengelRij = `<span>Hengel <b>${hengelNaam(tuig)}</b></span>`;
   if (g.mode === 'vrij') {
-    if (!boardVrij) return;
+    if (!board) return;
     const t = watertype(g.plek.type);
-    const row = `<span>${plekNaam(g.plek.type, g.plek.naam)}</span>${tuigRij}<span>Vangsten <b>${g.vangsten}</b></span><span>Soorten <b>${g.soorten.size}</b></span><span>Gewicht <b>${kgTekst(s.kg)}</b></span><span>Visboer <b>${euro(g.betaald + g.kas)}</b></span>`;
-    boardVrij.set({ row, cells, flash, bad: !!(g.flash && g.flash.bad), help: `${t ? t.naam + ' · ' : ''}${key('SPATIE')} uitgooien en binnenhalen · ${key('BACKSPACE')} stoppen` });
+    const row = `<span>Vrij hengelen</span><span>${plekNaam(g.plek.type, g.plek.naam)}</span>${tuigRij}<span>Vangsten <b>${g.vangsten}</b></span><span>Soorten <b>${g.soorten.size}</b></span><span>Gewicht <b>${kgTekst(s.kg)}</b></span><span>Visboer <b>${euro(g.betaald + g.kas)}</b></span>`;
+    // #613: de beet krijgt een eigen, grotere vorm dan de wachtstand (meter + goede flits)
+    const beat = s.phase === 'bite' ? { meter: { v: 1, color: 'var(--mk-job, #ff9a3c)', text: 'BEET' } } : null;
+    board.set({ row, cells, flash, bad: !!(g.flash && g.flash.bad), help: `${t ? t.naam + ' · ' : ''}${key('SPATIE')} uitgooien en binnenhalen · ${key('BACKSPACE')} stoppen`, ...(beat || {}) });
     return;
   }
   if (!board) return;
   const online = g.online ? wedScoreRijen(w) : [];
   const stand = online.length ? `<span>${online.map((r) => `${r.weg ? '<s>' : ''}${r.naam} ${kgTekst((r.slagen || 0) / 1000)}${r.weg ? '</s>' : ''}`).join(' · ')}</span>` : '';
-  const row = `${stand}${hengelRij}<span>Gewicht <b>${kgTekst(s.kg)}</b></span><span>Tijd <b>${Math.max(0, Math.ceil(s.left))}</b></span><span>Gevangen <b>${s.catches.length}</b></span><span>Ontsnapt <b>${s.lost}</b></span>`;
+  const row = `<span>Wedstrijd</span>${stand}${hengelRij}<span>Gewicht <b>${kgTekst(s.kg)}</b></span><span>Tijd <b>${Math.max(0, Math.ceil(s.left))}</b></span><span>Gevangen <b>${s.catches.length}</b></span><span>Ontsnapt <b>${s.lost}</b></span>`;
   board.set({ row, cells, flash, bad: !!(g.flash && g.flash.bad), help: `${key('SPATIE')} uitgooien en binnenhalen · ${key('BACKSPACE')} stoppen` });
 }
 
@@ -263,7 +264,7 @@ function start(w, { online = null } = {}) {
     mode: 'wedstrijd', flash: null, plek: MEERSTAD, kas: 0, betaald: 0, vangsten: 0, soorten: new Map(), nieuw: [], haalT: 0, online,
     s: createHengel(Math.random, { wacht: [HENGEL.waitMin * wachtFactor(t0), HENGEL.waitMax * wachtFactor(t0)], venster: beetFactor(lijnsterkte(t0)) }),
   };
-  if (online !== 'gast') showCard(w, { kind: 'tip', kicker: 'Hengelen', title: 'Geduld aan het meer', body: '[Spatie] gooit uit. Zakt het dobbertje (Beet!), druk dan meteen weer [Spatie]. Te vroeg trekken schrikt de vis af; grote vissen zijn minder lang onder.', key: 'hengel-help', voice: false, duration: 7 });
+  if (online !== 'gast') toonStartkaart(w, 'hengelen');
   say(w, 'start');
   return true;
 }
@@ -281,8 +282,8 @@ function startOfUitnodigen(w) {
 function startVrij(w, plek) {
   if (game || !plek) return false;
   const p = hoofdspeler(w);
-  if (!boardVrij) boardVrij = createBoard('hengelen');
-  boardVrij.show();
+  if (!board) board = createBoard('hengelen'); // #613: hetzelfde bord als de wedstrijd, met een modusregel
+  board.show();
   const kies = (rand) => {
     const regen = !!(w.weather && w.weather.active && w.weather.intensity > 0.25 && w.weather.kind !== 'mist');
     const t = getTuig(); // hengel en lijn van nu; het aas is dat van de worp (het laatst gebruikte pakje)
@@ -294,7 +295,7 @@ function startVrij(w, plek) {
   const wacht = [VRIJ_WACHT[0] * wachtFactor(t0), VRIJ_WACHT[1] * wachtFactor(t0)];
   game = { mode: 'vrij', s: createHengel(Math.random, { kies, duur: Infinity, wacht }), flash: null, plek, kas: 0, betaald: 0, vangsten: 0, soorten: new Map(), nieuw: [], haalT: 0 };
   const t = watertype(plek.type);
-  showCard(w, { kind: 'tip', kicker: 'Hengelen', title: plekNaam(plek.type, plek.naam), body: `${t ? t.wat + ' ' : ''}[Spatie] gooit uit, bij Beet weer [Spatie]. Elk water heeft zijn eigen vis: alles wat je vangt komt in je visboek in het pauzemenu. Meer hengels, aas en een sterkere lijn liggen bij de Avondwinkel en de botenverhuur aan de steiger.`, key: 'hengel-vrij-help', voice: false, duration: 8 });
+  toonStartkaart(w, 'hengelen');
   if (!p.inVehicle) { p.vx = p.vy = 0; }
   return true;
 }

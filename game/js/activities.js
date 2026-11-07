@@ -18,6 +18,7 @@
 // While a minigame runs, `world.activityGame` is its id; it claims the
 // mouse buttons, number keys and Space through `world.minigameUntil`.
 import { CARBID } from './carbid.js';
+import { relevantActivities } from './activityfilter.js';
 import { KERMIS } from './kermis.js';
 import { HOOGVLIEGER } from './reuzenrad.js';
 import { GEHEIMEN } from './geheimen.js';
@@ -166,7 +167,7 @@ function dienstActiviteit(cfg) {
     gameUi.showBanner({
       kind: u.medaille ? 'pass' : 'fail',
       title: (u.medaille === 3 ? `${cfg.label} met goud` : u.medaille ? `${cfg.label} gehaald` : `${cfg.label} zonder medaille`).toUpperCase(),
-      reason: u.mislukt === 'gemist' ? 'De bestemming is niet gehaald: geen landing, geen beloning'
+      reason: u.mislukt === 'gemist' ? `De bestemming is niet gehaald: ${u.gemist ? `${u.gemist} kade(s) gemist` : 'geen landing'}, ${Math.round(u.seconden)} s onderweg`
         : u.medaille ? 'Alle halten van de dienstregeling, zonder brokken' : 'Let op de halten, de tijd en de snelheid',
       stats: dienstStats(u),
       reward: geld || 0,
@@ -362,7 +363,7 @@ const VAARDIENST = dienstActiviteit({
   instap: 12,
   stapIn: 'Instappen en de rondvaart starten',
   startSub: 'Druk E om de rondvaart te starten',
-  geenPlek: 'Meer hier eerst aan bij een jachthaven',
+  geenPlek: 'Meer eerst aan bij een jachthaven',
   geenRoute: 'Hier is geen vaarroute in de buurt',
   help: `${key('W')}${key('S')} gas en rem · ${key('A')}${key('D')} sturen · ${key('BACKSPACE')} stoppen`,
   kaartTitel: 'Rondvaart langs de kades',
@@ -475,7 +476,8 @@ export function tryActivityInteractGast(w) {
 }
 
 export function updateActivitiesWorld(dt, w) {
-  for (const a of LIST) {
+  // #654: alleen activiteiten die actief zijn of een spot dichtbij hebben
+  for (const a of relevantActivities(LIST, hoofdspeler(w))) {
     try { a.tick(dt, w); } catch (e) { console.error('activity', a.id, e); }
   }
   if (!current()) w.activityGame = null;
@@ -488,7 +490,7 @@ export function activityCamera(w) {
 
 export function activityPrompt(w) {
   if (current()) return null;
-  for (const a of LIST) {
+  for (const a of relevantActivities(LIST, hoofdspeler(w))) {
     const p = a.prompt && a.prompt(w);
     if (p) return p;
   }
@@ -498,7 +500,7 @@ export function activityPrompt(w) {
 export function activitySecondary(w) {
   if (current()) return [];
   const out = [];
-  for (const a of LIST) if (a.secondary) out.push(...a.secondary(w));
+  for (const a of relevantActivities(LIST, hoofdspeler(w))) if (a.secondary) out.push(...a.secondary(w));
   return out;
 }
 
