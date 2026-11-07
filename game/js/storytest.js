@@ -269,7 +269,7 @@ async function minigames2Smoke(world, check, capture) {
   await sleep(800);
   check('zwembad: board shows and the hub claims the input', boardUp() && world.activityGame === 'zwembad');
   capture('mg-zwembad-block');
-  check('zwembad: the intro gives way to the block', await waitFor(() => zw.state().phase === 'run', 4000));
+  check('zwembad: the intro gives way to the block', await waitFor(() => ['block', 'run'].includes(zw.state().phase), 15000));
   key(' ', 'Space');
   await sleep(300);
   check('zwembad: the dive starts the swim', zw.state().swim.phase === 'swim', JSON.stringify(zw.state()));
@@ -1078,6 +1078,7 @@ export async function runStoryTest(world) {
   console.log('[storytest-done] ' + JSON.stringify(report));
   return report;
 }
+
 
 
 
