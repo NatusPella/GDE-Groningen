@@ -332,15 +332,10 @@ export function writeWorld(out, { blobs, global, counts, pois }, citySet = null,
   }
   const [[, g]] = writePack('global', [['global', { bytes: global, i: 0, j: 0, flags: 0, n: {} }]]);
   index.global = { pack: 'global', off: g.off, len: g.len, raw: g.raw, hash: g.hash };
-  if (citySet) {
-    index.pins.city = {
-      tiles: [...citySet].sort(),
-      // until F1 these systems read whole arrays (map.roads, map.buildings, ...):
-      // routing, the minimap and big map, far LOD, water and terrain meshes,
-      // traffic lights, passages, home.js; the city stays resident for them
-      reason: 'whole-map consumers (F1)',
-    };
-  }
+  // (#314 C1) Geen pins.city meer: een sparse wereld streamt de stad als elke andere
+  // laag. De teller staat op 0 hele-array-lezers; de rasters zijn de bron. Alleen de
+  // lijst met stadstegels blijft als vertrekpunt bij het laden staan.
+  if (citySet) index.cityTiles = [...citySet].sort();
   const json = JSON.stringify(index);
   fs.writeFileSync(path.join(out, 'index.json'), json);
   return index;

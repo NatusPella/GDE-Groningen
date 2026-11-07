@@ -93,15 +93,17 @@ if (heeftWereld()) {
   const fs = await import('node:fs');
   const path = await import('node:path');
   const T = await import('../game/js/tilestore.js');
-  const { loadTileWorld } = await import('../game/js/tileworld.js');
+  const { loadTileWorld, splitOverlay } = await import('../game/js/tileworld.js');
   const dir = wereldMap();
   const files = {};
   for (const f of fs.readdirSync(dir)) if (/\.(gdp|json)$/.test(f)) files[f] = new Uint8Array(fs.readFileSync(path.join(dir, f)));
   const idx = JSON.parse(new TextDecoder().decode(files['index.json']));
-  const denseWorld = (await loadTileWorld('world/', { source: new T.MemorySource({ ...files }), pool: false })).world;
+  const denseLoad = await loadTileWorld('world/', { source: new T.MemorySource({ ...files }), pool: false });
+  const denseWorld = denseLoad.world;
   const sparseFiles = { ...files };
   sparseFiles['index.json'] = new TextEncoder().encode(JSON.stringify({ ...idx, sparse: KINDS }));
-  const sparseWorld = (await loadTileWorld('world/', { source: new T.MemorySource(sparseFiles), pool: false })).world;
+  const sparseLoad = await loadTileWorld('world/', { source: new T.MemorySource(sparseFiles), pool: false });
+  const sparseWorld = sparseLoad.world;
   const wsig = (g) => gridItems(g).map((o) => JSON.stringify({ k: o.k || o.type || '', pts: o.pts && o.pts.slice(0, 2), z: o.z && o.z.slice(0, 2) })).sort();
   ok(KINDS.every((k) => sparseWorld[k].length === 0), 'de echte wereld laadt zonder arraylaag voor de zeven sparse soorten');
   ok(KINDS.every((k) => denseWorld[k].length === (idx.counts[k] || 0)), 'de dichte wereld heeft de arraylaag nog (even groot als de telling)');
@@ -110,6 +112,19 @@ if (heeftWereld()) {
     ok(gridItems(sparseWorld[GRIDS[k]]).length === gridItems(denseWorld[GRIDS[k]]).length, `de echte wereld: evenveel ${k} in het raster`, `${gridItems(sparseWorld[GRIDS[k]]).length} vs ${gridItems(denseWorld[GRIDS[k]]).length}`);
     ok(JSON.stringify(wsig(sparseWorld[GRIDS[k]])) === JSON.stringify(wsig(denseWorld[GRIDS[k]])), `de echte wereld: dezelfde ${k} (pariteit)`);
   }
+  // #314 C1: de sparse wereld houdt de stad niet meer vast; de dichte oude wereld wel.
+  const pinned = (load) => [...Object.keys(idx.tiles)].filter((k) => { const e = load.store.entries.get(k); return e && e.pinned; });
+  ok(pinned(sparseLoad).length === 0, 'de sparse wereld laadt zonder city-pin', String(pinned(sparseLoad).length));
+  ok(pinned(denseLoad).length > 0, 'de oude dichte wereld blijft gepind (achterwaartse compatibiliteit)');
+  // een stadstegel valt uit de store en komt terug, zoals bij het streamen
+  const key = Object.keys(idx.tiles).find((k) => (idx.tiles[k].n && idx.tiles[k].n.buildings > 300) && !idx.tiles[k].ov);
+  const tegel = idx.tiles[key];
+  const before = gridItems(sparseWorld.buildingGrid).length;
+  ok(sparseWorld.dropTile(`${tegel.i},${tegel.j}`) === true, 'de sparse stadstegel valt weg');
+  ok(gridItems(sparseWorld.buildingGrid).length < before, 'de gebouwen van die tegel zijn uit het raster', `${before} -> ${gridItems(sparseWorld.buildingGrid).length}`);
+  const city = splitOverlay(await sparseLoad.store.request(key)).city;
+  sparseWorld.addTile(city, '');
+  ok(gridItems(sparseWorld.buildingGrid).length === before, 'en komen met addTile terug zonder dubbele rijen', `${gridItems(sparseWorld.buildingGrid).length} vs ${before}`);
   console.log(`(echte wereld meegeteld: ${KINDS.map((k) => `${gridItems(sparseWorld[GRIDS[k]]).length} ${k}`).join(', ')})`);
 }
 
