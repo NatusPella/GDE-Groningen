@@ -98,3 +98,60 @@ Nu bouwen we alleen x64 (Windows en Linux), macOS universal (arm64 en x64 in é�
 - De AppImage en de tar zijn op de runner gecontroleerd (ELF-header, `gde-groningen` in de tar) maar niet op een echte Linux-machine of Steam Deck gestart.
 - De APK is gecontroleerd op een geldige zip, `AndroidManifest.xml`, `classes.dex` en `aapt2 dump badging`, maar niet op een toestel of emulator geïnstalleerd; zie `docs/ANDROID.md` ("Niet getest").
 - `versionName` in `android/android/app/build.gradle` blijft `0.35.0-android-test` tot iemand hem met de release laat meelopen.
+
+## Webversie publiceren (#57)
+
+De webversie wordt lokaal gebouwd en nergens automatisch geüpload. `web-dist/` staat in
+`.gitignore`; er gaat niets de repo in.
+
+```bash
+cd desktop
+node ../web/build.mjs            # web-dist/ (three.js en lettertypen gevendord, audio als Opus)
+node ../web/build.mjs --zip      # en GDE-Groningen-<versie>-web.zip voor itch.io
+node ../web/serve.mjs 8790       # lokaal testen op http://localhost:8790/gde/
+node ../scripts/web_shell_test.mjs   # controle van de gebouwde map (vanuit de repo-root)
+```
+
+- **Vereisten:** Node en `ffmpeg` (Opus). `--zip` vraagt een `zip`-binary; ontbreekt die op
+  Windows, zip dan vanuit `web-dist/` met `Compress-Archive` of in Git Bash/WSL. Op een machine
+  zonder `data/cache/province` bouwt `desktop/build.mjs` de wereld opnieuw; lukt dat niet, gebruik
+  dan een bestaande wereld: `GDE_PREBUILT_WORLD=<repo>/game/world node ../web/build.mjs`
+  (de releaseworkflows doen dat ook met `gde-world.tgz`).
+- **Wat de build afdwingt:** three.js en de lettertypen staan lokaal (geen CDN op load), de
+  losse geluidsbestanden gaan als Opus mee, en de kleine clips worden per map verpakt (itch.io
+  staat maximaal 1000 bestanden toe). De build print de maten en of het binnen de itch.io-grenzen
+  past.
+- **Laatste meting (7-11-2026, 0.57.5):** 1.488 bestanden en 503,2 MB op schijf; audio 3.565 clips
+  naar 148,1 MB Opus; offline-check schoon; `web_shell_test` ok; geserveerd en met Range (206)
+  getest. Dat past **niet** op itch.io (1.000 bestanden / 500 MB), wel op GitHub Pages (1 GB) —
+  maar Pages vraagt een publieke repo (#37) en de eigenaar zet Pages aan (constitution 8).
+- **Plek kiezen (eigenaar):**
+  1. **GitHub Pages** na #37: workflow die `web-dist/` publiceert (three.js/fonts zijn al
+     gevendord). Let op: Pages serveert geen Git LFS en de site-limiet is 1 GB; 503 MB past.
+  2. **itch.io:** dan is trimmen nodig (bestandslimiet) of een download-zip in plaats van HTML5.
+     Een HTML5-upload boven de 1.000 bestanden/500 MB wordt geweigerd.
+  3. Lokaal/handenmatig (nu): `web:serve` voor testers, geen upload.
+- **Na het uploaden:** URL in het website-veld (#72), in README en in SOCIAL-EN-WEBSITE.md zetten;
+  de service worker-cache (`gde-<versie>-<hash>`) zorgt dat spelers de nieuwe versie krijgen.
+
+## 1.0.0-release (#65)
+
+Het eindspel, in deze volgorde (de eigenaar kiest het startmoment; agents doen niets openbaars):
+
+1. **Twee weken alleen bugfixes.** Geen nieuwe features; alleen `bug`-issues en regressies.
+   Elke merge: `node --check`, de tests van die code, `voice_coverage --quiet` en vlak vóór de
+   release de volledige suite van de coördinator.
+2. **Definitieve trailer.** Zie #63 en `docs/youtube/trailers.md`: shot 5 met Tessa in plaats van
+   Anita, besluit over shot 11 (lege vitrine), daarna de Steam-cut met HUD. Niets uploaden zonder
+   akkoord.
+3. **Versie 1.0.0.** `desktop/package.json`, `CHANGELOG.md` (`## [1.0.0] - <datum>`, alle
+   spelerzichtbare regels uit `[Unreleased]`), `android/android/app/build.gradle` (`versionName`;
+   die staat nu op een oude testwaarde).
+4. **Builds.** `npm run release -- minor` (macOS/Windows) of de Actions-workflows met
+   `workflow_dispatch`; Linux/Android optioneel. Het script schrijft `SHA256SUMS.txt` en zet de
+   bestanden op de release; de comment op #116 noemt de testers (geen namen in de notities).
+5. **Webversie.** `web/build.mjs` opnieuw, de gekozen plek uit #57 bijwerken, cache-naam
+   controleren.
+6. **Laatste checks vóór Public/verkoop:** `publish_check --history` zonder FAIL, `gitleaks
+   detect`, `secrets_scan`, de IARC/Steam-leeftijdsvragen (#60/#64), en de credits/disclaimer
+   (#72). Daarna pas tags, releases en winkels — dat blijven eigenaarshandelingen.

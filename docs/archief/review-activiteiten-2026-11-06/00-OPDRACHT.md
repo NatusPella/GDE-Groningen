@@ -1,6 +1,6 @@
 # Opdracht: inhoudelijke review van alle activiteiten (deelreviews)
 
-Datum: 6-11-2026. Repo: `C:\Users\abuis\GIT\GDE-Groningen`, branch `main`, HEAD `41340dd4`
+Datum: 6-11-2026. Repo: `<repo>`, branch `main`, HEAD `41340dd4`
 ("Docs: reviewarchieven van de andere sessies bewaard"). De werkboom is schoon. Let op: dit
 commit bevat ook een kopie van deze opdracht onder `docs/archief/review-activiteiten-2026-11-06/`;
 werk in `.review-activiteiten-2026-11-06/` in de werkmap, niet in `docs/archief/`.

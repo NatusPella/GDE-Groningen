@@ -1,5 +1,8 @@
 # IARC-vragenlijst: antwoorden om te plakken (#60)
 
+Stand 7 november 2026: de antwoorden hieronder zijn klaar om over te nemen; het invullen en
+indienen is een eigenaarstaak (account en handtekening). Zie ook [1.0-TRACK.md](1.0-TRACK.md) #60.
+
 Basis: `docs/LEEFTIJD.md` (18+, bloed standaard aan) en de inhoud van de game.
 De vragenlijst van IARC (via Google Play Console, Microsoft Store, Nintendo,
 enz.) wisselt per afnemer van volgorde en woorden; zoek bij elke vraag het

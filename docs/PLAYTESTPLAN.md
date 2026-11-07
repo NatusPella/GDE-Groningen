@@ -86,3 +86,34 @@ Voor elk apparaat de vaste taken: menu's door (Esc/Start), een auto besturen, ui
 - Tel: hoeveel testers haakten af en waar, welke missie het vaakst vastzet, welke grap het vaakst werd genoemd.
 - Maak een issue per terugkerend probleem (liefst met de tijdstempel van een opname) en koppel ze aan de epic "Afwerking en menu's" of de milestone die past.
 - Noteer in #221 wat gedaan is en welke scenario's nog niet gespeeld zijn.
+
+## Per release: het playtest-issue (#116)
+
+`desktop/release.sh` plaatst bij elke pre-release automatisch één comment op issue #116 met de
+versie, de link naar de release en de testers (collaborators; geen namen in de release-notities).
+Dat is het vaste meldkanaal: testers krijgen daardoor een melding of e-mail.
+
+**Wat de begeleider/coördinator per ronde doet:**
+
+1. Controleer dat de comment verschenen is (en dat de link werkt).
+2. Zet in de comment (of direct eronder) wat er in deze versie nieuw of riskant is, in één of twee
+   zinnen, en welke scenario's uit dit plan nog niet gespeeld zijn.
+3. Vraag testers hun bevindingen als volgt terug te koppelen: bug of wens → eigen issue (met
+   label `bug`/`wens`); algemene indruk → reactie onder de versie-comment; foutmelding →
+   *Instellingen › Foutrapport › kopiëren* en plakken.
+4. Na de ronde: tel de reacties, maak issues voor terugkerende problemen (met tijdstempel uit een
+   opname), en noteer in #221 wat gedaan is en welke scenario's nog openstaan.
+
+**Template voor de comment (het script vult de eerste regel; de rest kan eronder):**
+
+```
+Nieuwe versie <versie> staat klaar om te proberen: <link naar de release>
+<testers>
+
+Nieuw/deze ronde: <één of twee zinnen>
+Graag extra letten op: <scenario of missie>
+Nog niet gespeeld: <scenario's uit dit plan>
+
+Terugkoppelen: bug of wens → eigen issue; algemene indruk → hieronder; foutmelding →
+Instellingen › Foutrapport › kopiëren en plakken. Vermeld versie, platform en de plek.
+```

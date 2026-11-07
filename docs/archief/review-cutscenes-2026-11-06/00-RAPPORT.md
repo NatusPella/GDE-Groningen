@@ -1,6 +1,6 @@
 # Cutscene-review GDE Groningen
 
-Datum: 6-11-2026. Repo: `C:\Users\abuis\GIT\GDE-Groningen`, branch `main`.
+Datum: 6-11-2026. Repo: `<repo>`, branch `main`.
 Gemeten HEAD: `907f8c5c` (de cutscene-code is gelijk aan `e5e8b712`; daarna kwamen docs-, dev- en
 review-commits van een andere sessie). De werkboom bevat daarnaast niet-gecommitte wijzigingen van
 die andere sessie in `game/js/coopnet.js`, `coopplayers.js`, `coopspelers*.js`, `audio/radio.js`,

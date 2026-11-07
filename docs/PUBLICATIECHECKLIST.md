@@ -1,6 +1,6 @@
 # Publicatiechecklist (#83, met #37, #62, #72, #57)
 
-Stand: 21 oktober 2026 (na 0.38.1). De repo is **privé**; niets hieronder is gedaan of
+Stand: 7 november 2026 (0.57.5; de laatste meting staat in §7). De repo is **privé**; niets hieronder is gedaan of
 aangezet. Laatste run van de controles op 21 oktober: `publish_check --history` 0 FAIL
 (3 WARN: de handmatige workflow), `secrets_scan` 0 treffers (3597 commits, 12931 tekstbestanden),
 `merkenregister_check` 45 rijen en 0 afwijkingen, `text_audit` 0 bevindingen, `audio_herkomst`
@@ -78,3 +78,29 @@ voor later.
 - Aanvullende historiescan (e-mailadressen, IP's, thuispaden, wachtwoordachtige toewijzingen; alleen soort en bestand): e-mail in de OSM-extracten `data/*_raw.json` en in `desktop/package-lock.json` (auteurs van npm-pakketten); een verwijderd script met een noreply-adres van een co-auteurregel; IP's alleen als testwaarden, SVG-getallen en de SSDP-groep; thuispaden van de eigenaar in 38 bestanden **in de geschiedenis** (in de werkboom nu weggehaald). Wachtwoorden: alleen de woorden in de scanregels en docs zelf.
 - `node scripts/text_audit.mjs`: 0 bevindingen; `node scripts/merkenregister_check.mjs`: 45 rijen, 0 afwijkingen.
 - Besluit voor de eigenaar: de thuispaden en OSM-contactgegevens staan in de geschiedenis. Openbaar maken zonder herschrijven laat ze zichtbaar; herschrijven mag alleen met akkoord (constitution 8).
+
+## 7. Zevende ronde: 7 november 2026 (0.57.5)
+
+Opnieuw gedraaid na de cutscene-/engine- en multiplayer-ronde, op main `4c2103f3`. Er is nog
+steeds **niets** openbaar, geüpload of ingesteld.
+
+- `node scripts/publish_check.mjs --history`: **4 FAIL, 16 WARN** (6439 getrackte bestanden).
+  - De 4 FAIL zijn alle vier `historie-e-mail`: auteur-e-mailadressen in de git-historie die geen
+    noreply-adres zijn. Besluit eigenaar (#62): laten staan of met een mailmap herschrijven.
+  - De 16 WARN zijn de handmatige releaseworkflows (`workflow_dispatch`, schrijfrechten); ook een
+    eigenaarsbesluit (§4).
+  - Opgelost in deze ronde: negen thuispaden in `docs/archief/review-*` zijn geredigeerd naar
+    `<repo>`/`<home>`, en de valse e-mailmelding op URL-userinfo (`app://game@evil.com/x` in
+    `scripts/externurl_test.mjs`) is een uitzondering in `publish_check` geworden, met een test in
+    `scripts/publish_check_test.mjs`.
+- `node scripts/secrets_scan.mjs`: 0 treffers (werkboom en 5.583 commits, 20.435 tekstbestanden).
+  `gitleaks detect` blijft de handmatige stap vlak vóór Public (niet geïnstalleerd).
+- `node scripts/text_audit.mjs`: 0 bevindingen (141 toegestaan). `merkenregister_check`: 45 rijen,
+  0 afwijkingen. `publish_check_test`: ok.
+- **Nieuw open punt (#62):** `node scripts/audio_herkomst.mjs` meldt 3 stemclips zonder
+  `tts.json`-regel: `voicelines/banter/h17-pass-eieren_2_t_645fd3.mp3`,
+  `voicelines/lines/douwe/de_kraam_c3e579aa.mp3` en
+  `voicelines/lines/tammo/nee_van_de_winter_ook_niet_alvas_db2498c4.mp3`. De clips staan wel in hun
+  manifest; alleen de herkomstlog mist. Dat is werk voor de TTS-werkstroom en moet vóór Public klaar
+  zijn, anders is de AI-herkomst niet compleet.
+- De actuele volgorde en per-issue checklists staan in [1.0-TRACK.md](1.0-TRACK.md).

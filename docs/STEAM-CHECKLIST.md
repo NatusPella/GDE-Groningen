@@ -97,3 +97,31 @@ Wat sinds 20 oktober is veranderd en wat dat voor Steam betekent. Gecontroleerd 
 6. 217 prestaties aanmaken en de API-namen terugzetten in `steam/achievements.json`.
 7. Proefbouw uploaden met `steamcmd` (eerst Preview, dan een bètatak), Deck- en overlaytest op echte hardware.
 8. Zelf op "live" zetten: het publicatiebesluit blijft bij de eigenaar (constitution 8).
+
+## Stand 7 november 2026 (0.57.5)
+
+Lokaal nagelopen; er is nog steeds geen Steam-account, app-id of upload en geen enkel bestand
+maakt contact met Steam.
+
+- `node scripts/steam_test.mjs`: **109/109 ok** (bestanden, vdf-sjablonen, scripts, geen netwerk).
+- `node scripts/release_builds_test.mjs`: **34/34 ok** (de vier Actions-workflows en de
+  releasehulpen).
+- De SteamPipe-voorbereiding is compleet: `steam/scripts/app_build.vdf` en de drie
+  `depot_build_*.vdf` met `APP_ID`/`DEPOT_ID_*`-plaatshouders, `copy-builds.mjs` (desktop/dist →
+  content/<os>) en `make-build-vdf.mjs`. Droogtest:
+  `node steam/make-build-vdf.mjs --app=<id> --windows=<id> --mac=<id> --linux=<id>` schrijft
+  ingevulde kopieën naar `steam/output/vdf/` met `"Preview" "1"`; `--live-upload` is voor de echte
+  upload en `--beta=<branch>` zet een bètatak live. Een depot-id die je weglaat valt uit de build.
+  `steamcmd +login <build-account> +run_app_build <absoluut pad>/steam/output/vdf/app_build.vdf +quit`.
+- De winkelpagina (`docs/steam/winkelpagina.md`, 20 kB), de trailer-cut
+  (`docs/steam/trailer.md`), de beelden (`docs/steam/beelden/`) en de achievements-tabel
+  (`steam/achievements.json`, gegenereerd met `make-steam-files.mjs`) staan klaar; de aantallen in
+  de winkelpagina zijn op 24 oktober tegen de code nagelopen.
+- **Wat de eigenaar moet doen (in volgorde):** §4 hierboven (het $100-besluit, account,
+  identiteit/bank/belasting, app aanmaken, winkelpagina, inhoudsvragenlijst + IARC (#60),
+  achievements aanmaken, Steam Input-lagen, proefbouw uploaden naar Preview/bèta, Deck- en
+  overlaytest op echte hardware, daarna zelf op live zetten).
+- **Nog niet gedaan en bewust:** niets naar Steam gestuurd, geen prijs/uitgave, geen
+  Steamworks-account, geen screenshots of trailer geüpload, geen Deck aangeraakt.
+- Draaiboek en volgorde voor de hele 1.0: [1.0-TRACK.md](1.0-TRACK.md) en
+  [RELEASEN.md](RELEASEN.md) ("1.0.0-release").

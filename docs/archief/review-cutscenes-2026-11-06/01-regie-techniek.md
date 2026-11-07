@@ -1,7 +1,7 @@
 # Cutscene-regie en -techniek — review 01
 
 **Reviewgebied:** regie en techniek van de cutscenes, niet de verhaalinhoud.
-**Repo:** `C:\Users\abuis\GIT\GDE-Groningen`, branch `main`.
+**Repo:** `<repo>`, branch `main`.
 **Gemeten HEAD:** `41340dd4` — niet de opgegeven `e5e8b712`; dat zijn twee docs/dev-commits later. De cutscene-code is gelijk aan `e5e8b712`, behalve `game/js/postfx3d.js` in de werkboom (ongecodeerde wijziging van een andere sessie: `reduceFlash`/`screenFlash`, #592). De werkboom bevat daarnaast 88 gewijzigde bestanden van andere reviewers; ik heb alleen dit rapport toegevoegd.
 
 **Methode en grens:** statische review. Geen runtime, Electron, spel, testsuite of schermafbeeldingen; geen commits, pushes of GitHub-issues. Waar ik alleen het codepad kon zien en niet het beeld, staat dat erbij. `desktop/main.js` en `.env` zijn niet aangeraakt.

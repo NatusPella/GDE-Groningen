@@ -21,6 +21,9 @@ ok(!scanText('a.js', j('sk-or-v1-', 'a'.repeat(40)))[0].detail.includes('aaaa'),
 ok(rules('mail jan@gmail.com graag').includes('e-mailadres'), 'e-mailadres');
 ok(!rules('123+abc@users.noreply.github.com').includes('e-mailadres'), 'noreply is toegestaan');
 ok(emailsIn('a@example.com b@x.nl').length === 1, 'example.com is toegestaan');
+ok(emailsIn('app://game@evil.com/x').length === 0 && emailsIn('https://user@host.tld/pad').length === 0, 'userinfo van een URL is geen e-mailadres');
+ok(!rules('app://game@evil.com/x').includes('e-mailadres'), 'de URL-guard-test faalt niet op de publicatiecheck');
+ok(rules('mail jan@gmail.com graag').includes('e-mailadres'), 'een echt adres blijft FAIL');
 const osm = scanText('data/horeca_raw.json', '"email":"info@cafe.nl"');
 ok(osm.length === 1 && osm[0].level === 'WARN', 'OSM-data geeft WARN, geen FAIL');
 
