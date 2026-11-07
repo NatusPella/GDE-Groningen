@@ -109,7 +109,7 @@ function stingTik(world, kaart) {
 }
 
 let el = null, laatste = '';
-const CSS = `.wed-kaart{position:fixed;left:50%;top:18%;transform:translateX(-50%);z-index:55;min-width:320px;max-width:min(560px,calc(100vw - 32px));padding:14px 20px 12px;border-radius:10px;background:rgba(12,20,14,.92);color:#f0ede4;border-left:4px solid #f2b82a;font:16px/1.45 system-ui,Arial,sans-serif;pointer-events:none}
+const CSS = `.wed-kaart{position:fixed;left:50%;top:18%;transform:translateX(-50%);z-index:55;min-width:320px;max-width:min(560px,calc(100vw - 32px));padding:14px 20px 12px;border-radius:10px;background:rgba(12,20,14,.92);color:#f0ede4;border-left:4px solid #f2b82a;font:16px/1.45 'Arial Narrow', Arial, sans-serif;pointer-events:none}
 .wed-kaart b{display:block;font-size:12px;letter-spacing:3px;color:#f2b82a;text-transform:uppercase;margin-bottom:6px}
 .wed-kaart p{margin:2px 0;white-space:pre-wrap}.wed-kaart em{display:block;margin-top:8px;font-style:normal;font-size:14px;color:rgba(240,237,228,.8)}`;
 function tekenKaart(m) {

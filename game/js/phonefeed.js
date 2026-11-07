@@ -1,4 +1,5 @@
 import { dualHtml, dutchFor } from './subtitles.js';
+import { fitCard } from './hudtext.js';
 import { isStale } from './validity.js';
 import { paintSpeaker } from './speakers.js';
 import { noteSpoken } from './characters.js';
@@ -153,10 +154,12 @@ function showNote(w, n) {
   const el = document.createElement('div');
   el.className = 'pf-card';
   el.dataset.app = p.app;
+  // #645: een dynamische kaart (naam, bedrag, missietitel) blijft op het kaartbudget
+  const titel = fitCard(p.title), lichaam = fitCard(p.body);
   el.innerHTML =
     `<div class="pf-head"><span class="pf-app">${icon(p.app)}</span><span class="pf-from">${esc(p.from)}</span><span class="pf-more" hidden></span><span class="pf-time">${esc(clockNow(w))}</span></div>` +
-    (p.title ? `<div class="pf-title">${dualHtml(p.title)}</div>` : '') +
-    (p.body ? `<div class="pf-body">${dualHtml(p.body)}</div>` : '');
+    (titel ? `<div class="pf-title">${dualHtml(titel)}</div>` : '') +
+    (lichaam ? `<div class="pf-body">${dualHtml(lichaam)}</div>` : '');
   stack.appendChild(el);
   void el.offsetWidth;
   el.classList.add('on');

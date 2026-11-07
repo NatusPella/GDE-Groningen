@@ -647,23 +647,23 @@ export function getLifetimeStats() {
 // --- toast ------------------------------------------------------------------
 
 const CSS = `
-#hud .ach-toast { position: absolute; top: max(calc(11vh / var(--ui, 1)), calc(var(--hud-top, 34px) + 74px)); left: max(50%, 700px); z-index: 6; display: flex; align-items: center; gap: 14px;
+#hud .ach-toast { position: absolute; top: max(calc(11vh / var(--ui, 1)), calc(var(--hud-top, 34px) + 74px)); left: max(50%, calc(var(--hud-edge) + var(--mm-size) + 404px)); z-index: 6; display: flex; align-items: center; gap: 14px;
   min-width: 300px; max-width: calc(100vw / var(--ui, 1) - 32px); box-sizing: border-box; padding: 10px 22px 10px 12px;
   background: linear-gradient(90deg, rgba(12,20,14,0.94) 0%, rgba(12,20,14,0.86) 70%, rgba(12,20,14,0.6) 100%);
-  border-left: 4px solid #3fc97a; box-shadow: 0 8px 28px rgba(0,0,0,0.55), 0 0 22px rgba(63,201,122,0.18);
+  border-left: 4px solid var(--mk-ok, #3fc97a); box-shadow: 0 8px 28px rgba(0,0,0,0.55), 0 0 22px rgba(63,201,122,0.18);
   opacity: 0; transform: translate(-50%, -14px); transition: opacity 0.35s ease, transform 0.35s ease; pointer-events: none; }
 #hud .ach-toast.on { opacity: 1; transform: translate(-50%, 0); }
 /* Tijdens een minigame staat het bord met de toetshulp bovenaan rechts: de prestatiekaart zakt dan naar
    de onderkant in plaats van eroverheen te vallen (#504). */
 body.mg-on #hud .ach-toast { top: auto; bottom: max(calc(13vh / var(--ui, 1)), 104px); }
 #hud .ach-toast .ach-ico { flex: none; width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center;
-  background: radial-gradient(circle at 35% 30%, #6fe39d 0%, #1e9e56 70%); color: #0c140e; box-shadow: 0 0 16px rgba(63,201,122,0.5); }
+  background: radial-gradient(circle at 35% 30%, var(--mk-ok, #6fe39d) 0%, var(--gron-green, #1e9e56) 70%); color: #0c140e; box-shadow: 0 0 16px rgba(63,201,122,0.5); }
 #hud .ach-toast .ach-pic { width: 26px; height: 26px; }
-#hud .ach-toast.gold { border-left-color: #e8c93a; }
-#hud .ach-toast.gold .ach-ico { background: radial-gradient(circle at 35% 30%, #fff0a8 0%, #d9a91e 70%); box-shadow: 0 0 16px rgba(232,201,58,0.55); }
+#hud .ach-toast.gold { border-left-color: var(--mk-mission, #e8c93a); }
+#hud .ach-toast.gold .ach-ico { background: radial-gradient(circle at 35% 30%, var(--mk-mission, #fff0a8) 0%, var(--mk-mission, #d9a91e) 70%); box-shadow: 0 0 16px rgba(232,201,58,0.55); }
 #hud .ach-toast .ach-txt { display: flex; flex-direction: column; min-width: 0; }
-#hud .ach-toast .ach-kicker { font-size: 13px; letter-spacing: 3px; color: #3fc97a; }
-#hud .ach-toast.gold .ach-kicker { color: #e8c93a; }
+#hud .ach-toast .ach-kicker { font-size: 13px; letter-spacing: 3px; color: var(--mk-ok, #3fc97a); }
+#hud .ach-toast.gold .ach-kicker { color: var(--mk-mission, #e8c93a); }
 #hud .ach-toast .ach-title { font-size: 27px; letter-spacing: 1.5px; line-height: 1; color: #f0ede4; }
 #hud .ach-toast .ach-title .nl-sub { font-size: 0.55em; letter-spacing: 0.5px; text-transform: none; }
 #hud .ach-toast .ach-desc { font: 14px/1.3 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; color: rgba(240,237,228,0.75); }

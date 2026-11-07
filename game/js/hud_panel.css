@@ -83,7 +83,7 @@ body.hide-minimap #hud .hud-minimap-wrap { display: none; }
 #hud .hud-money-delta { font-size: 22px; opacity: 0; transform: translateY(6px); transition: opacity 0.25s, transform 0.4s; }
 #hud .hud-money-delta.visible { opacity: 1; transform: none; }
 #hud .hud-money-delta[data-sign="plus"] { color: var(--gron-green-light); }
-#hud .hud-money-delta[data-sign="min"] { color: #ff9a9a; }
+#hud .hud-money-delta[data-sign="min"] { color: var(--hud-redtx, #ff9a9a); }
 
 #hud .hud-weapon { display: flex; align-items: center; gap: 9px; }
 #hud .hud-weapon-col { display: flex; flex-direction: row; align-items: baseline; gap: 6px; min-width: 0; }
@@ -119,7 +119,7 @@ body.hide-minimap #hud .hud-minimap-wrap { display: none; }
 #hud .gps-dist span { font-size: 13px; color: rgba(240, 237, 228, 0.6); }
 #hud .gps-timer { display: none; flex-direction: column; align-items: center; }
 #hud .gps-timer span { font-size: max(12px, var(--hud-min)); color: rgba(240, 237, 228, 0.6); }
-#hud .gps-timer b { font-weight: normal; font-size: 30px; line-height: 1; color: #ff9a9a; font-variant-numeric: tabular-nums; }
+#hud .gps-timer b { font-weight: normal; font-size: 30px; line-height: 1; color: var(--hud-redtx, #ff9a9a); font-variant-numeric: tabular-nums; }
 #hud .hud-gps.has-timer .gps-timer, #hud .hud-gps.has-timer .gps-tsep { display: flex; }
 #hud .hud-gps:not(.has-timer) .gps-tsep { display: none; }
 #hud .hud-gps.no-turn .gps-arrow, #hud .hud-gps.no-turn .gps-txt, #hud .hud-gps.no-turn .gps-dist, #hud .hud-gps.no-turn .gps-sep:not(.gps-tsep) { display: none; }
@@ -186,7 +186,7 @@ body.pigeon-mode #hud .hud-mission.in-mission:not([hidden]) { display: flex !imp
 body.tc-on #hud .hud-mission { bottom: calc(var(--hud-g-floor, 225px) + 10px); }
 #hud .hud-mission[data-kind="mission"] { --obj: #e8c93a; }
 #hud .hud-mission[data-kind="job"] { --obj: #ff9a3c; }
-#hud .hud-mission[data-kind="police"] { --obj: #ff9a9a; }
+#hud .hud-mission[data-kind="police"] { --obj: var(--hud-redtx, #ff9a9a); }
 #hud .hud-obj-icon { flex: 0 0 16px; width: 16px; height: 16px; fill: var(--obj); filter: drop-shadow(0 0 6px var(--obj)); }
 #hud .hud-obj-text { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; line-height: 1.1; }
 /* two lines before the ellipsis: at 1280x720 the block is about 300 px wide and most goals ('Stap in de auto: de pinautomaat ligt achterin') were cut off */
@@ -252,8 +252,8 @@ body.tc-on #hud .hud-mission { bottom: calc(var(--hud-g-floor, 225px) + 10px); }
 #hud .hud-status { display: flex; gap: 4px; margin-left: 4px; }
 #hud .hud-chip { display: inline-flex; align-items: center; gap: 4px; padding: 0 5px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: max(11px, var(--hud-min)); line-height: 15px; white-space: nowrap; background: rgba(0, 0, 0, 0.55); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 4px; }
 #hud .hud-chip[hidden] { display: none; }
-#hud .hud-chip.drunk { color: #ffd36a; border-color: rgba(255, 211, 106, 0.5); }
-#hud .hud-chip.drunk svg { width: 13px; height: 13px; fill: rgba(255, 211, 106, 0.35); stroke: #ffd36a; stroke-width: 1.8; stroke-linejoin: round; }
+#hud .hud-chip.drunk { color: var(--mk-job, #ffd36a); border-color: rgba(255, 211, 106, 0.5); }
+#hud .hud-chip.drunk svg { width: 13px; height: 13px; fill: rgba(255, 211, 106, 0.35); stroke: var(--mk-job, #ffd36a); stroke-width: 1.8; stroke-linejoin: round; }
 
 #hud .hud-meter { display: flex; align-items: center; gap: 8px; margin: 0; }
 #hud .hud-meter[hidden] { display: none; }
@@ -293,9 +293,9 @@ body.tc-on #hud .hud-mission { bottom: calc(var(--hud-g-floor, 225px) + 10px); }
 #hud .sp-main { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
 #hud .sp-gears { display: flex; gap: 4px; font-size: 18px; color: rgba(240, 237, 228, 0.35); min-height: 18px; }
 #hud .sp-gears .on { color: var(--gron-green-light); }
-#hud .sp-gears .warn { color: #ff6f61; font-size: 15px; letter-spacing: 0.04em; }
-#hud .hud-speedo.shiftlight .rpm-fill { stroke: #ffd23f; }
-#hud .hud-speedo.limiter .rpm-fill { stroke: #ff6f61; animation: rpm-limit 0.12s steps(2) infinite; }
+#hud .sp-gears .warn { color: var(--mk-danger, #ff6f61); font-size: 15px; letter-spacing: 0.04em; }
+#hud .hud-speedo.shiftlight .rpm-fill { stroke: var(--mk-mission, #ffd23f); }
+#hud .hud-speedo.limiter .rpm-fill { stroke: var(--mk-danger, #ff6f61); animation: rpm-limit 0.12s steps(2) infinite; }
 @keyframes rpm-limit { 50% { opacity: 0.35; } }
 @media (prefers-reduced-motion: reduce) { #hud .hud-speedo.limiter .rpm-fill { animation: none; } }
 #hud .sp-val { font-weight: normal; font-size: 100px; line-height: 0.85; font-variant-numeric: tabular-nums; min-width: 2ch; text-align: right; }
@@ -305,7 +305,7 @@ body.tc-on #hud .hud-mission { bottom: calc(var(--hud-g-floor, 225px) + 10px); }
 #hud .rpm-bg { stroke: rgba(255, 255, 255, 0.14); }
 #hud .rpm-zone { stroke: rgba(217, 63, 63, 0.55); }
 #hud .rpm-fill { stroke: #3fc97a; transition: stroke 0.2s; }
-#hud .hud-speedo.redline .rpm-fill { stroke: #ff6f61; }
+#hud .hud-speedo.redline .rpm-fill { stroke: var(--mk-danger, #ff6f61); }
 #hud .hud-speedo.no-rpm .sp-rpm { display: none; }
 #hud .hud-speedo.no-gears .sp-gears { display: none; }
 @media (prefers-reduced-motion: reduce) { #hud .hud-speedo.visible { animation: none; } }
@@ -533,7 +533,7 @@ body:not(.cine-hide-hud) #cine.has-sub .cine-skip { bottom: calc(14px * var(--ui
 
 #hud .hud-vehname {
   /* the model name for a moment on getting in, above the key hints */
-  position: absolute; right: var(--hud-edge); bottom: calc(var(--hud-edge) + 300px); display: flex; align-items: center; gap: 12px;
+  position: absolute; right: var(--hud-edge); bottom: calc(var(--hud-edge) + var(--mm-size) + 50px); display: flex; align-items: center; gap: 12px;
   max-width: min(calc(46vw / var(--ui, 1)), 520px); padding: 8px 12px 8px 26px; text-align: right; color: #f0ede4;
   text-shadow: 0 2px 6px rgba(0, 0, 0, 0.85), 0 0 18px rgba(0, 0, 0, 0.5);
   background: linear-gradient(270deg, rgba(12, 20, 14, 0.82), rgba(23, 48, 31, 0.4) 80%, rgba(23, 48, 31, 0));
@@ -552,7 +552,7 @@ body:not(.cine-hide-hud) #cine.has-sub .cine-skip { bottom: calc(14px * var(--ui
 
 /* zone E: the radio station (and an achievement card, hudcards.js) */
 #hud .hud-nowplaying {
-  position: absolute; top: 330px; left: var(--hud-edge); display: flex; align-items: center; gap: 12px; max-width: min(calc(30vw / var(--ui, 1)), 320px);
+  position: absolute; top: calc(var(--hud-top) + var(--mm-size) + 46px); left: var(--hud-edge); display: flex; align-items: center; gap: 12px; max-width: min(calc(30vw / var(--ui, 1)), 320px);
   padding: 8px 16px 8px 8px; border-radius: 10px; color: #f0ede4; text-shadow: var(--hud-shadow); background: var(--hud-card); box-shadow: 0 0 0 1px rgba(63, 201, 122, 0.25);
   opacity: 0; transform: translateX(-24px); transition: opacity 0.4s, transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
@@ -608,8 +608,8 @@ body:not(.cine-hide-hud) #cine.has-sub .cine-skip { bottom: calc(14px * var(--ui
 @media (max-height: 640px) { #hud .hud-race .hr-pos b { font-size: 44px; } #hud .hud-race .hr-row b { font-size: 19px; } }
 
 /* story subtitles: a highlighted clue (missionstory.js) */
-#cine.sub-clue .cine-line { color: #f2d36b; }
-#cine.sub-clue .cine-sub::before { content: 'Aanwijzing'; display: block; font-family: 'Bebas Neue', 'Arial Narrow', sans-serif; font-size: 13px; letter-spacing: 3px; color: #f2c14e; margin-bottom: 2px; text-transform: uppercase; }
+#cine.sub-clue .cine-line { color: var(--mk-mission, #f2d36b); }
+#cine.sub-clue .cine-sub::before { content: 'Aanwijzing'; display: block; font-family: 'Bebas Neue', 'Arial Narrow', sans-serif; font-size: 13px; letter-spacing: 3px; color: var(--mk-mission, #f2c14e); margin-bottom: 2px; text-transform: uppercase; }
 #cine[data-accent="tammo"] .cine-title { color: #9cc1f0; }
 #cine[data-accent="anita"] .cine-title { color: #f39a8c; }
 
@@ -636,9 +636,9 @@ body:not(.cine-hide-hud) #cine.has-sub .cine-skip { bottom: calc(14px * var(--ui
 #drift-chip { position: fixed; left: 50%; bottom: 27%; transform: translateX(-50%); z-index: 20; display: flex; align-items: baseline; gap: 10px; padding: 6px 16px; border-radius: 10px; background: rgba(12, 20, 14, 0.72); color: #f0ede4; font-family: 'Bebas Neue', 'Arial Narrow', sans-serif; letter-spacing: 0.04em; pointer-events: none; border: 1px solid rgba(232, 82, 58, 0.55); }
 #drift-chip[hidden] { display: none; }
 #drift-chip .dc-k { font-size: 15px; color: rgba(240, 237, 228, 0.7); }
-#drift-chip .dc-p { font-size: 34px; font-weight: normal; color: #ffd23f; min-width: 3ch; text-align: right; font-variant-numeric: tabular-nums; }
+#drift-chip .dc-p { font-size: 34px; font-weight: normal; color: var(--mk-mission, #ffd23f); min-width: 3ch; text-align: right; font-variant-numeric: tabular-nums; }
 #drift-chip .dc-m { font-size: 22px; color: rgba(240, 237, 228, 0.5); }
-#drift-chip .dc-m.on { color: #ff6f61; }
+#drift-chip .dc-m.on { color: var(--mk-danger, #ff6f61); }
 #drift-chip .dc-t { font-size: 16px; color: rgba(240, 237, 228, 0.6); }
 
 .hud-chip.hud-mute { pointer-events: auto; position: relative; z-index: 21; min-height: 0; cursor: pointer; color: #f0ede4; }

@@ -30,6 +30,7 @@ import { hoofdspeler } from './players.js';
 import { gebiedIn, puntInGebied } from './grenzen.js';
 import { cinematicHang } from './cinelimit.js';
 import { reducedMotion } from './motion.js';
+import { fitCamera } from './cutscript.js';
 
 // world.cameraOverride poses use map coordinates: x/y on the map, z = height in metres.
 // world.timeScale (0..1) slows gameplay; main.js multiplies the gameplay dt by it.
@@ -1082,7 +1083,7 @@ export function playMissionIntro(w, { title, kicker, lines, objective, duration 
   };
   const left = build(1), right = build(-1);
   const keys = keyHits(w, right) < keyHits(w, left) ? right : left;
-  return playCinematic({ id: 'mission-intro', priority: 3, duration, pause: true, kicker, title, lines, shot: pathShot(clearKeys(w, keys)) });
+  return playCinematic({ id: 'mission-intro', priority: 3, duration, pause: true, kicker, title, lines, shot: cameraFit(w, pathShot(clearKeys(w, keys))) });
 }
 
 function orbitShot(w, { radius = 8, height = 3, sweep = 1, start = null, lookY = 1.3, fixed = null, fov = null }) {
@@ -1111,6 +1112,20 @@ function orbitShot(w, { radius = 8, height = 3, sweep = 1, start = null, lookY =
   };
 }
 
+export // #734 (F11): de handgemaakte camera's (missie-intro, fail, death, crash,
+// wanted5) gebruiken geen cutscript-env; deze wrapper haalt een kader dat in
+// een gevel staat naar voren/omhoog, met dezelfde fitCamera-regel als de
+// gescripte scènes.
+function cameraFit(w, shot) {
+  const env = { solid: (x, y, z) => roofAt(w.map, x, y) > z - 0.2 };
+  return (u, t) => {
+    const pose = shot(u, t);
+    if (!pose) return pose;
+    const position = fitCamera(pose.position, pose.lookAt, env);
+    return { ...pose, position };
+  };
+}
+
 export function playMissionFailed(w, info, withShot = true) {
   // sikkom: Gronings for "almost, but not quite" (the dialect word, not the news site)
   showBanner({ kind: 'fail', title: 'Sikkom.', ...info });
@@ -1122,7 +1137,7 @@ export function playMissionFailed(w, info, withShot = true) {
     { pos: W(px - Math.cos(a) * 6, gz + 3, py - Math.sin(a) * 6), look: W(px, gz + 1.2, py) },
     { pos: W(px - Math.cos(a) * 9, gz + 9, py - Math.sin(a) * 9), look: W(px, gz + 0.8, py) },
   ];
-  return playCinematic({ id: 'mission-fail', priority: 2, duration: 2.4, letterbox: false, timeScale: 0.5, shot: pathShot(clearKeys(w, keys), easeOut) });
+  return playCinematic({ id: 'mission-fail', priority: 2, duration: 2.4, letterbox: false, timeScale: 0.5, shot: cameraFit(w, pathShot(clearKeys(w, keys), easeOut)) });
 }
 
 function playDeath(w, pending) {
@@ -1143,10 +1158,10 @@ function playDeath(w, pending) {
   playCinematic({
     id: 'death', priority: 5, duration: DUR, letterbox: true, timeScale: 0.25, skippable: true,
     tint: opts.busted ? 'bust' : 'death', big: opts.busted ? 'OPGEPAKT' : 'DOOD',
-    shot: (u, t) => {
+    shot: cameraFit(w, (u, t) => {
       if (t > DUR - 0.45) links.respawnFade(Math.min(1, (t - (DUR - 0.45)) / 0.4));
       return shot(u);
-    },
+    }),
     onEnd: () => {
       if (w.pendingRespawn !== pending) { links.respawnFade(0, 300); return; }
       // the trip to the hospital / police station; it respawns the player itself
@@ -1206,12 +1221,12 @@ function tryCrashReplay(w, x, y) {
     // (#712) één regel, zodat een gast niet alleen twee balken ziet
     lines: [{ speaker: '', text: 'Krak. Iemand lette even niet op.' }],
     mumble: true,
-    shot: (u) => ({
+    shot: cameraFit(w, (u) => ({
       position: W(cx - fx * (2 - u * 2.5), gz + dak + 0.7 + u * 0.4, cy - fy * (2 - u * 2.5)),
       lookAt: W(x, gzl + 0.9, y),
       fov: 48,
       cut: true,
-    }),
+    })),
   });
 }
 
@@ -1242,7 +1257,7 @@ function playWantedFive(w) {
   }
   playCinematic({
     id: 'wanted5', priority: 2, duration: 1.6, timeScale: 0.4, letterbox: true,
-    kicker: '★★★★★', title: 'Heel Grunn zit achter je aan', accent: 'wanted', shot,
+    kicker: '★★★★★', title: 'Heel Grunn zit achter je aan', accent: 'wanted', shot: cameraFit(w, shot),
     // (#712) één regel voor de gast (de gastheer ziet de sterren en de titel)
     lines: [{ speaker: '', text: 'Vijf sterren. Nu even rustig aan doen.' }],
     mumble: true,
@@ -1397,6 +1412,7 @@ export function skipAllCinematics() {
   if (voicePaused) { resumeStoryVoice(); voicePaused = false; }
   clearCinematicUi();
 }
+
 
 
 

@@ -30,8 +30,8 @@
 #hud .pf-card.on, #hud .pf-callcard.on { opacity: 1; transform: none; }
 #hud .pf-card.back { opacity: 0.72; transform: scale(0.95); filter: saturate(0.6); }
 #hud .pf-card.out, #hud .pf-callcard.out { opacity: 0; transform: translateY(-30px) scale(0.96); transition-duration: 0.45s; }
-#hud .pf-card[data-app="bericht"] { --pf: #8fd3ff; }
-#hud .pf-card[data-app="geld"] { --pf: #3fc97a; }
+#hud .pf-card[data-app="bericht"] { --pf: var(--mk-info, #8fd3ff); }
+#hud .pf-card[data-app="geld"] { --pf: var(--mk-ok, #3fc97a); }
 #hud .pf-card::after {
   content: '';
   position: absolute;
@@ -66,8 +66,8 @@
 #hud .pf-title:last-child { padding-bottom: 12px; }
 
 /* calls and livestreams */
-#hud .pf-callcard { --pf: #3fc97a; border-radius: 18px; }
-#hud .pf-callcard.live { --pf: #ff5a4a; }
+#hud .pf-callcard { --pf: var(--mk-ok, #3fc97a); border-radius: 18px; }
+#hud .pf-callcard.live { --pf: var(--mk-danger, #ff5a4a); }
 #hud .pf-call-head { display: flex; align-items: center; gap: 11px; padding: 11px 14px 6px 12px; }
 #hud .pf-avatar {
   position: relative;
@@ -98,7 +98,7 @@
 #hud .pf-state { margin-left: auto; display: flex; align-items: center; gap: 6px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 14px; color: rgba(240, 237, 228, 0.7); white-space: nowrap; }
 #hud .pf-clock { font-weight: normal; font-variant-numeric: tabular-nums; }
 #hud .pf-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--pf); animation: pf-blink 1.2s ease-in-out infinite; }
-#hud .pf-live { margin-left: auto; padding: 3px 8px 1px; border-radius: 4px; font-size: 15px; letter-spacing: 2px; color: #fff; background: #d93f3f; animation: pf-blink 1.4s ease-in-out infinite; }
+#hud .pf-live { margin-left: auto; padding: 3px 8px 1px; border-radius: 4px; font-size: 15px; letter-spacing: 2px; color: #fff; background: var(--mk-danger, #d93f3f); animation: pf-blink 1.4s ease-in-out infinite; }
 @keyframes pf-blink { 50% { opacity: 0.4; } }
 #hud .pf-line { display: flex; flex-direction: column; gap: 3px; padding: 2px 16px 14px 65px; min-height: 22px; }
 #hud .pf-line.new { animation: pf-line 0.35s ease-out; }
