@@ -241,7 +241,7 @@ async function minigameSmoke(world, check, capture) {
   saveGame(world, { toast: false });
   for (const [name, hook] of [['discgolf', window.__discgolf], ['kartbaan', window.__kartbaan], ['skatepark', window.__skatepark], ['pitch & putt', window.__pitchputt]]) {
     hook.start();
-    await sleep(700);
+    await sleep(4500); // #720: de korte onthulling gaat voor de start
     check(`${name}: running before the load`, isActivityActive());
     loadLatestSave(world);
     await sleep(300);
@@ -281,7 +281,7 @@ async function minigames2Smoke(world, check, capture) {
   await cleared('zwembad');
 
   const kt = window.__klimtoren;
-  check('klimtoren: starts', kt && kt.start() && await waitFor(() => kt.state() && kt.state().climb.phase === 'climb', 6000));
+  check('klimtoren: starts', kt && kt.start() && await waitFor(() => kt.state() && kt.state().climb.phase === 'climb', 15000));
   await sleep(500);
   hold('a', 'KeyA');
   await waitFor(() => kt.state().climb.best > 0.3, 8000);
@@ -1078,6 +1078,7 @@ export async function runStoryTest(world) {
   console.log('[storytest-done] ' + JSON.stringify(report));
   return report;
 }
+
 
 
 
