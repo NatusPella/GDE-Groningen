@@ -9,6 +9,7 @@
 // De regels zijn puur; alleen `koopBeleid` en `laad`/`bewaar` raken opslag of geld aan, met een opslag-
 // parameter zodat de tests geen echte localStorage nodig hebben.
 import { KEYS } from './storagekeys.js';
+import { betaal } from './economy.js';
 
 export const BELEID = [
   { id: 'flits', naam: 'Flitspalen madera', prijs: 250, tekst: 'Verkeersboetes zijn 25% lager.', effect: 'boete' },
@@ -73,7 +74,7 @@ export function koopBeleid(world, id) {
   const st = getBeleid();
   if (heeftBeleid(st, id)) return 'Dat heb je al';
   if (!world || (world.money || 0) < b.prijs) return `Te weinig geld: €${b.prijs}`;
-  world.money -= b.prijs;
+  if (!betaal(world, b.prijs)) return `Te weinig geld: €${b.prijs}`;
   staat = koopBeleidRegel(st, id).staat;
   bewaar();
   return `${b.naam} aangenomen! ${b.tekst}`;

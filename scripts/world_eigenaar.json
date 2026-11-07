@@ -93,6 +93,30 @@
     "timeScale": {
       "eigenaar": "game/js/main.js",
       "notitie": "Wereldtijdschaal; een cutscene zet hem tijdelijk terug bij opruimen (#734)."
+    },
+    "coopGroepMissieIds": {
+      "eigenaar": "game/js/missions.js",
+      "notitie": "#492: de actieve missiegroepen (hooks op de wereld); missions.js zet ze, coopnet.js leest ze."
+    },
+    "coopGroepMissieVoor": {
+      "eigenaar": "game/js/missions.js",
+      "notitie": "#492: de lopende opdracht van een gastgroep voor het missiebericht per groep."
+    },
+    "coopGroepToets": {
+      "eigenaar": "game/js/missions.js",
+      "notitie": "#492: de toetsen van een gast gaan naar de invoer van zijn eigen opdracht."
+    },
+    "coopGroepSleutel": {
+      "eigenaar": "game/js/missions.js",
+      "notitie": "#492: de ketensleutel van de groep die op dit moment getikt wordt (eigen wereld of een gastgroep)."
+    },
+    "lokaalLichaam": {
+      "eigenaar": "game/js/missions.js",
+      "notitie": "#492: het lichaam van een gastgroep tijdens zijn eigen opdracht; spelersregister leest het, missions.js zet het via metLokaalLichaam."
+    },
+    "input": {
+      "eigenaar": "game/js/main.js",
+      "notitie": "De hoofdlus zet de invoerlaag van deze speler; modules lezen hem."
     }
   },
   "uitzonderingen": [
@@ -106,13 +130,6 @@
     {
       "veld": "armor",
       "bestand": "game/js/coopnet.js",
-      "max": 1,
-      "reden": "past het pantser aan buiten de spelersmodule om",
-      "issue": "#498"
-    },
-    {
-      "veld": "armor",
-      "bestand": "game/js/missions.js",
       "max": 1,
       "reden": "past het pantser aan buiten de spelersmodule om",
       "issue": "#498"
@@ -511,13 +528,6 @@
     },
     {
       "veld": "extraSpeakers",
-      "bestand": "game/js/missions.js",
-      "max": 1,
-      "reden": "voegt een spreker toe aan de lijst",
-      "issue": "#498"
-    },
-    {
-      "veld": "extraSpeakers",
       "bestand": "game/js/policemounts.js",
       "max": 1,
       "reden": "voegt een spreker toe aan de lijst",
@@ -547,13 +557,6 @@
     {
       "veld": "health",
       "bestand": "game/js/horeca.js",
-      "max": 1,
-      "reden": "past de gezondheid aan buiten de spelersmodule om",
-      "issue": "#498"
-    },
-    {
-      "veld": "health",
-      "bestand": "game/js/missions.js",
       "max": 1,
       "reden": "past de gezondheid aan buiten de spelersmodule om",
       "issue": "#498"
@@ -611,13 +614,6 @@
       "veld": "lastImpact",
       "bestand": "game/js/lowhealth.js",
       "max": 1,
-      "reden": "registreert de laatste botsing",
-      "issue": "#498"
-    },
-    {
-      "veld": "lastImpact",
-      "bestand": "game/js/missions.js",
-      "max": 2,
       "reden": "registreert de laatste botsing",
       "issue": "#498"
     },
@@ -980,13 +976,6 @@
     },
     {
       "veld": "pedestrians",
-      "bestand": "game/js/missions.js",
-      "max": 1,
-      "reden": "voegt een voetganger toe of haalt hem weg",
-      "issue": "#498"
-    },
-    {
-      "veld": "pedestrians",
       "bestand": "game/js/police.js",
       "max": 3,
       "reden": "voegt een voetganger toe of haalt hem weg",
@@ -1177,7 +1166,7 @@
     {
       "veld": "vehicles",
       "bestand": "game/js/missions.js",
-      "max": 24,
+      "max": 21,
       "reden": "maakt of verwijdert een voertuig in de gedeelde lijst; de lijst heeft nog geen API",
       "issue": "#498"
     },
@@ -1583,9 +1572,58 @@
     {
       "veld": "uiPaused",
       "bestand": "game/js/todo.js",
-      "max": 2,
+      "max": 1,
       "reden": "Te-doen-paneel pauzeert de wereld licht tijdens openen/sluiten (#676)",
       "issue": "#676"
+    },
+    {
+      "veld": "input",
+      "bestand": "game/js/missions.js",
+      "max": 5,
+      "reden": "de missielus zet tijdelijk de invoer van een gastgroep en zet hem daarna terug (#492)",
+      "issue": "#492"
+    },
+    {
+      "veld": "armor",
+      "bestand": "game/js/missionlanes.js",
+      "max": 1,
+      "reden": "missionlanes.js zet de fatbike-/kroegenscene; de waarde hoort bij de wereld, de module schrijft hem rechtstreeks (#497)",
+      "issue": "#497"
+    },
+    {
+      "veld": "extraSpeakers",
+      "bestand": "game/js/missionlanes.js",
+      "max": 1,
+      "reden": "missionlanes.js voegt een spreker toe voor de scène (#497)",
+      "issue": "#497"
+    },
+    {
+      "veld": "health",
+      "bestand": "game/js/missionlanes.js",
+      "max": 1,
+      "reden": "missionlanes.js past de gezondheid aan in de scène (#497)",
+      "issue": "#497"
+    },
+    {
+      "veld": "lastImpact",
+      "bestand": "game/js/missionlanes.js",
+      "max": 2,
+      "reden": "missionlanes.js registreert de laatste botsing; de eigenaar is vehicleimpact.js (#497)",
+      "issue": "#497"
+    },
+    {
+      "veld": "pedestrians",
+      "bestand": "game/js/missionlanes.js",
+      "max": 1,
+      "reden": "missionlanes.js voegt een voetganger toe voor de kroegencrowd (#497)",
+      "issue": "#497"
+    },
+    {
+      "veld": "vehicles",
+      "bestand": "game/js/missionlanes.js",
+      "max": 3,
+      "reden": "missionlanes.js zet fietsen voor de fatbike-straat in de voertuiglijst (#497)",
+      "issue": "#497"
     }
   ]
 }

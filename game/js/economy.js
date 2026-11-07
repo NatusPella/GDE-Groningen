@@ -31,6 +31,15 @@ export function bustFineIn(wanted, money, vehicle) {
   return isBorrowedMissionCar(vehicle) ? 0 : bustFine(wanted, money);
 }
 
+// #492: één plek voor een gewone betaling buiten de prijstabellen (de Beleidswinkel): het saldo gaat
+// er alleen af als het kan. Zo blijft economy.js de eigenaar van world.money.
+export function betaal(world, bedrag) {
+  const b = Math.max(0, Math.round(Number(bedrag) || 0));
+  if (!world || b <= 0 || (world.money || 0) < b) return false;
+  world.money -= b;
+  return true;
+}
+
 export const SPEED_FINE = [10, 25];
 export const SIDEJOB_ACCIDENT_FINE = 10;
 

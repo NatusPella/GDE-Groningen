@@ -1,6 +1,6 @@
 {
  "version": 1,
- "note": "Aantal directe verwijzingen naar world.player per bestand (#500), inclusief de alias w.player. Alleen omlaag; zie scripts/player_singleton_audit.mjs.",
+ "note": "Aantal directe verwijzingen naar world.player per bestand (#500), inclusief de alias w.player. Alleen omlaag; zie scripts/player_singleton_audit.mjs. Reden van de stand (#492): een gastgroep speelt met world.lokaalLichaam, dat spelersregister/players.js lezen; missions.js heeft daardoor geen directe world.player-lezer meer en de teller blijft 65.",
  "total": 65,
  "files": {
   "game/js/aaien.js": 2,

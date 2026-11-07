@@ -36,11 +36,12 @@ t('medailleBedrag: vliegschool, postgame en activiteit vertellen bedrag en punte
   const her = M.medailleBedrag('vliegschool', 3, { geld: 60, xp: 6, eerste: false });
   assert.equal(her.geld, 0); assert.equal(her.xp, 6); assert.match(her.tekst, /opnieuw: geen bedrag/);
   const p = M.medailleBedrag('postgame', 3);
-  assert.equal(p.geld, 700); assert.match(p.tekst, /Goud · \+€700/);
+  // #675: de postgame-beloning is herijkt naar €1.500 goud (was €700), in verhouding tot de missies en Veroverd
+  assert.equal(p.geld, 1500); assert.match(p.tekst, /Goud · \+€1\.500|Goud · \+€1500/);
   const a = M.medailleBedrag('activiteit', 2, { geld: 20, xp: 40 });
   assert.equal(a.geld, 20); assert.equal(a.xp, 40); assert.match(a.tekst, /Zilver · \+€20 premie · \+40 punten/);
   // onzin begrenst
-  assert.equal(M.medailleBedrag('postgame', 9).geld, 700);
+  assert.equal(M.medailleBedrag('postgame', 9).geld, 1500);
   assert.equal(M.medailleBedrag('onbekend', 3).geld, 0);
 });
 

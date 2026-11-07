@@ -8,9 +8,11 @@ const LEEG = [];
 function lokaalRecord(world, slot) {
   return {
     slot, lokaal: true, hoofd: true,
-    get entiteit() { return world.player; },
-    get x() { const p = world.player; return p ? p.x : NaN; },
-    get y() { const p = world.player; return p ? p.y : NaN; },
+    // #492: een gastgroep speelt tijdelijk met het lichaam van die gast (world.lokaalLichaam);
+    // alle andere lezers van de lokale speler zien gewoon world.player.
+    get entiteit() { return world.lokaalLichaam || world.player; },
+    get x() { const p = world.lokaalLichaam || world.player; return p ? p.x : NaN; },
+    get y() { const p = world.lokaalLichaam || world.player; return p ? p.y : NaN; },
   };
 }
 function externRecord(slot, partner) {
@@ -54,7 +56,7 @@ const bruikbaar = (r) => r && Number.isFinite(r.x) && Number.isFinite(r.y);
 // Zoals dichtstbijzijndeSpeler, maar valt terug op de hoofdspeler als niemand een bruikbare plek heeft (dan gedraagt de code zich als voorheen).
 export function naasteSpeler(world, x, y) { return dichtstbijzijndeSpeler(world, x, y) || world.player; }
 
-export function hoofdspeler(world) { return world.player; } // het lichaam van de speler van dit apparaat (plek 0); nooit een meespeler
+export function hoofdspeler(world) { return world.lokaalLichaam || world.player; } // het lichaam van de speler van dit apparaat (plek 0); nooit een meespeler
 export function spelers(world) { return register(world); }
 // Het record van één speler op zijn vaste plek (0 = wie het spel opende, 1 en verder = de meespelers); null als die plek niet meedoet.
 export function speler(world, slot) {

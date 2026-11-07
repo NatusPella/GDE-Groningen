@@ -245,7 +245,9 @@ const ok = (c, naam) => { n++; if (!c) { console.log(`FAIL ${naam}`); process.ex
 {
   ok(/import \{ openGroepKeten, sluitGroepKeten, groepKeten, groepKetens, isGroepSleutel, groepIdVanSleutel \}/.test(src), 'missions.js haalt de groepsketen binnen');
   ok(/function startGroepMissie\(world, i, van\)/.test(src), 'een gastverzoek opent een groepsketen');
-  ok(/world\.player = lichaam/.test(src) && /world\.input = groepInvoer\.get\(sleutel\)/.test(src), 'de gastmissie speelt met het lichaam en de invoer van die gast');
+  ok(/metLokaalLichaam\(world, lichaam, \(\) => startMission\(world, def\)\)/.test(src), 'de gastmissie speelt met het lichaam van die gast');
+  ok(/metLokaalLichaam\(world, lichaam, \(\) => updateMissionKern\(deel, world\)\)/.test(src), 'de missielus tikt de gastgroep met dat lichaam');
+  ok(/world\.input = groepInvoer\.get\(sleutel\)/.test(src), 'de gastmissie speelt met de invoer van die gast');
   ok(/world\.coopMissieStart = \(i, van = 0\) => \(van >= 1 \? startGroepMissie/.test(src), 'de start-haak kiest de groepsketen voor een gast');
   ok(/world\.coopGroepToets = \(slot, toets\)/.test(src), 'de toetsen van de gast gaan naar zijn groepsinvoer');
   ok(/world\.coopGroepMissieVoor = \(id\) => groepMissieVoor\(id\)/.test(src), 'de opdracht van een groep is op te vragen voor het bericht');
