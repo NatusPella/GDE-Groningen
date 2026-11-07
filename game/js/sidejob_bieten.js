@@ -6,6 +6,7 @@
 // akker hebt. Ligt die akker er eenmaal, dan oogst je bieten op Eigen boerderij en valt dit startpunt weg.
 
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { accentVan } from './sidejobprofiel.js';
 import {
   init, step, result, akkerRijen, rijPositie, oogstFractie, RIJEN, RIJ_LEN, RIJ_AFSTAND, V_MIN,
 } from './bietenrules.js';
@@ -116,7 +117,7 @@ export default {
   id: 'bietenoogst',
   name: 'Loonwerk: bietenoogst',
   kicker: 'Boerderij',
-  color: '#8a9a3a',
+  color: accentVan('bietenoogst'),
   glyph: 'suikerbieten',
   boss: 'Boer Zonnehoek',
   vehicleWord: 'de trekker',
@@ -234,3 +235,4 @@ export default {
 
   stop(c) { ruim(c); },
 };
+

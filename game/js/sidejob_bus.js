@@ -1,4 +1,5 @@
 import { hoofdspeler } from './players.js';
+import { accentVan } from './sidejobprofiel.js';
 // Bijbaantje: stadsbus lijn 3. Een rondje langs de haltes volgens de
 // dienstregeling: netjes stoppen, passagiers laten in- en uitstappen, niet
 // te vroeg vertrekken en niemand door het gangpad laten rollen.
@@ -119,7 +120,7 @@ function depart(c) {
 export default {
   id: 'bus',
   name: 'Stadsbus lijn 3',
-  color: '#3b5bdb',
+  color: accentVan('bus'),
   glyph: 'bus',
   boss: 'Planner Stadsvervoer',
   boardFirst: true,
@@ -306,4 +307,5 @@ export default {
     for (const ped of c.data.waiting || []) freePed(ped);
   },
 };
+
 

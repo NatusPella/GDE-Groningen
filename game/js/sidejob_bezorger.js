@@ -1,4 +1,5 @@
 import { hoofdspeler } from './players.js';
+import { accentVan } from './sidejobprofiel.js';
 // Bijbaantje: maaltijdbezorger voor "Hap & Rap" op een e-fatbike. Ophalen
 // bij een zaak, bezorgen voor het koud is; tegenwind en regen werken tegen.
 
@@ -93,7 +94,7 @@ function newOrder(c) {
 export default {
   id: 'bezorger',
   name: 'Hap & Rap bezorger',
-  color: '#e4572e',
+  color: accentVan('bezorger'),
   glyph: 'bezorger',
   boss: 'Planner Hap & Rap',
   boardFirst: true,
@@ -243,4 +244,5 @@ export default {
     if (d.customer) freePed(d.customer);
   },
 };
+
 

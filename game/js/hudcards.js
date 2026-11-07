@@ -217,7 +217,7 @@ function keycaps(html) {
 
 function cardHtml(c) {
   const s = c.spec;
-  const kicker = s.kicker || CARD_KINDS[s.kind].label;
+  const kicker = s.kicker || (s.kind === 'bijbaan' && s.familieNaam) || CARD_KINDS[s.kind].label;
   // #631: een bijbaankaart draagt de sfeer van zijn vak als klein bandje (bestaande tint en motief).
   const sfeer = s.sfeerVak ? sfeerVan(s.sfeerVak) : null;
   const band = sfeer && sfeer.naam
@@ -364,7 +364,10 @@ export function updateCards(dt, w) {
     const next = queue.splice(i, 1)[0];
     if (next.spec.kind === 'tip') noteTip();
     // #631: de sfeer van de lopende bijbaan mee de kaart in (de baan publiceert sfeerVak).
-    if (next.spec.kind === 'bijbaan' && w && w.sideJob && w.sideJob.active && w.sideJob.sfeerVak) next.spec.sfeerVak = w.sideJob.sfeerVak;
+    if (next.spec.kind === 'bijbaan' && w && w.sideJob && w.sideJob.active) {
+      if (w.sideJob.sfeerVak) next.spec.sfeerVak = w.sideJob.sfeerVak;
+      if (w.sideJob.familieNaam) next.spec.familieNaam = w.sideJob.familieNaam;
+    }
     noteToast();
     mount(next);
     return;

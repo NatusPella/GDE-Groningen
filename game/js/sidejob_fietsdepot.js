@@ -1,4 +1,5 @@
 import { hoofdspeler } from './players.js';
+import { accentVan } from './sidejobprofiel.js';
 // Bijbaantje: fietsenhandhaving bij het Hoofdstation. Foutgeparkeerde
 // fietsen (met een oranje label) oppakken en in het busje van het
 // fietsdepot zetten, terwijl de eigenaren komen protesteren.
@@ -57,7 +58,7 @@ function wallSpot(map, x, y) {
 export default {
   id: 'fietsdepot',
   name: 'Fietsdepot-handhaver',
-  color: '#6a8f2a',
+  color: accentVan('fietsdepot'),
   glyph: 'fietsdepot',
   boss: 'Handhaver Ria',
   vehicleWord: 'het fietsdepot-busje',
@@ -248,5 +249,6 @@ export default {
     if (d.protester && pedAlive(c.world, d.protester.ped)) freePed(d.protester.ped);
   },
 };
+
 
 

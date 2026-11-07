@@ -1,4 +1,5 @@
 import { hoofdspeler } from './players.js';
+import { accentVan } from './sidejobprofiel.js';
 // Bijbaantje: rondvaartgids op het Diepenring-water. Tussen twee steigers
 // langs de bezienswaardigheden varen en bij elk punt rustig aan doen, zodat
 // de toeristen het hele verhaal horen.
@@ -49,7 +50,7 @@ function legBounds(k) {
 export default {
   id: 'rondvaart',
   name: 'Rondvaartgids',
-  color: '#1b8fc9',
+  color: accentVan('rondvaart'),
   glyph: 'rondvaart',
   boss: 'Schipper Geert',
   boardFirst: true,
@@ -212,3 +213,4 @@ export default {
 
   stop() {},
 };
+

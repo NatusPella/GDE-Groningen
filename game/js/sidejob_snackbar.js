@@ -8,6 +8,7 @@ import { createChoicePanel, keycap } from './choicepanel.js';
 import { SNACKBAR, MAX_POGINGEN, maakRonde, kies, rondeResultaat, voortgang } from './missie_snackbar.js';
 import { hulpTip } from './bijbaanhulp.js';
 import { dist } from './util.js';
+import { accentVan } from './sidejobprofiel.js';
 
 const REACH = 4.2;
 const FAR = 60;
@@ -18,7 +19,7 @@ const SHIRTS = ['#e0902f', '#3a7ab8', '#a05ab0', '#6a9a5a', '#d8b030', '#c04a3a'
 const KOP = 'OVERLAST BIJ DE SNACKBAR';
 
 let panel = null;
-const ensurePanel = () => panel || (panel = createChoicePanel('#e0902f'));
+const ensurePanel = () => panel || (panel = createChoicePanel(accentVan('snackoverlast')));
 
 function closePanel(c) {
   if (panel) panel.hide();
@@ -38,7 +39,7 @@ function groepSpots(map, base) {
 export default {
   id: 'snackoverlast',
   name: 'Overlast bij de snackbar',
-  color: '#e0902f',
+  color: accentVan('snackoverlast'),
   glyph: 'snackbar',
   boss: SNACKBAR.baas,
   kicker: 'Bijbaan',

@@ -10,13 +10,14 @@ import { createChoicePanel, keycap } from './choicepanel.js';
 import { pickDossier, dossierQuestions, verklaringPay, juryGenade, COURT_SAY } from './casework.js';
 import { dist } from './util.js';
 import { poiLayerPlaces } from './facilities.js';
+import { accentVan } from './sidejobprofiel.js';
 
 const ARRIVE_R = 5.5;
 const READ_MIN_S = 2;
 const RESULT_S = 3;
 
 let panel = null;
-const ensurePanel = () => panel || (panel = createChoicePanel('#9a7ad0'));
+const ensurePanel = () => panel || (panel = createChoicePanel(accentVan('rechtbank')));
 
 function stationSpot(map) {
   const ps = poiLayerPlaces(map, 'policeStations').find((s) => /Centrum/.test(s.name)) || { x: 100, y: 76, name: 'Politiebureau' };
@@ -42,7 +43,7 @@ function closePanel(c) {
 export default {
   id: 'rechtbank',
   name: 'Dossier naar de rechtbank',
-  color: '#7a5aa8',
+  color: accentVan('rechtbank'),
   glyph: 'rechtbank',
   boss: 'Griffier Smid',
   kicker: 'Zijmissie',

@@ -12,6 +12,7 @@ import { bubble, clearBubbles } from './minigamekit.js';
 import { CABARET, heckleTiming, cabaretSchedule, cabaretPay } from './casework.js';
 import { medeGrapje } from './bijbaanhulp.js';
 import { dist } from './util.js';
+import { accentVan } from './sidejobprofiel.js';
 
 const SPEAK_S = 3.2;
 const SWEEP_S = 2.4;
@@ -20,7 +21,7 @@ const STAY_R = 40;
 const RESULT_S = 3.2;
 
 let panel = null;
-const ensurePanel = () => panel || (panel = createChoicePanel('#d86a8a'));
+const ensurePanel = () => panel || (panel = createChoicePanel(accentVan('cabaret')));
 
 function closePanel(c) {
   if (panel) panel.hide();
@@ -30,7 +31,7 @@ function closePanel(c) {
 export default {
   id: 'cabaret',
   name: 'Cabaret in de Stadsschouwburg',
-  color: '#d86a8a',
+  color: accentVan('cabaret'),
   glyph: 'cabaret',
   boss: 'Ype Tjaarda',
   kicker: 'Zijmissie',

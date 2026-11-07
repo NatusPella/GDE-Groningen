@@ -6,6 +6,7 @@
 // Altijd een zonnige dag. Het perceel staat vast zodra het gevonden is (vindAkker uit sidejob_bieten.js).
 
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { accentVan } from './sidejobprofiel.js';
 import * as B from './boerderij.js';
 import { init, step, result, fractie, rijCue, RIJEN, RIJ_LEN, BAND } from './werkgang.js';
 import { akkerRijen, rijPositie } from './bietenrules.js';
@@ -161,7 +162,7 @@ function stelTaakIn(c, taak) {
 export default {
   id: 'boerderij',
   name: 'Eigen boerderij',
-  color: '#8fb04a',
+  color: accentVan('boerderij'),
   glyph: 'suikerbieten',
   kicker: 'Boerderij',
   boss: 'Boerderij De Zonnehoek',
@@ -341,3 +342,4 @@ function klaar(c) {
   }[taak];
   c.skip(tekst);
 }
+

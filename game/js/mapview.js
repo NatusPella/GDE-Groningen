@@ -1590,7 +1590,7 @@ function buildSearchIndex(world) {
   return entries;
 }
 
-const TODO_KIND = { missies: 'Missie', minigames: 'Minigame', bijbaantjes: 'Bijbaantje', ommeland: 'Ommeland', nahetverhaal: 'Na het verhaal', verhaal: 'Verhaal' };
+const TODO_KIND = { missies: 'Missie', minigames: 'Minigame', diensten: 'Dienst', kantoorklussen: 'Kantoorklus', bijbaantjes: 'Bijbaantje', ommeland: 'Ommeland', nahetverhaal: 'Na het verhaal', verhaal: 'Verhaal' };
 
 // Missions and activities change with progress: indexed per search.
 function todoEntries() {

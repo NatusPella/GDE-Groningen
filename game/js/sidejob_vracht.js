@@ -1,4 +1,5 @@
 import { hoofdspeler } from './players.js';
+import { accentVan } from './sidejobprofiel.js';
 // Bijbaantje: vrachtwagenchauffeur voor "Hunze Vrachtvervoer". Eerst achteruit
 // onder een oplegger koppelen, dan laden, de lading rustig naar de klant brengen en
 // daar lossen: geen inklappers, geen harde klappen. De scharnierlogica staat in
@@ -91,7 +92,7 @@ function kanHelpen(c) {
 export default {
   id: 'vracht',
   name: 'Hunze Vrachtvervoer',
-  color: '#2f5c8a',
+  color: accentVan('vracht'),
   glyph: 'vracht',
   boss: 'Planner Hunze Vrachtvervoer',
   vehicleWord: 'de trekker',
@@ -325,4 +326,5 @@ export default {
     clearTrailer(c);
   },
 };
+
 

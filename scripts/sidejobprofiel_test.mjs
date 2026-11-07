@@ -83,5 +83,32 @@ t('#668: de eerste ronde van een baan telt dubbel voor het niveau, daarna één;
   assert.match(P.appRegel('loket'), /Kantoorklus/, 'de app noemt de familie');
 });
 
+t('#631/#667: geen losse baan-hex meer, één accent uit het profiel, en de familie in HUD en Te doen', () => {
+  const fsx = fs;
+  const bestanden = fsx.readdirSync(new URL('../game/js/', import.meta.url)).filter((f) => /^sidejob_.*\.js$/.test(f));
+  const hex = [];
+  for (const f of bestanden) {
+    const src = fsx.readFileSync(new URL('../game/js/' + f, import.meta.url), 'utf8');
+    if (/^ {2}color: '#[0-9a-fA-F]{3,6}',$/m.test(src)) hex.push(f);
+  }
+  assert.deepEqual(hex, [], 'geen losse identiteitskleur in sidejob_*.js');
+  for (const f of ['sidejob_cabaret.js', 'sidejob_rechtbank.js', 'sidejob_snackbar.js', 'sidejob_boa.js', 'sidejob_paneel.js']) {
+    const src = fsx.readFileSync(new URL('../game/js/' + f, import.meta.url), 'utf8');
+    assert.match(src, /accentVan\('/, f + ' gebruikt het profielaccent');
+  }
+  assert.match(P.accentVan('taxi'), /^rgba\(/, 'het accent is de bestaande sfeertint, geen hex');
+  assert.match(P.accentVan('cabaret'), /^rgba\(/);
+  const td = bron('todo.js');
+  assert.match(td, /'diensten', 'Diensten'/, 'Te doen heeft een dienstengroep');
+  assert.match(td, /'kantoorklussen', 'Kantoorklussen'/, 'en een kantoorklussengroep');
+  assert.match(td, /o\.familie === 'kantoorklus' \? 'kantoorklussen' : 'diensten'/, 'de rij gaat naar de juiste groep');
+  const mv = bron('mapview.js');
+  assert.match(mv, /diensten: 'Dienst'/, 'de kaart kent de dienstgroep');
+  assert.match(mv, /kantoorklussen: 'Kantoorklus'/, 'en de kantoorklusgroep');
+  const hc = bron('hudcards.js');
+  assert.match(hc, /s\.familieNaam/, 'de HUD-kaart noemt de familie');
+  assert.match(hc, /w\.sideJob\.familieNaam/, 'en leest hem uit de publicatie');
+});
+
 console.log(`sidejobprofiel_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

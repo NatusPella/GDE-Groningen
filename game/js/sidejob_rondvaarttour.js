@@ -1,3 +1,4 @@
+import { accentVan } from './sidejobprofiel.js';
 // Uitje: ontspannen rondvaart. The H13 tour without the conflict: the
 // rondvaartboot at the Spilsluizen quay, a boat full of tourists, one whole
 // round of the Diepenring with Tammo at the microphone and Tessa correcting
@@ -21,7 +22,7 @@ const berthOf = (map) => berth || (berth = rondvaartBerth(map));
 export default {
   id: 'rondvaarttour',
   name: 'Ontspannen rondvaart',
-  color: '#2a9d8f',
+  color: accentVan('rondvaarttour'),
   glyph: 'rondvaart',
   boss: 'Tammo',
   kicker: 'Uitje',
@@ -109,3 +110,5 @@ export default {
     stopRondvaart(c.world, 'relaxed');
   },
 };
+
+
