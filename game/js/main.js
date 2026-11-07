@@ -146,7 +146,7 @@ import { updateKnockFx3D } from './knockfx3d.js';
 import { updateGunFx3D } from './gunfx3d.js';
 import { initCityProps, updateCityProps } from './cityprops.js';
 import { initPhone, updatePhone, isPhoneOpen } from './phone.js';
-import { initSaveGame, updateSaveGame, hasSave, readSave, ensureLatestSlot } from './savegame.js';
+import { initSaveGame, updateSaveGame, readSaveInfo, ensureLatestSlot } from './savegame.js';
 import { START_MONEY } from './economy.js';
 import { initWeather, updateWeather } from './weather.js';
 import { initWorldEvents, updateWorldEvents } from './worldevents.js';
@@ -558,7 +558,8 @@ async function boot() {
   markLoad('systems');
   // the first tiles round the save build while the boot screen is still up; boot loads the
   // save that was written last, so warm that slot and not whichever slot happened to be active
-  try { const slot = ensureLatestSlot(); const sv = slot && hasSave() ? readSave() : null; if (sv && sv.pos) prewarmStreamAt(sv.pos.x, sv.pos.y, 40); } catch (e) { /* ignore */ }
+  // #655: de boot leest de save één keer (readSaveInfo); hasSave()/readSave() erna komen uit de lees-cache.
+try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null; const sv = info && info.data ? info.data : null; if (sv && sv.pos) prewarmStreamAt(sv.pos.x, sv.pos.y, 40); } catch (e) { /* ignore */ }
   await terrainReady();
   markLoad('terrain');
   await finishLoading();

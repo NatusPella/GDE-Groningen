@@ -31,7 +31,7 @@ import { applyGuestChanges, applyGuestStory, applyGuestAchievements } from './co
 import { verhaalStatus } from './coopverhaal.js';
 import { gebeurtenissenVan, maakBoekhouding } from './coopbeloning.js';
 import { getRenderer, afterNextFrame } from './scene3d.js';
-import { readSlot, writeSlotRaw, writeThumb, activeSlot, setActive, createSlot, deleteSlot, nameOf, pickActive, pickLatest, repairSlot, writeBackupOnce, isFresh, clearFresh } from './saveslots.js';
+import { readSlot, writeSlotRaw, writeThumb, activeSlot, setActive, createSlot, deleteSlot, nameOf, pickActive, pickLatest, repairSlot, writeBackupOnce, isFresh, clearFresh, newerVersionOf } from './saveslots.js';
 import { logError } from './errorlog.js';
 import { maakCheckpoint } from './coopcheckpoint.js';
 import { registerSaveGame, registerSaveTimers, registerGastVerhaal, registerGastBoek } from './savehook.js';
@@ -135,11 +135,13 @@ function backupOnce(raw, v) {
 
 // A save written by a newer version of the game: kept aside before this
 // version writes its own.
+// #655: alleen kijken of de ruwe tekst een nieuwere versie kan hebben (regex); pas dan parsen.
+// Een gewone save kost hier geen JSON.parse meer.
 function keepNewerSave() {
   try {
     const raw = localStorage.getItem(slotKey(saveTarget()));
-    const d = JSON.parse(raw || 'null');
-    if (d && Number.isInteger(d.v) && d.v > VERSION) backupOnce(raw, d.v);
+    const v = newerVersionOf(raw);
+    if (v != null) backupOnce(raw, v);
   } catch (e) { /* ignore */ }
 }
 

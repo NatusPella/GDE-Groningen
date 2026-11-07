@@ -17,6 +17,16 @@ export const FILE_KIND = 'GDE-save';
 // a save of this size or more is not ours (a real one is some tens of kB)
 export const MAX_IMPORT_CHARS = 2_000_000;
 
+// #655: teller voor het parsepad (alleen tests lezen hem) en één lees-cache per slot. De cache
+// houdt de laatste inspectie van een slot bij de ruwe tekst; zolang de tekst gelijk is (hasSave,
+// readSave, getSaveSummary en loadBootSave op de boot) wordt er niet opnieuw geparseerd of
+// gemigreerd. Elke schrijfactie naar een slot gooit zijn cache-entry weg.
+export const saveStats = { parse: 0, stringify: 0, migrate: 0, cacheHit: 0 };
+export function resetSaveStats() { saveStats.parse = 0; saveStats.stringify = 0; saveStats.migrate = 0; saveStats.cacheHit = 0; }
+let slotCache = new Map();
+export function resetReadCache() { slotCache = new Map(); }
+const dropSlotCache = (n) => { slotCache.delete(n); };
+
 const isObj = (o) => !!o && typeof o === 'object' && !Array.isArray(o);
 const num = (v, d = 0) => (typeof v === 'number' && Number.isFinite(v) ? v : d);
 
@@ -63,23 +73,35 @@ const getRaw = (ls, k) => { try { return ls0(ls).getItem(k); } catch (e) { retur
 
 // What a stored text is: { ok, data, from } for a save this game can load, else { ok: false, why }
 // why: 'leeg' | 'kapot' (not JSON / not a save) | 'nieuwer' (written by a newer game) | 'ander-verhaal'
-export function inspectRaw(raw) {
+export function inspectRaw(raw, { migrate = true } = {}) {
   if (raw == null || raw === '') return { ok: false, why: 'leeg' };
   let d;
-  try { d = JSON.parse(raw); } catch (e) { return { ok: false, why: 'kapot' }; }
+  try { d = JSON.parse(raw); saveStats.parse++; } catch (e) { saveStats.parse++; return { ok: false, why: 'kapot' }; }
   if (!isObj(d)) return { ok: false, why: 'kapot' };
   if (Number.isInteger(d.v) && d.v > SAVE_VERSION) return { ok: false, why: 'nieuwer' };
+  if (!Number.isInteger(d.v) || d.v < 1) return { ok: false, why: 'kapot' };
+  // #655: voor een schrijfcontrole is de versie genoeg; alleen een echte lezer migreert (en kopieert).
+  if (!migrate) return { ok: true, data: d, from: d.v };
   let m;
-  try { m = migrateSave(d); } catch (e) { return { ok: false, why: 'kapot' }; } // e.g. nested too deep to copy
+  try { m = migrateSave(d); saveStats.migrate++; } catch (e) { saveStats.migrate++; return { ok: false, why: 'kapot' }; } // e.g. nested too deep to copy
   if (!m) return { ok: false, why: 'kapot' };
   if (savedArc(m.data) !== ARC_ID) return { ok: false, why: 'ander-verhaal' };
   return { ok: true, data: m.data, from: m.from };
 }
 
+// #655: een goedkope versiecontrole voor keepNewerSave: geen parse voor een gewone save, alleen
+// een regex op de ruwe tekst. Geeft de versie als die nieuwer is dan dit spel, anders null.
+export function newerVersionOf(raw) {
+  if (typeof raw !== 'string' || !raw) return null;
+  const m = /"v"\s*:\s*(\d+)/.exec(raw);
+  const v = m ? Number(m[1]) : null;
+  return Number.isInteger(v) && v > SAVE_VERSION ? v : null;
+}
+
 // a text worth keeping as the recovery copy: a save this game can load, or one from a newer game
 // (not junk that merely parses: that would replace a good copy)
 function isSaveText(t) {
-  const r = inspectRaw(t);
+  const r = inspectRaw(t, { migrate: false });
   return r.ok || r.why === 'nieuwer';
 }
 
@@ -87,14 +109,22 @@ function isSaveText(t) {
 // state: 'leeg' | 'ok' | 'hersteld' (read from the recovery copy) | 'kapot' | 'nieuwer' | 'ander-verhaal'
 export function readSlot(ls, n) {
   const raw = getRaw(ls, slotKey(n));
-  const main = inspectRaw(raw);
-  if (main.ok) return { n, state: 'ok', data: main.data, from: main.from, raw };
   const rec = getRaw(ls, slotRecoveryKey(n));
-  if (main.why === 'kapot' || main.why === 'leeg') {
-    const r = inspectRaw(rec);
-    if (r.ok) return { n, state: 'hersteld', data: r.data, from: r.from, raw: rec, recovered: true };
+  const cached = slotCache.get(n);
+  if (cached && cached.raw === raw && cached.rec === rec) { saveStats.cacheHit++; return { ...cached.res }; }
+  const main = inspectRaw(raw);
+  let res;
+  if (main.ok) res = { n, state: 'ok', data: main.data, from: main.from, raw };
+  else {
+    let hersteld = null;
+    if ((main.why === 'kapot' || main.why === 'leeg') && rec != null) {
+      const r = inspectRaw(rec);
+      if (r.ok) hersteld = { n, state: 'hersteld', data: r.data, from: r.from, raw: rec, recovered: true };
+    }
+    res = hersteld || { n, state: main.why, data: null, raw, why: main.why };
   }
-  return { n, state: main.why, data: null, raw, why: main.why };
+  slotCache.set(n, { raw, rec, res });
+  return { ...res };
 }
 
 // The data recovered from the recovery copy goes back to the slot itself, so the next boot and the
@@ -251,18 +281,20 @@ export function writeSlotRaw(ls, n, text) {
   const put = () => { s.setItem(key, text); if (s.getItem(key) !== text) { const e = new Error('read-back differs'); e.torn = true; throw e; } };
   try {
     put();
+    dropSlotCache(n);
     return true;
   } catch (e) {
     // full: the recovery copy takes as much room as the save, so give it up before giving up the save
     if (!e.torn) { try { s.removeItem(slotRecoveryKey(n)); put(); return true; } catch (e1) { /* still no room */ } }
     try { if (prev != null) s.setItem(key, prev); } catch (e2) { /* nothing more to do */ }
+    dropSlotCache(n);
     return false;
   }
 }
 
 export function writeSlot(ls, n, save) {
   let text;
-  try { text = JSON.stringify(save); } catch (e) { return false; }
+  try { text = JSON.stringify(save); saveStats.stringify++; } catch (e) { return false; }
   return writeSlotRaw(ls, n, text);
 }
 
@@ -284,6 +316,7 @@ export function createSlot(ls, name, want = 0, fresh = false) {
 export function deleteSlot(ls, n) {
   const s = ls0(ls);
   try { s.removeItem(slotKey(n)); s.removeItem(slotRecoveryKey(n)); s.removeItem(slotThumbKey(n)); } catch (e) { return false; }
+  dropSlotCache(n);
   const idx = readIndex(ls);
   delete idx.names[n];
   if (idx.active === n) {

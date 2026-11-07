@@ -24,13 +24,19 @@ const isObj = (o) => !!o && typeof o === 'object' && !Array.isArray(o);
 // Runs migrations[v] for v = from .. to - 1 on a copy of data. Returns
 // { data, from, steps } or null when the data is newer than `to` or has no
 // usable version. `fallback` is the version of data without `v`.
+// #655: teller voor het migratiepad (tests): hoeveel keer er echt een deep copy nodig was.
+export const migrationStats = { calls: 0, copied: 0 };
+export function resetMigrationStats() { migrationStats.calls = 0; migrationStats.copied = 0; }
+
 export function runMigrations(input, migrations, to, fallback = null) {
+  migrationStats.calls++;
   if (!isObj(input)) return null;
   const from = Number.isInteger(input.v) ? input.v : fallback;
   if (!Number.isInteger(from) || from < 1 || from > to) return null;
   // #655: een save die al bij is hoeft niet gediepcopieerd te worden; alleen een
   // echte migratiestap werkt op een kopie.
   if (from === to) return { data: input, from, steps: [] };
+  migrationStats.copied++;
   let data = JSON.parse(JSON.stringify(input));
   const steps = [];
   for (let v = from; v < to; v++) {
