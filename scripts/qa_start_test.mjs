@@ -16,6 +16,27 @@ t('de eerste drie harnassen hebben geen menu-aanroep meer', () => {
   }
 });
 
+t('de volgende vijf harnassen zijn ook omgezet', () => {
+  const files = ['readme_shots.mjs', 'sweep.mjs', 'wachtbeeld.mjs', 'speeltest74.mjs', 'stadvergelijk.mjs'];
+  for (const f of files) {
+    const src = read('scripts/qa/' + f);
+    assert.ok(!/__menuStart|#start-screen/.test(src), f + ' start via de wereld');
+    assert.match(src, /game-started|#581/, f + ' wacht op de wereldstart');
+  }
+  const doc = read('docs/QA-START-VAN-MENU-AF.md');
+  assert.ok((doc.match(/\*\*omgezet\*\*/g) || []).length >= 7, 'de inventaris markeert de omgezette harnassen');
+});
+
+
+t('de brug-harnassen starten ook via de wereld (#581)', () => {
+  for (const f of ['brug_qa.mjs', 'brug_beeld.mjs', 'brug_boot.mjs']) {
+    const page = read('scripts/qa/' + f.replace('.mjs', '.page.js'));
+    assert.ok(!/__menuStart|#start-screen/.test(page), f + ' heeft geen menu-aanroep meer');
+    assert.match(page, /game-started/, f + ' wacht op de wereldstart');
+  }
+  assert.ok((read('docs/QA-START-VAN-MENU-AF.md').match(/\*\*omgezet\*\*/g) || []).length >= 8, 'de inventaris telt de omgezette harnassen');
+});
+
 t('de inventaris noemt de overgebleven harnassen en de reden', () => {
   const doc = read('docs/QA-START-VAN-MENU-AF.md');
   for (const f of ['readme_shots', 'menuplekken_shots', 'testbank', 'playtest_sim']) assert.ok(doc.includes(f), f);
@@ -23,9 +44,11 @@ t('de inventaris noemt de overgebleven harnassen en de reden', () => {
   assert.match(doc, /omgezet/);
 });
 
-t('readme_shots is de volgende kandidaat, niet stilletjes vergeten', () => {
-  assert.match(read('scripts/qa/readme_shots.mjs'), /__menuStart/);
-  assert.match(read('docs/QA-START-VAN-MENU-AF.md'), /readme_shots[\s\S]{0,200}volgende/);
+t('de menu- en coop-harnassen blijven bewust, met reden', () => {
+  const doc = read('docs/QA-START-VAN-MENU-AF.md');
+  assert.match(doc, /menuplekken_shots/);
+  assert.match(doc, /GDE_MENU_TEST/);
+  assert.match(doc, /bewust/);
 });
 
 console.log(`qa_start_test: ${n}/${n} ok`);
