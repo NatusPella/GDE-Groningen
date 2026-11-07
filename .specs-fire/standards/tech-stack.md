@@ -11,7 +11,7 @@ is de kaart.
 
 ### Taal
 
-**Primair**: JavaScript (ES-modules, `import`/`export`, geen TypeScript, geen build-stap voor de gamecode).
+**Primair**: JavaScript (ES-modules, `import`/`export`, geen TypeScript, geen build-stap voor de gamecode). TypeScript is onderzocht (POC op `ts-poc`) en afgewezen: zie ADR [0023](adr/0023-javascript-blijft-de-taal.md) (status voorgesteld; tot de eigenaar beslist blijft main JavaScript).
 **Node**: v24 op de ontwikkelmachine; de scripts draaien op Node 18 of hoger.
 
 ### Engine en rendering

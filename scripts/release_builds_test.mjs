@@ -88,5 +88,14 @@ const levendCalls = [];
 await main({ argv: [`v${V}`, '--only', 'mac'], exec: nepGh(levendCalls, [W]), log: () => {}, logErr: () => {} });
 ok(levendCalls.includes(`workflow run mac-release.yml -f tag=v${V}`), 'zonder --droog start de workflow wel');
 
+// #576: een tag zonder v (zoals de release 0.55.0) is een fout, geen stille terugval
+// op de versie uit desktop/package.json.
+const tagFout = await main({ argv: ['0.55.0', '--droog'], exec: () => { throw new Error('gh had niet aangeroepen mogen worden'); }, log: () => {}, logErr: () => {} })
+  .then(() => '', (e) => String(e && e.message || e));
+ok(/ongeldige tag "0\.55\.0"/.test(tagFout), 'tag zonder v wordt geweigerd');
+const halfFout = await main({ argv: ['v0.39', '--droog'], exec: () => { throw new Error('gh had niet aangeroepen mogen worden'); }, log: () => {}, logErr: () => {} })
+  .then(() => '', (e) => String(e && e.message || e));
+ok(/ongeldige tag/.test(halfFout), 'onvolledige tag wordt geweigerd');
+
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

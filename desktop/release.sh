@@ -47,6 +47,16 @@ if [ -n "$(git status --porcelain -- .. ':!../.claude')" ]; then
   exit 1
 fi
 
+# De tag gaat niet op een commit die de suite niet haalt (#576). Zelfde selectie als CI;
+# de zware wereldchecks en de Electron-verhaaltest blijven voor de coördinator.
+# Nooduitgang voor een hotfix: GDE_RELEASE_SKIP_TESTS=1 (dan zegt de uitvoer dat ook).
+if [ "${GDE_RELEASE_SKIP_TESTS:-}" = "1" ]; then
+  echo "LET OP: tests overgeslagen (GDE_RELEASE_SKIP_TESTS=1); de suite is NIET gedraaid."
+else
+  echo "Tests (CI-selectie) vóór de release ..."
+  ( cd .. && node scripts/run_tests.mjs ) || { echo "De suite is rood: geen release. Repareer eerst, of gebruik GDE_RELEASE_SKIP_TESTS=1 als de eigenaar dat goedkeurt."; exit 1; }
+fi
+
 if [ "$BUMP" != "current" ]; then
   npm version "$BUMP" --no-git-tag-version >/dev/null
 fi

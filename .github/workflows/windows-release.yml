@@ -104,3 +104,21 @@ jobs:
             test -s "dist/GDE-Groningen-$VERSION-windows-arm64-portable.exe"
             gh release upload "$TAG" "dist/GDE-Groningen-$VERSION-windows-arm64-portable.exe" --clobber
           fi
+
+      # De lokale SHA256SUMS hoort bij de lokaal gebouwde exe; deze workflow vervangt de exe
+      # (--clobber), dus de hash moet opnieuw (#576). De regel van gde-world.tgz blijft staan.
+      - name: SHA256SUMS opnieuw na de upload
+        working-directory: desktop
+        run: |
+          VERSION="${TAG#v}"
+          gh release download "$TAG" -p SHA256SUMS.txt -D dist --clobber || true
+          FILES="dist/GDE-Groningen-$VERSION-windows-portable.exe"
+          if [ "${{ inputs.arm64 }}" = "true" ]; then FILES="$FILES dist/GDE-Groningen-$VERSION-windows-arm64-portable.exe"; fi
+          if [ -f dist/SHA256SUMS.txt ]; then
+            grep -v -E 'GDE-Groningen-.*windows.*portable\.exe$' dist/SHA256SUMS.txt > dist/SHA256SUMS.new || true
+          else
+            : > dist/SHA256SUMS.new
+          fi
+          for f in $FILES; do node ../scripts/release_hashes.mjs "$f" >> dist/SHA256SUMS.new; done
+          mv dist/SHA256SUMS.new dist/SHA256SUMS.txt
+          gh release upload "$TAG" dist/SHA256SUMS.txt --clobber

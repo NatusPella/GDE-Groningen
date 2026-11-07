@@ -133,7 +133,11 @@ export async function main({ argv = process.argv.slice(2), exec = null, log = co
   const flag = (n) => argv.includes(n);
   const val = (n) => { const i = argv.indexOf(n); return i >= 0 ? argv[i + 1] : null; };
   const valueArgs = new Set([val('--only'), val('--ref')].filter(Boolean));
-  const tag = argv.find((a) => /^v\d+\.\d+\.\d+$/.test(a) && !valueArgs.has(a))
+  // #576: een tag die niet aan vX.Y.Z voldoet (zoals de tag "0.55.0" zonder v) werd
+  // stil door de versie uit package.json vervangen. Nu is dat een fout.
+  const tagArg = argv.find((a) => !a.startsWith('--') && !valueArgs.has(a));
+  if (tagArg && !/^v\d+\.\d+\.\d+$/.test(tagArg)) throw new Error(`ongeldige tag "${tagArg}": gebruik vX.Y.Z (de release van 0.55.0 staat zonder v en hoort niet zo te blijven)`);
+  const tag = tagArg
     || 'v' + JSON.parse(fs.readFileSync(path.join(ROOT, 'desktop', 'package.json'), 'utf8')).version;
   const version = tag.slice(1);
   const explicit = val('--only');

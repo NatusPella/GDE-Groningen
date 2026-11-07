@@ -220,7 +220,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels per scène staan 
 | **Gevolg / haak** | de politie zoekt twee mensen in het zwart. De camera's filmden hen. De bal is bij Jelle. |
 | **Behouden / nieuw** | bijna alles BEHOUDEN, ook het kaartje; Jelles radioregel over artikel 4 is NIEUW (nu letterlijk waar); 12 nieuwe regels |
 
-**Openingsdialoog (kade, nacht):** TAMMO: "Weet je zeker dat dit gebouw nog niet gekraakt is? Het ziet er al zo uit." [BEHOUDEN]; TESSA: "Dit is het plan. Om twaalf uur gaan de camera's drie minuten uit. In die drie minuten pakken wij de bal, als bewaking, voor Jelle." [NIEUW]; "Geef me je hand. Het is donker daarbinnen." [BEHOUDEN]; TAMMO: "…Voor de grip." [BEHOUDEN].
+**Openingsdialoog (kade, nacht):** TAMMO: "Weet je zeker dat dit gebouw nog niet gekraakt is? Het ziet er al zo uit." [BEHOUDEN]; TESSA: "Dit is het plan. Om twaalf uur gaan de camera's drie minuten uit. In die drie minuten pakken wij de bal, voordat Jelle hem pakt." [NIEUW]; "Geef me je hand. Het is donker daarbinnen." [BEHOUDEN]; TAMMO: "…Voor de grip." [BEHOUDEN].
 
 **Sleutelscène (de lege vitrine):** TESSA: "Tige tank! – J." [BEHOUDEN]; TAMMO: "Hij bedankt ons." [BEHOUDEN]; TESSA: "Hij was hier eerder. Die J schrijft overal een bedankje bij." [NIEUW]; JELLE (radio, na afloop): "Daarom bel ik. Reglement van de Noordelijke Snackprijs, artikel 4. De bewaarder zit de jury voor. De bal is bij mij, dus de rest volgt. Mijn juristen noemen het een overname." [NIEUW]
 

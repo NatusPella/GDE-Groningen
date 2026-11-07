@@ -122,7 +122,7 @@ verhaaltest draaien lokaal.
   `merkenregister_check`.
 - **Versie:** `0.53.0` in `desktop/package.json:4`, met `## [0.53.0] - 2026-10-25`
   als nieuwste changelogsectie; elke versie die met `0.` begint, wordt een
-  pre-release (`desktop/release.sh:129`).
+  pre-release (`desktop/release.sh:139`).
 - **Ondertekening:** niets is ondertekend. Windows `signExecutable: false`,
   macOS `identity: null` en `hardenedRuntime: false`
   (`desktop/package.json:62-64`, `:79`); de APK gebruikt de debug-keystore van

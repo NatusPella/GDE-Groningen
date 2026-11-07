@@ -63,7 +63,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Alleen verzonnen namen (geen echte
 
 ## Welke zijn essentieel voor 4+ uur?
 
-De hoofdlijn (26 missies plus vier reisbeats) komt op ca. 4:37 (zie 00-OVERZICHT, bandbreedte 4:00-5:10). **Niets uit deze lijst is strikt nodig voor 4+ uur.** Drie dingen beschermen de ondergrens van 4:00 voor spelers die snel spelen:
+De hoofdlijn (26 missies plus vier reisbeats in de vijf akten, en daarna Deel 4 met M27-M30 en T5) komt op ca. 4:37 (zie 00-OVERZICHT, bandbreedte 4:00-5:10). **Niets uit deze lijst is strikt nodig voor 4+ uur.** Drie dingen beschermen de ondergrens van 4:00 voor spelers die snel spelen:
 1. **Het Loket als bijbaan** (rang 3): vult Stad aan zonder nieuwe code.
 2. **De streekbus en museumbus** (rang 7): de reisbeats gaan er via, en reizen is inhoud.
 3. **De Fjord Frituur-dienst** (rang 1): na M22 beschikbaar, de beloning van het bezit.
