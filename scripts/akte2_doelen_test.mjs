@@ -62,10 +62,11 @@ const labelled = (name, def) => { for (const q of allStages(def)) ok(q.label, `$
 // --- M09 eieren ---
 const eieren = byId('eieren');
 ok(eieren.type === 'stages' && eieren.vehicle === 'car' && eieren.vehicleModel && eieren.lazyStart, 'eieren: a tractor mission that finds its road when it starts');
-ok(eieren.stages.map((q) => q.kind).join() === 'board,goto,goto', 'eieren: board, wierdepaden, kerkkelder');
-ok(eieren.eggs.count === 60 && eieren.eggs.failAt === 50 && eieren.eggs.from === 1 && eieren.eggs.rough.per > 0, 'eieren: sixty eggs, more than half broken fails, bumps break eggs');
-ok(/zestig eieren/.test(eieren.say) && /kerkkelder in Usquert/.test(eieren.stages[2].label), 'eieren: the goal is said aloud');
-const e0 = eieren.start, e2 = { x: eieren.stages[2].target.at[0], y: eieren.stages[2].target.at[1] };
+ok(eieren.stages.map((q) => q.kind).join() === 'board,goto,goto,goto', 'eieren: board, wierdepaden, tussenstop, kerkkelder');
+ok(eieren.eggs.count === 60 && eieren.eggs.failAt === 38 && eieren.eggs.from === 1 && eieren.eggs.rough.per > 0, 'eieren: sixty eggs, fails under 38% (second chance), bumps break eggs');
+ok(/zestig eieren/.test(eieren.say) && /kerkkelder in Usquert/.test(eieren.stages[3].label), 'eieren: the goal is said aloud');
+ok(/tussenstop/i.test(eieren.stages[2].target.label) && eieren.stages[2].kind === 'goto', 'eieren: een tussenstop op de wierde halverwege (#663)');
+const e0 = eieren.start, e2 = { x: eieren.stages[3].target.at[0], y: eieren.stages[3].target.at[1] };
 ok(inProvince(e0) && inProvince(e2) && km(e0, e2) > 2.5 && km(e0, e2) < 5, 'eieren: Warffum to Usquert is about 3 to 4 km', km(e0, e2).toFixed(1));
 ok(eieren.vehicleFail.gone && eieren.vehicleFail.wrecked && eieren.vehicleFail.left && eieren.eggs.fail, 'eieren: own failure messages');
 labelled('eieren', eieren);
@@ -74,12 +75,13 @@ for (const t of talks(eieren)) checkTalk('eieren', t);
 // --- M10 wierde ---
 const wierde = byId('wierde');
 ok(wierde.type === 'stages' && wierde.vehicle === 'car' && wierde.vehicleModel && wierde.lazyStart, 'wierde: a quad mission');
-ok(wierde.stages.map((q) => q.kind).join() === 'board,goto,vault,goto', 'wierde: board, shake off the limo, Jelle jumps, bus stop');
-const chase = wierde.stages[1];
+ok(wierde.stages.map((q) => q.kind).join() === 'board,goto,goto,vault,goto', 'wierde: board, chase in twee stukken, Jelle jumps, bus stop');
+const chase = wierde.stages[1], chase2 = wierde.stages[2];
 ok(chase.pursuer && chase.pursuer.model.name === 'trekkerlimo' && chase.pursuer.fail && chase.pursuer.caughtFor > 1, 'wierde: the tractor-limo pursues and can catch you');
-ok(/sloot bij Uithuizen/.test(chase.label), 'wierde: the goal is said aloud');
-ok(wierde.stages[2].fail === true && wierde.stages[2].script.ids[0] === 'M10.3', 'wierde: Jelle ends up in the ditch, with the lines of the script');
-ok(km(wierde.start, { x: chase.target.at[0], y: chase.target.at[1] }) > 2 && inProvince(wierde.start), 'wierde: Usquert to the ditch is a real drive');
+ok(chase2.pursuer === chase.pursuer, 'wierde: de limo jaagt op beide stukken door (#663)');
+ok(/sloot bij Uithuizen/.test(chase2.label), 'wierde: the goal is said aloud');
+ok(wierde.stages[3].fail === true && wierde.stages[3].script.ids[0] === 'M10.3', 'wierde: Jelle ends up in the ditch, with the lines of the script');
+ok(km(wierde.start, { x: chase2.target.at[0], y: chase2.target.at[1] }) > 2 && inProvince(wierde.start), 'wierde: Usquert to the ditch is a real drive');
 labelled('wierde', wierde);
 for (const t of talks(wierde)) checkTalk('wierde', t);
 
@@ -88,7 +90,7 @@ const list = [{ label: 'Geleend van de Friezen', type: 'stages', stages: [{ kind
 applyNieuw(list);
 const kust = list[0];
 ok(kust.requires === undefined && kust.startAt === undefined && kust.boatStart, 'kust: the old def is replaced, not patched');
-ok(kust.stages.map((q) => q.kind).join() === 'goto,boatchase,scene,goto,scene,scene,hold,hold,hold,goto', 'kust: boat, skûtsje, aboard, sandbank, night, marsh x3, back', kust.stages.map((q) => q.kind).join());
+ok(kust.stages.map((q) => q.kind).join() === 'goto,boatchase,scene,goto,scene,scene,scene,hold,hold,hold,goto', 'kust: boat, skûtsje, aboard, sandbank, night, marsh x3, back', kust.stages.map((q) => q.kind).join());
 const path = kust.stages[1].path;
 let plen = 0;
 for (let i = 1; i < path.length; i++) plen += Math.hypot(path[i][0] - path[i - 1][0], path[i][1] - path[i - 1][1]);
@@ -105,7 +107,7 @@ const salt = holds.map((q) => ({ x: q.target.at[0], y: q.target.at[1] }));
 ok(salt.every((p) => Math.hypot(p.x - light.x, p.y - light.y) < light.range), 'kust: all three tubs are inside the range of the beam');
 labelled('kust', kust);
 for (const t of talks(kust)) checkTalk('kust', t);
-ok(kust.stages[2].script.ids[0] === 'M11.3' && kust.stages[4].script.ids.join() === 'M11.5,M11.6', 'kust: the scenes of the script are stages');
+ok(kust.stages[2].script.ids[0] === 'M11.3' && kust.stages[4].script.ids[0] === 'M11.5' && kust.stages[5].script.ids[0] === 'M11.6', 'kust: the scenes of the script are stages');
 
 // --- the searchlight: where it points, who is seen ---
 const lt = { x: 0, y: 0, from: 1.4, to: 2.65, speed: 0.32, range: 500, half: 0.17, rate: 1.5, crouchRate: 0.3, decay: 0.3 };
@@ -151,3 +153,4 @@ ok(L.stepExposure(0, 1, true, false, lt) === 1 && L.stepExposure(1, 1, false, fa
 
 console.log(`${n - fails}/${n} act-2 goal checks passed`);
 process.exit(fails ? 1 : 0);
+

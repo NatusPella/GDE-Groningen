@@ -71,6 +71,13 @@ Akte 3 haalde in 120 minuten wandtijd M15 niet uit en eindigde op een time-out.
 - **De bot loopt niet meer vast tussen de marktkramen en stapt in een achtervolging niet meer uit zijn auto** (eerder in deze ronde, #218).
 - Geen spelgetal is veranderd: de bot-data bewijzen geen te hoge of te lage waarde (zie 3, 4 en 6), en een getal aanpassen zonder een mens
   die het speelt zou een gok zijn.
+- **Opening gecomprimeerd (#662, ontwerpmeting).** De keukenscène van de opening (C00.2) was 111,1 s; de regels die alleen de grap dragen
+  zijn geschrapt en de overgebleven regels zijn opnieuw getimed (`openingActs` in `cutscenes.js`), zodat de opening 147,7 s duurt
+  (was 168,8 s) en het eerste speelbare moment onder de 3 minuten blijft. Gemeten met dezelfde catalogus als deze balans:
+  `node scripts/openingtempo_test.mjs`; de overslaan-hint staat meteen in beeld. Een nieuwe botrun moet dit nog bevestigen.
+- **M09 en M10 onderbroken (#663).** M09 heeft een tussenstop op de wierde (drie rijstappen i.p.v. twee) en faalt pas onder 38% eieren
+  (was 50%), met waarschuwingen op 75%, 60% en 45% vóór die grens; M10 heeft de achtervolging in twee stukken geknipt met dezelfde limo
+  (`node scripts/missietempo_test.mjs`). Een nieuwe botmeting opnieuw doen is nog te doen.
 
 ## Voor een mens om te kijken (concrete kandidaten, geen besluit)
 

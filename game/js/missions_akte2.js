@@ -42,7 +42,10 @@ function kustDef() {
         props: [{ kind: 'ball', holder: 'A', from: 'Chocola' }],
       },
       { kind: 'goto', target: { at: [-21747, -13661], snap: null, label: 'De zandplaat' }, mode: 'boat', radius: 45, label: 'Vaar met Klaas naar de zandplaat; de wind duwt het water weg', say: 'Het zout van Oma ligt bij Noordpolderzijl. Eerst de zandplaat: de wind duwt het water weg, daar wachten we.', talk: { ids: ['M11.4'], delay: 2 } },
-      { kind: 'scene', label: 'De zandplaat', kicker: 'De zandplaat', script: { ids: ['M11.5', 'M11.6'] }, clockTo: 22.8 },
+      // #742: de nachtscène op de zandplaat heeft eigen regie gekregen. Eerst de Melkweg (M11.5, met Klaas),
+      // dan de lange blik tussen de twee (M11.6); elk met een eigen spec in cutscenes_akte2.js en een eigen klok.
+      { kind: 'scene', label: 'De zandplaat: de Melkweg', kicker: 'De zandplaat', script: { ids: ['M11.5'] }, clockTo: 22.4, cast: [{ key: 'klaas', pose: 'hips', at: [3.2, 0.6] }] },
+      { kind: 'scene', label: 'De zandplaat: de lange blik', kicker: 'De zandplaat', script: { ids: ['M11.6'] }, clockTo: 23.1 },
       { kind: 'scene', label: 'Naar Noordpolderzijl', big: 'Klaas brengt jullie langs de dijk naar Noordpolderzijl…', kicker: 'Noordpolderzijl', warp: { at: [585, -23701], snap: 'walk', clock: 23.4 }, clockTo: 23.4 },
       marsh([600, -23875], 'Zoutkuip 1', ['Nog even scheppen…', 'Bijna vol.'], { setTime: 210, talk: { ids: ['M11.7'], to: 4, delay: 2 }, say: 'Drie zoutkuipen op de kwelder. Het water komt over een kleine vier minuten. Het licht van de kustwacht gaat heen en weer: bukken (Ctrl) als het komt.' }),
       marsh([480, -23820], 'Zoutkuip 2', ['Nog even scheppen…', 'Bijna vol.']),
@@ -55,6 +58,9 @@ function kustDef() {
 
 export function buildAkte2Defs({ models = {} } = {}) {
   const far = (x, y) => ({ x, y, road: null });
+  // #663: de limo van Jelle jaagt over beide stukken van de wierdepaden-rit; de
+  // missiestaat (S.limo) houdt hem tussen de stappen vast.
+  const LIMO = { model: { name: 'trekkerlimo', len: 5.6, wid: 2.0, maxSpeed: 40, accel: 7, brake: 14, turnRate: 2.1, color: '#1b1c1f' }, name: 'Trekker-limo van Jelle', behind: 40, cruise: 15, caught: 7, caughtFor: 3, shake: 170, close: 24, fail: 'de limo haalt je in. Jelle houdt de koffer zelf wel vast', closeText: 'De trekker-limo zit op je bumper!', lostText: 'De limo raakt je kwijt, achter een wierde.' };
   return [
     {
       // M09 Heel aankomen is ook een kunst (Hogeland): sixty eggs in Geesje's tractor, from the pastorie in Warffum to the
@@ -70,7 +76,9 @@ export function buildAkte2Defs({ models = {} } = {}) {
       vehicleName: 'Geesjes trekker',
       vehicleModel: models.tractor || null,
       vehicleFail: { gone: 'Geesjes trekker is foetsie, met alle eieren', wrecked: 'de trekker ligt in de sloot, de eieren drijven', left: 'je liet de trekker met de eieren staan' },
-      eggs: { from: 1, count: 60, failAt: 50, fail: 'meer dan de helft van de eieren is stuk. Laad opnieuw', rough: { speed: 8.5, per: 0.35 } },
+      // #663: de rit is in twee stukken geknipt met een tussenstop, en de missie
+      // faalt pas onder 38% (was 50%): eerst komt er nog een waarschuwing.
+      eggs: { from: 1, count: 60, failAt: 38, fail: 'meer dan de helft van de eieren is stuk. Laad opnieuw', rough: { speed: 8.5, per: 0.35 } },
       lazyStart: true,
       // Warffum, Pastorieweg (OSM way Pastorieweg, 53.39185 N 6.56013 E)
       start: far(-638.9, -19173.8),
@@ -79,6 +87,8 @@ export function buildAkte2Defs({ models = {} } = {}) {
         { kind: 'board', label: 'Stap in Geesjes trekker', say: 'De trekker staat bij de schuur. Instappen, de kratten staan achterop.' },
         // the wierdepaden: the Westerhornseweg south of the main road (the Dorpsweg is shut by Jelle's permit)
         { kind: 'goto', target: { at: [511.2, -19812.9], snap: 'drive', label: 'Westerhornseweg' }, mode: 'vehicle', radius: 22, label: 'Neem de wierdepaden: de Dorpsweg is dicht', say: 'De Dorpsweg is afgezet. Via de wierdepaden dan: bulten en gaten. Rustig aan.', talk: { ids: ['M09.2'], delay: 2 } },
+        // #663: tussenstop op de wierde halverwege (de rit was 2,6 km in één ruk)
+        { kind: 'goto', target: { at: [1645.0, -20107.0], snap: 'drive', label: 'Tussenstop op de wierde' }, mode: 'vehicle', radius: 20, label: 'Stop even op de wierde: de kratten schuiven', say: 'Halfweg. Even stil: de kratten zijn op de bulten verschoven. Achterin nog niets gebroken?', talk: { ids: ['M09.2'], delay: 1 } },
         // Usquert: the church (Petrus en Pauluskerk) on its wierde, Kerkstraat
         { kind: 'goto', target: { at: [2779.1, -20401.5], snap: 'drive', label: 'De kerkkelder in Usquert' }, mode: 'vehicle', radius: 14, stop: 1, label: 'Breng de zestig eieren heel naar de kerkkelder in Usquert', say: 'Door naar Usquert. De kerk staat op de wierde, de kelder is koel.', talk: { ids: ['M09.3'], delay: 8 } },
       ],
@@ -103,11 +113,17 @@ export function buildAkte2Defs({ models = {} } = {}) {
       say: 'Als Jelle de koffer loslaat, pakken wij hem. Op de quad. Schud de limo af en haal de sloot bij Uithuizen.',
       stages: [
         { kind: 'board', label: 'Spring op de quad', say: 'De quad van Geesjes neef staat klaar. Springen, Tammo, hij rijdt.' },
+        // #663: de lange rit (was 3,5 km in één stap) is in twee stukken geknipt;
+        // de limo jaagt op beide stukken door (zelfde S.limo).
+        {
+          kind: 'goto', target: { at: [4272.0, -20816.0], snap: 'drive', label: 'Over de wierde, weg van de limo' }, mode: 'vehicle', radius: 24,
+          label: 'Schud de limo af: over de wierdepaden', say: 'Over het kerkenpad, door de kerktuin, langs de wierdepaden. De limo kan niet overal heen.', talk: { ids: ['M10.2'], delay: 2 },
+          pursuer: LIMO,
+        },
         {
           // the ditch (OSM waterway=ditch) west of Uithuizen, on the road Bovenhuizen (53.40844 N 6.65982 E)
           kind: 'goto', target: { at: [5960.4, -21132.8], snap: 'drive', label: 'De sloot bij Uithuizen' }, mode: 'vehicle', radius: 30,
-          label: 'Schud de limo af en rijd naar de sloot bij Uithuizen', say: 'Over het kerkenpad, door de kerktuin, langs de wierdepaden. De limo kan niet overal heen.', talk: { ids: ['M10.2'], delay: 2 },
-          pursuer: { model: { name: 'trekkerlimo', len: 5.6, wid: 2.0, maxSpeed: 40, accel: 7, brake: 14, turnRate: 2.1, color: '#1b1c1f' }, name: 'Trekker-limo van Jelle', behind: 40, cruise: 15, caught: 7, caughtFor: 3, shake: 170, close: 24, fail: 'de limo haalt je in. Jelle houdt de koffer zelf wel vast', closeText: 'De trekker-limo zit op je bumper!', lostText: 'De limo raakt je kwijt, achter een wierde.' },
+          label: 'Door naar de sloot bij Uithuizen', say: 'Bijna bij de sloot. Jelle zit er nog achter, dus blijf rijden.', pursuer: LIMO,
         },
         { kind: 'vault', label: 'Pak de gouden koffer zodra Jelle hem loslaat', target: { bank: [5960.4, -21132.8] }, script: { ids: ['M10.3'], from: 0, to: 4 }, landing: 'Oant sjen!', fail: true },
         { kind: 'goto', target: { at: [6901.1, -21266.8], snap: 'walk', label: 'De bushalte in Uithuizen' }, mode: 'any', radius: 14, label: 'Loop naar de bushalte bij het station van Uithuizen', say: 'Jelle ligt in de sloot. Naar de bushalte, we hebben nog een bus te halen.', talk: { ids: ['M10.3'], from: 4, to: 5, delay: 1 } },

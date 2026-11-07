@@ -249,10 +249,28 @@ const ACT_SPLIT = [0, 3, 26, Infinity];
 const ACT_LEAD = [1.2, 1.0, 1.0];
 const ACT_TAIL = [2.6, 4.2, 4.6];
 
+// #662: het eerste speelbare moment moet onder de drie minuten blijven. De
+// keukenscene (C00.2) was 111 s; de regels die alleen de grap dragen en niet het
+// doel (huur, frietwagen, Snackprijs, Paddepoel, samen) vallen weg. De catalogus
+// (cutpreview.js) en story.js gebruiken dezelfde functie, dus de gemeten en de
+// gespeelde duur blijven gelijk.
+const OPENING_CUT = [
+  'Sympathiek is toch goed?',
+  'Een kat is ook sympathiek.',
+  '…Dat komt op de zijkant van de wagen.',
+  'Op Gronings Ontzet.',
+  'Dat is de dag dat Grunn in 1672 de bisschop buiten hield.',
+];
+const openingLineCut = (l) => OPENING_CUT.some((t) => (l.text || '').startsWith(t));
+
 // The opening lines (story.js timing) cut into the acts, each rebased to start at its own zero.
 export function openingActs(lines) {
   return OPENING_ACTS.map((def, i) => {
-    const part = lines.slice(ACT_SPLIT[i], ACT_SPLIT[i + 1]);
+    const part = lines.slice(ACT_SPLIT[i], ACT_SPLIT[i + 1]).filter((l) => !openingLineCut(l));
+    // #662: de geschrapte regels mogen geen stilte achterlaten: de overgebleven
+    // regels krijgen opnieuw hun leestijd achter elkaar (zelfde cadans als story.js).
+    let at = part.length ? part[0].at : 0;
+    for (const l of part) { l.at = at; at += l.dur + 0.12; }
     if (!part.length) return null;
     const shift = ACT_LEAD[i] - part[0].at;
     const rebased = part.map((l) => ({ ...l, at: l.at + shift }));
