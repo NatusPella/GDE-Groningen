@@ -157,7 +157,7 @@ t('de knoppen van de gast: Spatie is alleen handrem als hij het stuur heeft', ()
 t('lokale activiteiten van een gast: hengelen, pannenkoeken en de beiaard; de rest blijft bij wie het spel opende', () => {
   for (const id of ['hengelen', 'pannenkoek', 'carillon', 'boeren']) assert.equal(G.activiteitMagLokaal(id), true, id);
   for (const id of ['discgolf', 'pitchputt', 'skatepark', 'kartbaan', 'zwembad', 'klimtoren', 'waterski', 'vliegschool', 'kermis', 'carbid', 'snackketen']) assert.equal(G.activiteitMagLokaal(id), false, id);
-  assert.equal(G.MELDING_ALLEEN_OPENER, 'Alleen bij wie het spel opende.');
+  assert.equal(G.MELDING_ALLEEN_OPENER, 'Alleen bij wie het spel opende; doe intussen je eigen ding.');
   assert.doesNotMatch(G.MELDING_ALLEEN_OPENER, /gastheer|host/i);
 });
 t('het bezig-bericht is klein en zegt alleen een bekende activiteit; een onbekende telt als niets', () => {
