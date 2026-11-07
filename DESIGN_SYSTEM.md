@@ -61,6 +61,9 @@ satirical like the rest of the game. Red stays the danger colour. The farmer's h
 is therefore gingham in cream and green, with a folded corner as the recognisable motif: a
 red version in the UI would read as a warning. The pattern is a thin strip in the career
 list and a band above the career detail, never a replacement for the icon or the title.
+Visboek and Boerderij hang under Loopbanen and carry the same band (`sfeerBandHtml` and
+`SFEER_BAND_CSS` in `game/js/carrieresfeer.js`), with their own sfeer from that one table
+(hengelen, landbouw), so every activity screen speaks the same visual language.
 
 Where the tokens live: `--gron-*` and `--hud-*` in `game/js/hud_panel.css` (`:root` of the HUD), the menu's own set on `.gm` in `game/js/menu.css`,
 the keycap in `game/js/a11y.css`, the 2D maps in `INK`, `MAP_PALETTE` and `MINI_PALETTE` in `game/js/mapstyle.js`, and the marker roles in `PALETTES` in `game/js/a11y.js`.

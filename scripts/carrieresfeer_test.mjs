@@ -63,11 +63,34 @@ t('de loopbaan-UI gebruikt de sfeer in de lijst en boven het vak', () => {
   const ui = lees('game/js/loopbaanui.js');
   assert.match(ui, /from '\.\/carrieresfeer\.js'/);
   assert.match(ui, /lb-sfeer-chip/);
-  assert.match(ui, /sfeerHtml\(id\)/);
+  assert.match(ui, /sfeerBandHtml\(id, \{ icoon: loopbaanIcoon/, 'de band komt uit carrieresfeer.js');
+  assert.match(ui, /SFEER_BAND_CSS/);
   assert.match(ui, /lb-sfeer-ico/);
-  assert.match(ui, /lb-sfeer-groot/);
-  assert.match(ui, /\.lb-sfeer \{/);
-  assert.match(ui, /\.lb-sfeer-vouw \{/);
+  assert.match(ui, /klein: groep/);
+});
+
+t('de sfeerband is één component voor elk scherm met een sfeer (#609)', () => {
+  const band = S.sfeerBandHtml('hengelen', { icoon: '<span class="lb-sfeer-ico"></span>', klein: 'Vak Hengelen' });
+  assert.match(band, /background-image:/, 'het patroon staat erop');
+  assert.match(band, /Weer een laars/, 'de droge sfeernaam staat erin');
+  assert.match(band, /Vak Hengelen/, 'de kleine regel is een echte mededeling');
+  assert.match(band, /lb-sfeer-ico/);
+  assert.match(band, /lb-sfeer-groot/);
+  assert.equal(S.sfeerBandHtml('bestaatniet'), '', 'een onbekend vak geeft geen band');
+  const css = S.SFEER_BAND_CSS;
+  assert.match(css, /\.lb-sfeer-klein \{[^}]*font: 13px/, 'de kleine regel staat op de menuvloer van 13 px');
+  assert.ok(!/font: 1[0-2]px|font-size: 1[0-2]px/.test(css), 'niets in de band is kleiner dan 13 px');
+  assert.ok(!/#[0-9a-f]{3,8}/i.test(css + band), 'geen losse hex in de band');
+});
+
+t('Visboek en Boerderij dragen dezelfde sfeerband als Loopbanen (#609)', () => {
+  for (const [naam, src, id] of [['Visboek', lees('game/js/visboekui.js'), 'hengelen'], ['Boerderij', lees('game/js/boerderijui.js'), 'landbouw']]) {
+    assert.match(src, /from '\.\/carrieresfeer\.js'/, naam + ' haalt de sfeer uit carrieresfeer.js');
+    assert.ok(src.includes(`const SFEER = '${id}'`), naam + ' hangt aan zijn eigen vak');
+    assert.match(src, /sfeerBandHtml\(SFEER/, naam + ' heeft een sfeerband boven het detail');
+    assert.match(src, /SFEER_BAND_CSS/, naam + ' zet de bandopmaak erbij');
+    assert.match(src, /lb-sfeer-chip/, naam + ' toont de sfeer ook als chip');
+  }
 });
 
 t('een onbekend vak geeft geen sfeer en geen crash', () => {
