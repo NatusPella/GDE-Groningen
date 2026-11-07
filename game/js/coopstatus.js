@@ -105,6 +105,36 @@ export const TOELICHTING = {
 };
 export const toelichtingVan = (soort, id) => (typeof id === 'string' && TOELICHTING[soort + '/' + id]) || null;
 
+// #683: de "deels"-activiteiten krijgen een bewuste keuze in plaats van een vaag "deels". Vandaag is elke
+// keuze bewust host-only (met de reden erbij) en staat erbij wat een volgende stap zou zijn: een gast doet
+// het lokaal op zijn eigen scherm, of het wordt een gedeelde wedstrijd. Zo liegt "deels" niet en weet de
+// volgende sessie wat er nog moet gebeuren.
+export const DEELS_ROUTES = ['lokaal', 'wedstrijd', 'host-only'];
+export const DEELS_KEUZE = {
+  vluchtdienst: { route: 'host-only', rol: 'passagier', reden: 'De rondvlucht is van wie het spel opende; als passagier meerijden mag, besturen niet.', kandidaat: 'wedstrijd', nodig: 'Een gedeelde rondvlucht met een eigen toestel per speler.' },
+  safehuis: { route: 'host-only', rol: 'eigen deur', reden: 'Het huisje staat in de wereld van wie het spel opende en de deur gaat alleen voor de eigenaar open.', kandidaat: 'lokaal', nodig: 'Een eigen huisje per speler, ook voor een gast, met eigen inrichting.' },
+  geheimen: { route: 'host-only', rol: 'vinder', reden: 'De vondsten en geheimen zijn voorwerpen in de wereld van wie het spel opende.', kandidaat: 'lokaal', nodig: 'Eigen vondsten per speler laten tellen, zonder de wereldstaat te delen.' },
+  wandeling: { route: 'host-only', rol: 'wandelaar', reden: 'De wandeling zet je lichaam en de camera in de wereld van wie het spel opende.', kandidaat: 'lokaal', nodig: 'Een eigen wandeling op het eigen scherm, zoals hengelen.' },
+  snackketen: { route: 'host-only', rol: 'klant', reden: 'De snackketen draait op de voorraad en de keten van wie het spel opende.', kandidaat: 'lokaal', nodig: 'Een eigen ketenstand per speler in de eigen opslag.' },
+  evenementen: { route: 'host-only', rol: 'bezoeker', reden: 'De evenementen hangen aan de kalender en de wereld van wie het spel opende.', kandidaat: 'lokaal', nodig: 'Per speler bijhouden welke evenementen hij meemaakte.' },
+  pvparena: { route: 'host-only', rol: 'deelnemer', reden: 'Wie het spel opende rekent en zet het bord; de kant van de meespeler is nog niet af.', kandidaat: 'wedstrijd', nodig: 'Het bord en de uitslag per speler over de netlaag (#454).' },
+};
+export const deelsKeuzeVan = (id) => (typeof id === 'string' && Object.prototype.hasOwnProperty.call(DEELS_KEUZE, id) ? DEELS_KEUZE[id] : null);
+
+// #683: het groeipad voor de herhaalbare inhoud. Deze banen zijn nog host-only (geen regel in BIJBAAN_REGELS);
+// per baan staan de helper-rol die we willen en de haak die in de baan zelf nog moet komen. Zo is de keuze
+// vastgelegd zonder te doen alsof het al samen werkt.
+export const BIJBAAN_GROEIPAD = [
+  { id: 'rondvaart', rol: 'passagier', wat: 'Stap aan boord en vaar mee; de schipper vertelt.', haak: 'De rondvaart laat een meespeler als passagier aan boord en deelt de rondebeloning.' },
+  { id: 'veerdienst', rol: 'passagier', wat: 'Vaar mee met de pont en help met E bij het aanleggen.', haak: 'De pont kent een passagiersrol en telt de overtocht voor iedereen.' },
+  { id: 'rechtbank', rol: 'tweede jurylid', wat: 'Zit in de jury en stem mee over de uitspraak.', haak: 'De rechtbank leest de stem van een meespeler en geeft beide juryleden de beloning.' },
+  { id: 'cabaret', rol: 'mede-optreder', wat: 'Sta samen op het podium en verdeel de grappen.', haak: 'Het optreden heeft een tweede rol en deelt de opbrengst per speler.' },
+  { id: 'loket', rol: 'tweede balie', wat: 'Help aan de balie met E als de rij te lang wordt.', haak: 'Het loket kent een tweede balie met een eigen teller en beloning.' },
+  { id: 'snackoverlast', rol: 'handhaver', wat: 'Loop mee en help met E bij het bekeuren.', haak: 'De dienst leest de hulpactie van een meespeler en telt hem mee.' },
+  { id: 'tjalke', rol: 'bemanning', wat: 'Help aan dek met E bij het zeilen en aanleggen.', haak: 'De tjalk kent een bemanningsrol en deelt de opbrengst per speler.' },
+  { id: 'bietenoogst', rol: 'helper', wat: 'Rooi mee op de akker en laad de bieten.', haak: 'De oogst telt de hulp van een meespeler en deelt de rondebeloning.' },
+];
+
 // De status van één onderdeel, of null als het onderdeel onbekend is (dan waarschuwt niets).
 // Uitzondering: een bijbaan die hier niet staat blijft bij wie het spel opende (docs/COOP-GAST.md), dus 'nee'; dat zijn er veel (paneel-, stad- en keuzebanen).
 export function samenStatus(soort, id) {

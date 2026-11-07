@@ -8,6 +8,7 @@ import * as S from '../game/js/coopstatus.js';
 import { GAST_ACTIVITEITEN } from '../game/js/coopgast.js';
 import { BIJBAAN_REGELS } from '../game/js/coopbijbaan.js';
 import { REGISTRY } from '../game/js/cooproles.js';
+import { BAAN_IDS } from '../game/js/loopbaan.js';
 import { ververs } from '../game/js/spelersregister.js';
 
 const dir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'game', 'js');
@@ -148,6 +149,30 @@ t('eenspeler: nooit een waarschuwing, ook niet bij een nee-onderdeel', () => {
   assert.equal(w.meldingen.length, 0);
   assert.equal(S.samenWaarschuwing(null, 'activiteit', 'skatepark'), null, 'zonder wereld ook niet');
   assert.equal(S.samenWaarschuwing({}, 'activiteit', 'skatepark'), null, 'een leeg wereldobject is een speler');
+});
+
+t('#683: elke deels-activiteit heeft een bewuste keuze en het groeipad noemt echte, nog niet-samen banen', () => {
+  const deels = Object.entries(S.REGISTER.activiteit).filter(([, st]) => st === S.DEELS).map(([id]) => id);
+  assert.ok(deels.length >= 7, 'de zeven deels-activiteiten: ' + deels.join(', '));
+  for (const id of deels) {
+    const k = S.deelsKeuzeVan(id);
+    assert.ok(k, id + ' heeft een keuze');
+    assert.ok(S.DEELS_ROUTES.includes(k.route), id + ': route ' + k.route);
+    assert.ok(k.rol && k.reden && k.reden.length > 20, id + ': rol en reden');
+    assert.ok(['lokaal', 'wedstrijd', 'host-only'].includes(k.route), id);
+    // een volgende stap is pas geldig als er iets te bouwen is; host-only noemt wat er nu niet kan
+    if (k.route === 'host-only') assert.ok(k.kandidaat && k.nodig, id + ': wat een volgende stap zou zijn');
+  }
+  assert.equal(S.deelsKeuzeVan('discgolf'), null, 'een werkende activiteit heeft geen deels-keuze');
+  assert.equal(S.deelsKeuzeVan('bestaatniet'), null);
+  assert.equal(S.deelsKeuzeVan(null), null);
+  // het groeipad: banen die het spel kent, nu nog host-only (geen BIJBAAN_REGELS), met een helper-rol en de haak
+  assert.ok(S.BIJBAAN_GROEIPAD.length >= 5, 'minstens vijf kandidaten');
+  for (const g of S.BIJBAAN_GROEIPAD) {
+    assert.ok(BAAN_IDS.includes(g.id), g.id + ' is een echte baan');
+    assert.equal(S.samenStatus('bijbaan', g.id), S.NEE, g.id + ' is nu nog host-only');
+    assert.ok(g.rol && g.wat && g.haak, g.id + ': rol, wat en de ontbrekende haak');
+  }
 });
 
 t('twee of meer spelers: nee grijs, deels met markering, werkt niets; de start meldt maar blokkeert niet', () => {
