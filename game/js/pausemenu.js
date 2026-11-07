@@ -16,10 +16,10 @@ import { renderVeroverdPanel } from './veroverdpanel.js';
 import { renderSpelersPanel } from './coopspelersui.js';
 import { renderCheatsPanel, cheatsClick, resetCheatsPanel, cheatsFocus } from './cheatsui.js';
 import { skipCurrent, getStoryJournal, markCluesSeen } from './story.js';
-import { saveGame, hasSave, loadLatestSave, startNewSlot, coopSessieLoopt, COOP_NIEUW_TEKST, GAST_BEWAARD_TEKST, getSaveSummary, getPlaySeconds, loadSlot, currentSlot, preventCloseSave } from './savegame.js';
+import { saveGame, hasSave, loadLatestSave, startNewSlot, coopSessieLoopt, GAST_BEWAARD_TEKST, getSaveSummary, getPlaySeconds, loadSlot, currentSlot, preventCloseSave } from './savegame.js';
 import { openSaveSlots, isSaveSlotsOpen } from './saveslotsui.js';
 import { stopCoopNet } from './coopnet.js';
-import { coopLoadTekst, COOP_LOAD_FAIL, runCoopLoad, runCoopStop } from './cooploadrules.js';
+import { coopLoadTekst, coopActieTekst, COOP_LOAD_FAIL, COOP_ACTIE_FAIL, runCoopLoad, runCoopStop } from './cooploadrules.js';
 import { getClockText } from './clocktext.js';
 import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
 import { VERSION } from './version.js';
@@ -669,6 +669,10 @@ function spelHtml() {
       <div class="pm-confirm" data-coop-load-confirm hidden>
         <p data-coop-load-text></p>
         <div class="m-acts"><button type="button" class="m-bp" data-action="coop-load-go">Ja, sessie beëindigen en laden</button><button type="button" class="m-bt" data-action="coop-load-cancel">Annuleren</button></div>
+      </div>
+      <div class="pm-confirm" data-coop-new-confirm hidden>
+        <p data-coop-new-text></p>
+        <div class="m-acts"><button type="button" class="m-bp" data-action="coop-new-go">Ja, sessie beëindigen en nieuw spel</button><button type="button" class="m-bt" data-action="coop-new-cancel">Annuleren</button></div>
       </div>`, `${pane('Spel', 'Je spel', '<p>Opslaan, laden, opnieuw beginnen en stoppen. Je spel wordt ook vanzelf bewaard.</p><p class="mut">Hoe het spel speelt staat bij de andere tabbladen; beeld en geluid onder Instellingen.</p>')}`)}
     ${tab('spelen', `
       <div class="m-gh"><span>Verkeer en geweld</span></div>
@@ -1114,6 +1118,16 @@ function goBack() {
     return;
   }
   const confirmEl = root.querySelector('[data-restart-confirm]');
+  // #492: de vraag "sessie beëindigen en een nieuw spel?" gaat eerst weg met Escape; de knop
+  // waar hij vandaan kwam (in het herstartvak) komt terug.
+  const coopNew = root.querySelector('[data-coop-new-confirm]');
+  if (coopNew && !coopNew.hidden) {
+    coopNew.hidden = true;
+    confirmEl.hidden = false;
+    const b = confirmEl.querySelector('[data-action="new"]');
+    if (b) b.focus();
+    return;
+  }
   if (!confirmEl.hidden) {
     confirmEl.hidden = true;
     root.querySelector('[data-action="restart"]').focus();
@@ -1486,6 +1500,7 @@ function runAction(a) {
       box.querySelector('[data-coop-load-text]').textContent = coopLoadTekst(world, 'Het laatste opgeslagen spel');
       box.hidden = false;
       confirmEl.hidden = true;
+      root.querySelector('[data-coop-new-confirm]').hidden = true;
       box.querySelector('[data-action="coop-load-cancel"]').focus();
       return;
     }
@@ -1501,16 +1516,37 @@ function runAction(a) {
     const res = runCoopLoad(world, currentSlot(), { stop: stopCoopNet, save: saveGame, load: loadSlot });
     if (res.ok) setOpen(false);
     else status(COOP_LOAD_FAIL[res.reason] || 'Laden mislukt.');
+  } else if (a === 'coop-new-cancel') {
+    root.querySelector('[data-coop-new-confirm]').hidden = true;
+    confirmEl.hidden = false;
+    const b = confirmEl.querySelector('[data-action="new"]');
+    if (b) b.focus();
+  } else if (a === 'coop-new-go') {
+    root.querySelector('[data-coop-new-confirm]').hidden = true;
+    // #492 slices 1-2: eerst de sessie, dan bewaren en pas dan een nieuw spel (dezelfde volgorde
+    // als bij laden en stoppen; cooploadrules.js). Mislukt het bewaren, dan blijft het spel staan.
+    const res = runCoopStop(world, {
+      stop: stopCoopNet,
+      save: () => saveGame(world),
+      go: () => {
+        if (!startNewSlot()) { status('Alle plekken zijn in gebruik. Verwijder eerst een opgeslagen spel om opnieuw te beginnen.'); return; }
+        preventCloseSave(); // #584: this reload starts a new game, so the old world must not be saved over the fresh slot
+        location.reload();
+      },
+    });
+    if (!res.ok) status(COOP_ACTIE_FAIL[res.reason] || 'Er is niets begonnen.');
   } else if (a === 'saves') {
     if (world && world.pigeonMode) { status('Je bent een duif. Stop de duif-modus om savegames te gebruiken.'); return; }
     openSaveSlots({ mode: 'game', world, onLoad: () => setOpen(false), onClose: () => { syncSaveButtons(); const b = root.querySelector('[data-panel="spel"] [data-action="saves"]'); if (b) b.focus(); } });
   } else if (a === 'restart') {
     root.querySelector('[data-coop-load-confirm]').hidden = true;
+    root.querySelector('[data-coop-new-confirm]').hidden = true;
     confirmEl.hidden = false;
     syncSaveButtons();
     confirmEl.querySelector('button').focus();
   } else if (a === 'cancel') {
     root.querySelector('[data-coop-load-confirm]').hidden = true;
+    root.querySelector('[data-coop-new-confirm]').hidden = true;
     confirmEl.hidden = true;
     root.querySelector('[data-action="restart"]').focus();
   } else if (a === 'menu' || a === 'exit') {
@@ -1569,7 +1605,16 @@ function runAction(a) {
   } else if (a === 'pigeon-home') {
     if (world.pigeonActions && world.pigeonActions.home()) setOpen(false);
   } else if (a === 'new') {
-    if (coopSessieLoopt(world)) { status(COOP_NIEUW_TEKST); return; }
+    if (coopSessieLoopt(world)) {
+      // een lopende sessie eindigt eerst; daarna bewaren en pas dan een nieuw spel (#492)
+      const box = root.querySelector('[data-coop-new-confirm]');
+      if (!box) return;
+      box.querySelector('[data-coop-new-text]').textContent = coopActieTekst(world, 'Een nieuw spel beginnen');
+      box.hidden = false;
+      confirmEl.hidden = true;
+      box.querySelector('[data-action="coop-new-cancel"]').focus();
+      return;
+    }
     // #562: eerst de plek echt maken; zonder vrije plek gebeurt er niets en blijft de huidige save staan
     if (!startNewSlot()) { status('Alle plekken zijn in gebruik. Verwijder eerst een opgeslagen spel om opnieuw te beginnen.'); return; }
     preventCloseSave(); // #584: this reload starts a new game, so the old world must not be saved over the fresh slot
@@ -1943,6 +1988,7 @@ function syncRail() {
   for (const b of root.querySelectorAll('[data-panel="spel"] [data-action="save"], [data-panel="spel"] [data-action="saves"]')) b.disabled = pigeon;
   root.querySelector('[data-restart-confirm]').hidden = true;
   root.querySelector('[data-coop-load-confirm]').hidden = true;
+  root.querySelector('[data-coop-new-confirm]').hidden = true;
   root.querySelector('[data-exit-confirm]').hidden = true;
   closeAction = null;
   root.querySelector('[data-game-status]').textContent = '';
@@ -2128,6 +2174,7 @@ function setOpen(value, name = HOME, how = 'direct') {
     if (p && p.onClose) p.onClose();
   }
 }
+
 
 
 
