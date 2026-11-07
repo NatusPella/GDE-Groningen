@@ -380,10 +380,10 @@ export function missieTekst(m, rol = 'wereld', naam = 'De ander') {
 // gastheer de druk als zijn eigen antwoord.
 const tekst = (v, n) => (typeof v === 'string' ? v.slice(0, n) : '');
 const PANEEL_TOETSEN = /^[1-9ef ]$/; // 1-9 voor een keuze, Spatie/e/f voor een timing (stagetiming.js)
-export const SCENE_LEEG = Object.freeze({ filmpje: false, pauze: false, regel: null, keuze: null, kaart: null, paneel: null });
+export const SCENE_LEEG = Object.freeze({ filmpje: false, pauze: false, regel: null, keuze: null, kaart: null, paneel: null, film: null });
 export function schoonScene(sc) {
   if (!sc || typeof sc !== 'object') return { ...SCENE_LEEG };
-  const out = { filmpje: !!sc.filmpje, pauze: !!sc.pauze, regel: null, keuze: null, kaart: null, paneel: null };
+  const out = { filmpje: !!sc.filmpje, pauze: !!sc.pauze, regel: null, keuze: null, kaart: null, paneel: null, film: null };
   if (sc.regel && typeof sc.regel === 'object' && tekst(sc.regel.tekst, 1)) out.regel = { wie: tekst(sc.regel.wie, 40), tekst: tekst(sc.regel.tekst, 240) };
   // (#712) de titelkaart van een host-filmpje (kicker, titel, groot woord, accent en tint): de gast ziet hem als kaart
   const ACCENTEN = /^[a-z-]{0,20}$/;
@@ -391,6 +391,26 @@ export function schoonScene(sc) {
     const schoon = (v, n) => (ACCENTEN.test(tekst(v, n)) ? tekst(v, n) : '');
     const k = { kicker: tekst(sc.kaart.kicker, 60), title: tekst(sc.kaart.title, 80), big: tekst(sc.kaart.big, 60), accent: schoon(sc.kaart.accent, 20), tint: schoon(sc.kaart.tint, 20) };
     if (k.kicker || k.title || k.big || k.accent || k.tint) out.kaart = k;
+  }
+  // #712: een lange host-film (treinreis, ontsnapping, finale, aftiteling) gaat als compacte scène mee:
+  // de gast speelt de regels lokaal na op zijn eigen tijd, in plaats van 30-60 s zwarte balken.
+  if (sc.film && typeof sc.film === 'object' && Array.isArray(sc.film.regels)) {
+    const duur = Number(sc.film.duur);
+    const regels = sc.film.regels.slice(0, 10).map((l) => ({
+      at: Math.round(Number(l && l.at) * 10) / 10 || 0, dur: Math.max(0.4, Math.round(Number(l && l.dur) * 10) / 10 || 2),
+      wie: tekst(l && l.wie, 20), tekst: tekst(l && l.tekst, 90),
+    })).filter((l) => l.tekst);
+    let kaart = null;
+    if (sc.film.kaart && typeof sc.film.kaart === 'object') {
+      const k = { kicker: tekst(sc.film.kaart.kicker, 40), title: tekst(sc.film.kaart.title, 60), big: tekst(sc.film.kaart.big, 40), accent: tekst(sc.film.kaart.accent, 20), tint: tekst(sc.film.kaart.tint, 20) };
+      if (k.kicker || k.title || k.big || k.accent || k.tint) kaart = k;
+    }
+    if (duur > 0 && duur <= 600 && (regels.length || kaart)) {
+      // binnen één betrouwbaar bericht (codec MAX_JSON 2048): eerst de kaart, dan zo veel regels als passen
+      let film = { duur: Math.round(duur * 10) / 10, regels, kaart };
+      while (film.regels.length > 1 && JSON.stringify(film).length > 1700) film = { ...film, regels: film.regels.slice(0, -1) };
+      if (JSON.stringify(film).length <= 1700) out.film = film;
+    }
   }
   if (sc.keuze && typeof sc.keuze === 'object' && Array.isArray(sc.keuze.opties)) {
     const opties = sc.keuze.opties.slice(0, 6).map((o) => tekst(o, 80)).filter(Boolean);
@@ -423,7 +443,7 @@ export function schoonScene(sc) {
   }
   return out;
 }
-export const sceneLeeg = (sc) => !sc || (!sc.filmpje && !sc.pauze && !sc.regel && !sc.keuze && !sc.kaart && !sc.paneel);
+export const sceneLeeg = (sc) => !sc || (!sc.filmpje && !sc.pauze && !sc.regel && !sc.keuze && !sc.kaart && !sc.paneel && !sc.film);
 // prev = wat de gasten het laatst kregen; geeft het bericht dat nu nodig is (of null) en de nieuwe stand
 export function sceneBericht(prev, sc) {
   const nu = schoonScene(sc), was = prev ? schoonScene(prev) : { ...SCENE_LEEG };

@@ -1,7 +1,7 @@
 // Veroverd (#414, #435): de gebieden die je hebt veroverd. Hoort bij het verhaal, dus een tabblad onder Verhaal (eerst een
 // weergave van Loopbanen). De gegevens en de tekst komen uit gebiedenui.js; dit bestand tekent het tabblad en bindt de klikken.
 // Niet door een mens in beeld bekeken.
-import { gebiedenHtml, kiesGebied, reisNaar, GEBIEDEN_CSS } from './gebiedenui.js';
+import { gebiedenHtml, kiesGebied, reisNaar, volgendeTaken, GEBIEDEN_CSS } from './gebiedenui.js';
 import { bekijkIntocht } from './intochten.js';
 import { fillBars } from './motion.js';
 
@@ -13,7 +13,7 @@ function zetCss() {
   cssAan = true;
   const el = document.createElement('style');
   el.id = 'style-veroverd';
-  el.textContent = GEBIEDEN_CSS + '\n.vo-kop { display: flex; align-items: baseline; gap: 14px; padding: 12px 64px 0; } .vo-kop .m-num { font-size: 26px; }\n.vo-regel { margin: 4px 64px 0; padding: 0; font: 13px \'Arial Narrow\', Arial, sans-serif; color: var(--c-mut, rgba(240,237,228,0.72)); }\n.vo-regel b { font-weight: normal; color: #f0ede4; }';
+  el.textContent = GEBIEDEN_CSS + '\n.vo-kop { display: flex; align-items: baseline; gap: 14px; padding: 12px 64px 0; } .vo-kop .m-num { font-size: 26px; }\n.vo-regel { margin: 4px 64px 0; padding: 0; font: 13px \'Arial Narrow\', Arial, sans-serif; color: var(--c-mut, rgba(240,237,228,0.72)); }\n.vo-regel b { font-weight: normal; color: #f0ede4; }\n.vo-volgende { margin: 10px 64px 0; padding: 0; }\n.vo-volgende ol { margin: 4px 0 0; padding-left: 20px; }\n.vo-volgende li { font: 13px \'Arial Narrow\', Arial, sans-serif; }';
   document.head.appendChild(el);
 }
 
@@ -25,7 +25,14 @@ export function renderVeroverdPanel(el, sluit = null) {
   // #676: één regel in het scherm zegt wat er meetelt en wat bewust niet (de catalogusregel).
   const regel = '<p class="vo-regel"><b>Wat telt mee:</b> missies, 39 van de 47 bijbanen, 50 minigame-plekken, vondsten en geheimen. ' +
     'Eierballen, losse geheimen, postgame, lucht en dorpsuitjes tellen bewust niet mee; die staan in hun eigen lijst.</p>';
-  el.innerHTML = `<div class="vo-kop"><span class="pa-total">${g.totaal}</span></div>` + regel +
+  // #676: de eerstvolgende drie taken, en de wederzijdse verwijzing met "Te doen".
+  const taken = volgendeTaken(3);
+  const volgende = taken.length
+    ? '<div class="vo-volgende"><b>Eerstvolgende taken:</b><ol>' + taken.map((t) => '<li>' + t.naam + ' <span class="mut">· ' + t.gebied + '</span></li>').join('') + '</ol><p class="vo-regel">Je volgende taak staat ook in <b>Te doen</b>; daar zie je hem met de afstand vanaf hier.</p></div>'
+    : '<div class="vo-volgende"><b>Eerstvolgende taken:</b><p class="vo-regel">Alles wat meetelt is gedaan. De titels staan hierboven.</p></div>';
+  const titelRegel = taken.length && Number.isFinite(taken[0].totaal)
+    ? '<p class="vo-regel">Nog ' + Math.max(0, taken[0].totaal - taken[0].klaar) + ' taken tot de titel van ' + taken[0].gebied + '.</p>' : '';
+  el.innerHTML = `<div class="vo-kop"><span class="pa-total">${g.totaal}</span></div>` + volgende + titelRegel + regel +
     `<div class="m-main"><div class="m-list pa-list lb-list">${g.lijst}</div><aside class="m-pane pa-pane lb-pane gb-pane" aria-live="polite">${g.pane}</aside></div>`;
   fillBars(el, bars);
   if (el.dataset.bound) return;

@@ -608,6 +608,13 @@ t('de haken staan op hun plek: loopbaanTel, loopbaanOpStat, de vondsten, het tik
   assert.ok(bron('mapview.js').includes("layerOn('veroverd')"));
   assert.ok(bron('veroverdpanel.js').includes('gebiedenHtml'));
   assert.match(bron('veroverdpanel.js'), /Wat telt mee:[\s\S]*39 van de 47 bijbanen[\s\S]*tellen bewust niet mee/, 'de catalogusregel staat in het Veroverd-scherm (#676)');
+  assert.match(bron('gebiedenui.js'), /export function volgendeTaken/, 'de eerstvolgende taken komen uit de gebieden (#676)');
+  assert.match(bron('veroverdpanel.js'), /volgendeTaken\(3\)/, 'het paneel toont de eerstvolgende drie taken');
+  assert.match(bron('veroverdpanel.js'), /Je volgende taak staat ook in <b>Te doen<\/b>/, 'Veroverd verwijst naar Te doen (wederzijds)');
+  assert.match(bron('veroverdpanel.js'), /Nog ' \+ Math\.max\(0, taken\[0\]\.totaal - taken\[0\]\.klaar\) \+ ' taken tot de titel van/, 'het paneel zegt hoeveel er nog tot de titel van het gebied');
+  assert.match(bron('todoui.js'), /Veroverd staat in de rail/, 'Te doen verwijst naar de eigen Veroverd-tab');
+  assert.match(bron('pausemenu.js'), /\['veroverd', 'Veroverd', [^\]]*\]/, 'Veroverd staat als eigen railrij in het pauzemenu');
+  assert.match(bron('pausemenu.js'), /if \(name === 'veroverd'\) renderVeroverdPanel\(root\.querySelector\('\[data-panel="veroverd"\]/, 'de railrij opent het eigen Veroverd-paneel');
   const gb = bron('gebiedenbronnen.js');
   assert.ok(gb.includes("'grenzen.json'") && gb.includes('ontvouw'), 'de bronnen laden game/grenzen.json');
   assert.ok(!gb.includes('neighbourhoodPoints') && !gb.includes('STREKEN'), 'de oude indeling (wijkpunten en streken) is weg');

@@ -5,6 +5,7 @@ import { gastCine, cutPakket, cutPakketMaat, cutStukken, cutEinde, nieuwCutVerza
 import { openingActs, END_CARD } from '../game/js/cutscenes.js';
 import { encodeJson, decodeJson, T } from '../game/js/net/codec.js';
 import { Reliable } from '../game/js/net/protocol.js';
+import { schoonScene, sceneLeeg } from '../game/js/coopworld.js';
 
 let n = 0;
 const ok = (c, m) => { assert.ok(c, m); n++; };
@@ -295,4 +296,22 @@ for (const [i, act] of acts.entries()) {
   ok(/if \(w\.coopCutBezig !== id\) return true;/.test(h.slice(0, h.indexOf('skipCinematic'))), 'na de import nog eens kijken of de kopie nog dezelfde is');
   ok(/k: 'cutvervang'/.test(host), 'de gastheer stuurt cutvervang bij vervangen (blijft zo)');
   ok(/if \(skipped \|\| !replaced\) return cutHostEnd\(w, id, skipped\);/.test(host) && /return n\.hub\.announce\(\{ k: 'cutvervang', id, skip: false \}\);/.test(host), 'en alleen bij vervangen, niet bij gewoon einde of zelf overslaan');
-}console.log(`coopcut_test: ${n} ok`);
+}// #712: een lange host-film gaat als compacte scène mee (lokaal naspelen bij de gast)
+{
+  const film = { duur: 42.5, kaart: { kicker: 'Treinreis', title: 'Naar het noorden', big: 'Vertrek' }, regels: [
+    { at: 1.2, dur: 3.4, wie: 'Tessa', tekst: 'De trein rijdt om, langs de akkers.' },
+    { at: 5, dur: 2.8, wie: '', tekst: 'Tammo zegt niks.' },
+  ] };
+  const sc = schoonScene({ filmpje: true, film });
+  ok(sc.film && sc.film.duur === 42.5 && sc.film.regels.length === 2, 'film: duur en regels gaan mee');
+  ok(sc.film.kaart.title === 'Naar het noorden' && sc.film.kaart.kicker === 'Treinreis', 'film: de titelkaart gaat mee');
+  ok(!sceneLeeg(sc), 'film: een film is geen lege scène');
+  ok(sc.film && sc.film.regels[0].wie === 'Tessa' && sc.film.regels[1].wie === '', 'film: spreker en lege spreker');
+  const dik = schoonScene({ filmpje: true, film: { duur: 30, regels: Array.from({ length: 40 }, (_, i) => ({ at: i, dur: 2, wie: 'X', tekst: ('regel '.repeat(40)) + i })) } });
+  ok(dik.film && dik.film.regels.length <= 10 && JSON.stringify(dik.film).length <= 1700, 'film: compact genoeg voor één bericht');
+  ok(!schoonScene({ filmpje: true, film: { duur: 0, regels: [] } }).film, 'film: zonder duur geen film');
+  ok(!schoonScene({ filmpje: true, film: { duur: 30, regels: [] } }).film, 'film: zonder regels en kaart geen film');
+}
+
+console.log(`coopcut_test: ${n} ok`);
+

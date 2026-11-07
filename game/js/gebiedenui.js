@@ -112,6 +112,24 @@ export function gebiedenHtml(kies = gekozen) {
   return { lijst, pane: detail(o, gekozen), totaal: veroverdKop(sam) };
 }
 
+// #676: de eerstvolgende drie taken over alle gebieden, voor de eigen Veroverd-tab.
+export function volgendeTaken(aantal = 3) {
+  const o = getOverzicht();
+  if (!o) return [];
+  const gedaan = new Set(o.profiel.gedaan);
+  const uit = [];
+  for (const g of o.ind.gebied.values()) {
+    for (const t of g.taken) {
+      if (gedaan.has(t)) continue;
+      const taak = o.ind.taak.get(t);
+      if (!taak) continue;
+      const v = G.voortgang(o.profiel, o.ind, g.id);
+      uit.push({ id: t, naam: taak.naam, soort: taak.soort, gebied: g.naam, klaar: v.klaar, totaal: v.totaal });
+      if (uit.length >= aantal) return uit;
+    }
+  }
+  return uit;
+}
 export const gekozenGebied = () => gekozen;
 export function kiesGebied(id) { gekozen = id; return detailHtml(); }
 export function detailHtml() {

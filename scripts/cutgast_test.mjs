@@ -101,6 +101,18 @@ t('#724: cutGastSpeel speelt de scène echt als replay af (bronbewaking)', () =>
   assert.match(host, /if \(replay\) cutGastTik\(w, cine\.cutId, t, STEL\); else cutHostTik\(w, cutId, t\)/, 'de replay stuurt geen hostberichten');
 });
 
+t('#712: een lange host-film speelt de gast lokaal na', () => {
+  const scene = bron('coopscene.js');
+  assert.match(scene, /cinematicState/, 'de gastheer leest de lopende film uit cinematics.js');
+  assert.match(scene, /duration\) >= 8/, 'alleen lange films gaan als compacte scène mee');
+  assert.match(scene, /filmStand\(film\)/, 'de gast heeft een eigen klok voor de film');
+  assert.match(scene, /filmRegel \|\| \(sc\.regel/, 'de lokale filmregel gaat voor de gewone hostregel');
+  const w = bron('coopworld.js');
+  assert.match(w, /sc\.film\.regels/, 'schoonScene neemt de filmregels mee');
+  assert.match(w, /JSON\.stringify\(film\)\.length > 1700/, 'de film blijft binnen één betrouwbaar bericht');
+  assert.match(w, /!sc\.film/, 'sceneLeeg kent de film');
+});
+
 console.log(`cutgast_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);
 

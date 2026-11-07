@@ -11,8 +11,8 @@ import { activeStage } from './missionquery.js';
 
 // cinematics.js en storytalk.js zitten in de grote importcyclus: hier lui geladen (import() wordt niet gevolgd door
 // import_cycles_test), zodat dit paneel en samenpanel.js buiten de cyclus blijven. Beide zijn al geladen als het spel draait.
-let isCinematicActive = () => false, talkState = () => ({ cur: null });
-import('./cinematics.js').then((m) => { isCinematicActive = m.isCinematicActive; }).catch(() => {});
+let isCinematicActive = () => false, cinematicState = () => null, talkState = () => ({ cur: null });
+import('./cinematics.js').then((m) => { isCinematicActive = m.isCinematicActive; cinematicState = m.cinematicState; }).catch(() => {});
 import('./storytalk.js').then((m) => { talkState = m.talkState; }).catch(() => {});
 
 const text = (el) => (el ? String(el.textContent || '').replace(/\s+/g, ' ').trim() : '');
@@ -43,8 +43,21 @@ export function readHostScene(world) {
     kicker = text(panel.querySelector('small'));
     nr = Number(panel.dataset.rond) || null;
   }
+  // #712: een lange host-film (treinreis, ontsnapping, finale, aftiteling) gaat als compacte scène mee;
+  // de gast speelt de regels zelf af en ziet niet alleen twee zwarte balken.
+  let film = null;
+  const act = filmpje ? cinematicState() : null;
+  if (act && Number(act.duration) >= 8 && Array.isArray(act.lines) && act.lines.length) {
+    film = {
+      duur: Math.round(Number(act.duration) * 10) / 10,
+      regels: act.lines.slice(0, 10).map((l) => ({ at: Math.round(Number(l.at) * 10) / 10 || 0, dur: Math.max(0.4, Math.round(Number(l.dur) * 10) / 10 || 2), wie: String(l.speaker || '').slice(0, 20), tekst: String(l.text || '').slice(0, 90) })).filter((l) => l.tekst),
+      kaart: { kicker: text(cine && cine.querySelector('.cine-kicker')), title: text(cine && cine.querySelector('.cine-title')), big: text(cine && cine.querySelector('.cine-big')) },
+    };
+    if (!film.regels.length) film = null;
+  }
   // de host in zijn pauzemenu, kaart of winkel: zijn wereld staat stil (het wachtscherm bij wegvallen is geen pauze van de host)
   const pauze = !!(world && world.paused && !world.uiPaused && !world.coopHold);
+  if (film) return { filmpje, pauze, regel, keuze, kaart, paneel: null, film };
   // Een stap die zijn eigen paneel zet (de bakronde, #525) gaat voor: de keuze/timing hierboven leest de DOM,
   // maar een bakstand staat niet in de HUD.
   const eigen = world && world.coopStagePanel;
@@ -97,11 +110,22 @@ function meterBalk(paneel) {
   return `<div style="position:relative;height:10px;margin:8px auto 0;width:min(420px,80%);background:rgba(240,237,228,0.16);border-radius:2px">${zone}<i style="position:absolute;top:0;bottom:0;width:3px;background:var(--hud-fg);left:${pct(m.v)}"></i></div>`;
 }
 export const hasHostScene = () => !!el;
+// (#712) de gast speelt een lange host-film lokaal na: eigen klok vanaf het moment dat de film binnenkomt.
+let filmKey = '', filmT0 = 0;
+function filmStand(film) {
+  if (!film) return null;
+  const key = film.duur + '|' + film.regels.length + '|' + film.regels[0].tekst;
+  if (key !== filmKey) { filmKey = key; filmT0 = performance.now(); }
+  const t = (performance.now() - filmT0) / 1000;
+  const regel = film.regels.filter((l) => t >= l.at).slice(-1)[0] || null;
+  return { t, regel };
+}
 export function updateHostScene(world) {
   // de gast speelt de scène van de gastheer zelf af (coopcut.js): dan geen laag eroverheen
   const sc = world && world.coopCutBezig == null && world.coopScene && !sceneLeeg(world.coopScene) ? world.coopScene : null;
   if (!sc) { if (el) { el.remove(); el = null; last = ''; } return; }
-  const key = JSON.stringify(sc) + (world && world.coopKeuze ? `|${world.coopKeuze.id}:${world.coopKeuze.eigen}:${world.coopKeuze.uitslag}` : '');
+  const filmNu = sc.film ? filmStand(sc.film) : null;
+  const key = JSON.stringify(sc) + (filmNu && filmNu.regel ? '|f' + filmNu.regel.at : '') + (world && world.coopKeuze ? `|${world.coopKeuze.id}:${world.coopKeuze.eigen}:${world.coopKeuze.uitslag}` : '');
   if (el && key === last) return;
   last = key;
   if (!el) {
@@ -116,13 +140,15 @@ export function updateHostScene(world) {
   const stemt = !!(world && world.coopKeuze);
   const stemRegel = stemt ? (world.coopKeuze.uitslag != null ? `Jullie kozen: ${world.coopKeuze.opties[world.coopKeuze.uitslag] || ''}.` : (world.coopKeuze.eigen != null ? `Je stemde: ${world.coopKeuze.opties[world.coopKeuze.eigen] || ''}. Wachten op de anderen.` : 'Jullie kiezen samen:')) : '';
   const bar = 'position:absolute;left:0;right:0;background:rgba(0,0,0,.92);';
-  const balken = sc.filmpje ? `<div style="${bar}top:0;height:11%"></div><div style="${bar}bottom:0;height:11%"></div>` : '';
+  const balken = (sc.filmpje || sc.film) ? `<div style="${bar}top:0;height:11%"></div><div style="${bar}bottom:0;height:11%"></div>` : '';
   const eigenMenu = !!document.querySelector('#pause-menu.visible'); // de gast zit zelf in zijn pauzemenu: de regel zou over de kop liggen
   const pauze = ''; // de melding 'X heeft het spel op pauze' is op verzoek van de eigenaar weggehaald (24-10): de wereld loopt door of staat stil zonder melding;
-  const kop = sc.filmpje && !sc.kaart ? `<div style="position:absolute;left:0;right:0;top:12.5%;text-align:center;font-size:22px;text-shadow:0 1px 3px rgba(0,0,0,.92)">${esc(filmpjeTekst(naam))}</div>` : '';
+  const kop = (sc.filmpje || sc.film) && !sc.kaart ? `<div style="position:absolute;left:0;right:0;top:12.5%;text-align:center;font-size:22px;text-shadow:0 1px 3px rgba(0,0,0,.92)">${esc(filmpjeTekst(naam))}</div>` : '';
   // (#712) de titelkaart van het host-filmpje: de gast ziet waar het over gaat in plaats van alleen twee balken
-  const kaart = sc.kaart ? `<div style="position:absolute;left:0;right:0;top:13%;text-align:center;text-shadow:0 1px 3px rgba(0,0,0,.92),0 0 2px rgba(0,0,0,.92)">${sc.kaart.kicker ? `<div style="font-size:18px;letter-spacing:.2em;color:var(--gron-green-light)">${esc(sc.kaart.kicker)}</div>` : ''}${sc.kaart.title ? `<div style="font-size:44px;font-family:'Bebas Neue','Arial Narrow',Arial,sans-serif;line-height:.95;text-transform:uppercase">${esc(sc.kaart.title)}</div>` : ''}${sc.kaart.big ? `<div style="font-size:36px;font-family:'Bebas Neue','Arial Narrow',Arial,sans-serif;line-height:.95;text-transform:uppercase">${esc(sc.kaart.big)}</div>` : ''}</div>` : '';
-  const regel = sc.regel ? `<div style="position:absolute;left:10%;right:10%;bottom:${sc.filmpje ? '13' : '16'}%;text-align:center;font-size:26px;line-height:1.3;text-shadow:0 1px 3px rgba(0,0,0,.92),0 0 2px rgba(0,0,0,.92)"><b style="color:var(--gron-green-light)">${esc(sc.regel.wie)}</b>${sc.regel.wie ? ': ' : ''}${esc(sc.regel.tekst)}</div>` : '';
+  const kk = sc.kaart || (sc.film && sc.film.kaart) || null;
+  const kaart = kk ? `<div style="position:absolute;left:0;right:0;top:13%;text-align:center;text-shadow:0 1px 3px rgba(0,0,0,.92),0 0 2px rgba(0,0,0,.92)">${kk.kicker ? `<div style="font-size:18px;letter-spacing:.2em;color:var(--gron-green-light)">${esc(kk.kicker)}</div>` : ''}${kk.title ? `<div style="font-size:44px;font-family:'Bebas Neue','Arial Narrow',Arial,sans-serif;line-height:.95;text-transform:uppercase">${esc(kk.title)}</div>` : ''}${kk.big ? `<div style="font-size:36px;font-family:'Bebas Neue','Arial Narrow',Arial,sans-serif;line-height:.95;text-transform:uppercase">${esc(kk.big)}</div>` : ''}</div>` : '';
+  const filmRegel = filmNu && filmNu.regel ? `<div style="position:absolute;left:10%;right:10%;bottom:13%;text-align:center;font-size:26px;line-height:1.3;text-shadow:0 1px 3px rgba(0,0,0,.92),0 0 2px rgba(0,0,0,.92)">${filmNu.regel.wie ? `<b style="color:var(--gron-green-light)">${esc(filmNu.regel.wie)}</b>: ` : ''}${esc(filmNu.regel.tekst)}</div>` : '';
+  const regel = filmRegel || (sc.regel ? '<div style="position:absolute;left:10%;right:10%;bottom:' + (sc.filmpje ? '13' : '16') + '%;text-align:center;font-size:26px;line-height:1.3;text-shadow:0 1px 3px rgba(0,0,0,.92),0 0 2px rgba(0,0,0,.92)"><b style="color:var(--gron-green-light)">' + esc(sc.regel.wie) + '</b>' + (sc.regel.wie ? ': ' : '') + esc(sc.regel.tekst) + '</div>' : '');
   const keuze = sc.keuze ? `<div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);max-width:620px;padding:18px 24px;border-radius:8px;background:rgba(12,20,14,0.88);box-shadow:inset 0 0 0 1px rgba(240,237,228,0.24)"><div style="font-size:24px;line-height:1.3">${esc(sc.keuze.tekst)}</div><div style="margin-top:10px;font-size:20px;opacity:.85">${esc(stemt ? stemRegel : `${naam} kiest:`)}</div><ul style="margin:6px 0 0;padding-left:22px;font-size:22px">${sc.keuze.opties.map((o) => `<li>${esc(o)}</li>`).join('')}</ul></div>` : '';
   // de choice-stap toont zijn opties ook als tekstblok in het midden; dan staat er alleen de toetsregel bij (#525)
   const los = sc.keuze && sc.paneel && sc.paneel.stap === 'choice' ? '' : keuze;
@@ -133,3 +159,4 @@ export function updateHostScene(world) {
   const paneel = sc.paneel ? `<div style="position:absolute;left:0;right:0;bottom:${sc.filmpje ? '13' : (los ? '16' : '9')}%;text-align:center;font-size:19px;opacity:.9;text-shadow:0 1px 3px rgba(0,0,0,.92)">${vraag}${esc(paneelTekst(sc.paneel))}${balk}</div>` : '';
   el.innerHTML = balken + kop + kaart + pauze + regel + los + paneel;
 }
+

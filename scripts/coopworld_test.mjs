@@ -181,12 +181,19 @@ t('scène van de host: filmpje, regel en keuze worden gereinigd en alleen bij ve
   assert.equal(W.sceneBericht(a.huidig, sc).event, null, 'zelfde stand: geen bericht');
   const b = W.sceneBericht(a.huidig, { filmpje: false }); assert.equal(b.event.filmpje, false); assert.ok(W.sceneLeeg(b.huidig));
   assert.equal(W.sceneBericht(null, null).event, null, 'leeg naar leeg: niets');
-  assert.deepEqual(W.leesSceneBericht({ k: 'scene', filmpje: true }), { filmpje: true, pauze: false, regel: null, keuze: null, kaart: null, paneel: null });
+  assert.deepEqual(W.leesSceneBericht({ k: 'scene', filmpje: true }), { filmpje: true, pauze: false, regel: null, keuze: null, kaart: null, paneel: null, film: null });
   // (#712) de titelkaart van een host-filmpje gaat mee, gereinigd, zodat de gast hem kan tekenen
   const kaart = W.schoonScene({ filmpje: true, kaart: { kicker: 'Ontdekt', title: 'Martinitoren', big: '', accent: 'wanted', tint: 'bust' } });
   assert.deepEqual(kaart.kaart, { kicker: 'Ontdekt', title: 'Martinitoren', big: '', accent: 'wanted', tint: 'bust' });
   assert.deepEqual(W.schoonScene({ kaart: { kicker: 'x'.repeat(99), title: 'y'.repeat(199), big: 'z'.repeat(99), accent: '<script>', tint: 'a b' } }).kaart, { kicker: 'x'.repeat(60), title: 'y'.repeat(80), big: 'z'.repeat(60), accent: '', tint: '' });
   assert.equal(W.schoonScene({ kaart: { kicker: '', title: '', big: '', accent: '', tint: '' } }).kaart, null, 'een lege kaart is geen kaart');
+  // (#712) een lange host-film gaat als compacte scène mee, met een bovengrens voor één bericht
+  const film = W.schoonScene({ filmpje: true, film: { duur: 42.5, kaart: { title: 'Naar het noorden' }, regels: [{ at: 1, dur: 3, wie: 'Tessa', tekst: 'De trein rijdt.' }, { at: 5, dur: 2, wie: '', tekst: 'Stilte.' }] } });
+  assert.equal(film.film.duur, 42.5); assert.equal(film.film.regels.length, 2); assert.equal(film.film.kaart.title, 'Naar het noorden');
+  assert.equal(W.sceneLeeg(film), false, 'een film is een scène');
+  assert.equal(W.schoonScene({ filmpje: true, film: { duur: 30, regels: [] } }).film, null, 'zonder regels en kaart geen film');
+  const dik = W.schoonScene({ filmpje: true, film: { duur: 30, regels: Array.from({ length: 40 }, (_, i) => ({ at: i, dur: 2, wie: 'X', tekst: 'regel '.repeat(40) })) } });
+  assert.ok(JSON.stringify(dik.film).length <= 1700, 'de film past in één betrouwbaar bericht');
   assert.equal(W.sceneLeeg(W.schoonScene({ kaart: { title: 'Iets' } })), false, 'een kaart alleen is ook iets om te melden');
   assert.equal(W.sceneBericht(null, { kaart: { title: 'Iets' } }).event.kaart.title, 'Iets');
   assert.equal(W.sceneLeeg(W.schoonScene({ pauze: true })), false, 'een pauze van de host is ook iets om te melden'); assert.equal(W.sceneBericht(null, { pauze: true }).event.pauze, true); assert.equal(W.leesSceneBericht({ k: 'x' }), null);
