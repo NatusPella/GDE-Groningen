@@ -60,8 +60,8 @@ for (const f of ['hud_panel.css', 'hudcards.css', 'prompts.css', 'phonefeed.css'
 ok(/--hud-min:\s*calc\(13px \/ var\(--ui/.test(css('hud_panel.css')), '--hud-min staat op #hud');
 ok(READABLE_MIN === 13, 'READABLE_MIN is 13');
 
-// the achievement toast sits under the route banner (top centre, ends about --hud-top + 62), not over it
-ok(/\.ach-toast \{[^}]*top: max\([^;]*var\(--hud-top, 34px\) \+ 74px\)/.test(fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'game', 'js', 'achievements.js'), 'utf8')), 'prestatiemelding staat onder de routebanner');
+// #643: de prestatiemelding staat in zone E (links, boven de minimap) en niet meer onder de routebanner
+ok(/\.ach-toast \{[^}]*top: auto; bottom: calc\(var\(--mm-bottom, 46px\) \+ var\(--mm-size, 250px\) \+ 14px\); left: var\(--hud-edge, 46px\)/.test(fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'game', 'js', 'achievements.js'), 'utf8')), 'prestatiemelding staat in zone E, los van de routebanner');
 
 // the sticky action bar of a pane ('Laten afleveren') is opaque within 16px, so it never lets the row under it read through
 {

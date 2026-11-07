@@ -57,7 +57,7 @@ import { markerColors, onPaletteChange } from './a11y.js';
 import { drawMissionGlyph } from './missionicons.js';
 import { drawMapGlyph } from './mapglyphs.js';
 import { miniWind, windSterkte, windPijlHoek, windTekst } from './windmini.js';
-import { decideHud, zones, hudNow, cardYields, P3, PLACE_SHOW, E_SHOW, DEFER_MAX, GPS_NEAR } from './hudrules.js';
+import { decideHud, zones, hudNow, cardYields, vehnameBottom, P3, PLACE_SHOW, E_SHOW, DEFER_MAX, GPS_NEAR } from './hudrules.js';
 import { vehicleKind, speedoLook, meterLevel, hudEdge, distanceOwner, vehicleLabelOwner } from './hudlook.js';
 import { nextTurn, turnText, etaText, dichtstbijDoel } from './hudgps.js';
 import { gastDoelen } from './coopextra.js';
@@ -327,7 +327,7 @@ export function initHud(world) {
   initPrompts(root);
   fitEdge(root);
   onUiScaleChange(() => fitEdge(root));
-  watchRightStack(root, topRight, race);
+  watchRightStack(root, topRight, race, root.querySelector('.hud-vehname'), root.querySelector('.hud-cards'));
   watchInput();
 }
 
@@ -388,7 +388,7 @@ function watchZoneA(root, cards) {
 // The right column flows under the top-right block: the race panel sits just
 // below it and the story phone (storycontact.js) below both, via
 // --hud-tr-bottom and --hud-stack-top (HUD px, so the uiscale zoom holds).
-function watchRightStack(root, topRight, race) {
+function watchRightStack(root, topRight, race, vehName, cards) {
   if (typeof ResizeObserver === 'undefined') return;
   const GAP = 8;
   const place = () => {
@@ -396,10 +396,15 @@ function watchRightStack(root, topRight, race) {
     const stack = race.hidden ? trBottom : trBottom + GAP + race.offsetHeight;
     root.style.setProperty('--hud-tr-bottom', `${trBottom}px`);
     root.style.setProperty('--hud-stack-top', `${stack + GAP + 2}px`);
+    // #638: de voertuignaam in dezelfde gemeten kolom: boven het racepaneel, niet op een vaste 300 px.
+    const bottom = race.hidden ? null : vehnameBottom({ raceTop: race.getBoundingClientRect().top, viewH: window.innerHeight, gap: GAP });
+    if (bottom != null && cards && !cards.classList.contains('hc-held')) root.style.setProperty('--hud-vehname-bottom', `${bottom}px`);
+    else root.style.removeProperty('--hud-vehname-bottom');
   };
   const ro = new ResizeObserver(place);
   ro.observe(topRight);
   ro.observe(race);
+  if (vehName) ro.observe(vehName);
   place();
 }
 
@@ -2924,3 +2929,4 @@ function drawNeighbourhoodBorders(ctx, dt, world, player, MM_RADIUS_M) {
   ctx.fillStyle = inkA('white', 0.35);
   for (const [rx, ry] of borderCache.rects) ctx.fillRect(rx, ry, cell * 0.5, cell * 0.5);
 }
+

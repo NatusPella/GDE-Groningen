@@ -15,6 +15,7 @@ import { MISSION_IDS, RETIRED_MISSIONS } from './storyarc_basis.js';
 import { KEYS } from './storagekeys.js';
 import { iconSvg } from './achievementicons.js';
 import { isOverlayHeld } from './overlayhold.js';
+import { zones, P3 } from './hudrules.js';
 import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
 
 const KEY = KEYS.achievements;
@@ -99,14 +100,14 @@ export const ACHIEVEMENTS = [
   { id: 'opgepakt', cat: 'politie', title: 'Even brommen', desc: 'Word opgepakt', hidden: true },
   { id: 'wasted', cat: 'politie', title: 'Even plat', desc: 'Ga een keer neer', hidden: true },
 
-  { id: 'wijken_10', cat: 'verkennen', title: 'Stadjer in wording', desc: 'Ontdek 10 wijken', set: 'wijken', goal: 10 },
-  { id: 'wijken_33', cat: 'verkennen', title: 'Halve Stadjer', desc: 'Ontdek 33 wijken', set: 'wijken', goal: 33 },
-  { id: 'wijken_alle', cat: 'verkennen', title: 'Kenner van Grunn', desc: 'Ontdek alle 66 wijken', set: 'wijken', goal: 66 },
+  { id: 'wijken_10', cat: 'verkennen', title: 'Stadjer in wording', desc: 'Ontdek 10 buurten', set: 'wijken', goal: 10 },
+  { id: 'wijken_33', cat: 'verkennen', title: 'Halve Stadjer', desc: 'Ontdek 33 buurten', set: 'wijken', goal: 33 },
+  { id: 'wijken_alle', cat: 'verkennen', title: 'Kenner van Grunn', desc: 'Ontdek alle 66 buurten', set: 'wijken', goal: 66 },
   { id: 'landmarks', cat: 'verkennen', title: 'Toerist in eigen stad', desc: 'Bezoek alle 14 bezienswaardigheden', set: 'landmarks', goal: 14 },
   { id: 'kaart_25', cat: 'verkennen', title: 'Kaartlezer', desc: 'Bezoek een kwart van alle buurten van de provincie', stat: 'kaartVerkend', goal: 25, unit: '%' },
   { id: 'kaart_50', cat: 'verkennen', title: 'Halve kaart gezien', desc: 'Bezoek de helft van alle buurten van de provincie', stat: 'kaartVerkend', goal: 50, unit: '%' },
   { id: 'kaart_alle', cat: 'verkennen', title: 'De hele kaart verkend', desc: 'Bezoek elke buurt van de provincie, tot in de uiterste hoek', stat: 'kaartVerkend', goal: 100, unit: '%' },
-  { id: 'gebied_buurt', cat: 'verkennen', title: 'Buurtheld', desc: 'Verover een buurt: doe alles wat er te doen is (Veroverd, op de kaart)', stat: 'gebied_buurt', goal: 1 },
+  { id: 'gebied_buurt', cat: 'verkennen', title: 'Deelgebied-held', desc: 'Verover een deelgebied: doe alles wat er te doen is (Veroverd, op de kaart)', stat: 'gebied_buurt', goal: 1 },
   { id: 'gebied_wijk', cat: 'verkennen', title: 'Wijkheld', desc: 'Verover een hele wijk', stat: 'gebied_wijk', goal: 1 },
   { id: 'gebied_wijk_5', cat: 'verkennen', title: 'Wijk voor wijk', desc: 'Verover vijf wijken', stat: 'gebied_wijk', goal: 5 },
   { id: 'gebied_woonplaats', cat: 'verkennen', title: 'Burgemeester', desc: 'Verover een hele woonplaats', stat: 'gebied_woonplaats', goal: 1 },
@@ -647,12 +648,12 @@ export function getLifetimeStats() {
 // --- toast ------------------------------------------------------------------
 
 const CSS = `
-#hud .ach-toast { position: absolute; top: max(calc(11vh / var(--ui, 1)), calc(var(--hud-top, 34px) + 74px)); left: max(50%, calc(var(--hud-edge) + var(--mm-size) + 404px)); z-index: 6; display: flex; align-items: center; gap: 14px;
+#hud .ach-toast { position: absolute; top: auto; bottom: calc(var(--mm-bottom, 46px) + var(--mm-size, 250px) + 14px); left: var(--hud-edge, 46px); z-index: 6; display: flex; align-items: center; gap: 14px;
   min-width: 300px; max-width: calc(100vw / var(--ui, 1) - 32px); box-sizing: border-box; padding: 10px 22px 10px 12px;
   background: linear-gradient(90deg, rgba(12,20,14,0.94) 0%, rgba(12,20,14,0.86) 70%, rgba(12,20,14,0.6) 100%);
   border-left: 4px solid var(--mk-ok, #3fc97a); box-shadow: 0 8px 28px rgba(0,0,0,0.55), 0 0 22px rgba(63,201,122,0.18);
-  opacity: 0; transform: translate(-50%, -14px); transition: opacity 0.35s ease, transform 0.35s ease; pointer-events: none; }
-#hud .ach-toast.on { opacity: 1; transform: translate(-50%, 0); }
+  opacity: 0; transform: translateY(-14px); transition: opacity 0.35s ease, transform 0.35s ease; pointer-events: none; }
+#hud .ach-toast.on { opacity: 1; transform: none; }
 /* Tijdens een minigame staat het bord met de toetshulp bovenaan rechts: de prestatiekaart zakt dan naar
    de onderkant in plaats van eroverheen te vallen (#504). */
 body.mg-on #hud .ach-toast { top: auto; bottom: max(calc(13vh / var(--ui, 1)), 104px); }
@@ -723,6 +724,14 @@ function showNextToast() {
   el.innerHTML = `<span class="ach-ico">${a.hidden ? TROPHY_SVG : iconSvg(a, 'ach-pic')}</span><span class="ach-txt">` +
     `<span class="ach-kicker">PRESTATIE ONTGRENDELD<span class="ach-pct">${pct >= 1 ? pct : '&lt;1'}% totaal</span></span>` +
     `<span class="ach-title">${dualHtml(a.title)}</span><span class="ach-desc">${escHtml(a.desc)}</span></span>`;
+  // #643: de toast bezet zone E via het zonebord, net als een kaart van hudcards.js; is de zone bezet,
+  // dan wacht hij even in plaats van over de plaatsnaam of het activiteitenbord te vallen.
+  if (!zones.occupy('E', 'ach', P3)) {
+    toastUntil = 1;
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(showNextToast, 500);
+    return;
+  }
   void el.offsetWidth;
   el.classList.add('on');
   if (world) {
@@ -739,6 +748,7 @@ function showNextToast() {
   if (toastTimer) clearTimeout(toastTimer);
   toastTimer = setTimeout(() => {
     el.classList.remove('on');
+    zones.vacate('E', 'ach');
     toastTimer = setTimeout(showNextToast, 450);
   }, Math.max(TOAST_S, 1.2 + 0.06 * (String(a.title).length + String(a.desc || '').length)) * 1000);
 }

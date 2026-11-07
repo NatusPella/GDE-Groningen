@@ -83,7 +83,7 @@ body.hide-minimap #hud .hud-minimap-wrap { display: none; }
 #hud .hud-money-delta { font-size: 22px; opacity: 0; transform: translateY(6px); transition: opacity 0.25s, transform 0.4s; }
 #hud .hud-money-delta.visible { opacity: 1; transform: none; }
 #hud .hud-money-delta[data-sign="plus"] { color: var(--gron-green-light); }
-#hud .hud-money-delta[data-sign="min"] { color: var(--hud-redtx, #ff9a9a); }
+#hud .hud-money-delta[data-sign="min"] { color: var(--mk-danger, #d93f3f); } /* #638: één rood, via de tokens */
 
 #hud .hud-weapon { display: flex; align-items: center; gap: 9px; }
 #hud .hud-weapon-col { display: flex; flex-direction: row; align-items: baseline; gap: 6px; min-width: 0; }
@@ -533,7 +533,7 @@ body:not(.cine-hide-hud) #cine.has-sub .cine-skip { bottom: calc(14px * var(--ui
 
 #hud .hud-vehname {
   /* the model name for a moment on getting in, above the key hints */
-  position: absolute; right: var(--hud-edge); bottom: calc(var(--hud-edge) + var(--mm-size) + 50px); display: flex; align-items: center; gap: 12px;
+  position: absolute; right: var(--hud-edge); bottom: var(--hud-vehname-bottom, calc(var(--hud-edge) + var(--mm-size) + 50px)); display: flex; align-items: center; gap: 12px;
   max-width: min(calc(46vw / var(--ui, 1)), 520px); padding: 8px 12px 8px 26px; text-align: right; color: #f0ede4;
   text-shadow: 0 2px 6px rgba(0, 0, 0, 0.85), 0 0 18px rgba(0, 0, 0, 0.5);
   background: linear-gradient(270deg, rgba(12, 20, 14, 0.82), rgba(23, 48, 31, 0.4) 80%, rgba(23, 48, 31, 0));
@@ -642,3 +642,5 @@ body:not(.cine-hide-hud) #cine.has-sub .cine-skip { bottom: calc(14px * var(--ui
 #drift-chip .dc-t { font-size: 16px; color: rgba(240, 237, 228, 0.6); }
 
 .hud-chip.hud-mute { pointer-events: auto; position: relative; z-index: 21; min-height: 0; cursor: pointer; color: #f0ede4; }
+/* #638: de enige klikbare HUD-knop haalt op touch de 44 px-regel */
+html.touch-play .hud-chip.hud-mute { min-height: 44px; min-width: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 0 10px; }
