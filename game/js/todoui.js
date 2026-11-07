@@ -4,7 +4,7 @@
 // pausemenu.css (ov-*, td-*).
 import { hoofdspeler } from './players.js';
 import { wasHelped } from './assistlive.js';
-import { getTodoItems, chooseTodo, mapIconUrl, placeName, GROUPS, STATUS_LABEL, buyFjordUpgrade } from './todo.js';
+import { getTodoItems, chooseTodo, mapIconUrl, placeName, GROUPS, STATUS_LABEL, buyFjordUpgrade, paspoortOverzicht } from './todo.js';
 import { activityTodoItems } from './activities.js';
 import { getStoryView, getStorySteps, getStoryJournal, requestCredits } from './story.js';
 import { PARTS, CLUES, WHY } from './storyarc.js';
@@ -49,7 +49,10 @@ const ICON = {
 };
 const svg = (d) => `<svg viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
 
+let worldNow = null;
+
 function refresh(world) {
+  worldNow = world;
   items = getTodoItems(world);
   // attracties die alleen activities.js kent (#436, het reuzenrad): dezelfde afstand en hetzelfde
   // doel als de gewone regels, zodat kiezen, 'Op de kaart' en het overzicht gewoon werken
@@ -94,9 +97,11 @@ function row(it, extra = '') {
   // De catalogus (Activiteiten) heeft een eigen taal: het kaartpictogram van de activiteit (#607).
   // De verhaalmissies in Verhaal > Opdrachten houden hun code en status, zonder pictogram.
   const ico = it.icon && it.group !== 'missies' && it.group !== 'verhaal' ? `<img class="td-ico" src="${mapIconUrl(it.icon, 22)}" alt="">` : '';
+  // #681: het Ommeland-paspoort laat per dorp een voortgangsbalk zien; de rest van de rijen houdt zijn taal.
+  const progress = it.progress ? `<span class="m-bar td-pbar" aria-hidden="true"><i data-bar="om-${esc(it.key)}" data-w="${it.progress.pct}"></i></span>` : '';
   return `<button type="button" class="m-li${off ? ' off' : ''}${extra}" data-todo="${esc(it.key)}" data-status="${it.status || ''}"${it.isGoal ? ' data-goal' : ''}${ui.sel === it.key ? ' aria-current="true"' : ''}>` + ico +
     `<span class="nm"><span class="one">${it.code ? `${esc(it.code)} · ` : ''}${esc(it.title)}</span><span class="mut one">${esc(it.record && it.status !== 'nu' && it.status !== 'later' ? it.record : it.meta)}</span></span>` +
-    `${medalDot(it.medal)}${endOf(it)}</button>`;
+    `${progress}${medalDot(it.medal)}${endOf(it)}</button>`;
 }
 
 // --- Overzicht ------------------------------------------------------------------
@@ -295,6 +300,16 @@ const SHOW_FIRST = 4;
 // eigen klikgedrag. Elke rij opent het detail, waar je hem ook aanklikt.
 export function setTodoFilter(near) { ui.near = !!near; }
 
+// #681: het Ommeland-paspoort boven de lijst: één balk voor de dorpen en de hint vanaf 80%.
+// De dorpen zelf staan als gewone rijen in de groep Ommeland (todo.js), dus de kaart leest ze ook.
+function paspoortHtml() {
+  if (!worldNow) return '';
+  const p = paspoortOverzicht(worldNow);
+  const hint = p.hint.length ? `<p class="m-note">${p.hint.map((h) => esc(h)).join(' · ')}</p>` : '';
+  return `<div class="m-gh"><span>Ommeland-paspoort</span><span>${p.klaar} van ${p.totaal} dorpen · ${p.onderdelenKlaar} van ${p.onderdelenTotaal} onderdelen</span></div>` +
+    `<span class="m-bar td-pbar"><i data-bar="om-paspoort" data-w="${p.pct}"></i></span>${hint}`;
+}
+
 function allHtml() {
   const eigen = items.filter(isActiviteit);
   const counts = Object.fromEntries(SHOWN.map(([g]) => [g, eigen.filter((it) => it.group === g).length]));
@@ -322,7 +337,7 @@ function allHtml() {
     return `<div class="m-gh"><span>${label}</span><span>${rest > 0 || all ? `${list.length} · ` : ''}${sub}</span></div>${shown.map((it) => row(it)).join('')}` +
       (rest > 0 ? `<button type="button" class="m-more" data-grp-more="${g}">Nog ${rest} ${esc(label.toLowerCase())}</button>` : '');
   }).join('');
-  return filter + chips + groups;
+  return filter + chips + ((ui.kind === 'alles' || ui.kind === 'ommeland') ? paspoortHtml() : '') + groups;
 }
 
 // Eén vaste opmaak voor een feit, niet afhankelijk van de lengte van de tekst (#607): het
@@ -345,6 +360,8 @@ function detailHtml(world) {
   let more = '';
   if (it.isGoal) more += '<button type="button" class="m-bg" data-todo-clear>Doel wissen</button>';
   if (it.dist != null) more += `<button type="button" class="m-bg" data-todo-map="${esc(it.key)}">${svg(ICON.pin)}Op de kaart</button>`;
+  // #681: vanuit het paspoort de trein plannen: de kaart opent op het station, waar de reisopties staan.
+  if (it.trein && it.trein.lijnen && it.trein.lijnen.length) more += `<button type="button" class="m-bg" data-todo-trein="${esc(it.key)}">${svg(ICON.clock)}Trein plannen</button>`;
   let quiet = '';
   if (it.status === 'nu' && sv.canSkip && (story || it.mission != null)) quiet += `<button type="button" class="m-bt" data-story-skip>${esc(sv.skipLabel)}</button>`;
   if (it.stopJob) quiet += '<button type="button" class="m-bt danger" data-todo-stopjob>Dienst stoppen</button>';
@@ -448,6 +465,15 @@ export function todoClick(e, world, panel, api) {
   if (t.closest('[data-story-credits]')) { if (requestCredits() && api.close) api.close(); return true; }
   const map = t.closest('[data-todo-map]');
   if (map) { const it = byKey.get(map.dataset.todoMap); if (it) api.showOnMap(it.x, it.y); return true; }
+  const trein = t.closest('[data-todo-trein]');
+  if (trein) {
+    const it = byKey.get(trein.dataset.todoTrein);
+    if (it && it.x != null) {
+      api.showOnMap(it.x, it.y);
+      world.addMessage(`Trein plannen: ${it.trein.tekst}`, 4);
+    }
+    return true;
+  }
   const view = t.closest('[data-todo-view]');
   if (view) { api.showView(view.dataset.todoView); return true; }
   const kind = t.closest('[data-todo-kind]');
