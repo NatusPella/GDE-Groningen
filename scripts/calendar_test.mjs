@@ -6,7 +6,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   day, weekdayOf, formatDay, STEP_DAY, storyBounds, clampDay, dayForSavedStep, sunDeclinationDeg, SPECIAL_DAYS,
-  specialsOn, specialDay, cardFor, upcomingSpecials, isSpecial, ONTZET_DAY, LAST_SUMMER_DAY, EPILOGUE_DAY, partStartDay, CAL_ICONS,
+  specialsOn, specialDay, cardFor, upcomingSpecials, isSpecial, ONTZET_DAY, LAST_SUMMER_DAY, EPILOGUE_DAY, partStartDay, CAL_ICONS, ontzetCountdown,
 } from '../game/js/calendar.js';
 import { STEPS, PARTS, ARC_ID } from '../game/js/storyarc.js';
 
@@ -123,6 +123,10 @@ const sunset = (n) => 12 + Math.acos(-Math.tan(53.2 * Math.PI / 180) * Math.tan(
 ok(Math.abs(sunDeclinationDeg(1) - 14.1) < 0.5 && Math.abs(sunDeclinationDeg(ONTZET_DAY) - 9.2) < 0.5, 'declination on 14 and 28 augustus', `${sunDeclinationDeg(1).toFixed(2)} ${sunDeclinationDeg(ONTZET_DAY).toFixed(2)}`);
 ok(sunset(1) > sunset(ONTZET_DAY) + 0.4, 'the sun sets about half an hour earlier on Ontzet', `${sunset(1).toFixed(2)} ${sunset(ONTZET_DAY).toFixed(2)}`);
 ok(sunDeclinationDeg(EPILOGUE_DAY) === sunDeclinationDeg(LAST_SUMMER_DAY) && sunDeclinationDeg(EPILOGUE_DAY) === sunDeclinationDeg(400), 'the nazomer holds: from 1 september the sun stays');
+
+// #665: de aftelling naar het Gronings Ontzet in de laatste week (voor de HUD)
+ok(ontzetCountdown(ONTZET_DAY - 3) === 'Ontzet over 3 dagen' && ontzetCountdown(ONTZET_DAY - 1) === 'Ontzet over 1 dag', 'de teller telt de laatste dagen af');
+ok(ontzetCountdown(ONTZET_DAY) === '' && ontzetCountdown(ONTZET_DAY + 1) === '' && ontzetCountdown(1) === '', 'op de dag zelf en ver ervoor niets');
 
 console.log(`${n - fails}/${n} calendar checks passed`);
 process.exit(fails ? 1 : 0);

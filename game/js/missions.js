@@ -44,7 +44,7 @@ import { buitDelen } from './heistrollen.js';
 import { spawnFjordTrain, fjordLoadPoint, fjordCrossing, loadFjord, loadFjordNow, updateFjordTrain, sendFjordTrainAway, catchFjordTrainNow, disposeFjordTrain, fjordTrainState } from './fjordtrain.js';
 import { addDrunk } from './drunk.js';
 import { klusloon, medalBonus } from './economy.js';
-import { metGroepsbonus } from './groepsbonus.js';
+import { metGroepsbonus, bonusDelen, GROEPSBONUS_UITLEG } from './groepsbonus.js';
 import { startStunt, updateStunt, stopStunt, stuntStatus } from './stuntavond.js';
 import { storyLines, talkLines, storyDataReady, readingTime } from './storytext.js';
 import { playTalk, stopTalk } from './storytalk.js';
@@ -1160,6 +1160,11 @@ function consequenceAdjust(def) {
 function succeed(world, def) {
   const i = chainState().index;
   const mee = gastStartMee(world); // een gast startte deze opdracht: alleen met zijn eigen J telt de gastheer mee (#452)
+  // #664: een haalbare tijd is een medaille-eis, geen fail-state. Binnen de tijd komt de tag 'snel' bij de
+  // keuzetags, zodat de uitslag hem als regel en bonus toont (def.tagRows/def.tagAdjust, net als een keuze).
+  if (mee && def.medalTime && chainState().run && chainState().run.elapsed <= def.medalTime) {
+    (chainState().tags = chainState().tags || new Set()).add('snel');
+  }
   chainState().checkpoints.delete(i);
   chainState().retry = null;
   stopTalk();
@@ -1192,7 +1197,7 @@ function succeed(world, def) {
   const hostDeel = tegen ? (buit.geld[0] || 0) : reward;
   if (!tegen) {
     if (mee) { noteMoney('Missies'); world.money += reward; }
-    if (world.coopDeel) world.coopDeel(reward); // samen spelen (#365): de meespelende gasten krijgen hun deel, ook als de gastheer toekijkt
+    if (world.coopDeel) world.coopDeel(reward, { groepsbasis: rewardRuw, groepsn: aantal }); // samen spelen (#365): de meespelende gasten krijgen hun deel, ook als de gastheer toekijkt
     if (world.coopUitslag) world.coopUitslag(true, def.label, '', reward); // en horen dat het gelukt is (#371)
   } else {
     if (mee) { noteMoney('Missies'); world.money += hostDeel; }
@@ -1205,7 +1210,12 @@ function succeed(world, def) {
     world.stats.missionsDone++;
     world.addMessage(`${def.label} geklaard! ${replay ? 'Klusloon ' : ''}+€${base}${tip ? ` en €${tip} fooi` : ''}${adj.text}${cons.text}`, 4);
     if (tegen) world.addMessage(`Tegen elkaar: jouw deel van de buit is €${hostDeel}${buit.winnaar === 0 ? ' — de grootste buit was van jou.' : '.'}`, 4);
-    if (bonus > 0) world.addMessage(`Groepsbonus: +€${bonus} (${aantal} spelers)`, 3);
+    if (bonus > 0) {
+      // #685: dezelfde basis en factor als de gast ziet, met het totaal erbij; de uitleg van 1+1=3
+      // staat één keer bij de eerste gedeelde beloning
+      const uitleg = !world.groepsbonusUitleg ? (world.groepsbonusUitleg = true, ' — ' + GROEPSBONUS_UITLEG) : '';
+      world.addMessage(`Groepsbonus: ${bonusDelen(rewardRuw, aantal, reward).tekst} (${aantal} spelers)${uitleg}`, 3);
+    }
     const stats = runStats(world, def);
     // what the mission cost on the way (Het Loket: the entry fee), so the card is honest about a reward of 0
     if (def.costRow && !replay) stats.push(def.costRow);

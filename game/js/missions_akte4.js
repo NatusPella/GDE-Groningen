@@ -246,6 +246,17 @@ export function applyAkte4(list) {
   fj.tagRows = { 'sprint-goed': ['Sprint', 'Over alle wagons, zonder val'], 'sprint-slecht': ['Sprint', 'Gevallen op de wagons: de schade is voor jou'], auto: ['Gekozen', 'De auto: geen kras'], bal: ['Gekozen', 'De bal: een kras op de Escapade, Berend telt'] };
   fj.fjordTrain = false;
   delete fj.vehicle;
+  // #666: de wagonkeuze (auto of bal) blijft hangen als 'keuze:bal'; in de volgende missie (M22) staat
+  // dan eerst de kras van de wagon op de Escapade, met een eigen doel en tekst. De andere keuze blijft
+  // bewust smaak. De vlag reist mee met de save en met de gast (coopsave), zodat iedereen hetzelfde ziet.
+  fj.remember = ['bal'];
+  const luik = list.find((d) => d.label === 'Een luik erin');
+  if (luik && Array.isArray(luik.stages) && !luik.stages.some((q) => q.ifTag === 'bal')) {
+    luik.stages.unshift({
+      kind: 'goto', ifTag: 'bal', target: { at: luik.start, snap: 'walk', label: 'Tinus\' schuur' }, mode: 'any', radius: 18,
+      label: 'Eerst de kras van de wagon: Tinus kijkt ernaar', say: 'De kras van de wagon zit op de Escapade. Tinus schudt zijn hoofd: "Die tel ik niet mee."',
+    });
+  }
   fj.start = spot('zuidhornOverweg');
   fj.timeLimit = null;
   fj.stages = [
