@@ -1,5 +1,6 @@
 import { clamp, closestPointOnSegment, pointInPolygon } from './util.js';
 import { makeLosBudget } from './losbudget.js';
+import { makeTick } from './tickbudget.js';
 import { spawnVehicleOnRoad, updateTrafficAI, resolveVehicleBuildingCollision, spawnPoliceBoatOnWater, attachToNearestRoad, maxCurvature } from './vehicle.js';
 import { requestRespawn } from './world.js';
 import { mulberry32 } from './rng.js';
@@ -877,17 +878,24 @@ export function policeDebug(world) {
   return getState(world);
 }
 
+// #653: de dure, niet-elke-frame-nodige scans op ~6 Hz
+const policeSlowTick = makeTick(160);
+let policeSlowDt = 0;
 export function updatePolice(dt, world) {
   const state = getState(world);
   initPoliceContract(world);
 
   const escalated = world.wanted > state.prevWanted;
-  refreshVehicleSight(world, dt);
+  // #653: refreshVehicleSight/despawnFarPolice/updateRoadblocks hoeven niet 60x/s
+  let slowDue = false;
+  policeSlowDt += dt;
+  if (policeSlowTick(performance.now())) { slowDue = true; }
+  if (slowDue) { refreshVehicleSight(world, policeSlowDt); policeSlowDt = 0; }
   updateSearch(dt, world, state, escalated && !world.policeTip);
   state.prevWanted = world.wanted;
 
   trySpawnPolice(world, state);
-  despawnFarPolice(world, state);
+  if (slowDue) despawnFarPolice(world, state);
   trySpawnCopPeds(world, state);
   despawnFarCopPeds(world);
   trySpawnPoliceBoat(world, state);
@@ -895,7 +903,7 @@ export function updatePolice(dt, world) {
   trySpawnMotor(world, state);
   trySpawnMounts(world, state);
   tryRoadblock(world, state);
-  updateRoadblocks(world);
+  if (slowDue) updateRoadblocks(world);
   updatePoliceHeli(dt, world);
   updateCrews(dt, world, state);
   updateBust(dt, world);
