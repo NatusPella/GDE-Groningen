@@ -3,11 +3,13 @@
 // (docs/verhaal/nieuw/09-script-akte1..5.md) into game/storydata/script.json,
 // the data the story (storyarc_nieuw.js) plays from.
 //   node scripts/build_story_data.mjs          writes game/storydata/script.json
+//   node scripts/build_story_data.mjs          writes game/storydata/script.json
 //   node scripts/build_story_data.mjs --check  fails when the committed file is stale
 // A line is `textOnly` when no recording exists for the exact text (speaker
 // name as the voice manifests key it, in the story, lines or banter manifest): it is
-// shown as text only. A [BEHOUDEN] line without a recording is listed.
-// No network, no TTS. The scripts' format is described in the header of 09-script-akte1.md.
+// shown as text only. A [BEHOUDEN] line without a recording is a promise broken (ADR 0011):
+// it must be documented with a reason in scripts/story_behouden_allow.json, otherwise the
+// build fails (#647). No network, no TTS. The scripts' format is described in the header of 09-script-akte1.md.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -63,7 +65,8 @@ export const SPEAKER_TABLE = {
   // Deel 4 (09-script-akte6.md): no recordings
   WILLEMIEN: sp('willemien', 'Willemien'),
   BUURVROUW: sp('buurvrouw', 'Buurvrouw'),
-  'KIND IN HET PUBLIEK': sp('kind', 'Kind in het publiek'),
+  // de opname van "Nee!" staat in de lines-bank onder de stem "Kind" (#647)
+  'KIND IN HET PUBLIEK': sp('kind', 'Kind in het publiek', 'Kind'),
 };
 
 const LINE = /^([A-ZÄËÏÖÜ][A-ZÄËÏÖÜ0-9 .'’\/&→-]*?(?: \([^)]*\))?): (.+?)(?: \[(BEHOUDEN|NIEUW)\])?\s*$/;
@@ -193,7 +196,7 @@ export function build() {
       if (!spk) { unknown.add(l.who); return { speaker: l.who, text: l.text, tag: l.tag, channel: l.channel, textOnly: true }; }
       const rec = recordingOf(spk.voice, l.text);
       const recorded = !!rec;
-      if (l.tag === 'BEHOUDEN' && !recorded) behoudenMissing.push(`[${s.id}] ${spk.voice}: ${l.text}`);
+      if (l.tag === 'BEHOUDEN' && !recorded) behoudenMissing.push({ scene: s.id, speaker: spk.name, voice: spk.voice, text: l.text });
       const out = { speaker: spk.name, key: spk.key, text: l.text, tag: l.tag, channel: l.channel, textOnly: !recorded };
       if (l.manner) out.manner = l.manner;
       if (rec) out.rec = rec;
@@ -224,11 +227,52 @@ function summary(data) {
   return { scenes: data.scenes.length, lines: lines.length, textOnly, recorded: lines.length - textOnly, silentApps: lines.filter((l) => l.channel === 'app-stil').length };
 }
 
+const BEHOUDEN_ALLOW = path.join(REPO, 'scripts', 'story_behouden_allow.json');
+
+// [BEHOUDEN] belooft een opname: dezelfde tekst staat in de code, want anders is de opname stil
+// verdwenen (ADR 0011). Een [BEHOUDEN]-regel zonder opname is dus een fout, tenzij hij met een
+// reden in scripts/story_behouden_allow.json staat (#647). Een uitzondering die niet meer nodig
+// is, is ook een fout: anders rot de lijst dicht en verbergt hij nieuwe gevallen.
+export function behoudenProblems(missing, allow = []) {
+  const sleutel = (m) => m.scene + '|' + m.text;
+  const geoorloofd = new Set(allow.map(sleutel));
+  const nogSteeds = new Set(missing.map(sleutel));
+  const problemen = [];
+  for (const m of missing) if (!geoorloofd.has(sleutel(m))) problemen.push({ soort: 'ontbreekt', ...m });
+  for (const a of allow) if (!nogSteeds.has(sleutel(a))) problemen.push({ soort: 'overbodig', ...a });
+  return problemen;
+}
+
+export function readBehoudenAllow(file = BEHOUDEN_ALLOW) {
+  if (!fs.existsSync(file)) return { note: '', allow: [] };
+  const json = JSON.parse(fs.readFileSync(file, 'utf8'));
+  if (!json || !Array.isArray(json.allow)) throw new Error(`${file}: "allow" ontbreekt`);
+  for (const a of json.allow) {
+    if (!a || typeof a.scene !== 'string' || typeof a.text !== 'string' || typeof a.why !== 'string' || !a.why.trim()) {
+      throw new Error(`${file}: elke uitzondering heeft scene, text en why`);
+    }
+  }
+  return json;
+}
+
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const { data, behoudenMissing } = build();
+  // De poort vóór het schrijven: een rode keuring mag script.json niet stil bijwerken.
+  let allow;
+  try { allow = readBehoudenAllow(); } catch (e) { console.log('FAIL ' + e.message); process.exit(1); }
+  const problemen = behoudenProblems(behoudenMissing, allow.allow);
+  if (problemen.length) {
+    console.log(`[BEHOUDEN] zonder opname buiten scripts/story_behouden_allow.json: ${problemen.length}`);
+    for (const p of problemen) {
+      console.log(`  ${p.soort === 'overbodig' ? 'overbodig (heeft nu wel een opname)' : 'geen opname'}: [${p.scene}] ${p.voice || ''}: ${p.text}${p.why ? ' - ' + p.why : ''}`);
+    }
+    console.log(`Neem de regel op (#735) of zet hem met een reden in scripts/story_behouden_allow.json.`);
+    process.exit(1);
+  }
   const json = JSON.stringify(data, null, 1) + '\n';
+  const zonderCrlf = (tekst) => tekst.replace(/\r\n/g, '\n'); // een Windows-checkout heeft CRLF; de inhoud telt (#647)
   if (process.argv.includes('--check')) {
-    if (!fs.existsSync(OUT) || fs.readFileSync(OUT, 'utf8') !== json) { console.log('game/storydata/script.json is stale: run node scripts/build_story_data.mjs'); process.exit(1); }
+    if (!fs.existsSync(OUT) || zonderCrlf(fs.readFileSync(OUT, 'utf8')) !== json) { console.log('game/storydata/script.json is stale: run node scripts/build_story_data.mjs'); process.exit(1); }
   } else {
     fs.mkdirSync(path.dirname(OUT), { recursive: true });
     fs.writeFileSync(OUT, json);
@@ -236,7 +280,10 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const s = summary(data);
   console.log(`script.json: ${s.scenes} scenes, ${s.lines} lines (${s.recorded} met opname, ${s.textOnly} alleen tekst, waarvan ${s.silentApps} stille appjes)`);
   if (behoudenMissing.length) {
-    console.log(`[BEHOUDEN] zonder opname (nu alleen tekst): ${behoudenMissing.length}`);
-    for (const l of behoudenMissing) console.log('  ' + l);
+    console.log(`[BEHOUDEN] zonder opname (nu alleen tekst): ${behoudenMissing.length}, vrijgesteld in scripts/story_behouden_allow.json`);
+    for (const l of behoudenMissing) {
+      const why = (allow.allow.find((a) => a.scene === l.scene && a.text === l.text) || {}).why || '';
+      console.log(`  [${l.scene}] ${l.voice}: ${l.text}${why ? ' - ' + why : ''}`);
+    }
   }
 }
