@@ -12,7 +12,7 @@ naslag: de bron, de scripts, de opnames en de verslagen. Bij verschil wint de sp
 | 1. Canon: wie, wat, waarom, per akte | [nieuw/00-OVERZICHT.md](nieuw/00-OVERZICHT.md), [KALENDER.md](KALENDER.md), [nieuw/01-akte1.md](nieuw/01-akte1.md) … [nieuw/05-akte5.md](nieuw/05-akte5.md) | leidend; de spec vat de regels samen |
 | 2. Zijmissies, minigames en Deel 4 | [nieuw/06-zijmissies-en-minigames.md](nieuw/06-zijmissies-en-minigames.md), [nieuw/DEEL4.md](nieuw/DEEL4.md) | leidend |
 | 3. Script per akte (regels, sprekers, opnames) | [nieuw/09-script-akte1.md](nieuw/09-script-akte1.md) … [nieuw/09-script-akte6.md](nieuw/09-script-akte6.md) | leidend |
-| 4. Bouwen: TTS, opnames, dialect | [nieuw/07-TTS-RAMING.md](nieuw/07-TTS-RAMING.md), [DIALECT-NALEZING.md](DIALECT-NALEZING.md), [DIALECT-CONCEPT.md](DIALECT-CONCEPT.md) (gegenereerd), [OPNAMELIJST.md](OPNAMELIJST.md) (lokaal, niet in git) | cijfers komen uit de generator, niet uit proza |
+| 4. Bouwen: TTS, opnames, dialect (runbook #735) | [nieuw/07-TTS-RAMING.md](nieuw/07-TTS-RAMING.md), [OPNAMERONDE-735.md](OPNAMERONDE-735.md) (definitieve lijst en runbook), [DIALECT-NALEZING.md](DIALECT-NALEZING.md), [DIALECT-CONCEPT.md](DIALECT-CONCEPT.md) (gegenereerd), [OPNAMELIJST.md](OPNAMELIJST.md) (lokaal, niet in git) | cijfers komen uit de generator, niet uit proza |
 | 5. In het spel: scènes en acteurs | [nieuw/08-IMPLEMENTATIE.md](nieuw/08-IMPLEMENTATIE.md) (momentopname 17-10-2026; paden kunnen verouderd zijn), [STIJLGIDS.md](STIJLGIDS.md) | naslag; de code is de waarheid |
 | 6. Presentatie: trailer | [E-trailer.md](E-trailer.md) (leidend), [nieuw/TRAILER-SCRIPT.md](nieuw/TRAILER-SCRIPT.md) (concept voor #63) | concept, niet leidend |
 
