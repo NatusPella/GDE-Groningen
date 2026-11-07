@@ -195,9 +195,12 @@ function dienstActiviteit(cfg) {
     if (!board || !run) return;
     const d = run.d, stand = cfg.stand(d);
     const rows = dienstBordRij(stand, { klok: run.klok, ...(cfg.extra ? cfg.extra(v) : {}) });
-    if (cfg.rijen) rows.push(...cfg.rijen(run.d, v)); // de toren (#492): een vertrek- en een naderingsregel als bordrij
+    // #623: de toren krijgt een eigen vertrek- en naderingsblok, los van de cijferrijen.
+    const toren = cfg.rijen ? cfg.rijen(run.d, v) : [];
+    const naar = run.d.naarNaam ? `<span>Naar <b>${run.d.naarNaam}</b></span>` : '';
     board.set({
-      row: rows.map(([k, val]) => `<span>${k} <b>${val}</b></span>`).join(''),
+      row: naar + rows.map(([k, val]) => `<span>${k} <b>${val}</b></span>`).join(''),
+      extra: toren.length ? `<div style="display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font:13px 'Arial Narrow',Arial,sans-serif;margin:4px 0 2px">${toren.map(([k, val]) => `<b style="color:var(--mk-mission,#e8c93a);font-weight:normal">${k}</b><span>${val}</span>`).join('')}</div>` : undefined,
       cells: d.halten.map((h, i) => ({ t: `${i + 1}`, cls: i < d.i ? (d.gemist.some((g) => g.index === i) ? 'bad' : 'good') : i === d.i ? 'on' : '' })),
       meter: { v: stand.voortgang, text: `${Math.round(stand.voortgang * 100)}%` },
       flash: run.flash,
@@ -313,7 +316,7 @@ const VLUCHTDIENST = dienstActiviteit({
   startSub: 'Druk E om de vlucht te starten',
   geenPlek: 'Zoek eerst een veld met de Kist op',
   geenRoute: 'De route kon hier niet worden uitgezet',
-  help: `${key('W')}${key('S')} gas · ${key('A')}${key('D')} rollen · ${key('SPATIE')} neus omhoog · ${key('K')} kleppen · ${key('BACKSPACE')} stoppen`,
+  help: `${key('W')}${key('S')} gas · ${key('SPATIE')} neus · ${key('BACKSPACE')} stoppen`, // #623: drie toetsen
   kaartTitel: 'Vlucht tussen de velden',
   kaartBody: 'Stijg op, vlieg door de twee poorten (niet te snel, op hoogte) en land zacht op het tweede veld. De klok loopt; te hard vliegen kost veiligheid. [Backspace] stopt.',
   // Eén etappe per dienst, geen eindeloze route: de bestemming komt uit de velden die de wereld al

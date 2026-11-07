@@ -89,6 +89,10 @@
     "coopCutWacht": {
       "eigenaar": "game/js/coophold.js",
       "notitie": "De wachtstand van de gezamenlijke scène (#713); coophold schrijft hem."
+    },
+    "timeScale": {
+      "eigenaar": "game/js/main.js",
+      "notitie": "Wereldtijdschaal; een cutscene zet hem tijdelijk terug bij opruimen (#734)."
     }
   },
   "uitzonderingen": [
@@ -432,13 +436,6 @@
       "veld": "clock",
       "bestand": "game/js/startscreen.js",
       "max": 4,
-      "reden": "zet de klok of een dag/nacht-timer",
-      "issue": "#498"
-    },
-    {
-      "veld": "clock",
-      "bestand": "game/js/story.js",
-      "max": 2,
       "reden": "zet de klok of een dag/nacht-timer",
       "issue": "#498"
     },
@@ -1101,13 +1098,6 @@
       "issue": "#498"
     },
     {
-      "veld": "uiPaused",
-      "bestand": "game/js/todo.js",
-      "max": 1,
-      "reden": "houdt de simulatie tegen zolang een scherm openstaat",
-      "issue": "#498"
-    },
-    {
       "veld": "vehicles",
       "bestand": "game/js/cityprops.js",
       "max": 1,
@@ -1568,6 +1558,34 @@
       "max": 1,
       "reden": "de wachtstand van de gezamenlijke scène; alleen coophold schrijft hem",
       "issue": "#713"
+    },
+    {
+      "veld": "uiPaused",
+      "bestand": "game/js/cinematics.js",
+      "max": 2,
+      "reden": "pauzerende cutscene zet/heract de wereldpauze (#729); main.js blijft eigenaar",
+      "issue": "#729"
+    },
+    {
+      "veld": "timeScale",
+      "bestand": "game/js/cinematics.js",
+      "max": 1,
+      "reden": "clearCinematicUi zet de wereldtijdschaal terug na een scène (#734)",
+      "issue": "#734"
+    },
+    {
+      "veld": "clock",
+      "bestand": "game/js/story.js",
+      "max": 3,
+      "reden": "opening/finale zetten de klok of dagdeel-timers (#665, #744)",
+      "issue": "#665"
+    },
+    {
+      "veld": "uiPaused",
+      "bestand": "game/js/todo.js",
+      "max": 2,
+      "reden": "Te-doen-paneel pauzeert de wereld licht tijdens openen/sluiten (#676)",
+      "issue": "#676"
     }
   ]
 }

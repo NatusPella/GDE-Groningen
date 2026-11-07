@@ -61,6 +61,11 @@
 #heist-ui .hx-feel i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #1e9e56, #3fc97a); }
 #heist-ui .hx-side { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 12px; opacity: 0.7; margin-top: 5px; }
 
+/* #629: de sfeerband "Klusje van een uur" (maat, tint nacht) op panelen en bouwtekening, alleen tokens. */
+#heist-ui .hx-panel, #heist-ui .hx-plan { border-top: 3px solid var(--mk-job, #e8c93a); }
+#heist-ui .hx-panel::before, #heist-ui .hx-plan::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 7px; pointer-events: none;
+  background: repeating-linear-gradient(90deg, var(--gron-green-light, #3fc97a) 0 12px, rgba(240,237,228,0.28) 12px 16px); opacity: 0.45; }
+
 /* --- the blueprint (plan scene) ------------------------------------------------------- */
 #heist-ui .hx-plan {
   position: absolute; right: 3vw; top: 12.5vh; width: min(56vw, 880px, calc(114vh - 260px)); opacity: 0; transform: translateX(24px) rotate(0.6deg);
@@ -84,6 +89,9 @@
 #heist-ui .hx-card b { display: flex; align-items: center; gap: 8px; font-weight: normal; font-size: 22px; letter-spacing: 2px; color: var(--gron-green-light, #3fc97a); }
 #heist-ui .hx-card span { display: block; margin-top: 3px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 14px; letter-spacing: 0.2px; opacity: 0.85; }
 #heist-ui .hx-card em { display: block; margin-top: 4px; font-family: 'Arial Narrow', Arial, sans-serif; font-style: normal; font-size: 12px; opacity: 0.55; }
+#heist-ui .hx-pad { font-size: 11px; letter-spacing: 1px; opacity: 0.7; margin-left: 4px; }
+#heist-ui .hx-rolechip { position: fixed; left: 50%; transform: translateX(-50%); bottom: 104px; z-index: 60; display: flex; gap: 8px; align-items: center; max-width: min(560px, 86vw); padding: 8px 14px; border-radius: 10px; background: rgba(12,16,14,0.82); color: #f0ede4; font: 14px/1.35 'Arial Narrow', Arial, sans-serif; min-height: 44px; box-shadow: 0 2px 12px rgba(0,0,0,0.35); opacity: 0; transition: opacity 0.2s; pointer-events: none; }
+#heist-ui .hx-rolechip b { color: var(--mk-mission, #e8c93a); white-space: nowrap; }
 #heist-ui .hx-choice-note { display: none; margin-top: 6px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 12px; opacity: 0.6; text-align: center; }
 #heist-ui .hx-plan.choosing .hx-choice-note { display: block; }
 /* De rollen bij samen spelen (#438): één regel per speler onder de tekening */
@@ -116,6 +124,7 @@
   font-family: 'Arial Narrow', Arial, sans-serif; font-size: 14px; letter-spacing: 0.3px;
 }
 #heist-ui .hx-skipchip.on { opacity: 1; }
+@media (pointer: coarse) { #heist-ui .hx-skipchip { min-height: 44px; padding: 10px 14px; } }
 #heist-ui .hx-skipchip svg { width: 20px; height: 20px; transform: rotate(-90deg); }
 #heist-ui .hx-skipchip circle { fill: none; stroke-width: 3; }
 #heist-ui .hx-skipchip .bg { stroke: rgba(240, 237, 228, 0.2); }

@@ -58,6 +58,10 @@ ok(!/#5dff7a|#ff9a8a|#9aa3ad|rgba\(95,\s*180,\s*217/.test(kaartactie), 'kaartact
 
 // De golf-HUD (#597): de statuskleuren staan als token met terugval, dus de kleurenblindmodi doen mee.
 const golf = read('golfhud.js');
+// #624: de pvp-teams volgen de statuskleuren en hebben daarnaast een vorm.
+const pvpSrc = read('pvparena.js');
+ok(strayHexes('pvparena.js').length === 0, 'pvparena.js: geen losse hex naast de tokens');
+ok(/kleur: 'var\(--mk-user, #c068ff\)', vorm: 'driehoek'/.test(pvpSrc) && /kleur: 'var\(--mk-job, #ff9a3c\)', vorm: 'vierkant'/.test(pvpSrc), 'pvparena.js: teamkleuren via de tokens, met een vorm');
 const golfStray = strayHexes('golfhud.js');
 ok(golfStray.length === 0, 'golfhud.js: kleuren buiten de tokens: ' + (golfStray.join(', ') || 'geen'));
 ok(!/#ff9a3c|#ffd23f|#5dff7a/.test(golf.replace(/var\(--[a-z-]+,\s*#[0-9a-fA-F]{3,6}\)/g, 'var()')), 'golfhud.js: geen losse statushexen meer');
@@ -96,7 +100,7 @@ ok(/font-family: 'Arial Narrow', Arial, sans-serif; font-style: italic;/.test(he
 const heistUi = read('heistui.js');
 ok(/GOLD = \(\) => markerColors\(\)\.mission/.test(heistUi), 'heistui.js: het goud komt uit de mission-token');
 ok(!/Segoe Print|Bradley Hand|Comic Sans|system-ui/.test(heistUi), 'heistui.js: geen handgeschreven font of system-ui meer');
-ok(/min-height:44px/.test(heistUi), 'heistui.js: de rolchip is 44 px op touch');
+ok(/\.hx-rolechip \{[\s\S]*?min-height: 44px/.test(heistCss) && !/roleEl\.style\.cssText/.test(heistUi), 'heist.css: de rolchip is 44 px op touch');
 
 // De per-bord issues (#596/#614/#615/#617/#619/#620): de statuskleuren komen uit de tokens en de
 // borden dragen hun eigen vorm (boeiencellen, duikstreep, startlichten, balansmidden, klimvlag).
@@ -168,6 +172,8 @@ const HUD_DRIFT = {
   'treincabine.js': [],
   'heistui.js': ['#3fc97a', '#d93f3f', '#0f1c13'],
   'pigeonmode.js': [],
+  // #632: de cockpit-rand leent alleen tokens en chroom.
+  'cockpit.js': [],
   // #633: de gedeelde uitje-kaart leent alles van de sfeer- en thematabellen.
   'uitjepaneel.js': [],
   'kaartactieui.js': [],

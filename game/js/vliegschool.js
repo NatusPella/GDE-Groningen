@@ -8,6 +8,7 @@ import { standActivity } from './standactivity.js';
 import { hoofdspeler } from './players.js';
 import { createBoard, mgThema, key, stopPressed } from './minigamekit.js';
 import { gameUi } from './minigamekit.js';
+import { fitCard } from './hudtext.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, MEDALS } from './achievements.js';
 import { loopbaanVerdien, loopbaanTel } from './loopbaanlive.js';
 import { medailleBedrag } from './medalrules.js';
@@ -114,10 +115,11 @@ function bouwBalie(w) {
   grp.add(mast);
   // het bord heeft twee kanten, elk goed leesbaar
   const tekst = canvasTex(512, 192, (g) => {
-    g.fillStyle = '#17304a'; g.fillRect(0, 0, 512, 192);
-    g.strokeStyle = '#e7b83a'; g.lineWidth = 8; g.strokeRect(8, 8, 496, 176);
-    g.fillStyle = '#f4efe0'; g.font = 'bold 54px Arial'; g.textAlign = 'center';
-    g.fillText('VLIEGSCHOOL', 256, 84); g.fillStyle = '#e7b83a'; g.font = 'bold 44px Arial'; g.fillText('De Windwijzer', 256, 142);
+    // #622: één identiteit in UI en wereld: de schoolse cream/groene sfeer, geen blauw bordje.
+    g.fillStyle = '#0c140e'; g.fillRect(0, 0, 512, 192);
+    g.strokeStyle = '#d9d4be'; g.lineWidth = 8; g.strokeRect(8, 8, 496, 176);
+    g.fillStyle = '#f0ede4'; g.font = 'bold 54px Arial'; g.textAlign = 'center';
+    g.fillText('VLIEGSCHOOL', 256, 84); g.fillStyle = '#d9d4be'; g.font = 'bold 44px Arial'; g.fillText('De Windwijzer', 256, 142);
   });
   for (const kant of [1, -1]) {
     const bord = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 1.3), new THREE.MeshBasicMaterial({ map: tekst }));
@@ -408,7 +410,7 @@ function startLes(w, id) {
   const s = baliePlek(w); // de instructeur blijft bij de balie waar de les begon, niet op het platform
   w.companionHold = { x: s.x, y: s.y, face: 0 };
   menuSluit();
-  gameUi.showCard(w, { kind: 'tip', kicker: R.INSTRUCTEUR, title: les.titel, body: R.LIJNEN[id].uitleg, duration: 10, key: 'vliegschool-' + id, voice: false });
+  gameUi.showCard(w, { kind: 'tip', kicker: R.INSTRUCTEUR, title: les.titel, body: fitCard(R.LIJNEN[id].uitleg), duration: 10, key: 'vliegschool-' + id, voice: false }); // #622: hooguit veertien woorden
   return true;
 }
 
@@ -510,7 +512,9 @@ function tekenMenu() {
   const r = getChallengeRecord(recId(les.id));
   board.set({
     row: `<span><b>${les.titel}</b> · ${les.kort}</span>${r && r.best != null ? `<span>Beste <b>${Math.round(r.best)}</b> punten</span>` : ''}${m ? `<span>${R.MEDAL_NAMEN[m]}</span>` : ''}`,
-    cells: lessen.map((l, i) => ({ t: `${i + 1} ${korteNaam(l)} ${medaljeTekst(besteMedaille(l.id))}`.trim(), key: String(i + 1), cls: i === menu.cursor ? 'on' : besteMedaille(l.id) ? 'good' : '' })),
+    // #622: korte cellen (nummer + stempel) zodat tien lessen op 1280x720 leesbaar blijven; het rapport staat ernaast.
+    cells: lessen.map((l, i) => ({ t: `${i + 1} ${medaljeTekst(besteMedaille(l.id))}`.trim(), key: String(i + 1), cls: i === menu.cursor ? 'on' : besteMedaille(l.id) ? 'good' : '' })),
+    extra: '<span class="vs-groep">' + (menu.kist === 'vliegtuig' ? 'Vliegtuig · lessen 1-5' : 'Helikopter · lessen 6-10') + '</span><span class="vs-rapport">Rapport: ' + les.titel + ' · stempel: ' + (m ? ['', 'brons', 'zilver', 'goud'][m] : 'open') + '</span>',
     flash: game.melding || '',
     bad: !!game.melding,
     help: `${key('1')}-${key(String(Math.min(9, lessen.length)))} of ${key('A')}${key('D')} en ${key('ENTER')} kiezen · ${key('BACKSPACE')} terug`,
@@ -615,9 +619,10 @@ function tekenVlucht(w, dt) {
     const kant = Math.abs(dh) < 0.2 ? 'recht vooruit' : dh > 0 ? 'links' : 'rechts';
     rij.push(`<span>${d.label} <b>${dist} m · ${kant}</b></span>`);
   }
+  // #622: alleen de toetsen van deze les, geen acht keycaps.
   const hulp = les.kist === 'vliegtuig'
-    ? `${key('W')}${key('S')} gas · ${key('A')}${key('D')} rollen · ${key('SPATIE')} neus omhoog · ${key('CTRL')} neus omlaag · ${key('SHIFT')} remmen · ${key('K')} kleppen · ${key('G')} gestel · ${key('BACKSPACE')} stoppen`
-    : `${key('W')}${key('S')} vooruit en remmen · ${key('A')}${key('D')} draaien · ${key('SPATIE')} omhoog · ${key('CTRL')} omlaag · ${key('SHIFT')} sneller · ${key('BACKSPACE')} stoppen`;
+    ? `${key('W')}${key('S')} gas · ${key('A')}${key('D')} rollen · ${key('SPATIE')} neus omhoog · ${key('BACKSPACE')} stoppen`
+    : `${key('W')}${key('S')} gas · ${key('A')}${key('D')} draaien · ${key('SPATIE')} omhoog · ${key('BACKSPACE')} stoppen`;
   board.set({ row: rij.join(''), flash: g.flash ? g.flash.text : '', bad: !!(g.flash && g.flash.bad), help: hulp });
 }
 

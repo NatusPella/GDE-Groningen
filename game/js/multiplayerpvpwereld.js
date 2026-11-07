@@ -5,7 +5,7 @@
 // "wasted", geen boete) en is zes seconden beschermd. Dood door de wereld loopt nog via requestRespawn en blijft zoals het was.
 // Getest in scripts/cooppvp_test.mjs.
 import { PVP_TEKST, pvpMag, pvpSchade, geefBescherming, beschermd, isPassief, arenaToegestaan, pogingMelden, leesPvpSchade, leesPvpDood, pvpDoodEvent } from './cooppvp.js';
-import { maakArena, arenaMeld, arenaStart, arenaVerlaat, arenaStop, arenaTik, arenaTreffer, arenaNeer, arenaStand, arenaUitslag, arenaBeloning, arenaBeloningPerTeam, arenaSpawnVoor, arenaRegelVan, arenaRegel, arenaMelding, ARENA, ARENA_TEAMS, ARENA_ZONE_NAAM, ARENA_TEKST } from './pvparena.js'; // de PvP-minigame (#454)
+import { maakArena, arenaMeld, arenaStart, arenaVerlaat, arenaStop, arenaTik, arenaTreffer, arenaNeer, arenaStand, arenaUitslag, arenaBeloning, arenaBeloningPerTeam, arenaSpawnVoor, arenaRegelVan, arenaRegel, arenaMelding, ARENA, ARENA_TEAMS, ARENA_ZONE_NAAM, ARENA_TEKST, teamVorm } from './pvparena.js'; // de PvP-minigame (#454)
 import { gastLichamen, lichaamVan, invoerVan } from './coopbestuur.js';
 import { blokActief, blokkeer, nieuweBlok, schadeNaBlok } from './blockregels.js'; // blokkeren (#492)
 import { KNOP_ZICHT } from './coopspeler.js';
@@ -451,12 +451,12 @@ function toonBord(world, ar) {
   if (typeof document === 'undefined' || !document.body) return; // de pure tests hebben geen DOM (scripts/node3d.mjs)
   if (!arenaBord) arenaBord = createBoard('pvparena', ARENA_TEAMS[0].kleur); // titel, kleur en icoon uit het thema (#453)
   const s = arenaStand(ar), m = Math.floor(s.rest / 60), r = Math.floor(s.rest % 60);
-  const zones = s.zones.map((z) => `${ARENA_ZONE[z.id] || z.id}: ${z.eigenaar == null ? 'vrij' : ARENA_TEAMS[z.eigenaar].naam}`).join(' · ');
-  const eigen = s.rijen.map((d) => `${d.naam} ${d.punten}`).join(' · ');
+  // #624: geen volledige spelerslijst op het bord; zones als vormpjes met eigenaar, en de eigen teamnaam.
+  const zoneVorm = (z) => `<span style="color:${z.eigenaar == null ? 'var(--mut, rgba(240,237,228,0.5))' : ARENA_TEAMS[z.eigenaar].kleur}">${z.eigenaar == null ? '○' : teamVorm(z.eigenaar)} ${ARENA_ZONE[z.id] || z.id}</span>`;
   if (!arenaBordAan) { arenaBord.show(); arenaBordAan = true; }
   arenaBord.set({
-    row: `${ARENA_TEAMS[0].naam} <b>${s.score[0]}</b> · ${m}:${r < 10 ? '0' : ''}${r} · ${ARENA_TEAMS[1].naam} <b>${s.score[1]}</b>`,
-    extra: `${zones}<br>${eigen}`,
+    row: `<span>Jij: team ${ARENA_TEAMS[0].naam} ${teamVorm(0)}</span><span>${ARENA_TEAMS[0].naam} ${teamVorm(0)} <b>${s.score[0]}</b></span><span>${m}:${r < 10 ? '0' : ''}${r}</span><span>${ARENA_TEAMS[1].naam} ${teamVorm(1)} <b>${s.score[1]}</b></span>`,
+    extra: `<div style="display:flex;gap:12px;flex-wrap:wrap;font:13px 'Arial Narrow',Arial,sans-serif">${s.zones.map(zoneVorm).join('')}</div>`,
     flash: ar.fase === 'klaar' && world.pvpArenaUitslag ? world.pvpArenaUitslag.tekst : (world.pvpArenaFlash || ''),
     help: ar.fase === 'klaar' ? ARENA_TEKST.rematch : `Verover de zones met je team · treffer ${ARENA.puntenTreffer} punt, uitschakeling ${ARENA.puntenNeer}`,
   });
@@ -503,7 +503,7 @@ export function pvpArenaGastTik(world, dt) {
   if (g.klaar && nuVan(world) >= g.klaarTot) { world.pvpArenaGast = null; verbergGastBord(); return false; }
   if (typeof document === 'undefined' || !document.body) return true;
   if (!gastBord) gastBord = createBoard('pvparena', ARENA_TEAMS[0].kleur);
-  const team = g.team == null ? 'je kijkt mee' : `team ${ARENA_TEAMS[g.team].naam}`;
+  const team = g.team == null ? 'je kijkt mee' : `team ${ARENA_TEAMS[g.team].naam} ${teamVorm(g.team)}`;
   if (!gastBordAan) { gastBord.show(); gastBordAan = true; }
   gastBord.set({
     row: arenaRegelVan(g.score, g.rest),

@@ -981,6 +981,14 @@ export function updatePlanStage(dt, world, st, S, def) {
       UI.planChoosing(true, (k) => { S.picked = k; });
     }
     const inp = world.input;
+    // #629: Esc of B is de zichtbare terugweg: de kaarten gaan weg, de bouwtekening blijft staan.
+    if (inp.wasPressed('escape') || inp.wasPressed('b')) {
+      S.choosing = false;
+      UI.planChoosing(false);
+      UI.planFocus('island');
+      world.addMessage('Terug bij de bouwtekening. Druk A of S voor een aanpak.', 3);
+      return false;
+    }
     if (inp.wasPressed('a') || inp.wasPressed('arrowleft')) S.picked = 'sluip';
     if (inp.wasPressed('s') || inp.wasPressed('arrowright')) S.picked = 'vermomd';
     if (!S.picked) return false;
