@@ -72,4 +72,16 @@ t('de apparaatkeuze volgt dezelfde glyphs als de rest van het spel', () => {
   assert.ok(pm.includes('glyphHtml(t)'), 'de toetsen zijn tokens, geen losse letters');
 });
 
+t('de lange uitleg noemt een toets als token, niet als losse letter', () => {
+  const longSrc = pm.slice(pm.indexOf('const CONTROL_LONG = ['), pm.indexOf('const GROUP_ICONS = {'));
+  const lang = new Function(longSrc.replace('const CONTROL_LONG = ', 'return ') + ';')();
+  for (const [gid, rijen] of lang) {
+    for (const [desc, tekst] of rijen) {
+      assert.ok(!/\bShift\b|\bCtrl\b|W A S D|Alt\+Enter\b/.test(tekst), `${gid}/${desc} noemt geen toets als tekst: ${tekst}`);
+    }
+  }
+  assert.match(pm, /const keyText = \(t\) => esc\(t\)\.replace\(\/\\\{\(\[A-Z0-9\]\+\)\\\}\//, 'de tokens worden door glyphHtml gezet');
+  assert.ok(pm.includes('${keyText(longTextFor(id, desc))}'), 'Hulp gebruikt de tokenregel');
+});
+
 console.log(`OK besturing_overzicht_test: ${n} controles`);

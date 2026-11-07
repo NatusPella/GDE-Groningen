@@ -91,7 +91,7 @@ ok(!isPhoneOpen(), 'een dicht pauzemenu is nooit een open telefoon');
 const ps = src('pausestate.js');
 ok(/tabName === 'verhaal'/.test(ps) && !/tabName === 'telefoon'/.test(ps), 'pausestate.js kent alleen de tab die bestaat');
 const pf = src('phonefeed.js');
-ok(/export function takeNoticeThread\(now\)/.test(pf) && /noticeThread\(now\)/.test(pf), 'phonefeed.js geeft het gesprek van de melding door (en verbruikt het één keer)');
+ok(/export function takeNoticeThread\(now/.test(pf) && /noticeThread\(now\)/.test(pf), 'phonefeed.js geeft het gesprek van de melding door (en verbruikt het één keer)');
 const pm = src('pausemenu.js');
 ok(/takeNoticeThread/.test(pm) && /openPauseMenu\('telefoon', \{ thread \}\)/.test(pm), 'pausemenu.js opent de telefoon op dat gesprek (Esc)');
 ok(/if \(opts\.thread\)/.test(pm) && /selectVerhaalCharacter\(characterForSender\(opts\.thread\)\)/.test(pm), 'pausemenu.js opent het personage van de melding (Esc)');

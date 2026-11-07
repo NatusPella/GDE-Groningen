@@ -184,6 +184,22 @@ function loadPics(el) {
   }
 }
 
+// #603: na het lezen van een bericht verdwijnt het uit de inbox (en telt de rail meteen mee).
+function refreshInbox(panel, id) {
+  const box = panel && panel.querySelector('.vh-inbox');
+  if (!box) return;
+  let gone = false;
+  for (const b of box.querySelectorAll('.vh-inbox-item')) if (b.dataset.char === id) { b.remove(); gone = true; }
+  if (!gone) return;
+  const items = worldRef ? unreadInbox(worldRef) : [];
+  const info = box.querySelector('.m-gh span:last-child');
+  if (info) info.textContent = items.length ? `${items.length} ongelezen · nieuwste eerst` : 'niets ongelezen';
+  const more = box.querySelector('.vh-inbox-more');
+  if (more) more.remove();
+  if (!items.length) { const list = box.querySelector('.vh-inbox-list'); if (list) list.remove(); }
+  document.dispatchEvent(new Event('nieuwgezien'));
+}
+
 function selectCharacter(panel, id) {
   const c = CHARACTER_BY_ID.get(id);
   const box = panel.querySelector('.vh-viewer');
@@ -194,13 +210,14 @@ function selectCharacter(panel, id) {
   if (id === OVERIG) {
     box.innerHTML = '<div><span class="vh-kicker">Berichten en contacten</span><h3>Overig</h3></div><p class="vh-bio">Nieuws, meldingen en contacten die geen personage zijn.</p><div class="vh-phone" data-vh-phone></div>';
     renderCharacterPhone(box.querySelector('[data-vh-phone]'), worldRef, OVERIG);
+    refreshInbox(panel, id);
     return;
   }
   box.innerHTML = viewerHtml(c);
-  if (hasMet(id)) renderCharacterPhone(box.querySelector('[data-vh-phone]'), worldRef, id);
+  const met = hasMet(id);
+  if (met) { renderCharacterPhone(box.querySelector('[data-vh-phone]'), worldRef, id); refreshInbox(panel, id); }
   const canvas = box.querySelector('canvas');
   if (!canvas) return;
-  const met = hasMet(id);
   viewer = createSharedPreview(canvas, { interactive: met, active: () => canvas.isConnected && canvas.offsetParent !== null, angle: PORTRAIT_ANGLE });
   viewer.show({ kind: 'person', look: lookOf(c) });
 }
