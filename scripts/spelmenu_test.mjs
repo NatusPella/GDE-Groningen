@@ -54,7 +54,7 @@ const subIds = [...sub.matchAll(/\['(\w+)', '([^']+)'\]/g)].map((x) => x[1]);
 ok(subIds.join() === 'overzicht,samen,acties,spelen,camera,hints', 'Spel heeft de tabbladen Overzicht, Samen spelen, Opslaan & stoppen, Spelen, Camera & richten en Hints & uitleg', subIds.join());
 ok(subIds.every((id) => ['overzicht', 'samen'].includes(id) || spelSrc.includes(`tab('${id}'`)) && spelSrc.includes('data-sub="overzicht" class="pm-ov pm-spelov"'),'elk tabblad heeft zijn inhoud (Overzicht tekent zich in Spel)');
 ok(/\['spel', 'Spel', '/.test(pm), "'spel' staat in de sectielijst");
-ok(pm.includes("RAIL_GROUPS = [['spel', 'verhaal', 'loopbaan', 'todo'], ['map', 'spullen', 'garage', 'prestaties', 'fotos'], ['settings', 'streken']];"), 'de rail: Spel, Verhaal, Loopbanen, Activiteiten | Kaart, Spullen, Garage, Prestaties, Foto’s | Instellingen en Cheats (#430, #435, #601)');
+ok(pm.includes("RAIL_GROUPS = [['spel', 'verhaal', 'loopbaan', 'veroverd', 'todo'], ['map', 'spullen', 'garage', 'prestaties', 'fotos'], ['settings', 'streken']];"), 'de rail: Spel, Verhaal, Loopbanen, Veroverd, Activiteiten | Kaart, Spullen, Garage, Prestaties, Foto’s | Instellingen en Cheats (#430, #435, #601, #676)');
 ok(/PRESTART_SECTIONS = \['spel', 'settings', 'controls'\]/.test(pm), 'ook in het hoofdmenu (voor de start) zijn de speelopties bereikbaar');
 ok(/^\s*spel: \[\[\['↑', '↓'\], 'kiezen'\]/m.test(pm), 'Spel heeft zijn voetregel');
 ok(/^\s*spel: '<rect/m.test(pm), 'Spel heeft een icoon in dezelfde lijnstijl');
@@ -106,7 +106,7 @@ ok(lb.includes('bezighedenAantal(info.id)') && /const bezighedenAantal = \(id\) 
   ok(LB.BAAN_IDS.every((b) => LB.banenVan(LB.vakVanBaan(b)).includes(b)), 'elke bezigheid is via zijn loopbaan te vinden');
   ok(lb.includes('Bezigheden'), 'de bezigheden hebben een eigen kop in het loopbaanpaneel');
 }
-ok(pm.includes("['veroverd', 'Veroverd']") && pm.includes('renderVeroverdPanel(panel'), 'Veroverd is een tabblad onder Verhaal (#435)');
+ok(/Veroverd staat in de rail/.test(read('game/js/todoui.js')) && pm.includes("['veroverd', 'Veroverd',") && /data-panel="veroverd"/.test(pm) && /if \(name === 'veroverd'\) renderVeroverdPanel/.test(pm), 'Veroverd is een eigen railrij met een eigen paneel (#676)');
 // Besturing: alles bij elkaar in Instellingen
 const bes = settingsSrc.slice(settingsSrc.indexOf("tab('besturing'"), settingsSrc.indexOf("tab('display'"));
 for (const k of ['mouseSensitivity', 'invertY', 'padLayout', 'padLookSensitivity', 'rumble', 'touchControls']) ok(keysOf(bes).includes(k), 'Besturing heeft ' + k);
@@ -131,15 +131,15 @@ ok(/data-goto-sub="settings:besturing"/.test(pm.slice(pm.indexOf('function subta
 // Te doen: losse activiteiten; Verhaal: de opdrachten
 // Te doen: losse activiteiten in één lijst, met Dichtbij als filter (#607, was een eigen weergave)
 ok(/data-todo-near/.test(read('game/js/todoui.js')) && /setTodoFilter/.test(pm) && !/data-sub="dichtbij"/.test(pm) && !/data-todo-sort/.test(pm), 'Activiteiten heeft één lijst met een Dichtbij-filter in plaats van twee weergaven');
-ok(pm.includes("verhaal: [['opdrachten', 'Opdrachten'], ['personages', 'Personages'], ['aanwijzingen', 'Aanwijzingen'], ['veroverd', 'Veroverd']]"),'Verhaal heeft Opdrachten, Personages, en Aanwijzingen (geen aparte Berichten)');
+ok(pm.includes("verhaal: [['opdrachten', 'Opdrachten'], ['personages', 'Personages'], ['aanwijzingen', 'Aanwijzingen']]"),'Verhaal heeft Opdrachten, Personages en Aanwijzingen; Veroverd staat sinds #676 in de rail');
 ok(/data-of="verhaal" data-sub="opdrachten" data-keep/.test(pm) && /renderTodoStory\(/.test(pm) && /export function renderTodoStory/.test(read('game/js/todoui.js')), 'de verhaalopdrachten staan onder Verhaal, met dezelfde lijst en details');
 ok(/data-todo-view="verhaal"/.test(read('game/js/todoui.js')) && /view === 'verhaal'\) \{ pref\.sub\.verhaal = 'opdrachten'/.test(pm), 'Alle opdrachten in Overzicht leidt naar Verhaal > Opdrachten');
 // elke actie bereikbaar, geen dubbele data-actions of panelen
 const panels = [...pm.matchAll(/data-panel="(\w+)" class/g)].map((x) => x[1]);
-ok(new Set(panels).size === panels.length && panels.length === 15, 'elk paneel staat één keer in het blad', String(panels.length));
+ok(new Set(panels).size === panels.length && panels.length === 16, 'elk paneel staat één keer in het blad', String(panels.length));
 // --- #430 definitief: Spel (met Overzicht), Verhaal (met de telefoon), Loopbanen, Activiteiten, Samen spelen (met Spelers), Instellingen (met Cheats)
 const secties = new Function('return ' + pm.slice(pm.indexOf('const SECTIONS = [') + 'const SECTIONS = '.length, pm.indexOf('];', pm.indexOf('const SECTIONS = [')) + 1))();
-ok(secties.map((x) => x[0]).slice(0, 10).join() === 'spel,verhaal,loopbaan,todo,map,spullen,garage,prestaties,fotos,settings', 'de secties staan in de volgorde van de eigenaar', secties.map((x) => x[0]).join());
+ok(secties.map((x) => x[0]).slice(0, 11).join() === 'spel,verhaal,loopbaan,veroverd,todo,map,spullen,garage,prestaties,fotos,settings', 'de secties staan in de volgorde van de eigenaar', secties.map((x) => x[0]).join());
 ok(!panels.includes('overzicht') && !panels.includes('telefoon'), 'Overzicht en Telefoon zijn geen eigen paneel meer');
 for (const [id, titel, zin] of secties) ok(zin.split(/\s+/).length <= 8 && zin.length > 3, `onder ${titel} staat één korte zin (max 8 woorden)`, zin);
 ok(secties.find((x) => x[0] === 'loopbaan')[1] === 'Loopbanen' && secties.find((x) => x[0] === 'todo')[1] === 'Activiteiten', 'Loopbaan heet Loopbanen en Te doen heet Activiteiten');

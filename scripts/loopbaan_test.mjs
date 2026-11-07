@@ -388,8 +388,8 @@ t('elke loopbaan heeft een weg naar de volgende klus (#435)', () => {
   assert.match(td, /const goal = t\.closest\('\[data-todo-goal\]'\)/, 'en die kent data-todo-goal');
   // Veroverd hoort bij Verhaal, niet bij Loopbaan
   assert.match(pm, /verhaal: \[\['opdrachten', 'Opdrachten'\], \['personages', 'Personages'\], \['aanwijzingen', 'Aanwijzingen'\]/, 'Verhaal heeft zijn eigen tabbladen');
-  assert.match(pm, /data-sub="veroverd"/, 'Veroverd is een tabblad onder Verhaal');
-  assert.ok(!/data-sub="veroverd"[^\n]*loopbaan/.test(pm), 'Veroverd staat niet onder Loopbaan');
+  assert.match(pm, /\['veroverd', 'Veroverd', /, 'Veroverd is een eigen railrij (#676)');
+  assert.ok(!/data-sub="veroverd"/.test(pm) && !/'loopbaan'[^\n]*'Veroverd'/.test(pm), 'Veroverd staat niet onder Loopbaan');
 });
 
 // (#671) de eerstvolgende stap in gewone taal: hoeveel punten nog, hoeveel nieuwe plekken of rondes dat is,

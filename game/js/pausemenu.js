@@ -364,6 +364,7 @@ const ICONS = {
   news: '<path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h8M8 17h5"/>',
   about: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h0"/>',
   spelers: '<circle cx="12" cy="7.5" r="3"/><circle cx="5.5" cy="10.5" r="2.1"/><circle cx="18.5" cy="10.5" r="2.1"/><path d="M6.5 20c0-3.4 2.4-5.6 5.5-5.6s5.5 2.2 5.5 5.6"/>',
+  veroverd: '<path d="M7 21V4M7 5l10 3.5L7 12"/>',
   samen: '<circle cx="9" cy="8.5" r="3"/><circle cx="17" cy="9.5" r="2.4"/><path d="M3 20c0-3.6 2.6-5.8 6-5.8s6 2.2 6 5.8M16 14.5c2.6.1 5 1.7 5 5"/>',
 };
 // An icon of the pause menu's set for the main menu's items, or '' for an unknown name.
@@ -377,6 +378,7 @@ const SECTIONS = [
   ['spel', 'Spel', 'Opslaan, stoppen, samen spelen en waar je bent'],
   ['verhaal', 'Verhaal', 'Opdrachten, personages, aanwijzingen en berichten'],
   ['loopbaan', 'Loopbanen', 'Je vakken, bijbanen, vissen en boerderij'],
+  ['veroverd', 'Veroverd', 'Je gebieden, de eerstvolgende taken en wat meetelt'],
   ['todo', 'Activiteiten', 'Klussen, minigames en evenementen in de buurt'],
   ['map', 'Kaart', 'Kies een doel of zoek een plek'],
   ['spullen', 'Spullen', 'Alles wat je hebt'],
@@ -395,13 +397,13 @@ const SECTIONS = [
 // (a row in that sheet) instead of being a twelfth rail row: the rail keeps its
 // fixed, scanable shape on 1280x720 and 1920x1080 (#601).
 // Cheats staat sinds #435 naast Instellingen in de rail: het was te verstopt onder Instellingen > Cheats.
-const RAIL_GROUPS = [['spel', 'verhaal', 'loopbaan', 'todo'], ['map', 'spullen', 'garage', 'prestaties', 'fotos'], ['settings', 'streken']];
+const RAIL_GROUPS = [['spel', 'verhaal', 'loopbaan', 'veroverd', 'todo'], ['map', 'spullen', 'garage', 'prestaties', 'fotos'], ['settings', 'streken']];
 // Onderdelen zonder eigen plek in de rail die onder een ander onderdeel hangen (#430): Vissen en Farmen horen bij Loopbaan
 // (de tegels Bezigheden), de toetsen en knoppen bij Instellingen > Besturing. De rail markeert de ouder; Terug gaat naar de ouder.
 const CHILD = { visboek: 'loopbaan', boerderij: 'loopbaan', controls: 'settings' };
 const PRESTART_SECTIONS = ['spel', 'settings', 'controls'];
 const SUBTABS = {
-  verhaal: [['opdrachten', 'Opdrachten'], ['personages', 'Personages'], ['aanwijzingen', 'Aanwijzingen'], ['veroverd', 'Veroverd']],
+  verhaal: [['opdrachten', 'Opdrachten'], ['personages', 'Personages'], ['aanwijzingen', 'Aanwijzingen']],
   spel: [['overzicht', 'Overzicht'], ['samen', 'Samen spelen'], ['acties', 'Opslaan & stoppen'], ['spelen', 'Spelen'], ['camera', 'Camera & richten'], ['hints', 'Hints & uitleg']],
   // Samen spelen heeft twee eigen tabbladen (#434): uitnodigen en de spelerslijst. De lijst is geen
   // los tabblad van Spel en geen rijknop in de rail; hij hoort bij Samen spelen, en sinds #530 staat
@@ -763,10 +765,11 @@ export function initPauseMenu(w) {
             <div class="m-main"><div class="m-list td-list"></div><aside class="m-pane td-detail" aria-label="Details"></aside></div></div></section>
           <section data-panel="garage" class="pm-panel pm-col" hidden><div class="pm-inner pm-garage"></div></section>
           <section data-panel="verhaal" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-verhaal">${subtabsHtml('verhaal', 'Verhaal')}
-            <div class="m-main pm-vbody"><div data-of="verhaal" data-sub="opdrachten" data-keep class="pm-vsub pm-vopd"><div class="m-main"><div class="m-list td-list"></div><aside class="m-pane td-detail" aria-label="Details"></aside></div></div><div data-of="verhaal" data-sub="personages" class="pm-vsub" hidden></div><div data-of="verhaal" data-sub="aanwijzingen" class="pm-vsub" hidden></div><div data-of="verhaal" data-sub="veroverd" class="pm-vsub pm-veroverd" hidden></div></div>
+            <div class="m-main pm-vbody"><div data-of="verhaal" data-sub="opdrachten" data-keep class="pm-vsub pm-vopd"><div class="m-main"><div class="m-list td-list"></div><aside class="m-pane td-detail" aria-label="Details"></aside></div></div><div data-of="verhaal" data-sub="personages" class="pm-vsub" hidden></div><div data-of="verhaal" data-sub="aanwijzingen" class="pm-vsub" hidden></div></div>
           </div></section>
           <section data-panel="prestaties" class="pm-panel pm-col" hidden><div class="pm-inner pm-ach"></div></section>
           <section data-panel="loopbaan" class="pm-panel pm-col" hidden><div class="pm-inner pm-ach pm-loopbaan"></div></section>
+          <section data-panel="veroverd" class="pm-panel pm-col" hidden><div class="pm-inner pm-ach pm-veroverd"></div></section>
           <section data-panel="visboek" class="pm-panel pm-col" hidden><div class="pm-inner pm-ach pm-loopbaan pm-visboek"></div></section>
           <section data-panel="boerderij" class="pm-panel pm-col" hidden><div class="pm-inner pm-ach pm-boerderij"></div></section>
           <section data-panel="fotos" class="pm-panel pm-col" hidden><div class="pm-inner pm-fotos"></div></section>
@@ -1956,16 +1959,12 @@ function afterSpelSub() {
 function renderVerhaalPanel() {
   const panel = root.querySelector('[data-panel="verhaal"]');
   try {
-    const view = pref.sub.verhaal || 'opdrachten';
+    const view = pref.sub.verhaal === 'veroverd' ? 'opdrachten' : (pref.sub.verhaal || 'opdrachten');
     if (view === 'opdrachten') {
       // de lijst met opdrachten is van Te doen (todoui.js); het 3D-model van Personages gaat weg
       disposeVerhaalViewer();
       for (const sub of panel.querySelectorAll('[data-of="verhaal"][data-sub]:not([data-keep])')) sub.innerHTML = '';
       renderTodoStory(panel.querySelector('[data-sub="opdrachten"]'), world);
-    } else if (view === 'veroverd') {
-      disposeVerhaalViewer();
-      for (const sub of panel.querySelectorAll('[data-of="verhaal"][data-sub]:not([data-keep]):not([data-sub="veroverd"])')) sub.innerHTML = '';
-      renderVeroverdPanel(panel.querySelector('[data-sub="veroverd"]'), closePauseMenu);
     } else renderVerhaal(panel, view, world);
     if (tab === 'verhaal') sheetNote(view === 'opdrachten' ? todoSummary(world).sub : verhaalSummary());
   } catch (err) { console.error('verhaal', err); }
@@ -2047,6 +2046,8 @@ function showTab(name, how) {
   if (name === 'telefoon') { pref.sub.verhaal = 'personages'; name = 'verhaal'; }
   if (name === 'missions') name = 'todo';
   if (name === 'cheats') name = 'streken';
+  // #676: Veroverd is een eigen railrij; de oude plek (Verhaal > Veroverd) verwijst door.
+  if (name === 'verhaal' && pref.sub.verhaal === 'veroverd') { pref.sub.verhaal = 'opdrachten'; name = 'veroverd'; }
   if (name === 'samen' || name === 'samenspelen' || name === 'spelers') { pref.sub.spel = 'samen'; pref.sub.samen = name === 'spelers' && world && world.coopNet && !isSoloHost(world) ? 'spelers' : 'samen'; name = 'spel'; }
   if (name === 'jobs') name = 'todo';
   if (!ids.includes(name)) name = prestart ? 'settings' : HOME;
@@ -2100,6 +2101,7 @@ function showTab(name, how) {
   if (name === 'fotos') renderFotoPanel(root.querySelector('[data-panel="fotos"] .pm-inner'));
   if (name === 'prestaties') { renderAchievementsPanel(root.querySelector('[data-panel="prestaties"] .pm-inner')); syncSheetSub(); }
   if (name === 'loopbaan') renderLoopbaanPanel(root.querySelector('[data-panel="loopbaan"] .pm-inner'), closePauseMenu, world);
+  if (name === 'veroverd') renderVeroverdPanel(root.querySelector('[data-panel="veroverd"] .pm-inner'), closePauseMenu);
   if (name === 'visboek') renderVisboekPanel(root.querySelector('[data-panel="visboek"] .pm-inner'));
   if (name === 'boerderij') renderBoerderijPanel(root.querySelector('[data-panel="boerderij"] .pm-inner'), world);
   if (name === 'controls') { const q = root.querySelector('[data-controls-search]'); q.value = ''; filterControls(''); showSubtab('controls', pref.sub.controls || 'toetsen'); bindMsg = ''; renderBinds(); }
@@ -2174,6 +2176,7 @@ function setOpen(value, name = HOME, how = 'direct') {
     if (p && p.onClose) p.onClose();
   }
 }
+
 
 
 

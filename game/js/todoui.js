@@ -384,7 +384,7 @@ export function todoSummary(world) {
   const toEnd = end && !end.done ? ` · nog ${end.count} tot het einde` : '';
   return {
     verhaal: '', opdrachten: '', alles: String(items.filter(isActiviteit).length),
-    subTodo: `${items.filter(isActiviteit).length} dingen te doen · ${items.filter((it) => isActiviteit(it) && it.dist != null && it.dist < 600).length} dichtbij`,
+    subTodo: `${items.filter(isActiviteit).length} dingen te doen · ${items.filter((it) => isActiviteit(it) && it.dist != null && it.dist < 600).length} dichtbij · Veroverd staat in de rail`,
     sub: `${sDone} van ${steps.length} verhaalstappen · ${ms.filter((it) => it.status === 'klaar').length} van ${ms.length} missies · ${jr.total - jr.found.length} aanwijzingen te vinden${toEnd}`,
   };
 }
