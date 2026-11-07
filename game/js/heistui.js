@@ -14,6 +14,7 @@ let flashEl = null;
 let skipEl = null;
 
 const key = (k) => `<span class="hud-key">${k}</span>`;
+const pad = () => '<span class="hx-pad" aria-hidden="true">&#9679;&#9711;</span>'; // pad-glyph naast de toets (#629)
 const SKIP_ROW = `<div class="hx-skip">Lukt het niet? Houd ${key('O')} ingedrukt om dit stuk over te slaan</div>`;
 
 function ensureRoot() {
@@ -157,10 +158,10 @@ export function showPlan(data) {
     <canvas width="${CW}" height="${CH}"></canvas>
     ${samen.length ? `<div class="hx-samen" role="note"><b>Samen:</b>${samen.map((s) => `<span>${esc(s)}</span>`).join('')}</div>` : ''}
     <div class="hx-choice">
-      <button type="button" class="hx-card" data-pick="sluip"><b>${key('A')} Achterdeur</b><span>Sluipen: slotje openpeuteren, langs de bewaker in zaal 1.</span><em>Spannend en stil.</em></button>
-      <button type="button" class="hx-card" data-pick="vermomd"><b>${key('S')} Schoonmakers</b><span>Vermomd in een overall: pasje rollen, gewoon door de glazen deur.</span><em>De bewakers zien je pas van dichtbij.</em></button>
+      <button type="button" class="hx-card" data-pick="sluip"><b>${key('A')}${pad()} Achterdeur</b><span>Sluipen: slotje openpeuteren, langs de bewaker in zaal 1.</span><em>Spannend en stil.</em></button>
+      <button type="button" class="hx-card" data-pick="vermomd"><b>${key('S')}${pad()} Schoonmakers</b><span>Vermomd in een overall: pasje rollen, gewoon door de glazen deur.</span><em>De bewakers zien je pas van dichtbij.</em></button>
     </div>
-    <div class="hx-choice-note">Kies met A of S (of klik). Allebei eindigen ze in zaal 3.</div>`;
+    <div class="hx-choice-note">Kies met A of S (of klik) &middot; Esc of B: terug naar de tekening. Allebei eindigen ze in zaal 3.</div>`;
   root.appendChild(el);
   const cv = el.querySelector('canvas');
   plan = { el, cv, g: cv.getContext('2d'), data, focus: 'island', since: performance.now(), raf: 0, sel: null, onPick: null, seen: new Set(['island']) };
@@ -212,7 +213,7 @@ function drawPlan() {
   const pulse = 0.5 + 0.5 * Math.sin(now * 5);
   g.clearRect(0, 0, CW, CH);
   // paper and grid
-  g.fillStyle = '#0f1c13';
+  g.fillStyle = '#0c140e'; // chroom, geen eigen canvasdonker (#629)
   g.fillRect(0, 0, CW, CH);
   g.strokeStyle = 'rgba(63, 201, 122, 0.07)';
   g.lineWidth = 1;
@@ -347,8 +348,9 @@ export function roleChip(text) {
     roleEl = document.createElement('div');
     roleEl.className = 'hx-rolechip';
     // eigen vorm, zodat er geen stylesheet bij hoeft (heist.css blijft zoals hij is)
-    roleEl.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);bottom:104px;z-index:60;display:flex;gap:8px;align-items:center;max-width:min(560px,86vw);padding:8px 14px;border-radius:10px;background:rgba(12,16,14,.82);color:#f0ede4;font:14px/1.35 "Arial Narrow", Arial, sans-serif;min-height:44px;box-shadow:0 2px 12px rgba(0,0,0,.35);opacity:0;transition:opacity .2s;pointer-events:none;';
-    roleEl.innerHTML = '<b style="color:var(--mk-mission, #e8c93a);white-space:nowrap">Jouw rol</b><span data-r></span>';
+    // #629: de vorm staat in heist.css (44 px op touch), niet meer inline.
+    roleEl.style.opacity = '0';
+    roleEl.innerHTML = '<b>Jouw rol</b><span data-r></span>';
     root.appendChild(roleEl);
   }
   const s = roleEl.querySelector('[data-r]');
@@ -375,7 +377,7 @@ export function skipChip(show, hold = 0) {
   if (!skipEl) {
     skipEl = document.createElement('div');
     skipEl.className = 'hx-skipchip';
-    skipEl.innerHTML = `<svg viewBox="0 0 20 20"><circle class="bg" cx="10" cy="10" r="8"/><circle class="fg" cx="10" cy="10" r="8"/></svg>${key('O')}<span>ingedrukt houden: sla dit stuk over · halve beloning</span>`;
+    skipEl.innerHTML = `<svg viewBox="0 0 20 20"><circle class="bg" cx="10" cy="10" r="8"/><circle class="fg" cx="10" cy="10" r="8"/></svg>${key('O')}${pad()}<span>ingedrukt houden: sla dit stuk over · halve beloning</span>`;
     root.appendChild(skipEl);
   }
   skipEl.classList.toggle('on', !!show && !panel);

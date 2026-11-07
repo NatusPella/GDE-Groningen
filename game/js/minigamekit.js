@@ -216,7 +216,7 @@ export const MG_THEMA = {
   carillon: { titel: 'CARILLON MARTINITOREN', accent: '#c9a227', icoon: 'beurt' },
   // het luchtruim: de school en de rondvlucht kijken van boven (het oog)
   vliegschool: { titel: 'VLIEGSCHOOL DE WINDWIJZER', accent: '#d9d4be', icoon: 'oog' },
-  vluchtdienst: { titel: 'VLUCHT', accent: '#8fb04a', icoon: 'oog' },
+  vluchtdienst: { titel: 'VLUCHT', accent: '#8fb04a', icoon: 'vlag' }, // #623: eigen vaan, niet het oog van de vliegschool
   // de ring: een rondje stad tegen de klok, de richting-pijl in het groen van de startlampen (#618)
   ringrace: { titel: 'RINGRACE', accent: '#1e9e56', icoon: 'beurt' },
   // padel (#599): geen eigen blauw meer; het accent komt uit de bestaande a11y-paletten, het icoon is de bal

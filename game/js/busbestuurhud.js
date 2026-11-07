@@ -5,6 +5,7 @@ import { hoofdspeler } from './players.js';
 
 import { ensureDoors, wantDoor, doorsFor } from './vehicledoors.js';
 import { busCardState } from './busboard3d.js';
+import { mountCockpitCss } from './cockpit.js';
 import { roundDist } from './busboard.js';
 import {
   makeBediening, toggleDeuren, toggleKneel, stepBediening, haltePrognose, vertragingTekst, waardering, tevredenWoord,
@@ -18,15 +19,16 @@ function getRow() {
   if (typeof document === 'undefined') return null;
   const card = document.querySelector('#hud .hud-busnext');
   if (!card) return null;
+  mountCockpitCss();
   if (!document.getElementById('busbed-style')) {
     const st = document.createElement('style');
     st.id = 'busbed-style';
     st.textContent = `#hud .hud-busbed{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:2px 12px;max-width:100%;margin-top:6px;font-size:13px;color:rgba(240,237,228,.85)}
 #hud .hud-busbed>span{white-space:nowrap}
-#hud .hud-busbed kbd{font:inherit;font-weight:bold;padding:0 6px;margin-right:5px;border-radius:3px;background:rgba(240,237,228,.85);color:#14201a;text-shadow:none}
+#hud .hud-busbed .hud-key{margin-right:5px}
 #hud .hud-busbed .bb-stop{padding:0 8px;border-radius:3px;background:rgba(80,24,18,.9);color:rgba(240,237,228,.45);letter-spacing:2px;font-weight:bold}
-#hud .hud-busbed .bb-stop.on{background:#d93a2b;color:#fff}
-#hud .hud-busbed .on:not(.bb-stop){color:#ffb21a}
+#hud .hud-busbed .bb-stop.on{background:var(--mk-danger, #d93f3f);color:#fff}
+#hud .hud-busbed .on:not(.bb-stop){color:var(--mk-mission, #e8c93a)}
 #hud .hud-busbed .bb-tev{display:none;color:#f0ede4}`;
     document.head.appendChild(st);
   }
@@ -35,7 +37,7 @@ function getRow() {
   // #502: "Knielt" alleen zegt niet wat de knop doet. De uitleg staat in de hint van de bus (hintkit.js) en als
   // titel op de knop, zodat wie er met de muis op staat het ook leest; een extra regel in het kaartje kan niet,
   // want dan raakt het de doelregel erboven (busboard3d.js, 120 px).
-  el.innerHTML = '<span class="bb-eta"></span><span class="bb-stop">STOP</span><span class="bb-deur"><kbd>O</kbd><i>Deuren open</i></span><span class="bb-kneel" title="Laat de bus zakken bij de halte"><kbd>K</kbd><i>Knielt</i></span><span class="bb-tev"></span>';
+  el.innerHTML = '<span class="bb-eta"></span><span class="bb-stop">STOP</span><span class="bb-deur"><span class="hud-key">O</span><i>Deuren open</i></span><span class="bb-kneel" title="Laat de bus zakken bij de halte"><span class="hud-key">K</span><i>Knielt</i></span><span class="bb-tev"></span>';
   card.appendChild(el);
   row = { el, eta: el.querySelector('.bb-eta'), stop: el.querySelector('.bb-stop'), deur: el.querySelector('.bb-deur'), kneel: el.querySelector('.bb-kneel'), tev: el.querySelector('.bb-tev') };
   return row;

@@ -237,11 +237,11 @@ export function updateMachinist(dt, world, t, cab) {
   }
   board.show();
   board.set({
-    row: `<b>${v.name}</b> &middot; remweg ${v.brakeM} m`,
+    row: `<b>Dienst ${svc.i + 1}/${svc.plan.length}</b>`, // #625: de dienst, niet het volgende station (dat staat in de cabine)
     cells: v.cells,
     extra: `${svc.dienst ? `<span>${dienstTekst(svc.dienst)}</span> ` : ''}<span>Reizigers <b>${v.reizigers}</b></span>${v.bloksein ? ` <span>Bloksein <b>${v.bloksein}</b></span>` : ''}${v.lastStop ? ` <span>${v.lastStop.name}: <b>${v.lastStop.alight}</b> uit, <b>${v.lastStop.board}</b> in</span>` : ''}`,
     meter: { v: Math.min(1, v.brakeFrac), color: v.brakeFrac > 0.9 ? 'var(--mk-danger, #d93f3f)' : v.brakeFrac > 0.7 ? 'var(--mk-mission, #e8c93a)' : 'var(--mk-ok, #3fc97a)' }, // #625: status via de tokens
-    flash: v.doors ? `Deuren open${v.lastStop ? `: ${v.lastStop.alight} uit, ${v.lastStop.board} in` : ''}` : v.tooFast ? 'Te hard: rem af' : (v.storing || v.flash),
+    flash: v.tooFast ? 'Te hard: rem af' : (v.storing || v.flash), // #625: deuren staan in de cabine, niet dubbel op de dienstbalk
     bad: v.tooFast || v.bad || !!v.storing,
     help: HELP_METER,
   });

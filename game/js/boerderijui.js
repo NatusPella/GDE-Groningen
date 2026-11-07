@@ -166,12 +166,16 @@ function contractenBlok() {
     return `<div class="bd-rij"><span class="bd-naam"><b>${esc(B.GEWASSEN[a.gewas] ? B.GEWASSEN[a.gewas].naam : a.gewas)}</b><span class="mut"> · ${nl(a.kg)} kg · binnen ${a.deadlineUren} speluren · bonus ${euro(a.bonus)} (${cent(a.bonusPerKg)} per kg)</span></span>` +
       (status ? `<span class="mut">${status}</span>` : knop('contract', 'Aannemen', { id: a.id }, k.actief.length >= CT.MAX_ACTIEF)) + '</div>';
   }).join('') || '<p class="mut">De afnemers vragen vandaag niets.</p>';
+  // #626: per contract één kopregel met een voortgangsbalk en de bonus als bedrag; uitleg ingeklapt.
   const actief = k.actief.map((c) => {
     const over = CT.resterend(c, k.uren);
-    return `<div class="bd-rij"><span class="bd-naam"><b>${esc(B.GEWASSEN[c.gewas].naam)}</b><span class="mut"> · ${nl(c.geleverd)} van ${nl(c.kg)} kg · nog ${over} speluren · bonus ${euro(c.bonus)}</span></span></div>`;
+    const pct = c.kg ? Math.round((c.geleverd / c.kg) * 100) : 0;
+    return `<div class="bd-contract"><div class="bd-rij"><span class="bd-naam"><b>${esc(B.GEWASSEN[c.gewas].naam)}</b><span class="mut"> · ${nl(c.geleverd)} van ${nl(c.kg)} kg · nog ${over} speluren</span></span><span class="m-num">${euro(c.bonus)}</span></div>` +
+      `<span class="m-bar"><i data-bar="ct-${esc(c.id)}" data-w="${pct}"></i></span>` +
+      '<details class="bd-uitleg"><summary>Uitleg</summary><p>De kilo\'s tellen mee als je dit gewas aflevert. De bonus komt bovenop de dagprijs; verlopen kost niets.</p></details></div>';
   }).join('') || '<p class="mut">Je hebt nog geen contract aangenomen.</p>';
   return `<div><p class="lb-titel"><b>Contracten</b> <span class="mut">· speldag ${k.dag + 1}</span></p>` +
-    '<p class="mut">De afnemers vragen deze speldag om een vracht van een gewas; de kilo\'s tellen mee als je dat gewas aflevert. Een vol contract betaalt de bonus bovenop de dagprijs, en een contract dat verloopt kost je niets.</p>' +
+    '<details class="bd-uitleg"><summary>Hoe werken contracten?</summary><p>De afnemers vragen deze speldag om een vracht van een gewas; de kilo\'s tellen mee als je dat gewas aflevert. Een vol contract betaalt de bonus bovenop de dagprijs, en een contract dat verloopt kost je niets.</p></details>' +
     `<p class="lb-titel"><b>Aanbod van vandaag</b></p>${aanbod}` +
     `<p class="lb-titel"><b>Lopend</b></p>${actief}` +
     `<p class="bd-melding" aria-live="polite">${esc(melding)}</p></div>`;

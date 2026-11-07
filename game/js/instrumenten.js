@@ -55,7 +55,9 @@ export function instrumentData(v, wind = null) {
 // anders zoek je een luchtrem die er niet is.
 export const BEDIENING = 'W en S gas · A en D rollen · ↑/Spatie neus omhoog · ↓/Ctrl neus omlaag · Q en E roer · Shift remmen op de baan · K kleppen · G landingsgestel';
 export const BEDIENING_PAD = 'Linkerstick rollen en gas · A of RT omhoog · B of LT omlaag · LB kleppen · X landingsgestel';
-export const UITLEG_INSTAPPEN = 'Gas met W, bij 30 m/s optrekken met Spatie of het pijltje omhoog. Rollen doet A en D, het roer zit op Q en E (een klein duwtje de kant op). Kleppen (K) helpen bij start en landing. Haal het landingsgestel in met G en zet het weer uit voor je landt. Op de baan, met de wielen uit, rem je met Shift en landen is zacht; hard of te snel telt niet.';
+// #632: het instaptip blijft binnen het kaartbudget; de lange uitleg staat in Besturing > Hulp.
+export const UITLEG_INSTAPPEN = 'Gas: W. Stijgen: Spatie. Rollen: A/D. Kleppen: K. Gestel: G. Landen: zacht.';
+export const BEDIENING_KORT = 'W/S gas · A/D rollen · Q/E roer · K kleppen · G landingsgestel';
 
 // --- het paneel ------------------------------------------------------------------------------------------------------------
 const CSS = `#hud .hud-instr{position:absolute;right:var(--hud-edge,46px);bottom:var(--hud-edge,46px);display:none;width:372px;padding:8px 12px 8px 12px;color:#f0ede4;text-shadow:var(--hud-shadow);background:linear-gradient(90deg,rgba(12,20,14,.88),rgba(23,48,31,.62) 85%,rgba(23,48,31,.15));border-left:3px solid var(--mk-ok, #3fc97a)}
@@ -71,8 +73,8 @@ body.plane-flying #hud .hud-speedo{display:none}
 #hud .hud-instr .hi-bar{flex:1;height:8px;background:rgba(255,255,255,.18)}
 #hud .hud-instr .hi-bar i{display:block;height:100%;background:var(--mk-ok, #3fc97a)}
 #hud .hud-instr .hi-lamp{padding:1px 8px;border:1px solid rgba(240,237,228,.4);font-size:12px;letter-spacing:1px}
-#hud .hud-instr .hi-lamp.on{background:#2f8f58;border-color:var(--mk-ok, #3fc97a)}
-#hud .hud-instr .hi-lamp.warn{background:#a8431f;border-color:var(--mk-job, var(--mk-job, #ff9a3c))}
+#hud .hud-instr .hi-lamp.on{background:color-mix(in srgb, var(--mk-ok, #3fc97a) 30%, transparent);border-color:var(--mk-ok, #3fc97a)}
+#hud .hud-instr .hi-lamp.warn{background:color-mix(in srgb, var(--mk-job, #ff9a3c) 30%, transparent);border-color:var(--mk-job, #ff9a3c)}
 #hud .hud-instr .hi-st{margin-top:5px;font-size:14px;min-height:18px}
 #hud .hud-instr .hi-keys{margin-top:4px;font-size:12px;line-height:15px;color:rgba(240,237,228,.62)}`;
 
@@ -84,16 +86,17 @@ function tekenHorizon(ctx, d) {
   ctx.translate(c, c);
   ctx.rotate(-d.roll);
   const off = clamp(d.pitch * 90, -r, r);   // neus omhoog: de horizon zakt
-  ctx.fillStyle = '#4d92c9'; ctx.fillRect(-S, -S + off, S * 2, S);
-  ctx.fillStyle = '#6b8a47'; ctx.fillRect(-S, off, S * 2, S);
-  ctx.strokeStyle = '#f4f1e6'; ctx.lineWidth = 1.5;
+  const mk = markerColors();
+  ctx.fillStyle = mk.police; ctx.fillRect(-S, -S + off, S * 2, S);
+  ctx.fillStyle = mk.ok; ctx.fillRect(-S, off, S * 2, S);
+  ctx.strokeStyle = '#f0ede4'; ctx.lineWidth = 1.5;
   ctx.beginPath(); ctx.moveTo(-S, off); ctx.lineTo(S, off); ctx.stroke();
   ctx.lineWidth = 1;
   for (const k of [-2, -1, 1, 2]) { const y = off + k * 14; ctx.beginPath(); ctx.moveTo(-10 - (Math.abs(k) === 2 ? 4 : 0), y); ctx.lineTo(10 + (Math.abs(k) === 2 ? 4 : 0), y); ctx.stroke(); }
   ctx.restore();
-  ctx.strokeStyle = '#f4f1e6'; ctx.lineWidth = 2;
+  ctx.strokeStyle = '#f0ede4'; ctx.lineWidth = 2;
   ctx.beginPath(); ctx.arc(c, c, r, 0, TWEEPI); ctx.stroke();
-  ctx.strokeStyle = '#ffc21a'; ctx.lineWidth = 3;
+  ctx.strokeStyle = markerColors().mission; ctx.lineWidth = 3;
   ctx.beginPath(); ctx.moveTo(c - 26, c); ctx.lineTo(c - 8, c); ctx.lineTo(c, c + 6); ctx.lineTo(c + 8, c); ctx.lineTo(c + 26, c); ctx.stroke();
 }
 
@@ -107,11 +110,11 @@ function tekenKompas(ctx, d) {
     ctx.save(); ctx.rotate(a * Math.PI / 180);
     ctx.lineWidth = a % 90 === 0 ? 2 : 1;
     ctx.beginPath(); ctx.moveTo(0, -r + 1); ctx.lineTo(0, -r + (a % 90 === 0 ? 9 : 5)); ctx.stroke();
-    if (a % 90 === 0) { ctx.fillStyle = a === 0 ? '#ff8a5c' : '#f0ede4'; ctx.fillText(['N', 'O', 'Z', 'W'][a / 90], 0, -r + 20); }
+    if (a % 90 === 0) { ctx.fillStyle = a === 0 ? markerColors().danger : '#f0ede4'; ctx.fillText(['N', 'O', 'Z', 'W'][a / 90], 0, -r + 20); }
     ctx.restore();
   }
   ctx.restore();
-  ctx.fillStyle = '#ffc21a'; ctx.beginPath(); ctx.moveTo(c, 6); ctx.lineTo(c - 5, 0); ctx.lineTo(c + 5, 0); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = markerColors().mission; ctx.beginPath(); ctx.moveTo(c, 6); ctx.lineTo(c - 5, 0); ctx.lineTo(c + 5, 0); ctx.closePath(); ctx.fill();
   ctx.fillStyle = '#f0ede4'; ctx.font = '15px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.fillText(String(d.graden).padStart(3, '0'), c, c);
 }
@@ -124,15 +127,16 @@ export function maakPaneel() {
   const st = document.createElement('style');
   st.textContent = CSS;
   document.head.appendChild(st);
+  mountCockpitCss();
   const el = document.createElement('div');
-  el.className = 'hud-instr';
+  el.className = 'hud-instr ' + COCKPIT_CLASS;
   el.innerHTML = '<small data-k="naam">Kist Kees</small>'
     + '<div class="hi-top"><canvas width="96" height="96" data-k="hor"></canvas><canvas width="96" height="96" data-k="kom"></canvas>'
     + '<div class="hi-num"><div><b data-k="speed">0</b><span>km/u</span></div><div><b data-k="alt">0</b><span>m hoogte</span></div><div><b data-k="vz">0</b><span>m/s stijgen</span></div><div><b data-k="wind">0</b><span data-k="windtxt">wind</span></div></div></div>'
     + '<div class="hi-row"><span>Gas</span><div class="hi-bar"><i data-k="thr"></i></div><span data-k="thrn">0%</span></div>'
     + '<div class="hi-row"><span class="hi-lamp" data-k="flaps">Kleppen 0</span><span class="hi-lamp" data-k="gear">Gestel uit</span></div>'
     + '<div class="hi-st" data-k="st"></div>'
-    + `<div class="hi-keys">${BEDIENING}</div>`;
+    + `<div class="hi-keys">${BEDIENING_KORT}</div>`;
   root.appendChild(el);
   const q = (k) => el.querySelector(`[data-k="${k}"]`);
   const hor = q('hor').getContext('2d'), kom = q('kom').getContext('2d');

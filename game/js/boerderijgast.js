@@ -8,18 +8,19 @@ import { hoofdspeler } from './players.js';
 // bijbaan, sidejob_boerderij.js). Geen nieuw netwerkformaat: alleen het bestaande bericht { k: 'bezig', a } (PROTO blijft 2).
 import { getBoerderij, neemTaak, rondAf, zetPerceel } from './boerderijlive.js';
 import * as B from './boerderij.js';
-import { createBoard } from './minigamekit.js';
+import { createBoard, key, mgThema } from './minigamekit.js';
 import { wgsToWorld } from './rdnew.js';
 
 export const RONDEN = 4;         // vier werkgangen over de akker
 export const TREFFER = 0.16;     // zo dicht bij het midden van de baan telt de slag
 const WACHT = 0.3;               // s tussen twee werkgangen
 const REIK = 12;                 // m van de akker tot waar je hem ziet
-const ACCENT = '#b98b2e';
+const ACCENT = mgThema('boeren').accent; // #626: het thema en de zakdoekband uit de sfeertabel, geen eigen hex
 const HOOGKERK = wgsToWorld(53.2336, 6.4977); // de vaste akker bij Hoogkerk (sidejob_boerderij.js)
 
 const pct = (f) => `${Math.round(Math.max(0, Math.min(1, f)) * 100)}%`;
 const taakNaam = (taak) => (B.TAKEN[taak] && B.TAKEN[taak].naam) || taak;
+const TAAK_MARK = { ploegen: '⌁', zaaien: '✿', oogsten: '✂', eggen: '≡' }; // #626: vier taken, vier tekens
 
 let game = null;   // de lopende klus, of null
 let board = null;
@@ -65,11 +66,11 @@ const geenKlus = (b) => (b.schuur.kg > 0 ? 'Je schuur is vol: laat de oogst afle
 function toon() {
   if (!board || !game) return;
   board.set({
-    row: `<span>${taakNaam(game.taak)}</span><span><b>${game.raak}</b>/${RONDEN} goed</span>`,
+    row: `<span>${TAAK_MARK[game.taak] || '·'} <b>${taakNaam(game.taak)}</b></span><span><b>${game.raak}</b>/${RONDEN} goed</span>`,
     cells: Array.from({ length: RONDEN }, (_, i) => ({ t: `${i + 1}`, cls: i < game.ronde ? (game.uitslag[i] ? 'good' : 'bad') : i === game.ronde ? 'on' : '' })),
     meter: { v: game.pos, mark: 0.5, color: ACCENT, text: `werkgang ${Math.min(RONDEN, game.ronde + 1)} van ${RONDEN}` },
     flash: game.flash, bad: !!game.bad,
-    help: '[Spatie] in het midden van de balk · Backspace stopt',
+    help: `${key('SPATIE')} in het midden · ${key('BACKSPACE')} stoppen`, // #626: canonieke toetskap
   });
 }
 
@@ -97,7 +98,7 @@ function start(w) {
   const nm = neemTaak(w, taak, { vrij: true });
   if (!nm.ok) { w.addMessage(nm.reden, 3); return true; }
   game = maakKlus(taak);
-  if (!board && typeof document !== 'undefined') board = createBoard('Boerenwerk', ACCENT); // in de pure tests is er geen scherm
+  if (!board && typeof document !== 'undefined') board = createBoard('boeren'); // in de pure tests is er geen scherm
   if (board) board.show();
   toon();
   return true;
@@ -135,4 +136,5 @@ export const BOEREN = {
   quit: (w) => einde(w, { stop: true }),
   debug: () => ({ state: () => (game ? { ...game } : null) }),
 };
+
 

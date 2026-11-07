@@ -32,10 +32,13 @@ export const ARENA = Object.freeze({
 // komt uit de ronde zelf en gaat via de coopdeel-laag naar de eigen save van elke speler (coopnet.js payGuest).
 export const ARENA_BELONING = Object.freeze({ geld: 40, winst: 15 });
 
+// #624: de teamkleuren komen uit de statuskleuren (gebruiker = Noord, klus = Zuid) en volgen zo de
+// kleurenblindmodi; de vorm (driehoek of vierkant) maakt ze ook zonder kleur uit elkaar te houden.
 export const ARENA_TEAMS = Object.freeze([
-  { id: 'noord', naam: 'Noord', kleur: '#4aa3ff' },
-  { id: 'zuid', naam: 'Zuid', kleur: '#ff9a3c' },
+  { id: 'noord', naam: 'Noord', kleur: 'var(--mk-user, #c068ff)', vorm: 'driehoek' },
+  { id: 'zuid', naam: 'Zuid', kleur: 'var(--mk-job, #ff9a3c)', vorm: 'vierkant' },
 ]);
+export const teamVorm = (i) => (i === 0 ? '▲' : '■');
 
 // De zones en de opstelplaatsen in meters rond het midden (u langs de as, v dwars erop). Drie zones: het midden en twee
 // vleugels, zodat je moet kiezen tussen vasthouden en omsingelen.

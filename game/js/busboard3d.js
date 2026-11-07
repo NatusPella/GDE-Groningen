@@ -8,6 +8,8 @@ import { hoofdspeler } from './players.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getVehicleMesh } from './models3d_vehicles.js';
 import { getBusLines } from './vehicle.js';
+import { markerColors } from './a11y.js';
+import { mountCockpitCss, COCKPIT_CLASS } from './cockpit.js';
 import { startBusShift } from './sidejobs.js';
 import { nearestLine, project } from './busroutes.js';
 import { boardText, busLineOf, takeOverOffer, lineDirection, nextStopInfo, stopCard, roundDist, OPERATOR } from './busboard.js';
@@ -34,7 +36,7 @@ function boardTexture(b) {
   g.textBaseline = 'middle';
   g.textAlign = 'center';
   g.fillText(b.ref, 15, 11);
-  g.fillStyle = '#ffb21a';
+  g.fillStyle = markerColors().mission; // #632: LED uit de mission-token
   g.textAlign = 'left';
   g.fillText(b.dest, 33, 11, 92);
   t = new THREE.CanvasTexture(c);
@@ -88,6 +90,7 @@ function getCard() {
   if (card || typeof document === 'undefined') return card;
   const root = document.getElementById('hud');
   if (!root) return null;
+  mountCockpitCss();
   const st = document.createElement('style');
   // Het buskaartje staat middenonder en is met de bedieningsregel (deuren, kneel, sterren) tot ongeveer
   // 96 px hoog; de doelregel erboven begon op 1280x720 al na 52 px, dus de twee panelen lagen over
@@ -95,16 +98,16 @@ function getCard() {
   st.textContent = `#hud .hud-busnext{position:absolute;left:50%;bottom:calc(var(--hud-edge,46px) + 4px);transform:translateX(-50%);display:none;box-sizing:border-box;max-width:calc(100vw - 2*var(--hud-edge,46px) - 24px);padding:6px 14px 8px;color:#f0ede4;text-shadow:var(--hud-shadow);background:linear-gradient(90deg,rgba(12,20,14,.1),rgba(12,20,14,.8) 20%,rgba(12,20,14,.8) 80%,rgba(12,20,14,.1));text-align:center}
 body.bus-driving #hud .hud-busnext{display:block}
 body.bus-driving #hud .hud-mission{bottom:calc(var(--hud-edge,46px) + 120px)}
-#hud .hud-busnext small{display:block;font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#ffb21a}
+#hud .hud-busnext small{display:block;font-size:12px;letter-spacing:3px;text-transform:uppercase;color:var(--mk-mission, #e8c93a)}
 #hud .hud-busnext b{font-weight:normal;font-size:22px;letter-spacing:1px}
 #hud .hud-busnext span{font-size:14px;color:rgba(240,237,228,.7);margin-left:8px}
 #hud .hud-busnext em{display:none;font-style:normal;font-size:13px;margin-top:4px;color:rgba(240,237,228,.85)}
 #hud .hud-busnext.offer em{display:block}
-#hud .hud-busnext kbd{font:inherit;font-weight:bold;padding:0 6px;margin-right:6px;border-radius:3px;background:#f0ede4;color:#14201a;text-shadow:none}`;
+}
   document.head.appendChild(st);
   const el = document.createElement('div');
-  el.className = 'hud-busnext';
-  el.innerHTML = '<small></small><div><b></b><span></span></div><em><kbd>G</kbd>Dienst overnemen</em>';
+  el.className = 'hud-busnext ' + COCKPIT_CLASS;
+  el.innerHTML = '<small></small><div><b></b><span></span></div><em><span class="hud-key">G</span>Dienst overnemen</em>';
   root.appendChild(el);
   card = { el, small: el.querySelector('small'), b: el.querySelector('b'), span: el.querySelector('span') };
   return card;
