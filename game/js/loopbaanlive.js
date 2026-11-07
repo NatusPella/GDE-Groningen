@@ -9,8 +9,13 @@
 
 import { KEYS } from './storagekeys.js';
 import { noteMoney } from './finance.js';
+import { zetGarageKorting } from './economy.js';
 import * as L from './loopbaan.js';
 import { gebiedenOpUniek, gebiedenOpStat } from './gebiedenlive.js';
+
+// #674: de garagekorting van een meester in een vervoersvak, via de haak in economy.js (garages.js
+// hoeft de loopbaan zo niet te importeren). De haak leest pas bij gebruik, dus het profiel is dan geladen.
+zetGarageKorting(() => L.garageKorting(getProfiel()));
 
 const SCHRIJF_VERTRAGING_MS = 1500;
 // Een gast krijgt de volle punten en het volle bedrag van de gastheer (coopnet.js deelMetGasten, #452).
@@ -197,6 +202,11 @@ export function loopbaanGast(w, geld, vak, xp = 0) {
 
 // Voor het scherm en de tests.
 export const loopbaanSamenvatting = () => L.samenvatting(getProfiel());
+// #674: de hoogste titel buiten het Loopbanen-scherm en de niet-geldelijke voordelen per groep.
+export const loopbaanTeken = () => L.loopbaanTeken(getProfiel());
+export const loopbaanVoordelen = () => L.voordelenVan(getProfiel());
+export const loopbaanGarageKorting = () => L.garageKorting(getProfiel());
+export const loopbaanKermisGratis = () => L.kermisGratis(getProfiel());
 export function zetProfielVoorTest(p, st) {
   profiel = p ? L.normaliseer(p) : null;
   if (st !== undefined) opslagOverride = st;

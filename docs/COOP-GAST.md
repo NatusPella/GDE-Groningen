@@ -77,6 +77,8 @@ Alle spelers zijn gelijkwaardig; wie het spel opende mag alleen spelers verwijde
 | Slapen en onderduiken | Een bed, een bank, "slaap tot de avond" en onderduiken in een safehouse verzetten de klok voor iedereen: de anderen krijgen een vraag met J of N (10 seconden; geen antwoord is nee; wie wegvalt telt niet mee). Is iedereen akkoord, dan springt de tijd, anders blijft hij staan. Wie alleen is beslist zelf. Berichten `stem`, `stemantwoord`, `stemuitslag`; één stemming tegelijk; de J en N horen dan bij de stemming, niet bij Meedoen. Een gast kan de tijd niet zelf verzetten (de wereld loopt bij een ander): hij ziet een melding. |
 | Snelreizen | Reizen voor jezelf mag zonder akkoord: de wereld verandert niet voor de anderen, die blijven waar ze zijn (de reis zet Tessa of een andere speler niet mee neer). De klok springt bij een reis niet (alleen een tijdsprong vraagt akkoord). Het snelreisanker naar je eigen safehouse blijft werken. |
 | Cheats en testmenu | Uit zodra er een tweede speler is (host en gast): geen cheats aan te zetten, geen teleport vanaf de kaart, geen "Voertuig hier", geen testmenu (F10) of dev-paneel (F9). De melding: "Cheats en het testmenu staan uit zolang je Samen spelen met anderen speelt." |
+| Varianten (#673) | De variant na de hoogste medaille is een eigen run met een eigen record, per speler in zijn eigen prestaties (`activiteitvariant.js`). Een gedeelde wedstrijd loopt via de bestaande wedstrijdlaag en beloont één keer; de variant zelf is geen tweede wedstrijd. |
+| Na het verhaal (#675) | De revanche-uitdagingen en de Fjord Frituur zijn lokaal: het zijn uitdagingen en een wagen met een eigen dagomzet en eigen upgrades, per speler in zijn eigen opgeslagen spel (`coopstatus.js` `DEELS_KEUZE.fjord`, route `lokaal`). Een gast speelt ze in zijn eigen spel; er is geen gedeelde pot. |
 
 ## Evenementen bij een gast (#452)
 
@@ -312,3 +314,9 @@ Valt de gastheer weg, dan neemt de **langst verbonden speler** over (`rangschik`
 ## Niet gedaan
 
 Een voertuig kopen of laten bezorgen, een helikopter of vliegtuig besturen (als passagier meerijden kan wel, #492), gesprekken met voorbijgangers, minigames die je lichaam of een voertuig verplaatsen en het stuur met een controller (Y heeft geen knop op een pad). Dat blijven aparte wensen.
+
+## Veroveren en intochten (#723)
+
+**Veroveren** is per speler: wat jij veroverd hebt staat in je eigen profiel (`gde-gebieden-v1`) en gaat niet mee naar een andere wereld; de kaartlaag Veroverd en de titels zijn van jou. Een gast kan dus veroveren in de wereld van wie het spel opende, maar zijn voortgang blijft in zijn eigen profiel (en een gast kan geen gebied van de gastheer "overnemen").
+
+**De intocht is een host-only film.** Na een verovering speelt de wereld van wie het spel opende de intocht (een `playCinematic` met de tourcamera, 3-5 stops, max. 40 s, skipbaar). Een gast speelt die camera niet mee: hij ziet de titelkaart en de regel uit het scènebericht (`readHostScene`, #712), net als bij de andere host-only momenten (wijkflyover, landmerk, crash, wanted5, missie-intro's). De intocht staat daarom niet in de `playScript`-lijst en gaat niet als data naar de gasten; dezelfde regel geldt voor de korte "thuiskomst" (#736) en voor terugkijken via Loopbaan › Veroverd. Documentatie: `docs/GEBIEDEN.md` §Intocht, `game/js/intochten.js`, `wijkintocht.js`; de preview toont ze als catalogusregel met duur en skipbaarheid (`cutpreview.js`).

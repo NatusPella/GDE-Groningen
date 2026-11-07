@@ -6,6 +6,8 @@ import { isInWater } from './util.js';
 import { FJORD_BUBBLES, FJORD_DUO } from './pg_lines.js';
 import { finish, say, esc } from './pghost.js';
 import { FJORD_SHIFT_BONUS } from './economy.js';
+import { FJORD_UPGRADE_DAG, fjordDagomzet, fjordPassief } from './fjordcijfers.js';
+export { fjordDagomzet, fjordPassief } from './fjordcijfers.js';
 import { isToday } from './calendarday.js';
 
 // The Fjord Frituur, after the story: drive the foodtruck (shops.js
@@ -30,6 +32,10 @@ const UPGRADES = [
   { id: 'mosterd', name: 'Grunneger mosterd', blurb: 'Een derde meer fooi', price: 250 },
   { id: 'bel', name: 'Bel die "moi" zegt', blurb: 'Een kwart meer klanten', price: 300 },
   { id: 'neon', name: 'Neon-meeuw op het dak', blurb: 'Diensten duren 20 s langer', price: 500 },
+  // #675: de investeringslus. Deze twee zijn de echte keuze: een grotere voorraad of langer open;
+  // allebei verhogen ze de dagomzet (fjordcijfers.js), en de passieve opbrengst alleen als de wagen openstaat.
+  { id: 'voorraad', name: 'Grote voorraad', blurb: 'Een dag extra voorraad: de dagomzet groeit', price: 600 },
+  { id: 'avond', name: 'Avondopenstelling', blurb: 'Tot middernacht open: de dagomzet groeit', price: 900 },
 ];
 
 const SHIFT_S = 75;
@@ -90,7 +96,7 @@ const has = (id) => save.upgrades.includes(id);
 // The upgrade rows for the phone (Ubbo).
 export function fjordUpgradeOffers(world) {
   return UPGRADES.map((u) => ({
-    ...u, owned: has(u.id),
+    ...u, dag: FJORD_UPGRADE_DAG[u.id] || 0, owned: has(u.id),
     buy: () => {
       if (has(u.id)) return 'Heb je al';
       if (world.money < u.price) return 'Te weinig geld';

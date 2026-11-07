@@ -8,6 +8,7 @@ import { showBanner } from './cinematics.js';
 import { pushAudioEvent } from './pedgeom.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, MEDALS } from './achievements.js';
 import { showCard } from './hudcards.js';
+import { onthullingScene } from './uitjescene.js';
 import { notifyPhone } from './phonefeed.js';
 import { spawnFxSpark } from './fx3d.js';
 import { addStaticCollider, addProp, removeProp } from './breakables.js';
@@ -17,6 +18,7 @@ import { KERMIS_LINES, BOTS_BUMPED, BOTS_HIT, KERMIS_NEWS, KERMIS_TWINS } from '
 import { DURK_LOOK, DOUWE_LOOK } from './storycast.js';
 import { isToday } from './calendarday.js';
 import { rand } from './rng.js';
+import { loopbaanKermisGratis } from './loopbaanlive.js'; // #674: een meester in een werkvak rijdt gratis
 import { KERMIS_TENT } from './roadaccess.js';
 import { WHEEL_AT, R, AX as WHEEL_AX, N, OMEGA } from './reuzenradrules.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
@@ -386,14 +388,14 @@ function nearStand(w) {
 const storyRide = (w) => w.storyActivity === 'kermis';
 
 function blockReason(w) {
-  return activityBlock(w) || (!storyRide(w) && w.money < PRICE ? `Te weinig geld: een ritje kost €${PRICE}` : null);
+  return activityBlock(w) || (!storyRide(w) && !loopbaanKermisGratis() && w.money < PRICE ? `Te weinig geld: een ritje kost €${PRICE}` : null);
 }
 
 function prompt(w) {
   if (!nearStand(w)) return null;
   const why = blockReason(w);
   const rec = getChallengeRecord('botsauto');
-  const sub = why || (storyRide(w) ? 'Gratis van Jan: Durk en Douwe rijden mee' : rec && rec.best != null ? `€${PRICE} · record: ${rec.best} punten${rec.medal ? ' · ' + MEDALS[rec.medal].toLowerCase() : ''}` : `€${PRICE} per ritje · ${kermisOn(w) ? 'kermisavond: dubbel prijzengeld' : 'botsen tegen Jan zijn vaste klanten'}`);
+  const sub = why || (storyRide(w) ? 'Gratis van Jan: Durk en Douwe rijden mee' : loopbaanKermisGratis() ? 'Gratis: je bent meester in een werkvak' : rec && rec.best != null ? `€${PRICE} · record: ${rec.best} punten${rec.medal ? ' · ' + MEDALS[rec.medal].toLowerCase() : ''}` : `€${PRICE} per ritje · ${kermisOn(w) ? 'kermisavond: dubbel prijzengeld' : 'botsen tegen Jan zijn vaste klanten'}`);
   return { id: 'botsauto', x: STAND.x, y: STAND.y, h: 2.2, key: 'E', label: "Botsauto's", sub, ring: true, dim: !!why };
 }
 
@@ -407,12 +409,23 @@ function interact(w) {
   if (!nearStand(w)) return false;
   const why = blockReason(w);
   if (why) { w.addMessage(why, 2.5); return true; }
-  start(w, { free: storyRide(w) });
+  start(w, { free: storyRide(w) || loopbaanKermisGratis() });
   return true;
 }
 
-function start(w, { free = false } = {}) {
+function start(w, { free = false, revealed = false } = {}) {
   if (game) return false;
+  // #720: korte onthulling van de kermis vóór de botsauto's beginnen.
+  if (!revealed) {
+    const ok = onthullingScene(w, {
+      id: 'kermis-reveal', kicker: 'Kermis', title: 'Botsauto\u2019s',
+      x: STAND.x, y: STAND.y, height: 8, radius: 22,
+      lines: [{ speaker: '', text: 'De kermis is open. Een botsauto, een suikerspin en de hele avond voor je.' }],
+      onEnd: () => start(w, { free, revealed: true }),
+    });
+    if (!ok) return start(w, { free, revealed: true });
+    return true;
+  }
   if (!built) built = buildTent();
   const p = hoofdspeler(w);
   if (p.inVehicle) p.exitVehicle(w.map, w);
