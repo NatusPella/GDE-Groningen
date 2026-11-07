@@ -28,8 +28,13 @@ export const GRID_Y0 = 75;
 export const RD_TILE_X0 = 234;
 export const RD_TILE_Y0 = 581;
 
-export const tileIndexOf = (x, y) => [Math.floor((x - GRID_X0) / TILE_M), Math.floor((y - GRID_Y0) / TILE_M)];
-export const tileOrigin = (i, j) => [GRID_X0 + i * TILE_M, GRID_Y0 + j * TILE_M];
+// #651: scalaire varianten voor de hot loop van prefetch (geen array per aanroep)
+export const tileIndexX = (x) => Math.floor((x - GRID_X0) / TILE_M);
+export const tileIndexY = (y) => Math.floor((y - GRID_Y0) / TILE_M);
+export const tileOriginX = (i) => GRID_X0 + i * TILE_M;
+export const tileOriginY = (j) => GRID_Y0 + j * TILE_M;
+export const tileIndexOf = (x, y) => [tileIndexX(x), tileIndexY(y)];
+export const tileOrigin = (i, j) => [tileOriginX(i), tileOriginY(j)];
 export const tileKey = (i, j) => `${RD_TILE_X0 + i}_${RD_TILE_Y0 - j}`;
 export function tileFromKey(key) {
   const [a, b] = key.split('_').map(Number);
