@@ -1,7 +1,7 @@
 import { hoofdspeler } from './players.js';
 import { iconDisc } from './activitykit.js';
 import { today as calendarToday } from './calendarday.js';
-import { activitySpotsFor, eventHere } from './evenementen.js';
+import { activitySpotsFor, eventHere, loadSeen } from './evenementen.js';
 
 // Evenementen (#203) als activiteit voor de kaarten en de spotcheck: een marker op
 // de plek van elk evenement van vandaag. Er valt niets te starten; de wereldlaag
@@ -23,6 +23,8 @@ export const EVENEMENTEN = {
   id: 'evenementen',
   layer: 'evenementen',
   legend: { kind: 'act-evenementen', label: 'Evenement', note: 'kermis, markt, optocht, concert: alleen op de dag zelf' },
+  // #679: teller van de evenementen die je zelf hebt gezien (per speler, in zijn eigen opslag).
+  doel: () => { let n = 0; try { const st = typeof localStorage !== 'undefined' ? localStorage : null; n = st ? loadSeen(st).length : 0; } catch (err) { n = 0; } return { tekst: `${n} van 3 evenementen bezocht` }; },
   init(w) {
     world = w;
     window.__evenementen = {

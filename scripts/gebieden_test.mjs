@@ -607,6 +607,7 @@ t('de haken staan op hun plek: loopbaanTel, loopbaanOpStat, de vondsten, het tik
   for (const s of ['initGebieden({ gate: achievementsGated', 'setUniekListener(gebiedenOpVondst)', 'updateGebieden(dt, w,']) assert.ok(tr.includes(s), s);
   assert.ok(bron('mapview.js').includes("layerOn('veroverd')"));
   assert.ok(bron('veroverdpanel.js').includes('gebiedenHtml'));
+  assert.match(bron('veroverdpanel.js'), /Wat telt mee:[\s\S]*39 van de 47 bijbanen[\s\S]*tellen bewust niet mee/, 'de catalogusregel staat in het Veroverd-scherm (#676)');
   const gb = bron('gebiedenbronnen.js');
   assert.ok(gb.includes("'grenzen.json'") && gb.includes('ontvouw'), 'de bronnen laden game/grenzen.json');
   assert.ok(!gb.includes('neighbourhoodPoints') && !gb.includes('STREKEN'), 'de oude indeling (wijkpunten en streken) is weg');

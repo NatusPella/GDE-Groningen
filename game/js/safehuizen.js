@@ -489,6 +489,8 @@ export const SAFEHUIS = {
   layer: 'safehuis',
   gastTick: true, // ook bij een gast bouwen: het losse huisje heeft muren die zijn lichaam tegenhouden (#434), een bestaand pand is al solide
   legend: { kind: 'act-safehuis', label: 'Safehouse', note: 'een woning om te kopen of te krijgen in elk gebied dat je kunt veroveren' },
+  // #679: teller van je eigen veilige huizen, uit je eigen profiel.
+  doel: () => ({ tekst: `${huizen.filter((h) => heeftHuisLive(h.id)).length} van 3 veilige huizen` }),
   init(w) {
     if (kamer) verlaat(wereld || w, true);
     kamerGen++;
