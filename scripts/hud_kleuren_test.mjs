@@ -48,6 +48,12 @@ ok(!/#6cc070|#5dff7a/.test(mg.replace(/var\(--[a-z-]+,\s*#[0-9a-fA-F]{3,6}\)/g, 
 const mgStray = strayHexes('minigamekit.js');
 ok(mgStray.length === 0, 'minigamekit.js: kleuren buiten de tokens en de accenttabel: ' + (mgStray.join(', ') || 'geen'));
 
+// De kaartactiebalk (#602): alle kleuren als token met terugval, dus de kleurenblindmodi doen mee.
+const kaartactie = read('kaartactieui.js');
+const actieStray = strayHexes('kaartactieui.js');
+ok(actieStray.length === 0, 'kaartactieui.js: kleuren buiten de tokens: ' + (actieStray.join(', ') || 'geen'));
+ok(!/#5dff7a|#ff9a8a|#9aa3ad|rgba\(95,\s*180,\s*217/.test(kaartactie), 'kaartactieui.js: geen eigen groen, rood, grijs of blauw meer');
+
 // De identiteitskleuren staan op één plek: de accenttabel. Zo kan niemand er stilletjes een
 // statuskleur tussen schuiven zonder dat deze test het ziet.
 const accenten = [...mg.matchAll(/accent:\s*'(#[0-9a-fA-F]{6})'/g)].map((m) => m[1].toLowerCase());
