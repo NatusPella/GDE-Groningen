@@ -270,8 +270,8 @@ for (const s of hintSecties) ok(new RegExp(`^\\s*${s}: .*\\[\\['Q', 'E'\\], '`, 
 ok(/over: \[\[\['↑', '↓'\], 'kiezen'\], \[\['Enter'\], 'open of dicht'\]/.test(pm), 'Over heeft een eigen voetregel met de vouwen (#601)');
 // Over is een naslagscherm: 18 px body en twee vouwen, geen tweede tekststijl
 const overSrc = pm.slice(pm.indexOf('function renderOverPanel'), pm.indexOf('const ARROWS'));
-ok(/disclosure\('over-news'/.test(overSrc) && /disclosure\('over-about'/.test(overSrc) && !/pm-over-news/.test(overSrc),
-  'Over vouwt "Wat is er nieuw" en de credits in plaats van een tekstmuur (#601)');
+ok(/overBodyHtml\(/.test(overSrc) && /data-fold-body="over-credits"/.test(overSrc) && /CREDITS_HTML/.test(overSrc) && /data-over-alles/.test(overSrc),
+  'Over vouwt "Wat is er nieuw" en de credits in plaats van een tekstmuur (#601/#612)');
 ok(/#pause-menu \.pm-over p, #pause-menu \.pm-over li \{ font-size: 18px/.test(pcss), 'Over heeft 18 px body (#601)');
 // één "Wat is er nieuw": het oude titelscherm heeft die ingang niet meer
 const ss = read('game/js/startscreen.js');
