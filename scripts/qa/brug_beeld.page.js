@@ -5,13 +5,8 @@
 // window.__bb = { bruggen: [{ naam, x, y }], afstanden, delta, settle, alleenLijst } staat ervoor. Elke keydown wordt gevolgd door een keyup.
 const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
 const tapKey = (k, code) => { for (const t of [window, document]) { t.dispatchEvent(new KeyboardEvent('keydown', { key: k, code, bubbles: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: k, code, bubbles: true })); } };
-for (let i = 0; i < 40; i++) {
-  const ss = document.querySelector('#start-screen');
-  if (!ss || getComputedStyle(ss).display === 'none' || !ss.getClientRects().length || getComputedStyle(ss).visibility === 'hidden') break;
-  const item = (window.__menuStart ? { click: () => window.__menuStart('nieuw') } : null);
-  if (item) item.click(); else tapKey('Enter', 'Enter');
-  await sleep(3000);
-}
+// #581: start als de speler (boot → wereld); het oude startscherm is weg.
+for (let i = 0; i < 300 && !document.body.classList.contains('game-started'); i++) await sleep(500);
 for (let i = 0; i < 25 && window.__debug && window.__debug.world && window.__debug.world.paused; i++) { tapKey(' ', 'Space'); await sleep(700); }
 const D = window.__debug; const w = D.world; const p = w.player; const map = w.map;
 const imp = (f) => import('/js/' + f + '.js');
@@ -51,7 +46,6 @@ S3.renderer.render = (sc, c) => {
   if (cur && c === S3.cam) { c.position.set(cur.position.x, cur.position.z, cur.position.y); c.lookAt(cur.lookAt.x, cur.lookAt.z, cur.lookAt.y); c.updateMatrixWorld(true); }
   origRender(sc, c);
 };
-{ const ss = document.querySelector('#start-screen'); if (ss) ss.style.display = 'none'; } // het titelscherm blijft soms over het spel hangen
 if (!CFG.hud) for (const el of document.querySelectorAll('body > *')) if (!el.contains(S3.renderer.domElement) && !(el.tagName === 'SCRIPT')) el.style.display = 'none';
 w.cinematicHidePlayers = true;
 const grab = async (name) => { console.log('[capture] ' + name); await sleep(450); };

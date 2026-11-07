@@ -23,10 +23,10 @@ const cat = buildCatalog({ script, npcSource });
 const keys = new Set([...Object.keys(SPECS), ...Object.keys(MORE_SPECS)]);
 ok(cat.length === keys.size + 4 + 3 + MOMENT_PREVIEW.length + INTOCHTEN.length, 'catalogue: every spec, three acts, the end card, the three evenings at home, the momenten and the intochten (#723)', `${cat.length} vs ${keys.size + 7 + MOMENT_PREVIEW.length + INTOCHTEN.length}`);
 ok(['Momenten', 'Intochten'].every((g) => cat.some((e) => e.group === g)), 'catalogue: the momenten and intochten are in the list');
-// #708: de vier handgeschreven intochten zijn camera-only scrubbaar en lokaal per speler
+// #707/#708: alle handgeschreven intochten zijn camera-only scrubbaar en lokaal per speler
 {
   const ints = cat.filter((e) => e.group === 'Intochten' && e.scene);
-  ok(ints.length === 4, 'intochten: vier pilotscènes in de preview', String(ints.length));
+  ok(ints.length === INTOCHTEN.length, 'intochten: alle handgeschreven scènes in de preview', String(ints.length));
   for (const e of ints) {
     ok(e.coop === 'lokaal per speler', e.id + ' is lokaal per speler');
     ok(frameAt(e, e.duration / 2) && stillTimes(e).length >= 1, e.id + ' is scrubbaar');

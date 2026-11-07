@@ -199,6 +199,70 @@ export const INTOCHTEN = [
       { stem: 'Tessa', tekst: 'Dat is de grap.' },
     ],
   },
+  {
+    wijk: 'Oud-West',
+    titel: 'De westkant',
+    seconden: 30,
+    sfeer: 'droog, dan warm',
+    ankers: [
+      { naam: 'Schildersbuurt', x: -861, y: 292, h: 1.5 },
+      { naam: 'Westerhaven', x: -463, y: 499, h: 2.2 },
+      { naam: 'Suikerfabriek', x: -1788, y: 930, h: 3 },
+    ],
+    regels: [
+      { stem: 'Berend', tekst: 'Goidag. Nul krassen. Ik tel.' },
+      { stem: 'Tessa', tekst: 'Woont u hier?' },
+      { stem: 'Berend', tekst: 'Ik woon hier. Ik tel hier.' },
+    ],
+  },
+  {
+    wijk: 'Zuidwest',
+    titel: 'Het park',
+    seconden: 30,
+    sfeer: 'loom, zomers',
+    ankers: [
+      { naam: 'Skatepark Stadspark', x: -1116, y: 1725, h: 1.5 },
+      { naam: 'Discgolf Stadspark', x: -1080, y: 1700, h: 1.4 },
+      { naam: 'Padel Martini Trade Park', x: -979, y: 2507, h: 3 },
+    ],
+    regels: [
+      { stem: 'Tessa', tekst: 'In augustus is dit de achtertuin van de stad.' },
+      { stem: 'Tammo', tekst: 'In september is het van niemand.' },
+      { stem: 'Tessa', tekst: 'Tammo.' },
+    ],
+  },
+  {
+    wijk: 'Hoogkerk',
+    titel: 'De oogst',
+    seconden: 30,
+    sfeer: 'warm, groot',
+    ankers: [
+      { naam: 'Akker Hoogkerk', x: -4520, y: -1497, h: 1.2 },
+      { naam: 'Suikerhal', x: -4410, y: -1440, h: 6 },
+      { naam: 'Polderweg', x: -4380, y: -1500, h: 1.5 },
+    ],
+    regels: [
+      { stem: 'Boer', tekst: 'Ruikt u dat? Suiker. Nog niet.' },
+      { stem: 'Tessa', tekst: 'Het is augustus.' },
+      { stem: 'Boer', tekst: 'Dan ruikt het naar vooruitzicht.' },
+    ],
+  },
+  {
+    wijk: 'Oud-Noord',
+    titel: 'De zolder',
+    seconden: 28,
+    sfeer: 'intiem',
+    ankers: [
+      { naam: 'Korrewegwijk', x: 356, y: -1338, h: 1.5 },
+      { naam: 'Noorderplantsoen', x: 121, y: -725, h: 2 },
+      { naam: 'De Hoogte', x: -270, y: -1555, h: 1.5 },
+    ],
+    regels: [
+      { stem: 'Tammo', tekst: 'Hier woonde ik op vier vierkante meter.' },
+      { stem: 'Tessa', tekst: 'Met drie huisgenoten.' },
+      { stem: 'Tammo', tekst: 'Het was gezellig. Noodgedwongen.' },
+    ],
+  },
 ];
 
 export const intochtVoor = (naam) => INTOCHTEN.find((s) => s && s.wijk === naam) || null;
