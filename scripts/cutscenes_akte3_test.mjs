@@ -20,6 +20,8 @@ ok(looks.berend && looks.berend.name === 'Berend Bos', 'NPC table parsed');
 
 // spec key -> script scene ids (storyarc_nieuw.js `story`)
 const SCENES = {};
+// #737: het tweede deel van de M16-outro heeft een eigen spec op de dijk (de M16.6-regels)
+SCENES['M16.dijk'] = ['M16.6'];
 for (const s of STEPS.filter((q) => q.part === 'staart' && q.story)) { SCENES[s.id + '.intro'] = s.story.intro; if (s.story.outro) SCENES[s.id + '.outro'] = s.story.outro; }
 const NAME = { T: 'Tammo', A: 'Anita' };
 // the timeline of missionstory.js without recordings: reading time, 0.6 s lead, 0.1 s between
@@ -87,3 +89,4 @@ for (const key of Object.keys(SPECS)) {
 
 console.log(fails ? `${fails} of ${n} failed` : `cutscenes_akte3_test: ${n} checks ok`);
 process.exit(fails ? 1 : 0);
+

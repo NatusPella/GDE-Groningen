@@ -838,3 +838,54 @@ S['M06.3#0-4'] = {
   shots: [],
   wide: WIDE([-6, 3.4, 2.4], [-4.4, 2.6, 2.0], 'mid:tammo,tessa@1.2'),
 };
+
+// --- #743: het logboek van 12 augustus (M18.3) als eigen scène in de serverkamer ------------------
+// De clue wordt gelezen, niet tijdens het sluipen verteld: Tessa leest het scherm voor, Tammo kijkt mee.
+S['M18.3'] = {
+  cast: {},
+  props: { scherm: { kind: 'bord', at: [4.6, -1.0, 1], face: 175 }, klembord: { kind: 'klembord', at: [2.2, 0.4, 1.0] } },
+  open: [{ actor: 'tessa', face: 'prop:scherm' }, { actor: 'tammo', face: 'prop:scherm' }, { t: 0.2, actor: 'tessa', walk: [[1.4, -0.5]], speed: 0.7 }],
+  beats: [
+    { on: 'De update. Altijd om middernacht', actor: 'tessa', anim: 'point' },
+    { on: 'Behalve twaalf augustus', actor: 'tammo', anim: 'look' },
+    { on: 'Jelle.', actor: 'tammo', anim: 'shake' },
+    { on: 'Dus wij kraakten', actor: 'tammo', anim: 'shrug' },
+    { on: 'Ik print dit', actor: 'tessa', anim: 'nod' },
+  ],
+  shots: [
+    { on: 'De update. Altijd om middernacht', dt: 0.2, shot: 'dolly', from: [-2.2, 2.6, 1.7], to: [-0.8, 1.6, 1.55], look: 'tessa@1.3', fov: 36 },
+    { on: 'Dus wij kraakten', dt: 0.2, shot: 'cut', at: [-1.2, -2.2, 1.6], look: 'tammo@1.3', fov: 34 },
+  ],
+  wide: WIDE([-4.6, 3.6, 3], [-2.6, 2.8, 2.2], 'mid:tammo,tessa@1.2'),
+};
+
+// --- #739: M21.4 (Tammo, de vrienden) als stage-outro: de vrienden zeggen nee en gaan weg -----------
+// Alleen de vrienden die in beeld komen; Trijntje en Mem bellen (telefoon, niet in de kamer).
+S['M21.4'] = {
+  cast: {
+    tinus: { key: 'tinus', at: [4.4, 2.2], face: 200, anim: 'idle', bg: true, gest: ['look', 'nod', 'hips'] },
+    geesje: { key: 'geesje', at: [5.2, -0.4], face: 190, anim: 'idle', bg: true, gest: ['talk', 'shrug'] },
+    klaas: { key: 'klaas', at: [6.2, 2.6], face: 195, anim: 'idle', bg: true, gest: ['talk', 'point'] },
+    lammert: { key: 'lammert', at: [6.6, -2.4], face: 185, anim: 'idle', bg: true, gest: ['talk', 'shake'] },
+    wubbo: { key: 'wubbo', at: [5.6, 4.2], face: 200, anim: 'idle', bg: true, gest: ['talk', 'hips'] },
+    roelfien: { key: 'roelfien', at: [7.4, -0.2], face: 185, anim: 'idle', bg: true, gest: ['talk', 'look'] },
+  },
+  props: {},
+  open: [{ actor: 'tammo', face: 'actor:tinus' }, { actor: 'tessa', face: 'actor:tammo' }, { t: 0.2, actor: 'tammo', walk: [[0.5, 0.2]], speed: 0.8 }],
+  beats: [
+    { on: 'Laat ze gaan', actor: 'tinus', anim: 'shake' },
+    { on: 'Mijn kerkvoogdij', actor: 'geesje', anim: 'talk' },
+    { on: 'Mijn rubberboot', actor: 'klaas', anim: 'talk' },
+    { on: 'Mijn kade', actor: 'lammert', anim: 'talk' },
+    { on: 'De brug draait', actor: 'wubbo', anim: 'talk' },
+    { on: 'Ik… zeg het niet goed', actor: 'tammo', anim: 'shrug' },
+    { on: 'Mijn vliegvergunning', actor: 'roelfien', anim: 'talk' },
+    { on: 'Mijn schuur is leeg', actor: 'tinus', anim: 'nod' },
+    { on: 'Voor ons.', actor: 'tammo', anim: 'nod' },
+  ],
+  shots: [
+    { on: 'Laat ze gaan', dt: 0.2, shot: 'dolly', from: [-2.4, 2.4, 1.7], to: [-0.8, 1.4, 1.6], look: 'mid:tammo,tinus@1.3', fov: 50 },
+    { on: 'Mijn schuur is leeg', dt: 0.2, shot: 'cut', at: [-1.2, 2.2, 1.6], look: 'tinus@1.4', fov: 40 },
+  ],
+  wide: WIDE([-5.2, 4.4, 3.4], [-3.2, 3.2, 2.6], 'mid:tammo,tinus@1'),
+};

@@ -66,6 +66,8 @@ const ACT_TRAILER = {
     // de kaarten hingen aan de keuken (C00.2) in plaats van aan de openingsact.
     { t: 0.8, fx: 'naam', text: 'Tessa', dur: 2.6 },
     { t: 'L2-3.0', fx: 'naam', text: 'Tammo', dur: 2.6 },
+    // #738: de titelkaart uit de regie van C00.1, na de trailerbeelden.
+    { t: 'L2+2.2', fx: 'naam', text: 'GDE, GRONINGEN, Zomer vol misdaad', dur: 3.4 },
   ],
   shots: [
     // a crane over the street, a low cut onto the bikes, the gull, the postman, then up over the street (the look stays

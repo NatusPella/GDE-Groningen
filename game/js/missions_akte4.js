@@ -133,8 +133,10 @@ export function buildAkte4Defs() {
         {
           kind: 'hold', target: ll('wiebelwerkServers', { label: 'De serverkamer' }), mode: 'foot', radius: 6, time: 8, ticks: ['Update, altijd 00:00, drie minuten. Behalve 12 augustus: elf minuten, aangevraagd door Us Mem Snacks.', 'Zijdeur 00:03, pas van bewaker twee, gast: D en D, tilwerk. De pas van mevrouw Hoving is die dag geblokkeerd.'],
           label: 'Lees het logboek van 12 augustus', say: 'Het logboek van 12 augustus. Blijf bij de server staan tot alles gelezen is.',
-          talk: { ids: ['M18.3'], delay: 1 },
         },
+        // #743: de centrale clue (Jelle had de bal al vijf dagen eerder) is geen 54 s 'talk' meer tijdens het
+        // sluipen, maar een eigen, skippbare scène in de serverkamer; de speler kan hem niet meer missen.
+        { kind: 'scene', target: ll('wiebelwerkServers', { label: 'De serverkamer' }), label: 'Het logboek van 12 augustus', kicker: 'Wiebelwerk', big: 'Vijf dagen eerder', script: { ids: ['M18.3'] } },
         { kind: 'goto', target: ll('wiebelwerkUit', { label: 'Buiten' }), mode: 'any', radius: 18, label: 'Naar buiten, met het printje', say: 'Tessa heeft het logboek geprint. Nu weg voor de accountmanager terug is.' },
       ],
     },
@@ -294,5 +296,8 @@ export function applyAkte4(list) {
         ] },
       ],
     },
+    // #739: M21.4 ("Tammo, de vrienden", het dieptepunt) stond dood in de data. Hij speelt nu als
+    // stage-outro van Tammo's deel, na de keuzepuzzel: de vrienden gaan weg en Tammo blijft alleen achter.
+    { kind: 'scene', target: ll('tinusSchuur', { label: 'Tinus\' schuur' }), label: 'Tammo, de vrienden', kicker: 'Woensdag 26 augustus', big: 'Tammo, de vrienden', solo: true, script: { ids: ['M21.4'] } },
   ];
 }

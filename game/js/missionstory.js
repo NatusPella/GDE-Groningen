@@ -3,6 +3,8 @@ import { buildPersonMesh, animatePersonWalk, seatPose, seatedY, standBehindPose,
 import { HABBO_PALETTE } from './pixelart3d.js';
 import { playCinematic, roofAt, showBanner } from './cinematics.js';
 import { isInWater, WATER_Y } from './util.js';
+import { wgsToWorld } from './rdnew.js';
+import { refreshDayNight } from './daynight.js';
 import { spawnFxPuff, spawnFxSpark } from './fx3d.js';
 import { makeBirds, updateBirds } from './birds.js';
 import { playStoryVoice, stopStoryVoice, setStoryScene, playClueSting, playGlassClink, playTextMumble } from './audio.js';
@@ -1204,7 +1206,7 @@ function alignToRoad(w, anchor, facing) {
 
 // opts.def: a scene that is not a spec of missionScene (quickScene); opts.update(t, dt) runs every frame; opts.shotOverride(t) is a hand-made
 // camera for a stretch of the scene (a pose, or null for the script's own); opts.z is the floor height (the deck of a boat)
-function playStaged(w, key, tl, { anchor, facing, kicker = '', title = '', cardFor = 3, banner, bannerAfter, def: given = null, update = null, shotOverride = null, z = 0 }) {
+function playStaged(w, key, tl, { anchor, facing, kicker = '', title = '', cardFor = 3, banner, bannerAfter, def: given = null, update = null, shotOverride = null, z = 0, queue = false, onStart = null }) {
   if (run || (!key && !given)) return false;
   const sceneLines = tl.lines.map((l) => ({ speaker: l.speaker, text: l.text, at: l.at, dur: l.dur }));
   const def = given ? given(sceneLines) : missionScene(key, sceneLines, { looks: NPC });
@@ -1224,7 +1226,7 @@ function playStaged(w, key, tl, { anchor, facing, kicker = '', title = '', cardF
     // als hulplijst mee in het pakket in plaats van dat de gast ze in de 'lines'-bank zoekt (dat schoof de tijden op)
     voices: lines.map((l) => (l.voice ? { src: VOICE_DIR + l.voice.src, dur: l.voice.dur } : null)),
     cine: {
-      id: 'mission-scene', priority: 3, kicker, title, cardFor, shotOverride,
+      id: 'mission-scene', priority: 3, kicker, title, cardFor, shotOverride, ...(queue ? { queue: true } : {}),
       frame: (t, dt) => {
         const cur = lines.find((l) => t >= l.at && t < l.at + l.dur);
         if (update) update(t, dt, cur);
@@ -1237,6 +1239,7 @@ function playStaged(w, key, tl, { anchor, facing, kicker = '', title = '', cardF
       },
       onStart: () => {
         setStoryScene(true);
+        if (onStart) onStart();
         if (banner) showBanner(banner);
         // passers-by near the set step aside for the scene
         const near = (q) => q.state !== 'dead' && Math.hypot(q.x - anchor.x, q.y - anchor.y) < 12;
@@ -1308,7 +1311,8 @@ function entryFor(i) {
 }
 
 export function playStoryIntro(w, i, { stage = i, short = false, kicker = '', title = '', target = null } = {}) {
-  stage = i;
+  // #745: de meegegeven stage blijft staan. Een missie die buiten de verhaallijn is gestart (herhaling,
+  // vrije volgorde) speelt zo de korte/herhaalvariant; `stage >= i` kiest hieronder wat er te zien is.
   const s = entryFor(i);
   if (!s || run) return false;
   const v = hoofdspeler(w).inVehicle;
@@ -1344,7 +1348,8 @@ export function playStoryIntro(w, i, { stage = i, short = false, kicker = '', ti
 }
 
 export function playStoryOutro(w, i, opts = {}) {
-  opts = { ...opts, stage: i };
+  // #745: `stage` van de aanroeper (storyStage(i)) blijft staan; niet terugzetten op i, anders speelt een
+  // herhaalde of vrij gestarte missie altijd de volledige outro in plaats van de korte variant.
   const s = entryFor(i);
   const { stage = i, short = false } = opts;
   // a beat before the talk, e.g. the trekker-limo pulling up at the museum (H4)
@@ -1367,8 +1372,33 @@ function outroNow(w, i, { stage = i, short = false, reward = 0, stats = [], reas
   const wantNpc = short ? lines.some((l) => l[0] === 'N') : !!s.outroNpc && !kiss;
   if (full && !kiss && !(v && v.isBoat)) {
     const anchor0 = onFootAnchor(w);
+    const key = stagedKey(i, 'outro');
+    const spec = key ? sceneSpec(key) : null;
+    // #737: een outro die op twee plekken speelt (M16: kermis, dan de dijk bij Blauwestad). De spec zegt waar
+    // de knip ligt, welke spec het tweede deel speelt, waar dat staat (lat/lon) en welk dagdeel daar hoort.
+    const split = spec && spec.split && spec.split.key ? spec.split : null;
+    const cut = split ? lines.findIndex((l) => l[1] && String(l[1]).startsWith(split.at)) : -1;
+    if (cut > 0) {
+      const head = timeline(lines.slice(0, cut), wantNpc ? NPC[outroKey] : null, 0.5);
+      if (playStaged(w, key, head, { anchor: anchor0, facing: facingTowards(w, anchor0, null) })) {
+        let anchor2 = anchor0;
+        let facing2 = facingTowards(w, anchor0, null);
+        if (Number.isFinite(split.lat) && Number.isFinite(split.lon)) {
+          const [x, y] = wgsToWorld(split.lat, split.lon);
+          anchor2 = { x, y };
+          facing2 = Number.isFinite(split.facing) ? split.facing : facing2;
+        }
+        playStaged(w, split.key, timeline(lines.slice(cut), wantNpc ? NPC[outroKey] : null, 0.5), {
+          anchor: anchor2, facing: facing2, banner, queue: true,
+          onStart: () => {
+            if (split.clock != null && typeof w.clock === 'number') { w.clock = split.clock; try { refreshDayNight(w); } catch (e) { /* geen dag/nacht */ } }
+          },
+        });
+        return true;
+      }
+    }
     const stagedTl = timeline(lines, wantNpc ? NPC[outroKey] : null, 0.5);
-    if (playStaged(w, stagedKey(i, 'outro'), stagedTl, { anchor: anchor0, facing: facingTowards(w, anchor0, null), banner })) return true;
+    if (playStaged(w, key, stagedTl, { anchor: anchor0, facing: facingTowards(w, anchor0, null), banner })) return true;
   }
   // a replay's one line (`short`) and the pair on a boat's deck: a quick scene from the lines (#352)
   if (!kiss && (short || (v && v.isBoat))) {

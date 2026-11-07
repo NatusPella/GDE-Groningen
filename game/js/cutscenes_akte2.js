@@ -316,3 +316,45 @@ export const SPECS_AKTE2 = {};
     wide: { from: [-3.4, 3.8, 2.9], to: [-1.8, 2.8, 2.3], look: 'mid:klaas,tessa@1.2', fov: 50, until: 1 },
   };
 }
+
+// --- #742: de nacht op de zandplaat (M11.5 de Melkweg, M11.6 de lange blik) ----------------------
+// De camera blijft laag, zodat de sterrenhemel boven de twee staat; geen generieke deckCam-drift meer.
+SPECS_AKTE2['M11.5'] = {
+  cast: { klaas: { key: 'klaas', at: [3.2, 0.8], face: 185, anim: 'idle', gest: ['talk', 'point', 'hips'] } },
+  props: {},
+  open: [{ actor: 'tessa', face: 'actor:klaas' }, { actor: 'tammo', face: 'actor:klaas' }, { t: 0.2, actor: 'tessa', walk: [[1.0, -0.5]], speed: 0.7 }],
+  beats: [
+    { on: 'Wij zitten vast', actor: 'klaas', anim: 'shrug' },
+    { on: 'Kijk omhoog', actor: 'klaas', anim: 'point' },
+    { on: 'Dat is de Melkweg', actor: 'tessa', anim: 'look' },
+    { on: 'Ik dacht dat dat een vlek was', actor: 'tammo', anim: 'shrug' },
+    { on: 'Het is een vlek van driehonderd miljard', actor: 'tessa', anim: 'point' },
+    { on: '…Groter dan een vlek', actor: 'tammo', anim: 'look' },
+  ],
+  shots: [
+    { on: 'Dat is de Melkweg', dt: 0.3, shot: 'dolly', from: [-2.0, -2.6, 0.95], to: [-0.8, -1.4, 1.05], look: 'tessa@1.45', fov: 46 },
+    { on: 'Het is een vlek van driehonderd miljard', dt: 0.2, shot: 'cut', at: [-1.4, 2.2, 1.0], look: 'tammo@1.4', fov: 40 },
+  ],
+  wide: { from: [-4.8, 4.0, 3.2], to: [-2.8, 3.0, 2.4], look: 'mid:tammo,tessa@1.1', fov: 50, until: 1 },
+};
+
+SPECS_AKTE2['M11.6'] = {
+  cast: {},
+  props: {},
+  open: [{ actor: 'tessa', face: 'actor:tammo' }, { actor: 'tammo', face: 'actor:tessa' }, { t: 0.2, actor: 'tammo', walk: [[1.8, 0.6]], speed: 0.7 }],
+  beats: [
+    { on: 'Hier zat ik vroeger', actor: 'tammo', anim: 'look' },
+    { on: 'Alleen?', actor: 'tessa', anim: 'look' },
+    { on: 'Met een zakje friet', actor: 'tammo', anim: 'shrug' },
+    { on: 'Je kijkt naar mij', actor: 'tessa', anim: 'hips' },
+    { on: 'Die gaan toch niet onder', actor: 'tammo', anim: 'look' },
+    { on: 'Kijk naar de sterren', actor: 'tessa', anim: 'point' },
+  ],
+  shots: [
+    { on: 'Je kijkt naar mij', dt: 0.3, shot: 'dolly', from: [1.8, -2.2, 1.0], to: [0.9, -1.2, 1.1], look: 'tessa@1.4', fov: 40 },
+    { on: 'Kijk naar de sterren', dt: 0.2, shot: 'cut', at: [-1.6, 1.8, 0.95], look: 'tammo@1.35', fov: 42 },
+  ],
+  wide: { from: [-4.2, 3.6, 3.0], to: [-2.4, 2.8, 2.2], look: 'mid:tammo,tessa@1.1', fov: 50, until: 1 },
+};
+
+

@@ -141,6 +141,20 @@ Om de scope beheersbaar te houden zijn drie systemen de **signature** van het ve
 | **Veel tegelijk in één missie** | M20 (beleg, fierljep, afname, vasthouden, ruzie) is te vol; M11 (skûtsje, wad, kustwacht) is ook lang | splits in twee missies als de speelduur boven 15 minuten komt (M11 en M16 zijn al samengevoegd: ca. 12-14 minuten) |
 | **Kanaalscheiding in code** | de radio moet dimmen en het telefoonkanaal moet tijdens missies kunnen praten | vlag per kanaal in `audio.js` en `phone.js` (AANNAME); luistertest met verse spelers |
 
+## 5b. Vijf missies zonder eigen outro — bewust (#722)
+
+Vijf missies hebben `story.outro: null` in `storyarc_nieuw.js`: de laatste stage van de missie
+vertelt de afloop en de pass-banner komt daar alleen. Dat is een keuze, geen gat; de scènes staan
+als in-missie-stage in de akte-bestanden. `scripts/storyregie_test.mjs` bewaakt dat.
+
+| Missie | Waarom geen eigen outro | Waar de afloop zit |
+|---|---|---|
+| M06 Het museum | De escape en het radiogesprek zijn stages van de missie; er is geen vierde scène | `missions_nieuw.js` (M06.3 als stage/radio) |
+| M10 Een trekker-limo op de wierde | De slootscène is een stage, het nagerecht in de auto is banter | `missions_akte2.js` (M10.3-stage), M10.4-banter |
+| M21 Iedereen heeft een rode auto gezien | Tessa's deel eindigt op de wagon, Tammo's dieptepunt is nu de M21.4-stage | `missions_akte4.js` (M21.3- en M21.4-stage) |
+| M22 Een luik erin | De schuur en de knuffel zijn de laatste stage (M22.4), niet als outro gekeyd | `missions_akte5.js` (M22.4-stage) |
+| M24 De vlag | De vlag valt in de laatste stage (M24.3) | `missions_akte5.js` (M24.3-stage) |
+
 ## 6. Tests en controles die nu al kunnen
 
 - `node scripts/calendar_test.mjs` na het aanpassen van `STEP_DATES`.

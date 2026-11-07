@@ -191,6 +191,9 @@ S['M16.intro'] = {
 };
 
 S['M16.outro'] = {
+  // #737: M16.3-M16.5 spelen op de kermis; M16.6 is de dijk bij Blauwestad bij zonsondergang. De knip ligt
+  // bij de dijkregel: daarna speelt 'M16.dijk' op een eigen anker (lat/lon) en met een eigen dagdeel.
+  split: { at: 'Bij Berend mocht ik niet rijden', key: 'M16.dijk', lat: 53.17, lon: 6.988, facing: 1.2, clock: 20.6 },
   cast: {
     durk: { key: 'durk', at: [3.2, 1.4], face: 185, anim: 'lean', gest: ['lean', 'talk', 'shrug'] },
     douwe: { key: 'douwe', at: [3.4, -1.4], face: 175, anim: 'lean', gest: ['lean', 'shrug'] },
@@ -216,13 +219,30 @@ S['M16.outro'] = {
     { on: 'Durk. Dat was geheim', actor: 'douwe', anim: 'shrug' },
     { on: 'Hij heeft hem echt', actor: 'tessa', anim: 'shrug' },
     { on: 'Dan pakken we hem in Veendam', actor: 'tammo', anim: 'nod' },
-    // the dike: the two walk side by side, the water in front
-    { on: 'Bij Berend mocht ik niet rijden', actor: 'tammo', walk: [[0.4, 0.6]], speed: 1 },
-    { on: 'Bij Berend mocht ik niet rijden', actor: 'tessa', walk: [[0.4, -0.6]], speed: 1 },
+  ],
+  shots: [],
+  wide: { from: [-5.2, 4.8, 3.2], to: [-3.2, 3.2, 2.4], look: 'mid:durk,tessa@1', fov: 50, until: 1 },
+};
+
+// --- #737: de dijk bij Blauwestad (M16.6): zonsondergang boven het Oldambtmeer -------------------
+// Twee mensen lopen over de dijk, het water links, de kermis ver weg. Lage camera, veel lucht.
+S['M16.dijk'] = {
+  cast: {},
+  props: {},
+  open: [
+    { actor: 'tammo', walk: [[2.2, 0.7]], speed: 0.9 },
+    { actor: 'tessa', walk: [[2.4, -0.5]], speed: 0.9 },
+  ],
+  beats: [
+    { on: 'Bij Berend mocht ik niet rijden', actor: 'tammo', anim: 'shrug' },
+    { on: 'Bij Berend mocht ik niet rijden', dt: 0.4, actor: 'tessa', anim: 'laugh' },
     { on: 'Moi.', actor: 'tessa', anim: 'nod' },
     { on: 'Dat gezicht betekent', actor: 'tessa', anim: 'point' },
     { on: 'Klopt', actor: 'tammo', anim: 'nod' },
   ],
-  shots: [],
-  wide: { from: [-5.2, 4.8, 3.2], to: [-3.2, 3.2, 2.4], look: 'mid:durk,tessa@1', fov: 50, until: 1 },
+  shots: [
+    { on: 'Bij Berend mocht ik niet rijden', dt: 0.3, shot: 'dolly', from: [-4.2, 2.6, 1.0], to: [-2.2, 1.4, 1.1], look: 'mid:tammo,tessa@1.35', fov: 50 },
+    { on: 'Dat gezicht betekent', dt: 0.3, shot: 'cut', at: [-1.6, -2.4, 1.0], look: 'tessa@1.4', fov: 40 },
+  ],
+  wide: { from: [-6.4, 4.2, 2.6], to: [-4.2, 3.0, 2.0], look: 'mid:tammo,tessa@1.1', fov: 58, until: 1 },
 };

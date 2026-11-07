@@ -38,7 +38,7 @@ import { purchaseCount, storyBuyLabel } from './storyshop.js';
 import { getPigeonSpotsForRender } from './pigeonspots.js';
 import { getSideJobList } from './sidejobs.js';
 import { getGaragesForRender } from './garages.js';
-import { inHomeFlat, getHomeForRender, flatStage } from './home.js';
+import { inHomeFlat, getHomeForRender, flatStage, homeSpawnPoint } from './home.js';
 import { isShopOpen } from './shopui.js';
 import { maybeOfferHelp, noteStepCleared } from './assistlive.js';
 import { playCinematic, isCinematicActive, skipCinematic, sinceCinematic, isBannerUp } from './cinematics.js';
@@ -241,7 +241,13 @@ const GOALS = {
       if (b.phase === 'wait') {
         const ready = !isMissionActive() && !isCinematicActive() && sinceCinematic() > 1 && !narrativeBusy() && !world.pigeonMode && !world.pendingRespawn && document.body.classList.contains('game-started') && !gateOn() && world.coopRole !== 'client';
         if (ready && storyDataReady()) { b.phase = 'play'; if (!playOpening(b)) b.phase = 'done'; }
-        else if (ready && world.time - rt.enteredAt > 40) b.phase = 'done';
+        else if (ready && world.time - rt.enteredAt > 40) {
+          // #718: niet meer definitief overslaan als de wereld even niet rustig wordt (laden, rijden bij de
+          // start): de opening blijft klaarstaan en wordt later alsnog geprobeerd. Wel één regel in de
+          // console, zodat een vastloper niet stil blijft. Na tien minuten geeft de stap het op.
+          if (!b.warned) { b.warned = true; try { console.warn('Verhaal: de opening wacht op rust; nieuwe poging zodra de wereld stil is.'); } catch (e) { /* geen console */ } }
+          if (world.time - rt.enteredAt > 600) b.phase = 'done';
+        }
       }
       return b.phase === 'done';
     },
@@ -506,9 +512,31 @@ function playOpening(b) {
   }
   const p = hoofdspeler(world);
   const kop = PARTS.kop;
+  // #718: de opening speelt bij het nieuwe thuis (homeSpawnPoint, net als intromontage.js), niet waar de speler
+  // toevallig staat: de straat van de Oosterparkwijk en de keuken hingen anders boven een willekeurige plek.
+  const thuis = homeSpawnPoint();
+  if (thuis && Number.isFinite(thuis.x) && Number.isFinite(thuis.y)) {
+    p.x = thuis.x; p.y = thuis.y;
+    if ('vx' in p) { p.vx = 0; p.vy = 0; }
+    const c = world.companion;
+    if (c && !c.inVehicle) { c.x = p.x + 1.2; c.y = p.y + 0.6; }
+  }
   // the staged version (cutscenes.js openingActs): people and props move, the camera cuts; the orbit below stays as the fallback
   const v0 = p.inVehicle;
-  const spot = { x: v0 ? v0.x : p.x, y: v0 ? v0.y : p.y, facing: v0 ? v0.angle : p.angle || 0, z: 0 };
+  const spot = { x: v0 ? v0.x : p.x, y: v0 ? v0.y : p.y, facing: v0 ? v0.angle : p.angle || (thuis && thuis.angle) || 0, z: 0 };
+  // #738: C00.1 is zonsopgang en C00.2 ochtend, maar een nieuw spel start op 17:30 (daynight.js START_HOUR).
+  // Zet de klok op dageraad vóór de acts en laat hem per act naar de ochtend lopen; het wereldlicht volgt.
+  const zetKlok = (uur) => {
+    if (typeof world.clock !== 'number') return;
+    world.clock = uur;
+    try { refreshDayNight(world); } catch (e) { /* nog geen dag/nacht */ }
+  };
+  zetKlok(5.75);
+  const openingKlaar = () => {
+    if (b.phase === 'done') return;
+    zetKlok(8);
+    b.phase = 'done';
+  };
   // three acts after each other: the trailer in the street, Tessa's kitchen (high above it), moving day.
   // Skipping (hold Space) ends the whole opening.
   const acts = openingActs(lines);
@@ -524,7 +552,9 @@ function playOpening(b) {
         id: 'story-opening',
         ...(i === 0 ? { kicker: `${partNumber('kop')} · ${kop.date}`, title: kop.name, cardFor: 3.2 } : {}),
         onEnd: (skipped, replaced) => {
-          if (last || skipped || replaced || !playAct(i + 1)) b.phase = 'done';
+          if (i === 0) zetKlok(6.4);
+          else if (i === 1) zetKlok(7.3);
+          if (last || skipped || replaced || !playAct(i + 1)) openingKlaar();
         },
       },
     });
@@ -539,7 +569,7 @@ function playOpening(b) {
       const a = 0.6 + t * 0.045;
       return { position: { x: x + Math.cos(a) * 15, y: y + Math.sin(a) * 15, z: 7 - u * 2.5 }, lookAt: { x, y, z: 3.5 }, fov: 46 };
     },
-    onEnd: () => { b.phase = 'done'; },
+    onEnd: () => { openingKlaar(); },
   });
   return ok;
 }
@@ -623,15 +653,23 @@ function playRecap(part) {
 // Fjord Frituur. The credits wait until everything is done (playCredits).
 function playFinale(part) {
   const P = PARTS[part];
-  // the ending plays over the Grote Markt: the world streams around the player
+  // the ending plays over the Grote Markt: the world streams around the player.
+  // #719: niet hard teleporteren. Eerst netjes uit een voertuig (anders draaide de camera om de
+  // Markt terwijl de speler ergens anders stond), dan de verplaatsing met een zwarte doof, en
+  // nearestRoadPoint krijgt een vaste terugval als er geen weg gevonden wordt (de Markt zelf).
   const p = hoofdspeler(world);
-  const spot = world.map.nearestRoadPoint(...FINALE_SPOT, 120, false);
-  if (spot && !p.inVehicle) {
-    p.x = spot.x; p.y = spot.y;
-    void 0;
-    const c = world.companion;
-    if (c && !c.inVehicle) { c.x = p.x + 1.2; c.y = p.y + 0.6; }
-  }
+  const road = world.map.nearestRoadPoint(...FINALE_SPOT, 120, false);
+  const spot = road || { x: FINALE_SPOT[0], y: FINALE_SPOT[1] };
+  if (p.inVehicle) { try { p.exitVehicle(world.map, world); } catch (e) { /* geen voertuig meer */ } }
+  p.x = spot.x; p.y = spot.y;
+  if ('vx' in p) { p.vx = 0; p.vy = 0; }
+  if ('z' in p) p.z = 0;
+  if ('gz' in p) p.gz = 0;
+  if ('water' in p) p.water = null;
+  if ('swimming' in p) p.swimming = false;
+  const c = world.companion;
+  if (c && !c.inVehicle) { c.x = p.x + 1.2; c.y = p.y + 0.6; }
+  flash(); // zwarte doof over de sprong; fade't uit over de Markt
   let at = 3.2;
   const card = P.card || [];
   const lines = card.map(([speaker, text], k) => {
