@@ -456,9 +456,13 @@ function runBootScreen(world, opts, pending = null) {
   // is"; de boot opent dan een lege wereld in plaats van de oude save te laden.
   const fresh = isFreshStart();
   const slot = fresh ? currentSlot() : ensureLatestSlot();
-  // No reliable latest (a full list, a broken save, or a save from a newer version): the old
-  // save screen stays available instead of silently loading or overwriting the wrong save.
-  if (!slot || (!fresh && !hasSave() && listSlots(null).length)) return runMenuScreen(world, opts, pending);
+  // No reliable latest (a full list, a broken save, or a save from a newer version): #606 sends the player
+  // to Opgeslagen spellen with a message, instead of the old title screen that only exists for QA/trailer (#581).
+  if (!slot || (!fresh && !hasSave() && listSlots(null).length)) {
+    // een benchmark die op deze herlaad wacht hoort op het oude menu (QA/ontwikkelaar), niet op dit scherm
+    if (pending && pending.mode === 'benchmark') return runMenuScreen(world, opts, pending);
+    return runBootSaveScreen(world, opts);
+  }
   return new Promise((resolve) => {
     const screen = el('start-screen');
     if (screen) { screen.classList.remove('visible'); screen.style.display = 'none'; }
@@ -505,6 +509,49 @@ function runBootScreen(world, opts, pending = null) {
     };
     if (pending && pending.mode === 'benchmark') benchmarkFromBoot(world, opts).then(begin, (e) => { console.error('benchmark', e); begin(); });
     else begin();
+  });
+}
+
+// #606: de laatste save kan niet automatisch geladen worden (kapot, van een nieuwere versie of de lijst is
+// niet te lezen). In plaats van het oude titelscherm (#581, alleen QA/trailer) opent Opgeslagen spellen,
+// met de melding erbij en de reservekopie binnen bereik. Er is geen scherm om naar terug te gaan, dus Terug
+// valt weg (saveslotsui.js noBack); de speler kiest een spel of begint opnieuw.
+const BOOT_SAVE_TEKST = 'We konden je opgeslagen spel niet automatisch openen. Kies een opgeslagen spel om verder te gaan of begin een nieuw spel.';
+function runBootSaveScreen(world, opts) {
+  const status = document.querySelector('#loading .ld-status');
+  if (status) status.textContent = 'Kies een opgeslagen spel';
+  return new Promise((resolve) => {
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      // net als bij de gewone boot: eerst één frame tekenen voordat het laadscherm weggaat
+      try { if (opts && opts.render) opts.render(0.016, 0); } catch (e) { /* renderer nog niet klaar */ }
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        try { if (world.map && world.map.releaseShots) world.map.releaseShots(); } catch (e) { /* niet erg */ }
+        dismissLoading();
+        resolve('game');
+      }));
+    };
+    const startNew = () => {
+      // zonder vrije plek (volle opslag) blijft de keuze staan in plaats van zonder schrijfplek te starten
+      if (!startNewSlot()) { open(); return; }
+      startTheme();
+      reseedAutoplay();
+      finish();
+    };
+    const continueGame = () => {
+      if (!hasSave()) { startNew(); return; }
+      startTheme();
+      loadBootSave(world);
+      startLoadScreen(world, { kind: 'save' });
+      finish();
+    };
+    const open = () => openSaveSlots({
+      mode: 'start', solo: true, noBack: true, eyebrow: 'Spel', titel: 'Opgeslagen spellen', hint: BOOT_SAVE_TEKST,
+      onLoad: continueGame, onNew: startNew,
+    });
+    open();
   });
 }
 
