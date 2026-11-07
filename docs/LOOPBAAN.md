@@ -114,7 +114,6 @@ hoort bij `hengelen.js`; de soorten en het geld staan in `visdata.js`, het water
   snoekbaars en meerval beter, regen helpt brasem en zeeforel. Het is altijd zomer: er is geen seizoen.
 - **Geld:** een vangst is `(0,2 + 0,2 per kg)` euro keer de zeldzaamheid (1 tot 8) keer een groei van `1 + 0,03 per ontdekte soort + 0,02 per plek` (hooguit 1,8).
   De kas loopt in hele euro's naar de portemonnee via `loopbaanVerdien` (dus met de loonfactor van het niveau, hooguit +30%) en wordt bij het stoppen
-  afgerond. Zonder niveaus: 120 tot 270 euro per uur, met alles ontdekt tot ongeveer 400; `loopbaan_balans_test.mjs` en `vis_test.mjs` bewaken de verhouding
-  met de bijbanen. De gasten bij samen spelen krijgen er niets van (`deel: false`): ze hengelen op hun eigen apparaat in hun eigen boek.
+  afgerond. Zonder niveaus: 70 tot 160 euro per uur, met alles ontdekt tot ongeveer 240; `visdata.js` `PRIJS_SCHAAL` (0,6) houdt dat in de orde van de bijbanen (#680), en `vis_test.mjs` en `loopbaan_balans_test.mjs` bewaken de verhouding met de bijbanen. De gasten bij samen spelen krijgen er niets van (`deel: false`): ze hengelen op hun eigen apparaat in hun eigen boek.
 - **Punten:** een vangst geeft 1 tot 15 punten naar zeldzaamheid, een nieuwe soort 6 extra en een nieuw water 8.
 - **Prestaties:** tien, twintig en alle soorten, vijf en vijftien wateren, honderd vissen, per watertype alle soorten, en de meerval.

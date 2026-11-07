@@ -118,3 +118,31 @@ Muted text is 60 to 68 % cream; do not go lower for anything a player must read.
 **Time.** Nothing needs a fast reaction to read: cards stay at least 4 s, longer when long (reading time); a countdown to answer is stated in words and has a default; a menu pauses the game for the player (see Samen spelen for what that means for others).
 
 **Language of the interface.** Dutch only; Samen spelen and not co-op or multiplayer; no role names in text ([DESIGN_SYSTEM.md](../DESIGN_SYSTEM.md), "Language rules").
+
+## Starten en stoppen: één conventie (#688)
+
+Voor alle activiteiten (minigames, diensten, verhaalscènes) gelden dezelfde toetsen; de bron is `game/js/stopconventie.js` (puur, getest in `scripts/stopconventie_test.mjs`). De pad-B komt als `backspace` binnen en de knoppen in het stopvenster sturen dezelfde toetsweg, dus toetsenbord, controller en touch doen hetzelfde.
+
+| Wat | Toets | Gedrag |
+|---|---|---|
+| Doen (standaard in de wereld) | `E` | praten, instappen, gebruiken, een activiteit starten |
+| Stoppen, meteen | `Backspace` (pad-B) | elke activiteit stopt direct, zonder vraag |
+| Stoppen met bevestiging | `Esc` | vraagt "Stoppen?"; `Esc` of `Enter` bevestigt, `Spatie` of de knop Doorgaan gaat door; na 8 s vervalt de vraag |
+| Uitzondering op starten | `I` | vrij hengelen aan de waterkant; dat staat in de startkaart én in het toetsenoverzicht (`stopconventie.js` `STOP_UITZONDERING`) |
+
+De startkaart noemt alleen deze kern (2-3 toetsen); de rest staat in Hulp en in het toetsenoverzicht. Nieuwe activiteiten gebruiken `stopPressed()` uit `minigamekit.js` in plaats van eigen stoptoetsen.
+
+## Woordenlijst voor spelerstekst (#682)
+
+Eén woord voor één ding, in "Te doen", het pauzemenu, de kaart en de meldingen:
+
+| Woord | Betekenis |
+|---|---|
+| **activiteit** | het geheel in het pauzemenu (de rail heet "Activiteiten") |
+| **minigame** | het spelletje zelf (de groep "Minigames" in Te doen, het label "Minigame" op de kaart) |
+| **bijbaan** | het baantje als geheel; op de kaart gegroepeerd als **Diensten** en **Kantoorklussen** |
+| **dienst** | een bijbaan met een voertuig, tijd en een doel |
+| **kantoorklus** | een korte bijbaan achter een balie of met een tekstpaneel |
+| **ronde** | één keer spelen (bij een dienst ook "rit"); geen "potje" of "klus" door elkaar |
+
+De aantallen in spelerstekst komen uit de bron (`LESSEN`, `VILLAGES`, `EIERBAL_TOTAL`, `SECRETS_TOTAL`, `WORLD_END_TOTAL`, `AGENDA`); `scripts/spelerstekst_aantallen_test.mjs` bewaakt dat.

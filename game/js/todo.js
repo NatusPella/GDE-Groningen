@@ -23,8 +23,9 @@ import { getPigeonSaveData } from './pigeonmode.js';
 import { activityMapIcons } from './activities.js';
 import { LES_IDS, LESSEN } from './vliegschoolrules.js';
 import { isPostgameOpen, CHALLENGES } from './postgame.js';
+import { VARIANTEN, variantOpen, variantTekst } from './activiteitvariant.js'; // #673: variant met eigen record
 import { SET_DONE, SET_EGGS } from './dorpsuitjes.js';
-import { VILLAGES } from './ommelandlines.js';
+import { VILLAGES, WORLD_END_TOTAL } from './ommelandlines.js';
 import { getStationsForRender } from './stationtravel.js';
 import { SECRETS_TOTAL } from './geheimen.js';
 import { DRIFT_ZONE, DRIFT_MEDAL_AT } from './driftzone.js';
@@ -46,7 +47,7 @@ export const GROUPS = [
 ];
 export const STATUS_LABEL = { nu: 'Nu', klaar: 'Klaar', later: 'Later', slot: 'Op slot' };
 const TYPE_LABEL = { deliver: 'Bezorgen', stunt: 'Stunts', checkpoint: 'Race', fatbike: 'Overleven', boat: 'Varen', stages: 'Missie' };
-const WORLD_ENDS = 12;
+// #682: het aantal wereld-einden komt uit de bron (ommelandlines.js), niet uit de hand.
 
 const euro = (v) => '€' + Math.round(v).toLocaleString('nl-NL');
 const who = (c) => (c === 'anita' ? 'Tessa' : c === 'tammo' ? 'Tammo' : '');
@@ -198,6 +199,15 @@ function minigameItems(world) {
     'Hellingen, een kist en leuningen. Ollie, kickflip, heelflip, spins en grindtrucs; elk nieuw kunstje in de keten telt zwaarder, een val kost je de keten.', [[1, '1.200 punten'], [2, '3.200 punten'], [3, '6.500 punten']]);
   mg('kartbaan', 'mg:kartbaan', 'kartbaan', 'Karten bij Kardinge', 'Kardinge · drie ronden · gratis', 'kart-race', (v) => `Record ${formatMissionTime(v)}`, 'Minigame · Kardinge',
     'Drie ronden tegen drie rijders. Gas, rem en handrem: een lange drift geeft een versnelling. Eerste is goud, tweede zilver, derde brons.', [[1, 'derde'], [2, 'tweede'], [3, 'eerste']]);
+  // #673: de variant na de hoogste medaille, met een eigen record en een eigen doel
+  for (const v of VARIANTEN) {
+    const rec = getChallengeRecord(v.record);
+    if (!variantOpen(v, { unlocked: isUnlocked, record: getChallengeRecord })) continue;
+    const stand = variantTekst(v, rec);
+    add({ key: 'mg:variant:' + v.id, playId: v.playId, icon: v.icon, title: v.naam, meta: `Variant · ${stand.recordTekst}`,
+      medal: stand.medaille, record: stand.recordTekst,
+      detail: { kicker: `Variant · goud op ${v.baseNaam}`, text: stand.tekst, rows: [], medals: v.medailles } }, acts.filter((a) => a.layer === v.layer));
+  }
   mg('ringrace', 'mg:ringrace', 'ringrace', 'Ringrace', 'ringweg · één rondje · gratis', 'ringrace', (v) => `Record ${formatMissionTime(v)}`, 'Minigame · de ringweg',
     'Eén rondje over de ringweg van 17,5 km tegen vier tegenstanders, met de eerlijke racewagen van de baan. Winnen is goud, tweede zilver, derde brons. Met medespelers rijd je tegen elkaar.', [[1, 'derde'], [2, 'tweede'], [3, 'eerste']]);
   mg('zwembad', 'mg:zwembad', 'zwembad', 'Zwembad Het Natte Papier', 'Papiermolenlaan · 100 meter · gratis', 'zwembad', (v) => `Record ${formatMissionTime(v)}`, 'Minigame · Papiermolenlaan',
@@ -263,8 +273,8 @@ function ommelandItems(world) {
       record: `${done} van ${total} gedaan · ${eggs} van ${total} eierballen`, x: st ? st.x : undefined, y: st ? st.y : undefined,
       goal: st ? { kind: 'place', name: st.name, sub: 'Met de trein naar de dorpen', x: st.x, y: st.y } : null,
       detail: { kicker: 'Ommeland · met de trein', text: 'In elk dorp is iets te doen, valt er wat te eten en ligt er een eierbal verstopt. Neem de trein vanaf het station.', rows: [['Dorpen', names.join(', ')]] } },
-    { key: 'om:einde', group: 'ommeland', icon: 'landmark', title: 'Einde van de wereld', status: ends >= WORLD_ENDS ? 'klaar' : '',
-      meta: 'Waar het Ommeland ophoudt · zoek ze zelf', medal: null, record: `${ends} van ${WORLD_ENDS} gevonden`, goal: null,
+    { key: 'om:einde', group: 'ommeland', icon: 'landmark', title: 'Einde van de wereld', status: ends >= WORLD_END_TOTAL ? 'klaar' : '',
+      meta: 'Waar het Ommeland ophoudt · zoek ze zelf', medal: null, record: `${ends} van ${WORLD_END_TOTAL} gevonden`, goal: null,
       detail: { kicker: 'Ommeland · verkennen', text: 'Ergens houden de wegen van het Ommeland op. Waar, dat zeggen we niet.', rows: [] } },
   ];
 }
