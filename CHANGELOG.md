@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [0.58.0] - 2026-11-07
 
+- **Ruim 550 ontbrekende stemregels zijn ingesproken.** De verhaalregels die nog alleen tekst waren (en de wachtrij die daarop stond) hebben nu een opname; 20 regels wachten nog op een Groningse spreektekst en blijven tekst.
 - **De verhaaleindkaart en de mist zijn gerepareerd.** De eindkaart van Deel 3 wist de verhaalstand zodat Deel 4 niet doorstartte; de mist-ontdekking rondt posities af en slaat NaN over.
 - **Het Over-scherm opent met een samenvatting van deze release (#612).** De nieuwste versie staat bovenaan; de rest van de changelog zit achter Alles.
 - **Een cutscene die tijdens het laden stopt, laat geen openstaande tegelpromise meer achter (#729).**
