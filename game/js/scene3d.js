@@ -78,6 +78,7 @@ import { effectsFor, shakeAmount } from './a11ylogic.js';
 import { reducedMotion } from './motion.js';
 import { dynamicScale, cpuLevel } from './gfxprofile.js';
 import { adaptedShadowLevel } from './shadowlevel.js';
+import { treeSyncDue } from './treesync.js';
 import { VIEW_DISTANCES, viewDistanceFor, detailDistanceFor, DETAIL_BASE } from './viewdist.js';
 import { compareOpaque } from './drawpool.js';
 import { buildingBatcher, roadBatcher, facadeBatcher, shoreBatcher, drawHub } from './staticbatch3d.js';
@@ -1606,6 +1607,7 @@ setTreeMeshBuilder(buildTreeMesh);
 const treeInstanced = [];
 let treeCapacity = 0;
 let shownTrees = [];
+let treeSyncX = null, treeSyncY = null; // #651
 // crowns the follow camera sits in or looks through (updateCamera), left out of the instancing
 const camTreeHidden = [];
 let camTreeHiddenKey = '';
@@ -2141,8 +2143,11 @@ function syncTrees(world, px, py) {
     else if (t[4] & TREE_FLAG.fill) trees.push(t);
   }
   const hiddenChanged = camTreeHiddenKey !== shownHiddenKey;
-  if (!hiddenChanged && trees.length === shownTrees.length && trees.every((t, i) => t === shownTrees[i])) return;
+  // #651: niet bij elke meter opnieuw; pas bij >8 m of >8 bomen verschil
+  if (!treeSyncDue(px, py, treeSyncX, treeSyncY, trees.length, shownTrees.length, hiddenChanged)) return;
+  if (!hiddenChanged && trees.length === shownTrees.length && trees.every((t, i) => t === shownTrees[i])) { treeSyncX = px; treeSyncY = py; return; }
   shownTrees = trees;
+  treeSyncX = px; treeSyncY = py;
   shownHiddenKey = camTreeHiddenKey;
   ensureTreeCapacity(trees.length);
   const [trunks, crowns, cones, far] = treeInstanced;
