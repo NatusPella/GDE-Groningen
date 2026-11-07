@@ -368,7 +368,8 @@ function begin(spec) {
   const tiles = holdShotTiles(spec.prewarm);
   active._tilesDone = !tiles;
   voicePaused = false;
-  if (tiles) tiles.then(() => { active._tilesDone = true; }).catch(() => { active._tilesDone = true; });
+  const tilesScene = active; // de scène kan intussen vervangen of gestopt zijn
+  if (tiles) tiles.then(() => { if (active === tilesScene) active._tilesDone = true; }).catch(() => { if (active === tilesScene) active._tilesDone = true; });
   take = null; // een scène neemt de camera over van een camerastand (#728)
   attachVoices(active);
   if (active.pause) pauseOn(); // (#729) de wereld en de speler staan stil zolang de scène duurt
