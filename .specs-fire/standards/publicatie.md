@@ -143,7 +143,7 @@ ESRB Mature 17+. De IARC-antwoorden staan als concept in
 `docs/IARC-ANTWOORDEN.md`: geweld tegen weerloze personages, bloed en ledematen
 (standaard aan), gesimuleerd gokken met spelgeld, alcohol en licht grof
 taalgebruik; geen drugs, seks of aankopen. De eigenaar vult de lijst zelf in en
-verstuurt niets zonder akkoord (`docs/IARC-ANTWOORDEN.md:130-132`). De
+verstuurt niets zonder akkoord (`docs/IARC-ANTWOORDEN.md:137-139`). De
 instelling "Bloed en ledematen" verlaagt de leeftijd niet.
 
 ### Licenties
