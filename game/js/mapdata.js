@@ -127,19 +127,24 @@ export class GameMap {
     // ways OSM maps through or under a building (passages.js)
     this.passageWays = (data.passageWays || []).map((p) => ({ ...p, bounds: polygonBounds(p.pts) }));
 
+    // (#314 C2) Het bouwpad leest de bronlijsten die de aanroeper meegaf (hier `data`),
+    // niet de live map-arrays: dezelfde stappen kan een tegelbron voeden. De rasters zijn
+    // daarna de bron voor alle spellogica; gestroomde tegels vullen ze via addTile bij.
+    const buildings = derived.buildings;
     this.buildingGrid = new SpatialGrid(CELL);
-    for (const b of this.buildings) {
+    for (const b of buildings) {
       b.bounds = polygonBounds(b.pts);
       this.buildingGrid.insert(b, b.bounds);
     }
-    liftNestedRoofs(this.buildings, this.buildingGrid);
+    liftNestedRoofs(buildings, this.buildingGrid);
     // the Groninger Museum's walkable ground floor
-    attachMuseumPlan(this.buildings);
-    attachInteriorPlans(this.buildings);
+    attachMuseumPlan(buildings);
+    attachInteriorPlans(buildings);
 
-    const indexRoads = () => {
+    const indexRoads = (list = data.roads) => {
       this.roadGrid = new SpatialGrid(CELL);
-      for (const r of this.roads) {
+      for (const r of list) {
+        if (!r) continue; // een weg die het knippen (passages.js) weghaalde
         r.bounds = polygonBounds(r.pts);
         this.roadGrid.insert(r, r.bounds);
       }
@@ -147,33 +152,34 @@ export class GameMap {
     indexRoads();
     // footways and cycleways through a solid block end at its facade (passages.js)
     this.clippedWays = clipWaysInBuildings(this);
-    if (this.clippedWays.length) indexRoads();
+    if (this.clippedWays.length) indexRoads(); // de bronlijst heeft de geknipte stukken: nullen slaan we over
 
     this.waterGrid = new SpatialGrid(CELL * 2);
-    for (const w of this.water) {
+    for (const w of data.water) {
       w.bounds = polygonBounds(w.pts);
       this.waterGrid.insert(w, w.bounds);
     }
 
     this.greenGrid = new SpatialGrid(CELL * 2);
-    for (const g of this.green) {
+    for (const g of data.green) {
       g.bounds = polygonBounds(g.pts);
       this.greenGrid.insert(g, g.bounds);
     }
-    this.indexRails();
-    this.indexFurniture();
+    this.indexRails(data.rails);
+    this.indexFurniture(data.furniture);
 
     markDryCrossings(this);
     // (?terrain: the terrain goes in before the elevation model, which builds its walls in the frame of the terrain)
     if (data.terrain) { this.terrain = data.terrain; this.terrainOn = !!data.terrainOn; }
     this.elev = addPerrons(this, buildElevation(this));
-    this.trees = this.trees.filter((t) => !onCarriageway(this, t[0], t[1]) && !this.offStreetLevel(t[0], t[1]));
-    // (and one on the kerb or close to the carriageway is set beside the road, or goes: treeclear.js, #324; the same as fromParts does for tiles of an older build)
+    // (a mapped tree on the kerb or the carriageway is set beside the road, or goes: treeclear.js, #324)
     this.treeClearStats = { moved: 0, removed: 0 };
-    this.trees = clearTreesFromRoads(this, this.trees, this.treeClearStats);
+    const trees = data.trees || [];
+    const keptTrees = clearTreesFromRoads(this, trees.filter((t) => !onCarriageway(this, t[0], t[1]) && !this.offStreetLevel(t[0], t[1])), this.treeClearStats);
+    this.trees = keptTrees;
 
     this.treeGrid = new SpatialGrid(CELL * 2);
-    for (const t of this.trees) {
+    for (const t of keptTrees) {
       this.treeGrid.insert(t, [t[0], t[1], t[0], t[1]]);
     }
   }
@@ -202,48 +208,51 @@ export class GameMap {
     m.furniture = p.furniture || [];
     m.passageWays = (p.passageWays || []).map((q) => ({ ...q, bounds: polygonBounds(q.pts) }));
     m.dryCrossings = p.dryCrossings || 0;
+    // (#314 C2) Ook dit bouwpad leest de bronlijst `p`, niet de live map-arrays.
     m.buildingGrid = new SpatialGrid(CELL);
-    for (const b of m.buildings) {
+    for (const b of p.buildings) {
       b.bounds = polygonBounds(b.pts);
       m.buildingGrid.insert(b, b.bounds);
     }
-    attachMuseumPlan(m.buildings);
-    attachInteriorPlans(m.buildings);
+    attachMuseumPlan(p.buildings);
+    attachInteriorPlans(p.buildings);
     m.roadGrid = new SpatialGrid(CELL);
-    for (const r of m.roads) {
+    for (const r of p.roads) {
       r.bounds = polygonBounds(r.pts);
       m.roadGrid.insert(r, r.bounds);
     }
     m.clippedWays = p.clippedWays || [];
     m.waterGrid = new SpatialGrid(CELL * 2);
-    for (const w of m.water) {
+    for (const w of p.water) {
       w.bounds = polygonBounds(w.pts);
       m.waterGrid.insert(w, w.bounds);
     }
     m.greenGrid = new SpatialGrid(CELL * 2);
-    for (const g of m.green) {
+    for (const g of p.green) {
       g.bounds = polygonBounds(g.pts);
       m.greenGrid.insert(g, g.bounds);
     }
-    m.indexRails();
-    m.indexFurniture();
+    m.indexRails(p.rails);
+    m.indexFurniture(p.furniture);
     // (?terrain: the elevation model builds its walls in the frame of the terrain, so the terrain is in before it)
     if (p.terrain) { m.terrain = p.terrain; m.terrainOn = !!p.terrainOn; }
     m.elev = addPerrons(m, buildElevation(m));
     // (a mapped tree on the kerb or the carriageway is set beside the road, or goes: treeclear.js, #324)
     m.treeClearStats = { moved: 0, removed: 0 };
-    m.trees = clearTreesFromRoads(m, m.trees, m.treeClearStats);
+    const keptTrees = clearTreesFromRoads(m, p.trees || [], m.treeClearStats);
+    m.trees = keptTrees;
     m.treeGrid = new SpatialGrid(CELL * 2);
-    for (const t of m.trees) m.treeGrid.insert(t, [t[0], t[1], t[0], t[1]]);
+    for (const t of keptTrees) m.treeGrid.insert(t, [t[0], t[1], t[0], t[1]]);
     return m;
   }
 
   // (#314 C2b) De sporen in één raster, net als de andere kaartlagen: de teken- en
   // profiellagen lezen hieruit, en een gestroomde tegel voegt zijn eigen spoor toe aan
-  // hetzelfde raster (tileworld.js addTile). Eén plek, dus de klasse en fromParts delen hem.
-  indexRails() {
+  // hetzelfde raster (tileworld.js addTile). Eén plek, dus de klasse en fromParts delen hem;
+  // de lijst komt van het bouwpad mee (data/p), niet uit de live map-array.
+  indexRails(rails = []) {
     this.railGrid = new SpatialGrid(CELL * 2);
-    for (const r of this.rails) {
+    for (const r of rails) {
       r.bounds = polygonBounds(r.pts || r);
       this.railGrid.insert(r, r.bounds);
     }
@@ -252,9 +261,9 @@ export class GameMap {
   // (#314 C2b) Het straatmeubilair in één raster, net als de andere kaartlagen: de
   // tekenlaag (streetfurniture3d, nightlights3d) leest hieruit, en een gestroomde
   // tegel voegt zijn eigen meubelrijen aan hetzelfde raster toe (tileworld.js addTile).
-  indexFurniture() {
+  indexFurniture(furniture = []) {
     this.furnitureGrid = new SpatialGrid(CELL);
-    for (const m of this.furniture) {
+    for (const m of furniture) {
       m.bounds = m.pts ? polygonBounds(m.pts) : [m.x, m.y, m.x, m.y];
       this.furnitureGrid.insert(m, m.bounds);
     }
