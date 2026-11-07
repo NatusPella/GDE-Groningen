@@ -155,7 +155,7 @@
   },
   "kind": {
    "name": "Kind in het publiek",
-   "voice": "Kind in het publiek"
+   "voice": "Kind"
   }
  },
  "scenes": [
@@ -13303,7 +13303,9 @@
      "text": "Nee!",
      "tag": "BEHOUDEN",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines",
+     "voice": "Kind"
     },
     {
      "speaker": "Berend Bos",

@@ -4,7 +4,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { build } from './build_story_data.mjs';
+import { build, behoudenProblems, readBehoudenAllow } from './build_story_data.mjs';
 import { STEPS, SPEAKERS, PARTS, NEW_MISSION_IDS } from '../game/js/storyarc_nieuw.js';
 import { dutchFor, looksFrisian } from '../game/js/subtitles.js';
 import { withEllipsisAliases } from '../game/js/voicebank.js';
@@ -105,6 +105,21 @@ for (const l of lines) {
 ok(recorded > 250 && textOnly > 700, 'recorded and text-only counts are in the expected range', `${recorded} recorded, ${textOnly} text only`);
 ok(lines.filter((l) => l.channel === 'app-stil').length === lines.filter((l) => l.silent).length, 'every silent line is an app text and the other way round');
 ok(behouden >= 300 && behoudenText < 20, 'the BEHOUDEN lines nearly all resolve to a recording', `${behouden} BEHOUDEN, ${behoudenText} without a recording`);
+
+// #647: [BEHOUDEN] belooft een opname (ADR 0011). Elke uitzondering staat met een reden in
+// scripts/story_behouden_allow.json; een nieuwe regel zonder opname en een overbodige uitzondering
+// zijn beide een fout. Dit is dezelfde keuring als de poort in build_story_data.mjs.
+const allow = readBehoudenAllow();
+const behoudenMissing = build().behoudenMissing;
+const problemen = behoudenProblems(behoudenMissing, allow.allow);
+ok(problemen.length === 0, 'every BEHOUDEN line without a recording is documented in scripts/story_behouden_allow.json', problemen.map((p) => `${p.soort}:[${p.scene}] ${p.text}`).join(' | '));
+ok(allow.allow.length === behoudenMissing.length, 'the allowlist has no unnecessary exceptions', `${allow.allow.length} uitzonderingen, ${behoudenMissing.length} gevallen`);
+const nieuw = [{ scene: 'M99.9', speaker: 'Tammo', voice: 'Tammo', text: 'Een nieuwe regel zonder opname.' }];
+const nieuwProbleem = behoudenProblems(nieuw, allow.allow).find((p) => p.soort === 'ontbreekt');
+ok(nieuwProbleem && nieuwProbleem.scene === 'M99.9', 'a new BEHOUDEN line without a recording fails the build');
+ok(behoudenProblems(nieuw, [...allow.allow, { scene: 'M99.9', text: 'Een nieuwe regel zonder opname.', why: 'test' }]).every((p) => p.soort === 'overbodig'), 'a documented exception passes');
+ok(behoudenProblems([], allow.allow).every((p) => p.soort === 'overbodig'), 'an exception that is no longer needed is a problem');
+ok(allow.allow.every((a) => a.why && a.why.trim().length > 20), 'every exception explains why (a real reason, not a placeholder)');
 
 // no real names or brands, no winter (AGENTS.md constitution), Frisian lines have a Dutch subtitle
 const text = JSON.stringify(scenes);

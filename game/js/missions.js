@@ -3588,7 +3588,9 @@ function updateStages(dt, world, def) {
           if (S.target) { S.hp0 = S.target.health; break; }
         }
         if (stap === 'fail') { fail(world, def, st.gone || 'de tankwagen is niet gekomen: de weg was hier niet geladen'); break; }
-        hint(world, 'De weg hier wordt nog geladen. Even wachten…');
+        // #591: geen technische wachtmelding van de metgezel (met stem) maar dezelfde tekst als bij de
+        // start; de key houdt hem op één regel en er is geen opname nodig (#647, voice_coverage).
+        world.addMessage('De weg hier wordt nog geladen. Even wachten…', 2.5, { key: 'missie-lazy-wacht' });
         break;
       }
       if (!world.vehicles.includes(t)) { fail(world, def, st.gone || 'de tankwagen is foetsie'); break; }

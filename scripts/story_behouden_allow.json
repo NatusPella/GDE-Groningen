@@ -1,0 +1,20 @@
+{
+  "note": "Uitzonderingen voor scripts/build_story_data.mjs (#647): een [BEHOUDEN]-regel hoort een opname te hebben (ADR 0011). Deze drie regels zijn bewaard uit de oude tekst, maar bestaan als losse regel nooit als opname; als één van hen een opname krijgt (of de scène verdwijnt), moet de regel hier weg, anders faalt de build op een overbodige uitzondering. Opnemen: #735.",
+  "allow": [
+    {
+      "scene": "C00.1",
+      "text": "Er gaat niets boven Grunn. Behalve de Martinitoren.",
+      "why": "staat als titelkaart in intromontage.js en als twee losse banterregels ('Er gaat niks boven Grunn.' van Tammo, 'Behalve de Martinitoren.' van Anita); als één Rikus-radioregel is hij nooit opgenomen"
+    },
+    {
+      "scene": "M12.3",
+      "text": "Doe bist schier.",
+      "why": "bestaat alleen binnen Anita's opgenomen banterregel over de ballon, niet als losse Tammo-regel"
+    },
+    {
+      "scene": "M16.2",
+      "text": "Ik hou van jullie allemaal!",
+      "why": "de opname bestaat als tekstballon (~m en ~f in de lines-bank), maar de scènestem van STUDENT is 'Student' en heeft geen opname; de nieuwe scène speelt de student als scènepersonage"
+    }
+  ]
+}
