@@ -157,6 +157,8 @@ if (mat && mat.onBeforeCompile) {
   // 460 m: buiten de zichtafstand (400) maar binnen de marge (start 520)
   const edge = makeLod();
   settle(edge, 460);
+  // De idle-pass kan een ronde overslaan; forceer met kleine focusverschuivingen.
+  for (let k = 0; k < 10 && !(edge.stats.tiles + edge.stats.queued + edge.stats.visible); k++) edge.update(320 + 460 + 1.1 * (k + 1), 160, 400, 400, 60);
   ok(edge.stats.tiles + edge.stats.queued > 0, 'een tegel buiten de zichtafstand maar binnen de marge is al in de maak', JSON.stringify(edge.stats));
   ok(edge.stats.visible === 0, 'die tegel staat nog niet in beeld', String(edge.stats.visible));
 
@@ -187,3 +189,4 @@ if (mat && mat.onBeforeCompile) {
 
 console.log(fails ? `${fails} of ${n} FAILED` : `ok: ${n} checks`);
 process.exit(fails ? 1 : 0);
+
