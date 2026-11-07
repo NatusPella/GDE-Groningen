@@ -456,7 +456,18 @@ function stepController(c) {
   if (p.idle) c.part = 'red';
 }
 
+// De verkeerslichten van de gestroomde tegels: tileworld.js zet `map.signalVer` op als er
+// een tegel met een beveiligde kruising bij komt of weggaat (#314 C2b). Het netwerk en de
+// controllers worden dan uit de rasters en het kruispuntmodel opnieuw opgebouwd; de stad
+// zelf verandert niet, en zonder tegelwijziging gebeurt er niets.
+let signalVer = 0;
+
 export function initTrafficLights(world) {
+  signalVer = (world.map && world.map.signalVer) || 0;
+  buildTrafficNetwork(world);
+}
+
+function buildTrafficNetwork(world) {
   map = world.map;
   buildNodes(map);
   const signals = allSignals(map);
@@ -536,6 +547,12 @@ export function trafficClockRate(phase, wet) {
 }
 
 export function updateTrafficLights(dt, world) {
+  const m = world && world.map;
+  // Een gestroomde tegel met een beveiligde kruising kwam of ging: het netwerk opnieuw (#314 C2b).
+  if (m && m.signalVer !== undefined && m.signalVer !== signalVer) {
+    signalVer = m.signalVer;
+    buildTrafficNetwork(world);
+  }
   const wet = (world && world.weather && world.weather.wet) || 0;
   for (const c of controllers) {
     c.t = (c.t + dt * trafficClockRate(c.phases[c.cur], wet)) % c.cycle;

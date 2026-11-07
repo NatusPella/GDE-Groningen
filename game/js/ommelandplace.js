@@ -3,6 +3,7 @@ import { edgeDistance } from './countryfield.js';
 import { isInWater } from './util.js';
 import { worldPlaceAt, worldPlaceNamed } from './worldplaces.js';
 import { inProvinceData } from './provinceworld.js';
+import { gridItems } from './spatialgrid.js';
 
 // Placement queries for the countryside extras (worldends.js, dorpsuitjes.js,
 // pg_koe.js): open ground out in the province (the tiles' buildings and roads),
@@ -22,7 +23,7 @@ let railCells = null;
 function railIndex(map) {
   if (railCells) return railCells;
   railCells = new Map();
-  const lists = [map.countryRails || [], (map.rails || []).map((r) => r.pts || r), (map.railRoutes || []).map((r) => r.pts)];
+  const lists = [map.countryRails || [], gridItems(map.railGrid).map((r) => r.pts || r), (map.railRoutes || []).map((r) => r.pts)];
   for (const list of lists) {
     for (const P of list) {
       for (let i = 1; i < P.length; i++) {

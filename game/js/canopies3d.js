@@ -3,6 +3,7 @@ import { closestPointOnSegment, pointInPolygon } from './util.js';
 import { addStaticCollider, removeProp } from './breakables.js';
 import { SECTION } from './gdt.js';
 import { isPaddepoelRoof, buildPaddepoelRoof } from './paddepoel3d.js';
+import { gridItems } from './spatialgrid.js';
 
 // OSM building=roof footprints are open canopies (market roofs, station and
 // square shelters). They used to render as solid blocks you could spawn in;
@@ -64,8 +65,9 @@ function nearLine(P, x, y, r) {
 // up) sit on the track's level, not on the street under it, where they hung at the height of a first floor (#323). A roof by
 // the street gets 0. The rail's z at the nearest point within RAIL_REACH of the footprint's vertices and middle.
 const RAIL_REACH = 8;
-// (the city's pinned tiles have no rail grid: all its rails are looked at, there are a couple of hundred)
-const railsAround = (map, x, y) => { const g = map.railNear ? map.railNear(x, y, RAIL_REACH) : []; return g.length ? g : map.rails || []; };
+// (#314 C2b) Het spoor komt uit het railraster, ook voor de stad; zonder raster valt hij
+// terug op het hele raster (leeg voor een testkaart zonder spoor).
+const railsAround = (map, x, y) => { const g = map.railNear ? map.railNear(x, y, RAIL_REACH) : []; return g.length ? g : gridItems(map.railGrid); };
 export function canopyBase(map, pts) {
   let cx = 0, cy = 0;
   for (const p of pts) { cx += p[0]; cy += p[1]; }
@@ -103,7 +105,7 @@ function postInTheWay(map, x, y) {
   for (const r of map.roadsNear(x, y, 10)) {
     if (r.cat !== 'foot' && r.cat !== 'cycle' && nearLine(r.pts, x, y, (r.width || 5) / 2 + 0.4)) return true;
   }
-  for (const rail of map.rails || []) {
+  for (const rail of gridItems(map.railGrid)) {
     const P = rail.pts || rail;
     if (nearLine(P, x, y, 2.4)) return true;
   }

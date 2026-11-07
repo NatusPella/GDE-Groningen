@@ -1,4 +1,5 @@
 import { hoofdspeler } from './players.js';
+import { gridItems } from './spatialgrid.js';
 // Railway simulation: shuttle trains on the routes baked into stad.json
 // (scripts/add_railways.py), level crossings that warn/close ahead of them,
 // and what happens to anything standing on the track. Rendering lives in
@@ -929,7 +930,7 @@ export function crossingSpeedLimit(v, path, project) {
 // 2D map layers (minimap + full map): track lines, and the trains on top.
 // The colours come from the map's palette (mapstyle.js), so the night palette reaches the rails too.
 export function drawRailsOnMap(ctx, map, x0, y0, x1, y1, widthM, palette = MAP_PALETTE) {
-  const rails = map.rails || [];
+  const rails = gridItems(map.railGrid);
   ctx.save();
   ctx.lineCap = 'butt';
   ctx.lineJoin = 'round';

@@ -4,7 +4,8 @@ import { hoofdspeler } from './players.js';
 // railway.js.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { syncTreinInterieur } from './treininterieur.js';
-import { gastTreinVan } from './cooptrein.js'; // de trein van de gastheer waarin een gast conducteur is (#492)
+import { gastTreinVan } from './cooptrein.js';
+import { gridItems } from './spatialgrid.js'; // de trein van de gastheer waarin een gast conducteur is (#492)
 import { getTrains, getLevelCrossings, nearLevelCrossing, railZ, isOffMap, TRAIN_HALF_WIDTH, FLAT_DECK_Z } from './railway.js';
 import { WATER_Y } from './util.js';
 import { waterPolyAt } from './waterlevels.js';
@@ -140,7 +141,7 @@ function runs(samples, keep, into, grow = false) {
 }
 
 function buildTrackData() {
-  const all = (map.rails || []).map((r) => r.pts).concat(map.countryRails || []);
+  const all = gridItems(map.railGrid).map((r) => r.pts).concat(map.countryRails || []);
   for (const pts of all) {
     if (pts.length < 2) continue;
     const samples = samplePolyline(pts);

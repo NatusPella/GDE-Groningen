@@ -23,12 +23,18 @@ import { TileStore, FrameQueue, HttpRangeSource, inflateRaw, makeWorkerDecoder, 
 import { TerrainField } from './terrainraster.js';
 import { extendElevation, shrinkElevation } from './elevation.js';
 import { joinMeta } from './poisections.js';
+import { RULES } from './junctions.js';
 
 const KIND_OF = new Map([
   [SECTION.BUILDINGS, 'buildings'], [SECTION.ROADS, 'roads'], [SECTION.WATER, 'water'], [SECTION.GREEN, 'green'],
   [SECTION.TREES, 'trees'], [SECTION.RAILS, 'rails'], [SECTION.CANOPIES, 'canopies'], [SECTION.PASSAGES, 'passageWays'],
   [SECTION.FURNITURE, 'furniture'], [SECTION.PARCELS, 'parcels'],
 ]);
+// Een knooppunt met een seinarm: de tegel-haak voor de verkeerslichten (#314 C2b).
+// De JUNCTIONS-rijen zelf staan niet in KIND_OF: het zijn geen rasterobjecten met een gid,
+// maar het kruispuntmodel per tegel (junctionRows, junctions.js tileJunctionNodes).
+const SIGNAL_RULE = RULES.indexOf('signal');
+const hasSignalArm = (rows) => rows.some((row) => (row.a || []).some((a) => a[3] === SIGNAL_RULE));
 // the sections whose rows the game keeps without their id (rowsOf)
 const ID_ASIDE = [...KIND_OF.keys()];
 const GRID_OF = { buildings: 'buildingGrid', roads: 'roadGrid', water: 'waterGrid', green: 'greenGrid', trees: 'treeGrid', rails: 'railGrid', parcels: 'parcelGrid' };
@@ -295,8 +301,14 @@ export class TileWorld extends GameMap {
       if (s.type === SECTION.RASTER && this.terrain) { this.terrain.add(tk, s.raster); continue; }
       // de kruispunten van deze tegel (de JUNCTIONS-sectie): junctions.js leest ze bij het model (#469)
       if (s.type === SECTION.JUNCTIONS) {
-        (this.junctionRows || (this.junctionRows = new Map())).set(tk, s.rows || []);
+        const jrows = s.rows || [];
+        (this.junctionRows || (this.junctionRows = new Map())).set(tk, jrows);
         this.junctionVer = (this.junctionVer || 0) + 1;
+        // een tegel met een beveiligde kruising vraagt de verkeerslichten om een herbouw (#314 C2b)
+        if (hasSignalArm(jrows)) {
+          this.signalVer = (this.signalVer || 0) + 1;
+          (this._signalTiles || (this._signalTiles = new Set())).add(tk);
+        }
         continue;
       }
       const kind = KIND_OF.get(s.type);
@@ -421,7 +433,11 @@ export class TileWorld extends GameMap {
     for (const fn of this._tileListeners || []) fn('drop', null, tk);
     if (this.terrain) this.terrain.drop(tk);
     // de kruispunten van deze tegel gaan mee uit het model (#469)
-    if (this.junctionRows && this.junctionRows.delete(tk)) this.junctionVer = (this.junctionVer || 0) + 1;
+    if (this.junctionRows && this.junctionRows.delete(tk)) {
+      this.junctionVer = (this.junctionVer || 0) + 1;
+      // alleen als deze tegel een beveiligde kruising had, moeten de lichten opnieuw (#314 C2b)
+      if (this._signalTiles && this._signalTiles.delete(tk)) this.signalVer = (this.signalVer || 0) + 1;
+    }
     const goneRoads = [];
     const release = (kind, gid, e) => {
       if (!releaseFrom(e, tk)) return;

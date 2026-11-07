@@ -6,6 +6,7 @@
 // road meshes (buildRoadGroup).
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { WATER_Y, closestPointOnSegment } from './util.js';
+import { gridItems } from './spatialgrid.js';
 import {
   DECK_T, EMB_SLOPE, WALL_T, FENCE_H, BARRIER_H, ROOF_T, RAISED, COPING,
   surfaceHalfWidth, roofTopAt, coveredAt, isWallBroken, lowerSurfaceAt,
@@ -691,6 +692,6 @@ export function buildRailDecks(map) {
   const elev = map.elev;
   if (!elev.has || !elev.cuts.length) return null;
   const B = new Buf();
-  for (const rail of map.rails || []) deckSpans(B, elev, rail.pts || rail, 2.6);
+  for (const rail of gridItems(map.railGrid)) deckSpans(B, elev, rail.pts || rail, 2.6);
   return structureGroup(map, B.arrays());
 }

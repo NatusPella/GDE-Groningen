@@ -3,7 +3,7 @@ import { waterPolyAt, waterPolyIn } from './waterlevels.js';
 import { inPassage, clipWaysInBuildings } from './passages.js';
 import { attachMuseumPlan } from './museumplan.js';
 import { attachInteriorPlans } from './interieurplan.js';
-import { SpatialGrid } from './spatialgrid.js';
+import { SpatialGrid, gridItems } from './spatialgrid.js';
 import { deriveBuildings, liftNestedRoofs, isRingRoad } from './derive.js';
 import { deckTerrainAt, isDeckRoad, roadTerrainAt, deckTerrainOnSeg, roadTerrainOnSeg } from './deckterrain.js';
 import { clearTreesFromRoads } from './treeclear.js';
@@ -41,7 +41,8 @@ export function markDryRoad(map, r) {
 }
 function markDryCrossings(map) {
   let n = 0;
-  for (const r of map.roads) if (markDryRoad(map, r)) n++;
+  // via het wegraster (#314 C2b), niet via de hele wegenarray: dezelfde wegen, andere bron.
+  for (const r of gridItems(map.roadGrid)) if (markDryRoad(map, r)) n++;
   map.dryCrossings = n;
 }
 
@@ -157,6 +158,7 @@ export class GameMap {
       g.bounds = polygonBounds(g.pts);
       this.greenGrid.insert(g, g.bounds);
     }
+    this.indexRails();
 
     markDryCrossings(this);
     // (?terrain: the terrain goes in before the elevation model, which builds its walls in the frame of the terrain)
@@ -220,6 +222,7 @@ export class GameMap {
       g.bounds = polygonBounds(g.pts);
       m.greenGrid.insert(g, g.bounds);
     }
+    m.indexRails();
     // (?terrain: the elevation model builds its walls in the frame of the terrain, so the terrain is in before it)
     if (p.terrain) { m.terrain = p.terrain; m.terrainOn = !!p.terrainOn; }
     m.elev = addPerrons(m, buildElevation(m));
@@ -229,6 +232,17 @@ export class GameMap {
     m.treeGrid = new SpatialGrid(CELL * 2);
     for (const t of m.trees) m.treeGrid.insert(t, [t[0], t[1], t[0], t[1]]);
     return m;
+  }
+
+  // (#314 C2b) De sporen in één raster, net als de andere kaartlagen: de teken- en
+  // profiellagen lezen hieruit, en een gestroomde tegel voegt zijn eigen spoor toe aan
+  // hetzelfde raster (tileworld.js addTile). Eén plek, dus de klasse en fromParts delen hem.
+  indexRails() {
+    this.railGrid = new SpatialGrid(CELL * 2);
+    for (const r of this.rails) {
+      r.bounds = polygonBounds(r.pts || r);
+      this.railGrid.insert(r, r.bounds);
+    }
   }
 
   // Height of the surface under (x, y) for something at zHint (absolute m):

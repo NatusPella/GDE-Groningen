@@ -138,15 +138,38 @@ export function autoSignals(map) {
 
 export function allSignals(map) {
   const s = store(map);
-  if (!s.all) s.all = [...poiLayerPlaces(map, 'trafficLights'), ...autoSignals(map)];
+  // De signalen van de gestroomde tegels komen uit het kruispuntmodel (JUNCTIONS-rijen):
+  // een arm met regel 'signal' is een beveiligde kruising (#469, #314 C2b). Het model
+  // verandert als er een tegel bij komt of weggaat (junctionVer), dus de lijst ook.
+  const ver = map && map.junctionVer;
+  if (!s.all || s.allVer !== ver) {
+    s.allVer = ver;
+    s.all = [...poiLayerPlaces(map, 'trafficLights'), ...autoSignals(map), ...tileSignals(map)];
+  }
   return s.all;
+}
+
+// De verkeerslichten uit de tegels: één per knooppunt met een seinarm. De rij is de
+// bron (pack_tiles.mjs schrijft hem, junction_tiles.mjs rekende hem uit); zo heeft de
+// provincie naast voorrang en stoplijnen ook verkeerslichten zonder een eigen array.
+function tileSignals(map) {
+  const out = [];
+  for (const node of tileJunctionNodes(map)) {
+    if (node.control !== 'signals' && !node.arms.some((a) => a.rule === 'signal')) continue;
+    out.push({ x: node.x, y: node.y, key: node.key, bike: false, tile: true });
+  }
+  return out;
 }
 
 const SIGNAL_REACH = 30;
 
 function signalised(map, x, y) {
   const s = store(map);
-  if (!s.sigGrid) {
+  // De signaalgrid volgt de signaallijst: komt er een tegel met een beveiligde kruising
+  // bij of gaat die weg (junctionVer), dan wordt de grid opnieuw gevuld (#314 C2b).
+  const ver = map && map.junctionVer;
+  if (!s.sigGrid || s.sigVer !== ver) {
+    s.sigVer = ver;
     s.sigGrid = new SpatialGrid(50);
     for (const l of allSignals(map)) {
       if (l.bike) continue;
