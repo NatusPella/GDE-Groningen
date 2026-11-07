@@ -150,9 +150,12 @@ const DAYMAP = { ...MAP_PALETTE };
 for (const m of ['missionmapdraw', 'ommelandmap', 'reiskaart']) { let err = ''; try { await import(`../game/js/${m}.js`); } catch (e) { err = String(e); } ok(!err, m + ' loads', err); }
 // the rails on the maps read the palette (issue #286): the night palette reaches them
 const { drawRailsOnMap } = await import('../game/js/railway.js');
+const { SpatialGrid } = await import('../game/js/spatialgrid.js');
 const railCols = (pal) => {
   const cols = [], ctx = { save() {}, restore() {}, setLineDash() {}, beginPath() {}, moveTo() {}, lineTo() {}, stroke() { cols.push(this.strokeStyle); } };
-  drawRailsOnMap(ctx, { rails: [{ pts: [[0, 0], [10, 10]] }] }, -5, -5, 20, 20, 3, pal);
+  const rail = { pts: [[0, 0], [10, 10]] }, railGrid = new SpatialGrid(40);
+  railGrid.insert(rail, [0, 0, 10, 10]);
+  drawRailsOnMap(ctx, { railGrid }, -5, -5, 20, 20, 3, pal);
   return cols;
 };
 ok(railCols(MAP_PALETTE).join() === MAP_PALETTE.rail + ',' + MAP_PALETTE.railTie, 'rails draw in the map palette');

@@ -26,10 +26,10 @@ ok(new Set(GOLF_ICONEN.map((i) => golfIcon(i))).size === GOLF_ICONEN.length, 'el
 // de rij
 {
   const r = golfRij({ wie: 'Speler 2', baan: 3, banen: 6, par: 3, slag: 2, vlag: 24.3, club: 'wedge', ondergrond: 'gras' });
-  ok(r.includes('Speler 2') && r.includes('Baan <b>3</b>/6') && r.includes('Par <b>3</b>') && r.includes('Slag <b>2</b>') && r.includes('24 m') && r.includes('Wedge'), 'de rij toont wie, baan, par, slag, afstand en stok');
+  ok(r.includes('Speler 2') && r.includes('Baan <b>3</b>/6') && r.includes('Par <b>3</b>') && r.includes('Slag <b>2</b>') && r.includes('24 m') && r.includes('ijzer'), 'de rij toont wie, baan, par, slag, afstand en stok');
   ok(golfRij({ baan: 1, banen: 6, par: 2, slag: 1, vlag: 3.46, club: 'putter' }).includes('3,5 m'), 'een kleine afstand met een komma');
   ok(golfRij({ baan: 1, banen: 6, par: 2, slag: 1, vlag: 3, club: 'putter' }).includes('Putter') && !golfRij({ baan: 1, banen: 6, par: 2, slag: 1, vlag: 3, club: 'putter' }).includes('gf-wie'), 'een putter, zonder beurtnaam bij één speler');
-  ok(golfRij({ baan: 1, banen: 6, par: 3, slag: 3, vlag: 10, club: 'wedge', ondergrond: 'zand' }).includes('Wedge (zand)'), 'zand staat erbij');
+  ok(golfRij({ baan: 1, banen: 6, par: 3, slag: 3, vlag: 10, club: 'wedge', ondergrond: 'zand' }).includes('zandijzer'), 'zand staat erbij');
   ok(golfRij({ baan: 1, banen: 6, par: 3, slag: 3, vlag: 10, club: 'wedge', straf: 1 }).includes('+1 straf'), 'de strafslag staat erbij');
   ok(afstandTekst(9.94) === '9,9 m' && afstandTekst(10.2) === '10 m', 'afstandstekst');
   ok(krachtTekst(0.624) === '62%' && krachtTekst(-1) === '0%' && krachtTekst(3) === '100%', 'krachttekst');
@@ -95,4 +95,17 @@ ok(new Set(GOLF_ICONEN.map((i) => golfIcon(i))).size === GOLF_ICONEN.length, 'el
   ok(/pushAudioEvent\(w, \{ kind: 'golf'/.test(pp), 'pitchputt.js stuurt golf-events');
 }
 
+// #597: de golf-HUD haalt zijn statuskleuren uit --mk-* (kleurenblindmodi doen mee) en de etiquette
+// leest bij 2 tot 4 spelers als bordregel in plaats van alleen als 3D-ballon.
+{
+  const zonderTerugval = GOLF_CSS.replace(/var\(--[a-z-]+,\s*#[0-9a-fA-F]{3,6}\)/g, 'var()');
+  ok(!/#ff9a3c|#ffd23f|#5dff7a/.test(zonderTerugval), 'golfhud.js: geen losse statushexen meer');
+  ok(/var\(--mk-(ok|job|mission),/.test(GOLF_CSS), 'golfhud.js: de statuskleuren komen uit de tokens');
+  const pitchputt = read('game/js/pitchputt.js');
+  ok(/meerdere\(game\)\) \{[\s\S]{0,700}key: 'golf-etiquette'/.test(pitchputt), 'met 2 tot 4 spelers leest de etiquette als bordregel');
+  ok(/var\(--mk-job, #ff9a3c\)[\s\S]{0,120}var\(--mk-mission, #e8c93a\)/.test(pitchputt), 'de krachtbalk gebruikt dezelfde tokens');
+}
+
 console.log(`golfhud_test ok (${n} controles)`);
+
+

@@ -48,7 +48,7 @@
 #heist-ui .hx-dial .tick { stroke: rgba(240, 237, 228, 0.55); stroke-width: 1.5; }
 #heist-ui .hx-dial .tick.big { stroke: #f0ede4; stroke-width: 2.5; }
 #heist-ui .hx-dial .num { fill: #f0ede4; font: 13px 'Bebas Neue', 'Arial Narrow', sans-serif; text-anchor: middle; dominant-baseline: middle; }
-#heist-ui .hx-dial .hintmark { fill: none; stroke: #f2c14e; stroke-width: 4; opacity: 0; }
+#heist-ui .hx-dial .hintmark { fill: none; stroke: var(--mk-mission, #e8c93a); stroke-width: 4; opacity: 0; }
 #heist-ui .hx-dial .hintmark.on { opacity: 0.9; }
 #heist-ui .hx-dial .mark { fill: #d93f3f; }
 #heist-ui .hx-dial .hub { fill: #2a2e28; stroke: rgba(240, 237, 228, 0.4); }
@@ -96,7 +96,7 @@
   position: absolute; left: 50%; top: 42%; width: min(460px, 80vw); padding: 26px 30px 20px; border-radius: 4px; opacity: 0;
   transform: translate(-50%, -30%) rotate(-7deg) scale(0.8); transition: opacity 0.4s, transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
   background: #f6efdc; color: #2b2418; box-shadow: 0 22px 50px rgba(0, 0, 0, 0.6);
-  font-family: 'Segoe Print', 'Bradley Hand', 'Comic Sans MS', cursive;
+  font-family: 'Arial Narrow', Arial, sans-serif; font-style: italic; /* #629: geen handgeschreven font; cursief Arial Narrow zoals afgesproken */
 }
 #heist-ui .hx-note.on { opacity: 1; transform: translate(-50%, -50%) rotate(-3deg) scale(1); }
 #heist-ui .hx-note::before { content: ''; position: absolute; left: 42%; top: -11px; width: 76px; height: 22px; background: rgba(230, 220, 160, 0.75); transform: rotate(4deg); }
@@ -126,3 +126,4 @@ body.cine-hide-hud #heist-ui .hx-skipchip, body.cine-hide-hud #heist-ui .hx-pane
   #heist-ui .hx-plan { left: 3vw; right: 3vw; width: auto; top: 10vh; }
   #heist-ui .hx-panel { min-width: 0; width: 86vw; }
 }
+

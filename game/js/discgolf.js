@@ -1,4 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { toonStartkaart } from './startkaart.js';
 import { canvasTex as textTex, signBothSides } from './canvastex.js';
 import { hoofdspeler } from './players.js';
 import { getScene } from './scene3d.js';
@@ -308,11 +309,12 @@ function start(w, { force = false, online = null } = {}) {
   };
   beginHole(w);
   if (online) { // the host's invitation said what is played: nine holes, no choice of round
-    if (online === 'host') showCard(w, { kind: 'tip', kicker: 'Discgolf', title: 'Negen banen tegen elkaar', body: 'Iedereen speelt dezelfde baan tegelijk op het eigen scherm, met dezelfde wind. Het scorebord toont de stand. [Backspace] stopt.' });
+    if (online === 'host') toonStartkaart(w, 'discgolf', { record: recText() });
     return true;
   }
   game.phase = 'mode';
-  showCard(w, { kind: 'tip', kicker: 'Discgolf', title: 'Het Stadspark, kies je ronde', body: 'Kies eerst een ronde met [A] [D] en [Spatie]: negen banen, de achterkant, achttien banen of drie worpen op één mand. Daarna: [A] [D] richten, [W] [S] hoek, [E] release, [F] disc, houd [Spatie] om te laden en laat los om te gooien.', duration: 9, key: 'discgolf-help', voice: false });
+  // #678: één startkaart met doel, medailles, beloning, samen-status en record
+  toonStartkaart(w, 'discgolf', { record: recText() });
   say(w, 'start', true);
   return true;
 }

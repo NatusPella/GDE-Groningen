@@ -14,7 +14,7 @@
 import { Vehicle } from './vehicle.js';
 import { RING_ROUTE, RING_CHECKPOINTS } from './ringroute.js';
 import { createRace, updateRace, disposeRace, buildTrack, sample, racewagenModel } from './racers.js';
-import { createBoard, key, fmtTime, stopPressed, gameUi } from './minigamekit.js';
+import { createBoard, key, fmtTime, stopPressed, gameUi, mgThema } from './minigamekit.js';
 import { activityBlock, iconDisc } from './activitykit.js';
 import { getChallengeRecord, recordChallengeResult, MEDALS } from './achievements.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
@@ -22,8 +22,10 @@ import { hoofdspeler } from './spelersregister.js';
 import { lichaamVan, bestuurInstappenIn, bestuurLos } from './coopbestuur.js';
 import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHostBaan, wedBaanStand, wedScoreStop } from './multiplayerwedstrijd.js';
 import { CP_TOTAAL, stapPoort, meters, klaar as baanKlaar, gridRij, medailleVoorPlek, prijsVoorPlek, xpVoorPlek } from './ringbaan.js';
+import { medailleBedrag, volgendePlek } from './medalrules.js';
 
-const ACCENT = '#c8102e';
+// De identiteitskleur staat in de ene accenttabel (#453, #618): geen eigen rood meer.
+const ACCENT = mgThema('ringrace').accent;
 const NAAM = 'Ringrace';
 const LIMIT = 600;          // s: de hele race duurt hooguit tien minuten
 const COUNTDOWN = 4;        // s: het gezamenlijke aftellen bij een wedstrijd
@@ -48,7 +50,7 @@ const esc = (s) => String(s == null ? '' : s).replace(/[&<>]/g, (c) => ({ '&': '
 function startSolo(w) {
   if (run) return false;
   const race = createRace(w, RING_ROUTE, RING_CHECKPOINTS, { topScale: 1.35, accelScale: 1.3, band: 320, jelle: true });
-  if (!board) board = createBoard('RINGRACE', ACCENT);
+  if (!board) board = createBoard('ringrace');
   board.show();
   run = { online: false, race, cp: 0, t: 0, gestopt: false };
   gameUi.showCard(w, {
@@ -67,13 +69,15 @@ function tickSolo(dt, w) {
   if (race.phase === 'race' && was !== 'race') r.t = 0;
   if (race.phase === 'race') {
     r.t += dt;
+    if (r.flashT > 0) r.flashT -= dt;
     const q = puntVan(hoofdspeler(w));
     if (q) {
       const cp = stapPoort(q.x, q.y, r.cp);
       if (cp !== r.cp) {
         r.cp = cp;
         if (baanKlaar(cp)) { finish(w); return; }
-        w.addMessage(`Poort ${cp}/${CP_TOTAAL}`, 1.6, { key: 'ring-poort' });
+        // één plek voor de poortmelding: de flits op het bord, niet ook nog een losse melding (#618)
+        r.flash = `POORT ${cp}/${CP_TOTAAL}`; r.flashT = 1.6;
       }
     }
     if (r.t > LIMIT) { finish(w, { teLang: true }); return; }
@@ -153,7 +157,7 @@ function startBaan(w, sc) {
     const inAuto = bestuurInstappenIn(w, d.slot, d.auto);
     if (!inAuto.gedaan && w.coopMeld) w.coopMeld(d.slot, 'Stap in je racewagen en druk op E: bij het aftellen gaat iedereen samen weg.');
   }
-  if (!board) board = createBoard('RINGRACE', ACCENT);
+  if (!board) board = createBoard('ringrace');
   board.show();
   run = { online: true, deeln: rijders, af: COUNTDOWN, said: null, t: 0, gestopt: false, sc };
   if (hostMee) gameUi.showCard(w, {
@@ -182,6 +186,7 @@ function tickBaan(dt, w) {
     return;
   }
   r.t += dt;
+  if (r.flashT > 0) r.flashT -= dt;
   for (const d of r.deeln) {
     if (d.klaar) continue;
     const auto = autoVan(w, d);
@@ -189,6 +194,7 @@ function tickBaan(dt, w) {
     const cp = stapPoort(auto.x, auto.y, d.cp);
     if (cp !== d.cp) {
       d.cp = cp;
+      if (!d.slot) { r.flash = baanKlaar(cp) ? 'FINISH' : `POORT ${cp}/${CP_TOTAAL}`; r.flashT = 1.6; }
       if (d.slot && w.coopMeld) w.coopMeld(d.slot, baanKlaar(cp) ? 'Binnen! De anderen rijden door.' : `Poort ${cp}/${CP_TOTAAL}`);
     }
     if (baanKlaar(d.cp)) { d.klaar = true; d.tijd = r.t; }
@@ -199,6 +205,9 @@ function tickBaan(dt, w) {
 
 // --- het bord -----------------------------------------------------------------
 
+// De 24 poorten als cellen: gehaald is goed, de volgende is de huidige (#618).
+const poortCellen = (cp) => Array.from({ length: CP_TOTAAL }, (_, i) => ({ t: i + 1, cls: i < cp ? 'good' : i === cp ? 'on' : '' }));
+
 function updateHud(w) {
   if (!run || !board) return;
   const r = run;
@@ -208,6 +217,8 @@ function updateHud(w) {
     const regels = stand.map((s) => `<span>${s.weg ? '<s>' : ''}${s.plek}. ${esc(String(s.naam).slice(0, 12))} <b>${s.klaar && s.tijd != null ? fmt(s.tijd) : `${Math.min(s.cp, CP_TOTAAL)}/${CP_TOTAAL}`}</b>${s.weg ? '</s>' : ''}</span>`).join('');
     board.set({
       row: `<span>Tijd <b>${fmt(r.t)}</b></span><span>Plaats <b>${mijn ? mijn.plek : '-'}/${stand.length || r.deeln.length}</b></span><span>Poort <b>${mijn ? Math.min(mijn.cp + 1, CP_TOTAAL) : 0}/${CP_TOTAAL}</b></span>`,
+      cells: poortCellen(mijn ? mijn.cp : 0),
+      flash: r.flashT > 0 && r.flash ? r.flash : '',
       extra: regels || '',
       help: `${key('BACKSPACE')} stopt de wedstrijd voor iedereen`,
     });
@@ -216,6 +227,8 @@ function updateHud(w) {
   const race = r.race, pos = race.playerPos || 0, totaal = race.rivals.length + 1;
   board.set({
     row: `<span>Tijd <b>${fmt(r.t)}</b></span><span>Plaats <b>${pos}/${totaal}</b></span><span>Poort <b>${Math.min(r.cp + 1, CP_TOTAAL)}/${CP_TOTAAL}</b></span>`,
+    cells: poortCellen(r.cp),
+    flash: r.flashT > 0 && r.flash ? r.flash : '',
     help: `${key('BACKSPACE')} stoppen`,
   });
 }
@@ -240,7 +253,9 @@ function finish(w, { quit = false, extern = false, teLang = false, uitslag = nul
   const geld = prijsVoorPlek(plek);
   const premie = loopbaanVerdien(w, 'race', geld, { xp: xpVoorPlek(plek || 5), n: 1, uniek: 'ringrace' }); // loopbaan (#381)
   const stats = [['Plaats', plek ? `${plek} van ${r.race.rivals.length + 1}` : 'niet gefinisht'], ['Tijd', fmt(r.t)]];
-  if (medal) stats.push(['Medaille', MEDALS[medal]]);
+  if (medal) stats.push(['Medaille', medailleBedrag('activiteit', medal, { geld: premie, xp: xpVoorPlek(plek || 5) }).tekst]); // #672
+  const volgende = volgendePlek(plek).tekst;
+  if (volgende) stats.push(['Volgende', volgende]);
   if (rec && rec.newBest) stats.push(['Record', 'Nieuw!']);
   gameUi.showBanner({
     kind: medal ? 'pass' : 'fail',
@@ -361,4 +376,5 @@ zetWedGastHaken('ringrace', { dichtbij: (w) => !run && bijStart(w) });
 export function dijkPrijs(world, bedrag, xp = 0) {
   return loopbaanVerdien(world, 'race', bedrag, { xp, n: 1, uniek: 'dijk', deel: false });
 }
+
 

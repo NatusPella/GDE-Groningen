@@ -10,6 +10,7 @@ import { createBoard, mgThema, key, stopPressed } from './minigamekit.js';
 import { gameUi } from './minigamekit.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, MEDALS } from './achievements.js';
 import { loopbaanVerdien, loopbaanTel } from './loopbaanlive.js';
+import { medailleBedrag } from './medalrules.js';
 import { assistGate, assistTime } from './assistlive.js';
 import { pointInPolygon, WATER_Y } from './util.js';
 import { waterAt } from './waterlevels.js';
@@ -446,11 +447,12 @@ function eindig(w, { afgebroken = false } = {}) {
   const les = g.les, baan = g.baan, st = g.st;
   const uit = R.beoordeel(les, baan, st);
   const eerder = besteMedaille(les.id);
-  let geld = 0, rec = null;
+  let geld = 0, rec = null, betaal = null;
   if (!afgebroken) {
     rec = recordChallengeResult(w, recId(les.id), { value: uit.punten, medal: uit.medaille });
     recordStat(w, 'vliegschoolLessen');
     const b = R.beloning(uit.medaille, eerder);
+    betaal = b;
     if (uit.medaille > 0) {
       geld = loopbaanVerdien(w, 'lucht', b.geld, { xp: b.xp, n: 1, uniek: 'vliegschool-' + les.id, rubriek: 'Overig inkomsten' });
       unlockAchievement(w, 'vlieg_geslaagd');
@@ -460,7 +462,7 @@ function eindig(w, { afgebroken = false } = {}) {
   }
   opruimen(w);
   const regels = [...uit.regels];
-  if (uit.medaille) regels.push(['Medaille', MEDALS[uit.medaille]]);
+  if (uit.medaille) regels.push(['Medaille', medailleBedrag('vliegschool', uit.medaille, { geld, xp: betaal ? betaal.xp : 0, eerste: !afgebroken && uit.medaille > eerder }).tekst]); // #672: bedrag en punten erbij
   if (rec && rec.newBest) regels.push(['Record', 'Nieuw!']);
   const zin = uit.medaille === 3 ? R.LIJNEN.eind.goud : uit.medaille === 2 ? R.LIJNEN.eind.zilver : uit.medaille === 1 ? R.LIJNEN.eind.brons : R.LIJNEN.eind.geen;
   if (afgebroken) w.addMessage('Les gestopt', 2.5);

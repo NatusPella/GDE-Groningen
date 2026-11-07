@@ -11,12 +11,13 @@ import { wordCount, WORD_BUDGET } from '../game/js/hudtext.js';
 import * as MB from '../game/js/movablebridges.js';
 import * as RV from '../game/js/reisview.js';
 import * as PH from '../game/js/partnerhud.js';
+import { FY } from '../game/js/subtitles.js';
 
 const JS = fileURLToPath(new URL('../game/js/', import.meta.url));
 const lines = (s) => s.split(/\r?\n/);
 
 // the most over-budget elements we accept per kind (a ratchet: only goes down)
-export const LIMITS = { label: 0, hint: 0, hintSub: 0, card: 0, prompt: 0 };
+export const LIMITS = { label: 0, hint: 0, hintSub: 0, card: 0, prompt: 0, subtitle: 6 };
 
 const strOf = (src, key) => {
   const m = new RegExp('\\b' + key + ':\\s*([\'"`])').exec(src);
@@ -65,6 +66,13 @@ export function auditHudText() {
   for (const st of ['warn', 'open']) add('prompt', `movablebridges.js bridgeHint(${st})`, MB.bridgeHint(st, true));
   add('prompt', 'reisview.js help', RV.panelState({ to: 'X', length: 9000, ride: 'bus', lines: ['a'] }).help);
   for (const t of Object.values({ a: PH.voertuigActie({ x: 0, y: 0 }, null, {}, null).tekst })) add('prompt', 'partnerhud.js voertuigActie', t);
+
+  // 5. ondertitels (#644): elke gesproken Friese/Groningse regel en de Nederlandse vertaling eronder
+  // telt mee voor het budget van 18 woorden, zodat een lange zin niet ongemerkt onder de maat zakt.
+  for (const [gezegd, vertaling] of Object.entries(FY)) {
+    add('subtitle', 'subtitles.js (gesproken)', gezegd);
+    add('subtitle', 'subtitles.js (Nederlands)', vertaling);
+  }
   return out;
 }
 
@@ -82,3 +90,4 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     for (const [k, v] of Object.entries(byKind)) console.log(`  ${k.padEnd(8)} ${v.n}  ${v.over}  ${v.words}`);
   }
 }
+

@@ -293,5 +293,17 @@ ok(A.planModeFor('ov', 'lopen') === 'ov' && A.planModeFor('boot', 'auto') === 'b
   ok(held('tip', { dialogue: true }) && !held('geld', { dialogue: true }) && held('prestatie', { dialogue: true }), 'a call holds tips and the achievement card (zone E), not money');
 }
 
+// #644: de ondertitel is leesbaar naast de snelheidsmeter en de minimap: een smallere, vaste kolom in
+// het midden, en de Nederlandse regel onder een Friese/Groningse regel zakt nooit onder 12 px.
+{
+  const subCss = readFileSync(new URL('../game/js/hud_panel.css', import.meta.url), 'utf8');
+  const regel = subCss.match(/#banter-sub, #radio-sub \{[^}]*\}/);
+  ok(regel && /max-width:\s*min\(56vw, 560px\)/.test(regel[0]) && /width:\s*auto/.test(regel[0]), 'ondertitel: vaste smallere kolom vrij van de snelheidsmeter', regel && regel[0]);
+  const nl = subCss.match(/\.nl-sub \{[^}]*\}/);
+  ok(nl && /font-size:\s*max\(12px, 0\.8em\)/.test(nl[0]), 'de Nederlandse regel is nooit kleiner dan 12 px', nl && nl[0]);
+  const radio = readFileSync(new URL('../game/js/radiosub.js', import.meta.url), 'utf8');
+  ok(/rs-firma bt-speaker/.test(radio) && !/font-weight:bold;margin-right/.test(radio), 'de radio gebruikt dezelfde sprekerstijl als de andere ondertitels');
+}
+
 console.log(`${n} checks, ${fails} failed`);
 process.exit(fails ? 1 : 0);

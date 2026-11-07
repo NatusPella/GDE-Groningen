@@ -1,7 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { recordChallengeResult, getChallengeRecord, recordStat, MEDALS } from './achievements.js';
 import { iconDisc, activityBlock } from './activitykit.js';
-import { createBoard, mgThema, key, fmtTime, stopPressed, windText, gameUi } from './minigamekit.js';
+import { createBoard, mgThema, key, fmtTime, stopPressed, windText, windDirection, gameUi } from './minigamekit.js';
 import { waterAt, waterPolyAt } from './waterlevels.js';
 import { buildingAt } from './tileplace.js';
 import { WATER_Y } from './util.js';
@@ -214,7 +214,7 @@ function updateHud(w) {
     plaats = plaatsTekst((stand.find((x) => x.slot === 0) || {}).plek || stand.length || 1, stand.length || run.deeln.length);
     extra = stand.map((x) => `<span>${x.weg ? '<s>' : ''}${x.naam} <b>${x.klaar ? fmtTime(x.tijd) : `${x.banen}/${totaal}`}</b>${x.weg ? '</s>' : ''}</span>`).join('');
   }
-  const row = `<span>Tijd <b>${fmtTime(r.t)}</b></span><span>Ronde <b>${Math.min(r.ronde + 1, r.rondes)}/${r.rondes}</b></span><span>Plaats <b>${plaats}</b></span><span>Ton <b>${r.volgend + 1}/${r.tonnen.length}</b> (${afstand} m)</span>${wind ? `<span>${windText(wind)}</span>` : ''}${extra}`;
+  const row = `<span>Tijd <b>${fmtTime(r.t)}</b></span><span>Ronde <b>${Math.min(r.ronde + 1, r.rondes)}/${r.rondes}</b></span><span>Plaats <b>${plaats}</b></span><span>Ton <b>${r.volgend + 1}/${r.tonnen.length}</b> (${afstand} m)</span>${wind ? `<span>${windText(wind)} ${windDirection(wind)}</span>` : ''}${extra}`; // #616: wind met richting, niet alleen Bft
   const cells = r.tonnen.map((_, i) => ({ t: `${i + 1}`, cls: i < r.volgend ? 'good' : i === r.volgend ? 'on' : '' }));
   board.set({ row, cells, flash: run.flash || '', bad: run.flash === STAP_IN, help: run.online ? `${key('BACKSPACE')} stopt de wedstrijd voor iedereen` : `${key('Q')} zeil aan · ${key('Z')} vieren · ${key('BACKSPACE')} stoppen` });
 }
@@ -387,4 +387,5 @@ registreerWedstrijd('regatta', {
 });
 // Een gast bij een jachthaven of de Hoornse Plas kan de wedstrijd zelf aanvragen (#452).
 zetWedGastHaken('regatta', { dichtbij: (w) => !run && !!nearestMarina(w) });
+
 

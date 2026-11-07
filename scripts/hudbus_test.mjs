@@ -45,7 +45,7 @@ ok(mo('wijk') && mo('onbekend', { busy: true }), 'moment free; unknown kinds are
 ok(!mo('wijk', { busy: true }) && !mo('wijk', { callOn: true }) && !mo('wijk', { narrativeBusy: true }), 'busy blocks');
 ok(!mo('wijk', { speed: 20 }) && mo('crash', { speed: 20 }), 'fast driving blocks calm moments only');
 ok(!mo('wijk', { last: { any: 990, level: 0, groups: {} } }), 'global gap');
-ok(!mo('wijk', { last: { any: 950, level: B.LEVEL.danger, groups: {} } }) && mo('crash', { last: { any: 950, level: B.LEVEL.discovery, groups: {} } }), 'lower level waits after a higher one');
+ok(!mo('wijk', { last: { any: 990, level: B.LEVEL.danger, groups: {} } }) && mo('wijk', { last: { any: 984, level: B.LEVEL.danger, groups: {} } }) && mo('crash', { last: { any: 950, level: B.LEVEL.discovery, groups: {} } }), 'lower level waits 15 s after a higher one');
 ok(!mo('crash', { last: { any: 0, level: 0, groups: { crash: 970 } } }), 'group cooldown');
 
 // the message queue: one at a time, ranked, same key replaces
@@ -108,3 +108,4 @@ ok(B.mayShowSurface('menu') && B.mayShowSurface('onbekend') && B.mayShowSurface(
 
 console.log(`${n - bad}/${n} hudbus rules ok`);
 process.exit(bad ? 1 : 0);
+

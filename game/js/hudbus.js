@@ -99,11 +99,12 @@ export function decideStart(kind, view, { urgent = false } = {}) {
 // --- cinematic moments and rationing (attention.js) ----------------------------
 
 // Cinematic moments: their level, their own cooldown and whether they may
-// interrupt while driving fast. Discovery scenes share one cooldown.
+// interrupt while driving fast. Discovery scenes share one cooldown; since the
+// verover-intocht exists, a wijk card may come sooner (#709).
 export const MOMENTS = {
-  wijk: { level: 'discovery', group: 'discovery', cooldown: 210, fast: false },
-  landmark: { level: 'discovery', group: 'discovery', cooldown: 210, fast: false },
-  ommelanden: { level: 'discovery', group: 'discovery', cooldown: 210, fast: false },
+  wijk: { level: 'discovery', group: 'discovery', cooldown: 120, fast: false },
+  landmark: { level: 'discovery', group: 'discovery', cooldown: 120, fast: false },
+  ommelanden: { level: 'discovery', group: 'discovery', cooldown: 120, fast: false },
   // de intocht na een verovering (#705): verhaal, geen ontdekking, en hij wacht zelf op rust
   veroverd: { level: 'story', group: 'veroverd', cooldown: 0, fast: true },
   crash: { level: 'danger', group: 'crash', cooldown: 60, fast: true },
@@ -111,6 +112,7 @@ export const MOMENTS = {
 };
 export const RATION = {
   GLOBAL_GAP: 40, // no two interruptions of any kind closer together than this
+  DISCOVERY_GAP: 15, // a discovery scene may follow sooner (#709: the card came when the player was already gone)
   AFTER_HIGHER: 20, // a lower level also waits this long after a higher one
   FAST: 50 / 3.6,
   TIP_GAP: 20,
@@ -128,8 +130,9 @@ export function decideMoment(kind, c) {
   if (!m.fast && Math.abs(c.speed || 0) > RATION.FAST) return false;
   const { last, now } = c;
   if (now - (last.groups[m.group] ?? -Infinity) < m.cooldown) return false;
-  if (now - last.any < RATION.GLOBAL_GAP) return false;
-  if (LEVEL[m.level] < last.level && now - last.any < RATION.GLOBAL_GAP + RATION.AFTER_HIGHER) return false;
+  const gap = m.group === 'discovery' ? RATION.DISCOVERY_GAP : RATION.GLOBAL_GAP;
+  if (now - last.any < gap) return false;
+  if (LEVEL[m.level] < last.level && now - last.any < gap + RATION.AFTER_HIGHER) return false;
   return true;
 }
 

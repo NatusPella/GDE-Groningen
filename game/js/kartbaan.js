@@ -20,6 +20,7 @@ import { addClearZone, corridorPoints } from './clearzone.js';
 import { KARTBAAN_ORIGIN, KARTBAAN_ROT, KARTBAAN_FRAME, KARTBAAN_WIDTH, KARTBAAN_TRACK } from './kartbaanspoor.js';
 import { racingLine } from './kartline.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
+import { medailleBedrag, volgendePlek } from './medalrules.js';
 import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedRaceTik, wedHostEind, wedGastVerlaat, wedGastReset, tikSpiegel, eindstand, beloning, raceStand } from './multiplayerwedstrijd.js';
 import { figuurLook } from './coopplayers.js';
 import { hoofdspeler } from './players.js';
@@ -636,12 +637,15 @@ function end(w, { quit = false } = {}) {
   if (total != null && saveGhost(ghostStore(), 'kart-ulrum', finishGhost(g.rec, total), KEYS.ghosts)) w.addMessage('Je beste race is bewaard: de spookkart rijdt hem de volgende keer mee', 4);
   if (lap != null) recordChallengeResult(w, 'kart-lap', { value: lap, medal: 0, lower: true });
   recordStat(w, 'kartRaces');
-  const premie = loopbaanVerdien(w, 'race', me.finished ? ([0, 30, 20, 12, 6][pos] || 0) : 0, { xp: me.finished ? 16 - pos * 2 : 6, n: 1, uniek: 'kart' }); // loopbaan (#381)
+  const xpRace = me.finished ? 16 - pos * 2 : 6;
+  const premie = loopbaanVerdien(w, 'race', me.finished ? ([0, 30, 20, 12, 6][pos] || 0) : 0, { xp: xpRace, n: 1, uniek: 'kart' }); // loopbaan (#381)
   if (me.finished) unlockAchievement(w, 'kart_klaar');
   if (medal >= 3) unlockAchievement(w, 'kart_goud');
   if (lap != null && lap <= LAP_SNEL) unlockAchievement(w, 'kart_snel');
   const stats = [['Positie', me.finished ? `${pos} van 4` : 'niet gefinisht'], ['Racetijd', total != null ? fmtTime(total) : '-'], ['Beste ronde', lap != null ? fmtTime(lap) : '-'], ['Drifts', String(me.drifts)]];
-  if (medal) stats.push(['Medaille', MEDALS[medal]]);
+  if (medal) stats.push(['Medaille', medailleBedrag('activiteit', medal, { geld: premie, xp: xpRace }).tekst]); // #672: bedrag en punten erbij
+  const volgende = me.finished ? volgendePlek(pos).tekst : '';
+  if (volgende) stats.push(['Volgende', volgende]); // #672: de volgende trede in de uitslag
   if (newBest) stats.push(['Record', 'Nieuw!']);
   showBanner({ kind: medal ? 'pass' : 'fail', title: pos === 1 && me.finished ? 'EERSTE OP DE KARTBAAN' : medal ? 'OP HET PODIUM' : 'NOG EEN RONDJE?', reason: medal ? '' : 'Drift de lange bochten voor een versnelling en rij schoon: de banden zijn zacht, maar de muur hard', reward: premie, stats });
   say(w, pos === 1 ? 'win' : medal ? 'podium' : 'poor', true, true);
@@ -868,3 +872,4 @@ export const KARTBAAN = {
   },
   runs: () => runs,
 };
+
