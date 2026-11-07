@@ -1,4 +1,5 @@
 import { FLAT_SCALE, flatWheelIndex } from './flatlook.js';
+import { LRUCache } from './lrucache.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { HABBO_PALETTE, habboMaterial, GeoBuilder, vcMaterial, markShared, composeMatrix, tubeGeometry } from './pixelart3d.js';
 import { buildPersonMesh, PERSON_RIG, holdPhoneRiding } from './models3d_people.js';
@@ -37,7 +38,8 @@ const TIRE = 0x1b1b1c;
 const BLUE_TIRE = 0x2f6fb0; // de blauwe banden van de goedkope leenfiets
 const RIM = 0x9ea2a6;
 
-const geoCache = new Map();
+// #658: begrensde cache (LRU) i.p.v. een onbegrensde Map
+const geoCache = new LRUCache(180);
 function cached(key, build) {
   let g = geoCache.get(key);
   if (!g) {

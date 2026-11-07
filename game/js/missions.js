@@ -1,4 +1,5 @@
 import { SMS_SAY } from './smsvoice.js';
+import { pubStaticKey } from './pubstatic.js';
 import { dijkPrijs } from './ringrace.js';
 import { assistTime } from './assistlive.js';
 import { dist, pointInPolygon, closestPointOnSegment, boatDryPoints, clamp, isInWater } from './util.js';
@@ -839,12 +840,13 @@ function vehicleToBoard(world, def) {
   return v;
 }
 
+// #654: het statische deel van de missie-HUD alleen bij een sleutelwissel
+let pubStaticSig = '';
 function syncPub(world) {
   const st = chainState();
   const def = st.defs[st.index];
   const pub = st.pub;
   pub.type = def.type;
-  pub.samen = missieStatus(def); // werkt de opdracht al samen? (coopstatus.js)
   pub.label = def.label;
   pub.phase = st.phase;
   pub.timeLeft = st.phase === 'active' && Number.isFinite(st.timeLeft) ? st.timeLeft : null;
@@ -855,6 +857,13 @@ function syncPub(world) {
   pub.id = `${st.index}|${def.label || ''}`.slice(0, 48);
   pub.total = st.defs.length;
   const board = st.phase === 'active' ? vehicleToBoard(world, def) : null;
+  const staticKey = pubStaticKey(st, def, board);
+  const staticDue = staticKey !== pubStaticSig;
+  if (staticDue) {
+    pubStaticSig = staticKey;
+    pub.samen = missieStatus(def); // werkt de opdracht al samen? (coopstatus.js)
+    pub.triggerRadius = def.triggerRadius || TRIGGER_RADIUS;
+  }
   let target;
   if (st.phase !== 'active' || def.type === 'stunt') target = def.start;
   else if (board) target = board;
@@ -870,9 +879,8 @@ function syncPub(world) {
   }
   pub.distanceToMarker = afstandMeespeler(world, pub.marker.x, pub.marker.y);
   pub.armed = !!st.armed;
-  pub.triggerRadius = def.triggerRadius || TRIGGER_RADIUS;
   pub.stunt = (def.type === 'stunt' || chainState().stuntPhase) && st.phase === 'active' ? stuntStatus() : null;
-  if (def.type === 'checkpoint' || def.type === 'boat') {
+  if ((def.type === 'checkpoint' || def.type === 'boat') && staticDue) {
     pub.wpIndex = def.waypoints.slice(0, st.wpIndex).filter((wp) => !wp.via).length;
     pub.wpTotal = def.waypoints.filter((wp) => !wp.via).length;
   }
@@ -907,10 +915,12 @@ function syncPub(world) {
   pub.raceHud = (def.type === 'checkpoint' || def.type === 'boat') && st.phase === 'active' ? raceHud(st, pub) : null;
   // the car races (KEI-week and the ringweg) get the race loop; not the kroegentocht on foot
   pub.raceMusic = def.type === 'checkpoint' && !def.onFoot && st.phase === 'active';
-  pub.remainingWaypoints =
-    (def.type === 'checkpoint' || def.type === 'boat') && st.phase === 'active' && !board
-      ? upcomingWaypoints(def, st.wpIndex).map((wp) => ({ x: wp.x, y: wp.y }))
-      : [];
+  if (staticDue) {
+    pub.remainingWaypoints =
+      (def.type === 'checkpoint' || def.type === 'boat') && st.phase === 'active' && !board
+        ? upcomingWaypoints(def, st.wpIndex).map((wp) => ({ x: wp.x, y: wp.y }))
+        : [];
+  }
   world.mission = pub;
 }
 
