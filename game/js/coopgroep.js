@@ -8,7 +8,7 @@
 // - Stemming: een tijdsprong vraagt akkoord van alle andere spelers (J of N, STEM_SEC seconden, geen antwoord is nee). Wie alleen is, beslist zelf.
 
 export const STEM_SEC = 10;
-export const STEM_SOORTEN = ['slapen', 'onderduiken', 'stoppen'];
+export const STEM_SOORTEN = ['slapen', 'onderduiken', 'stoppen', 'keuze'];
 
 // ---- wie speelt er mee
 // Host: minstens een verbonden gast. Gast: altijd (hij zit in iemands sessie). Zonder sessie: nee.
@@ -93,16 +93,79 @@ export const stemUitslagTekst = (ok, reden = '', soort = '') => {
   return ok ? STEM_HOST.ja : reden === 'geen antwoord' ? STEM_HOST.geenAntwoord : STEM_HOST.nee;
 };
 
+// ---- stemming over een verhaal-keuze (#686)
+// Een keuze-stap (stagechoice.js) is van de wereld van de opener, maar de keuze is van de groep. De host
+// opent een stemming met de opties; elke speler (opener op plek 0 en elke gast) stemt op één optie.
+// Meerderheid wint; bij een gelijkspel beslist de stem van de opener; wie niet antwoordt telt niet mee.
+// Zonder enige stem is er geen meerderheid en valt de stemming terug op de standaardkeuze van de ronde
+// (fallback, dezelfde als de tijdslimiet van de stap: round.timeoutPick of de laatste optie).
+export const KEUZE_SEC = 6;
+export const KEUZE_TEKST = {
+  stem: (naam, opties) => `${naam} laat de groep kiezen: ${(opties || []).map((o, i) => `${i + 1} ${o}`).join(' · ')}.`,
+  wacht: 'Jullie kiezen samen. Even wachten op de anderen.',
+  uitslag: (optie) => `Jullie kozen: ${optie}.`,
+};
+export function stemKeuzeBegin(id, opties, slots, { sec = KEUZE_SEC, fallback = -1, tekst = '' } = {}) {
+  const opt = (Array.isArray(opties) ? opties : []).map((o) => String(o).slice(0, 80)).filter(Boolean).slice(0, 6);
+  const st = { id, soort: 'keuze', opties: opt, tekst: String(tekst || '').slice(0, 90), keuze: {}, uitslag: null, rest: sec, fallback: Number.isInteger(fallback) ? fallback : -1 };
+  for (const s of slots || []) if (Number.isInteger(s) && s >= 0) st.keuze[s] = 'wacht';
+  if (!opt.length) st.uitslag = -1;
+  return st;
+}
+export function stemKeuzeAntwoord(st, slot, index) {
+  if (!st || !st.opties || st.uitslag != null || !(slot in st.keuze) || st.keuze[slot] !== 'wacht') return false;
+  const i = Number(index);
+  if (!Number.isInteger(i) || i < 0 || i >= st.opties.length) return false;
+  st.keuze[slot] = i;
+  return true;
+}
+// Wie er nog moet stemmen.
+export const stemKeuzeWacht = (st) => (st ? Object.keys(st.keuze).map(Number).filter((s) => st.keuze[s] === 'wacht') : []);
+// De uitslag zonder te tikken: de optie met de meeste stemmen; gelijkspel → de stem van de opener (plek 0),
+// en anders de laagste optie die bovenaan staat. Geen stemmen: de fallback van de ronde.
+export function stemKeuzeUitslag(st) {
+  if (!st || !st.opties || !st.opties.length) return -1;
+  const telling = new Array(st.opties.length).fill(0);
+  for (const v of Object.values(st.keuze)) if (Number.isInteger(v) && v >= 0 && v < telling.length) telling[v]++;
+  const hoog = Math.max(0, ...telling);
+  if (hoog === 0) return st.fallback >= 0 && st.fallback < st.opties.length ? st.fallback : st.opties.length - 1;
+  const top = telling.map((n, i) => (n === hoog ? i : -1)).filter((i) => i >= 0);
+  const eigen = st.keuze[0];
+  return top.includes(eigen) ? eigen : top[0];
+}
+// Eén beeld van de stemming: klaar als iedereen stemde of de tijd om is. Geeft de uitslag of null.
+export function stemKeuzeTik(st, dt) {
+  if (!st || st.uitslag != null) return st ? st.uitslag : null;
+  if (!stemKeuzeWacht(st).length) { st.uitslag = stemKeuzeUitslag(st); return st.uitslag; }
+  st.rest -= dt;
+  if (st.rest <= 0) { st.uitslag = stemKeuzeUitslag(st); }
+  return st.uitslag;
+}
+// Een gast die wegvalt of vertrekt telt niet meer mee.
+export function stemKeuzeVerval(st, slot) {
+  if (!st || st.uitslag != null || !(slot in st.keuze)) return false;
+  delete st.keuze[slot];
+  return true;
+}
+
+
 // ---- het bericht naar de gasten en hun antwoord (gecontroleerd bij ontvangst)
-export const stemEvent = (st) => ({ k: 'stem', id: st.id, soort: st.soort, tekst: st.tekst, sec: Math.max(1, Math.ceil(st.rest)) });
+export const stemEvent = (st) => ({ k: 'stem', id: st.id, soort: st.soort, tekst: st.tekst, sec: Math.max(1, Math.ceil(st.rest)), ...(st.soort === 'keuze' ? { opties: st.opties } : {}) });
 export function leesStemEvent(b) {
-  if (!b || b.k !== 'stem' || !Number.isInteger(b.id) || !STEM_SOORTEN.includes(b.soort) || typeof b.tekst !== 'string') return null;
+  if (!b || b.k !== 'stem' || !Number.isInteger(b.id) || !STEM_SOORTEN.includes(b.soort)) return null;
+  if (b.soort === 'keuze') { // #686: een keuze-stemming draagt de opties mee in plaats van een ja/nee-tekst
+    if (!Array.isArray(b.opties) || !b.opties.length) return null;
+    const opties = b.opties.slice(0, 6).map((o) => String(o).slice(0, 80)).filter(Boolean);
+    if (!opties.length) return null;
+    return { id: b.id, soort: 'keuze', opties, tekst: typeof b.tekst === 'string' ? b.tekst.slice(0, 90) : '', rest: Number.isFinite(b.sec) ? Math.min(30, Math.max(1, b.sec)) : KEUZE_SEC };
+  }
+  if (typeof b.tekst !== 'string') return null;
   return { id: b.id, soort: b.soort, tekst: b.tekst.slice(0, 90), rest: Number.isFinite(b.sec) ? Math.min(30, Math.max(1, b.sec)) : STEM_SEC };
 }
-export const stemAntwoordEvent = (id, ja) => ({ k: 'stemantwoord', id, ja: !!ja });
-export function leesStemAntwoord(b) { return b && b.k === 'stemantwoord' && Number.isInteger(b.id) ? { id: b.id, ja: !!b.ja } : null; }
-export const stemUitslagEvent = (id, ok, reden = '') => ({ k: 'stemuitslag', id, ok: !!ok, reden: reden === 'geen antwoord' ? 'geen antwoord' : '' });
-export function leesStemUitslag(b) { return b && b.k === 'stemuitslag' && Number.isInteger(b.id) ? { id: b.id, ok: !!b.ok, reden: b.reden === 'geen antwoord' ? 'geen antwoord' : '' } : null; }
+export const stemAntwoordEvent = (id, ja, keuze = null) => ({ k: 'stemantwoord', id, ja: !!ja, ...(Number.isInteger(keuze) && keuze >= 0 ? { keuze } : {}) });
+export function leesStemAntwoord(b) { return b && b.k === 'stemantwoord' && Number.isInteger(b.id) ? { id: b.id, ja: !!b.ja, ...(Number.isInteger(b.keuze) && b.keuze >= 0 ? { keuze: b.keuze } : {}) } : null; }
+export const stemUitslagEvent = (id, ok, reden = '', keuze = null) => ({ k: 'stemuitslag', id, ok: !!ok, reden: reden === 'geen antwoord' ? 'geen antwoord' : '', ...(Number.isInteger(keuze) && keuze >= 0 ? { keuze } : {}) });
+export function leesStemUitslag(b) { return b && b.k === 'stemuitslag' && Number.isInteger(b.id) ? { id: b.id, ok: !!b.ok, reden: b.reden === 'geen antwoord' ? 'geen antwoord' : '', ...(Number.isInteger(b.keuze) && b.keuze >= 0 ? { keuze: b.keuze } : {}) } : null; }
 
 // De naam van wie het vraagt: de speler op plek 0 in de lijst (coopplayers.js lijst), anders 'Een speler'.
 export function eigenNaam(world) {

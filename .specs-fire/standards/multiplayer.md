@@ -14,7 +14,7 @@ verhaal en bezit; elke nieuwe functie krijgt een regel over Samen spelen.
 Sinds #528 is Samen spelen de standaard, niet iets wat je erbij doet (ADR 0022).
 - **Bij de eerste start** ziet de speler één scherm: zijn naam (die het spel onthoudt)
   en de vraag of hij met andere spelers meedoet. Ja of nee, en die keuze blijft bewaard
-  in \gde-settings\ als \onlineMeedoen\.
+  in `gde-settings` als `onlineMeedoen`.
 - **Ja** → het spel opent de expliciete lijst met openbare sessies; de speler kiest daar
   zelf. Sluit hij dat scherm zonder sessie, dan zoekt de automatische terugval alsnog een
   passende sessie en host anders zelf **besloten** (#556): geen aankondiging en geen plek
@@ -25,7 +25,7 @@ Sinds #528 is Samen spelen de standaard, niet iets wat je erbij doet (ADR 0022).
   niemand komt binnen.
 - **Enter in het naamveld is geen toestemming** (#556): typen + Enter zet alleen de
   focus op "Meedoen"; de keuze telt pas bij een knop of een tweede, bewuste Enter.
-- **Ontbrekende waarde is geen ja.** Is \onlineMeedoen\ niet gezet, dan vraagt het spel
+- **Ontbrekende waarde is geen ja.** Is `onlineMeedoen` niet gezet, dan vraagt het spel
   het één keer en zoekt het intussen geen contact. Een oude installatie wordt nooit
   stil openbaar.
 - **Aanpasbaar** bij Instellingen > Samen spelen, samen met naam en kleur. Aanzetten
@@ -76,6 +76,15 @@ Sinds #528 is Samen spelen de standaard, niet iets wat je erbij doet (ADR 0022).
   voor (`vraagStop`/`stopverzoek`, J/N, net als de tijd). Een filmpje voor
   iedereen overslaan blijft de gedocumenteerde uitzondering van de opener; een
   gast slaat zijn eigen weergave over (ADR 0007).
+- **Een verhaal-keuze is een stemming van de groep (#686).** De gastheer opent de
+  stemming, elke speler (opener op plek 0 en elke gast) stemt met het nummer van
+  zijn optie; de meerderheid wint, een gelijkspel beslist de stem van de opener en
+  wie niet antwoordt telt niet mee. Zonder stemmen valt de keuze terug op de
+  standaardkeuze van de ronde (`coopgroep.js` `stemKeuze`, `stagechoice.js`
+  `stemStap`). Berichten `stem` (met `opties`), `stemantwoord` (met `keuze`) en
+  `stemuitslag` (met `keuze`); dezelfde JSON-berichten als de tijdstemming, dus
+  `PROTO` en `CODEC_VERSION` blijven 2. De gast leest "Jullie kiezen samen" en
+  "Stem mee"; de stap en het gevolg blijven van de wereld van de opener.
 
 ## Opdrachtstand per groep
 

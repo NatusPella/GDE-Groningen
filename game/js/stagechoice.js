@@ -29,6 +29,8 @@ export function enterChoice(S) {
   S.picks = [];
   S.replyT = 0;
   S.askT = 0;
+  S.coopRonde = -1; // #686: de eerste ronde opent zijn eigen stemming
+  S.coopStem = null;
 }
 
 function paint(st, S, round) {
@@ -77,26 +79,61 @@ export function stepChoice(st, S, key, dt) {
   return S.ci >= st.rounds.length ? 'done' : null;
 }
 
+// #686: de groepsstemming van één keuze-ronde, zonder DOM (zo testbaar): de host opent de stemming bij het
+// begin van de ronde, telt zijn eigen stem en die van de gasten (die komen via coopnet als paneel-bericht), en
+// geeft de toets van de winnende optie terug zodra iedereen stemde of de tijd om is. Zonder gasten start er
+// geen stemming en kiest de opener direct, zoals voorheen. Geeft { vote, key }: vote = er loopt/er was een
+// stemming deze ronde; key = de gekozen optietoets (of null zolang de stemming loopt).
+export function stemStap(world, S, round, dt) {
+  const opties = (round.options || []).map((o) => o.label);
+  if (!opties.length) return { vote: false, key: null };
+  if (S.coopRonde !== S.ci) {
+    S.coopRonde = S.ci;
+    const fallback = Math.max(0, Math.min(opties.length - 1, Number(round.timeoutPick || opties.length) - 1));
+    S.coopStem = typeof world.coopKeuzeBegin === 'function' ? world.coopKeuzeBegin(opties, (round.who ? `${round.who}: ` : '') + (round.text || ''), fallback) : null;
+  }
+  if (!S.coopStem) return { vote: false, key: null };
+  if (typeof world.coopKeuzeAntwoord === 'function' && world.input && typeof world.input.wasPressed === 'function') {
+    for (let i = 0; i < opties.length; i++) {
+      const k = String(i + 1);
+      if (world.input.wasPressed(k)) { if (typeof world.input.consume === 'function') world.input.consume(k); world.coopKeuzeAntwoord(i); }
+    }
+  }
+  const u = typeof world.coopKeuzeTik === 'function' ? world.coopKeuzeTik(dt) : null;
+  if (u == null) return { vote: true, key: null };
+  S.coopStem = null;
+  return { vote: true, key: String(u + 1) };
+}
+
 // per frame while the stage runs (missions.js). Returns 'done', { fail: reason } or null.
 export function updateChoice(dt, world, st, S) {
   const p = ensure();
   if (!p.open) p.show();
   world.minigameUntil = world.time + 0.25;
-  let key = null;
+  let key = null, stepDt = dt;
   if (S.cphase === 'ask') {
     const round = st.rounds[Math.min(S.ci, st.rounds.length - 1)];
     const geldig = (k) => round.options.some((o, i) => String(i + 1) === k);
-    // Samen spelen (#525): eerst wat een gast bij de gastheer indrukte, dan de toetsen van dit apparaat. De keuze is
-    // van de groep; elke meespeler telt. Een register van een heeft geen wachtrij en verandert dus niets.
-    key = neemPaneelDruk(world, 'choice').find(geldig) || null;
-    if (!key) for (let i = 0; i < round.options.length; i++) {
-      const k = String(i + 1);
-      if (world.input.wasPressed(k)) { world.input.consume(k); key = k; break; }
+    // #686: met meer spelers kiest de groep via een stemming. Loopt die, dan leest niemand hier direct een
+    // antwoord: de uitslag komt pas als de stemming klaar is. De eigen tijdslimiet van de ronde staat dan
+    // stil; de stemming heeft zijn eigen tijd (coopgroep.js KEUZE_SEC) en valt daarna terug op timeoutPick.
+    const stem = stemStap(world, S, round, dt);
+    if (stem.vote) {
+      key = stem.key;
+      if (!key) stepDt = 0;
+    } else {
+      // Samen spelen (#525): eerst wat een gast bij de gastheer indrukte, dan de toetsen van dit apparaat. De keuze is
+      // van de groep; elke meespeler telt. Een register van een heeft geen wachtrij en verandert dus niets.
+      key = neemPaneelDruk(world, 'choice').find(geldig) || null;
+      if (!key) for (let i = 0; i < round.options.length; i++) {
+        const k = String(i + 1);
+        if (world.input.wasPressed(k)) { world.input.consume(k); key = k; break; }
+      }
     }
   }
   if (key) menuSound('select'); // the answer, heard like every menu's choice (#413)
-  const r = stepChoice(st, S, key, dt);
-  if (r) { closeChoice(); return r; }
+  const r = stepChoice(st, S, key, stepDt);
+  if (r) { closeChoice(); if (typeof world.coopKeuzeStop === 'function') world.coopKeuzeStop(); return r; }
   paint(st, S, st.rounds[Math.min(S.ci, st.rounds.length - 1)]);
   return null;
 }

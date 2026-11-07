@@ -49,6 +49,8 @@ export function paneelToets(input, paneel) {
 // beeld. Alleen de toetsen die het paneel van deze stap aanneemt komen door, en per gast hoogstens een keer per
 // PANEEL_WACHT_S: een gast kan niet sneller drukken dan de gastheer zelf kan. `stap` is de lopende verhaalstap
 // (missions.js activeStage), `sc` het scènebericht dat de gasten als laatste kregen (daar staat het paneel in).
+// #686: bij een keuze is de druk geen eigen antwoord van de gastheer maar een stem; die telt coopnet.js
+// (paneelGast) meteen in de groepsstemming en komt dus niet in deze wachtrij.
 export const PANEEL_WACHT_S = 0.2;
 // De stappen die een eigen paneel hebben waarop een gast kan meedrukken (#525): een keuze, een timing,
 // de bakronde (bakeround.js) en de polsstokscène. De gastheer leest de druk als de zijne.

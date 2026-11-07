@@ -26,9 +26,11 @@ export const START_TEKST = {
 
 // De stappen van een missie (missions.js, stage.kind). Wat alleen bij wie het spel opende staat (rekwisieten, voertuigen, kluis) is 'deels';
 // vliegen, de trein en de duivenmodus doen gasten nog niet ('nee').
-// choice staat op 'werkt' sinds #525: een gast leest de vraag en de opties mee (coopscene.js) en zijn toets gaat als
-// 'paneel'-bericht naar de gastheer, die hem als zijn eigen antwoord leest (coopgast.js paneelIndrukken). Er is geen
-// tijdsdruk, dus zijn antwoord komt altijd op tijd.
+// choice staat op 'werkt' sinds #525 en is sinds #686 een keuze van de groep: een gast leest de vraag en de
+// opties mee (coopscene.js, "Jullie kiezen samen"), zijn cijfertoets gaat als 'paneel'-bericht naar de
+// gastheer en telt daar als stem (coopgast.js paneelIndrukken). De host telt de stemmen (coopgroep.js
+// stemKeuze): de meerderheid wint, gelijkspel beslist de stem van de opener, en wie niet antwoordt telt
+// niet mee. De host beslist dus niet alleen; hij telt alleen.
 // timing staat op 'werkt' sinds #525: de gast ziet de balk en drukt mee, en zijn druk gaat met de ronde en de
 // naaldstand mee die hij zag (paneelEvent). De gastheer beoordeelt hem op die stand (stagetiming.js updateTiming,
 // neemTimingDruk), dus netwerklatentie maakt van een goede druk geen mis meer; een druk uit een ronde die al voorbij
