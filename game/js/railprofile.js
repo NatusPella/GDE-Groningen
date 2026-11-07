@@ -1,4 +1,4 @@
-import { SpatialGrid } from './spatialgrid.js';
+import { SpatialGrid, gridItems } from './spatialgrid.js';
 
 // The vertical design rules for track (docs/PROVINCIE-PLAN.md 2.11, "Spoor")
 // and the one height query the game, the solver and the audits share. Pure
@@ -94,8 +94,8 @@ export function railHeightAt(idx, x, y, reach = 3.5) {
 // The track height function of a map ({ rails, railLifts }): the solved
 // profile when the rails carry one, else the radial lifts (passed in, so this
 // module needs nothing from elevation.js).
-export function railHeightFn(map, liftZ = null) {
-  const idx = railHeightIndex(map.rails);
+export function railHeightFn(map, liftZ = null, rails = null) {
+  const idx = railHeightIndex(rails || gridItems(map.railGrid));
   if (idx && idx.any) {
     const f = (x, y) => railHeightAt(idx, x, y);
     f.profiled = true;

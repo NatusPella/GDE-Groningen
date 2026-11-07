@@ -3,6 +3,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { getScene } from './scene3d.js';
 import { getTrains, routePoint, placeTrain, railZ, returnStolenTrains } from './railway.js';
 import { isMissionActive, getActiveRace } from './missionquery.js';
+import { gridItems } from './spatialgrid.js';
 import { isCinematicActive, playCinematic, skipCinematic } from './cinematics.js';
 import { isShopOpen, openShopMenu, closeShopMenu } from './shopui.js';
 import { recordStat, recordUnique, unlockAchievement } from './achievements.js';
@@ -174,7 +175,7 @@ function stopsFor(name) {
 
 function railDist(map, x, y) {
   let best = Infinity;
-  for (const r of map.rails || []) {
+  for (const r of gridItems(map.railGrid)) {
     const pts = r.pts;
     for (let i = 1; i < pts.length; i++) {
       const ax = pts[i - 1][0], ay = pts[i - 1][1], dx = pts[i][0] - ax, dy = pts[i][1] - ay;

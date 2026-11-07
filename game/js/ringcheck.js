@@ -1,4 +1,5 @@
 import { hoofdspeler } from './players.js';
+import { gridItems } from './spatialgrid.js';
 // The ring race lap (ringroute.js) and the other grade-separated ring roads
 // must be free of anything solid across the lanes. probeRingSolids lists
 // what a car would hit at driving height: building footprints (passages
@@ -535,7 +536,7 @@ export function probeRailLifts(world) {
   const map = world.map;
   // the raised stretches of the track profile, or the old radial lifts
   const zAt = railHeightFn(map, railLiftZ);
-  const lifts = zAt.profiled ? profileLifts(map.rails) : map.railLifts || [];
+  const lifts = zAt.profiled ? profileLifts(gridItems(map.railGrid)) : map.railLifts || [];
   const railLiftZ_ = (_, x, y) => zAt(x, y);
   const out = [];
   const car = new Vehicle(0, 0, 0, { name: 'sport', len: 4.1, wid: 1.85, maxSpeed: 40, accel: 14, brake: 30, turnRate: 3.2, color: '#8a1414' });
@@ -545,7 +546,7 @@ export function probeRailLifts(world) {
   bike.driver = 'player';
   lifts.forEach((L, li) => {
     const reach = L.plateau + L.ramp + 25;
-    for (const rail of map.rails || []) {
+    for (const rail of gridItems(map.railGrid)) {
       const P = rail.pts || rail;
       // the stretch of this rail within reach of the lift, sampled every 0.5 m
       const pts = [];

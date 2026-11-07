@@ -62,6 +62,17 @@ if (tw) {
   ok(/const waterNearDrawn = \(map, x, y, r\) =>/.test(scene) && /duplicateWater\.has\(w\)/.test(scene), 'scene3d: de watermeshes slaan de tweeling over');
 }
 
+// Het spoor van de gepinde stad in één raster (#314 C2b): railNear en de spoorlezers
+// (railway, railprofile, canopies, ringcheck) vinden dezelfde objecten als de array.
+{
+  const meta = { sections: [{ type: G.SECTION.META, json: { counts: { rails: 1 }, meta: {} } }] };
+  const railMap = TileWorld.fromTiles(meta, [tile(0, 0, [{ type: G.SECTION.RAILS, rows: [{ gid: 0, pts: [[0, 0], [100, 0]] }] }])]);
+  const near = railMap.railNear(50, 0, 5);
+  ok(railMap.railGrid && railMap.railGrid.map.size > 0, 'de gepinde kaart bouwt een railraster');
+  ok(near.length === 1 && near[0] === railMap.rails[0], 'railNear vindt hetzelfde spoorobject als map.rails');
+  ok(Array.isArray(near[0].bounds) && near[0].bounds.length === 4, 'het spoor heeft bounds voor het raster');
+}
+
 // --- de pin: de stad blijft, de provincie stroomt ------------------------------------------------
 // Twee tegels in een eigen pakket: de stad op (0, 0) uit index.pins.city, de provincie op (3, 0) — 3 km verderop. De stad
 // is opzettelijk de grootste van de twee (8 gebouwen tegen 1): alleen dan blijft de stad na het wegvallen van de provincie

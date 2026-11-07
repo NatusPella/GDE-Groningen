@@ -2,7 +2,7 @@
 // JUNCTIONS-rijen, en het spel moet ze in het model opnemen. Zonder deze test merkt niemand
 // dat de provincie geen voorrang en geen stoplijnen heeft: de stad werkt immers gewoon.
 import assert from 'node:assert';
-import { junctionModel, junctionArm } from '../game/js/junctions.js';
+import { junctionModel, junctionArm, allSignals } from '../game/js/junctions.js';
 
 let n = 0;
 const ok = (v, wat) => { assert.ok(v, wat); n++; };
@@ -43,5 +43,15 @@ ok(!junctionModel(map).has('90,90'), 'en verdwijnt weer als de tegel uitgaat');
 map.junctionRows.set('p2_0', [{ k: '10,10', p: [[1, 1]], c: 'equal', a: [[999, 0, 1, 2, 4, 1]] }]);
 map.junctionVer++;
 ok(!junctionModel(map).has('10,10'), 'een arm met een onbekende weg wordt overgeslagen');
+
+// Verkeerslichten uit de tegel (#314 C2b): een knooppunt met een seinarm is een licht,
+// en de lijst vervalt als de tegel erbij komt of weggaat.
+map.junctionRows.set('p3_0', [{ k: '55,0', p: [[5.5, 0]], c: 'signals', a: [[7, 0, 1, 1, 5, 1]] }]);
+map.junctionVer++;
+ok(allSignals(map).some((s) => s.tile && s.key === '55,0'), 'een tegel met een seinarm levert een verkeerslicht');
+ok(!allSignals(map).some((s) => s.tile && s.key === '4,0'), 'de gewone kruisingen van de tegels leveren geen licht');
+map.junctionRows.delete('p3_0');
+map.junctionVer++;
+ok(!allSignals(map).some((s) => s.key === '55,0'), 'en het licht verdwijnt als de tegel weggaat (cache vervalt)');
 
 console.log(`junction_tiles_test ok (${n} checks)`);
