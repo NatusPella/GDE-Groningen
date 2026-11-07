@@ -59,11 +59,15 @@ t('er is één zichtbare plek met alle ongelezen berichten', () => {
   assert.match(vu, /ongelezen · nieuwste eerst/, 'de lijst zegt hoeveel er ongelezen is');
   assert.match(vu, /en \$\{items\.length - shown\.length\} meer bij de personages/, 'meer dan zes staat er als regel bij');
   assert.match(vu, /<div class="vh-left">\$\{inboxHtml\(\)\}/, 'de inbox staat bovenaan Personages');
+  assert.match(vu, /function refreshInbox\(panel, id\)[\s\S]*?unreadInbox\(worldRef\)/, 'na het lezen verdwijnt het bericht uit de inbox');
+  assert.match(vu, /if \(met\) \{ renderCharacterPhone\([\s\S]*?refreshInbox\(panel, id\); \}/, 'de inbox wordt bijgewerkt zodra het personage opengaat');
 });
 
 t('een gemist bericht blijft bereikbaar vanaf de HUD-kaart (Esc)', () => {
-  assert.match(pf, /const unread = \(\(world && world\.phoneHistory\) \|\| \[\]\)\.find\(\(e\) => !e\.read\)/, 'zonder melding op het scherm pakt Esc de nieuwste ongelezen afzender');
-  assert.match(pf, /return unread \? senderOf\(unread\) : '';/, 'en geeft die aan het menu');
+  assert.match(pf, /const NOTICE_LONG_MS = 30000;/, 'de afzender blijft een halve minuut onthouden');
+  assert.match(pf, /function hasUnreadFrom\(from\) \{[\s\S]*?senderOf\(e\) === from/, 'alleen zolang het bericht ongelezen is');
+  assert.match(pf, /if \(now < longNotice\.until && hasUnreadFrom\(longNotice\.from\)\)/, 'Esc opent die afzender als de kaart al weg is');
+  assert.match(pf, /return from;\n  \}\n  return '';/, 'en verbruikt hem één keer, zodat een tweede Escape weer gewoon het menu opent');
   assert.match(pm, /takeNoticeThread\(\)[\s\S]*?openPauseMenu\('telefoon', \{ thread \}\)/, 'Esc opent daarmee Verhaal > Personages op dat bericht');
   assert.match(pm, /selectVerhaalCharacter\(characterForSender\(opts\.thread\)\)/, 'het menu opent het juiste personage');
 });

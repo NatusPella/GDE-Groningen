@@ -220,24 +220,37 @@ export const isCallActive = () => !!call;
 // The sender of the call or card that is (or just was) on screen: Esc then opens the
 // unfolded phone on that thread (pausemenu.js, #151).
 const NOTICE_HOLD_MS = 2500;
+// #603: de kaart is na een paar seconden weg, maar de afzender blijft nog een halve minuut
+// onthouden zolang er iets ongelezen staat: zo opent Esc alsnog het bericht in plaats van meteen
+// het menu op Overzicht. Daarna is de inbox onder Verhaal > Personages de vaste plek.
+const NOTICE_LONG_MS = 30000;
 let notice = { from: '', until: 0 };
+let longNotice = { from: '', until: 0 };
 function noticeFrom(from) {
-  notice = { from, until: performance.now() + NOTICE_HOLD_MS + 1500 };
+  const now = typeof performance !== 'undefined' ? performance.now() : 0;
+  notice = { from, until: now + NOTICE_HOLD_MS + 1500 };
+  longNotice = { from, until: now + NOTICE_LONG_MS };
 }
 // Wie er net een bericht of gesprek stuurde, zolang dat nog op het scherm staat (of net weg is);
 // '' als er niets ligt. pausemenu.js opent daarmee de telefoon op dat gesprek (#151).
 function noticeThread(now = typeof performance !== 'undefined' ? performance.now() : 0) {
   return now < notice.until ? notice.from : '';
 }
+function hasUnreadFrom(from) {
+  return ((world && world.phoneHistory) || []).some((e) => !e.read && senderOf(e) === from);
+}
 // Eén keer: de Escape die de telefoon opent, verbruikt de melding, zodat een tweede Escape gewoon
-// het menu op Overzicht opent.
-export function takeNoticeThread(now) {
+// het menu op Overzicht opent. Is de kaart al weg maar staat het bericht nog ongelezen, dan opent
+// Escape alsnog die afzender (#603).
+export function takeNoticeThread(now = typeof performance !== 'undefined' ? performance.now() : 0) {
   const t = noticeThread(now);
   if (t) { notice = { from: '', until: 0 }; return t; }
-  // De kaart is al weg: open dan de nieuwste ongelezen afzender (#603), zodat een gemist bericht
-  // blijft te vinden; de inbox onder Verhaal > Personages is de vaste plek.
-  const unread = ((world && world.phoneHistory) || []).find((e) => !e.read);
-  return unread ? senderOf(unread) : '';
+  if (now < longNotice.until && hasUnreadFrom(longNotice.from)) {
+    const from = longNotice.from;
+    longNotice = { from: '', until: 0 };
+    return from;
+  }
+  return '';
 }
 
 function hangUp() {
