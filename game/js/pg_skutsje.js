@@ -172,6 +172,8 @@ export const SKUTSJE = {
         const x = q.x + nx * o, y = q.y + ny * o;
         if (isInWater(map, x, y)) continue;
         const [ex, ey] = map.escapeBuilding(x + nx * 1.5, y + ny * 1.5, 0.4);
+        // het startpunt moet op de kade liggen, niet in het water (spotcheck) en niet in een muur
+        if (isInWater(map, ex, ey) || (map.isOpenSpot && !map.isOpenSpot(ex, ey))) continue;
         startSpot = { x: ex, y: ey, side };
         return [{ x: ex, y: ey, name: 'Skûtsje-sprint in de Oosterhaven', sub: 'Jelle heeft twee skûtsjes klaarliggen', s, side }];
       }
@@ -362,3 +364,4 @@ function end(run) {
     stats: [['Tijd', fmt(d.elapsed)], ...(won ? [['Voorsprong', `${Math.round(margin)} s`]] : [])],
   });
 }
+
