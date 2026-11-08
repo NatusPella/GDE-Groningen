@@ -492,6 +492,18 @@ async function benchmarkFromBoot(world, opts) {
   if (next === 'settings') world.openSettingsOnStart = 'video';
 }
 
+// The start area is warmed while the boot screen is still up (main.js): the
+// meshes round the spawn (or the saved game's position) are built and the
+// shaders compiled, so the first seconds in the world build and link nothing on
+// the main thread. A longer boot is the price the owner chose for a smooth start;
+// this runs for a new game AND for a save, those are the same first minutes.
+function warmBeforeFinish(opts, finish) {
+  if (opts && typeof opts.warm === 'function') {
+    setLoadingStatus('De buurt rond je startpunt wordt klaargezet');
+    Promise.resolve().then(() => opts.warm()).catch((e) => console.warn('startgebied voorladen', e)).then(finish);
+  } else finish();
+}
+
 function runBootScreen(world, opts, pending = null) {
   // Nieuws en credits (wi-492-over) hangen hier nog aan; de eerste-start-test zit hieronder.
   // #562: een bewust gestart nieuw spel op een lege plek gaat voor op "de save die het laatst geschreven
@@ -530,24 +542,16 @@ function runBootScreen(world, opts, pending = null) {
       // #562: stond de verse plek al klaar (na "Nieuw spel" en de herlaad), dan begint het spel daar en
       // hoeft er geen tweede lege plek bij te komen.
       if (fresh) finishFreshStart(); else startNewSlot();
-      // The start area is warmed while the boot screen is still up (main.js):
-      // the meshes round the spawn are built and the shaders are compiled, so the
-      // first seconds in the world do not build or link anything on the main thread.
-      // A longer boot is the price the owner chose for a smooth start; a save keeps
-      // its own load screen instead.
-      if (opts && typeof opts.warm === 'function') {
-        setLoadingStatus('De buurt rond je startpunt wordt klaargezet');
-        Promise.resolve().then(() => opts.warm()).catch((e) => console.warn('startgebied voorladen', e)).then(finish);
-      } else finish();
+      warmBeforeFinish(opts, finish);
     };
     const continueGame = () => {
       if (!hasSave()) { startNew(); return; }
       startTheme();
       // #590: a save read from its recovery copy says so and is written back by loadBootSave
       loadBootSave(world);
-      // the load screen covers the boot screen until the city round the save has streamed in
-      startLoadScreen(world, { kind: 'save' });
-      finish();
+      // the save's position is warmed first, then the load screen covers the boot
+      // screen until the city round it has streamed in
+      warmBeforeFinish(opts, () => { startLoadScreen(world, { kind: 'save' }); finish(); });
     };
     // #581: testruns start like the player: no menu, straight on to the world. A fresh profile
     // first gets a short graphics measurement; everything else starts at once. A benchmark that was
@@ -588,14 +592,13 @@ function runBootSaveScreen(world, opts) {
       if (!startNewSlot()) { open(); return; }
       startTheme();
       reseedAutoplay();
-      finish();
+      warmBeforeFinish(opts, finish);
     };
     const continueGame = () => {
       if (!hasSave()) { startNew(); return; }
       startTheme();
       loadBootSave(world);
-      startLoadScreen(world, { kind: 'save' });
-      finish();
+      warmBeforeFinish(opts, () => { startLoadScreen(world, { kind: 'save' }); finish(); });
     };
     const open = () => openSaveSlots({
       mode: 'start', solo: true, noBack: true, eyebrow: 'Spel', titel: 'Opgeslagen spellen', hint: BOOT_SAVE_TEKST,
