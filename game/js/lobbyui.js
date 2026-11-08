@@ -423,7 +423,7 @@ export function mountLobby(root, hooks, opts = {}) {
   // Een andere naam bij hetzelfde id is geen aanval maar een gewijzigde sessienaam: waarschuwen, niet blokkeren.
   function hostIdentityCheck(expected, actual) {
     if (!actual || typeof actual.id !== 'string' || !actual.id) {
-      return { hard: true, msg: 'Let op: van deze sessie kon niet worden gecontroleerd of de kamer bij de gastheer uit de lijst hoort. De verbinding is verbroken. Kies de sessie opnieuw uit de lijst.' };
+      return { hard: true, msg: 'Let op: het spel kon niet controleren of deze kamer bij de sessie uit de lijst hoort. De verbinding is verbroken. Kies de sessie opnieuw uit de lijst.' };
     }
     if (String(actual.id) !== expected.id) {
       return { hard: true, msg: 'Let op: deze kamer hoort niet bij de sessie waarop je klikte: iemand anders beantwoordde het verzoek. De verbinding is verbroken. Kies de sessie opnieuw uit de lijst of vraag de kamercode.' };
