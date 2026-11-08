@@ -214,6 +214,9 @@ let terrainMesh = null;
 // ?terrain (#269): the map (what stands flat is lifted by the relief under it) and the patches of ground that rise above the flat ground
 let liftMap = null, reliefPatches = null;
 let terrainPending = null;
+// #749: sterft of hangt de geometry-worker, dan wacht de boot (main.js: await terrainReady)
+// anders eeuwig op het terrein. Na deze tijd bouwt de hoofdthread de terugval zelf.
+const TERRAIN_READY_DEADLINE_MS = 20000;
 // resolves once the terrain is in the scene (built in the geometry worker)
 export function terrainReady() {
   return terrainPending || Promise.resolve();
@@ -875,12 +878,22 @@ export function init3D(map) {
     terrainMesh.material = createTerrainMaterial();
     const group = terrainMesh;
     const water = waterRows(map);
-    terrainPending = new Promise((done) => runGeo('terrain', { bounds: map.meta.bounds, water: water.map((w) => ({ pts: w.pts, bounds: w.bounds })) }, (T) => {
-      if (T) terrainGroup(T, group);
-      else terrainGroup(terrainArrays(map.meta.bounds, water), group);
-      freezeStatic(group);
-      done();
-    }));
+    let terrainKlaar = false, terrainDeadline = 0;
+    terrainPending = new Promise((done) => {
+      // #749: precies één keer afronden. De worker bouwt het terrein; antwoordt hij niet
+      // binnen de deadline (dood of hangend), dan bouwt de hoofdthread dezelfde terugval
+      // als de bestaande fallback. Een late worker-callback doet daarna niets meer.
+      const finish = (T) => {
+        if (terrainKlaar) return;
+        terrainKlaar = true;
+        clearTimeout(terrainDeadline);
+        terrainGroup(T || terrainArrays(map.meta.bounds, water), group);
+        freezeStatic(group);
+        done();
+      };
+      terrainDeadline = setTimeout(() => finish(null), TERRAIN_READY_DEADLINE_MS);
+      runGeo('terrain', { bounds: map.meta.bounds, water: water.map((w) => ({ pts: w.pts, bounds: w.bounds })) }, finish);
+    });
   } else {
     terrainMesh = buildTerrainMesh3D(map.meta.bounds, waterRows(map));
     freezeStatic(terrainMesh);
