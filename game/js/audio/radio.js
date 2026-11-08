@@ -13,7 +13,7 @@ import { MIN_TRACK_S, normalizeTrack, pickTrack, pushHistory, pickJingle, STATIO
 import { createMusicWatch } from '../musicwatch.js';
 import * as speech from '../speech.js';
 import { GMUSIC_VOLUME, musicBusGain } from '../sfx/volume.js';
-import { GMUSIC_PRELOAD_AHEAD } from './gmusicpreload.js';
+import { createGmusicPreloadWindow } from './gmusicpreload.js';
 
 const GMUSIC_MANIFEST_URL = './audio/gmusic/manifest.json';
 const GMUSIC_DUCK_VOLUME = 0.5;
@@ -286,14 +286,11 @@ function playGmusicCurrent() {
 // "Tune in" like a real running station: start mid-way through a random
 // track (or occasionally a jingle) with a subtle fade-in.
 // #660: alleen het nummer dat speelt en de volgende in de wachtrij bufferen
-function armGmusicEl(el) {
-  if (!el || el.preload === 'auto') return;
-  el.preload = 'auto';
-  try { el.load(); } catch (e) { /* geen bron meer */ }
-}
+// #761: en het venster ook weer disarmen; anders blijft een element dat de wachtrij verlaat op
+// preload 'auto' staan en staat na ±11 wissels de hele cyclus weer te bufferen (~128 MB).
+const gmusicPreload = createGmusicPreloadWindow();
 function armGmusicQueue() {
-  armGmusicEl(gmusicCurrentEl);
-  for (let i = 0; i < GMUSIC_PRELOAD_AHEAD && i < gmusicQueue.length; i++) armGmusicEl(gmusicQueue[i]);
+  gmusicPreload.arm([gmusicCurrentEl, ...gmusicQueue]);
 }
 
 function startGmusicRandomly() {

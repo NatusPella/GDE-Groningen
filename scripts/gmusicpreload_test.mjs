@@ -19,5 +19,28 @@ ok(/function armGmusicQueue\(\)/.test(radio) && /armGmusicQueue\(\);/.test(radio
 const manifest = radio.slice(radio.indexOf('export async function loadGMusicManifest'), radio.indexOf('// Station-style playback'));
 ok(manifest.length > 0 && !/el\.preload = 'auto'/.test(manifest), 'de manifestlus zet niet alles op auto');
 ok(/armGmusicQueue\(\);/.test(radio.slice(radio.indexOf('function startGmusicRandomly'), radio.indexOf('function advanceGmusicQueue'))), 'start armet het venster');
+
+// #761: het venster wordt ook gedisarmd. Alleen armeren liet een element dat de wachtrij
+// verliet op 'auto' staan, zodat na ±11 wissels de hele cyclus weer stond te bufferen.
+// Deze simulatie loopt een lange radiosessie na: na elke wissel hoort de rest op 'none' te staan.
+const { createGmusicPreloadWindow } = await import('../game/js/audio/gmusicpreload.js');
+const fakeEl = (id) => ({ id, preload: 'none', loads: 0, load() { this.loads++; } });
+const tracks = Array.from({ length: 34 }, (_, i) => fakeEl(i));
+const venster = createGmusicPreloadWindow();
+let p = 0;
+let current = tracks[p];
+let queue = [tracks[(p + 1) % 34], tracks[(p + 2) % 34]];
+venster.arm([current, ...queue]);
+for (let step = 0; step < 34; step++) {
+  p++;
+  current = queue.shift();
+  queue.push(tracks[(p + 2) % 34]);
+  venster.arm([current, ...queue]);
+}
+const opAuto = tracks.filter((el) => el.preload === 'auto');
+ok(opAuto.length === 3, '#761: na 34 wissels staan exact 3 elementen op preload auto', opAuto.length);
+ok(opAuto.map((el) => el.id).join() === [current.id, ...queue.map((el) => el.id)].join(), '#761: en dat is het speelvenster (huidige + 2 wachtenden)', opAuto.map((el) => el.id).join());
+ok(tracks.filter((el) => el.preload === 'none').length === 31, '#761: de andere 31 elementen zijn gedisarmd');
+ok(opAuto.every((el) => el.loads >= 1), '#761: een element wordt pas belast als het in het venster komt');
 console.log(`${n - fails}/${n} gmusicpreload`);
 process.exit(fails ? 1 : 0);
