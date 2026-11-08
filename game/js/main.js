@@ -513,7 +513,9 @@ async function boot() {
   const extra = [{ name: 'index-provincie.json' }, { name: 'index-corridor.json' }];
   // #749: een bron die nooit antwoordt mag de boot niet oneindig laten wachten; de
   // tegel-time-outs staan tijdens de boot uit (#582), dus deze stap krijgt zijn eigen grens.
-  const tiles = await withDeadline(loadTileWorld('world/', { onProgress: onMapProgress, extra, terrain: FLAGS.terrain }), MAP_LOAD_MS, 'tegels laden');
+  // the baked ground comes with the tiles (world/terrain.bin); without that file
+  // the geometry worker builds it as before
+  const tiles = await withDeadline(loadTileWorld('world/', { onProgress: onMapProgress, extra, terrain: FLAGS.terrain, terrainCache: true }), MAP_LOAD_MS, 'tegels laden');
   const corridor = !!tiles;
   if (tiles && FLAGS.terrain) tiles.world.terrainOn = true;
   if (tiles && FLAGS.vlakbruggen) tiles.world.streamProfiles = false;
