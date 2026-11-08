@@ -415,8 +415,86 @@ function waitForOnlineStart(ms) {
   });
 }
 
+// #749: de boot als geheel heeft een uiterste grens. Tijdens de boot staan de tegel-
+// time-outs bewust uit (#582: een koude schijf mag het laadscherm niet laten stukgaan),
+// maar een bron of worker die nooit antwoordt liet de boot dan oneindig op het laadscherm
+// staan. De wachter meldt het na 150 zichtbare seconden met de laatste loadmarker en een
+// herlaadknop. Tijd in een verborgen venster telt niet: daar staat rAF stil (Electron met
+// backgroundThrottling, #656) en de boot hervat vanzelf als het venster terug is.
+const BOOT_WATCHDOG_MS = 150000;
+const MAP_LOAD_MS = 90000;
+const TERRAIN_READY_MS = 60000;
+let bootWatchdog = 0;
+let bootWatchdogCleanup = null;
+let bootFinished = false;
+
+function stopBootWatchdog() {
+  bootFinished = true;
+  if (bootWatchdog) { clearTimeout(bootWatchdog); bootWatchdog = 0; }
+  if (bootWatchdogCleanup) { bootWatchdogCleanup(); bootWatchdogCleanup = null; }
+}
+
+function showBootFailure(msg) {
+  showLoadError(msg);
+  const box = document.getElementById('loading');
+  if (!box || document.getElementById('boot-reload')) return;
+  const knop = document.createElement('button');
+  knop.id = 'boot-reload';
+  knop.type = 'button';
+  knop.textContent = 'Opnieuw laden';
+  knop.style.cssText = 'display:block;margin:18px auto 0;padding:10px 22px;font:inherit;cursor:pointer;border:1px solid #ffffff66;border-radius:6px;background:#ffffff22;color:#fff';
+  knop.addEventListener('click', () => { try { location.reload(); } catch (e) { /* geen locatie */ } });
+  box.appendChild(knop);
+  if (knop.focus) knop.focus();
+}
+
+function armBootWatchdog() {
+  let seenMs = 0; // zichtbare tijd sinds de boot begon
+  let visibleSince = document.hidden ? 0 : performance.now();
+  const visibleNow = () => seenMs + (visibleSince ? performance.now() - visibleSince : 0);
+  const onVisibility = () => {
+    const nu = performance.now();
+    if (document.hidden) { if (visibleSince) { seenMs += nu - visibleSince; visibleSince = 0; } }
+    else if (!visibleSince) visibleSince = nu;
+  };
+  document.addEventListener('visibilitychange', onVisibility);
+  bootWatchdogCleanup = () => document.removeEventListener('visibilitychange', onVisibility);
+  const plan = (ms) => {
+    bootWatchdog = setTimeout(check, Math.max(1000, ms));
+    if (bootWatchdog && typeof bootWatchdog.unref === 'function') bootWatchdog.unref();
+  };
+  const check = () => {
+    bootWatchdog = 0;
+    if (bootFinished) return;
+    const gezien = visibleNow();
+    if (gezien < BOOT_WATCHDOG_MS) { plan(Math.min(5000, BOOT_WATCHDOG_MS - gezien)); return; }
+    const mark = Object.entries(loadMarks).sort((a, b) => b[1] - a[1])[0];
+    console.warn(`boot-wachter: na ${Math.round(gezien / 1000)} s zichtbaar laden nog niet klaar; laatste marker: ${mark ? `${mark[0]} (${mark[1]} ms)` : 'geen'}`);
+    showBootFailure('Het laden duurt te lang. Controleer je verbinding en probeer het opnieuw.');
+  };
+  plan(BOOT_WATCHDOG_MS);
+}
+
+// #749: één boot-stap met een harde grens. Zonder `onTimeout` verwerpt hij (zichtbaar in
+// het laadscherm via boot().catch); met `onTimeout` gaat de boot door en waarschuwt die.
+function withDeadline(p, ms, wat, onTimeout = null) {
+  return new Promise((resolve, reject) => {
+    let klaar = false;
+    const timer = setTimeout(() => {
+      klaar = true;
+      if (onTimeout) { onTimeout(); resolve(null); return; }
+      reject(Object.assign(new Error(`${wat} duurde te lang (${Math.round(ms / 1000)} s)`), { timeout: true }));
+    }, ms);
+    if (timer && typeof timer.unref === 'function') timer.unref();
+    Promise.resolve(p).then((v) => { if (!klaar) { klaar = true; clearTimeout(timer); resolve(v); } },
+      (e) => { if (!klaar) { klaar = true; clearTimeout(timer); reject(e); } });
+  });
+}
+
 async function boot() {
   markLoad('boot');
+  // #749: de boot als geheel heeft een uiterste grens (zie armBootWatchdog)
+  armBootWatchdog();
   // the geometry worker loads its modules while the map downloads
   geoWorkerActive();
   preloadRoadWorker();
@@ -430,7 +508,9 @@ async function boot() {
   // (index-corridor.json) name the places and stream their tiles in
   // (provinceworld.js). The province's tiles win.
   const extra = [{ name: 'index-provincie.json' }, { name: 'index-corridor.json' }];
-  const tiles = await loadTileWorld('world/', { onProgress: onMapProgress, extra, terrain: FLAGS.terrain });
+  // #749: een bron die nooit antwoordt mag de boot niet oneindig laten wachten; de
+  // tegel-time-outs staan tijdens de boot uit (#582), dus deze stap krijgt zijn eigen grens.
+  const tiles = await withDeadline(loadTileWorld('world/', { onProgress: onMapProgress, extra, terrain: FLAGS.terrain }), MAP_LOAD_MS, 'tegels laden');
   const corridor = !!tiles;
   if (tiles && FLAGS.terrain) tiles.world.terrainOn = true;
   if (tiles && FLAGS.vlakbruggen) tiles.world.streamProfiles = false;
@@ -452,7 +532,7 @@ async function boot() {
   const landData = corLayer && corLayer.global ? loadLandData('world/', corLayer.global.landFile) : null;
   const facilities = loadFacilities('stad.json');
   const shopPlaces = loadShopPlaces('stad.json');
-  const map = tiles ? tiles.world : await loadMap('stad.json', onMapProgress);
+  const map = tiles ? tiles.world : await withDeadline(loadMap('stad.json', onMapProgress), MAP_LOAD_MS, 'kaart laden');
   tileWorldStats = tiles ? tiles.store : null;
   markLoad('map');
   // the waterway network's fixes and route graph (#184), small files read while the rest loads
@@ -605,7 +685,12 @@ async function boot() {
   // save that was written last, so warm that slot and not whichever slot happened to be active
   // #655: de boot leest de save één keer (readSaveInfo); hasSave()/readSave() erna komen uit de lees-cache.
 try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null; const sv = info && info.data ? info.data : null; if (sv && sv.pos) prewarmStreamAt(sv.pos.x, sv.pos.y, 40); } catch (e) { /* ignore */ }
-  await terrainReady();
+  // #749: de geometry-worker bouwt het terrein, maar een worker die leeft en niet antwoordt
+  // heeft geen deadline; na 60 s gaat de wereld zonder dat terrein verder. De terugval op de
+  // hoofdthread (terrainArrays/terrainGroup) zit in scene3d.js en blijft daar.
+  await withDeadline(terrainReady(), TERRAIN_READY_MS, 'terrein bouwen', () => {
+    console.warn('terrein: de geometry-worker antwoordde niet binnen 60 s; de wereld start zonder terrein');
+  });
   markLoad('terrain');
   await finishLoading();
   // Samen spelen (#530, ADR 0022): a player who was never asked sees the one screen with their
@@ -640,6 +725,9 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
   setRouteLinks({ getActiveRoute, getRouteAhead, getUserWaypoint });
   setCinematicLinks({ getFollowPose, prewarmStreamAt, getGrenzen });
   setSfxLinks({ bridges: getMovableBridges, trains: getTrains, vehicles: () => world.vehicles, locks: getSluizen });
+  // #749: het laden is klaar; vanaf hier wacht het spel op de speler (de eerste-startvraag
+  // heeft zijn eigen time-out) en telt de boot-wachter niet meer.
+  stopBootWatchdog();
   await waitForStart(world, countryPlaced);
   // #750: eerst de wereld speelbaar (HUD, besturing en de spellus), daarna pas de
   // Ommeland-plaatsing (208 tegels). Stond `await countryPlaced` hiervóór, dan hing bij
@@ -1034,7 +1122,9 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
 }
 
 boot().catch((err) => {
-  showLoadError(err.message);
+  // #749: ook een afgebroken boot krijgt de zichtbare fout met de herlaadknop
+  stopBootWatchdog();
+  showBootFailure(err && err.message ? err.message : String(err));
   console.error(err);
 });
 

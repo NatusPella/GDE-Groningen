@@ -56,5 +56,16 @@ ok(/closeOnlineStart\(\)/.test(main), '#751: de wachter sluit via de nette route
 ok(/e\.key !== 'Escape'/.test(main), '#751: Escape sluit de vraag');
 ok(/await waitForOnlineStart\(ONLINE_START_WAIT_MS\)/.test(main), '#751: de boot gebruikt de wachter in plaats van een eeuwig wachten');
 
+// --- #749: de boot heeft een wachter, harde grenzen en rAF-vangnetten ---
+ok(/const BOOT_WATCHDOG_MS = \d+;/.test(main) && /function armBootWatchdog\(/.test(main), '#749: de boot heeft een wachter');
+ok(/^  armBootWatchdog\(\);$/m.test(main), '#749: de wachter start aan het begin van de boot');
+ok(/stopBootWatchdog\(\);\n  await waitForStart\(world, countryPlaced\);/.test(main), '#749: de wachter stopt als het laden klaar is en op de speler wordt gewacht');
+ok(/withDeadline\(loadTileWorld\(/.test(main), '#749: tegels laden heeft een harde grens');
+ok(/withDeadline\(loadMap\(/.test(main), '#749: de kaartfallback heeft een harde grens');
+ok(/withDeadline\(terrainReady\(\)/.test(main), '#749: terrainReady heeft een deadline');
+ok(/document\.hidden/.test(main) && /showBootFailure\(/.test(main) && /Opnieuw laden/.test(main), '#749: een verborgen venster telt niet als hang; de fout is zichtbaar met herladen');
+ok(/boot\(\)\.catch\(\(err\) => \{[\s\S]{0,200}stopBootWatchdog\(\);/.test(main), '#749: een afgebroken boot stopt de wachter en toont de fout');
+ok(/function afterPaint\(fn\)/.test(ss) && /setTimeout\(afronden, 100\)/.test(ss), '#749: yieldToPaint en de dismiss wachten niet alleen op rAF');
+
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

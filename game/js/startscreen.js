@@ -141,8 +141,25 @@ export function setLoadProgress(p) {
 }
 
 // Lets the browser paint the bar between heavy synchronous boot steps.
+// #749: rAF staat stil in een verborgen of geoccludeerd venster (Electron met
+// backgroundThrottling, #656); een timer-vangnet laat de boot dan doorlopen in plaats van
+// te wachten tot het venster terug is.
 export function yieldToPaint() {
-  return new Promise((r) => requestAnimationFrame(() => setTimeout(r, 0)));
+  return new Promise((r) => {
+    let klaar = false;
+    const afronden = () => { if (klaar) return; klaar = true; r(); };
+    requestAnimationFrame(() => setTimeout(afronden, 0));
+    setTimeout(afronden, 100);
+  });
+}
+
+// Twee frames wachten zodat het canvas één keer getekend is voordat het laadscherm weggaat.
+// #749: in een verborgen venster staat rAF stil, dus een timer neemt het over.
+function afterPaint(fn) {
+  let gedaan = false;
+  const eenKeer = () => { if (gedaan) return; gedaan = true; fn(); };
+  requestAnimationFrame(() => requestAnimationFrame(eenKeer));
+  setTimeout(eenKeer, 120);
 }
 
 // A run that no person sits at (the story test, the smoke test, recordings,
@@ -474,13 +491,13 @@ function runBootScreen(world, opts, pending = null) {
       // Draw one frame before the boot screen goes: the main frame loop starts only after this
       // promise resolves, so without it the first new game would show a black canvas.
       try { if (opts && opts.render) opts.render(0.016, 0); } catch (e) { /* renderer nog niet klaar */ }
-      requestAnimationFrame(() => requestAnimationFrame(() => {
+      afterPaint(() => {
         // the menu's first viewpoint was planned during the boot; the normal start never shows
         // the menu, so release those tiles instead of keeping them pinned behind the game
         try { if (world.map && world.map.releaseShots) world.map.releaseShots(); } catch (e) { /* niet erg */ }
         dismissLoading();
         resolve('game');
-      }));
+      });
     };
     const startNew = () => {
       startTheme();
@@ -527,11 +544,11 @@ function runBootSaveScreen(world, opts) {
       done = true;
       // net als bij de gewone boot: eerst één frame tekenen voordat het laadscherm weggaat
       try { if (opts && opts.render) opts.render(0.016, 0); } catch (e) { /* renderer nog niet klaar */ }
-      requestAnimationFrame(() => requestAnimationFrame(() => {
+      afterPaint(() => {
         try { if (world.map && world.map.releaseShots) world.map.releaseShots(); } catch (e) { /* niet erg */ }
         dismissLoading();
         resolve('game');
-      }));
+      });
     };
     const startNew = () => {
       // zonder vrije plek (volle opslag) blijft de keuze staan in plaats van zonder schrijfplek te starten
