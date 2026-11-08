@@ -147,7 +147,8 @@ punt('spel starten, de limietknop 4/8/12/16 en de openbare sessielijst', () => {
   assert.equal(PLAY.clampMax(4), 4); assert.equal(PLAY.clampMax(8), 8); assert.equal(PLAY.clampMax(12), 12); assert.equal(PLAY.clampMax(16), 16);
   assert.equal(PLAY.MIN_MAX, 4); assert.equal(PLAY.ABS_MAX, 16);
   assert.equal(PLAY.clampMax(40), 16, 'geen grotere sessie dan het protocol');
-  const tekst = SL.codeer({ versie: '0.99.0', proto: 2, naam: 'Zomer in Grunn', spelers: 3, max: 8, room: 'ABCDE23456', id: 'x1y2z3ab', nu: 1000 });
+  // #795: de aankondiging draagt de publieke hostsleutel; hier telt alleen de vorm (de echte sleutel komt uit net/hub.js).
+  const tekst = SL.codeer({ versie: '0.99.0', proto: 2, naam: 'Zomer in Grunn', spelers: 3, max: 8, room: 'ABCDE23456', id: 'x1y2z3ab', hostKey: 'B' + 'A'.repeat(86), nu: 1000 });
   const terug = SL.decodeer(tekst, 1000);
   assert.equal(terug.ok, true, 'de eigen aankondiging leest terug: ' + JSON.stringify(terug));
   assert.equal(terug.a.naam, 'Zomer in Grunn');

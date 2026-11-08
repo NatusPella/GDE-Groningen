@@ -3,26 +3,31 @@
 // (LijstSignaler); de knoppen en teksten in lobby.js en lobbyui.js.
 //
 // Een host die zijn sessie openbaar maakt, plaatst elke 15 s een korte, onversleutelde aankondiging op een vast onderwerp van
-// dezelfde brokers als de kamercode. Wat erin staat: de naam van de sessie, het aantal spelers en het maximum, de versie en een
-// willekeurig sessie-id (#583). De kamercode staat er niet meer in: een gast die op een rij klikt, vraagt hem eenmalig
-// versleuteld op bij de host (net/joingate.js), zodat niemand met alleen de lijst het aanbod van de host kan ontsleutelen.
-// Er staat nooit een IP-adres, wachtwoord of persoonsgegeven in; de naam wordt gefilterd. Een sessie die niet meer aankondigt
-// verdwijnt na 45 s uit de lijst.
+// dezelfde brokers als de kamercode. Wat erin staat: de naam van de sessie, het aantal spelers en het maximum, de versie, een
+// willekeurig sessie-id (#583) en de publieke hostsleutel van die sessie (#795). De kamercode staat er niet meer in: een gast
+// die op een rij klikt, vraagt hem eenmalig versleuteld op bij de host (net/joingate.js), zodat niemand met alleen de lijst
+// het aanbod van de host kan ontsleutelen. Er staat nooit een IP-adres, wachtwoord of persoonsgegeven in; de naam wordt
+// gefilterd. Een sessie die niet meer aankondigt verdwijnt na 45 s uit de lijst.
+//
+// De hostsleutel (#795): de hub van de sessie maakt één ECDH-sleutelpaar per sessie (net/hub.js, ensureHostKey). Alleen de
+// publieke helft staat in de aankondiging. Het antwoord op een join-verzoek wordt met dat paar versleuteld (net/joingate.js),
+// dus een gast kan een antwoord van iemand anders niet ontsleutelen en verwerpt het vóór het verbinden (#777). De sleutel is
+// geen persoonsgegeven en wordt nergens bewaard: alleen in het geheugen van de host en even in de lijst.
 
-// Trustmodel (#589): de lijst is een vindplaats, geen identiteit. De CRC16 is alleen een integriteitscontrole, geen
+// Trustmodel (#589, #795): de lijst is een vindplaats, geen identiteit. De CRC16 is alleen een integriteitscontrole, geen
 // handtekening; iedereen kan een aankondiging maken en een bestaand id met een nieuwere tijdstempel overschrijven. Wat de
-// lijst daarom wél doet: hetzelfde id houdt zijn versie en protocol (een echte host verandert die niet midden in een sessie,
-// een vervalser die de rij onbruikbaar wil maken wel), dus zo'n rij wordt geweigerd. Wat de lijst niet kan: een vervalste
-// naam of spelersaantal herkennen, of een oude rij die door een derde levend wordt gehouden onderscheiden. Vertrouw die
-// velden daarom nooit als waarheid: de rij is alleen een ingang. Wie erop klikt, vraagt de kamercode via net/joingate.js aan
-// de host achter dat id; de host geeft hem alleen aan een deelnemer en de gastheer ziet en kan die deelnemer verwijderen.
-// Ondertekenen per sessie (sleutel via het join-kanaal) is de volgende stap als de lijst meer dan vindbaarheid moet beloven.
+// lijst daarom wél doet: hetzelfde id houdt zijn versie, protocol en hostsleutel (een echte host verandert die niet midden in
+// een sessie, een vervalser die de rij onbruikbaar wil maken wel), dus zo'n rij wordt geweigerd. Wat de lijst niet kan: een
+// vervalste naam of spelersaantal herkennen, of een oude rij die door een derde levend wordt gehouden onderscheiden. Vertrouw
+// die velden daarom nooit als waarheid: de rij is alleen een ingang. Wie erop klikt, vraagt de kamercode via net/joingate.js
+// aan de host achter dat id; het antwoord is aan de hostsleutel van de rij gebonden (#777), de host geeft hem alleen aan een
+// deelnemer en de gastheer ziet en kan die deelnemer verwijderen.
 
 import { crc16 } from './pairing.js';
 import { woordenVan, past } from '../zoektekst.js';
 
 export const LIJST = {
-  formaat: 2,
+  formaat: 3, // 3: de aankondiging draagt de publieke hostsleutel (#795)
   sleutel: 'serverlijst-v1', // vast onderwerp: topicFor(sleutel) geeft de info_hash van de tracker en het MQTT-onderwerp
   interval: 15000,           // ms tussen twee aankondigingen van een host
   verloop: 45000,            // ms zonder nieuwe aankondiging: weg uit de lijst
@@ -152,17 +157,21 @@ export function schoonNaam(tekst) {
 // ---------------------------------------------------------------- de aankondiging
 const ID_RE = /^[a-z0-9]{8,16}$/;
 const VERSIE_RE = /^[0-9A-Za-z.+-]{1,16}$/;
-const som = (a) => crc16(`${a.v}|${a.n}|${a.s}|${a.m}|${a.g}|${a.p}|${a.i}|${a.t}`);
+// De publieke ECDH-sleutel van de host (#795), dezelfde vorm als in net/joingate.js en net/sigcrypto.js.
+const PUB_RE = /^[A-Za-z0-9_-]{86,88}$/;
+const som = (a) => crc16(`${a.v}|${a.n}|${a.s}|${a.m}|${a.g}|${a.p}|${a.i}|${a.h}|${a.t}`);
 
 export const maakId = (rand = Math.random, n = 10) => { let s = ''; for (let i = 0; i < n; i++) s += 'abcdefghijklmnopqrstuvwxyz0123456789'[Math.floor(rand() * 36)]; return s; };
 
-// info: { naam, spelers, max, versie, proto, id, nu }. Geeft een tekst, of null als de gegevens niet kloppen (nooit een halve aankondiging).
-// Er zit geen kamercode en geen sleutel in: het id is het enige waar een gast op af gaat (net/joingate.js).
+// info: { naam, spelers, max, versie, proto, id, hostKey, nu }. Geeft een tekst, of null als de gegevens niet kloppen (nooit
+// een halve aankondiging). De kamercode staat er niet in; de publieke hostsleutel wel (#795).
 export function codeer(info) {
   const nm = schoonNaam(info.naam);
   const spelers = info.spelers | 0, max = info.max | 0;
   if (!nm.ok || spelers < 1 || spelers > 16 || max < 2 || max > 16 || spelers > max) return null;
-  const a = { v: LIJST.formaat, n: nm.naam, s: spelers, m: max, g: String(info.versie), p: info.proto | 0, i: String(info.id), t: Math.floor(info.nu) };
+  const hostKey = String(info.hostKey ?? '');
+  if (!PUB_RE.test(hostKey)) return null; // zonder hostsleutel geen openbare regel: een antwoord zou niet te controleren zijn
+  const a = { v: LIJST.formaat, n: nm.naam, s: spelers, m: max, g: String(info.versie), p: info.proto | 0, i: String(info.id), h: hostKey, t: Math.floor(info.nu) };
   if (!VERSIE_RE.test(a.g) || !ID_RE.test(a.i) || !Number.isFinite(a.t) || a.p < 0 || a.p > 255) return null;
   a.c = som(a);
   const tekst = JSON.stringify(a);
@@ -170,21 +179,21 @@ export function codeer(info) {
 }
 
 // Leest een aankondiging van de lijn (ongeveer: alles kan van iedereen komen). nu = onze klok in ms.
-// Geeft { ok: true, a: { naam, spelers, max, versie, proto, id, t } } of { ok: false, reason }.
+// Geeft { ok: true, a: { naam, spelers, max, versie, proto, id, hostKey, t } } of { ok: false, reason }.
 export function decodeer(tekst, nu) {
   if (typeof tekst !== 'string' || tekst.length > LIJST.maxBytes) return { ok: false, reason: 'groot' };
   let o; try { o = JSON.parse(tekst); } catch (e) { return { ok: false, reason: 'json' }; }
   if (!o || typeof o !== 'object' || Array.isArray(o)) return { ok: false, reason: 'json' };
   if (o.v !== LIJST.formaat) return { ok: false, reason: 'formaat' };
   const geheel = (x, lo, hi) => Number.isInteger(x) && x >= lo && x <= hi;
-  if (typeof o.n !== 'string' || typeof o.g !== 'string' || typeof o.i !== 'string' || typeof o.c !== 'string') return { ok: false, reason: 'velden' };
+  if (typeof o.n !== 'string' || typeof o.g !== 'string' || typeof o.i !== 'string' || typeof o.c !== 'string' || typeof o.h !== 'string') return { ok: false, reason: 'velden' };
   if (!geheel(o.s, 1, 16) || !geheel(o.m, 2, 16) || o.s > o.m || !geheel(o.p, 0, 255) || !Number.isFinite(o.t)) return { ok: false, reason: 'velden' };
-  if (!VERSIE_RE.test(o.g) || !ID_RE.test(o.i)) return { ok: false, reason: 'velden' };
+  if (!VERSIE_RE.test(o.g) || !ID_RE.test(o.i) || !PUB_RE.test(o.h)) return { ok: false, reason: 'velden' };
   if (o.c !== som(o)) return { ok: false, reason: 'som' };
   const nm = schoonNaam(o.n);
   if (!nm.ok || nm.naam !== o.n) return { ok: false, reason: 'naam' }; // ook een lege of niet-gefilterde naam telt niet: een host die zijn eigen filter overslaat, komt er niet mee langs
   if (Number.isFinite(nu) && Math.abs(nu - o.t) > LIJST.scheef) return { ok: false, reason: 'tijd' };
-  return { ok: true, a: { naam: o.n, spelers: o.s, max: o.m, versie: o.g, proto: o.p, id: o.i, t: o.t } };
+  return { ok: true, a: { naam: o.n, spelers: o.s, max: o.m, versie: o.g, proto: o.p, id: o.i, hostKey: o.h, t: o.t } };
 }
 
 // ---------------------------------------------------------------- de lijst bij de speler
@@ -207,7 +216,9 @@ export class Serverlijst {
       if (a.t - oud.t < this.o.minTussen) return this._af('te-snel');
       // #589: een sessie verandert niet halverwege van versie of protocol. Zo'n rij is niet van de host maar van
       // iemand die de bestaande regel onbruikbaar wil maken; de oude rij blijft staan.
-      if (a.proto !== oud.proto || a.versie !== oud.versie) return this._af('ander');
+      // #795: hetzelfde geldt voor de hostsleutel: een echte host houdt de sleutel van deze sessie, dus een andere
+      // sleutel onder hetzelfde id is niet die host.
+      if (a.proto !== oud.proto || a.versie !== oud.versie || a.hostKey !== oud.hostKey) return this._af('ander');
     } else {
       this.nieuw = this.nieuw.filter((x) => nu - x < 60000);
       if (this.nieuw.length >= this.o.nieuwPerMinuut) return this._af('vloed');
@@ -229,7 +240,7 @@ export class Serverlijst {
       const anders = (this.proto != null && x.proto !== this.proto) || (this.versie != null && x.versie !== this.versie);
       const vol = x.spelers >= x.max;
       const ouderdom = Math.max(0, nu - x.gezien);
-      uit.push({ id: x.id, naam: x.naam, spelers: x.spelers, max: x.max, versie: x.versie, anders, vol, kan: !anders && !vol, gezien: x.gezien, ouderdom, dim: ouderdom >= this.o.verloop - this.o.dimLaatste });
+      uit.push({ id: x.id, naam: x.naam, spelers: x.spelers, max: x.max, versie: x.versie, hostKey: x.hostKey, anders, vol, kan: !anders && !vol, gezien: x.gezien, ouderdom, dim: ouderdom >= this.o.verloop - this.o.dimLaatste });
     }
     uit.sort(SORTERING.standaard);
     return uit;
@@ -243,10 +254,11 @@ export class Serverlijst {
 }
 
 // De host: een aankondiging maken zolang de sessie openbaar is. Geeft een functie die elke keer de tekst van dat moment maakt (of null).
+// De hostsleutel komt uit de hub (#795, hub.ensureHostKey); zonder sleutel levert codeer() niets en blijft de sessie dus privé.
 export function maakAankondiger({ naam, versie, proto, hub, id, nu = () => Date.now() }) {
   return () => {
     const sp = hub ? hub() : null;
     if (!sp) return null;
-    return codeer({ naam, spelers: sp.spelers, max: sp.max, versie, proto, id, nu: nu() });
+    return codeer({ naam, spelers: sp.spelers, max: sp.max, versie, proto, id, hostKey: sp.hostKey, nu: nu() });
   };
 }

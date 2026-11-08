@@ -3,6 +3,7 @@
 import assert from 'node:assert/strict';
 import { LIJST, STANDAARD_NAAM, schoonNaam, verboden, codeer, decodeer, maakId, Serverlijst, maakAankondiger, filterEnSorteer, leeftijdTekst, leeftijdLang, SORTERINGEN } from '../game/js/net/serverlijst.js';
 import { crc16 } from '../game/js/net/pairing.js';
+import { maakSleutelpaar, sleutelTekst } from '../game/js/net/sigcrypto.js';
 
 import { PROTO } from '../game/js/net/protocol.js';
 import { createLobby, reduce, view, ROLES, ROUTES, OPENBAAR_TEXT, LIJST_TEXT } from '../game/js/lobby.js';
@@ -11,7 +12,11 @@ let n = 0;
 const t = (name, f) => { f(); n++; };
 const T0 = 1_700_000_000_000;
 const ROOM = 'K3J9D8F2MN';
-const info = (o = {}) => ({ naam: 'Zomeravond', spelers: 2, max: 4, versie: '0.46.0', proto: PROTO, room: ROOM, id: 'abcd1234ef', nu: T0, ...o });
+// #795: de aankondiging draagt de publieke hostsleutel van de sessie; een echte sleutel voor de rondreis, een tweede om
+// te laten zien dat een ander paar onder hetzelfde id geweigerd wordt.
+const HOST_KEY = await sleutelTekst(await maakSleutelpaar());
+const OTHER_HOST_KEY = await sleutelTekst(await maakSleutelpaar());
+const info = (o = {}) => ({ naam: 'Zomeravond', spelers: 2, max: 4, versie: '0.46.0', proto: PROTO, room: ROOM, id: 'abcd1234ef', hostKey: HOST_KEY, nu: T0, ...o });
 
 t('naam: leeg wordt de standaardnaam, spaties worden netjes, te lang en vreemde tekens niet', () => {
   assert.deepEqual(schoonNaam(''), { ok: true, naam: STANDAARD_NAAM });
@@ -44,11 +49,12 @@ t('codeer en decodeer: rondreis zonder verlies', () => {
   assert.equal(typeof tekst, 'string'); assert.ok(tekst.length < LIJST.maxBytes);
   const r = decodeer(tekst, T0);
   assert.equal(r.ok, true);
-  assert.deepEqual(r.a, { naam: 'Zomeravond', spelers: 2, max: 4, versie: '0.46.0', proto: PROTO, id: 'abcd1234ef', t: T0 });
+  assert.deepEqual(r.a, { naam: 'Zomeravond', spelers: 2, max: 4, versie: '0.46.0', proto: PROTO, id: 'abcd1234ef', hostKey: HOST_KEY, t: T0 });
 });
 t('de aankondiging bevat geen IP-adres, wachtwoord of persoonsgegeven: alleen de vaste velden', () => {
   const o = JSON.parse(codeer(info()));
-  assert.deepEqual(Object.keys(o).sort(), ['c', 'g', 'i', 'm', 'n', 'p', 's', 't', 'v']);
+  assert.deepEqual(Object.keys(o).sort(), ['c', 'g', 'h', 'i', 'm', 'n', 'p', 's', 't', 'v']);
+  assert.equal(o.h, HOST_KEY, 'de publieke hostsleutel van de sessie (#795)');
   assert.ok(!/\d+\.\d+\.\d+\.\d+/.test(JSON.stringify(o)), 'geen IP-adres');
   assert.ok(!/GDE2|password|wachtwoord/i.test(JSON.stringify(o)));
 });
@@ -57,24 +63,29 @@ t('codeer weigert slechte gegevens in plaats van iets half te sturen', () => {
   assert.equal(codeer(info({ spelers: 0 })), null); assert.equal(codeer(info({ spelers: 5, max: 4 })), null); assert.equal(codeer(info({ max: 17 })), null);
   assert.equal(codeer(info({ id: 'X!' })), null); assert.equal(codeer(info({ versie: 'a b' })), null); assert.equal(codeer(info({ id: '' })), null);
   assert.equal(codeer(info({ nu: NaN })), null);
+  // #795: zonder geldige hostsleutel geen openbare regel (dan is een join-antwoord niet te controleren)
+  assert.equal(codeer(info({ hostKey: '' })), null);
+  assert.equal(codeer(info({ hostKey: 'kort' })), null);
+  assert.equal(codeer(info({ hostKey: undefined })), null);
 });
 t('decodeer: rommel, andere formaten, kapotte som, te groot, te oud of te nieuw', () => {
   const goed = codeer(info()), o = JSON.parse(goed);
   const mis = (x, reden) => { const r = decodeer(typeof x === 'string' ? x : JSON.stringify(x), T0); assert.equal(r.ok, false); assert.equal(r.reason, reden, JSON.stringify(x).slice(0, 60)); };
   mis('geen json', 'json'); mis('[]', 'json'); mis('null', 'json'); mis('12', 'json');
-  mis({ ...o, v: 1 }, 'formaat'); mis({ ...o, v: 3 }, 'formaat');
+  mis({ ...o, v: 1 }, 'formaat'); mis({ ...o, v: 2 }, 'formaat'); mis({ ...o, v: 4 }, 'formaat');
   mis({ ...o, s: '2' }, 'velden'); mis({ ...o, s: 5 }, 'velden'); mis({ ...o, m: 1 }, 'velden'); mis({ ...o, p: -1 }, 'velden'); mis({ ...o, i: 'ab' }, 'velden'); mis({ ...o, t: 'nu' }, 'velden'); mis({ ...o, c: 5 }, 'velden');
-  mis({ ...o, n: 'Andere naam' }, 'som'); mis({ ...o, s: 3 }, 'som'); mis({ ...o, i: 'abcd1234eg' }, 'som');
+  mis({ ...o, h: '' }, 'velden'); mis({ ...o, h: 'kort' }, 'velden'); mis({ ...o, h: 5 }, 'velden');
+  mis({ ...o, n: 'Andere naam' }, 'som'); mis({ ...o, s: 3 }, 'som'); mis({ ...o, i: 'abcd1234eg' }, 'som'); mis({ ...o, h: OTHER_HOST_KEY }, 'som');
   mis('x'.repeat(LIJST.maxBytes + 1), 'groot');
   assert.equal(decodeer(goed, T0 + LIJST.scheef + 1).reason, 'tijd'); assert.equal(decodeer(goed, T0 - LIJST.scheef - 1).reason, 'tijd');
   assert.equal(decodeer(goed, T0 + LIJST.scheef).ok, true);
   assert.equal(decodeer(undefined, T0).ok, false); assert.equal(decodeer(5, T0).ok, false);
 });
 t('decodeer: een niet-gefilterde naam met een goede som komt er niet doorheen (de host heeft zijn eigen filter overgeslagen)', () => {
-  const o = { v: LIJST.formaat, n: 'Kanker', s: 1, m: 4, g: '0.46.0', p: PROTO, i: 'abcd1234ef', t: T0 };
-  o.c = crc16(`${o.v}|${o.n}|${o.s}|${o.m}|${o.g}|${o.p}|${o.i}|${o.t}`);
+  const o = { v: LIJST.formaat, n: 'Kanker', s: 1, m: 4, g: '0.46.0', p: PROTO, i: 'abcd1234ef', h: HOST_KEY, t: T0 };
+  o.c = crc16(`${o.v}|${o.n}|${o.s}|${o.m}|${o.g}|${o.p}|${o.i}|${o.h}|${o.t}`);
   assert.equal(decodeer(JSON.stringify(o), T0).reason, 'naam');
-  const p = { ...o, n: ' Zomer' }; p.c = crc16(`${p.v}|${p.n}|${p.s}|${p.m}|${p.g}|${p.p}|${p.i}|${p.t}`);
+  const p = { ...o, n: ' Zomer' }; p.c = crc16(`${p.v}|${p.n}|${p.s}|${p.m}|${p.g}|${p.p}|${p.i}|${p.h}|${p.t}`);
   assert.equal(decodeer(JSON.stringify(p), T0).reason, 'naam', 'niet schoon genoeg: spatie voor de naam');
 });
 
@@ -96,6 +107,7 @@ t('lijst: een aankondiging verschijnt, met aantal, max en versie; andere versie 
   assert.deepEqual([per.Vol.kan, per.Vol.vol, per.Vol.anders], [false, true, false]);
   assert.equal(v[0].naam, 'Zomeravond', 'wat je kunt joinen staat bovenaan');
   assert.equal(per.Zomeravond.id, 'abcd1234ef'); assert.equal(per.Zomeravond.spelers, 2); assert.equal(per.Zomeravond.max, 4); assert.ok(!('room' in per.Zomeravond), 'geen kamercode in de lijst (#583)');
+  assert.equal(per.Zomeravond.hostKey, HOST_KEY, 'de rij draagt de hostsleutel voor het join-antwoord (#795)');
 });
 t('lijst: verloop na 45 s zonder nieuwe aankondiging; een nieuwe aankondiging verlengt', () => {
   const l = lijst(); zend(l, {});
@@ -134,14 +146,18 @@ t('misbruik: de oude aankondiging met een kamercode (formaat 1) komt er niet mee
   assert.equal(l.afgewezen.formaat, 1);
   assert.equal(l.lijst().length, 0);
 });
-t('misbruik: hetzelfde id verandert niet van versie of protocol (#589)', () => {
+t('misbruik: hetzelfde id verandert niet van versie, protocol of hostsleutel (#589, #795)', () => {
   const l = lijst(); zend(l, {});
   const ander = codeer(info({ versie: '9.9.9', nu: T0 + 15000 }));
   assert.deepEqual(l.ontvang(ander, T0 + 15000), { ok: false, reason: 'ander' });
   assert.equal(l.lijst()[0].versie, '0.46.0', 'de echte rij blijft staan');
   assert.equal(l.afgewezen.ander, 1);
+  // #795: een ander paar onder hetzelfde id is niet de host van deze sessie; de echte rij blijft staan.
+  const vreemdeSleutel = codeer(info({ hostKey: OTHER_HOST_KEY, nu: T0 + 30000 }));
+  assert.deepEqual(l.ontvang(vreemdeSleutel, T0 + 30000), { ok: false, reason: 'ander' });
+  assert.equal(l.lijst()[0].hostKey, HOST_KEY, 'de hostsleutel van de echte host blijft staan');
   // naam en aantal zijn zelf gerapporteerd en niet te verifiëren; de lijst is een vindplaats, geen identiteit
-  assert.equal(l.ontvang(codeer(info({ naam: 'Andere naam', nu: T0 + 30000 })), T0 + 30000).ok, true);
+  assert.equal(l.ontvang(codeer(info({ naam: 'Andere naam', nu: T0 + 45000 })), T0 + 45000).ok, true);
   assert.equal(l.lijst()[0].naam, 'Andere naam');
 });
 t('misbruik: een vloed van nieuwe afzenders wordt afgekapt (60 per minuut); de lijst bewaart alles en de pagina toont 20', () => {
@@ -167,7 +183,7 @@ t('misbruik: het aantal gevolgde afzenders is begrensd', () => {
 t('misbruik: rommel telt per reden mee en komt niet in de lijst', () => {
   const l = lijst();
   l.ontvang('rommel', T0); l.ontvang('{"v":2}', T0); l.ontvang(codeer(info({ id: 'toekomst001', nu: T0 + 10 * LIJST.scheef })), T0);
-  assert.deepEqual(l.afgewezen, { json: 1, velden: 1, tijd: 1 }); assert.equal(l.lijst().length, 0);
+  assert.deepEqual(l.afgewezen, { json: 1, formaat: 1, tijd: 1 }); assert.equal(l.lijst().length, 0);
 });
 t('melden: de sessie verdwijnt uit jouw lijst en komt niet terug bij de volgende aankondiging', () => {
   const l = lijst(); zend(l, {}); zend(l, { id: 'tweedetweede', naam: 'Andere' });
@@ -238,13 +254,15 @@ t('de pagina: meer dan 20 regels blijven bereikbaar, in stappen en met een eigen
   assert.deepEqual([leeg.rijen, leeg.totaal, leeg.alles], [[], 0, 0], 'een lege lijst is geen fout');
   assert.equal(filterEnSorteer(veel, { alleenVers: true }).totaal, 21, 'de leeftijd telt per regel');
 });
-t('de host: maakAankondiger levert een nieuwe tekst met de stand van dat moment, en niets zonder spelers', () => {
-  let sp = { spelers: 1, max: 4 }, nu = T0;
+t('de host: maakAankondiger levert een nieuwe tekst met de stand van dat moment, en niets zonder spelers of sleutel', () => {
+  let sp = { spelers: 1, max: 4, hostKey: HOST_KEY }, nu = T0;
   const maak = maakAankondiger({ naam: 'Zomeravond', versie: '0.46.0', proto: PROTO, hub: () => sp, id: maakId(() => 0.5), nu: () => nu });
   assert.equal(decodeer(maak(), T0).a.spelers, 1);
-  sp = { spelers: 3, max: 8 }; nu += 15000;
+  assert.equal(decodeer(maak(), T0).a.hostKey, HOST_KEY, 'de hostsleutel van de hub gaat mee (#795)');
+  sp = { spelers: 3, max: 8, hostKey: HOST_KEY }; nu += 15000;
   const a = decodeer(maak(), nu).a; assert.deepEqual([a.spelers, a.max, a.t], [3, 8, T0 + 15000]);
   assert.ok(!/room|kamer/i.test(JSON.stringify(a)), 'de aankondiging draagt geen kamercode (#583)');
+  sp = { spelers: 1, max: 4, hostKey: '' }; assert.equal(maak(), null, 'zonder hostsleutel niets plaatsen');
   sp = null; assert.equal(maak(), null);
   assert.match(maakId(() => 0.5), /^[a-z0-9]{10}$/);
 });
