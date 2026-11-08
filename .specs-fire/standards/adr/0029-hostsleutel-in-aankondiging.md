@@ -72,16 +72,24 @@ vóórdat hij verbindt.**
 
 - **Protocolwijziging:** lijstformaat 2 -> 3 en joinformaat 1 -> 2. Oudere en nieuwere clients
   zien elkaars aankondigingen niet meer en kunnen niet meer samen joinen; dat past bij de
-  bestaande regel dat je alleen met dezelfde versie samen speelt. Het hoort in de
-  release-notities (CHANGELOG).
+  bestaande regel dat je alleen met dezelfde versie samen speelt. Die formaatconstanten staan
+  los van `VERSION`/`PROTO`: twee builds met dezelfde versie maar een ander formaat (dev- of
+  betabuilds, of een oude naast een nieuwe build) zien elkaar dus ook niet meer, ook al meldt de
+  versiecontrole niets. Het hoort in de release-notities (CHANGELOG).
 - De aankondigingsregels zijn strenger: een sleutel is verplicht, zit in de CRC, en een ander
   paar onder hetzelfde id wordt geweigerd (`decodeer`/`Serverlijst.ontvang`). Een aankondiging
   zonder sleutel bestaat niet meer; de host wacht op de sleutel vóór hij aankondigt en blijft
   anders privé met een melding.
-- Het bootpad doet dezelfde welkom-controle: een ander sessie-id (of een andere naam bij een
-  sessie met naam) laat de wereld terugzetten en de volgende kandidaat proberen.
+- Het bootpad doet dezelfde welkom-controle: een ander sessie-id laat de wereld terugzetten en
+  de volgende kandidaat proberen; een andere naam bij hetzelfde id is een waarschuwing, net als
+  in de lobby.
 - De hostsleutel is een publieke sleutel, geen persoonsgegeven; de privéhelft staat alleen in
   het geheugen van de gastheerhub. Er is niets aan opslag toegevoegd (constitutie 10).
+- **Geen forward secrecy.** Eén hostsleutel per sessie: wie het geheugen van de gastheer tijdens
+  die sessie kan lezen, kan met de gast-sleutels uit de opgenomen verzoeken ook opgenomen
+  postvakken ontsleutelen. Per verzoek een eenmalig paar zou dat beperken, maar de sessie is
+  kort, de antwoorden verlopen (90 s) en er wordt niets bewaard; het sleutelbeheer van veel
+  eenmalige paren weegt daar niet tegenop. Bewust geaccepteerd.
 - De join-poort kan niet zonder hostsleutel bestaan (`bedienKamer` geeft dan `null`): een host
   die geen sleutel kan maken, kan geen openbare sessie aanbieden.
 - Tests: de aanval staat in `scripts/net_joingate_test.mjs` (aanvaller publiceert een postvak
