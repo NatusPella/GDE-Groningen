@@ -233,6 +233,9 @@ const ZWAAR = [
   ['height_audit', 'scripts/world/height_audit.mjs', ['--strict'], 600, true],
   ['terrain_audit', 'scripts/world/terrain_audit.mjs', [], 600, true],
   ['terrain_hoogte_audit', 'scripts/world/terrain_hoogte_audit.mjs', [], 900, true],
+  // de gebakken grond in de stage is wat de bakker nu maakt, en de lezer
+  // (tileworld.js + terraincache.js) geeft precies die arrays terug
+  ['terraincache', 'scripts/world/bake_terrain.mjs', ['--check'], 600, true],
   ['terrain_pariteit_stad', 'scripts/terrain_pariteit_test.mjs', ['--stad'], 2400, true],
   ['railprofile', 'scripts/world/railprofile.mjs', ['--strict'], 300, false],
   ['perron_audit', 'scripts/world/perron_audit.mjs', ['--strict'], 600, false],

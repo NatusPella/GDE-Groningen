@@ -1,0 +1,62 @@
+# 0031 - Het laadscherm bouwt de startbuurt en de shaders voor
+
+- **Status:** besloten
+- **Datum:** 2026-11-08
+- **Spec:** `.specs-fire/standards/wereld.md` (laadpad), `docs/PERF-BESLUITEN.md`
+- **Gerelateerd:** #750, #749, #247, #380
+
+## Context
+
+Na het laden stond de speler meteen in de wereld, maar de eerste seconden waren
+niet stil: de gebouwen en wegen rond het startpunt werden dan pas op de
+hoofdthread gebouwd en geüpload, en de eerste keer dat een shaderprogramma in
+beeld kwam linkte WebGL hem (het opstartprofiel van 19-10: 18 s van de eerste
+44 s ging naar programmalinks). De eigenaar koos op 8-11 expliciet voor een
+**langer laadscherm in ruil voor een gladde start**.
+
+Dat is iets anders dan #750. #750 was een bugfix: de boot wachtte ná het
+laadscherm op de Ommeland-plaatsing terwijl de spellus nog niet liep, waardoor
+een nieuw spel een bevroren beeld zonder HUD zag en de laadbalk bij een save
+stil bleef staan (de teller kon niet dalen zonder `update3D`). #750 haalde die
+wacht vóór de spellus weg; het ging niet om "kort laden" als doel.
+
+## Besluit
+
+Bij een **nieuw spel** blijft het bootscherm staan terwijl het startgebied
+voorwarmt: de boot prewarmt de gebouwen binnen 200 m rond het startpunt (dezelfde
+machinerie als een cutscene-voorlading, met eigen radius), laat de gewone
+framestappen de wegen en de straatversiering daar bouwen en uploaden tot
+`streamPending()` en het prewarmwerk tien frames rustig zijn, en compileert dan
+alle shaderprogramma's van de scène (`precompilePrograms()`). Pas daarna gaat het
+scherm weg en krijgt de speler toetsen. De wachttijd is begrensd (20 s); een
+langzame machine gaat met een half warm gebied verder in plaats van te hangen.
+
+Een save houdt zijn eigen laadscherm (dat wacht al op de gestreamde tegels); een
+test-, QA- of benchmarkrun slaat het voorladen over, zodat die runs hun eigen
+timing houden. De statusregel van het laadscherm zegt wat er nog gebeurt.
+
+## Afgewezen
+
+- **Niets doen en de haperingen in de eerste minuten accepteren.** De eigenaar
+  koos expliciet andersom.
+- **Opnieuw op de Ommeland-plaatsing wachten vóór de spellus (#750
+  terugdraaien).** Dat was precies de fout van #750: wachten zonder draaiende
+  lus laat het beeld en de laadbalk bevriezen, en de plaatsing ligt in de
+  Ommelanden, niet in de eerste minuten van de stad.
+- **Alles vooraf bakken in de build (mesh-cache/GLB).** De statische
+  stadsgeometrie is groot en hangt aan kwaliteit en zichtafstand; voor de
+  startbuurt is voorladen tijdens het laadscherm genoeg en veel eenvoudiger.
+- **De eerste tegelkring resident houden.** De stad is al gepind (ADR 0003); de
+  provincie resident maken kost geheugen dat de start niet nodig heeft.
+
+## Gevolgen
+
+- Het bootscherm duurt op een langzame computer enkele seconden langer; daarna
+  zijn de eerste frames in het startgebied vrij van meshbouw en programmalinks.
+- `scene3d.js` heeft `prewarmStreamAt(x, y, secs, radius)`, `prewarmPending()` en
+  `precompilePrograms()`; `main.js` doet de lus, `startscreen.js` wacht er in
+  `startNew` op (`opts.warm`). `scripts/startroute_test.mjs` bewaakt de
+  bedrading en de #750-orde.
+- `window.__loadMarks.startWarm`, `.warmFrames` en `.shaders` maken het effect in
+  een perfrun meetbaar. Die meting (Electron, echte eerste minuut) is nog niet
+  gedaan; de bedrading en de bestaande starttests zijn groen.

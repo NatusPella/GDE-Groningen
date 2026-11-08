@@ -79,4 +79,6 @@ deze lijst voordat een andere sessie begint te schrijven:
 | [0027](0027-code-taal-meetbaar.md) | Code in het Engels, meetbaar en met vaste uitzonderingen | besloten |
 | [0028](0028-dev-tooling-zonder-buildstap.md) | Dev-tooling zonder buildstap | besloten |
 | [0029](0029-hostsleutel-in-aankondiging.md) | Hostsleutel in de aankondiging bindt het join-antwoord aan de host | besloten |
+| [0030](0030-terreingrond-als-buildcache.md) | De terreingrond is een build-cache, geen runtime-werk | voorgesteld |
+| [0031](0031-laadscherm-warmt-startbuurt.md) | Het laadscherm bouwt de startbuurt en de shaders voor | besloten |
 

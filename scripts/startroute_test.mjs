@@ -49,6 +49,34 @@ ok(iWait !== -1 && iStart > iWait, '#750: game-started volgt meteen op de spelst
 ok(!/await countryPlaced;/.test(main), '#750: de boot wacht niet meer op de Ommeland-plaatsing');
 ok(iStart !== -1 && /markLoad\('gameStart'\)/.test(main.slice(iStart, iStart + 240)), '#750: de startmarker valt na het laadscherm');
 
+// --- startgebied voorladen: het laadscherm bouwt de eerste buurt en linkt de shaders ---
+// De eigenaar koos een langer laadscherm boven haperingen in de eerste minuten: vóór het
+// scherm weggaat bouwt de boot de gebouwen en wegen rond het startpunt en compileert hij
+// de shaderprogramma's. Een testrun slaat dit over (die start vanuit een script).
+const scene = read('game/js/scene3d.js');
+ok(/prewarmStreamAt\(x, y, secs = 4, radius = PREWARM_R\)/.test(scene), 'de prewarm heeft een eigen radius');
+ok(/export function prewarmPending\(\)/.test(scene), 'scene3d kan zeggen hoeveel voorlaadwerk er nog openstaat');
+ok(/export function precompilePrograms\(\)/.test(scene) && /precompile\(scene\)/.test(scene), 'scene3d kan alle shaders van de scène compileren');
+ok(/nearPrewarm[\s\S]{0,400}s\.r \+ 10/.test(scene), 'de prewarm beschermt de gebouwen binnen zijn eigen radius');
+const iWarm = main.indexOf('const warm = async () => {');
+const iWarmEnd = main.indexOf('return runStartScreen(world, { render, relocate, tick, ready, warm });', iWarm);
+ok(iWarm !== -1 && iWarmEnd > iWarm, 'de boot heeft een warm-stap vóór de spelstart');
+const warmBody = iWarm >= 0 && iWarmEnd > iWarm ? main.slice(iWarm, iWarmEnd) : '';
+ok(/prewarmStreamAt\(x, y, 240, START_WARM_R\)/.test(warmBody), 'de warm-stap prewarmt het startpunt op de ingestelde radius');
+ok(/sp\.buildings \+ sp\.roads \+ prewarmPending\(\)/.test(warmBody), 'de warm-stap wacht tot gebouwen, wegen en prewarm rustig zijn');
+ok(/precompilePrograms\(\)/.test(warmBody), 'de warm-stap compileert daarna de shaders');
+ok(/const WARM_START = !\(FLAGS\.noattract[\s\S]{0,260}FLAGS\.autoplay/.test(main), 'een test- of QA-run slaat het voorladen over');
+ok(/const START_WARM_R = 200;/.test(main) && /const START_WARM_MS = \d+;/.test(main), 'de warm-stap heeft een radius en een harde tijdsgrens');
+ok(/window\.__loadMarks\.startWarm/.test(main) && /window\.__loadMarks\.shaders/.test(main), 'de perf-meting ziet het voorladen en het compileren');
+ok(/typeof opts\.warm === 'function'/.test(ss) && /opts\.warm\(\)[\s\S]{0,80}\.then\(finish\)/.test(ss), 'de boot wacht op het voorladen vóór het laadscherm weggaat');
+ok(/setLoadingStatus\('De buurt rond je startpunt wordt klaargezet'\)/.test(ss) && /setLoadingStatus\('De shaders worden klaargezet'\)/.test(main), 'het laadscherm zegt wat het nog doet');
+ok(/function setLoadingStatus\(text\)/.test(ss), 'de laadschermstatus is ook na finishLoading nog te zetten');
+ok(/export function runStartScreen\(world, opts\)/.test(ss) && /return runStartScreen\(world, \{ render, relocate, tick, ready, warm \}\)/.test(main), 'de warm-stap gaat via de bestaande startroute');
+// Een save houdt zijn eigen laadscherm; daar komt de warm-stap niet tussen
+const iStartNew = ss.indexOf('const startNew = () => {');
+const iContinue = ss.indexOf('const continueGame = () => {', iStartNew);
+ok(iStartNew !== -1 && iContinue > iStartNew && ss.slice(iStartNew, iContinue).includes('opts.warm'), 'alleen een nieuw spel warmt voor; een save houdt zijn laadscherm');
+
 // --- #751: de eerste-startvraag heeft een time-out en Escape (main.js-vangnet) ---
 ok(/const ONLINE_START_WAIT_MS = \d+;/.test(main), '#751: de eerste-startvraag heeft een time-out');
 ok(/function waitForOnlineStart\(ms\)/.test(main), '#751: de boot wacht via een eigen wachter');

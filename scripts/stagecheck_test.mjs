@@ -5,7 +5,9 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import zlib from 'node:zlib';
 import { checkWorld, checkAudio, checkOffline } from './lib/stagecheck.mjs';
+import { encodeTerrain, TERRAIN_FILE } from '../game/js/terraincache.js';
 
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gde-stage-test-'));
 process.on('exit', () => fs.rmSync(dir, { recursive: true, force: true }));
@@ -78,6 +80,52 @@ t('de provincie- en corridorindex zijn extra, maar worden wel gecontroleerd', ()
   const r = checkWorld(w);
   assert.equal(r.ok, false);
   assert.match(r.problems.join('\n'), /index-provincie\.json: pack v0 ontbreekt/);
+});
+
+// --- gebakken terreingrond (#801): een wereld met een geldige cache is goed,
+// een kapot bestand is een fout die de bestandsnaam noemt
+const smallTerrain = () => ({
+  positions: new Float32Array([0, 0, 0, 10, 0, 0, 0, 0, 10, 10, 0, 10]),
+  normals: new Float32Array([0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0]),
+  tiles: [],
+  y: -0.05, droppedTriangles: 0, maxTriangles: 2,
+  grid: { minX: 0, minY: 0, totalW: 10, totalD: 10, segsX: 1, segsZ: 1, nx: 2, nz: 2, base: 4 },
+});
+const terrainBytes = () => zlib.deflateRawSync(Buffer.from(encodeTerrain(smallTerrain(), { bounds: [0, 0, 10, 10], rowsSig: 1 })));
+
+t('een wereld met een gebakken terreincache is goed', () => {
+  const w = path.join(dir, 'terrein-goed');
+  fs.mkdirSync(w, { recursive: true });
+  fs.writeFileSync(path.join(w, 'a-1.gdp'), Buffer.alloc(4));
+  fs.writeFileSync(path.join(w, 'index.json'), index({ a: { file: 'a-1.gdp', size: 4 } }, {}));
+  fs.writeFileSync(path.join(w, TERRAIN_FILE), terrainBytes());
+  const r = checkWorld(w);
+  assert.equal(r.ok, true, r.problems.join('; '));
+});
+
+t('een kapotte terreincache is een fout met de bestandsnaam erbij', () => {
+  const w = path.join(dir, 'terrein-kapot');
+  fs.mkdirSync(w, { recursive: true });
+  fs.writeFileSync(path.join(w, 'a-1.gdp'), Buffer.alloc(4));
+  fs.writeFileSync(path.join(w, 'index.json'), index({ a: { file: 'a-1.gdp', size: 4 } }, {}));
+  const rauw = zlib.inflateRawSync(terrainBytes());
+  rauw[0] = 0; // magic weg
+  fs.writeFileSync(path.join(w, TERRAIN_FILE), zlib.deflateRawSync(rauw));
+  const r = checkWorld(w);
+  assert.equal(r.ok, false);
+  assert.match(r.problems.join('\n'), /terrain\.bin: /);
+  assert.match(r.problems.join('\n'), /magic/);
+});
+
+t('een onleesbare terreincache (geen deflate) is een fout, geen crash', () => {
+  const w = path.join(dir, 'terrein-rafel');
+  fs.mkdirSync(w, { recursive: true });
+  fs.writeFileSync(path.join(w, 'a-1.gdp'), Buffer.alloc(4));
+  fs.writeFileSync(path.join(w, 'index.json'), index({ a: { file: 'a-1.gdp', size: 4 } }, {}));
+  fs.writeFileSync(path.join(w, TERRAIN_FILE), Buffer.from('geen deflate'));
+  const r = checkWorld(w);
+  assert.equal(r.ok, false);
+  assert.match(r.problems.join('\n'), /terrain\.bin: onleesbaar/);
 });
 
 // --- muziek

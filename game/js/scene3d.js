@@ -6,6 +6,7 @@ import { sfxLinks } from './latehooks.js';
 import { MODS } from './cheatmods.js';
 import { setDualText } from './subtitles.js';
 import { gridItems } from './spatialgrid.js';
+import { terrainHoleRows } from './terraincache.js';
 import { speakerHtml } from './speakers.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
@@ -160,7 +161,9 @@ import { gameBusy } from './busy.js';
 // in map.duplicateWater: het gestreamde pad laat hem helemaal weg).
 // Alle kaartvragen (waterNear, waterIndexAt, varen) houden beide rijen: alleen het tekenen slaat de
 // dubbel gemapte over, anders wordt hetzelfde water twee keer over elkaar getekend (donkerder en rommelig).
-const waterRows = (map) => gridItems(map.waterGrid).filter((w) => !map.duplicateWater || !map.duplicateWater.has(w));
+// The same list determines the terrain holes and the fingerprint of the baked
+// ground (terraincache.js), so it comes from one function.
+const waterRows = terrainHoleRows;
 const waterNearDrawn = (map, x, y, r) => {
   const list = map.waterNear(x, y, r);
   return map.duplicateWater ? list.filter((w) => !map.duplicateWater.has(w)) : list;
@@ -880,23 +883,35 @@ export function init3D(map) {
     terrainMesh = new THREE.Group();
     terrainMesh.material = createTerrainMaterial();
     const group = terrainMesh;
-    const water = waterRows(map);
-    let terrainKlaar = false, terrainDeadline = 0;
-    terrainPending = new Promise((done) => {
-      // #749: precies één keer afronden. De worker bouwt het terrein; antwoordt hij niet
-      // binnen de deadline (dood of hangend), dan bouwt de hoofdthread dezelfde terugval
-      // als de bestaande fallback. Een late worker-callback doet daarna niets meer.
-      const finish = (T) => {
-        if (terrainKlaar) return;
-        terrainKlaar = true;
-        clearTimeout(terrainDeadline);
-        terrainGroup(T || terrainArrays(map.meta.bounds, water), group);
-        freezeStatic(group);
-        done();
-      };
-      terrainDeadline = setTimeout(() => finish(null), TERRAIN_READY_DEADLINE_MS);
-      runGeo('terrain', { bounds: map.meta.bounds, water: water.map((w) => ({ pts: w.pts, bounds: w.bounds })) }, finish);
-    });
+    // the build bakes the ground (scripts/world/bake_terrain.mjs), so there is
+    // nothing to build at the start. tileworld.js already checked the block
+    // against the map bounds and the water list; when it does not fit, the
+    // geometry worker builds it as before.
+    const baked = map.terrainCache;
+    if (baked) {
+      terrainGroup(baked, group);
+      freezeStatic(group);
+      terrainPending = Promise.resolve();
+      if (typeof window !== 'undefined' && window.__loadMarks) window.__loadMarks.terrainBaked = Math.round(performance.now());
+    } else {
+      const water = waterRows(map);
+      let terrainKlaar = false, terrainDeadline = 0;
+      terrainPending = new Promise((done) => {
+        // #749: precies één keer afronden. De worker bouwt het terrein; antwoordt hij niet
+        // binnen de deadline (dood of hangend), dan bouwt de hoofdthread dezelfde terugval
+        // als de bestaande fallback. Een late worker-callback doet daarna niets meer.
+        const finish = (T) => {
+          if (terrainKlaar) return;
+          terrainKlaar = true;
+          clearTimeout(terrainDeadline);
+          terrainGroup(T || terrainArrays(map.meta.bounds, water), group);
+          freezeStatic(group);
+          done();
+        };
+        terrainDeadline = setTimeout(() => finish(null), TERRAIN_READY_DEADLINE_MS);
+        runGeo('terrain', { bounds: map.meta.bounds, water: water.map((w) => ({ pts: w.pts, bounds: w.bounds })) }, finish);
+      });
+    }
   } else {
     terrainMesh = buildTerrainMesh3D(map.meta.bounds, waterRows(map));
     freezeStatic(terrainMesh);
@@ -1811,21 +1826,23 @@ function updateStreamFocus(world) {
   return streamFocus;
 }
 
-// Prewarm: build the buildings around a place a cutscene is about to cut to
-// (cinematics.js playCinematic({ prewarm })) ahead of time, nearest first
-// within a frame budget, so the first frames there are not the far LOD.
+// Prewarm: build the buildings around a place the camera is about to go
+// (a cutscene's prewarm, and the start area: main.js hands the spawn point to
+// the boot screen) ahead of time, nearest first within a frame budget, so the
+// first frames there are not the far LOD.
 const PREWARM_MS = 3;
 const PREWARM_R = 110;
 let prewarmSpots = [];
-export function prewarmStreamAt(x, y, secs = 4) {
+export function prewarmStreamAt(x, y, secs = 4, radius = PREWARM_R) {
   if (!Number.isFinite(x) || !Number.isFinite(y)) return;
   const until = performance.now() + secs * 1000;
   prewarmSpots = prewarmSpots.filter((s) => Math.hypot(s.x - x, s.y - y) > 25 && s.until > performance.now());
-  prewarmSpots.push({ x, y, until, list: null });
+  prewarmSpots.push({ x, y, r: Math.max(30, radius), until, list: null, i: 0, done: false });
   prewarmRailAt(x, y);
 }
 function nearPrewarm(b) {
-  for (const s of prewarmSpots) if (Math.hypot((b.bounds[0] + b.bounds[2]) / 2 - s.x, (b.bounds[1] + b.bounds[3]) / 2 - s.y) <= PREWARM_R + 10) return true;
+  const cx = (b.bounds[0] + b.bounds[2]) / 2, cy = (b.bounds[1] + b.bounds[3]) / 2;
+  for (const s of prewarmSpots) if (Math.hypot(cx - s.x, cy - s.y) <= s.r + 10) return true;
   return false;
 }
 function stepPrewarm(world) {
@@ -1834,8 +1851,9 @@ function stepPrewarm(world) {
   prewarmSpots = prewarmSpots.filter((s) => s.until > now);
   const end = now + PREWARM_MS;
   for (const s of prewarmSpots) {
+    if (s.done) continue;
     if (!s.list) {
-      s.list = world.map.buildingsNear(s.x, s.y, PREWARM_R).filter((b) => !b.landmark)
+      s.list = world.map.buildingsNear(s.x, s.y, s.r).filter((b) => !b.landmark)
         .map((b) => [Math.hypot((b.bounds[0] + b.bounds[2]) / 2 - s.x, (b.bounds[1] + b.bounds[3]) / 2 - s.y), b])
         .sort((a, b) => a[0] - b[0]);
       s.i = 0;
@@ -1848,7 +1866,33 @@ function stepPrewarm(world) {
       precompile(mesh);
       prefetchedBuildings.set(b, mesh);
     }
+    // keep the spot until it expires: nearPrewarm protects these prefetched
+    // buildings until the camera is there
+    s.done = true;
   }
+}
+
+// How many of the prewarmed buildings are still to be built. The boot screen
+// (main.js) waits for this and for streamPending() before it lets the player in,
+// so the first seconds in the start area have no mesh building on the main thread.
+export function prewarmPending() {
+  let n = 0;
+  for (const s of prewarmSpots) {
+    if (s.done) continue;
+    if (!s.list) { n++; continue; } // the list is built on the next update3D
+    for (const [, b] of s.list) if (!buildingMeshes.has(b) && !prefetchedBuildings.has(b)) n++;
+  }
+  return n;
+}
+
+// Compile (and link) every shader program the scene uses now, while the boot
+// screen is still up: the first frames after the start screen used to stall on
+// the first use of each program (#247, the 18 s of WebGLUniforms in the boot
+// profile). Returns the time it took, for window.__loadMarks.
+export function precompilePrograms() {
+  const t0 = performance.now();
+  try { if (renderer && scene && cam) precompile(scene); } catch (e) { console.warn('shaders voorcompileren', e); }
+  return performance.now() - t0;
 }
 
 const BUILDING_PREFETCH = 30;
