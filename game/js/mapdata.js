@@ -175,6 +175,10 @@ export class GameMap {
     this.indexRails(data.rails);
     this.indexFurniture(data.furniture);
     this._roadsLive = data.roads; // home.js haalt de parkeeraisles hieruit (dropRoad)
+    // (#762) Dit bouwpad heeft geen aparte bronlijst: _roadsLive is de wegenarray
+    // zelf en mag dus nooit vrijgegeven worden (alleen het sparse bouwpad in
+    // fromParts maakt een eigen lijst).
+    this._roadsSourceOwn = false;
 
     markDryCrossings(this);
     // (?terrain: the terrain goes in before the elevation model, which builds its walls in the frame of the terrain)
@@ -256,7 +260,9 @@ export class GameMap {
     // (#762) ^ deze bronlijst is ~11 MB en in een sparse wereld alleen nog nodig
     // voor dropRoad (home.js, tijdens de boot) en de keys van de wegen-worker
     // (#753); roadsurface.js laat hem na het versturen van die keys los
-    // (releaseRoadSource).
+    // (releaseRoadSource). `_roadsSourceOwn`: alleen een sparse wegenlaag heeft
+    // een bronlijst die niet de map-array zelf is, en dus weg mag.
+    m._roadsSourceOwn = sparse.has('roads');
     // (?terrain: the elevation model builds its walls in the frame of the terrain, so the terrain is in before it)
     if (p.terrain) { m.terrain = p.terrain; m.terrainOn = !!p.terrainOn; }
     m.elev = addPerrons(m, buildElevation(m));
@@ -308,11 +314,13 @@ export class GameMap {
 
   // (#762) Een sparse wereld houdt de bronlijst van de stad (alleen voor dropRoad
   // en de keys van de wegen-worker, #753) vast tot die lijst niet meer nodig is:
-  // is de lijst niet de map-array zelf, dan mag hij weg (~11 MB). In de dichte
-  // wereld is `_roadsLive` dezelfde array als `roads`, die home.js' dropRoad
-  // bijhoudt; die blijft.
+  // is de lijst niet de map-array zelf (`_roadsSourceOwn`, alleen het sparse
+  // bouwpad), dan mag hij weg (~11 MB). In de dichte wereld is `_roadsLive`
+  // dezelfde array als `roads`, die home.js' dropRoad bijhoudt; die blijft.
   releaseRoadSource() {
-    if (this._roadsLive && this._roadsLive !== this.roads) this._roadsLive = null;
+    if (!this._roadsSourceOwn) return;
+    this._roadsSourceOwn = false;
+    this._roadsLive = null;
   }
 
   // Height of the surface under (x, y) for something at zHint (absolute m):
