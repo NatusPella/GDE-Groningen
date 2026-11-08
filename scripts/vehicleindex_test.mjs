@@ -48,5 +48,15 @@ for (const [file, loop] of [['game/js/vehicle/traffic.js', /for \(const o of veh
   const src = fs.readFileSync(new URL('../' + file, import.meta.url), 'utf8');
   ok(loop.test(src) && /vehicleindex\.js/.test(src), file + ' leest de buren uit de index');
 }
+
+// #752: de spellus zelf moet de index elk frame verversen. Alleen de menu-tick deed het,
+// dus in het spel bouwde elke query de index opnieuw op en in de menuroute bevroor hij.
+{
+  const main = fs.readFileSync(new URL('../game/js/main.js', import.meta.url), 'utf8');
+  const frameBody = main.slice(main.indexOf('function frameBody('));
+  const call = frameBody.indexOf('beginVehicleFrame(world)');
+  const loop = frameBody.indexOf('updateGameplay(gameDt)');
+  ok(call !== -1 && loop !== -1 && call < loop, 'main.js frameBody ververst de index één keer per spel-frame', call);
+}
 console.log(`${n - fails}/${n} vehicleindex`);
 process.exit(fails ? 1 : 0);
