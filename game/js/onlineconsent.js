@@ -19,6 +19,8 @@ export const EERSTE_START = {
   naamHint: 'Leeg mag: dan zien anderen de naam van je figuur.',
   meedoen: 'Meedoen',
   alleen: 'Alleen spelen',
+  // #751: een derde weg naast de twee antwoorden: de vraag uitstellen zonder iets te bewaren
+  later: 'Later',
 };
 
 // The switch in the players panel, with one line of explanation.

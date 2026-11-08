@@ -35,7 +35,7 @@ globalThis.document = { addEventListener() {}, removeEventListener() {}, hidden:
 // and the switch must read and write exactly the key that settings.js keeps.
 const S = await import('../game/js/settings.js');
 const { EERSTE_START, SCHAKELAAR, moetVragen, kiesToestemming, zetMeedoen } = await import('../game/js/onlineconsent.js');
-const { onlineStartHtml, meedoenSchakelaarHtml, mountOnlineStart, openOnlineStart, maybeOpenOnlineStart } = await import('../game/js/onlineconsentui.js');
+const { onlineStartHtml, meedoenSchakelaarHtml, mountOnlineStart, openOnlineStart, maybeOpenOnlineStart, closeOnlineStart } = await import('../game/js/onlineconsentui.js');
 
 let n = 0;
 const t = async (naam, f) => { await f(); n++; };
@@ -64,14 +64,15 @@ await t('geen WebSocket en geen RTCPeerConnection zolang de vraag op het scherm 
 });
 
 // --- 2. the screen's content -----------------------------------------------------
-await t('het scherm noemt de naam, de eerlijke uitleg en precies twee knoppen', async () => {
+await t('het scherm noemt de naam, de eerlijke uitleg en precies de knoppen meedoen, alleen en later', async () => {
   const html = onlineStartHtml({ naam: '', fout: '' });
   assert.match(html, /Je naam/);
   assert.match(html, /gaat naar je medespeler en naar de openbare servers/);
   assert.match(html, /niet naar een server van ons/);
   assert.match(html, new RegExp(`>${EERSTE_START.meedoen}<`));
   assert.match(html, new RegExp(`>${EERSTE_START.alleen}<`));
-  assert.equal((html.match(/<button\b/g) || []).length, 2, 'twee knoppen, geen derde');
+  assert.match(html, new RegExp(`>${EERSTE_START.later}<`));
+  assert.equal((html.match(/<button\b/g) || []).length, 3, 'drie knoppen: meedoen, alleen en later (#751)');
   assert.ok(!/href=/.test(html), 'geen link naar de instellingen');
   assert.match(html, /class="os-naam"[^>]*maxlength="16"/, 'het naamveld houdt dezelfde grens als het profielveld');
   assert.ok(html.indexOf('class="os-naam"') < html.indexOf('data-keuze'), 'het naamveld staat boven de knoppen');
@@ -125,6 +126,28 @@ await t('Enter in het naamveld is geen toestemming: het zet de focus op Meedoen'
   assert.equal(gekozen, 1, 'de knop is de keuze');
   assert.equal(S.getSettings().onlineMeedoen, true);
   naar(null);
+});
+
+// --- 4c. #751: uitstellen zonder antwoord -------------------------------------------
+await t('#751: Later en Escape sluiten de vraag zonder een voorkeur op te slaan', async () => {
+  naar(null);
+  S.setSetting('onlineNaam', '');
+  let gekozen = null;
+  const root = nepRoot('');
+  mountOnlineStart(root, { onKies: (r) => { gekozen = r; } });
+  root.klik('later');
+  assert.equal(gekozen.keuze, 'later', 'Later stelt de vraag uit');
+  assert.equal(S.getSettings().onlineMeedoen, null, 'en er is geen voorkeur opgeslagen');
+  assert.equal(S.getSettings().onlineNaam, '', 'de naam is ook niet bewaard');
+  assert.equal(moetVragen(), true, 'de vraag komt de volgende start terug');
+  assert.deepEqual([log.ws.length, log.pc.length], [0, 0], 'en er ging niets naar buiten');
+  gekozen = null;
+  const root2 = nepRoot('');
+  mountOnlineStart(root2, { onKies: (r) => { gekozen = r; } });
+  root2.toets('Escape', root2.veld());
+  assert.equal(gekozen && gekozen.keuze, 'later', 'Escape stelt de vraag uit');
+  assert.equal(S.getSettings().onlineMeedoen, null, 'ook Escape bewaart niets');
+  assert.deepEqual([log.ws.length, log.pc.length], [0, 0], 'en er ging niets naar buiten');
 });
 
 // --- 5. a refused name shows a fault and writes nothing --------------------------
@@ -234,6 +257,37 @@ await t('het scherm komt echt in beeld: focus op het naamveld en na het antwoord
   assert.equal(kaart.weg, true, 'het scherm verdwijnt');
   assert.equal(antwoord.keuze, 'meedoen');
   assert.equal(S.getSettings().onlineMeedoen, true);
+  assert.deepEqual([log.ws.length, log.pc.length], [0, 0], 'en er ging niets naar buiten');
+});
+
+// --- 7b. #751: de boot kan de vraag sluiten zonder antwoord ---------------------
+await t('#751: closeOnlineStart ruimt het scherm en de module-state op, zonder iets op te slaan', async () => {
+  naar(null);
+  const ouders = [];
+  const maak = () => {
+    const el = {
+      id: '', className: '', innerHTML: '', listeners: {},
+      appendChild() {}, setAttribute() {},
+      querySelector(sel) { return sel === '.os-naam' ? { value: '', focus() {}, closest: () => null } : null; },
+      addEventListener(ev, f) { (el.listeners[ev] || (el.listeners[ev] = [])).push(f); },
+      remove() { el.weg = true; },
+    };
+    ouders.push(el);
+    return el;
+  };
+  document.createElement = maak;
+  document.body = { appendChild() {}, classList: { toggle() {}, contains: () => false } };
+  const eerste = openOnlineStart();
+  assert.equal(ouders.length, 1, 'de vraag staat open');
+  closeOnlineStart();
+  assert.equal(await eerste, null, 'zonder antwoord resolvet de vraag met null');
+  assert.equal(ouders[0].weg, true, 'het scherm is weg');
+  const tweede = openOnlineStart();
+  assert.equal(ouders.length, 2, 'de module-state is leeg: een volgende vraag bouwt een nieuw scherm');
+  closeOnlineStart();
+  await tweede;
+  assert.equal(S.getSettings().onlineMeedoen, null, 'er is niets opgeslagen');
+  assert.equal(moetVragen(), true, 'de vraag komt dus terug');
   assert.deepEqual([log.ws.length, log.pc.length], [0, 0], 'en er ging niets naar buiten');
 });
 
