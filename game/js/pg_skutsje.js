@@ -165,22 +165,40 @@ export const SKUTSJE = {
     prepareDiepenringRoute(map);
     const s = diepenringProgress(FROM[0], FROM[1]).s;
     const q = routeAt(s);
-    // the start marker on the quay beside the start
-    for (const side of [1, -1]) {
-      const nx = -Math.sin(q.a) * side, ny = Math.cos(q.a) * side;
-      for (let o = 4; o <= 40; o += 1) {
-        const x = q.x + nx * o, y = q.y + ny * o;
-        if (isInWater(map, x, y)) continue;
-        const [ex, ey] = map.escapeBuilding(x + nx * 1.5, y + ny * 1.5, 0.4);
-        // het startpunt moet op de kade liggen, niet in het water (spotcheck) en niet in een muur
-        // #747: de start van de skûtsje-sprint is de vaste kade van de Oosterhaven; een
-        // dynamisch gezocht punt kan vóór het laden van de watertegels in het water belanden.
-        const sx = 747.3, sy = 394.5;
-        startSpot = { x: sx, y: sy, side };
-        return [{ x: sx, y: sy, name: 'Skûtsje-sprint in de Oosterhaven', sub: 'Jelle heeft twee skûtsjes klaarliggen', s, side }];
+    // #747: de vaste kade van de Oosterhaven is de voorkeur; een dynamisch gezocht punt kan
+    // vóór het laden van de watertegels in het water belanden.
+    // #766: maar het vaste punt wordt nooit gecontroleerd. Daarom eerst de guard (droog,
+    // muurvrij en open) en pas als die faalt de oude zoekweg langs de wal, zodat een
+    // verschoven wereldbouw de speler niet in het water of in een muur laat starten.
+    const pref = [747.3, 394.5];
+    let spot = null;
+    if (!isInWater(map, pref[0], pref[1])) {
+      const [px, py] = map.escapeBuilding(pref[0], pref[1], 0.4);
+      if (Math.hypot(px - pref[0], py - pref[1]) < 0.05 && map.isOpenSpot(pref[0], pref[1])) {
+        // de vaste kade ligt aan één zijde van de vaarlijn: die zijde bepaalt waar Jelle ligt
+        const off = (pref[0] - q.x) * -Math.sin(q.a) + (pref[1] - q.y) * Math.cos(q.a);
+        spot = { x: pref[0], y: pref[1], side: off >= 0 ? 1 : -1 };
       }
     }
-    return [];
+    if (!spot) {
+      // the start marker on the quay beside the start: per zijde het eerste punt dat droog,
+      // open en niet in een muur is (de oude zoekweg als terugval)
+      for (const side of [1, -1]) {
+        const nx = -Math.sin(q.a) * side, ny = Math.cos(q.a) * side;
+        for (let o = 4; o <= 40; o += 1) {
+          const x = q.x + nx * o, y = q.y + ny * o;
+          if (isInWater(map, x, y)) continue;
+          const [ex, ey] = map.escapeBuilding(x + nx * 1.5, y + ny * 1.5, 0.4);
+          if (isInWater(map, ex, ey) || !map.isOpenSpot(ex, ey)) continue;
+          spot = { x: ex, y: ey, side };
+          break;
+        }
+        if (spot) break;
+      }
+    }
+    if (!spot) return [];
+    startSpot = { x: spot.x, y: spot.y, side: spot.side };
+    return [{ x: spot.x, y: spot.y, name: 'Skûtsje-sprint in de Oosterhaven', sub: 'Jelle heeft twee skûtsjes klaarliggen', s, side: spot.side }];
   },
   verb: () => 'Skûtsje-sprint tegen Jelle',
   start(run) {
