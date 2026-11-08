@@ -277,7 +277,7 @@ await t('openSession: een volle sessie geeft een weigering en laat de wereld van
   s.stop();
 });
 
-await t('openSession (#777/#795): het welkom moet bij de rij horen, anders gaat de wereld terug', async () => {
+await t('openSession (#777/#795): ander sessie-id is fataal, een andere naam bij hetzelfde id waarschuwt alleen', async () => {
   const s = await echteSessie();
   const probeer = async (rij) => {
     const link = createLink({ latency: 0.02, seed: 61 });
@@ -291,11 +291,12 @@ await t('openSession (#777/#795): het welkom moet bij de rij horen, anders gaat 
   const anderId = await probeer({ id: 'nietdezesessie', naam: '', room: 'ABCDEFGHJK' });
   assert.equal(anderId.fout, 'De sessie kwam niet overeen.', 'ander sessie-id: het tweede slot weigert');
   assert.ok(!anderId.gw.coopNet, 'geen halve sessie: de wereld is weer van de gast');
-  // Een host met een naam in de lijst: dezelfde sessie maar een andere naam is niet de rij die de boot koos.
+  // Een host met een naam in de lijst: dezelfde sessie maar een andere naam is geen weigering; de speler hoort het wel.
   s.hw.coopNet.hub.zetOpenbaar(true, 'Zomeravond');
   const andereNaam = await probeer({ id: s.hw.coopNet.hub.id, naam: 'Andere naam', room: 'ABCDEFGHJK' });
-  assert.equal(andereNaam.fout, 'De sessie kwam niet overeen.', 'andere naam: het tweede slot weigert');
-  assert.ok(!andereNaam.gw.coopNet);
+  assert.equal(andereNaam.fout, '', 'andere naam bij hetzelfde id: de boot gaat door (zoals de lobby, #777)');
+  assert.equal(andereNaam.gw.coopRole, 'client', 'de gast zit in de sessie');
+  assert.ok(andereNaam.gw.messages.some((m) => /heet nu "Zomeravond" in plaats van "Andere naam"/.test(String((m && m.text) || m))), 'met een waarschuwing bij de speler');
   const goed = await probeer({ id: s.hw.coopNet.hub.id, naam: 'Zomeravond', room: 'ABCDEFGHJK' });
   assert.equal(goed.fout, '', 'dezelfde sessie en naam: welkom');
   assert.equal(goed.gw.coopRole, 'client');

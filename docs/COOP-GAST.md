@@ -224,7 +224,7 @@ Code: `game/js/cooppvp.js` (pure regels), `multiplayerpvpwereld.js` (treffers en
 
 ## Een sessie vanaf de start (#528, ADR 0022)
 
-**Meedoen** vraagt de host van de drukste passende sessie om een eenmalige kamercode (`net/joingate.js`, versleuteld met ECDH voor deze gast én met de hostsleutel uit de aankondiging, #795) en sluit daarna aan via `hostRoom`/`joinRoom` en `startClient`. Na het verbinden controleert de gast het welkom (vast sessie-id en naam) tegen de rij uit de lijst; klopt het niet, dan gaat de verbinding meteen los (#777). Diezelfde controle doet het bootpad (`sessionboot.js` `openSession`) ook.
+**Meedoen** vraagt de host van de drukste passende sessie om een eenmalige kamercode (`net/joingate.js`, versleuteld met ECDH voor deze gast én met de hostsleutel uit de aankondiging, #795) en sluit daarna aan via `hostRoom`/`joinRoom` en `startClient`. Na het verbinden controleert de gast het welkom (vast sessie-id en naam) tegen de rij uit de lijst: een ander sessie-id is fataal en de verbinding gaat meteen los, een andere naam bij hetzelfde id geeft alleen een waarschuwing (#777). Diezelfde controle doet het bootpad (`sessionboot.js` `openSession`) ook.
 
 **Zonder toestemming gebeurt er niets.** `magOnline()` onwaar betekent geen lijst, geen broker, geen socket en geen aankondiging (constitutie 4 en 10); de spelbron controleert dat vóór elke andere stap, en `scripts/sessionboot_test.mjs` telt elke `WebSocket` en `RTCPeerConnection` om dat te bewijzen.
 
