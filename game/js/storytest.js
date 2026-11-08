@@ -605,6 +605,7 @@ export async function runStoryTest(world) {
     // zakken voordat de minigames beginnen; geen rAF-wachtlus, want in een verborgen
     // testvenster staat requestAnimationFrame soms stil.
     await sleep(8000);
+    if (!SKIP_WERELD) {
     // every start and target point is on open ground you can walk away from
     if (window.__ommeland) await window.__ommeland.prepare();
     const spots = await validateSpots(world);
