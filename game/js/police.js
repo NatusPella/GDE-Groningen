@@ -313,14 +313,21 @@ function updateChase(v, dt, world) {
   v._losTimer = (v._losTimer || 0) - dt;
   if (v._losTimer <= 0) {
     v._losTimer = 0.25;
-    if (!polLosBudget(performance.now())) { v._losTimer = 0.05; tunePoliceCar(v, world, d, v._sees); return; } // #653: budget op
-    v._sees = d < SEE_RANGE_CAR && (aloftInSight(world) || hasLineOfSight(world.map, v.x, v.y, p.x, p.y));
-    // out in the fields the last stretch from the road nearest the player is
-    // across the grass (countryFollow sets _fieldRun at the end of its way)
-    if (v._fieldRun && (d > FIELD_RUN_DIST || pol.searching || !dryLine(world.map, v.x, v.y, p.x, p.y))) v._fieldRun = false;
-    v._direct = (d < DIRECT_CHASE_DIST && v._sees || !!v._fieldRun) && !pol.searching;
-    // never straight into a canal or a maar out there
-    if (v._direct && !v._fieldRun && roadNetReady() && edgeDistance(v.x, v.y) > 0 && !dryLine(world.map, v.x, v.y, p.x, p.y)) v._direct = false;
+    // #785: een uitgeput LOS-budget slaat alleen de lijncontrole over. De
+    // eenheid blijft die frames doorrijden met haar laatst bekende _sees en
+    // probeert het 50 ms later weer; de oude return sloeg ook het zoeken,
+    // sturen en bewegen over, waardoor de meeste eenheden tijdens een
+    // achtervolging stilvielen.
+    if (!polLosBudget(performance.now())) v._losTimer = 0.05; // #653: budget op
+    else {
+      v._sees = d < SEE_RANGE_CAR && (aloftInSight(world) || hasLineOfSight(world.map, v.x, v.y, p.x, p.y));
+      // out in the fields the last stretch from the road nearest the player is
+      // across the grass (countryFollow sets _fieldRun at the end of its way)
+      if (v._fieldRun && (d > FIELD_RUN_DIST || pol.searching || !dryLine(world.map, v.x, v.y, p.x, p.y))) v._fieldRun = false;
+      v._direct = (d < DIRECT_CHASE_DIST && v._sees || !!v._fieldRun) && !pol.searching;
+      // never straight into a canal or a maar out there
+      if (v._direct && !v._fieldRun && roadNetReady() && edgeDistance(v.x, v.y) > 0 && !dryLine(world.map, v.x, v.y, p.x, p.y)) v._direct = false;
+    }
   }
   tunePoliceCar(v, world, d, v._sees);
   let goal = p;
