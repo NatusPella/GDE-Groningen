@@ -28,6 +28,7 @@ await t('de nieuwe host na een overdracht: het paneel toont de kamercode, de spe
   assert.match(root.innerHTML, /ABCDE-FGHJK/, 'de nieuwe host ziet de code'); assert.match(root.innerHTML, /Iedereen stoppen/); assert.match(root.innerHTML, /eruit zetten/);
   assert.doesNotMatch(root.innerHTML, /Iemand uitnodigen|Code of adres invoeren/, 'niet het beginscherm');
   assert.equal(typeof hub.onchange, 'function', 'de spelerslijst volgt de hub');
+  assert.equal(typeof hub.kamerRouleer, 'function', '#779: de hub kan na een kick de kamercode laten rouleren');
   hub.onchange(roster([[0, 'anita'], [1, 'tammo'], [2, 'tessa']])); assert.equal(lobby.state().spelers.length, 3);
   root.click('verbreek'); assert.deepEqual(uit, ['verbreek'], 'Iedereen stoppen werkt');
   lobby.close();

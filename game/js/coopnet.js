@@ -1666,9 +1666,12 @@ export function payGuest(world, geld, slot = null, extra = null, id = null) {
 }
 zetBijbaanHaken({ betaalGast: (world, slot, geld, extra, id) => payGuest(world, geld, slot, extra, id) }); // de volledige beloning van een bijbaan, per ronde met een vaste id (#452)
 zetWedHaken({ betaalGast: (world, slot, geld, extra) => payGuest(world, geld, slot, extra) }); // een race tegen elkaar betaalt per plek in de eigen portemonnee en loopbaan van elke gast (#443)
-// Host: een speler verwijderen (eerst een bericht, dan verbreken). #589: eruit zetten is blijvend voor deze sessie:
-// zijn token gaat op de verbodenlijst, een late HELLO op deze verbinding wordt genegeerd en de verbinding gaat na
-// het afscheid dicht. Zonder dat kwam een griefer met dezelfde verbinding of een nieuwe code zo weer binnen.
+// Host: een speler verwijderen (eerst een bericht, dan verbreken). #589: eruit zetten is blijvend voor deze
+// sessie: zijn token gaat op de verbodenlijst, een late HELLO op deze verbinding wordt genegeerd en de
+// verbinding gaat na het afscheid dicht. #779: dat geldt per token, niet per persoon — wie Samen spelen
+// opnieuw opent, krijgt van de host een nieuw token en zou dus in principe weer binnen kunnen. Daarom laat
+// het lobbypaneel na een kick de kamercode rouleren (zoals bij "weer privé maken"), zodat de oude code de
+// deur niet meer opent. Zonder accounts en zonder IP-opslag (constitutie 10) reikt de ban niet verder.
 export function removeGuest(world, slot = 1) {
   const n = world.coopNet; if (!n || n.role !== 'host' || !n.hub) return false;
   const ses = n.hub.sessions.get(slot);
@@ -1681,7 +1684,11 @@ export function removeGuest(world, slot = 1) {
   }
   if (!n.hub.kick(slot)) return false;
   ses.gesloten = true; // geen tweede kennismaking op deze verbinding (#589); de hub sluit hem na REMOVE_DELAY
-  n.removing[slot] = REMOVE_DELAY; return true;
+  n.removing[slot] = REMOVE_DELAY;
+  // #779: de gekickte speler kent de kamercode nog; laat het lobbypaneel hem rouleren. Zonder paneel
+  // (een koploze host) valt er niets te rouleren: daar geldt alleen het token-verbod hierboven.
+  if (typeof n.hub.kamerRouleer === 'function') { try { n.hub.kamerRouleer(); } catch (e) { /* paneel al weg */ } }
+  return true;
 }
 export function setMaxPlayers(world, max) {
   const n = world.coopNet; if (!n || n.role !== 'host') return null;
