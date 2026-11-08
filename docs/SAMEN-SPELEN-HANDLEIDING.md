@@ -21,7 +21,7 @@ Start het spel. Komt er bij het koppelen "Andere versie", dan hebben jullie niet
 ### 2. De host opent de sessie
 
 1. Druk op Esc en kies **Spel › Samen spelen**. De hub opent met drie keuzes: **Meedoen**, **Zelf een sessie openen** of **Besloten spelen**.
-2. Kies **Zelf een sessie openen**. Kies eventueel het aantal plekken (4, 8, 12 of 16) en of de sessie in de openbare lijst mag staan. Standaard is de sessie besloten; openbaar maken is een eigen keuze, en het spel waarschuwt daarbij wat er in de lijst komt (naam, aantal spelers en versie; nooit je IP-adres of de kamercode).
+2. Kies **Zelf een sessie openen**. Kies eventueel het aantal plekken (4, 8, 12 of 16) en of de sessie in de openbare lijst mag staan. Standaard is de sessie besloten; openbaar maken is een eigen keuze, en het spel waarschuwt daarbij wat er in de lijst komt (naam, aantal spelers, versie en een publieke sleutel van de sessie; nooit je IP-adres of de kamercode).
 3. Lees het toestemmingsscherm en kies **Akkoord en verbinden**. Je IP-adres gaat naar je medespelers; er worden openbare servers gebruikt om elkaar te vinden. Wat daarover gaat is versleuteld.
 4. Er verschijnt een **kamercode**. Stuur die naar de anderen (bijvoorbeeld in jullie groepsapp). Dezelfde code werkt voor iedereen.
 5. Zodra er genoeg spelers bij zijn, kun je **Spel starten**. De wachtkamer laat zien wie er is.
@@ -45,7 +45,8 @@ De eerste keer dat het spel het netwerk gebruikt, kan Windows vragen of "GDE Gro
 - **Valt iemand weg?** Die speler ziet "Verbinding weg" en kan opnieuw verbinden; de rest speelt door. Valt de host weg, dan neemt een andere speler de wereld over; niemand hoeft een code te typen.
 - **Zelf vliegen en varen?** Elke speler mag een vrij voertuig besturen, ook een helikopter of vliegtuig als het vrij staat (#525). Een opdracht-, politie- of busvoertuig blijft van de wereld; de trein bestuur je alleen in je eigen spel. Een voertuig van een andere speler mag je niet zomaar nemen.
 - **Stoppen.** Kies in het pauzemenu **Samen spelen** en dan **Spel verlaten** (of, voor de host, **Iedereen stoppen**). Je komt terug waar je was in je eigen spel.
-- Later bijkomen kan altijd: geef de code, tot het maximum van de sessie.
+- **Later bijkomen** kan altijd: geef de code, tot het maximum van de sessie.
+- **Iemand eruit zetten?** Wie het spel opende kan in de wachtkamer of via **Spelers** iemand verwijderen. Daarna rolt de kamercode: hij krijgt een nieuwe code en de oude werkt niet meer, dus deel de nieuwe code opnieuw met wie nog wil aankomen.
 
 ## Als het niet lukt
 
