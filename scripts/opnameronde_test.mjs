@@ -21,10 +21,20 @@ for (const cmd of ['node scripts/tts_lines_list.mjs', 'python scripts/tts_lines.
 ok(!/sk-[A-Za-z0-9]{20,}/.test(doc), 'er staat geen echte sleutel in het runbook');
 ok(/Wat alleen de eigenaar kan/.test(doc), 'de resterende eigenaarsstap staat erin');
 // de meting in het runbook moet bij de bron horen, niet bij een oud getal
+// #776: tel een lijst én een JSON-object (de bronnen kunnen beide zijn), met een duidelijke
+// melding als het type niet klopt in plaats van "undefined jobs".
+const tel = (waarde) => {
+  if (Array.isArray(waarde)) return waarde.length;
+  if (waarde && typeof waarde === 'object') return Object.keys(waarde).length;
+  return NaN;
+};
 const jobs = JSON.parse(lees('scripts/tts_lines.json'));
 const wacht = JSON.parse(lees('scripts/tts_waiting.json'));
-ok(new RegExp(`\\*\\*${jobs.length}\\*\\* jobs`).test(doc), `de actuele meting staat erin (${jobs.length} jobs)`);
-ok(new RegExp(`\\*\\*${wacht.length}\\*\\* regels`).test(doc), `de actuele meting staat erin (${wacht.length} wachtende regels)`);
+const nJobs = tel(jobs), nWacht = tel(wacht);
+ok(Number.isInteger(nJobs), 'scripts/tts_lines.json is een lijst of object (anders is het aantal jobs niet te tellen)', typeof jobs);
+ok(Number.isInteger(nWacht), 'scripts/tts_waiting.json is een lijst of object (anders is het aantal wachtende regels niet te tellen)', typeof wacht);
+ok(Number.isInteger(nJobs) && new RegExp(`\\*\\*${nJobs}\\*\\* jobs`).test(doc), `de actuele meting staat erin (${nJobs} jobs)`);
+ok(Number.isInteger(nWacht) && new RegExp(`\\*\\*${nWacht}\\*\\* regels`).test(doc), `de actuele meting staat erin (${nWacht} wachtende regels)`);
 
 // de generator werkt; het bestand is lokaal en gitignored
 const gen = lees('scripts/opnamelijst.mjs');
