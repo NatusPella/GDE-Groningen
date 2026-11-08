@@ -610,7 +610,6 @@ export async function runStoryTest(world) {
     // zakken voordat de minigames beginnen; geen rAF-wachtlus, want in een verborgen
     // testvenster staat requestAnimationFrame soms stil.
     await sleep(8000);
-    capture('aa-na-warmup');
     if (!SKIP_WERELD) {
     // every start and target point is on open ground you can walk away from
     if (window.__ommeland) await window.__ommeland.prepare();
@@ -636,7 +635,6 @@ export async function runStoryTest(world) {
     check('scripted car drives a full ring lap', lap.scripted.ok, JSON.stringify(lap.scripted));
     check('AI racers finish a full ring lap', lap.ai.ok, JSON.stringify(lap.ai));
     }
-    capture('ab-na-wereld');
     await drain(world);
     await minigameSmoke(world, check, capture);
     await minigames2Smoke(world, check, capture);
