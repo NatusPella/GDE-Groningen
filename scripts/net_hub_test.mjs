@@ -164,7 +164,8 @@ t('een openbare sessie (#450): de hub houdt naam en een vast id, telt de echte s
   const aan = r.hub.zetOpenbaar(true, 'Zomeravond');
   assert.deepEqual([aan.ok, aan.naam, aan.id], [true, 'Zomeravond', r.hub.id]);
   const p1 = r.hub.publiek();
-  assert.deepEqual(p1, { id: r.hub.id, naam: 'Zomeravond', spelers: 1, max: 4 }, 'alleen de gastheer');
+  assert.deepEqual([p1.id, p1.naam, p1.spelers, p1.max], [r.hub.id, 'Zomeravond', 1, 4], 'alleen de gastheer');
+  assert.equal(typeof p1.hostKey, 'string', 'de openbare regel draagt de hostsleutel (#795)');
   assert.deepEqual(gezien.at(-1), p1, 'wie de regel plaatst hoort hem meteen');
   // een gast erbij telt mee; valt hij weg, dan telt zijn wachtende plek niet mee
   const c = r.add(); r.step(2);
@@ -189,5 +190,20 @@ t('een gast in een privésessie kent alleen het id (#450); wie geweigerd wordt k
   const oud = new ClientSession(l.b, { info: { ...INFO, version: 'oud' } }, makeRng(3)); r.clients.push(oud); r.links.push(l);
   r.step(2);
   assert.equal(oud.rejected, 'versie'); assert.equal(oud.sessie, null);
+});
+// #795: de hostsleutel van een sessie. Eén paar per sessie, de publieke helft in de openbare regel (voor de
+// aankondiging en het join-antwoord), de privéhelft blijft in de hub; privé en weer openbaar geeft dezelfde sleutel.
+await (async (naam, f) => { await f(); n++; })('hostsleutel (#795): één paar per sessie, publiek in de openbare regel', async () => {
+  const r = room();
+  assert.equal(r.hub.hostKeyText, '', 'nog geen sleutel zolang de sessie privé is');
+  r.hub.zetOpenbaar(true, 'Zomeravond');
+  const key1 = await r.hub.ensureHostKey();
+  assert.match(key1, /^[A-Za-z0-9_-]{86,88}$/, 'een publieke ECDH-sleutel');
+  assert.equal(r.hub.publiek().hostKey, key1, 'de openbare regel draagt hem (#795)');
+  assert.equal(await r.hub.ensureHostKey(), key1, 'tweede vraag: dezelfde sleutel');
+  assert.ok(r.hub.hostKeyPair && r.hub.hostKeyPair.privateKey, 'het paar blijft in de hub');
+  r.hub.zetOpenbaar(false); assert.equal(r.hub.publiek(), null);
+  r.hub.zetOpenbaar(true, 'Zomeravond');
+  assert.equal(await r.hub.ensureHostKey(), key1, 'privé en weer openbaar: dezelfde sessiesleutel');
 });
 console.log(`net_hub_test: ${n}/${n} ok`);

@@ -8,6 +8,7 @@ import { HostSession } from './session.js';
 import { T, encodeJson, readHeader, decodeJson } from './codec.js';
 import { checkHandshake } from './protocol.js';
 import { schoonNaam, maakId } from './serverlijst.js';
+import { maakSleutelpaar, sleutelTekst } from './sigcrypto.js';
 import { createRoster, wijsPlekToe, verwijder, zetMax, zetVerbinding, zetAvatar, lijst, lijstEvent, charInfo, heeftPlek } from '../coopplayers.js';
 
 export const PENDING_MAX = 20; // s: een verbinding die in zo lang geen geldige hello stuurde (of geweigerd is), wordt gesloten en vergeten
@@ -20,19 +21,39 @@ export class HostHub {
     this.pending = new Set();    // sessies die nog geen plek hebben
     this.onchange = null;        // roster veranderd (voor lobby en HUD)
     this.id = maakId(cfg.rand);  // de vaste identiteit van deze sessie (#450): de lijst en de gasten verwijzen ernaar
+    // #795: de hostsleutel van deze sessie. De publieke helft komt in de openbare aankondiging en bindt het
+    // join-antwoord aan deze host (#777); de privéhelft blijft in dit object, in het geheugen, en gaat nooit
+    // over de lijn of naar de opslag. Lui gemaakt: WebCrypto is asynchroon (ensureHostKey).
+    this.hostKeyPromise = null; this.hostKeyPair = null; this.hostKeyText = '';
     this.openbaar = null;        // { naam } zolang de gastheer de sessie in de openbare lijst houdt (#438); standaard privé
     this.opOpenbaar = null;      // wie de regel plaatst (lobbyui.js): hoort het als hij aan- of uitgaat
     this.snapCache = null; this.snapTick = -1; this.tickN = 0;
   }
 
-  // De openbare regel van deze sessie (#438, #450): de naam, het vaste id en het aantal spelers van dit moment. Null zolang
-  // de gastheer de sessie privé houdt. Wie hem plaatst vraagt hem bij elke aankondiging opnieuw op, dus een gast die
-  // binnenkomt of wegvalt telt meteen mee (een plek die op een terugkerende gast wacht telt niet).
+  // De openbare regel van deze sessie (#438, #450): de naam, het vaste id, het aantal spelers van dit moment en de
+  // publieke hostsleutel (#795). Null zolang de gastheer de sessie privé houdt. Wie hem plaatst vraagt hem bij elke
+  // aankondiging opnieuw op, dus een gast die binnenkomt of wegvalt telt meteen mee (een plek die op een terugkerende
+  // gast wacht telt niet). De hostsleutel is pas gevuld als ensureHostKey() klaar is; de lobby wacht daarop.
   publiek() {
     if (!this.openbaar) return null;
     const nu = this.roster.spelers.filter((s) => s.verbinding !== 'lost').length;
     const zonderSpeler = this.cfg.koploos ? 1 : 0; // een gastheer zonder speler (#450) is geen speler in de lijst
-    return { id: this.id, naam: this.openbaar.naam, spelers: Math.max(1, nu - zonderSpeler), max: this.roster.max };
+    return { id: this.id, naam: this.openbaar.naam, spelers: Math.max(1, nu - zonderSpeler), max: this.roster.max, hostKey: this.hostKeyText };
+  }
+
+  // De hostsleutel van deze sessie (#795): één ECDH-sleutelpaar per sessie, lui gemaakt en daarna vast. De lobby
+  // wacht erop vóór ze aankondigt (lobbyui.js) en geeft het paar aan de join-poort (net/joingate.js), zodat de
+  // aankondiging en elk join-antwoord aantoonbaar van dezelfde host zijn (#777). Geeft de publieke sleuteltekst,
+  // of '' als WebCrypto hier niet werkt; dan blijft de sessie privé.
+  ensureHostKey() {
+    if (!this.hostKeyPromise) {
+      this.hostKeyPromise = maakSleutelpaar().then(async (paar) => {
+        this.hostKeyPair = paar;
+        this.hostKeyText = await sleutelTekst(paar);
+        return this.hostKeyText;
+      }, () => { this.hostKeyPromise = null; return ''; });
+    }
+    return this.hostKeyPromise;
   }
 
   // De sessie openbaar maken of weer privé (#438, #450). De naam gaat door hetzelfde filter als een online naam
@@ -48,6 +69,7 @@ export class HostHub {
     const r = schoonNaam(naam);
     if (!r.ok) return { ok: false, openbaar: was, reason: r.reason };
     this.openbaar = { naam: r.naam };
+    this.ensureHostKey().catch(() => {}); // #795: de sleutel alvast klaarzetten voor de aankondiging en de join-poort
     if (this.opOpenbaar) this.opOpenbaar(this.publiek());
     return { ok: true, openbaar: true, naam: r.naam, id: this.id };
   }
