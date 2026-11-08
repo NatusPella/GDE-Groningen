@@ -276,7 +276,8 @@ export class TileStore {
     if (!err || err.cancelled) return;
     const pack = e.meta && e.meta.pack;
     const file = (pack && this.index.packs[pack] && this.index.packs[pack].file) || pack || '?';
-    const missing = err.status === 404;
+    // #763: een pack dat niet eens in de index staat is net zo kapot als een 404
+    const missing = err.status === 404 || err.missingPack;
     if (missing) this.brokenPacks.add(pack);
     const seen = (missing ? '404 ' : 'fout ') + file;
     if (this.warned.has(seen)) return;
@@ -306,8 +307,13 @@ export class TileStore {
     const ctl = typeof AbortController !== 'undefined' ? new AbortController() : null;
     e.ctl = ctl;
     const { pack, off, len } = e.meta;
-    const file = this.index.packs[pack].file;
     try {
+      // #763: een pack dat niet in deze index staat (index en pakketten uit
+      // verschillende builds) gaf hierbuiten een TypeError; de entry bleef dan
+      // 'loading' met zijn wachters staan. Nu ruimt de catch hieronder hem op.
+      const info = this.index.packs[pack];
+      if (!info || !info.file) throw Object.assign(new Error(`tegelpakket ontbreekt in de index: ${pack}`), { missingPack: true });
+      const file = info.file;
       const bytes = await this._begrensd(
         () => this.source.read(file, off, len, ctl && ctl.signal),
         this.readMs, `tile read ${file} ${off}+${len}`,
@@ -448,6 +454,15 @@ export function makeWorkerDecoder(url, size = 2, aside = null, opts = {}) {
   const pool = []; // { w, dood }; a dead worker is gone from this list
   const open = new Map(); // id -> { resolve, reject, timer, rec, bron }
   let next = 1, rr = 0, gestopt = false;
+  // #763: een worker die zijn script niet kan laden (404, CSP, ontbrekend
+  // bestand, antivirus) sterft meteen na elk nieuw leven. Zonder rem herstart
+  // de pool eindeloos: elke onerror maakt een nieuwe Worker en de waarschuwing
+  // "pool leeg" komt nooit. Na een paar sterfgevallen zonder geslaagde decode
+  // maken we geen nieuwe worker meer (de pool blijft leeg: alles gaat naar de
+  // hoofdthread) en waarschuwen we één keer. Een geslaagde decode zet de teller
+  // terug, zodat een eenmalige storing de pool niet voorgoed uitzet.
+  const MAX_RESTARTS = 3;
+  let sterfgevallen = 0, leegGemeld = false;
 
   // #651: één tegel tegelijk op de hoofdthread, met een yield ertussen
   const hoofdthread = serialQueue((bytes) => fallback(bytes, aside));
@@ -460,7 +475,8 @@ export function makeWorkerDecoder(url, size = 2, aside = null, opts = {}) {
       if (!j || j.rec !== rec) return;
       clearTimeout(j.timer);
       open.delete(id);
-      if (error) j.reject(new Error(error)); else j.resolve(tile);
+      if (error) j.reject(new Error(error));
+      else { sterfgevallen = 0; j.resolve(tile); }
     };
     rec.w.onmessageerror = () => sterf(rec, 'tile worker message error');
     rec.w.onerror = (e) => sterf(rec, (e && e.message) || 'tile worker error');
@@ -482,8 +498,13 @@ export function makeWorkerDecoder(url, size = 2, aside = null, opts = {}) {
     try { if (rec.w && typeof rec.w.terminate === 'function') rec.w.terminate(); } catch (e) { /* already gone */ }
     const k = pool.indexOf(rec);
     if (k >= 0) pool.splice(k, 1);
-    try { pool.push(maak()); } catch (e) { /* no new worker: the pool stays smaller (or empty) */ }
-    if (!pool.length) console.warn(`tegel-decoder: ${reden}; decoderen gebeurt nu op de hoofdthread`);
+    if (sterfgevallen++ < MAX_RESTARTS) {
+      try { pool.push(maak()); } catch (e) { /* no new worker: the pool stays smaller (or empty) */ }
+    }
+    if (!pool.length && !leegGemeld) {
+      leegGemeld = true;
+      console.warn(`tegel-decoder: ${reden}; decoderen gebeurt nu op de hoofdthread`);
+    }
   }
   try { for (let k = 0; k < aantal; k++) pool.push(maak()); }
   catch (e) { for (const rec of pool) { rec.dood = true; try { rec.w.terminate && rec.w.terminate(); } catch (er) { /* already gone */ } } return null; }
