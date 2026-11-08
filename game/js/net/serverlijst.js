@@ -34,7 +34,8 @@ export const LIJST = {
   minTussen: 5000,           // ms: een afzender die vaker aankondigt dan dit wordt genegeerd
   nieuwPerMinuut: 60,        // nieuwe afzenders per minuut, daarboven negeren we nieuwe
   maxBytes: 600,             // een grotere aankondiging is geen aankondiging
-  scheef: 90000,             // ms: een tijdstempel die verder van onze klok ligt (te oud of te nieuw) tellen we niet
+  scheef: 600000,            // ms: ruime marge (#782) voor een klokverschil tussen host en gast; alleen een grens
+                             // tegen zeer oude of ver vooruit lopende aankondigingen, geen gelijkheidscheck
 };
 export const STANDAARD_NAAM = 'Open spel';
 
