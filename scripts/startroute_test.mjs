@@ -39,14 +39,19 @@ ok(/if \(ss && ss\.classList\.contains\('visible'\)\)/.test(st) && /game-started
 // --- de menu-achtergrond wordt niet meer voor elke start gepland ---
 ok(/if \(planned \|\| !\(FLAGS\.menutest \|\| FLAGS\.trailer \|\| FLAGS\.preview \|\| FLAGS\.attract\)\) return;/.test(ss), 'planMenuStart hangt aan de menu-route');
 
-// --- #750: de wereld is speelbaar vóór de Ommeland-plaatsing ---
+// --- #750/#grens: de achtergrondstappen eerst, met draaiende frames ---
+// De Ommeland-plaatsing en de kaartbeelden lopen naast de warm-lus; de boot
+// wacht er binnen zijn eigen grens op (ready), maar nooit met een kale await
+// vóór de spellus: dat was de fout van #750.
 const main = read('game/js/main.js');
 const iPlace = main.indexOf('const countryPlaced = placeWithTiles');
-const iWait = main.indexOf('await waitForStart(world, countryPlaced)');
+const iMaps = main.indexOf('const countryMaps = warmCountryMaps()');
+const iReady = main.indexOf('const ready = Promise.all([countryPlaced, countryMaps])');
+const iWait = main.indexOf('await waitForStart(world, ready)');
 const iStart = main.indexOf("document.body.classList.add('game-started')", iWait);
-ok(iPlace !== -1 && iWait > iPlace, '#750: de plaatsing start vóór het wachten op de spelstart');
+ok(iPlace !== -1 && iMaps > iPlace && iReady > iMaps, '#750: plaatsing en kaartbeelden starten vóór het wachten, in ready');
 ok(iWait !== -1 && iStart > iWait, '#750: game-started volgt meteen op de spelstart');
-ok(!/await countryPlaced;/.test(main), '#750: de boot wacht niet meer op de Ommeland-plaatsing');
+ok(!/await countryPlaced;/.test(main) && !/await waitForStart\(world, countryPlaced\)/.test(main), '#750: geen kale wacht vóór de spellus');
 ok(iStart !== -1 && /markLoad\('gameStart'\)/.test(main.slice(iStart, iStart + 240)), '#750: de startmarker valt na het laadscherm');
 
 // --- startgebied voorladen: het laadscherm bouwt de eerste buurt en linkt de shaders ---
@@ -66,6 +71,8 @@ ok(/prewarmStreamAt\(x, y, 240, START_WARM_R\)/.test(warmBody), 'de warm-stap pr
 ok(/sp\.buildings \+ sp\.roads \+ prewarmPending\(\)/.test(warmBody), 'de warm-stap wacht tot gebouwen, wegen en prewarm rustig zijn');
 ok(/START_WARM_MAX_FRAME_MS/.test(main) && /slowRun = frameMs > START_WARM_MAX_FRAME_MS/.test(warmBody), 'de warm-stap wacht ook tot de frames zelf rustig zijn (late workerresultaten en shaderlinks)');
 ok(/calm = open === 0 && slowRun === 0/.test(warmBody), 'pas door als tellers én frametijd rustig zijn');
+ok(/\(readyDone \? 0 : 1\)/.test(warmBody) && /window\.__loadMarks\.background/.test(warmBody), 'de warm-stap wacht op de achtergrondstappen (plaatsing en kaartbeelden) en met de klok mee');
+ok(/function warmCountryMaps\(sliceMs = 4\)[\s\S]{0,120}return new Promise/.test(read('game/js/countrymap.js')), 'warmCountryMaps kan zijn klaar-zijn melden');
 ok(/precompilePrograms\(\)/.test(warmBody), 'de warm-stap compileert daarna de shaders');
 ok(/const WARM_START = !\(FLAGS\.noattract[\s\S]{0,260}FLAGS\.autoplay/.test(main), 'een test- of QA-run slaat het voorladen over');
 ok(/const START_WARM_R = 200;/.test(main) && /const START_WARM_MS = \d+;/.test(main), 'de warm-stap heeft een radius en een harde tijdsgrens');
@@ -100,7 +107,7 @@ const bootMs = (naam) => { const m = new RegExp(`const ${naam} = (\\d+);`).exec(
 ok(bootMs('BOOT_WATCHDOG_MS') === 180000 && bootMs('MAP_LOAD_MS') === 150000, '#749: de bootgrenzen zijn 150 s (tegels) en 180 s (wachter)', `${bootMs('MAP_LOAD_MS')}/${bootMs('BOOT_WATCHDOG_MS')}`);
 ok(bootMs('BOOT_WATCHDOG_MS') > bootMs('MAP_LOAD_MS') && bootMs('MAP_LOAD_MS') > 120000, '#749: de ladder is tegelgrens < 150 s < wachter 180 s', `${bootMs('MAP_LOAD_MS')}/${bootMs('BOOT_WATCHDOG_MS')}`);
 ok(/^  armBootWatchdog\(\);$/m.test(main), '#749: de wachter start aan het begin van de boot');
-ok(/stopBootWatchdog\(\);\n  await waitForStart\(world, countryPlaced\);/.test(main), '#749: de wachter stopt als het laden klaar is en op de speler wordt gewacht');
+ok(/stopBootWatchdog\(\);\n  await waitForStart\(world, ready\);/.test(main), '#749: de wachter stopt als het laden klaar is en op de speler wordt gewacht');
 ok(/withDeadline\(loadTileWorld\(/.test(main), '#749: tegels laden heeft een harde grens');
 ok(/withDeadline\(loadMap\(/.test(main), '#749: de kaartfallback heeft een harde grens');
 ok(/withDeadline\(terrainReady\(\)/.test(main), '#749: terrainReady heeft een deadline');
