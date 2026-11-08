@@ -199,7 +199,7 @@ function bakeTerrain(worldDir, root) {
     console.log('terrain: no baker in this checkout; the game builds the ground itself');
     return;
   }
-  const r = spawnSync(process.execPath, [script, '--world', worldDir, '--quiet'], { stdio: 'inherit', cwd: root });
+  const r = spawnSync(process.execPath, [script, '--world=' + worldDir, '--quiet'], { stdio: 'inherit', cwd: root });
   if (r.status !== 0) throw new Error('baking the terrain failed (set GDE_TERRAIN_CACHE=0 to stage without a cache)');
   const file = path.join(worldDir, 'terrain.bin');
   console.log(`terrain: baked (${(fs.statSync(file).size / 1e6).toFixed(1)} MB, ${path.relative(root, file)})`);
