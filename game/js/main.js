@@ -127,7 +127,7 @@ import { updateSluizen, getSluizen } from './sluizen.js';
 import { updateBridgeHits, resetBridgeDamage, startBridgeCrashDemo, stepBridgeCrashDemo } from './bridgehitworld.js';
 import { geoWorkerActive } from './geojobs.js';
 import { preloadRoadWorker } from './roadsurface.js';
-import { init3D, update3D, resize3D, getScene, getRenderer, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady, canvasFrameCount, prewarmStreamAt, getCamera, getFollowPose, setRouteLinks } from './scene3d.js';
+import { init3D, update3D, resize3D, getScene, getRenderer, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady, canvasFrameCount, prewarmStreamAt, prewarmPending, precompilePrograms, streamPending, getCamera, getFollowPose, setRouteLinks } from './scene3d.js';
 import { checkFrame } from './blackframe.js';
 import { noteFrame, hideAdvice, classifyGpu, readGpu, dynamicScale, cpuLevel } from './gfxprofile.js';
 import { updateStreetSigns } from './streetsigns.js';
@@ -162,7 +162,7 @@ import { initSkyProps, updateSkyProps } from './skyprops.js';
 import { initSikkomFeed, updateSikkomFeed } from './sikkomfeed.js';
 import { initPhoneFeed, updatePhoneFeed } from './phonefeed.js';
 import { watchJumps, resetJumpWatch, startLoadScreen } from './loadscreen.js';
-import { initLoading, setLoadProgress, finishLoading, showLoadError, runStartScreen, yieldToPaint, planMenuStart } from './startscreen.js';
+import { initLoading, setLoadProgress, finishLoading, showLoadError, runStartScreen, yieldToPaint, planMenuStart, setLoadingStatus } from './startscreen.js';
 import { initPigeonMode, updatePigeonMode, updatePigeonCamera, updatePigeonAfterglow, getPigeonPosition } from './pigeonmode.js';
 import { initPigeonSpots, updatePigeonSpots, tryPigeonSpotInteract } from './pigeonspots.js';
 import { initSideJobs, updateSideJobs, trySideJobInteract } from './sidejobs.js';
@@ -251,6 +251,17 @@ const boatTarget = () => scaledTarget(getSettings().quality === 'laag' ? 5 : 7);
 // every system that used to have a 2D-only draw path now also has a 3D one.
 initLoading();
 
+// The boot screen warms the start area and the shaders before the player gets
+// keys, so the first seconds in the world build and link nothing on the main
+// thread. A longer boot is the price the owner chose for a smooth start. A test
+// or QA run skips it: those start from a script and their timing must stay put.
+const WARM_START = !(FLAGS.noattract || FLAGS.storytest || FLAGS.stil || FLAGS.trailer || FLAGS.preview || FLAGS.benchmark || FLAGS.perf || FLAGS.spotsonly || FLAGS.autoplay || FLAGS.menutest);
+// the start area's prewarm radius (the cutscene prewarm uses 110 m) and the longest
+// the boot screen may spend on it before it goes on anyway
+const START_WARM_R = 200;
+const START_WARM_MS = 20000;
+const START_WARM_CALM = 10;
+
 function waitForStart(world, ready) {
   const relocate = (x, y) => {
     world.player.x = x;
@@ -305,7 +316,34 @@ function waitForStart(world, ready) {
     updateGunFx3D(fxDt, world, getScene());
     update3D(dt, world);
   };
-  return runStartScreen(world, { render, relocate, tick, ready });
+  // The start-area warm-up (runBootScreen awaits it before the boot screen goes):
+  // prewarm the buildings round the spawn, let the game's own frame work build and
+  // upload the roads and street dressing there, then compile the shaders. The boot
+  // screen stays up; no work spills into the first seconds of play. Never longer
+  // than START_WARM_MS (a slow machine goes on with a partially warm area).
+  const warm = async () => {
+    if (!WARM_START) return;
+    const x = world.player.x, y = world.player.y;
+    const t0 = performance.now();
+    setLoadingStatus('De buurt rond je startpunt wordt klaargezet');
+    prewarmStreamAt(x, y, 240, START_WARM_R);
+    let calm = 0, frames = 0;
+    while (performance.now() - t0 < START_WARM_MS) {
+      try { tick(1 / 60); render(1 / 60); } catch (e) { console.warn('startgebied voorladen', e); break; }
+      frames++;
+      const sp = streamPending();
+      const open = sp.buildings + sp.roads + prewarmPending();
+      calm = open === 0 ? calm + 1 : 0;
+      if (calm >= START_WARM_CALM) break;
+      await yieldToPaint();
+    }
+    if (window.__loadMarks) window.__loadMarks.startWarm = Math.round(performance.now() - t0);
+    setLoadingStatus('De shaders worden klaargezet');
+    const compiled = precompilePrograms();
+    if (window.__loadMarks) window.__loadMarks.shaders = Math.round(compiled);
+    if (frames && window.__loadMarks) window.__loadMarks.warmFrames = frames;
+  };
+  return runStartScreen(world, { render, relocate, tick, ready, warm });
 }
 
 let bridgeDemoT = 0, bridgeDemoDone = false; // ?brugbotsing

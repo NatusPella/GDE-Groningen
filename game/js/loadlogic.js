@@ -50,7 +50,7 @@ export const BOOT_PHASES = [
   { from: 0.3, id: 'wereld', label: 'De wereld wordt opgebouwd' },
   { from: 0.55, id: 'straten', label: 'Straten, huizen en bruggen komen erbij' },
   { from: 0.8, id: 'systemen', label: 'De laatste systemen worden gestart' },
-  { from: 0.9, id: 'tegels', label: 'Nog even: de tegels rond je opslagpunt worden geladen' },
+  { from: 0.9, id: 'tegels', label: 'Nog even: de buurt rond je startpunt wordt klaargezet' },
 ];
 export function bootPhaseAt(progress) {
   const p = Math.max(0, Math.min(1, Number.isFinite(progress) ? progress : 0));

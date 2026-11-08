@@ -1826,21 +1826,23 @@ function updateStreamFocus(world) {
   return streamFocus;
 }
 
-// Prewarm: build the buildings around a place a cutscene is about to cut to
-// (cinematics.js playCinematic({ prewarm })) ahead of time, nearest first
-// within a frame budget, so the first frames there are not the far LOD.
+// Prewarm: build the buildings around a place the camera is about to go
+// (a cutscene's prewarm, and the start area: main.js hands the spawn point to
+// the boot screen) ahead of time, nearest first within a frame budget, so the
+// first frames there are not the far LOD.
 const PREWARM_MS = 3;
 const PREWARM_R = 110;
 let prewarmSpots = [];
-export function prewarmStreamAt(x, y, secs = 4) {
+export function prewarmStreamAt(x, y, secs = 4, radius = PREWARM_R) {
   if (!Number.isFinite(x) || !Number.isFinite(y)) return;
   const until = performance.now() + secs * 1000;
   prewarmSpots = prewarmSpots.filter((s) => Math.hypot(s.x - x, s.y - y) > 25 && s.until > performance.now());
-  prewarmSpots.push({ x, y, until, list: null });
+  prewarmSpots.push({ x, y, r: Math.max(30, radius), until, list: null, i: 0, done: false });
   prewarmRailAt(x, y);
 }
 function nearPrewarm(b) {
-  for (const s of prewarmSpots) if (Math.hypot((b.bounds[0] + b.bounds[2]) / 2 - s.x, (b.bounds[1] + b.bounds[3]) / 2 - s.y) <= PREWARM_R + 10) return true;
+  const cx = (b.bounds[0] + b.bounds[2]) / 2, cy = (b.bounds[1] + b.bounds[3]) / 2;
+  for (const s of prewarmSpots) if (Math.hypot(cx - s.x, cy - s.y) <= s.r + 10) return true;
   return false;
 }
 function stepPrewarm(world) {
@@ -1849,8 +1851,9 @@ function stepPrewarm(world) {
   prewarmSpots = prewarmSpots.filter((s) => s.until > now);
   const end = now + PREWARM_MS;
   for (const s of prewarmSpots) {
+    if (s.done) continue;
     if (!s.list) {
-      s.list = world.map.buildingsNear(s.x, s.y, PREWARM_R).filter((b) => !b.landmark)
+      s.list = world.map.buildingsNear(s.x, s.y, s.r).filter((b) => !b.landmark)
         .map((b) => [Math.hypot((b.bounds[0] + b.bounds[2]) / 2 - s.x, (b.bounds[1] + b.bounds[3]) / 2 - s.y), b])
         .sort((a, b) => a[0] - b[0]);
       s.i = 0;
@@ -1863,7 +1866,33 @@ function stepPrewarm(world) {
       precompile(mesh);
       prefetchedBuildings.set(b, mesh);
     }
+    // keep the spot until it expires: nearPrewarm protects these prefetched
+    // buildings until the camera is there
+    s.done = true;
   }
+}
+
+// How many of the prewarmed buildings are still to be built. The boot screen
+// (main.js) waits for this and for streamPending() before it lets the player in,
+// so the first seconds in the start area have no mesh building on the main thread.
+export function prewarmPending() {
+  let n = 0;
+  for (const s of prewarmSpots) {
+    if (s.done) continue;
+    if (!s.list) { n++; continue; } // the list is built on the next update3D
+    for (const [, b] of s.list) if (!buildingMeshes.has(b) && !prefetchedBuildings.has(b)) n++;
+  }
+  return n;
+}
+
+// Compile (and link) every shader program the scene uses now, while the boot
+// screen is still up: the first frames after the start screen used to stall on
+// the first use of each program (#247, the 18 s of WebGLUniforms in the boot
+// profile). Returns the time it took, for window.__loadMarks.
+export function precompilePrograms() {
+  const t0 = performance.now();
+  try { if (renderer && scene && cam) precompile(scene); } catch (e) { console.warn('shaders voorcompileren', e); }
+  return performance.now() - t0;
 }
 
 const BUILDING_PREFETCH = 30;
