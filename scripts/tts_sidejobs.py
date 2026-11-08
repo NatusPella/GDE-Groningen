@@ -6,7 +6,7 @@
 #   node scripts/tts_sidejobs_lines.mjs && python3 scripts/tts_sidejobs.py [max_lines]
 import json, os, sys, subprocess, urllib.error, wave, time
 from concurrent.futures import ThreadPoolExecutor
-from gemini_tts import usage, speak, tries, check, current, load_log, save_log, logged, say_of
+from gemini_tts import usage, speak, tries, check, current, load_log, save_log, logged, say_of, SAMPLE_RATE
 REPO = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 OUT = os.path.join(REPO, 'game', 'audio', 'voicelines', 'jobs')
 TRIM = 'silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0'
@@ -31,7 +31,7 @@ def job(l):
             pcm = speak(l['voice'], say, style)
             check(pcm, say, 1.2)
             with wave.open(wav, 'wb') as w:
-                w.setnchannels(1); w.setsampwidth(2); w.setframerate(24000); w.writeframes(pcm)
+                w.setnchannels(1); w.setsampwidth(2); w.setframerate(SAMPLE_RATE); w.writeframes(pcm)
             subprocess.run(['ffmpeg', '-loglevel', 'error', '-y', '-i', wav, '-af', (RADIO if l.get('radio') else '') + TRIM, '-ac', '1', '-ar', '24000', '-b:a', '48k', dst], check=True)
             os.remove(wav)
             dur = float(subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', dst], capture_output=True, text=True).stdout)

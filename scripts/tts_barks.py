@@ -8,7 +8,7 @@
 import json, os, subprocess, urllib.error, wave, time
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
-from gemini_tts import usage, speak, tries, check, current, load_log, save_log, logged, say_of
+from gemini_tts import usage, speak, tries, check, current, load_log, save_log, logged, say_of, SAMPLE_RATE
 REPO = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 AUDIO = os.path.join(REPO, 'game', 'audio')
 TRIM = 'silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12'
@@ -41,7 +41,7 @@ def job(l):
             check(pcm, say)
             raw = dst[:-4] + '.tmp.wav'
             with wave.open(raw, 'wb') as w:
-                w.setnchannels(1); w.setsampwidth(2); w.setframerate(24000); w.writeframes(pcm)
+                w.setnchannels(1); w.setsampwidth(2); w.setframerate(SAMPLE_RATE); w.writeframes(pcm)
             encode(raw, dst)
             os.remove(raw)
             return l, 'ok' if attempt == 0 else 'ok-fallback', style
