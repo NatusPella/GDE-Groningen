@@ -253,7 +253,16 @@ export class TileStore {
   _maybeAbort(e) {
     if (e.waiters.length || e.pinned || e.wanted) return;
     if (e.state === 'queued') { this.queue = this.queue.filter((q) => q !== e); e.state = 'idle'; this.stats.cancels++; this.entries.delete(e.key); }
-    else if (e.state === 'loading') { e.state = 'cancelled'; if (e.ctl) e.ctl.abort(); this.stats.cancels++; }
+    else if (e.state === 'loading') {
+      // #769: een afgebroken load blijft niet als 'cancelled' in de map staan.
+      // De entry gaat er meteen uit, zodat een nieuwe request() een verse entry
+      // maakt en de tegel opnieuw laadt; de oude load ziet aan zijn eigen,
+      // losgekoppelde entry dat hij niets meer mag afleveren (_load hieronder).
+      e.state = 'cancelled';
+      if (e.ctl) e.ctl.abort();
+      this.stats.cancels++;
+      if (this.entries.get(e.key) === e) this.entries.delete(e.key);
+    }
   }
 
   _pump() {
@@ -303,6 +312,12 @@ export class TileStore {
     });
   }
 
+  // #769: is deze entry losgekoppeld (afgebroken, of al vervangen door een verse
+  // request op dezelfde key)? Dan mag de lopende load niets meer afleveren.
+  _stale(e) {
+    return e.state === 'cancelled' || this.entries.get(e.key) !== e;
+  }
+
   async _load(e) {
     const ctl = typeof AbortController !== 'undefined' ? new AbortController() : null;
     e.ctl = ctl;
@@ -318,9 +333,9 @@ export class TileStore {
         () => this.source.read(file, off, len, ctl && ctl.signal),
         this.readMs, `tile read ${file} ${off}+${len}`,
         () => { try { if (ctl) ctl.abort(); } catch (err) { /* already gone */ } });
-      if (e.state === 'cancelled') throw Object.assign(new Error('cancelled'), { cancelled: true });
+      if (this._stale(e)) throw Object.assign(new Error('cancelled'), { cancelled: true });
       const tile = await this._begrensd(() => this.decode(bytes, e.meta), this.decodeMs, `tile decode ${file} ${off}+${len}`);
-      if (e.state === 'cancelled') throw Object.assign(new Error('cancelled'), { cancelled: true });
+      if (this._stale(e)) throw Object.assign(new Error('cancelled'), { cancelled: true });
       e.tile = tile;
       e.state = 'ready';
       e.last = this.now();
@@ -333,6 +348,10 @@ export class TileStore {
       for (const w of ws) w.resolve(tile);
       this._evict();
     } catch (err) {
+      // #769: hing deze load aan een entry die intussen is afgebroken (of door
+      // een verse request is vervangen), dan is die entry al opgeruimd en heeft
+      // hij geen wachters meer: niets afleveren, niets opruimen.
+      if (this._stale(e)) { e.waiters = []; return; }
       const ws = e.waiters;
       e.waiters = [];
       this.entries.delete(e.key);
