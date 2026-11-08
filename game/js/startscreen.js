@@ -167,6 +167,18 @@ function afterPaint(fn) {
 // first-run graphics measurement and the boot animations.
 const AUTO = FLAGS.noattract || FLAGS.storytest || FLAGS.stil || FLAGS.trailer || FLAGS.preview || FLAGS.benchmark || FLAGS.perf || FLAGS.spotsonly;
 
+// #749: een late, alsnog geslaagde boot ruimt de foutstand van de boot-wachter op (de rode
+// .error-klasse en de herlaadknop), anders blijft die op het laadscherm staan tot het scherm
+// helemaal weggaat.
+function clearBootError() {
+  const l = el('loading');
+  if (!l) return;
+  const status = l.querySelector('.ld-status');
+  if (status) status.classList.remove('error');
+  const knop = l.querySelector('#boot-reload');
+  if (knop && knop.parentNode) knop.parentNode.removeChild(knop);
+}
+
 // Fills the bar to 100% and goes straight on (#226): no key to press. The boot screen stays up until
 // the world is there (dismissLoading here, or the menu gate in the QA/trailer route), so there is no
 // black gap. The sound starts at the first real key or click (audio.js unlockAudio), the browsers
@@ -177,6 +189,7 @@ export async function finishLoading() {
   clearInterval(fakeTimer);
   clearInterval(tipTimer);
   bootStatusLocked = true;
+  clearBootError();
   paint();
   const l = el('loading');
   if (!l) return;
@@ -187,6 +200,7 @@ export async function finishLoading() {
 
 // The menu (or the trailer) is up: the boot screen fades away over it.
 export function dismissLoading() {
+  clearBootError();
   const l = el('loading');
   if (!l || l.dataset.gone) return;
   l.dataset.gone = '1';
