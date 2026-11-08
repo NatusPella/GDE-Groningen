@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 import * as B from '../game/js/net/brokers.js';
 import { LIJST, codeer, maakId, maakAankondiger, Serverlijst } from '../game/js/net/serverlijst.js';
-import { topicFor, makeRoom, formatRoom, parseRoom } from '../game/js/net/sigcrypto.js';
+import { topicFor, makeRoom, formatRoom, parseRoom, maakSleutelpaar, sleutelTekst } from '../game/js/net/sigcrypto.js';
 import { bedienKamer, vraagKamer } from '../game/js/net/joingate.js';
 import { hostRoom, joinRoom } from '../game/js/net/rtcroom.js';
 import { PROTO } from '../game/js/net/protocol.js';
@@ -14,6 +14,9 @@ const t = async (name, f) => { await f(); n++; };
 const tick = (ms = 5) => new Promise((r) => setTimeout(r, ms));
 const waitFor = async (f, ms = 2000) => { const t0 = Date.now(); while (!f()) { if (Date.now() - t0 > ms) throw new Error('time-out'); await tick(3); } };
 const CFG = { TRACKERS: ['wss://t1.test', 'wss://t2.test'], MQTT_BROKERS: ['wss://m1.test/mqtt'] };
+// #795: de hostsleutel van de sessie; de aankondiging draagt alleen de publieke helft.
+const HOST = await maakSleutelpaar();
+const HOST_KEY = await sleutelTekst(HOST);
 
 // ----- nepnetwerk: tracker (onthoudt het laatste aanbod per peer en geeft het aan wie komt of vraagt) en MQTT (retain, #-filter)
 function fakeNet({ down = [] } = {}) {
@@ -65,7 +68,7 @@ const env = (net, seed) => ({ socket: net.socket, rand: makeRng(seed) });
 const lijstSig = (net, seed) => new B.LijstSignaler(CFG, env(net, seed), { brokerTimeout: 200, interval: 40 });
 
 // Een host: kondigt aan met de stand van dat moment (spelers kunnen veranderen).
-function maakHost(net, { naam = 'Zomeravond', versie = '0.46.0', proto = PROTO, stand = { spelers: 1, max: 4 }, seed = 3, id = maakId(makeRng(seed)) } = {}) {
+function maakHost(net, { naam = 'Zomeravond', versie = '0.46.0', proto = PROTO, stand = { spelers: 1, max: 4, hostKey: HOST_KEY }, seed = 3, id = maakId(makeRng(seed)) } = {}) {
   const sig = lijstSig(net, seed);
   const tekst = maakAankondiger({ naam, versie, proto, hub: () => stand, id });
   return topicFor(LIJST.sleutel).then((topic) => { sig.kondig(topic, tekst); return { sig, stand, id, stop: () => sig.close() }; });
@@ -85,6 +88,7 @@ await t('de host kondigt aan, een tweede speler ziet hem in de lijst, met naam, 
   const e = luis.lijst.lijst()[0];
   assert.deepEqual([e.naam, e.spelers, e.max, e.versie, e.kan, e.anders], ['Zomeravond', 1, 4, '0.46.0', true, false]);
   assert.equal(e.id, host.id, 'het sessie-id is de ingang (#583)');
+  assert.equal(e.hostKey, HOST_KEY, 'de rij draagt de publieke hostsleutel (#795)');
   assert.ok(!('room' in e), 'de lijst draagt geen kamercode meer');
   host.stop(); luis.stop();
 });
@@ -154,7 +158,7 @@ await t('verlopen: stopt de host met aankondigen, dan verdwijnt de sessie na 45 
 });
 await t('een host die wegvalt zonder wissen (crash): een oud vastgehouden bericht komt niet meer in de lijst (tijdstempel te oud)', async () => {
   const net = fakeNet();
-  const oud = codeer({ naam: 'Spook', spelers: 1, max: 4, versie: '0.46.0', proto: PROTO, room: ROOM, id: 'spooksessie', nu: Date.now() - 10 * 60 * 1000 });
+  const oud = codeer({ naam: 'Spook', spelers: 1, max: 4, versie: '0.46.0', proto: PROTO, room: ROOM, id: 'spooksessie', hostKey: HOST_KEY, nu: Date.now() - 10 * 60 * 1000 });
   net.retained.set('gde/lijst/' + await topicFor(LIJST.sleutel) + '/gdeoudoudoud', oud);
   const luis = await maakLuisteraar(net);
   await waitFor(() => luis.ruw.length >= 1);
@@ -176,7 +180,7 @@ await t('misbruik: rommel, een vervalste naam en een vloed op de lijn komen niet
   // een vloed van losse berichten met nieuwe id's: hoogstens 60 per minuut
   const l2 = new Serverlijst({ proto: PROTO, versie: '0.46.0' });
   const rng = makeRng(77); let toe = 0;
-  for (let i = 0; i < 500; i++) { const r = l2.ontvang(codeer({ naam: 'Vloed ' + i, spelers: 1, max: 4, versie: '0.46.0', proto: PROTO, room: makeRoom(rng), id: maakId(rng), nu: Date.now() }), Date.now()); if (r.ok) toe++; }
+  for (let i = 0; i < 500; i++) { const r = l2.ontvang(codeer({ naam: 'Vloed ' + i, spelers: 1, max: 4, versie: '0.46.0', proto: PROTO, room: makeRoom(rng), id: maakId(rng), hostKey: HOST_KEY, nu: Date.now() }), Date.now()); if (r.ok) toe++; }
   assert.equal(toe, LIJST.nieuwPerMinuut); assert.equal(l2.lijst().length, LIJST.nieuwPerMinuut, 'de lijst bewaart alles'); assert.equal(l2.zoek().rijen.length, LIJST.maxGetoond, 'de pagina toont 20');
   aanval.close(); host.stop(); luis.stop();
 });
@@ -192,10 +196,10 @@ await t('melden: de gemelde sessie verdwijnt uit jouw lijst en blijft weg bij de
 });
 await t('privacy: in de aankondiging op de lijn staat geen IP-adres, koppelcode of wachtwoord; een privé sessie plaatst niets', async () => {
   const net = fakeNet(); const luis0 = await maakLuisteraar(net, { seed: 41 });
-  await tick(60); assert.equal(net.seen.filter((m) => /"offers":\[\{/.test(m.data) || /gde\/lijst/.test(m.data) && m.data.includes('"v":2')).length, 0, 'zonder host geen aankondiging');
+  await tick(60); assert.equal(net.seen.filter((m) => /"offers":\[\{/.test(m.data) || /gde\/lijst/.test(m.data) && m.data.includes('"v":3')).length, 0, 'zonder host geen aankondiging');
   luis0.stop();
   const host = await maakHost(net); await tick(80);
-  const plaatsingen = net.seen.filter((m) => m.data.includes('"v":2'));
+  const plaatsingen = net.seen.filter((m) => m.data.includes('"v":3'));
   assert.ok(plaatsingen.length >= 2, 'de host plaatst herhaaldelijk');
   for (const m of plaatsingen) { assert.ok(!/\d+\.\d+\.\d+\.\d+/.test(m.data), 'geen IP-adres'); assert.ok(!/GDE2|wachtwoord|password/i.test(m.data)); }
   host.stop();
@@ -217,9 +221,9 @@ await t('deelnemen via de lijst over de echte brokerroute (#583): de host geeft 
   const ID = 'abcdefghij', kamers = [];
   let zaad = 5;
   const maakSig = () => new B.LijstSignaler(CFG, env(net, ++zaad), { brokerTimeout: 200, interval: 40 }); // elk een eigen peer_id
-  const gate = bedienKamer({ id: ID, maakSignaler: maakSig, onKamer: async (room) => { kamers.push(room); } });
+  const gate = bedienKamer({ id: ID, hostKeyPair: HOST, maakSignaler: maakSig, onKamer: async (room) => { kamers.push(room); } });
   assert.ok(gate, 'de host luistert op verzoeken');
-  const room = await vraagKamer({ id: ID, maakSignaler: maakSig, wacht: 3000 });
+  const room = await vraagKamer({ id: ID, hostKey: HOST_KEY, maakSignaler: maakSig, wacht: 3000 });
   assert.match(room, /^[A-HJ-NP-Z2-9]{10}$/, 'de gast heeft een geldige kamercode');
   assert.deepEqual(kamers, [room], 'de host zette precies die kamer klaar');
   gate.stop();
@@ -234,9 +238,9 @@ await t('deelnemen via de lijst over de echte brokerroute (#583): de host geeft 
   const ID = 'abcdefghij', kamers = [];
   let zaad = 5;
   const maakSig = () => new B.LijstSignaler(CFG, env(net, ++zaad), { brokerTimeout: 200, interval: 40 }); // elk een eigen peer_id
-  const gate = bedienKamer({ id: ID, maakSignaler: maakSig, onKamer: async (room) => { kamers.push(room); } });
+  const gate = bedienKamer({ id: ID, hostKeyPair: HOST, maakSignaler: maakSig, onKamer: async (room) => { kamers.push(room); } });
   assert.ok(gate, 'de host luistert op verzoeken');
-  const room = await vraagKamer({ id: ID, maakSignaler: maakSig, wacht: 3000 });
+  const room = await vraagKamer({ id: ID, hostKey: HOST_KEY, maakSignaler: maakSig, wacht: 3000 });
   assert.match(room, /^[A-HJ-NP-Z2-9]{10}$/, 'de gast heeft een geldige kamercode');
   assert.deepEqual(kamers, [room], 'de host zette precies die kamer klaar');
   gate.stop();

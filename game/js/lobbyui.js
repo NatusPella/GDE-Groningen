@@ -282,13 +282,20 @@ export function mountLobby(root, hooks, opts = {}) {
     stopAankondiging();
     const p = hub && hub.publiek ? hub.publiek() : null;
     if (!p || !p.id) return; // geen hub of niet openbaar: niets plaatsen
+    // #795: de aankondiging draagt de hostsleutel van deze sessie; die moet er eerst zijn, anders kan een gast
+    // het join-antwoord niet controleren. Lukt de sleutel hier niet, dan blijft de sessie privé met een melding.
+    const hostKey = hub.ensureHostKey ? await hub.ensureHostKey() : '';
+    if (!hostKey) { set({ t: 'fout', msg: 'Deze sessie kan op dit apparaat niet openbaar gemaakt worden: de beveiligde sleutel lukte niet.' }); return; }
     const sig = newLijstSignaler();
     aankondiger = sig;
-    // De lijst draagt alleen naam, spelers, versie en het sessie-id; de kamercode staat er niet in (#583).
+    // De lijst draagt naam, spelers, versie, het sessie-id en de publieke hostsleutel; de kamercode staat er niet
+    // in (#583, #795).
     const maak = maakAankondiger({ naam: p.naam, versie: VERSION, proto: PROTO, id: p.id,
       hub: () => (hub && hub.publiek ? hub.publiek() : null) });
     const topic = await topicFor(LIJST.sleutel);
     if (aankondiger !== sig) return; // intussen weer privé gemaakt: niets plaatsen
+    const nog = hub && hub.publiek ? hub.publiek() : null;
+    if (!nog || nog.hostKey !== hostKey) return; // intussen privé of een andere sleutel: niets plaatsen
     sig.kondig(topic, maak);
     openGate(p.id); // een gast die op de rij klikt, vraagt hier een eenmalige kamer aan
   }
@@ -297,6 +304,8 @@ export function mountLobby(root, hooks, opts = {}) {
   // ----- deelnemen via de lijst zonder de kamercode te publiceren (#583)
   // De host antwoordt op een verzoek met een eenmalige kamer, versleuteld voor die gast (net/joingate.js).
   // Wie alleen de lijst leest, krijgt geen sleutel en geen kamercode, en kan het aanbod dus niet ontsleutelen.
+  // #795: het antwoord wordt gemaakt met de hostsleutel uit de aankondiging; een postvak van een niet-host
+  // ontsleutelt de gast niet, dus zo iemand valt al af vóór het verbinden (#777).
   //
   // #778: een openbare host krijgt join-verzoeken van iedereen, en elk verzoek zet een volledige signalering
   // op (tracker + MQTT, meerdere sockets). Met de gewone uitnodigingstijd van 15 minuten loopt een vloed aan
@@ -310,8 +319,13 @@ export function mountLobby(root, hooks, opts = {}) {
   function openGate(id) {
     stopGate();
     if (!id || !rtcSupported()) return;
+    // #795: de join-poort antwoordt met de hostsleutel van deze sessie; zonder paar geen poort (dan ook geen
+    // aankondiging, zie startAankondiging).
+    const hostKeyPair = hub && hub.hostKeyPair;
+    if (!hostKeyPair) return;
     const g = bedienKamer({
       id,
+      hostKeyPair,
       maakSignaler: () => newLijstSignaler(JOIN.interval),
       mag: () => { // de hub weigert zelf als er geen plek is; #778: en een vloed krijgt geen kamer als er al genoeg openstaan
         const p = hub && hub.publiek ? hub.publiek() : null;
@@ -491,7 +505,10 @@ export function mountLobby(root, hooks, opts = {}) {
       expected = { id }; // het sessie-id uit de rij waarop de speler klikte (lobby.js: 'lijst-kies')
       const rij = Array.isArray(state.lijst) ? state.lijst.find((x) => x && x.id === id) : null;
       if (rij && typeof rij.naam === 'string') expected.naam = rij.naam;
-      try { kamer = await (opts.haalKamer ? opts.haalKamer(id) : vraagKamer({ id, maakSignaler: () => newLijstSignaler(JOIN.interval) })); }
+      // #795: de gast bindt het antwoord aan de hostsleutel uit de rij; zonder sleutel kan hij niets controleren
+      // en vraagt hij niets aan (net/joingate.js geeft dan meteen een fout).
+      const hostKey = rij && typeof rij.hostKey === 'string' ? rij.hostKey : '';
+      try { kamer = await (opts.haalKamer ? opts.haalKamer(id) : vraagKamer({ id, maakSignaler: () => newLijstSignaler(JOIN.interval), hostKey })); }
       catch (e) { set({ t: 'kies', rol: ROLES.GAST }); return set({ t: 'fout', msg: 'Deze sessie antwoordt niet. Kies opnieuw uit de lijst of vraag de kamercode.' }); }
       if (!kamer) { set({ t: 'kies', rol: ROLES.GAST }); return set({ t: 'fout', msg: 'Deze sessie antwoordt niet. Kies opnieuw uit de lijst of vraag de kamercode.' }); }
     }
