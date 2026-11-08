@@ -217,7 +217,9 @@ export function openSaveSlots(opts = {}) {
   // Alleen spelen: Nieuw spel is the first card. With every place in use it asks first (it takes the place of the active game)
   const newCard = (n, active) => {
     const ask = over && over.kind === 'newfull';
-    const q = ask ? `<div class="ssl-over ssl-q" role="alertdialog" aria-label="Nieuw spel"><p>Alle ${MAX_SLOTS} plekken zijn in gebruik. Je nieuwe spel komt op de plek van "${esc(active ? active.name : '')}". Dat spel wordt gewist, alleen de herstelkopie blijft bewaard.</p>` +
+    // #780: de vraag belooft niets wat deleteSlot niet doet: sinds #562 gaat ook de herstelkopie weg,
+    // anders blijft de oude save als "herstel" opduiken en kan de boot hem alsnog laden.
+    const q = ask ? `<div class="ssl-over ssl-q" role="alertdialog" aria-label="Nieuw spel"><p>Alle ${MAX_SLOTS} plekken zijn in gebruik. Je nieuwe spel komt op de plek van "${esc(active ? active.name : '')}". Dat spel wordt gewist, inclusief de herstelkopie. Dat kan niet ongedaan worden gemaakt.</p>` +
       '<div class="ssl-qacts"><button type="button" class="m-bp" data-grp="menu" data-do="back">Nee, terug</button><button type="button" class="m-bg danger" data-grp="menu" data-do="newfull-ok">Ja, nieuw spel</button></div></div>' : '';
     return `<div class="ssl-card ssl-new${ask ? ' open' : ''}" role="listitem" data-slot="0">` +
       `<button type="button" class="ssl-main" data-grp="list" data-slot="0" data-do="${n ? 'new' : 'new-ask'}" data-want="${n}" aria-label="Nieuw spel">` +

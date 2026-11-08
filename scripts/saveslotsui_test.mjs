@@ -38,6 +38,18 @@ ok(() => {
   assert.match(sg, /const saveTarget = \(\) => boundSlot \|\| activeSlot\(\);/);
 }, 'de schrijfplek van de autosave is de gebonden plek (#564)');
 
+// --- #780: de nieuw-spel-vraag belooft niets wat deleteSlot niet doet -------------------------------
+ok(() => {
+  const nieuw = ui.slice(ui.indexOf('const newCard = (n, active)'), ui.indexOf('// the game played last'));
+  assert.match(nieuw, /Dat spel wordt gewist, inclusief de herstelkopie\./, 'de vraag zegt dat de herstelkopie ook weggaat');
+  assert.match(nieuw, /Dat kan niet ongedaan worden gemaakt\./);
+  assert.doesNotMatch(ui, /alleen de herstelkopie blijft bewaard/, 'de oude, onjuiste belofte staat er niet meer');
+  assert.match(ui.slice(ui.indexOf("if (act === 'newfull-ok') {"), ui.indexOf("if (act === 'new') {")), /S\.deleteSlot\(null, active\.n\)/, 'en het nieuwe spel wist de actieve plek echt');
+  // het gedrag waar de tekst bij hoort: deleteSlot wist de hoofdsleutel én de herstelkopie
+  const sl = src('saveslots.js');
+  assert.match(sl, /removeItem\(slotKey\(n\)\); s\.removeItem\(slotRecoveryKey\(n\)\)/, 'deleteSlot wist de herstelkopie ook');
+}, 'nieuw spel: de tekst klopt met het wissen van de herstelkopie (#780)');
+
 // --- #565: een gast kan geen lege plek vullen; die wordt een dode schrijfplek ---
 ok(() => {
   const m = ui.match(/const GAST_LEGE_PLEK_TEKST = '([^']+)'/);
