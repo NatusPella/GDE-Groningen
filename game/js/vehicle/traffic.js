@@ -701,8 +701,13 @@ function resolveDeadlocks(v, dt, world, follow, lightV) {
   if (!held || v.laneMode === 'squeeze') return;
   const obstacle = o.wrecked || !o.road || (o.driver === 'player' && Math.abs(o.speed) < 0.3) || (o.stuckFor || 0) > 3;
   if (!obstacle || Math.cos(o.angle - v.angle) < -0.5 && !o.wrecked) return;
-  // #653: alleen de buren uit de index (was een scan over alle voertuigen)
-  for (const q of vehiclesNear(world, v.x, v.y, 30, _nearVeh)) {
+  // #653: alleen de buren uit de index (was een scan over alle voertuigen).
+  // #791: de index zoekt in een cirkel, de oude scan in een rechthoek van 30 m
+  // vooruit en half + 3 m opzij. De straal moet de verste hoek daarvan dekken,
+  // anders valt een tegenligger op 28,6-30 m net buiten de query en begint de
+  // inhaalmanoeuvre te vroeg.
+  const nearR = Math.hypot(30, Math.max(0.5, half + 3)) + 0.25;
+  for (const q of vehiclesNear(world, v.x, v.y, nearR, _nearVeh)) {
     if (q === v || q === o || q.isBoat) continue;
     const dx = q.x - v.x, dy = q.y - v.y;
     const fwd = dx * fx + dy * fy, lat = dy * fx - dx * fy;

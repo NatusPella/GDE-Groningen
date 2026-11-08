@@ -33,7 +33,7 @@ console.log('#651 meting: prefetch deed 3 scans over ~830 entries + ~1000 korte 
 const traffic = fs.readFileSync(new URL('../game/js/vehicle/traffic.js', import.meta.url), 'utf8');
 const dl = traffic.slice(traffic.indexOf('function resolveDeadlocks'), traffic.indexOf('function ', traffic.indexOf('function resolveDeadlocks') + 10));
 ok(/vehiclesNear\(world, v\.x \+ fx \* v\.halfLen/.test(dl), 'de back-off-check vraagt de buren uit de index');
-ok(/for \(const q of vehiclesNear\(world, v\.x, v\.y, 30, _nearVeh\)\)/.test(dl), 'de passeer-check vraagt de buren uit de index');
+ok(/Math\.hypot\(30, Math\.max\(0\.5, half \+ 3\)\) \+ 0\.25/.test(dl) && /vehiclesNear\(world, v\.x, v\.y, nearR, _nearVeh\)/.test(dl), 'de passeer-check vraagt de buren uit de index (#791: straal dekt de oude scanrand)');
 ok(!/world\.vehicles\.some/.test(dl) && !/for \(const q of world\.vehicles\)/.test(dl), 'geen volledige voertuigscan meer in resolveDeadlocks');
 console.log('#653 meting: resolveDeadlocks deed 2 volledige scans over alle voertuigen per auto per frame; nu 2 index-queries met enkele kandidaten');
 console.log(`${n - fails}/${n} perfscan`);
