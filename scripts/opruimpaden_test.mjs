@@ -83,4 +83,3 @@ for (const [f, re] of oldPatterns) ok(!re.test(src(f)), `geen directe skinned-di
 
 console.log(fails ? `${fails} van ${n} opruimpaden-checks mislukt` : `opruimpaden_test: ${n} checks ok`);
 process.exit(fails ? 1 : 0);
-
