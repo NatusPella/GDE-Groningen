@@ -568,9 +568,15 @@ function setRoofBoxes(mesh, v) {
 
 // Actors/effects build their own geometries per instance, so on despawn both
 // geometry and material must be freed or GPU memory grows all session.
+// #788: a person mesh hands back its shared body geometry here too, also when it
+// leaves via another route than disposePedMesh (player, companion, driver, actor).
 export function disposeObject(root) {
   root.traverse((o) => {
-    if (o.geometry && !SHARED_GEOMETRIES.has(o.geometry) && !o.geometry.userData.shared) o.geometry.dispose();
+    const g = o.geometry;
+    if (g) {
+      if (typeof g.userData.personRefs === 'number') releasePersonGeometry(o);
+      else if (!SHARED_GEOMETRIES.has(g) && !g.userData.shared) g.dispose();
+    }
     // the bone texture three.js makes for a skinned mesh on its first draw
     if (o.isSkinnedMesh && o.skeleton) o.skeleton.dispose();
     const mats = Array.isArray(o.material) ? o.material : o.material ? [o.material] : [];
@@ -717,7 +723,10 @@ function syncPlayerRider(pv, pvMesh, hide) {
     return;
   }
   if (!playerRider || playerRiderChar !== playerCharacter) {
-    if (playerRider && playerRider.parent) playerRider.parent.remove(playerRider);
+    if (playerRider) {
+      if (playerRider.parent) playerRider.parent.remove(playerRider);
+      disposeObject(playerRider); // #788: de oude look geeft zijn gedeelde rompgeometrie terug
+    }
     const app = playerCharacter === 'anita' ? ANITA_APPEARANCE : TAMMO_APPEARANCE;
     playerRider = enableShadows(buildPersonMesh(app.shirt, app.skin, app), false);
     playerRiderChar = playerCharacter;
@@ -2215,8 +2224,9 @@ function applyPedFade(mesh, fade) {
 function disposePedMesh(mesh) {
   applyPedFade(mesh, 1);
   scene.remove(mesh);
+  // #658/#788: disposeObject geeft ook de gedeelde rompgeometrie terug (de laatste gebruiker
+  // van een geëvictte template ruimt hem op)
   disposeObject(mesh);
-  releasePersonGeometry(mesh); // #658: de gedeelde rompgeometrie gaat pas weg bij de laatste gebruiker
 }
 
 const _pedFrustum = new THREE.Frustum();
@@ -2839,6 +2849,7 @@ export function update3D(dt, world) {
   if (player.character !== playerCharacter) {
     playerCharacter = player.character;
     scene.remove(playerMesh);
+    disposeObject(playerMesh); // #788: de oude look geeft zijn gedeelde rompgeometrie terug
     const appearance = playerCharacter === 'anita' ? ANITA_APPEARANCE : TAMMO_APPEARANCE;
     playerMesh = buildPersonActor(appearance.shirt, appearance.skin, appearance);
     scene.add(playerMesh);
@@ -2921,7 +2932,7 @@ export function update3D(dt, world) {
     if (comp.character !== companionCharacter) {
       companionCharacter = comp.character;
       const appearance = companionCharacter === 'anita' ? ANITA_APPEARANCE : TAMMO_APPEARANCE;
-      if (companionMesh) scene.remove(companionMesh);
+      if (companionMesh) { scene.remove(companionMesh); disposeObject(companionMesh); } // #788
       companionMesh = buildPersonActor(appearance.shirt, appearance.skin, appearance);
       scene.add(companionMesh);
     }
