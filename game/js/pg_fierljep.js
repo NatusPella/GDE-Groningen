@@ -38,19 +38,29 @@ function solid(map, x, y) {
 
 // the same every time for a map, and a few hundred ms to find
 function findSpot(map) {
-  if (map._fierljepSpot === undefined) map._fierljepSpot = searchSpot(map);
-  return map._fierljepSpot;
+  // Niet null cachen: op een gestreamde kaart zijn de watertegels bij de eerste vraag
+  // vaak nog niet binnen; een latere spots()-vraag probeert het dan opnieuw.
+  if (map._fierljepSpot) return map._fierljepSpot;
+  const s = searchSpot(map);
+  if (s) map._fierljepSpot = s;
+  return s;
 }
 
 function searchSpot(map) {
+  // Ruimer zoeken: de gestreamde provinciekaart heeft smallere of bredere sloten dan de oude
+  // stadskaart, en de aanloop kan dichter op de kant liggen.
   for (const c of CANDIDATES) {
-    const v = findVaultSpot(map, c.at[0], c.at[1], 110, { minWidth: 7, maxWidth: 20 });
-    if (!v) continue;
-    const dx = v.to.x - v.from.x, dy = v.to.y - v.from.y, l = Math.hypot(dx, dy) || 1;
-    const dir = { x: dx / l, y: dy / l };
-    const runup = { x: v.from.x - dir.x * 10, y: v.from.y - dir.y * 10 };
-    if (solid(map, runup.x, runup.y) || isInWater(map, runup.x, runup.y)) continue;
-    return { ...v, dir, runup, name: c.name };
+    for (const opts of [{ minWidth: 7, maxWidth: 20 }, { minWidth: 4, maxWidth: 35 }]) {
+      const v = findVaultSpot(map, c.at[0], c.at[1], 180, opts);
+      if (!v) continue;
+      const dx = v.to.x - v.from.x, dy = v.to.y - v.from.y, l = Math.hypot(dx, dy) || 1;
+      const dir = { x: dx / l, y: dy / l };
+      for (const af of [10, 7, 5]) {
+        const runup = { x: v.from.x - dir.x * af, y: v.from.y - dir.y * af };
+        if (solid(map, runup.x, runup.y) || isInWater(map, runup.x, runup.y)) continue;
+        return { ...v, dir, runup, name: c.name };
+      }
+    }
   }
   return null;
 }
