@@ -430,7 +430,7 @@ async function faseElectron(prev, staat) {
   });
 
   later('verhaaltest', async () => {
-    const d = stapDir('verhaaltest'), ms = 20 * 60e3;
+    // #735/#747: de verhaaltest speelt nu het hele verhaal met alle stemmen en de zwaardere\n    // wereldcontroles; 20 min was te krap (timeout zonder uitslag), 35 min geeft marge.\n    const d = stapDir('verhaaltest'), ms = 35 * 60e3;
     const r = await runCmd(exe, [...basis, '--story-test=' + d], { ms, env: env('verhaal'), cwd: desktop });
     fs.writeFileSync(path.join(d, 'run.log'), r.out);
     const p = R.parseStoryLog(r.out);
@@ -624,3 +624,4 @@ async function main() {
 if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
   main().then((c) => process.exit(c), (e) => { console.error('test_all crashte:', e && e.stack || e); process.exit(2); });
 }
+
