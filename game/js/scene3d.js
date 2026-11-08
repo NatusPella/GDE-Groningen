@@ -202,6 +202,14 @@ const SHADOW_LEVELS = {
 
 let renderer = null, scene = null, cam = null, canvas3 = null;
 let shadowBaseLevel = 'hoog'; // #658: kwaliteitsniveau uit de instellingen
+// #792: de adaptieve trap mocht de schaduwmap heen en weer laten flippen: elke opstap
+// 2048 -> 4096 is een nieuwe kaart van 67 MB plus een volle schaduwpas (hitch). Neerschakelen
+// (een kleinere kaart) gaat meteen; opstappen pas als de machine een lange tijd goed beeld
+// houdt. Zo kost een korte terugval hooguit één neerschakeling, geen op-en-neer.
+const SHADOW_UPGRADE_MS = 120000;
+let shadowMapLevel = null; // laatst toegepaste niveau
+let shadowUpgradeAt = 0; // performance.now() waarop voor het eerst een grotere kaart gevraagd werd
+let shadowUpgradeTimer = 0;
 let terrainMesh = null;
 // ?terrain (#269): the map (what stands flat is lifted by the relief under it) and the patches of ground that rise above the flat ground
 let liftMap = null, reliefPatches = null;
@@ -998,8 +1006,9 @@ function applyViewSettings(st) {
   if (postfx.level !== level) postfx.setLevel(level);
   const shadows = st.shadows && preset.shadows;
   if (sun.castShadow !== shadows) { sun.castShadow = shadows; renderer.shadowMap.needsUpdate = true; }
+  const levelChanged = shadowBaseLevel !== level; // #792: een keuze in Instellingen telt meteen
   shadowBaseLevel = level;
-  applyShadowLevel(adaptedShadowLevel(level, dynamicScale(), cpuLevel()));
+  applyShadowLevel(adaptedShadowLevel(level, dynamicScale(), cpuLevel()), levelChanged);
   applyViewDistance(st);
   cam.fov = baseFov = cameraVerticalFov(st.fov);
   cam.updateProjectionMatrix();
@@ -1028,16 +1037,41 @@ export function refreshRenderScale() {
   const wasView = viewDist;
   applyViewDistance(st);
   if (viewDist !== wasView) { cam.updateProjectionMatrix(); noteGfxEvent(`zichtafstand ${wasView}->${viewDist} m`); }
+  // #658: een lagere adaptieve schaal maakt de schaduwkaart ook zuiniger; #792: met hysterese,
+  // zodat een enkele terugval de kaart niet meteen weer laat opstappen
+  applyShadowLevel(adaptedShadowLevel(shadowBaseLevel, dynamicScale(), cpuLevel()));
   if (ratio === wantRatio) return;
   noteGfxEvent(`renderschaal ${wantRatio.toFixed(2)}->${ratio.toFixed(2)}`);
   wantRatio = ratio;
   sizeDirty = true;
-  // #658: een lagere adaptieve schaal maakt de schaduwkaart ook zuiniger
-  applyShadowLevel(adaptedShadowLevel(shadowBaseLevel, dynamicScale(), cpuLevel()));
 }
 
-function applyShadowLevel(level) {
+// Pure regel (#792): mag de schaduwkaart naar een grotere maat? Alleen als die al een lange
+// tijd gevraagd wordt; kleiner of gelijk mag altijd (dat kost geen nieuwe kaart en geen
+// volle schaduwpas). requestedSince 0 = er is nog geen grotere maat gevraagd.
+export function shadowUpgradeAllowed(currentSize, targetSize, requestedSince, now) {
+  return targetSize <= currentSize || (requestedSince > 0 && now - requestedSince >= SHADOW_UPGRADE_MS);
+}
+
+function applyShadowLevel(level, force = false) {
   const s = SHADOW_LEVELS[level] || SHADOW_LEVELS.hoog;
+  const current = shadowMapLevel ? SHADOW_LEVELS[shadowMapLevel] : null;
+  const now = performance.now();
+  if (!force && current && s.size > current.size && !shadowUpgradeAllowed(current.size, s.size, shadowUpgradeAt, now)) {
+    if (!shadowUpgradeAt) {
+      shadowUpgradeAt = now;
+      noteGfxEvent(`schaduwkaart ${current.size}->${s.size} uitgesteld`);
+      // niet alleen op de volgende gfx-stap wachten: na de wachttijd zelf opnieuw kijken
+      shadowUpgradeTimer = setTimeout(() => {
+        shadowUpgradeTimer = 0;
+        if (renderer) applyShadowLevel(adaptedShadowLevel(shadowBaseLevel, dynamicScale(), cpuLevel()));
+      }, SHADOW_UPGRADE_MS + 250);
+    }
+    return;
+  }
+  if (shadowUpgradeTimer) { clearTimeout(shadowUpgradeTimer); shadowUpgradeTimer = 0; }
+  shadowUpgradeAt = 0;
+  shadowMapLevel = level;
   shadowHalf = s.half;
   const c = sun.shadow.camera;
   if (c.right !== s.half) {
