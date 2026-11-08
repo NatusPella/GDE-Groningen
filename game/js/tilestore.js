@@ -21,10 +21,10 @@ import { serialQueue } from './decodequeue.js';
 // every one of them can be shortened for a test. The HTTP source bounds a read
 // itself; the store has a wider safety net for any other ByteSource and for the
 // decoder, so the queue always moves on even when a source ignores its signal.
-export const HTTP_TIMEOUT_MS = 10000;   // one fetch (headers and body) in HttpRangeSource
-export const READ_GUARD_MS = 12000;     // TileStore safety net around source.read
-export const WORKER_TIMEOUT_MS = 10000; // one decode job in the worker pool
-export const DECODE_GUARD_MS = 15000;   // TileStore safety net around decode (after a worker fallback)
+export const HTTP_TIMEOUT_MS = 30000;   // one fetch (headers and body) in HttpRangeSource
+export const READ_GUARD_MS = 30000;     // TileStore safety net around source.read
+export const WORKER_TIMEOUT_MS = 30000; // one decode job in the worker pool
+export const DECODE_GUARD_MS = 30000;   // TileStore safety net around decode (after a worker fallback)
 
 export const timeoutError = (wat, ms) => Object.assign(new Error(`${wat} timed out after ${ms} ms`), { timeout: true, name: 'TimeoutError' });
 // Tijdens de boot geen time-outs: een koude portable start of een langzame schijf
@@ -519,6 +519,7 @@ export function makeWorkerDecoder(url, size = 2, aside = null, opts = {}) {
   };
   return decode;
 }
+
 
 
 
