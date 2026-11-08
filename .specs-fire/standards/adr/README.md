@@ -75,5 +75,8 @@ deze lijst voordat een andere sessie begint te schrijven:
 | [0023](0023-javascript-blijft-de-taal.md) | JavaScript blijft de taal; TypeScript afgewezen | voorgesteld |
 | [0024](0024-eenspeler-is-een-sessie-van-een.md) | Eenspeler is een sessie van één | besloten |
 | [0025](0025-openingsmontage-als-c00-1.md) | De openingsmontage is C00.1 (teruggezet als eerste bedrijf) | besloten |
-| [0026](0026-bootorde.md) | Bootorde: de expliciete lijst eerst, de zoektocht als terugval | besloten |\n| [0027](0027-code-taal-meetbaar.md) | Code in het Engels, meetbaar en met vaste uitzonderingen | besloten |\n| [0028](0028-dev-tooling-zonder-buildstap.md) | Dev-tooling zonder buildstap | besloten |
+| [0026](0026-bootorde.md) | Bootorde: de expliciete lijst eerst, de zoektocht als terugval | besloten |
+| [0027](0027-code-taal-meetbaar.md) | Code in het Engels, meetbaar en met vaste uitzonderingen | besloten |
+| [0028](0028-dev-tooling-zonder-buildstap.md) | Dev-tooling zonder buildstap | besloten |
+| [0029](0029-hostsleutel-in-aankondiging.md) | Hostsleutel in de aankondiging bindt het join-antwoord aan de host | besloten |
 
