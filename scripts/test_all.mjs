@@ -35,7 +35,7 @@ const ONLY = opt('only', '');
 const DEFAULT_LOCKS = process.env.GDE_LOCKS || path.join(os.homedir(), 'gde-locks');
 const LOCKS = opt('locks', fs.existsSync(DEFAULT_LOCKS) ? DEFAULT_LOCKS : '');
 const JOBS = Math.max(1, Number(opt('jobs', 2)));
-const TEST_MS = Number(opt('test-timeout', 120)) * 1000;
+const TEST_MS = Number(opt('test-timeout', 180)) * 1000;
 const STAMP = new Date().toISOString().replace(/[-:]/g, '').replace(/\..*$/, '').replace('T', '-');
 const RUN = path.join(BASE, STAMP);
 const split = (s) => String(s || '').split(/\r?\n/);

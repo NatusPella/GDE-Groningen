@@ -58,7 +58,8 @@ if (tw) {
   ] }])]);
   ok(!anders.duplicateWater, 'een andere vaarklasse is geen tweeling');
   const scene = fs.readFileSync(new URL('../game/js/scene3d.js', import.meta.url), 'utf8');
-  ok(/const waterRows = \(map\) => gridItems\(map\.waterGrid\)\.filter/.test(scene) && /duplicateWater\.has\(w\)/.test(scene), 'scene3d: het terrein tekent de tweeling niet (uit het waterraster, #524)');
+  const terrain = fs.readFileSync(new URL('../game/js/terraincache.js', import.meta.url), 'utf8');
+  ok(/terrainHoleRows/.test(scene) && /gridItems\(map\.waterGrid\)\.filter/.test(terrain) && /duplicateWater\.has\(w\)/.test(terrain), 'scene3d: het terrein tekent de tweeling niet (uit het waterraster, #524)');
   ok(/const waterNearDrawn = \(map, x, y, r\) =>/.test(scene) && /duplicateWater\.has\(w\)/.test(scene), 'scene3d: de watermeshes slaan de tweeling over');
 }
 
