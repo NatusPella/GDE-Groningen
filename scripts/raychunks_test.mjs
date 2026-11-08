@@ -66,7 +66,10 @@ t('#497: scene3d.js gebruikt de module en heeft geen tweede kopie', () => {
   assert.doesNotMatch(s, /function rayChunks\(/);
   assert.doesNotMatch(s, /function segmentHitsChunk\(/);
   assert.doesNotMatch(s, /const RAY_CHUNK_TRIS = /);
-  assert.ok(s.split('\n').length < 4230, 'scene3d.js is korter dan 4230 regels');
+  // De doesNotMatch-checks hierboven bewaken dat de ray-chunkcode niet terugkeert;
+  // de regelteller is een groeigrens. De oude grens (4230) liet op de basis maar
+  // ~90 regels marge en de bugfixronde #748-#796 voegde er ~77 toe, dus ruimer.
+  assert.ok(s.split('\n').length < 4400, 'scene3d.js is korter dan 4400 regels');
 });
 
 console.log(`raychunks_test: ${n - fails}/${n} ok`);
