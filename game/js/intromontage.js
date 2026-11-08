@@ -203,6 +203,10 @@ function showCard(html, dur) {
 
 const SHADOW_GEO = new THREE.CircleGeometry(0.42, 16).rotateX(-Math.PI / 2);
 const SHADOW_MAT = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.35, depthWrite: false });
+// one shadow under every montage actor: the scene's cleaner must keep them when
+// a single actor is removed (disposeObject checks this flag)
+SHADOW_GEO.userData.shared = true;
+SHADOW_MAT.userData.shared = true;
 
 export function makeActor(app) {
   const m = buildPersonMesh(app.shirt, app.skin, app);

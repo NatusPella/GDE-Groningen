@@ -107,6 +107,9 @@ ok(scene.indexOf('map.terrainCache') < scene.indexOf("runGeo('terrain'"), 'scene
 ok(scene.includes('terrainHoleRows'), 'scene3d en de bakker gebruiken dezelfde waterlijst');
 const build = read('desktop/build.mjs');
 ok(build.includes('bakeTerrain(') && build.includes('bake_terrain.mjs'), 'de stage bakt de grond');
+ok(build.includes("'--world=' + worldDir"), 'de stage geeft het wereldpad als --world=<map> mee');
+const bake = read('scripts/world/bake_terrain.mjs');
+ok(/const i = process\.argv\.indexOf\('--' \+ name\)/.test(bake), 'de bakker leest ook de vorm --world <map> (handmatig gebruik)');
 ok(build.includes('GDE_TERRAIN_CACHE'), 'de stage kan de bak overslaan (GDE_TERRAIN_CACHE=0)');
 const stagecheck = read('scripts/lib/stagecheck.mjs');
 ok(stagecheck.includes('checkTerrainCacheBytes') && stagecheck.includes('TERRAIN_FILE'), 'de stagecontrole keurt terrain.bin');

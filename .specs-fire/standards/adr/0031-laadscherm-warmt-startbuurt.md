@@ -52,6 +52,14 @@ van het laadscherm zegt wat er nog gebeurt.
 - **Alles vooraf bakken in de build (mesh-cache/GLB).** De statische
   stadsgeometrie is groot en hangt aan kwaliteit en zichtafstand; voor de
   startbuurt is voorladen tijdens het laadscherm genoeg en veel eenvoudiger.
+- **Ook de unieke assets van de opening voorcompileren.** Geprobeerd (keuken,
+  beide acteurs, duivenvlucht, losse props in de warm-up-queue en
+  `prewarmObjects`): in de browsertest liep het laadscherm daardoor tegen de
+  25 s-grens (startWarm 25,7 s, gameStart 40,8 s tegen 19,9 s zonder) terwijl de
+  frametijden na de start niet aantoonbaar beter werden. Teruggedraaid: een
+  langer laadscherm zonder meetbare winst is geen verbetering. De vaste
+  warm-up van `scene3d.js` (die alle latere acteurs en voertuigen al dekt)
+  blijft staan.
 - **De eerste tegelkring resident houden.** De stad is al gepind (ADR 0003); de
   provincie resident maken kost geheugen dat de start niet nodig heeft.
 
