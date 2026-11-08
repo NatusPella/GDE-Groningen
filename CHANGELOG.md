@@ -28,11 +28,11 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - **Als je iemand uit een sessie zet, krijgt de sessie een nieuwe kamercode (#779).** Die speler kan niet met de oude code opnieuw binnenkomen; de andere spelers blijven gewoon zitten.
 - **Openbare sessies kunnen niet meer overlopen door join-verzoeken (#778).** Er staan hoogstens vier aanbiedingen tegelijk open en elk verloopt na 30 seconden als er niemand komt.
 - **Sluit je aan via de openbare lijst, dan controleert het spel na het verbinden of je bij de sessie bent die je koos (#777).** Klopt dat niet, dan stopt de verbinding met een waarschuwing.
-- **Aansluiten bij een sessie lukt nu ook als jouw klok en die van de gastheer enkele minuten verschillen (#782).**
+- **Aansluiten bij een sessie lukt nu ook als jouw klok en die van de andere speler enkele minuten verschillen (#782).**
 - **De kaart blijft soepel in Samen spelen (#759).** Bewegende medespelers en politie laten de labels en straatnamen niet meer elke frame opnieuw tekenen.
 - **De vraag bij Nieuw spel met een volle opslag zegt nu eerlijk dat ook de herstelkopie van het oude spel wordt gewist (#780).**
 - **Een nieuwe wijkkaart wordt nu meteen bewaard, ook als er verder niets verandert (#790).**
-- **Na het laden van een save staat de missie-HUD er meteen goed op (#789).** Triggerring, checkpointteller en samen-indicator verschijnen zonder dat de missie eerst hoeft te wisselen.
+- **Na het laden van een opgeslagen spel staat de missie-HUD er meteen goed op (#789).** Triggerring, checkpointteller en samen-indicator verschijnen zonder dat de missie eerst hoeft te wisselen.
 - **Het verhaal loopt na een loopbaan of andere afgeleide stap meteen door (#758).** De volgende stap bleef soms staan.
 - **G-Music houdt na een lange radiosessie nog steeds maar drie nummers klaarstaan (#761).** De rest wacht tot het aan de beurt is, wat op lange sessies mediabuffer-geheugen scheelt.
 - **Een scène die op je wacht — bijvoorbeeld als je even wegloopt — wordt niet meer na twintig seconden overgeslagen (#771).**
