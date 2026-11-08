@@ -1122,20 +1122,24 @@ let curCache = null, storyDoneSize = -1;
 export function updateStory(dt, w) {
   if (!ready) return;
   world = w;
-  if (document.body.classList.contains('game-started')) {
+  const started = document.body.classList.contains('game-started');
+  // #758: één 5 Hz-tick per frame, gedeeld door de kus-unlock en de stappencache. Twee losse
+  // aanroepen gebruikten dezelfde tick: de eerste zette hem, waardoor de tweede altijd vals was.
+  const storyDue = started && storyTick(performance.now());
+  if (started) {
     // set on the first frame in play (no card for a loaded save), the card
     // only when it unlocks while playing
     // #654: de kus-unlock en de volgende stap hoeven niet 60x/s herberekend
-    if (storyTick(performance.now())) {
+    if (storyDue) {
       const kiss = kissUnlockedNow();
       if (kiss && w.kissUnlocked === false) w.addMessage('Nieuw: geef elkaar een kusje met K', 4, { key: 'kiss-unlock' });
       w.kissUnlocked = kiss;
     }
   }
   if (w.devInvuln) { w.health = 100; if (w.pendingRespawn && !w.pendingRespawn.busted) w.pendingRespawn = null; }
-  if (!document.body.classList.contains('game-started')) return;
+  if (!started) return;
   // #654: currentStep() (37 stappen met Set-lookups) op ~5 Hz of bij een afgeronde stap
-  if (storyTick(performance.now()) || state.done.size !== storyDoneSize || curCache === null) {
+  if (storyDue || state.done.size !== storyDoneSize || curCache === null) {
     curCache = currentStep();
     storyDoneSize = state.done.size;
   }
