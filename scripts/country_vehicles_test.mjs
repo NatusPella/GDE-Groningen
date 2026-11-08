@@ -230,19 +230,28 @@ const SEDAN = { name: 'sedan', len: 4.3, wid: 1.8, maxSpeed: 50, accel: 10, brak
 }
 
 // police out in the Ommeland: units come in on the country roads, drive them
-// towards a player parked in the fields and get there. The spawn/route timing is
-// load-sensitive, so the whole block is retried up to three times; the strict
-// thresholds stay in place so a real regression still fails.
+// towards a player parked in the fields and get there. Sinds #764 laadt
+// prefetchPoints de tegels van een doel echt; een poging die faalt mag daarom
+// alleen herhaald worden als de tegel van een doel aantoonbaar niet geladen was
+// (#768). Een warme poging die faalt is een echte regressie en stopt de test.
 {
   const Pol = await import('../game/js/police.js');
+  const G = await import('../game/js/gdt.js');
   const snapCountry = RG.snapRoad;
   const targets = [[5505.95, -11770.51], [1931.4, -9027.27], [8572.98, -6583.35]];
+  // resident = de rijen van die tegel staan in de rasters (wegen, water, gebouwen):
+  // dan heeft de simulatie de gegevens die ze nodig heeft en is een fout geen laadfout
+  const tileLoaded = (t) => {
+    const [i, j] = G.tileIndexOf(t[0], t[1]);
+    return !!map.resident && map.resident.has(`${i},${j}`);
+  };
   let beste = null, ok = false;
   for (let poging = 0; poging < 3 && !ok; poging++) {
-    let units = 0, onRoad = 0, offRoad = 0, reached = 0, wet = 0, runs = 0;
+    let units = 0, onRoad = 0, offRoad = 0, reached = 0, wet = 0, runs = 0, koud = 0;
     for (const target of targets) {
       runs++;
       await map.prefetchPoints([target], { radius: 3200 });
+      if (!tileLoaded(target)) koud++;
       const car = new V.Vehicle(target[0], target[1], 0, SEDAN);
       car.driver = 'player';
       const world = {
@@ -272,7 +281,10 @@ const SEDAN = { name: 'sedan', len: 4.3, wid: 1.8, maxSpeed: 50, accel: 10, brak
     const share = onRoad / Math.max(1, onRoad + offRoad);
     ok = units > 0 && reached === runs && share > 0.6;
     beste = { units, reached, runs, share, wet };
-    if (!ok && poging < 2) console.log(`     police poging ${poging + 1} niet streng genoeg; opnieuw`);
+    // #768: alleen een poging op niet-geladen tegels mag opnieuw; anders is de
+    // herkansing een masker voor een echte regressie en faalt de test meteen.
+    if (!ok && koud > 0 && poging < 2) console.log(`     police poging ${poging + 1}: ${koud} doel(en) nog niet geladen; opnieuw`);
+    else if (!ok) break;
   }
   if (!ok) fails++;
   console.log(`${ok ? 'ok  ' : 'FAIL'} police in the Ommeland: ${beste.units} units, ${beste.reached}/${beste.runs} reached the player, ${(beste.share * 100).toFixed(0)}% of road-following samples on a road, ${beste.wet} in the water`);
