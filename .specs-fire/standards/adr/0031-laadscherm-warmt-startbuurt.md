@@ -37,18 +37,24 @@ De wachttijd is begrensd (25 s); een langzame machine gaat met een half warm
 gebied verder in plaats van te hangen.
 
 Bij een save komt daarna nog het gewone laadscherm (dat op de gestreamde tegels
-wacht); de warme buurt maakt dat alleen korter. Een test-, QA- of benchmarkrun
-slaat het voorladen over, zodat die runs hun eigen timing houden. De statusregel
-van het laadscherm zegt wat er nog gebeurt.
+wacht); de warme buurt maakt dat alleen korter. Ook de twee stappen die sinds
+#750 achter het spel aan liepen, de Ommeland-plaatsing (garage-, café- en
+winkeldeuren) en de kaartbeelden van de Ommelanden, lopen nu naast de warm-lus
+en de boot wacht er binnen dezelfde grens op (`ready` in `main.js`). Dat is geen
+terugkeer van de #750-fout: de warm-lus houdt de frames draaiende, en wat niet
+binnen de 25 s klaar is loopt daarna gewoon achter het spel door zoals voorheen.
+Een test-, QA- of benchmarkrun slaat het voorladen over, zodat die runs hun eigen
+timing houden. De statusregel van het laadscherm zegt wat er nog gebeurt.
 
 ## Afgewezen
 
 - **Niets doen en de haperingen in de eerste minuten accepteren.** De eigenaar
   koos expliciet andersom.
-- **Opnieuw op de Ommeland-plaatsing wachten vóór de spellus (#750
-  terugdraaien).** Dat was precies de fout van #750: wachten zonder draaiende
-  lus laat het beeld en de laadbalk bevriezen, en de plaatsing ligt in de
-  Ommelanden, niet in de eerste minuten van de stad.
+- **Opnieuw op de Ommeland-plaatsing wachten met een kale await vóór de
+  spellus (#750 terugdraaien).** Dat was precies de fout van #750: wachten
+  zonder draaiende lus laat het beeld en de laadbalk bevriezen. Binnen de
+  warm-lus, die de frames juist wél laat draaien en een tijdsgrens heeft, mag
+  het wel; zo verdwijnt de paar-ms-per-frame-arbeid uit de eerste speelseconden.
 - **Alles vooraf bakken in de build (mesh-cache/GLB).** De statische
   stadsgeometrie is groot en hangt aan kwaliteit en zichtafstand; voor de
   startbuurt is voorladen tijdens het laadscherm genoeg en veel eenvoudiger.
