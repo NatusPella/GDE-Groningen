@@ -39,5 +39,15 @@ ok(/if \(ss && ss\.classList\.contains\('visible'\)\)/.test(st) && /game-started
 // --- de menu-achtergrond wordt niet meer voor elke start gepland ---
 ok(/if \(planned \|\| !\(FLAGS\.menutest \|\| FLAGS\.trailer \|\| FLAGS\.preview \|\| FLAGS\.attract\)\) return;/.test(ss), 'planMenuStart hangt aan de menu-route');
 
+// --- #750: de wereld is speelbaar vóór de Ommeland-plaatsing ---
+const main = read('game/js/main.js');
+const iPlace = main.indexOf('const countryPlaced = placeWithTiles');
+const iWait = main.indexOf('await waitForStart(world, countryPlaced)');
+const iStart = main.indexOf("document.body.classList.add('game-started')", iWait);
+ok(iPlace !== -1 && iWait > iPlace, '#750: de plaatsing start vóór het wachten op de spelstart');
+ok(iWait !== -1 && iStart > iWait, '#750: game-started volgt meteen op de spelstart');
+ok(!/await countryPlaced;/.test(main), '#750: de boot wacht niet meer op de Ommeland-plaatsing');
+ok(iStart !== -1 && /markLoad\('gameStart'\)/.test(main.slice(iStart, iStart + 240)), '#750: de startmarker valt na het laadscherm');
+
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

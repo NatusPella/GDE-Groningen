@@ -576,8 +576,8 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
   }
   markLoad('title');
   // the garages, cafés and shops out in the Ommelanden get their doors from the
-  // tiles round them: those load behind the title screen (a few ms a frame) and
-  // the game waits for them only if you start sooner
+  // tiles round them: those load behind the running game (a few ms a frame, #750);
+  // the HUD and controls no longer wait for them
   const countryPlaced = placeWithTiles(map, ['horeca', 'car_repair', 'fuel', ...COUNTRY_SHOP_KINDS], () => {
     initCountryGarages(world);
     initCountryHoreca(world);
@@ -594,8 +594,13 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
   setCinematicLinks({ getFollowPose, prewarmStreamAt, getGrenzen });
   setSfxLinks({ bridges: getMovableBridges, trains: getTrains, vehicles: () => world.vehicles, locks: getSluizen });
   await waitForStart(world, countryPlaced);
-  await countryPlaced;
+  // #750: eerst de wereld speelbaar (HUD, besturing en de spellus), daarna pas de
+  // Ommeland-plaatsing (208 tegels). Stond `await countryPlaced` hiervóór, dan hing bij
+  // een save het laadscherm boven die wachtende plaatsing: update3D draaide nog niet, dus
+  // streamPending() kon niet dalen en de balk stond stil tot de 12 s-noodgreep. De
+  // plaatsing is init-only (garage-, horeca- en winkeldeuren) en loopt nu achter het spel door.
   document.body.classList.add('game-started');
+  markLoad('gameStart');
   hideAdvice();
   input.tryLock(false); // the game itself asks here, long after the click that started it: refusing is no sign of a browser without lock (#328)
   setMenuAudio(false);
