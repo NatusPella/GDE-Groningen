@@ -182,7 +182,11 @@ const PRIO = { missie: 0, wijk: 1, poi: 2 }; // dezelfde volgorde als LABEL_PRIO
   ok(!bron.includes("drawLabel(ctx, l.name, sx + 6 + 5 * sc, sy + 1, INK.paper, 'left');\n"), 'de oude onbeveiligde regel voor de bezienswaardigheid is weg');
   ok(bron.includes('drawStreetNames(ctx, boxes, bezet)'), 'straatnamen wijken ook voor pins');
   ok(bron.includes('isVoortgangsregel(it.tekst)') && bron.includes('tekenVoortgangsStrook(ctx, strookRegels, state.strook)'), 'de gebiedsvoortgang gaat naar de strook');
-  ok(bron.includes('state.pins = geplaatst.map((q) => [q.x, q.y])') && bron.includes('if (state.pinsGebruikt !== state.pinsSleutel) state.dirty = true'), 'de kaart onthoudt de pins en schilt één keer opnieuw als ze veranderen');
+  // #759: de set pins (soort en naam) bepaalt een herschil van de vaste laag, niet de
+  // positie: in Samen spelen bewegen medespelers en politie elke frame achter de kaart.
+  ok(bron.includes('state.pins = geplaatst.map((q) => [q.x, q.y])') && bron.includes("state.pinsSleutel = geplaatst.map((q) => q.kind + '|' + (q.name || '')).sort().join(';')"), 'de kaart onthoudt de pins en schilt opnieuw als de set verandert');
+  ok(bron.includes('if (state.pinsGebruikt !== state.pinsSleutel) { state.dirty = true; state.pinsDirtyAt = t * 1000; }') && bron.includes('PIN_RECOMPOSE_MS'), 'bewegende pins vragen hooguit een begrensde herschil (#759)');
+  ok(!bron.includes('state.pinsSleutel = geplaatst.map((q) => q.x.toFixed(1)'), '#759: de positie van een pin maakt de vaste laag niet meer vuil');
   ok(bron.includes('pinWijktVoorStrook(q.sx, q.sy, mapPriority(q.kind), strook)'), 'een pin onder de strook wijkt (behalve de belangrijke)');
   ok(bron.includes('state.pinsGebruikt = state.pinsSleutel') && bron.includes("pins: [],\n    pinsSleutel: '',\n    pinsGebruikt: '',\n    strook: null,"), 'de staat kent de pins en de strook vanaf het begin');
 }

@@ -85,9 +85,29 @@ let threw = '';
 try { TileWorld.fromTiles({ sections: [{ type: G.SECTION.META, json: { counts: { roads: 2 }, meta: {} } }] }, [broken[0]]); } catch (e) { threw = String(e.message); }
 ok(/tiles lack roads/.test(threw), 'een dicht soort met een gat is nog steeds een fout', threw.slice(0, 60));
 
+// #764: prefetchPoints vraagt de tegels van de punten echt aan. De letterlijke
+// \n-reeksen maakten de functie een no-op die undefined teruggaf (node --check zag
+// daar niets van); deze nep-store ziet wat er gevraagd wordt.
+{
+  const gevraagd = [];
+  const nepStore = {
+    on() {},
+    index: { tiles: {} },
+    keysAround: (x, y) => [`${x},${y}`, `${x},${y + 1}`],
+    request: (k) => { gevraagd.push(k); return Promise.resolve({}); },
+  };
+  const pf = TileWorld.fromTiles(global, mkTiles());
+  pf.attachStore(nepStore);
+  const n = await pf.prefetchPoints([[0, 0]], { radius: 10, token: 'prefetch-test' });
+  ok(gevraagd.length === 2 && n !== undefined, 'prefetchPoints vraagt de tegels aan (#764)', `${gevraagd.length} aanvragen, resultaat ${n}`);
+}
+
 // Echte wereld: dezelfde opgeslagen tegels één keer dicht en één keer met een sparse
 // index (zoals een nieuwe wereldbouw hem schrijft); alle vijf rasters moeten precies
 // hetzelfde zien en de arraylaag moet leeg zijn. Zonder game/world: SKIP.
+// (#764) pack_tiles.mjs schrijft op HEAD altijd `index.sparse`; de dichte baseline
+// schrijven we hier zelf door de sparse-vlag uit de index te halen. De pakketten zijn
+// identiek, alleen de laag die fromTiles bouwt verschilt.
 const { heeftWereld, wereldMap } = await import('./lib/stadtegels.mjs');
 if (heeftWereld()) {
   const fs = await import('node:fs');
@@ -98,7 +118,10 @@ if (heeftWereld()) {
   const files = {};
   for (const f of fs.readdirSync(dir)) if (/\.(gdp|json)$/.test(f)) files[f] = new Uint8Array(fs.readFileSync(path.join(dir, f)));
   const idx = JSON.parse(new TextDecoder().decode(files['index.json']));
-  const denseLoad = await loadTileWorld('world/', { source: new T.MemorySource({ ...files }), pool: false });
+  const denseFiles = { ...files };
+  const { sparse: _sparse, ...denseIndex } = idx;
+  denseFiles['index.json'] = new TextEncoder().encode(JSON.stringify(denseIndex));
+  const denseLoad = await loadTileWorld('world/', { source: new T.MemorySource(denseFiles), pool: false });
   const denseWorld = denseLoad.world;
   const sparseFiles = { ...files };
   sparseFiles['index.json'] = new TextEncoder().encode(JSON.stringify({ ...idx, sparse: KINDS }));

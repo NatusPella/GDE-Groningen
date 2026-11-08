@@ -1210,6 +1210,7 @@ function compose() {
   // de pins waar deze laag omheen legt (#463): de vaste laag onthoudt welke set
   // hij gebruikte, zodat een nieuwe set één keer tot een herschil leidt
   state.pinsGebruikt = state.pinsSleutel || '';
+  state.pinsPositieGebruikt = state.pinsPosities || ''; // #759: voor de begrensde herschil bij bewegende pins
   drawStaticOverlay(c);
   state.perf.tilesMs = t1 - t0;
   state.perf.overlayMs = performance.now() - t1;
@@ -1218,6 +1219,11 @@ function compose() {
 }
 
 // --- dynamic layer ----------------------------------------------------------
+
+// #759: de vaste laag (labels, straatnamen) hoeft niet elke frame opnieuw opgebouwd te
+// worden als alleen de pins bewegen. Bewegen ze binnen dezelfde set, dan volgt hooguit
+// één herschil per 250 ms; een label staat dan even naast een pin, meer niet.
+const PIN_RECOMPOSE_MS = 250;
 
 // Samen spelen: een onderdeel dat nog niet samen werkt is uitgegrijsd (zelfde grijs als de passieve spelers: INK.passiefGrijs).
 function drawGrijs(ctx, teken) {
@@ -1431,11 +1437,18 @@ function drawDynamicMarkers(ctx, world) {
   const zichtbaar = strook ? queue.filter((q) => !pinWijktVoorStrook(q.sx, q.sy, mapPriority(q.kind), strook)) : queue;
   const geplaatst = placeIcons(zichtbaar, iconGapPx(sc));
   // onthoud waar de pins staan (wereldcoördinaten, zodat de vaste laag ze bij elke
-  // zoom opnieuw naar schermpunten kan omrekenen). Verandert de set, dan wordt die
-  // laag één keer opnieuw opgebouwd; de wereld staat stil zolang de kaart open is.
+  // zoom opnieuw naar schermpunten kan omrekenen). #759: alleen de set pins (soort en
+  // naam) maakt die laag vuil, niet de positie. In Samen spelen loopt de wereld achter
+  // de kaart door (medespelers, politie), dus bewegende pins zouden het bouwen anders
+  // elke frame laten terugkomen. Beweegt een pin binnen dezelfde set, dan volgt hooguit
+  // 4×/s een herschil, zodat een label niet lang naast een pin blijft staan.
   state.pins = geplaatst.map((q) => [q.x, q.y]);
-  state.pinsSleutel = geplaatst.map((q) => q.x.toFixed(1) + ',' + q.y.toFixed(1)).join(';');
-  if (state.pinsGebruikt !== state.pinsSleutel) state.dirty = true;
+  state.pinsPosities = geplaatst.map((q) => q.x.toFixed(1) + ',' + q.y.toFixed(1)).join(';');
+  state.pinsSleutel = geplaatst.map((q) => q.kind + '|' + (q.name || '')).sort().join(';');
+  if (state.pinsGebruikt !== state.pinsSleutel) { state.dirty = true; state.pinsDirtyAt = t * 1000; }
+  else if (state.pinsPositieGebruikt !== state.pinsPosities && t * 1000 - state.pinsDirtyAt >= PIN_RECOMPOSE_MS) {
+    state.dirty = true; state.pinsDirtyAt = t * 1000;
+  }
   for (const q of geplaatst) {
     drawMapIconHalo(ctx, q.kind, q.sx, q.sy, sc);
     if (q.samen && q.samen.grijs) drawGrijs(ctx, () => drawMapIcon(ctx, q.kind, q.sx, q.sy, sc, { t, ...q.opts, alpha: ((q.opts && q.opts.alpha) ?? mapIconAlpha(q.kind, z)) * 0.6 })); // samen spelen: dit werkt nog niet samen (uitgegrijsd)
@@ -2401,6 +2414,9 @@ export function initMapView(world) {
     pinsSleutel: '',
     pinsGebruikt: '',
     strook: null,
+    pinsPosities: '',        // #759: positie-sleutel van de pins, om bewegen te herkennen
+    pinsPositieGebruikt: '', // de positie-sleutel waarmee de vaste laag is opgebouwd
+    pinsDirtyAt: 0,          // ms: wanneer de pins voor het laatst een herschil vroegen
     drag: null,
     found: [],
     sel: -1,
