@@ -269,6 +269,9 @@ export async function startKoplozeHost({ max = 4, wachtwoord = '', start = START
     const poging = lijst.poging;
     const [S, B, C, { makeRoom, topicFor }] = await Promise.all([imp('net/serverlijst.js'), imp('net/brokers.js'), imp('net/netconfig.js'), imp('net/sigcrypto.js')]);
     if (poging !== lijst.poging || h.gestopt) return; // intussen weer privé of gestopt
+    // #795: de aankondiging draagt de hostsleutel van deze sessie (net/hub.js); die moet er zijn vóór de eerste plaatsing.
+    const hostKey = hub.ensureHostKey ? await hub.ensureHostKey() : '';
+    if (!hostKey) { lijst.fout = 'De hostsleutel voor de openbare sessie lukte niet.'; return; }
     if (!lijstSocket && typeof WebSocket !== 'function') throw new Error('Deze Node heeft geen WebSocket: een openbare sessie kan hier niet aankondigen.');
     if (!lijst.kamer) lijst.kamer = leesKamer(kamer) || makeRoom(); // de kamercode die in de lijst staat (en die van deze sessie blijft)
     const maakSocket = lijstSocket || ((url) => { const ws = new WebSocket(url); ws.binaryType = 'arraybuffer'; return ws; });

@@ -1,10 +1,11 @@
 // Samen spelen (#583): deelnemen via de openbare lijst zonder de kamercode te publiceren
 // (game/js/net/joingate.js), met een nep-broker in het geheugen en een nep-RTCPeerConnection.
-// Twee dingen worden bewezen: een gast die op een rij uit de lijst klikt komt er nog steeds in,
-// en wie alleen de lijst leest kan het aanbod van de host (met zijn IP-adressen) niet ontsleutelen.
+// Vier dingen worden bewezen: een gast die op een rij uit de lijst klikt komt er nog steeds in, wie alleen de
+// lijst leest kan het aanbod van de host (met zijn IP-adressen) niet ontsleutelen, een antwoord van een
+// niet-host wordt verworpen vóór het verbinden (#795), en de formaten zijn begrensd.
 import assert from 'node:assert/strict';
 import { JOIN, bedienKamer, vraagKamer, maakVraag, leesVraag, maakPostvak, leesPostvak, maakNonce, joinTopic, antwoordTopic } from '../game/js/net/joingate.js';
-import { makeRoom, encryptBlob, decryptBlob, topicFor, maakSleutelpaar, sleutelTekst, sleutelVanTekst, gedeeldeSleutel, ontsleutelVoor } from '../game/js/net/sigcrypto.js';
+import { makeRoom, encryptBlob, decryptBlob, topicFor, maakSleutelpaar, sleutelTekst, sleutelVanTekst, gedeeldeSleutel, ontsleutelVoor, versleutelVoor } from '../game/js/net/sigcrypto.js';
 import { codeer, decodeer, LIJST } from '../game/js/net/serverlijst.js';
 import { hostRoom, joinRoom } from '../game/js/net/rtcroom.js';
 import { PROTO } from '../game/js/net/protocol.js';
@@ -14,6 +15,11 @@ const t = async (name, f) => { await f(); n++; };
 const tick = (ms = 5) => new Promise((r) => setTimeout(r, ms));
 const ID = 'abcdefghij';
 const ROOM_RE = /^[A-HJ-NP-Z2-9]{10}$/;
+// #795: de hostsleutel van de sessie. De host houdt het paar; de gast krijgt alleen de publieke sleutel uit de
+// aankondiging. Een tweede paar speelt de aanvaller.
+const HOST = await maakSleutelpaar();
+const HOST_KEY = await sleutelTekst(HOST);
+const ATTACKER = await maakSleutelpaar();
 
 // ----- een nep-broker: onderwerpen met één vaste tekst (kondig) en luisteraars (luister), net als brokers.js.
 // De host en de gast hebben elk hun eigen signaler; de test pompt de publicatierondes.
@@ -98,21 +104,24 @@ await t('verzoek en postvak: rondreis, en rommel of een verkeerd id valt af', as
   }
   assert.equal(maakVraag({ id: 'X!', nonce, pub, nu: 1000 }), null);
 
-  const postvak = JSON.parse(maakPostvak(new Map([[nonce, { pub, blob: 'abc', t: 1000 }]]), 1000));
-  assert.deepEqual(Object.keys(postvak), ['v', 'a', 't']);
+  // #795: het postvak draagt de hostsleutel één keer; de antwoorden erin zijn voor die host versleuteld.
+  const postvak = JSON.parse(maakPostvak(new Map([[nonce, { blob: 'abc', t: 1000 }]]), 1000, HOST_KEY));
+  assert.deepEqual(Object.keys(postvak), ['v', 'k', 'a', 't']);
+  assert.equal(postvak.k, HOST_KEY);
   assert.deepEqual(Object.keys(postvak.a), [nonce]);
-  assert.equal(leesPostvak(maakPostvak(new Map([[nonce, { pub, blob: 'abc', t: 1000 }]]), 1000), 1000).ok, true);
+  assert.deepEqual(leesPostvak(maakPostvak(new Map([[nonce, { blob: 'abc', t: 1000 }]]), 1000, HOST_KEY), 1000), { ok: true, hostKey: HOST_KEY, a: { [nonce]: { blob: 'abc', t: 1000 } } });
   assert.equal(leesPostvak('{}', 1000).ok, false);
+  assert.equal(maakPostvak(new Map([[nonce, { blob: 'abc', t: 1000 }]]), 1000, ''), null, 'zonder hostsleutel geen postvak');
 });
 
 // ----- de gast krijgt een kamer en kan daarna verbinden (het pad dat de lijst nodig heeft)
 await t('een gast via de lijst krijgt een eenmalige kamer en verbindt daarna echt', async () => {
   const hub = nepBroker();
   const kamers = [];
-  const gate = bedienKamer({ id: ID, maakSignaler: hub.signaler, onKamer: async (room) => { kamers.push(room); } });
+  const gate = bedienKamer({ id: ID, hostKeyPair: HOST, maakSignaler: hub.signaler, onKamer: async (room) => { kamers.push(room); } });
   assert.ok(gate, 'de host kan verzoeken ontvangen');
 
-  const room = await wachtOp(vraagKamer({ id: ID, maakSignaler: hub.signaler, wacht: 3000 }), hub);
+  const room = await wachtOp(vraagKamer({ id: ID, hostKey: HOST_KEY, maakSignaler: hub.signaler, wacht: 3000 }), hub);
   assert.match(room, ROOM_RE, 'de gast heeft een kamercode');
   assert.deepEqual(kamers, [room], 'de host zette precies die kamer klaar');
 
@@ -132,18 +141,19 @@ await t('een gast via de lijst krijgt een eenmalige kamer en verbindt daarna ech
 await t('wie alleen de lijst leest, kan het aanbod van de host niet vinden of ontsleutelen', async () => {
   const hub = nepBroker();
   const kamers = [];
-  const gate = bedienKamer({ id: ID, maakSignaler: hub.signaler, onKamer: async (room) => { kamers.push(room); } });
-  const room = await wachtOp(vraagKamer({ id: ID, maakSignaler: hub.signaler, wacht: 3000 }), hub);
+  const gate = bedienKamer({ id: ID, hostKeyPair: HOST, maakSignaler: hub.signaler, onKamer: async (room) => { kamers.push(room); } });
+  const room = await wachtOp(vraagKamer({ id: ID, hostKey: HOST_KEY, maakSignaler: hub.signaler, wacht: 3000 }), hub);
   assert.match(room, ROOM_RE);
 
   // Wat een derde kan zien: de aankondiging in de lijst en alle teksten die over de twee gate-onderwerpen gaan.
-  const aankondiging = codeer({ naam: 'Zomeravond', spelers: 2, max: 4, versie: '0.99.0', proto: PROTO, id: ID, nu: 1000 });
+  const aankondiging = codeer({ naam: 'Zomeravond', spelers: 2, max: 4, versie: '0.99.0', proto: PROTO, id: ID, hostKey: HOST_KEY, nu: 1000 });
   const rij = decodeer(aankondiging, 1000).a;
   assert.equal(rij.id, ID);
   assert.ok(!('room' in rij), 'de lijst geeft geen kamercode');
+  assert.equal(rij.hostKey, HOST_KEY, 'de lijst geeft wel de publieke hostsleutel (#795)');
   const openbaar = [aankondiging, ...hub.publishes].join('\n');
   assert.ok(!openbaar.includes(room), 'de kamercode van deze sessie staat in geen enkele openbare tekst');
-  assert.ok(!/"k"\s*:/.test(openbaar), 'geen kamerveld in de openbare teksten');
+  assert.ok(!/"room"\s*:/.test(openbaar), 'geen kamerveld in de openbare teksten');
   assert.ok(!/84\.1\.2\.3|\d+\.\d+\.\d+\.\d+/.test(openbaar), 'geen IP-adres in de openbare teksten');
 
   // Het aanbod van de host staat onder de kamercode; zonder die code is het onderwerp niet af te leiden
@@ -152,23 +162,60 @@ await t('wie alleen de lijst leest, kan het aanbod van de host niet vinden of on
   assert.notEqual(await topicFor(ID), await topicFor(room), 'het onderwerp van de kamer volgt niet uit het sessie-id');
   for (const gok of [ID, aankondiging, ...hub.publishes]) assert.equal(await decryptBlob(gok, aanbod), null, 'geen enkele openbare tekst is de sleutel');
 
-  // Zelfs het versleutelde antwoord in het postvak is voor een derde onleesbaar: de sleutel hoort bij
-  // de privésleutel van de gast, niet bij de publieke gegevens uit de lijst.
+  // Zelfs het versleutelde antwoord in het postvak is voor een derde onleesbaar: het is versleuteld voor de
+  // gast die het vroeg, niet met de publieke gegevens uit de lijst.
   const derde = await maakSleutelpaar();
   const derdePub = await sleutelTekst(derde);
   const postvak = JSON.parse(hub.topics.get(await antwoordTopic(ID)).laatste);
+  assert.equal(postvak.k, HOST_KEY, 'het postvak noemt de hostsleutel, geen kamercode (#795)');
   const eerste = postvak.a[Object.keys(postvak.a)[0]];
-  const hostPub = await sleutelVanTekst(eerste.p);
+  const hostPub = await sleutelVanTekst(HOST_KEY);
   assert.equal(await ontsleutelVoor(await gedeeldeSleutel(derde, hostPub), eerste.c, Object.keys(postvak.a)[0]), null, 'een derde kan het antwoord niet ontsleutelen');
   assert.ok(!openbaar.includes(derdePub), 'de eigen sleutel van de derde komt er niet in voor');
   gate.stop();
+});
+
+// ----- #795 (vervolg op #777): een antwoord van een niet-host wordt vóór het verbinden verworpen
+await t('een aanvaller die het verzoek onderschept, kan de gast geen kamer geven', async () => {
+  const hub = nepBroker();
+  const tv = await joinTopic(ID), ta = await antwoordTopic(ID);
+  // De aanvaller luistert op het openbare join-onderwerp en publiceert een postvak dat voor de gast een geldig
+  // antwoord lijkt: hij heeft de publieke sleutel van de gast, maar niet de privéhelft van de hostsleutel.
+  let aanval = null;
+  const spion = hub.signaler();
+  const zender = hub.signaler();
+  spion.luister(tv, (bericht) => {
+    const r = leesVraag(bericht, { id: ID, nu: Date.now() });
+    if (!r.ok) return;
+    (async () => {
+      const gastPub = await sleutelVanTekst(r.a.pub);
+      const sleutel = await gedeeldeSleutel(ATTACKER, gastPub); // het gedeelde geheim van de aanvaller met de gast
+      const room = makeRoom();
+      const blob = await versleutelVoor(sleutel, JSON.stringify({ room, id: ID }), r.a.nonce);
+      // Het postvak krijgt zelfs de echte hostsleutel als etiket; zonder de privéhelft ontsleutelt het niet.
+      aanval = JSON.stringify({ v: JOIN.formaat, k: HOST_KEY, a: { [r.a.nonce]: { c: blob, t: Math.floor(Date.now()) } }, t: Math.floor(Date.now()) });
+    })();
+  });
+  zender.kondig(ta, () => aanval);
+
+  let fout = '';
+  try { await wachtOp(vraagKamer({ id: ID, hostKey: HOST_KEY, maakSignaler: hub.signaler, wacht: 300 }), hub); } catch (e) { fout = e.message; }
+  assert.match(fout, /antwoordt niet/, 'de gast verwerpt het antwoord van de niet-host');
+  assert.ok(aanval, 'de aanvaller heeft echt geantwoord (anders bewijst deze test niets)');
+  spion.close(); zender.close();
+});
+
+await t('zonder hostsleutel vraagt de gast niets aan: geen antwoord is te controleren', async () => {
+  const hub = nepBroker();
+  await assert.rejects(() => vraagKamer({ id: ID, maakSignaler: hub.signaler, wacht: 100 }), /niet bereikbaar/);
+  await assert.rejects(() => vraagKamer({ id: ID, hostKey: 'kort', maakSignaler: hub.signaler, wacht: 100 }), /niet bereikbaar/);
 });
 
 // ----- misbruik en grenzen
 await t('de host antwoordt niet op rommel, een dubbel verzoek of een verzoek voor een ander id', async () => {
   const hub = nepBroker();
   const kamers = [];
-  const gate = bedienKamer({ id: ID, maakSignaler: hub.signaler, onKamer: async (room) => { kamers.push(room); }, nu: () => 1000 });
+  const gate = bedienKamer({ id: ID, hostKeyPair: HOST, maakSignaler: hub.signaler, onKamer: async (room) => { kamers.push(room); }, nu: () => 1000 });
   const pub = await sleutelTekst(await maakSleutelpaar());
   const nonce = maakNonce();
   const tv = await joinTopic(ID);
@@ -195,10 +242,10 @@ await t('de host antwoordt niet op rommel, een dubbel verzoek of een verzoek voo
 await t('zonder host geeft vraagKamer een fout, en de antwoorden in het postvak verlopen', async () => {
   const hub = nepBroker();
   let fout = '';
-  try { await vraagKamer({ id: ID, maakSignaler: hub.signaler, wacht: 80 }); } catch (e) { fout = e.message; }
+  try { await vraagKamer({ id: ID, hostKey: HOST_KEY, maakSignaler: hub.signaler, wacht: 80 }); } catch (e) { fout = e.message; }
   assert.match(fout, /antwoordt niet/);
 
-  const gate = bedienKamer({ id: ID, maakSignaler: hub.signaler, onKamer: async () => {}, nu: () => 1000 });
+  const gate = bedienKamer({ id: ID, hostKeyPair: HOST, maakSignaler: hub.signaler, onKamer: async () => {}, nu: () => 1000 });
   const pub = await sleutelTekst(await maakSleutelpaar());
   const nonce = maakNonce();
   await tick(5);
@@ -207,7 +254,10 @@ await t('zonder host geeft vraagKamer een fout, en de antwoorden in het postvak 
   await tick(80);
   assert.equal(gate.antwoorden.size, 1);
   const tekst = gate.tekst();
-  assert.ok(leesPostvak(tekst, 1000).ok);
+  const postvak = leesPostvak(tekst, 1000);
+  assert.ok(postvak.ok);
+  assert.equal(postvak.hostKey, HOST_KEY, 'het postvak draagt de hostsleutel (#795)');
+  assert.ok(postvak.a[nonce], 'en het antwoord voor deze nonce');
   gate.stop();
 });
 

@@ -31,10 +31,15 @@ const { mountLobby } = await import('../game/js/lobbyui.js');
 const { codeer, schoonNaam } = await import('../game/js/net/serverlijst.js');
 const { PROTO } = await import('../game/js/net/protocol.js');
 const { VERSION } = await import('../game/js/version.js');
+const { maakSleutelpaar, sleutelTekst } = await import('../game/js/net/sigcrypto.js');
 
 let n = 0;
 const t = async (name, f) => { await f(); n++; };
 const tick = (ms = 20) => new Promise((r) => setTimeout(r, ms));
+// #795: de hostsleutel van de sessie; de aankondiging draagt de publieke helft, de hub de poort het paar.
+const HOST_KEY = await sleutelTekst(await maakSleutelpaar());
+const HOST_PAIR = await maakSleutelpaar(); // een tweede paar voor de gastheerhub in deze test
+const HOST_KEY2 = await sleutelTekst(HOST_PAIR);
 function fakeRoot() {
   const r = { innerHTML: '', listeners: {}, value: '' };
   r.querySelector = (q) => (q === '.coop-input' ? { value: r.value } : q === '.coop-lijst-zoek' ? { value: r.zoek || '', focus() {}, setSelectionRange() {} } : null);
@@ -51,9 +56,11 @@ function fakeRoot() {
   return r;
 }
 // De hub van een sessie (#450): hij houdt de naam, een vast id en het echte aantal spelers vast; de lobby plaatst de regel.
+// #795: en de hostsleutel van de sessie (publiek in de regel, het paar voor de join-poort).
 const hub = (naam = null) => {
-  const h = { id: 'hubbhubhub', openbaar: null, opOpenbaar: null, roster: { max: 4, spelers: [{ slot: 0, verbinding: 'ok' }] }, vrijePlekken: true };
-  h.publiek = () => (h.openbaar ? { id: h.id, naam: h.openbaar, spelers: Math.max(1, h.roster.spelers.filter((s) => s.verbinding !== 'lost').length), max: h.roster.max } : null);
+  const h = { id: 'hubbhubhub', openbaar: null, opOpenbaar: null, hostKeyText: '', hostKeyPair: null, roster: { max: 4, spelers: [{ slot: 0, verbinding: 'ok' }] }, vrijePlekken: true };
+  h.ensureHostKey = async () => { h.hostKeyPair = HOST_PAIR; h.hostKeyText = HOST_KEY2; return h.hostKeyText; };
+  h.publiek = () => (h.openbaar ? { id: h.id, naam: h.openbaar, spelers: Math.max(1, h.roster.spelers.filter((s) => s.verbinding !== 'lost').length), max: h.roster.max, hostKey: h.hostKeyText } : null);
   h.zetOpenbaar = (aan, n) => {
     if (!aan) { const was = !!h.openbaar; h.openbaar = null; if (was && h.opOpenbaar) h.opOpenbaar(null); return { ok: true, openbaar: false }; }
     const r = schoonNaam(n); if (!r.ok) return { ok: false, reason: r.reason };
@@ -95,10 +102,11 @@ await t('de lijst toont sessies, markeert een andere versie, verbergt een gemeld
     { naam: 'Oud spel', room: 'A2B3C4D5E6', id: 'bbbbbbbbbb', versie: '0.1.0', proto: PROTO },
   ];
   let i = 0;
-  aanbod = () => { const e = lijst[i++ % lijst.length]; return codeer({ naam: e.naam, spelers: 2, max: 4, versie: e.versie, proto: e.proto, room: e.room, id: e.id, nu: nu() }); };
+  aanbod = () => { const e = lijst[i++ % lijst.length]; return codeer({ naam: e.naam, spelers: 2, max: 4, versie: e.versie, proto: e.proto, room: e.room, id: e.id, hostKey: HOST_KEY, nu: nu() }); };
   root.click('lijst'); root.click('lijst-go'); await tick(200);
   assert.equal(lobby.state().step, 'lijst');
   const l = lobby.state().lijst; assert.equal(l.length, 2, JSON.stringify(l));
+  assert.ok(l.every((x) => x.hostKey === HOST_KEY), 'elke rij draagt de publieke hostsleutel (#795)');
   assert.match(root.innerHTML, /Zomeravond · 2 van 4 spelers/); assert.match(root.innerHTML, /Andere versie: niet aan te sluiten/); assert.match(root.innerHTML, /Melden/);
   const kan = l.findIndex((x) => x.kan), anders = l.findIndex((x) => x.anders);
   root.click('sluit-' + anders); assert.equal(lobby.state().step, 'lijst', 'een andere versie sluit niet aan'); assert.match(root.innerHTML, /andere versie/);
@@ -109,10 +117,10 @@ await t('de lijst toont sessies, markeert een andere versie, verbergt een gemeld
   assert.deepEqual(JSON.parse(geheugen.get('gde-serverlijst-verborgen')), ['aaaaaaaaaa']);
   aanbod = null; root.click('lijst-terug'); await tick();
   // opnieuw openen: de gemelde blijft verborgen
-  aanbod = () => codeer({ naam: 'Zomeravond', spelers: 2, max: 4, versie: VERSION, proto: PROTO, room: ROOM, id: 'aaaaaaaaaa', nu: nu() });
+  aanbod = () => codeer({ naam: 'Zomeravond', spelers: 2, max: 4, versie: VERSION, proto: PROTO, room: ROOM, id: 'aaaaaaaaaa', hostKey: HOST_KEY, nu: nu() });
   root.click('lijst'); root.click('lijst-go'); await tick(200);
   assert.equal(lobby.state().lijst.length, 0, 'onthouden dat deze gemeld is');
-  aanbod = () => codeer({ naam: 'Tweede spel', spelers: 1, max: 4, versie: VERSION, proto: PROTO, room: 'D2B3C4D5E6', id: 'cccccccccc', nu: nu() });
+  aanbod = () => codeer({ naam: 'Tweede spel', spelers: 1, max: 4, versie: VERSION, proto: PROTO, room: 'D2B3C4D5E6', id: 'cccccccccc', hostKey: HOST_KEY, nu: nu() });
   root.click('lijst-terug'); root.click('lijst'); root.click('lijst-go'); await tick(200); assert.equal(lobby.state().lijst.length, 1);
   const s1 = start(); root.click('sluit-0');
   // (#526) het akkoord voor de lijst geldt voor de rest van de sessie: aansluiten vraagt geen tweede scherm meer,
@@ -164,6 +172,7 @@ await t('host: akkoord zet de sessie openbaar (naam, spelers, versie, kamercode,
   const tekst = lijstSockets.flatMap((s) => s.sent).filter((d) => d.includes('Zomeravond')).join('\n');
   assert.ok(!tekst.includes(codeVoor.replace('-', '')) , 'zonder de kamercode (#583): die vraagt een gast apart');
   assert.ok(tekst.includes(VERSION), 'met de versie');
+  assert.ok(tekst.includes(HOST_KEY2), 'met de publieke hostsleutel van de sessie (#795)');
   assert.ok(tekst.includes('"i":"hubbhubhub"') || tekst.includes('hubbhubhub'), 'met het vaste id van de sessie (#450)');
   assert.ok(!/\d+\.\d+\.\d+\.\d+/.test(tekst.replace(new RegExp(VERSION.replace(/\./g, '\\.'), 'g'), '')), 'geen IP-adres');
   const s1 = start();
