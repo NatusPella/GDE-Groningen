@@ -381,7 +381,7 @@ async function faseElectron(prev, staat) {
   const prevSigs = (staat.fases && staat.fases.electron && staat.fases.electron.sigs) || {};
   const sigs = {};
   const profielen = [];
-  const env = (stap) => { const p = `gde-testall-${process.pid}-${stap}`; profielen.push(p); return { GDE_TEST_PROFILE: p, ELECTRON_EXE: exe, GDE_ELECTRON: exe, GDE_MAX_ELECTRON: '3' }; };
+  const env = (stap) => { const p = `gde-testall-${process.pid}-${stap}`; profielen.push(p); return { GDE_TEST_PROFILE: p, ELECTRON_EXE: exe, GDE_ELECTRON: exe, GDE_MAX_ELECTRON: '3', GDE_STORY_WERELDCONTROLES: '0' }; };
   const stapDir = (s) => { const d = path.join(RUN, s); fs.mkdirSync(d, { recursive: true }); return d; };
   const desktop = path.join(ROOT, 'desktop');
   const basis = ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1280x720'];
