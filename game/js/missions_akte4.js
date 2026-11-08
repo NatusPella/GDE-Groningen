@@ -253,7 +253,7 @@ export function applyAkte4(list) {
   const luik = list.find((d) => d.label === 'Een luik erin');
   if (luik && Array.isArray(luik.stages) && !luik.stages.some((q) => q.ifTag === 'bal')) {
     luik.stages.unshift({
-      kind: 'goto', ifTag: 'bal', target: { at: luik.start, snap: 'walk', label: 'Tinus\' schuur' }, mode: 'any', radius: 18,
+      kind: 'goto', ifTag: 'bal', target: ll('tinusSchuur', { label: 'Tinus\' schuur' }), mode: 'any', radius: 18,
       label: 'Eerst de kras van de wagon: Tinus kijkt ernaar', say: 'De kras van de wagon zit op de Escapade. Tinus schudt zijn hoofd: "Die tel ik niet mee."',
     });
   }
@@ -312,3 +312,4 @@ export function applyAkte4(list) {
     { kind: 'scene', target: ll('tinusSchuur', { label: 'Tinus\' schuur' }), label: 'Tammo, de vrienden', kicker: 'Woensdag 26 augustus', big: 'Tammo, de vrienden', solo: true, script: { ids: ['M21.4'] } },
   ];
 }
+

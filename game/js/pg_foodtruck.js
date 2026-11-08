@@ -67,7 +67,7 @@ const SPOTS = [
     if (between(h, 12, 20)) return { level: 1.3, label: 'zon in het park' };
     return { level: 0.5, label: 'rustig' };
   } },
-  { id: 'euroborg', name: 'Euroborg', at: [1771.62, 1400.47], busy: (w) => {
+  { id: 'euroborg', name: 'Euroborg', at: [1771.6, 1370.5], busy: (w) => {
     const h = hour(w);
     if (between(h, 14, 17) || between(h, 19.5, 22.5)) return { level: 1.6, label: 'wedstrijd!' };
     return { level: 0.15, label: 'geen wedstrijd (14-17 u, 19:30-22:30 u)' };
@@ -423,4 +423,5 @@ function end(run, why, cut = false) {
     stats: [['Geholpen', String(d.served)], ['Fout', String(d.wrong)], ['Weggelopen', String(d.lost)], ...(bonus ? [['Dienstbonus', `€${bonus}`]] : [])],
   });
 }
+
 
