@@ -12,6 +12,15 @@
 // dus het publieke IP van de host. Hij kan wél zelf een verzoek sturen, maar dan is hij een deelnemer
 // die de host ziet (en kan kicken), geen stille meelezer.
 //
+// Wat dit protocol níet bewijst (#777): het antwoord is nergens aan de host van de rij gebonden. Wie het
+// verzoek op het openbare onderwerp ziet, kan met de publieke sleutel van de gast zelf een geldig uitziend
+// postvak publiceren en de gast zo een kamercode van zijn eigen kamer geven; aan het antwoord alleen kan de
+// gast host en aanvaller niet onderscheiden. Daarom controleert de gast na het verbinden het welkom: daarin
+// staan het vaste sessie-id en de naam van de sessie (net/session.js, net/hub.js). lobbyui.js vergelijkt die
+// met de rij waarop geklikt is en verbreekt de verbinding als het id niet klopt. Een echte cryptografische
+// binding vraagt een hostsleutel in de aankondiging (net/serverlijst.js en net/hub.js) en is een aparte
+// wijziging; het automatische boot-pad (sessionboot.js) doet deze controle nog niet.
+//
 // De host houdt een klein postvak bij (nonce → versleuteld antwoord) en publiceert dat als één tekst,
 // omdat de brokers maar één tekst per onderwerp doorgeven (brokers.js: kondig/luister). Elke gast
 // haalt zijn eigen nonce eruit. Oude antwoorden verlopen; het postvak is klein en begrensd.
