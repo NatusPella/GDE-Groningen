@@ -301,7 +301,9 @@ async function minigames2Smoke(world, check, capture) {
   const finite = (p) => [p.x, p.y, p.z].every(Number.isFinite);
 
   const zw = window.__zwembad;
-  let zwStart = false;`n  for (let p = 0; p < 3 && !zwStart; p++) { if (!zw.state()) zw.start(); zwStart = await waitFor(() => zw.state() && zw.state().swim && ['block', 'run'].includes(zw.state().swim.phase), 20000); if (!zwStart) await sleep(1500); }`n  check('zwembad: starts', zwStart, JSON.stringify(zw.state()));
+  let zwStart = false;
+  for (let p = 0; p < 3 && !zwStart; p++) { if (!zw.state()) zw.start(); zwStart = await waitFor(() => zw.state() && zw.state().swim && ['block', 'run'].includes(zw.state().swim.phase), 20000); if (!zwStart) await sleep(1500); }
+  check('zwembad: starts', zwStart, JSON.stringify(zw.state()));
   await sleep(800);
   check('zwembad: board shows and the hub claims the input', boardUp() && world.activityGame === 'zwembad');
   capture('mg-zwembad-block');
@@ -587,6 +589,9 @@ export async function runStoryTest(world) {
   const check = (name, ok, info = '') => { report.checks.push({ name, ok: !!ok, info }); return ok; };
   const S = () => window.__story;
   const capture = (name) => console.log('[storytest-capture] ' + name);
+  // devtools adds ?geenwereldcontroles when GDE_STORY_WERELDCONTROLES=0: the
+  // heavy world checks (spots, passages, ring, water) are skipped then (#749/CI)
+  const SKIP_WERELD = FLAGS.geenwereldcontroles;
 
   try {
     // #581: the story test starts like a player: boot → world. Only in the QA/recording route
