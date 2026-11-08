@@ -601,18 +601,10 @@ export async function runStoryTest(world) {
     check('game started', await waitFor(() => document.body.classList.contains('game-started'), 180000));
     await drain(world, 1500);
     world.devInvuln = true;
-    // De eerste seconden bouwt de wereld nog (51k gebouwen, tegels, borden): meet de echte
-    // framerate en wacht tot die weer boven de 15 fps zit voordat de minigames beginnen.
-    const meetFps = (ms = 1200) => new Promise((res) => {
-      let n = 0; const t0 = performance.now();
-      const tel = () => { n++; if (performance.now() - t0 < ms) requestAnimationFrame(tel); else res(n / ((performance.now() - t0) / 1000)); };
-      requestAnimationFrame(tel);
-    });
-    for (let i = 0; i < 12; i++) { if (await meetFps() >= 15) break; await sleep(2000); }
-    // De zware wereldcontroles (spots, passages, ring, water) staan ook als eigen tests in de
-    // suite; in de dure verhaaltest slaan we ze over met GDE_STORY_WERELDCONTROLES=0 (devtools).
-    const SKIP_WERELD = FLAGS.geenwereldcontroles;
-    if (!SKIP_WERELD) {
+    // De eerste seconden bouwt de wereld nog (51k gebouwen, tegels, borden). even laten
+    // zakken voordat de minigames beginnen; geen rAF-wachtlus, want in een verborgen
+    // testvenster staat requestAnimationFrame soms stil.
+    await sleep(8000);
     // every start and target point is on open ground you can walk away from
     if (window.__ommeland) await window.__ommeland.prepare();
     const spots = await validateSpots(world);
