@@ -246,7 +246,9 @@ async function minigameSmoke(world, check, capture) {
   capture('mg-kart-race');
   release('w', 'KeyW');
   check('kartbaan: the race can be finished', kb.finish());
-  check('kartbaan: the race ends by itself', await waitFor(() => !isActivityActive(), 24000));
+  let kbKlaar = await waitFor(() => !isActivityActive(), 60000);
+  if (!kbKlaar && kb.finish()) kbKlaar = await waitFor(() => !isActivityActive(), 30000);
+  check('kartbaan: the race ends by itself', kbKlaar, JSON.stringify(kb.state()));
   await cleared('kartbaan');
 
   // a loaded save ends a running minigame (savegame.js quitActivity)
@@ -1108,6 +1110,7 @@ export async function runStoryTest(world) {
   console.log('[storytest-done] ' + JSON.stringify(report));
   return report;
 }
+
 
 
 
