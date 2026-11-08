@@ -422,12 +422,17 @@ export function clipWaysInBuildings(map, source) {
   let removed = false;
   for (let ri = 0; ri < n0; ri++) {
     const r = source.roads[ri];
-    if (r.pts.length < 2 || (!underground(r) && ((r.cat !== 'foot' && r.cat !== 'cycle') || offGradeWay(r)))) continue;
+    if (r.pts.length < 2) continue;
+    // #747: een dienstweg door een gebouw zonder doorgang (interieurplan, ziekenhuisgarage)
+    // wordt net als een voetpad op de gevel geknipt; anders blijft er een muur over de weg.
+    const knipService = r.cat === 'service';
+    if (!underground(r) && ((r.cat !== 'foot' && r.cat !== 'cycle' && !knipService) || offGradeWay(r))) continue;
     const rb = r.bounds;
     let spans = null;
     for (const b of map.buildingGrid.query(rb[0], rb[1], rb[2], rb[3])) {
       const [x0, y0, x1, y1] = b.bounds;
-      if (x1 < rb[0] || x0 > rb[2] || y1 < rb[1] || y0 > rb[3] || b.rooms) continue;
+      if (x1 < rb[0] || x0 > rb[2] || y1 < rb[1] || y0 > rb[3]) continue;
+      if ((b.rooms || b.noPassages) && !knipService) continue;
       const { runs, total } = runsInside(r, b);
       for (const run of runs) {
         if (classifyRun(map, r, b, run, total).cls !== 'solid') continue;
@@ -457,4 +462,5 @@ export function clipWaysInBuildings(map, source) {
   for (const b of source.buildings) if (b.passages) { b.passages = null; b._doors = null; }
   return cut;
 }
+
 
