@@ -50,14 +50,14 @@ function searchSpot(map) {
   // Ruimer zoeken: de gestreamde provinciekaart heeft smallere of bredere sloten dan de oude
   // stadskaart, en de aanloop kan dichter op de kant liggen.
   for (const c of CANDIDATES) {
-    for (const opts of [{ minWidth: 7, maxWidth: 20 }, { minWidth: 4, maxWidth: 35 }]) {
-      const v = findVaultSpot(map, c.at[0], c.at[1], 180, opts);
+    for (const opts of [{ minWidth: 7, maxWidth: 20 }, { minWidth: 4, maxWidth: 35 }, { minWidth: 3, maxWidth: 45 }]) {
+      const v = findVaultSpot(map, c.at[0], c.at[1], 300, opts);
       if (!v) continue;
       const dx = v.to.x - v.from.x, dy = v.to.y - v.from.y, l = Math.hypot(dx, dy) || 1;
       const dir = { x: dx / l, y: dy / l };
-      for (const af of [10, 7, 5]) {
+      for (const af of [10, 7, 5, 2, 0]) {
         const runup = { x: v.from.x - dir.x * af, y: v.from.y - dir.y * af };
-        if (solid(map, runup.x, runup.y) || isInWater(map, runup.x, runup.y)) continue;
+        if (af > 0 && (solid(map, runup.x, runup.y) || isInWater(map, runup.x, runup.y))) continue;
         return { ...v, dir, runup, name: c.name };
       }
     }
