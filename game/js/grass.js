@@ -810,7 +810,12 @@ export function generateCell(map, ci, cj, Q, full) {
 
 let scene = null, map = null, polyGeometry = null;
 let chunks = null;
-let chunksGeoVer = null; // (#314 C2) de kaartstand waar de chunks bij horen
+// De groenstand waar de chunks bij horen: niet map.geoVer, want die gaat bij
+// elke gestroomde tegel omhoog (ook als er geen groen bijkomt). Een tegel-add
+// die alleen wegen of huizen brengt hoeft de graschunks niet opnieuw te bouwen;
+// tileworld.js houdt daarvoor map.greenVer bij (#314 C2, #4).
+let chunksGreenVer = null;
+const greenVerOf = (m) => (m && m.greenVer !== undefined ? m.greenVer : m && m.geoVer);
 let quality = null;
 let qualityName = 'hoog';
 const cells = new Map();
@@ -878,11 +883,18 @@ function polysOverlap(a, b) {
 }
 
 // Two polygons of one kind share a material, so an overlap between them
-// would fight; the later one moves half a depth step up.
+// would fight; the later one moves half a depth step up. Alleen nieuwe/gewijzigde
+// groenvlakken worden nog getoetst: wat al een sublaag heeft blijft staan, zodat
+// een gestroomde tegel niet elke keer de hele groenlaag hoeft te doorlopen
+// (dat was in het opstartprofiel de grootste hapering: pointInPolygon ~0,8 s per
+// tegel-add, #4). Een vlak dat door een tegel-drop verdwijnt, laat zijn sublaag
+// achter; hooguit kan daar heel lokaal een z-fight ontstaan.
 function assignSubLayers(map) {
+  const list = map.greenGrid ? gridItems(map.greenGrid) : [];
   const seen = new Set();
-  for (const g of map.greenGrid ? gridItems(map.greenGrid) : []) {
-    if (!g.bounds || g.pts.length < 3) continue;
+  for (const g of list) if (g._gSub !== undefined && g.bounds && g.pts.length >= 3) seen.add(g);
+  for (const g of list) {
+    if (g._gSub !== undefined || !g.bounds || g.pts.length < 3) continue;
     const b = g.bounds;
     const used = [false, false];
     for (const o of map.greenNear((b[0] + b[2]) / 2, (b[1] + b[3]) / 2, Math.max(b[2] - b[0], b[3] - b[1]) / 2 + 2)) {
@@ -952,11 +964,11 @@ function buildGrassChunks() {
   }
   for (const c of chunks.values()) c.polys.sort((a, b) => kindOf(a).prio - kindOf(b).prio);
   assignSubLayers(map);
-  chunksGeoVer = map.geoVer;
+  chunksGreenVer = greenVerOf(map);
 }
 
 function syncChunks(px, py, dist) {
-  if (map && chunksGeoVer !== map.geoVer) buildGrassChunks(); // #314 C2: tegel erbij/weg
+  if (map && chunksGreenVer !== greenVerOf(map)) buildGrassChunks(); // groenlaag veranderd (#314 C2)
   const t0 = performance.now();
   for (const c of chunks.values()) {
     const d = rectDist(c.bounds, px, py);
