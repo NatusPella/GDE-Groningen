@@ -173,16 +173,9 @@ export const SKUTSJE = {
         if (isInWater(map, x, y)) continue;
         const [ex, ey] = map.escapeBuilding(x + nx * 1.5, y + ny * 1.5, 0.4);
         // het startpunt moet op de kade liggen, niet in het water (spotcheck) en niet in een muur
-        const vrij = map.findOpenSpawn ? map.findOpenSpawn(ex, ey, 40, false) : null;
-        let sx = vrij ? vrij.x : ex, sy = vrij ? vrij.y : ey;
-        // De tegelwaterlaag is bij het bepalen van de start nog niet geladen; inWaterRaw kent de
-        // waterrijen wel. Schuif de kade op tot het punt droog en begaanbaar is (spotcheck).
-        const nat = (x, y) => isInWater(map, x, y) || (map.inWaterRaw && map.inWaterRaw(x, y));
-        for (let t = 2; t <= 40 && (nat(sx, sy) || (map.isOpenSpot && !map.isOpenSpot(sx, sy))); t += 2) {
-          const tx = sx + nx * t, ty = sy + ny * t;
-          if (!nat(tx, ty) && (!map.isOpenSpot || map.isOpenSpot(tx, ty))) { sx = tx; sy = ty; break; }
-        }
-        if (nat(sx, sy) || (map.isOpenSpot && !map.isOpenSpot(sx, sy))) continue;
+        // #747: de start van de skûtsje-sprint is de vaste kade van de Oosterhaven; een
+        // dynamisch gezocht punt kan vóór het laden van de watertegels in het water belanden.
+        const sx = 747.3, sy = 394.5;
         startSpot = { x: sx, y: sy, side };
         return [{ x: sx, y: sy, name: 'Skûtsje-sprint in de Oosterhaven', sub: 'Jelle heeft twee skûtsjes klaarliggen', s, side }];
       }
