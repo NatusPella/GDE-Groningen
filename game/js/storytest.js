@@ -576,6 +576,10 @@ export async function runStoryTest(world) {
     await drain(world, 1500);
     world.devInvuln = true;
     capture('00-start');
+    // De zware wereldcontroles (spots, passages, ring, water) staan ook als eigen tests in de
+    // suite; in de dure verhaaltest slaan we ze over met GDE_STORY_WERELDCONTROLES=0.
+    const SKIP_WERELD = new URLSearchParams(location.search).has('geenwereldcontroles');
+    if (!SKIP_WERELD) {
     // every start and target point is on open ground you can walk away from
     if (window.__ommeland) await window.__ommeland.prepare();
     const spots = await validateSpots(world);
@@ -604,6 +608,7 @@ export async function runStoryTest(world) {
     const lap = await driveRingLap(world);
     check('scripted car drives a full ring lap', lap.scripted.ok, JSON.stringify(lap.scripted));
     check('AI racers finish a full ring lap', lap.ai.ok, JSON.stringify(lap.ai));
+    }
     capture('03-ring');
     await drain(world);
     await minigameSmoke(world, check, capture);
