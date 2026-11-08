@@ -182,5 +182,26 @@ if (heeftWereld()) {
   ok(route && route.pts.length >= 2 && route.legs.length >= 1 && route.legs.every(Boolean), 'routing werkt op de sparse wegenlaag');
 }
 
+// #754: de caches hangen aan laagversies, niet aan geoVer. Een tegel zonder weg- of
+// gebouwrijen laat de routinggraaf staan; een gestroomde tegel met water laat de
+// waterindex (die over het vaste water gaat) staan, maar vast water dat uit het
+// raster gaat ververst hem wel.
+{
+  const R = await import('../game/js/routing.js');
+  const W = await import('../game/js/waterindex.js');
+  const buildMs = R.getRoutingStats().buildMs;
+  sparse.addTile({ i: 5, j: 5, sections: [
+    { type: G.SECTION.TREES, rows: [{ g: 99, p: [[5005, 5005]] }] },
+    { type: G.SECTION.GREEN, rows: [{ gid: 99, pts: sq(5000, 5000, 20), kind: 'gras' }] },
+  ] }, '5,5');
+  R.findWalkPath(sparse, 605, 600, 695, 600);
+  ok(R.getRoutingStats().buildMs === buildMs, 'een tegel zonder wegen of gebouwen herbouwt de routinggraaf niet (#754)', `${buildMs} -> ${R.getRoutingStats().buildMs}`);
+  const wi = W.getWaterIndex(sparse);
+  sparse.addTile({ i: 6, j: 6, sections: [{ type: G.SECTION.WATER, rows: [{ gid: 500, pts: sq(5000, 5000, 30), kind: 'sloot', lv: 0, nav: 0 }] }] }, '6,6');
+  ok(W.getWaterIndex(sparse) === wi, 'gestroomd tegelwater herdraait de waterindex niet (#754)');
+  sparse.dropTile('1,0'); // vast (gepind) water van die tegel gaat uit het raster
+  ok(W.getWaterIndex(sparse) !== wi, 'vast water dat uit het raster gaat ververst de waterindex wel (#754)');
+}
+
 console.log(`tileworld_sparse_test: ${fails ? fails + ' FAILED' : 'ok'} (${n} checks)`);
 process.exit(fails ? 1 : 0);
