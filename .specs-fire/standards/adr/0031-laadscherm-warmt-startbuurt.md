@@ -22,18 +22,24 @@ wacht vóór de spellus weg; het ging niet om "kort laden" als doel.
 
 ## Besluit
 
-Bij een **nieuw spel** blijft het bootscherm staan terwijl het startgebied
-voorwarmt: de boot prewarmt de gebouwen binnen 200 m rond het startpunt (dezelfde
-machinerie als een cutscene-voorlading, met eigen radius), laat de gewone
-framestappen de wegen en de straatversiering daar bouwen en uploaden tot
-`streamPending()` en het prewarmwerk tien frames rustig zijn, en compileert dan
-alle shaderprogramma's van de scène (`precompilePrograms()`). Pas daarna gaat het
-scherm weg en krijgt de speler toetsen. De wachttijd is begrensd (20 s); een
-langzame machine gaat met een half warm gebied verder in plaats van te hangen.
+Zowel bij een **nieuw spel** als bij het **laden van een save** blijft het
+bootscherm staan terwijl het startgebied voorwarmt, op de startplek (nieuw spel)
+of op de opgeslagen plek (save). De boot prewarmt de gebouwen binnen 200 m rond die
+plek (dezelfde machinerie als een cutscene-voorlading, met eigen radius), laat de
+gewone framestappen de wegen en de straatversiering daar bouwen en uploaden tot
+`streamPending()` en het prewarmwerk nul zijn **én de laatste twaalf frames elk
+onder 50 ms blijven**, en compileert dan alle shaderprogramma's van de scène
+(`precompilePrograms()`). Dat laatste is de kern: niet alleen de tellers, maar de
+frames zelf moeten rustig zijn, zodat een late workeruitslag (stadsprops, oevers,
+verre LOD) of een shader die pas bij eerste gebruik linkt in het laadscherm valt
+en niet in het spel. Pas daarna gaat het scherm weg en krijgt de speler toetsen.
+De wachttijd is begrensd (25 s); een langzame machine gaat met een half warm
+gebied verder in plaats van te hangen.
 
-Een save houdt zijn eigen laadscherm (dat wacht al op de gestreamde tegels); een
-test-, QA- of benchmarkrun slaat het voorladen over, zodat die runs hun eigen
-timing houden. De statusregel van het laadscherm zegt wat er nog gebeurt.
+Bij een save komt daarna nog het gewone laadscherm (dat op de gestreamde tegels
+wacht); de warme buurt maakt dat alleen korter. Een test-, QA- of benchmarkrun
+slaat het voorladen over, zodat die runs hun eigen timing houden. De statusregel
+van het laadscherm zegt wat er nog gebeurt.
 
 ## Afgewezen
 
@@ -52,11 +58,16 @@ timing houden. De statusregel van het laadscherm zegt wat er nog gebeurt.
 ## Gevolgen
 
 - Het bootscherm duurt op een langzame computer enkele seconden langer; daarna
-  zijn de eerste frames in het startgebied vrij van meshbouw en programmalinks.
+  zijn de eerste frames in het startgebied vrij van meshbouw, late workeruitleg
+  en programmalinks.
 - `scene3d.js` heeft `prewarmStreamAt(x, y, secs, radius)`, `prewarmPending()` en
-  `precompilePrograms()`; `main.js` doet de lus, `startscreen.js` wacht er in
-  `startNew` op (`opts.warm`). `scripts/startroute_test.mjs` bewaakt de
+  `precompilePrograms()`; `main.js` doet de lus (met de frametijd als maat),
+  `startscreen.js` wacht er in `startNew` én in beide `continueGame`-paden op
+  (`warmBeforeFinish`, `opts.warm`). `scripts/startroute_test.mjs` bewaakt de
   bedrading en de #750-orde.
-- `window.__loadMarks.startWarm`, `.warmFrames` en `.shaders` maken het effect in
-  een perfrun meetbaar. Die meting (Electron, echte eerste minuut) is nog niet
-  gedaan; de bedrading en de bestaande starttests zijn groen.
+- `window.__loadMarks.startWarm`, `.warmFrames`, `.warmWorstFrame` en `.shaders`
+  maken het effect in een perfrun meetbaar. Die meting (Electron, echte eerste
+  minuut) is nog niet gedaan; de bedrading en de bestaande starttests zijn groen.
+- Blijft de fps ook ná die eerste minuten laag, dan is dat geen laadlogica maar
+  doorlopende belasting (kwaliteit/GPU/streamen); dat vraagt een perfmeting, geen
+  langere warm-up.
