@@ -995,12 +995,17 @@ export function buildPersonMesh(shirt, skin, opts = {}) {
   return group;
 }
 
-// #658: een mesh die verdwijnt geeft zijn gedeelde rompgeometrie terug. De laatste gebruiker van
-// een geëvictte template ruimt hem op; zolang iemand hem tekent blijft hij staan.
+// #658/#788: elke mesh die een gedeelde rompgeometrie tekent geeft hem bij het weggaan terug.
+// De laatste gebruiker van een geëvictte template ruimt hem op; zolang iemand hem tekent blijft
+// hij staan. scene3d.disposeObject roept dit voor elk persoonsmesh aan (speler, metgezel,
+// chauffeur, missie-acteur, gast), niet alleen voor voetgangers. Per mesh maar één keer, zodat
+// een tweede opruimronde de teller niet onder nul brengt.
 export function releasePersonGeometry(mesh) {
-  const body = mesh && mesh.userData && mesh.userData.body;
-  const g = body ? body.geometry : (mesh && mesh.geometry);
-  if (!g || !g.userData || !g.userData.personRefs) return false;
+  if (!mesh || !mesh.userData || mesh.userData.personRefsGiven) return false;
+  const body = mesh.userData.body;
+  const g = body ? body.geometry : mesh.geometry;
+  if (!g || !g.userData || typeof g.userData.personRefs !== 'number') return false;
+  mesh.userData.personRefsGiven = true;
   g.userData.personRefs--;
   if (g.userData.personRefs <= 0 && g.userData.personRetired) { g.dispose(); return true; }
   return false;
