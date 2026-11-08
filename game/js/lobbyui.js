@@ -296,15 +296,26 @@ export function mountLobby(root, hooks, opts = {}) {
   // ----- deelnemen via de lijst zonder de kamercode te publiceren (#583)
   // De host antwoordt op een verzoek met een eenmalige kamer, versleuteld voor die gast (net/joingate.js).
   // Wie alleen de lijst leest, krijgt geen sleutel en geen kamercode, en kan het aanbod dus niet ontsleutelen.
+  //
+  // #778: een openbare host krijgt join-verzoeken van iedereen, en elk verzoek zet een volledige signalering
+  // op (tracker + MQTT, meerdere sockets). Met de gewone uitnodigingstijd van 15 minuten loopt een vloed aan
+  // verzoeken de host leeg: de browser raakt zijn verbindingen kwijt en echte gasten kunnen niet meer binnen.
+  // Daarom staan er hoogstens een paar aanbiedingen tegelijk open, en elk verdwijnt weer als er niemand komt.
+  const GATE_MAX_OFFERS = 4;
+  const GATE_OFFER_MS = JOIN.wacht + 20000; // ruim boven wat een gast nodig heeft om te verbinden, ver onder TIMEOUTS.wait
   let gate = null;
   const gateHandles = [];
+  let gateBusy = 0; // aanbiedingen die nog klaargezet worden en dus nog niet in gateHandles staan (#778)
   function openGate(id) {
     stopGate();
     if (!id || !rtcSupported()) return;
     const g = bedienKamer({
       id,
       maakSignaler: () => newLijstSignaler(JOIN.interval),
-      mag: () => { const p = hub && hub.publiek ? hub.publiek() : null; return !!(p && p.spelers < p.max); }, // de hub weigert zelf als er geen plek is
+      mag: () => { // de hub weigert zelf als er geen plek is; #778: en een vloed krijgt geen kamer als er al genoeg openstaan
+        const p = hub && hub.publiek ? hub.publiek() : null;
+        return !!(p && p.spelers < p.max) && gateHandles.length + gateBusy < GATE_MAX_OFFERS;
+      },
       onKamer: (room) => openGateKamer(room),
     });
     if (g) gate = g;
@@ -316,10 +327,15 @@ export function mountLobby(root, hooks, opts = {}) {
     if (i >= 0) gateHandles.splice(i, 1);
   }
   async function openGateKamer(room) {
+    // #778: staan er al genoeg aanbiedingen open, dan geen kamer en dus ook geen antwoord: de vloed wacht maar.
+    if (gateHandles.length + gateBusy >= GATE_MAX_OFFERS) throw new Error('Te veel open aanbiedingen.');
+    const eigen = gate; // hoort dit aanbod nog bij de open gate? (de host kan de sessie intussen privé hebben gemaakt)
     let h = null, settled = false;
+    gateBusy++;
     try {
       h = await hostRoom(room, {
-        signaler: newSignaler(), timeouts: CONFIG.TIMEOUTS,
+        signaler: newSignaler(),
+        timeouts: { ...CONFIG.TIMEOUTS, wait: GATE_OFFER_MS }, // #778: een aanbod via de lijst staat kort open, geen 15 minuten
         onstate: (s, info) => {
           if (s !== 'open' && s !== 'fout') return; // de aanbieding zelf duurt nog: hij blijft staan tot hij open- of afgaat
           settled = true;
@@ -327,10 +343,13 @@ export function mountLobby(root, hooks, opts = {}) {
           dropGateHandle(h);
         },
       });
-      if (settled) return; // al afgegaan voordat we hem konden bewaren: er is niets meer open te zetten
-      gateHandles.push(h);
-      hooks.addGuest(h.transport);
-    } catch (e) { /* deze gast krijgt geen kamer; de volgende probeert het opnieuw */ }
+    } finally { gateBusy = Math.max(0, gateBusy - 1); }
+    // Geen antwoord publiceren met een kamer die al is afgegaan of niet meer bij deze gate hoort: de gast
+    // zou een code krijgen waar niemand op wacht. Door te gooien slaat net/joingate.js het antwoord over.
+    if (settled) throw new Error('Het aanbod ging al af voordat de kamer klaar was.');
+    if (gate !== eigen) { try { h.cancel(); } catch (e) { /* al weg */ } throw new Error('De sessie is niet meer openbaar.'); }
+    gateHandles.push(h);
+    hooks.addGuest(h.transport);
   }
   function stopGate() {
     const g = gate; gate = null;
