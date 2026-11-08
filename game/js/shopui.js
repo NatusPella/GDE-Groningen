@@ -5,6 +5,7 @@ import { hudPixelRatio } from './uiscale.js';
 import { isPadActive, onPadChange } from './gamepad.js';
 import { padGlyphInner } from './glyphs.js';
 import { shopIconSvg } from './shopicons.js';
+import { deviceText } from './touchui.js';
 import {
   itemIcon, itemStatus, refusalMessage, needsConfirm as needsConfirmFor, buyLabel as buyLabelFor, shopTabs, tabSections, stepTab, keepTab,
   flatItems, keepItem, shortPerk,
@@ -227,7 +228,7 @@ function renderStory() {
   el.classList.toggle('done', storyDone);
   el.querySelector('i').textContent = storyDone ? '✓' : '!';
   el.querySelector('b').textContent = storyDone ? 'Gelukt! Terug naar het verhaal' : storyBanner.title;
-  el.querySelector('span').textContent = storyDone ? 'Druk Esc en volg de route naar de volgende stap.' : [storyBanner.why, storyBanner.lead].filter(Boolean).join(' ');
+  el.querySelector('span').textContent = storyDone ? deviceText('Druk Esc en volg de route naar de volgende stap.', 'Tik op Sluiten en volg de route naar de volgende stap.') : [storyBanner.why, storyBanner.lead].filter(Boolean).join(' ');
   el.querySelector('small').textContent = storyDone ? '' : storyBanner.voorschot || '';
 }
 

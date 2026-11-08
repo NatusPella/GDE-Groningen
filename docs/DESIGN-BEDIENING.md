@@ -50,7 +50,7 @@ A text field never remaps and stops the game keys while it has focus (`input.js`
 
 **The mouse.** The game asks for pointer lock when the world is loaded and on a click or key; **Esc releases it and opens the pause menu** (`main.js`, `pointerlockchange`). The pause menu, map, phone and shops release the mouse and show the system cursor.
 Embedded browsers refuse the lock; after three refused gestures in a row the cursor steers freely (`LOCK_FAILS` in `input.js`, #328), which on several monitors can let the cursor leave the window. See debt (#435).
-Mouse sensitivity and invert Y are in Instellingen > Besturing, auto-aim in Spel > Camera & richten; the right stick steers the camera without any lock (`padLook`).
+Mouse sensitivity and invert Y are in Instellingen > Besturing, auto-aim in Spel > Camera & richten; the right stick steers the camera without any lock (`padLook`). Steering sensitivity (`steerSensitivity`, 0.5 to 1.5) scales the player's own throttle steering; bots and guests keep their own (#801).
 
 ## Controller
 
@@ -81,6 +81,7 @@ A device counts as touch when the main pointer is coarse and cannot hover (or th
 - Targets: the on-screen buttons are 64 px round (48 px for pause and "meer"), every other button at least 44 px high.
 - A phone (shorter side under 700 px) gets a smaller HUD (down to 0.62) and the safe-area insets are respected.
 - A minigame cell with a key becomes a 44 px button (`html.touch-play`).
+- Menu footers (`m-hint`) are hidden on touch (`html.touch-device .m-hint`); dialogs and buttons show no key names there (#801).
 
 ## Accessibility
 
@@ -89,6 +90,7 @@ Everything below is in Instellingen > Toegankelijkheid, Geluid & ondertitels and
 | Need | Setting | What it does |
 |---|---|---|
 | Hard to read small text | `uiScale` "Grootte interface", `textSize` normaal, groot, extragroot | scales the HUD, or the map and card text by 1, 1.15, 1.3 |
+| Explanation gone too fast | `readingTime` normaal, ruim, geen | "ruim" keeps tip and lesson cards 1.7x longer; "geen" keeps an important card until the player clicks it or presses Enter (#801) |
 | Subtitles | `subtitleSize` klein 0.85 to extragroot 1.5, `subtitleBox`, `subtitleContrast` hoog | optional dark box; "hoog" = pure white, heavier weight, nearly opaque box, at least 7:1 on any backdrop |
 | Cannot hear | `soundCaptions` | `[sirene]`, `[claxon]`, `[knal, in de verte]` for non-spoken sounds; spoken lines already have a subtitle |
 | Colour blindness | `colorBlind`: uit, deuteranopie, protanopie, tritanopie | swaps the marker palette (Okabe-Ito), see below |

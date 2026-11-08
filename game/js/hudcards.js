@@ -32,12 +32,12 @@ import { CAL_ICONS } from './calendar.js';
 import { menuMelding } from './menumelding.js';
 import { hoofdspeler } from './players.js';
 import { sfeerVan, sfeerStijl } from './carrieresfeer.js'; // #631: de sfeerband van de bijbaan op de kaart
+import { getSettings } from './settings.js';
+import { cardSeconds, stickyCard } from './cardtime.js';
 
 // the HUD's attention budget: one prominent card at a time
 const MAX_VISIBLE = 1;
 const MAX_QUEUE = 5;
-const MIN_TIME = 4;
-const MAX_TIME = 10;
 const OUT_TIME = 0.45;
 const TIP_STALE = 35;
 const TIP_KEEP = 120;
@@ -127,6 +127,17 @@ export function initCards(w, root) {
   visible = [];
   queue = [];
   w.cardSink = (text, dur, opts) => fromMessage(text, dur, opts);
+  // #801: een kaart die op 'geen timer' staat, sluit met een klik (zie mount)
+  // of met Enter/Spatie/Escape; nooit terwijl de HUD bevroren is (menu, film).
+  document.addEventListener('keydown', (e) => {
+    if (e.repeat || !stackEl || stackEl.classList.contains('paused')) return;
+    if (!['Enter', ' ', 'Spacebar', 'Escape'].includes(e.key)) return;
+    const c = visible.filter((v) => !v.leaving && v.sticky).sort((a, b) => b.at - a.at)[0];
+    if (!c) return;
+    e.preventDefault();
+    e.stopPropagation();
+    dismissCard(c);
+  }, { capture: true });
   if (typeof window !== 'undefined') window.__cards = { show: (spec) => showCard(world, spec), state: () => ({ visible: visible.map((c) => c.spec), queue: queue.map((q) => q.spec) }), classify };
   return stackEl;
 }
@@ -181,10 +192,14 @@ export function showCard(w, spec) {
   // "Missie: X" under the kicker MISSIE: X is the title
   if (title && body && title.toLowerCase() === (spec.kicker || CARD_KINDS[kind].label).toLowerCase()) { title = body; body = ''; }
   const all = `${title} ${body}`.trim();
-  const secs = Math.min(MAX_TIME, Math.max(MIN_TIME, (spec.duration || 0) * 1.2, readingSeconds(all) * 1.25));
+  // #801: 'Leestijd' in Spel > Hints & uitleg; bij 'geen timer' wacht een
+  // belangrijke kaart op een klik of Enter in plaats van vanzelf te verdwijnen.
+  const mode = getSettings().readingTime || 'normaal';
+  const secs = cardSeconds({ textSeconds: readingSeconds(all), duration: spec.duration || 0, mode });
   const icon = spec.icon || (kind === 'missie' ? missionCardIcon(world, `${title} ${body} ${spec.kicker || ''}`) : null);
   const card = { spec: { ...spec, kind, title, body, icon }, secs, key: spec.key || all, at: world ? world.time : 0, age: 0, text: spec.text || all };
   card.important = kind === 'tip' && (!!spec.important || teaches(all));
+  card.sticky = stickyCard(mode, card.important);
   const up = visible.find((c) => c.key === card.key && !c.leaving);
   if (up) { refresh(up, card); return; }
   card.rank = CARD_KINDS[card.spec.kind].rank;
@@ -225,7 +240,7 @@ function cardHtml(c) {
     : '';
   return `<div class="hc-icon">${svg(s.icon || s.kind)}</div>` +
     `<div class="hc-text"><small>${esc(kicker)}</small>${band}${s.title ? `<b>${keycaps(dualHtml(s.title))}</b>` : ''}${s.body ? `<span${s.title ? '' : ' class="solo"'}>${s.bodyHtml || keycaps(dualHtml(s.body))}</span>` : ''}</div>` +
-    '<i class="hc-timer"></i>';
+    (c.sticky ? '<i class="hc-timer"></i><i class="hc-close">Klik of druk op Enter</i>' : '<i class="hc-timer"></i>');
 }
 
 const zoneOf = (c) => cardZone(c.spec.kind);
@@ -235,13 +250,20 @@ function mount(c) {
   el.className = 'hud-card';
   el.dataset.kind = c.spec.kind;
   el.innerHTML = cardHtml(c);
-  el.style.setProperty('--hc-dur', `${c.secs}s`);
+  if (!c.sticky) el.style.setProperty('--hc-dur', `${c.secs}s`);
+  if (c.sticky) el.classList.add('sticky');
   (zoneOf(c) === 'E' ? stackE : stackEl).appendChild(el);
+  el.addEventListener('click', (ev) => {
+    if (!c.sticky) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    dismissCard(c);
+  });
   zones.occupy(zoneOf(c), 'card', cardPrio(c.spec.kind));
   // on next frame, so the entry transition runs without a forced layout
   requestAnimationFrame(() => { if (!c.leaving) el.classList.add('on'); });
   c.el = el;
-  c.left = c.secs;
+  c.left = c.sticky ? Infinity : c.secs;
   visible.push(c);
   speak(c);
 }
@@ -249,17 +271,29 @@ function mount(c) {
 function refresh(up, c) {
   up.spec = c.spec;
   up.secs = c.secs;
-  up.left = c.secs;
+  up.sticky = c.sticky;
+  up.left = c.sticky ? Infinity : c.secs;
   up.el.dataset.kind = c.spec.kind;
   up.el.innerHTML = cardHtml(up);
-  up.el.style.setProperty('--hc-dur', `${c.secs}s`);
+  if (c.sticky) up.el.classList.add('sticky');
+  else { up.el.classList.remove('sticky'); up.el.style.setProperty('--hc-dur', `${c.secs}s`); }
   up.el.classList.remove('bump');
   requestAnimationFrame(() => up.el.classList.add('bump'));
+}
+
+function dismissCard(c) {
+  if (c && c.sticky && !c.leaving) leave(c);
 }
 
 function leave(c) {
   if (c.leaving) return;
   c.leaving = true;
+  // #801: een les of tip telt pas als gezien als de kaart echt weg is
+  if (c.spec && c.spec.onClose) {
+    const cb = c.spec.onClose;
+    c.spec.onClose = null;
+    try { cb(); } catch (e) { /* een kaart mag het spel nooit stukmaken */ }
+  }
   c.left = OUT_TIME;
   c.el.classList.remove('on');
   c.el.classList.add('out');
@@ -334,8 +368,9 @@ export function updateCards(dt, w) {
   if (frozen) return;
   // during a phone call only dangers and the police get a card
   const calling = document.body.classList.contains('hud-call-on');
-  for (const c of visible) { c.left -= dt; if (c.hint) tryHint(c); }
-  for (const c of visible.filter((v) => v.left <= 0)) {
+  for (const c of visible) { if (!c.sticky) c.left -= dt; if (c.hint) tryHint(c); }
+  for (const c of [...visible]) {
+    if (c.sticky || c.left > 0) continue;
     if (!c.leaving) leave(c);
     else {
       c.el.remove();
