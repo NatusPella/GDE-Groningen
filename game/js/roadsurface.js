@@ -1611,7 +1611,20 @@ function roadWorkerReady() {
   if (RW.state === 0 && netMap && geoWorkerActive() && typeof location !== 'undefined') {
     RW.state = 1;
     loadMark('roadsRequested');
-    runGeo('roadInit', { url: new URL('stad.json', location.href).href, keys: netMap.roads.map(roadKey) }, (res) => {
+    // (#753) In de sparse wereld is `map.roads` leeg: `fromParts` laat die
+    // arraylaag weg (mapdata.js, #314 C2) en houdt de bronlijst in `_roadsLive`.
+    // Stuurde de worker een lege keys-lijst, dan snoeide roadInit zijn hele
+    // wegraster weg en bouwde de hoofdthread alle 18.454 wegen zelf (1,64 ms per
+    // weg). De worker heeft dezelfde tegeldata, dus de bronlijst geeft precies
+    // de keys die hij kent; gestroomde provincie-/corridorwegen vallen zoals
+    // voorheen op de hoofdthread (`_geoMain`).
+    const source = netMap._roadsLive || netMap.roads;
+    const keys = source.map(roadKey);
+    // (#753/#762) De bronlijst is hierna niet meer nodig (dropRoad is tijdens de
+    // boot al gebeurd); de map mag hem loslaten (~11 MB). De keys zijn al
+    // gekopieerd en gaan mee in het worker-bericht.
+    if (netMap.releaseRoadSource) netMap.releaseRoadSource();
+    runGeo('roadInit', { url: new URL('stad.json', location.href).href, keys }, (res) => {
       RW.state = res && !res.missing ? 2 : -1;
       loadMark('roadsReady');
     });
