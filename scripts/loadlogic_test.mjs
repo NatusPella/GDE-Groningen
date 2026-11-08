@@ -72,6 +72,8 @@ ok(/return 'luchtfoto';\s*\}/.test(pickBody), 'pickImage falls back to the neutr
 ok(!/place\.country[^\n]*achtervolging/.test(pickBody), 'the country at night does not get the chase picture');
 ok(!/CITY_IMAGES/.test(src), 'no hash-picked random city picture');
 ok(!/sceneSvg|ls-scene/.test(src), 'load screen has no own svg scene');
+// #770: haalt iets het laadscherm weg, dan rondt de lus af in plaats van alleen te stoppen, anders blijft done hangen
+ok(/if \(!el\.isConnected\) \{ finish\(\); return; \}/.test(src), 'een losgekoppeld laadscherm resolvet done (#770)');
 
 // #600: the boot bar has real steps with words, also at the last one
 ok(BOOT_PHASES.length === 5 && BOOT_PHASES[0].from === 0 && BOOT_PHASES[BOOT_PHASES.length - 1].from >= 0.9,
