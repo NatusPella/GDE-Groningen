@@ -9,7 +9,34 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
-- **De webversie laadt de spelbestanden niet meer twee keer bij de eerste start.** Alleen de pagina en de lettertypen worden nog vooraf bewaard; de ruim 900 spelscripts komen pas in de tijdelijke opslag wanneer het spel ze nodig heeft. Dat scheelt bij een nieuwe versie bijna 900 extra verzoeken en enkele megabytes data.
+- **Het spel begint meteen na het laadscherm; de garage-, café- en winkeldeuren in de Ommelanden verschijnen even later (#750).**
+- **De vraag over Samen spelen bij de eerste start heeft nu een knop Later en Escape (#751).** Het spel blijft niet meer op 100% hangen en slaat niets op zonder bewuste keuze.
+- **Als het laden écht vastloopt, toont het laadscherm na verloop van tijd een fout met Opnieuw laden (#749).** Een geminimaliseerd venster haalt de start niet meer onderuit.
+- **De webversie laadt de spelbestanden niet meer twee keer bij de eerste start (#757).** Alleen de pagina en de lettertypen worden nog vooraf bewaard; de ruim 900 spelscripts komen pas in de tijdelijke opslag wanneer het spel ze nodig heeft. Dat scheelt bij een nieuwe versie bijna 900 extra verzoeken en enkele megabytes data.
+- **De stadswagen worden weer in de geometrie-worker opgebouwd in plaats van op de hoofdthread (#753).** Minder haperingen en sneller wegen in beeld.
+- **De verre stad blijft na het streamen van een tegel zichtbaar (#755).** Cutscene, luchtfoto en wijde zichtafstand houden hun gebouwen.
+- **Minder haperingen na het streamen van tegels: de routegraaf en de waterindex worden niet meer bij elke tegel opnieuw opgebouwd (#754).** Kruispuntmarkering en -aansluitingen kloppen daarna weer.
+- **Water blijft niet meer permanent dicht op een trage computer of in de zuinig-stand (#756).** Het watermasker ververst nu ook als alle beelden traag zijn.
+- **Bomen van een zojuist gestroomde tegel verschijnen nu meteen, ook als je stil staat (#786).**
+- **Boomcontrole in bosrijke gebieden draait alleen nog als er echt iets kan veranderen (#760).** Minder haperingen bij stilstand.
+- **De verkeers-AI, voetgangers en dieren zoeken elkaars buren één keer per frame (#752).** Dat scheelt honderden zoekopdrachten per frame.
+- **De schaduwkwaliteit past zich rustiger aan (#792), en mensen en voertuigen gebruiken na veel wissels minder videogeheugen (#787, #788).**
+- **Politieauto's tijdens een achtervolging blijven rijden in plaats van af en toe stil te vallen (#785).**
+- **Auto's beginnen een inhaalmanoeuvre niet meer te vroeg als er nog een tegenligger op ongeveer 30 m aankomt (#791).**
+- **Nieuwe propjes in de Ommelanden (wereldeinden, dorpen, stadsleven) zijn meteen botsbaar zodra ze verschijnen (#794).**
+- **Op snelle schermen (120/144 Hz) zakt de automatische kwaliteit in de zuinige modus niet meer onnodig naar beneden (#793).**
+- **Als je iemand uit een sessie zet, krijgt de sessie een nieuwe kamercode (#779).** Die speler kan niet met de oude code opnieuw binnenkomen; de andere spelers blijven gewoon zitten.
+- **Openbare sessies kunnen niet meer overlopen door join-verzoeken (#778).** Er staan hoogstens vier aanbiedingen tegelijk open en elk verloopt na 30 seconden als er niemand komt.
+- **Sluit je aan via de openbare lijst, dan controleert het spel na het verbinden of je bij de sessie bent die je koos (#777).** Klopt dat niet, dan stopt de verbinding met een waarschuwing.
+- **Aansluiten bij een sessie lukt nu ook als jouw klok en die van de gastheer enkele minuten verschillen (#782).**
+- **De kaart blijft soepel in Samen spelen (#759).** Bewegende medespelers en politie laten de labels en straatnamen niet meer elke frame opnieuw tekenen.
+- **De vraag bij Nieuw spel met een volle opslag zegt nu eerlijk dat ook de herstelkopie van het oude spel wordt gewist (#780).**
+- **Een nieuwe wijkkaart wordt nu meteen bewaard, ook als er verder niets verandert (#790).**
+- **Na het laden van een save staat de missie-HUD er meteen goed op (#789).** Triggerring, checkpointteller en samen-indicator verschijnen zonder dat de missie eerst hoeft te wisselen.
+- **Het verhaal loopt na een loopbaan of andere afgeleide stap meteen door (#758).** De volgende stap bleef soms staan.
+- **G-Music houdt na een lange radiosessie nog steeds maar drie nummers klaarstaan (#761).** De rest wacht tot het aan de beurt is, wat op lange sessies mediabuffer-geheugen scheelt.
+- **Een scène die op je wacht — bijvoorbeeld als je even wegloopt — wordt niet meer na twintig seconden overgeslagen (#771).**
+- **De Skûtsje-sprint begint altijd op de kade van de Oosterhaven (#766).** Ook op een wereld die net iets anders is opgebouwd.
 - **Ruim 550 ontbrekende stemregels zijn ingesproken.** De verhaalregels die nog alleen tekst waren (en de wachtrij die daarop stond) hebben nu een opname; 20 regels wachten nog op een Groningse spreektekst en blijven tekst.
 
 ## [0.58.0] - 2026-11-07
