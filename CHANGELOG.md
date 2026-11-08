@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- **De eerste minuten lopen soepeler: de graslaag wordt niet meer bij elke gestroomde tegel helemaal opnieuw opgebouwd.** De graschunks hangen nu aan de groenlaag in plaats van aan elke kaartwissel, en alleen nieuwe groenvlakken worden nog op sublaag getoetst. In de browsertest op een schone machine ging het spelen na de opening van ongeveer 1 naar 14 fps in hetzelfde venster; de opening zelf blijft het zwaarste stuk.
 - **De eerste minuten in de stad haperen minder: het laadscherm zet de buurt rond je startpunt en de shaders alvast klaar.** Dat gebeurt ook als je een opgeslagen spel laadt, op de plek waar je opgeslagen stond, en de deuren in de Ommelanden en de kaartbeelden worden dan al klaargezet. Het laadscherm duurt daarvoor op een langzame computer iets langer; een test- of benchmarkrun slaat het voorladen over.
 - **Het spel bouwt de grond onder Groningen niet meer bij elke start opnieuw op.** De build bakt die grond één keer (2,8 MB); het opstarten scheelt op een gewone machine ruim twee seconden, op een trage computer meer. De webversie haalt dat bestand eenmalig op en daarna uit de eigen cache; zonder het bestand bouwt het spel de grond zoals voorheen.
 - **Het spel begint meteen na het laadscherm; de garage-, café- en winkeldeuren in de Ommelanden verschijnen even later (#750).**
