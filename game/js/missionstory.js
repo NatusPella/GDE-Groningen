@@ -1,5 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { buildPersonMesh, animatePersonWalk, seatPose, seatedY, standBehindPose, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
+import { buildPersonMesh, animatePersonWalk, seatPose, seatedY, standBehindPose, releasePersonGeometry, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { HABBO_PALETTE } from './pixelart3d.js';
 import { playCinematic, roofAt, showBanner } from './cinematics.js';
 import { isInWater, WATER_Y } from './util.js';
@@ -551,11 +551,12 @@ function makeActor(app) {
 }
 
 function disposeActor(m) {
+  // #796: de skinned geometry is de gedeelde rompgeometrie uit personGeometries; geef de ref
+  // terug in plaats van hem te disposen (dat trof ook levende voetgangers met dezelfde look).
   m.traverse((o) => {
-    if (o.isSkinnedMesh) {
-      o.geometry.dispose();
-      if (o.skeleton) o.skeleton.dispose();
-    }
+    if (!o.isSkinnedMesh) return;
+    releasePersonGeometry(o);
+    if (o.skeleton) o.skeleton.dispose();
   });
 }
 

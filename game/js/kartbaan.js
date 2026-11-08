@@ -2,7 +2,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { toonStartkaart } from './startkaart.js';
 import { canvasTex, signBothSides } from './canvastex.js';
 import { getScene } from './scene3d.js';
-import { buildPersonMesh, animatePersonWalk, seatPerson, seatedY, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
+import { buildPersonMesh, animatePersonWalk, seatPerson, seatedY, releasePersonGeometry, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { showBanner } from './cinematics.js';
 import { pushAudioEvent } from './pedgeom.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, MEDALS } from './achievements.js';
@@ -626,7 +626,12 @@ function end(w, { quit = false } = {}) {
       k.mesh.visible = false;
       if (k.rider) {
         getScene().remove(k.rider);
-        k.rider.traverse((o) => { if (o.isSkinnedMesh) { o.geometry.dispose(); if (o.skeleton) o.skeleton.dispose(); } });
+        // #796: gedeelde rompgeometrie terug, skelet weg (niet de gedeelde geometrie disposen)
+        k.rider.traverse((o) => {
+          if (!o.isSkinnedMesh) return;
+          releasePersonGeometry(o);
+          if (o.skeleton) o.skeleton.dispose();
+        });
         k.rider = null;
       }
     });

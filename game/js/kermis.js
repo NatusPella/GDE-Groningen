@@ -2,7 +2,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { toonStartkaart } from './startkaart.js';
 import { canvasTex } from './canvastex.js';
 import { bumperCarGeometry, bumperCarMaterial } from './bumpercar3d.js';
-import { getScene } from './scene3d.js';
+import { getScene, disposeObject } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk, seatPerson, seatedY, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { showBanner } from './cinematics.js';
 import { pushAudioEvent } from './pedgeom.js';
@@ -356,7 +356,8 @@ function disposeCrowd() {
   if (!crowd) return;
   for (const c of crowd) {
     getScene().remove(c.mesh);
-    c.mesh.traverse((o) => { if (o.isSkinnedMesh) { o.geometry.dispose(); if (o.skeleton) o.skeleton.dispose(); } });
+    // #796: via de gewone opruimer, zodat de gedeelde rompgeometrie en het skelet teruggaan
+    disposeObject(c.mesh);
   }
   crowd = null;
 }
@@ -624,7 +625,7 @@ function end(w, { quit = false } = {}) {
   built.cars.forEach((car, i) => {
     if (car.rider) {
       getScene().remove(car.rider);
-      car.rider.traverse((o) => { if (o.isSkinnedMesh) { o.geometry.dispose(); if (o.skeleton) o.skeleton.dispose(); } });
+      disposeObject(car.rider); // #796: gedeelde rompgeometrie en skelet terug
       car.rider = null;
     }
     parkCar(car, i);

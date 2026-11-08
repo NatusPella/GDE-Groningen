@@ -1,6 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { GeoBuilder, vcMaterial, markShared } from './pixelart3d.js';
-import { buildPersonMesh, seatPerson, seatedY, animatePersonWalk } from './models3d_people.js';
+import { buildPersonMesh, seatPerson, seatedY, animatePersonWalk, releasePersonGeometry } from './models3d_people.js';
 import { buildCowMesh3D } from './wildlife.js';
 import { buildBike } from './sidejobkit.js';
 import { RIKUS_LOOK } from './storycast.js';
@@ -155,7 +155,9 @@ export function disposeProp(p) {
   p.group.traverse((o) => {
     if (o.isSkinnedMesh) {
       if (o.skeleton) o.skeleton.dispose();
-      if (o.geometry && !o.geometry.userData.shared && !SHARED_GEO.has(o.geometry)) o.geometry.dispose();
+      // #796: de rompgeometrie is gedeeld (personGeometries): de ref terug i.p.v. disposen
+      if (typeof o.geometry.userData.personRefs === 'number') releasePersonGeometry(o);
+      else if (o.geometry && !o.geometry.userData.shared && !SHARED_GEO.has(o.geometry)) o.geometry.dispose();
     }
   });
 }
