@@ -6,6 +6,7 @@
 import { wgsToWorld } from './rdnew.js';
 import { GOLF_VORM } from './golficons.js';
 import { STOP_DIRECT, STOP_VRAAG, STOP_BEVESTIG, STOP_DOORGAAN, stopUitkomst } from './stopconventie.js';
+import { deviceText } from './touchui.js';
 
 // Scene, banner and card of the running game, set by activities.js: a minigame that imports them
 // itself would sit in the big import cycle through scene3d/cinematics/hudcards (#108).
@@ -373,7 +374,7 @@ export function stopPressed(input) {
     // #596: het venster staat in de HUD-stijl, met echte knoppen zodat touch ook een uitweg heeft.
     el.innerHTML = '<b>Stoppen?</b><div class="mg-stopbtns" role="group" aria-label="Stoppen?">' +
       '<button type="button" data-do="door">Doorgaan</button><button type="button" data-do="stop">Stoppen</button></div>' +
-      '<small>Esc of Enter = stoppen &middot; Spatie = doorgaan</small>';
+      '<small>' + deviceText('Esc of Enter = stoppen &middot; Spatie = doorgaan', 'Tik op Stoppen of Doorgaan') + '</small>';
     const kies = (k) => {
       // dezelfde toetsweg als de rest van het spel: keydown + keyup via input.js
       inputMod = inputMod || import('./input.js');

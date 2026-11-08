@@ -125,8 +125,7 @@ export function updateOnboarding(dt, w) {
     if (!l.when(w, seen)) continue;
     if (!quiet() || cardsBusy() || !mayStart('card')) return;
     const c = l.card();
-    showCard(w, { kind: 'tip', kicker: 'Uitleg', title: c.title, body: plainKeys(c.body), bodyHtml: htmlKeys(c.body), key: 'uitleg-' + l.id, important: true, voice: false, duration: 9 });
-    markSeen(l.id);
+    showCard(w, { kind: 'tip', kicker: 'Uitleg', title: c.title, body: plainKeys(c.body), bodyHtml: htmlKeys(c.body), key: 'uitleg-' + l.id, important: true, voice: false, duration: 9, onClose: () => markSeen(l.id) });
     lastAt = playT;
     return;
   }

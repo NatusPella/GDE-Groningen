@@ -598,6 +598,7 @@ function settingsHtml() {
       <div class="m-gh"><span>Controller</span></div>
       ${picker('padLayout', 'Controllerindeling', [['auto', 'Automatisch'], ['xbox', 'Onderste knop bevestigt (A B X Y)'], ['switch', 'Rechterknop bevestigt (A en B, X en Y omgewisseld)'], ['ps', 'Vormknoppen'], ['deck', 'Handheld']], 'Automatisch kiest wat er aangesloten is. Meldt je controller zich anders dan hij is (bijvoorbeeld via een koppelprogramma), kies dan zelf; knoppen en hints volgen je keuze')}
       ${slider('padLookSensitivity', 'Camera met de rechterstick', 0.3, 2.5, 0.05)}
+      ${slider('steerSensitivity', 'Stuurgevoeligheid', 0.5, 1.5, 0.05, 'Hoe fel een voertuig op links en rechts reageert')}
       ${toggle('rumble', 'Trillen', 'Bij klappen, schoten en botsingen, als je controller dat kan')}
       <div class="m-li pm-row">${rowName('Knoppen indelen', 'Elke knop een andere functie geven')}<button type="button" class="m-bg" data-goto-sub="controls:knoppen">Indelen</button></div>
       <div class="m-li pm-row">${rowName('Controller testen', 'Welk pad wordt herkend en welke knop doet wat')}<button type="button" class="m-bg" data-pad-test>Testen</button></div>
@@ -697,7 +698,8 @@ function spelHtml() {
     ${tab('hints', `
       ${toggle('showHints', 'Toetshints', 'De toetsen onderin beeld bij wat je nu kunt doen')}
       ${picker('hintSource', 'Hints tonen voor', [['auto', 'Automatisch'], ['keys', 'Toetsenbord'], ['pad', 'Controller']], 'Automatisch volgt wat je het laatst gebruikte')}
-      ${toggle('onboardingTips', 'Uitleg voor nieuwe spelers', 'Korte tips, elk één keer: je eerste klus, geld en winkels, de telefoon, de kaart en Activiteiten')}`, `${pane('Hints & uitleg', 'Hulp in beeld', '<p>Toetshints en korte tips voor nieuwe spelers. Je kunt ze altijd uitzetten.</p>')}`)}`;
+      ${toggle('onboardingTips', 'Uitleg voor nieuwe spelers', 'Korte tips, elk één keer: je eerste klus, geld en winkels, de telefoon, de kaart en Activiteiten')}
+      ${picker('readingTime', 'Leestijd van uitleg', [['normaal', 'Normaal'], ['ruim', 'Ruim'], ['geen', 'Geen timer']], 'Hoe lang tip- en uitlegkaarten blijven staan; bij "geen timer" wacht een uitlegkaart op een klik of Enter')}`, `${pane('Hints & uitleg', 'Hulp in beeld', '<p>Toetshints en korte tips voor nieuwe spelers. Je kunt ze altijd uitzetten.</p>')}`)}`;
 }
 // Problemen (#604): het foutrapport staat onder Over, niet meer als tabblad onder Instellingen. De
 // Nederlandse samenvatting staat vooraan; de ruwe, Engelse meldingen zitten achter de vouw.

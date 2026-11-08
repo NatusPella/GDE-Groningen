@@ -13,6 +13,7 @@ import { requestRespawn } from './world.js';
 import { roadGrip } from './weather.js';
 import { getSettings } from './settings.js';
 import { makeJumpAssist, jumpStep } from './gamefeel.js';
+import { steerScale } from './steerscale.js';
 import { assistDamage } from './assistlive.js';
 import { ALGAE } from './eventrules.js';
 import { knockDown, isKnockedDown } from './ragdoll.js';
@@ -1065,6 +1066,8 @@ export class Player {
     }
     const steerIn = world ? Math.max(-1, Math.min(1, ax + (v.coopBestuurder ? 0 : drunkSteer(world, v)))) : ax; // een gast die stuurt (coopbestuur.js) is niet dronken van wat de host dronk
     const st = getSettings();
+    // #801: Stuurgevoeligheid onder Besturing; geldt voor de speler, niet voor bots of gasten
+    const steerS = steerScale(steerIn, st.steerSensitivity);
     v.shiftMode = st.shiftMode;
     v.driftAssist = st.driftAssist;
     v.bikeAssist = st.bikeAssist;
@@ -1084,12 +1087,12 @@ export class Player {
       // the horn in front of a movable bridge: it opens (movablebridges.js)
       if (v.horn && !v._hornWas) { hornAt(v.x, v.y, v); hornSluis(v); }
       v._hornWas = v.horn;
-      drivePlayerBoat(v, map, dt, throttle, steerIn, brake && v.speed !== 0);
+      drivePlayerBoat(v, map, dt, throttle, steerS, brake && v.speed !== 0);
     }
     else {
       const n = Math.min(4, Math.max(1, Math.ceil(Math.abs(v.speed) * dt / SUBSTEP)));
       for (let i = 0; i < n; i++) {
-        v.applyControls(dt / n, throttle, steerIn, brake && v.speed !== 0);
+        v.applyControls(dt / n, throttle, steerS, brake && v.speed !== 0);
         resolveVehicleBuildingCollision(v, map, dt / n);
       }
     }

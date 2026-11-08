@@ -12,6 +12,7 @@ import { getAchievementView, getAchievementSummary, getSaveSet, EIERBAL_TOTAL, M
 import { SECRETS_TOTAL } from './geheimen.js';
 import { getGoal, clearGoal, storyWaiting } from './goal.js';
 import { formatDistance } from './routing.js';
+import { deviceText } from './touchui.js';
 import { dualHtml } from './subtitles.js';
 import { fillBars, countTo } from './motion.js';
 import { placeShot } from './placeshot.js';
@@ -141,7 +142,7 @@ function heroHtml(world) {
       ? `Nog te doen voor de aftiteling: ${open.join(', ')}. Een overgeslagen missie telt pas als je hem alsnog haalt.`
       : 'Speel missies opnieuw als klus voor een betere medaille, verdien bij met een bijbaantje of zoek wat er nog verstopt ligt.';
     return `<article class="ov-hero"><div class="ov-main"><span class="m-eb">Het verhaal</span><h1 class="ov-title">${esc(sv.title)}</h1><p class="ov-lead">${esc(text)}</p></div>` +
-      `<div class="m-acts"><button type="button" class="m-bp" data-action="resume">Doorgaan <span class="m-kc dark">Esc</span></button><button type="button" class="m-bg" data-todo-view="alles">Alles te doen</button>` +
+      `<div class="m-acts">${deviceText('<button type="button" class="m-bp" data-action="resume">Doorgaan <span class="m-kc dark">Esc</span></button>', '<button type="button" class="m-bp" data-action="resume">Doorgaan</button>')}<button type="button" class="m-bg" data-todo-view="alles">Alles te doen</button>` +
       `${e && e.credits ? '<button type="button" class="m-bg" data-story-credits>Aftiteling bekijken</button>' : ''}</div>${goalLine(world)}</article>`;
   }
   const steps = getStorySteps().filter((s) => s.part === sv.part && s.available);
@@ -157,7 +158,7 @@ function heroHtml(world) {
     `<div class="ov-main"><span class="m-eb">Het verhaal · ${esc(PARTS[sv.part].title)}</span>` +
     `<h1 class="ov-title${title.length > 20 ? " long" : ""}">${esc(title)}</h1>${cur && cur.lead ? `<p class="ov-lead">${esc(cur.lead)}</p>` : ''}` +
     `<div class="ov-prog"><span class="m-bar"><i data-bar="ov-part" data-w="${pct}"></i></span><span class="mut">Stap <span data-num="ov-part" data-to="${done}">${done}</span> van ${steps.length}${where ? ` · ${esc(where)}` : ''}</span></div></div>` +
-    `<div class="m-acts ov-acts"><button type="button" class="m-bp" data-action="resume">Doorgaan <span class="m-kc dark">Esc</span></button>` +
+    `<div class="m-acts ov-acts">${deviceText('<button type="button" class="m-bp" data-action="resume">Doorgaan <span class="m-kc dark">Esc</span></button>', '<button type="button" class="m-bp" data-action="resume">Doorgaan</button>')}` +
     `${it && !goal ? `<button type="button" class="m-bg" data-todo-goal="${esc(it.key)}">Zet als doel</button>` : ''}` +
     `${it && goal ? `<button type="button" class="m-bg" data-todo-goal="${esc(it.key)}">Terug naar het verhaal</button>` : ''}` +
     `<button type="button" class="m-bg" data-goto="map">${svg(ICON.pin)}Kaart</button>` +
