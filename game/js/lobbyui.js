@@ -416,15 +416,45 @@ export function mountLobby(root, hooks, opts = {}) {
   // ----- gast
   const nameOf = (char) => (charInfo(char) || {}).naam || '?';
   const naamVan = (p) => (p && p.avatar && p.avatar.naam) || nameOf(p && p.char); // (#455) de online-avatar gaat voor de figuur
-  function watch(sess) {
+  // (#777) Het antwoord op een join-verzoek is niet cryptografisch aan de host gebonden (zie net/joingate.js):
+  // wie het openbare verzoek ziet, kan zelf een geldig uitziend antwoord publiceren. De eerste controle die de
+  // gast wél kan doen is het welkom: daarin staan het vaste sessie-id en de naam van de sessie (net/hub.js).
+  // Klopt het id niet met de rij waarop geklikt is, dan is dit de kamer van iemand anders: verbinding loslaten.
+  // Een andere naam bij hetzelfde id is geen aanval maar een gewijzigde sessienaam: waarschuwen, niet blokkeren.
+  function hostIdentityCheck(expected, actual) {
+    if (!actual || typeof actual.id !== 'string' || !actual.id) {
+      return { hard: true, msg: 'Let op: van deze sessie kon niet worden gecontroleerd of de kamer bij de gastheer uit de lijst hoort. De verbinding is verbroken. Kies de sessie opnieuw uit de lijst.' };
+    }
+    if (String(actual.id) !== expected.id) {
+      return { hard: true, msg: 'Let op: deze kamer hoort niet bij de sessie waarop je klikte: iemand anders beantwoordde het verzoek. De verbinding is verbroken. Kies de sessie opnieuw uit de lijst of vraag de kamercode.' };
+    }
+    if (expected.naam != null && String(actual.naam || '') !== expected.naam) {
+      return { hard: false, msg: `Let op: deze sessie heet nu "${String(actual.naam || 'zonder naam')}" in plaats van "${expected.naam}". Je bent met dezelfde sessie verbonden (het sessie-id klopt), maar de naam is intussen veranderd.` };
+    }
+    return null;
+  }
+  function watch(sess, expected = null) {
     session = sess;
+    let rejectedIdentity = false; // na een identiteitsfout de rest negeren, zodat de waarschuwing blijft staan
     sess.onstatus = (st) => {
+      if (rejectedIdentity) return;
+      const check = st === 'ok' && expected ? hostIdentityCheck(expected, sess.sessie) : null;
+      if (check && check.hard) {
+        rejectedIdentity = true;
+        // Meteen loslaten: niet in het spel van iemand anders belanden (constitutie 10).
+        try { if (hooks.disconnect) hooks.disconnect('verbreek', ROLES.GAST, opts.holdSlot); } catch (e) { /* al weg */ }
+        cleanup();
+        set({ t: 'kies', rol: ROLES.GAST });
+        set({ t: 'fout', msg: check.msg });
+        return;
+      }
       set({ t: 'status', status: st, reason: sess.rejected, ander: sess.remoteVersion, partner: { slot: sess.slot } });
       if (st === 'ok') {
         if (sess.sessie) set({ t: 'sessie', sessie: sess.sessie }); // bij welke sessie je hoort (#450)
         if (!sess.lijstGezien && sess.welcome && Array.isArray(sess.welcome.lijst)) set({ t: 'spelers', lijst: sess.welcome.lijst.map((x) => ({ ...x, naam: naamVan(x) })), max: sess.welcome.max });
         if (!joinedOnce) { joinedOnce = true; if (hooks.joined) hooks.joined(ROLES.GAST); }
         if (opts.start && hooks.resumed) hooks.resumed();
+        if (check) set({ t: 'fout', msg: check.msg }); // zelfde sessie-id, andere naam: alleen een waarschuwing
       }
     };
     const prev = sess.onevent;
@@ -440,7 +470,10 @@ export function mountLobby(root, hooks, opts = {}) {
     const inv = state.invoer;
     const kan = hooks.canJoin ? hooks.canJoin() : { ok: true };
     if (!kan.ok) { set({ t: 'kies', rol: ROLES.GAST }); return set({ t: 'fout', msg: kan.reason }); }
-    const bind = (tr) => { if (opts.session) { opts.session.rebind(tr); watch(opts.session); } else watch(metWachtwoord(hooks.startClient(tr, inv.route, state.wens, { wachtwoord: state.wachtwoord }))); };
+    // (#777) Bij een rij uit de lijst hoort een sessie-id en een naam; na het verbinden controleert de gast
+    // of het welkom daarbij hoort (hostIdentityCheck). Bij de kamercode-route valt er niets te vergelijken.
+    let expected = null;
+    const bind = (tr) => { if (opts.session) { opts.session.rebind(tr); watch(opts.session); } else watch(metWachtwoord(hooks.startClient(tr, inv.route, state.wens, { wachtwoord: state.wachtwoord })), expected); };
     if (inv.route === ROUTES.DIRECT) {
       const tr = ipcTransport(api, 0);
       const r = await api.join(inv.code);
@@ -455,6 +488,9 @@ export function mountLobby(root, hooks, opts = {}) {
     const viaLijst = typeof kamer === 'string' && kamer.startsWith('@');
     if (viaLijst) {
       const id = kamer.slice(1);
+      expected = { id }; // het sessie-id uit de rij waarop de speler klikte (lobby.js: 'lijst-kies')
+      const rij = Array.isArray(state.lijst) ? state.lijst.find((x) => x && x.id === id) : null;
+      if (rij && typeof rij.naam === 'string') expected.naam = rij.naam;
       try { kamer = await (opts.haalKamer ? opts.haalKamer(id) : vraagKamer({ id, maakSignaler: () => newLijstSignaler(JOIN.interval) })); }
       catch (e) { set({ t: 'kies', rol: ROLES.GAST }); return set({ t: 'fout', msg: 'Deze sessie antwoordt niet. Kies opnieuw uit de lijst of vraag de kamercode.' }); }
       if (!kamer) { set({ t: 'kies', rol: ROLES.GAST }); return set({ t: 'fout', msg: 'Deze sessie antwoordt niet. Kies opnieuw uit de lijst of vraag de kamercode.' }); }
