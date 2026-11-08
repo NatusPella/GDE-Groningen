@@ -29,6 +29,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - **Openbare sessies kunnen niet meer overlopen door join-verzoeken (#778).** Er staan hoogstens vier aanbiedingen tegelijk open en elk verloopt na 30 seconden als er niemand komt.
 - **Sluit je aan via de openbare lijst, dan controleert het spel na het verbinden of je bij de sessie bent die je koos (#777).** Klopt dat niet, dan stopt de verbinding met een waarschuwing.
 - **Aansluiten bij een sessie lukt nu ook als jouw klok en die van de andere speler enkele minuten verschillen (#782).**
+- **De openbare sessielijst en het join-verzoek hebben een nieuwe indeling (#795).** Gebruik dezelfde versie als de andere spelers; dat was al de regel voor Samen spelen. Onder water is het join-antwoord nu aan een sleutel van de sessie gebonden, zodat een derde je niet naar diens kamer kan sturen.
 - **De kaart blijft soepel in Samen spelen (#759).** Bewegende medespelers en politie laten de labels en straatnamen niet meer elke frame opnieuw tekenen.
 - **De vraag bij Nieuw spel met een volle opslag zegt nu eerlijk dat ook de herstelkopie van het oude spel wordt gewist (#780).**
 - **Een nieuwe wijkkaart wordt nu meteen bewaard, ook als er verder niets verandert (#790).**
