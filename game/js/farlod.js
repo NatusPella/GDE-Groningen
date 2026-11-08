@@ -385,10 +385,13 @@ export function createFarLOD(scene, map, opts) {
   let baseBuild = null, baseStale = false;
   // One job per grid over its cells; an item in several cells is taken once
   // (the same dedupe as gridItems, but the walk itself is spread over frames).
+  // #755: de positie IN de cel wordt bewaard. Valt het budget midden in een cel,
+  // dan gaat de volgende frame daar verder waar deze stopte; de buiten-iterator
+  // is die cel al voorbij, dus de rest mag niet aan de iterator worden overgelaten.
   function startBaseBuild() {
     baseBuild = {
       jobs: [{ kind: 'building', grid: map.buildingGrid }, { kind: 'road', grid: map.roadGrid }, { kind: 'green', grid: map.greenGrid }]
-        .map((j) => ({ ...j, cells: j.grid && j.grid.map ? j.grid.map.values() : null, seen: new Set() })),
+        .map((j) => ({ ...j, cells: j.grid && j.grid.map ? j.grid.map.values() : null, seen: new Set(), cell: null, i: 0 })),
       j: 0,
     };
   }
@@ -398,17 +401,26 @@ export function createFarLOD(scene, map, opts) {
     while (B.j < B.jobs.length) {
       const job = B.jobs[B.j];
       if (!job.cells) { B.j++; continue; }
-      let n = 0;
-      for (;;) {
+      if (!job.cell) {
         const c = job.cells.next();
-        if (c.done) { job.seen = null; job.cells = null; B.j++; break; }
-        for (const it of c.value) {
-          if (job.seen.has(it)) continue;
-          job.seen.add(it);
-          takeBase[job.kind](it);
-          if ((++n & 63) === 0 && performance.now() >= deadline) return false;
+        if (c.done) { job.seen = null; job.cells = null; B.j++; continue; }
+        job.cell = c.value;
+        job.i = 0;
+      }
+      const cel = job.cell;
+      let n = 0;
+      for (; job.i < cel.length; job.i++) {
+        const it = cel[job.i];
+        if (job.seen.has(it)) continue;
+        job.seen.add(it);
+        takeBase[job.kind](it);
+        if ((++n & 63) === 0 && performance.now() >= deadline) {
+          job.i++; // de volgende frame begint na dit item, midden in dezelfde cel
+          return false;
         }
       }
+      job.cell = null;
+      job.i = 0;
     }
     // een tegel groepeert zijn groen op dezelfde rangorde als voor #755
     if (colors.greenRank) for (const t of tiles.values()) t.green.sort((x, y) => colors.greenRank(x) - colors.greenRank(y));
