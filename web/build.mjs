@@ -142,7 +142,7 @@ async function main() {
   for (const f of ['web.js', 'sw.js']) h.update(fs.readFileSync(path.join(HERE, f)));
   const cacheName = `gde-${version}-${h.digest('hex').slice(0, 10)}`;
   const sizes = Object.fromEntries(ESSENTIALS.filter((f) => fs.existsSync(path.join(OUT, f))).map((f) => [f, fs.statSync(path.join(OUT, f)).size]));
-  // #657: alle JS-modules en de fonts in de precache van de service worker
+  // #757: alleen de schil en de fonts in de precache van de service worker
   const shell = shellFiles(files.map(rel));
   const stamp = (src) => src.split('__GDE_CACHE__').join(cacheName).split('__GDE_SIZES__').join(JSON.stringify(sizes)).split('__GDE_SHELL__').join(JSON.stringify(shell));
   fs.writeFileSync(path.join(OUT, 'web.js'), stamp(fs.readFileSync(path.join(HERE, 'web.js'), 'utf8')));

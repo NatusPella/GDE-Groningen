@@ -1,15 +1,13 @@
-// #657: de service worker precachete alleen de pagina, web.js en de fonts; de
-// ~892 losse JS-modules werden pas bij het eerste gebruik opgehaald. De build
-// kent de bestandslijst al, dus die gaat mee de shell in: de eerste start haalt
-// ze op de achtergrond binnen, een tweede bezoek en offline spelen lezen uit de
-// cache. Pure functie, zodat de lijst los te testen is.
+// #757: de service worker precacht alleen de schil: de pagina, de loader en de
+// fonts. Sinds #657 zaten alle ~892 JS-modules er ook in, en die werden bij
+// install met cache: 'no-cache' nog eens opgehaald, bovenop de download die de
+// pagina zelf al doet. Een module komt nu via cacheFirst bij het eerste gebruik
+// in de cache; dat fetchpad bestaat al. Pure functie, zodat de lijst los te
+// testen is.
 export function shellFiles(relFiles) {
   const out = ['', 'web.js'];
   for (const f of relFiles) {
-    if (f === 'web.js' || f === 'sw.js' || f === '') continue;
-    if (f.endsWith('.js') || f.endsWith('.mjs') || (f.startsWith('vendor/fonts/') && !out.includes(f))) {
-      if (!out.includes(f)) out.push(f);
-    }
+    if (f.startsWith('vendor/fonts/') && !out.includes(f)) out.push(f);
   }
   return out;
 }
