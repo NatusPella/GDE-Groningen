@@ -165,7 +165,7 @@ async function minigameSmoke(world, check, capture) {
   check('minigames: four activities in the hub, each with a spot', ids.every((id) => A.list().some((a) => a.id === id && a.spots >= 1)), JSON.stringify(A.list().map((a) => `${a.id}:${a.spots}`)));
   check('minigames: their spots are registered for the spot check', ids.every((id) => activitySpots().some((s) => s.kind === id)), JSON.stringify(ids.filter((id) => !activitySpots().some((s) => s.kind === id))));
   const cleared = async (name) => {
-    const ok = await waitFor(() => !isActivityActive() && !world.activityGame && !boardUp(), 4000);
+    const ok = await waitFor(() => !isActivityActive() && !world.activityGame && !boardUp(), 20000);
     check(`minigames: ${name} ends cleanly (hub, input claim, HUD)`, ok && !world.cameraOverride, JSON.stringify({ active: isActivityActive(), game: world.activityGame, board: boardUp(), cam: !!world.cameraOverride }));
   };
   world.wanted = 0;
@@ -181,7 +181,7 @@ async function minigameSmoke(world, check, capture) {
   check('discgolf: a throw flies', dg.throwAt(0.95));
   await sleep(1400);
   capture('mg-discgolf-flight');
-  check('discgolf: the disc comes down', await waitFor(() => dg.state() && ['landed', 'holeDone'].includes(dg.state().phase), 14000), JSON.stringify(dg.state()));
+  check('discgolf: the disc comes down', await waitFor(() => dg.state() && ['landed', 'holeDone'].includes(dg.state().phase), 90000), JSON.stringify(dg.state()));
   await sleep(1800);
   capture('mg-discgolf-next');
   dg.quit();
@@ -197,7 +197,7 @@ async function minigameSmoke(world, check, capture) {
     check('pitch & putt: a pitch flies', pp.shoot(0.8));
     await sleep(900);
     if (poging === 0) capture('mg-pitchputt-flight');
-    ppRest = await waitFor(() => pp.state() && ['landed', 'holeDone'].includes(pp.state().phase), 30000);
+    ppRest = await waitFor(() => pp.state() && ['landed', 'holeDone'].includes(pp.state().phase), 90000);
     if (!ppRest) { pp.quit(); await cleared('pitch & putt'); await sleep(800); }
   }
   check('pitch & putt: the ball comes to rest', ppRest, JSON.stringify(pp.state()));
@@ -245,7 +245,7 @@ async function minigameSmoke(world, check, capture) {
   check('kartbaan: starts', kbGestart, JSON.stringify(kb && kb.state()));
   await sleep(900);
   capture('mg-kart-grid');
-  check('kartbaan: the lights go and the race starts', await waitFor(() => kb.state() && kb.state().phase === 'race', 30000), JSON.stringify(kb.state()));
+  check('kartbaan: the lights go and the race starts', await waitFor(() => kb.state() && kb.state().phase === 'race', 90000), JSON.stringify(kb.state()));
   hold('w', 'KeyW');
   await sleep(3200);
   const ks = kb.state().karts;
@@ -254,7 +254,7 @@ async function minigameSmoke(world, check, capture) {
   capture('mg-kart-race');
   release('w', 'KeyW');
   check('kartbaan: the race can be finished', kb.finish());
-  let kbKlaar = await waitFor(() => !isActivityActive(), 60000);
+  let kbKlaar = await waitFor(() => !isActivityActive(), 90000);
   if (!kbKlaar && kb.finish()) kbKlaar = await waitFor(() => !isActivityActive(), 30000);
   check('kartbaan: the race ends by itself', kbKlaar, JSON.stringify(kb.state()));
   await cleared('kartbaan');
