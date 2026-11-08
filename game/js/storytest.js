@@ -575,14 +575,6 @@ export async function runStoryTest(world) {
     check('game started', await waitFor(() => document.body.classList.contains('game-started'), 180000));
     await drain(world, 1500);
     world.devInvuln = true;
-    // De wereldcontroles hieronder gaan over de hele kaart; laad alle tegels in zodat de
-    // streaminglaag geen gaten (holes) of losse muren (ring) meer kan voorwenden.
-    if (world.map && world.map.store && world.map.store.index) {
-      const keys = Object.keys(world.map.store.index.tiles || {});
-      await Promise.all(keys.map((k) => world.map.store.request(k, { priority: -2000 }).catch(() => null)));
-      await drain(world, 800);
-    }
-
     // every start and target point is on open ground you can walk away from
     if (window.__ommeland) await window.__ommeland.prepare();
     const spots = await validateSpots(world);
