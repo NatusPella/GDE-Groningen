@@ -34,6 +34,15 @@ achter. Daarom controleert `desktop/build.mjs` elke stage met
 de index noemt, en een onvolledige wereld-cache wordt opnieuw gebouwd in plaats
 van hergebruikt (#496).
 
+De stage bakt daarnaast de afgeleide renderdata die het hele stadsframe beslaat:
+`world/terrain.bin`, de terreingrond uit `terrainArrays()`
+(`scripts/world/bake_terrain.mjs`, `game/js/terraincache.js`). Het spel leest die
+cache bij het opstarten (`tileworld.js`, `scene3d.js`) en bouwt de grond zelf als
+het bestand ontbreekt of niet bij de kaartgrenzen en de waterlijst past;
+`stagecheck.mjs` keurt het bestand, en `desktop/build.mjs` faalt liever dan een
+halve cache mee te leveren. Het is een build-artefact naast de tegels, geen
+tegelbron (ADR 0030): de kaartbakker hoort de render-kernels niet te kennen.
+
 ## Stad gepind, provincie gestreamd
 
 `tileworld.js` houdt de stadstegels resident (`index.pins.city`: 54 verklaarde plus
@@ -81,7 +90,9 @@ Een verhaalplek uit Deel 4 is geen rij in dat systeem: het verhaal noemt de plek
 4. Nieuwe data hoort in een sectie: `gdt.js SECTION` + schrijver
    (`pack_tiles`/`tileBlob`) + lezer (`tileworld`) + test. Onbekende secties worden
    overgeslagen en een oude wereld blijft werken; een indexblok is een toevoeging,
-   geen voorwaarde.
+   geen voorwaarde. Afgeleide renderdata die niet per tegel bestaat (de gebakken
+   terreingrond, `terrain.bin`) is een bestand naast de tegels, geen sectie; zie
+   ADR 0030.
 5. Lees per tegel, niet per wereld: geen nieuwe hele-array-lezer (#314 C1);
    gebruik de grids of `poiLayerPlaces` met terugval, en houd de gepinde set klein.
 6. Een nieuwe plek met iets te doen krijgt een sleutel in `SPEL_SLEUTELS`

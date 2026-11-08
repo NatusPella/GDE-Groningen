@@ -24,6 +24,7 @@ import { TerrainField } from './terrainraster.js';
 import { extendElevation, shrinkElevation } from './elevation.js';
 import { joinMeta } from './poisections.js';
 import { RULES } from './junctions.js';
+import { TERRAIN_FILE, decodeTerrain, terrainHoleRows, terrainRowsSignature, sameBounds } from './terraincache.js';
 
 const KIND_OF = new Map([
   [SECTION.BUILDINGS, 'buildings'], [SECTION.ROADS, 'roads'], [SECTION.WATER, 'water'], [SECTION.GREEN, 'green'],
@@ -562,7 +563,10 @@ export class TileWorld extends GameMap {
 
 // The tile world at `base` (index.json, packs, global blob), the pinned city
 // resident. null when there is no index there (a build without tiles).
-export async function loadTileWorld(base = 'world/', { source = new HttpRangeSource(base), onProgress = null, pool = true, extra = [], terrain = false, ...opts } = {}) {
+// terrainCache: the build may have baked the terrain arrays next to the tiles
+// (scripts/world/bake_terrain.mjs); read them alongside the city tiles and
+// hand them to the scene as world.terrainCache, or null when absent/stale.
+export async function loadTileWorld(base = 'world/', { source = new HttpRangeSource(base), onProgress = null, pool = true, extra = [], terrain = false, terrainCache = false, ...opts } = {}) {
   let index;
   try { index = JSON.parse(new TextDecoder().decode(await source.readAll('index.json'))); } catch (e) { return null; }
   // more tile layers next to the city (index-corridor.json: the proefstrook,
@@ -571,6 +575,9 @@ export async function loadTileWorld(base = 'world/', { source = new HttpRangeSou
     const { name, only = null } = typeof x === 'string' ? { name: x } : x;
     try { mergeIndex(index, JSON.parse(new TextDecoder().decode(await source.readAll(name))), { only }); } catch (e) { /* not in this build */ }
   }
+  // start reading the baked ground while the city tiles come in; a build without
+  // a cache (or an old stage) silently falls back to building it
+  const bakedRead = terrainCache ? Promise.resolve().then(() => source.readAll(TERRAIN_FILE)).catch(() => null) : null;
   const decode = (pool && makeWorkerDecoder(new URL('./tileworker.js', import.meta.url), 2, ID_ASIDE)) || ((bytes) => decodeCompressed(bytes, ID_ASIDE));
   const store = new TileStore({ source, index, decode, ...opts });
   const g = index.global;
@@ -611,7 +618,30 @@ export async function loadTileWorld(base = 'world/', { source = new HttpRangeSou
   world.tileQueue.run(1e9);
   // De eerste opbouw is klaar: laat de stad los zodat de store haar kan streamen.
   if (unpinCity) for (const k of keys) store.unpin(k);
+  // the baked ground belongs to exactly this world; when it does not fit the
+  // game builds it itself (never half or wrong ground under the city)
+  if (bakedRead) world.terrainCache = await readBakedTerrain(bakedRead, world);
   return { world, store, index, global: globalBlob, source };
+}
+
+// Decode the baked terrain block and check that it belongs to this world: the
+// same map bounds and the same water list. A failure (old format, another world,
+// a damaged file) is not fatal: the caller builds the terrain as before.
+async function readBakedTerrain(reading, world) {
+  const bytes = await reading;
+  if (!bytes) return null;
+  let cache;
+  try { cache = decodeTerrain(await inflateRaw(bytes)); }
+  catch (e) { console.warn(`terrein: ${TERRAIN_FILE} onleesbaar (${e.message}); het terrein wordt opnieuw gebouwd`); return null; }
+  if (!sameBounds(cache.bounds, world.meta.bounds)) {
+    console.warn('terrein: de gebakken grond hoort bij andere kaartgrenzen; het terrein wordt opnieuw gebouwd');
+    return null;
+  }
+  if (cache.rowsSig !== terrainRowsSignature(terrainHoleRows(world))) {
+    console.warn('terrein: de gebakken grond hoort bij een andere waterlijst; het terrein wordt opnieuw gebouwd');
+    return null;
+  }
+  return cache;
 }
 
 // Another layer's tiles and packs into the index; a tile the index already

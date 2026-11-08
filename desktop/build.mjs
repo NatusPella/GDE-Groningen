@@ -86,6 +86,7 @@ function resolveSpec(spec, base) {
 // GDE_PREBUILT_WORLD=<dir>: take the staged map tiles of an earlier build as they are (a CI runner has no
 // data/cache for the province, .github/workflows/mac-release.yml)
 function packWorld() {
+  const root = path.dirname(SRC);
   if (NO_WORLD) {
     console.log('map tiles: overgeslagen (--no-world; de tests hebben geen wereld nodig)');
     return;
@@ -95,13 +96,14 @@ function packWorld() {
     if (!fs.existsSync(path.join(dir, 'index.json'))) throw new Error('GDE_PREBUILT_WORLD has no index.json: ' + dir);
     fs.rmSync(path.join(OUT, 'world'), { recursive: true, force: true });
     fs.cpSync(dir, path.join(OUT, 'world'), { recursive: true });
+    // the stage bakes the ground itself, also for a world from another machine
+    bakeTerrain(path.join(OUT, 'world'), root);
     // a world from another machine is only as good as its index: check it before it goes into the app (#496)
     const check = checkWorld(path.join(OUT, 'world'));
     if (!check.ok) throw new Error('GDE_PREBUILT_WORLD is incomplete:\n' + formatProblems(check.problems));
     console.log(`map tiles: ${check.packs} packs, ${check.tiles} tiles (prebuilt)`);
     return;
   }
-  const root = path.join(SRC, '..');
   const packer = path.join(root, 'scripts', 'world', 'pack_tiles.mjs');
   if (!fs.existsSync(packer) || !fs.existsSync(path.join(SRC, 'js', 'gdt.js'))) { console.log('no tile packer in this checkout: JSON map only'); return; }
   const h = crypto.createHash('sha1');
@@ -176,9 +178,31 @@ function packWorld() {
   // pack names from another generation and would stay next to the new ones
   fs.rmSync(path.join(OUT, 'world'), { recursive: true, force: true });
   fs.cpSync(cache, path.join(OUT, 'world'), { recursive: true });
+  // bake the terrain ground before the final check that ships it
+  bakeTerrain(path.join(OUT, 'world'), root);
   const check = checkWorld(path.join(OUT, 'world'));
   if (!check.ok) throw new Error('the staged world is incomplete:\n' + formatProblems(check.problems));
   console.log(`map tiles: ${check.packs} packs, ${check.tiles} tiles`);
+}
+
+// The terrain ground as a build artefact (scripts/world/bake_terrain.mjs). The
+// game reads world/terrain.bin at boot (tileworld.js, scene3d.js) and builds the
+// ground itself only when the file is missing or does not fit the world; the
+// build fails rather than shipping half a cache.
+function bakeTerrain(worldDir, root) {
+  if (process.env.GDE_TERRAIN_CACHE === '0') {
+    console.log('terrain: cache skipped (GDE_TERRAIN_CACHE=0); the game builds the ground itself');
+    return;
+  }
+  const script = path.join(root, 'scripts', 'world', 'bake_terrain.mjs');
+  if (!fs.existsSync(script)) {
+    console.log('terrain: no baker in this checkout; the game builds the ground itself');
+    return;
+  }
+  const r = spawnSync(process.execPath, [script, '--world', worldDir, '--quiet'], { stdio: 'inherit', cwd: root });
+  if (r.status !== 0) throw new Error('baking the terrain failed (set GDE_TERRAIN_CACHE=0 to stage without a cache)');
+  const file = path.join(worldDir, 'terrain.bin');
+  console.log(`terrain: baked (${(fs.statSync(file).size / 1e6).toFixed(1)} MB, ${path.relative(root, file)})`);
 }
 
 async function main() {

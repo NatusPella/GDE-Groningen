@@ -402,7 +402,12 @@ export function terrainArrays(bounds, waterPolys = [], opts = {}) {
     }
     tiles.push({ index: new Uint32Array(list), box: [x0, z0, x1, z1] });
   }
-  return { positions: allPositions, normals, tiles, y, droppedTriangles, maxTriangles };
+  // The regular base grid as plain numbers next to the arrays: the build bakes
+  // the arrays in this shape (terraincache.js) and can then leave the base grid out.
+  return {
+    positions: allPositions, normals, tiles, y, droppedTriangles, maxTriangles,
+    grid: { minX, minY, totalW, totalD, segsX, segsZ, nx, nz, base: nx * nz },
+  };
 }
 
 // The terrain meshes from terrainArrays (fill: an existing group, filled in
