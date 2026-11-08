@@ -15,7 +15,9 @@ ok(/scanT = MOTOR_SCAN_S/.test(motor), 'motorpolice gebruikt de 1,5 s-tick');
 const street = fs.readFileSync(new URL('../game/js/streetlife.js', import.meta.url), 'utf8');
 ok(/world\.pedestrians\.length !== lastPedCount \|\| dressT >= DRESS_SCAN_S/.test(street), 'streetlife: nieuwe voetganger of 2 s');
 const story = fs.readFileSync(new URL('../game/js/story.js', import.meta.url), 'utf8');
-ok(/storyTick\(performance\.now\(\)\) \|\| state\.done\.size !== storyDoneSize/.test(story), 'updateStory: ~5 Hz + bij een afgeronde stap');
+// #758: één tick per aanroep bepalen en die twee keer gebruiken; twee losse aanroepen verbruikten dezelfde tick
+ok((story.match(/storyTick\(performance\.now\(\)\)/g) || []).length === 1, 'updateStory: de 5 Hz-tick wordt één keer per frame bepaald');
+ok(/const storyDue = started && storyTick\(performance\.now\(\)\);/.test(story) && /if \(storyDue\) \{\n      const kiss/.test(story) && /if \(storyDue \|\| state\.done\.size !== storyDoneSize \|\| curCache === null\)/.test(story), 'updateStory: dezelfde due voor de kus-unlock en de stappencache (#758)');
 ok(/const cur = curCache;/.test(story), 'de volgende stap komt uit de cache');
 const ms = fs.readFileSync(new URL('../game/js/missionstory.js', import.meta.url), 'utf8');
 ok(/const list = r\._actorList \|\| \(r\._actorList =/.test(ms) && !/const list = \[\[r\.tammo/.test(ms), 'missionstory: actorenlijst één keer');
