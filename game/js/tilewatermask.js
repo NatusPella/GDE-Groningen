@@ -21,6 +21,9 @@ export const FAR_SIZE = MASK_N * FAR_CELL;
 const FAR_RECENTRE = 1200;
 // the window is moved when the player is this far off its centre
 const RECENTRE = 300;
+// #756: na zoveel trage beelden achter elkaar forceert het masker toch een bake
+// (een machine met een structurele dt boven 30 ms heeft nooit een rustig beeld)
+const SLOW_FORCE_FRAMES = 3;
 const BED_Y = WATER_Y - 0.55;
 
 // Even-odd fill of one polygon into a Uint8Array mask (255 inside).
@@ -61,7 +64,8 @@ export function rasterWater(polys, cx, cy, mask = new Uint8Array(MASK_N * MASK_N
 const S = { tex: null, bed: null, cx: 0, cy: 0, ver: -1, on: false, map: null, polys: 0, far: null, fcx: 0, fcy: 0, fver: -1, fat: -99, fpolys: 0,
   // #649: tellers voor de meting: herdraaiingen, overgeslagen (water buiten het
   // venster veranderde) en de tijd van de laatste rasterpas
-  bakes: 0, farBakes: 0, skipped: 0, deferred: 0, lastMs: 0, lastFarMs: 0, sig: 0, farSig: 0 };
+  // #756: slowNear/slowFar tellen de trage beelden achter elkaar zonder bake
+  bakes: 0, farBakes: 0, skipped: 0, deferred: 0, lastMs: 0, lastFarMs: 0, sig: 0, farSig: 0, slowNear: 0, slowFar: 0 };
 
 // Een goedkope vingerafdruk van het water in een venster (#649): alleen als die
 // verandert hoeft het masker opnieuw gerasterd te worden; een waterrij die
@@ -140,14 +144,23 @@ export function updateTileWater(map, scene, px, py, radius, time, dt = 0) {
   const calm = !(dt > 0.03);
   let baked = false;
   const nearForced = S.ver < 0 || moved;
-  if (calm && (nearForced || ver !== S.ver)) {
+  const staleNear = nearForced || ver !== S.ver;
+  // #756: een machine die structureel boven 30 ms blijft (zuinig-stand, 30 fps)
+  // heeft nooit een rustig beeld. Tel de trage beelden en forceer de bake dan
+  // alsnog, met een eigen cadans van 0,5 s zodat de rasterpas niet elke frame
+  // opnieuw op een hapering stapelt.
+  if (calm) S.slowNear = 0;
+  else if (staleNear) S.slowNear++;
+  const forceNear = !calm && staleNear && S.slowNear >= SLOW_FORCE_FRAMES && time - (S.at || 0) > 0.5;
+  if ((calm || forceNear) && staleNear) {
     const near = windowWater(map, px, py, MASK_SIZE * 0.75);
-    if (nearForced || near.sig !== S.sig) {
-      if (nearForced || time - (S.at || 0) > 1) { // cadans: hooguit 1x per seconde
+    if (nearForced || forceNear || near.sig !== S.sig) {
+      if (nearForced || forceNear || time - (S.at || 0) > 1) { // cadans: hooguit 1x per seconde
         bake(px, py, near.polys);
         S.sig = near.sig;
         S.ver = ver;
         S.at = time;
+        S.slowNear = 0;
         baked = true;
       }
     } else {
@@ -155,25 +168,30 @@ export function updateTileWater(map, scene, px, py, radius, time, dt = 0) {
       S.ver = ver;
       S.skipped++;
     }
-  } else if (!calm && ver !== S.ver) S.deferred++;
+  } else if (!calm && staleNear) S.deferred++;
   // Het verre masker: alleen als het water in dat venster echt veranderde, op
   // zijn eigen cadans, en nooit in hetzelfde beeld als het nabije masker.
   const farMoved = Math.abs(px - S.fcx) > FAR_RECENTRE || Math.abs(py - S.fcy) > FAR_RECENTRE;
   const farForced = S.fver < 0 || farMoved;
-  if (!baked && calm && (farForced || ver !== S.fver)) {
+  const staleFar = farForced || ver !== S.fver;
+  if (calm) S.slowFar = 0;
+  else if (staleFar) S.slowFar++;
+  const forceFar = !calm && staleFar && S.slowFar >= SLOW_FORCE_FRAMES && time - S.fat > 0.5;
+  if (!baked && (calm || forceFar) && staleFar) {
     const far = windowWater(map, px, py, FAR_SIZE * 0.75);
-    if (farForced || far.sig !== S.farSig) {
-      if (farForced || time - S.fat > 4) {
+    if (farForced || forceFar || far.sig !== S.farSig) {
+      if (farForced || forceFar || time - S.fat > 4) {
         bakeFar(px, py, far.polys);
         S.farSig = far.sig;
         S.fver = ver;
         S.fat = time;
+        S.slowFar = 0;
       }
     } else {
       S.fver = ver;
       S.skipped++;
     }
-  } else if (!calm && ver !== S.fver) S.deferred++;
+  } else if (!calm && staleFar) S.deferred++;
   S.bed.position.set(px, BED_Y, py);
   S.bed.scale.set(r * 2 + 40, 1, r * 2 + 40);
   S.bed.updateMatrix();
