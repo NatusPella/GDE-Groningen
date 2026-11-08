@@ -1,27 +1,47 @@
 // Regels voor de perf-norm (#804): puur, zodat scripts/perf_norm_test.mjs ze kan
 // testen en scripts/perf/norm_check.mjs ze op een bewaarde perf-run kan toepassen.
-// De norm komt uit de acceptatie van #804: geen frame boven 100 ms en een
-// strakke staart (de p95-doelstelling vraagt om raw frametijden; de harness
-// levert nu de hitch-tellers hieronder).
-export const NORM = Object.freeze({ maxOver100: 0, maxOver50: 0 });
+// De harness (scripts/perf/hook.js) levert per route avg/p95/p99/max in
+// milliseconden; met PERF_HITCH ook de hitch-tellers. De norm komt uit #804:
+// p95 <= 25 ms, max <= 100 ms, en (als ze er zijn) geen frame boven 50/100 ms.
+export const NORM = Object.freeze({ maxP95Ms: 25, maxMaxMs: 100, maxOver100: 0, maxOver50: 0 });
+
+const num = (v) => (Number.isFinite(v) ? v : null);
 
 export function routeStats(route) {
-  const h = route && route.hitch;
+  const r = route && typeof route === 'object' ? route : {};
+  const h = r.hitch;
   return {
-    frames: Number(route && route.frames) || 0,
-    over50: h && Number.isFinite(h.over50) ? h.over50 : 0,
-    over100: h && Number.isFinite(h.over100) ? h.over100 : 0,
-    measured: !!h && Number.isFinite(h.over50) && Number.isFinite(h.over100),
+    frames: Number(r.frames) || 0,
+    avg: num(r.avg),
+    p95: num(r.p95),
+    p99: num(r.p99),
+    max: num(r.max),
+    over50: h && Number.isFinite(h.over50) ? h.over50 : null,
+    over100: h && Number.isFinite(h.over100) ? h.over100 : null,
   };
+}
+
+// Heeft deze route genoeg cijfers om tegen de norm te leggen?
+export function routeMeasured(route) {
+  const s = routeStats(route);
+  return (s.p95 !== null && s.max !== null) || (s.over50 !== null && s.over100 !== null);
 }
 
 // Welke normen haalt deze route niet? Een lege lijst betekent: binnen de norm.
 export function normViolations(route, norm = NORM) {
   const s = routeStats(route);
-  if (!s.measured) return [{ rule: 'geen hitch-meting in deze route', ...s }];
   const out = [];
-  if (s.over100 > norm.maxOver100) out.push({ rule: `meer dan ${norm.maxOver100} frame(s) boven 100 ms`, ...s });
-  if (s.over50 > norm.maxOver50) out.push({ rule: `meer dan ${norm.maxOver50} frame(s) boven 50 ms`, ...s });
+  const frameMs = s.p95 !== null && s.max !== null;
+  const hitch = s.over50 !== null && s.over100 !== null;
+  if (!frameMs && !hitch) return [{ rule: 'geen meting in deze route', ...s }];
+  if (frameMs) {
+    if (s.p95 > norm.maxP95Ms) out.push({ rule: `p95 ${s.p95} ms > ${norm.maxP95Ms} ms`, ...s });
+    if (s.max > norm.maxMaxMs) out.push({ rule: `max ${s.max} ms > ${norm.maxMaxMs} ms`, ...s });
+  }
+  if (hitch) {
+    if (s.over100 > norm.maxOver100) out.push({ rule: `meer dan ${norm.maxOver100} frame(s) boven 100 ms`, ...s });
+    if (s.over50 > norm.maxOver50) out.push({ rule: `meer dan ${norm.maxOver50} frame(s) boven 50 ms`, ...s });
+  }
   return out;
 }
 
