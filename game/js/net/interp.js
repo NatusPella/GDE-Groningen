@@ -3,6 +3,8 @@
 // (hoogstens EXTRA_MAX seconden), zodat voertuigen en mensen niet "een meter en dan stil" staan. Alleen bij een teleport
 // (meer dan SPRONG_M tussen twee snapshots) springt de tekening. Pure logica, geen DOM, getest in scripts/net_interp_test.mjs.
 export const INTERP_DELAY = 0.12;  // s: zoveel loopt de gast achter op de laatste snapshot
+export const PVP_INTERP_DELAY = 0.06; // s: in de PvP-arena interpoleert een gast korter, zodat reacties sneller in beeld staan (#806)
+export const interpDelayVoorPvp = (pvp) => (pvp ? PVP_INTERP_DELAY : INTERP_DELAY);
 export const EXTRA_MAX = 0.25;     // s: hoever we voorbij de laatste snapshot mogen voorspellen
 export const ACHTER_MAX = 0.5;     // s: verder dan dit achter de laatste: de weergavetijd springt bij
 export const SPRONG_M = 20;        // m: een verplaatsing tussen twee snapshots groter dan dit is een teleport

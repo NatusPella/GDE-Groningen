@@ -92,7 +92,7 @@ Programma's staan in `testbank.mjs` (`P`), fasen in `coop.page.js` (`PHASES`): `
 | mobiel: 80 ms, jitter 30 ms | 100 ms | 217 ms |
 | mobiel met 60 ms interpolatie (voorstel PvP) | 100 ms | 150 ms |
 
-Voorstel: een PvP-drempel van 200 ms (de arena is geen ranked competitie). De standaard van 120 ms interpolatie haalt die op een normale internetverbinding niet; 60 ms wel. De kortere vertraging is nog niet op de spelsessie aangesloten: `SnapBuffer.advance(dt, vertraging)` kan het al, de PvP-stand moet de waarde nog doorgeven. Echte netwerken, echte hardware en de perf-route `latentie` zijn hier niet gemeten.
+Voorstel: een PvP-drempel van 200 ms (de arena is geen ranked competitie). De standaard van 120 ms interpolatie haalt die op een normale internetverbinding niet; 60 ms wel. Sinds #806 is dat aangesloten: `tickCoopNet` zet `session.interpDelay` op 60 ms zodra `pvpAanDeGang` waar is (minstens twee niet-passieve spelers) en anders op 120 ms; `scripts/pvpvertraging_test.mjs` bewaakt die keuze en de bedrading. Echte netwerken, echte hardware en de perf-route `latentie` (een losse p50/max-meting zonder framereeks) zijn hier niet gemeten.
 
 ## Stand en wat niet getest is
 

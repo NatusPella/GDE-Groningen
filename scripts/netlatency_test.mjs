@@ -5,11 +5,11 @@
 // het spel.   node scripts/netlatency_test.mjs
 import { createLink } from '../game/js/net/memtransport.js';
 import { SnapBuffer, SNAP_HZ } from '../game/js/net/session.js';
-import { INTERP_DELAY } from '../game/js/net/interp.js';
+import { INTERP_DELAY, PVP_INTERP_DELAY, interpDelayVoorPvp } from '../game/js/net/interp.js';
 
 const DT = 1 / 60;
 const PVP_MAX_MS = 200; // voorstel voor de PvP-arena (geen ranked, 18+ co-opspel)
-const PVP_INTERP = 0.06; // voorgestelde kortere vertraging in PvP (#806)
+const PVP_INTERP = PVP_INTERP_DELAY; // kortere vertraging in PvP (#806)
 const enc = new TextEncoder();
 const dec = new TextDecoder();
 
@@ -68,6 +68,7 @@ ok(lan.hostToGuestMs <= PVP_MAX_MS, 'op een LAN haalt de standaard de PvP-drempe
 ok(mobiel.hostToGuestMs > PVP_MAX_MS, 'op een normale internetverbinding valt de standaard buiten de PvP-drempel: aanleiding voor een PvP-stand', mobiel.hostToGuestMs);
 ok(mobielPvp.hostToGuestMs < mobiel.hostToGuestMs && mobielPvp.hostToGuestMs <= PVP_MAX_MS,
   `met ${Math.round(PVP_INTERP * 1000)} ms interpolatie haalt mobiel de drempel wel`, mobielPvp.hostToGuestMs);
+ok(interpDelayVoorPvp(true) === PVP_INTERP_DELAY && interpDelayVoorPvp(false) === INTERP_DELAY, 'de spelsessie kiest in PvP de korte vertraging');
 
 console.log(fails ? `${fails} FAIL` : 'netlatency_test ok');
 process.exit(fails ? 1 : 0);

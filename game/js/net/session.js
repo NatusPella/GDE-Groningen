@@ -313,6 +313,7 @@ export class ClientSession extends Base {
     this.sessie = null; // { id, naam }: bij welke sessie deze gast hoort (#450), uit het welkom
     this.buf = new SnapBuffer(); this.inputSeq = 0; this.inputAcc = 0; this.pendingInput = neutral();
     this.helloAt = -1; this.wachtHello = 0; this.rejected = null; this.lastSnapSeq = null; this.lastExtraSeq = null; this.onextra = null; this.onlost = null; this.onresync = null; this.joined = false;
+    this.interpDelay = null; // #806: de spelsessie zet hier de PvP-vertraging; null = INTERP_DELAY
   }
   _raw(buf) {
     const h = readHeader(buf); if (!h) return;
@@ -358,7 +359,7 @@ export class ClientSession extends Base {
       }
       return;
     }
-    this.buf.advance(dt);
+    this.buf.advance(dt, this.interpDelay ?? INTERP_DELAY);
     const q = this._quiet();
     if (this.status === 'ok' && q >= LAG_AFTER) this._setStatus('lag');
     if ((this.status === 'ok' || this.status === 'lag') && q >= LOST_AFTER) {

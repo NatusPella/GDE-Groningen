@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- **In de PvP-arena reageert een gast sneller: zodra twee spelers niet-passief zijn, gaat de interpolatievertraging van 120 naar 60 ms (#806).** Buiten een gevecht blijft de gewone 120 ms staan.
 - **De HUD-statuschips zijn 12 px en de TV-overlay gebruikt eigen kleurtokens in plaats van losse hexen (#803).** Op een telefoon hebben de vaste HUD-teksten nu een vloer van 12 px op het scherm (was 11). De overlay blijft een bewuste HUD-uitzondering qua typografie; de rest van het thema staat nog open.
 - **Zoekresultaten op de kaart zijn op een touchscreen aantikbaar, en de aanraakbedrading van winkel, telefoon, kaart, minigames en spelstanden is met een test vastgelegd (#805).** De tik-naar-actie-keten moet nog in een browser of op een echt toestel worden doorlopen.
 - **Op een telefoon opent Besturing meteen op het tabblad Aanraken en het pauzemenu heeft in staand een eigen smalle indeling; de oude "Draai je toestel"-banner is weg (#805).** De banner bedekte de rail bovenaan; de nieuwe indeling is nog niet op een echt toestel in beeld gebracht.
