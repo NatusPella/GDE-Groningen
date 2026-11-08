@@ -36,6 +36,8 @@
       "coopcore.cjs",
       "livebussen.cjs",
       "externurl.cjs",
+      "httpcache.cjs",
+      "guards.cjs",
       "devtools.js",
       "preload.js",
       "trailervideo.js",
