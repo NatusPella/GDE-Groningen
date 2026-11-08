@@ -182,9 +182,16 @@ function load() {
     }
     // #578: een nieuwer bestand wordt niet teruggezet: bewaar de hogere versie en de sleutels die deze
     // build niet kent, zodat de eerste wijziging ze niet weggooit.
+    // #781: hetzelfde geldt voor een sleutel die deze build wél kent maar die in de nieuwere versie van
+    // type is veranderd: die kan deze build niet gebruiken (hij valt terug op zijn oude default), maar
+    // die default mag de nieuwere waarde niet overschrijven, anders vindt de nieuwere build zijn eigen
+    // stand niet terug terwijl `v` al hoog staat.
     if (!mig && parsed && Number.isInteger(parsed.v) && parsed.v > SETTINGS_VERSION) {
       storedVersion = parsed.v;
-      for (const [k, v] of Object.entries(parsed)) if (k !== 'v' && !(k in DEFAULTS)) newerExtras[k] = v;
+      for (const [k, v] of Object.entries(parsed)) {
+        if (k === 'v') continue;
+        if (!(k in DEFAULTS) || (v !== undefined && typeof v !== typeof DEFAULTS[k])) newerExtras[k] = v;
+      }
     }
     return out;
   } catch (e) {
@@ -219,9 +226,14 @@ export function setSetting(key, value) {
   if (VOLUME_KEYS.includes(key)) value = volumeValue(value, DEFAULTS[key]);
   if (!(key in DEFAULTS) || settings[key] === value) return;
   settings[key] = value;
+  // #781: de speler koos in deze build zelf deze stand; een bewaarde waarde van een toekomstige
+  // typewijziging gaat er dan uit, anders zou die de keuze bij de volgende start weer overschrijven.
+  if (key in newerExtras) delete newerExtras[key];
   // #578: nooit onder de versie van het geladen bestand schrijven en de onbekende sleutels van een
-  // nieuwere build bewaren; anders verliest een downgrade de stand van de nieuwere versie.
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...newerExtras, ...settings, v: Math.max(storedVersion, SETTINGS_VERSION) })); } catch (e) { /* ignore */ }
+  // nieuwere build bewaren; anders verliest een downgrade de stand van de nieuwere versie. De
+  // bewaarde nieuwere waarden staan achter de eigen instellingen, zodat een onbruikbaar type niet
+  // door deze build wordt overschreven (#781).
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...settings, ...newerExtras, v: Math.max(storedVersion, SETTINGS_VERSION) })); } catch (e) { /* ignore */ }
   applyHudClasses();
   for (const cb of listeners) cb(settings, key);
 }

@@ -74,6 +74,35 @@ t('een nieuwer bestand dat niet wijzigt blijft ongemoeid', async () => {
   assert.equal(opslag.get(KEY), tekst, 'laden schrijft een nieuwer bestand niet opnieuw');
 });
 
+// #781: een bestaande sleutel waarvan de nieuwere versie het type wijzigt. Deze build kan die waarde
+// niet gebruiken (hij valt terug op de oude default), maar de default mag hem niet overschrijven.
+t('een typewijziging van een bekende sleutel overleeft een round-trip (#781)', async () => {
+  zetBestand({ v: SETTINGS_VERSION + 1, showMinimap: 'altijd', masterVolume: 0.5 });
+  const S = await laad();
+  assert.equal(S.getSettings().showMinimap, true, 'een onbruikbaar type valt in het spel terug op de standaard');
+  S.setSetting('masterVolume', 0.3); // een andere instelling wijzigen schrijft het bestand
+  const d = bewaard();
+  assert.equal(d.v, SETTINGS_VERSION + 1, 'de versie blijft van de nieuwere build');
+  assert.equal(d.showMinimap, 'altijd', 'de nieuwere waarde wordt niet door de oude default overschreven');
+  assert.equal(d.masterVolume, 0.3, 'de eigen wijziging staat erin');
+});
+
+t('een zelf gewijzigde sleutel wint van de bewaarde toekomststand (#781)', async () => {
+  zetBestand({ v: SETTINGS_VERSION + 1, showMinimap: 'altijd' });
+  const S = await laad();
+  S.setSetting('showMinimap', false);
+  assert.equal(bewaard().showMinimap, false, 'de keuze van de speler in deze build telt');
+  assert.equal(bewaard().v, SETTINGS_VERSION + 1);
+});
+
+t('een onbekende sleutel blijft ook bij een typewijziging bewaard (#781)', async () => {
+  zetBestand({ v: SETTINGS_VERSION + 1, toekomstInstelling: [1, 2], showMinimap: 'altijd' });
+  const S = await laad();
+  S.setSetting('masterVolume', 0.9);
+  assert.deepEqual(bewaard().toekomstInstelling, [1, 2], 'de onbekende sleutel blijft staan');
+  assert.equal(bewaard().showMinimap, 'altijd', 'en de bekende sleutel met nieuw type ook');
+});
+
 // Sequentieel: elke case gebruikt dezelfde opslag, dus parallel lopen ze door elkaar.
 for (const { naam, f } of gevallen) {
   try {
