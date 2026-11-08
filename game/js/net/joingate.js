@@ -25,7 +25,8 @@ export const JOIN = {
   ttl: 90000,          // ms: een antwoord blijft in het postvak staan
   maxAntwoorden: 6,    // postvakgrootte; klein houden, het is één aankondigingstekst
   minTussen: 400,      // ms: de host antwoordt hoogstens zo vaak (tegen een vloed aan verzoeken)
-  scheef: 120000,      // ms: een verzoek met een tijdstempel ver buiten onze klok telt niet
+  scheef: 600000,      // ms: ruime marge (#782): een klokverschil van enkele minuten mag het aansluiten niet
+                       // blokkeren; de tijd is alleen een grens tegen zeer oude of herhaalde berichten
   maxBytes: 2400,      // groter is geen verzoek en geen postvak
 };
 
