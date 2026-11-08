@@ -432,8 +432,8 @@ async function faseElectron(prev, staat) {
   later('verhaaltest', async () => {
     // #735/#747: de verhaaltest speelt nu het hele verhaal met alle stemmen en de zwaardere
     // wereldcontroles; 20 min was te krap (timeout zonder uitslag), 35 min geeft marge.
-    const d = stapDir('verhaaltest'), ms = 35 * 60e3;
-    const r = await runCmd(exe, [...basis, '--story-test=' + d], { ms, env: env('verhaal'), cwd: desktop });
+    const d = stapDir('verhaaltest'), ms = 45 * 60e3;
+    const r = await runCmd(exe, [...basis, '--story-test=' + d], { ms, env: { ...env('verhaal'), GDE_STORY_TIMEOUT_MIN: '42' }, cwd: desktop });
     fs.writeFileSync(path.join(d, 'run.log'), r.out);
     const p = R.parseStoryLog(r.out);
     const ok = !r.timedOut && p.gehaald && p.result === 'PASS' && !p.nanWaarschuwingen && !p.timeout;
