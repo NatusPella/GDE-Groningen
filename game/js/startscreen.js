@@ -208,6 +208,17 @@ export function dismissLoading() {
   setTimeout(() => { l.style.display = 'none'; }, 800);
 }
 
+// The status line while the boot screen stays up for a real wait (the start
+// area's prewarm, the shader compile). Unlocked on purpose: finishLoading has
+// already claimed the line, and this replaces its "Klaar" text with what the
+// boot is still doing, so the wait is explained instead of looking finished.
+export function setLoadingStatus(text) {
+  const status = document.querySelector('#loading .ld-status');
+  if (!status) return;
+  status.classList.remove('swap');
+  status.textContent = text;
+}
+
 export function showLoadError(msg) {
   clearInterval(fakeTimer);
   clearInterval(tipTimer);
@@ -519,7 +530,15 @@ function runBootScreen(world, opts, pending = null) {
       // #562: stond de verse plek al klaar (na "Nieuw spel" en de herlaad), dan begint het spel daar en
       // hoeft er geen tweede lege plek bij te komen.
       if (fresh) finishFreshStart(); else startNewSlot();
-      finish();
+      // The start area is warmed while the boot screen is still up (main.js):
+      // the meshes round the spawn are built and the shaders are compiled, so the
+      // first seconds in the world do not build or link anything on the main thread.
+      // A longer boot is the price the owner chose for a smooth start; a save keeps
+      // its own load screen instead.
+      if (opts && typeof opts.warm === 'function') {
+        setLoadingStatus('De buurt rond je startpunt wordt klaargezet');
+        Promise.resolve().then(() => opts.warm()).catch((e) => console.warn('startgebied voorladen', e)).then(finish);
+      } else finish();
     };
     const continueGame = () => {
       if (!hasSave()) { startNew(); return; }
