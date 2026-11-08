@@ -309,9 +309,25 @@ export function mountLobby(root, hooks, opts = {}) {
     });
     if (g) gate = g;
   }
+  // #783: een aanbod dat verbonden of afgelopen is, hoort niet meer in gateHandles; anders houdt de
+  // gastheer elk gesloten handle-object vast tot de sessie weer privé gaat.
+  function dropGateHandle(h) {
+    const i = h ? gateHandles.indexOf(h) : -1;
+    if (i >= 0) gateHandles.splice(i, 1);
+  }
   async function openGateKamer(room) {
+    let h = null, settled = false;
     try {
-      const h = await hostRoom(room, { signaler: newSignaler(), timeouts: CONFIG.TIMEOUTS, onstate: (s, info) => { if (s === 'fout') console.warn('sessie', info); } });
+      h = await hostRoom(room, {
+        signaler: newSignaler(), timeouts: CONFIG.TIMEOUTS,
+        onstate: (s, info) => {
+          if (s !== 'open' && s !== 'fout') return; // de aanbieding zelf duurt nog: hij blijft staan tot hij open- of afgaat
+          settled = true;
+          if (s === 'fout') console.warn('sessie', info);
+          dropGateHandle(h);
+        },
+      });
+      if (settled) return; // al afgegaan voordat we hem konden bewaren: er is niets meer open te zetten
       gateHandles.push(h);
       hooks.addGuest(h.transport);
     } catch (e) { /* deze gast krijgt geen kamer; de volgende probeert het opnieuw */ }

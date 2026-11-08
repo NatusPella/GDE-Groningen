@@ -126,6 +126,10 @@ export function bedienKamer({ id, maakSignaler, onKamer, mag = () => true, nu = 
       if (oudste) antwoorden.delete(oudste[0]); else return;
     }
     laatste = nuT;
+    // #783: meteen onthouden dat dit verzoek in behandeling is. De gast herhaalt zijn verzoek elke 2 s;
+    // duurt onKamer (hostRoom met ICE) langer, dan zet het tweede, identieke verzoek anders een tweede
+    // kamer op die niemand gebruikt. Mislukt de behandeling echt, dan mag de gast het opnieuw proberen.
+    gezien.set(nonce, nuT);
     try {
       const paar = await maakSleutelpaar();
       const peer = await sleutelVanTekst(r.a.pub);
@@ -135,9 +139,8 @@ export function bedienKamer({ id, maakSignaler, onKamer, mag = () => true, nu = 
       if (gestopt) return;
       if (onKamer) await onKamer(room); // eerst de kamer klaarzetten, dan pas de sleutel geven
       if (gestopt) return;
-      gezien.set(nonce, nuT);
       antwoorden.set(nonce, { pub: await sleutelTekst(paar), blob, t: nuT });
-    } catch (e) { /* een kapot of geknoeid verzoek negeren */ }
+    } catch (e) { gezien.delete(nonce); /* kapot of geknoeid verzoek: negeren; een echte gast mag het opnieuw proberen */ }
   }
 
   Promise.all([joinTopic(id), antwoordTopic(id)]).then(([tv, ta]) => {
