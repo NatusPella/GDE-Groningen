@@ -4,6 +4,7 @@
 // en de wachtrij loopt daarna gewoon door.
 //   node scripts/tilestore_timeout_test.mjs
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import { TileStore, HttpRangeSource, makeWorkerDecoder, HTTP_TIMEOUT_MS, READ_GUARD_MS, WORKER_TIMEOUT_MS, DECODE_GUARD_MS, BOOT_HTTP_FACTOR, BOOT_READ_FACTOR, BOOT_DECODE_FACTOR, BOOT_WORKER_FACTOR } from '../game/js/tilestore.js';
 import { tileIndexOf, tileKey } from '../game/js/gdt.js';
 
@@ -109,8 +110,12 @@ await t('HttpRangeSource: elke read heeft een time-out, ook als de body blijft h
   }
 });
 
-await t('boot-grenzen: ruim, maar onder de 90 s-bootgrens van main.js (MAP_LOAD_MS)', async () => {
-  const MAP_LOAD_MS = 90000; // main.js: de harde grens rond loadTileWorld
+await t('boot-grenzen: ruim, maar onder de bootgrens van main.js (MAP_LOAD_MS)', async () => {
+  // #749: de harde grens rond loadTileWorld staat in main.js; lees hem daar, zodat deze test niet
+  // achterloopt als de boot-deadline-ladder verschuift (tegelgrens < MAP_LOAD_MS < BOOT_WATCHDOG_MS).
+  const main = fs.readFileSync(new URL('../game/js/main.js', import.meta.url), 'utf8');
+  const MAP_LOAD_MS = Number(/const MAP_LOAD_MS = (\d+);/.exec(main)[1]);
+  assert.ok(Number.isFinite(MAP_LOAD_MS), 'main.js noemt MAP_LOAD_MS');
   assert.equal(HTTP_TIMEOUT_MS, 30000);
   assert.equal(READ_GUARD_MS, 30000);
   assert.equal(WORKER_TIMEOUT_MS, 30000);
@@ -120,6 +125,10 @@ await t('boot-grenzen: ruim, maar onder de 90 s-bootgrens van main.js (MAP_LOAD_
     assert.ok(boot > ms, `${naam}: bootgrens ${boot} ms is ruimer dan de gewone ${ms} ms`);
     assert.ok(boot < MAP_LOAD_MS, `${naam}: bootgrens ${boot} ms moet onder de bootgrens ${MAP_LOAD_MS} ms blijven`);
   }
+  // #749: één koude tegel kan tijdens de boot een read én een decode kosten; die twee samen horen
+  // binnen de harde grens van loadTileWorld te passen, anders loopt de boot alsnog op de tegel-stap stuk.
+  const samen = READ_GUARD_MS * BOOT_READ_FACTOR + DECODE_GUARD_MS * BOOT_DECODE_FACTOR;
+  assert.ok(samen < MAP_LOAD_MS, `read+decode tijdens de boot (${samen} ms) past binnen loadTileWorld (${MAP_LOAD_MS} ms)`);
 });
 
 // een worker-dubbel dat meteen sterft (onerror) en nooit antwoordt

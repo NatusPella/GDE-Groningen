@@ -415,14 +415,17 @@ function waitForOnlineStart(ms) {
   });
 }
 
-// #749: de boot als geheel heeft een uiterste grens. Tijdens de boot staan de tegel-
-// time-outs bewust uit (#582: een koude schijf mag het laadscherm niet laten stukgaan),
-// maar een bron of worker die nooit antwoordt liet de boot dan oneindig op het laadscherm
-// staan. De wachter meldt het na 150 zichtbare seconden met de laatste loadmarker en een
-// herlaadknop. Tijd in een verborgen venster telt niet: daar staat rAF stil (Electron met
-// backgroundThrottling, #656) en de boot hervat vanzelf als het venster terug is.
-const BOOT_WATCHDOG_MS = 150000;
-const MAP_LOAD_MS = 90000;
+// #749: de boot als geheel heeft een uiterste grens. Tijdens de boot zijn de tegel-grenzen
+// ruim maar begrensd (game/js/tilestore.js: 60 s per read en 60 s per decode, dus één koude
+// tegel kan samen ~120 s kosten). De ladder is daarom: boot-tegelgrens (60/60 s) <
+// MAP_LOAD_MS (150 s) < BOOT_WATCHDOG_MS (180 s). Zo loopt een langzame koude schijf niet
+// stuk op de tegel-stap (de harde grens rond loadTileWorld) en blijft de wachter de
+// buitenste grens in plaats van een tweede, scherpere deadline (#582, #749). De wachter
+// meldt het na 180 zichtbare seconden met de laatste loadmarker en een herlaadknop. Tijd in
+// een verborgen venster telt niet: daar staat rAF stil (Electron met backgroundThrottling,
+// #656) en de boot hervat vanzelf als het venster terug is.
+const BOOT_WATCHDOG_MS = 180000;
+const MAP_LOAD_MS = 150000;
 const TERRAIN_READY_MS = 60000;
 let bootWatchdog = 0;
 let bootWatchdogCleanup = null;

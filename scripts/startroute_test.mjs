@@ -58,6 +58,11 @@ ok(/await waitForOnlineStart\(ONLINE_START_WAIT_MS\)/.test(main), '#751: de boot
 
 // --- #749: de boot heeft een wachter, harde grenzen en rAF-vangnetten ---
 ok(/const BOOT_WATCHDOG_MS = \d+;/.test(main) && /function armBootWatchdog\(/.test(main), '#749: de boot heeft een wachter');
+// De ladder: één koude tegel kan tijdens de boot read (60 s) + decode (60 s) kosten; de harde
+// grens rond loadTileWorld moet daarboven liggen en de wachter daar weer boven (#749).
+const bootMs = (naam) => { const m = new RegExp(`const ${naam} = (\\d+);`).exec(main); return m ? Number(m[1]) : NaN; };
+ok(bootMs('BOOT_WATCHDOG_MS') === 180000 && bootMs('MAP_LOAD_MS') === 150000, '#749: de bootgrenzen zijn 150 s (tegels) en 180 s (wachter)', `${bootMs('MAP_LOAD_MS')}/${bootMs('BOOT_WATCHDOG_MS')}`);
+ok(bootMs('BOOT_WATCHDOG_MS') > bootMs('MAP_LOAD_MS') && bootMs('MAP_LOAD_MS') > 120000, '#749: de ladder is tegelgrens < 150 s < wachter 180 s', `${bootMs('MAP_LOAD_MS')}/${bootMs('BOOT_WATCHDOG_MS')}`);
 ok(/^  armBootWatchdog\(\);$/m.test(main), '#749: de wachter start aan het begin van de boot');
 ok(/stopBootWatchdog\(\);\n  await waitForStart\(world, countryPlaced\);/.test(main), '#749: de wachter stopt als het laden klaar is en op de speler wordt gewacht');
 ok(/withDeadline\(loadTileWorld\(/.test(main), '#749: tegels laden heeft een harde grens');
@@ -66,6 +71,10 @@ ok(/withDeadline\(terrainReady\(\)/.test(main), '#749: terrainReady heeft een de
 ok(/document\.hidden/.test(main) && /showBootFailure\(/.test(main) && /Opnieuw laden/.test(main), '#749: een verborgen venster telt niet als hang; de fout is zichtbaar met herladen');
 ok(/boot\(\)\.catch\(\(err\) => \{[\s\S]{0,200}stopBootWatchdog\(\);/.test(main), '#749: een afgebroken boot stopt de wachter en toont de fout');
 ok(/function afterPaint\(fn\)/.test(ss) && /setTimeout\(afronden, 100\)/.test(ss), '#749: yieldToPaint en de dismiss wachten niet alleen op rAF');
+// Een late, alsnog geslaagde boot ruimt de foutstand van de wachter op (rode status + herlaadknop).
+ok(/function clearBootError\(\)/.test(ss) && /classList\.remove\('error'\)/.test(ss) && /#boot-reload/.test(ss), '#749: clearBootError haalt de rode status en de herlaadknop weg');
+ok(/export async function finishLoading\(\) \{[\s\S]{0,400}clearBootError\(\);/.test(ss), '#749: finishLoading ruimt een late foutstand op');
+ok(/export function dismissLoading\(\) \{[\s\S]{0,160}clearBootError\(\);/.test(ss), '#749: dismissLoading ruimt een late foutstand op');
 
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);
