@@ -22,6 +22,10 @@ console.log(`#653/#654 meting: politie-scans 60 -> ${pol}/s, Ommeland-solids 60 
 const police = fs.readFileSync(new URL('../game/js/police.js', import.meta.url), 'utf8');
 ok(/policeSlowTick\(performance\.now\(\)\)/.test(police), 'de politie gebruikt de tijdpoort');
 ok(/if \(slowDue\) despawnFarPolice/.test(police) && /if \(slowDue\) updateRoadblocks/.test(police), 'drie scans achter de poort');
+// #785: een lege LOS-pot kost alleen de lijncontrole, niet de achtervolging
+const chase = police.slice(police.indexOf('function updateChase'), police.indexOf('function pursuitCruise'));
+ok(/if \(!polLosBudget\(performance\.now\(\)\)\) v\._losTimer = 0\.05;/.test(chase), 'een lege LOS-pot slaat alleen de lijncontrole over');
+ok(!/v\._sees\); return;/.test(chase), 'geen early return meer vóór het pursuit-/bewegingsblok');
 const omm = fs.readFileSync(new URL('../game/js/ommelandfun.js', import.meta.url), 'utf8');
 ok(/if \(solidsTick\(performance\.now\(\)\)\) refreshSolids\(\)/.test(omm), 'de Ommeland-solids achter de poort');
 console.log(`${n - fails}/${n} perfafrond`);
