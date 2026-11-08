@@ -4,7 +4,7 @@
 // komen uit werf.js; hier staat alleen wat bij het tekenen hoort. Geen geluid hier: dat doet werflive.js.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { SCHIP, HELLING, WATERVLAK, N, KOERS, naarWereld, schipOp, golfDiepte, frontOp, GOLF, T_PLONS } from './werf.js';
-import { buildShipMesh } from './models3d_vehicles.js';
+import { buildShipMesh, releaseVehicleGeometries } from './models3d_vehicles.js';
 import { BOAT_KINDS } from './boattypes.js';
 
 const mat = (c, o = {}) => new THREE.MeshLambertMaterial({ color: c, ...o });
@@ -90,7 +90,14 @@ function bouw(scene, ground) {
 function weg(scene) {
   if (!obj) return;
   scene.remove(obj.group);
-  obj.group.traverse((o) => { if (o.geometry && !(o.geometry.userData && o.geometry.userData.shared)) o.geometry.dispose(); });
+  // #796: de rompgeometrie van het schip komt uit de gedeelde voertuigcache; geef de ref terug
+  // en ruim de eigen materialen van deze ene werf op.
+  releaseVehicleGeometries(obj.schip);
+  obj.group.traverse((o) => {
+    if (o.geometry && !(o.geometry.userData && o.geometry.userData.shared)) o.geometry.dispose();
+    const mats = Array.isArray(o.material) ? o.material : o.material ? [o.material] : [];
+    for (const m of mats) if (!m.userData || !m.userData.shared) m.dispose();
+  });
   obj = null;
 }
 

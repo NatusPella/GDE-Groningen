@@ -5,7 +5,7 @@ import { hoofdspeler } from './players.js';
 // de gastheer (worldmarker3d.js, #434). Alleen three.js; de
 // gegevens komen uit world.coopHost (coopnet.js) en world.coopExtra (coopextra.js). Niet in beeld bekeken.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { getScene } from './scene3d.js';
+import { getScene, disposeObject } from './scene3d.js';
 import { buildVehicleMesh, updateVehicleWheelSpin, applyFlatTire, updateIndicatorLamps, updatePoliceLamps, applyVehicleDamage, setBusRearAngle, updateBikeStaat } from './models3d_vehicles.js';
 import { poseHeliRotors } from './heli3d.js';
 import { uiterlijkSpec, gokUiterlijk } from './coopworld.js';
@@ -25,8 +25,15 @@ import { nieuwSchot } from './coopwapen.js';
 const voertuigen = new Map(); // id -> mesh
 const gladStand = new Map(); // id -> het geheugen van een boot die glad beweegt (coopboot.js); blijft staan als het model opnieuw gebouwd wordt (#436)
 const hornWas = new Map(); // id -> de toeter stond aan (de vorige keer)
-// een voertuig weg uit de scene: een blok heeft eigen geometrie (de materialen zijn gedeeld), echte modellen delen hun geometrie
-const ruimVoertuig = (scene, m) => ruimMeshOp(scene, m, { geometrie: !m.userData.vehicleId });
+// een voertuig weg uit de scene: een blok heeft eigen geometrie (de materialen zijn gedeeld), echte
+// modellen delen hun geometrie; die gaat via disposeObject terug naar de teller (#796), samen met
+// de eigen materialen van dit model.
+const ruimVoertuig = (scene, m) => {
+  if (m.userData.vehicleId) {
+    if (scene && scene.remove) scene.remove(m);
+    disposeObject(m);
+  } else ruimMeshOp(scene, m, { geometrie: true });
+};
 // De opdracht van de host (#434): het doel en het beginpunt van de volgende opdracht als wereldmarkers, in dezelfde stijl
 // als de gastheer ze ziet (worldmarker3d.js). Ze gaan nooit samen: het doel gaat voor (zie `doelMarker` in coopmissie.js).
 let doelBaken = null, startBaken = null, startHint = -1e9;

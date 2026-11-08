@@ -1,5 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { getScene } from './scene3d.js';
+import { getScene, disposeObject } from './scene3d.js';
 import { getStationsForRender, getTrainTripCount } from './stationtravel.js';
 import { isMissionActive, getActiveRace } from './missionquery.js';
 import { isCinematicActive } from './cinematics.js';
@@ -313,7 +313,7 @@ function dropAct(a) {
   disposeProp(a.prop);
   a.prop = null;
   a.solids = null;
-  if (a.boat) { a.boat.removeFromParent(); a.boat = null; }
+  if (a.boat) { a.boat.removeFromParent(); disposeObject(a.boat); a.boat = null; } // #796: gedeelde bootgeometrie terug
 }
 
 function buildPost(v) {

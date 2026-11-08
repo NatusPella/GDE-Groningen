@@ -8,7 +8,7 @@ import { refreshDayNight } from './daynight.js';
 import { spawnFxPuff, spawnFxSpark } from './fx3d.js';
 import { makeBirds, updateBirds } from './birds.js';
 import { playStoryVoice, stopStoryVoice, setStoryScene, playClueSting, playGlassClink, playTextMumble } from './audio.js';
-import { buildVehicleMesh, updateVehicleWheelSpin } from './models3d_vehicles.js';
+import { buildVehicleMesh, updateVehicleWheelSpin, releaseVehicleGeometries } from './models3d_vehicles.js';
 import { JELLE_LOOK, DURK_LOOK, DOUWE_LOOK, RIKUS_LOOK, MEM_LOOK, ROTOR_LOOK, ROELF_LOOK, HILJE_LOOK } from './storycast.js';
 import { showLiveFrame } from './storycontact.js';
 import { storyLineVoice } from './linevoice.js';
@@ -560,6 +560,18 @@ function disposeActor(m) {
   });
 }
 
+// #796: voertuigen die een scène zelf bouwt (trekker-limo, fatbike, cine-fietsen) horen bij het
+// opruimen ook weg. De scene3d-module wordt dynamisch geladen (zie boven), dus die opruimer
+// gebruiken we als hij er is; de gedeelde voertuiggeometrie gaat in elk geval terug.
+function disposeOwnVehicle(mesh) {
+  if (!mesh) return;
+  if (sceneMod && sceneMod.disposeObject) { sceneMod.disposeObject(mesh); return; }
+  releaseVehicleGeometries(mesh);
+}
+function disposeOwnVehicles(root) {
+  root.traverse((o) => { if (o.userData && o.userData.cachedGeometries) disposeOwnVehicle(o); });
+}
+
 function resetLimbs(ud) {
   for (const k of ['armL', 'armR']) ud[k].rotation.set(0, 0, 0);
   ud.head.rotation.set(0, 0, 0);
@@ -905,6 +917,7 @@ function cleanupRun(r) {
   r.cleaned = true;
   r.group.removeFromParent();
   for (const m of [r.tammo, r.anita, r.npc, ...r.extras.map((e) => e.mesh)]) if (m) disposeActor(m);
+  disposeOwnVehicles(r.group); // #796: de voertuigen die deze scène zelf in de groep zette
   for (const p of r.props) {
     if (p.attached) p.mesh.removeFromParent();
     if (p.own) p.mesh.traverse((o) => { if (o.isMesh) { o.geometry.dispose(); o.material.dispose(); } });
@@ -1575,6 +1588,7 @@ export function playVaultScene(w, { at, lines = [], landing = 'Moai! Oant sjen, 
   const cleanup = () => {
     if (r.vault) { r.vault.dispose(); r.vault = null; }
     group.removeFromParent();
+    disposeOwnVehicles(group); // #796: de fatbike van de tweeling hoort hier ook bij
     for (const m of [tammo, anita, jelle, durk, douwe]) disposeActor(m);
     pole.geometry.dispose();
     pole.material.dispose();

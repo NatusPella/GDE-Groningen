@@ -1,10 +1,10 @@
 import { hoofdspeler } from './players.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
-import { buildPersonMesh, seatPose, seatedY, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
+import { buildPersonMesh, seatPose, seatedY, releasePersonGeometry, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { buildKitchen } from './introkitchen3d.js';
 import { playCinematic, setNameCard, setCinematicRate, setCinematicTime } from './cinematics.js';
-import { buildVehicleMesh } from './models3d_vehicles.js';
+import { buildVehicleMesh, releaseVehicleGeometries } from './models3d_vehicles.js';
 import { buildWildlifeMesh3D } from './wildlife.js';
 import { HERO_CAR_MODEL, TRACTOR_MODEL, POLICE_MODEL, TRAFFIC_MODELS } from './vehicle.js';
 import { carModel } from './trafficfleet.js';
@@ -104,7 +104,18 @@ const PROP_MAKERS = {
 
 function disposeTree(o) {
   o.traverse((c) => {
-    if (c.isMesh && c.geometry && c.geometry !== SHADOW_GEO && !c.userData.shared) c.geometry.dispose();
+    // #796: gedeelde voertuig- en persoonsgeometrie gaat terug naar de teller in plaats van
+    // hier gedisposed te worden; de wereld-caches (gedeelde geometrie van props en dieren) blijven staan.
+    if (c.userData && c.userData.cachedGeometries) releaseVehicleGeometries(c);
+    const g = c.geometry;
+    if (!c.isMesh || !g) return;
+    if (typeof g.userData.personRefs === 'number') {
+      releasePersonGeometry(c);
+      if (c.isSkinnedMesh && c.skeleton) c.skeleton.dispose();
+      return;
+    }
+    if (g === SHADOW_GEO || c.userData.shared || (g.userData && g.userData.shared)) return;
+    g.dispose();
   });
 }
 
