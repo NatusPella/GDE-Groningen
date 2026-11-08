@@ -245,7 +245,7 @@ export class TileStore {
       const mine = e.waiters.filter((w) => w.token === token);
       if (!mine.length) continue;
       e.waiters = e.waiters.filter((w) => w.token !== token);
-      for (const w of mine) w.resolve(null); // afgebroken interesse is geen fout voor de wachter (storytest/hud) — null = geen tegel
+      for (const w of mine) w.reject(Object.assign(new Error('cancelled'), { cancelled: true }));
       this._maybeAbort(e);
     }
   }
@@ -330,9 +330,8 @@ export class TileStore {
       const ws = e.waiters;
       e.waiters = [];
       this.entries.delete(e.key);
-      const afgebroken = !!err.cancelled || (err && err.name === 'AbortError');
-      for (const w of ws) { if (afgebroken) w.resolve(null); else w.reject(err); }
-      if (!afgebroken) throw err;
+      for (const w of ws) w.reject(err);
+      if (!err.cancelled && !(err && err.name === 'AbortError')) throw err;
     }
   }
 
@@ -520,6 +519,7 @@ export function makeWorkerDecoder(url, size = 2, aside = null, opts = {}) {
   };
   return decode;
 }
+
 
 
 
