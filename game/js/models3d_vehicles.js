@@ -44,9 +44,51 @@ function cached(key, build) {
   let g = geoCache.get(key);
   if (!g) {
     g = markShared(build());
+    g.userData.geoRefs = 0; // #787: hoeveel meshes deze gedeelde geometrie nog tekenen
     geoCache.set(key, g);
   }
   return g;
+}
+
+// #787: anders dan bij personGeometries houdt niet de mesh zelf een refcount bij, maar
+// onthoudt elk voertuig bij het bouwen de lijst gedeelde geometrieën die het tekent
+// (userData.cachedGeometries); scene3d.disposeObject geeft die lijst bij het opruimen terug.
+// Een geëvicteerde geometrie blijft in leven zolang een mesh hem tekent en de laatste
+// gebruiker ruimt hem op. Zonder teller lekte de GPU-buffer: three.js geeft die alleen
+// vrij via dispose(), niet via garbage collection.
+function retireCachedGeometry(g) {
+  if (!g || !g.userData || typeof g.userData.geoRefs !== 'number') return;
+  if (g.userData.geoRefs > 0) { g.userData.geoRetired = true; return; }
+  g.dispose();
+}
+geoCache.onEvict = retireCachedGeometry;
+
+// Een mesh die weggaat geeft zijn gedeelde voertuiggeometrie terug; de laatste gebruiker van
+// een geëvicteerde geometrie ruimt hem op.
+export function releaseVehicleGeometry(g) {
+  if (!g || !g.userData || typeof g.userData.geoRefs !== 'number') return false;
+  g.userData.geoRefs = Math.max(0, g.userData.geoRefs - 1);
+  if (g.userData.geoRefs === 0 && g.userData.geoRetired) { g.userData.geoRetired = false; g.dispose(); return true; }
+  return false;
+}
+
+// #787: teller erbij + onthouden op de mesh, zodat ook een onderweg verwisselde geometrie
+// (deukkopie, stuurvariant) zijn oorspronkelijke gedeelde geometrie teruggeeft.
+function retainCachedGeometry(root, g) {
+  if (!root || !root.userData || !g || !g.userData || typeof g.userData.geoRefs !== 'number') return false;
+  g.userData.geoRefs++;
+  (root.userData.cachedGeometries || (root.userData.cachedGeometries = [])).push(g);
+  return true;
+}
+function retainCachedGeometries(root) {
+  root.traverse((o) => { if (o.geometry) retainCachedGeometry(root, o.geometry); });
+}
+// Alle gedeelde geometrieën van dit voertuig terug naar de teller (scene3d.disposeObject).
+export function releaseVehicleGeometries(root) {
+  const held = root && root.userData && root.userData.cachedGeometries;
+  if (!held) return;
+  root.userData.cachedGeometries = null;
+  for (const g of held) releaseVehicleGeometry(g);
 }
 
 function toHex(c, fallback) {
@@ -1030,7 +1072,9 @@ function buildFordEscortGroup(color, len = HERO_LEN, wid = HERO_WID, wrecked = f
 }
 
 export function buildFordEscortMesh(color) {
-  return buildFordEscortGroup(color);
+  const mesh = buildFordEscortGroup(color);
+  retainCachedGeometries(mesh); // #787
+  return mesh;
 }
 
 // --- bike / scooter ----------------------------------------------------------------
@@ -2544,7 +2588,7 @@ function buildBoatMesh(v) {
 }
 
 // A boat hull mesh outside the vehicle registry (the ship on the slipway of werf3d.js, #398).
-export const buildShipMesh = (v) => buildBoatMesh(v);
+export const buildShipMesh = (v) => { const mesh = buildBoatMesh(v); retainCachedGeometries(mesh); return mesh; };
 
 // --- stuur dat meedraait (#442) ---------------------------------------------------
 // Stuurstang, stuurpen en handvatten van een fiets, step en brommer als eigen onderdeel: dichtbij vervangt
@@ -2585,28 +2629,32 @@ function mopedStuurOnderdelen(B, color, px) {
 // stuur: het stuur om de stuurpen, px: x van de stuurpen, sx: schaal van de carrosserie } of null.
 export function stuurOverlay(spec) {
   if (!spec) return null;
+  // #787: het voertuig onthoudt deze gedeelde geometrieën (userData.cachedGeometries), zodat ze
+  // bij het opruimen teruggaan naar de teller; de gewone carrosserie wordt er onderweg door vervangen.
+  const owner = spec.body && spec.body.parent;
+  const hold = (g) => { retainCachedGeometry(owner, g); return g; };
   if (spec.soort === 'fiets') {
     const px = 0.38;
     return {
       px, sx: 1,
-      zonder: buildBikeGeometry(spec.color, spec.fat, spec.stepThrough, spec.sleutel, true),
-      stuur: cached(`stuur|fiets|${spec.fat}`, () => { const B = new GeoBuilder(3); bikeStuurOnderdelen(B, spec.fat, px); return B.build(); }),
+      zonder: hold(buildBikeGeometry(spec.color, spec.fat, spec.stepThrough, spec.sleutel, true)),
+      stuur: hold(cached(`stuur|fiets|${spec.fat}`, () => { const B = new GeoBuilder(3); bikeStuurOnderdelen(B, spec.fat, px); return B.build(); })),
     };
   }
   if (spec.soort === 'step') {
     const px = 0.4;
     return {
       px, sx: 1,
-      zonder: buildScooterGeometry(spec.color, true),
-      stuur: cached(`stuur|step|${spec.color}`, () => { const B = new GeoBuilder(3); scooterStuurOnderdelen(B, px, spec.color); return B.build(); }),
+      zonder: hold(buildScooterGeometry(spec.color, true)),
+      stuur: hold(cached(`stuur|step|${spec.color}`, () => { const B = new GeoBuilder(3); scooterStuurOnderdelen(B, px, spec.color); return B.build(); })),
     };
   }
   if (spec.soort === 'brommer') {
     const px = 0.44;
     return {
       px, sx: spec.sx || 1,
-      zonder: buildMopedGeometry(spec.color, true),
-      stuur: cached(`stuur|brommer|${spec.color}`, () => { const B = new GeoBuilder(3); mopedStuurOnderdelen(B, spec.color, px); return B.build(); }),
+      zonder: hold(buildMopedGeometry(spec.color, true)),
+      stuur: hold(cached(`stuur|brommer|${spec.color}`, () => { const B = new GeoBuilder(3); mopedStuurOnderdelen(B, spec.color, px); return B.build(); })),
     };
   }
   return null;
@@ -2717,6 +2765,7 @@ const meshRegistry = new Map();
 
 export function buildVehicleMesh(v) {
   const group = buildVehicleMeshFor(v);
+  retainCachedGeometries(group); // #787: welke gedeelde geometrieën dit voertuig tekent
   group.userData.vehicleId = v.id;
   group.userData.builtAt = performance.now();
   meshRegistry.set(v.id, group);
