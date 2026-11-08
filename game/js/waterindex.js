@@ -208,8 +208,13 @@ function segSeg(p0x, p0y, p1x, p1y, q0x, q0y, q1x, q1y) {
 function staticWater(map) {
   // (#314 C2b) het statische (gepinde) water uit het waterraster; de rijen van een
   // gestroomde tegel en de vaarnet-patches dragen `tile` en horen er niet bij.
-  if (map._staticWater && map._staticGeoVer === map.geoVer) return map._staticWater;
-  map._staticGeoVer = map.geoVer;
+  // (#754) De cache hangt aan map._staticWaterVer, niet aan geoVer: een gestroomde
+  // tegelwaterrij valt er juist buiten, dus zo'n tegel hoeft de set en de dure index
+  // erover niet te herdraaien. tileworld.js verhoogt de teller alleen als er vast
+  // water in of uit het raster gaat (waterindex.js zelf nooit).
+  const ver = map._staticWaterVer || 0;
+  if (map._staticWater && map._staticWaterSeen === ver) return map._staticWater;
+  map._staticWaterSeen = ver;
   // een platte testkaart zonder rasters valt terug op zijn eigen rijen; de spellogica heeft
   // altijd een waterraster (#314 C2).
   const rows = map.waterGrid ? gridItems(map.waterGrid) : map['water'] || [];
@@ -217,9 +222,11 @@ function staticWater(map) {
 }
 export function getWaterIndex(map, poly = null) {
   if (poly && map.waterNear && !staticWater(map).has(poly)) return polyWaterIndex(map, poly);
-  if (map._waterIndex && map._waterIndexGeoVer === map.geoVer) return map._waterIndex;
-  map._waterIndexGeoVer = map.geoVer;
-  return (map._waterIndex = createWaterIndex([...staticWater(map)]));
+  const st = staticWater(map);
+  const ver = map._staticWaterVer || 0;
+  if (map._waterIndex && map._waterIndexSeen === ver) return map._waterIndex;
+  map._waterIndexSeen = ver;
+  return (map._waterIndex = createWaterIndex([...st]));
 }
 
 // the index that has (x, y) in its water: the tile polygons' where they hold it, else the city's

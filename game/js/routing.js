@@ -49,6 +49,27 @@ const COUNTRY_ON_M = 30;
 const CITY_SURE_M = 25;
 
 let graph = null;
+// #754: de graaf hangt aan de wegen en de gebouwen van de kaart, niet aan map.geoVer
+// (dat bij elke tegel-add/drop stijgt): een tegel met alleen bomen, groen of water
+// laat hem staan. En tijdens een streamburst houdt hij de oude graaf: een herbouw
+// kost ~300 ms op de echte stadswereld, dus die wacht tot de tegelwachtrij leeg is
+// en gebeurt daarna hooguit één keer per seconde.
+const GRAPH_REBUILD_MIN_S = 1;
+let graphBuiltAt = -Infinity;
+const tileWorkPending = (map) => !!(map.tileQueue && (map.tileQueue.size || (map._tileJobs && map._tileJobs.size)));
+function graphStale(map) {
+  if (!graph || graph.map !== map) return true;
+  return graph.roadVer !== (map._roadVer || 0) || graph.buildingVer !== (map._buildingVer || 0);
+}
+function ensureGraph(map) {
+  if (!graphStale(map)) return;
+  if (graph && graph.map === map) {
+    if (tileWorkPending(map)) return; // nog midden in de stroom: de oude graaf is goed genoeg
+    if (performance.now() - graphBuiltAt < GRAPH_REBUILD_MIN_S * 1000) return; // cadans
+  }
+  buildGraph(map);
+  graphBuiltAt = performance.now();
+}
 // Up to three routes at once, each its own colour (hud_panel ROUTE_COLORS):
 // the player's own goal (goal.js, purple), the objective (an active mission
 // or the story yellow, a bijbaan orange) and the care route (pink: food when
@@ -234,7 +255,9 @@ function buildGraph(map) {
   const driveFree = csr(driveUndirected);
   graph = {
     map,
-    geoVer: map.geoVer,
+    // (#754) de laagversies waarop deze graaf gebouwd is, niet geoVer: zie ensureGraph
+    roadVer: map._roadVer || 0,
+    buildingVer: map._buildingVer || 0,
     roadList: graphRoads, // #314: de wegen uit het raster, niet uit de (sparse) arraylaag
     N,
     walkComp: components(walkAdj),
@@ -447,7 +470,7 @@ function astar(fromSnap, toSnap, walkMode, nodesOut = null) {
 // Walking path for pedestrians: the polyline plus the road each leg follows
 // (legs[i] is the road between pts[i] and pts[i + 1]).
 export function findWalkPath(map, ax, ay, bx, by) {
-  if (!graph || graph.map !== map || graph.geoVer !== map.geoVer) buildGraph(map);
+  ensureGraph(map);
   const from = snapToRoad(map, ax, ay, false), to = snapToRoad(map, bx, by, false);
   if (!from || !to) return null;
   const nodes = [];
@@ -675,7 +698,7 @@ function countryRoute(world, target, from, to, graphMode, kind, p = hoofdspeler(
 // az, bz } (the heights at the ends, for bridge or below). Returns
 // { pts, roads } (roads[i]: the road between pts[i] and pts[i + 1]) or null.
 export function planLandRoute(map, kind, a, b, opts = {}) {
-  if (!graph || graph.map !== map || graph.geoVer !== map.geoVer) buildGraph(map);
+  ensureGraph(map);
   const lvl = (z, pen) => (Number.isFinite(z) ? { z, pen } : null);
   // De start is waar de speler staat: die snap hoeft niet per se buiten een gevel
   // te liggen (je kunt in een deuropening staan). Alleen het doel moet dat (#502).
@@ -701,7 +724,7 @@ export function planLandRoute(map, kind, a, b, opts = {}) {
 // Where a waypoint clicks onto for a mode: the nearest road that is for the
 // mode, on the level asked for (z: 0 street level, a bridge deck's height).
 export function snapWaypoint(map, kind, x, y, z) {
-  if (!graph || graph.map !== map || graph.geoVer !== map.geoVer) buildGraph(map);
+  ensureGraph(map);
   return snapToRoad(map, x, y, kind, Number.isFinite(z) ? { z, pen: LEVEL_PEN_TARGET_M } : { z: 0, pen: LEVEL_PEN_TARGET_M / 2 });
 }
 
@@ -983,7 +1006,7 @@ function updateSlot(world, slot, target, mode) {
 }
 
 export function updateRouting(dt, world) {
-  if (!graph || graph.map !== world.map || graph.geoVer !== world.map.geoVer) buildGraph(world.map);
+  ensureGraph(world.map);
   const p = hoofdspeler(world);
 
   const mode = world.pigeonMode || world.heliRun ? 'fly' : world.trainDriving || world.trainCam ? 'ov' : travelMode(p);

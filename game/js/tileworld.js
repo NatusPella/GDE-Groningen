@@ -361,7 +361,10 @@ export class TileWorld extends GameMap {
           this._res[kind].set(gid, e);
           if (kind === 'buildings' || kind === 'roads' || kind === 'water' || kind === 'green' || kind === 'rails' || kind === 'parcels') obj.bounds = boundsOfObj(kind, obj);
           if (kind === 'water') { obj.tile = true; promoteMainWaterway(obj); this._waterVer = (this._waterVer || 0) + 1; newWater.push(obj); }
-          if (kind === 'roads') { obj._ord = 1e7 + (this._ordSeq = (this._ordSeq || 0) + 1); newRoads.push(obj); }
+          if (kind === 'roads') { obj._ord = 1e7 + (this._ordSeq = (this._ordSeq || 0) + 1); newRoads.push(obj); this._roadVer = (this._roadVer || 0) + 1; }
+          // (#754) laagversies: de routinggraaf hangt aan wegen en gebouwen; een tegel
+          // met alleen bomen, groen of water laat hem staan (routing.js ensureGraph)
+          if (kind === 'buildings') this._buildingVer = (this._buildingVer || 0) + 1;
           if (kind === 'trees') ownTrees.push(obj);
           if (kind === 'furniture' && obj.k === 'hedge' && obj.pts) ownHedges.push(obj);
           if (kind === 'buildings' && obj.type === 'houseboat') addMooredBuilding(this, obj); // (boats keep off it, #343)
@@ -485,8 +488,14 @@ export class TileWorld extends GameMap {
       if (e.pinned && !(this.sparse && this.sparse.has(kind))) return;
       if (!releaseFrom(e, tk)) return;
       this._res[kind].delete(gid);
-      if (kind === 'roads' && e.obj.z) goneRoads.push(e.obj);
-      if (kind === 'water') this._waterVer = (this._waterVer || 0) + 1;
+      if (kind === 'roads') { this._roadVer = (this._roadVer || 0) + 1; if (e.obj.z) goneRoads.push(e.obj); }
+      if (kind === 'buildings') this._buildingVer = (this._buildingVer || 0) + 1;
+      if (kind === 'water') {
+        this._waterVer = (this._waterVer || 0) + 1;
+        // (#754) alleen het vaste water (geen gestroomde tegelrij) telt voor de
+        // waterindex: die cache hangt aan deze teller (waterindex.js staticWater)
+        if (!e.obj.tile) this._staticWaterVer = (this._staticWaterVer || 0) + 1;
+      }
       if (kind === 'buildings' && e.obj.type === 'houseboat') dropMooredBuilding(this, e.obj);
       const grid = gridOf(kind, e.obj);
       if (grid && this[grid]) this[grid].remove(e.obj, boundsOfObj(kind, e.obj));
