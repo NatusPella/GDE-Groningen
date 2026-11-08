@@ -189,26 +189,15 @@ function computePassages(map, b) {
     }
   }
   // #747-terugval: een dienstweg die nog door de footprint loopt zonder corridor (binnenplaats,
-  // parkeerdek, ziekenhuisgarage zonder OSM-passage) krijgt hier alsnog een open doorgang. Alleen
-  // voor gebouwen zonder getekende doorgang, anders wordt dit te duur op de grote stadskaart.
-  if (!out.some((p) => p.shown)) {
-    let punten = 0;
-    for (const r of map.roadsNear(cx, cy, reach)) {
-      if (punten > 400 || !(r.cat === 'service' || r.type === 'service') || out.some((p) => p.road === r)) continue;
-      const inside = [];
-      for (let i = 0; i < r.pts.length - 1 && punten <= 400; i++) {
-        const [ax, ay] = r.pts[i], [bx, by] = r.pts[i + 1];
-        const n = Math.max(1, Math.ceil(Math.hypot(bx - ax, by - ay) / 2));
-        for (let k = 0; k <= n; k++) {
-          const x = ax + (bx - ax) * k / n, y = ay + (by - ay) * k / n;
-          if (pointInPolygon(x, y, b.pts) && outlineDist(x, y, b.pts) > 2) { inside.push([x, y]); punten++; }
-        }
-      }
-      if (inside.length < 2) continue;
-      out.push({ pts: inside, hw: passageHalfWidth(r), len: pathLength(inside), mapped: null, cat: r.cat, road: r, shown: true });
-    }
+  // parkeerdek, ziekenhuisgarage zonder OSM-passage) krijgt hier alsnog een open doorgang. We
+  // hergebruiken de al gesampelde runs, zodat dit niet per gebouw de wegen opnieuw hoeft te lopen.
+  for (const ra of runs) {
+    if (!(ra.r.cat === 'service' || ra.r.type === 'service')) continue;
+    if (out.some((p) => p.road === ra.r)) continue;
+    if (runDepth(ra.pts, b.pts) <= 2) continue;
+    out.push({ pts: ra.pts, hw: passageHalfWidth(ra.r), len: pathLength(ra.pts), mapped: null, cat: ra.r.cat, road: ra.r, shown: true });
   }
-  linkDoors(b, doors, out);  linkDoors(b, doors, out);
+  linkDoors(b, doors, out);  linkDoors(b, doors, out);  linkDoors(b, doors, out);
   b._doors = doors.filter((e) => !e.hall).map((e) => doorOnFacade(b, e));
   return out;
 }
@@ -453,6 +442,10 @@ export function clipWaysInBuildings(map, source) {
       const [x0, y0, x1, y1] = b.bounds;
       if (x1 < rb[0] || x0 > rb[2] || y1 < rb[1] || y0 > rb[3]) continue;
       if ((b.rooms || b.noPassages) && !knipService) continue;
+      // Een dienstweg door een gewoon gebouw krijgt een doorgang (passages.js); alleen bij een
+      // interieur/geen-doorgang-gebouw knippen we hem op de gevel. Zo hoeft het bouwpad voor
+      // duizenden gewone gebouwen geen dure passage-classificatie te doen (1 FPS-bug).
+      if (knipService && !(b.rooms || b.noPassages)) continue;
       const { runs, total } = runsInside(r, b);
       for (const run of runs) {
         if (classifyRun(map, r, b, run, total).cls !== 'solid') continue;
@@ -482,6 +475,7 @@ export function clipWaysInBuildings(map, source) {
   for (const b of source.buildings) if (b.passages) { b.passages = null; b._doors = null; }
   return cut;
 }
+
 
 
 
