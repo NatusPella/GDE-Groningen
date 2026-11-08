@@ -1,4 +1,4 @@
-// #651.4 decode-terugval, #651.6 syncTrees-throttle, #653 LOS-budget.
+// #651.4 decode-terugval, #651.6 syncTrees-throttle, #653 LOS-budget, #786 bomen-stream.
 import fs from 'node:fs';
 import { serialQueue } from '../game/js/decodequeue.js';
 import { makeLosBudget } from '../game/js/losbudget.js';
@@ -34,12 +34,15 @@ ok(!treeSyncDue(7.9, 0, 0, 0, 10, 10, false), '7,9 m: nog niet');
 ok(treeSyncDue(8.1, 0, 0, 0, 10, 10, false), '>8 m: opnieuw');
 ok(treeSyncDue(1, 0, 0, 0, 19, 10, false), '>8 bomen verschil: opnieuw');
 ok(treeSyncDue(1, 0, 0, 0, 10, 10, true), 'verborgen-set gewijzigd: meteen');
+ok(treeSyncDue(1, 0, 0, 0, 10, 10, false, 4, 3), 'gestroomde tegel (bronversie): meteen opnieuw (#786)');
+ok(!treeSyncDue(1, 0, 0, 0, 10, 10, false, 3, 3), 'zelfde bronversie: de throttle blijft werken');
 const tilestoreSrc = fs.readFileSync(new URL('../game/js/tilestore.js', import.meta.url), 'utf8');
 ok(/serialQueue\(\(bytes\) => fallback\(bytes, aside\)\)/.test(tilestoreSrc), 'tilestore gebruikt de serialQueue');
 const policeSrc = fs.readFileSync(new URL('../game/js/police.js', import.meta.url), 'utf8');
 ok(/polLosBudget\(performance\.now\(\)\)/.test(policeSrc), 'de politie gebruikt het LOS-budget');
 const sceneSrc = fs.readFileSync(new URL('../game/js/scene3d.js', import.meta.url), 'utf8');
 ok(/treeSyncDue\(px, py, treeSyncX, treeSyncY/.test(sceneSrc), 'syncTrees gebruikt de throttle');
-console.log('#651 meting: syncTrees herbouwt bij lopen (~1 m/frame) nog maar 1x per 8 m i.p.v. bijna elke frame');
+ok(/treeSyncDue\(px, py, treeSyncX, treeSyncY[^)]*geoVer/.test(sceneSrc), 'syncTrees geeft de bronversie mee (#786)');
+console.log('#651 meting: syncTrees herbouwt bij lopen (~1 m/frame) nog maar 1x per 8 m i.p.v. bijna elke frame; een gestroomde tegel dwingt meteen een rebuild af (#786)');
 console.log(`${n - fails}/${n} perfrest2`);
 process.exit(fails ? 1 : 0);

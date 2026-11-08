@@ -1486,6 +1486,9 @@ const treeInstanced = [];
 let treeCapacity = 0;
 let shownTrees = [];
 let treeSyncX = null, treeSyncY = null; // #651
+// #786: de bronstand van de boomlijst (kaart + map.geoVer, #314 C2): een gestroomde
+// tegel kan bomen toevoegen of weghalen terwijl de speler stil staat
+let treeSyncMap = null, treeSyncGeoVer;
 // crowns the follow camera sits in or looks through (updateCamera), left out of the instancing
 const camTreeHidden = [];
 let camTreeHiddenKey = '';
@@ -2025,6 +2028,8 @@ function syncRoads(world, px, py) {
 }
 
 function syncTrees(world, px, py) {
+  // #786: een kaartwissel is een nieuwe bron; de eerste frame bouwt gewoon op
+  if (world.map !== treeSyncMap) { treeSyncMap = world.map; treeSyncX = treeSyncY = null; treeSyncGeoVer = undefined; }
   // the trees round the player, and further out the crowns of the woods
   const all = world.map.treesNear(px, py, TREE_FAR);
   const trees = [];
@@ -2035,10 +2040,12 @@ function syncTrees(world, px, py) {
   }
   const hiddenChanged = camTreeHiddenKey !== shownHiddenKey;
   // #651: niet bij elke meter opnieuw; pas bij >8 m of >8 bomen verschil
-  if (!treeSyncDue(px, py, treeSyncX, treeSyncY, trees.length, shownTrees.length, hiddenChanged)) return;
-  if (!hiddenChanged && trees.length === shownTrees.length && trees.every((t, i) => t === shownTrees[i])) { treeSyncX = px; treeSyncY = py; return; }
+  // #786: of als de bron veranderde (gestroomde tegel/kaartwissel), ook bij stilstand
+  if (!treeSyncDue(px, py, treeSyncX, treeSyncY, trees.length, shownTrees.length, hiddenChanged, world.map.geoVer, treeSyncGeoVer)) return;
+  if (!hiddenChanged && trees.length === shownTrees.length && trees.every((t, i) => t === shownTrees[i])) { treeSyncX = px; treeSyncY = py; treeSyncGeoVer = world.map.geoVer; return; }
   shownTrees = trees;
   treeSyncX = px; treeSyncY = py;
+  treeSyncGeoVer = world.map.geoVer;
   shownHiddenKey = camTreeHiddenKey;
   ensureTreeCapacity(trees.length);
   const [trunks, crowns, cones, far] = treeInstanced;
