@@ -1,6 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { buildVehicleMesh } from './models3d_vehicles.js';
-import { buildWeaponMesh, buildPersonMesh, animatePersonWalk } from './models3d_people.js';
+import { buildVehicleMesh, releaseVehicleGeometries } from './models3d_vehicles.js';
+import { buildWeaponMesh, buildPersonMesh, animatePersonWalk, releasePersonGeometry } from './models3d_people.js';
 import { buildProductMesh } from './shopmodels3d.js';
 import { VERSION } from './version.js';
 import { watchContext } from './blackframe.js';
@@ -25,8 +25,14 @@ export const PORTRAIT_ANGLE = -1.55;
 // from that shared renderer (garage thumbnails, HUD and Verhaal portraits).
 
 function disposeMesh(m) {
+  // #796: een preview van een echt voertuig of personage deelt zijn geometrie met de wereld;
+  // geef die ref terug in plaats van hem (via de shared-check hieronder) te laten staan.
+  releaseVehicleGeometries(m);
   m.traverse((o) => {
-    if (o.geometry && !(o.geometry.userData && o.geometry.userData.shared)) o.geometry.dispose();
+    const g = o.geometry;
+    if (typeof (g && g.userData && g.userData.personRefs) === 'number') releasePersonGeometry(o);
+    else if (g && !(g.userData && g.userData.shared)) g.dispose();
+    if (o.isSkinnedMesh && o.skeleton) o.skeleton.dispose();
     const mats = Array.isArray(o.material) ? o.material : o.material ? [o.material] : [];
     for (const mat of mats) if (!mat.userData || !mat.userData.shared) { if (mat.map) mat.map.dispose(); mat.dispose(); }
   });
