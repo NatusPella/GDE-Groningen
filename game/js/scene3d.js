@@ -6,6 +6,7 @@ import { sfxLinks } from './latehooks.js';
 import { MODS } from './cheatmods.js';
 import { setDualText } from './subtitles.js';
 import { gridItems } from './spatialgrid.js';
+import { terrainHoleRows } from './terraincache.js';
 import { speakerHtml } from './speakers.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
@@ -160,7 +161,9 @@ import { gameBusy } from './busy.js';
 // in map.duplicateWater: het gestreamde pad laat hem helemaal weg).
 // Alle kaartvragen (waterNear, waterIndexAt, varen) houden beide rijen: alleen het tekenen slaat de
 // dubbel gemapte over, anders wordt hetzelfde water twee keer over elkaar getekend (donkerder en rommelig).
-const waterRows = (map) => gridItems(map.waterGrid).filter((w) => !map.duplicateWater || !map.duplicateWater.has(w));
+// The same list determines the terrain holes and the fingerprint of the baked
+// ground (terraincache.js), so it comes from one function.
+const waterRows = terrainHoleRows;
 const waterNearDrawn = (map, x, y, r) => {
   const list = map.waterNear(x, y, r);
   return map.duplicateWater ? list.filter((w) => !map.duplicateWater.has(w)) : list;
@@ -880,23 +883,35 @@ export function init3D(map) {
     terrainMesh = new THREE.Group();
     terrainMesh.material = createTerrainMaterial();
     const group = terrainMesh;
-    const water = waterRows(map);
-    let terrainKlaar = false, terrainDeadline = 0;
-    terrainPending = new Promise((done) => {
-      // #749: precies één keer afronden. De worker bouwt het terrein; antwoordt hij niet
-      // binnen de deadline (dood of hangend), dan bouwt de hoofdthread dezelfde terugval
-      // als de bestaande fallback. Een late worker-callback doet daarna niets meer.
-      const finish = (T) => {
-        if (terrainKlaar) return;
-        terrainKlaar = true;
-        clearTimeout(terrainDeadline);
-        terrainGroup(T || terrainArrays(map.meta.bounds, water), group);
-        freezeStatic(group);
-        done();
-      };
-      terrainDeadline = setTimeout(() => finish(null), TERRAIN_READY_DEADLINE_MS);
-      runGeo('terrain', { bounds: map.meta.bounds, water: water.map((w) => ({ pts: w.pts, bounds: w.bounds })) }, finish);
-    });
+    // the build bakes the ground (scripts/world/bake_terrain.mjs), so there is
+    // nothing to build at the start. tileworld.js already checked the block
+    // against the map bounds and the water list; when it does not fit, the
+    // geometry worker builds it as before.
+    const baked = map.terrainCache;
+    if (baked) {
+      terrainGroup(baked, group);
+      freezeStatic(group);
+      terrainPending = Promise.resolve();
+      if (typeof window !== 'undefined' && window.__loadMarks) window.__loadMarks.terrainBaked = Math.round(performance.now());
+    } else {
+      const water = waterRows(map);
+      let terrainKlaar = false, terrainDeadline = 0;
+      terrainPending = new Promise((done) => {
+        // #749: precies één keer afronden. De worker bouwt het terrein; antwoordt hij niet
+        // binnen de deadline (dood of hangend), dan bouwt de hoofdthread dezelfde terugval
+        // als de bestaande fallback. Een late worker-callback doet daarna niets meer.
+        const finish = (T) => {
+          if (terrainKlaar) return;
+          terrainKlaar = true;
+          clearTimeout(terrainDeadline);
+          terrainGroup(T || terrainArrays(map.meta.bounds, water), group);
+          freezeStatic(group);
+          done();
+        };
+        terrainDeadline = setTimeout(() => finish(null), TERRAIN_READY_DEADLINE_MS);
+        runGeo('terrain', { bounds: map.meta.bounds, water: water.map((w) => ({ pts: w.pts, bounds: w.bounds })) }, finish);
+      });
+    }
   } else {
     terrainMesh = buildTerrainMesh3D(map.meta.bounds, waterRows(map));
     freezeStatic(terrainMesh);

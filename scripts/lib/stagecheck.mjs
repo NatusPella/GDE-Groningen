@@ -7,12 +7,16 @@
 //               The world builder writes the packs before the index and rewrites
 //               packs when it merges the overlays, so an interrupted build
 //               leaves exactly this: an index from one generation and packs from
-//               another.
+//               another. A baked terrain cache (terrain.bin) next to the
+//               packs is decoded too: a damaged or foreign file would be a
+//               second of terrain building at every start, or worse, wrong ground.
 //   checkAudio  every scenario loop, jingle and station track that js/audio.js
 //               names as a fixed path is in the folder. The music has no
 //               manifest of its own; a missing file is a 404 at the first menu.
 import fs from 'node:fs';
 import path from 'node:path';
+import zlib from 'node:zlib';
+import { TERRAIN_FILE, checkTerrainCacheBytes } from '../../game/js/terraincache.js';
 
 // The province and corridor layers are extra; a city-only checkout has no
 // index for them. index.json is the one every build needs.
@@ -51,6 +55,17 @@ export function checkWorld(dir) {
       tiles++;
       if (!tile || !tile.pack) problems.push(`${name}: tegel ${key} heeft geen pack`);
       else if (!packsOfIndex[tile.pack]) problems.push(`${name}: tegel ${key} wijst naar onbekend pack ${tile.pack}`);
+    }
+  }
+  // the baked ground belongs to this world; a damaged or foreign file would
+  // otherwise be a silent fallback or wrong ground at every start
+  if (files.has(TERRAIN_FILE)) {
+    try {
+      const raw = zlib.inflateRawSync(fs.readFileSync(path.join(dir, TERRAIN_FILE)));
+      const probleem = checkTerrainCacheBytes(new Uint8Array(raw.buffer, raw.byteOffset, raw.byteLength));
+      if (probleem) problems.push(`${TERRAIN_FILE}: ${probleem}`);
+    } catch (err) {
+      problems.push(`${TERRAIN_FILE}: onleesbaar (${err.message})`);
     }
   }
   return { ok: problems.length === 0, packs, tiles, problems };
