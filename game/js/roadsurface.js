@@ -399,19 +399,49 @@ const nodeKey = (p) => Math.round(p[0] * 10) + ',' + Math.round(p[1] * 10);
 // map whose roads carry it as r.net; a road
 // is always built against its own network.
 const nets = new WeakMap();
-function netState(map) {
-  let s = nets.get(map);
-  if (s) return s;
-  s = { nodeIndex: new Map(), lights: allSignals(map).filter((l) => !l.bike) };
-  for (const r of gridItems(map.roadGrid)) {
+// (#754) De tegelwereld verandert het wegraster bij elke tegel-add/drop
+// (map.geoVer): een eenmalig gebouwde knooppuntindex mist dan de aansluitingen
+// van net gestroomde wegen en houdt gedropte wegen vast. Daarom hangt de cache
+// aan de kaartstand. De herbouw gaat in stukken van NET_CHUNK wegen per frame
+// (18.454 wegen in één keer is ~28 ms); tot hij klaar is blijft de oude index
+// staan, zodat geen frame erop wacht. Een gewone GameMap heeft geen geoVer en
+// bouwt de index één keer.
+const NET_CHUNK = 1200;
+function fillNodes(nodeIndex, roads, from, to) {
+  const end = Math.min(to, roads.length);
+  for (let ri = from; ri < end; ri++) {
+    const r = roads[ri];
     for (let i = 0; i < r.pts.length; i++) {
       const k = nodeKey(r.pts[i]);
-      let a = s.nodeIndex.get(k);
-      if (!a) s.nodeIndex.set(k, a = []);
+      let a = nodeIndex.get(k);
+      if (!a) nodeIndex.set(k, a = []);
       a.push(r, i);
     }
   }
-  nets.set(map, s);
+}
+let netBuild = null; // { map, geoVer, roads, k, nodeIndex } zolang een herbouw loopt
+function netState(map) {
+  let s = nets.get(map);
+  const ver = map.geoVer;
+  if (!s) {
+    s = { nodeIndex: new Map(), lights: allSignals(map).filter((l) => !l.bike), geoVer: ver };
+    fillNodes(s.nodeIndex, gridItems(map.roadGrid), 0, Infinity);
+    nets.set(map, s);
+    return s;
+  }
+  if (s.geoVer === ver) return s;
+  if (!netBuild || netBuild.map !== map || netBuild.geoVer !== ver) {
+    netBuild = { map, geoVer: ver, roads: gridItems(map.roadGrid), k: 0, nodeIndex: new Map() };
+  }
+  const B = netBuild;
+  fillNodes(B.nodeIndex, B.roads, B.k, Math.min(B.roads.length, B.k + NET_CHUNK));
+  B.k = Math.min(B.roads.length, B.k + NET_CHUNK);
+  if (B.k >= B.roads.length) {
+    s.nodeIndex = B.nodeIndex;
+    s.lights = allSignals(map).filter((l) => !l.bike);
+    s.geoVer = B.geoVer;
+    netBuild = null;
+  }
   return s;
 }
 function useNet(map) {
@@ -428,7 +458,10 @@ function restoreNet(prev) {
 }
 
 export function setRoadNetwork(map) {
-  if (netMap === map) return;
+  // (#754) een tegel-add/drop verandert map.geoVer: dan moet de knooppuntindex
+  // verversen, ook als dit dezelfde map is. De check is goedkoop.
+  const s = nets.get(map);
+  if (netMap === map && s && s.geoVer === map.geoVer) return;
   useNet(map);
 }
 
