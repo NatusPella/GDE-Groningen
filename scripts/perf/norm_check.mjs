@@ -4,7 +4,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { routeMap, routeStats, normViolations, NORM } from './normrules.mjs';
-
 const files = process.argv.slice(2);
 if (!files.length) {
   console.log('gebruik: node scripts/perf/norm_check.mjs <perf-json...>');
@@ -23,13 +22,13 @@ for (const file of files) {
     const bad = normViolations(route);
     if (bad.length) {
       fails++;
-      console.log(`FAIL ${path.basename(file)}:${name} frames=${s.frames} over50=${s.over50} over100=${s.over100} - ${bad.map((b) => b.rule).join('; ')}`);
+      console.log(`FAIL ${path.basename(file)}:${name} frames=${s.frames} p95=${s.p95 ?? '?'} max=${s.max ?? '?'} over50=${s.over50 ?? '?'} over100=${s.over100 ?? '?'} - ${bad.map((b) => b.rule).join('; ')}`);
     } else {
-      console.log(`ok ${path.basename(file)}:${name} frames=${s.frames}`);
+      console.log(`ok ${path.basename(file)}:${name} frames=${s.frames} p95=${s.p95 ?? '?'} max=${s.max ?? '?'}`);
     }
   }
 }
 
-console.log(`${routes - fails}/${routes} routes binnen de norm (max ${NORM.maxOver100}x >100 ms, max ${NORM.maxOver50}x >50 ms)`);
+console.log(`${routes - fails}/${routes} routes binnen de norm (p95 <= ${NORM.maxP95Ms} ms, max <= ${NORM.maxMaxMs} ms, hitch <= ${NORM.maxOver50}x50/${NORM.maxOver100}x100 ms)`);
 if (!routes) { console.log('geen routes gevonden in de opgegeven bestanden'); fails++; }
 process.exit(fails ? 1 : 0);
