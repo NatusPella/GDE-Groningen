@@ -280,6 +280,12 @@ export class TileWorld extends GameMap {
       const job = this._tileJobs && this._tileJobs.get(tk);
       if (job) { job.cancelled = true; this._tileJobs.delete(tk); }
       this.tileQueue.add(() => this.dropTile(tk), 0, `drop:${tk}`);
+      // #762: de overlay-resident van deze stadstegel ('o' + plaats) is bij het laden
+      // met de stad meegekomen en heeft geen eigen store-entry; hij valt dus nooit
+      // via de store. Zonder deze drop blijven zijn gebouwen, wegen en bomen de hele
+      // sessie in _res en in de rasters staan terwijl de stad al gestroomd is.
+      const ov = `o${e.i},${e.j}`;
+      if (this.resident.has(ov)) this.tileQueue.add(() => this.dropTile(ov), 0, `drop:${ov}`);
     });
     return this;
   }
