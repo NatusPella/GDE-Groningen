@@ -44,8 +44,11 @@ Sinds #528 is Samen spelen de standaard, niet iets wat je erbij doet (ADR 0022).
   volg-AI het werk, #559), de controller houdt de gewone D-pad-functies (#560), de
   uitlegkaart Samen spelen komt na de eerste missie (#568) en 7/8/9 zet zonder gasten geen
   baken (#567). Wie Samen spelen opent, stopt de sessie van één eerst.
-- **De openbare lijst** toont naam, aantal spelers en versie; nooit een adres en nooit
-  een wachtwoord.
+- **De openbare lijst** toont naam, aantal spelers, versie en de publieke hostsleutel
+  van de sessie (aankondigingsformaat 3, #795). Die sleutel bindt het join-antwoord
+  aan de echte host, is geen persoonsgegeven en wordt nergens opgeslagen (ADR
+  [0029](adr/0029-hostsleutel-in-aankondiging.md)). Nooit een adres en nooit een
+  wachtwoord.
 - **Het bootpad** is `game/js/sessionboot.js` en is de terugval na de expliciete lijst
   (ADR [0026](adr/0026-bootorde.md)): zodra de wereld te besturen is (`coopnet.canJoin`)
   en `magOnline()` waar is, haalt het de lijst op (hooguit 2,5 s, daarna zonder lijst
