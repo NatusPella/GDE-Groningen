@@ -147,7 +147,7 @@ async function main() {
   const stamp = (src) => src.split('__GDE_CACHE__').join(cacheName).split('__GDE_SIZES__').join(JSON.stringify(sizes)).split('__GDE_SHELL__').join(JSON.stringify(shell));
   fs.writeFileSync(path.join(OUT, 'web.js'), stamp(fs.readFileSync(path.join(HERE, 'web.js'), 'utf8')));
   fs.writeFileSync(path.join(OUT, 'sw.js'), stamp(fs.readFileSync(path.join(HERE, 'sw.js'), 'utf8')));
-  // #657: modulepreload-hints voor alle modules (één parallelle golf)
+  // #757: modulepreload-hints voor de gewone modules (dev/QA/trailer niet)
   const tags = modulePreloadTags(files.map(rel)).join('\n');
   const stats = preloadStats(files.map(rel), (f) => fs.statSync(path.join(OUT, f)).size);
   console.log('modulepreload: ' + stats.files + ' modules, ' + mb(stats.bytes) + ' in één golf');
