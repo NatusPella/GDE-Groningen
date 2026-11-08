@@ -26,7 +26,7 @@ import { closeShopMenu } from './shopui.js';
 import { quitTrainDrive } from './traindrive.js';
 import { statsFromSave } from './world.js';
 import { getRadioSave, applyRadioSave } from './radio.js';
-import { slotKey } from './storagekeys.js';
+import { slotKey, slotRecoveryKey } from './storagekeys.js';
 import { applyGuestChanges, applyGuestStory, applyGuestAchievements } from './coopsave.js';
 import { verhaalStatus } from './coopverhaal.js';
 import { gebeurtenissenVan, maakBoekhouding } from './coopbeloning.js';
@@ -288,17 +288,23 @@ export function saveGame(w = world, { toast = true, manual = false } = {}) {
   // alleen wat hij zelf verdiende komt in zijn eigen save (saveGuestEarnings)
   if (w.coopRole === 'client') return saveGuestEarnings(w);
   keepNewerSave();
+  const target = saveTarget();
+  // #784: stond er bij het begin van deze poging al een save op de plek? Alleen dan mag een latere
+  // retry opgeven wanneer een andere tab de plek intussen heeft gewist (retryGiveUp).
+  const hadSave = slotHasSave(localStorage, target);
   try {
-    if (!writeSlotRaw(null, saveTarget(), JSON.stringify(serialize(w)))) throw new Error('write failed');
+    if (!writeSlotRaw(null, target, JSON.stringify(serialize(w)))) throw new Error('write failed');
   } catch (e) {
     // #590: log it (Foutrapport) and try the same state again later; without the retry the pending
     // autosave was dropped while the state really was not on disk.
     logError('warn', 'Opslaan mislukt: ' + ((e && e.message) || e));
-    noteSaveFailed();
+    noteSaveFailed(hadSave);
     if (toast) w.addMessage('Opslaan mislukt', 2.5);
     return false;
   }
   dirtyIn = -1;
+  retrySlot = 0;
+  retryHadSave = false;
   lastSig = stateSignature(w);
   keepThumb(saveTarget(), manual);
   if (toast) showToast();
@@ -309,7 +315,28 @@ export function saveGame(w = world, { toast = true, manual = false } = {}) {
 // that could not be written is picked up by that retry (missionSaveIn off), so a full storage is not
 // rewritten every second.
 function retryTimers() { return { dirtyIn: SAVE_RETRY_S, missionSaveIn: -1 }; }
-function noteSaveFailed() { ({ dirtyIn, missionSaveIn } = retryTimers()); }
+// #784: een tweede tab (boundSlot is expliciet per tab) kan het gebonden slot wissen terwijl deze
+// tab nog een retry open heeft staan; die retry zou de gewiste save met de huidige staat opnieuw
+// aanmaken. retrySlot onthoudt voor welke plek de mislukte poging was en retryHadSave of daar toen
+// al een save stond. Alleen in dat geval wordt de retry opgegeven: een verse plek zonder save moet
+// zijn eerste save gewoon kunnen herproberen.
+let retrySlot = 0;
+let retryHadSave = false;
+function slotHasSave(ls, n) {
+  try { return ls.getItem(slotKey(n)) != null || ls.getItem(slotRecoveryKey(n)) != null; } catch (e) { return true; }
+}
+function retryGiveUp(ls) {
+  if (!retrySlot) return false;
+  const gone = retryHadSave && !slotHasSave(ls, retrySlot);
+  retrySlot = 0;
+  retryHadSave = false;
+  return gone;
+}
+function noteSaveFailed(hadSave = null) {
+  retrySlot = saveTarget();
+  if (hadSave != null) retryHadSave = !!hadSave;
+  ({ dirtyIn, missionSaveIn } = retryTimers());
+}
 
 // The small screenshot for the savegame card, taken from the last drawn frame. A manual save always
 // takes one, the autosave at most once in 45 s (#590: the toast flag is not "manual"); a failure
@@ -677,7 +704,7 @@ export function updateSaveGame(dt, w) {
   }
   if (missionSaveIn >= 0) {
     missionSaveIn -= dt;
-    if (missionSaveIn < 0 && !busy) { if (!saveGame(w)) noteSaveFailed(); }
+    if (missionSaveIn < 0 && !busy) { if (!retryGiveUp(localStorage) && !saveGame(w)) noteSaveFailed(); }
     else if (missionSaveIn < 0) missionSaveIn = 0.5;
   }
 
@@ -692,7 +719,7 @@ export function updateSaveGame(dt, w) {
     dirtyIn -= dt;
     if (dirtyIn < 0) {
       if (busy) dirtyIn = 1;
-      else if (!saveGame(w)) noteSaveFailed();
+      else if (!retryGiveUp(localStorage) && !saveGame(w)) noteSaveFailed();
     }
   }
 }

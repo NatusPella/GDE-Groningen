@@ -161,10 +161,43 @@ ok(() => {
   assert.deepEqual(t, { dirtyIn: 20, missionSaveIn: -1 }, 'dezelfde stand wordt over 20 s opnieuw geprobeerd');
 }, 'een mislukte save plant een nieuwe poging');
 ok(() => {
-  assert.match(sg, /function noteSaveFailed\(\) \{ \(\{ dirtyIn, missionSaveIn \} = retryTimers\(\)\); \}/, 'noteSaveFailed zet beide timers');
-  assert.equal((sg.match(/if \(!saveGame\(w\)\) noteSaveFailed\(\);/g) || []).length, 2, 'beide autosave-paden proberen opnieuw na een fout');
+  assert.match(sg, /function noteSaveFailed\(hadSave = null\) \{[\s\S]{0,200}retrySlot = saveTarget\(\);/, 'noteSaveFailed onthoudt de plek van de mislukte poging');
+  assert.equal((sg.match(/if \(!retryGiveUp\(localStorage\) && !saveGame\(w\)\) noteSaveFailed\(\);/g) || []).length, 2, 'beide autosave-paden proberen opnieuw na een fout');
 }, 'de autosave-retry hangt in beide paden');
 ok(() => assert.match(sg, /logError\('warn', 'Opslaan mislukt: '/), 'een mislukte save gaat naar het foutrapport');
+
+// --- #784: een retry op een plek die een andere tab intussen wiste, wordt opgegeven --------------
+const retryKlaar = (scope) => new Function('scope', `with (scope) {
+  ${haalFunctie(sg, 'slotHasSave')}
+  ${haalFunctie(sg, 'retryGiveUp')}
+  return retryGiveUp;
+}`)(scope);
+const maakOpslag = (keys) => ({ getItem: (k) => (keys.has(k) ? keys.get(k) : null) });
+const retryScope = (retrySlot, retryHadSave) => ({ retrySlot, retryHadSave, slotKey: (n) => `gde-save-slot-${n}`, slotRecoveryKey: (n) => `gde-save-slot-${n}-herstel` });
+
+ok(() => {
+  const scope = retryScope(2, true);
+  const giveUp = retryKlaar(scope);
+  assert.equal(giveUp(maakOpslag(new Map([['gde-save-slot-2', 'save']]))), false, 'de plek bestaat nog: de retry gaat door');
+  assert.equal(scope.retrySlot, 0, 'de retrystand is daarna verbruikt');
+  scope.retrySlot = 2;
+  scope.retryHadSave = true;
+  assert.equal(giveUp(maakOpslag(new Map([['gde-save-slot-2-herstel', 'save']]))), false, 'ook een herstelkopie telt als bestaande plek');
+}, 'retry gaat door zolang de plek bestaat (#784)');
+
+ok(() => {
+  const giveUp = retryKlaar(retryScope(2, true));
+  assert.equal(giveUp(maakOpslag(new Map())), true, 'een andere tab wiste de plek: de retry wordt opgegeven');
+}, 'een retry op een gewiste plek wordt niet uitgevoerd (#784)');
+
+ok(() => {
+  const giveUp = retryKlaar(retryScope(3, false));
+  assert.equal(giveUp(maakOpslag(new Map())), false, 'een verse plek zonder save mag zijn eerste save herproberen');
+}, 'een eerste save op een lege plek wordt wel herprobeerd (#784)');
+
+ok(() => {
+  assert.equal(retryKlaar(retryScope(0, false))(maakOpslag(new Map())), false, 'zonder openstaande retry verandert er niets');
+}, 'zonder openstaande retry geeft de controle niets op (#784)');
 
 // --- #590: herstel uit de herstelkopie zegt het en schrijft de slot terug -------------------
 ok(() => {
