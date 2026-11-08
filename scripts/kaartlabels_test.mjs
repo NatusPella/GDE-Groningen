@@ -26,9 +26,9 @@ const haalFunctie = (src, naam) => {
   assert.ok(eind > start, `${naam} heeft een sluitende accolade`);
   return src.slice(start, eind + 1);
 };
-const namen = ['collides', 'plaatsLabels', 'labelDoos', 'isVoortgangsregel', 'voortgangsStrook', 'pinWijktVoorStrook', 'pinDoos'];
+const namen = ['collides', 'plaatsLabels', 'labelDoos', 'isVoortgangsregel', 'voortgangsStrook', 'pinWijktVoorStrook', 'pinDoos', 'pinSetKey'];
 const L = new Function(`${namen.map((k) => haalFunctie(bron, k)).join('\n')}\nreturn { ${namen.join(', ')} };`)();
-const { collides, plaatsLabels, labelDoos, isVoortgangsregel, voortgangsStrook, pinWijktVoorStrook, pinDoos } = L;
+const { collides, plaatsLabels, labelDoos, isVoortgangsregel, voortgangsStrook, pinWijktVoorStrook, pinDoos, pinSetKey } = L;
 
 // Een nep-canvas: measureText is breed genoeg voor de echte namen, het font
 // bepaalt de hoogte van de doos (dat leest labelDoos uit ctx.font).
@@ -184,7 +184,11 @@ const PRIO = { missie: 0, wijk: 1, poi: 2 }; // dezelfde volgorde als LABEL_PRIO
   ok(bron.includes('isVoortgangsregel(it.tekst)') && bron.includes('tekenVoortgangsStrook(ctx, strookRegels, state.strook)'), 'de gebiedsvoortgang gaat naar de strook');
   // #759: de set pins (soort en naam) bepaalt een herschil van de vaste laag, niet de
   // positie: in Samen spelen bewegen medespelers en politie elke frame achter de kaart.
-  ok(bron.includes('state.pins = geplaatst.map((q) => [q.x, q.y])') && bron.includes("state.pinsSleutel = geplaatst.map((q) => q.kind + '|' + (q.name || '')).sort().join(';')"), 'de kaart onthoudt de pins en schilt opnieuw als de set verandert');
+  const setA = [{ kind: 'partner', name: 'Tammo', x: 1, y: 2 }, { kind: 'politie', name: 'Politie', x: 9, y: 9 }];
+  ok(pinSetKey(setA) === pinSetKey([{ ...setA[0], x: 40, y: -50 }, { ...setA[1], x: 0, y: 0 }]), '#759: dezelfde pins op andere plekken geven dezelfde sleutel (geen herschil per beweging)');
+  ok(pinSetKey(setA) !== pinSetKey([...setA, { kind: 'waypoint', name: 'Controlepunt' }]), '#759: een pin erbij vraagt wel een herschil');
+  ok(pinSetKey([]) === '' && pinSetKey(null) === '', 'zonder pins is de sleutel leeg');
+  ok(bron.includes('state.pins = geplaatst.map((q) => [q.x, q.y])') && bron.includes('state.pinsSleutel = pinSetKey(geplaatst)'), 'de kaart onthoudt de pins en schilt opnieuw als de set verandert');
   ok(bron.includes('if (state.pinsGebruikt !== state.pinsSleutel) { state.dirty = true; state.pinsDirtyAt = t * 1000; }') && bron.includes('PIN_RECOMPOSE_MS'), 'bewegende pins vragen hooguit een begrensde herschil (#759)');
   ok(!bron.includes('state.pinsSleutel = geplaatst.map((q) => q.x.toFixed(1)'), '#759: de positie van een pin maakt de vaste laag niet meer vuil');
   ok(bron.includes('pinWijktVoorStrook(q.sx, q.sy, mapPriority(q.kind), strook)'), 'een pin onder de strook wijkt (behalve de belangrijke)');

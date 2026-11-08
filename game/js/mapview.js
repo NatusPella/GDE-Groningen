@@ -1225,6 +1225,13 @@ function compose() {
 // één herschil per 250 ms; een label staat dan even naast een pin, meer niet.
 const PIN_RECOMPOSE_MS = 250;
 
+// De sleutel van dezelfde vaste laag (#759): alleen de set pins (soort en naam) telt,
+// niet waar ze staan. Twee pins van dezelfde soort en naam zijn voor de labels gelijk,
+// dus een bewegende medespeler of politie-eenheid vraagt geen nieuw herschil.
+export function pinSetKey(geplaatst) {
+  return (Array.isArray(geplaatst) ? geplaatst : []).map((q) => `${q && q.kind}|${(q && q.name) || ''}`).sort().join(';');
+}
+
 // Samen spelen: een onderdeel dat nog niet samen werkt is uitgegrijsd (zelfde grijs als de passieve spelers: INK.passiefGrijs).
 function drawGrijs(ctx, teken) {
   ctx.save();
@@ -1444,7 +1451,7 @@ function drawDynamicMarkers(ctx, world) {
   // 4×/s een herschil, zodat een label niet lang naast een pin blijft staan.
   state.pins = geplaatst.map((q) => [q.x, q.y]);
   state.pinsPosities = geplaatst.map((q) => q.x.toFixed(1) + ',' + q.y.toFixed(1)).join(';');
-  state.pinsSleutel = geplaatst.map((q) => q.kind + '|' + (q.name || '')).sort().join(';');
+  state.pinsSleutel = pinSetKey(geplaatst);
   if (state.pinsGebruikt !== state.pinsSleutel) { state.dirty = true; state.pinsDirtyAt = t * 1000; }
   else if (state.pinsPositieGebruikt !== state.pinsPosities && t * 1000 - state.pinsDirtyAt >= PIN_RECOMPOSE_MS) {
     state.dirty = true; state.pinsDirtyAt = t * 1000;
