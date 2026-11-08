@@ -333,6 +333,16 @@ function waitForStart(world, ready) {
     const t0 = performance.now();
     setLoadingStatus('De buurt rond je startpunt wordt klaargezet');
     prewarmStreamAt(x, y, 240, START_WARM_R);
+    // the Ommeland placement and the map images run next to this; while they are
+    // not done the warm-up keeps going (the frames keep running, so this is not
+    // the frozen wait of #750). What does not fit within START_WARM_MS continues
+    // behind the game as before.
+    let readyDone = false;
+    if (ready) Promise.resolve(ready).then(() => {
+      readyDone = true;
+      if (window.__loadMarks) window.__loadMarks.background = Math.round(performance.now() - t0);
+    }, () => { readyDone = true; });
+    else readyDone = true;
     let calm = 0, frames = 0, slowRun = 0, worst = 0;
     while (performance.now() - t0 < START_WARM_MS) {
       const f0 = performance.now();
@@ -342,7 +352,7 @@ function waitForStart(world, ready) {
       slowRun = frameMs > START_WARM_MAX_FRAME_MS ? slowRun + 1 : 0;
       frames++;
       const sp = streamPending();
-      const open = sp.buildings + sp.roads + prewarmPending();
+      const open = sp.buildings + sp.roads + prewarmPending() + (readyDone ? 0 : 1);
       calm = open === 0 && slowRun === 0 ? calm + 1 : 0;
       if (calm >= START_WARM_CALM) break;
       await yieldToPaint();
@@ -764,15 +774,18 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
   }
   markLoad('title');
   // the garages, cafés and shops out in the Ommelanden get their doors from the
-  // tiles round them: those load behind the running game (a few ms a frame, #750);
-  // the HUD and controls no longer wait for them
+  // tiles round them, and the minimap's and map's Ommeland images are drawn in
+  // slices. Both run here, next to the boot screen, and the warm-up waits for
+  // them within its own bound: no work spills into the first seconds of play.
+  // It is *not* the old #750 wait: the warm loop keeps the frames running, and
+  // what does not finish in time continues behind the game exactly as before.
   const countryPlaced = placeWithTiles(map, ['horeca', 'car_repair', 'fuel', ...COUNTRY_SHOP_KINDS], () => {
     initCountryGarages(world);
     initCountryHoreca(world);
     initCountryShops(world);
   }, { slice: 6 }).then(() => markLoad('placement'), (e) => console.warn('country placement', e));
-  // the minimap's and map's Ommeland water and meadow images, a few ms a frame
-  warmCountryMaps();
+  const countryMaps = warmCountryMaps().then(() => markLoad('countryMaps'), (e) => { console.warn('country maps', e); return true; });
+  const ready = Promise.all([countryPlaced, countryMaps]).then(() => true, () => true);
   // the title screen already sounds like the city (quieter, no music)
   setMenuAudio(true);
   initAudio(world);
@@ -784,12 +797,13 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
   // #749: het laden is klaar; vanaf hier wacht het spel op de speler (de eerste-startvraag
   // heeft zijn eigen time-out) en telt de boot-wachter niet meer.
   stopBootWatchdog();
-  await waitForStart(world, countryPlaced);
-  // #750: eerst de wereld speelbaar (HUD, besturing en de spellus), daarna pas de
-  // Ommeland-plaatsing (208 tegels). Stond `await countryPlaced` hiervóór, dan hing bij
-  // een save het laadscherm boven die wachtende plaatsing: update3D draaide nog niet, dus
-  // streamPending() kon niet dalen en de balk stond stil tot de 12 s-noodgreep. De
-  // plaatsing is init-only (garage-, horeca- en winkeldeuren) en loopt nu achter het spel door.
+  await waitForStart(world, ready);
+  // #750: eerst de wereld speelbaar (HUD, besturing en de spellus), daarna pas
+  // wat van de achtergrondstappen over is. De warm-up hierboven wacht er met
+  // draaiende frames op; alleen wat niet binnen zijn grens klaar was, loopt hier
+  // nog door (zoals voorheen). Stond `await countryPlaced` hier, dan hing bij een
+  // save het laadscherm boven een wachtende plaatsing: update3D draaide nog niet,
+  // dus streamPending() kon niet dalen en de balk stond stil tot de 12 s-noodgreep.
   document.body.classList.add('game-started');
   markLoad('gameStart');
   hideAdvice();
