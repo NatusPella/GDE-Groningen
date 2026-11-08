@@ -6,7 +6,7 @@
 # so the game and the MP4 export (desktop --trailer-video) play the same file.
 #   python3 scripts/tts_trailer.py [--force]
 import json, os, subprocess, sys, wave
-from gemini_tts import usage, speak, check, current, load_log, save_log, logged, say_of
+from gemini_tts import usage, speak, check, current, load_log, save_log, logged, say_of, SAMPLE_RATE
 
 REPO = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 OUT = os.path.join(REPO, 'game', 'audio', 'voicelines', 'trailer')
@@ -70,7 +70,7 @@ for j in JOBS:
             check(pcm, say)
             wav = dst[:-4] + '.tmp.wav'
             with wave.open(wav, 'wb') as w:
-                w.setnchannels(1); w.setsampwidth(2); w.setframerate(24000); w.writeframes(pcm)
+                w.setnchannels(1); w.setsampwidth(2); w.setframerate(SAMPLE_RATE); w.writeframes(pcm)
             encode(wav, dst, j['radio'])
             os.remove(wav)
             break

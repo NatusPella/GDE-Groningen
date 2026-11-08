@@ -20,7 +20,7 @@
 # the same ("<speaker>|<text>", the text as shown): exactly how each clip was
 # made - file, model, voice, the input sent, the style, the post-processing
 # and the date. The game never loads it.
-import base64, datetime, io, json, os, sys, threading, time, urllib.error, urllib.request
+import datetime, io, json, os, sys, threading, time, urllib.error, urllib.request
 
 REPO = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 # GDE_ENV points at a .env outside this checkout (an agent works in a worktree, the key lives in the
@@ -43,6 +43,11 @@ FLASH = ('google/gemini-3.8-flash-tts', 'gemini-3.8-flash-tts')
 # gemini-3.8 tts: 25 audio tokens per second; output price per 1M tokens through 31-12-2026
 # (ai.google.dev/gemini-api/docs/pricing). Input text is a rounding error next to the audio.
 AUDIO_TPS, PRICE = 25, {'gemini-3.8-flash-tts': 9.0, 'gemini-3.8-flash-lite-tts': 6.0}
+# #775: de gateway levert 16-bit mono PCM en meldt de sample-rate niet in de response. Deze ene
+# aanname is de bron voor de kosten-terugval hier en voor de golf-header in de tts_*.py-scripts
+# (die `SAMPLE_RATE` hieruit horen te halen). Klopt de rate ooit niet, pas hem dan hier aan.
+SAMPLE_RATE = 24000
+BYTES_PER_SECOND = SAMPLE_RATE * 2  # 16-bit mono
 CURRENT = MODEL
 # same as tts_cast.mjs TTS_LANG; a clip logged with another lang is re-recorded
 LANG = 'gro'
@@ -120,13 +125,13 @@ def usage():
 
 
 def speak(voice, text, style):
-    """24 kHz mono 16-bit PCM via de gateway se OpenAI-compatibele /v1/audio/speech-route.
+    """16-bit mono PCM via de gateway se OpenAI-compatibele /v1/audio/speech-route.
 
     De native Interactions-route van dezelfde gateway wees dit model op een gegeven moment
     naar chat/completions (400: "is a text-to-speech model and cannot be used with the
     chat/completions endpoint"). LiteLLM's audio/speech-route levert voor dit model wel PCM
     (response_format=pcm); de stijl gaat als `instructions` mee en wordt door de gateway
-    doorgegeven voor zover het model hem ondersteunt.
+    doorgegeven voor zover het model hem ondersteunt. De sample-rate staat in SAMPLE_RATE.
     """
     body = {
         'model': CURRENT,
@@ -158,30 +163,8 @@ def speak(voice, text, style):
             return pcm
         except ValueError:
             pass
-    _SPENT += len(pcm) / 2 / 24000 * AUDIO_TPS / 1e6 * PRICE.get(CURRENT.replace('google/', ''), 6.0)
+    _SPENT += len(pcm) / BYTES_PER_SECOND * AUDIO_TPS / 1e6 * PRICE.get(CURRENT.replace('google/', ''), 6.0)
     return pcm
-
-
-def pcm_of(data):
-    """The audio bytes of an Interactions response (steps[].content[].data), as raw PCM."""
-    for step in reversed(data.get('steps') or []):
-        for c in step.get('content') or []:
-            if c.get('type') == 'audio' and c.get('data'):
-                return to_pcm(base64.b64decode(c['data']))
-    for cand in data.get('candidates') or []:  # a generateContent-shaped answer
-        for part in (cand.get('content') or {}).get('parts') or []:
-            d = (part.get('inlineData') or part.get('inline_data') or {}).get('data')
-            if d:
-                return to_pcm(base64.b64decode(d))
-    raise ValueError('no audio in the response: ' + str(sorted(data))[:160])
-
-
-def to_pcm(raw):
-    """A RIFF header would end up inside our own wave file."""
-    if raw[:4] == b'RIFF':
-        i = raw.find(b'data', 12)
-        return raw[i + 8:] if i > 0 else raw[44:]
-    return raw
 
 
 def tries(l):
@@ -193,7 +176,7 @@ def check(pcm, text, slack=1.6):
     # a clip far longer than its words is a hallucinated or padded take
     if len(pcm) < 12000:
         raise ValueError(f'short audio {len(pcm)}')
-    secs = len(pcm) / 48000
+    secs = len(pcm) / BYTES_PER_SECOND
     if secs > slack + len(text) / 7:
         raise ValueError(f'too long {secs:.1f}s')
     return secs
@@ -235,6 +218,6 @@ def gateway_info():
 if __name__ == '__main__':
     if '--smoke' in sys.argv:
         pcm = speak('Geesje', 'Even testen.', 'warm, rustig')
-        print(f'proefclip: {len(pcm) / 48000:.2f} s PCM, via LiteLLM, model {CURRENT}')
+        print(f'proefclip: {len(pcm) / BYTES_PER_SECOND:.2f} s PCM, via LiteLLM, model {CURRENT}')
         sys.exit(0)
     sys.exit(0 if gateway_info() else 1)

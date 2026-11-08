@@ -15,7 +15,7 @@ from concurrent.futures import ThreadPoolExecutor
 if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 import gemini_tts
-from gemini_tts import usage, speak, tries, check, current, load_log, save_log, logged, say_of, configure, LANG
+from gemini_tts import usage, speak, tries, check, current, load_log, save_log, logged, say_of, configure, LANG, SAMPLE_RATE
 REPO = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 VL = os.path.join(REPO, 'game', 'audio', 'voicelines')
 TRIM = 'silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12'
@@ -73,7 +73,7 @@ def job(l):
         pcm = speak(l['voice'], say, style)
         check(pcm, say)
         with wave.open(wav, 'wb') as w:
-            w.setnchannels(1); w.setsampwidth(2); w.setframerate(24000); w.writeframes(pcm)
+            w.setnchannels(1); w.setsampwidth(2); w.setframerate(SAMPLE_RATE); w.writeframes(pcm)
         encode(wav, dst)
         os.remove(wav)
 
