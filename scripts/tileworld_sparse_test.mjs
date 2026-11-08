@@ -102,6 +102,29 @@ ok(/tiles lack roads/.test(threw), 'een dicht soort met een gat is nog steeds ee
   ok(gevraagd.length === 2 && n !== undefined, 'prefetchPoints vraagt de tegels aan (#764)', `${gevraagd.length} aanvragen, resultaat ${n}`);
 }
 
+// #762: een overlay-resident (de rijklasse vanaf OVERLAY_GID0 van een stadstegel,
+// 'o' + plaats) heeft geen eigen store-entry. Valt de stadstegel uit de store, dan
+// moet zijn overlay mee uit _res en de rasters; anders blijft die de hele sessie staan.
+{
+  const tw = TileWorld.fromTiles(global, mkTiles(), opts);
+  const OVER = 20_000_000; // OVERLAY_GID0 (tileworld.js)
+  const overlay = { i: 0, j: 0, sections: [
+    { type: G.SECTION.BUILDINGS, rows: [{ gid: OVER, pts: sq(50, 50, 20), h: 6 }] },
+    { type: G.SECTION.ROADS, rows: [{ gid: OVER + 1, pts: [[40, 40], [60, 40]], type: 'residential', cat: 'normal', width: 6 }] },
+  ] };
+  tw.addTile(overlay, 'o0,0');
+  let dropHandler = null;
+  const nepStore = { index: { tiles: { '0,0': { i: 0, j: 0 } } }, on: (ev, fn) => { if (ev === 'drop') dropHandler = fn; } };
+  tw.attachStore(nepStore);
+  ok(tw.resident.has('o0,0') && tw._res.buildings.has(OVER) && tw._res.roads.has(OVER + 1), 'de overlay-resident staat naast de stadstegel');
+  const before = gridItems(tw.buildingGrid).length;
+  dropHandler('0,0');
+  tw.tileQueue.run(1e9);
+  ok(!tw.resident.has('o0,0') && !tw._res.buildings.has(OVER) && !tw._res.roads.has(OVER + 1),
+    'de overlay-resident valt mee met de store-drop (#762)', `resident ${tw.resident.has('o0,0')}, building ${tw._res.buildings.has(OVER)}`);
+  ok(gridItems(tw.buildingGrid).length < before, 'en de overlayrijen zijn uit de rasters', `${before} -> ${gridItems(tw.buildingGrid).length}`);
+}
+
 // Echte wereld: dezelfde opgeslagen tegels één keer dicht en één keer met een sparse
 // index (zoals een nieuwe wereldbouw hem schrijft); alle vijf rasters moeten precies
 // hetzelfde zien en de arraylaag moet leeg zijn. Zonder game/world: SKIP.
