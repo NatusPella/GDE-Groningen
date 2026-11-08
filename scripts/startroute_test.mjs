@@ -49,5 +49,12 @@ ok(iWait !== -1 && iStart > iWait, '#750: game-started volgt meteen op de spelst
 ok(!/await countryPlaced;/.test(main), '#750: de boot wacht niet meer op de Ommeland-plaatsing');
 ok(iStart !== -1 && /markLoad\('gameStart'\)/.test(main.slice(iStart, iStart + 240)), '#750: de startmarker valt na het laadscherm');
 
+// --- #751: de eerste-startvraag heeft een time-out en Escape (main.js-vangnet) ---
+ok(/const ONLINE_START_WAIT_MS = \d+;/.test(main), '#751: de eerste-startvraag heeft een time-out');
+ok(/function waitForOnlineStart\(ms\)/.test(main), '#751: de boot wacht via een eigen wachter');
+ok(/closeOnlineStart\(\)/.test(main), '#751: de wachter sluit via de nette route van onlineconsentui.js');
+ok(/e\.key !== 'Escape'/.test(main), '#751: Escape sluit de vraag');
+ok(/await waitForOnlineStart\(ONLINE_START_WAIT_MS\)/.test(main), '#751: de boot gebruikt de wachter in plaats van een eeuwig wachten');
+
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

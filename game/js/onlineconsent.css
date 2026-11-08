@@ -30,6 +30,9 @@
 .os-meedoen:hover { background: #4fd98a; }
 .os-alleen { background: rgba(240, 237, 228, 0.14); color: #f0ede4; }
 .os-alleen:hover { background: rgba(240, 237, 228, 0.22); }
+/* #751: de vraag uitstellen zonder antwoord: een stille tekstknop naast de twee antwoorden */
+.os-later { padding: 12px 6px; background: none; font-size: 19px; color: rgba(240, 237, 228, 0.7); text-decoration: underline; }
+.os-later:hover { color: #f0ede4; }
 
 .cs-meedoen { display: flex; flex-direction: column; gap: 4px; }
 .cs-meedoen-rij { display: flex; align-items: center; gap: 10px; font-size: 20px; cursor: pointer; }

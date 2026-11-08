@@ -135,7 +135,7 @@ import { updatePhotoMode, wireFotoKey } from './fotomodusui.js';
 import { initPauseMenu, isPauseMenuOpen, openPauseMenu, pauseMenuCover } from './pausemenu.js';
 import { aandeel, tegelFoci, nietBijFoci } from './coopfoci.js';
 import { wantsOpenSamen, takeOpenSamen, samenGate, requestOpenSamen } from './samenpanel.js';
-import { maybeOpenOnlineStart } from './onlineconsentui.js';
+import { maybeOpenOnlineStart, closeOnlineStart } from './onlineconsentui.js';
 import { gateOn, setGate } from './coopgate.js';
 import { updateGastLokaal } from './coopgastlokaal.js';
 import { initDayNight, updateDayNight, refreshDayNight, DAY_LENGTH_S } from './daynight.js';
@@ -370,6 +370,51 @@ const loadMarks = window.__loadMarks = {};
 const markLoad = (k) => { loadMarks[k] = Math.round(performance.now()); };
 let tileWorldStats = null;
 
+// #751: de eerste-startvraag (Samen spelen) wacht op een bewuste klik (#556). Zonder invoer
+// bleef de boot op 100% staan: er was geen time-out en geen Escape. Deze wachter sluit de
+// vraag na 20 s of met Escape via de nette route van onlineconsentui.js (geen voorkeur
+// opgeslagen, niets verbonden; de vraag komt de volgende start terug). Het spel start gewoon
+// alleen verder. Een verborgen venster telt niet als antwoord: de vraag blijft dan staan.
+const ONLINE_START_WAIT_MS = 20000;
+function waitForOnlineStart(ms) {
+  return new Promise((resolve) => {
+    let klaar = false;
+    let timer = 0;
+    const afronden = (res) => {
+      if (klaar) return;
+      klaar = true;
+      clearTimeout(timer);
+      window.removeEventListener('keydown', onKey, true);
+      resolve(res ?? null);
+    };
+    const zonderAntwoord = (waarom) => {
+      if (klaar) return;
+      closeOnlineStart();
+      console.warn(`Samen-spelen-vraag gesloten zonder antwoord (${waarom}); geen voorkeur opgeslagen`);
+      afronden(null);
+    };
+    const onKey = (e) => {
+      if (!e || e.key !== 'Escape') return;
+      e.preventDefault();
+      e.stopPropagation();
+      zonderAntwoord('Escape');
+    };
+    const wacht = () => {
+      timer = setTimeout(() => {
+        if (document.hidden) wacht();
+        else zonderAntwoord('time-out');
+      }, ms);
+    };
+    wacht();
+    window.addEventListener('keydown', onKey, true);
+    maybeOpenOnlineStart().then((res) => afronden(res), (err) => {
+      console.warn('Samen-spelen-vraag mislukt', err);
+      closeOnlineStart();
+      afronden(null);
+    });
+  });
+}
+
 async function boot() {
   markLoad('boot');
   // the geometry worker loads its modules while the map downloads
@@ -568,8 +613,10 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
   // world takes keys: typing a name must not drive the player, and nothing connects either way.
   // The answer lands in gde-settings and the boot goes on. A test or QA run skips the question,
   // like the graphics measurement at the first start.
+  // #751: de vraag heeft een time-out en Escape; zonder antwoord gaat de boot gewoon door en
+  // wordt er niets opgeslagen (zie waitForOnlineStart).
   if (!(FLAGS.noattract || FLAGS.storytest || FLAGS.stil || FLAGS.trailer || FLAGS.preview || FLAGS.benchmark || FLAGS.perf || FLAGS.spotsonly || FLAGS.autoplay || FLAGS.menutest) && !document.hidden) {
-    await maybeOpenOnlineStart();
+    await waitForOnlineStart(ONLINE_START_WAIT_MS);
     // Samen spelen is de default: wie meedoen heeft gekozen, ziet na het starten meteen de
     // openbare sessielijst (en kan daar alsnog alleen verder).
     if (magOnline() && !document.hidden) requestOpenSamen({ rol: 'gast', lijst: true });
