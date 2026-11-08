@@ -18,7 +18,7 @@ const _segA = new THREE.Vector3();
 const _segB = new THREE.Vector3();
 import { buildBuildingMesh, setBuildingMap, setNightFactor } from './models3d_buildings.js';
 import { updateDiscoLamp } from './discolight.js';
-import { buildVehicleMesh, updateVehicleWheelSpin, applyFlatTire, setBusRearAngle, updatePoliceLamps, updateIndicatorLamps, syncPoliceMount, boatHullProfile, riderSeatFor, attachHelmet } from './models3d_vehicles.js';
+import { buildVehicleMesh, updateVehicleWheelSpin, applyFlatTire, setBusRearAngle, updatePoliceLamps, updateIndicatorLamps, syncPoliceMount, boatHullProfile, riderSeatFor, attachHelmet, releaseVehicleGeometries } from './models3d_vehicles.js';
 import {
   buildVehicleImpactSparkMesh3D, updateVehicleImpactSparkMesh3D,
   vehicleNeedsFireEffect, vehicleSmokeOnly, buildVehicleFireMesh3D, updateVehicleFireMesh3D,
@@ -574,6 +574,9 @@ function setRoofBoxes(mesh, v) {
 // #788: a person mesh hands back its shared body geometry here too, also when it
 // leaves via another route than disposePedMesh (player, companion, driver, actor).
 export function disposeObject(root) {
+  // #787: een geëvicteerde voertuiggeometrie gaat pas weg bij de laatste mesh die hem tekent;
+  // dit voertuig geeft de gedeelde geometrieën terug die het bij het bouwen heeft geteld.
+  releaseVehicleGeometries(root);
   root.traverse((o) => {
     const g = o.geometry;
     if (g) {
