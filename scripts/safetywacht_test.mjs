@@ -101,10 +101,21 @@ t('een scène die zelf niet vooruitkomt wordt na 20 s afgebroken', () => {
   assert.equal(cinematicHang({ startedAt: 0, now: NaN, worldTime: 30, sceneT: 0 }), null, 'zonder klok niets doen');
 });
 
+// #771: een bewuste pause:true-scène mag in zijn eerste twee seconden op de speler wachten
+// (AFK). Voor die scènes telt de wandklok niet als hang; een gewone scène wordt nog steeds
+// afgebroken en de opening-regel blijft voor iedereen gelden.
+t('een bewuste pause:true-scène wordt niet als hang overgeslagen (#771)', () => {
+  assert.equal(cinematicHang({ startedAt: 0, now: 21000, worldTime: 30, sceneT: 1.9, waitsForInput: true }), null, 'een AFK-speler verliest zijn pauzescène niet');
+  assert.equal(cinematicHang({ startedAt: 0, now: 21000, worldTime: 30, sceneT: 1.9, waitsForInput: false }), 'frozen', 'een gewone scène wordt nog steeds afgebroken');
+  assert.equal(cinematicHang({ startedAt: 0, now: 60000, worldTime: 30, sceneT: 1.9, waitsForInput: true }), null, 'ook na een minuut wachten geen valse hang');
+  assert.equal(cinematicHang({ startedAt: 0, now: 31000, worldTime: 0.5, sceneT: 1, waitsForInput: true }), 'opening', 'de opening-regel blijft gelden');
+});
+
 t('cinematics.js is de enige eigenaar van het startvangnet', () => {
   const c = lees('cinematics.js');
   assert.match(c, /cinematicHang\(\{ startedAt: active\._wStart, now, worldTime: w && w\.time, sceneT: active\.t \}\) === 'opening'/);
-  assert.match(c, /cinematicHang\(\{ startedAt: active\._wStart, now, worldTime: w && w\.time, sceneT: active\.t \}\) === 'frozen'/);
+  // #771: de 'frozen'-regel geeft een bewuste pauzescène de ruimte (waitsForInput)
+  assert.match(c, /cinematicHang\(\{ startedAt: active\._wStart, now, worldTime: w && w\.time, sceneT: active\.t, waitsForInput: !!active\.pause \}\) === 'frozen'/);
   const m = lees('main.js');
   assert.doesNotMatch(m, /startWatch/, 'de tweede 30 s-tak in main.js is weg (#635)');
   assert.doesNotMatch(m, /skipCinematic/, 'main.js breekt geen scènes meer zelf af');
