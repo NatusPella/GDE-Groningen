@@ -1498,6 +1498,7 @@ let crownShadowOnly = null;
 const _treeGroup = new THREE.Object3D();
 const _treeParts = [new THREE.Object3D(), new THREE.Object3D(), new THREE.Object3D()];
 const _treeMatrix = new THREE.Matrix4();
+const _treeQuery = []; // #760: herbruikbuffer voor de boomquery (geen nieuwe array per aanroep)
 
 function ensureTreeCapacity(n) {
   if (!crownShadowOnly) {
@@ -2028,24 +2029,32 @@ function syncRoads(world, px, py) {
 }
 
 function syncTrees(world, px, py) {
+  const map = world.map;
   // #786: een kaartwissel is een nieuwe bron; de eerste frame bouwt gewoon op
-  if (world.map !== treeSyncMap) { treeSyncMap = world.map; treeSyncX = treeSyncY = null; treeSyncGeoVer = undefined; }
+  if (map !== treeSyncMap) { treeSyncMap = map; treeSyncX = treeSyncY = null; treeSyncGeoVer = undefined; }
+  const hiddenChanged = camTreeHiddenKey !== shownHiddenKey;
+  // #760: de due-check vóór de treesNear-query. De query (rasterwandeling, nieuwe
+  // array en filter) was zelf de vaste per-frame kost; zonder beweging (> 8 m),
+  // zonder gestroomde tegel (#786) en zonder gewijzigde verborgen-set kan de
+  // boomlijst niet veranderen, dus valt er niets te queryen of te herbouwen.
+  if (!treeSyncDue(px, py, treeSyncX, treeSyncY, hiddenChanged, map.geoVer, treeSyncGeoVer)) return;
   // the trees round the player, and further out the crowns of the woods
-  const all = world.map.treesNear(px, py, TREE_FAR);
+  // #760: dezelfde query in een herbruikbuffer i.p.v. een nieuwe array per aanroep
+  const n = map.treeGrid.queryRadiusInto(_treeQuery, px, py, TREE_FAR);
   const trees = [];
-  for (const t of all) {
+  for (let i = 0; i < n; i++) {
+    const t = _treeQuery[i];
     if (t._broken) continue;
     if (Math.abs(t[0] - px) <= TREE_DIST && Math.abs(t[1] - py) <= TREE_DIST && Math.hypot(t[0] - px, t[1] - py) <= TREE_DIST) trees.push(t);
     else if (t[4] & TREE_FLAG.fill) trees.push(t);
   }
-  const hiddenChanged = camTreeHiddenKey !== shownHiddenKey;
-  // #651: niet bij elke meter opnieuw; pas bij >8 m of >8 bomen verschil
-  // #786: of als de bron veranderde (gestroomde tegel/kaartwissel), ook bij stilstand
-  if (!treeSyncDue(px, py, treeSyncX, treeSyncY, trees.length, shownTrees.length, hiddenChanged, world.map.geoVer, treeSyncGeoVer)) return;
-  if (!hiddenChanged && trees.length === shownTrees.length && trees.every((t, i) => t === shownTrees[i])) { treeSyncX = px; treeSyncY = py; treeSyncGeoVer = world.map.geoVer; return; }
+  if (!hiddenChanged && trees.length === shownTrees.length && trees.every((t, i) => t === shownTrees[i])) {
+    treeSyncX = px; treeSyncY = py; treeSyncGeoVer = map.geoVer;
+    return;
+  }
   shownTrees = trees;
   treeSyncX = px; treeSyncY = py;
-  treeSyncGeoVer = world.map.geoVer;
+  treeSyncGeoVer = map.geoVer;
   shownHiddenKey = camTreeHiddenKey;
   ensureTreeCapacity(trees.length);
   const [trunks, crowns, cones, far] = treeInstanced;

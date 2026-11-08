@@ -1,4 +1,4 @@
-// #651.4 decode-terugval, #651.6 syncTrees-throttle, #653 LOS-budget, #786 bomen-stream.
+// #651.4 decode-terugval, #651.6 syncTrees-throttle, #653 LOS-budget, #760/#786 bomen-sync.
 import fs from 'node:fs';
 import { serialQueue } from '../game/js/decodequeue.js';
 import { makeLosBudget } from '../game/js/losbudget.js';
@@ -27,15 +27,15 @@ for (let i = 0; i < 10; i++) if (los(1101)) next++;
 ok(next === 3, 'volgend venster: weer drie', next);
 console.log('#653 meting: LOS-checks begrensd op 3 per 100 ms (~30/s) i.p.v. elke eenheid 4x/s (bij 6-10 eenheden 24-40/s met grid-queries)');
 
-// C. syncTrees-throttle
-ok(treeSyncDue(0, 0, null, null, 10, 10, false), 'eerste keer: opbouwen');
-ok(!treeSyncDue(1, 0, 0, 0, 10, 10, false), '1 m gelopen: niet opnieuw');
-ok(!treeSyncDue(7.9, 0, 0, 0, 10, 10, false), '7,9 m: nog niet');
-ok(treeSyncDue(8.1, 0, 0, 0, 10, 10, false), '>8 m: opnieuw');
-ok(treeSyncDue(1, 0, 0, 0, 19, 10, false), '>8 bomen verschil: opnieuw');
-ok(treeSyncDue(1, 0, 0, 0, 10, 10, true), 'verborgen-set gewijzigd: meteen');
-ok(treeSyncDue(1, 0, 0, 0, 10, 10, false, 4, 3), 'gestroomde tegel (bronversie): meteen opnieuw (#786)');
-ok(!treeSyncDue(1, 0, 0, 0, 10, 10, false, 3, 3), 'zelfde bronversie: de throttle blijft werken');
+// C. syncTrees-throttle: de due-check staat vóór de query (#760) en de bronversie
+//    dwingt ook bij stilstand een rebuild af bij een gestroomde tegel (#786)
+ok(treeSyncDue(0, 0, null, null, false, 0, 0), 'eerste keer: opbouwen');
+ok(!treeSyncDue(1, 0, 0, 0, false, 0, 0), '1 m gelopen: niet opnieuw');
+ok(!treeSyncDue(7.9, 0, 0, 0, false, 0, 0), '7,9 m: nog niet');
+ok(treeSyncDue(8.1, 0, 0, 0, false, 0, 0), '>8 m: opnieuw');
+ok(treeSyncDue(1, 0, 0, 0, false, 4, 3), 'gestroomde tegel (bronversie): meteen opnieuw (#786)');
+ok(!treeSyncDue(1, 0, 0, 0, false, 3, 3), 'zelfde bronversie: de throttle blijft werken');
+ok(treeSyncDue(1, 0, 0, 0, true, 0, 0), 'verborgen-set gewijzigd: meteen');
 const tilestoreSrc = fs.readFileSync(new URL('../game/js/tilestore.js', import.meta.url), 'utf8');
 ok(/serialQueue\(\(bytes\) => fallback\(bytes, aside\)\)/.test(tilestoreSrc), 'tilestore gebruikt de serialQueue');
 const policeSrc = fs.readFileSync(new URL('../game/js/police.js', import.meta.url), 'utf8');
@@ -43,6 +43,10 @@ ok(/polLosBudget\(performance\.now\(\)\)/.test(policeSrc), 'de politie gebruikt 
 const sceneSrc = fs.readFileSync(new URL('../game/js/scene3d.js', import.meta.url), 'utf8');
 ok(/treeSyncDue\(px, py, treeSyncX, treeSyncY/.test(sceneSrc), 'syncTrees gebruikt de throttle');
 ok(/treeSyncDue\(px, py, treeSyncX, treeSyncY[^)]*geoVer/.test(sceneSrc), 'syncTrees geeft de bronversie mee (#786)');
-console.log('#651 meting: syncTrees herbouwt bij lopen (~1 m/frame) nog maar 1x per 8 m i.p.v. bijna elke frame; een gestroomde tegel dwingt meteen een rebuild af (#786)');
+const sceneSync = sceneSrc.slice(sceneSrc.indexOf('function syncTrees('), sceneSrc.indexOf('function syncActors('));
+ok(sceneSync.length > 0, 'syncTrees staat nog in scene3d.js');
+ok(sceneSync.indexOf('treeSyncDue(') >= 0 && sceneSync.indexOf('treeSyncDue(') < sceneSync.indexOf('queryRadiusInto'), 'de due-check staat vóór de boomquery (#760)');
+ok(/treeGrid\.queryRadiusInto\(_treeQuery/.test(sceneSync), 'de boomquery hergebruikt een buffer (#760)');
+console.log('#651/#760 meting: syncTrees herbouwt bij lopen (~1 m/frame) nog maar 1x per 8 m i.p.v. bijna elke frame, en de treesNear-query draait pas ná de due-check; een gestroomde tegel dwingt meteen een rebuild af (#786)');
 console.log(`${n - fails}/${n} perfrest2`);
 process.exit(fails ? 1 : 0);
