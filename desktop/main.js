@@ -80,15 +80,21 @@ async function serve(request) {
   if (!insideDir(GAME_DIR, file)) return new Response('Forbidden', { status: 403 });
   try {
     const type = MIME[path.extname(file).toLowerCase()] || 'application/octet-stream';
-    // #657: ETag/Last-Modified: een ongewijzigd bestand wordt een 304
-    const st = await fs.stat(file);
-    const cc = cacheHeaders(st, { 'if-none-match': request.headers.get('if-none-match'), 'if-modified-since': request.headers.get('if-modified-since') });
-    const validators = { etag: cc.etag, 'last-modified': cc.lastModified, 'cache-control': cc.cacheControl };
-    if (cc.fresh) return new Response(null, { status: 304, headers: validators });
     // media elements ask for byte ranges (seeking, buffering ahead): answer
     // with just that slice, so the player never re-reads a track from byte 0
     const range = /^bytes=(\d*)-(\d*)$/.exec(request.headers.get('range') || '');
-    if (range && (range[1] || range[2])) {
+    const wantedRange = !!(range && (range[1] || range[2]));
+    // #657: ETag/Last-Modified: een ongewijzigd bestand wordt een 304.
+    // #774: de ETag is een hash van de inhoud (httpcache.cjs), zodat een
+    // botsing op grootte en mtime geen stale data geeft. Een byte-range leest
+    // daarvoor niet eerst het hele mediabestand; daar blijft de validator op
+    // grootte + mtime.
+    const st = await fs.stat(file);
+    const body = wantedRange ? null : await fs.readFile(file);
+    const cc = cacheHeaders(st, { 'if-none-match': request.headers.get('if-none-match'), 'if-modified-since': request.headers.get('if-modified-since') }, body);
+    const validators = { etag: cc.etag, 'last-modified': cc.lastModified, 'cache-control': cc.cacheControl };
+    if (cc.fresh) return new Response(null, { status: 304, headers: validators });
+    if (wantedRange) {
       const fh = await fs.open(file, 'r');
       try {
         const size = (await fh.stat()).size;
@@ -102,7 +108,6 @@ async function serve(request) {
         await fh.close();
       }
     }
-    const body = await fs.readFile(file);
     return new Response(body, { status: 200, headers: { 'content-type': type, ...validators, 'accept-ranges': 'bytes', 'content-length': String(body.length) } });
   } catch (e) {
     return new Response('Not found', { status: 404 });
