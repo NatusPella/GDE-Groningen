@@ -189,22 +189,26 @@ function computePassages(map, b) {
     }
   }
   // #747-terugval: een dienstweg die nog door de footprint loopt zonder corridor (binnenplaats,
-  // parkeerdek, ziekenhuisgarage zonder OSM-passage) krijgt hier alsnog een open doorgang.
-  for (const r of map.roadsNear(cx, cy, reach)) {
-    if (!(r.cat === 'service' || r.type === 'service') || out.some((p) => p.road === r)) continue;
-    const inside = [];
-    for (let i = 0; i < r.pts.length - 1; i++) {
-      const [ax, ay] = r.pts[i], [bx, by] = r.pts[i + 1];
-      const n = Math.max(1, Math.ceil(Math.hypot(bx - ax, by - ay)));
-      for (let k = 0; k <= n; k++) {
-        const x = ax + (bx - ax) * k / n, y = ay + (by - ay) * k / n;
-        if (pointInPolygon(x, y, b.pts) && outlineDist(x, y, b.pts) > 2) inside.push([x, y]);
+  // parkeerdek, ziekenhuisgarage zonder OSM-passage) krijgt hier alsnog een open doorgang. Alleen
+  // voor gebouwen zonder getekende doorgang, anders wordt dit te duur op de grote stadskaart.
+  if (!out.some((p) => p.shown)) {
+    let punten = 0;
+    for (const r of map.roadsNear(cx, cy, reach)) {
+      if (punten > 400 || !(r.cat === 'service' || r.type === 'service') || out.some((p) => p.road === r)) continue;
+      const inside = [];
+      for (let i = 0; i < r.pts.length - 1 && punten <= 400; i++) {
+        const [ax, ay] = r.pts[i], [bx, by] = r.pts[i + 1];
+        const n = Math.max(1, Math.ceil(Math.hypot(bx - ax, by - ay) / 2));
+        for (let k = 0; k <= n; k++) {
+          const x = ax + (bx - ax) * k / n, y = ay + (by - ay) * k / n;
+          if (pointInPolygon(x, y, b.pts) && outlineDist(x, y, b.pts) > 2) { inside.push([x, y]); punten++; }
+        }
       }
+      if (inside.length < 2) continue;
+      out.push({ pts: inside, hw: passageHalfWidth(r), len: pathLength(inside), mapped: null, cat: r.cat, road: r, shown: true });
     }
-    if (inside.length < 2) continue;
-    out.push({ pts: inside, hw: passageHalfWidth(r), len: pathLength(inside), mapped: null, cat: r.cat, road: r, shown: true });
   }
-  linkDoors(b, doors, out);
+  linkDoors(b, doors, out);  linkDoors(b, doors, out);
   b._doors = doors.filter((e) => !e.hall).map((e) => doorOnFacade(b, e));
   return out;
 }
