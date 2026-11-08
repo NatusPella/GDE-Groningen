@@ -328,6 +328,9 @@ export class TileWorld extends GameMap {
     this.resident.add(tk);
     const newRoads = [], newWater = [];
     let rows = 0; // rijen sinds de vorige yield (#650)
+    // (#4) alleen een tegel die echt groen toevoegt hoeft de groschunks te
+    // verversen: de graschunks hangen aan greenVer, niet aan elke geoVer-bump
+    let greenAdded = false;
     // de bomen en heggen van deze tegel, voor de groenopruiming onderaan (#508), en of de tegel wegen meebrengt:
     // ook een rij die een buurtegel al invoegde, reikt met zijn zoom deze tegel in en moet de ring laten kijken
     const ownTrees = [], ownHedges = [];
@@ -366,6 +369,7 @@ export class TileWorld extends GameMap {
           // (#754) laagversies: de routinggraaf hangt aan wegen en gebouwen; een tegel
           // met alleen bomen, groen of water laat hem staan (routing.js ensureGraph)
           if (kind === 'buildings') this._buildingVer = (this._buildingVer || 0) + 1;
+          if (kind === 'green') greenAdded = true;
           if (kind === 'trees') ownTrees.push(obj);
           if (kind === 'furniture' && obj.k === 'hedge' && obj.pts) ownHedges.push(obj);
           if (kind === 'buildings' && obj.type === 'houseboat') addMooredBuilding(this, obj); // (boats keep off it, #343)
@@ -409,6 +413,7 @@ export class TileWorld extends GameMap {
     // #314 C2 (stap 4): één geo-versie voor de caches die uit de rasters/arrays bouwen
     // (farlod, scene3d, grass, routing, ...): per add/drop opgehoogd, zodat een cache zich
     // kan verversen. De pin houdt de stad nog vast; dit is de haak voor de volgende ronde.
+    if (greenAdded) this.greenVer = (this.greenVer || 0) + 1;
     this.geoVer = (this.geoVer || 0) + 1;
     return true;
   }
@@ -483,12 +488,14 @@ export class TileWorld extends GameMap {
       if (this._signalTiles && this._signalTiles.delete(tk)) this.signalVer = (this.signalVer || 0) + 1;
     }
     const goneRoads = [];
+    let greenGone = false;
     const release = (kind, gid, e) => {
       // Een rij van de gepinde stad blijft in de arrays en rasters zolang zijn soort nog
       // dicht is (de pin). Alleen een sparse soort (rails, meubels) laat hem per tegel gaan.
       if (e.pinned && !(this.sparse && this.sparse.has(kind))) return;
       if (!releaseFrom(e, tk)) return;
       this._res[kind].delete(gid);
+      if (kind === 'green') greenGone = true;
       if (kind === 'roads') { this._roadVer = (this._roadVer || 0) + 1; if (e.obj.z) goneRoads.push(e.obj); }
       if (kind === 'buildings') this._buildingVer = (this._buildingVer || 0) + 1;
       if (kind === 'water') {
@@ -515,6 +522,7 @@ export class TileWorld extends GameMap {
       for (const kind of Object.keys(this._res)) for (const [gid, e] of this._res[kind]) release(kind, gid, e);
     }
     if (goneRoads.length) shrinkElevation(this, goneRoads);
+    if (greenGone) this.greenVer = (this.greenVer || 0) + 1;
     this.geoVer = (this.geoVer || 0) + 1; // caches verversen (#314 C2, stap 4)
     return true;
   }
