@@ -188,18 +188,24 @@ async function minigameSmoke(world, check, capture) {
   await cleared('discgolf');
 
   const pp = window.__pitchputt;
-  let ppRest = false;
+  let ppRest = false, ppLaatst = { gestart: false, bord: false, vlucht: false };
   for (let poging = 0; poging < 2 && !ppRest; poging++) {
-    check('pitch & putt: starts', pp && pp.start() && await waitFor(() => pp.state() && pp.state().phase === 'aim', 20000));
+    // #767: de checks staan buiten de herkansingslus, zodat een tweede poging ze niet
+    // dubbel in het verslag zet; hier wordt de laatst behaalde toestand bewaard.
+    const gestart = !!(pp && pp.start() && await waitFor(() => pp.state() && pp.state().phase === 'aim', 20000));
     await sleep(1200);
-    check('pitch & putt: board shows', boardUp() && world.activityGame === 'pitchputt');
+    const bord = !!boardUp() && world.activityGame === 'pitchputt';
     if (poging === 0) capture('mg-pitchputt-aim');
-    check('pitch & putt: a pitch flies', pp.shoot(0.8));
+    const vlucht = !!(gestart && pp.shoot(0.8));
     await sleep(900);
     if (poging === 0) capture('mg-pitchputt-flight');
     ppRest = await waitFor(() => pp.state() && ['landed', 'holeDone'].includes(pp.state().phase), 30000);
+    ppLaatst = { gestart, bord, vlucht };
     if (!ppRest) { pp.quit(); await cleared('pitch & putt'); await sleep(800); }
   }
+  check('pitch & putt: starts', ppLaatst.gestart);
+  check('pitch & putt: board shows', ppLaatst.bord);
+  check('pitch & putt: a pitch flies', ppLaatst.vlucht);
   check('pitch & putt: the ball comes to rest', ppRest, JSON.stringify(pp.state()));
   await sleep(1800);
   capture('mg-pitchputt-next');
@@ -229,9 +235,13 @@ async function minigameSmoke(world, check, capture) {
   check('skatepark: the board stays in the park', Math.abs(sk.state().b.u) <= 25.01 && Math.abs(sk.state().b.v) <= 13.01 && Number.isFinite(sk.state().b.z), JSON.stringify(sk.state()));
   sk.score(1500);
   sk.finish();
-  let skKlaar = await waitFor(() => !isActivityActive(), 30000);
-  if (!skKlaar && sk.finish()) skKlaar = await waitFor(() => !isActivityActive(), 15000);
-  check('skatepark: the run ends by itself', skKlaar);
+  const skVanzelf = await waitFor(() => !isActivityActive(), 30000);
+  // #767: een tweede finish ruimt alleen op zodat de rest van de test door kan; de
+  // check "ends by itself" moet op de eerste waarneming falen en niet groen worden
+  // doordat de herkansing de run alsnog beëindigde.
+  let skKlaar = skVanzelf;
+  if (!skVanzelf && sk.finish()) skKlaar = await waitFor(() => !isActivityActive(), 15000);
+  check('skatepark: the run ends by itself', skVanzelf, JSON.stringify({ vanzelf: skVanzelf, naHerkansing: skKlaar }));
   await cleared('skatepark');
 
   const kb = window.__kartbaan;
@@ -254,9 +264,13 @@ async function minigameSmoke(world, check, capture) {
   capture('mg-kart-race');
   release('w', 'KeyW');
   check('kartbaan: the race can be finished', kb.finish());
-  let kbKlaar = await waitFor(() => !isActivityActive(), 60000);
-  if (!kbKlaar && kb.finish()) kbKlaar = await waitFor(() => !isActivityActive(), 30000);
-  check('kartbaan: the race ends by itself', kbKlaar, JSON.stringify(kb.state()));
+  const kbVanzelf = await waitFor(() => !isActivityActive(), 60000);
+  // #767: een tweede finish is alleen opruimen voor de rest van de test; de check
+  // "ends by itself" faalt op de eerste waarneming in plaats van groen te worden
+  // door de herkansing.
+  let kbKlaar = kbVanzelf;
+  if (!kbVanzelf && kb.finish()) kbKlaar = await waitFor(() => !isActivityActive(), 30000);
+  check('kartbaan: the race ends by itself', kbVanzelf, JSON.stringify({ vanzelf: kbVanzelf, naHerkansing: kbKlaar, state: kb.state() }));
   await cleared('kartbaan');
 
   // a loaded save ends a running minigame (savegame.js quitActivity)
