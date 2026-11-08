@@ -271,11 +271,12 @@ export class SnapBuffer {
   }
   clear() { this.snaps.length = 0; this.renderT = null; this.marks.length = 0; this.rate = 1; }
   get latestT() { return this.snaps.length ? this.snaps[this.snaps.length - 1].hostT : null; }
-  // schuif de weergavetijd op met dt, zacht richting laatste - vertraging; blijft er een snapshot weg, dan voorspelt sample() even door (#434)
-  advance(dt) {
+  // schuif de weergavetijd op met dt, zacht richting laatste - vertraging; blijft er een snapshot weg, dan voorspelt sample() even door (#434).
+  // De vertraging is een parameter zodat een snellere PvP-stand zijn eigen waarde kan doorgeven (#806).
+  advance(dt, vertraging = INTERP_DELAY) {
     const L = this.latestT; if (L == null) return null;
     this.wall += dt;
-    this.renderT = volgTijd(this.renderT, L, dt, INTERP_DELAY, this.rate);
+    this.renderT = volgTijd(this.renderT, L, dt, vertraging, this.rate);
     return this.renderT;
   }
   sample() {
