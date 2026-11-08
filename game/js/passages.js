@@ -154,7 +154,7 @@ function computePassages(map, b) {
   // doorgang, ook als OSM geen passage heeft en de run aan één kant binnen de muur eindigt.
   // Zonder dit blijft er een onzichtbare muur over de weg staan.
   for (const ra of runs) {
-    if (ra.r.cat !== 'service') continue;
+    if (!(ra.r.cat === 'service' || ra.r.type === 'service')) continue;
     if (runDepth(ra.pts, b.pts) <= 2) continue;
     ra.s0 = true; ra.s1 = true;
   }
@@ -187,6 +187,22 @@ function computePassages(map, b) {
       if (!keepRun(ra.r, len, mapped)) continue;
       out.push({ pts: ra.pts, hw: passageHalfWidth(ra.r), len, mapped, cat: ra.r.cat, road: ra.r, shown: (len >= CLIP_MIN || !!mapped) && !ra.graze });
     }
+  }
+  // #747-terugval: een dienstweg die nog door de footprint loopt zonder corridor (binnenplaats,
+  // parkeerdek, ziekenhuisgarage zonder OSM-passage) krijgt hier alsnog een open doorgang.
+  for (const r of map.roadsNear(cx, cy, reach)) {
+    if (!(r.cat === 'service' || r.type === 'service') || out.some((p) => p.road === r)) continue;
+    const inside = [];
+    for (let i = 0; i < r.pts.length - 1; i++) {
+      const [ax, ay] = r.pts[i], [bx, by] = r.pts[i + 1];
+      const n = Math.max(1, Math.ceil(Math.hypot(bx - ax, by - ay)));
+      for (let k = 0; k <= n; k++) {
+        const x = ax + (bx - ax) * k / n, y = ay + (by - ay) * k / n;
+        if (pointInPolygon(x, y, b.pts) && outlineDist(x, y, b.pts) > 2) inside.push([x, y]);
+      }
+    }
+    if (inside.length < 2) continue;
+    out.push({ pts: inside, hw: passageHalfWidth(r), len: pathLength(inside), mapped: null, cat: r.cat, road: r, shown: true });
   }
   linkDoors(b, doors, out);
   b._doors = doors.filter((e) => !e.hall).map((e) => doorOnFacade(b, e));
@@ -425,7 +441,7 @@ export function clipWaysInBuildings(map, source) {
     if (r.pts.length < 2) continue;
     // #747: een dienstweg door een gebouw zonder doorgang (interieurplan, ziekenhuisgarage)
     // wordt net als een voetpad op de gevel geknipt; anders blijft er een muur over de weg.
-    const knipService = r.cat === 'service';
+    const knipService = r.cat === 'service' || r.type === 'service';
     if (!underground(r) && ((r.cat !== 'foot' && r.cat !== 'cycle' && !knipService) || offGradeWay(r))) continue;
     const rb = r.bounds;
     let spans = null;
@@ -462,5 +478,7 @@ export function clipWaysInBuildings(map, source) {
   for (const b of source.buildings) if (b.passages) { b.passages = null; b._doors = null; }
   return cut;
 }
+
+
 
 
