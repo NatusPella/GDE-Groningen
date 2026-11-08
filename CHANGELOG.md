@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- **De webversie laadt de spelbestanden niet meer twee keer bij de eerste start.** Alleen de pagina en de lettertypen worden nog vooraf bewaard; de ruim 900 spelscripts komen pas in de tijdelijke opslag wanneer het spel ze nodig heeft. Dat scheelt bij een nieuwe versie bijna 900 extra verzoeken en enkele megabytes data.
 - **Ruim 550 ontbrekende stemregels zijn ingesproken.** De verhaalregels die nog alleen tekst waren (en de wachtrij die daarop stond) hebben nu een opname; 20 regels wachten nog op een Groningse spreektekst en blijven tekst.
 
 ## [0.58.0] - 2026-11-07

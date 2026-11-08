@@ -1,7 +1,8 @@
 // Service worker of the web build (web/build.mjs stamps the cache name: the
-// version plus a hash of every file). Each file is cached the first time the
-// game asks for it, so a second visit and offline play read from the cache;
-// a new build gets a new cache and the old one is deleted.
+// version plus a hash of every file). At install only the shell is precached
+// (the page, the loader and the fonts); every other file is cached the first
+// time the game asks for it, so a second visit and offline play read from the
+// cache and a new build gets a new cache while the old one is deleted (#757).
 // The page: network first (offline falls back to the cache). Audio packs are
 // read in slices by web.js, which caches the clips itself.
 const CACHE = '__GDE_CACHE__';
