@@ -98,8 +98,10 @@ const stand = {
   getCheatSave: () => null,
   getRadioSave: () => 'aan',
   getFinanceSave: () => kasboek,
+  getWijkenSeen: () => wijken,
 };
 let kasboek = { day: 0, total: { in: {}, out: {} }, days: [] };
+let wijken = [];
 const { stateSignature, markDirty } = new Function('scope', `with (scope) {
   ${haalFunctie(sg, 'stateSignature')}
   ${haalFunctie(sg, 'markDirty')}
@@ -135,6 +137,21 @@ ok(() => {
   const b = stateSignature(wereld(100, { player: { x: 120, y: 40 }, time: 9, health: 80, wanted: 3 }));
   assert.equal(a, b, 'positie, tijd en gezondheid maken de autosave niet vuil');
 }, 'alleen de bewaarde stand telt, niet het rondlopen');
+
+// --- #790: een nieuwe wijkkaart (#726) hoort in de autosave-handtekening ---------------------
+ok(() => {
+  wijken = [];
+  const voor = stateSignature(wereld(100));
+  wijken = ['centrum'];
+  const na = stateSignature(wereld(100));
+  assert.notEqual(voor, na, 'een nieuwe wijkkaart verandert de signatuur');
+  wijken = ['centrum'];
+  assert.equal(na, stateSignature(wereld(100)), 'twee keer dezelfde kaarten geeft dezelfde signatuur');
+  wijken = [];
+}, 'een nieuwe wijkkaart triggert de autosave (#790)');
+ok(() => {
+  assert.match(sg, /getWijkenSeen\(\)\.length/, 'stateSignature telt de geziene wijkkaarten mee');
+}, 'de teller staat echt in stateSignature (#790)');
 
 ok(() => {
   // De tik in updateSaveGame doet precies dit: bij een andere signatuur markDirty().
