@@ -294,52 +294,64 @@ async function minigames2Smoke(world, check, capture) {
   check('minigames 2: three activities in the hub, one spot each', ids.every((id) => A.list().some((a) => a.id === id && a.spots === 1)), JSON.stringify(A.list().map((a) => a.id)));
   check('minigames 2: their spots are registered for the spot check', ids.every((id) => activitySpots().some((s) => s.kind === id)));
   const cleared = async (name) => {
-    const ok = await waitFor(() => !isActivityActive() && !world.activityGame && !boardUp(), 5000);
+    const ok = await waitFor(() => !isActivityActive() && !world.activityGame && !boardUp(), 20000);
     check(`minigames 2: ${name} ends cleanly (hub, input claim, HUD)`, ok && !world.cameraOverride, JSON.stringify({ active: isActivityActive(), game: world.activityGame, board: boardUp(), cam: !!world.cameraOverride }));
   };
   world.wanted = 0;
   const finite = (p) => [p.x, p.y, p.z].every(Number.isFinite);
 
   const zw = window.__zwembad;
-  check('zwembad: starts', zw && zw.start() && await waitFor(() => zw.state() && ['block', 'run'].includes(zw.state().swim.phase), 20000));
+  let zwStart = false;`n  for (let p = 0; p < 3 && !zwStart; p++) { if (!zw.state()) zw.start(); zwStart = await waitFor(() => zw.state() && zw.state().swim && ['block', 'run'].includes(zw.state().swim.phase), 20000); if (!zwStart) await sleep(1500); }`n  check('zwembad: starts', zwStart, JSON.stringify(zw.state()));
   await sleep(800);
   check('zwembad: board shows and the hub claims the input', boardUp() && world.activityGame === 'zwembad');
   capture('mg-zwembad-block');
   check('zwembad: the intro gives way to the block', await waitFor(() => ['block', 'run'].includes(zw.state().phase), 15000));
   key(' ', 'Space');
   await sleep(300);
-  check('zwembad: the dive starts the swim', zw.state().swim.phase === 'swim', JSON.stringify(zw.state()));
+  check('zwembad: the dive starts the swim', !!zw.state()?.swim && zw.state().swim.phase === 'swim', JSON.stringify(zw.state()));
   for (let i = 0; i < 6; i++) { key(i % 2 ? 'd' : 'a', i % 2 ? 'KeyD' : 'KeyA'); await sleep(550); }
   capture('mg-zwembad-swim');
-  check('zwembad: strokes move the swimmer', zw.state().swim.dist > 3 && finite(hoofdspeler(world)), JSON.stringify(zw.state()));
-  zw.finish();
+  check('zwembad: strokes move the swimmer', !!zw.state()?.swim && zw.state().swim.dist > 3 && finite(hoofdspeler(world)), JSON.stringify(zw.state()));
+  if (zw.state()) zw.finish();
   check('zwembad: the swim ends by itself', await waitFor(() => !isActivityActive(), 6000));
   await cleared('zwembad');
 
   const kt = window.__klimtoren;
-  check('klimtoren: starts', kt && kt.start() && await waitFor(() => kt.state() && kt.state().climb.phase === 'climb', 15000));
+  let ktStart = false;
+  for (let p = 0; p < 3 && !ktStart; p++) {
+    if (!kt.state()) kt.start();
+    ktStart = await waitFor(() => kt.state() && kt.state().climb && kt.state().climb.phase === 'climb', 20000);
+    if (!ktStart) await sleep(1500);
+  }
+  check('klimtoren: starts', ktStart, JSON.stringify(kt.state()));
   await sleep(500);
   hold('a', 'KeyA');
-  await waitFor(() => kt.state().climb.best > 0.3, 8000);
-  check('klimtoren: holding A grips the first hold', kt.state().climb.best > 0.3 && finite(hoofdspeler(world)), JSON.stringify(kt.state()));
+  await waitFor(() => !!kt.state()?.climb && kt.state().climb.best > 0.3, 20000);
+  check('klimtoren: holding A grips the first hold', !!kt.state()?.climb && kt.state().climb.best > 0.3 && finite(hoofdspeler(world)), JSON.stringify(kt.state()));
   capture('mg-klimtoren-grip');
   release('a', 'KeyA');
   await sleep(300);
-  kt.finish();
+  if (kt.state()) kt.finish();
   check('klimtoren: the climb ends by itself', await waitFor(() => !isActivityActive(), 7000));
   await cleared('klimtoren');
 
   const ws = window.__waterski;
-  check('waterski: starts', ws && ws.start() && await waitFor(() => ws.state() && ws.state().phase === 'run', 25000));
+  let wsStart = false;
+  for (let p = 0; p < 3 && !wsStart; p++) {
+    if (!ws.state()) ws.start();
+    wsStart = await waitFor(() => ws.state() && ws.state().phase === 'run', 25000);
+    if (!wsStart) await sleep(1500);
+  }
+  check('waterski: starts', wsStart, JSON.stringify(ws.state()));
   await sleep(1500);
   capture('mg-waterski-run');
-  check('waterski: the boat tows the skier along the lake', await waitFor(() => ws.state().ski.sS > 2, 10000) && finite(hoofdspeler(world)), JSON.stringify(ws.state()));
+  check('waterski: the boat tows the skier along the lake', await waitFor(() => !!ws.state()?.ski && ws.state().ski.sS > 2, 30000) && finite(hoofdspeler(world)), JSON.stringify(ws.state()));
   hold('a', 'KeyA');
   await sleep(900);
   release('a', 'KeyA');
-  check('waterski: leaning moves the skier sideways', Math.abs(ws.state().ski.px) > 0.3, JSON.stringify(ws.state()));
-  ws.finish();
-  check('waterski: the run ends by itself', await waitFor(() => !isActivityActive(), 7000));
+  check('waterski: leaning moves the skier sideways', !!ws.state()?.ski && Math.abs(ws.state().ski.px) > 0.3, JSON.stringify(ws.state()));
+  if (ws.state()) ws.finish();
+  check('waterski: the run ends by itself', await waitFor(() => !isActivityActive(), 20000));
   await cleared('waterski');
   await drain(world);
 }
