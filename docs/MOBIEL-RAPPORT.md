@@ -34,9 +34,9 @@ Schermen: 360x800, 412x915, 390x844 (telefoons) en 820x1180 (tablet), elk liggen
 3. Tekst: `SPAN` in het HUD blijft 8 tot 9 px op een kleine telefoon (selector niet aan te wijzen); tekst in menu's is ca. 9 tot 11 px na `--ui-fit` (0,6); de besturingstabel toont toetsnamen.
 4. Besturing opende op touch altijd op het toetsenbord-tabblad; sinds #805 opent het op **Aanraken** (dezelfde knoppen als op het scherm). De menufooter-hints zijn op touch verborgen en bevestigingsvensters noemen geen toetsen meer (#801); het toetsenoverzicht blijft bewust als naslag bestaan.
 5. Het linker menu van het pauzemenu laat op 360 px hoogte de onderste items buiten beeld (scrollbaar, geen scrollindicatie).
-6. Minigames, winkel, telefoon, kaart met pinch en slepen, spelstanden en hulp/tutorial zijn niet via aanraking bediend (alleen opengezet en bekeken waar de scene dat kon); de pinchlogica heeft pure tests. De tik-naar-actie keten (pointerdown, touchend) is niet in de browser doorlopen.
+6. Aanraakbediening van winkel, telefoon, minigames, kaart (slepen en pinch) en spelstanden zit in de code: het pauzemenu en de winkel-/spelstandenschermen delegeren `click`, de kaart heeft pointer-pan en pinch (`pinchStep`, pure test) en tikbare zoekresultaten, minigamecellen worden 44 px tikdoelen met `pointerdown`, en de telefoon loopt via de click-delegatie van het pauzemenu. `scripts/touch_wiring_test.mjs` bewaakt die bedrading; de tik-naar-actie-keten is nog niet in een browser/Electron-run doorlopen (geen stage-build in deze worktree).
 7. Oriëntatiewissel tijdens het spelen: `touch.js` luistert naar `resize` en `orientationchange` en de pure layout is voor beide standen getest; een live wissel in het spel is niet gedaan (elke stand is een eigen run).
-8. Kaart: slepen en pinch met twee vingers; zoomknoppen staan rechts.
+8. Kaart: slepen met één vinger en pinch met twee vingers zitten in `mapview.js` (pointer-events); zoekresultaten zijn tikbaar, zoomknoppen staan rechts. Niet in een browser uitgevoerd.
 
 ## Wat een echt apparaat moet bevestigen
 
