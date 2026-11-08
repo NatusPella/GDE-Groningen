@@ -15,7 +15,20 @@ st.wpIndex = 1; ok(pubStaticKey(st, def, null) !== key, 'waypointwissel: nieuwe 
 st.phase = 'done'; ok(pubStaticKey(st, def, null) !== pubStaticKey({ ...st, phase: 'active' }, def, null), 'fasewissel: nieuwe sleutel');
 console.log(`#654 meting: 300 frames -> ${builds} statische syncPub-opbouw (was 300), met dezelfde sleutel gratis`);
 const src = fs.readFileSync(new URL('../game/js/missions.js', import.meta.url), 'utf8');
-ok(/let pubStaticSig = ''/.test(src) && /staticKey !== pubStaticSig/.test(src), 'syncPub cachet op de sleutel');
+// #789: de statische sleutel hangt aan het pub-object zelf: een nieuwe wereld (nieuw spel of boot-load)
+// begint met een lege WeakMap en bouwt het statische deel dus opnieuw op, ook bij dezelfde stand.
+ok(/const pubStaticSigs = new WeakMap\(\)/.test(src) && /pubStaticSigs\.get\(pub\) !== staticKey/.test(src) && /pubStaticSigs\.set\(pub, staticKey\)/.test(src), 'syncPub cachet de statische sleutel per pub (#789)');
+ok(!/let pubStaticSig = ''/.test(src), 'de modulebrede statische sleutel van #654 is weg');
+// dezelfde regel als losse simulatie: dezelfde pub + dezelfde sleutel = niets doen, een nieuwe pub = opnieuw
+{
+  const sigs = new WeakMap();
+  let builds = 0;
+  const sync = (pub, key) => { if (sigs.get(pub) !== key) { sigs.set(pub, key); builds++; } };
+  const oud = {}, nieuw = {};
+  sync(oud, k0); sync(oud, k0);
+  sync(nieuw, k0); // boot-load: nieuwe pub, zelfde index/phase/waypointstand
+  ok(builds === 2, '#789: een nieuwe pub met dezelfde stand bouwt de statische laag toch op', String(builds));
+}
 ok(/if \(staticDue\) \{\n    pub\.remainingWaypoints/.test(src), 'remainingWaypoints alleen bij een wissel');
 console.log(`${n - fails}/${n} pubstatic`);
 process.exit(fails ? 1 : 0);
