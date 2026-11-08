@@ -193,13 +193,15 @@ t('vertrek van een gast: terug op de eigen plek, met eigen wanted, personage en 
   assert.deepEqual(s.hw.coopRoster.map((r) => r.slot), [0, 2], 'de plek van de eerste gast is vrij');
   assert.equal(s.gs[1].gw.coopNet.session.status, 'ok');
 });
-t('host verwijdert één speler: bericht, dan verbreken; de rest speelt door; het token is verboden (#589)', () => {
+t('host verwijdert één speler: bericht, dan verbreken; de rest speelt door; het token is verboden (#589) en de kamercode rouleert (#779)', () => {
   const s = sessie(2, { gastExtra: [{}, { player: { x: 5, y: 0, angle: 0, character: 'anita', vx: 0, vy: 0 } }] }); s.step(2);
   const [a, b] = s.gs.map((x) => x.gw);
   const tokenB = b.coopNet.session.token;
+  let gerouleerd = 0; s.hw.coopNet.hub.kamerRouleer = () => { gerouleerd++; }; // #779: dit doet het lobbypaneel
   assert.equal(N.removeGuest(a, 1), false, 'een gast kan niemand verwijderen');
   assert.equal(N.removeGuest(s.hw, 2), true); assert.equal(N.removeGuest(s.hw, 9), false);
   assert.ok(s.hw.coopNet.hub.cfg.verboden.has(tokenB), 'kicken zet het token op de verbodenlijst');
+  assert.equal(gerouleerd, 1, 'een geslaagde kick laat de kamercode rouleren (#779); een onbekende plek niet');
   s.step(2);
   assert.equal(b.coopNet, null); assert.equal(b.player.x, 5); assert.equal(b.coopRole, null);
   assert.match(b.messages.join(' '), /Tammo heeft je uit het spel gezet/);

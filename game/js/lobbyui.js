@@ -239,6 +239,7 @@ export function mountLobby(root, hooks, opts = {}) {
   function ensureHub() {
     if (hub) return hub;
     hub = hooks.startHost(state.route, onRoster);
+    koppelKamerRotatie(); // #779: een kick vanaf het tabblad Spelers laat de kamercode ook rouleren
     koppelAankondiging();
     return hub;
   }
@@ -362,6 +363,21 @@ export function mountLobby(root, hooks, opts = {}) {
     if (handle && handle.cancel) handle.cancel();
     handle = null;
     if (hub && hub.vrijePlekken) await openRoom();
+  }
+  // #779: na een kick vervalt de oude kamercode, want de gekickte speler kent hem. De gastheer krijgt meteen
+  // een nieuwe code en een nieuw aanbod. Dat gebeurt ook als de gekickte plek pas na REMOVE_DELAY vrijkomt:
+  // een gast die in die tussentijd verbindt, weigert de hub, en daarna gaat het aanbod vanzelf opnieuw open.
+  async function rondeerKamer() {
+    room = null; wacht = false;
+    if (handle && handle.cancel) handle.cancel();
+    handle = null;
+    await openRoom();
+  }
+  // De hub vraagt hierom na een geslaagde kick (game/js/coopnet.js removeGuest), zodat de code ook rouleert
+  // als de gastheer kickt vanaf het tabblad Spelers (coopspelersui.js) en niet via deze spelerslijst.
+  function koppelKamerRotatie() {
+    if (!hub || hub.kamerRouleer) return;
+    hub.kamerRouleer = () => { if (state.rol === ROLES.HOST && state.route === ROUTES.KAMER) rondeerKamer().catch(() => {}); };
   }
 
   // ----- de lijst met openbare sessies bekijken (#438)
@@ -594,6 +610,7 @@ export function mountLobby(root, hooks, opts = {}) {
     else if (e.target && e.target.classList && e.target.classList.contains('coop-consent-vink')) { state = reduce(state, { t: 'consent-vink', aan: !!e.target.checked }); draw(); }
   });
   if (hub) koppelAankondiging();
+  if (hub) koppelKamerRotatie(); // #779: ook een lopende of overgedragen sessie laat de kamercode na een kick rouleren
   draw();
   if (state.step === 'lijst') startLuisteren().catch((e) => set({ t: 'fout', msg: e.message })); // (#526) dit apparaat gaf al toestemming: de lijst opent meteen
   if (state.step === 'verbonden' && state.openbaar && hub) startAankondiging(); // een lopende openbare sessie staat weer in de lijst, met dezelfde regel (#450)
