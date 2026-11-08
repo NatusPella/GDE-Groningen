@@ -239,6 +239,27 @@ await t('de host antwoordt niet op rommel, een dubbel verzoek of een verzoek voo
   gate.stop();
 });
 
+// #783: de gast herhaalt zijn verzoek elke 2 s. Duurt de kameropbouw langer, dan mag dat geen tweede (wees)kamer
+// opleveren; dit is de variant waarin het tweede, identieke verzoek tijdens de await van onKamer binnenkomt.
+await t('#783: een trage kameropbouw geeft één kamer voor hetzelfde verzoek', async () => {
+  const hub = nepBroker();
+  let klok = 1000, kamers = 0;
+  const gate = bedienKamer({ id: ID, hostKeyPair: HOST, maakSignaler: hub.signaler, onKamer: async () => { kamers++; await tick(200); }, nu: () => klok });
+  const pub = await sleutelTekst(await maakSleutelpaar());
+  const nonce = maakNonce();
+  await tick(5);
+  const tv = await joinTopic(ID);
+  const lever = (tekst) => { for (const cb of [...hub.topics.get(tv).luisteraars]) cb(tekst); };
+  lever(maakVraag({ id: ID, nonce, pub, nu: klok }));
+  await tick(50); // het eerste verzoek zit nog in onKamer (200 ms)
+  klok += 500; // de herhaling van de gast valt ruim na minTussen
+  lever(maakVraag({ id: ID, nonce, pub, nu: klok }));
+  await tick(400);
+  assert.equal(kamers, 1, 'één kamer, ook als de herhaling tijdens de trage onKamer binnenkomt');
+  assert.equal(gate.antwoorden.size, 1, 'en één antwoord in het postvak');
+  gate.stop();
+});
+
 await t('zonder host geeft vraagKamer een fout, en de antwoorden in het postvak verlopen', async () => {
   const hub = nepBroker();
   let fout = '';
