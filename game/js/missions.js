@@ -872,8 +872,12 @@ function vehicleToBoard(world, def) {
   return v;
 }
 
-// #654: het statische deel van de missie-HUD alleen bij een sleutelwissel
-let pubStaticSig = '';
+// #654: het statische deel van de missie-HUD alleen bij een sleutelwissel. #789: de sleutel hoort
+// bij het pub-object zelf en niet bij dit bestand: een nieuw spel of een boot-load maakt een nieuwe
+// pub (en een gastgroep zijn eigen pub) en moet de statische velden meteen krijgen, ook als index,
+// fase en waypointstand toevallig gelijk zijn aan de vorige wereld. Een WeakMap houdt de sleutel
+// buiten de pub, zodat hij niet in snapshots of HUD-data belandt.
+const pubStaticSigs = new WeakMap();
 function syncPub(world) {
   const st = chainState();
   const def = st.defs[st.index];
@@ -890,9 +894,9 @@ function syncPub(world) {
   pub.total = st.defs.length;
   const board = st.phase === 'active' ? vehicleToBoard(world, def) : null;
   const staticKey = pubStaticKey(st, def, board);
-  const staticDue = staticKey !== pubStaticSig;
+  const staticDue = pubStaticSigs.get(pub) !== staticKey;
   if (staticDue) {
-    pubStaticSig = staticKey;
+    pubStaticSigs.set(pub, staticKey);
     pub.samen = missieStatus(def); // werkt de opdracht al samen? (coopstatus.js)
     pub.triggerRadius = def.triggerRadius || TRIGGER_RADIUS;
   }
