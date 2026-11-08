@@ -458,7 +458,10 @@ function stateSignature(w) {
     return JSON.stringify([sh.outfit, sh.ownedOutfits, sh.hair, sh.heroColor, sh.heroUpgrades, vehicles,
       getMissionProgress(), getStorySave(), getAchievementSaveData(), getPigeonSaveData(), getSideJobSave(), getPostgameSave(), getFurnitureSave(), getGoalSave(), getHomeSave(), getCheatSave(), getRadioSave(),
       w.money, getFinanceSave(),
-      w.visitedLandmarks instanceof Set ? w.visitedLandmarks.size : 0, w.stats.missionsDone]);
+      w.visitedLandmarks instanceof Set ? w.visitedLandmarks.size : 0, w.stats.missionsDone,
+      // #790: een nieuwe wijkkaart (#726) staat in de save; zonder deze teller bleef de autosave
+      // stil tot een volgende wijziging en was de kaart na een crash/force-kill weer ongezien.
+      getWijkenSeen().length]);
   } catch (e) {
     return lastSig;
   }
