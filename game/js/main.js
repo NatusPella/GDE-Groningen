@@ -689,6 +689,11 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     const reps = world.devTimeScale > 1 ? Math.min(8, Math.round(world.devTimeScale)) : 1;
     const doorloop = world.paused && coopWereldDoorloop(world, isMapOpen() || isPauseMenuOpen() || isShopOpen());
     world.coopDoorloopNu = doorloop; // coopnet.js stapMetgezelInPauze: updateGameplay stapt Tessa dan al
+    // #752: de actoren-index van dit frame, één keer, vóór alle systemen. De aanroep stond
+    // alleen in de menu-tick (waitForStart), dus de spellus ververste de index nooit: elke
+    // vehiclesNear()-query bouwde hem opnieuw op (honderden keren per frame) en in de
+    // menuroute bevroor de index op het laatste menuframe.
+    beginVehicleFrame(world);
     if (!world.paused) for (let r = 0; r < reps; r++) updateGameplay(gameDt);
     else if (doorloop) { // samen spelen (#434): de wereld loopt door achter een menu; alleen jouw eigen invoer staat stil
       const m = input.mouse, bewaard = { down: m.down, rightDown: m.rightDown, middleDown: m.middleDown, dx: m.dx, dy: m.dy, wheel: m.wheel };
