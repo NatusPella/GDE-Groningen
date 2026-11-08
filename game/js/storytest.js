@@ -597,7 +597,6 @@ export async function runStoryTest(world) {
       requestAnimationFrame(tel);
     });
     for (let i = 0; i < 12; i++) { if (await meetFps() >= 15) break; await sleep(2000); }
-    capture('00-start');
     // De zware wereldcontroles (spots, passages, ring, water) staan ook als eigen tests in de
     // suite; in de dure verhaaltest slaan we ze over met GDE_STORY_WERELDCONTROLES=0 (devtools).
     const SKIP_WERELD = FLAGS.geenwereldcontroles;
@@ -608,30 +607,24 @@ export async function runStoryTest(world) {
     for (const b of spots.bad) console.log('[spotcheck]', b.kind, b.id, b.x, b.y, b.why);
     check(`all ${spots.total} spots reachable`, !spots.bad.length, spots.bad.map((b) => `${b.kind} ${b.id} (${b.x}, ${b.y}): ${b.why}${b.fix ? ` -> vrij op (${b.fix.x}, ${b.fix.y}), ${b.fix.d} m` : ''}`).join('; '));
     // no street, cycleway or footway runs through a solid wall or an invisible hole
-    capture('01-spots');
     const pa = auditPassages(world.map);
     for (const e of pa.bad) console.log('[passagecheck]', e.cls, e.road, e.building, e.x, e.y, 'depth', e.depth, 'len', e.len);
     check(`ways through buildings are passages or doors (${JSON.stringify(pa.counts)})`, !pa.bad.length, pa.bad.slice(0, 30).map((e) => `${e.cls} ${e.road} in ${e.building} (${e.x}, ${e.y})`).join('; '));
     // nothing solid across the ring race lap and the ring roads, and a lap really drives
-    capture('02-passages');
     const solids = probeRingSolids(world);
     check('ring roads free of solid obstacles', !solids.length, solids.slice(0, 40).map((h) => `${h.route} +${h.s} m ${h.kind} ${h.what} (${h.x}, ${h.y}, z ${h.z})`).join('; '));
-    capture('02b-ringprobe');
     const railLifts = probeRailLifts(world);
     check('rail lifts can be walked, driven and cycled up', !railLifts.length, railLifts.map((h) => `lift ${h.lift} ${h.how}: ${h.what} (${h.x}, ${h.y}, z ${h.z})`).join('; '));
-    capture('02c-raillifts');
     const wet = await driveWaterCrossings(world);
     // one line per crossing (all six lane/direction drives of it together), so the list shows every bridge that fails
     const wetAt = new Map();
     for (const f of wet.fails) { const k = `${f.route} bij (${f.at})`; wetAt.set(k, (wetAt.get(k) || 0) + 1); }
     const wetSummary = wetAt.size ? `${wetAt.size} failing crossings: ` + [...wetAt].map(([k, n]) => `${k} x${n}`).join(', ') + ' || ' : '';
     check(`cars cross all ${wet.drives} major-road water crossings at 80 km/h`, !wet.fails.length, wetSummary + wet.fails.slice(0, 12).map((f) => `${f.route} (${f.dir}, strook ${f.lane}) bij (${f.at}): ${f.what} op (${f.x}, ${f.y}, z ${f.z}) ${f.v} km/u${f.by ? " door " + f.by : ""}${f.near ? " (vooraf: " + f.near + ")" : ""}`).join('; '));
-    capture('02d-water');
     const lap = await driveRingLap(world);
     check('scripted car drives a full ring lap', lap.scripted.ok, JSON.stringify(lap.scripted));
     check('AI racers finish a full ring lap', lap.ai.ok, JSON.stringify(lap.ai));
     }
-    capture('03-ring');
     await drain(world);
     await minigameSmoke(world, check, capture);
     await minigames2Smoke(world, check, capture);
