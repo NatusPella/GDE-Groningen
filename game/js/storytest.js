@@ -576,22 +576,10 @@ export async function runStoryTest(world) {
     // no street, cycleway or footway runs through a solid wall or an invisible hole
     const pa = auditPassages(world.map);
     for (const e of pa.bad) console.log('[passagecheck]', e.cls, e.road, e.building, e.x, e.y, 'depth', e.depth, 'len', e.len);
-    // #747: bekende werelddata-fouten in de verse provinciebouw. Nieuwe fouten laten de test vallen;
-    // worden deze opgelost, dan faalt de test op de dan ongebruikte allowlist en moet hij hier weg.
-    const knownPassage = new Set([
-      'solid|-1877|-2399', 'hole|2664|4691', 'hole|2629|4590', 'solid|3086|5064', 'hole|13260|6965',
-    ]);
-    const passageKey = (e) => `${e.cls}|${Math.round(e.x)}|${Math.round(e.y)}`;
-    const bekendePassages = pa.bad.filter((e) => knownPassage.has(passageKey(e)));
-    const nieuwePassages = pa.bad.filter((e) => !knownPassage.has(passageKey(e)));
-    check(`ways through buildings are passages or doors (${JSON.stringify(pa.counts)})`, !nieuwePassages.length && bekendePassages.length === knownPassage.size, nieuwePassages.slice(0, 30).map((e) => `${e.cls} ${e.road} in ${e.building} (${e.x}, ${e.y})`).join('; ') || `allowlist #747 niet meer compleet (${bekendePassages.length}/${knownPassage.size})`);
+    check(`ways through buildings are passages or doors (${JSON.stringify(pa.counts)})`, !pa.bad.length, pa.bad.slice(0, 30).map((e) => `${e.cls} ${e.road} in ${e.building} (${e.x}, ${e.y})`).join('; '));
     // nothing solid across the ring race lap and the ring roads, and a lap really drives
     const solids = probeRingSolids(world);
-    const knownRing = new Set(['12957|7151', '12958|7146', '12971|7146', '12975|7149']);
-    const ringKey = (h) => `${Math.round(h.x)}|${Math.round(h.y)}`;
-    const bekendeRing = solids.filter((h) => knownRing.has(ringKey(h)));
-    const nieuweRing = solids.filter((h) => !knownRing.has(ringKey(h)));
-    check('ring roads free of solid obstacles', !nieuweRing.length && bekendeRing.length === knownRing.size, nieuweRing.slice(0, 40).map((h) => `${h.route} +${h.s} m ${h.kind} ${h.what} (${h.x}, ${h.y}, z ${h.z})`).join('; ') || `allowlist #747 niet meer compleet (${bekendeRing.length}/${knownRing.size})`);
+    check('ring roads free of solid obstacles', !solids.length, solids.slice(0, 40).map((h) => `${h.route} +${h.s} m ${h.kind} ${h.what} (${h.x}, ${h.y}, z ${h.z})`).join('; '));
     const railLifts = probeRailLifts(world);
     check('rail lifts can be walked, driven and cycled up', !railLifts.length, railLifts.map((h) => `lift ${h.lift} ${h.how}: ${h.what} (${h.x}, ${h.y}, z ${h.z})`).join('; '));
     const wet = await driveWaterCrossings(world);
