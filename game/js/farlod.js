@@ -1,6 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { buildingLodStyle } from './models3d_buildings.js';
-import { gridItems } from './spatialgrid.js';
 import { perfOff } from './devflags.js';
 import { buildingLift, roadBaseAt } from './terrainlift.js';
 import { drawHub } from './multidraw3d.js';
@@ -335,7 +334,8 @@ function addPolyGeometry(B, geo, c) {
 
 // (#524) De verre laag leest de rasters in plaats van de hele kaartarrays: zo blijft
 // hij werken als de stad niet meer gepind is en een tegel zijn eigen rijen aan de
-// rasters toevoegt. `gridItems` staat in spatialgrid.js, want meer lezers gebruiken hem.
+// rasters toevoegt. (#755) De basisindex wordt uit die rasters opgebouwd en na een
+// tegel-add/drop opnieuw, in stukken; zie daarvoor de baseBuild-machinerie hieronder.
 export function createFarLOD(scene, map, opts) {
   const { flatGeometry, colors, sidewalkExtra, roadColorOf } = opts;
   const roadColor = Object.fromEntries(Object.entries(colors.roads).map(([k, hex]) => {
@@ -360,21 +360,64 @@ export function createFarLOD(scene, map, opts) {
     }
     return t;
   };
-  for (const b of gridItems(map.buildingGrid)) {
-    if (b.landmark || !b.bounds) continue;
-    tileOf((b.bounds[0] + b.bounds[2]) / 2, (b.bounds[1] + b.bounds[3]) / 2).buildings.push(b);
+  // (#755) De basisindex: de rijen die de rasters bevatten, per TILE-tegel. Hij
+  // werd bij de aanmaak één keer gebouwd en daarna nooit meer: na de eerste
+  // tegel-add/drop (map.geoVer) gooide update() alle tegels weg zonder ze terug
+  // te zetten, dus de verre stad was na de boot permanent weg. De opbouw kost
+  // op de echte wereld ~48 ms en gaat daarom in stukken door het far-LOD-budget
+  // (per rastercel, niet per raster in één keer).
+  const takeBase = {
+    building: (b) => {
+      if (b.landmark || !b.bounds) return;
+      tileOf((b.bounds[0] + b.bounds[2]) / 2, (b.bounds[1] + b.bounds[3]) / 2).buildings.push(b);
+    },
+    road: (r) => {
+      for (let i = 0; i < r.pts.length - 1; i++) {
+        const a = r.pts[i], c = r.pts[i + 1];
+        tileOf((a[0] + c[0]) / 2, (a[1] + c[1]) / 2).segs.push(r, i);
+      }
+    },
+    green: (g) => {
+      if (!g.bounds || g.pts.length < 3) return;
+      tileOf((g.bounds[0] + g.bounds[2]) / 2, (g.bounds[1] + g.bounds[3]) / 2).green.push(g);
+    },
+  };
+  let baseBuild = null, baseStale = false;
+  // One job per grid over its cells; an item in several cells is taken once
+  // (the same dedupe as gridItems, but the walk itself is spread over frames).
+  function startBaseBuild() {
+    baseBuild = {
+      jobs: [{ kind: 'building', grid: map.buildingGrid }, { kind: 'road', grid: map.roadGrid }, { kind: 'green', grid: map.greenGrid }]
+        .map((j) => ({ ...j, cells: j.grid && j.grid.map ? j.grid.map.values() : null, seen: new Set() })),
+      j: 0,
+    };
   }
-  for (const r of gridItems(map.roadGrid)) {
-    for (let i = 0; i < r.pts.length - 1; i++) {
-      const a = r.pts[i], c = r.pts[i + 1];
-      tileOf((a[0] + c[0]) / 2, (a[1] + c[1]) / 2).segs.push(r, i);
+  // Returns true once the base index is complete, false when the budget ran out.
+  function stepBaseBuild(deadline) {
+    const B = baseBuild;
+    while (B.j < B.jobs.length) {
+      const job = B.jobs[B.j];
+      if (!job.cells) { B.j++; continue; }
+      let n = 0;
+      for (;;) {
+        const c = job.cells.next();
+        if (c.done) { job.seen = null; job.cells = null; B.j++; break; }
+        for (const it of c.value) {
+          if (job.seen.has(it)) continue;
+          job.seen.add(it);
+          takeBase[job.kind](it);
+          if ((++n & 63) === 0 && performance.now() >= deadline) return false;
+        }
+      }
     }
+    // een tegel groepeert zijn groen op dezelfde rangorde als voor #755
+    if (colors.greenRank) for (const t of tiles.values()) t.green.sort((x, y) => colors.greenRank(x) - colors.greenRank(y));
+    baseBuild = null;
+    return true;
   }
-  for (const g of gridItems(map.greenGrid)) {
-    if (!g.bounds || g.pts.length < 3) continue;
-    tileOf((g.bounds[0] + g.bounds[2]) / 2, (g.bounds[1] + g.bounds[3]) / 2).green.push(g);
-  }
-  if (colors.greenRank) for (const t of tiles.values()) t.green.sort((x, y) => colors.greenRank(x) - colors.greenRank(y));
+  // The base index at creation: in one go (the boot has no frame to protect yet)
+  startBaseBuild();
+  stepBaseBuild(Infinity);
   const greenOf = colors.greenOf ? (g) => rgb8(colors.greenOf(g)) : () => greenColor;
 
   const queue = [];
@@ -467,6 +510,18 @@ export function createFarLOD(scene, map, opts) {
     t.job = null;
   }
 
+  // (#755) De kaartstand veranderde (map.geoVer): deze tegels zijn oud. Alles
+  // weg, ook de gestroomde tegels (hun rijen zitten in de rasters en komen met
+  // de herbouw van de basisindex terug), en de basisindex opnieuw opbouwen zodra
+  // update() weer ruimte heeft.
+  function resetTiles() {
+    for (const t of tiles.values()) if (t.meshes || t.job) disposeTile(t);
+    tiles.clear();
+    queue.length = 0;
+    lastPass = null;
+    baseBuild = null;
+  }
+
   function rectDist(t, px, py) {
     const dx = Math.max(t.x0 - px, 0, px - t.x1), dy = Math.max(t.y0 - py, 0, py - t.y1);
     return Math.hypot(dx, dy);
@@ -477,12 +532,13 @@ export function createFarLOD(scene, map, opts) {
   const FAR_IDLE_FRAMES = 30;
   function update(px, py, viewDist, visibleDist, detailR) {
     // #314 C2: komt er een tegel bij of gaat die weg, dan zijn de LOD-tegels oud.
+    // #755: sinds de sparse tegelwereld is de stad zelf ook gestroomd, dus de
+    // basisindex moet daarna opnieuw uit de rasters komen; anders blijft de verre
+    // kaart weg. Dat gebeurt hieronder in stukken.
     if (geoSeen !== map.geoVer) {
       geoSeen = map.geoVer;
-      for (const t of tiles.values()) if (t.meshes || t.job) disposeTile(t);
-      tiles.clear();
-      queue.length = 0;
-      lastPass = null;
+      resetTiles();
+      baseStale = true;
     }
     shared.uLodPlayer.value.set(px, py);
     shared.uLodDetailR.value = detailR;
@@ -490,7 +546,7 @@ export function createFarLOD(scene, map, opts) {
     const on = viewDist > detailR + 20;
     if (on !== enabled) { enabled = on; root.visible = on; }
     passFrame++;
-    if (lastPass && !queue.length && !perfOff('verresync') && passFrame - lastPass.frame < FAR_IDLE_FRAMES && Math.abs(px - lastPass.x) < 1 && Math.abs(py - lastPass.y) < 1
+    if (lastPass && !queue.length && !baseStale && !baseBuild && !perfOff('verresync') && passFrame - lastPass.frame < FAR_IDLE_FRAMES && Math.abs(px - lastPass.x) < 1 && Math.abs(py - lastPass.y) < 1
       && lastPass.view === viewDist && lastPass.visible === visibleDist && lastPass.detail === detailR && lastPass.version === tilesVersion) return;
     lastPass = null;
     stats.tiles = stats.visible = stats.triangles = 0;
@@ -499,6 +555,17 @@ export function createFarLOD(scene, map, opts) {
       queue.length = 0;
       stats.queued = 0;
       return;
+    }
+    const t0 = performance.now();
+    const deadline = t0 + BUDGET_MS;
+    // (#755) De basisindex opnieuw opbouwen, in stukken van BUDGET_MS. Zolang
+    // hij niet af is bouwen we geen tegels (een tegel zou rijen missen die er
+    // later nog bij komen); de volgende frame gaat verder waar deze stopte.
+    if (baseStale) { baseStale = false; startBaseBuild(); }
+    if (baseBuild) {
+      const klaar = stepBaseBuild(deadline);
+      stats.lastBuildMs = performance.now() - t0;
+      if (!klaar) { stats.queued = 0; return; }
     }
     // (#502) twee afstanden: `start` ligt een marge voorbij de zichtafstand (de
     // prefetch), `drop` een halve tegel achter die marge (de hysterese). Een
@@ -534,9 +601,8 @@ export function createFarLOD(scene, map, opts) {
     const hadQueue = queue.length > 0;
     // Het budget blijft een hard plafond per frame (BUDGET_MS): staan er door de
     // prefetch meer tegels in de wachtrij, dan duurt het vullen langer in plaats
-    // van dat een frame duurder wordt.
-    const t0 = performance.now();
-    const deadline = t0 + BUDGET_MS;
+    // van dat een frame duurder wordt. De basisindex-herbouw hierboven heeft al
+    // een deel van hetzelfde budget gebruikt.
     while (queue.length && performance.now() < deadline) {
       if (stepJob(queue[0], deadline)) queue.shift();
     }
