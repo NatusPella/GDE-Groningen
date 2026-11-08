@@ -256,11 +256,14 @@ initLoading();
 // thread. A longer boot is the price the owner chose for a smooth start. A test
 // or QA run skips it: those start from a script and their timing must stay put.
 const WARM_START = !(FLAGS.noattract || FLAGS.storytest || FLAGS.stil || FLAGS.trailer || FLAGS.preview || FLAGS.benchmark || FLAGS.perf || FLAGS.spotsonly || FLAGS.autoplay || FLAGS.menutest);
-// the start area's prewarm radius (the cutscene prewarm uses 110 m) and the longest
-// the boot screen may spend on it before it goes on anyway
+// the start area's prewarm radius (the cutscene prewarm uses 110 m), the longest
+// the boot screen may spend on it before it goes on anyway, and the frame time
+// and calm run that count as "warm": a worker result or shader link that lands
+// after the boot screen would be exactly the hitch we are trying to remove
 const START_WARM_R = 200;
-const START_WARM_MS = 20000;
-const START_WARM_CALM = 10;
+const START_WARM_MS = 25000;
+const START_WARM_CALM = 12;
+const START_WARM_MAX_FRAME_MS = 50;
 
 function waitForStart(world, ready) {
   const relocate = (x, y) => {
@@ -317,31 +320,41 @@ function waitForStart(world, ready) {
     update3D(dt, world);
   };
   // The start-area warm-up (runBootScreen awaits it before the boot screen goes):
-  // prewarm the buildings round the spawn, let the game's own frame work build and
-  // upload the roads and street dressing there, then compile the shaders. The boot
-  // screen stays up; no work spills into the first seconds of play. Never longer
-  // than START_WARM_MS (a slow machine goes on with a partially warm area).
+  // prewarm the buildings round the spawn (or the loaded save's position), let the
+  // game's own frame work build and upload the roads and street dressing there,
+  // then compile the shaders. The boot screen stays up; no work spills into the
+  // first seconds of play. "Warm" is not only streamPending(): the frames must be
+  // quiet too, so a late worker result (city props, shores, far LOD) or a shader
+  // that links on first use is caught here instead of in play. Never longer than
+  // START_WARM_MS (a slow machine goes on with a partially warm area).
   const warm = async () => {
     if (!WARM_START) return;
     const x = world.player.x, y = world.player.y;
     const t0 = performance.now();
     setLoadingStatus('De buurt rond je startpunt wordt klaargezet');
     prewarmStreamAt(x, y, 240, START_WARM_R);
-    let calm = 0, frames = 0;
+    let calm = 0, frames = 0, slowRun = 0, worst = 0;
     while (performance.now() - t0 < START_WARM_MS) {
+      const f0 = performance.now();
       try { tick(1 / 60); render(1 / 60); } catch (e) { console.warn('startgebied voorladen', e); break; }
+      const frameMs = performance.now() - f0;
+      worst = Math.max(worst, frameMs);
+      slowRun = frameMs > START_WARM_MAX_FRAME_MS ? slowRun + 1 : 0;
       frames++;
       const sp = streamPending();
       const open = sp.buildings + sp.roads + prewarmPending();
-      calm = open === 0 ? calm + 1 : 0;
+      calm = open === 0 && slowRun === 0 ? calm + 1 : 0;
       if (calm >= START_WARM_CALM) break;
       await yieldToPaint();
     }
     if (window.__loadMarks) window.__loadMarks.startWarm = Math.round(performance.now() - t0);
     setLoadingStatus('De shaders worden klaargezet');
     const compiled = precompilePrograms();
-    if (window.__loadMarks) window.__loadMarks.shaders = Math.round(compiled);
-    if (frames && window.__loadMarks) window.__loadMarks.warmFrames = frames;
+    if (window.__loadMarks) {
+      window.__loadMarks.shaders = Math.round(compiled);
+      window.__loadMarks.warmWorstFrame = Math.round(worst);
+      if (frames) window.__loadMarks.warmFrames = frames;
+    }
   };
   return runStartScreen(world, { render, relocate, tick, ready, warm });
 }
