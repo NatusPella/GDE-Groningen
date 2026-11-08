@@ -21,8 +21,9 @@ zonder stappen (#655.2) en de gast-retry heeft een backoff (#655.1).
 
 ## #657 bundelen en lazy story-JSON
 Bundelen (L) niet gedaan: dat is een bouwstap met eigen risico's (bronmappen,
-service worker, itch.io-limiet) en past niet in een kleine ronde; de precache
-van alle JS-modules is wel gedaan (#657.1b).
+service worker, itch.io-limiet) en past niet in een kleine ronde; de
+import-map-bundel is wel gedaan (#657.1b), en bij #757 is de web-shell
+teruggebracht tot de pagina, de loader en de fonts (zie #657.1c).
 Lazy story-JSON niet gedaan: storytext laadt script.json nu bij module-load en
 storyDataReady() gates op tientallen plekken in missions.js de verhaal- en
 praatscènes. Lazy laden zonder flow-aanpassing laat vroege scènes hun tekst
@@ -42,5 +43,5 @@ inventarisatie, dan de template-LRU.
 - #654: updateStory ~5x/s i.p.v. 60x/s, missionstory 0 array-allocaties per
   frame per scène, Ommeland-solids 60 -> 4/s.
 
-## #657.1c: web-bundel (aanvulling)
-Er zit geen bundler in desktop/node_modules (geen esbuild, rollup, vite of webpack). Een eigen één-bestandsbundel is hier niet veilig: 20 plekken gebruiken import.meta.url (CSS/worklet/modelpaden) en 3 plekken starten een worker via new URL(...); in één bestand wijzen die naar de verkeerde map. In plaats daarvan is de "import-map-bundel" gebouwd: de web-build genereert nu voor alle modules één modulepreload-lijst in index.html (web/preload.mjs), zodat de browser de 892 modules in één parallelle golf ophaalt in plaats van via de ontdekkingswaterfall. Gemeten op de werkboom: 983 js-bestanden, 12,4 MB; de preloadlijst telt 892 modules (web_shell/webboot/webprecache blijven groen, scripts/webpreload_test.mjs dekt de lijst en de meting). Een echte één-bestandsbundel blijft een besluit voor later: daar is een buildafhankelijkheid (esbuild) en een browsercontrole van de worker-/import.meta-paden voor nodig. Lazy story-JSON blijft zoals eerder besloten (niet zonder veilige wacht/fallback).
+## #657.1c: web-bundel en web-shell (aanvulling; #757)
+Er zit geen bundler in desktop/node_modules (geen esbuild, rollup, vite of webpack). Een eigen één-bestandsbundel is hier niet veilig: 20 plekken gebruiken import.meta.url (CSS/worklet/modelpaden) en 3 plekken starten een worker via new URL(...); in één bestand wijzen die naar de verkeerde map. In plaats daarvan is de "import-map-bundel" gebouwd: de web-build genereert één modulepreload-lijst in index.html (web/preload.mjs), zodat de browser de modules in één parallelle golf ophaalt in plaats van via de ontdekkingswaterfall. Sinds #757 staan de ontwikkel-, QA- en trailerhulpen niet meer in die lijst (js/trailer.js, trailerplan, trailerprops, testmenu, testmenulogic, padtest, storytest, sfx/sfxtest, cutpreview, cutpreviewui, worldbuilder, sfx/engineworklet en de *audit*- en *test*-modules); die komen pas met een dev-URL, een trailer of een benchmark. De gewone trailer van het spel (js/vehicle/trailer.js), js/semitrailer.js en js/trailerstate.js blijven erin. De service worker precacht sinds #757 alleen nog de schil: de pagina, de loader (web.js) en de fonts. De JS-modules zitten niet meer in de install (die haalde ze met cache: 'no-cache' nog eens op, bovenop de download van de pagina) maar komen via cacheFirst bij het eerste gebruik in de cache; een nieuwe build krijgt nog steeds een eigen cachenaam, dus de oude cache verdwijnt. Gemeten op de werkboom: 985 js-bestanden in game/js, waarvan de preloadlijst de vijftien dev-/QA-/trailerhulpen overslaat. scripts/webpreload_test.mjs dekt de lijst, de uitsluiting en de meting; web_shell_test, webboot_test en webprecache_test blijven groen. Een echte één-bestandsbundel blijft een besluit voor later: daar is een buildafhankelijkheid (esbuild) en een browsercontrole van de worker-/import.meta-paden voor nodig. Lazy story-JSON blijft zoals eerder besloten (niet zonder veilige wacht/fallback).
