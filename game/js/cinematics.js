@@ -546,7 +546,7 @@ export function updateCinematics(dt, w) {
       // Vangnet: een filmpje dat veel wandkloktijd krijgt maar zelf niet vooruitkomt
       // (een vastgelopen intro of scène) mag de game niet blokkeren.
       if (!active._wStart) active._wStart = now;
-      if (cinematicHang({ startedAt: active._wStart, now, worldTime: w && w.time, sceneT: active.t }) === 'frozen') { finish(true); return; }
+      if (cinematicHang({ startedAt: active._wStart, now, worldTime: w && w.time, sceneT: active.t, waitsForInput: !!active.pause }) === 'frozen') { finish(true); return; }
       // #734 (F12): de eerste frames pas laten lopen als de shottegels klaar zijn (met time-out)
       if (active._tilesDone) {
         active.t += (active.realtime ? Math.max(dt, wallDt) : dt) * (active.rate ?? 1);

@@ -16,11 +16,14 @@ export const SCENE_HANG_MS = 20000;
 
 // 'opening' = the world clock is still frozen at the first second after 30 s;
 // 'frozen' = the scene's own clock did not move after 20 s; null = let it play.
-export function cinematicHang({ startedAt, now, worldTime, sceneT }) {
+// #771: a scene that pauses the world on purpose (pause:true) may wait for the player in its
+// first two seconds - an AFK player must not lose that scene. For those scenes the wall clock
+// does not count as a hang; the opening rule still applies to them.
+export function cinematicHang({ startedAt, now, worldTime, sceneT, waitsForInput = false }) {
   if (!Number.isFinite(startedAt) || !Number.isFinite(now)) return null;
   const age = now - startedAt;
   if (age > OPENING_HANG_MS && Number.isFinite(worldTime) && worldTime <= 1) return 'opening';
-  if (age > SCENE_HANG_MS && !(sceneT >= 2)) return 'frozen';
+  if (!waitsForInput && age > SCENE_HANG_MS && !(sceneT >= 2)) return 'frozen';
   return null;
 }
 
