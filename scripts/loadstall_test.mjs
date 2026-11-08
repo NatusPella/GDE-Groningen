@@ -239,6 +239,37 @@ ok(guardIsSafe("if (roadSyncIdle && streamStat.r === 0 && document.body.classLis
   ok(!/roadSyncIdle\s*=/.test(update), 'update3D ververst het wegen-idle-record niet elke frame');
 }
 
+// --- broncheck op syncBuildings (#772) ------------------------------------
+// Dezelfde bronregel uit docs/PERF-LAADHANG-0.56.1.md (punt 5) geldt voor de
+// gebouwpas: een guard in syncBuildings mag streamStat.b alleen overslaan op het
+// idle-record, en dat record mag alleen na een volledige pas gezet worden (niets
+// meer te bouwen of te prefetchen). Anders blijft een teller > 0 staan en wacht het
+// laadscherm op zijn time-out — precies de bug van 0.56.1, nu voor gebouwen.
+{
+  const src = fs.readFileSync(new URL('../game/js/scene3d.js', import.meta.url), 'utf8');
+  const start = src.indexOf('function syncBuildings(');
+  const pass = src.indexOf('function syncBuildingsPass(', start);
+  ok(start >= 0 && pass > start, 'syncBuildings staat nog in scene3d.js (werk deze test bij als hij verhuist)');
+  const guardBody = start >= 0 && pass > start ? src.slice(start, pass) : '';
+  const passEnd = pass > start ? src.indexOf('\nfunction ', pass + 10) : -1;
+  const passBody = pass > start && passEnd > pass ? src.slice(pass, passEnd) : '';
+  ok(passBody.length > 0, 'syncBuildingsPass staat nog in scene3d.js');
+  // een vroege return in syncBuildings mag alleen via het record: dat bestaat
+  // uitsluitend als de vorige pas niets meer miste (streamStat.b === 0)
+  const byRecord = (text) => { const rs = earlyReturns(text); return rs.length > 0 && rs.every((c) => /syncIdle/.test(c)); };
+  ok(byRecord(guardBody), 'elke vroege return in syncBuildings hangt aan het volledige-pas-record', earlyReturns(guardBody).join(' | '));
+  ok(!byRecord('if (prefetchedBuildings.size > 0) return;'), 'de broncheck keurt een gebouwguard zonder volledige-pas-record af');
+  // het record mag precies één keer gezet worden, en alleen in de klaar-tak: dan is
+  // streamStat.b 0 (missing.length === 0) en kan de guard geen teller > 0 bevriezen
+  const recordSafe = (text) => {
+    const assigns = [...text.matchAll(/syncIdle\s*=/g)].length;
+    return assigns === 1 && /if \(prefetchDone && missing\.length === 0\) \{\s*syncIdle = /.test(text);
+  };
+  ok(recordSafe(passBody), 'syncIdle wordt alleen na een volledige gebouwpas gezet (streamStat.b = 0)', [...passBody.matchAll(/syncIdle\s*=/g)].length);
+  ok(!recordSafe('if (missing.length > built) return;\n  syncIdle = { x: 0 };'), 'de broncheck keurt een record na een halve pas af');
+  ok(/streamStat\.b = missingCount;/.test(passBody), 'syncBuildingsPass zet streamStat.b uit de ontbrekende lijst');
+}
+
 // 6. Dezelfde veilige vorm voor het water (#651): bij een stilstaande focus en
 //    een gelijk blijvende waterversie slaat de guard 5 van 6 passen over; een
 //    nieuwe waterversie dwingt meteen weer een volledige pas af.
