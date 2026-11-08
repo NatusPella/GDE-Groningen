@@ -534,7 +534,7 @@ export class TileWorld extends GameMap {
   prefetchPoints(points, { radius = 400, token = 'shot' } = {}) {
     const keys = new Set();
     for (const [x, y] of points) for (const k of this.store.keysAround(x, y, radius)) keys.add(k);
-    return Promise.all([...keys].map((k) => this.store.request(k, { priority: -1000, token }))).then(() => this.tileQueue.run(1e9));
+    // Een prewarm is best effort: stopt de scène/kaart, dan is een afgebroken tegel geen fout.\n    const veilig = (k) => this.store.request(k, { priority: -1000, token }).catch((err) => {\n      if (err && (err.cancelled || err.name === 'AbortError')) return null;\n      throw err;\n    });\n    return Promise.all([...keys].map(veilig)).then(() => this.tileQueue.run(1e9));
   }
 }
 
@@ -618,3 +618,4 @@ export async function loadMapAuto(url = 'stad.json', onProgress = null, { pool =
   const t = await loadTileWorld(url.replace(/[^/]*$/, '') + 'world/', { onProgress, pool });
   return t ? t.world : loadMap(url, onProgress);
 }
+
