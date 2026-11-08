@@ -8,6 +8,11 @@ const clamp01 = (t) => (t < 0 ? 0 : t > 1 ? 1 : t);
 const BIRD_GEO = new THREE.BoxGeometry(0.26, 0.11, 0.12);
 const WING_GEO = new THREE.PlaneGeometry(0.13, 0.26).rotateX(-Math.PI / 2).translate(0, 0, 0.13);
 const BIRD_MAT = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9, side: THREE.DoubleSide });
+// one flock's geometry and material serve every bird: the scene's cleaner
+// (disposeObject) must not throw them away when a single flock is removed
+BIRD_GEO.userData.shared = true;
+WING_GEO.userData.shared = true;
+BIRD_MAT.userData.shared = true;
 export const BIRDS = 64;
 
 // A pigeon flock as two instanced meshes (bodies, wings): a few dozen birds

@@ -19,7 +19,12 @@ import zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
-const arg = (name, d) => { const a = process.argv.find((v) => v.startsWith('--' + name + '=')); return a ? a.slice(name.length + 3) : d; };
+const arg = (name, d) => {
+  const eq = process.argv.find((v) => v.startsWith('--' + name + '='));
+  if (eq) return eq.slice(name.length + 3);
+  const i = process.argv.indexOf('--' + name);
+  return i >= 0 && i + 1 < process.argv.length ? process.argv[i + 1] : d;
+};
 const WORLD = path.resolve(arg('world', process.env.GDE_WORLD_DIR || path.join(ROOT, 'game', 'world')));
 const OUT = path.resolve(arg('out', path.join(WORLD, 'terrain.bin')));
 const CHECK = process.argv.includes('--check');
