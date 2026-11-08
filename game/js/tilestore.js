@@ -26,10 +26,21 @@ export const READ_GUARD_MS = 12000;     // TileStore safety net around source.re
 export const WORKER_TIMEOUT_MS = 10000; // one decode job in the worker pool
 export const DECODE_GUARD_MS = 15000;   // TileStore safety net around decode (after a worker fallback)
 
+// #749: tijdens de boot golden geen grenzen (een koude portable start of een
+// langzame schijf mocht het laadscherm niet op een time-out laten stuklopen),
+// maar een bron die nooit antwoordt liet het laadscherm dan voorgoed hangen.
+// In plaats van geen grens een ruime, vermenigvuldigde: HTTP 60 s, read 90 s,
+// decode 60 s en worker 60 s. De vermenigvuldiger geldt ook voor een test die
+// de grens inkort, zodat de boot-tak te testen blijft.
+export const BOOT_HTTP_FACTOR = 6;     // HTTP_TIMEOUT_MS 10 s -> 60 s
+export const BOOT_READ_FACTOR = 7.5;   // READ_GUARD_MS 12 s -> 90 s
+export const BOOT_DECODE_FACTOR = 4;   // DECODE_GUARD_MS 15 s -> 60 s
+export const BOOT_WORKER_FACTOR = 6;   // WORKER_TIMEOUT_MS 10 s -> 60 s
+
 export const timeoutError = (wat, ms) => Object.assign(new Error(`${wat} timed out after ${ms} ms`), { timeout: true, name: 'TimeoutError' });
-// Tijdens de boot geen time-outs: een koude portable start of een langzame schijf
-// mag het laadscherm niet laten stukgaan. Daarna bewaken ze tegen echte hangs (#582).
 const tijdensBoot = () => typeof document !== 'undefined' && document.body && !document.body.classList.contains('game-started');
+// de grens van dit moment: normaal `ms`, tijdens de boot `ms` maal de factor
+const grens = (ms, factor) => (ms > 0 && tijdensBoot() ? Math.round(ms * factor) : ms);
 
 // --------------------------------------------------------------- sources
 
@@ -45,18 +56,20 @@ export class HttpRangeSource {
   // caller's cancellation also trips. The race covers the body too, so a body
   // that never finishes rejects instead of leaving the caller waiting.
   async _metTimeout(wat, signal, werk) {
-    if (typeof AbortController === 'undefined' || tijdensBoot()) return werk(signal);
+    if (typeof AbortController === 'undefined') return werk(signal);
     const ctl = new AbortController();
     let klaar = false, verlopen = false;
     const afbreken = () => { if (!klaar) { try { ctl.abort(); } catch (e) { /* already gone */ } } };
     if (signal) { if (signal.aborted) afbreken(); else signal.addEventListener('abort', afbreken, { once: true }); }
+    // #749: tijdens de boot een ruime grens in plaats van geen grens
+    const ms = grens(this.timeoutMs, BOOT_HTTP_FACTOR);
     try {
-      if (this.timeoutMs > 0) {
+      if (ms > 0) {
         let timer = null, timeout = null;
         const mis = new Promise((_, reject) => { timeout = reject; });
-        timer = setTimeout(() => { verlopen = true; afbreken(); timeout(timeoutError(wat, this.timeoutMs)); }, this.timeoutMs);
+        timer = setTimeout(() => { verlopen = true; afbreken(); timeout(timeoutError(wat, ms)); }, ms);
         try { return await Promise.race([Promise.resolve().then(() => werk(ctl.signal)), mis]); }
-        catch (err) { throw verlopen ? timeoutError(wat, this.timeoutMs) : err; }
+        catch (err) { throw verlopen ? timeoutError(wat, ms) : err; }
         finally { clearTimeout(timer); }
       }
       return await werk(ctl.signal);
@@ -299,14 +312,17 @@ export class TileStore {
   // read so a timed-out entry does not keep a fetch open. A promise that settles
   // after the time-out is ignored (it already has a handler here), and the slot
   // is freed by _pump's finally like any other failure.
-  _begrensd(maak, ms, wat, bijTimeout = null) {
+  // #749: `bootFactor` vermenigvuldigt de grens tijdens de boot (geen
+  // onbegrensde read/decode meer; zie BOOT_* boven).
+  _begrensd(maak, ms, wat, bijTimeout = null, bootFactor = BOOT_READ_FACTOR) {
     const p = Promise.resolve().then(maak);
-    if (!(ms > 0) || tijdensBoot()) return p;
+    const grensMs = grens(ms, bootFactor);
+    if (!(grensMs > 0)) return p;
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
         if (bijTimeout) { try { bijTimeout(); } catch (e) { /* already gone */ } }
-        reject(timeoutError(wat, ms));
-      }, ms);
+        reject(timeoutError(wat, grensMs));
+      }, grensMs);
       if (timer && typeof timer.unref === 'function') timer.unref(); // Node: a stopped world does not keep the process open
       p.then((v) => { clearTimeout(timer); resolve(v); }, (err) => { clearTimeout(timer); reject(err); });
     });
@@ -334,7 +350,7 @@ export class TileStore {
         this.readMs, `tile read ${file} ${off}+${len}`,
         () => { try { if (ctl) ctl.abort(); } catch (err) { /* already gone */ } });
       if (this._stale(e)) throw Object.assign(new Error('cancelled'), { cancelled: true });
-      const tile = await this._begrensd(() => this.decode(bytes, e.meta), this.decodeMs, `tile decode ${file} ${off}+${len}`);
+      const tile = await this._begrensd(() => this.decode(bytes, e.meta), this.decodeMs, `tile decode ${file} ${off}+${len}`, null, BOOT_DECODE_FACTOR);
       if (this._stale(e)) throw Object.assign(new Error('cancelled'), { cancelled: true });
       e.tile = tile;
       e.state = 'ready';
@@ -535,13 +551,14 @@ export function makeWorkerDecoder(url, size = 2, aside = null, opts = {}) {
     const rec = levend[rr++ % levend.length];
     const id = next++;
     const copy = bytes.slice();
+    // #749: ook het decoder-werk krijgt tijdens de boot een ruime, begrensde tijd
     const timer = setTimeout(() => {
       const j = open.get(id);
       if (!j) return;
       open.delete(id);
       sterf(rec, 'tile worker timeout'); // the worker's other jobs also go to the main thread
       hoofdthread(bytes).then(resolve, reject);
-    }, timeoutMs);
+    }, grens(timeoutMs, BOOT_WORKER_FACTOR));
     open.set(id, { resolve, reject, timer, rec, bron: bytes });
     try { rec.w.postMessage({ id, bytes: copy, aside }, [copy.buffer]); }
     catch (e) {
