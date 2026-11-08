@@ -390,7 +390,9 @@ export function mountLobby(root, hooks, opts = {}) {
   // De hub vraagt hierom na een geslaagde kick (game/js/coopnet.js removeGuest), zodat de code ook rouleert
   // als de gastheer kickt vanaf het tabblad Spelers (coopspelersui.js) en niet via deze spelerslijst.
   function koppelKamerRotatie() {
-    if (!hub || hub.kamerRouleer) return;
+    if (!hub) return;
+    // #779: altijd opnieuw binden. cleanup() zet de haak op null; bond deze functie alleen als hij leeg is, dan
+    // bleef na een her-mount de oude paneel-closure de rotatie doen (met de oude staat en een oude kamercode).
     hub.kamerRouleer = () => { if (state.rol === ROLES.HOST && state.route === ROUTES.KAMER) rondeerKamer().catch(() => {}); };
   }
 
@@ -532,6 +534,7 @@ export function mountLobby(root, hooks, opts = {}) {
     handle = null; wacht = false;
     stopAankondiging(); stopLuisteren();
     if (hub && hub.opOpenbaar) hub.opOpenbaar = null; // dit scherm plaatst niets meer; de sessie houdt wel zijn naam en id (#450)
+    if (hub && hub.kamerRouleer) hub.kamerRouleer = null; // #779: een gesloten paneel laat de kamercode niet meer rouleren
     if (stopListen) { stopListen(); stopListen = null; }
     if (api && state.route === ROUTES.DIRECT && !opts.start && !opts.adopt) api.stop();
   }

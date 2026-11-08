@@ -4,7 +4,13 @@
 import assert from 'node:assert/strict';
 
 globalThis.WebSocket = class { constructor() { setTimeout(() => this.onerror && this.onerror(new Error('nep')), 0); } send() {} close() {} };
-globalThis.RTCPeerConnection = class { constructor() { this.localDescription = null; } createDataChannel() { return { close() {} }; } async createOffer() { return { type: 'offer', sdp: 'v=0' }; } async setLocalDescription() {} addEventListener() {} removeEventListener() {} close() {} };
+globalThis.RTCPeerConnection = class {
+  constructor() { this.localDescription = null; this.iceGatheringState = 'complete'; }
+  createDataChannel() { return { close() {} }; }
+  async createOffer() { return { type: 'offer', sdp: 'v=0' }; }
+  async setLocalDescription(d) { this.localDescription = d; }
+  addEventListener() {} removeEventListener() {} close() {}
+};
 globalThis.window = globalThis;
 globalThis.navigator ??= {};
 
@@ -32,6 +38,33 @@ await t('de nieuwe host na een overdracht: het paneel toont de kamercode, de spe
   hub.onchange(roster([[0, 'anita'], [1, 'tammo'], [2, 'tessa']])); assert.equal(lobby.state().spelers.length, 3);
   root.click('verbreek'); assert.deepEqual(uit, ['verbreek'], 'Iedereen stoppen werkt');
   lobby.close();
+});
+
+await t('#779: een kick laat de kamercode echt rollen en de oude code vervalt; een her-mount bindt de rotatie opnieuw', async () => {
+  const root = fakeRoot();
+  const hub = { roster: roster([[0, 'anita'], [1, 'tammo'], [2, 'tessa']]), vrijePlekken: true, onchange: null };
+  const lobby = mountLobby(root, { disconnect() {}, kick() {}, addGuest() {} }, { adopt: { code: 'ABCDE-FGHJK', route: 'kamer' }, rol: 'host', hub });
+  assert.equal(lobby.state().code, 'ABCDE-FGHJK');
+  assert.equal(typeof hub.kamerRouleer, 'function', '#779: de hub kan na een kick de kamercode laten rouleren');
+  assert.match(root.innerHTML, /ABCDE-FGHJK/);
+  const eersteHaak = hub.kamerRouleer;
+  eersteHaak(); // precies wat coopnet.removeGuest na een geslaagde kick doet
+  await new Promise((r) => setTimeout(r, 150));
+  const nieuw = lobby.state().code;
+  assert.ok(nieuw && nieuw !== 'ABCDE-FGHJK', `na een kick is de kamercode gerouleerd: ${nieuw}`);
+  assert.match(root.innerHTML, new RegExp(String(nieuw).replace('-', '-')), 'het paneel toont de nieuwe code; de oude staat er niet meer als kamercode');
+  // Een gesloten paneel ruimt de haak op; een her-mount zet een nieuwe closure neer in plaats van de oude staat.
+  lobby.close();
+  assert.equal(hub.kamerRouleer, null, '#779: een gesloten paneel laat de kamercode niet meer rouleren');
+  const root2 = fakeRoot();
+  const lobby2 = mountLobby(root2, { disconnect() {}, kick() {}, addGuest() {} }, { adopt: { code: nieuw, route: 'kamer' }, rol: 'host', hub });
+  assert.equal(typeof hub.kamerRouleer, 'function', 'een her-mount bindt de rotatie opnieuw');
+  assert.notEqual(hub.kamerRouleer, eersteHaak, 'en niet de oude paneel-closure');
+  const code2 = lobby2.state().code;
+  hub.kamerRouleer();
+  await new Promise((r) => setTimeout(r, 150));
+  assert.notEqual(lobby2.state().code, code2, 'de nieuwe closure laat de code ook echt rollen');
+  lobby2.close();
 });
 
 await t('de oude host als gast, en een gast die het paneel opnieuw tekent: Spel verlaten staat er, met de spelers en wie het spel opende', async () => {
@@ -96,4 +129,4 @@ await t('spel overdragen vanuit de wachtkamer: de knop vraagt wie, de keuze gaat
   lobby.close(); l2.close();
 });
 
-console.log(`lobbyadopt_test: ${n}/5 ok`);
+console.log(`lobbyadopt_test: ${n}/${n} ok`);
