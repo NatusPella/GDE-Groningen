@@ -155,6 +155,7 @@ for (const [mode, p] of Object.entries(PALETTES)) {
   const sheet = (src.match(/const CSS = `([\s\S]*?)`;/) || [])[1] || '';
   const hides = (sel) => new RegExp(sel + '[^{]*\\{[^}]*display:\\s*none').test(sheet);
   ok(sheet !== '', 'touch.js heeft de aanraak-CSS');
+  ok(/max\(12px, calc\(12px \/ var\(--ui, 1\)\)\)/.test(sheet) && !/calc\(11px \/ var\(--ui, 1\)\)/.test(sheet), 'touch: de vaste HUD-tekstvloer is 12 px op het scherm');
   ok(/#touch-ui \.t-turn[^{]*\{ display: block; \}/.test(sheet), 'draaibanner staat alleen in portret aan');
   ok(hides('body\\.hud-card-on'), 'draaibanner wijkt voor een actieve melding (zone A)');
   ok(hides('body:has\\(#hud \\.phonefeed \\.pf-card\\.on\\)'), 'draaibanner wijkt voor een telefoonbericht');

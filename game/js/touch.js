@@ -80,8 +80,8 @@ html.touch-device:not(.touch-portrait) #hud .hud-fcol { bottom: calc(var(--mm-bo
    de zoom van #hud meetelt. Zonder de variabele blijft de oude plek boven de kaart. */
 html.touch-device.touch-portrait #hud .hud-fcol { bottom: max(calc(var(--mm-bottom) + var(--mm-size) + 6px), calc(var(--t-left-top, 0px) / var(--ui, 1) + 6px)); }
 html.touch-device.touch-portrait #hud .hud-cards-e { bottom: max(calc(var(--mm-bottom) + var(--mm-size) + 14px), calc(var(--t-left-top, 0px) / var(--ui, 1) + 14px)); }
-/* small HUD texts stay at 11 px on screen after the phone's HUD scale (0.62-0.8) */
-html.touch-device #hud :is(small, .hud-key, .ach-kicker, .ach-desc, .ach-pct, .pf-time, .pf-more, .nl-sub, .hud-mission-progress) { font-size: max(12px, calc(11px / var(--ui, 1))); }
+/* small HUD texts stay at 12 px on screen after the phone's HUD scale (0.62-0.8) */
+html.touch-device #hud :is(small, .hud-key, .ach-kicker, .ach-desc, .ach-pct, .pf-time, .pf-more, .nl-sub, .hud-mission-progress) { font-size: max(12px, calc(12px / var(--ui, 1))); }
 /* De pauzemenu heeft in portret een eigen smalle indeling (pausemenu.css). Geen
    "Draai je toestel"-banner meer: die bedekte juist de rail bovenaan (#805). */
 #touch-ui .t-left-btns, #touch-ui .t-right-btns { position: absolute; bottom: env(safe-area-inset-bottom); }

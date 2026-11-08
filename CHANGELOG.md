@@ -9,7 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
-- **De HUD-statuschips zijn 12 px en de TV-overlay gebruikt eigen kleurtokens in plaats van losse hexen (#803).** De overlay blijft een bewuste HUD-uitzondering qua typografie; de rest van het thema staat nog open.
+- **De HUD-statuschips zijn 12 px en de TV-overlay gebruikt eigen kleurtokens in plaats van losse hexen (#803).** Op een telefoon hebben de vaste HUD-teksten nu een vloer van 12 px op het scherm (was 11). De overlay blijft een bewuste HUD-uitzondering qua typografie; de rest van het thema staat nog open.
 - **Zoekresultaten op de kaart zijn op een touchscreen aantikbaar, en de aanraakbedrading van winkel, telefoon, kaart, minigames en spelstanden is met een test vastgelegd (#805).** De tik-naar-actie-keten moet nog in een browser of op een echt toestel worden doorlopen.
 - **Op een telefoon opent Besturing meteen op het tabblad Aanraken en het pauzemenu heeft in staand een eigen smalle indeling; de oude "Draai je toestel"-banner is weg (#805).** De banner bedekte de rail bovenaan; de nieuwe indeling is nog niet op een echt toestel in beeld gebracht.
 - **Uitlegkaarten hebben een instelbare leestijd en voertuigen een stuurgevoeligheid (#801).** Onder Spel > Hints & uitleg kies je Normaal, Ruim of Geen timer; bij "Geen timer" blijft een uitleg- of leskaart staan tot je klikt of Enter geeft. Onder Instellingen > Besturing staat een schuif "Stuurgevoeligheid". Op een touchscreen tonen bevestigingsvensters en knoppen geen toetsnamen meer.
