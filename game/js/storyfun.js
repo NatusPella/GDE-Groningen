@@ -28,7 +28,7 @@ import { playCastScene } from './missionstory.js';
 import { playCinematic, isCinematicActive } from './cinematics.js';
 import { isMissionActive } from './missionquery.js';
 import { isActivityActive } from './activities.js';
-import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
+import { buildPersonMesh, animatePersonWalk, releasePersonGeometry } from './models3d_people.js';
 import { getScene } from './scene3d.js';
 import { DURK_LOOK, DOUWE_LOOK, ROTOR_LOOK } from './storycast.js';
 import { STEP_BY_ID } from './storyarc.js';
@@ -83,7 +83,12 @@ function person(look, x, y, z, face) {
 function dropPerson(m) {
   if (!m) return;
   if (m.parent) m.parent.remove(m);
-  m.traverse((o) => { if (o.isSkinnedMesh) { o.geometry.dispose(); if (o.skeleton) o.skeleton.dispose(); } });
+  // #796: gedeelde rompgeometrie terug, skelet weg
+  m.traverse((o) => {
+    if (!o.isSkinnedMesh) return;
+    releasePersonGeometry(o);
+    if (o.skeleton) o.skeleton.dispose();
+  });
 }
 
 // --- the demo heli and Rotor Roelf -----------------------------------------------

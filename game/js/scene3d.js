@@ -2999,7 +2999,7 @@ export function update3D(dt, world) {
   syncCabins(world, vehicleMeshes, player.x, player.y);
   syncAutoStuur(world, vehicleMeshes, player.x, player.y, animDt);
   syncVoertuigBediening(world, vehicleMeshes, player.x, player.y, animDt);
-  syncHaltefiguren(world, scene, (shirt, skin) => enableShadows(buildPersonActor(shirt, skin, {}), false), animDt);
+  syncHaltefiguren(world, scene, (shirt, skin) => enableShadows(buildPersonActor(shirt, skin, {}), false), animDt, disposeObject);
   probe.mark('3d:players');
   // a stolen train (traindrive.js) is followed like a very long vehicle
   const camVeh = player.inVehicle || world.trainCam || null;

@@ -1,7 +1,7 @@
 import { hoofdspeler } from './players.js';
 import { Vehicle, makeTwoWheeler } from './vehicle.js';
 import { getVehicleMesh } from './models3d_vehicles.js';
-import { buildPersonMesh, seatPerson, animatePersonWalk } from './models3d_people.js';
+import { buildPersonMesh, seatPerson, animatePersonWalk, releasePersonGeometry } from './models3d_people.js';
 import { buildCowMesh3D } from './wildlife.js';
 import { DURK_LOOK, DOUWE_LOOK } from './storycast.js';
 import { getScene } from './scene3d.js';
@@ -137,7 +137,12 @@ function dropYard() {
   if (!yard) return;
   disposeProp(yard.prop);
   yard.jan.removeFromParent();
-  yard.jan.traverse((o) => { if (o.isSkinnedMesh) { o.geometry.dispose(); if (o.skeleton) o.skeleton.dispose(); } });
+  // #796: gedeelde rompgeometrie terug, skelet weg
+  yard.jan.traverse((o) => {
+    if (!o.isSkinnedMesh) return;
+    releasePersonGeometry(o);
+    if (o.skeleton) o.skeleton.dispose();
+  });
   if (yard.cow) yard.cow.removeFromParent();
   yard = null;
 }
@@ -212,7 +217,12 @@ function twinFigure(look, x, y, a, seat = 0) {
 function freeFigure(m) {
   if (!m) return;
   m.removeFromParent();
-  m.traverse((o) => { if (o.isSkinnedMesh) { o.geometry.dispose(); if (o.skeleton) o.skeleton.dispose(); } });
+  // #796: gedeelde rompgeometrie terug, skelet weg
+  m.traverse((o) => {
+    if (!o.isSkinnedMesh) return;
+    releasePersonGeometry(o);
+    if (o.skeleton) o.skeleton.dispose();
+  });
 }
 
 // Durk behind the wheel of the trekker-limo, Douwe on its roof
@@ -229,7 +239,12 @@ function crewTractor(d) {
   durk.rotation.copy(df.rotation);
   durk.visible = df.visible;
   df.removeFromParent();
-  df.traverse((o) => { if (o.isSkinnedMesh) { o.geometry.dispose(); if (o.skeleton) o.skeleton.dispose(); } });
+  // #796: de generieke chauffeur van scene3d gaat weg; geef de ref van de gedeelde romp terug
+  df.traverse((o) => {
+    if (!o.isSkinnedMesh) return;
+    releasePersonGeometry(o);
+    if (o.skeleton) o.skeleton.dispose();
+  });
   mesh.userData.driverFigure = durk;
   body.add(durk);
   const douwe = buildPersonMesh(DOUWE_LOOK.shirt, DOUWE_LOOK.skin, DOUWE_LOOK);

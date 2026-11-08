@@ -1,5 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { buildPersonMesh } from './models3d_people.js';
+import { buildPersonMesh, releasePersonGeometry } from './models3d_people.js';
 import { RIKUS_LOOK } from './storycast.js';
 
 // The Radio Nachtstreek studio where Rikus (the narrator) tells the story:
@@ -163,9 +163,14 @@ export function buildRadioStudio(x = 0, y = 0) {
 
   function dispose() {
     if (group.parent) group.parent.remove(group);
-    // the person's materials are shared (models3d_people.js): only its skinned geometry goes
+    // the person's materials are shared (models3d_people.js): only the skeleton goes and the
+    // shared body geometry gets its ref back (#796)
     group.remove(rikus);
-    rikus.traverse((o) => { if (o.isSkinnedMesh) { o.geometry.dispose(); if (o.skeleton) o.skeleton.dispose(); } });
+    rikus.traverse((o) => {
+      if (!o.isSkinnedMesh) return;
+      releasePersonGeometry(o);
+      if (o.skeleton) o.skeleton.dispose();
+    });
     group.traverse((o) => {
       if (o.geometry) o.geometry.dispose();
       const ms = Array.isArray(o.material) ? o.material : o.material ? [o.material] : [];

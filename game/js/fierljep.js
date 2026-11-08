@@ -1,7 +1,7 @@
 import { hoofdspeler } from './players.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
-import { buildPersonMesh, animatePersonWalk, swimPose, PERSON_RIG } from './models3d_people.js';
+import { buildPersonMesh, animatePersonWalk, swimPose, releasePersonGeometry, PERSON_RIG } from './models3d_people.js';
 import { pushAudioEvent } from './pedgeom.js';
 import { pointInPolygon as inPoly, isInWater, inMapWater, clamp, WATER_Y } from './util.js';
 import { startCameraTake, stopCameraTake } from './cinematics.js';
@@ -361,7 +361,12 @@ function disposeVault(v) {
   scene.remove(v.pole);
   for (const o of v.pole.userData.owned) o.dispose();
   for (const o of v.handFlag.userData.owned) o.dispose();
-  v.actor.traverse((o) => { if (o.isSkinnedMesh) o.geometry.dispose(); });
+  // #796: de skinned geometry is de gedeelde rompgeometrie; de ref gaat terug, het skelet weg.
+  v.actor.traverse((o) => {
+    if (!o.isSkinnedMesh) return;
+    releasePersonGeometry(o);
+    if (o.skeleton) o.skeleton.dispose();
+  });
   const i = vaults.indexOf(v);
   if (i >= 0) vaults.splice(i, 1);
   const sp = world && world.extraSpeakers;

@@ -20,7 +20,7 @@
 // stage can be skipped by holding O once it gives trouble.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene, refreshCharacterMeshes } from './scene3d.js';
-import { buildPersonMesh, animatePersonWalk, registerPoseSource, unregisterPoseSource, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
+import { buildPersonMesh, animatePersonWalk, registerPoseSource, unregisterPoseSource, releasePersonGeometry, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { findWalkPath } from './routing.js';
 import { isInWater, dist, pointInPolygon, boatDryPoints } from './util.js';
 import { inPassage, roomAt } from './passages.js';
@@ -1549,7 +1549,12 @@ export function disposeHeist() {
   const people = new Set();
   for (const w of H.watchers) if (w.kind === 'guard') w.mesh.traverse((o) => { if (!o.isSkinnedMesh && !o.userData.own) people.add(o); });
   H.root.traverse((o) => {
-    if (o.geometry && (o.isSkinnedMesh || !people.has(o))) o.geometry.dispose();
+    if (o.geometry) {
+      // #796: de wachters delen hun rompgeometrie (en de skelettextuur) met de voetgangers;
+      // geef de ref terug in plaats van de gedeelde geometrie te disposen.
+      if (typeof o.geometry.userData.personRefs === 'number') { releasePersonGeometry(o); if (o.skeleton) o.skeleton.dispose(); }
+      else if (o.isSkinnedMesh || !people.has(o)) o.geometry.dispose();
+    }
     if (o.material && !people.has(o) && !o.isSkinnedMesh) o.material.dispose();
   });
   H = null;

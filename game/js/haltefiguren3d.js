@@ -8,7 +8,9 @@ const SKINS = [0xe0b48a, 0xc68c63, 0x8d5a3b, 0xf0c8a0];
 const groepen = [];
 
 // Eén keer per frame. bouw(shirt, skin) maakt een persoonsmesh; scene krijgt ze erbij en eraf.
-export function syncHaltefiguren(world, scene, bouw, dt, rng = Math.random) {
+// ruim(mesh) (optioneel) is de opruimer van de aanroeper: zo gaan de gedeelde rompgeometrie en
+// het skelet van een weggehaald figuur terug in plaats van te blijven staan (#796).
+export function syncHaltefiguren(world, scene, bouw, dt, ruim = null, rng = Math.random) {
   const q = world && world.haltefx;
   if (q && q.length) {
     for (const e of q.splice(0)) {
@@ -38,7 +40,7 @@ export function syncHaltefiguren(world, scene, bouw, dt, rng = Math.random) {
       animatePersonWalk(fg.mesh, st.lopen ? 1.4 : 0, dt);
     }
     if (allesKlaar) {
-      for (const fg of gr.figuren) if (fg.mesh) { scene.remove(fg.mesh); }
+      for (const fg of gr.figuren) if (fg.mesh) { scene.remove(fg.mesh); if (ruim) ruim(fg.mesh); }
       groepen.splice(g, 1);
     }
   }
