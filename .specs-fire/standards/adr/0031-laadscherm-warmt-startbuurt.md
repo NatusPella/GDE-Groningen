@@ -66,7 +66,14 @@ timing houden. De statusregel van het laadscherm zegt wat er nog gebeurt.
   langer laadscherm zonder meetbare winst is geen verbetering. De vaste
   warm-up van `scene3d.js` (die alle latere acteurs en voertuigen al dekt)
   blijft staan.
-- **De eerste tegelkring resident houden.** De stad is al gepind (ADR 0003); de
+- **Ook de buurten van de openingsshots vooraf prewarmen.** Geprobeerd: de
+  focuspunten van de montage (Martinitoren, Vismarkt, museum, ring, Eemshaven,
+  park) via `introWarmSpots()` in de warm-lus gezet (150 m radius). In de
+  browsertest werden 10 punten gevonden, maar liep de warm-up tegen de 25 s-grens
+  (gameStart 39,9 s tegen 19,9 s zonder) en verbeterden de frametijden tijdens de
+  opening niet (9 frames in 5 s, gemiddeld 763 ms, tegen 9 frames en 578 ms
+  zonder). Teruggedraaid: de shotwissels worden kennelijk niet door de
+  gebouw-meshes maar door de rekwisieten/links van de montage zelf bepaald.- **De eerste tegelkring resident houden.** De stad is al gepind (ADR 0003); de
   provincie resident maken kost geheugen dat de start niet nodig heeft.
 
 ## Gevolgen
