@@ -4,7 +4,7 @@
 // en de wachtrij loopt daarna gewoon door.
 //   node scripts/tilestore_timeout_test.mjs
 import assert from 'node:assert/strict';
-import { TileStore, HttpRangeSource, makeWorkerDecoder, HTTP_TIMEOUT_MS } from '../game/js/tilestore.js';
+import { TileStore, HttpRangeSource, makeWorkerDecoder, HTTP_TIMEOUT_MS, READ_GUARD_MS, WORKER_TIMEOUT_MS, DECODE_GUARD_MS, BOOT_HTTP_FACTOR, BOOT_READ_FACTOR, BOOT_DECODE_FACTOR, BOOT_WORKER_FACTOR } from '../game/js/tilestore.js';
 import { tileIndexOf, tileKey } from '../game/js/gdt.js';
 
 let n = 0, fails = 0;
@@ -106,6 +106,19 @@ await t('HttpRangeSource: elke read heeft een time-out, ook als de body blijft h
     await assert.rejects(src.read('c-1.gdp', 0, 10), (e) => e.timeout === true);
   } finally {
     globalThis.fetch = origFetch;
+  }
+});
+
+await t('boot-grenzen: ruim, maar onder de 90 s-bootgrens van main.js (MAP_LOAD_MS)', async () => {
+  const MAP_LOAD_MS = 90000; // main.js: de harde grens rond loadTileWorld
+  assert.equal(HTTP_TIMEOUT_MS, 30000);
+  assert.equal(READ_GUARD_MS, 30000);
+  assert.equal(WORKER_TIMEOUT_MS, 30000);
+  assert.equal(DECODE_GUARD_MS, 30000);
+  for (const [naam, ms, factor] of [['http', HTTP_TIMEOUT_MS, BOOT_HTTP_FACTOR], ['read', READ_GUARD_MS, BOOT_READ_FACTOR], ['decode', DECODE_GUARD_MS, BOOT_DECODE_FACTOR], ['worker', WORKER_TIMEOUT_MS, BOOT_WORKER_FACTOR]]) {
+    const boot = ms * factor;
+    assert.ok(boot > ms, `${naam}: bootgrens ${boot} ms is ruimer dan de gewone ${ms} ms`);
+    assert.ok(boot < MAP_LOAD_MS, `${naam}: bootgrens ${boot} ms moet onder de bootgrens ${MAP_LOAD_MS} ms blijven`);
   }
 });
 
