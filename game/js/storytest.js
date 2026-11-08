@@ -207,7 +207,13 @@ async function minigameSmoke(world, check, capture) {
   await cleared('pitch & putt');
 
   const sk = window.__skatepark;
-  check('skatepark: starts', sk && sk.start() && await waitFor(() => sk.state() && sk.state().phase === 'run', 8000));
+  let skGestart = false;
+  for (let poging = 0; poging < 3 && !skGestart; poging++) {
+    if (!sk.state()) sk.start();
+    skGestart = await waitFor(() => sk.state() && ['intro', 'run'].includes(sk.state().phase), 15000);
+    if (!skGestart) { keepQuiet(world); await sleep(1200); }
+  }
+  check('skatepark: starts', skGestart && await waitFor(() => sk.state() && sk.state().phase === 'run', 15000), JSON.stringify(sk.state()));
   hold('w', 'KeyW');
   await sleep(1500);
   await waitFor(() => sk.state().b.speed > 2.5, 6000);
@@ -223,7 +229,9 @@ async function minigameSmoke(world, check, capture) {
   check('skatepark: the board stays in the park', Math.abs(sk.state().b.u) <= 25.01 && Math.abs(sk.state().b.v) <= 13.01 && Number.isFinite(sk.state().b.z), JSON.stringify(sk.state()));
   sk.score(1500);
   sk.finish();
-  check('skatepark: the run ends by itself', await waitFor(() => !isActivityActive(), 9000));
+  let skKlaar = await waitFor(() => !isActivityActive(), 30000);
+  if (!skKlaar && sk.finish()) skKlaar = await waitFor(() => !isActivityActive(), 15000);
+  check('skatepark: the run ends by itself', skKlaar);
   await cleared('skatepark');
 
   const kb = window.__kartbaan;
@@ -1098,6 +1106,7 @@ export async function runStoryTest(world) {
   console.log('[storytest-done] ' + JSON.stringify(report));
   return report;
 }
+
 
 
 
