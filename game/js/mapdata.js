@@ -253,6 +253,10 @@ export class GameMap {
     m.indexRails(p.rails || []);
     m.indexFurniture(p.furniture || []);
     m._roadsLive = p.roads;
+    // (#762) ^ deze bronlijst is ~11 MB en in een sparse wereld alleen nog nodig
+    // voor dropRoad (home.js, tijdens de boot) en de keys van de wegen-worker
+    // (#753); roadsurface.js laat hem na het versturen van die keys los
+    // (releaseRoadSource).
     // (?terrain: the elevation model builds its walls in the frame of the terrain, so the terrain is in before it)
     if (p.terrain) { m.terrain = p.terrain; m.terrainOn = !!p.terrainOn; }
     m.elev = addPerrons(m, buildElevation(m));
@@ -300,6 +304,15 @@ export class GameMap {
   dropRoad(r) {
     const i = this._roadsLive ? this._roadsLive.indexOf(r) : -1;
     if (i >= 0) this._roadsLive.splice(i, 1);
+  }
+
+  // (#762) Een sparse wereld houdt de bronlijst van de stad (alleen voor dropRoad
+  // en de keys van de wegen-worker, #753) vast tot die lijst niet meer nodig is:
+  // is de lijst niet de map-array zelf, dan mag hij weg (~11 MB). In de dichte
+  // wereld is `_roadsLive` dezelfde array als `roads`, die home.js' dropRoad
+  // bijhoudt; die blijft.
+  releaseRoadSource() {
+    if (this._roadsLive && this._roadsLive !== this.roads) this._roadsLive = null;
   }
 
   // Height of the surface under (x, y) for something at zHint (absolute m):
