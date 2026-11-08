@@ -174,8 +174,15 @@ export const SKUTSJE = {
         const [ex, ey] = map.escapeBuilding(x + nx * 1.5, y + ny * 1.5, 0.4);
         // het startpunt moet op de kade liggen, niet in het water (spotcheck) en niet in een muur
         const vrij = map.findOpenSpawn ? map.findOpenSpawn(ex, ey, 40, false) : null;
-        const sx = vrij ? vrij.x : ex, sy = vrij ? vrij.y : ey;
-        if (isInWater(map, sx, sy) || (map.isOpenSpot && !map.isOpenSpot(sx, sy))) continue;
+        let sx = vrij ? vrij.x : ex, sy = vrij ? vrij.y : ey;
+        // De tegelwaterlaag is bij het bepalen van de start nog niet geladen; inWaterRaw kent de
+        // waterrijen wel. Schuif de kade op tot het punt droog en begaanbaar is (spotcheck).
+        const nat = (x, y) => isInWater(map, x, y) || (map.inWaterRaw && map.inWaterRaw(x, y));
+        for (let t = 2; t <= 40 && (nat(sx, sy) || (map.isOpenSpot && !map.isOpenSpot(sx, sy))); t += 2) {
+          const tx = sx + nx * t, ty = sy + ny * t;
+          if (!nat(tx, ty) && (!map.isOpenSpot || map.isOpenSpot(tx, ty))) { sx = tx; sy = ty; break; }
+        }
+        if (nat(sx, sy) || (map.isOpenSpot && !map.isOpenSpot(sx, sy))) continue;
         startSpot = { x: sx, y: sy, side };
         return [{ x: sx, y: sy, name: 'Skûtsje-sprint in de Oosterhaven', sub: 'Jelle heeft twee skûtsjes klaarliggen', s, side }];
       }
@@ -366,5 +373,6 @@ function end(run) {
     stats: [['Tijd', fmt(d.elapsed)], ...(won ? [['Voorsprong', `${Math.round(margin)} s`]] : [])],
   });
 }
+
 
 
