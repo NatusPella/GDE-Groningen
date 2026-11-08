@@ -80,7 +80,7 @@ await t('een decoder die blijft hangen: de decode-guard maakt het slot vrij en e
 });
 
 await t('HttpRangeSource: elke read heeft een time-out, ook als de body blijft hangen', async () => {
-  assert.equal(HTTP_TIMEOUT_MS, 10000);
+  assert.equal(HTTP_TIMEOUT_MS, 30000);
   const origFetch = globalThis.fetch;
   try {
     const nooit = (url, opties = {}) => new Promise((resolve, reject) => {

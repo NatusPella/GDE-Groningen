@@ -31,11 +31,13 @@ export const DECODE_GUARD_MS = 30000;   // TileStore safety net around decode (a
 // maar een bron die nooit antwoordt liet het laadscherm dan voorgoed hangen.
 // In plaats van geen grens een ruime, vermenigvuldigde: HTTP 60 s, read 90 s,
 // decode 60 s en worker 60 s. De vermenigvuldiger geldt ook voor een test die
-// de grens inkort, zodat de boot-tak te testen blijft.
-export const BOOT_HTTP_FACTOR = 6;     // HTTP_TIMEOUT_MS 10 s -> 60 s
-export const BOOT_READ_FACTOR = 7.5;   // READ_GUARD_MS 12 s -> 90 s
-export const BOOT_DECODE_FACTOR = 4;   // DECODE_GUARD_MS 15 s -> 60 s
-export const BOOT_WORKER_FACTOR = 6;   // WORKER_TIMEOUT_MS 10 s -> 60 s
+// de grens inkort, zodat de boot-tak te testen blijft. De basis is sinds de
+// main-merge 30 s (ruimere grenzen voor trage schijven); de factoren houden de
+// boot-grens op dezelfde 60/90/60/60 s en daarmee onder de 90 s-bootgrens.
+export const BOOT_HTTP_FACTOR = 2;     // HTTP_TIMEOUT_MS 30 s -> 60 s
+export const BOOT_READ_FACTOR = 3;     // READ_GUARD_MS 30 s -> 90 s
+export const BOOT_DECODE_FACTOR = 2;   // DECODE_GUARD_MS 30 s -> 60 s
+export const BOOT_WORKER_FACTOR = 2;   // WORKER_TIMEOUT_MS 30 s -> 60 s
 
 export const timeoutError = (wat, ms) => Object.assign(new Error(`${wat} timed out after ${ms} ms`), { timeout: true, name: 'TimeoutError' });
 const tijdensBoot = () => typeof document !== 'undefined' && document.body && !document.body.classList.contains('game-started');
