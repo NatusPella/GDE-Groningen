@@ -251,6 +251,7 @@ Debug hooks on `window` (`window.__x`, read by scripts/perf, the story test and 
 | `?attract` | Speel het aantrekkingsfilmpje (trailer.js) |
 | `?perf` | Prestatierun: start meteen in de wereld (geen titelscherm) |
 | `?spotsonly` | Verhaaltest: alleen de plekkenronde |
+| `?geenwereldcontroles` | Verhaaltest: sla de zware wereldcontroles (plekken, passages, ring, water) over; devtools zet dit bij `GDE_STORY_WERELDCONTROLES=0` |
 | `?trailer` | Trailer-opnamemodus |
 | `?benchmark` | Benchmarkrun; de waarde is het aantal rondes |
 | `?shot` | Trailer: neem alleen die shot |

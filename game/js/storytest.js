@@ -591,8 +591,8 @@ export async function runStoryTest(world) {
     world.devInvuln = true;
     capture('00-start');
     // De zware wereldcontroles (spots, passages, ring, water) staan ook als eigen tests in de
-    // suite; in de dure verhaaltest slaan we ze over met GDE_STORY_WERELDCONTROLES=0.
-    const SKIP_WERELD = new URLSearchParams(location.search).has('geenwereldcontroles');
+    // suite; in de dure verhaaltest slaan we ze over met GDE_STORY_WERELDCONTROLES=0 (devtools).
+    const SKIP_WERELD = FLAGS.geenwereldcontroles;
     if (!SKIP_WERELD) {
     // every start and target point is on open ground you can walk away from
     if (window.__ommeland) await window.__ommeland.prepare();
