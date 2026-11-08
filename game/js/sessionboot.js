@@ -164,13 +164,16 @@ export async function openSession(world, rij, { onHold = null, onCode = null, op
     throw new Error(reason);
   }
   // Tweede slot (#777/#795): het welkom noemt het vaste sessie-id van de host en zijn naam (net/hub.js,
-  // net/session.js). Hoort dat niet bij de rij waarop we afgingen, dan is dit niet de sessie uit de lijst: wereld
-  // terug en de volgende kandidaat proberen. Bij een privé host is de naam leeg; dan telt alleen het id.
+  // net/session.js). Een ander sessie-id is fataal: dit is niet de sessie uit de lijst, dus de wereld terug en de
+  // volgende kandidaat proberen. Een andere naam bij hetzelfde id niet: de host kan de sessie hernoemd hebben
+  // (de lobby waarschuwt daar ook alleen voor). Bij een privé host is de naam leeg; dan telt alleen het id.
   const welkomSessie = session.sessie;
-  const andereNaam = welkomSessie && rij.naam && welkomSessie.naam && String(welkomSessie.naam) !== String(rij.naam);
-  if (!welkomSessie || !welkomSessie.id || String(welkomSessie.id) !== String(rij.id) || andereNaam) {
+  if (!welkomSessie || !welkomSessie.id || String(welkomSessie.id) !== String(rij.id)) {
     try { stopCoopNet(world); } catch (e) { /* al weg */ }
     throw new Error('De sessie kwam niet overeen.');
+  }
+  if (rij.naam && welkomSessie.naam && String(welkomSessie.naam) !== String(rij.naam)) {
+    meld(world, null, `Let op: deze sessie heet nu "${welkomSessie.naam}" in plaats van "${rij.naam}". Je bent met dezelfde sessie verbonden (het sessie-id klopt); de naam is intussen veranderd.`);
   }
   // Een eenmalige kamer uit de lijst is geen code om te bewaren: opnieuw aansluiten gaat via de lijst.
   if (rij.room && onCode) onCode(formatRoom(rij.room));
