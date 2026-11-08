@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- **Op een telefoon opent Besturing meteen op het tabblad Aanraken en het pauzemenu heeft in staand een eigen smalle indeling; de oude "Draai je toestel"-banner is weg (#805).** De banner bedekte de rail bovenaan; de nieuwe indeling is nog niet op een echt toestel in beeld gebracht.
 - **Uitlegkaarten hebben een instelbare leestijd en voertuigen een stuurgevoeligheid (#801).** Onder Spel > Hints & uitleg kies je Normaal, Ruim of Geen timer; bij "Geen timer" blijft een uitleg- of leskaart staan tot je klikt of Enter geeft. Onder Instellingen > Besturing staat een schuif "Stuurgevoeligheid". Op een touchscreen tonen bevestigingsvensters en knoppen geen toetsnamen meer.
 - **De eerste minuten in de stad haperen minder: het laadscherm zet de buurt rond je startpunt en de shaders alvast klaar.** Het laadscherm duurt daarvoor op een langzame computer iets langer; een test- of benchmarkrun slaat het voorladen over.
 - **Het spel bouwt de grond onder Groningen niet meer bij elke start opnieuw op.** De build bakt die grond één keer (2,8 MB); het opstarten scheelt op een gewone machine ruim twee seconden, op een trage computer meer. De webversie haalt dat bestand eenmalig op en daarna uit de eigen cache; zonder het bestand bouwt het spel de grond zoals voorheen.

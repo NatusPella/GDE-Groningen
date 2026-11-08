@@ -82,8 +82,8 @@ html.touch-device.touch-portrait #hud .hud-fcol { bottom: max(calc(var(--mm-bott
 html.touch-device.touch-portrait #hud .hud-cards-e { bottom: max(calc(var(--mm-bottom) + var(--mm-size) + 14px), calc(var(--t-left-top, 0px) / var(--ui, 1) + 14px)); }
 /* small HUD texts stay at 11 px on screen after the phone's HUD scale (0.62-0.8) */
 html.touch-device #hud :is(small, .hud-key, .ach-kicker, .ach-desc, .ach-pct, .pf-time, .pf-more, .nl-sub, .hud-mission-progress) { font-size: max(12px, calc(11px / var(--ui, 1))); }
-/* the pause menu is a landscape layout: on a portrait phone it says so */
-html.touch-portrait #pause-menu.visible::before { content: 'Draai je toestel voor het menu'; position: absolute; left: 50%; top: 8px; transform: translateX(-50%); z-index: 5; padding: 8px 14px; border-radius: 18px; background: rgba(10, 19, 13, 0.9); color: #f0ede4; font: 15px Arial, sans-serif; white-space: nowrap; }
+/* De pauzemenu heeft in portret een eigen smalle indeling (pausemenu.css). Geen
+   "Draai je toestel"-banner meer: die bedekte juist de rail bovenaan (#805). */
 #touch-ui .t-left-btns, #touch-ui .t-right-btns { position: absolute; bottom: env(safe-area-inset-bottom); }
 #touch-ui .t-left-btns { left: env(safe-area-inset-left); width: 0; height: 0; }
 #touch-ui .t-right-btns { right: env(safe-area-inset-right); width: 0; height: 0; }

@@ -29,10 +29,10 @@ Schermen: 360x800, 412x915, 390x844 (telefoons) en 820x1180 (tablet), elk liggen
 
 ## Nog niet goed of niet gedaan (te kiezen of te testen)
 
-1. Staand: het pauzemenu stort in (inhoudspaneel 90 px breed). Er is nu alleen een banner "Draai je toestel voor het menu" bij staand (CSS, niet in beeld bekeken); een echte staande layout is een ontwerpvraag. Het startscherm en het spel zelf werken staand wel, met de bestaande hint.
+1. Staand: het pauzemenu heeft sinds #805 een eigen smalle indeling (rail als schuifbalk boven, blad eronder; `pausemenu.css`), en de oude banner "Draai je toestel" is weg omdat die de rail bedekte. Niet op een echt toestel in beeld gebracht; de 90 px-instorting uit de eerste meting is niet opnieuw gemeten.
 2. Tijdelijke meldingen ("Nul krassen...", missiepop) kunnen over de snelheidsmeter of de linkerknoppen vallen; de plaatsnaam-banner (`.hud-place`) loopt staand onder pauze en Meer. Deze zijn kortstondig.
 3. Tekst: `SPAN` in het HUD blijft 8 tot 9 px op een kleine telefoon (selector niet aan te wijzen); tekst in menu's is ca. 9 tot 11 px na `--ui-fit` (0,6); de besturingstabel toont toetsnamen.
-4. Menu's tonen toetsenbordhints (pijltjes, ENTER, ESC) en 'Spatie'-toetsen; op touch hoort dat tikken te zijn. Sleutelhints in het HUD zijn wel vervangen (eerdere stap).
+4. Besturing opende op touch altijd op het toetsenbord-tabblad; sinds #805 opent het op **Aanraken** (dezelfde knoppen als op het scherm). De menufooter-hints zijn op touch verborgen en bevestigingsvensters noemen geen toetsen meer (#801); het toetsenoverzicht blijft bewust als naslag bestaan.
 5. Het linker menu van het pauzemenu laat op 360 px hoogte de onderste items buiten beeld (scrollbaar, geen scrollindicatie).
 6. Minigames, winkel, telefoon, kaart met pinch en slepen, spelstanden en hulp/tutorial zijn niet via aanraking bediend (alleen opengezet en bekeken waar de scene dat kon); de pinchlogica heeft pure tests. De tik-naar-actie keten (pointerdown, touchend) is niet in de browser doorlopen.
 7. Oriëntatiewissel tijdens het spelen: `touch.js` luistert naar `resize` en `orientationchange` en de pure layout is voor beide standen getest; een live wissel in het spel is niet gedaan (elke stand is een eigen run).
@@ -45,13 +45,13 @@ Schermen: 360x800, 412x915, 390x844 (telefoons) en 820x1180 (tablet), elk liggen
 - Safe-area (notch, gestuurbalk): `viewport-fit=cover` en `env(safe-area-inset-*)` zijn gezet, maar emulatie geeft overal 0.
 - Echte multitouch (stick en camera tegelijk, twee knoppen), `touchcancel` bij systeemgebaren, WebAudio-autoplay, vergrendelen van het scherm.
 - Browserbalken (iOS Safari, Chrome Android) die de hoogte laten wisselen.
-- Of de besturingshint "Draai je toestel" ook in menu's moet verschijnen.
+- Of de staande menu-indeling echt lekker werkt, en of winkel, telefoon, kaart en minigames met echte vingers te bedienen zijn.
 
 ## Wijzigingen in de code
 
 - `desktop/devtools.js`: `--emulate-mobile`, `--touch` (alleen test).
 - `game/js/hudlook.js`, `uiscale.js`: HUD-schaal voor telefoons.
-- `game/js/touchlogic.js`: plekken, `touchPlacement`, `touchRects`, `hudMinimap`, `leftOffset`; `touch.js` gebruikt ze en bevat de CSS voor het HUD rond de touchlaag.
+- `game/js/touchlogic.js`: plekken, `touchPlacement`, `touchRects`, `hudMinimap`, `leftOffset`; `touch.js` gebruikt ze en bevat de CSS voor het HUD rond de touchlaag; `defaultControlsSubtab` opent Besturing op Aanraken (#805).
 - `game/js/startscreen.css`: telefoonlayout.
 - Tests: `touch_test.mjs` (layout per situatie en scherm), `hud_layout_test.mjs` (telefoonschaal).
 
