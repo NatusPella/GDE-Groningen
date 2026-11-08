@@ -1,6 +1,6 @@
 # Privacy en credits (concept voor publicatie, #37 en #72)
 
-Stand: 18 oktober 2026; bijgewerkt op 7 november 2026 voor de altijd-online start (#554, #583, #395, #690). Een feitenblad voor de README, een eventuele privacypagina
+Stand: 18 oktober 2026; bijgewerkt op 8 november 2026 voor de join-binding (#795) en op 7 november 2026 voor de altijd-online start (#554, #583, #395, #690). Een feitenblad voor de README, een eventuele privacypagina
 en de winkelpagina's. **Geen juridisch advies**; niets hiervan is geplaatst of
 verstuurd. De eigenaar beslist wat waar komt te staan.
 
@@ -14,7 +14,7 @@ verstuurd. De eigenaar beslist wat waar komt te staan.
 | Foutrapport | Wordt alleen gekopieerd door de speler, niet verstuurd; bevat geen persoonsgegevens | CONTRIBUTING.md |
 | Desktopapp (Electron) | Speelt offline; haalt alleen op verzoek de live busposities op (openbare leesopvraag zonder gegevens van de speler, uitzetter in Instellingen, #395). Externe links openen in de systeembrowser | `desktop/livebussen.cjs`, `desktop/main.js` |
 | Webversie | De webbuild levert `three` en de lettertypen zelf mee (geen externe laad-URL's); alleen de losse dev-server (`game/index.html`) haalt ze van een CDN, en dan ziet die dienst het IP-adres van de bezoeker | `desktop/build.mjs`, `game/index.html` |
-| Samen spelen (#95, #528, #583) | **Alleen na toestemming** van de speler (`net/consent.js`; de eerste start vraagt het één keer, een ontbrekend antwoord is geen ja): het IP-adres gaat naar een openbare STUN-server, en de versleutelde signalering via openbare brokers. De kamercode gaat sinds #583 eenmalig versleuteld mee (ECDH + AES-GCM); de openbare lijst toont een sessie-id, geen kamercode. Er gaat geen telemetrie of account mee; elke speler houdt eigen geld, verhaal en bezit (#429). Spelers die samen spelen zien elkaars IP-adres niet in het spel, maar WebRTC maakt een directe verbinding | `game/js/net/netconfig.js`, `game/js/sessionboot.js`, AGENTS.md punt 4 |
+| Samen spelen (#95, #528, #583) | **Alleen na toestemming** van de speler (`net/consent.js`; de eerste start vraagt het één keer, een ontbrekend antwoord is geen ja): het IP-adres gaat naar een openbare STUN-server, en de versleutelde signalering via openbare brokers. De kamercode gaat sinds #583 eenmalig versleuteld mee (ECDH + AES-GCM) en is sinds #795 aan de hostsleutel van de sessie gebonden: de publieke helft staat in de openbare lijst, de privéhelft alleen in het geheugen van de gastheer en nergens opgeslagen. De lijst toont daardoor een sessie-id en een publieke sleutel (geen persoonsgegeven), geen kamercode. Er gaat geen telemetrie of account mee; elke speler houdt eigen geld, verhaal en bezit (#429). Spelers die samen spelen zien elkaars IP-adres niet in het spel, maar WebRTC maakt een directe verbinding | `game/js/net/netconfig.js`, `game/js/sessionboot.js`, AGENTS.md punt 4 |
 
 Openstaand (eigenaar): de Steam- en IARC-antwoorden over "online contact" en
 "internet" noemden de uitzonderingen niet; sinds 7 november doen `README.md`,
