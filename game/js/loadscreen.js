@@ -143,7 +143,9 @@ export function startLoadScreen(world, opts = {}) {
     res();
   };
   const step = () => {
-    if (!el.isConnected) return;
+    // #770: is het scherm van de pagina gehaald, dan rondt de lus af: alleen stoppen liet de
+    // done-promise hangen en de wereld (en de wachters erop) voor altijd wachten.
+    if (!el.isConnected) { finish(); return; }
     const now = performance.now();
     const st = streamPending();
     prog = stepProgress(prog, st.buildings + st.roads, (now - t0) / 1000, kind);
