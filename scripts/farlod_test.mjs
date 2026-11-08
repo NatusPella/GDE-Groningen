@@ -187,6 +187,62 @@ if (mat && mat.onBeforeCompile) {
   ok(kept, 'een tegel binnen de zichtafstand wordt nooit weggegooid', lastD < 0 ? 'bij elke afstand en zichtafstand' : `weg bij ${lastD} m`);
 }
 
+// (#755) De incrementele basisindex: na een geoVer-wissel (tegel-add/drop in de sparse
+// wereld) wordt hij in stukken van BUDGET_MS herbouwd. Valt het budget midden in een
+// rastercel, dan moet de rest van die cel alsnog in de index komen; de vergelijking met
+// een build zonder budget (de verse laag hierboven) legt dat vast.
+{
+  const opts = { flatGeometry: (g) => g, colors: { roads: {}, sidewalk: '#8a8a8a', green: '#4a6b3a' }, sidewalkExtra: 1.2, roadColorOf: null };
+  // 300 gebouwen in één rastercel (SpatialGrid(40): cel 480..520), zodat de 64-item-
+  // budgetcontrole van stepBaseBuild gegarandeerd midden in die cel valt.
+  const menigte = [];
+  for (let i = 0; i < 300; i++) menigte.push(building(500 + (i % 17), 500 + Math.floor(i / 17), 2, 2, 3));
+  const maakMap = (geoVer) => {
+    const buildingGrid = new SpatialGrid(40);
+    for (const b of menigte) buildingGrid.insert(b, b.bounds);
+    return { buildingGrid, roadGrid: new SpatialGrid(40), greenGrid: new SpatialGrid(80), terrainOn: false, geoVer };
+  };
+  const telGebouwen = (lod) => {
+    let verts = 0, meshes = 0;
+    lod.root.traverse((o) => {
+      if (!o.isMesh || !o.geometry.getAttribute || !o.geometry.getAttribute('lodWall')) return;
+      verts += o.geometry.getAttribute('position').count;
+      meshes++;
+    });
+    return { verts, meshes };
+  };
+  const settleLod = (lod, px, py) => {
+    for (let i = 0; i < 200; i++) {
+      lod.update(px, py, 400, 400, 60);
+      if (i >= 1 && lod.stats.tiles > 0 && !lod.stats.queued) return;
+    }
+  };
+  // Referentie: dezelfde kaart, basisindex in één keer (geen budget).
+  const ref = createFarLOD(new THREE.Scene(), maakMap(0), opts);
+  settleLod(ref, 500, 500);
+  const zonderBudget = telGebouwen(ref);
+  ok(zonderBudget.verts > 0, 'de referentielaag heeft gebouwen', JSON.stringify(zonderBudget));
+
+  // Incrementeel: na een geoVer-wissel bouwt update() de basisindex in stukken. De klok
+  // springt per aanroep 5 ms vooruit, zodat elke budgetcontrole na 64 items afgaat en er
+  // dus meerdere frames nodig zijn; daarna weer echte tijd om de tegels te bouwen.
+  const mapIncrementeel = maakMap(0);
+  const inc = createFarLOD(new THREE.Scene(), mapIncrementeel, opts);
+  const echteNow = performance.now;
+  try {
+    let fake = 1e6;
+    performance.now = () => { fake += 5; return fake; };
+    mapIncrementeel.geoVer = 1;
+    for (let i = 0; i < 40; i++) inc.update(500, 500, 400, 400, 60);
+  } finally {
+    performance.now = echteNow;
+  }
+  settleLod(inc, 500, 500);
+  const metBudget = telGebouwen(inc);
+  ok(metBudget.verts === zonderBudget.verts && metBudget.meshes === zonderBudget.meshes,
+    'de incrementele basisindex verliest geen celhelft bij het budget', `${JSON.stringify(metBudget)} van ${JSON.stringify(zonderBudget)}`);
+}
+
 console.log(fails ? `${fails} of ${n} FAILED` : `ok: ${n} checks`);
 process.exit(fails ? 1 : 0);
 
