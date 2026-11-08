@@ -1,6 +1,6 @@
 // Zuinige modus: de beeldbegrenzing (#96) en de kwaliteitsmeting onder de cap (#561).
 //   node scripts/framecap_test.mjs
-import { skipFrame, ZUINIG_FPS, capIdleMs, frameWorkMs } from '../game/js/framecap.js';
+import { skipFrame, ZUINIG_FPS, capIdleMs, frameWorkMs, screenRefreshMs } from '../game/js/framecap.js';
 let fails = 0;
 const ok = (c, n) => { if (!c) { fails++; console.log('FAIL', n); } };
 for (const hz of [60, 75, 120, 144]) {
@@ -9,6 +9,14 @@ for (const hz of [60, 75, 120, 144]) {
   for (let t = step; t < 10000; t += step) if (!skipFrame(t - last)) { last = t; drawn++; }
   const fps = drawn / 10;
   ok(fps <= ZUINIG_FPS + 0.5 && fps >= ZUINIG_FPS * 0.75, `${hz} Hz geeft ~${ZUINIG_FPS} beelden/s, was ${fps}`);
+  // #793: uit de animatiebeelden is de echte schermperiode af te lezen
+  ok(Math.abs(screenRefreshMs() - step) < 0.6, `${hz} Hz: gemeten schermperiode ${screenRefreshMs().toFixed(2)} ms, verwacht ${step.toFixed(2)}`);
+}
+// #793: met de gemeten periode trekt de cap-correctie de echte wacht eraf (was: 60 Hz-aanname)
+{
+  const idle144 = capIdleMs(1000 / 144);
+  const measured = frameWorkMs(34.72, true);
+  ok(measured < 10 && Math.abs(measured - (34.72 - idle144)) < 0.05, `144 Hz: 30 fps meet na de correctie ${measured.toFixed(1)} ms werk, niet ~18 ms`);
 }
 ok(!skipFrame(1, 0) && !skipFrame(1, -5), 'cap 0 betekent geen begrenzing');
 ok(!skipFrame(40) && skipFrame(10), 'trage beelden worden nooit overgeslagen');
