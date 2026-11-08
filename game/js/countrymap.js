@@ -83,16 +83,28 @@ function meadowImage(st) {
 
 // The water and meadow images of both maps, built a few ms per frame (on
 // the title screen), before the first minimap tile or map view needs them.
+// De weitjes voor de minikaart en de kaart in kleine porties tekenen. Geeft een
+// promise die klaar is als alle banen af zijn, zodat de boot er (binnen zijn
+// warm-grens) op kan wachten: dan gebeurt dit werk niet meer in de eerste
+// speelseconden (#750). Zonder rAF (tests) of in een verborgen venster loopt een
+// timer mee, zodat het nooit blijft hangen.
 export function warmCountryMaps(sliceMs = 4) {
   const jobs = [];
   for (const st of [MINI_STYLE, MAP_STYLE]) jobs.push(meadowJob(st));
-  const next = () => {
-    const j = jobs.find((q) => q && !q.done);
-    if (!j) return;
-    j.step(sliceMs);
-    requestAnimationFrame(next);
-  };
-  requestAnimationFrame(next);
+  return new Promise((resolve) => {
+    const next = () => {
+      const j = jobs.find((q) => q && !q.done);
+      if (!j) { resolve(true); return; }
+      j.step(sliceMs);
+      if (typeof requestAnimationFrame === 'function') {
+        let gedaan = false;
+        const run = () => { if (gedaan) return; gedaan = true; next(); };
+        requestAnimationFrame(run);
+        setTimeout(run, 100);
+      } else setTimeout(next, 0);
+    };
+    next();
+  });
 }
 
 export function drawCountryBase(ctx, x0, y0, x1, y1, st) {
