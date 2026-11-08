@@ -153,11 +153,6 @@ function computePassages(map, b) {
   // #747: een dienstweg die diep door een gebouw loopt (ziekenhuisgarage, parkeerdek) is een
   // doorgang, ook als OSM geen passage heeft en de run aan één kant binnen de muur eindigt.
   // Zonder dit blijft er een onzichtbare muur over de weg staan.
-  for (const ra of runs) {
-    if (!(ra.r.cat === 'service' || ra.r.type === 'service')) continue;
-    if (runDepth(ra.pts, b.pts) <= 2) continue;
-    ra.s0 = true; ra.s1 = true;
-  }
   // join runs that meet inside the footprint
   const parent = runs.map((_, i) => i);
   const find = (i) => (parent[i] === i ? i : (parent[i] = find(parent[i])));
@@ -189,15 +184,15 @@ function computePassages(map, b) {
     }
   }
   // #747-terugval: een dienstweg die nog door de footprint loopt zonder corridor (binnenplaats,
-  // parkeerdek, ziekenhuisgarage zonder OSM-passage) krijgt hier alsnog een open doorgang. We
-  // hergebruiken de al gesampelde runs, zodat dit niet per gebouw de wegen opnieuw hoeft te lopen.
+  // parkeerdek, ziekenhuisgarage zonder OSM-passage) krijgt hier alsnog een open doorgang. Dit
+  // gebruikt de al gesampelde runs en doet geen extra dieptemeting per punt (dat kostte FPS).
   for (const ra of runs) {
     if (!(ra.r.cat === 'service' || ra.r.type === 'service')) continue;
     if (out.some((p) => p.road === ra.r)) continue;
-    if (runDepth(ra.pts, b.pts) <= 2) continue;
+    if (pathLength(ra.pts) < 2) continue;
     out.push({ pts: ra.pts, hw: passageHalfWidth(ra.r), len: pathLength(ra.pts), mapped: null, cat: ra.r.cat, road: ra.r, shown: true });
   }
-  linkDoors(b, doors, out);  linkDoors(b, doors, out);  linkDoors(b, doors, out);
+  linkDoors(b, doors, out);  linkDoors(b, doors, out);  linkDoors(b, doors, out);  linkDoors(b, doors, out);
   b._doors = doors.filter((e) => !e.hall).map((e) => doorOnFacade(b, e));
   return out;
 }
