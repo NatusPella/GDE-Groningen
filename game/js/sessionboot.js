@@ -146,9 +146,11 @@ function openRoomTransport(room) {
 // Join one row. A refused or silent host leaves no half session behind: the world is ours again before
 // the error goes up, so the boot can try the next candidate and finally host.
 // Since #583 the row carries no room: the boot asks the host for a one-time room (net/joingate.js). `haalKamer`
-// is a seam for the test, exactly like openTransport.
+// is a seam for the test, exactly like openTransport. Since #795 the row also carries the host key: only an
+// answer made with that key decrypts, so a third party cannot hand us its own room (#777). As a second lock the
+// welcome must name the same session id (and, when the host names one, the same name) as the row.
 export async function openSession(world, rij, { onHold = null, onCode = null, openTransport = openRoomTransport, haalKamer = null } = {}) {
-  const vraag = haalKamer || ((r) => vraagKamer({ id: r.id, maakSignaler: () => newLijstSignaler(JOIN.interval), wacht: BOOT.verbindWacht }));
+  const vraag = haalKamer || ((r) => vraagKamer({ id: r.id, maakSignaler: () => newLijstSignaler(JOIN.interval), wacht: BOOT.verbindWacht, hostKey: r.hostKey }));
   const room = rij.room || await vraag(rij);
   const transport = await openTransport(room);
   // The own game is checkpointed by startClient itself (#448) before we play in someone else's world.
@@ -160,6 +162,15 @@ export async function openSession(world, rij, { onHold = null, onCode = null, op
     const reason = session.rejected || 'geen antwoord';
     try { stopCoopNet(world); } catch (e) { /* al weg */ }
     throw new Error(reason);
+  }
+  // Tweede slot (#777/#795): het welkom noemt het vaste sessie-id van de host en zijn naam (net/hub.js,
+  // net/session.js). Hoort dat niet bij de rij waarop we afgingen, dan is dit niet de sessie uit de lijst: wereld
+  // terug en de volgende kandidaat proberen. Bij een privé host is de naam leeg; dan telt alleen het id.
+  const welkomSessie = session.sessie;
+  const andereNaam = welkomSessie && rij.naam && welkomSessie.naam && String(welkomSessie.naam) !== String(rij.naam);
+  if (!welkomSessie || !welkomSessie.id || String(welkomSessie.id) !== String(rij.id) || andereNaam) {
+    try { stopCoopNet(world); } catch (e) { /* al weg */ }
+    throw new Error('De sessie kwam niet overeen.');
   }
   // Een eenmalige kamer uit de lijst is geen code om te bewaren: opnieuw aansluiten gaat via de lijst.
   if (rij.room && onCode) onCode(formatRoom(rij.room));

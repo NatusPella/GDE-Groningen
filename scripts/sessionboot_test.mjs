@@ -14,6 +14,7 @@ import * as N from '../game/js/coopnet.js';
 import { bootSession, canBootSession, openSession, BOOT } from '../game/js/sessionboot.js';
 import { kies, KEUZE } from '../game/js/sessiekeuze.js';
 import { codeer, Serverlijst } from '../game/js/net/serverlijst.js';
+import { maakSleutelpaar, sleutelTekst } from '../game/js/net/sigcrypto.js';
 
 let n = 0;
 const t = async (naam, f) => { await f(); n++; };
@@ -35,10 +36,12 @@ globalThis.navigator ??= {};
 globalThis.localStorage ??= { getItem: () => null, setItem: () => {}, removeItem: () => {} };
 
 // A row exactly like Serverlijst.lijst() makes it (anders/vol/kan derived, never invented).
+// #795: een rij draagt sinds de hostsleutel ook de publieke sleutel; de test gebruikt er een vaste.
+const HOST_KEY = await sleutelTekst(await maakSleutelpaar());
 const rij = (id, spelers, max, extra = {}) => {
   const anders = !!extra.anders;
   const vol = spelers >= max;
-  return { id, naam: extra.naam || 'Open spel', spelers, max, versie: 'dev', room: extra.room || 'ABCDEFGHJK', anders, vol, kan: !anders && !vol, ouderdom: 1000, ...extra };
+  return { id, naam: 'naam' in extra ? extra.naam : 'Open spel', spelers, max, versie: 'dev', hostKey: HOST_KEY, room: extra.room || 'ABCDEFGHJK', anders, vol, kan: !anders && !vol, ouderdom: 1000, ...extra };
 };
 
 // A world like the boot sees it: a player who can walk away, no session yet.
@@ -233,7 +236,8 @@ async function echteSessie({ max = 4 } = {}) {
     const gw = wereld(extra);
     const g = { gw, link };
     sim.gs.push(g);
-    g.session = await openSession(gw, { room: 'ABCDEFGHJK' }, { openTransport: async () => link.b });
+    // De rij hoort bij deze gastheerhub: het welkom noemt zijn vaste sessie-id (#777/#795).
+    g.session = await openSession(gw, { id: hw.coopNet.hub.id, naam: '', room: 'ABCDEFGHJK' }, { openTransport: async () => link.b });
     return g;
   };
   sim.step = (secs) => { for (let k = 0; k < Math.round(60 * secs); k++) tik(); };
@@ -262,7 +266,7 @@ await t('openSession: een volle sessie geeft een weigering en laat de wereld van
   const wacht = { gw, link };
   s.gs.push(wacht); // the guest's own side has to tick too, otherwise its hello never leaves
   let fout = '';
-  try { await openSession(gw, { room: 'ABCDEFGHJK' }, { openTransport: async () => link.b }); } catch (e) { fout = e.message; }
+  try { await openSession(gw, { id: s.hw.coopNet.hub.id, naam: '', room: 'ABCDEFGHJK' }, { openTransport: async () => link.b }); } catch (e) { fout = e.message; }
   assert.equal(fout, 'vol', 'de weigering komt als reden terug');
   assert.ok(!gw.coopNet, 'geen halve sessie: de wereld is weer van de gast');
   assert.ok(!gw.coopRole, 'en zijn rol is terug zoals hij was');
@@ -273,10 +277,37 @@ await t('openSession: een volle sessie geeft een weigering en laat de wereld van
   s.stop();
 });
 
+await t('openSession (#777/#795): het welkom moet bij de rij horen, anders gaat de wereld terug', async () => {
+  const s = await echteSessie();
+  const probeer = async (rij) => {
+    const link = createLink({ latency: 0.02, seed: 61 });
+    N.addGuest(s.hw, link.a);
+    const gw = wereld();
+    s.gs.push({ gw, link });
+    let fout = '';
+    try { await openSession(gw, rij, { openTransport: async () => link.b }); } catch (e) { fout = e.message; }
+    return { fout, gw };
+  };
+  const anderId = await probeer({ id: 'nietdezesessie', naam: '', room: 'ABCDEFGHJK' });
+  assert.equal(anderId.fout, 'De sessie kwam niet overeen.', 'ander sessie-id: het tweede slot weigert');
+  assert.ok(!anderId.gw.coopNet, 'geen halve sessie: de wereld is weer van de gast');
+  // Een host met een naam in de lijst: dezelfde sessie maar een andere naam is niet de rij die de boot koos.
+  s.hw.coopNet.hub.zetOpenbaar(true, 'Zomeravond');
+  const andereNaam = await probeer({ id: s.hw.coopNet.hub.id, naam: 'Andere naam', room: 'ABCDEFGHJK' });
+  assert.equal(andereNaam.fout, 'De sessie kwam niet overeen.', 'andere naam: het tweede slot weigert');
+  assert.ok(!andereNaam.gw.coopNet);
+  const goed = await probeer({ id: s.hw.coopNet.hub.id, naam: 'Zomeravond', room: 'ABCDEFGHJK' });
+  assert.equal(goed.fout, '', 'dezelfde sessie en naam: welkom');
+  assert.equal(goed.gw.coopRole, 'client');
+  N.stopCoopNet(s.hw);
+  for (const g of s.gs) if (g.gw.coopNet) N.stopCoopNet(g.gw);
+  s.stop();
+});
+
 await t('bootSession doet de hele weg: kiezen, echt verbinden, en zonder host als de sessie weg is', async () => {
   const s = await echteSessie();
   // A row that points at this host: the same room the test joins. The list names it as the busiest.
-  const rijen = [rij('gastheer', 1, 4, { naam: 'Groningen', room: 'ABCDEFGHJK' })];
+  const rijen = [rij(s.hw.coopNet.hub.id, 1, 4, { naam: '', room: 'ABCDEFGHJK' })];
   const gw = wereld();
   let gehost = 0;
   const uit = await bootSession(gw, deps({
@@ -315,12 +346,13 @@ await t('de lijst van de boot gebruikt de echte Serverlijst: een aankondiging wo
 
   // And a real announcement from the host side becomes a row the boot can choose from.
   const lijst = new Serverlijst({ proto: 2, versie: 'dev', nu: () => 5000 });
-  const tekst = codeer({ naam: 'Groningen', spelers: 2, max: 4, versie: 'dev', proto: 2, id: 'abcdefghij', nu: 5000 });
+  const tekst = codeer({ naam: 'Groningen', spelers: 2, max: 4, versie: 'dev', proto: 2, id: 'abcdefghij', hostKey: HOST_KEY, nu: 5000 });
   assert.ok(tekst, 'de aankondiging van #438 is geldig');
   assert.equal(lijst.ontvang(tekst, 5000).ok, true);
   const rijen = lijst.lijst(5000);
   assert.equal(rijen.length, 1);
   assert.equal(rijen[0].id, 'abcdefghij', 'het sessie-id is de ingang: daarmee vraagt de gast een kamer (#583)');
+  assert.equal(rijen[0].hostKey, HOST_KEY, 'de rij draagt de hostsleutel voor het join-antwoord (#795)');
   assert.ok(!('room' in rijen[0]), 'de kamercode staat niet in de lijst');
   assert.equal(kies({ rijen, meedoen: true }).sessie.id, 'abcdefghij', 'en kies() geeft het door');
 });
