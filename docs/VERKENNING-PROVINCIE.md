@@ -15,6 +15,22 @@ Nederlands en zomer. Dit document is de basis voor de losse issues A15-A20 uit
 - `game/js/gebieden.js`/`gebiedenui.js` (Veroverd, per speler), `game/js/uitjepaneel.js` en
   `activiteitensfeer.js` (presentatie van een uitje), `game/js/reisview.js` (reisduur).
 
+## Kaart per speler (#825, gedaan)
+
+De eigenaar koos op 9-11-2026: de wereld blijft bestaan en navigeerbaar, op de kaart wordt van een
+onbekende streek alleen de naam, het streeklabel en de activiteiten-iconen verborgen (geen mist over
+de wereld, niets onbereikbaar). `game/js/verkenpunten.js` heeft daarvoor de pure regels
+(`newExplorationProfile`, `normaliseExploration`, `revealArea`, `areaProgress`, `awardAreaStamp`,
+`areaLabels`, `travelFactor`, `isHiddenOnMap`); `game/js/explorationlive.js` houdt het eigen profiel
+bij (`gde-verkenning-v1`), legt de eigen plek langs de streken, doet de E-actie bij een uitkijkpunt
+en de meldingen. Wie hier al was begint niet bij nul: de bezochte buurten van gebieden.js
+(`bezocht`, #435) zijn het startpunt. Alle missies van een streek klaar en alle uitkijkpunten
+gebruikt geeft een stempel op de kaart en 10% kortere reistijd naar die streek (het kleinste
+bestaande reisvoordeel, via `reisOptiesVoor`; geen munt en geen snelreizen). Wat deze laag niet
+verbergt: wegen, water, de eigen positie en de missies. De kaarttekst en de meldingen zijn Nederlands;
+de test is `scripts/verken_ontdekking_test.mjs`. Nog niet in beeld gezien: de kaart met een
+gedeeltelijk ontdekte provincie (bronchecks en de pure selectie zijn wel getest).
+
 ## Gekozen kleine stappen (nu gedaan)
 
 1. **`game/js/verkenpunten.js`** (puur, geen DOM):
@@ -40,7 +56,7 @@ Nederlands en zomer. Dit document is de basis voor de losse issues A15-A20 uit
 
 | Id | Kleinste veilige vervolgstap | Hergebruikt |
 |---|---|---|
-| **A15 Uitkijkpunten** | **Op de kaart gezet** (punt per streek, eigen icoon/legenda/minimap, klik = waypoint). Wat nog een eigenaarsbesluit is: de kaart onthullen via `grenzen.json`/`ontvouw`-laag en een regel in Activiteiten (`uitjepaneel`); geen nieuwe scène en geen magisch snelreizen. | `verkenpunten.js`, `menuplekken.js`, `landmarkkits.json`, `mapview.js`/`hud_panel.js` |
+| **A15 Uitkijkpunten** | **Op de kaart gezet** (punt per streek, eigen icoon/legenda/minimap, klik = waypoint). De kaart onthullen is met #825 gedaan: per speler ontdekken, alleen naam/streeklabel/activiteiten-iconen verbergen, E bij het punt, stempel en reisvoordeel. Wat nog een eigenaarsbesluit is: een regel in Activiteiten (`uitjepaneel`); geen nieuwe scène en geen magisch snelreizen. | `verkenpunten.js`, `explorationlive.js`, `menuplekken.js`, `landmarkkits.json`, `mapview.js`/`hud_panel.js` |
 | **A16 Kieken: het album** | Teller per streek op de bestaande 707 punten (nu gemeten); in Activiteiten één regel per streek. Doel expliciet: **25 per streek** (niet stilzwijgend 500). | `albumStand()`, `activiteitensfeer.js`, `uitjepaneel.js` |
 | **A17 Kerkenpad** | Zelfde teller, alleen `k: 'church'` (391); stempel per kerk pas later. | `albumStand()`, `markeer`/`gebieden.js` |
 | **A20 Molenaar** | Teller over de 98 molens; de minispel-variant is een eigen issue, niet nodig voor de verkenlaag. | `albumStand()` |
@@ -56,11 +72,15 @@ Nederlands en zomer. Dit document is de basis voor de losse issues A15-A20 uit
   fietsen of 2-3 minuten auto). De huidige basis haalt dat nog niet overal (M13 5,4 km); de ratchet
   in de test voorkomt in elk geval verslechtering tot de routepunten en de eerste extra bestemmingen
   er zijn.
-- **Kaart onthullen** (A15) is een aparte keuze: bestaande `ontvouw`/`grenzen`-laag of per punt een
-  cirkel; niet in deze stap gedaan.
+- **Kaart onthullen** (A15) is met #825 gedaan als ontdekking per speler: geen mist en geen
+  onbereikbare plekken, alleen de naam, het streeklabel en de activiteiten-iconen van een onbekende
+  streek weg. De bestaande `ontvouw`/`grenzen`-laag en de mistinstelling blijven zoals ze waren.
 
 ## Samen spelen
 
 De uitkijkpunten en albumteller zijn per speler (profiel/opslag), net als Veroverd; de punten zelf
 staan in de wereld voor iedereen op dezelfde plek. Een gast ziet dezelfde punten en houdt zijn eigen
-teller. Wat nog niet samenwerkt, zegt dat via `coopstatus` (bestaand patroon).
+teller. Sinds #825 geldt dat ook voor de ontdekking: `gde-verkenning-v1` is van deze speler, er gaat
+geen netwerkbericht over en de wereld, de punten en de missies zijn voor iedereen gelijk. Een gast
+ontdekt op zijn eigen scherm (`coopgastlokaal.js`) en kan niets van de opener kapotmaken. Wat nog
+niet samenwerkt, zegt dat via `coopstatus` (bestaand patroon).

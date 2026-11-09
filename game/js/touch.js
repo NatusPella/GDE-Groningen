@@ -3,7 +3,7 @@
 // input.js the way gamepad.js does (padAxis, padHold, mouse), so every
 // action works unchanged. Does nothing on a desktop; ?touch=1 forces it on
 // and ?touch=0 off. Menus and the phone stay plain taps.
-import { detectTouch, touchMode, touchLayout, touchBar, stickVector, knobOffset, lookDelta, stickKeys, leftOffset, leftStrip, touchContext, stickless, touchUiActive, iconFor, STICK_RADIUS } from './touchlogic.js';
+import { detectTouch, touchMode, touchLayout, touchScale, touchBar, stickVector, knobOffset, lookDelta, stickKeys, leftOffset, leftStrip, touchContext, stickless, touchUiActive, iconFor, STICK_RADIUS } from './touchlogic.js';
 import { HENGEL_HINT } from './controls.js';
 import { refreshGlyphs } from './glyphs.js';
 import { getSettings } from './settings.js';
@@ -23,7 +23,7 @@ html.touch-play #touch-ui { display: block; }
 #touch-ui .t-btn { position: absolute; pointer-events: auto; touch-action: none; min-width: 64px; height: 64px; padding: 0 8px; box-sizing: border-box; border-radius: 32px; border: 2px solid rgba(240, 237, 228, 0.55);
   background: rgba(10, 19, 13, 0.5); color: #f0ede4; font: 17px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; }
 #touch-ui .t-btn.on { background: rgba(63, 201, 122, 0.75); color: #0c140e; }
-#touch-ui .t-more { right: max(10px, env(safe-area-inset-right)); top: calc(max(10px, env(safe-area-inset-top)) + 58px); min-width: 48px; height: 48px; font-size: 15px; }
+#touch-ui .t-more { right: calc(max(10px, env(safe-area-inset-right)) + 68px); top: max(10px, env(safe-area-inset-top)); min-width: 64px; height: 64px; font-size: 15px; }
 #touch-ui .t-panel { position: absolute; right: calc(max(10px, env(safe-area-inset-right)) + 56px); top: max(10px, env(safe-area-inset-top)); display: none; flex-wrap: wrap; gap: 8px; max-width: 60%; justify-content: flex-end; pointer-events: auto; }
 #touch-ui .t-panel.open { display: flex; }
 #touch-ui .t-panel .t-btn { position: static; }
@@ -41,7 +41,7 @@ html.touch-portrait body:has(#hud .phonefeed .pf-card.on) #touch-ui .t-turn,
 html.touch-portrait body:has(#hud .ach-toast.on) #touch-ui .t-turn,
 html.touch-portrait body:has(#hud .hud-place.on) #touch-ui .t-turn,
 html.touch-portrait body:has(#pause-menu.visible) #touch-ui .t-turn { display: none; }
-#touch-ui .t-pause { top: max(10px, env(safe-area-inset-top)); right: max(10px, env(safe-area-inset-right)); min-width: 48px; height: 48px; border-radius: 24px; font-size: 20px; }
+#touch-ui .t-pause { top: max(10px, env(safe-area-inset-top)); right: max(10px, env(safe-area-inset-right)); min-width: 64px; height: 64px; border-radius: 32px; font-size: 20px; }
 /* every action button shows a HUD-style line icon above its Dutch label (#427) */
 #touch-ui .t-btn:not(.t-num) { flex-direction: column; gap: 1px; }
 #touch-ui .t-btn .t-ic { flex: none; width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
@@ -88,6 +88,14 @@ html.touch-device.touch-portrait #hud .pl-kick { gap: 10px; font-size: 16px; }
 html.touch-device.touch-portrait #hud .pl-kick i { width: 42px; }
 /* De pause-rail is op een korte telefoon scrollbaar; een dunne scrollbar maakt dat zichtbaar. */
 html.touch-device #pause-menu .pm-inner.pm-game { scrollbar-width: thin; scrollbar-color: rgba(240, 237, 228, 0.35) transparent; }
+
+/* #826: HUD-blokken niet onder de aanraakknoppen; tekst in de nowplaying >= 12 px. */
+html.touch-device #hud .hud-mission { bottom: calc(var(--hud-edge, 46px) + 190px); }
+html.touch-device #hud .ach-toast { top: calc(var(--hud-top, 34px) + 72px) !important; bottom: auto !important; left: 50% !important; transform: translateX(-50%); }
+html.touch-device #hud .hud-nowplaying { max-width: 132px; }
+html.touch-device #hud .hud-nowplaying small, html.touch-device #hud .hud-nowplaying b, html.touch-device #hud .np-artist, html.touch-device #hud .np-title { font-size: max(18px, calc(12px / var(--ui, 1))); }
+html.touch-device #hud .wp-text b { font-size: max(18px, calc(12px / var(--ui, 1))) !important; }
+html.touch-device:not(.touch-portrait) #hud .hud-place { left: 90px; right: 300px; }
 /* small HUD texts stay at 12 px on screen after the phone's HUD scale (0.62-0.8) */
 html.touch-device #hud :is(small, .hud-key, .ach-kicker, .ach-desc, .ach-pct, .pf-time, .pf-more, .nl-sub, .hud-mission-progress) { font-size: max(12px, calc(12px / var(--ui, 1))); }
 /* De pauzemenu heeft in portret een eigen smalle indeling (pausemenu.css). Geen
@@ -144,8 +152,9 @@ export function initTouch(input, world, hooks = {}) {
   // screen class and orientation: button scale, zone widths, the turn-device hint
   function layout() {
     const L = touchLayout({ width: window.innerWidth, height: window.innerHeight });
-    root.style.setProperty('--t-scale', String(L.scale));
-    btnHost.style.zoom = String(L.scale);
+    const s = touchScale({ width: window.innerWidth, height: window.innerHeight });
+    root.style.setProperty('--t-scale', String(s));
+    btnHost.style.zoom = String(s);
     left.style.width = Math.round(L.leftShare * 100) + '%';
     right.style.width = Math.round((1 - L.leftShare) * 100) + '%';
     turn.textContent = L.hint;

@@ -55,15 +55,19 @@ try {
     const [W, H] = size.split('x').map(Number);
     // the page lays out at WxH; the window is smaller when the screen is short
     const scale = Number(arg('scale', 0)) || Math.min(1, 900 / Math.max(W, H));
-    const profile = 'gde-test-mobile-' + process.pid;
-    const profDir = path.join(os.tmpdir(), profile);
+    const profile = 'gde-test-mobile-' + process.pid + '-' + size;
+    // een testprofiel in de werkmap: buiten %TEMP% mag Electron in deze omgeving niet schrijven
+    const profDir = path.join(root, '.test-temp', profile);
     fs.rmSync(profDir, { recursive: true, force: true });
+    fs.mkdirSync(profDir, { recursive: true });
     const script = path.join(out, `_scenes-${size}.js`);
     fs.writeFileSync(script, `window.__shotsOnly = ${JSON.stringify(only)};\n` + fs.readFileSync(scenes, 'utf8'));
     const png = path.join(out, size + '.png');
-    const args = ['.', '--windowed', '--stil', '--force-device-scale-factor=1', `--window-size=${Math.round(W * scale)}x${Math.round(H * scale)}`, `--emulate-view=${size}@${scale}`, '--emulate-mobile', '--touch', '--smoke-test=' + png, '--perf-script=' + script];
+    const args = ['.', '--windowed', '--stil', '--no-sandbox', '--force-device-scale-factor=1', `--window-size=${Math.round(W * scale)}x${Math.round(H * scale)}`, `--emulate-view=${size}@${scale}`, '--emulate-mobile', '--touch', '--smoke-test=' + png, '--perf-script=' + script];
     console.log('==', size, '(schaal ' + scale.toFixed(2) + ')');
-    const child = spawn(bin, args, { cwd: path.join(root, 'desktop'), env: { ...process.env, GDE_TEST_PROFILE: profile } });
+    const env = { ...process.env, GDE_TEST_PROFILE: profDir };
+    delete env.ELECTRON_RUN_AS_NODE; // een Node-run in de omgeving mag Electron niet als Node starten
+    const child = spawn(bin, args, { cwd: path.join(root, 'desktop'), env });
     try { os.setPriority(child.pid, os.constants.priority.PRIORITY_BELOW_NORMAL); } catch (e) { /* niet erg */ }
     let log = '';
     child.stdout.on('data', (d) => { log += d; });

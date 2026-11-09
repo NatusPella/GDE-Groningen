@@ -5,6 +5,8 @@
 import { hoofdspeler } from './players.js';
 import { showBanner } from './cinematics.js';
 import { recordChallengeResult, getChallengeRecord, MEDALS } from './achievements.js';
+import { getSettings } from './settings.js';
+import { cleanDifficulty, difficultyRecordKey } from './difficulty.js'; // #800
 import { createRun, stepRun, medalFor, progressText, RUN_S } from './skatefietsrules.js';
 
 const PARK = { x: 0, y: 0 }; // gevuld door start(): de plek van de ingang
@@ -32,7 +34,7 @@ export function startSkatefiets(w, at) {
   const i = invoer(w);
   if (!i) { w.addMessage('Stap op je fiets of step om de fietsronde te doen.', 3); return false; }
   if (run) return false;
-  run = createRun();
+  run = createRun(cleanDifficulty(getSettings().difficulty));
   PARK.x = at.x; PARK.y = at.y;
   nextMsg = 0;
   w.addMessage('Fietsronde! Wheelies, sprongen en stoppies tellen. Een minuut.', 4);
@@ -43,9 +45,11 @@ export function endSkatefiets(w, reason = '') {
   if (!run) return;
   const r = run;
   run = null;
-  const medal = medalFor(r.score);
-  const best = getChallengeRecord('skatefiets');
-  recordChallengeResult('skatefiets', r.score, medal);
+  const mode = cleanDifficulty(getSettings().difficulty);
+  const medal = medalFor(r.score, mode);
+  const key = difficultyRecordKey(mode, 'skatefiets');
+  const best = getChallengeRecord(key);
+  recordChallengeResult(w, key, { value: r.score, medal });
   const stats = [['Punten', String(r.score)], ['Wheelie', `${Math.round(r.wheelieM)} m`], ['Sprongen', String(r.hops)], ['Stoppies', String(r.stoppies)]];
   if (best && best.best != null && r.score > best.best) stats.push(['Record', 'nieuw!']);
   showBanner({ kind: 'pass', title: 'Fietsronde', reason: reason || (medal ? `Medaille: ${MEDALS[medal].toLowerCase()}` : 'Geen medaille dit keer'), reward: 0, stats });

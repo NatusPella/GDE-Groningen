@@ -1,5 +1,7 @@
 import { hoofdspeler } from './players.js';
 import { volgendeTredeRij } from './medalrules.js';
+import { getSettings } from './settings.js';
+import { cleanDifficulty, difficultyRecordKey, scaleTimeLimit } from './difficulty.js'; // #800: stand en records per stand
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
@@ -12,7 +14,7 @@ import { loopbaanVerdien } from './loopbaanlive.js';
 import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHostTijd, wedGastTijd, wedScoreStop, wedGastVerlaat, wedGastReset, wedScoreRijen } from './multiplayerwedstrijd.js';
 import { createBoard, mgThema, key, bubble, clearBubbles, pick, stopPressed, easeCamera, geo, frame, fmtTime, clamp } from './minigamekit.js';
 import { CLIMB_LINES } from './minigamelines2.js';
-import { WALL, ARMS, createClimb, startClimb, stepClimb, nextHold, makeHolds, climbMedal, MEDAL_AT } from './climbrules.js';
+import { WALL, ARMS, createClimb, startClimb, stepClimb, nextHold, makeHolds, climbMedal, MEDAL_AT, scaledMedalAt } from './climbrules.js';
 import { climbFx, pushFoley } from './sfx/minigamefoley.js';
 
 // Klimtoren Zernike: a 12 m climbing tower on open ground at the Zernike
@@ -181,16 +183,17 @@ function end(w, { quit = false, extern = false, uitslag = null } = {}) {
   if (quit) { w.addMessage('Klimmen gestopt', 2.5); return; }
   const s = g.s;
   if (s.phase === 'top') {
+    const mode = cleanDifficulty(getSettings().difficulty);
     const time = s.time;
-    const medal = climbMedal(time);
-    const rec = recordChallengeResult(w, 'klimtoren', { value: time, medal, lower: true });
+    const medal = climbMedal(time, mode);
+    const rec = recordChallengeResult(w, difficultyRecordKey(mode, 'klimtoren'), { value: time, medal, lower: true });
     recordStat(w, 'klimTops');
     unlockAchievement(w, 'klim_klaar');
     if (medal >= 3) unlockAchievement(w, 'klim_goud');
     if (s.falls === 0) unlockAchievement(w, 'klim_foutloos');
     const stats = [['Tijd', fmtTime(time)], ['Vallen', String(s.falls)], ['Hoogte', `${WALL.height} m`]];
     if (medal) stats.push(['Medaille', MEDALS[medal]]);
-  volgendeTredeRij(stats, MEDAL_AT, time, { medal, lager: true, klok: true });
+  volgendeTredeRij(stats, scaledMedalAt(mode), time, { medal, lager: true, klok: true });
     if (rec && rec.newBest) stats.push(['Record', 'Nieuw!']);
     showBanner({ kind: medal ? 'pass' : 'fail', title: medal >= 3 ? 'KONING VAN DE KLIMTOREN' : 'BOVEN!', reason: s.falls ? `Met ${s.falls} ${s.falls === 1 ? 'val' : 'vallen'}, en toch bovenaan` : 'Zonder te vallen naar de top', reward: 0, stats });
     say(w, medal >= 2 ? 'endGood' : 'endPoor', true, true);
@@ -308,7 +311,7 @@ function start(w, { online = null, revealed = false } = {}) {
 }
 
 function recText() {
-  return recLine(getChallengeRecord('klimtoren'), fmtTime, MEDALS);
+  return recLine(getChallengeRecord(difficultyRecordKey(cleanDifficulty(getSettings().difficulty), 'klimtoren')), fmtTime, MEDALS);
 }
 
 // with guests in the session the climb is an invitation to everyone (Meedoen? J/N); pressing E again starts at once (#443)

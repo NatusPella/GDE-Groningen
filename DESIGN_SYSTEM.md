@@ -201,7 +201,7 @@ ondertitel en een label in de veilige zone). Exporteren:
   hover state lightens to `--gron-green-light`. That is the older button of the first screens;
   in every menu the button is `.m-bp` / `.m-bg` / `.m-bt` (56 px high, 8 px radius, hover `#62d792`), see "Menus" and the state table in
   [docs/DESIGN-COMPONENTEN.md](docs/DESIGN-COMPONENTEN.md) (focus, selected, hover, disabled, pressed, confirm).
-- Focus is always visible: a 2 px cream ring in menus, green with a controller attached (`html.pad-active`). Never remove an outline without giving another.
+- Focus is always visible: **one** 2 px cream ring (`var(--ink)`) for every input, including a controller (`html.pad-active`; #809). The offset per component may differ, the style does not. Never remove an outline without giving another.
 - Keycap chips (on-screen control hints): one white, bright cap
   (`#fbfaf5`, dark text `#0c140e`, a grey `#a9a69b` edge underneath for a
   pressed-key look); the menu's `.m-kc` and the controller glyph `.pad-g` match it - see `.hud-key` in hud_panel.css, this is the canonical
@@ -343,6 +343,8 @@ Two kinds of colour, and they never mix (#479):
 
 - **Status** — danger, ok, mission, missionActive, user, job, care, police — always comes from `--mk-*`, set by `markerColors()` (`game/js/a11y.js`) from `PALETTES`. That is what makes the three colour-blind modes work. The HUD cards (`hudcards.css`), the choice panel (`choicepanel.js`) and the minigame board (`minigamekit.js`) read them with a fallback: `var(--mk-danger, #d93f3f)`.
 - **Identity** — the accent of one minigame — is a single hex in the `MINIGAMES` table of `minigamekit.js`, one per game, and it is never used for status. It says *which* game you are in, not *how it goes*.
+
+**Samen spelen** follows the same rule (#809): the "Kom hier", "Help!" and "Kijk daar" pings take the **user**, **danger** and **mission** roles from `markerColors()` (with the shape — triangle, cross, star — as the second cue), never a second blue or red; the passive player state uses the existing ok/danger status roles, never a second orange or amber. Player colours are **identity colours** (one per player, shape included), not status colours. The map's `INK` table (`mapstyle.js`, including police blue and `#5fb4d9` for the selected area) is a deliberate **map style** with police/selection meaning, not a HUD status palette; it is documented here instead of being replaced by `--mk-*`.
 
 `scripts/hud_kleuren_test.mjs` enforces both: a hex outside a `var()` fallback, the text/chrome colours or that one accent table fails the test.
 

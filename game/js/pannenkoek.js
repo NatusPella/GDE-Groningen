@@ -1,5 +1,7 @@
 import { hoofdspeler } from './players.js';
 import { volgendeTredeRij } from './medalrules.js';
+import { getSettings } from './settings.js';
+import { cleanDifficulty, difficultyRecordKey, scaleTimeLimit } from './difficulty.js'; // #800: stand en records per stand
 import { showBanner } from './cinematics.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, setStatMax, MEDALS } from './achievements.js';
 import { showCard } from './hudcards.js';
@@ -7,7 +9,7 @@ import { standActivity, recLine } from './standactivity.js';
 import { createBoard, mgThema, key, bubble, clearBubbles, pick, stopPressed, geo } from './minigamekit.js';
 import { getPancakeBoatSpot } from './cityprops.js';
 import { PANNENKOEK_LINES } from './minigamelines3.js';
-import { PAN, TOPPINGS, MEDAL_AT, createPan, usePan, serve, stepPan, goldenNow, pannenkoekMedal } from './pannenkoekrules.js';
+import { PAN, TOPPINGS, MEDAL_AT, scaledMedalAt, createPan, usePan, serve, stepPan, goldenNow, pannenkoekMedal } from './pannenkoekrules.js';
 
 // Pannenkoekenschip De Gouden Pan (the moored boat of the city props, #23):
 // you are the cook for two minutes. [1] [2] [3] pour batter, flip and plate
@@ -39,15 +41,16 @@ function end(w, { quit = false } = {}) {
   clearBubbles(w, 'pannenkoek');
   if (quit) { w.addMessage('Pannenkoeken bakken gestopt', 2.5); return; }
   const s = g.s;
-  const medal = pannenkoekMedal(s.points);
-  const rec = recordChallengeResult(w, 'pannenkoek', { value: s.points, medal });
+  const mode = cleanDifficulty(getSettings().difficulty);
+  const medal = pannenkoekMedal(s.points, mode);
+  const rec = recordChallengeResult(w, difficultyRecordKey(mode, 'pannenkoek'), { value: s.points, medal });
   recordStat(w, 'pannenkoekShifts');
   setStatMax(w, 'pannenkoekBest', s.points);
   unlockAchievement(w, 'pannenkoek_klaar');
   if (medal >= 3) unlockAchievement(w, 'pannenkoek_goud');
   const stats = [['Punten', String(s.points)], ['Geserveerd', String(s.served)], ['Goudbruin', String(s.golden)], ['Verbrand', String(s.burnt)], ['Gasten weg', String(s.left_)]];
   if (medal) stats.push(['Medaille', MEDALS[medal]]);
-  volgendeTredeRij(stats, MEDAL_AT, s.points, { medal, eenheid: 'punten', eenheid1: 'punt' });
+  volgendeTredeRij(stats, scaledMedalAt(mode), s.points, { medal, eenheid: 'punten', eenheid1: 'punt' });
   if (rec && rec.newBest) stats.push(['Record', 'Nieuw!']);
   showBanner({ kind: medal ? 'pass' : 'fail', title: medal >= 3 ? 'KOK VAN HET SCHIP' : medal ? 'SMAKELIJK' : 'AANGEBRAND', reason: medal ? `${s.served} gasten blij gemaakt` : 'Draai de pannenkoek in het gouden venster en let op de toppings', reward: 0, stats });
   say(w, medal >= 2 ? 'endGood' : 'endPoor', 4.5);
@@ -116,14 +119,17 @@ function start(w) {
   if (p.inVehicle) p.exitVehicle(w.map, w);
   if (!board) board = createBoard('pannenkoek');
   board.show();
-  game = { s: createPan(Math.random), flash: null, said: false };
+  const mode = cleanDifficulty(getSettings().difficulty);
+  const s0 = createPan(Math.random);
+  s0.left = scaleTimeLimit(PAN.duration, mode); // #800: de stand schaalt de twee minuten
+  game = { s: s0, flash: null, said: false };
   showCard(w, { kind: 'tip', kicker: 'Pannenkoekenschip', title: 'Twee minuten bakken', body: '[1] [2] [3]: beslag in de pan, en draai als hij goudbruin is. Serveer met [Q] stroop, [W] spek, [E] appel, [R] kaas aan de gast die dat wil.', duration: 11, key: 'pannenkoek-help', voice: false });
   say(w, 'start');
   return true;
 }
 
 function recText() {
-  return recLine(getChallengeRecord('pannenkoek'), (v) => `${Math.round(v)} punten`, MEDALS);
+  return recLine(getChallengeRecord(difficultyRecordKey(cleanDifficulty(getSettings().difficulty), 'pannenkoek')), (v) => `${Math.round(v)} punten`, MEDALS);
 }
 
 export const PANNENKOEK = standActivity({

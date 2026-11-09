@@ -31,7 +31,7 @@
 .pad-none { display: none !important; }
 
 /* a controller moves the focus: always show where it is */
-html.pad-active :is(button, a, input, select, [tabindex]):focus { outline: 2px solid #3fc97a !important; outline-offset: 2px; }
+html.pad-active :is(button, a, input, select, [tabindex]):focus { outline: 2px solid var(--ink, #f0ede4) !important; outline-offset: 2px; } /* #809: één focusring, ook met een controller */
 /* de kaart is zelf een focusbare canvas: geen ring om het hele scherm. De
    garage-draaitafel houdt zijn ring wel, want die is met de pad te bedienen (#610). */
 html.pad-active #pause-menu [data-panel="map"] canvas:focus { outline: none !important; }

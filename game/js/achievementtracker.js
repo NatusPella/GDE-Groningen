@@ -16,6 +16,8 @@ import { getTrains, getLevelCrossings, TRAIN_TYPES } from './railway.js';
 import { countryWeight } from './countryfield.js';
 import { EIERBAL_FIND_PAY, EIERBAL_ALL_BONUS } from './economy.js';
 import { getMissionList, payMedalBonus } from './missionquery.js';
+import { getSettings } from './settings.js';
+import { cleanDifficulty, scaleTarget, difficultyFactors } from './difficulty.js'; // #800: medailledrempels per stand
 import { getScene } from './scene3d.js';
 import { makeNearMiss, nearMissBonus } from './gamefeel.js';
 import { chipPopup } from './stunthud.js';
@@ -439,14 +441,22 @@ function challengeMet(r) {
   }
 }
 
-function medalFor(r) {
+// #800: pure medailleregel per stand; medalFor hieronder geeft de stand van nu mee.
+export function missionMedalFor(r, mode = cleanDifficulty(getSettings().difficulty)) {
   const g = MISSION_GOALS[r.index];
-  if (g.byPlace && Number.isFinite(r.racePos)) return r.racePos === 1 && r.damage <= SILVER_DAMAGE ? 3 : r.racePos <= 2 ? 2 : 1;
+  // #800: de stand schaalt de tijddrempels en de schade die een medaille nog toestaat;
+  // standaard (factor 1) geeft exact de oude grenzen.
+  const gold = scaleTarget(g.gold, mode, true), silver = scaleTarget(g.silver, mode, true);
+  const damageK = difficultyFactors(mode).damage;
+  const goldDamage = Math.round(GOLD_DAMAGE / damageK), silverDamage = Math.round(SILVER_DAMAGE / damageK);
+  if (g.byPlace && Number.isFinite(r.racePos)) return r.racePos === 1 && r.damage <= silverDamage ? 3 : r.racePos <= 2 ? 2 : 1;
   const happy = (k) => !g.happy || (r.happiness ?? 0) >= g.happy[k];
-  if (r.elapsed <= g.gold && r.damage <= GOLD_DAMAGE && r.maxWanted <= g.wanted && happy(0)) return 3;
-  if (r.elapsed <= g.silver && r.damage <= SILVER_DAMAGE && happy(1)) return 2;
+  if (r.elapsed <= gold && r.damage <= goldDamage && r.maxWanted <= g.wanted && happy(0)) return 3;
+  if (r.elapsed <= silver && r.damage <= silverDamage && happy(1)) return 2;
   return 1;
 }
+
+function medalFor(r) { return missionMedalFor(r); }
 
 function finishRun(r, success) {
   if (!success || !MISSION_GOALS[r.index]) return null;

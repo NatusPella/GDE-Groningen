@@ -53,6 +53,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [GEBIEDEN.md](<GEBIEDEN.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/wereld.md`](../.specs-fire/standards/w… |
 | [GELUID.md](<GELUID.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/mechanica.md`](../.specs-fire/standard… |
 | [IARC-ANTWOORDEN.md](<IARC-ANTWOORDEN.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/publicatie.md`](../.specs-fire/standar… |
+| [INPUT-LATENTIE.md](<INPUT-LATENTIE.md>) | Meetmethode en budget voor input-latentie (toets tot eerste frame met positieverandering), met de gemeten p50/p95. |
 | [INCLUSIEVE-TAAL.md](<INCLUSIEVE-TAAL.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/ui-taal.md`](../.specs-fire/standards/… |
 | [INVULBLAD-EIGENAAR.md](<INVULBLAD-EIGENAAR.md>) | Stand: 19 oktober 2026. Niets is verstuurd, geüpload of ingesteld. Dit blad |
 | [INTOCHT.md](<INTOCHT.md>) | De intocht na een verovering: wachtrij, acht scènes, terugkijken en de host-only-regel (#704). |

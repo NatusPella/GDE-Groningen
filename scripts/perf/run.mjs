@@ -45,7 +45,11 @@ fs.writeFileSync(scriptFile, script);
 
 await takeSlot();
 const profile = `gde-test-k1perf-${name}`;
-fs.rmSync(path.join(os.tmpdir(), profile), { recursive: true, force: true });
+const profileDir = path.join(os.tmpdir(), profile);
+fs.rmSync(profileDir, { recursive: true, force: true });
+// #827: Electron maakt de userData-map pas laat aan; een bestaande map voorkomt
+// dat de single-instance-lock of de GPUCache op een schone machine faalt.
+fs.mkdirSync(profileDir, { recursive: true });
 const desktop = path.join(HERE, '..', '..', 'desktop');
 const electron = process.env.ELECTRON_EXE || path.join(desktop, 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'electron');
 const args = ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1920x1080',
@@ -66,7 +70,9 @@ const cpuBusy = async () => { const a = cpuTimes(); await sleep(1000); const b =
 const busyBefore = await cpuBusy();
 const before = others();
 const t0 = Date.now();
-const child = spawn(electron, args, { cwd: desktop, env: { ...process.env, GDE_TEST_PROFILE: profile }, stdio: ['ignore', 'pipe', 'pipe'] });
+const perfEnv = { ...process.env, GDE_TEST_PROFILE: profile };
+delete perfEnv.ELECTRON_RUN_AS_NODE; // #827: een testsessie mag Electron niet als Node starten
+const child = spawn(electron, args, { cwd: desktop, env: perfEnv, stdio: ['ignore', 'pipe', 'pipe'] });
 child.stdout.pipe(log, { end: false });
 child.stderr.pipe(log, { end: false });
 // PERF_THREADS=0 turns the per-thread CPU sampler off (threadcpu.ps1; Windows)

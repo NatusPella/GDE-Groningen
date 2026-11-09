@@ -17,6 +17,8 @@ import { iconSvg } from './achievementicons.js';
 import { isOverlayHeld } from './overlayhold.js';
 import { zones, P3 } from './hudrules.js';
 import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
+import { getSettings } from './settings.js';
+import { cleanDifficulty, DIFFICULTY_MODES } from './difficulty.js'; // #800: missierecords per stand
 
 const KEY = KEYS.achievements;
 const WRITE_DELAY_MS = 2500;
@@ -289,7 +291,7 @@ let toastUntil = 0;
 let toastTimer = 0;
 
 function blankLife() {
-  return { v: 1, unlocked: {}, stats: {}, sets: {}, missions: {}, challenges: {}, fresh: [] };
+  return { v: 1, unlocked: {}, stats: {}, sets: {}, missions: {}, missionModes: {}, challenges: {}, fresh: [] };
 }
 
 function fmtTime(s) {
@@ -310,6 +312,20 @@ function loadLife() {
       for (const [i, r] of Object.entries(d.missions)) {
         if (!MISSION_GOALS[i] || !r) continue;
         life.missions[i] = { best: Number.isFinite(r.best) ? r.best : null, medal: Math.max(0, Math.min(3, r.medal | 0)), runs: r.runs | 0 };
+      }
+    }
+    // #800: de records van de andere moeilijkheidsstanden; de standaardstand blijft in life.missions
+    if (d.missionModes && typeof d.missionModes === 'object') {
+      for (const mode of DIFFICULTY_MODES) {
+        if (mode === 'standaard') continue;
+        const bron = d.missionModes[mode];
+        if (!bron || typeof bron !== 'object') continue;
+        const uit = {};
+        for (const [i, r] of Object.entries(bron)) {
+          if (!MISSION_GOALS[i] || !r) continue;
+          uit[i] = { best: Number.isFinite(r.best) ? r.best : null, medal: Math.max(0, Math.min(3, r.medal | 0)), runs: r.runs | 0 };
+        }
+        life.missionModes[mode] = uit;
       }
     }
     if (Array.isArray(d.fresh)) life.fresh = d.fresh.filter((id) => life.unlocked[id]);
@@ -341,6 +357,16 @@ function mergeStored() {
     if (r.best != null && (cur.best == null || r.best < cur.best)) cur.best = r.best;
     cur.medal = Math.max(cur.medal, r.medal);
     cur.runs = Math.max(cur.runs, r.runs);
+  }
+  for (const [mode, map] of Object.entries(other.missionModes || {})) {
+    const cur = life.missionModes[mode] || (life.missionModes[mode] = {});
+    for (const [i, r] of Object.entries(map || {})) {
+      const oud = cur[i];
+      if (!oud) { cur[i] = r; continue; }
+      if (r.best != null && (oud.best == null || r.best < oud.best)) oud.best = r.best;
+      oud.medal = Math.max(oud.medal, r.medal);
+      oud.runs = Math.max(oud.runs, r.runs);
+    }
   }
   for (const [id, r] of Object.entries(other.challenges || {})) {
     const cur = life.challenges[id];
@@ -533,7 +559,8 @@ export function isAchievementFresh(id) {
 
 // --- missions ---------------------------------------------------------------
 
-export function getMissionRecord(i) {
+export function getMissionRecord(i, mode = cleanDifficulty(getSettings().difficulty)) {
+  if (mode !== 'standaard') return (life.missionModes[mode] && life.missionModes[mode][i]) || null;
   return life.missions[i] || null;
 }
 
@@ -545,13 +572,16 @@ export const missieKlaarId = (i) => (MISSION_GOALS[i] ? `m${i + 1}_klaar` : null
 // result: { time, medal, extra } - returns what changed for the HUD message.
 export function recordMissionResult(w, i, result) {
   if (!MISSION_GOALS[i]) return null;
-  const prev = life.missions[i] || { best: null, medal: 0, runs: 0 };
+  // #800: een missie in een andere stand schrijft in zijn eigen record en laat de standaardstand staan.
+  const mode = cleanDifficulty(getSettings().difficulty);
+  const map = mode === 'standaard' ? life.missions : (life.missionModes[mode] || (life.missionModes[mode] = {}));
+  const prev = map[i] || { best: null, medal: 0, runs: 0 };
   const rec = { ...prev, runs: prev.runs + 1 };
   const newBest = rec.best == null || result.time < rec.best;
   if (newBest) rec.best = Math.round(result.time * 10) / 10;
   const newMedal = result.medal > rec.medal;
   if (newMedal) rec.medal = result.medal;
-  life.missions[i] = rec;
+  map[i] = rec;
   markDirty(true);
   const n = i + 1;
   unlockAchievement(w, `m${n}_klaar`);

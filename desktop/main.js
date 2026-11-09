@@ -51,7 +51,8 @@ const devtools = !app.isPackaged || process.env.GDE_DEV === '1' ? require('./dev
 if (devtools && (devtools.isTestRun || (process.env.GDE_DEV === '1' && process.env.GDE_TEST_PROFILE))) {
   // GDE_TEST_PROFILE picks another throwaway dir, so parallel test runs
   // don't block each other through the single-instance lock
-  app.setPath('userData', path.join(require('os').tmpdir(), process.env.GDE_TEST_PROFILE || 'gde-test-profile'));
+  // een absolute GDE_TEST_PROFILE blijft absoluut (testharnassen in de werkmap; %TEMP% is hier soms niet schrijfbaar)
+  app.setPath('userData', path.isAbsolute(process.env.GDE_TEST_PROFILE || '') ? process.env.GDE_TEST_PROFILE : path.join(require('os').tmpdir(), process.env.GDE_TEST_PROFILE || 'gde-test-profile'));
 } else {
   // saves, settings and prestaties: "GDE Groningen", copied once from the
   // pre-0.29 folder (userdata.js; on any error it keeps using that one)

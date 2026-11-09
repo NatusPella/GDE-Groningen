@@ -20,6 +20,7 @@ import { getPigeonSpotsForRender, drawPigeonMapIcon } from './pigeonspots.js';
 import { getHeliSpotsForRender, drawHeliMapIcon, getHeliRunMarks } from './helirun.js';
 import { getPadelSpotsForRender, drawPadelMapIcon } from './padel.js';
 import { activityMapIcons, drawActivityMapIcon } from './activities.js';
+import { isAreaHidden } from './explorationlive.js';
 import { getPostgameSpotsForRender, drawPostgameMapIcon } from './postgame.js';
 import { getStationsForRender, drawStationMapIcon } from './stationtravel.js';
 import { getSideJobSpotsForRender, drawSideJobMapIcon, JOB_TARGET_COLOR } from './sidejobs.js';
@@ -2423,7 +2424,8 @@ function drawMinimapPois(ctx, world, job, placed, inRange, toScreen, t) {
   if (!inVehicle) add('duif', getPigeonSpotsForRender(), 'pigeon', 1);
   add('heli', getHeliSpotsForRender(), 'heli', 1, MM_POI_FAR_M);
   add('padel', getPadelSpotsForRender(), 'padel', 1, MM_POI_FAR_M);
-  for (const a of activityMapIcons(world)) add(a.layer, [a], a.kind, 1, MM_POI_FAR_M);
+  // #825: een onbekende streek toont ook op de minikaart geen activiteiten-iconen
+  for (const a of activityMapIcons(world)) if (!isAreaHidden(a.x, a.y)) add(a.layer, [a], a.kind, 1, MM_POI_FAR_M);
   add('postgame', getPostgameSpotsForRender(), (q) => 'pg-' + q.kind, 2, MM_POI_FAR_M);
   add('horeca', getHorecaForRender(), 'horeca', 1);
   add('landmark', world.map.meta.landmarks || [], 'landmark', 2);

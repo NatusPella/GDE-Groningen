@@ -86,6 +86,9 @@ export const BASE_KEYS = {
   boerderij: 'gde-boerderij-v1',
   // what this player did per wijk, plaats and streek (gebieden.js, #414): new, no legacy name, never part of a savegame
   gebieden: 'gde-gebieden-v1',
+  // what this player has discovered of the province (verkenpunten.js/explorationlive.js, #825): per player,
+  // never part of a savegame, no network message; a guest has his own
+  exploration: 'gde-verkenning-v1',
 };
 
 export const KEYS = Object.fromEntries(Object.entries(BASE_KEYS).map(([k, v]) => [k, ARC_KEYS.includes(k) ? v + ARC_SUFFIX : v]));

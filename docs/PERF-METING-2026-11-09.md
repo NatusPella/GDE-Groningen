@@ -186,6 +186,43 @@ schaduwen aan, geen bloom) of Vlot met **resolutie 75%**; **Laag** (geen
 schaduwen, 75%) is de zuinigste stand. Meet daarna op de Mac zelf met de
 hitchprobe (`--hitch --preset=preset:vlot`) om te bevestigen.
 
+## Vervolg: `populate` was een meetartefact (#804, meting 9-11 namiddag)
+
+De top-5 na de road-cap noemde `populate` (300-600 ms). Bij het openleggen van
+die sectie met submarks (`pop-traffic`, `pop-bikes`, `pop-bus`, `pop-scooters`,
+`pop-motors`, `pop-boats`, `pop-peds`) bleek dat een **meetfout**: de mark
+`probe.mark('populate')` stond aan het eind van `updateGameplay`, maar de vorige
+mark (`hud`) valt in `frameBody` **na** die functie. De sectie met de naam
+`populate` mat dus het einde van de vorige frame (render + GPU-wacht), niet de
+populatielus. Bewijs: in dezelfde run waren de echte populatie-submarks pieken
+van 34 ms (pop-bus), 21 ms (pop-bikes) en 44 ms (pop-traffic); de 300-600 ms zat
+in de lege "populate"-sectie.
+
+Gerepareerd (met test): een `probe.mark('frame')` direct na `probe.begin` geeft
+het frame-gat een eigen naam, en `probe.mark('populate-pre')` opent de
+populatielus. `scripts/hitchmarks_test.mjs` bewaakt de volgorde. Correcte
+meting daarna (a7/spoor, 12 s, hoog):
+
+| route | gem. ms | p95 | p99 | max | >50 | >100 |
+|---|---:|---:|---:|---:|---:|---:|
+| a7 | 24,3 | 50 | 250 | 833 | 92 | 38 |
+| spoor | 37,5 | 66,7 | 117 | 933 | 167 | 17 |
+
+Echte top-5 (pieken, a7 / spoor): `3d:roads` 398 / 336 ms, `traffic` 274 / 105,
+`cityprops` 235 / —, `3d:render:hoofdpas+post` 67 / 33 (a7) en 5,5 ms gemiddeld
+op spoor, `peds` 45 / 97; de populatielus zelf blijft onder 35 ms. De gemiddelde
+`frame`-sectie (19,8 / 33,5 ms) is het gat tussen frames (GPU/vsync-wacht), geen
+CPU-werk. `norm_check`: nog steeds 0/2 routes binnen de norm (p95 <= 25,
+max <= 100), dus de norm blijft het doel.
+
+Volgende demper volgens deze meting: de **eerste zware/koude wegen** (roads-piek
+~400 ms, zie ook de heli), daarna de **traffic-burst** (274 ms: veel nieuwe
+voertuigen die in één frame hun pad opbouwen) en **cityprops** (235 ms: één
+dichte cel bouwt in één keer). Die drie zijn niet zonder nieuwe meting
+aangepast; de road-cap en de populatie-verdenking zijn nu wel correct gemeten.
+De submarks blijven in de build staan zodat de volgende run dezelfde indeling
+houdt.
+
 ## Reproduceren
 
 ```

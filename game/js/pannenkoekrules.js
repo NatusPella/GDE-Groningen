@@ -14,8 +14,10 @@ export const TOPPINGS = [
   { id: 'kaas', name: 'kaas' },
 ];
 export const POINTS = { serve: 60, fast: 25, golden: 15, leave: -20, burnt: -10, raw: -5 };
+import { scaleTarget } from './difficulty.js';
 export const MEDAL_AT = [400, 700, 1000];
-export const pannenkoekMedal = (p) => medalFrom(p, MEDAL_AT);
+export const scaledMedalAt = (mode = 'standaard') => MEDAL_AT.map((v) => Math.round(scaleTarget(v, mode, false))); // #800
+export const pannenkoekMedal = (p, mode = 'standaard') => medalFrom(p, scaledMedalAt(mode));
 
 export function createPan(rand) {
   return {

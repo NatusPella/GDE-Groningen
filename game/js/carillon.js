@@ -1,5 +1,7 @@
 import { hoofdspeler } from './players.js';
 import { volgendeTredeRij } from './medalrules.js';
+import { getSettings } from './settings.js';
+import { cleanDifficulty, difficultyRecordKey, scaleTimeLimit } from './difficulty.js'; // #800: stand en records per stand
 import { showBanner } from './cinematics.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, setStatMax, MEDALS } from './achievements.js';
 import { showCard } from './hudcards.js';
@@ -7,7 +9,7 @@ import { standActivity, recLine } from './standactivity.js';
 import { createBoard, mgThema, key, bubble, clearBubbles, pick, stopPressed } from './minigamekit.js';
 import { CARILLON_LINES } from './minigamelines3.js';
 import { pushAudioEvent } from './pedgeom.js';
-import { TOWER, CARILLON_STAND, BELL_KEYS, BELL_NAMES, TUNES, CARILLON, MEDAL_AT, createCarillon, stepCarillon, bellHz, carillonMedal, accuracy } from './carillonrules.js';
+import { TOWER, CARILLON_STAND, BELL_KEYS, BELL_NAMES, TUNES, CARILLON, MEDAL_AT, scaledMedalAt, createCarillon, stepCarillon, bellHz, carillonMedal, accuracy } from './carillonrules.js';
 
 // Carillon in de Martinitoren: at the foot of the tower on the Grote Markt the
 // carillonneur lets you play the bells. Pick a tune with Q/E, press Spatie, then
@@ -43,8 +45,9 @@ function end(w, { quit = false } = {}) {
   clearBubbles(w, 'carillon');
   if (quit) { w.addMessage('Klokkenspel gestopt', 2.5); return; }
   const s = g.s;
-  const medal = carillonMedal(s);
-  const rid = 'carillon-' + s.tune.id;
+  const mode = cleanDifficulty(getSettings().difficulty);
+  const medal = carillonMedal(s, mode);
+  const rid = difficultyRecordKey(mode, 'carillon-' + s.tune.id);
   const rec = recordChallengeResult(w, rid, { value: s.score, medal });
   recordStat(w, 'carillonTunes');
   setStatMax(w, 'carillonBest', s.score);
@@ -53,7 +56,7 @@ function end(w, { quit = false } = {}) {
   const pct = Math.round(accuracy(s) * 100);
   const stats = [['Deuntje', s.tune.name], ['Score', s.score.toLocaleString('nl-NL')], ['Nauwkeurig', `${pct}%`], ['Langste reeks', String(s.bestCombo)]];
   if (medal) stats.push(['Medaille', MEDALS[medal]]);
-  volgendeTredeRij(stats, MEDAL_AT.map((grens) => grens * 100), accuracy(s) * 100, { medal, eenheidAchter: '%' });
+  volgendeTredeRij(stats, scaledMedalAt(mode), accuracy(s) * 100, { medal, eenheidAchter: '%' });
   if (rec && rec.newBest) stats.push(['Record', 'Nieuw!']);
   showBanner({ kind: medal ? 'pass' : 'fail', title: medal >= 3 ? 'STADSBEIERAARD' : medal ? 'MOOI GESPEELD' : 'NOG EEN KEER', reason: medal ? `${s.tune.name} over de Grote Markt` : 'Let op de lichtgevende klok en sla op de tel', reward: 0, stats });
   say(w, medal >= 2 ? 'endGood' : 'endPoor', 4.5);
@@ -87,7 +90,7 @@ function updateHud() {
   if (!g || !board) return;
   if (g.phase === 'pick') {
     const t = TUNES[g.pick];
-    const r = getChallengeRecord('carillon-' + t.id);
+    const r = getChallengeRecord(difficultyRecordKey(cleanDifficulty(getSettings().difficulty), 'carillon-' + t.id));
     board.set({ row: `<span>Deuntje <b>${t.name}</b></span><span>${r && r.best != null ? 'Record ' + Math.round(r.best) : 'Nog geen record'}</span>`, flash: '', help: `${key('Q')}${key('E')} kiezen · ${key('SPATIE')} spelen · ${key('BACKSPACE')} stoppen` });
     return;
   }
@@ -123,7 +126,7 @@ function start(w) {
 }
 
 function recText() {
-  const rs = TUNES.map((t) => recLine(getChallengeRecord('carillon-' + t.id), (v) => `${Math.round(v)} punten`, MEDALS)).filter(Boolean);
+  const rs = TUNES.map((t) => recLine(getChallengeRecord(difficultyRecordKey(cleanDifficulty(getSettings().difficulty), 'carillon-' + t.id)), (v) => `${Math.round(v)} punten`, MEDALS)).filter(Boolean);
   return rs.length ? rs[0] : null;
 }
 

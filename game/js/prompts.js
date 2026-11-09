@@ -37,6 +37,7 @@ import { WEAPONS, isMeleeWeapon, isRangedWeapon } from './combat.js';
 import { gameBusy } from './busy.js';
 import { aaiPrompt } from './aaien.js';
 import { kaartjesPrompt } from './kaartjescontrole.js';
+import { viewpointPrompt } from './explorationlive.js';
 import { makePromptClock } from './prompttick.js';
 
 const USES_KEY = KEYS.hintUses;
@@ -447,7 +448,8 @@ function findPrimary(world) {
   // aan de kant bij water en niets anders te doen: hengelen (#412)
   const vis = hengelVrijPrompt(world, false);
   if (vis) return vis;
-  return null;
+  // #825: helemaal onderaan, want de E-actie van een uitkijkpunt loopt in de wereld ook als laatste
+  return viewpointPrompt(world);
 }
 
 function inFront(world, x, y, f) {
@@ -559,14 +561,24 @@ function placeWp(slot, c, primary, hold = null) {
     slot.w = 0;
   }
   slot.el.classList.toggle('dim', !!c.dim);
-  if (!slot.w) slot.w = slot.chip.offsetWidth + 40;
+  // #826: de breedte elke keer meten; een chip die later een langer label krijgt moet ook binnen blijven.
+  slot.w = slot.chip.offsetWidth + 40;
   // screen px -> px inside the zoomed #hud
   const ui = getUiScale();
   const w = slot.w * ui;
-  const flip = slot.el.classList.contains('flip');
-  if (!flip && pos.sx + w > window.innerWidth - 12 * ui) slot.el.classList.add('flip');
-  else if (flip && pos.sx + w < window.innerWidth - 60 * ui) slot.el.classList.remove('flip');
-  slot.el.style.transform = `translate3d(${(pos.sx / ui).toFixed(1)}px, ${(pos.sy / ui).toFixed(1)}px, 0)`;
+  // #826: flip alleen als de chip links écht past; anders blijft hij rechts en klemt de ouder hem binnen.
+  const roomLeft = pos.sx - 26 * ui - w;
+  const useFlip = roomLeft >= 8 * ui;
+  slot.el.classList.toggle('flip', useFlip);
+  const cx = useFlip ? pos.sx : Math.max(8 * ui, Math.min(window.innerWidth - w - 60 * ui, pos.sx));
+  const cy = Math.max(8 * ui, Math.min(window.innerHeight - 24 * ui, pos.sy));
+  slot.el.style.transform = `translate3d(${(cx / ui).toFixed(1)}px, ${(cy / ui).toFixed(1)}px, 0)`;
+  // #826: de bovenstaande marge is een model; meet de echte chip en schuif hem alsnog binnen
+  // het scherm (portret, korte labels, ui-schaal).
+  const cr = slot.chip.getBoundingClientRect();
+  const over = cr.right - (window.innerWidth - 4);
+  if (over > 0) slot.el.style.transform = `translate3d(${((cx - over) / ui).toFixed(1)}px, ${(cy / ui).toFixed(1)}px, 0)`;
+  else if (cr.left < 4) slot.el.style.transform = `translate3d(${((cx + 4 - cr.left) / ui).toFixed(1)}px, ${(cy / ui).toFixed(1)}px, 0)`;
   if (!slot.shown) {
     slot.shown = true;
     void slot.el.offsetWidth;
@@ -596,6 +608,16 @@ function renderWorldPrompts(world, primary) {
   // only the nearest interaction: no place labels next to an E prompt
   const sec = primary ? [] : secondary;
   for (let i = 0; i < MAX_SECONDARY; i++) placeWp(wps[i + 1], sec[i] || null, false);
+  // #826: laatste vangnet — meet de echte chip en schuif hem met de CSS-translate binnen
+  // het scherm. De modelmatige marge in placeWp kent niet elke ui-schaal/labelcombinatie.
+  const ui = getUiScale();
+  for (const s of wps) {
+    if (!s.el.classList.contains('in')) { s.chip.style.translate = ''; continue; }
+    s.chip.style.translate = '';
+    const r = s.chip.getBoundingClientRect();
+    const dx = r.right > window.innerWidth - 4 ? window.innerWidth - 4 - r.right : r.left < 4 ? 4 - r.left : 0;
+    s.chip.style.translate = dx ? `${(dx / ui).toFixed(1)}px 0` : '';
+  }
 }
 
 // --- compact context stack (bottom right) -----------------------------------

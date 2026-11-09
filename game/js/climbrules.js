@@ -11,7 +11,9 @@ export const WALL = { height: 12, halfWidth: 1.6, rowGap: 0.6, reachT: 0.7, reac
 export const ARMS = { both: 0.065, one: 0.16, rest: 0.07, chalk: 0.35, fallBelow: 0 };
 // seconds to the top: bronze, silver, gold
 export const MEDAL_AT = [80, 48, 30];
-export const climbMedal = (t) => (!Number.isFinite(t) ? 0 : t <= MEDAL_AT[2] ? 3 : t <= MEDAL_AT[1] ? 2 : t <= MEDAL_AT[0] ? 1 : 0);
+import { scaleTarget } from './difficulty.js'; // #800
+export const scaledMedalAt = (mode = 'standaard') => MEDAL_AT.map((v) => Math.round(scaleTarget(v, mode, true)));
+export const climbMedal = (t, mode = 'standaard') => { const at = scaledMedalAt(mode); return !Number.isFinite(t) ? 0 : t <= at[2] ? 3 : t <= at[1] ? 2 : t <= at[0] ? 1 : 0; };
 
 const COLORS = [0xe8523a, 0xf0c030, 0x3a8fe0, 0x6cc070, 0xc060d0, 0xf08a30];
 

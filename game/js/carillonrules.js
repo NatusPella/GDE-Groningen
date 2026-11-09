@@ -22,6 +22,10 @@ export const CARILLON = {
 };
 // accuracy share: bronze, silver, gold
 export const MEDAL_AT = [0.5, 0.75, 0.92];
+// #800: de stand schaalt de medailledrempels; Standaard geeft exact de oude waarden.
+import { scaleTarget } from './difficulty.js';
+export const scaledMedalAt = (mode = 'standaard') => MEDAL_AT.map((v) => Math.round(scaleTarget(v, mode, false) * 1000) / 1000);
+
 
 // [bell 0..7, length in beats]
 const seq = (s) => s.split(' ').map((p) => { const [b, l] = p.split(':'); return [Number(b), l ? Number(l) : 1]; });
@@ -90,7 +94,7 @@ export function stepCarillon(st, presses, dt) {
 export function accuracy(st) {
   return (st.perfect + st.good * 0.6 + st.late * 0.25) / st.notes.length;
 }
-export const carillonMedal = (st) => medalFrom(accuracy(st) - st.wrong * 0.005, MEDAL_AT);
+export const carillonMedal = (st, mode = 'standaard') => medalFrom(accuracy(st) - st.wrong * 0.005, scaledMedalAt(mode));
 
 // A bot that plays the tune with a given skill 0..1 (for the test).
 export function botPresses(st, skill, rng) {
