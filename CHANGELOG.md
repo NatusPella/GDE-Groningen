@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+## [0.60.3] - 2026-11-09
+
 - **Mobiel: de contextchip blijft op 360×800 binnen het scherm, en de mobiele meting telt verborgen screenreadertekst (`.hud-mate-txt`) niet meer als kleine HUD-tekst (#826, regressiecontrole 0.60.2).**
 - **De spellus vraagt het volgende beeld nu vóór het werk van dit beeld aan (#804).** Een lange staart of een fout in de staart kan de cadans daardoor niet meer laten stoppen; de perf-meting geeft voortaan ook de frame-emmers en de CPU-druk per beeld mee, zodat een volgende meting wachten van werk kan scheiden.
 - **De startkaart noemt de medaille-eisen nu per moeilijkheidsstand, uit dezelfde schaalbron als het spel (#800).** Op Ontspannen en Uitdagend staan de eisen die de activiteit echt vraagt (punten, seconden, kilo's en procenten, met dezelfde afronding); Standaard blijft exact de oude tekst en de hoverregel/Te-doen gebruiken dezelfde bron.
