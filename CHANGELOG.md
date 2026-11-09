@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+## [0.60.0] - 2026-11-09
+
 - **De stad wordt bij het starten gestreamd in plaats van in één keer opgebouwd.** De productiewereld is weer sparse; de benchmark op een schone machine zakt daardoor van 3,5 naar 2,9 GB JS-heap en wint enkele fps, terwijl de tests een dichte kaart blijven gebruiken.
 - **Minder lange frame-hitches als de ring en viaducten binnenstromen (#804).** De wegopbouw is per frame gecapt (4 wegen, 8 tijdens streamen) en respecteert de tijdslimiet ook voor koude wegen; de road-piek in de hitchprobe daalde van 0,9-1,7 s naar 0,27-0,84 s.
 - **Samen spelen legt 1+1=3 uit vóór de start (#811).** In de wachtkamer en op de startkaart staat één regel: elke extra speler geeft alle spelers 50% meer loon, tot 3×; de bedragen zijn ongewijzigd.
