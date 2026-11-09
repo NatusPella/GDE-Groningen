@@ -163,11 +163,11 @@ function junctionBoards(roads, towns, add, blocked, inTile) {
   }
 }
 
-export function placeSignItems({ roads = [], towns = [], inTile = () => true, blocked = null }) {
+export function placeSignItems({ roads = [], towns = [], boardTowns = towns, inTile = () => true, blocked = null }) {
   const out = [];
   if (!towns.length) return out;
   const add = (it) => { if (inTile(it.x, it.y)) out.push(it); };
-  placeBoards(roads, towns, add, blocked);
+  placeBoards(roads, boardTowns, add, blocked);
   junctionBoards(roads, towns, add, blocked, inTile);
   return out;
 }
