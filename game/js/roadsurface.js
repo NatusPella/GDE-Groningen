@@ -434,6 +434,13 @@ function netState(map) {
     netBuild = { map, geoVer: ver, roads: gridItems(map.roadGrid), k: 0, nodeIndex: new Map() };
   }
   const B = netBuild;
+  // Tijdens een tegelburst (de openingsfilm springt van wijk naar wijk) worden
+  // veel wegdeksels in één frame gebouwd; elke aanroep vulde dan meteen 1200
+  // wegen en fillNodes liep op tot honderden ms (#4). Ten hoogste één blok per
+  // frame: de oude knooppuntindex blijft intussen bruikbaar.
+  const nu = performance.now();
+  if (B.last && nu - B.last < 8) return s;
+  B.last = nu;
   fillNodes(B.nodeIndex, B.roads, B.k, Math.min(B.roads.length, B.k + NET_CHUNK));
   B.k = Math.min(B.roads.length, B.k + NET_CHUNK);
   if (B.k >= B.roads.length) {
