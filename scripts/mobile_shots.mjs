@@ -17,7 +17,9 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const arg = (n, d) => { const a = process.argv.find((x) => x.startsWith('--' + n + '=')); return a ? a.slice(n.length + 3) : d; };
-const out = path.resolve(arg('out', path.join(os.tmpdir(), 'gde-mobile-shots')));
+// Binnen de werkboom schrijven: de Electron-testprocessen mogen in deze omgeving niet naar een
+// willekeurige temp-map schrijven (EPERM). desktop/.shots staat in .gitignore.
+const out = path.resolve(arg('out', path.join(root, 'desktop', '.shots')));
 // phone 360x800, large phone 412x915, iPhone 390x844, tablet 820x1180; each landscape and portrait
 const DEFAULT = '800x360,360x800,915x412,412x915,844x390,390x844,1180x820,820x1180';
 const devices = arg('devices', DEFAULT).split(',');
