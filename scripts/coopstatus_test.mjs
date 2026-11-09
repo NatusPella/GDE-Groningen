@@ -60,14 +60,18 @@ t('elke bijbaan uit de code heeft een status; de coöp-bijbanen en de bus werken
   // #492: de vrachtbijbaan werkt samen met een bijrijder; de status volgt de regel in coopbijbaan.js
   assert.equal(BIJBAAN_REGELS.vracht.rol, 'bijrijder');
   assert.equal(S.samenStatus('bijbaan', 'vracht'), 'werkt');
-  for (const id of ['boerderij', 'rondvaarttour', 'boa']) assert.equal(S.samenStatus('bijbaan', id), 'nee', id);
+  for (const id of ['boerderij', 'boa']) assert.equal(S.samenStatus('bijbaan', id), 'nee', id);
+  // #819: de ontspannen rondvaart is een passagiersrol en werkt samen
+  assert.equal(S.samenStatus('bijbaan', 'rondvaarttour'), 'werkt');
+  assert.equal(BIJBAAN_REGELS.rondvaarttour.rol, 'passagier');
+  assert.ok(S.samenKan().includes('de ontspannen rondvaart'));
   // #683: de drie nieuwe banen hebben een eigen helper-rol en staan op werkt
   for (const [id, rol] of [['rondvaart', 'passagier'], ['veerdienst', 'passagier'], ['rechtbank', 'tweede jurylid']]) {
     assert.equal(S.samenStatus('bijbaan', id), 'werkt', id);
     assert.equal(BIJBAAN_REGELS[id].rol, rol, id + ': rol');
     assert.ok(BIJBAAN_REGELS[id].hulp.length > 20, id + ': hulp');
   }
-  assert.ok(S.samenKan().includes('de rondvaart') && S.samenKan().includes('de veerdienst') && S.samenKan().includes('de rechtbank'));
+  assert.ok(S.samenKan().includes('de rondvaart') && S.samenKan().includes('de ontspannen rondvaart') && S.samenKan().includes('de veerdienst') && S.samenKan().includes('de rechtbank'));
   for (const [id, st] of Object.entries(S.REGISTER.bijbaan)) if (st === 'werkt') assert.ok(id in BIJBAAN_REGELS || id === 'bus', 'werkt zonder coöp-regel: ' + id);
 });
 

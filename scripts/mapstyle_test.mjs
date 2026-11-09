@@ -183,5 +183,17 @@ ok(!/EMPHASIS\.forbidden/.test(mvCode + hudCode), 'en tekenen de rode streeplijn
 ok(!/forbidden/.test(stripComments(src('game/js/mapstyle.js'))), 'de kleur van de streeplijn is uit de stijl (#594)');
 ok(/fiets: 'Fietspaden lichten op\.'/.test(mvCode) && /lucht: 'Oriëntatiepunten\.'/.test(mvCode) && !/lopen: '/.test(mvCode), 'de legenda houdt de reismodi zonder de "niet voor jou"-regel (#594)');
 
+// --- #815: een langere hoverregel wikkelt op woordgrenzen -------------------------
+// De hover van een activiteit noemt doel, bronzen eis en beloning; die regel is langer dan
+// een plaatsnaam. De tooltip wikkelt daarom, maar breekt geen woorden af.
+const tipCss = /\.mapview-tooltip \{([\s\S]*?)\}/.exec(mv);
+ok(!!tipCss, 'de tooltipstijl staat in mapview.js');
+if (tipCss) {
+  ok(/max-width:/.test(tipCss[1]), 'de tooltip heeft een maximale breedte (#815)');
+  ok(/white-space: normal/.test(tipCss[1]), 'lange hoverregels wikkelen in plaats van af te knippen (#815)');
+  ok(/overflow-wrap: normal/.test(tipCss[1]), 'en breken niet midden in een woord (#815)');
+  ok(!/white-space: nowrap/.test(tipCss[1]), 'geen nowrap meer voor de hoverregel (#815)');
+}
+
 console.log(fails ? `${fails} of ${n} FAILED` : `ok: ${n} checks`);
 process.exit(fails ? 1 : 0);

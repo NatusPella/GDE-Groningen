@@ -29,6 +29,6 @@ ok(!/let pubStaticSig = ''/.test(src), 'de modulebrede statische sleutel van #65
   sync(nieuw, k0); // boot-load: nieuwe pub, zelfde index/phase/waypointstand
   ok(builds === 2, '#789: een nieuwe pub met dezelfde stand bouwt de statische laag toch op', String(builds));
 }
-ok(/if \(staticDue\) \{\n    pub\.remainingWaypoints/.test(src), 'remainingWaypoints alleen bij een wissel');
+ok(/if \(staticDue\) \{\r?\n    pub\.remainingWaypoints/.test(src), 'remainingWaypoints alleen bij een wissel');
 console.log(`${n - fails}/${n} pubstatic`);
 process.exit(fails ? 1 : 0);

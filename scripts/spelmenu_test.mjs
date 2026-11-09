@@ -27,9 +27,9 @@ const VOOR = ['preset', 'resolution', 'autoResolution', 'zuinig', 'shadows', 'dr
   'subtitleSize', 'subtitleBox', 'soundCaptions', 'fov', 'cameraDistance', 'mouseSensitivity', 'invertY', 'autoAim', 'padLayout', 'padLookSensitivity', 'rumble', 'hudMode',
   'showMinimap', 'mapShiftTeleport', 'minimapZoom', 'minimapNorth', 'showHints', 'hintSource', 'touchControls', 'onboardingTips', 'showFog', 'cinematicMoments',
   'drunkFx', 'ruzie', 'shiftMode', 'speedFeel', 'driftAssist', 'bikeAssist', 'gore', 'colorBlind', 'uiScale', 'textSize', 'subtitleContrast', 'reduceMotion', 'reduceFlash',
-  'helpTime', 'helpDamage', 'helpGates', 'helpOffer', 'liveBussen', 'stapAnimatie', 'steerSensitivity', 'screenNarration', 'readingTime'];   // liveBussen (#395)/stapAnimatie (#459); #801/#802: stuurgevoeligheid, schermnarratie, leestijd
+  'helpTime', 'helpDamage', 'helpGates', 'helpOffer', 'liveBussen', 'stapAnimatie', 'steerSensitivity', 'screenNarration', 'readingTime', 'difficulty'];   // liveBussen (#395)/stapAnimatie (#459); #801/#802: stuurgevoeligheid, schermnarratie, leestijd
 const NU = [...settingsKeys, ...spelKeys];
-ok(VOOR.length === 56, 'de lijst van vóór de wijziging heeft 56 opties (53 + #801/#802: stuurgevoeligheid, schermnarratie, leestijd)');
+ok(VOOR.length === 57, 'de lijst van vóór de wijziging heeft 57 opties (53 + #801/#802: stuurgevoeligheid, schermnarratie, leestijd; #800: moeilijkheid)');
 ok(VOOR.filter((k) => k !== 'preset').every((k) => NU.includes(k)), 'geen optie verloren', VOOR.filter((k) => k !== 'preset' && !NU.includes(k)).join(', '));
 ok(NU.every((k) => VOOR.includes(k)), 'geen optie erbij die geen instelling is', NU.filter((k) => !VOOR.includes(k)).join(', '));
 ok(new Set(NU).size === NU.length, 'elke optie staat op één plek', NU.filter((k, i) => NU.indexOf(k) !== i).join(', '));

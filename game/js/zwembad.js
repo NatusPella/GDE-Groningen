@@ -1,4 +1,5 @@
 import { hoofdspeler } from './players.js';
+import { volgendeTredeRij } from './medalrules.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { canvasTex } from './canvastex.js';
 import { getScene } from './scene3d.js';
@@ -242,6 +243,7 @@ function end(w, { quit = false } = {}) {
   if (s.flips >= 3) unlockAchievement(w, 'zwem_keer');
   const stats = [['Tijd', fmtTime(time)], ['Keerpunten', `${s.flips}/${s.turns} perfect`], ['Slagen', String(s.strokes)]];
   if (medal) stats.push(['Medaille', MEDALS[medal]]);
+  volgendeTredeRij(stats, MEDAL_AT, time, { medal, lager: true, klok: true });
   if (rec && rec.newBest) stats.push(['Record', 'Nieuw!']);
   showBanner({ kind: medal ? 'pass' : 'fail', title: medal >= 3 ? 'SNELSTE VAN HET ZWEMBAD' : medal ? 'MOOIE BANEN' : 'DROOG DOEKJE?', reason: medal ? `Honderd meter in ${fmtTime(time)}` : 'Houd een rustig ritme: A, D, A, D, ongeveer twee slagen per seconde', reward: 0, stats });
   say(w, medal >= 2 ? 'endGood' : 'endPoor', true, true);

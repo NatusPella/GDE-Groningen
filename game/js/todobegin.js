@@ -1,0 +1,20 @@
+// #813: de selectie voor "Begin hier" in Te doen. Puur, zodat de UI-glue
+// (todoui.js) niet nodig is om hem te testen.
+export function beginHierItems(items, speler, aantal = 3) {
+  const p = speler || { x: 0, y: 0 };
+  const seen = new Set();
+  const out = (Array.isArray(items) ? items : [])
+    .filter((it) => it && it.goal && it.status !== 'klaar' && Number.isFinite(it.dist))
+    .sort((a, b) => (a.dist ?? Infinity) - (b.dist ?? Infinity))
+    .filter((it) => {
+      if (seen.has(it.key)) return false;
+      seen.add(it.key);
+      return true;
+    });
+  if (!Number.isFinite(aantal)) return out;
+  return out.slice(0, Math.max(0, aantal | 0));
+}
+
+export function beginHierCount(items, speler) {
+  return beginHierItems(items, speler, Infinity).length;
+}

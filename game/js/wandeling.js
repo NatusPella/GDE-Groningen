@@ -1,4 +1,5 @@
 import { showBanner } from './cinematics.js';
+import { volgendeTredeRij } from './medalrules.js';
 import { toonStartkaart } from './startkaart.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, setStatMax, MEDALS } from './achievements.js';
 import { showCard } from './hudcards.js';
@@ -51,6 +52,7 @@ function finish(w, { quit = false } = {}) {
   if (medal >= 3) unlockAchievement(w, 'wandel_goud');
   const stats = [['Tijd', fmtTime(s.t)], ['Afstand', `${(s.dist / 1000).toFixed(1).replace('.', ',')} km`], ['Tempo', `${averagePace(s).toFixed(1).replace('.', ',')} m/s`], ['Stempels', `${s.stamps.length}/${s.pts.length}`]];
   if (medal) stats.push(['Medaille', MEDALS[medal]]);
+  volgendeTredeRij(stats, PACE_MEDAL_AT, averagePace(s), { medal, eenheid: 'm/s', decimalen: 1 });
   if (rec && rec.newBest) stats.push(['Record', 'Nieuw!']);
   showBanner({ kind: medal ? 'pass' : 'fail', title: medal >= 3 ? 'SNELSTE WANDELAAR' : 'ALLE STEMPELS', reason: medal ? 'Gewandeld langs de dijk bij Winsum' : 'Loop een stuk sneller voor een medaille', reward: 0, stats });
   say(w, medal >= 2 ? 'endGood' : 'endPoor', 4.5);

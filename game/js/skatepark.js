@@ -1,5 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { toonStartkaart } from './startkaart.js';
+import { getSettings } from './settings.js';
+import { difficultyRecordKey, cleanDifficulty } from './difficulty.js'; // #800: stand en records per stand
 import { getScene } from './scene3d.js';
 import { signBothSides } from './canvastex.js';
 import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
@@ -16,7 +18,7 @@ import { skateFx, pushFoley } from './sfx/minigamefoley.js';
 import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHostPunt, wedGastPunt, wedScoreStop, wedGastVerlaat, wedGastReset, wedScoreRijen } from './multiplayerwedstrijd.js';
 import { maakBeurten, beurtKlaar, beurtNu, somVan } from './coopwedstrijdpunt.js';
 import {
-  FEATURES, PARK, RUN_S, MEDAL_AT, SKATE, createBoard as createBoardState, createCombo, stepBoard, scoreEvents, tickCombo, bankCombo, skateMedal, TRICK_NAMES,
+  FEATURES, PARK, RUN_S, MEDAL_AT, SKATE, createBoard as createBoardState, createCombo, stepBoard, scoreEvents, tickCombo, bankCombo, skateMedal, runSeconds, medalAt, TRICK_NAMES,
 } from './skatetricks.js';
 import { hoofdspeler } from './players.js';
 import { startSkatefiets } from './skatefiets.js';
@@ -224,7 +226,8 @@ function nearStand(w) {
 }
 
 function recText() {
-  const rec = getChallengeRecord('skatepark');
+  const mode = cleanDifficulty(getSettings().difficulty);
+  const rec = getChallengeRecord(difficultyRecordKey(mode, 'skatepark'));
   return rec && rec.best != null ? `Record: ${Math.round(rec.best).toLocaleString('nl-NL')} punten${rec.medal ? ' · ' + MEDALS[rec.medal].toLowerCase() : ''}` : null;
 }
 
@@ -270,8 +273,11 @@ function start(w, { force = false, online = null } = {}) {
   built.bd.visible = true;
   built.skater.visible = true;
   runs++;
-  const beurten = online ? maakBeurten(WED_RUNS) : null, runS = online ? WED_RUN_S : RUN_S;
-  game = { t: 0, phase: 'intro', phaseT: INTRO_S, left: runS, runS, beurten, b, combo: createCombo(), flash: null, cam: null, said: 0, lastNames: '', bigAir: false, prevCine: w.cinematicHidePlayers, online };
+  // #800: de stand van dit spel bepaalt de ronde en de medailledrempels; standaard = 90 s en de oude drempels.
+  const mode = cleanDifficulty(getSettings().difficulty);
+  const runS = online ? Math.round(runSeconds(mode) / WED_RUNS) : runSeconds(mode);
+  const beurten = online ? maakBeurten(WED_RUNS) : null;
+  game = { t: 0, phase: 'intro', phaseT: INTRO_S, left: runS, runS, beurten, b, combo: createCombo(), flash: null, cam: null, said: 0, lastNames: '', bigAir: false, prevCine: w.cinematicHidePlayers, online, mode };
   place(w, 0);
   const side = FR.toW(-PARK.hu - 2, PARK.hv + 1);
   w.companionHold = { x: side.x, y: side.y, face: ROT };
@@ -426,19 +432,20 @@ function end(w, { quit = false, extern = false, uitslag = null } = {}) {
   }
   if (g.online) { eindeOnline(w, g, quit, extern, uitslag); return; }
   if (quit) { w.addMessage('Skatepark gestopt', 2.5); return; }
-  const medal = skateMedal(score);
-  const rec = recordChallengeResult(w, 'skatepark', { value: score, medal });
+  const medal = skateMedal(score, g.mode);
+  const rec = recordChallengeResult(w, difficultyRecordKey(g.mode, 'skatepark'), { value: score, medal });
   recordStat(w, 'skateRuns');
   setStatMax(w, 'skateBestChain', c.best);
   // #673: de combo-run-variant heeft een eigen record en medaille (de beste keten, niet de som)
-  recordChallengeResult(w, 'skatepark-combo', { value: c.best, medal: variantMedal(variantVan('skate-combo'), c.best) });
+  recordChallengeResult(w, difficultyRecordKey(g.mode, 'skatepark-combo'), { value: c.best, medal: variantMedal(variantVan('skate-combo'), c.best) });
   unlockAchievement(w, 'skate_klaar');
   if (medal >= 3) unlockAchievement(w, 'skate_goud');
   if (c.best >= 2000) unlockAchievement(w, 'skate_combo');
   const stats = [['Score', score.toLocaleString('nl-NL')], ['Beste keten', c.best.toLocaleString('nl-NL')], ['Gevallen', String(g.b.bails)], ['Grindtrucs', String(g.b.grinds)]];
   // #672: de medaille met wat de ronde opleverde en de volgende trede.
   if (medal) stats.push(['Medaille', medailleBedrag('activiteit', medal, { geld: 0, xp: 10 }).tekst]);
-  const volgende = volgendeTredeTekst(MEDAL_AT, score);
+  // #672/#816: bij goud geen "Alle drie de medailles gehaald"-regel in de uitslag.
+  const volgende = medal >= 3 ? '' : volgendeTredeTekst(MEDAL_AT, score);
   if (volgende) stats.push(['Volgende', volgende]);
   if (rec && rec.newBest) stats.push(['Record', 'Nieuw!']);
   showBanner({ kind: medal ? 'pass' : 'fail', title: medal >= 3 ? 'KONING VAN HET SKATEPARK' : medal ? 'MOOIE RONDE' : 'NOG EEN RONDE?', reason: medal ? `Beste keten: ${c.best.toLocaleString('nl-NL')} punten` : 'Hou je keten vast: elk nieuw kunstje telt zwaarder', reward: 0, stats });
@@ -572,7 +579,7 @@ export const SKATEPARK = {
   mapSub: () => recText() || 'Skatepark: hellingen, leuningen en kunstjes',
   ubbo(w) {
     const d = Math.hypot(STAND.x - hoofdspeler(w).x, STAND.y - hoofdspeler(w).y);
-    const rec = getChallengeRecord('skatepark');
+    const rec = getChallengeRecord(difficultyRecordKey(cleanDifficulty(getSettings().difficulty), 'skatepark'));
     return { name: 'Skatepark Stadspark', sub: rec && rec.medal ? `record: ${MEDALS[rec.medal].toLowerCase()}` : 'hellingen, leuningen en kunstjes, gratis', dist: d, x: STAND.x, y: STAND.y, play: 'skatepark', where: 'het skatepark in het Stadspark', hint: 'loop naar de ingang en druk E' };
   },
   runs: () => runs,

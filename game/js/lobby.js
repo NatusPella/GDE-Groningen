@@ -21,6 +21,7 @@ import { schoonNaam, filterEnSorteer, leeftijdTekst, leeftijdLang, LIJST, SORTER
 import { PROFIEL_KLEUREN, STANDAARD_KLEUR, isProfielKleur } from './coopidentiteit.js';
 import { EXTRA_CHARS, DEFAULT_MAX, MIN_MAX, ABS_MAX, advies, openerNaam } from './coopplayers.js';
 import { SAMEN_KAN_REGEL } from './coopstatus.js'; // (#684) de positieve "samen kan"-lijst in de wachtkamer
+import { GROEPSBONUS_KORT } from './groepsbonus.js'; // (#811) 1+1=3 vóór de start
 
 export const ROLES = { HOST: 'host', GAST: 'gast' };
 export const ROUTES = { KAMER: 'kamer', DIRECT: 'direct' };
@@ -419,6 +420,7 @@ export function view(s) {
       if (s.openbaar) lines.push(openbaarRegel(s));
       lines.push(wachtwoordRegel());
       lines.push(SAMEN_KAN_REGEL); // (#684) wat kan samen, terwijl je wacht
+      lines.push(GROEPSBONUS_KORT); // (#811) wat samen extra oplevert, vóór de start
       return V({ title: 'Iemand uitnodigen', lines, code: s.code, wachtwoord: wachtwoordVeld(), buttons: [...(s.caps.startGate ? [{ act: 'start-spel', label: 'Spel starten', primary: true, disabled: true }] : []), { act: 'kopieer', label: 'Kopieer', primary: !s.caps.startGate }, ...openbaarKnop(s), { act: 'diag', label: 'Verbinding testen' }, { act: 'terug', label: 'Stoppen' }] });
     }
     case 'gast-typt':
@@ -444,6 +446,7 @@ export function view(s) {
       const tip = advies(lijst.length, host ? 'host' : 'gast'); if (tip) lines.push(tip);
       lines.push(profielTekst(s.profil), PASSIEF_REGEL);
       lines.push(SAMEN_KAN_REGEL); // (#684) de positieve lijst staat ook op het scherm waar je samen speelt
+      lines.push(GROEPSBONUS_KORT); // (#811) dezelfde 1+1=3-uitleg, één keer per scherm
       const buttons = [];
       if (host && s.caps.startGate) { // het spel begint pas met minstens twee spelers en een druk op Spel starten
         const genoeg = lijst.filter((p) => p.verbinding !== 'lost').length >= MIN_SPELERS;

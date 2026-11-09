@@ -61,7 +61,7 @@ t('de stand van een variant leest als record en doel', () => {
 t('de varianten zijn aangesloten op de activiteiten en op Te doen', () => {
   const kart = read('kartbaan.js'), skate = read('skatepark.js'), disc = read('discgolf.js'), todo = read('todo.js');
   assert.match(kart, /variantMedal\(variantVan\('kart-tijdattack'\), lap\)/, 'de kartbaan geeft de tijdattack een medaille');
-  assert.match(skate, /recordChallengeResult\(w, 'skatepark-combo'/, 'het skatepark boekt de combo-run als eigen record');
+  assert.match(skate, /recordChallengeResult\(w, difficultyRecordKey\(g\.mode, 'skatepark-combo'\)/, 'het skatepark boekt de combo-run als eigen record');
   assert.match(skate, /variantMedal\(variantVan\('skate-combo'\)/, 'de combo-run heeft een eigen medaille');
   assert.match(disc, /rec: 'discgolf-achttien'/, 'discgolf had de volle ronde al als eigen record');
   assert.match(todo, /VARIANTEN/, 'Te doen leest de varianten');

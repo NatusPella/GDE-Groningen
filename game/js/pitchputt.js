@@ -1,4 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { volgendeTredeRij } from './medalrules.js';
 import { toonStartkaart } from './startkaart.js';
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
@@ -18,7 +19,7 @@ import { golfRij, krachtTekst, scoreTabel, scoreCel, ensureGolfCss } from './gol
 import { nieuweBeurt, beginBaan, slaan, volgendeBaan, spelerStand, spelerIds, spelerNaam, spelerAantal, uitslag, MAX_SPELERS } from './golfbeurt.js';
 import {
   ppHoles, holesFromWorld, venueLayout, slopeAt, onGreen, inBunker, pitch, putt, straightPower, powerForCarry, finishHole, newCard, cardTotals, courseMedal, holeName, relText,
-  GREEN_R, CUP_R, MAX_OVER_PAR, PITCH_MAX,
+  GREEN_R, CUP_R, MAX_OVER_PAR, PITCH_MAX, MEDAL_REL,
 } from './puttinglogic.js';
 import { hoofdspeler } from './players.js';
 
@@ -558,6 +559,7 @@ function end(w, { quit = false, extern = false, uitslag = null } = {}) {
   const stats = [['Slagen', String(t.strokes)], ['Par', String(t.par)], ['Score', relText(t.rel)]];
   if (g.card.aces) stats.push(['Hole-in-one', String(g.card.aces)]);
   if (medal) stats.push(['Medaille', MEDALS[medal]]);
+  volgendeTredeRij(stats, MEDAL_REL, t.rel, { medal, lager: true, eenheid: 'slagen', eenheid1: 'slag' });
   if (rec && rec.newBest) stats.push(['Record', 'Nieuw!']);
   showBanner({ kind: medal ? 'pass' : 'fail', title: medal >= 3 ? 'ONDER PAR OP DE CONCOURSLAAN' : medal ? 'NETTE RONDE' : 'DE GREEN WON', reason: medal ? `${relText(t.rel)} t.o.v. par over zes banen` : 'Probeer het nog eens: lees de pijltjes op de green', reward: 0, stats });
   say(w, medal >= 2 ? 'endGood' : 'endPoor', true, true);

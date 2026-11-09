@@ -202,6 +202,10 @@ ok(/\n\s+stapAnimatie: true,/.test(src('settings.js')), 'settings.js has the ste
   ok(!('bogus' in st), 'statsFromSave: unknown keys dropped');
   ok(Object.keys(statsFromSave(null)).length === STATS.size && statsFromSave(undefined).kills === 0, 'statsFromSave: no stats at all gives the defaults');
   ok(statsFromSave({ kills: -3 }).kills === 0, 'statsFromSave: negative counter clamps to 0');
+  // #818: de nieuwe Kiekdoar-tellers zijn save-compatibel: aanwezig als de save ze heeft, anders 0
+  const nieuw = statsFromSave({ heistsDone: 4, racesWon: 2 });
+  ok(nieuw.heistsDone === 4 && nieuw.racesWon === 2, 'statsFromSave: heistsDone en racesWon komen uit de save');
+  ok(statsFromSave(null).heistsDone === 0 && statsFromSave(null).racesWon === 0, 'statsFromSave: nieuwe tellers beginnen op 0');
 }
 
 // #212: a position outside the province frame is not placed; a migrated legacy Ommeland one is

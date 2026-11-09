@@ -1,4 +1,5 @@
 import { hoofdspeler } from './players.js';
+import { volgendeTredeRij } from './medalrules.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
@@ -189,6 +190,7 @@ function end(w, { quit = false, extern = false, uitslag = null } = {}) {
     if (s.falls === 0) unlockAchievement(w, 'klim_foutloos');
     const stats = [['Tijd', fmtTime(time)], ['Vallen', String(s.falls)], ['Hoogte', `${WALL.height} m`]];
     if (medal) stats.push(['Medaille', MEDALS[medal]]);
+  volgendeTredeRij(stats, MEDAL_AT, time, { medal, lager: true, klok: true });
     if (rec && rec.newBest) stats.push(['Record', 'Nieuw!']);
     showBanner({ kind: medal ? 'pass' : 'fail', title: medal >= 3 ? 'KONING VAN DE KLIMTOREN' : 'BOVEN!', reason: s.falls ? `Met ${s.falls} ${s.falls === 1 ? 'val' : 'vallen'}, en toch bovenaan` : 'Zonder te vallen naar de top', reward: 0, stats });
     say(w, medal >= 2 ? 'endGood' : 'endPoor', true, true);

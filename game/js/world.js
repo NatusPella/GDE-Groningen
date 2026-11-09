@@ -3,7 +3,7 @@
 // arrays and fields it owns. See ARCHITECTURE.md for the full contract.
 import { START_MONEY } from './economy.js';
 
-export const STAT_DEFAULTS = { kills: 0, pedKills: 0, copKills: 0, missionsDone: 0, playerWrecks: 0 };
+export const STAT_DEFAULTS = { kills: 0, pedKills: 0, copKills: 0, missionsDone: 0, playerWrecks: 0, heistsDone: 0, racesWon: 0 };
 
 // The counters a loaded save gives: the defaults, then the save's own values; a
 // counter the save lacks is 0, not whatever this session had reached.

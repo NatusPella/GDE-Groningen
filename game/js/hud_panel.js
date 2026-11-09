@@ -1855,6 +1855,19 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
       ctx.fill();
       break;
     }
+    case 'uitkijkpunt': {
+      // uitkijkpunt (#807 A15): een oog in de landmarkkleur, per streek op de kaart
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 5.2 * s, 3.2 * s, 0, 0, Math.PI * 2);
+      ctx.fillStyle = C.cream;
+      ctx.fill();
+      outline(ctx, s, C.dark, 1);
+      ctx.beginPath();
+      ctx.arc(0, 0, 1.8 * s, 0, Math.PI * 2);
+      ctx.fillStyle = C.landmark;
+      ctx.fill();
+      break;
+    }
     case 'landmark': {
       const r = 5 * s;
       ctx.beginPath();
@@ -2388,6 +2401,7 @@ function drawMinimapPois(ctx, world, job, placed, inRange, toScreen, t) {
   add('postgame', getPostgameSpotsForRender(), (q) => 'pg-' + q.kind, 2, MM_POI_FAR_M);
   add('horeca', getHorecaForRender(), 'horeca', 1);
   add('landmark', world.map.meta.landmarks || [], 'landmark', 2);
+  add('uitkijkpunt', world.map.meta.uitkijkpunten || [], 'uitkijkpunt', 2, MM_POI_FAR_M);
 
   // the most important place wins where two would touch
   pois.sort((a, b) => mapPriority(b[0]) - mapPriority(a[0]));

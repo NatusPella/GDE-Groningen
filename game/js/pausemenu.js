@@ -627,6 +627,7 @@ function settingsHtml() {
       ${toggle('reduceFlash', 'Flitsen beperken', 'Geen witte schermflitsen in filmpjes en intro')}
       ${toggle('screenNarration', 'Schermnarratie', 'Lees statuswijzigingen voor via de schermlezer: doel, gezondheid, politie en plaatsnaam')}
       <div class="m-gh"><span>Hulp</span></div>
+      ${picker('difficulty', 'Moeilijkheid', [['ontspannen', 'Ontspannen'], ['standaard', 'Standaard'], ['uitdagend', 'Uitdagend']], 'Ontspannen geeft meer tijd en ruimere medailles, Uitdagend minder. Standaard is het spel zoals het was; records en medailles zijn per stand gescheiden')}
       ${picker('helpTime', 'Meer tijd', [['uit', 'Uit'], ['ruimer', '+25%'], ['ruim', '+50%'], ['heel ruim', 'Dubbel']], 'Langere tijdslimieten en vensters in missies')}
       ${picker('helpDamage', 'Minder schade', [['normaal', 'Normaal'], ['minder', 'Minder'], ['veel minder', 'Veel minder']], 'Je eigen voertuig houdt meer over na een klap')}
       ${picker('helpGates', 'Ruimere vliegpoorten', [['normaal', 'Normaal'], ['ruimer', 'Ruimer'], ['ruim', 'Ruim']], 'Grotere ringen en een bredere hoogteband')}

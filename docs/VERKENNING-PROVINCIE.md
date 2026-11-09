@@ -23,18 +23,24 @@ Nederlands en zomer. Dit document is de basis voor de losse issues A15-A20 uit
      elke streek een concreet punt zonder nieuwe data of nieuwe namen.
    - `albumStand()`: per streek het aantal herkenningspunten en de kerken/molens/borgen. Punten
      buiten de `reach` vallen bij de dichtstbijzijnde streek, zodat het album de hele provincie telt.
-2. **`scripts/verken_dichtheid_test.mjs`** (17 checks): elke streek een uitkijkpunt; albumtotalen
+2. **`scripts/verken_dichtheid_test.mjs`** (26 checks): elke streek een uitkijkpunt; albumtotalen
    (kerken ≥ 380, molens ≥ 90, borgen ≥ 20); en langs de reisbeats de grootste afstand tot het
    eerstvolgende herkenningspunt, met een ratchet op de gemeten basis (T2 1662 m, T3 3617 m,
    M13 5432 m, M17 2693 m, T4 2204 m, M27 3286 m, T5 3063 m; 7 van de 11 beats hebben herkenbare
    eindpunten). De test gebruikt de rechte lijn tussen de eindpunten; de volgende stap haalt de
    echte routepunten uit de kaart en verlaagt de ratchet.
+3. **A15 op de kaart** (kleinste echte laag, gedaan): `installeerUitkijkpunten()` zet de acht punten in
+   `map.meta.uitkijkpunten` zodra `ommelandlandmarks.js` de kits heeft geladen. `mapview.js` tekent ze
+   met een eigen icoon en legendarische schakelaar (`layerOn('uitkijkpunt')`), de minimap en hover
+   komen mee; een klik zet er een waypoint. Geen nieuwe namen of coördinaten, geen magisch
+   snelreizen (dat is sinds #97 geen reisoptie meer). De test bewaakt de installatie, de laag en de
+   wiring in kaart/minimap.
 
 ## Voorstel per activiteit (A15-A20)
 
 | Id | Kleinste veilige vervolgstap | Hergebruikt |
 |---|---|---|
-| **A15 Uitkijkpunten** | De 8 punten uit `uitkijkpunten()` op de kaart zetten en als snelreis-anker gebruiken; kaart onthullen via de bestaande `grenzen.json`/`ontvouw`-laag. Eerst alleen tonen in Activiteiten via `uitjepaneel` ("Uitkijkpunt: Kerk van …"), nog geen nieuwe scène. | `verkenpunten.js`, `menuplekken.js`, `uitjepaneel.js`, `gebieden`-kaartlaag |
+| **A15 Uitkijkpunten** | **Op de kaart gezet** (punt per streek, eigen icoon/legenda/minimap, klik = waypoint). Wat nog een eigenaarsbesluit is: de kaart onthullen via `grenzen.json`/`ontvouw`-laag en een regel in Activiteiten (`uitjepaneel`); geen nieuwe scène en geen magisch snelreizen. | `verkenpunten.js`, `menuplekken.js`, `landmarkkits.json`, `mapview.js`/`hud_panel.js` |
 | **A16 Kieken: het album** | Teller per streek op de bestaande 707 punten (nu gemeten); in Activiteiten één regel per streek. Doel expliciet: **25 per streek** (niet stilzwijgend 500). | `albumStand()`, `activiteitensfeer.js`, `uitjepaneel.js` |
 | **A17 Kerkenpad** | Zelfde teller, alleen `k: 'church'` (391); stempel per kerk pas later. | `albumStand()`, `markeer`/`gebieden.js` |
 | **A20 Molenaar** | Teller over de 98 molens; de minispel-variant is een eigen issue, niet nodig voor de verkenlaag. | `albumStand()` |

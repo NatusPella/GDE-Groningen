@@ -2,7 +2,7 @@
 // momentopname. Test zonder world/DOM.
 //   node scripts/missionstats_test.mjs
 import assert from 'node:assert/strict';
-import { missionStats, fmtTime } from '../game/js/missionstats.js';
+import { missionStats, fmtTime, failureStats, FAIL_LOSS_LINE } from '../game/js/missionstats.js';
 
 let n = 0;
 const t = (naam, f) => { f(); n++; console.log(`ok ${naam}`); };
@@ -30,5 +30,14 @@ t('rondvaart en stunt hebben hun eigen regels', () => {
 });
 
 t('zonder run geen regels', () => assert.deepEqual(missionStats({ type: 'x' }), []));
+
+t('een faalregel noemt geen verlies en komt er maar één keer bij', () => {
+  const rows = [['Tijd', '1:05']];
+  const once = failureStats(rows);
+  assert.deepEqual(once[once.length - 1], FAIL_LOSS_LINE);
+  assert.equal(once.length, 2);
+  assert.equal(failureStats(once).length, 2, 'geen dubbele regel bij een retry');
+  assert.equal(failureStats(null).length, 1, 'ook zonder stats komt de regel erbij');
+});
 
 console.log(`missionstats_test: ${n}/${n} ok`);

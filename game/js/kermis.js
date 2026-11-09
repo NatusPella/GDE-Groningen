@@ -1,4 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { volgendeTredeRij } from './medalrules.js';
 import { toonStartkaart } from './startkaart.js';
 import { canvasTex } from './canvastex.js';
 import { bumperCarGeometry, bumperCarMaterial } from './bumpercar3d.js';
@@ -642,6 +643,7 @@ function end(w, { quit = false } = {}) {
   const prize = loopbaanVerdien(w, 'kermis', (PRIZE[medal] || 0) * (g.bonus ? 2 : 1), { xp: 12, n: 1, uniek: 'botsauto' }); // samen spelen (#365), loopbaan (#381)
   const stats = [['Punten', String(g.score)], ['Botsingen', String(g.hits)], ['Langste reeks', `${g.best}`]];
   if (medal) stats.push(['Medaille', MEDALS[medal]]);
+  volgendeTredeRij(stats, MEDAL_AT.slice(1), g.score, { medal, eenheid: 'punten', eenheid1: 'punt' });
   if (rec && rec.newBest) stats.push(['Record', 'Nieuw!']);
   showBanner({ kind: medal ? 'pass' : 'fail', title: medal ? 'KONING VAN DE BOTSAUTO\'S' : 'NOG EEN RONDJE?', reason: g.bonus && prize ? 'Kermisavond: dubbel prijzengeld' : '', reward: prize, stats });
 }

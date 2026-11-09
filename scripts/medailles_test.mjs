@@ -90,6 +90,64 @@ t('de activiteiten tonen bedrag, punten en de volgende trede', () => {
   }
   for (const f of ['kartbaan.js', 'skatepark.js', 'ringrace.js']) assert.match(bron(f), /\['Volgende'/, f + ' noemt de volgende trede in de uitslag');
 });
+// #816/#817: de volgende trede kent enkelvoud, decimalen en een eenheid zonder spatie, en de helper
+// zet hem als rij in de uitslag (niet bij goud).
+t('volgendeTrede: eenheid1, decimalen en eenheidAchter (#816/#817)', () => {
+  let r = M.volgendeTrede([2, 5, 9], 4, { eenheid: 'slagen', eenheid1: 'slag' });
+  assert.equal(r.tekst, 'nog 1 slag tot zilver');
+  r = M.volgendeTrede([2, 5, 9], 2, { eenheid: 'slagen', eenheid1: 'slag' });
+  assert.equal(r.tekst, 'nog 3 slagen tot zilver');
+  r = M.volgendeTrede([1.2, 2.4, 4.0], 2.1, { eenheid: 'kg', decimalen: 1 });
+  assert.equal(r.tekst, 'nog 0,3 kg tot zilver');
+  r = M.volgendeTrede([1.2, 2.4, 4.0], 2.4, { eenheid: 'kg', decimalen: 1 });
+  assert.equal(r.tekst, 'nog 1,6 kg tot goud');
+  r = M.volgendeTrede([80, 90, 98], 85, { eenheidAchter: '%' });
+  assert.equal(r.tekst, 'nog 5% tot zilver');
+  assert.equal(M.volgendeTrede([80, 90, 98], 85, { eenheidAchter: '%' }).tekst.includes(' %'), false);
+  r = M.volgendeTrede([1.0, 1.25, 1.6].map((f) => f * 240).reverse(), 312, { lager: true, klok: true });
+  assert.equal(r.tekst, 'nog 0:12 tot zilver');
+});
+
+t('volgendeTredeRij: een rij in de uitslag, en niets bij goud (#816)', () => {
+  const stats = [['Punten', '99']];
+  const uit = M.volgendeTredeRij(stats, [60, 110, 160], 99, { medal: 1, eenheid: 'punten', eenheid1: 'punt' });
+  assert.equal(uit, stats);
+  assert.deepEqual(stats[1], ['Volgende trede', 'nog 11 punten tot zilver']);
+  const goud = [['Punten', '200']];
+  assert.equal(M.volgendeTredeRij(goud, [60, 110, 160], 200, { medal: 3 }).length, 1, 'geen rij bij goud');
+  assert.equal(goud.some(([k]) => /alle drie/i.test(String(k))), false);
+  const klaar = [['Punten', '200']];
+  M.volgendeTredeRij(klaar, [60, 110, 160], 200, { medal: 0 });
+  assert.equal(klaar.length, 1, 'boven alle drempels: geen rij');
+  assert.equal(M.volgendeTredeRij(null, [1], 0), null, 'geen stats-array: veilig terug');
+});
+
+// #816: negen attracties met een gewone waarde tonen de volgende trede in hun uitslag.
+t('#816: negen attracties zetten de volgende trede in de uitslag', () => {
+  const negen = ['discgolf.js', 'pitchputt.js', 'carbid.js', 'kermis.js', 'hengelen.js', 'klimtoren.js', 'zwembad.js', 'pannenkoek.js', 'waterski.js'];
+  for (const f of negen) {
+    const src = bron(f);
+    assert.match(src, /from '\.\/medalrules\.js'/, f + ' haalt de regel uit medalrules.js');
+    assert.match(src, /volgendeTredeRij\(stats, /, f + ' voegt de rij aan de uitslagstats toe');
+  }
+  assert.match(bron('discgolf.js'), /MEDAL_REL_18/, 'discgolf gebruikt de drempels van de achttienbanen-ronde');
+  assert.match(bron('hengelen.js'), /decimalen: 1/, 'hengelen toont het verschil in kilo\'s met één decimaal');
+  assert.match(bron('klimtoren.js'), /lager: true, klok: true/, 'klimtoren toont de tijd als klok');
+});
+
+// #817: de drie attracties met een eigen eenheid noemen de volgende trede in die eenheid.
+t('#817: carillon, wandeling en regatta tonen hun eigen eenheid', () => {
+  const car = bron('carillon.js');
+  assert.match(car, /eenheidAchter: '%'/, 'carillon: procenten zonder spatie');
+  assert.match(car, /MEDAL_AT\.map\(\(grens\) => grens \* 100\)/, 'carillon: drempels en nauwkeurigheid maal honderd');
+  const wandel = bron('wandeling.js');
+  assert.match(wandel, /PACE_MEDAL_AT, averagePace\(s\)/, 'wandeling: tempo in m/s');
+  assert.match(wandel, /eenheid: 'm\/s', decimalen: 1/, 'wandeling: één decimaal');
+  const reg = bron('regatta.js');
+  assert.match(reg, /\[\.\.\.REGATTA\.medaille\]\.reverse\(\)\.map\(\(f\) => f \* rr\.richttijd\)/, 'regatta: omgekeerde factoren maal de richttijd');
+  assert.match(reg, /lager: true, klok: true/, 'regatta: lagere tijd is beter, als klok');
+});
+
 console.log(`medailles_test: ${n - fails}/${n} ok`);
 if (fails) process.exit(1);
 

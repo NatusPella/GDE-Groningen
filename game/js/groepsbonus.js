@@ -28,6 +28,8 @@ export function metGroepsbonus(bedrag, aantal) {
 // #685: de beloning zichtbaar splitsen in de uitslag/banner: de basis, de groepsfactor en (als de
 // speler een eigen loopbaanfactor heeft) die er apart bij, met het totaal. Presentatie: de bedragen
 // komen van de aanroeper, zodat er precies staat wat er is uitbetaald.
+// #811: dezelfde regel in één zin, voor de wachtkamer en de startkaart (naast de volledige uitleg).
+export const GROEPSBONUS_KORT = '1+1=3: elke extra speler geeft iedereen 50% meer loon, tot 3×.';
 export const GROEPSBONUS_UITLEG = 'Samen spelen levert meer op: elke extra speler geeft iedereen 50% meer loon, tot 3× per persoon.';
 export function bonusDelen(basis, aantal, totaal = null, niveau = 0) {
   const b = Math.max(0, Math.round(Number(basis) || 0));

@@ -70,7 +70,7 @@ const BIJBAAN = {
   // #683: de vijf banen uit het groeipad, elk met een eigen E-hulp (mede-optreder, tweede balie, handhaver, bemanning, helper).
   cabaret: WERKT, loket: WERKT, snackoverlast: WERKT, tjalke: WERKT, bietenoogst: WERKT,
   boerderij: NEE, // de trekker
-  rondvaarttour: NEE,
+  rondvaarttour: WERKT, // #819: de ontspannen tour is een passagiersrol; de fooi wordt gedeeld
   boa: NEE, fietsdepot: NEE, lijn: NEE, verhuizing: NEE,
 };
 
@@ -153,7 +153,7 @@ const SAMEN_KAN = [
   ['bijbaan', 'taxi', 'taxi'], ['bijbaan', 'bezorger', 'bezorgen'], ['bijbaan', 'krantenwijk', 'de krantenwijk'],
   ['bijbaan', 'vracht', 'vracht'], ['bijbaan', 'bus', 'de bus'],
   // #683: de drie banen met een passagiers- of juryrol, en de vijf met een eigen E-hulp
-  ['bijbaan', 'rondvaart', 'de rondvaart'], ['bijbaan', 'veerdienst', 'de veerdienst'], ['bijbaan', 'rechtbank', 'de rechtbank'],
+  ['bijbaan', 'rondvaart', 'de rondvaart'], ['bijbaan', 'rondvaarttour', 'de ontspannen rondvaart'], ['bijbaan', 'veerdienst', 'de veerdienst'], ['bijbaan', 'rechtbank', 'de rechtbank'],
   ['bijbaan', 'cabaret', 'het cabaret'], ['bijbaan', 'loket', 'het loket'], ['bijbaan', 'snackoverlast', 'de snackoverlast'],
   ['bijbaan', 'tjalke', 'de tjalke'], ['bijbaan', 'bietenoogst', 'de bietenoogst'],
   ['activiteit', 'hengelen', 'hengelen'], ['activiteit', 'pannenkoek', 'pannenkoeken bakken'],

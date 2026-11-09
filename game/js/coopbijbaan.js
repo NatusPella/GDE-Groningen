@@ -35,6 +35,8 @@ export const BIJBAAN_REGELS = {
   vracht: { rol: 'bijrijder', hulp: 'Rijd mee in de truck van de chauffeur en help met E bij laden en lossen. De chauffeur rijdt.', positie: false, actie: true },
   // #683: drie banen waar een meespeler als passagier of tweede jurylid meedoet en de volle beloning deelt.
   rondvaart: { rol: 'passagier', hulp: 'Stap met E aan boord van de rondvaartboot en vaar mee; je hoort het verhaal en deelt de fooi.', positie: false, actie: false },
+  // #819: de ontspannen tour (zonder tijdsdruk) is een rustige passagiersrol; de fooi wordt gedeeld.
+  rondvaarttour: { rol: 'passagier', hulp: 'Stap met E aan boord van de ontspannen rondvaart en vaar mee; de fooi wordt gedeeld.', positie: false, actie: false },
   veerdienst: { rol: 'passagier', hulp: 'Stap met E aan boord van de veerboot en vaar mee; elke overtocht levert jou ook het volle loon op.', positie: false, actie: false },
   rechtbank: { rol: 'tweede jurylid', hulp: 'Zit in de jury: je ziet de zaak mee, deelt de vergoeding en één fout antwoord wordt door de jury vergeven.', positie: false, actie: false },
   // #683: de vijf banen uit het groeipad, elk met een eigen E-hulp (vanaf de grond of vanuit het voertuig).
@@ -51,6 +53,7 @@ export const BIJBAAN_TEKST = {
   gevraagd: (label) => `Je vraagt ${label} te starten.`,
   bezig: 'Er loopt al een bijbaan.',
   nietGedeeld: 'Deze bijbaan doe je alleen in je eigen spel.',
+  alleenEigenSpel: 'Alleen bij wie het spel opende; doe intussen je eigen ding.', // #819
   hostStart: (naam, label) => `${naam} begon ${label}. Doe je mee? J = ja, N = nee.`,
   hostNee: 'Je doet niet mee: je krijgt geen loon voor deze baan.',
   wedstrijd: 'Er loopt al een wedstrijd. Wacht of doe mee.',
@@ -501,7 +504,13 @@ export function bijbaanGastE(world) {
   if (!p || world.coopInVoertuig || !acties || !acties.spotBij) return false;
   const spot = acties.spotBij(p.x, p.y);
   if (!spot) return false;
-  if (!bijbaanMetCoop(spot.id)) return false; // een andere bijbaan: de gewone melding
+  if (!bijbaanMetCoop(spot.id)) {
+    // #819: een gast hoort waarom niet én wat hij intussen zelf kan doen.
+    if (world.addMessage) world.addMessage(BIJBAAN_TEKST.alleenEigenSpel, 4);
+    // Lui geladen: zo blijft coopbijbaan Node-safe (geen HUD/three in de pure tests).
+    import('./samenplan.js').then((m) => m.toonEigenPlan(world)).catch(() => {});
+    return true;
+  }
   // Wie al meespeelt in een baan kan er geen tweede bij doen. Wie alleen een uitnodiging heeft of meekijkt (#492)
   // mag wel zijn eigen baan beginnen: hij laat die uitnodiging dan schieten.
   if (G && G.deelt) { if (world.addMessage) world.addMessage(BIJBAAN_TEKST.bezig, 3); return true; }

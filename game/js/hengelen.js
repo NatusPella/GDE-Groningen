@@ -1,4 +1,5 @@
 import { showBanner, isCinematicActive } from './cinematics.js';
+import { volgendeTredeRij } from './medalrules.js';
 import { toonStartkaart } from './startkaart.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, setStatMax, recordUnique, MEDALS } from './achievements.js';
 import { showCard } from './hudcards.js';
@@ -7,7 +8,7 @@ import { standActivity, recLine } from './standactivity.js';
 import { activityBlock } from './activitykit.js';
 import { createBoard, mgThema, key, bubble, clearBubbles, pick, stopPressed, geo } from './minigamekit.js';
 import { HENGEL_LINES } from './minigamelines3.js';
-import { FISH, HENGEL, createHengel, stepHengel, hengelMedal } from './hengelrules.js';
+import { FISH, HENGEL, createHengel, stepHengel, hengelMedal, MEDAL_AT } from './hengelrules.js';
 import { hourOf } from './streetlifedata.js';
 import { vangstGewicht, vangstWaarde, vangstXp, NIEUWE_SOORT_XP, soort as soortVan, watertype } from './visdata.js';
 import { vindHengelplek, plekNaam, plekSleutel } from './hengelplek.js';
@@ -162,6 +163,7 @@ function einde(w, { quit = false, extern = false, uitslag = null } = {}) {
   const stats = [['Gewicht', kgTekst(s.kg)], ['Gevangen', String(s.catches.length)], ['Ontsnapt', String(s.lost)], ['Te vroeg', String(s.scared)]];
   if (g.betaald > 0) stats.push(['Visboer', euro(g.betaald)]);
   if (medal) stats.push(['Medaille', MEDALS[medal]]);
+  volgendeTredeRij(stats, MEDAL_AT, s.kg, { medal, eenheid: 'kg', eenheid1: 'kg', decimalen: 1 });
   if (rec && rec.newBest) stats.push(['Record', 'Nieuw!']);
   showBanner({ kind: medal ? 'pass' : 'fail', title: medal >= 3 ? 'KONING VAN HET MEER' : medal ? 'MOOIE VANGST' : 'NIKS AAN DE HAAK', reason: medal ? `${kgTekst(s.kg)} aan de wal gebracht` : 'Wacht tot het dobbertje zakt en haal dan meteen binnen.', stats });
   say(w, medal >= 2 ? 'endGood' : 'endPoor', 4.5);

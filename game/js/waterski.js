@@ -1,4 +1,5 @@
 import { hoofdspeler } from './players.js';
+import { volgendeTredeRij } from './medalrules.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { canvasTex } from './canvastex.js';
 import { getScene } from './scene3d.js';
@@ -256,6 +257,7 @@ function end(w, { quit = false } = {}) {
   if (g.big) unlockAchievement(w, 'ski_sprong');
   const stats = [['Score', score.toLocaleString('nl-NL')], ['Boeien', `${s.gateHits}/${s.gates.length}`], ['Sprongen', String(s.jumps)], ['Gevallen', String(s.falls)]];
   if (medal) stats.push(['Medaille', MEDALS[medal]]);
+  volgendeTredeRij(stats, MEDAL_AT, score, { medal, eenheid: 'punten', eenheid1: 'punt' });
   if (rec && rec.newBest) stats.push(['Record', 'Nieuw!']);
   showBanner({ kind: medal ? 'pass' : 'fail', title: medal >= 3 ? 'KONING VAN HET MEER' : medal ? 'MOOIE RONDE' : 'NAT GEWORDEN', reason: medal ? `${score.toLocaleString('nl-NL')} punten achter de boot` : 'Leun uit voor de boeien en spring over de golven voor punten', reward: 0, stats });
   say(w, medal >= 2 ? 'endGood' : 'endPoor', true, true);

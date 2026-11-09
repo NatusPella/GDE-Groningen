@@ -174,4 +174,12 @@ t('de tabel kent hengelen, boerderij en minigames en noemt geen gastheer', () =>
   assert.equal(G.GAST_REGELS.find((r) => r.actie === 'boerderij').mag, 'ja', 'de klus op je eigen akker kan lokaal');
   for (const r of G.GAST_REGELS) assert.doesNotMatch(r.regel, /gastheer|host/i, r.actie);
 });
+t('#819: een gast bij een host-only bijbaan leest waarom en krijgt de eigen-plan-tip', () => {
+  const b = fs.readFileSync(new URL('../game/js/coopbijbaan.js', import.meta.url), 'utf8');
+  assert.match(b, /alleenEigenSpel/);
+  assert.match(b, /toonEigenPlan\(world\)/);
+  assert.match(b, /rondvaarttour: \{ rol: 'passagier'/);
+  assert.match(G.GAST_REGELS.find((r) => r.actie === 'bijbanen').regel, /ontspannen rondvaart/);
+});
+
 console.log(`coopgast_test: ${n}/${n} ok`);
