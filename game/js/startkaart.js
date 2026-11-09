@@ -9,6 +9,7 @@ import { samenStatus, toelichtingVan } from './coopstatus.js';
 import { getSettings } from './settings.js';
 import { cleanDifficulty, DIFFICULTY } from './difficulty.js';
 import { medailleTeksten } from './difficulty_medals.js'; // #800: medaille-eisen uit de geschaalde bron
+import { laagVan } from './activiteitlaag.js'; // #800: de intrinsieke tweede laag naast de medaille
 import { GROEPSBONUS_KORT } from './groepsbonus.js'; // (#811) dezelfde 1+1=3-regel als de wachtkamer
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -200,6 +201,8 @@ export function startkaartRegels(id, { record = null, difficulty = null } = {}) 
   const medailles = medaillesVoorStand(id, mode);
   if (medailles) regels.push(`Medailles: brons ${medailles[0]} · zilver ${medailles[1]} · goud ${medailles[2]}`);
   if (k.beloning) regels.push(`Beloning: ${k.beloning}`);
+  const laag = laagVan(id);
+  if (laag) regels.push(`Tweede laag: ${laag}`); // #800: wat er na de medaille nog te halen is, zonder nieuwe teller
   const s = samenStatus('activiteit', id);
   if (s) {
     const woord = s === 'werkt' ? 'ja, met de groep' : s === 'deels' ? 'deels' : 'nog niet samen';
