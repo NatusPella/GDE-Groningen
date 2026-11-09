@@ -239,7 +239,7 @@ const punten = uitkijkpunten(kits, MENU_PLEKKEN, STREKEN);
 // 9. De changelog noemt de wijziging in het Nederlands en de Samen spelen-regel staat erbij.
 {
   const changelog = fs.readFileSync(new URL('../CHANGELOG.md', import.meta.url), 'utf8');
-  const unreleased = changelog.slice(changelog.indexOf('## [Unreleased]'), changelog.indexOf('## [0.'));
+  const unreleased = changelog.slice(changelog.indexOf('## [Unreleased]'), changelog.indexOf('## [0.60.1]'));
   ok(/#825/.test(unreleased), 'de changelog noemt #825');
   ok(/onbekend/i.test(unreleased) && /uitkijkpunt/i.test(unreleased) && /streek/i.test(unreleased), 'de regel leest als spelers tekst');
   ok(/Samen spelen|gast/i.test(unreleased), 'de Samen spelen-regel staat erbij');
