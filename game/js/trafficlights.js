@@ -548,10 +548,17 @@ export function trafficClockRate(phase, wet) {
 
 export function updateTrafficLights(dt, world) {
   const m = world && world.map;
-  // Een gestroomde tegel met een beveiligde kruising kwam of ging: het netwerk opnieuw (#314 C2b).
+  // Een gestroomde tegel met een beveiligde kruising kwam of ging: het netwerk opnieuw
+  // (#314 C2b). Dat is een netwerk over alle wegen; tijdens een rij streamende tegels
+  // (of de opening, die van plek naar plek springt) zou dat elke keer opnieuw
+  // gebeuren. Wacht tot de tegelwachtrij leeg is: de bestaande lichten blijven dan
+  // even staan, maar er valt geen halve seconde per tegel in het spel (#4).
   if (m && m.signalVer !== undefined && m.signalVer !== signalVer) {
-    signalVer = m.signalVer;
-    buildTrafficNetwork(world);
+    const tilesCalm = !m.tileQueue || !m.tileQueue.items || m.tileQueue.items.length === 0;
+    if (tilesCalm) {
+      signalVer = m.signalVer;
+      buildTrafficNetwork(world);
+    }
   }
   const wet = (world && world.weather && world.weather.wet) || 0;
   for (const c of controllers) {

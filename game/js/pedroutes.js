@@ -245,14 +245,14 @@ const DETOUR_SCAN_M = 45;
 const DETOUR_MAX_EXTRA = 55;
 const DETOUR_CATS = ['major', 'normal'];
 let sites = null;
-let sitesGeo = null; // { map, geoVer }: de sites horen bij deze kaartstand
+let sitesGeo = null; // { map, ver }: de sites horen bij deze wegenstand
 
 function addSite(x, y, kind) {
   sites.insertPoint({ x, y, kind }, x, y);
 }
 
 function buildSites(map) {
-  sitesGeo = { map, geoVer: map.geoVer };
+  sitesGeo = { map, ver: map._roadVer !== undefined ? map._roadVer : map.geoVer };
   sites = new SpatialGrid(SITE_CELL);
   const nodes = new Map();
   const key = (p) => Math.round(p[0] * 10) * 1e6 + Math.round(p[1] * 10);
@@ -727,7 +727,14 @@ export function walkRoute(ped, world, dt, dPlayer) {
     const a = r.i > 0 ? r.pts[r.i - 1] : [ped.x, ped.y];
     r.cross = detectCrossing(map, a[0], a[1], tgt[0], tgt[1]);
     if (r.cross) {
-      if (!sites || sitesGeo.map !== map || sitesGeo.geoVer !== map.geoVer) buildSites(map);
+      // De sites komen uit de wegen, niet uit elke kaartwissel. Tijdens een reeks
+      // streamende tegels blijven de oude sites staan en bouwt hij pas bij rust
+      // opnieuw: een netwerk over alle wegen is te duur per tegel (#4).
+      const ver = map._roadVer !== undefined ? map._roadVer : map.geoVer;
+      if (!sites || sitesGeo.map !== map || sitesGeo.ver !== ver) {
+        const tilesCalm = !map.tileQueue || !map.tileQueue.items || map.tileQueue.items.length === 0;
+        if (tilesCalm) buildSites(map);
+      }
       r.cross.site = siteKind(r.cross);
       const mayDetour = !a.detour && !tgt.detour && (r.detours || 0) < 6;
       if (mayDetour && !r.cross.site && !r.cross.ok && planDetour(map, r, r.cross, ped.x, ped.y)) {
