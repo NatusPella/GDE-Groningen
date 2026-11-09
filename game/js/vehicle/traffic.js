@@ -71,7 +71,14 @@ class LazyNodeMap extends Map {
 
 function roadGraph(map) {
   let g = graphCache.get(map);
-  if (g && g.geoVer === map.geoVer) return g;
+  // Alleen een wegwijziging hoeft de graaf opnieuw; niet elke tegel-add (geoVer).
+  const ver = map._roadVer !== undefined ? map._roadVer : map.geoVer;
+  if (g && g.ver === ver) return g;
+  // Een gestroomde tegel voegt hooguit een paar wegen toe en de LazyNodeMap kent
+  // ze bij het eerste gebruik al. De dure herbouw (alle wegen plus de
+  // korte-einden-lus) wacht daarom tot de tegelwachtrij leeg is: geen halve
+  // seconde hapering per tegel midden in het spel of de opening (#4).
+  if (g && map.tileQueue && map.tileQueue.items && map.tileQueue.items.length) return g;
   const nodes = new Map();
   const nodeOf = new LazyNodeMap(map, nodes);
   // platte testkaarten zonder raster vallen terug op hun eigen wegenlijst
@@ -96,7 +103,7 @@ function roadGraph(map) {
       if (best) { best.push({ road: r, idx }); arr[idx] = best; }
     }
   }
-  g = { nodeOf, geoVer: map.geoVer };
+  g = { nodeOf, ver, geoVer: map.geoVer };
   graphCache.set(map, g);
   return g;
 }
