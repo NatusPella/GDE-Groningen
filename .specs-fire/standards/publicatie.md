@@ -120,7 +120,7 @@ verhaaltest draaien lokaal.
   (`docs/PUBLICATIECHECKLIST.md:3`). Vóór Public: `node scripts/publish_check.mjs
   --history` zonder FAIL, plus `secrets_scan`, `text_audit` en
   `merkenregister_check`.
-- **Versie:** `0.58.0` in `desktop/package.json:4`, met `## [0.58.0] - 2026-11-07`
+- **Versie:** `0.59.0` in `desktop/package.json:4`, met `## [0.59.0] - 2026-11-08`
   als nieuwste changelogsectie; elke versie die met `0.` begint, wordt een
   pre-release (`desktop/release.sh:139`).
 - **Ondertekening:** niets is ondertekend. Windows `signExecutable: false`,
