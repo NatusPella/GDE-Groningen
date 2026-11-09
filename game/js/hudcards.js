@@ -34,6 +34,7 @@ import { hoofdspeler } from './players.js';
 import { sfeerVan, sfeerStijl } from './carrieresfeer.js'; // #631: de sfeerband van de bijbaan op de kaart
 import { getSettings } from './settings.js';
 import { cardSeconds, stickyCard } from './cardtime.js';
+import { addCardLog, cardLogText } from './cardlog.js';
 
 // the HUD's attention budget: one prominent card at a time
 const MAX_VISIBLE = 1;
@@ -100,6 +101,8 @@ let queue = [];
 let countT = 0;
 let lastVoiceAt = -Infinity;
 const voicedAt = new Map();
+// #801: de laatste kaarten, voor het tekstlog (pauzemenu > Hulp).
+let cardLog = [];
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 // 'm-<i>': the icon of story mission i (missionicons.js)
@@ -138,7 +141,7 @@ export function initCards(w, root) {
     e.stopPropagation();
     dismissCard(c);
   }, { capture: true });
-  if (typeof window !== 'undefined') window.__cards = { show: (spec) => showCard(world, spec), state: () => ({ visible: visible.map((c) => c.spec), queue: queue.map((q) => q.spec) }), classify };
+  if (typeof window !== 'undefined') window.__cards = { show: (spec) => showCard(world, spec), state: () => ({ visible: visible.map((c) => c.spec), queue: queue.map((q) => q.spec) }), log: () => cardLog.slice(), openLog: openCardLog, classify };
   return stackEl;
 }
 
@@ -265,6 +268,7 @@ function mount(c) {
   c.el = el;
   c.left = c.sticky ? Infinity : c.secs;
   visible.push(c);
+  if (!c.spec.noLog) cardLog = addCardLog(cardLog, { kind: c.spec.kind, title: c.spec.title, body: c.spec.body, text: c.text, key: c.key, at: c.at });
   speak(c);
 }
 
@@ -333,6 +337,18 @@ function tryHint(c) {
   voicedAt.set(h.key, world.time);
   lastVoiceAt = world.time;
   c.left = Math.max(c.left, h.v.dur + 0.6);
+}
+
+// #801: het tekstlog openen als gewone (sticky) kaart; de les blijft daarna
+// terug te lezen, ook als hij eerder automatisch wegging.
+export function openCardLog() {
+  if (!world || !stackEl) return null;
+  const entries = cardLog.slice(-6);
+  const body = entries.length
+    ? entries.map((e) => `<div style="margin:2px 0">${esc((e.title ? e.title + ': ' : '') + (e.body || e.text || ''))}</div>`).join('')
+    : '<div>Nog geen berichten.</div>';
+  showCard(world, { kind: 'tip', kicker: 'Tekstlog', title: 'Laatste uitleg en tips', body: cardLogText(entries), bodyHtml: body, key: 'card-log', duration: 9, important: true, voice: false, noLog: true, onClose: null });
+  return entries.length;
 }
 
 function showCount(text, dur) {
