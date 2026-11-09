@@ -95,6 +95,44 @@ op mobiel zonder PvP. Dat staat al in `docs/COOP-TESTBANK.md` (sectie
 Latentiemeting) en is daar niet gedupliceerd. Wat ontbreekt blijft echte
 hardware/echte netwerken (#806 punten 68/69) en is hier niet te meten.
 
+## Vervolg: de road-hitch gedempt (#804, na de top-5)
+
+De top-5 wees `3d:roads` als grootste gemene deler aan. In `syncRoads` stopte de
+lus alleen voor de eerste weg bij de deadline: alle volgende "goedkope" wegen
+met kant-en-klare surfaces werden in één frame alsnog gebouwd. Eén frame bouwde
+zo de hele ring (pieken 0,9-1,7 s). Twee dingen zijn aangepast, met meting:
+
+- `roadBuildAllowed` (`game/js/roadbudget.js`): de deadline geldt nu voor élke
+  weg, plus een harde cap van 4 wegen per frame (8 tijdens de streamboost).
+  De eerste weg mag altijd, zodat de streaming vooruit blijft.
+- `roadSyncStats` in scene3d (frames, gebouwd, max per frame, laatste ms,
+  deadline-stops) maakt de opbouw meetbaar.
+
+Zelfde routes, zelfde harness, na de fix:
+
+| route | gem. ms | p95 | p99 | max | >50 ms | >100 ms |
+|---|---:|---:|---:|---:|---:|---:|
+| a7 (was 41,8 / 83,3 / 616,7 / 1300) | **25,8** | 50,0 | 183,3 | **533,4** | 110 | 35 |
+| spoor (was 49,2 / 83,4 / 500 / 1900) | **27,4** | 50,0 | 83,5 | **400,1** | 64 | 13 |
+| heli (was 327,3 / 1316,6 / 1783,3) | **235,4** | 866,6 | 1283,4 | **1283,4** | 43 | 27 |
+
+De road-piek zelf is sterk gedaald: a7 922 -> 265 ms, spoor 1366 -> 276 ms,
+heli 1749 -> 835 ms. Gemiddelden bijna gehalveerd op a7 en spoor; de norm
+(p95 <= 25, max <= 100) is nog niet gehaald. De nieuwe top-5 na de fix:
+
+- **a7**: `populate` (piek 597 ms), `3d:render:hoofdpas+post` (297), `3d:roads`
+  (265), `cityprops` (215), `traffic` (157).
+- **spoor**: `populate` (309), `3d:roads` (276), `peds` (77), `traffic` (68),
+  `3d:water` (51).
+- **heli**: `3d:roads` (835, nog de eerste koude/heavy weg op snelheid),
+  `cityprops` (412), `populate` (346), `hud` (179), `traffic` (126).
+
+Volgende demper volgens de meting is dus niet de weg meer maar **`populate`**
+(300-600 ms pieken); daarna `cityprops`/`3d:render:hoofdpas+post` en op de heli
+de eerste heavy weg (viaduct/civil works) — die vraagt om vooraf bouwen
+(`prewarmStreamAt` geeft nu maar ~2-4 s) of om een harde heavy-cap met uitstel,
+geen extra budget verhogen. Geen van die twee is zonder nieuwe meting doorgevoerd.
+
 ## Reproduceren
 
 ```
