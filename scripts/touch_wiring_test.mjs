@@ -41,5 +41,14 @@ const touch = read('game/js/touch.js');
 ok(touch.includes("classList.toggle('touch-play'"), 'touch: tiklaag aan/uit volgens de situatie');
 ok(touch.includes("html.touch-device .m-hint"), 'touch: toetshints verborgen');
 
+// staand (#805): geen draaibanner meer, een eigen smalle menulayout, en de plaatsnaam wijkt
+const pauseCss = read('game/js/pausemenu.css');
+ok(/@media \(max-width: 760px\) and \(orientation: portrait\)/.test(pauseCss), 'pauzemenu: eigen staande media query');
+ok(/\.pm-rail \{ left: 8px; right: 8px; top: 8px; bottom: auto; width: auto; --ra-h: 44px; \}/.test(pauseCss), 'staand: rail als balk bovenin');
+ok(/\.pm-sheet \{ left: 8px; right: 8px; top: 64px; bottom: 8px; \}/.test(pauseCss), 'staand: blad vult de rest van het scherm (geen 90 px-paneel)');
+ok(!/Draai je toestel voor het menu/.test(touch), 'geen draaibanner meer voor het pauzemenu');
+ok(/html\.touch-device\.touch-portrait #hud \.hud-place/.test(touch), 'staand: de plaatsnaam zakt onder de knoppenrij');
+ok(!/touch-portrait #pause-menu\.visible::before/.test(touch), 'geen ::before-banner op het pauzemenu');
+
 console.log(fails ? `${fails} FAIL` : 'touch_wiring_test ok');
 process.exit(fails ? 1 : 0);
