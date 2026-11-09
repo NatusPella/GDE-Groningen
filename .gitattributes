@@ -1,5 +1,6 @@
 *.bat text eol=crlf
 *.txt text
+*.md text eol=lf
 scripts/windows/*.txt text eol=crlf
 *.sh text eol=lf
 *.mjs text eol=lf

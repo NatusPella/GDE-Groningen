@@ -247,6 +247,39 @@ await t('een worker die niet vervangen kan worden: meteen naar de hoofdthread', 
   }
 });
 
+// #799: de bootgrens is echte gedraging, geen constante. Tijdens de boot (body zonder
+// game-started) verdubbelt de HTTP-grens; een ByteSource die nooit antwoordt valt dan na
+// BOOT_HTTP_FACTOR * timeoutMs af in plaats van eeuwig te wachten, en de gewone grens blijft
+// daarna gewoon staan. De bron is een fetch die nooit antwoordt (geen netwerk).
+await t('boot: een ByteSource die nooit antwoordt valt binnen de verdubbelde bootgrens af', async () => {
+  const origFetch = globalThis.fetch;
+  const origDoc = globalThis.document;
+  const nooit = () => new Promise(() => {});
+  globalThis.fetch = nooit;
+  try {
+    globalThis.document = { body: { classList: { contains: (c) => c !== 'game-started' } } };
+    const bootSrc = new HttpRangeSource('', { timeoutMs: 30 });
+    let bootFout = null;
+    const t0 = Date.now();
+    try { await bootSrc.read('a-1.gdp', 0, 10); } catch (e) { bootFout = e; }
+    const bootDuur = Date.now() - t0;
+    assert.ok(bootFout && bootFout.timeout === true, 'tijdens de boot: time-out, geen hang');
+    assert.match(bootFout.message, new RegExp('after ' + (30 * BOOT_HTTP_FACTOR) + ' ms'), 'de bootgrens is de verdubbelde grens');
+    assert.ok(bootDuur >= 40 && bootDuur < 2000, `de bootgrens is begrensd (${bootDuur} ms)`);
+
+    // na game-started geldt de gewone grens weer
+    globalThis.document = { body: { classList: { contains: (c) => c === 'game-started' } } };
+    const normSrc = new HttpRangeSource('', { timeoutMs: 30 });
+    let normFout = null;
+    try { await normSrc.read('a-1.gdp', 0, 10); } catch (e) { normFout = e; }
+    assert.ok(normFout && normFout.timeout === true, 'na de boot: ook een begrensde time-out');
+    assert.match(normFout.message, /after 30 ms/, 'de gewone grens is de basisgrens');
+  } finally {
+    globalThis.fetch = origFetch;
+    if (origDoc === undefined) delete globalThis.document; else globalThis.document = origDoc;
+  }
+});
+
 await t('waarschuwingen: een time-out wordt gemeld, niet stil ingeslikt', async () => {
   assert.ok(warns.some((w) => /timed out/.test(w)), warns.join(' | '));
 });

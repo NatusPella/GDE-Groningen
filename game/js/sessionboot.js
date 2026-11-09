@@ -286,7 +286,7 @@ export function sessionBootTick(world, deps = {}) {
 
 // The whole boot in one call: list, choice, join (the next candidate after a failure) and finally hosting.
 // Never rejects: whatever goes wrong, the player ends up in a game that runs.
-// deps: { magOnline(), haalLijst(), verbind(rij), host(opts), hostOpties, openTransport, eigenId,
+// deps: { magOnline(), haalLijst(), verbind(rij), host(opts), hostOpties, openTransport, haalKamer, eigenId,
 //         meld(tekst), onHold } - all optional, so the rules and the join path can be tested without a
 // real broker (scripts/sessionboot_test.mjs).
 export async function bootSession(world, deps = {}) {
@@ -309,7 +309,7 @@ export async function bootSession(world, deps = {}) {
   };
 
   if (keuze.doen === KEUZE.MEEDOEN) {
-    const verbind = deps.verbind || ((rij) => openSession(world, rij, { onHold: deps.onHold, openTransport: deps.openTransport }));
+    const verbind = deps.verbind || ((rij) => openSession(world, rij, { onHold: deps.onHold, openTransport: deps.openTransport, haalKamer: deps.haalKamer }));
     let sessie = keuze.sessie;
     for (let i = 0; i < Math.min(BOOT.pogingen, keuze.kandidaten.length) && sessie; i++) {
       try {
