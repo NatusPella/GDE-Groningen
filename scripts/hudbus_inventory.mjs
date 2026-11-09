@@ -279,8 +279,12 @@ function markdown() {
 if (process.argv.includes('--check')) {
   // #696: het gegenereerde doc mag niet stil achterlopen; de lichte fase draait deze stand.
   const doel = path.join(root, 'docs', 'KANALEN.md');
-  const nieuw = markdown();
-  const oud = fs.existsSync(doel) ? fs.readFileSync(doel, 'utf8') : '';
+  // #799: een Windows-checkout met core.autocrlf kan het doc met CRLF op schijf hebben; de
+  // inhoud is dan gelijk. Vergelijk daarom op regeleinden-genormaliseerde tekst (het doc hoort
+  // volgens .gitattributes ook LF te zijn; dit is de vangrail voor een bestaande checkout).
+  const norm = (t) => String(t).replace(/\r\n/g, '\n');
+  const nieuw = norm(markdown());
+  const oud = fs.existsSync(doel) ? norm(fs.readFileSync(doel, 'utf8')) : '';
   if (oud === nieuw) { console.log('KANALEN.md is actueel'); process.exit(0); }
   console.log('KANALEN.md loopt achter: draai node scripts/hudbus_inventory.mjs --md en commit het resultaat');
   const a = oud.split('\n'), b = nieuw.split('\n');

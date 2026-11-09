@@ -373,6 +373,52 @@ await t('de module maakt zelf nooit een sessie openbaar (#556): geen aankondigin
   assert.doesNotMatch(src, /openbaar\s*=\s*true/, 'geen standaard openbaar');
 });
 
+// #799: de boot bereikt de wachter als er geen welkom komt. De gastheer is er wel (er is een
+// deur), maar antwoordt niet: openSession moet na BOOT.verbindWacht met 'geen antwoord' stoppen
+// en de wereld van de gast heel laten. (De 20 s-consenttimer en de boot-wachter in main.js zijn
+// DOM/timer-gedrag en staan als gat in docs/TESTGATEN-799.md.)
+await t('openSession: geen welkom binnen BOOT.verbindWacht is een begrensde wachter', async () => {
+  const bewaard = BOOT.verbindWacht;
+  BOOT.verbindWacht = 120;
+  const link = createLink({ latency: 0.01, seed: 5 });
+  const gw = wereld();
+  let fout = '';
+  const t0 = Date.now();
+  try { await openSession(gw, { id: 'geenhost', naam: '', room: 'ABCDEFGHJK' }, { openTransport: async () => link.b }); } catch (e) { fout = e.message; }
+  BOOT.verbindWacht = bewaard;
+  assert.equal(fout, 'geen antwoord', 'de wachter zegt waarom');
+  assert.ok(Date.now() - t0 < 3000, 'de wachter is begrensd, niet 8 s in deze test');
+  assert.ok(!gw.coopNet, 'geen halve sessie na de time-out');
+  assert.ok(!gw.coopRole, 'de rol van de gast is terug');
+});
+
+// #799: de hele keten boot → vraagKamer(hostKey) → kamer → welkom, met een echte host en gast
+// over memtransport. De kamerroute is de enige seam; de rest is de code van het spel.
+await t('boot → vraagKamer(hostKey) → kamer → welkom: de echte keten', async () => {
+  const s = await echteSessie();
+  const link = createLink({ latency: 0.02, seed: 12 });
+  N.addGuest(s.hw, link.a);
+  const gw = wereld();
+  s.gs.push({ gw, link });
+  let gevraagd = null;
+  const rij0 = { id: s.hw.coopNet.hub.id, naam: 'Open spel', spelers: 1, max: 4, versie: 'dev', hostKey: 'HOSTKEY', room: null, anders: false, vol: false, kan: true, ouderdom: 1000 };
+  const uit = await bootSession(gw, deps({
+    haalLijst: lijstVan([rij0]),
+    haalKamer: async (r) => { gevraagd = r; return 'ABCDEFGHJK'; },
+    openTransport: async () => link.b,
+    host: () => { throw new Error('de boot hoort te kunnen meedoen, niet te hosten'); },
+  }));
+  assert.equal(uit.doen, KEUZE.MEEDOEN, 'de boot koos meedoen');
+  assert.ok(gevraagd && gevraagd.hostKey === 'HOSTKEY', 'vraagKamer kreeg de hostsleutel (#795)');
+  assert.equal(gw.coopRole, 'client', 'de gast zit in de echte sessie');
+  assert.ok(gw.coopNet, 'de gast heeft een sessie');
+  s.step(0.4);
+  assert.equal(s.hw.coopRoster.length, 2, 'de gastheer ziet de gast');
+  N.stopCoopNet(s.hw);
+  if (gw.coopNet) N.stopCoopNet(gw);
+  s.stop();
+});
+
 console.log(`sessionboot_test: ${n}/${n} ok`);
 process.exit(0); // the announcement timer of a host session is still running
 
