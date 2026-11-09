@@ -134,8 +134,8 @@ const CSS = `
 #intro-montage .im-sub { top: auto; bottom: 2.5vh; left: 50%; right: auto; transform: translateX(-50%); width: min(86vw, 860px); text-align: center; font-family: 'Arial Narrow', Arial, sans-serif; font-size: clamp(17px, 1.7vw, 23px); letter-spacing: 0.3px; opacity: 0; transition: opacity 0.25s; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9); }
 #intro-montage .im-sub.on { opacity: 1; }
 #intro-montage .im-sub b { color: #3fc97a; margin-right: 6px; }
-body.intro-montage #game3d { filter: contrast(1.08) saturate(1.18) brightness(1.02); }
-body.intro-montage.im-frozen #game3d { filter: contrast(1.22) saturate(0.92) brightness(1.06); }
+/* De kleurcorrectie van de montage zit in de im-grade-overlay; een CSS-filter op het WebGL-canvas kost op de echte GPU meetbaar fps (intro 5->11 fps bij 0 s, 11->28 fps bij 25 s). */
+
 `;
 
 let ui = null;
