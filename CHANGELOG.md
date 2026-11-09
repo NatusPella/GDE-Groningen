@@ -9,6 +9,12 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+## [0.60.1] - 2026-11-09
+
+- **Een trekker in het Ommeland stopt je niet meer zonder botsing (#823).** De onzichtbare contactdoos van de aanhangwagen stond op de trekker zelf in plaats van 6,4 m erachter; langsrijden in de andere baan en achter de trekker blijven nu vrij, de echte aanhanger stopt je nog wel.
+- **De eierenmissie is eerlijk: vol gas op de trekker (bijna 40 km/u) breekt niets meer (#824).** De grens ging van 30 naar ruim 40 km/u, de missie-HUD toont je snelheid met "max 40", waarschuwt boven 38 en een vaste regel op het scherm legt gas, remmen en uitstappen uit.
+- **Op een MacBook Air M1 start het spel nu op de preset Vlot (Hoog's look, korte zichtafstand) en heet de hoog-stand niet meer op 2x Retina-resolutie te draaien (#804).** Het advies zet een basis-M1 als Gemiddeld in plaats van Hoog; Gemiddeld, Vlot met 75% resolutie en Laag zijn de zuiniger trappen.
+
 - **De vluchtboot bij de museumroof kan weer vooruit varen (#822).** De boot kiest zijn aanlegplaats en koers pas als de kaart rond het water geladen is, vaart niet meer tegen kadebebouwing op en draait na de startscène zo nodig naar vrij water; de missie wacht daar kort op in plaats van de bootstap zonder boot af te ronden.
 - **De kerken, molens, borgen en andere herkenningspunten in de provincie hebben nu een album: kom binnen zeventig meter en het punt komt eenmalig in je verzameling, met een korte melding en de stand per soort (#820).** "Te doen" toont hoeveel van de 583 punten je gezien hebt en wijst de route naar het dichtstbijzijnde open punt; de teller is per speler en er is geen nieuwe werelddata voor nodig.
 - **Onder Spel > Overzicht staat één inklapbaar blok "Je voortgang": loopbaan, bijbanen en Veroverd naast elkaar in gewone taal, uit de bestaande systemen (#821).** Eén zin legt het verschil uit: herhalen maakt één baan beter, variëren maakt je loopbaan breder, en alles in een gebied maakt je wijkheld. Geen nieuwe teller of opslagsleutel.
