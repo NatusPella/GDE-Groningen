@@ -1001,11 +1001,17 @@ export function buildPersonMesh(shirt, skin, opts = {}) {
 // chauffeur, missie-acteur, gast), niet alleen voor voetgangers. Per mesh maar één keer, zodat
 // een tweede opruimronde de teller niet onder nul brengt.
 export function releasePersonGeometry(mesh) {
-  if (!mesh || !mesh.userData || mesh.userData.personRefsGiven) return false;
-  const body = mesh.userData.body;
+  if (!mesh || !mesh.userData) return false;
+  const body = mesh.userData.body; // de SkinnedMesh onder de groepsmesh (buildPersonMesh)
+  const node = body || mesh;
+  // #796: dezelfde persoon kan via twee routes langskomen: als groep (releasePersonGeometry(group)) en
+  // als mesh (scene3d.disposeObject loopt over de kinderen). Markeer daarom zowel de groep als de mesh,
+  // anders telt de tweede route dezelfde gedeelde geometrie nog eens af.
+  if (mesh.userData.personRefsGiven || node.userData.personRefsGiven) return false;
   const g = body ? body.geometry : mesh.geometry;
   if (!g || !g.userData || typeof g.userData.personRefs !== 'number') return false;
   mesh.userData.personRefsGiven = true;
+  if (body && body.userData) body.userData.personRefsGiven = true;
   g.userData.personRefs--;
   if (g.userData.personRefs <= 0 && g.userData.personRetired) { g.dispose(); return true; }
   return false;

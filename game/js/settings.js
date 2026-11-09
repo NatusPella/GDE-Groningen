@@ -200,7 +200,14 @@ function load() {
       storedVersion = parsed.v;
       for (const [k, v] of Object.entries(parsed)) {
         if (k === 'v') continue;
-        if (!(k in DEFAULTS) || (v !== undefined && typeof v !== typeof DEFAULTS[k])) newerExtras[k] = v;
+        const bekend = k in DEFAULTS;
+        // #781: een bekende sleutel met hetzelfde type maar een onbekende toekomstige waarde
+        // (quality:'ultra', een nieuwe hudMode/subtitleSize of drawDistance-bucket) is van een nieuwere
+        // build. Deze build valt voor het spel terug op zijn default, maar die default mag de waarde in
+        // het bestand niet overschrijven: de eerste setSetting schrijft anders de oude stand terug terwijl
+        // `v` al hoog staat. Alleen primitieve waarden; binds en andere objecten blijven validatie.
+        const toekomst = bekend && v !== null && v !== undefined && typeof v !== 'object' && typeof v === typeof DEFAULTS[k] && out[k] !== v;
+        if (!bekend || (v !== undefined && typeof v !== typeof DEFAULTS[k]) || toekomst) newerExtras[k] = v;
       }
     }
     return out;

@@ -1,5 +1,6 @@
 // Samen spelen (#95): uitnodigscherm als toestandsmachine (game/js/lobby.js).
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import * as L from '../game/js/lobby.js';
 import * as G from '../game/js/coopgate.js';
 import { REASON_TEXT } from '../game/js/net/protocol.js';
@@ -372,4 +373,15 @@ t('spel overdragen (#439): de kandidaten staan in een eigen stap, met een weg te
   // en de stap zelf kun je niet openen zonder kandidaten
   assert.equal(L.reduce(L.reduce(s, { t: 'overdragen-terug' }), { t: 'overdragen' }).step, 'overdragen-kies');
 });
+// #779: een kick ("kamer rouleert") of "weer privé" tijdens een aanbod dat nog onderweg is, mag dat oude
+// aanbod geen gast meer laten toelaten. lobbyui.js nummert elk aanbod en laat een laat antwoord vallen.
+t('#779: een kick of nieuwe kamer ongeldigt een aanbod dat nog onderweg is', () => {
+  const src = fs.readFileSync(new URL('../game/js/lobbyui.js', import.meta.url), 'utf8');
+  assert.match(src, /let roomGen = 0;/, 'de lobby kent een generatienummer');
+  assert.match(src, /const gen = \+\+roomGen;/, 'elk aanbod krijgt een eigen generatie');
+  assert.match(src, /if \(gen !== roomGen\) return; \/\/ een ouder aanbod/, 'een ouder aanbod doet niets meer met het scherm of de hub');
+  assert.match(src, /if \(gen !== roomGen\) \{ try \{ if \(volgende && volgende\.cancel\) volgende\.cancel\(\); \} catch \(e\) \{ \/\* al weg \*\/ \} return; \}/, 'een laat antwoord wordt geannuleerd en niet toegevoegd');
+  assert.equal((src.match(/roomGen\+\+; \/\/ #779: een aanbod dat nog onderweg is/g) || []).length, 2, 'zowel een nieuwe kamer als de kamerrotatie na een kick ongeldigt het oude aanbod');
+});
+
 console.log(`lobby_test: ${n}/${n} ok`);

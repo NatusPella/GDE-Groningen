@@ -1682,7 +1682,11 @@ zetWedHaken({ betaalGast: (world, slot, geld, extra) => payGuest(world, geld, sl
 // verbinding gaat na het afscheid dicht. #779: dat geldt per token, niet per persoon — wie Samen spelen
 // opnieuw opent, krijgt van de host een nieuw token en zou dus in principe weer binnen kunnen. Daarom laat
 // het lobbypaneel na een kick de kamercode rouleren (zoals bij "weer privé maken"), zodat de oude code de
-// deur niet meer opent. Zonder accounts en zonder IP-opslag (constitutie 10) reikt de ban niet verder.
+// deur niet meer opent. De openbare-lijst-route blijft een gat: een gast die via de lijst een nieuwe
+// eenmalige kamer vraagt, krijgt van de host een antwoord en komt met een nieuw token binnen; de
+// tokenban ziet hem dan niet. Zonder accounts en zonder IP-opslag (constitutie 10) is dat niet te sluiten.
+// Wat de host wel kan: de sessie na een kick privé maken en de kamercode laten rouleren (lobbyui.js);
+// daarna is de rij uit de lijst weg. Zie docs/COOP-GAST.md ("Kicken en verbannen").
 export function removeGuest(world, slot = 1) {
   const n = world.coopNet; if (!n || n.role !== 'host' || !n.hub) return false;
   const ses = n.hub.sessions.get(slot);

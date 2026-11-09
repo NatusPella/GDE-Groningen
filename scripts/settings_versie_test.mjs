@@ -95,6 +95,28 @@ t('een zelf gewijzigde sleutel wint van de bewaarde toekomststand (#781)', async
   assert.equal(bewaard().v, SETTINGS_VERSION + 1);
 });
 
+t('een onbekende enum-waarde van een bekende sleutel blijft bewaard (#781)', async () => {
+  zetBestand({ v: SETTINGS_VERSION + 1, quality: 'ultra', hudMode: 'toekomst', subtitleSize: 'kolossaal', drawDistance: 'verweg', masterVolume: 0.5 });
+  const S = await laad();
+  assert.notEqual(S.getSettings().quality, 'ultra', 'deze build kent de waarde niet en valt terug op de default');
+  S.setSetting('masterVolume', 0.2); // een andere instelling wijzigen schrijft het bestand
+  const d = bewaard();
+  assert.equal(d.v, SETTINGS_VERSION + 1, 'de versie blijft van de nieuwere build');
+  assert.equal(d.quality, 'ultra', 'de onbekende kwaliteit blijft bewaard');
+  assert.equal(d.hudMode, 'toekomst', 'de onbekende hudMode blijft bewaard');
+  assert.equal(d.subtitleSize, 'kolossaal', 'de onbekende ondertitelmaat blijft bewaard');
+  assert.equal(d.drawDistance, 'verweg', 'de onbekende drawDistance-bucket blijft bewaard');
+  assert.equal(d.masterVolume, 0.2, 'de eigen wijziging staat erin');
+});
+
+t('een zelf gezette enum-waarde wint van de bewaarde toekomststand (#781)', async () => {
+  zetBestand({ v: SETTINGS_VERSION + 1, quality: 'ultra' });
+  const S = await laad();
+  S.setSetting('quality', 'laag');
+  assert.equal(bewaard().quality, 'laag', 'de keuze van de speler in deze build telt');
+  assert.equal(bewaard().v, SETTINGS_VERSION + 1);
+});
+
 t('een onbekende sleutel blijft ook bij een typewijziging bewaard (#781)', async () => {
   zetBestand({ v: SETTINGS_VERSION + 1, toekomstInstelling: [1, 2], showMinimap: 'altijd' });
   const S = await laad();

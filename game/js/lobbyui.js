@@ -74,6 +74,9 @@ export function mountLobby(root, hooks, opts = {}) {
   }
   let lastDiag = null;
   let hub = opts.hub || null, session = opts.session || null, handle = null, room = null, stopListen = null, joinedOnce = !!opts.adopt, wacht = false;
+  // #779: elke aanvraag voor een nieuw aanbod krijgt een nummer. Een kick of "weer privé" tijdens het
+  // vluchtaanbod verhoogt het nummer, zodat een laat antwoord van het oude aanbod geen gast meer toelaat.
+  let roomGen = 0;
 
   const LOGT = { kies: 'rol gekozen', route: 'route gekozen', akkoord: 'toestemming gegeven', code: 'code gemaakt', fout: 'fout', status: 'status', verbinden: 'verbinden', hervat: 'opnieuw verbinden', verbreek: 'verbroken door speler', spelers: 'spelerslijst', 'openbaar-ja': 'sessie openbaar gemaakt', privaat: 'sessie weer privé', 'lijst-go': 'lijst met openbare sessies geopend' };
   // Automatisch herstel (kamercode-route, wachtscherm in het spel): wie het spel opende zet na een paar seconden zelf een nieuw aanbod klaar onder
@@ -244,16 +247,26 @@ export function mountLobby(root, hooks, opts = {}) {
     return hub;
   }
   async function openRoom() { // een aanbod voor de eerstvolgende gast, onder dezelfde kamercode
+    const gen = ++roomGen; // #779: ouder aanbod ongeldig zodra een kick/nieuwe kamer langskomt
     wacht = true;
     if (handle && handle.cancel) handle.cancel();
     room = room || makeRoom();
-    handle = await hostRoom(room, {
-      signaler: newSignaler(), timeouts: CONFIG.TIMEOUTS,
-      onstate: (s, info) => {
-        if (s === 'fout') { wacht = false; set({ t: 'fout', msg: info }); }
-        if (s === 'open') { wacht = false; if (hub && hub.vrijePlekken) openRoom().catch((e) => set({ t: 'fout', msg: e.message })); }
-      },
-    });
+    let volgende;
+    try {
+      volgende = await hostRoom(room, {
+        signaler: newSignaler(), timeouts: CONFIG.TIMEOUTS,
+        onstate: (s, info) => {
+          if (gen !== roomGen) return; // een ouder aanbod: niet meer op het scherm of in de hub
+          if (s === 'fout') { wacht = false; set({ t: 'fout', msg: info }); }
+          if (s === 'open') { wacht = false; if (hub && hub.vrijePlekken) openRoom().catch((e) => set({ t: 'fout', msg: e.message })); }
+        },
+      });
+    } catch (e) {
+      if (gen === roomGen) { wacht = false; set({ t: 'fout', msg: e.message }); }
+      return;
+    }
+    if (gen !== roomGen) { try { if (volgende && volgende.cancel) volgende.cancel(); } catch (e) { /* al weg */ } return; }
+    handle = volgende;
     hooks.addGuest(handle.transport);
     set({ t: 'code', code: formatRoom(room) });
     if (hub) set({ t: 'spelers', lijst: rosterLijst(hub.roster), max: hub.roster.max });
@@ -374,6 +387,7 @@ export function mountLobby(root, hooks, opts = {}) {
   // Weer privé: de oude kamercode is openbaar geweest en werkt niet meer; wie nog kan aansluiten krijgt een nieuwe
   async function nieuweKamer() {
     room = null; wacht = false;
+    roomGen++; // #779: een aanbod dat nog onderweg is, is niet meer geldig
     if (handle && handle.cancel) handle.cancel();
     handle = null;
     if (hub && hub.vrijePlekken) await openRoom();
@@ -383,6 +397,7 @@ export function mountLobby(root, hooks, opts = {}) {
   // een gast die in die tussentijd verbindt, weigert de hub, en daarna gaat het aanbod vanzelf opnieuw open.
   async function rondeerKamer() {
     room = null; wacht = false;
+    roomGen++; // #779: een aanbod dat nog onderweg is, is niet meer geldig
     if (handle && handle.cancel) handle.cancel();
     handle = null;
     await openRoom();

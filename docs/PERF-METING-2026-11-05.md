@@ -4,6 +4,9 @@
 > De cijfers van 19-10 zijn gemeten op een volle machine; die van vandaag op een
 > stille machine. Vergelijk de absolute getallen daarom voorzichtig.
 
+> Vervolgmeting: `docs/PERF-METING-2026-11-09.md` (verificatie #804/#806 met de
+> hitchprobe na de merge; inclusief de daar gevonden en gerepareerde crash).
+
 ## Machine en opzet
 
 - **Rustig:** CPU-belasting 0–1% voor en na de runs, 0 Electron-processen van

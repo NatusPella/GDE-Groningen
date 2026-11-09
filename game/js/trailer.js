@@ -4,7 +4,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { FLAGS } from './devflags.js';
 import { canvasTex as canvasTexture } from './canvastex.js';
 import { mulberry32 } from './rng.js';
-import { getScene, prewarmStreamAt } from './scene3d.js';
+import { getScene, prewarmStreamAt, disposeObject } from './scene3d.js';
 import { speakerHtml } from './speakers.js';
 import { getSettings, QUALITY_PRESETS, withTempSettings } from './settings.js';
 import { PRESET_ORDER, GFX_PRESETS, currentPreset, describePreset, presetLabel, applyPreset, setBenchResult } from './gfxprofile.js';
@@ -1891,6 +1891,21 @@ function clearShot(r) {
   }
 }
 
+// #797: de acteurs en props worden per traject opgebouwd en in trailerProps bewaard. Tot het einde van
+// het traject (en dus over trajecten heen) bleven ze aan die map hangen; clearShot haalde ze alleen uit de
+// groep. Hier geven we ze bij het einde terug: gewone objecten via scene3d.disposeObject (dat ook de
+// gedeelde personengeometrie van makeActor teruggeeft), instanced meshes via hun eigen dispose.
+function disposeTrailerProp(o) {
+  if (!o) return;
+  try { o.removeFromParent(); } catch (e) { /* al weg */ }
+  if (o.isInstancedMesh) { try { o.dispose(); } catch (e) { /* al weg */ } return; }
+  disposeObject(o);
+}
+function disposeTrailerProps() {
+  for (const o of trailerProps.values()) { try { disposeTrailerProp(o); } catch (e) { /* al weg */ } }
+  trailerProps.clear();
+}
+
 // --- runtime --------------------------------------------------------------------------------
 
 let running = null;
@@ -2223,6 +2238,7 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
     r.light = new THREE.PointLight(0xffb066, 0, 14, 1.4);
     getScene().add(r.light);
     // actors and props are built once per session and hidden between shots
+    disposeTrailerProps(); // #797: een vorig traject dat niet netjes eindigde, laat hier niets achter
     r.prop = (name, build) => {
       let o = trailerProps.get(name);
       if (!o) {
@@ -2316,6 +2332,7 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
       clearShot(r);
       group.removeFromParent();
       r.light.removeFromParent();
+      disposeTrailerProps(); // #797: acteurs en props van dit traject geven hun geometrie terug
       Math.random = nativeRandom;
       restore(world, saved);
       // the aerial's clock and weather carry on into the title screen
