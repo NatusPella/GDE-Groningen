@@ -139,7 +139,7 @@ t('#816: negen attracties zetten de volgende trede in de uitslag', () => {
 t('#817: carillon, wandeling en regatta tonen hun eigen eenheid', () => {
   const car = bron('carillon.js');
   assert.match(car, /eenheidAchter: '%'/, 'carillon: procenten zonder spatie');
-  assert.match(car, /MEDAL_AT\.map\(\(grens\) => grens \* 100\)/, 'carillon: drempels en nauwkeurigheid maal honderd');
+  assert.match(car, /volgendeTredeRij\(stats, scaledMedalAt\(mode\), accuracy\(s\) \* 100/, 'carillon: geschaalde drempels en nauwkeurigheid maal honderd');
   const wandel = bron('wandeling.js');
   assert.match(wandel, /PACE_MEDAL_AT, averagePace\(s\)/, 'wandeling: tempo in m/s');
   assert.match(wandel, /eenheid: 'm\/s', decimalen: 1/, 'wandeling: één decimaal');
