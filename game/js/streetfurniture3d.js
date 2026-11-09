@@ -308,7 +308,7 @@ function tileItems(i, j) {
   // die regel (alle plaatsen langs de wegen) is de duurste stap van de tegel en
   // valt in het niet bij wat de film laat zien (#4).
   const intro = typeof document !== 'undefined' && document.body && document.body.classList.contains('intro-montage');
-  const res = furnitureForTile({ x0, y0, size: TILE_M, roads, mapped, water, rails, buildings, places: worldSignPlaces() || DESTINATIONS, opts: { ...GAME_OPTS, towns: intro ? [] : worldTownSigns() } });
+  const res = furnitureForTile({ x0, y0, size: TILE_M, roads, mapped: intro ? [] : mapped, water, rails, buildings, places: worldSignPlaces() || DESTINATIONS, opts: { ...GAME_OPTS, towns: intro ? [] : worldTownSigns() } });
   // nothing that stands on one spot goes on the asphalt, into a house or into
   // the water: the map answers for what is drawn (#463)
   const items = res.items.filter((it) => !POINT_KINDS.has(it.k) || spotFreeOnMap(map, it.x, it.y, it.k === 'lamp' ? { house: LAMP_AWNING } : undefined));
