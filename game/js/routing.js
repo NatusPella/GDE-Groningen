@@ -64,6 +64,11 @@ function graphStale(map) {
 function ensureGraph(map) {
   if (!graphStale(map)) return;
   if (graph && graph.map === map) {
+    // Tijdens de openingsmontage is er geen route nodig (geen HUD-route, geen
+    // kaartklik); de camera springt van plek naar plek, dus de laagversies
+    // veranderen steeds en een herbouw van ~0,3 s zou elke shotwissel hangen.
+    // De oude graaf blijft bruikbaar; na de montage bouwt hij één keer opnieuw.
+    if (typeof document !== 'undefined' && document.body && document.body.classList.contains('intro-montage')) return;
     if (tileWorkPending(map)) return; // nog midden in de stroom: de oude graaf is goed genoeg
     if (performance.now() - graphBuiltAt < GRAPH_REBUILD_MIN_S * 1000) return; // cadans
   }
