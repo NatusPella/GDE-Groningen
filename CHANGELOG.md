@@ -9,7 +9,11 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
-- **Mobiel: aanraakknoppen zijn minstens 44×44 en Pauze/Meer staan in één rij, HUD-blokken en kleine tekst wijken voor de aanraaklaag, en de contextchip blijft binnen het scherm (#826).** Op 360×800 en 800×360 zijn de knop-issues en de HUD-overlap weg; de nowplaying-tekst is minstens 12 px. Eén restpunt: de contextchip op 360×800 staat nog 7 px over de rechterrand.
+- **Moeilijkheid werkt nu ook buiten het skatepark: zwembad, klimtoren, carillon, hengelen, pannenkoekenschip, waterski en de fietsronde schalen hun tijdslimiet en medailles per stand, en verhaalmissies hun tijdslimiet, vensters en medaille-eisen (#800).** Standaard is exact het oude gedrag; records staan per stand apart en oude saves blijven werken.
+- **Samen spelen gebruikt geen eigen tweede rood/blauw meer: pings en passieve stand komen uit de bestaande statuskleuren en vormen, en alle invoer heeft één crème focusring (#809).**
+- **Input-latentie is gemeten en vastgelegd: p50 15-16 ms en p95 17-21 ms op de testmachine, dus binnen het budget van één frame wachten; de meting warmt eerst op zodat streamingspieken niet als inputlag tellen (#827).**
+
+- **Mobiel: aanraakknoppen zijn minstens 44×44 en Pauze/Meer staan in één rij, HUD-blokken en kleine tekst wijken voor de aanraaklaag, en de contextchip blijft binnen het scherm (#826).** Op 360×800 en 800×360 zijn de knop-issues en de HUD-overlap weg; de nowplaying-tekst is minstens 12 px. De contextchip blijft nu ook op 360×800 binnen het scherm.
 - **De kaart verbergt per speler de streken die je nog niet kent: van een onbekende streek blijven alleen de streeknaam, het streeklabel en de activiteiten-iconen weg; wegen, water, je eigen positie en de missies zie je gewoon (#825).** Kom je in een streek of kijk je vanaf een uitkijkpunt (E), dan staat de streek meteen op je kaart; zijn alle missies en uitkijkpunten van die streek gedaan, dan krijg je een stempel en reis je er op de kaart 10% sneller heen. De ontdekking en de stempel zijn per speler opgeslagen (`gde-verkenning-v1`, nooit in een savegame): een gast ontdekt op zijn eigen scherm en kan niets van de opener kapotmaken; de wereld en de uitkijkpunten staan voor iedereen op dezelfde plek.
 - **De openingsfilm slaat de fijnste straatmeubels (OSM-hekken, heggen en geluidsschermen) even over.** Die regel kost per nieuwe wijk de meeste rekentijd (`pieceOnWayOrWater` was ~0,37 s in het profielvenster); na de film worden ze gewoon opgebouwd.
 
