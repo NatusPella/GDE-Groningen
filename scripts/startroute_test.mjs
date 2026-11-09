@@ -98,6 +98,14 @@ ok(/function waitForOnlineStart\(ms\)/.test(main), '#751: de boot wacht via een 
 ok(/closeOnlineStart\(\)/.test(main), '#751: de wachter sluit via de nette route van onlineconsentui.js');
 ok(/e\.key !== 'Escape'/.test(main), '#751: Escape sluit de vraag');
 ok(/await waitForOnlineStart\(ONLINE_START_WAIT_MS\)/.test(main), '#751: de boot gebruikt de wachter in plaats van een eeuwig wachten');
+// De vraag verschijnt al boven het laadscherm; het laden loopt erachter door en pas
+// vlak voor de start wordt het antwoord afgewacht.
+ok(/function beginOnlineStartQuestion\(\)/.test(main) && /if \(vraagOnline\) beginOnlineStartQuestion\(\);/.test(main), 'de eerste-startvraag opent al over het laadscherm');
+const iVraag = main.indexOf('beginOnlineStartQuestion();');
+const iFinish = main.indexOf('await finishLoading();');
+ok(iVraag !== -1 && iFinish !== -1 && iVraag < iFinish, 'de vraag staat vóór het einde van het laadscherm');
+ok(/const antwoord = await waitForOnlineStart\(ONLINE_START_WAIT_MS\)/.test(main) && /Kies of je alleen of samen speelt/.test(main), 'het antwoord wordt met een duidelijke statusregel afgewacht');
+ok(/Samen spelen: de wereld wordt klaargezet/.test(main) && /Alleen spelen: de wereld wordt klaargezet/.test(main), 'na het antwoord zegt het laadscherm wat er gebeurt');
 
 // --- #749: de boot heeft een wachter, harde grenzen en rAF-vangnetten ---
 ok(/const BOOT_WATCHDOG_MS = \d+;/.test(main) && /function armBootWatchdog\(/.test(main), '#749: de boot heeft een wachter');
