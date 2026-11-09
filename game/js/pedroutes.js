@@ -733,7 +733,7 @@ export function walkRoute(ped, world, dt, dPlayer) {
       // opnieuw: een netwerk over alle wegen is te duur per tegel (#4).
       const ver = map._roadVer !== undefined ? map._roadVer : map.geoVer;
       if (!sites || sitesGeo.map !== map || sitesGeo.ver !== ver) {
-        const intro = typeof document !== 'undefined' && document.body && document.body.classList.contains('intro-montage');
+        const intro = typeof document !== 'undefined' && document.body && (document.body.classList.contains('intro-montage') || document.body.classList.contains('cine-hide-hud'));
         const tilesCalm = !map.tileQueue || !map.tileQueue.items || map.tileQueue.items.length === 0;
         if (tilesCalm && !intro) buildSites(map);
       }

@@ -9,7 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
-- **Tijdens de openingsfilm en cutscenes worden de wegdek-knooppuntindex en het kruispuntmodel niet meer per wijkwissel herbouwd.** De oude versie blijft tot de scène klaar is; daarna halen de gewone, over frames gespreide herbouwen het in. In het profiel verdwenen `fillNodes` (~0,35 s) en `junctionModel` (~0,1 s) uit de top, en de p95-frame van de eerste 5 s zakte naar ~330 ms.
+- **Tijdens de openingsfilm en cutscenes worden de wegdek-knooppuntindex, het kruispuntmodel, de routegraaf en de verkeersgraaf niet meer per wijkwissel herbouwd.** De oude versie blijft tot de scène klaar is; daarna halen de gewone, over frames gespreide herbouwen het in. In het profiel verdwenen `fillNodes` (~0,35 s) en `junctionModel` (~0,1 s) uit de top, en de p95-frame van de eerste 5 s zakte naar ~330 ms.
 
 ## [0.60.2] - 2026-11-09
 
