@@ -229,6 +229,9 @@ export function junctionModel(map) {
   const s = store(map);
   const ver = (map && map.junctionVer) || 0;
   if (s.model && s.modelVer === ver) return s.model;
+  // In de openingsfilm/een cutscene geen kruispuntmodel herbouwen per
+  // wijkwissel; de bestaande modellen blijven bruikbaar tot de film klaar is.
+  if (s.model && typeof document !== 'undefined' && document.body && (document.body.classList.contains('intro-montage') || document.body.classList.contains('cine-hide-hud'))) return s.model;
   const out = new Map();
   for (const node of junctionIndex(map).values()) {
     const sig = !graded(node) && signalised(map, node.x, node.y);

@@ -9,12 +9,14 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- **Het laadscherm zet nu ook de openingsfilm klaar: de tegels van de montageplekken worden geladen en vastgehouden, de gebouwen daar voorgebouwd en de vaste opening-assets (acteurs, keuken, duiven, props) één keer gecompileerd.** Dat kost op een gewone machine ~25-30 s extra laadtijd; de montage hapert daardoor veel minder (het aantal frames in de eerste 30 s meer dan verdubbelde) en na de film begint het spel op volle kwaliteit. De laatste shaderpiek bij een enkele shotwissel is nog in onderzoek.
+- **Tijdens de openingsfilm en cutscenes worden de wegdek-knooppuntindex, het kruispuntmodel, de routegraaf en de verkeersgraaf niet meer per wijkwissel herbouwd.** De oude versie blijft tot de scène klaar is; daarna halen de gewone, over frames gespreide herbouwen het in. In het profiel verdwenen `fillNodes` (~0,35 s) en `junctionModel` (~0,1 s) uit de top, en de p95-frame van de eerste 5 s zakte naar ~330 ms.
+
 ## [0.60.3] - 2026-11-09
 
 - **Mobiel: de contextchip blijft op 360×800 binnen het scherm, en de mobiele meting telt verborgen screenreadertekst (`.hud-mate-txt`) niet meer als kleine HUD-tekst (#826, regressiecontrole 0.60.2).**
 - **De spellus vraagt het volgende beeld nu vóór het werk van dit beeld aan (#804).** Een lange staart of een fout in de staart kan de cadans daardoor niet meer laten stoppen; de perf-meting geeft voortaan ook de frame-emmers en de CPU-druk per beeld mee, zodat een volgende meting wachten van werk kan scheiden.
 - **De startkaart noemt de medaille-eisen nu per moeilijkheidsstand, uit dezelfde schaalbron als het spel (#800).** Op Ontspannen en Uitdagend staan de eisen die de activiteit echt vraagt (punten, seconden, kilo's en procenten, met dezelfde afronding); Standaard blijft exact de oude tekst en de hoverregel/Te-doen gebruiken dezelfde bron.
-
 ## [0.60.2] - 2026-11-09
 
 - **Moeilijkheid werkt nu ook buiten het skatepark: zwembad, klimtoren, carillon, hengelen, pannenkoekenschip, waterski en de fietsronde schalen hun tijdslimiet en medailles per stand, en verhaalmissies hun tijdslimiet, vensters en medaille-eisen (#800).** Standaard is exact het oude gedrag; records staan per stand apart en oude opgeslagen spellen blijven werken.

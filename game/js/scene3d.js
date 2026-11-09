@@ -3867,6 +3867,11 @@ export function prewarmObjects(roots) {
 // title screen on and handed to prewarmObjects; disposed once warmed.
 let warmupQueue = null;
 const warmupBuilt = [];
+// Extra warm-ups van andere modules (main.js vraagt intromontage om de vaste
+// assets van de openingsfilm): zelfde pad, dus beide lichtstanden en opruimen.
+const extraWarmups = [];
+export function queueWarmupObject(build) { extraWarmups.push(build); }
+export function prewarmBusy() { return !!(extraWarmups.length || (warmupQueue && warmupQueue.length) || warmupBuilt.length || prewarmQueue.length || prewarmBatch); }
 let warmupId = -1e6;
 function queueWarmup(world) {
   const map = world.map;
@@ -3906,7 +3911,11 @@ function queueWarmup(world) {
 
 function stepWarmup(world) {
   if (!warmupQueue) queueWarmup(world);
-  if (warmupQueue.length) {
+  if (extraWarmups.length) {
+    let obj = null;
+    try { obj = extraWarmups.shift()(); } catch (e) { console.warn('warm-up', e); }
+    if (obj) prewarmObjects([obj]);
+  } else if (warmupQueue.length) {
     let obj = null;
     try { obj = warmupQueue.shift()(); } catch (e) { console.warn('warm-up', e); }
     if (obj) prewarmObjects([obj]);
