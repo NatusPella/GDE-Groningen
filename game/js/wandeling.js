@@ -1,5 +1,7 @@
 import { showBanner } from './cinematics.js';
 import { volgendeTredeRij } from './medalrules.js';
+import { getSettings } from './settings.js';
+import { cleanDifficulty, difficultyRecordKey } from './difficulty.js'; // #800
 import { toonStartkaart } from './startkaart.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, setStatMax, MEDALS } from './achievements.js';
 import { showCard } from './hudcards.js';
@@ -44,15 +46,16 @@ function finish(w, { quit = false } = {}) {
   clearBubbles(w, 'wandeling');
   if (quit) { w.addMessage('Wandeling gestopt', 2.5); return; }
   const s = r.s;
-  const medal = walkMedal(s);
-  const rec = recordChallengeResult(w, 'wandeling', { value: s.t, medal, lower: true });
+  const mode = cleanDifficulty(getSettings().difficulty);
+  const medal = walkMedal(s, undefined, mode);
+  const rec = recordChallengeResult(w, difficultyRecordKey(mode, 'wandeling'), { value: s.t, medal, lower: true });
   recordStat(w, 'wandelingen');
   setStatMax(w, 'wandelAfstand', Math.round(s.dist));
   unlockAchievement(w, 'wandel_klaar');
   if (medal >= 3) unlockAchievement(w, 'wandel_goud');
   const stats = [['Tijd', fmtTime(s.t)], ['Afstand', `${(s.dist / 1000).toFixed(1).replace('.', ',')} km`], ['Tempo', `${averagePace(s).toFixed(1).replace('.', ',')} m/s`], ['Stempels', `${s.stamps.length}/${s.pts.length}`]];
   if (medal) stats.push(['Medaille', MEDALS[medal]]);
-  volgendeTredeRij(stats, PACE_MEDAL_AT, averagePace(s), { medal, eenheid: 'm/s', decimalen: 1 });
+  volgendeTredeRij(stats, scaledPaceAt(mode), averagePace(s), { medal, eenheid: 'm/s', decimalen: 1 });
   if (rec && rec.newBest) stats.push(['Record', 'Nieuw!']);
   showBanner({ kind: medal ? 'pass' : 'fail', title: medal >= 3 ? 'SNELSTE WANDELAAR' : 'ALLE STEMPELS', reason: medal ? 'Gewandeld langs de dijk bij Winsum' : 'Loop een stuk sneller voor een medaille', reward: 0, stats });
   say(w, medal >= 2 ? 'endGood' : 'endPoor', 4.5);
@@ -105,7 +108,7 @@ function glyph(ctx) {
 
 const near = (w) => !run && !hoofdspeler(w).inVehicle && !hoofdspeler(w).swimming && Math.hypot(hoofdspeler(w).x - START.x, hoofdspeler(w).y - START.y) < USE_RADIUS;
 const recText = () => {
-  const r = getChallengeRecord('wandeling');
+  const r = getChallengeRecord(difficultyRecordKey(cleanDifficulty(getSettings().difficulty), 'wandeling'));
   return r && r.best != null ? `Record: ${fmtTime(r.best)}${r.medal ? ' · ' + MEDALS[r.medal].toLowerCase() : ''}` : null;
 };
 

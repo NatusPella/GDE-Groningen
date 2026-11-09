@@ -1,5 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { volgendeTredeRij } from './medalrules.js';
+import { getSettings } from './settings.js';
+import { cleanDifficulty, difficultyRecordKey, scaleTimeLimit, scaleTarget } from './difficulty.js'; // #800
 import { toonStartkaart } from './startkaart.js';
 import { canvasTex } from './canvastex.js';
 import { bumperCarGeometry, bumperCarMaterial } from './bumpercar3d.js';
@@ -453,7 +455,8 @@ function start(w, { free = false, revealed = false } = {}) {
     car.byMeT = -9;
     placeCar(car);
   });
-  game = { t: 0, phase: 'intro', phaseT: 2.2, score: 0, hits: 0, combo: 0, comboT: 0, best: 0, flash: null, lastSay: -9, cam: null, bonus: kermisOn(w), exit: { ...STAND } };
+  const mode = cleanDifficulty(getSettings().difficulty);
+  game = { t: 0, phase: 'intro', phaseT: 2.2, score: 0, hits: 0, combo: 0, comboT: 0, best: 0, flash: null, lastSay: -9, cam: null, bonus: kermisOn(w), exit: { ...STAND }, mode, rideS: scaleTimeLimit(RIDE_S, mode) };
   rides++;
   w.cinematicHidePlayers = true;
   if (built.roof) built.roof.visible = false;
@@ -578,7 +581,7 @@ function updateRide(w, dt) {
   const cars = built.cars;
   if (g.phase === 'intro') {
     g.phaseT -= dt;
-    if (g.phaseT <= 0) { g.phase = 'ride'; g.phaseT = RIDE_S; g.t = 0; pushAudioEvent(w, { kind: 'bell', x: K.x, y: K.y }); }
+    if (g.phaseT <= 0) { g.phase = 'ride'; g.phaseT = g.rideS; g.t = 0; pushAudioEvent(w, { kind: 'bell', x: K.x, y: K.y }); }
   } else if (g.phase === 'ride') {
     g.phaseT -= dt;
     if (g.phaseT < 12 && !g.lastCall) { g.lastCall = true; janSay(w, 'last'); }
@@ -610,8 +613,9 @@ function updateRide(w, dt) {
   p.x = mp.x; p.y = mp.y; p.angle = K.rot + me.a; p.speed = 0; p.moving = false;
 }
 
-function medalOf(score) {
-  return score >= MEDAL_AT[3] ? 3 : score >= MEDAL_AT[2] ? 2 : score >= MEDAL_AT[1] ? 1 : 0;
+function medalOf(score, mode = 'standaard') {
+  const at = MEDAL_AT.map((v) => Math.round(scaleTarget(v, mode, false))); // punten: hoger is beter
+  return score >= at[3] ? 3 : score >= at[2] ? 2 : score >= at[1] ? 1 : 0;
 }
 
 function end(w, { quit = false } = {}) {
@@ -635,15 +639,16 @@ function end(w, { quit = false } = {}) {
   p.x = g.exit.x; p.y = g.exit.y; p.angle = K.rot;
   if (w.extraSpeakers) w.extraSpeakers = w.extraSpeakers.filter((e) => !e.kermis);
   if (quit) { w.addMessage("Botsauto's: eruit gestapt", 2.5); return; }
-  const medal = medalOf(g.score);
-  const rec = recordChallengeResult(w, 'botsauto', { value: g.score, medal });
+  const mode = g.mode || cleanDifficulty(getSettings().difficulty);
+  const medal = medalOf(g.score, mode);
+  const rec = recordChallengeResult(w, difficultyRecordKey(mode, 'botsauto'), { value: g.score, medal });
   recordStat(w, 'botsautoRides');
   unlockAchievement(w, 'botsauto_klaar');
   if (medal >= 3) unlockAchievement(w, 'botsauto_goud');
   const prize = loopbaanVerdien(w, 'kermis', (PRIZE[medal] || 0) * (g.bonus ? 2 : 1), { xp: 12, n: 1, uniek: 'botsauto' }); // samen spelen (#365), loopbaan (#381)
   const stats = [['Punten', String(g.score)], ['Botsingen', String(g.hits)], ['Langste reeks', `${g.best}`]];
   if (medal) stats.push(['Medaille', MEDALS[medal]]);
-  volgendeTredeRij(stats, MEDAL_AT.slice(1), g.score, { medal, eenheid: 'punten', eenheid1: 'punt' });
+  volgendeTredeRij(stats, MEDAL_AT.slice(1).map((v) => Math.round(scaleTarget(v, mode, false))), g.score, { medal, eenheid: 'punten', eenheid1: 'punt' });
   if (rec && rec.newBest) stats.push(['Record', 'Nieuw!']);
   showBanner({ kind: medal ? 'pass' : 'fail', title: medal ? 'KONING VAN DE BOTSAUTO\'S' : 'NOG EEN RONDJE?', reason: g.bonus && prize ? 'Kermisavond: dubbel prijzengeld' : '', reward: prize, stats });
 }
