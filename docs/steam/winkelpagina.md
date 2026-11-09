@@ -59,7 +59,7 @@ Dan ligt de [b]Gouden Eierbal[/b], de wisseltrofee van de Noordelijke Snackprijs
 
 [h2]Wat je doet[/h2]
 [list]
-[*][b]Dertig verhaalmissies[/b] in vijf akten en een nazomer-epiloog: een kraak bij nacht, een tankwagen vol frituurvet kapen, een race op de ringweg, een rondvaart die uit de hand loopt en een finale op Ontzet.
+[*][b]Dertig verhaalmissies[/b] in vijf aktes plus Deel 4, "Nazomer": een kraak bij nacht, een tankwagen vol frituurvet kapen, een race op de ringweg, een rondvaart die uit de hand loopt en een finale op Ontzet.
 [*][b]Bel Rikus.[/b] Elke missie begint op Nachtstreek, de nachtradio van je oude vriend. Hij weet alles en zegt niks. Behalve op de radio.
 [*][b]Rijden, fietsen, varen en vliegen.[/b] Auto's, brommers, fietsen, sloepen, een skûtsje, de trein naar het Ommeland en een helikopter boven Stad.
 [*][b]Duivenmodus.[/b] Vlieg als duif langs de Martinitoren. Mensen merken het.
@@ -101,7 +101,7 @@ Then the [b]Golden Eierbal[/b], the challenge trophy of the Northern Snack Prize
 
 [h2]What you do[/h2]
 [list]
-[*][b]Thirty story missions[/b] across five acts and a late-summer epilogue: a night-time museum job, hijacking a tanker full of frying fat, a race on the ring road, a canal tour that gets out of hand and a finale on Ontzet.
+[*][b]Thirty story missions[/b] across five acts plus Part 4, "Nazomer": a night-time museum job, hijacking a tanker full of frying fat, a race on the ring road, a canal tour that gets out of hand and a finale on Ontzet.
 [*][b]Call Rikus.[/b] Every mission starts on Nachtstreek, your old friend's late-night radio show. He knows everything and says nothing. Except on air.
 [*][b]Drive, cycle, sail and fly.[/b] Cars, mopeds, bikes, sloops, a Frisian sailing barge, the train into the countryside and a helicopter over the city.
 [*][b]Pigeon mode.[/b] Fly past the Martini Tower as a pigeon. People notice.
@@ -340,11 +340,11 @@ hetzelfde:
 
 NL:
 
-> Geen account, geen tracking, geen statistieken, geen advertenties. De game bewaart je voortgang en instellingen alleen op je eigen computer; fouten komen in een logboek op je eigen computer dat niets verstuurt (je kunt het zelf kopiëren als je een fout meldt). Er zijn twee uitzonderingen, en alleen als jij ze zelf aanzet: (1) Samen spelen — na je toestemming gaat je IP-adres naar een openbare STUN-server en loopt de versleutelde signalering via openbare brokers; (2) live busposities — een openbare leesopvraag zonder gegevens van jou. Zonder die twee is het spel volledig offline.
+> Geen account, geen tracking, geen statistieken, geen advertenties. De game bewaart je voortgang en instellingen alleen op je eigen computer; fouten komen in een logboek op je eigen computer dat niets verstuurt (je kunt het zelf kopiëren als je een fout meldt). Er zijn twee uitzonderingen, en alleen als jij ze zelf aanzet: (1) Samen spelen — na je toestemming gaat je IP-adres naar een openbare STUN-server en loopt de versleutelde signalering via openbare brokers; (2) live busposities — een openbare leesopvraag zonder gegevens van jou. Zonder die twee gaat er niets van of over jou naar buiten.
 
 EN:
 
-> No account, no tracking, no analytics, no ads. Your progress and settings are stored only on your own computer; errors go into a log on your own computer that sends nothing (you can copy it yourself when you report a bug). There are two exceptions, and only if you turn them on yourself: (1) Playing together — after your permission, your IP address goes to a public STUN server and the encrypted signalling runs through public brokers; (2) live bus positions — a public read-only request with no data about you. Without those two, the game is fully offline.
+> No account, no tracking, no analytics, no ads. Your progress and settings are stored only on your own computer; errors go into a log on your own computer that sends nothing (you can copy it yourself when you report a bug). There are two exceptions, and only if you turn them on yourself: (1) Playing together — after your permission, your IP address goes to a public STUN server and the encrypted signalling runs through public brokers; (2) live bus positions — a public read-only request with no data about you. Without those two, nothing about you leaves your computer.
 
 (Steam zelf meet speeltijd en prestaties; dat valt onder het beleid van
 Valve. Als er later Steam Cloud of Steam-achievements bij komen via
