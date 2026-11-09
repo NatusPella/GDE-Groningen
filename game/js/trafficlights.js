@@ -554,8 +554,9 @@ export function updateTrafficLights(dt, world) {
   // gebeuren. Wacht tot de tegelwachtrij leeg is: de bestaande lichten blijven dan
   // even staan, maar er valt geen halve seconde per tegel in het spel (#4).
   if (m && m.signalVer !== undefined && m.signalVer !== signalVer) {
+    const intro = typeof document !== 'undefined' && document.body && document.body.classList.contains('intro-montage');
     const tilesCalm = !m.tileQueue || !m.tileQueue.items || m.tileQueue.items.length === 0;
-    if (tilesCalm) {
+    if (tilesCalm && !intro) {
       signalVer = m.signalVer;
       buildTrafficNetwork(world);
     }

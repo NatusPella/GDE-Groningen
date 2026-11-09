@@ -304,7 +304,11 @@ function tileItems(i, j) {
   // the track and the houses of the tiles round it: a mapped fence is not drawn through them (#124)
   const rails = map.railNear ? map.railNear(wx, wy, wr) : gridItems(map.railGrid);
   const buildings = map.buildingsNear ? map.buildingsNear(wx, wy, wr) : [];
-  const res = furnitureForTile({ x0, y0, size: TILE_M, roads, mapped, water, rails, buildings, places: worldSignPlaces() || DESTINATIONS, opts: { ...GAME_OPTS, towns: worldTownSigns() } });
+  // In de openingsfilm geen plaatsnaam-/wegwijzerborden per nieuwe wijk bouwen:
+  // die regel (alle plaatsen langs de wegen) is de duurste stap van de tegel en
+  // valt in het niet bij wat de film laat zien (#4).
+  const intro = typeof document !== 'undefined' && document.body && document.body.classList.contains('intro-montage');
+  const res = furnitureForTile({ x0, y0, size: TILE_M, roads, mapped, water, rails, buildings, places: worldSignPlaces() || DESTINATIONS, opts: { ...GAME_OPTS, towns: intro ? [] : worldTownSigns() } });
   // nothing that stands on one spot goes on the asphalt, into a house or into
   // the water: the map answers for what is drawn (#463)
   const items = res.items.filter((it) => !POINT_KINDS.has(it.k) || spotFreeOnMap(map, it.x, it.y, it.k === 'lamp' ? { house: LAMP_AWNING } : undefined));
