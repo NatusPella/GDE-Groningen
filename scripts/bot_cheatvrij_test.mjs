@@ -51,7 +51,7 @@ t('M09 eieren: snelheidsgrens uit de missie en gentle remmen', () => {
   assert.match(page, /gentle: !!\(s\.mission\.active && mdefE && mdefE\.eggs\)/);
   assert.match(logic, /export function stageTop/);
   assert.match(logic, /export const EGG_MARGIN/);
-  assert.match(akte2, /rough: \{ speed: 8\.5, per: 0\.35 \}/);
+  assert.match(akte2, /rough: \{ speed: 11\.2, per: 0\.35 \}/);
 });
 
 // --- M16: de kroegentocht in honderd seconden (te voet rennen) ---

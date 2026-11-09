@@ -14,6 +14,11 @@ import { getGoal, clearGoal, storyWaiting } from './goal.js';
 import { formatDistance } from './routing.js';
 import { deviceText } from './touchui.js';
 import { dualHtml } from './subtitles.js';
+import { loopbaanSamenvatting } from './loopbaanlive.js'; // #821: de drie lussen in gewone taal
+import { getSideJobList } from './sidejobs.js';
+import { getOverzicht } from './gebiedenlive.js';
+import { samenvatting as gebiedenSamenvatting } from './gebieden.js';
+import { VAKKEN } from './loopbaan.js';
 import { fillBars, countTo } from './motion.js';
 import { placeShot } from './placeshot.js';
 import { todayInfo, todaySpecial, upcoming } from './calendarday.js';
@@ -22,7 +27,7 @@ import { calIcon } from './calendar.js';
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const PART_IDS = Object.keys(PARTS);
 
-const ui = { kind: 'alles', near: false, sel: null, open: null, more: new Set(), folds: new Set(['clues', 'quick']) };
+const ui = { kind: 'alles', near: false, sel: null, open: null, more: new Set(), folds: new Set(['clues', 'quick', 'voortgang']) };
 const bars = new Map();
 const nums = new Map();
 
@@ -176,6 +181,23 @@ function agendaHtml(world) {
   return disc('agenda', 'Agenda', `${t.long} · ${t.nazomer ? 'de nazomer houdt aan' : `zomerdag ${t.n}`}`, inner);
 }
 
+// #821: één blok "Je voortgang" dat de drie lussen naast elkaar zet, met alleen de bestaande
+// systemen als bron (loopbaanlive, sidejobs, gebieden) en geen nieuwe teller of opslagsleutel.
+function voortgangHtml() {
+  let lb = null, banen = [], gebieden = null;
+  try { lb = loopbaanSamenvatting(); } catch (e) { lb = null; }
+  try { banen = getSideJobList() || []; } catch (e) { banen = []; }
+  try { const o = getOverzicht(); if (o) gebieden = gebiedenSamenvatting(o.profiel, o.ind); } catch (e) { gebieden = null; }
+  const lbTekst = lb ? `${lb.aantal} van ${VAKKEN.length} vakken gestart${lb.hoogste ? ` · hoogste titel: ${esc(lb.hoogste.titel)}` : ''}` : 'Nog niet geladen';
+  const niveau2 = banen.filter((b) => b.level >= 2).length;
+  const baanTekst = banen.length ? `${niveau2} van ${banen.length} banen op niveau 2 of hoger` : 'Nog geen baan gedaan';
+  const gebiedTekst = gebieden ? `${gebieden.voltooid} van ${gebieden.totaal} gebieden veroverd` : 'De kaart wordt nog geladen';
+  const rij = (naam, tekst) => `<div class="m-li pm-row"><span class="nm"><span class="one">${naam}</span><span class="mut one">${tekst}</span></span></div>`;
+  const inner = '<div class="ov-voortgang">' + rij('Loopbaan', lbTekst) + rij('Bijbanen', baanTekst) + rij('Veroverd', gebiedTekst) +
+    '<p class="m-note">Herhalen maakt één baan beter, variëren maakt je loopbaan breder, en alles in een gebied maakt je wijkheld.</p></div>';
+  return disc('voortgang', 'Je voortgang', 'Drie lussen in gewone taal', inner);
+}
+
 function disc(id, title, hint, inner) {
   const open = ui.folds.has(id);
   return `<button type="button" class="m-disc" data-fold="${id}" aria-expanded="${open}" aria-controls="pm-f-${id}">${svg(ICON.chev)}<b>${esc(title)}</b><span class="mut one">${esc(hint)}</span></button>` +
@@ -211,7 +233,7 @@ export function renderOverview(el, world, help, extra = {}) {
   const stopHtml = extra.stop ? `<div class="ov-stop"><div class="m-gh"><span>Missie bezig</span></div><div class="m-li pm-row"><span class="nm"><span class="one">${esc(extra.stop.title)}</span></span><button type="button" class="m-bg" data-action="mission-stop">${ICON.stop || ''}<span>Missie stoppen</span></button></div>` +
     '<div class="pm-confirm" data-stop-confirm hidden><p>Missie stoppen?</p><p class="m-note">Je krijgt geen straf en je kunt hem opnieuw starten. Wat je in deze poging deed, telt niet mee.</p>' +
     '<div class="m-acts"><button type="button" class="m-bp" data-action="mission-stop-go">Ja, stoppen</button><button type="button" class="m-bt" data-action="mission-stop-no">Nee, doorgaan</button></div></div></div>' : '';
-  el.innerHTML = heroHtml(world) + stopHtml + tilesHtml(world, extra) +
+  el.innerHTML = heroHtml(world) + stopHtml + tilesHtml(world, extra) + voortgangHtml() +
     '<div class="ov-cols"><section aria-label="Dichtbij" class="ov-col"><div class="m-gh"><span>Dichtbij</span></div>' +
     (near.length ? `<div class="ov-rows">${near.map((it) => row(it)).join('')}</div>` : '<p class="m-note">Niks in de buurt. Kijk bij Activiteiten.</p>') +
     '</section><section aria-label="Bijna binnen" class="ov-col"><div class="m-gh"><span>Bijna binnen</span></div>' +

@@ -133,6 +133,59 @@ de eerste heavy weg (viaduct/civil works) — die vraagt om vooraf bouwen
 (`prewarmStreamAt` geeft nu maar ~2-4 s) of om een harde heavy-cap met uitstel,
 geen extra budget verhogen. Geen van die twee is zonder nieuwe meting doorgevoerd.
 
+## MacBook Air M1: hoog vs vlot/middel (#804)
+
+De eigenaar meldt op zijn M1: **Hoog onspeelbaar** (29 fps gemiddeld, stad 13),
+**Laag te doen maar niet geweldig**, eerder >60 fps. Op de Windows-meetmachine
+is het verschil tussen de presets nagemeten met dezelfde harness; de M1 zelf is
+hier niet te meten. De runs zijn op een gedeelde machine gedaan (110-240 s per
+route van 12 s) en met `--force-device-scale-factor=2` om een Retina-scherm na
+te bootsen. Let op: de app zet zijn eigen venstermaat, dus `--window-size` werd
+niet overgenomen; de CSS-views werden half zo groot. De **relatieve** verschillen
+zijn bruikbaar, de absolute cijfers niet.
+
+| configuratie (a7, 12 s) | gem. ms | p95 | max | gpu ms | calls |
+|---|---:|---:|---:|---:|---:|
+| hoog (heelver), dpr 2 | 109,4 | 583,3 | 2066,6 | 43,4 | 227 |
+| hoog (heelver), dpr 2, resolutie 75% | 33,8 | 66,7 | 983,4 | 21,4 | 266 |
+| vlot (kort), dpr 2 | 24,0 | 50,0 | 599,8 | 9,1 | 238 |
+| middel (normaal), dpr 2 | 28,2 | 66,6 | 966,9 | 12,2 | 216 |
+
+Wat de cijfers laten zien:
+
+1. **Resolutie is de grootste knop.** Zelfde preset, alleen 75% resolutie:
+   109 -> 34 ms gemiddeld en 43 -> 21 ms GPU. Precies wat een Retina-scherm
+   (dpr 2) met pixelRatio 2 doet: vier keer zoveel pixels als dpr 1. Dat
+   verklaart waarom Laag (resolutie 75%, geen schaduwen) op de M1 nog te doen
+   is en Hoog niet.
+2. **Zichtafstand heelver is duur.** Vlot is kwaliteit hoog met een korte
+   zichtafstand: 24 ms en 9 ms GPU tegenover 109/43 bij heelver. Minder draw
+   calls en minder verkeer/vegetatie/LOD; dat is de "60 fps"-stand die al in de
+   presets zat (docs/PERF-METING-2026-10-19.md, Vervolg 8).
+3. Middel valt tussen beide in (28 ms) en is op een Retina-laptop de
+   tussenstand: schaduwen aan, resolutie 1,5x, geen bloom (postfx alleen op
+   hoog), normale zichtafstand.
+
+Concreet doorgevoerd (met bewijs, geen gok):
+
+- **Standaardpreset is Vlot** in plaats van Hoog (al in main: `06623285`/
+  `cb9f4494`, hier geverifieerd; niet gedupliceerd).
+- **Goedkopere hoog-stand**: `QUALITY_PRESETS.hoog.pixelRatio` 2 -> **1,5**. Op
+  dpr 1 verandert er niets (`min(preset, dpr)`), op een Retina-scherm scheelt
+  het 44% pixels. De resolutie-meting hierboven is de onderbouwing (75% gaf
+  ~3x winst; 1,5x zit daar tussen).
+- **Auto-advies op Apple-basis**: `classifyGpu` zet een M1/M2/M3 (niet Pro/Max/
+  Ultra) op tier **middel** i.p.v. hoog, zodat het eerste-start-advies niet
+  "Hoog" laat staan; de speler kan in Instellingen > Beeld altijd hoger kiezen.
+  `scripts/gfx_profile_test.mjs` dekt Apple M1 (middel), M1 Pro en M2 Max
+  (hoog) en de 1,5x-hoogstand.
+
+Advies voor de M1-eigenaar: begin op **Vlot** (nieuwe default; hoog uiterlijk,
+korte zichtafstand). Is dat nog niet vloeiend: **Gemiddeld** (resolutie 1,5x,
+schaduwen aan, geen bloom) of Vlot met **resolutie 75%**; **Laag** (geen
+schaduwen, 75%) is de zuinigste stand. Meet daarna op de Mac zelf met de
+hitchprobe (`--hitch --preset=preset:vlot`) om te bevestigen.
+
 ## Reproduceren
 
 ```

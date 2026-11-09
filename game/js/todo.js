@@ -14,7 +14,7 @@ import { getSettings } from './settings.js';
 import { getMissionList, getMissionDefs, trackMission, isMissionActive, activeMissionIndex, medalBonusLeft } from './missions.js';
 import { getStorySteps, storyMissionAhead } from './story.js';
 import { STEP_BY_ID } from './storyarc.js';
-import { getMissionRecord, getChallengeRecord, MISSION_GOALS, MEDALS, formatMissionTime, getStat, isUnlocked, getSaveSet, uniqueCount, EIERBAL_TOTAL, getLifetimeStats } from './achievements.js';
+import { getMissionRecord, getChallengeRecord, MISSION_GOALS, MEDALS, formatMissionTime, getStat, isUnlocked, getSaveSet, uniqueCount, hasUnique, EIERBAL_TOTAL, getLifetimeStats } from './achievements.js';
 import { getSideJobOffers, getSideJobList } from './sidejobs.js';
 import { getPadelSpotsForRender } from './padel.js';
 import { getHeliSpotsForRender, HELI_MEDAL_SCORES } from './helirun.js';
@@ -36,6 +36,8 @@ import { getRoutes as getRailRoutes } from './railway.js';
 import { paspoort, hint80, treinPlan } from './ommelandpaspoort.js';
 import { getStationsForRender } from './stationtravel.js';
 import { SECRETS_TOTAL } from './geheimen.js';
+import { HERKENNINGSPUNTEN, HERKENNINGSPUNTEN_TOTAAL } from './herkenningspunten.js';
+import { albumStand, dichtstbijzijndeOpen } from './herkenningsalbum.js';
 import { DRIFT_ZONE, DRIFT_MEDAL_AT } from './driftzone.js';
 import { getGoal, setGoal, clearGoal } from './goal.js';
 import { drawMapIcon } from './hud_panel.js';
@@ -332,8 +334,17 @@ function ommelandItems(world) {
   ];
 }
 
-function collectItems() {
+function collectItems(world) {
   const eggs = getSaveSet('eierballen').size, secrets = getSaveSet('geheimen').size;
+  // #820: het herkenningspunten-album per speler: totale stand, per soort en de route naar het
+  // dichtstbijzijnde punt dat nog niet gezien is.
+  const p = hoofdspeler(world);
+  const gezien = (id) => hasUnique('herkenningspunten', id);
+  const stand = albumStand(HERKENNINGSPUNTEN, gezien);
+  const open = dichtstbijzijndeOpen(HERKENNINGSPUNTEN, gezien, p.x, p.y);
+  const soortRows = stand.perSoort
+    .filter((r) => r.soort !== 'overig')
+    .map((r) => [r.meervoud.charAt(0).toUpperCase() + r.meervoud.slice(1), `${r.gezien} van ${r.totaal}`]);
   return [
     { key: 'col:eieren', group: 'verzamelen', icon: 'eierbalTip', title: 'Eierballen zoeken', status: eggs >= EIERBAL_TOTAL ? 'klaar' : '',
       meta: 'Verstopt bij de bezienswaardigheden', medal: null, record: `${eggs} van ${EIERBAL_TOTAL} gevonden`, goal: null,
@@ -341,6 +352,16 @@ function collectItems() {
     { key: 'col:geheim', group: 'verzamelen', icon: 'landmark', title: 'Geheimpjes', status: secrets >= SECRETS_TOTAL ? 'klaar' : '',
       meta: 'Ergens in Grunn · we verklappen niks', medal: null, record: `${secrets} van ${SECRETS_TOTAL} gevonden`, goal: null,
       detail: { kicker: 'Verzamelen', text: 'Kleine dingen die je alleen vindt als je goed kijkt. Of als je op de verkeerde plek staat op het verkeerde moment.', rows: [] } },
+    { key: 'col:herkenningspunten', group: 'verzamelen', icon: 'landmark', title: 'Herkenningspunten',
+      status: stand.gezien >= HERKENNINGSPUNTEN_TOTAAL ? 'klaar' : '',
+      meta: 'Kerken, molens en borgen in de provincie · kom binnen 70 meter', medal: null,
+      record: `${stand.gezien} van ${HERKENNINGSPUNTEN_TOTAAL} gezien`,
+      x: open ? open.x : undefined, y: open ? open.y : undefined,
+      goal: open ? { kind: 'place', name: open.naam, sub: 'Herkenningspunt', x: open.x, y: open.y } : null,
+      where: open ? open.naam : '',
+      detail: { kicker: 'Verzamelen · de provincie',
+        text: 'Rijd of loop langs een kerk, molen, borg of ander herkenningspunt: binnen zeventig meter komt hij eenmalig in je album. De teller is per speler.',
+        rows: open ? [['Dichtstbijzijnde open punt', `${open.naam} · ${Math.round(open.afstand)} m`], ...soortRows] : [['Alles gezien', 'De provincie is compleet'], ...soortRows] } },
   ];
 }
 
@@ -419,7 +440,7 @@ let worldRef = null;
 export function getTodoItems(world) {
   worldRef = world;
   const p = hoofdspeler(world);
-  const items = [...missionItems(world), ...minigameItems(world), ...jobItems(), ...ommelandItems(world), ...collectItems(), ...postgameItems(world)];
+  const items = [...missionItems(world), ...minigameItems(world), ...jobItems(), ...ommelandItems(world), ...collectItems(world), ...postgameItems(world)];
   const st = storyStepItem(world);
   if (st) items.unshift(st);
   const goal = getGoal();

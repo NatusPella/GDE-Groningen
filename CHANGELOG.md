@@ -9,6 +9,9 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- **De vluchtboot bij de museumroof kan weer vooruit varen (#822).** De boot kiest zijn aanlegplaats en koers pas als de kaart rond het water geladen is, vaart niet meer tegen kadebebouwing op en draait na de startscène zo nodig naar vrij water; de missie wacht daar kort op in plaats van de bootstap zonder boot af te ronden.
+- **De kerken, molens, borgen en andere herkenningspunten in de provincie hebben nu een album: kom binnen zeventig meter en het punt komt eenmalig in je verzameling, met een korte melding en de stand per soort (#820).** "Te doen" toont hoeveel van de 583 punten je gezien hebt en wijst de route naar het dichtstbijzijnde open punt; de teller is per speler en er is geen nieuwe werelddata voor nodig.
+- **Onder Spel > Overzicht staat één inklapbaar blok "Je voortgang": loopbaan, bijbanen en Veroverd naast elkaar in gewone taal, uit de bestaande systemen (#821).** Eén zin legt het verschil uit: herhalen maakt één baan beter, variëren maakt je loopbaan breder, en alles in een gebied maakt je wijkheld. Geen nieuwe teller of opslagsleutel.
 ## [0.60.0] - 2026-11-09
 
 - **De stad wordt bij het starten gestreamd in plaats van in één keer opgebouwd.** De productiewereld is weer sparse; de benchmark op een schone machine zakt daardoor van 3,5 naar 2,9 GB JS-heap en wint enkele fps, terwijl de tests een dichte kaart blijven gebruiken.
@@ -20,6 +23,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - **Te doen begint met "Begin hier": de telling en de drie dichtstbijzijnde dingen (#813).** Bovenaan staat hoeveel er nog te doen is en wat de eerstvolgende aanbeveling is; de drie dichtstbijzijnde missies, activiteiten of bijbanen zijn gewone, klikbare rijen. De keuze is een pure functie met een Node-test.
 - **Een mislukte missie zegt nu dat je niets verliest (#814).** In de faalbanner staat "Verlies: geen — je geld en voortgang blijven van jou", solo en in Samen spelen, zonder bedragen of verzekeringen.
 - **De kaart-hover van een activiteit noemt het doel, de bronzen eis en de beloning (#815).** De regel komt uit dezelfde startkaarttabel, blijft binnen het tekenbudget en valt bij een te lange regel terug op doel plus brons.
+- **De eierrit van Geesje is eerlijk: vol gas mag tot 40 km/u (#824).** De tractor rijdt op topsnelheid onder de breekgrens, de HUD toont je snelheid en de limiet, waarschuwt ruim vóór de grens en de rij- en remhint blijven tijdens de rit permanent in beeld.
 - **Kiekdoar meldt ontsnappen en topsnelheid (#812).** Ben je na een achtervolging van minstens twee sterren ontsnapt, dan komt er één Kiekdoar-melding; een nieuw topsnelheidsrecord boven 120 km/u haalt hoogstens één keer per vijf minuten de krant. De twee koppen zijn tekst-only (geen opname), de bestaande berichten en cooldowns blijven zoals ze waren.
 - **Kiekdoar reageert op overvallen en gewonnen races (#818).** Een geslaagde heistmissie en een eerste plaats in de kart-, ring- of solo-zeilrace tellen in je eigen opgeslagen spel (ook na laden) en leveren één lokale telefoonmelding op, via dezelfde cooldowns. Nieuwe koppen hebben geen stem; de volgorde blijft sterren, ontsnappen, snelheid, overval, race, schade, kills, missie.
 

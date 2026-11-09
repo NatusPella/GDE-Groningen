@@ -1,7 +1,7 @@
 // node scripts/gfx_profile_test.mjs: the GPU classification, the first-run
 // advice and the benchmark recommendation (game/js/gfxprofile.js).
 import { classifyGpu, adviseFromSample, presetFromSample, recommendPreset, describePreset, describeChanges, noteFrame, resetDynamic, dynamicScale, cpuLevel, currentPreset, isDefaultGfx, mobileProfileFor, MOBILE_PROFILES, noteBatchWork, perfSnapshot, resetPerfCounter, perfCounterOn } from '../game/js/gfxprofile.js';
-import { setSetting } from '../game/js/settings.js';
+import { setSetting, QUALITY_PRESETS } from '../game/js/settings.js';
 import { VIEW_DISTANCES, viewDistanceFor, propRadius } from '../game/js/viewdist.js';
 
 let fail = 0;
@@ -27,7 +27,7 @@ const GPUS = [
   ['ANGLE (AMD, AMD Radeon RX 6600 Direct3D11 vs_5_0 ps_5_0, D3D11)', 'hoog'],
   ['ANGLE (NVIDIA, NVIDIA GeForce MX250 Direct3D11 vs_5_0 ps_5_0, D3D11)', 'middel'],
   ['ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Laptop GPU Direct3D11 vs_5_0 ps_5_0, D3D11)', 'hoog'],
-  ['ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)', 'hoog'],
+  ['ANGLE (Apple, ANGLE Metal Renderer: Apple M1, Unspecified Version)', 'middel'],
   ['', 'hoog'],
 ];
 for (const [r, want] of GPUS) eq(r || '(masked)', tier(r), want);
@@ -35,6 +35,10 @@ eq('RTX on 4 cores', tier('NVIDIA GeForce RTX 3060', { cores: 4 }), 'middel');
 eq('RTX with 4 GB', tier('NVIDIA GeForce RTX 3060', { memory: 4 }), 'middel');
 eq('2 cores', tier('NVIDIA GeForce RTX 3060', { cores: 2 }), 'laag');
 eq('small textures', tier('Apple M1', { maxTexture: 4096 }), 'laag');
+eq('Apple M1 Pro blijft hoog', tier('ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Pro, Unspecified Version)'), 'hoog');
+eq('Apple M2 Max blijft hoog', tier('ANGLE (Apple, ANGLE Metal Renderer: Apple M2 Max, Unspecified Version)'), 'hoog');
+// #804: de goedkopere hoog-stand op Retina (op dpr 1 blijft de uitkomst gelijk door de min met dpr)
+eq('hoog rendert op Retina 1,5x i.p.v. 2x', QUALITY_PRESETS.hoog.pixelRatio, 1.5);
 
 eq('weak GPU, slow frames', adviseFromSample('laag', 45, 'hoog'), 'laag');
 eq('weak GPU, smooth frames', adviseFromSample('laag', 15, 'hoog'), 'middel');

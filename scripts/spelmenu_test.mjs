@@ -278,7 +278,7 @@ const ss = read('game/js/startscreen.js');
 ok(!/act: 'news'/.test(ss) && !/openNews/.test(ss), 'het titelscherm heeft geen tweede "Wat is er nieuw" meer (#601)');
 // Overzicht: "Snel instellen" is één gevouwen blok, geen rij instelschakelaars boven de kaart
 const todoSrc = read('game/js/todoui.js');
-ok(/folds: new Set\(\['clues', 'quick'\]\)/.test(todoSrc) && /disc\('quick', 'Snel instellen'/.test(todoSrc),
+ok(/folds: new Set\(\['clues', 'quick', 'voortgang'\]\)/.test(todoSrc) && /disc\('quick', 'Snel instellen'/.test(todoSrc),
   'Overzicht toont "Snel instellen" als één gevouwen blok (#601)');
 ok(/export function foldNote/.test(todoSrc) && /foldNote\(btn\.dataset\.fold, on\)/.test(pm), 'de vouwen van Over en Overzicht onthouden hun stand');
 

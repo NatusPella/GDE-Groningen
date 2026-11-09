@@ -1615,6 +1615,10 @@ export function resolveVehicleBuildingCollision(v, map, dt) {
       }
     }
     for (const b of near || []) {
+      // #822: een boot vaart op het water en hoort niet tegen kadebebouwing te botsen; alleen
+      // een woonboot ligt echt in het water. Zonder deze uitzondering gaf een gebouw dat over
+      // het water uitsteekt (het museum) een onzichtbare muur waar alleen achteruit uit kwam.
+      if (v.isBoat && b.type !== 'houseboat') continue;
       const [minx, miny, maxx, maxy] = b.bounds;
       if (c[0] < minx || c[0] > maxx || c[1] < miny || c[1] > maxy) continue;
       // building passages (passages.js) are open, the rest of the footprint is wall

@@ -59,5 +59,20 @@ t('de opmaak ervoor staat in de menustijlen', () => {
   assert.match(css, /#pause-menu \.m-li \.td-ico \{/);
 });
 
+t('#821: één blok "Je voortgang" met de drie lussen uit de bestaande systemen', () => {
+  const td = lees('todoui.js');
+  for (const bron of ['loopbaanSamenvatting', 'getSideJobList', 'getOverzicht', 'gebiedenSamenvatting']) assert.match(td, new RegExp(bron), 'bron: ' + bron);
+  assert.match(td, /function voortgangHtml\(/, 'de functie bestaat');
+  assert.match(td, /disc\('voortgang', 'Je voortgang'/, 'het blok is een inklapbaar disc-blok');
+  assert.match(td, /rij\('Loopbaan'/, 'regel Loopbaan');
+  assert.match(td, /rij\('Bijbanen'/, 'regel Bijbanen');
+  assert.match(td, /rij\('Veroverd'/, 'regel Veroverd');
+  assert.match(td, /Herhalen maakt één baan beter, variëren maakt je loopbaan breder, en alles in een gebied maakt je wijkheld\./, 'de zin onderscheidt de drie lussen');
+  assert.match(td, /tilesHtml\(world, extra\) \+ voortgangHtml\(\)/, 'het blok staat in Overzicht');
+  const blok = td.slice(td.indexOf('function voortgangHtml'), td.indexOf('function disc('));
+  assert.ok(!/localStorage|sessionStorage/.test(blok), 'geen nieuwe opslag in het blok');
+  assert.ok(!/data-bar=/.test(blok), 'geen vierde progressiebalk');
+});
+
 if (process.exitCode) console.log(`todo_ui_test: ${n} tests, mislukt`);
 else console.log(`todo_ui_test: ${n}/${n} ok`);

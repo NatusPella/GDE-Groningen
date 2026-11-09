@@ -78,11 +78,11 @@ export function buildAkte2Defs({ models = {} } = {}) {
       vehicleFail: { gone: 'Geesjes trekker is foetsie, met alle eieren', wrecked: 'de trekker ligt in de sloot, de eieren drijven', left: 'je liet de trekker met de eieren staan' },
       // #663: de rit is in twee stukken geknipt met een tussenstop, en de missie
       // faalt pas onder 38% (was 50%): eerst komt er nog een waarschuwing.
-      eggs: { from: 1, count: 60, failAt: 38, fail: 'meer dan de helft van de eieren is stuk. Laad opnieuw', rough: { speed: 8.5, per: 0.35 } },
+      eggs: { from: 1, count: 60, failAt: 38, fail: 'meer dan de helft van de eieren is stuk. Laad opnieuw', rough: { speed: 11.2, per: 0.35 } }, // #824: 40 km/u (tractor top) mag; pas daarboven breken ze
       lazyStart: true,
       // Warffum, Pastorieweg (OSM way Pastorieweg, 53.39185 N 6.56013 E)
       start: far(-638.9, -19173.8),
-      say: 'Breng Geesjes zestig eieren heel naar de kerkkelder in Usquert. Rustig rijden: ze zijn alle zestig nodig.',
+      say: 'Breng Geesjes zestig eieren heel naar de kerkkelder in Usquert. Vol gas mag tot 40 km/u; rem rustig en ontwijk de gaten.',
       stages: [
         { kind: 'board', label: 'Stap in Geesjes trekker', say: 'De trekker staat bij de schuur. Instappen, de kratten staan achterop.' },
         // the wierdepaden: the Westerhornseweg south of the main road (the Dorpsweg is shut by Jelle's permit)
