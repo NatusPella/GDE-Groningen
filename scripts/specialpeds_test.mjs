@@ -5,6 +5,8 @@
 import './node3d.mjs';
 import assert from 'node:assert/strict';
 const { spawnPedestriansNear } = await import('../game/js/pedestrians.js');
+const { mulberry32 } = await import('../game/js/rng.js');
+const random = mulberry32(1234);
 
 // een rechte weg van 400 m met voetpad, geen gebouwen, geen water
 const road = { id: 1, type: 'residential', width: 5, pts: [[-200, 0], [200, 0]], bounds: [-200, -3, 200, 3] };
@@ -13,12 +15,12 @@ const map = {
   offStreetLevel: () => false, onRingCarriageway: () => false, greenNear: () => [], isOpenSpot: () => true,
 };
 let n = 0;
-while (spawnPedestriansNear(map, 0, 0, 1, Math.random).length && n < 500) n++;
+while (spawnPedestriansNear(map, 0, 0, 1, random).length && n < 500) n++;
 assert.ok(n > 0 && n < 500, 'het budget raakt op: ' + n + ' wandelaars gespawnd');
-assert.equal(spawnPedestriansNear(map, 0, 0, 1, Math.random).length, 0, 'zonder budget geen gewone wandelaar');
+assert.equal(spawnPedestriansNear(map, 0, 0, 1, random).length, 0, 'zonder budget geen gewone wandelaar');
 let free = 0;
-for (let i = 0; i < 12; i++) free += spawnPedestriansNear(map, 0, 0, 1, Math.random, true).length;
+for (let i = 0; i < 12; i++) free += spawnPedestriansNear(map, 0, 0, 1, random, true).length;
 assert.ok(free >= 9, 'een wandelaar met een rol komt er toch: ' + free + ' van 12 pogingen');
-assert.equal(spawnPedestriansNear(map, 0, 0, 1, Math.random).length, 0, 'de vrije wandelaars hebben het budget niet teruggezet');
-assert.equal(spawnPedestriansNear(map, 0, 0, 0, Math.random, true).length, 0, 'nul gevraagd, nul gekregen');
+assert.equal(spawnPedestriansNear(map, 0, 0, 1, random).length, 0, 'de vrije wandelaars hebben het budget niet teruggezet');
+assert.equal(spawnPedestriansNear(map, 0, 0, 0, random, true).length, 0, 'nul gevraagd, nul gekregen');
 console.log(`specialpeds_test: ok (budget ${n}, vrij ${free}/12)`);
