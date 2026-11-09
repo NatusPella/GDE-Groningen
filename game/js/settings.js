@@ -62,9 +62,10 @@ const BASE_DEFAULTS = {
   showFog: true,
   cinematicMoments: true,
   gore: true,
-  // Zichtafstand (viewdist.js): 'ver', not Hoog's 'heelver', so a first
-  // launch on an iGPU laptop stays at 600 m
-  drawDistance: 'ver',
+  // Zichtafstand (viewdist.js): 'kort' hoort bij de preset Vlot (Hoog's look met de
+  // afstand van Laag). Op een iGPU-laptop als de M1 is dat de speelbare stand; de speler
+  // kan in de instellingen naar 'ver' of 'heelver'.
+  drawDistance: 'kort',
   // render scale (1 = full); autoResolution lowers it and some detail while
   // frames are slow (gfxprofile.js)
   resolution: 1,

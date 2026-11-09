@@ -67,12 +67,12 @@ eq('rec: one measured', recommendPreset({ hoog: 40 }, 'hoog'), null);
 
 eq('describe laag', describePreset('laag'), 'schaduwen uit · resolutie 75%, automatisch · zichtafstand kort');
 eq('describe hoog', describePreset('hoog'), 'schaduwen aan · resolutie 100%, automatisch · zichtafstand heel ver');
-const OLD_HOOG = { quality: 'hoog', shadows: true, drawDistance: 'ver', resolution: 1, autoResolution: true };
-eq('default (old hoog) is no preset', currentPreset(OLD_HOOG), null);
+const OLD_HOOG = { quality: 'hoog', shadows: true, drawDistance: 'kort', resolution: 1, autoResolution: true };
+eq('default is de preset Vlot', currentPreset(OLD_HOOG), 'vlot');
 eq('default is the default', isDefaultGfx(OLD_HOOG), true);
 eq('hoog is hoog', currentPreset({ ...OLD_HOOG, drawDistance: 'heelver' }), 'hoog');
 eq('hoog is not the default', isDefaultGfx({ ...OLD_HOOG, drawDistance: 'heelver' }), false);
-eq('changes old hoog->hoog', describeChanges('hoog', { quality: 'hoog', shadows: true, drawDistance: 'ver', resolution: 1, autoResolution: true }), 'zichtafstand heel ver');
+eq('changes vlot->hoog', describeChanges('hoog', OLD_HOOG), 'zichtafstand heel ver');
 
 // view distance: 'heel ver' only while adaptive quality has not stepped down
 eq('view distances', Object.values(VIEW_DISTANCES), [150, 350, 600, 900]);
@@ -84,7 +84,7 @@ eq('ver stays ver when scaled', viewDistanceFor('ver', 0.6, 2), 600);
 eq('unknown -> normaal', viewDistanceFor('reuzever'), 350);
 eq('prop radius per setting', Object.values(VIEW_DISTANCES).map(propRadius), [260, 410, 620, 855]);
 
-eq('changes hoog->laag', describeChanges('laag', { quality: 'hoog', shadows: true, drawDistance: 'ver', resolution: 1, autoResolution: true }), 'kwaliteit laag · schaduwen uit · zichtafstand kort · resolutie 75%');
+eq('changes vlot->laag', describeChanges('laag', OLD_HOOG), 'kwaliteit laag · schaduwen uit · resolutie 75%');
 
 // adaptive resolution: frames(i) -> [interval ms, main-thread ms]; the scale
 // steps taken over `secs` seconds of play
