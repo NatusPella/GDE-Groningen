@@ -1,7 +1,7 @@
 // Routekwaliteit (#320): kiest de GPS een omweg? Voor een vaste reeks start/doel-paren (stad, dorpen, A7, provincie, doelen op en bij
 // water en bruggen) vergelijkt deze test de gekozen route (routing.js, de echte routeplanner op de echte wegen) met de kortste weg in de
 // graaf (scripts/lib/routeref.mjs: Dijkstra op zuivere lengte over stad + provincienet, één knoop per halve meter) en met hemelsbreed.
-// Een route die meer dan 1,3 keer zo lang is als de kortste weg is een fout; de uitschieters staan in het rapport.
+// Een route die meer dan 1,3 keer zo lang is als de kortste weg is een fout; de uitschieters staan in het rapport.\n// De referentie gebruikt dezelfde tweedeling als de planner (#810): stadstraten in de stad, het\n// provincienet daarbuiten; netrijen die volledig binnen de kaartgrenzen liggen zijn stadswegen.
 //   node scripts/route_quality_test.mjs [--verbose] [--max=1.3]
 import './node3d.mjs';
 import fs from 'node:fs';
@@ -21,11 +21,19 @@ import { buildRef, snapRef, refLength, cityDrivable } from './lib/routeref.mjs';
 const R = await import('../game/js/routing.js');
 const RG = await import('../game/js/roadgraph.js');
 const map = (await loadCityWorld()).map;
+
 RG.setRoadNet(RG.decodeRoadNet(JSON.parse(zlib.gunzipSync(fs.readFileSync(roadFile)).toString('utf8'))));
 const roadNet = RG.roadNetRows();
 const city = map.roads.filter(cityDrivable);
 // een wegstuk dwars door een gebouw is geen weg voor een auto (routing.js rekent er het achtvoudige voor)
-const G = buildRef([...city, ...roadNet], (r, ax, ay, bx, by) => !r.bridge && r.cat && R.throughBuilding(map, ax, ay, bx, by));
+// De referentie volgt dezelfde tweedeling als de routeplanner: de stadstraten in de stad,
+// het provincienet daarbuiten. Netrijen die volledig binnen de kaartgrenzen liggen zijn
+// stadswegen (of overlays daarvan) en horen bij de stadsgraaf; ze als losse netrij
+// meenemen gaf de referentie een kortere weg die de planner nooit kan rijden (#810).
+const MBr = map.meta.bounds;
+const inBound = (p) => p[0] > MBr[0] && p[0] < MBr[2] && p[1] > MBr[1] && p[1] < MBr[3];
+const netRef = roadNet.filter((r) => r.pts.some((p) => !inBound(p)));
+const G = buildRef([...city, ...netRef], (r, ax, ay, bx, by) => !r.bridge && r.cat && R.throughBuilding(map, ax, ay, bx, by));
 
 // ---- de paren, allemaal vast (zaad en namen)
 let seed = 320;
@@ -156,7 +164,7 @@ for (const pr of pairs) {
   }
   if (DEBUG && pr.name.includes(DEBUG) && Number.isFinite(len)) {
     const nm = (x) => `${x.name || '?'}(${x.type || 'k' + x.kind}${x.oneway ? ',1w' : ''}${x.bridge ? ',br' : ''})`;
-    const seq = (roads) => roads.map(nm).filter((n, i, a) => n !== a[i - 1]).join(' > ');
+    const seq = (roads) => roads.map((r) => { const n = nm(r); if (!n.startsWith('?')) return n; const a = r.pts[0], b = r.pts[r.pts.length - 1]; return `${n}[${a.map(Math.round)}->${b.map(Math.round)}]`; }).filter((n, i, a) => n !== a[i - 1]).join(' > ');
     const path = [], e0 = r.pts[0], e1 = r.pts[r.pts.length - 1];
     const sa = snapRef(G, e0[0], e0[1], 3000, { z: pr.a.z || 0 }), sb = snapRef(G, e1[0], e1[1], 3000, { z: pr.b.z || 0 });
     refLength(G, sa, sb, path);
@@ -239,13 +247,9 @@ for (const x of modeRows.filter((y) => Number.isFinite(y.ratio)).sort((u, v) => 
 
 let fails = 0;
 if (badMode.length) { fails++; console.log(`FAIL ${badMode.length} lopen/fietsen-routes boven de grens`); for (const x of badMode) console.log(`  ${f2(x.ratio)}x ${x.mode} ${x.name}`); }
-// de route is nooit meer dan MAX keer de kortste weg. Twee vaste paren uit de nieuwe
-// provinciebouw staan als bekend in #810; nieuwe uitschieters vallen nog steeds door.
-const KNOWN_LONGER = new Set(['[stad-straten] straat #8', '[bruggen] brugeinde -> brugeinde #0']);
-const bekend = bad.filter((x) => KNOWN_LONGER.has(`[${x.set}] ${x.name}`));
-const nieuw = bad.filter((x) => !KNOWN_LONGER.has(`[${x.set}] ${x.name}`));
-if (bekend.length) console.log(`  bekend (#810): ${bekend.map((x) => `${f2(x.ratio)}x [${x.set}] ${x.name}`).join(', ')}`);
-if (nieuw.length) { fails++; console.log(`\nFAIL ${nieuw.length} routes langer dan ${MAX}x (${MAX_GAP}x bij een gat in de stadsgraaf) de kortste weg`); for (const x of nieuw) console.log(`  ${f2(x.ratio)}x [${x.set}] ${x.name}${x.cityGap ? " (gat in de stadsgraaf)" : ""}`); }
+// de route is nooit meer dan MAX keer de kortste weg. De referentie volgt dezelfde
+// stad/provincie-tweedeling als de planner (#810), dus er is geen allowlist meer nodig.
+if (bad.length) { fails++; console.log(`\nFAIL ${bad.length} routes langer dan ${MAX}x (${MAX_GAP}x bij een gat in de stadsgraaf) de kortste weg`); for (const x of bad) console.log(`  ${f2(x.ratio)}x [${x.set}] ${x.name}${x.cityGap ? " (gat in de stadsgraaf)" : ""}`); }
 // een route waar de graaf er wel een heeft, is er ook (de verhalen en kaart vragen erom)
 const missing = noRoute.filter((x) => Number.isFinite(x.ref));
 if (missing.length) { fails++; console.log(`FAIL ${missing.length} paren zonder route terwijl de graaf er een heeft`); }
