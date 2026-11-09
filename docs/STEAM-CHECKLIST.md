@@ -20,7 +20,7 @@ Betekenis van de status:
 |---|---|---|
 | Leeftijd: 18+ (verwacht PEGI 18 / USK 18) | klaar | `docs/LEEFTIJD.md` en `docs/IARC-ANTWOORDEN.md` kloppen met het spel (bloed en ledematen aan, burgers en agenten kunnen sneuvelen, kraskaarten met spelgeld, alcohol). Steam kent zelf geen PEGI-label: de leeftijd komt uit de eigen inhoudsvragenlijst; PEGI/USK volgen uit IARC. De antwoorden invullen doet de eigenaar. |
 | Inhoudsbeschrijving voor de winkelpagina | klaar | `docs/steam/winkelpagina.md`, sectie "Inhoud en leeftijd". 20 okt: de merknaam van een ander spel eruit, en de regel "Niemand gaat dood" (die klopte niet meer sinds 18+) vervangen door een eerlijke regel. |
-| Winkelpagina klopt met het spel | klaar | 24 okt nagelopen: 217 prestaties, 22 verborgen (stond op 102, later 190), "Singleplayer en offline" noemt nu ook samen spelen (kamercode, toestemming, geen tekstchat), en de controllermerken zijn weg. |
+| Winkelpagina klopt met het spel | klaar | 24 okt nagelopen: 217 prestaties, 22 verborgen (stond op 102, later 190), "Singleplayer en offline" noemt nu ook samen spelen (kamercode, toestemming, geen tekstchat), en de controllermerken zijn weg. 8 nov (na UX-audit #808): verhaalstructuur (30 missies, vijf akten + Deel 4) en de privacyclaim (twee opt-in uitzonderingen) nagelopen. |
 | Geen echte merken of personen op de winkelpagina | klaar | De pagina noemt geen andere spellen, uitgevers of controllermerken. De disclaimer noemt bewust geen namen. |
 | Geen echte merken of personen in de speltekst | **open** | Sinds #72 is de disclaimer één tekst (README, NOTICE en het Over-scherm in `game/js/credits.js`), maar die noemt nog "Rockstar Games of Take-Two Interactive, de uitgever van GTA" (de enige plek in het spel; op de allowlist van `text_audit`). Dat botst met constitution punt 2 en met de Steam-regel dat je geen merken van anderen gebruikt. Advies: de namen weglaten ("niet gelieerd aan, gesponsord door of goedgekeurd door enige andere gameontwikkelaar of -uitgever"); het tekstvoorstel staat op #72. Besluit: eigenaar. |
 | Echte namen en gebeurtenissen in het ingesproken verhaal | **open** | Noorderzon, KEI-week, Regnerus Praedinius (echte gebeurtenissen en een echte persoon), zie #150. Verweven in opnames; een nieuwe naam vraagt nieuwe opnames en dus een besluit van de eigenaar (geen nieuwe TTS zonder akkoord). |
@@ -30,7 +30,7 @@ Betekenis van de status:
 | Geen verwijzingen naar andere winkels | klaar | Gezocht (20 okt) in `game/js`, `game/index.html`, `game/storydata` en `docs/steam/`: geen itch.io, GOG, Epic, App Store, Google Play of andere winkel in de speltekst of winkelpagina. |
 | AI-melding (vooraf gemaakt: muziek, stemmen, één model, code-hulp; tijdens het spelen: niets) | klaar | Tekst in `docs/steam/winkelpagina.md`; de eigenaar vinkt het aan in de inhoudsvragenlijst. De opnames blijven staan (besluit 20 okt: geen nieuwe TTS). |
 | Prestaties | klaar | 217 (22 verborgen) in `steam/achievements.json`, gelijk aan `game/js/achievements.js` (test). |
-| Privacyverklaring op een openbare URL | **eigenaar** | Steam eist een URL als het spel gegevens verwerkt; samen spelen stuurt een IP-adres naar een openbare STUN-server en de versleutelde signalering loopt via openbare brokers (alleen na toestemming); een openbare sessie (#438, standaard uit) toont naam, aantal spelers, versie en kamercode, nooit een IP-adres. De tekst staat in `docs/PRIVACY-EN-CREDITS.md`; de repo is privé, dus de eigenaar moet hem ergens openbaar zetten. |
+| Privacyverklaring op een openbare URL | **eigenaar** | Steam eist een URL als het spel gegevens verwerkt; samen spelen stuurt een IP-adres naar een openbare STUN-server en de versleutelde signalering loopt via openbare brokers (alleen na toestemming); een openbare sessie (#438, standaard uit) toont naam, aantal spelers, versie en kamercode, nooit een IP-adres. De tekst staat in `docs/PRIVACY-EN-CREDITS.md`; de repo is privé, dus de eigenaar moet hem ergens openbaar zetten. De winkelpagina-tekst (`docs/steam/winkelpagina.md`) is op 8 nov gelijkgetrokken met dezelfde uitzonderingen (#808). |
 | Naamcheck "GDE Groningen" | **eigenaar** | `docs/MERKENCHECK.md`: de registers zijn niet geraadpleegd (15 minuten met de hand). |
 | Steam Cloud | **open** | De saves staan in `localStorage` van het Electron-profiel (leveldb), niet als losse bestanden; Auto-Cloud op die map is te fragiel. Eerst een opslagbestand in `userData` (een schrijf-IPC), dan Auto-Cloud. Geen blokkade voor de eerste uitgave. |
 | Licentie en gebruiksvoorwaarden | **eigenaar** | De code is GPL-3.0-or-later, de inhoud valt onder `LICENSE-CONTENT.md`. Verspreiden via Steam kan als houder van de rechten; of er een eigen EULA bij hoort en hoe bijdragen van anderen daarin passen is een juridische vraag. |
@@ -118,7 +118,8 @@ maakt contact met Steam.
 - De winkelpagina (`docs/steam/winkelpagina.md`, 20 kB), de trailer-cut
   (`docs/steam/trailer.md`), de beelden (`docs/steam/beelden/`) en de achievements-tabel
   (`steam/achievements.json`, gegenereerd met `make-steam-files.mjs`) staan klaar; de aantallen in
-  de winkelpagina zijn op 24 oktober tegen de code nagelopen.
+  de winkelpagina zijn op 24 oktober en (na de UX-audit) op 8 november tegen de code nagelopen
+  (#808).
 - **Wat de eigenaar moet doen (in volgorde):** §4 hierboven (het $100-besluit, account,
   identiteit/bank/belasting, app aanmaken, winkelpagina, inhoudsvragenlijst + IARC (#60),
   achievements aanmaken, Steam Input-lagen, proefbouw uploaden naar Preview/bèta, Deck- en

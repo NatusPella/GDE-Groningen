@@ -216,5 +216,14 @@ for (const must of ['Steamworks-account', 'Steam Direct', 'app-id', 'Startopties
 ok(!/\b(Xbox|PlayStation|Nintendo|Carmageddon)\b/.test(list + read('docs/steam/winkelpagina.md')), 'no maker or game names on the store page and the checklist');
 ok(read('docs/steam/winkelpagina.md').includes(`${ACHIEVEMENTS.length} prestaties in het spel`), 'the store page counts the prestaties right');
 
+// #808: the store page and the YouTube text describe the current story (five acts + Part 4, 30 missions) and the privacy claim is honest
+const storePage = read('docs/steam/winkelpagina.md');
+for (const stale of ['18 verhaalmissies', 'Achttien verhaalmissies', 'in drie delen', '18 fully voiced story missions', 'Eighteen story missions', 'in three parts', 'niets naar een server', 'Nothing is sent to any server']) {
+  ok(!storePage.includes(stale), `the store page no longer says: ${stale}`);
+}
+ok(storePage.includes('30 verhaalmissies') && storePage.includes('30 fully voiced story missions'), 'the store page counts the 30 story missions');
+ok(storePage.includes('STUN') && storePage.includes('brokers'), 'the store page names the two opt-in network exceptions (STUN, brokers)');
+ok(!/Achttien verhaalmissies|18 verhaalmissies/.test(read('docs/youtube/kanaal.md')), 'the YouTube channel text counts the story missions right');
+
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

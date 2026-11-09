@@ -56,6 +56,11 @@ const actieStray = strayHexes('kaartactieui.js');
 ok(actieStray.length === 0, 'kaartactieui.js: kleuren buiten de tokens: ' + (actieStray.join(', ') || 'geen'));
 ok(!/#5dff7a|#ff9a8a|#9aa3ad|rgba\(95,\s*180,\s*217/.test(kaartactie), 'kaartactieui.js: geen eigen groen, rood, grijs of blauw meer');
 
+// De TV-overlay (#803): eigen --fm-*-tokens in de inline stijl, zodat er geen losse hexen meer staan.
+const tv = read('furniture.js');
+ok(/--fm-green:\s*#3fc97a/.test(tv) && /--fm-ink:\s*#f0ede4/.test(tv) && /--fm-amber:\s*#e8c93a/.test(tv), 'TV-overlay: eigen --fm-*-tokens');
+ok(/border:2px solid var\(--fm-green\)/.test(tv) && /color:var\(--fm-ink\)/.test(tv) && /color:var\(--fm-amber\)/.test(tv), 'TV-overlay: kleuren via de tokens');
+
 // De golf-HUD (#597): de statuskleuren staan als token met terugval, dus de kleurenblindmodi doen mee.
 const golf = read('golfhud.js');
 // #624: de pvp-teams volgen de statuskleuren en hebben daarnaast een vorm.

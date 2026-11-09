@@ -9,6 +9,9 @@
 Eén wereld, meer spelers: één spel draait de wereld, de anderen tekenen snapshots
 en sturen invoer. Eenspeler is een sessie van één. Iedereen houdt zijn eigen geld,
 verhaal en bezit; elke nieuwe functie krijgt een regel over Samen spelen.
+- **PvP-interpolatie:** een gast interpoleert normaal 120 ms achter op de snapshots;
+  zodra minstens twee spelers niet-passief zijn (een echt gevecht), wordt dat 60 ms
+  (`interpDelayVoorPvp`, `tickCoopNet`, #806), zodat reacties sneller in beeld staan.
 
 ## De ingang: altijd een sessie
 Sinds #528 is Samen spelen de standaard, niet iets wat je erbij doet (ADR 0022).

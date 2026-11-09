@@ -9,6 +9,7 @@
 // van de host zijn er voor gasten nog niet bij.
 
 import { ClientSession, PROTO } from './net/session.js';
+import { interpDelayVoorPvp } from './net/interp.js';
 import { HostHub } from './net/hub.js';
 import { VERSION } from './version.js';
 import { setFixedCharacters, applyHostState, makeClientInput, ensureFigure, removeFigure, figures } from './coopclient.js';
@@ -56,7 +57,7 @@ import { profielNaam, profielKleur } from './lobby.js';
 import { wedHostTik, wedHandleGast, wedHandleHost, wedGastReset, zetWedHaken } from './multiplayerwedstrijd.js';
 import { wedKaartTik } from './coopwedstrijd3d.js';
 import { bijbaanStart, bijbaanBeloning, bijbaanEind, bijbaanHelpers, bijbaanHostTik, bijbaanGastTik, bijbaanGastReset, bijbaanGastStop, bijbaanHandleGast, bijbaanHandleHost, bijbaanVoorNieuwe, bijbaanWeg, bijbaanHostMee, bijbaanAantal, zetBijbaanHaken } from './coopbijbaan.js';
-import { maakPvp, wisselPassief, zetPassiefStand, verwijderSpeler, passiefEvent, passiefVanEvent, leesPassief, leesPassiefVan, pvpSchadeEvent, isPassief, PVP_TEKST } from './cooppvp.js'; // passieve stand en spelers tegen elkaar (#447)
+import { maakPvp, wisselPassief, zetPassiefStand, verwijderSpeler, passiefEvent, passiefVanEvent, leesPassief, leesPassiefVan, pvpSchadeEvent, isPassief, pvpAanDeGang, PVP_TEKST } from './cooppvp.js'; // passieve stand en spelers tegen elkaar (#447)
 import { pvpGastRaak, pvpDoodVerwerk, pvpArenaGastBericht, pvpArenaGastMelding, pvpArenaGastTik, pvpArenaAntwoord, pvpArenaReset } from './multiplayerpvpwereld.js';
 import { busCoopActie, busCoopValideerE } from './coopbus.js';
 import { zetBestuurHaken, bestuurGebruik, bestuurTick, bestuurLos, bestuurAllesLos, bestuurt, trekGast } from './coopbestuur.js';
@@ -1053,9 +1054,19 @@ function heistStapGast(world) {
   return def.stages.find((q) => q && typeof q.label === 'string' && q.label && m.stap.startsWith(q.label)) || null;
 }
 
+// #806: zodra twee spelers niet-passief zijn (echt PvP), interpoleert een gast
+// met 60 ms in plaats van 120 ms, zodat reacties sneller in beeld staan.
+function zetPvpVertraging(world) {
+  const n = world.coopNet;
+  if (!n || n.role !== 'client' || !n.session) return;
+  const delay = interpDelayVoorPvp(pvpAanDeGang(world.coopPvp));
+  if (n.session.interpDelay !== delay) n.session.interpDelay = delay;
+}
+
 export function tickCoopNet(world, dt) {
   if (world.coopWissel) wisselTik(world, dt); // het spel overdragen (#439): ook als de sessie even weg is
   const n = world.coopNet; if (!n) return;
+  zetPvpVertraging(world);
   if (world.coopPings) {
     tickPings(world.coopPings, now(world));
     // Een baken is voor de anderen (#367): in een sessie van één zonder gasten is er niemand om het te zien,

@@ -131,3 +131,6 @@ body.pigeon-mode #hud .hud-cards { top: 300px; }
 #hud .hud-cards-e .hud-card { position: relative; border-radius: 10px; border-left: 0; background: var(--hud-card); box-shadow: 0 0 0 1px color-mix(in srgb, var(--hc) 45%, transparent); }
 body.hud-card-on #hud .hud-nowplaying { opacity: 0; }
 body.pigeon-mode #hud .hud-cards { top: 300px; }
+/* #801: "Leestijd: geen timer" laat een belangrijke kaart staan tot een klik of Enter */
+#hud .hud-card.sticky .hc-timer { display: none; }
+#hud .hud-card .hc-close { display: block; margin-top: 3px; font: 700 0.68em/1.2 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.06em; text-transform: uppercase; font-style: normal; opacity: 0.72; }

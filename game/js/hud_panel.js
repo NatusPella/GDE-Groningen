@@ -67,6 +67,7 @@ import { hudDate } from './hudcalendar.js';
 import { LANDMARK_LINES } from './placelines.js';
 import { townProfile } from './stadsprofielen.js';
 import { getSettings } from './settings.js';
+import { createNarrator } from './narration.js';
 import { heldBack } from './narrative.js';
 import { isPauseMenuOpen } from './pausestate.js';
 import { hudExpensiveDue } from './hudgate.js';
@@ -97,6 +98,10 @@ const ROUTE_DASH = { mission: null, user: [2.2, 1.6], job: [0.01, 1.7], care: [2
 export const routeLabel = (r) => (r.kind === 'user' ? 'Doel' : r.kind === 'job' ? 'Klus' : r.kind === 'care' ? (r.target && r.target.why === 'repair' ? 'Garage' : 'Opknappen') : 'Missie');
 
 let els = null;
+// #802: schermnarratie — een eigen aria-live-regio en een begrensde wachtrij
+let narration = null;
+const narrator = createNarrator();
+let narrationUntil = 0;
 
 const STAR_PATH = 'M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z';
 const TURN_ICON = {
@@ -131,6 +136,14 @@ export function initHud(world) {
   const damage = document.createElement('div');
   damage.className = 'hud-damage';
   root.insertBefore(damage, root.firstChild);
+
+  // #802: schermnarratie leest statuswijzigingen voor via een eigen aria-live-regio
+  narration = document.createElement('div');
+  narration.className = 'hud-narration';
+  narration.setAttribute('role', 'status');
+  narration.setAttribute('aria-live', 'polite');
+  narration.setAttribute('aria-atomic', 'true');
+  root.appendChild(narration);
 
   // zone C: clock and date, stars, the search, money, weapon
   const topRight = document.createElement('div');
@@ -239,6 +252,7 @@ export function initHud(world) {
 
   els = {
     root,
+    narration,
     character: topLeft.querySelector('.hud-character'),
     healthFill: topLeft.querySelector('.health'),
     armorFill: topLeft.querySelector('.armor'),
@@ -529,6 +543,27 @@ function updateMute() {
   els.mute.setAttribute('aria-label', label);
 }
 
+// #802: statusaankondigingen voor de schermnarratie. Alleen als de instelling
+// aan staat, en begrensd door de wachtrij in narration.js.
+function announce(text) {
+  if (!getSettings().screenNarration) return;
+  narrator.push(text);
+}
+
+function tickNarration() {
+  const now = nowS();
+  if (narrationUntil && now > narrationUntil) {
+    if (narration) narration.textContent = '';
+    narrationUntil = 0;
+  }
+  if (!getSettings().screenNarration) { narrator.clear(); return; }
+  const text = narrator.next(now);
+  if (text && narration) {
+    narration.textContent = text;
+    narrationUntil = now + Math.max(3.5, text.length * 0.06);
+  }
+}
+
 export function updateHud(dt, world) {
   // #659: achter het pauzemenu is de HUD onzichtbaar; dan het dure werk overslaan
   const expensive = hudExpensiveDue(isPauseMenuOpen());
@@ -554,6 +589,7 @@ export function updateHud(dt, world) {
   updateLocation(dt, world);
   updatePrompts(dt, world);
   updateVisibility(dt, world);
+  tickNarration();
   // very CPU-bound (simload.js level 2): the minimap redraws every second
   // frame, its zoom easing over the time in between. It turns with the
   // player, so a lower rate shows as stutter; the whole HUD costs ~1 ms.
@@ -839,6 +875,8 @@ function updatePlace(dt, world) {
   setText(els.placeKick, c.kick);
   setText(els.placeName, c.name);
   setText(els.placeLine, c.line);
+  // #802: de plaatsnaam een keer voorlezen
+  announce(c.kick ? `${c.kick}. ${c.name}` : c.name);
   restartClass(els.place, 'on', () => placeState.on);
 }
 
@@ -976,6 +1014,13 @@ function updateBars(world) {
     els.hpRow.classList.toggle('low', lvl !== 'ok' && hp > 0);
     els.hpRow.classList.toggle('crit', lvl === 'crit' && hp > 0);
     els.portrait.classList.toggle('low', hp < 30);
+    // #802: alleen bij een overgang, niet bij elk procentpunt
+    const was = S.hpLevel;
+    S.hpLevel = lvl;
+    if (was !== undefined && lvl !== was && hp > 0) {
+      if (lvl !== 'ok') announce(lvl === 'crit' ? 'Gezondheid kritiek' : 'Gezondheid laag');
+      else if (was !== 'ok') announce('Gezondheid weer op peil');
+    }
   }
   if (ar !== els.arKey) {
     els.arKey = ar;
@@ -1035,12 +1080,15 @@ function updateWanted(world) {
   els.mmWrap.classList.toggle('wanted', ster > 0);
   if (key === wantedKey) return;
   wantedKey = key;
+  const wasSter = wantedShown;
   if (!els.wanted.children.length) els.wanted.innerHTML = STAR.repeat(5);
   const stars = [...els.wanted.children];
   stars.forEach((st, i) => st.classList.toggle('on', i < ster));
   // a new star pops in, one at a time
   for (let i = wantedShown; i < ster; i++) pop(stars[i]);
   wantedShown = ster;
+  // #802: een nieuwe ster of het einde van de achtervolging een keer benoemen
+  if (ster !== wasSter) announce(ster === 0 ? 'Je bent niet meer gezocht' : `Politie: ${ster} van 5 sterren${searching ? ', ze zoeken je' : ', achtervolging'}`);
   els.wanted.classList.toggle('searching', searching && ster > 0);
   els.wanted.classList.toggle('chase', ster > 0 && !searching);
   els.wanted.setAttribute('aria-label', `Gezocht: ${ster} van 5, ${wantedPhase(world) === 'zoeken' ? 'politie zoekt je' : 'achtervolging'}`);
@@ -1351,6 +1399,8 @@ function updateMission(world) {
   if (key !== els.objKey) {
     els.objKey = key;
     els.mission.dataset.kind = o.kind;
+    // #802: een nieuw doel een keer voorlezen
+    if (o.title) announce('Doel: ' + o.title);
     // a mission's objective stays up in pigeon mode too (H4's photos, H10's knots)
     els.mission.classList.toggle('in-mission', o.kind === 'mission');
     restartClass(els.mission, 'pop');

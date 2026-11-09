@@ -1668,7 +1668,7 @@ function renderResults() {
     b.className = 'kind';
     b.textContent = e.kind;
     li.append(a, b);
-    li.addEventListener('mousedown', (ev) => { ev.preventDefault(); chooseResult(e); });
+    li.addEventListener('click', (ev) => { ev.preventDefault(); chooseResult(e); });
     ul.appendChild(li);
   });
   ul.hidden = false;
