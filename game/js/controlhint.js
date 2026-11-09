@@ -3,6 +3,8 @@
 // de bestaande doellijn (zone G), zodat hij nooit een eigen vak naast de rest van de HUD inneemt.
 // De eierrit is een gewone missie met een voertuigstap: dezelfde regel geldt daar.
 //   node scripts/controlhint_test.mjs
+import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
+
 export const HINT_MAX_GROUPS = 4;
 
 // Per context de toetsen en wat ze doen; kort genoeg voor één regel op 1280x720.
