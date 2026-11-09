@@ -127,7 +127,7 @@ import { updateSluizen, getSluizen } from './sluizen.js';
 import { updateBridgeHits, resetBridgeDamage, startBridgeCrashDemo, stepBridgeCrashDemo } from './bridgehitworld.js';
 import { geoWorkerActive } from './geojobs.js';
 import { preloadRoadWorker } from './roadsurface.js';
-import { init3D, update3D, resize3D, getScene, getRenderer, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady, canvasFrameCount, prewarmStreamAt, prewarmPending, precompilePrograms, streamPending, getCamera, getFollowPose, setRouteLinks } from './scene3d.js';
+import { init3D, update3D, resize3D, getScene, getRenderer, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady, canvasFrameCount, prewarmStreamAt, prewarmPending, precompilePrograms, streamPending, queueWarmupObject, prewarmBusy, getCamera, getFollowPose, setRouteLinks } from './scene3d.js';
 import { checkFrame } from './blackframe.js';
 import { noteFrame, hideAdvice, classifyGpu, readGpu, dynamicScale, cpuLevel } from './gfxprofile.js';
 import { updateStreetSigns } from './streetsigns.js';
@@ -264,6 +264,9 @@ const START_WARM_R = 200;
 const START_WARM_MS = 25000;
 const START_WARM_CALM = 12;
 const START_WARM_MAX_FRAME_MS = 50;
+  // De eigenaar koos een langer laadscherm boven een haperende eerste minuut: de
+  // montageplekken mogen samen ruim een minuut kosten om klaar te zetten.
+  const INTRO_WARM_MS = 45000;
 
 function waitForStart(world, ready) {
   const relocate = (x, y) => {
@@ -356,6 +359,40 @@ function waitForStart(world, ready) {
       calm = open === 0 && slowRun === 0 ? calm + 1 : 0;
       if (calm >= START_WARM_CALM) break;
       await yieldToPaint();
+    }
+    // De montage komt meteen na het laadscherm en springt langs een tiental
+    // plekken in de stad. Laad en pin hun tegels nu, bouw de gebouwen daar voor
+    // (die worden meteen gecompileerd) en compileer daarna de shaders nog eens:
+    // de film betaalt dat niet meer met frames van seconden (#804).
+    if (!world.loadedFromSave) {
+      try {
+        const opening = await import('./intromontage.js');
+        const spots = opening.introShotPoints(world);
+        if (spots.length) {
+          setLoadingStatus('De openingsbeelden worden klaargezet');
+          const tIntro = performance.now();
+          let tilesIn = !(world.map && world.map.registerShots);
+          if (!tilesIn) {
+            Promise.resolve(world.map.registerShots(spots.map((p) => ({ at: [p.x, p.y] })), { radius: 350 }))
+              .then(() => { tilesIn = true; }, () => { tilesIn = true; });
+          }
+          for (const p of spots) prewarmStreamAt(p.x, p.y, 180, 170);
+          const end = performance.now() + INTRO_WARM_MS;
+          while (performance.now() < end) {
+            const f0 = performance.now();
+            try { tick(1 / 60); render(1 / 60); } catch (e) { console.warn('openingsbeelden voorladen', e); break; }
+            worst = Math.max(worst, performance.now() - f0);
+            frames++;
+            const queue = world.map && world.map.tileQueue && world.map.tileQueue.items ? world.map.tileQueue.items.length : 0;
+            if (tilesIn && queue === 0 && prewarmPending() === 0 && !prewarmBusy()) break;
+            await yieldToPaint();
+          }
+          if (window.__loadMarks) {
+            window.__loadMarks.introTiles = spots.length;
+            window.__loadMarks.introWarm = Math.round(performance.now() - tIntro);
+          }
+        }
+      } catch (e) { console.warn('openingsbeelden voorladen', e); }
     }
     if (window.__loadMarks) window.__loadMarks.startWarm = Math.round(performance.now() - t0);
     setLoadingStatus('De shaders worden klaargezet');
@@ -821,6 +858,11 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
   // dus streamPending() kon niet dalen en de balk stond stil tot de 12 s-noodgreep.
   document.body.classList.add('game-started');
   markLoad('gameStart');
+  // De montage ruimt de vooraf gepinde tegels zelf op; loopt hij niet (of is hij
+  // al klaar), dan mogen ze hier alsnog vrij.
+  setTimeout(() => {
+    try { if (world.map && world.map.releaseShots && !document.body.classList.contains('intro-montage')) world.map.releaseShots(); } catch (e) { /* niet erg */ }
+  }, 20000);
   hideAdvice();
   input.tryLock(false); // the game itself asks here, long after the click that started it: refusing is no sign of a browser without lock (#328)
   setMenuAudio(false);
