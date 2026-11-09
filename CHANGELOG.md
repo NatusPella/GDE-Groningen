@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- **De vraag "alleen of samen spelen" staat nu al boven het laadscherm en legt het laden niet meer stil.** Het antwoord wordt pas vlak voor de start afgewacht (met dezelfde time-out en Escape), het laadscherm blijft ondertussen zichtbaar met een duidelijke statusregel, en na de keuze zegt het wat er nog gebeurt.
+
 - **De openingsfilm loopt soepeler: de kleurcorrectie zit weer in de overlay in plaats van in een CSS-filter op het 3D-beeld.** Dat filter kostte op de echte GPU meetbaar fps tijdens de montage (ongeveer 5 -> 11 fps aan het begin en 11 -> 28 fps richting het eind in de test); de montage houdt zijn kleurtoon via de bestaande grade-laag.
 
 ## [0.60.1] - 2026-11-09
