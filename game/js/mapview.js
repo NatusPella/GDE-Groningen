@@ -94,6 +94,7 @@ const FOG_REVEAL = 2;
 // #661: alleen het geraakte venster uploaden en de mist minder vaak bewaren
 import { revealRect, fogSaveDue, FOG_SAVE_MS } from './mapfog.js';
 import { mapRenderDue } from './mapcache.js';
+import { isAreaHidden, isAreaKnown, isViewpointUsed, explorationLabels, onExplorationChange } from './explorationlive.js';
 const FOG_KEY = KEYS.fog;
 const FOG_FEATHER = 16; // cells
 
@@ -868,6 +869,29 @@ function drawLabel(ctx, text, x, y, color, align) {
   ctx.fillText(text, x, y);
 }
 
+// #825: de stempel van een helemaal verkende streek naast zijn naam: een klein rond stempelvlak met
+// een vinkje, in dezelfde inkt als de kaart. Alleen de kaart; de speler leest hem uit zijn eigen profiel.
+function drawAreaStamp(ctx, x, y) {
+  const r = 6;
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.fillStyle = inkA('greenLight', 0.9);
+  ctx.fill();
+  ctx.lineWidth = 1.2;
+  ctx.strokeStyle = inkA('dark', 0.85);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x - 2.6, y);
+  ctx.lineTo(x - 0.6, y + 2);
+  ctx.lineTo(x + 2.8, y - 2.4);
+  ctx.lineWidth = 1.6;
+  ctx.lineCap = 'round';
+  ctx.strokeStyle = INK.dark;
+  ctx.stroke();
+  ctx.restore();
+}
+
 function roadRuns(road) {
   const p = road.pts;
   const runs = [];
@@ -1015,7 +1039,9 @@ function drawStaticOverlay(ctx) {
     }
   }
   // #807 A15: één uitkijkpunt per streek (verkenpunten.js), uit de bestaande punten;
-  // klikken zet er een waypoint, zoals bij een bezienswaardigheid.
+  // klikken zet er een waypoint, zoals bij een bezienswaardigheid. #825: de streeknaam in de
+  // hover komt pas als de speler die streek kent; het punt zelf blijft altijd staan (het is
+  // juist hoe je een onbekende streek ontdekt).
   if (layerOn('uitkijkpunt')) {
     for (const u of state.map.meta.uitkijkpunten || []) {
       if (!Number.isFinite(u.x) || !Number.isFinite(u.y)) continue;
@@ -1023,7 +1049,8 @@ function drawStaticOverlay(ctx) {
       if (!onScreen(sx, sy, 120)) continue;
       drawMapIcon(ctx, 'uitkijkpunt', sx, sy, sc, { t: 0 });
       bezet.push(pinDoos(sx, sy, sc));
-      hover.push({ sx, sy, name: u.naam, sub: `Uitkijkpunt · ${u.streekNaam || u.streek}`, x: u.x, y: u.y });
+      const streek = isAreaKnown(u.streek) ? ` · ${u.streekNaam || u.streek}${isViewpointUsed(u) ? ' (gebruikt)' : ''}` : '';
+      hover.push({ sx, sy, name: u.naam, sub: `Uitkijkpunt${streek}`, x: u.x, y: u.y });
     }
   }
 
@@ -1142,6 +1169,28 @@ function drawStaticOverlay(ctx) {
       }
       hover.push({ sx, sy, name: p.name, sub: warn ? `Wijk · 's nachts opletten: ${riskWhy(p.name)}` : 'Wijk', teleport: { x: p.x, y: p.y, name: p.name } });
     }
+  }
+
+  // #825: de namen van de streken die deze speler kent, pas na de dorpen (die gaan voor) en met een
+  // stempel als de streek helemaal verkend is. Een onbekende streek staat hier niet: alleen de kaart
+  // verbergt hem, de wereld blijft gewoon bestaan en berijdbaar.
+  if (provinceMapOn() && names.regions) {
+    ctx.textBaseline = 'middle';
+    ctx.textAlign = 'center';
+    for (const area of explorationLabels()) {
+      const [sx, sy] = toScreen(area.x, area.y);
+      if (!onScreen(sx, sy, 200)) continue;
+      ctx.font = `20px ${FONT}`;
+      const label = area.name.toUpperCase().split('').join(' ');
+      const w = ctx.measureText(label).width;
+      const box = [sx - w / 2 - 8, sy - 12, sx + w / 2 + (area.stamp ? 20 : 8), sy + 12];
+      if (!vrij(box)) continue;
+      boxes.push(box);
+      ctx.fillStyle = area.stamp ? inkA('cream', 0.85) : inkA('cream', 0.5);
+      ctx.fillText(label, sx, sy);
+      if (area.stamp) drawAreaStamp(ctx, sx + w / 2 + 10, sy);
+    }
+    ctx.textAlign = 'left';
   }
 
   // de gebiedsnamen, in dezelfde botsingsregel en na de wijken (wijk > gebied);
@@ -1389,6 +1438,9 @@ function drawDynamicMarkers(ctx, world) {
   for (const ps of getPadelSpotsForRender()) icon('padel', 'padel', ps.x, ps.y, ps.name, {}, world.time < ps.nextAt ? 'Baan even bezet' : 'Potje padel: volle gezondheid', play('padel', 'Padel', ps.name, ps.x, ps.y, 'mg:padel'), samenVan('minigame', 'padel'));
   const ACT_PLAY = { carbid: ['carbid', 'Carbid schieten', 'mg:carbid'], kermis: ['kermis', "Botsauto's", 'mg:botsauto'], drift: ['drift', 'Driftzone', 'mg:drift'], discgolf: ['discgolf', 'Discgolf', 'mg:discgolf'], pitchputt: ['pitchputt', 'Pitch & putt', 'mg:pitchputt'], skatepark: ['skatepark', 'Skatepark', 'mg:skatepark'], kartbaan: ['kartbaan', 'Karten bij Kardinge', 'mg:kartbaan'], zwembad: ['zwembad', 'Zwembad', 'mg:zwembad'], klimtoren: ['klimtoren', 'Klimtoren Zernike', 'mg:klimtoren'], waterski: ['waterski', 'Waterskiën', 'mg:waterski'], vliegschool: ['vliegschool', 'Vliegschool', 'mg:vliegschool'] };
   for (const a of activityMapIcons(world)) {
+    // #825: een streek die deze speler nog niet kent toont geen activiteiten-iconen; de wereld, de
+    // wegen en de missies blijven wel staan (alleen de kaart verbergt ze, niets is onbereikbaar).
+    if (isAreaHidden(a.x, a.y)) continue;
     const ap = ACT_PLAY[a.layer];
     icon(a.layer, a.kind, a.x, a.y, a.name, {}, a.sub, ap ? play(ap[0], ap[1], a.name, a.x, a.y, ap[2]) : null, samenVan('activiteit', a.id));
   }
@@ -2472,6 +2524,8 @@ export function initMapView(world) {
   overlay.querySelector('.mapview-legend').prepend(state.modeNote);
   setMode('lopen');
   onSettingsChange((s, key) => { if (key === 'showFog') state.dirty = true; });
+  // #825: een streek of stempel erbij vraagt meteen een nieuw beeld van de vaste laag
+  onExplorationChange(() => { if (state) state.dirty = true; });
 
   overlay.addEventListener('mousedown', (e) => e.stopPropagation());
 

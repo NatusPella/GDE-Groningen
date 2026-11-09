@@ -1,5 +1,7 @@
 import { showBanner, isCinematicActive } from './cinematics.js';
 import { volgendeTredeRij } from './medalrules.js';
+import { getSettings } from './settings.js';
+import { cleanDifficulty, difficultyRecordKey, scaleTimeLimit } from './difficulty.js'; // #800: stand en records per stand
 import { toonStartkaart } from './startkaart.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, setStatMax, recordUnique, MEDALS } from './achievements.js';
 import { showCard } from './hudcards.js';
@@ -8,7 +10,7 @@ import { standActivity, recLine } from './standactivity.js';
 import { activityBlock } from './activitykit.js';
 import { createBoard, mgThema, key, bubble, clearBubbles, pick, stopPressed, geo } from './minigamekit.js';
 import { HENGEL_LINES } from './minigamelines3.js';
-import { FISH, HENGEL, createHengel, stepHengel, hengelMedal, MEDAL_AT } from './hengelrules.js';
+import { FISH, HENGEL, createHengel, stepHengel, hengelMedal, MEDAL_AT, scaledMedalAt } from './hengelrules.js';
 import { hourOf } from './streetlifedata.js';
 import { vangstGewicht, vangstWaarde, vangstXp, NIEUWE_SOORT_XP, soort as soortVan, watertype } from './visdata.js';
 import { vindHengelplek, plekNaam, plekSleutel } from './hengelplek.js';
@@ -154,8 +156,9 @@ function einde(w, { quit = false, extern = false, uitslag = null } = {}) {
     return;
   }
   if (quit) { w.addMessage('Hengelen gestopt', 2.5); return; }
-  const medal = hengelMedal(s.kg);
-  const rec = recordChallengeResult(w, 'hengelen', { value: s.kg, medal });
+  const mode = cleanDifficulty(getSettings().difficulty);
+  const medal = hengelMedal(s.kg, mode);
+  const rec = recordChallengeResult(w, difficultyRecordKey(mode, 'hengelen'), { value: s.kg, medal });
   recordStat(w, 'hengelSessions');
   setStatMax(w, 'hengelBest', s.kg);
   unlockAchievement(w, 'hengel_klaar');
@@ -163,7 +166,7 @@ function einde(w, { quit = false, extern = false, uitslag = null } = {}) {
   const stats = [['Gewicht', kgTekst(s.kg)], ['Gevangen', String(s.catches.length)], ['Ontsnapt', String(s.lost)], ['Te vroeg', String(s.scared)]];
   if (g.betaald > 0) stats.push(['Visboer', euro(g.betaald)]);
   if (medal) stats.push(['Medaille', MEDALS[medal]]);
-  volgendeTredeRij(stats, MEDAL_AT, s.kg, { medal, eenheid: 'kg', eenheid1: 'kg', decimalen: 1 });
+  volgendeTredeRij(stats, scaledMedalAt(mode), s.kg, { medal, eenheid: 'kg', eenheid1: 'kg', decimalen: 1 });
   if (rec && rec.newBest) stats.push(['Record', 'Nieuw!']);
   showBanner({ kind: medal ? 'pass' : 'fail', title: medal >= 3 ? 'KONING VAN HET MEER' : medal ? 'MOOIE VANGST' : 'NIKS AAN DE HAAK', reason: medal ? `${kgTekst(s.kg)} aan de wal gebracht` : 'Wacht tot het dobbertje zakt en haal dan meteen binnen.', stats });
   say(w, medal >= 2 ? 'endGood' : 'endPoor', 4.5);
@@ -261,10 +264,11 @@ function start(w, { online = null } = {}) {
   if (p.inVehicle) p.exitVehicle(w.map, w);
   if (!board) board = createBoard('hengelen');
   board.show();
+  const mode = cleanDifficulty(getSettings().difficulty);
   const t0 = getTuig();
   game = {
     mode: 'wedstrijd', flash: null, plek: MEERSTAD, kas: 0, betaald: 0, vangsten: 0, soorten: new Map(), nieuw: [], haalT: 0, online,
-    s: createHengel(Math.random, { wacht: [HENGEL.waitMin * wachtFactor(t0), HENGEL.waitMax * wachtFactor(t0)], venster: beetFactor(lijnsterkte(t0)) }),
+    s: createHengel(Math.random, { duur: scaleTimeLimit(HENGEL.duration, mode), wacht: [HENGEL.waitMin * wachtFactor(t0), HENGEL.waitMax * wachtFactor(t0)], venster: beetFactor(lijnsterkte(t0)) }),
   };
   if (online !== 'gast') toonStartkaart(w, 'hengelen');
   say(w, 'start');
@@ -352,7 +356,7 @@ function tick(dt, w) {
 }
 
 function recText() {
-  return recLine(getChallengeRecord('hengelen'), (v) => `${v.toFixed(1).replace('.', ',')} kg`, MEDALS);
+  return recLine(getChallengeRecord(difficultyRecordKey(cleanDifficulty(getSettings().difficulty), 'hengelen')), (v) => `${v.toFixed(1).replace('.', ',')} kg`, MEDALS);
 }
 
 // --- de wedstrijd tegen elkaar (#443): iedereen vist negentig seconden op zijn eigen scherm, de zwaarste vangst wint -------------------------

@@ -5,7 +5,14 @@ de planning** van de laatste opnameronde: welke regels nog moeten, in welke volg
 welke commando's, en wat alleen de eigenaar kan doen. Er is in deze sessie **niets
 opgenomen** en er is **geen sleutel gebruikt**.
 
-## Stand, opnieuw gemeten (7-11-2026, na #689)
+## Stand, gecontroleerd na v0.60.1 (9-11-2026)
+
+Na de release v0.60.1 zijn de bronnen opnieuw gecontroleerd; de stand is ongewijzigd:
+`node scripts/tts_opnamelijst.mjs --check` zegt **actueel** (0 clips klaar, 20 wachtend: 0 stemkeuze,
+20 spreektekst), `node scripts/gronings_open_test.mjs` is **4/4 groen** en
+`node scripts/voice_coverage.mjs --quiet` staat op **2664/2664** (57 regels alleen tekst, vrijgesteld).
+De 20 open regels zijn nog steeds M09 10 · M12 2 · M21 1 · M23 3 · M26 2 · M30 2, van Geesje (18) en
+Rotor Roelf (2); geen daarvan heeft al een spreektekst in `gronings_spoken.json` of het concept.
 
 | Meting | Uitkomst |
 |---|---|

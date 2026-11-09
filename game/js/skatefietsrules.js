@@ -4,12 +4,15 @@
 //
 //   node scripts/skatefiets_test.mjs
 
+import { scaleTarget, scaleTimeLimit } from './difficulty.js';
+
 export const RUN_S = 60;
+export const runSeconds = (mode = 'standaard') => scaleTimeLimit(RUN_S, mode); // #800
 export const MEDAL_AT = { goud: 650, zilver: 350, brons: 150 };
 export const PUNT = { wheelieM: 10, hop: 40, stoppie: 20 };
 
-export function createRun() {
-  return { t: 0, score: 0, wheelieM: 0, hops: 0, stoppies: 0, lastHop: false, wasStoppie: false, done: false };
+export function createRun(mode = 'standaard') {
+  return { t: 0, score: 0, wheelieM: 0, hops: 0, stoppies: 0, lastHop: false, wasStoppie: false, done: false, cap: runSeconds(mode), mode };
 }
 
 // Eén beeld. s: { speed (m/s), wheelie (bool), pitch (rad), hop (bool) }.
@@ -25,18 +28,19 @@ export function stepRun(r, dt, s) {
   if (stoppie && !r.wasStoppie) r.stoppies++;
   r.wasStoppie = stoppie;
   r.score = Math.round(r.wheelieM * PUNT.wheelieM + r.hops * PUNT.hop + r.stoppies * PUNT.stoppie);
-  if (r.t >= RUN_S) r.done = true;
+  if (r.t >= (r.cap || RUN_S)) r.done = true;
   return r;
 }
 
-export function medalFor(score) {
-  if (score >= MEDAL_AT.goud) return 'goud';
-  if (score >= MEDAL_AT.zilver) return 'zilver';
-  if (score >= MEDAL_AT.brons) return 'brons';
+export function medalFor(score, mode = 'standaard') {
+  const f = (v) => scaleTarget(v, mode, false); // hoger is beter: ontspannen verlaagt de drempel
+  if (score >= Math.round(f(MEDAL_AT.goud))) return 'goud';
+  if (score >= Math.round(f(MEDAL_AT.zilver))) return 'zilver';
+  if (score >= Math.round(f(MEDAL_AT.brons))) return 'brons';
   return null;
 }
 
 export function progressText(r) {
-  const left = Math.max(0, Math.ceil(RUN_S - r.t));
+  const left = Math.max(0, Math.ceil((r.cap || RUN_S) - r.t));
   return `Fietsronde · ${left} s · ${r.score} punten · wheelie ${Math.round(r.wheelieM)} m · ${r.hops} sprongen · ${r.stoppies} stoppies`;
 }

@@ -2,7 +2,7 @@
 
 > **Naslag.** De regels staan in de canonieke spec [`.specs-fire/standards/publicatie.md`](../.specs-fire/standards/publicatie.md); dit document is uitleg en geschiedenis. Bij verschil wint de spec (en bij twijfel `AGENTS.md`).
 
-Stand 24 oktober 2026 (nagelopen tegen versie 0.47.0; eerste versie van 20 oktober). Alles is lokaal voorbereid, op besluit van de eigenaar
+Stand 9 november 2026 (nagelopen tegen versie 0.60.1; eerste versie van 20 oktober, daarna 24 oktober tegen 0.47.0 en 7 november tegen 0.58.0). Alles is lokaal voorbereid, op besluit van de eigenaar
 ("alles lokaal voorbereiden"): er is niets naar Steam gestuurd, er is geen
 account of app-id, en geen enkel bestand in de repo maakt contact met Steam.
 `scripts/steam_test.mjs` bewaakt de bestanden en scripts hieronder.
@@ -44,6 +44,7 @@ Betekenis van de status:
 | `copy-builds.mjs` | klaar | Echte proefbouw 20 okt: `electron-builder --win --x64 --dir` en `--linux --x64 --dir` gaven `win-unpacked/GDE Groningen.exe` (620 MB) en `linux-unpacked/gde-groningen` (535 MB); `copy-builds.mjs` zette ze in `content/windows/` en `content/linux/`. De test draait hem ook op een nagemaakte `dist/` (drie depots, vervangen van oude inhoud, foutgevallen). |
 | macOS-depot | open | De universal-build (`mac-universal/GDE Groningen.app`) kan alleen op een Mac; daar is hij niet geprobeerd. Kopieer en upload het mac- en het linux-depot vanaf een Mac of Linux: een Windows-schijf bewaart de uitvoerbaarheidsbits niet (`copy-builds.mjs` waarschuwt daarvoor). |
 | `release.sh --steam` | klaar | Kopieert de builds vóór `dist/` wordt opgeruimd; `--linux` voegt het Linux-depot toe. Er is bewust geen release gemaakt. |
+| Platformbuilds via Actions (macOS/Linux/Android) | **eigenaar** | De 2000 gratis Actions-minuten van deze maand zijn op (stand 9-11-2026): `v0.60.0` kreeg nog alle platformbijlagen, `v0.60.1` alleen de lokaal gebouwde Windows-exe en `gde-world.tgz`. De mac-, Linux- en Android-depots volgen pas na de maandelijkse reset of aankoop van extra minuten; Windows bouwt lokaal door. Zie `docs/RELEASEN.md` §Kosten. |
 | `steamcmd` en echte upload | **eigenaar** | Vraagt het Steamworks-account, de app en een bouw-account met Steam Guard. |
 
 ## 3. Steam Deck
@@ -100,14 +101,19 @@ Wat sinds 20 oktober is veranderd en wat dat voor Steam betekent. Gecontroleerd 
 7. Proefbouw uploaden met `steamcmd` (eerst Preview, dan een bètatak), Deck- en overlaytest op echte hardware.
 8. Zelf op "live" zetten: het publicatiebesluit blijft bij de eigenaar (constitution 8).
 
-## Stand 7 november 2026 (0.58.0)
+## Stand 9 november 2026 (0.60.1)
 
 Lokaal nagelopen; er is nog steeds geen Steam-account, app-id of upload en geen enkel bestand
 maakt contact met Steam.
 
-- `node scripts/steam_test.mjs`: **109/109 ok** (bestanden, vdf-sjablonen, scripts, geen netwerk).
+- `node scripts/steam_test.mjs`: **126/126 ok** (bestanden, vdf-sjablonen, scripts, geen netwerk).
 - `node scripts/release_builds_test.mjs`: **34/34 ok** (de vier Actions-workflows en de
   releasehulpen).
+- **Actions-minuten:** de 2000 gratis minuten van deze maand zijn op. `v0.60.1` heeft alleen de
+  lokaal gebouwde Windows-exe en `gde-world.tgz`; de platformbijlagen (macOS, Linux, Android)
+  volgen pas na de maandelijkse reset of aankoop. Dat raakt de mac- en Linux-depots voor Steam:
+  die kunnen pas worden gemaakt en geüpload als er weer Actions-minuten zijn (of vanaf een eigen
+  Mac/Linux-machine). Windows lokaal blijft werken.
 - De SteamPipe-voorbereiding is compleet: `steam/scripts/app_build.vdf` en de drie
   `depot_build_*.vdf` met `APP_ID`/`DEPOT_ID_*`-plaatshouders, `copy-builds.mjs` (desktop/dist →
   content/<os>) en `make-build-vdf.mjs`. Droogtest:

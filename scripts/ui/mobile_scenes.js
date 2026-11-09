@@ -48,7 +48,15 @@ const teleport = (x, y) => {
 };
 const settle = async () => { await sleep(1500); for (let i = 0; i < 60 && document.querySelector('.ls.on:not(.out)'); i++) await sleep(500); await sleep(1500); };
 const R = (e) => { const r = e.getBoundingClientRect(); return { x: Math.round(r.left), y: Math.round(r.top), w: Math.round(r.width), h: Math.round(r.height) }; };
-const visible = (e) => { const cs = getComputedStyle(e); const r = e.getBoundingClientRect(); return cs.display !== 'none' && cs.visibility !== 'hidden' && +cs.opacity > 0.05 && r.width > 0 && r.height > 0; };
+const visible = (e) => {
+  // ook de voorouders: een chip in een verborgen .wp of een dicht 'Meer'-paneel telt niet mee
+  for (let n = e; n; n = n.parentElement) {
+    const cs = getComputedStyle(n);
+    if (cs.display === 'none' || cs.visibility === 'hidden' || +cs.opacity <= 0.05) return false;
+  }
+  const r = e.getBoundingClientRect();
+  return r.width > 0 && r.height > 0;
+};
 const hit = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
 // measure the touch buttons, the HUD, text size, and what is off screen
 function audit(name) {
@@ -61,7 +69,7 @@ function audit(name) {
     if (b.x < 0 || b.y < 0 || b.x + b.w > W || b.y + b.h > H) issues.push('knop ' + b.t + ' valt buiten het scherm');
     if (Math.min(b.w, b.h) < 44) issues.push('knop ' + b.t + ' kleiner dan 44px (' + b.w + 'x' + b.h + ')');
     // thumb reach: distance to the nearest bottom corner
-    if (b.t === 'II' || b.t === 'Meer') continue; // top corner, not a thumb action
+    if (b.y < H * 0.25) continue; // bovenhoek (Pauze/Meer), geen duimactie
     const reach = Math.hypot(Math.min(b.x + b.w / 2, W - (b.x + b.w / 2)), H - (b.y + b.h / 2));
     if (reach > 0.75 * Math.min(W, H) + 120) issues.push('knop ' + b.t + ' ver van de duim (' + Math.round(reach) + 'px)');
   }

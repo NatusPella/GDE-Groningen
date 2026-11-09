@@ -3,6 +3,7 @@ import { hoofdspeler } from './players.js';
 // text card (no voice), and the finds of a streek when you stand on them.
 // Quiet during missions, cutscenes and every other busy moment (busy.js).
 import { streekAt, rollEncounter, rollGap, findNear, findsOf, SET_VERZAMEL, SET_GEHEIM, ENCOUNTER_REWARD_MAX } from './regioleven.js';
+import { updateExploration, tryViewpointInteract } from './explorationlive.js';
 import { recordUnique, hasUnique } from './achievements.js';
 import { playerBusy } from './busy.js';
 import { showCard } from './hudcards.js';
@@ -28,6 +29,7 @@ const foundIds = () => {
 
 export function updateRegioLeven(dt, w) {
   if (!w || !hoofdspeler(w)) return;
+  updateExploration(dt, w); // #825: de streken die deze speler ontdekt (per speler, eigen profiel)
   nieuwsNow += dt;
   if (!nieuws) nieuws = createNieuwsLink(1 + Math.floor(Math.random() * 1e6));
   if ((nieuwsT -= dt) <= 0 && !w.paused) {
@@ -41,6 +43,8 @@ export function updateRegioLeven(dt, w) {
   const pv = hoofdspeler(w).inVehicle;
   if ((!pv || Math.abs(pv.speed || 0) < 6) && !playerBusy(w, ['cinematic', 'respawn', 'heliRun', 'pigeon', 'train', 'padel', 'activityGame']).busy) tikStraatpraat(dt, w);
   if (playerBusy(w).busy) return;
+  // #825: E bij een uitkijkpunt onthult de streek en zet het punt in het eigen profiel
+  if (tryViewpointInteract(w)) return;
   const p = hoofdspeler(w);
   const moving = p.inVehicle ? Math.abs(p.inVehicle.speed || 0) > 0.5 : (p.speed || 0) > 0.3;
   if ((scanT -= dt) <= 0) {

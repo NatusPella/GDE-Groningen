@@ -61,6 +61,12 @@ const tv = read('furniture.js');
 ok(/--fm-green:\s*#3fc97a/.test(tv) && /--fm-ink:\s*#f0ede4/.test(tv) && /--fm-amber:\s*#e8c93a/.test(tv), 'TV-overlay: eigen --fm-*-tokens');
 ok(/border:2px solid var\(--fm-green\)/.test(tv) && /color:var\(--fm-ink\)/.test(tv) && /color:var\(--fm-amber\)/.test(tv), 'TV-overlay: kleuren via de tokens');
 
+// #809: pingkleuren volgen de marker-/kleurenblindpaletten en de controllerfocus is crème.
+const coopping = read('coopping.js');
+ok(/markerColors\(\)/.test(coopping) && !/#4fb3ff|#ff5a4f|#f2c94c/.test(coopping), 'coopping.js: pingkleuren uit markerColors()');
+const focusCss = read('a11y.css');
+ok(/html\.pad-active[\s\S]*?outline: 2px solid var\(--ink/.test(focusCss) && !/outline: 2px solid #3fc97a/.test(focusCss), 'a11y.css: één crème focusring voor alle invoer');
+
 // De golf-HUD (#597): de statuskleuren staan als token met terugval, dus de kleurenblindmodi doen mee.
 const golf = read('golfhud.js');
 // #624: de pvp-teams volgen de statuskleuren en hebben daarnaast een vorm.

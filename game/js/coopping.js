@@ -3,6 +3,10 @@
 // baken staat en hoe een ping bij de ontvanger eruitziet. Het tekenen staat in cooppings3d.js, hud_panel.js en mapview.js.
 
 import { charInfo } from './coopplayers.js';
+import { markerColors } from './a11y.js';
+// #809: de pingkleur komt uit de marker-/kleurenblindpaletten (a11y.js), niet uit
+// een eigen hex; de vorm (kruis/ster) blijft het tweede signaal.
+export const PING_ROLE = { hier: 'user', gevaar: 'danger', doel: 'mission' };
 
 // toets -> soort (de soort gaat over het net, partnerhud.js addPing kent 'hier', 'gevaar', 'doel')
 export const PING_TOETSEN = [
@@ -13,7 +17,7 @@ export const PING_TOETSEN = [
 export const PING_TEKST = Object.fromEntries(PING_TOETSEN.map((p) => [p.soort, p.tekst]));
 export const KIJK_AFSTAND = 25; // m: 'Kijk daar' wijst zoveel meter vooruit
 // kleur van het baken per soort als de afzender onbekend is
-export const SOORT_KLEUR = { hier: '#4fb3ff', gevaar: '#ff5a4f', doel: '#f2c94c' };
+export const SOORT_KLEUR = PING_ROLE; // oude naam, nu een paletrol per soort
 
 // Waar komt de ping te staan? 'Kom hier' en 'Help!' op je eigen plek, 'Kijk daar' een stuk voor je uit.
 export function pingPlek(lichaam, soort) {
@@ -37,7 +41,7 @@ export function pingMarkers(pings, roster, mijnPlek, nu) {
   for (const p of (pings && pings.lijst) || []) {
     if (p.tot <= nu) continue;
     const a = afzender(p.van, roster, mijnPlek);
-    out.push({ id: `${p.x.toFixed(1)}|${p.y.toFixed(1)}|${p.tot.toFixed(2)}`, x: p.x, y: p.y, soort: p.soort, kleur: a.kleur || SOORT_KLEUR[p.soort] || '#ffffff', vorm: p.soort === 'gevaar' ? 'kruis' : p.soort === 'doel' ? 'ster' : a.vorm, naam: a.naam, tekst: PING_TEKST[p.soort] || PING_TEKST.hier, rest: p.tot - nu });
+    out.push({ id: `${p.x.toFixed(1)}|${p.y.toFixed(1)}|${p.tot.toFixed(2)}`, x: p.x, y: p.y, soort: p.soort, kleur: a.kleur || markerColors()[PING_ROLE[p.soort]] || '#ffffff', vorm: p.soort === 'gevaar' ? 'kruis' : p.soort === 'doel' ? 'ster' : a.vorm, naam: a.naam, tekst: PING_TEKST[p.soort] || PING_TEKST.hier, rest: p.tot - nu });
   }
   return out;
 }

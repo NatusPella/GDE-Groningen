@@ -217,10 +217,16 @@ export function touchPlan(ctx) {
 export const SPOTS_RIGHT = [[24, 110], [104, 40], [104, 180], [170, 110], [30, 240]];
 export const SPOTS_LEFT = [[24, 40], [24, 120], [124, 40], [124, 120]];
 export const BTN_H = 64;
+export const MIN_BTN_PX = 44;
+// #826: de knoppen zijn nooit kleiner dan 44 px, ook als de HUD-schaal lager is.
+export function touchScale({ width, height }) {
+  const s = touchLayout({ width, height }).scale;
+  return Math.max(s, MIN_BTN_PX / BTN_H, MIN_BTN_PX / PAUSE_BTN.size, MIN_BTN_PX / MORE_BTN.size);
+}
 export const BTN_MIN_W = 64;
 // pause and "Meer" share the top row at the right edge: [offset from the side, size]
-export const PAUSE_BTN = { right: 10, top: 10, size: 60 };
-export const MORE_BTN = { right: 74, top: 10, size: 60 };
+export const PAUSE_BTN = { right: 10, top: 10, size: 64 };
+export const MORE_BTN = { right: 74, top: 10, size: 64 };
 
 // Where each button of a situation goes: [{ b, spot, side }]. A situation with
 // more buttons on a side than that side has spots gets none for the surplus
@@ -258,7 +264,7 @@ export function hudMinimap({ width, height }) {
 // right: past the minimap; up: over it (portrait).
 export function leftOffset({ width, height }) {
   const m = hudMinimap({ width, height });
-  const s = touchLayout({ width, height }).scale;
+  const s = touchScale({ width, height });
   if (height > width) return { right: 0, up: Math.max(0, Math.ceil((height - m.y + 8) / s - SPOTS_LEFT[0][1])) };
   return { right: Math.max(0, Math.ceil((m.x + m.w + 8) / s - SPOTS_LEFT[0][0])), up: 0 };
 }
@@ -271,14 +277,14 @@ export function leftOffset({ width, height }) {
 // balk naast de kaart en is er geen strook nodig.
 export function leftStrip({ width, height }) {
   if (height <= width) return 0;
-  return Math.ceil((SPOTS_LEFT[1][1] + BTN_H + leftOffset({ width, height }).up) * touchLayout({ width, height }).scale);
+  return Math.ceil((SPOTS_LEFT[1][1] + BTN_H + leftOffset({ width, height }).up) * touchScale({ width, height }));
 }
 
 // Screen rectangles (px) of everything in the touch layer for a situation on a
 // screen of width x height: buttons (zoomed by the layout scale, like btnHost),
 // pause and, when the situation has extras, "Meer".
 export function touchRects(ctx, { width, height }) {
-  const s = touchLayout({ width, height }).scale;
+  const s = touchScale({ width, height });
   const off = leftOffset({ width, height });
   const bar = touchBar(ctx);
   const rects = bar.plan.map(({ b, spot, side }) => {

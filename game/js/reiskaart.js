@@ -4,9 +4,10 @@ import { hoofdspeler } from './players.js';
 // de routes per vervoerswijze uit; tekenLijnen tekent de OV-lijnen op het canvas.
 import { planTrainTrip, planBoatTrip } from './routing.js';
 import { getBusLines } from './vehicle.js';
-import { busTrip, reisOpties } from './ovopties.js';
+import { busTrip, reisOpties, etaText } from './ovopties.js';
 import { travelSeconds } from './reistijd.js';
 import { lijnLagen } from './ovkaart.js';
+import { travelFactorFor } from './explorationlive.js';
 import { INK, inkA } from './mapstyle.js';
 
 // Onder deze afstand is meerijden geen keuze: gewoon lopen of rijden.
@@ -14,9 +15,15 @@ const MIN_OV_M = 1500;
 
 const cache = { key: '', opts: null };
 
+// #825: het reisvoordeel van een helemaal verkende streek (verkenpunten.js): 10% kortere reistijd,
+// het kleinste bestaande reisvoordeel. Geen munt, geen snelreizen en geen netwerk: het is van deze
+// speler en de wereld verandert er niet van.
+const VOORDEEL_LABEL = 'streekvoordeel';
+
 export function reisOptiesVoor(world, target) {
   const p = hoofdspeler(world);
-  const key = `${Math.round(p.x)}|${Math.round(p.y)}|${Math.round(target.x)}|${Math.round(target.y)}|${world.money | 0}`;
+  const voordeel = travelFactorFor(target.x, target.y);
+  const key = `${Math.round(p.x)}|${Math.round(p.y)}|${Math.round(target.x)}|${Math.round(target.y)}|${world.money | 0}|${voordeel}`;
   if (cache.key === key) return cache.opts;
   const a = [p.x, p.y], b = [target.x, target.y];
   const direct = Math.hypot(b[0] - a[0], b[1] - a[1]);
@@ -30,6 +37,13 @@ export function reisOptiesVoor(world, target) {
     routes.boot = guard(() => planBoatTrip(world.map, a, b, 'sloep'));
   }
   const opts = reisOpties(routes, { directM: direct * 1.25, money: world.money });
+  if (voordeel < 1) {
+    for (const o of opts) {
+      o.etaS = Math.round(o.etaS * voordeel);
+      o.eta = `${etaText(o.etaS)} · ${VOORDEEL_LABEL}`;
+      o.voordeel = true;
+    }
+  }
   cache.key = key;
   cache.opts = opts;
   return opts;

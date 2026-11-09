@@ -2,6 +2,8 @@ import { SMS_SAY } from './smsvoice.js';
 import { pubStaticKey } from './pubstatic.js';
 import { dijkPrijs } from './ringrace.js';
 import { assistTime } from './assistlive.js';
+import { getSettings } from './settings.js';
+import { cleanDifficulty, scaleTimeLimit } from './difficulty.js'; // #800: de stand schaalt missietijden en vensters
 import { missionStats, fmtTime, failureStats } from './missionstats.js';
 import { eggSpeedKmh, eggLimitKmh, eggSpeedLoss, eggSpeedWarning } from './eggspeed.js';
 import { createMissionLanes } from './missionlanes.js';
@@ -1489,7 +1491,7 @@ function startMission(world, def) {
   waarschuwVoorStart(world, 'missie', def.id, missieStatus(def)); // samen spelen: een melding als dit nog niet (helemaal) samen werkt; de start gaat door
   chainState().afoot = false;
   chainState().phase = 'active';
-  chainState().timeLeft = assistTime(def.timeLimit) ?? Infinity;
+  chainState().timeLeft = scaleTimeLimit(assistTime(def.timeLimit), cleanDifficulty(getSettings().difficulty)) ?? Infinity; // #800
   chainState().wpIndex = 0;
   chainState().stopIndex = 0;
   chainState().stopT = 0;
@@ -2398,7 +2400,7 @@ function inWindow(def) {
 
 function stageProgressText(world, def) {
   const text = stageProgressBase(world, def);
-  return text && inWindow(def) ? `${text} · ${def.window.label} ${fmtTime(assistTime(def.window.secs) - chainState().windowT)}` : text;
+  return text && inWindow(def) ? `${text} · ${def.window.label} ${fmtTime(scaleTimeLimit(assistTime(def.window.secs), cleanDifficulty(getSettings().difficulty)) - chainState().windowT)}` : text;
 }
 
 function stageProgressBase(world, def) {

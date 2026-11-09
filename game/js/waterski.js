@@ -1,5 +1,7 @@
 import { hoofdspeler } from './players.js';
 import { volgendeTredeRij } from './medalrules.js';
+import { getSettings } from './settings.js';
+import { cleanDifficulty, difficultyRecordKey, scaleTimeLimit } from './difficulty.js'; // #800: stand en records per stand
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { canvasTex } from './canvastex.js';
 import { getScene } from './scene3d.js';
@@ -13,7 +15,7 @@ import { WATER_Y } from './util.js';
 import { standActivity, recLine } from './standactivity.js';
 import { createBoard, mgThema, key, bubble, clearBubbles, pick, stopPressed, easeCamera, geo, frame } from './minigamekit.js';
 import { SKI_LINES } from './minigamelines2.js';
-import { SKI, createSki, makeGates, stepSki, boatLat, skiMedal, finalScore, MEDAL_AT } from './skirules.js';
+import { SKI, createSki, makeGates, stepSki, boatLat, skiMedal, finalScore, MEDAL_AT, scaledMedalAt } from './skirules.js';
 
 // Waterskibaan Grunopark: a boat tows you along a 480 m stretch of the lake
 // (the long straight of the Kardinge lake) on a 14 m rope. A and D lean you
@@ -248,8 +250,9 @@ function end(w, { quit = false } = {}) {
   if (quit) { w.addMessage('Waterskiën gestopt', 2.5); return; }
   const s = g.s;
   const score = finalScore(s);
-  const medal = skiMedal(score);
-  const rec = recordChallengeResult(w, 'waterski', { value: score, medal });
+  const mode = cleanDifficulty(getSettings().difficulty);
+  const medal = skiMedal(score, mode);
+  const rec = recordChallengeResult(w, difficultyRecordKey(mode, 'waterski'), { value: score, medal });
   recordStat(w, 'skiRuns');
   setStatMax(w, 'skiBest', score);
   unlockAchievement(w, 'ski_klaar');
@@ -257,7 +260,7 @@ function end(w, { quit = false } = {}) {
   if (g.big) unlockAchievement(w, 'ski_sprong');
   const stats = [['Score', score.toLocaleString('nl-NL')], ['Boeien', `${s.gateHits}/${s.gates.length}`], ['Sprongen', String(s.jumps)], ['Gevallen', String(s.falls)]];
   if (medal) stats.push(['Medaille', MEDALS[medal]]);
-  volgendeTredeRij(stats, MEDAL_AT, score, { medal, eenheid: 'punten', eenheid1: 'punt' });
+  volgendeTredeRij(stats, scaledMedalAt(mode), score, { medal, eenheid: 'punten', eenheid1: 'punt' });
   if (rec && rec.newBest) stats.push(['Record', 'Nieuw!']);
   showBanner({ kind: medal ? 'pass' : 'fail', title: medal >= 3 ? 'KONING VAN HET MEER' : medal ? 'MOOIE RONDE' : 'NAT GEWORDEN', reason: medal ? `${score.toLocaleString('nl-NL')} punten achter de boot` : 'Leun uit voor de boeien en spring over de golven voor punten', reward: 0, stats });
   say(w, medal >= 2 ? 'endGood' : 'endPoor', true, true);
@@ -324,7 +327,7 @@ function start(w) {
 }
 
 function recText() {
-  const r = getChallengeRecord('waterski');
+  const r = getChallengeRecord(difficultyRecordKey(cleanDifficulty(getSettings().difficulty), 'waterski'));
   return r && r.best != null ? `Record: ${Math.round(r.best).toLocaleString('nl-NL')} punten${r.medal ? ' · ' + MEDALS[r.medal].toLowerCase() : ''}` : null;
 }
 

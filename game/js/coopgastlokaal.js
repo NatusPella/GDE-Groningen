@@ -18,6 +18,7 @@ import { getSettings } from './settings.js';
 import { wedGastTik, wedGastE, wedGastBaanTik } from './multiplayerwedstrijd.js';
 import { bijbaanGastE } from './coopbijbaan.js';
 import { missieGastE } from './coopglue.js';
+import { updateExploration, tryViewpointInteract } from './explorationlive.js';
 
 // Een gast ziet aan het scènebericht van de gastheer dat er een keuze of timing op het paneel staat (#525):
 // hij stuurt zijn toets als 'paneel'-bericht, en de gastheer leest hem als zijn eigen antwoord.
@@ -51,6 +52,7 @@ export function updateGastLokaal(world, dt = 1 / 60) {
   if (world.coopWedstrijd && wedGastTik(world, dt)) return true; // een race tegen de anderen op zijn eigen scherm (#443): de invoer is van de kart
   if (wedGastBaanTik(world, dt)) return true; // een baanwedstrijd: hij vaart zelf mee; Backspace stopt voor hem (#443)
   if (!input || world.paused || isShopOpen()) { world.coopAanvalKnop = false; world.coopZichtKnop = false; world.scoped = false; return false; } // geen aanval vanuit een menu of winkel
+  updateExploration(dt, world); // #825: een gast ontdekt op zijn eigen scherm, in zijn eigen profiel
   const n0 = world.coopNet;
   gastWapenTik(world, dt, (ev) => { try { if (n0 && n0.role === 'client' && n0.session && n0.session.sendEvent) n0.session.sendEvent(ev); } catch (e) { /* de verbinding is er even niet */ } }); // je wapen en je aanvalsknop (#434)
   // de muis draait de camera (player.js doet dat niet voor een gast, #388); niet tijdens een filmpje met een eigen camera
@@ -79,6 +81,7 @@ export function updateGastLokaal(world, dt = 1 / 60) {
   if (bijbaanGastE(world)) { input.consume('e'); input.consume('f'); return true; } // een bijbaan samen: een baan starten bij een startpunt of een krant gooien (#452)
   if (missieGastE(world)) { input.consume('e'); input.consume('f'); return true; } // je eigen verhaalopdracht starten bij zijn startpunt: een verzoek aan wie het spel opende (#452)
   if (tryActivityInteractGast(world)) { input.consume('e'); input.consume('f'); return true; } // een lokale activiteit start; de andere geven een melding
+  if (tryViewpointInteract(world)) { input.consume('e'); input.consume('f'); return true; } // #825: een uitkijkpunt onthult de streek
   input.consume('e');
   input.consume('f');
   return gastGebruik(world);

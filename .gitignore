@@ -54,3 +54,6 @@ android/android/version.properties
 
 # testuitvoer en tijdelijke Electron-profielen
 .test-temp/
+
+# tijdelijke meetbestanden van perf-agents
+.agents/perf-*/

@@ -41,7 +41,7 @@ nu bijvoorbeeld zowel Femke, het kind als "Kind in het publiek".
 - Een andere stem later is één regel in `CAST`; bestaande opnames blijven geldig zolang het model in
   `ACCEPTED` staat, maar de stem vraagt wel een nieuwe opname.
 
-## Wat nu nog moet (stand 9-11-2026)
+## Wat nu nog moet (stand na v0.60.1, 9-11-2026)
 
 De stemkeuze is klaar: **0 regels wachten nog op een stem**. Wat overblijft zijn **20 verhaalregels van
 Geesje (18) en Rotor Roelf (2)** die nog een **Groningse spreektekst** nodig hebben; hun stem staat al in

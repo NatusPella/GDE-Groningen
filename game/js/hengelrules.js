@@ -4,6 +4,10 @@
 // strike with Spatie inside the bite window; too early scares the fish, too
 // late and it spits the hook. Ninety seconds, the heaviest total wins.
 import { medalFrom } from './minigamekit.js';
+// #800: de stand schaalt de medailledrempels; Standaard geeft exact de oude waarden.
+import { scaleTarget } from './difficulty.js';
+export const scaledMedalAt = (mode = 'standaard') => MEDAL_AT.map((v) => Math.round(scaleTarget(v, mode, false) * 10) / 10);
+
 
 export const HENGEL = { duration: 90, waitMin: 2.5, waitMax: 7, castT: 0.8, scareT: 1.6, tries: 99 };
 // weight in kg, share of the bites, and how long the float is under (s)
@@ -15,7 +19,7 @@ export const FISH = [
   { id: 'karper', name: 'Karper', kg: 4.0, share: 0.06, window: 0.55 },
 ];
 export const MEDAL_AT = [4, 7.5, 12];
-export const hengelMedal = (kg) => medalFrom(kg, MEDAL_AT);
+export const hengelMedal = (kg, mode = 'standaard') => medalFrom(kg, scaledMedalAt(mode));
 
 export function pickFish(rand) {
   let r = rand(), acc = 0;

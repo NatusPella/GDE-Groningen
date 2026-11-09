@@ -2,11 +2,11 @@
 
 > **Naslag.** De regels staan in de canonieke spec [`.specs-fire/standards/publicatie.md`](../.specs-fire/standards/publicatie.md); dit document is uitleg en geschiedenis. Bij verschil wint de spec (en bij twijfel `AGENTS.md`).
 
-Stand: 7 november 2026 (0.58.0; de laatste meting staat in §7). De repo is **privé**; niets hieronder is gedaan of
-aangezet. Laatste run van de controles op 21 oktober: `publish_check --history` 0 FAIL
-(3 WARN: de handmatige workflow), `secrets_scan` 0 treffers (3597 commits, 12931 tekstbestanden),
+Stand: 9 november 2026 (0.60.1; de laatste meting staat in §8). De repo is **privé**; niets hieronder is gedaan of
+aangezet. Laatste run op 9 november: `publish_check --history` **4 FAIL** (historie-e-mail,
+eigenaarsbesluit #62) en **16 WARN** (handmatige releaseworkflows), `secrets_scan` uit §7,
 `merkenregister_check` 45 rijen en 0 afwijkingen, `text_audit` 0 bevindingen, `audio_herkomst`
-3123 stemclips allemaal in een `tts.json` met Gemini TTS, 20 + 2 + 1 muziekbestanden. Alles in de kolom "Eigenaar" doet of beslist alleen de eigenaar
+**4139 clips allemaal gelogd**, `voice_coverage` 2664/2664. Alles in de kolom "Eigenaar" doet of beslist alleen de eigenaar
 (AGENTS.md, constitution 8). Context: [PUBLICEREN.md](PUBLICEREN.md).
 
 ## 1. Automatische controle (agents mogen dit draaien)
@@ -45,6 +45,7 @@ openen) en meldt bestand, patroonnaam en blob, nooit de waarde.
 | 9 | IARC-vragenlijst en Steam Content Survey zelf invullen: [IARC-ANTWOORDEN.md](IARC-ANTWOORDEN.md) | concept klaar |
 | 10 | Velden van de eigenaar op één blad: [INVULBLAD-EIGENAAR.md](INVULBLAD-EIGENAAR.md) (GitHub-profiel, credits, muziekproduct, registers, nalezer) | blad klaar |
 | 11 | Route naar 1.0: issue #65 (het plan zelf staat in `docs/archief/2026-10/PLAN-1.0.md`) | plan klaar |
+| 12 | Actions-minuten: de 2000 gratis minuten van deze maand zijn op; platformbuilds (macOS/Linux/Android) pas na de maandelijkse reset of aankoop van extra minuten (Windows lokaal) | wacht op reset/aankoop |
 
 ## 3. Vlak voor Public (volgorde)
 
@@ -106,3 +107,27 @@ steeds **niets** openbaar, geüpload of ingesteld.
   manifest; alleen de herkomstlog mist. Dat is werk voor de TTS-werkstroom en moet vóór Public klaar
   zijn, anders is de AI-herkomst niet compleet.
 - De actuele volgorde en per-issue checklists staan in [1.0-TRACK.md](1.0-TRACK.md).
+
+## 8. Achtste ronde: 9 november 2026 (0.60.1)
+
+Opnieuw gedraaid op main `6e264d85` (release v0.60.1); er is nog steeds **niets** openbaar,
+geüpload of ingesteld.
+
+- `node scripts/publish_check.mjs --history`: **4 FAIL, 16 WARN** (7279 getrackte bestanden).
+  De 4 FAIL zijn dezelfde historie-e-mail als in §7 (auteur-e-mails die geen noreply zijn;
+  eigenaarsbesluit #62: laten staan of met een mailmap herschrijven). De 16 WARN zijn de
+  handmatige releaseworkflows (`workflow_dispatch` met schrijfrechten; eigenaarsbesluit §4).
+- `node scripts/text_audit.mjs`: **0 bevindingen** (145 toegestaan). `merkenregister_check`:
+  45 rijen, 0 afwijkingen. `audio_herkomst`: **4139 stemmen en vaste clips, allemaal in een
+  `tts.json`** — de drie ontbrekende herkomstregels uit §7 zijn gedicht. `voice_coverage`:
+  **2664/2664** (Nieuw verhaal 1378/1378, 57 alleen tekst).
+- **Actions-minuten (nieuw, eigenaar):** de 2000 gratis minuten van deze maand zijn op.
+  `v0.60.0` kreeg nog alle vier de platformbijlagen; `v0.60.1` heeft alleen de lokaal gebouwde
+  Windows-exe, `gde-world.tgz` en `SHA256SUMS.txt`. De macOS-, Linux- en Android-builds voor
+  0.60.1 en verdere releases deze maand kunnen pas na de maandelijkse reset of na aankoop van
+  extra minuten. Windows bouwt lokaal door; een Linux-build kan lokaal met
+  `npm run release -- current --linux`. Zie [RELEASEN.md](RELEASEN.md) §Kosten.
+- **Open en alleen de eigenaar:** de punten uit §2 (historie/mailmap, OSM-contactgegevens,
+  merkenregisters, Noorderzon, interne docs, CDN, website, IARC, invulblad, 1.0-route) en de
+  Actions-instellingen uit §4 (owner-guard, environment `release`, immutable releases,
+  pull-only playtesters), de privacy-URL en het publicatiebesluit. Daar is niets van gedaan.

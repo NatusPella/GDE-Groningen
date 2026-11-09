@@ -539,18 +539,43 @@ results.routes.soak = await safe('soak', async () => {
 results.routes.latentie = await safe('latentie', async () => {
   if (!ONLY.includes('latentie')) return null; // losse meting: alleen met PERF_ONLY=latentie
   fixWorld(); teleport(FOOT[0][0], FOOT[0][1]); await sleep(5000);
+  // #827: meet pas als de eerste tegel-/plaatsingspiek voorbij is. Anders bestaat
+  // p95 vooral uit streamen na de teleport, niet uit de input-lus.
+  for (let i = 0, rustig = 0; i < 600 && rustig < 20; i++) {
+    const fs = D.frameStats;
+    if (fs && fs.frameMs > 0 && fs.frameMs < 25 && fs.workMs < 20) rustig++;
+    else rustig = 0;
+    await sleep(16);
+  }
   const key = (type) => { for (const t of [window, document]) t.dispatchEvent(new KeyboardEvent(type, { key: 'w', code: 'KeyW', bubbles: true })); };
-  const lat = [];
+  const samples = [];
   for (let i = 0; i < 20; i++) {
     const x0 = p.x, y0 = p.y;
-    const hit = await new Promise((res) => { key('keydown'); const t1 = performance.now(); const f = () => { if (Math.hypot(p.x - x0, p.y - y0) > 0.001) res(performance.now() - t1); else if (performance.now() - t1 > 1000) res(null); else requestAnimationFrame(f); }; requestAnimationFrame(f); });
+    const t0 = performance.now();
+    key('keydown');
+    const dispatch = performance.now() - t0;
+    let rafN = 0, firstRaf = null;
+    const hit = await new Promise((res) => {
+      const f = (now) => {
+        rafN++;
+        if (firstRaf == null) firstRaf = performance.now() - t0;
+        if (Math.hypot(p.x - x0, p.y - y0) > 0.001) res({ lat: performance.now() - t0, firstRaf, rafN });
+        else if (performance.now() - t0 > 1000) res(null);
+        else requestAnimationFrame(f);
+      };
+      requestAnimationFrame(f);
+    });
     key('keyup'); await sleep(400);
-    if (hit != null) lat.push(+hit.toFixed(1));
+    if (hit) samples.push({ ...hit, dispatch, work: D.frameStats ? D.frameStats.workMs : null, frameMs: D.frameStats ? D.frameStats.frameMs : null });
   }
+  const lat = samples.map((x) => x.lat);
   const s = [...lat].sort((a, b) => a - b);
   const pct = (q) => (s.length ? s[Math.min(s.length - 1, Math.round(q * (s.length - 1)))] : null);
+  const med = (key) => { const v = samples.map((x) => x[key]).filter((x) => Number.isFinite(x)).sort((a, b) => a - b); return v.length ? +v[Math.floor(v.length / 2)].toFixed(1) : null; };
   // losse meting, geen framereeks: de norm-check slaat deze route over
-  return { kind: 'latency', n: lat.length, p50: pct(0.5), p95: null, max: pct(1), msP50: pct(0.5), msP95: pct(0.95), msMax: pct(1), note: 'keydown to first frame whose player position changed, ms; losse meting met PERF_ONLY=latentie; tel een frame display erbij' };
+  return { kind: 'latency', n: lat.length, p50: pct(0.5), p95: null, max: pct(1), msP50: pct(0.5), msP95: pct(0.95), msMax: pct(1),
+    breakdown: { dispatchMsP50: med('dispatch'), firstRafMsP50: med('firstRaf'), framesP50: med('rafN'), workMsP50: med('work'), frameMsP50: med('frameMs') },
+    note: 'keydown to first frame whose player position changed, ms; losse meting met PERF_ONLY=latentie; tel een frame display erbij; breakdown: dispatch, wachttijd tot eerste rAF, aantal frames, vorige frameBody-tijd en rAF-interval' };
 });
 
 // scene census (only with PERF_ONLY=census): objects in the scene by top-level child, to see what the per-frame matrix and culling walk costs

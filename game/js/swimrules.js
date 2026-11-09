@@ -4,6 +4,10 @@
 // (the rhythm is the skill: about every 0.55 s), Space dives well when the
 // marker is in the green and flips the turns at the wall. Medals by time.
 import { clamp } from './minigamekit.js';
+// #800: de stand schaalt de medailledrempels; Standaard geeft exact de oude waarden.
+import { scaleTarget } from './difficulty.js';
+export const scaledMedalAt = (mode = 'standaard') => MEDAL_AT.map((v) => Math.round(scaleTarget(v, mode, true)));
+
 
 export const POOL = { len: 25, width: 12.5, lanes: 5, lengths: 4, lane: 2 };
 export const SWIM = {
@@ -22,7 +26,7 @@ export const SWIM = {
 // seconds for the 100 m: bronze, silver, gold
 export const MEDAL_AT = [100, 76, 64];
 
-export const swimMedal = (t) => (!Number.isFinite(t) ? 0 : t <= MEDAL_AT[2] ? 3 : t <= MEDAL_AT[1] ? 2 : t <= MEDAL_AT[0] ? 1 : 0);
+export const swimMedal = (t, mode = 'standaard') => { const at = scaledMedalAt(mode); return !Number.isFinite(t) ? 0 : t <= at[2] ? 3 : t <= at[1] ? 2 : t <= at[0] ? 1 : 0; };
 
 export function createSwim() {
   return {

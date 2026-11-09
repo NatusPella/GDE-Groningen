@@ -13,8 +13,10 @@ export const SKI = {
   gravity: 9.8, spinRate: 4.2, fallT: 1.8, tries: 3, ropeMax: 22,
 };
 // points: bronze, silver, gold
+import { scaleTarget } from './difficulty.js';
 export const MEDAL_AT = [650, 1300, 2200];
-export const skiMedal = (p) => (p >= MEDAL_AT[2] ? 3 : p >= MEDAL_AT[1] ? 2 : p >= MEDAL_AT[0] ? 1 : 0);
+export const scaledMedalAt = (mode = 'standaard') => MEDAL_AT.map((v) => Math.round(scaleTarget(v, mode, false))); // #800
+export const skiMedal = (p, mode = 'standaard') => { const at = scaledMedalAt(mode); return p >= at[2] ? 3 : p >= at[1] ? 2 : p >= at[0] ? 1 : 0; };
 
 export const boatLat = (s) => SKI.swing * Math.sin(s / SKI.swingLen);
 
