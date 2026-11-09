@@ -10,19 +10,31 @@ import { wgsToWorld } from './rdnew.js';
 // kerk-, molen- of borgpunt in die streek. Zo heeft ook Lauwerskust/Hunsingo een punt zonder
 // nieuwe data.
 const SOORT_ORDE = ['castle', 'mill', 'church', 'tower', 'museum'];
+// Een bestaand id als leesbare naam: menkemaborg -> Menkemaborg, uithuizen-jacobikerk -> Uithuizen Jacobikerk.
+const netteNaam = (id) => String(id || '').split('-').filter(Boolean).map((w) => w[0].toUpperCase() + w.slice(1)).join(' ');
 export function uitkijkpunten(landmarks = [], plekken = MENU_PLEKKEN, streken = STREKEN) {
   const uit = [];
   for (const streek of streken) {
     const plek = plekken.find((p) => p.streek === streek.id);
-    if (plek) { uit.push({ streek: streek.id, naam: plek.id.replace(/-/g, ' '), x: plek.x, y: plek.y, bron: 'menuplek' }); continue; }
+    if (plek) { uit.push({ streek: streek.id, streekNaam: streek.name, naam: netteNaam(plek.id), x: plek.x, y: plek.y, bron: 'menuplek' }); continue; }
+    const [cx, cy] = wgsToWorld(streek.at[0], streek.at[1]);
     const kandidaten = landmarks
-      .filter((k) => k && Number.isFinite(k.x) && Number.isFinite(k.y) && SOORT_ORDE.includes(k.k))
-      .filter((k) => Math.hypot(k.x - wgsToWorld(streek.at[0], streek.at[1])[0], k.y - wgsToWorld(streek.at[0], streek.at[1])[1]) <= streek.reach)
-      .sort((a, b) => SOORT_ORDE.indexOf(a.k) - SOORT_ORDE.indexOf(b.k));
+      .filter((k) => k && Number.isFinite(k.x) && Number.isFinite(k.y) && SOORT_ORDE.includes(k.k || k.kind))
+      .filter((k) => Math.hypot(k.x - cx, k.y - cy) <= streek.reach)
+      .sort((a, b) => SOORT_ORDE.indexOf(a.k || a.kind) - SOORT_ORDE.indexOf(b.k || b.kind));
     const k = kandidaten[0];
-    if (k) uit.push({ streek: streek.id, naam: k.n || k.k, x: k.x, y: k.y, bron: 'landmark' });
+    if (k) uit.push({ streek: streek.id, streekNaam: streek.name, naam: k.n || k.naam || k.name || netteNaam(k.kind || k.k), x: k.x, y: k.y, bron: 'landmark' });
   }
   return uit;
+}
+
+// De acht punten op de kaart zetten (#807, A15): de kaartlaag leest ze uit dit meta-veld,
+// net als de landmarks. Geen nieuwe namen of coördinaten: alles komt uit MENU_PLEKKEN en
+// landmarkkits.json. Aanroepen zodra de kits geladen zijn (ommelandlandmarks.js).
+export function installeerUitkijkpunten(map, kits, { plekken = MENU_PLEKKEN, streken = STREKEN } = {}) {
+  const punten = uitkijkpunten(kits || [], plekken, streken);
+  if (map && map.meta) map.meta.uitkijkpunten = punten;
+  return punten;
 }
 
 // Het album: hoeveel herkenningspunten per streek, en hoeveel daarvan kerk, molen of borg zijn.

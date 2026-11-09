@@ -1,5 +1,5 @@
-// #800-voorstel: één pure bron voor moeilijkheidsstanden. Nog niet aangesloten
-// op missies/UI; deze test legt de factoren en de scheiding van records vast.
+// #800: één pure bron voor moeilijkheidsstanden; de integratie (settings, startkaart, skatepark)
+// staat in difficulty_integration_test.mjs, deze test legt de factoren en de scheiding van records vast.
 //   node scripts/difficulty_test.mjs
 import {
   DIFFICULTY_MODES, DIFFICULTY_DEFAULT, difficultyFactors, cleanDifficulty,

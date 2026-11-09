@@ -6,6 +6,9 @@
 // Puur: geen three.js en geen DOM; hudcards.js tekent de kaart.
 import { showCard } from './hudcards.js';
 import { samenStatus, toelichtingVan } from './coopstatus.js';
+import { getSettings } from './settings.js';
+import { cleanDifficulty, DIFFICULTY } from './difficulty.js';
+import { GROEPSBONUS_KORT } from './groepsbonus.js'; // (#811) dezelfde 1+1=3-regel als de wachtkamer
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -149,11 +152,12 @@ export const STARTKAART = {
   },
 };
 
-// De regels onder de streep van de kaart: medailles, beloning, samen en record.
-export function startkaartRegels(id, { record = null } = {}) {
+// De regels onder de streep van de kaart: stand, medailles, beloning, samen en record.
+export function startkaartRegels(id, { record = null, difficulty = null } = {}) {
   const k = STARTKAART[id];
   if (!k) return [];
-  const regels = [];
+  const mode = cleanDifficulty(difficulty || getSettings().difficulty);
+  const regels = [`Stand: ${DIFFICULTY[mode].label}`]; // #800: de gekozen stand staat op elke startkaart
   if (k.medailles) regels.push(`Medailles: brons ${k.medailles[0]} · zilver ${k.medailles[1]} · goud ${k.medailles[2]}`);
   if (k.beloning) regels.push(`Beloning: ${k.beloning}`);
   const s = samenStatus('activiteit', id);
@@ -161,16 +165,17 @@ export function startkaartRegels(id, { record = null } = {}) {
     const woord = s === 'werkt' ? 'ja, met de groep' : s === 'deels' ? 'deels' : 'nog niet samen';
     const tol = toelichtingVan('activiteit', id);
     regels.push(`Samen: ${woord}${tol ? ` — ${tol}` : ''}`);
+    if (s === 'werkt') regels.push(GROEPSBONUS_KORT); // (#811) 1+1=3 ook op de startkaart
   }
   if (record) regels.push(`Record: ${record}`);
   return regels;
 }
 
 // De kaart als hudcards-spec. `record` komt van de activiteit zelf (die kent zijn recordregel).
-export function startkaartSpec(id, { record = null, kicker = null } = {}) {
+export function startkaartSpec(id, { record = null, kicker = null, difficulty = null } = {}) {
   const k = STARTKAART[id];
   if (!k) return null;
-  const regels = startkaartRegels(id, { record });
+  const regels = startkaartRegels(id, { record, difficulty });
   const kern = k.kern ? `<br>${keysHtml(k.kern)}` : '';
   const body = `Doel: ${k.doel}`;
   return {
@@ -199,9 +204,25 @@ export function startkaartRijen(id) {
   return rijen;
 }
 
-// Eén regel voor de kaart-hover en "Te doen": doel plus de eerste medaille-eis.
-export const startkaartRegel = (id) => {
+// Eén regel voor de kaart-hover en "Te doen": doel plus de bronzen eis en de
+// beloning, binnen het budget van de kaart-subregel. Te lang? Dan doel + brons;
+// nog te lang? Dan alleen het doel, netjes op een woordgrens afgekapt.
+export const MAX_HOVER_CHARS = 100;
+
+function trimWords(s, max) {
+  if (s.length <= max) return s;
+  const cut = s.slice(0, max - 1);
+  const sp = cut.lastIndexOf(' ');
+  return (sp > 0 ? cut.slice(0, sp) : cut).trimEnd() + '…';
+}
+
+export function startkaartRegel(id) {
   const k = STARTKAART[id];
   if (!k) return '';
-  return `Doel: ${k.doel}`;
-};
+  const brons = k.medailles ? `brons ${k.medailles[0]}` : '';
+  const volledig = `Doel: ${k.doel}${brons ? ` · ${brons}` : ''}${k.beloning ? ` · ${k.beloning}` : ''}`;
+  if (volledig.length <= MAX_HOVER_CHARS) return volledig;
+  const compact = `Doel: ${k.doel}${brons ? ` · ${brons}` : ''}`;
+  if (compact.length <= MAX_HOVER_CHARS) return compact;
+  return trimWords(`Doel: ${k.doel}`, MAX_HOVER_CHARS);
+}

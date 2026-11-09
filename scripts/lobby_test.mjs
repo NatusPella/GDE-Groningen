@@ -171,6 +171,18 @@ t('uit een lopende sessie ga je alleen met verbreken; de ander weg zet alles ter
   assert.equal(L.reduce(s, { t: 'verbreek' }).step, 'start');
   assert.equal(L.reduce(s, { t: 'status', status: 'weg' }).step, 'start');
 });
+t('#811: de wachtkamer en het samenscherm noemen 1+1=3 precies één keer', () => {
+  const eenmaal = (lines) => lines.filter((x) => x.includes('1+1=3')).length;
+  const wacht = L.view(run(APP, { t: 'kies', rol: 'host' }, { t: 'route', route: 'kamer' }, { t: 'akkoord' }, { t: 'code', code: 'ABC' }));
+  assert.equal(eenmaal(wacht.lines), 1, 'Iemand uitnodigen: één uitleg');
+  for (const rol of ['host', 'gast']) {
+    const s = L.reduce(run(APP, { t: 'kies', rol }, { t: 'status', status: 'ok' }), { t: 'spelers', lijst: [{ slot: 0, char: 'tammo', naam: 'Tammo' }, { slot: 1, char: 'rik', naam: 'Rik' }, { slot: 2, char: 'bram', naam: 'Bram' }], max: 4 });
+    const v = L.view(s);
+    assert.equal(eenmaal(v.lines), 1, 'Je speelt samen (' + rol + '): één uitleg');
+    assert.match(v.lines.join(' '), /elke extra speler geeft iedereen 50% meer loon, tot 3×/, 'dezelfde formulering als de bonus');
+  }
+});
+
 t('elke stap heeft een weergave met Nederlandse knoppen', () => {
   for (const step of ['start', 'methode', 'toestemming', 'host-maakt-code', 'host-wacht', 'gast-typt', 'verbinden', 'verbonden', 'verbroken', 'geweigerd']) {
     const v = L.view({ ...L.createLobby(APP), step, route: 'kamer', rol: 'host', reason: 'tegels' });

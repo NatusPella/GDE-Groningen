@@ -64,10 +64,16 @@ export function klokTekst(sec) {
   return `${m}:${String(r).padStart(2, '0')}`;
 }
 
-// De eerstvolgende trede (#672): "nog 0:04 tot zilver". `drempels` zijn de grenzen van brons, zilver
-// en goud in de eenheid van de activiteit; `lager` betekent: hoe lager hoe beter (tijd, slagen).
+// De eerstvolgende trede (#672, #816, #817): "nog 0:04 tot zilver", "nog 0,3 kg tot zilver",
+// "nog 5% tot zilver". `drempels` zijn de grenzen van brons, zilver en goud in de eenheid van de
+// activiteit; `lager` betekent: hoe lager hoe beter (tijd, slagen). Opties:
+//   eenheid        met een spatie ervoor ("kg", "m/s", "punten")
+//   eenheid1       het enkelvoud als de waarde afgerond 1 is ("1 slag" naast "2 slagen")
+//   eenheidAchter  eenheid zonder spatie erachter ("%"): "nog 5% tot zilver"
+//   decimalen      het aantal decimalen van het verschil (1 voor 0,3 kg)
+//   klok           het verschil als klok (0:04) in plaats van een getal
 // Geeft { klaar, medal, nodig, tekst } of { onbekend: true } als de waarde geen getal is.
-export function volgendeTrede(drempels, waarde, { lager = false, eenheid = '', klok = false } = {}) {
+export function volgendeTrede(drempels, waarde, { lager = false, eenheid = '', eenheid1 = '', eenheidAchter = '', decimalen = 0, klok = false } = {}) {
   const grenzen = Array.isArray(drempels) ? drempels : [];
   const w = Number(waarde);
   if (!Number.isFinite(w)) return { onbekend: true, klaar: false, tekst: '' };
@@ -80,8 +86,25 @@ export function volgendeTrede(drempels, waarde, { lager = false, eenheid = '', k
   }
   if (!volgende) return { klaar: true, medal: 3, nodig: 0, tekst: 'Alle drie de medailles gehaald.' };
   const nodig = Math.max(0, volgende.nodig);
-  const waardeTekst = klok ? klokTekst(nodig) : `${Math.round(nodig).toLocaleString('nl-NL')}${eenheid ? ` ${eenheid}` : ''}`;
+  const dec = Math.max(0, Math.min(3, heel(decimalen)));
+  const afgerond = dec ? Math.round(nodig * 10 ** dec) / 10 ** dec : Math.round(nodig);
+  const getal = dec
+    ? afgerond.toLocaleString('nl-NL', { minimumFractionDigits: dec, maximumFractionDigits: dec })
+    : afgerond.toLocaleString('nl-NL');
+  const eenheidTekst = eenheid1 && afgerond === 1 ? eenheid1 : eenheid;
+  const waardeTekst = klok ? klokTekst(nodig) : `${getal}${eenheidAchter || (eenheidTekst ? ` ${eenheidTekst}` : '')}`;
   return { klaar: false, medal: volgende.medal, nodig, tekst: `nog ${waardeTekst} tot ${MEDAILLES[volgende.medal].toLowerCase()}` };
+}
+
+// De regel "Volgende trede" in de uitslagstats (#816): voegt ['Volgende trede', 'nog … tot zilver']
+// toe en doet niets als de hoogste medaille al gehaald is (dan ook geen "Alle drie de medailles
+// gehaald"-regel). `medal` is de medaille van deze ronde; de opmaakopties gaan door naar volgendeTrede.
+export function volgendeTredeRij(stats, drempels, waarde, { medal = null, ...opts } = {}) {
+  if (!Array.isArray(stats)) return stats;
+  if (trede(medal) >= 3) return stats;
+  const r = volgendeTrede(drempels, waarde, opts);
+  if (r && !r.klaar && !r.onbekend && r.tekst) stats.push(['Volgende trede', r.tekst]);
+  return stats;
 }
 
 // Voor een klassering (kartbaan, ringrace): de volgende plek tot zilver of goud.

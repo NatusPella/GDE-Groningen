@@ -43,6 +43,8 @@ import { klusloon } from './economy.js';
 import { zachtePauze } from './coopgroep.js';
 import { samenWaarschuwing } from './coopstatus.js';
 import { missieMagVanuitMenu, MISSIE_VIA_STARTPUNT } from './coopgast.js';
+import { beginHierItems, beginHierCount } from './todobegin.js';
+export { beginHierItems, beginHierCount };
 
 export const GROUPS = [
   ['missies', 'Missies', 'het verhaal en je klussen'],
@@ -412,6 +414,8 @@ function storyStepItem(world) {
 
 let worldRef = null;
 
+// #813: de selectie staat puur in todobegin.js; hier alleen de bestaande
+// catalogus die de UI vult.
 export function getTodoItems(world) {
   worldRef = world;
   const p = hoofdspeler(world);

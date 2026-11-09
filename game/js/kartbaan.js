@@ -645,6 +645,7 @@ function end(w, { quit = false } = {}) {
   const rank = g.result || rankKarts(g.karts);
   const me = g.karts[0];
   const pos = rank.indexOf(me) + 1;
+  if (me.finished && pos === 1) w.stats.racesWon++; // #818: solo-race gewonnen (co-op telt de wedstrijdlaag)
   const medal = me.finished ? positionMedal(pos) : 0;
   const total = me.finished ? me.finishT : null;
   const lap = bestLap(me);

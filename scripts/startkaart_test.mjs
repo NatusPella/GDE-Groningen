@@ -55,6 +55,8 @@ t('de kaart noemt doel, medailles, beloning en samen; het record komt erbij als 
 t('de samen-status komt uit het register van coopstatus.js', () => {
   assert.match(startkaartRegels('hoogvlieger').join(' | '), /Samen: nog niet samen/);
   assert.match(startkaartRegels('discgolf').join(' | '), /Samen: ja, met de groep/);
+  assert.match(startkaartRegels('discgolf').join(' | '), /1\+1=3: elke extra speler geeft iedereen 50% meer loon, tot 3×/, 'de startkaart noemt de groepsbonus (#811)');
+  for (const id of ['discgolf', 'pitchputt', 'kartbaan']) assert.match(startkaartRegels(id).join(' | '), /1\+1=3/, id + ': startkaart noemt 1+1=3');
   assert.match(startkaartRegels('wandeling').join(' | '), /Samen: deels/);
 });
 
@@ -64,6 +66,65 @@ t('dezelfde gegevens gaan naar de kaart-hover en "Te doen"', () => {
   assert.match(startkaartRegel('hengelen'), /^Doel: /);
   assert.match(ACT, /startkaartRegel\(a\.id\)/, 'de kaart-hover leest dezelfde regel');
   assert.match(ACT, /export const ACTIVITEIT_IDS = LIST\.map/, 'de activiteitenlijst heeft één id-bron');
+});
+
+t('de hoverregel noemt doel, brons en beloning binnen het budget', () => {
+  const { MAX_HOVER_CHARS } = S;
+  const regel = startkaartRegel('vaardienst');
+  assert.match(regel, /^Doel: /);
+  assert.match(regel, /brons gehaald/, 'de bronzen drempel staat erin');
+  assert.match(regel, /je medaille op het bord/, 'de beloning staat erin');
+  assert.ok(startkaartRegel('discgolf').length <= MAX_HOVER_CHARS, 'ook een lange regel blijft binnen het budget');
+  for (const id of Object.keys(STARTKAART)) {
+    const r = startkaartRegel(id);
+    assert.ok(r.length <= MAX_HOVER_CHARS, `${id}: ${r.length} tekens`);
+  }
+});
+
+// #815: de hoverregel noemt doel, de bronzen eis en de beloning, binnen het budget van de
+// kaart-subregel. De volledige tabel blijft de bron; de regel is daarvan de compacte samenvatting.
+t('de kaart-hover noemt doel, bronzen eis en beloning (#815)', () => {
+  assert.equal(typeof S.MAX_HOVER_CHARS, 'number', 'er is een vast tekenbudget voor de hoverregel');
+  assert.ok(S.MAX_HOVER_CHARS > 60 && S.MAX_HOVER_CHARS < 120, 'het budget past bij één hoverregel');
+  const vol = startkaartRegel('vaardienst');
+  assert.match(vol, /^Doel: Vaar de drie kades in volgorde langs · brons gehaald · je medaille op het bord$/, 'doel, brons en beloning staan er alle drie in');
+  // een activiteit zonder medailles noemt het doel en de beloning
+  assert.equal(startkaartRegel('snackketen'), 'Doel: Koop snackbars, verbouw ze en leeg de kassa · omzet per minuut; de kassa is van jou');
+  // te lang? dan doel + brons, zonder de beloning erbij te proppen
+  const disc = startkaartRegel('discgolf');
+  assert.match(disc, /· brons 6 boven par$/, 'de beloning valt weg als de regel te lang wordt');
+  assert.ok(!disc.includes('prijzengeld'), 'geen afgekapte beloning');
+  // en de hoverregel komt uit dezelfde bron als "Te doen", niet uit een tweede tabel
+  assert.deepEqual(startkaartRijen('vaardienst').map(([k, v]) => [k, v]), [['Doel', STARTKAART.vaardienst.doel], ['Medailles', 'brons gehaald · zilver op tijd · goud alles goed'], ['Beloning', 'je medaille op het bord']]);
+});
+
+t('de hoverregel blijft binnen het budget en breekt geen woorden af (#815)', () => {
+  for (const id of Object.keys(STARTKAART)) {
+    const regel = startkaartRegel(id);
+    assert.ok(regel.length <= S.MAX_HOVER_CHARS, `${id}: ${regel.length} tekens is te lang`);
+    assert.ok(regel.startsWith('Doel: '), `${id}: de regel begint met het doel`);
+    assert.ok(!regel.endsWith(' …') && !regel.includes('  '), `${id}: geen losse spaties`);
+    // alleen een afkapping op een woordgrens eindigt op een ellips
+    if (regel.endsWith('…')) assert.ok(/[^\s]…$/.test(regel), `${id}: de ellips staat achter een woord`);
+  }
+  // een lang doel (buiten de tabel om) valt terug op een nette woordgrens
+  const lang = { titel: 'Test', doel: 'een twee drie vier vijf zes zeven acht negen tien elf twaalf dertien veertien vijftien zestien zeventien achttien negentien twintig', medailles: ['tien', 'twintig', 'dertig'], beloning: 'heel veel prijzengeld en loopbaanpunten en nog een lange staart erachteraan' };
+  STARTKAART.__lang = lang;
+  try {
+    const regel = startkaartRegel('__lang');
+    assert.ok(regel.length <= S.MAX_HOVER_CHARS, 'ook een lang doel blijft binnen het budget');
+    assert.ok(regel.endsWith('…'), 'een te lang doel wordt afgekapt');
+    const laatste = regel.slice('Doel: '.length, -1).split(' ').pop();
+    assert.ok(lang.doel.split(' ').includes(laatste), `geen half woord voor de ellips: ${laatste}`);
+  } finally { delete STARTKAART.__lang; }
+});
+
+t('de kaart-hover gebruikt de hoverregel uit activities.js (#815)', () => {
+  assert.match(ACT, /sub: \[a\.mapSub \? a\.mapSub\(s, w\) : a\.legend\.note, startkaartRegel\(a\.id\)\]\.filter\(Boolean\)\.join\(' · '\)/, 'de kaart-hoverregel komt uit startkaartRegel');
+  const MV = lees('game/js/mapview.js');
+  assert.match(MV, /sub = h\.tipSub \|\| h\.sub \|\| '';/, 'de tooltip toont die subregel');
+  assert.match(MV, /hover\.push\(\{ sx: q\.sx, sy: q\.sy, name: q\.name, sub: q\.sub/, 'de hover van een pictogram bewaart de subregel');
+  assert.match(MV, /white-space: normal; overflow-wrap: normal;/, 'lange hoverregels wikkelen op woordgrenzen');
 });
 
 t('elke start toont de kaart: standactivity, de losse spellen en de diensten', () => {

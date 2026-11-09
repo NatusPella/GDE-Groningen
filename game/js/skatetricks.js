@@ -13,11 +13,19 @@
 // and have a balance to hold. Points come per trick, multiplied by the
 // number of different tricks in the chain (a repeat counts for less); a
 // chain banks after a pause on the ground, like the drift zones.
+import { scaleTimeLimit, scaleTarget } from './difficulty.js'; // #800: stand schaalt ronde en medailles
+
 export const G = 9.81;
 export const PARK = { hu: 25, hv: 13 };
 const DECK = 1.2;
 export const RUN_S = 90;
 export const MEDAL_AT = [1200, 3200, 6500];
+
+// #800: de moeilijkheidsstand schaalt de ronde en de medailledrempels. Standaard (de standaard)
+// geeft exact de oude waarden: 90 seconden en dezelfde drie drempels. De punten zijn 'hoger is
+// beter', dus een ruimere stand verlaagt de drempel en een strengere stand verhoogt hem.
+export const runSeconds = (mode = 'standaard') => scaleTimeLimit(RUN_S, mode);
+export const medalAt = (mode = 'standaard') => MEDAL_AT.map((v) => Math.round(scaleTarget(v, mode, false)));
 
 export const SKATE = {
   maxPush: 8.4, accel: 5.2, friction: 0.32, brake: 9, turn: 2.5, ollie: 3.5,
@@ -335,9 +343,10 @@ export function scoreEvents(combo, ev) {
   return { gained, bailed, names };
 }
 
-export const skateMedal = (score) => {
+export const skateMedal = (score, mode = 'standaard') => {
+  const at = medalAt(mode);
   let m = 0;
-  for (let i = 0; i < MEDAL_AT.length; i++) if (score >= MEDAL_AT[i]) m = i + 1;
+  for (let i = 0; i < at.length; i++) if (score >= at[i]) m = i + 1;
   return m;
 };
 

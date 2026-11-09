@@ -231,7 +231,10 @@ function injectStyles() {
       background: ink(dark 0.92);
       border: 1px solid ink(greenLight 0.6);
       border-radius: 4px; padding: 3px 8px; font-size: 14px; letter-spacing: 0.3px; color: ink(textBright);
-      transform: translate(12px, -50%); white-space: nowrap; display: none;
+      transform: translate(12px, -50%); max-width: min(560px, calc(100vw - 32px));
+      /* de hoverregel van een activiteit noemt doel, brons en beloning en is daarmee langer
+         dan een plaatsnaam. Wikkel op woordgrenzen in plaats van de regel af te knippen of midden
+         in een woord te breken (overflow-wrap: normal). */      white-space: normal; overflow-wrap: normal; line-height: 1.35; display: none;
     }
     .mapview-tooltip .sub { color: ink(greenLight); margin-left: 6px; }
     .mapview-legend {
@@ -1009,6 +1012,18 @@ function drawStaticOverlay(ctx) {
       bezet.push(pinDoos(sx, sy, sc));
       const nick = nicknameOf(l.name);
       hover.push({ sx, sy, name: l.name, sub: nick ? `Bezienswaardigheid · ${nick}` : 'Bezienswaardigheid', teleport: { x: l.x, y: l.y, name: l.name } });
+    }
+  }
+  // #807 A15: één uitkijkpunt per streek (verkenpunten.js), uit de bestaande punten;
+  // klikken zet er een waypoint, zoals bij een bezienswaardigheid.
+  if (layerOn('uitkijkpunt')) {
+    for (const u of state.map.meta.uitkijkpunten || []) {
+      if (!Number.isFinite(u.x) || !Number.isFinite(u.y)) continue;
+      const [sx, sy] = toScreen(u.x, u.y);
+      if (!onScreen(sx, sy, 120)) continue;
+      drawMapIcon(ctx, 'uitkijkpunt', sx, sy, sc, { t: 0 });
+      bezet.push(pinDoos(sx, sy, sc));
+      hover.push({ sx, sy, name: u.naam, sub: `Uitkijkpunt · ${u.streekNaam || u.streek}`, x: u.x, y: u.y });
     }
   }
 
@@ -2095,6 +2110,7 @@ const LEGEND = [
     { kind: 'companion', label: 'Maat', layers: ['companion'] },
     { kind: 'flitspaal', label: 'Flitspaal', layers: ['flitspaal'] },
     { kind: 'landmark', label: 'Bezienswaardigheid', layers: ['landmark'] },
+    { kind: 'uitkijkpunt', label: 'Uitkijkpunten', note: 'één per streek: uitzicht en een herkenningspunt onderweg', layers: ['uitkijkpunt'] },
     { kind: 'act-safehuis', label: 'Safehouse', note: 'een huisje om te kopen of te krijgen in elk gebied dat je kunt veroveren: slapen, kleren, garage, onderduiken', layers: ['safehuis'] },
     { kind: 'veroverd', label: 'Veroverd', note: 'wijken, plaatsen en streken die je aan het doen bent (de kleur loopt mee) of helemaal gedaan hebt (een vlag)', layers: ['veroverd'] },
     { kind: 'text-street', label: 'Straatnamen', layers: ['streets'] },

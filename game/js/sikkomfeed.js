@@ -1,65 +1,42 @@
 import { playSikkomLine } from './audio.js';
 import { syncPlayerWrecks } from './vehicle.js';
 import { isCinematicActive, sinceCinematic } from './cinematics.js';
-
 import { mayStart } from './narrative.js';
+import { getStat } from './achievements.js';
+import { kiesKiekdoar } from './kiekdoarregels.js';
+
 const CHECK_INTERVAL = 0.5;
-// Kiekdoar reacts now and then, not to every star or wreck
-const COOLDOWN = 90;
-const SAME_KIND_COOLDOWN = 300;
-const CHANCE = 0.5;
-const lastKindAt = {};
-let seenLoad = 0;
-const NEWS_AFTER_SCENE = 12;
-
-const WANTED_UP = [
-  'KIEKDOAR MELDT: onrust in Grunn, politie massaal op pad',
-  'KIEKDOAR: gierende sirenes in het centrum, politie zit iemand op de hielen',
-];
-const WRECKED_UP = [
-  'KIEKDOAR: auto afgeschreven in het centrum, buurtbewoners verbijsterd',
-  'KIEKDOAR: wéér een auto afgeschreven in Groningen, garages wrijven in hun handen',
-];
-const COPKILL_UP = [
-  'KIEKDOAR: agent flink geschrokken tijdens dienst, korps in rep en roer',
-];
-const PEDKILL_UP = [
-  'KIEKDOAR: voetganger met de schrik vrijgekomen, buurtapp ontploft van de reacties',
-];
-const KILL_UP = [
-  'KIEKDOAR: opnieuw onrust in de straten, politie tast in het duister',
-];
-const MISSION_UP = [
-  'KIEKDOAR: mysterieuze klusjesman weer aan het werk in Groningen',
-];
-
 let checkTimer = 0;
 let lastToastAt = -Infinity;
 let prev = null;
-
-function pickIndexed(list) {
-  const i = Math.floor(Math.random() * list.length);
-  return [list[i], i];
-}
+let seenLoad = 0;
+const lastKindAt = {};
+const NEWS_AFTER_SCENE = 12;
 
 // Only wrecks the player caused count (ambient traffic wrecks itself
 // constantly). A monotonic counter rather than a scan of world.vehicles,
 // because wrecked vehicles get despawned and would make the count drop.
 function snapshot(world) {
   syncPlayerWrecks(world);
+  const s = world.stats || {};
   return {
-    wanted: world.wanted,
-    kills: world.stats.kills,
-    pedKills: world.stats.pedKills,
-    copKills: world.stats.copKills,
-    missionsDone: world.stats.missionsDone,
-    wrecked: world.stats.playerWrecks || 0,
+    wanted: world.wanted | 0,
+    inRespawn: !!world.pendingRespawn, // #812: een respawn (gepakt of neer) is geen ontsnapping
+    kills: s.kills | 0,
+    pedKills: s.pedKills | 0,
+    copKills: s.copKills | 0,
+    missionsDone: s.missionsDone | 0,
+    heistsDone: s.heistsDone | 0, // #818: een geslaagde overval
+    racesWon: s.racesWon | 0, // #818: een gewonnen solo-race
+    wrecked: s.playerWrecks | 0,
+    topSpeed: getStat('topSpeed'), // #812: nieuw topsnelheidsrecord
   };
 }
 
 export function initSikkomFeed(world) {
   checkTimer = 0;
   lastToastAt = -Infinity;
+  for (const k of Object.keys(lastKindAt)) delete lastKindAt[k];
   prev = snapshot(world);
   world._sikkomPrev = prev;
   if (!world.phoneNotifications) world.phoneNotifications = [];
@@ -85,24 +62,14 @@ export function updateSikkomFeed(dt, world) {
     return;
   }
 
-  if (world.time - lastToastAt >= COOLDOWN) {
-    let msg = null, audioKey = null, kind = null;
-    if (cur.wanted > prev.wanted) { const [t, i] = pickIndexed(WANTED_UP); msg = t; audioKey = `wanted_up_${i + 1}`; kind = 'wanted'; }
-    else if (cur.wrecked > prev.wrecked) { const [t, i] = pickIndexed(WRECKED_UP); msg = t; audioKey = `wrecked_up_${i + 1}`; kind = 'wrecked'; }
-    else if (cur.copKills > prev.copKills) { msg = COPKILL_UP[0]; audioKey = 'copkill_up'; kind = 'copkill'; }
-    else if (cur.pedKills > prev.pedKills) { msg = PEDKILL_UP[0]; audioKey = 'pedkill_up'; kind = 'pedkill'; }
-    else if (cur.kills > prev.kills) { msg = KILL_UP[0]; audioKey = 'kill_up'; kind = 'kill'; }
-    else if (cur.missionsDone > prev.missionsDone) { msg = MISSION_UP[0]; audioKey = 'mission_up'; kind = 'mission'; }
-    if (msg && (world.time - (lastKindAt[kind] ?? -Infinity) < SAME_KIND_COOLDOWN || Math.random() > CHANCE)) msg = null;
-    // its voice plays right away: not over a cutscene, a story call or a subtitle (narrative.js)
-    if (msg && !mayStart('phone')) msg = null;
-
-    if (msg) {
-      lastKindAt[kind] = world.time;
-      world.phoneNotifications.push({ text: msg, duration: 4, voiced: true });
-      playSikkomLine(audioKey);
-      lastToastAt = world.time;
-    }
+  // De keuze is puur en getest (kiekdoarregels.js): één kop per keer, met de
+  // cooldowns en de kans. Een nieuwe soort heeft geen opname, dus geen audio.
+  const keuze = kiesKiekdoar(prev, cur, world.time, { lastToastAt, lastKindAt, random: Math.random });
+  if (keuze && mayStart('phone')) {
+    lastKindAt[keuze.kind] = world.time;
+    world.phoneNotifications.push({ text: keuze.text, duration: 4, voiced: keuze.voiced });
+    if (keuze.audioKey) playSikkomLine(keuze.audioKey); // alleen als er een bestaande opname is
+    lastToastAt = world.time;
   }
 
   prev = cur;

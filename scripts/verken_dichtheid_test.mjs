@@ -6,7 +6,8 @@
 // eindpunten; de volgende stap is de routepunten uit de kaart halen).
 //   node scripts/verken_dichtheid_test.mjs
 import fs from 'node:fs';
-import { uitkijkpunten, albumStand } from '../game/js/verkenpunten.js';
+import { uitkijkpunten, albumStand, installeerUitkijkpunten } from '../game/js/verkenpunten.js';
+import { mapCategory, mapPriority } from '../game/js/mapicons.js';
 import { MENU_PLEKKEN } from '../game/js/menuplekken.js';
 import { STREKEN, streekAt } from '../game/js/regioleven.js';
 import { REISBEATS } from '../game/js/reisbeats.js';
@@ -22,6 +23,24 @@ ok(punten.length === STREKEN.length, 'elke streek heeft een uitkijkpunt', String
 ok(STREKEN.every((s) => punten.some((p) => p.streek === s.id)), 'geen streek overgeslagen');
 ok(punten.every((p) => Number.isFinite(p.x) && Number.isFinite(p.y) && p.naam), 'uitkijkpunten hebben een naam en een plek');
 ok(punten.some((p) => p.bron === 'menuplek'), 'bestaande menupiek gebruikt');
+
+// 1b. Dezelfde acht punten als kaartlaag (#807 A15): op de kaart, zonder nieuwe data.
+{
+  const map = { meta: {} };
+  const gezet = installeerUitkijkpunten(map, kits, { plekken: MENU_PLEKKEN, streken: STREKEN });
+  ok(map.meta.uitkijkpunten === gezet && gezet.length === STREKEN.length, 'de kaartlaag krijgt één uitkijkpunt per streek', String(gezet.length));
+  ok(new Set(gezet.map((p) => p.streek)).size === STREKEN.length, 'geen dubbele streek in de kaartlaag');
+  ok(gezet.every((p) => p.naam && /^[A-Z]/.test(p.naam) && !p.naam.includes('-')), 'leesbare namen uit bestaande ids', gezet.map((p) => p.naam).join(', '));
+  ok(gezet.every((p) => p.streekNaam && Number.isFinite(p.x) && Number.isFinite(p.y)), 'elke punt heeft een streeknaam en coördinaten');
+  ok(mapCategory('uitkijkpunt') === 'ommeland' && mapPriority('uitkijkpunt') > 0, 'het icoon valt onder de Ommeland-laag');
+  const view = fs.readFileSync(new URL('../game/js/mapview.js', import.meta.url), 'utf8');
+  ok(view.includes("layerOn('uitkijkpunt')") && view.includes('meta.uitkijkpunten'), 'de kaart tekent de laag');
+  ok(view.includes("kind: 'uitkijkpunt'") && view.includes("layers: ['uitkijkpunt']"), 'de legendarij heeft een schakelaar');
+  const hud = fs.readFileSync(new URL('../game/js/hud_panel.js', import.meta.url), 'utf8');
+  ok(/case 'uitkijkpunt':/.test(hud) && hud.includes("add('uitkijkpunt'"), 'het icoon en de minimap kennen de laag');
+  const oml = fs.readFileSync(new URL('../game/js/ommelandlandmarks.js', import.meta.url), 'utf8');
+  ok(oml.includes('installeerUitkijkpunten(world.map, j.items)'), 'de kits zetten de punten op de kaart');
+}
 
 // 2. Het album: de aantallen die de bestaande herkenningspunten nu al opleveren (ratchet).
 const album = albumStand(kits, STREKEN, streekAt);

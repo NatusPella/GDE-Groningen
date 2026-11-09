@@ -9,6 +9,14 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- **Te doen begint met "Begin hier": de telling en de drie dichtstbijzijnde dingen (#813).** Bovenaan staat hoeveel er nog te doen is en wat de eerstvolgende aanbeveling is; de drie dichtstbijzijnde missies, activiteiten of bijbanen zijn gewone, klikbare rijen. De keuze is een pure functie met een Node-test.
+- **Een mislukte missie zegt nu dat je niets verliest (#814).** In de faalbanner staat "Verlies: geen — je geld en voortgang blijven van jou", solo en in Samen spelen, zonder bedragen of verzekeringen.
+- **De kaart-hover van een activiteit noemt het doel, de bronzen eis en de beloning (#815).** De regel komt uit dezelfde startkaarttabel, blijft binnen het tekenbudget en valt bij een te lange regel terug op doel plus brons.
+- **Kiekdoar meldt ontsnappen en topsnelheid (#812).** Ben je na een achtervolging van minstens twee sterren ontsnapt, dan komt er één Kiekdoar-melding; een nieuw topsnelheidsrecord boven 120 km/u haalt hoogstens één keer per vijf minuten de krant. De twee koppen zijn tekst-only (geen opname), de bestaande berichten en cooldowns blijven zoals ze waren.
+- **Kiekdoar reageert op overvallen en gewonnen races (#818).** Een geslaagde heistmissie en een eerste plaats in de kart-, ring- of solo-zeilrace tellen in je eigen opgeslagen spel (ook na laden) en leveren één lokale telefoonmelding op, via dezelfde cooldowns. Nieuwe koppen hebben geen stem; de volgorde blijft sterren, ontsnappen, snelheid, overval, race, schade, kills, missie.
+
+- **De uitslag van negen attracties noemt nu de volgende medaille-trede: "nog 0:04 tot zilver", "nog 0,3 kg tot zilver" of "nog 1 slag tot brons" (#816).** Discgolf, pitch & putt, carbid, botsauto's, hengelen, klimtoren, zwembad, pannenkoekenschip en waterskiën gebruiken dezelfde regel; bij goud staat er geen "alle drie gehaald"-regel meer in de uitslag.
+- **Ook carillon, wandeling en regatta noemen de volgende trede, in hun eigen eenheid: "nog 5% tot zilver", "nog 0,3 m/s tot zilver" en "nog 0:12 tot zilver" (#817).**
 - **De eerste minuten lopen nu vrijwel op volle snelheid: de routegraaf, de verkeerslichten, de straatmeubels en borden en de pedestriasites worden niet meer bij elke gestroomde tegel opnieuw opgebouwd.** Die vier netwerken bouwen pas opnieuw als de tegelstroom rustig is. In de browsertest op een schone machine draaiden de eerste seconden na de opening op ~59 fps in plaats van ~14; de opening zelf blijft het zwaarste stuk.
 - **Schermnarratie: met de instelling onder Toegankelijkheid leest een schermlezer doelwijzigingen, lage gezondheid, politie-sterren en plaatsnamen voor (#802).** Hooguit één boodschap per 1,2 seconde; menu's en de kaartzoeklijst waren al bedienbaar.
 - **In de PvP-arena reageert een gast sneller: zodra twee spelers niet-passief zijn, gaat de interpolatievertraging van 120 naar 60 ms (#806).** Buiten een gevecht blijft de gewone 120 ms staan.

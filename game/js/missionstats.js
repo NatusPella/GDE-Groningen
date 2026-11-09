@@ -7,6 +7,15 @@ export function fmtTime(s) {
 }
 
 // ctx: { run, kills, rondvaart, stunt, fatbikeHits, cargoLeft }
+// #814: een mislukte missie kost geen geld of voortgang. De faalbanner noemt
+// dat één keer; stats is dezelfde [[label, waarde], ...] als missionStats.
+export const FAIL_LOSS_LINE = ['Verlies', 'geen — je geld en voortgang blijven van jou.'];
+
+export function failureStats(stats) {
+  const rows = Array.isArray(stats) ? stats : [];
+  return rows.some(([label]) => label === FAIL_LOSS_LINE[0]) ? rows : [...rows, FAIL_LOSS_LINE];
+}
+
 export function missionStats(def, ctx = {}) {
   const r = ctx.run;
   if (!r) return [];

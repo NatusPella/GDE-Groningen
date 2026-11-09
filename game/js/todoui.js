@@ -4,7 +4,7 @@
 // pausemenu.css (ov-*, td-*).
 import { hoofdspeler } from './players.js';
 import { wasHelped } from './assistlive.js';
-import { getTodoItems, chooseTodo, mapIconUrl, placeName, GROUPS, STATUS_LABEL, buyFjordUpgrade, paspoortOverzicht } from './todo.js';
+import { getTodoItems, chooseTodo, mapIconUrl, placeName, GROUPS, STATUS_LABEL, buyFjordUpgrade, paspoortOverzicht, beginHierItems, beginHierCount } from './todo.js';
 import { activityTodoItems } from './activities.js';
 import { getStoryView, getStorySteps, getStoryJournal, requestCredits } from './story.js';
 import { PARTS, CLUES, WHY } from './storyarc.js';
@@ -311,11 +311,26 @@ function paspoortHtml() {
     `<span class="m-bar td-pbar"><i data-bar="om-paspoort" data-w="${p.pct}"></i></span>${hint}`;
 }
 
+// #813: bovenaan Te doen de telling en de drie dichtstbijzijnde dingen. De
+// rijen zijn gewone data-todo-rijen, zodat kiezen en het detail gelijk blijven.
+function beginHierHtml() {
+  if (!worldNow) return '';
+  const p = hoofdspeler(worldNow);
+  const near = beginHierItems(items, p, 3);
+  const n = beginHierCount(items, p);
+  if (!n) return '';
+  const next = near[0];
+  return `<section class="td-begin" aria-label="Begin hier"><div class="m-gh"><span>Begin hier</span><span>${n} te doen</span></div>` +
+    `<p class="m-note">Er is hier ${n} te doen${next ? ` · eerstvolgende: <b>${esc(next.title)}</b>` : ''}</p>` +
+    near.map((it) => row(it)).join('') + '</section>';
+}
+
 function allHtml() {
   const eigen = items.filter(isActiviteit);
   const counts = Object.fromEntries(SHOWN.map(([g]) => [g, eigen.filter((it) => it.group === g).length]));
   const total = eigen.length;
   const metPlek = eigen.filter((it) => it.dist != null).length;
+  const begin = beginHierHtml();
   const filter = `<div class="m-chips" role="group" aria-label="Filter"><button type="button" class="m-chip" data-todo-near aria-pressed="${ui.near}">Dichtbij <span>${metPlek}</span></button></div>`;
   const chips = `<div class="m-chips" role="radiogroup" aria-label="Soort"><button type="button" class="m-chip" role="radio" data-todo-kind="alles" aria-checked="${ui.kind === 'alles'}">Alles <span>${total}</span></button>` +
     SHOWN.map(([g, label]) => `<button type="button" class="m-chip" role="radio" data-todo-kind="${g}" aria-checked="${ui.kind === g}">${label} <span>${counts[g]}</span></button>`).join('') + '</div>';
@@ -323,7 +338,7 @@ function allHtml() {
     const label = ((SHOWN.find(([g]) => g === ui.kind) || [])[1] || '');
     const list = eigen.filter((it) => it.dist != null && (ui.kind === 'alles' || it.group === ui.kind))
       .sort((a, b) => (a.dist ?? Infinity) - (b.dist ?? Infinity));
-    return filter + chips + `<div class="m-gh"><span>Dichtbij${label ? ` · ${esc(label)}` : ''}</span><span>${list.length} ${list.length === 1 ? 'ding' : 'dingen'} met een plek, dichtstbij eerst</span></div>` + list.map((it) => row(it)).join('') +
+    return begin + filter + chips + `<div class="m-gh"><span>Dichtbij${label ? ` · ${esc(label)}` : ''}</span><span>${list.length} ${list.length === 1 ? 'ding' : 'dingen'} met een plek, dichtstbij eerst</span></div>` + list.map((it) => row(it)).join('') +
       (!list.length ? '<p class="m-note">Niks met een plek in deze soort. Kies een andere soort of zet de filter uit.</p>' : '');
   }
   const groups = SHOWN.filter(([g]) => ui.kind === 'alles' || ui.kind === g).map(([g, label, sub]) => {
@@ -338,7 +353,7 @@ function allHtml() {
     return `<div class="m-gh"><span>${label}</span><span>${rest > 0 || all ? `${list.length} · ` : ''}${sub}</span></div>${shown.map((it) => row(it)).join('')}` +
       (rest > 0 ? `<button type="button" class="m-more" data-grp-more="${g}">Nog ${rest} ${esc(label.toLowerCase())}</button>` : '');
   }).join('');
-  return filter + chips + ((ui.kind === 'alles' || ui.kind === 'ommeland') ? paspoortHtml() : '') + groups;
+  return begin + filter + chips + ((ui.kind === 'alles' || ui.kind === 'ommeland') ? paspoortHtml() : '') + groups;
 }
 
 // Eén vaste opmaak voor een feit, niet afhankelijk van de lengte van de tekst (#607): het

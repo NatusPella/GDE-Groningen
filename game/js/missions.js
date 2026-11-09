@@ -2,7 +2,7 @@ import { SMS_SAY } from './smsvoice.js';
 import { pubStaticKey } from './pubstatic.js';
 import { dijkPrijs } from './ringrace.js';
 import { assistTime } from './assistlive.js';
-import { missionStats, fmtTime } from './missionstats.js';
+import { missionStats, fmtTime, failureStats } from './missionstats.js';
 import { createMissionLanes } from './missionlanes.js';
 import { createMissionGates } from './missiongates.js';
 import { dist, pointInPolygon, closestPointOnSegment, boatDryPoints, clamp, isInWater } from './util.js';
@@ -448,7 +448,7 @@ export function failActiveMission(world, reason, bannerReason, coopReden = '') {
   if (!chainState() || chainState().phase !== 'active') return false;
   const def = chainState().defs[chainState().index];
   const mee = gastStartMee(world); // keek de gastheer toe bij de opdracht van een gast, dan is dit niet zijn mislukking (#452)
-  if (mee) playMissionFailed(world, { reason: bannerReason || reason, stats: runStats(world, def) }, false);
+  if (mee) playMissionFailed(world, { reason: bannerReason || reason, stats: failureStats(runStats(world, def)) }, false);
   const i = chainState().index;
   if (world.coopUitslag) world.coopUitslag(false, def.label, coopReden || String(bannerReason || reason || '').toLowerCase()); // samen spelen (#371): ook knock-out, arrestatie en afbreken horen de gasten
   endInFailure(world, reason);
@@ -1254,6 +1254,7 @@ function succeed(world, def) {
   }
   if (mee) {
     world.stats.missionsDone++;
+    if (def.heist) world.stats.heistsDone++; // #818: Kiekdoar ziet een geslaagde overval
     world.addMessage(`${def.label} geklaard! ${replay ? 'Klusloon ' : ''}+€${base}${tip ? ` en €${tip} fooi` : ''}${adj.text}${cons.text}`, 4);
     if (tegen) world.addMessage(`Tegen elkaar: jouw deel van de buit is €${hostDeel}${buit.winnaar === 0 ? ' — de grootste buit was van jou.' : '.'}`, 4);
     if (bonus > 0) {
@@ -1328,7 +1329,7 @@ function fail(world, def, reason) {
   const pretty = reason ? reason[0].toUpperCase() + reason.slice(1) : def.label;
   const i = chainState().index;
   const mee = gastStartMee(world); // een opdracht van een gast die de gastheer niet meespeelt: geen verhaalgevolg voor hem (#452)
-  if (mee) playStoryFail(world, i, { reason: pretty, stats: runStats(world, def) });
+  if (mee) playStoryFail(world, i, { reason: pretty, stats: failureStats(runStats(world, def)) });
   if (world.coopUitslag) world.coopUitslag(false, def.label, pretty); // samen spelen (#371): de gasten horen het
   endInFailure(world, `${def.label} mislukt${reason ? ' — ' + reason : ''}`);
   sluitGastStart(world, mee);

@@ -1,4 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { volgendeTredeRij } from './medalrules.js';
 import { toonStartkaart } from './startkaart.js';
 import { canvasTex as textTex, signBothSides } from './canvastex.js';
 import { hoofdspeler } from './players.js';
@@ -12,13 +13,13 @@ import { activityBlock, iconDisc } from './activitykit.js';
 import { createBoard, mgThema, key, bubble, clearBubbles, pick, stopPressed, easeCamera, windText, clamp, makeRng } from './minigamekit.js';
 import { DISC_LINES } from './minigamelines.js';
 import { DISCEXT_LINES } from './minigamelines3.js';
-import { fullRound, roundMedal, ctpPoints, ctpRound, CTP } from './discgolfext.js';
+import { fullRound, roundMedal, ctpPoints, ctpRound, CTP, MEDAL_REL_18 } from './discgolfext.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
 import { discgolfFx, pushFoley } from './sfx/minigamefoley.js';
 import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHostScore, wedGastScore, wedScoreStop, wedGastVerlaat, wedGastReset, wedScoreRijen } from './multiplayerwedstrijd.js';
 import {
   courseHoles, simulateFlight, DISCS, DISC_ORDER, RELEASES, suggestDisc, newCard, finishHole, cardTotals, courseMedal, holeName, relText, powerForBasket,
-  MAX_OVER_PAR, CIRCLE_M,
+  MEDAL_REL, MAX_OVER_PAR, CIRCLE_M,
 } from './discgolfrules.js';
 
 // Discgolf in het Stadspark: nine holes on the meadows between the canal and
@@ -559,6 +560,7 @@ function end(w, { quit = false, extern = false, uitslag = null } = {}) {
   const stats = [['Worpen', String(t.strokes)], ['Par', String(t.par)], ['Score', relText(t.rel)]];
   if (g.card.aces) stats.push(['Aces', String(g.card.aces)]);
   if (medal) stats.push(['Medaille', MEDALS[medal]]);
+  volgendeTredeRij(stats, g.mode === 'achttien' ? MEDAL_REL_18 : MEDAL_REL, t.rel, { medal, lager: true, eenheid: 'slagen', eenheid1: 'slag' });
   if (rec && rec.newBest) stats.push(['Record', 'Nieuw!']);
   showBanner({ kind: medal ? 'pass' : 'fail', title: medal >= 3 ? 'ONDER PAR IN HET STADSPARK' : medal ? 'NETTE RONDE' : 'DE EENDEN HEBBEN GEWONNEN', reason: medal ? `${relText(t.rel)} t.o.v. par over ${COURSE.length === 9 ? 'negen' : COURSE.length} banen` : 'Probeer het nog eens: kijk naar de wind en de vlag', reward: 0, stats });
   say(w, medal >= 2 ? 'endGood' : 'endPoor', true, true);

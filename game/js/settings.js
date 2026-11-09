@@ -6,6 +6,7 @@ import { FLAGS } from './devflags.js';
 import { RAGE_CHOICES } from './roadragerules.js';
 import { SUBTITLE_CONTRASTS, TEXT_SIZES } from './a11ylogic.js';
 import { cleanHelpSetting } from './assist.js';
+import { cleanDifficulty } from './difficulty.js';
 import { READING_TIME_CHOICES } from './cardtime.js';
 import { deckDefaults, isSteamDeck } from './deck.js';
 import { VOLUME_KEYS, normalizeVolumes, volumeValue } from './sfx/volume.js';
@@ -106,6 +107,9 @@ const BASE_DEFAULTS = {
   helpDamage: 'normaal',
   helpGates: 'normaal',
   helpOffer: true,
+  // moeilijkheid (#800): 'ontspannen', 'standaard' of 'uitdagend'; Standaard is exact het huidige
+  // gedrag. De factoren staan in difficulty.js, de startkaart en de activiteiten lezen deze stand.
+  difficulty: 'standaard',
   colorBlind: 'uit',
   // online-avatar voor Samen spelen (#455): de naam en kleur die anderen van
   // jou zien. Per apparaat bewaard, in de gewone instellingen; leeg = de naam
@@ -173,6 +177,7 @@ function load() {
     if (!SHIFT_CHOICES.includes(out.shiftMode)) out.shiftMode = DEFAULTS.shiftMode;
     if (!RAGE_CHOICES.includes(out.ruzie)) out.ruzie = DEFAULTS.ruzie;
     for (const k of ['helpTime', 'helpDamage', 'helpGates']) out[k] = cleanHelpSetting(k, out[k]);
+    out.difficulty = cleanDifficulty(out.difficulty); // #800: onbekend of kapot valt terug op standaard
     if (!COLOR_BLIND_MODES.includes(out.colorBlind)) out.colorBlind = DEFAULTS.colorBlind;
     if (!PAD_LAYOUT_CHOICES.includes(out.padLayout)) out.padLayout = DEFAULTS.padLayout;
     if (!HINT_SOURCE_CHOICES.includes(out.hintSource)) out.hintSource = DEFAULTS.hintSource;

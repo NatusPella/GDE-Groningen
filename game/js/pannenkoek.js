@@ -1,4 +1,5 @@
 import { hoofdspeler } from './players.js';
+import { volgendeTredeRij } from './medalrules.js';
 import { showBanner } from './cinematics.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, setStatMax, MEDALS } from './achievements.js';
 import { showCard } from './hudcards.js';
@@ -46,6 +47,7 @@ function end(w, { quit = false } = {}) {
   if (medal >= 3) unlockAchievement(w, 'pannenkoek_goud');
   const stats = [['Punten', String(s.points)], ['Geserveerd', String(s.served)], ['Goudbruin', String(s.golden)], ['Verbrand', String(s.burnt)], ['Gasten weg', String(s.left_)]];
   if (medal) stats.push(['Medaille', MEDALS[medal]]);
+  volgendeTredeRij(stats, MEDAL_AT, s.points, { medal, eenheid: 'punten', eenheid1: 'punt' });
   if (rec && rec.newBest) stats.push(['Record', 'Nieuw!']);
   showBanner({ kind: medal ? 'pass' : 'fail', title: medal >= 3 ? 'KOK VAN HET SCHIP' : medal ? 'SMAKELIJK' : 'AANGEBRAND', reason: medal ? `${s.served} gasten blij gemaakt` : 'Draai de pannenkoek in het gouden venster en let op de toppings', reward: 0, stats });
   say(w, medal >= 2 ? 'endGood' : 'endPoor', 4.5);

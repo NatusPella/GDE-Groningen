@@ -241,6 +241,7 @@ function finish(w, { quit = false, extern = false, teLang = false, uitslag = nul
   disposeRace(w, r.race);
   if (quit) { w.addMessage('Ringrace gestopt', 2.5); return true; }
   const plek = teLang ? 0 : (r.race.playerPos || 0);
+  if (plek === 1) w.stats.racesWon++; // #818: solo-race gewonnen (co-op telt de wedstrijdlaag)
   const medal = medailleVoorPlek(plek);
   const rec = teLang ? null : recordChallengeResult(w, 'ringrace', { value: r.t, medal, lower: true });
   const geld = prijsVoorPlek(plek);

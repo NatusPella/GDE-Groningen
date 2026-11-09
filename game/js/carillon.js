@@ -1,4 +1,5 @@
 import { hoofdspeler } from './players.js';
+import { volgendeTredeRij } from './medalrules.js';
 import { showBanner } from './cinematics.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, setStatMax, MEDALS } from './achievements.js';
 import { showCard } from './hudcards.js';
@@ -52,6 +53,7 @@ function end(w, { quit = false } = {}) {
   const pct = Math.round(accuracy(s) * 100);
   const stats = [['Deuntje', s.tune.name], ['Score', s.score.toLocaleString('nl-NL')], ['Nauwkeurig', `${pct}%`], ['Langste reeks', String(s.bestCombo)]];
   if (medal) stats.push(['Medaille', MEDALS[medal]]);
+  volgendeTredeRij(stats, MEDAL_AT.map((grens) => grens * 100), accuracy(s) * 100, { medal, eenheidAchter: '%' });
   if (rec && rec.newBest) stats.push(['Record', 'Nieuw!']);
   showBanner({ kind: medal ? 'pass' : 'fail', title: medal >= 3 ? 'STADSBEIERAARD' : medal ? 'MOOI GESPEELD' : 'NOG EEN KEER', reason: medal ? `${s.tune.name} over de Grote Markt` : 'Let op de lichtgevende klok en sla op de tel', reward: 0, stats });
   say(w, medal >= 2 ? 'endGood' : 'endPoor', 4.5);
