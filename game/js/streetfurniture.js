@@ -21,7 +21,7 @@ import { wgsToWorld } from './rdnew.js';
 import { pointInPolygon, polygonBounds, nearestOnRoadList } from './util.js';
 import { waterPolyIn } from './waterlevels.js';
 import { hash2 as hash } from './rng.js';
-import { placeSignItems } from './placesigns.js';
+import { placeSignItems, entryOf } from './placesigns.js';
 import { segDist, buildingAt } from './tileplace.js';
 import { hedgeLines } from './tilegreenery.js';
 
@@ -330,9 +330,33 @@ export function furnitureForTile({ x0, y0, size = 1000, roads = [], mapped = [],
   // water polygons (with .bounds or not) holding a point
   const wet = (x, y) => !!waterPolyIn(water, x, y);
   // the track (its ballast is 4.2 m wide), a footway's own width and a house: a fence or hedge is not drawn through them (#124)
-  const onRail = (x, y) => rails.some((r) => r.pts && segNear(r.pts, x, y, 2.1 + 0.4));
-  const onFoot = (x, y) => roads.some((r) => r.cat === 'foot' && r.pts && !r.bridge && segNear(r.pts, x, y, Math.max(0.6, (r.width || 1.5) / 2)));
-  const inHouse = (x, y) => buildings.some((b) => { const q = b.bounds || (b.bounds = polygonBounds(b.pts)); return x >= q[0] && x <= q[2] && y >= q[1] && y <= q[3] && pointInPolygon(x, y, b.pts); });
+  const railPieces = rails.filter((r) => r.pts && r.pts.length > 1);
+  const onRail = (x, y) => railPieces.some((r) => segNear(r.pts, x, y, 2.1 + 0.4));
+  const footways = roads.filter((r) => r.cat === 'foot' && r.pts && !r.bridge);
+  const onFoot = (x, y) => footways.some((r) => segNear(r.pts, x, y, Math.max(0.6, (r.width || 1.5) / 2)));
+  // Huizen in een lokaal raster: de borden- en hekkenregels vragen dit per
+  // kandidaat, en de lijst huizen van een tegel is groot. Zonder raster werd elke
+  // kandidaat tegen alle huizen getest (profiel: inHouse de grootste hap).
+  const HGRID = 48;
+  const hgrid = new Map();
+  for (const b of buildings) {
+    if (!b.pts || b.pts.length < 3) continue;
+    const q = b.bounds || (b.bounds = polygonBounds(b.pts));
+    for (let gx = Math.floor(q[0] / HGRID); gx <= Math.floor(q[2] / HGRID); gx++)
+      for (let gy = Math.floor(q[1] / HGRID); gy <= Math.floor(q[3] / HGRID); gy++) {
+        const k = gx * 65536 + gy;
+        (hgrid.get(k) || hgrid.set(k, []).get(k)).push(b);
+      }
+  }
+  const inHouse = (x, y) => {
+    const c = hgrid.get(Math.floor(x / HGRID) * 65536 + Math.floor(y / HGRID));
+    if (!c) return false;
+    for (const b of c) {
+      const q = b.bounds;
+      if (x >= q[0] && x <= q[2] && y >= q[1] && y <= q[3] && pointInPolygon(x, y, b.pts)) return true;
+    }
+    return false;
+  };
   // a piece of s m at (x, y) along a: its middle or either end on a carriageway, a track, a footway, in a house or in water
   const pieceOnWayOrWater = (x, y, a, s) => {
     const hx = Math.cos(a) * s / 2, hy = Math.sin(a) * s / 2;
@@ -491,7 +515,14 @@ export function furnitureForTile({ x0, y0, size = 1000, roads = [], mapped = [],
   // place name boards and junction signposts (only with the province's places)
   if (opts.towns && opts.towns.length) {
     const blocked = (r, x, y) => onOtherRoad(r, x, y, CAR) || wet(x, y) || inHouse(x, y);
-    for (const it of placeSignItems({ roads, towns: opts.towns, inTile, blocked })) add(it);
+    // Een plaatsnaambord staat alleen bij de eigen bebouwde kom: verre plaatsen
+    // kunnen voor deze tegel geen bord opleveren. De wegwijzers (junctionBoards)
+    // hebben wél alle plaatsen nodig, want ze wijzen ook naar verre steden; die
+    // krijgen daarom de volledige lijst.
+    const cx = x0 + size / 2, cy = y0 + size / 2;
+    const boardsReach = size * 0.75 + 400;
+    const boardTowns = opts.towns.filter((t) => Math.hypot(t.x - cx, t.y - cy) < entryOf(t) + boardsReach);
+    for (const it of placeSignItems({ roads, towns: opts.towns, boardTowns, inTile, blocked })) add(it);
   }
   items.sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : 0));
   // a narrow central reserve gets one rail, not one from each carriageway;
