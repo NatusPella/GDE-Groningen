@@ -285,6 +285,7 @@ function buildSites(map) {
 
 function sitesNear(x, y, r, out) {
   out.length = 0;
+  if (!sites) return out; // nog geen site-index (stadstegels nog niet binnen)
   for (const st of sites.queryRadius(x, y, r)) if ((st.x - x) ** 2 + (st.y - y) ** 2 <= r * r) out.push(st);
   return out;
 }
