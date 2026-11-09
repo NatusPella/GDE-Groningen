@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- **Schermnarratie: met de instelling onder Toegankelijkheid leest een schermlezer doelwijzigingen, lage gezondheid, politie-sterren en plaatsnamen voor (#802).** Hooguit één boodschap per 1,2 seconde; menu's en de kaartzoeklijst waren al bedienbaar.
 - **In de PvP-arena reageert een gast sneller: zodra twee spelers niet-passief zijn, gaat de interpolatievertraging van 120 naar 60 ms (#806).** Buiten een gevecht blijft de gewone 120 ms staan.
 - **De HUD-statuschips zijn 12 px en de TV-overlay gebruikt eigen kleurtokens in plaats van losse hexen (#803).** Op een telefoon hebben de vaste HUD-teksten nu een vloer van 12 px op het scherm (was 11). De overlay blijft een bewuste HUD-uitzondering qua typografie; de rest van het thema staat nog open.
 - **Zoekresultaten op de kaart zijn op een touchscreen aantikbaar, en de aanraakbedrading van winkel, telefoon, kaart, minigames en spelstanden is met een test vastgelegd (#805).** De tik-naar-actie-keten moet nog in een browser of op een echt toestel worden doorlopen.

@@ -95,6 +95,8 @@ const BASE_DEFAULTS = {
   subtitleBox: false,
   // [sirene], [claxon]...: korte tekst bij belangrijke geluiden (soundcaptions.js)
   soundCaptions: false,
+  // schermnarratie (#802): statuswijzigingen (doel, gezondheid, politie, plaats) in een aria-live-regio
+  screenNarration: false,
   // ondertitels op wit-op-zwart met een zwaardere letter ('normaal' | 'hoog'), kaart- en meldingstekst ('normaal' | 'groot' | 'extragroot') en geen schermflitsen (a11y.js)
   subtitleContrast: 'normaal',
   textSize: 'normaal',
