@@ -6,6 +6,8 @@ export const BUILD_ONLY = [
   'buildingheights.js', // hoogteketen 3dbag > osm > default, alleen in de tegelbouw
   'worldbuilder.js', // de tegelbouwer zelf
   'floatingorigin.js', // zwevende oorsprong, nog niet aangesloten
+  'difficulty.js', // #800-voorbereiding: factortabel, nog niet in UI/missies aangesloten
+  'verkenpunten.js', // #807-voorbereiding: uitkijk-/albumpunten, nog niet in de UI aangesloten
   'marinas.js', // jachthavenplanner; het spel leest alleen marinas.json
   'padscreens.js',
   'randaudit.js', 'streekaudit.js', 'terrainaudit.js', // wereldaudits (scripts/world)
