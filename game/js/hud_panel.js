@@ -67,6 +67,8 @@ import { hudDate } from './hudcalendar.js';
 import { LANDMARK_LINES } from './placelines.js';
 import { townProfile } from './stadsprofielen.js';
 import { getSettings } from './settings.js';
+import { physicalKey, keyName } from './controls.js';
+import { controlHint, hintText } from './controlhint.js'; // #824: compacte bedieningsregel in de doellijn
 import { createNarrator } from './narration.js';
 import { heldBack } from './narrative.js';
 import { isPauseMenuOpen } from './pausestate.js';
@@ -189,7 +191,7 @@ export function initHud(world) {
   mission.className = 'hud-mission';
   mission.setAttribute('aria-live', 'polite');
   mission.innerHTML = '<svg class="hud-obj-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l9 10-9 10-9-10z"/></svg>' +
-    '<div class="hud-obj-text"><div class="hud-mission-label"></div><div class="hud-mission-progress"></div></div><span class="hud-obj-dist"></span>';
+    '<div class="hud-obj-text"><div class="hud-mission-label"></div><div class="hud-mission-progress"></div><div class="hud-obj-keys" aria-label="Besturing" hidden></div></div><span class="hud-obj-dist"></span>';
   root.appendChild(mission);
 
   // zone E: the radio station (an achievement goes first, hudcards.js)
@@ -310,6 +312,7 @@ export function initHud(world) {
     vehName,
     missionLabel: mission.querySelector('.hud-mission-label'),
     missionProgress: mission.querySelector('.hud-mission-progress'),
+    objKeys: mission.querySelector('.hud-obj-keys'), // #824
     missionDist: mission.querySelector('.hud-obj-dist'),
     locationEl: location,
     district: location.querySelector('.hud-district'),
@@ -1406,6 +1409,29 @@ function updateMission(world) {
     restartClass(els.mission, 'pop');
     if (o.kind === 'goal') ring(els.mission);
   }
+  updateObjectiveKeys(world, o.kind);
+}
+
+// #824: de compacte bedieningsregel hoort bij missies, bijbanen en achtervolgingen. Hij staat in
+// de bestaande doellijn (zone G), dus hij maakt geen eigen vak en kan de rest van de HUD niet
+// overlappen; de toetsen volgen de toetsenbord-/controllerbinding via physicalKey/keyName.
+function besturingLabel(token) {
+  if (token === 'spatie') return 'SPATIE';
+  const fysiek = physicalKey(getSettings().keyBinds, token);
+  return keyName(fysiek).toUpperCase();
+}
+function updateObjectiveKeys(world, kind) {
+  if (!els.objKeys) return;
+  const hint = kind === 'mission' || kind === 'job' || kind === 'police' ? controlHint(world, hoofdspeler(world)) : null;
+  const sig = hint ? hint.context + '|' + hint.groepen.map((g) => g.keys.join('+') + g.werk).join('|') : '';
+  if (sig === els.objKeysSig) return;
+  els.objKeysSig = sig;
+  els.objKeys.hidden = !hint;
+  if (!hint) { els.objKeys.innerHTML = ''; els.objKeys.removeAttribute('aria-label'); return; }
+  els.objKeys.innerHTML = hint.groepen.map((g) => '<span class="hud-obj-key">' +
+    g.keys.map((k) => `<span class="hud-key">${escapeHtml(besturingLabel(k))}</span>`).join('') +
+    `<span>${escapeHtml(g.werk)}</span></span>`).join('');
+  els.objKeys.setAttribute('aria-label', 'Besturing: ' + hintText(hint, besturingLabel));
 }
 
 // missions.js leaves these fields set after a mission ends, so gate on the

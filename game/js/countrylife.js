@@ -166,6 +166,10 @@ function roadPos(a, lateral = LANE) {
   return [a.c, a.line * BLOCK + ROAD_C - off];
 }
 
+// De aanhangwagen hangt 6,4 m achter de trekker (de mesh-offset); de contactdoos moet
+// mee naar die plek, anders staat er een spookdoos midden op de trekker (#823).
+export const TRAILER_BACK = 6.4;
+
 function makeTraffic(type, R) {
   const g = new THREE.Group();
   let vmax;
@@ -176,7 +180,7 @@ function makeTraffic(type, R) {
     if (R() < 0.55) {
       const tb = new THREE.Mesh(cachedGeo('trb', trailerBodyGeometry), tinted(R() < 0.5 ? 0x8a3a2a : 0x3a6a3a));
       const tbb = new THREE.Mesh(cachedGeo('trba', trailerBaseGeometry), MAT);
-      for (const m of [tb, tbb]) { m.position.x = -6.4; m.userData.trailer = true; g.add(m); }
+      for (const m of [tb, tbb]) { m.position.x = -TRAILER_BACK; m.userData.trailer = true; g.add(m); }
     }
     vmax = 6 + R() * 3;
   } else if (type === 'car') {
@@ -437,12 +441,41 @@ const laneClear = (a, v) => a.body[2] + (v ? v.halfWid || 0.9 : 0.4) + 0.5;
 // Shoves the player (or the vehicle they are in) out of road user a's body
 // box at (x, y), heading a.yaw as drawn: box against box like city traffic,
 // so passing close by in the other lane is free.
-function bodyContact(a, x, y, world) {
+// Waar de contactdoos van een weggebruiker staat: de aanhangwagen van een echte
+// trekker hangt TRAILER_BACK achter hem, niet op zijn eigen plek (#823).
+function contactBoxAt(a, x, y) {
+  if (!a.veh || !a.trailer) return [x, y];
+  const c = Math.cos(a.yaw), s = Math.sin(a.yaw);
+  return [x - c * TRAILER_BACK, y - s * TRAILER_BACK];
+}
+
+// Echte dozen tegen elkaar: de trailerdoos (back, front, hw) in de richting yaw tegen
+// de doos van de speler in zijn voertuig. Zonder deze toets duwde de oude reach-benadering
+// een speler die netjes in de andere baan langsreed bij de voorhoek van de trailer weg,
+// en stonden beide voertuigen stil (#823).
+function vehicleBoxesOverlap(box, x, y, yaw, v) {
+  const [back, front, hw] = box;
+  const c = Math.cos(yaw), s = Math.sin(yaw);
+  const cu = (back + front) / 2, hu = (front - back) / 2;
+  const cx = x + c * cu, cy = y + s * cu;
+  const vc = Math.cos(v.angle), vs = Math.sin(v.angle);
+  const dx = v.x - cx, dy = v.y - cy;
+  for (const [ax, ay] of [[c, s], [-s, c], [vc, vs], [-vs, vc]]) {
+    const ra = Math.abs(c * ax + s * ay) * hu + Math.abs(-s * ax + c * ay) * hw;
+    const rb = Math.abs(vc * ax + vs * ay) * (v.halfLen || 2) + Math.abs(-vs * ax + vc * ay) * (v.halfWid || 0.9);
+    if (Math.abs(dx * ax + dy * ay) > ra + rb) return false;
+  }
+  return true;
+}
+
+export function bodyContact(a, x, y, world) {
   // a real vehicle collides by itself; only a tractor's trailer is left here
   const box = a.veh ? a.trailer : a.body;
   if (!box) return;
   const p = hoofdspeler(world), v = p.inVehicle;
   if ((v && v.isHeli && !v.onGround) || (!v && world.pigeonMode)) return;
+  [x, y] = contactBoxAt(a, x, y);
+  if (v && !vehicleBoxesOverlap(box, x, y, a.yaw, v)) return;
   const ox = v ? v.x : p.x, oy = v ? v.y : p.y;
   const c = Math.cos(a.yaw), s = Math.sin(a.yaw);
   const dx = ox - x, dy = oy - y;

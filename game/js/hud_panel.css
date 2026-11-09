@@ -194,6 +194,13 @@ body.tc-on #hud .hud-mission { bottom: calc(var(--hud-g-floor, 225px) + 10px); }
 #hud .hud-mission-label:empty { display: none; }
 #hud .hud-mission-progress { margin-top: 2px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 14px; color: rgba(240, 237, 228, 0.8); white-space: nowrap; }
 #hud .hud-mission-progress:empty { display: none; }
+/* #824: de altijd zichtbare bedieningsregel, binnen de doellijn (zone G) en nooit als eigen vak.
+   Klein, één regel die mag wrappen; de toetskappen blijven de canonieke .hud-key. */
+#hud .hud-obj-keys { display: flex; flex-wrap: wrap; align-items: center; gap: 1px 9px; margin-top: 4px; max-width: 100%; font-family: 'Arial Narrow', Arial, sans-serif; font-size: var(--hud-min, 13px); letter-spacing: 0.02em; color: rgba(240, 237, 228, 0.72); }
+#hud .hud-obj-keys[hidden] { display: none; }
+#hud .hud-obj-key { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
+#hud .hud-obj-key .hud-key { height: 17px; min-width: 17px; padding: 0 4px; font-size: var(--hud-min, 13px); line-height: 17px; }
+@media (max-width: 900px) { #hud .hud-obj-keys { gap: 1px 6px; } }
 #hud .hud-mission.obj-quiet .hud-mission-progress { display: none; }
 #hud .hud-obj-dist { font-size: 18px; color: rgba(240, 237, 228, 0.6); white-space: nowrap; }
 #hud .hud-obj-dist:empty { display: none; }

@@ -3,6 +3,7 @@ import { pubStaticKey } from './pubstatic.js';
 import { dijkPrijs } from './ringrace.js';
 import { assistTime } from './assistlive.js';
 import { missionStats, fmtTime, failureStats } from './missionstats.js';
+import { eggSpeedKmh, eggLimitKmh, eggSpeedLoss, eggSpeedWarning } from './eggspeed.js';
 import { createMissionLanes } from './missionlanes.js';
 import { createMissionGates } from './missiongates.js';
 import { dist, pointInPolygon, closestPointOnSegment, boatDryPoints, clamp, isInWater } from './util.js';
@@ -940,6 +941,8 @@ function syncPub(world) {
   pub.damage = r ? Math.round(r.damage) : null;
   pub.vehicleDamage = r && r.vehicleUsed ? Math.round(r.vehDamage) : null;
   pub.cargo = r && def.fragile ? Math.round(cargoLeft(def)) : null;
+  pub.eggLimit = active && def.eggs && st.stageIndex >= def.eggs.from ? eggLimitKmh(def) : null;
+  pub.eggKmh = pub.eggLimit ? Math.round(eggSpeedKmh(st.eggPrev)) : null;
   pub.progressText = rv ? (board ? 'Stap in de rondvaartboot' : boatProgressText(rv)) : active ? progressText(world, def, pub) : null;
   const race = st.race && active ? raceStandings(st.race) : null;
   world.race = race ? {
@@ -2430,7 +2433,11 @@ function stageProgressBase(world, def) {
     const ft = fjordTrainState();
     return `${st.label} · trein nog ${Math.max(0, Math.round(ft.cross.s - ft.t.c - ft.t.halfLen))} m`;
   }
-  if (def.eggs && chainState().stageIndex >= def.eggs.from && chainState().eggs != null) return `${st.label} · ${eggText(def)}`;
+  if (def.eggs && chainState().stageIndex >= def.eggs.from && chainState().eggs != null) {
+    const limit = eggLimitKmh(def);
+    const kmh = Math.round(eggSpeedKmh(chainState().eggPrev));
+    return `${st.label} · ${eggText(def)} · ${kmh} km/u (max ${limit})${eggSpeedWarning(kmh, limit) ? ' — rem rustig' : ''}`;
+  }
   return `${st.label} (${n})`;
 }
 
@@ -2501,7 +2508,7 @@ function enterStage(world, def, k) {
   if (st.kind === 'choice') enterChoice(S);
   if (st.kind === 'timing') enterTiming(S, st, choiceOn);
   if (st.kind === 'rit') enterRit(world, st, S);
-  if (def.eggs && k === def.eggs.from) { chainState().eggs = 100; chainState().eggWarn = 100; chainState().eggVeh = null; }
+  if (def.eggs && k === def.eggs.from) { chainState().eggs = 100; chainState().eggWarn = 100; chainState().eggVeh = null; chainState().eggFast = false; }
   chainState().stage = S;
   if (st.stars) { world.wanted = Math.max(world.wanted, st.stars); world.wantedDecayTimer = 0; }
   if (st.calm) { world.wanted = 0; world.wantedDecayTimer = 0; }
@@ -3051,14 +3058,24 @@ function updateEggs(dt, world, def) {
   if (chainState().eggVeh === v) {
     const decel = (chainState().eggPrev - sp) / dt;
     let loss = decel > 13 ? (decel - 13) * dt * 1.4 : 0;
-    // M09: the wierdepaden are full of holes, so speed breaks eggs too
-    if (def.eggs.rough) loss += Math.max(0, sp - def.eggs.rough.speed) * def.eggs.rough.per * dt;
+    // M09: de wierdepaden zitten vol gaten; de tractor mag vol gas tot 40 km/u,
+    // pas daarboven en bij hard remmen/stoten breken er eieren (#824).
+    if (def.eggs.rough) loss += eggSpeedLoss(sp, def.eggs.rough, dt);
     if (v.health < chainState().eggHp) loss += (chainState().eggHp - v.health) * 1.2;
     chainState().eggs = Math.max(0, chainState().eggs - loss);
   }
   chainState().eggVeh = v;
   chainState().eggPrev = sp;
   chainState().eggHp = v.health;
+  // #824: waarschuw ruim vóór de breekgrens; één keer per overschrijding.
+  const eggLimit = eggLimitKmh(def);
+  const eggKmh = eggSpeedKmh(sp);
+  if (eggSpeedWarning(eggKmh, eggLimit)) {
+    if (!chainState().eggFast) {
+      chainState().eggFast = true;
+      world.addMessage(`Te snel: boven ${eggLimit} km/u breken de eieren. Rem rustig.`, 3.5, { kind: 'tip', key: 'egg-speed' });
+    }
+  } else if (eggKmh < eggLimit - 6) chainState().eggFast = false;
   // #663: twee waarschuwingen vóór de faalgrens (75, 60, 45; M09 faalt onder 38%)
   for (const lvl of [75, 60, 45]) {
     if (chainState().eggs < lvl && chainState().eggWarn > lvl) {

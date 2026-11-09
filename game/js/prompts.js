@@ -668,6 +668,13 @@ const PAD_DESC = {
 function contextRows(world, primary) {
   const p = hoofdspeler(world);
   const rows = [];
+  // #824: tijdens de eierrit blijven de rij- en rembediening staan, ook als de
+  // speler ze allang kent; de HUD noemt de limiet en waarschuwt op tijd.
+  const egg = world.mission && world.mission.eggLimit ? world.mission : null;
+  if (egg) {
+    rows.push({ id: 'egg-speed', keys: ['W', 'S'], label: `Eierrit · max ${egg.eggLimit} km/u`, desc: 'Vol gas tot de limiet; hard remmen of stoten breekt eieren.', permanent: true, kind: 'tut' });
+    rows.push({ id: 'egg-brake', keys: ['S'], label: 'Zacht remmen', desc: 'Rem vroeg en rustig; een klap kost eieren.', permanent: true, kind: 'tut' });
+  }
   const armed = isRangedWeapon(world.weapon);
   if (world.trainDriving) {
     rows.push(tut('drive', ['W', 'S'], 'Tractiehendel', 'W trekt de hendel omhoog (tractie), S zet hem terug en dan op Rem 1 tot 3'));
@@ -702,7 +709,7 @@ function contextRows(world, primary) {
   const out = [];
   for (const r of rows) {
     if (primary && primary.key === 'E' && r.keys[0] === 'E') continue;
-    if (mastered(r.id)) continue;
+    if (mastered(r.id) && !r.permanent) continue;
     r.fresh = learning(r.id);
     out.push(r);
     if (out.length >= MAX_ROWS) break;

@@ -7,7 +7,7 @@ import { hoofdspeler } from './players.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import {
   initAchievements, recordStat, setStatMax, recordUnique, unlockAchievement, recordMissionResult,
-  getSaveSet, addToSaveSet, isUnlocked, MISSION_GOALS, GOLD_DAMAGE, SILVER_DAMAGE, MEDALS, EIERBAL_TOTAL, formatMissionTime,
+  getSaveSet, addToSaveSet, isUnlocked, hasUnique, MISSION_GOALS, GOLD_DAMAGE, SILVER_DAMAGE, MEDALS, EIERBAL_TOTAL, formatMissionTime,
   ACHIEVEMENTS, getAchievementSummary, setStatListener, setUniekListener, achievementsGated, lifetimeSnapshot,
   setGebiedStand,
 } from './achievements.js';
@@ -25,6 +25,9 @@ import { initLoopbaan, loopbaanOpStat, loopbaanKm, loopbaanTel, getProfiel } fro
 import { initGebieden, updateGebieden, gebiedenOpVondst, getOverzicht, bezoekPlek } from './gebiedenlive.js';
 import { probeerIntocht } from './intochten.js';
 import { maakBron } from './gebiedenbronnen.js';
+// #820: het album van de herkenningspunten in de provincie (kerken, molens, borgen en meer).
+import { HERKENNINGSPUNTEN } from './herkenningspunten.js';
+import { ontdekkingen, albumStand, melding } from './herkenningsalbum.js';
 
 const NEAR_MISS_SPEED = 12; // m/s: 50 km/u is 13,9 m/s, dus een gewone stadsweg valt binnen bereik
 // Dit is de vrije ruimte tussen de carrosserieen (gap hieronder), niet die tussen rijstrookmiddens.
@@ -351,6 +354,14 @@ function trackWorld(dt, w, p, pv) {
     }
     for (const l of w.map.meta.landmarks || []) {
       if (Math.hypot(l.x - p.x, l.y - p.y) < LANDMARK_RADIUS) recordUnique(w, 'landmarks', l.name);
+    }
+    // #820: een herkenningspunt in de buurt komt eenmalig in het album, met één korte melding en de
+    // stand van die soort. Ontdekkingen zijn per speler (de prestatieset), dus een gast vult zijn eigen album.
+    for (const punt of ontdekkingen(HERKENNINGSPUNTEN, p.x, p.y, (id) => hasUnique('herkenningspunten', id), LANDMARK_RADIUS)) {
+      if (!recordUnique(w, 'herkenningspunten', punt.id)) continue;
+      const stand = albumStand(HERKENNINGSPUNTEN, (id) => hasUnique('herkenningspunten', id));
+      w.addMessage(melding(punt, stand), 3.5);
+      break; // één punt per tik; de volgende volgt vanzelf
     }
     if (countryWeight(p.x, p.y) > 0.9) unlockAchievement(w, 'ommelanden');
   }

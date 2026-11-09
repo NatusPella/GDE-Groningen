@@ -19,7 +19,10 @@ const STORAGE_KEY = KEYS.settings;
 export const QUALITY_PRESETS = {
   laag: { pixelRatio: 1, shadows: true, shadowMapSize: 1024 },
   middel: { pixelRatio: 1.5, shadows: true, shadowMapSize: 1024 },
-  hoog: { pixelRatio: 2, shadows: true, shadowMapSize: 2048 },
+  // #804: op een Retina-scherm (dpr 2) rendert hoog anders op 2x de volle
+  // schermresolutie; de M1 haalde dat niet. 1,5x scheelt 44% pixels en is op
+  // dpr 1 (min met dpr) gelijk aan eerst.
+  hoog: { pixelRatio: 1.5, shadows: true, shadowMapSize: 2048 },
 };
 
 const BASE_DEFAULTS = {

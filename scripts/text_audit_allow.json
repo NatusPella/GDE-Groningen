@@ -441,6 +441,11 @@
       "term": "klusjesman",
       "file": "kiekdoarregels",
       "why": "dezelfde grap als in radio.js en de oude sikkomfeed; de opname blijft, bij een heropname vervangen (docs/INCLUSIEVE-TAAL.md)"
+    },
+    {
+      "rule": "naam",
+      "file": "herkenningspunten.js",
+      "why": "gegenereerde namen van kerken, molens en borgen uit landmarkkits.json (echte gebouwen, geen personen); de eerste-woord-heuristiek ziet Maria/Johannes/Anna als persoonsnaam"
     }
   ]
 }

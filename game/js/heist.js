@@ -31,6 +31,7 @@ import { playCinematic, isCinematicActive, skipCinematic } from './cinematics.js
 import { playCastScene } from './missionstory.js';
 import { Vehicle } from './vehicle.js';
 import { BOAT_KINDS } from './boattypes.js';
+import { bootVaartVrij, bootVrijeRun, kiesVaarrichting, mooringBruikbaar, mooringDataVrij } from './heistboot.js';
 import {
   rollenPerSpeler, samenRegels, STAPPLEK, STAPKLAAR, STAPTEKST, rolNaam, isRolstap, slotsVan, verdelingVoor, houderVan,
   rolStand, beginRolstap, rolGate, rolRegel, maakDraai, draaiKluis, KLUISCODE, zetHeistHaken, rolSlots,
@@ -1327,11 +1328,31 @@ export function heistRevealUpdate(t, dt, cur) {
 
 // The getaway boat's mooring near the north end of the cycle passage: open
 // water with room to sail off, and a dry spot beside it to jump in from.
+// #822: op de sparse wereld is de kaart hier niet altijd al geladen; dan ziet een gat er als
+// water uit en koos de boot een koers die later een onzichtbare muur blijkt. We bewaren de keuze
+// daarom per kaartstand, eisen een echt vrije koers (geen wal, geen kadebebouwing) en herberekenen
+// zodra de streamer meer tegels heeft binnengehaald.
 const mooringCache = new WeakMap();
+const mooringProbe = () => ({ model: { len: GETAWAY_BOAT.len, wid: GETAWAY_BOAT.wid } });
+const mooringAnchor = () => at('noord', 0, -8.4);
+const mooringStamp = (map) => `${map.geoVer || 0}|${map._waterVer || 0}|${(map.resident && map.resident.size) || 0}`;
+// #822: vraag de tegels rond de aanlegplaats vast op zodra de ontsnapping begint; anders kan de
+// missie de boot pas laat neerzetten als de streamer toevallig langskomt.
+function warmMooring(world) {
+  const st = world && world.map && world.map.store;
+  if (!st || typeof st.keysAround !== 'function' || typeof st.request !== 'function') return;
+  const a = mooringAnchor();
+  try { for (const k of st.keysAround(a.x, a.y, 140)) st.request(k, { priority: 0 }); } catch (e) { /* streamer beslist */ }
+}
 function boatMooring(map) {
-  if (mooringCache.has(map)) return mooringCache.get(map);
-  const probe = { model: { len: GETAWAY_BOAT.len, wid: GETAWAY_BOAT.wid } };
-  const anchor = at('noord', 0, -8.4);
+  if (!map) return null;
+  const probe = mooringProbe();
+  const stamp = mooringStamp(map);
+  const oud = mooringCache.get(map);
+  if (oud && oud.stamp === stamp) {
+    if (!oud.best || mooringBruikbaar(map, probe, oud.best)) return oud.best;
+  }
+  const anchor = mooringAnchor();
   const dryLand = (x, y) => !isInWater(map, x, y) && !solid(map, x, y);
   const standOk = (x, y) => (dryLand(x, y) || map.isOnBridge(x, y)) && !solid(map, x, y);
   let best = null;
@@ -1343,10 +1364,10 @@ function boatMooring(map) {
       if (!isInWater(map, x, y)) continue;
       for (let j = 0; j < 12; j++) {
         const a = (j / 12) * Math.PI * 2;
-        if (boatDryPoints(map, probe, x, y, a) > 0) continue;
-        // a free run ahead to sail off
-        let run = 0;
-        for (let s = 2; s <= 60; s += 2) { if (boatDryPoints(map, probe, x + Math.cos(a) * s, y + Math.sin(a) * s, a) > 1 || map.isOnBridge(x + Math.cos(a) * s, y + Math.sin(a) * s)) break; run = s; }
+        // #822: de romp moet ook vrij van kadebebouwing liggen (alleen een woonboot is waterobstakel)
+        if (!bootVaartVrij(map, probe, x, y, a)) continue;
+        // a free run ahead to sail off: elk punt moet echt vrij water zijn, niet "bijna"
+        const run = bootVrijeRun(map, probe, x, y, a, 60);
         if (run < 20) continue;
         // somewhere to stand beside the hull
         let stand = null;
@@ -1364,13 +1385,22 @@ function boatMooring(map) {
     }
     if (best && r > 12) break;
   }
-  mooringCache.set(map, best);
-  return best;
+  if (best) {
+    // nog geen volledige koers in beeld: onthouden bij deze kaartstand, zodat een volgende
+    // tegelupdate (geoVer) opnieuw probeert en we niet elk frame de hele zoektocht draaien
+    if (!mooringDataVrij(map, best.x, best.y, best.a, best.run)) { mooringCache.set(map, { stamp, best: null }); return null; }
+    mooringCache.set(map, { stamp, best });
+    return best;
+  }
+  mooringCache.set(map, { stamp, best: null });
+  return null;
 }
 
 function spawnBoat(world) {
   if (H.boat && world.vehicles.includes(H.boat)) return H.boat;
-  const m = boatMooring(world.map);
+  const probe = mooringProbe();
+  let m = boatMooring(world.map);
+  if (m && !mooringBruikbaar(world.map, probe, m)) { mooringCache.delete(world.map); m = boatMooring(world.map); }
   if (!m) return null;
   const v = new Vehicle(m.x, m.y, m.a, { ...GETAWAY_BOAT });
   v.isBoat = true;
@@ -1383,6 +1413,8 @@ function spawnBoat(world) {
 }
 
 export function heistBoat() { return H && H.boat; }
+// De gevonden aanlegplaats van de vluchtboot (bootMooring), voor de test/spotcheck: { x, y, a, run, stand }.
+export function heistBoatMooring(map) { return boatMooring(map); }
 
 function startAlarm(world) {
   if (H.alarm) return;
@@ -1396,6 +1428,7 @@ function startAlarm(world) {
     w.cone.visible = false;
   }
   UI.hideNote();
+  warmMooring(world);
   const boat = spawnBoat(world);
   if (boat) world.companionHold = { vehicle: boat };
 }
@@ -1412,7 +1445,13 @@ function stopAlarm(world) {
 export function updateGetaway(dt, world, st, S) {
   if (!H) return true;
   const boat = H.boat && world.vehicles.includes(H.boat) ? H.boat : spawnBoat(world);
-  if (!boat) return true;
+  // #822: de sparse kaart kan rond de aanlegplaats nog laden; wacht daar kort op in plaats van de
+  // vluchtboot-stap zonder boot af te ronden. Na een tijdje gaat de missie toch door.
+  if (!boat) {
+    S.wachtBoot = (S.wachtBoot || 0) + (dt || 0);
+    return S.wachtBoot > 8;
+  }
+  S.wachtBoot = 0;
   S.target = boat;
   if (S.cine) return S.cineDone;
   const p = hoofdspeler(world);
@@ -1480,6 +1519,18 @@ function playLaunch(world, st, boat, done) {
     onStart: () => { world.cinematicHideNav = true; },
     onEnd: () => {
       world.cinematicHideNav = false;
+      // #822: na de startscène kan de boot op een net geladen kaart met de neus tegen de kade
+      // staan; dan kan de speler alleen achteruit. Kies een koers met echt vrij water of zet de
+      // boot terug op de aanlegplaats in plaats van hem klem te laten zitten.
+      const vrijVooruit = bootVrijeRun(world.map, boat, boat.x, boat.y, boat.angle, 30);
+      if (!bootVaartVrij(world.map, boat, boat.x, boat.y, boat.angle) || vrijVooruit < 12) {
+        const richting = kiesVaarrichting(world.map, boat, boat.x, boat.y, boat.angle, { minRun: 12, maxRun: 40 });
+        if (richting) { boat.angle = richting.a; H.path.a = richting.a; }
+        else {
+          const m = boatMooring(world.map);
+          if (m) { boat.x = m.x; boat.y = m.y; boat.angle = m.a; H.path = { x: m.x, y: m.y, a: m.a, len: Math.max(20, m.run - 4) }; }
+        }
+      }
       boat.speed = Math.max(boat.speed, GETAWAY_BOAT.maxSpeed * 0.7);
       world.companionHold = null;
       done();

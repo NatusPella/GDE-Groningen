@@ -145,7 +145,13 @@ export function classifyGpu({ renderer = '', maxTexture = 0, cores = 0, memory =
   } else if (/nvidia|geforce|quadro|rtx|gtx/.test(r)) {
     if (/\bmx\s?\d{3}|\bgt\s?\d{3}\b|\b9\d0m\b/.test(r)) { tier = 'middel'; why = 'geforce instap'; }
     else { tier = 'hoog'; why = 'geforce'; }
-  } else if (/apple/.test(r)) { tier = 'hoog'; why = 'apple'; }
+  } else if (/apple/.test(r)) {
+    // #804: een basis M1/M2/M3 (geen Pro/Max/Ultra) is een iGPU: hoog op een
+    // Retina-scherm was daar onspeelbaar (29 fps gemiddeld, stad 13). Het advies
+    // stopt daarom bij Gemiddeld; de speler kan zelf hoger kiezen.
+    if (/m\d(\s|,|\)|$)/.test(r) && !/pro|max|ultra/.test(r)) { tier = 'middel'; why = 'ingebouwde gpu (basis)'; }
+    else { tier = 'hoog'; why = 'ingebouwde gpu'; }
+  }
   if (maxTexture && maxTexture < 8192) { tier = 'laag'; why += ', kleine textures'; }
   if (cores && cores <= 2) { tier = 'laag'; why += ', 2 kernen'; }
   else if (cores && cores <= 4) { tier = lower(tier, 'middel'); why += ', 4 kernen'; }

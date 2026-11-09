@@ -72,7 +72,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [PERF-METING-2026-10-19.md](<PERF-METING-2026-10-19.md>) | Dit is de actuele meetbron voor prestaties (zie `.specs-fire/standards/mechanica.md`, |
 | [PERF-BESLUITEN.md](<PERF-BESLUITEN.md>) | Bewuste prestatiebesluiten en de onderbouwing per punt. |
 | [PERF-METING-2026-11-05.md](<PERF-METING-2026-11-05.md>) | Dit is een nieuwe, gedateerde meetbron naast `docs/PERF-METING-2026-10-19.md`. |
-| [PERF-METING-2026-11-09.md](<PERF-METING-2026-11-09.md>) | Hitchmeting na de bugronde: top-5 hitchbronnen per route en de eerlijke norm-uitslag. |
+| [PERF-METING-2026-11-09.md](<PERF-METING-2026-11-09.md>) | Prestatiemeting 9-11-2026: verificatie na de merge (#804/#806), top-5 hitchbronnen en de eerlijke norm-uitslag. |
 | [PLAYTESTPLAN.md](<PLAYTESTPLAN.md>) | Doel: zien of een speler die de game niet kent het verhaal volgt, steeds weet wat het doel is en tot het ei… |
 | [PRIVACY-EN-CREDITS.md](<PRIVACY-EN-CREDITS.md>) | Stand: 18 oktober 2026; bijgewerkt op 7 november 2026 voor de altijd-online start (#554, #583, #395, #690).… |
 | [PROVINCIE-PLAN.md](<PROVINCIE-PLAN.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/wereld.md`](../.specs-fire/standards/w… |
@@ -110,4 +110,5 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
    met een kop "Gearchiveerd op …; vervangen door …" en relatieve links die blijven werken.
 
 
+| [HERKENNINGSPUNTEN.md](<HERKENNINGSPUNTEN.md>) | Album van de kerken, molens en borgen in de provincie: data, telling en de route naar het dichtstbijzijnde open punt (#820). |
 | [VERKENNING-PROVINCIE.md](<VERKENNING-PROVINCIE.md>) | Klein plan voor de verkenlaag buiten de stad (A15-A20) op bestaande infrastructuur. |
