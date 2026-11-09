@@ -78,7 +78,7 @@ function roadGraph(map) {
   // ze bij het eerste gebruik al. De dure herbouw (alle wegen plus de
   // korte-einden-lus) wacht daarom tot de tegelwachtrij leeg is: geen halve
   // seconde hapering per tegel midden in het spel of de opening (#4).
-  if (g && typeof document !== 'undefined' && document.body && document.body.classList.contains('intro-montage')) return g; // film: oude graaf is goed genoeg
+  if (g && typeof document !== 'undefined' && document.body && (document.body.classList.contains('intro-montage') || document.body.classList.contains('cine-hide-hud'))) return g; // film/cutscene: oude graaf is goed genoeg
   if (g && map.tileQueue && map.tileQueue.items && map.tileQueue.items.length) return g;
   const nodes = new Map();
   const nodeOf = new LazyNodeMap(map, nodes);
