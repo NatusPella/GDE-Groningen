@@ -271,11 +271,12 @@ export class SnapBuffer {
   }
   clear() { this.snaps.length = 0; this.renderT = null; this.marks.length = 0; this.rate = 1; }
   get latestT() { return this.snaps.length ? this.snaps[this.snaps.length - 1].hostT : null; }
-  // schuif de weergavetijd op met dt, zacht richting laatste - vertraging; blijft er een snapshot weg, dan voorspelt sample() even door (#434)
-  advance(dt) {
+  // schuif de weergavetijd op met dt, zacht richting laatste - vertraging; blijft er een snapshot weg, dan voorspelt sample() even door (#434).
+  // De vertraging is een parameter zodat een snellere PvP-stand zijn eigen waarde kan doorgeven (#806).
+  advance(dt, vertraging = INTERP_DELAY) {
     const L = this.latestT; if (L == null) return null;
     this.wall += dt;
-    this.renderT = volgTijd(this.renderT, L, dt, INTERP_DELAY, this.rate);
+    this.renderT = volgTijd(this.renderT, L, dt, vertraging, this.rate);
     return this.renderT;
   }
   sample() {
@@ -312,6 +313,7 @@ export class ClientSession extends Base {
     this.sessie = null; // { id, naam }: bij welke sessie deze gast hoort (#450), uit het welkom
     this.buf = new SnapBuffer(); this.inputSeq = 0; this.inputAcc = 0; this.pendingInput = neutral();
     this.helloAt = -1; this.wachtHello = 0; this.rejected = null; this.lastSnapSeq = null; this.lastExtraSeq = null; this.onextra = null; this.onlost = null; this.onresync = null; this.joined = false;
+    this.interpDelay = null; // #806: de spelsessie zet hier de PvP-vertraging; null = INTERP_DELAY
   }
   _raw(buf) {
     const h = readHeader(buf); if (!h) return;
@@ -357,7 +359,7 @@ export class ClientSession extends Base {
       }
       return;
     }
-    this.buf.advance(dt);
+    this.buf.advance(dt, this.interpDelay ?? INTERP_DELAY);
     const q = this._quiet();
     if (this.status === 'ok' && q >= LAG_AFTER) this._setStatus('lag');
     if ((this.status === 'ok' || this.status === 'lag') && q >= LOST_AFTER) {

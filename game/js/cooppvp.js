@@ -36,6 +36,8 @@ export const maakPvp = () => ({ actief: {}, vrij: {}, tot: {}, poging: {} });
 export const isPassief = (st, slot) => !(st && st.actief && st.actief[slot]);
 // Staat er iemand bewust op actief? Dan is "passief" iets dat de anderen zien (kaarticoon grijs); anders is iedereen gewoon passief.
 export const pvpInSpel = (st) => !!st && Object.keys(st.actief || {}).length > 0;
+// #806: twee niet-passieve spelers kunnen elkaar raken: dan is het een echt gevecht en telt reactietijd.
+export const pvpAanDeGang = (st) => Object.keys((st && st.actief) || {}).length >= 2;
 export const grijsBijPassief = (st, slot) => pvpInSpel(st) && isPassief(st, slot);
 
 // Zet de stand direct (host: wat de gast vroeg, en een gast: wat de host doorgeeft). Geen afkoeling: die bewaakt wisselPassief.

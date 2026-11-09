@@ -6,6 +6,7 @@ import { FLAGS } from './devflags.js';
 import { RAGE_CHOICES } from './roadragerules.js';
 import { SUBTITLE_CONTRASTS, TEXT_SIZES } from './a11ylogic.js';
 import { cleanHelpSetting } from './assist.js';
+import { READING_TIME_CHOICES } from './cardtime.js';
 import { deckDefaults, isSteamDeck } from './deck.js';
 import { VOLUME_KEYS, normalizeVolumes, volumeValue } from './sfx/volume.js';
 
@@ -50,6 +51,9 @@ const BASE_DEFAULTS = {
   minimapNorth: 'lucht',
   // short tip cards for new players (onboarding.js)
   onboardingTips: true,
+  // leestijd van tip- en uitlegkaarten (#801): 'normaal', 'ruim' of 'geen'
+  // (bij 'geen' wacht een belangrijke kaart op een klik of Enter; zie cardtime.js)
+  readingTime: 'normaal',
   reduceMotion: false,
   // instap- en uitstapanimatie (#459): uit = meteen op je stoel, zonder deur open en
   // dicht en zonder de loop- en zitbeweging (Instellingen, Toegankelijkheid)
@@ -67,6 +71,8 @@ const BASE_DEFAULTS = {
   // zuinige modus (framecap.js): 30 beelden per seconde, voor batterij en warmte
   zuinig: false,
   mouseSensitivity: 1,
+  // stuurgevoeligheid van voertuigen (#801): 0.5 (zacht) tot 1.5 (fel)
+  steerSensitivity: 1,
   invertY: false,
   autoAim: true,
   drunkFx: 'aan',
@@ -89,6 +95,8 @@ const BASE_DEFAULTS = {
   subtitleBox: false,
   // [sirene], [claxon]...: korte tekst bij belangrijke geluiden (soundcaptions.js)
   soundCaptions: false,
+  // schermnarratie (#802): statuswijzigingen (doel, gezondheid, politie, plaats) in een aria-live-regio
+  screenNarration: false,
   // ondertitels op wit-op-zwart met een zwaardere letter ('normaal' | 'hoog'), kaart- en meldingstekst ('normaal' | 'groot' | 'extragroot') en geen schermflitsen (a11y.js)
   subtitleContrast: 'normaal',
   textSize: 'normaal',
@@ -169,6 +177,8 @@ function load() {
     if (!PAD_LAYOUT_CHOICES.includes(out.padLayout)) out.padLayout = DEFAULTS.padLayout;
     if (!HINT_SOURCE_CHOICES.includes(out.hintSource)) out.hintSource = DEFAULTS.hintSource;
     if (!TOUCH_CONTROLS_CHOICES.includes(out.touchControls)) out.touchControls = DEFAULTS.touchControls;
+    if (!READING_TIME_CHOICES.includes(out.readingTime)) out.readingTime = DEFAULTS.readingTime;
+    if (!(out.steerSensitivity >= 0.5 && out.steerSensitivity <= 1.5)) out.steerSensitivity = DEFAULTS.steerSensitivity;
     // de online-avatar (#455): een kleur blijft een kleur, anders de standaard
     if (!/^#[0-9a-f]{6}$/i.test(out.onlineKleur)) out.onlineKleur = DEFAULTS.onlineKleur;
     out.onlineNaam = String(out.onlineNaam || '').slice(0, 16);

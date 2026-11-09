@@ -350,6 +350,12 @@ export function touchMode(setting, detected) {
   return setting === 'aan' ? true : setting === 'uit' ? false : !!detected;
 }
 
+// Op een touchscreen opent Besturing op het tabblad Aanraken; met toetsenbord
+// of controller op het toetsenoverzicht (#805).
+export function defaultControlsSubtab(touch) {
+  return touch ? 'aanraken' : 'toetsen';
+}
+
 // Screen class and orientation: buttons scale with the short side so a thumb
 // reaches them on a phone and they don't float far apart on a tablet. The
 // game is played landscape; portrait gets a hint to turn the device.

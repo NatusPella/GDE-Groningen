@@ -250,7 +250,7 @@ body.tc-on #hud .hud-mission { bottom: calc(var(--hud-g-floor, 225px) + 10px); }
 #hud .hud-name-row { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
 #hud .hud-character { font-size: 17px; line-height: 1; color: #f0ede4; }
 #hud .hud-status { display: flex; gap: 4px; margin-left: 4px; }
-#hud .hud-chip { display: inline-flex; align-items: center; gap: 4px; padding: 0 5px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: max(11px, var(--hud-min)); line-height: 15px; white-space: nowrap; background: rgba(0, 0, 0, 0.55); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 4px; }
+#hud .hud-chip { display: inline-flex; align-items: center; gap: 4px; padding: 0 5px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: max(12px, var(--hud-min)); line-height: 15px; white-space: nowrap; background: rgba(0, 0, 0, 0.55); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 4px; }
 #hud .hud-chip[hidden] { display: none; }
 #hud .hud-chip.drunk { color: var(--mk-job, #ffd36a); border-color: rgba(255, 211, 106, 0.5); }
 #hud .hud-chip.drunk svg { width: 13px; height: 13px; fill: rgba(255, 211, 106, 0.35); stroke: var(--mk-job, #ffd36a); stroke-width: 1.8; stroke-linejoin: round; }
@@ -644,3 +644,6 @@ body:not(.cine-hide-hud) #cine.has-sub .cine-skip { bottom: calc(14px * var(--ui
 .hud-chip.hud-mute { pointer-events: auto; position: relative; z-index: 21; min-height: 0; cursor: pointer; color: #f0ede4; }
 /* #638: de enige klikbare HUD-knop haalt op touch de 44 px-regel */
 html.touch-play .hud-chip.hud-mute { min-height: 44px; min-width: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 0 10px; }
+
+/* #802: de schermnarratie is alleen voor de schermlezer, niet zichtbaar */
+#hud .hud-narration { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }

@@ -82,6 +82,18 @@ Het testprotocol van de pagina met het hoofdproces (desktop/devtools.js, console
 
 Programma's staan in `testbank.mjs` (`P`), fasen in `coop.page.js` (`PHASES`): `wacht`, `netsim`, `uitval`, `uitvalHost`, `desync`, `betaal`, `loop`, `touch`, `rit`, `verlaat`, `stopHost`, `opgeslagen`, `verhaal`, `volg`, `opening`, `tekstveld`. Een nieuwe fase is een functie die `log(...)` regels schrijft en een controle in de suite.
 
+## Latentiemeting (#806)
+
+`node scripts/netlatency_test.mjs` meet de effectieve vertraging door het echte pad: een host stuurt 20 Hz-snapshots door `net/memtransport.js` (latency/jitter/verlies) en `SnapBuffer` interpoleert ze als in het spel. Gemeten: van de hostwijziging tot het eerste beeld bij de gast, en van invoer bij de gast tot ontvangst bij de host.
+
+| verbinding | gast → host | host → gast |
+|---|---:|---:|
+| LAN: 30 ms, jitter 10 ms | 50 ms | 150 ms |
+| mobiel: 80 ms, jitter 30 ms | 100 ms | 217 ms |
+| mobiel met 60 ms interpolatie (voorstel PvP) | 100 ms | 150 ms |
+
+Voorstel: een PvP-drempel van 200 ms (de arena is geen ranked competitie). De standaard van 120 ms interpolatie haalt die op een normale internetverbinding niet; 60 ms wel. Sinds #806 is dat aangesloten: `tickCoopNet` zet `session.interpDelay` op 60 ms zodra `pvpAanDeGang` waar is (minstens twee niet-passieve spelers) en anders op 120 ms; `scripts/pvpvertraging_test.mjs` bewaakt die keuze en de bedrading. Echte netwerken, echte hardware en de perf-route `latentie` (een losse p50/max-meting zonder framereeks) zijn hier niet gemeten.
+
 ## Stand en wat niet getest is
 
 **Regressie van 22-10 (avond), main v0.39.0 plus de merges tot dan, één computer, wegwerpprofielen, de slotenmap gebruikt (historie; de huidige stand staat bovenaan):**

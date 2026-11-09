@@ -537,7 +537,7 @@ results.routes.soak = await safe('soak', async () => {
 });
 // input to image: a synthetic W keydown to the first frame whose state moved (a software estimate: add one frame of display, no photodiode)
 results.routes.latentie = await safe('latentie', async () => {
-  if (ONLY.length && !ONLY.includes('latentie')) return null;
+  if (!ONLY.includes('latentie')) return null; // losse meting: alleen met PERF_ONLY=latentie
   fixWorld(); teleport(FOOT[0][0], FOOT[0][1]); await sleep(5000);
   const key = (type) => { for (const t of [window, document]) t.dispatchEvent(new KeyboardEvent(type, { key: 'w', code: 'KeyW', bubbles: true })); };
   const lat = [];
@@ -548,7 +548,9 @@ results.routes.latentie = await safe('latentie', async () => {
     if (hit != null) lat.push(+hit.toFixed(1));
   }
   const s = [...lat].sort((a, b) => a - b);
-  return { n: lat.length, p50: s[Math.floor(s.length / 2)] ?? null, max: s[s.length - 1] ?? null, note: 'keydown to first frame whose player position changed, ms; add one frame of display' };
+  const pct = (q) => (s.length ? s[Math.min(s.length - 1, Math.round(q * (s.length - 1)))] : null);
+  // losse meting, geen framereeks: de norm-check slaat deze route over
+  return { kind: 'latency', n: lat.length, p50: pct(0.5), p95: null, max: pct(1), msP50: pct(0.5), msP95: pct(0.95), msMax: pct(1), note: 'keydown to first frame whose player position changed, ms; losse meting met PERF_ONLY=latentie; tel een frame display erbij' };
 });
 
 // scene census (only with PERF_ONLY=census): objects in the scene by top-level child, to see what the per-frame matrix and culling walk costs

@@ -1,7 +1,7 @@
 // node scripts/touch_test.mjs: touch detection, the virtual stick and the
 // buttons per situation (game/js/touchlogic.js).
 import { detectTouch, stickVector, knobOffset, lookDelta, stickKeys, touchPlan, labelFor, touchUiActive, touchContext, stickless } from '../game/js/touchlogic.js';
-import { touchMode, touchLayout, touchMore, touchLabelForToken, TOUCH_CHOICES } from '../game/js/touchlogic.js';
+import { touchMode, touchLayout, touchMore, touchLabelForToken, TOUCH_CHOICES, defaultControlsSubtab } from '../game/js/touchlogic.js';
 import { pinchStep, leftButtonX, touchPlacement, touchRects, hudMinimap } from '../game/js/touchlogic.js';
 import { PAD_MAPS } from '../game/js/controls.js';
 
@@ -18,6 +18,8 @@ eq('laptop touchscreen with mouse', detectTouch({ maxTouchPoints: 10, fine: true
 eq('tablet no media queries', detectTouch({ maxTouchPoints: 5 }), true);
 eq('forced off', detectTouch({ maxTouchPoints: 5, coarse: true, forced: false }), false);
 eq('forced on', detectTouch({ forced: true }), true);
+eq('touch opent Besturing op Aanraken', defaultControlsSubtab(true), 'aanraken');
+eq('zonder touch opent Besturing het toetsenoverzicht', defaultControlsSubtab(false), 'toetsen');
 
 eq('stick centre', stickVector({ x: 0, y: 0 }, { x: 0, y: 0 }), [0, 0]);
 eq('stick dead zone', stickVector({ x: 0, y: 0 }, { x: 5, y: 0 }), [0, 0]);
