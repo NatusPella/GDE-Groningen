@@ -175,6 +175,14 @@ for (const tab of ['overzicht', 'todo', 'map', 'telefoon', 'verhaal', 'spullen',
     PM.closePauseMenu();
   });
 }
+if (want('startkaart')) await guard('startkaart', async () => {
+  // #800: de tweede laag staat als regel op de startkaart van een activiteit.
+  for (let i = 0; i < 40 && document.body.classList.contains('intro-montage'); i++) await sleep(500);
+  await settle();
+  const SK = await imp('startkaart');
+  SK.toonStartkaart(w, 'hengelen');
+  await shot('startkaart-hengelen', 1200);
+});
 if (want('winkel')) await guard('winkel', async () => {
   const SU = await imp('shopui');
   const S = await imp('shops');
