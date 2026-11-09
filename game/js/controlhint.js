@@ -59,7 +59,7 @@ export function hintActive(world) {
 // { context, groepen: [{ keys, werk }] } of null als er niets loopt.
 export function controlHint(world, player = null) {
   if (!hintActive(world)) return null;
-  const context = hintContext(player || world.player);
+  const context = hintContext(player || hoofdspeler(world));
   return { context, groepen: HINTS[context].map((g) => ({ keys: [...g.keys], werk: g.werk })) };
 }
 
