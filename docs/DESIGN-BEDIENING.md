@@ -95,6 +95,7 @@ Everything below is in Instellingen > Toegankelijkheid, Geluid & ondertitels and
 | Cannot hear | `soundCaptions` | `[sirene]`, `[claxon]`, `[knal, in de verte]` for non-spoken sounds; spoken lines already have a subtitle |
 | Colour blindness | `colorBlind`: uit, deuteranopie, protanopie, tritanopie | swaps the marker palette (Okabe-Ito), see below |
 | Motion sickness | `reduceMotion` (also on when the OS asks), `speedFeel`, `driftAssist` | no camera shake or sway, UI motion tokens go to 0, no speed FOV |
+| Blind or low vision (HUD) | `screenNarration` "Schermnarratie" | announces objective changes, low health, police stars and place names in a polite aria-live region, at most one message per 1.2 s; menus are real buttons and the map has a text search list (#802) |
 | Flashes | `reduceFlash` | removes the screen flashes (intro, trailer, searching stars, urgent stunt timer); the flashes that remain stay under three a second (WCAG 2.3.1) |
 | Time pressure | `helpTime`, `helpDamage`, `helpGates`, `helpOffer` | more time, less vehicle damage, wider flight gates, and the offer after two failures |
 

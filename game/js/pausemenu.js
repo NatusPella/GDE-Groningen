@@ -624,6 +624,7 @@ function settingsHtml() {
       ${toggle('reduceMotion', 'Beweging beperken', 'Staat ook aan als je systeem om minder beweging vraagt')}
       ${toggle('stapAnimatie', 'Instap- en uitstapanimatie', 'Uit: je staat meteen op je stoel, zonder deur open en dicht')}
       ${toggle('reduceFlash', 'Flitsen beperken', 'Geen witte schermflitsen in filmpjes en intro')}
+      ${toggle('screenNarration', 'Schermnarratie', 'Lees statuswijzigingen voor via de schermlezer: doel, gezondheid, politie en plaatsnaam')}
       <div class="m-gh"><span>Hulp</span></div>
       ${picker('helpTime', 'Meer tijd', [['uit', 'Uit'], ['ruimer', '+25%'], ['ruim', '+50%'], ['heel ruim', 'Dubbel']], 'Langere tijdslimieten en vensters in missies')}
       ${picker('helpDamage', 'Minder schade', [['normaal', 'Normaal'], ['minder', 'Minder'], ['veel minder', 'Veel minder']], 'Je eigen voertuig houdt meer over na een klap')}

@@ -644,3 +644,6 @@ body:not(.cine-hide-hud) #cine.has-sub .cine-skip { bottom: calc(14px * var(--ui
 .hud-chip.hud-mute { pointer-events: auto; position: relative; z-index: 21; min-height: 0; cursor: pointer; color: #f0ede4; }
 /* #638: de enige klikbare HUD-knop haalt op touch de 44 px-regel */
 html.touch-play .hud-chip.hud-mute { min-height: 44px; min-width: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 0 10px; }
+
+/* #802: de schermnarratie is alleen voor de schermlezer, niet zichtbaar */
+#hud .hud-narration { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
