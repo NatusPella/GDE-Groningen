@@ -90,6 +90,7 @@ import { reducedMotion } from './motion.js';
 import { dynamicScale, cpuLevel } from './gfxprofile.js';
 import { adaptedShadowLevel } from './shadowlevel.js';
 import { treeSyncDue } from './treesync.js';
+import { roadBuildAllowed, ROAD_BUILD_MAX_PER_FRAME } from './roadbudget.js';
 import { VIEW_DISTANCES, viewDistanceFor, detailDistanceFor, DETAIL_BASE } from './viewdist.js';
 import { compareOpaque } from './drawpool.js';
 import { buildingBatcher, roadBatcher, facadeBatcher, shoreBatcher, drawHub } from './staticbatch3d.js';
@@ -2058,6 +2059,8 @@ let bridgeViews = false;
 // off for the A/B measurement. See docs/PERF-LAADHANG-0.56.1.md (#553).
 const ROAD_SYNC_IDLE_FRAMES = 6;
 let roadSyncIdle = null, roadSyncFrame = 0;
+// #804: teller voor de wegopbouw (meetbaar in de perf-harness en tests)
+export const roadSyncStats = { frames: 0, built: 0, maxPerFrame: 0, lastMs: 0, deadlineStops: 0 };
 function syncRoads(world, px, py) {
   setRoadNetwork(world.map);
   if (roadQuality !== getRoadQualityVersion()) {
@@ -2089,7 +2092,10 @@ function syncRoads(world, px, py) {
   }
   if (missing.length) {
     missing.sort((a, b) => a[0] - b[0]);
-    const deadline = performance.now() + (performance.now() < streamBoostUntil ? ROAD_BUILD_MS * 2 : ROAD_BUILD_MS);
+    const t0 = performance.now();
+    const boosted = t0 < streamBoostUntil;
+    const deadline = t0 + (boosted ? ROAD_BUILD_MS * 2 : ROAD_BUILD_MS);
+    const cap = boosted ? ROAD_BUILD_MAX_PER_FRAME * 2 : ROAD_BUILD_MAX_PER_FRAME;
     let built = 0, waiting = false;
     for (const [, r, , near] of missing) {
       // surfaces still coming from the geometry worker: the far LOD covers
@@ -2099,10 +2105,11 @@ function syncRoads(world, px, py) {
       const ready = roadGeometryReady(r, near);
       if (waiting) continue;
       if (!ready) { waiting = true; continue; }
-      // a road whose surfaces are ready is cheap, unless its civil works
-      // are still built here (after a jump the ring's viaducts came in all
-      // at once)
-      if (built > 0 && (!r._geoRoad || (r.z && r._geoStruct === undefined)) && performance.now() > deadline) break;
+      // #804: de deadline en een harde cap gelden voor élke weg, ook de
+      // "goedkope" met kant-en-klare surfaces; anders bouwde één frame de
+      // hele ring (3d:roads-piek 0,9-1,7 s). Eén weg mag altijd, zodat de
+      // streaming vooruit blijft.
+      if (!roadBuildAllowed(built, performance.now(), deadline, cap)) { roadSyncStats.deadlineStops++; break; }
       coldRoads.delete(r);
       const group = buildRoadGroup(r);
       const mesh = freezeStatic(world.map.terrainOn ? liftRoadGroup(group, world.map, r) : group);
@@ -2122,6 +2129,10 @@ function syncRoads(world, px, py) {
       roadDetailR = Math.min(roadDetailR, m[2]);
     }
     roadDetailR = Math.max(24, roadDetailR);
+    roadSyncStats.frames++;
+    roadSyncStats.built += built;
+    roadSyncStats.maxPerFrame = Math.max(roadSyncStats.maxPerFrame, built);
+    roadSyncStats.lastMs = performance.now() - t0;
   } else {
     streamStat.r = 0;
     roadDetailR = DRAW_DIST;
