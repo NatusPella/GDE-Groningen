@@ -279,8 +279,14 @@ function rebuildBoards(boards) {
 // --- tiles ---------------------------------------------------------------------
 
 function tileItems(i, j) {
-  // #314 C2: komt er een tegel bij of gaat die weg (map.geoVer), dan is de cache oud
-  if (map && map.geoVer !== tilesGeoVer) { tiles.clear(); tilesGeoVer = map.geoVer; }
+  // #314 C2: komt er een tegel bij of gaat die weg (map.geoVer), dan is de cache oud.
+  // Tijdens een reeks streamende tegels (of de opening, die van plek naar plek springt)
+  // wacht de opruiming tot de tegelwachtrij leeg is: de bestaande meubels blijven dan
+  // even staan en er valt geen halve seconde per tegel in het spel (#4).
+  if (map && map.geoVer !== tilesGeoVer) {
+    const tilesCalm = !map.tileQueue || !map.tileQueue.items || map.tileQueue.items.length === 0;
+    if (tilesCalm) { tiles.clear(); tilesGeoVer = map.geoVer; }
+  }
   const key = `${i},${j}`;
   let t = tiles.get(key);
   if (t) return t.items;
