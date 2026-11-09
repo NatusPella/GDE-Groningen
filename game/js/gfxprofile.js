@@ -50,9 +50,9 @@ export function currentPreset(st = getSettings()) {
   return PRESET_ORDER.find((n) => Object.entries(GFX_PRESETS[n]).every(([k, v]) => st[k] === v)) || null;
 }
 
-// The out-of-the-box graphics: Hoog with 'ver' instead of 'heelver'. Shown
-// as Eigen; the first-run advice treats it like Hoog.
-const GFX_DEFAULT = { ...GFX_PRESETS.hoog, drawDistance: 'ver' };
+// The out-of-the-box graphics: de preset Vlot (Hoog's look met de korte zichtafstand),
+// zodat een eerste start op een iGPU-laptop speelbaar blijft.
+const GFX_DEFAULT = { ...GFX_PRESETS.vlot };
 export const isDefaultGfx = (st = getSettings()) => Object.entries(GFX_DEFAULT).every(([k, v]) => st[k] === v);
 
 // --- phones and tablets --------------------------------------------------
