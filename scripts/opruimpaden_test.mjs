@@ -65,6 +65,15 @@ const guards = [
   ['werf3d.js', /releaseVehicleGeometries\(obj\.schip\)/, 'werf geeft de scheepsref terug'],
   ['coopentities3d.js', /disposeObject\(m\)/, 'gastvoertuigen gaan via disposeObject'],
   ['dorpsuitjes.js', /disposeObject\(a\.boat\)/, 'dorpsuitjes geeft de bootref terug'],
+  ['trailer.js', /import \{ getScene, prewarmStreamAt, disposeObject \}/, 'trailer haalt de opruimer van scene3d binnen'],
+  ['trailer.js', /function disposeTrailerProps\(\)[\s\S]{0,300}disposeTrailerProp\(o\)[\s\S]{0,200}trailerProps\.clear\(\)/, 'trailer maakt de props-map leeg bij het opruimen'],
+  ['trailer.js', /function disposeTrailerProp\(o\)[\s\S]{0,400}disposeObject\(o\)/, 'trailer-props gaan via disposeObject'],
+  ['trailer.js', /clearShot\(r\);\s*\n\s*group\.removeFromParent\(\);\s*\n\s*r\.light\.removeFromParent\(\);\s*\n\s*disposeTrailerProps\(\); \/\/ #797/, 'het einde van het traject ruimt de props op'],
+  ['trailer.js', /disposeTrailerProps\(\); \/\/ #797: een vorig traject[\s\S]{0,140}r\.prop =/, 'een nieuw traject begint schoon'],
+  ['scene3d.js', /function detachPlayerRider\(mesh\)/, 'de herbruikbare playerRider wordt vóór het opruimen losgekoppeld'],
+  ['scene3d.js', /detachPlayerRider\(mesh\);\s*\n\s*scene\.remove\(mesh\);\s*\n\s*disposeObject\(mesh\);/, 'een voertuigmesh wordt zonder de playerRider opgeruimd'],
+  ['scene3d.js', /g\.userData && typeof g\.userData\.personRefs === 'number'/, 'een geometrie zonder userData crasht de opruimer niet (#804-run)'],
+  ['models3d_people.js', /if \(body && body\.userData\) body\.userData\.personRefsGiven = true/, 'een persoonsmesh zonder body crasht niet (#804-run)'],
 ];
 for (const [file, re, name] of guards) ok(re.test(src(file)), name, file);
 

@@ -190,7 +190,7 @@ const retryKlaar = (scope) => new Function('scope', `with (scope) {
   return retryGiveUp;
 }`)(scope);
 const maakOpslag = (keys) => ({ getItem: (k) => (keys.has(k) ? keys.get(k) : null) });
-const retryScope = (retrySlot, retryHadSave) => ({ retrySlot, retryHadSave, slotKey: (n) => `gde-save-slot-${n}`, slotRecoveryKey: (n) => `gde-save-slot-${n}-herstel` });
+const retryScope = (retrySlot, retryHadSave, target = retrySlot) => ({ retrySlot, retryHadSave, saveTarget: () => target, slotKey: (n) => `gde-save-slot-${n}`, slotRecoveryKey: (n) => `gde-save-slot-${n}-herstel` });
 
 ok(() => {
   const scope = retryScope(2, true);
@@ -215,6 +215,19 @@ ok(() => {
 ok(() => {
   assert.equal(retryKlaar(retryScope(0, false))(maakOpslag(new Map())), false, 'zonder openstaande retry verandert er niets');
 }, 'zonder openstaande retry geeft de controle niets op (#784)');
+
+ok(() => {
+  const scope = retryScope(2, true, 3);
+  const giveUp = retryKlaar(scope);
+  assert.equal(giveUp(maakOpslag(new Map([['gde-save-slot-3', 'save']]))), false, 'na een slotwissel probeert de retry de nieuwe plek');
+  assert.equal(scope.retrySlot, 3, 'de retry staat nu op de nieuwe plek');
+  assert.equal(scope.retryHadSave, true, 'de nieuwe plek heeft een save');
+  // en een lege nieuwe plek mag zijn eerste save herproberen
+  const leeg = retryScope(2, true, 4);
+  assert.equal(retryKlaar(leeg)(maakOpslag(new Map())), false, 'een lege nieuwe plek wordt ook herprobeerd');
+  assert.equal(leeg.retrySlot, 4);
+  assert.equal(leeg.retryHadSave, false);
+}, 'na een slotwissel gaat de retry naar de nieuwe plek (#784)');
 
 // --- #590: herstel uit de herstelkopie zegt het en schrijft de slot terug -------------------
 ok(() => {

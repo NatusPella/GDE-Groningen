@@ -48,6 +48,28 @@ releasePersonGeometry(b);
 ok(disposed, 'laatste gebruiker weg: nu pas dispose');
 releasePersonGeometry(c); releasePersonGeometry(d);
 // Broncheck: in de cache-tak staat de dispose alleen achter de refcount.
+// #796: dezelfde persoon via twee opruimroutes telt maar één keer af
+const { disposeObject } = await import('../game/js/scene3d.js');
+{
+  const look2 = { ...look, hatColor: 0x123456 };
+  const g = buildPersonMesh(0x3f6ea8, 0xd0a080, { seed: 4242, look: look2 });
+  const geo = g.userData.body.geometry;
+  const voor = geo.userData.personRefs;
+  ok(releasePersonGeometry(g) === false || geo.userData.personRefs === voor - 1, 'de groep geeft de ref terug');
+  const naGroep = geo.userData.personRefs;
+  ok(naGroep === voor - 1, 'de groep telt één keer af', String(naGroep));
+  disposeObject(g); // loopt over de mesh en zou dezelfde persoon nog eens afrekenen
+  ok(geo.userData.personRefs === naGroep, 'disposeObject telt dezelfde persoon niet dubbel af', String(geo.userData.personRefs));
+
+  const h = buildPersonMesh(0x3f6ea8, 0xd0a080, { seed: 4242, look: { ...look, hatColor: 0x654321 } });
+  const hgeo = h.userData.body.geometry;
+  const hvoor = hgeo.userData.personRefs;
+  disposeObject(h);
+  const hna = hgeo.userData.personRefs;
+  ok(hna === hvoor - 1, 'disposeObject telt de persoon één keer af', `${hvoor}->${hna}`);
+  ok(releasePersonGeometry(h) === false && hgeo.userData.personRefs === hna, 'de groep daarna telt niet nog eens af');
+}
+
 const bron = fs.readFileSync(new URL('../game/js/models3d_people.js', import.meta.url), 'utf8');
 const tak = bron.slice(bron.indexOf('const oud = personGeometries.keys().next().value') - 100, bron.indexOf('const oud = personGeometries.keys().next().value') + 420);
 ok(/\.personRefs \|\| 0\) > 0\).*personRetired/.test(tak), 'evictie dispt alleen ongebruikte templates');

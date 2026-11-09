@@ -69,6 +69,10 @@ Solo blijft de factor 1, en de eigen loopbaanfactor van elke speler komt er nog 
 
 Alle spelers zijn gelijkwaardig; wie het spel opende mag alleen spelers verwijderen. Tijd, reizen, slapen, cheats en pauzeren zijn dus geen hostrechten (`coopgroep.js`, pure logica; test `scripts/coop/groep_test.mjs`). Met één speler blijft alles zoals het was.
 
+### Kicken en verbannen
+
+Wie het spel opende mag een speler uit de sessie zetten (kicken). Zijn token gaat op een verbodenlijst: een late kennismaking op dezelfde verbinding en een nieuwe poging met hetzelfde token worden geweigerd, en de kamercode rouleert zodat de oude code niet meer opent. De ban is **per token, niet per persoon**: zonder accounts en zonder IP-opslag (constitutie 10) krijgt wie Samen spelen opnieuw opent een nieuw token. Via de openbare lijst kan zo iemand een nieuwe eenmalige kamer vragen en met dat nieuwe token binnenkomen; dat gat is bewust gedocumenteerd (comment bij `removeGuest` in `coopnet.js`) en met een tokenban niet te dichten. Wat de host wel kan: de sessie na een kick **privé maken** (dan verdwijnt de rij uit de lijst) en de code laten rouleren.
+
 | Onderwerp | De regel met meer spelers |
 |---|---|
 | Pauzeren | De afspeel-vooruit-dialoog, een snelreis (`reisrit.js`), het laadscherm, de fotomodus en het hulpaanbod zetten de wereld alleen voor jou stil: voor de anderen loopt hij door (`world.uiZacht`, `coopWereldDoorloop`). Een filmpje dat iedereen ziet (`world.uiHard`) en het wachtscherm pauzeren wel voor iedereen. De fotomodus verstelt tijd en weer niet. Het pauzemenu, de kaart en een winkel pauzeren sinds #434/#687 ook alleen je eigen invoer: de wereld loopt bij de opener door. |

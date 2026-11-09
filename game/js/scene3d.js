@@ -583,13 +583,13 @@ export function disposeObject(root) {
   root.traverse((o) => {
     const g = o.geometry;
     if (g) {
-      if (typeof g.userData.personRefs === 'number') releasePersonGeometry(o);
-      else if (!SHARED_GEOMETRIES.has(g) && !g.userData.shared) g.dispose();
+      if (g.userData && typeof g.userData.personRefs === 'number') releasePersonGeometry(o);
+      else if (!SHARED_GEOMETRIES.has(g) && !(g.userData && g.userData.shared)) g.dispose();
     }
     // the bone texture three.js makes for a skinned mesh on its first draw
     if (o.isSkinnedMesh && o.skeleton) o.skeleton.dispose();
     const mats = Array.isArray(o.material) ? o.material : o.material ? [o.material] : [];
-    for (const m of mats) if (!SHARED_MATERIALS.has(m) && !m.userData.shared) m.dispose();
+    for (const m of mats) if (!SHARED_MATERIALS.has(m) && !(m.userData && m.userData.shared)) m.dispose();
   });
 }
 
@@ -645,6 +645,7 @@ function syncVehicleMeshes(world, player) {
   }
   for (const [id, mesh] of vehicleMeshes) {
     if (_vehSeen.has(id)) continue;
+    detachPlayerRider(mesh);
     scene.remove(mesh);
     disposeObject(mesh);
     vehicleMeshes.delete(id);
@@ -725,8 +726,13 @@ function ensurePassengerFigure(mesh, v, dist, deadline) {
 // On a bike or step the player is drawn as a rider figure in their own look
 // (Tammo or Tessa) inside the bike mesh - the bike's built-in NPC rider is
 // hidden - so pedal IK and the bike's lean apply as for any cyclist.
-function syncPlayerRider(pv, pvMesh, hide) {
-  const want = pv && (pv.isBike || pv.isScooter) && pv._mount !== 'horse' && pvMesh && !pv.riderOff && !pv.sinking;
+// #798: de playerRider is een herbruikbaar personage (zie syncPlayerRider). Hangt hij aan een
+// voertuigmesh die opgeruimd wordt, haal hem er dan eerst af: anders geeft disposeObject zijn gedeelde
+// rompgeometrie en skelet terug terwijl syncPlayerRider hem daarna op de nieuwe mesh hergebruikt.
+function detachPlayerRider(mesh) {
+  if (playerRider && mesh && playerRider.parent === mesh) mesh.remove(playerRider);
+}
+function syncPlayerRider(pv, pvMesh, hide) {  const want = pv && (pv.isBike || pv.isScooter) && pv._mount !== 'horse' && pvMesh && !pv.riderOff && !pv.sinking;
   if (!want) {
     if (playerRider && playerRider.parent) playerRider.parent.remove(playerRider);
     return;
@@ -2600,6 +2606,7 @@ export function update3D(dt, world) {
     // a car that just died swaps to its burnt-out model (rebuilt next frame)
     if (mesh && ((v.wrecked && !mesh.userData.wreckModel) || (!v.wrecked && mesh.userData.wreckModel) || v.meshDirty)) {
       v.meshDirty = false;
+      detachPlayerRider(mesh);
       scene.remove(mesh);
       disposeObject(mesh);
       vehicleMeshes.delete(v.id);

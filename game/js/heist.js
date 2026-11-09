@@ -1552,6 +1552,9 @@ export function disposeHeist() {
     if (o.geometry) {
       // #796: de wachters delen hun rompgeometrie (en de skelettextuur) met de voetgangers;
       // geef de ref terug in plaats van de gedeelde geometrie te disposen.
+      // #797: een SkinnedMesh zonder personRefs is geen gedeelde personentemplate (buildPersonMesh zet
+      // die teller wel). Heist bouwt zijn wachters met buildPersonMesh, dus dit blijft een vangnet voor een
+      // losse skinned mesh; hem hier opruimen zou een niet-geregistreerde geometrie juist laten lekken.
       if (typeof o.geometry.userData.personRefs === 'number') { releasePersonGeometry(o); if (o.skeleton) o.skeleton.dispose(); }
       else if (o.isSkinnedMesh || !people.has(o)) o.geometry.dispose();
     }

@@ -327,6 +327,15 @@ function slotHasSave(ls, n) {
 }
 function retryGiveUp(ls) {
   if (!retrySlot) return false;
+  const target = saveTarget();
+  // #784: wisselde de speler vóór de retry van schrijfplek (ander slot of nieuw spel), dan ging de oude
+  // plek terecht weg terwijl de nieuwe bestaat. Geef de retry dan niet op, maar probeer hem op de nieuwe
+  // plek: anders bleef de autosave stil tot de volgende standswijziging.
+  if (target !== retrySlot) {
+    retrySlot = target;
+    retryHadSave = slotHasSave(ls, target);
+    return false;
+  }
   const gone = retryHadSave && !slotHasSave(ls, retrySlot);
   retrySlot = 0;
   retryHadSave = false;
