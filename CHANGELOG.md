@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- **De openingsfilm slaat de fijnste straatmeubels (OSM-hekken, heggen en geluidsschermen) even over.** Die regel kost per nieuwe wijk de meeste rekentijd (`pieceOnWayOrWater` was ~0,37 s in het profielvenster); na de film worden ze gewoon opgebouwd.
+
 - **De openingsfilm hapert minder: tijdens de montage wachten de wegennetwerk-opbouw, de verkeerslichten, de pedestriasites en de plaatsnaamborden op nieuwe tegels.** Die werden per wijkwissel midden in de film opnieuw opgebouwd en zorgden voor frames tot een seconde; nu blijven de bestaande versies staan tot de film klaar is en wordt de wegenindex over frames gespreid. In de profielmeting gingen de openingsframes van 18 naar 44 in dezelfde 5 s (gemiddeld frame 278 naar 114 ms).
 
 - **De vraag "alleen of samen spelen" staat nu al boven het laadscherm en legt het laden niet meer stil.** Het antwoord wordt pas vlak voor de start afgewacht (met dezelfde time-out en Escape), het laadscherm blijft ondertussen zichtbaar met een duidelijke statusregel, en na de keuze zegt het wat er nog gebeurt.
