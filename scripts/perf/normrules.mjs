@@ -21,18 +21,26 @@ export function routeStats(route) {
   };
 }
 
+// Heeft deze route frametijden? (census en latentie zijn losse metingen.)
+export function routeHasFrames(route) {
+  const s = routeStats(route);
+  return s.frames > 0 || s.avg !== null || s.p95 !== null || s.p99 !== null || s.max !== null;
+}
+
 // Heeft deze route genoeg cijfers om tegen de norm te leggen?
 export function routeMeasured(route) {
   const s = routeStats(route);
   return (s.p95 !== null && s.max !== null) || (s.over50 !== null && s.over100 !== null);
 }
 
-// Welke normen haalt deze route niet? Een lege lijst betekent: binnen de norm.
+// Welke normen haalt deze route niet? Een lege lijst betekent: binnen de norm
+// of geen frameroute (zoals de losse latentiemeting).
 export function normViolations(route, norm = NORM) {
   const s = routeStats(route);
   const out = [];
   const frameMs = s.p95 !== null && s.max !== null;
   const hitch = s.over50 !== null && s.over100 !== null;
+  if (!routeHasFrames(route) && !hitch) return [];
   if (!frameMs && !hitch) return [{ rule: 'geen meting in deze route', ...s }];
   if (frameMs) {
     if (s.p95 > norm.maxP95Ms) out.push({ rule: `p95 ${s.p95} ms > ${norm.maxP95Ms} ms`, ...s });
