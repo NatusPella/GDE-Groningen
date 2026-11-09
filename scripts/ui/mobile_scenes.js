@@ -164,7 +164,16 @@ if (want('minigame')) await guard('minigame', async () => {
 for (const tab of ['overzicht', 'todo', 'map', 'telefoon', 'verhaal', 'spullen', 'garage', 'prestaties', 'settings', 'controls']) {
   // De acceptatie van #826 noemt de schermen als menu-overzicht/menu-settings; accepteer beide namen.
   if (!want(tab) && !want('menu-' + tab)) continue;
-  await guard('menu-' + tab, async () => { teleport(...P(100, 77)); PM.openPauseMenu(tab); await shot('menu-' + tab, 1500); PM.closePauseMenu(); });
+  await guard('menu-' + tab, async () => {
+    // De intro-montage en het laden kunnen nog lopen als de eerste scène meteen start; wacht
+    // daarop, anders legt de screenshot het startscherm vast in plaats van het menu.
+    for (let i = 0; i < 40 && document.body.classList.contains('intro-montage'); i++) await sleep(500);
+    await settle();
+    teleport(...P(100, 77));
+    PM.openPauseMenu(tab);
+    await shot('menu-' + tab, 1500);
+    PM.closePauseMenu();
+  });
 }
 if (want('winkel')) await guard('winkel', async () => {
   const SU = await imp('shopui');
