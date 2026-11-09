@@ -7,7 +7,7 @@
 import { showCard } from './hudcards.js';
 import { samenStatus, toelichtingVan } from './coopstatus.js';
 import { getSettings } from './settings.js';
-import { cleanDifficulty, DIFFICULTY } from './difficulty.js';
+import { cleanDifficulty, DIFFICULTY, scaleTarget } from './difficulty.js';
 import { GROEPSBONUS_KORT } from './groepsbonus.js'; // (#811) dezelfde 1+1=3-regel als de wachtkamer
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -92,7 +92,7 @@ export const STARTKAART = {
   },
   carillon: {
     titel: 'Carillon', doel: 'Speel het deuntje zuiver op de klokken van de Martinitoren',
-    medailles: ['de helft goed', 'driekwart goed', '92% goed'], beloning: 'je record en je prestaties',
+    medailles: ['50% goed', '75% goed', '92% goed'], beloning: 'je record en je prestaties',
     kern: '[Q] [E] deuntje kiezen · [Spatie] spelen',
   },
   pannenkoek: {
@@ -152,77 +152,66 @@ export const STARTKAART = {
   },
 };
 
+// #800: de medaille-eisen per moeilijkheidsstand komen uit dezelfde schaalbron als het spel
+// (difficulty.js): punten delen door de target-factor, tijden en kilo's vermenigvuldigen. Alleen
+// activiteiten waarvan de regels de stand al toepassen staan hier; de rest houdt zijn vaste eis.
+const MEDAILLE_BRON = {
+  carbid: { waarden: [45, 80, 120], lager: false, soort: 'punten' },
+  kermis: { waarden: [60, 110, 160], lager: false, soort: 'punten' },
+  drift: { waarden: [2500, 5000, 9000], lager: false, soort: 'punten' },
+  klimtoren: { waarden: [80, 48, 30], lager: true, soort: 'tijd' },
+  zwembad: { waarden: [100, 76, 64], lager: true, soort: 'tijd' },
+  waterski: { waarden: [650, 1300, 2200], lager: false, soort: 'punten' },
+  pannenkoek: { waarden: [400, 700, 1000], lager: false, soort: 'punten' },
+  hengelen: { waarden: [4, 7.5, 12], lager: false, soort: 'kg' },
+  carillon: { waarden: [0.5, 0.75, 0.92], lager: false, soort: 'procent' },
+};
+
+const klok = (sec) => {
+  const s = Math.max(0, Math.round(Number(sec) || 0));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+};
+
+// Eén drempel in de eenheid van de activiteit, precies met de afronding van de regels: punten en
+// seconden op een heel getal, kilo's op één decimaal, procenten op een heel percentage.
+function medailleTekst(soort, waarde) {
+  if (soort === 'tijd') return `binnen ${klok(waarde)}`;
+  if (soort === 'punten') return `${Math.round(waarde).toLocaleString('nl-NL')} punten`;
+  if (soort === 'kg') return `${Math.round(waarde * 10) / 10}`.replace('.', ',') + ' kg';
+  if (soort === 'procent') {
+    // het spel schaalt de nauwkeurigheidsdrempel als breuk; boven de 100% is geen haalbare eis,
+    // maar de kaart toont wat het spel vraagt (en dat is een punt voor de activiteit zelf, niet hier)
+    const pct = Math.min(100, Math.round(waarde * 100));
+    return `${pct}% goed`;
+  }
+  return String(waarde);
+}
+
+// De medailles voor deze stand. Zonder geschaalde drempel: de vaste teksten uit de tabel.
+export function medaillesVoorStand(id, difficulty = null) {
+  const k = STARTKAART[id];
+  if (!k || !k.medailles) return null;
+  const bron = MEDAILLE_BRON[id];
+  const mode = cleanDifficulty(difficulty || getSettings().difficulty);
+  if (!bron) return k.medailles.slice();
+  const f = DIFFICULTY[mode].target;
+  const waarden = bron.waarden.map((v) => {
+    const ruw = bron.lager ? v * f : v / f;
+    if (bron.soort === 'punten' || bron.soort === 'tijd') return Math.round(ruw);
+    if (bron.soort === 'kg') return Math.round(ruw * 10) / 10;
+    return Math.round(ruw * 1000) / 1000; // procent: breuk, zoals de regels hem schalen
+  });
+  return waarden.map((v) => medailleTekst(bron.soort, v));
+}
+
 // De regels onder de streep van de kaart: stand, medailles, beloning, samen en record.
 export function startkaartRegels(id, { record = null, difficulty = null } = {}) {
   const k = STARTKAART[id];
   if (!k) return [];
   const mode = cleanDifficulty(difficulty || getSettings().difficulty);
   const regels = [`Stand: ${DIFFICULTY[mode].label}`]; // #800: de gekozen stand staat op elke startkaart
-  if (k.medailles) regels.push(`Medailles: brons ${k.medailles[0]} · zilver ${k.medailles[1]} · goud ${k.medailles[2]}`);
+  const medailles = medaillesVoorStand(id, mode);
+  if (medailles) regels.push(`Medailles: brons ${medailles[0]} · zilver ${medailles[1]} · goud ${medailles[2]}`);
   if (k.beloning) regels.push(`Beloning: ${k.beloning}`);
   const s = samenStatus('activiteit', id);
-  if (s) {
-    const woord = s === 'werkt' ? 'ja, met de groep' : s === 'deels' ? 'deels' : 'nog niet samen';
-    const tol = toelichtingVan('activiteit', id);
-    regels.push(`Samen: ${woord}${tol ? ` — ${tol}` : ''}`);
-    if (s === 'werkt') regels.push(GROEPSBONUS_KORT); // (#811) 1+1=3 ook op de startkaart
-  }
-  if (record) regels.push(`Record: ${record}`);
-  return regels;
-}
-
-// De kaart als hudcards-spec. `record` komt van de activiteit zelf (die kent zijn recordregel).
-export function startkaartSpec(id, { record = null, kicker = null, difficulty = null } = {}) {
-  const k = STARTKAART[id];
-  if (!k) return null;
-  const regels = startkaartRegels(id, { record, difficulty });
-  const kern = k.kern ? `<br>${keysHtml(k.kern)}` : '';
-  const body = `Doel: ${k.doel}`;
-  return {
-    kind: 'tip', kicker: kicker || 'Activiteit', title: k.titel,
-    body,
-    bodyHtml: esc(body) + kern + (regels.length ? `<br>${regels.map((r) => esc(r)).join('<br>')}` : ''),
-    duration: 12, key: 'startkaart-' + id, voice: false, important: true,
-  };
-}
-
-// Toont de startkaart; geeft de spec terug (null als de activiteit er geen heeft).
-export function toonStartkaart(w, id, opts = {}) {
-  const spec = startkaartSpec(id, opts);
-  if (spec) showCard(w, spec);
-  return spec;
-}
-
-// Dezelfde gegevens als regels voor "Te doen" en de kaart-hover (#678): doel, medailles en
-// beloning, zonder de samen-status (die staat al op de regel en in het detail).
-export function startkaartRijen(id) {
-  const k = STARTKAART[id];
-  if (!k) return [];
-  const rijen = [['Doel', k.doel]];
-  if (k.medailles) rijen.push(['Medailles', `brons ${k.medailles[0]} · zilver ${k.medailles[1]} · goud ${k.medailles[2]}`]);
-  if (k.beloning) rijen.push(['Beloning', k.beloning]);
-  return rijen;
-}
-
-// Eén regel voor de kaart-hover en "Te doen": doel plus de bronzen eis en de
-// beloning, binnen het budget van de kaart-subregel. Te lang? Dan doel + brons;
-// nog te lang? Dan alleen het doel, netjes op een woordgrens afgekapt.
-export const MAX_HOVER_CHARS = 100;
-
-function trimWords(s, max) {
-  if (s.length <= max) return s;
-  const cut = s.slice(0, max - 1);
-  const sp = cut.lastIndexOf(' ');
-  return (sp > 0 ? cut.slice(0, sp) : cut).trimEnd() + '…';
-}
-
-export function startkaartRegel(id) {
-  const k = STARTKAART[id];
-  if (!k) return '';
-  const brons = k.medailles ? `brons ${k.medailles[0]}` : '';
-  const volledig = `Doel: ${k.doel}${brons ? ` · ${brons}` : ''}${k.beloning ? ` · ${k.beloning}` : ''}`;
-  if (volledig.length <= MAX_HOVER_CHARS) return volledig;
-  const compact = `Doel: ${k.doel}${brons ? ` · ${brons}` : ''}`;
-  if (compact.length <= MAX_HOVER_CHARS) return compact;
-  return trimWords(`Doel: ${k.doel}`, MAX_HOVER_CHARS);
-}
+  if (s) {

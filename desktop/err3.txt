@@ -1,2 +1,0 @@
-[15436:1109/173012.075:ERROR:chrome\browser\process_singleton_win.cc:318] Lock file can not be created: Toegang geweigerd. (0x5)
-[15436:1109/173012.136:ERROR:components\viz\host\persistent_cache_sandboxed_file_factory.cc:153] Failed to open persistent cache files in directory "C:\Users\abuis\AppData\Roaming\GDE Groningen\GPUPersistentCache\DawnGraphiteCache\EVHJJIW32UUHV43E7DVLKJZGSXEDOBKA", error: 1: Toegang geweigerd. (0x5)

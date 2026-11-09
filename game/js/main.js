@@ -60,6 +60,7 @@ import { Player } from './player.js';
 import { World } from './world.js';
 import { initCompanion, updateCompanion } from './companion.js';
 import { tickRowingCoaches } from './roeicoach.js';
+import { PATH_BUILDS_PER_FRAME } from './pathbudget.js';
 import { updateTrafficAI, resolveVehicleBuildingCollision, resolveVehicleVehicleCollisions, manageTrafficPopulation, manageBikePopulation, manageBusPopulation, manageScooterPopulation, manageMotorPopulation, manageBoatPopulation, updateBoatAI, recordContact, checkVehicleWater, spawnHeroCarNear, tickBurningVehicles, setGroundMap } from './vehicle.js';
 import { spawnPedestriansNear, updatePedestrians, CITY_CENTRE, ejectPassenger } from './pedestrians.js';
 import { updateCombat, updateBullets, gastAanvalUitvoeren, gastSlagLanding } from './combat.js';
@@ -1104,6 +1105,8 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     const frameNoSim = nextSimFrame();
     const farAI = farAIDist();
     // ?simauto (#58): ver weg rijdende gewone auto's worden door de simulatieworker gestuurd (simbridge.js)
+    // #804: per-frame budget voor de eerste padopbouw van nieuwe voertuigen
+    const pathBudget = { left: PATH_BUILDS_PER_FRAME };
     const simCars = FLAGS.simworker && FLAGS.simauto && map.hasRoads() ? getSimBridge(map) : null;
     if (simCars) simCars.updateCars(dt, player, nietBijFoci(world, world.vehicles));
     for (let i = 0; i < world.vehicles.length; i++) {
@@ -1119,7 +1122,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
         if (dd > 150 && stapSlaOver('auto', dd, i, frameNoSim)) { v._simDt = (v._simDt || 0) + dt; continue; }
       }
       const vdt = takeDt(v, dt);
-      updateTrafficAI(v, vdt, map, world, Math.random);
+      updateTrafficAI(v, vdt, map, world, Math.random, { budget: pathBudget });
       resolveVehicleBuildingCollision(v, map, vdt);
     }
     for (const v of world.vehicles) {

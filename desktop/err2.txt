@@ -1,4 +1,0 @@
-[10276:1109/172835.616:ERROR:chrome\browser\process_singleton_win.cc:318] Lock file can not be created: Het systeem kan het opgegeven pad niet vinden. (0x3)
-[10276:1109/172835.649:ERROR:components\viz\host\persistent_cache_sandboxed_file_factory.cc:84] Failed to create cache directory: C:\Users\abuis\AppData\Local\Temp\gde-test-profile\GPUPersistentCache: Toegang geweigerd. (0x5)
-[10276:1109/172835.653:ERROR:components\viz\host\persistent_cache_sandboxed_file_factory.cc:153] Failed to open persistent cache files in directory "C:\Users\abuis\AppData\Local\Temp\gde-test-profile\GPUPersistentCache\DawnGraphiteCache\EVHJJIW32UUHV43E7DVLKJZGSXEDOBKA", error: 2: Toegang geweigerd. (0x5)
-[10276:1109/172835.657:ERROR:net\disk_cache\cache_util_win.cc:25] Unable to move the cache: Het systeem kan het opgegeven pad niet vinden. (0x3)

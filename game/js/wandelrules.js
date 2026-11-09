@@ -7,6 +7,7 @@
 // every extra stop (a bench with a view). The coordinates are approximate
 // and meant to be checked against the map before the route goes in the game.
 import { geo, medalFrom } from './minigamekit.js';
+import { scaleTarget } from './difficulty.js'; // #800
 
 export const STAMP_R = 22;
 export const MAX_STEP = 40; // a jump longer than this in one frame (a teleport or a ride) does not count as walking
@@ -20,6 +21,7 @@ export const STAMPS = [
   { id: 'terug', name: 'Terug bij de brug', lat: 53.33624, lon: 6.51484 },
 ];
 export const PACE_MEDAL_AT = [1.6, 2.6, 3.6]; // m/s average
+export const scaledPaceAt = (mode = 'standaard') => PACE_MEDAL_AT.map((v) => Math.round(scaleTarget(v, mode, false) * 10) / 10); // hoger is beter
 
 export function routePoints() {
   return STAMPS.map((s) => ({ ...s, ...geo(s.lat, s.lon) }));

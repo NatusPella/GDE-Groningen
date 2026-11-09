@@ -13,6 +13,7 @@ import { vehicleHooks } from '../vehiclehooks.js';
 import { hoofdspeler } from '../players.js';
 import { motorRoadAllowed } from '../motortraffic.js';
 import { vehiclesNear } from '../vehicleindex.js';
+import { consumePathBudget } from '../pathbudget.js';
 
 // Wat dit blok uit vehicle.js nodig heeft, komt van buiten: vehicle.js geeft het hier bij het laden
 // door met setTrafficHost. Zo importeert deze module niets terug en blijft de modulecyclus op 0.
@@ -758,6 +759,12 @@ export function updateTrafficAI(v, dt, map, world, rng = Math.random, opts = nul
     } else if (v.liveId) {
       v.liveId = null; v.liveScale = null;      // de echte bus is weg of keerde om: voortaan de eigen dienst
     } else if (out.atStop) v.waitTimer = Math.max(v.waitTimer || 0, out.hold);
+  }
+  // #804: een voertuig zonder pad bouwt dat normaal meteen op; bij een spawngolf
+  // gaat dat via het per-frame budget, anders bouwt de hele golf in één frame.
+  if ((!v._path || v._path.length < 2) && opts && opts.budget && !consumePathBudget(opts.budget)) {
+    v.aiDeferred = (v.aiDeferred || 0) + 1;
+    return;
   }
   const goal = (opts && opts.goal) || null;
   const chase = !!(opts && opts.chase);
