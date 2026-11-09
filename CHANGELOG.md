@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- **De eerste minuten lopen nu vrijwel op volle snelheid: de routegraaf, de verkeerslichten, de straatmeubels en borden en de pedestriasites worden niet meer bij elke gestroomde tegel opnieuw opgebouwd.** Die vier netwerken bouwen pas opnieuw als de tegelstroom rustig is. In de browsertest op een schone machine draaiden de eerste seconden na de opening op ~59 fps in plaats van ~14; de opening zelf blijft het zwaarste stuk.
 ## [0.59.0] - 2026-11-08
 
 - **De geïnstalleerde app start weer (#748).** `guards.cjs` en `httpcache.cjs` zaten niet in het pakket terwijl de main-process ze laadt; de portable/installer stopte met "Cannot find module ./guards.cjs". Een nieuwe packagingtest bewaakt elk lokaal `require()` uit `main.js`.
