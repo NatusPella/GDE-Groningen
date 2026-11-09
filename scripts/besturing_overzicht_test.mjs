@@ -42,7 +42,7 @@ t('de lange uitleg staat niet meer in het overzicht maar op één plek: Hulp', (
 t('er is een tabblad Aanraken met de knoppen op het scherm', () => {
   assert.ok(pm.includes("['aanraken', 'Aanraken']"), 'het tabblad staat onder Besturing');
   assert.ok(pm.includes('data-of="controls" data-sub="aanraken"'), 'het tabblad heeft een eigen paneel');
-  assert.match(pm, /import \{ touchPlan, touchMore \} from '\.\/touchlogic\.js'/, 'de indeling komt uit dezelfde bron als de touchbalk');
+  assert.match(pm, /import \{[^}]*touchPlan[^}]*touchMore[^}]*\} from '\.\/touchlogic\.js'/, 'de indeling komt uit dezelfde bron als de touchbalk');
   assert.match(pm, /function touchOverviewHtml\(\)[\s\S]*?touchPlan\(ctx\)[\s\S]*?touchMore\(ctx\)/, 'het overzicht toont de knoppen en de rest achter Meer');
   for (const ctx of ['foot', 'vehicle', 'heli', 'plane', 'pigeon']) assert.ok(pm.includes(`['${ctx}', '`), `de situatie ${ctx} staat erbij`);
 });
