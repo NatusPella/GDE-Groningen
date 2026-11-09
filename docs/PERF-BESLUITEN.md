@@ -43,6 +43,31 @@ inventarisatie, dan de template-LRU.
 - #654: updateStory ~5x/s i.p.v. 60x/s, missionstory 0 array-allocaties per
   frame per scène, Ommeland-solids 60 -> 4/s.
 
+## Frame pacing (#804, punt 54 en 4)
+
+De bestaande perf-harness (`scripts/perf/hook.js`) meet per rAF-callback de beeldtijd en de CPU-tijd.
+Op de uitvoer van de 0.60.2-build (`hitch-high`, hoog profiel, a7 en spoor) vallen de intervallen
+precies op de vsync-emmers: a7 p25 33,1 / p50 33,4 / p95 133,4 / p99 533,3 / max 1183,5 ms,
+spoor 33,2 / 33,5 / 116,7 / 383,5 / 2250 ms. Dat zijn 2×, 8×, 32× en 135× de 16,7 ms van 60 Hz;
+halve emmers komen in de samenvatting niet voor. De CPU-tijd laat zien waarom: op a7 is de
+mediaan-callback 31,2 ms (p95 108,5) en op spoor 37,0 ms (p95 107,5) — de hoofdthread gaat zelf
+over één beeldbudget, dus de 33,3 ms-emmer is werk en geen planningsfout. De `frame`-sectie
+(53,4/54,0 ms gemiddeld) en `gpuAvg` (27,6/28,6) bevestigen dat een deel wacht is, maar de
+main thread blijft de rem; er is geen rAF- of vsync-bug die zelf hitches toevoegt.
+
+Daarom geen vaste update-stap of accumulator ingevoerd: die verandert de cadans niet en maakt na
+een hapering juist meer update-werk. Wel twee gerichte, geteste wijzigingen:
+
+- **rAF-planning:** `game/js/main.js` vraagt het volgende beeld nu bovenaan de frame-callback aan,
+  vóór al het werk. Een lange staart of een fout in de staart kan de cadans dan niet meer laten
+  stoppen; de oude aanvraag achteraan is weg. Broncheck: `scripts/frame_loop_test.mjs`.
+- **Pacing in de meting:** `scripts/perf/hook.js` geeft bij `H.stop()` een `pacing`-blok mee:
+  intervallen per 60Hz-emmer (1 t/m 4 vsyncs, anders), hoeveel frames de CPU onder/over één en
+  over twee beeldbudgetten zitten, en bij hoeveel frames er vsync-wacht overblijft. Zo kan een
+  volgende run zonder handwerk zien of een hapering in de cadans of in het werk zit. Pure test:
+  `scripts/frame_pacing_test.mjs`. De nieuwe velden verschijnen bij de volgende perf-run; de oude
+  uitvoer blijft geldig en de norm-check leest ze niet.
+
 ## Norm-check (#804)
 
 `node scripts/perf/norm_check.mjs <PERF_OUT>/<naam>.json` leest een bewaarde perf-run en keurt elke route tegen de norm: p95 ≤ 25 ms en max ≤ 100 ms (uit `H.stop()` in `scripts/perf/hook.js`, die avg/p95/p99/max al meelevert), plus — als de run met hitch-probes liep — geen frame boven 50/100 ms (`scripts/perf/normrules.mjs`, getest in `scripts/perf_norm_test.mjs`). Niet-framemetingen zoals `census` en de losse `latentie`-route worden overgeslagen; `latentie` draait alleen met `PERF_ONLY=latentie` en levert zijn eigen ms-p50/p95/max. Zonder hardwaremeting zegt de check niets over de huidige build, maar hij maakt de norm herhaalbaar en CI-waardig. De meting van 5-11 (p95 34-36 ms, uitschieters tot 454 ms, 48/52 frames boven 50 ms) zal er nu op stuklopen: dat is precies de staart die #804 moet dempen.

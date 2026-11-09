@@ -141,7 +141,7 @@ t('#817: carillon, wandeling en regatta tonen hun eigen eenheid', () => {
   assert.match(car, /eenheidAchter: '%'/, 'carillon: procenten zonder spatie');
   assert.match(car, /volgendeTredeRij\(stats, scaledMedalAt\(mode\), accuracy\(s\) \* 100/, 'carillon: geschaalde drempels en nauwkeurigheid maal honderd');
   const wandel = bron('wandeling.js');
-  assert.match(wandel, /PACE_MEDAL_AT, averagePace\(s\)/, 'wandeling: tempo in m/s');
+  assert.match(wandel, /scaledPaceAt\(mode\), averagePace\(s\)/, 'wandeling: tempo in m/s');
   assert.match(wandel, /eenheid: 'm\/s', decimalen: 1/, 'wandeling: één decimaal');
   const reg = bron('regatta.js');
   assert.match(reg, /\[\.\.\.REGATTA\.medaille\]\.reverse\(\)\.map\(\(f\) => f \* rr\.richttijd\)/, 'regatta: omgekeerde factoren maal de richttijd');

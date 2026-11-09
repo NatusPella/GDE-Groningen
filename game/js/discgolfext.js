@@ -8,6 +8,8 @@ import { medalFrom } from './minigamekit.js';
 import { parFor, CIRCLE_M } from './discgolfrules.js';
 
 export const MEDAL_REL_18 = [12, 2, -4];
+import { scaleTargetSignedRound } from './difficulty.js'; // #800
+export const medalRel18For = (mode = 'standaard') => MEDAL_REL_18.map((v) => scaleTargetSignedRound(v, mode, true));
 
 // holes as given by courseHoles(); returns the back nine as holes 10..18
 export function reverseHoles(holes) {
@@ -24,7 +26,10 @@ export function fullRound(holes) {
   return [...holes, ...back];
 }
 
-export const roundMedal = (rel, holes) => medalFrom(rel, holes >= 18 ? MEDAL_REL_18 : [6, 1, -2], true);
+export const roundMedal = (rel, holes, mode = 'standaard') => {
+  const t = holes >= 18 ? medalRel18For(mode) : [6, 1, -2].map((v) => scaleTargetSignedRound(v, mode, true));
+  return medalFrom(rel, t, true);
+};
 
 export const CTP = { throws: 3, maxPoints: 100, bonusInside: 25, falloff: 40 };
 export const CTP_MEDAL_AT = [90, 150, 210];

@@ -89,6 +89,9 @@ function audit(name) {
         inBlock.add(e);
       } else if (inBlock.has(e.parentElement)) inBlock.add(e);
       if ([...e.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim())) {
+        const rb = e.getBoundingClientRect();
+        // sr-only tekst (1x1, clip-path) is geen zichtbare kleine HUD-tekst
+        if (rb.width <= 2 && rb.height <= 2) continue;
         const fs = parseFloat(cs.fontSize) * (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ui')) || 1);
         if (fs < 10.5) small.set(nameOf(e).slice(0, 40), Math.round(fs * 10) / 10);
       }

@@ -561,17 +561,20 @@ function placeWp(slot, c, primary, hold = null) {
     slot.w = 0;
   }
   slot.el.classList.toggle('dim', !!c.dim);
-  // #826: de breedte elke keer meten; een chip die later een langer label krijgt moet ook binnen blijven.
+  // #826: de chip is een label boven/naast de stip; meet hem elke keer en houd hem met zijn
+  // echte hoogte en breedte binnen het scherm (de stip mag dichter bij de rand).
   slot.w = slot.chip.offsetWidth + 40;
-  // screen px -> px inside the zoomed #hud
+  const chipW = slot.chip.offsetWidth || 112, chipH = slot.chip.offsetHeight || 31;
   const ui = getUiScale();
-  const w = slot.w * ui;
+  const w = chipW * ui;
   // #826: flip alleen als de chip links écht past; anders blijft hij rechts en klemt de ouder hem binnen.
   const roomLeft = pos.sx - 26 * ui - w;
   const useFlip = roomLeft >= 8 * ui;
   slot.el.classList.toggle('flip', useFlip);
-  const cx = useFlip ? pos.sx : Math.max(8 * ui, Math.min(window.innerWidth - w - 60 * ui, pos.sx));
-  const cy = Math.max(8 * ui, Math.min(window.innerHeight - 24 * ui, pos.sy));
+  const cx = useFlip ? pos.sx : Math.max(8 * ui, Math.min(window.innerWidth - w - 34 * ui, pos.sx));
+  // de chip hangt boven de stip: zijn onderkant zit 18 px boven de stip, dus de stip moet
+  // minimaal chiphoogte + 18 px + 8 px van de bovenrand blijven.
+  const cy = Math.max((8 + chipH + 18) * ui, Math.min(window.innerHeight - 8 * ui, pos.sy));
   slot.el.style.transform = `translate3d(${(cx / ui).toFixed(1)}px, ${(cy / ui).toFixed(1)}px, 0)`;
   // #826: de bovenstaande marge is een model; meet de echte chip en schuif hem alsnog binnen
   // het scherm (portret, korte labels, ui-schaal).

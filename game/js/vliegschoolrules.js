@@ -18,7 +18,9 @@
 
 import * as B from './vliegbasis.js';
 
+import { scaleTarget } from './difficulty.js'; // #800: lesmedailles per stand
 export const MEDAL_NAMEN = ['', 'Brons', 'Zilver', 'Goud'];
+const schaalGrenzen = (grenzen, mode, lager) => grenzen.map((v) => Number.isInteger(v) ? Math.round(scaleTarget(v, mode, lager)) : Math.round(scaleTarget(v, mode, lager) * 1000) / 1000);
 
 // Wat een toestel nodig heeft: de halve spanwijdte (voor de smalle openingen) en de gewone snelheid.
 export const KIST = {
@@ -403,10 +405,12 @@ function medalje(waarde, grenzen, lager = false) {
 }
 
 // { geslaagd, medaille 0..3, punten, regels: [[label, waarde]], titel }
-export function beoordeel(les, baan, st) {
+export function beoordeel(les, baan, st, mode = 'standaard') {
   const regels = [];
   let medaille = 0, punten = 0;
-  const g = les.grenzen;
+  // #800: de stand schaalt de lesdrempels; Standaard geeft exact de oude waarden.
+  const lager = baan.soort === 'hoveren';
+  const g = schaalGrenzen(les.grenzen, mode, lager);
   switch (baan.soort) {
     case 'ringen':
       medaille = medalje(st.goed, g);
@@ -417,7 +421,7 @@ export function beoordeel(les, baan, st) {
       if (!st.geland) break;
       const d = st.tdAfstand, zacht = st.tdKwaliteit === 'zacht';
       const ok = baan.kist === 'heli' ? d <= baan.merk.r + 1.5 : st.tdOpBaan;
-      const gout = baan.kist === 'heli' ? 2.5 : 25, zilver = baan.kist === 'heli' ? 5 : 60;
+      const [gout, zilver] = schaalGrenzen(baan.kist === 'heli' ? [2.5, 5] : [25, 60], mode, true);
       if (ok) medaille = 1;
       if (ok && ((zacht && d <= zilver) || d <= gout)) medaille = 2;
       if (ok && zacht && d <= gout) medaille = 3;
@@ -645,3 +649,4 @@ export function piloot(les, baan, st, c, env = {}) {
   if (t.uitrol) { k.w = false; k.s = true; k.spatie = false; k.shift = true; k.a = false; k.d = false; }
   return k;
 }
+

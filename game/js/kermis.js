@@ -639,16 +639,16 @@ function end(w, { quit = false } = {}) {
   p.x = g.exit.x; p.y = g.exit.y; p.angle = K.rot;
   if (w.extraSpeakers) w.extraSpeakers = w.extraSpeakers.filter((e) => !e.kermis);
   if (quit) { w.addMessage("Botsauto's: eruit gestapt", 2.5); return; }
-  const mode = g.mode || cleanDifficulty(getSettings().difficulty);
-  const medal = medalOf(g.score, mode);
-  const rec = recordChallengeResult(w, difficultyRecordKey(mode, 'botsauto'), { value: g.score, medal });
+  const gm = g.mode || cleanDifficulty(getSettings().difficulty);
+  const medal = medalOf(g.score, gm);
+  const rec = recordChallengeResult(w, difficultyRecordKey(gm, 'botsauto'), { value: g.score, medal });
   recordStat(w, 'botsautoRides');
   unlockAchievement(w, 'botsauto_klaar');
   if (medal >= 3) unlockAchievement(w, 'botsauto_goud');
   const prize = loopbaanVerdien(w, 'kermis', (PRIZE[medal] || 0) * (g.bonus ? 2 : 1), { xp: 12, n: 1, uniek: 'botsauto' }); // samen spelen (#365), loopbaan (#381)
   const stats = [['Punten', String(g.score)], ['Botsingen', String(g.hits)], ['Langste reeks', `${g.best}`]];
   if (medal) stats.push(['Medaille', MEDALS[medal]]);
-  volgendeTredeRij(stats, MEDAL_AT.slice(1).map((v) => Math.round(scaleTarget(v, mode, false))), g.score, { medal, eenheid: 'punten', eenheid1: 'punt' });
+  volgendeTredeRij(stats, MEDAL_AT.slice(1).map((v) => Math.round(scaleTarget(v, gm, false))), g.score, { medal, eenheid: 'punten', eenheid1: 'punt' });
   if (rec && rec.newBest) stats.push(['Record', 'Nieuw!']);
   showBanner({ kind: medal ? 'pass' : 'fail', title: medal ? 'KONING VAN DE BOTSAUTO\'S' : 'NOG EEN RONDJE?', reason: g.bonus && prize ? 'Kermisavond: dubbel prijzengeld' : '', reward: prize, stats });
 }
@@ -808,5 +808,6 @@ export const KERMIS = {
   },
   runs: () => rides,
 };
+
 
 

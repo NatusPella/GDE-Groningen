@@ -760,8 +760,7 @@ export function updateTrafficAI(v, dt, map, world, rng = Math.random, opts = nul
       v.liveId = null; v.liveScale = null;      // de echte bus is weg of keerde om: voortaan de eigen dienst
     } else if (out.atStop) v.waitTimer = Math.max(v.waitTimer || 0, out.hold);
   }
-  // #804: een voertuig zonder pad bouwt dat normaal meteen op; bij een spawngolf
-  // gaat dat via het per-frame budget, anders bouwt de hele golf in één frame.
+  // #804: een vers voertuig zonder pad gaat via het per-frame budget (spawngolf)
   if ((!v._path || v._path.length < 2) && opts && opts.budget && !consumePathBudget(opts.budget)) {
     v.aiDeferred = (v.aiDeferred || 0) + 1;
     return;

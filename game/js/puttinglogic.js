@@ -32,6 +32,8 @@ export const PITCH_MAX = 62;
 export const PUTT_VMAX = 7.2;
 export const MAX_OVER_PAR = 4;
 export const MEDAL_REL = [7, 3, 0];
+import { scaleTargetSignedRound } from './difficulty.js'; // #800
+export const medalRelFor = (mode = 'standaard') => MEDAL_REL.map((v) => scaleTargetSignedRound(v, mode, true));
 const BOWL = 0.0011;
 
 export const parFor = (len) => (len < 60 ? 2 : 3);
@@ -185,4 +187,4 @@ export function cardTotals(card) {
   return { strokes, par, rel: strokes - par };
 }
 
-export const courseMedal = (rel) => medalFrom(rel, MEDAL_REL, true);
+export const courseMedal = (rel, mode = 'standaard') => medalFrom(rel, medalRelFor(mode), true);

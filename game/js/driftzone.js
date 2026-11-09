@@ -9,9 +9,9 @@ import { toonStartkaart } from './startkaart.js';
 // over the player (the car keeps driving): the activity hub hands it the
 // map icon, the "doen en beleven" list and Ubbo's rows. `window.__drift` debug.
 import { createDrift, stepDrift, driftMedal } from './drift.js';
-import { recordChallengeResult, getChallengeRecord, recordStat, unlockAchievement, MEDALS } from './achievements.js';
 import { getSettings } from './settings.js';
-import { cleanDifficulty, difficultyRecordKey, scaleTimeLimit, scaleTarget } from './difficulty.js'; // #800
+import { cleanDifficulty, difficultyRecordKey, scaleTarget } from './difficulty.js'; // #800
+import { recordChallengeResult, getChallengeRecord, recordStat, unlockAchievement, MEDALS } from './achievements.js';
 import { showCard } from './hudcards.js';
 import { activityBlock, iconDisc } from './activitykit.js';
 import { createRecorder, recordGhost, finishGhost, ghostAt, loadGhost, saveGhost } from './ghostreplay.js';
@@ -95,7 +95,7 @@ function finalize(w, why) {
   drift.cur = 0; drift.chain = false; drift.mult = 1; drift.t = 0; drift.flips = 0; drift.sign = 0; drift.active = false;
   if (pts < 50) return;
   const id = 'drift-' + zone.id;
-  const prev = (getChallengeRecord(difficultyRecordKey(cleanDifficulty(getSettings().difficulty), id)) || {}).medal || 0;
+  const prev = (getChallengeRecord(id) || {}).medal || 0;
   const mode = cleanDifficulty(getSettings().difficulty);
   const at = DRIFT_MEDAL_AT.map((v) => Math.round(scaleTarget(v, mode, false))); // punten: hoger is beter
   const medal = driftMedal(pts, at);

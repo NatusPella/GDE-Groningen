@@ -59,6 +59,28 @@
     }).observe({ type: 'longtask', buffered: false });
   } catch (e) { H.longTaskState = 'unavailable'; }
   H.start = () => { H.frames = []; H.longTasks = []; H.gpuSum = 0; pending.length = 0; H.recording = true; };
+  // #804: frame pacing. De frame-intervallen horen op veelvouden van de schermperiode (16,7 ms bij
+  // 60 Hz) te vallen; valt een interval ertussenin, dan is de cadans niet vsync-gebonden. Daarnaast
+  // laat `cpuBovenEenBeeld` zien of de hoofdthread zelf over het beeldbudget gaat: dan is de volgende
+  // emmer (33,3 ms) onvermijdelijk en is het geen planningsfout maar werk.
+  const pacingStats = (frames) => {
+    const R = 1000 / 60;
+    const dts = [], cpus = [];
+    for (let i = 1; i < frames.length; i++) { dts.push(frames[i][0] - frames[i - 1][0]); cpus.push(frames[i][1]); }
+    const buckets = { een: 0, twee: 0, drie: 0, vier: 0, anders: 0 };
+    for (const d of dts) {
+      let n = 0;
+      for (const k of [1, 2, 3, 4]) if (Math.abs(d - k * R) <= 4) { n = k; break; }
+      if (n === 1) buckets.een++; else if (n === 2) buckets.twee++; else if (n === 3) buckets.drie++; else if (n === 4) buckets.vier++; else buckets.anders++;
+    }
+    let onder = 0, boven = 0, dubbel = 0, wacht = 0;
+    for (let i = 0; i < cpus.length; i++) {
+      if (cpus[i] <= R) onder++; else { boven++; if (cpus[i] > 2 * R) dubbel++; }
+      if (dts[i] - cpus[i] >= 4) wacht++;
+    }
+    return { frames: dts.length, beeldMs: +R.toFixed(1), buckets, cpuOnderEenBeeld: onder, cpuBovenEenBeeld: boven, cpuBovenTweeBeelden: dubbel, metVsyncWacht: wacht };
+  };
+  H.pacing = () => pacingStats(H.frames);
   H.stop = () => {
     H.recording = false;
     if (H.ext) pollGpu();
@@ -74,6 +96,7 @@
       gpuAvg: H.ext ? +(H.gpuSum / Math.max(1, dts.length)).toFixed(2) : null,
       longTasks: H.longTasks.length, longMax: H.longTasks.length ? Math.max(...H.longTasks) : 0,
       over50: dts.filter((d) => d > 50).length, over100: dts.filter((d) => d > 100).length,
+      pacing: pacingStats(f),
     };
   };
 })();

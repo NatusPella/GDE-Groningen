@@ -30,6 +30,8 @@ export const BASKET_R = 0.34;
 export const BASKET_H = 1.45;
 export const CIRCLE_M = 12;
 export const MEDAL_REL = [6, 1, -2];
+import { scaleTargetSignedRound } from './difficulty.js'; // #800
+export const medalRelFor = (mode = 'standaard') => MEDAL_REL.map((v) => scaleTargetSignedRound(v, mode, true));
 
 // vmax in m/s at full power; kd drag, kl lift, turn and fade as stability. The names are Dutch, as a
 // disc golfer says them: the distance disc, the approach disc and the putt.
@@ -233,4 +235,4 @@ export function cardTotals(card) {
   return { strokes, par, rel: strokes - par };
 }
 
-export const courseMedal = (rel) => medalFrom(rel, MEDAL_REL, true);
+export const courseMedal = (rel, mode = 'standaard') => medalFrom(rel, medalRelFor(mode), true);

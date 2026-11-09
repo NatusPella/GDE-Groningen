@@ -5,9 +5,9 @@ de planning** van de laatste opnameronde: welke regels nog moeten, in welke volg
 welke commando's, en wat alleen de eigenaar kan doen. Er is in deze sessie **niets
 opgenomen** en er is **geen sleutel gebruikt**.
 
-## Stand, gecontroleerd na v0.60.2 (9-11-2026)
+## Stand, gecontroleerd na v0.60.1 (9-11-2026)
 
-Na de release v0.60.2 zijn de bronnen opnieuw gecontroleerd; de stand is ongewijzigd:
+Na de release v0.60.1 zijn de bronnen opnieuw gecontroleerd; de stand is ongewijzigd:
 `node scripts/tts_opnamelijst.mjs --check` zegt **actueel** (0 clips klaar, 20 wachtend: 0 stemkeuze,
 20 spreektekst), `node scripts/gronings_open_test.mjs` is **4/4 groen** en
 `node scripts/voice_coverage.mjs --quiet` staat op **2664/2664** (57 regels alleen tekst, vrijgesteld).

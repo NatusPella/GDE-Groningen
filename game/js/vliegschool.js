@@ -10,6 +10,8 @@ import { createBoard, mgThema, key, stopPressed } from './minigamekit.js';
 import { gameUi } from './minigamekit.js';
 import { fitCard } from './hudtext.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, MEDALS } from './achievements.js';
+import { getSettings } from './settings.js';
+import { cleanDifficulty, difficultyRecordKey } from './difficulty.js'; // #800
 import { loopbaanVerdien, loopbaanTel } from './loopbaanlive.js';
 import { medailleBedrag } from './medalrules.js';
 import { assistGate, assistTime } from './assistlive.js';
@@ -188,7 +190,8 @@ function makeEnv(w) {
 
 // --- records, medailles ---------------------------------------------------------------------------------------------------
 const recId = (id) => 'vlieg-' + id;
-const besteMedaille = (id) => { const r = getChallengeRecord(recId(id)); return r ? r.medal || 0 : 0; };
+const recKey = (id) => difficultyRecordKey(cleanDifficulty(getSettings().difficulty), recId(id)); // #800: record per stand
+const besteMedaille = (id) => { const r = getChallengeRecord(recKey(id)); return r ? r.medal || 0 : 0; };
 function stand_van_zaken() {
   let gehaald = 0, goud = 0;
   for (const id of R.LES_IDS) { const m = besteMedaille(id); if (m > 0) gehaald++; if (m === 3) goud++; }
@@ -447,11 +450,12 @@ function eindig(w, { afgebroken = false } = {}) {
   if (!g) return;
   if (g.fase === 'menu' || !g.les) { sluitAlles(w); return; }
   const les = g.les, baan = g.baan, st = g.st;
-  const uit = R.beoordeel(les, baan, st);
+  const stand = cleanDifficulty(getSettings().difficulty);
+  const uit = R.beoordeel(les, baan, st, stand);
   const eerder = besteMedaille(les.id);
   let geld = 0, rec = null, betaal = null;
   if (!afgebroken) {
-    rec = recordChallengeResult(w, recId(les.id), { value: uit.punten, medal: uit.medaille });
+    rec = recordChallengeResult(w, difficultyRecordKey(stand, recId(les.id)), { value: uit.punten, medal: uit.medaille });
     recordStat(w, 'vliegschoolLessen');
     const b = R.beloning(uit.medaille, eerder);
     betaal = b;
@@ -509,7 +513,7 @@ function tekenMenu() {
   const lessen = R.lessenVan(menu.kist);
   const les = lessen[menu.cursor] || lessen[0];
   const m = besteMedaille(les.id);
-  const r = getChallengeRecord(recId(les.id));
+  const r = getChallengeRecord(recKey(les.id));
   board.set({
     row: `<span><b>${les.titel}</b> · ${les.kort}</span>${r && r.best != null ? `<span>Beste <b>${Math.round(r.best)}</b> punten</span>` : ''}${m ? `<span>${R.MEDAL_NAMEN[m]}</span>` : ''}`,
     // #622: korte cellen (nummer + stempel) zodat tien lessen op 1280x720 leesbaar blijven; het rapport staat ernaast.
@@ -700,4 +704,5 @@ export const VLIEGSCHOOL = standActivity({
     };
   },
 });
+
 
