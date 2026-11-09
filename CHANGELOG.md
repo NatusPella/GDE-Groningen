@@ -9,6 +9,10 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- **Mobiel: de contextchip blijft op 360×800 binnen het scherm, en de mobiele meting telt verborgen screenreadertekst (`.hud-mate-txt`) niet meer als kleine HUD-tekst (#826, regressiecontrole 0.60.2).**
+- **De spellus vraagt het volgende beeld nu vóór het werk van dit beeld aan (#804).** Een lange staart of een fout in de staart kan de cadans daardoor niet meer laten stoppen; de perf-meting geeft voortaan ook de frame-emmers en de CPU-druk per beeld mee, zodat een volgende meting wachten van werk kan scheiden.
+- **De startkaart noemt de medaille-eisen nu per moeilijkheidsstand, uit dezelfde schaalbron als het spel (#800).** Op Ontspannen en Uitdagend staan de eisen die de activiteit echt vraagt (punten, seconden, kilo's en procenten, met dezelfde afronding); Standaard blijft exact de oude tekst en de hoverregel/Te-doen gebruiken dezelfde bron.
+
 ## [0.60.2] - 2026-11-09
 
 - **Moeilijkheid werkt nu ook buiten het skatepark: zwembad, klimtoren, carillon, hengelen, pannenkoekenschip, waterski en de fietsronde schalen hun tijdslimiet en medailles per stand, en verhaalmissies hun tijdslimiet, vensters en medaille-eisen (#800).** Standaard is exact het oude gedrag; records staan per stand apart en oude opgeslagen spellen blijven werken.

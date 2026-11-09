@@ -56,7 +56,9 @@ android/android/version.properties
 .test-temp/
 
 # tijdelijke meetbestanden van perf-agents
-.agents/perf-*/
 
 # Electron-foutlogs van testruns (kunnen thuispaden bevatten)
 desktop/err*.txt
+
+# tijdelijke meetbestanden van perf-agents
+.agents/perf-*/

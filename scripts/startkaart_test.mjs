@@ -142,6 +142,53 @@ t('elke start toont de kaart: standactivity, de losse spellen en de diensten', (
   }
 });
 
+// #800: de medaille-eisen op de startkaart komen uit dezelfde schaalbron als het spel, per stand.
+const D = await import(new URL('../game/js/difficulty.js', import.meta.url).href);
+const [RSki, RSwim, RClimb, RPan, RHengel, RCar] = await Promise.all(['skirules.js', 'swimrules.js', 'climbrules.js', 'pannenkoekrules.js', 'hengelrules.js', 'carillonrules.js'].map((f) => import(new URL('../game/js/' + f, import.meta.url).href)));
+t('de medaille-eisen volgen de moeilijkheidsstand via difficulty.js (#800)', () => {
+  // de standaardstand is exact de tabel: geen tekst verandert voor bestaande spelers
+  for (const id of ['carbid', 'kermis', 'drift', 'klimtoren', 'zwembad', 'waterski', 'pannenkoek', 'hengelen', 'carillon']) {
+    assert.deepEqual(S.medaillesVoorStand(id, 'standaard'), STARTKAART[id].medailles, id + ': standaard gelijk aan de tabel');
+  }
+  const verwacht = {
+    carbid: { ontspannen: ['36 punten', '64 punten', '96 punten'], uitdagend: ['56 punten', '100 punten', '150 punten'] },
+    kermis: { ontspannen: ['48 punten', '88 punten', '128 punten'], uitdagend: ['75 punten', '138 punten', '200 punten'] },
+    drift: { ontspannen: ['2.000 punten', '4.000 punten', '7.200 punten'], uitdagend: ['3.125 punten', '6.250 punten', '11.250 punten'] },
+    klimtoren: { ontspannen: ['binnen 1:40', 'binnen 1:00', 'binnen 0:38'], uitdagend: ['binnen 1:04', 'binnen 0:38', 'binnen 0:24'] },
+    zwembad: { ontspannen: ['binnen 2:05', 'binnen 1:35', 'binnen 1:20'], uitdagend: ['binnen 1:20', 'binnen 1:01', 'binnen 0:51'] },
+    waterski: { ontspannen: ['520 punten', '1.040 punten', '1.760 punten'], uitdagend: ['813 punten', '1.625 punten', '2.750 punten'] },
+    pannenkoek: { ontspannen: ['320 punten', '560 punten', '800 punten'], uitdagend: ['500 punten', '875 punten', '1.250 punten'] },
+    hengelen: { ontspannen: ['3,2 kg', '6 kg', '9,6 kg'], uitdagend: ['5 kg', '9,4 kg', '15 kg'] },
+    carillon: { ontspannen: ['40% goed', '60% goed', '74% goed'], uitdagend: ['63% goed', '94% goed', '100% goed'] },
+  };
+  for (const [id, per] of Object.entries(verwacht)) {
+    assert.deepEqual(S.medaillesVoorStand(id, 'ontspannen'), per.ontspannen, id + ': ontspannen');
+    assert.deepEqual(S.medaillesVoorStand(id, 'uitdagend'), per.uitdagend, id + ': uitdagend');
+  }
+  // dezelfde afronding als de regels die de stand al toepassen
+  assert.deepEqual(RSki.scaledMedalAt('ontspannen'), [520, 1040, 1760]);
+  assert.deepEqual(RSwim.scaledMedalAt('ontspannen'), [125, 95, 80]);
+  assert.deepEqual(RClimb.scaledMedalAt('uitdagend'), [64, 38, 24]);
+  assert.deepEqual(RPan.scaledMedalAt('ontspannen'), [320, 560, 800]);
+  assert.deepEqual(RHengel.scaledMedalAt('uitdagend'), [5, 9.4, 15]);
+  assert.deepEqual(RCar.scaledMedalAt('ontspannen'), [0.4, 0.6, 0.736]);
+  // en de kaart, de rijen en de hoverregel gebruiken dezelfde stand
+  assert.match(startkaartRegels('carbid', { difficulty: 'ontspannen' }).join(' | '), /Stand: Ontspannen/);
+  assert.match(startkaartRegels('carbid', { difficulty: 'ontspannen' }).join(' | '), /brons 36 punten/);
+  assert.deepEqual(startkaartRijen('hengelen', { difficulty: 'uitdagend' })[1], ['Medailles', 'brons 5 kg · zilver 9,4 kg · goud 15 kg']);
+  assert.match(startkaartRegel('zwembad', { difficulty: 'ontspannen' }), /brons binnen 2:05/);
+  // niets geschaald? dan blijft de vaste tekst staan
+  // golf is nu ook aangesloten: de par-drempels schuiven mee (#800)
+  assert.deepEqual(S.medaillesVoorStand('discgolf', 'uitdagend'), ['5 boven par', '1 boven par', '3 onder par']);
+  assert.equal(S.medaillesVoorStand('geheimen', 'uitdagend'), null);
+  // en elke regel blijft binnen het hoverbudget, ook op de zwaarste stand
+  for (const mode of D.DIFFICULTY_MODES) for (const id of Object.keys(STARTKAART)) {
+    const regel = startkaartRegel(id, { difficulty: mode });
+    assert.ok(regel.length <= S.MAX_HOVER_CHARS, `${id} (${mode}): ${regel.length} tekens`);
+  }
+});
+
 console.log(`startkaart_test: ${n - fails}/${n}`);
 process.exit(fails ? 1 : 0);
+
 

@@ -6,6 +6,8 @@ import { buildPersonMesh, animatePersonWalk, seatPerson, seatedY, releasePersonG
 import { showBanner } from './cinematics.js';
 import { pushAudioEvent } from './pedgeom.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, MEDALS } from './achievements.js';
+import { getSettings } from './settings.js';
+import { cleanDifficulty, difficultyRecordKey } from './difficulty.js'; // #800
 import { variantVan, variantMedal } from './activiteitvariant.js'; // #673: de tijdattack-variant (snelste ronde)
 import { showCard } from './hudcards.js';
 import { onthullingScene } from './uitjescene.js';
@@ -311,7 +313,7 @@ function nearStand(w) {
 }
 
 function recText() {
-  const rec = getChallengeRecord('kart-race');
+  const rec = getChallengeRecord(difficultyRecordKey(cleanDifficulty(getSettings().difficulty), 'kart-race'));
   return rec && rec.best != null ? `Record: ${fmtTime(rec.best)}${rec.medal ? ' · ' + MEDALS[rec.medal].toLowerCase() : ''}` : null;
 }
 
@@ -646,16 +648,17 @@ function end(w, { quit = false } = {}) {
   const me = g.karts[0];
   const pos = rank.indexOf(me) + 1;
   if (me.finished && pos === 1) w.stats.racesWon++; // #818: solo-race gewonnen (co-op telt de wedstrijdlaag)
-  const medal = me.finished ? positionMedal(pos) : 0;
+  const stand = cleanDifficulty(getSettings().difficulty);
+  const medal = me.finished ? positionMedal(pos, stand) : 0;
   const total = me.finished ? me.finishT : null;
   const lap = bestLap(me);
   let newBest = false;
   if (total != null) {
-    const rec = recordChallengeResult(w, 'kart-race', { value: total, medal, lower: true });
+    const rec = recordChallengeResult(w, difficultyRecordKey(stand, 'kart-race'), { value: total, medal, lower: true });
     newBest = !!(rec && rec.newBest);
   }
   if (total != null && saveGhost(ghostStore(), 'kart-ulrum', finishGhost(g.rec, total), KEYS.ghosts)) w.addMessage('Je beste race is bewaard: de spookkart rijdt hem de volgende keer mee', 4);
-  if (lap != null) recordChallengeResult(w, 'kart-lap', { value: lap, medal: variantMedal(variantVan('kart-tijdattack'), lap), lower: true }); // #673: de tijdattack heeft een eigen medaille
+  if (lap != null) recordChallengeResult(w, difficultyRecordKey(stand, 'kart-lap'), { value: lap, medal: variantMedal(variantVan('kart-tijdattack'), lap), lower: true }); // #673: de tijdattack heeft een eigen medaille
   recordStat(w, 'kartRaces');
   const xpRace = me.finished ? 16 - pos * 2 : 6;
   const premie = loopbaanVerdien(w, 'race', me.finished ? ([0, 30, 20, 12, 6][pos] || 0) : 0, { xp: xpRace, n: 1, uniek: 'kart' }); // loopbaan (#381)
@@ -888,7 +891,7 @@ export const KARTBAAN = {
   mapSub: () => recText() || 'Karten in Ulrum: drie ronden tegen drie rijders',
   ubbo(w) {
     const d = Math.hypot(STAND.x - hoofdspeler(w).x, STAND.y - hoofdspeler(w).y);
-    const rec = getChallengeRecord('kart-race');
+    const rec = getChallengeRecord(difficultyRecordKey(cleanDifficulty(getSettings().difficulty), 'kart-race'));
     return { name: 'Karten in Ulrum', sub: rec && rec.medal ? `record: ${MEDALS[rec.medal].toLowerCase()}` : 'drie ronden, gratis', dist: d, x: STAND.x, y: STAND.y, play: 'kartbaan', where: 'de kartbaan in Ulrum', hint: 'loop naar de kassa en druk E' };
   },
   runs: () => runs,

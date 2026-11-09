@@ -837,8 +837,12 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
   const tileFollow = {};
   let pedTimer = 0;
   function frame(now) {
+    // #804: plan het volgende beeld meteen, vóór al het werk van dit beeld. Een lange staart (of een
+    // fout in de staart) kan de aanvraag dan niet meer overslaan; de browser houdt de cadans vast en
+    // de volgende frame staat al klaar zodra deze callback klaar is.
+    requestAnimationFrame(frame);
     const zuinig = getSettings().zuinig;
-    if (zuinig && skipFrame(now - last)) { requestAnimationFrame(frame); return; }
+    if (zuinig && skipFrame(now - last)) return;
     const frameMs = now - last;
     const dt = Math.min(0.05, frameMs / 1000);
     // Het bewuste wachten van de zuinige modus is geen traag beeld (#561): de adaptieve kwaliteit
@@ -861,7 +865,6 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     frameStats.workMs = performance.now() - t0;
     frameStats.frameMs = frameMs;
     frameStats.at = performance.now();
-    requestAnimationFrame(frame);
   }
 
   function blackFrameState() {

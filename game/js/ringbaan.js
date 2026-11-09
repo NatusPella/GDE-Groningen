@@ -49,7 +49,8 @@ export function gridRij(k) {
 
 // De solo-race geeft een medaille naar plek, zoals de oude ringrace: winnen is
 // goud. Wie niet op het podium komt krijgt geen medaille.
-export const medailleVoorPlek = (plek) => (plek === 1 ? 3 : plek === 2 ? 2 : plek === 3 ? 1 : 0);
+import { positionMedalFor } from './medalrules.js'; // #800
+export const medailleVoorPlek = (plek, mode = 'standaard') => positionMedalFor(plek, mode);
 export const PRIJZEN_RING = [0, 250, 150, 80, 30]; // geld per plek, in het eigen geld van de speler
 export const prijsVoorPlek = (plek) => PRIJZEN_RING[plek] | 0;
 export const xpVoorPlek = (plek) => Math.max(4, 20 - (plek | 0) * 3); // loopbaanpunten, ook voor plek 4 en lager

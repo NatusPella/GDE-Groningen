@@ -6,6 +6,7 @@
 // Puur (geen DOM, geen opslag) zodat de economie- en prestatietests hem dekken; de uitslagen van de
 // activiteiten (discgolf, kartbaan, skatepark, ...) en de missiebeloning gebruiken dezelfde regels.
 import { medalBonus, PG_PRIZE } from './economy.js';
+import { cleanDifficulty } from './difficulty.js'; // #800: plaatsmedailles per stand
 
 export const MEDAILLES = ['geen medaille', 'Brons', 'Zilver', 'Goud'];
 
@@ -105,6 +106,16 @@ export function volgendeTredeRij(stats, drempels, waarde, { medal = null, ...opt
   const r = volgendeTrede(drempels, waarde, opts);
   if (r && !r.klaar && !r.onbekend && r.tekst) stats.push(['Volgende trede', r.tekst]);
   return stats;
+}
+
+// #800: de plaatsmedaille per stand. Standaard is exact de oude regel (1/2/3); Ontspannen geeft
+// brons ook voor de vierde plek, Uitdagend alleen de eerste twee plekken.
+export function positionMedalFor(pos, mode = 'standaard') {
+  const p = Math.floor(Number(pos));
+  if (!(p > 0)) return 0;
+  const m = cleanDifficulty(mode);
+  const grens = m === 'ontspannen' ? [4, 3, 2] : m === 'uitdagend' ? [2, 1, 1] : [3, 2, 1];
+  return p <= grens[2] ? 3 : p <= grens[1] ? 2 : p <= grens[0] ? 1 : 0;
 }
 
 // Voor een klassering (kartbaan, ringrace): de volgende plek tot zilver of goud.

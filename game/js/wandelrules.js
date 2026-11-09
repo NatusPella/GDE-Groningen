@@ -21,7 +21,8 @@ export const STAMPS = [
   { id: 'terug', name: 'Terug bij de brug', lat: 53.33624, lon: 6.51484 },
 ];
 export const PACE_MEDAL_AT = [1.6, 2.6, 3.6]; // m/s average
-export const scaledPaceAt = (mode = 'standaard') => PACE_MEDAL_AT.map((v) => Math.round(scaleTarget(v, mode, false) * 10) / 10); // hoger is beter
+// #800: de stand schaalt de pacelimieten; Standaard geeft exact de oude waarden.
+export const scaledPaceAt = (mode = 'standaard') => PACE_MEDAL_AT.map((v) => Math.round(scaleTarget(v, mode, false) * 10) / 10);
 
 export function routePoints() {
   return STAMPS.map((s) => ({ ...s, ...geo(s.lat, s.lon) }));
@@ -60,9 +61,9 @@ export function stepWalk(st, pos, dt) {
 
 export const averagePace = (st) => (st.t > 0 ? st.dist / st.t : 0);
 // a pace is only worth a medal when most of the route was actually walked
-export function walkMedal(st, length = routeLength(st.pts)) {
+export function walkMedal(st, length = routeLength(st.pts), mode = 'standaard') {
   if (st.phase !== 'done' || st.dist < length * 0.8) return 0;
-  return medalFrom(averagePace(st), PACE_MEDAL_AT);
+  return medalFrom(averagePace(st), scaledPaceAt(mode));
 }
 
 // which stamp to head for, and how far (for the HUD arrow)
@@ -71,3 +72,5 @@ export function nextTarget(st, pos) {
   if (!t) return null;
   return { id: t.id, name: t.name, dist: Math.hypot(t.x - pos.x, t.y - pos.y), bearing: Math.atan2(t.y - pos.y, t.x - pos.x) };
 }
+
+

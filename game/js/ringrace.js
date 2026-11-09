@@ -18,6 +18,8 @@ import { createRace, updateRace, disposeRace, buildTrack, sample, racewagenModel
 import { createBoard, key, fmtTime, stopPressed, gameUi, mgThema } from './minigamekit.js';
 import { activityBlock, iconDisc } from './activitykit.js';
 import { getChallengeRecord, recordChallengeResult, MEDALS } from './achievements.js';
+import { getSettings } from './settings.js';
+import { cleanDifficulty, difficultyRecordKey } from './difficulty.js'; // #800
 import { loopbaanVerdien } from './loopbaanlive.js';
 import { hoofdspeler } from './spelersregister.js';
 import { lichaamVan, bestuurInstappenIn, bestuurLos } from './coopbestuur.js';
@@ -242,8 +244,9 @@ function finish(w, { quit = false, extern = false, teLang = false, uitslag = nul
   if (quit) { w.addMessage('Ringrace gestopt', 2.5); return true; }
   const plek = teLang ? 0 : (r.race.playerPos || 0);
   if (plek === 1) w.stats.racesWon++; // #818: solo-race gewonnen (co-op telt de wedstrijdlaag)
-  const medal = medailleVoorPlek(plek);
-  const rec = teLang ? null : recordChallengeResult(w, 'ringrace', { value: r.t, medal, lower: true });
+  const stand = cleanDifficulty(getSettings().difficulty);
+  const medal = medailleVoorPlek(plek, stand);
+  const rec = teLang ? null : recordChallengeResult(w, difficultyRecordKey(stand, 'ringrace'), { value: r.t, medal, lower: true });
   const geld = prijsVoorPlek(plek);
   const premie = loopbaanVerdien(w, 'race', geld, { xp: xpVoorPlek(plek || 5), n: 1, uniek: 'ringrace' }); // loopbaan (#381)
   const stats = [['Plaats', plek ? `${plek} van ${r.race.rivals.length + 1}` : 'niet gefinisht'], ['Tijd', fmt(r.t)]];

@@ -272,7 +272,8 @@ export function bestInput(k, track) {
   return { ...i, drift: c > 0.022 && k.f > 14 && Math.abs(i.steer) > 0.35 };
 }
 
-export const positionMedal = (pos) => (pos === 1 ? 3 : pos === 2 ? 2 : pos === 3 ? 1 : 0);
+import { positionMedalFor } from './medalrules.js'; // #800
+export const positionMedal = (pos, mode = 'standaard') => positionMedalFor(pos, mode);
 
 // Race order: finishers by finish time, the rest by distance driven.
 export function rankKarts(karts) {

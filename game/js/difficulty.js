@@ -36,6 +36,23 @@ export function scaleTarget(value, mode, lowerBetter = true) {
   return lowerBetter ? value * f : value / f;
 }
 
+// Zoals scaleTarget, maar bij een drempel onder nul (golf: slagen onder par) telt een ruimere
+// stand richting nul: minder onder par is makkelijker, niet strenger.
+export function scaleTargetSigned(value, mode, lowerBetter = true) {
+  if (!Number.isFinite(value)) return value;
+  if (lowerBetter && value < 0) return value / difficultyFactors(mode).target;
+  return scaleTarget(value, mode, lowerBetter);
+}
+
+// Dezelfde schaal, maar afgerond: een negatieve drempel (golf onder par) rondt richting nul,
+// zodat een ruimere stand hem minder streng maakt in plaats van strenger.
+export function scaleTargetSignedRound(value, mode, lowerBetter = true) {
+  const x = scaleTargetSigned(value, mode, lowerBetter);
+  if (!Number.isFinite(x)) return x;
+  const f = difficultyFactors(mode).target;
+  return x < 0 ? (f > 1 ? Math.ceil(x) : Math.floor(x)) : Math.round(x);
+}
+
 // Een record-/medaillesleutel per stand. Standaard houdt de bestaande sleutel,
 // zodat bestaande records niet verdwijnen; de andere standen krijgen een prefix.
 export function difficultyRecordKey(mode, id) {
@@ -47,3 +64,4 @@ export function difficultyRecordKey(mode, id) {
 export function combinedTimeFactor(mode, settings = {}) {
   return difficultyFactors(mode).time * assistFactors(settings).time;
 }
+

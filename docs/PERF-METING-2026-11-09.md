@@ -223,6 +223,35 @@ aangepast; de road-cap en de populatie-verdenking zijn nu wel correct gemeten.
 De submarks blijven in de build staan zodat de volgende run dezelfde indeling
 houdt.
 
+## Vervolg: traffic-burst-budget (#804, demper 1)
+
+Na de correcte meting was de tweede echte bron `traffic` (piek 274 ms op a7):
+na een spawngolf bouwden tientallen nieuwe voertuigen in hetzelfde frame hun
+pad op. Nieuw: `game/js/pathbudget.js` (`consumePathBudget`, 4 eerste
+padopbouwen per frame), meegegeven vanuit `main.js` aan de verkeerslus;
+`traffic.js` laat een vers voertuig zonder budget één frame wachten
+(`v.aiDeferred`) en pakt het de volgende frame op. `scripts/pathbudget_test.mjs`
+bewaakt de cap en de bedrading (6/6).
+
+Meting opnieuw geprobeerd (a7, 8-12 s, `--hitch`, stage v0.60.2), maar de
+machine was bezet: **8-9 Electron-processen van andere agents** stonden de hele
+periode aan; runs duurden 125-210 s voor 8-12 s route en de laatste run kwam
+niet eens door (PARTIAL). De cijfers zijn daarom niet vergelijkbaar met de
+stille reeks:
+
+| run (a7) | gem. ms | p95 | max | traffic-piek | roads-piek | cityprops-piek |
+|---|---:|---:|---:|---:|---:|---:|
+| vorige ronde (rustiger) | 24,3 | 50 | 833 | 274 | 398 | 235 |
+| na budget (bezet) | 34,4 | 83,2 | 1267 | **163,5** | 321 | 288 |
+
+De traffic-piek daalt in deze bezette run naar 163 ms (-40%) terwijl de machine
+drukker was; dat is een aanwijzing, geen bewijs. Een stille herhaling is nodig
+voor de acceptatie. De overige twee dempers uit de meting (cityprops-dichte cel
+235 ms en de eerste koude/heavy weg ~400 ms) zijn **niet** aangepast: dat zou
+zonder stille meting speculatief zijn. Plan: eerst een rustige run (geen andere
+Electron/agents, CPU < 2%) met dezelfde routes, daarna cityprops-cel splitsen en
+de heavy weg uitstellen/prewarmen, elk met een eigen voor/na-meting.
+
 ## Reproduceren
 
 ```

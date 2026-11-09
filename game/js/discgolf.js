@@ -7,6 +7,8 @@ import { getScene } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
 import { showBanner } from './cinematics.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, MEDALS } from './achievements.js';
+import { getSettings } from './settings.js';
+import { cleanDifficulty, difficultyRecordKey, scaleTargetSignedRound } from './difficulty.js'; // #800
 import { showCard } from './hudcards.js';
 import { isInWater, pointInPolygon } from './util.js';
 import { activityBlock, iconDisc } from './activitykit.js';
@@ -260,7 +262,7 @@ function nearStand(w) {
 }
 
 function recText() {
-  const rec = getChallengeRecord('discgolf');
+  const rec = getChallengeRecord(difficultyRecordKey(cleanDifficulty(getSettings().difficulty), 'discgolf'));
   return rec && rec.best != null ? `Record: ${relText(rec.best)} t.o.v. par${rec.medal ? ' · ' + MEDALS[rec.medal].toLowerCase() : ''}` : null;
 }
 
@@ -550,8 +552,9 @@ function end(w, { quit = false, extern = false, uitslag = null } = {}) {
   if (g.ctp) { endCtp(w, g); setCourse(BASE); return; }
   const t = cardTotals(g.card);
   const mode = MODES.find((m) => m.id === g.mode) || MODES[0];
-  const medal = g.mode === 'negen' ? courseMedal(t.rel) : roundMedal(t.rel, COURSE.length);
-  const rec = recordChallengeResult(w, mode.rec, { value: t.rel, medal, lower: true });
+  const stand = cleanDifficulty(getSettings().difficulty);
+  const medal = g.mode === 'negen' ? courseMedal(t.rel, stand) : roundMedal(t.rel, COURSE.length, stand);
+  const rec = recordChallengeResult(w, difficultyRecordKey(stand, mode.rec), { value: t.rel, medal, lower: true });
   if (g.mode === 'achterkant') unlockAchievement(w, 'discgolf_achterkant');
   if (g.mode === 'achttien') unlockAchievement(w, 'discgolf_achttien');
   recordStat(w, 'discgolfRounds');
@@ -560,7 +563,7 @@ function end(w, { quit = false, extern = false, uitslag = null } = {}) {
   const stats = [['Worpen', String(t.strokes)], ['Par', String(t.par)], ['Score', relText(t.rel)]];
   if (g.card.aces) stats.push(['Aces', String(g.card.aces)]);
   if (medal) stats.push(['Medaille', MEDALS[medal]]);
-  volgendeTredeRij(stats, g.mode === 'achttien' ? MEDAL_REL_18 : MEDAL_REL, t.rel, { medal, lager: true, eenheid: 'slagen', eenheid1: 'slag' });
+  volgendeTredeRij(stats, (g.mode === 'achttien' ? MEDAL_REL_18 : MEDAL_REL).map((v) => scaleTargetSignedRound(v, stand, true)), t.rel, { medal, lager: true, eenheid: 'slagen', eenheid1: 'slag' });
   if (rec && rec.newBest) stats.push(['Record', 'Nieuw!']);
   showBanner({ kind: medal ? 'pass' : 'fail', title: medal >= 3 ? 'ONDER PAR IN HET STADSPARK' : medal ? 'NETTE RONDE' : 'DE EENDEN HEBBEN GEWONNEN', reason: medal ? `${relText(t.rel)} t.o.v. par over ${COURSE.length === 9 ? 'negen' : COURSE.length} banen` : 'Probeer het nog eens: kijk naar de wind en de vlag', reward: 0, stats });
   say(w, medal >= 2 ? 'endGood' : 'endPoor', true, true);
@@ -784,7 +787,7 @@ export const DISCGOLF = {
   mapSub: () => recText() || 'Discgolf: negen banen in het Stadspark',
   ubbo(w) {
     const d = Math.hypot(STAND.x - hoofdspeler(w).x, STAND.y - hoofdspeler(w).y);
-    const rec = getChallengeRecord('discgolf');
+    const rec = getChallengeRecord(difficultyRecordKey(cleanDifficulty(getSettings().difficulty), 'discgolf'));
     return { name: 'Discgolf Stadspark', sub: rec && rec.medal ? `record: ${MEDALS[rec.medal].toLowerCase()}` : 'negen banen, gratis', dist: d, x: STAND.x, y: STAND.y, play: 'discgolf', where: 'de eerste tee in het Stadspark', hint: 'loop naar de tee en druk E' };
   },
   runs: () => runs,

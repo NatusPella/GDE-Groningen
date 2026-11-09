@@ -1,7 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { volgendeTredeRij } from './medalrules.js';
 import { getSettings } from './settings.js';
-import { cleanDifficulty, difficultyRecordKey, scaleTimeLimit, scaleTarget } from './difficulty.js'; // #800
+import { cleanDifficulty, difficultyRecordKey, scaleTarget } from './difficulty.js'; // #800
 import { toonStartkaart } from './startkaart.js';
 import { createBoard, mgThema } from './minigamekit.js';
 import { getScene } from './scene3d.js';
@@ -566,7 +566,7 @@ function end(w, { quit = false } = {}) {
   const prize = loopbaanVerdien(w, 'buiten', PRIZE[medal] || 0, { xp: 12, n: 1, uniek: 'carbid' }); // samen spelen (#365), loopbaan (#381)
   const stats = [['Punten', String(g.score)], ['Raak', String(g.hits)], ['Verste schot', `${g.best} m`]];
   if (medal) stats.push(['Medaille', MEDALS[medal]]);
-  volgendeTredeRij(stats, MEDAL_AT.slice(1).map((v) => Math.round(scaleTarget(v, mode, false))), g.score, { medal, eenheid: 'punten', eenheid1: 'punt' });
+  volgendeTredeRij(stats, MEDAL_AT.slice(1), g.score, { medal, eenheid: 'punten', eenheid1: 'punt' });
   if (rec && rec.newBest) stats.push(['Record', 'Nieuw!']);
   showBanner({ kind: medal ? 'pass' : 'fail', title: medal ? 'KNAL IN DE POLDER' : 'VEEL RUIS, WEINIG KNAL', reason: medal >= 2 ? 'Boer Roelf knikt. Dat is veel.' : '', reward: prize, stats });
   say(w, medal >= 2 ? 'Roelf' : 'Hilje', medal >= 2 ? 'endGood' : 'endPoor', true);

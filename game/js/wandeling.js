@@ -11,7 +11,7 @@ import { createBoard, mgThema, key, bubble, clearBubbles, pick, fmtTime } from '
 import { WANDEL_LINES } from './minigamelines3.js';
 import { registerQuitHook } from './busy.js';
 import { hoofdspeler } from './players.js';
-import { STAMPS, routePoints, routeLength, createWalk, stepWalk, averagePace, walkMedal, nextTarget, PACE_MEDAL_AT } from './wandelrules.js';
+import { STAMPS, routePoints, routeLength, createWalk, stepWalk, averagePace, walkMedal, nextTarget, PACE_MEDAL_AT, scaledPaceAt } from './wandelrules.js';
 
 // Wandeling Winsum (the Pieterpad at Winsum): an activity that does NOT take
 // over the player. E at the first stamp post starts the walk; you walk (or
@@ -166,4 +166,5 @@ export const WANDELING = {
     return { name: 'Wandeling Winsum', sub: 'vijf stempelposten langs de dijk, gratis', dist: Math.hypot(START.x - hoofdspeler(w).x, START.y - hoofdspeler(w).y), x: START.x, y: START.y, play: 'wandeling', where: 'Winsum', hint: 'loop naar de eerste paal en druk E' };
   },
 };
+
 
