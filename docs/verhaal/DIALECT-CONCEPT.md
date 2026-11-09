@@ -2,11 +2,13 @@
 
 Gegenereerd door `node scripts/gronings_concept_doc.mjs` uit `scripts/gronings_spoken_draft.json`; niet met de hand aanpassen.
 
-Voor 589 verhaalregels die nog ingesproken moeten worden bestond geen Groningse spreektekst. Hieronder staat per stap het concept: links de ondertitel zoals het spel hem toont, rechts wat de stem zou inspreken. 521 regels zijn omgezet, 68 blijven gelijk aan de ondertitel (korte uitroepen, namen, citaten) — die conventie bestaat al in `gronings_spoken.json`.
+Voor 577 verhaalregels die nog ingesproken moeten worden bestond geen Groningse spreektekst. Hieronder staat per stap het concept: links de ondertitel zoals het spel hem toont, rechts wat de stem zou inspreken. 511 regels zijn omgezet, 66 blijven gelijk aan de ondertitel (korte uitroepen, namen, citaten) — die conventie bestaat al in `gronings_spoken.json`.
 
 **Er is nog niets opgenomen en niets samengevoegd.** Dit is een voorstel: lees het na, verbeter wat niet klopt, en pas daarna gaan deze regels mee in een opnameronde. De spelling volgt de bestaande paren in `scripts/gronings_spoken.json`, niet een eigen systeem.
 
 Bijwerken: verbeter de rechterkolom in `scripts/gronings_spoken_draft.json` (de sleutel links blijft precies gelijk). Daarna voegt `node scripts/gronings_merge_draft.mjs --write` het geheel samen met de bestaande tabel; zonder `--write` laat dat script alleen zien wat er zou veranderen.
+
+De verhaalregels waarvan **nog geen enkel concept** bestaat, staan in [`GRONINGS-20-SPREEKTEKSTEN.md`](GRONINGS-20-SPREEKTEKSTEN.md): de open lijst met per regel wat een kenner moet beslissen. Daar staat geen gegenereerd dialect in.
 
 ## Eerst deze 67 nakijken
 
@@ -93,19 +95,14 @@ Bijwerken: verbeter de rechterkolom in `scripts/gronings_spoken_draft.json` (de 
 | C00.2 | Tammo | En tot die tijd? Hier past geen frietwagen. | En tot dij tied? Hier past gain frietwagen. |
 | C00.3 | Tammo | Honderdvijftig euro. Vandaag. | Honderdvieftig euro. Vandoage. |
 
-## M01 · 19 regels
+## M01 · 14 regels
 
 | Scène | Spreker | Ondertitel (blijft) | Spreektekst (concept) |
 |---|---|---|---|
 | M01.1 | Berend Bos | Mijn arm zit in het gips. Mijn bakkie, mijn pick-up, moet naar mijn zus, aan het Boterdiep. Vijftig euro voor wie hem brengt. | Mien arm zit in t gips. Mien bakkie, mien pick-up, mout noar mien zus, aan t Boterdiep. Vieftig euro veur wel hom brengt. |
 | M01.1 | Berend Bos | Nul krassen. Of ik tel ze. | Nul krassen. Of ik tel ze. *(gelijk)* |
-| M01.1 | Tammo | Berend geeft complimenten op een ladder. "Goidag" is trede één. | Berend geeft complimenten op n ladder. "Goidag" is trede ain. |
-| M01.1 | Tammo | "Kon minder." Daarboven zwijgt hij. Daar is nog niemand gekomen. | "Kon minder." Doarboven zwijgt hai. Doar is nog niemand komen. |
-| M01.1 | Berend Bos | Ik zit in het gips, niet in een doos. Ik hoor alles. | Ik zit in t gips, nait in n doos. Ik heur aals. |
 | M01.2 | Jelmer | Moi moi! Kiekdoar hier. Je reageerde op mijn oproep: stuntrijder met een bakkie. Ik wil vanavond content op de Grote Markt. | Moi moi! Kiekdoar hier. Doe reageerde op mien oproep: stuntrijder mit n bakkie. Ik wil vanoavend content op de Grote Markt. |
 | M01.2 | Jelmer | Haal vijftienhonderd stuntpunten, dan betaal ik honderdvijftig euro. | Haal vieftienhonderd stuntpunten, dan betoal ik honderdvieftig euro. |
-| M01.2 | Tammo | Stunten in Berends bakkie. | Stunten in Berends bakkie. *(gelijk)* |
-| M01.2 | Tammo | Dat is geen stunt. Dat is een ramp met regels. | Dat is gain stunt. Dat is n ramp mit regels. |
 | M01.4 | Jelmer | Chat, kijk die parasol! Die was van het terras. Nu is hij content! | Chat, kiek dij parasol! Dij was van t terras. Nou is hai content! |
 | M01.4 | Tammo | Alleen spullen. | Aleen spullen. |
 | M01.4 | Berend Bos | Goidag. Ik kijk mee op Kiekdoar. Ik hoor een parasol kraken. Dat klinkt als een kras. | Goidag. Ik kiek mee op Kiekdoar. Ik heur n parasol kraken. Dat klinkt as n kras. |
@@ -131,7 +128,7 @@ Bijwerken: verbeter de rechterkolom in `scripts/gronings_spoken_draft.json` (de 
 | M02.5 | Tammo | Waarom vraagt een snackbaron naar alarmen? | Woarom vroagt n snackbaron noar alarmen? |
 | M02.5 | Tammo | Dan eerst het Loket. | Dan aarst t Loket. |
 
-## M03 · 24 regels
+## M03 · 22 regels
 
 | Scène | Spreker | Ondertitel (blijft) | Spreektekst (concept) |
 |---|---|---|---|
@@ -154,8 +151,6 @@ Bijwerken: verbeter de rechterkolom in `scripts/gronings_spoken_draft.json` (de 
 | M03.3 | Loketbediende | Loket B is nu loket A. | Loket B is nou loket A. |
 | M03.3 | Tammo | Een draaimolen. | N draaimolen. |
 | M03.4 | Loketbediende | Gefeliciteerd. U bent ingeschreven voor de Noordelijke Snackprijs, met wagen. Zonder wagen vervalt uw inschrijving. | Gefeliciteerd. U bent ingeschreven veur de Noordelijke Snackprijs, mit wagen. Zonder wagen vervalt uw inschrijving. |
-| M03.4 | Tammo | Dan wint Jelle. | Dan wint Jelle. *(gelijk)* |
-| M03.4 | Tammo | Waarom bellen we het museum niet? | Woarom bellen wie t museum nait? |
 | M03.4 | Tammo | Wij stelen de Gouden Eierbal. | Wie stelen de Gouden Eierbal. |
 | M03.4 | Duivenmelker Bert | Tammo. Bert, van de duiven. Er staat elke nacht een zwarte trekker bij het museum, met een limousine erachter. | Tammo. Bert, van de duven. Der stait elke nacht n zwarte trekker bie t museum, mit n limousine derachter. |
 | M03.5 | Loketbediende | Weer bij ons? Loket B is nog steeds Loket C. | Weer bie ons? Loket B is nog aaltied Loket C. |
@@ -220,7 +215,7 @@ Bijwerken: verbeter de rechterkolom in `scripts/gronings_spoken_draft.json` (de 
 | M07.2 | Tammo | Ik draai als een tankwagen. | Ik draai as n tankwagen. |
 | M07.5 | Snackbarhouder | Nog een tank? Voor jou zet ik de friteuse open. | Nog n tank? Veur die zet ik de friteuse open. |
 
-## M08 · 12 regels
+## M08 · 9 regels
 
 | Scène | Spreker | Ondertitel (blijft) | Spreektekst (concept) |
 |---|---|---|---|
@@ -230,11 +225,8 @@ Bijwerken: verbeter de rechterkolom in `scripts/gronings_spoken_draft.json` (de 
 | M08.2 | Tammo | Weer die twee. | Weer dij twij. |
 | M08.3 | Oma Trijntje | 1953. Dat ik won, weet je. Wat je niet weet: tweede werd een Fries meisje. Gerda Terpstra. Haar eierbal was beter. Ik wist het, zij wist het. De jury wist het niet. | 1953. Dat ik won, wait doe. Wat doe nait wait: tweede werd n Fries wicht. Gerda Terpstra. Heur eierbal was beter. Ik wus t, zai wus t. De jury wus t nait. |
 | M08.3 | Tammo | Foar mem. Mem is Gerda. | Foar mem. Mem is Gerda. *(gelijk)* |
-| M08.3 | Tammo | Je kijkt raar. | Je kiekt raar. |
 | M08.3 | Oma Trijntje | Het recept van 1953 had vijf dingen van vijf vrienden: vet, eieren, zout, meel en mosterd. Jelle koopt ze allemaal. Hier is het lijstje. | t Recept van 1953 har vief dingen van vief vrienden: vet, aaien, zout, meel en mosterd. Jelle koopt ze allemoal. Hier is t lijstje. |
 | M08.3 | Oma Trijntje | Ik weet waar hij was. In een vitrine. | Ik wait woar hai was. In n vitrine. |
-| M08.3 | Tammo | Jelle zegt: bij hem. | Jelle zegt: bie hom. |
-| M08.3 | Oma Trijntje | Jelle zegt veel. | Jelle zegt veul. |
 | M08.3 | Oma Trijntje | Eerst Geesje, in Warffum. Zij heeft de eieren. Zeg dat ik je stuur. | Aarst Geesje, in Warffum. Zai het de aaien. Zeg dat ik die stuur. |
 
 ## T1 · 2 regels
@@ -694,15 +686,13 @@ Bijwerken: verbeter de rechterkolom in `scripts/gronings_spoken_draft.json` (de 
 | M25.4 | Oma Trijntje | Dan hoef ik niet te bellen. | Dan hoef ik nait te bellen. |
 | R5.2 | Rikus | De peiling staat al twee weken open: zeggen die twee Stadjers ooit wat ze voelen? Drie procent zegt ja. | De peiling stait al twij weken open: zeggen dij twij Stadjers ooit wat ze voelen? Drij procent zegt jo. |
 
-## M26 · 40 regels
+## M26 · 38 regels
 
 | Scène | Spreker | Ondertitel (blijft) | Spreektekst (concept) |
 |---|---|---|---|
 | M26.2 | Berend Bos | Voor iedereen. De beste eierbal wint de standplaats. De Gouden Eierbal zelf gaat terug naar het museum. Dat zijn twee aparte dingen. | Veur ieder. De beste eierbal wint de standplaats. De Gouden Eierbal zulf goat terug noar t museum. Dat binnen twij aparte dingen. |
-| M26.2 | Berend Bos | Dat is een bewijs. Ik bewaar het. | Dat is n bewijs. Ik bewoar t. |
 | M26.2 | Berend Bos | Regel een: wie partij is, zit niet voor. Dat is Jelle. | Regel ain: wel partij is, zit nait veur. Dat is Jelle. |
 | M26.2 | Berend Bos | Regel twee: mevrouw Hoving zit nog in de trein, met volpension. Dan zit het oudste jurylid voor. Dat ben ik. Ik heb nog nooit iets gewonnen en nu moet ik oordelen. | Regel twij: mevrouw Hoving zit nog in de trein, mit volpension. Dan zit t oldste jurylid veur. Dat ben ik. Ik heb nog nooit wat wonnen en nou mout ik oordelen. |
-| M26.2 | Berend Bos | Regel drie: vijf juryleden, de meerderheid beslist. Mijn mening is niet het hele oordeel. | Regel drij: vief juryleden, de meerderheid beslist. Mien mening is nait t hiele oordeel. |
 | M26.3 | Oma Trijntje | Eerst het ei. Dan het zout. Dan het meel. De mosterd zit al in het deeg. Niet zeuren, jong. | Aarst t ei. Dan t zout. Dan t meel. De mosterd zit al in t deeg. Nait zeuren, jong. |
 | M26.3 | Tammo | Grof meel. Dat knispert. | Grof meel. Dat knispert. *(gelijk)* |
 | M26.4 | Torenwachter | Tammo. De limo gaat de Oude Boteringestraat in. Het is kwart voor drie. | Tammo. De limo goat de Oude Boteringestraat in. t Is kwart veur drij. |
@@ -853,3 +843,30 @@ Bijwerken: verbeter de rechterkolom in `scripts/gronings_spoken_draft.json` (de 
 | M30.5 | Oma Trijntje | Dan is hij blij. | Dan is hai bliede. |
 | M30.6 | Tammo | Thuis is waar de kar staat. | Thoes is woar de kar stait. |
 | M30.7 | Berend Bos | Nog een proefbeleg? Ik win nog steeds niet graag. Doe maar. | Nog n proefbeleg? Ik win nog aaltied nait graag. Doe mor. |
+
+## Nog geen concept: 20 regels
+
+Deze regels hebben geen Groningse spreektekst en staan niet in het concept hierboven: een kenner moet ze nog schrijven of goedkeuren (zie [`GRONINGS-20-SPREEKTEKSTEN.md`](GRONINGS-20-SPREEKTEKSTEN.md)).
+
+| Stap | Spreker | Regel (Nederlands) |
+|---|---|---|
+| M09.1 | Geesje | Jullie zijn van Trijntje. Het zijn eieren, geen relikwieën. Maar ik ben kosteres, dus ik behandel ze zo. |
+| M09.1 | Geesje | Jelle Terpstra heeft alle eieren van het Hogeland gekocht, behalve de mijne. Mijn kippen hebben geen contract. |
+| M09.1 | Geesje | Zijn moeder, Gerda, belt Trijntje elk jaar op haar verjaardag. Ze zeggen dan allebei niks. |
+| M09.1 | Geesje | Jullie brengen ze heel naar de kerkkelder in Usquert. Daar is het koel, en daar komt Jelle niet. |
+| M09.1 | Geesje | De trekker staat bij de schuur. Hij trekt hard. |
+| M09.4 | Geesje | De kratten staan heel. Dat is een kerkelijk wonder. |
+| M09.4 | Geesje | Dat is meer dan de dominee ooit haalde. |
+| M09.4 | Geesje | Ze staan in de kerkkelder. Jullie komen te laat. |
+| M09.4 | Geesje | Dan koopt u een eierkoek. |
+| M09.5 | Geesje | Weer eieren? De kippen sturen een kaartje. |
+| M12.2 | Rotor Roelf | Moi! Rotor Roelf. Die heli is van mij, ik zette hem gisteren op het UMCG-dak. |
+| M12.2 | Rotor Roelf | De lunch is van Dijkstra. Nait tegen d'Olle Grieze aan, hè? |
+| M21.4 | Geesje | Mijn kerkvoogdij is gebeld. De kerkkelder is verhuurd. Het spijt me, jong. |
+| M23.1 | Geesje | Ik rij op mijn scooter. Een bedevaart op twee wielen. Hij is sneller dan hij lijkt. |
+| M23.8 | Geesje | Ik rij naast jullie, op mijn scooter. Dit is een bedevaart. Ik ken elk steegje van hier tot de Grote Markt. |
+| M23.8 | Geesje | Een limo past niet in een steegje, jong. |
+| M26.16 | Geesje | De steeg bij de notaris is dicht. Scooter dwars. Ik zit erop te breien. |
+| M26.16 | Geesje | Wie blijft staan, mag breien. |
+| M30.1 | Geesje | Ik zie alles vanaf mijn toren. Dit is geen toren. Het is een hooiberg. Ik zie alles toch. |
+| M30.4 | Geesje | Links. Het derde bolwerk. Ze kijken niet. Ze eten. |

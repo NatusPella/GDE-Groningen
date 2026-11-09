@@ -40,6 +40,8 @@ out.push('**Er is nog niets opgenomen en niets samengevoegd.** Dit is een voorst
 out.push('');
 out.push('Bijwerken: verbeter de rechterkolom in `scripts/gronings_spoken_draft.json` (de sleutel links blijft precies gelijk). Daarna voegt `node scripts/gronings_merge_draft.mjs --write` het geheel samen met de bestaande tabel; zonder `--write` laat dat script alleen zien wat er zou veranderen.');
 out.push('');
+out.push('De verhaalregels waarvan **nog geen enkel concept** bestaat, staan in [`GRONINGS-20-SPREEKTEKSTEN.md`](GRONINGS-20-SPREEKTEKSTEN.md): de open lijst met per regel wat een kenner moet beslissen. Daar staat geen gegenereerd dialect in.');
+out.push('');
 out.push(`## Eerst deze ${twijfel.length} nakijken`);
 out.push('');
 out.push('| # | Regel | Waarom |');
@@ -54,6 +56,22 @@ for (const k of order) {
   out.push('|---|---|---|---|');
   for (const r of list) out.push(`| ${r.scene} | ${cell(r.speaker)} | ${cell(r.nl)} | ${cell(r.gr)}${r.nl === r.gr ? ' *(gelijk)*' : ''} |`);
   out.push('');
+}
+// #735: de regels die nog op een Groningse spreektekst wachten en waarvoor ook geen concept bestaat,
+// staan als aparte open lijst in GRONINGS-20-SPREEKTEKSTEN.md (geen gegenereerd dialect).
+const openLijst = path.join(REPO, 'docs', 'verhaal', 'TTS-OPNAMELIJST-735.jsonl');
+if (fs.existsSync(openLijst)) {
+  const open = fs.readFileSync(openLijst, 'utf8').trim().split('\n').map((r) => JSON.parse(r)).filter((r) => r.reason === 'spreektekst');
+  if (open.length) {
+    out.push(`## Nog geen concept: ${open.length} regels`);
+    out.push('');
+    out.push('Deze regels hebben geen Groningse spreektekst en staan niet in het concept hierboven: een kenner moet ze nog schrijven of goedkeuren (zie [`GRONINGS-20-SPREEKTEKSTEN.md`](GRONINGS-20-SPREEKTEKSTEN.md)).');
+    out.push('');
+    out.push('| Stap | Spreker | Regel (Nederlands) |');
+    out.push('|---|---|---|');
+    for (const r of open) out.push(`| ${r.source} | ${cell(r.speaker)} | ${cell(r.text)} |`);
+    out.push('');
+  }
 }
 fs.writeFileSync(OUT, out.join('\n'));
 console.log(`DIALECT-CONCEPT.md: ${all.length} regels, ${twijfel.length} twijfelgevallen, ${(fs.statSync(OUT).size / 1024).toFixed(0)} kB`);

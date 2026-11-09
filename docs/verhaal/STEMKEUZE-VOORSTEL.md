@@ -41,11 +41,17 @@ nu bijvoorbeeld zowel Femke, het kind als "Kind in het publiek".
 - Een andere stem later is één regel in `CAST`; bestaande opnames blijven geldig zolang het model in
   `ACCEPTED` staat, maar de stem vraagt wel een nieuwe opname.
 
-## Wat nu nog moet
+## Wat nu nog moet (stand 9-11-2026)
 
-1. De 65 klaarstaande clips opnemen (zie #735 §1).
-2. De concept-spreekteksten in `docs/verhaal/DIALECT-CONCEPT.md` nalopen (eerst de 67
-   twijfelgevallen) en samenvoegen; daarna komen de 592 wachtende regels in de wachtrij.
-3. Daarna de volgende opnameronde; dit bestand hoeft dan niet meer te veranderen.
+De stemkeuze is klaar: **0 regels wachten nog op een stem**. Wat overblijft zijn **20 verhaalregels van
+Geesje (18) en Rotor Roelf (2)** die nog een **Groningse spreektekst** nodig hebben; hun stem staat al in
+`CAST` (`Pulcherrima` en `Achird`). De open lijst met per regel de bestaande precedenten en het knooppunt
+voor een kenner staat in [`GRONINGS-20-SPREEKTEKSTEN.md`](GRONINGS-20-SPREEKTEKSTEN.md); daar is bewust
+geen dialect gegenereerd.
+
+1. Een kenner schrijft of keurt de 20 spreekteksten en vult ze in `scripts/gronings_spoken_draft.json`.
+2. `node scripts/gronings_merge_draft.mjs --write` voegt ze samen; daarna `node scripts/tts_lines_list.mjs`
+   en de opnameronde volgens [`OPNAMERONDE-735.md`](OPNAMERONDE-735.md).
+3. De rest van het concept (`DIALECT-CONCEPT.md`) nalopen en samenvoegen zoals daar beschreven.
 
 Nog niet gedaan: geen van deze stemmen is beluisterd of opgenomen.
