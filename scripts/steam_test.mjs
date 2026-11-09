@@ -225,5 +225,18 @@ ok(storePage.includes('30 verhaalmissies') && storePage.includes('30 fully voice
 ok(storePage.includes('STUN') && storePage.includes('brokers'), 'the store page names the two opt-in network exceptions (STUN, brokers)');
 ok(!/Achttien verhaalmissies|18 verhaalmissies/.test(read('docs/youtube/kanaal.md')), 'the YouTube channel text counts the story missions right');
 
+
+// #808: geen verouderde verhaaltekst en een privacyclaim die beide opt-in uitzonderingen noemt
+{
+  const page = read('docs/steam/winkelpagina.md');
+  const kanaal = read('docs/youtube/kanaal.md');
+  ok(!/Achttien verhaal|18 verhaalmissies|drie delen|Eighteen story|three parts/.test(page + kanaal), 'geen oude verhaaltekst (18 missies/drie delen)');
+  ok(/30 verhaalmissies/.test(page) && /vijf aktes/.test(page) && /Deel 4/.test(page), 'de winkelpagina noemt 30 missies, vijf aktes en Deel 4');
+  ok(/30 fully voiced story missions/.test(page) && /five acts/.test(page) && /Part 4/.test(page), 'de Engelse winkeltekst noemt dezelfde structuur');
+  ok(/STUN/.test(page) && /busposities/.test(page) && /brokers/.test(page), 'de Nederlandse privacytekst noemt Samen spelen en live busposities');
+  ok(/STUN/.test(page) && /bus positions/.test(page) && /brokers/.test(page), 'de Engelse privacytekst noemt beide uitzonderingen');
+  ok(/Dertig verhaalmissies/.test(kanaal) && /vijf aktes/.test(kanaal) && /Deel 4/.test(kanaal), 'de YouTube-beschrijving is gelijk aan de winkelpagina');
+}
+
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

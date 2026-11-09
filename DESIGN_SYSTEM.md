@@ -377,3 +377,6 @@ Before a new screen, panel, card or toast merges, tick all of these (or write wh
 Before shipping any new screen/panel/toast, check it against this file and its checklist.
 If it introduces a new color, a new font, or flat-black chrome, fix it
 before merging - don't let one-off styling drift back in.
+- **HUD:** de woordbudgetten van `hudtext.js` (`hud_text_audit`, ratchet 0 boven budget), hooguit
+  zes elementen naast de minimap (hudrules.js) en geen overlappende vlakken (`scripts/ui/overlays2_scenes.js`).
+- **Kiekdoar TV-overlay (HUD):** the small in-world TV on/off overlay (`furniture.js`) is a deliberate HUD exception: its colours come from its own `--fm-*` tokens (checked by `hud_kleuren_test`) and it keeps 17 px Arial as family-specific HUD typography; it is not a menu surface (`docs/DESIGN-SCHULD.md` row 11, #803).
