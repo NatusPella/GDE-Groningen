@@ -23,6 +23,9 @@ const CANDIDATES = [
   { at: [-452.42, -32.57], name: 'de Noorderhaven' },
   { at: [-711.25, -541.76], name: 'het Reitdiep' },
 ];
+// Vaste, in de dichte wereld gecontroleerde fierljep-sloot (Hoornsediep): terugval als de
+// gestreamde watertegels bij het openen van het post-game nog niet binnen zijn.
+const VASTE_VAART = { from: [-270.7028099385387, 1158.6072332554104], to: [-296.0863281288567, 1168.7905286101466], width: 24.75, name: 'het Hoornsediep' };
 const ATTEMPTS = 3;
 const BONUS_MAX = 8;
 const GOLD_BONUS = 6.6;
@@ -62,7 +65,10 @@ function searchSpot(map) {
       }
     }
   }
-  return null;
+  // terugval: de vaste sloot, zodat het post-game-duel altijd bestaat
+  const dx = VASTE_VAART.to[0] - VASTE_VAART.from[0], dy = VASTE_VAART.to[1] - VASTE_VAART.from[1];
+  const l = Math.hypot(dx, dy) || 1, dir = { x: dx / l, y: dy / l };
+  return { from: { x: VASTE_VAART.from[0], y: VASTE_VAART.from[1] }, to: { x: VASTE_VAART.to[0], y: VASTE_VAART.to[1] }, width: VASTE_VAART.width, name: VASTE_VAART.name, dir, runup: { x: VASTE_VAART.from[0] - dir.x * 10, y: VASTE_VAART.from[1] - dir.y * 10 } };
 }
 
 // The landing spot for a jump that goes `extra` metres past the far bank.
