@@ -16,7 +16,7 @@ gewone medaille of een persoonlijk record alleen telt hier niet als tweede laag;
 
 | Activiteit | Tweede laag | Status |
 |---|---|---|
-| discgolf | de volle achttien holes na je eerste goud | variant |
+| discgolf | de volle achttien banen na je eerste goud | variant |
 | kartbaan | de tijdattack: je snelste ronde telt apart | variant |
 | skatepark | de langste keten: één reeks, niet de som | variant |
 | hengelen | het visboek: elke soort een keer vangen | verzameling |

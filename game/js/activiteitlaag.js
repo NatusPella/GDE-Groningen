@@ -3,7 +3,7 @@
 // medaille — een variant, een verzameling of een eigen leerlijn. Activiteiten zonder zo'n laag
 // staan bewust niet in deze tabel; docs/ACTIVITEITEN-TWEEDE-LAAG.md noemt ze als uitzondering.
 export const ACTIVITEIT_LAAG = {
-  discgolf: 'de volle achttien holes na je eerste goud',
+  discgolf: 'de volle achttien banen na je eerste goud',
   kartbaan: 'de tijdattack: je snelste ronde telt apart',
   skatepark: 'de langste keten: één reeks, niet de som',
   hengelen: 'het visboek: elke soort een keer vangen',
