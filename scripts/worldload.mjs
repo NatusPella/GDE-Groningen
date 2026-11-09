@@ -16,7 +16,7 @@ export async function loadGameWorld() {
   const S = await import('../game/js/tilestore.js');
   const TW = await import('../game/js/tileworld.js');
   const files = new Proxy({}, { get: (o, f) => (typeof f === 'string' ? (o[f] || (o[f] = new Uint8Array(fs.readFileSync(new URL(f, root))))) : undefined) });
-  const T = await TW.loadTileWorld('world/', { source: new S.MemorySource(files), pool: false, extra: [{ name: 'index-provincie.json' }, { name: 'index-corridor.json' }] });
+  const T = await TW.loadTileWorld('world/', { source: new S.MemorySource(files), pool: false, dense: true, extra: [{ name: 'index-provincie.json' }, { name: 'index-corridor.json' }] });
   const layers = (T && T.index.layers) || {};
   const lay = (layers.provincie && layers.provincie.global ? layers.provincie : null) || layers.corridor;
   if (lay && lay.global) (await import('../game/js/worldplaces.js')).setWorldPlaces(lay.global.places);
