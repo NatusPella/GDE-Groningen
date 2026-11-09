@@ -78,13 +78,28 @@ Elke clip wordt gelogd in het `tts.json` van zijn map met `model`, `via: litellm
 kosten uit de gateway (`x-litellm-response-cost`, anders de audiolengte-terugval). De
 clips worden getrimd en op -18 LUFS gezet; `ffmpeg`/`ffprobe` moeten in het pad staan.
 
-### 2. Groningse spreekteksten: 20 regels
+### 2. Groningse spreekteksten: 20 regels (menselijke controle verplicht)
 
-1. Lees de concepten in [`DIALECT-CONCEPT.md`](DIALECT-CONCEPT.md) na (eerst de
-   twijfelgevallen bovenaan).
-2. Voeg ze samen: `node scripts/gronings_merge_draft.mjs --write`.
-3. Zet ze in de wachtrij: `node scripts/tts_lines_list.mjs`, dan opnieuw
-   `python scripts/tts_lines.py --budget 0.5` in rondes.
+De twintig open regels staan per stap, spreker, stem en bestandsnaam in
+[`GRONINGS-20-SPREEKTEKSTEN.md`](GRONINGS-20-SPREEKTEKSTEN.md) (gegenereerd met
+`node scripts/gronings_open_doc.mjs`). Daarin staan ook de bestaande, goedgekeurde regels die als
+voorbeeld van woordkeuze kunnen dienen en per regel het knooppunt dat een kenner moet beslissen.
+**Er is geen Gronings gegenereerd of vertaald:** de open lijst bevat alleen de Nederlandse regel, citaten
+uit `scripts/gronings_spoken.json` en de keuzes (aanspreekvorm, kerkelijke woorden, namen, grap).
+
+De route blijft:
+
+1. Een **kenner** schrijft of keurt per regel de Groningse spreektekst en vult die in
+   `scripts/gronings_spoken_draft.json` (sleutel = de Nederlandse regel precies zoals het spel hem toont),
+   of laat de regel bewust open.
+2. `node scripts/gronings_merge_draft.mjs --write` voegt de goedgekeurde rijen samen; zonder `--write`
+   toont het script alleen wat er nieuw is en welke rijen botsen.
+3. `node scripts/tts_lines_list.mjs` zet de regels daarna in de wachtrij; `python scripts/tts_lines.py`
+   neemt op in rondes.
+4. Deze lijst en `docs/verhaal/TTS-OPNAMELIJST-735.md` opnieuw draaien met `node scripts/tts_opnamelijst.mjs`.
+
+Verdeling van de 20: M09 10, M12 2, M21 1, M23 3, M26 2, M30 2; 18 van Geesje, 2 van Rotor Roelf.
+Hun stem staat al vast (`CAST`: `Pulcherrima` en `Achird`), dus dit is geen stemkeuze.
 
 ### 3. Stemkeuze: 0 regels (alle sprekers hebben een stem)
 

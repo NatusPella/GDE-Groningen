@@ -72,13 +72,17 @@ const CAST = {
   'Koe Geertje': { voice: 'Kore', who: 'een droge, eigenwijze prijskoe uit het Ommeland', pool: ['deadpan, droog'] },
   // the helicopter dealer from Eelde in the demo-flight story step (storyarc.js s-proefvlucht)
   // the carbid farmers in the story step s-carbid (same voices as their carbid.js bubbles)
+  // #735: Rotor Roelf heeft al een stem; zijn 2 verhaalregels wachten alleen nog op een Groningse
+  // spreektekst (docs/verhaal/GRONINGS-20-SPREEKTEKSTEN.md). Geen dialect hier verzinnen.
   'Boer Roelf': { voice: 'Charon', who: 'oude Groningse boer op zijn erf, praat plat Gronings, nuchter en droog', pool: ['nuchter, droog', 'nors, stiekem onder de indruk'], accent: GRO_ACCENT },
   Hilje: { voice: 'Despina', who: 'Groningse boerin op leeftijd, praat plat Gronings, ad rem', pool: ['ad rem, verbaasd', 'nuchter, plagend'], accent: GRO_ACCENT },
-  'Rotor Roelf': { voice: 'Achird', who: 'joviale Groningse helikopterverkoper van vliegveld Eelde, verkoperig, praat een beetje Gronings', pool: ['joviaal, verkoperig', 'gemoedelijk, waarschuwend'] },
+  'Rotor Roelf': { voice: 'Achird', who: 'joviale Groningse helikopterverkoper van vliegveld Eelde, verkoperig, praat een beetje Gronings', pool: ['joviaal, verkoperig', 'gemoedelijk, waarschuwend'], accent: GRO_ACCENT },
   // phone messages read aloud (sms manifest): the Kiekdoar newsreader and the phone's own app voice
   'Kiekdoar-redactie': { voice: 'Achernar', who: 'Groningse nieuwslezeres van nieuwssite Kiekdoar, leest een pushbericht voor', pool: ['als een nieuwslezer, droog, licht ironisch', 'zakelijk voorlezend, met een knipoog'] },
   // Geesje presents Radio Proat, the talk programmes on G-Music (radio.js)
-  Geesje: { voice: 'Pulcherrima', who: 'Groningse radiopresentatrice van praatzender Radio Proat, warm en droog', pool: ['warm, ontspannen, als radiopresentatrice', 'droog, met een knipoog, als radiopresentatrice'] },
+  // #735: de 18 open verhaalregels van Geesje wachten op een Groningse spreektekst, niet op een stem;
+  // zie docs/verhaal/GRONINGS-20-SPREEKTEKSTEN.md.
+  Geesje: { voice: 'Pulcherrima', who: 'Groningse radiopresentatrice van praatzender Radio Proat, warm en droog', pool: ['warm, ontspannen, als radiopresentatrice', 'droog, met een knipoog, als radiopresentatrice'], accent: GRO_ACCENT },
   Ubbo: { voice: 'Laomedeia', who: 'de vriendelijke stem van de telefoon-app Ubbo', pool: ['vriendelijke, gladde app-stem, kalm', 'behulpzame app-assistent, opgewekt'], accent: 'spoken in Gronings dialect (Grunnegs) exactly as written, clear and friendly like a phone assistant' },
   // De zeventien sprekers van het nieuwe verhaal die op 6-11-2026 een stem kregen (de keuze is op
   // papier gedaan en staat in docs/verhaal/STEMKEUZE-VOORSTEL.md); ze spreken allemaal Gronings,
