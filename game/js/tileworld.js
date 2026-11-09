@@ -587,6 +587,10 @@ export async function loadTileWorld(base = 'world/', { source = new HttpRangeSou
   // a cache (or an old stage) silently falls back to building it
   const bakedRead = terrainCache ? Promise.resolve().then(() => source.readAll(TERRAIN_FILE)).catch(() => null) : null;
   const decode = (pool && makeWorkerDecoder(new URL('./tileworker.js', import.meta.url), 2, ID_ASIDE)) || ((bytes) => decodeCompressed(bytes, ID_ASIDE));
+  // dense: forceer de dichte arraylaag voor tests/audits die kaartrijen lezen; het spel
+  // laadt de sparse productiewereld en streamt de stad.
+  const dense = !!opts.dense;
+  const sparseIdx = dense ? null : (index.sparse || null);
   const store = new TileStore({ source, index, decode, ...opts });
   const g = index.global;
   const globalBlob = decodeBlob(await inflateRaw(await source.read(index.packs[g.pack].file, g.off, g.len)));
@@ -598,14 +602,14 @@ export async function loadTileWorld(base = 'world/', { source = new HttpRangeSou
   // voor de eerste opbouw en mogen daarna door de store worden gestroomd. Een oude,
   // dichte wereld (zonder index.sparse) blijft gepind zoals voorheen.
   const ALL_SPARSE = ['roads', 'buildings', 'water', 'trees', 'rails', 'furniture', 'green'];
-  const unpinCity = Array.isArray(index.sparse) && ALL_SPARSE.every((k) => index.sparse.includes(k));
+  const unpinCity = !dense && Array.isArray(index.sparse) && ALL_SPARSE.every((k) => index.sparse.includes(k));
   let done = 0;
   // tijdens de eerste opbouw moet de hele stad binnenblijven (fromTiles eist de hele set);
   // daarna laat unpinCity haar los zodat de store kan streamen.
   for (const k of keys) store.pin(k);
   const tiles = await Promise.all(keys.map((k) => store.request(k, { priority: 0 }).then((t) => { if (onProgress) onProgress(++done / keys.length); return t; })));
   const split = tiles.map(splitOverlay);
-  const world = TileWorld.fromTiles(globalBlob, split.map((x) => x.city), { terrain, sparse: index.sparse }).attachStore(store);
+  const world = TileWorld.fromTiles(globalBlob, split.map((x) => x.city), { terrain, sparse: sparseIdx }).attachStore(store);
   world.tileIndex = index;
   // the overlays of the city's tiles (the rows of build_province.mjs the city's data leaves out, merged into their tile by
   // scripts/world/merge_overlays.mjs): into the grids like a streamed tile, held for good with the city

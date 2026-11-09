@@ -15,7 +15,7 @@ export async function laadStadTegels(dir = wereldMap()) {
   const { loadTileWorld } = await import('../../game/js/tileworld.js');
   const files = {};
   for (const f of fs.readdirSync(dir)) if (/\.(gdp|json)$/.test(f)) files[f] = new Uint8Array(fs.readFileSync(path.join(dir, f)));
-  const tw = await loadTileWorld('world/', { source: new S.MemorySource(files), pool: false });
+  const tw = await loadTileWorld('world/', { source: new S.MemorySource(files), pool: false, dense: true });
   if (!tw) throw new Error('geen index.json in ' + dir);
   return tw;
 }
