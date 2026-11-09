@@ -162,7 +162,8 @@ if (want('minigame')) await guard('minigame', async () => {
   w.activityGame = null;
 });
 for (const tab of ['overzicht', 'todo', 'map', 'telefoon', 'verhaal', 'spullen', 'garage', 'prestaties', 'settings', 'controls']) {
-  if (!want(tab)) continue;
+  // De acceptatie van #826 noemt de schermen als menu-overzicht/menu-settings; accepteer beide namen.
+  if (!want(tab) && !want('menu-' + tab)) continue;
   await guard('menu-' + tab, async () => { teleport(...P(100, 77)); PM.openPauseMenu(tab); await shot('menu-' + tab, 1500); PM.closePauseMenu(); });
 }
 if (want('winkel')) await guard('winkel', async () => {
