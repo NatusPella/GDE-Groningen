@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+## [0.60.2] - 2026-11-09
+
 - **Moeilijkheid werkt nu ook buiten het skatepark: zwembad, klimtoren, carillon, hengelen, pannenkoekenschip, waterski en de fietsronde schalen hun tijdslimiet en medailles per stand, en verhaalmissies hun tijdslimiet, vensters en medaille-eisen (#800).** Standaard is exact het oude gedrag; records staan per stand apart en oude opgeslagen spellen blijven werken.
 - **Samen spelen gebruikt geen eigen tweede rood/blauw meer: pings en passieve stand komen uit de bestaande statuskleuren en vormen, en alle invoer heeft één crème focusring (#809).**
 - **Input-latentie is gemeten en vastgelegd: p50 15-16 ms en p95 17-21 ms op de testmachine, dus binnen het budget van één frame wachten; de meting warmt eerst op zodat streamingspieken niet als inputlag tellen (#827).**
