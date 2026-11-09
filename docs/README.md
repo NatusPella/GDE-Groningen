@@ -113,4 +113,5 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 
 | [ACTIVITEITEN-TWEEDE-LAAG.md](<ACTIVITEITEN-TWEEDE-LAAG.md>) | Per activiteit wat er na de medaille nog te halen is, met de bewuste uitzonderingen (#800, punt 14). |
 | [HERKENNINGSPUNTEN.md](<HERKENNINGSPUNTEN.md>) | Album van de kerken, molens en borgen in de provincie: data, telling en de route naar het dichtstbijzijnde open punt (#820). |
+| [ONDERZOEK-REFERENTIEGAMES.md](<ONDERZOEK-REFERENTIEGAMES.md>) | Wat Watch Dogs 2, GTA IV en GTA V leuk maakt, en wat GDE daarvan heeft overgenomen (#811–#821). |
 | [VERKENNING-PROVINCIE.md](<VERKENNING-PROVINCIE.md>) | Klein plan voor de verkenlaag buiten de stad (A15-A20) op bestaande infrastructuur. |
