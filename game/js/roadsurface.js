@@ -430,6 +430,11 @@ function netState(map) {
     return s;
   }
   if (s.geoVer === ver) return s;
+  // Tijdens de openingsfilm (en andere cinematics) springt de camera van plek
+  // naar plek; elke wijkwissel zou de hele knooppuntindex opnieuw laten
+  // beginnen. De oude index is voor het beeld goed genoeg; na de film haalt de
+  // gewone (gespreide) herbouw hem in.
+  if (typeof document !== 'undefined' && document.body && (document.body.classList.contains('intro-montage') || document.body.classList.contains('cine-hide-hud'))) return s;
   if (!netBuild || netBuild.map !== map || netBuild.geoVer !== ver) {
     netBuild = { map, geoVer: ver, roads: gridItems(map.roadGrid), k: 0, nodeIndex: new Map() };
   }
