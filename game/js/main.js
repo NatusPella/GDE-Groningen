@@ -437,7 +437,16 @@ let tileWorldStats = null;
 // opgeslagen, niets verbonden; de vraag komt de volgende start terug). Het spel start gewoon
 // alleen verder. Een verborgen venster telt niet als antwoord: de vraag blijft dan staan.
 const ONLINE_START_WAIT_MS = 20000;
+// De vraag zelf openen we al vroeg, boven het laadscherm; het laden loopt
+// erachter gewoon door. waitForOnlineStart legt pas vlak voor de start zijn
+// time-out en Escape erop, zodat een trage schijf de vraag niet voortijdig sluit.
+let onlineVraag = null;
+function beginOnlineStartQuestion() {
+  if (!onlineVraag) onlineVraag = maybeOpenOnlineStart();
+  return onlineVraag;
+}
 function waitForOnlineStart(ms) {
+  const vraag = onlineVraag || beginOnlineStartQuestion();
   return new Promise((resolve) => {
     let klaar = false;
     let timer = 0;
@@ -468,7 +477,7 @@ function waitForOnlineStart(ms) {
     };
     wacht();
     window.addEventListener('keydown', onKey, true);
-    maybeOpenOnlineStart().then((res) => afronden(res), (err) => {
+    Promise.resolve(vraag).then((res) => afronden(res), (err) => {
       console.warn('Samen-spelen-vraag mislukt', err);
       closeOnlineStart();
       afronden(null);
@@ -758,16 +767,19 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     console.warn('terrein: de geometry-worker antwoordde niet binnen 60 s; de wereld start zonder terrein');
   });
   markLoad('terrain');
+  // Samen spelen (#530, ADR 0022): de eerste-startvraag (naam en alleen/samen)
+  // verschijnt nu al boven het laadscherm terwijl de boot gewoon doorlaadt; pas
+  // vlak voor de start wachten we op het antwoord (#751: time-out en Escape).
+  // Zo staat de popup niet boven een laadscherm dat al "Klaar" zegt en hoeft hij
+  // het laden niet stil te leggen.
+  const vraagOnline = !(FLAGS.noattract || FLAGS.storytest || FLAGS.stil || FLAGS.trailer || FLAGS.preview || FLAGS.benchmark || FLAGS.perf || FLAGS.spotsonly || FLAGS.autoplay || FLAGS.menutest) && !document.hidden;
+  if (vraagOnline) beginOnlineStartQuestion();
   await finishLoading();
-  // Samen spelen (#530, ADR 0022): a player who was never asked sees the one screen with their
-  // name and the question whether to play with others. It sits over the boot screen, before the
-  // world takes keys: typing a name must not drive the player, and nothing connects either way.
-  // The answer lands in gde-settings and the boot goes on. A test or QA run skips the question,
-  // like the graphics measurement at the first start.
-  // #751: de vraag heeft een time-out en Escape; zonder antwoord gaat de boot gewoon door en
-  // wordt er niets opgeslagen (zie waitForOnlineStart).
-  if (!(FLAGS.noattract || FLAGS.storytest || FLAGS.stil || FLAGS.trailer || FLAGS.preview || FLAGS.benchmark || FLAGS.perf || FLAGS.spotsonly || FLAGS.autoplay || FLAGS.menutest) && !document.hidden) {
-    await waitForOnlineStart(ONLINE_START_WAIT_MS);
+  if (vraagOnline) {
+    setLoadingStatus('Kies of je alleen of samen speelt');
+    const antwoord = await waitForOnlineStart(ONLINE_START_WAIT_MS);
+    onlineVraag = null;
+    if (antwoord) setLoadingStatus(antwoord.keuze === 'meedoen' ? 'Samen spelen: de wereld wordt klaargezet' : 'Alleen spelen: de wereld wordt klaargezet');
     // Samen spelen is de default: wie meedoen heeft gekozen, ziet na het starten meteen de
     // openbare sessielijst (en kan daar alsnog alleen verder).
     if (magOnline() && !document.hidden) requestOpenSamen({ rol: 'gast', lijst: true });
