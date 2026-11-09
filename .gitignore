@@ -62,3 +62,4 @@ desktop/err*.txt
 
 # tijdelijke meetbestanden van perf-agents
 .agents/perf-*/
+desktop/.shots/
