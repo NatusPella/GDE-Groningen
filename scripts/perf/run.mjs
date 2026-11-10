@@ -70,6 +70,9 @@ const others = () => { try { const o = spawnSync(process.platform === 'win32' ? 
 const cpuTimes = () => os.cpus().reduce((a, c) => { const t = c.times; a.idle += t.idle; a.all += t.user + t.nice + t.sys + t.idle + t.irq; return a; }, { idle: 0, all: 0 });
 const cpuBusy = async () => { const a = cpuTimes(); await sleep(1000); const b = cpuTimes(); return +(100 * (1 - (b.idle - a.idle) / Math.max(1, b.all - a.all))).toFixed(0); };
 const busyBefore = await cpuBusy();
+// #804: een belaste machine geeft geen vergelijkbare frametijden; zeg het hardop
+// en laat norm_check de run als 'belast' markeren (de cijfers blijven bewaard).
+if (busyBefore > 35) console.error(`WAARSCHUWING: machine is belast (CPU ${busyBefore}% vóór de run); de cijfers zijn niet vergelijkbaar met een stille reeks.`);
 const before = others();
 const t0 = Date.now();
 const perfEnv = { ...process.env, GDE_TEST_PROFILE: profile };

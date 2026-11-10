@@ -21,6 +21,19 @@ export function routeStats(route) {
   };
 }
 
+// #804: een meting op een belaste machine is niet vergelijkbaar met de stille
+// reeks. De runner schrijft de gemeten systeemdruk in `machine` (oude runs:
+// cpuBusyBeforePct, nieuwe runs: load als fractie); dit is de grens waarboven
+// een run als belast geldt.
+export const MACHINE_BUSY_PCT = 35;
+export function machineBusy(machine, grens = MACHINE_BUSY_PCT) {
+  if (!machine) return false;
+  if (Number.isFinite(machine.cpuBusyBeforePct)) return machine.cpuBusyBeforePct > grens;
+  if (Number.isFinite(machine.load) && machine.load <= 1) return machine.load * 100 > grens;
+  if (Number.isFinite(machine.load) && Number.isFinite(machine.cpus) && machine.cpus > 0) return (machine.load / machine.cpus) * 100 > grens;
+  return false;
+}
+
 // Heeft deze route frametijden? (census en latentie zijn losse metingen.)
 export function routeHasFrames(route) {
   const s = routeStats(route);
