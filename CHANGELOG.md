@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- **Minder haperingen als je door de stad rijdt: de straatmeubel-streamer bouwt per beurt hoogstens twee nieuwe tegels in plaats van alle tegels in één keer (#804).** In de hitchprobe zakte de piek van 261 naar 32 ms en de p95 op de a7-route van 50 naar 33 ms.
+
 - **De openingsfilm is lichter gemaakt: tijdens de montage blijven fijn straatmeubilair, landleven, perronpubliek, evenementen, werven en de parkeerlaag weg.** Die systemen kostten per shot shader-links en bouwwerk. In de meting ging het aantal frames in de eerste 30 s van de film van ~819 naar ~1206 (+47%) en draaiden de meeste 5 s-blokken op 37-60 fps in plaats van 3-44 fps; na de film komen alle systemen direct terug. Twee shaderpieken (3,0 s op ~11 s en 1,3 s op ~15 s) blijven nog over — volgende stap.
 
 ## [0.60.4] - 2026-11-10

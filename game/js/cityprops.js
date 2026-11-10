@@ -972,18 +972,26 @@ export function updateCityProps(dt, w, scene) {
     for (const [key, cell] of cells) if (!cell.active) cells.delete(key);
   }
 
+  probe.mark('cp-break-start');
   updateBreakables(dt, w, scene);
+  probe.mark('cp-breakables');
   if (w.paused) return;
   slotTimer -= dt;
   if (slotTimer <= 0) {
     slotTimer = 0.5;
+    probe.mark('cp-slots-start');
     updateSlots(activeCells);
+    probe.mark('cp-slots');
   }
+  probe.mark('cp-chatter-start');
   sceneChatter(activeCells);
+  probe.mark('cp-chatter');
   studentTimer -= dt;
   if (studentTimer <= 0) {
     studentTimer = 25 + Math.random() * 20;
+    probe.mark('cp-students-start');
     spawnStudentGroup();
+    probe.mark('cp-students');
   }
 }
 
