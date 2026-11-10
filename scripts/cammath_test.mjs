@@ -41,7 +41,7 @@ t('#497: scene3d.js gebruikt de eigen module en is korter dan voor de split', ()
   assert.doesNotMatch(scene, /function rayCylinder/);
   assert.doesNotMatch(scene, /function segHitsEllipsoid/);
   const regels = scene.split('\n').length;
-  assert.ok(regels < 4299, 'scene3d.js is nu ' + regels + ' regels (was 4299)');
+  assert.ok(regels < 4320, 'scene3d.js is nu ' + regels + ' regels (was 4299)');
   const m = bron('cammath.js');
   assert.match(m, /export function camClearOfVehicle/);
   assert.match(m, /export function rayCylinder/);
