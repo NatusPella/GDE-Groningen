@@ -55,7 +55,16 @@ let graph = null;
 // kost ~300 ms op de echte stadswereld, dus die wacht tot de tegelwachtrij leeg is
 // en gebeurt daarna hooguit één keer per seconde.
 const GRAPH_REBUILD_MIN_S = 1;
+// #804: tussen twee tegelwissels is de wachtrij even leeg; dan bouwde de graaf
+// toch, elke seconde opnieuw, terwijl de lagen zo weer veranderden. Wacht daarom
+// tot de wegen/gebouwenlagen een moment stil zijn (1,2 s) en bouw dan één keer.
+const GRAPH_QUIET_S = 1.0;
+// Maar nooit eindeloos wachten tijdens een lange stroom: na deze tijd bouwt de
+// graaf alsnog, ook als de lagen nog wisselen.
+const GRAPH_MAX_STALE_S = 4;
 let graphBuiltAt = -Infinity;
+let staleKey = '';
+let staleAt = -Infinity;
 const tileWorkPending = (map) => !!(map.tileQueue && (map.tileQueue.size || (map._tileJobs && map._tileJobs.size)));
 function graphStale(map) {
   if (!graph || graph.map !== map) return true;
@@ -63,6 +72,9 @@ function graphStale(map) {
 }
 function ensureGraph(map) {
   if (!graphStale(map)) return;
+  const now = performance.now();
+  const key = (map._roadVer || 0) + ':' + (map._buildingVer || 0);
+  if (key !== staleKey) { staleKey = key; staleAt = now; }
   if (graph && graph.map === map) {
     // Tijdens de openingsmontage is er geen route nodig (geen HUD-route, geen
     // kaartklik); de camera springt van plek naar plek, dus de laagversies
@@ -70,7 +82,8 @@ function ensureGraph(map) {
     // De oude graaf blijft bruikbaar; na de montage bouwt hij één keer opnieuw.
     if (typeof document !== 'undefined' && document.body && (document.body.classList.contains('intro-montage') || document.body.classList.contains('cine-hide-hud'))) return;
     if (tileWorkPending(map)) return; // nog midden in de stroom: de oude graaf is goed genoeg
-    if (performance.now() - graphBuiltAt < GRAPH_REBUILD_MIN_S * 1000) return; // cadans
+    if (now - staleAt < GRAPH_QUIET_S * 1000 && now - graphBuiltAt < GRAPH_MAX_STALE_S * 1000) return; // wacht tot de lagen even stil zijn, met een bovengrens
+    if (now - graphBuiltAt < GRAPH_REBUILD_MIN_S * 1000) return; // cadans
   }
   buildGraph(map);
   graphBuiltAt = performance.now();
