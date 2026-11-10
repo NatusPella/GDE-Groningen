@@ -65,6 +65,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [MERKENCHECK.md](<MERKENCHECK.md>) | Datum: 17 oktober 2026. Geen juridisch advies. |
 | [MERKENREGISTER.md](<MERKENREGISTER.md>) | Stand: 18 oktober 2026. Dit register hoort bij de constitution in |
 | [MOBIEL-RAPPORT.md](<MOBIEL-RAPPORT.md>) | Gemeten en bekeken in Electron met Chromium-apparaatemulatie (`--emulate-mobile`, touchbediening geforceerd… |
+| [MISSIEBALANS.md](<MISSIEBALANS.md>) | Branch-aware missiecurve, uitschieters en de ontwerpregel voor lange/korte missies (#829). |
 | [MULTIPLAYER-VISIE.md](<MULTIPLAYER-VISIE.md>) | De visie van de eigenaar (besluiten van 23-10, 24-10 en 6-11), op één plek. In gesprekken zeggen we multipl… |
 | [MUZIEK.md](<MUZIEK.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/mechanica.md`](../.specs-fire/standard… |
 | [ONBOARDING.md](<ONBOARDING.md>) | Doel: zien of iemand die de game niet kent in de eerste dertig minuten begrijpt wie hij is, |

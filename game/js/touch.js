@@ -62,6 +62,10 @@ html.touch-device #touch-ui .t-btn { min-height: 0; }
 html.touch-device #hud .hud-top-right { right: calc(var(--hud-edge) + 128px / var(--ui, 1)); }
 html.touch-device #hud .hud-speedo, html.touch-device #hud .hud-heli { right: auto; left: 50%; transform: translateX(-50%); }
 html.touch-device #hud .hud-vehname, html.touch-device #hud .hud-race { right: calc(var(--hud-edge) + 120px / var(--ui, 1)); }
+html.touch-device #hud .hud-weapon-text { font-size: max(18px, calc(12px / var(--ui, 1))); }
+/* #828: de voertuignaam wijkt in landschap boven de rechterknoppen in plaats van eronder. */
+html.touch-device:not(.touch-portrait) #hud .hud-vehname { right: calc(var(--hud-edge) + 150px / var(--ui, 1)); bottom: calc(var(--hud-edge) + 200px); }
+
 /* the key-hint rows (Kaart, Radio, ...) lay under the right thumb: the buttons carry those labels; keyboard hints mean nothing, a map has a close button */
 html.touch-device #hud .hud-ctx { display: none; }
 /* the stunt evening's score card lay under the gas and horn buttons: it moves left of the button block */

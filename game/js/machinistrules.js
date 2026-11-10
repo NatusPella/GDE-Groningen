@@ -5,6 +5,7 @@
 import { medalFrom, clamp } from './minigamekit.js';
 import { seinBeeld, seinRood } from './blokseinen.js';
 import { roostertijdOp } from './dienstregeling.js';
+import { scaleTarget } from './difficulty.js'; // #800: medailles en vensters per stand
 
 // railway.js DRIVE_BRAKE: the service brake the plan counts on
 export const BRAKE = 2.2;
@@ -17,6 +18,14 @@ export const STOPPED_V = 0.25;
 export const MEDAL_AT = [50, 70, 88];
 export const MEDAL_NAMES = ['Geen medaille', 'Brons', 'Zilver', 'Goud'];
 export const FAULTLESS_BONUS = 25; // een rit zonder fouten: alles gehaald, op tijd, geen sein of waakzaamheidsrem
+
+// #800: de drempels van een dienst per stand. Standaard geeft exact de oude waarden; een ruimere
+// stand maakt de scoremedaille makkelijker en het instappen op de halte ruimer, een strengere
+// stand het omgekeerde. De dienst bewaart de gekozen waarden, zodat bord en uitslag dezelfde
+// regel gebruiken als het startmoment.
+export const scaledMedalAt = (mode = 'standaard') => MEDAL_AT.map((v) => Math.round(scaleTarget(v, mode, false)));
+export const scaledStopTol = (mode = 'standaard') => STOP_TOL.map((v) => Math.round(scaleTarget(v, mode, true)));
+export const scaledPlatformWindow = (mode = 'standaard') => Math.round(scaleTarget(PLATFORM_WINDOW, mode, true));
 
 // Remweg at the service brake.
 export const brakeDist = (v, a = BRAKE) => (v * v) / (2 * a);
@@ -85,7 +94,8 @@ export function upcomingStops(stops, c, dir, range) {
 // A service: the timetable from the moment the player takes the train, or — with a `dienst` from
 // the roster (#492) — the halten and due times of that roster service, so the timetable comes from
 // the dienstregeling and not from the moment of boarding. Zonder dienst blijft de oude route werken.
-export function startService({ stops, c, dir, vmax, time, limit = 6, range, storingen = false, blokken = [], blokPunten = [], dienst = null }) {
+export function startService({ stops, c, dir, vmax, time, limit = 6, range, storingen = false, blokken = [], blokPunten = [], dienst = null, mode = 'standaard' }) {
+  const medalAt = scaledMedalAt(mode), stopTol = scaledStopTol(mode), platformWindow = scaledPlatformWindow(mode);
   // de roostertijd op de plek van de trein: de due-tijden zijn de verschillen uit het rooster
   // (tussen de halten), zodat ze niet van het instapmoment of van deze trein afhangen
   const t0 = dienst ? roostertijdOp(dienst, c, dir) : null;
@@ -117,6 +127,8 @@ export function startService({ stops, c, dir, vmax, time, limit = 6, range, stor
     reizigers: 0, totaal: 0, kaart: 0,
     // dienstregeling, storingen en veiligheid (#444): een rood sein of een overweg op een lange etappe
     storingen: storingen ? planStoringen(plan, c, dir) : [], faults: [], safetyPen: 0, deadman: 0, holdUntil: 0, opened: 0, sein: null,
+    // #800: de stand van deze dienst, met de medaille- en perrondrempels die erbij horen
+    mode, medalAt, stopTol, platformWindow,
     // blokseinen (#492): de baanvakken van de route en het laatst geziene seinbeeld
     blokken, blokPunten, blokLaatst: null, blokBestraft: new Set(),
   };
@@ -126,27 +138,28 @@ export const currentStop = (svc) => (svc.finished ? null : svc.plan[svc.i]);
 export const doorsOpen = (svc, time) => time < svc.doorsUntil;
 
 // Points for one stop: place 50, punctuality 40, comfort 10, minus speeding.
-export function scoreParts({ errM, lateS, over, ebrakes }) {
+// #800: de toleranties komen van de dienst (per stand); zonder dienst gelden de oude waarden.
+export function scoreParts({ errM, lateS, over, ebrakes }, stopTol = STOP_TOL, platformWindow = PLATFORM_WINDOW) {
   const a = Math.abs(errM);
   let place = 0;
-  if (a <= STOP_TOL[2]) place = 50;
-  else if (a <= STOP_TOL[1]) place = 38;
-  else if (a <= STOP_TOL[0]) place = 25;
-  else if (a <= PLATFORM_WINDOW) place = 10;
+  if (a <= stopTol[2]) place = 50;
+  else if (a <= stopTol[1]) place = 38;
+  else if (a <= stopTol[0]) place = 25;
+  else if (a <= platformWindow) place = 10;
   const late = Math.max(0, lateS - 10);
   const punctual = Math.round(40 * clamp(1 - late / 80, 0, 1));
   const comfort = Math.max(0, 10 - ebrakes * 5);
   const penalty = Math.min(30, Math.round(over * 2));
   return { place, punctual, comfort, penalty };
 }
-export function scoreStop(x) {
-  const { place, punctual, comfort, penalty } = scoreParts(x);
+export function scoreStop(x, stopTol = STOP_TOL, platformWindow = PLATFORM_WINDOW) {
+  const { place, punctual, comfort, penalty } = scoreParts(x, stopTol, platformWindow);
   return Math.max(0, place + punctual + comfort - penalty);
 }
 
-export const stopMedal = (errM) => {
+export const stopMedal = (errM, stopTol = STOP_TOL) => {
   const a = Math.abs(errM);
-  return a <= STOP_TOL[2] ? 3 : a <= STOP_TOL[1] ? 2 : a <= STOP_TOL[0] ? 1 : 0;
+  return a <= stopTol[2] ? 3 : a <= stopTol[1] ? 2 : a <= stopTol[0] ? 1 : 0;
 };
 
 function finish(svc) {
@@ -160,7 +173,7 @@ function finish(svc) {
   const punct = pct('punct', 40), comfort = pct('comfort', 10);
   const veilig = clamp(100 - svc.safetyPen - Math.round(svc.plan.reduce((s, p) => s + (p.pen || 0), 0) / Math.max(1, n)), 0, 100);
   svc.result = {
-    score, medal: medalFrom(score, MEDAL_AT), stops: n, made: made.length, punct, comfort, veilig,
+    score, medal: medalFrom(score, svc.medalAt || MEDAL_AT), stops: n, made: made.length, punct, comfort, veilig,
     faults: svc.faults.length, faultless: !svc.abandoned && made.length === n && n > 0 && veilig === 100 && punct >= 90,
     avgErr: made.length ? made.reduce((s, p) => s + Math.abs(p.errM), 0) / made.length : 0,
     avgLate: made.length ? made.reduce((s, p) => s + Math.max(0, p.lateS), 0) / made.length : 0,
@@ -235,11 +248,11 @@ export function stepService(svc, dt, s) {
     svc.flashUntil = s.time + 4;
     ev.push({ kind: 'missed', stop: st });
     next(svc, ev);
-  } else if (s.v < STOPPED_V && Math.abs(toStop) <= PLATFORM_WINDOW && svc.moved) {
+  } else if (s.v < STOPPED_V && Math.abs(toStop) <= (svc.platformWindow || PLATFORM_WINDOW) && svc.moved) {
     st.errM = -toStop;
     st.lateS = s.time - st.due;
-    st.medal = stopMedal(st.errM);
-    const parts = scoreParts({ errM: st.errM, lateS: st.lateS, over: svc.overStop, ebrakes: svc.ebStop });
+    st.medal = stopMedal(st.errM, svc.stopTol || STOP_TOL);
+    const parts = scoreParts({ errM: st.errM, lateS: st.lateS, over: svc.overStop, ebrakes: svc.ebStop }, svc.stopTol || STOP_TOL, svc.platformWindow || PLATFORM_WINDOW);
     st.score = Math.max(0, parts.place + parts.punctual + parts.comfort - parts.penalty);
     st.punct = parts.punctual; st.comfort = parts.comfort; st.pen = parts.penalty;
     // de reizigers van deze halte (#492): wie er uitstapt en wie er meerijdt, en het kaartgeld.
@@ -258,7 +271,7 @@ export function stepService(svc, dt, s) {
     svc.holdUntil = svc.doorsUntil;
     svc.served = st;
     svc.flash = `${st.name}: ${st.score} punten, ${st.alight} uit, ${st.board} in`;
-    svc.flashBad = st.score < MEDAL_AT[0];
+    svc.flashBad = st.score < (svc.medalAt || MEDAL_AT)[0];
     svc.flashUntil = s.time + 5;
     ev.push({ kind: 'stopped', stop: st });
     next(svc, ev);
@@ -288,7 +301,7 @@ export function pressDoors(svc, { time, v }) {
     }
     return { ok: true, msg: 'Deuren dicht' };
   }
-  if (!st || v > STOPPED_V || Math.abs(st.s - svc.lastC) > PLATFORM_WINDOW) return { ok: false, msg: 'De deuren gaan alleen open stilstaand aan het perron' };
+  if (!st || v > STOPPED_V || Math.abs(st.s - svc.lastC) > (svc.platformWindow || PLATFORM_WINDOW)) return { ok: false, msg: 'De deuren gaan alleen open stilstaand aan het perron' };
   if (svc.reopened === st) return { ok: false, msg: 'De deuren zijn al een keer open geweest' };
   svc.reopened = st;
   svc.opened = time;
@@ -429,7 +442,7 @@ export function boardView(svc, s) {
   const open = doorsOpen(svc, s.time);
   const cells = svc.plan.map((p, i) => ({
     t: p.score == null ? (i === svc.i && !svc.finished ? '▶' : '·') : String(p.score),
-    cls: p.score == null ? (i === svc.i && !svc.finished ? 'now' : '') : p.score >= MEDAL_AT[0] ? 'ok' : 'bad',
+    cls: p.score == null ? (i === svc.i && !svc.finished ? 'now' : '') : p.score >= (svc.medalAt || MEDAL_AT)[0] ? 'ok' : 'bad',
   }));
   if (!st) return { done: true, cells, flash: svc.flash, bad: svc.flashBad, result: svc.result, reizigers: svc.reizigers || 0, kaart: svc.kaart || 0 };
   const toStop = svc.toStop;
@@ -501,10 +514,12 @@ export function pasConducteur(keuze, optieId) {
 // De uitslag van de hele dienst in één medaille: op tijd, veilig en alle halten. Geen economiewijziging: de
 // bestaande payFor/MEDAL_AT blijven de beloning doen; dit is de samenvatting voor bord, melding en test.
 export const DIENST_MEDAILLES = ['Geen medaille', 'Brons', 'Zilver', 'Goud'];
-export function dienstMedaille({ gemiddelde = 0, halten = 0, opTijd = 0, veilig = 0, fouten = 0 } = {}) {
+export function dienstMedaille({ gemiddelde = 0, halten = 0, opTijd = 0, veilig = 0, fouten = 0 } = {}, mode = 'standaard') {
   const score = Math.max(0, Number(gemiddelde) || 0);
   const punten = Math.round(score * 0.5 + Math.min(100, opTijd || 0) * 0.25 + Math.min(100, veilig || 0) * 0.25 - (fouten | 0) * 5);
-  const index = punten >= 85 ? 3 : punten >= 65 ? 2 : punten >= 45 ? 1 : 0;
+  // #800: de drempels voor de samenvattende dienstmedaille schuiven mee met de stand.
+  const at = [45, 65, 85].map((v) => Math.round(scaleTarget(v, mode, false)));
+  const index = punten >= at[2] ? 3 : punten >= at[1] ? 2 : punten >= at[0] ? 1 : 0;
   const tekst = index === 3 ? 'Goud: op tijd, veilig en alle halten.' : index === 2 ? 'Zilver: een nette dienst.' : index === 1 ? 'Brons: het reed, en dat telt.' : 'Geen medaille: volgende dienst beter.';
   return { punten, index, naam: DIENST_MEDAILLES[index], halten: halten | 0, tekst };
 }

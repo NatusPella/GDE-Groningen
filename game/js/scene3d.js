@@ -2060,7 +2060,7 @@ let bridgeViews = false;
 const ROAD_SYNC_IDLE_FRAMES = 6;
 let roadSyncIdle = null, roadSyncFrame = 0;
 // #804: teller voor de wegopbouw (meetbaar in de perf-harness en tests)
-export const roadSyncStats = { frames: 0, built: 0, maxPerFrame: 0, lastMs: 0, deadlineStops: 0 };
+export const roadSyncStats = { frames: 0, built: 0, maxPerFrame: 0, lastMs: 0, deadlineStops: 0, heavyBuilt: 0, heavyDeferred: 0 };
 function syncRoads(world, px, py) {
   setRoadNetwork(world.map);
   if (roadQuality !== getRoadQualityVersion()) {
@@ -2109,7 +2109,14 @@ function syncRoads(world, px, py) {
       // "goedkope" met kant-en-klare surfaces; anders bouwde één frame de
       // hele ring (3d:roads-piek 0,9-1,7 s). Eén weg mag altijd, zodat de
       // streaming vooruit blijft.
+      // #804: een heavy weg (kant-en-klare surfaces ontbreken of de civiele werken
+      // worden hier gebouwd) kost honderden ms. Bouw die alleen op een verder leeg
+      // frame: geen andere weg dit frame en bijna niets meer te streamen. Anders
+      // schuift hij door naar een volgend frame (heavyDeferred).
+      const heavy = !r._geoRoad || (r.z && r._geoStruct === undefined);
+      if (heavy && (built > 0 || streamStat.r > 2)) { roadSyncStats.heavyDeferred++; continue; }
       if (!roadBuildAllowed(built, performance.now(), deadline, cap)) { roadSyncStats.deadlineStops++; break; }
+      if (heavy) roadSyncStats.heavyBuilt++;
       coldRoads.delete(r);
       const group = buildRoadGroup(r);
       const mesh = freezeStatic(world.map.terrainOn ? liftRoadGroup(group, world.map, r) : group);

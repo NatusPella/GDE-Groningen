@@ -161,6 +161,9 @@ export function stepZwem(z, inp, dt) {
 // Een baan van tonnen op het water. Je moet ze in volgorde ronden (binnen `straal`); een ronde is
 // alle tonnen. De bot-zeilers volgen dezelfde regels met een eigen vaardigheid.
 export const REGATTA = { straal: 20, rondes: 2, medaille: [1.0, 1.25, 1.6] }; // medailles: factor op de richttijd
+import { difficultyFactors } from './difficulty.js'; // #800: de stand schaalt de medaillefactor
+// Ruimere stand: de factoren op de richttijd worden groter (langzamer mag nog voor een medaille).
+export const regattaMedailleFactoren = (mode = 'standaard') => REGATTA.medaille.map((f) => f * difficultyFactors(mode).time);
 
 export function createRegatta(tonnen, { rondes = REGATTA.rondes, richttijd = 240 } = {}) {
   return { tonnen, rondes, richttijd, volgend: 0, ronde: 0, t: 0, klaar: false, tijd: null, gerond: 0 };
@@ -179,9 +182,9 @@ export function stepRegatta(r, x, y, dt) {
   }
   return r;
 }
-export const regattaMedaille = (r) => {
+export const regattaMedaille = (r, mode = 'standaard') => {
   if (!r.klaar) return 0;
-  const f = r.tijd / r.richttijd, [g, z, b] = REGATTA.medaille;
+  const f = r.tijd / r.richttijd, [g, z, b] = regattaMedailleFactoren(mode);
   return f <= g ? 1 : f <= z ? 2 : f <= b ? 3 : 0;
 };
 export const regattaVoortgang = (r) => (r.klaar ? 1 : r.gerond / (r.tonnen.length * r.rondes));

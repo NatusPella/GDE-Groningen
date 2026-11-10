@@ -41,7 +41,6 @@ import { albumStand, dichtstbijzijndeOpen } from './herkenningsalbum.js';
 import { DRIFT_ZONE, DRIFT_MEDAL_AT } from './driftzone.js';
 import { getGoal, setGoal, clearGoal } from './goal.js';
 import { drawMapIcon } from './hud_panel.js';
-import { klusloon } from './economy.js';
 import { zachtePauze } from './coopgroep.js';
 import { samenWaarschuwing } from './coopstatus.js';
 import { missieMagVanuitMenu, MISSIE_VIA_STARTPUNT } from './coopgast.js';
@@ -496,7 +495,7 @@ export function playMission(world, i, after = null) {
   }
   const go = () => {
     trackMission(world, i);
-    world.addMessage(m.done ? `Klus: ${m.label} (${'€' + klusloon(m.reward)})` : `Doel: ${m.code ? m.code + ' · ' : ''}${m.label}`, 3, { kind: 'missie', key: 'goal' });
+    world.addMessage(m.done ? `Klus: ${m.label} (${'€' + m.klusloon})` : `Doel: ${m.code ? m.code + ' · ' : ''}${m.label}`, 3, { kind: 'missie', key: 'goal' });
     if (after) after();
   };
   const ahead = storyMissionAhead(i);

@@ -33,6 +33,8 @@ export const roundMedal = (rel, holes, mode = 'standaard') => {
 
 export const CTP = { throws: 3, maxPoints: 100, bonusInside: 25, falloff: 40 };
 export const CTP_MEDAL_AT = [90, 150, 210];
+import { scaleTarget } from './difficulty.js'; // #800
+export const ctpMedalAt = (mode = 'standaard') => CTP_MEDAL_AT.map((v) => Math.round(scaleTarget(v, mode, false)));
 
 // Points for one throw that ended `dist` metres from the basket (null when it
 // landed in the water or out of play).
@@ -43,8 +45,8 @@ export function ctpPoints(dist) {
 }
 
 // The round: the best of the throws counts fully, the others half.
-export function ctpRound(dists) {
+export function ctpRound(dists, mode = 'standaard') {
   const pts = dists.slice(0, CTP.throws).map(ctpPoints).sort((a, b) => b - a);
   const total = pts.reduce((a, p, i) => a + (i === 0 ? p : Math.round(p / 2)), 0);
-  return { points: total, best: Math.min(...dists.filter(Number.isFinite), Infinity), medal: medalFrom(total, CTP_MEDAL_AT) };
+  return { points: total, best: Math.min(...dists.filter(Number.isFinite), Infinity), medal: medalFrom(total, ctpMedalAt(mode)) };
 }

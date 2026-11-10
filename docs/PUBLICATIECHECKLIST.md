@@ -2,8 +2,8 @@
 
 > **Naslag.** De regels staan in de canonieke spec [`.specs-fire/standards/publicatie.md`](../.specs-fire/standards/publicatie.md); dit document is uitleg en geschiedenis. Bij verschil wint de spec (en bij twijfel `AGENTS.md`).
 
-Stand: 9 november 2026 (0.60.1; de laatste meting staat in §8). De repo is **privé**; niets hieronder is gedaan of
-aangezet. Laatste run op 9 november: `publish_check --history` **4 FAIL** (historie-e-mail,
+Stand: 10 november 2026 (0.60.3; de laatste meting staat in §10). De repo is **privé**; niets hieronder is gedaan of
+aangezet. Laatste run op 10 november: `publish_check --history` **4 FAIL** (historie-e-mail,
 eigenaarsbesluit #62) en **16 WARN** (handmatige releaseworkflows), `secrets_scan` uit §7,
 `merkenregister_check` 45 rijen en 0 afwijkingen, `text_audit` 0 bevindingen, `audio_herkomst`
 **4139 clips allemaal gelogd**, `voice_coverage` 2664/2664. Alles in de kolom "Eigenaar" doet of beslist alleen de eigenaar
@@ -45,7 +45,7 @@ openen) en meldt bestand, patroonnaam en blob, nooit de waarde.
 | 9 | IARC-vragenlijst en Steam Content Survey zelf invullen: [IARC-ANTWOORDEN.md](IARC-ANTWOORDEN.md) | concept klaar |
 | 10 | Velden van de eigenaar op één blad: [INVULBLAD-EIGENAAR.md](INVULBLAD-EIGENAAR.md) (GitHub-profiel, credits, muziekproduct, registers, nalezer) | blad klaar |
 | 11 | Route naar 1.0: issue #65 (het plan zelf staat in `docs/archief/2026-10/PLAN-1.0.md`) | plan klaar |
-| 12 | Actions-minuten: de 2000 gratis minuten van deze maand zijn op; platformbuilds (macOS/Linux/Android) pas na de maandelijkse reset of aankoop van extra minuten (Windows lokaal) | wacht op reset/aankoop |
+| 12 | Actions-minuten: de 2000 gratis minuten van deze maand zijn op; platformbuilds (macOS/Linux/Android) pas na de maandelijkse reset of aankoop van extra minuten (Windows lokaal; de platformbijlagen van 0.60.1/0.60.2/0.60.3 staan nog op 0.60.0) | wacht op reset/aankoop |
 
 ## 3. Vlak voor Public (volgorde)
 
@@ -131,3 +131,39 @@ geüpload of ingesteld.
   merkenregisters, Noorderzon, interne docs, CDN, website, IARC, invulblad, 1.0-route) en de
   Actions-instellingen uit §4 (owner-guard, environment `release`, immutable releases,
   pull-only playtesters), de privacy-URL en het publicatiebesluit. Daar is niets van gedaan.
+
+## 9. Negende ronde: 9 november 2026 (0.60.2)
+
+Opnieuw gedraaid op main `a8623018` (release v0.60.2); er is nog steeds **niets** openbaar,
+geüpload of ingesteld.
+
+- `node scripts/publish_check.mjs --history`: **7 FAIL, 16 WARN** (7294 bestanden). Vier FAILs waren
+  de bekende historie-e-mail (#62); drie waren thuispaden in `desktop/err2.txt` en `desktop/err3.txt`
+  (Electron-logs, per ongeluk meegekomen in 762dac44). Die logbestanden zijn inmiddels uit de repo.
+- `text_audit` 0 (145 toegestaan), `merkenregister` 45/0, `audio_herkomst` 4139 clips allemaal
+  gelogd, `voice_coverage` 2664/2664.
+- **Actions-minuten:** op; `v0.60.2` had alleen de lokaal gebouwde Windows-exe, `gde-world.tgz` en
+  `SHA256SUMS.txt`; de platformbijlagen stonden nog op `v0.60.0`.
+
+## 10. Tiende ronde: 10 november 2026 (0.60.3)
+
+Opnieuw gedraaid op main `2a8cb42b` (release v0.60.3 van 9 november); er is nog steeds **niets**
+openbaar, geüpload of ingesteld.
+
+- `node scripts/publish_check.mjs --history`: **4 FAIL, 16 WARN** (7301 getrackte bestanden).
+  De 4 FAIL zijn de bekende historie-e-mail (#62, eigenaarsbesluit). De 16 WARN zijn de handmatige
+  releaseworkflows (§4). De drie thuispad-FAILs van de vorige ronde (`desktop/err2.txt`, `desktop/err3.txt`) zijn
+  weg: die logbestanden staan niet meer in de repo.
+- `node scripts/text_audit.mjs`: **0 bevindingen** (145 toegestaan). `merkenregister_check`:
+  45 rijen, 0 afwijkingen. `audio_herkomst`: **4139 stemmen en vaste clips, allemaal in een
+  `tts.json`**. `voice_coverage`: **2664/2664** (Nieuw verhaal 1378/1378, 57 alleen tekst).
+- **Actions-minuten:** de 2000 gratis minuten van deze maand zijn op. `v0.60.3` heeft, net als
+  0.60.1 en 0.60.2, alleen de lokaal gebouwde Windows-exe, `gde-world.tgz` en `SHA256SUMS.txt`; de
+  platformbijlagen (macOS, Linux, Android) staan nog op `v0.60.0` en volgen voor 0.60.1/0.60.2/0.60.3
+  pas na de maandelijkse reset of aankoop. Windows bouwt lokaal door; Linux kan desnoods lokaal met
+  `npm run release -- current --linux`. Zie [RELEASEN.md](RELEASEN.md) §Kosten.
+- **Index:** alle 71 documenten in `docs/` staan in [README.md](README.md); de nieuwe
+  `INPUT-LATENTIE.md` en `HERKENNINGSPUNTEN.md` zijn opgenomen. `docs_index_test` is groen.
+- **Open en alleen de eigenaar:** de punten uit §2 (historie/mailmap, OSM-contactgegevens,
+  merkenregisters, Noorderzon, interne docs, CDN, website, IARC, invulblad, 1.0-route), de
+  Actions-instellingen uit §4, de privacy-URL en het publicatiebesluit. Daar is niets van gedaan.

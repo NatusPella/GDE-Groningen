@@ -148,10 +148,12 @@ function einde(w, { quit = false, extern = false, uitslag = null } = {}) {
   if (online) { eindeOnline(w, g, quit, extern, uitslag); return; }
   if (g.mode === 'vrij') {
     const waar = plekNaam(g.plek.type, g.plek.naam);
+    const vrijMode = cleanDifficulty(getSettings().difficulty);
+    const vrijRec = g.vangsten > 0 ? recordChallengeResult(w, difficultyRecordKey(vrijMode, 'hengelen-vrij'), { value: s.kg, medal: hengelMedal(s.kg, vrijMode) }) : null;
     if (g.vangsten > 0) {
       const soorten = g.soorten.size;
       const vis = `${g.vangsten} vis${g.vangsten === 1 ? '' : 'sen'}`, soortTekst = `${soorten} soort${soorten === 1 ? '' : 'en'}`, betaald = g.betaald > 0 ? `, ${euro(g.betaald)} van de visboer` : '';
-      w.addMessage(`Hengelen klaar op ${waar}: ${vis} (${soortTekst}), ${kgTekst(s.kg)}${betaald}`, 5, { kind: 'prestatie', kicker: 'Hengelen', key: 'hengel-vrij-klaar' });
+      w.addMessage(`Hengelen klaar op ${waar}: ${vis} (${soortTekst}), ${kgTekst(s.kg)}${betaald}${vrijRec && vrijRec.newBest ? ' · nieuw record' : ''}`, 5, { kind: 'prestatie', kicker: 'Hengelen', key: 'hengel-vrij-klaar' });
     } else if (!quit) w.addMessage('Niets aan de haak. Probeer een andere plek.', 3);
     return;
   }

@@ -61,6 +61,8 @@ import { standaardTodo } from './activitytodo.js';
 import { activityBlock, iconDisc } from './activitykit.js';
 import { registerBusyProbe, registerQuitHook } from './busy.js';
 import { hoofdspeler } from './players.js';
+import { getSettings } from './settings.js';
+import { cleanDifficulty } from './difficulty.js'; // #800: diensten volgen de moeilijkheidsstand
 export { activityBlock, iconDisc };
 
 Object.assign(gameUi, { getScene, showBanner, showCard });
@@ -144,9 +146,11 @@ function dienstActiviteit(cfg) {
     if (!cfg.inVoertuig(v)) { w.addMessage(cfg.stapIn, 3); return false; }
     const s = dichtbij(w, v);
     if (!s) { w.addMessage(cfg.geenPlek, 3); return false; }
-    const d = cfg.maak(w, v, s);
+    // #800: de stand van deze speler bij de start; de diensttijd en de medailles volgen hem
+    const mode = cleanDifficulty(getSettings().difficulty);
+    const d = cfg.maak(w, v, s, mode);
     if (!d) { w.addMessage(cfg.geenRoute, 3); return false; }
-    run = { d, v, flash: '', flashT: 0, bad: false, klok: 0 };
+    run = { d, v, mode, flash: '', flashT: 0, bad: false, klok: 0 };
     if (!board) board = createBoard(mgThema(cfg.id) ? cfg.id : cfg.titel, cfg.accent); // een dienst met een thema (#453) haalt titel, kleur en icoon uit de tabel
     board.show();
     // #678: één standaard startkaart (doel, medailles, beloning, samen, record) voor elke dienst
@@ -160,7 +164,8 @@ function dienstActiviteit(cfg) {
     run = null;
     if (board) board.hide();
     if (afgebroken) { w.addMessage('Dienst gestopt', 2.5); return; }
-    const u = cfg.uitslag(r.d);
+    // #800: de uitslag en de medaille van deze dienst komen uit de stand van de speler
+    const u = cfg.uitslag(r.d, r.mode);
     // een dienst met een beloning (#492) betaalt pas na een geslaagde dienst; de dienst zelf
     // bepaalt het bedrag (cfg.beloning) en betaalt nooit via world.money
     const geld = cfg.beloning ? cfg.beloning(w, u, r) : 0;
@@ -322,14 +327,16 @@ const VLUCHTDIENST = dienstActiviteit({
   // Eén etappe per dienst, geen eindeloze route: de bestemming komt uit de velden die de wereld al
   // kent (Eelde en de gemeten velden). Vanaf een veld vlieg je terug naar Eelde; terugvliegen is
   // dus een nieuwe dienst.
-  maak: (w, v) => {
+  maak: (w, v, s, mode) => {
     const rit = vluchtTussenVelden(w.planeVelden || [], v.x, v.y, { thuis: 'eelde' });
     if (!rit) return null;
-    return margeVoorDienst(maakVluchtdienst(rit), 14);
+    const d = margeVoorDienst(maakVluchtdienst(rit), 14, mode);
+    d.mode = mode;
+    return d;
   },
   stap: (d, v, dt) => vluchtStap(d, vliegtuigStaat(v), { dt }),
   stand: (d) => vluchtStand(d),
-  uitslag: (d) => vluchtUitslag(d),
+  uitslag: (d, mode) => vluchtUitslag(d, mode),
   extra: (v) => ({ hoogte: v.z, snelheid: Math.abs(v.speed || 0) }),
   // de toren (#492): één vertrekregel bij het veld van vertrek en één naderingsregel bij de
   // bestemming, deterministisch per veldnaam. De dienst kent beide namen (vanNaam/naarNaam), dus
@@ -371,17 +378,19 @@ const VAARDIENST = dienstActiviteit({
   help: `${key('W')}${key('S')} gas en rem · ${key('A')}${key('D')} sturen · ${key('BACKSPACE')} stoppen`,
   kaartTitel: 'Rondvaart langs de kades',
   kaartBody: 'Vaar de drie kades in volgorde langs, leg bij elke kade aan (langzaam en stil) en blijf even liggen. Op tijd aankomen loont; te hard varen kost veiligheid. [Backspace] stopt.',
-  maak: (w, v) => {
+  maak: (w, v, s, mode) => {
     // the route over the waterway net (vaarnet.js) from where the boat lies, to a hub it can sail
     const net = getSharedNet();
     const trip = net ? pickTrip(net, v.x, v.y, v.angle, v, Math.random, 220, 2200) : null;
     const kades = trip && trip.pts ? kadesLangsRoute(trip.pts, 3) : [];
     if (kades.length < 2) return null;
-    return margeVoorDienst(maakVaardienst({ naam: 'Rondvaart', halten: kades }), 10);
+    const d = margeVoorDienst(maakVaardienst({ naam: 'Rondvaart', halten: kades }), 10, mode);
+    d.mode = mode;
+    return d;
   },
   stap: (d, v, dt) => vaarStap(d, v, { dt }),
   stand: (d) => vaarStand(d),
-  uitslag: (d) => vaarUitslag(d),
+  uitslag: (d, mode) => vaarUitslag(d, mode),
   extra: (v) => ({ snelheid: Math.abs(v.speed || 0) }),
   glyph(ctx) {
     ctx.fillStyle = '#f2ede0';

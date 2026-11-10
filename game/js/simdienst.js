@@ -4,6 +4,7 @@
 // busride.js, arcadeplane.js en zeilvaren.js. Puur: geen THREE, geen DOM, geen wereld,
 // geen klok van buiten (de tijd komt mee in de stap). Tests: scripts/simdienst_test.mjs.
 import { medalFrom, clamp } from './minigamekit.js';
+import { difficultyFactors, scaleTarget } from './difficulty.js'; // #800: dienstmedailles per stand
 
 export const MEDAILLES = ['geen medaille', 'Brons', 'Zilver', 'Goud'];
 export const MEDAILLE_AT = [55, 75, 92]; // punten voor brons, zilver en goud
@@ -39,7 +40,7 @@ export function maakDienst({ vervoer = 'bus', naam = null, halten = [], maxTijd 
   return {
     vervoer, naam: naam || regel.naam, halten: lijst, regels: regel, i: 0,
     t: 0, x: NaN, y: NaN, gehaald: 0, opTijd: 0, teHard: 0, gemist: [], inBereik: false,
-    klaar: false, afgebroken: false, mislukt: null, maxTijd, bonus,
+    klaar: false, afgebroken: false, mislukt: null, maxTijd, bonus, mode: 'standaard',
   };
 }
 
@@ -83,7 +84,7 @@ export function stapDienst(d, s) {
         ev.push({ soort: 'halte', index: d.i - 1, halte: h, seconden: d.t, late, opTijd, laatste });
         if (laatste) {
           d.klaar = true;
-          ev.push({ soort: 'klaar', uitslag: dienstUitslag(d) });
+          ev.push({ soort: 'klaar', uitslag: dienstUitslag(d, d.mode) });
         }
       }
     } else {
@@ -99,7 +100,7 @@ export function stapDienst(d, s) {
         ev.push({ soort: 'gemist', index: d.i - 1, halte: h, laatste });
         if (laatste) {
           d.klaar = true;
-          ev.push({ soort: 'klaar', uitslag: dienstUitslag(d) });
+          ev.push({ soort: 'klaar', uitslag: dienstUitslag(d, d.mode) });
         }
       }
     }
@@ -131,19 +132,24 @@ export function dienstVoortgang(d) {
   return clamp((d.i + (1 - Math.min(1, rest / leg))) / n, 0, 1);
 }
 
+// #800: de medailledrempels van een dienst per stand. Standaard is exact de oude tabel.
+export function scaledMedalAt(mode = 'standaard') {
+  return MEDAILLE_AT.map((v) => Math.round(scaleTarget(v, mode, false)));
+}
+
 // Punten naar een uitslag met medaille. Zo houden trein en bus (met hun eigen, rijkere
 // regels) en vliegtuig en schip (via de dienst hierboven) dezelfde vorm. Een vervoer dat zijn
 // eigen medaille al heeft (de trein, machinistrules.js) geeft die mee als extra.medaille.
-export function uitslagUitPunten(vervoer, punten, extra = {}) {
+export function uitslagUitPunten(vervoer, punten, extra = {}, mode = 'standaard') {
   const p = clamp(Math.round(punten), 0, 100);
   const { medaille: eigen, ...rest } = extra;
-  const medaille = eigen != null ? clamp(Math.round(eigen), 0, 3) : medalFrom(p, MEDAILLE_AT);
+  const medaille = eigen != null ? clamp(Math.round(eigen), 0, 3) : medalFrom(p, scaledMedalAt(mode));
   return { vervoer, punten: p, medaille, medailleNaam: MEDAILLES[medaille], ...rest };
 }
 
 // De uitslag: gehaalde halten (55), op tijd (25) en niet te hard (15), plus een bonus. Een
 // afgebroken of mislukte dienst levert hooguit 40 punten: geen medaille voor onafgemaakt werk.
-export function dienstUitslag(d) {
+export function dienstUitslag(d, mode = d && d.mode ? d.mode : 'standaard') {
   const totaal = d.halten.length;
   const gehaaldDeel = totaal ? d.gehaald / totaal : 0;
   const opTijdDeel = d.gehaald ? d.opTijd / d.gehaald : 0;
@@ -156,7 +162,7 @@ export function dienstUitslag(d) {
     seconden: Math.round(d.t * 10) / 10, teHard: Math.round(d.teHard),
     gemist: d.gemist.length, klaar: !!d.klaar, afgebroken: !!d.afgebroken, mislukt: d.mislukt || null,
     bonus: d.bonus || 0,
-  });
+  }, mode);
 }
 
 // --- de startplek en het bord (#444) ------------------------------------------------------
@@ -205,8 +211,10 @@ export function kadesLangsRoute(pts, aantal = 3) {
 
 // Extra tijd per halte voor het draaien, dalen en aanleggen: de dienstregeling rekent met de
 // kaarsrechte afstand, een speler heeft meer nodig. Hoe verder in de dienst, hoe meer ruimte.
-export function margeVoorDienst(d, seconden = 10) {
-  d.halten.forEach((h, i) => { h.due += seconden * (i + 1); });
+// #800: de extra tijd schaalt mee met de moeilijkheidsstand (Standaard exact de oude waarde).
+export function margeVoorDienst(d, seconden = 10, mode = 'standaard') {
+  const factor = difficultyFactors(mode).time;
+  d.halten.forEach((h, i) => { h.due += seconden * factor * (i + 1); });
   return d;
 }
 

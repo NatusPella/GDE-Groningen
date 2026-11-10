@@ -9,14 +9,19 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- **Mobiel landschap: de voertuignaam wijkt boven de rechterknoppen (niet meer onder "Instappen") en de wapentekst is minstens 12 px op het scherm (#828).** Gemeten op 360×800, 800×360 en 390×844: `issues: []`, `hud: []`, `smallText: {}` voor voet, gezocht en de menu's.
+- **De moeilijkheidscurve van de late missies is gelijkmatiger (#829).** M06 telt alleen de gekozen inbraaktak en heeft een rustpunt na de entree; M20 hervat na het fierljep-duel en heeft kortere verdedigings-houdmomenten; M26 en M30 hebben iets kortere houdmomenten. Missie-ID's, beloningen, medailles en records blijven ongewijzigd; de cijfers en ontwerpregel staan in `docs/MISSIEBALANS.md`.
+- **De diensten volgen nu de moeilijkheidsstand (#800).** Bij de vluchtdienst en rondvaart schuift de extra tijd in de dienstregeling mee en komen de medailles uit de geschaalde drempels; bij de machinist schuiven de scoremedaille, de perrontolerantie en het perronvenster mee. Standaard is exact het oude gedrag; de beloning volgt de medaille die je in die stand haalt.
 - **Het laadscherm zet nu ook de openingsfilm klaar: de tegels van de montageplekken worden geladen en vastgehouden, de gebouwen daar voorgebouwd en de vaste opening-assets (acteurs, keuken, duiven, props) één keer gecompileerd.** Dat kost op een gewone machine ~25-30 s extra laadtijd; de montage hapert daardoor veel minder (het aantal frames in de eerste 30 s meer dan verdubbelde) en na de film begint het spel op volle kwaliteit. De laatste shaderpiek bij een enkele shotwissel is nog in onderzoek.
 - **Tijdens de openingsfilm en cutscenes worden de wegdek-knooppuntindex, het kruispuntmodel, de routegraaf en de verkeersgraaf niet meer per wijkwissel herbouwd.** De oude versie blijft tot de scène klaar is; daarna halen de gewone, over frames gespreide herbouwen het in. In het profiel verdwenen `fillNodes` (~0,35 s) en `junctionModel` (~0,1 s) uit de top, en de p95-frame van de eerste 5 s zakte naar ~330 ms.
+- **Herhaalmissies betalen naar inhoud: korte missies leveren minder klusloon op dan lange (#830).** Films, plannen en keuzes tellen niet mee en een getimede stap telt zwaarder; de lange verhaalmissies houden hun 50%, korte missies zakken naar de vloer van 25%. Zo is "herhaal de kortste missie" niet meer automatisch de beste geldroute.
 
 ## [0.60.3] - 2026-11-09
 
 - **Mobiel: de contextchip blijft op 360×800 binnen het scherm, en de mobiele meting telt verborgen screenreadertekst (`.hud-mate-txt`) niet meer als kleine HUD-tekst (#826, regressiecontrole 0.60.2).**
 - **De spellus vraagt het volgende beeld nu vóór het werk van dit beeld aan (#804).** Een lange staart of een fout in de staart kan de cadans daardoor niet meer laten stoppen; de perf-meting geeft voortaan ook de frame-emmers en de CPU-druk per beeld mee, zodat een volgende meting wachten van werk kan scheiden.
 - **De startkaart noemt de medaille-eisen nu per moeilijkheidsstand, uit dezelfde schaalbron als het spel (#800).** Op Ontspannen en Uitdagend staan de eisen die de activiteit echt vraagt (punten, seconden, kilo's en procenten, met dezelfde afronding); Standaard blijft exact de oude tekst en de hoverregel/Te-doen gebruiken dezelfde bron.
+
 ## [0.60.2] - 2026-11-09
 
 - **Moeilijkheid werkt nu ook buiten het skatepark: zwembad, klimtoren, carillon, hengelen, pannenkoekenschip, waterski en de fietsronde schalen hun tijdslimiet en medailles per stand, en verhaalmissies hun tijdslimiet, vensters en medaille-eisen (#800).** Standaard is exact het oude gedrag; records staan per stand apart en oude opgeslagen spellen blijven werken.
