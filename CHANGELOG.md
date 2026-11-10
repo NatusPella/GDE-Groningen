@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+## [0.60.4] - 2026-11-10
+
 - **Mobiel landschap: de voertuignaam wijkt boven de rechterknoppen (niet meer onder "Instappen") en de wapentekst is minstens 12 px op het scherm (#828).** Gemeten op 360×800, 800×360 en 390×844: `issues: []`, `hud: []`, `smallText: {}` voor voet, gezocht en de menu's.
 - **De moeilijkheidscurve van de late missies is gelijkmatiger (#829).** M06 telt alleen de gekozen inbraaktak en heeft een rustpunt na de entree; M20 hervat na het fierljep-duel en heeft kortere verdedigings-houdmomenten; M26 en M30 hebben iets kortere houdmomenten. Missie-ID's, beloningen, medailles en records blijven ongewijzigd; de cijfers en ontwerpregel staan in `docs/MISSIEBALANS.md`.
 - **De diensten volgen nu de moeilijkheidsstand (#800).** Bij de vluchtdienst en rondvaart schuift de extra tijd in de dienstregeling mee en komen de medailles uit de geschaalde drempels; bij de machinist schuiven de scoremedaille, de perrontolerantie en het perronvenster mee. Standaard is exact het oude gedrag; de beloning volgt de medaille die je in die stand haalt.
