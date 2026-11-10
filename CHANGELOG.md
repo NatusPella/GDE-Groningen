@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- **De openingsfilm is lichter gemaakt: tijdens de montage blijven fijn straatmeubilair, landleven, perronpubliek, evenementen, werven en de parkeerlaag weg.** Die systemen kostten per shot shader-links en bouwwerk. In de meting ging het aantal frames in de eerste 30 s van de film van ~819 naar ~1206 (+47%) en draaiden de meeste 5 s-blokken op 37-60 fps in plaats van 3-44 fps; na de film komen alle systemen direct terug. Twee shaderpieken (3,0 s op ~11 s en 1,3 s op ~15 s) blijven nog over — volgende stap.
+
 ## [0.60.4] - 2026-11-10
 
 - **Mobiel landschap: de voertuignaam wijkt boven de rechterknoppen (niet meer onder "Instappen") en de wapentekst is minstens 12 px op het scherm (#828).** Gemeten op 360×800, 800×360 en 390×844: `issues: []`, `hud: []`, `smallText: {}` voor voet, gezocht en de menu's.
