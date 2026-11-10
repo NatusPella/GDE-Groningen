@@ -2062,7 +2062,9 @@ let roadSyncIdle = null, roadSyncFrame = 0;
 // #804: teller voor de wegopbouw (meetbaar in de perf-harness en tests)
 export const roadSyncStats = { frames: 0, built: 0, maxPerFrame: 0, lastMs: 0, deadlineStops: 0, heavyBuilt: 0, heavyDeferred: 0 };
 function syncRoads(world, px, py) {
+  probe.mark('roads-entry');
   setRoadNetwork(world.map);
+  probe.mark('roads-net');
   if (roadQuality !== getRoadQualityVersion()) {
     roadQuality = getRoadQualityVersion();
     for (const mesh of roadMeshes.values()) scene.remove(mesh);
@@ -2076,6 +2078,7 @@ function syncRoads(world, px, py) {
     && Math.hypot(px - roadSyncIdle.x, py - roadSyncIdle.y) < SYNC_IDLE_MOVE) return;
   roadSyncIdle = null;
   const view = world.map.roadsNear(px, py, DRAW_DIST);
+  probe.mark('roads-query');
   const seen = _roadSeen;
   seen.clear();
   for (const r of view) seen.add(r);
@@ -2118,11 +2121,15 @@ function syncRoads(world, px, py) {
       if (!roadBuildAllowed(built, performance.now(), deadline, cap)) { roadSyncStats.deadlineStops++; break; }
       if (heavy) roadSyncStats.heavyBuilt++;
       coldRoads.delete(r);
+      probe.mark('road-build-start');
       const group = buildRoadGroup(r);
+      probe.mark('road-build');
       const mesh = freezeStatic(world.map.terrainOn ? liftRoadGroup(group, world.map, r) : group);
+      probe.mark('road-lift');
       if (!mesh.name) mesh.name = 'road';
       scene.add(mesh);
       roadMeshes.set(r, mesh);
+      probe.mark('road-add');
       built++;
     }
     // De detailring is een cirkel (de verre LOD tekent vanaf roadDetailR), dus

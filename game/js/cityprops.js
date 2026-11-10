@@ -1,4 +1,5 @@
 import { hoofdspeler } from './players.js';
+import { probe } from './hitchprobe.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { PARKS, parkBankSpots } from './parkplekken.js';
 import { GeoBuilder, vcMaterial, composeMatrix, tubeGeometry, HABBO_PALETTE } from './pixelart3d.js';
@@ -745,13 +746,16 @@ function buildCellMeshes(cell) {
   const near = streamNearHere((cell.cx + 0.5) * CELL, (cell.cy + 0.5) * CELL);
   runGeo('cityMerge', mergeJob([cell.items, cell.market]), ([r, mr]) => {
     if (cell.buildToken !== token || !cell.active) return;
+    probe.mark('cp-merge-start');
     const g = mergedGeometry(r);
     if (g) {
       cell.mesh = new THREE.Mesh(g, material);
       cell.mesh.castShadow = true;
       cell.mesh.receiveShadow = true;
       group.add(cell.mesh);
+      probe.mark('cp-reg-start');
       registerItems(cell, cell.items, cell.mesh);
+      probe.mark('cp-reg-items');
     }
     const mg = mergedGeometry(mr);
     if (mg) {
@@ -760,8 +764,11 @@ function buildCellMeshes(cell) {
       cell.marketMesh.receiveShadow = true;
       group.add(cell.marketMesh);
       registerItems(cell, cell.market, cell.marketMesh);
+      probe.mark('cp-reg-market');
     }
     registerWalls(cell);
+    probe.mark('cp-reg-walls');
+    probe.mark('cp-merge');
   }, near);
 }
 
@@ -945,7 +952,9 @@ export function updateCityProps(dt, w, scene) {
     if (busy && genQueue[0] !== pcx + ',' + pcy) break;
     const key = genQueue.shift();
     const [gx, gy] = key.split(',').map(Number);
+    probe.mark('cp-gen-start');
     cells.set(key, generateCell(w.map, gx, gy));
+    probe.mark('cp-gen');
   }
 
   const night = isNight();

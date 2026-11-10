@@ -285,6 +285,40 @@ honderden ms); dat is een grotere ingreep en niet zonder eigen meting gedaan.
 Cityprops (dichte cel, 207 ms) is de volgende kandidaat voor de geplande
 celextra-splitsing.
 
+## Vervolg: heavy weg en cityprops doorgemeten (10-11 middag)
+
+Voor de laatste twee dempers eerst de kosten opengelegd met submarks in
+`syncRoads` (`roads-entry`, `roads-net`, `roads-query`, `road-build`,
+`road-lift`, `road-add`) en in `cityprops` (`cp-gen`, `cp-merge-start`,
+`cp-reg-items`, `cp-reg-walls`, `cp-merge`). Twee runs op a7/spoor (12 s, hoog,
+`--hitch`), maar de machine was weer bezet (4 andere Electron-processen,
+runs 192-201 s voor 12 s route), dus p95/max zijn onbetrouwbaar. De
+**submark-pieken zijn wel consistent**:
+
+- **Heavy weg:** `buildRoadGroup` en `liftRoadGroup` zijn *niet* de kosten —
+  hun pieken blijven onder 8 ms. De grootste wegsub-piek is `roads-net`
+  (`setRoadNetwork`) met 35 ms op a7 en 12 ms op spoor. De 850 ms-max uit de
+  vorige ronde is dus geen "dure weggeometrie" die je in stukken kunt knippen;
+  op deze (bezette) run kwam de max uit dezelfde frame-gaten/contention
+  (`hud`, `render`, `roads-net`, `cityprops` in de trage frames). Conclusie:
+  **geen split van de weggeometrie doorvoeren** — de meting onderbouwt dat
+  niet. Een volgende stap zou `setRoadNetwork` zelf zijn (35 ms), niet de
+  build/lift.
+- **Cityprops:** `generateCell` piekt 42 ms (a7) en de merge/registratie
+  blijft onder ~12 ms per stuk. Een traag frame toonde 107 ms in de
+  cityprops-sectie die **niet** in `cp-gen`/`cp-merge`/`cp-reg*` valt — dat is
+  het restdeel van `updateCityProps` (de slot-/publiekmakers en
+  `updateBreakables`), niet de dichte cel. Ook hier is een cel-split dus niet
+  de juiste demper zonder die fase eerst apart te meten; de cell-splitsing is
+  **niet doorgevoerd**.
+
+Wat er deze ronde dus is gedaan: de instrumentatie (submarks) staat klaar voor
+de volgende meting; er is bewust **geen** speculatieve split gebouwd. Volgende
+stap volgens bewijs: (1) `setRoadNetwork` (35 ms) en (2) de restfase van
+`updateCityProps` (slot-publiek/breakables, 107 ms) instrumenteren en dan pas
+splitsen/begrenzen. De machine moet daarvoor stil zijn; de vorige stille run
+gaf a7 p95 33,5 / spoor 50 met de heavy-uitstel-fix.
+
 ## Reproduceren
 
 ```
