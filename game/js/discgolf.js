@@ -586,8 +586,9 @@ function eindeOnline(w, g, quit, extern, res) {
 }
 
 function endCtp(w, g) {
-  const r = ctpRound(g.ctp.dists.map((d) => (d == null ? NaN : d)));
-  const rec = recordChallengeResult(w, 'discgolf-dichtbij', { value: r.points, medal: r.medal });
+  const stand = cleanDifficulty(getSettings().difficulty);
+  const r = ctpRound(g.ctp.dists.map((d) => (d == null ? NaN : d)), stand);
+  const rec = recordChallengeResult(w, difficultyRecordKey(stand, 'discgolf-dichtbij'), { value: r.points, medal: r.medal });
   recordStat(w, 'discgolfCtp');
   unlockAchievement(w, 'discgolf_klaar');
   if (r.medal >= 3) unlockAchievement(w, 'discgolf_dichtbij_goud');
@@ -792,5 +793,6 @@ export const DISCGOLF = {
   },
   runs: () => runs,
 };
+
 
 

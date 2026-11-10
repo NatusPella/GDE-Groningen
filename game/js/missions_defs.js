@@ -358,7 +358,7 @@ export function buildDefsNaMuseum({ walk, drive }) {
       start: drive(176.46, 116.21),
       stages: [
         {
-          kind: 'hold', target: { landmark: 'Grote Markt', off: [20, -5], snap: 'walk' }, radius: 9, time: 30, mode: 'foot',
+          kind: 'hold', target: { landmark: 'Grote Markt', off: [20, -5], snap: 'walk' }, radius: 9, time: 22, mode: 'foot',
           label: 'Hou de kraam heel tegen het vuurwerk', say: 'Durk en Douwe steken per ongeluk hun vuurwerk aan! Blijf bij de kraam en stap opzij als er een pijl aankomt.',
           ticks: ['De eerste eierballen gaan het vet in.', 'Berend ruikt al iets. Hij knikt bijna.', 'Nog even! De jury pakt de vorken.'],
           fireworks: { every: [1.0, 1.8], hit: 1.9, cost: 2, hitText: 'Pang! Vol raak. Even liggen, dan weer naar de kraam.' },

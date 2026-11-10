@@ -13,6 +13,8 @@
 // gaat nooit geld of voortgang af: dood kost niets. De gast leest de start (met zijn team), de stand en de uitslag uit de gewone
 // meldingen (arenaMelding) en houdt zo zijn eigen bord bij (multiplayerpvpwereld.js).
 
+import { scaleTimeLimit } from './difficulty.js'; // #800: rondetijd per stand
+
 export const ARENA = Object.freeze({
   id: 'pvparena',
   maxSpelers: 8,
@@ -124,11 +126,11 @@ function verdeel(ar) {
   ar.deeln.forEach((d, i) => { d.team = i % 2; });
 }
 // Begint de ronde? Minstens twee spelers, verdeeld over twee teams. Geeft { ok, reden }.
-export function arenaStart(ar, nu = 0) {
+export function arenaStart(ar, nu = 0, mode = 'standaard') {
   if (!ar || ar.fase !== 'wacht') return { ok: false, reden: 'bezig' };
   if (ar.deeln.length < 2) return { ok: false, reden: 'min' };
   verdeel(ar);
-  ar.fase = 'bezig'; ar.t = 0; ar.score = [0, 0]; ar.zoneS = [0, 0]; ar.reden = null; ar.n++; ar.klaarTot = 0;
+  ar.fase = 'bezig'; ar.t = 0; ar.rondeS = scaleTimeLimit(ARENA.rondeS, mode); ar.score = [0, 0]; ar.zoneS = [0, 0]; ar.reden = null; ar.n++; ar.klaarTot = 0;
   for (const d of ar.deeln) { d.punten = 0; d.treffers = 0; d.uitschakelingen = 0; d.neer = 0; d.doodTot = 0; }
   for (const z of ar.zones) z.eigenaar = null;
   return { ok: true, reden: '' };
@@ -225,7 +227,7 @@ export function arenaTik(ar, dt, lichamen = [], nu = 0) {
     while (ar.zoneS[z.eigenaar] >= ARENA.zoneS) { ar.zoneS[z.eigenaar] -= ARENA.zoneS; ar.score[z.eigenaar] += ARENA.zonePunt; }
     if (ar.zoneS[z.eigenaar] < was) uit.push({ type: 'punt', team: z.eigenaar });
   }
-  if (ar.t >= ARENA.rondeS) eindig(ar, 'tijd', nu);
+  if (ar.t >= (ar.rondeS || ARENA.rondeS)) eindig(ar, 'tijd', nu);
   if (ar.fase === 'klaar') uit.push({ type: 'eind', reden: ar.reden });
   return uit;
 }
@@ -237,7 +239,7 @@ export function arenaStand(ar) {
     uitschakelingen: d.uitschakelingen, neer: d.neer,
   })).sort((a, b) => (a.team - b.team) || (b.punten - a.punten) || (a.slot - b.slot));
   return {
-    fase: ar ? ar.fase : 'wacht', t: ar ? ar.t : 0, rest: ar ? Math.max(0, ARENA.rondeS - ar.t) : ARENA.rondeS,
+    fase: ar ? ar.fase : 'wacht', t: ar ? ar.t : 0, rest: ar ? Math.max(0, (ar.rondeS || ARENA.rondeS) - ar.t) : ARENA.rondeS,
     score: ar ? [...ar.score] : [0, 0], zones: ar ? ar.zones.map((z) => ({ id: z.id, eigenaar: z.eigenaar })) : [], rijen,
   };
 }
@@ -319,3 +321,5 @@ export function arenaMelding(tekst) {
   if (t.includes('schakelde') && t.endsWith('in de arena.')) return { soort: 'neer', tekst: t.slice(0, 90) };
   return null;
 }
+
+

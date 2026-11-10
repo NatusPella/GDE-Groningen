@@ -186,5 +186,5 @@ export function vaarStap(d, v, { dt = 0 } = {}) {
 
 export const vaarVoortgang = dienstVoortgang;
 export const vaarStand = dienstStand;
-export function vaarUitslag(d) { return dienstUitslag(d); }
+export function vaarUitslag(d, mode = d && d.mode ? d.mode : 'standaard') { return dienstUitslag(d, mode); } // #800: medailles per stand
 

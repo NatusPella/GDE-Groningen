@@ -1,5 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { volgendeTredeRij } from './medalrules.js';
+import { getSettings } from './settings.js';
+import { cleanDifficulty, difficultyRecordKey } from './difficulty.js'; // #800
 import { toonStartkaart } from './startkaart.js';
 import { recordChallengeResult, getChallengeRecord, recordStat, MEDALS } from './achievements.js';
 import { iconDisc, activityBlock } from './activitykit.js';
@@ -7,7 +9,7 @@ import { createBoard, mgThema, key, fmtTime, stopPressed, windText, windDirectio
 import { waterAt, waterPolyAt } from './waterlevels.js';
 import { buildingAt } from './tileplace.js';
 import { WATER_Y } from './util.js';
-import { createRegatta, stepRegatta, regattaMedaille, regattaVoortgang, REGATTA, windHoek, windOp, besteTrim } from './zeilrules.js';
+import { createRegatta, stepRegatta, regattaMedaille, regattaMedailleFactoren, regattaVoortgang, REGATTA, windHoek, windOp, besteTrim } from './zeilrules.js';
 import { windSnelheid } from './zeilvaren.js';
 import { kiesBaan, richtTijd } from './regattabaan.js';
 import { maakBots, stepBots, speelPlaats, plaatsTekst } from './regattabots.js';
@@ -96,16 +98,17 @@ function finish(w, { quit = false, extern = false, uitslag = null } = {}) {
   if (r.online) { eindeBaan(w, r, uitslag); return; }
   if (quit) { w.addMessage('Regatta gestopt', 2.5); return; }
   // regattaMedaille: 1 = goud ... 3 = brons; MEDALS en de records tellen andersom (3 = goud)
-  const rr = r.reg, rm = regattaMedaille(rr), medal = rm ? 4 - rm : 0;
+  const stand = cleanDifficulty(getSettings().difficulty);
+  const rr = r.reg, rm = regattaMedaille(rr, stand), medal = rm ? 4 - rm : 0;
   if (medal === 3) w.stats.racesWon++; // #818: solo-race gewonnen (co-op telt de wedstrijdlaag)
-  const plas = !!r.plas, rec = recordChallengeResult(w, plas ? PLAS.record : 'regatta', { value: rr.tijd, medal, lower: true });
+  const plas = !!r.plas, rec = recordChallengeResult(w, difficultyRecordKey(stand, plas ? PLAS.record : 'regatta'), { value: rr.tijd, medal, lower: true });
   recordStat(w, 'regatta');
   const bel = plas ? plasBeloning(medal) : { geld: [0, 15, 25, 40][medal] || 0, xp: 18 + medal * 3 };
   const premie = loopbaanVerdien(w, 'race', bel.geld, { xp: bel.xp, n: 1, uniek: 'regatta', ...(plas ? { uniek: PLAS.record } : null) }); // loopbaan (#381)
   const plaats = speelPlaats(rr, hoofdspeler(w).x, hoofdspeler(w).y, r.bots);
   const stats = [['Plaats', plaatsTekst(plaats, r.bots.length + 1)], ['Tijd', fmtTime(rr.tijd)], ['Richttijd', fmtTime(rr.richttijd)], ['Tonnen', String(rr.gerond)]];
   if (medal) stats.push(['Medaille', MEDALS[medal]]);
-  volgendeTredeRij(stats, [...REGATTA.medaille].reverse().map((f) => f * rr.richttijd), rr.tijd, { medal, lager: true, klok: true });
+  volgendeTredeRij(stats, [...regattaMedailleFactoren(stand)].reverse().map((f) => f * rr.richttijd), rr.tijd, { medal, lager: true, klok: true });
   if (rec && rec.newBest) stats.push(['Record', 'Nieuw!']);
   gameUi.showBanner({ kind: medal ? 'pass' : 'fail', title: medal === 3 ? (plas ? 'WINNAAR OP DE HOORNSE PLAS' : 'WINNAAR VAN DE REGATTA') : medal ? 'MOOI GEVAREN' : 'UITGEVAREN', reason: medal ? 'Twee rondes langs alle tonnen' : 'Je was niet snel genoeg voor een medaille: let op de wind', reward: premie, stats });
 }
@@ -391,5 +394,6 @@ registreerWedstrijd('regatta', {
 });
 // Een gast bij een jachthaven of de Hoornse Plas kan de wedstrijd zelf aanvragen (#452).
 zetWedGastHaken('regatta', { dichtbij: (w) => !run && !!nearestMarina(w) });
+
 
 

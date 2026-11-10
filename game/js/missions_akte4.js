@@ -177,13 +177,13 @@ export function buildAkte4Defs() {
       stages: [
         { kind: 'goto', target: ll('bourtangeWal', { label: 'De wallen' }), mode: 'foot', radius: 18, label: 'Naar de wallen van de vesting', say: 'Het Beleg begint. Berend is de bisschop en valt aan. Wij verdedigen de wallen.' },
         {
-          kind: 'hold', target: ll('bourtangeWal', { label: 'De wallen' }), mode: 'foot', radius: 12, time: 16, ticks: ['Het eerste kanon van karton is leeg. Volgende!'],
+          kind: 'hold', target: ll('bourtangeWal', { label: 'De wallen' }), mode: 'foot', radius: 12, time: 12, ticks: ['Het eerste kanon van karton is leeg. Volgende!'],
           fireworks: { every: [2.5, 4.5], hit: 1.9, cost: 2, hitText: 'Een kartonnen kogel met confetti. Even liggen, dan weer de wal op.' },
           label: 'Verdedig de westwal tegen het beleg', say: 'Blijf op de wal staan. De kartonnen kogels zijn confetti, maar ze duwen je wel om.',
         },
         { kind: 'goto', target: ll('bourtangeWalB', { label: 'De noordwal' }), mode: 'foot', radius: 10, label: 'Ren naar de noordwal: daar breekt Berends bisschopsleger door', say: 'Het leger van de bisschop komt aan de andere kant. Ren naar de noordwal.' },
         {
-          kind: 'hold', target: ll('bourtangeWalB', { label: 'De noordwal' }), mode: 'foot', radius: 12, time: 14, ticks: ['De wal houdt stand. Nog even.'],
+          kind: 'hold', target: ll('bourtangeWalB', { label: 'De noordwal' }), mode: 'foot', radius: 12, time: 10, ticks: ['De wal houdt stand. Nog even.'],
           fireworks: { every: [2.0, 3.8], hit: 1.9, cost: 2, hitText: 'Confetti in je gezicht. Even liggen, dan weer de wal op.' },
           label: 'Houd ook de noordwal tegen het beleg', say: 'Blijf op de noordwal staan tot het beleg voorbij is.',
         },
@@ -198,7 +198,7 @@ export function buildAkte4Defs() {
           ],
         },
         {
-          kind: 'scene', target: ll('bourtangeGracht', { label: 'De gracht' }), label: 'Luister naar Durk en Douwe: zij houden je bezig', kicker: 'De gracht van Bourtange',
+          kind: 'scene', checkpoint: true, target: ll('bourtangeGracht', { label: 'De gracht' }), label: 'Luister naar Durk en Douwe: zij houden je bezig', kicker: 'De gracht van Bourtange',
           script: { ids: ['M20.2'] }, cast: [{ key: 'durk', pose: 'arms', at: [3.2, 1.0] }, { key: 'douwe', pose: 'arms', at: [3.2, -1.4] }],
         },
         {
@@ -209,20 +209,20 @@ export function buildAkte4Defs() {
           script: { ids: ['M20.3'] }, cast: [{ key: 'mem', pose: 'hold', at: [2.4, 0.6] }, { key: 'trijntje', pose: 'hips', at: [2.6, -0.8] }, { key: 'jelle', pose: 'hips', at: [4.2, 0] }, { key: 'berend', pose: 'arms', at: [3.6, 2.0] }],
         },
         {
-          kind: 'hold', target: ll('bourtangeKruit', { label: 'De kruitkelder' }), mode: 'foot', radius: 7, time: 12, ticks: ['Jelles mannen storten zich op de deur. Hou vol.'],
+          kind: 'hold', target: ll('bourtangeKruit', { label: 'De kruitkelder' }), mode: 'foot', radius: 7, time: 10, ticks: ['Jelles mannen storten zich op de deur. Hou vol.'],
           fireworks: { every: [2.0, 3.5], hit: 1.9, cost: 3, hitText: 'Een blauwe colbert duwt je opzij. Even liggen, dan terug in de deur.' },
           label: 'Houd de eerste deur van de kruitkelder tegen Jelles mannen', say: 'Houd de deur van de kruitkelder met de kartonnen kanonnen. Jelles mannen komen in colberts.',
           talk: { ids: ['M20.4'], delay: 1.5 },
         },
         { kind: 'goto', target: ll('bourtangeKruitB', { label: 'De tweede deur' }), mode: 'foot', radius: 6, label: 'Ren naar de tweede deur: die begint te bezwijken', say: 'De tweede deur geeft mee. Rennen.' },
         {
-          kind: 'hold', target: ll('bourtangeKruitB', { label: 'De tweede deur' }), mode: 'foot', radius: 7, time: 12, ticks: ['Nog een deur. Hou vol.'],
+          kind: 'hold', target: ll('bourtangeKruitB', { label: 'De tweede deur' }), mode: 'foot', radius: 7, time: 10, ticks: ['Nog een deur. Hou vol.'],
           fireworks: { every: [1.8, 3.2], hit: 1.9, cost: 3, hitText: 'Een colbert met een aktetas. Even liggen, dan terug in de deur.' },
           label: 'Houd de tweede deur tegen', say: 'Houd ook de tweede deur. Daarna de derde.',
         },
         { kind: 'goto', target: ll('bourtangeKruitC', { label: 'De derde deur' }), mode: 'foot', radius: 6, label: 'Ren naar de derde deur: de laatste', say: 'De derde deur. De bal blijft hier.' },
         {
-          kind: 'hold', target: ll('bourtangeKruitC', { label: 'De derde deur' }), mode: 'foot', radius: 7, time: 12, ticks: ['Nog even. De bal blijft hier.'],
+          kind: 'hold', target: ll('bourtangeKruitC', { label: 'De derde deur' }), mode: 'foot', radius: 7, time: 10, ticks: ['Nog even. De bal blijft hier.'],
           fireworks: { every: [1.6, 3.0], hit: 1.9, cost: 3, hitText: 'Jelles mannen duwen allemaal tegelijk. Even liggen, dan terug in de deur.' },
           label: 'Houd de derde deur tegen', say: 'De laatste deur. Daarna naar de poort.',
         },

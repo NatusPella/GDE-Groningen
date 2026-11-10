@@ -16,6 +16,8 @@ import {
   pressDoors, deadmanFault, dienstMedaille, conducteurKeuze, pasConducteur,
 } from './machinistrules.js';
 import { createCabHud, cabView } from './treincabine.js';
+import { getSettings } from './settings.js';
+import { cleanDifficulty } from './difficulty.js'; // #800: de dienst volgt de stand van deze speler
 
 const PIEP_S = 2.4; // zo lang is het waarschuwingssignaal van de deuren (trein_deur_piep)
 const ACCENT = mgThema('machinist').accent; // één bron voor het HUD-thema: minigamekit.js (#453)
@@ -88,6 +90,8 @@ function begin(world, t) {
     range: [lo + t.halfLen, hi - t.halfLen], storingen: true,
     blokken: blok ? blok.vakken : [], blokPunten: blok ? blok.punten : [],
     dienst: dienst(cab),
+    // #800: de medaille- en perrondrempels van deze dienst volgen de stand; Standaard is oud gedrag
+    mode: cleanDifficulty(getSettings().difficulty),
   });
   svc = plan(t.cab);
   t.service = true; // een late gast mag niet meer instappen zolang de dienst loopt (#492)
@@ -220,7 +224,7 @@ export function updateMachinist(dt, world, t, cab) {
       svc.paid = true;
       const pay = payFor(r, svc.abandoned) + (svc.conducteur && svc.conducteur.gekozen ? svc.conducteur.tip | 0 : 0);
       // #670: de uitslag van de dienst in één medaille (op tijd, veilig, alle halten), naast de bestaande beloning.
-      const dm = dienstMedaille({ gemiddelde: r.score, halten: r.stops, opTijd: r.punct, veilig: r.veilig, fouten: r.faults });
+      const dm = dienstMedaille({ gemiddelde: r.score, halten: r.stops, opTijd: r.punct, veilig: r.veilig, fouten: r.faults }, svc.mode);
       r.dienstMedaille = dm.naam;
       const betaald = dienstBeloning(world, pay, pay > 0 ? Math.round(r.made * 4 + r.medal * 8) : 0); // samen spelen (#365), loopbaan (#381), elk crewlid (#492)
       t.service = false; // de dienst is klaar: een gast mag weer instappen (#492)

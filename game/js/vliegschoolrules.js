@@ -411,6 +411,8 @@ export function beoordeel(les, baan, st, mode = 'standaard') {
   // #800: de stand schaalt de lesdrempels; Standaard geeft exact de oude waarden.
   const lager = baan.soort === 'hoveren';
   const g = schaalGrenzen(les.grenzen, mode, lager);
+  // #800: ook de noodlandings-/landingsdrempel schaalt mee (ruimer op Ontspannen).
+  const merkR = baan.merk ? schaalGrenzen([baan.merk.r], mode, true)[0] : null;
   switch (baan.soort) {
     case 'ringen':
       medaille = medalje(st.goed, g);
@@ -420,7 +422,7 @@ export function beoordeel(les, baan, st, mode = 'standaard') {
     case 'landen': {
       if (!st.geland) break;
       const d = st.tdAfstand, zacht = st.tdKwaliteit === 'zacht';
-      const ok = baan.kist === 'heli' ? d <= baan.merk.r + 1.5 : st.tdOpBaan;
+      const ok = baan.kist === 'heli' ? d <= merkR + 1.5 : st.tdOpBaan;
       const [gout, zilver] = schaalGrenzen(baan.kist === 'heli' ? [2.5, 5] : [25, 60], mode, true);
       if (ok) medaille = 1;
       if (ok && ((zacht && d <= zilver) || d <= gout)) medaille = 2;
@@ -446,7 +448,7 @@ export function beoordeel(les, baan, st, mode = 'standaard') {
       const zacht = st.tdKwaliteit === 'zacht';
       medaille = 1;
       if (zacht) medaille = 2;
-      if (zacht && st.tdAfstand <= baan.merk.r) medaille = 3;
+      if (zacht && st.tdAfstand <= merkR) medaille = 3;
       punten = Math.round(600 + (zacht ? 200 : 0) + Math.max(0, 200 - st.tdAfstand));
       regels.push(['Afstand tot het midden', Math.round(st.tdAfstand) + ' m'], ['Landing', zacht ? 'zacht' : 'hard']);
       break;
@@ -649,4 +651,6 @@ export function piloot(les, baan, st, c, env = {}) {
   if (t.uitrol) { k.w = false; k.s = true; k.spatie = false; k.shift = true; k.a = false; k.d = false; }
   return k;
 }
+
+
 

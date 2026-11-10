@@ -252,6 +252,39 @@ zonder stille meting speculatief zijn. Plan: eerst een rustige run (geen andere
 Electron/agents, CPU < 2%) met dezelfde routes, daarna cityprops-cel splitsen en
 de heavy weg uitstellen/prewarmen, elk met een eigen voor/na-meting.
 
+## Vervolg: heavy wegen uitgesteld (#804, demper 2, 10-11 ochtend)
+
+Op een stille machine eerst opnieuw gemeten (a7/spoor, 12 s, hoog, `--hitch`,
+inclusief de pacing-velden uit `hook.js`). Uitgangspunt: a7 gem. 28,9 / p95 66,7
+/ p99 233 / max 867, spoor 37,4 / 66,7 / 167 / 483; cityprops-piek was inmiddels
+207 ms (a7) en 33 ms (spoor) — de oude 235 ms is dus deels achterhaald door
+andere fixes, maar de dichte cel is op a7 nog zichtbaar.
+
+Daarna in `syncRoads` de **heavy weg** (surfaces niet kant-en-klaar of de
+civiele werken worden hier gebouwd) uitgesteld: hij bouwt alleen op een verder
+leeg frame (geen andere weg dit frame en `streamStat.r <= 2`), anders schuift
+hij door (`roadSyncStats.heavyDeferred`). Gemeten met dezelfde harness:
+
+| route | gem. ms (was) | p95 (was) | p99 (was) | max (was) | >50 (was) | >100 (was) |
+|---|---:|---:|---:|---:|---:|---:|
+| a7 | **22,6** (28,9) | **33,5** (66,7) | **116,7** (233) | 850 (867) | **65** (165) | 29 (49) |
+| spoor | **27,0** (37,4) | **50,0** (66,7) | **100** (167) | 783 (483) | **73** (148) | 15 (28) |
+
+Pacing (a7): 2224 van 2655 frames in de 16,7 ms-emmer (was 1476/2071), 127
+frames boven twee beelden (was 275); spoor 1060/1667 in de eerste emmer (was
+393/1204), 136 boven twee beelden (was 396). Gemiddelde en p95 zijn dus flink
+gezakt; de **max** blijft hoog (850/783 ms) door wat er nog overblijft.
+
+Wat er na deze demper nog piekt (a7/spoor): `populate-pre` 300/416 ms (het
+frame-gat vóór de populatielus, dus GPU-wacht/gat, geen populatie), `3d:roads`
+228/253 (de eerste heavy weg die alsnog op een leeg frame bouwt), `cityprops`
+207/33, `3d:render:hoofdpas+post` (spoor 280), `systems` 168 (a7), `traffic`
+137/85, `3d:grass` 118. Om de max onder 100 ms te krijgen moet de heavy weg
+zelf gesplitst of naar de laadtijd/prewarm verplaatst worden (één weg kost nog
+honderden ms); dat is een grotere ingreep en niet zonder eigen meting gedaan.
+Cityprops (dichte cel, 207 ms) is de volgende kandidaat voor de geplande
+celextra-splitsing.
+
 ## Reproduceren
 
 ```
