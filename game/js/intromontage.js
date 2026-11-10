@@ -1366,6 +1366,7 @@ function cleanup(r, skipped) {
     setSub(null);
     setTag(null);
   }
+  if (r.w) r.w.cinemaLean = false;
   document.body.classList.remove('intro-montage');
   stopStoryVoice();
   setStoryScene(false, 'intro');
@@ -1440,6 +1441,7 @@ export function playIntroMontage(w, { startAt = 0, flyShot, onDone, maxShots = I
     saved: { px: p.x, py: p.y, pa: p.angle, clock: typeof w.clock === 'number' ? w.clock : 17.5, wanted: w.wanted || 0, weather: w.weather, comp: c ? { x: c.x, y: c.y, angle: c.angle } : null },
   };
   run = r;
+  w.cinemaLean = true;
   setIntroPlaying(true);
   document.body.classList.add('intro-montage');
   setStoryScene(true, 'intro');
