@@ -319,6 +319,46 @@ stap volgens bewijs: (1) `setRoadNetwork` (35 ms) en (2) de restfase van
 splitsen/begrenzen. De machine moet daarvoor stil zijn; de vorige stille run
 gaf a7 p95 33,5 / spoor 50 met de heavy-uitstel-fix.
 
+## Schone meting + demper: straatmeubel-streamer (#804, 10-11 namiddag)
+
+Op de stille machine één schone meting (a7/spoor, 15 s, hoog, `--hitch`):
+
+| route | gem. ms | p95 | p99 | max | >50 | >100 |
+|---|---:|---:|---:|---:|---:|---:|
+| a7 | 24,8 | 50 | 116,9 | 566,7 | 99 | 30 |
+| spoor | 28,2 | 50 | 83,4 | 566,6 | 69 | 20 |
+
+Daarna de twee aangewezen posten onderzocht met submarks:
+
+- **`setRoadNetwork` (~35 ms):** de knooppuntindex wordt al **gedeeltelijk**
+  ververst (`netState`: chunk van `NET_CHUNK` wegen per frame, oude index
+  blijft bruikbaar, 8 ms-throttle). De scherpe sub-pieken zijn
+  `roadnet-chunk` 11,4 ms en `roadnet-grid` 4,4 ms — géén volledige herbouw per
+  frame. **Geen wijziging** nodig; een verdere split levert volgens de meting
+  niets op.
+- **Restfase van `updateCityProps` (~107 ms):** met marks bleek dat niet de
+  dichte cel of de registratie te zijn maar de **straatmeubel-streamer** in
+  `updateBreakables` (`br-stream`): 261,4 ms piek (a7), 44-47 ms in de trage
+  frames. Die streamt elke 0,25 s alle tegels rond de speler en bouwt nieuwe
+  tegels (`furnitureForTile` met alle kaartvragen) in één beurt.
+- **Kleine demper (met bewijs):** `streetfurniture3d.streamFurnitureProps`
+  bouwt nu per streambeurt **hoogstens 2 nieuwe tegels**; bestaande tegels
+  blijven gewoon stromen. Nieuwe test `scripts/streetfurniture_budget_test.mjs`.
+  Gemeten na de fix (zelfde harness, stille machine):
+
+| route | gem. ms | p95 | p99 | max | >50 | >100 | br-stream-piek |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| a7 | **21,3** | **33,4** | **66,7** | 550 | **50** | 14 | **31,8** (was 261) |
+| spoor | **25,7** | **49,9** | **83,3** | 417 | **50** | 13 | **24,4** (was 28) |
+
+De straatmeubel-piek is dus weg (261 -> 32 ms) en p95 daalt op a7 van 50 naar
+33,4. `norm_check` haalt nog niet de norm (p95 33,4/49,9, max 550/417): de
+resterende max zit in de frame-gaten (`populate-pre`/`frame`) en de eerste
+heavy weg die alsnog op een leeg frame bouwt. Volgende stappen volgens meting:
+de heavy weg zelf splitsen of naar laadtijd/prewarm verplaatsen (groot werk) en
+de frame-gat-oorzaak (GPU-wacht) apart onderzoeken; geen speculatieve wijziging
+doorgevoerd.
+
 ## Reproduceren
 
 ```

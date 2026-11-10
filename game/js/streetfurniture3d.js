@@ -382,12 +382,20 @@ export function updateStreetFurniture3D(px, py, force = false) {
   rebuildSigns(gantries.filter(bordHeeftTekst).sort((a, b) => Math.hypot(a.x - px, a.y - py) - Math.hypot(b.x - px, b.y - py)).slice(0, 16));
 }
 
-// colliders near the player (breakables.js streams every 0.25 s)
+// #804: een nieuwe tegel bouwen (furnitureForTile met alle kaartvragen) kost
+// tientallen ms; bij een sprong komen er in één streambeurt veel tegels bij
+// (br-stream-piek 261 ms). Per beurt hoogstens twee nieuwe tegels; de rest
+// volgt de volgende 0,25 s-beurt. Bestaande tegels blijven gewoon stromen.
+const PROP_NEW_TILES_PER_CALL = 2;
 function streamFurnitureProps(world, px, py) {
   if (!map) return;
   const want = new Set();
+  let newTiles = 0;
   const [i0, j0] = tileIndexOf(px - PROP_REACH, py - PROP_REACH), [i1, j1] = tileIndexOf(px + PROP_REACH, py + PROP_REACH);
   for (let i = i0; i <= i1; i++) for (let j = j0; j <= j1; j++) {
+    const wasNew = !tiles.has(`${i},${j}`);
+    if (wasNew && newTiles >= PROP_NEW_TILES_PER_CALL) continue;
+    if (wasNew) newTiles++;
     tileItems(i, j);
     const t = tiles.get(`${i},${j}`);
     for (const c of t.colliders) {
