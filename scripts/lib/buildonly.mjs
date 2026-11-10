@@ -9,4 +9,5 @@ export const BUILD_ONLY = [
   'marinas.js', // jachthavenplanner; het spel leest alleen marinas.json
   'padscreens.js',
   'randaudit.js', 'streekaudit.js', 'terrainaudit.js', // wereldaudits (scripts/world)
+  'missioncurve.js', // #829: branch-aware missiecurve voor audit/tests, niet in het spel
 ];
