@@ -436,3 +436,18 @@ cd desktop && npm run stage
 cd .. && PERF_DUR=15000 node scripts/perf/run.mjs <naam> --preset=quality:hoog --hitch
 node scripts/perf/norm_check.mjs <PERF_OUT>/<naam>.json
 ```
+
+## Eindmeting 0.60.6 (11-11-2026, schone machine)
+
+Na de straatmeubel- en shaderlink-fix opnieuw gemeten met de hitchprobe (a7/spoor, 15 s, quality:hoog, dpr 1, 1904x993, --hitch, --url-flags=touch=0). Machine idle (geen andere Electron/node-processen; load 0.00). Twee runs:
+
+| run | route | gem. | p95 | p99 | max | >50 |
+|---|---|---:|---:|---:|---:|---:|
+| 1 | a7 | 25,3 | 50,0 | 166,4 | 666,7 | 105 |
+| 1 | spoor | 27,6 | 50,0 | 66,7 | 3216,9 | 38 |
+| 2 | a7 | 24,6 | 50,0 | 266,6 | 966,7 | 107 |
+| 2 | spoor | 28,3 | 50,0 | 149,9 | 716,6 | 67 |
+
+De CPU-mediaan (20-24 ms) zit boven één 60Hz-beeld, dus de p95 van 50 ms is werk (drie vsyncs), geen planningsfout. De uitschieters blijven in de frame-gaten en de eerste zware/montageframes. Let op: na een release bestaat desktop/build niet meer; eerst `npm run stage` draaien, anders is de meting PARTIAL.
+
+Benchmark op dezelfde build met de standaardpreset (Vlot): gemiddeld **44,3 fps**, 58,8 spikes/min, JS-heap 3,4 GB (de montage-voorwarm en nieuwe content kosten geheugen; de eerdere sparse meting was 43,4 fps / 2,9 GB). De hitchprobe-norm (p95<=25, max<=100) is nog niet gehaald.
