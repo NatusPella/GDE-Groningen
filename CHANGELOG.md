@@ -9,7 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
-- **De opening is weer de gescripte scène van vóór 0.58: de lange trailer-montage speelt niet meer automatisch vooraan.** Die montage sprong langs een tiental plekken en veroorzaakte shader- en streamingpieken van seconden; de gescripte opening bij het nieuwe thuis draait weer vloeiend. De montagecode blijft beschikbaar (`playTrailerMontage`), maar niet in de standaardopening.
+- **De trailer-montage is terug als opening (C00.1), maar met performance-vangnet.** De montage draait weer als eerste bedrijf van het verhaal. Om hem soepel te houden worden de montagetegels en gebouwen al tijdens het laadscherm voorgereden en de vaste opening-assets voorgecompileerd; tijdens de film blijven fijn straatmeubilair, landleven, perronpubliek, evenementen, werven en de parkeerlaag weg (verhaalcontent en hoofdbeeld blijven); en een shader die voor het eerst linkt blokkeert de spellus niet meer (#804). Het laadscherm duurt daardoor langer — de eerder gekozen ruil — en de film hapert niet meer met frames van seconden.
 
 ## [0.60.6] - 2026-11-11
 
