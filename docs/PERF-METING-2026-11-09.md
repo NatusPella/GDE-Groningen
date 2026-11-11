@@ -494,3 +494,7 @@ Na de straatmeubel- en shaderlink-fix opnieuw gemeten met de hitchprobe (a7/spoo
 De CPU-mediaan (20-24 ms) zit boven één 60Hz-beeld, dus de p95 van 50 ms is werk (drie vsyncs), geen planningsfout. De uitschieters blijven in de frame-gaten en de eerste zware/montageframes. Let op: na een release bestaat desktop/build niet meer; eerst `npm run stage` draaien, anders is de meting PARTIAL.
 
 Benchmark op dezelfde build met de standaardpreset (Vlot): gemiddeld **44,3 fps**, 58,8 spikes/min, JS-heap 3,4 GB (de montage-voorwarm en nieuwe content kosten geheugen; de eerdere sparse meting was 43,4 fps / 2,9 GB). De hitchprobe-norm (p95<=25, max<=100) is nog niet gehaald.
+
+### Geprobeerd en teruggedraaid: routing-graaf niet per frame
+
+Het profiel wees `updateRouting` -> `ensureGraph/buildGraph` (`insideBuilding`, `throughBuilding`) als grote CPU-post aan. `ensureGraph` uit `updateRouting` gehaald en lazy in `computeRoute` gezet (routevraag bepaalt de rebuild). Twee schone nametingen vielen echter slechter uit (a7 28,5/50,2 en 33,9/66,8; spoor 44,6/116,6 en 36,8/66,7 tegen 25,3/50 en 27,6/50 ervoor), zonder duidelijke oorzaak. De wijziging is teruggedraaid; de graaf-cadans blijft zoals hij was. Een volgende poging moet eerst de rebuildfrequentie en de streamwacht apart meten.
