@@ -573,3 +573,26 @@ CPU-profiel van de eerste 20 s na navigatie (`--profile-load=20000`, Electron 45
 De uitschieter is de **eerste Canvas2D-bewerking** in `createBrickDetailTexture`; de tekening zelf is deterministisch. De canvas wordt nu één keer bewaard en per materiaal als eigen `CanvasTexture` teruggegeven (geen gedeelde repeat-instellingen), maar de eerste canvasinitialisatie blijft de grootste koude post. Een echte vervolgstap is de tegel als gebakken afbeelding/DataTexture leveren in plaats van bij de start te tekenen; dat is een visuele wijziging en vraagt een screenshotvergelijking.
 
 Het meetharnas is hard gemaakt: `perf/run.mjs` stopt nu met een duidelijke fout als `desktop/build` ontbreekt (na een release), met test `perfstage_test`.
+## Profiel: routegraaf-debounce (#804, 11-11)
+
+Aanvullend op de hitch-probes is de CPU zelf geprofiled: `PERF_PROFILE=<route>` laat
+`desktop/devtools.js` een CPU-profiel trekken, `GDE_PROFILE_OUT=<map>` bewaart de
+`.cpuprofile`, en `scripts/perf/selftime.mjs` / `categories.mjs` geven de hotspots.
+
+- **Profielbeeld vóór de fix** (stilstaande route, quality hoog, ~15 s): routing/
+  `throughBuilding` ~14% van de druk, GC 5-15%, `streetfurniture.onFoot` 2-6%,
+  render ~19%, streaming ~17%. De routegraaf werd telkens opnieuw gebouwd zodra de
+  tegelwachtrij even leeg was, ook als de speler stil stond.
+- **Fix:** `ensureGraph` wacht tot de wegen-/gebouwenlagen **1 s stil** zijn en
+  bouwt dan één keer; na **4 s** stale bouwt hij alsnog (bovengrens). De pure regel
+  staat in `game/js/graphgate.js`, met `scripts/graphgate_test.mjs`; de route-,
+  ribbon- en startroutetests blijven groen. In het nieuwe profiel is
+  `throughBuilding`/`buildGraph` uit de top verdwenen en GC naar ~2,5%.
+- **Indicatieve meting** (machine niet stil; alleen ter vergelijking, geen
+  acceptatie): staan gem. **37,6 -> 17,5 ms**, p95 **83 -> 17 ms**, >50 ms
+  **71 -> 1** frame; a7 gem. ~20 ms, p95 ~33 ms. De max blijft hoog (~1,6 s) door
+  de heavy weg/streaming; dat is het volgende #804-restpunt.
+- **Open:** de HUD-route kan na een snelle tegelstroom kort (max 4 s) op de oude
+  graaf staan; met de hand op een snel traject controleren. Een echte
+  acceptatiemeting vereist een stille machine (CPU < 2%, geen andere Electron);
+  `run.mjs` waarschuwt boven 35% en `norm_check` markeert zulke bestanden.
