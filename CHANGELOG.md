@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- **Shaders worden nu écht vóór de start gecompileerd: een Group met een los materiaal liet `renderer.compile()` crashen, waardoor de hele voorcompileerstap stilletjes werd overgeslagen en de film per shot alsnog shaders linkte.** Het terrein bewaart zijn materiaal nu in `userData` en `precompilePrograms` slaat niet-draw-objecten tijdelijk over. In de geforceerde filmmeting ging het eerste blok van ~10 naar ~55 fps en het laatste van ~30 naar ~57 fps; de load compileert nu 433 ms shaders in plaats van 14 ms (en de openingsfilm start sneller: introWarm ~20 s, gameStart ~47 s).
+
 - **De trailer-montage is terug als opening (C00.1), maar met performance-vangnet.** De montage draait weer als eerste bedrijf van het verhaal. Om hem soepel te houden worden de montagetegels en gebouwen al tijdens het laadscherm voorgereden en de vaste opening-assets voorgecompileerd; tijdens de film blijven fijn straatmeubilair, landleven, perronpubliek, evenementen, werven en de parkeerlaag weg (verhaalcontent en hoofdbeeld blijven); en een shader die voor het eerst linkt blokkeert de spellus niet meer (#804). Het laadscherm duurt daardoor langer — de eerder gekozen ruil — en de film hapert niet meer met frames van seconden.
 
 ## [0.60.6] - 2026-11-11
