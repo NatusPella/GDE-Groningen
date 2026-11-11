@@ -592,6 +592,11 @@ Aanvullend op de hitch-probes is de CPU zelf geprofiled: `PERF_PROFILE=<route>` 
   acceptatie): staan gem. **37,6 -> 17,5 ms**, p95 **83 -> 17 ms**, >50 ms
   **71 -> 1** frame; a7 gem. ~20 ms, p95 ~33 ms. De max blijft hoog (~1,6 s) door
   de heavy weg/streaming; dat is het volgende #804-restpunt.
+- **A/B op a7** (zelfde release, kort na elkaar; machine 34% vs 48% CPU): zonder
+  debounce gem. **39,8** / p95 **116,6** / max **1400** ms; met debounce gem.
+  **29,5** / p95 **66,7** / max **683** ms. Indicatief (de runs waren niet even
+  stil), maar dezelfde richting als het profiel: ook op een rijdende route wordt
+  de staart kleiner. De norm (p95 <= 25, max <= 100) is nog niet gehaald.
 - **Open:** de HUD-route kan na een snelle tegelstroom kort (max 4 s) op de oude
   graaf staan; met de hand op een snel traject controleren. Een echte
   acceptatiemeting vereist een stille machine (CPU < 2%, geen andere Electron);
