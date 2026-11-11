@@ -429,6 +429,49 @@ opnieuw worden gemeten voordat er conclusies aan vastzitten. De norm
 (p95 <= 25, max <= 100) blijft daarmee open; de volgende meting moet uitwijzen
 of de max dan uit frame-gaten/GPU-wacht of uit iets anders komt.
 
+## CPU-profiel a7/spoor (#804, 11-11 avond)
+
+Doel: de CPU-mediaan (20-24 ms op a7/spoor) uitsplitsen in render en
+wereldupdate, top-5 benoemen en één kleine bewezen optimalisatie doen. De
+machine was deze keer **niet stil**: 5 Electron-processen van andere agents,
+runs van 172-205 s voor 12-15 s route. De nieuwe profielruns zijn daardoor niet
+bruikbaar (a7 140/86 ms, daarna 40/43 ms, nog een 24/32 met max 3400); de
+cijfers hieronder komen uit de **schone runs van de vorige secties** (zelfde
+build op de link-guard na, a7/spoor 15 s, hoog, `--hitch`), waar de
+sectie-totalen per frame zijn opgeslagen.
+
+Top-5 CPU-posters (ms per frame, gemiddeld over de route; `frame` is de totale
+CPU-tijd van het frame en telt de onderdelen hieronder):
+
+| # | a7 (schoon) | ms/frame | spoor (schoon) | ms/frame |
+|---|---|---|---:|---:|---:|
+| 1 | `3d:render:hoofdpas+post` | 3,1-3,7 | `hud` | 4,3-5,1 |
+| 2 | `hud` | 1,7 | `3d:render:hoofdpas+post` | 3,4-4,2 |
+| 3 | `traffic` | 1,5-2,2 | `3d:buildings` | 2,3-2,4 |
+| 4 | `3d:render:voorpas` | 1,9-2,0 | `3d:render:voorpas` | 2,1-2,2 |
+| 5 | `3d:buildings` | 1,0-1,1 | `traffic` | 1,2-1,5 |
+| | daarna | | `police+collide` 0,8-0,9, `3d:render:schaduwpas` 0,7-1,0, `3d:roads` 0,8-1,1 | |
+
+Verdeling: **render** (hoofd-/voorpas/schaduw) ongeveer 6-7,5 ms per frame,
+**wereldupdate** (traffic, buildings, roads, police+collide, peds) ongeveer
+4-6 ms, **HUD** 1,7 (a7) tot 5,1 (spoor), en de rest van de totale CPU-tijd
+(17-25 ms) zit in de vele kleine posten en GC. Draw calls: 184-262 per frame;
+de diag-tellers (uit de bezette profielrun, alleen als ruwe verhouding) noemen
+o.a. losse tekenaanroepen per materiaalsoort: op spoor `building Extrude<100`
+~36/frame, `[sh] building:detail` 12-19/frame, `pool` 9, `countrylife` 9,
+`cityprops` 6-11; op a7 `u:Mesh ShaderMaterial` 15, terrain 7-8, road 7,
+green-chunk 6.
+
+Er is deze ronde **geen codewijziging** doorgevoerd: met de machine in deze
+staat is geen betrouwbare voor/na-meting te maken, en zonder meting is een
+optimalisatie speculatief. De eerstvolgende kandidaten op basis van dit profiel
+(elk met eigen voor/na-meting op een stille machine): (a) HUD op spoor
+(4,3-5,1 ms; eerst de HUD-fasen met submarks uitsplitsen, de minimap is de
+grootste verdachte), (b) render-hoofdpass (draw calls/batches: de diag noemt
+tientallen losse bouw- en detailtrekken op spoor), (c) `3d:buildings`
+streaming. De norm (p95 <= 25, max <= 100) blijft op deze machine onhaalbaar te
+verifiëren; dat staat hier eerlijk als restpunt.
+
 ## Reproduceren
 
 ```
