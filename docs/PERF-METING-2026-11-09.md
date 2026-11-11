@@ -359,6 +359,76 @@ de heavy weg zelf splitsen of naar laadtijd/prewarm verplaatsen (groot werk) en
 de frame-gat-oorzaak (GPU-wacht) apart onderzoeken; geen speculatieve wijziging
 doorgevoerd.
 
+## Frame-gaten: shader-linkblokkade (#804, 11-11)
+
+Doel van deze ronde: de resterende max (550/417 ms) in de frame-gaten
+(`populate-pre`/`frame`) en de eerste heavy weg aanwijzen. Eén schone meting
+(a7/spoor, 15 s, hoog, `--hitch`, met de bestaande submarks; de machine was
+stil): a7 gem. 21,7 / p95 33,4 / max 1600 (19 frames >100), spoor 33,4 / 66,5 /
+483 (13 >100). De uitschieter is reproduceerbaar en nu precies te benoemen:
+
+- **a7, frame op 60,13 s:** cpu 1584,9 ms, `3d:render:hoofdpas+post` 1540,7 ms,
+  `gl:getProgramParameter` **1525,7 ms**; in dat frame zijn de programma's
+  `Mesh/MeshStandardMaterial building (hidden)` en
+  `Mesh/MeshStandardMaterial pool` nieuw. De route-programmalijst toont daarna
+  nog de building/pool-varianten. Dat is dus een **shader-linkblokkade in de
+  render** (three.js vraagt LINK_STATUS/COMPLETION_STATUS synchroon op en wacht
+  de GPU-backlog uit), geen CPU-streaming en geen dichte cel.
+- **spoor, max 483 ms:** daar staan geen nieuwe programma's; de trage frames
+  hebben `geo` +38 / `tex` +1 (upload) en `3d:render:*`-werk. Kleinere orde dan
+  a7.
+- **Eerste heavy weg:** de road-submarks laten zien dat `buildRoadGroup` en
+  `liftRoadGroup` < 8 ms blijven; de weg is dus niet de max-oorzaak. De eerdere
+  aanname "eerste heavy weg ~400 ms" is met deze meting weerlegd; wat overblijft
+  op de weg is `roads-net` (chunk 11 ms) en incidentele uploads.
+
+Er zit al een link-guard in de build (`LINK_POLL_MS = 25`,
+`BUILDING_LINK_WAIT_MS = 2000`, `hookLinkGuard`, `meshProgramsReady`), maar de
+meting laat zien dat één poll op een nog-niet-gelinkt programma zelf 1,5 s kan
+blokkeren wanneer de GPU-backlog groot is. Een veilige vervolgstap is daarom:
+de poll alleen doen als de GPU niet bezig is (of na de render), en nagaan welk
+niet-gebouw-materiaal (`pool`) de draw zonder wacht passeert; dat vraagt een
+gerichte profielrun en is **niet** zonder meting doorgevoerd. De norm
+(p95 <= 25, max <= 100) is met deze bron nog niet haalbaar; dat staat hier
+eerlijk als restpunt.
+
+Schone stand na de straatmeubel-fix (uit de vorige sectie): a7 p95 33,4 /
+max 550; spoor p95 49,9 / max 417. Deze ronde leverde geen codewijziging op —
+alleen de meting en deze analyse.
+
+## Link-guard niet-blokkerend (#804, 11-11)
+
+De 1,5 s-piek uit de vorige sectie kwam uit `programLinked`: de draw-guard
+vroeg `p.isReady()` en dat doet een **synchrone LINK_STATUS-query** die wacht
+tot de link klaar is. In `scene3d.js` vraagt de guard nu
+`KHR_parallel_shader_compile`'s **COMPLETION_STATUS_KHR** (niet-blokkerend) en
+markeert een programma pas als gelinkt als die true zegt; zonder de extensie
+valt hij terug op `isReady()`. De poll blijft op 25 ms en in de draw wordt geen
+LINK_STATUS meer gevraagd. Dit is de (2) uit het plan; (1) een warme compile van
+de twee varianten bij de start is niet meer nodig zolang de guard niet blokkeert
+en is niet apart gebouwd.
+
+Meting na de wijziging (a7/spoor, 15 s, hoog, `--hitch`):
+
+| run | route | gem. ms | p95 | max | `gl:getProgramParameter` (gem.) |
+|---|---|---:|---:|---:|---:|
+| 1 | a7 | 32,8 | 66,8 | 1383 | **0,33 ms** (was 1525 ms in één frame) |
+| 1 | spoor | 34,7 | 50,2 | 433 | 0 |
+| 2 | a7 | 53,4 | 116,8 | 3533 | — |
+| 2 | spoor | 42,5 | 66,7 | 733 | — |
+
+De **blokkerende LINK_STATUS-query is weg** (geen 1,5 s
+`gl:getProgramParameter` meer in de trage frames; de teller zakt naar
+honderden µs). Een schone voor/na-tabel voor p95/max kon niet worden gemaakt:
+de tweede run was veel slechter dan de eerste terwijl er geen andere
+Electron/node-processen stonden (systeemactiviteit), en de eerste run had ook
+al een langere looptijd dan de stille metingen. De p95/max-verschillen zijn dus
+niet toe te schrijven aan de wijziging. Wat wel vaststaat: de draw wacht niet
+meer synchroon op een link; de resterende max moet op een echt stille machine
+opnieuw worden gemeten voordat er conclusies aan vastzitten. De norm
+(p95 <= 25, max <= 100) blijft daarmee open; de volgende meting moet uitwijzen
+of de max dan uit frame-gaten/GPU-wacht of uit iets anders komt.
+
 ## Reproduceren
 
 ```
