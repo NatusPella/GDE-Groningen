@@ -560,26 +560,7 @@ function playOpening(b) {
       },
     });
   };
-  // #738: C00.1 is de opgenomen trailer (zon op d'Olle Grieze, fietsers, meeuw
-  // met frikandel, werkboot, naam- en titelkaart). Die montage bestaat al in
-  // intromontage.js; we spelen alleen het trailerdeel en pakken daarna de twee
-  // gescripte acts (keuken, verhuisdag) uit cutscenes.js. Lukt de montage niet,
-  // dan valt de oude straatact terug.
-  const startTrailer = () => {
-    let gestart = false;
-    import('./intromontage.js').then((m) => {
-      gestart = m.playTrailerMontage(world, {
-        onDone: (skipped) => {
-          if (skipped) { openingKlaar(); return; }
-          zetKlok(6.4);
-          if (!playAct(1)) openingKlaar();
-        },
-      });
-      if (!gestart && !playAct(0)) openingKlaar();
-    }).catch(() => { if (!playAct(0)) openingKlaar(); });
-    return true; // de opening loopt; de montage of de terugval neemt het over
-  };
-  const staged = acts.length === 3 && startTrailer();
+  const staged = acts.length === 3 && playAct(0);
   if (staged) return true;
   const ok = playCinematic({
     id: 'story-opening', priority: 4, duration: at + 1, pause: true, letterbox: true, skippable: true, hideHud: true,

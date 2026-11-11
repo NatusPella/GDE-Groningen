@@ -74,12 +74,7 @@ ok(/calm = open === 0 && slowRun === 0/.test(warmBody), 'pas door als tellers é
 ok(/\(readyDone \? 0 : 1\)/.test(warmBody) && /window\.__loadMarks\.background/.test(warmBody), 'de warm-stap wacht op de achtergrondstappen (plaatsing en kaartbeelden) en met de klok mee');
 ok(/function warmCountryMaps\(sliceMs = 4\)[\s\S]{0,120}return new Promise/.test(read('game/js/countrymap.js')), 'warmCountryMaps kan zijn klaar-zijn melden');
 ok(/precompilePrograms\(\)/.test(warmBody), 'de warm-stap compileert daarna de shaders');
-ok(/w\.cinemaLean = true/.test(read('game/js/intromontage.js')) && /r\.w\.cinemaLean = false/.test(read('game/js/intromontage.js')), 'de film zet de lean-stand aan en na de film weer uit');
-ok(/!world\.cinemaLean/.test(read('game/js/scene3d.js')), 'straatmeubels, landleven, perronpubliek, evenementen, werven en parkeerlaag wachten tijdens de film');
-ok(/export function introShotPoints\(w\)/.test(read('game/js/intromontage.js')), 'intromontage kan de montageplekken geven');
-ok(/introShotPoints\(world\)/.test(warmBody) && /registerShots\(spots/.test(warmBody) && /prewarmStreamAt\(p\.x, p\.y, 180, 170\)/.test(warmBody), 'de warm-stap laadt en prewarmt de montageplekken');
-ok(/INTRO_WARM_MS/.test(main) && /!world\.loadedFromSave/.test(warmBody), 'de montage wordt alleen bij een nieuw spel voorgereden en heeft een eigen grens');
-ok(/releaseShots\(\)/.test(read('game/js/intromontage.js')), 'de montage geeft de gepinde tegels weer vrij');
+ok(/const staged = acts\.length === 3 && playAct\(0\);/.test(read('game/js/story.js')) && !/playTrailerMontage/.test(read('game/js/story.js')), 'de opening speelt de gescripte acts, niet de lange montage');
 ok(/const WARM_START = !\(FLAGS\.noattract[\s\S]{0,260}FLAGS\.autoplay/.test(main), 'een test- of QA-run slaat het voorladen over');
 ok(/const START_WARM_R = 200;/.test(main) && /const START_WARM_MS = \d+;/.test(main), 'de warm-stap heeft een radius en een harde tijdsgrens');
 ok(/window\.__loadMarks\.startWarm/.test(main) && /window\.__loadMarks\.shaders/.test(main) && /warmWorstFrame/.test(main), 'de perf-meting ziet het voorladen, het compileren en het slechtste frame');
