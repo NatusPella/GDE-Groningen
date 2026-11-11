@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- **De opening is weer de gescripte scène van vóór 0.58: de lange trailer-montage speelt niet meer automatisch vooraan.** Die montage sprong langs een tiental plekken en veroorzaakte shader- en streamingpieken van seconden; de gescripte opening bij het nieuwe thuis draait weer vloeiend. De montagecode blijft beschikbaar (`playTrailerMontage`), maar niet in de standaardopening.
+
 ## [0.60.6] - 2026-11-11
 
 - **Geen secondenlange freeze meer als een nieuw shaderprogramma voor het eerst in beeld komt (#804).** De spellus wacht niet meer synchroon op het linken van een shader; in de meting zakte de blokkerende `getProgramParameter`-piek van 1,5 s naar vrijwel nul.

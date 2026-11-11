@@ -2611,20 +2611,20 @@ export function update3D(dt, world) {
   for (const b of getMovableBridges()) { const m = roadMeshes.get(b.r); if (m) m.visible = !openSpans.has(b.r); }
   updateMovableBridges3D(focus.x, focus.y, waterNight);
   updateSluizen3D(scene, focus.x, focus.y, waterNight);
-  if (!world.cinemaLean) updateStreetFurniture3D(focus.x, focus.y);
+  updateStreetFurniture3D(focus.x, focus.y);
   probe.mark('3d:roads');
   syncTrees(world, focus.x, focus.y);
   probe.mark('3d:trees');
   updateRailway3D(dt, world, focus, viewDist);
-  if (!world.cinemaLean) updateStationCrowd3D(scene, world, railZ);
-  if (!world.cinemaLean) updateEvenementen3D(scene, world, calendarTodayEv(world), (x, y) => (world.map.spawnZ ? world.map.spawnZ(x, y) : 0),
+  updateStationCrowd3D(scene, world, railZ);
+  updateEvenementen3D(scene, world, calendarTodayEv(world), (x, y) => (world.map.spawnZ ? world.map.spawnZ(x, y) : 0),
     (x, y, m) => !buildingAt(world.map, x, y, m) && !isInWater(world.map, x, y));
-  if (!world.cinemaLean) updateWerf3D(scene, world.werf, (x, y) => (world.map.spawnZ ? world.map.spawnZ(x, y) : 0));
-  if (!world.cinemaLean) updateCountryside(dt, world, scene, cam, viewDist);
+  updateWerf3D(scene, world.werf, (x, y) => (world.map.spawnZ ? world.map.spawnZ(x, y) : 0));
+  updateCountryside(dt, world, scene, cam, viewDist);
   updateOmmelandLandmarks(world, scene, focus, setBuildingHidden);
   probe.mark('3d:rail+country');
 
-  if (!world.cinemaLean) syncParkedLayer(scene, sleepingParkedCars(world), buildVehicleActor, focus, DRAW_DIST);
+  syncParkedLayer(scene, sleepingParkedCars(world), buildVehicleActor, focus, DRAW_DIST);
   syncVehicleMeshes(world, player);
   const fireSeenIds = new Set();
   const policeChasing = world.wanted > 0;
@@ -3891,11 +3891,6 @@ export function prewarmObjects(roots) {
 // title screen on and handed to prewarmObjects; disposed once warmed.
 let warmupQueue = null;
 const warmupBuilt = [];
-// Extra warm-ups van andere modules (main.js vraagt intromontage om de vaste
-// assets van de openingsfilm): zelfde pad, dus beide lichtstanden en opruimen.
-const extraWarmups = [];
-export function queueWarmupObject(build) { extraWarmups.push(build); }
-export function prewarmBusy() { return !!(extraWarmups.length || (warmupQueue && warmupQueue.length) || warmupBuilt.length || prewarmQueue.length || prewarmBatch); }
 let warmupId = -1e6;
 function queueWarmup(world) {
   const map = world.map;
@@ -3935,11 +3930,7 @@ function queueWarmup(world) {
 
 function stepWarmup(world) {
   if (!warmupQueue) queueWarmup(world);
-  if (extraWarmups.length) {
-    let obj = null;
-    try { obj = extraWarmups.shift()(); } catch (e) { console.warn('warm-up', e); }
-    if (obj) prewarmObjects([obj]);
-  } else if (warmupQueue.length) {
+  if (warmupQueue.length) {
     let obj = null;
     try { obj = warmupQueue.shift()(); } catch (e) { console.warn('warm-up', e); }
     if (obj) prewarmObjects([obj]);

@@ -1346,7 +1346,6 @@ function cleanup(r, skipped) {
   try { if (prev && prev.exit) prev.exit(r, r.state); } catch (e) { console.error('intro exit', e); }
   try { removeTempCars(r); } catch (e) { console.error('intro cars', e); }
   try { if (r.kit) { r.kit.dispose(); r.kit = null; } } catch (e) { console.error('intro kitchen', e); }
-  try { if (r.w && r.w.map && r.w.map.releaseShots) r.w.map.releaseShots(); } catch (e) { console.warn('intro-tegels vrij', e); }
   r.group.removeFromParent();
   // #796: de twee intro-acteurs delen hun rompgeometrie met de rest van het spel; via de gewone
   // opruimer gaat die ref terug (en het skelet weg) in plaats van te blijven staan.
@@ -1366,7 +1365,6 @@ function cleanup(r, skipped) {
     setSub(null);
     setTag(null);
   }
-  if (r.w) r.w.cinemaLean = false;
   document.body.classList.remove('intro-montage');
   stopStoryVoice();
   setStoryScene(false, 'intro');
@@ -1375,39 +1373,7 @@ function cleanup(r, skipped) {
   run = null;
   setIntroPlaying(false);
 }
-
-// De vaste, unieke assets van de opening (twee acteurs, keuken, duivenvlucht en
-// losse props) één keer bouwen zodat scene3d ze tijdens het laadscherm voor
-// beide lichtstanden compileert. De montage bouwt ze bij het spelen gewoon
-// opnieuw; de winst is dat de shaderprogramma's dan al gelinkt zijn (#804).
-export function prepareOpeningWarm() {
-  const group = new THREE.Group();
-  const probe = (fn) => { try { const o = fn(); if (o) group.add(o); } catch (e) { console.warn('opening-warm', e); } };
-  probe(() => { group.add(makeActor(TAMMO_APPEARANCE), makeActor(ANITA_APPEARANCE)); return null; });
-  probe(() => buildKitchen(0, 0, 0).group);
-  probe(() => { makeBirds(group, 0, 0, 2.5, 8); return null; });
-  probe(buildAtmTrailer); probe(buildWetBike); probe(buildFrikandel); probe(buildRope);
-  return group;
-}
 // flyShot(): the camera path from the sky down to behind the player; built by cinematics.js.
-// De plekken waar de montage langskomt (de focus van elk shot). De boot laadt
-// en pint hun tegels al tijdens het laadscherm en bouwt de gebouwen voor, zodat
-// de film niet elke cut shaders en buurten voor het eerst hoeft te doen (#804).
-export function introShotPoints(w) {
-  const out = [];
-  const seen = new Set();
-  try {
-    for (const s of buildShots(w)) {
-      const f = s.focus;
-      if (!f || !Number.isFinite(f.x) || !Number.isFinite(f.y)) continue;
-      const k = `${Math.round(f.x / 40)},${Math.round(f.y / 40)}`;
-      if (seen.has(k)) continue;
-      seen.add(k);
-      out.push({ x: f.x, y: f.y });
-    }
-  } catch (e) { console.warn('intro-shotpunten', e); }
-  return out;
-}
 // #738: `maxShots` speelt alleen het eerste deel (de trailerbeelden: zon op
 // d'Olle Grieze, fietsers, meeuw met frikandel, werkboot, naam- en titelkaart).
 // story.js hergebruikt dat deel als C00.1 en speelt daarna de keuken en de
@@ -1441,7 +1407,6 @@ export function playIntroMontage(w, { startAt = 0, flyShot, onDone, maxShots = I
     saved: { px: p.x, py: p.y, pa: p.angle, clock: typeof w.clock === 'number' ? w.clock : 17.5, wanted: w.wanted || 0, weather: w.weather, comp: c ? { x: c.x, y: c.y, angle: c.angle } : null },
   };
   run = r;
-  w.cinemaLean = true;
   setIntroPlaying(true);
   document.body.classList.add('intro-montage');
   setStoryScene(true, 'intro');
