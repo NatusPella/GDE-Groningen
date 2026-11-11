@@ -62,6 +62,7 @@ const scene = read('game/js/scene3d.js');
 ok(/prewarmStreamAt\(x, y, secs = 4, radius = PREWARM_R\)/.test(scene), 'de prewarm heeft een eigen radius');
 ok(/export function prewarmPending\(\)/.test(scene), 'scene3d kan zeggen hoeveel voorlaadwerk er nog openstaat');
 ok(/export function precompilePrograms\(\)/.test(scene) && /precompile\(scene\)/.test(scene), 'scene3d kan alle shaders van de scène compileren');
+ok(/o\.material && !o\.geometry/.test(scene) && /userData\.terrainMaterial/.test(read('game/js/terrain3d.js')), 'geen materiaal op niet-draw-objecten: voorcompileren slaat shaders niet meer over (#804)');
 ok(/nearPrewarm[\s\S]{0,400}s\.r \+ 10/.test(scene), 'de prewarm beschermt de gebouwen binnen zijn eigen radius');
 const iWarm = main.indexOf('const warm = async () => {');
 const iWarmEnd = main.indexOf('return runStartScreen(world, { render, relocate, tick, ready, warm });', iWarm);
