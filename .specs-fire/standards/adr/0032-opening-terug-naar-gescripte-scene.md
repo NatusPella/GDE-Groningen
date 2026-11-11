@@ -1,6 +1,6 @@
 # 0032 - De standaardopening is weer de gescripte scène
 
-- **Status:** besloten
+- **Status:** vervangen door [0033](0033-montage-terug-met-performance-vangnet.md)
 - **Datum:** 2026-11-11
 - **Spec:** [verhaal.md](../verhaal.md), `docs/verhaal/README.md`
 - **Vervangt:** [0025](0025-openingsmontage-als-c00-1.md)
