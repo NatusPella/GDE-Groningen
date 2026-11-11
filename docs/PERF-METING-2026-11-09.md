@@ -601,3 +601,10 @@ Aanvullend op de hitch-probes is de CPU zelf geprofiled: `PERF_PROFILE=<route>` 
   graaf staan; met de hand op een snel traject controleren. Een echte
   acceptatiemeting vereist een stille machine (CPU < 2%, geen andere Electron);
   `run.mjs` waarschuwt boven 35% en `norm_check` markeert zulke bestanden.
+- **Meting op 0.60.6** (schone stage, vóór de run CPU 12% en geen andere Electron;
+  de run zelf duurde 199 s, dus de machine was niet volledig stil): a7 gem.
+  **22,0** / p95 **33,6** / max **716,8** ms, spoor **24,9 / 49,9 / 433,4**,
+  staan **25,2 / 49,8 / 650,2**. a7 en spoor liggen op het niveau van de
+  0.60.5-reeks (21,3/33,4/550 en 25,7/49,9/417), dus de debounce geeft daar geen
+  regressie; de winst zit vooral in de stilstaande/streamende CPU (profiel) en
+  de max blijft bij `populate-pre`, `3d:roads` en render/GPU-pieken.
