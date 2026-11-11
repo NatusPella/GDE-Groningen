@@ -16,6 +16,7 @@ import { roadNetReady, roadGraphBuilt, roadGraphVersion, snapRoad, roadCosts, ro
 import { playerBusy } from './busy.js';
 import { walkPathHook } from './latehooks.js';
 import { poiLayerPlace, poiLayerPlaces } from './facilities.js';
+import { mayBuildGraph } from './graphgate.js';
 
 const STRAY_M = 25;
 // the further from the route you may stray before it is redone, per way of travel
@@ -57,11 +58,8 @@ let graph = null;
 const GRAPH_REBUILD_MIN_S = 1;
 // #804: tussen twee tegelwissels is de wachtrij even leeg; dan bouwde de graaf
 // toch, elke seconde opnieuw, terwijl de lagen zo weer veranderden. Wacht daarom
-// tot de wegen/gebouwenlagen een moment stil zijn (1,2 s) en bouw dan één keer.
-const GRAPH_QUIET_S = 1.0;
-// Maar nooit eindeloos wachten tijdens een lange stroom: na deze tijd bouwt de
-// graaf alsnog, ook als de lagen nog wisselen.
-const GRAPH_MAX_STALE_S = 4;
+// tot de wegen/gebouwenlagen een moment stil zijn (1 s) en bouw dan één keer;
+// graphgate.js regelt de cadans en de bovengrens van 4 s.
 let graphBuiltAt = -Infinity;
 let staleKey = '';
 let staleAt = -Infinity;
@@ -82,8 +80,7 @@ function ensureGraph(map) {
     // De oude graaf blijft bruikbaar; na de montage bouwt hij één keer opnieuw.
     if (typeof document !== 'undefined' && document.body && (document.body.classList.contains('intro-montage') || document.body.classList.contains('cine-hide-hud'))) return;
     if (tileWorkPending(map)) return; // nog midden in de stroom: de oude graaf is goed genoeg
-    if (now - staleAt < GRAPH_QUIET_S * 1000 && now - graphBuiltAt < GRAPH_MAX_STALE_S * 1000) return; // wacht tot de lagen even stil zijn, met een bovengrens
-    if (now - graphBuiltAt < GRAPH_REBUILD_MIN_S * 1000) return; // cadans
+    if (!mayBuildGraph({ now, builtAt: graphBuiltAt, staleAt })) return; // wacht tot de lagen stil zijn, met cadans en bovengrens
   }
   buildGraph(map);
   graphBuiltAt = performance.now();
