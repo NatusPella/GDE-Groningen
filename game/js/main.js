@@ -1142,7 +1142,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     // a long jump (fast travel, teleport): the load screen while the city streams in
     if (world.devJumpLoad) { world.devJumpLoad = false; resetJumpWatch(); startLoadScreen(world, { kind: 'travel', x: hoofdspeler(world).x, y: hoofdspeler(world).y, mission: world.loadMission }); }
     watchJumps(world, { swallow: world.pigeonMode || !!world.pendingRespawn || isCinematicActive() || sinceCinematic() < 2 || !!world.cameraOverride, hold: world.paused && !world.uiPaused });
-    probe.mark('hud');
+    probe.mark(typeof window !== 'undefined' && window.__perfHudMarks ? 'hud:end' : 'hud');
   }
 
   // samen spelen, spelers uit elkaar (#429): verkeer rond een losse groep spelers, met zijn deel van het totaalbudget (coopfoci.js)
@@ -1362,6 +1362,7 @@ boot().catch((err) => {
   showBootFailure(err && err.message ? err.message : String(err));
   console.error(err);
 });
+
 
 
 

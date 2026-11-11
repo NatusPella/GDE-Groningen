@@ -28,6 +28,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 - **De trailer-montage is terug als opening (C00.1), maar met performance-vangnet.** De montage draait weer als eerste bedrijf van het verhaal. Om hem soepel te houden worden de montagetegels en gebouwen al tijdens het laadscherm voorgereden en de vaste opening-assets voorgecompileerd; tijdens de film blijven fijn straatmeubilair, landleven, perronpubliek, evenementen, werven en de parkeerlaag weg (verhaalcontent en hoofdbeeld blijven); en een shader die voor het eerst linkt blokkeert de spellus niet meer (#804). Het laadscherm duurt daardoor langer — de eerder gekozen ruil — en de film hapert niet meer met frames van seconden.
 - **De routegraaf wordt niet meer elke seconde herbouwd terwijl de wereld nog stroomt: hij wacht tot de wegen- en gebouwenlagen een seconde stil zijn, met een bovengrens van 4 s.** In een stilstaand profiel verdween de graafopbouw uit de top en zakte de gemiddelde frametijd van 37,6 naar 17,5 ms (p95 83 → 17 ms); de routekwaliteits- en ribbontests blijven groen (#804).
+- **De minimap ververst op een dure kaart (spoor of ver uitgezoomd) op 20 fps in plaats van 30 fps; lichte kaarten houden hun 30 fps.** In de HUD-submeting halveerde de minimapkost op spoor van 6,2 naar 2,9 ms per frame en zakte de p95 van 66,7 naar 33,4 ms; de gewone HUD-fasen kosten samen ~0,25 ms. (#804)
 
 ## [0.60.6] - 2026-11-11
 
