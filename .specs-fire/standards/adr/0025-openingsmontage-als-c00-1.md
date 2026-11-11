@@ -1,6 +1,6 @@
 # 0025 - De openingsmontage is C00.1
 
-- **Status:** besloten
+- **Status:** vervangen door [0032](0032-opening-terug-naar-gescripte-scene.md) (11-11-2026)
 - **Datum:** 2026-11-07 (#717)
 - **Spec:** [verhaal.md](../verhaal.md), `docs/verhaal/README.md`
 - **Raakt:** `game/js/story.js` (playOpening), `game/js/intromontage.js`, `game/js/cinematics.js`, `ARCHITECTURE.md`
