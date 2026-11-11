@@ -412,7 +412,7 @@ export function terrainArrays(bounds, waterPolys = [], opts = {}) {
 
 // The terrain meshes from terrainArrays (fill: an existing group, filled in
 // place when the arrays arrive from the worker).
-export function terrainGroup(T, group = new THREE.Group(), material = group.material || createTerrainMaterial()) {
+export function terrainGroup(T, group = new THREE.Group(), material = group.userData.terrainMaterial || createTerrainMaterial()) {
   const posAttr = new THREE.BufferAttribute(T.positions, 3);
   const normAttr = new THREE.BufferAttribute(T.normals, 3);
   // 2 x 2 tiles to a mesh: the far terrain in view was ~40 draws and as many nodes to walk
@@ -432,7 +432,10 @@ export function terrainGroup(T, group = new THREE.Group(), material = group.mate
     group.add(mesh);
   }
   group.position.set(0, T.y, 0);
-  group.material = material;
+  // Het materiaal van de groep bewaren we in userData: een Group met een
+  // `material` laat renderer.compile(scene) crashen (die leest geometry uit;
+  // #804-meting: daardoor werden alle shaders tijdens het laden overgeslagen).
+  group.userData.terrainMaterial = material;
   group.userData.isTerrain = true;
   group.userData.droppedTriangles = T.droppedTriangles;
   group.userData.totalTriangles = T.maxTriangles;

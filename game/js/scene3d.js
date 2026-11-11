@@ -1908,7 +1908,21 @@ export function prewarmPending() {
 // profile). Returns the time it took, for window.__loadMarks.
 export function precompilePrograms() {
   const t0 = performance.now();
-  try { if (renderer && scene && cam) precompile(scene); } catch (e) { console.warn('shaders voorcompileren', e); }
+  // Een object met een `material` maar zonder geometry (zoals een Group met een
+  // handmatig gezette materiaal) laat renderer.compile() crashen; dan werden
+  // alle shaders overgeslagen en linkte de film ze alsnog per shot (#804).
+  // Zulke velden zijn geen draw-objecten: even opzij zetten en daarna terug.
+  const parked = [];
+  try {
+    if (renderer && scene && cam) {
+      scene.traverse((o) => {
+        if (o.material && !o.geometry) { parked.push([o, o.material]); o.material = null; }
+      });
+      if (parked.length) console.warn('shaders voorcompileren: materiaal zonder geometry overgeslagen', parked.length);
+      precompile(scene);
+    }
+  } catch (e) { console.warn('shaders voorcompileren', e); }
+  finally { for (const [o, m] of parked) o.material = m; }
   return performance.now() - t0;
 }
 
