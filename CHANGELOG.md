@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- **De opening is weer de gescripte scène van vóór 0.58: de lange trailer-montage speelt niet meer automatisch vooraan.** Die montage sprong langs een tiental plekken en veroorzaakte shader- en streamingpieken van seconden; de gescripte opening bij het nieuwe thuis draait weer vloeiend. De montagecode blijft beschikbaar (`playTrailerMontage`), maar niet in de standaardopening.
+
 ## [0.60.5] - 2026-11-10
 
 - **Minder haperingen als je door de stad rijdt: de straatmeubel-streamer bouwt per beurt hoogstens twee nieuwe tegels in plaats van alle tegels in één keer (#804).** In de hitchprobe zakte de piek van 261 naar 32 ms en de p95 op de a7-route van 50 naar 33 ms.
