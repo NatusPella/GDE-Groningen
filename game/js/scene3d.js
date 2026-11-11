@@ -1399,13 +1399,23 @@ function programSort(a, b) { return compareOpaque(a, b, progSortOn); }
 // question is asked at most every LINK_POLL_MS for all of them, and the answer in between is 'not yet' (its draw waits a frame or two longer).
 const LINK_POLL_MS = 25;
 let linkPollAt = 0;
+// #804: p.isReady() vraagt LINK_STATUS op en dat BLOKKEERT tot de link klaar is
+// (1,5 s gemeten in een draw op a7). KHR_parallel_shader_compile heeft een
+// niet-blokkerende COMPLETION_STATUS_KHR; die vragen we, zodat een draw nooit
+// op de link staat te wachten. Zonder de extensie valt hij terug op isReady().
+let linkExt;
 function programLinked(p) {
   if (p._linked) return true;
-  if (perfOff('linkpoll')) return p.isReady();
+  if (linkExt === undefined) {
+    try { linkExt = renderer && renderer.getContext().getExtension('KHR_parallel_shader_compile'); } catch (e) { linkExt = null; }
+  }
+  if (perfOff('linkpoll') || !linkExt) return p.isReady();
   const now = performance.now();
   if (now < linkPollAt) return false;
-  if (p.isReady()) { p._linked = true; return true; }
   linkPollAt = now + LINK_POLL_MS;
+  let ready = false;
+  try { ready = !!renderer.getContext().getProgramParameter(p.program, linkExt.COMPLETION_STATUS_KHR); } catch (e) { ready = p.isReady(); }
+  if (ready) { p._linked = true; return true; }
   return false;
 }
 function hookLinkGuard(r) {

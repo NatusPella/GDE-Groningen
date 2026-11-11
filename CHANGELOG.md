@@ -9,6 +9,10 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+## [0.60.6] - 2026-11-11
+
+- **Geen secondenlange freeze meer als een nieuw shaderprogramma voor het eerst in beeld komt (#804).** De spellus wacht niet meer synchroon op het linken van een shader; in de meting zakte de blokkerende `getProgramParameter`-piek van 1,5 s naar vrijwel nul.
+
 ## [0.60.5] - 2026-11-10
 
 - **Minder haperingen als je door de stad rijdt: de straatmeubel-streamer bouwt per beurt hoogstens twee nieuwe tegels in plaats van alle tegels in één keer (#804).** In de hitchprobe zakte de piek van 261 naar 32 ms en de p95 op de a7-route van 50 naar 33 ms.
