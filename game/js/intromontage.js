@@ -1346,6 +1346,7 @@ function cleanup(r, skipped) {
   try { if (prev && prev.exit) prev.exit(r, r.state); } catch (e) { console.error('intro exit', e); }
   try { removeTempCars(r); } catch (e) { console.error('intro cars', e); }
   try { if (r.kit) { r.kit.dispose(); r.kit = null; } } catch (e) { console.error('intro kitchen', e); }
+  try { if (r.w && r.w.__openingWarm) { disposeObject(r.w.__openingWarm); r.w.__openingWarm = null; } } catch (e) { console.warn('opening-assets vrij', e); }
   try { if (r.w && r.w.map && r.w.map.releaseShots) r.w.map.releaseShots(); } catch (e) { console.warn('intro-tegels vrij', e); }
   r.group.removeFromParent();
   // #796: de twee intro-acteurs delen hun rompgeometrie met de rest van het spel; via de gewone
