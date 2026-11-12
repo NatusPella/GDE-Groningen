@@ -1775,7 +1775,7 @@ function meshProgramsReady(mesh) {
     for (const m of Array.isArray(o.material) ? o.material : [o.material]) {
       const programs = renderer.properties.get(m).programs;
       if (!programs) { ready = false; return; }
-      for (const p of programs.values()) if (!p.isReady()) { ready = false; return; }
+        for (const p of programs.values()) if (!programLinked(p)) { ready = false; return; }
     }
   });
   return ready;
