@@ -128,7 +128,7 @@ import { updateSluizen, getSluizen } from './sluizen.js';
 import { updateBridgeHits, resetBridgeDamage, startBridgeCrashDemo, stepBridgeCrashDemo } from './bridgehitworld.js';
 import { geoWorkerActive } from './geojobs.js';
 import { preloadRoadWorker } from './roadsurface.js';
-import { init3D, update3D, resize3D, getScene, getRenderer, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady, canvasFrameCount, prewarmStreamAt, prewarmPending, precompilePrograms, streamPending, queueWarmupObject, prewarmBusy, getCamera, getFollowPose, setRouteLinks } from './scene3d.js';
+import { init3D, update3D, resize3D, getScene, getRenderer, toggleLightRig, disposeObject, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady, canvasFrameCount, prewarmStreamAt, prewarmPending, precompilePrograms, streamPending, queueWarmupObject, prewarmBusy, getCamera, getFollowPose, setRouteLinks } from './scene3d.js';
 import { checkFrame } from './blackframe.js';
 import { noteFrame, hideAdvice, classifyGpu, readGpu, dynamicScale, cpuLevel } from './gfxprofile.js';
 import { updateStreetSigns } from './streetsigns.js';
@@ -391,6 +391,32 @@ function waitForStart(world, ready) {
             if (tilesIn && queue === 0 && prewarmPending() === 0 && !prewarmBusy()) break;
             await yieldToPaint();
           }
+          // De opening-assets (acteurs, keuken, duiven, props) worden pas in
+          // de film gebouwd. Teken ze hier één keer echt, onder beide
+          // lichtstanden: compileren alleen zet de shader-uniforms nog niet,
+          // en dat is precies de eerste-draw-piek in de film (#804).
+          try {
+            const tPal = performance.now();
+            const warmGroup = opening.prepareOpeningWarm();
+            if (window.__loadMarks) window.__loadMarks.introPaletteBuild = Math.round(performance.now() - tPal);
+            const sc = getScene();
+            if (warmGroup && sc) {
+              const vorigeOverride = world.cameraOverride;
+              const px = world.player.x, py = world.player.y;
+              warmGroup.position.set(px + 8, 0, py + 8);
+              sc.add(warmGroup);
+              world.cameraOverride = { position: { x: px + 15, y: py + 15, z: 9 }, lookAt: { x: px + 8, y: py + 8, z: 1 }, fov: 55, cut: true };
+              const tDraw = performance.now();
+              for (let f = 0; f < 1; f++) { tick(1 / 60); render(1 / 60); }
+              toggleLightRig();
+              for (let f = 0; f < 1; f++) { tick(1 / 60); render(1 / 60); }
+              if (window.__loadMarks) window.__loadMarks.introPaletteDraw = Math.round(performance.now() - tDraw);
+              toggleLightRig();
+              sc.remove(warmGroup);
+              world.cameraOverride = vorigeOverride || null;
+              world.__openingWarm = warmGroup;
+            }
+          } catch (e) { console.warn('opening-assets tekenen', e); }
           if (window.__loadMarks) {
             window.__loadMarks.introTiles = spots.length;
             window.__loadMarks.introWarm = Math.round(performance.now() - tIntro);
@@ -865,7 +891,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
   // De montage ruimt de vooraf gepinde tegels zelf op; loopt hij niet (of is hij
   // al klaar), dan mogen ze hier alsnog vrij.
   setTimeout(() => {
-    try { if (world.map && world.map.releaseShots && !document.body.classList.contains('intro-montage')) world.map.releaseShots(); } catch (e) { /* niet erg */ }
+    try { if (world.map && world.map.releaseShots && !document.body.classList.contains('intro-montage')) world.map.releaseShots(); if (!document.body.classList.contains('intro-montage') && world.__openingWarm) { try { disposeObject(world.__openingWarm); } catch (e) { /* niet erg */ } world.__openingWarm = null; } } catch (e) { /* niet erg */ }
   }, 20000);
   hideAdvice();
   input.tryLock(false); // the game itself asks here, long after the click that started it: refusing is no sign of a browser without lock (#328)
