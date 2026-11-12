@@ -608,3 +608,29 @@ Aanvullend op de hitch-probes is de CPU zelf geprofiled: `PERF_PROFILE=<route>` 
   0.60.5-reeks (21,3/33,4/550 en 25,7/49,9/417), dus de debounce geeft daar geen
   regressie; de winst zit vooral in de stilstaande/streamende CPU (profiel) en
   de max blijft bij `populate-pre`, `3d:roads` en render/GPU-pieken.
+
+## HUD, minimap en gebouwen (#804, 12-11)
+
+De hitchprobe kan de HUD en het gebouwenwerk sinds deze ronde in fasen splitsen:
+`PERF_HUD_MARKS=1` geeft `hud:base` en `hud:minimap`, `PERF_BUILD_MARKS=1`
+geeft `3d:prewarm`, `3d:syncbuildings`, `3d:batch` en `3d:drawhub`. Zonder
+de vlag verandert er niets aan het spel.
+
+**HUD op spoor/a7** (0.60.6, 12 s, quality hoog; CPU 17-18% vóór de run, dus
+indicatief): `hud:minimap` **6,17 ms/frame** op spoor en 1,47 op a7,
+`hud:base` 0,41. Binnen de minimap zijn `addPoly` (3,9%) en `inView` (2,0%)
+de hotspots: de vectorkaart, niet de iconen.
+
+**Demper:** de minimap ververst op een dure kaart (kost > 4 ms) op 20 fps in
+plaats van 30 fps; lichte kaarten houden 30 fps. Gemeten op spoor:
+minimap **6,17 -> 2,91 ms/frame**, p95 **66,7 -> 33,4 ms**; a7 1,47 -> 1,25.
+De p95 is nog boven de norm (25) en de max blijft hoog.
+
+**Gebouwen** (zelfde run, `PERF_BUILD_MARKS=1`): `3d:syncbuildings` 1,95 ms
+(spoor)/1,44 (a7), `3d:batch` 0,82/0,30, `3d:prewarm` 0,45/0,72,
+`3d:drawhub` 0,11/0,15. Dat is een brede post van 3-4 ms; zonder stille
+voor/na-meting is daar nog geen demper in aangebracht.
+
+**Teruggedraaid:** statische minimapvlakken als gecachte `Path2D` per
+kaartbeeld. De meting was ongeldig (CPU 32%, 193 s, a7 p95 117) en toonde geen
+winst; de wijziging is niet in de branch gebleven.
