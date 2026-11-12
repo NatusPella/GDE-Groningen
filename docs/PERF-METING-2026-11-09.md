@@ -498,3 +498,15 @@ Benchmark op dezelfde build met de standaardpreset (Vlot): gemiddeld **44,3 fps*
 ### Geprobeerd en teruggedraaid: routing-graaf niet per frame
 
 Het profiel wees `updateRouting` -> `ensureGraph/buildGraph` (`insideBuilding`, `throughBuilding`) als grote CPU-post aan. `ensureGraph` uit `updateRouting` gehaald en lazy in `computeRoute` gezet (routevraag bepaalt de rebuild). Twee schone nametingen vielen echter slechter uit (a7 28,5/50,2 en 33,9/66,8; spoor 44,6/116,6 en 36,8/66,7 tegen 25,3/50 en 27,6/50 ervoor), zonder duidelijke oorzaak. De wijziging is teruggedraaid; de graaf-cadans blijft zoals hij was. Een volgende poging moet eerst de rebuildfrequentie en de streamwacht apart meten.
+
+## Electron 45 (0.60.7): schone hermeting
+
+Na de upgrade naar Electron 45.2.3 op een stille machine (eerst `npm run stage`, anders is de meting PARTIAL):
+
+| meting | route | gem. | p95 | p99 | max | >50 |
+|---|---|---:|---:|---:|---:|---:|
+| hitchprobe hoog | a7 | 19,9 | 33,3 | 50,1 | 2416,7 | 36 |
+| hitchprobe hoog | spoor | 22,3 | 33,4 | 50,1 | 600,1 | 25 |
+| benchmark Vlot | alle shots | **46,7 fps** | — | — | — | 63,8 spikes/min |
+
+De benchmark-steekproef heeft een JS-heap van 2,76 GB. De p95 is op beide routes 33 ms (was 50 ms op Electron 44) en het gemiddelde 20-22 ms; de norm (p95<=25, max<=100) is nog niet gehaald, maar de staart is duidelijk korter. De hoge a7-max blijft een enkele koude/opstartpiek; de eerste benchmark-shots (Zonsopgang/Vismarkt/Noorderplantsoen) zijn nog koud, daarna loopt alles tegen de 60 fps.
