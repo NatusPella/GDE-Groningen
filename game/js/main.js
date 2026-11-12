@@ -128,7 +128,7 @@ import { updateSluizen, getSluizen } from './sluizen.js';
 import { updateBridgeHits, resetBridgeDamage, startBridgeCrashDemo, stepBridgeCrashDemo } from './bridgehitworld.js';
 import { geoWorkerActive } from './geojobs.js';
 import { preloadRoadWorker } from './roadsurface.js';
-import { init3D, update3D, resize3D, getScene, getRenderer, toggleLightRig, disposeObject, warmWaterIndex, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady, canvasFrameCount, prewarmStreamAt, prewarmPending, precompilePrograms, streamPending, queueWarmupObject, prewarmBusy, getCamera, getFollowPose, setRouteLinks } from './scene3d.js';
+import { init3D, update3D, resize3D, getScene, getRenderer, toggleLightRig, disposeObject, warmWaterIndex, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady, canvasFrameCount, prewarmStreamAt, prewarmPending, precompilePrograms, streamPending, queueWarmupObject, prewarmBusy, takeWarmupSamples, releaseWarmupSamples, getCamera, getFollowPose, setRouteLinks } from './scene3d.js';
 import { checkFrame } from './blackframe.js';
 import { setCameraOverride } from './cinematics.js';
 import { noteFrame, hideAdvice, classifyGpu, readGpu, dynamicScale, cpuLevel } from './gfxprofile.js';
@@ -418,6 +418,27 @@ function waitForStart(world, ready) {
               world.__openingWarm = warmGroup;
             }
           } catch (e) { console.warn('opening-assets tekenen', e); }
+            // Ook de warm-up-palette (voertuigen, voetgangers, dieren, effecten)
+            // één keer tekenen: de eerste auto of explosie na de film is dan
+            // geen eerste draw meer.
+            try {
+              const warmSamples = takeWarmupSamples();
+              const sc2 = getScene();
+              if (warmSamples && sc2) {
+                const vorigeOverride2 = world.cameraOverride;
+                const px2 = world.player.x, py2 = world.player.y;
+                warmSamples.position.set(px2 - 8, 0, py2 - 8);
+                sc2.add(warmSamples);
+                setCameraOverride(world, { position: { x: px2 - 15, y: py2 - 15, z: 9 }, lookAt: { x: px2 - 8, y: py2 - 8, z: 1 }, fov: 55, cut: true });
+                for (let f = 0; f < 1; f++) { tick(1 / 60); render(1 / 60); }
+                toggleLightRig();
+                for (let f = 0; f < 1; f++) { tick(1 / 60); render(1 / 60); }
+                toggleLightRig();
+                sc2.remove(warmSamples);
+                setCameraOverride(world, vorigeOverride2 || null);
+                world.__warmSamples = warmSamples;
+              }
+            } catch (e) { console.warn('warm-samples tekenen', e); }
           if (window.__loadMarks) {
             window.__loadMarks.introTiles = spots.length;
             window.__loadMarks.introWarm = Math.round(performance.now() - tIntro);
@@ -892,7 +913,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
   // De montage ruimt de vooraf gepinde tegels zelf op; loopt hij niet (of is hij
   // al klaar), dan mogen ze hier alsnog vrij.
   setTimeout(() => {
-    try { if (world.map && world.map.releaseShots && !document.body.classList.contains('intro-montage')) world.map.releaseShots(); if (!document.body.classList.contains('intro-montage') && world.__openingWarm) { try { disposeObject(world.__openingWarm); } catch (e) { /* niet erg */ } world.__openingWarm = null; } } catch (e) { /* niet erg */ }
+    try { if (world.map && world.map.releaseShots && !document.body.classList.contains('intro-montage')) world.map.releaseShots(); if (!document.body.classList.contains('intro-montage')) { try { releaseWarmupSamples(); } catch (e) { /* niet erg */ } if (world.__openingWarm) { try { disposeObject(world.__openingWarm); } catch (e) { /* niet erg */ } world.__openingWarm = null; } } } catch (e) { /* niet erg */ }
   }, 20000);
   hideAdvice();
   input.tryLock(false); // the game itself asks here, long after the click that started it: refusing is no sign of a browser without lock (#328)
