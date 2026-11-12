@@ -3914,6 +3914,27 @@ export function prewarmObjects(roots) {
 // title screen on and handed to prewarmObjects; disposed once warmed.
 let warmupQueue = null;
 const warmupBuilt = [];
+// De warm-up-palette (elk voertuig-, ped- en effecttype) wordt tijdens het
+// laadscherm gebouwd. Teken hem daar ook één keer, zodat de eerste auto, voet-
+// ganger of explosie na de film niet op een eerste draw hoeft te wachten.
+let samplesHeld = false;
+export function takeWarmupSamples() {
+  if (!warmupQueue) return null;
+  while (warmupQueue.length) {
+    let o = null;
+    try { o = warmupQueue.shift()(); } catch (e) { console.warn('warm-up', e); }
+    if (o) prewarmObjects([o]);
+  }
+  samplesHeld = true;
+  const group = new THREE.Group();
+  for (const o of warmupBuilt) group.add(o);
+  return group;
+}
+export function releaseWarmupSamples() {
+  samplesHeld = false;
+  for (const o of warmupBuilt) { try { disposeObject(o); } catch (e) { /* niet erg */ } }
+  warmupBuilt.length = 0;
+}
 // Extra warm-ups van andere modules (main.js vraagt intromontage om de vaste
 // assets van de openingsfilm): zelfde pad, dus beide lichtstanden en opruimen.
 const extraWarmups = [];
@@ -3966,7 +3987,7 @@ function stepWarmup(world) {
     let obj = null;
     try { obj = warmupQueue.shift()(); } catch (e) { console.warn('warm-up', e); }
     if (obj) prewarmObjects([obj]);
-  } else if (warmupBuilt.length && !prewarmQueue.length && !prewarmBatch) {
+  } else if (warmupBuilt.length && !prewarmQueue.length && !prewarmBatch && !samplesHeld) {
     for (const o of warmupBuilt) disposeObject(o);
     warmupBuilt.length = 0;
   }
