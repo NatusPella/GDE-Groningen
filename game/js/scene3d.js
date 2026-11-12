@@ -1909,6 +1909,11 @@ export function prewarmPending() {
 // screen is still up: the first frames after the start screen used to stall on
 // the first use of each program (#247, the 18 s of WebGLUniforms in the boot
 // profile). Returns the time it took, for window.__loadMarks.
+// Bouw de waterindex al tijdens het laadscherm: de eerste filmframes triggers
+// hem anders (createWaterIndex kostte ~0,4 s in het eerste filmbeeld, #804).
+export function warmWaterIndex(worldMap) {
+  try { if (worldMap) getWaterIndex(worldMap); return true; } catch (e) { console.warn('waterindex voorladen', e); return false; }
+}
 export function precompilePrograms() {
   const t0 = performance.now();
   // Een object met een `material` maar zonder geometry (zoals een Group met een

@@ -128,7 +128,7 @@ import { updateSluizen, getSluizen } from './sluizen.js';
 import { updateBridgeHits, resetBridgeDamage, startBridgeCrashDemo, stepBridgeCrashDemo } from './bridgehitworld.js';
 import { geoWorkerActive } from './geojobs.js';
 import { preloadRoadWorker } from './roadsurface.js';
-import { init3D, update3D, resize3D, getScene, getRenderer, toggleLightRig, disposeObject, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady, canvasFrameCount, prewarmStreamAt, prewarmPending, precompilePrograms, streamPending, queueWarmupObject, prewarmBusy, getCamera, getFollowPose, setRouteLinks } from './scene3d.js';
+import { init3D, update3D, resize3D, getScene, getRenderer, toggleLightRig, disposeObject, warmWaterIndex, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady, canvasFrameCount, prewarmStreamAt, prewarmPending, precompilePrograms, streamPending, queueWarmupObject, prewarmBusy, getCamera, getFollowPose, setRouteLinks } from './scene3d.js';
 import { checkFrame } from './blackframe.js';
 import { noteFrame, hideAdvice, classifyGpu, readGpu, dynamicScale, cpuLevel } from './gfxprofile.js';
 import { updateStreetSigns } from './streetsigns.js';
