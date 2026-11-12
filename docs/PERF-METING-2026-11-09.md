@@ -510,3 +510,20 @@ Na de upgrade naar Electron 45.2.3 op een stille machine (eerst `npm run stage`,
 | benchmark Vlot | alle shots | **46,7 fps** | — | — | — | 63,8 spikes/min |
 
 De benchmark-steekproef heeft een JS-heap van 2,76 GB. De p95 is op beide routes 33 ms (was 50 ms op Electron 44) en het gemiddelde 20-22 ms; de norm (p95<=25, max<=100) is nog niet gehaald, maar de staart is duidelijk korter. De hoge a7-max blijft een enkele koude/opstartpiek; de eerste benchmark-shots (Zonsopgang/Vismarkt/Noorderplantsoen) zijn nog koud, daarna loopt alles tegen de 60 fps.
+
+## Koude start geprofileerd (0.60.7, Electron 45)
+
+CPU-profiel van de eerste 20 s na navigatie (`--profile-load=20000`, Electron 45, schone build). Drukste self-tijd:
+
+| functie | tijd | aandeel |
+|---|---:|---:|
+| `createBrickDetailTexture` (pixelart3d) | 2,85 s | 14% |
+| tile-decode (`tilestore.js` onmessage) | 0,95 s | 4,7% |
+| shader first-use (`(program)`) | 0,94 s | 4,7% |
+| `inWater` (waterindex) | 0,89 s | 4,4% |
+| `insideBuilding` (routing-graaf) | 0,71 s | 3,5% |
+| `pointInPolygon` | 0,70 s | 3,4% |
+
+De uitschieter is de **eerste Canvas2D-bewerking** in `createBrickDetailTexture`; de tekening zelf is deterministisch. De canvas wordt nu één keer bewaard en per materiaal als eigen `CanvasTexture` teruggegeven (geen gedeelde repeat-instellingen), maar de eerste canvasinitialisatie blijft de grootste koude post. Een echte vervolgstap is de tegel als gebakken afbeelding/DataTexture leveren in plaats van bij de start te tekenen; dat is een visuele wijziging en vraagt een screenshotvergelijking.
+
+Het meetharnas is hard gemaakt: `perf/run.mjs` stopt nu met een duidelijke fout als `desktop/build` ontbreekt (na een release), met test `perfstage_test`.

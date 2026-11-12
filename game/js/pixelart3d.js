@@ -399,7 +399,9 @@ function smoothTexture(canvas, anisotropy = 4) {
 // Near-white multiplier map: faint stretcher-bond courses with light mortar,
 // meant to modulate a material colour a touch brighter than the target brick.
 // One tile = 0.5 m x 0.5 m (8 courses, 2 bricks per course).
+let brickCanvas = null;
 export function createBrickDetailTexture() {
+  if (brickCanvas) return smoothTexture(brickCanvas);
   const S = 128;
   const canvas = document.createElement('canvas');
   canvas.width = canvas.height = S;
@@ -417,12 +419,15 @@ export function createBrickDetailTexture() {
       ctx.fillRect(c * brickW + off + 2, r * courseH + 2, brickW - 3, courseH - 3);
     }
   }
+  brickCanvas = canvas;
   return smoothTexture(canvas);
 }
 
 // Roof pan-tile courses; u runs along the ridge, v down the slope. One tile =
 // 1 m x 1 m (3 courses).
+let roofCanvas = null;
 export function createRoofTileTexture() {
+  if (roofCanvas) return smoothTexture(roofCanvas);
   const S = 96;
   const canvas = document.createElement('canvas');
   canvas.width = canvas.height = S;
@@ -441,5 +446,6 @@ export function createRoofTileTexture() {
     ctx.fillStyle = 'rgba(90,80,70,0.25)';
     for (let c = 0; c < cols; c++) ctx.fillRect(c * cw + (r % 2) * cw / 2, r * rh, 2, rh);
   }
+  roofCanvas = canvas;
   return smoothTexture(canvas);
 }
