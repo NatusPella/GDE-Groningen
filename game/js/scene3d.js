@@ -215,6 +215,10 @@ let shadowMapLevel = null; // laatst toegepaste niveau
 let shadowUpgradeAt = 0; // performance.now() waarop voor het eerst een grotere kaart gevraagd werd
 let shadowUpgradeTimer = 0;
 let terrainMesh = null;
+// #804: het terreinmateriaal hangt in userData; een Group met een eigen `material`
+// laat renderer.compile(scene) crashen. Deze helper houdt beide paden (worker en
+// fallback) gelijk en werkt ook voor een echte Mesh.
+const terrainMaterialOf = (o = terrainMesh) => (o ? (o.userData && o.userData.terrainMaterial) || o.material || null : null);
 // ?terrain (#269): the map (what stands flat is lifted by the relief under it) and the patches of ground that rise above the flat ground
 let liftMap = null, reliefPatches = null;
 let terrainPending = null;
@@ -888,7 +892,6 @@ export function init3D(map) {
   if (geoWorkerActive()) {
     setCountryBounds(map.meta.bounds);
     terrainMesh = new THREE.Group();
-    terrainMesh.material = createTerrainMaterial();
     const group = terrainMesh;
     // the build bakes the ground (scripts/world/bake_terrain.mjs), so there is
     // nothing to build at the start. tileworld.js already checked the block
@@ -1278,7 +1281,7 @@ function buildWaterMesh(poly, y, map) {
   group.add(mesh);
   // from the geometry worker the banks and quays join the surface a few frames later
   let sync = true;
-  requestShore(poly, map, { waterY: y, apronMaterial: terrainMesh.material }, (shore) => {
+  requestShore(poly, map, { waterY: y, apronMaterial: terrainMaterialOf() }, (shore) => {
     if (!shore) return;
     group.add(shore);
     group.userData.shore = shore;
@@ -4187,7 +4190,8 @@ function applyTimeOfDay(dt, world) {
   WET_UNIFORMS.uWet.value = wetness;
   const envBoost = 1 + wetness * 3;
   for (const m of PAVED_MATS) m.envMapIntensity = envBoost;
-  terrainMesh.material.envMapIntensity = envBoost;
+  const terrainMat = terrainMaterialOf();
+  if (terrainMat) terrainMat.envMapIntensity = envBoost;
   WET_UNIFORMS.uRainTime.value = world.time;
   WET_UNIFORMS.uPuddle.value = qualityLook(getSettings().quality).puddles;
 

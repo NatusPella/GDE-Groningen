@@ -412,7 +412,7 @@ export function terrainArrays(bounds, waterPolys = [], opts = {}) {
 
 // The terrain meshes from terrainArrays (fill: an existing group, filled in
 // place when the arrays arrive from the worker).
-export function terrainGroup(T, group = new THREE.Group(), material = group.userData.terrainMaterial || createTerrainMaterial()) {
+export function terrainGroup(T, group = new THREE.Group(), material = group.userData.terrainMaterial || group.material || createTerrainMaterial()) {
   const posAttr = new THREE.BufferAttribute(T.positions, 3);
   const normAttr = new THREE.BufferAttribute(T.normals, 3);
   // 2 x 2 tiles to a mesh: the far terrain in view was ~40 draws and as many nodes to walk
