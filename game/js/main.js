@@ -393,7 +393,9 @@ function waitForStart(world, ready) {
           // lichtstanden: compileren alleen zet de shader-uniforms nog niet,
           // en dat is precies de eerste-draw-piek in de film (#804).
           try {
+            const tPal = performance.now();
             const warmGroup = opening.prepareOpeningWarm();
+            if (window.__loadMarks) window.__loadMarks.introPaletteBuild = Math.round(performance.now() - tPal);
             const sc = getScene();
             if (warmGroup && sc) {
               const vorigeOverride = world.cameraOverride;
@@ -401,9 +403,11 @@ function waitForStart(world, ready) {
               warmGroup.position.set(px + 8, 0, py + 8);
               sc.add(warmGroup);
               world.cameraOverride = { position: { x: px + 15, y: py + 15, z: 9 }, lookAt: { x: px + 8, y: py + 8, z: 1 }, fov: 55, cut: true };
-              for (let f = 0; f < 3; f++) { tick(1 / 60); render(1 / 60); }
+              const tDraw = performance.now();
+              for (let f = 0; f < 1; f++) { tick(1 / 60); render(1 / 60); }
               toggleLightRig();
-              for (let f = 0; f < 3; f++) { tick(1 / 60); render(1 / 60); }
+              for (let f = 0; f < 1; f++) { tick(1 / 60); render(1 / 60); }
+              if (window.__loadMarks) window.__loadMarks.introPaletteDraw = Math.round(performance.now() - tDraw);
               toggleLightRig();
               sc.remove(warmGroup);
               world.cameraOverride = vorigeOverride || null;
