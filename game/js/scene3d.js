@@ -3766,6 +3766,7 @@ function shadowDepthStandIn(m) {
   return d;
 }
 
+export function toggleLightRig() { setLightRigVisible(!isLightRigOn()); }
 function withLightRig(on, fn) {
   const cur = isLightRigOn();
   setLightRigVisible(on);
