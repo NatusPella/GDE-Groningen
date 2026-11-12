@@ -9,6 +9,12 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+## [0.60.7] - 2026-11-12
+
+- **De desktop-app draait op Electron 45.2.3 (was 44.9.3).** Die versie bevat de beveiligings- en stabiliteitsfixes van de nieuwere Chromium/Node-basis; de app, de packaging en de verhaaltest zijn opnieuw getest.
+- **Zonder geometry-worker (fallback) crasht het terrein niet meer: het terreinmateriaal zit nu consequent in `userData` i.p.v. op een Group.** Daarmee blijven ook de oeveropbouw en de weer-/lichtupdate werken als de worker niet beschikbaar is.
+- **De vaste opening-assets worden nu echt tijdens het laadscherm voorgecompileerd.** Acteurs, keuken en props gingen via de warm-upqueue door beide lichtstanden, zodat de eerste montageshot ze niet alsnog hoeft te linken.
+
 - **De opening-assets worden nu tijdens het laadscherm echt getekend (onder beide lichtstanden) in plaats van alleen gecompileerd.** Daarmee verdwijnt de eerste-draw-shaderpiek in de openingsfilm: de grootste frames in de filmmeting zakten van ~2,7-3,1 s naar ~0,9-1,1 s, en er kwamen in de pieken geen nieuwe shader-programma's meer bij. Het laadscherm wordt er ~10-20 s langer van (de eerder gekozen ruil); de getekende assets blijven tot de film en worden daarna opgeruimd.
 
 - **Shaders worden nu écht vóór de start gecompileerd: een Group met een los materiaal liet `renderer.compile()` crashen, waardoor de hele voorcompileerstap stilletjes werd overgeslagen en de film per shot alsnog shaders linkte.** Het terrein bewaart zijn materiaal nu in `userData` en `precompilePrograms` slaat niet-draw-objecten tijdelijk over. In de geforceerde filmmeting ging het eerste blok van ~10 naar ~55 fps en het laatste van ~30 naar ~57 fps; de load compileert nu 433 ms shaders in plaats van 14 ms (en de openingsfilm start sneller: introWarm ~20 s, gameStart ~47 s).
