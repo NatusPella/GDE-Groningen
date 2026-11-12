@@ -34,6 +34,16 @@ export function machineBusy(machine, grens = MACHINE_BUSY_PCT) {
   return false;
 }
 
+// #804: ook een lage CPU vóór de run zegt niets als de GPU/systeem tijdens de
+// run bezet raakt: dan duurt een run van 15 s route al snel 2-3 minuten. Zo'n
+// run is niet vergelijkbaar, ook al was de CPU bij de start rustig.
+export const WALL_FACTOR = 2.5;
+export const WALL_STARTUP_S = 60;
+export function slowWall(wallS, expectedS) {
+  if (!Number.isFinite(wallS) || !Number.isFinite(expectedS) || expectedS <= 0) return false;
+  return wallS > WALL_FACTOR * expectedS + WALL_STARTUP_S;
+}
+
 // Heeft deze route frametijden? (census en latentie zijn losse metingen.)
 export function routeHasFrames(route) {
   const s = routeStats(route);

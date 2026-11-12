@@ -14,6 +14,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { stageReady, stageError } from './stagecheck.mjs';
+import { slowWall } from './normrules.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const OUT = process.env.PERF_OUT || path.join(os.tmpdir(), 'gde-perf');
@@ -136,6 +137,16 @@ try {
 fs.rmSync(threadFile, { force: true });
 result.errors = lines.filter((l) => l.startsWith('[renderer] [perf-route-error]'));
 result.machine = { cpuBusyBeforePct: busyBefore, cpuBusyAfterPct: await cpuBusy(), freeMemGB: +(os.freemem() / 1e9).toFixed(1), electronProcsBefore: before, electronProcsAfter: others(), load: os.loadavg(), cpus: os.cpus().length, cpu: os.cpus()[0].model, memGB: Math.round(os.totalmem() / 1e9) };
+// #804: een run die veel langer duurt dan de routes zelf zegt dat de GPU of het
+// systeem tijdens de run bezet was; dan zijn p95/max niet vergelijkbaar.
+{
+  const routeCount = Object.keys(result.routes || {}).length;
+  const expectedS = ((Number(process.env.PERF_DUR) || 20000) / 1000) * routeCount;
+  const wallS = Math.round((Date.now() - t0) / 1000);
+  result.machine.wallSeconds = wallS;
+  result.machine.expectedSeconds = expectedS;
+  result.machine.slowWall = slowWall(wallS, expectedS);
+}
 fs.writeFileSync(path.join(OUT, name + '.json'), JSON.stringify(result));
 
 const COLS = [['avg', 'avg'], ['p95', 'p95'], ['p99', 'p99'], ['max', 'max'], ['cpuAvg', 'cpu'], ['mainCpuPerFrame', 'mcpu'], ['cpuP95', 'cpu95'], ['gpuAvg', 'gpu'], ['callsPerFrame', 'calls'], ['trisPerFrame', 'tris'], ['longTasks', 'long'], ['longMax', 'lmax'], ['over50', '>50'], ['heapMB', 'heap']];
