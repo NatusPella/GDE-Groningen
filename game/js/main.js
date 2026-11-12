@@ -262,7 +262,7 @@ const WARM_START = !(FLAGS.noattract || FLAGS.storytest || FLAGS.stil || FLAGS.t
 // the boot screen may spend on it before it goes on anyway, and the frame time
 // and calm run that count as "warm": a worker result or shader link that lands
 // after the boot screen would be exactly the hitch we are trying to remove
-const START_WARM_R = 200;
+const START_WARM_R = 320;
 const START_WARM_MS = 25000;
 const START_WARM_CALM = 12;
 const START_WARM_MAX_FRAME_MS = 50;
