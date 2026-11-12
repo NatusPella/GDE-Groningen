@@ -368,6 +368,9 @@ function waitForStart(world, ready) {
     if (!world.loadedFromSave) {
       try {
         const opening = await import('./intromontage.js');
+        // #738/#804: de vaste opening-assets (acteurs, keuken, props) één keer via de
+        // bestaande warm-upqueue bouwen en in beide lichtstanden compileren.
+        if (opening.prepareOpeningWarm) queueWarmupObject(() => opening.prepareOpeningWarm());
         const spots = opening.introShotPoints(world);
         if (spots.length) {
           setLoadingStatus('De openingsbeelden worden klaargezet');
