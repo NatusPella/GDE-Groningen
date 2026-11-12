@@ -121,6 +121,10 @@
     "terrainCache": {
       "eigenaar": "game/js/tileworld.js",
       "notitie": "De gebakken terreingrond hoort bij de tegelwereld (tileworld.js, geen gedeelde World-state): tileworld.js zet hem bij het laden na de grens- en watercontrole, scene3d.js leest hem alleen en bouwt de grond zelf als hij ontbreekt (ADR 0030)."
+    },
+    "__openingWarm": {
+      "eigenaar": "game/js/main.js",
+      "notitie": "tijdelijke groep met de vaste opening-assets, gemaakt in main.js en opgeruimd door intromontage.js/main.js."
     }
   },
   "uitzonderingen": [
