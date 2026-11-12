@@ -34,6 +34,9 @@ import { reducedMotion } from './motion.js';
 import { fitCamera } from './cutscript.js';
 
 // world.cameraOverride poses use map coordinates: x/y on the map, z = height in metres.
+export function setCameraOverride(world, pose) {
+  if (world) world.cameraOverride = pose || null;
+}
 // world.timeScale (0..1) slows gameplay; main.js multiplies the gameplay dt by it.
 
 const SKIP_HOLD_S = 0.9; // hold Space this long to skip a cutscene

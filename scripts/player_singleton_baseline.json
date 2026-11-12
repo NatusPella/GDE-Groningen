@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "note": "Aantal directe verwijzingen naar world.player per bestand (#500), inclusief de alias w.player. Alleen omlaag; zie scripts/player_singleton_audit.mjs. Stand (#492): gastgroep via world.lokaalLichaam. #750: main.js leest world.player in de laadscherm-warmloop (+2).",
-  "total": 67,
+  "note": "Aantal directe verwijzingen naar world.player per bestand (#500), inclusief de alias w.player. Alleen omlaag; zie scripts/player_singleton_audit.mjs. Stand (#492): gastgroep via world.lokaalLichaam. #750: main.js leest world.player in de laadscherm-warmloop (+2); #738/#804: de opening-warmloop leest world.player voor de montagepunten (+2).",
+  "total": 69,
   "files": {
     "game/js/aaien.js": 2,
     "game/js/coopbus.js": 4,
@@ -13,7 +13,7 @@
     "game/js/gebiedenlive.js": 4,
     "game/js/geheimen.js": 1,
     "game/js/intromontage.js": 5,
-    "game/js/main.js": 4,
+    "game/js/main.js": 6,
     "game/js/missionstory.js": 2,
     "game/js/pg_fierljep.js": 6,
     "game/js/pg_skutsje.js": 2,

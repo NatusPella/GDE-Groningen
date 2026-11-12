@@ -130,6 +130,7 @@ import { geoWorkerActive } from './geojobs.js';
 import { preloadRoadWorker } from './roadsurface.js';
 import { init3D, update3D, resize3D, getScene, getRenderer, toggleLightRig, disposeObject, warmWaterIndex, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady, canvasFrameCount, prewarmStreamAt, prewarmPending, precompilePrograms, streamPending, queueWarmupObject, prewarmBusy, getCamera, getFollowPose, setRouteLinks } from './scene3d.js';
 import { checkFrame } from './blackframe.js';
+import { setCameraOverride } from './cinematics.js';
 import { noteFrame, hideAdvice, classifyGpu, readGpu, dynamicScale, cpuLevel } from './gfxprofile.js';
 import { updateStreetSigns } from './streetsigns.js';
 import { updatePhotoMode, wireFotoKey } from './fotomodusui.js';
@@ -405,7 +406,7 @@ function waitForStart(world, ready) {
               const px = world.player.x, py = world.player.y;
               warmGroup.position.set(px + 8, 0, py + 8);
               sc.add(warmGroup);
-              world.cameraOverride = { position: { x: px + 15, y: py + 15, z: 9 }, lookAt: { x: px + 8, y: py + 8, z: 1 }, fov: 55, cut: true };
+              setCameraOverride(world, { position: { x: px + 15, y: py + 15, z: 9 }, lookAt: { x: px + 8, y: py + 8, z: 1 }, fov: 55, cut: true });
               const tDraw = performance.now();
               for (let f = 0; f < 1; f++) { tick(1 / 60); render(1 / 60); }
               toggleLightRig();
@@ -413,7 +414,7 @@ function waitForStart(world, ready) {
               if (window.__loadMarks) window.__loadMarks.introPaletteDraw = Math.round(performance.now() - tDraw);
               toggleLightRig();
               sc.remove(warmGroup);
-              world.cameraOverride = vorigeOverride || null;
+              setCameraOverride(world, vorigeOverride || null);
               world.__openingWarm = warmGroup;
             }
           } catch (e) { console.warn('opening-assets tekenen', e); }
