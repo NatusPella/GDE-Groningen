@@ -1,0 +1,12 @@
+import fs from 'node:fs'; import os from 'node:os'; import path from 'node:path';
+import { stageReady, stageError } from '../scripts/perf/stagecheck.mjs';
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'gde-stagecheck-'));
+let n = 0, fail = 0;
+const ok = (c, m) => { n++; if (!c) { fail++; console.log('FAIL ' + m); } };
+ok(stageReady(tmp) === false, 'lege map is niet klaar');
+fs.mkdirSync(path.join(tmp, 'desktop', 'build', 'game'), { recursive: true });
+fs.writeFileSync(path.join(tmp, 'desktop', 'build', 'game', 'index.html'), '<html></html>');
+ok(stageReady(tmp) === true, 'index.html in desktop/build/game is klaar');
+ok(/npm run stage/.test(stageError()), 'foutmelding noemt npm run stage');
+console.log(fail ? `${fail} mislukt` : `perfstage_test: ${n}/${n} ok`);
+process.exit(fail ? 1 : 0);

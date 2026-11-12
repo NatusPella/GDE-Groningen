@@ -13,12 +13,14 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { stageReady, stageError } from './stagecheck.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const OUT = process.env.PERF_OUT || path.join(os.tmpdir(), 'gde-perf');
 const [name, ...extra] = process.argv.slice(2);
 if (!name) { console.error('usage: node scripts/perf/run.mjs <name> [electron flags...]'); process.exit(2); }
 fs.mkdirSync(OUT, { recursive: true });
+if (!stageReady(path.join(HERE, '..', '..'))) { console.error(stageError()); process.exit(2); }
 
 const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
 let slot = null;
@@ -52,7 +54,7 @@ fs.rmSync(profileDir, { recursive: true, force: true });
 fs.mkdirSync(profileDir, { recursive: true });
 const desktop = path.join(HERE, '..', '..', 'desktop');
 const electron = process.env.ELECTRON_EXE || path.join(desktop, 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'electron');
-const args = ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1920x1080',
+const args = ['.', '--windowed', '--stil', '--no-sandbox', '--force-device-scale-factor=1', '--window-size=1920x1080',
   // with other windows over this one Chromium would throttle it as occluded or backgrounded: a measuring run must not be slowed by that
   '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows', '--disable-features=CalculateNativeWinOcclusion', `--smoke-test=${path.join(OUT, name + '.png')}`,
   `--bench-eval=${path.join(HERE, 'hook.js')}`, `--perf-script=${scriptFile}`];
