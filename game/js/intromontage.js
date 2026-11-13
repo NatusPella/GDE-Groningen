@@ -1350,6 +1350,7 @@ function cleanup(r, skipped) {
   try { if (r.w && r.w.__openingWarm) { disposeObject(r.w.__openingWarm); r.w.__openingWarm = null; } } catch (e) { console.warn('opening-assets vrij', e); }
   try { releaseWarmupSamples(); } catch (e) { console.warn('warm-samples vrij', e); }
   try { setCinematicBatches(false); } catch (e) { /* niet erg */ }
+  try { if (r.w) r.w.cineQuiet = performance.now() + 15000; } catch (e) { /* niet erg */ }
   try { releaseHeldMaterials(); } catch (e) { console.warn('vastgehouden materialen vrij', e); }
   try { setHoldGrass(false); } catch (e) { console.warn('gras-hold vrij', e); }
   try { if (r.w && r.w.map && r.w.map.releaseShots) r.w.map.releaseShots(); } catch (e) { console.warn('intro-tegels vrij', e); }

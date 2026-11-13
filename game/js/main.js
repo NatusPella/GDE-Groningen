@@ -1049,7 +1049,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
       // Tijdens de opening/cutscene minder tegelwerk per frame: de film wisselt
       // vaak van plek en tileverwerking kostte anders frames van 100+ ms.
       // De tegels komen een paar frames later; het beeld blijft vol.
-      const cine = document.body.classList.contains('intro-montage') || document.body.classList.contains('cine-hide-hud');
+      const cine = document.body.classList.contains('intro-montage') || document.body.classList.contains('cine-hide-hud') || (world.cineQuiet && performance.now() < world.cineQuiet);
       world.map.follow(tf.x, tf.y, tf.opts, cine ? 0.4 : (laatsteFrameMs > 25 ? 0.6 : 1.5));
     };
       // the open sea as water rows round the player (#233)
@@ -1092,7 +1092,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
       updateCinematics(dt, world);
     }
     else {
-      updatePhone(dt, world);
+        if (!document.body.classList.contains('intro-montage')) updatePhone(dt, world);
         // Autosave tijdens de opening/cutscene uitstellen: de save-tik kostte anders 55-75 ms-frames in de film.
         if (!document.body.classList.contains('intro-montage') && !document.body.classList.contains('cine-hide-hud')) updateSaveGame(dt, world);
     }
