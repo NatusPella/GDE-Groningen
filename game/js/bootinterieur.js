@@ -21,6 +21,8 @@ import { boatKind, boatHasCabin, boatSeats } from './boattypes.js';
 //   stuur           { soort: 'wiel', x, y, z, r, tilt } of { soort: 'helmstok', x0, y0, z0, x1, y1, z1 }
 //   paneel          instrumentenpaneel: { x, y (onderkant), z, l (langs x), h (hoogte), b (breedte) }
 //   banken          [{ x, y (zitting bovenkant), z, l, b, rug (hoogte rugleuning) }]
+//                   kaal: true = de fitter tekent deze bank zelf al (de rondvaartbanken); dan komt er alleen
+//                   een kussen op, geen poten en geen eigen rugleuning
 //   tafel/kombuis/bemanningsbank   { x, y, z, l, b, h } of null; bij tafel is y het blad, bij kombuis de vloer
 //   vesten          [{ x, y, z }] reddingsvesten
 const LEN_MIN = 1.5; // een boot korter dan dit heeft geen roef meer om in te richten
@@ -84,7 +86,7 @@ function rondvaartRoef(v) {
   const zBank = (iw + 0.15) / 2;
   const banken = [];
   for (let x = hl - 2.1; x > x0; x -= 0.95) {
-    for (const z of [-zBank, zBank]) banken.push({ x, y: 0.41, z, l: 0.4, b: Math.max(0.3, iw - 0.15), rug: 0.42 });
+    for (const z of [-zBank, zBank]) banken.push({ x, y: 0.41, z, l: 0.4, b: Math.max(0.3, iw - 0.15), rug: 0, kaal: true });
   }
   const s = schipperSeat(v);
   return {
@@ -100,7 +102,7 @@ function rondvaartRoef(v) {
     banken,
     tafel: null,
     kombuis: { x: -hl + 2.55, y: 0.16, z: iw - 0.35, l: 0.7, b: 0.5, h: 0.85 }, // klein buffetje naast de ingang
-    bemanningsbank: { x: Math.max(x0 + 0.6, s.x - 0.35), y: 0.16, z: 0, l: 0.5, b: 0.55, rug: 0.3 },
+    bemanningsbank: { x: Math.max(x0 + 0.6, s.x - 0.35), y: 0.61, z: 0, l: 0.5, b: 0.55, rug: 0.3 },
     vesten: [
       { x: x0 + 0.4, y: 0.52, z: zBank },
       { x: x0 + 1.35, y: 0.52, z: -zBank },
