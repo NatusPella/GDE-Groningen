@@ -43,6 +43,14 @@ const BESTANDEN = [
 // Alleen meenemen als hij bestaat; de pagina werkt ook zonder JavaScript.
 const OPTIONEEL = [['script.js', path.join(WEBSITE, 'script.js')]];
 
+// De responsive varianten zijn de enige versie die de pagina laadt; de zware originelen
+// hoeven dus niet mee naar _site (behalve de hero-origineel voor het 1920-srcset).
+function heeftResponsieveVariant(doelpad) {
+  const stem = path.basename(doelpad).replace(/\.[^.]+$/, '');
+  return ['-640.webp', '-1024.webp', '-1280.webp', '-960.webp'].some((suffix) =>
+    fs.existsSync(path.join(MEDIA, stem + suffix)));
+}
+
 function kopieer(bron, doel) {
   if (!fs.existsSync(bron)) throw new Error(`bronbestand ontbreekt: ${path.relative(ROOT, bron)}`);
   fs.mkdirSync(path.dirname(doel), { recursive: true });
@@ -57,6 +65,8 @@ function kopieerMedia() {
   for (const naam of fs.readdirSync(MEDIA).sort()) {
     const bron = path.join(MEDIA, naam);
     if (!fs.statSync(bron).isFile() || !/\.(webp|jpg|png)$/i.test(naam)) continue;
+    const stem = naam.replace(/\.[^.]+$/, '');
+    if (naam !== 'hero-groningen.webp' && ['-640.webp', '-1024.webp', '-1280.webp', '-960.webp'].some((suffix) => fs.existsSync(path.join(MEDIA, stem + suffix)))) continue;
     bytes += kopieer(bron, path.join(OUT, 'img', naam));
     aantal++;
   }
@@ -297,7 +307,12 @@ function main() {
   fs.mkdirSync(OUT, { recursive: true });
 
   let bytes = 0, aantal = 0;
-  for (const [doelpad, bron] of BESTANDEN) { bytes += kopieer(bron, path.join(OUT, doelpad)); aantal++; }
+  for (const [doelpad, bron] of BESTANDEN) {
+    const altijdKopiëren = doelpad === 'img/stad-nacht.webp';
+    if (!altijdKopiëren && heeftResponsieveVariant(doelpad)) continue;
+    bytes += kopieer(bron, path.join(OUT, doelpad));
+    aantal++;
+  }
   for (const [doelpad, bron] of OPTIONEEL) {
     if (fs.existsSync(bron)) { bytes += kopieer(bron, path.join(OUT, doelpad)); aantal++; }
   }

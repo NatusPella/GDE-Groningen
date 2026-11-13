@@ -146,7 +146,8 @@ for (const m of gebouwd.matchAll(/\b(?:src|href)\s*=\s*"([^"]+)"/gi)) {
 const dodePaden = [...lokaal].filter((url) => !bestaat(url));
 ok(dodePaden.length === 0, 'alle relatieve paden in de HTML bestaan in _site', dodePaden.join(', '));
 ok(bestaat('img/social-preview.png'), 'het social-preview-beeld staat in _site');
-ok(bestaat('img/trailer.jpg'), 'de trailerstill staat in _site');
+ok(bestaat('img/trailer-960.webp'), 'de trailerstill staat in _site');
+ok(!bestaat('img/trailer.jpg'), 'de zware trailer-origineel wordt niet meer gedeployd');
 
 // De pagina heeft meerdere slideshows (#37): per categorie een slider met pijlen, stippen en
 // een script dat de navigatie doet. Zonder JavaScript blijft elke slider scrollbaar.
@@ -165,10 +166,10 @@ ok(/aria-selected="true"/.test(gebouwd) && /aria-selected="false"/.test(gebouwd)
 for (const show of SLIDESHOWS) {
   ok(gebouwd.includes(`id="slideshow-${show.id}"`), `slideshow ${show.id} staat in de HTML`);
   for (const slide of show.slides) {
-    ok(bestaat(slide.img), `beeld ${slide.img} staat in _site`);
     ok(slide.alt && slide.alt.length > 10, `slide ${slide.img} heeft een alt-tekst`);
     const stem = path.basename(slide.img).replace(/\.[^.]+$/, '');
     ok(bestaat(`img/${stem}-640.webp`) && bestaat(`img/${stem}-1024.webp`), `slide ${stem} heeft responsieve varianten`);
+    ok(!bestaat(slide.img) || /\.(webp|jpg)$/.test(slide.img), `slide ${stem} verwijst niet naar een ontbrekend origineel`);
   }
 }
 ok(/srcset="img\/hero-groningen-640\.webp 640w/.test(gebouwd), 'de hero gebruikt srcset');
