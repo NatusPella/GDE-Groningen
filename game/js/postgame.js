@@ -633,7 +633,7 @@ function updateGuide(dt, w) {
   w.postgameGuide = g ? { x: g.x, y: g.y, name: g.name, id: g.id, pg: true } : null;
   if (g && !isCinematicActive() && w.phoneNotifications) {
     if (g.id === 'beppe') {
-      if (!beppeHinted) {
+      if (!beppeHinted && !w.storyGuide) {
         beppeHinted = true;
         w.phoneNotifications.push({ from: 'Tammo', text: FAREWELL.hint, duration: 8 });
       }
