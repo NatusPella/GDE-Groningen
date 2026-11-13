@@ -1,5 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { getScene, getCamera, disposeObject, releaseWarmupSamples, releaseHeldMaterials } from './scene3d.js';
+import { getScene, getCamera, disposeObject, releaseWarmupSamples, releaseHeldMaterials, setCinematicBatches } from './scene3d.js';
 import { setHoldGrass } from './grass.js';
 import { buildPersonMesh, animatePersonWalk, seatPose, seatedY, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { vehicleSeat } from './seating3d.js';
@@ -1349,6 +1349,7 @@ function cleanup(r, skipped) {
   try { if (r.kit) { r.kit.dispose(); r.kit = null; } } catch (e) { console.error('intro kitchen', e); }
   try { if (r.w && r.w.__openingWarm) { disposeObject(r.w.__openingWarm); r.w.__openingWarm = null; } } catch (e) { console.warn('opening-assets vrij', e); }
   try { releaseWarmupSamples(); } catch (e) { console.warn('warm-samples vrij', e); }
+  try { setCinematicBatches(false); } catch (e) { /* niet erg */ }
   try { releaseHeldMaterials(); } catch (e) { console.warn('vastgehouden materialen vrij', e); }
   try { setHoldGrass(false); } catch (e) { console.warn('gras-hold vrij', e); }
   try { if (r.w && r.w.map && r.w.map.releaseShots) r.w.map.releaseShots(); } catch (e) { console.warn('intro-tegels vrij', e); }
@@ -1449,6 +1450,7 @@ export function playIntroMontage(w, { startAt = 0, flyShot, onDone, maxShots = I
   w.cinemaLean = true;
   setIntroPlaying(true);
   document.body.classList.add('intro-montage');
+  setCinematicBatches(true); // nieuwe batches gespreid compileren/tonen tijdens de film
   setStoryScene(true, 'intro');
   // from the top, so the cuts land on the song's beats
   if (!r.offset) cueTheme(0);

@@ -1474,6 +1474,7 @@ function depthVariant(m, o) {
   return v;
 }
 function compilePending() {
+  drainCineBatches();
   if (!linkPending.size) return;
   for (const o of linkPending) if (o.parent) precompile(o);
   linkPending.clear();
@@ -1781,8 +1782,46 @@ function syncBuildingsPass(world, px, py) {
 }
 
 const BUILDING_LINK_WAIT_MS = 2000;
-const batchCompile = (group) => { if (!perfOff('bouwklaar')) precompile(group); };
-const batchReady = (group) => perfOff('bouwklaar') || meshProgramsReady(group);
+// Tijdens de openingsfilm worden nieuwe batches (gebouwen, wegen, perrons) anders
+// in één frame gecompileerd en getekend: dat gaf frames van 250-650 ms
+// (hitchprobe). In de film spreiden we het compileren per mesh over frames en
+// laten we hooguit één nieuwe batch per frame verschijnen; de rest volgt een
+// paar frames later. Buiten de film verandert er niets.
+let cineBatches = false;
+const cineQueue = [];
+const cinePend = new Set();
+const cineKlaar = new Set();
+let cineReveals = 0;
+export function setCinematicBatches(on) {
+  cineBatches = !!on;
+  if (!cineBatches) { cineQueue.length = 0; cinePend.clear(); cineKlaar.clear(); }
+}
+const batchCompile = (group) => {
+  if (perfOff('bouwklaar')) return;
+  if (!cineBatches) { precompile(group); return; }
+  cinePend.add(group);
+  group.traverse((o) => { if (o.material) cineQueue.push({ group, o }); });
+};
+const batchReady = (group) => {
+  if (perfOff('bouwklaar')) return true;
+  if (!cineBatches) return meshProgramsReady(group);
+  if (cinePend.has(group)) return false;
+  if (cineKlaar.has(group)) return true;
+  if (cineReveals > 0 && meshProgramsReady(group)) { cineReveals--; cineKlaar.add(group); return true; }
+  return false;
+};
+function drainCineBatches() {
+  cineReveals = 1;
+  if (!cineBatches || !cineQueue.length) return;
+  const t0 = performance.now();
+  while (cineQueue.length && performance.now() - t0 < 2.5) {
+    const { group, o } = cineQueue.shift();
+    precompile(o);
+    let klaar = true;
+    for (const q of cineQueue) if (q.group === group) { klaar = false; break; }
+    if (klaar) cinePend.delete(group);
+  }
+}
 function meshProgramsReady(mesh) {
   let ready = true;
   mesh.traverse((o) => {
