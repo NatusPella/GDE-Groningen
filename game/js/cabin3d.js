@@ -48,6 +48,19 @@ function cabinMaterial() {
   return material;
 }
 
+// De rugleuning van een stoel blijft onder de dakhemel van de binnenhuid (#847 nabeeld): in de lage
+// kooi van de laadmachine en onder de glaskap van de kist past geen hoge rug. Bij een auto is de
+// raamlijn geen plafond en blijft de oude hoogte staan.
+function rug(L, sy) {
+  const top = L.shell ? L.shell.roofY - 0.05 : sy + 0.545;
+  const h = Math.min(0.55, Math.max(0.14, top - (sy - 0.005)));
+  return { h, cy: sy - 0.005 + h / 2 };
+}
+
+// Cockpitstoelen krijgen geen hoofdsteun: die past niet onder de lage hemel en is van buiten door
+// de ruitjes toch niet te onderscheiden. Auto's houden hun hoofdsteun.
+const kop = (L, sy) => (L.shell ? null : sy + 0.62);
+
 // seat: vehicleSeat(v, true); romp: carBodyFit(v) of null; pure genoeg om in Node te bouwen (scripts/cabin_test.mjs).
 // lod 0 = het volle interieur, 1 = midden (geen hemel/stijlen/spiegel/kleine extra's), 2 = ver (vloer, donkere
 // zitblokken en het dashboardblok); elk niveau is één samengevoegde geometrie.
@@ -81,15 +94,23 @@ export function buildCabinGeometry(seat, len, wid, klasse, romp = null, lod = 0,
   vloer();
   for (const s of [-1, 1]) B.quadOut(P(x0, floorY, s * zw), P(x1, floorY, s * zw), P(x1, roofY, s * zw), P(x0, roofY, s * zw), [0, 0, -s], WALL); // binnenwanden
   B.quadOut(P(x0, floorY, -zw), P(x0, floorY, zw), P(x0, roofY, zw), P(x0, roofY, -zw), [1, 0, 0], WALL);          // achterwand
+  // De voorwand van een cockpit (#847 nabeeld): de kist en de heli hebben geen dicht dashboard dat de
+  // hele voorkant vult. Zonder deze wand kijk je onder de voorruit door naar de straat.
+  const vw = L.voorwand;
+  if (vw) B.quadOut(P(vw.x, vw.y0, -zw), P(vw.x, vw.y1, -zw), P(vw.x, vw.y1, zw), P(vw.x, vw.y0, zw), [-1, 0, 0], WALL);
+  // Een neusdeksel dekt de kier tussen de cockpitvloer en de neus van het model.
+  const nd = L.neusdeksel;
+  if (nd) B.quadOut(P(nd.x0, nd.y, -zw), P(nd.x1, nd.y, -zw), P(nd.x1, nd.y, zw), P(nd.x0, nd.y, zw), [0, 1, 0], FLOOR);
   B.box(d.x + sh, d.y + d.h / 2, 0, d.d, d.h, d.w, DARK);                                                          // dashboard
   B.box(d.x + sh - 0.08, d.y + d.h + 0.02, 0, d.d * 0.7, 0.05, d.w, GREY);                                        // bovenkant dashboard
   const seatColor = K.seatColor || SEAT;
   if (lod === 1) {
     // midden: voorstoelen en achterbank als zitting + rug, zonder hoofdsteun of stoelpoot; de console blijft.
     // Geen hemel, stijlen, spiegel, instrumentenkap of klasse-extra's: die zie je op deze afstand niet meer.
+    const rugH = rug(L, sy);
     for (const s of L.seats) {
       B.box(s.x, sy - 0.07, s.z, 0.5, 0.14, 0.5, seatColor);
-      B.box(s.x - 0.27, sy + 0.27, s.z, 0.1, 0.55, 0.48, seatColor, 0, 0, 0, K.seatTilt);
+      B.box(s.x - 0.27, rugH.cy, s.z, 0.1, rugH.h, 0.48, seatColor, 0, 0, 0, K.seatTilt);
     }
     if (L.rear) {
       const rear = K.rearColor || SEAT;
@@ -109,10 +130,10 @@ export function buildCabinGeometry(seat, len, wid, klasse, romp = null, lod = 0,
   B.box(w.x + sh, w.y, w.z, 0.05, 0.05, 0.05, TRIM);
   const seatAt = (x, z, color) => {
     B.box(x, sy - 0.07, z, 0.5, 0.14, 0.5, color);
-    B.box(x - 0.27, sy + 0.27, z, 0.1, 0.55, 0.48, color, 0, 0, 0, K.seatTilt);
-    // de hoofdsteun blijft onder de dakhemel van een cockpit (de kooi van de laadmachine is
-    // laag); bij een auto is L.roof.y de raamlijn en hangt de hoofdsteun daarboven
-    B.box(x - 0.3, L.shell ? Math.min(sy + 0.62, L.shell.roofY - 0.12) : sy + 0.62, z, 0.08, 0.16, 0.26, GREY);
+    const rg = rug(L, sy);
+    B.box(x - 0.27, rg.cy, z, 0.1, rg.h, 0.48, color, 0, 0, 0, K.seatTilt);
+    const kopY = kop(L, sy);
+    if (kopY !== null) B.box(x - 0.3, kopY, z, 0.08, 0.16, 0.26, GREY);
   };
   for (const s of L.seats) seatAt(s.x, s.z, seatColor);
   if (L.rear) {
@@ -128,15 +149,18 @@ export function buildCabinGeometry(seat, len, wid, klasse, romp = null, lod = 0,
   // buiten door de voorruit (#442). Alleen met een romp (auto's) of een eigen binnenhuid (cockpits, #847).
   if (romp || L.shell) {
     const R = L.roof;
-    B.box((R.x0 + R.x1) / 2, R.y, 0, R.x1 - R.x0, 0.04, R.w, LINING);
+    const hemel = !L.shell || L.hemel !== false;
+    if (hemel) B.box((R.x0 + R.x1) / 2, R.y, 0, R.x1 - R.x0, 0.04, R.w, LINING);
     for (const p of R.pillars) {
       const dx = p.x1 - p.x0, dy = p.y1 - p.y0, pl = Math.hypot(dx, dy);
       B.box((p.x0 + p.x1) / 2, (p.y0 + p.y1) / 2, p.z, pl, 0.05, 0.05, LINING, 0, 0, 0, Math.atan2(dy, dx));
     }
-    const m = L.mirror;
-    B.box(m.x, m.y, m.z, 0.03, 0.07, 0.2, DARK);
-    B.box(m.x - 0.018, m.y, m.z, 0.006, 0.05, 0.16, 0x9fb4d8);   // spiegelglas, naar de bestuurder
-    B.box(m.x, (m.y + R.y) / 2, m.z, 0.025, Math.max(0.04, R.y - m.y), 0.03, GREY);
+    if (hemel) {
+      const m = L.mirror;
+      B.box(m.x, m.y, m.z, 0.03, 0.07, 0.2, DARK);
+      B.box(m.x - 0.018, m.y, m.z, 0.006, 0.05, 0.16, 0x9fb4d8);   // spiegelglas, naar de bestuurder
+      B.box(m.x, (m.y + R.y) / 2, m.z, 0.025, Math.max(0.04, R.y - m.y), 0.03, GREY);
+    }
   }
   return B.build();
 }

@@ -76,6 +76,12 @@ function layoutOf(cab, shell, seat, d) {
     // de hoogte waarop de cabinebouwers de stoelen tekenen: de echte zitting als die in de
     // binnenhuid past, anders net boven de vloer (de kooi van de laadmachine is erg laag)
     seatHoogte: Math.max(seat.y, shell.floorY + 0.02),
+    // hemel: dakhemel en binnenspiegel tekenen (true) of niet (false: open bel/glaskap)
+    hemel: d.hemel !== false,
+    // voorwand: een dichte wand op de voorkant van de binnenhuid (neusdeksel/instrumentenpaneel);
+    // neusdeksel: een extra vloerplaatje voor de cockpitopening van de kist
+    voorwand: d.voorwand || null,
+    neusdeksel: d.neusdeksel || null,
   };
 }
 
@@ -118,16 +124,19 @@ function trekkerLayout(seat, len, wid) {
 
 // Helikopter (#847): de bel uit heli3d.js. De binnenhuid blijft binnen de bel, anders
 // steekt hij door het glas. Rechts zitten (zoals in een echte heli), een cyclic in de
-// hand en de hoofdschakelaars op de middenconsole.
+// hand en de hoofdschakelaars op de middenconsole. De cockpitvloer ligt boven de
+// crèmekleurige dorpelband van het model (heliflight/heli3d: een plaat op y 0,96-1,08);
+// anders kijk je in eerste persoon op die plaat neer in plaats van op de cockpitvloer (#847 nabeeld).
 function heliLayout(seat) {
   const cab = { x0: -0.35, x1: 1.9, floorY: 0.95, roofY: 2.15, hw: 0.72 };
-  const shell = { x0: -0.2, x1: 1.3, floorY: 0.97, roofY: 1.72, hw: 0.6 };
+  const shell = { x0: -0.2, x1: 1.45, floorY: 1.1, roofY: 1.7, hw: 0.56 };
   const liningY = 1.85;
-  const dash = blok(1.13, 1.16, shell.hw * 1.9, 0.32, 0.24);
+  // dashboard van de vloer tot de raamband, zodat er geen kier onder de voorruit overblijft
+  const dash = blok(1.18, 1.12, shell.hw * 1.95, 0.38, 0.24);
   return layoutOf(cab, shell, seat, {
     eye: { x: seat.x + 0.06, y: seat.y + 0.64, z: seat.z },
     dash,
-    binnacle: blok(1.2, 1.48, 0.38, 0.12, 0.18),
+    binnacle: blok(1.18, 1.5, 0.38, 0.12, 0.18),
     // de cyclic: een korte stok met een kleine greep; autointerieur.js slaat de
     // draaiende stuurring voor de heli over (een heli heeft geen stuurwiel)
     wheel: { x: 1.02, y: seat.y + 0.3, z: seat.z, r: 0.07, tilt: 0.12 },
@@ -135,39 +144,53 @@ function heliLayout(seat) {
       { x: seat.x, z: seat.z },
       { x: seat.x, z: -seat.z },
     ],
-    console: blok(0.45, seat.y - 0.1, 0.32, 0.26, 0.3),
+    console: blok(0.5, 1.18, 0.32, 0.2, 0.3),
     mirror: { x: 1.1, y: liningY - 0.05, z: 0 },
+    // een heli heeft een open bel, geen dakhemel; wel stijlen langs de voorruit
+    hemel: false,
     roof: {
       y: liningY, x0: 0.35, x1: 1.05, w: 0.5,
       pillars: [-1, 1].map((s) => ({ side: s, z: s * (shell.hw - 0.06), x0: 1.28, y0: 1.25, x1: 1.2, y1: shell.roofY })),
     },
+    // neusdeksel tussen de vloer en de onderkant van het dashboard: de cockpit kijkt
+    // nergens meer onder de voorruit door naar de straat
+    voorwand: { x: 1.45, y0: 1.1, y1: 1.5 },
   });
 }
 
 // Vliegtuig (#847): de cockpit in de romp van 1,3 m breed, op de hartlijn. De kap
 // (glas) begint op y 1,9; de cockpit blijft eronder, met een yoke en de gashendel
 // rechts. De passagier zit achter de piloot (tandem, geen bank).
+// Sinds de romp in plane3d.js boven y 1,65 open is (#847) vult de cockpit die opening:
+// een donkere cockpitvloer op de buik van de romp, een voorwand met dashboard en een
+// neusdeksel, zodat je in eerste persoon panelen ziet in plaats van de straat.
 function vliegtuigLayout(seat, len) {
   const half = PLANE_HALF_W;
   const cab = { x0: -Math.min(len / 2 - 0.05, 3.35), x1: Math.min(len / 2 - 0.05, 3.35), floorY: 0.8, roofY: 2.1, hw: half };
-  const shell = { x0: -1.45, x1: 0.95, floorY: 0.85, roofY: 2.0, hw: half - 0.1 };
-  const liningY = 1.98;
-  const dash = blok(0.76, 1.25, shell.hw * 1.8, 0.34, 0.26);
+  // de vloer ligt op de dichte buik van de romp (plane3d.js: onderbak tot y 1,65), de
+  // cockpitopening loopt van x -1,1 tot 1,55; de binnenhuid blijft daar binnen
+  const shell = { x0: -1.15, x1: 1.5, floorY: 1.66, roofY: 2.04, hw: half - 0.09 };
+  const voorwandTop = 1.94; // net onder de glaskap (y 1,9) en de rompzoom (y 2,04)
+  const dash = blok(1.34, 1.68, shell.hw * 1.9, 0.26, 0.2);
   return layoutOf(cab, shell, seat, {
     eye: { x: seat.x + 0.05, y: seat.y + 0.72, z: 0 },
     dash,
-    binnacle: blok(0.76, 1.59, 0.4, 0.13, 0.18),
-    wheel: { x: 0.62, y: seat.y + 0.3, z: -0.08, r: 0.17, tilt: 0.22 },
+    binnacle: blok(1.34, 1.74, 0.4, 0.14, 0.14),
+    wheel: { x: 1.08, y: 1.8, z: -0.08, r: 0.17, tilt: 0.22 },
     seats: [
       { x: seat.x, z: 0 },
       { x: seat.x - 0.8, z: 0 },
     ],
-    console: blok(0.35, seat.y + 0.05, 0.24, 0.14, 0.4),
-    mirror: { x: 0.6, y: liningY - 0.03, z: 0 },
+    console: blok(0.9, 1.73, 0.28, 0.14, 0.32),
+    mirror: { x: 0.6, y: 1.95, z: 0 },
+    // een kist heeft een open glaskap, geen dakhemel
+    hemel: false,
     roof: {
-      y: liningY, x0: -1.2, x1: 0.8, w: shell.hw * 1.8,
-      pillars: [-1, 1].map((s) => ({ side: s, z: s * (shell.hw - 0.05), x0: 0.85, y0: 1.55, x1: 0.55, y1: liningY })),
+      y: 1.98, x0: -1.1, x1: 0.9, w: shell.hw * 1.8,
+      pillars: [-1, 1].map((s) => ({ side: s, z: s * (shell.hw - 0.05), x0: 0.85, y0: 1.75, x1: 0.55, y1: 1.98 })),
     },
+    voorwand: { x: 1.5, y0: 1.66, y1: voorwandTop },
+    neusdeksel: { x0: 1.5, x1: 1.55, y: 1.66 },
   });
 }
 

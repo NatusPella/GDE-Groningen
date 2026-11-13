@@ -261,6 +261,86 @@ for (const [naam, onder, boven] of [['maaidorser', 2.35, 3.2], ['laadmachine', 1
   check('cockpit-budget: volgende aanroep bouwt de rest', zichtbaar() === 4, String(zichtbaar()));
 }
 
+// --- nabeeld (#847): de cockpit vult de opengelegde romp/bel -------------------------------
+// De verifier zag in eerste persoon door de open romp van de kist de straat in en in de heli een
+// groot crèmekleurig vlak (de dorpelband van het model). Daarom heeft de cockpit nu een cockpitvloer
+// boven die dorpel en een voorwand/neusdeksel; deze test schiet stralen vanaf het eerste-persoonoog
+// en eist dat ze de cockpit raken, niet de straat.
+{
+  const THREE = await import('three');
+  const binnen = (g) => g.hemel === false && !!g.voorwand && g.shell.floorY > 1.0;
+  const heliL = cockpitLayout('heli', { x: 0.62, y: 0.98, z: 0.4 }, 8.8, 2.1, 'heli');
+  check('heli: cockpitvloer boven de crèmedorpel van het model (1,08 m)', heliL.shell.floorY > 1.08, String(heliL.shell.floorY));
+  check('heli: voorwand van de vloer tot onder het dashboard', !!heliL.voorwand && heliL.voorwand.y0 <= heliL.shell.floorY + 0.01 && heliL.voorwand.y1 >= 1.45, JSON.stringify(heliL.voorwand));
+  check('heli: open bel, geen dakhemel', heliL.hemel === false);
+  const kistL = cockpitLayout('vliegtuig', { x: -0.1, y: 1.15, z: 0 }, 8, 10.6, 'plane');
+  check('vliegtuig: cockpitvloer op de dichte buik van de romp (y 1,65)', kistL.shell.floorY >= 1.65 && kistL.shell.floorY <= 1.7, String(kistL.shell.floorY));
+  check('vliegtuig: voorwand van de vloer tot onder de glaskap (1,9)', !!kistL.voorwand && kistL.voorwand.y0 <= kistL.shell.floorY + 0.01 && kistL.voorwand.y1 >= 1.9, JSON.stringify(kistL.voorwand));
+  check('vliegtuig: cockpitbox niet breder dan de romp (1,3 m)', kistL.shell.hw * 2 <= 1.3, String(kistL.shell.hw * 2));
+  check('vliegtuig: cockpit binnen de rompbreedte', kistL.shell.hw <= PLANE_HALF_W && kistL.voorwand.x <= kistL.cab.x1, `${kistL.shell.hw} / ${kistL.voorwand.x}`);
+  check('vliegtuig: open glaskap, geen dakhemel', kistL.hemel === false);
+  check('heli en vliegtuig: binnenhuid met vloer en voorwand', binnen(heliL) && binnen(kistL));
+  // stralen vanaf het eerste-persoonoog: omlaag en vooruit-omlaag moeten de cockpit raken. Het model
+  // zelf mag eerder in de weg zitten (de glaskap van de kist is doorzichtig), daarom zoeken we de
+  // eerste treffer die bij het eigen interieur hoort.
+  const inInterieur = (o) => { for (let p = o; p; p = p.parent) if (p.name === 'interior') return true; return false; };
+  const stralen = [
+    ['heli', [-35, -55], true],
+    ['vliegtuig', [-8, -15, -35, -55], true],
+  ];
+  for (const [soort, hoeken] of stralen) {
+    const v = maak(soort);
+    const seat = vehicleSeat(v, true);
+    const mesh = buildVehicleMesh(v);
+    check(`${soort}: eigen interieur voor de straaltest`, CI.updateCarInterior(mesh, v, true) === true);
+    mesh.updateMatrixWorld(true);
+    const oog = new THREE.Vector3(seat.x, seat.y + 0.82, seat.z);
+    const eerste = (richting) => {
+      const rc = new THREE.Raycaster(oog.clone(), richting.normalize(), 0.01, 5);
+      for (const h of rc.intersectObject(mesh, true)) if (inInterieur(h.object)) return h;
+      return null;
+    };
+    const omlaag = eerste(new THREE.Vector3(0, -1, 0));
+    const vloerEis = soort === 'heli' ? 1.09 : 1.6; // heli: boven de crèmedorpel (1,08); kist: op de buik (1,65)
+    check(`${soort}: recht omlaag raakt de cockpitvloer (boven de modeldorpel)`, !!omlaag && omlaag.point.y > vloerEis, omlaag ? `y ${omlaag.point.y.toFixed(2)} (${omlaag.object.name || omlaag.object.type})` : 'geen treffer');
+    for (const graden of hoeken) {
+      const a = graden * Math.PI / 180;
+      const raak = eerste(new THREE.Vector3(Math.cos(a), Math.sin(a), 0));
+      check(`${soort}: ${graden}° vooruit omlaag ziet cockpitpanelen, niet de straat`, !!raak && raak.distance < 2 && raak.point.y > 0.9, raak ? `${raak.distance.toFixed(2)} m, y ${raak.point.y.toFixed(2)} (${raak.object.name || raak.object.type})` : 'geen cockpit in het zicht: je kijkt naar buiten');
+    }
+    // recht vooruit (0°): de kist kijkt over het dashboard door de glaskap heen; daar hoort geen
+    // dichte plaat te zitten, anders is het geen cockpit meer
+    const vooruit = eerste(new THREE.Vector3(1, 0, 0));
+    check(`${soort}: recht vooruit kijkt over het dashboard door de ruit`, !vooruit || vooruit.distance > 1.2, vooruit ? `${vooruit.distance.toFixed(2)} m` : 'vrij zicht');
+  }
+}
+
+// --- geen dubbel stuur (#847 nabeeld) ------------------------------------------------------
+// voertuigbediening.js zette voor de trekker een eigen cabine en stuur bovenop de cockpit van
+// cabin3d/autointerieur; na de fix van de Lead mag er maar één stuur op de voertuigmesh staan en
+// geen tweede cabine. Dezelfde controle voor het eigen interieur in eerste persoon.
+{
+  const VB = await import('../game/js/voertuigbediening.js');
+  const v = maak('trekker');
+  const mesh = buildVehicleMesh(v);
+  const wereld = { vehicles: [v] };
+  const meshes = new Map([[v.id, mesh]]);
+  C3.syncCabins(wereld, meshes, 0, 0);
+  AI.syncAutoStuur(wereld, meshes, 0, 0, 1 / 60);
+  VB.syncVoertuigBediening(wereld, meshes, 0, 0, 1 / 60);
+  const sturen = [], cabines = [];
+  mesh.traverse((o) => { if (o.name === 'stuur') sturen.push(o); if (o.name === 'trekkercabine') cabines.push(o); });
+  check('trekker: precies één stuur op de voertuigmesh', sturen.length === 1, String(sturen.length));
+  check('trekker: geen tweede cabine van voertuigbediening', cabines.length === 0, String(cabines.length));
+  check('trekker: dat ene stuur hangt in de cabine', !!sturen[0] && sturen[0].parent === mesh.userData.cabin);
+  CI.updateCarInterior(mesh, v, true);
+  const eigen = mesh.userData.interior;
+  const sturenBinnen = [];
+  eigen.traverse((o) => { if (o.name === 'stuurstang') sturenBinnen.push(o); });
+  check('trekker: één draaiend stuur in het eigen interieur', !!eigen.userData.wheel && eigen.userData.wheel.parent.children.length === 1, `${eigen.userData.wheel ? eigen.userData.wheel.parent.children.length : 0}`);
+  check('trekker: geen los stuurstangetje in het eigen interieur', sturenBinnen.length === 0, String(sturenBinnen.length));
+}
+
 if (cockpitRows.length) console.log('cockpit 3D-metingen:', cockpitRows.map((r) => `${r.soort} ${r.tri.join('>')} driehoeken (FP ${r.drie}, ${r.objecten} objecten)`).join(', '));
 console.log(bad ? `cockpit_test: ${bad} mislukt` : `cockpit_test: ok (${layouts.length} cockpits, ${cockpitRows.length} 3D)`);
 process.exit(bad ? 1 : 0);

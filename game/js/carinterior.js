@@ -57,11 +57,16 @@ function layoutVan(v, seat) {
 
 function seatBoxes(B, L, seat, K) {
   const sy = L.seatHoogte ?? seat.y;
+  // de rugleuning blijft onder de dakhemel van een cockpit (de laadmachine en de kist zijn laag);
+  // bij een auto is de raamlijn geen plafond
+  const top = L.shell ? L.shell.roofY - 0.05 : sy + 0.545;
+  const rugH = Math.min(0.55, Math.max(0.14, top - (sy - 0.005)));
+  const rugCy = sy - 0.005 + rugH / 2;
   for (const s of L.seats) {
     B.box(s.x, sy - 0.07, s.z, 0.5, 0.14, 0.5, K.seatColor || SEAT);
-    B.box(s.x - 0.27, sy + 0.27, s.z, 0.1, 0.55, 0.48, K.seatColor || SEAT, 0, 0, 0, K.seatTilt);
-    // de hoofdsteun blijft onder de dakhemel van een cockpit; bij een auto hangt hij boven de raamlijn
-    B.box(s.x - 0.3, L.shell ? Math.min(sy + 0.62, L.shell.roofY - 0.12) : sy + 0.62, s.z, 0.08, 0.16, 0.26, GREY);
+    B.box(s.x - 0.27, rugCy, s.z, 0.1, rugH, 0.48, K.seatColor || SEAT, 0, 0, 0, K.seatTilt);
+    // cockpitstoelen krijgen geen hoofdsteun; die past niet onder de lage hemel
+    if (!L.shell) B.box(s.x - 0.3, sy + 0.62, s.z, 0.08, 0.16, 0.26, GREY);
   }
   if (L.rear) {
     const rear = K.rearColor || SEAT;
@@ -93,6 +98,12 @@ function buildStaticGeometry(seat, len, wid, klasse, romp, naam = '') {
   B.quadOut(P(x0, floorY, -zw), P(x1, floorY, -zw), P(x1, floorY, zw), P(x0, floorY, zw), [0, 1, 0], FLOOR);              // vloer
   for (const s of [-1, 1]) B.quadOut(P(x0, floorY, s * zw), P(x1, floorY, s * zw), P(x1, roofY, s * zw), P(x0, roofY, s * zw), [0, 0, -s], WALL); // zijwanden
   B.quadOut(P(x0, floorY, -zw), P(x0, floorY, zw), P(x0, roofY, zw), P(x0, roofY, -zw), [1, 0, 0], WALL);              // achterwand
+  // voorwand en neusdeksel van een cockpit (#847 nabeeld): de kist en de heli hebben geen dicht
+  // dashboard over de hele voorkant; zonder deze wanden kijk je in eerste persoon de straat in
+  const vw = L.voorwand;
+  if (vw) B.quadOut(P(vw.x, vw.y0, -zw), P(vw.x, vw.y1, -zw), P(vw.x, vw.y1, zw), P(vw.x, vw.y0, zw), [-1, 0, 0], WALL);
+  const nd = L.neusdeksel;
+  if (nd) B.quadOut(P(nd.x0, nd.y, -zw), P(nd.x1, nd.y, -zw), P(nd.x1, nd.y, zw), P(nd.x0, nd.y, zw), [0, 1, 0], FLOOR);
   const d = L.dash;
   B.box(d.x, d.y + d.h / 2, 0, d.d, d.h, d.w, DARK);
   B.box(d.x - 0.08, d.y + d.h + 0.02, 0, d.d * 0.7, 0.05, d.w, GREY);
@@ -108,11 +119,15 @@ function buildStaticGeometry(seat, len, wid, klasse, romp, naam = '') {
   for (const e of K.extras) B.box(e.at[0], e.at[1], e.at[2], e.b[0], e.b[1], e.b[2], e.color);
   const c = L.console;
   B.box(c.x, c.y, c.z, c.d, c.h, c.w, DARK);
-  const m = L.mirror;
-  B.box(m.x, m.y, m.z, 0.03, 0.07, 0.2, DARK);
-  // roof lining and A-pillars
+  // dakhemel en binnenspiegel: bij een open bel of glaskap (heli, vliegtuig, #847) niet;
+  // de A-stijlen blijven wel staan
   const R = L.roof;
-  B.box((R.x0 + R.x1) / 2, R.y, 0, R.x1 - R.x0, 0.04, R.w, GREY);
+  const hemel = !L.shell || L.hemel !== false;
+  if (hemel) {
+    const m = L.mirror;
+    B.box(m.x, m.y, m.z, 0.03, 0.07, 0.2, DARK);
+    B.box((R.x0 + R.x1) / 2, R.y, 0, R.x1 - R.x0, 0.04, R.w, GREY);
+  }
   for (const p of R.pillars) {
     const dx = p.x1 - p.x0, dy = p.y1 - p.y0, pl = Math.hypot(dx, dy);
     B.box((p.x0 + p.x1) / 2, (p.y0 + p.y1) / 2, p.z, pl, 0.05, 0.05, DARK, 0, 0, 0, Math.atan2(dy, dx));
