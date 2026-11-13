@@ -24,8 +24,7 @@ export function setCinematicLinks(l) { Object.assign(links, l); }
 import { KEYS } from './storagekeys.js';
 import { registerBusyProbe } from './busy.js';
 import { interiorEyePose } from './carinterior.js';
-import { hasCarInterior } from './carinteriorlayout.js';
-import { defaultKey } from './controls.js';
+import { toggleFirstPerson } from './firstperson.js';
 import { playerBusy } from './busy.js';
 import { hoofdspeler } from './players.js';
 import { gebiedIn, puntInGebied } from './grenzen.js';
@@ -570,9 +569,14 @@ export function updateCinematics(dt, w) {
   } else skipHoldSince = null;
 
   if (started && w.input.wasPressed('v') && !active) cycleCinemaCam(w);
-  // C: tussen de volgcamera en het binnenzicht van de auto (#442); in een browser is C de Ctrl-toets, daar blijft V
   const lichaam = hoofdspeler(w);
-  if (started && !active && lichaam.inVehicle && w.input.wasPressed('c') && hasCarInterior(lichaam.inVehicle) && defaultKey('control') !== 'c') setCamMode(camMode === 5 ? 0 : 5);
+  // C: eerste persoon aan of uit (#833), met een korte melding. De BINNENIN-filmcamera hangt
+  // niet meer aan C maar blijft via V bereikbaar; in de duifstand is C nog het koeren.
+  if (started && !active && !w.pigeonMode && !w.trainDriving && w.input.wasPressed('c')) {
+    const aan = toggleFirstPerson(w);
+    if (aan && camMode) setCamMode(0); // de speelcamera gaat voor de filmcamera
+    w.addMessage(aan ? 'Eerste persoon aan' : 'Eerste persoon uit', 2);
+  }
   if (camMode && !lichaam.inVehicle) setCamMode(0);
 
   // a scene that films its own cast (hidePlayers): the real players stay hidden for the whole scene, also when another run

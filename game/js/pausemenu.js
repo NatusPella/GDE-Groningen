@@ -89,7 +89,7 @@ const CONTROL_GROUPS = [
     [['L'], 'Sirene'],
     [['[', ']'], 'Richting aangeven'],
     [['P'], 'Alarmlichten'],
-    [['C'], 'Binnen/buiten'],
+    [['C'], 'Eerste persoon'],
     [['V'], 'Filmcamera'],
     [['R'], 'Nieuwe lak'],
     [['Z'], 'Zeil of ploeg'],
@@ -161,7 +161,7 @@ const CONTROL_LONG = [
     ['Achterom kijken', 'Achterom kijken: houd {Q} vast, of de middelste muisknop.'],
     ['Sirene', 'Zwaailicht en sirene (politieauto, ambulance).'],
     ['Richting aangeven', 'Richtingaanwijzer links en rechts (nog eens: uit; na de bocht gaat hij vanzelf uit).'],
-    ['Binnen/buiten', 'Binnen- of buitenzicht.'],
+    ['Eerste persoon', 'Eerste persoon aan of uit: de camera op de ogen van je figuur, met een vrije blik. De BINNENIN-filmcamera blijft via {V} bereikbaar.'],
     ['Nieuwe lak', 'Nieuwe lak bij Spuit & Klaar, of het garagemenu in een garage.'],
     ['Zeil of ploeg', 'Skûtsje: zeil vieren; trekker: ploeg aankoppelen, omhoog of omlaag.'],
     ['Aftakas', 'Trekker: aftakas aan of uit.'],
@@ -694,10 +694,11 @@ function spelHtml() {
       <div class="m-gh"><span>Kaart</span></div>
       ${toggle('mapShiftTeleport','Shift+klik op de kaart verplaatst je', 'Niet tijdens een missie of met de politie achter je aan')}`, `${pane('Spel', 'Zo speelt het', '<p>Hoe het verkeer, het geweld en het rijden aanvoelen. Alles wordt meteen bewaard.</p><p class="mut">Beeld, geluid, besturing en toegankelijkheid staan onder Instellingen.</p>')}`)}
     ${tab('camera', `
+      ${toggle('firstPersoon', 'Eerste persoon', 'Camera op de ogen van je figuur, met een vrije blik; de C-toets (in de browser G) doet hetzelfde')}
       ${slider('fov', 'Beeldhoek', 50, 90, 1, 'Hoe wijd je kijkt: hoger laat meer zien, maar maakt alles kleiner')}
-      ${slider('cameraDistance', 'Camera-afstand', 0.8, 1.6, 0.05, 'Hoe ver de camera achter je staat, te voet en in elk voertuig')}
+      ${slider('cameraDistance', 'Camera-afstand', 0.8, 1.6, 0.05, 'Hoe ver de camera achter je staat, te voet en in elk voertuig; in eerste persoon maakt dit niet uit')}
       ${toggle('autoAim', 'Automatisch richten', 'Rechtermuisknop zoekt zelf het beste doelwit')}
-      ${toggle('cinematicMoments', 'Filmische momenten', 'Bij bezienswaardigheden, crashes en vijf sterren; intro’s, missies en de filmcamera (V) staan altijd aan')}`, `${pane('Camera & richten', 'Zicht', '<p>De camera-afstand en beeldhoek gelden te voet en in elk voertuig.</p>')}`)}
+      ${toggle('cinematicMoments', 'Filmische momenten', 'Bij bezienswaardigheden, crashes en vijf sterren; intro’s, missies en de filmcamera (V) staan altijd aan')}`, `${pane('Camera & richten', 'Zicht', '<p>De camera-afstand en beeldhoek gelden te voet en in elk voertuig.</p><p class="mut">Eerste persoon zet de camera op de ogen van je figuur; je eigen lichaam en zijn schaduw zijn dan niet te zien.</p>')}`)}
     ${tab('hints', `
       ${toggle('showHints', 'Toetshints', 'De toetsen onderin beeld bij wat je nu kunt doen')}
       ${picker('hintSource', 'Hints tonen voor', [['auto', 'Automatisch'], ['keys', 'Toetsenbord'], ['pad', 'Controller']], 'Automatisch volgt wat je het laatst gebruikte')}
