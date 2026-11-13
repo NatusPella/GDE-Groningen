@@ -1,13 +1,14 @@
-// De bediening van voertuigen die je ziet en voelt (#442): een stuur dat meedraait op fiets, step en brommer, een
-// cabine met stoel en stuur in de trekker, een ploeg en een aftakas die je zelf bedient (Z en X), een roer dat meedraait
-// op een boot en een stuurwiel op de rondvaartboot, de sloep en de binnenvaartbrug. Alles wordt pas gebouwd binnen
+// De bediening van voertuigen die je ziet en voelt (#442): een stuur dat meedraait op fiets, step en brommer,
+// de ploeg en de aftakas van de trekker (Z en X; de cabine zelf komt sinds #847 uit de cockpit-interieurs),
+// een roer dat meedraait op een boot en een stuurwiel op een open boot zonder roef (de stuurhutten van boten
+// met een roef komen uit bootinterieur3d.js). Alles wordt pas gebouwd binnen
 // LOD_R van de speler, met gedeelde geometrie; verder weg valt het weg of staat de gewone carrosserie. Het deel zonder
 // THREE (de toestand van ploeg en aftakas) is puur genoeg voor scripts/voertuigbediening_test.mjs.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { GeoBuilder, markShared } from './pixelart3d.js';
-import { vehicleSeat } from './seating3d.js';
-import { stuurOverlay, tractorCab, boatHullProfile } from './models3d_vehicles.js';
+import { stuurOverlay, boatHullProfile } from './models3d_vehicles.js';
 import { boatKind, boatHasCabin } from './boattypes.js';
+import { heeftBootInterieur } from './bootinterieur.js';
 import { bouwStuurwiel, draaiStuurwiel } from './autointerieur.js';
 
 export const LOD_R = 25;                           // m: verder weg komt er niets bij
@@ -96,21 +97,6 @@ function aftakasGeometrie() {
     return B.build();
   });
 }
-// De cabine van de trekker: stoel, stuurkolom, dashboard en een versnellingshendel (zonder stuurwiel)
-function trekkerCabineGeometrie(seat, len) {
-  return gedeeld(`trekkercabine|${len}`, () => {
-    const B = new GeoBuilder(1);
-    const sx = seat.x, sy = seat.y, sz = seat.z, SEAT = 0x2b2d31;
-    B.box(sx, sy - 0.08, sz, 0.5, 0.16, 0.5, SEAT);
-    B.box(sx - 0.27, sy + 0.3, sz, 0.1, 0.62, 0.48, SEAT, 0, 0, 0, 0.12);
-    B.box(sx + 0.62, sy + 0.18, sz, 0.2, 0.44, 0.95, 0x23262b);
-    B.box(sx + 0.55, sy + 0.42, sz, 0.12, 0.06, 0.8, 0x3a3f46);
-    B.box(sx + 0.5, sy + 0.32, sz, 0.06, 0.34, 0.06, 0x23262b, 0, 0, 0, 0.9);
-    B.box(sx + 0.3, sy + 0.12, sz + 0.42, 0.06, 0.4, 0.06, 0xd8a31c, 0, 0, 0, -0.25);
-    return B.build();
-  });
-}
-
 // --- per voertuig, dichtbij ---------------------------------------------------------
 
 // de naam van het soort waar dit voertuig onder valt (kort, voor de lus)
@@ -143,15 +129,11 @@ function bereidStuurstang(mesh) {
   return { orig, zonder: ov.zonder, stuur, body: spec.body };
 }
 
-function bereidTrekker(mesh, v) {
-  const seat = vehicleSeat(v, true);
-  const cab = tractorCab(v.model.len);
-  const cabine = new THREE.Mesh(trekkerCabineGeometrie(seat, v.model.len), materiaal());
-  cabine.name = 'trekkercabine';
-  mesh.add(cabine);
-  const stuur = bouwStuurwiel({ x: seat.x + 0.42, y: seat.y + 0.5, z: seat.z, r: 0.2, tilt: 0.9 }, materiaal());
-  mesh.add(stuur);
-  return { cabine, stuur, cab };
+function bereidTrekker() {
+  // De cabine met stoel, dashboard en stuur komt sinds #847 uit de cockpit-interieurs (cabin3d +
+  // carinterior); hier blijven alleen de werktuigprops (ploeg en aftakas) over. Geen tweede
+  // stuur of cabine op de mesh.
+  return { cabine: null, stuur: null };
 }
 
 function bouwWerktuigGroep(len) {
@@ -193,7 +175,9 @@ function bereidBoot(mesh, v) {
     pose = { x: -hl + 3.6 + 1.7, y: dek + 1.0, z: 0, r: 0.25, tilt: 0.5 };
   }
   let stuur = null;
-  if (pose) { stuur = bouwStuurwiel(pose, materiaal()); mesh.add(stuur); }
+  // Een stuurhut met een eigen interieur (bootinterieur3d.js) tekent zijn eigen stuurwiel; alleen
+  // een open boot zonder roef houdt hier het losse stuurwiel (#847).
+  if (pose && !heeftBootInterieur(v)) { stuur = bouwStuurwiel(pose, materiaal()); mesh.add(stuur); }
   return { roer, stuur };
 }
 
@@ -220,8 +204,9 @@ export function syncVoertuigBediening(world, meshes, px, py, dt) {
         if (vb.sw) { vb.sw.body.geometry = vb.sw.zonder; vb.sw.stuur.visible = true; }
       } else if (soort === 'trekker') {
         zetVoorwielen(ud, [0, 2]);
-        if (!vb.tr) vb.tr = bereidTrekker(mesh, v);
-        vb.tr.cabine.visible = true; vb.tr.stuur.visible = true;
+        if (!vb.tr) vb.tr = bereidTrekker();
+        if (vb.tr.cabine) vb.tr.cabine.visible = true;
+        if (vb.tr.stuur) vb.tr.stuur.visible = true;
       } else if (soort === 'quad') zetVoorwielen(ud, [0, 2]);
       else if (soort === 'boot') {
         if (!vb.bt) vb.bt = bereidBoot(mesh, v);
@@ -237,7 +222,7 @@ export function syncVoertuigBediening(world, meshes, px, py, dt) {
       vb.sw.stuur.rotation.y = fw ? fw.rotation.y : -steer * MAX_STUUR;
     }
     if (vb.tr) {
-      draaiStuurwiel(vb.tr.stuur, steer, dt);
+      if (vb.tr.stuur) draaiStuurwiel(vb.tr.stuur, steer, dt);
       const st = v.werktuig;
       let wg = vb.wg;
       if (st && st.gekoppeld && !wg) { wg = vb.wg = bouwWerktuigGroep(v.model.len); mesh.add(wg); }
@@ -262,7 +247,10 @@ function uitDeBuurt(ud, vb) {
     if (vb.sw.body.geometry === vb.sw.zonder) vb.sw.body.geometry = vb.sw.orig;
     vb.sw.stuur.visible = false;
   }
-  if (vb.tr) { vb.tr.cabine.visible = false; vb.tr.stuur.visible = false; }
+  if (vb.tr) {
+    if (vb.tr.cabine) vb.tr.cabine.visible = false;
+    if (vb.tr.stuur) vb.tr.stuur.visible = false;
+  }
   if (vb.wg) vb.wg.visible = false;
   if (vb.bt) {
     if (vb.bt.roer) vb.bt.roer.visible = false;
