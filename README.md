@@ -49,7 +49,9 @@ ondertekend, dus je systeem waarschuwt de eerste keer; wat je dan doet staat op 
 - **Linux en Steam Deck** — `GDE-Groningen-<versie>-linux.AppImage` of `.tar.gz`.
 - **Android** — `GDE-Groningen-<versie>-android-debug.apk` (debug, om te proberen).
 
-Niet elke release heeft elk platform; kijk in de release zelf wat erbij zit. Vanaf de
+Niet elke release heeft elk platform; kijk in de release zelf wat erbij zit. Sinds v0.60.1
+hebben de releases wel alle vier de platformen. Systeemeisen en installatiehulp staan op de
+[hulppagina](https://natuspella.github.io/GDE-Groningen/help/systeemeisen.html). Vanaf de
 broncode bouwen kan ook: zie [docs/ONTWIKKELEN.md](docs/ONTWIKKELEN.md).
 
 ## Documentatie, hulp en dit project

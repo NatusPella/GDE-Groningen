@@ -77,7 +77,7 @@ meekijken en meespelen."
 | Versie | 0.60.7, 13 november 2026, pre-release op GitHub |
 | Prijs | gratis, zonder account, advertenties, aankopen of telemetrie |
 | Leeftijd | **18+** (geweld, bloed, gokken met spelgeld; zie [LEEFTIJD.md](LEEFTIJD.md)) |
-| Platformen | Windows (portable exe, ca. 450 MB), macOS, Linux/Steam Deck en Android via GitHub Actions (in november 2026 stonden die builds nog op v0.60.0); browser vanaf de broncode |
+| Platformen | Windows (portable exe, ca. 450 MB), macOS, Linux/Steam Deck en Android; sinds de publicatie op 13-11-2026 hebben alle releases v0.60.1 t/m v0.60.7 de vier platformbijlagen. Browser vanaf de broncode |
 | Techniek | three.js + gewone JavaScript, Electron voor de desktopapp, OpenStreetMap/3DBAG/AHN voor de kaart |
 | Omvang spelwereld | ~50.000 gebouwen in de stad, de hele provincie eromheen (dorpen, wegen, water, spoor); over de hele kaart honderdduizenden gebouwen |
 | Stemmen en muziek | 2.664 ingesproken stemregels (Gronings, Nederlands en enkele figuranten), 4.139 audioclips totaal, 34 G-Music-nummers, 15 scenario-loops en een titelnummer; gemaakt met Google Gemini |

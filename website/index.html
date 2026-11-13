@@ -7,7 +7,27 @@
   <meta name="description" content="GDE Groningen – Zomer vol misdaad: gratis open-wereldkomedie voor 18+ in het echte Groningen, nu in openbare playtest. Gemaakt met three.js en Electron.">
   <link rel="canonical" href="https://natuspella.github.io/GDE-Groningen/">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="img/hero-groningen.webp" as="image" fetchpriority="high">
   <meta name="theme-color" content="#0c140e">
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "VideoGame",
+      "name": "GDE Groningen – Zomer vol misdaad",
+      "alternateName": "GDE",
+      "url": "https://natuspella.github.io/GDE-Groningen/",
+      "description": "Gratis open-wereldkomedie voor 18+ in het echte Groningen: twee Stadjers, de Gouden Eierbal en een zomer vol misdaad.",
+      "genre": ["Open-world", "Komedie", "Misdaad"],
+      "gamePlatform": ["Windows", "macOS", "Linux", "Android"],
+      "applicationCategory": "Game",
+      "operatingSystem": "Windows, macOS, Linux, Android",
+      "inLanguage": "nl",
+      "audience": { "@type": "PeopleAudience", "suggestedMinAge": 18 },
+      "image": "https://natuspella.github.io/GDE-Groningen/img/social-preview.png",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR", "availability": "https://schema.org/InStock" },
+      "author": { "@type": "Person", "name": "NatusPella", "url": "https://github.com/NatusPella" }
+    }
+  </script>
 
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="GDE Groningen">
@@ -20,9 +40,12 @@
   <meta property="og:url" content="https://natuspella.github.io/GDE-Groningen/">
   <meta property="og:locale" content="nl_NL">
   <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="GDE Groningen – Zomer vol misdaad">
+  <meta name="twitter:description" content="Gratis open-wereldkomedie voor 18+ in het echte Groningen, nu in openbare playtest. Windows, macOS, Linux en Android.">
   <meta name="twitter:image" content="https://natuspella.github.io/GDE-Groningen/img/social-preview.png">
 
   <link rel="stylesheet" href="style.css">
+  <noscript><style>.showcase-tabs{display:none!important}</style></noscript>
 </head>
 <body>
   <a class="skip-link" href="#inhoud">Direct naar de inhoud</a>
@@ -42,31 +65,33 @@
           <li><a href="help/">Hulp</a></li>
           <li><a href="#delen">Delen</a></li>
           <li><a href="#vragen">Vragen</a></li>
-          <li><a class="nav-cta" href="https://github.com/NatusPella/GDE-Groningen/releases/latest">Download</a></li>
+          <li><a class="nav-cta" href="https://github.com/NatusPella/GDE-Groningen/releases">Download</a></li>
         </ul>
       </nav>
     </div>
   </header>
 
-  <main id="inhoud">
+  <main id="inhoud" tabindex="-1">
     <section class="hero" aria-labelledby="hero-titel">
-      <img class="hero-bg" src="img/hero-groningen.webp" alt="De binnenstad van Groningen bij zonsondergang, met de Martinitoren tussen de rode daken." width="1920" height="1080" fetchpriority="high" decoding="async">
+      <img class="hero-bg" src="img/hero-groningen.webp" srcset="img/hero-groningen-640.webp 640w, img/hero-groningen-1280.webp 1280w, img/hero-groningen.webp 1920w" sizes="100vw" alt="De binnenstad van Groningen bij zonsondergang, met de Martinitoren tussen de rode daken." width="1920" height="1080" fetchpriority="high" decoding="async">
       <span class="plaatsbord" aria-hidden="true">Groningen</span>
       <div class="wrap hero-inner">
         <div class="hero-copy">
           <p class="status"><span class="status-dot" aria-hidden="true"></span> Openbare playtest · november 2026 · nog niet af</p>
           <h1 id="hero-titel">GDE Groningen <span class="h1-sub">– Zomer vol misdaad</span></h1>
-          <p class="lead">Grootste Diefstal Ever: twee Stadjers, de Gouden Eierbal en een zomer vol misdaad in de echte straten van Groningen.</p>
+          <p class="lead">Een gratis open-wereldkomedie in het echte Groningen. Twee Stadjers, de Gouden Eierbal en één zomer vol misdaad — nu in openbare playtest.</p>
+          <p class="hero-genre">GDE = Grootste Diefstal Ever</p>
           <ul class="badges" aria-label="Kort gezegd">
             <li>Gratis</li>
             <li>18+</li>
             <li>Geen account</li>
           </ul>
           <div class="cta-row">
-            <a class="btn btn-primary" href="https://github.com/NatusPella/GDE-Groningen/releases/latest">Download de nieuwste build</a>
-            <a class="btn btn-secondary" href="https://github.com/NatusPella/GDE-Groningen">Bekijk de broncode</a>
+            <a class="btn btn-primary" href="https://github.com/NatusPella/GDE-Groningen/releases">Download de gratis playtest</a>
+            <a class="btn btn-secondary" href="#trailer">Bekijk de trailer</a>
           </div>
-          <p class="fineprint">Windows bij elke release; macOS, Linux en Android wanneer die builds er zijn (in november 2026 stonden die nog op v0.60.0). Elke versie is een pre-release van een spel in ontwikkeling en niet ondertekend: je systeem waarschuwt de eerste keer.</p>
+          <p class="platform-row">Windows .exe · macOS .dmg · Linux .AppImage/.tar.gz · Android .apk <span>Kies de bovenste pre-release.</span></p>
+          <p class="fineprint">Gratis voor Windows, macOS, Linux/Steam Deck en Android. Per release kan een platform ontbreken; kijk wat er in de nieuwste pre-release zit. Elke versie is niet ondertekend: je systeem waarschuwt de eerste keer. <a href="help/installeren.html">Installatiehulp</a>.</p>
         </div>
         <p class="hero-caption">De Martinitoren, vanaf de ring. Het is altijd zomer.</p>
       </div>
@@ -79,7 +104,7 @@
         <p class="section-lead">Anderhalve minuut zomer in Grunn: de Vismarkt, de kermis, het Ommeland en een tankwagen vol frituurvet. Gemaakt in het spel zelf.</p>
         <div class="video-embed" data-video="jh6L9dd-YeE" data-video-title="GDE Groningen gameplaytrailer (7 november 2026)">
           <button type="button" class="video-play" data-video-play aria-label="Speel de gameplaytrailer af op YouTube">
-            <img src="img/trailer.jpg" alt="Still uit de gameplaytrailer: de Vismarkt in Groningen met de Martinitoren." width="1280" height="720" loading="lazy" decoding="async">
+            <img src="img/trailer-960.webp" srcset="img/trailer-640.webp 640w, img/trailer-960.webp 960w" sizes="(max-width: 700px) 92vw, 960px" alt="Still uit de gameplaytrailer: de Vismarkt in Groningen met de Martinitoren." width="1280" height="720" loading="lazy" decoding="async">
             <span class="video-play-btn" aria-hidden="true">▶</span>
             <span class="video-note">Klik om te spelen · pas dan laadt YouTube (nocookie)</span>
           </button>
@@ -88,22 +113,18 @@
       </div>
     </section>
 
-    <section class="intro" aria-labelledby="intro-titel">
+    <section class="trust-strip" aria-labelledby="trust-titel">
       <div class="wrap">
-        <p class="kicker">In het kort</p>
-        <h2 id="intro-titel">Een zomer vol misdaad in jouw stad</h2>
-        <ul class="quotes">
-          <li>Een open-wereldgame in het echte Groningen: de straten, grachten en de Martinitoren.</li>
-          <li>Een verhaal in vijf aktes met Gronings ingesproken stemmen en Nederlandse ondertitels.</li>
-          <li>Gratis, 18+, geen account: pak een build en speel meteen mee in de openbare playtest.</li>
-          <li>Samen spelen met een vriend via een kamercode; geen account nodig.</li>
-        </ul>
+        <p class="kicker">Openbare playtest</p>
+        <h2 id="trust-titel">Gemaakt in Groningen, door één maker</h2>
+        <p class="section-lead">Eén Groninger bouwde in een paar maanden een complete open-wereldgame in zijn eigen stad. De playtest loopt: spelers melden bugs, ideeën en hun favoriete plekken in het playtest-issue.</p>
         <ul class="stats" aria-label="Cijfers">
           <li><strong>50.000+</strong><span>gebouwen</span></li>
           <li><strong>5</strong><span>aktes</span></li>
           <li><strong>1</strong><span>Gouden Eierbal</span></li>
           <li><strong>Altijd</strong><span>zomer</span></li>
         </ul>
+        <p class="trust-links"><a href="https://github.com/NatusPella/GDE-Groningen/issues/116">60+ reacties in het playtest-issue</a> · <a href="https://github.com/NatusPella/GDE-Groningen">open source op GitHub</a> · <a href="help/">hulp en installatie</a></p>
       </div>
     </section>
 
@@ -184,8 +205,8 @@
       <!-- SLIDESHOWS -->
 
       <figure class="visual-break">
-        <img src="img/loc-haven.webp" alt="Havens en kanalen bij een dorp in Groningen, met water en groene oevers." width="1280" height="720" loading="lazy" decoding="async">
-        <figcaption><span class="visual-kicker">Altijd zomer</span><strong>De Martinitoren staat er gewoon.</strong><span>Zoals altijd. Ook als je om drie uur 's nachts over de Grote Markt loopt.</span></figcaption>
+        <img src="img/stad-nacht-640.webp" srcset="img/stad-nacht-640.webp 640w, img/stad-nacht.webp 1280w" sizes="(max-width: 700px) 92vw, min(1152px, 92vw)" alt="De binnenstad van Groningen bij nacht, met verlichte gebouwen en de Martinitoren." width="1280" height="720" loading="lazy" decoding="async">
+        <figcaption><span class="visual-kicker">Na middernacht</span><strong>De Martinitoren blijft verlicht.</strong><span>Ook als je om drie uur 's nachts over de Grote Markt loopt.</span></figcaption>
       </figure>
 
     </section>
@@ -195,12 +216,12 @@
         <h2 id="spelen-titel">Van download naar je eerste achtervolging</h2>
         <p class="section-lead">In drie stappen zit je in Grunn. De builds zijn pre-releases: speelbaar, nog niet af.</p>
         <ol class="steps">
-          <li><h3>Pak een build</h3><p>Download de nieuwste pre-release voor Windows (macOS, Linux en Android volgen zodra de Actions-minuten het toelaten). Niet ondertekend, dus je systeem waarschuwt één keer.</p></li>
+          <li><h3>Pak een build</h3><p>Download de bovenste pre-release. Daar staan de bestanden voor Windows, macOS, Linux/Steam Deck en Android. Niet ondertekend, dus je systeem waarschuwt één keer.</p></li>
           <li><h3>Speel de playtest</h3><p>Begin bij de opening en speel zo ver als je komt. De stad, het verhaal en de bijbaantjes zitten er allemaal in; ruwe randen horen erbij.</p></li>
-          <li><h3>Laat het weten</h3><p>Bug of idee? Open een issue met je versie en platform. Algemene indruk? Reageer onder het playtest-issue. Zo wordt de volgende versie beter.</p></li>
+          <li><h3>Laat het weten</h3><p>Bug of idee? Open een <a href="https://github.com/NatusPella/GDE-Groningen/issues">issue</a> met je versie en platform. Algemene indruk? Reageer in het <a href="https://github.com/NatusPella/GDE-Groningen/issues/116">playtest-issue</a>. Zo wordt de volgende versie beter.</p></li>
         </ol>
         <div class="cta-row">
-          <a class="btn btn-primary" href="https://github.com/NatusPella/GDE-Groningen/releases/latest">Download de nieuwste build</a>
+          <a class="btn btn-primary" href="https://github.com/NatusPella/GDE-Groningen/releases">Download de gratis playtest</a>
           <a class="btn btn-secondary" href="https://github.com/NatusPella/GDE-Groningen/issues">Meld een bug of idee</a>
         </div>
       </div>
@@ -210,18 +231,35 @@
       <div class="wrap">
         <p class="kicker">Klaar?</p>
         <h2 id="cta-titel">Tijd om Grunn onveilig te maken</h2>
-        <p class="section-lead">Gratis, 18+ en zonder account. Pak de nieuwste build, speel mee en deel het met iemand die dit moet zien.</p>
+        <p class="section-lead">Gratis, 18+ en zonder account. Pak de bovenste pre-release, speel mee en deel het met iemand die dit moet zien.</p>
         <div class="cta-row">
-          <a class="btn btn-primary" href="https://github.com/NatusPella/GDE-Groningen/releases/latest">Download de nieuwste build</a>
+          <a class="btn btn-primary" href="https://github.com/NatusPella/GDE-Groningen/releases">Download de gratis playtest</a>
           <a class="btn btn-secondary" href="#delen">Deel met een vriend</a>
         </div>
       </div>
     </section>
+    <section id="delen" aria-labelledby="delen-titel">
+      <div class="wrap">
+        <p class="kicker">Delen</p>
+        <h2 id="delen-titel">Ken je iemand die dit moet zien?</h2>
+        <p class="section-lead">Stuur de game door naar een vriend, je groepsapp of je oma. Hoe meer Stadjers het weten, hoe leuker de playtest wordt.</p>
+        <div class="share-row">
+          <a class="share-btn" href="https://wa.me/?text=GDE%20Groningen%20%E2%80%93%20Zomer%20vol%20misdaad%3A%20gratis%20open-wereldkomedie%20in%20het%20echte%20Groningen.%20Speel%20mee%20in%20de%20openbare%20playtest%3A%20https%3A%2F%2Fnatuspella.github.io%2FGDE-Groningen%2F" target="_blank" rel="noopener">Deel via WhatsApp</a>
+          <a class="share-btn" href="https://twitter.com/intent/tweet?text=GDE%20Groningen%20%E2%80%93%20Zomer%20vol%20misdaad%3A%20gratis%20open-wereldkomedie%20in%20het%20echte%20Groningen.%20Speel%20mee%20in%20de%20openbare%20playtest%21&url=https%3A%2F%2Fnatuspella.github.io%2FGDE-Groningen%2F" target="_blank" rel="noopener">Deel op X</a>
+          <a class="share-btn" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fnatuspella.github.io%2FGDE-Groningen%2F" target="_blank" rel="noopener">Deel op Facebook</a>
+          <a class="share-btn" href="mailto:?subject=GDE%20Groningen%20%E2%80%93%20Zomer%20vol%20misdaad&body=Ken%20je%20dit%20al%3F%20GDE%20Groningen%20is%20een%20gratis%20open-wereldkomedie%20in%20het%20echte%20Groningen.%20Speel%20mee%3A%20https%3A%2F%2Fnatuspella.github.io%2FGDE-Groningen%2F">Mail het door</a>
+          <button type="button" class="share-btn share-kopieer" data-share-kopieer>Kopieer de link</button>
+        </div>
+        <p class="fineprint">De deellinks openen pas als je erop klikt; de pagina zelf laadt niets van buiten. <span data-share-status role="status"></span></p>
+      </div>
+    </section>
+
     <section id="zo-gemaakt" aria-labelledby="gemaakt-titel">
       <div class="wrap">
         <p class="kicker">Achter de schermen</p>
         <h2 id="gemaakt-titel">Zo is het gemaakt</h2>
-        <p class="section-lead">Een hobbyproject van één maker, gebouwd met gewone webtechniek en een stapel eigen scripts, met AI-assistenten als tech-stack (Claude, OpenHands en DeepSeek V4.1 Flash via DeepSeek Harness).</p>
+        <p class="section-lead">Eén Groninger bouwde in een paar maanden een complete open-wereldgame in zijn eigen stad. De kaart komt uit OpenStreetMap; verhaal, teksten en regie zijn eigen werk.</p>
+        <p class="fineprint">AI-assistenten (Claude, OpenHands en DeepSeek V4.1 Flash via DeepSeek Harness) hielpen met code en debugging; de keuzes, verhaallijnen en eindregie zijn van de maker.</p>
         <ul class="card-grid card-grid--two">
           <li class="card">
             <h3>three.js en Electron</h3>
@@ -243,22 +281,6 @@
       </div>
     </section>
 
-    <section id="delen" aria-labelledby="delen-titel">
-      <div class="wrap">
-        <p class="kicker">Delen</p>
-        <h2 id="delen-titel">Ken je iemand die dit moet zien?</h2>
-        <p class="section-lead">Stuur de game door naar een vriend, je groepsapp of je oma. Hoe meer Stadjers het weten, hoe leuker de playtest wordt.</p>
-        <div class="share-row">
-          <a class="share-btn" href="https://wa.me/?text=GDE%20Groningen%20%E2%80%93%20Zomer%20vol%20misdaad%3A%20gratis%20open-wereldkomedie%20in%20het%20echte%20Groningen.%20Speel%20mee%20in%20de%20openbare%20playtest%3A%20https%3A%2F%2Fnatuspella.github.io%2FGDE-Groningen%2F" target="_blank" rel="noopener">Deel via WhatsApp</a>
-          <a class="share-btn" href="https://twitter.com/intent/tweet?text=GDE%20Groningen%20%E2%80%93%20Zomer%20vol%20misdaad%3A%20gratis%20open-wereldkomedie%20in%20het%20echte%20Groningen.%20Speel%20mee%20in%20de%20openbare%20playtest%21&url=https%3A%2F%2Fnatuspella.github.io%2FGDE-Groningen%2F" target="_blank" rel="noopener">Deel op X</a>
-          <a class="share-btn" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fnatuspella.github.io%2FGDE-Groningen%2F" target="_blank" rel="noopener">Deel op Facebook</a>
-          <a class="share-btn" href="mailto:?subject=GDE%20Groningen%20%E2%80%93%20Zomer%20vol%20misdaad&body=Ken%20je%20dit%20al%3F%20GDE%20Groningen%20is%20een%20gratis%20open-wereldkomedie%20in%20het%20echte%20Groningen.%20Speel%20mee%3A%20https%3A%2F%2Fnatuspella.github.io%2FGDE-Groningen%2F">Mail het door</a>
-          <button type="button" class="share-btn share-kopieer" data-share-kopieer>Kopieer de link</button>
-        </div>
-        <p class="fineprint">De deellinks openen pas als je erop klikt; de pagina zelf laadt niets van buiten. <span data-share-status role="status"></span></p>
-      </div>
-    </section>
-
     <section id="vragen" aria-labelledby="vragen-titel">
       <div class="wrap">
         <p class="kicker">FAQ</p>
@@ -274,7 +296,19 @@
           </details>
           <details>
             <summary>Op welk systeem?</summary>
-            <p>Windows bij elke release; macOS, Linux en Android wanneer die builds er zijn (de nieuwste releases zijn Windows-only). In de browser kan het vanaf de broncode; er is nog geen online versie.</p>
+            <p>Windows, macOS, Linux/Steam Deck en Android. Een online browserversie is er nog niet; vanaf de broncode kan het wel. Kies in de <a href="https://github.com/NatusPella/GDE-Groningen/releases">releases</a> de bovenste pre-release.</p>
+          </details>
+          <details>
+            <summary>Waarom waarschuwt mijn computer?</summary>
+            <p>De builds zijn niet ondertekend, dus Windows SmartScreen of macOS Gatekeeper waarschuwt de eerste keer. Dat is geen virusmelding. Wat je per platform doet, staat op de <a href="help/installeren.html">installatiehulp</a>.</p>
+          </details>
+          <details>
+            <summary>Hoe groot is de download?</summary>
+            <p>De Windows-exe is ongeveer 450 MB; macOS, Linux en Android verschillen per release. Je hebt ruim 1 GB vrije schijfruimte nodig. De nieuwste bestanden staan bij de <a href="https://github.com/NatusPella/GDE-Groningen/releases">releases</a>.</p>
+          </details>
+          <details>
+            <summary>Hoe lang duurt de playtest?</summary>
+            <p>Er is geen einddatum: de playtest loopt door zolang het spel in ontwikkeling is. Wat er verandert en wat er als volgende aankomt, staat in de <a href="https://github.com/NatusPella/GDE-Groningen/releases">releases</a> en in het <a href="https://github.com/NatusPella/GDE-Groningen/issues/116">playtest-issue</a>.</p>
           </details>
           <details>
             <summary>Is dit een kopie van een bestaande game?</summary>
@@ -282,7 +316,7 @@
           </details>
           <details>
             <summary>Hoe meld ik een bug?</summary>
-            <p>Via de <a href="https://github.com/NatusPella/GDE-Groningen/issues">Issues op GitHub</a>. Zet erbij wat je deed, wat er gebeurde, welke versie je speelde en welk systeem je hebt. Het foutrapport in <strong>Instellingen › Foutrapport</strong> blijft op je eigen apparaat; je kunt het zelf kopiëren.</p>
+            <p>Via de <a href="https://github.com/NatusPella/GDE-Groningen/issues">Issues op GitHub</a>. Zet erbij wat je deed, wat er gebeurde, welke versie je speelde en welk systeem je hebt. Het foutrapport staat in het pauzemenu onder <strong>Over › Problemen</strong>; het blijft op je eigen apparaat en je kunt het zelf kopiëren en in je issue plakken.</p>
           </details>
           <details>
             <summary>Kan ik meedoen?</summary>
