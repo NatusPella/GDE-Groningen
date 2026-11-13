@@ -1079,7 +1079,13 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
       if (tf && world.coopFoci && world.coopFoci.length > 1) tf.opts = { ...tf.opts, foci: tegelFoci(world.coopFoci) }; // spelers uit elkaar: ook tegels rond de losse groepen (#429)
       // In een traag beeld minder tegelwerk op de hoofdthread, zodat een hapering niet
     // nog een frame lang doorwerkt (#553).
-    if (tf) world.map.follow(tf.x, tf.y, tf.opts, laatsteFrameMs > 25 ? 0.6 : 1.5);
+    if (tf) {
+      // Tijdens de opening/cutscene minder tegelwerk per frame: de film wisselt
+      // vaak van plek en tileverwerking kostte anders frames van 100+ ms.
+      // De tegels komen een paar frames later; het beeld blijft vol.
+      const cine = document.body.classList.contains('intro-montage') || document.body.classList.contains('cine-hide-hud');
+      world.map.follow(tf.x, tf.y, tf.opts, cine ? 0.4 : (laatsteFrameMs > 25 ? 0.6 : 1.5));
+    };
       // the open sea as water rows round the player (#233)
       if (tf && world.map.addWaterPatches) ensureSeaRows(world.map, hoofdspeler(world).x, hoofdspeler(world).y);
     }
@@ -1121,7 +1127,8 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     }
     else {
       updatePhone(dt, world);
-      updateSaveGame(dt, world);
+        // Autosave tijdens de opening/cutscene uitstellen: de save-tik kostte anders 55-75 ms-frames in de film.
+        if (!document.body.classList.contains('intro-montage') && !document.body.classList.contains('cine-hide-hud')) updateSaveGame(dt, world);
     }
     if (world.coopNet || world.coopWissel) tickCoopNet(world, dt); // samen spelen (#95), alleen na een bewuste uitnodiging
     if (isHoldOpen()) checkHold(world);
