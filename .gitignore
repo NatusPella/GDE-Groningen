@@ -59,7 +59,7 @@ android/android/version.properties
 # Electron-foutlogs van testruns (kunnen thuispaden bevatten)
 desktop/err*.txt
 
-desktop/.shots/
+desktop/.shots*/
 
 # build van de marketingpagina (wordt door website/build.mjs gemaakt)
 website/_site/
