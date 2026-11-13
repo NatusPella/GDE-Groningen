@@ -17,7 +17,16 @@ const check = (name, ok, info = '') => { if (!ok) { bad++; console.log('FAIL', n
 const models = new Map();
 for (const m of TRAFFIC_MODELS()) if (!models.has(m.name)) models.set(m.name, m);
 const extra = [['escort', { name: 'escort', len: 4.0, wid: 1.65, color: '#a11f1f' }, { isHeroCar: true }], ['truck', { name: 'truck', len: 8.5, wid: 2.5, color: '#e8e6e0' }, {}], ['ambulance', { ...models.get('van') }, { isAmbulance: true }], ['police', { ...models.get('sedan') }, { isPolice: true }], ['taxi', { name: 'taxi', len: 4.6, wid: 1.8, color: '#1b1c1f' }, {}]];
-const cases = [...['hatch', 'sedan', 'wagon', 'van', 'sport', 'taxi'].filter((n) => models.has(n)).map((n) => [n, models.get(n), {}]), ...extra];
+// De cockpitklassen (#847) lopen door hetzelfde cabinepad: trekker, heli, vliegtuig en de
+// machines van de boerderij, met de maten uit vehicle.js/heliflight.js/planeflight.js.
+const cockpit = [
+  ['tractor', { name: 'tractor', len: 4.3, wid: 2.3, color: '#3f7d3a' }, {}],
+  ['heli', { name: 'heli', len: 8.8, wid: 2.1, color: '#b8322a' }, { isHeli: true }],
+  ['plane', { name: 'plane', len: 8, wid: 10.6, color: '#e9e4d3' }, { isPlane: true }],
+  ['maaidorser', { name: 'maaidorser', len: 7.4, wid: 3.3, color: '#c43d2b' }, {}],
+  ['laadmachine', { name: 'laadmachine', len: 3.4, wid: 1.8, color: '#e0a92b' }, {}],
+];
+const cases = [...['hatch', 'sedan', 'wagon', 'van', 'sport', 'taxi'].filter((n) => models.has(n)).map((n) => [n, models.get(n), {}]), ...extra, ...cockpit];
 const triangles = (g) => g.attributes.position.count / 3;
 const finite = (g) => {
   const p = g.attributes.position;
@@ -88,7 +97,7 @@ for (const [name, model, flags] of cases) {
   const row = { name, tri: [], ms: [] };
   for (let lod = 0; lod < 3; lod++) {
     const t0 = performance.now();
-    const g = C.buildCabinGeometry(seat, model.len, model.wid, klasse, romp, lod);
+    const g = C.buildCabinGeometry(seat, model.len, model.wid, klasse, romp, lod, { naam: name });
     const ms = performance.now() - t0;
     if (firstBuild[lod] === null) firstBuild[lod] = ms;
     builds++;
@@ -226,12 +235,13 @@ for (const [naam, model, flags] of [['taxi', { name: 'taxi', len: 4.6, wid: 1.8 
   check(naam + ': lod 1 zonder klasse-extra\'s', triangles(C.buildCabinGeometry(seat, v.model.len, v.model.wid, interiorKlasse(v), romp, 1)) === triangles(C.buildCabinGeometry(seat, v.model.len, v.model.wid, 'auto', romp, 1)));
 }
 
-// geen cabine voor bus, wrak, fiets en boot
+// geen cabine voor bus, fiets en boot; een wrak krijgt zijn eigen wrakvariant (#847)
 const bus = Object.assign(new Vehicle(0, 0, 0, { ...models.get('bus') }), {});
 check('bus: geen cabine', !C.wantsCabin(bus));
-const wrak = Object.assign(new Vehicle(0, 0, 0, models.get('sedan')), { wrecked: true });
-check('wrak: geen cabine', !C.wantsCabin(wrak));
 const fiets = Object.assign(new Vehicle(0, 0, 0, models.get('bike')), { isBike: true });
 check('fiets: geen cabine', !C.wantsCabin(fiets));
+const wrak = Object.assign(new Vehicle(0, 0, 0, models.get('sedan')), { wrecked: true });
+check('wrak: wel een cabine (de wrakvariant)', C.wantsCabin(wrak));
+check('wrak: de normale cabine niet', !C.wantsNormalCabin(wrak) && C.wantsWreckCabin(wrak));
 console.log(bad ? `${bad} mislukt` : `cabin_test: ok (${cases.length} voertuigen)`);
 process.exit(bad ? 1 : 0);

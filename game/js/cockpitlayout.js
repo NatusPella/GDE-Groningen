@@ -19,7 +19,7 @@
 //              LET OP: model.wid is bij de kist de SPANWIJDTE (10,6); de cockpitrekening
 //              gebruikt de romphalfbreedte 0,65, nooit model.wid)
 //   machines  models3d_vehicles.js buildMaaidorserMesh()/buildLaadmachineMesh()
-//             (maaiderser-cabine x 0,55..2,05, y 2,0..3,3, glasband 2,2..3,2, dakplaat 3,29..3,43;
+//             (maaidorser-cabine x 0,55..2,05, y 2,0..3,3, glasband 2,2..3,2, dakplaat 3,29..3,43;
 //              laadmachine-kooi x -0,65..0,45, vloerplaat 1,39..1,51, dakplaat 1,96..2,04,
 //              glas 1,48..2,04 — de kooi is maar 0,45 m hoog, dus de bestuurder zit laag en de
 //              eerste-persooncamera komt net in de dakplaat; dat is de hoogte van dit model)
@@ -183,10 +183,13 @@ function machineLayout(seat, len, wid, naam) {
   const x0 = cab.x0 + 0.07, x1 = cab.x1 - 0.07;
   const seatX = (cab.x0 + cab.x1) / 2 - 0.05;
   const dashFront = x1 - 0.06;
+  // Het dashboard van de maaidorser staat in de raamband van de cabine (het model krijgt daar
+  // een open glasband van ~2,35 tot ~3,2 m); de laadmachine heeft zijn eigen lage kooi.
+  const dashY = hoog ? Math.max(cab.floorY + 0.36, 2.36) : 1.45;
   const dash = hoog
-    ? blok(dashFront - 0.12, seat.y - 0.26, hw * 1.86, 0.55, 0.24)
-    : blok(dashFront - 0.1, 1.45, hw * 1.8, 0.3, 0.2);
-  const wheelY = hoog ? seat.y + 0.27 : 1.6;
+    ? blok(dashFront - 0.12, dashY, hw * 1.86, 0.5, 0.24)
+    : blok(dashFront - 0.1, dashY, hw * 1.8, 0.3, 0.2);
+  const wheelY = hoog ? dashY + 0.26 : 1.6;
   const wheelX = hoog ? dash.x - 0.28 : 0.05;
   return layoutOf(cab, { x0, x1, floorY, roofY, hw }, {
     eye: { x: seatX + 0.05, y: eyeY, z: seat.z },
@@ -197,14 +200,14 @@ function machineLayout(seat, len, wid, naam) {
     wheel: { x: wheelX, y: wheelY, z: seat.z, r: hoog ? 0.26 : 0.16, tilt: hoog ? 0.4 : 0.3 },
     seats: [{ x: seatX, z: seat.z }],
     console: hoog
-      ? blok(seatX + 0.34, seat.y - 0.04, 0.32, 0.22, 0.4)
+      ? blok(seatX + 0.34, dashY + 0.19, 0.32, 0.22, 0.4)
       : blok(seatX + 0.3, seat.y + 0.02, 0.28, 0.16, 0.3),
     mirror: hoog
       ? { x: x1 - 0.2, y: liningY - 0.02, z: seat.z }
       : { x: x1 - 0.15, y: liningY - 0.01, z: seat.z },
     roof: {
       y: liningY, x0: x0 + 0.03, x1: x1 - 0.03, w: hw * 1.7,
-      pillars: [-1, 1].map((s) => ({ side: s, z: s * (hw - 0.05), x0: x1 - 0.03, y0: hoog ? seat.y - 0.15 : 1.52, x1: x1 - 0.12, y1: liningY })),
+      pillars: [-1, 1].map((s) => ({ side: s, z: s * (hw - 0.05), x0: x1 - 0.03, y0: hoog ? dashY - 0.1 : 1.52, x1: x1 - 0.12, y1: liningY })),
     },
   });
 }

@@ -2,12 +2,15 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { GeoBuilder, markShared, composeMatrix } from './pixelart3d.js';
 import { vehicleSeat } from './seating3d.js';
 import { carBodyFit } from './models3d_vehicles.js';
-import { hasCarInterior, interiorLayout, doorTrims, interiorKlasse, klasseStijl } from './carinteriorlayout.js';
+import { hasCarInterior, interiorLayout, doorTrims, interiorKlasse, klasseStijl, innerShell } from './carinteriorlayout.js';
+import { isCockpitKlasse } from './cockpitlayout.js';
 import { doorsFor } from './vehicledoors.js';
 
 // Low-poly car interior for the first-person camera (#833) and the "Binnenin" film camera
 // (V): dashboard, steering wheel, instrument pod, two front seats, a rear bench and a
-// mirror. Parts are anonymous (no emblem or badge on the wheel).
+// mirror. Parts are anonymous (no emblem or badge on the wheel). Sinds #847 werkt hetzelfde
+// pad voor de cockpitklassen: de trekker, heli, het vliegtuig en de machines krijgen hun
+// eigen dashboard/stuur/stoelen uit cockpitlayout.js in plaats van de auto-indeling.
 //
 // Everything that stands still is merged into ONE geometry with baked vertex colours and
 // one shared Lambert material (the same approach as cabin3d.js), so the car the player sits
@@ -34,10 +37,22 @@ function interiorMaterial() {
 // the same kind, so getting into another car of the same model builds nothing.
 const geoCache = new Map();
 
-function cacheKey(seat, len, wid, defs, klasse, romp) {
+function cacheKey(seat, len, wid, defs, klasse, romp, naam) {
   const rompKey = romp ? [romp.belt, romp.roof, romp.xA, romp.xB].map((n) => n.toFixed(2)).join(',') : '';
   const doorKey = (defs || []).map((d) => `${d.id}:${d.side}:${d.x.toFixed(3)}:${(d.y0 || 0).toFixed(3)}:${(d.w || 0).toFixed(3)}:${(d.h || 0).toFixed(3)}`).join(';');
-  return [klasse, len, wid, seat.x.toFixed(2), seat.y.toFixed(2), seat.z.toFixed(2), rompKey, doorKey].join('|');
+  return [klasse, naam || '', len, wid, seat.x.toFixed(2), seat.y.toFixed(2), seat.z.toFixed(2), rompKey, doorKey].join('|');
+}
+
+// De layout en de binnenhuid voor dit voertuig. Voor de cockpitklassen (#847) geeft
+// carBodyFit() niets bruikbaars (het vliegtuig valt in de hatch-terugval), daarom gebruiken
+// die hun eigen grenzen uit cockpitlayout.js; een wrak is nooit de eigen auto.
+function layoutVan(v, seat) {
+  const klasse = interiorKlasse(v);
+  const cockpit = isCockpitKlasse(klasse);
+  const romp = cockpit ? null : carBodyFit(v);
+  const naam = (v.model && v.model.name) || '';
+  const L = interiorLayout(seat, v.model.len, v.model.wid, romp, klasse, naam);
+  return { klasse, cockpit, romp, naam, L, S: innerShell(seat, v.model.len, v.model.wid, L, romp) };
 }
 
 function seatBoxes(B, L, seat, K) {
@@ -56,8 +71,9 @@ function seatBoxes(B, L, seat, K) {
 
 // All parts that never move: dashboard, instrument pod, steering column, seats, option
 // parts of the class, console, rear bench, mirror, roof lining and A-pillars.
-function buildStaticGeometry(seat, len, wid, klasse, romp) {
-  const L = interiorLayout(seat, len, wid, romp);
+function buildStaticGeometry(seat, len, wid, klasse, romp, naam = '') {
+  const cockpit = isCockpitKlasse(klasse);
+  const L = interiorLayout(seat, len, wid, cockpit ? null : romp, klasse, naam);
   const K = klasseStijl(klasse, L, seat);
   if (K.rear !== undefined) L.rear = K.rear;
   const w = { ...L.wheel, ...K.wheel };
@@ -65,12 +81,12 @@ function buildStaticGeometry(seat, len, wid, klasse, romp) {
   // De kooi van binnen (#833): de carrosserie is enkelzijdig, dus zonder vloer en wanden kijk
   // je in eerste persoon door de achterkanten van het plaatwerk heen de straat op. Dezelfde
   // maten en kleuren als cabin3d.js, met de normaal naar binnen, dus van buiten onzichtbaar.
-  // Acht driehoeken, mee in deze ene geometrie (geen extra mesh of draw call).
-  const hw = wid / 2, sy = seat.y;
-  const floorY = Math.max(0.3, sy - 0.34);
-  const roofY = romp ? romp.belt - 0.02 : sy + 0.42;
-  const x1 = L.dash.x + L.dash.d / 2 - 0.05;
-  const x0 = L.rear ? L.rear.x - 0.45 : (romp ? seat.x - 0.55 : L.roof.x0 - 0.1);
+  // Acht driehoeken, mee in deze ene geometrie (geen extra mesh of draw call). De cockpitklassen
+  // (#847) nemen de maten van hun eigen cabine/romp (L.shell).
+  const S = innerShell(seat, len, wid, L, cockpit ? null : romp);
+  const hw = S.hw;
+  const floorY = S.floorY, roofY = S.roofY;
+  const x1 = S.x1, x0 = S.x0;
   const zw = hw - 0.07;
   const P = (x, y, z) => [x, y, z];
   B.quadOut(P(x0, floorY, -zw), P(x1, floorY, -zw), P(x1, floorY, zw), P(x0, floorY, zw), [0, 1, 0], FLOOR);              // vloer
@@ -105,8 +121,9 @@ function buildStaticGeometry(seat, len, wid, klasse, romp) {
 
 // The steering wheel alone, in the wheel's own mount space (+x = the axle the wheel turns
 // around). Ring, spoke and hub are baked together; only the whole mesh turns.
-function buildWheelGeometry(seat, len, wid, klasse, romp) {
-  const L = interiorLayout(seat, len, wid, romp);
+function buildWheelGeometry(seat, len, wid, klasse, romp, naam = '') {
+  const cockpit = isCockpitKlasse(klasse);
+  const L = interiorLayout(seat, len, wid, cockpit ? null : romp, klasse, naam);
   const K = klasseStijl(klasse, L, seat);
   const w = { ...L.wheel, ...K.wheel };
   const B = new GeoBuilder(1);
@@ -132,18 +149,16 @@ function buildTrimGeometry(t) {
 function geometriesFor(v) {
   const seat = vehicleSeat(v, true);
   const len = v.model.len, wid = v.model.wid;
-  const klasse = interiorKlasse(v);
-  const romp = carBodyFit(v);
+  const { klasse, romp, naam, L, S } = layoutVan(v, seat);
+  const K = klasseStijl(klasse, L, seat);
   const defs = doorsFor(v);
-  const key = cacheKey(seat, len, wid, defs, klasse, romp);
+  const key = cacheKey(seat, len, wid, defs, klasse, romp, naam);
   let geos = geoCache.get(key);
   if (geos) return geos;
-  const L = interiorLayout(seat, len, wid, romp);
-  const K = klasseStijl(klasse, L, seat);
   geos = {
-    statisch: buildStaticGeometry(seat, len, wid, klasse, romp),
-    wheel: buildWheelGeometry(seat, len, wid, klasse, romp),
-    trims: doorTrims(defs, len, wid).map((t) => ({ id: t.id, geometry: buildTrimGeometry(t) })),
+    statisch: buildStaticGeometry(seat, len, wid, klasse, romp, naam),
+    wheel: buildWheelGeometry(seat, len, wid, klasse, romp, naam),
+    trims: doorTrims(defs, len, wid, S.hw).map((t) => ({ id: t.id, geometry: buildTrimGeometry(t) })),
     wheelPose: { ...L.wheel, ...K.wheel },
   };
   geoCache.set(key, geos);
@@ -186,8 +201,10 @@ function buildInterior(mesh, v) {
 
 // Called every frame from scene3d for the player's car. show = the first-person camera or
 // the "Binnenin" film camera is on. Returns true when the interior is up (the driver is hidden).
+// Een wrak heeft geen eigen interieur: daar rijd je niet in, en het kapotte interieur zit in de
+// gedeelde cabinegeometrie (#847).
 export function updateCarInterior(mesh, v, show) {
-  if (!mesh || !hasCarInterior(v)) return false;
+  if (!mesh || !hasCarInterior(v) || v.wrecked) return false;
   let g = mesh.userData.interior;
   if (!g && show) g = buildInterior(mesh, v);
   if (!g) return false;
@@ -202,8 +219,10 @@ export function updateCarInterior(mesh, v, show) {
 
 // Eye pose (map x, y, height z) and look direction for the cinematics camera.
 export function interiorEyePose(v) {
-  if (!hasCarInterior(v)) return null;
-  const e = interiorLayout(vehicleSeat(v, true), v.model.len, v.model.wid, carBodyFit(v)).eye;
+  if (!hasCarInterior(v) || v.wrecked) return null;
+  const seat = vehicleSeat(v, true);
+  const { klasse, romp, naam } = layoutVan(v, seat);
+  const e = interiorLayout(seat, v.model.len, v.model.wid, romp, klasse, naam).eye;
   const a = v.angle, c = Math.cos(a), s = Math.sin(a);
   // vehicle-local +x forward, +z right; map y runs with local +z
   const x = v.x + e.x * c - e.z * s, y = v.y + e.x * s + e.z * c;

@@ -1,21 +1,36 @@
 // Layout of the car interior (dashboard, wheel, seats) in vehicle-local
 // metres: +x forward, +z right, y up from the ground. Pure numbers, no
 // three.js, so scripts/carinterior_test.mjs can check it in plain node.
+// De cockpitklassen (trekker, heli, vliegtuig, machines, #847) hebben een eigen
+// indeling in cockpitlayout.js; deze module kiest alleen welke klasse een
+// voertuig is en houdt de auto-indeling voor de auto's, bestelbussen en
+// vrachtwagens.
+import { isCockpitKlasse, cockpitLayout } from './cockpitlayout.js';
 
 // Open vehicles have no cabin to dress.
-const NO_INTERIOR = new Set(['tractor', 'quad']);
+const NO_INTERIOR = new Set(['quad']);
 
 // Vehicles with a cabin we dress: cars, vans, trucks and buses (the driver's
-// cab only); not boats, bikes, helis, tractors or quads.
+// cab only), the tractor, heli, plane and the farm machines (#847); not boats,
+// bikes, scooters or quads.
 export function hasCarInterior(v) {
-  if (!v || !v.model || v.isBoat || v.isBike || v.isScooter || v.isHeli) return false;
+  if (!v || !v.model || v.isBoat || v.isBike || v.isScooter) return false;
+  if (v.isHeli || v.isPlane) return true;
   return !NO_INTERIOR.has(v.model.name);
+}
+
+// De cockpitklassen hebben een eigen, pure indeling (cockpitlayout.js); dit is de
+// brug ernaartoe, zodat cabin3d.js en carinterior.js één ingang houden.
+export function isCockpit(v) {
+  return !!v && hasCarInterior(v) && isCockpitKlasse(interiorKlasse(v));
 }
 
 // seat = vehicleSeat(v, true): { x, y (cushion top), z }
 // romp = carBodyFit(v) (models3d_vehicles.js): de raamlijn en het dak van de echte carrosserie.
 // Zonder romp (vrachtwagen, bus, foodtruck, een test) gelden de oude, ruime maten.
-export function interiorLayout(seat, len, wid, romp = null) {
+// klasse: 'auto' (standaard) of een cockpitklasse; naam: de modelnaam (voor de machines).
+export function interiorLayout(seat, len, wid, romp = null, klasse = 'auto', naam = '') {
+  if (isCockpitKlasse(klasse)) return cockpitLayout(klasse, seat, len, wid, naam);
   const hw = wid / 2;
   const sx = seat.x, sy = seat.y, sz = seat.z;
   const side = sz < 0 ? 1 : -1; // z of the passenger seat is the mirror image
@@ -88,8 +103,8 @@ function roofLayout(sx, sy, sz, len, wid, hw, romp = null) {
 // Portierbekleding aan de binnenkant, op de plek van de echte deuren (vehicledoors.js DEUR_DEFS).
 // defs: doorsFor(v); alleen draaideuren met stoel (geen kap, klep of bus-schuifdeur). Elke bekleding hoort bij
 // een deur-id, zodat hij verdwijnt zodra die deur openstaat of los is (carinterior.js).
-export function doorTrims(defs, len, wid) {
-  const hw = wid / 2;
+// hw: halve breedte van de binnenhuid; bij de trekker is de cabine smaller dan model.wid/2 (#847).
+export function doorTrims(defs, len, wid, hw = wid / 2) {
   const out = [];
   for (const d of defs || []) {
     if (d.soort !== 'scharnier' && d.soort !== 'achterscharnier') continue;
@@ -106,11 +121,33 @@ export function doorTrims(defs, len, wid) {
   return out;
 }
 
+// De binnenhuid die cabin3d.js (van buiten) en carinterior.js (de eigen auto in eerste
+// persoon) tekenen: vloer, zijwanden en achterwand. Voor de cockpitklassen komen de maten
+// uit cockpitlayout.js (L.shell); voor de auto's gelden de oude regels, zodat de bestaande
+// interieurs en hun tests niet veranderen. sh is de verschuiving van een korte neus; cabin3d
+// schuift het dashboard ermee terug, carinterior (de eigen auto) niet.
+export function innerShell(seat, len, wid, L, romp = null) {
+  if (L.shell) return { x0: L.shell.x0, x1: L.shell.x1, floorY: L.shell.floorY, roofY: L.shell.roofY, hw: L.hw, sh: 0 };
+  const hw = wid / 2;
+  const floorY = Math.max(0.3, seat.y - 0.34);
+  const roofY = romp ? romp.belt - 0.02 : seat.y + 0.42;
+  const sh = -Math.max(0, L.dash.x + L.dash.d / 2 - (len / 2 - 0.12));
+  const x1 = L.dash.x + L.dash.d / 2 - 0.05;
+  const x0 = L.rear ? L.rear.x - 0.45 : (romp ? seat.x - 0.55 : L.roof.x0 - 0.1);
+  return { x0, x1, floorY, roofY, hw, sh };
+}
+
 // --- interieur per voertuigklasse (#51) ---------------------------------------------------
 // Welke inrichting een voertuig krijgt. Pure keuze, voor scripts/carinterior_test.mjs.
+// De cockpitklassen (#847) staan vooraan: een heli of kist heet in het model anders dan
+// een auto en mag nooit in de auto-indeling vallen.
 export function interiorKlasse(v) {
   if (!v || !v.model) return 'auto';
+  if (v.isHeli) return 'heli';
+  if (v.isPlane) return 'vliegtuig';
   const n = v.model.name;
+  if (n === 'tractor') return 'trekker';
+  if (n === 'maaidorser' || n === 'laadmachine') return 'machine';
   if (v.isBus || n === 'bus' || n === 'midibus') return 'bus';
   if (v.isAmbulance) return 'ambulance';
   if (v.isPolice) return 'politie';
@@ -193,7 +230,75 @@ export function klasseStijl(klasse, L, seat) {
         { b: [0.3, 0.2, 0.3], at: [sx + 0.55, sy + 0.2, sz + side * 0.62], color: 0x2a2f3a },          // kaartjesautomaat
         { b: [0.03, 0.9, 0.04], at: [sx + 0.2, sy + 0.7, sz + side * 0.45], color: 0x6a707a },         // paal naast de bestuurder
       ] };
+    // --- cockpitklassen (#847) ---------------------------------------------------------
+    // De cabine van de trekker is smaller dan model.wid/2; L.hw komt uit cockpitlayout.js en
+    // alle extra's schalen daarmee mee, zodat ze ook in een kleinere trekker binnenblijven.
+    case 'trekker':
+      return { ...base, seatColor: 0x3b3326, seatTilt: 0.1, rear: null, extras: [
+        { b: [0.08, 0.42, 0.08], at: [sx + 0.32, sy + 0.12, sz + L.hw * 0.55], color: 0x2a2d32 },     // hefhendel
+        { b: [0.06, 0.3, 0.06], at: [sx + 0.5, sy + 0.06, sz + L.hw * 0.3], color: 0x2a2d32 },        // aftakashendel
+        { b: [0.18, 0.06, 0.32], at: [L.dash.x + 0.02, dtop + 0.03, sz + L.hw * 0.42], color: 0x20262c }, // bedieningspaneel op het dashboard
+        { b: [0.02, 0.08, 0.2], at: [L.dash.x - 0.13, dtop + 0.02, sz + L.hw * 0.42], color: 0x9ad0e8 },   // diesel-/toerentellerscherm
+        { b: [0.05, 0.05, 0.05], at: [sx - 0.1, sy + 0.72, sz + L.hw * 0.7], color: 0xd9a21c },       // zwaailampje in de hemel
+      ] };
+    case 'heli':
+      return { ...base, seatColor: 0x2a2f36, rear: null, extras: [
+        { b: [0.06, 0.38, 0.06], at: [sx + 0.12, sy + 0.08, sz - L.hw * 0.75], color: 0x1c1d20 },     // collective links van de piloot
+        { b: [0.1, 0.05, 0.1], at: [sx + 0.12, sy + 0.3, sz - L.hw * 0.75], color: 0x3a3f46 },        // greep van de collective
+        { b: [0.2, 0.18, 0.28], at: [sx + 0.3, L.dash.y + L.dash.h + 0.09, 0], color: 0x20262c },     // middenconsole met schakelaars
+        { b: [0.02, 0.05, 0.16], at: [sx + 0.2, L.dash.y + L.dash.h + 0.1, 0], color: 0x2fd05a },     // groene hoofdschakelaar
+        { b: [0.02, 0.05, 0.16], at: [sx + 0.2, L.dash.y + L.dash.h + 0.1, L.hw * 0.25], color: 0xd83a2a },
+      ] };
+    case 'vliegtuig':
+      return { ...base, seatColor: 0x4a3a2a, rear: null, extras: [
+        { b: [0.1, 0.16, 0.08], at: [sx + 0.45, sy + 0.16, sz + L.hw * 0.5], color: 0x2a2d32 },       // gashendel rechts
+        { b: [0.06, 0.14, 0.14], at: [sx + 0.55, sy + 0.16, sz + L.hw * 0.5], color: 0x9ad0e8 },      // gashendelknop
+        { b: [0.02, 0.1, 0.24], at: [sx + 0.8, L.dash.y + L.dash.h - 0.12, sz], color: 0x20262c },    // instrumentenrij
+        { b: [0.015, 0.04, 0.06], at: [sx + 0.79, L.dash.y + L.dash.h - 0.1, sz - 0.05], color: 0x9ad0e8 },
+        { b: [0.015, 0.04, 0.06], at: [sx + 0.79, L.dash.y + L.dash.h - 0.1, sz + 0.05], color: 0x9ad0e8 },
+      ] };
+    case 'machine': {
+      // Maaidorser en laadmachine (#847): één zitplaats, twee joysticks op de armsteunen (heffen
+      // en de bak/maaitafel) en een paneel met de oogst-/lastindicatie. De joysticks hangen aan de
+      // cabine, niet aan de zitting: bij de laadmachine staat de zitting laag in de kooi en anders
+      // zouden ze onder de vloerplaat verdwijnen. cabY/cabZ schalen met de cabine van het model.
+      const cabY = Math.max(sy + 0.08, L.cab.floorY + 0.16);
+      const cabZ = L.cab.hw * 0.55;
+      return { ...base, seatColor: 0x2f3338, seatTilt: 0.12, rear: null, extras: [
+        { b: [0.07, 0.26, 0.07], at: [sx + 0.12, cabY, sz + cabZ], color: 0x1c1d20 },                  // joystick rechts (heffen)
+        { b: [0.07, 0.26, 0.07], at: [sx + 0.12, cabY, sz - cabZ], color: 0x1c1d20 },                  // joystick links (bak/maaitafel)
+        { b: [0.05, 0.05, 0.05], at: [sx + 0.12, cabY + 0.16, sz + cabZ], color: 0xb8322a },           // rode knop op de joystick
+        { b: [0.16, 0.1, 0.26], at: [L.dash.x + 0.02, dtop + 0.05, sz + L.hw * 0.5], color: 0x20262c },   // bedieningspaneel op het dashboard
+        { b: [0.02, 0.06, 0.18], at: [L.dash.x - 0.12, dtop + 0.06, sz + L.hw * 0.5], color: 0x9ad0e8 },  // indicatiescherm
+      ] };
+    }
     default:
       return base;
   }
+}
+
+// Wrakvariant (#847): het interieur van een uitgebrand voertuig. Pure stijl, zodat cabin3d.js
+// hem per klasse/maat kan delen: roetzwarte binnenhuid, verschroeide bekleding, een scheef
+// dashboard, een verwrongen stoel en losse panelen op de vloer. Geen reizigers, geen
+// dakhemel en geen spiegels; die zijn in een wrak weggebrand of eruit gerukt.
+export function wrakStijl(klasse, L, seat) {
+  const K = klasseStijl(klasse, L, seat);
+  const sx = seat.x, sy = seat.y, hw = L.hw;
+  return {
+    seatColor: 0x232120,
+    rearColor: 0x1e1d1c,
+    seatTilt: (K.seatTilt || 0.2) + 0.45,   // de rugleuning staat scheef
+    seatScheef: 0.32,                      // en de zitting is opzij gedraaid
+    seatKwijt: true,                       // de bijrijdersstoel/het tweede zitvlak is weg
+    soot: 0x17181a,                        // vloer en wanden
+    ash: 0x2a2825,                         // as en brokstukken
+    rust: 0x5a3a24,                        // verbrande rand
+    panel: 0x1c1b19,                       // een losgeslagen paneel
+    // losse panelen en brokstukken op de vloer; at = [x, y, z], b = [x, y, z] maten
+    brokstukken: [
+      { b: [0.42, 0.05, 0.3], at: [sx - 0.45, Math.max(0.34, sy - 0.3), 0.12], color: 0x1c1b19 },
+      { b: [0.16, 0.1, 0.2], at: [sx + 0.24, Math.max(0.36, sy - 0.26), -hw * 0.5], color: 0x2a2825 },
+      { b: [0.1, 0.06, 0.3], at: [sx - 0.1, Math.max(0.32, sy - 0.31), hw * 0.28], color: 0x5a3a24 },
+    ],
+  };
 }

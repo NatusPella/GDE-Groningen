@@ -108,10 +108,10 @@ for (const [klasse, naam, len, wid, seat] of GEVALLEN) {
   check('vliegtuig: passagier achter de piloot, geen bank', kist.L.seats.length === 2 && kist.L.seats[1].x < kist.L.seats[0].x && kist.L.rear === null);
 
   const mower = layouts.find((g) => g.naam === 'maaidorser');
-  check('maaiderser: één zitplaats', mower.L.seats.length === 1);
-  check('maaiderser: interieur op cabinehoogte (2,0..3,3)', mower.L.shell.floorY >= 2.0 && mower.L.shell.floorY <= 2.2 && mower.L.eye.y > 2.65 && mower.L.eye.y < 3.3, `${mower.L.shell.floorY} / ${mower.L.eye.y}`);
-  check('maaiderser: dashboard en stuur boven de dorskast', mower.L.dash.y >= 2.0 && mower.L.wheel.y > 2.3, `${mower.L.dash.y} / ${mower.L.wheel.y}`);
-  check('maaiderser: niet op auto-hoogte', mower.L.eye.y > 2.5 && mower.L.shell.floorY > 1.9);
+  check('maaidorser: één zitplaats', mower.L.seats.length === 1);
+  check('maaidorser: interieur op cabinehoogte (2,0..3,3)', mower.L.shell.floorY >= 2.0 && mower.L.shell.floorY <= 2.2 && mower.L.eye.y > 2.65 && mower.L.eye.y < 3.3, `${mower.L.shell.floorY} / ${mower.L.eye.y}`);
+  check('maaidorser: dashboard en stuur boven de dorskast', mower.L.dash.y >= 2.0 && mower.L.wheel.y > 2.3, `${mower.L.dash.y} / ${mower.L.wheel.y}`);
+  check('maaidorser: niet op auto-hoogte', mower.L.eye.y > 2.5 && mower.L.shell.floorY > 1.9);
 
   const laad = layouts.find((g) => g.naam === 'laadmachine');
   check('laadmachine: één zitplaats', laad.L.seats.length === 1);
