@@ -165,6 +165,26 @@ for (let lod = 0; lod < 3; lod++) {
 }
 check('wreck: its own geometry, not the normal room', wrakTri[0] !== rowVoor.tri[0], `${wrakTri[0]} tegen ${rowVoor.tri[0]}`);
 check('wreck: the levels get cheaper too', wrakTri[0] > wrakTri[1] && wrakTri[1] > wrakTri[2], wrakTri.join(' > '));
+// De busromp heeft ingebakken blauwe schijnstoelen tussen de ruiten (models3d_vehicles.js busSection). In een wrak
+// zou je die door het doorzichtige glas als normale blauwe stoelen zien; soot-panelen in de raamband dekken ze af.
+{
+  const WRAK_STOEL = new THREE.Color(0x2b2724), WRAK_RUG = new THREE.Color(0x1f1c19);
+  const bandTris = (g, c) => {
+    const pos = g.attributes.position;
+    let n = 0;
+    for (let t = 0; t < triangles(g); t++) {
+      if (!sameColor(g, t * 3, c)) continue;
+      const cy = (pos.getY(t * 3) + pos.getY(t * 3 + 1) + pos.getY(t * 3 + 2)) / 3;
+      const cz = Math.abs((pos.getZ(t * 3) + pos.getZ(t * 3 + 1) + pos.getZ(t * 3 + 2)) / 3);
+      if (cy > 1.1 && cy < 1.85 && cz > 0.8) n++;
+    }
+    return n;
+  };
+  const cover0 = bandTris(M3.buildWrakInrichting(Lbus, 0), WRAK_STOEL);
+  check('wreck: soot panels cover the baked blue seats in the window band', cover0 >= Lbus.seats.length * 6, `${cover0} driehoeken voor ${Lbus.seats.length} stoelen`);
+  check('wreck: the middle level also covers them with a soot strip', bandTris(M3.buildWrakInrichting(Lbus, 1), WRAK_RUG) > 0);
+  check('wreck: the rear unit covers them too', bandTris(M3.buildWrakInrichting(Lbus.rear, 0, { achter: true }), WRAK_STOEL) >= Lbus.rear.seats.length * 6);
+}
 
 // --- the real bus mesh: one mesh per unit, geometry swapped per level, travellers only nearby ---
 // The level is chosen from the player distance (Chebyshev), not the camera distance: cheap, no raycast, intended.
@@ -182,6 +202,8 @@ const tick = (world) => M3.busInterieurKind.tick(1 / 60, world);
 // a fresh articulated bus needs its front room, rear room and two traveller meshes: two build calls (#833 budget)
 const settle = (world, n = 3) => { for (let i = 0; i < n; i++) tick(world); };
 const rearOf = (mesh) => mesh.userData.busRear;
+// de verf-materialen van een voertuig (één materialen-array per carrosseriemesh; de wielen delen het eerste)
+const verfOf = (mesh) => { const out = []; mesh.traverse((o) => { if (o.isMesh && Array.isArray(o.material) && o.material[0]) out.push(o.material[0]); }); return out; };
 
 {
   const { v, mesh, world } = setup(BUS_MODEL);
@@ -191,6 +213,7 @@ const rearOf = (mesh) => mesh.userData.busRear;
   check('sync: interior built next to the player', !!int && int.visible && mesh.userData.busIntLod === 0, String(mesh.userData.busIntLod));
   check('sync: actual mesh, no separate LOD mesh', int === mesh.userData.busInt && int.parent === mesh);
   check('sync: draw style', int.name === 'businterieur' && int.userData.noBatch === true && int.castShadow === false);
+  check('sync: a normal bus keeps its white livery', verfOf(mesh).length > 0 && verfOf(mesh).every((m) => m.color.getHex() === 0xffffff), verfOf(mesh).map((m) => m.color.getHexString()).join(','));
   check('sync: lod 0 geometry matches buildInrichting', triangles(int.geometry) === rowVoor.tri[0], `${triangles(int.geometry)} tegen ${rowVoor.tri[0]}`);
   check('sync: travellers nearby', !!pas && pas.visible && pas.name === 'busreizigers' && pas.castShadow === false);
   check('sync: travellers use the shared draw style', !!pas && pas.userData.noBatch === true);
@@ -303,6 +326,8 @@ const rearOf = (mesh) => mesh.userData.busRear;
   check('wreck: no travellers at all', !a.mesh.userData.busPas && !a.mesh.userData.busPasAchter);
   const glas = glassOf(a.mesh);
   check('wreck: the blind windows are made see-through', glas.length > 0 && glas.every((m) => m.transparent === true && m.opacity < 0.5 && m.depthWrite === false), `${glas.length} glasmaterialen`);
+  const verf = verfOf(a.mesh);
+  check('wreck: the livery is sooted (per-vehicle material, no white/green bus)', verf.length > 0 && verf.every((m) => m.color.r < 0.5 && m.color.g < 0.5 && m.color.b < 0.5), verf.map((m) => m.color.getHexString()).join(','));
   const b = setup(BUS_MODEL, { wrecked: true });
   settle(b.world);
   check('wreck: the wreck geometry is shared between wrecks', a.mesh.userData.busInt.geometry === b.mesh.userData.busInt.geometry);

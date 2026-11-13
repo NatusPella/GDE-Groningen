@@ -10,8 +10,9 @@ import { hoofdspeler } from './players.js';
 // hangt aan de trailer-groep (mesh.userData.busRear, models3d_vehicles.js) en draait dus mee met setBusRearAngle.
 // Per eenheid is er één mesh die alleen van geometrie wisselt; de geometrie is gedeeld per (soort, maat, eenheid,
 // niveau). Reizigers zijn er alleen dichtbij en nooit in een wrak. Een wrak (#847) krijgt een eigen, gedeelde
-// wrakvariant (verkoold, scheef, geen reizigers) en zijn blinde glas wordt doorzichtig gemaakt, anders is de
-// wrakruimte door de ramen niet te zien. Meldt zich in main.js als kind.
+// wrakvariant (verkoold, scheef, geen reizigers) met soot-panelen die de ingebakken blauwe schijnstoelen van de romp
+// afdekken; zijn blinde glas wordt doorzichtig en de ingebakken livrei wordt per voertuig op roet gezet, anders is de
+// wrakruimte door de ramen niet te zien en leest de bus als een normale wit/groene bus. Meldt zich in main.js als kind.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { GeoBuilder, markShared } from './pixelart3d.js';
 import { getVehicleMesh } from './models3d_vehicles.js';
@@ -150,6 +151,18 @@ export function buildWrakInrichting(U, lod = 0, { achter = false } = {}) {
     B.box(s.x - 0.2, f + 0.54, s.z, 0.08, 0.5, 0.42, WRAK_RUG, 0, 0, 0, 0.2 + tilt * 1.5);         // verwrongen rug
     if (lod === 0) B.box(s.x, f + 0.1, s.z, 0.4, 0.2, 0.1, WRAK_DONKER, 0, 0, 0, tilt * 0.5);     // losse poot
   }
+  // De busromp heeft ingebakken blauwe schijnstoelen tussen de ruiten (busSection in models3d_vehicles.js). In een wrak
+  // zie je die door het doorzichtige glas als gewone blauwe stoelen; soot-panelen op dezelfde hoogte en bij de wand
+  // dekken ze af, zodat de wrakruimte verkoold leest in plaats van netjes blauw (#847).
+  if (lod === 0) {
+    for (const s of U.seats) {
+      const zij = s.z >= 0 ? 1 : -1, k = ((s.x * 7) % 5) - 2;
+      B.box(s.x, f + 0.99, zij * 0.95, 0.8, 0.62, 0.42, WRAK_STOEL, 0, 0, 0, k * 0.04);
+    }
+  } else {
+    const cx = (U.rail.x0 + U.rail.x1) / 2, len = Math.abs(U.rail.x0 - U.rail.x1) - 0.4;
+    for (const zij of [-1, 1]) B.box(cx, f + 0.99, zij * 0.95, len, 0.62, 0.42, WRAK_RUG);
+  }
   for (let i = 0; i < U.poles.length; i += lod === 0 ? 1 : 2) {
     const p = U.poles[i], k = (i % 5) - 2;
     B.box(p.x, f + 0.88, p.z, 0.035, 1.8, 0.035, WRAK_STANG, 0, k * 0.05, 0, k * 0.09);           // scheve stang
@@ -254,22 +267,27 @@ function multiplayerSeatMask(w, v) {
   return mask >>> 0;
 }
 
-// Een wrak heeft blinde, ondoorzichtige ruiten (#847, vehicleMaterials in models3d_vehicles.js). De materialen zijn
-// per voertuig nieuw, dus alleen dit wrak wordt doorzichtig; de midibus heeft al gewoon glas en slaan we over. Eén keer
-// per voertuig, geen werk in het hete pad.
-function openWrakGlas(mesh) {
+// Een wrak heeft blinde, ondoorzichtige ruiten én een livrei in de normale kleuren (#847): busSection in
+// models3d_vehicles.js schildert de romp ook bij een wrak wit/groen (alleen de materialen verschillen). De materialen
+// zijn per voertuig nieuw, dus we maken hier alleen dit wrak doorzichtig en zetten de ingebakken livrei op roet; zo
+// leest de bus als wrak en is de wrakruimte door de ramen te zien. Structureel hoort de wrakkleur in
+// models3d_vehicles.js (dat bestand is van de Lead). Eén keer per voertuig, geen werk in het hete pad.
+const WRAK_LIVREI = 0x55504a;     // vermenigvuldigt de ingebakken kleuren tot roetig grijs (auto's krijgen WRECKED_COLOR als verf)
+function maakWrakZichtbaar(mesh) {
   const ud = mesh.userData;
-  if (ud.wrakGlasOpen) return;
+  if (ud.wrakZichtbaar) return;
   mesh.traverse((o) => {
-    if (!o.isMesh || !Array.isArray(o.material) || o.material.length < 2) return;
-    const glas = o.material[1];
-    if (!glas || glas.transparent) return;
-    glas.transparent = true;
-    glas.opacity = 0.38;      // roetig glas: je ziet de wrakruimte, maar het blijft donker
-    glas.depthWrite = false;
-    glas.needsUpdate = true;
+    if (!o.isMesh || !Array.isArray(o.material)) return;   // de wielen delen het verf-materiaal en kleuren dus mee
+    const [verf, glas] = o.material;
+    if (verf && verf.color) verf.color.setHex(WRAK_LIVREI);
+    if (glas && !glas.transparent) {
+      glas.transparent = true;
+      glas.opacity = 0.38;      // roetig glas: je ziet de wrakruimte, maar het blijft donker
+      glas.depthWrite = false;
+      glas.needsUpdate = true;
+    }
   });
-  ud.wrakGlasOpen = true;
+  ud.wrakZichtbaar = true;
 }
 
 // Alles van deze bus uit beeld (voorbij de verste afstand of geen budget).
@@ -316,6 +334,8 @@ function updateInterieur(dt, w) {
     const mesh = getVehicleMesh(v.id);
     if (!mesh) continue;
     const ud = mesh.userData;
+    const wrecked = !!v.wrecked;
+    if (wrecked) maakWrakZichtbaar(mesh);   // livrei op roet en de blinde ruiten doorzichtig, één keer per voertuig
     const rear = v.model.trailer ? ud.busRear : null;   // trailer-groep van de gelede bus (models3d_vehicles.js)
     const dx = Math.abs(v.x - p.x), dy = Math.abs(v.y - p.y);
     const lod = busLodAt(Math.max(dx, dy));   // Chebyshev; Math.max maakt een NaN-positie meteen onzichtbaar
@@ -324,8 +344,6 @@ function updateInterieur(dt, w) {
       continue;
     }
     const body = ud.body || mesh;
-    const wrecked = !!v.wrecked;
-    if (wrecked) openWrakGlas(mesh);      // de wrakruimte is pas te zien als het blinde glas doorzichtig is
     // de inrichting van de voorste eenheid: zelfde mesh, alleen de geometrie wisselt als het niveau verandert (#833)
     if (ud.busIntLod !== lod) {
       const cached = geoCache.size;

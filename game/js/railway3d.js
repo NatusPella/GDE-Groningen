@@ -780,6 +780,17 @@ function buildTrainView(t) {
   return { group, cars };
 }
 
+// Welk interieur hoort een trein deze frame te hebben? (#847) 'vol' = de bereden trein of de trein van de gastheer,
+// en ook een trein die ooit vol was: daar blijft het volle interieur staan (verborgen als de speler niet binnen is)
+// en komt géén LOD-interieur bij, zodat er nooit twee interieurs in één wagen staan. 'lod' = een andere trein in de
+// buurt (eenvoudig interieur achter de ramen). Puur, zodat scripts/trein_lod_test.mjs de conditie kan afdekken.
+export function treinInterieurModus(t, world, view) {
+  if (!world) return 'geen';
+  if (t === world.trainDriving || t === gastTreinVan(world)) return 'vol';
+  if (view && view.tc) return 'vol';     // ooit bereden (of conducteurstrein geweest): geen tweede interieur erbij
+  return 'lod';
+}
+
 function updateTrains(px, py, night, world, dt) {
   GLASS_MAT.emissiveIntensity = 0.55 * night;
   SALOON_GLASS.emissiveIntensity = 0.5 * night;   // de doorzichtige raambanden lichten 's nachts mee (#847)
@@ -819,13 +830,12 @@ function updateTrains(px, py, night, world, dt) {
       if (lamps[-1]) for (const l of lamps[-1]) l.material = t.dir < 0 ? HEAD_MAT : TAIL_MAT;
     });
     // het binnenste van de trein die de speler bestuurt of waarin een gast als conducteur loopt (treininterieur.js, #442, #492)
-    const full = !!world && (t === world.trainDriving || t === gastTreinVan(world));
-    if (world && (full || view.tc)) { syncTreinInterieur(view, t, world, dt); view.tc = true; }
-    // andere treinen in de buurt krijgen een LOD-interieur achter de ramen (#847); de bereden trein houdt het volle
-    if (world) {
-      if (full) hideTreinLodInterieur(view);
-      else syncTreinLodInterieur(view, t, px, py, lodBudget);
-    }
+    const modus = treinInterieurModus(t, world, view);
+    if (modus === 'vol') { syncTreinInterieur(view, t, world, dt); view.tc = true; }
+    // alleen een trein die nooit vol was krijgt een LOD-interieur achter de ramen (#847): een ooit bereden trein
+    // houdt het volle interieur (verborgen als de speler niet binnen is) en krijgt er geen tweede interieur bij
+    if (modus === 'vol') hideTreinLodInterieur(view);
+    else if (modus === 'lod') syncTreinLodInterieur(view, t, px, py, lodBudget);
   }
 }
 

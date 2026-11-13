@@ -196,7 +196,37 @@ const budget = () => ({ left: TI.TREIN_LOD_BUILD_BUDGET });
   check('trein: de wagen met het volledige interieur is zichtbaar', view.cars[0].children.some((c) => c.userData.interieur && c.visible));
 }
 
-// --- 5. metingen ------------------------------------------------------------------------------
+// --- 5. de conditie (#847): een ooit bereden trein houdt het volle interieur, geen tweede erbij ------------
+// railway3d.js houdt per trein bij of hij ooit de bereden/conducteurstrein was (view.tc). Zo'n trein houdt het volle
+// interieur en mag er géén LOD-interieur bij krijgen; anders staan er twee interieurs in dezelfde wagen.
+{
+  const posities = [0, 22, 40];
+  const t = { cfg: GTW, halfLen: 30, cars: GTW.segments.map((seg, i) => ({ x: posities[i], y: 0, z: 0, angle: 0, pitch: 0, seg })) };
+  const view = { group: new THREE.Group(), cars: GTW.segments.map((seg) => R3.buildCar(GTW, seg)) };
+  const worldIn = { player: { x: 0, y: 0 }, trainDriving: t, trainCam: { inside: true }, trainWalk: { car: 0, lx: 0, lz: 0, yaw: 0 }, vehicles: [], coopFigures: {}, coopZitters: [] };
+  check('conditie: de bereden trein is vol', R3.treinInterieurModus(t, worldIn, view) === 'vol', String(R3.treinInterieurModus(t, worldIn, view)));
+  TI.syncTreinInterieur(view, t, worldIn, 1 / 60);        // de speler zit binnen: het volle interieur
+  check('conditie: de bereden trein houdt het volle interieur', TI.builtCount(view) >= 1, String(TI.builtCount(view)));
+  // de speler stapt uit: de trein is niet meer de bereden trein, maar wel ooit vol geweest (view.tc)
+  view.tc = true;                                          // zet railway3d na de eerste sync
+  const worldUit = { ...worldIn, trainDriving: null, trainCam: null, trainWalk: null };
+  check('conditie: een ooit bereden trein blijft vol (geen LOD erbij)', R3.treinInterieurModus(t, worldUit, view) === 'vol', String(R3.treinInterieurModus(t, worldUit, view)));
+  TI.syncTreinInterieur(view, t, worldUit, 1 / 60);        // buiten: het volle interieur gaat weer dicht
+  TI.hideTreinLodInterieur(view);                          // en in de vol-modus komt er geen LOD-mesh bij
+  check('conditie: na het uitstappen is er geen LOD-mesh', TI.lodInterieurVan(view).every((m) => !m), JSON.stringify(TI.lodInterieurVan(view).map((m) => !!m)));
+  check('conditie: het volle interieur is verborgen', view.cars.every((g) => !g.children.some((c) => c.userData.interieur && c.visible)));
+  // een trein die nooit bereden werd krijgt wel een LOD-interieur
+  const ander = maakTrein(GTW, posities);
+  check('conditie: een andere trein is lod', R3.treinInterieurModus(ander.t, worldUit, ander.view) === 'lod', String(R3.treinInterieurModus(ander.t, worldUit, ander.view)));
+  TI.syncTreinLodInterieur(ander.view, ander.t, 0, 0, budget());
+  check('conditie: die krijgt wel een LOD-interieur', TI.lodInterieurVan(ander.view).some(Boolean));
+  // per wagen nooit twee zichtbare interieurs (vol + LOD)
+  const zichtbaar = (cars) => cars.map((g) => g.children.filter((c) => (c.userData.interieur || c.userData.treinLod) && c.visible).length);
+  const a = zichtbaar(view.cars), b = zichtbaar(ander.view.cars);
+  check('conditie: nooit twee interieurs per wagen', [...a, ...b].every((n) => n <= 1), JSON.stringify([a, b]));
+}
+
+// --- 6. metingen ------------------------------------------------------------------------------
 const layoutGtw = TL.trainLayout(GTW);
 const volGtw = triangles(TI.buildCarGeometry(GTW, GTW.segments[0], layoutGtw[0]));
 const layoutVirm = TL.trainLayout(VIRM);
