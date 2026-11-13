@@ -17,6 +17,13 @@ export const HELP_TOPICS = [
     'Snel reizen kost tijd en geld; je staat er na een korte rit. Zelf gaan zet een waypoint en je rijdt of loopt zelf. Bij het station kies je zelf de trein besturen of als passagier meegaan.',
     'In Samen spelen kan een gast een waypoint zetten. Reizen kan alleen in je eigen spel.',
   ] },
+  { id: 'eerstedag', title: 'Je eerste dag in Grunn', lines: [
+    'Je eerste klus staat bovenin; volg de gele route. Daarna kun je zelf kiezen wat je doet.',
+    'Kleding wisselen kan in je thuis of in een kledingwinkel; met de politie op je hielen kan een andere outfit of de spuiterij je uit de nest helpen.',
+    'Je garage repareert, spuit en levert je eigen voertuigen af; op de kaart zie je welke garage bij je in de buurt is.',
+    'Met {5} zet je een waypoint naar je eigen doel en met de kaart kun je ook een taxi nemen of met bus en trein reizen.',
+    'Uitkijkpunten in de provincie onthullen een streek; kom je er zelf, dan gaat dat ook.',
+  ] },
   { id: 'todo', title: 'Wat kan ik nog meer?', lines: [
     '{ESC} › Activiteiten laat zien wat er te doen is: klussen, minigames en evenementen. Bijbanen staan onder Loopbanen. Kies iets en de route gaat erheen.',
   ] },

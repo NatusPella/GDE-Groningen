@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- **De eerste dag heeft nu een korte checklist in de hulp en een eenmalige kaart na de eerste missie (#841).** Kleding, spuiterij, garage, waypoint en uitkijkpunten staan bij elkaar; geen nieuwe teller.
 - **Spuiterij en garage hebben nu een cooldown voordat ze je sterren weer wissen (#838).** De kledingkast had al een eigen cooldown; nu geldt voor platen, spuiten en de garage dezelfde wachttijd, zodat je niet elke minuut opnieuw de politie van je af kunt schudden.
 - **Reizen: met 5 zet of wis je je waypoint naar je eigen doel, en de kaart biedt nu een taxi met prijs en aankomsttijd (#836).** Een verhaalmissie houdt zijn eigen route; de taxi is een gewone reisoptie en geen menuteleport.
 - **Een onbekende streek verbergt nu ook zijn bijbanen, vondsten en overige spots (#834).** Eerder bleven die iconen op de kaart en minikaart staan terwijl alleen de activiteiten verborgen waren; nu ontdek je ze samen met de streek. Wegen, water, je positie en de missies blijven zichtbaar.

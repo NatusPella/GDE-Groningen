@@ -65,6 +65,11 @@ const LESSONS = [
     card: () => ({ title: 'Activiteiten', body: 'Missie binnen, en het spel heeft opgeslagen. Alles wat nog openstaat staat onder {ESC} › Verhaal en Activiteiten: kies iets en de route gaat erheen.' }),
   },
   {
+    id: 'eerstedag',
+    when: (w, s) => s.has('tedoen') && !busy(w),
+    card: () => ({ title: 'Je eerste dag', body: `Dit is genoeg om te beginnen: kleding en de spuiterij helpen tegen de politie, je garage repareert en levert voertuigen af, en met {5} zet je een waypoint. Meer staat onder {ESC} › Besturing › Hulp.` }),
+  },
+  {
     id: 'samen',
     // na de eerste missie, niet tijdens een missie of een dienst, en niet als je al samen speelt. Alleen
     // spelen is sinds #554 een sessie van één (wel een hub), maar geen samen-sessie: daar hoort de kaart
