@@ -16,8 +16,15 @@ for (let i = 0; i < 40 && !document.body.classList.contains('game-started'); i++
     osNaam.dispatchEvent(new Event('input', { bubbles: true }));
     const door = document.querySelector('[data-doorgaan]');
     if (door) door.click();
-    await sleep(1500);
+    await sleep(3000);
+    continue;
   }
+  // Eerst Alleen spelen, dan Nieuw spel; in deze volgorde, anders sluit de volgende klik
+  // het scherm weer voordat de game start.
+  const nieuwCard = document.querySelector('#saveslots [data-do="new"], #saveslots [data-do="new-ask"]');
+  if (nieuwCard) { nieuwCard.click(); await sleep(3000); continue; }
+  const soloCard = document.querySelector('#start-screen [data-act="solo"]');
+  if (soloCard) { soloCard.click(); await sleep(2000); continue; }
   // the 'Wat is er nieuw' panel opens on a new version: close it first
   const news = document.querySelector('#start-screen .ss-news-close');
   if (news && news.getBoundingClientRect().width > 0) { keyAll('keydown', 'Escape', 'Escape'); keyAll('keyup', 'Escape', 'Escape'); await sleep(800); }
@@ -40,6 +47,7 @@ for (let i = 0; i < 40 && !document.body.classList.contains('game-started'); i++
     await sleep(700);
   }
 }
+for (let i = 0; i < 60 && !window.__debug; i++) await sleep(500);
 const D = window.__debug; const w = D.world; const p = w.player; const map = w.map;
 const cine = await imp('cinematics');
 const VEH = await imp('vehicle');
@@ -197,6 +205,21 @@ for (const tab of ['overzicht', 'todo', 'map', 'telefoon', 'verhaal', 'spullen',
     PM.closePauseMenu();
   });
 }
+if (want('kaart')) await guard('kaart', async () => {
+  // #848: de volledige kaart met de nieuwe laag-iconen, zonder eerst door het pauzemenu te gaan.
+  for (let i = 0; i < 40 && document.body.classList.contains('intro-montage'); i++) await sleep(500);
+  await settle();
+  const key2 = (ty, k, code) => { for (const tg of [window, document]) tg.dispatchEvent(new KeyboardEvent(ty, { key: k, code, bubbles: true })); };
+  key2('keydown', 'm', 'KeyM'); key2('keyup', 'm', 'KeyM');
+  await sleep(1800);
+  // De M-toets kan op een touchprofiel naast de kaart vallen; open het paneel ook via de UI-API.
+  const PM2 = await imp('pausemenu');
+  if (!document.querySelector('.mapview-root, #mapview')) PM2.openPauseMenu('map');
+  await sleep(1500);
+  await shot('kaart', 1200);
+  PM2.closePauseMenu();
+  key2('keydown', 'Escape', 'Escape'); key2('keyup', 'Escape', 'Escape');
+});
 if (want('startkaart')) await guard('startkaart', async () => {
   // #800: de tweede laag staat als regel op de startkaart van een activiteit.
   for (let i = 0; i < 40 && document.body.classList.contains('intro-montage'); i++) await sleep(500);

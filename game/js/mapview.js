@@ -1401,6 +1401,8 @@ function drawDynamicMarkers(ctx, world) {
     icon(null, 'missionIdle', c.x, c.y, c.name, {}, 'Verhaal: of dit', { story: true });
   }
 
+  // #834: van een onbekende streek ook de bijbanen, vondsten en overige spots verbergen.
+  const onbekend = (x, y) => isAreaHidden(x, y);
   for (const o of getOwnedVehiclesForMap(world)) icon('car', 'own', o.x, o.y, 'Jouw ' + o.label, { vkind: o.kind, color: o.color });
   for (const sh of getShopsDecluttered(z >= NEAR_ZOOM ? 1 : 26 / state.scale)) { if (onbekend(sh.x, sh.y)) continue; icon(SHOP_TYPES[sh.type].group, 'shop-' + sh.type, sh.x, sh.y, sh.name, {}, SHOP_TYPES[sh.type].label); }
   const storyShop = storyTargetShop(world);
@@ -1409,8 +1411,6 @@ function drawDynamicMarkers(ctx, world) {
     drawStoryShopRing(ctx, sx, sy, 13, t);
     icon(null, 'shop-' + storyShop.type, storyShop.x, storyShop.y, storyShop.name, {}, 'Voor het verhaal: ' + world.storyGuide.name.replace(/^Eerst: /, ''));
   }
-  // #834: van een onbekende streek ook de bijbanen, vondsten en overige spots verbergen.
-  const onbekend = (x, y) => isAreaHidden(x, y);
   for (const ps of getPigeonSpotsForRender()) { if (onbekend(ps.x, ps.y)) continue; icon('duif', 'pigeon', ps.x, ps.y, ps.name, {}, 'Word een duif', { goal: { kind: 'play', id: 'duif', name: 'Duivenmodus', sub: ps.name, x: ps.x, y: ps.y }, todo: 'mg:duif' }, samenVan('minigame', 'duif')); }
   const play = (id, name, sub, x, y, todo) => ({ goal: { kind: 'play', id, name, sub, x, y }, todo });
   for (const hs of getHeliSpotsForRender()) { if (onbekend(hs.x, hs.y)) continue; icon('heli', 'heli', hs.x, hs.y, hs.name, {}, 'Ballonjacht met de heli', play('heli', 'Ballonjacht', hs.name, hs.x, hs.y, 'mg:heli'), samenVan('minigame', 'heli')); }

@@ -2412,6 +2412,8 @@ function drawMinimapPois(ctx, world, job, placed, inRange, toScreen, t) {
   add('garage', getGaragesForRender(), 'garage', 1, MM_POI_FAR_M);
   add('zorg', facilitiesOf(['hospital', 'gppost']), 'hospital', 1, MM_POI_FAR_M * 2);
   add('politiebureau', facilitiesOf('police'), 'politiebureau', 1, MM_POI_FAR_M * 2);
+  // #834: een onbekende streek toont ook op de minikaart geen bijbanen, vondsten en overige spots.
+  const sichtbaar = (x, y) => !isAreaHidden(x, y);
   const shops = nearestWithin(getShopsForRender(), px, py, MM_POI_NEAR_M, 24);
   for (const group of SHOP_GROUPS) {
     if (!minimapShows(group)) continue;
@@ -2424,8 +2426,6 @@ function drawMinimapPois(ctx, world, job, placed, inRange, toScreen, t) {
       pois.push(['shop-' + sh.type, sh.x, sh.y]);
     }
   }
-  // #834: een onbekende streek toont ook op de minikaart geen bijbanen, vondsten en overige spots.
-  const sichtbaar = (x, y) => !isAreaHidden(x, y);
   if (!job) {
     const sjs = getSideJobSpotsForRender().filter((sj) => sichtbaar(sj.x, sj.y));
     add('bijbaan', sjs.filter((sj) => !sj.job.layer), (sj) => 'sj-' + sj.job.id, 2, MM_POI_FAR_M);
