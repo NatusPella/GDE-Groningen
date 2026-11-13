@@ -268,8 +268,8 @@ const START_WARM_CALM = 12;
 const START_WARM_MAX_FRAME_MS = 50;
   // De eigenaar koos een langer laadscherm boven een haperende eerste minuut: de
   // montageplekken mogen samen ruim een minuut kosten om klaar te zetten.
-  const INTRO_WARM_MS = 80000;
-  const INTRO_TOUR_MS = 30000;
+  const INTRO_WARM_MS = 60000;
+  const INTRO_TOUR_MS = 25000;
 
 function waitForStart(world, ready) {
   const relocate = (x, y) => {
@@ -383,8 +383,14 @@ function waitForStart(world, ready) {
               .then(() => { tilesIn = true; }, () => { tilesIn = true; });
           }
           for (const p of spots) prewarmStreamAt(p.x, p.y, 180, 170);
-          const end = performance.now() + INTRO_WARM_MS;
-          while (performance.now() < end) {
+          // Eén deadline voor het hele intro-voorrijden: op een trage machine
+          // mag dit blok niet oplopen tot minuten; de tour krijgt wat overblijft.
+          const introDeadline = performance.now() + INTRO_WARM_MS;
+          // Reserve tijd voor de tour: anders gebruikt de prewarm-lus op een
+          // trage machine het hele budget en slaat de tour (en dus het
+          // voorbereiden van de film) over.
+          const warmEnd = Math.max(performance.now(), introDeadline - INTRO_TOUR_MS);
+          while (performance.now() < warmEnd) {
             const f0 = performance.now();
             try { tick(1 / 60); render(1 / 60); } catch (e) { console.warn('openingsbeelden voorladen', e); break; }
             worst = Math.max(worst, performance.now() - f0);
@@ -402,7 +408,7 @@ function waitForStart(world, ready) {
           // hun eerste draw kost anders honderden ms in de film (#804).
           try {
           setHoldMaterials(true);
-          const tourEnd = performance.now() + INTRO_TOUR_MS;
+            const tourEnd = Math.min(performance.now() + INTRO_TOUR_MS, introDeadline);
           for (const p of spots) {
           if (performance.now() >= tourEnd) break;
           setCameraOverride(world, { position: { x: p.x + 14, y: p.y + 14, z: 24 }, lookAt: { x: p.x, y: p.y, z: 2 }, fov: 62, cut: true });
