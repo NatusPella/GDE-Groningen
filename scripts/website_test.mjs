@@ -7,6 +7,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { SLIDESHOWS } from '../website/slideshows.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const WEBSITE = path.join(ROOT, 'website');
@@ -28,7 +29,7 @@ const VERBODEN_RE = new RegExp('\\b(?:' + VERBODEN.join('|') + ')\\b', 'i');
 
 // ------------------------------------------------------------------ 1. bron en build
 
-for (const f of ['index.html', 'style.css', 'script.js', 'build.mjs']) {
+for (const f of ['index.html', 'style.css', 'script.js', 'build.mjs', 'slideshows.mjs']) {
   ok(fs.existsSync(path.join(WEBSITE, f)), `website/${f} bestaat`);
 }
 ok(fs.existsSync(path.join(ROOT, 'desktop', 'resources', 'icon.svg')), 'het app-icoon desktop/resources/icon.svg bestaat (favicon)');
@@ -42,6 +43,7 @@ for (const f of ['index.html', 'style.css', '_site']) {
 
 const html = bestaat('index.html') ? lees('index.html') : '';
 const css = bestaat('style.css') ? lees('style.css') : '';
+const gebouwd = fs.existsSync(path.join(SITE, 'index.html')) ? fs.readFileSync(path.join(SITE, 'index.html'), 'utf8') : '';
 ok(html.length > 4000, 'index.html heeft echte inhoud', String(html.length));
 
 // ------------------------------------------------------------------ 2. geen externe load-time-bronnen
@@ -125,13 +127,16 @@ const releaseLinks = [...html.matchAll(/<a\b[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<
   .filter(Boolean);
 ok(releaseLinks.length >= 1, 'de CTA naar de Releases heeft tekst', String(releaseLinks.length));
 ok(html.includes('href="' + REPO + '"'), 'er is een link naar de repo');
-ok(html.includes('docs/PERSKIT.md'), 'de pershoek verwijst naar docs/PERSKIT.md');
+ok(/id="delen"/.test(gebouwd) && /href="#delen"/.test(gebouwd), 'de pagina heeft een deel-sectie en een navigatielink');
+ok(/https:\/\/wa\.me\//.test(gebouwd) && /twitter\.com\/intent\/tweet/.test(gebouwd) && /facebook\.com\/sharer/.test(gebouwd), 'de deellinks naar WhatsApp, X en Facebook staan er');
+ok(/data-share-kopieer/.test(gebouwd), 'de kopieer-knop staat er');
+ok(!/id="pers"|href="#pers"|press-panel/.test(gebouwd), 'de oude pershoek staat niet meer op de pagina');
 ok((html.match(/<details\b/gi) || []).length >= 5, 'de FAQ heeft minimaal vijf vragen', String((html.match(/<details\b/gi) || []).length));
 
 // ------------------------------------------------------------------ 6. relatieve paden en alt-teksten
 
 const lokaal = new Set();
-for (const m of html.matchAll(/\b(?:src|href)\s*=\s*"([^"]+)"/gi)) {
+for (const m of gebouwd.matchAll(/\b(?:src|href)\s*=\s*"([^"]+)"/gi)) {
   const url = m[1].trim();
   if (!url || url.startsWith('#') || url.startsWith('mailto:') || url.startsWith('data:')) continue;
   if (EXTERN.test(url)) continue;
@@ -140,31 +145,41 @@ for (const m of html.matchAll(/\b(?:src|href)\s*=\s*"([^"]+)"/gi)) {
 const dodePaden = [...lokaal].filter((url) => !bestaat(url));
 ok(dodePaden.length === 0, 'alle relatieve paden in de HTML bestaan in _site', dodePaden.join(', '));
 ok(bestaat('img/social-preview.png'), 'het social-preview-beeld staat in _site');
-ok([...lokaal].filter((u) => /^img\/.+\.webp$/.test(u)).length >= 5, 'de galerij gebruikt minimaal vijf screenshots');
-ok([...lokaal].filter((u) => /^img\/\d\d-.+\.jpg$/.test(u)).length >= 10, 'de slideshow gebruikt de tien grote screenshots');
 ok(bestaat('img/trailer.jpg'), 'de trailerstill staat in _site');
 
-// De slideshow is de grote visuele blikvanger (#37): tien highlights, pijlen, stippen en
-// een script dat de navigatie doet. Zonder JavaScript blijft de slideshow scrollbaar.
-const slides = (html.match(/class="slide"/g) || []).length;
-ok(slides >= 10, 'de slideshow heeft minstens tien highlights', String(slides));
-ok(/data-slider\b/.test(html) && /data-slider-track/.test(html), 'de slideshow heeft de slider-haken');
-ok(/data-slider-prev/.test(html) && /data-slider-next/.test(html) && /data-slider-dots/.test(html), 'de slideshow heeft pijlen en stippen');
-ok(/<script\s+src="script\.js"\s+defer><\/script>/i.test(html), 'de pagina laadt script.js');
+// De pagina heeft meerdere slideshows (#37): per categorie een slider met pijlen, stippen en
+// een script dat de navigatie doet. Zonder JavaScript blijft elke slider scrollbaar.
+ok(SLIDESHOWS.length >= 6, 'er zijn minstens zes slideshows', String(SLIDESHOWS.length));
+ok(SLIDESHOWS.every((s) => s.slides.length >= 3), 'elke slideshow heeft minstens drie slides');
+ok(!gebouwd.includes('<!-- SLIDESHOWS -->'), 'de slideshows zijn in de pagina gezet');
+const totaalSlides = SLIDESHOWS.reduce((som, s) => som + s.slides.length, 0);
+ok(totaalSlides >= 25, 'samen minstens 25 slides', String(totaalSlides));
+ok((gebouwd.match(/class="slide"/g) || []).length === totaalSlides, 'alle slides staan in de HTML');
+ok((gebouwd.match(/data-slider>/g) || []).length === SLIDESHOWS.length, 'elke slideshow heeft een slider');
+ok((gebouwd.match(/data-slider-controls/g) || []).length === SLIDESHOWS.length, 'elke slideshow heeft bediening');
+for (const show of SLIDESHOWS) {
+  ok(gebouwd.includes(`id="slideshow-${show.id}"`), `slideshow ${show.id} staat in de HTML`);
+  for (const slide of show.slides) {
+    ok(bestaat(slide.img), `beeld ${slide.img} staat in _site`);
+    ok(slide.alt && slide.alt.length > 10, `slide ${slide.img} heeft een alt-tekst`);
+  }
+}
+ok(/<script\s+src="script\.js"\s+defer><\/script>/i.test(gebouwd), 'de pagina laadt script.js');
 const script = bestaat('script.js') ? lees('script.js') : '';
+ok(/navigator\.clipboard/.test(script), 'script.js kopieert de deellink via de clipboard-API');
 ok(/youtube-nocookie\.com\/embed\//.test(script), 'de trailer wordt pas bij klik via youtube-nocookie geladen');
-ok(!/https?:\/\//.test(script.replace(/https:\/\/www\.youtube-nocookie\.com\/embed\//g, '')), 'script.js laadt zelf geen externe bronnen');
-ok(/data-video="jh6L9dd-YeE"/.test(html), 'de trailer-facade heeft het juiste video-id');
-ok(!/<iframe\b/i.test(html), 'er staat geen iframe in de HTML; die komt pas na de klik');
-ok(/laadt niets van buiten/i.test(html) && /nocookie/i.test(html), 'de privacyregel noemt de click-to-load trailer');
+ok(!/https?:\/\//.test(script.replace(/https:\/\/www\.youtube-nocookie\.com\/embed\//g, '').replace(/https:\/\/natuspella\.github\.io\/GDE-Groningen\//g, '')), 'script.js laadt zelf geen externe bronnen');
+ok(/data-video="jh6L9dd-YeE"/.test(gebouwd), 'de trailer-facade heeft het juiste video-id');
+ok(!/<iframe\b/i.test(gebouwd), 'er staat geen iframe in de HTML; die komt pas na de klik');
+ok(/laadt niets van buiten/i.test(gebouwd) && /nocookie/i.test(gebouwd), 'de privacyregel noemt de click-to-load trailer');
 
-const ids = new Set([...html.matchAll(/\bid="([^"]+)"/g)].map((m) => m[1]));
-const dodeAnkers = [...html.matchAll(/href="#([^"]+)"/g)].map((m) => m[1]).filter((id) => !ids.has(id));
+const ids = new Set([...gebouwd.matchAll(/\bid="([^"]+)"/g)].map((m) => m[1]));
+const dodeAnkers = [...gebouwd.matchAll(/href="#([^"]+)"/g)].map((m) => m[1]).filter((id) => !ids.has(id));
 ok(dodeAnkers.length === 0, 'alle interne ankers (#...) bestaan', dodeAnkers.join(', '));
 
-const zonderAlt = [...html.matchAll(/<img\b[^>]*>/gi)].filter((m) => !/\balt\s*=\s*"[^"]+"/i.test(m[0]));
+const zonderAlt = [...gebouwd.matchAll(/<img\b[^>]*>/gi)].filter((m) => !/\balt\s*=\s*"[^"]+"/i.test(m[0]));
 ok(zonderAlt.length === 0, 'elke afbeelding heeft een gevulde alt-tekst', zonderAlt.map((m) => m[0].slice(0, 60)).join('; '));
-ok(!/\bautoplay\b/i.test(html), 'geen autoplay');
+ok(!/\bautoplay\b/i.test(gebouwd), 'geen autoplay');
 ok(/\bprefers-reduced-motion\b/.test(css), 'style.css respecteert prefers-reduced-motion');
 
 // Merkenpalet uit DESIGN_SYSTEM.md: geen near-miss-hexen, geel alleen voor wanted-sterren.
