@@ -19,7 +19,13 @@ export function buildPlaneMesh(v) {
     g.add(m);
     return m;
   };
-  add(new THREE.BoxGeometry(6.8, 1.3, 1.3), body, 0, 1.45, 0);
+  // Cabine (#847): de romp is onder de cabine dicht (y 0,8-1,65), daarboven alleen de
+  // zijwanden en het dakvlak buiten de cockpitopening, zodat de cockpit onder de glaskap
+  // zichtbaar is. De opening loopt van x -1,1 tot 1,55 (de glaskap staat op x 0,7 ± 0,75).
+  add(new THREE.BoxGeometry(6.8, 0.85, 1.3), body, 0, 1.225, 0);
+  for (const s of [1, -1]) add(new THREE.BoxGeometry(6.8, 0.45, 0.06), body, 0, 1.875, s * 0.62);
+  add(new THREE.BoxGeometry(1.85, 0.06, 1.3), body, 2.475, 2.07, 0);
+  add(new THREE.BoxGeometry(2.3, 0.06, 1.3), body, -2.25, 2.07, 0);
   add(new THREE.BoxGeometry(2.0, 0.5, 1.28), accent, 1.2, 1.1, 0);
   add(new THREE.BoxGeometry(1.5, 0.6, 1.1), glass, 0.7, 2.2, 0);
   add(new THREE.BoxGeometry(1.5, 0.12, 10.6), body, 0.5, 2.0, 0);
