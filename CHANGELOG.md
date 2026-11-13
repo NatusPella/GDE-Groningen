@@ -9,11 +9,12 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
-
 - **De disclaimer noemt geen andere games of uitgevers meer.** README, NOTICE.md en het Over-scherm zeggen nu generiek dat GDE een gratis fanparodie is en niet gelieerd aan een andere gameontwikkelaar of -uitgever. De oude merknamen zijn uit de speltekst, de publieke documentatie en de releasenotes verdwenen; onderzoeks- en archiefdocumenten blijven als bron en historie (#72).
 - **De credits noemen nu alle mensen die meehielpen, op volgorde van bijdrage, inclusief iedereen die toegang had maar niets in de commits deed.** AI-assistenten staan niet bij de credits maar bij de tech-stack. Zie [docs/CREDITS.md](docs/CREDITS.md).
 - **De routegraaf wordt niet meer elke seconde herbouwd terwijl de wereld nog stroomt: hij wacht tot de wegen- en gebouwenlagen een seconde stil zijn, met een bovengrens van 4 s.** In een stilstaand profiel verdween de graafopbouw uit de top en zakte de gemiddelde frametijd van 37,6 naar 17,5 ms (p95 83 → 17 ms); de routekwaliteits- en ribbontests blijven groen (#804).
 - **De minimap ververst op een dure kaart (spoor of ver uitgezoomd) op 20 fps in plaats van 30 fps; lichte kaarten houden hun 30 fps.** In de HUD-submeting halveerde de minimapkost op spoor van 6,2 naar 2,9 ms per frame en zakte de p95 van 66,7 naar 33,4 ms; de gewone HUD-fasen kosten samen ~0,25 ms. (#804)
+- **Samen spelen is altijd online en vraagt bij de eerste start om een verplichte naam: één kaart met naamveld en "Doorgaan", zonder "Meedoen"/"Alleen spelen"/"Later" en zonder Escape of time-out (#530, eigenaarsopdracht).** Na Doorgaan staat `onlineMeedoen` op true en start de bestaande sessiezoektocht automatisch; een sessie van één speler blijft werken.
+- **Een prestatie komt nu binnen als een grotere badge met stralen, vonken, een gouden gloed bij medailles en een oplopende titel, met een eigen synthesizer-fanfare in plaats van een gewoon piepje (#840).** De kaart respecteert "Beweging beperken" en `prefers-reduced-motion`, blijft in de bestaande HUD-zone en het bestaande budget, en de Nederlandse teksten en prestatiedefinities zijn ongewijzigd; het geluid volgt de Effecten-volume-instelling en de mute-knop.
 
 ## [0.60.8] - 2026-11-13
 

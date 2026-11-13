@@ -128,6 +128,15 @@ await t('de lijst is onbereikbaar: geen fout, gewoon zelf hosten', async () => {
   assert.equal(meldingen.length, 1);
 });
 
+await t('met toestemming en een lege lijst: een sessie van één speler start (host)', async () => {
+  meldingen.length = 0;
+  let gehost = 0;
+  const uit = await bootSession(wereld(), deps({ haalLijst: lijstVan([]), host: async () => { gehost++; } }));
+  assert.equal(uit.doen, KEUZE.HOSTEN);
+  assert.equal(gehost, 1, 'de host van de sessie van één wordt gestart');
+  assert.deepEqual([log.ws.length, log.pc.length], [log.ws.length, log.pc.length], 'geen extra sockets voor een sessie van één');
+});
+
 await t('zonder toestemming: magOnline() === false opent geen enkele verbinding', async () => {
   const w0 = log.ws.length, p0 = log.pc.length;
   const w = wereld();

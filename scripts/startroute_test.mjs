@@ -113,20 +113,22 @@ const iMenuScreen = ss.indexOf('function runMenuScreen(');
 const saveScreen = iSaveScreen !== -1 && iMenuScreen > iSaveScreen ? ss.slice(iSaveScreen, iMenuScreen) : '';
 ok(/warmBeforeFinish\(opts, finish\)/.test(saveScreen) && /warmBeforeFinish\(opts, \(\) => \{ startLoadScreen\(world, \{ kind: 'save' \}\)/.test(saveScreen), 'de opgeslagen-spellen-route warmt ook voor');
 
-// --- #751: de eerste-startvraag heeft een time-out en Escape (main.js-vangnet) ---
-ok(/const ONLINE_START_WAIT_MS = \d+;/.test(main), '#751: de eerste-startvraag heeft een time-out');
-ok(/function waitForOnlineStart\(ms\)/.test(main), '#751: de boot wacht via een eigen wachter');
-ok(/closeOnlineStart\(\)/.test(main), '#751: de wachter sluit via de nette route van onlineconsentui.js');
-ok(/e\.key !== 'Escape'/.test(main), '#751: Escape sluit de vraag');
-ok(/await waitForOnlineStart\(ONLINE_START_WAIT_MS\)/.test(main), '#751: de boot gebruikt de wachter in plaats van een eeuwig wachten');
+// --- altijd online + verplichte naam (eigenaarsopdracht 13-11): geen time-out of Escape ---
+ok(!/ONLINE_START_WAIT_MS/.test(main) && !/waitForOnlineStart/.test(main) && !/closeOnlineStart/.test(main), 'de eerste-startvraag heeft geen time-out of sluitfunctie meer');
+ok(!/e\.key !== 'Escape'/.test(main) && !/e\.key === 'Escape'/.test(main.slice(0, main.indexOf('// #749: de boot'))), 'Escape slaat de vraag niet meer over');
+ok(/await beginOnlineStartQuestion\(\)/.test(main), 'de boot wacht op de verplichte naam');
+ok(/Vul je naam in voor Samen spelen/.test(main) && !/Kies of je alleen of samen speelt/.test(main), 'de laadschermstatus vraagt om de naam, niet om alleen/samen');
+ok(/Samen spelen: de wereld wordt klaargezet/.test(main) && !/Alleen spelen: de wereld wordt klaargezet/.test(main), 'na de naam gaat het altijd om Samen spelen');
+ok(!/requestOpenSamen\(\{ rol: 'gast', lijst: true \}\)/.test(main), 'de geforceerde openbare lijst bij de start is weg');
+ok(/sessionBootTick\(world/.test(main), 'de bestaande startzoektocht host/join start automatisch een sessie');
+ok(/startSoloHost\(world/.test(main), 'ook een sessie met één speler blijft mogelijk');
 // De vraag verschijnt al boven het laadscherm; het laden loopt erachter door en pas
 // vlak voor de start wordt het antwoord afgewacht.
 ok(/function beginOnlineStartQuestion\(\)/.test(main) && /if \(vraagOnline\) beginOnlineStartQuestion\(\);/.test(main), 'de eerste-startvraag opent al over het laadscherm');
 const iVraag = main.indexOf('beginOnlineStartQuestion();');
 const iFinish = main.indexOf('await finishLoading();');
 ok(iVraag !== -1 && iFinish !== -1 && iVraag < iFinish, 'de vraag staat vóór het einde van het laadscherm');
-ok(/const antwoord = await waitForOnlineStart\(ONLINE_START_WAIT_MS\)/.test(main) && /Kies of je alleen of samen speelt/.test(main), 'het antwoord wordt met een duidelijke statusregel afgewacht');
-ok(/Samen spelen: de wereld wordt klaargezet/.test(main) && /Alleen spelen: de wereld wordt klaargezet/.test(main), 'na het antwoord zegt het laadscherm wat er gebeurt');
+ok(/await beginOnlineStartQuestion\(\)/.test(main) && /setLoadingStatus\('Samen spelen: de wereld wordt klaargezet'\)/.test(main), 'na de verplichte naam gaat de boot verder');
 
 // --- #749: de boot heeft een wachter, harde grenzen en rAF-vangnetten ---
 ok(/const BOOT_WATCHDOG_MS = \d+;/.test(main) && /function armBootWatchdog\(/.test(main), '#749: de boot heeft een wachter');

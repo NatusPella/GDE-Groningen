@@ -7,20 +7,25 @@
 import { profielNaam, CONSENT_TEXT } from './lobby.js';
 import { getSettings, setSetting, magOnline } from './settings.js';
 
-// null means the question was never asked, so it still has to be asked; true and false are
-// answers. Null must never read as "yes" (settings.js normalises it the same way).
-export const moetVragen = (settings = getSettings()) => settings.onlineMeedoen !== true && settings.onlineMeedoen !== false;
+// De eigenaar koos: altijd online, en een verplichte naam. De vraag moet dus terugkomen
+// zolang er geen echte ja én een geldige naam is; false of null uit een oude installatie
+// wordt bij de volgende start één keer omgezet. Leeg is geen geldige online naam.
+export const onlineNaamFout = (naam) => {
+  const r = profielNaam(naam);
+  if (!r.ok) return r.reason;
+  if (!r.naam) return 'Vul een naam in: andere spelers zien je onder die naam.';
+  return '';
+};
+export const onlineNaamOk = (naam) => onlineNaamFout(naam) === '';
+export const moetVragen = (settings = getSettings()) => settings.onlineMeedoen !== true || !onlineNaamOk(settings.onlineNaam);
 
 // What the first start shows: a name, and one honest question with two answers.
 export const EERSTE_START = {
-  titel: 'Meedoen met andere spelers?',
-  uitleg: `${CONSENT_TEXT} Je kunt dit later altijd veranderen.`,
+  titel: 'Je naam voor Samen spelen',
+  uitleg: `${CONSENT_TEXT} Je speelt altijd met andere spelers; onder deze naam zien ze je. Je kunt je naam later in het pauzemenu aanpassen.`,
   naamLabel: 'Je naam',
-  naamHint: 'Leeg mag: dan zien anderen de naam van je figuur.',
-  meedoen: 'Meedoen',
-  alleen: 'Alleen spelen',
-  // #751: een derde weg naast de twee antwoorden: de vraag uitstellen zonder iets te bewaren
-  later: 'Later',
+  naamHint: 'Verplicht. Andere spelers zien je onder deze naam.',
+  doorgaan: 'Doorgaan',
 };
 
 // The switch in the players panel, with one line of explanation.
@@ -34,16 +39,19 @@ export const SCHAKELAAR = {
   uit: 'Je speelt alleen. Je sessie gaat niet naar buiten.',
 };
 
-// An answer from the first-start screen: the name goes through the same filter as the
-// profile field (lobby.js), and an empty name means "use the name of your figure".
-// Nothing is written when the name is refused, so a typo never turns into a half answer.
-export function kiesToestemming(meedoen, naam, { zet = setSetting } = {}) {
+// De enige uitkomst van de eerste-startkaart: een verplichte naam. Dezelfde filter als
+// het profielveld (lobby.js) en altijd onlineMeedoen = true; niets wordt bewaard bij een
+// fout, zodat een typefout nooit een halve keuze achterlaat.
+export function kiesNaam(naam, { zet = setSetting } = {}) {
+  const fout = onlineNaamFout(naam);
+  if (fout) return { ok: false, error: fout };
   const r = profielNaam(naam);
-  if (!r.ok) return { ok: false, error: r.reason };
   zet('onlineNaam', r.naam);
-  zet('onlineMeedoen', !!meedoen);
-  return { ok: true, meedoen: !!meedoen, naam: r.naam };
+  zet('onlineMeedoen', true);
+  return { ok: true, meedoen: true, naam: r.naam };
 }
+// Oude naam van dezelfde regel, voor bestaande aanroepers: altijd online.
+export function kiesToestemming(_meedoen, naam, opts = {}) { return kiesNaam(naam, opts); }
 
 // The switch. Turning it off records the answer and takes a session that lists itself out
 // of the public list (hub.zetOpenbaar(false), net/hub.js): the guests that are already in

@@ -137,8 +137,8 @@ import { updateStreetSigns } from './streetsigns.js';
 import { updatePhotoMode, wireFotoKey } from './fotomodusui.js';
 import { initPauseMenu, isPauseMenuOpen, openPauseMenu, pauseMenuCover } from './pausemenu.js';
 import { aandeel, tegelFoci, nietBijFoci } from './coopfoci.js';
-import { wantsOpenSamen, takeOpenSamen, samenGate, requestOpenSamen } from './samenpanel.js';
-import { maybeOpenOnlineStart, closeOnlineStart } from './onlineconsentui.js';
+import { wantsOpenSamen, takeOpenSamen, samenGate } from './samenpanel.js';
+import { maybeOpenOnlineStart } from './onlineconsentui.js';
 import { gateOn, setGate } from './coopgate.js';
 import { updateGastLokaal } from './coopgastlokaal.js';
 import { initDayNight, updateDayNight, refreshDayNight, DAY_LENGTH_S } from './daynight.js';
@@ -568,58 +568,12 @@ const loadMarks = window.__loadMarks = {};
 const markLoad = (k) => { loadMarks[k] = Math.round(performance.now()); };
 let tileWorldStats = null;
 
-// #751: de eerste-startvraag (Samen spelen) wacht op een bewuste klik (#556). Zonder invoer
-// bleef de boot op 100% staan: er was geen time-out en geen Escape. Deze wachter sluit de
-// vraag na 20 s of met Escape via de nette route van onlineconsentui.js (geen voorkeur
-// opgeslagen, niets verbonden; de vraag komt de volgende start terug). Het spel start gewoon
-// alleen verder. Een verborgen venster telt niet als antwoord: de vraag blijft dan staan.
-const ONLINE_START_WAIT_MS = 20000;
-// De vraag zelf openen we al vroeg, boven het laadscherm; het laden loopt
-// erachter gewoon door. waitForOnlineStart legt pas vlak voor de start zijn
-// time-out en Escape erop, zodat een trage schijf de vraag niet voortijdig sluit.
+// De eerste-startvraag (Samen spelen) is verplicht: altijd online en een geldige naam.
+// Er is geen time-out en geen Escape die hem overslaat; pas na Doorgaan gaat de boot verder.
 let onlineVraag = null;
 function beginOnlineStartQuestion() {
   if (!onlineVraag) onlineVraag = maybeOpenOnlineStart();
   return onlineVraag;
-}
-function waitForOnlineStart(ms) {
-  const vraag = onlineVraag || beginOnlineStartQuestion();
-  return new Promise((resolve) => {
-    let klaar = false;
-    let timer = 0;
-    const afronden = (res) => {
-      if (klaar) return;
-      klaar = true;
-      clearTimeout(timer);
-      window.removeEventListener('keydown', onKey, true);
-      resolve(res ?? null);
-    };
-    const zonderAntwoord = (waarom) => {
-      if (klaar) return;
-      closeOnlineStart();
-      console.warn(`Samen-spelen-vraag gesloten zonder antwoord (${waarom}); geen voorkeur opgeslagen`);
-      afronden(null);
-    };
-    const onKey = (e) => {
-      if (!e || e.key !== 'Escape') return;
-      e.preventDefault();
-      e.stopPropagation();
-      zonderAntwoord('Escape');
-    };
-    const wacht = () => {
-      timer = setTimeout(() => {
-        if (document.hidden) wacht();
-        else zonderAntwoord('time-out');
-      }, ms);
-    };
-    wacht();
-    window.addEventListener('keydown', onKey, true);
-    Promise.resolve(vraag).then((res) => afronden(res), (err) => {
-      console.warn('Samen-spelen-vraag mislukt', err);
-      closeOnlineStart();
-      afronden(null);
-    });
-  });
 }
 
 // #749: de boot als geheel heeft een uiterste grens. Tijdens de boot zijn de tegel-grenzen
@@ -912,17 +866,20 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
   // vlak voor de start wachten we op het antwoord (#751: time-out en Escape).
   // Zo staat de popup niet boven een laadscherm dat al "Klaar" zegt en hoeft hij
   // het laden niet stil te leggen.
-  const vraagOnline = !(FLAGS.noattract || FLAGS.storytest || FLAGS.stil || FLAGS.trailer || FLAGS.preview || FLAGS.benchmark || FLAGS.perf || FLAGS.spotsonly || FLAGS.autoplay || FLAGS.menutest) && !document.hidden;
+  const vraagOnline = !(FLAGS.noattract || FLAGS.storytest || FLAGS.stil || FLAGS.trailer || FLAGS.preview || FLAGS.benchmark || FLAGS.perf || FLAGS.spotsonly || FLAGS.autoplay || FLAGS.menutest);
   if (vraagOnline) beginOnlineStartQuestion();
   await finishLoading();
   if (vraagOnline) {
-    setLoadingStatus('Kies of je alleen of samen speelt');
-    const antwoord = await waitForOnlineStart(ONLINE_START_WAIT_MS);
+    // Een verborgen venster telt niet als antwoord: wacht tot de speler het spel ziet en
+    // vraag dan alsnog om de verplichte naam.
+    while (document.hidden) await new Promise((klaar) => {
+      const bijZicht = () => { if (!document.hidden) { document.removeEventListener('visibilitychange', bijZicht); klaar(); } };
+      document.addEventListener('visibilitychange', bijZicht);
+    });
+    setLoadingStatus('Vul je naam in voor Samen spelen');
+    await beginOnlineStartQuestion(); // verplicht: geen time-out en geen Escape
     onlineVraag = null;
-    if (antwoord) setLoadingStatus(antwoord.keuze === 'meedoen' ? 'Samen spelen: de wereld wordt klaargezet' : 'Alleen spelen: de wereld wordt klaargezet');
-    // Samen spelen is de default: wie meedoen heeft gekozen, ziet na het starten meteen de
-    // openbare sessielijst (en kan daar alsnog alleen verder).
-    if (magOnline() && !document.hidden) requestOpenSamen({ rol: 'gast', lijst: true });
+    setLoadingStatus('Samen spelen: de wereld wordt klaargezet');
   }
   markLoad('title');
   // the garages, cafés and shops out in the Ommelanden get their doors from the

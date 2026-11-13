@@ -21,6 +21,7 @@ import * as speech from './speech.js';
 import { drunkLevel } from './drunk.js';
 import { SPEAKER_MAX, SPEAKER_STOP, SPEAKER_LEVEL, SPEAKER_REF, SPEAKER_ROLLOFF, dopplerRate, edgeFade, pannerGain, pickSpeakers, pickSpeakerTrack } from './bikespeaker.js';
 import { rammelInterval } from './studentenfiets.js';
+import { PRESTATIE_GELUID, notenVoor, ruisVoor } from './achievementgeluid.js'; // #840: eigen prestatiegeluid
 import { KEYS } from './storagekeys.js';
 import { loadMuted, createMuteController } from './audiomute.js';
 import { noteSound } from './soundcaptions.js';
@@ -1028,6 +1029,14 @@ function playArmorDown() {
 function playCashChime(out) {
   const notes = [660, 880, 1320];
   notes.forEach((f, i) => playTone({ freq: f, type: 'sine', duration: 0.14, gain: 0.22, delay: i * 0.05, out }));
+}
+
+// #840: het eigen geluid van een prestatie. De noten staan in achievementgeluid.js; hier alleen de
+// synth-route. De sting-bus valt onder de Effecten-instelling en de mute-knop, net als de andere stings.
+function playPrestatieSting({ goud = false } = {}) {
+  for (const n of notenVoor(goud)) playTone({ ...n, bus: stingBus, prio: 2 });
+  const r = ruisVoor(goud);
+  if (r) playNoiseBurst({ ...r, bus: stingBus, prio: 2 });
 }
 
 function playSwitchClick() {
@@ -2386,10 +2395,10 @@ function playAudioEvents(world) {
         playTone({ freq: 2093, type: 'sine', duration: 0.25, gain: 0.09, delay: 0.08, bus: uiBus, prio: 2 });
         break;
       case 'prestatie':
-        [659, 988, 1319].forEach((f, j) => playTone({ freq: f, type: 'sine', duration: 0.6, gain: 0.045, delay: j * 0.09, filterFreq: 2600, bus: stingBus, prio: 2 }));
+        playPrestatieSting({ goud: !!e.goud }); // #840: eigen prestatiegeluid (gewoon of goud)
         break;
       case 'achievement':
-        [784, 988, 1175, 1568].forEach((f, j) => playTone({ freq: f, type: 'triangle', duration: 0.22, gain: 0.08, delay: j * 0.07, bus: stingBus, prio: 2 }));
+        playPrestatieSting({ goud: true }); // medailles en uitdagingen: de gouden variant
         break;
       default: break;
     }

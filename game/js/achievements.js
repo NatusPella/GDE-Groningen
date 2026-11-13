@@ -702,6 +702,51 @@ body.mg-on #hud .ach-toast { top: auto; bottom: max(calc(13vh / var(--ui, 1)), 1
 @media (max-width: 480px) { #hud .ach-toast { left: 50%; min-width: 0; width: calc(100vw / var(--ui, 1) - 32px); } #hud .ach-toast .ach-title { font-size: 22px; } }
 `;
 
+// #840: de grotere presentatie: badge met stralen, vonken, een gloed en een oplopende titel. Alles
+// met de bestaande kleurtokens en binnen dezelfde zone/hetzelfde budget; bij "Beweging beperken"
+// (html.reduce-motion) of prefers-reduced-motion staat alle beweging stil.
+const CSS_EXTRA = `
+#hud .ach-toast { min-width: 340px; padding: 14px 26px 14px 14px; gap: 16px; border-radius: 12px; border-left-width: 5px;
+  background: linear-gradient(105deg, rgba(12,20,14,0.96) 0%, rgba(18,32,22,0.92) 62%, rgba(12,20,14,0.58) 100%);
+  box-shadow: 0 10px 34px rgba(0,0,0,0.6), 0 0 30px rgba(63,201,122,0.22), inset 0 0 0 1px rgba(240,237,228,0.08); }
+#hud .ach-toast.on { animation: ach-in 0.42s cubic-bezier(0.2, 0.9, 0.25, 1.15); }
+@keyframes ach-in { from { opacity: 0; transform: translateY(-18px) scale(0.94); } 70% { opacity: 1; transform: translateY(2px) scale(1.012); } to { transform: none; } }
+#hud .ach-toast .ach-badge { position: relative; flex: none; width: 64px; height: 64px; display: grid; place-items: center; }
+#hud .ach-toast .ach-ico { position: relative; z-index: 2; width: 56px; height: 56px; }
+#hud .ach-toast .ach-ico .ach-pic { width: 32px; height: 32px; }
+#hud .ach-toast .ach-rays { position: absolute; inset: -10px; z-index: 0; border-radius: 50%; opacity: 0.34;
+  background: repeating-conic-gradient(var(--mk-ok, #3fc97a) 0deg 2deg, transparent 2deg 18deg);
+  -webkit-mask: radial-gradient(circle, transparent 52%, #000 54%); mask: radial-gradient(circle, transparent 52%, #000 54%);
+  animation: ach-rays 2.6s linear infinite; }
+@keyframes ach-rays { to { transform: rotate(360deg); } }
+#hud .ach-toast .ach-spark { position: absolute; z-index: 3; width: 7px; height: 7px; border-radius: 50%; background: var(--mk-ok, #3fc97a); opacity: 0; animation: ach-spark 1.15s ease-out 0.05s forwards; }
+#hud .ach-toast .ach-spark.s1 { left: 5px; top: 1px; --dx: -7px; }
+#hud .ach-toast .ach-spark.s2 { right: 3px; top: 11px; --dx: 7px; animation-delay: 0.16s; background: var(--mk-mission, #e8c93a); }
+#hud .ach-toast .ach-spark.s3 { left: 12px; bottom: 0; --dx: -4px; animation-delay: 0.26s; }
+#hud .ach-toast .ach-spark.s4 { right: 9px; bottom: 3px; --dx: 5px; animation-delay: 0.34s; background: var(--mk-mission, #e8c93a); }
+@keyframes ach-spark { 0% { opacity: 0; transform: translate(0, 0) scale(0.6); } 25% { opacity: 0.95; } 100% { opacity: 0; transform: translate(var(--dx, 0), -20px) scale(1.1); } }
+#hud .ach-toast .ach-title { font-size: 31px; letter-spacing: 1.6px; text-shadow: 0 1px 0 rgba(0,0,0,0.4); animation: ach-rise 0.5s 0.06s both; }
+@keyframes ach-rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+#hud .ach-toast .ach-kicker { font-size: 12.5px; }
+#hud .ach-toast::after { content: ''; position: absolute; inset: 0; border-radius: 12px; pointer-events: none;
+  background: linear-gradient(115deg, transparent 30%, rgba(240,237,228,0.14) 45%, transparent 60%); background-size: 220% 100%;
+  animation: ach-shimmer 1.6s 0.15s ease-out 1; }
+@keyframes ach-shimmer { from { background-position: 120% 0; } to { background-position: -40% 0; } }
+#hud .ach-toast.gold { box-shadow: 0 10px 34px rgba(0,0,0,0.6), 0 0 34px rgba(232,201,58,0.3), inset 0 0 0 1px rgba(240,237,228,0.1); }
+#hud .ach-toast.gold .ach-rays { background: repeating-conic-gradient(var(--mk-mission, #e8c93a) 0deg 2deg, transparent 2deg 18deg); opacity: 0.4; }
+#hud .ach-toast.gold .ach-title { color: #fff0a8; }
+html.reduce-motion #hud .ach-toast, html.reduce-motion #hud .ach-toast.on, html.reduce-motion #hud .ach-toast .ach-title,
+html.reduce-motion #hud .ach-toast .ach-rays, html.reduce-motion #hud .ach-toast .ach-spark, html.reduce-motion #hud .ach-toast::after {
+  animation: none !important; transition: none !important; opacity: 1; transform: none; }
+html.reduce-motion #hud .ach-toast .ach-spark, html.reduce-motion #hud .ach-toast::after { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  #hud .ach-toast, #hud .ach-toast.on, #hud .ach-toast .ach-title, #hud .ach-toast .ach-rays, #hud .ach-toast .ach-spark, #hud .ach-toast::after {
+    animation: none !important; transition: none !important; opacity: 1; transform: none; }
+  #hud .ach-toast .ach-spark, #hud .ach-toast::after { display: none; }
+}
+@media (max-width: 480px) { #hud .ach-toast { min-width: 0; padding: 12px 18px 12px 10px; gap: 10px; } #hud .ach-toast .ach-badge { width: 54px; height: 54px; } #hud .ach-toast .ach-ico { width: 46px; height: 46px; } #hud .ach-toast .ach-title { font-size: 24px; } }
+`;
+
 export const TROPHY_SVG = '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path fill="currentColor" d="M7 3h10v2h3v3a4 4 0 0 1-4 4h-.3A5 5 0 0 1 13 14.9V18h3v3H8v-3h3v-3.1A5 5 0 0 1 8.3 12H8a4 4 0 0 1-4-4V5h3V3zm0 4H6v1a2 2 0 0 0 1 1.7V7zm10 0v2.7A2 2 0 0 0 18 8V7h-1z"/></svg>';
 
 function ensureToast() {
@@ -709,7 +754,7 @@ function ensureToast() {
   const hud = document.getElementById('hud');
   if (!hud) return null;
   const style = document.createElement('style');
-  style.textContent = CSS;
+  style.textContent = CSS + CSS_EXTRA;
   document.head.appendChild(style);
   toastEl = document.createElement('div');
   toastEl.className = 'ach-toast';
@@ -738,6 +783,10 @@ function toastBlocked() {
   return !!(pm && pm.classList.contains('visible'));
 }
 
+export function toastDuur(title, desc) {
+  return Math.max(TOAST_S, 1.2 + 0.06 * (String(title || '').length + String(desc || '').length));
+}
+
 function showNextToast() {
   const el = ensureToast();
   if (el && toastQueue.length && toastBlocked()) {
@@ -751,7 +800,11 @@ function showNextToast() {
   el.classList.toggle('gold', gold);
   noteToast();
   const { pct } = getAchievementSummary();
-  el.innerHTML = `<span class="ach-ico">${a.hidden ? TROPHY_SVG : iconSvg(a, 'ach-pic')}</span><span class="ach-txt">` +
+  // #840: een grotere badge met stralen en vonken; de decoratie is aria-hidden, de tekst blijft
+  // dezelfde Nederlandse kicker/titel/beschrijving voor de schermlezer.
+  el.innerHTML = `<span class="ach-badge" aria-hidden="true"><span class="ach-rays"></span><span class="ach-ico">${a.hidden ? TROPHY_SVG : iconSvg(a, 'ach-pic')}</span>` +
+    '<span class="ach-spark s1"></span><span class="ach-spark s2"></span><span class="ach-spark s3"></span><span class="ach-spark s4"></span></span>' +
+    `<span class="ach-txt">` +
     `<span class="ach-kicker">PRESTATIE ONTGRENDELD<span class="ach-pct">${pct >= 1 ? pct : '&lt;1'}% totaal</span></span>` +
     `<span class="ach-title">${dualHtml(a.title)}</span><span class="ach-desc">${escHtml(a.desc)}</span></span>`;
   // #643: de toast bezet zone E via het zonebord, net als een kaart van hudcards.js; is de zone bezet,
@@ -771,7 +824,7 @@ function showNextToast() {
       // plek vragen we via de leesbare ingang (#500), want dit is geen eigendom
       // van deze module.
       const p = hoofdspeler(world);
-      q.push({ kind: 'prestatie', x: p ? p.x : 0, y: p ? p.y : 0 });
+      q.push({ kind: 'prestatie', x: p ? p.x : 0, y: p ? p.y : 0, goud: !!gold });
     }
   }
   toastUntil = 1;
@@ -780,5 +833,5 @@ function showNextToast() {
     el.classList.remove('on');
     zones.vacate('E', 'ach');
     toastTimer = setTimeout(showNextToast, 450);
-  }, Math.max(TOAST_S, 1.2 + 0.06 * (String(a.title).length + String(a.desc || '').length)) * 1000);
+  }, toastDuur(a.title, a.desc) * 1000);
 }
