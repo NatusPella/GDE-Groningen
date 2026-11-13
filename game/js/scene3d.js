@@ -1968,10 +1968,6 @@ export function prewarmPending() {
 export function warmWaterIndex(worldMap) {
   try { if (worldMap) getWaterIndex(worldMap); return true; } catch (e) { console.warn('waterindex voorladen', e); return false; }
 }
-// De proefmaterialen van precompilePrograms moeten blijven bestaan: dispose je
-// ze meteen, dan laat three het bijbehorende programma weer vallen en linkt de
-// film het alsnog (lambert/basic, ~100 ms getProgramParameter).
-const warmMatVarianten = [];
 export function precompilePrograms() {
   const t0 = performance.now();
   // Een object met een `material` maar zonder geometry (zoals een Group met een
@@ -2004,7 +2000,6 @@ export function precompilePrograms() {
         [new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8, vertexColors: true }), true],
         [new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8, vertexColors: true }), false],
       ];
-      for (const mv of matVarianten) warmMatVarianten.push(mv);
       const warmGeoUv = new THREE.PlaneGeometry(2, 2);
       const warmGeoFlat = new THREE.BufferGeometry();
       warmGeoFlat.setAttribute('position', new THREE.Float32BufferAttribute([-1, -1, 0, 1, -1, 0, 1, 1, 0, -1, 1, 0], 3));
@@ -2015,6 +2010,7 @@ export function precompilePrograms() {
       precompile(scene);
       scene.remove(warmGroup);
       warmGeoUv.dispose(); warmGeoFlat.dispose();
+      for (const [m] of matVarianten) m.dispose();
     }
   } catch (e) { console.warn('shaders voorcompileren', e); }
   finally { for (const [o, m] of parked) o.material = m; }
