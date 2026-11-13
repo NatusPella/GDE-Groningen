@@ -1,6 +1,6 @@
 # Invulblad voor de eigenaar (#72, #62, #13)
 
-Stand: 19 oktober 2026. **Niets is verstuurd, geüpload of ingesteld.** Dit blad
+Stand: 13 november 2026. **Niets is verstuurd, geüpload of ingesteld.** Dit blad
 verzamelt de velden die alleen de eigenaar kan invullen, met een voorstel erbij.
 Vul in wat je wilt; zeg daarna welke regels een agent in de repo mag verwerken.
 
@@ -13,28 +13,22 @@ invullen nadat de repo publiek is (zie [PUBLICATIECHECKLIST.md](PUBLICATIECHECKL
 |---|---|---|
 | About (max. 350 tekens) | zie SOCIAL-EN-WEBSITE.md ("Gratis open-wereldkomedie in een low-poly Groningen …") | ☐ akkoord ☐ aanpassen: _… _ |
 | Topics | `threejs`, `electron`, `open-world`, `groningen`, `low-poly`, `comedy`, `dutch`, `game`, `javascript` | ☐ akkoord ☐ aanpassen: _… _ |
-| Website-veld | leeg tot de webversie is besloten (#57) | ☐ leeg ☐ URL: _… _ |
+| Website-veld | de marketingpagina staat klaar in `website/`; na Public: `https://natuspella.github.io/GDE-Groningen/` | ☐ dit invullen ☐ anders: _… _ |
 | Social preview (1280×640, < 1 MB) | zomerbeeld Martinitoren of Grote Markt, logo + "Zomer vol misdaad", geen bloed/wapens/HUD | ☐ Martinitoren ☐ Grote Markt ☐ anders: _… _ |
-| Landingspagina met "18+" | alleen op de winkelpagina of ook op de site | ☐ site ook ☐ alleen winkelpagina |
+| Landingspagina met "18+" | De marketingpagina in `website/` vermeldt 18+; de eigenaar kan dat aanpassen | ☐ site ook ☐ alleen winkelpagina |
 
-## 2. Credits en disclaimer samenvoegen (#72)
+## 2. Credits en disclaimer samenvoegen (#72): doorgevoerd
 
-Nu staan twee teksten naast elkaar in `game/js/credits.js`: de `DISCLAIMER`
-(regel 7: "…fanparodie op GTA, niet gelieerd aan of goedgekeurd door Rockstar
-Games of Take-Two Interactive. Namen, personages, merken en gebeurtenissen zijn
-verzonnen.") en de aftitelregel `Fanparodie` (regel 22: "niet van Rockstar Games
-of Take-Two. Alles verzonnen"). Dezelfde tekst staat in `NOTICE.md` (regels 24-25).
+Doorgevoerd op 13 november 2026: de disclaimer in `game/js/credits.js`,
+`NOTICE.md` en `README.md` is één generieke tekst zonder namen van andere games
+of uitgevers; de aftitelregel "Fanparodie: alles verzonnen" blijft. De
+allowlist van `text_audit` is daarop opgeschoond. De oude werktitel wordt
+nergens meer gebruikt; de GitHub-releasenotes zijn op dezelfde dag opgeschoond.
 
-Voorstel: laat de volledige `DISCLAIMER` staan als enige plek die de uitgever
-noemt (juridisch nodig, staat op de allowlist van `scripts/text_audit.mjs`), en
-kort de aftitelregel in tot "Fanparodie: alles verzonnen" zodat de
-namen niet twee keer in het spel staan. Mogelijke consequentie: niemand; geen
-stemopnames hangen eraan.
-
-| Keuze | |
+| Keuze | Status |
 |---|---|
-| ☐ Voorstel doorvoeren (agent past `credits.js` aan en de test) | ☐ Laten zoals het is |
-| De releasetekst over de oude naam ("Grand Theft Eierbal", MERKENREGISTER.md §1) | ☐ laten staan ☐ weghalen |
+| Generieke disclaimer in README, NOTICE en credits | ✅ doorgevoerd (13-11-2026) |
+| Releasetekst over de oude werktitel | ✅ uit de releasenotes gehaald; back-up in `%TEMP%` |
 
 ## 3. Muziekproduct (#62)
 

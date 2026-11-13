@@ -23,8 +23,8 @@ samenvoegingen.
 | GDE Groningen | exact | Het volledige gebruikte merk |
 | Grootste Diefstal Ever | exact en "bevat" | De uitgeschreven titel |
 | Zomer vol misdaad | "bevat" | Ondertitel |
-| Grand Theft Eierbal | exact | Werktitel; eventueel verwarring met Grand Theft Auto (Take-Two) |
-| Grand Theft, Diefstal Ever, GTA | gelijkenis | Verwarringsgevaar met Take-Two; GTA is sterk beschermd |
+| (vroegere werktitel) | exact | Werktitel; hernoemd en niet meer in gebruik, daarom hier niet herhaald |
+| Diefstal Ever | gelijkenis | Verwarringsgevaar met een sterke bestaande merknaam; hernoemd naar GDE |
 
 Filters: Nice-klasse **9** (downloadbare software, games, audio en video
 opnames) en **41** (entertainment, online games, uitgeven). Eventueel **35**
@@ -54,9 +54,9 @@ merken met status "registered" of "pending/filed".
   verwijderverzoek van een platform (Steam, itch.io) bij een conflict. Een eigen
   merkregistratie is niet nodig voor publicatie; de naam is wel te
   controleren om gedoe te voorkomen.
-- Vroegere naam "Grand Theft Eierbal" is een parodie op GTA. Dit is de reden
-  van de hernoeming (zie `docs/` en de naamkeuze); houd alle zichtbare titels,
-  logo en store-teksten dus op "GDE Groningen".
+- De vroegere werktitel was een parodie op een bestaande gamefranchise. Dat is
+  de reden van de hernoeming (zie `docs/` en de naamkeuze); houd alle zichtbare
+  titels, logo en store-teksten dus op "GDE Groningen".
 
 ## Vast te leggen na de handmatige check
 

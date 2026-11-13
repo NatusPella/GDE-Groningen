@@ -63,3 +63,6 @@ desktop/err*.txt
 # tijdelijke meetbestanden van perf-agents
 .agents/perf-*/
 desktop/.shots/
+
+# build van de marketingpagina (wordt door website/build.mjs gemaakt)
+website/_site/

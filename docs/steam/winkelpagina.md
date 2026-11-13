@@ -322,10 +322,11 @@ EN:
 
 > GDE stands for Grootste Diefstal Ever ("Greatest Theft Ever"). A free, non-commercial fan parody, not affiliated with or endorsed by any other publisher. Names, characters, brands and events are fictional; real streets and public buildings are only the setting. Map data © OpenStreetMap contributors (ODbL).
 
-In de game zelf (Over, aftiteling) noemt de disclaimer wél Rockstar Games
-en Take-Two (`game/js/credits.js`). Dat blijft: daar is het een
-juridische vermelding, op de winkelpagina zou het een vergelijking zijn.
-Besluit van de eigenaar of de winkelpagina toch de volledige versie krijgt.
+In de game zelf (Over, aftiteling) noemt de disclaimer geen andere games of
+uitgevers: hij zegt generiek dat GDE een gratis fanparodie is en niet gelieerd
+aan een andere gameontwikkelaar of -uitgever (`game/js/credits.js`). De
+winkelpagina en de game gebruiken daarmee dezelfde strekking. Besluit van de
+eigenaar of de winkelpagina de volledige versie krijgt.
 
 Verplichte vermelding van de kaart: "© OpenStreetMap-bijdragers" staat in
 de disclaimer hierboven (ODbL-attributie, docs/LICENTIES.md).

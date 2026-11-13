@@ -1,0 +1,49 @@
+# GitHub Pages voor de marketingpagina (#37). Publiceert niets vanzelf: alleen met de hand te
+# starten (workflow_dispatch), alleen door de repository-eigenaar (owner-guard op beide jobs) en
+# de deploy wacht op het environment github-pages. Dit is de MARKETINGPAGINA, niet de
+# game-webversie (#57, die komt hier niet op). Zie website/README.md voor de stappen.
+name: Pages (marketing)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages-marketing
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.actor == github.repository_owner
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: Marketingpagina bouwen
+        run: node website/build.mjs
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: website/_site
+
+  deploy:
+    needs: build
+    if: github.actor == github.repository_owner
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deployen
+        id: deployment
+        uses: actions/deploy-pages@v4

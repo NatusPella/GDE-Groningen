@@ -1,6 +1,9 @@
 # Social preview en websitetekst: voorstel (#72)
 
-Stand: 20 oktober 2026. Het plaatje is gemaakt (`docs/social-preview.png`, hieronder) en de About-tekst en topics staan op GitHub; **uploaden van het plaatje en een website-veld zijn nog niet gedaan** (de repo is privé). Geen namen of
+Stand: 13 november 2026. De generieke disclaimer is doorgevoerd (#72); de
+marketingpagina staat klaar in `website/` en wordt pas na Public geactiveerd
+(zie `website/README.md`). Het plaatje is gemaakt
+(`docs/social-preview.png`, hieronder) en de About-tekst en topics staan op GitHub; **uploaden van het plaatje en een website-veld zijn nog niet gedaan** (de repo is privé). Geen namen of
 merken van andere games, geen "-achtige" vergelijkingen (LICENTIES.md §8).
 Altijd zomer.
 
@@ -14,7 +17,7 @@ Altijd zomer.
   "Zomer vol misdaad". Eén regel eronder: "Gratis open-wereldkomedie in een
   low-poly Groningen".
 - **Veilige zone:** 40 px rondom vrij; tekst binnen de linker 60%.
-- **Niet doen:** het woord "GTA", logo's van derden, echte personen of kentekens,
+- **Niet doen:** namen of logo's van andere games, echte personen of kentekens,
   de Esri-luchtfoto.
 - **Gemaakt:** `node scripts/social_preview.mjs` maakt `docs/social-preview.png` (1280×640, 786 KB) uit de in-game luchtrender van de Martinitoren en de Grote Kerk bij zonsondergang (`docs/steam/beelden/bron/luchtfoto.jpg`), met het woordmerk "GDE / Groningen / Zomer vol misdaad" en de regel "Gratis open-wereldkomedie in een low-poly Groningen". Geen HUD, wapens of merken. Andere beelden: `--bg=vismarkt` of `--bg=zonsopgang`.
 - **Plaatsen:** Settings › Social preview › Upload an image, alleen door de eigenaar. De instelling is op een privé-repo niet in te vullen door een agent (de ingebouwde browser is niet ingelogd).
@@ -69,21 +72,18 @@ gelieerd aan of goedgekeurd door enige uitgever. Kaartdata © OpenStreetMap-bijd
 - **Landingspagina:** de teksten hierboven zijn de bron voor de website; pas publiceren als de
   eigenaar de webplek (#57) en "18+ op de site of alleen in de winkel" heeft besloten.
 
-### Credits en disclaimer samenvoegen (#72): voorstel
+### Credits en disclaimer samenvoegen (#72): doorgevoerd
 
-De disclaimer staat nu op drie plekken en noemt de merknamen van de andere game:
-`README.md` (rond regel 239), `NOTICE.md` (rond regel 24) en `game/js/credits.js` (regel 9,
-`DISCLAIMER`). Voorstel is één tekst, zonder merknamen van anderen (constitution punt 2 en de
-Steam-regel "geen merken van anderen"; `text_audit` staat de huidige namen toe, maar dat maakt ze
-niet verplicht):
+De disclaimer staat op drie plekken: `README.md`, `NOTICE.md` en
+`game/js/credits.js` (`DISCLAIMER`). Sinds 13 november 2026 is dat één
+generieke tekst zonder namen van andere games of uitgevers (constitution punt 2
+en de Steam-regel "geen merken van anderen"):
 
-> GDE Groningen – Zomer vol misdaad is een gratis fanparodie, niet gelieerd aan, gesponsord door of
-> goedgekeurd door enige andere gameontwikkelaar of -uitgever. Namen, personages, bedrijven,
-> merken en gebeurtenissen zijn verzonnen; gelijkenis met bestaande personen of bedrijven berust op
-> toeval. Echte straten en openbare gebouwen zijn echt.
+> GDE Groningen – Zomer vol misdaad is een gratis, niet-commerciële fanparodie, niet gelieerd aan,
+> gesponsord door of goedgekeurd door enige andere gameontwikkelaar of -uitgever. Namen,
+> personages, bedrijven, merken en gebeurtenissen zijn verzonnen; gelijkenis met bestaande personen
+> of bedrijven berust op toeval. Echte straten en openbare gebouwen zijn alleen het decor.
 
-Wat er dan verandert: de zinsnede "in het bijzonder niet door Rockstar Games of Take-Two
-Interactive, de uitgever van GTA" verdwijnt uit README, NOTICE en de aftiteling; de aftitelregel
-"Fanparodie" blijft. Dat is een tekstwijziging in drie bestanden plus de toelichting in
-`docs/LICENTIES.md`; **de eigenaar beslist** (het staat op #72). Zegt de eigenaar ja, dan is het
-één kleine commit en blijven `text_audit` en de Steam-winkelpagina kloppen.
+De aftitelregel "Fanparodie" blijft, en `text_audit` blijft groen. De oude
+zinsnede met de namen van een uitgever en zijn spel is uit alle drie de
+bestanden verdwenen; de allowlist van `text_audit` is daarop opgeschoond.

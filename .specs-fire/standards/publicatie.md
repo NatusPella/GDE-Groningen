@@ -204,8 +204,8 @@ Uit de docs:
    Content Survey zelf invullen.
 5. Steam: account, Steam Direct-bijdrage, app-id, depots, 217 prestaties,
    winkelpagina, Deck-test en het publicatiemoment.
-6. De disclaimer met de namen van Rockstar Games en Take-Two: laten of weglaten
-   (`docs/STEAM-CHECKLIST.md:23`, #72).
+6. De disclaimer met de namen van andere games en uitgevers: **opgelost op
+   13-11-2026**; de tekst is generiek en noemt geen namen meer (`docs/STEAM-CHECKLIST.md`, #72).
 
 ## Open punten (met issue)
 
