@@ -156,6 +156,7 @@ Zelf builds, de webversie of een release maken: zie
 | Ctrl | bukken | |
 | E of F | instappen, winkel of klus gebruiken | uitstappen |
 | Muis | camera draaien | camera draaien |
+| C (in de browser G) | eerste persoon aan of uit | eerste persoon aan of uit (binnen in de cabine) |
 | Linkermuisknop | aanvallen of schieten | uit het raam schieten |
 | Rechtermuisknop | richten | |
 | 1 – 4, muiswiel | wapen kiezen | |

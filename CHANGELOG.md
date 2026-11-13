@@ -9,6 +9,10 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- **Door de ramen van voertuigen zie je nu een interieur, ook als ze verder weg staan (#833).** Auto's, bestelbussen en vrachtwagens hebben hun cabine in drie detailniveaus: dichtbij het volledige interieur met dashboard, stuur, hemel en spiegel, halfverwege de stoelen en het dashboard, en in de verte alleen de vulling. De buspassagiersruimte heeft dezelfde trap, met reizigers alleen dichtbij. Elk niveau is één gedeelde geometrie per voertuigsoort en er worden per beeld hooguit een paar nieuwe interieurs gebouwd, zodat een straat vol geparkeerde auto's geen hapering geeft.
+- **Eerste persoon in de hele game (#833).** Met C (in de browser G) speel je door de ogen van je figuur: te voet en in elk voertuig, vrij rondkijken met de muis, en in een auto zie je dashboard, stuur en de wereld door de ruiten; je eigen lichaam staat dan niet in beeld. De stand staat onder Camera & richten en wordt per apparaat bewaard. De filmcamera's (V) blijven zoals ze waren.
+- **Samen spelen: de camera is per speler en lokaal (#833).** Iedere speler kiest zelf de eerste-persoonstand; de interieurs blijven alleen beeld en gaan niet over het net, dus een gast ziet ze in de eigen wereld en het snapshot verandert niet.
+
 ## [0.60.7] - 2026-11-12
 
 - **De desktop-app draait op Electron 45.2.3 (was 44.9.3).** Die versie bevat de beveiligings- en stabiliteitsfixes van de nieuwere Chromium/Node-basis; de app, de packaging en de verhaaltest zijn opnieuw getest.
