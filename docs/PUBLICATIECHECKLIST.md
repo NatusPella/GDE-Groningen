@@ -2,7 +2,7 @@
 
 > **Naslag.** De regels staan in de canonieke spec [`.specs-fire/standards/publicatie.md`](../.specs-fire/standards/publicatie.md); dit document is uitleg en geschiedenis. Bij verschil wint de spec (en bij twijfel `AGENTS.md`).
 
-Stand: 10 november 2026 (0.60.3; de laatste meting staat in §10). De repo is **privé**; niets hieronder is gedaan of
+Stand: 13 november 2026 (0.60.7; de laatste meting staat in §11). De repo is **privé**; niets hieronder is gedaan of
 aangezet. Laatste run op 10 november: `publish_check --history` **4 FAIL** (historie-e-mail,
 eigenaarsbesluit #62) en **16 WARN** (handmatige releaseworkflows), `secrets_scan` uit §7,
 `merkenregister_check` 45 rijen en 0 afwijkingen, `text_audit` 0 bevindingen, `audio_herkomst`
@@ -53,7 +53,7 @@ openen) en meldt bestand, patroonnaam en blob, nooit de waarde.
 2. `node scripts/publish_check.mjs --history` zonder FAIL.
 3. `gitleaks detect` (niet geïnstalleerd) en `git log --all --format=%ae | sort -u` (alleen noreply).
 4. Tags: `git ls-remote --tags origin` gelijk aan lokaal (geen oude, niet-herschreven commits).
-5. README-disclaimer aanwezig; About-tekst en topics zonder merknamen van andere games.
+5. README-disclaimer aanwezig (generiek, zonder namen van andere games); About-tekst en topics zonder merknamen van andere games.
 6. **Pas dan** zichtbaarheid wijzigen (GitHub-instelling; geen script doet dit).
 
 ## 4. Instellingen direct na Public (alleen de eigenaar)
@@ -64,15 +64,17 @@ openen) en meldt bestand, patroonnaam en blob, nooit de waarde.
 - [ ] Actions: goedkeuring voor workflows van forks aan; `GITHUB_TOKEN` standaard alleen-lezen (`test.yml` heeft `contents: read`). De vier release-workflows vragen `contents: write`, maar hebben sinds #558 een owner-guard (`github.actor == github.repository_owner`) en het environment `release`: zet daar een verplichte beoordelaar (de eigenaar) op, en overweeg **immutable releases** aan te zetten. Playtesters horen pull-only te zijn; ook dat is een eigenaarsbesluit
 - [ ] Social preview uploaden (zie voorstel), About en website-veld invullen
 - [ ] Discussions/Wiki bewust aan of uit laten
-- [ ] Pages **niet** aanzetten zonder aparte beslissing over de webversie (#57)
+- [ ] Pages pas na Public: de marketingpagina staat klaar in `website/` met een handmatige workflow (owner-guard, environment `github-pages`; zie `website/README.md`). De game-webversie hosten is een aparte beslissing (#57)
 
 ## 5. Bewust niet gedaan
 
-Geen workflow die publiceert, geen Pages-configuratie, geen zichtbaarheids-
+Geen automatische workflow die publiceert, geen Pages-configuratie, geen zichtbaarheids-
 wijziging, geen upload, geen post. SHA-256 staat sinds 25-10 in de release: `desktop/release.sh`
 schrijft `SHA256SUMS.txt` voor de Windows-build en de wereld en uploadt dat naast de
 bestanden (`scripts/release_hashes.mjs`). Opruimen van oude opslagsleutels is nog code-werk
-voor later.
+voor later. Wel klaargezet op 13-11 (nog niets geactiveerd): de GitHub Pages-marketingpagina
+in `website/` met een handmatige Pages-workflow die alleen de eigenaar kan starten, en
+`docs/PERSKIT.md`.
 
 ## 6. Lokale controles van 24 oktober (versie 0.47.0, nog niets openbaar gemaakt)
 
@@ -167,3 +169,31 @@ openbaar, geüpload of ingesteld.
 - **Open en alleen de eigenaar:** de punten uit §2 (historie/mailmap, OSM-contactgegevens,
   merkenregisters, Noorderzon, interne docs, CDN, website, IARC, invulblad, 1.0-route), de
   Actions-instellingen uit §4, de privacy-URL en het publicatiebesluit. Daar is niets van gedaan.
+
+## 11. Elfde ronde: 13 november 2026 (0.60.7, voorbereiding Public)
+
+Op verzoek van de eigenaar klaargezet voor een publieke repo; **er is nog niets openbaar
+gemaakt, geactiveerd of gepost**.
+
+- **README** herschreven voor de **openbare playtest** (geen Early Access; elke versie is een
+  pre-release) met status, downloadrealiteit, feedbackroute en een pershoek; `docs/PERSKIT.md`
+  toegevoegd; de marketingpagina staat klaar in `website/` (handmatige Pages-workflow, nog niet
+  geactiveerd). De feitencheck van de README is verwerkt (stemmen, live bussen, foutrapport,
+  toegankelijkheid, browsertoetsen, gebouwenaantallen, buildinstructies en releasebijlagen).
+- **Merken:** disclaimer in README, NOTICE.md, `game/js/credits.js` en de docs is generiek en
+  noemt geen andere games of uitgevers meer; allowlist van `text_audit` opgeschoond; 59 van de
+  87 GitHub-releasenotes opgeschoond (back-up in `%TEMP%`); CHANGELOG-historie, codecomments,
+  specs/ADR's en `desktop/release.sh` (footer) aangepast. **Blijven:** de `gte-*`-opslagsleutels,
+  de `GTE_*`-envvariabelen, `LEGACY_NAME 'GTE VI'` en de audit-blacklist (anders breken saves).
+  **Blijven ook:** `docs/ONDERZOEK-REFERENTIEGAMES.md` (onderzoek met bronnen) en
+  `docs/archief/` (expliciete historie) — eigenaarsbesluit of die ook weg moeten.
+- **Checks (13-11):** `publish_check --history` **5 FAIL** (historie-auteursadressen van
+  agent- en oude accounts; eigenaarsbesluit #62) en **16 WARN** (handmatige
+  releaseworkflows); `secrets_scan` **0 treffers** over werkboom en 6.004 commits;
+  `text_audit` **0** (142 toegestaan), `merkenregister_check` 45/0, `spec_check` 0 fouten,
+  `docs_index_test`, `docs_taal_test`, `logo_taal_test`, `over_menu_test`,
+  `credits_test` en `storage_migration_test` groen.
+- **Nog te doen (eigenaar):** besluit over de historie-adressen (#62), `gitleaks detect`,
+  issues/comments met de oude namen (#72/#62/#83 bijwerken of laten), social preview uploaden,
+  repo publiek maken (#37), daarna Pages activeren en de marketingpagina controleren.
+
