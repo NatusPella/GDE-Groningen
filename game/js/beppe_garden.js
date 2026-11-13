@@ -34,7 +34,7 @@ import { recordUnique, hasUnique, unlockAchievement } from './achievements.js';
 import { BEPPE_SIGN, ROAD_SIGN, LAST_BENCH, HOUSE_ARRIVAL, REMEMBRANCE } from './beppe_texts.js';
 import {
   TRIBUTE, LAYOUT, pickTributeEnd, nearestOnPath, crossingOnRoad, crossingAhead, layoutTribute,
-  housePoint, markerOf, once, tributeTodo,
+  housePoint, markerOf, once, tributeTodo, farewellGuide,
 } from './beppe_rules.js';
 import { ensureWorldEnds, getWorldEndSpots } from './worldends.js';
 import { roadNetRows } from './roadgraph.js';
@@ -601,6 +601,12 @@ export function initBeppeGarden(w) {
   tries = 0;
   warned = false;
   retryAt = 0;
+  // The post-game guided route (postgame.js) asks this: point at the place
+  // until the remembrance there has been read. A closure, so the site may
+  // still be computed later; no import from postgame here (no cycle).
+  w.beppeGuide = {
+    target: () => farewellGuide(site, hasUnique(TRIBUTE.set, TRIBUTE.remembrance)),
+  };
   if (typeof window !== 'undefined') {
     window.__beppe = {
       site: () => site,

@@ -6,10 +6,10 @@
 import { readFileSync } from 'node:fs';
 import { wgsToWorld } from '../game/js/rdnew.js';
 import { regionAt } from '../game/js/regions.js';
-import { HOUSE_ARRIVAL, TODO } from '../game/js/beppe_texts.js';
+import { HOUSE_ARRIVAL, TODO, FAREWELL } from '../game/js/beppe_texts.js';
 import {
   BEPPE_END_ID, TRIBUTE, LAYOUT, sideOffsets, pickTributeEnd, nearestOnPath, walkPath,
-  crossingOnRoad, crossingAhead, layoutTribute, housePoint, markerOf, tributeTodo, TODO_KEY, once,
+  crossingOnRoad, crossingAhead, layoutTribute, housePoint, markerOf, tributeTodo, farewellGuide, TODO_KEY, once,
 } from '../game/js/beppe_rules.js';
 
 let bad = 0;
@@ -143,6 +143,14 @@ if (site) {
   const done = tributeTodo(site, true);
   ok(!!done && done.status === 'klaar' && done.record === TODO.done, 'gevonden: de Te-doen-kaart is klaar');
   ok(tributeTodo(null, false) === null && tributeTodo({}, false) === null, 'zonder plek geen Te-doen-kaart');
+
+  // De postgame-gids (#832): ná het verhaal wijst de automatische route één keer
+  // naar het huis, tot de herinnering daar gelezen is.
+  const farewell = farewellGuide(site, false);
+  ok(!!farewell && farewell.name === FAREWELL.guideName && farewell.x === site.gardenBench.x && farewell.y === site.gardenBench.y,
+    'de postgame-gids wijst naar het tuinbankje', JSON.stringify(farewell));
+  ok(farewellGuide(site, true) === null, 'na het lezen van de herinnering geen gids meer');
+  ok(farewellGuide(null, false) === null && farewellGuide({}, false) === null, 'zonder plek geen gids');
 
   const state = {};
   ok(once(state, 'a') === true, 'de eerste keer telt');

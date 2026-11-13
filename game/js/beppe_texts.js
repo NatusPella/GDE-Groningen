@@ -18,10 +18,11 @@ export const LAST_BENCH = {
   promptSub: 'Er zit een koperen plaatje op dit bankje.',
 };
 
-// The fictional house at the edge of the playable map, just over the border.
+// The fictional house at the edge of the playable map, just over the border:
+// in the game it is the house of Tammo's beppe (owner, 13-11).
 export const HOUSE_ARRIVAL = {
   title: 'Beppes huis',
-  body: 'Aan het einde van de weg, net over de grens. De vogels weten het al.',
+  body: "Aan het einde van de weg, net over de grens. Het huis van Tammo's beppe. De vogels weten het al.",
 };
 
 // "Te doen" entry (group Ommeland) and the waypoint the map marker offers.
@@ -29,9 +30,9 @@ export const TODO = {
   key: 'om:beppe',
   title: HOUSE_ARRIVAL.title,
   sub: 'Aan de westgrens',
-  meta: 'Aan de westgrens · het laatste bankje van Grunn en de tuin met de duiven',
+  meta: "Aan de westgrens · het huis van Tammo's beppe, tussen de tuin en de duiven",
   kicker: 'Ommeland · eerbetoon',
-  text: 'Waar de weg naar Kollum de provincie verlaat staat het laatste bankje van Grunn. Even verder, net over de grens, een klein huis tussen de tuin en de vogels. Ga erheen en lees het plaatje.',
+  text: "Waar de weg naar Kollum de provincie verlaat staat het laatste bankje van Grunn. Even verder, net over de grens, het huis van Tammo's beppe, tussen de tuin en de vogels. Ga erheen en lees het plaatje.",
   done: 'Gevonden aan de westgrens.',
 };
 
@@ -49,6 +50,16 @@ export const REMEMBRANCE = {
   // The bench as a rest stop: Beppe makes sure you want for nothing.
   gift: 'Beppe zorgt dat je niets tekortkomt: je gezondheid is weer vol, al je voertuigen zijn heel en je hebt al je wapens.',
   giftShort: 'Goed eten. Je bent weer helemaal fit.',
+};
+
+// The post-game nudge: after the story the automatic route points here once,
+// before the post-game challenges (postgame.js). Tammo's line is understated;
+// nothing here is voiced, so no TTS round is needed.
+export const FAREWELL = {
+  guideName: HOUSE_ARRIVAL.title,
+  hint: 'Ik moet nog even langs mijn beppe.',
+  title: 'Naar Beppe',
+  body: "Tammo zegt er weinig over, maar hij wil nog één keer langs het huis van zijn beppe, aan de westgrens.",
 };
 
 // Spoken lines for the character (phase 2, recorded by the owner in the TTS

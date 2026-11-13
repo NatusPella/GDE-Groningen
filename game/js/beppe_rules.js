@@ -19,7 +19,7 @@
 // in git), so the place is placed deterministically from the road and border
 // data and has not been seen in the game yet.
 
-import { HOUSE_ARRIVAL, TODO } from './beppe_texts.js';
+import { FAREWELL, HOUSE_ARRIVAL, TODO } from './beppe_texts.js';
 
 // The world end whose road this place follows (worldends.js / ommelandlines.js).
 export const BEPPE_END_ID = 'friesland';
@@ -244,6 +244,14 @@ export function markerOf(site) {
     goal: { kind: 'place', name: TODO.title, sub: TODO.sub, x, y },
     todo: TODO_KEY,
   };
+}
+
+// The post-game guided-route target: the place, until the remembrance there has
+// been read. postgame.js follows this once after the story, before the
+// challenges; null when the player has already been there or the site is unknown.
+export function farewellGuide(site, found = false) {
+  if (found || !site || !site.gardenBench) return null;
+  return { x: site.gardenBench.x, y: site.gardenBench.y, name: FAREWELL.guideName };
 }
 
 // The "Te doen" entry (group Ommeland) for the place: made by this pure module

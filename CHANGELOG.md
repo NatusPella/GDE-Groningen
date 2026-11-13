@@ -11,6 +11,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 - **Een stil eerbetoon aan de westrand van de kaart (#832):** op de laatste Groningse plek aan de weg naar Kollum staat een houten bankje met een koperen plaatje ("Goed ite!" — "Eet goed."); net over de grens staat een klein verzonnen Fries huisje met een tuin, een vogelhuisje met duiven en een tuinbankje. Het tuinbankje is een rustpunt: volle gezondheid, je eigen voertuigen in de wereld gerepareerd en alle wapens. Het bankje heeft een eigen icoon op de kaart en de minikaart, en bij aankomst komt de verborgen prestatie "Goed eten". Het plekje staat ook in Te doen onder Ommeland; een klik op het icoon zet het als doel en route, en de cheat "Overal en nergens" brengt je er vanaf het begin. Samen spelen: de plek komt uit dezelfde weg- en grensdata en is voor iedereen zichtbaar; kaartjes, prestatie en gift zijn per speler.
 - **De aftiteling eindigt met een in-herinnering-kaart (#832):** haar hoop in het Fries met de Nederlandse regel, en een warm antwoord dat haar steun eert — twee stemmen naast elkaar, zonder echte naam of persoonsgegevens. Alles verzonnen.
+- **Na het verhaal wijst de automatische route één keer naar het huis van Tammo's beppe (#832), vóór de uitdagingen.** Zo krijgt het eerbetoon aan de westgrens een plek in de geleide route; de kaart en Te doen wijzen er ook heen. Tammo noemt haar in één korte regel. Samen spelen: de gids draait bij de opener, zoals het hele verhaal; de plek is voor iedereen zichtbaar en de kaartjes zijn per speler.
 
 ## [0.60.8] - 2026-11-13
 

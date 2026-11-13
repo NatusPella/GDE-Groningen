@@ -3,7 +3,7 @@
 // the role name and the border place are the only names, and there is no real
 // personal data. #832.
 //   node scripts/beppe_texts_test.mjs
-import { BEPPE_SIGN, ROAD_SIGN, LAST_BENCH, HOUSE_ARRIVAL, TODO, REMEMBRANCE, HOUSE_LINES } from '../game/js/beppe_texts.js';
+import { BEPPE_SIGN, ROAD_SIGN, LAST_BENCH, HOUSE_ARRIVAL, TODO, REMEMBRANCE, FAREWELL, HOUSE_LINES } from '../game/js/beppe_texts.js';
 
 let n = 0, fails = 0;
 const ok = (cond, name, info = '') => { n++; if (!cond) { fails++; console.log(`FAIL ${name}${info ? ' (' + info + ')' : ''}`); } };
@@ -31,13 +31,15 @@ ok(!/geloof/i.test(REMEMBRANCE.hope + ' ' + REMEMBRANCE.certain), 'the maker voi
 ok(text(LAST_BENCH.cardTitle) && text(LAST_BENCH.cardBody), 'bench card is complete');
 ok(text(HOUSE_ARRIVAL.title) && text(HOUSE_ARRIVAL.body), 'arrival card is complete');
 ok(text(TODO.title) && text(TODO.sub) && text(TODO.meta) && text(TODO.text) && text(TODO.done), 'todo entry is complete');
+ok(text(FAREWELL.guideName) && text(FAREWELL.hint) && text(FAREWELL.title) && text(FAREWELL.body), 'post-game farewell is complete');
+ok(FAREWELL.guideName === HOUSE_ARRIVAL.title, 'the guided route uses the same name as the map');
 ok(text(LAST_BENCH.promptLabel) && text(LAST_BENCH.promptSub), 'bench prompt is complete');
 ok(text(REMEMBRANCE.promptLabel) && text(REMEMBRANCE.promptSub), 'remembrance prompt is complete');
 ok(text(REMEMBRANCE.gift) && text(REMEMBRANCE.giftShort), 'bench gift text is complete');
 
 // Role name and border place only; no real personal data (constitution 2 and 4).
 ok(BEPPE_SIGN === 'Beppe' && ROAD_SIGN === 'Kollum', 'role name and border place only');
-const all = JSON.stringify({ LAST_BENCH, HOUSE_ARRIVAL, TODO, REMEMBRANCE, HOUSE_LINES });
+const all = JSON.stringify({ LAST_BENCH, HOUSE_ARRIVAL, TODO, REMEMBRANCE, FAREWELL, HOUSE_LINES });
 ok(!/@|https?:\/\/|\b\d{4}\s?[A-Z]{2}\b/.test(all), 'no e-mail, URL or postcode in the texts');
 ok(!/\b\d{1,3}\s+[A-Z][a-z]+\s+(straat|laan|weg|plein)\b/i.test(all), 'no street address in the texts');
 
