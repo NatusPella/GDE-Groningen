@@ -12,6 +12,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 - **De disclaimer noemt geen andere games of uitgevers meer.** README, NOTICE.md en het Over-scherm zeggen nu generiek dat GDE een gratis fanparodie is en niet gelieerd aan een andere gameontwikkelaar of -uitgever. De oude merknamen zijn uit de speltekst, de publieke documentatie en de releasenotes verdwenen; onderzoeks- en archiefdocumenten blijven als bron en historie (#72).
 - **De credits noemen nu alle mensen die meehielpen, op volgorde van bijdrage, inclusief iedereen die toegang had maar niets in de commits deed.** AI-assistenten staan niet bij de credits maar bij de tech-stack. Zie [docs/CREDITS.md](docs/CREDITS.md).
+- **De routegraaf wordt niet meer elke seconde herbouwd terwijl de wereld nog stroomt: hij wacht tot de wegen- en gebouwenlagen een seconde stil zijn, met een bovengrens van 4 s.** In een stilstaand profiel verdween de graafopbouw uit de top en zakte de gemiddelde frametijd van 37,6 naar 17,5 ms (p95 83 → 17 ms); de routekwaliteits- en ribbontests blijven groen (#804).
+- **De minimap ververst op een dure kaart (spoor of ver uitgezoomd) op 20 fps in plaats van 30 fps; lichte kaarten houden hun 30 fps.** In de HUD-submeting halveerde de minimapkost op spoor van 6,2 naar 2,9 ms per frame en zakte de p95 van 66,7 naar 33,4 ms; de gewone HUD-fasen kosten samen ~0,25 ms. (#804)
 
 ## [0.60.8] - 2026-11-13
 
@@ -27,8 +29,6 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - **Shaders worden nu écht vóór de start gecompileerd: een Group met een los materiaal liet `renderer.compile()` crashen, waardoor de hele voorcompileerstap stilletjes werd overgeslagen en de film per shot alsnog shaders linkte.** Het terrein bewaart zijn materiaal nu in `userData` en `precompilePrograms` slaat niet-draw-objecten tijdelijk over. In de geforceerde filmmeting ging het eerste blok van ~10 naar ~55 fps en het laatste van ~30 naar ~57 fps; de load compileert nu 433 ms shaders in plaats van 14 ms (en de openingsfilm start sneller: introWarm ~20 s, gameStart ~47 s).
 
 - **De trailer-montage is terug als opening (C00.1), maar met performance-vangnet.** De montage draait weer als eerste bedrijf van het verhaal. Om hem soepel te houden worden de montagetegels en gebouwen al tijdens het laadscherm voorgereden en de vaste opening-assets voorgecompileerd; tijdens de film blijven fijn straatmeubilair, landleven, perronpubliek, evenementen, werven en de parkeerlaag weg (verhaalcontent en hoofdbeeld blijven); en een shader die voor het eerst linkt blokkeert de spellus niet meer (#804). Het laadscherm duurt daardoor langer — de eerder gekozen ruil — en de film hapert niet meer met frames van seconden.
-- **De routegraaf wordt niet meer elke seconde herbouwd terwijl de wereld nog stroomt: hij wacht tot de wegen- en gebouwenlagen een seconde stil zijn, met een bovengrens van 4 s.** In een stilstaand profiel verdween de graafopbouw uit de top en zakte de gemiddelde frametijd van 37,6 naar 17,5 ms (p95 83 → 17 ms); de routekwaliteits- en ribbontests blijven groen (#804).
-- **De minimap ververst op een dure kaart (spoor of ver uitgezoomd) op 20 fps in plaats van 30 fps; lichte kaarten houden hun 30 fps.** In de HUD-submeting halveerde de minimapkost op spoor van 6,2 naar 2,9 ms per frame en zakte de p95 van 66,7 naar 33,4 ms; de gewone HUD-fasen kosten samen ~0,25 ms. (#804)
 
 ## [0.60.6] - 2026-11-11
 
