@@ -21,6 +21,7 @@ export const MISSION_IDS = [...BASIS_MISSION_IDS, ...NIEUW.NEW_MISSION_IDS];
 // Steps the 0.22 script retired; migration 1 of savemigrate.js drops them from old saves.
 export const RETIRED_STEPS = BASIS_RETIRED_STEPS;
 export const STEP_ALIAS = NIEUW.STEP_ALIAS;
+export const BETWEEN_STEPS = NIEUW.BETWEEN_STEPS;
 
 // "Deel 1" for the date cards.
 export const partNumber = (part) => (PARTS[part] ? PARTS[part].title.split(':')[0] : '');
@@ -59,11 +60,13 @@ const isContinuation = (s, lastPart) => s.part !== lastPart && !!PARTS[s.part] &
 
 // The next step to play, or { end: part } where the built story stops. A continuation (Deel 4) waits for the
 // end card of the part it follows: cardSeen(part) tells whether that card has played; without it (a save
-// summary, the calendar of an old save) the continuation counts as open.
-export function nextStoryStep(doneId, missionPassed, cardSeen) {
+// summary, the calendar of an old save) the continuation counts as open. `skip` holds step ids the caller's
+// save predates (a migration reads the story as it was before them, passedBetweenSteps below).
+export function nextStoryStep(doneId, missionPassed, cardSeen, skip = null) {
   let lastPart = 'kop';
   for (let k = 0; k < STEPS.length; k++) {
     const s = STEPS[k];
+    if (skip && skip.has(s.id)) continue;
     if (cardSeen && isContinuation(s, lastPart) && !cardSeen(PARTS[s.part].after) && !stepDone(k, doneId, missionPassed)) return { end: PARTS[s.part].after, next: null, finale: true };
     // a step that is not built blocks the story, unless the save has it done (a dev jump, or the acts built side by side)
     if (!stepAvailable(s) && !stepDone(k, doneId, missionPassed)) return { end: lastPart, next: s };
@@ -71,6 +74,20 @@ export function nextStoryStep(doneId, missionPassed, cardSeen) {
     if (!stepDone(k, doneId, missionPassed)) return s;
   }
   return { end: lastPart, next: null, finale: true };
+}
+
+// The between-steps of #845 were added to the arc after the first story save format (v:1), so that save's done set
+// does not know them. Reading the v:1 save in the old step order (nextStoryStep without them) says where it stood:
+// a between-step the save had already passed goes into done, one that was still ahead stays open so the player gets
+// the side activity. Returns the ids to add. story.js applyStorySave and coopverhaal.js (a guest's own save) call it.
+export function passedBetweenSteps(done, missionPassed = () => false) {
+  const have = (id) => (done instanceof Set ? done.has(id) : done.includes(id));
+  const old = nextStoryStep(have, missionPassed, () => false, new Set(BETWEEN_STEPS));
+  const next = old && !old.end ? STEPS.findIndex((s) => s.id === old.id) : STEPS.length;
+  return BETWEEN_STEPS.filter((id) => {
+    const k = STEPS.findIndex((s) => s.id === id);
+    return k >= 0 && next > k + 1; // the old next step lies past the step that follows this between-step
+  });
 }
 
 // Mission indices in story order (built or not), for "has the story got

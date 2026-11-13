@@ -12,4 +12,4 @@ export const storyVoorschotInfo = (id) => (impl.storyVoorschotInfo ? impl.storyV
 export const prepareStoryShop = () => { if (impl.prepareStoryShop) impl.prepareStoryShop(); };
 export const getStorySave = () => (impl.getStorySave
   ? impl.getStorySave()
-  : { v: 1, done: [], skipped: [], fails: {}, waived: [], voorschot: [], cards: [], flags: [] });
+  : { v: 2, done: [], skipped: [], fails: {}, waived: [], voorschot: [], cards: [], flags: [] });

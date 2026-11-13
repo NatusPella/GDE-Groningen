@@ -5,7 +5,8 @@
 // started at their marker and finished objective by objective. H3 goes
 // through the fail + "Sla deze missie over" path; the padel match, the story
 // bumper-car ride and the demo flight are played for real (storyfun.js
-// scenes included). Checks that the flow
+// scenes included), the bietenoogst between-step (#845) only checks the route
+// and is then completed through the debug hook. Checks that the flow
 // reaches "Wordt vervolgd" at the end of the last open part, that money
 // never runs short (also when every mission is skipped) with a comfortable
 // margin, that the economy targets hold (economyChecks), that an old save
@@ -741,6 +742,14 @@ export async function runStoryTest(world) {
             pd.finish(false);
             check(`${cur.id}: padel match completes the step`, await waitFor(() => { const c = S().current(); return !c || c.id !== cur.id; }, 5000));
             check(`${cur.id}: padel gives full health`, world.health >= 100, String(world.health));
+          } else if (step.goal && step.goal.type === 'sideJob' && window.__debug && window.__debug.sidejobs) {
+            // #845: the between-step A1 points the route at a side job's start; the round itself is skipped
+            // with the debug hook (four rows of beets take minutes to drive for real)
+            const job = Array.isArray(step.goal.job) ? step.goal.job[0] : step.goal.job;
+            const spot = window.__debug.sidejobs.spots().find((s) => s.job.id === job);
+            const guide = world.storyGuide;
+            check(`${cur.id}: the guide points at the ${job} side job`, !!spot && !!guide && Math.hypot(guide.x - spot.x, guide.y - spot.y) < 5, JSON.stringify({ guide, spot: spot && [spot.x, spot.y] }));
+            S().complete();
           } else if (step.goal && step.goal.type === 'kermis' && window.__kermis && window.__activities) {
             // the story ride from the booth (E): free even when broke, Durk & Douwe in two of the cars
             const km = window.__kermis, sf = window.__storyFun;
@@ -759,11 +768,14 @@ export async function runStoryTest(world) {
             capture(`${String(n).padStart(2, '0')}-${cur.id}-ride`);
             km.finish();
             check(`${cur.id}: the ride completes the step`, await waitFor(() => { const c = S().current(); return !c || c.id !== cur.id; }, 15000));
-            check(`${cur.id}: the twins' scene plays after the ride`, await waitFor(() => sf.state().played.kermis > scenes, 20000), JSON.stringify(sf.state()));
-            await sleep(2500);
-            capture(`${String(n).padStart(2, '0')}-${cur.id}-scene`);
-            await sleep(800);
-            check(`${cur.id}: done text follows the scene`, await waitFor(() => { if (isCinematicActive()) skipCinematic(); return !sf.state().pending; }, 20000, 200), JSON.stringify(sf.state()));
+            // a between-step has no closing scene (#845: the ride itself is the beat); a step with one plays it now
+            if (step.scene) {
+              check(`${cur.id}: the twins' scene plays after the ride`, await waitFor(() => sf.state().played.kermis > scenes, 20000), JSON.stringify(sf.state()));
+              await sleep(2500);
+              capture(`${String(n).padStart(2, '0')}-${cur.id}-scene`);
+              await sleep(800);
+              check(`${cur.id}: done text follows the scene`, await waitFor(() => { if (isCinematicActive()) skipCinematic(); return !sf.state().pending; }, 20000, 200), JSON.stringify(sf.state()));
+            }
           } else if (step.goal && step.goal.type === 'eikea' && window.__storyEikea && window.__home) {
             // EIKEA: the Escapade at the loading dock, three boxes on the roof, one knock costs one, home, upstairs
             const se = window.__storyEikea, hm = window.__home, p = hoofdspeler(world);

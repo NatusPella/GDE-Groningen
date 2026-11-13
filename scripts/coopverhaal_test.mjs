@@ -7,7 +7,7 @@ import * as S from '../game/js/coopsave.js';
 import { createLink } from '../game/js/net/memtransport.js';
 import * as N from '../game/js/coopnet.js';
 import { registerGastVerhaal, registerGastBoek } from '../game/js/savehook.js';
-import { STEPS, STEP_BY_ID, PARTS, MISSION_IDS, missionIndexOf, stepDone, nextStoryStep, stepAvailable } from '../game/js/storyarc.js';
+import { STEPS, STEP_BY_ID, PARTS, MISSION_IDS, missionIndexOf, stepDone, nextStoryStep, stepAvailable, BETWEEN_STEPS } from '../game/js/storyarc.js';
 import { KEYS, BASE_KEYS } from '../game/js/storagekeys.js';
 
 let n = 0;
@@ -23,6 +23,12 @@ function saveVoor(id, extra = {}) {
   return { v: 1, money: 300, story: { v: 1, done: prior.map((s) => s.id), skipped: [], fails: {}, waived: [], voorschot: [], cards: kaarten, flags: prior.filter((s) => s.unlocks).map((s) => s.unlocks) }, missions: { index: completed.length ? Math.max(...completed) : 0, completed, seen: completed, medals: {} }, ...extra };
 }
 const stapDone = (save, id) => { const k = STEPS.findIndex((s) => s.id === id); const d = new Set(save.story.done), c = new Set(save.missions.completed); return stepDone(k, (i) => d.has(i), (i) => c.has(i)); };
+// een échte v:1-save van vóór de tussenstappen (#845): de done-set kent A1/A2 nog niet
+function saveV1(id, extra = {}) {
+  const s = saveVoor(id, extra);
+  s.story = { ...s.story, v: 1, done: s.story.done.filter((x) => !BETWEEN_STEPS.includes(x)) };
+  return s;
+}
 const volgende = (save) => { const d = new Set(save.story.done), c = new Set(save.missions.completed), kk = new Set(save.story.cards); return nextStoryStep((i) => d.has(i), (i) => c.has(i), (p) => kk.has(p)); };
 
 t('status: al gedaan, de stap waar je nu bent, of vooruit; onbekend of zonder spel is geen verhaal', () => {
@@ -118,12 +124,30 @@ t('elke stap als doel, vanuit elke eigen stand: het verhaal blijft een heel pad 
 t('bestaande saves breken niet: ontbrekende of rare velden, de coöp-sleutels en de gastvelden blijven', () => {
   assert.ok(S.applyGuestStory({ money: 5 }, 'M01'), 'een save zonder verhaal of missies');
   const oud = { v: 1, money: 70, story: 'kapot', missions: [1, 2] };
-  const r = S.applyGuestStory(oud, 'M02'); assert.ok(r && r.save.story.v === 1 && Array.isArray(r.save.missions.completed));
+  const r = S.applyGuestStory(oud, 'M02'); assert.ok(r && r.save.story.v === 2 && Array.isArray(r.save.missions.completed));
   assert.equal(r.save.money, 70, 'geld blijft aan de aanroeper');
   assert.equal(BASE_KEYS.coopSave, undefined, 'geen nieuwe opslagsleutel voor verhaalvoortgang: het zit in de bestaande save-slot');
   assert.equal(KEYS.coopSession, 'gde-coop-sessie');
   const ruim = S.applyGuestChanges(r.save, { money: 99 }, 0); assert.equal(ruim.money, 99); assert.deepEqual(ruim.story, r.save.story, 'de gastvelden raken het verhaal niet aan');
   assert.equal(V.pasVerhaalToe(saveVoor('M06', { unbekend: 1 }), 'M06').save.unbekend, 1, 'onbekende velden blijven');
+});
+
+t('#845: een gast met een v:1-save van vóór de tussenstappen verliest zijn verhaal niet en springt niet terug', () => {
+  // nog vóór A1 (de reis T2 was zijn volgende stap): hij doet het tussenstuk gewoon mee
+  assert.equal(V.verhaalStatus(saveV1('T2'), 'A1'), 'normaal', 'vóór A1: het tussenstuk staat nog open');
+  // A1 al voorbij (hij stond bij M11): geen terugspringen, het telt als gedaan
+  assert.equal(V.verhaalStatus(saveV1('M11'), 'A1'), 'gedaan', 'A1 al voorbij: geen terugspringen');
+  assert.equal(V.pasVerhaalToe(saveV1('M11'), 'A1'), null, 'A1 al voorbij: alleen de beloning');
+  // vlak vóór A2 (hij stond bij M17) en A2 al voorbij (bij M18)
+  assert.equal(V.verhaalStatus(saveV1('M17'), 'A2'), 'normaal', 'vóór A2: het tussenstuk staat nog open');
+  assert.equal(V.verhaalStatus(saveV1('M18'), 'A2'), 'gedaan', 'A2 al voorbij: geen terugspringen');
+  // schrijven zet de gast-save op v:2, met de gepasseerde tussenstappen in done; daarna is het idempotent
+  const r = V.pasVerhaalToe(saveV1('M18'), 'M19');
+  assert.ok(r && r.save.story.v === 2, 'de gast-save gaat naar v:2');
+  assert.ok(r.save.story.done.includes('A1') && r.save.story.done.includes('A2'), 'de gepasseerde tussenstappen staan in done');
+  assert.equal(S.applyGuestStory(r.save, 'M19'), null, 'een v:2-save leest en schrijft gewoon door');
+  const vers = saveVoor('M06'); vers.story.v = 2;
+  assert.equal(V.verhaalStatus(vers, 'M06'), 'normaal', 'een nieuwe v:2-save leest gewoon');
 });
 
 t('meedoen: een spoilerwaarschuwing krijgt geen standaard-ja en geen deel zolang hij niet bevestigd is', () => {

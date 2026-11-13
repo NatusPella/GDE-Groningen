@@ -4,13 +4,13 @@
 // - The savegame (savegame.js, localStorage 'gde-save-v1') carries `v`. A save
 //   with an older `v` runs through SAVE_MIGRATIONS one step at a time
 //   (1 -> 2 -> ...) before the game reads it; a save from a newer game is left
-//   alone. The sections inside it (story `v: 1`, the shops, ...) keep their own
+//   alone. The sections inside it (story `v: 1`/`v: 2`, the shops, ...) keep their own
 //   tolerant loaders that drop unknown ids; only the top-level `v` moves.
 // - The settings (settings.js, 'gde-settings') do the same with SETTINGS_MIGRATIONS.
 // - Never change a released migration: add the next one and raise the version.
 // - Pure (no DOM, no three.js): node scripts/save_migration_test.mjs runs the
 //   fixtures in scripts/fixtures/saves/ through it.
-import { RETIRED_STEPS, STEP_BY_ID, MISSION_IDS, nextStoryStep } from './storyarc.js';
+import { RETIRED_STEPS, STEP_BY_ID, MISSION_IDS, nextStoryStep, passedBetweenSteps } from './storyarc.js';
 import { normalizeRadio } from './musicpick.js';
 import { cheatUnlocksFromSave, RETIRED_CHEATS } from './cheatlist.js';
 import { dayForSavedStep } from './calendar.js';
@@ -176,11 +176,15 @@ export function migrateSave(d) {
 }
 
 // Where a (migrated) save stands in the story, the way story.js works it
-// out: the next step, or { end } past the built story.
+// out: the next step, or { end } past the built story. The story save knows
+// two formats: v: 2 (#845) and the v: 1 before the between-steps, which
+// story.js closes per position when it loads (passedBetweenSteps).
 export function savedStoryStep(d) {
-  const st = isObj(d.story) && d.story.v === 1 ? d.story : null;
+  const st = isObj(d.story) && (d.story.v === 1 || d.story.v === 2) ? d.story : null;
   const done = new Set(st && Array.isArray(st.done) ? st.done.filter((id) => STEP_BY_ID.has(id)) : []);
   const passed = new Set(isObj(d.missions) && Array.isArray(d.missions.completed) ? d.missions.completed.filter((i) => Number.isInteger(i) && i >= 0 && i < MISSION_IDS.length) : []);
+  // a v:1 save predates the between-steps (#845): close the ones it had passed, so the day is that of the step it stood on
+  if (st && st.v === 1) for (const id of passedBetweenSteps(done, (i) => passed.has(i))) done.add(id);
   return nextStoryStep((id) => done.has(id), (i) => passed.has(i));
 }
 

@@ -1,11 +1,13 @@
 // Loopbanen zelf starten (#431): elke loopbaan heeft een eerste klus en een eigen startplek, het verhaal noemt
 // elke loopbaan bij de stap waar hij hoort, en een loopbaan die je al eerder begon telt voor die stap als gedaan.
+// Sinds #845 staan er twee tussenstappen in de arc (A1 bietenoogst, A2 kermisrit); de save-migratie daarvan
+// (v:1 -> v:2, storyarc.js passedBetweenSteps) wordt hier ook getest.
 //   node scripts/loopbaanstart_test.mjs
 import assert from 'node:assert/strict';
 import * as L from '../game/js/loopbaan.js';
 import * as Live from '../game/js/loopbaanlive.js';
 import { STEPS } from '../game/js/storyarc_nieuw.js';
-import { LOOPBAAN_STAPPEN, loopbanenBijStap, loopbaanStap, loopbanenTot, stapAfgeleidGedaan, nextStoryStep, STEP_BY_ID } from '../game/js/storyarc.js';
+import { LOOPBAAN_STAPPEN, loopbanenBijStap, loopbaanStap, loopbanenTot, stapAfgeleidGedaan, nextStoryStep, passedBetweenSteps, BETWEEN_STEPS, STEP_BY_ID } from '../game/js/storyarc.js';
 
 let n = 0, fails = 0;
 const t = (name, f) => { n++; try { f(); } catch (e) { fails++; console.log('FAIL', name, '\n  ', String(e.message).split('\n')[0]); } };
@@ -156,6 +158,51 @@ t('live: de eerste punten in een vak beginnen die loopbaan', () => {
   Live.schrijfNu();
   assert.deepEqual(JSON.parse(opslag.get('gde-loopbaan-v1')).gestart, ['hengelen']);
   Live.zetProfielVoorTest(null, null);
+});
+
+t('de twee tussenstukken (#845): bietenoogst na M10, kermisrit na M16, allebei stil', () => {
+  const i = (id) => STEPS.findIndex((s) => s.id === id);
+  const a1 = STEP_BY_ID.get('A1'), a2 = STEP_BY_ID.get('A2');
+  assert.ok(a1 && a2, 'A1 en A2 bestaan');
+  assert.equal(a1.kind, 'activity'); assert.equal(a2.kind, 'activity');
+  assert.equal(a1.part, 'romp'); assert.equal(a2.part, 'staart');
+  assert.equal(a1.goal.type, 'sideJob'); assert.equal(a1.goal.job, 'bietenoogst');
+  assert.equal(a2.goal.type, 'kermis');
+  assert.equal(a1.silent, true); assert.equal(a2.silent, true, 'geen TTS voor de tussenstukken');
+  assert.deepEqual(a1.loopbanen, ['landbouw']); assert.deepEqual(a2.loopbanen, ['kermis']);
+  assert.ok(a1.title && a1.lead && a1.lead[1].length > 20, 'A1: korte titel en een lead');
+  assert.ok(a2.title && a2.lead && a2.lead[1].length > 20, 'A2: korte titel en een lead');
+  // de volgorde van de arc: A1 tussen M10 en T2, A2 tussen M16 en M17
+  assert.ok(i('M10') < i('A1') && i('A1') < i('T2'), 'A1 staat na M10 en voor T2');
+  assert.ok(i('M16') < i('A2') && i('A2') < i('M17'), 'A2 staat na M16 en voor M17');
+  // de missie waar het vak in het verhaal opduikt houdt zijn tag (de poort van #431 blijft daar werken)
+  assert.ok(STEPS[i('M10')].loopbanen.includes('landbouw')); assert.ok(STEPS[i('M16')].loopbanen.includes('kermis'));
+});
+
+t('een v:1-save van voor de tussenstappen springt niet terug en houdt ze open (#845)', () => {
+  const voor = (id) => new Set(STEPS.slice(0, STEPS.findIndex((s) => s.id === id)).map((s) => s.id).filter((x) => !BETWEEN_STEPS.includes(x)));
+  const na = (id) => new Set([...voor(id), ...passedBetweenSteps(voor(id))]);
+  const volgende = (done) => nextStoryStep((id) => done.has(id), () => false);
+  // nog voor M10: geen enkel tussenstuk gepasseerd, de save blijft waar hij stond
+  assert.deepEqual(passedBetweenSteps(voor('M10')), []);
+  assert.equal(volgende(voor('M10')).id, 'M10');
+  // net na M10 (de reis T2 was zijn volgende stap): A1 staat nog open, dus de speler krijgt de bietenoogst
+  assert.deepEqual(passedBetweenSteps(voor('T2')), []);
+  assert.equal(volgende(voor('T2')).id, 'A1');
+  // voorbij A1 (hij stond bij M11): A1 telt als gedaan, A2 nog niet
+  assert.deepEqual(passedBetweenSteps(voor('M11')), ['A1']);
+  assert.equal(volgende(na('M11')).id, 'M11', 'geen terugspringen');
+  // vlak voor A2 (hij stond bij M17): A1 gedaan, A2 nog open
+  assert.deepEqual(passedBetweenSteps(voor('M17')), ['A1']);
+  assert.equal(volgende(na('M17')).id, 'A2');
+  // voorbij A2 (hij stond bij M18): allebei gedaan
+  assert.deepEqual(passedBetweenSteps(voor('M18')), ['A1', 'A2']);
+  assert.equal(volgende(na('M18')).id, 'M18');
+  // een lege save en een uitgespeelde save
+  assert.deepEqual(passedBetweenSteps(new Set()), []);
+  assert.deepEqual(passedBetweenSteps(new Set(STEPS.map((s) => s.id))), ['A1', 'A2']);
+  // een afgeleide loopbaanstap verderop in een oude save (getStorySave noteert die) sluit A1 niet: de save stond ervoor
+  assert.deepEqual(passedBetweenSteps(new Set([...voor('M08'), 'T2'])), []);
 });
 
 console.log(`loopbaanstart_test: ${n - fails}/${n} ok`);

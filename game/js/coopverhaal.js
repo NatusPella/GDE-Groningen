@@ -8,7 +8,7 @@
 //  2. Is zijn eigen verhaal nog niet bij die stap, dan mag hij meedoen: zijn verhaal springt mee. De stappen ertussen tellen
 //     als overgeslagen (zoals "Sla deze stap over": dezelfde vlaggen, kaarten en uitbetaling), met een spoilerwaarschuwing
 //     en een J/N-bevestiging vooraf.
-import { STEPS, STEP_BY_ID, PARTS, missionIndexOf, missionCode, stepDone, nextStoryStep, stepAvailable } from './storyarc.js';
+import { STEPS, STEP_BY_ID, PARTS, missionIndexOf, missionCode, stepDone, nextStoryStep, stepAvailable, passedBetweenSteps } from './storyarc.js';
 
 // een overgeslagen verhaalmissie betaalt dit deel van zijn beloning, op 5 euro (zoals story.js skipCurrent)
 export const SPRONG_DEEL = 0.5;
@@ -25,12 +25,18 @@ export const stapVanMissie = (index) => missionCode(index | 0);
 // Een stap-id uit een bericht: alleen een bekende stap, anders null.
 export const geldigeStap = (id) => (typeof id === 'string' && STEP_BY_ID.has(id) ? id : null);
 
+// De verhaal-save van een gast kent twee formaten (#845): v:2 en de v:1 van vóór de tussenstappen A1/A2. Een v:1-save
+// leest gewoon, maar de tussenstappen die hij al voorbij was tellen als gedaan (storyarc.js passedBetweenSteps); anders
+// zou een gast met een oude save terugspringen naar een tussenstap.
+const storySave = (data) => (isObj(data) && isObj(data.story) && (data.story.v === 1 || data.story.v === 2) ? data.story : null);
+
 // Wat de gast al heeft: de gedane stappen en doorlopen missies in zijn opgeslagen spel.
 function stand(data) {
-  const s = isObj(data) && isObj(data.story) && data.story.v === 1 ? data.story : {};
+  const s = storySave(data) || {};
   const m = isObj(data) && isObj(data.missions) ? data.missions : {};
-  const done = new Set(lijst(s.done).filter((id) => STEP_BY_ID.has(id)));
   const missies = new Set(lijst(m.completed).filter(Number.isInteger));
+  const done = new Set(lijst(s.done).filter((id) => STEP_BY_ID.has(id)));
+  if (s.v !== 2) for (const id of passedBetweenSteps(done, (i) => missies.has(i))) done.add(id);
   const kaarten = new Set(lijst(s.cards).filter((k) => PARTS[k]));
   return { done, missies, kaarten };
 }
@@ -73,7 +79,7 @@ export function pasVerhaalToe(data, stapId) {
   if (status !== 'normaal' && status !== 'vooruit') return null;
   const k = idx(stapId);
   const over = overTeSlaan(data, stapId);
-  const s0 = isObj(data.story) && data.story.v === 1 ? data.story : {};
+  const s0 = storySave(data) || {};
   const m0 = isObj(data.missions) ? data.missions : {};
   const done = new Set(lijst(s0.done).filter((id) => STEP_BY_ID.has(id)));
   const skipped = new Set(lijst(s0.skipped).filter((id) => STEP_BY_ID.has(id)));
@@ -82,6 +88,8 @@ export function pasVerhaalToe(data, stapId) {
   const fails = {};
   for (const [id, n] of Object.entries(isObj(s0.fails) ? s0.fails : {})) if (STEP_BY_ID.has(id) && Number.isFinite(n)) fails[id] = n;
   const completed = new Set(lijst(m0.completed).filter(Number.isInteger));
+  // een v:1-save van vóór de tussenstappen: wat hij al voorbij was telt als gedaan (#845)
+  if (s0.v !== 2) for (const id of passedBetweenSteps(done, (i) => completed.has(i))) done.add(id);
   const seen = new Set(lijst(m0.seen).filter(Number.isInteger));
   let bonus = 0;
   const missies = [];
@@ -102,7 +110,7 @@ export function pasVerhaalToe(data, stapId) {
   const index = volgende ? missionIndexOf(volgende.mission) : (Number.isInteger(m0.index) ? m0.index : 0);
   const save = {
     ...data,
-    story: { ...s0, v: 1, done: [...done], skipped: [...skipped], fails, waived: lijst(s0.waived).filter((x) => typeof x === 'string'), voorschot: lijst(s0.voorschot).filter((id) => STEP_BY_ID.has(id)), cards: [...kaarten], flags: [...flags] },
+    story: { ...s0, v: 2, done: [...done], skipped: [...skipped], fails, waived: lijst(s0.waived).filter((x) => typeof x === 'string'), voorschot: lijst(s0.voorschot).filter((id) => STEP_BY_ID.has(id)), cards: [...kaarten], flags: [...flags] },
     missions: { ...m0, index, completed: [...completed], seen: [...seen], medals: isObj(m0.medals) ? { ...m0.medals } : {} },
   };
   return { save, status, overgeslagen: over, bonus, missies };
