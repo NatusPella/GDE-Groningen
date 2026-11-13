@@ -4,10 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>GDE Groningen – Zomer vol misdaad</title>
-  <meta name="description" content="GDE Groningen – Zomer vol misdaad: gratis open-wereldkomedie voor 18+ in het echte Groningen, nu in openbare playtest. Gemaakt met three.js en Electron.">
+  <meta name="description" content="GDE Groningen – Zomer vol misdaad: gratis open-wereldkomedie voor 18+ in het echte Groningen, nu in openbare playtest voor Windows, macOS, Linux/Steam Deck en Android.">
   <link rel="canonical" href="https://natuspella.github.io/GDE-Groningen/">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="preload" href="img/hero-groningen.webp" as="image" fetchpriority="high">
+  <link rel="preload" href="img/hero-groningen.webp" as="image" imagesrcset="img/hero-groningen-640.webp 640w, img/hero-groningen-1280.webp 1280w, img/hero-groningen.webp 1920w" imagesizes="100vw" fetchpriority="high">
   <meta name="theme-color" content="#0c140e">
   <script type="application/ld+json">
     {
@@ -56,7 +56,9 @@
         <span class="brand-mark" aria-hidden="true">GDE</span>
         <span class="brand-text">Groningen <small>Zomer vol misdaad</small></span>
       </a>
-      <nav class="site-nav" aria-label="Hoofdnavigatie">
+      <a class="nav-cta nav-cta-mobiel" href="https://github.com/NatusPella/GDE-Groningen/releases">Download</a>
+      <button type="button" class="nav-toggle" aria-expanded="false" aria-controls="site-nav" hidden>Menu</button>
+      <nav class="site-nav" id="site-nav" aria-label="Hoofdnavigatie">
         <ul>
           <li><a href="#wat-je-kunt-doen">Wat je doet</a></li>
           <li><a href="#echt-groningen">Groningen</a></li>
@@ -90,8 +92,8 @@
             <a class="btn btn-primary" href="https://github.com/NatusPella/GDE-Groningen/releases">Download de gratis playtest</a>
             <a class="btn btn-secondary" href="#trailer">Bekijk de trailer</a>
           </div>
-          <p class="platform-row">Windows .exe · macOS .dmg · Linux .AppImage/.tar.gz · Android .apk <span>Kies de bovenste pre-release.</span></p>
-          <p class="fineprint">Gratis voor Windows, macOS, Linux/Steam Deck en Android. Per release kan een platform ontbreken; kijk wat er in de nieuwste pre-release zit. Elke versie is niet ondertekend: je systeem waarschuwt de eerste keer. <a href="help/installeren.html">Installatiehulp</a>.</p>
+          <p class="platform-row">Windows (.exe) · macOS (.dmg) · Linux (.AppImage/.tar.gz) · Android (.apk) <span>Kies de bovenste pre-release.</span></p>
+          <p class="fineprint">Per release kan een platform ontbreken; elke versie is niet ondertekend, dus je systeem waarschuwt de eerste keer. <a href="help/installeren.html">Installatiehulp</a>.</p>
         </div>
         <p class="hero-caption">De Martinitoren, vanaf de ring. Het is altijd zomer.</p>
       </div>
@@ -152,7 +154,7 @@
           </li>
           <li class="card">
             <h3>Samen spelen</h3>
-            <p>Nodig een vriend uit met een kamercode. Alleen na jouw toestemming en zonder account; iedereen houdt eigen geld, verhaal en bezit.</p>
+            <p>Nodig een vriend uit met een kamercode. Alleen na jouw toestemming en zonder account; iedereen houdt eigen geld, verhaal en bezit. (Op Android voorlopig solo.)</p>
           </li>
           <li class="card">
             <h3>Verhaal in vijf aktes</h3>
@@ -200,7 +202,7 @@
       <div class="wrap">
         <p class="kicker">Highlights</p>
         <h2 id="beelden-titel">Even rondkijken</h2>
-        <p class="section-lead">Zes categorieën met de mooiste plekken en features: locaties, vervoer, missies, minigames, samen spelen en de menu's. Alle beelden zijn in het spel zelf gemaakt (de stills komen uit de gameplaytrailer), in de zomer en zonder filters.</p>
+        <p class="section-lead">Zes categorieën met de mooiste plekken en features: locaties, vervoer, missies, minigames, samen spelen en de menu's. Alles wat je hier ziet komt rechtstreeks uit het spel, in de zomer en zonder filters.</p>
       </div>
       <!-- SLIDESHOWS -->
 
@@ -258,7 +260,7 @@
       <div class="wrap">
         <p class="kicker">Achter de schermen</p>
         <h2 id="gemaakt-titel">Zo is het gemaakt</h2>
-        <p class="section-lead">Eén Groninger bouwde in een paar maanden een complete open-wereldgame in zijn eigen stad. De kaart komt uit OpenStreetMap; verhaal, teksten en regie zijn eigen werk.</p>
+        <p class="section-lead">Eén Groninger bouwde in een paar maanden een speelbare open-wereldgame in zijn eigen stad. De kaart komt uit OpenStreetMap; verhaal, teksten en regie zijn eigen werk.</p>
         <p class="fineprint">AI-assistenten (Claude, OpenHands en DeepSeek V4.1 Flash via DeepSeek Harness) hielpen met code en debugging; de keuzes, verhaallijnen en eindregie zijn van de maker.</p>
         <ul class="card-grid card-grid--two">
           <li class="card">
@@ -296,7 +298,7 @@
           </details>
           <details>
             <summary>Op welk systeem?</summary>
-            <p>Windows, macOS, Linux/Steam Deck en Android. Een online browserversie is er nog niet; vanaf de broncode kan het wel. Kies in de <a href="https://github.com/NatusPella/GDE-Groningen/releases">releases</a> de bovenste pre-release.</p>
+            <p>Windows, macOS, Linux/Steam Deck en Android. Een online browserversie is er nog niet; vanaf de broncode kan het wel. Kies in de <a href="https://github.com/NatusPella/GDE-Groningen/releases">releases</a> de bovenste pre-release. Wat je nodig hebt, staat bij de <a href="help/systeemeisen.html">systeemeisen</a>.</p>
           </details>
           <details>
             <summary>Waarom waarschuwt mijn computer?</summary>
@@ -304,10 +306,18 @@
           </details>
           <details>
             <summary>Hoe groot is de download?</summary>
-            <p>De Windows-exe is ongeveer 450 MB; macOS, Linux en Android verschillen per release. Je hebt ruim 1 GB vrije schijfruimte nodig. De nieuwste bestanden staan bij de <a href="https://github.com/NatusPella/GDE-Groningen/releases">releases</a>.</p>
+            <p>De Windows-exe is ongeveer 450 MB; macOS, Linux en Android verschillen per release. Je hebt ruim 1 GB vrije schijfruimte nodig. De nieuwste bestanden staan bij de <a href="https://github.com/NatusPella/GDE-Groningen/releases">releases</a>; de details staan bij de <a href="help/systeemeisen.html">systeemeisen</a>.</p>
           </details>
           <details>
-            <summary>Hoe lang duurt de playtest?</summary>
+            <summary>Kan ik op Android samen spelen?</summary>
+            <p>Nee. De Android-app heeft geen internetrechten; solo spelen kan wel. Op Windows, macOS en Linux werkt Samen spelen met een kamercode.</p>
+          </details>
+          <details>
+            <summary>Hoeveel uur is het verhaal?</summary>
+            <p>Het verhaal telt vijf aktes. Hoe lang je erover doet, hangt af van hoeveel bijbanen, minigames en omwegen je meepakt; het is geen race. De playtest is bedoeld om het in je eigen tempo te verkennen.</p>
+          </details>
+          <details>
+            <summary>Hoe lang loopt de playtest?</summary>
             <p>Er is geen einddatum: de playtest loopt door zolang het spel in ontwikkeling is. Wat er verandert en wat er als volgende aankomt, staat in de <a href="https://github.com/NatusPella/GDE-Groningen/releases">releases</a> en in het <a href="https://github.com/NatusPella/GDE-Groningen/issues/116">playtest-issue</a>.</p>
           </details>
           <details>
