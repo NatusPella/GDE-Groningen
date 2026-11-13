@@ -107,8 +107,10 @@ if (!result) {
     if (m) { try { result.routes[m[1]] = JSON.parse(l.slice(l.indexOf('{'), l.lastIndexOf('}') + 1)); } catch { /* skip */ } }
   }
 }
-// main-thread CPU (not wall) time per frame in each route's measuring window, from the thread samples
-result.threadCpu = {};
+// #804: de routewandklok uit de perf-marks, niet de processtart: de opening
+// prewarmt tegenwoordig tientallen seconden en zegt niets over de frametijden.
+let routeWallS = 0;
+let firstRouteAt = null;
 try {
   const marks = {};
   for (const l of lines) { const m = /\[perf-mark\] (start|end) (\S+) (\d+)(?: (\d+))?/.exec(l); if (m) (marks[m[2]] ||= {})[m[1]] = { t: Number(m[3]), frames: Number(m[4]) }; }
@@ -125,6 +127,8 @@ try {
   for (const [rn, mk] of Object.entries(marks)) {
     if (!mk.start || !mk.end) continue;
     const dur = mk.end.t - mk.start.t, rows = [];
+    routeWallS += dur;
+    if (firstRouteAt == null || mk.start.t < firstRouteAt) firstRouteAt = mk.start.t;
     for (const [k, arr] of th) { const a = at(arr, mk.start.t), b = at(arr, mk.end.t); if (a != null && b != null && b - a > dur * 0.02) rows.push([k, b - a]); }
     const byType = (ty) => rows.filter(([k]) => k.split(':')[1] === ty).sort((x, y) => y[1] - x[1]);
     const f = Math.max(1, mk.end.frames);
@@ -137,15 +141,17 @@ try {
 fs.rmSync(threadFile, { force: true });
 result.errors = lines.filter((l) => l.startsWith('[renderer] [perf-route-error]'));
 result.machine = { cpuBusyBeforePct: busyBefore, cpuBusyAfterPct: await cpuBusy(), freeMemGB: +(os.freemem() / 1e9).toFixed(1), electronProcsBefore: before, electronProcsAfter: others(), load: os.loadavg(), cpus: os.cpus().length, cpu: os.cpus()[0].model, memGB: Math.round(os.totalmem() / 1e9) };
-// #804: een run die veel langer duurt dan de routes zelf zegt dat de GPU of het
-// systeem tijdens de run bezet was; dan zijn p95/max niet vergelijkbaar.
+// #804: vergelijk de echte routewandklok met de gevraagde routeduur; de
+// processtart (lange prewarm) telt niet mee en een langzame route wel.
 {
   const routeCount = Object.values(result.routes || {}).filter((r) => r && Number.isFinite(r.frames) && r.frames > 0).length;
   const expectedS = ((Number(process.env.PERF_DUR) || 20000) / 1000) * routeCount;
   const wallS = Math.round((Date.now() - t0) / 1000);
   result.machine.wallSeconds = wallS;
+  result.machine.routeWallSeconds = Math.round(routeWallS * 10) / 10;
+  result.machine.startupSeconds = firstRouteAt ? Math.round((firstRouteAt - t0) / 1000) : null;
   result.machine.expectedSeconds = expectedS;
-  result.machine.slowWall = slowWall(wallS, expectedS);
+  result.machine.slowWall = slowWall(routeWallS, expectedS);
 }
 fs.writeFileSync(path.join(OUT, name + '.json'), JSON.stringify(result));
 

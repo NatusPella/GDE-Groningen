@@ -638,3 +638,4 @@ winst; de wijziging is niet in de branch gebleven.
 ### Meetpogingen 13-11 op de perf-branch (geldigheid)
 
 Drie pogingen op een verder lege machine (geen andere Electron-processen): CPU bij start 42%, 13% en 38%; de runs deden **152, 195 en 208 s over 30 s route** (twee routes van 15 s) en hadden a7 p95 100/100/133 en spoor 67/67/83. Alle drie zijn door de wandklokguard als `slowWall` gemarkeerd: de GPU/het systeem was tijdens de run bezet. **Geen acceptatie.** De branch en de guards zijn klaar; een echt stille run moet dit beslissen. Zonder de nieuwe wandklok- en PARTIAL-guards hadden deze runs ten onrechte als meting kunnen doorgaan.
+
