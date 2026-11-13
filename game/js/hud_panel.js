@@ -1,3 +1,4 @@
+import { probe } from './hitchprobe.js';
 import { wantedPhase } from './wantedstate.js';
 import { moneyLabel, moneyNeedsUpdate } from './hudmoney.js';
 import { getMissionLayer, updateMissionNotices } from './missionmaplive.js';
@@ -569,6 +570,10 @@ function tickNarration() {
 }
 
 export function updateHud(dt, world) {
+  // #804: met PERF_HUD_MARKS splitst de hitchprobe de HUD in fasen (minimap is
+  // de grootste verdachte op spoor); zonder de vlag blijft het beeld identiek.
+  const hm = typeof window !== 'undefined' && !!window.__perfHudMarks;
+  if (hm) probe.split();
   // #659: achter het pauzemenu is de HUD onzichtbaar; dan het dure werk overslaan
   const expensive = hudExpensiveDue(isPauseMenuOpen());
   sense(dt, world);
@@ -594,6 +599,7 @@ export function updateHud(dt, world) {
   updatePrompts(dt, world);
   updateVisibility(dt, world);
   tickNarration();
+  if (hm) probe.mark('hud:base');
   // very CPU-bound (simload.js level 2): the minimap redraws every second
   // frame, its zoom easing over the time in between. It turns with the
   // player, so a lower rate shows as stutter; the whole HUD costs ~1 ms.
@@ -603,9 +609,11 @@ export function updateHud(dt, world) {
   // a redraw that costs a lot (vector map of the whole province) gets at most a quarter of the time: measured on
   // hoog the minimap took 5 to 14% of the busy main thread (docs/PERF-METING-2026-10-19.md)
   const mmNow = performance.now();
-  if (mmNow - mmLastAt < Math.max(MM_MIN_INTERVAL_MS, mmCostMs * 4)) return;
+  const mmInterval = mmCostMs > MM_HEAVY_COST_MS ? MM_HEAVY_INTERVAL_MS : MM_MIN_INTERVAL_MS;
+  if (mmNow - mmLastAt < Math.max(mmInterval, mmCostMs * 4)) return;
   mmSkip = simLevel() >= 2 ? 1 : 0;
   if (els.vis.minimap !== false) { drawMinimap(mmDt, world); mmCostMs = mmCostMs * 0.7 + (performance.now() - mmNow) * 0.3; }
+  if (hm) probe.mark('hud:minimap');
   mmLastAt = mmNow;
   mmDt = 0;
 }
@@ -2520,6 +2528,11 @@ function drawVillageNames(ctx, player, radius, toScreen) {
 }
 
 const MM_MIN_INTERVAL_MS = 33;
+// #804: op een dure kaart (spoor/uitgezoomd: ~6 ms per tekenbeurt) is 30 fps
+// verversen te veel werk; zo'n kaart ververst op 20 fps. Lichte kaarten houden
+// hun 30 fps, zodat de kaart op de fiets/te voet niet zichtbaar gaat stotteren.
+const MM_HEAVY_INTERVAL_MS = 50;
+const MM_HEAVY_COST_MS = 4;
 let mmLastAt = 0, mmCostMs = 0;
 
 function drawMinimap(dt, world) {
@@ -3021,4 +3034,5 @@ function drawNeighbourhoodBorders(ctx, dt, world, player, MM_RADIUS_M) {
   ctx.fillStyle = inkA('white', 0.35);
   for (const [rx, ry] of borderCache.rects) ctx.fillRect(rx, ry, cell * 0.5, cell * 0.5);
 }
+
 

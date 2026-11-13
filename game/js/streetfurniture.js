@@ -22,7 +22,7 @@ import { pointInPolygon, polygonBounds, nearestOnRoadList } from './util.js';
 import { waterPolyIn } from './waterlevels.js';
 import { hash2 as hash } from './rng.js';
 import { placeSignItems, entryOf } from './placesigns.js';
-import { segDist, buildingAt } from './tileplace.js';
+import { segDistD, buildingAt } from './tileplace.js';
 import { hedgeLines } from './tilegreenery.js';
 
 const MAIN = new Set(['motorway', 'trunk']);
@@ -238,7 +238,7 @@ function nearestRoad(roads, x, y, filter = () => true) {
 // a polyline passing within d m of (x, y)
 function segNear(P, x, y, d) {
   for (let i = 0; i < P.length - 1; i++) {
-    if (segDist(x, y, P[i], P[i + 1])[0] < d) return true;
+    if (segDistD(x, y, P[i], P[i + 1]) < d) return true;
   }
   return false;
 }
@@ -252,7 +252,7 @@ function houseGap(buildings, x, y, reach) {
     const q = b.bounds || (b.bounds = polygonBounds(b.pts));
     if (x < q[0] - reach || x > q[2] + reach || y < q[1] - reach || y > q[3] + reach) continue;
     if (pointInPolygon(x, y, b.pts)) return 0;
-    for (let i = 0; i < b.pts.length - 1; i++) best = Math.min(best, segDist(x, y, b.pts[i], b.pts[i + 1])[0]);
+    for (let i = 0; i < b.pts.length - 1; i++) best = Math.min(best, segDistD(x, y, b.pts[i], b.pts[i + 1]));
   }
   return best;
 }
@@ -630,3 +630,4 @@ export function mappedSignsFromOsm(el) {
   const [x, y] = wgsToWorld(el.lat, el.lon).map((q) => Math.round(q * 100) / 100);
   return [{ k, pts: [[x, y]], ...(v ? { v } : null), osm: el.id }];
 }
+

@@ -21,6 +21,55 @@ export function routeStats(route) {
   };
 }
 
+// #804: een meting op een belaste machine is niet vergelijkbaar met de stille
+// reeks. De runner schrijft de gemeten systeemdruk in `machine` (oude runs:
+// cpuBusyBeforePct, nieuwe runs: load als fractie); dit is de grens waarboven
+// een run als belast geldt.
+export const MACHINE_BUSY_PCT = 35;
+export function machineBusy(machine, grens = MACHINE_BUSY_PCT) {
+  if (!machine) return false;
+  if (Number.isFinite(machine.cpuBusyBeforePct) && machine.cpuBusyBeforePct > grens) return true;
+  if (Number.isFinite(machine.cpuBusyAfterPct) && machine.cpuBusyAfterPct > grens) return true;
+  if (Number.isFinite(machine.electronProcsAfter) && machine.electronProcsAfter > 0) return true; // tijdens de run gestart
+  if (Number.isFinite(machine.load) && machine.load <= 1) return machine.load * 100 > grens;
+  if (Number.isFinite(machine.load) && Number.isFinite(machine.cpus) && machine.cpus > 0) return (machine.load / machine.cpus) * 100 > grens;
+  return false;
+}
+
+// #804: ook een lage CPU vóór de run zegt niets als de GPU/systeem tijdens de
+// run bezet raakt: dan duurt een run van 15 s route al snel 2-3 minuten. Zo'n
+// run is niet vergelijkbaar, ook al was de CPU bij de start rustig.
+export const WALL_FACTOR = 2.5;
+export const WALL_STARTUP_S = 60;
+export function slowWall(wallS, expectedS) {
+  if (!Number.isFinite(wallS) || !Number.isFinite(expectedS) || expectedS <= 0) return false;
+  return wallS > WALL_FACTOR * expectedS + WALL_STARTUP_S;
+}
+
+// #804: de perf-marks uit het runlog. Puur, zodat de routewand-telling (en het
+// feit dat álle routes meetellen) getest kan worden; een crash halverwege de
+// lus mag de teller niet stilzetten.
+export function parseRouteMarks(lines) {
+  const marks = {};
+  for (const l of lines || []) {
+    const m = /\[perf-mark\] (start|end) (\S+) (\d+)(?: (\d+))?/.exec(l);
+    if (!m) continue;
+    (marks[m[2]] ||= {})[m[1]] = { t: Number(m[3]), frames: Number(m[4]) || 0 };
+  }
+  return marks;
+}
+export function routeMarksSummary(lines) {
+  const marks = parseRouteMarks(lines);
+  let seconds = 0;
+  let firstAt = null;
+  for (const mk of Object.values(marks)) {
+    if (!mk.start || !mk.end) continue;
+    seconds += (mk.end.t - mk.start.t) / 1000;
+    if (firstAt == null || mk.start.t < firstAt) firstAt = mk.start.t;
+  }
+  return { marks, seconds, firstAt };
+}
+
 // Heeft deze route frametijden? (census en latentie zijn losse metingen.)
 export function routeHasFrames(route) {
   const s = routeStats(route);

@@ -2610,8 +2610,13 @@ export function update3D(dt, world) {
   focusSpeed = streamAhead.speed;
   geoFrame();
   initBlobPool();
+  // #804: met PERF_BUILD_MARKS splitst de hitchprobe het bouwwerk in fasen
+  const bm = typeof window !== 'undefined' && !!window.__perfBuildMarks;
+  if (bm) probe.split();
   stepPrewarm(world);
+  if (bm) probe.mark('3d:prewarm');
   syncBuildings(world, focus.x, focus.y);
+  if (bm) probe.mark('3d:syncbuildings');
   if (!NO_BATCH) {
     buildingBatcher.update({ scene, meshes: buildingMeshes, hidden: hiddenBuildings, px: focus.x, py: focus.y, detailR: buildingDetailR, drawDist: DRAW_DIST,
       withDetail: facadeDetailDist >= DRAW_DIST, compile: batchCompile, ready: batchReady, budgetMs: performance.now() < streamBoostUntil ? 1 : 3 });
@@ -2620,7 +2625,9 @@ export function update3D(dt, world) {
         withDetail: true, compile: batchCompile, ready: batchReady, budgetMs: 1 });
     } else facadeBatcher.clear();
   }
+  if (bm) probe.mark('3d:batch');
   drawHub.syncMaterials();
+  if (bm) probe.mark('3d:drawhub');
   probe.mark('3d:buildings');
   setCutMaskCenter(focus.x, focus.y, DRAW_DIST - 6);
   updatePortals(focus.x, focus.y);
