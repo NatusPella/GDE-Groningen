@@ -17,6 +17,17 @@ export const WALK_SPEED = 2.2;
 
 export const noseOf = (cfg) => (cfg.front === 'virm' ? 1.9 : 1.6);
 
+// De raambanden van de treinromp (#847): waar het glas in de buitenkant zit, in meters boven de rail. railway3d.js
+// bouwt de rompzijkant om deze banden heen open (livrei eronder en erboven, glas ertussen) en treininterieur.js zet
+// het LOD-interieur van een nabije trein binnen de band, zodat het door de ruiten te zien is. Eén bron voor beide.
+// De stoptreinen hebben één band; de dubbeldekker (VIRM) heeft een lage en een hoge band.
+export function raamband(cfg) {
+  const floor = cfg.doubleDeck ? 0.5 : 0.7;
+  return cfg.doubleDeck
+    ? [{ y0: 1.19, y1: 1.91 }, { y0: 2.89, y1: 3.61 }]
+    : [{ y0: floor + 0.775, y1: floor + 1.725 }];
+}
+
 // null voor een wagen zonder binnenste (vlakke wagens en locomotieven van de goederentrein)
 export function carLayout(cfg, seg) {
   if (seg.kind !== 'car' && seg.kind !== 'power') return null;

@@ -3,8 +3,9 @@ import { hoofdspeler } from './players.js';
 // crossings with half barriers and flashing lights, and the trains from
 // railway.js.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { syncTreinInterieur } from './treininterieur.js';
+import { syncTreinInterieur, syncTreinLodInterieur, hideTreinLodInterieur, TREIN_LOD_BUILD_BUDGET } from './treininterieur.js';
 import { gastTreinVan } from './cooptrein.js';
+import { raamband } from './treinlayout.js';
 import { gridItems } from './spatialgrid.js'; // de trein van de gastheer waarin een gast conducteur is (#492)
 import { getTrains, getLevelCrossings, nearLevelCrossing, railZ, isOffMap, TRAIN_HALF_WIDTH, FLAT_DECK_Z } from './railway.js';
 import { WATER_Y } from './util.js';
@@ -571,6 +572,12 @@ function mat(color, opts = {}) {
   return m;
 }
 const GLASS_MAT = new THREE.MeshStandardMaterial({ color: 0x1c2631, roughness: 0.2, metalness: 0.4, emissive: 0xffe2a8, emissiveIntensity: 0 });
+// De glasbanden van de salon (#847): doorzichtig, zodat het interieur van een nabije trein door de ramen te zien is.
+// De voorruit van de cabine en het glas van de tussenmodule houden GLASS_MAT (die hoeven niet doorzichtig te zijn).
+const SALOON_GLASS = new THREE.MeshStandardMaterial({
+  color: 0x20303c, roughness: 0.25, metalness: 0.3, transparent: true, opacity: 0.5, depthWrite: false,
+  emissive: 0xffe2a8, emissiveIntensity: 0,
+});
 const HEAD_MAT = new THREE.MeshBasicMaterial({ color: 0xfff6dc });
 const TAIL_MAT = new THREE.MeshBasicMaterial({ color: 0xff1a10 });
 const LAMP_DARK = new THREE.MeshBasicMaterial({ color: 0x33302c });
@@ -580,6 +587,31 @@ function box(group, w, h, d, material, x, y, z = 0) {
   m.position.set(x, y, z);
   group.add(m);
   return m;
+}
+
+// Een handvol dozen als één mesh (#847): de rompzijkanten en de glasbanden van een wagen kosten zo één draw call per
+// stuk in plaats van tien. Wordt alleen bij het bouwen van een wagen gebruikt, niet per frame.
+function mergedMesh(group, parts, material) {
+  const pos = [], nor = [], uv = [];
+  const m = new THREE.Matrix4();
+  for (const [w, h, d, x, y, z] of parts) {
+    const b = new THREE.BoxGeometry(w, h, d);
+    b.applyMatrix4(m.makeTranslation(x, y, z));
+    const g = b.index ? b.toNonIndexed() : b;
+    const p = g.attributes.position.array, n = g.attributes.normal.array, u = g.attributes.uv.array;
+    for (let i = 0; i < p.length; i++) pos.push(p[i]);
+    for (let i = 0; i < n.length; i++) nor.push(n[i]);
+    for (let i = 0; i < u.length; i++) uv.push(u[i]);
+    if (g !== b) g.dispose();
+    b.dispose();
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  geo.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
+  geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  const mesh = new THREE.Mesh(geo, material);
+  group.add(mesh);
+  return mesh;
 }
 
 // Local +X runs along the track (towards increasing route arc length).
@@ -666,7 +698,8 @@ function buildFlat(cfg, seg) {
   return g;
 }
 
-function buildCar(cfg, seg) {
+// Voor scripts/trein_lod_test.mjs: de romp van één wagen, precies zoals buildTrainView die bouwt.
+export function buildCar(cfg, seg) {
   if (seg.kind === 'power') return buildPowerModule(cfg, seg);
   if (seg.kind === 'loco') return buildLoco(cfg, seg);
   if (seg.kind === 'flat') return buildFlat(cfg, seg);
@@ -678,15 +711,40 @@ function buildCar(cfg, seg) {
   const bl = x1 - x0, bx = (x0 + x1) / 2;
   const floor = cfg.doubleDeck ? 0.5 : 0.7;
   const body = mat(cfg.body), stripe = mat(cfg.stripe), door = mat(cfg.door);
-  const shell = box(g, bl, H - floor - 0.2, W, body, bx, floor + (H - floor - 0.2) / 2);
-  shell.castShadow = true;
+  // De romp is geen dichte doos meer (#847): de raambanden zijn open, met doorzichtig glas en een donkere vuller
+  // erachter, zodat het LOD-interieur van een nabije trein (treininterieur.js) door de ramen te zien is. De vuller
+  // gaat uit zodra dat interieur er staat; van buiten lezen livrei, raamband en deuren hetzelfde als voorheen.
+  // De zijwanden, kopwanden en glasbanden gaan per stuk in één mesh: dat scheelt draw calls per wagen.
+  const top = H - 0.2;
+  const bands = raamband(cfg);
+  const glassLenOf = (b) => (cfg.doubleDeck && b === bands[0] ? bl - 2 * 4.6 : bl - 1.2);
+  const bodyParts = [], glassParts = [];
+  for (const s of [-1, 1]) {
+    let prev = floor;
+    for (const b of bands) {
+      bodyParts.push([bl, b.y0 - prev, 0.06, bx, (prev + b.y0) / 2, s * (W / 2 - 0.03)]);
+      glassParts.push([glassLenOf(b), b.y1 - b.y0, 0.02, bx, (b.y0 + b.y1) / 2, s * (W / 2 + 0.005)]);
+      prev = b.y1;
+    }
+    bodyParts.push([bl, top - prev, 0.06, bx, (prev + top) / 2, s * (W / 2 - 0.03)]);
+  }
+  // waar de raamband geen glas heeft (de uiteinden) is hij dicht met livrei
+  for (const b of bands) {
+    const endLen = (bl - glassLenOf(b)) / 2;
+    if (endLen > 0.05) for (const e of [-1, 1]) bodyParts.push([endLen, b.y1 - b.y0, W, bx + e * (bl / 2 - endLen / 2), (b.y0 + b.y1) / 2, 0]);
+  }
+  for (const x of [x0, x1]) bodyParts.push([0.05, top - floor, W, x, floor + (top - floor) / 2, 0]);   // kopwanden
+  mergedMesh(g, bodyParts, body).castShadow = true;
+  mergedMesh(g, glassParts, SALOON_GLASS);
+  // de donkere vuller: zonder LOD-interieur kijk je door de ramen een donkere, dichte salon in
+  const filler = box(g, bl - 0.16, top - floor - 0.16, W - 0.16, DARK(), bx, floor + (top - floor) / 2);
+  filler.castShadow = false;
+  g.userData.interiorFiller = filler;
   box(g, bl - 0.4, 0.25, W - 0.5, ROOF(), bx, H - 0.08);
   if (cfg.doubleDeck) {
     // VIRM-style: single-deck ends over the bogies, low-slung double-deck middle
     const endLen = 4.6;
     for (const e of [-1, 1]) box(g, 2.8, 0.75, 2.3, DARK(), e * (L / 2 - 2.6), 0.5);
-    box(g, bl - 2 * endLen, 0.72, W + 0.02, GLASS_MAT, bx, 1.55);
-    box(g, bl - 1.2, 0.72, W + 0.02, GLASS_MAT, bx, 3.25);
     box(g, bl, 0.22, W + 0.03, stripe, bx, 0.72);
     box(g, bl, 0.1, W + 0.03, stripe, bx, H - 0.45);
     for (const e of [-1, 1]) {
@@ -700,7 +758,6 @@ function buildCar(cfg, seg) {
     const cabEnd = seg.cab || 1;
     box(g, 2.6, 0.6, 2.2, DARK(), cabEnd * (L / 2 - 3.2), 0.45);
     box(g, bl, 0.35, W - 0.3, DARK(), bx, floor - 0.05);
-    box(g, bl - 1.2, 0.95, W + 0.02, GLASS_MAT, bx, 1.95);
     box(g, bl, 0.42, W + 0.03, stripe, bx, 1.0);
     box(g, bl, 0.07, W + 0.03, stripe, bx, 2.55);
     for (const dx of [-cabEnd * (L / 2 - 3.2), cabEnd * (L / 2 - 6.5)]) box(g, 1.45, 2.15, W + 0.04, door, dx, floor + 1.1);
@@ -725,14 +782,17 @@ function buildTrainView(t) {
 
 function updateTrains(px, py, night, world, dt) {
   GLASS_MAT.emissiveIntensity = 0.55 * night;
+  SALOON_GLASS.emissiveIntensity = 0.5 * night;   // de doorzichtige raambanden lichten 's nachts mee (#847)
   HEAD_MAT.color.setHex(0xfff6dc).multiplyScalar(1 + 2 * night);
   const all = getTrains();
+  const lodBudget = { left: TREIN_LOD_BUILD_BUDGET };   // bouwbudget voor de LOD-interieurs van deze frame (#847)
   if (trainViews.size > all.length) {
     // a story train that is gone again
     for (const [t, view] of trainViews) {
       if (all.includes(t)) continue;
       view.group.removeFromParent();
-      view.group.traverse((o) => { if (o.geometry) o.geometry.dispose(); });
+      // gedeelde LOD-geometrie (markShared) niet weggooien: die gebruikt een andere trein ook
+      view.group.traverse((o) => { if (o.geometry && !o.geometry.userData.shared) o.geometry.dispose(); });
       trainViews.delete(t);
     }
   }
@@ -759,7 +819,13 @@ function updateTrains(px, py, night, world, dt) {
       if (lamps[-1]) for (const l of lamps[-1]) l.material = t.dir < 0 ? HEAD_MAT : TAIL_MAT;
     });
     // het binnenste van de trein die de speler bestuurt of waarin een gast als conducteur loopt (treininterieur.js, #442, #492)
-    if (world && (t === world.trainDriving || t === gastTreinVan(world) || view.tc)) { syncTreinInterieur(view, t, world, dt); view.tc = true; }
+    const full = !!world && (t === world.trainDriving || t === gastTreinVan(world));
+    if (world && (full || view.tc)) { syncTreinInterieur(view, t, world, dt); view.tc = true; }
+    // andere treinen in de buurt krijgen een LOD-interieur achter de ramen (#847); de bereden trein houdt het volle
+    if (world) {
+      if (full) hideTreinLodInterieur(view);
+      else syncTreinLodInterieur(view, t, px, py, lodBudget);
+    }
   }
 }
 

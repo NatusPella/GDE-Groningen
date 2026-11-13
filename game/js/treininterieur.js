@@ -7,7 +7,7 @@
 // zolang je binnen bent. railway3d.js roept syncTreinInterieur aan.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { GeoBuilder, markShared } from './pixelart3d.js';
-import { trainLayout, passengers, driverEye, WALL_Z, DOOR_W, AISLE, GANGWAY } from './treinlayout.js';
+import { trainLayout, passengers, driverEye, WALL_Z, DOOR_W, AISLE, GANGWAY, raamband } from './treinlayout.js';
 import { gastTreinVan } from './cooptrein.js'; // de conducteur die als gast door de trein loopt (#492)
 
 const FLOOR = 0x2b2f36, RUNNER = 0x3b4a5c, WALL = 0xd9d7cf, CEIL = 0xeceae3, SEAT = 0x2f5d8a, SEAT_DARK = 0x233f5d, POLE = 0xe5b800, DESK = 0x2a2e35, TRIM = 0x8a8f98;
@@ -277,7 +277,8 @@ function setPassengers(st, cl, seed) {
 function showShell(group, st, hidden) {
   if (st.hidden === hidden) return;
   st.hidden = hidden;
-  for (const ch of group.children) if (!ch.userData.interieur) ch.visible = !hidden;
+  // het LOD-interieur van een andere trein (#847) hoort niet bij de schil en blijft waar hij is
+  for (const ch of group.children) if (!ch.userData.interieur && !ch.userData.treinLod) ch.visible = !hidden;
 }
 
 // De wagens die binnen een bouwafstand van de speler liggen: de eigen wagen en de buren.
@@ -320,3 +321,134 @@ export function syncTreinInterieur(view, t, world, dt) {
 
 // Aantal wagens met een gebouwd binnenste (voor de test en de prestatiemeting).
 export const builtCount = (view) => view.cars.filter((g) => states.has(g)).length;
+
+// --- LOD-interieurs van andere treinen (#847) ------------------------------------------------------------
+// De trein die de speler bestuurt (of waarin een gast conducteur is) houdt het volledige interieur hierboven. Alle
+// andere treinen in de buurt krijgen een eenvoudig interieur achter de ramen: per rijtuigtype één gedeelde geometrie
+// op twee afstandsniveaus, een bouwbudget per frame, en verborgen voorbij de verste straal. Eén mesh per rijtuig dat
+// alleen van geometrie wisselt; geen reizigers (dat scheelt een hoop driehoeken en valt op afstand niet op).
+// railway3d.js bouwt de raambanden van de romp open (raamband in treinlayout.js) en roept dit per trein aan.
+export const TREIN_LOD_R = [70, 150];       // m: tot 70 het eenvoudige interieur, tot 150 alleen banken, verder niets
+export const TREIN_LOD_BUILD_BUDGET = 2;    // nieuwe geometrieën per frame
+const lodGeoCache = new Map();
+const lodStates = new WeakMap();            // wagengroep -> { mesh, lod }
+
+export function treinLodAt(afstand) {
+  if (!(afstand >= 0)) return -1;           // NaN of oneindig: niets
+  if (afstand < TREIN_LOD_R[0]) return 0;
+  if (afstand < TREIN_LOD_R[1]) return 1;
+  return -1;
+}
+
+// Het eenvoudige interieur van één rijtuig (#847). De binnenwanden, raamstijlen, bagagerekken, banken en lampen
+// staan binnen de raambanden van raamband(), zodat je ze door de ruiten ziet. Groep 0 = alles: één materiaal, net
+// als het volledige interieur onverlicht getekend (materials()[0]). Niveau 1 is alleen vloer, plafond en twee banken.
+export function buildCarLodGeometry(cfg, seg, cl, lod = 0) {
+  const B = new GeoBuilder(1);
+  if (!cl || cl.kind !== 'car') return B.build();
+  const L = cl.len, f = cl.floorY, c = cl.ceilY, H = (cfg && cfg.height) || 3.8;
+  const x0 = cl.saloon[0], x1 = cl.saloon[1], cx = (x0 + x1) / 2, len = x1 - x0;
+  const band = raamband(cfg);
+  B.box(0, f - 0.03, 0, L - 0.25, 0.06, WALL_Z * 2, FLOOR);
+  B.box(0, c + 0.02, 0, L - 0.25, 0.05, WALL_Z * 2, CEIL);
+  if (lod >= 1) {
+    // ver: een lange zitting en rug per kant, meer niet
+    for (const s of [-1, 1]) {
+      B.box(cx, f + 0.42, s * 0.85, len - 0.6, 0.6, 0.5, SEAT_DARK);
+      B.box(cx, f + 0.95, s * (WALL_Z - 0.16), len - 0.6, 0.9, 0.16, SEAT_DARK);
+    }
+    return B.build();
+  }
+  for (const s of [-1, 1]) {
+    const z = s * WALL_Z, out = [0, 0, -s];
+    let prev = f;
+    for (const b of band) {
+      // de binnenwand onder de raamband (en bij de dubbeldekker tussen de banden door)
+      if (b.y0 - prev > 0.05) B.quadOut([x0, prev, z], [x1, prev, z], [x1, b.y0, z], [x0, b.y0, z], out, WALL);
+      // raamstijlen in de band: van buiten door het glas te zien als kozijnen
+      for (const x of cl.pillars) B.quadOut([x - 0.06, b.y0, z], [x + 0.06, b.y0, z], [x + 0.06, b.y1, z], [x - 0.06, b.y1, z], out, WALL);
+      // bagagerek bovenin de band en de lamp eronder: samen het beeld door het raam
+      B.box(cx, b.y1 - 0.2, s * (WALL_Z - 0.2), len - 0.5, 0.05, 0.34, RACK);
+      B.box(cx, b.y1 - 0.27, s * (WALL_Z - 0.36), len - 0.5, 0.12, 0.03, RACK_DARK);
+      B.box(cx, b.y1 - 0.62, s * 0.55, len - 1.2, 0.03, 0.18, LAMP);
+      prev = b.y1;
+    }
+    if (c - prev > 0.05) B.quadOut([x0, prev, z], [x1, prev, z], [x1, c, z], [x0, c, z], out, WALL);
+    // de banken: zitting en rug per kant, met de ruggen tot in de raamband
+    B.box(cx, f + 0.42, s * 0.85, len - 0.6, 0.6, 0.5, SEAT_DARK);
+    B.box(cx, f + 0.95, s * (WALL_Z - 0.16), len - 0.6, 0.9, 0.16, SEAT);
+  }
+  // dubbeldekker: het bovendek dichtmaken, zodat je door de hoge ramen geen lucht ziet
+  if (cfg.doubleDeck) B.box(0, (c + H - 0.25) / 2, 0, L - 0.3, H - 0.25 - c, WALL_Z * 2, CEIL);
+  return B.build();
+}
+
+// Gedeelde LOD-geometrie per rijtuigtype en niveau; alleen bouwen als het budget van deze frame dat toestaat.
+function lodGeo(cfg, seg, cl, lod, budget) {
+  const k = `${cfg.front}|${cfg.doubleDeck}|${seg.len}|${seg.cab || 0}|${seg.kind}|${lod}`;
+  let g = lodGeoCache.get(k);
+  if (!g && budget.left > 0) {
+    g = markShared(buildCarLodGeometry(cfg, seg, cl, lod));
+    lodGeoCache.set(k, g);
+    budget.left--;
+  }
+  return g || null;
+}
+
+// De LOD-interieurs van één trein: per rijtuig een eigen mesh op de wagengroep (dus hij rijdt mee) dat alleen van
+// geometrie wisselt. px/py: de speler; budget: { left } voor deze frame, gedeeld door alle treinen.
+export function syncTreinLodInterieur(view, t, px, py, budget) {
+  const layout = trainLayout(t.cfg);
+  view.cars.forEach((group, i) => {
+    const seg = t.cars[i] && t.cars[i].seg;
+    const cl = layout[i];
+    const filler = group.userData.interiorFiller;
+    if (!cl || !seg || seg.kind !== 'car') return;      // locomotieven, vlakke wagens en de tussenmodule hebben geen salon
+    const car = t.cars[i];
+    const dx = Math.abs(car.x - px), dy = Math.abs(car.y - py);
+    const lod = treinLodAt(Math.max(dx, dy));           // Chebyshev, net als bij de bus
+    let st = lodStates.get(group);
+    if (lod < 0) {                                      // voorbij de verste straal: niets, en de donkere vuller terug
+      if (st) { if (st.mesh) st.mesh.visible = false; st.lod = -1; }
+      if (filler) filler.visible = true;
+      return;
+    }
+    if (!st) { st = { mesh: null, lod: -1 }; lodStates.set(group, st); }
+    if (st.lod !== lod) {
+      const g = lodGeo(t.cfg, seg, cl, lod, budget);
+      if (!g) {                                         // geen budget meer: deze wagen blijft één frame zonder interieur
+        if (st.mesh) st.mesh.visible = false;
+        if (filler) filler.visible = true;
+        return;
+      }
+      if (!st.mesh) {
+        st.mesh = new THREE.Mesh(g, materials()[0]);
+        st.mesh.name = 'treininterieur-lod';
+        st.mesh.castShadow = false;                     // geen extra shadow-pass per rijtuig
+        st.mesh.frustumCulled = false;                  // de wagenmatrix wordt elke frame gezet
+        st.mesh.userData.noBatch = true;
+        st.mesh.userData.treinLod = true;               // showShell() van het volledige interieur laat deze met rust
+        group.add(st.mesh);
+      } else st.mesh.geometry = g;                      // zelfde mesh, alleen de geometrie wisselt (#833)
+      st.lod = lod;
+    }
+    st.mesh.visible = true;
+    if (filler) filler.visible = false;                 // het echte interieur vervangt de donkere vuller
+  });
+}
+
+// De bereden trein (of de trein van de gastheer) houdt het volledige interieur: geen LOD-mesh. De donkere vuller
+// blijft in beeld zolang de speler niet binnen is; binnen verbergt showShell de hele schil, inclusief de vuller.
+export function hideTreinLodInterieur(view) {
+  for (const group of view.cars) {
+    const st = lodStates.get(group);
+    if (st) { if (st.mesh) st.mesh.visible = false; st.lod = -1; }
+    const filler = group.userData.interiorFiller;
+    if (!filler) continue;
+    const full = states.get(group);
+    if (!full || !full.interior.visible) filler.visible = true;
+  }
+}
+
+// Voor de test en de prestatiemeting: het LOD-interieur per wagen (of null).
+export const lodInterieurVan = (view) => view.cars.map((g) => { const st = lodStates.get(g); return st ? st.mesh : null; });
