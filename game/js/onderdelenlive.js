@@ -5,7 +5,6 @@ import { hoofdspeler } from './players.js';
 import { recordUnique, getSaveSet, isUnlocked } from './achievements.js';
 import { Vehicle } from './vehicle.js';
 import { VEHICLE_STOCK } from './shopdata.js';
-import { findParkingSpot } from './ownedvehicles.js';
 import { ONDERDELEN_TOTAAL, ONDERDEEL_R, PRESTATIE_SET, ONDERDEEL_AUTO, onderdelen, onderdeelId, stand, autoNaam, heeftAlle } from './onderdelen.js';
 
 let worldRef = null;
@@ -47,8 +46,10 @@ export function bouwAuto(world) {
   if (!spec) return { ok: false, reden: 'Dit model is niet beschikbaar.' };
   const p = hoofdspeler(world);
   const model = { ...spec.model, color: ONDERDEEL_AUTO.kleur, name: 'knutselwagen' };
-  const spot = findParkingSpot(world, p.x, p.y, model, { maxDist: 80 }) || { x: p.x + 3, y: p.y, angle: 0 };
-  const v = new Vehicle(spot.x, spot.y, spot.angle || 0, model);
+  // Geen import van ownedvehicles (dat zou een importcyclus met garages geven): de auto
+  // komt naast de speler op een open plek, of anders direct naast hem.
+  const spot = (world.map && world.map.findOpenSpawn && world.map.findOpenSpawn(p.x, p.y, 40)) || { x: p.x + 3, y: p.y };
+  const v = new Vehicle(spot.x, spot.y, p.angle || 0, model);
   v.name = autoNaam();
   v.playerOwned = true;
   v.missionCar = false;
