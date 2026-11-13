@@ -4,9 +4,9 @@
 // the two halves are also available on their own; ABOUT_HTML is both together.
 import { GAME_TITLE, SERIES, SERIES_MEANING } from './logo.js';
 
-// The one disclaimer (#72); README.md, NOTICE.md and docs/PRIVACY-CREDITS.md carry the same text.
-// This is the only place in the game that names the publisher (a required statement), so the end credits only say 'alles verzonnen'.
-const DISCLAIMER = `${SERIES} is een gratis fanparodie, niet gelieerd aan, gesponsord door of goedgekeurd door een gameontwikkelaar of -uitgever, in het bijzonder niet door Rockstar Games of Take-Two Interactive, de uitgever van GTA. Namen, personages, bedrijven, merken en gebeurtenissen zijn verzonnen; gelijkenis met bestaande personen of bedrijven berust op toeval.`;
+// The one disclaimer (#72, #37); README.md, NOTICE.md and docs/PRIVACY-EN-CREDITS.md carry the same text.
+// It deliberately names no other game or publisher (constitution 2); the end credits only say 'alles verzonnen'.
+const DISCLAIMER = `${GAME_TITLE} is een gratis, niet-commerciële fanparodie, niet gelieerd aan, gesponsord door of goedgekeurd door enige andere gameontwikkelaar of -uitgever. Namen, personages, bedrijven, merken en gebeurtenissen zijn verzonnen; gelijkenis met bestaande personen of bedrijven berust op toeval. Echte straten en openbare gebouwen zijn alleen het decor.`;
 
 const OSM_ATTRIBUTION = '© OpenStreetMap-bijdragers';
 // building heights and roof shapes (scripts/world/fetch_3dbag.py; CC BY 4.0)
@@ -16,8 +16,32 @@ const BAG3D_ATTRIBUTION = '3DBAG door de 3D geoinformation onderzoeksgroep (TU D
 // gemeente-, woonplaats-, wijk- en buurtgrenzen (scripts/world/fetch_grenzen.mjs -> game/grenzen.json; CC BY 4.0 en Public Domain Mark)
 const GRENZEN_ATTRIBUTION = 'Gemeentegrenzen: Kadaster (Bestuurlijke Gebieden), woonplaatsen: Kadaster (BAG), wijken en buurten: CBS (Gebiedsindelingen), via PDOK';
 
+// Everyone who helped, in order of measured effort; handles are GitHub usernames and no real
+// names of others than the owner are used (constitution 4). Evidence and method: docs/CREDITS.md.
+export const CONTRIBUTORS = [
+  { who: 'NatusPella', role: 'maker: idee, verhaal, regie, code en alles daartussen' },
+  { who: 'Claude (Sonnet 5.5 en Opus 5.5)', role: 'AI-copiloot: het grootste deel van de code- en testcommits' },
+  { who: 'OpenHands', role: 'AI-agent: code, tests en reviewrondes' },
+  { who: 'chat1 en agent', role: 'AI-hulpen: test- en meetrondes' },
+  { who: 'astnagrath', role: 'tester en meedenker: feedback en issues' },
+  { who: 'pixel-maus', role: 'tester en meedenker: feedback en issues' },
+  { who: 'alexkramer98', role: 'tester en meedenker: feedback en een pull request' },
+  { who: 'Teungritter', role: 'tester en meedenker: feedback' },
+  { who: 'MathijsG', role: 'vriend en tester van het project' },
+  { who: 'ArmEagle', role: 'vriend en tester van het project' },
+  { who: 'wisskid', role: 'vriend en tester van het project' },
+  { who: 'Agnilor', role: 'vriend en tester van het project' },
+  { who: 'jonathanbuist', role: 'vriend en tester van het project' },
+  { who: 'de playtesters', role: 'alle spelers die builds uitprobeerden en feedback gaven' },
+  { who: 'Google Gemini', role: 'muziek en alle stemmen' },
+  { who: 'Claude Design', role: 'het Martinitoren-model' },
+];
+
 // [title, kicker] cards for the end credits (story.js)
 export const THIRD_PARTY_CARDS = [
+  ['NatusPella', 'ontwerp, verhaal, regie en code'],
+  ['Claude · OpenHands', 'AI-hulp bij code en tests'],
+  ['astnagrath · pixel-maus · alexkramer98 · Teungritter', 'testers en meedenkers'],
   [OSM_ATTRIBUTION, 'kaartdata (ODbL) · openstreetmap.org/copyright'],
   ['3DBAG', 'gebouwhoogtes en daken (CC BY 4.0) · TU Delft en 3DGI · 3dbag.nl'],
   ['AHN', 'terreinhoogte (CC0) · ahn.nl · pdok.nl'],
@@ -30,6 +54,11 @@ export const THIRD_PARTY_CARDS = [
 export const CREDITS_HTML = `
 <h3>${GAME_TITLE}</h3>
 <p>Een gratis, niet-commercieel fanproject uit Groningen. ${SERIES} staat voor ${SERIES_MEANING}. ${DISCLAIMER}</p>
+<h4>Met dank aan</h4>
+<p>In volgorde van bijdrage, van groot naar klein. Zonder hen was dit er niet.</p>
+<ul>
+${CONTRIBUTORS.map((c) => `<li><strong>${c.who}</strong> — ${c.role}</li>`).join('\n')}
+</ul>
 <h4>Kaart</h4>
 <p>Straten, gebouwen, water en plekken: kaartdata ${OSM_ATTRIBUTION}, beschikbaar onder de Open Database License (ODbL). Zie openstreetmap.org/copyright.</p>
 <p>Gebouwhoogtes en dakvormen: ${BAG3D_ATTRIBUTION}, onder CC BY 4.0. Zie 3dbag.nl.</p>
@@ -50,7 +79,7 @@ export const LICENSES_HTML = `
 <h4>Licenties</h4>
 <p>De code is vrije software onder de GPL-3.0 (of later). Stemmen, muziek, verhaal en dialogen vallen onder CC BY-NC-SA 4.0. De naam ${SERIES} en het logo zijn niet vrij te gebruiken. Zie LICENSE, LICENSE-CONTENT.md en NOTICE.md bij de broncode.</p>
 <h4>Privacy</h4>
-<p>Het spel bewaart je voortgang en instellingen alleen op dit apparaat (localStorage). Er gaat niets naar een server: geen account, geen tracking, geen statistieken. Fouten schrijft het spel op in een eigen logboek op dit apparaat (Instellingen › Foutrapport); dat verstuurt niets, je kunt het zelf kopiëren als je een fout wilt melden. Alleen de browserversie haalt bij het laden three.js en de lettertypes op bij jsDelivr en Google Fonts.</p>
+<p>Het spel bewaart je voortgang en instellingen alleen op dit apparaat (localStorage). Er gaat niets naar een server: geen account, geen tracking, geen statistieken. Fouten schrijft het spel op in een eigen logboek op dit apparaat (Over › Problemen); dat verstuurt niets, je kunt het zelf kopiëren als je een fout wilt melden. Live busposities staan standaard aan en kun je uitzetten (pauzemenu › Spel › Spelen); daarvoor vraagt het spel een openbare busdienst op, zonder gegevens van jou. Alleen de browserversie haalt bij het laden three.js en de lettertypes op bij jsDelivr en Google Fonts.</p>
 <p>Samen spelen (alleen als je het zelf aanzet) deelt je IP-adres met je medespeler. Met een kamercode gebruikt het spel daarbij openbare servers om elkaar te vinden: een openbare STUN-server en openbare signaleringsservers, waar alleen versleutelde berichten langsgaan. Met een IP-adres verbindt de ander rechtstreeks met jou en opent je router een poort; die sluit weer als je stopt. Je krijgt altijd eerst een melding en je kiest zelf. Er is geen account, geen telemetrie en niets van je voortgang gaat mee.</p>
 `;
 

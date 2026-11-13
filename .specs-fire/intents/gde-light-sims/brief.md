@@ -2,13 +2,13 @@
 
 ## Doel
 
-Naast het verhaal een set lichte beroepsloopbanen bouwen: de herkenbare lus van GTA IV, Watch Dogs 2, ETS2, Train Simulator, Flight Simulator, Farming Simulator en Fishing Simulator, met rijke features maar een kleine catalogus. Alles werkt in Samen spelen, met eigen voortgang per speler en een samenwerkingsbonus (1+1=3).
+Naast het verhaal een set lichte beroepsloopbanen bouwen: de herkenbare lus van bekende open-wereldgames en simulatiegames (ETS2, Train Simulator, Flight Simulator, Farming Simulator en Fishing Simulator), met rijke features maar een kleine catalogus. Alles werkt in Samen spelen, met eigen voortgang per speler en een samenwerkingsbonus (1+1=3).
 
 Epic: #492. De scope staat in de work-items van deze intent en in de canonieke spec `multiplayer.md`; ADR `0016-een-ingang-geen-hoofdmenu.md` gaat alleen over de ingang (boot/menu), niet over de scope van de light sims (#703).
 
 ## Waarom
 
-De game heeft nu veel losse minigames, maar mist per genre de kernlus: Watch Dogs' multiplayer-logica, ETS2's vrachtmarkt en bezit, Farming Sims markt en vee, Train Sims passagiers, Flight Sims routes en Fishing Sims uitrusting. De eigenaar wil geen simulatorpariteit, maar een lichte, rijke versie die lang speelbaar blijft. Geld is nu te strak: flitsboetes en een laag startbudget zorgen dat spelers vaak blut zijn.
+De game heeft nu veel losse minigames, maar mist per genre de kernlus: de multiplayer-logica van een open-wereldgame, ETS2's vrachtmarkt en bezit, Farming Sims markt en vee, Train Sims passagiers, Flight Sims routes en Fishing Sims uitrusting. De eigenaar wil geen simulatorpariteit, maar een lichte, rijke versie die lang speelbaar blijft. Geld is nu te strak: flitsboetes en een laag startbudget zorgen dat spelers vaak blut zijn.
 
 ## Succescriteria
 

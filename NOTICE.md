@@ -20,13 +20,12 @@ interfaceteksten vallen met de code onder de GPL. De precieze regel staat in
 [LICENSE-CONTENT.md](LICENSE-CONTENT.md#teksten-in-codebestanden).
 Hieronder staan de verplichte vermeldingen voor gebruikt werk van anderen.
 
-GDE Groningen is een gratis, niet-commercieel fanproject en een parodie.
-**Het is niet gelieerd aan, gesponsord door of goedgekeurd door een
-gameontwikkelaar of -uitgever, in het bijzonder niet door Rockstar Games of
-Take-Two Interactive, de uitgever van GTA.** Namen, personages, bedrijven,
-merken en gebeurtenissen in het spel zijn verzonnen; gelijkenis met
-bestaande personen of bedrijven berust op toeval. Echte straten en
-openbare gebouwen zijn alleen decor.
+GDE Groningen – Zomer vol misdaad is een gratis, niet-commerciële
+fanparodie, niet gelieerd aan, gesponsord door of goedgekeurd door enige
+andere gameontwikkelaar of -uitgever. Namen, personages, bedrijven, merken
+en gebeurtenissen in het spel zijn verzonnen; gelijkenis met bestaande
+personen of bedrijven berust op toeval. Echte straten en openbare gebouwen
+zijn alleen het decor.
 
 Dit bestand somt de onderdelen van derden op en de vermeldingen die hun
 licenties vragen. De volledige inventaris met bronnen staat in

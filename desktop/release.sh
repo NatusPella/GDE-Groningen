@@ -185,8 +185,8 @@ De sha256 van de Windows-build en van \`gde-world.tgz\` staat in \`SHA256SUMS.tx
 \`sha256sum -c SHA256SUMS.txt\` (macOS: \`shasum -a 256 -c\`). De builds voor macOS, Linux en Android
 worden door Actions gemaakt en staan niet in dat bestand.
 
-${MAC_NOTES}${LINUX_NOTES}Speelde je al toen de game nog GTE VI heette? Je saves en instellingen blijven gewoon staan.
-Op de Mac kun je de oude app "GTE VI" daarna uit Programma's weggooien.
+${MAC_NOTES}${LINUX_NOTES}Speelde je al een eerdere versie? Je saves en instellingen blijven gewoon staan.
+Op de Mac kun je de oude app daarna uit Programma's weggooien.
 
 EOF
 # sha256 van wat dit script uploadt, zodat een speler kan controleren wat hij downloadt (#483).

@@ -324,7 +324,7 @@ Aanbeveling **A**, met deze indeling in een toekomstig `LICENSE`/README:
   rusten: CC BY-NC 4.0".
 - `game/stad.json`, `game/mapextras.json`, `game/ommeland.*`,
   `data/**` → ODbL 1.0, © OpenStreetMap-bijdragers.
-- Merknamen GTE/GDE en het logo: uitgezonderd ("niet onder deze licenties").
+- Merknamen GDE en het logo: uitgezonderd ("niet onder deze licenties").
 - Derden: zie `NOTICE.md`.
 
 ## 8. Steam

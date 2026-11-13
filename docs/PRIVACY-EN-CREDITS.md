@@ -39,6 +39,11 @@ Hou deze lijst gelijk met `NOTICE.md` en `game/js/credits.js`. Op de eigenaar na
 schrijft niemand een echte naam in credits: gebruik NatusPella.
 
 - **Ontwerp, verhaal en code:** NatusPella
+- **Met dank aan (op volgorde van bijdrage):** Claude (Sonnet 5.5 en Opus 5.5), OpenHands,
+  chat1 en agent, astnagrath, pixel-maus, alexkramer98, Teungritter, MathijsG, ArmEagle,
+  wisskid, Agnilor, jonathanbuist, en alle playtesters. Zie [CREDITS.md](CREDITS.md) voor de
+  meetmethode en de volledige lijst; op de eigenaar na staan er alleen GitHub-handles en
+  rolnamen in.
 - **Kaartdata:** © OpenStreetMap-bijdragers (ODbL); gebouwen: 3DBAG (CC BY 4.0);
   hoogtes: AHN via PDOK (CC0)
 - **Techniek:** three.js (MIT), Electron (MIT)
@@ -50,10 +55,10 @@ schrijft niemand een echte naam in credits: gebruik NatusPella.
   rechten op rusten
 - **Martinitoren-model:** gemaakt met Claude Design (Anthropic)
 - **Disclaimer:** één tekst, gelijk in README, NOTICE.md en `game/js/credits.js`: gratis
-  fanparodie, niet gelieerd aan, gesponsord door of goedgekeurd door een gameontwikkelaar
-  of -uitgever, in het bijzonder niet door Rockstar Games of Take-Two Interactive (de
-  uitgever van GTA); alles verzonnen, gelijkenis berust op toeval. De uitgever wordt in het
-  spel alleen hier genoemd (Over); de aftiteling zegt "Fanparodie: alles verzonnen".
+  fanparodie, niet gelieerd aan, gesponsord door of goedgekeurd door een andere
+  gameontwikkelaar of -uitgever; alles verzonnen, gelijkenis berust op toeval. Er worden
+  geen namen van andere games of uitgevers genoemd; de aftiteling zegt "Fanparodie: alles
+  verzonnen".
 
 Volledige herkomst en risico's: [LICENTIES.md](LICENTIES.md). AI-melding voor
 Steam staat in [steam/winkelpagina.md](steam/winkelpagina.md).

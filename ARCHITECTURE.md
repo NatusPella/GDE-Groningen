@@ -1796,7 +1796,7 @@ The vision in one place: `docs/MULTIPLAYER-VISIE.md`.
 
 **Rewards.** Everyone who takes part gets the full reward (money and career points) and their own story step; those who said no get nothing. Contests (race, golf) pay by place.
 
-**Death and PvP (#447, #454).** Death by the world costs as it does now; death by another player is free. A passive mode (as in GTA Online): no damage to or from players, with a cool-down when switching; PvP only outside passive mode, with the real weapons, and blood and gore may be shown in PvP (constitution 6). The game is 18+.
+**Death and PvP (#447, #454).** Death by the world costs as it does now; death by another player is free. A passive mode (as in other open-world crime games): no damage to or from players, with a cool-down when switching; PvP only outside passive mode, with the real weapons, and blood and gore may be shown in PvP (constitution 6). The game is 18+.
 
 **The single-player assumption.** About 600 references to `world.player` remain in `game/js` (#446). The target is `world.players` with helpers (nearest player, for each player, main player); `world.player` stays pointing at the main player so nothing breaks while modules are converted, and a test keeps the number of direct references from growing. When in doubt, look at how Watch Dogs 2 handles it.
 

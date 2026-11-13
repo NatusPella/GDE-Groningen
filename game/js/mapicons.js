@@ -159,7 +159,7 @@ export function haloOutline(ground) {
 }
 
 // --- one icon, one colour (#114) -----------------------------------------------
-// Like the maps of GTA or Watch Dogs: every place is a flat silhouette in the
+// Like the maps of open-world crime games: every place is a flat silhouette in the
 // colour of its category with a dark outline and its detail in dark ink. The
 // colour is the category (red care, blue police, orange garage ...), so the
 // colour alone says what kind of place it is. hud_panel.js draws it from the

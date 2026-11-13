@@ -9,7 +9,8 @@
 ## Context
 
 Samen spelen is nu iets wat je erbij doet: je start lokaal en opent daarna een sessie.
-De eigenaar wil het omdraaien ("multiplayer first", een mix van GTA Online en Watch Dogs 2):
+De eigenaar wil het omdraaien ("multiplayer first", een mix van bekende
+open-wereld- en misdaadgames):
 je start altijd een online sessie, host zelf als er nog niemand speelt, joint een sessie
 met ruimte en dezelfde versie, en host een tweede als de eerste vol raakt. Via Escape
 ontsnap je naar een besloten sessie (alleen of met vrienden via een kamercode), en via

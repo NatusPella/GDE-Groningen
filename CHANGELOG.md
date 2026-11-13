@@ -9,6 +9,9 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- **De disclaimer noemt geen andere games of uitgevers meer.** README, NOTICE.md en het Over-scherm zeggen nu generiek dat GDE een gratis fanparodie is en niet gelieerd aan een andere gameontwikkelaar of -uitgever. De oude merknamen zijn uit de speltekst, de publieke documentatie en de releasenotes verdwenen; onderzoeks- en archiefdocumenten blijven als bron en historie (#72).
+- **De credits noemen nu iedereen die meehielp, op volgorde van bijdrage.** Zie [docs/CREDITS.md](docs/CREDITS.md).
+
 ## [0.60.7] - 2026-11-12
 
 - **De desktop-app draait op Electron 45.2.3 (was 44.9.3).** Die versie bevat de beveiligings- en stabiliteitsfixes van de nieuwere Chromium/Node-basis; de app, de packaging en de verhaaltest zijn opnieuw getest.
@@ -1595,10 +1598,10 @@ ode scripts/test_all.mjs` met een rapport, een spelbot die de hele game speelt (
 - **Water in het Ommeland** heeft één duidelijke regel: diep water = zinken
   of zwemmen, de rand van een meer = waden, een sloot = een kuil.
 - **Ook de interne namen heten nu GDE.** Saves, instellingen en prestaties
-  staan onder nieuwe namen (`gde-*` in plaats van `gte-*`); bij de eerste
-  start worden ze eenmalig gekopieerd, je verliest niets. De desktopapp
-  bewaart alles voortaan in de map `GDE Groningen` (eenmalig gekopieerd uit
-  `GTE VI`; die oude map blijft staan, zodat terug naar 0.28 ook nog kan).
+  staan onder nieuwe sleutels (`gde-*`); bij de eerste start worden ze
+  eenmalig gekopieerd, je verliest niets. De desktopapp bewaart alles
+  voortaan in de map `GDE Groningen` (eenmalig gekopieerd uit de oude
+  app-map; die blijft staan, zodat terug naar 0.28 ook nog kan).
 - **Licenties.** De code valt onder de GPL-3.0 (of later), de eigen inhoud
   (stemmen, muziek, verhaal) onder CC BY-NC-SA 4.0; de naam GDE en het logo
   niet. *Over* in het startmenu zegt het ook.
@@ -2139,8 +2142,8 @@ ode scripts/boat_edge_sim.mjs`).
 - **De game heet nu GDE Groningen – Zomer vol misdaad.** GDE staat voor
   Grootste Diefstal Ever. Het nieuwe logo zet GRONINGEN op een groen
   plaatsnaambord, op het laadscherm, het titelscherm, in het pauzemenu, de
-  trailer, de aftiteling en het app-icoon. "GTE VI" en "Grand Theft" zijn
-  overal weg. Je saves, instellingen en prestaties blijven gewoon staan.
+  trailer, de aftiteling en het app-icoon. De oude naam en de Engelstalige
+  werktitel zijn overal weg. Je saves, instellingen en prestaties blijven gewoon staan.
 - **H15 is één vlucht: "Het staat niet in het rooster"** (was "Spoedeisende
   duif"). Je stijgt op bij Rotor Roelf op Eelde, onderweg belt Dokter
   Dijkstra met een spoedje (de nachtdienst heeft honger), je landt op de H
@@ -2210,7 +2213,8 @@ ode scripts/boat_edge_sim.mjs`).
   pompeblêden, en Us Mem de koe.
 - **Een Linux-versie, ook voor de Steam Deck** (nog niet op het toestel
   getest): een AppImage en een tar.gz voor x64, niet ondertekend, net als de
-  Mac- en Windows-versie. Saves en instellingen staan in `~/.config/GTE VI`.
+  Mac- en Windows-versie. Saves en instellingen staan in de configuratiemap
+  van de app.
   Het releasescript bouwt hem mee met `--linux`, en met `--web` de webzip
   (alleen lokaal, die wordt nergens geüpload). Voor Steam staan er
   SteamPipe-sjablonen en een kopieerscript klaar in `steam/`; er wordt nog
@@ -2332,7 +2336,7 @@ ode scripts/boat_edge_sim.mjs`).
 - In de uitslag van een missie staat geen regel "Kills" meer.
 - De downloads heten nu `GDE-Groningen-<versie>-mac.dmg` en
   `GDE-Groningen-<versie>-windows-portable.exe`. Op de Mac kun je de oude
-  app "GTE VI" weggooien nadat je de nieuwe hebt geïnstalleerd.
+  app weggooien nadat je de nieuwe hebt geïnstalleerd.
 - **De nieuwssite heet nu Kiekdoar** ("kijk daar"), een eigen parodienaam:
   de telefoon-app, de pushberichten, Kiekdoar TV en het journaal, de
   nieuwslezers en wat voetgangers en personages erover zeggen. Het scherm
@@ -2362,8 +2366,8 @@ ode scripts/boat_edge_sim.mjs`).
 - **Over** in het hoofdmenu: credits, licenties en privacy. De kaartdata
   komt van OpenStreetMap; dat staat nu ook op het laadscherm, linksonder op
   de grote kaart en in de aftiteling.
-- Duidelijke disclaimer: GTE VI is een fanparodie en heeft niets met
-  Rockstar Games of Take-Two te maken. Namen en gebeurtenissen zijn verzonnen.
+- Duidelijke disclaimer: de game is een fanparodie en heeft niets met een
+  andere gameontwikkelaar of -uitgever te maken. Namen en gebeurtenissen zijn verzonnen.
 
 ### Veranderd
 - **Kusjes geven kan pas na de eerste kus** in "Alles klopt, behalve de
@@ -2452,7 +2456,7 @@ ode scripts/boat_edge_sim.mjs`).
 - **Bel Rikus.** Elke missie begint op Nachtstreek: een Stadjer met een
   probleem belt in. Na missies de rubrieken: de fietstunnel-update, het
   storingsbericht, de torenwachter en de peiling "Woist ja wel?".
-- **Naamkaarten** in GTA-stijl bij elke eerste ontmoeting, met één droge regel.
+- **Naamkaarten** in misdaadgame-stijl bij elke eerste ontmoeting, met één droge regel.
 - **Berend telt de krassen** heeft een nieuwe Berend: Berend Bos, die al
   veertig jaar Bommen Berend speelt. Hij zit in de finale ook in de jury.
 - **Iets met de Grote Markt** is een zomerse stuntavond: punten voor
@@ -2461,7 +2465,7 @@ ode scripts/boat_edge_sim.mjs`).
 - Missies die mislukken eindigen met "Sikkom.".
 - Elke missie heeft een korte afsluiter voor als je hem opnieuw speelt als klus.
 
-- **Nieuwe trailer: "GTE VI — Een zomer in Grunn".** Anderhalve minuut
+- **Nieuwe trailer: "Een zomer in Grunn".** Anderhalve minuut
   zomer: terrassen op de Vismarkt, kleedjes in het Noorderplantsoen, de
   kermis op de Grote Markt bij nacht, een tankwagen vol frituurvet op de
   Europaweg, carbid in het Ommeland. Met naamkaarten voor Anita, Tammo,
@@ -3235,7 +3239,7 @@ Een grote ronde op basis van de speelsessie van Maus.
   in zijn sloep. Hou de toeristen tevreden (botsingen maken ze bang, verhalen
   bij de bezienswaardigheden maken ze blij) en schud Wiebe af — bij het
   museum weet hij de brug niet zo goed.
-- **Doodgaan en opgepakt worden als in GTA**: de traumaheli brengt je naar
+- **Doodgaan en opgepakt worden als in een misdaadgame**: de traumaheli brengt je naar
   het UMCG (of de ambulance naar een dichtere huisartsenpraktijk), of de
   politie brengt je naar het dichtstbijzijnde bureau. Daar staat je partner
   met je rode auto al klaar.
@@ -3364,7 +3368,7 @@ De eerste versie: alles wat er tot de eerste desktop-release gebouwd is.
 - Ragdolls voor iedereen, en losse objecten die wegvliegen als je ze raakt.
 
 ### Rijden en lopen
-- GTA V-achtige besturing: de muis draait de camera om je personage heen,
+- Misdaadgame-achtige besturing: de muis draait de camera om je personage heen,
   WASD beweegt ten opzichte van de camera.
 - Auto's, bussen, fietsen, scooters en boten met botsingen, schade, wrakken
   die blijven liggen en roken, en je eigen rode auto.
@@ -3381,7 +3385,7 @@ De eerste versie: alles wat er tot de eerste desktop-release gebouwd is.
 ### Missies en verhaal
 - Acht missies met een eigen verhaal rond Tammo en Anita, grappige lokale
   teksten en ingesproken tussenfilmpjes.
-- Een openingsmontage in de stijl van de GTA 6-trailers, ook ingesproken.
+- Een openingsmontage in de stijl van de trailers van grote misdaadgames, ook ingesproken.
 - Wijk-flyovers als je voor het eerst in een nieuwe wijk komt.
 - Horeca waar je met E iets bestelt om op te knappen.
 
@@ -3390,13 +3394,13 @@ De eerste versie: alles wat er tot de eerste desktop-release gebouwd is.
 
 ### Kaart en interface
 - Grote kaart met routeplanner, waypoints, zoeken, fog of war en een legenda
-  met filters; draaiende minimap in GTA V-stijl.
-- Contextuele toetshints (Watch Dogs 2-stijl), wapenicoon, de naam van je
+  met filters; draaiende minimap in misdaadgame-stijl.
+- Contextuele toetshints (open-wereldgame-stijl), wapenicoon, de naam van je
   voertuig bij het instappen, en een Escape-menu met instellingen in tabbladen.
 - Opslaan en laden.
 
 ### Geluid
-- G-Music met echte nummers en jingles, het GTE VI-themanummer in het
+- G-Music met echte nummers en jingles, het themanummer in het
   hoofdmenu, ruimtelijk 3D-geluid, gesynthetiseerde motoren en effecten, en
   ingesproken stemmen voor Tammo, Anita, NPC's, politie en Sikkom.
 

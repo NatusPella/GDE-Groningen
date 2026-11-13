@@ -361,7 +361,7 @@ Voor het testen van nieuwe missies zonder het verhaal te herspelen: dev-paneel (
 | toon | droog en kort: Tammo's understatement, "…Hè.", "Ik meld alleen." (precies drie keer) |
 | Moffel-en-Piertje-ritme | `09` autogesprekken per akte; "Dat bedoelde ik ook." (drie keer, met uitbetaling) |
 | romantiek in stappen | §4, de trap |
-| GTA-principes, knipoog naar deel zes | de trailer-regel, twee onhandige crimineeltjes op de vlucht, Sikkom-schermen |
+| misdaadgame-principes, knipoog naar het genre | de trailer-regel, twee onhandige crimineeltjes op de vlucht, Sikkom-schermen |
 | indie en hergebruik | 08-IMPLEMENTATIE: 14 missies op bestaande defs, 12 nieuwe op bestaande mechaniek, drie signature-systemen, de rest licht |
 | kanaalscheiding | §8 |
 
