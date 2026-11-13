@@ -22,7 +22,6 @@ const BESTANDEN = [
   ['index.html', path.join(WEBSITE, 'index.html')],
   ['style.css', path.join(WEBSITE, 'style.css')],
   ['favicon.svg', path.join(ROOT, 'desktop', 'resources', 'icon.svg')], // het eigen app-icoon uit de repo
-  ['img/stad-dag.webp', path.join(ROOT, 'docs', 'screenshots', 'stad-dag.webp')],
   ['img/stad-nacht.webp', path.join(ROOT, 'docs', 'screenshots', 'stad-nacht.webp')],
   ['img/kaart-provincie.webp', path.join(ROOT, 'docs', 'screenshots', 'kaart-provincie.webp')],
   ['img/kaart-stad.webp', path.join(ROOT, 'docs', 'screenshots', 'kaart-stad.webp')],
@@ -81,11 +80,23 @@ function helpPagina(page) {
   const nav = [
     ['../#wat-je-kunt-doen', 'Wat je doet'],
     ['../#beelden', 'Beelden'],
-    ['../#spelen', 'Spelen'],
+    ['spelen.html', 'Spelen'],
     ['./', 'Hulp'],
     ['../#delen', 'Delen'],
     ['../#vragen', 'Vragen'],
   ];
+  const subnav = [
+    ['index', 'Hulp'],
+    ['installeren', 'Installeren'],
+    ['systeemeisen', 'Systeemeisen'],
+    ['spelen', 'Besturing'],
+    ['samen-spelen', 'Samen spelen'],
+    ['problemen', 'Problemen'],
+  ].map(([slug, label]) => {
+    const actief = slug === page.slug;
+    const href = slug === 'index' ? './' : `${slug}.html`;
+    return `<a href="${href}"${actief ? ' aria-current="page"' : ''}>${label}</a>`;
+  }).join('\n        ');
   return `<!doctype html>
 <html lang="nl">
 <head>
@@ -99,6 +110,13 @@ function helpPagina(page) {
   <meta property="og:type" content="website">
   <meta property="og:title" content="${htmlVeilig(titel)}">
   <meta property="og:description" content="${htmlVeilig(page.beschrijving)}">
+  <meta property="og:image" content="https://natuspella.github.io/GDE-Groningen/img/social-preview.png">
+  <meta property="og:image:alt" content="GDE Groningen: een low-poly Groningen bij zonsondergang met het woordmerk GDE en de regel Zomer vol misdaad.">
+  <meta property="og:image:width" content="1280">
+  <meta property="og:image:height" content="640">
+  <meta property="og:site_name" content="GDE Groningen">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://natuspella.github.io/GDE-Groningen/img/social-preview.png">
   <meta property="og:locale" content="nl_NL">
   <meta property="og:url" content="${canonical}">
   <link rel="stylesheet" href="../style.css">
@@ -113,18 +131,21 @@ function helpPagina(page) {
       </a>
       <nav class="site-nav" aria-label="Hoofdnavigatie">
         <ul>
-          ${nav.map(([href, label]) => `<li><a href="${href}"${label === 'Hulp' ? ' aria-current="page"' : ''}>${label}</a></li>`).join('\n          ')}
-          <li><a class="nav-cta" href="https://github.com/NatusPella/GDE-Groningen/releases/latest">Download</a></li>
+          ${nav.map(([href, label]) => `<li><a href="${href}"${label === 'Hulp' && isIndex ? ' aria-current="page"' : ''}>${label}</a></li>`).join('\n          ')}
+          <li><a class="nav-cta" href="https://github.com/NatusPella/GDE-Groningen/releases">Download</a></li>
         </ul>
       </nav>
     </div>
   </header>
 
-  <main id="inhoud">
+  <main id="inhoud" tabindex="-1">
     <article class="wrap help-content">
       <p class="kicker">Hulp</p>
       <h1>${htmlVeilig(page.titel)}</h1>
       <p class="lead">${htmlVeilig(page.intro)}</p>
+      <nav class="help-subnav" aria-label="Hulponderwerpen">
+        ${subnav}
+      </nav>
       ${page.body}
     </article>
   </main>
@@ -171,6 +192,25 @@ function schrijfHelpPaginas() {
   return { bytes, aantal: HELP_PAGES.length };
 }
 
+// Sitemap en robots.txt: de marketingpagina plus de hulppagina's.
+function schrijfSitemap() {
+  const basis = 'https://natuspella.github.io/GDE-Groningen/';
+  const urls = [basis, ...HELP_PAGES.map((page) => `${basis}help/${page.slug === 'index' ? '' : page.slug + '.html'}`)];
+  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls.map((url) => `  <url><loc>${url}</loc></url>`).join('\n')}
+</urlset>
+`;
+  const robots = `User-agent: *
+Allow: /
+
+Sitemap: ${basis}sitemap.xml
+`;
+  fs.writeFileSync(path.join(OUT, 'sitemap.xml'), sitemap, 'utf8');
+  fs.writeFileSync(path.join(OUT, 'robots.txt'), robots, 'utf8');
+  return { bytes: Buffer.byteLength(sitemap) + Buffer.byteLength(robots), aantal: 2 };
+}
+
 // Relatieve links in een hulppagina moeten na de build bestaan; zo faalt een typefout hier.
 function controleerHelpPaginas() {
   const dir = path.join(OUT, 'help');
@@ -187,13 +227,22 @@ function controleerHelpPaginas() {
 }
 
 function sliderHtml(show) {
-  const slides = show.slides.map((slide) => `
+  const slides = show.slides.map((slide) => {
+    const bestand = path.basename(slide.img);
+    const stem = bestand.replace(/\.[^.]+$/, '');
+    const klein = path.join(MEDIA, `${stem}-640.webp`);
+    const groot = path.join(MEDIA, `${stem}-1024.webp`);
+    const bron = fs.existsSync(klein) && fs.existsSync(groot)
+      ? `<img src="img/${stem}-1024.webp" srcset="img/${stem}-640.webp 640w, img/${stem}-1024.webp 1024w" sizes="(max-width: 700px) 92vw, min(1070px, 92vw)" alt="${htmlVeilig(slide.alt)}" width="1280" height="720" loading="lazy" decoding="async">`
+      : `<img src="${htmlVeilig(slide.img)}" alt="${htmlVeilig(slide.alt)}" width="1280" height="720" loading="lazy" decoding="async">`;
+    return `
               <li class="slide">
                 <figure class="slide-figure">
-                  <img src="${htmlVeilig(slide.img)}" alt="${htmlVeilig(slide.alt)}" width="1280" height="720" loading="lazy" decoding="async">
+                  ${bron}
                   <figcaption class="slide-caption"><span class="slide-tag">${htmlVeilig(slide.tag)}</span><strong>${htmlVeilig(slide.title)}</strong><span>${htmlVeilig(slide.text)}</span></figcaption>
                 </figure>
-              </li>`).join('');
+              </li>`;
+  }).join('');
   return `
         <section class="slideshow" id="slideshow-${htmlVeilig(show.id)}" role="tabpanel" aria-labelledby="tab-${htmlVeilig(show.id)}" data-slideshow-panel="${htmlVeilig(show.id)}">
           <div class="wrap">
@@ -257,6 +306,9 @@ function main() {
   const help = schrijfHelpPaginas();
   bytes += help.bytes;
   aantal += help.aantal;
+  const sitemap = schrijfSitemap();
+  bytes += sitemap.bytes;
+  aantal += sitemap.aantal;
 
   // De slideshows uit één databestand in de pagina zetten.
   const indexPad = path.join(OUT, 'index.html');

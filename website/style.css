@@ -291,6 +291,10 @@ main > .hero {
 }
 
 @media (max-width: 48rem) {
+  .site-header {
+    position: static;
+  }
+
   .hero {
     min-height: 0;
     padding: 3.4rem 0 3rem;
@@ -329,6 +333,47 @@ main > .hero {
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.hero-genre {
+  margin: 0.7rem 0 1rem;
+  color: var(--green-light);
+  font-size: 0.88rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.platform-row {
+  margin: 0.9rem 0 0.35rem;
+  color: var(--ink-bright);
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.platform-row span {
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--mut);
+  font-weight: 500;
+}
+
+.trust-strip {
+  background: radial-gradient(700px 260px at 85% 0%, rgba(63, 201, 122, 0.1), transparent 70%);
+}
+
+.trust-strip .stats {
+  margin-top: 1.4rem;
+}
+
+.trust-links {
+  margin: 1.2rem 0 0;
+  color: var(--mut);
+  font-size: 0.92rem;
+}
+
+.trust-links a {
+  color: var(--green-light);
 }
 
 .status-dot {
@@ -861,7 +906,7 @@ h2 {
   padding: 0.2rem 0.6rem;
   border-radius: 4px;
   background: var(--green);
-  color: var(--ink-bright);
+  color: var(--bg);
   font-size: 0.7rem;
   font-weight: 900;
   letter-spacing: 0.12em;
@@ -912,21 +957,35 @@ h2 {
 .slider-dots {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   justify-content: center;
-  gap: 0.4rem;
+  gap: 0.15rem;
 }
 
 .slider-dot {
-  width: 0.6rem;
-  height: 0.6rem;
+  position: relative;
+  width: 1.5rem;
+  height: 1.5rem;
   padding: 0;
   border: 0;
   border-radius: 50%;
-  background: rgba(240, 237, 228, 0.32);
+  background: transparent;
   cursor: pointer;
 }
 
-.slider-dot[aria-current="true"] {
+.slider-dot::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  background: rgba(240, 237, 228, 0.62);
+  transform: translate(-50%, -50%);
+}
+
+.slider-dot[aria-current="true"]::before {
   background: var(--green-light);
   box-shadow: 0 0 8px var(--green-light);
 }
@@ -1290,6 +1349,52 @@ h2 {
 
 .help-terug {
   margin-top: 2.4rem;
+}
+
+.help-subnav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.9rem 0 1.8rem;
+}
+
+.help-subnav a {
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--green-line);
+  border-radius: 999px;
+  color: var(--ink);
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.help-subnav a:hover,
+.help-subnav a:focus-visible {
+  border-color: var(--green-line-strong);
+  color: var(--ink-bright);
+}
+
+.help-subnav a[aria-current="page"] {
+  border-color: var(--green);
+  background: var(--green);
+  color: var(--bg);
+}
+
+.table-wrap {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* ---------- 18+: de enige plek waar de rode kleur mag ---------- */
