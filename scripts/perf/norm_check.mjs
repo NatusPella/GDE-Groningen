@@ -52,3 +52,4 @@ for (const file of files) {
 console.log(`${routes - fails - skipped}/${routes - skipped} routes binnen de norm (p95 <= ${NORM.maxP95Ms} ms, max <= ${NORM.maxMaxMs} ms, hitch <= ${NORM.maxOver50}x50/${NORM.maxOver100}x100 ms); ${skipped} overgeslagen (geen frameroute)${belast ? `; ${belast} bestand(en) op een belaste machine` : ''}`);
 if (!routes) { console.log('geen routes gevonden in de opgegeven bestanden'); fails++; }
 process.exit(fails ? 1 : 0);
+

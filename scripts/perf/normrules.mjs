@@ -28,7 +28,9 @@ export function routeStats(route) {
 export const MACHINE_BUSY_PCT = 35;
 export function machineBusy(machine, grens = MACHINE_BUSY_PCT) {
   if (!machine) return false;
-  if (Number.isFinite(machine.cpuBusyBeforePct)) return machine.cpuBusyBeforePct > grens;
+  if (Number.isFinite(machine.cpuBusyBeforePct) && machine.cpuBusyBeforePct > grens) return true;
+  if (Number.isFinite(machine.cpuBusyAfterPct) && machine.cpuBusyAfterPct > grens) return true;
+  if (Number.isFinite(machine.electronProcsAfter) && machine.electronProcsAfter > 0) return true; // tijdens de run gestart
   if (Number.isFinite(machine.load) && machine.load <= 1) return machine.load * 100 > grens;
   if (Number.isFinite(machine.load) && Number.isFinite(machine.cpus) && machine.cpus > 0) return (machine.load / machine.cpus) * 100 > grens;
   return false;
