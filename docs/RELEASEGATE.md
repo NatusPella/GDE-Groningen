@@ -62,6 +62,16 @@ en per fase het bewijs (testlog, perf-json, beelden, reviewpakket).
 - Een review die niet op de laatste commit is gedaan, is niet geldig: na een fix moet de
   reviewdelta opnieuw.
 
+### Per merge, niet alleen per release
+
+Dezelfde regels- en designcontrole zit sinds ADR 0034 ook in `scripts/run_tests.mjs`, en dus
+in CI op elke pull request en push naar `main`. CI geeft daarvoor `GDE_RULES_BASE` mee (de
+PR-basis of de vorige main-commit); lokaal valt de runner terug op `origin/main` en anders op
+de laatste tag, en het merkenregister draait mee. Zo krijgt elke agent de constitutie- en
+designcontrole op zijn eigen diff zonder de 45-75 minuten van de volledige gate. De AI-review
+en de perf- en beeldcontrole blijven bij de releasegate: die bewaken de release, niet elke
+losse wijziging.
+
 ## De AI-reviewlus (het belangrijkste nieuwe deel)
 
 De gate zelf is deterministisch; het oordeel over "is dit goed" doet AI. Dat gaat in vaste

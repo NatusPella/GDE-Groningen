@@ -2,7 +2,7 @@
 
 `node scripts/test_all.mjs` draait de tests in fasen en schrijft een rapport met een korte Nederlandse samenvatting bovenaan. Het hoort bij #186 (spelbot), #5 en #4. De werkafspraken staan in [AGENTS.md](../AGENTS.md) (sectie Testen); dit document beschrijft het commando.
 
-Er is één andere runner: `node scripts/run_tests.mjs` is de snelle selectie die CI draait (`.github/workflows/test.yml`). Hij deelt zijn lijsten met `test_all` en draait sinds #482 ook `undef_check` en `text_audit`, sinds #500 de `player_singleton_audit`, sinds #499 `spec_check`, sinds #593 `world_eigenaar` en sinds #646 de dode-code-poort met de vaste drempel `scripts/dead_code_budget.json`; de zware en Electron-fase zitten er bewust niet in (zie `.specs-fire/standards/adr/0013-een-testrunner-met-fasen.md`).
+Er is één andere runner: `node scripts/run_tests.mjs` is de snelle selectie die CI draait (`.github/workflows/test.yml`). Hij deelt zijn lijsten met `test_all` en draait sinds #482 ook `undef_check` en `text_audit`, sinds #500 de `player_singleton_audit`, sinds #499 `spec_check`, sinds #593 `world_eigenaar` en sinds #646 de dode-code-poort met de vaste drempel `scripts/dead_code_budget.json`; de zware en Electron-fase zitten er bewust niet in (zie `.specs-fire/standards/adr/0013-een-testrunner-met-fasen.md`). Sinds de releasegate (ADR [0034](../.specs-fire/standards/adr/0034-ai-releasegate-met-bewijs.md)) doet hij ook de regels- en designcontrole op de diff (`scripts/release/rules_audit.mjs`) en het merkenregister: CI geeft de PR-basis of de vorige main-commit mee via `GDE_RULES_BASE`, lokaal valt de runner terug op `origin/main` en anders op de laatste tag.
 
 ```
 node scripts/test_all.mjs [--fase=licht|zwaar|electron|alles] [--rapport=<map>]

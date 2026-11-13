@@ -92,3 +92,8 @@ Er is geen procentueel doel. Wat dekking moet hebben:
 
 `.github/workflows/test.yml` draait `scripts/run_tests.mjs` op een pull request, op een push
 naar `main` (alleen Linux) en met de hand (`workflow_dispatch`). De zware fases en de Electron-verhaaltest draaien lokaal, niet in CI.
+Sinds ADR [0034](adr/0034-ai-releasegate-met-bewijs.md) doet `run_tests` ook de regels- en
+designcontrole op precies de wijziging (`scripts/release/rules_audit.mjs`) en het
+merkenregister. CI geeft daarvoor de basis mee via `GDE_RULES_BASE` (de PR-basis of de vorige
+main-commit); lokaal valt de runner terug op `origin/main` en anders op de laatste tag. Zo
+krijgt elke merge de constitutie- en designcontrole, zonder de volledige releasegate te draaien.

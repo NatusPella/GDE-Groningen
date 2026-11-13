@@ -80,3 +80,7 @@ blijven, met luide melding: `GDE_RELEASE_SKIP_TESTS=1` en `GDE_RELEASE_SKIP_GATE
   release worden ze met reden bijgewerkt. De beelden zelf blijven buiten git.
 - Nieuwe QA- of perf-metingen horen vanaf nu in de gate (één poort), niet in een
   los script dat niemand aanroept.
+- Dezelfde regels- en designcontrole draait ook mee in `run_tests` en dus in CI op elke
+  pull request en push naar `main` (basis via `GDE_RULES_BASE`), zodat elke merge die
+  controle krijgt zonder de 45-75 minuten van de volledige gate. De AI-review en de
+  perf- en beeldcontrole blijven bij de releasegate.

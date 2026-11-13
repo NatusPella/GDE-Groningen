@@ -115,6 +115,23 @@ export function deadCodeRun() {
 function requireFs() { return fsMod; }
 function requireOs() { return osMod; }
 
+// De basis voor de regels- en designcontrole op de diff (releasegate, ADR 0034): CI geeft
+// de PR-basis of de vorige main-commit mee via GDE_RULES_BASE. Lokaal valt hij terug op de
+// merge-base met origin/main en anders op de laatste tag; zonder basis is er niets te
+// toetsen (SKIP, geen stille groen).
+export function resolveRulesBase(env = process.env, gitRun = (args) => run('git', args, 60e3)) {
+  const kandidaten = [env && env.GDE_RULES_BASE].filter(Boolean).map((k) => String(k).trim()).filter(Boolean);
+  for (const kandidaat of kandidaten) {
+    const rev = gitRun(['rev-parse', '--verify', `${kandidaat}^{commit}`]);
+    if (rev && rev.code === 0 && rev.out && rev.out.trim()) return rev.out.trim();
+  }
+  const mergeBase = gitRun(['merge-base', 'origin/main', 'HEAD']);
+  if (mergeBase && mergeBase.code === 0 && mergeBase.out && mergeBase.out.trim()) return mergeBase.out.trim();
+  const tag = gitRun(['describe', '--tags', '--abbrev=0']);
+  if (tag && tag.code === 0 && tag.out && tag.out.trim()) return tag.out.trim();
+  return '';
+}
+
 function main() {
   const results = [];
   const note = (name, res, status) => {
@@ -173,6 +190,18 @@ function main() {
     // CI heeft geen vorige run en gebruikt daarom de gecommitte drempel. Alleen omlaag.
     const dc = deadCodeRun();
     note('dead_code.mjs (drempel)', dc, classify(dc));
+    // Regels en design op precies deze diff (releasegate, ADR 0034): dezelfde controle die
+    // de gate bij een release doet, nu ook op elke PR en push naar main. De basis komt van
+    // de CI (GDE_RULES_BASE); lokaal van de merge-base met origin/main of de laatste tag.
+    const rulesBase = resolveRulesBase();
+    if (rulesBase) {
+      const rb = run(process.execPath, ['scripts/release/rules_audit.mjs', `--from=${rulesBase}`], timeoutMs);
+      note(`rules_audit.mjs (sinds ${rulesBase.slice(0, 10)})`, rb, rb.code === 0 ? 'PASS' : rb.code === 3 ? 'SKIP' : 'FAIL');
+    } else {
+      console.log('SKIP    rules_audit.mjs (geen basis: geen GDE_RULES_BASE, origin/main of tag)');
+    }
+    const mr = run(process.execPath, ['scripts/merkenregister_check.mjs'], timeoutMs);
+    note('merkenregister_check.mjs', mr, classify(mr));
   }
 
   for (const t of tests) {
