@@ -23,7 +23,7 @@ import { reportCrime } from './crime.js';
 import { findEnterableVehicle } from './vehicle.js';
 import { findRideableProp, rideProp } from './rideprops.js';
 import { isHoldOpen, checkHold, openHold } from './coophold.js';
-import { sessionBootTick, sessionBootDone } from './sessionboot.js'; // een sessie vanaf de start (#528, ADR 0022)
+import { sessionBootTick, sessionBootDone, sessionBootBezig } from './sessionboot.js'; // een sessie vanaf de start (#528, ADR 0022)
 import { updatePartnerChip } from './coophud.js';
 import { syncFigures, hasFigureMeshes } from './coopfigures3d.js';
 import { syncHostEntities, hasHostEntities, clearHostEntities } from './coopentities3d.js';
@@ -986,7 +986,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     // sessie van één na 12 s in (de zoektocht stopt dan zelf zodra hij een sessie ziet).
     const onlineNu = magOnline();
     soloWachtS = onlineNu ? soloWachtS + dt : 0;
-    const soloKlaar = !onlineNu || sessionBootDone(world) || soloWachtS > 12;
+    const soloKlaar = !onlineNu || sessionBootDone(world) || (soloWachtS > 12 && !sessionBootBezig(world));
     if (!world.coopNet && !world.coopWissel && !wantsOpenSamen() && !isPauseMenuOpen() && !document.getElementById('load-screen') && document.body.classList.contains('game-started')
       && !FLAGS.coop && soloKlaar
       && !FLAGS.storytest && !FLAGS.trailer && !FLAGS.perf && !FLAGS.benchmark && !FLAGS.spotsonly && !FLAGS.autoplay && !FLAGS.preview && !FLAGS.menutest) {

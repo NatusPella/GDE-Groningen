@@ -121,6 +121,7 @@ ok(/Vul je naam in voor Samen spelen/.test(main) && !/Kies of je alleen of samen
 ok(/Samen spelen: de wereld wordt klaargezet/.test(main) && !/Alleen spelen: de wereld wordt klaargezet/.test(main), 'na de naam gaat het altijd om Samen spelen');
 ok(!/requestOpenSamen\(\{ rol: 'gast', lijst: true \}\)/.test(main), 'de geforceerde openbare lijst bij de start is weg');
 ok(/sessionBootTick\(world/.test(main), 'de bestaande startzoektocht host/join start automatisch een sessie');
+ok(/soloWachtS > 12 && !sessionBootBezig\(world\)/.test(main), 'de solo-fallback start niet terwijl de startzoektocht nog bezig is');
 ok(/startSoloHost\(world/.test(main), 'ook een sessie met één speler blijft mogelijk');
 // De vraag verschijnt al boven het laadscherm; het laden loopt erachter door en pas
 // vlak voor de start wordt het antwoord afgewacht.

@@ -44,7 +44,7 @@ const schoon = () => { naar(null); naamZet(''); };
 await t('moetVragen vraagt tot onlineMeedoen true is én de naam geldig is', async () => {
   schoon();
   assert.equal(moetVragen(), true);
-  for (const [waarde, naam, verwacht] of [[null, '', true], [false, '', true], [false, 'Bouwer', true], [true, '', true], [true, '   ', true], [true, 'Tessa', true], [true, 'x'.repeat(17), true], [true, 'Bouwer', false]]) {
+  for (const [waarde, naam, verwacht] of [[null, '', true], [false, '', true], [false, 'Bouwer', true], [true, '', true], [true, '   ', true], [true, 'Tessa', true], [true, 'x'.repeat(17), true], [true, '.', true], [true, '...', true], [true, 'Bouwer', false]]) {
     naar(waarde); naamZet(naam);
     assert.equal(moetVragen({ onlineMeedoen: S.getSettings().onlineMeedoen, onlineNaam: S.getSettings().onlineNaam }), verwacht, `${waarde}/${naam}`);
   }
