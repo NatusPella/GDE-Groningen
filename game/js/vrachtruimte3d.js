@@ -78,7 +78,7 @@ function gatMateriaal() {
 function laadruimteMateriaal() {
   if (!cargoMaterial) {
     cargoMaterial = new THREE.MeshLambertMaterial({
-      vertexColors: true, side: THREE.FrontSide, emissive: 0x4c5259,
+      vertexColors: true, side: THREE.FrontSide, emissive: 0x565c63,
       depthTest: false, depthWrite: false,
       stencilWrite: true, stencilRef: STENCIL_REF, stencilFunc: THREE.EqualStencilFunc, stencilZPass: THREE.KeepStencilOp,
     });

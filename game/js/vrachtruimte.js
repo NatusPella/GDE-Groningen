@@ -35,13 +35,15 @@ export const LAADRUIMTE_OPEN_VANAF = 0.35;
 // zonder dat dit bestand of vehicledoors.js hoeft te veranderen.
 export const VIRTUELE_LAADDEUR = 'laaddeur';
 
-// Kleuren in de donkere interieurtinten van cabin3d.js, met warme ladingkleuren ertussen.
+// Kleuren in de donkere interieurtinten van cabin3d.js, met warme ladingkleuren ertussen. De lading is
+// bewust een tint lichter dan de wanden: door een open deur of klep moet je de koffers, kratten en
+// dozen herkennen, ook als de laadruimte zelf in de schaduw staat (#847, beeldronde).
 const KLEUR = {
   vloer: 0x2a2c2f, wand: 0x37393d, schot: 0x3f4247, plafond: 0x313337,
-  schap: 0x5a5148, metaal: 0x7b7e82, karton: 0x9a7b52, karton2: 0xb09063, krat: 0x6f7f5a,
-  kist: 0x7a5a38, hout: 0x8a6440, koffer: 0x4a3a30, geldkoffer: 0x353c44, goud: 0xc9a227,
-  doek: 0x6b6f5a, brancard: 0xd8d4c8, zuurstof: 0x3f6b7a, rood: 0x8a3a32, wit: 0xd9d6cc,
-  zand: 0xb6a06a, rook: 0x141518, gasfles: 0xb03a2e, friteuse: 0x9a9a94, koel: 0xdfe6ea,
+  schap: 0x6a6054, metaal: 0x8d9196, karton: 0xa8825a, karton2: 0xc0a071, krat: 0x7f8f68,
+  kist: 0x8a6844, hout: 0x9a7248, koffer: 0x7d6048, geldkoffer: 0x66707c, goud: 0xd9b23a,
+  doek: 0x878b72, brancard: 0xe2ded2, zuurstof: 0x4f8494, rood: 0xa8453a, wit: 0xe6e3d9,
+  zand: 0xc4ae78, rook: 0x2a2c30, gasfles: 0xc4483a, friteuse: 0xaaa9a2, koel: 0xe8eef2,
 };
 const L = KLEUR;
 
@@ -226,7 +228,7 @@ function ladingCashvan(m) {
     box('geldklep-a', xr + 0.45, f + 0.3, -hw * 0.3, 0.28, 0.02, 0.03, L.goud, 0),
     box('rek', (xr + xf) / 2, 1.05, hw - 0.2, Math.min(1.6, xf - xr - 0.4), 0.04, 0.34, L.metaal, 0),
     box('geldzakken', (xr + xf) / 2, f + 0.16, hw * 0.25, 0.7, 0.3, 0.44, L.doek, 1),
-    box('kluis', xf - 0.35, f + 0.3, 0, 0.5, 0.6, 0.8, 0x2f3438, 2),
+    box('kluis', xf - 0.35, f + 0.3, 0, 0.5, 0.6, 0.8, 0x565e68, 2),
   ];
 }
 
@@ -320,13 +322,12 @@ function ladingKofferbak(m, k) {
   return [
     ...shell,
     // het reservewiel ligt onder de vloer van de kofferbak, de koffer en de boodschappen erboven
-    box('reservewiel', cx, f + 0.07, 0, 0.62, 0.14, 0.62, 0x232323, 0),
+    box('reservewiel', cx, f + 0.07, 0, 0.62, 0.14, 0.62, 0x3c3c3c, 0),
     box('koffer', cx - 0.05, f + 0.28, 0, Math.min(0.5, (xf - xr) * 0.7), 0.4, hw * 0.8, L.koffer, 0),
-    box('koffer-band', cx - 0.05, f + 0.28, 0, Math.min(0.52, (xf - xr) * 0.72), 0.06, hw * 0.16, 0x2f3438, 0),
+    box('koffer-band', cx - 0.05, f + 0.28, 0, Math.min(0.52, (xf - xr) * 0.72), 0.06, hw * 0.16, 0x4a4f56, 0),
     box('boodschappen', cx + 0.25, f + 0.2, hw * 0.35, Math.min(0.4, (xf - xr) * 0.5), 0.32, hw * 0.5, L.doek, 0),
     box('gevarendriehoek', cx + 0.15, f + 0.09, -hw * 0.55, 0.3, 0.1, 0.22, L.rood, 0),
     box('lading', cx, f + 0.3, 0, Math.min(0.7, (xf - xr) * 0.8), 0.5, hw * 1.2, L.koffer, 2),
-    // bij een wagon/suv past er ook een doos naast
     k === 'wagon' || k === 'suv' ? box('doos', cx - 0.1, f + 0.5, -hw * 0.4, 0.4, 0.32, 0.4, L.karton2, 1) : box('doek', cx, f + 0.12, 0, (xf - xr) * 0.8, 0.04, hw * 1.4, L.doek, 1),
   ];
 }
