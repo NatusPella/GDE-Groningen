@@ -3193,7 +3193,9 @@ export function update3D(dt, world) {
     // hoofd op de voertuighoek. Anders dan de volgcam zwaait die hoek niet vanzelf terug.
     if (looking) addLookPitch(world, mouse.dy * (world.scoped ? 0.3 : 1), lookK, getSettings().invertY);
     if (camVeh) {
-      if (!camWasInVehicle) { lookYaw = normalizeAngleDelta(world.camYaw - targetAngle); lookYawIdle = 0; }
+      // instappen in eerste persoon: recht vooruit kijken, niet de oude voetstand meenemen
+      // (die stond ten opzichte van de voertuighoek en zou scheef blijven staan)
+      if (!camWasInVehicle) { lookYaw = 0; lookYawIdle = 0; }
       // in a helicopter the mouse turns the heli itself (heliflight.js)
       if (looking && mouse.dx !== 0 && !lookBack && !camVeh.isHeli) lookYaw = normalizeAngleDelta(lookYaw + mouse.dx * lookK);
       camAngle = targetAngle + (lookBack ? Math.PI : lookYaw);
