@@ -201,6 +201,7 @@ import { planeKind } from './planeflight.js';
 import { busBoardKind } from './busboard3d.js';
 import { busBestuurKind } from './busbestuurhud.js';
 import { busInterieurKind } from './businterieur3d.js';
+import { bootInterieurKind } from './bootinterieur3d.js';
 import { reklameTaxiKind } from './reklametaxi3d.js';
 import { shopSignKind } from './shopsigns3d.js';
 import { loadBusLines } from './busroutes.js';
@@ -234,6 +235,7 @@ registerActivityKind(BOERDERIJ_WERELD_KIND); // je eigen erf, machines en werktu
 registerActivityKind(busBoardKind);
 registerActivityKind(busBestuurKind);
 registerActivityKind(busInterieurKind);
+registerActivityKind(bootInterieurKind); // roef/stuurhut-interieurs van boten (#847)
 registerActivityKind(reklameTaxiKind);
 registerActivityKind(shopSignKind);
 registerActivityKind({ id: 'ommeland', initPhase: 'early', init: initOmmelandFun, slot: 'uitje', interact: tryOmmelandInteract, tickPhase: 'late', tick: updateOmmelandFun });
