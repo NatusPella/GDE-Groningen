@@ -606,6 +606,17 @@ h2 {
   list-style: none;
 }
 
+.card-grid--two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  max-width: 60rem;
+}
+
+@media (max-width: 34rem) {
+  .card-grid--two {
+    grid-template-columns: 1fr;
+  }
+}
+
 .card {
   padding: 1.35rem 1.4rem 1.45rem;
   border: 1px solid var(--green-line);
@@ -667,7 +678,109 @@ h2 {
   line-height: 1.45;
 }
 
+/* ---------- stappen, CTA-band en trailer ---------- */
+
+.trailer-section {
+  padding-top: clamp(1.6rem, 4vw, 2.8rem);
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: clamp(1rem, 2.4vw, 1.4rem);
+  margin: 1.6rem 0 1.4rem;
+  padding: 0;
+  list-style: none;
+  counter-reset: stap;
+}
+
+.steps li {
+  position: relative;
+  padding: 1.3rem 1.2rem 1.2rem;
+  border: 1px solid var(--green-line);
+  border-radius: var(--radius);
+  background: linear-gradient(180deg, rgba(23, 48, 31, 0.84), rgba(12, 20, 14, 0.84));
+  counter-increment: stap;
+}
+
+.steps li::before {
+  content: counter(stap);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  margin-bottom: 0.7rem;
+  border-radius: 50%;
+  background: var(--green);
+  color: var(--bg);
+  font-weight: 900;
+}
+
+.steps h3 {
+  margin: 0 0 0.35rem;
+  color: var(--ink-bright);
+  font-size: 1.05rem;
+}
+
+.steps p {
+  margin: 0;
+  color: var(--mut);
+  font-size: 0.94rem;
+}
+
+.cta-band {
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background:
+    radial-gradient(700px 300px at 15% 0%, rgba(63, 201, 122, 0.18), transparent 65%),
+    linear-gradient(180deg, rgba(23, 48, 31, 0.9), rgba(12, 20, 14, 0.96));
+}
+
+.cta-band h2 {
+  max-width: 30ch;
+}
+
+.cta-band .section-lead {
+  max-width: 55ch;
+}
+
 /* ---------- slideshow ---------- */
+
+.showcase-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 1.6rem 0 0;
+}
+
+.showcase-tab {
+  padding: 0.55rem 1rem;
+  border: 1px solid var(--green-line-strong);
+  border-radius: 999px;
+  background: var(--bg-glow);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 0.86rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.showcase-tab:hover,
+.showcase-tab:focus-visible {
+  border-color: var(--green-light);
+  color: var(--ink-bright);
+}
+
+.showcase-tab[aria-selected="true"] {
+  border-color: var(--green);
+  background: var(--green);
+  color: var(--bg);
+}
+
+.showcase-panels {
+  margin-top: 1.2rem;
+}
 
 .slideshow {
   margin-top: clamp(2rem, 4.5vw, 3.4rem);
@@ -1026,7 +1139,7 @@ h2 {
 /* ---------- FAQ ---------- */
 
 .faq {
-  max-width: 60rem;
+  max-width: none;
 }
 
 .faq details {

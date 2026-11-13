@@ -2,12 +2,14 @@
 
 > **Naslag.** De regels staan in de canonieke spec [`.specs-fire/standards/publicatie.md`](../.specs-fire/standards/publicatie.md); dit document is uitleg en geschiedenis. Bij verschil wint de spec (en bij twijfel `AGENTS.md`).
 
-De repo is nog **privé**; er is niets gepubliceerd. Wat nog te doen staat,
-staat als issue: [#83](https://github.com/NatusPella/GDE-Groningen/issues/83)
-(checklist), met #37 (publiek maken), #62 (merken en secrets-scan), #72
-(social preview, credits), #57 (webversie) en #64 (Steam). Juridische
-achtergrond: [LICENTIES.md](LICENTIES.md). Zichtbaarheid wijzigen alleen
-met akkoord van de eigenaar.
+De repo is sinds 13 november 2026 **publiek** en de marketingpagina staat live
+(<https://natuspella.github.io/GDE-Groningen/>); de game-downloads blijven
+pre-releases. Wat nog te doen staat, staat als issue:
+[#83](https://github.com/NatusPella/GDE-Groningen/issues/83)
+(checklist), met #62 (merken en secrets-scan), #72 (social preview, credits),
+#57 (webversie) en #64 (Steam). Juridische achtergrond:
+[LICENTIES.md](LICENTIES.md). Nieuwe posts en uploads gaan alleen met akkoord
+van de eigenaar.
 
 De actuele volgorde, de per-issue checklists en de comment-teksten voor #37, #83, #72, #60, #64,
 #65, #62, #63, #57, #59 en #116 staan in [1.0-TRACK.md](1.0-TRACK.md).

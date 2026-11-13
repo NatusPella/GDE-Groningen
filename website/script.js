@@ -67,6 +67,36 @@
     zetActief();
   }
 
+  // ------------------------------------------------------- slideshow-categorieën
+  const tabList = document.querySelector('[data-showcase-tabs]');
+  const tabs = [...document.querySelectorAll('[data-slideshow-tab]')];
+  const panels = [...document.querySelectorAll('[data-slideshow-panel]')];
+  if (tabList && tabs.length && panels.length) {
+    const toon = (id) => {
+      for (const tab of tabs) {
+        const actief = tab.dataset.slideshowTab === id;
+        tab.setAttribute('aria-selected', actief ? 'true' : 'false');
+        tab.tabIndex = actief ? 0 : -1;
+      }
+      for (const panel of panels) panel.hidden = panel.dataset.slideshowPanel !== id;
+    };
+    for (const [i, tab] of tabs.entries()) {
+      tab.addEventListener('click', () => toon(tab.dataset.slideshowTab));
+      tab.addEventListener('keydown', (event) => {
+        let doel = -1;
+        if (event.key === 'ArrowRight') doel = (i + 1) % tabs.length;
+        else if (event.key === 'ArrowLeft') doel = (i - 1 + tabs.length) % tabs.length;
+        else if (event.key === 'Home') doel = 0;
+        else if (event.key === 'End') doel = tabs.length - 1;
+        if (doel < 0) return;
+        event.preventDefault();
+        tabs[doel].focus();
+        toon(tabs[doel].dataset.slideshowTab);
+      });
+    }
+    toon(tabs[0].dataset.slideshowTab);
+  }
+
   // ------------------------------------------------------- click-to-load video
   for (const embed of document.querySelectorAll('[data-video]')) {
     const button = embed.querySelector('[data-video-play]');
