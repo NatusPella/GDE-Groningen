@@ -179,6 +179,7 @@ let sirenVoices = [];
 let engineVoices = [];
 let heliVoice = null;
 let sirenAudible = 0;
+let mixAccum = 0;
 
 let seenBullets = new WeakSet();
 let seenParticles = new WeakSet();
@@ -2809,6 +2810,12 @@ export function updateAudio(dt, world) {
   // one failing subsystem (a NaN into an AudioParam throws) must not stop
   // the music and ducking updates further down
   guarded('world', () => updateWorldAudio(dt, world));
+  mixAccum += dt;
+  if (mixAccum >= 1 / 30) {
+    const mdt = mixAccum;
+    mixAccum = 0;
+    guarded('worldmix', () => updateWorldMixers(mdt, world));
+  }
   guarded('ducking', () => updateDucking(dt));
   if (bank.pending() === 0 && warmList.length) bank.warm([warmList.pop()]);
   if (!menuAudio) guarded('gmusic', () => updateGMusic(dt, world));
@@ -2875,6 +2882,12 @@ function updateWorldAudio(dt, world) {
   prev.weapon = world.weapon;
   prev.missionPhase = missionPhase;
 
+}
+
+// De doorlopende mixers (motoren, ambience, foley) hoeven niet elke 60 Hz-
+// frame: 30 Hz met de opgetelde dt klinkt gelijk en kost de helft. De
+// gebeurtenissen (schoten, stemmen, meldingen) blijven wel per frame lopen.
+function updateWorldMixers(dt, world) {
   updateEngine(dt, world);
   updatePaddling(dt, world);
   updateSailing(dt, world);
