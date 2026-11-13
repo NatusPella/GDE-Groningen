@@ -126,8 +126,10 @@ function gatQuads(v) {
       // laadklep van een busje/ambulance of de achterklep van een wagon/suv: verticale opening
       achter(d.id, d.y0 + 0.03, d.y0 + d.h - 0.03, Math.min(d.w, wid - 0.3) / 2);
     } else if (d.soort === 'klep') {
-      // kofferdeksel van hatch/sedan/sport/escort: horizontale opening boven de koffervloer
-      boven(d.id, d.x * len - d.w / 2 + 0.02, d.x * len + d.w / 2 - 0.02, d.y0 + 0.012, wid * 0.78 / 2 - 0.02);
+      // kofferdeksel van hatch/sedan/sport/escort: horizontale opening net boven het kofferdeksel.
+      // Het vlak moet boven de carrosserietop liggen (het dak van het kofferdeksel uit carProfile),
+      // anders houdt het plaatwerk de diepte tegen en blijft de lading onzichtbaar.
+      boven(d.id, d.x * len - d.w / 2 + 0.02, d.x * len + d.w / 2 - 0.02, d.y0 + 0.03, wid * 0.78 / 2 - 0.02);
     } else if (d.soort === 'schuif') {
       // schuifdeur van een bestelbus: opening in de flank
       flank(d.id, d.x * len - d.w / 2 + 0.02, d.x * len + d.w / 2 - 0.02, d.y0 + 0.03, d.y0 + d.h - 0.03, d.side || 1);
@@ -212,6 +214,7 @@ export function syncVrachtruimtes(world, budget = VRACHT_BUILD_BUDGET) {
         m.castShadow = false;          // de lading werpt geen schaduw: dat kost een extra shadow-pass
         m.receiveShadow = false;
         m.userData.noBatch = true;
+        m.userData.soort = vrachtruimteSoort(v); // voor de beeldronde: welk laadruimtetype hier hangt
         (mesh.userData.body || mesh).add(m);
         mesh.userData.vrachtruimte = m;
         mesh.userData.vrachtruimteLod = lod;

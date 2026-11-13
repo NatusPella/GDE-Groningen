@@ -134,8 +134,8 @@ const KOFFERBAK_MATEN = {
 
 function kofferbakSoort(v) {
   const n = (v.model && v.model.name) || '';
-  if (n === 'police') return 'police';
-  if (n === 'taxi' || v.isTaxi) return 'taxi';
+  if (n === 'police' || (v.isPolice && !v._commandeered)) return 'police'; // carType politie = wagon
+  if (n === 'taxi' || v.isTaxi) return 'taxi';                            // taxi = sedan
   return KOFFERBAK_MATEN[n] ? n : 'hatch';
 }
 

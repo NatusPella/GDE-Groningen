@@ -78,6 +78,24 @@ for (const [naam, model, open, gatId, flags = {}] of GEVALLEN) {
   const mat = cargo.material;
   check(`${naam}: gedeeld Lambert-materiaal met vertexkleuren`, Array.isArray(mat) && mat[1].isMeshLambertMaterial === true && mat[1].vertexColors === true && mat[1].userData.shared === true);
   check(`${naam}: gat-materiaal gedeeld`, Array.isArray(mat) && mat[0].userData.shared === true);
+  // de tekenafspraak van het gat: het gat wordt op materiaal-id vóór de lading getekend en haalt met
+  // gl_FragDepth de diepte weg; de lading zelf is enkelzijdig (van buiten door de dichte carrosserie
+  // is niets te zien). Zonder deze afspraak valt de lading achter het plaatwerk weg of schijnt hij door.
+  if (Array.isArray(mat) && mat[0] && mat[1]) {
+    check(`${naam}: gat wordt vóór de lading getekend (materiaal-id)`, mat[0].id < mat[1].id, `${mat[0].id} < ${mat[1].id}`);
+    check(`${naam}: gat schrijft diepte en haalt die weg`, mat[0].depthWrite === true && mat[0].depthTest === true && /gl_FragDepth\s*=\s*1\.0/.test(mat[0].fragmentShader || ''), 'geen gl_FragDepth in de shader');
+    check(`${naam}: lading is enkelzijdig`, mat[1].side === THREE.FrontSide, String(mat[1].side));
+  }
+  // het gat ligt net buiten het plaatwerk: bij een achterklep achter de achterwand, bij een
+  // kofferdeksel boven het deksel (zodat de diepte-truc daar werkt)
+  g0.computeBoundingBox();
+  const bbGat = g0.boundingBox;
+  if (naam === 'bestelbus' || naam === 'ambulance' || naam === 'vrachtwagen' || naam === 'cashvan') {
+    check(`${naam}: gat achter de achterwand`, bbGat.min.x <= -model.len / 2 - 0.01, `min x ${rond(bbGat.min.x)} bij halve lengte ${model.len / 2}`);
+  }
+  if (naam === 'hatch' || naam === 'sedan') {
+    check(`${naam}: gat boven het kofferdeksel`, bbGat.max.y > V.vrachtruimteIndeling(v).maten.ceil + 0.02, `max y ${rond(bbGat.max.y)}`);
+  }
   // binnen de romp: de lading (inclusief de gaten net buiten het plaatwerk) blijft binnen het model
   g0.computeBoundingBox();
   const bb = g0.boundingBox;
