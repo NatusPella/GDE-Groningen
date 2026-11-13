@@ -9,6 +9,11 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+## [0.60.8] - 2026-11-13
+
+- **De koude start is verder teruggebracht: het laadscherm rijdt nu een ruimere ring rond het startpunt voor (320 m i.p.v. 200 m) en tekent de warm-up-palette echt één keer onder beide lichtstanden.** Daardoor verdwijnen de eerste-draw-piek en de oude Canvas2D-kosten uit het koude pad; de JS-heap bij de start is meetbaar lager.
+- **De warm-up-objecten worden na de opening betrouwbaar opgeruimd, ook als er tijdens het tekenen iets misgaat.** De palette-groep wordt niet meer dubbel opgeruimd en de verwijzingen op de wereld blijven niet hangen; dat scheelt geheugen in lange sessies.
+
 ## [0.60.7] - 2026-11-12
 
 - **De desktop-app draait op Electron 45.2.3 (was 44.9.3).** Die versie bevat de beveiligings- en stabiliteitsfixes van de nieuwere Chromium/Node-basis; de app, de packaging en de verhaaltest zijn opnieuw getest.
