@@ -58,7 +58,7 @@ function eenheid(wid, doors, xFront, xRear) {
   for (let x = xFront - 0.4; x >= xRear + 0.2; x -= 0.75, k++) stand.push({ x, z: (k % 2 ? 1 : -1) * 0.18 });
   for (const d of doors) stand.push({ x: d, z: GANG + 0.5 });
   const rail = { x0: xFront + 0.4, x1: xRear - 0.2, y: 2.35, z: [-GANG, GANG] };
-  return { floor: VLOER, seats, poles, stand, rail, doors };
+  return { wid, floor: VLOER, seats, poles, stand, rail, doors };
 }
 
 // Alle plekken van de binnenruimte. doors: x van de deuren aan de stoepkant (standaard die van de
