@@ -174,15 +174,20 @@ export function laadopeningen(v) {
 // los of ontbrekend is, of als het voertuig een wrak is; anders verborgen. De afstand (LOD) regelt
 // vrachtruimte3d.js, niet deze regel.
 export function vrachtruimteZichtbaar(v) {
-  if (!v || !v.model || !vrachtruimteSoort(v)) return false;
+  if (!v || !v.model) return false;
+  const soort = vrachtruimteSoort(v);
+  if (!soort) return false;
   if (v.wrecked) return true;
-  const opening = laadopeningen(v);
-  if (opening.vasteOpening) return true;
+  if (soort === 'foodtruck') return true; // het luik is een vaste opening in het model
   const st = v.doors;
   if (!st) return false;
-  for (const id of opening.deuren) {
-    if (st.loose && st.loose[id]) return true;
-    if (st.open && (st.open[id] || 0) > LAADRUIMTE_OPEN_VANAF) return true;
+  if (soort === 'vrachtwagen' || soort === 'oplegger' || soort === 'cashvan') {
+    return !!((st.loose && st.loose[VIRTUELE_LAADDEUR]) || (st.open && (st.open[VIRTUELE_LAADDEUR] || 0) > LAADRUIMTE_OPEN_VANAF));
+  }
+  for (const d of doorsFor(v)) {
+    if (!(d.id === 'klep' || d.soort === 'achterdeur' || d.soort === 'schuif')) continue;
+    if (st.loose && st.loose[d.id]) return true;
+    if (st.open && (st.open[d.id] || 0) > LAADRUIMTE_OPEN_VANAF) return true;
   }
   return false;
 }
@@ -239,6 +244,9 @@ function ladingFoodtruck(m) {
     box('gasfles', xr + 0.35, f + 0.3, -hw + 0.3, 0.3, 0.6, 0.3, L.gasfles, 0),
     box('voorraad', xr + 1.0, f + 0.2, -hw + 0.4, 0.8, 0.4, 0.6, L.karton, 0),
     box('voorraad-rek', (xr + xf) / 2, 1.2, -hw + 0.22, Math.min(2.2, xf - xr - 0.5), 0.04, 0.3, L.metaal, 1),
+    // boven de toonbank, in de strook die door het luik te zien is (het luik opent op 1,05..1,85)
+    box('voorraad-boven', (xr + xf) / 2, 1.6, hw - 0.55, Math.min(1.8, xf - xr - 0.5), 0.28, 0.4, L.karton, 0),
+    box('bordenrek', (xr + xf) / 2, 1.45, -hw + 0.3, Math.min(1.6, xf - xr - 0.8), 0.05, 0.25, L.hout, 1),
     box('bestekbak', xf - 0.35, 1.12, zr - 0.25, 0.3, 0.16, 0.26, L.wit, 0),
     box('koelkast', xr + 0.7, f + 0.45, zr + 0.05, 0.55, 0.9, 0.55, L.wit, 2),
   ];
@@ -383,14 +391,27 @@ export function vrachtruimteIndeling(v) {
   };
 }
 
-// De losse oplegger van sidejob_vracht.js (geen Vehicle): dezelfde indeling als een voertuig met
-// modelnaam 'oplegger', met de maten uit semitrailer.js TRAILER_KINDS. De 3D tekenlaag hangt hem nog
-// niet aan een mesh (de oplegger is geen world.vehicles-lid); dit is de pure kant.
+// De losse oplegger van sidejob_vracht.js (geen Vehicle): dezelfde lading als een oplegger, maar in de
+// coördinaten van de opleggermesh zelf (buildTrailerMesh: bak van -len+1,2 tot 1,2, het hulpstuk voor).
+// De 3D tekenlaag hangt hem nog niet aan de mesh (de oplegger is geen world.vehicles-lid en
+// sidejob_vracht.js valt buiten deze schrijfscoop); dit is de pure kant.
 export function opleggerIndeling(kind, len, wid) {
   const k = TRAILER_KINDS[kind] ? kind : 'koel';
   const t = TRAILER_KINDS[k];
-  const model = { name: 'oplegger', len: len ?? t.len, wid: wid ?? t.wid, trailerKind: k };
-  return vrachtruimteIndeling({ id: 'oplegger', model, doors: { open: {}, loose: {} } });
+  const L2 = len ?? t.len, W2 = wid ?? t.wid, hw = W2 / 2 - 0.08;
+  const kipper = k === 'bak';
+  const m = {
+    len: L2, wid: W2, floor: 0.85, ceil: kipper ? 2.2 : 3.35, hw,
+    x0: -L2 + 1.35, x1: 1.05, roof: kipper ? 2.2 : 3.45,
+    openingY0: 0.85, openingH: 2.4, openingBreedte: Math.min(W2 - 0.2, 2.4),
+  };
+  return {
+    soort: 'oplegger', kofferbak: null, kapot: false,
+    deuren: [VIRTUELE_LAADDEUR], vasteOpening: false,
+    maten: m,
+    romp: { halveLengte: L2, halveBreedte: W2 / 2, hoogte: m.roof },
+    delen: ladingOplegger(m, k),
+  };
 }
 
 // De delen voor één detailniveau (0 dichtbij, 1 midden, 2 ver). Kapot standaard volgt het wrak van het
