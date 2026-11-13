@@ -28,6 +28,26 @@ Alles in één keer: `node scripts/test_all.mjs --fase=licht|zwaar|electron|alle
   draait nooit meer dan één Electron-instantie tegelijk.
 - Wat niet gedraaid is, heet **niet getest** — nooit "geslaagd".
 
+## Releasegate (elke release)
+
+Sinds ADR [0034](adr/0034-ai-releasegate-met-bewijs.md) bundelt
+`node scripts/release_gate.mjs` de releasepoorten in vijf fasen:
+
+| Fase | Wat |
+|---|---|
+| `static` | `run_tests`, `secrets_scan`, `merkenregister_check` en regels/design op de diff (`release/rules_audit.mjs`) |
+| `world` | `test_all --fase=zwaar`, alleen als wereld, tegels, wegen of water geraakt zijn |
+| `perf` | de vaste perf-routes tegen de absolute norm en de gecommitte baseline (`release/perf_gate.mjs`) |
+| `visual` | de QA-beeldronde, de beeldbaseline en het compacte AI-beeldreviewpakket (`release/visual_gate.mjs`) |
+| `review` | verplichte AI-code-review op de diff sinds de vorige tag, met per aspect een reviewer en de triage in `release/findings.mjs` |
+
+De gate kiest de fasen uit de diff sinds de vorige tag; `--all` dwingt alles af.
+Een fase die niet gedraaid is (geen wereld, geen Electron, geen beelden) heet
+**onvolledig** (exit 3), nooit geslaagd. `desktop/release.sh` verifieert het
+bewaarde rapport met `--verify` en bouwt zonder groen bewijs niet. Het
+draaiboek, de reviewlus en de baselines staan in
+[docs/RELEASEGATE.md](../../docs/RELEASEGATE.md).
+
 ## Verplichte poorten per wijziging
 
 1. `node --check` op elk gewijzigd JS-bestand.
@@ -72,3 +92,8 @@ Er is geen procentueel doel. Wat dekking moet hebben:
 
 `.github/workflows/test.yml` draait `scripts/run_tests.mjs` op een pull request, op een push
 naar `main` (alleen Linux) en met de hand (`workflow_dispatch`). De zware fases en de Electron-verhaaltest draaien lokaal, niet in CI.
+Sinds ADR [0034](adr/0034-ai-releasegate-met-bewijs.md) doet `run_tests` ook de regels- en
+designcontrole op precies de wijziging (`scripts/release/rules_audit.mjs`) en het
+merkenregister. CI geeft daarvoor de basis mee via `GDE_RULES_BASE` (de PR-basis of de vorige
+main-commit); lokaal valt de runner terug op `origin/main` en anders op de laatste tag. Zo
+krijgt elke merge de constitutie- en designcontrole, zonder de volledige releasegate te draaien.

@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "beschrijving": "Beeldverzamelingen voor de releasegate (scripts/release_gate.mjs --stage=visual). Elke set draait een bestaand QA-script met vaste argumenten en schrijft PNG's naar <gate-map>/<out>. Een set met een ontbrekende voorwaarde (wereld of Electron) wordt overgeslagen en als niet-gemeten gemeld; zo blijft de gate eerlijk over wat niet kon draaien. Gebruik --images=<mappen> om bestaande beelden (bijvoorbeeld uit test_all --fase=electron) te hergebruiken.",
+  "sets": [
+    {
+      "naam": "sweep",
+      "script": "scripts/qa/sweep.mjs",
+      "args": ["--seed=7", "--part=wereld,verhaal", "--wereld=18", "--verhaal=8", "--slot"],
+      "out": "beelden/sweep",
+      "nodig": ["wereld", "electron"],
+      "timeoutS": 3600
+    },
+    {
+      "naam": "ui",
+      "script": "scripts/ui_shots.mjs",
+      "args": ["--sizes=1280x720"],
+      "out": "beelden/ui",
+      "nodig": ["wereld", "electron"],
+      "timeoutS": 2400
+    },
+    {
+      "naam": "readme",
+      "script": "scripts/qa/readme_shots.mjs",
+      "args": ["--slot"],
+      "out": "beelden/readme",
+      "nodig": ["wereld", "electron"],
+      "timeoutS": 1800
+    }
+  ]
+}

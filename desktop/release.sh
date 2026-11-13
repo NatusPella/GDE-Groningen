@@ -47,11 +47,28 @@ if [ -n "$(git status --porcelain -- .. ':!../.claude')" ]; then
   exit 1
 fi
 
+# De releasegate (ADR 0034) is de poort: bewijs dat performance, beeld, design, regels en
+# de AI-code-review op deze commit zijn gedaan. Het rapport komt van
+# `node scripts/release_gate.mjs --stage=auto --from=<vorige tag>` (docs/RELEASEGATE.md).
+# Nooduitgang voor een hotfix door de eigenaar: GDE_RELEASE_SKIP_GATE=1 (luid gemeld).
+GATE_OK=""
+if [ "${GDE_RELEASE_SKIP_GATE:-}" = "1" ]; then
+  echo "LET OP: releasegate overgeslagen (GDE_RELEASE_SKIP_GATE=1); er is GEEN bewijs voor performance, beeld, design, regels en review."
+else
+  echo "Releasegate verifiëren (bewijs op deze commit) ..."
+  ( cd .. && node scripts/release_gate.mjs --verify ) || { echo "De releasegate is niet groen op deze commit: geen release. Draai eerst 'node scripts/release_gate.mjs --stage=auto --from=<vorige tag>' inclusief de review, of gebruik GDE_RELEASE_SKIP_GATE=1 als de eigenaar dat goedkeurt."; exit 1; }
+  GATE_OK=1
+fi
+
 # De tag gaat niet op een commit die de suite niet haalt (#576). Zelfde selectie als CI;
 # de zware wereldchecks en de Electron-verhaaltest blijven voor de coördinator.
 # Nooduitgang voor een hotfix: GDE_RELEASE_SKIP_TESTS=1 (dan zegt de uitvoer dat ook).
+# Is de releasegate groen, dan is de lichte suite daar al in gedraaid (fase static) en
+# draaien we hem niet nog een keer.
 if [ "${GDE_RELEASE_SKIP_TESTS:-}" = "1" ]; then
   echo "LET OP: tests overgeslagen (GDE_RELEASE_SKIP_TESTS=1); de suite is NIET gedraaid."
+elif [ -n "$GATE_OK" ]; then
+  echo "Tests: gedekt door de releasegate (fase static); de losse CI-selectie wordt niet dubbel gedraaid."
 else
   echo "Tests (CI-selectie) vóór de release ..."
   ( cd .. && node scripts/run_tests.mjs ) || { echo "De suite is rood: geen release. Repareer eerst, of gebruik GDE_RELEASE_SKIP_TESTS=1 als de eigenaar dat goedkeurt."; exit 1; }
@@ -82,6 +99,12 @@ fi
 if [ "$BUMP" != "current" ]; then
   git add package.json package-lock.json ../android/package.json ../android/package-lock.json
   git commit -q -m "Release $TAG"
+fi
+
+# De review is op de code-commit gedaan; deze versiecommit raakt alleen release-metadata.
+# Laat de poort dat expliciet controleren voordat er gebouwd wordt (ADR 0034).
+if [ "${GDE_RELEASE_SKIP_GATE:-}" != "1" ]; then
+  ( cd .. && node scripts/release_gate.mjs --verify --allow-release-commit ) || { echo "De releasegate keurt de versiecommit niet goed: geen release."; exit 1; }
 fi
 
 echo "Building GDE Groningen $VERSION ..."

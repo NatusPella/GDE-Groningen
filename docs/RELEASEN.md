@@ -6,6 +6,14 @@ Een release is een pre-release in de privé-repo (AGENTS.md, "Releases"). De co�
 
 ## Stappen
 
+Sinds ADR [0034](../.specs-fire/standards/adr/0034-ai-releasegate-met-bewijs.md)
+gaat er één verplichte stap aan de release vooraf: de **releasegate**.
+Draai vóór de bump `node scripts/release_gate.mjs --stage=auto --from=<vorige tag>`
+en de AI-reviewlus zoals beschreven in [docs/RELEASEGATE.md](RELEASEGATE.md).
+`desktop/release.sh` verifieert het bewaarde rapport (`--verify
+--allow-release-commit`) en stopt zonder groen bewijs; de eigenaarsnooduitgang
+`GDE_RELEASE_SKIP_GATE=1` staat luid in de uitvoer.
+
 1. **Lokaal, op de Windows-machine (of in Actions, zie onder):** `CHANGELOG.md` bijwerken (sectie `## [X.Y.Z]`), schone werkboom, dan
    `cd desktop && npm run release -- minor|patch --world`.
    `release.sh` draait eerst de CI-selectie (`node scripts/run_tests.mjs`) en stopt bij een rode suite (#576; nooduitgang `GDE_RELEASE_SKIP_TESTS=1`, dan staat het in de uitvoer).
@@ -53,6 +61,11 @@ Wat dit niet afdekt, en dus een eigenaarsbesluit is (hier niet gedaan): `desktop
 
 ## Poorten vóór een release (#576)
 
+- **Releasegate (ADR 0034).** `node scripts/release_gate.mjs --stage=auto --from=<vorige tag>`
+  draait de vijf fasen met bewijs (static, world indien geraakt, perf, visual en de
+  verplichte AI-code-review) en schrijft één rapport. `desktop/release.sh` verifieert
+  dat rapport vóór de build met `--verify`; zonder groen bewijs geen release. Zie
+  [docs/RELEASEGATE.md](RELEASEGATE.md).
 - **CI op main.** De Tests-workflow draait sinds #576 ook bij een push naar `main`; op een push alleen de Linux-run (de Windows-run kost dubbele gratis minuten en draait al op elke PR). Zo staat er een groene meting op de commit waaruit getagd wordt.
 - **Lokaal vóór de tag.** `desktop/release.sh` draait vóór de versiebump `node scripts/run_tests.mjs` (dezelfde selectie als CI) en stopt bij rood. Nooduitgang voor een hotfix: `GDE_RELEASE_SKIP_TESTS=1`; de uitvoer zegt dan expliciet dat de suite niet gedraaid is.
 - **Tagvalidatie.** `scripts/release_builds.mjs` weigert een tag die niet `^v\d+\.\d+\.\d+$` is (de release 0.55.0 staat zonder `v`; zo'n tag valt niet stil terug op `desktop/package.json` meer).
