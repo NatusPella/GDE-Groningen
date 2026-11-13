@@ -15,6 +15,7 @@ import { busInterieur, midibusInterieur, bezetting, ruimteReizigers, coopBezet, 
 // 0 = dichtbij (volle inrichting + reizigers), 1 = midden (stoelen, stangen en handrail + reizigers),
 // 2 = ver (alleen stoelblokken), -1 = voorbij de verste. Pure functie, zodat de tests dezelfde grens gebruiken.
 export const BUS_LOD_R = [20, 45, 85];   // m: tot 20 lod 0, tot 45 lod 1, tot 85 lod 2; verder weg niets
+export const INT_R = BUS_LOD_R[2];       // oude naam: de verste afstand waarop de binnenruimte nog te zien is
 const BUS_BUILD_BUDGET = 2;              // nieuwe geometrieën per aanroep (#833): één nieuwe bus per frame
 const STOEL = 0x2e5d8a, STOEL_RUG = 0x264d73, STANG = 0xd9b026, DONKER = 0x23262b;
 const JASSEN = [0xc0553d, 0x4b7a5a, 0x7a5aa6, 0xd2a04a, 0x3d6e9e, 0x8a8f95, 0xa65a7a, 0x5a8f8a];

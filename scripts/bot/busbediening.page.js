@@ -154,7 +154,7 @@ async function camShot(naam, van, naar, { interior = false, fov = 75 } = {}) {
   const MV = await imp('models3d_vehicles');
   const mesh = MV.getVehicleMesh(bus.id);
   const ud = mesh && mesh.userData;
-  check('de passagiersruimte is gebouwd (stoelen en reizigers)', !!(ud && ud.busInt && ud.busInt.visible && ud.busPas && ud.busPas.visible), ud && `int ${!!ud.busInt} pas ${ud.busPasN}`);
+  check('de passagiersruimte is gebouwd (stoelen en reizigers)', !!(ud && ud.busInt && ud.busInt.visible && ud.busPas && ud.busPas.visible), ud && `int ${!!ud.busInt} pas ${!!ud.busPas}`);
 }
 // de bus mag niet weg met open deuren: wacht de tijd uit, de fase blijft halteren
 await sleep(9000);

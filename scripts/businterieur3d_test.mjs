@@ -78,6 +78,7 @@ const busLayout = layouts[0][1];
 }
 
 // --- the real bus mesh: one mesh per bus, geometry swapped per level, travellers only nearby ---
+// The level is chosen from the player distance (Chebyshev), not the camera distance: cheap, no raycast, intended.
 function setup(model) {
   const v = new Vehicle(0, 0, 0, { ...model });
   const mesh = buildVehicleMesh(v);
@@ -188,6 +189,9 @@ const tick = (world) => M3.busInterieurKind.tick(1 / 60, world);
   const built = () => items.filter((i) => i.mesh.userData.busInt).length;
   tick(world);
   check('budget: the first call builds one bus (two geometries)', built() === 1, String(built()));
+  // deliberately hidden for one frame: the two buses that are not built yet draw nothing this frame and get
+  // their turn in the next call, so a street full of buses never builds everything at once (#833)
+  check('budget: the buses that are not built yet draw nothing', items.filter((i) => !i.mesh.userData.busInt || !i.mesh.userData.busInt.visible).length === 2, String(items.filter((i) => !i.mesh.userData.busInt || !i.mesh.userData.busInt.visible).length));
   tick(world);
   check('budget: the second call builds the next bus', built() === 2, String(built()));
   tick(world);

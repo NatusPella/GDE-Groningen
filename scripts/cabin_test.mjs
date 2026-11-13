@@ -105,7 +105,8 @@ for (const [name, model, flags] of cases) {
 }
 
 // syncCabins wisselt op de drempels van geometrie (zelfde mesh, zelfde naam/renderOrder/noBatch), deelt de
-// geometrie per niveau met een tweede auto en verbergt voorbij de verste grens.
+// geometrie per niveau met een tweede auto en verbergt voorbij de verste grens. De LOD kiest op de
+// spelerafstand (Chebyshev), niet op de camera-afstand: dat is de goedkope keuze en zo bedoeld (#833).
 {
   const model = models.get('sedan') || models.get('hatch');
   const v = new Vehicle(0, 0, 0, { ...model });
@@ -166,6 +167,9 @@ for (const [name, model, flags] of cases) {
   const built = () => cars.filter((c) => c.mesh.userData.cabin && c.mesh.userData.cabin.visible).length;
   C.syncCabins(world, meshes, 0, 0);
   check('budget: eerste aanroep bouwt er precies 3', built() === 3, String(built()));
+  // bewust één frame verborgen: wie nog niet gebouwd is krijgt pas in de volgende aanroep een mesh, zodat
+  // een rij geparkeerde auto's nooit in één frame alles bouwt (#833). Dat is geen fout, maar het gedrag.
+  check('budget: de twee die nog niet gebouwd zijn tekenen die frame niets', cars.filter((c) => !c.mesh.userData.cabin || !c.mesh.userData.cabin.visible).length === 2, String(cars.filter((c) => !c.mesh.userData.cabin || !c.mesh.userData.cabin.visible).length));
   C.syncCabins(world, meshes, 0, 0);
   check('budget: volgende aanroep bouwt de rest', built() === 5, String(built()));
   const geos = new Set(cars.map((c) => c.mesh.userData.cabin.geometry));
