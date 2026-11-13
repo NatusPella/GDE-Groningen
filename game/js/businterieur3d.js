@@ -1,20 +1,34 @@
 import { hoofdspeler } from './players.js';
-// De passagiersruimte van de bus in beeld (#444, #442): stoelen, haltestangen, handrail en reizigers die zitten of staan,
+// De passagiersruimte van de bus in beeld (#444, #442, #833): stoelen, haltestangen, handrail en reizigers die zitten of staan,
 // door de ramen en de open deuren te zien en bij de binnenin-camera (V). De maten komen uit businterieur.js (met
-// tests). Alleen voor bussen dichtbij gebouwd (LOD, INT_R) en de geometrie is gedeeld: één mesh per busmaat voor de
-// inrichting, en per maat en aantal reizigers één voor de mensen (blokken van 4). Meldt zich in main.js als kind.
+// tests). De ruimte heeft drie detailniveaus op afstand (LOD): dichtbij de hele inrichting met reizigers, halfverwege
+// de stoelen met de haltestangen en de handrail (zonder poten, loper en de helft van de stangen) en de reizigers, ver
+// alleen stoelblokken zonder reizigers. De geometrie is gedeeld: één mesh per busmaat en niveau voor de inrichting, en
+// per maat en aantal reizigers één voor de mensen (blokken van 4). Meldt zich in main.js als kind.
 // De gelede stadsbus en de midibus (#442, de buurtbus uit de winkel) hebben elk hun eigen indeling.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { GeoBuilder, markShared } from './pixelart3d.js';
 import { getVehicleMesh } from './models3d_vehicles.js';
 import { busInterieur, midibusInterieur, bezetting, ruimteReizigers, coopBezet, GANG } from './businterieur.js';
 
-export const INT_R = 18;          // m: verder weg is de binnenruimte niet te zien
+// Afstandstrap (#833): Chebyshev-afstand tot de speler (max |dx|, |dy|), dezelfde maat als cabin3d.js.
+// 0 = dichtbij (volle inrichting + reizigers), 1 = midden (stoelen, stangen en handrail + reizigers),
+// 2 = ver (alleen stoelblokken), -1 = voorbij de verste. Pure functie, zodat de tests dezelfde grens gebruiken.
+export const BUS_LOD_R = [20, 45, 85];   // m: tot 20 lod 0, tot 45 lod 1, tot 85 lod 2; verder weg niets
+const BUS_BUILD_BUDGET = 2;              // nieuwe geometrieën per aanroep (#833): één nieuwe bus per frame
 const STOEL = 0x2e5d8a, STOEL_RUG = 0x264d73, STANG = 0xd9b026, DONKER = 0x23262b;
 const JASSEN = [0xc0553d, 0x4b7a5a, 0x7a5aa6, 0xd2a04a, 0x3d6e9e, 0x8a8f95, 0xa65a7a, 0x5a8f8a];
 const HUIDEN = [0xe8c4a0, 0xc99a74, 0x8d5b3a, 0xf0d2b4];
 const geoCache = new Map();
 let material = null;
+
+export function busLodAt(afstand) {
+  if (!(afstand >= 0)) return -1;         // NaN of oneindig: geen binnenruimte
+  if (afstand < BUS_LOD_R[0]) return 0;
+  if (afstand < BUS_LOD_R[1]) return 1;
+  if (afstand < BUS_LOD_R[2]) return 2;
+  return -1;
+}
 
 function mat() {
   if (!material) {
@@ -29,22 +43,35 @@ const layoutOf = (v) => (v.model.name === 'midibus'
   ? midibusInterieur(v.model.len, v.model.wid)
   : busInterieur(v.model.len, v.model.wid, { trailer: v.model.trailer || 0 }));
 
-// De inrichting: stoelen, stangen en een handrail. Gedeeld per maat.
-export function buildInrichting(L) {
+// De inrichting per niveau (#833), gedeeld per (bussoort, maat, niveau):
+//   0 = de volle inrichting: stoelen met poot, haltestangen, handrail en de loper in het gangpad;
+//   1 = stoelen zonder poot, de haltestangen om de andere (dun en klein) en de handrail;
+//   2 = alleen een donker stoelblok per stoel.
+// Alle drie de niveau's passen in dezelfde mesh: sync wisselt alleen de geometrie.
+export function buildInrichting(L, lod = 0) {
   const B = new GeoBuilder(1);
   const f = L.floor;
+  if (lod >= 2) {
+    for (const s of L.seats) B.box(s.x - 0.08, f + 0.3, s.z, 0.5, 0.42, 0.42, STOEL_RUG);   // zitblok
+    return B.build();
+  }
   for (const s of L.seats) {
     B.box(s.x, f + 0.27, s.z, 0.46, 0.08, 0.42, STOEL);                     // zitting
     B.box(s.x - 0.22, f + 0.58, s.z, 0.08, 0.5, 0.42, STOEL_RUG);           // rug
-    B.box(s.x, f + 0.12, s.z, 0.42, 0.24, 0.1, DONKER);                     // poot
+    if (lod === 0) B.box(s.x, f + 0.12, s.z, 0.42, 0.24, 0.1, DONKER);      // poot (valt op afstand weg)
   }
-  for (const p of L.poles) B.box(p.x, f + 0.95, p.z, 0.035, 1.9, 0.035, STANG);
+  if (lod === 0) {
+    for (const p of L.poles) B.box(p.x, f + 0.95, p.z, 0.035, 1.9, 0.035, STANG);
+  } else {
+    // midden: de haltestangen om de andere; op 20-45 m zijn ze toch maar een paar pixels breed
+    for (let i = 0; i < L.poles.length; i += 2) B.box(L.poles[i].x, f + 0.95, L.poles[i].z, 0.035, 1.9, 0.035, STANG);
+  }
   for (const z of L.rail.z) B.box((L.rail.x0 + L.rail.x1) / 2, L.rail.y, z, Math.abs(L.rail.x0 - L.rail.x1), 0.035, 0.035, STANG);
-  B.box((L.rail.x0 + L.rail.x1) / 2, f + 0.01, 0, Math.abs(L.rail.x0 - L.rail.x1), 0.02, GANG * 2, DONKER); // loper in het gangpad
+  if (lod === 0) B.box((L.rail.x0 + L.rail.x1) / 2, f + 0.01, 0, Math.abs(L.rail.x0 - L.rail.x1), 0.02, GANG * 2, DONKER); // loper in het gangpad
   return B.build();
 }
 
-// De reizigers: een romp en een hoofd, zittend of staand; kleuren per plek vast.
+// De reizigers: een romp en een hoofd, zittend of staand; kleuren per plek vast. Alleen voor lod 0 en 1.
 export function buildReizigers(L, n, bezet = []) {
   const B = new GeoBuilder(1);
   const f = L.floor;
@@ -66,18 +93,19 @@ export function buildReizigers(L, n, bezet = []) {
   return B.build();
 }
 
-function inrichtingGeo(v) {
-  const k = 'i|' + key(v);
+// Gedeelde geometrie per niveau; alleen bouwen als het budget van deze aanroep dat toestaat (#833).
+function inrichtingGeo(v, lod, allowBuild) {
+  const k = `i|${key(v)}|${lod}`;
   let g = geoCache.get(k);
-  if (!g) { g = markShared(buildInrichting(layoutOf(v))); geoCache.set(k, g); }
-  return g;
+  if (!g && allowBuild) { g = markShared(buildInrichting(layoutOf(v), lod)); geoCache.set(k, g); }
+  return g || null;
 }
 
-function reizigersGeo(v, n, bezet = []) {
+function reizigersGeo(v, n, bezet, allowBuild) {
   const k = `r|${key(v)}|${n}|${bezet.join(',')}`;
   let g = geoCache.get(k);
-  if (!g) { g = markShared(buildReizigers(layoutOf(v), n, bezet)); geoCache.set(k, g); }
-  return g;
+  if (!g && allowBuild) { g = markShared(buildReizigers(layoutOf(v), n, bezet)); geoCache.set(k, g); }
+  return g || null;
 }
 
 const bucket = (n) => Math.min(48, Math.ceil(n / 4) * 4);
@@ -99,35 +127,99 @@ export function coopStoelenIn(w, v) {
   return uit;
 }
 
+// Dezelfde stoelen als coopStoelenIn, maar als bitmasker: één getal, zodat een rustig frame geen arrays hoeft te
+// maken om te zien of de bezetting veranderd is (#833). Een bus heeft hooguit een handvol stoelen, dus 32 bits is zat.
+function multiplayerSeatMask(w, v) {
+  let mask = 0;
+  const figs = w.coopFigures;
+  if (figs) {
+    for (const id in figs) {
+      const f = figs[id];
+      if (f && f.inVeh === v && f.stoel != null && !f.coopBestuurt) mask |= 1 << (f.stoel & 31);
+    }
+  }
+  const zitters = w.coopZitters;
+  if (zitters) {
+    for (let i = 0; i < zitters.length; i++) {
+      const z = zitters[i];
+      if (z && z.voertuig === v.id && !z.bestuurder) mask |= 1 << ((z.stoel | 0) & 31);
+    }
+  }
+  return mask >>> 0;
+}
+
+// Eén keer per frame: bussen in de buurt krijgen hun passagiersruimte op het juiste detailniveau. De afstand wordt
+// eerst bepaald (geen Math.hypot, geen arrays per bus); gebouwd wordt lazy en hooguit BUS_BUILD_BUDGET geometrieën
+// per aanroep, zodat twee nieuwe bussen niet in één frame hangen. Wie nog niet gebouwd is blijft één frame verborgen.
 function updateInterieur(dt, w) {
   const p = hoofdspeler(w);
+  if (!p) return;                         // nog geen speler (laden of test): niets te doen
+  let budget = BUS_BUILD_BUDGET;
   for (const v of w.vehicles) {
     // de gelede stadsbus en de midibus (buurtbus); een tram heeft zijn eigen wagenindeling
     if (!v.isBus || v.wrecked || !v.model || (v.model.name !== 'bus' && v.model.name !== 'midibus')) continue;
     const mesh = getVehicleMesh(v.id);
     if (!mesh) continue;
     const ud = mesh.userData;
-    const dichtbij = Math.abs(v.x - p.x) < INT_R && Math.abs(v.y - p.y) < INT_R;
-    if (!dichtbij) { if (ud.busInt) ud.busInt.visible = false; if (ud.busPas) ud.busPas.visible = false; continue; }
+    const dx = Math.abs(v.x - p.x), dy = Math.abs(v.y - p.y);
+    const lod = busLodAt(Math.max(dx, dy));   // Chebyshev; Math.max maakt een NaN-positie meteen onzichtbaar
+    if (lod < 0) {                        // voorbij de verste afstand: alles uit
+      if (ud.busInt) ud.busInt.visible = false;
+      if (ud.busPas) ud.busPas.visible = false;
+      continue;
+    }
     const body = ud.body || mesh;
-    if (!ud.busInt) {
-      ud.busInt = new THREE.Mesh(inrichtingGeo(v), mat());
-      ud.busInt.name = 'businterieur';
-      ud.busInt.userData.noBatch = true;
-      body.add(ud.busInt);
+    // de inrichting: zelfde mesh, alleen de geometrie wisselt als het niveau verandert (#833)
+    if (ud.busIntLod !== lod) {
+      const cached = geoCache.size;
+      const g = inrichtingGeo(v, lod, budget > 0);
+      if (!g) {                           // geen budget meer: deze bus blijft één frame verborgen
+        if (ud.busInt) ud.busInt.visible = false;
+        if (ud.busPas) ud.busPas.visible = false;
+        continue;
+      }
+      if (geoCache.size > cached) budget--;
+      if (!ud.busInt) {
+        ud.busInt = new THREE.Mesh(g, mat());
+        ud.busInt.name = 'businterieur';
+        ud.busInt.castShadow = false;     // het interieur werpt geen schaduw: dat kost een extra shadow-pass per bus
+        ud.busInt.userData.noBatch = true;
+        body.add(ud.busInt);
+      } else ud.busInt.geometry = g;      // zelfde mesh, alleen de geometrie wisselt (#833)
+      ud.busIntLod = lod;
     }
     ud.busInt.visible = true;
-    const bezet = coopBezet(layoutOf(v), coopStoelenIn(w, v)).sort((a, b) => a - b);
-    const n = bucket(reizigersAanBoord(v)), sleutel = n + '|' + bezet.join(',');
-    if (ud.busPasN !== sleutel) {
+    if (lod >= 2) {                       // ver: alleen stoelblokken, geen reizigers
+      if (ud.busPas) { body.remove(ud.busPas); ud.busPas = null; ud.busPasSig = undefined; }
+      continue;
+    }
+    // de reizigers: de bezetting als één getal vergelijken, zodat een rustig frame niets alloceert
+    const n = bucket(reizigersAanBoord(v));
+    const sig = n * 4294967296 + multiplayerSeatMask(w, v);
+    if (ud.busPasSig !== sig) {
+      if (n <= 0) {                       // niemand aan boord: geen mesh, wel de stand bijhouden
+        if (ud.busPas) { body.remove(ud.busPas); ud.busPas = null; }
+        ud.busPasSig = sig;
+        continue;
+      }
+      const bezet = coopStoelenIn(w, v).sort((a, b) => a - b);
+      const cached = geoCache.size;
+      const g = reizigersGeo(v, n, bezet, budget > 0);
+      if (!g) {                           // nog geen budget: de oude reizigers blijven deze frame verborgen
+        if (ud.busPas) ud.busPas.visible = false;
+        continue;
+      }
+      if (geoCache.size > cached) budget--;
       if (ud.busPas) body.remove(ud.busPas);
-      ud.busPas = n > 0 ? new THREE.Mesh(reizigersGeo(v, n, bezet), mat()) : null;
-      if (ud.busPas) { ud.busPas.name = 'busreizigers'; ud.busPas.userData.noBatch = true; body.add(ud.busPas); }
-      ud.busPasN = sleutel;
+      ud.busPas = new THREE.Mesh(g, mat());
+      ud.busPas.name = 'busreizigers';
+      ud.busPas.castShadow = false;
+      ud.busPas.userData.noBatch = true;
+      body.add(ud.busPas);
+      ud.busPasSig = sig;
     }
     if (ud.busPas) ud.busPas.visible = true;
   }
 }
 
 export const busInterieurKind = { id: 'businterieur', tickPhase: 'world', tick: updateInterieur };
-
