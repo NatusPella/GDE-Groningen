@@ -170,32 +170,23 @@ function vest(B, v, lod) {
 }
 
 // De binnenhuid (#847): de romp en de opbouw zijn enkelzijdig, dus zonder deze huid kijk je in eerste persoon
-// door de achterkanten van het plaatwerk heen de zee op. Vloer, plafond, de zijwanden onder en boven het
-// raamband en de voor- en achterwand met een opening waar het glas zit, allemaal met de normaal naar binnen:
-// van buiten onzichtbaar en het kost geen extra mesh of tekenaanroep, want het zit in dezelfde geometrie.
-// Alleen op niveau 0 (in eerste persoon sta je op afstand 0); de verdere niveaus blijven goedkoper.
+// door de achterkanten van het plaatwerk heen de zee op. Vloer, plafond, de zijwanden onder het raamband en de
+// voor- en achterwand onder het raamband, allemaal met de normaal naar binnen: van buiten onzichtbaar en het
+// kost geen extra mesh of tekenaanroep, want het zit in dezelfde geometrie. Boven de raamlijn komt er geen
+// dichte band: de schipper zit volgens boatSeats zo hoog dat zijn ogen op of net boven de raamlijn staan
+// (spits: oog 2,69 bij een raamband tot 2,60; zeeschip: 10,69 bij 10,65), en een dichte band daarboven zou het
+// hele uitzicht afsluiten; de binnenkant van het dak blijft als plafond zichtbaar. Alleen op niveau 0
+// (in eerste persoon sta je op afstand 0); de verdere niveaus blijven goedkoper.
 function binnenhuid(B, L) {
   const { x0, x1, halfW, vloer, dak, raam } = L;
   const P = (x, y, z) => [x, y, z];
   B.quadOut(P(x0, vloer, -halfW), P(x1, vloer, -halfW), P(x1, vloer, halfW), P(x0, vloer, halfW), [0, 1, 0], FLOOR);
   B.quadOut(P(x0, dak, -halfW), P(x1, dak, -halfW), P(x1, dak, halfW), P(x0, dak, halfW), [0, -1, 0], CEILING);
-  const yA = Math.max(vloer, raam ? raam.y0 : dak), yB = Math.min(dak, raam ? raam.y1 : dak);
-  const wand = (xa, ya, xb, yb, z, out) => {
-    if (yb - ya < 0.03) return; // geen plakje van twee millimeter: dat geeft alleen maar lelijke normaal
-    B.quadOut(P(xa, ya, z), P(xb, ya, z), P(xb, yb, z), P(xa, yb, z), out, WALL);
-  };
-  for (const s of [-1, 1]) {
-    const z = s * halfW;
-    wand(x0, vloer, x1, yA, z, [0, 0, -s]);
-    wand(x0, yB, x1, dak, z, [0, 0, -s]);
-  }
+  const yA = Math.min(dak, raam ? raam.y0 : dak);
   if (yA - vloer >= 0.03) {
+    for (const s of [-1, 1]) B.quadOut(P(x0, vloer, s * halfW), P(x1, vloer, s * halfW), P(x1, yA, s * halfW), P(x0, yA, s * halfW), [0, 0, -s], WALL);
     B.quadOut(P(x0, vloer, -halfW), P(x0, vloer, halfW), P(x0, yA, halfW), P(x0, yA, -halfW), [1, 0, 0], WALL);
     B.quadOut(P(x1, vloer, -halfW), P(x1, vloer, halfW), P(x1, yA, halfW), P(x1, yA, -halfW), [-1, 0, 0], WALL);
-  }
-  if (dak - yB >= 0.03) {
-    B.quadOut(P(x0, yB, -halfW), P(x0, yB, halfW), P(x0, dak, halfW), P(x0, dak, -halfW), [1, 0, 0], WALL);
-    B.quadOut(P(x1, yB, -halfW), P(x1, yB, halfW), P(x1, dak, halfW), P(x1, dak, -halfW), [-1, 0, 0], WALL);
   }
 }
 
