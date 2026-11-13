@@ -52,6 +52,9 @@ gedeeltelijk ontdekte provincie (bronchecks en de pure selectie zijn wel getest)
    snelreizen (dat is sinds #97 geen reisoptie meer). De test bewaakt de installatie, de laag en de
    wiring in kaart/minimap.
 
+## Aanvulling #834 (13-11-2026)
+
+Van een onbekende streek worden naast de activiteiten nu ook de bijbanen, vondsten, paden en overige spots op de kaart en minikaart verborgen. Wegen, water, de eigen positie en de missies blijven zichtbaar; ontdekken via betreden of een uitkijkpunt onthult alles in één keer. Zo werkt de ontdekkingslaag uit #825 door op alle lagen, niet alleen op de attracties.
 ## Voorstel per activiteit (A15-A20)
 
 | Id | Kleinste veilige vervolgstap | Hergebruikt |

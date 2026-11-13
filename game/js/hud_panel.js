@@ -2407,28 +2407,30 @@ function drawMinimapPois(ctx, world, job, placed, inRange, toScreen, t) {
     const types = new Set();
     for (const sh of shops) {
       if (types.size >= 2) break;
+      if (!sichtbaar(sh.x, sh.y)) continue; // #834
       if ((SHOP_TYPES[sh.type] || {}).group !== group || types.has(sh.type)) continue;
       types.add(sh.type);
       pois.push(['shop-' + sh.type, sh.x, sh.y]);
     }
   }
+  // #834: een onbekende streek toont ook op de minikaart geen bijbanen, vondsten en overige spots.
+  const sichtbaar = (x, y) => !isAreaHidden(x, y);
   if (!job) {
-    const sjs = getSideJobSpotsForRender();
+    const sjs = getSideJobSpotsForRender().filter((sj) => sichtbaar(sj.x, sj.y));
     add('bijbaan', sjs.filter((sj) => !sj.job.layer), (sj) => 'sj-' + sj.job.id, 2, MM_POI_FAR_M);
     add('rondvaarttour', sjs.filter((sj) => sj.job.layer === 'rondvaarttour'), (sj) => 'sj-' + sj.job.id, 1, MM_POI_FAR_M);
   }
   add('trein', getStationsForRender(), 'station', 1, MM_POI_FAR_M);
-  add('ommeland', ommelandMapSpots(), (q) => q.kind, 2, MM_POI_FAR_M);
-  add('percelen', perceelMapSpots(), (q) => q.kind, 3, MM_POI_FAR_M);
+  add('ommeland', ommelandMapSpots().filter((q) => sichtbaar(q.x, q.y)), (q) => q.kind, 2, MM_POI_FAR_M);
+  add('percelen', perceelMapSpots().filter((q) => sichtbaar(q.x, q.y)), (q) => q.kind, 3, MM_POI_FAR_M);
   if (inVehicle) add('flitspaal', world.flitspaalen || [], 'flitspaal', 2);
-  if (!inVehicle) add('duif', getPigeonSpotsForRender(), 'pigeon', 1);
-  add('heli', getHeliSpotsForRender(), 'heli', 1, MM_POI_FAR_M);
-  add('padel', getPadelSpotsForRender(), 'padel', 1, MM_POI_FAR_M);
-  // #825: een onbekende streek toont ook op de minikaart geen activiteiten-iconen
-  for (const a of activityMapIcons(world)) if (!isAreaHidden(a.x, a.y)) add(a.layer, [a], a.kind, 1, MM_POI_FAR_M);
-  add('postgame', getPostgameSpotsForRender(), (q) => 'pg-' + q.kind, 2, MM_POI_FAR_M);
-  add('horeca', getHorecaForRender(), 'horeca', 1);
-  add('landmark', world.map.meta.landmarks || [], 'landmark', 2);
+  if (!inVehicle) add('duif', getPigeonSpotsForRender().filter((q) => sichtbaar(q.x, q.y)), 'pigeon', 1);
+  add('heli', getHeliSpotsForRender().filter((q) => sichtbaar(q.x, q.y)), 'heli', 1, MM_POI_FAR_M);
+  add('padel', getPadelSpotsForRender().filter((q) => sichtbaar(q.x, q.y)), 'padel', 1, MM_POI_FAR_M);
+  for (const a of activityMapIcons(world)) if (sichtbaar(a.x, a.y)) add(a.layer, [a], a.kind, 1, MM_POI_FAR_M);
+  add('postgame', getPostgameSpotsForRender().filter((q) => sichtbaar(q.x, q.y)), (q) => 'pg-' + q.kind, 2, MM_POI_FAR_M);
+  add('horeca', getHorecaForRender().filter((q) => sichtbaar(q.x, q.y)), 'horeca', 1);
+  add('landmark', (world.map.meta.landmarks || []).filter((q) => sichtbaar(q.x, q.y)), 'landmark', 2);
   add('uitkijkpunt', world.map.meta.uitkijkpunten || [], 'uitkijkpunt', 2, MM_POI_FAR_M);
 
   // the most important place wins where two would touch

@@ -220,7 +220,12 @@ const punten = uitkijkpunten(kits, MENU_PLEKKEN, STREKEN);
   }
   ok(!view.includes('fogVanStreek') && !view.includes('strekenFog'), 'geen mistlaag over de wereld: alleen namen en iconen');
   const hud = read('hud_panel.js');
-  ok(hud.includes("from './explorationlive.js'") && hud.includes('if (!isAreaHidden(a.x, a.y))'), 'de minikaart verbergt dezelfde activiteiten-iconen');
+  ok(hud.includes("from './explorationlive.js'") && hud.includes('const sichtbaar = (x, y) => !isAreaHidden(x, y)') && hud.includes('if (sichtbaar(a.x, a.y))'), 'de minikaart verbergt dezelfde activiteiten-iconen');
+  const map = read('mapview.js');
+  ok(map.includes('const onbekend = (x, y) => isAreaHidden(x, y)') && map.includes('if (onbekend(sj.x, sj.y)) continue'), 'de kaart verbergt ook bijbanen van onbekende streken (#834)');
+  ok(map.includes('if (onbekend(q.x, q.y)) continue') && map.includes('if (onbekend(e.x, e.y)) continue'), 'de kaart verbergt ook vondsten en overige spots (#834)');
+  ok(map.includes('for (const sj of getSideJobSpotsForRender()) { if (isAreaHidden(sj.x, sj.y)) continue; entries.push'), 'de zoeklijst verbergt bijbanen van onbekende streken (#834)');
+  ok(hud.includes("getSideJobSpotsForRender().filter((sj) => sichtbaar(sj.x, sj.y))"), 'de minikaart verbergt ook bijbanen (#834)');
   const reis = read('reiskaart.js');
   ok(reis.includes('travelFactorFor(target.x, target.y)') && reis.includes('o.etaS = Math.round(o.etaS * voordeel)'), 'het reisvoordeel zit op de bestaande reisoptie (10% korter)');
   ok(reis.includes('streekvoordeel'), 'de reiziger ziet waar het voordeel vandaan komt');
