@@ -1981,7 +1981,36 @@ export function precompilePrograms() {
         if (o.material && !o.geometry) { parked.push([o, o.material]); o.material = null; }
       });
       if (parked.length) console.warn('shaders voorcompileren: materiaal zonder geometry overgeslagen', parked.length);
+      // Generieke materiaalvarianten (lambert/basic/standard, met en zonder
+// vertexkleuren, met en zonder uv) alvast als deel van de scène compileren:
+// tijdens de film linkte een nieuw gestreamd object deze alsnog (106 ms
+// getProgramParameter in een 169 ms-frame).
+      const warmGroup = new THREE.Group();
+      const matVarianten = [
+        [new THREE.MeshLambertMaterial({ color: 0xffffff }), true],
+        [new THREE.MeshLambertMaterial({ color: 0xffffff }), false],
+        [new THREE.MeshLambertMaterial({ color: 0xffffff, vertexColors: true }), true],
+        [new THREE.MeshLambertMaterial({ color: 0xffffff, vertexColors: true }), false],
+        [new THREE.MeshBasicMaterial({ color: 0xffffff }), true],
+        [new THREE.MeshBasicMaterial({ color: 0xffffff }), false],
+        [new THREE.MeshBasicMaterial({ color: 0xffffff, vertexColors: true }), true],
+        [new THREE.MeshBasicMaterial({ color: 0xffffff, vertexColors: true }), false],
+        [new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8 }), true],
+        [new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8 }), false],
+        [new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8, vertexColors: true }), true],
+        [new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8, vertexColors: true }), false],
+      ];
+      const warmGeoUv = new THREE.PlaneGeometry(2, 2);
+      const warmGeoFlat = new THREE.BufferGeometry();
+      warmGeoFlat.setAttribute('position', new THREE.Float32BufferAttribute([-1, -1, 0, 1, -1, 0, 1, 1, 0, -1, 1, 0], 3));
+      warmGeoFlat.setAttribute('normal', new THREE.Float32BufferAttribute([0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1], 3));
+      warmGeoFlat.setIndex([0, 1, 2, 0, 2, 3]);
+      for (const [m, uv] of matVarianten) { const mesh = new THREE.Mesh(uv ? warmGeoUv : warmGeoFlat, m); mesh.frustumCulled = false; warmGroup.add(mesh); }
+      scene.add(warmGroup);
       precompile(scene);
+      scene.remove(warmGroup);
+      warmGeoUv.dispose(); warmGeoFlat.dispose();
+      for (const [m] of matVarianten) m.dispose();
     }
   } catch (e) { console.warn('shaders voorcompileren', e); }
   finally { for (const [o, m] of parked) o.material = m; }
