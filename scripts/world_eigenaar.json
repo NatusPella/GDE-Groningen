@@ -125,6 +125,13 @@
   },
   "uitzonderingen": [
     {
+      "veld": "vehicles",
+      "bestand": "game/js/onderdelenlive.js",
+      "max": 1,
+      "reden": "zet de gebouwde Knutselwagen in de gedeelde voertuigenlijst; de lijst heeft nog geen API",
+      "issue": "#837"
+    },
+    {
       "veld": "armor",
       "bestand": "game/js/combat.js",
       "max": 1,
