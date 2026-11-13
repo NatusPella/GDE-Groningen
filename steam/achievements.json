@@ -1490,6 +1490,14 @@
       "steamApiNaam": ""
     },
     {
+      "id": "duizendpoot",
+      "titel": "Van alle markten thuis",
+      "omschrijving": "Begin alle 19 loopbanen met een echte eerste klus: de titel De Duizendpoot en eenmalig €750",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_DUIZENDPOOT",
+      "steamApiNaam": ""
+    },
+    {
       "id": "coop_uur",
       "titel": "Samen is beter",
       "omschrijving": "Speel een uur online samen met een tweede speler",
