@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- **Een onbekende streek verbergt nu ook zijn bijbanen, vondsten en overige spots (#834).** Eerder bleven die iconen op de kaart en minikaart staan terwijl alleen de activiteiten verborgen waren; nu ontdek je ze samen met de streek. Wegen, water, je positie en de missies blijven zichtbaar.
 - **Het laadscherm zet nu ook de openingsfilm klaar: de tegels van de montageplekken worden geladen en vastgehouden, de gebouwen daar voorgebouwd en de vaste opening-assets (acteurs, keuken, duiven, props) één keer gecompileerd.** Dat kost op een gewone machine ~25-30 s extra laadtijd; de montage hapert daardoor veel minder (het aantal frames in de eerste 30 s meer dan verdubbelde) en na de film begint het spel op volle kwaliteit. De laatste shaderpiek bij een enkele shotwissel is nog in onderzoek.
 - **Tijdens de openingsfilm en cutscenes worden de wegdek-knooppuntindex, het kruispuntmodel, de routegraaf en de verkeersgraaf niet meer per wijkwissel herbouwd.** De oude versie blijft tot de scène klaar is; daarna halen de gewone, over frames gespreide herbouwen het in. In het profiel verdwenen `fillNodes` (~0,35 s) en `junctionModel` (~0,1 s) uit de top, en de p95-frame van de eerste 5 s zakte naar ~330 ms.
 
