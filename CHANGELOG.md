@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- **Kaart en minikaart laden weer schoon: de streekfilter werd op twee plekken gebruikt vóór hij bestond (#848).** De fout kwam pas boven bij de beeldcontrole; de kaart, minikaart en Te doen werken daarna zonder consolefouten.
 - **De Hogelandrit, de wrakduikplekken en de vijf onderdelen zijn nu vindbaar (#848).** Ze hebben een eigen icoon op de kaart en minikaart, een E-prompt waar dat past, en een rij in Te doen met de dichtstbijzijnde plek. De wrakduik krijgt bovendien een korte visuele duikscène.
 - **De eerste dag heeft nu een korte checklist in de hulp en een eenmalige kaart na de eerste missie (#841).** Kleding, spuiterij, garage, waypoint en uitkijkpunten staan bij elkaar; geen nieuwe teller.
 - **Nieuw: de Hogelandrit, één streekuitdaging met een voertuig van Warffum via Usquert naar Uithuizen (#835).** De rit gebruikt de bestaande waypoint, HUD en medailles; onderweg uitstappen stopt de rit.
