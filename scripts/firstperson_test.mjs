@@ -97,24 +97,38 @@ ok(near(firstPersonEye(null).x, 0) && near(firstPersonEye(null).y, EYE_STAND), '
 // --- de bedrading in de game-modules ------------------------------------------------------
 const bron = (f) => fs.readFileSync(new URL(`../game/js/${f}`, import.meta.url), 'utf8');
 const scene = bron('scene3d.js');
-ok(/from '\.\/firstperson\.js'/.test(scene), 'scene3d.js haalt de stand uit firstperson.js');
-ok(/firstPersonView/.test(scene) && /addLookPitch\(world,/.test(scene), 'scene3d.js heeft de eerste-persooncamera met muisLOOK');
-ok(/playerMesh\.userData\.head/.test(scene) && /getWorldPosition\(_fpEye\)/.test(scene), 'scene3d.js zet de camera op de hoofdbot van het eigen figuur');
-ok(/firstPersonEye\(player, _fpAlt\)/.test(scene), 'scene3d.js heeft de terugval op de spelerstand, zonder allocatie per frame');
-ok(/const showInterior = firstPersonView \|\|/.test(scene) && /updateCarInterior\(pvMesh, pv, showInterior\)/.test(scene),
-  'scene3d.js toont het gedetailleerde interieur ook in eerste persoon');
+const fpc = bron('firstpersoncam.js');
+// De 3D-glue staat in firstpersoncam.js: scene3d.js blijft onder de omvangsgrens van #497.
+ok(/from '\.\/firstpersoncam\.js'/.test(scene), 'scene3d.js haalt de eerste-persoon-glue uit firstpersoncam.js');
+ok(/fpSync\(world, player, pv, pvMesh, hidePlayers/.test(scene) && /fpCamera\(world, cam, player, playerMesh, playerMeshPlaced/.test(scene),
+  'scene3d.js roept de stand en de camera uit de module aan');
+ok(/\(fpBits & FP_VIEW\)/.test(scene) && /\(fpBits & FP_HIDE\)/.test(scene) && /\(fpBits & FP_INCABIN\)/.test(scene) && /\(fpBits & FP_CUT\)/.test(scene) && /\(fpBits & FP_TOGGLE\)/.test(scene),
+  'scene3d.js leest de FP-bits (geen object per frame)');
 ok(/if \(firstPersonView\) playerMesh\.visible = false/.test(scene), 'scene3d.js verbergt het eigen figuur in eerste persoon');
-ok(/'3d:players'/.test(scene) && !/function updateFirstPerson/.test(scene), 'geen tweede updatepad: het blijft in update3D');
+ok(/'3d:players'/.test(scene) && !/function updateFirstPerson/.test(scene), 'geen tweede updatepad: de camera blijft in update3D');
+const sceneRegels = scene.split(/\r?\n/).length - (scene.endsWith('\n') ? 1 : 0);
+ok(sceneRegels < 4360, 'scene3d.js blijft onder de omvangsgrens van #497 (4360 regels)', sceneRegels);
+// De module doet het echte werk: hoofdbot als oog, terugval, muisLOOK, kijkvector, interieur.
+ok(/playerMesh\.userData\.head/.test(fpc) && /head\.matrixWorld\.elements/.test(fpc), 'firstpersoncam.js zet de camera op de hoofdbot van het eigen figuur');
+ok(/firstPersonEye\(player, _altEye\)/.test(fpc), 'firstpersoncam.js heeft de terugval op de spelerstand, zonder allocatie per frame');
+ok(/addLookPitch\(world,/.test(fpc) && /lookVector\(camAngle, clampPitch\(st\.pitch\), _dir\)/.test(fpc),
+  'firstpersoncam.js heeft muisLOOK en de kijkvector in een tijdelijk object');
+ok(/updateCarInterior\(pvMesh, pv, view \|\| !!interiorCamera\)/.test(fpc), 'firstpersoncam.js toont het gedetailleerde interieur ook in eerste persoon');
+ok(/interiorMesh/.test(fpc) && /visible = false/.test(fpc), 'firstpersoncam.js zet het interieur weer weg als je uitstapt');
 // prestatie (#804): in eerste persoon wordt het volgcamwerk (collisie, pull-in, camScale)
-// overgeslagen en alloceert het pad niets; de kijkvector gaat in een module-tijdelijk object
+// overgeslagen en alloceert de module niets; geen three.js-import, alleen temporary objecten.
 const fpStart = scene.indexOf('if (firstPersonView) {');
-const fpEind = scene.indexOf('// third-person follow:', fpStart);
+const fpEind = scene.indexOf('} else {', fpStart);
 const fpTak = fpStart >= 0 && fpEind > fpStart ? scene.slice(fpStart, fpEind) : '';
-ok(fpTak.length > 200, 'de eerste-persoon-tak staat apart in update3D');
+ok(fpTak.length > 80, 'de eerste-persoon-tak staat apart in update3D');
 ok(!/nearbyCamTargets|propRayHit|camClearOfVehicle|camScale|followCameraPose/.test(fpTak),
   'eerste persoon slaat de volgcam-collisie, pull-in en camScale over');
-ok(!/new THREE\.|lookVector\(camAngle, clampPitch\(fpState\.pitch\)\)/.test(fpTak),
-  'geen nieuwe objecten in het eerste-persoon-pad (kijkvector in een tijdelijk object)');
+ok(!/new THREE\.|lookVector\(|addLookPitch\(/.test(fpTak), 'de eerste-persoon-tak in scene3d.js alloceert niets en rekent niets zelf');
+const camStart = fpc.indexOf('export function fpCamera(');
+const camBody = camStart >= 0 ? fpc.slice(camStart) : '';
+ok(camBody.length > 500 && !/new [A-Z]|from 'three'|from \"three/.test(camBody),
+  'firstpersoncam.js: geen three.js-import en geen nieuwe objecten in de camera');
+ok(/_altEye\b/.test(fpc) && /_dir\b/.test(fpc), 'firstpersoncam.js gebruikt module-tijdelijke objecten');
 ok(/from '\.\/firstperson\.js'/.test(bron('player.js')) && /firstPersonOn\(world\)/.test(bron('player.js')),
   'player.js laat het lichaam met de kijkrichting meedraaien');
 const cine = bron('cinematics.js');
@@ -125,6 +139,65 @@ ok(/Eerste persoon aan of uit/.test(bron('controls.js')), 'controls.js noemt C d
 const pm = bron('pausemenu.js');
 ok(/toggle\('firstPersoon'/.test(pm), 'pausemenu.js heeft de schakelaar firstPersoon onder Camera & richten');
 ok(/\['C'\], 'Eerste persoon'/.test(pm), 'pausemenu.js noemt C bij Besturing de eerste-persoonstand');
+
+// --- de glue zelf: stand, bits en de camera (zonder renderer) -------------------------------
+// firstpersoncam.js importeert carinterior.js en dus three.js: dynamisch, na node3d.mjs
+const {
+  fpSync, fpCamera,
+  FP_VIEW: FP_VIEW_BIT, FP_HIDE: FP_HIDE_BIT, FP_CUT: FP_CUT_BIT, FP_INCABIN: FP_INCABIN_BIT, FP_TOGGLE: FP_TOGGLE_BIT,
+} = await import('../game/js/firstpersoncam.js');
+const fw = {
+  firstPersoon: { on: false, pitch: 0 },
+  input: { mouse: { dx: 0, dy: 0 }, locked: true, lookActive: () => true, isDown: () => false },
+  scoped: false,
+  camYaw: 0,
+  cameraOverride: null,
+};
+const speler = { x: 10, y: 20, gz: 0, z: 0, wade: 0, angle: 0, inVehicle: null };
+setSetting('firstPersoon', false);
+ok(fpSync(fw, speler, null, null, false, false) === 0, 'fpSync: uit en niemand te verbergen geeft geen bits');
+setSetting('firstPersoon', true);
+let bits = fpSync(fw, speler, null, null, false, false);
+ok((bits & FP_VIEW_BIT) !== 0 && (bits & FP_HIDE_BIT) !== 0 && (bits & FP_CUT_BIT) !== 0,
+  'fpSync: aan geeft zicht, verbergen en een harde snee', bits);
+ok(!(bits & FP_INCABIN_BIT), 'fpSync: zonder voertuig geen interieur-bit');
+bits = fpSync(fw, speler, null, null, false, false);
+ok((bits & FP_VIEW_BIT) !== 0 && (bits & FP_CUT_BIT) === 0 && (bits & FP_TOGGLE_BIT) === 0,
+  'fpSync: de snee en de toggle gelden maar één frame', bits);
+const cam = { position: { x: 0, y: 0, z: 0, set(x, y, z) { this.x = x; this.y = y; this.z = z; } } };
+const followPose = { position: {}, lookAt: {}, at: 0 };
+const out = {};
+ok(fpCamera(fw, cam, speler, null, false, true, 0.0025, false, followPose, out) === true,
+  'fpCamera: de eerste frame meldt dat de boomkronen weer vrij mogen');
+ok(near(cam.position.x, 10) && near(cam.position.y, EYE_STAND) && near(cam.position.z, 20),
+  'fpCamera: het terugval-oog staat op de spelerstand (three-coördinaten)', cam.position);
+ok(near(out.x, 20) && near(out.y, EYE_STAND) && near(out.z, 20), 'fpCamera: kijkt recht vooruit', out);
+ok(near(followPose.position.y, cam.position.z) && near(followPose.lookAt.z, out.y),
+  'fpCamera: de volgpose staat in kaartcoördinaten');
+ok(fpCamera(fw, cam, speler, null, false, true, 0.0025, false, followPose, out) === false,
+  'fpCamera: daarna geen kroontjes-melding meer');
+fw.input.mouse.dy = 40;
+fpCamera(fw, cam, speler, null, false, true, 0.0025, false, followPose, out);
+ok(out.y < cam.position.y, 'fpCamera: muis omlaag kijkt omlaag', out.y);
+fw.input.mouse.dy = 0;
+fw.firstPersoon.pitch = 0;
+// in een voertuig: recht vooruit langs de voertuighoek, en de muis draait het hoofd
+const auto = { angle: Math.PI / 2, isHeli: false };
+speler.inVehicle = auto;
+fw.camYaw = 0;
+fpCamera(fw, cam, speler, null, false, true, 0.01, false, followPose, out);
+ok(near(out.x, cam.position.x, 1e-6) && near(out.z, cam.position.z + 10, 1e-6),
+  'fpCamera: in een voertuig recht vooruit langs de voertuighoek', out);
+fw.input.mouse.dx = 100;
+const voor = out.z;
+fpCamera(fw, cam, speler, null, false, true, 0.01, false, followPose, out);
+ok(!near(out.z, voor), 'fpCamera: muis links/rechts draait het hoofd in het voertuig', out);
+fw.input.mouse.dx = 0;
+speler.inVehicle = null;
+setSetting('firstPersoon', false);
+bits = fpSync(fw, speler, null, null, true, false);
+ok((bits & FP_HIDE_BIT) !== 0 && (bits & FP_VIEW_BIT) === 0,
+  'fpSync: hidePlayers verbergt het figuur ook buiten eerste persoon', bits);
 
 // --- het interieur van de eigen auto: draw-objecten en driehoeken ---------------------------
 await import('../game/js/player.js');
