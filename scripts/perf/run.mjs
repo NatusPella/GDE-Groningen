@@ -127,7 +127,7 @@ try {
   for (const [rn, mk] of Object.entries(marks)) {
     if (!mk.start || !mk.end) continue;
     const dur = mk.end.t - mk.start.t, rows = [];
-    routeWallS += dur;
+    routeWallS += dur / 1000;
     if (firstRouteAt == null || mk.start.t < firstRouteAt) firstRouteAt = mk.start.t;
     for (const [k, arr] of th) { const a = at(arr, mk.start.t), b = at(arr, mk.end.t); if (a != null && b != null && b - a > dur * 0.02) rows.push([k, b - a]); }
     const byType = (ty) => rows.filter(([k]) => k.split(':')[1] === ty).sort((x, y) => y[1] - x[1]);
@@ -165,4 +165,5 @@ for (const [n, r] of Object.entries(result.routes || {})) {
 }
 for (const e of result.errors) console.log(e.slice(0, 300));
 process.exit(code === 0 ? 0 : 1);
+
 
