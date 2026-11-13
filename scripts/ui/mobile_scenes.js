@@ -8,6 +8,16 @@ const out = [];
 let startShot = false;
 const keyAll = (type, k, code) => { for (const t of [window, document]) t.dispatchEvent(new KeyboardEvent(type, { key: k, code, bubbles: true })); };
 for (let i = 0; i < 40 && !document.body.classList.contains('game-started'); i++) {
+  // De eerste start vraagt verplicht om een naam (altijd online): vul hem in en ga door,
+  // anders blijft de game op het startscherm staan en heeft de rest geen wereld (#530).
+  const osNaam = document.querySelector('.os-naam');
+  if (osNaam) {
+    osNaam.value = 'Beeldcheck';
+    osNaam.dispatchEvent(new Event('input', { bubbles: true }));
+    const door = document.querySelector('[data-doorgaan]');
+    if (door) door.click();
+    await sleep(1500);
+  }
   // the 'Wat is er nieuw' panel opens on a new version: close it first
   const news = document.querySelector('#start-screen .ss-news-close');
   if (news && news.getBoundingClientRect().width > 0) { keyAll('keydown', 'Escape', 'Escape'); keyAll('keyup', 'Escape', 'Escape'); await sleep(800); }
