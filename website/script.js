@@ -84,4 +84,18 @@
       iframe.focus();
     });
   }
+  // ---------------------------------------------------------------- deel-knop
+  const kopieer = document.querySelector('[data-share-kopieer]');
+  const status = document.querySelector('[data-share-status]');
+  if (kopieer) {
+    kopieer.addEventListener('click', async () => {
+      const url = 'https://natuspella.github.io/GDE-Groningen/';
+      try {
+        await navigator.clipboard.writeText(url);
+        if (status) status.textContent = 'Link gekopieerd.';
+      } catch {
+        if (status) status.textContent = url;
+      }
+    });
+  }
 })();

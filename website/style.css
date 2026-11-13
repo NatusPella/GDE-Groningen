@@ -227,20 +227,91 @@ p:last-child {
 
 /* ---------- hero ---------- */
 
+main > .hero {
+  padding: 0;
+}
+
 .hero {
-  padding-top: clamp(2.2rem, 6vw, 4.5rem);
-  padding-bottom: clamp(2.5rem, 6vw, 4.5rem);
-}
-
-.hero-grid {
-  display: grid;
-  gap: clamp(1.8rem, 4.5vw, 3.5rem);
+  position: relative;
+  display: flex;
   align-items: center;
+  min-height: clamp(34rem, 82vh, 48rem);
+  padding: clamp(4rem, 9vh, 7rem) 0 clamp(4rem, 9vh, 6rem);
+  border-bottom: 1px solid var(--line);
+  overflow: hidden;
 }
 
-@media (min-width: 58rem) {
-  .hero-grid {
-    grid-template-columns: 1.02fr 0.98fr;
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 36%;
+}
+
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(90deg, rgba(12, 20, 14, 0.95) 0%, rgba(12, 20, 14, 0.78) 38%, rgba(12, 20, 14, 0.2) 72%, rgba(12, 20, 14, 0.45) 100%),
+    linear-gradient(180deg, rgba(12, 20, 14, 0.55) 0%, rgba(12, 20, 14, 0.08) 44%, rgba(12, 20, 14, 0.92) 100%);
+  pointer-events: none;
+}
+
+.hero-inner {
+  position: relative;
+  z-index: 2;
+}
+
+.hero-copy {
+  max-width: 40rem;
+}
+
+.hero > .plaatsbord {
+  top: clamp(1rem, 3vw, 2rem);
+  right: clamp(1rem, 3vw, 2.5rem);
+  left: auto;
+  z-index: 3;
+}
+
+.hero-caption {
+  position: absolute;
+  right: clamp(1rem, 4vw, 2.5rem);
+  bottom: 1rem;
+  z-index: 2;
+  max-width: 24rem;
+  margin: 0;
+  color: var(--mut);
+  font-size: 0.8rem;
+  text-align: right;
+}
+
+@media (max-width: 48rem) {
+  .hero {
+    min-height: 0;
+    padding: 3.4rem 0 3rem;
+  }
+
+  .hero-bg {
+    object-position: 58% 40%;
+  }
+
+  .hero::after {
+    background: linear-gradient(180deg, rgba(12, 20, 14, 0.9) 0%, rgba(12, 20, 14, 0.52) 44%, rgba(12, 20, 14, 0.96) 100%);
+  }
+
+  .hero-caption {
+    position: static;
+    margin-top: 1.2rem;
+    text-align: left;
+  }
+
+  .hero > .plaatsbord {
+    display: none;
   }
 }
 
@@ -598,6 +669,26 @@ h2 {
 
 /* ---------- slideshow ---------- */
 
+.slideshow {
+  margin-top: clamp(2rem, 4.5vw, 3.4rem);
+}
+
+.slideshow:first-of-type {
+  margin-top: 1.6rem;
+}
+
+.slideshow h3 {
+  margin: 0 0 0.6rem;
+  color: var(--ink-bright);
+  font-size: clamp(1.3rem, 2.8vw, 1.9rem);
+  letter-spacing: -0.015em;
+  line-height: 1.12;
+}
+
+.slideshow .section-lead {
+  margin-bottom: 1.1rem;
+}
+
 .slider {
   position: relative;
   margin: 0 0 0.4rem;
@@ -887,23 +978,49 @@ h2 {
   }
 }
 
-/* ---------- pers ---------- */
+/* ---------- delen ---------- */
 
-.press-panel {
-  padding: clamp(1.4rem, 4vw, 2.8rem);
-  border: 2px solid var(--green);
-  border-radius: var(--radius);
-  background: linear-gradient(135deg, rgba(30, 158, 86, 0.26), rgba(23, 48, 31, 0.92) 58%);
-  box-shadow: 0 0 34px rgba(63, 201, 122, 0.14);
+.share-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  margin: 1.6rem 0 1rem;
 }
 
-.press-panel p {
-  max-width: 68ch;
+.share-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.8rem;
+  padding: 0.6rem 1.2rem;
+  border: 2px solid var(--green-line-strong);
+  border-radius: 4px;
+  background: var(--bg-glow);
   color: var(--ink);
+  font-family: inherit;
+  font-size: 0.94rem;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
 }
 
-.press-panel p + p {
-  color: var(--mut);
+.share-btn:hover,
+.share-btn:focus-visible {
+  border-color: var(--green-light);
+  background: rgba(63, 201, 122, 0.12);
+  color: var(--ink-bright);
+}
+
+.share-kopieer {
+  border-color: var(--green);
+  background: var(--green);
+  color: var(--bg);
+}
+
+.share-kopieer:hover,
+.share-kopieer:focus-visible {
+  background: var(--green-light);
+  color: var(--bg);
 }
 
 /* ---------- FAQ ---------- */
