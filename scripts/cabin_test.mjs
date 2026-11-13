@@ -287,6 +287,7 @@ check('wrak: de normale cabine niet', !C.wantsNormalCabin(wrak) && C.wantsWreckC
     check(`wrak: lod ${lod} één groep en gedeeld`, g.userData.shared === true && g.groups.length === 1);
   }
   check(`wrak: driehoeken lopen strikt af (${wrakTri.join(' > ')})`, wrakTri[0] > wrakTri[1] && wrakTri[1] > wrakTri[2], wrakTri.join(' > '));
+  console.log(`  wrak (sedan) ${wrakTri.join(' > ')} driehoeken over de drie niveau's`);
   // een tweede wrak van dezelfde soort en maat deelt de geometrie
   const v2 = Object.assign(new Vehicle(0, 0, 0, { ...model }), { wrecked: true });
   const mesh2 = buildVehicleMesh(v2);
