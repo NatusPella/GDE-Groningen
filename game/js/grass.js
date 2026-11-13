@@ -816,6 +816,12 @@ let chunks = null;
 // tileworld.js houdt daarvoor map.greenVer bij (#314 C2, #4).
 let chunksGreenVer = null;
 const greenVerOf = (m) => (m && m.greenVer !== undefined ? m.greenVer : m && m.geoVer);
+// Tijdens het voorrijden van de montage worden de graschunks voor alle
+// montageplekken gebouwd. Ze blijven staan tot de film klaar is: dan bouwt de
+// film geen chunk midden in een shot (pieken tot ~400 ms) en is het groen op
+// de filmplekken gewoon zichtbaar. Daarna ruimt de gewone sync op.
+let holdGrass = false;
+export function setHoldGrass(on) { holdGrass = !!on; }
 let quality = null;
 let qualityName = 'hoog';
 const cells = new Map();
@@ -968,7 +974,7 @@ function buildGrassChunks() {
 }
 
 function syncChunks(px, py, dist) {
-  if (map && chunksGreenVer !== greenVerOf(map)) buildGrassChunks(); // groenlaag veranderd (#314 C2)
+  if (map && chunksGreenVer !== greenVerOf(map) && !holdGrass) buildGrassChunks(); // groenlaag veranderd (#314 C2); tijdens de film wacht de rebuild
   const t0 = performance.now();
   for (const c of chunks.values()) {
     const d = rectDist(c.bounds, px, py);
@@ -977,7 +983,7 @@ function syncChunks(px, py, dist) {
         c.group = buildChunk(c);
         scene.add(c.group);
       }
-    } else if (c.group && d > dist + 30) disposeChunk(c);
+    } else if (c.group && d > dist + 30 && !holdGrass) disposeChunk(c);
   }
 }
 

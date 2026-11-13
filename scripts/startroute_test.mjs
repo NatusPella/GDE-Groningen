@@ -77,6 +77,8 @@ ok(/\(readyDone \? 0 : 1\)/.test(warmBody) && /window\.__loadMarks\.background/.
 ok(/function warmCountryMaps\(sliceMs = 4\)[\s\S]{0,120}return new Promise/.test(read('game/js/countrymap.js')), 'warmCountryMaps kan zijn klaar-zijn melden');
 ok(/precompilePrograms\(\)/.test(warmBody), 'de warm-stap compileert daarna de shaders');
 ok(/export function setHoldMaterials/.test(scene) && /heldMaterials\.add\(m\)/.test(read('game/js/scene3d.js')), 'scene3d houdt materialen vast tijdens het voorrijden');
+ok(/export function setHoldGrass/.test(read('game/js/grass.js')) && /setHoldGrass\(true\)/.test(warmBody), 'de graschunks van de montageplekken blijven staan tot de film klaar is');
+ok(/setHoldGrass\(false\)/.test(read('game/js/intromontage.js')), 'na de montage komen de graschunks weer vrij');
 ok(/setCameraOverride\(world, \{ position: \{ x: p\.x \+ 14, y: p\.y \+ 14, z: 24 \}/.test(warmBody) && /introTour/.test(warmBody), 'het laadscherm rijdt de montageplekken op straathoogte af');
 ok(/releaseHeldMaterials\(\)/.test(read('game/js/intromontage.js')), 'na de film komen de vastgehouden materialen vrij');
 ok(/export function takeWarmupSamples/.test(scene) && /samplesHeld = true/.test(read('game/js/scene3d.js')), 'scene3d kan de warm-up-palette als groep geven');

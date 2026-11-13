@@ -1,5 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene, getCamera, disposeObject, releaseWarmupSamples, releaseHeldMaterials } from './scene3d.js';
+import { setHoldGrass } from './grass.js';
 import { buildPersonMesh, animatePersonWalk, seatPose, seatedY, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { vehicleSeat } from './seating3d.js';
 import { Vehicle, MODELS, makeTwoWheeler, spawnHeroCarNear, spawnVehicleOnRoad, manageTrafficPopulation, manageBikePopulation, updateTrafficAI, resolveVehicleBuildingCollision } from './vehicle.js';
@@ -1349,6 +1350,7 @@ function cleanup(r, skipped) {
   try { if (r.w && r.w.__openingWarm) { disposeObject(r.w.__openingWarm); r.w.__openingWarm = null; } } catch (e) { console.warn('opening-assets vrij', e); }
   try { releaseWarmupSamples(); } catch (e) { console.warn('warm-samples vrij', e); }
   try { releaseHeldMaterials(); } catch (e) { console.warn('vastgehouden materialen vrij', e); }
+  try { setHoldGrass(false); } catch (e) { console.warn('gras-hold vrij', e); }
   try { if (r.w && r.w.map && r.w.map.releaseShots) r.w.map.releaseShots(); } catch (e) { console.warn('intro-tegels vrij', e); }
   r.group.removeFromParent();
   // #796: de twee intro-acteurs delen hun rompgeometrie met de rest van het spel; via de gewone
