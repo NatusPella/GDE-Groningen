@@ -107,6 +107,16 @@ Die 3 tot 6% geldt bij één release per keer; op 9 november stapelden meerdere 
 
 Waarom niet alles in Actions? Windows lokaal blijft de snelste en goedkoopste keus: de exe bouwt hier in een paar minuten uit de kaart die toch al op deze machine staat, en in Actions kost hij 2x (10 gratis minuten). `windows-release.yml` is de reserve en de weg naar een Windows-build zonder deze pc (op een andere computer: `release.sh` hoeft er dan niet te draaien, alleen `gh workflow run`). De provinciebouw (ca. 15 min en veel RAM, uit `data/cache`) kan niet op een runner. Dus: **Windows en de wereld lokaal (Windows in Actions als reserve), macOS, Linux en Android in Actions** — zolang er minuten zijn. Nu de limiet op is: alleen Windows lokaal, en de platformbijlagen na de reset of aankoop. Een Linux-build lokaal kan nog steeds: `npm run release -- current --linux`, bijvoorbeeld als de Actions-minuten op zijn (`gh api /repos/NatusPella/GDE-Groningen/actions/runs` toont het verbruik; Instellingen > Billing de rest).
 
+## Eigen runner (Linux, Android en Windows zonder gratis minuten)
+
+Linux, Android en Windows kunnen ook op een self-hosted runner. De runner draait in Docker; het recept staat in [`scripts/runner/`](../scripts/runner/) (`Dockerfile`, `compose.yml`, `entrypoint.sh`). Hij heeft het label `gde-build` en doet één job tegelijk, met maximaal 12 GB RAM en 4 vaste kernen (`cpuset`, zodat `7za` niet meer threads start dan er kernen zijn). Self-hosted jobs kosten geen gratis minuten.
+
+- **Aanzetten:** zet de repo-variabele `BUILD_RUNNER` (Settings > Secrets and variables > Actions > Variables), bijvoorbeeld op `gde-build`. Dan draaien `linux-release.yml`, `android-release.yml` en `windows-release.yml` op de eigen runner; zonder de variabele draait alles zoals voorheen op `ubuntu-latest` / `windows-latest`. Er is geen automatische overstap als de minuten op zijn: de variabele is de schakelaar.
+- **Windows** bouwt op de Linux-runner via Wine (`electron-builder --win`); `cygpath` wordt alleen gebruikt als hij bestaat.
+- **macOS** blijft op `macos-latest`: een dmg bouwen kan alleen op macOS. Met Docker-OSX zou het op de thuisserver kunnen, maar daar is geen RAM voor over, en Apple staat macOS alleen op Apple-hardware toe.
+- **Registreren:** de eigenaar maakt een registratietoken (Settings > Actions > Runners > New self-hosted runner; het token staat in het `./config.sh`-commando en is één uur geldig) en geeft het privé aan de beheerder van de runner. De registratie blijft in het `state`-volume staan; een nieuwe container heeft geen nieuw token nodig.
+- **Bekend:** de Windows-build heeft meer dan 8 GB nodig (`7za` comprimeert de app op `-mx=9`), vandaar 12 GB. `scripts/release_builds.mjs` rekent self-hosted jobs nog als gratis minuten.
+
 ## ARM64 later aanzetten
 
 Nu bouwen we alleen x64 (Windows en Linux), macOS universal (arm64 en x64 in één dmg) en de Android-APK (universeel: geen native bibliotheken, geen ABI-filter; zie `docs/ANDROID.md`). De workflows hebben wel een boolean-input `arm64` (standaard `false`) die de ARM64-variant er bij bouwt, in dezelfde run en met dezelfde tag:

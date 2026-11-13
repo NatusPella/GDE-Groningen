@@ -1,0 +1,28 @@
+# GDE Groningen build runner. One job at a time, capped so builds cannot starve the host.
+# No Docker socket is mounted: the workflows do not need Docker.
+services:
+  runner:
+    build: .
+    image: gde-runner:local
+    container_name: gde-runner
+    restart: unless-stopped
+    environment:
+      RUNNER_URL: https://github.com/NatusPella/GDE-Groningen
+      RUNNER_NAME: gde-beast
+      RUNNER_LABELS: gde-build
+    mem_limit: 12g
+    memswap_limit: 12g
+    cpuset: "4-7"
+    volumes:
+      - state:/state
+      - work:/home/runner/_work
+      - cache:/home/runner/.cache
+      - npm:/home/runner/.npm
+      - gradle:/home/runner/.gradle
+
+volumes:
+  state:
+  work:
+  cache:
+  npm:
+  gradle:

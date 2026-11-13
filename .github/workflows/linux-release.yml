@@ -35,7 +35,8 @@ jobs:
     # een eenmalige instelling in GitHub (docs/RELEASEN.md).
     if: github.actor == github.repository_owner
     environment: release
-    runs-on: ubuntu-latest
+    # BUILD_RUNNER set (repo variable) -> the self-hosted runner with label gde-build (scripts/runner/).
+    runs-on: ${{ vars.BUILD_RUNNER && fromJSON('["self-hosted","gde-build"]') || 'ubuntu-latest' }}
     timeout-minutes: 25
     env:
       GH_TOKEN: ${{ github.token }}

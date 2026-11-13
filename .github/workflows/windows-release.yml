@@ -37,7 +37,8 @@ jobs:
     # een eenmalige instelling in GitHub (docs/RELEASEN.md).
     if: github.actor == github.repository_owner
     environment: release
-    runs-on: windows-latest
+    # BUILD_RUNNER set (repo variable) -> the self-hosted runner with label gde-build (scripts/runner/).
+    runs-on: ${{ vars.BUILD_RUNNER && fromJSON('["self-hosted","gde-build"]') || 'windows-latest' }}
     timeout-minutes: 25
     defaults:
       run:
@@ -66,7 +67,9 @@ jobs:
           cd "$RUNNER_TEMP/gde-world"
           tar xzf gde-world.tgz
           test -f world/index.json
-          echo "GDE_PREBUILT_WORLD=$(cygpath -w "$RUNNER_TEMP/gde-world/world")" >> "$GITHUB_ENV"
+          # cygpath only exists on the Windows runner; the self-hosted Linux runner builds via Wine
+          if command -v cygpath > /dev/null; then W="$(cygpath -w "$RUNNER_TEMP/gde-world/world")"; else W="$RUNNER_TEMP/gde-world/world"; fi
+          echo "GDE_PREBUILT_WORLD=$W" >> "$GITHUB_ENV"
 
       - name: npm ci
         working-directory: desktop
