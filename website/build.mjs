@@ -9,6 +9,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { SLIDESHOWS } from './slideshows.mjs';
+import { HELP_PAGES } from './help-pages.mjs';
 
 const WEBSITE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(WEBSITE, '..');
@@ -63,12 +64,126 @@ function kopieerMedia() {
   return { bytes, aantal };
 }
 
+// De hulppagina's (#37) gebruiken dezelfde stylesheet en een eigen, lichte header/footer.
 function htmlVeilig(tekst) {
   return String(tekst)
     .replaceAll('&', '&amp;')
     .replaceAll('<', '&lt;')
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;');
+}
+
+function helpPagina(page) {
+  const isIndex = page.slug === 'index';
+  const bestand = isIndex ? 'index.html' : `${page.slug}.html`;
+  const canonical = `https://natuspella.github.io/GDE-Groningen/help/${isIndex ? '' : bestand}`;
+  const titel = isIndex ? 'Hulp – GDE Groningen' : `${page.titel} – Hulp – GDE Groningen`;
+  const nav = [
+    ['../#wat-je-kunt-doen', 'Wat je doet'],
+    ['../#beelden', 'Beelden'],
+    ['../#spelen', 'Spelen'],
+    ['./', 'Hulp'],
+    ['../#delen', 'Delen'],
+    ['../#vragen', 'Vragen'],
+  ];
+  return `<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>${htmlVeilig(titel)}</title>
+  <meta name="description" content="${htmlVeilig(page.beschrijving)}">
+  <link rel="canonical" href="${canonical}">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <meta name="theme-color" content="#0c140e">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="${htmlVeilig(titel)}">
+  <meta property="og:description" content="${htmlVeilig(page.beschrijving)}">
+  <meta property="og:locale" content="nl_NL">
+  <meta property="og:url" content="${canonical}">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <a class="skip-link" href="#inhoud">Direct naar de inhoud</a>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="../" aria-label="GDE Groningen – naar de marketingpagina">
+        <span class="brand-mark" aria-hidden="true">GDE</span>
+        <span class="brand-text">Groningen <small>Zomer vol misdaad</small></span>
+      </a>
+      <nav class="site-nav" aria-label="Hoofdnavigatie">
+        <ul>
+          ${nav.map(([href, label]) => `<li><a href="${href}"${label === 'Hulp' ? ' aria-current="page"' : ''}>${label}</a></li>`).join('\n          ')}
+          <li><a class="nav-cta" href="https://github.com/NatusPella/GDE-Groningen/releases/latest">Download</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="inhoud">
+    <article class="wrap help-content">
+      <p class="kicker">Hulp</p>
+      <h1>${htmlVeilig(page.titel)}</h1>
+      <p class="lead">${htmlVeilig(page.intro)}</p>
+      ${page.body}
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap footer-grid">
+      <div>
+        <p class="footer-brand">GDE Groningen – Zomer vol misdaad</p>
+        <p>Een gratis open-wereldkomedie voor 18+ in het echte Groningen.</p>
+      </div>
+      <div>
+        <h2 class="footer-heading">GDE</h2>
+        <ul class="footer-links">
+          <li><a href="../">Marketingpagina</a></li>
+          <li><a href="https://github.com/NatusPella/GDE-Groningen/releases">Downloads</a></li>
+          <li><a href="https://github.com/NatusPella/GDE-Groningen/issues">Issues</a></li>
+          <li><a href="https://github.com/NatusPella/GDE-Groningen/blob/main/docs/README.md">Documentatie</a></li>
+          <li><a href="https://github.com/NatusPella/GDE-Groningen/blob/main/docs/PRIVACY-EN-CREDITS.md">Privacy en credits</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2 class="footer-heading">Over deze hulp</h2>
+        <p>Deze pagina is onderdeel van de marketingpagina en gebruikt geen cookies of analytics. Vragen of aanvullingen? Open een issue.</p>
+      </div>
+    </div>
+    <div class="wrap footer-bottom">
+      <p>© 2026 NatusPella · 18+ · Openbare playtest · <a href="../">Naar de marketingpagina</a></p>
+    </div>
+  </footer>
+</body>
+</html>`;
+}
+
+function schrijfHelpPaginas() {
+  const dir = path.join(OUT, 'help');
+  fs.mkdirSync(dir, { recursive: true });
+  let bytes = 0;
+  for (const page of HELP_PAGES) {
+    const bestand = page.slug === 'index' ? 'index.html' : `${page.slug}.html`;
+    const html = helpPagina(page);
+    fs.writeFileSync(path.join(dir, bestand), html, 'utf8');
+    bytes += Buffer.byteLength(html);
+  }
+  return { bytes, aantal: HELP_PAGES.length };
+}
+
+// Relatieve links in een hulppagina moeten na de build bestaan; zo faalt een typefout hier.
+function controleerHelpPaginas() {
+  const dir = path.join(OUT, 'help');
+  for (const page of HELP_PAGES) {
+    const bestand = page.slug === 'index' ? 'index.html' : `${page.slug}.html`;
+    const html = fs.readFileSync(path.join(dir, bestand), 'utf8');
+    for (const m of html.matchAll(/\b(?:src|href)\s*=\s*"([^"]+)"/gi)) {
+      const url = m[1].trim();
+      if (!url || url.startsWith('#') || url.startsWith('http://') || url.startsWith('https://') || url.startsWith('mailto:') || url.startsWith('data:')) continue;
+      const doel = path.resolve(dir, url.split('?')[0].split('#')[0]);
+      if (!fs.existsSync(doel)) throw new Error(`help/${bestand}: lokaal pad bestaat niet: ${url}`);
+    }
+  }
 }
 
 function sliderHtml(show) {
@@ -138,6 +253,11 @@ function main() {
   bytes += media.bytes;
   aantal += media.aantal;
 
+  // Hulp- en uitlegpagina's genereren.
+  const help = schrijfHelpPaginas();
+  bytes += help.bytes;
+  aantal += help.aantal;
+
   // De slideshows uit één databestand in de pagina zetten.
   const indexPad = path.join(OUT, 'index.html');
   const bronHtml = fs.readFileSync(indexPad, 'utf8');
@@ -151,9 +271,10 @@ function main() {
     for (const m of mis) console.error('  - ' + m);
     process.exit(1);
   }
+  controleerHelpPaginas();
 
   const slides = SLIDESHOWS.reduce((som, show) => som + show.slides.length, 0);
-  console.log(`website/_site gebouwd: ${aantal} bestanden, ${(bytes / 1048576).toFixed(2)} MB, ${SLIDESHOWS.length} slideshows met ${slides} slides.`);
+  console.log(`website/_site gebouwd: ${aantal} bestanden, ${(bytes / 1048576).toFixed(2)} MB, ${SLIDESHOWS.length} slideshows met ${slides} slides, ${HELP_PAGES.length} hulppagina's.`);
   console.log('Lokaal bekijken: node website/serve.mjs');
 }
 

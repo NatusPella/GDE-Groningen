@@ -8,6 +8,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { SLIDESHOWS } from '../website/slideshows.mjs';
+import { HELP_PAGES } from '../website/help-pages.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const WEBSITE = path.join(ROOT, 'website');
@@ -29,7 +30,7 @@ const VERBODEN_RE = new RegExp('\\b(?:' + VERBODEN.join('|') + ')\\b', 'i');
 
 // ------------------------------------------------------------------ 1. bron en build
 
-for (const f of ['index.html', 'style.css', 'script.js', 'build.mjs', 'slideshows.mjs']) {
+for (const f of ['index.html', 'style.css', 'script.js', 'build.mjs', 'slideshows.mjs', 'help-pages.mjs']) {
   ok(fs.existsSync(path.join(WEBSITE, f)), `website/${f} bestaat`);
 }
 ok(fs.existsSync(path.join(ROOT, 'desktop', 'resources', 'icon.svg')), 'het app-icoon desktop/resources/icon.svg bestaat (favicon)');
@@ -177,6 +178,29 @@ ok(!/https?:\/\//.test(script.replace(/https:\/\/www\.youtube-nocookie\.com\/emb
 ok(/data-video="jh6L9dd-YeE"/.test(gebouwd), 'de trailer-facade heeft het juiste video-id');
 ok(!/<iframe\b/i.test(gebouwd), 'er staat geen iframe in de HTML; die komt pas na de klik');
 ok(/laadt niets van buiten/i.test(gebouwd) && /nocookie/i.test(gebouwd), 'de privacyregel noemt de click-to-load trailer');
+
+// Hulppagina's (#37): gegenereerd uit help-pages.mjs, met eigen titel, meta, 18+,
+// een weg terug naar de marketingpagina en alleen bestaande lokale links.
+const HELP_DIR = path.join(SITE, 'help');
+ok(fs.existsSync(HELP_DIR), 'de hulpmap staat in _site');
+const helpBestanden = fs.existsSync(HELP_DIR) ? fs.readdirSync(HELP_DIR).filter((f) => f.endsWith('.html')) : [];
+ok(helpBestanden.length === HELP_PAGES.length, 'elke hulppagina is gebouwd', `${helpBestanden.length}/${HELP_PAGES.length}`);
+for (const page of HELP_PAGES) {
+  const bestand = page.slug === 'index' ? 'index.html' : `${page.slug}.html`;
+  ok(helpBestanden.includes(bestand), `hulppagina ${bestand} bestaat`);
+  const tekst = fs.existsSync(path.join(HELP_DIR, bestand)) ? fs.readFileSync(path.join(HELP_DIR, bestand), 'utf8') : '';
+  ok(/<html lang="nl"/.test(tekst), `${bestand} is Nederlands`);
+  ok(/<title>[^<]+<\/title>/.test(tekst) && /name="description" content="[^"]+"/.test(tekst), `${bestand} heeft titel en omschrijving`);
+  ok(/18\+/.test(tekst), `${bestand} noemt 18+`);
+  ok(/href="\.\.\/"/.test(tekst), `${bestand} linkt terug naar de marketingpagina`);
+  ok(!/<(?:script|img|iframe)\b/i.test(tekst), `${bestand} laadt geen eigen scripts of beelden`);
+  const dood = [...tekst.matchAll(/\b(?:src|href)\s*=\s*"([^"]+)"/gi)]
+    .map((m) => m[1].trim())
+    .filter((url) => url && !url.startsWith('#') && !url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('mailto:') && !url.startsWith('data:'))
+    .filter((url) => !fs.existsSync(path.resolve(HELP_DIR, url.split('?')[0].split('#')[0])));
+  ok(dood.length === 0, `${bestand} heeft geen dode lokale links`, dood.join(', '));
+}
+ok(/href="help\/"/.test(gebouwd) && /Hulp en veelgestelde vragen/.test(gebouwd), 'de marketingpagina linkt naar de hulp');
 
 const ids = new Set([...gebouwd.matchAll(/\bid="([^"]+)"/g)].map((m) => m[1]));
 const dodeAnkers = [...gebouwd.matchAll(/href="#([^"]+)"/g)].map((m) => m[1]).filter((id) => !ids.has(id));
