@@ -111,6 +111,7 @@ if (!result) {
 // prewarmt tegenwoordig tientallen seconden en zegt niets over de frametijden.
 let routeWallS = 0;
 let firstRouteAt = null;
+result.threadCpu = {};
 try {
   const marks = {};
   for (const l of lines) { const m = /\[perf-mark\] (start|end) (\S+) (\d+)(?: (\d+))?/.exec(l); if (m) (marks[m[2]] ||= {})[m[1]] = { t: Number(m[3]), frames: Number(m[4]) }; }
