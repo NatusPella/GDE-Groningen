@@ -34,6 +34,7 @@ import { buildHelipadMesh, buildHeliMesh } from './heli3d.js';
 import { noteMoney } from './finance.js';
 import { winkelMagVoorGast, MELDING_WINKEL } from './coopgast.js';
 import { hoofdspeler } from './spelersregister.js';
+import { wantedClearCooldownLeft, markWantedCleared } from './heatcooldown.js'; // #838: spuiterij-cooldown
 
 export const SHOP_USE_RADIUS = 2.6;
 const OUTFIT_WANTED_COOLDOWN = 60;
@@ -1503,19 +1504,20 @@ function paintShop(world) {
       const v = hoofdspeler(world).inVehicle;
       if (!v) return [];
       const cur = (v.model && v.model.color || '').toLowerCase();
+      const koel = wantedClearCooldownLeft(world);
       return [{
         title: 'Kies een kleur',
-        note: world.wanted > 0 ? 'Een nieuwe kleur en de politie is je kwijt' : '',
+        note: world.wanted > 0 ? (koel > 0 ? `De spuitcabine is nog ${Math.ceil(koel)} s afgekoeld` : 'Een nieuwe kleur en de politie is je kwijt') : '',
         items: PAINTS.map((p) => ({
           id: 'p-' + p.id, label: p.label, desc: 'Complete spuitbeurt, droog in een minuut', price: PAINT_PRICE,
           swatch: [p.color], tag: cur === p.color ? 'Nu' : '',
           // selecting a colour shows your own vehicle in it before you pay
           preview: vehiclePreviewOf(v, p.color),
-          disabled: cur === p.color ? 'Heeft deze kleur al' : broke(world, PAINT_PRICE),
+          disabled: cur === p.color ? 'Heeft deze kleur al' : koel > 0 ? `Even wachten: ${Math.ceil(koel)} s` : broke(world, PAINT_PRICE),
           buy() {
             if (!pay(world, PAINT_PRICE)) return null;
             repaint(world, v, p.color);
-            if (world.wanted > 0) { world.wanted = 0; world.wantedDecayTimer = 0; }
+            if (world.wanted > 0) { world.wanted = 0; world.wantedDecayTimer = 0; markWantedCleared(world); }
             return `${p.label}: als nieuw!`;
           },
         })),

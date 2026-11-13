@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- **Spuiterij en garage hebben nu een cooldown voordat ze je sterren weer wissen (#838).** De kledingkast had al een eigen cooldown; nu geldt voor platen, spuiten en de garage dezelfde wachttijd, zodat je niet elke minuut opnieuw de politie van je af kunt schudden.
 - **Reizen: met 5 zet of wis je je waypoint naar je eigen doel, en de kaart biedt nu een taxi met prijs en aankomsttijd (#836).** Een verhaalmissie houdt zijn eigen route; de taxi is een gewone reisoptie en geen menuteleport.
 - **Een onbekende streek verbergt nu ook zijn bijbanen, vondsten en overige spots (#834).** Eerder bleven die iconen op de kaart en minikaart staan terwijl alleen de activiteiten verborgen waren; nu ontdek je ze samen met de streek. Wegen, water, je positie en de missies blijven zichtbaar.
 - **Het laadscherm zet nu ook de openingsfilm klaar: de tegels van de montageplekken worden geladen en vastgehouden, de gebouwen daar voorgebouwd en de vaste opening-assets (acteurs, keuken, duiven, props) één keer gecompileerd.** Dat kost op een gewone machine ~25-30 s extra laadtijd; de montage hapert daardoor veel minder (het aantal frames in de eerste 30 s meer dan verdubbelde) en na de film begint het spel op volle kwaliteit. De laatste shaderpiek bij een enkele shotwissel is nog in onderzoek.

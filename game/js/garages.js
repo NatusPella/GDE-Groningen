@@ -18,6 +18,7 @@ import { nearestWorldPlace } from './worldplaces.js';
 import { noteMoney } from './finance.js';
 import { zoneTotals, losseOnderdelen, onderdelenPrijs, schadeTekst } from './vehicledamage.js';
 import { deelPrijs } from './vehicledoors.js';
+import { wantedClearCooldownLeft, markWantedCleared } from './heatcooldown.js'; // #838: spuiterij-cooldown
 
 // Garages: every Garage Knalpot branch (from the OSM car repair shops) and
 // every Pomp & Poets gas station has a workshop with a roller door by the
@@ -349,14 +350,16 @@ function garageMenu(w, site) {
         },
       }];
       const plates = platesCost(w.wanted);
+      const koel = wantedClearCooldownLeft(w);
       items.push({
         id: 'g-plates', label: 'Andere kentekenplaten', price: plates, preview: { kind: 'product', product: 'kenteken' },
         desc: w.wanted > 0 ? 'Niemand herkent je bak meer: sterren weg' : 'Alleen nodig als de politie je zoekt',
-        disabled: w.wanted <= 0 ? 'Je wordt niet gezocht' : w.money < plates ? 'Te weinig geld' : '',
+        disabled: w.wanted <= 0 ? 'Je wordt niet gezocht' : koel > 0 ? `Even wachten: ${Math.ceil(koel)} s` : w.money < plates ? 'Te weinig geld' : '',
         buy() {
           if (!pay(w, plates)) return null;
           w.wanted = 0;
           w.wantedDecayTimer = 0;
+          markWantedCleared(w);
           return 'Nieuwe platen erop. Wie ben jij ook alweer?';
         },
       });
@@ -373,7 +376,7 @@ function garageMenu(w, site) {
       });
       out.push({ title: 'Werkplaats', note: isOwn(v) ? '' : 'Let op: niet jouw voertuig, upgrades blijven er niet aan hangen', items });
       const paint = paintItems(w, v);
-      if (paint.length) out.push({ title: 'Spuit & Klaar: nieuwe lak', note: w.wanted > 0 ? 'Een nieuwe kleur en de politie is je kwijt' : '', items: paint.map((it) => ({ ...it, buy() { const r = it.buy(); if (r != null) markDirty('lak'); return r; } })) });
+      if (paint.length) out.push({ title: 'Spuit & Klaar: nieuwe lak', note: w.wanted > 0 ? (koel > 0 ? `De spuitcabine is nog ${Math.ceil(koel)} s afgekoeld` : 'Een nieuwe kleur en de politie is je kwijt') : '', items: paint.map((it) => ({ ...it, buy() { const r = it.buy(); if (r != null) markDirty('lak'); return r; } })) });
       const up = vehicleUpgradeItems(w, v);
       if (up.length) out.push({ title: twoWheel(v) ? 'Opvoeren' : 'Tuning', items: up.map((it) => ({ ...it, buy() { const r = it.buy(); if (r != null) markDirty('upgrade'); return r; } })) });
     }
