@@ -84,6 +84,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [PUBLICATIECHECKLIST.md](<PUBLICATIECHECKLIST.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/publicatie.md`](../.specs-fire/standar… |
 | [PUBLICEREN.md](<PUBLICEREN.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/publicatie.md`](../.specs-fire/standar… |
 | [QA-START-VAN-MENU-AF.md](<QA-START-VAN-MENU-AF.md>) | Het oude startscherm (`runMenuScreen`, `#start-screen`) is alleen nog de |
+| [RELEASEGATE.md](<RELEASEGATE.md>) | Het releasegate-rapport en draaiboek: elke release bewijsbaar zonder regressie (ADR 0034). |
 | [RELEASEN.md](<RELEASEN.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/publicatie.md`](../.specs-fire/standar… |
 | [SAMEN-SPELEN-HANDLEIDING.md](<SAMEN-SPELEN-HANDLEIDING.md>) | Canonieke regels: [.specs-fire/standards/multiplayer.md](../.specs-fire/standards/multiplayer.md). Dit docu… |
 | [SERVER-HOSTING.md](<SERVER-HOSTING.md>) | Dedicated server (#450): beheerdersrunbook, CLI en de bewuste eigenaarsbeslissingen. |
