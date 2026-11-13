@@ -70,21 +70,25 @@ for (const [naam, model, open, gatId, flags = {}] of GEVALLEN) {
   check(`${naam}: gedeelde geometrie`, g0.userData.shared === true);
   check(`${naam}: eindige posities`, finite(g0));
   const groepen = g0.groups.length;
-  check(`${naam}: gat + lading in één geometrie`, groepen === 2, `groepen ${groepen}`);
-  if (groepen === 2) {
-    const gat = g0.groups.find((q) => q.materialIndex === 0);
+  check(`${naam}: masker + gat + lading in één geometrie`, groepen === 3, `groepen ${groepen}`);
+  if (groepen === 3) {
+    const masker = g0.groups.find((q) => q.materialIndex === 0);
+    const gat = g0.groups.find((q) => q.materialIndex === 1);
+    check(`${naam}: masker van 2 driehoeken`, !!masker && masker.count === 6, masker ? String(masker.count) : 'geen masker');
     check(`${naam}: gat van 2 driehoeken`, !!gat && gat.count === 6, gat ? String(gat.count) : 'geen gat');
   }
   const mat = cargo.material;
-  check(`${naam}: gedeeld Lambert-materiaal met vertexkleuren`, Array.isArray(mat) && mat[1].isMeshLambertMaterial === true && mat[1].vertexColors === true && mat[1].userData.shared === true);
-  check(`${naam}: gat-materiaal gedeeld`, Array.isArray(mat) && mat[0].userData.shared === true);
-  // de tekenafspraak van het gat: het gat wordt op materiaal-id vóór de lading getekend en haalt met
-  // gl_FragDepth de diepte weg; de lading zelf is enkelzijdig (van buiten door de dichte carrosserie
-  // is niets te zien). Zonder deze afspraak valt de lading achter het plaatwerk weg of schijnt hij door.
-  if (Array.isArray(mat) && mat[0] && mat[1]) {
-    check(`${naam}: gat wordt vóór de lading getekend (materiaal-id)`, mat[0].id < mat[1].id, `${mat[0].id} < ${mat[1].id}`);
-    check(`${naam}: gat schrijft diepte en haalt die weg`, mat[0].depthWrite === true && mat[0].depthTest === true && /gl_FragDepth\s*=\s*1\.0/.test(mat[0].fragmentShader || ''), 'geen gl_FragDepth in de shader');
-    check(`${naam}: lading is enkelzijdig`, mat[1].side === THREE.FrontSide, String(mat[1].side));
+  check(`${naam}: gedeeld ladingmateriaal met vertexkleuren`, Array.isArray(mat) && mat[2].isMeshLambertMaterial === true && mat[2].vertexColors === true && mat[2].userData.shared === true);
+  check(`${naam}: masker- en gatmateriaal gedeeld`, Array.isArray(mat) && mat[0].userData.shared === true && mat[1].userData.shared === true);
+  // de tekenafspraak van de opening: masker (gewone dieptetest) zet stencil 2, gat en lading tekenen
+  // alleen binnen dat masker en de lading staat van achter naar voren gesorteerd (schilder-volgorde),
+  // zodat de lading achter het plaatwerk tevoorschijn komt zonder door de dichte carrosserie te schijnen.
+  if (Array.isArray(mat) && mat[0] && mat[1] && mat[2]) {
+    check(`${naam}: masker zet stencil 2`, mat[0].stencilWrite === true && mat[0].stencilRef === 2 && mat[0].colorWrite === false && mat[0].depthTest === true);
+    check(`${naam}: gat binnen het masker`, mat[1].stencilWrite === true && mat[1].stencilRef === 2 && mat[1].depthTest === false);
+    check(`${naam}: lading binnen het masker zonder dieptetest`, mat[2].stencilWrite === true && mat[2].stencilRef === 2 && mat[2].depthTest === false && mat[2].depthWrite === false);
+    check(`${naam}: masker vóór gat vóór lading (materiaal-id)`, mat[0].id < mat[1].id && mat[1].id < mat[2].id, `${mat[0].id} < ${mat[1].id} < ${mat[2].id}`);
+    check(`${naam}: lading is enkelzijdig`, mat[2].side === THREE.FrontSide, String(mat[2].side));
   }
   // het gat ligt net buiten het plaatwerk: bij een achterklep achter de achterwand, bij een
   // kofferdeksel boven het deksel (zodat de diepte-truc daar werkt)
@@ -115,7 +119,7 @@ for (const [naam, model, open, gatId, flags = {}] of GEVALLEN) {
   const g1 = cargo.geometry;
   check(`${naam}: wisselt van geometrie, niet van mesh`, g1 !== g0 && cargo === mesh.userData.vrachtruimte);
   check(`${naam}: LOD1 kleiner dan LOD0`, tri(g1) < tri0, `${tri0} -> ${tri(g1)}`);
-  check(`${naam}: LOD1-gat blijft`, g1.groups.length === 2, `groepen ${g1.groups.length}`);
+  check(`${naam}: LOD1-gat blijft`, g1.groups.length === 3, `groepen ${g1.groups.length}`);
   world.player.x = V3.VRACHT_LOD_R[1];
   V3.syncVrachtruimtes(world);
   check(`${naam}: op de tweede drempel LOD2`, mesh.userData.vrachtruimteLod === 2, String(mesh.userData.vrachtruimteLod));
@@ -154,7 +158,7 @@ for (const [naam, model, open, gatId, flags = {}] of GEVALLEN) {
   V3.syncVrachtruimtes(world);
   check('losse deur: laadruimte zichtbaar', los.mesh.userData.vrachtruimte && los.mesh.userData.vrachtruimte.visible === true);
   const gLos = los.mesh.userData.vrachtruimte.geometry;
-  check('losse deur: gat in de geometrie', gLos.groups.length === 2);
+  check('losse deur: opening in de geometrie', gLos.groups.length === 3, `groepen ${gLos.groups.length}`);
   // een wrak met dichte deuren toont de kapotte lading (en bouwt een eigen, gedeelde variant)
   const wrak = maak(model, { flags: { wrecked: true } });
   V3.syncVrachtruimtes(world);

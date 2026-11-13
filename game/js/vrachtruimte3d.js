@@ -5,14 +5,17 @@
 // Zoals bij de cabine (#833): dichtbij de volle lading (LOD0), halfverwege de grote stukken (LOD1), ver
 // alleen de vloer met één laadblok (LOD2), en voorbij VRACHT_LOD_R[2] niets.
 //
-// De laadruimte ligt achter het plaatwerk en is dus alleen te zien waar de carrosserie open is. De
-// modelbouwers (models3d_vehicles.js) tekenen de auto als een gesloten doos en vehicledoors3d.js zet de
-// donkere deuropening *binnen* die doos; daarom tekent deze mesh zelf een "gat": een klein vlak op de
-// plaats van de opening, iets buiten het plaatwerk, dat met gl_FragDepth = 1 de diepte daar weghaalt.
-// Het vlak zelf is donker en de lading wordt er daarna in getekend (dezelfde truc als CABIN_HOLE in
-// vehicledoors3d.js, maar zonder stencil: het vlak heeft een gewone dieptetest, dus een open deurblad
-// of een voorbijganger vóór de opening houdt het gat dicht). De lading zelf is enkelzijdig: van buiten
-// door de dichte carrosserie is niets te zien.
+// De laadruimte ligt achter het plaatwerk van een gesloten modeldoos en is dus alleen te zien waar de
+// carrosserie open is. Daarom tekent deze mesh zelf de opening, in drie groepen van één mesh:
+//   1. een masker dat met een gewone dieptetest stencil = 2 zet waar de opening zichtbaar is (een open
+//      deurblad of een voorwerp ervoor houdt het masker tegen);
+//   2. de donkere binnenkant van de opening, alleen binnen stencil = 2;
+//   3. de lading, ook alleen binnen stencil = 2, zonder dieptetest maar van achter naar voren gesorteerd
+//      op de kijkrichting van de opening (schilder-volgorde). Zo komt de lading tevoorschijn zonder de
+//      fragmentele diepte-truc (gl_FragDepth) die in de praktijk niet betrouwbaar bleek: de lading zelf
+//      blijft achter het plaatwerk en is door de dichte carrosserie heen niet te zien.
+// De volgorde van de drie groepen ligt vast door de volgorde waarin de materialen hierboven gemaakt
+// worden (three sorteert de groepen van één mesh op materiaal-id).
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { GeoBuilder, markShared } from './pixelart3d.js';
 import { getVehicleMesh } from './models3d_vehicles.js';
@@ -29,6 +32,7 @@ import {
 export const VRACHT_LOD_R = [20, 50, 80];   // m: tot 20 lod 0, tot 50 lod 1, tot 80 lod 2; verder niets
 export const VRACHT_R = VRACHT_LOD_R[2];
 const VRACHT_BUILD_BUDGET = 2;              // nieuwe geometrieën per tick: geen hapering bij een rij busjes
+const STENCIL_REF = 2;                      // ref 2, zodat de cabine-opening (ref 1) ongemoeid blijft
 
 export function vrachtruimteLodAt(afstand) {
   if (!(afstand >= 0)) return -1;           // NaN of oneindig: geen laadruimte
@@ -39,48 +43,62 @@ export function vrachtruimteLodAt(afstand) {
 }
 
 const geoCache = new Map();
-let cargoMaterial = null;
+let maskMaterial = null;
 let gatMaterial = null;
+let cargoMaterial = null;
 let materialArray = null;
 
-// Het donkere "gat" op de plaats van de opening: het vlak staat iets buiten het plaatwerk, haalt de
-// diepte weg (gl_FragDepth = 1) en tekent niets anders dan de donkere binnenkant. Het gat houdt zijn
-// gewone dieptetest: alleen waar het vlak echt zichtbaar is (geen open deurblad of voorwerp ervoor)
-// wordt de diepte weggehaald, zodat de lading erachter tevoorschijn komt.
+// 1. Het masker: zet stencil = 2 waar de opening het dichtstbijzijnde vlak is (gewone dieptetest).
+function maskerMateriaal() {
+  if (!maskMaterial) {
+    maskMaterial = new THREE.MeshBasicMaterial({
+      colorWrite: false, depthWrite: false, side: THREE.DoubleSide,
+      stencilWrite: true, stencilRef: STENCIL_REF, stencilFunc: THREE.AlwaysStencilFunc, stencilZPass: THREE.ReplaceStencilOp,
+    });
+    maskMaterial.userData.shared = true;
+  }
+  return maskMaterial;
+}
+
+// 2. De donkere binnenkant van de opening: alleen binnen het masker, over het plaatwerk heen.
 function gatMateriaal() {
   if (!gatMaterial) {
-    gatMaterial = new THREE.ShaderMaterial({
-      uniforms: { c: { value: new THREE.Color(0x141518) } },
-      vertexShader: 'void main() { gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
-      fragmentShader: 'uniform vec3 c; void main() { gl_FragColor = vec4(c, 1.0); gl_FragDepth = 1.0; }',
-      fog: false, toneMapped: false, side: THREE.DoubleSide,
+    gatMaterial = new THREE.MeshBasicMaterial({
+      color: 0x141518, depthTest: false, depthWrite: false, side: THREE.DoubleSide,
+      stencilWrite: true, stencilRef: STENCIL_REF, stencilFunc: THREE.EqualStencilFunc, stencilZPass: THREE.KeepStencilOp,
     });
     gatMaterial.userData.shared = true;
   }
   return gatMaterial;
 }
 
-// Eén gedeeld Lambert-materiaal met vertexkleuren voor alle laadruimtes (zoals cabin3d.js). Let op: dit
-// materiaal moet na gatMateriaal gemaakt worden; het gat wordt op materiaal-id vóór de lading getekend.
+// 3. Eén gedeeld Lambert-materiaal met vertexkleuren voor alle lading (zoals cabin3d.js). Geen
+// dieptetest: de schilder-volgorde in de geometrie bepaalt wat voor wat ligt; het masker begrenst
+// alles tot de opening.
 function laadruimteMateriaal() {
   if (!cargoMaterial) {
-    cargoMaterial = new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.FrontSide, emissive: 0x20232a });
+    cargoMaterial = new THREE.MeshLambertMaterial({
+      vertexColors: true, side: THREE.FrontSide, emissive: 0x20232a,
+      depthTest: false, depthWrite: false,
+      stencilWrite: true, stencilRef: STENCIL_REF, stencilFunc: THREE.EqualStencilFunc, stencilZPass: THREE.KeepStencilOp,
+    });
     cargoMaterial.userData.shared = true;
   }
   return cargoMaterial;
 }
 
-// De materiaallijst [gat, lading] is voor alle voertuigen dezelfde array: één allocatie, en de
-// volgorde (gat vóór lading) ligt vast door de materiaal-id's hierboven.
+// De materiaallijst [masker, gat, lading] is voor alle voertuigen dezelfde array: één allocatie, en de
+// tekenvolgorde (masker vóór gat vóór lading) ligt vast door de materiaal-id's hierboven.
 function materialen() {
-  if (!materialArray) materialArray = [gatMateriaal(), laadruimteMateriaal()];
+  if (!materialArray) materialArray = [maskerMateriaal(), gatMateriaal(), laadruimteMateriaal()];
   return materialArray;
 }
 
 // --- het gat per open deur/klep ---------------------------------------------------------------
 // Alles wat een laadruimte kan openen: de laadklep/achterdeur (verticaal), de kofferbakklep
 // (horizontaal), de schuifdeur van een busje (flank), het vaste luik van de foodtruck en de
-// denkbeeldige laaddeur van een bakwagen/geldbus/oplegger.
+// denkbeeldige laaddeur van een bakwagen/geldbus/oplegger. `out` wijst naar buiten: de kijklijn de
+// laadruimte in is -out, en daarop sorteert de lading (schilder-volgorde).
 function gatQuads(v) {
   const soort = vrachtruimteSoort(v);
   const uit = [];
@@ -126,9 +144,7 @@ function gatQuads(v) {
       // laadklep van een busje/ambulance of de achterklep van een wagon/suv: verticale opening
       achter(d.id, d.y0 + 0.03, d.y0 + d.h - 0.03, Math.min(d.w, wid - 0.3) / 2);
     } else if (d.soort === 'klep') {
-      // kofferdeksel van hatch/sedan/sport/escort: horizontale opening net boven het kofferdeksel.
-      // Het vlak moet boven de carrosserietop liggen (het dak van het kofferdeksel uit carProfile),
-      // anders houdt het plaatwerk de diepte tegen en blijft de lading onzichtbaar.
+      // kofferdeksel van hatch/sedan/sport/escort: horizontale opening net boven het kofferdeksel
       boven(d.id, d.x * len - d.w / 2 + 0.02, d.x * len + d.w / 2 - 0.02, d.y0 + 0.03, wid * 0.78 / 2 - 0.02);
     } else if (d.soort === 'schuif') {
       // schuifdeur van een bestelbus: opening in de flank
@@ -156,15 +172,31 @@ function gatSignatuur(v) {
   return sig;
 }
 
+// Schilder-volgorde: de lading van achter naar voren ten opzichte van de opening, zodat wat verder
+// weg ligt eerst getekend wordt. Bij meerdere open gaten telt de gemiddelde kijkrichting.
+function sorteerLading(delen, gaten) {
+  if (!gaten.length) return delen;
+  let vx = 0, vy = 0, vz = 0;
+  for (const g of gaten) { vx -= g.out[0]; vy -= g.out[1]; vz -= g.out[2]; }
+  const n = Math.hypot(vx, vy, vz) || 1;
+  vx /= n; vy /= n; vz /= n;
+  return delen
+    .map((d) => ({ d, k: d.x * vx + d.y * vy + d.z * vz }))
+    .sort((a, b) => b.k - a.k)
+    .map((o) => o.d);
+}
+
 function bouwGeometrie(v, lod, kapot, gaten) {
-  const B = new GeoBuilder(2);
-  // groep 0: de donkere gaten (vóór de lading getekend op materiaal-id, zie laadruimteMateriaal)
-  for (const g of gaten) B.quadOut(g.a, g.b, g.c, g.d, g.out, 0x141518, 0);
-  // groep 1: de lading, vloer, wanden en schappen van dit niveau
-  for (const d of vrachtruimteDelen(v, { lod, kapot })) {
+  const B = new GeoBuilder(3);
+  // groep 0: het masker (stencil 2 waar de opening zichtbaar is)
+  for (const g of gaten) B.quadOut(g.a, g.b, g.c, g.d, g.out, 0x000000, 0);
+  // groep 1: de donkere binnenkant van de opening
+  for (const g of gaten) B.quadOut(g.a, g.b, g.c, g.d, g.out, 0x141518, 1);
+  // groep 2: de lading, vloer, wanden en schappen van dit niveau, van achter naar voren
+  for (const d of sorteerLading(vrachtruimteDelen(v, { lod, kapot }), gaten)) {
     const r = d.rot;
-    if (r) B.box(d.x, d.y, d.z, d.sx, d.sy, d.sz, d.color, 1, r.x || 0, r.y || 0, r.z || 0);
-    else B.box(d.x, d.y, d.z, d.sx, d.sy, d.sz, d.color, 1);
+    if (r) B.box(d.x, d.y, d.z, d.sx, d.sy, d.sz, d.color, 2, r.x || 0, r.y || 0, r.z || 0);
+    else B.box(d.x, d.y, d.z, d.sx, d.sy, d.sz, d.color, 2);
   }
   return B.build();
 }
@@ -244,4 +276,18 @@ export function vrachtruimteMeting(v) {
   const indeling = vrachtruimteIndeling(v);
   if (!indeling) return null;
   return { soort: indeling.soort, kofferbak: indeling.kofferbak, kapot: indeling.kapot, maten: indeling.maten, romp: indeling.romp, delen: indeling.delen.length };
+}
+
+// Diagnose voor de beeldronde: wat hangt er aan deze auto en welke groepen/maskers heeft de mesh?
+export function vrachtruimteStand(v) {
+  const mesh = v ? getVehicleMesh(v.id) : null;
+  const m = mesh && mesh.userData.vrachtruimte;
+  return {
+    mesh: !!mesh, cargo: !!m, zichtbaar: !!(m && m.visible), lod: mesh ? mesh.userData.vrachtruimteLod ?? null : null,
+    gat: mesh ? mesh.userData.vrachtruimteGat ?? null : null, kapot: mesh ? mesh.userData.vrachtruimteKapot ?? null : null,
+    driehoeken: m ? m.geometry.attributes.position.count / 3 : 0,
+    groepen: m ? m.geometry.groups.map((g) => ({ materialIndex: g.materialIndex, count: g.count })) : [],
+    gatQuads: v ? gatQuads(v).length : 0,
+    regel: v ? vrachtruimteZichtbaar(v) : false,
+  };
 }
