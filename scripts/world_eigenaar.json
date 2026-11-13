@@ -413,6 +413,13 @@
       "issue": "#498"
     },
     {
+      "veld": "camYaw",
+      "bestand": "game/js/firstpersoncam.js",
+      "max": 3,
+      "reden": "de eerste-persooncamera zet de kijkhoek (te voet, in een voertuig en bij het uitzetten); scene3d.js blijft de eigenaar van de camera",
+      "issue": "#833"
+    },
+    {
       "veld": "cameraOverride",
       "bestand": "game/js/helirun.js",
       "max": 4,
