@@ -52,6 +52,7 @@ check('de prestatiekaart heeft een badge, stralen en vonken', /ach-badge/.test(a
 check('de titel komt oplopen en het geheel zweeft binnen', /@keyframes ach-rise/.test(ach) && /@keyframes ach-in/.test(ach) && /ach-shimmer/.test(ach));
 check('de decoratie is aria-hidden en de Nederlandse tekst blijft', /ach-badge" aria-hidden="true"/.test(ach) && ach.includes('PRESTATIE ONTGRENDELD') && ach.includes('dualHtml(a.title)'));
 check('de kaart respecteert beweging beperken en prefers-reduced-motion', /html\.reduce-motion #hud \.ach-toast/.test(ach) && /prefers-reduced-motion: reduce/.test(ach) && /animation: none !important/.test(ach));
+check('reduce-motion houdt de verborgen toast verborgen (geen ghost)', /html\.reduce-motion #hud \.ach-toast\.on \{ opacity: 1;/.test(ach) && !/html\.reduce-motion #hud \.ach-toast, html\.reduce-motion #hud \.ach-toast\.on[^}]*opacity: 1/.test(ach));
 check('de kaart blijft binnen het HUD-budget en de zone', /max-width: calc\(100vw/.test(ach) && /zones\.occupy\('E', 'ach', P3\)/.test(ach) && /font-size: 31px/.test(ach));
 check('goud heeft een eigen gloed en de gouden variant', /\.ach-toast\.gold \.ach-rays/.test(ach) && /\.ach-toast\.gold \.ach-title/.test(ach));
 check('de kaartduur is een pure functie van titel en omschrijving', toastDuur('Kort', 'x') === 4.2 && toastDuur('Een veel langere titel voor de kaart', 'en een langere omschrijving erbij') > 4.2 && toastDuur() === 4.2);

@@ -14,6 +14,7 @@ export const onlineNaamFout = (naam) => {
   const r = profielNaam(naam);
   if (!r.ok) return r.reason;
   if (!r.naam) return 'Vul een naam in: andere spelers zien je onder die naam.';
+  if (!/\p{L}/u.test(r.naam)) return 'Gebruik minstens één letter in je naam.';
   return '';
 };
 export const onlineNaamOk = (naam) => onlineNaamFout(naam) === '';

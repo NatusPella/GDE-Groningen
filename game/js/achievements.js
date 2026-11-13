@@ -737,13 +737,15 @@ const CSS_EXTRA = `
 #hud .ach-toast.gold { box-shadow: 0 10px 34px rgba(0,0,0,0.6), 0 0 34px rgba(232,201,58,0.3), inset 0 0 0 1px rgba(240,237,228,0.1); }
 #hud .ach-toast.gold .ach-rays { background: repeating-conic-gradient(var(--mk-mission, #e8c93a) 0deg 2deg, transparent 2deg 18deg); opacity: 0.4; }
 #hud .ach-toast.gold .ach-title { color: #fff0a8; }
-html.reduce-motion #hud .ach-toast, html.reduce-motion #hud .ach-toast.on, html.reduce-motion #hud .ach-toast .ach-title,
+html.reduce-motion #hud .ach-toast, html.reduce-motion #hud .ach-toast .ach-title,
 html.reduce-motion #hud .ach-toast .ach-rays, html.reduce-motion #hud .ach-toast .ach-spark, html.reduce-motion #hud .ach-toast::after {
-  animation: none !important; transition: none !important; opacity: 1; transform: none; }
+  animation: none !important; transition: none !important; transform: none; }
+html.reduce-motion #hud .ach-toast.on { opacity: 1; transform: none; }
 html.reduce-motion #hud .ach-toast .ach-spark, html.reduce-motion #hud .ach-toast::after { display: none; }
 @media (prefers-reduced-motion: reduce) {
-  #hud .ach-toast, #hud .ach-toast.on, #hud .ach-toast .ach-title, #hud .ach-toast .ach-rays, #hud .ach-toast .ach-spark, #hud .ach-toast::after {
-    animation: none !important; transition: none !important; opacity: 1; transform: none; }
+  #hud .ach-toast, #hud .ach-toast .ach-title, #hud .ach-toast .ach-rays, #hud .ach-toast .ach-spark, #hud .ach-toast::after {
+    animation: none !important; transition: none !important; transform: none; }
+  #hud .ach-toast.on { opacity: 1; transform: none; }
   #hud .ach-toast .ach-spark, #hud .ach-toast::after { display: none; }
 }
 @media (max-width: 480px) { #hud .ach-toast { min-width: 0; padding: 12px 18px 12px 10px; gap: 10px; } #hud .ach-toast .ach-badge { width: 54px; height: 54px; } #hud .ach-toast .ach-ico { width: 46px; height: 46px; } #hud .ach-toast .ach-title { font-size: 24px; } }
