@@ -187,13 +187,18 @@ gemaakt, geactiveerd of gepost**.
   de `GTE_*`-envvariabelen, `LEGACY_NAME 'GTE VI'` en de audit-blacklist (anders breken saves).
   **Blijven ook:** `docs/ONDERZOEK-REFERENTIEGAMES.md` (onderzoek met bronnen) en
   `docs/archief/` (expliciete historie) — eigenaarsbesluit of die ook weg moeten.
-- **Checks (13-11):** `publish_check --history` **5 FAIL** (historie-auteursadressen van
-  agent- en oude accounts; eigenaarsbesluit #62) en **16 WARN** (handmatige
-  releaseworkflows); `secrets_scan` **0 treffers** over werkboom en 6.004 commits;
-  `text_audit` **0** (142 toegestaan), `merkenregister_check` 45/0, `spec_check` 0 fouten,
-  `docs_index_test`, `docs_taal_test`, `logo_taal_test`, `over_menu_test`,
-  `credits_test` en `storage_migration_test` groen.
-- **Nog te doen (eigenaar):** besluit over de historie-adressen (#62), `gitleaks detect`,
-  issues/comments met de oude namen (#72/#62/#83 bijwerken of laten), social preview uploaden,
-  repo publiek maken (#37), daarna Pages activeren en de marketingpagina controleren.
+- **Checks (13-11):** `publish_check --history` **0 FAIL** en **20 WARN** (handmatige
+  releaseworkflows) nadat de historie-auteursadressen met een mailmap naar het
+  noreply-adres zijn herschreven; `secrets_scan` **0 treffers** over werkboom en 6.004
+  commits; `gitleaks 8.30.1` gaf 18 heuristische meldingen die alle vier vals-positief
+  bleken (API-naam in `steam/achievements.json`, opslagsleutel-constanten in
+  `scripts/loopbaan_test.mjs` en `game/js/placeshot.js`), vastgelegd in `.gitleaksignore`
+  — een herrun geeft 0 meldingen. `text_audit` **0** (142 toegestaan),
+  `merkenregister_check` 45/0, `spec_check` 0 fouten, `docs_index_test`,
+  `docs_taal_test`, `logo_taal_test`, `over_menu_test`, `credits_test` en
+  `storage_migration_test` groen.
+- **Nog te doen (eigenaar):** besluit over de historie-adressen (#62, lokaal al
+  opgeschoond), de force push van de herschreven geschiedenis, issues/comments met de
+  oude namen (#72/#62/#83 bijwerken of laten), social preview uploaden, repo publiek
+  maken (#37), daarna Pages activeren en de marketingpagina controleren.
 
