@@ -187,7 +187,7 @@ function buildDefs(world) {
         { kind: 'pickpocket', only: 'vermomd', post: 'rookplek', target: { heistSpot: 'rookplek' }, label: 'Rol het pasje van de bewaker', say: 'Overall aan, emmer mee. Die bewaker bij de glazen deur heeft het pasje. Sluip achter hem en blijf even staan.' },
         { kind: 'goto', only: 'vermomd', target: { heistSpot: 'glasdeur' }, opens: 'glasdeur', mode: 'foot', radius: 1.4, label: 'Door de glazen deur', say: 'Pasje erlangs en door de glazen deur. Gewoon doen alsof je hier werkt.' },
         { kind: 'goto', post: 'entreehal', distract: true, target: { heistSpot: 'deur3' }, mode: 'foot', radius: 1.3, label: 'Door de Entreehal', say: 'De Entreehal. Eén bewaker loopt, één slaapt achter de balie. Druk op E, dan tik ik op het raam.' },
-        { kind: 'laser', iedereen: true, target: { heistSpot: 'stand' }, label: 'Door de lasers van zaal 3', say: 'Zaal 3. Bukken onder de hoge lasers, springen over de lage, en wachten op de knipperende.' },
+        { kind: 'laser', checkpoint: true, iedereen: true, target: { heistSpot: 'stand' }, label: 'Door de lasers van zaal 3', say: 'Zaal 3. Bukken onder de hoge lasers, springen over de lage, en wachten op de knipperende.' },
         { kind: 'crack', iedereen: true, target: { heistSpot: 'stand' }, label: 'Kraak de vitrine', say: 'De vitrine. Draai met A en D, voel de klik en zet hem vast met Spatie.' },
         {
           kind: 'scene', reveal: true, label: 'De vitrine',
@@ -499,8 +499,8 @@ export function getMissionList() {
   const w = worldRef;
   return chainState().defs.map((d, i) => ({
     index: i, id: d.id, code: missionCode(i), order: storyOrder(i), label: d.label, type: d.type, reward: d.reward, status: statusOf(i), skipped: !!hooks.skipped(i), start: { x: d.start.x, y: d.start.y },
-    samen: missieStatus(d), needs: w ? requirementText(w, d) : null, done: chainState().completed.has(i), klusloon: klusloon(d.reward), medalPaid: chainState().medalPaid[i] || 0,
-    pay: chainState().completed.has(i) ? klusloon(d.reward) : d.reward,
+    samen: missieStatus(d), needs: w ? requirementText(w, d) : null, done: chainState().completed.has(i), klusloon: klusloon(d.reward, d), medalPaid: chainState().medalPaid[i] || 0,
+    pay: chainState().completed.has(i) ? klusloon(d.reward, d) : d.reward,
   })).filter((m) => ARC_BUILT.has(m.index) || !!chainState().defs[m.index].side);
 }
 
@@ -1221,7 +1221,7 @@ function succeed(world, def) {
   stopTalk();
   // a replay pays the klusloon; the first pass the full reward
   const replay = chainState().completed.has(i);
-  const volle = replay ? klusloon(def.reward) : def.reward;
+  const volle = replay ? klusloon(def.reward, def) : def.reward;
   // #591: a heist stage the player skipped with O (skipHeistStage) pays half, like a story skip
   const base = def.heist && chainState().heistSkip ? skipReward(volle) : volle;
   closeChoice();

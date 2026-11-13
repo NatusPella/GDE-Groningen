@@ -50,7 +50,7 @@ t('#670: de dienst heeft één uitslag: op tijd, veilig en alle halten', () => {
 
 t('#670: de dienst gebruikt dezelfde regel en de vaardigheid staat op het bord', () => {
   const m = bron('machinist.js');
-  assert.match(m, /dienstMedaille\(\{ gemiddelde: r\.score, halten: r\.stops, opTijd: r\.punct, veilig: r\.veilig, fouten: r\.faults \}\)/, 'de uitslag komt uit dezelfde regel');
+  assert.match(m, /dienstMedaille\(\{ gemiddelde: r\.score, halten: r\.stops, opTijd: r\.punct, veilig: r\.veilig, fouten: r\.faults \}, svc\.mode\)/, 'de uitslag komt uit dezelfde regel en volgt de stand');
   assert.match(m, /r\.dienstMedaille = dm\.naam/, 'de medaille gaat mee in de uitslag');
   assert.match(bron('machinistrules.js'), /export function remVloeiend/, 'de vaardigheid staat in de pure regels');
   assert.match(bron('treincabine.js'), /brakeFrac|brakeM/, 'het bord toont de remweg al (de feedback van de vaardigheid)');

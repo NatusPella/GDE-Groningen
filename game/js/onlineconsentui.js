@@ -5,25 +5,24 @@
 // gde-settings, and the lobby (lobbyui.js) is still the one place that asks before connecting.
 import { ONLINE_NAAM_MAX } from './lobby.js';
 import { getSettings } from './settings.js';
-import { EERSTE_START, SCHAKELAAR, moetVragen, kiesToestemming } from './onlineconsent.js';
+import { EERSTE_START, SCHAKELAAR, moetVragen, kiesNaam } from './onlineconsent.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
-// The first-start card: one question with two answers, and the name that goes with it.
+// De eerste-startkaart is één verplichte stap: een naam en één knop "Doorgaan".
+// Geen tweede antwoord, geen "Later" en geen weg terug: altijd online.
 export function onlineStartHtml({ naam = '', fout = '' } = {}) {
   return `<section class="os-kaart" role="dialog" aria-modal="true" aria-labelledby="os-titel">
     <p class="os-eb">Samen spelen</p>
     <h2 id="os-titel">${esc(EERSTE_START.titel)}</h2>
     <p class="os-uitleg">${esc(EERSTE_START.uitleg)}</p>
     <label class="os-label"><span>${esc(EERSTE_START.naamLabel)}</span>
-      <input type="text" class="os-naam" maxlength="${ONLINE_NAAM_MAX}" spellcheck="false" autocomplete="off" placeholder="Je figuur" value="${esc(naam)}">
+      <input type="text" class="os-naam" maxlength="${ONLINE_NAAM_MAX}" spellcheck="false" autocomplete="off" placeholder="Je naam" required value="${esc(naam)}">
     </label>
     <p class="os-hint">${esc(EERSTE_START.naamHint)}</p>
     ${fout ? `<p class="os-fout" role="alert">${esc(fout)}</p>` : '<p class="os-fout" role="alert" hidden></p>'}
     <div class="os-knoppen">
-      <button type="button" class="os-knop os-meedoen" data-keuze="ja">${esc(EERSTE_START.meedoen)}</button>
-      <button type="button" class="os-knop os-alleen" data-keuze="nee">${esc(EERSTE_START.alleen)}</button>
-      <button type="button" class="os-knop os-later" data-keuze="later">${esc(EERSTE_START.later)}</button>
+      <button type="button" class="os-knop os-doorgaan" data-doorgaan>${esc(EERSTE_START.doorgaan)}</button>
     </div>
   </section>`;
 }
@@ -54,65 +53,44 @@ export function mountOnlineStart(root, { naam = '', onKies = () => {} } = {}) {
     const v = veld();
     if (v && typeof v.focus === 'function') v.focus();
   };
-  const kies = (ja) => {
+  // De enige uitweg: Doorgaan met een geldige naam. Er is geen skip, geen Escape en geen
+  // tweede knop; een lege of geweigerde naam blijft met een fout op de kaart staan.
+  const kies = () => {
     const v = veld();
     if (v && 'value' in v) getypt = v.value;
-    const r = kiesToestemming(ja, getypt);
+    const r = kiesNaam(getypt);
     if (!r.ok) { fout = r.error; teken(); return r; }
     root.innerHTML = '';
-    onKies({ ...r, keuze: ja ? 'meedoen' : 'alleen' });
+    onKies({ ...r, keuze: 'doorgaan' });
     return r;
   };
-  // #751: de vraag uitstellen zonder antwoord. Er wordt niets opgeslagen (de vraag komt de
-  // volgende start terug) en er wordt niets verbonden; het spel start gewoon alleen verder.
-  const later = () => {
-    root.innerHTML = '';
-    onKies({ keuze: 'later', meedoen: null, naam: null });
-  };
   teken();
-  // The buttons are real buttons, so the browser already gives them Enter and Space; only
-  // the two answers close the screen and there is no third way out. Tab stays on the card:
-  // there is nothing else to reach while the question is open.
   root.addEventListener('click', (e) => {
-    const b = e.target && e.target.closest ? e.target.closest('[data-keuze]') : null;
-    if (!b) return;
-    const keuze = b.getAttribute('data-keuze');
-    if (keuze === 'later') later();
-    else kies(keuze === 'ja');
+    const b = e.target && e.target.closest ? e.target.closest('[data-doorgaan]') : null;
+    if (b) kies();
   });
   root.addEventListener('keydown', (e) => {
-    // #751: Escape stelt de vraag uit (geen toestemming, niets bewaard). Zo kan de boot nooit
-    // op deze vraag blijven staan als de knoppen even niet bereikbaar zijn.
-    if (e && e.key === 'Escape') {
-      e.preventDefault();
-      if (e.stopPropagation) e.stopPropagation();
-      later();
-      return;
-    }
-    // Enter in het naamveld is géén toestemming (#556): het zet de focus op "Meedoen", zodat de
-    // speler de keuze met een tweede, bewuste Enter of klik maakt. Typen + Enter kan zo nooit
-    // ongemerkt een openbare sessie of een ja-keuze opleveren.
+    // Enter in het naamveld is dezelfde bewuste Doorgaan-actie; Escape doet niets (de vraag
+    // kan niet overgeslagen worden). Tab blijft op de kaart.
     if (e && e.key === 'Enter' && e.target && e.target.classList && e.target.classList.contains('os-naam')) {
       e.preventDefault();
-      const ja = root.querySelector ? root.querySelector('[data-keuze="ja"]') : null;
-      if (ja && typeof ja.focus === 'function') ja.focus();
+      kies();
       return;
     }
     if (!e || e.key !== 'Tab' || !root.querySelectorAll) return;
-    const velden = [...root.querySelectorAll('.os-naam, [data-keuze]')];
+    const velden = [...root.querySelectorAll('.os-naam, [data-doorgaan]')];
     if (!velden.length) return;
     const nu = velden.indexOf(e.target);
     const volgende = velden[(nu + (e.shiftKey ? -1 : 1) + velden.length) % velden.length];
     e.preventDefault();
     if (volgende && typeof volgende.focus === 'function') volgende.focus();
   });
-  return { kies, later, teken };
+  return { kies, teken };
 }
 
 let bezig = null;
-// The overlay on top of the boot screen; resolves with the answer, or null when the player
-// already answered once (so the question never comes back). #751: "Later" resolves with
-// { keuze: 'later' } and stores nothing, so the question comes back on the next start.
+// De overlay boven het laadscherm; resolvet pas met een geldige naam. Er is geen time-out of
+// Escape die hem zonder antwoord sluit (altijd online, verplichte naam).
 export function openOnlineStart({ naam = getSettings().onlineNaam } = {}) {
   if (bezig) return bezig.promise;
   if (typeof document === 'undefined' || !document.body) return Promise.resolve(null);
@@ -132,12 +110,6 @@ export function openOnlineStart({ naam = getSettings().onlineNaam } = {}) {
   return promise;
 }
 
-// #751: de boot (time-out of Escape) sluit de vraag zonder antwoord: het scherm gaat weg, er
-// wordt niets opgeslagen of verbonden, en de module-state is weer leeg. De volgende start
-// stelt de vraag dus opnieuw.
-export function closeOnlineStart() {
-  if (bezig) bezig.sluit(null);
-}
 
 // What the boot calls: only a player who was never asked gets the screen.
 export function maybeOpenOnlineStart(opts = {}) {

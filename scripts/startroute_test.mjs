@@ -62,6 +62,10 @@ const scene = read('game/js/scene3d.js');
 ok(/prewarmStreamAt\(x, y, secs = 4, radius = PREWARM_R\)/.test(scene), 'de prewarm heeft een eigen radius');
 ok(/export function prewarmPending\(\)/.test(scene), 'scene3d kan zeggen hoeveel voorlaadwerk er nog openstaat');
 ok(/export function precompilePrograms\(\)/.test(scene) && /precompile\(scene\)/.test(scene), 'scene3d kan alle shaders van de scène compileren');
+ok(/export function setCinematicBatches/.test(scene) && /function drainCineBatches/.test(read('game/js/scene3d.js')), 'scene3d kan batches tijdens de film gespreid compileren en tonen');
+ok(/setCinematicBatches\(true\)/.test(read('game/js/intromontage.js')) && /setCinematicBatches\(false\)/.test(read('game/js/intromontage.js')), 'de film zet de gespreide batches aan en na de film weer uit');
+ok(/for \(const p of programs\.values\(\)\) if \(!programLinked\(p\)\)/.test(scene) && /programLinked\(p\)/.test(read('game/js/scene3d.js')), 'batches wachten niet-blokkerend op shaderlinks (geen secondenfreeze in het eerste filmbeeld)');
+ok(/o\.material && !o\.geometry/.test(scene) && /userData\.terrainMaterial/.test(read('game/js/terrain3d.js')), 'geen materiaal op niet-draw-objecten: voorcompileren slaat shaders niet meer over (#804)');
 ok(/nearPrewarm[\s\S]{0,400}s\.r \+ 10/.test(scene), 'de prewarm beschermt de gebouwen binnen zijn eigen radius');
 const iWarm = main.indexOf('const warm = async () => {');
 const iWarmEnd = main.indexOf('return runStartScreen(world, { render, relocate, tick, ready, warm });', iWarm);
@@ -74,12 +78,25 @@ ok(/calm = open === 0 && slowRun === 0/.test(warmBody), 'pas door als tellers é
 ok(/\(readyDone \? 0 : 1\)/.test(warmBody) && /window\.__loadMarks\.background/.test(warmBody), 'de warm-stap wacht op de achtergrondstappen (plaatsing en kaartbeelden) en met de klok mee');
 ok(/function warmCountryMaps\(sliceMs = 4\)[\s\S]{0,120}return new Promise/.test(read('game/js/countrymap.js')), 'warmCountryMaps kan zijn klaar-zijn melden');
 ok(/precompilePrograms\(\)/.test(warmBody), 'de warm-stap compileert daarna de shaders');
+ok(/export function setHoldMaterials/.test(scene) && /heldMaterials\.add\(m\)/.test(read('game/js/scene3d.js')), 'scene3d houdt materialen vast tijdens het voorrijden');
+ok(/export function setHoldGrass/.test(read('game/js/grass.js')) && /setHoldGrass\(true\)/.test(warmBody), 'de graschunks van de montageplekken blijven staan tot de film klaar is');
+ok(/setHoldGrass\(false\)/.test(read('game/js/intromontage.js')), 'na de montage komen de graschunks weer vrij');
+ok(/setCameraOverride\(world, \{ position: \{ x: p\.x \+ 14, y: p\.y \+ 14, z: 24 \}/.test(warmBody) && /introTour/.test(warmBody), 'het laadscherm rijdt de montageplekken op straathoogte af');
+ok(/releaseHeldMaterials\(\)/.test(read('game/js/intromontage.js')), 'na de film komen de vastgehouden materialen vrij');
+ok(/export function takeWarmupSamples/.test(scene) && /samplesHeld = true/.test(read('game/js/scene3d.js')), 'scene3d kan de warm-up-palette als groep geven');
+ok(/takeWarmupSamples\(\)/.test(warmBody) && /world\.__warmSamples/.test(main), 'de warm-up-palette wordt tijdens het laden één keer getekend');
+ok(/releaseWarmupSamples\(\)/.test(read('game/js/intromontage.js')), 'de warm-up-palette wordt na de openingsfilm opgeruimd');
+ok(/prepareOpeningWarm\(\)/.test(warmBody) && /toggleLightRig\(\)/.test(warmBody), 'de opening-assets worden tijdens het laden echt getekend, onder beide lichtstanden');
+ok(/__openingWarm/.test(main) && /disposeObject\(r\.w\.__openingWarm\)/.test(read('game/js/intromontage.js')), 'de getekende opening-assets blijven tot de film en worden daarna opgeruimd');
+ok(/w\.cinemaLean = true/.test(read('game/js/intromontage.js')) && /r\.w\.cinemaLean = false/.test(read('game/js/intromontage.js')), 'de film zet de lean-stand aan en na de film weer uit');
+ok(/!world\.cinemaLean/.test(read('game/js/scene3d.js')), 'straatmeubels, landleven, perronpubliek, evenementen, werven en parkeerlaag wachten tijdens de film');
 ok(/export function introShotPoints\(w\)/.test(read('game/js/intromontage.js')), 'intromontage kan de montageplekken geven');
 ok(/introShotPoints\(world\)/.test(warmBody) && /registerShots\(spots/.test(warmBody) && /prewarmStreamAt\(p\.x, p\.y, 180, 170\)/.test(warmBody), 'de warm-stap laadt en prewarmt de montageplekken');
 ok(/INTRO_WARM_MS/.test(main) && /!world\.loadedFromSave/.test(warmBody), 'de montage wordt alleen bij een nieuw spel voorgereden en heeft een eigen grens');
 ok(/releaseShots\(\)/.test(read('game/js/intromontage.js')), 'de montage geeft de gepinde tegels weer vrij');
 ok(/const WARM_START = !\(FLAGS\.noattract[\s\S]{0,260}FLAGS\.autoplay/.test(main), 'een test- of QA-run slaat het voorladen over');
-ok(/const START_WARM_R = 200;/.test(main) && /const START_WARM_MS = \d+;/.test(main), 'de warm-stap heeft een radius en een harde tijdsgrens');
+ok(/const START_WARM_R = \d+;/.test(main) && /const START_WARM_MS = \d+;/.test(main), 'de warm-stap heeft een radius en een harde tijdsgrens');
+ok((/const START_WARM_R = (\d+);/.exec(main) || [0, 0])[1] <= 360, 'de startring blijft binnen een redelijke grens (<= 360 m)');
 ok(/window\.__loadMarks\.startWarm/.test(main) && /window\.__loadMarks\.shaders/.test(main) && /warmWorstFrame/.test(main), 'de perf-meting ziet het voorladen, het compileren en het slechtste frame');
 ok(/typeof opts\.warm === 'function'/.test(ss) && /opts\.warm\(\)[\s\S]{0,80}\.then\(finish\)/.test(ss), 'de boot wacht op het voorladen vóór het laadscherm weggaat');
 ok(/setLoadingStatus\('De buurt rond je startpunt wordt klaargezet'\)/.test(ss) && /setLoadingStatus\('De shaders worden klaargezet'\)/.test(main), 'het laadscherm zegt wat het nog doet');
@@ -96,20 +113,22 @@ const iMenuScreen = ss.indexOf('function runMenuScreen(');
 const saveScreen = iSaveScreen !== -1 && iMenuScreen > iSaveScreen ? ss.slice(iSaveScreen, iMenuScreen) : '';
 ok(/warmBeforeFinish\(opts, finish\)/.test(saveScreen) && /warmBeforeFinish\(opts, \(\) => \{ startLoadScreen\(world, \{ kind: 'save' \}\)/.test(saveScreen), 'de opgeslagen-spellen-route warmt ook voor');
 
-// --- #751: de eerste-startvraag heeft een time-out en Escape (main.js-vangnet) ---
-ok(/const ONLINE_START_WAIT_MS = \d+;/.test(main), '#751: de eerste-startvraag heeft een time-out');
-ok(/function waitForOnlineStart\(ms\)/.test(main), '#751: de boot wacht via een eigen wachter');
-ok(/closeOnlineStart\(\)/.test(main), '#751: de wachter sluit via de nette route van onlineconsentui.js');
-ok(/e\.key !== 'Escape'/.test(main), '#751: Escape sluit de vraag');
-ok(/await waitForOnlineStart\(ONLINE_START_WAIT_MS\)/.test(main), '#751: de boot gebruikt de wachter in plaats van een eeuwig wachten');
+// --- altijd online + verplichte naam (eigenaarsopdracht 13-11): geen time-out of Escape ---
+ok(!/ONLINE_START_WAIT_MS/.test(main) && !/waitForOnlineStart/.test(main) && !/closeOnlineStart/.test(main), 'de eerste-startvraag heeft geen time-out of sluitfunctie meer');
+ok(!/e\.key !== 'Escape'/.test(main) && !/e\.key === 'Escape'/.test(main.slice(0, main.indexOf('// #749: de boot'))), 'Escape slaat de vraag niet meer over');
+ok(/await beginOnlineStartQuestion\(\)/.test(main), 'de boot wacht op de verplichte naam');
+ok(/Vul je naam in voor Samen spelen/.test(main) && !/Kies of je alleen of samen speelt/.test(main), 'de laadschermstatus vraagt om de naam, niet om alleen/samen');
+ok(/Samen spelen: de wereld wordt klaargezet/.test(main) && !/Alleen spelen: de wereld wordt klaargezet/.test(main), 'na de naam gaat het altijd om Samen spelen');
+ok(!/requestOpenSamen\(\{ rol: 'gast', lijst: true \}\)/.test(main), 'de geforceerde openbare lijst bij de start is weg');
+ok(/sessionBootTick\(world/.test(main), 'de bestaande startzoektocht host/join start automatisch een sessie');
+ok(/startSoloHost\(world/.test(main), 'ook een sessie met één speler blijft mogelijk');
 // De vraag verschijnt al boven het laadscherm; het laden loopt erachter door en pas
 // vlak voor de start wordt het antwoord afgewacht.
 ok(/function beginOnlineStartQuestion\(\)/.test(main) && /if \(vraagOnline\) beginOnlineStartQuestion\(\);/.test(main), 'de eerste-startvraag opent al over het laadscherm');
 const iVraag = main.indexOf('beginOnlineStartQuestion();');
 const iFinish = main.indexOf('await finishLoading();');
 ok(iVraag !== -1 && iFinish !== -1 && iVraag < iFinish, 'de vraag staat vóór het einde van het laadscherm');
-ok(/const antwoord = await waitForOnlineStart\(ONLINE_START_WAIT_MS\)/.test(main) && /Kies of je alleen of samen speelt/.test(main), 'het antwoord wordt met een duidelijke statusregel afgewacht');
-ok(/Samen spelen: de wereld wordt klaargezet/.test(main) && /Alleen spelen: de wereld wordt klaargezet/.test(main), 'na het antwoord zegt het laadscherm wat er gebeurt');
+ok(/await beginOnlineStartQuestion\(\)/.test(main) && /setLoadingStatus\('Samen spelen: de wereld wordt klaargezet'\)/.test(main), 'na de verplichte naam gaat de boot verder');
 
 // --- #749: de boot heeft een wachter, harde grenzen en rAF-vangnetten ---
 ok(/const BOOT_WATCHDOG_MS = \d+;/.test(main) && /function armBootWatchdog\(/.test(main), '#749: de boot heeft een wachter');

@@ -144,7 +144,7 @@ t('#817: carillon, wandeling en regatta tonen hun eigen eenheid', () => {
   assert.match(wandel, /scaledPaceAt\(mode\), averagePace\(s\)/, 'wandeling: tempo in m/s');
   assert.match(wandel, /eenheid: 'm\/s', decimalen: 1/, 'wandeling: één decimaal');
   const reg = bron('regatta.js');
-  assert.match(reg, /\[\.\.\.REGATTA\.medaille\]\.reverse\(\)\.map\(\(f\) => f \* rr\.richttijd\)/, 'regatta: omgekeerde factoren maal de richttijd');
+  assert.match(reg, /regattaMedailleFactoren\(stand\)\]\.reverse\(\)\.map\(\(f\) => f \* rr\.richttijd\)/, 'regatta: geschaalde omgekeerde factoren maal de richttijd');
   assert.match(reg, /lager: true, klok: true/, 'regatta: lagere tijd is beter, als klok');
 });
 

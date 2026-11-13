@@ -59,6 +59,11 @@ jobs:
         run: npm run stage -- --no-world
 
       - name: Node-tests
+        env:
+          # Regels- en designcontrole op precies deze wijziging (releasegate, ADR 0034):
+          # de PR-basis of de vorige main-commit. De releasegate doet dezelfde controle
+          # bij een release op de diff sinds de vorige tag.
+          GDE_RULES_BASE: ${{ github.event.pull_request.base.sha || github.event.before || '' }}
         run: node scripts/run_tests.mjs
 
       # Een geheim dat één keer in een commit staat, staat voor altijd in de geschiedenis: de repo is

@@ -215,6 +215,10 @@ let shadowMapLevel = null; // laatst toegepaste niveau
 let shadowUpgradeAt = 0; // performance.now() waarop voor het eerst een grotere kaart gevraagd werd
 let shadowUpgradeTimer = 0;
 let terrainMesh = null;
+// #804: het terreinmateriaal hangt in userData; een Group met een eigen `material`
+// laat renderer.compile(scene) crashen. Deze helper houdt beide paden (worker en
+// fallback) gelijk en werkt ook voor een echte Mesh.
+const terrainMaterialOf = (o = terrainMesh) => (o ? (o.userData && o.userData.terrainMaterial) || o.material || null : null);
 // ?terrain (#269): the map (what stands flat is lifted by the relief under it) and the patches of ground that rise above the flat ground
 let liftMap = null, reliefPatches = null;
 let terrainPending = null;
@@ -544,6 +548,18 @@ function camNearestHit(targets) {
 // Materials reused across many actors - disposing one would force every
 // remaining user to re-upload/recompile it on the next frame.
 const SHARED_MATERIALS = new Set([OUTLINE_MAT]);
+// Tijdens het voorrijden van de montage worden wijken gebouwd en daarna weer
+// geëvicteerd. Hun materialen houden we vast tot de film klaar is: dan blijven
+// de shader-programma's (met geïnitialiseerde uniforms) in de cache, terwijl de
+// geometries gewoon vrijkomen.
+const heldMaterials = new Set();
+let holdMaterials = false;
+export function setHoldMaterials(on) { holdMaterials = !!on; }
+export function releaseHeldMaterials() {
+  holdMaterials = false;
+  for (const m of heldMaterials) { try { m.dispose(); } catch (e) { /* niet erg */ } }
+  heldMaterials.clear();
+}
 const SHARED_GEOMETRIES = new Set();
 
 // Flat-pack boxes strapped to a car's roof (v.roofBoxes, the story's EIKEA trip).
@@ -590,7 +606,10 @@ export function disposeObject(root) {
     // the bone texture three.js makes for a skinned mesh on its first draw
     if (o.isSkinnedMesh && o.skeleton) o.skeleton.dispose();
     const mats = Array.isArray(o.material) ? o.material : o.material ? [o.material] : [];
-    for (const m of mats) if (!SHARED_MATERIALS.has(m) && !(m.userData && m.userData.shared)) m.dispose();
+    for (const m of mats) {
+      if (SHARED_MATERIALS.has(m) || (m.userData && m.userData.shared)) continue;
+      if (holdMaterials) heldMaterials.add(m); else m.dispose();
+    }
   });
 }
 
@@ -888,7 +907,6 @@ export function init3D(map) {
   if (geoWorkerActive()) {
     setCountryBounds(map.meta.bounds);
     terrainMesh = new THREE.Group();
-    terrainMesh.material = createTerrainMaterial();
     const group = terrainMesh;
     // the build bakes the ground (scripts/world/bake_terrain.mjs), so there is
     // nothing to build at the start. tileworld.js already checked the block
@@ -1278,7 +1296,7 @@ function buildWaterMesh(poly, y, map) {
   group.add(mesh);
   // from the geometry worker the banks and quays join the surface a few frames later
   let sync = true;
-  requestShore(poly, map, { waterY: y, apronMaterial: terrainMesh.material }, (shore) => {
+  requestShore(poly, map, { waterY: y, apronMaterial: terrainMaterialOf() }, (shore) => {
     if (!shore) return;
     group.add(shore);
     group.userData.shore = shore;
@@ -1399,13 +1417,23 @@ function programSort(a, b) { return compareOpaque(a, b, progSortOn); }
 // question is asked at most every LINK_POLL_MS for all of them, and the answer in between is 'not yet' (its draw waits a frame or two longer).
 const LINK_POLL_MS = 25;
 let linkPollAt = 0;
+// #804: p.isReady() vraagt LINK_STATUS op en dat BLOKKEERT tot de link klaar is
+// (1,5 s gemeten in een draw op a7). KHR_parallel_shader_compile heeft een
+// niet-blokkerende COMPLETION_STATUS_KHR; die vragen we, zodat een draw nooit
+// op de link staat te wachten. Zonder de extensie valt hij terug op isReady().
+let linkExt;
 function programLinked(p) {
   if (p._linked) return true;
-  if (perfOff('linkpoll')) return p.isReady();
+  if (linkExt === undefined) {
+    try { linkExt = renderer && renderer.getContext().getExtension('KHR_parallel_shader_compile'); } catch (e) { linkExt = null; }
+  }
+  if (perfOff('linkpoll') || !linkExt) return p.isReady();
   const now = performance.now();
   if (now < linkPollAt) return false;
-  if (p.isReady()) { p._linked = true; return true; }
   linkPollAt = now + LINK_POLL_MS;
+  let ready = false;
+  try { ready = !!renderer.getContext().getProgramParameter(p.program, linkExt.COMPLETION_STATUS_KHR); } catch (e) { ready = p.isReady(); }
+  if (ready) { p._linked = true; return true; }
   return false;
 }
 function hookLinkGuard(r) {
@@ -1446,6 +1474,7 @@ function depthVariant(m, o) {
   return v;
 }
 function compilePending() {
+  drainCineBatches();
   if (!linkPending.size) return;
   for (const o of linkPending) if (o.parent) precompile(o);
   linkPending.clear();
@@ -1753,8 +1782,46 @@ function syncBuildingsPass(world, px, py) {
 }
 
 const BUILDING_LINK_WAIT_MS = 2000;
-const batchCompile = (group) => { if (!perfOff('bouwklaar')) precompile(group); };
-const batchReady = (group) => perfOff('bouwklaar') || meshProgramsReady(group);
+// Tijdens de openingsfilm worden nieuwe batches (gebouwen, wegen, perrons) anders
+// in één frame gecompileerd en getekend: dat gaf frames van 250-650 ms
+// (hitchprobe). In de film spreiden we het compileren per mesh over frames en
+// laten we hooguit één nieuwe batch per frame verschijnen; de rest volgt een
+// paar frames later. Buiten de film verandert er niets.
+let cineBatches = false;
+const cineQueue = [];
+const cinePend = new Set();
+const cineKlaar = new Set();
+let cineReveals = 0;
+export function setCinematicBatches(on) {
+  cineBatches = !!on;
+  if (!cineBatches) { cineQueue.length = 0; cinePend.clear(); cineKlaar.clear(); }
+}
+const batchCompile = (group) => {
+  if (perfOff('bouwklaar')) return;
+  if (!cineBatches) { precompile(group); return; }
+  cinePend.add(group);
+  group.traverse((o) => { if (o.material) cineQueue.push({ group, o }); });
+};
+const batchReady = (group) => {
+  if (perfOff('bouwklaar')) return true;
+  if (!cineBatches) return meshProgramsReady(group);
+  if (cinePend.has(group)) return false;
+  if (cineKlaar.has(group)) return true;
+  if (cineReveals > 0 && meshProgramsReady(group)) { cineReveals--; cineKlaar.add(group); return true; }
+  return false;
+};
+function drainCineBatches() {
+  cineReveals = 1;
+  if (!cineBatches || !cineQueue.length) return;
+  const t0 = performance.now();
+  while (cineQueue.length && performance.now() - t0 < 2.5) {
+    const { group, o } = cineQueue.shift();
+    precompile(o);
+    let klaar = true;
+    for (const q of cineQueue) if (q.group === group) { klaar = false; break; }
+    if (klaar) cinePend.delete(group);
+  }
+}
 function meshProgramsReady(mesh) {
   let ready = true;
   mesh.traverse((o) => {
@@ -1762,7 +1829,7 @@ function meshProgramsReady(mesh) {
     for (const m of Array.isArray(o.material) ? o.material : [o.material]) {
       const programs = renderer.properties.get(m).programs;
       if (!programs) { ready = false; return; }
-      for (const p of programs.values()) if (!p.isReady()) { ready = false; return; }
+        for (const p of programs.values()) if (!programLinked(p)) { ready = false; return; }
     }
   });
   return ready;
@@ -1896,9 +1963,28 @@ export function prewarmPending() {
 // screen is still up: the first frames after the start screen used to stall on
 // the first use of each program (#247, the 18 s of WebGLUniforms in the boot
 // profile). Returns the time it took, for window.__loadMarks.
+// Bouw de waterindex al tijdens het laadscherm: de eerste filmframes triggers
+// hem anders (createWaterIndex kostte ~0,4 s in het eerste filmbeeld, #804).
+export function warmWaterIndex(worldMap) {
+  try { if (worldMap) getWaterIndex(worldMap); return true; } catch (e) { console.warn('waterindex voorladen', e); return false; }
+}
 export function precompilePrograms() {
   const t0 = performance.now();
-  try { if (renderer && scene && cam) precompile(scene); } catch (e) { console.warn('shaders voorcompileren', e); }
+  // Een object met een `material` maar zonder geometry (zoals een Group met een
+  // handmatig gezette materiaal) laat renderer.compile() crashen; dan werden
+  // alle shaders overgeslagen en linkte de film ze alsnog per shot (#804).
+  // Zulke velden zijn geen draw-objecten: even opzij zetten en daarna terug.
+  const parked = [];
+  try {
+    if (renderer && scene && cam) {
+      scene.traverse((o) => {
+        if (o.material && !o.geometry) { parked.push([o, o.material]); o.material = null; }
+      });
+      if (parked.length) console.warn('shaders voorcompileren: materiaal zonder geometry overgeslagen', parked.length);
+      precompile(scene);
+    }
+  } catch (e) { console.warn('shaders voorcompileren', e); }
+  finally { for (const [o, m] of parked) o.material = m; }
   return performance.now() - t0;
 }
 
@@ -2060,9 +2146,11 @@ let bridgeViews = false;
 const ROAD_SYNC_IDLE_FRAMES = 6;
 let roadSyncIdle = null, roadSyncFrame = 0;
 // #804: teller voor de wegopbouw (meetbaar in de perf-harness en tests)
-export const roadSyncStats = { frames: 0, built: 0, maxPerFrame: 0, lastMs: 0, deadlineStops: 0 };
+export const roadSyncStats = { frames: 0, built: 0, maxPerFrame: 0, lastMs: 0, deadlineStops: 0, heavyBuilt: 0, heavyDeferred: 0 };
 function syncRoads(world, px, py) {
+  probe.mark('roads-entry');
   setRoadNetwork(world.map);
+  probe.mark('roads-net');
   if (roadQuality !== getRoadQualityVersion()) {
     roadQuality = getRoadQualityVersion();
     for (const mesh of roadMeshes.values()) scene.remove(mesh);
@@ -2076,6 +2164,7 @@ function syncRoads(world, px, py) {
     && Math.hypot(px - roadSyncIdle.x, py - roadSyncIdle.y) < SYNC_IDLE_MOVE) return;
   roadSyncIdle = null;
   const view = world.map.roadsNear(px, py, DRAW_DIST);
+  probe.mark('roads-query');
   const seen = _roadSeen;
   seen.clear();
   for (const r of view) seen.add(r);
@@ -2109,13 +2198,24 @@ function syncRoads(world, px, py) {
       // "goedkope" met kant-en-klare surfaces; anders bouwde één frame de
       // hele ring (3d:roads-piek 0,9-1,7 s). Eén weg mag altijd, zodat de
       // streaming vooruit blijft.
+      // #804: een heavy weg (kant-en-klare surfaces ontbreken of de civiele werken
+      // worden hier gebouwd) kost honderden ms. Bouw die alleen op een verder leeg
+      // frame: geen andere weg dit frame en bijna niets meer te streamen. Anders
+      // schuift hij door naar een volgend frame (heavyDeferred).
+      const heavy = !r._geoRoad || (r.z && r._geoStruct === undefined);
+      if (heavy && (built > 0 || streamStat.r > 2)) { roadSyncStats.heavyDeferred++; continue; }
       if (!roadBuildAllowed(built, performance.now(), deadline, cap)) { roadSyncStats.deadlineStops++; break; }
+      if (heavy) roadSyncStats.heavyBuilt++;
       coldRoads.delete(r);
+      probe.mark('road-build-start');
       const group = buildRoadGroup(r);
+      probe.mark('road-build');
       const mesh = freezeStatic(world.map.terrainOn ? liftRoadGroup(group, world.map, r) : group);
+      probe.mark('road-lift');
       if (!mesh.name) mesh.name = 'road';
       scene.add(mesh);
       roadMeshes.set(r, mesh);
+      probe.mark('road-add');
       built++;
     }
     // De detailring is een cirkel (de verre LOD tekent vanaf roadDetailR), dus
@@ -2549,8 +2649,13 @@ export function update3D(dt, world) {
   focusSpeed = streamAhead.speed;
   geoFrame();
   initBlobPool();
+  // #804: met PERF_BUILD_MARKS splitst de hitchprobe het bouwwerk in fasen
+  const bm = typeof window !== 'undefined' && !!window.__perfBuildMarks;
+  if (bm) probe.split();
   stepPrewarm(world);
+  if (bm) probe.mark('3d:prewarm');
   syncBuildings(world, focus.x, focus.y);
+  if (bm) probe.mark('3d:syncbuildings');
   if (!NO_BATCH) {
     buildingBatcher.update({ scene, meshes: buildingMeshes, hidden: hiddenBuildings, px: focus.x, py: focus.y, detailR: buildingDetailR, drawDist: DRAW_DIST,
       withDetail: facadeDetailDist >= DRAW_DIST, compile: batchCompile, ready: batchReady, budgetMs: performance.now() < streamBoostUntil ? 1 : 3 });
@@ -2559,7 +2664,9 @@ export function update3D(dt, world) {
         withDetail: true, compile: batchCompile, ready: batchReady, budgetMs: 1 });
     } else facadeBatcher.clear();
   }
+  if (bm) probe.mark('3d:batch');
   drawHub.syncMaterials();
+  if (bm) probe.mark('3d:drawhub');
   probe.mark('3d:buildings');
   setCutMaskCenter(focus.x, focus.y, DRAW_DIST - 6);
   updatePortals(focus.x, focus.y);
@@ -2587,20 +2694,20 @@ export function update3D(dt, world) {
   for (const b of getMovableBridges()) { const m = roadMeshes.get(b.r); if (m) m.visible = !openSpans.has(b.r); }
   updateMovableBridges3D(focus.x, focus.y, waterNight);
   updateSluizen3D(scene, focus.x, focus.y, waterNight);
-  updateStreetFurniture3D(focus.x, focus.y);
+  if (!world.cinemaLean) updateStreetFurniture3D(focus.x, focus.y);
   probe.mark('3d:roads');
   syncTrees(world, focus.x, focus.y);
   probe.mark('3d:trees');
   updateRailway3D(dt, world, focus, viewDist);
-  updateStationCrowd3D(scene, world, railZ);
-  updateEvenementen3D(scene, world, calendarTodayEv(world), (x, y) => (world.map.spawnZ ? world.map.spawnZ(x, y) : 0),
+  if (!world.cinemaLean) updateStationCrowd3D(scene, world, railZ);
+  if (!world.cinemaLean) updateEvenementen3D(scene, world, calendarTodayEv(world), (x, y) => (world.map.spawnZ ? world.map.spawnZ(x, y) : 0),
     (x, y, m) => !buildingAt(world.map, x, y, m) && !isInWater(world.map, x, y));
-  updateWerf3D(scene, world.werf, (x, y) => (world.map.spawnZ ? world.map.spawnZ(x, y) : 0));
-  updateCountryside(dt, world, scene, cam, viewDist);
+  if (!world.cinemaLean) updateWerf3D(scene, world.werf, (x, y) => (world.map.spawnZ ? world.map.spawnZ(x, y) : 0));
+  if (!world.cinemaLean) updateCountryside(dt, world, scene, cam, viewDist);
   updateOmmelandLandmarks(world, scene, focus, setBuildingHidden);
   probe.mark('3d:rail+country');
 
-  syncParkedLayer(scene, sleepingParkedCars(world), buildVehicleActor, focus, DRAW_DIST);
+  if (!world.cinemaLean) syncParkedLayer(scene, sleepingParkedCars(world), buildVehicleActor, focus, DRAW_DIST);
   syncVehicleMeshes(world, player);
   const fireSeenIds = new Set();
   const policeChasing = world.wanted > 0;
@@ -3728,6 +3835,7 @@ function shadowDepthStandIn(m) {
   return d;
 }
 
+export function toggleLightRig() { setLightRigVisible(!isLightRigOn()); }
 function withLightRig(on, fn) {
   const cur = isLightRigOn();
   setLightRigVisible(on);
@@ -3867,6 +3975,38 @@ export function prewarmObjects(roots) {
 // title screen on and handed to prewarmObjects; disposed once warmed.
 let warmupQueue = null;
 const warmupBuilt = [];
+// De warm-up-palette (elk voertuig-, ped- en effecttype) wordt tijdens het
+// laadscherm gebouwd. Teken hem daar ook één keer, zodat de eerste auto, voet-
+// ganger of explosie na de film niet op een eerste draw hoeft te wachten.
+let samplesHeld = false;
+let samplesGroup = null;
+export function takeWarmupSamples() {
+  if (!warmupQueue) return null;
+  while (warmupQueue.length) {
+    let o = null;
+    try { o = warmupQueue.shift()(); } catch (e) { console.warn('warm-up', e); }
+    if (o) prewarmObjects([o]);
+  }
+  samplesHeld = true;
+  const group = new THREE.Group();
+  for (const o of warmupBuilt) group.add(o);
+  // De groep is vanaf hier de eigenaar: stepWarmup mag de kinderen niet meer
+  // los opruimen terwijl de groep nog bestaat.
+  warmupBuilt.length = 0;
+  samplesGroup = group;
+  return group;
+}
+export function releaseWarmupSamples() {
+  samplesHeld = false;
+  if (samplesGroup) {
+    try { samplesGroup.removeFromParent(); } catch (e) { /* niet erg */ }
+    try { disposeObject(samplesGroup); } catch (e) { /* niet erg */ }
+    samplesGroup.clear();
+    samplesGroup = null;
+  }
+  for (const o of warmupBuilt) { try { disposeObject(o); } catch (e) { /* niet erg */ } }
+  warmupBuilt.length = 0;
+}
 // Extra warm-ups van andere modules (main.js vraagt intromontage om de vaste
 // assets van de openingsfilm): zelfde pad, dus beide lichtstanden en opruimen.
 const extraWarmups = [];
@@ -3919,7 +4059,7 @@ function stepWarmup(world) {
     let obj = null;
     try { obj = warmupQueue.shift()(); } catch (e) { console.warn('warm-up', e); }
     if (obj) prewarmObjects([obj]);
-  } else if (warmupBuilt.length && !prewarmQueue.length && !prewarmBatch) {
+  } else if (warmupBuilt.length && !prewarmQueue.length && !prewarmBatch && !samplesHeld) {
     for (const o of warmupBuilt) disposeObject(o);
     warmupBuilt.length = 0;
   }
@@ -4149,7 +4289,8 @@ function applyTimeOfDay(dt, world) {
   WET_UNIFORMS.uWet.value = wetness;
   const envBoost = 1 + wetness * 3;
   for (const m of PAVED_MATS) m.envMapIntensity = envBoost;
-  terrainMesh.material.envMapIntensity = envBoost;
+  const terrainMat = terrainMaterialOf();
+  if (terrainMat) terrainMat.envMapIntensity = envBoost;
   WET_UNIFORMS.uRainTime.value = world.time;
   WET_UNIFORMS.uPuddle.value = qualityLook(getSettings().quality).puddles;
 

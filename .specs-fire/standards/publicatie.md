@@ -30,6 +30,11 @@ Vanuit `desktop/`, in een POSIX-shell (Git Bash op Windows; `npm run release` is
 cd desktop && npm run release -- minor|patch --world
 ```
 
+Vóór deze stap draait de coördinator de releasegate
+(`node scripts/release_gate.mjs --stage=auto --from=<vorige tag>`) inclusief de
+verplichte AI-code-review; `release.sh` verifieert het bewijs en weigert zonder
+groen rapport. Zie [docs/RELEASEGATE.md](../../docs/RELEASEGATE.md).
+
 `minor` is een nieuwe functie, `patch` een bugfix, `current` houdt de versie.
 `--world` is verplicht voor de Actions-stap hierna: zonder `gde-world.tgz` stopt
 `scripts/release_builds.mjs:1`. `release.sh` zoekt `gh` (`:25`), bumpt de
@@ -88,6 +93,7 @@ daarom een eigenaarsbesluit, geen code.
 | vóór merge | `node scripts/test_all.mjs --fase=licht` | module-check, `import_check`, `undef_check`, `voice_coverage`, `text_audit`, dode-code en alle `scripts/*_test.mjs` |
 | vóór release | `node scripts/test_all.mjs --fase=zwaar` | wereldchecks en audits (`ring_probe`, `seat_audit`, `province_test`, `drive_audit`, spoor en water) |
 | vóór release | `node scripts/test_all.mjs --fase=electron` | smoke-run, verhaaltest, `geocheck`, spelbot en beeldrondes |
+| vóór release | `node scripts/release_gate.mjs --stage=auto --from=<vorige tag>` | de vijf releasepoorten met bewijs: static, world (indien geraakt), perf, visual en de verplichte AI-code-review; rapport in `%TEMP%/gde-release` |
 | alles | `node scripts/test_all.mjs --fase=alles` | de drie fasen achter elkaar |
 
 `zwaar` en `electron` hebben `game/world` nodig (`cd desktop && npm run stage`),
@@ -95,6 +101,15 @@ daarom een eigenaarsbesluit, geen code.
 gedraaid**, niet geslaagd. De coördinator draait bij een release de volledige
 suite, `province_test`, de zware audits en de verhaaltest
 (`--story-test=<dir>`); nooit twee Electron-instanties tegelijk.
+
+Sinds ADR [0034](adr/0034-ai-releasegate-met-bewijs.md) is de **releasegate** de
+poort: `scripts/release_gate.mjs` draait de vijf fasen met bewijs (static, world
+indien geraakt, perf tegen norm en baseline, visual met AI-beeldreview en de
+verplichte AI-code-review op de diff), schrijft één rapport en heet een niet
+gedraaide fase onvolledig (exit 3). `desktop/release.sh` verifieert dat rapport
+met `--verify` vóór de build en stopt zonder groen bewijs; de nooduitgang
+`GDE_RELEASE_SKIP_GATE=1` staat luid in de uitvoer en is een eigenaarsbesluit.
+Draaiboek: [docs/RELEASEGATE.md](../../docs/RELEASEGATE.md).
 
 **Twee runners (#481, opgelost 25-10).** `scripts/test_all.mjs` is de standaard uit
 AGENTS.md: fasen `licht`, `zwaar` en `electron`, met rapport en trend.
@@ -120,7 +135,7 @@ verhaaltest draaien lokaal.
   (`docs/PUBLICATIECHECKLIST.md:3`). Vóór Public: `node scripts/publish_check.mjs
   --history` zonder FAIL, plus `secrets_scan`, `text_audit` en
   `merkenregister_check`.
-- **Versie:** `0.60.2` in `desktop/package.json:4`, met `## [0.60.2] - 2026-11-09`
+- **Versie:** `0.60.7` in `desktop/package.json:4`, met `## [0.60.7] - 2026-11-12`
   als nieuwste changelogsectie; elke versie die met `0.` begint, wordt een
   pre-release (`desktop/release.sh:139`).
 - **Ondertekening:** niets is ondertekend. Windows `signExecutable: false`,
@@ -204,8 +219,8 @@ Uit de docs:
    Content Survey zelf invullen.
 5. Steam: account, Steam Direct-bijdrage, app-id, depots, 217 prestaties,
    winkelpagina, Deck-test en het publicatiemoment.
-6. De disclaimer met de namen van Rockstar Games en Take-Two: laten of weglaten
-   (`docs/STEAM-CHECKLIST.md:23`, #72).
+6. De disclaimer met de namen van andere games en uitgevers: **opgelost op
+   13-11-2026**; de tekst is generiek en noemt geen namen meer (`docs/STEAM-CHECKLIST.md`, #72).
 
 ## Open punten (met issue)
 
@@ -226,6 +241,11 @@ Uit de docs:
 4. **#485** — de webversie (`web/build.mjs`) heeft geen eigen tests in
    `scripts/`; de build en de service worker worden alleen met de hand
    gecontroleerd.
+
+
+
+
+
 
 
 

@@ -64,6 +64,12 @@ export const probe = {
     sections.push([label, t - tLast]);
     tLast = t;
   },
+  // #804: begin een nieuw (genest) meetblok zonder de tijd sinds de vorige
+  // mark aan dat blok toe te rekenen; daarna markeer je de fasen gewoon.
+  split() {
+    if (!enabled) return;
+    tLast = performance.now();
+  },
   // called by scene3d for every shader program three.js creates
   program(p) {
     if (!enabled) return;

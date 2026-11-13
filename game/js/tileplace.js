@@ -110,11 +110,22 @@ export const roadKind = (r) => KIND[r.type] || 0;
 // a road a car may stop on or be placed beside (no motorway or slip road)
 export const carRoad = (r) => roadKind(r) > 2 && !r.bridge;
 
+// #804: afstand tot een segment zonder array-allocatie en met sqrt in plaats
+// van de dure Math.hypot; de hete tile-/straatmeubel-lus vraagt alleen de afstand.
+export function segDistD(x, y, a, b) {
+  const dx = b[0] - a[0], dy = b[1] - a[1];
+  const t = Math.max(0, Math.min(1, ((x - a[0]) * dx + (y - a[1]) * dy) / (dx * dx + dy * dy || 1)));
+  const px = a[0] + dx * t, py = a[1] + dy * t;
+  const ex = px - x, ey = py - y;
+  return Math.sqrt(ex * ex + ey * ey);
+}
+
 export function segDist(x, y, a, b) {
   const dx = b[0] - a[0], dy = b[1] - a[1];
   const t = Math.max(0, Math.min(1, ((x - a[0]) * dx + (y - a[1]) * dy) / (dx * dx + dy * dy || 1)));
   const px = a[0] + dx * t, py = a[1] + dy * t;
-  return [Math.hypot(px - x, py - y), px, py];
+  const ex = px - x, ey = py - y;
+  return [Math.sqrt(ex * ex + ey * ey), px, py];
 }
 
 // Nearest road within R (to its edge) that passes ok(road): { d (< 0 on it),
@@ -128,11 +139,17 @@ export function roadNear(map, x, y, R = 40, ok = null) {
     const hw = (r.width || 5) / 2;
     const P = r.pts;
     for (let i = 0; i < P.length - 1; i++) {
-      const [d, px, py] = segDist(x, y, P[i], P[i + 1]);
+      // #804: inline (geen array per segment) — dit is een hete lus in de bouw.
+      const ax = P[i][0], ay = P[i][1];
+      const dx = P[i + 1][0] - ax, dy = P[i + 1][1] - ay;
+      const t = Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / (dx * dx + dy * dy || 1)));
+      const px = ax + dx * t, py = ay + dy * t;
+      const ex = px - x, ey = py - y;
+      const d = Math.sqrt(ex * ex + ey * ey);
       const de = d - hw;
       if (de > R || (best && de >= best.d)) continue;
-      const l = Math.hypot(P[i + 1][0] - P[i][0], P[i + 1][1] - P[i][1]) || 1;
-      best = { d: de, x: px, y: py, road: r, ux: (P[i + 1][0] - P[i][0]) / l, uy: (P[i + 1][1] - P[i][1]) / l };
+      const l = Math.sqrt(dx * dx + dy * dy) || 1;
+      best = { d: de, x: px, y: py, road: r, ux: dx / l, uy: dy / l };
     }
   }
   return best;

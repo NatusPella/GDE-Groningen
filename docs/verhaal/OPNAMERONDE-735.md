@@ -5,9 +5,9 @@ de planning** van de laatste opnameronde: welke regels nog moeten, in welke volg
 welke commando's, en wat alleen de eigenaar kan doen. Er is in deze sessie **niets
 opgenomen** en er is **geen sleutel gebruikt**.
 
-## Stand, gecontroleerd na v0.60.1 (9-11-2026)
+## Stand, gecontroleerd na v0.60.3 (10-11-2026)
 
-Na de release v0.60.1 zijn de bronnen opnieuw gecontroleerd; de stand is ongewijzigd:
+Na de release v0.60.3 zijn de bronnen opnieuw gecontroleerd; de stand is ongewijzigd:
 `node scripts/tts_opnamelijst.mjs --check` zegt **actueel** (0 clips klaar, 20 wachtend: 0 stemkeuze,
 20 spreektekst), `node scripts/gronings_open_test.mjs` is **4/4 groen** en
 `node scripts/voice_coverage.mjs --quiet` staat op **2664/2664** (57 regels alleen tekst, vrijgesteld).
@@ -90,7 +90,9 @@ clips worden getrimd en op -18 LUFS gezet; `ffmpeg`/`ffprobe` moeten in het pad 
 De twintig open regels staan per stap, spreker, stem en bestandsnaam in
 [`GRONINGS-20-SPREEKTEKSTEN.md`](GRONINGS-20-SPREEKTEKSTEN.md) (gegenereerd met
 `node scripts/gronings_open_doc.mjs`). Daarin staan ook de bestaande, goedgekeurde regels die als
-voorbeeld van woordkeuze kunnen dienen en per regel het knooppunt dat een kenner moet beslissen.
+voorbeeld van woordkeuze kunnen dienen, per regel het knooppunt dat een kenner moet beslissen, een
+**invulbaar beslisformulier per regel** (gewenste spreektekst, aanspreekvorm, kerkelijke term, namen
+en het akkoord van de kenner) en onderaan een korte **luisterchecklist** voor na de opname.
 **Er is geen Gronings gegenereerd of vertaald:** de open lijst bevat alleen de Nederlandse regel, citaten
 uit `scripts/gronings_spoken.json` en de keuzes (aanspreekvorm, kerkelijke woorden, namen, grap).
 

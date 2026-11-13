@@ -80,10 +80,39 @@ export const EIERBAL_ALL_BONUS = 1000;
 const KLUSLOON_SHARE = 0.5;
 const MEDAL_BONUS_SHARE = [0, 0.15, 0.25, 0.4];
 
+// #830: een klus betaalt naar inhoud. Zonder deze schaal was de kortste
+// missie per speelbare stap tientallen keren winstgevender dan de langste
+// (M12 €750/stap tegenover M06 €16,7), waardoor "herhaal de kortste missie"
+// de saaie optimale route werd. Films/plannen/keuzes kosten geen moeite;
+// uitdagende of getimede stappen tellen zwaarder. De lange verhaalmissies
+// houden hun oude 50%; korte missies zakken naar de vloer van 25%.
+const FREE_STAGE_KINDS = new Set(['scene', 'plan', 'shot', 'choice']);
+const STAGE_EFFORT = { heli: 4, boatchase: 4, bake: 3, chase: 2, hold: 2, timing: 2, escape: 2, getaway: 2, laser: 2, crack: 2, lock: 2, fuse: 2, pickpocket: 2, vault: 2, board: 1, goto: 1 };
+const KLUSLOON_FLOOR = 0.25;
+const KLUSLOON_EFFORT_REF = 10;
+
+// Hoeveel inhoud/moeite een missie heeft: 0 voor een pure film, 1-4 per
+// speelbare stap, met een extra punt voor een stap met een tijd-/vensterdruk.
+export function contentEffort(def) {
+  const stages = (def && def.stages) || [];
+  let effort = 0;
+  for (const s of stages) {
+    if (!s || FREE_STAGE_KINDS.has(s.kind)) continue;
+    effort += STAGE_EFFORT[s.kind] || 1;
+    if (s.limit || s.time || s.window) effort += 1;
+  }
+  return Math.max(1, effort);
+}
+
 const round5 = (v) => Math.round(v / 5) * 5;
 
-export function klusloon(reward) {
-  return round5(reward * KLUSLOON_SHARE);
+export function klusloon(reward, def = null) {
+  let share = KLUSLOON_SHARE;
+  if (def) {
+    const effort = contentEffort(def);
+    share = Math.min(KLUSLOON_SHARE, Math.max(KLUSLOON_FLOOR, KLUSLOON_SHARE * (effort / KLUSLOON_EFFORT_REF)));
+  }
+  return round5((Number(reward) || 0) * share);
 }
 
 // Bonus for going from medal `from` to `to` (0 none .. 3 goud) on a mission.

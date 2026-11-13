@@ -93,10 +93,11 @@ t('F16: de shotgrammatica is uitgebreid met de zeven ontbrekende soorten', () =>
 // #738: de M00-opening hergebruikt de opgenomen trailer (zon, fietsers, meeuw
 // met frikandel, werkboot, naam- en titelkaart) en speelt daarna keuken en
 // verhuisdag uit cutscenes.js.
-t('#738: story speelt het trailerdeel van de montage, met de bestaande beelden', () => {
+t('#738: de standaardopening speelt de trailer-montage; de montage-API blijft beschikbaar', () => {
   const story = bron('story.js');
   const intro = bron('intromontage.js');
-  assert.match(story, /playTrailerMontage\(world/);
+  assert.match(story, /playTrailerMontage\(world/, 'de montage speelt de standaardopening');
+  assert.match(story, /for \(const id of \['C00\.1', 'C00\.2', 'C00\.3'\]\)/);
   assert.match(intro, /export function playTrailerMontage/);
   assert.match(intro, /maxShots: 12/);
   for (const beeld of ['buildWetBike', 'buildFrikandel']) assert.ok(intro.includes(beeld), beeld);

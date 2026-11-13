@@ -13,7 +13,7 @@ apart, en staat nog open: zie [MERKENCHECK.md](MERKENCHECK.md).
 | **GDE Groningen – Zomer vol misdaad** | volledige titel (venster, menu, store, credits) | alle rechten voorbehouden ([LICENSE-CONTENT.md](../LICENSE-CONTENT.md#naam-en-logo)); forks gebruiken een eigen naam |
 | **GDE** | de reeksnaam; staat voor *Grootste Diefstal Ever* | idem; registercheck open (MERKENCHECK.md) |
 | *Grootste Diefstal Ever* | uitgeschreven betekenis van GDE | beschrijvende zin, weinig onderscheidend |
-| *Grand Theft Eierbal* | **vroegere werktitel**, een parodie op een bestaande gamereeks | hernoemd; moet niet meer zichtbaar zijn. `GTA` en `Grand Theft Auto` komen alleen voor in de disclaimer (zie 4) |
+| *vroegere werktitel* | parodie op een bestaande gamereeks | hernoemd; de oude naam wordt niet meer gebruikt en staat ook niet meer in de disclaimer (zie 4) |
 
 De disclaimer (NOTICE.md, README, `game/js/credits.js`) zegt dat GDE een
 gratis fanparodie is en niet gelieerd aan of goedgekeurd door een uitgever.
@@ -43,7 +43,7 @@ categorieën en laat het op `exit 1` vallen bij een treffer buiten de allowlist:
 - **eten, winkels, kleding**: Coca-Cola, Heineken, Grolsch, McDonald's, Burger King, KFC, Starbucks, Albert Heijn, Jumbo, Lidl, Aldi, Ikea, Hema, Kruidvat, Nike, Adidas en andere;
 - **banken en betalen**: Rabobank, ABN AMRO, ING, PayPal, iDEAL, Tikkie, Visa, Mastercard en andere;
 - **vervoer, energie, bedrijven**: NS, ProRail, Arriva, PostNL, DHL, Shell, Gasunie, Eneco, Philips, KLM, Rijkswaterstaat en andere;
-- **spelreeksen en media**: GTA, Grand Theft Auto, Minecraft, Pokémon, Disney, Star Wars, Lego, regionale en landelijke kranten en omroepen;
+- **spelreeksen en media**: bekende gamefranchises (zoals Minecraft, Pokémon, Disney, Star Wars en Lego) en regionale en landelijke kranten en omroepen;
 - **personen**: bekende politici, sporters, artiesten en leden van het koningshuis (lijst `PEOPLE` in het script), plus eerste-naam-met-achternaam-patronen die op een echt persoon kunnen wijzen.
 
 De lijsten zijn een vangnet, geen uitputtende opsomming van wat er bestaat.
@@ -60,8 +60,8 @@ De lijsten zijn een vangnet, geen uitputtende opsomming van wat er bestaat.
   (TU Delft/3DGI), three.js, Bebas Neue, Big Shoulders Display, Electron,
   Google Gemini, OpenRouter en Claude Design. Dat is bronvermelding, geen
   speltekst.
-- **De disclaimer** noemt GTA, Rockstar Games en Take-Two Interactive om te
-  zeggen dat er *geen* verband is. Dit staat op de allowlist.
+- **De disclaimer** noemt geen andere game of uitgever: hij zegt generiek dat
+  er *geen* verband is. De naam van het spel staat onder 1.
 - **Platformnamen** (Windows, Mac) staan in de eindkaart van de trailer en in de
   README om te zeggen waar het spel draait.
 - Het festival **Noorderzon** (een echt evenement in Groningen, in de kalender) is een aandachtspunt: het personage dat erbij hoorde (Femke) is uit het verhaal geschrapt (#150). De eigenaar beslist of de festivalnaam blijft of een verzonnen naam wordt.

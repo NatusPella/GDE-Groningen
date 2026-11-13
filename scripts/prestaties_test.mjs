@@ -1,7 +1,7 @@
 // Prestaties: vorm van de lijst en de haken voor drift en meerijden (#30).
 //   node scripts/prestaties_test.mjs
 import fs from 'node:fs';
-import { ACHIEVEMENTS, CATEGORIES, getAchievementSummary, getAchievementView, isRetiredMission, MISSION_GOALS } from '../game/js/achievements.js';
+import { ACHIEVEMENTS, CATEGORIES, getAchievementSummary, getAchievementView, isRetiredMission, MISSION_GOALS, toastDuur } from '../game/js/achievements.js';
 
 let fail = 0;
 const check = (name, ok, extra = '') => { if (!ok) fail++; console.log(`${ok ? 'ok  ' : 'FAIL'} ${name}${extra ? ' ' + extra : ''}`); };
@@ -47,4 +47,15 @@ check('de gebiedenstanden zijn balken met het getal ernaast', /bar\('g-' \+ id/.
 check('nergens in Prestaties nog een voortgangsring', !/pa-ring/.test(ui) && !/function ring\(/.test(ui) && !/pa-ring/.test(pcss) && !/ringDash/.test(ui));
 check('de cijfercellen hebben een eigen icoon per regel', /pa-fig-k/.test(ui) && /figIco\(ico\)/.test(ui) && /ICON_PATHS\[name\]/.test(ui));
 check('de medaille noemt zijn naam als tekst, niet alleen als kleur', /MEDALS\[m\] : 'Geen medaille'/.test(ui) && /m-medal m\$\{m\}" aria-hidden="true"/.test(ui));
+// #840: een grotere, visuelere prestatiekaart met eigen geluid, zonder de HUD-budgetten te breken
+check('de prestatiekaart heeft een badge, stralen en vonken', /ach-badge/.test(ach) && /ach-rays/.test(ach) && /ach-spark s1/.test(ach));
+check('de titel komt oplopen en het geheel zweeft binnen', /@keyframes ach-rise/.test(ach) && /@keyframes ach-in/.test(ach) && /ach-shimmer/.test(ach));
+check('de decoratie is aria-hidden en de Nederlandse tekst blijft', /ach-badge" aria-hidden="true"/.test(ach) && ach.includes('PRESTATIE ONTGRENDELD') && ach.includes('dualHtml(a.title)'));
+check('de kaart respecteert beweging beperken en prefers-reduced-motion', /html\.reduce-motion #hud \.ach-toast/.test(ach) && /prefers-reduced-motion: reduce/.test(ach) && /animation: none !important/.test(ach));
+check('de kaart blijft binnen het HUD-budget en de zone', /max-width: calc\(100vw/.test(ach) && /zones\.occupy\('E', 'ach', P3\)/.test(ach) && /font-size: 31px/.test(ach));
+check('goud heeft een eigen gloed en de gouden variant', /\.ach-toast\.gold \.ach-rays/.test(ach) && /\.ach-toast\.gold \.ach-title/.test(ach));
+check('de kaartduur is een pure functie van titel en omschrijving', toastDuur('Kort', 'x') === 4.2 && toastDuur('Een veel langere titel voor de kaart', 'en een langere omschrijving erbij') > 4.2 && toastDuur() === 4.2);
+check('de ontgrendelmelding stuurt goud mee naar het geluid', /kind: 'prestatie'[\s\S]{0,80}goud: !!gold/.test(ach));
+check('audio.js speelt het eigen register op de sting-bus', /from '\.\/achievementgeluid\.js'/.test(read('audio.js')) && /playPrestatieSting/.test(read('audio.js')) && /bus: stingBus/.test(read('audio.js')));
+
 process.exit(fail ? 1 : 0);

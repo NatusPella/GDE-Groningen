@@ -8,7 +8,7 @@
 
 ## Acceptatie
 
-Het vechten krijgt de eerste GTA IV-laag: een melee-reeks in plaats van losse slagen.
+Het vechten krijgt de eerste misdaadgame-laag: een melee-reeks in plaats van losse slagen.
 
 - Nieuwe pure regelmodule `game/js/meleecombo.js` zonder DOM, THREE, klok of opslag.
 - Een reeks telt alleen als de volgende slag binnen 0,8 s na een **geraakte** slag landt:

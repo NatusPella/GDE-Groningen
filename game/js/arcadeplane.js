@@ -183,8 +183,9 @@ export function vluchtStap(d, p, { dt = 0 } = {}) {
 }
 
 // De uitslag met de landing en de checklist erbij (de rest komt uit simdienst.js).
-export function vluchtUitslag(d) {
-  return { ...dienstUitslag(d), landing: d.landing || null, checklist: d.checklist || null };
+// #800: de medailledrempels volgen de moeilijkheidsstand; standaard is het oude gedrag.
+export function vluchtUitslag(d, mode = d && d.mode ? d.mode : 'standaard') {
+  return { ...dienstUitslag(d, mode), landing: d.landing || null, checklist: d.checklist || null };
 }
 
 export const vluchtVoortgang = dienstVoortgang;

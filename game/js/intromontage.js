@@ -1,5 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { getScene, getCamera, disposeObject } from './scene3d.js';
+import { getScene, getCamera, disposeObject, releaseWarmupSamples, releaseHeldMaterials, setCinematicBatches } from './scene3d.js';
+import { setHoldGrass } from './grass.js';
 import { buildPersonMesh, animatePersonWalk, seatPose, seatedY, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { vehicleSeat } from './seating3d.js';
 import { Vehicle, MODELS, makeTwoWheeler, spawnHeroCarNear, spawnVehicleOnRoad, manageTrafficPopulation, manageBikePopulation, updateTrafficAI, resolveVehicleBuildingCollision } from './vehicle.js';
@@ -1346,6 +1347,11 @@ function cleanup(r, skipped) {
   try { if (prev && prev.exit) prev.exit(r, r.state); } catch (e) { console.error('intro exit', e); }
   try { removeTempCars(r); } catch (e) { console.error('intro cars', e); }
   try { if (r.kit) { r.kit.dispose(); r.kit = null; } } catch (e) { console.error('intro kitchen', e); }
+  try { if (r.w && r.w.__openingWarm) { disposeObject(r.w.__openingWarm); r.w.__openingWarm = null; } } catch (e) { console.warn('opening-assets vrij', e); }
+  try { releaseWarmupSamples(); } catch (e) { console.warn('warm-samples vrij', e); }
+  try { setCinematicBatches(false); } catch (e) { /* niet erg */ }
+  try { releaseHeldMaterials(); } catch (e) { console.warn('vastgehouden materialen vrij', e); }
+  try { setHoldGrass(false); } catch (e) { console.warn('gras-hold vrij', e); }
   try { if (r.w && r.w.map && r.w.map.releaseShots) r.w.map.releaseShots(); } catch (e) { console.warn('intro-tegels vrij', e); }
   r.group.removeFromParent();
   // #796: de twee intro-acteurs delen hun rompgeometrie met de rest van het spel; via de gewone
@@ -1366,6 +1372,7 @@ function cleanup(r, skipped) {
     setSub(null);
     setTag(null);
   }
+  if (r.w) r.w.cinemaLean = false;
   document.body.classList.remove('intro-montage');
   stopStoryVoice();
   setStoryScene(false, 'intro');
@@ -1440,8 +1447,10 @@ export function playIntroMontage(w, { startAt = 0, flyShot, onDone, maxShots = I
     saved: { px: p.x, py: p.y, pa: p.angle, clock: typeof w.clock === 'number' ? w.clock : 17.5, wanted: w.wanted || 0, weather: w.weather, comp: c ? { x: c.x, y: c.y, angle: c.angle } : null },
   };
   run = r;
+  w.cinemaLean = true;
   setIntroPlaying(true);
   document.body.classList.add('intro-montage');
+  setCinematicBatches(true); // nieuwe batches gespreid compileren/tonen tijdens de film
   setStoryScene(true, 'intro');
   // from the top, so the cuts land on the song's beats
   if (!r.offset) cueTheme(0);

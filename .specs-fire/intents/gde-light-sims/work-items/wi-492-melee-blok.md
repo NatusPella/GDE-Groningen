@@ -8,7 +8,7 @@
 
 ## Acceptatie
 
-Melee krijgt de GTA IV-laag na de reeks: blokkeren.
+Melee krijgt de misdaadgame-laag na de reeks: blokkeren.
 
 - Nieuwe pure `game/js/blockregels.js`: blok maximaal 2 s, 0,35 s herstel, melee-schade
   ×0,20, kogels ongewijzigd, en een geblokkeerde PvP-slag geeft 20% van de wapenschade

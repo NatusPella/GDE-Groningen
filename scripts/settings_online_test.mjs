@@ -96,6 +96,14 @@ t('naar null terugzetten kan niet per ongeluk via een lege waarde', async () => 
   assert.equal(S2.magOnline(), false);
 });
 
+t('de opslag mag false bewaren, maar de vraag komt terug tot er een ja en een geldige naam is', async () => {
+  zetBestand({ onlineMeedoen: false, onlineNaam: '', v: 10 });
+  const C = await import('../game/js/onlineconsent.js');
+  assert.equal(C.moetVragen({ onlineMeedoen: false, onlineNaam: '' }), true);
+  assert.equal(C.moetVragen({ onlineMeedoen: true, onlineNaam: '' }), true, 'lege naam vraagt opnieuw');
+  assert.equal(C.moetVragen({ onlineMeedoen: true, onlineNaam: 'Bouwer' }), false);
+});
+
 // Sequentieel: elke case gebruikt dezelfde opslag, dus parallel lopen ze door elkaar.
 for (const { naam, f } of gevallen) {
   try {

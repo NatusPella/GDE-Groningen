@@ -13,17 +13,17 @@ const ok = (c, m, extra = '') => { n++; if (!c) { console.log('FAIL ' + m + (ext
 
 // #717: montage als C00.1, dode replay-API weg, besluit vastgelegd
 const story = lees('game/js/story.js');
-ok(/playTrailerMontage/.test(story), 'de opening speelt de montage als C00.1 (playTrailerMontage)');
-ok(/if \(!gestart && !playAct\(0\)\) openingKlaar\(\)/.test(story), 'de straatact blijft de terugval als de montage niet start');
+ok(/playTrailerMontage\(world/.test(story), 'de standaardopening speelt de trailer-montage');
+ok(/if \(!gestart && !playAct\(0\)\) openingKlaar\(\)/.test(story), 'de gescripte acts blijven de terugval als de montage niet start');
 const cine = lees('game/js/cinematics.js');
 ok(!/export function replayIntro/.test(cine), 'de dode replayIntro is weg');
 ok(!/function playIntro\(w\)/.test(cine), 'de dode playIntro is weg');
 const montage = lees('game/js/intromontage.js');
 ok(!/export function introSeen/.test(montage), 'de ongebruikte introSeen-export is weg');
 ok(/export function playTrailerMontage/.test(montage), 'de montage-API voor de opening bestaat');
-const adr = lees('.specs-fire/standards/adr/0025-openingsmontage-als-c00-1.md');
-ok(/C00\.1/.test(adr) && /Afgewezen/.test(adr), 'ADR 0025 legt het besluit met alternatieven vast');
-ok(/0025-openingsmontage/.test(lees('.specs-fire/standards/adr/README.md')), 'de ADR-index noemt 0025');
+const adr = lees('.specs-fire/standards/adr/0033-montage-terug-met-performance-vangnet.md');
+ok(/trailer-montage/.test(adr) && /Afgewezen/.test(adr), 'ADR 0033 legt het besluit met alternatieven vast');
+ok(/0033-montage-terug/.test(lees('.specs-fire/standards/adr/README.md')), 'de ADR-index noemt 0033');
 
 // #723: docs en specs
 const arch = lees('ARCHITECTURE.md');

@@ -1,7 +1,7 @@
 {
   "name": "gde-groningen",
   "productName": "GDE Groningen",
-  "version": "0.60.2",
+  "version": "0.60.7",
   "description": "GDE Groningen – Zomer vol misdaad (GDE: Grootste Diefstal Ever)",
   "author": "NatusPella",
   "license": "GPL-3.0-or-later",
@@ -120,7 +120,7 @@
     "afterPack": "scripts/adhoc-sign.cjs"
   },
   "devDependencies": {
-    "electron": "^44.9.0",
+    "electron": "^45.2.3",
     "electron-builder": "^26.18.1"
   },
   "overrides": {

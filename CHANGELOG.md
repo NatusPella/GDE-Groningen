@@ -9,21 +9,63 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
-- **De eerste dag heeft nu een korte checklist in de hulp en een eenmalige kaart na de eerste missie (#841).**
+- **De eerste dag heeft nu een korte checklist in de hulp en een eenmalige kaart na de eerste missie (#841).** Kleding, spuiterij, garage, waypoint en uitkijkpunten staan bij elkaar; geen nieuwe teller.
 - **Nieuw: de Hogelandrit, één streekuitdaging met een voertuig van Warffum via Usquert naar Uithuizen (#835).** De rit gebruikt de bestaande waypoint, HUD en medailles; onderweg uitstappen stopt de rit.
 - **Vijf onderdelen liggen verspreid over de provincie; wie ze allemaal vindt, laat bij de garage een Eigen Maaksel bouwen (#837).** De onderdelen zijn per speler, de auto is een bestaand model met een eigen kleur en naam; geen nieuwe munteenheid.
-- **Drie wrakken in de Wadden en het Lauwersmeer zijn nu te bezoeken; elke duik levert een vondst voor je album (#839).** Eén per plek, per speler opgeslagen in de bestaande prestatieset. Kleding, spuiterij, garage, waypoint en uitkijkpunten staan bij elkaar; geen nieuwe teller.
-- **Spuiterij en garage hebben nu een cooldown voordat ze je sterren weer wissen (#838).** De kledingkast had al een eigen cooldown; nu geldt voor platen, spuiten en de garage dezelfde wachttijd, zodat je niet elke minuut opnieuw de politie van je af kunt schudden.
+- **Drie wrakken in de Wadden en het Lauwersmeer zijn nu te bezoeken; elke duik levert een vondst voor je album (#839).** Eén per plek, per speler opgeslagen in de bestaande prestatieset.
+- **Spuiterij en garage hebben nu een cooldown voordat ze je sterren weer wissen (#838).** De kledingkast had al een eigen cooldown; nu geldt voor platen, spuiten en de garage dezelfde wachttijd.
 - **Reizen: met 5 zet of wis je je waypoint naar je eigen doel, en de kaart biedt nu een taxi met prijs en aankomsttijd (#836).** Een verhaalmissie houdt zijn eigen route; de taxi is een gewone reisoptie en geen menuteleport.
 - **Een onbekende streek verbergt nu ook zijn bijbanen, vondsten en overige spots (#834).** Eerder bleven die iconen op de kaart en minikaart staan terwijl alleen de activiteiten verborgen waren; nu ontdek je ze samen met de streek. Wegen, water, je positie en de missies blijven zichtbaar.
+- **Na een bui verschijnt een zachte regenboog in de bestaande sky-shader (#840).** Geen nieuwe weersoort, geen extra mesh en geen orkanen; de regenboog fadet vanzelf uit.
+## [0.60.8] - 2026-11-13
+
+- **De koude start is verder teruggebracht: het laadscherm rijdt nu een ruimere ring rond het startpunt voor (320 m i.p.v. 200 m) en tekent de warm-up-palette echt één keer onder beide lichtstanden.** Daardoor verdwijnen de eerste-draw-piek en de oude Canvas2D-kosten uit het koude pad; de JS-heap bij de start is meetbaar lager.
+- **De warm-up-objecten worden na de opening betrouwbaar opgeruimd, ook als er tijdens het tekenen iets misgaat.** De palette-groep wordt niet meer dubbel opgeruimd en de verwijzingen op de wereld blijven niet hangen; dat scheelt geheugen in lange sessies.
+- **De routegraaf wordt niet meer elke seconde herbouwd terwijl de wereld nog stroomt: hij wacht tot de wegen- en gebouwenlagen een seconde stil zijn, met een bovengrens van 4 s.** In een stilstaand profiel verdween de graafopbouw uit de top en zakte de gemiddelde frametijd van 37,6 naar 17,5 ms (p95 83 → 17 ms); de routekwaliteits- en ribbontests blijven groen (#804).
+- **De minimap ververst op een dure kaart (spoor of ver uitgezoomd) op 20 fps in plaats van 30 fps; lichte kaarten houden hun 30 fps.** In de HUD-submeting halveerde de minimapkost op spoor van 6,2 naar 2,9 ms per frame en zakte de p95 van 66,7 naar 33,4 ms; de gewone HUD-fasen kosten samen ~0,25 ms. (#804)
+- **Samen spelen is altijd online en vraagt bij de eerste start om een verplichte naam: één kaart met naamveld en "Doorgaan", zonder "Meedoen"/"Alleen spelen"/"Later" en zonder Escape of time-out (#530, eigenaarsopdracht).** Na Doorgaan staat `onlineMeedoen` op true en start de bestaande sessiezoektocht automatisch; een sessie van één speler blijft werken.
+- **Een prestatie komt nu binnen als een grotere badge met stralen, vonken, een gouden gloed bij medailles en een oplopende titel, met een eigen synthesizer-fanfare in plaats van een gewoon piepje (#840).** De kaart respecteert "Beweging beperken" en `prefers-reduced-motion`, blijft in de bestaande HUD-zone en het bestaande budget, en de Nederlandse teksten en prestatiedefinities zijn ongewijzigd; het geluid volgt de Effecten-volume-instelling en de mute-knop.
+- **De disclaimer noemt geen andere games of uitgevers meer.** README, NOTICE.md en het Over-scherm zeggen nu generiek dat GDE een gratis fanparodie is en niet gelieerd aan een andere gameontwikkelaar of -uitgever. De oude merknamen zijn uit de speltekst, de publieke documentatie en de releasenotes verdwenen; onderzoeks- en archiefdocumenten blijven als bron en historie (#72).
+- **De credits noemen nu alle mensen die meehielpen, op volgorde van bijdrage, inclusief iedereen die toegang had maar niets in de commits deed.** AI-assistenten staan niet bij de credits maar bij de tech-stack. Zie [docs/CREDITS.md](docs/CREDITS.md).
+
+
+## [0.60.7] - 2026-11-12
+
+- **De desktop-app draait op Electron 45.2.3 (was 44.9.3).** Die versie bevat de beveiligings- en stabiliteitsfixes van de nieuwere Chromium/Node-basis; de app, de packaging en de verhaaltest zijn opnieuw getest.
+- **Zonder geometry-worker (fallback) crasht het terrein niet meer: het terreinmateriaal zit nu consequent in `userData` i.p.v. op een Group.** Daarmee blijven ook de oeveropbouw en de weer-/lichtupdate werken als de worker niet beschikbaar is.
+- **De vaste opening-assets worden nu echt tijdens het laadscherm voorgecompileerd.** Acteurs, keuken en props gingen via de warm-upqueue door beide lichtstanden, zodat de eerste montageshot ze niet alsnog hoeft te linken.
+
+- **De opening-assets worden nu tijdens het laadscherm echt getekend (onder beide lichtstanden) in plaats van alleen gecompileerd.** Daarmee verdwijnt de eerste-draw-shaderpiek in de openingsfilm: de grootste frames in de filmmeting zakten van ~2,7-3,1 s naar ~0,9-1,1 s, en er kwamen in de pieken geen nieuwe shader-programma's meer bij. Het laadscherm wordt er ~10-20 s langer van (de eerder gekozen ruil); de getekende assets blijven tot de film en worden daarna opgeruimd.
+
+- **Shaders worden nu écht vóór de start gecompileerd: een Group met een los materiaal liet `renderer.compile()` crashen, waardoor de hele voorcompileerstap stilletjes werd overgeslagen en de film per shot alsnog shaders linkte.** Het terrein bewaart zijn materiaal nu in `userData` en `precompilePrograms` slaat niet-draw-objecten tijdelijk over. In de geforceerde filmmeting ging het eerste blok van ~10 naar ~55 fps en het laatste van ~30 naar ~57 fps; de load compileert nu 433 ms shaders in plaats van 14 ms (en de openingsfilm start sneller: introWarm ~20 s, gameStart ~47 s).
+
+- **De trailer-montage is terug als opening (C00.1), maar met performance-vangnet.** De montage draait weer als eerste bedrijf van het verhaal. Om hem soepel te houden worden de montagetegels en gebouwen al tijdens het laadscherm voorgereden en de vaste opening-assets voorgecompileerd; tijdens de film blijven fijn straatmeubilair, landleven, perronpubliek, evenementen, werven en de parkeerlaag weg (verhaalcontent en hoofdbeeld blijven); en een shader die voor het eerst linkt blokkeert de spellus niet meer (#804). Het laadscherm duurt daardoor langer — de eerder gekozen ruil — en de film hapert niet meer met frames van seconden.
+
+## [0.60.6] - 2026-11-11
+
+- **Geen secondenlange freeze meer als een nieuw shaderprogramma voor het eerst in beeld komt (#804).** De spellus wacht niet meer synchroon op het linken van een shader; in de meting zakte de blokkerende `getProgramParameter`-piek van 1,5 s naar vrijwel nul.
+
+## [0.60.5] - 2026-11-10
+
+- **Minder haperingen als je door de stad rijdt: de straatmeubel-streamer bouwt per beurt hoogstens twee nieuwe tegels in plaats van alle tegels in één keer (#804).** In de hitchprobe zakte de piek van 261 naar 32 ms en de p95 op de a7-route van 50 naar 33 ms.
+
+- **De openingsfilm is lichter gemaakt: tijdens de montage blijven fijn straatmeubilair, landleven, perronpubliek, evenementen, werven en de parkeerlaag weg.** Die systemen kostten per shot shader-links en bouwwerk. In de meting ging het aantal frames in de eerste 30 s van de film van ~819 naar ~1206 (+47%) en draaiden de meeste 5 s-blokken op 37-60 fps in plaats van 3-44 fps; na de film komen alle systemen direct terug. Twee shaderpieken (3,0 s op ~11 s en 1,3 s op ~15 s) blijven nog over — volgende stap.
+
+## [0.60.4] - 2026-11-10
+
+- **Mobiel landschap: de voertuignaam wijkt boven de rechterknoppen (niet meer onder "Instappen") en de wapentekst is minstens 12 px op het scherm (#828).** Gemeten op 360×800, 800×360 en 390×844: `issues: []`, `hud: []`, `smallText: {}` voor voet, gezocht en de menu's.
+- **De moeilijkheidscurve van de late missies is gelijkmatiger (#829).** M06 telt alleen de gekozen inbraaktak en heeft een rustpunt na de entree; M20 hervat na het fierljep-duel en heeft kortere verdedigings-houdmomenten; M26 en M30 hebben iets kortere houdmomenten. Missie-ID's, beloningen, medailles en records blijven ongewijzigd; de cijfers en ontwerpregel staan in `docs/MISSIEBALANS.md`.
+- **De diensten volgen nu de moeilijkheidsstand (#800).** Bij de vluchtdienst en rondvaart schuift de extra tijd in de dienstregeling mee en komen de medailles uit de geschaalde drempels; bij de machinist schuiven de scoremedaille, de perrontolerantie en het perronvenster mee. Standaard is exact het oude gedrag; de beloning volgt de medaille die je in die stand haalt.
 - **Het laadscherm zet nu ook de openingsfilm klaar: de tegels van de montageplekken worden geladen en vastgehouden, de gebouwen daar voorgebouwd en de vaste opening-assets (acteurs, keuken, duiven, props) één keer gecompileerd.** Dat kost op een gewone machine ~25-30 s extra laadtijd; de montage hapert daardoor veel minder (het aantal frames in de eerste 30 s meer dan verdubbelde) en na de film begint het spel op volle kwaliteit. De laatste shaderpiek bij een enkele shotwissel is nog in onderzoek.
 - **Tijdens de openingsfilm en cutscenes worden de wegdek-knooppuntindex, het kruispuntmodel, de routegraaf en de verkeersgraaf niet meer per wijkwissel herbouwd.** De oude versie blijft tot de scène klaar is; daarna halen de gewone, over frames gespreide herbouwen het in. In het profiel verdwenen `fillNodes` (~0,35 s) en `junctionModel` (~0,1 s) uit de top, en de p95-frame van de eerste 5 s zakte naar ~330 ms.
+- **Herhaalmissies betalen naar inhoud: korte missies leveren minder klusloon op dan lange (#830).** Films, plannen en keuzes tellen niet mee en een getimede stap telt zwaarder; de lange verhaalmissies houden hun 50%, korte missies zakken naar de vloer van 25%. Zo is "herhaal de kortste missie" niet meer automatisch de beste geldroute.
 
 ## [0.60.3] - 2026-11-09
 
 - **Mobiel: de contextchip blijft op 360×800 binnen het scherm, en de mobiele meting telt verborgen screenreadertekst (`.hud-mate-txt`) niet meer als kleine HUD-tekst (#826, regressiecontrole 0.60.2).**
 - **De spellus vraagt het volgende beeld nu vóór het werk van dit beeld aan (#804).** Een lange staart of een fout in de staart kan de cadans daardoor niet meer laten stoppen; de perf-meting geeft voortaan ook de frame-emmers en de CPU-druk per beeld mee, zodat een volgende meting wachten van werk kan scheiden.
 - **De startkaart noemt de medaille-eisen nu per moeilijkheidsstand, uit dezelfde schaalbron als het spel (#800).** Op Ontspannen en Uitdagend staan de eisen die de activiteit echt vraagt (punten, seconden, kilo's en procenten, met dezelfde afronding); Standaard blijft exact de oude tekst en de hoverregel/Te-doen gebruiken dezelfde bron.
+
 ## [0.60.2] - 2026-11-09
 
 - **Moeilijkheid werkt nu ook buiten het skatepark: zwembad, klimtoren, carillon, hengelen, pannenkoekenschip, waterski en de fietsronde schalen hun tijdslimiet en medailles per stand, en verhaalmissies hun tijdslimiet, vensters en medaille-eisen (#800).** Standaard is exact het oude gedrag; records staan per stand apart en oude opgeslagen spellen blijven werken.
@@ -1573,10 +1615,10 @@ ode scripts/test_all.mjs` met een rapport, een spelbot die de hele game speelt (
 - **Water in het Ommeland** heeft één duidelijke regel: diep water = zinken
   of zwemmen, de rand van een meer = waden, een sloot = een kuil.
 - **Ook de interne namen heten nu GDE.** Saves, instellingen en prestaties
-  staan onder nieuwe namen (`gde-*` in plaats van `gte-*`); bij de eerste
-  start worden ze eenmalig gekopieerd, je verliest niets. De desktopapp
-  bewaart alles voortaan in de map `GDE Groningen` (eenmalig gekopieerd uit
-  `GTE VI`; die oude map blijft staan, zodat terug naar 0.28 ook nog kan).
+  staan onder nieuwe sleutels (`gde-*`); bij de eerste start worden ze
+  eenmalig gekopieerd, je verliest niets. De desktopapp bewaart alles
+  voortaan in de map `GDE Groningen` (eenmalig gekopieerd uit de oude
+  app-map; die blijft staan, zodat terug naar 0.28 ook nog kan).
 - **Licenties.** De code valt onder de GPL-3.0 (of later), de eigen inhoud
   (stemmen, muziek, verhaal) onder CC BY-NC-SA 4.0; de naam GDE en het logo
   niet. *Over* in het startmenu zegt het ook.
@@ -2117,8 +2159,8 @@ ode scripts/boat_edge_sim.mjs`).
 - **De game heet nu GDE Groningen – Zomer vol misdaad.** GDE staat voor
   Grootste Diefstal Ever. Het nieuwe logo zet GRONINGEN op een groen
   plaatsnaambord, op het laadscherm, het titelscherm, in het pauzemenu, de
-  trailer, de aftiteling en het app-icoon. "GTE VI" en "Grand Theft" zijn
-  overal weg. Je saves, instellingen en prestaties blijven gewoon staan.
+  trailer, de aftiteling en het app-icoon. De oude naam en de Engelstalige
+  werktitel zijn overal weg. Je saves, instellingen en prestaties blijven gewoon staan.
 - **H15 is één vlucht: "Het staat niet in het rooster"** (was "Spoedeisende
   duif"). Je stijgt op bij Rotor Roelf op Eelde, onderweg belt Dokter
   Dijkstra met een spoedje (de nachtdienst heeft honger), je landt op de H
@@ -2188,7 +2230,8 @@ ode scripts/boat_edge_sim.mjs`).
   pompeblêden, en Us Mem de koe.
 - **Een Linux-versie, ook voor de Steam Deck** (nog niet op het toestel
   getest): een AppImage en een tar.gz voor x64, niet ondertekend, net als de
-  Mac- en Windows-versie. Saves en instellingen staan in `~/.config/GTE VI`.
+  Mac- en Windows-versie. Saves en instellingen staan in de configuratiemap
+  van de app.
   Het releasescript bouwt hem mee met `--linux`, en met `--web` de webzip
   (alleen lokaal, die wordt nergens geüpload). Voor Steam staan er
   SteamPipe-sjablonen en een kopieerscript klaar in `steam/`; er wordt nog
@@ -2310,7 +2353,7 @@ ode scripts/boat_edge_sim.mjs`).
 - In de uitslag van een missie staat geen regel "Kills" meer.
 - De downloads heten nu `GDE-Groningen-<versie>-mac.dmg` en
   `GDE-Groningen-<versie>-windows-portable.exe`. Op de Mac kun je de oude
-  app "GTE VI" weggooien nadat je de nieuwe hebt geïnstalleerd.
+  app weggooien nadat je de nieuwe hebt geïnstalleerd.
 - **De nieuwssite heet nu Kiekdoar** ("kijk daar"), een eigen parodienaam:
   de telefoon-app, de pushberichten, Kiekdoar TV en het journaal, de
   nieuwslezers en wat voetgangers en personages erover zeggen. Het scherm
@@ -2340,8 +2383,8 @@ ode scripts/boat_edge_sim.mjs`).
 - **Over** in het hoofdmenu: credits, licenties en privacy. De kaartdata
   komt van OpenStreetMap; dat staat nu ook op het laadscherm, linksonder op
   de grote kaart en in de aftiteling.
-- Duidelijke disclaimer: GTE VI is een fanparodie en heeft niets met
-  Rockstar Games of Take-Two te maken. Namen en gebeurtenissen zijn verzonnen.
+- Duidelijke disclaimer: de game is een fanparodie en heeft niets met een
+  andere gameontwikkelaar of -uitgever te maken. Namen en gebeurtenissen zijn verzonnen.
 
 ### Veranderd
 - **Kusjes geven kan pas na de eerste kus** in "Alles klopt, behalve de
@@ -2430,7 +2473,7 @@ ode scripts/boat_edge_sim.mjs`).
 - **Bel Rikus.** Elke missie begint op Nachtstreek: een Stadjer met een
   probleem belt in. Na missies de rubrieken: de fietstunnel-update, het
   storingsbericht, de torenwachter en de peiling "Woist ja wel?".
-- **Naamkaarten** in GTA-stijl bij elke eerste ontmoeting, met één droge regel.
+- **Naamkaarten** in misdaadgame-stijl bij elke eerste ontmoeting, met één droge regel.
 - **Berend telt de krassen** heeft een nieuwe Berend: Berend Bos, die al
   veertig jaar Bommen Berend speelt. Hij zit in de finale ook in de jury.
 - **Iets met de Grote Markt** is een zomerse stuntavond: punten voor
@@ -2439,7 +2482,7 @@ ode scripts/boat_edge_sim.mjs`).
 - Missies die mislukken eindigen met "Sikkom.".
 - Elke missie heeft een korte afsluiter voor als je hem opnieuw speelt als klus.
 
-- **Nieuwe trailer: "GTE VI — Een zomer in Grunn".** Anderhalve minuut
+- **Nieuwe trailer: "Een zomer in Grunn".** Anderhalve minuut
   zomer: terrassen op de Vismarkt, kleedjes in het Noorderplantsoen, de
   kermis op de Grote Markt bij nacht, een tankwagen vol frituurvet op de
   Europaweg, carbid in het Ommeland. Met naamkaarten voor Anita, Tammo,
@@ -3213,7 +3256,7 @@ Een grote ronde op basis van de speelsessie van Maus.
   in zijn sloep. Hou de toeristen tevreden (botsingen maken ze bang, verhalen
   bij de bezienswaardigheden maken ze blij) en schud Wiebe af — bij het
   museum weet hij de brug niet zo goed.
-- **Doodgaan en opgepakt worden als in GTA**: de traumaheli brengt je naar
+- **Doodgaan en opgepakt worden als in een misdaadgame**: de traumaheli brengt je naar
   het UMCG (of de ambulance naar een dichtere huisartsenpraktijk), of de
   politie brengt je naar het dichtstbijzijnde bureau. Daar staat je partner
   met je rode auto al klaar.
@@ -3342,7 +3385,7 @@ De eerste versie: alles wat er tot de eerste desktop-release gebouwd is.
 - Ragdolls voor iedereen, en losse objecten die wegvliegen als je ze raakt.
 
 ### Rijden en lopen
-- GTA V-achtige besturing: de muis draait de camera om je personage heen,
+- Misdaadgame-achtige besturing: de muis draait de camera om je personage heen,
   WASD beweegt ten opzichte van de camera.
 - Auto's, bussen, fietsen, scooters en boten met botsingen, schade, wrakken
   die blijven liggen en roken, en je eigen rode auto.
@@ -3359,7 +3402,7 @@ De eerste versie: alles wat er tot de eerste desktop-release gebouwd is.
 ### Missies en verhaal
 - Acht missies met een eigen verhaal rond Tammo en Anita, grappige lokale
   teksten en ingesproken tussenfilmpjes.
-- Een openingsmontage in de stijl van de GTA 6-trailers, ook ingesproken.
+- Een openingsmontage in de stijl van de trailers van grote misdaadgames, ook ingesproken.
 - Wijk-flyovers als je voor het eerst in een nieuwe wijk komt.
 - Horeca waar je met E iets bestelt om op te knappen.
 
@@ -3368,13 +3411,13 @@ De eerste versie: alles wat er tot de eerste desktop-release gebouwd is.
 
 ### Kaart en interface
 - Grote kaart met routeplanner, waypoints, zoeken, fog of war en een legenda
-  met filters; draaiende minimap in GTA V-stijl.
-- Contextuele toetshints (Watch Dogs 2-stijl), wapenicoon, de naam van je
+  met filters; draaiende minimap in misdaadgame-stijl.
+- Contextuele toetshints (open-wereldgame-stijl), wapenicoon, de naam van je
   voertuig bij het instappen, en een Escape-menu met instellingen in tabbladen.
 - Opslaan en laden.
 
 ### Geluid
-- G-Music met echte nummers en jingles, het GTE VI-themanummer in het
+- G-Music met echte nummers en jingles, het themanummer in het
   hoofdmenu, ruimtelijk 3D-geluid, gesynthetiseerde motoren en effecten, en
   ingesproken stemmen voor Tammo, Anita, NPC's, politie en Sikkom.
 
@@ -3383,6 +3426,7 @@ De eerste versie: alles wat er tot de eerste desktop-release gebouwd is.
   volledig offline, standaard op volledig scherm.
 - Voor wie het liever zonder app doet: een ZIP met `START DE GAME.bat` die op
   Windows zelf Python regelt en de game in de browser opent.
+
 
 
 

@@ -131,15 +131,17 @@ import { updateSluizen, getSluizen } from './sluizen.js';
 import { updateBridgeHits, resetBridgeDamage, startBridgeCrashDemo, stepBridgeCrashDemo } from './bridgehitworld.js';
 import { geoWorkerActive } from './geojobs.js';
 import { preloadRoadWorker } from './roadsurface.js';
-import { init3D, update3D, resize3D, getScene, getRenderer, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady, canvasFrameCount, prewarmStreamAt, prewarmPending, precompilePrograms, streamPending, queueWarmupObject, prewarmBusy, getCamera, getFollowPose, setRouteLinks } from './scene3d.js';
+import { init3D, update3D, resize3D, getScene, getRenderer, toggleLightRig, disposeObject, setHoldMaterials, releaseHeldMaterials, setCinematicBatches, warmWaterIndex, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady, canvasFrameCount, prewarmStreamAt, prewarmPending, precompilePrograms, streamPending, queueWarmupObject, prewarmBusy, takeWarmupSamples, releaseWarmupSamples, getCamera, getFollowPose, setRouteLinks } from './scene3d.js';
 import { checkFrame } from './blackframe.js';
+import { setCameraOverride } from './cinematics.js';
+import { setHoldGrass } from './grass.js';
 import { noteFrame, hideAdvice, classifyGpu, readGpu, dynamicScale, cpuLevel } from './gfxprofile.js';
 import { updateStreetSigns } from './streetsigns.js';
 import { updatePhotoMode, wireFotoKey } from './fotomodusui.js';
 import { initPauseMenu, isPauseMenuOpen, openPauseMenu, pauseMenuCover } from './pausemenu.js';
 import { aandeel, tegelFoci, nietBijFoci } from './coopfoci.js';
-import { wantsOpenSamen, takeOpenSamen, samenGate, requestOpenSamen } from './samenpanel.js';
-import { maybeOpenOnlineStart, closeOnlineStart } from './onlineconsentui.js';
+import { wantsOpenSamen, takeOpenSamen, samenGate } from './samenpanel.js';
+import { maybeOpenOnlineStart } from './onlineconsentui.js';
 import { gateOn, setGate } from './coopgate.js';
 import { updateGastLokaal } from './coopgastlokaal.js';
 import { initDayNight, updateDayNight, refreshDayNight, DAY_LENGTH_S } from './daynight.js';
@@ -265,13 +267,14 @@ const WARM_START = !(FLAGS.noattract || FLAGS.storytest || FLAGS.stil || FLAGS.t
 // the boot screen may spend on it before it goes on anyway, and the frame time
 // and calm run that count as "warm": a worker result or shader link that lands
 // after the boot screen would be exactly the hitch we are trying to remove
-const START_WARM_R = 200;
+const START_WARM_R = 320;
 const START_WARM_MS = 25000;
 const START_WARM_CALM = 12;
 const START_WARM_MAX_FRAME_MS = 50;
   // De eigenaar koos een langer laadscherm boven een haperende eerste minuut: de
   // montageplekken mogen samen ruim een minuut kosten om klaar te zetten.
-  const INTRO_WARM_MS = 45000;
+  const INTRO_WARM_MS = 70000;
+  const INTRO_TOUR_MS = 35000;
 
 function waitForStart(world, ready) {
   const relocate = (x, y) => {
@@ -372,6 +375,9 @@ function waitForStart(world, ready) {
     if (!world.loadedFromSave) {
       try {
         const opening = await import('./intromontage.js');
+        // #738/#804: de vaste opening-assets (acteurs, keuken, props) één keer via de
+        // bestaande warm-upqueue bouwen en in beide lichtstanden compileren.
+        if (opening.prepareOpeningWarm) queueWarmupObject(() => opening.prepareOpeningWarm());
         const spots = opening.introShotPoints(world);
         if (spots.length) {
           setLoadingStatus('De openingsbeelden worden klaargezet');
@@ -382,8 +388,14 @@ function waitForStart(world, ready) {
               .then(() => { tilesIn = true; }, () => { tilesIn = true; });
           }
           for (const p of spots) prewarmStreamAt(p.x, p.y, 180, 170);
-          const end = performance.now() + INTRO_WARM_MS;
-          while (performance.now() < end) {
+          // Eén deadline voor het hele intro-voorrijden: op een trage machine
+          // mag dit blok niet oplopen tot minuten; de tour krijgt wat overblijft.
+          const introDeadline = performance.now() + INTRO_WARM_MS;
+          // Reserve tijd voor de tour: anders gebruikt de prewarm-lus op een
+          // trage machine het hele budget en slaat de tour (en dus het
+          // voorbereiden van de film) over.
+          const warmEnd = Math.max(performance.now(), introDeadline - INTRO_TOUR_MS);
+          while (performance.now() < warmEnd) {
             const f0 = performance.now();
             try { tick(1 / 60); render(1 / 60); } catch (e) { console.warn('openingsbeelden voorladen', e); break; }
             worst = Math.max(worst, performance.now() - f0);
@@ -392,6 +404,93 @@ function waitForStart(world, ready) {
             if (tilesIn && queue === 0 && prewarmPending() === 0 && !prewarmBusy()) break;
             await yieldToPaint();
           }
+          // De opening-assets (acteurs, keuken, duiven, props) worden pas in
+          // de film gebouwd. Teken ze hier één keer echt, onder beide
+          // lichtstanden: compileren alleen zet de shader-uniforms nog niet,
+          // en dat is precies de eerste-draw-piek in de film (#804).
+          // Rijd de montageplekken ook op straathoogte af: perrons, spoor,
+          // water en museuminrichting worden pas bij die cuts gebouwd, en
+          // hun eerste draw kost anders honderden ms in de film (#804).
+          try {
+          setHoldMaterials(true);
+          setHoldGrass(true);
+            const tourEnd = Math.min(performance.now() + INTRO_TOUR_MS, introDeadline);
+          for (const p of spots) {
+          if (performance.now() >= tourEnd) break;
+          setCameraOverride(world, { position: { x: p.x + 14, y: p.y + 14, z: 24 }, lookAt: { x: p.x, y: p.y, z: 2 }, fov: 62, cut: true });
+            // Kort per plek: alle tien de plekken moeten aan bod komen (museum en ring staan achteraan; die cuts gaven anders nog 700 ms shaderpieken).
+            const stop = Math.min(tourEnd, performance.now() + 2200);
+          let n = 0;
+          while (performance.now() < stop && n < 70) {
+          try { tick(1 / 60); render(1 / 60); } catch (e) { break; }
+          n++;
+          const sp = streamPending();
+          if (n > 8 && sp.buildings + sp.roads === 0 && prewarmPending() === 0 && !prewarmBusy()) break;
+          await yieldToPaint();
+          }
+          }
+          setCameraOverride(world, null);
+          if (window.__loadMarks) window.__loadMarks.introTour = Math.round(performance.now() - tIntro);
+          } catch (e) { console.warn('montage-tour', e); }
+
+          {
+            let warmGroup = null, sc = null, vorigeOverride = null, ok = false;
+            try {
+              const tPal = performance.now();
+              warmGroup = opening.prepareOpeningWarm();
+              if (window.__loadMarks) window.__loadMarks.introPaletteBuild = Math.round(performance.now() - tPal);
+              sc = getScene();
+              if (warmGroup && sc) {
+                vorigeOverride = world.cameraOverride;
+                const speler = hoofdspeler(world);
+                const px = speler.x, py = speler.y;
+                warmGroup.position.set(px + 8, 0, py + 8);
+                sc.add(warmGroup);
+                setCameraOverride(world, { position: { x: px + 15, y: py + 15, z: 9 }, lookAt: { x: px + 8, y: py + 8, z: 1 }, fov: 55, cut: true });
+                const tDraw = performance.now();
+                for (let f = 0; f < 1; f++) { tick(1 / 60); render(1 / 60); }
+                toggleLightRig();
+                for (let f = 0; f < 1; f++) { tick(1 / 60); render(1 / 60); }
+                if (window.__loadMarks) window.__loadMarks.introPaletteDraw = Math.round(performance.now() - tDraw);
+                toggleLightRig();
+                ok = true;
+              }
+            } catch (e) { console.warn('opening-assets tekenen', e); }
+            finally {
+              if (sc && warmGroup) { try { sc.remove(warmGroup); } catch (e) { /* niet erg */ } }
+              setCameraOverride(world, vorigeOverride || null);
+              if (ok) world.__openingWarm = warmGroup;
+            }
+          }
+            // Ook de warm-up-palette (voertuigen, voetgangers, dieren, effecten)
+            // één keer tekenen: de eerste auto of explosie na de film is dan
+            // geen eerste draw meer.
+            {
+              let warmSamples = null, sc2 = null, vorigeOverride2 = null, ok = false;
+              try {
+                warmSamples = takeWarmupSamples();
+                sc2 = getScene();
+                if (warmSamples && sc2) {
+                  vorigeOverride2 = world.cameraOverride;
+                  const speler2 = hoofdspeler(world);
+                  const px2 = speler2.x, py2 = speler2.y;
+                  warmSamples.position.set(px2 - 8, 0, py2 - 8);
+                  sc2.add(warmSamples);
+                  setCameraOverride(world, { position: { x: px2 - 15, y: py2 - 15, z: 9 }, lookAt: { x: px2 - 8, y: py2 - 8, z: 1 }, fov: 55, cut: true });
+                  for (let f = 0; f < 1; f++) { tick(1 / 60); render(1 / 60); }
+                  toggleLightRig();
+                  for (let f = 0; f < 1; f++) { tick(1 / 60); render(1 / 60); }
+                  toggleLightRig();
+                  ok = true;
+                }
+              } catch (e) { console.warn('warm-samples tekenen', e); }
+              finally {
+                if (sc2 && warmSamples) { try { sc2.remove(warmSamples); } catch (e) { /* niet erg */ } }
+                setCameraOverride(world, vorigeOverride2 || null);
+                if (!ok && warmSamples) { try { disposeObject(warmSamples); } catch (e) { /* niet erg */ } warmSamples = null; }
+                world.__warmSamples = ok ? warmSamples : null;
+              }
+            }
           if (window.__loadMarks) {
             window.__loadMarks.introTiles = spots.length;
             window.__loadMarks.introWarm = Math.round(performance.now() - tIntro);
@@ -473,58 +572,12 @@ const loadMarks = window.__loadMarks = {};
 const markLoad = (k) => { loadMarks[k] = Math.round(performance.now()); };
 let tileWorldStats = null;
 
-// #751: de eerste-startvraag (Samen spelen) wacht op een bewuste klik (#556). Zonder invoer
-// bleef de boot op 100% staan: er was geen time-out en geen Escape. Deze wachter sluit de
-// vraag na 20 s of met Escape via de nette route van onlineconsentui.js (geen voorkeur
-// opgeslagen, niets verbonden; de vraag komt de volgende start terug). Het spel start gewoon
-// alleen verder. Een verborgen venster telt niet als antwoord: de vraag blijft dan staan.
-const ONLINE_START_WAIT_MS = 20000;
-// De vraag zelf openen we al vroeg, boven het laadscherm; het laden loopt
-// erachter gewoon door. waitForOnlineStart legt pas vlak voor de start zijn
-// time-out en Escape erop, zodat een trage schijf de vraag niet voortijdig sluit.
+// De eerste-startvraag (Samen spelen) is verplicht: altijd online en een geldige naam.
+// Er is geen time-out en geen Escape die hem overslaat; pas na Doorgaan gaat de boot verder.
 let onlineVraag = null;
 function beginOnlineStartQuestion() {
   if (!onlineVraag) onlineVraag = maybeOpenOnlineStart();
   return onlineVraag;
-}
-function waitForOnlineStart(ms) {
-  const vraag = onlineVraag || beginOnlineStartQuestion();
-  return new Promise((resolve) => {
-    let klaar = false;
-    let timer = 0;
-    const afronden = (res) => {
-      if (klaar) return;
-      klaar = true;
-      clearTimeout(timer);
-      window.removeEventListener('keydown', onKey, true);
-      resolve(res ?? null);
-    };
-    const zonderAntwoord = (waarom) => {
-      if (klaar) return;
-      closeOnlineStart();
-      console.warn(`Samen-spelen-vraag gesloten zonder antwoord (${waarom}); geen voorkeur opgeslagen`);
-      afronden(null);
-    };
-    const onKey = (e) => {
-      if (!e || e.key !== 'Escape') return;
-      e.preventDefault();
-      e.stopPropagation();
-      zonderAntwoord('Escape');
-    };
-    const wacht = () => {
-      timer = setTimeout(() => {
-        if (document.hidden) wacht();
-        else zonderAntwoord('time-out');
-      }, ms);
-    };
-    wacht();
-    window.addEventListener('keydown', onKey, true);
-    Promise.resolve(vraag).then((res) => afronden(res), (err) => {
-      console.warn('Samen-spelen-vraag mislukt', err);
-      closeOnlineStart();
-      afronden(null);
-    });
-  });
 }
 
 // #749: de boot als geheel heeft een uiterste grens. Tijdens de boot zijn de tegel-grenzen
@@ -819,17 +872,20 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
   // vlak voor de start wachten we op het antwoord (#751: time-out en Escape).
   // Zo staat de popup niet boven een laadscherm dat al "Klaar" zegt en hoeft hij
   // het laden niet stil te leggen.
-  const vraagOnline = !(FLAGS.noattract || FLAGS.storytest || FLAGS.stil || FLAGS.trailer || FLAGS.preview || FLAGS.benchmark || FLAGS.perf || FLAGS.spotsonly || FLAGS.autoplay || FLAGS.menutest) && !document.hidden;
+  const vraagOnline = !(FLAGS.noattract || FLAGS.storytest || FLAGS.stil || FLAGS.trailer || FLAGS.preview || FLAGS.benchmark || FLAGS.perf || FLAGS.spotsonly || FLAGS.autoplay || FLAGS.menutest);
   if (vraagOnline) beginOnlineStartQuestion();
   await finishLoading();
   if (vraagOnline) {
-    setLoadingStatus('Kies of je alleen of samen speelt');
-    const antwoord = await waitForOnlineStart(ONLINE_START_WAIT_MS);
+    // Een verborgen venster telt niet als antwoord: wacht tot de speler het spel ziet en
+    // vraag dan alsnog om de verplichte naam.
+    while (document.hidden) await new Promise((klaar) => {
+      const bijZicht = () => { if (!document.hidden) { document.removeEventListener('visibilitychange', bijZicht); klaar(); } };
+      document.addEventListener('visibilitychange', bijZicht);
+    });
+    setLoadingStatus('Vul je naam in voor Samen spelen');
+    await beginOnlineStartQuestion(); // verplicht: geen time-out en geen Escape
     onlineVraag = null;
-    if (antwoord) setLoadingStatus(antwoord.keuze === 'meedoen' ? 'Samen spelen: de wereld wordt klaargezet' : 'Alleen spelen: de wereld wordt klaargezet');
-    // Samen spelen is de default: wie meedoen heeft gekozen, ziet na het starten meteen de
-    // openbare sessielijst (en kan daar alsnog alleen verder).
-    if (magOnline() && !document.hidden) requestOpenSamen({ rol: 'gast', lijst: true });
+    setLoadingStatus('Samen spelen: de wereld wordt klaargezet');
   }
   markLoad('title');
   // the garages, cafés and shops out in the Ommelanden get their doors from the
@@ -868,7 +924,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
   // De montage ruimt de vooraf gepinde tegels zelf op; loopt hij niet (of is hij
   // al klaar), dan mogen ze hier alsnog vrij.
   setTimeout(() => {
-    try { if (world.map && world.map.releaseShots && !document.body.classList.contains('intro-montage')) world.map.releaseShots(); } catch (e) { /* niet erg */ }
+    try { if (world.map && world.map.releaseShots && !document.body.classList.contains('intro-montage')) world.map.releaseShots(); if (!document.body.classList.contains('intro-montage')) { try { releaseWarmupSamples(); } catch (e) { /* niet erg */ } try { releaseHeldMaterials(); } catch (e) { /* niet erg */ } try { setCinematicBatches(false); } catch (e) { /* niet erg */ } try { setHoldGrass(false); } catch (e) { /* niet erg */ } world.__warmSamples = null; if (world.__openingWarm) { try { disposeObject(world.__openingWarm); } catch (e) { /* niet erg */ } world.__openingWarm = null; } } } catch (e) { /* niet erg */ }
   }, 20000);
   hideAdvice();
   input.tryLock(false); // the game itself asks here, long after the click that started it: refusing is no sign of a browser without lock (#328)
@@ -989,7 +1045,13 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
       if (tf && world.coopFoci && world.coopFoci.length > 1) tf.opts = { ...tf.opts, foci: tegelFoci(world.coopFoci) }; // spelers uit elkaar: ook tegels rond de losse groepen (#429)
       // In een traag beeld minder tegelwerk op de hoofdthread, zodat een hapering niet
     // nog een frame lang doorwerkt (#553).
-    if (tf) world.map.follow(tf.x, tf.y, tf.opts, laatsteFrameMs > 25 ? 0.6 : 1.5);
+    if (tf) {
+      // Tijdens de opening/cutscene minder tegelwerk per frame: de film wisselt
+      // vaak van plek en tileverwerking kostte anders frames van 100+ ms.
+      // De tegels komen een paar frames later; het beeld blijft vol.
+      const cine = document.body.classList.contains('intro-montage') || document.body.classList.contains('cine-hide-hud');
+      world.map.follow(tf.x, tf.y, tf.opts, cine ? 0.4 : (laatsteFrameMs > 25 ? 0.6 : 1.5));
+    };
       // the open sea as water rows round the player (#233)
       if (tf && world.map.addWaterPatches) ensureSeaRows(world.map, hoofdspeler(world).x, hoofdspeler(world).y);
     }
@@ -1031,7 +1093,8 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     }
     else {
       updatePhone(dt, world);
-      updateSaveGame(dt, world);
+        // Autosave tijdens de opening/cutscene uitstellen: de save-tik kostte anders 55-75 ms-frames in de film.
+        if (!document.body.classList.contains('intro-montage') && !document.body.classList.contains('cine-hide-hud')) updateSaveGame(dt, world);
     }
     if (world.coopNet || world.coopWissel) tickCoopNet(world, dt); // samen spelen (#95), alleen na een bewuste uitnodiging
     if (isHoldOpen()) checkHold(world);
@@ -1058,7 +1121,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     // a long jump (fast travel, teleport): the load screen while the city streams in
     if (world.devJumpLoad) { world.devJumpLoad = false; resetJumpWatch(); startLoadScreen(world, { kind: 'travel', x: hoofdspeler(world).x, y: hoofdspeler(world).y, mission: world.loadMission }); }
     watchJumps(world, { swallow: world.pigeonMode || !!world.pendingRespawn || isCinematicActive() || sinceCinematic() < 2 || !!world.cameraOverride, hold: world.paused && !world.uiPaused });
-    probe.mark('hud');
+    probe.mark(typeof window !== 'undefined' && window.__perfHudMarks ? 'hud:end' : 'hud');
   }
 
   // samen spelen, spelers uit elkaar (#429): verkeer rond een losse groep spelers, met zijn deel van het totaalbudget (coopfoci.js)
@@ -1283,6 +1346,7 @@ boot().catch((err) => {
   showBootFailure(err && err.message ? err.message : String(err));
   console.error(err);
 });
+
 
 
 

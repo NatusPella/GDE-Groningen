@@ -131,6 +131,18 @@ const onRoad = (extra = {}) => () => {
 const MOTO = await imp('motomodels');
 if (want('voet')) await guard('voet', async () => { teleport(...P(100, 77)); await shot('voet', 3500); });
 if (want('gezocht')) await guard('gezocht', async () => { w.wanted = 3; await shot('gezocht', 1200); w.wanted = 0; });
+if (want('hudtest')) await guard('hudtest', async () => {
+  // #828: de voertuignaam en het wapenblok zonder een rit te starten (schone HUD-meting).
+  const vn = document.querySelector('.hud-vehname');
+  if (vn) {
+    vn.classList.add('on');
+    const mk = vn.querySelector('small'); if (mk) mk.textContent = 'Delfstof Noord';
+    const b = vn.querySelector('b'); if (b) b.textContent = 'Bestelbus';
+  }
+  const wp = document.querySelector('.hud-weapon');
+  if (wp) wp.innerHTML = '<svg class="hud-weapon-icon" viewBox="0 0 48 24" aria-hidden="true"></svg><span class="hud-weapon-col"><span class="hud-weapon-text">Pistool</span><small class="hud-weapon-ammo">12</small></span>';
+  await shot('hudtest', 800);
+});
 if (want('auto')) await guard('auto', () => ride('auto', onRoad(), 14));
 if (want('motor')) await guard('motor', () => ride('motor', onRoad({ scooter: true, model: MOTO.MOTORBIKE_MODELS.sport }), 6));
 if (want('boot')) await guard('boot', async () => {

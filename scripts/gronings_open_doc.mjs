@@ -38,6 +38,13 @@ const hints = {
   links_het_derde_bolwerk_ze_kijke: 'Bolwerk is een echte plekterm; "derde bolwerk" en de korte zinnen blijven.',
 };
 
+// De bestandsnaam bevat meer woorden dan de korte hint-sleutel: kies de langste sleutel die een prefix is.
+const hintVoor = (sk) => {
+  let best = '';
+  for (const k of Object.keys(hints)) if (sk.startsWith(k) && k.length > best.length) best = k;
+  return hints[best] || '—';
+};
+
 const beste = (tekst) => {
   const woorden = String(tekst).toLowerCase().replace(/[^a-zà-ÿ\s]/gi, ' ').split(/\s+/).filter((w) => w.length >= 4);
   const scores = [];
@@ -78,7 +85,7 @@ out.push('| # | Stap | Spreker | Stem | Regel (Nederlands) | Knooppunt voor de k
 out.push('|---|---|---|---|---|---|---|');
 rijen.forEach((r, idx) => {
   const sk = String(r.file).replace(/^lines\/[^/]+\//, '').replace(/_[0-9a-f]{8}\.mp3$/, '');
-  const hint = hints[sk] || '—';
+  const hint = hintVoor(sk);
   const n = beste(r.text);
   const pre = n.length
     ? n.map(([, k, v]) => `“${String(k).slice(0, 90)}${String(k).length > 90 ? '…' : ''}” → “${String(v).slice(0, 120)}${String(v).length > 120 ? '…' : ''}”`).join('<br>')
@@ -105,6 +112,39 @@ out.push('   met de Groningse spreektekst als waarde (of laat de regel bewust op
 out.push('2. `node scripts/gronings_merge_draft.mjs` toont wat er nieuw is en welke rijen botsen; `--write` voegt ze toe.');
 out.push('3. `node scripts/tts_lines_list.mjs` zet de regels daarna in de wachtrij; `python scripts/tts_lines.py` neemt op.');
 out.push('4. Deze lijst en `docs/verhaal/TTS-OPNAMELIJST-735.md` opnieuw draaien met `node scripts/tts_opnamelijst.mjs`.');
+out.push('');
+out.push('## Beslisformulier per regel');
+out.push('');
+out.push('Vul per regel in (of laat de regel bewust open). Hier staat **nog geen Groningse tekst**: de kenner');
+out.push('schrijft of keurt de spreektekst en zet daaronder het akkoord. Dezelfde Nederlandse regel is de sleutel');
+out.push('in `scripts/gronings_spoken_draft.json`.');
+out.push('');
+rijen.forEach((r, idx) => {
+  const sk = String(r.file).replace(/^lines\/[^/]+\//, '').replace(/_[0-9a-f]{8}\.mp3$/, '');
+  const hint = hintVoor(sk);
+  const kort = String(r.text).length > 90 ? String(r.text).slice(0, 90) + '…' : String(r.text);
+  out.push(`### ${idx + 1}. ${r.source} · ${r.speaker} — “${kort}”`);
+  out.push('');
+  out.push('- **Gewenste Groningse spreektekst:**');
+  out.push('- **Let op (knooppunt):** ' + hint);
+  out.push('- **Aanspreekvorm:** [ ] jij/jullie zoals de ondertitel · [ ] "jong" · [ ] "u" · [ ] anders:');
+  out.push('- **Kerkelijke term (kosteres, kerkkelder, dominee, kerkvoogdij):** [ ] Gronings · [ ] Nederlands · [ ] laten staan · [ ] anders:');
+  out.push('- **Naam, plaats of bestaande Groningse vorm (bijv. "Nait"):** [ ] laten staan zoals de ondertitel · [ ] spelling aanpassen naar:');
+  out.push('- **Overig (grap, woordkeuze, tempo):**');
+  out.push('- **Akkoord kenner:** naam of initialen + datum:');
+  out.push('');
+});
+out.push('## Luisterchecklist na de opname');
+out.push('');
+out.push('Kort, per clip; de opname zelf blijft werk van de eigenaar.');
+out.push('');
+out.push('- [ ] De zin is letterlijk de goedgekeurde spreektekst, zonder Nederlandse terugval of improvisatie.');
+out.push('- [ ] Aanspreekvorm, kerkelijke term en namen klinken zoals de kenner ze heeft aangevinkt.');
+out.push('- [ ] Tempo en toon passen bij de vorige regel van dezelfde spreker (Geesje warm en droog, Rotor Roelf joviaal).');
+out.push('- [ ] Namen en plaatsen hebben de juiste klemtoon (o.a. Trijntje, Usquert, Jelle Terpstra, d\'Olle Grieze).');
+out.push('- [ ] Geen valse start, geen kuchje en geen tweede stem in de clip; de duur past bij de ondertitel.');
+out.push('- [ ] `ffprobe`: 24 kHz mono, duur klopt; de eigenaar luistert de eerste clip van elke spreker zelf.');
+out.push('- [ ] Daarna: `gronings_spoken_draft.json` bijwerken → `gronings_merge_draft.mjs --write` → `tts_lines_list.mjs` → opnemen.');
 out.push('');
 out.push('## Wat hier bewust niet staat');
 out.push('');

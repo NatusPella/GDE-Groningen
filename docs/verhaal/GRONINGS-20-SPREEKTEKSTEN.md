@@ -16,17 +16,17 @@ Gegenereerd door `node scripts/gronings_open_doc.mjs` uit `docs/verhaal/TTS-OPNA
 
 | # | Stap | Spreker | Stem | Regel (Nederlands) | Knooppunt voor de kenner | Verwante goedgekeurde regel |
 |---|---|---|---|---|---|---|
-| 1 | M09.1 | Geesje | Pulcherrima | “Jullie zijn van Trijntje. Het zijn eieren, geen relikwieën. Maar ik ben kosteres, dus ik behandel ze zo.” | — | “Jullie zijn van Trijntje. Kom binnen. Schoenen mogen aan. Het huis is toch even niet van m…” → “Jim binnen van Trijntje. Kom binnen. Schoenen mogen aan. t Hoes is toch eefkes nait van mie.”<br>“Eierballen. Nog warm. Jullie zijn mijn helden.” → “Eierballen. Nog waarm. Jim binnen mien helden.” |
+| 1 | M09.1 | Geesje | Pulcherrima | “Jullie zijn van Trijntje. Het zijn eieren, geen relikwieën. Maar ik ben kosteres, dus ik behandel ze zo.” | Aanspreekvorm (jullie/jim), kerkelijke woorden (kosteres, relikwieën): laat de kerkelijke toon van Geesje staan; eigen naam Trijntje blijft. | “Jullie zijn van Trijntje. Kom binnen. Schoenen mogen aan. Het huis is toch even niet van m…” → “Jim binnen van Trijntje. Kom binnen. Schoenen mogen aan. t Hoes is toch eefkes nait van mie.”<br>“Eierballen. Nog warm. Jullie zijn mijn helden.” → “Eierballen. Nog waarm. Jim binnen mien helden.” |
 | 2 | M09.1 | Geesje | Pulcherrima | “Jelle Terpstra heeft alle eieren van het Hogeland gekocht, behalve de mijne. Mijn kippen hebben geen contract.” | Eigen namen (Jelle Terpstra), streeknaam Hogeland en het woord contract: alleen de zin eromheen wordt Gronings. | “Het recept van 1953 had vijf dingen van vijf vrienden: vet, eieren, zout, meel en mosterd.…” → “t Recept van 1953 har vief dingen van vief vrienden: vet, aaien, zout, meel en mosterd. Jelle koopt ze allemoal. Hier is…”<br>“Meneer Terpstra heeft de vier andere juryleden en mij uitgenodigd voor een treinreis met v…” → “Meneer Terpstra het de vier aander juryleden en mie oetnodigd veur n treinreis mit volpension: aal maaltijden der bie. V…” |
-| 3 | M09.1 | Geesje | Pulcherrima | “Zijn moeder, Gerda, belt Trijntje elk jaar op haar verjaardag. Ze zeggen dan allebei niks.” | — | “Oma Trijntje vertelde over 1953. Over Gerda Terpstra. Zeventig jaar trots, in één zin.” → “Oma Trijntje vertelde over 1953. Over Gerda Terpstra. Zeventig joar trots, in ain zin.” |
+| 3 | M09.1 | Geesje | Pulcherrima | “Zijn moeder, Gerda, belt Trijntje elk jaar op haar verjaardag. Ze zeggen dan allebei niks.” | Voor "zijn moeder" bestaat een goedgekeurd precedent (moeke); namen Gerda en Trijntje blijven staan; "belt" is moderne spreektaal. | “Oma Trijntje vertelde over 1953. Over Gerda Terpstra. Zeventig jaar trots, in één zin.” → “Oma Trijntje vertelde over 1953. Over Gerda Terpstra. Zeventig joar trots, in ain zin.” |
 | 4 | M09.1 | Geesje | Pulcherrima | “Jullie brengen ze heel naar de kerkkelder in Usquert. Daar is het koel, en daar komt Jelle niet.” | Plaatsnaam Usquert blijft staan; kerkkelder is een kerkelijk woord; "heel" (in één stuk) is betekenis, geen dialect. | — (geen precedent in `gronings_spoken.json`) |
-| 5 | M09.1 | Geesje | Pulcherrima | “De trekker staat bij de schuur. Hij trekt hard.” | — | — (geen precedent in `gronings_spoken.json`) |
+| 5 | M09.1 | Geesje | Pulcherrima | “De trekker staat bij de schuur. Hij trekt hard.” | Landbouwwoorden (trekker, schuur); korte droge zinnen van Geesje: geen extra toevoeging. | — (geen precedent in `gronings_spoken.json`) |
 | 6 | M09.4 | Geesje | Pulcherrima | “De kratten staan heel. Dat is een kerkelijk wonder.” | Kerkelijke woordgrap (kerkelijk wonder); "kratten" en "heel" houden de betekenis. | — (geen precedent in `gronings_spoken.json`) |
-| 7 | M09.4 | Geesje | Pulcherrima | “Dat is meer dan de dominee ooit haalde.” | — | — (geen precedent in `gronings_spoken.json`) |
+| 7 | M09.4 | Geesje | Pulcherrima | “Dat is meer dan de dominee ooit haalde.” | Dominee is kerkelijk; de vergelijking moet droog blijven. | — (geen precedent in `gronings_spoken.json`) |
 | 8 | M09.4 | Geesje | Pulcherrima | “Ze staan in de kerkkelder. Jullie komen te laat.” | Kerkkelder; "jullie komen te laat" is een aanspreekvorm: kies dezelfde vorm als in de andere Geesje-regels. | — (geen precedent in `gronings_spoken.json`) |
 | 9 | M09.4 | Geesje | Pulcherrima | “Dan koopt u een eierkoek.” | Beleefdheidsvorm "u" (kosteres tegen een klant): kies u of de Groningse vorm, consistent met de rest van M09. | — (geen precedent in `gronings_spoken.json`) |
 | 10 | M09.5 | Geesje | Pulcherrima | “Weer eieren? De kippen sturen een kaartje.” | Droge grap over de kippen; geen dialect voor de grap zelf, alleen de zinsbouw. | — (geen precedent in `gronings_spoken.json`) |
-| 11 | M12.2 | Rotor Roelf | Achird | “Moi! Rotor Roelf. Die heli is van mij, ik zette hem gisteren op het UMCG-dak.” | — | “Ik vlieg. Rotor Roelf denkt dat we een heli kopen. Dat laat ik even zo.” → “Ik vlieg. Rotor Roelf denkt dat wie n heli kopen. Dat loat ik eefkes zo.”<br>“Mijn traumaheli staat in onderhoud. Dit is die van Rotor Roelf, en mijn nachtdienst heeft …” → “Mien traumaheli stait in onderhoud. Dit is dij van Rotor Roelf, en mien nachtdienst het honger.” |
+| 11 | M12.2 | Rotor Roelf | Achird | “Moi! Rotor Roelf. Die heli is van mij, ik zette hem gisteren op het UMCG-dak.” | Groet "Moi" en de bijnaam Rotor Roelf blijven; UMCG-dak is een echte plek (mag blijven); "heli" is spreektaal. | “Ik vlieg. Rotor Roelf denkt dat we een heli kopen. Dat laat ik even zo.” → “Ik vlieg. Rotor Roelf denkt dat wie n heli kopen. Dat loat ik eefkes zo.”<br>“Mijn traumaheli staat in onderhoud. Dit is die van Rotor Roelf, en mijn nachtdienst heeft …” → “Mien traumaheli stait in onderhoud. Dit is dij van Rotor Roelf, en mien nachtdienst het honger.” |
 | 12 | M12.2 | Rotor Roelf | Achird | “De lunch is van Dijkstra. Nait tegen d'Olle Grieze aan, hè?” | De regel bevat al Gronings ("Nait") en de eigennaam "d'Olle Grieze": de kenner kiest of die vorm blijft en hoe de rest eromheen klinkt. | “Moi! Rotor Roelf, van Eelde. De proefvlucht is gratis. Nait tegen d'Olle Grieze aan, hè?” → “Moi! Rotor Roelf, van Eelde. De proefvlucht is gratis. Nait tegen d'Olle Grieze aan, hè?” |
 | 13 | M21.4 | Geesje | Pulcherrima | “Mijn kerkvoogdij is gebeld. De kerkkelder is verhuurd. Het spijt me, jong.” | Kerkelijk bestuur (kerkvoogdij), kerkkelder; "jong" is een aanspreekvorm die Geesje vaker gebruikt. | — (geen precedent in `gronings_spoken.json`) |
 | 14 | M23.1 | Geesje | Pulcherrima | “Ik rij op mijn scooter. Een bedevaart op twee wielen. Hij is sneller dan hij lijkt.” | Scooter en bedevaart zijn de grap; "op twee wielen" moet dezelfde droge toon houden. | — (geen precedent in `gronings_spoken.json`) |
@@ -56,6 +56,224 @@ nieuwe vorm die in `gronings_spoken.json` al bestaat, houdt dezelfde spelling. T
 2. `node scripts/gronings_merge_draft.mjs` toont wat er nieuw is en welke rijen botsen; `--write` voegt ze toe.
 3. `node scripts/tts_lines_list.mjs` zet de regels daarna in de wachtrij; `python scripts/tts_lines.py` neemt op.
 4. Deze lijst en `docs/verhaal/TTS-OPNAMELIJST-735.md` opnieuw draaien met `node scripts/tts_opnamelijst.mjs`.
+
+## Beslisformulier per regel
+
+Vul per regel in (of laat de regel bewust open). Hier staat **nog geen Groningse tekst**: de kenner
+schrijft of keurt de spreektekst en zet daaronder het akkoord. Dezelfde Nederlandse regel is de sleutel
+in `scripts/gronings_spoken_draft.json`.
+
+### 1. M09.1 · Geesje — “Jullie zijn van Trijntje. Het zijn eieren, geen relikwieën. Maar ik ben kosteres, dus ik b…”
+
+- **Gewenste Groningse spreektekst:**
+- **Let op (knooppunt):** Aanspreekvorm (jullie/jim), kerkelijke woorden (kosteres, relikwieën): laat de kerkelijke toon van Geesje staan; eigen naam Trijntje blijft.
+- **Aanspreekvorm:** [ ] jij/jullie zoals de ondertitel · [ ] "jong" · [ ] "u" · [ ] anders:
+- **Kerkelijke term (kosteres, kerkkelder, dominee, kerkvoogdij):** [ ] Gronings · [ ] Nederlands · [ ] laten staan · [ ] anders:
+- **Naam, plaats of bestaande Groningse vorm (bijv. "Nait"):** [ ] laten staan zoals de ondertitel · [ ] spelling aanpassen naar:
+- **Overig (grap, woordkeuze, tempo):**
+- **Akkoord kenner:** naam of initialen + datum:
+
+### 2. M09.1 · Geesje — “Jelle Terpstra heeft alle eieren van het Hogeland gekocht, behalve de mijne. Mijn kippen h…”
+
+- **Gewenste Groningse spreektekst:**
+- **Let op (knooppunt):** Eigen namen (Jelle Terpstra), streeknaam Hogeland en het woord contract: alleen de zin eromheen wordt Gronings.
+- **Aanspreekvorm:** [ ] jij/jullie zoals de ondertitel · [ ] "jong" · [ ] "u" · [ ] anders:
+- **Kerkelijke term (kosteres, kerkkelder, dominee, kerkvoogdij):** [ ] Gronings · [ ] Nederlands · [ ] laten staan · [ ] anders:
+- **Naam, plaats of bestaande Groningse vorm (bijv. "Nait"):** [ ] laten staan zoals de ondertitel · [ ] spelling aanpassen naar:
+- **Overig (grap, woordkeuze, tempo):**
+- **Akkoord kenner:** naam of initialen + datum:
+
+### 3. M09.1 · Geesje — “Zijn moeder, Gerda, belt Trijntje elk jaar op haar verjaardag. Ze zeggen dan allebei niks.”
+
+- **Gewenste Groningse spreektekst:**
+- **Let op (knooppunt):** Voor "zijn moeder" bestaat een goedgekeurd precedent (moeke); namen Gerda en Trijntje blijven staan; "belt" is moderne spreektaal.
+- **Aanspreekvorm:** [ ] jij/jullie zoals de ondertitel · [ ] "jong" · [ ] "u" · [ ] anders:
+- **Kerkelijke term (kosteres, kerkkelder, dominee, kerkvoogdij):** [ ] Gronings · [ ] Nederlands · [ ] laten staan · [ ] anders:
+- **Naam, plaats of bestaande Groningse vorm (bijv. "Nait"):** [ ] laten staan zoals de ondertitel · [ ] spelling aanpassen naar:
+- **Overig (grap, woordkeuze, tempo):**
+- **Akkoord kenner:** naam of initialen + datum:
+
+### 4. M09.1 · Geesje — “Jullie brengen ze heel naar de kerkkelder in Usquert. Daar is het koel, en daar komt Jelle…”
+
+- **Gewenste Groningse spreektekst:**
+- **Let op (knooppunt):** Plaatsnaam Usquert blijft staan; kerkkelder is een kerkelijk woord; "heel" (in één stuk) is betekenis, geen dialect.
+- **Aanspreekvorm:** [ ] jij/jullie zoals de ondertitel · [ ] "jong" · [ ] "u" · [ ] anders:
+- **Kerkelijke term (kosteres, kerkkelder, dominee, kerkvoogdij):** [ ] Gronings · [ ] Nederlands · [ ] laten staan · [ ] anders:
+- **Naam, plaats of bestaande Groningse vorm (bijv. "Nait"):** [ ] laten staan zoals de ondertitel · [ ] spelling aanpassen naar:
+- **Overig (grap, woordkeuze, tempo):**
+- **Akkoord kenner:** naam of initialen + datum:
+
+### 5. M09.1 · Geesje — “De trekker staat bij de schuur. Hij trekt hard.”
+
+- **Gewenste Groningse spreektekst:**
+- **Let op (knooppunt):** Landbouwwoorden (trekker, schuur); korte droge zinnen van Geesje: geen extra toevoeging.
+- **Aanspreekvorm:** [ ] jij/jullie zoals de ondertitel · [ ] "jong" · [ ] "u" · [ ] anders:
+- **Kerkelijke term (kosteres, kerkkelder, dominee, kerkvoogdij):** [ ] Gronings · [ ] Nederlands · [ ] laten staan · [ ] anders:
+- **Naam, plaats of bestaande Groningse vorm (bijv. "Nait"):** [ ] laten staan zoals de ondertitel · [ ] spelling aanpassen naar:
+- **Overig (grap, woordkeuze, tempo):**
+- **Akkoord kenner:** naam of initialen + datum:
+
+### 6. M09.4 · Geesje — “De kratten staan heel. Dat is een kerkelijk wonder.”
+
+- **Gewenste Groningse spreektekst:**
+- **Let op (knooppunt):** Kerkelijke woordgrap (kerkelijk wonder); "kratten" en "heel" houden de betekenis.
+- **Aanspreekvorm:** [ ] jij/jullie zoals de ondertitel · [ ] "jong" · [ ] "u" · [ ] anders:
+- **Kerkelijke term (kosteres, kerkkelder, dominee, kerkvoogdij):** [ ] Gronings · [ ] Nederlands · [ ] laten staan · [ ] anders:
+- **Naam, plaats of bestaande Groningse vorm (bijv. "Nait"):** [ ] laten staan zoals de ondertitel · [ ] spelling aanpassen naar:
+- **Overig (grap, woordkeuze, tempo):**
+- **Akkoord kenner:** naam of initialen + datum:
+
+### 7. M09.4 · Geesje — “Dat is meer dan de dominee ooit haalde.”
+
+- **Gewenste Groningse spreektekst:**
+- **Let op (knooppunt):** Dominee is kerkelijk; de vergelijking moet droog blijven.
+- **Aanspreekvorm:** [ ] jij/jullie zoals de ondertitel · [ ] "jong" · [ ] "u" · [ ] anders:
+- **Kerkelijke term (kosteres, kerkkelder, dominee, kerkvoogdij):** [ ] Gronings · [ ] Nederlands · [ ] laten staan · [ ] anders:
+- **Naam, plaats of bestaande Groningse vorm (bijv. "Nait"):** [ ] laten staan zoals de ondertitel · [ ] spelling aanpassen naar:
+- **Overig (grap, woordkeuze, tempo):**
+- **Akkoord kenner:** naam of initialen + datum:
+
+### 8. M09.4 · Geesje — “Ze staan in de kerkkelder. Jullie komen te laat.”
+
+- **Gewenste Groningse spreektekst:**
+- **Let op (knooppunt):** Kerkkelder; "jullie komen te laat" is een aanspreekvorm: kies dezelfde vorm als in de andere Geesje-regels.
+- **Aanspreekvorm:** [ ] jij/jullie zoals de ondertitel · [ ] "jong" · [ ] "u" · [ ] anders:
+- **Kerkelijke term (kosteres, kerkkelder, dominee, kerkvoogdij):** [ ] Gronings · [ ] Nederlands · [ ] laten staan · [ ] anders:
+- **Naam, plaats of bestaande Groningse vorm (bijv. "Nait"):** [ ] laten staan zoals de ondertitel · [ ] spelling aanpassen naar:
+- **Overig (grap, woordkeuze, tempo):**
+- **Akkoord kenner:** naam of initialen + datum:
+
+### 9. M09.4 · Geesje — “Dan koopt u een eierkoek.”
+
+- **Gewenste Groningse spreektekst:**
+- **Let op (knooppunt):** Beleefdheidsvorm "u" (kosteres tegen een klant): kies u of de Groningse vorm, consistent met de rest van M09.
+- **Aanspreekvorm:** [ ] jij/jullie zoals de ondertitel · [ ] "jong" · [ ] "u" · [ ] anders:
+- **Kerkelijke term (kosteres, kerkkelder, dominee, kerkvoogdij):** [ ] Gronings · [ ] Nederlands · [ ] laten staan · [ ] anders:
+- **Naam, plaats of bestaande Groningse vorm (bijv. "Nait"):** [ ] laten staan zoals de ondertitel · [ ] spelling aanpassen naar:
+- **Overig (grap, woordkeuze, tempo):**
+- **Akkoord kenner:** naam of initialen + datum:
+
+### 10. M09.5 · Geesje — “Weer eieren? De kippen sturen een kaartje.”
+
+- **Gewenste Groningse spreektekst:**
+- **Let op (knooppunt):** Droge grap over de kippen; geen dialect voor de grap zelf, alleen de zinsbouw.
+- **Aanspreekvorm:** [ ] jij/jullie zoals de ondertitel · [ ] "jong" · [ ] "u" · [ ] anders:
+- **Kerkelijke term (kosteres, kerkkelder, dominee, kerkvoogdij):** [ ] Gronings · [ ] Nederlands · [ ] laten staan · [ ] anders:
+- **Naam, plaats of bestaande Groningse vorm (bijv. "Nait"):** [ ] laten staan zoals de ondertitel · [ ] spelling aanpassen naar:
+- **Overig (grap, woordkeuze, tempo):**
+- **Akkoord kenner:** naam of initialen + datum:
+
+### 11. M12.2 · Rotor Roelf — “Moi! Rotor Roelf. Die heli is van mij, ik zette hem gisteren op het UMCG-dak.”
+
+- **Gewenste Groningse spreektekst:**
+- **Let op (knooppunt):** Groet "Moi" en de bijnaam Rotor Roelf blijven; UMCG-dak is een echte plek (mag blijven); "heli" is spreektaal.
+- **Aanspreekvorm:** [ ] jij/jullie zoals de ondertitel · [ ] "jong" · [ ] "u" · [ ] anders:
+- **Kerkelijke term (kosteres, kerkkelder, dominee, kerkvoogdij):** [ ] Gronings · [ ] Nederlands · [ ] laten staan · [ ] anders:
+- **Naam, plaats of bestaande Groningse vorm (bijv. "Nait"):** [ ] laten staan zoals de ondertitel · [ ] spelling aanpassen naar:
+- **Overig (grap, woordkeuze, tempo):**
+- **Akkoord kenner:** naam of initialen + datum:
+
+### 12. M12.2 · Rotor Roelf — “De lunch is van Dijkstra. Nait tegen d'Olle Grieze aan, hè?”
+
+- **Gewenste Groningse spreektekst:**
+- **Let op (knooppunt):** De regel bevat al Gronings ("Nait") en de eigennaam "d'Olle Grieze": de kenner kiest of die vorm blijft en hoe de rest eromheen klinkt.
+- **Aanspreekvorm:** [ ] jij/jullie zoals de ondertitel · [ ] "jong" · [ ] "u" · [ ] anders:
+- **Kerkelijke term (kosteres, kerkkelder, dominee, kerkvoogdij):** [ ] Gronings · [ ] Nederlands · [ ] laten staan · [ ] anders:
+- **Naam, plaats of bestaande Groningse vorm (bijv. "Nait"):** [ ] laten staan zoals de ondertitel · [ ] spelling aanpassen naar:
+- **Overig (grap, woordkeuze, tempo):**
+- **Akkoord kenner:** naam of initialen + datum:
+
+### 13. M21.4 · Geesje — “Mijn kerkvoogdij is gebeld. De kerkkelder is verhuurd. Het spijt me, jong.”
+
+- **Gewenste Groningse spreektekst:**
+- **Let op (knooppunt):** Kerkelijk bestuur (kerkvoogdij), kerkkelder; "jong" is een aanspreekvorm die Geesje vaker gebruikt.
+- **Aanspreekvorm:** [ ] jij/jullie zoals de ondertitel · [ ] "jong" · [ ] "u" · [ ] anders:
+- **Kerkelijke term (kosteres, kerkkelder, dominee, kerkvoogdij):** [ ] Gronings · [ ] Nederlands · [ ] laten staan · [ ] anders:
+- **Naam, plaats of bestaande Groningse vorm (bijv. "Nait"):** [ ] laten staan zoals de ondertitel · [ ] spelling aanpassen naar:
+- **Overig (grap, woordkeuze, tempo):**
+- **Akkoord kenner:** naam of initialen + datum:
+
+### 14. M23.1 · Geesje — “Ik rij op mijn scooter. Een bedevaart op twee wielen. Hij is sneller dan hij lijkt.”
+
+- **Gewenste Groningse spreektekst:**
+- **Let op (knooppunt):** Scooter en bedevaart zijn de grap; "op twee wielen" moet dezelfde droge toon houden.
+- **Aanspreekvorm:** [ ] jij/jullie zoals de ondertitel · [ ] "jong" · [ ] "u" · [ ] anders:
+- **Kerkelijke term (kosteres, kerkkelder, dominee, kerkvoogdij):** [ ] Gronings · [ ] Nederlands · [ ] laten staan · [ ] anders:
+- **Naam, plaats of bestaande Groningse vorm (bijv. "Nait"):** [ ] laten staan zoals de ondertitel · [ ] spelling aanpassen naar:
+- **Overig (grap, woordkeuze, tempo):**
+- **Akkoord kenner:** naam of initialen + datum:
+
+### 15. M23.8 · Geesje — “Ik rij naast jullie, op mijn scooter. Dit is een bedevaart. Ik ken elk steegje van hier to…”
+
+- **Gewenste Groningse spreektekst:**
+- **Let op (knooppunt):** Herhaalt de bedevaart-grap; "elk steegje van hier tot de Grote Markt" houdt de echte toponiemen.
+- **Aanspreekvorm:** [ ] jij/jullie zoals de ondertitel · [ ] "jong" · [ ] "u" · [ ] anders:
+- **Kerkelijke term (kosteres, kerkkelder, dominee, kerkvoogdij):** [ ] Gronings · [ ] Nederlands · [ ] laten staan · [ ] anders:
+- **Naam, plaats of bestaande Groningse vorm (bijv. "Nait"):** [ ] laten staan zoals de ondertitel · [ ] spelling aanpassen naar:
+- **Overig (grap, woordkeuze, tempo):**
+- **Akkoord kenner:** naam of initialen + datum:
+
+### 16. M23.8 · Geesje — “Een limo past niet in een steegje, jong.”
+
+- **Gewenste Groningse spreektekst:**
+- **Let op (knooppunt):** "jong" als aanspreekvorm; limo en steegje zijn spreektaal, geen dialect.
+- **Aanspreekvorm:** [ ] jij/jullie zoals de ondertitel · [ ] "jong" · [ ] "u" · [ ] anders:
+- **Kerkelijke term (kosteres, kerkkelder, dominee, kerkvoogdij):** [ ] Gronings · [ ] Nederlands · [ ] laten staan · [ ] anders:
+- **Naam, plaats of bestaande Groningse vorm (bijv. "Nait"):** [ ] laten staan zoals de ondertitel · [ ] spelling aanpassen naar:
+- **Overig (grap, woordkeuze, tempo):**
+- **Akkoord kenner:** naam of initialen + datum:
+
+### 17. M26.16 · Geesje — “De steeg bij de notaris is dicht. Scooter dwars. Ik zit erop te breien.”
+
+- **Gewenste Groningse spreektekst:**
+- **Let op (knooppunt):** Notaris en scooter zijn modern; "Scooter dwars" en "breien" zijn de grap, geen dialect.
+- **Aanspreekvorm:** [ ] jij/jullie zoals de ondertitel · [ ] "jong" · [ ] "u" · [ ] anders:
+- **Kerkelijke term (kosteres, kerkkelder, dominee, kerkvoogdij):** [ ] Gronings · [ ] Nederlands · [ ] laten staan · [ ] anders:
+- **Naam, plaats of bestaande Groningse vorm (bijv. "Nait"):** [ ] laten staan zoals de ondertitel · [ ] spelling aanpassen naar:
+- **Overig (grap, woordkeuze, tempo):**
+- **Akkoord kenner:** naam of initialen + datum:
+
+### 18. M26.16 · Geesje — “Wie blijft staan, mag breien.”
+
+- **Gewenste Groningse spreektekst:**
+- **Let op (knooppunt):** Korte spreuk: de kenner kiest de Groningse vorm van "blijven staan" en "mag".
+- **Aanspreekvorm:** [ ] jij/jullie zoals de ondertitel · [ ] "jong" · [ ] "u" · [ ] anders:
+- **Kerkelijke term (kosteres, kerkkelder, dominee, kerkvoogdij):** [ ] Gronings · [ ] Nederlands · [ ] laten staan · [ ] anders:
+- **Naam, plaats of bestaande Groningse vorm (bijv. "Nait"):** [ ] laten staan zoals de ondertitel · [ ] spelling aanpassen naar:
+- **Overig (grap, woordkeuze, tempo):**
+- **Akkoord kenner:** naam of initialen + datum:
+
+### 19. M30.1 · Geesje — “Ik zie alles vanaf mijn toren. Dit is geen toren. Het is een hooiberg. Ik zie alles toch.”
+
+- **Gewenste Groningse spreektekst:**
+- **Let op (knooppunt):** Toren/hooiberg: de grap zit in de betekenis; geen dialect toevoegen.
+- **Aanspreekvorm:** [ ] jij/jullie zoals de ondertitel · [ ] "jong" · [ ] "u" · [ ] anders:
+- **Kerkelijke term (kosteres, kerkkelder, dominee, kerkvoogdij):** [ ] Gronings · [ ] Nederlands · [ ] laten staan · [ ] anders:
+- **Naam, plaats of bestaande Groningse vorm (bijv. "Nait"):** [ ] laten staan zoals de ondertitel · [ ] spelling aanpassen naar:
+- **Overig (grap, woordkeuze, tempo):**
+- **Akkoord kenner:** naam of initialen + datum:
+
+### 20. M30.4 · Geesje — “Links. Het derde bolwerk. Ze kijken niet. Ze eten.”
+
+- **Gewenste Groningse spreektekst:**
+- **Let op (knooppunt):** Bolwerk is een echte plekterm; "derde bolwerk" en de korte zinnen blijven.
+- **Aanspreekvorm:** [ ] jij/jullie zoals de ondertitel · [ ] "jong" · [ ] "u" · [ ] anders:
+- **Kerkelijke term (kosteres, kerkkelder, dominee, kerkvoogdij):** [ ] Gronings · [ ] Nederlands · [ ] laten staan · [ ] anders:
+- **Naam, plaats of bestaande Groningse vorm (bijv. "Nait"):** [ ] laten staan zoals de ondertitel · [ ] spelling aanpassen naar:
+- **Overig (grap, woordkeuze, tempo):**
+- **Akkoord kenner:** naam of initialen + datum:
+
+## Luisterchecklist na de opname
+
+Kort, per clip; de opname zelf blijft werk van de eigenaar.
+
+- [ ] De zin is letterlijk de goedgekeurde spreektekst, zonder Nederlandse terugval of improvisatie.
+- [ ] Aanspreekvorm, kerkelijke term en namen klinken zoals de kenner ze heeft aangevinkt.
+- [ ] Tempo en toon passen bij de vorige regel van dezelfde spreker (Geesje warm en droog, Rotor Roelf joviaal).
+- [ ] Namen en plaatsen hebben de juiste klemtoon (o.a. Trijntje, Usquert, Jelle Terpstra, d'Olle Grieze).
+- [ ] Geen valse start, geen kuchje en geen tweede stem in de clip; de duur past bij de ondertitel.
+- [ ] `ffprobe`: 24 kHz mono, duur klopt; de eigenaar luistert de eerste clip van elke spreker zelf.
+- [ ] Daarna: `gronings_spoken_draft.json` bijwerken → `gronings_merge_draft.mjs --write` → `tts_lines_list.mjs` → opnemen.
 
 ## Wat hier bewust niet staat
 

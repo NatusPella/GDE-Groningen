@@ -12,6 +12,8 @@ import { KNOP_ZICHT } from './coopspeler.js';
 import { WEAPONS } from './weapons.js';
 import { charInfo } from './coopplayers.js';
 import { geo, createBoard } from './minigamekit.js';
+import { getSettings } from './settings.js';
+import { cleanDifficulty } from './difficulty.js'; // #800: de PvP-rondetijd volgt de stand
 import { registerMusicProbe } from './scenariomusic.js';
 import { hoofdspeler } from './spelersregister.js';
 // De J/N-uitnodiging en de meldingen van een wedstrijd zijn er al (#443): de arena gebruikt ze opnieuw in plaats van een
@@ -338,7 +340,7 @@ function arenaBegin(world) {
   }
   const ar = maakArena({ x: ARENA_PLEK.x, y: ARENA_PLEK.y });
   for (const k of kandidaten) arenaMeld(ar, k.slot, k.naam, false);
-  if (!arenaStart(ar, nuVan(world)).ok) { meldAan(world, 0, ARENA_TEKST.min); return false; }
+  if (!arenaStart(ar, nuVan(world), cleanDifficulty(getSettings().difficulty)).ok) { meldAan(world, 0, ARENA_TEKST.min); return false; }
   world.pvpArena = ar; world.pvpArenaFlash = null; world.pvpArenaUitslag = null; world.pvpArenaStandT = nuVan(world); world.pvpArenaBetaald = null;
   for (const d of ar.deeln) meldAan(world, d.slot, ARENA_TEKST.startJij(ARENA_TEAMS[d.team].naam)); // iedereen hoort zijn eigen team
   return true;

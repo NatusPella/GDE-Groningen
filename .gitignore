@@ -55,11 +55,13 @@ android/android/version.properties
 # testuitvoer en tijdelijke Electron-profielen
 .test-temp/
 
-# tijdelijke meetbestanden van perf-agents
 
 # Electron-foutlogs van testruns (kunnen thuispaden bevatten)
 desktop/err*.txt
 
-# tijdelijke meetbestanden van perf-agents
-.agents/perf-*/
 desktop/.shots/
+
+# build van de marketingpagina (wordt door website/build.mjs gemaakt)
+website/_site/
+.agents/
+.agents/worktrees/

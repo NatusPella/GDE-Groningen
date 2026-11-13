@@ -1,4 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { probe } from './hitchprobe.js';
 import { gridItems } from './spatialgrid.js';
 import { applyWetGround } from './terrain3d.js';
 import { buildRoadStructure, buildOverpassDeck, structureGroup, jointAway, jointMiter } from './roadstructures3d.js';
@@ -421,6 +422,7 @@ function fillNodes(nodeIndex, roads, from, to) {
 }
 let netBuild = null; // { map, geoVer, roads, k, nodeIndex } zolang een herbouw loopt
 function netState(map) {
+  probe.mark('roadnet-entry');
   let s = nets.get(map);
   const ver = map.geoVer;
   if (!s) {
@@ -437,6 +439,7 @@ function netState(map) {
   if (typeof document !== 'undefined' && document.body && (document.body.classList.contains('intro-montage') || document.body.classList.contains('cine-hide-hud'))) return s;
   if (!netBuild || netBuild.map !== map || netBuild.geoVer !== ver) {
     netBuild = { map, geoVer: ver, roads: gridItems(map.roadGrid), k: 0, nodeIndex: new Map() };
+    probe.mark('roadnet-grid');
   }
   const B = netBuild;
   // Tijdens een tegelburst (de openingsfilm springt van wijk naar wijk) worden
@@ -447,10 +450,12 @@ function netState(map) {
   if (B.last && nu - B.last < 8) return s;
   B.last = nu;
   fillNodes(B.nodeIndex, B.roads, B.k, Math.min(B.roads.length, B.k + NET_CHUNK));
+  probe.mark('roadnet-chunk');
   B.k = Math.min(B.roads.length, B.k + NET_CHUNK);
   if (B.k >= B.roads.length) {
     s.nodeIndex = B.nodeIndex;
     s.lights = allSignals(map).filter((l) => !l.bike);
+    probe.mark('roadnet-lights');
     s.geoVer = B.geoVer;
     netBuild = null;
   }

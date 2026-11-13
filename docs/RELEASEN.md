@@ -6,6 +6,14 @@ Een release is een pre-release in de privé-repo (AGENTS.md, "Releases"). De co�
 
 ## Stappen
 
+Sinds ADR [0034](../.specs-fire/standards/adr/0034-ai-releasegate-met-bewijs.md)
+gaat er één verplichte stap aan de release vooraf: de **releasegate**.
+Draai vóór de bump `node scripts/release_gate.mjs --stage=auto --from=<vorige tag>`
+en de AI-reviewlus zoals beschreven in [docs/RELEASEGATE.md](RELEASEGATE.md).
+`desktop/release.sh` verifieert het bewaarde rapport (`--verify
+--allow-release-commit`) en stopt zonder groen bewijs; de eigenaarsnooduitgang
+`GDE_RELEASE_SKIP_GATE=1` staat luid in de uitvoer.
+
 1. **Lokaal, op de Windows-machine (of in Actions, zie onder):** `CHANGELOG.md` bijwerken (sectie `## [X.Y.Z]`), schone werkboom, dan
    `cd desktop && npm run release -- minor|patch --world`.
    `release.sh` draait eerst de CI-selectie (`node scripts/run_tests.mjs`) en stopt bij een rode suite (#576; nooduitgang `GDE_RELEASE_SKIP_TESTS=1`, dan staat het in de uitvoer).
@@ -14,8 +22,8 @@ Een release is een pre-release in de privé-repo (AGENTS.md, "Releases"). De co�
 2. **In Actions, met één commando:** `node scripts/release_builds.mjs` (tag = versie in `desktop/package.json`, of `node scripts/release_builds.mjs v0.38.1`).
    Het script start `windows-release.yml`, `mac-release.yml`, `linux-release.yml` en `android-release.yml` (alle vier, behalve wat als bijlage al op de release staat: de lokale exe blijft dus staan; `--only windows` bouwt hem toch in Actions) met `gh workflow run` (de workflows moeten op `main` staan), wacht tot ze klaar zijn, start een door de runner geannuleerde run één keer opnieuw, meldt per workflow de duur en de gebruikte gratis minuten, en zet de installatieregels (macOS, Linux/Steam Deck, Android-sideloaden) in een beheerd blok onderaan de releasenotities. Alleen bijlagen die er echt staan komen erin; twee keer draaien geeft hetzelfde.
    Opties: `--only windows,linux,android`, `--arm64`, `--notes-only`, `--droog` (alleen tonen), `--ref <branch>`.
-   **Let op (stand 9 november 2026):** de 2000 gratis Actions-minuten van deze maand zijn op. Start voor 0.60.x alleen de lokale Windows-build en de wereld; de platformworkflows (macOS, Linux, Android) pas na de maandelijkse reset of na aankoop van extra minuten. Zie [Kosten (gratis minuten)](#kosten-gratis-minuten).
-3. Bijlagen daarna: `…-windows-portable.exe` (lokaal), `…-mac.dmg`, `…-linux.AppImage`, `…-linux.tar.gz`, `…-android-debug.apk` en `gde-world.tgz` (invoer voor de runners; blijft staan). **Stand 9 november 2026:** `v0.60.1` heeft alleen de lokaal gebouwde Windows-exe, `gde-world.tgz` en `SHA256SUMS.txt`; de platformbijlagen staan nog op `v0.60.0` en volgen voor 0.60.1 pas na de Actions-reset of aankoop (zie §Kosten).
+   **Let op (stand 10 november 2026):** de 2000 gratis Actions-minuten van deze maand zijn op. Start voor 0.60.x alleen de lokale Windows-build en de wereld; de platformworkflows (macOS, Linux, Android) pas na de maandelijkse reset of na aankoop van extra minuten. Zie [Kosten (gratis minuten)](#kosten-gratis-minuten).
+3. Bijlagen daarna: `…-windows-portable.exe` (lokaal), `…-mac.dmg`, `…-linux.AppImage`, `…-linux.tar.gz`, `…-android-debug.apk` en `gde-world.tgz` (invoer voor de runners; blijft staan). **Stand 10 november 2026:** `v0.60.3` heeft alleen de lokaal gebouwde Windows-exe, `gde-world.tgz` en `SHA256SUMS.txt`; de platformbijlagen staan nog op `v0.60.0` en volgen voor 0.60.1/0.60.2/0.60.3 pas na de Actions-reset of aankoop (zie §Kosten).
 
 De workflows starten nooit vanzelf (alleen `workflow_dispatch`), gebruiken alleen `GITHUB_TOKEN` met `contents: write` en hebben geen geheimen. Ze bouwen uit de tag, dus een fout in de workflow zelf herstel je op `main` en start je opnieuw; de tag hoeft niet mee. Elke workflow heeft een eigen `concurrency`-groep per tag en een time-out (macOS 20, Linux 25, Android 30 min).
 
@@ -53,10 +61,50 @@ Wat dit niet afdekt, en dus een eigenaarsbesluit is (hier niet gedaan): `desktop
 
 ## Poorten vóór een release (#576)
 
+- **Releasegate (ADR 0034).** `node scripts/release_gate.mjs --stage=auto --from=<vorige tag>`
+  draait de vijf fasen met bewijs (static, world indien geraakt, perf, visual en de
+  verplichte AI-code-review) en schrijft één rapport. `desktop/release.sh` verifieert
+  dat rapport vóór de build met `--verify`; zonder groen bewijs geen release. Zie
+  [docs/RELEASEGATE.md](RELEASEGATE.md).
 - **CI op main.** De Tests-workflow draait sinds #576 ook bij een push naar `main`; op een push alleen de Linux-run (de Windows-run kost dubbele gratis minuten en draait al op elke PR). Zo staat er een groene meting op de commit waaruit getagd wordt.
 - **Lokaal vóór de tag.** `desktop/release.sh` draait vóór de versiebump `node scripts/run_tests.mjs` (dezelfde selectie als CI) en stopt bij rood. Nooduitgang voor een hotfix: `GDE_RELEASE_SKIP_TESTS=1`; de uitvoer zegt dan expliciet dat de suite niet gedraaid is.
 - **Tagvalidatie.** `scripts/release_builds.mjs` weigert een tag die niet `^v\d+\.\d+\.\d+$` is (de release 0.55.0 staat zonder `v`; zo'n tag valt niet stil terug op `desktop/package.json` meer).
 - **Hashes.** De Windows-workflow regenereert `SHA256SUMS.txt` na zijn `--clobber`-upload, zodat de hash bij de nieuwe exe hoort en de regel van `gde-world.tgz` blijft staan.
+
+## npm audit: dev-only build-tooling
+
+`cd desktop && npm audit` meldt op 13-11-2026 **zes moderate** kwetsbaarheden. Ze komen alle zes uit
+dezelfde advisory, [GHSA-g3hv-75wg-m249](https://github.com/advisories/GHSA-g3hv-75wg-m249):
+`minimatch` 7.0.0–11.0.0 heeft een denial-of-service via globparts-amplificatie. In deze keten zitten
+twee kwetsbare kopieën: `@electron/universal` 2.0.3 gebruikt `minimatch` 9.0.9 en
+`app-builder-lib` 26.18.1 gebruikt `minimatch` 10.2.6. De andere vier meldingen zijn dezelfde
+advisory die via `electron-builder`/`dmg-builder`/`electron-builder-squirrel-windows` omhoog propageert.
+`npm audit --omit=dev` geeft **0**: het is dev-only buildgereedschap en het zit niet in de app
+(`desktop/package.json` `build.files` bevat geen `node_modules`; de app bevat alleen de stage-bestanden).
+De DoS raakt alleen de machine die bouwt en alleen patronen die dit project zelf in de
+electron-builder-config of in een dependency-naam aanlevert; er is geen productie- of spelerspad.
+
+**Waarom geen override/upgrade.** Geprobeerd met `npm 12.2.0` op `electron-builder@26.18.1`:
+
+- Een override voor `@electron/universal` → `minimatch ^11.0.1` werkt (die tak verdwijnt), maar
+  `app-builder-lib` houdt zijn eigen `minimatch` 10.2.6; de audit blijft dan 5 meldingen. Een
+  override op `app-builder-lib` zelf werd door npm niet doorgevoerd (ook niet na een verse lock of
+  een herinstallatie van die tak), en een globale `minimatch ^11.0.1` raakt ook de oude
+  `glob@7`/`filelist`/`dir-compare`-kopieën die de function-API van `minimatch` 3/5 verwachten.
+  Zo'n boom is geen veilige override en is niet met packaging getest.
+- De door npm voorgestelde `electron-builder@25.1.0` is een **major downgrade** en daarmee een
+  groter release-risico dan deze buildtijdmelding.
+- `electron-builder@27.0.0-alpha.14` (alpha) gebruikt nog `app-builder-lib` met
+  `minimatch ^10.2.5`; `@electron/universal@3.0.6` lost de minimatch-tak op maar vraagt Node ≥22.12
+  en is een major voor de macOS-universal-merge, die zonder aparte mac-packagingtest niet veilig is.
+
+**Besluit:** dit is geaccepteerd build-toolingrisico, geen productie-afhankelijkheid en geen
+spelerrisico. Geen override of versiewijziging in `desktop/package.json`/`package-lock.json`.
+Bij een volgende release blijven `npm audit --omit=dev`, `node scripts/desktop_packaging_test.mjs` en
+`npm run stage` groen (13-11-2026: 21 controles, stage ok). Opnieuw bekijken zodra
+`electron-builder` zelf `minimatch` ≥11.0.1 meeneemt; dan is de schone route een gewone
+`electron-builder`-update. Reproduceren: `cd desktop && npm audit`, `npm audit --omit=dev`,
+`node scripts/desktop_packaging_test.mjs`, `npm run stage`.
 
 ## Voorstel aan de eigenaar: release-rechten (#558)
 
@@ -103,7 +151,7 @@ Gemeten (v0.38.1, 21 oktober):
 
 Die 3 tot 6% geldt bij één release per keer; op 9 november stapelden meerdere releases op één dag op en was het budget daarna op. macOS is bijna al het verbruik: draai die dus niet voor proefjes (`--only linux,android`). Een mislukte stage-stap (Android, eerste poging: 4,5 min) telt ook mee.
 
-**Stand 9 november 2026: de 2000 gratis minuten van deze maand zijn op.** `v0.60.0` kreeg nog alle vier de platformbijlagen; `v0.60.1` heeft daarom alleen de lokaal gebouwde Windows-exe en `gde-world.tgz`. De macOS-, Linux- en Android-builds voor 0.60.1 (en verdere releases deze maand) kunnen pas na de maandelijkse reset of na aankoop van extra minuten. Windows bouwt lokaal altijd door; een Linux-build kan desnoods lokaal met `npm run release -- current --linux`, macOS en Android hebben Actions of een eigen machine nodig. Dit is een eigenaarsbesluit over geld en timing, geen codeblok.
+**Stand 10 november 2026: de 2000 gratis minuten van deze maand zijn op.** `v0.60.0` kreeg nog alle vier de platformbijlagen; `v0.60.1`, `v0.60.2` en `v0.60.3` hebben daarom alleen de lokaal gebouwde Windows-exe en `gde-world.tgz`. De platformbijlagen staan nog op `v0.60.0`; de macOS-, Linux- en Android-builds voor 0.60.1/0.60.2/0.60.3 (en verdere releases deze maand) kunnen pas na de maandelijkse reset of na aankoop van extra minuten. Windows bouwt lokaal altijd door; een Linux-build kan desnoods lokaal met `npm run release -- current --linux`, macOS en Android hebben Actions of een eigen machine nodig. Dit is een eigenaarsbesluit over geld en timing, geen codeblok.
 
 Waarom niet alles in Actions? Windows lokaal blijft de snelste en goedkoopste keus: de exe bouwt hier in een paar minuten uit de kaart die toch al op deze machine staat, en in Actions kost hij 2x (10 gratis minuten). `windows-release.yml` is de reserve en de weg naar een Windows-build zonder deze pc (op een andere computer: `release.sh` hoeft er dan niet te draaien, alleen `gh workflow run`). De provinciebouw (ca. 15 min en veel RAM, uit `data/cache`) kan niet op een runner. Dus: **Windows en de wereld lokaal (Windows in Actions als reserve), macOS, Linux en Android in Actions** — zolang er minuten zijn. Nu de limiet op is: alleen Windows lokaal, en de platformbijlagen na de reset of aankoop. Een Linux-build lokaal kan nog steeds: `npm run release -- current --linux`, bijvoorbeeld als de Actions-minuten op zijn (`gh api /repos/NatusPella/GDE-Groningen/actions/runs` toont het verbruik; Instellingen > Billing de rest).
 

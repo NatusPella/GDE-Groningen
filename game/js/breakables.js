@@ -1,4 +1,5 @@
 import { hoofdspeler } from './players.js';
+import { probe } from './hitchprobe.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { disableVehicle } from './vehiclewreck.js';
 import { reportImpact, vehicleContacts, CRASH_DAMAGE_SCALE } from './vehicleimpact.js';
@@ -825,14 +826,20 @@ export function updateBreakables(dt, w, sc) {
   if (streamTimer <= 0) {
     streamTimer = STREAM_INTERVAL;
     const { x, y } = hoofdspeler(w).inVehicle || hoofdspeler(w);
+    probe.mark('br-stream-start');
     for (const fn of streamers) fn(w, x, y);
+    probe.mark('br-stream');
   }
   if (w.paused || !root) return;
   respawnTimer -= dt;
-  if (respawnTimer <= 0) { respawnTimer = 1; respawnCheck(); }
+  if (respawnTimer <= 0) { respawnTimer = 1; probe.mark('br-respawn-start'); respawnCheck(); probe.mark('br-respawn'); }
+  probe.mark('br-foot-start');
   footKicks();
+  probe.mark('br-foot');
   kickBodies();
+  probe.mark('br-kick');
   updateBodies(dt);
+  probe.mark('br-bodies');
   updatePool(debris, dt);
   updatePool(sparks, dt);
 }

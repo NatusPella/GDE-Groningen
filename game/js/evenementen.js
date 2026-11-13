@@ -187,7 +187,7 @@ export function eventHere(x, y, n, hour, ahead = 0) {
   return null;
 }
 
-// Markers voor de kaart in de GTA/Watch-Dogs-stijl: { id, x, y, icon, label, live }
+// Markers voor de kaart in de stijl van open-wereldmisdaadgames: { id, x, y, icon, label, live }
 export function mapMarkers(n, hour) {
   return AGENDA.filter((ev) => n >= ev.from && n <= ev.to).map((ev) => {
     const c = centreOf(ev);

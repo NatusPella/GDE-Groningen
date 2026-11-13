@@ -1,5 +1,5 @@
 // Perf-normregels (#804):  node scripts/perf_norm_test.mjs
-import { NORM, routeStats, routeMeasured, routeHasFrames, normViolations, routeMap } from './perf/normrules.mjs';
+import { NORM, MACHINE_BUSY_PCT, routeStats, routeMeasured, routeHasFrames, normViolations, routeMap, machineBusy, slowWall } from './perf/normrules.mjs';
 
 let fails = 0;
 const ok = (c, name, extra) => { if (!c) { fails++; console.log('FAIL', name, extra !== undefined ? JSON.stringify(extra) : ''); } };
@@ -22,6 +22,10 @@ ok(normViolations(alleenHitch).length === 2, 'zonder frametijden gelden de hitch
 ok(normViolations(zonder).length === 1 && normViolations(zonder)[0].rule === 'geen meting in deze route', 'zonder meting geen groen');
 ok(normViolations(losseMeting).length === 0, 'een losse latentiemeting wordt overgeslagen, niet afgekeurd');
 ok(normViolations(maxTeHoog, { maxP95Ms: 25, maxMaxMs: 500, maxOver100: 0, maxOver50: 0 }).length === 0, 'een ruimere norm kan tijdelijk');
+ok(machineBusy({ cpuBusyBeforePct: MACHINE_BUSY_PCT + 1 }) && !machineBusy({ cpuBusyBeforePct: MACHINE_BUSY_PCT - 1 }), 'een belaste run wordt herkend', MACHINE_BUSY_PCT);
+ok(slowWall(124, 15) && !slowWall(70, 15), 'een veel te lange run wordt herkend');
+ok(!slowWall(NaN, 15) && !slowWall(10, 0), 'zonder echte route geen valse melding');
+ok(!machineBusy(null) && !machineBusy({}), 'zonder machinegegevens geen valse melding');
 ok(routeStats(p95TeHoog).p95 === 34 && routeStats(alleenHitch).p95 === null, 'stats per route');
 ok(Object.keys(routeMap({ routes: { foot: schoon } }))[0] === 'foot', 'een bewaarde run met routes');
 ok(routeMap(schoon).frames === 900, 'één losse route werkt ook');
@@ -29,3 +33,5 @@ ok(Object.keys(routeMap(null)).length === 0 && Object.keys(routeMap({})).length 
 
 console.log(fails ? `${fails} FAIL` : 'perf_norm_test ok');
 process.exit(fails ? 1 : 0);
+
+
