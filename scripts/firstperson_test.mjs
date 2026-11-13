@@ -127,20 +127,30 @@ ok(/toggle\('firstPersoon'/.test(pm), 'pausemenu.js heeft de schakelaar firstPer
 ok(/\['C'\], 'Eerste persoon'/.test(pm), 'pausemenu.js noemt C bij Besturing de eerste-persoonstand');
 
 // --- het interieur van de eigen auto: draw-objecten en driehoeken ---------------------------
-const THREE = await import('three');
 await import('../game/js/player.js');
 const { buildVehicleMesh } = await import('../game/js/models3d_vehicles.js');
 const { Vehicle, TRAFFIC_MODELS } = await import('../game/js/vehicle.js');
 const { updateCarInterior, interiorEyePose } = await import('../game/js/carinterior.js');
-const { doorTrims, interiorLayout } = await import('../game/js/carinteriorlayout.js');
+const { doorTrims, interiorLayout, klasseStijl, interiorKlasse } = await import('../game/js/carinteriorlayout.js');
 const { doorsFor } = await import('../game/js/vehicledoors.js');
 const { vehicleSeat } = await import('../game/js/seating3d.js');
 const { carBodyFit } = await import('../game/js/models3d_vehicles.js');
 
 const modellen = new Map();
 for (const m of TRAFFIC_MODELS()) if (!modellen.has(m.name)) modellen.set(m.name, m);
-const namen = ['hatch', 'sedan', 'wagon', 'van', 'sport', 'taxi'].filter((k) => modellen.has(k));
-if (!namen.length) { bad++; console.log('FAIL geen voertuigmodellen gevonden om het interieur te meten'); }
+const standaard = ['hatch', 'sedan', 'wagon', 'van', 'sport'].filter((k) => modellen.has(k));
+const gevallen = standaard.map((k) => [k, modellen.get(k), {}]);
+// de klassen met een eigen inrichting en de bus (alleen de bestuurderscabine) erbij (#442, #833)
+if (modellen.has('van')) {
+  gevallen.push(['ambulance', { ...modellen.get('van') }, { isAmbulance: true }]);
+}
+if (modellen.has('sedan')) {
+  gevallen.push(['politie', { ...modellen.get('sedan') }, { isPolice: true }]);
+  gevallen.push(['taxi', { name: 'taxi', len: 4.6, wid: 1.8, color: '#1b1c1f' }, {}]);
+}
+gevallen.push(['truck', { name: 'truck', len: 8.5, wid: 2.5, color: '#e8e6e0' }, {}]);
+gevallen.push(['bus', { name: 'bus', len: 12, wid: 2.5, color: '#eceae4' }, { isBus: true }]);
+if (!gevallen.length) { bad++; console.log('FAIL geen voertuigmodellen gevonden om het interieur te meten'); }
 
 const interieurVan = (v) => {
   const mesh = buildVehicleMesh(v);
@@ -150,10 +160,36 @@ const interieurVan = (v) => {
 const meshesVan = (g) => { const out = []; g.traverse((o) => { if (o.isMesh) out.push(o); }); return out; };
 const driehoekenVan = (mesh) => Math.floor((mesh.geometry.attributes.position.count || 0) / 3);
 
+// De kooi van binnen (#833): tel de driehoeken op de vlakken van vloer, zijwanden en
+// achterwand. De normaal moet naar binnen wijzen (vloer omhoog, wanden naar elkaar toe,
+// achterwand naar voren), anders is de kooi van buiten te zien of van binnen open.
+function kooiVlakken(geometry, { floorY, x0, zw }) {
+  const p = geometry.attributes.position.array;
+  const uit = { vloer: 0, links: 0, rechts: 0, achter: 0 };
+  const dichtbij = (a, b) => Math.abs(a - b) < 1e-4;
+  for (let i = 0; i < p.length; i += 9) {
+    const ax = p[i], ay = p[i + 1], az = p[i + 2];
+    const bx = p[i + 3], by = p[i + 4], bz = p[i + 5];
+    const cx = p[i + 6], cy = p[i + 7], cz = p[i + 8];
+    const ux = bx - ax, uy = by - ay, uz = bz - az;
+    const vx = cx - ax, vy = cy - ay, vz = cz - az;
+    const nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
+    const nl = Math.hypot(nx, ny, nz);
+    const area = nl / 2;
+    if (area < 0.05) continue; // kleine onderdelen (stuur, knoppen) tellen niet mee
+    // De vloer van de kooi is groot; een laag zitkussen kan op dezelfde hoogte liggen
+    // (bij de sportwagen is de zitting 0,30 m) en telt dus pas mee boven een halve m².
+    if (dichtbij(ay, floorY) && dichtbij(by, floorY) && dichtbij(cy, floorY) && ny / nl > 0.99) { if (area > 0.5) uit.vloer++; }
+    else if (dichtbij(ax, x0) && dichtbij(bx, x0) && dichtbij(cx, x0) && nx / nl > 0.99 && area > 0.3) uit.achter++;
+    else if (dichtbij(az, -zw) && dichtbij(bz, -zw) && dichtbij(cz, -zw) && nz / nl > 0.99 && area > 0.2) uit.links++;
+    else if (dichtbij(az, zw) && dichtbij(bz, zw) && dichtbij(cz, zw) && nz / nl < -0.99 && area > 0.2) uit.rechts++;
+  }
+  return uit;
+}
+
 const metingen = [];
-for (const naam of namen) {
-  const model = modellen.get(naam);
-  const v = new Vehicle(0, 0, 0, model);
+for (const [naam, model, flags] of gevallen) {
+  const v = Object.assign(new Vehicle(0, 0, 0, model), flags);
   const { mesh, g, zichtbaar } = interieurVan(v);
   ok(zichtbaar === true && !!g, `${naam}: interieur gebouwd en zichtbaar`);
   if (!g) continue;
@@ -162,7 +198,8 @@ for (const naam of namen) {
   // één vast deel, één draaiend stuur en per portier één trim: 2 + deuren draw-objecten
   ok(meshes.length === 2 + deuren, `${naam}: hooguit 2 + portieren draw-objecten (${meshes.length} bij ${deuren} portieren)`, meshes.length);
   ok(deuren <= 4, `${naam}: hooguit vier portierbekledingen`, deuren);
-  ok(meshes.filter((m) => m.name === 'interieur-vast').length === 1, `${naam}: alle stilstaande delen in één mesh`);
+  const statisch = meshes.filter((m) => m.name === 'interieur-vast');
+  ok(statisch.length === 1, `${naam}: alle stilstaande delen in één mesh`);
   ok(g.userData.wheel && g.userData.trims.length === deuren, `${naam}: stuur en portierbekleding zijn aparte delen`);
   let drie = 0, oneindig = false;
   for (const m of meshes) {
@@ -175,32 +212,41 @@ for (const naam of namen) {
   }
   ok(!oneindig, `${naam}: eindige meetkunde`);
   ok(drie > 0 && drie <= 4000, `${naam}: klein genoeg (<= 4000 driehoeken)`, drie);
-  // de kooi van binnen (#833): de statische geometrie reikt tot de vloer en tot de zijwanden,
-  // zodat je in eerste persoon niet door de achterkant van het plaatwerk heen kijkt
+  // de kooi van binnen (#833): acht driehoeken in dezelfde statische mesh, met de normaal
+  // naar binnen, zodat je in eerste persoon niet door de achterkant van het plaatwerk kijkt
   const seat = vehicleSeat(v, true);
-  const L = interiorLayout(seat, v.model.len, v.model.wid, carBodyFit(v));
+  const romp = carBodyFit(v);
+  const L = interiorLayout(seat, v.model.len, v.model.wid, romp);
+  const K = klasseStijl(interiorKlasse(v), L, seat);
+  const rear = K.rear !== undefined ? K.rear : L.rear;
   const floorY = Math.max(0.3, seat.y - 0.34);
-  const box = new THREE.Box3().setFromObject(g);
-  ok(box.min.y <= floorY + 0.02, `${naam}: de kooi reikt tot de vloer`, box.min.y);
-  ok(box.min.z <= -(v.model.wid / 2 - 0.1) && box.max.z >= v.model.wid / 2 - 0.1, `${naam}: de zijwanden staan naast de stoelen`);
-  ok(Number.isFinite(L.dash.x) && floorY > 0.25, `${naam}: de kooi heeft een bruikbare vloerhoogte`, floorY);
+  const x0 = rear ? rear.x - 0.45 : (romp ? seat.x - 0.55 : L.roof.x0 - 0.1);
+  const zw = v.model.wid / 2 - 0.07;
+  const kooi = statisch.length ? kooiVlakken(statisch[0].geometry, { floorY, x0, zw }) : { vloer: 0, links: 0, rechts: 0, achter: 0 };
+  ok(kooi.vloer === 2, `${naam}: een dichte vloer van binnen (2 driehoeken, normaal omhoog)`, kooi.vloer);
+  ok(kooi.links === 2 && kooi.rechts === 2, `${naam}: twee dichte zijwanden (normaal naar binnen)`, kooi);
+  ok(kooi.achter === 2, `${naam}: een dichte achterwand (normaal naar voren)`, kooi.achter);
+  ok(kooi.vloer + kooi.links + kooi.rechts + kooi.achter === 8, `${naam}: de kooi kost acht driehoeken, mee in de ene mesh`, kooi);
   // één gedeeld materiaal, geometrieën gedeeld tussen twee auto's van hetzelfde model
   const materialen = new Set(meshes.map((m) => m.material));
   ok(materialen.size === 1 && meshes[0].material.userData.shared === true, `${naam}: één gedeeld materiaal voor het hele interieur`);
   ok(meshes.every((m) => m.material.vertexColors === true), `${naam}: de kleuren zitten in de geometrie (vertexColors)`);
-  const v2 = new Vehicle(0, 0, 0, model);
+  const v2 = new Vehicle(0, 0, 0, Object.assign({}, model));
+  Object.assign(v2, flags);
   const tweede = interieurVan(v2);
   ok(tweede.g && meshesVan(tweede.g)[0].geometry === meshes[0].geometry, `${naam}: geometrie gedeeld met een tweede auto van hetzelfde model`);
   // het stuur draait mee met de besturing, de portierbekleding verdwijnt bij een open deur
   v.steer = 0.5;
   updateCarInterior(mesh, v, true);
   ok(near(g.userData.wheel.rotation.x, -0.5 * 2.2, 1e-9), `${naam}: het stuur draait met v.steer mee`, g.userData.wheel.rotation.x);
-  v.doors = { open: { [g.userData.trims[0].id]: 1 }, loose: {} };
-  updateCarInterior(mesh, v, true);
-  ok(g.userData.trims[0].group.visible === false, `${naam}: de portierbekleding verdwijnt bij een open deur`);
-  v.doors = { open: {}, loose: {} };
-  updateCarInterior(mesh, v, true);
-  ok(g.userData.trims[0].group.visible === true, `${naam}: de portierbekleding komt terug bij een dichte deur`);
+  if (g.userData.trims.length) {
+    v.doors = { open: { [g.userData.trims[0].id]: 1 }, loose: {} };
+    updateCarInterior(mesh, v, true);
+    ok(g.userData.trims[0].group.visible === false, `${naam}: de portierbekleding verdwijnt bij een open deur`);
+    v.doors = { open: {}, loose: {} };
+    updateCarInterior(mesh, v, true);
+    ok(g.userData.trims[0].group.visible === true, `${naam}: de portierbekleding komt terug bij een dichte deur`);
+  }
   metingen.push({ naam, objecten: meshes.length, driehoeken: drie });
   // uit: het interieur is weg (de binnenkant kost dan niets)
   ok(updateCarInterior(mesh, v, false) === false && g.visible === false, `${naam}: uit verbergt het interieur`);
