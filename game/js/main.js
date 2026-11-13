@@ -269,8 +269,8 @@ const START_WARM_CALM = 12;
 const START_WARM_MAX_FRAME_MS = 50;
   // De eigenaar koos een langer laadscherm boven een haperende eerste minuut: de
   // montageplekken mogen samen ruim een minuut kosten om klaar te zetten.
-  const INTRO_WARM_MS = 60000;
-  const INTRO_TOUR_MS = 25000;
+  const INTRO_WARM_MS = 70000;
+  const INTRO_TOUR_MS = 35000;
 
 function waitForStart(world, ready) {
   const relocate = (x, y) => {
@@ -414,7 +414,8 @@ function waitForStart(world, ready) {
           for (const p of spots) {
           if (performance.now() >= tourEnd) break;
           setCameraOverride(world, { position: { x: p.x + 14, y: p.y + 14, z: 24 }, lookAt: { x: p.x, y: p.y, z: 2 }, fov: 62, cut: true });
-          const stop = Math.min(tourEnd, performance.now() + 3200);
+            // Kort per plek: alle tien de plekken moeten aan bod komen (museum en ring staan achteraan; die cuts gaven anders nog 700 ms shaderpieken).
+            const stop = Math.min(tourEnd, performance.now() + 2200);
           let n = 0;
           while (performance.now() < stop && n < 70) {
           try { tick(1 / 60); render(1 / 60); } catch (e) { break; }
