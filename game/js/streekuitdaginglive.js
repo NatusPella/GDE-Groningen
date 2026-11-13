@@ -45,3 +45,11 @@ export function updateStreekuitdaging(world, dt) {
   setUserWaypoint(checkpoints()[run.index].x, checkpoints()[run.index].y, checkpoints()[run.index].naam);
   world.addMessage(`Volgende: ${checkpoints()[run.index].naam}`, 2.4);
 }
+
+// Prompt voor de E-keten: met een voertuig bij Warffum.
+export function streekuitdagingPrompt(world) {
+  if (!world || run || world.coopRole === 'client') return null;
+  const p = hoofdspeler(world);
+  if (!p || !p.inVehicle || !startBij(p.x, p.y)) return null;
+  return { id: 'hogelandrit', x: STREEKUITDAGING.start.x, y: STREEKUITDAGING.start.y, h: 1.6, key: 'E', label: 'Start de Hogelandrit', sub: `${STREEKUITDAGING.start.naam} · via Usquert naar Uithuizen`, ring: true };
+}
