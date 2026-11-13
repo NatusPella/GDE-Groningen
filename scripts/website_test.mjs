@@ -157,6 +157,10 @@ ok(totaalSlides >= 25, 'samen minstens 25 slides', String(totaalSlides));
 ok((gebouwd.match(/class="slide"/g) || []).length === totaalSlides, 'alle slides staan in de HTML');
 ok((gebouwd.match(/data-slider>/g) || []).length === SLIDESHOWS.length, 'elke slideshow heeft een slider');
 ok((gebouwd.match(/data-slider-controls/g) || []).length === SLIDESHOWS.length, 'elke slideshow heeft bediening');
+ok((gebouwd.match(/role="tablist"/g) || []).length === 1, 'de slideshows zitten achter één tabbalk');
+ok((gebouwd.match(/data-slideshow-tab="/g) || []).length === SLIDESHOWS.length, 'elke categorie heeft een tab');
+ok((gebouwd.match(/data-slideshow-panel="/g) || []).length === SLIDESHOWS.length, 'elke categorie heeft een paneel');
+ok(/aria-selected="true"/.test(gebouwd) && /aria-selected="false"/.test(gebouwd), 'de eerste tab staat geselecteerd');
 for (const show of SLIDESHOWS) {
   ok(gebouwd.includes(`id="slideshow-${show.id}"`), `slideshow ${show.id} staat in de HTML`);
   for (const slide of show.slides) {
@@ -166,6 +170,7 @@ for (const show of SLIDESHOWS) {
 }
 ok(/<script\s+src="script\.js"\s+defer><\/script>/i.test(gebouwd), 'de pagina laadt script.js');
 const script = bestaat('script.js') ? lees('script.js') : '';
+ok(/data-slideshow-tab/.test(script) && /panel\.hidden/.test(script), 'script.js schakelt de tabbladen');
 ok(/navigator\.clipboard/.test(script), 'script.js kopieert de deellink via de clipboard-API');
 ok(/youtube-nocookie\.com\/embed\//.test(script), 'de trailer wordt pas bij klik via youtube-nocookie geladen');
 ok(!/https?:\/\//.test(script.replace(/https:\/\/www\.youtube-nocookie\.com\/embed\//g, '').replace(/https:\/\/natuspella\.github\.io\/GDE-Groningen\//g, '')), 'script.js laadt zelf geen externe bronnen');
@@ -196,6 +201,27 @@ ok(/:focus-visible\s*\{[^}]*outline:\s*2px solid var\(--ink\)/.test(css), 'focus
 ok(/system-ui/.test(css) && !/@font-face/i.test(css), 'systeemlettertypen, geen @font-face');
 ok(/<main\b/.test(html) && (html.match(/<h1\b/gi) || []).length === 1 && /<header\b/.test(html) && /<footer\b/.test(html), 'semantische HTML met precies één h1');
 ok(/class="skip-link"[^>]*href="#inhoud"/i.test(html) && /id="inhoud"/.test(html), 'de pagina heeft een skip-link naar de inhoud');
+
+// Opbouw volgens de funnel: aandacht (hero) → interesse (trailer, kort) → verlangen
+// (wat je doet, de stad, beelden) → actie (zo speel je mee, CTA) → vertrouwen
+// (gemaakt, delen, FAQ, 18+).
+const volgorde = [
+  'class="hero"',
+  'id="trailer"',
+  'class="intro"',
+  'id="wat-je-kunt-doen"',
+  'id="echt-groningen"',
+  'id="beelden"',
+  'id="spelen"',
+  'class="cta-band"',
+  'id="zo-gemaakt"',
+  'id="delen"',
+  'id="vragen"',
+  'id="leeftijd"',
+];
+ok(volgorde.every((m, i) => i === 0 || html.indexOf(volgorde[i - 1]) < html.indexOf(m)), 'de secties staan in de funnel-volgorde', volgorde.filter((m) => html.includes(m)).length + '/' + volgorde.length);
+ok((html.match(/<ol class="steps">/g) || []).length === 1 && (html.match(/<h3>Pak een build<\/h3>|<h3>Speel de playtest<\/h3>|<h3>Laat het weten<\/h3>/g) || []).length === 3, 'de "zo speel je mee"-sectie heeft drie stappen');
+ok(/\.faq\s*\{[^}]*max-width:\s*none/.test(css), 'de FAQ gebruikt de volle breedte');
 
 // ------------------------------------------------------------------ 7. build, gitignore en workflow
 

@@ -80,7 +80,7 @@ function sliderHtml(show) {
                 </figure>
               </li>`).join('');
   return `
-        <section class="slideshow" id="slideshow-${htmlVeilig(show.id)}" aria-labelledby="slideshow-${htmlVeilig(show.id)}-titel">
+        <section class="slideshow" id="slideshow-${htmlVeilig(show.id)}" role="tabpanel" aria-labelledby="tab-${htmlVeilig(show.id)}" data-slideshow-panel="${htmlVeilig(show.id)}">
           <div class="wrap">
             <p class="kicker">${htmlVeilig(show.kicker)}</p>
             <h3 id="slideshow-${htmlVeilig(show.id)}-titel">${htmlVeilig(show.title)}</h3>
@@ -98,6 +98,18 @@ function sliderHtml(show) {
             </div>
           </div>
         </section>`;
+}
+
+// De zes categorieën als tabs: één slider tegelijk zichtbaar (JS), zonder JS staan ze
+// onder elkaar en blijven ze allemaal leesbaar.
+function showcaseHtml() {
+  const tabs = SLIDESHOWS.map((show, i) => `
+          <button type="button" class="showcase-tab" role="tab" id="tab-${htmlVeilig(show.id)}" aria-controls="slideshow-${htmlVeilig(show.id)}" aria-selected="${i === 0}" tabindex="${i === 0 ? '0' : '-1'}" data-slideshow-tab="${htmlVeilig(show.id)}">${htmlVeilig(show.kicker)}</button>`).join('');
+  return `
+      <nav class="wrap showcase-tabs" role="tablist" aria-label="Beeldcategorieën" data-showcase-tabs>${tabs}
+      </nav>
+      <div class="showcase-panels">${SLIDESHOWS.map(sliderHtml).join('\n')}
+      </div>`;
 }
 
 // Alle lokale src/href in de HTML moeten na de build in _site staan. Zo faalt een verkeerd pad
@@ -131,7 +143,7 @@ function main() {
   const indexPad = path.join(OUT, 'index.html');
   const bronHtml = fs.readFileSync(indexPad, 'utf8');
   if (!bronHtml.includes('<!-- SLIDESHOWS -->')) throw new Error('index.html mist <!-- SLIDESHOWS -->');
-  const html = bronHtml.replace('<!-- SLIDESHOWS -->', SLIDESHOWS.map(sliderHtml).join('\n'));
+  const html = bronHtml.replace('<!-- SLIDESHOWS -->', showcaseHtml());
   fs.writeFileSync(indexPad, html, 'utf8');
 
   const mis = [...lokaleVerwijzingen(html)].filter((url) => !fs.existsSync(path.join(OUT, url)));
