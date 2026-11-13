@@ -36,7 +36,7 @@ export const SLIDESHOWS = [
   },
   {
     id: 'missies',
-    kicker: 'Missies en verhaal',
+    kicker: 'Missies',
     title: 'Opdrachten met een doel',
     lead: 'Van missie-HUD tot achtervolging; het verhaal in vijf aktes.',
     slides: [
@@ -49,7 +49,7 @@ export const SLIDESHOWS = [
   },
   {
     id: 'minigames',
-    kicker: 'Minigames en activiteiten',
+    kicker: 'Minigames',
     title: 'Even iets anders doen',
     lead: 'Kermis, zwembad, discgolf, hengelen, klimmen en padel: de startkaart staat vol.',
     slides: [
@@ -75,7 +75,7 @@ export const SLIDESHOWS = [
   },
   {
     id: 'menus',
-    kicker: 'Menu\'s en kaarten',
+    kicker: "Menu's",
     title: 'De wereld bij de hand',
     lead: 'De hele provincie op de kaart, je garage, de boerderij en je prestaties.',
     slides: [
@@ -88,3 +88,4 @@ export const SLIDESHOWS = [
     ],
   },
 ];
+
