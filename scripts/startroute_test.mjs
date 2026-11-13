@@ -76,6 +76,9 @@ ok(/calm = open === 0 && slowRun === 0/.test(warmBody), 'pas door als tellers é
 ok(/\(readyDone \? 0 : 1\)/.test(warmBody) && /window\.__loadMarks\.background/.test(warmBody), 'de warm-stap wacht op de achtergrondstappen (plaatsing en kaartbeelden) en met de klok mee');
 ok(/function warmCountryMaps\(sliceMs = 4\)[\s\S]{0,120}return new Promise/.test(read('game/js/countrymap.js')), 'warmCountryMaps kan zijn klaar-zijn melden');
 ok(/precompilePrograms\(\)/.test(warmBody), 'de warm-stap compileert daarna de shaders');
+ok(/export function setHoldMaterials/.test(scene) && /heldMaterials\.add\(m\)/.test(read('game/js/scene3d.js')), 'scene3d houdt materialen vast tijdens het voorrijden');
+ok(/setCameraOverride\(world, \{ position: \{ x: p\.x \+ 14, y: p\.y \+ 14, z: 24 \}/.test(warmBody) && /introTour/.test(warmBody), 'het laadscherm rijdt de montageplekken op straathoogte af');
+ok(/releaseHeldMaterials\(\)/.test(read('game/js/intromontage.js')), 'na de film komen de vastgehouden materialen vrij');
 ok(/export function takeWarmupSamples/.test(scene) && /samplesHeld = true/.test(read('game/js/scene3d.js')), 'scene3d kan de warm-up-palette als groep geven');
 ok(/takeWarmupSamples\(\)/.test(warmBody) && /world\.__warmSamples/.test(main), 'de warm-up-palette wordt tijdens het laden één keer getekend');
 ok(/releaseWarmupSamples\(\)/.test(read('game/js/intromontage.js')), 'de warm-up-palette wordt na de openingsfilm opgeruimd');
