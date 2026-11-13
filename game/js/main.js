@@ -183,6 +183,7 @@ import { tryTrainInteract, updateTrainDriving } from './traindrive.js';
 import { dist } from './util.js';
 import { updateEmergency } from './emergency.js';
 import { updateIndicators } from './indicators.js';
+import { tryQuickWaypoint } from './snelwaypoint.js'; // #836: T zet of wist je waypoint
 import { initAchievementTracker, updateAchievementTracker } from './achievementtracker.js';
 import { initOmverrijden } from './omverrijden.js';
 import { initBoerderij, boerderijTijd, boerderijKlokNul } from './boerderijlive.js';
@@ -1115,6 +1116,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     else if (world.padelGame) { updatePadel(dt, world); updateCompanion(dt, world); }
     else if (isActivityActive()) { updateActivityGame(dt, world); updateCompanion(dt, world); }
     else {
+      tryQuickWaypoint(world);
       interactActivityKinds(world, 'pre');
       tryPadelInteract(world);
       interactActivityKinds(world, 'act');

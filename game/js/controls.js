@@ -41,6 +41,7 @@ export const KEY_ACTIONS = [
   ['2', 'Pistool', 'wapens'],
   ['3', 'Geweer', 'wapens'],
   ['4', 'Gooien: carbidbus, vuurwerk', 'wapens'],
+  ['5', 'Waypoint naar je eigen doel (nog eens: weg)', 'menu'],
   ['m', 'Kaart', 'menu'],
   ['o', 'Verhaalstap overslaan', 'menu'],
   ['n', 'Radio aan of uit (ook te voet)', 'menu'],

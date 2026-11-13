@@ -4,7 +4,7 @@ import { hoofdspeler } from './players.js';
 // de routes per vervoerswijze uit; tekenLijnen tekent de OV-lijnen op het canvas.
 import { planTrainTrip, planBoatTrip } from './routing.js';
 import { getBusLines } from './vehicle.js';
-import { busTrip, reisOpties, etaText } from './ovopties.js';
+import { busTrip, reisOpties, etaText, TAXI_WAIT_S } from './ovopties.js';
 import { travelSeconds } from './reistijd.js';
 import { lijnLagen } from './ovkaart.js';
 import { travelFactorFor } from './explorationlive.js';
@@ -36,6 +36,8 @@ export function reisOptiesVoor(world, target) {
     routes.bus = guard(() => busTrip(getBusLines(), a, b));
     routes.boot = guard(() => planBoatTrip(world.map, a, b, 'sloep'));
   }
+  // #836: een taxi kan ook korte ritten doen: hij komt erbij en wacht even.
+  if (direct >= 300) routes.taxi = { length: direct * 1.25, etaS: travelSeconds(direct * 1.25, 'auto') + TAXI_WAIT_S };
   const opts = reisOpties(routes, { directM: direct * 1.25, money: world.money });
   if (voordeel < 1) {
     for (const o of opts) {

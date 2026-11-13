@@ -16,7 +16,7 @@ export const STOP_NEAR_M = 600;      // zo ver lopen we naar een halte
 export const CHANGE_NEAR_M = 150;    // haltes zo dicht bij elkaar zijn een overstap
 
 // lijnkleuren per soort; bussen krijgen een vaste kleur uit het palet per lijnnummer
-export const KLEUR = { trein: '#ffc917', boot: '#2f8fd8', auto: '#e8b04a', lopen: '#9aa3ad' };
+export const KLEUR = { taxi: '#d8c548', trein: '#ffc917', boot: '#2f8fd8', auto: '#e8b04a', lopen: '#9aa3ad' };
 const BUS_PALET = ['#d6452f', '#2f9e6a', '#8a5fd0', '#e07a1f', '#1f8fa8', '#c23a8c', '#6a9a2a', '#b5651d'];
 
 export function busColor(ref) {
@@ -123,7 +123,11 @@ export function busTrip(lines, a, b, opts = {}) {
 
 // ---- opties ---------------------------------------------------------------
 
-export const MODE_LABEL = { auto: 'Zelf rijden', trein: 'Met de trein', bus: 'Met de bus', boot: 'Per boot' };
+// #836: een taxi is een eigen reisoptie: geen dienstregeling, wel een prijs en een veilige
+// aankomst bij het doel; de scène valt terug op de auto-opnamen.
+export const TAXI_WAIT_S = 120;
+export const taxiPrice = (lengthM) => Math.max(5, Math.round(5 + (+lengthM || 0) / 700));
+export const MODE_LABEL = { taxi: 'Met de taxi', auto: 'Zelf rijden', trein: 'Met de trein', bus: 'Met de bus', boot: 'Per boot' };
 
 // Eén optie uit een route. route: { length, etaS, legs?, stops?, changes?, lines? }.
 function optionFrom(id, route, extra = {}) {
@@ -153,6 +157,8 @@ export function reisOpties(routes, { directM = 0, money = Infinity } = {}) {
   if (b) out.push(b);
   const o = optionFrom('boot', routes.boot ? { ...routes.boot, etaS: routes.boot.etaS + BOAT_WAIT_S } : null, { price: BOAT_PRICE });
   if (o) out.push(o);
+  const tx = optionFrom('taxi', routes.taxi, { price: routes.taxi ? taxiPrice(routes.taxi.length) : 0 });
+  if (tx) out.push(tx);
   for (const x of out) { x.afford = money >= x.price; x.eta = etaText(x.etaS); }
   // aanbevolen: de snelste meerijden-optie die je kunt betalen, als hij niet
   // veel trager is dan zelf rijden (of als het een sprong is)
