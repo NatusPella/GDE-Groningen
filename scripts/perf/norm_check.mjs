@@ -21,6 +21,10 @@ for (const file of files) {
     belast++;
     console.log(`LET OP ${path.basename(file)}: machine was belast (CPU > ${MACHINE_BUSY_PCT}% vóór de run); de cijfers zijn niet vergelijkbaar met een stille reeks.`);
   }
+  if (json.partial) {
+    belast++;
+    console.log(`LET OP ${path.basename(file)}: PARTIAL-run (niet alle routes afgerond); de cijfers zijn niet bruikbaar voor de norm.`);
+  }
   if (json.machine && json.machine.slowWall) {
     belast++;
     console.log(`LET OP ${path.basename(file)}: run duurde ${json.machine.wallSeconds} s voor ${Math.round(json.machine.expectedSeconds)} s route; GPU/systeem was tijdens de run bezet, cijfers niet vergelijkbaar.`);
