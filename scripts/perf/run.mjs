@@ -140,7 +140,7 @@ result.machine = { cpuBusyBeforePct: busyBefore, cpuBusyAfterPct: await cpuBusy(
 // #804: een run die veel langer duurt dan de routes zelf zegt dat de GPU of het
 // systeem tijdens de run bezet was; dan zijn p95/max niet vergelijkbaar.
 {
-  const routeCount = Object.keys(result.routes || {}).length;
+  const routeCount = Object.values(result.routes || {}).filter((r) => r && Number.isFinite(r.frames) && r.frames > 0).length;
   const expectedS = ((Number(process.env.PERF_DUR) || 20000) / 1000) * routeCount;
   const wallS = Math.round((Date.now() - t0) / 1000);
   result.machine.wallSeconds = wallS;
