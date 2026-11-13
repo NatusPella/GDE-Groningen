@@ -82,5 +82,6 @@ deze lijst voordat een andere sessie begint te schrijven:
 | [0030](0030-terreingrond-als-buildcache.md) | De terreingrond is een build-cache, geen runtime-werk | voorgesteld |
 | [0031](0031-laadscherm-warmt-startbuurt.md) | Het laadscherm bouwt de startbuurt en de shaders voor | besloten |
 | [0033](0033-montage-terug-met-performance-vangnet.md) | De trailer-montage blijft C00.1 met performance-vangnet | 2026-11-11 |
+| [0034](0034-ai-releasegate-met-bewijs.md) | Een releasegate met bewijs, AI-beeldreview en AI-code-review | besloten |
 | [0032](0032-opening-terug-naar-gescripte-scene.md) | De standaardopening is weer de gescripte scène | besloten |
 

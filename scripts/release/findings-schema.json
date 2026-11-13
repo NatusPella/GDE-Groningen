@@ -1,0 +1,80 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "gde-release-findings",
+  "title": "Bevindingen van de GDE-releasegate",
+  "description": "Eén bron voor de vorm van een bevinding en van een reviewrapport. De gate en de reviewers (AI) gebruiken dit schema; scripts/release/findings.mjs valideert ermee. Proza in het Nederlands, veldnamen Engels.",
+  "$defs": {
+    "bevinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bron", "aspect", "ernst", "categorie", "titel", "beschrijving"],
+      "properties": {
+        "bron": {
+          "type": "string",
+          "enum": ["code-review", "vision", "perf", "rules", "design", "baseline", "test"],
+          "description": "Wie of wat de bevinding vond."
+        },
+        "aspect": {
+          "type": "string",
+          "enum": ["correctness", "rules", "design", "perf", "ux", "gameplay", "visual", "multiplayer", "privacy", "toegankelijkheid"],
+          "description": "Het beoordeelde aspect; hoort bij de review die dit opleverde."
+        },
+        "ernst": {
+          "type": "string",
+          "enum": ["blokkerend", "belangrijk", "nit"],
+          "description": "blokkerend = geen release; belangrijk = issue, geen blokkade; nit = meenemen als het toch in de buurt komt."
+        },
+        "categorie": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 40,
+          "description": "Korte soort, bijvoorbeeld constitutie, design-system, performance, graphics, ui, ux, gameplay, save, multiplayer, taal, toegankelijkheid, correctheid."
+        },
+        "titel": { "type": "string", "minLength": 4, "maxLength": 120 },
+        "beschrijving": { "type": "string", "minLength": 10, "maxLength": 2000 },
+        "bewijs": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "description": "Verplicht bij ernst=blokkerend: bestand:regel, beeldnaam, meting of commando-uitvoer."
+        },
+        "bestanden": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Betrokken paden, repo-relatief met / als scheiding."
+        },
+        "beeld": {
+          "type": "string",
+          "description": "Bij een visuele bevinding: het beeld waar het op te zien is."
+        },
+        "fix": { "type": "string", "maxLength": 1000 },
+        "reviewer": { "type": "string", "maxLength": 80 },
+        "issue": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "reviewrapport": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["onderwerp", "reviewer", "commit", "dekking", "bevindingen"],
+      "properties": {
+        "onderwerp": {
+          "type": "string",
+          "description": "Het aspect of de opdracht, bijvoorbeeld correctness of vision-wereld."
+        },
+        "reviewer": { "type": "string", "description": "Naam van de reviewer (agent of script)." },
+        "commit": { "type": "string", "pattern": "^[0-9a-f]{7,40}$", "description": "De commit waarop is gereviewd." },
+        "dekking": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["bestanden"],
+          "properties": {
+            "bestanden": { "type": "array", "items": { "type": "string" } },
+            "beelden": { "type": "array", "items": { "type": "string" } },
+            "aspecten": { "type": "array", "items": { "type": "string" } },
+            "opmerking": { "type": "string" }
+          }
+        },
+        "bevindingen": { "type": "array", "items": { "$ref": "#/$defs/bevinding" } }
+      }
+    }
+  }
+}

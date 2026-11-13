@@ -2,7 +2,7 @@
 
 `node scripts/test_all.mjs` draait de tests in fasen en schrijft een rapport met een korte Nederlandse samenvatting bovenaan. Het hoort bij #186 (spelbot), #5 en #4. De werkafspraken staan in [AGENTS.md](../AGENTS.md) (sectie Testen); dit document beschrijft het commando.
 
-Er is één andere runner: `node scripts/run_tests.mjs` is de snelle selectie die CI draait (`.github/workflows/test.yml`). Hij deelt zijn lijsten met `test_all` en draait sinds #482 ook `undef_check` en `text_audit`, sinds #500 de `player_singleton_audit`, sinds #499 `spec_check`, sinds #593 `world_eigenaar` en sinds #646 de dode-code-poort met de vaste drempel `scripts/dead_code_budget.json`; de zware en Electron-fase zitten er bewust niet in (zie `.specs-fire/standards/adr/0013-een-testrunner-met-fasen.md`).
+Er is één andere runner: `node scripts/run_tests.mjs` is de snelle selectie die CI draait (`.github/workflows/test.yml`). Hij deelt zijn lijsten met `test_all` en draait sinds #482 ook `undef_check` en `text_audit`, sinds #500 de `player_singleton_audit`, sinds #499 `spec_check`, sinds #593 `world_eigenaar` en sinds #646 de dode-code-poort met de vaste drempel `scripts/dead_code_budget.json`; de zware en Electron-fase zitten er bewust niet in (zie `.specs-fire/standards/adr/0013-een-testrunner-met-fasen.md`). Sinds de releasegate (ADR [0034](../.specs-fire/standards/adr/0034-ai-releasegate-met-bewijs.md)) doet hij ook de regels- en designcontrole op de diff (`scripts/release/rules_audit.mjs`) en het merkenregister: CI geeft de PR-basis of de vorige main-commit mee via `GDE_RULES_BASE`, lokaal valt de runner terug op `origin/main` en anders op de laatste tag.
 
 ```
 node scripts/test_all.mjs [--fase=licht|zwaar|electron|alles] [--rapport=<map>]
@@ -41,6 +41,27 @@ Het onderstaande over duur en belasting zijn schattingen op een gewone ontwikkel
 2. `zwaar` na wijzigingen aan wereld, tegels, wegen, water of props, en vóór een release.
 3. `electron` vóór een release en 's nachts; nooit tijdens het spelen.
 4. `alles` is `licht`, `zwaar` en `electron` achter elkaar.
+
+### Releasegate (elke release)
+
+Sinds ADR [0034](../.specs-fire/standards/adr/0034-ai-releasegate-met-bewijs.md)
+draait de coördinator vóór een release één poort met bewijs:
+
+```
+node scripts/release_gate.mjs --stage=auto --from=<vorige tag>   # de vijf fasen
+node scripts/release_gate.mjs --stage=review                    # reviewpakket klaarzetten
+node scripts/release_gate.mjs --stage=review --finalize         # reviews triëren
+node scripts/release_gate.mjs --verify                          # poort voor release.sh
+```
+
+De fasen zijn `static` (de lichte suite, geheimen, merken en regels/design op de
+diff), `world` (`--fase=zwaar`, alleen als wereld of tegels geraakt zijn), `perf`
+(de vaste routes tegen de norm en de baseline), `visual` (beeldbaseline plus een
+compact AI-beeldreviewpakket) en `review` (verplichte AI-code-review op de diff).
+De gate kiest de fasen uit de diff; `--all` dwingt alles af. Een fase die niet
+draaide (geen wereld, geen Electron, geen beelden) heet **onvolledig** (exit 3)
+en nooit geslaagd. Draaiboek, reviewlus, baselines en kosten staan in
+[docs/RELEASEGATE.md](RELEASEGATE.md).
 
 ### Sneller draaien
 

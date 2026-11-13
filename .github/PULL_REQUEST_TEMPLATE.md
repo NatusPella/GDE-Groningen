@@ -9,6 +9,7 @@
 ## Controle
 
 - [ ] `node --check` op gewijzigd JavaScript, en de tests uit CONTRIBUTING.md draaien
+- [ ] `node scripts/run_tests.mjs` is groen, inclusief de regels- en designcontrole op deze diff (CI doet die automatisch met `GDE_RULES_BASE`)
 - [ ] Tekst die spelers zien is Nederlands; nieuwe gesproken regels staan hieronder vermeld (die hebben nog een opname nodig)
 - [ ] Geen echte merken, bedrijven of personen toegevoegd
 - [ ] Geen sleutels, `.env`, thuispaden of e-mailadressen in de commits (`node scripts/publish_check.mjs`)
