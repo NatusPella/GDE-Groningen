@@ -42,6 +42,27 @@ Het onderstaande over duur en belasting zijn schattingen op een gewone ontwikkel
 3. `electron` vóór een release en 's nachts; nooit tijdens het spelen.
 4. `alles` is `licht`, `zwaar` en `electron` achter elkaar.
 
+### Releasegate (elke release)
+
+Sinds ADR [0034](../.specs-fire/standards/adr/0034-ai-releasegate-met-bewijs.md)
+draait de coördinator vóór een release één poort met bewijs:
+
+```
+node scripts/release_gate.mjs --stage=auto --from=<vorige tag>   # de vijf fasen
+node scripts/release_gate.mjs --stage=review                    # reviewpakket klaarzetten
+node scripts/release_gate.mjs --stage=review --finalize         # reviews triëren
+node scripts/release_gate.mjs --verify                          # poort voor release.sh
+```
+
+De fasen zijn `static` (de lichte suite, geheimen, merken en regels/design op de
+diff), `world` (`--fase=zwaar`, alleen als wereld of tegels geraakt zijn), `perf`
+(de vaste routes tegen de norm en de baseline), `visual` (beeldbaseline plus een
+compact AI-beeldreviewpakket) en `review` (verplichte AI-code-review op de diff).
+De gate kiest de fasen uit de diff; `--all` dwingt alles af. Een fase die niet
+draaide (geen wereld, geen Electron, geen beelden) heet **onvolledig** (exit 3)
+en nooit geslaagd. Draaiboek, reviewlus, baselines en kosten staan in
+[docs/RELEASEGATE.md](RELEASEGATE.md).
+
 ### Sneller draaien
 
 Een volledige poort duurde op 27-10 vijf uur, vrijwel allemaal wachttijd. Wat er sindsdien anders is:
