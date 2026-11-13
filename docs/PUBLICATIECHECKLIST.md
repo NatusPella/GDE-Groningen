@@ -2,8 +2,7 @@
 
 > **Naslag.** De regels staan in de canonieke spec [`.specs-fire/standards/publicatie.md`](../.specs-fire/standards/publicatie.md); dit document is uitleg en geschiedenis. Bij verschil wint de spec (en bij twijfel `AGENTS.md`).
 
-Stand: 13 november 2026 (0.60.7; de laatste meting staat in §11). De repo is **privé**; niets hieronder is gedaan of
-aangezet. Laatste run op 10 november: `publish_check --history` **4 FAIL** (historie-e-mail,
+Stand: 13 november 2026 (0.60.7; de laatste meting staat in §11). De repo is sinds 13-11-2026 **publiek** en de marketingpagina staat live; de punten hieronder zijn geschiedenis en de eigenaarsbesluiten die nog openstaan. Laatste run op 10 november: `publish_check --history` **4 FAIL** (historie-e-mail,
 eigenaarsbesluit #62) en **16 WARN** (handmatige releaseworkflows), `secrets_scan` uit §7,
 `merkenregister_check` 45 rijen en 0 afwijkingen, `text_audit` 0 bevindingen, `audio_herkomst`
 **4139 clips allemaal gelogd**, `voice_coverage` 2664/2664. Alles in de kolom "Eigenaar" doet of beslist alleen de eigenaar

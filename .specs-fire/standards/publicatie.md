@@ -9,8 +9,9 @@
 ## Doel
 
 Keten van wijziging naar downloadbare build, met de bijbehorende checks
-en de grens tussen agent en eigenaar. De repo is privé; elke stap naar buiten
-wacht op de eigenaar.
+en de grens tussen agent en eigenaar. De repo is sinds 13 november 2026
+publiek en de marketingpagina staat live; posts en uploads wachten nog
+steeds op de eigenaar.
 
 ## Releaseketen
 
@@ -131,10 +132,12 @@ verhaaltest draaien lokaal.
 
 ## Publicatiestatus
 
-- **Repo:** privé; niets is openbaar gemaakt, geüpload of gepost
-  (`docs/PUBLICATIECHECKLIST.md:3`). Vóór Public: `node scripts/publish_check.mjs
-  --history` zonder FAIL, plus `secrets_scan`, `text_audit` en
-  `merkenregister_check`.
+- **Repo:** sinds 13 november 2026 openbaar op
+  <https://github.com/NatusPella/GDE-Groningen>, met de marketingpagina op
+  <https://natuspella.github.io/GDE-Groningen/>. Private vulnerability reporting,
+  secret scanning/push protection en Dependabot-alerts staan aan; de
+  workflow-rechten zijn read-only en er zijn 0 self-hosted runners. Posts en
+  uploads blijven eigenaarshandelingen.
 - **Versie:** `0.60.7` in `desktop/package.json:4`, met `## [0.60.7] - 2026-11-12`
   als nieuwste changelogsectie; elke versie die met `0.` begint, wordt een
   pre-release (`desktop/release.sh:139`).

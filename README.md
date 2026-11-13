@@ -27,6 +27,8 @@ gebouwen en het Ommeland komen uit OpenStreetMap.
 
 ![Een zomeravond op de Vismarkt in Groningen, met de Martinitoren op de achtergrond](docs/screenshots/stad-dag.webp)
 
+> **Nieuw: de [marketingpagina](https://natuspella.github.io/GDE-Groningen/) staat live.** Daar vind je de hero, zes slideshows met locaties, vervoer, missies, minigames en meer, de gameplaytrailer en de deel-links. De speelbare webversie volgt later (zie #57); deze pagina is de landingspagina.
+
 ## Status: openbare playtest
 
 GDE Groningen is een gratis hobbyproject in ontwikkeling. Deze fase heet
