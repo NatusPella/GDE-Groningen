@@ -298,6 +298,7 @@ const rearOf = (mesh) => mesh.userData.busRear;
   settle(a.world);
   const int = a.mesh.userData.busInt, rearInt = a.mesh.userData.busIntAchter;
   check('wreck: a wrecked bus gets a room', !!int && int.visible && !!rearInt && rearInt.visible);
+  check('wreck: the wreck room has its own name (for the image round)', int.name === 'businterieur-wrak' && rearInt.name === 'businterieur-achter-wrak', `${int.name} / ${rearInt.name}`);
   check('wreck: its own geometry, not the normal room', !!int && triangles(int.geometry) === wrakTri[0], `${int && triangles(int.geometry)} tegen ${wrakTri[0]}`);
   check('wreck: no travellers at all', !a.mesh.userData.busPas && !a.mesh.userData.busPasAchter);
   const glas = glassOf(a.mesh);

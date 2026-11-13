@@ -337,7 +337,7 @@ function updateInterieur(dt, w) {
       if (geoCache.size > cached) budget--;
       if (!ud.busInt) {
         ud.busInt = new THREE.Mesh(g, mat());
-        ud.busInt.name = 'businterieur';
+        ud.busInt.name = wrecked ? 'businterieur-wrak' : 'businterieur';   // de beeldronde herkent de wrakvariant hieraan (#847)
         ud.busInt.castShadow = false;     // het interieur werpt geen schaduw: dat kost een extra shadow-pass per bus
         ud.busInt.userData.noBatch = true;
         body.add(ud.busInt);
@@ -358,7 +358,7 @@ function updateInterieur(dt, w) {
         if (geoCache.size > cached) budget--;
         if (!ud.busIntAchter) {
           ud.busIntAchter = new THREE.Mesh(g, mat());
-          ud.busIntAchter.name = 'businterieur-achter';
+          ud.busIntAchter.name = wrecked ? 'businterieur-achter-wrak' : 'businterieur-achter';
           ud.busIntAchter.castShadow = false;
           ud.busIntAchter.userData.noBatch = true;
           rear.add(ud.busIntAchter);
