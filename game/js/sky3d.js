@@ -29,6 +29,8 @@ uniform float uGlow;
 uniform vec3 uMoonDir;
 uniform float uMoonPhase;
 uniform float uMoonStrength;
+uniform vec3 uRainbowDir;
+uniform float uRainbow;
 uniform vec3 fogColor;
 uniform float uFogBlend;
 varying vec3 vDir;
@@ -41,6 +43,15 @@ void main() {
   vec2 hd = normalize(d.xz + 1e-5), hs = normalize(uGlowDir.xz + 1e-5);
   float toward = pow(max(dot(hd, hs), 0.0), 2.0) * 0.8 + 0.2;
   col = mix(col, uGlowColor, uGlow * toward * (1.0 - smoothstep(-0.05, 0.42, d.y)));
+  if (uRainbow > 0.001) {
+    // #840: een zachte boog tegenover de zon, alleen na een bui. De kleuren
+    // volgen de richting om de boog heen; het is sfeer, geen exacte optica.
+    float rb = dot(d, normalize(uRainbowDir));
+    float band = smoothstep(0.70, 0.74, rb) * (1.0 - smoothstep(0.78, 0.82, rb));
+    float ang = atan(d.z, d.x);
+    vec3 rbCol = 0.5 + 0.5 * cos(6.2831853 * (vec3(0.0, 0.33, 0.67) + ang * 0.5));
+    col += rbCol * band * uRainbow * 0.22 * smoothstep(0.02, 0.2, d.y);
+  }
   if (uMoonStrength > 0.001) {
     // maanschijf met fase: licht komt vanuit de zon-hoek a rond de maan
     float r = 0.05;
@@ -82,6 +93,8 @@ export function createSkyUniforms(sunDir) {
     uMoonDir: { value: new THREE.Vector3(0, 0.5, -1).normalize() },
     uMoonPhase: { value: 0.5 },
     uMoonStrength: { value: 0 },
+    uRainbowDir: { value: new THREE.Vector3(0, 0.4, -1).normalize() },
+    uRainbow: { value: 0 },
   };
 }
 

@@ -374,6 +374,12 @@ export function applyWeatherToScene3D(scene, renderer, world, dt, px, py, cam = 
     const u = sky.uniforms;
     u.uZenith.value.copy(base.zenith).lerp(_stormZenith, cloud * 0.9).lerp(_mist, mist * 0.85).lerp(LIGHTNING_COLOR, flash * 0.6);
     u.uHorizon.value.copy(base.horizon).lerp(_stormFog, cloud * 0.9).lerp(_mist, mist).lerp(LIGHTNING_COLOR, flash * 0.5);
+    // #840: een regenboog na een bui, zacht en alleen als de lucht weer opklaart.
+    if (u.uSunDir && u.uRainbow) {
+      const regenboog = clamp(((w.wet || 0) - 0.35) / 0.3, 0, 1) * (1 - clamp(t * 4, 0, 1)) * (1 - clamp((w.overcast || 0) * 1.5, 0, 1));
+      u.uRainbow.value = regenboog * 0.35;
+      u.uRainbowDir.value.copy(u.uSunDir.value).multiplyScalar(-1);
+    }
     const glow = sunGlow(world.dayNight ? streekZonHoogte(region, world.dayNight.hour) : 30, cloud);
     if (glow.strength > 0.01) {
       _glow.setRGB(glow.color[0], glow.color[1], glow.color[2]);
