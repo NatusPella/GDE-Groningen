@@ -45,6 +45,7 @@ import { zachtePauze } from './coopgroep.js';
 import { samenWaarschuwing } from './coopstatus.js';
 import { missieMagVanuitMenu, MISSIE_VIA_STARTPUNT } from './coopgast.js';
 import { beginHierItems, beginHierCount } from './todobegin.js';
+import { beppeTodoItem } from './beppe_garden.js';
 export { beginHierItems, beginHierCount };
 
 export const GROUPS = [
@@ -325,8 +326,10 @@ function ommelandItems(world) {
   const st = city.length ? nearest(city, hoofdspeler(world)) : null;
   const names = Object.keys(VILLAGES);
   const ends = uniqueCount('wereldeinden');
+  const beppe = beppeTodoItem(world);
   return [
     ...ommelandPaspoortItems(world),
+    ...(beppe ? [beppe] : []),
     { key: 'om:einde', group: 'ommeland', icon: 'landmark', title: 'Einde van de wereld', status: ends >= WORLD_END_TOTAL ? 'klaar' : '',
       meta: 'Waar het Ommeland ophoudt · zoek ze zelf', medal: null, record: `${ends} van ${WORLD_END_TOTAL} gevonden`, goal: null,
       detail: { kicker: 'Ommeland · verkennen', text: 'Ergens houden de wegen van het Ommeland op. Waar, dat zeggen we niet.', rows: [] } },

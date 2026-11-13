@@ -34,7 +34,7 @@ import { recordUnique, hasUnique, unlockAchievement } from './achievements.js';
 import { BEPPE_SIGN, ROAD_SIGN, LAST_BENCH, HOUSE_ARRIVAL, REMEMBRANCE } from './beppe_texts.js';
 import {
   TRIBUTE, LAYOUT, pickTributeEnd, nearestOnPath, crossingOnRoad, crossingAhead, layoutTribute,
-  housePoint, markerOf, once,
+  housePoint, markerOf, once, tributeTodo,
 } from './beppe_rules.js';
 import { ensureWorldEnds, getWorldEndSpots } from './worldends.js';
 import { roadNetRows } from './roadgraph.js';
@@ -627,6 +627,14 @@ export function initBeppeGarden(w) {
 export function beppeMapSpot() {
   if (!site) ensureSite();
   return markerOf(site);
+}
+
+// The "Te doen" entry (todo.js asks for it): the place as a goal, and done once
+// the remembrance has been read. Null until the site is known.
+export function beppeTodoItem(w) {
+  if (!site) ensureSite();
+  if (!site) return null;
+  return tributeTodo(site, !!(w && hasUnique(TRIBUTE.set, TRIBUTE.remembrance)));
 }
 
 export function beppeSpots() {

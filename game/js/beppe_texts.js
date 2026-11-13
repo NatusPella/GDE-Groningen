@@ -24,6 +24,17 @@ export const HOUSE_ARRIVAL = {
   body: 'Aan het einde van de weg, net over de grens. De vogels weten het al.',
 };
 
+// "Te doen" entry (group Ommeland) and the waypoint the map marker offers.
+export const TODO = {
+  key: 'om:beppe',
+  title: HOUSE_ARRIVAL.title,
+  sub: 'Aan de westgrens',
+  meta: 'Aan de westgrens · het laatste bankje van Grunn en de tuin met de duiven',
+  kicker: 'Ommeland · eerbetoon',
+  text: 'Waar de weg naar Kollum de provincie verlaat staat het laatste bankje van Grunn. Even verder, net over de grens, een klein huis tussen de tuin en de vogels. Ga erheen en lees het plaatje.',
+  done: 'Gevonden aan de westgrens.',
+};
+
 // The quiet layer: her hope in Frisian, the maker's answer in Dutch — glad she
 // finds support, without claiming or denying her hope (owner, 13-11).
 export const REMEMBRANCE = {

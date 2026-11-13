@@ -6,10 +6,10 @@
 import { readFileSync } from 'node:fs';
 import { wgsToWorld } from '../game/js/rdnew.js';
 import { regionAt } from '../game/js/regions.js';
-import { BEPPE_SIGN, HOUSE_ARRIVAL } from '../game/js/beppe_texts.js';
+import { HOUSE_ARRIVAL, TODO } from '../game/js/beppe_texts.js';
 import {
   BEPPE_END_ID, TRIBUTE, LAYOUT, sideOffsets, pickTributeEnd, nearestOnPath, walkPath,
-  crossingOnRoad, crossingAhead, layoutTribute, housePoint, markerOf, once,
+  crossingOnRoad, crossingAhead, layoutTribute, housePoint, markerOf, tributeTodo, TODO_KEY, once,
 } from '../game/js/beppe_rules.js';
 
 let bad = 0;
@@ -124,13 +124,25 @@ if (site) {
   }
 }
 
-// --- de marker en het eenmalige ---------------------------------------------
+// --- de marker, de Te-doen-kaart en het eenmalige ---------------------------
 {
   const mk = markerOf(site);
   ok(!!mk && mk.kind === 'beppe', 'de kaart-marker heeft een eigen soort');
-  ok(!!mk && mk.name === HOUSE_ARRIVAL.title && mk.sub === BEPPE_SIGN, 'de marker leest de tekst uit de tekstmodule', JSON.stringify(mk));
+  ok(!!mk && mk.name === HOUSE_ARRIVAL.title && mk.sub === TODO.sub, 'de marker leest de tekst uit de tekstmodule', JSON.stringify(mk));
   ok(!!mk && mk.x === site.gardenBench.x && mk.y === site.gardenBench.y, 'de marker staat op het tuinbankje');
+  ok(!!mk && mk.todo === TODO_KEY, 'de marker verwijst naar de Te-doen-kaart');
+  ok(!!mk && !!mk.goal && mk.goal.kind === 'place' && mk.goal.name === TODO.title && mk.goal.x === mk.x && mk.goal.y === mk.y,
+    'klikken op de marker biedt een plek-doel voor de route', JSON.stringify(mk && mk.goal));
   ok(markerOf(null) === null && markerOf({}) === null, 'zonder plek geen marker');
+
+  const todo = tributeTodo(site, false);
+  ok(!!todo && todo.key === TODO_KEY && todo.group === 'ommeland', 'de Te-doen-kaart staat in het Ommeland');
+  ok(!!todo && todo.status === '' && todo.goal.kind === 'place' && todo.goal.name === TODO.title, 'open Te-doen-kaart met een plek-doel');
+  ok(!!todo && todo.title === TODO.title && todo.meta === TODO.meta, 'de Te-doen-kaart leest de tekst uit de module');
+  ok(!!todo && todo.x === site.gardenBench.x && todo.y === site.gardenBench.y, 'de Te-doen-kaart wijst naar het bankje');
+  const done = tributeTodo(site, true);
+  ok(!!done && done.status === 'klaar' && done.record === TODO.done, 'gevonden: de Te-doen-kaart is klaar');
+  ok(tributeTodo(null, false) === null && tributeTodo({}, false) === null, 'zonder plek geen Te-doen-kaart');
 
   const state = {};
   ok(once(state, 'a') === true, 'de eerste keer telt');

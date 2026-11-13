@@ -1457,7 +1457,7 @@ function drawDynamicMarkers(ctx, world) {
   // het eerbetoonbankje (#832): een eigen icoon, altijd zichtbaar zodat de plek
   // aan de westgrens te vinden is (ook voordat je er geweest bent)
   const beppe = beppeMapSpot();
-  if (beppe) icon(null, beppe.kind, beppe.x, beppe.y, beppe.name, {}, beppe.sub);
+  if (beppe) icon(null, beppe.kind, beppe.x, beppe.y, beppe.name, {}, beppe.sub, { goal: beppe.goal, todo: beppe.todo });
   for (const q of perceelMapSpots()) icon('percelen', q.kind, q.x, q.y, q.name, {}, q.sub, { goal: q.goal });
   for (const e of getEierbalTips()) icon(null, 'eierbalTip', e.x, e.y, 'Eierbal-tip', {}, 'Uit de Buukenkaas: hier ligt er eentje verstopt');
 

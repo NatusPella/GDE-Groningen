@@ -9,16 +9,17 @@
 // Beppe's house with its garden just over the border in Friesland.
 //
 // Anchor: the 'friesland' world end (worldends.js) sits where the western road
-// runs off the edge of the province's data. That data edge lies a few km into
-// Friesland, past the edge guard's turn-back line (the real provincial
-// border, worldedge.js borderByData); the playable map therefore ends at the
-// border. The game walks the same road back from that world end to the real
-// border and puts the place there, so the player can reach it. Assumption documented for the issue: the tiles around
-// the spot are not built in this worktree (game/world is not in git), so the
-// place is placed deterministically from the road and border data and has not
-// been seen in the game yet.
+// runs off the edge of the province's data. That data edge lies far into
+// Friesland; the edge guard lets the player cross the real provincial border up
+// to the buffer the data supports (worldedge.js borderByData: at least 200 m),
+// so the house 22 m over the border is inside the playable strip. The game
+// walks the same road back from that world end to the real border and puts the
+// place there, so the player can reach it. Assumption documented for the issue:
+// the tiles around the spot are not built in this worktree (game/world is not
+// in git), so the place is placed deterministically from the road and border
+// data and has not been seen in the game yet.
 
-import { BEPPE_SIGN, HOUSE_ARRIVAL } from './beppe_texts.js';
+import { HOUSE_ARRIVAL, TODO } from './beppe_texts.js';
 
 // The world end whose road this place follows (worldends.js / ommelandlines.js).
 export const BEPPE_END_ID = 'friesland';
@@ -33,6 +34,7 @@ export const TRIBUTE = {
   arrival: 'aankomst',
   remembrance: 'herinnering',
 };
+export const TODO_KEY = TODO.key;
 
 // Metres and angles: the bench and the sign on the Groningen verge just before
 // the border, Beppe's house and garden a little over it. Everything is an
@@ -232,11 +234,30 @@ export function housePoint(site, lx, lz) {
 }
 
 // The special map icon for the garden bench (hud_panel.js draws kind 'beppe' in
-// its own style): always visible so the place can be found. Its name and the
-// small line under it are the module's text, never a string of our own.
+// its own style): always visible so the place can be found, and it offers the
+// route as a place goal (a click on the marker) plus its Te-doen card.
 export function markerOf(site) {
   if (!site || !site.gardenBench) return null;
-  return { kind: 'beppe', x: site.gardenBench.x, y: site.gardenBench.y, name: HOUSE_ARRIVAL.title, sub: BEPPE_SIGN };
+  const x = site.gardenBench.x, y = site.gardenBench.y;
+  return {
+    kind: 'beppe', x, y, name: HOUSE_ARRIVAL.title, sub: TODO.sub,
+    goal: { kind: 'place', name: TODO.title, sub: TODO.sub, x, y },
+    todo: TODO_KEY,
+  };
+}
+
+// The "Te doen" entry (group Ommeland) for the place: made by this pure module
+// so the test can check it; beppe_garden fills in the site and the found state.
+export function tributeTodo(site, found = false) {
+  if (!site || !site.gardenBench) return null;
+  const x = site.gardenBench.x, y = site.gardenBench.y;
+  return {
+    key: TODO_KEY, group: 'ommeland', icon: 'beppe', title: TODO.title,
+    status: found ? 'klaar' : '', meta: TODO.meta, medal: null,
+    record: found ? TODO.done : '', x, y,
+    goal: { kind: 'place', name: TODO.title, sub: TODO.sub, x, y },
+    detail: { kicker: TODO.kicker, text: TODO.text, rows: [] },
+  };
 }
 
 // One mark per session, for the parts that are not in the player's lifetime set
