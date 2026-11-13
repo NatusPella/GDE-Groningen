@@ -606,6 +606,17 @@ h2 {
   list-style: none;
 }
 
+.card-grid--two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  max-width: 60rem;
+}
+
+@media (max-width: 34rem) {
+  .card-grid--two {
+    grid-template-columns: 1fr;
+  }
+}
+
 .card {
   padding: 1.35rem 1.4rem 1.45rem;
   border: 1px solid var(--green-line);

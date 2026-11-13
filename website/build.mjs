@@ -82,7 +82,6 @@ function sliderHtml(show) {
   return `
         <section class="slideshow" id="slideshow-${htmlVeilig(show.id)}" role="tabpanel" aria-labelledby="tab-${htmlVeilig(show.id)}" data-slideshow-panel="${htmlVeilig(show.id)}">
           <div class="wrap">
-            <p class="kicker">${htmlVeilig(show.kicker)}</p>
             <h3 id="slideshow-${htmlVeilig(show.id)}-titel">${htmlVeilig(show.title)}</h3>
             <p class="section-lead">${htmlVeilig(show.lead)}</p>
             <div class="slider" data-slider>
