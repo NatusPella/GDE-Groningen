@@ -97,7 +97,10 @@ for (const [naam, model, open, gatId, flags = {}] of GEVALLEN) {
   if (naam === 'bestelbus' || naam === 'ambulance' || naam === 'vrachtwagen' || naam === 'cashvan') {
     check(`${naam}: gat achter de achterwand`, bbGat.min.x <= -model.len / 2 - 0.01, `min x ${rond(bbGat.min.x)} bij halve lengte ${model.len / 2}`);
   }
-  if (naam === 'hatch' || naam === 'sedan') {
+  if (naam === 'hatch') {
+    // hatchback: de opening zit in de achterwand (de hele achterklep), niet horizontaal op het deksel
+    check('hatch: opening in de achterwand', bbGat.min.x <= -model.len / 2 - 0.01, `min x ${rond(bbGat.min.x)}`);
+  } else if (naam === 'sedan') {
     check(`${naam}: gat boven het kofferdeksel`, bbGat.max.y > V.vrachtruimteIndeling(v).maten.ceil + 0.02, `max y ${rond(bbGat.max.y)}`);
   }
   // binnen de romp: de lading (inclusief de gaten net buiten het plaatwerk) blijft binnen het model

@@ -22,7 +22,7 @@ import { getVehicleMesh } from './models3d_vehicles.js';
 import { hoofdspeler } from './players.js';
 import { doorsFor } from './vehicledoors.js';
 import {
-  vrachtruimteSoort, vrachtruimteZichtbaar, vrachtruimteDelen, vrachtruimteIndeling,
+  vrachtruimteSoort, vrachtruimteZichtbaar, vrachtruimteDelen, vrachtruimteIndeling, vrachtruimteMaten,
   LAADRUIMTE_OPEN_VANAF, VIRTUELE_LAADDEUR,
 } from './vrachtruimte.js';
 
@@ -144,8 +144,16 @@ function gatQuads(v) {
       // laadklep van een busje/ambulance of de achterklep van een wagon/suv: verticale opening
       achter(d.id, d.y0 + 0.03, d.y0 + d.h - 0.03, Math.min(d.w, wid - 0.3) / 2);
     } else if (d.soort === 'klep') {
-      // kofferdeksel van hatch/sedan/sport/escort: horizontale opening net boven het kofferdeksel
-      boven(d.id, d.x * len - d.w / 2 + 0.02, d.x * len + d.w / 2 - 0.02, d.y0 + 0.03, wid * 0.78 / 2 - 0.02);
+      if (v.model.name === 'hatch') {
+        // hatchback: de klep is de hele achterklep, dus de opening zit in de achterwand (het
+        // horizontale deksel alleen is van achteren nauwelijks te zien). De opening zo groot als de
+        // kofferbak zelf: van de vloer tot onder het deksel.
+        const m = vrachtruimteMaten(v);
+        achter(d.id, m.floor + 0.06, Math.min(m.ceil - 0.02, d.y0 - 0.02), wid * 0.78 / 2 - 0.02);
+      } else {
+        // kofferdeksel van sedan/sport/escort: horizontale opening net boven het kofferdeksel
+        boven(d.id, d.x * len - d.w / 2 + 0.02, d.x * len + d.w / 2 - 0.02, d.y0 + 0.03, wid * 0.78 / 2 - 0.02);
+      }
     } else if (d.soort === 'schuif') {
       // schuifdeur van een bestelbus: opening in de flank
       flank(d.id, d.x * len - d.w / 2 + 0.02, d.x * len + d.w / 2 - 0.02, d.y0 + 0.03, d.y0 + d.h - 0.03, d.side || 1);
@@ -186,6 +194,19 @@ function sorteerLading(delen, gaten) {
     .map((o) => o.d);
 }
 
+// De wand die in de opening zelf ligt moet weg: kijk je door een schuifdeur of het luik van de
+// foodtruck naar binnen, dan zit de eigen zijwand van de laadruimte precies voor de opening; bij een
+// kofferdeksel is dat het plafond. Anders kijk je tegen de buitenkant van je eigen binnenhuid aan.
+function snijdOpeningswand(delen, gaten) {
+  let weg = null;
+  for (const g of gaten) {
+    if (g.out[1] > 0.5) weg = 'plafond';
+    else if (g.out[2] > 0.5) weg = 'wand-r';
+    else if (g.out[2] < -0.5) weg = 'wand-l';
+  }
+  return weg ? delen.filter((d) => d.id !== weg) : delen;
+}
+
 function bouwGeometrie(v, lod, kapot, gaten) {
   const B = new GeoBuilder(3);
   // groep 0: het masker (stencil 2 waar de opening zichtbaar is)
@@ -193,7 +214,8 @@ function bouwGeometrie(v, lod, kapot, gaten) {
   // groep 1: de donkere binnenkant van de opening
   for (const g of gaten) B.quadOut(g.a, g.b, g.c, g.d, g.out, 0x141518, 1);
   // groep 2: de lading, vloer, wanden en schappen van dit niveau, van achter naar voren
-  for (const d of sorteerLading(vrachtruimteDelen(v, { lod, kapot }), gaten)) {
+  const delen = snijdOpeningswand(vrachtruimteDelen(v, { lod, kapot }), gaten);
+  for (const d of sorteerLading(delen, gaten)) {
     const r = d.rot;
     if (r) B.box(d.x, d.y, d.z, d.sx, d.sy, d.sz, d.color, 2, r.x || 0, r.y || 0, r.z || 0);
     else B.box(d.x, d.y, d.z, d.sx, d.sy, d.sz, d.color, 2);
