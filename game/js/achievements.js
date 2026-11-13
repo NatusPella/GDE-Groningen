@@ -245,6 +245,10 @@ export const ACHIEVEMENTS = [
   { id: 'sj_verhuizing', cat: 'bijbaan', title: 'Niks gebroken', desc: 'Verhuis een student zonder dat er iets sneuvelt' },
   { id: 'sj_legende', cat: 'bijbaan', title: 'Legende van Grunn', desc: 'Haal niveau 5 bij een bijbaantje' },
   { id: 'sj_kots', cat: 'bijbaan', title: 'Kotszakje vergeten', desc: 'Een student kotst je taxi onder', hidden: true },
+  // #846: alle negentien loopbanen echt beginnen (de eerste klus gedaan, niet de menuknop). De teller
+  // (careerFirstJobs) komt uit loopbaanlive.js; de titel en de eenmalige €750 staan in loopbaan.js.
+  // (De bestaande prestatie 'Duizendpoot' (sj_alle) gaat over de zes bijbaantjes; deze heet daarom bewust anders.)
+  { id: 'duizendpoot', cat: 'bijbaan', title: 'Van alle markten thuis', desc: 'Begin alle 19 loopbanen met een echte eerste klus: de titel De Duizendpoot en eenmalig €750', stat: 'careerFirstJobs', goal: 19 },
 
   // nieuwe functies (#191): meest op bestaande tellers, dus zonder extra haken
   { id: 'coop_uur', cat: 'sociaal', title: 'Samen is beter', desc: 'Speel een uur online samen met een tweede speler', stat: 'coopTime', goal: 3600, unit: 's' },

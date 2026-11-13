@@ -45,10 +45,13 @@ import { zachtePauze } from './coopgroep.js';
 import { samenWaarschuwing } from './coopstatus.js';
 import { missieMagVanuitMenu, MISSIE_VIA_STARTPUNT } from './coopgast.js';
 import { beginHierItems, beginHierCount } from './todobegin.js';
+import * as L from './loopbaan.js'; // #846: de loopbanen als één overkoepelende rij in Te doen
+import { getProfiel } from './loopbaanlive.js';
 export { beginHierItems, beginHierCount };
 
 export const GROUPS = [
   ['missies', 'Missies', 'het verhaal en je klussen'],
+  ['loopbanen', 'Loopbanen', 'negentien vakken, elk met een eerste klus'],
   ['minigames', 'Minigames', 'altijd opnieuw te spelen'],
   ['diensten', 'Diensten', 'ritten met een voertuig, tijd en een doel'],
   ['kantoorklussen', 'Kantoorklussen', 'kort werk achter een balie of met een tekstpaneel'],
@@ -164,7 +167,7 @@ function missionItems(world) {
   });
 }
 
-function minigameItems(world) {
+function minigameItems(world, acts = activityMapIcons(world)) {
   const p = hoofdspeler(world);
   const out = [];
   const add = (it, spots) => {
@@ -178,7 +181,6 @@ function minigameItems(world) {
   add({ key: 'mg:padel', playId: 'padel', icon: 'padel', title: 'Padel', meta: `${padel.length} banen in de stad · eerst tot twee games`,
     medal: pr ? pr.medal : 0, record: pr && pr.best != null ? `Record ${pr.best} punten` : 'Nog niet gespeeld',
     detail: { kicker: 'Minigame · overal in de stad', text: 'Een potje dubbel tegen de vaste spelers. Na afloop heb je je volle gezondheid terug en een poos Padelfit.', rows: [['Banen', String(padel.length)]] } }, padel);
-  const acts = activityMapIcons(world);
   const carbid = acts.filter((a) => a.layer === 'carbid');
   const cr = getChallengeRecord('carbid');
   add({ key: 'mg:carbid', playId: 'carbid', icon: 'act-carbid', title: 'Carbid schieten', meta: `${carbid[0] ? carbid[0].name + ' · ' : ''}wacht tot de schemering`,
@@ -269,6 +271,75 @@ function jobItems() {
       detail: { kicker: fam, text: `${o.uitleg || ''}${o.uitleg ? ' ' : ''}${o.blurb}`, rows: [['Niveau', `${o.level} · ${o.title}`], ['Verdienen', `${euro(o.pay[0])}–${euro(o.pay[1])} per ronde`], ...(o.blocked ? [['Nu', o.blocked]] : [])] },
     };
   });
+}
+
+// #846: één overkoepelende rij voor de loopbanen: hoeveel van de negentien je al met een echte eerste klus
+// begon (niet met de menuknop), waar de dichtstbijzijnde nog open eerste klus is, en per vak de eerste klus.
+// De startplekken komen uit de systemen die ze al kennen (de bijbaanaanbiedingen, de haltes, de minigame- en
+// activiteitenplekken); er is geen tweede lijst met coördinaten en geen tweede teller.
+const LOOPBAAN_MG_PLEK = {
+  padel: ['mg:padel'],
+  golf: ['mg:discgolf', 'mg:pitchputt'],
+  lucht: ['mg:vliegschool', 'mg:heli'],
+  race: ['mg:kartbaan', 'mg:drift', 'mg:ringrace'],
+  buiten: ['mg:skatepark', 'mg:zwembad', 'mg:klimtoren', 'mg:waterski'],
+};
+const LOOPBAAN_ACT_LAAG = { hengelen: ['hengelen'], landbouw: ['boeren'], kermis: ['kermis'], horeca: ['pannenkoek'], buiten: ['wandeling'] };
+
+function loopbaanStart(world, vak, byKey, acts, speler) {
+  const s = L.startVan(vak);
+  if (!s) return null;
+  const metPlek = (it, naam) => (it && Number.isFinite(it.x) && Number.isFinite(it.y) ? { vak, x: it.x, y: it.y, naam: naam || s.plek } : null);
+  if (s.baan) {
+    const job = metPlek(byKey.get('job:' + s.baan));
+    if (job) return job;
+  }
+  if (vak === 'trein') {
+    const haltes = (getStationsForRender() || []).filter((st) => Number.isFinite(st.x) && Number.isFinite(st.y));
+    const st = haltes.length ? nearest(haltes, speler) : null;
+    if (st) return { vak, x: st.x, y: st.y, naam: st.name };
+  }
+  for (const key of LOOPBAAN_MG_PLEK[vak] || []) {
+    const it = metPlek(byKey.get(key));
+    if (it) return it;
+  }
+  for (const laag of LOOPBAAN_ACT_LAAG[vak] || []) {
+    const plekken = acts.filter((a) => a.layer === laag && Number.isFinite(a.x) && Number.isFinite(a.y));
+    if (plekken.length) { const a = nearest(plekken, speler); return { vak, x: a.x, y: a.y, naam: a.name || s.plek }; }
+  }
+  return null;
+}
+
+function loopbaanItems(world, basis, acts) {
+  let profiel = null;
+  try { profiel = getProfiel(); } catch (e) { profiel = null; }
+  if (!profiel) return [];
+  const stand = L.eersteKlusStand(profiel);
+  const speler = hoofdspeler(world);
+  const byKey = new Map(basis.map((it) => [it.key, it]));
+  const open = L.VAKKEN.filter((v) => !L.eersteKlusGedaan(profiel, v.id));
+  const startpunten = open.map((v) => loopbaanStart(world, v.id, byKey, acts, speler)).filter(Boolean);
+  const dichtbij = startpunten.length ? nearest(startpunten, speler) : null;
+  const info = dichtbij ? L.vakInfo(dichtbij.vak) : null;
+  const eerste = dichtbij ? L.startVan(dichtbij.vak) : null;
+  const rows = [];
+  if (info && eerste) rows.push(['Hier begin je', `${info.naam}: ${eerste.klus}`]);
+  for (const v of L.VAKKEN) {
+    const s = L.startVan(v.id);
+    rows.push([v.naam, L.eersteKlusGedaan(profiel, v.id) ? 'Eerste klus gedaan' : `Eerste klus: ${s ? s.klus : 'nog niet bekend'}`]);
+  }
+  const meta = stand.klaar ? 'Alle negentien loopbanen begonnen' : info && eerste ? `Dichtstbijzijnde: ${info.naam} · ${eerste.plek}` : 'Kies een loopbaan in het pauzemenu';
+  return [{
+    key: 'lb:loopbanen', group: 'loopbanen', icon: 'landmark', title: 'Loopbanen', status: stand.klaar ? 'klaar' : '', medal: null,
+    meta, record: `${stand.gedaan} van ${stand.totaal} eerste klussen${stand.klaar ? ` · ${L.DUIZENDPOOT_TITEL}` : ''}`,
+    x: dichtbij ? dichtbij.x : undefined, y: dichtbij ? dichtbij.y : undefined,
+    goal: dichtbij && info ? { kind: 'place', name: `${info.naam} · ${eerste.plek}`, sub: 'Eerste klus', x: dichtbij.x, y: dichtbij.y } : null,
+    detail: {
+      kicker: `Loopbanen · ${stand.gedaan} van ${stand.totaal} eerste klussen`,
+      text: `Een loopbaan telt als begonnen als je de eerste klus echt doet, niet als je hem alleen in het menu start.${stand.klaar ? ` Je bent De Duizendpoot: de titel en de eenmalige €${L.DUIZENDPOOT_EURO} heb je binnen.` : ` Bij alle ${stand.totaal} hoor je bij De Duizendpoot, met de titel en eenmalig €${L.DUIZENDPOOT_EURO}.`}`,
+      rows,
+    },
+  }];
 }
 
 // #681: het paspoort leest de eigen sets van deze speler en de kalender van de groep.
@@ -439,7 +510,9 @@ let worldRef = null;
 export function getTodoItems(world) {
   worldRef = world;
   const p = hoofdspeler(world);
-  const items = [...missionItems(world), ...minigameItems(world), ...jobItems(), ...ommelandItems(world), ...collectItems(world), ...postgameItems(world)];
+  const acts = activityMapIcons(world);
+  const basis = [...missionItems(world), ...minigameItems(world, acts), ...jobItems(), ...ommelandItems(world), ...collectItems(world), ...postgameItems(world)];
+  const items = [...basis, ...loopbaanItems(world, basis, acts)];
   const st = storyStepItem(world);
   if (st) items.unshift(st);
   const goal = getGoal();

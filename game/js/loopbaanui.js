@@ -233,8 +233,12 @@ export function renderLoopbaanPanel(el, sluit = null, w = null) {
   const profiel = getProfiel();
   if (!L.vakInfo(gekozen)) gekozen = L.VAK_IDS[0];
   const sam = L.samenvatting(profiel);
+  // #846: de overkoepelende teller naast de niveaus: hoeveel loopbanen je al met een echte eerste klus begon, en
+  // op negentien de blijvende titel. De felicitatie zelf komt eenmalig als prestatiekaart (achievements.js).
+  const eerste = L.eersteKlusStand(profiel);
+  const duizendpoot = eerste.klaar ? ` · titel ${esc(L.DUIZENDPOOT_TITEL)}` : '';
   const lijst = L.GROEPEN.map((g) => `<div class="lb-groep">${esc(g.naam)}</div>` + L.VAKKEN.filter((v) => v.groep === g.id).map((v) => rij(profiel, v)).join('')).join('');
-  el.innerHTML = `<div class="m-tabs"><span class="m-grow"></span><span class="pa-total"><span class="m-num">${sam.som - L.VAKKEN.length}</span><span class="mut">van ${sam.max - L.VAKKEN.length} niveaus omhoog${sam.hoogste ? ` · hoogste titel: ${esc(sam.hoogste.titel)}` : ''}</span></span></div>` +
+  el.innerHTML = `<div class="m-tabs"><span class="m-grow"></span><span class="pa-total"><span class="m-num">${eerste.gedaan}</span><span class="mut">van ${eerste.totaal} eerste klussen${duizendpoot}</span></span><span class="pa-total"><span class="m-num">${sam.som - L.VAKKEN.length}</span><span class="mut">van ${sam.max - L.VAKKEN.length} niveaus omhoog${sam.hoogste ? ` · hoogste titel: ${esc(sam.hoogste.titel)}` : ''}</span></span></div>` +
     `<div class="m-main"><div class="m-list pa-list lb-list">${lijst}</div><aside class="m-pane pa-pane lb-pane" aria-live="polite">${detailHtml(profiel, gekozen, wereld)}</aside></div>`;
   fillBars(el, bars);
   if (!el.dataset.bound) {

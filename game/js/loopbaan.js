@@ -22,6 +22,13 @@ const MAX_UNIEK = 120;      // per vak: zoveel verschillende plekken onthouden w
 const MAX_XP = 100000;
 const MAX_N = 1e7;
 
+// #846: de blijvende beloning voor wie alle negentien loopbanen met een echte eerste klus begint: de titel
+// "De Duizendpoot" (afgeleid uit het profiel, dus altijd terug te zien) en eenmalig €750. Het bedrag staat
+// hier als regel, niet in de UI of de haak; het gaat nooit door de loonfactor en wordt nooit met gasten gedeeld
+// (het is een prestatie van deze speler op dit apparaat). Zie docs/LOOPBAAN.md en loopbaanlive.js.
+export const DUIZENDPOOT_TITEL = 'De Duizendpoot';
+export const DUIZENDPOOT_EURO = 750;
+
 export const GROEPEN = [
   { id: 'vervoer', naam: 'Vervoer' },
   { id: 'werk', naam: 'Werk' },
@@ -209,7 +216,59 @@ export const nieuwVak = () => ({ xp: 0, n: 0, uniek: [] });
 export function nieuwProfiel() {
   const vakken = {};
   for (const id of VAK_IDS) vakken[id] = nieuwVak();
-  return { v: SLEUTEL_VERSIE, vakken, gestart: [] };
+  // kaarten: welke verhaalstappen al een eenmalig loopbaankaartje gaven (#846); duizendpoot: de eenmalige
+  // beloning van #846 is betaald. Allebei per speler/apparaat, in hetzelfde profiel als de vakken.
+  return { v: SLEUTEL_VERSIE, vakken, gestart: [], kaarten: [], duizendpoot: false };
+}
+
+// --- eerste klus (#846) ----------------------------------------------------
+// De maatstaf voor het verhaalmoment, de teller en de prestatie is de eerste klus die echt gedaan is: punten of
+// een getelde eenheid in het vak (`xp > 0 || n > 0`). Alleen een loopbaan starten vanuit het menu zet `gestart`
+// en telt dus niet mee. Een profiel dat uit de prestaties gezaaid is (zaaiUitPrestaties) telt wel: die speler
+// heeft die activiteit echt gedaan, alleen nog voordat de loopbaan bestond.
+export function eersteKlusGedaan(profiel, vak) {
+  if (!BY_ID.has(vak) || !profiel || !profiel.vakken) return false;
+  const v = profiel.vakken[vak];
+  if (!v || typeof v !== 'object') return false;
+  return (Number(v.xp) || 0) > 0 || (Number(v.n) || 0) > 0;
+}
+export function eersteKlussen(profiel) {
+  let n = 0;
+  for (const id of VAK_IDS) if (eersteKlusGedaan(profiel, id)) n++;
+  return n;
+}
+// De stand van de overkoepelende teller: hoeveel van de negentien loopbanen zijn begonnen, en de titel als het
+// er allemaal zijn. Puur afgeleid, dus altijd gelijk aan het profiel en zonder tweede teller.
+export function eersteKlusStand(profiel) {
+  const gedaan = eersteKlussen(profiel);
+  const totaal = VAKKEN.length;
+  const klaar = gedaan >= totaal;
+  return { gedaan, totaal, rest: totaal - gedaan, klaar, titel: klaar ? DUIZENDPOOT_TITEL : null };
+}
+// Het eenmalige kaartje bij een verhaalstap (#846): de titel en de body in gewone taal, uit START. Puur; het
+// tonen en het eenmalig onthouden zit in loopbaankaarten.js en in het profiel hieronder.
+export function kaartVoorVak(vak) {
+  const info = BY_ID.get(vak);
+  const start = startVan(vak);
+  if (!info || !start) return null;
+  return { vak, titel: `Loopbaan in zicht: ${info.naam}`, tekst: `Eerste klus: ${start.klus} · ${start.plek}` };
+}
+export const kaartGezien = (profiel, vak) => !!(profiel && Array.isArray(profiel.kaarten) && profiel.kaarten.includes(vak));
+export function markeerKaart(profiel, vak) {
+  if (!profiel || !BY_ID.has(vak)) return false;
+  if (!Array.isArray(profiel.kaarten)) profiel.kaarten = [];
+  if (profiel.kaarten.includes(vak)) return false;
+  profiel.kaarten.push(vak);
+  return true;
+}
+export const duizendpootKlaar = (profiel) => !!(profiel && profiel.duizendpoot === true);
+// De eenmalige beloning uitkeren: alleen als alle negentien loopbanen begonnen zijn en hij nog niet betaald is.
+// Alleen het profiel verandert hier; het geld en de melding doet loopbaanlive.js, zodat dit bestand puur blijft.
+export function markeerDuizendpoot(profiel) {
+  if (!profiel || profiel.duizendpoot === true) return false;
+  if (!eersteKlusStand(profiel).klaar) return false;
+  profiel.duizendpoot = true;
+  return true;
 }
 
 const geheel = (x, max) => (Number.isFinite(x) ? Math.max(0, Math.min(max, Math.floor(x))) : 0);
@@ -230,6 +289,10 @@ export function normaliseer(raw) {
     if (Array.isArray(s.uniek)) v.uniek = [...new Set(s.uniek.filter((x) => typeof x === 'string' && x && x.length <= 60))].slice(0, MAX_UNIEK);
   }
   if (Array.isArray(d.gestart)) p.gestart = [...new Set(d.gestart.filter((x) => BY_ID.has(x)))];
+  // #846: de eenmalig getoonde kaartjes en de eenmalige beloning horen bij hetzelfde profiel; onbekende of
+  // dubbele waarden gaan weg, en wie de beloning al kreeg, houdt hem (nooit twee keer uitbetalen).
+  if (Array.isArray(d.kaarten)) p.kaarten = [...new Set(d.kaarten.filter((x) => BY_ID.has(x)))];
+  if (d.duizendpoot === true) p.duizendpoot = true;
   markeerGestart(p);
   if (d.zaad === true) p.zaad = true;
   return p;
@@ -404,6 +467,8 @@ export function voegSamen(a, b) {
     for (const u of y.uniek) if (!x.uniek.includes(u) && x.uniek.length < MAX_UNIEK) x.uniek.push(u);
     if (o.gestart.includes(id) && !p.gestart.includes(id)) p.gestart.push(id);
   }
+  for (const k of o.kaarten) if (!p.kaarten.includes(k)) p.kaarten.push(k);
+  if (o.duizendpoot) p.duizendpoot = true;
   if (o.zaad) p.zaad = true;
   return markeerGestart(p);
 }

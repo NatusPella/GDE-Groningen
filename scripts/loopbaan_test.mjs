@@ -6,6 +6,7 @@ import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import * as L from '../game/js/loopbaan.js';
 import * as Live from '../game/js/loopbaanlive.js';
+import { ACHIEVEMENTS, getStat, isUnlocked } from '../game/js/achievements.js';
 import { KEYS, BASE_KEYS } from '../game/js/storagekeys.js';
 
 const JS = fileURLToPath(new URL('../game/js/', import.meta.url));
@@ -432,6 +433,49 @@ t('#671: volgendeStap zegt in gewone taal wat de eerstvolgende stap is en waar',
   assert.match(ui, /Eerstvolgende stap:/, 'de regel staat in het paneel');
   assert.match(ui, /Waar kan ik dat doen\?/, 'de knop bestaat');
   assert.match(ui, /data-todo-goal="job:\$\{esc\(stap\.waar\)\}"/, 'en zet de baan als doel');
+});
+
+// (#846) de overkoepelende teller, de prestatie en de eenmalige beloning: het bedrag is één keer, lokaal en zonder
+// coopDeel. De maatstaf is de eerste klus die echt gedaan is (punten of teller), niet de knop in het menu.
+t('#846: bij de negentiende eerste klus eenmalig €750, de teller en de prestatie De Duizendpoot', () => {
+  const st = nepOpslag();
+  Live.initLoopbaan({ opslag: st });
+  const p = Live.getProfiel();
+  for (const id of L.VAK_IDS.slice(0, -1)) L.tel(p, id, { xp: 10 }); // achttien echt gedaan
+  const w = nepWereld();
+  Live.loopbaanTel(w, L.VAK_IDS[L.VAK_IDS.length - 1], { xp: 10 });
+  assert.equal(L.eersteKlussen(Live.getProfiel()), L.VAKKEN.length, 'alle negentien geteld');
+  assert.equal(w.money, L.DUIZENDPOOT_EURO, 'eenmalig €750');
+  assert.equal(w.gedeeld.length, 0, 'niet met gasten gedeeld: het is een prestatie van deze speler');
+  assert.ok(w.msgs.some((m) => /De Duizendpoot/.test(m.text) && /€750/.test(m.text)), 'een melding met de titel en het bedrag');
+  assert.equal(getStat(Live.EERSTE_KLUS_STAT), L.VAKKEN.length, 'de levensduur-teller staat op negentien');
+  assert.ok(isUnlocked('duizendpoot'), 'de prestatie is ontgrendeld');
+  const a = ACHIEVEMENTS.find((x) => x.id === 'duizendpoot');
+  assert.equal(a.goal, L.VAKKEN.length); assert.equal(a.cat, 'bijbaan');
+  // nooit twee keer: nog een loopbaangebeurtenis betaalt niets meer uit
+  Live.loopbaanTel(w, 'trein', { xp: 1, n: 1 });
+  assert.equal(w.money, L.DUIZENDPOOT_EURO);
+  assert.equal(L.duizendpootKlaar(Live.getProfiel()), true);
+  Live.schrijfNu();
+  assert.equal(JSON.parse(st.m.get(KEYS.loopbaan)).duizendpoot, true, 'de eenmaligheid staat in het profiel');
+  schoon();
+});
+
+t('#846: wat het scherm en Te doen tonen komt uit dezelfde teller', () => {
+  const ui = fs.readFileSync(JS + 'loopbaanui.js', 'utf8');
+  assert.match(ui, /L\.eersteKlusStand\(profiel\)/, 'het Loopbanen-scherm leest de stand');
+  assert.match(ui, /van \$\{eerste\.totaal\} eerste klussen/, 'de teller staat in het scherm');
+  assert.match(ui, /L\.DUIZENDPOOT_TITEL/, 'de blijvende titel is zichtbaar bij negentien');
+  const todo = fs.readFileSync(JS + 'todo.js', 'utf8');
+  assert.match(todo, /\['loopbanen', 'Loopbanen'/, 'de groep Loopbanen staat in Te doen');
+  assert.match(todo, /key: 'lb:loopbanen'/, 'één overkoepelende rij');
+  assert.match(todo, /eerste klussen/, 'de rij noemt de teller');
+  assert.match(todo, /L\.DUIZENDPOOT_TITEL/, 'en bij negentien de titel');
+  assert.match(todo, /kind: 'place', name: `\$\{info\.naam\} · \$\{eerste\.plek\}`/, 'het doel wijst naar de dichtstbijzijnde startplek');
+  const kaarten = fs.readFileSync(JS + 'loopbaankaarten.js', 'utf8');
+  assert.match(kaarten, /export function maybeCareerCards\(world, stepId\)/, 'de afgesproken ingang voor story.js');
+  assert.match(kaarten, /voice: false/, 'de kaartjes zijn stil');
+  assert.ok(!/from '\.\/story\.js'/.test(kaarten), 'geen import van story.js (geen cyclus)');
 });
 
 console.log(`loopbaan_test: ${n - fails}/${n} ok`);
