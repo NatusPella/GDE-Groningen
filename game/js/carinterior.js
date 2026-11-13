@@ -56,11 +56,12 @@ function layoutVan(v, seat) {
 }
 
 function seatBoxes(B, L, seat, K) {
-  const sy = seat.y;
+  const sy = L.seatHoogte ?? seat.y;
   for (const s of L.seats) {
     B.box(s.x, sy - 0.07, s.z, 0.5, 0.14, 0.5, K.seatColor || SEAT);
     B.box(s.x - 0.27, sy + 0.27, s.z, 0.1, 0.55, 0.48, K.seatColor || SEAT, 0, 0, 0, K.seatTilt);
-    B.box(s.x - 0.3, sy + 0.62, s.z, 0.08, 0.16, 0.26, GREY);
+    // de hoofdsteun blijft onder de dakhemel van een cockpit; bij een auto hangt hij boven de raamlijn
+    B.box(s.x - 0.3, L.shell ? Math.min(sy + 0.62, L.shell.roofY - 0.12) : sy + 0.62, s.z, 0.08, 0.16, 0.26, GREY);
   }
   if (L.rear) {
     const rear = K.rearColor || SEAT;

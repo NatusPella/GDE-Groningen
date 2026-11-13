@@ -59,7 +59,7 @@ export function machineCab(naam, seat) {
 //   cab   = de fysieke cabine/romp van het model (x0..x1, floorY, roofY, hw)
 //   shell = de binnenhuid die cabin3d/carinterior tekenen (vloer, wanden, achterwand, dakhemel)
 //   hw    = halve breedte van de binnenhuid
-function layoutOf(cab, shell, d) {
+function layoutOf(cab, shell, seat, d) {
   return {
     eye: d.eye,
     dash: d.dash,
@@ -73,6 +73,9 @@ function layoutOf(cab, shell, d) {
     hw: shell.hw,
     cab,
     shell,
+    // de hoogte waarop de cabinebouwers de stoelen tekenen: de echte zitting als die in de
+    // binnenhuid past, anders net boven de vloer (de kooi van de laadmachine is erg laag)
+    seatHoogte: Math.max(seat.y, shell.floorY + 0.02),
   };
 }
 
@@ -93,6 +96,7 @@ function trekkerLayout(seat, len, wid) {
   const dash = blok(dashX - 0.13, seat.y - 0.22, hw * 1.84, 0.5, 0.26);
   return layoutOf(cab,
     { x0, x1, floorY: cab.floorY + 0.04, roofY: liningY, hw },
+    seat,
     {
       eye: { x: seat.x + 0.02, y: seat.y + 0.72, z: seat.z },
       dash,
@@ -120,7 +124,7 @@ function heliLayout(seat) {
   const shell = { x0: -0.2, x1: 1.3, floorY: 0.97, roofY: 1.72, hw: 0.6 };
   const liningY = 1.85;
   const dash = blok(1.13, 1.16, shell.hw * 1.9, 0.32, 0.24);
-  return layoutOf(cab, shell, {
+  return layoutOf(cab, shell, seat, {
     eye: { x: seat.x + 0.06, y: seat.y + 0.64, z: seat.z },
     dash,
     binnacle: blok(1.2, 1.48, 0.38, 0.12, 0.18),
@@ -149,7 +153,7 @@ function vliegtuigLayout(seat, len) {
   const shell = { x0: -1.45, x1: 0.95, floorY: 0.85, roofY: 2.0, hw: half - 0.1 };
   const liningY = 1.98;
   const dash = blok(0.76, 1.25, shell.hw * 1.8, 0.34, 0.26);
-  return layoutOf(cab, shell, {
+  return layoutOf(cab, shell, seat, {
     eye: { x: seat.x + 0.05, y: seat.y + 0.72, z: 0 },
     dash,
     binnacle: blok(0.76, 1.59, 0.4, 0.13, 0.18),
@@ -191,7 +195,7 @@ function machineLayout(seat, len, wid, naam) {
     : blok(dashFront - 0.1, dashY, hw * 1.8, 0.3, 0.2);
   const wheelY = hoog ? dashY + 0.26 : 1.6;
   const wheelX = hoog ? dash.x - 0.28 : 0.05;
-  return layoutOf(cab, { x0, x1, floorY, roofY, hw }, {
+  return layoutOf(cab, { x0, x1, floorY, roofY, hw }, seat, {
     eye: { x: seatX + 0.05, y: eyeY, z: seat.z },
     dash,
     binnacle: hoog
@@ -201,7 +205,7 @@ function machineLayout(seat, len, wid, naam) {
     seats: [{ x: seatX, z: seat.z }],
     console: hoog
       ? blok(seatX + 0.34, dashY + 0.19, 0.32, 0.22, 0.4)
-      : blok(seatX + 0.3, seat.y + 0.02, 0.28, 0.16, 0.3),
+      : blok(seatX + 0.3, Math.max(seat.y + 0.02, floorY + 0.12), 0.28, 0.16, 0.3),
     mirror: hoog
       ? { x: x1 - 0.2, y: liningY - 0.02, z: seat.z }
       : { x: x1 - 0.15, y: liningY - 0.01, z: seat.z },

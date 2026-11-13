@@ -138,5 +138,129 @@ for (const [klasse, naam, len, wid, seat] of GEVALLEN) {
   check('trekker: oog blijft boven de zitting', near(klein.eye.y - 1.55, groot.eye.y - 1.55, 1e-9));
 }
 
-console.log(bad ? `cockpit_test (pure indeling): ${bad} mislukt` : `cockpit_test (pure indeling): ok (${layouts.length} cockpits)`);
+// --- de 3D-kant (#847): cabin3d.js van buiten en carinterior.js in eerste persoon --------
+import './node3d.mjs';
+await import('../game/js/player.js');
+const { buildVehicleMesh } = await import('../game/js/models3d_vehicles.js');
+const { Vehicle } = await import('../game/js/vehicle.js');
+const C3 = await import('../game/js/cabin3d.js');
+const CI = await import('../game/js/carinterior.js');
+const AI = await import('../game/js/autointerieur.js');
+const { vehicleSeat } = await import('../game/js/seating3d.js');
+const { interiorKlasse } = await import('../game/js/carinteriorlayout.js');
+
+const THREE_MODEL = { 'trekker': { name: 'tractor', len: 4.3, wid: 2.3, color: '#3f7d3a' }, 'heli': { name: 'heli', len: 8.8, wid: 2.1, color: '#b8322a' }, 'vliegtuig': { name: 'plane', len: 8, wid: 10.6, color: '#e9e4d3' }, 'machine-maal': { name: 'maaidorser', len: 7.4, wid: 3.3, color: '#c43d2b' }, 'machine-laad': { name: 'laadmachine', len: 3.4, wid: 1.8, color: '#e0a92b' } };
+const FLAGS = { heli: { isHeli: true }, vliegtuig: { isPlane: true } };
+const maak = (soort) => {
+  const model = { ...THREE_MODEL[soort] };
+  const v = new Vehicle(0, 0, 0, model);
+  const flags = soort === 'heli' ? FLAGS.heli : soort === 'vliegtuig' ? FLAGS.vliegtuig : {};
+  return Object.assign(v, flags);
+};
+const triangle = (g) => g.attributes.position.count / 3;
+const bbox = (g) => { g.computeBoundingBox(); return g.boundingBox; };
+const inCabine = (b, cab, marge = 0.06) => b.min.x >= cab.x0 - marge && b.max.x <= cab.x1 + marge &&
+  b.min.z >= -cab.hw - marge && b.max.z <= cab.hw + marge &&
+  b.min.y >= cab.floorY - 0.2 && b.max.y <= cab.roofY + 0.03;
+
+const cockpitRows = [];
+for (const soort of Object.keys(THREE_MODEL)) {
+  const v = maak(soort);
+  const klasse = interiorKlasse(v);
+  const seat = vehicleSeat(v, true);
+  const L = cockpitLayout(klasse, seat, v.model.len, v.model.wid, v.model.name);
+  const mesh = buildVehicleMesh(v);
+  const meshes = new Map([[v.id, mesh]]);
+  const world = { vehicles: [v] };
+  C3.syncCabins(world, meshes, 0, 0);
+  const cab = mesh.userData.cabin;
+  check(`${soort}: cabine van buiten gebouwd`, !!cab && cab.visible && cab.name === 'cabine', soort);
+  if (!cab) continue;
+  const b = bbox(cab.geometry);
+  check(`${soort}: cabine binnen de cabine/romp van het model`, inCabine(b, L.cab), `x ${b.min.x.toFixed(2)}..${b.max.x.toFixed(2)} y ${b.min.y.toFixed(2)}..${b.max.y.toFixed(2)} z ${b.min.z.toFixed(2)}..${b.max.z.toFixed(2)} / cab ${JSON.stringify(L.cab)}`);
+  check(`${soort}: cabine onder het dak van het model`, b.max.y <= L.cab.roofY + 0.03, `${b.max.y.toFixed(2)} tegen ${L.cab.roofY}`);
+  // de LOD-trap: strikt aflopend en gedeeld per niveau
+  const tri = [];
+  for (let lod = 0; lod < 3; lod++) tri.push(triangle(C3.buildCabinGeometry(seat, v.model.len, v.model.wid, klasse, null, lod, { naam: v.model.name })));
+  check(`${soort}: driehoeken lopen strikt af (${tri.join(' > ')})`, tri[0] > tri[1] && tri[1] > tri[2], tri.join(' > '));
+  check(`${soort}: lod 1 minstens 35% minder`, tri[1] <= 0.65 * tri[0], `${tri[0]} -> ${tri[1]}`);
+  check(`${soort}: lod 2 minstens 70% minder`, tri[2] <= 0.3 * tri[0], `${tri[0]} -> ${tri[2]}`);
+  // het eerste-persoon-interieur: gebouwd, klein, één gedeeld materiaal, 2 + portieren objecten
+  check(`${soort}: eigen interieur in eerste persoon`, CI.updateCarInterior(mesh, v, true) === true && !!mesh.userData.interior);
+  const g = mesh.userData.interior;
+  if (!g) continue;
+  const onderdelen = [];
+  g.traverse((o) => { if (o.isMesh) onderdelen.push(o); });
+  let drie = 0;
+  for (const m of onderdelen) drie += triangle(m.geometry);
+  check(`${soort}: interieur klein genoeg (<= 4000 driehoeken)`, drie > 0 && drie <= 4000, String(drie));
+  check(`${soort}: één gedeeld materiaal`, new Set(onderdelen.map((m) => m.material)).size === 1 && onderdelen[0].material.userData.shared === true);
+  check(`${soort}: geen schaduw op een interieurdeel`, onderdelen.every((m) => m.castShadow === false));
+  check(`${soort}: 2 + portieren draw-objecten`, onderdelen.length === 2 + g.userData.trims.length, `${onderdelen.length} bij ${g.userData.trims.length} portieren`);
+  // het stuur draait mee met de besturing
+  v.steer = 0.5;
+  CI.updateCarInterior(mesh, v, true);
+  check(`${soort}: het stuur draait mee`, near(g.userData.wheel.rotation.x, -1.1, 1e-9), String(g.userData.wheel.rotation.x));
+  v.steer = 0;
+  // de eerste-persooncamera: het oog (hoofdbot) valt in de cabine/romp, boven de vloer
+  const oog = seat.y + 0.82; // hoofd = zitting + 0,65 (models3d_people.js NECK_Y) + 0,17 (firstpersoncam.js)
+  check(`${soort}: eerste-persoonoog in de cabine (y)`, oog > L.shell.floorY + 0.2 && oog <= L.cab.roofY, `${oog.toFixed(2)} in ${L.shell.floorY}..${L.cab.roofY}`);
+  const e = CI.interiorEyePose(v);
+  check(`${soort}: BINNENIN-oog eindig en op cabinehoogte`, e && [e.x, e.y, e.z, e.fx, e.fy].every((n) => Number.isFinite(n)) && e.z > L.shell.floorY && e.z < L.cab.roofY, JSON.stringify(e));
+  // het meedraaiende stuur van buiten: trekker en machines wel, heli en vliegtuig niet (cyclic/yoke)
+  AI.syncAutoStuur(world, meshes, 0, 0, 1 / 60);
+  const heeftStuur = !!(cab.userData.stuur && cab.userData.stuur.visible);
+  const verwachtStuur = klasse === 'trekker' || klasse === 'machine';
+  check(`${soort}: meedraaiend stuur ${verwachtStuur ? 'wel' : 'niet'}`, heeftStuur === verwachtStuur, String(heeftStuur));
+  // ver weg: de cabine en het stuur gaan weg
+  C3.syncCabins(world, meshes, C3.CABIN_LOD_R[2], 0);
+  check(`${soort}: verborgen voorbij de verste straal`, !cab.visible);
+  cockpitRows.push({ soort, tri, drie, objecten: onderdelen.length });
+}
+// De wrakvariant werkt ook voor een cockpitklasse (#847): verkoold, eigen geometrie, binnen de cabine.
+{
+  const v = maak('trekker');
+  v.wrecked = true;
+  const mesh = buildVehicleMesh(v);
+  const wereld = { vehicles: [v] };
+  const meshes = new Map([[v.id, mesh]]);
+  C3.syncCabins(wereld, meshes, 0, 0);
+  const cab = mesh.userData.cabin;
+  check('wrak-trekker: eigen wrakcabine', !!cab && cab.visible && mesh.userData.cabinWreck === true);
+  if (cab) {
+    const seat = vehicleSeat(v, true);
+    const L = cockpitLayout('trekker', seat, v.model.len, v.model.wid, 'tractor');
+    const b = bbox(cab.geometry);
+    check('wrak-trekker: wrakgeometrie binnen de cabine', inCabine(b, L.cab), `x ${b.min.x.toFixed(2)}..${b.max.x.toFixed(2)} y ${b.min.y.toFixed(2)}..${b.max.y.toFixed(2)}`);
+    check('wrak-trekker: niet de gewone cabine', triangle(cab.geometry) !== triangle(C3.buildCabinGeometry(seat, v.model.len, v.model.wid, 'trekker', null, 0, { naam: 'tractor' })));
+  }
+}
+// De eerste-persooncamera staat in de raamband die het model (straks) open heeft: de maaidorser
+// krijgt een glasband van ~2,35 tot ~3,2 m, de laadmachine heeft zijn kooi van 1,45 tot ~2,0 m.
+for (const [naam, onder, boven] of [['maaidorser', 2.35, 3.2], ['laadmachine', 1.45, 2.0]]) {
+  const v = maak(naam === 'maaidorser' ? 'machine-maal' : 'machine-laad');
+  const seat = vehicleSeat(v, true);
+  const oog = seat.y + 0.82;
+  check(`${naam}: eerste-persoonoog in de raamband ${onder}..${boven}`, oog > onder && oog <= boven, oog.toFixed(2));
+  const L = cockpitLayout('machine', seat, v.model.len, v.model.wid, naam);
+  check(`${naam}: het interieur zelf zit op cabinehoogte`, L.shell.floorY >= 1.39 && L.eye.y >= onder - 0.1 && L.eye.y < boven, `${L.shell.floorY} / ${L.eye.y}`);
+}
+// Bouwbudget: een rij cockpits van verschillende maten bouwt per aanroep hooguit drie geometrieën.
+{
+  const cocks = [];
+  for (let i = 0; i < 4; i++) {
+    const v = new Vehicle(0, 0, 0, { name: 'tractor', len: 3.7 + i * 0.2, wid: 2.1, color: '#3f7d3a' });
+    cocks.push({ v, mesh: buildVehicleMesh(v) });
+  }
+  const wereld = { vehicles: cocks.map((c) => c.v) };
+  const meshes = new Map(cocks.map((c) => [c.v.id, c.mesh]));
+  const zichtbaar = () => cocks.filter((c) => c.mesh.userData.cabin && c.mesh.userData.cabin.visible).length;
+  C3.syncCabins(wereld, meshes, 0, 0);
+  check('cockpit-budget: eerste aanroep bouwt er precies 3', zichtbaar() === 3, String(zichtbaar()));
+  C3.syncCabins(wereld, meshes, 0, 0);
+  check('cockpit-budget: volgende aanroep bouwt de rest', zichtbaar() === 4, String(zichtbaar()));
+}
+
+if (cockpitRows.length) console.log('cockpit 3D-metingen:', cockpitRows.map((r) => `${r.soort} ${r.tri.join('>')} driehoeken (FP ${r.drie}, ${r.objecten} objecten)`).join(', '));
+console.log(bad ? `cockpit_test: ${bad} mislukt` : `cockpit_test: ok (${layouts.length} cockpits, ${cockpitRows.length} 3D)`);
 process.exit(bad ? 1 : 0);

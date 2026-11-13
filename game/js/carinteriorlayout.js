@@ -54,6 +54,7 @@ export function interiorLayout(seat, len, wid, romp = null, klasse = 'auto', naa
     // dakbekleding vanaf de voorruit tot achter de laatste stoel, met een A-stijl per kant
     roof,
     hw,
+    seatHoogte: sy,
   };
 }
 
@@ -294,9 +295,10 @@ export function wrakStijl(klasse, L, seat) {
     ash: 0x2a2825,                         // as en brokstukken
     rust: 0x5a3a24,                        // verbrande rand
     panel: 0x1c1b19,                       // een losgeslagen paneel
-    // losse panelen en brokstukken op de vloer; at = [x, y, z], b = [x, y, z] maten
+    // losse panelen en brokstukken op de vloer; at = [x, y, z], b = [x, y, z] maten. Ze blijven
+    // binnen de binnenhuid (de trekker-cabine is maar ~3 m lang, dus niet te ver naar achteren).
     brokstukken: [
-      { b: [0.42, 0.05, 0.3], at: [sx - 0.45, Math.max(0.34, sy - 0.3), 0.12], color: 0x1c1b19 },
+      { b: [0.3, 0.05, 0.26], at: [sx - 0.35, Math.max(0.34, sy - 0.3), 0.12], color: 0x1c1b19 },
       { b: [0.16, 0.1, 0.2], at: [sx + 0.24, Math.max(0.36, sy - 0.26), -hw * 0.5], color: 0x2a2825 },
       { b: [0.1, 0.06, 0.3], at: [sx - 0.1, Math.max(0.32, sy - 0.31), hw * 0.28], color: 0x5a3a24 },
     ],

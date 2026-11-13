@@ -60,7 +60,7 @@ export function buildCabinGeometry(seat, len, wid, klasse, romp = null, lod = 0,
   if (K.rear !== undefined) L.rear = K.rear;
   const B = new GeoBuilder(1);
   const S = innerShell(seat, len, wid, L, cockpit ? null : romp);
-  const hw = S.hw, sy = seat.y, sh = S.sh;
+  const hw = S.hw, sy = L.seatHoogte ?? seat.y, sh = S.sh;
   const floorY = S.floorY, roofY = S.roofY;
   const x0 = S.x0, x1 = S.x1 + sh;
   const zw = hw - 0.07;
@@ -110,7 +110,9 @@ export function buildCabinGeometry(seat, len, wid, klasse, romp = null, lod = 0,
   const seatAt = (x, z, color) => {
     B.box(x, sy - 0.07, z, 0.5, 0.14, 0.5, color);
     B.box(x - 0.27, sy + 0.27, z, 0.1, 0.55, 0.48, color, 0, 0, 0, K.seatTilt);
-    B.box(x - 0.3, sy + 0.62, z, 0.08, 0.16, 0.26, GREY);
+    // de hoofdsteun blijft onder de dakhemel van een cockpit (de kooi van de laadmachine is
+    // laag); bij een auto is L.roof.y de raamlijn en hangt de hoofdsteun daarboven
+    B.box(x - 0.3, L.shell ? Math.min(sy + 0.62, L.shell.roofY - 0.12) : sy + 0.62, z, 0.08, 0.16, 0.26, GREY);
   };
   for (const s of L.seats) seatAt(s.x, s.z, seatColor);
   if (L.rear) {
@@ -150,7 +152,7 @@ export function buildWreckCabinGeometry(seat, len, wid, klasse, romp = null, lod
   const W = wrakStijl(klasse, L, seat);
   const B = new GeoBuilder(1);
   const S = innerShell(seat, len, wid, L, cockpit ? null : romp);
-  const hw = S.hw, sy = seat.y;
+  const hw = S.hw, sy = L.seatHoogte ?? seat.y;
   const floorY = S.floorY, roofY = S.roofY;
   const x0 = S.x0, x1 = S.x1;
   const zw = hw - 0.07;
@@ -162,7 +164,7 @@ export function buildWreckCabinGeometry(seat, len, wid, klasse, romp = null, lod
     vloer();
     B.box(d.x, d.y + d.h / 2 - 0.08, 0, d.d, d.h, d.w, W.ash, 0, 0, 0, scheef);
     for (const s of L.seats) B.box(s.x, sy + 0.1, s.z, 0.5, 0.4, 0.5, W.seatColor);
-    return B.build();
+    return markShared(B.build());
   }
   vloer();
   for (const s of [-1, 1]) B.quadOut(P(x0, floorY, s * zw), P(x1, floorY, s * zw), P(x1, roofY - 0.12, s * zw), P(x0, roofY - 0.12, s * zw), [0, 0, -s], W.soot); // binnenwanden, onder de raamlijn
@@ -177,7 +179,7 @@ export function buildWreckCabinGeometry(seat, len, wid, klasse, romp = null, lod
   scheveStoel(L.seats[0].x, L.seats[0].z, seatColor);
   if (W.seatKwijt && L.seats.length > 1) B.box(L.seats[1].x, Math.max(floorY + 0.05, sy - 0.32), L.seats[1].z, 0.42, 0.1, 0.42, W.panel);
   else if (L.seats.length > 1) scheveStoel(L.seats[1].x, L.seats[1].z, seatColor);
-  if (lod === 1) return B.build();
+  if (lod === 1) return markShared(B.build());
   // lod 0: brokstukken, glasranden en een dichtgeslagen gat in de hemel waar de hemel zat
   for (const p of W.brokstukken) B.box(p.at[0], p.at[1], p.at[2], p.b[0], p.b[1], p.b[2], p.color, 0, 0, 0, 0.3);
   // scherpe glasranden langs de raamlijn (enkelzijdig, dus van binnen en buiten te zien)
@@ -186,8 +188,16 @@ export function buildWreckCabinGeometry(seat, len, wid, klasse, romp = null, lod
     B.tri(a, b2, c2, 0x8fa4b0);
     B.tri(a, c2, b2, 0x8fa4b0);
   };
-  for (const [x, h] of [[x0 + 0.35, 0.16], [x0 + 0.85, 0.22], [x1 - 0.45, 0.13]]) { shard(x, zw, h); shard(x, -zw, h); }
-  return B.build();
+  // de glasranden blijven onder het dak van het model, ook bij een lage kooi (de laadmachine)
+  // of een cabine met een lage hemel (trekker); bij een auto is dat het echte dak van de romp
+  const dakY = L.cab ? L.cab.roofY : (romp ? romp.roof : roofY + 0.4);
+  const hMax = Math.max(0.04, dakY - roofY - 0.06);
+  for (const [x, h] of [[x0 + 0.35, 0.16], [x0 + 0.85, 0.22], [x1 - 0.45, 0.13]]) {
+    const hh = Math.min(h, hMax);
+    shard(x, zw, hh);
+    shard(x, -zw, hh);
+  }
+  return markShared(B.build());
 }
 
 // De modelnaam van een voertuig, als los hulpje voor de cache en de bouwers.

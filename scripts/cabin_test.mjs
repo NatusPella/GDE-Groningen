@@ -243,5 +243,84 @@ check('fiets: geen cabine', !C.wantsCabin(fiets));
 const wrak = Object.assign(new Vehicle(0, 0, 0, models.get('sedan')), { wrecked: true });
 check('wrak: wel een cabine (de wrakvariant)', C.wantsCabin(wrak));
 check('wrak: de normale cabine niet', !C.wantsNormalCabin(wrak) && C.wantsWreckCabin(wrak));
+
+// --- de wrakvariant (#847) ---------------------------------------------------------------
+// Een wrak krijgt een eigen, gedeelde geometrie (verkoold, scheve stoelen, scheef dashboard) en
+// het glas van dat ene voertuig wordt opengezet, zodat je erdoor naar binnen kijkt. De gewone
+// cabine wordt nooit getoond; bij een reparatie komt het glas terug en wisselt de geometrie terug.
+{
+  const model = models.get('sedan') || models.get('hatch');
+  const v = Object.assign(new Vehicle(0, 0, 0, { ...model }), { wrecked: true });
+  const mesh = buildVehicleMesh(v);
+  const glasmateriaal = () => mesh.userData.body.material[1];
+  check('wrak: het glas is dicht voordat de wrakcabine bestaat', glasmateriaal().transparent !== true);
+  C.syncCabins({ vehicles: [v] }, new Map([[v.id, mesh]]), 0, 0);
+  const cab = mesh.userData.cabin;
+  check('wrak: cabine gebouwd en zichtbaar', !!cab && cab.visible);
+  if (!cab) { console.log(bad ? `${bad} mislukt` : 'cabin_test: ok'); process.exit(1); }
+  check('wrak: mesh kent de wrakstand', mesh.userData.cabinWreck === true && mesh.userData.cabinLod === 0);
+  const gw = cab.geometry;
+  check('wrak: eindige wrakgeometrie', finite(gw));
+  check('wrak: binnen de carrosserie', insideBody(gw, model.len, model.wid), span(gw, model.len, model.wid));
+  check('wrak: één groep en gedeeld', gw.userData.shared === true && gw.groups.length === 1);
+  check('wrak: geen schaduwkosten', cab.castShadow === false);
+  check('wrak: het glas is opengezet (doorzichtig, geen diepte)', glasmateriaal().transparent === true && glasmateriaal().opacity <= 0.2 && glasmateriaal().depthWrite === false);
+  // roetzwarte kleuren: alle vertexkleuren blijven donker
+  {
+    const col = gw.attributes.color.array;
+    let max = 0;
+    for (let i = 0; i < col.length; i++) if (col[i] > max) max = col[i];
+    check('wrak: verkoold kleurgebruik (geen felle kleuren)', max <= 150, String(max));
+  }
+  // de wrakgeometrie is niet de gewone cabine
+  const seat = vehicleSeat(v, true);
+  const romp = carBodyFit({ ...v, wrecked: false });
+  const normaal = C.buildCabinGeometry(seat, model.len, model.wid, interiorKlasse(v), romp, 0, { naam: model.name });
+  check('wrak: eigen geometrie, niet de gewone cabine', triangles(gw) !== triangles(normaal), `${triangles(gw)} tegen ${triangles(normaal)}`);
+  // de drie wrakniveaus: strikt aflopend, eindig, binnen de carrosserie en gedeeld
+  const wrakTri = [];
+  for (let lod = 0; lod < 3; lod++) {
+    const g = C.buildWreckCabinGeometry(seat, model.len, model.wid, interiorKlasse(v), romp, lod, { naam: model.name });
+    wrakTri.push(triangles(g));
+    check(`wrak: lod ${lod} eindig`, finite(g));
+    check(`wrak: lod ${lod} binnen de carrosserie`, insideBody(g, model.len, model.wid), span(g, model.len, model.wid));
+    check(`wrak: lod ${lod} één groep en gedeeld`, g.userData.shared === true && g.groups.length === 1);
+  }
+  check(`wrak: driehoeken lopen strikt af (${wrakTri.join(' > ')})`, wrakTri[0] > wrakTri[1] && wrakTri[1] > wrakTri[2], wrakTri.join(' > '));
+  // een tweede wrak van dezelfde soort en maat deelt de geometrie
+  const v2 = Object.assign(new Vehicle(0, 0, 0, { ...model }), { wrecked: true });
+  const mesh2 = buildVehicleMesh(v2);
+  C.syncCabins({ vehicles: [v2] }, new Map([[v2.id, mesh2]]), 0, 0);
+  check('wrak: geometrie gedeeld met een tweede wrak', mesh2.userData.cabin && mesh2.userData.cabin.geometry === gw);
+  // de afstandstrap wisselt ook de wrakgeometrie
+  const world = { vehicles: [v] };
+  const meshes = new Map([[v.id, mesh]]);
+  C.syncCabins(world, meshes, C.CABIN_LOD_R[0], 0);
+  check('wrak: op de eerste drempel lod 1', mesh.userData.cabinLod === 1 && triangles(cab.geometry) === wrakTri[1], String(mesh.userData.cabinLod));
+  C.syncCabins(world, meshes, C.CABIN_LOD_R[2], 0);
+  check('wrak: verborgen voorbij de verste grens', !cab.visible);
+  C.syncCabins(world, meshes, 0, 0);
+  check('wrak: terug op lod 0 met dezelfde geometrie', mesh.userData.cabinLod === 0 && cab.geometry === gw);
+  // een reparatie: de gewone cabine komt terug en het glas gaat weer dicht
+  v.wrecked = false;
+  C.syncCabins(world, meshes, 0, 0);
+  check('reparatie: de gewone cabine terug', mesh.userData.cabinWreck === false && cab.geometry !== gw && cab.visible);
+  check('reparatie: het glas weer dicht', glasmateriaal().transparent !== true && glasmateriaal().opacity !== 0.14);
+  // het bouwbudget geldt ook voor wrakken: een rij van vier verschillende wrakken bouwt er per aanroep hooguit drie
+  {
+    const autos = [];
+    for (let i = 0; i < 4; i++) {
+      const w = Object.assign(new Vehicle(0, 0, 0, { name: 'wrak' + i, len: 4.0 + i * 0.11, wid: 1.8, color: '#6a707a' }), { wrecked: true });
+      autos.push({ v: w, mesh: buildVehicleMesh(w) });
+    }
+    const wworld = { vehicles: autos.map((c) => c.v) };
+    const wmeshes = new Map(autos.map((c) => [c.v.id, c.mesh]));
+    const zichtbaar = () => autos.filter((c) => c.mesh.userData.cabin && c.mesh.userData.cabin.visible).length;
+    C.syncCabins(wworld, wmeshes, 0, 0);
+    check('wrak-budget: eerste aanroep bouwt er precies 3', zichtbaar() === 3, String(zichtbaar()));
+    C.syncCabins(wworld, wmeshes, 0, 0);
+    check('wrak-budget: volgende aanroep bouwt de rest', zichtbaar() === 4, String(zichtbaar()));
+  }
+}
 console.log(bad ? `${bad} mislukt` : `cabin_test: ok (${cases.length} voertuigen)`);
 process.exit(bad ? 1 : 0);
