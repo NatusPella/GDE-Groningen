@@ -4,7 +4,7 @@
 //   node scripts/credits_test.mjs
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
-import { CONTRIBUTORS, CREDITS_HTML, THIRD_PARTY_CARDS } from '../game/js/credits.js';
+import { CONTRIBUTORS, AI_ASSISTENTS, CREDITS_HTML, THIRD_PARTY_CARDS } from '../game/js/credits.js';
 
 let n = 0;
 const ok = (c, m) => { assert.ok(c, m); n += 1; };
@@ -24,6 +24,12 @@ for (const c of CONTRIBUTORS) {
 for (const naam of ['astnagrath', 'pixel-maus', 'alexkramer98', 'Teungritter', 'MathijsG', 'ArmEagle', 'wisskid', 'Agnilor', 'jonathanbuist']) {
   ok(docs.includes(naam), `docs/CREDITS.md noemt ${naam}`);
 }
+ok(AI_ASSISTENTS.length >= 5, 'de tech-stack noemt de AI-assistenten');
+for (const [who] of AI_ASSISTENTS) {
+  ok(docs.includes(who.split(' (')[0]), `docs/CREDITS.md noemt ${who}`);
+  ok(!CONTRIBUTORS.some((c) => c.who === who), `${who} staat niet bij de credits`);
+}
+ok(CREDITS_HTML.includes('AI-assistenten'), 'de in-game credits noemen de AI-hulp als tech-stack');
 
 ok(new Set(CONTRIBUTORS.map((c) => c.who)).size === CONTRIBUTORS.length, 'geen dubbele regels');
 ok(THIRD_PARTY_CARDS.some(([t]) => t === 'NatusPella'), 'de aftiteling noemt de maker');

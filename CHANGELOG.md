@@ -10,7 +10,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 ## [Unreleased]
 
 - **De disclaimer noemt geen andere games of uitgevers meer.** README, NOTICE.md en het Over-scherm zeggen nu generiek dat GDE een gratis fanparodie is en niet gelieerd aan een andere gameontwikkelaar of -uitgever. De oude merknamen zijn uit de speltekst, de publieke documentatie en de releasenotes verdwenen; onderzoeks- en archiefdocumenten blijven als bron en historie (#72).
-- **De credits noemen nu iedereen die meehielp, op volgorde van bijdrage.** Zie [docs/CREDITS.md](docs/CREDITS.md).
+- **De credits noemen nu alle mensen die meehielpen, op volgorde van bijdrage, inclusief iedereen die toegang had maar niets in de commits deed.** AI-assistenten staan niet bij de credits maar bij de tech-stack. Zie [docs/CREDITS.md](docs/CREDITS.md).
 
 ## [0.60.7] - 2026-11-12
 

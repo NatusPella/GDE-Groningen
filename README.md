@@ -269,6 +269,7 @@ Dit is een publieke playtest; jouw ervaring telt. Zo werkt het:
 | Stemmen | Google Gemini TTS via de LiteLLM-gateway van de eigenaar (nieuwe clips; oude clips zijn via OpenRouter gemaakt), ingesproken in het Gronings en Nederlands; per map vastgelegd in `tts.json` |
 | Muziek | gemaakt met Google Gemini |
 | Geluidseffecten, texturen, modellen | in de code zelf gemaakt (procedureel); de Martinitoren is gemodelleerd met Claude Design |
+| AI-assistenten | Claude (Sonnet 5.5 en Opus 5.5), OpenHands, chat1/agent en DeepSeek V4.1 Flash via DeepSeek Harness hielpen bij code, tests, review en documentatie; in de credits staan zij niet als makers maar als tech-stack. Zie [docs/CREDITS.md](docs/CREDITS.md) |
 
 ### Mappen
 

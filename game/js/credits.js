@@ -16,37 +16,43 @@ const BAG3D_ATTRIBUTION = '3DBAG door de 3D geoinformation onderzoeksgroep (TU D
 // gemeente-, woonplaats-, wijk- en buurtgrenzen (scripts/world/fetch_grenzen.mjs -> game/grenzen.json; CC BY 4.0 en Public Domain Mark)
 const GRENZEN_ATTRIBUTION = 'Gemeentegrenzen: Kadaster (Bestuurlijke Gebieden), woonplaatsen: Kadaster (BAG), wijken en buurten: CBS (Gebiedsindelingen), via PDOK';
 
-// Everyone who helped, in order of measured effort; handles are GitHub usernames and no real
-// names of others than the owner are used (constitution 4). Evidence and method: docs/CREDITS.md.
+// De mensen die meehielpen, in volgorde van gemeten effort. AI-assistenten staan bewust
+// niet in deze lijst: die noemen we bij de tech-stack (docs/CREDITS.md). Geen echte namen
+// van anderen dan de eigenaar (constitution 4); handles zijn GitHub-gebruikersnamen.
 export const CONTRIBUTORS = [
   { who: 'NatusPella', role: 'maker: idee, verhaal, regie, code en alles daartussen' },
-  { who: 'Claude (Sonnet 5.5 en Opus 5.5)', role: 'AI-copiloot: het grootste deel van de code- en testcommits' },
-  { who: 'OpenHands', role: 'AI-agent: code, tests en reviewrondes' },
-  { who: 'chat1 en agent', role: 'AI-hulpen: test- en meetrondes' },
   { who: 'astnagrath', role: 'tester en meedenker: feedback en issues' },
   { who: 'pixel-maus', role: 'tester en meedenker: feedback en issues' },
   { who: 'alexkramer98', role: 'tester en meedenker: feedback en een pull request' },
   { who: 'Teungritter', role: 'tester en meedenker: feedback' },
-  { who: 'MathijsG', role: 'vriend en tester van het project' },
-  { who: 'ArmEagle', role: 'vriend en tester van het project' },
-  { who: 'wisskid', role: 'vriend en tester van het project' },
-  { who: 'Agnilor', role: 'vriend en tester van het project' },
-  { who: 'jonathanbuist', role: 'vriend en tester van het project' },
+  { who: 'MathijsG', role: 'had toegang tot de repo en hielp als tester' },
+  { who: 'ArmEagle', role: 'had toegang tot de repo en hielp als tester' },
+  { who: 'wisskid', role: 'had toegang tot de repo en hielp als tester' },
+  { who: 'Agnilor', role: 'had toegang tot de repo en hielp als tester' },
+  { who: 'jonathanbuist', role: 'had toegang tot de repo en hielp als tester' },
   { who: 'de playtesters', role: 'alle spelers die builds uitprobeerden en feedback gaven' },
-  { who: 'Google Gemini', role: 'muziek en alle stemmen' },
-  { who: 'Claude Design', role: 'het Martinitoren-model' },
+];
+
+// AI-assistenten en ander gereedschap: geen credits, wel eerlijk vermeld als tech-stack
+// (op verzoek van de eigenaar, 13-11-2026). Zie ook docs/CREDITS.md.
+export const AI_ASSISTENTS = [
+  ['Claude (Sonnet 5.5 en Opus 5.5)', 'code, tests, review en documentatie'],
+  ['OpenHands', 'code, tests en reviewrondes'],
+  ['chat1 en agent', 'test- en meetrondes'],
+  ['DeepSeek V4.1 Flash via DeepSeek Harness', 'deze opschoon- en publicatieronde'],
+  ['Google Gemini', 'stemmen en muziek'],
+  ['Claude Design', 'het Martinitoren-model'],
 ];
 
 // [title, kicker] cards for the end credits (story.js)
 export const THIRD_PARTY_CARDS = [
   ['NatusPella', 'ontwerp, verhaal, regie en code'],
-  ['Claude · OpenHands', 'AI-hulp bij code en tests'],
   ['astnagrath · pixel-maus · alexkramer98 · Teungritter', 'testers en meedenkers'],
+  ['MathijsG · ArmEagle · wisskid · Agnilor · jonathanbuist', 'hadden toegang en hielpen als tester'],
   [OSM_ATTRIBUTION, 'kaartdata (ODbL) · openstreetmap.org/copyright'],
   ['3DBAG', 'gebouwhoogtes en daken (CC BY 4.0) · TU Delft en 3DGI · 3dbag.nl'],
   ['AHN', 'terreinhoogte (CC0) · ahn.nl · pdok.nl'],
   ['Kadaster · CBS', 'gemeente-, woonplaats-, wijk- en buurtgrenzen (CC BY 4.0, Public Domain) · pdok.nl'],
-  ['Google Gemini', 'muziek en stemmen, gemaakt met AI'],
   ['three.js · Bebas Neue · Big Shoulders Display', 'MIT-licentie · SIL Open Font License'],
   ['Fanparodie', 'alles verzonnen'],
 ];
@@ -67,6 +73,7 @@ ${CONTRIBUTORS.map((c) => `<li><strong>${c.who}</strong> — ${c.role}</li>`).jo
 <h4>Muziek en stemmen</h4>
 <p>De muziek (G-Music, Nachtstreek, het titelnummer) en alle stemmen zijn gemaakt met Google Gemini (muziek en Gemini TTS via OpenRouter). De Martinitoren is gemodelleerd met Claude Design. Geluidseffecten worden grotendeels in het spel zelf gesynthetiseerd, aangevuld met een paar CC0-opnames van Freesound (autodeuren, bandenslip, handrembocht en een treindeur).</p>
 <h4>Software en lettertypes</h4>
+<p>Gemaakt met hulp van AI-assistenten: ${AI_ASSISTENTS.map(([who, role]) => `${who} (${role})`).join('; ')}. Zij staan hier als tech-stack, niet als credits.</p>
 <ul>
 <li>three.js, © three.js authors, MIT-licentie</li>
 <li>Bebas Neue, © 2010 Dharma Type, SIL Open Font License 1.1</li>
