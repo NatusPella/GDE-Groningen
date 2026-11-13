@@ -66,6 +66,65 @@ for (const [label, L] of layouts) {
 }
 const busLayout = layouts[0][1];
 
+// --- the inner shell (#833): only lod 0 gets the inward-facing skin -------------------------------
+// The bus body is single-sided, so from inside you would see the street and the sky through the backs of
+// the floor, roof and side walls. Lod 0 therefore carries a floor, a ceiling, two side walls (the
+// sidewalk side split around the doorways) and a rear wall, all facing into the room. It is part of the
+// same geometry: no extra mesh, no extra draw call, and the back faces are culled from outside.
+let shellTris = 0;
+{
+  const CEILING = new THREE.Color(0x9aa3ad), WALL = new THREE.Color(0x2a2f36), DARK = new THREE.Color(0x23262b);
+  const sameColor = (g, i, c) => Math.abs(g.attributes.color.getX(i) - c.r) < 0.01 && Math.abs(g.attributes.color.getY(i) - c.g) < 0.01 && Math.abs(g.attributes.color.getZ(i) - c.b) < 0.01;
+  const trisOf = (g, c) => { const out = []; for (let t = 0; t < triangles(g); t++) if (sameColor(g, t * 3, c)) out.push(t); return out; };
+  // expected pieces: floor 2 + ceiling 2 + rear wall 2 + solid side wall 2 + two triangles per door-side piece
+  const shellOf = (L) => {
+    const xFront = L.rail.x0 - 0.4, xRear = L.rail.x1 + 0.2;
+    let pieces = 0, x = xRear;
+    for (const d of L.doors.slice().sort((a, b) => a - b)) {
+      const a = Math.min(d - 0.6, xFront), b = Math.min(d + 0.6, xFront);
+      if (a > x) pieces++;
+      if (b > x) x = b;
+      if (x >= xFront) break;
+    }
+    if (x < xFront) pieces++;
+    return { tris: 8 + pieces * 2, wall: 4 + pieces * 2 };
+  };
+  for (const [label, L] of layouts) {
+    const g0 = M3.buildInrichting(L, 0);
+    const g1 = M3.buildInrichting(L, 1), g2 = M3.buildInrichting(L, 2);
+    const need = shellOf(L);
+    const ceiling = trisOf(g0, CEILING), wall = trisOf(g0, WALL);
+    check(`${label}: shell only on lod 0`, ceiling.length === 2 && wall.length === need.wall && trisOf(g1, CEILING).length + trisOf(g2, CEILING).length + trisOf(g1, WALL).length + trisOf(g2, WALL).length === 0, `ceiling ${ceiling.length} wall ${wall.length} nodig ${need.wall}`);
+    // normals point into the room: the ceiling down, the side walls inward, the rear wall forward
+    const pos = g0.attributes.position, nrm = g0.attributes.normal;
+    const xyz = (t, k) => [pos.getX(t * 3 + k), pos.getY(t * 3 + k), pos.getZ(t * 3 + k)];
+    check(`${label}: ceiling faces down`, ceiling.every((t) => nrm.getY(t * 3) < -0.9));
+    const hw = L.wid / 2 - 0.08, rearX = L.rail.x1 + 0.2;
+    let sideIn = true, rearIn = true, sides = 0, rears = 0;
+    for (const t of wall) {
+      const a = xyz(t, 0), b = xyz(t, 1), c = xyz(t, 2);
+      const cx = (a[0] + b[0] + c[0]) / 3, cz = (a[2] + b[2] + c[2]) / 3;
+      if (Math.abs(cx - rearX) < 0.01) { rears++; rearIn = rearIn && nrm.getX(t * 3) > 0.9; }
+      else if (Math.abs(Math.abs(cz) - hw) < 0.01) { sides++; sideIn = sideIn && nrm.getZ(t * 3) * Math.sign(cz) < -0.9; }
+    }
+    check(`${label}: side walls face inward`, sideIn && sides === need.wall - 2, `${sides} van ${need.wall - 2}`);
+    check(`${label}: rear wall faces forward`, rearIn && rears === 2, String(rears));
+    // the floor: two dark triangles at VLOER reaching both side walls (the seat legs are dark too, but narrow)
+    let floorTris = 0, zMin = Infinity, zMax = -Infinity;
+    for (let t = 0; t < triangles(g0); t++) {
+      const a = xyz(t, 0), b = xyz(t, 1), c = xyz(t, 2);
+      if (Math.abs(a[1] - L.floor) > 1e-5 || Math.abs(b[1] - L.floor) > 1e-5 || Math.abs(c[1] - L.floor) > 1e-5) continue;
+      if (!sameColor(g0, t * 3, DARK)) continue;
+      const lo = Math.min(a[2], b[2], c[2]), hi = Math.max(a[2], b[2], c[2]);
+      if (hi - lo < L.wid - 0.3) continue;
+      floorTris++; zMin = Math.min(zMin, lo); zMax = Math.max(zMax, hi);
+    }
+    check(`${label}: floor spans the room at VLOER`, floorTris === 2 && zMin <= -(hw - 0.01) && zMax >= hw - 0.01, `${floorTris} ${zMin}..${zMax}`);
+    check(`${label}: shell is ${need.tris} triangles`, ceiling.length + wall.length + floorTris === need.tris, `${ceiling.length + wall.length + floorTris} tegen ${need.tris}`);
+    if (label === 'bus') shellTris = need.tris;
+  }
+}
+
 // --- the travellers: more people, more triangles, nothing at all for none ---------------------
 {
   const g0 = M3.buildReizigers(busLayout, 0);
@@ -203,6 +262,7 @@ const tick = (world) => M3.busInterieurKind.tick(1 / 60, world);
 console.log('bus passenger-room LOD measurements (triangles per level; first build in ms):');
 for (const r of rows) console.log(`  ${r.label.padEnd(8)} ${String(r.tri[0]).padStart(4)} > ${String(r.tri[1]).padStart(4)} > ${String(r.tri[2]).padStart(4)}  sum ${String(r.tri[0] + r.tri[1] + r.tri[2]).padStart(4)}  ${r.ms.map((m) => m.toFixed(3) + ' ms').join(' | ')}`);
 console.log(`  first build per level: lod0 ${firstBuild[0].toFixed(3)} ms, lod1 ${firstBuild[1].toFixed(3)} ms, lod2 ${firstBuild[2].toFixed(3)} ms, sum ${(firstBuild[0] + firstBuild[1] + firstBuild[2]).toFixed(3)} ms (${builds} geometries)`);
+console.log(`  inner shell (lod 0 only): ${shellTris} triangles = floor 2 + ceiling 2 + rear wall 2 + door-side wall pieces; lod 1 and 2 have none`);
 const worst1 = Math.max(...rows.map((r) => r.tri[1] / r.tri[0]));
 const worst2 = Math.max(...rows.map((r) => r.tri[2] / r.tri[0]));
 console.log(`  worst ratio: lod1 ${(100 * (1 - worst1)).toFixed(1)}% fewer, lod2 ${(100 * (1 - worst2)).toFixed(1)}% fewer`);

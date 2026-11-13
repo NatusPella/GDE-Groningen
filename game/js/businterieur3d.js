@@ -3,8 +3,10 @@ import { hoofdspeler } from './players.js';
 // door de ramen en de open deuren te zien en bij de binnenin-camera (V). De maten komen uit businterieur.js (met
 // tests). De ruimte heeft drie detailniveaus op afstand (LOD): dichtbij de hele inrichting met reizigers, halfverwege
 // de stoelen met de haltestangen en de handrail (zonder poten, loper en de helft van de stangen) en de reizigers, ver
-// alleen stoelblokken zonder reizigers. De geometrie is gedeeld: één mesh per busmaat en niveau voor de inrichting, en
-// per maat en aantal reizigers één voor de mensen (blokken van 4). Meldt zich in main.js als kind.
+// alleen stoelblokken zonder reizigers. Het dichtbije niveau heeft ook een enkelzijdige binnenhuid (vloer, plafond,
+// wanden met deurgaten en achterwand), zodat je in eerste persoon niet door de achterkant van de enkelzijdige
+// buscarrosserie heen de straat en de lucht ziet. De geometrie is gedeeld: één mesh per busmaat en niveau voor de
+// inrichting, en per maat en aantal reizigers één voor de mensen (blokken van 4). Meldt zich in main.js als kind.
 // De gelede stadsbus en de midibus (#442, de buurtbus uit de winkel) hebben elk hun eigen indeling.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { GeoBuilder, markShared } from './pixelart3d.js';
@@ -44,8 +46,38 @@ const layoutOf = (v) => (v.model.name === 'midibus'
   ? midibusInterieur(v.model.len, v.model.wid)
   : busInterieur(v.model.len, v.model.wid, { trailer: v.model.trailer || 0 }));
 
+// De binnenhuid van de passagiersruimte (#833): de buscarrosserie is enkelzijdig, dus van binnen keek je door
+// de achterkanten van de vloer, het dak en de zijwanden heen de straat en de lucht in. Dit is één enkelzijdige
+// huid die naar binnen kijkt: van buiten onzichtbaar en geen extra draw call, want hij zit in dezelfde
+// lod0-inrichtingsgeometrie. Alleen lod 0 (in eerste persoon sta je op afstand 0); lod 1 en 2 blijven zonder
+// huid goedkoper. De deurzijde (de stoepkant, +z) valt in stukken uiteen zodat je bij een open deur naar
+// buiten blijft kijken; de andere zijwand is dicht (daar zit geen deur).
+function buildInnerShell(B, L) {
+  const f = L.floor;
+  const xFront = L.rail.x0 - 0.4, xRear = L.rail.x1 + 0.2;   // dezelfde ruimte als de handrail beslaat
+  const hw = L.wid / 2 - 0.08;                               // de halve breedte waar de stoelen binnen vallen
+  const ceilingY = f + 1.9;                                  // stahoogte (de handrail hangt op 2,35)
+  const wallTop = f + 1.0;                                   // tot onder de raamlijn
+  const WALL = 0x2a2f36, CEILING = 0x9aa3ad;
+  const P = (x, y, z) => [x, y, z];
+  B.quadOut(P(xRear, f, -hw), P(xFront, f, -hw), P(xFront, f, hw), P(xRear, f, hw), [0, 1, 0], DONKER);            // vloer
+  B.quadOut(P(xRear, ceilingY, -hw), P(xFront, ceilingY, -hw), P(xFront, ceilingY, hw), P(xRear, ceilingY, hw), [0, -1, 0], CEILING); // plafond
+  const doors = L.doors.slice().sort((a, b) => a - b);
+  let x = xRear;
+  for (const d of doors) {
+    const a = Math.min(d - 0.6, xFront), b = Math.min(d + 0.6, xFront);
+    if (a > x) B.quadOut(P(x, f, hw), P(a, f, hw), P(a, wallTop, hw), P(x, wallTop, hw), [0, 0, -1], WALL);
+    if (b > x) x = b;
+    if (x >= xFront) break;
+  }
+  if (x < xFront) B.quadOut(P(x, f, hw), P(xFront, f, hw), P(xFront, wallTop, hw), P(x, wallTop, hw), [0, 0, -1], WALL);
+  B.quadOut(P(xRear, f, -hw), P(xFront, f, -hw), P(xFront, wallTop, -hw), P(xRear, wallTop, -hw), [0, 0, 1], WALL);   // dichte zijwand
+  B.quadOut(P(xRear, f, -hw), P(xRear, f, hw), P(xRear, ceilingY, hw), P(xRear, ceilingY, -hw), [1, 0, 0], WALL);    // achterwand
+}
+
 // De inrichting per niveau (#833), gedeeld per (bussoort, maat, niveau):
-//   0 = de volle inrichting: stoelen met poot, haltestangen, handrail en de loper in het gangpad;
+//   0 = de volle inrichting: stoelen met poot, haltestangen, handrail en de loper in het gangpad, plus de
+//       binnenhuid (vloer, plafond, wanden en achterwand) voor het zicht van binnen in eerste persoon;
 //   1 = stoelen zonder poot, de haltestangen om de andere (dun en klein) en de handrail;
 //   2 = alleen een donker stoelblok per stoel.
 // Alle drie de niveau's passen in dezelfde mesh: sync wisselt alleen de geometrie.
@@ -56,6 +88,7 @@ export function buildInrichting(L, lod = 0) {
     for (const s of L.seats) B.box(s.x - 0.08, f + 0.3, s.z, 0.5, 0.42, 0.42, STOEL_RUG);   // zitblok
     return B.build();
   }
+  if (lod === 0) buildInnerShell(B, L);
   for (const s of L.seats) {
     B.box(s.x, f + 0.27, s.z, 0.46, 0.08, 0.42, STOEL);                     // zitting
     B.box(s.x - 0.22, f + 0.58, s.z, 0.08, 0.5, 0.42, STOEL_RUG);           // rug
