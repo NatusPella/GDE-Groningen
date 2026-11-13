@@ -396,49 +396,64 @@ function waitForStart(world, ready) {
           // de film gebouwd. Teken ze hier één keer echt, onder beide
           // lichtstanden: compileren alleen zet de shader-uniforms nog niet,
           // en dat is precies de eerste-draw-piek in de film (#804).
-          try {
-            const tPal = performance.now();
-            const warmGroup = opening.prepareOpeningWarm();
-            if (window.__loadMarks) window.__loadMarks.introPaletteBuild = Math.round(performance.now() - tPal);
-            const sc = getScene();
-            if (warmGroup && sc) {
-              const vorigeOverride = world.cameraOverride;
-              const px = world.player.x, py = world.player.y;
-              warmGroup.position.set(px + 8, 0, py + 8);
-              sc.add(warmGroup);
-              setCameraOverride(world, { position: { x: px + 15, y: py + 15, z: 9 }, lookAt: { x: px + 8, y: py + 8, z: 1 }, fov: 55, cut: true });
-              const tDraw = performance.now();
-              for (let f = 0; f < 1; f++) { tick(1 / 60); render(1 / 60); }
-              toggleLightRig();
-              for (let f = 0; f < 1; f++) { tick(1 / 60); render(1 / 60); }
-              if (window.__loadMarks) window.__loadMarks.introPaletteDraw = Math.round(performance.now() - tDraw);
-              toggleLightRig();
-              sc.remove(warmGroup);
+          {
+            let warmGroup = null, sc = null, vorigeOverride = null, ok = false;
+            try {
+              const tPal = performance.now();
+              warmGroup = opening.prepareOpeningWarm();
+              if (window.__loadMarks) window.__loadMarks.introPaletteBuild = Math.round(performance.now() - tPal);
+              sc = getScene();
+              if (warmGroup && sc) {
+                vorigeOverride = world.cameraOverride;
+                const speler = hoofdspeler(world);
+                const px = speler.x, py = speler.y;
+                warmGroup.position.set(px + 8, 0, py + 8);
+                sc.add(warmGroup);
+                setCameraOverride(world, { position: { x: px + 15, y: py + 15, z: 9 }, lookAt: { x: px + 8, y: py + 8, z: 1 }, fov: 55, cut: true });
+                const tDraw = performance.now();
+                for (let f = 0; f < 1; f++) { tick(1 / 60); render(1 / 60); }
+                toggleLightRig();
+                for (let f = 0; f < 1; f++) { tick(1 / 60); render(1 / 60); }
+                if (window.__loadMarks) window.__loadMarks.introPaletteDraw = Math.round(performance.now() - tDraw);
+                toggleLightRig();
+                ok = true;
+              }
+            } catch (e) { console.warn('opening-assets tekenen', e); }
+            finally {
+              if (sc && warmGroup) { try { sc.remove(warmGroup); } catch (e) { /* niet erg */ } }
               setCameraOverride(world, vorigeOverride || null);
-              world.__openingWarm = warmGroup;
+              if (ok) world.__openingWarm = warmGroup;
             }
-          } catch (e) { console.warn('opening-assets tekenen', e); }
+          }
             // Ook de warm-up-palette (voertuigen, voetgangers, dieren, effecten)
             // één keer tekenen: de eerste auto of explosie na de film is dan
             // geen eerste draw meer.
-            try {
-              const warmSamples = takeWarmupSamples();
-              const sc2 = getScene();
-              if (warmSamples && sc2) {
-                const vorigeOverride2 = world.cameraOverride;
-                const px2 = world.player.x, py2 = world.player.y;
-                warmSamples.position.set(px2 - 8, 0, py2 - 8);
-                sc2.add(warmSamples);
-                setCameraOverride(world, { position: { x: px2 - 15, y: py2 - 15, z: 9 }, lookAt: { x: px2 - 8, y: py2 - 8, z: 1 }, fov: 55, cut: true });
-                for (let f = 0; f < 1; f++) { tick(1 / 60); render(1 / 60); }
-                toggleLightRig();
-                for (let f = 0; f < 1; f++) { tick(1 / 60); render(1 / 60); }
-                toggleLightRig();
-                sc2.remove(warmSamples);
+            {
+              let warmSamples = null, sc2 = null, vorigeOverride2 = null, ok = false;
+              try {
+                warmSamples = takeWarmupSamples();
+                sc2 = getScene();
+                if (warmSamples && sc2) {
+                  vorigeOverride2 = world.cameraOverride;
+                  const speler2 = hoofdspeler(world);
+                  const px2 = speler2.x, py2 = speler2.y;
+                  warmSamples.position.set(px2 - 8, 0, py2 - 8);
+                  sc2.add(warmSamples);
+                  setCameraOverride(world, { position: { x: px2 - 15, y: py2 - 15, z: 9 }, lookAt: { x: px2 - 8, y: py2 - 8, z: 1 }, fov: 55, cut: true });
+                  for (let f = 0; f < 1; f++) { tick(1 / 60); render(1 / 60); }
+                  toggleLightRig();
+                  for (let f = 0; f < 1; f++) { tick(1 / 60); render(1 / 60); }
+                  toggleLightRig();
+                  ok = true;
+                }
+              } catch (e) { console.warn('warm-samples tekenen', e); }
+              finally {
+                if (sc2 && warmSamples) { try { sc2.remove(warmSamples); } catch (e) { /* niet erg */ } }
                 setCameraOverride(world, vorigeOverride2 || null);
-                world.__warmSamples = warmSamples;
+                if (!ok && warmSamples) { try { disposeObject(warmSamples); } catch (e) { /* niet erg */ } warmSamples = null; }
+                world.__warmSamples = ok ? warmSamples : null;
               }
-            } catch (e) { console.warn('warm-samples tekenen', e); }
+            }
           if (window.__loadMarks) {
             window.__loadMarks.introTiles = spots.length;
             window.__loadMarks.introWarm = Math.round(performance.now() - tIntro);
@@ -913,7 +928,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
   // De montage ruimt de vooraf gepinde tegels zelf op; loopt hij niet (of is hij
   // al klaar), dan mogen ze hier alsnog vrij.
   setTimeout(() => {
-    try { if (world.map && world.map.releaseShots && !document.body.classList.contains('intro-montage')) world.map.releaseShots(); if (!document.body.classList.contains('intro-montage')) { try { releaseWarmupSamples(); } catch (e) { /* niet erg */ } if (world.__openingWarm) { try { disposeObject(world.__openingWarm); } catch (e) { /* niet erg */ } world.__openingWarm = null; } } } catch (e) { /* niet erg */ }
+    try { if (world.map && world.map.releaseShots && !document.body.classList.contains('intro-montage')) world.map.releaseShots(); if (!document.body.classList.contains('intro-montage')) { try { releaseWarmupSamples(); } catch (e) { /* niet erg */ } world.__warmSamples = null; if (world.__openingWarm) { try { disposeObject(world.__openingWarm); } catch (e) { /* niet erg */ } world.__openingWarm = null; } } } catch (e) { /* niet erg */ }
   }, 20000);
   hideAdvice();
   input.tryLock(false); // the game itself asks here, long after the click that started it: refusing is no sign of a browser without lock (#328)

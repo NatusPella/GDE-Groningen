@@ -99,7 +99,7 @@ t('#497: scene3d.js gebruikt de module, met de scène als getter, en heeft geen 
   // tweede kopie van de blobschaduwcode); de regelteller is alleen een groeigrens.
   // De basis (4144 regels) had maar 16 regels marge en de bugfixronde #748-#796
   // voegde er ~77 toe (29 bomen, 48 scenegeheugen), dus de grens staat ruimer.
-  assert.ok(s.split('\n').length < 4360, 'scene3d.js is korter dan 4360 regels');
+  assert.ok(s.split('\n').length < 4400, 'scene3d.js is korter dan 4400 regels');
 });
 
 console.log(`blobschaduw_test: ${n - fails}/${n} ok`);

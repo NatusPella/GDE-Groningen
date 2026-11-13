@@ -472,6 +472,52 @@ tientallen losse bouw- en detailtrekken op spoor), (c) `3d:buildings`
 streaming. De norm (p95 <= 25, max <= 100) blijft op deze machine onhaalbaar te
 verifiëren; dat staat hier eerlijk als restpunt.
 
+## Koudstart-hermeting 0.60.8 (13-11, Electron 45, schone machine)
+
+Opnieuw `--profile-load=20000` (CPU-profiel van de eerste 20 s na navigatie;
+totaal 21,1 s gesampled) en de benchmark, na `npm run stage`:
+
+| post (self-tijd) | nu | eerder (0.60.7) |
+|---|---:|---:|
+| `(program)` shader first-use | 6,3% | 4,7% (0,94 s) |
+| tile-decode (`tilestore onmessage`) | 4,5% | 4,7% (0,95 s) |
+| `pointInPolygon` | 4,1% | 3,4% (0,70 s) |
+| garbage collector | 4,1% | — |
+| `inWater` (waterindex) | 3,1% | 4,4% (0,89 s) |
+| `project` (busroutes) | 2,1% | — |
+| `query` (spatialgrid) | 2,0% | — |
+| `WebGLUniforms` | 1,9% | — |
+| `gridItems` (spatialgrid) | 1,7% | — |
+| `createBrickDetailTexture` (pixelart3d) | **niet in de top-30** | **2,85 s (14%)** |
+
+De eerste Canvas2D-post (`createBrickDetailTexture`) is dus **weg**: de
+startring/warm-up-palette heeft hem uit het koude pad gehaald (pixelart3d.js
+als bestand nog 2,1%, inclusief `fitText` 0,8% en `createFlatRoofTexture`
+0,4%). Een vervanging door een vooraf gebakken tegel/DataTexture is daarmee
+**niet nodig** en niet gebouwd (zou ook een visuele vergelijking vragen). De
+koude restpost is nu shader-first-use (6,3%), tile-decode (4,5%) en de
+polygoon/water-queries (pointInPolygon 4,1%, inWater 3,1%).
+
+Benchmark (Vlot: kwaliteit hoog, schaduwen aan, korte zichtafstand, 1600x900,
+twee runs op een verder stille machine):
+
+| run | gem. fps | p95 frametijd | JS-heap (piek) |
+|---|---:|---:|---:|
+| nu, run 1 | 28 | 84 ms | 1,6 GB |
+| nu, run 2 | 33 | 50 ms | 2,4 GB |
+| eerder (0.60.7) | **46,7** | — | **2,76 GB** |
+
+De JS-heap is duidelijk lager (1,6-2,4 GB tegen 2,76 GB), maar de fps liggen
+onder de eerdere 46,7 en verschillen sterk tussen twee runs (28 vs 33) zonder
+andere processen; dat is niet schoon genoeg om een regressie te noemen. Let op:
+de Electron-binary in `desktop/node_modules` verdween tijdens deze sessie
+tweemaal (andere agents deden npm-acties in de gedeelde werkboom); na
+herinstallatie (`npm install --no-save electron@45.2.3` + `install.js`, lokaal,
+niet gecommit) zijn de runs hierboven gedaan. Een eerlijke vervolgstap is drie
+benchmarkruns achter elkaar op een stille machine (mediaan) en de eerste
+benchmark-shots apart profileren; de koude start zelf is met de startring/
+warm-up-palette aantoonbaar verbeterd op de Canvas2D-post.
+
 ## Reproduceren
 
 ```

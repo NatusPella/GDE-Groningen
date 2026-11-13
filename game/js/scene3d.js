@@ -3918,6 +3918,7 @@ const warmupBuilt = [];
 // laadscherm gebouwd. Teken hem daar ook één keer, zodat de eerste auto, voet-
 // ganger of explosie na de film niet op een eerste draw hoeft te wachten.
 let samplesHeld = false;
+let samplesGroup = null;
 export function takeWarmupSamples() {
   if (!warmupQueue) return null;
   while (warmupQueue.length) {
@@ -3928,10 +3929,20 @@ export function takeWarmupSamples() {
   samplesHeld = true;
   const group = new THREE.Group();
   for (const o of warmupBuilt) group.add(o);
+  // De groep is vanaf hier de eigenaar: stepWarmup mag de kinderen niet meer
+  // los opruimen terwijl de groep nog bestaat.
+  warmupBuilt.length = 0;
+  samplesGroup = group;
   return group;
 }
 export function releaseWarmupSamples() {
   samplesHeld = false;
+  if (samplesGroup) {
+    try { samplesGroup.removeFromParent(); } catch (e) { /* niet erg */ }
+    try { disposeObject(samplesGroup); } catch (e) { /* niet erg */ }
+    samplesGroup.clear();
+    samplesGroup = null;
+  }
   for (const o of warmupBuilt) { try { disposeObject(o); } catch (e) { /* niet erg */ } }
   warmupBuilt.length = 0;
 }

@@ -66,5 +66,20 @@ t('#735: runbook, CAST en STEMKEUZE wijzen naar dezelfde open lijst en stemkeuze
   assert.match(concept, /GRONINGS-20-SPREEKTEKSTEN\.md/);
 });
 
+t('#735: een invulbaar beslisformulier per regel en een luisterchecklist', () => {
+  const d = doc;
+  assert.match(d, /## Beslisformulier per regel/);
+  assert.equal((d.match(/^### \d+\. /gm) || []).length, 20, 'twintig invulformulieren');
+  assert.equal((d.match(/Gewenste Groningse spreektekst:/g) || []).length, 20);
+  assert.equal((d.match(/Akkoord kenner:/g) || []).length, 20);
+  assert.equal((d.match(/Gewenste Groningse spreektekst:\*\*\s*$/gm) || []).length, 20, 'de velden zijn leeg: geen gegenereerd dialect');
+  assert.match(d, /Aanspreekvorm:/);
+  assert.match(d, /Kerkelijke term/);
+  assert.match(d, /Naam, plaats of bestaande Groningse vorm/);
+  assert.equal((d.match(/Let op \(knooppunt\):\*\* —/g) || []).length, 0, 'elk formulier heeft een knooppunt');
+  assert.match(d, /## Luisterchecklist na de opname/);
+  assert.ok((d.match(/^- \[ \] /gm) || []).length >= 6, 'minstens zes luisterpunten');
+});
+
 console.log(`gronings_open_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

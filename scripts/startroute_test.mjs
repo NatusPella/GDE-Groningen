@@ -89,6 +89,7 @@ ok(/INTRO_WARM_MS/.test(main) && /!world\.loadedFromSave/.test(warmBody), 'de mo
 ok(/releaseShots\(\)/.test(read('game/js/intromontage.js')), 'de montage geeft de gepinde tegels weer vrij');
 ok(/const WARM_START = !\(FLAGS\.noattract[\s\S]{0,260}FLAGS\.autoplay/.test(main), 'een test- of QA-run slaat het voorladen over');
 ok(/const START_WARM_R = \d+;/.test(main) && /const START_WARM_MS = \d+;/.test(main), 'de warm-stap heeft een radius en een harde tijdsgrens');
+ok((/const START_WARM_R = (\d+);/.exec(main) || [0, 0])[1] <= 360, 'de startring blijft binnen een redelijke grens (<= 360 m)');
 ok(/window\.__loadMarks\.startWarm/.test(main) && /window\.__loadMarks\.shaders/.test(main) && /warmWorstFrame/.test(main), 'de perf-meting ziet het voorladen, het compileren en het slechtste frame');
 ok(/typeof opts\.warm === 'function'/.test(ss) && /opts\.warm\(\)[\s\S]{0,80}\.then\(finish\)/.test(ss), 'de boot wacht op het voorladen vóór het laadscherm weggaat');
 ok(/setLoadingStatus\('De buurt rond je startpunt wordt klaargezet'\)/.test(ss) && /setLoadingStatus\('De shaders worden klaargezet'\)/.test(main), 'het laadscherm zegt wat het nog doet');

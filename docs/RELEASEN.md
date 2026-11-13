@@ -58,6 +58,41 @@ Wat dit niet afdekt, en dus een eigenaarsbesluit is (hier niet gedaan): `desktop
 - **Tagvalidatie.** `scripts/release_builds.mjs` weigert een tag die niet `^v\d+\.\d+\.\d+$` is (de release 0.55.0 staat zonder `v`; zo'n tag valt niet stil terug op `desktop/package.json` meer).
 - **Hashes.** De Windows-workflow regenereert `SHA256SUMS.txt` na zijn `--clobber`-upload, zodat de hash bij de nieuwe exe hoort en de regel van `gde-world.tgz` blijft staan.
 
+## npm audit: dev-only build-tooling
+
+`cd desktop && npm audit` meldt op 13-11-2026 **zes moderate** kwetsbaarheden. Ze komen alle zes uit
+dezelfde advisory, [GHSA-g3hv-75wg-m249](https://github.com/advisories/GHSA-g3hv-75wg-m249):
+`minimatch` 7.0.0–11.0.0 heeft een denial-of-service via globparts-amplificatie. In deze keten zitten
+twee kwetsbare kopieën: `@electron/universal` 2.0.3 gebruikt `minimatch` 9.0.9 en
+`app-builder-lib` 26.18.1 gebruikt `minimatch` 10.2.6. De andere vier meldingen zijn dezelfde
+advisory die via `electron-builder`/`dmg-builder`/`electron-builder-squirrel-windows` omhoog propageert.
+`npm audit --omit=dev` geeft **0**: het is dev-only buildgereedschap en het zit niet in de app
+(`desktop/package.json` `build.files` bevat geen `node_modules`; de app bevat alleen de stage-bestanden).
+De DoS raakt alleen de machine die bouwt en alleen patronen die dit project zelf in de
+electron-builder-config of in een dependency-naam aanlevert; er is geen productie- of spelerspad.
+
+**Waarom geen override/upgrade.** Geprobeerd met `npm 12.2.0` op `electron-builder@26.18.1`:
+
+- Een override voor `@electron/universal` → `minimatch ^11.0.1` werkt (die tak verdwijnt), maar
+  `app-builder-lib` houdt zijn eigen `minimatch` 10.2.6; de audit blijft dan 5 meldingen. Een
+  override op `app-builder-lib` zelf werd door npm niet doorgevoerd (ook niet na een verse lock of
+  een herinstallatie van die tak), en een globale `minimatch ^11.0.1` raakt ook de oude
+  `glob@7`/`filelist`/`dir-compare`-kopieën die de function-API van `minimatch` 3/5 verwachten.
+  Zo'n boom is geen veilige override en is niet met packaging getest.
+- De door npm voorgestelde `electron-builder@25.1.0` is een **major downgrade** en daarmee een
+  groter release-risico dan deze buildtijdmelding.
+- `electron-builder@27.0.0-alpha.14` (alpha) gebruikt nog `app-builder-lib` met
+  `minimatch ^10.2.5`; `@electron/universal@3.0.6` lost de minimatch-tak op maar vraagt Node ≥22.12
+  en is een major voor de macOS-universal-merge, die zonder aparte mac-packagingtest niet veilig is.
+
+**Besluit:** dit is geaccepteerd build-toolingrisico, geen productie-afhankelijkheid en geen
+spelerrisico. Geen override of versiewijziging in `desktop/package.json`/`package-lock.json`.
+Bij een volgende release blijven `npm audit --omit=dev`, `node scripts/desktop_packaging_test.mjs` en
+`npm run stage` groen (13-11-2026: 21 controles, stage ok). Opnieuw bekijken zodra
+`electron-builder` zelf `minimatch` ≥11.0.1 meeneemt; dan is de schone route een gewone
+`electron-builder`-update. Reproduceren: `cd desktop && npm audit`, `npm audit --omit=dev`,
+`node scripts/desktop_packaging_test.mjs`, `npm run stage`.
+
 ## Voorstel aan de eigenaar: release-rechten (#558)
 
 De workflows hebben twee technische sloten (owner-guard en `environment: release`, zie hierboven), maar de omgeving zelf en de rollen zijn nog niet ingesteld (gemeten 7-11: `total_count: 0`). Concreet voorstel, uit te voeren door de eigenaar:

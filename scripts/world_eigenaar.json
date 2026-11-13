@@ -125,6 +125,10 @@
     "__openingWarm": {
       "eigenaar": "game/js/main.js",
       "notitie": "tijdelijke groep met de vaste opening-assets, gemaakt in main.js en opgeruimd door intromontage.js/main.js."
+    },
+    "__warmSamples": {
+      "eigenaar": "game/js/main.js",
+      "notitie": "tijdelijke groep met de warm-up-palette; main.js maakt hem tijdens het laden en intromontage/main ruimen hem op."
     }
   },
   "uitzonderingen": [

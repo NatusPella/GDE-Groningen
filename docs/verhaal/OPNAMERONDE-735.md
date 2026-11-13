@@ -90,7 +90,9 @@ clips worden getrimd en op -18 LUFS gezet; `ffmpeg`/`ffprobe` moeten in het pad 
 De twintig open regels staan per stap, spreker, stem en bestandsnaam in
 [`GRONINGS-20-SPREEKTEKSTEN.md`](GRONINGS-20-SPREEKTEKSTEN.md) (gegenereerd met
 `node scripts/gronings_open_doc.mjs`). Daarin staan ook de bestaande, goedgekeurde regels die als
-voorbeeld van woordkeuze kunnen dienen en per regel het knooppunt dat een kenner moet beslissen.
+voorbeeld van woordkeuze kunnen dienen, per regel het knooppunt dat een kenner moet beslissen, een
+**invulbaar beslisformulier per regel** (gewenste spreektekst, aanspreekvorm, kerkelijke term, namen
+en het akkoord van de kenner) en onderaan een korte **luisterchecklist** voor na de opname.
 **Er is geen Gronings gegenereerd of vertaald:** de open lijst bevat alleen de Nederlandse regel, citaten
 uit `scripts/gronings_spoken.json` en de keuzes (aanspreekvorm, kerkelijke woorden, namen, grap).
 
