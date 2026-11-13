@@ -1,13 +1,15 @@
 # De marketingpagina (#37): runbook voor de eigenaar
 
 Deze map bouwt de landingspagina van GDE Groningen: één statische pagina in het Nederlands,
-met de screenshots uit `docs/screenshots/` en het social-preview-beeld. **Er gaat niets vanzelf
+met een grote slideshow van screenshots uit het spel, de trailer (pas geladen na een klik) en
+het social-preview-beeld. **Er gaat niets vanzelf
 openbaar.** De pagina wordt pas gebouwd en gepubliceerd als jij de workflow met de hand start,
 en dat kan pas nadat de repo publiek is. Zet de repo dus pas op Public als je er klaar voor bent.
 
 Dit is de **marketingpagina**, niet de game-webversie. De webversie hosten is een apart spoor
 (#57) en komt hier niet op: deze pagina laadt bewust niets van buiten (geen CDN, geen
-lettertypen van derden, geen analytics) en gebruikt geen JavaScript.
+lettertypen van derden, geen analytics) tot je op de trailer klikt; dan pas laadt YouTube via
+`youtube-nocookie.com`. De slideshow werkt ook zonder JavaScript (dan scrollbaar).
 
 ## Stappen, in deze volgorde
 
@@ -61,8 +63,10 @@ workflow alleen handmatig start.
 - Een publieke repo heeft gratis Actions-minuten; deze workflow gebruikt er per deploy maar
   een paar (bouwen en uploaden, geen npm-install).
 - De pagina op GitHub Pages is statisch: hij verstuurt niets van de bezoeker, gebruikt geen
-  cookies of analytics en laadt niets van externe servers. Het spel zelf (dat je bij de
-  Releases downloadt) is een apart verhaal: dat speelt offline en stuurt alleen iets als de
-  speler Samen spelen of de live busposities zelf aanzet, zie `docs/PRIVACY-EN-CREDITS.md`.
+  cookies of analytics en laadt niets van externe servers. De enige uitzondering is de trailer:
+  pas als de bezoeker op de knop klikt, wordt de YouTube-speler (`youtube-nocookie.com`) geladen.
+  Het spel zelf (dat je bij de Releases downloadt) is een apart verhaal: dat speelt offline en
+  stuurt alleen iets als de speler Samen spelen of de live busposities zelf aanzet, zie
+  `docs/PRIVACY-EN-CREDITS.md`.
 - GitHub Pages is van GitHub en valt onder hun voorwaarden en privacybeleid; dat is de
   hosting, niet de pagina.

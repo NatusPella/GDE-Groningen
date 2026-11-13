@@ -28,7 +28,7 @@ const VERBODEN_RE = new RegExp('\\b(?:' + VERBODEN.join('|') + ')\\b', 'i');
 
 // ------------------------------------------------------------------ 1. bron en build
 
-for (const f of ['index.html', 'style.css', 'build.mjs']) {
+for (const f of ['index.html', 'style.css', 'script.js', 'build.mjs']) {
   ok(fs.existsSync(path.join(WEBSITE, f)), `website/${f} bestaat`);
 }
 ok(fs.existsSync(path.join(ROOT, 'desktop', 'resources', 'icon.svg')), 'het app-icoon desktop/resources/icon.svg bestaat (favicon)');
@@ -141,6 +141,22 @@ const dodePaden = [...lokaal].filter((url) => !bestaat(url));
 ok(dodePaden.length === 0, 'alle relatieve paden in de HTML bestaan in _site', dodePaden.join(', '));
 ok(bestaat('img/social-preview.png'), 'het social-preview-beeld staat in _site');
 ok([...lokaal].filter((u) => /^img\/.+\.webp$/.test(u)).length >= 5, 'de galerij gebruikt minimaal vijf screenshots');
+ok([...lokaal].filter((u) => /^img\/\d\d-.+\.jpg$/.test(u)).length >= 10, 'de slideshow gebruikt de tien grote screenshots');
+ok(bestaat('img/trailer.jpg'), 'de trailerstill staat in _site');
+
+// De slideshow is de grote visuele blikvanger (#37): tien highlights, pijlen, stippen en
+// een script dat de navigatie doet. Zonder JavaScript blijft de slideshow scrollbaar.
+const slides = (html.match(/class="slide"/g) || []).length;
+ok(slides >= 10, 'de slideshow heeft minstens tien highlights', String(slides));
+ok(/data-slider\b/.test(html) && /data-slider-track/.test(html), 'de slideshow heeft de slider-haken');
+ok(/data-slider-prev/.test(html) && /data-slider-next/.test(html) && /data-slider-dots/.test(html), 'de slideshow heeft pijlen en stippen');
+ok(/<script\s+src="script\.js"\s+defer><\/script>/i.test(html), 'de pagina laadt script.js');
+const script = bestaat('script.js') ? lees('script.js') : '';
+ok(/youtube-nocookie\.com\/embed\//.test(script), 'de trailer wordt pas bij klik via youtube-nocookie geladen');
+ok(!/https?:\/\//.test(script.replace(/https:\/\/www\.youtube-nocookie\.com\/embed\//g, '')), 'script.js laadt zelf geen externe bronnen');
+ok(/data-video="jh6L9dd-YeE"/.test(html), 'de trailer-facade heeft het juiste video-id');
+ok(!/<iframe\b/i.test(html), 'er staat geen iframe in de HTML; die komt pas na de klik');
+ok(/laadt niets van buiten/i.test(html) && /nocookie/i.test(html), 'de privacyregel noemt de click-to-load trailer');
 
 const ids = new Set([...html.matchAll(/\bid="([^"]+)"/g)].map((m) => m[1]));
 const dodeAnkers = [...html.matchAll(/href="#([^"]+)"/g)].map((m) => m[1]).filter((id) => !ids.has(id));

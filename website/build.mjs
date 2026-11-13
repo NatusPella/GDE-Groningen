@@ -13,6 +13,7 @@ const ROOT = path.resolve(WEBSITE, '..');
 const OUT = path.join(WEBSITE, '_site');
 
 // Pad in _site -> bronbestand. Alleen beelden die de pagina echt gebruikt.
+const STEAM = path.join(ROOT, 'docs', 'steam', 'beelden', 'screenshots');
 const BESTANDEN = [
   ['index.html', path.join(WEBSITE, 'index.html')],
   ['style.css', path.join(WEBSITE, 'style.css')],
@@ -20,10 +21,21 @@ const BESTANDEN = [
   ['img/stad-dag.webp', path.join(ROOT, 'docs', 'screenshots', 'stad-dag.webp')],
   ['img/stad-nacht.webp', path.join(ROOT, 'docs', 'screenshots', 'stad-nacht.webp')],
   ['img/kaart-provincie.webp', path.join(ROOT, 'docs', 'screenshots', 'kaart-provincie.webp')],
-  ['img/achtervolging.webp', path.join(ROOT, 'docs', 'screenshots', 'achtervolging.webp')],
+  ['img/kaart-stad.webp', path.join(ROOT, 'docs', 'screenshots', 'kaart-stad.webp')],
   ['img/garage.webp', path.join(ROOT, 'docs', 'screenshots', 'garage.webp')],
   ['img/samen-spelen.webp', path.join(ROOT, 'docs', 'screenshots', 'samen-spelen.webp')],
   ['img/cutscene-opening.webp', path.join(ROOT, 'docs', 'screenshots', 'cutscene-opening.webp')],
+  ['img/01-missie-hud.jpg', path.join(STEAM, '01-missie-hud.jpg')],
+  ['img/02-vismarkt.jpg', path.join(STEAM, '02-vismarkt.jpg')],
+  ['img/03-ringrace.jpg', path.join(STEAM, '03-ringrace.jpg')],
+  ['img/04-heli-hud.jpg', path.join(STEAM, '04-heli-hud.jpg')],
+  ['img/05-kermis.jpg', path.join(STEAM, '05-kermis.jpg')],
+  ['img/06-luchtfoto.jpg', path.join(STEAM, '06-luchtfoto.jpg')],
+  ['img/07-ommeland.jpg', path.join(STEAM, '07-ommeland.jpg')],
+  ['img/08-rondvaart.jpg', path.join(STEAM, '08-rondvaart.jpg')],
+  ['img/09-achtervolging.jpg', path.join(STEAM, '09-achtervolging.jpg')],
+  ['img/10-duif.jpg', path.join(STEAM, '10-duif.jpg')],
+  ['img/trailer.jpg', path.join(ROOT, 'docs', 'youtube', 'beelden', 'thumbnail_gameplaytrailer.jpg')],
   ['img/social-preview.png', path.join(ROOT, 'docs', 'social-preview.png')],
 ];
 // Alleen meenemen als hij bestaat; de pagina werkt ook zonder JavaScript.
