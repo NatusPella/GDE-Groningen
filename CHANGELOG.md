@@ -9,6 +9,9 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- **Een stil eerbetoon aan de westrand van de kaart (#832):** op de laatste Groningse plek aan de weg naar Kollum staat een houten bankje met een koperen plaatje ("Goed ite!" — "Eet goed."); net over de grens staat een klein verzonnen Fries huisje met een tuin, een vogelhuisje met duiven en een tuinbankje. Het tuinbankje is een rustpunt: volle gezondheid, je eigen voertuigen in de wereld gerepareerd en alle wapens. Het bankje heeft een eigen icoon op de kaart en de minikaart, en bij aankomst komt de verborgen prestatie "Goed eten". Samen spelen: de plek komt uit dezelfde weg- en grensdata en is voor iedereen zichtbaar; kaartjes, prestatie en gift zijn per speler.
+- **De aftiteling eindigt met een in-herinnering-kaart (#832):** haar hoop in het Fries met de Nederlandse regel, en een warm antwoord dat haar steun eert — twee stemmen naast elkaar, zonder echte naam of persoonsgegevens. Alles verzonnen.
+
 ## [0.60.8] - 2026-11-13
 
 - **De koude start is verder teruggebracht: het laadscherm rijdt nu een ruimere ring rond het startpunt voor (320 m i.p.v. 200 m) en tekent de warm-up-palette echt één keer onder beide lichtstanden.** Daardoor verdwijnen de eerste-draw-piek en de oude Canvas2D-kosten uit het koude pad; de JS-heap bij de start is meetbaar lager.

@@ -42,6 +42,7 @@ import { edgeDistance } from './countryfield.js';
 import { streetAt as roadStreetAt } from './tileplace.js';
 import { ommelandArea } from './ommelandplace.js';
 import { ommelandMapSpots, drawOmmelandMapIcon } from './ommelandmap.js';
+import { beppeMapSpot } from './beppe_garden.js';
 import { perceelMapSpots, drawPerceelMapIcon } from './perceelmap.js';
 import { VILLAGES } from './ommelandlines.js';
 import { getActiveRoute, getRouteAhead, getRoutes, getUserWaypoint, formatDistance } from './routing.js';
@@ -1895,6 +1896,21 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
       ctx.fill();
       break;
     }
+    case 'beppe': {
+      // het eerbetoonbankje (#832): een bankje met een duif erboven, in het
+      // eigen blauw van de Ommeland-laag; altijd zichtbaar op de kaart
+      ctx.fillStyle = C.cream;
+      ctx.fillRect(-4.6 * s, -1.5 * s, 9.2 * s, 1.1 * s);
+      ctx.fillRect(-4.6 * s, 0.2 * s, 9.2 * s, 1.0 * s);
+      for (const bx of [-4.2, 3.2]) ctx.fillRect(bx * s, 1.2 * s, 1.0 * s, 2.6 * s);
+      ctx.beginPath();
+      ctx.ellipse(0.7 * s, -3.5 * s, 1.9 * s, 1.15 * s, -0.18, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(2.3 * s, -4.3 * s, 0.75 * s, 0, Math.PI * 2);
+      ctx.fill();
+      break;
+    }
     case 'landmark': {
       const r = 5 * s;
       ctx.beginPath();
@@ -2419,6 +2435,8 @@ function drawMinimapPois(ctx, world, job, placed, inRange, toScreen, t) {
   }
   add('trein', getStationsForRender(), 'station', 1, MM_POI_FAR_M);
   add('ommeland', ommelandMapSpots(), (q) => q.kind, 2, MM_POI_FAR_M);
+  const beppe = beppeMapSpot();
+  if (beppe) add('ommeland', [beppe], beppe.kind, 1, MM_POI_FAR_M);
   add('percelen', perceelMapSpots(), (q) => q.kind, 3, MM_POI_FAR_M);
   if (inVehicle) add('flitspaal', world.flitspaalen || [], 'flitspaal', 2);
   if (!inVehicle) add('duif', getPigeonSpotsForRender(), 'pigeon', 1);
