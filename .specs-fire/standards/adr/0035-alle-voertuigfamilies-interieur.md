@@ -82,9 +82,13 @@ voertuigen alsnog een interieur te geven, met dezelfde prestatie-eisen als #833.
   `vrachtruimte.js`, `vrachtruimte3d.js`; uitbreidingen in
   `carinteriorlayout.js`, `cabin3d.js`, `carinterior.js`, `autointerieur.js`,
   `seating3d.js`, `businterieur.js`, `businterieur3d.js`, `treininterieur.js`,
-  `treinlayout.js`, `railway3d.js` en een kleine opening in de
-  maaidorser-cabine in `models3d_vehicles.js`.
-- `main.js` registreert twee extra wereld-tick-kinds.
+  `treinlayout.js`, `railway3d.js` en kleine openingen in de modellen:
+  `models3d_vehicles.js` (maaiderser-cabine) en `plane3d.js` (cockpit onder de
+  glaskap). `voertuigbediening.js` levert geen tweede stuur of cabine meer voor
+  de trekker en de boten met een ingerichte stuurhut; de werktuigprops en de
+  voorwielsturing blijven daar.
+- `main.js` registreert twee extra wereld-tick-kinds (`bootInterieurKind`,
+  `vrachtruimteKind`).
 - Nieuwe tests: `scripts/cockpit_test.mjs`, `scripts/bootinterieur_test.mjs`,
   `scripts/bootinterieur3d_test.mjs`, `scripts/vrachtruimte_test.mjs`,
   `scripts/vrachtruimte3d_test.mjs`, `scripts/trein_lod_test.mjs`, plus
