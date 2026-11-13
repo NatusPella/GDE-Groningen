@@ -10,6 +10,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 ## [Unreleased]
 
 - **De eerste dag heeft nu een korte checklist in de hulp en een eenmalige kaart na de eerste missie (#841).**
+- **Nieuw: de Hogelandrit, één streekuitdaging met een voertuig van Warffum via Usquert naar Uithuizen (#835).** De rit gebruikt de bestaande waypoint, HUD en medailles; onderweg uitstappen stopt de rit.
 - **Vijf onderdelen liggen verspreid over de provincie; wie ze allemaal vindt, laat bij de garage een Eigen Maaksel bouwen (#837).** De onderdelen zijn per speler, de auto is een bestaand model met een eigen kleur en naam; geen nieuwe munteenheid.
 - **Drie wrakken in de Wadden en het Lauwersmeer zijn nu te bezoeken; elke duik levert een vondst voor je album (#839).** Eén per plek, per speler opgeslagen in de bestaande prestatieset. Kleding, spuiterij, garage, waypoint en uitkijkpunten staan bij elkaar; geen nieuwe teller.
 - **Spuiterij en garage hebben nu een cooldown voordat ze je sterren weer wissen (#838).** De kledingkast had al een eigen cooldown; nu geldt voor platen, spuiten en de garage dezelfde wachttijd, zodat je niet elke minuut opnieuw de politie van je af kunt schudden.

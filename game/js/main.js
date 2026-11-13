@@ -86,6 +86,7 @@ import { initShops, initCountryShops, updateShops, tryShopInteract, COUNTRY_SHOP
 import { initSnackMachines, updateSnackMachines, tryMachineInteract } from './snackautomaat.js';
 import { initOnderdelen, tryOnderdeelInteract } from './onderdelenlive.js'; // #837: onderdelenjacht
 import { initWrakduiken, tryWrakduikInteract } from './wrakduikenlive.js'; // #839: wrakduiken
+import { tryStreekuitdaging, updateStreekuitdaging } from './streekuitdaginglive.js'; // #835: Hogelandrit
 import { updateStreetLife, tryStreetLifeInteract } from './streetlife.js';
 import { bikeBoost, hourOf } from './streetlifedata.js';
 import { wijkProfileAt } from './trafficfleet.js';
@@ -1123,6 +1124,8 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
       tryQuickWaypoint(world);
       tryOnderdeelInteract(world);
       tryWrakduikInteract(world);
+      tryStreekuitdaging(world);
+      updateStreekuitdaging(world, dt);
       interactActivityKinds(world, 'pre');
       tryPadelInteract(world);
       interactActivityKinds(world, 'act');

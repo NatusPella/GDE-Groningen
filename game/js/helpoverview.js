@@ -24,6 +24,11 @@ export const HELP_TOPICS = [
     'Met {5} zet je een waypoint naar je eigen doel en met de kaart kun je ook een taxi nemen of met bus en trein reizen.',
     'Uitkijkpunten in de provincie onthullen een streek; kom je er zelf, dan gaat dat ook.',
   ] },
+  { id: 'streekuitdaging', title: 'Streekuitdaging: de Hogelandrit', lines: [
+    'Rij met een voertuig naar Warffum (Pastorieweg) en druk daar in de buurt op {E}.',
+    'De rit gaat via Usquert naar Uithuizen; de volgende etappe staat als waypoint. De klok loopt, dus snelheid loont.',
+    'Onderweg stoppen om uit te stappen beëindigt de rit; je kunt hem daarna opnieuw starten.',
+  ] },
   { id: 'todo', title: 'Wat kan ik nog meer?', lines: [
     '{ESC} › Activiteiten laat zien wat er te doen is: klussen, minigames en evenementen. Bijbanen staan onder Loopbanen. Kies iets en de route gaat erheen.',
   ] },
