@@ -1010,6 +1010,14 @@
       "steamApiNaam": ""
     },
     {
+      "id": "goed_eten",
+      "titel": "Goed eten",
+      "omschrijving": "Aan het einde van de weg, net over de grens. De vogels weten het al.",
+      "verborgen": true,
+      "voorstelApiNaam": "ACH_GOED_ETEN",
+      "steamApiNaam": ""
+    },
+    {
       "id": "bruggen_klaar",
       "titel": "Elf bruggen",
       "omschrijving": "Vaar de Elf Bruggenrace tegen Jelle uit",
