@@ -116,7 +116,10 @@ function helpPagina(page) {
   <meta property="og:image:height" content="640">
   <meta property="og:site_name" content="GDE Groningen">
   <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="${htmlVeilig(titel)}">
+  <meta name="twitter:description" content="${htmlVeilig(page.beschrijving)}">
   <meta name="twitter:image" content="https://natuspella.github.io/GDE-Groningen/img/social-preview.png">
+  <meta property="og:image:alt" content="GDE Groningen: een low-poly Groningen bij zonsondergang met het woordmerk GDE en de regel Zomer vol misdaad.">
   <meta property="og:locale" content="nl_NL">
   <meta property="og:url" content="${canonical}">
   <link rel="stylesheet" href="../style.css">

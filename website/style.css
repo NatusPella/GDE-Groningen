@@ -225,6 +225,56 @@ p:last-child {
   color: var(--bg);
 }
 
+.nav-cta-mobiel,
+.nav-toggle {
+  display: none;
+}
+
+.nav-toggle {
+  align-items: center;
+  padding: 0.42rem 0.9rem;
+  border: 1px solid var(--green-line-strong);
+  border-radius: 4px;
+  background: var(--bg-glow);
+  color: var(--ink-bright);
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+@media (max-width: 48rem) {
+  .header-inner {
+    gap: 0.5rem;
+  }
+
+  .nav-cta-mobiel {
+    display: inline-flex;
+    margin-left: auto;
+    padding: 0.38rem 0.7rem;
+    border-radius: 4px;
+    background: var(--green);
+    color: var(--bg);
+    font-size: 0.88rem;
+    font-weight: 800;
+    text-decoration: none;
+  }
+
+  .js .nav-toggle {
+    display: inline-flex;
+    padding: 0.38rem 0.7rem;
+  }
+
+  .js .site-nav:not(.is-open) {
+    display: none;
+  }
+
+  .site-nav.is-open {
+    display: block;
+    width: 100%;
+  }
+}
+
 /* ---------- hero ---------- */
 
 main > .hero {
@@ -1310,6 +1360,15 @@ h2 {
   border-radius: 4px;
   background: rgba(23, 48, 31, 0.82);
   font-size: 0.9em;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 26rem) {
+  .help-content th,
+  .help-content td {
+    padding: 0.35rem 0.4rem;
+    font-size: 0.82rem;
+  }
 }
 
 .help-grid {

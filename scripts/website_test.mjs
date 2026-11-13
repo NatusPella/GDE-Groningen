@@ -199,6 +199,7 @@ for (const page of HELP_PAGES) {
   ok(/<title>[^<]+<\/title>/.test(tekst) && /name="description" content="[^"]+"/.test(tekst), `${bestand} heeft titel en omschrijving`);
   ok(/property="og:image" content="https:\/\/natuspella\.github\.io\/GDE-Groningen\/img\/social-preview\.png"/.test(tekst), `${bestand} heeft een social-preview-afbeelding`);
   ok(/name="twitter:card" content="summary_large_image"/.test(tekst), `${bestand} heeft een Twitter-card`);
+  ok(/name="twitter:title" content="[^"]+"/.test(tekst) && /name="twitter:description" content="[^"]+"/.test(tekst), `${bestand} heeft een Twitter-titel en -omschrijving`);
   ok(/18\+/.test(tekst), `${bestand} noemt 18+`);
   ok(/href="\.\.\/"/.test(tekst), `${bestand} linkt terug naar de marketingpagina`);
   ok(/class="help-subnav"/.test(tekst) && /aria-current="page"/.test(tekst), `${bestand} heeft een hulp-subnavigatie met actieve pagina`);
@@ -215,7 +216,7 @@ ok(/class="table-wrap"/.test(fs.readFileSync(path.join(HELP_DIR, 'spelen.html'),
 ok(/href="help\/"/.test(gebouwd) && /Hulp en veelgestelde vragen/.test(gebouwd), 'de marketingpagina linkt naar de hulp');
 
 // SEO: preload van de hero, gestructureerde data, sitemap en robots.
-ok(/<link rel="preload" href="img\/hero-groningen\.webp" as="image" fetchpriority="high">/.test(gebouwd), 'de hero-afbeelding wordt gepreload');
+ok(/<link rel="preload" href="img\/hero-groningen\.webp" as="image" imagesrcset="img\/hero-groningen-640\.webp 640w/.test(gebouwd), 'de hero-afbeelding wordt preload met imagesrcset');
 ok(/application\/ld\+json/.test(gebouwd) && /"@type": "VideoGame"/.test(gebouwd) && /"price": "0"/.test(gebouwd), 'de pagina heeft VideoGame-structured-data');
 ok(bestaat('sitemap.xml'), 'sitemap.xml staat in _site');
 ok(bestaat('robots.txt'), 'robots.txt staat in _site');
@@ -240,7 +241,10 @@ ok(/class="platform-row"/.test(gebouwd) && !/Windows-only/.test(gebouwd) && !/Ac
 ok(/Over › Problemen/.test(gebouwd) && !/Instellingen › Foutrapport/.test(gebouwd), 'de FAQ verwijst naar het juiste foutrapportpad');
 ok(/60\+ reacties in het playtest-issue/.test(gebouwd) && /issues\/116/.test(gebouwd), 'de pagina toont echt playtest-bewijs en linkt naar #116');
 ok(!/releases\/latest/.test(gebouwd), 'downloadlinks gaan naar de releaselijst, niet naar de pre-release-redirect');
-ok(/\.site-header\s*\{[^}]*position:\s*static/.test(css.split('@media (max-width: 48rem)')[1] || ''), 'de header is op mobiel niet sticky');
+ok(/class="nav-toggle"/.test(gebouwd) && /aria-controls="site-nav"/.test(gebouwd), 'de mobiele header heeft een menuknop');
+ok(/navToggle/.test(script) && /aria-expanded/.test(script), 'script.js schakelt het mobiele menu');
+ok(/\.js \.site-nav:not\(\.is-open\)/.test(css), 'style.css verbergt de mobiele nav tot de menuknop');
+ok(/@media \(max-width: 48rem\) \{[\s\S]*?\.site-header\s*\{[^}]*position:\s*static/.test(css), 'de header is op mobiel niet sticky');
 
 // Merkenpalet uit DESIGN_SYSTEM.md: geen near-miss-hexen, geel alleen voor wanted-sterren.
 const PALET = new Set(['#1e9e56', '#3fc97a', '#0f5c30', '#0c140e', '#17301f', '#f0ede4', '#f2f2f2', '#d93f3f', '#e8c93a']);
