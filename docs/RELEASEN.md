@@ -113,7 +113,7 @@ Linux, Android en Windows kunnen ook op een self-hosted runner. De runner draait
 
 - **Aanzetten:** zet de repo-variabele `BUILD_RUNNER` (Settings > Secrets and variables > Actions > Variables), bijvoorbeeld op `gde-build`. Dan draaien `linux-release.yml`, `android-release.yml` en `windows-release.yml` op de eigen runner; zonder de variabele draait alles zoals voorheen op `ubuntu-latest` / `windows-latest`. Er is geen automatische overstap als de minuten op zijn: de variabele is de schakelaar.
 - **Windows** bouwt op de Linux-runner via Wine (`electron-builder --win`); `cygpath` wordt alleen gebruikt als hij bestaat.
-- **macOS** blijft op `macos-latest`: een dmg bouwen kan alleen op macOS. Met Docker-OSX zou het op de thuisserver kunnen, maar daar is geen RAM voor over, en Apple staat macOS alleen op Apple-hardware toe.
+- **macOS** blijft op `macos-latest`: een dmg bouwen kan alleen op macOS. Docker-OSX kan technisch, maar vraagt veel RAM naast de runner, en Apple staat macOS alleen op Apple-hardware toe.
 - **Registreren:** de eigenaar maakt een registratietoken (Settings > Actions > Runners > New self-hosted runner; het token staat in het `./config.sh`-commando en is één uur geldig) en geeft het privé aan de beheerder van de runner. De registratie blijft in het `state`-volume staan; een nieuwe container heeft geen nieuw token nodig.
 - **Bekend:** de Windows-build heeft meer dan 8 GB nodig (`7za` comprimeert de app op `-mx=9`), vandaar 12 GB. `scripts/release_builds.mjs` rekent self-hosted jobs nog als gratis minuten.
 
