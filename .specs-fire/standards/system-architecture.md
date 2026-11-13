@@ -59,7 +59,7 @@ op het web.
 | Streaming | `scene3d.js`, `firstperson.js`, `tileworld.js`, `tilefocus.js`, `tilestore.js`, `gdt.js` | tegels laden, scene opbouwen, camera (volgcam en eerste persoon) |
 | Wereldbouw | `worldbuilder.js`, `scripts/world/*` | bronfeature → tegelrij (`.gdt`) |
 | Speler en invoer | `player.js`, `input.js`, `controls.js`, `gamepad.js`, `touch.js` | beweging, toetsen, pad, touch |
-| Voertuigen | `vehicle.js`, `heliflight.js`, `trailer.js`, `drift.js`; interieurs: `cabin3d.js`, `businterieur3d.js`, `carinterior.js`, `autointerieur.js` | fysica, verkeers-AI, boten, schade; interieurs op drie afstandsniveaus (ADR 0034) |
+| Voertuigen | `vehicle.js`, `heliflight.js`, `trailer.js`, `drift.js`; interieurs: `cabin3d.js`, `businterieur3d.js`, `carinterior.js`, `autointerieur.js`, `cockpitlayout.js`, `bootinterieur3d.js`, `vrachtruimte3d.js` | fysica, verkeers-AI, boten, schade; interieurs op drie afstandsniveaus per voertuigfamilie (ADR 0034, 0035) |
 | Peds en dieren | `pedestrians.js`, `pedroutes.js`, `wildlife.js` | lopen, routes, dieren |
 | Politie en combat | `police.js`, `combat.js`, `crime.js`, `wantedstate.js` | wanted-level, kogels, effecten |
 | Verhaal en missies | `missions.js`, `story.js`, `storyarc.js`, `missionstory.js`, `cutscenes*.js`, `cutscript.js` | missiestappen, scènes, regie |
@@ -113,7 +113,7 @@ tekst als data, Nederlands en verzonnen namen, de testrunner, de releaseketen, h
 safehouse, de ingang, code in het Engels, de speleringang, spraak op Flash-Lite,
 1+1=3, de twee lagen verhaal en mechanica, altijd online met toestemming, JavaScript
 blijft de taal, de sessie van één en de bootorde (0020-0026), de eerste-persooncamera
-en de interieur-LOD's (0034). De index met nummers, statussen en de reserveringen staat in `adr/README.md`;
+en de interieur-LOD's (0034) en de interieurs voor alle voertuigfamilies (0035). De index met nummers, statussen en de reserveringen staat in `adr/README.md`;
 dat is de enige lijst.
 
 ## Waar de bestandskaart staat
