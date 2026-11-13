@@ -938,6 +938,22 @@
       "steamApiNaam": ""
     },
     {
+      "id": "onderdelen_5",
+      "titel": "Eigen Maaksel",
+      "omschrijving": "Vind alle vijf onderdelen voor de Knutselwagen",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_ONDERDELEN_5",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "wrakduiken_3",
+      "titel": "Waddengeheimen",
+      "omschrijving": "Duik bij alle drie de wrakken in de Wadden en het Lauwersmeer",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_WRAKDUIKEN_3",
+      "steamApiNaam": ""
+    },
+    {
       "id": "dierenboek",
       "titel": "Dierenvriend",
       "omschrijving": "Zie alle dertien dieren van de provincie en schrijf ze op in je dierenboek",

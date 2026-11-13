@@ -4,6 +4,8 @@
 import { hoofdspeler } from './players.js';
 import { setUserWaypoint } from './routing.js';
 import { recordChallengeResult } from './achievements.js';
+import { loopbaanVerdien } from './loopbaanlive.js';
+import { vakVanUitdaging } from './loopbaan.js';
 import { STREEKUITDAGING, startBij, doelBij, checkpoints, medailleVoor } from './streekuitdaging.js';
 
 let run = null;
@@ -35,7 +37,7 @@ export function updateStreekuitdaging(world, dt) {
   if (run.index >= checkpoints().length) {
     const medal = medailleVoor(run.t);
     recordChallengeResult(world, STREEKUITDAGING.id, { value: Math.round(run.t), medal, lower: true });
-    world.money += STREEKUITDAGING.beloning;
+    loopbaanVerdien(world, vakVanUitdaging(STREEKUITDAGING.id), STREEKUITDAGING.beloning, { n: 1, uniek: STREEKUITDAGING.id });
     world.addMessage(`Hogelandrit klaar in ${Math.round(run.t)} s · ${medal ? ['', 'brons', 'zilver', 'goud'][medal] : 'geen medaille'} · +€${STREEKUITDAGING.beloning}`, 5, { kind: 'prestatie' });
     run = null;
     return;
