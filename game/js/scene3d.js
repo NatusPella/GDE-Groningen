@@ -141,6 +141,8 @@ import { countryRayHit } from './countrycam.js';
 import { probe } from './hitchprobe.js';
 import { speakBubble } from './linevoice.js';
 import { applyDrunkCamera } from './drunk.js';
+// #833: de eerste-persoonstand en zijn meetkunde (puur, scripts/firstperson_test.mjs)
+import { initFirstPerson, syncFirstPerson, addLookPitch, clampPitch, lookVector, firstPersonEye } from './firstperson.js';
 import { GROUND_LAYER, SIDEWALK_EXTRA, PAVED_MATS, buildRoadGroup, setRoadNetwork, getRoadQualityVersion, roadFarColor, roadGeometryReady } from './roadsurface.js';
 // route-ribbon, waypoint-beacon en setRouteLinks: eigen module onder scene3d/ (#502)
 import { updateRouteRibbon3D, hideRouteRibbon3D, setRouteRibbonScene } from './scene3d/routeribbon3d.js';
@@ -253,6 +255,19 @@ const LOOK_RECENTER_DELAY_FAST = 4.5;
 const LOOK_FAST_SPEED = 25; // m/s
 let camWasInVehicle = false;
 let lookBackWas = false;
+// First person (#833): the eye of the player's own figure, the look target and the cut on
+// switching. The pitch itself lives on world.firstPersoon (firstperson.js); everything here
+// is reused state, so a first-person frame allocates nothing.
+const FP_EYE_ABOVE_NECK = 0.17;  // m: the head bone sits at the neck, the eyes a bit higher
+const FP_LOOK_DIST = 10;         // m ahead: only the direction of the look target matters
+const _fpEye = new THREE.Vector3();
+const _fpAlt = { x: 0, y: 0, z: 0 };  // terugval-oog in kaartcoördinaten (firstperson.js)
+const _fpDir = { x: 0, y: 0, z: 0 };  // kijkrichting in wereldtermen (firstperson.js)
+let firstPersonShown = false;    // was the camera in first person last frame?
+let firstPersonOnWas = false;    // was the switch on last frame (the saved stand)?
+let fpToggled = false;           // the switch changed this frame: align the view
+let fpJustEntered = false;       // just went into first person: clear the hidden tree crowns once
+let interiorOwnerMesh = null;    // de auto waarin het detailinterieur het laatst zichtbaar was (#833)
 
 const buildingMeshes = new Map();
 // Buildings are only ever built once and cached above - if a landmark's real
@@ -2979,31 +2994,62 @@ export function update3D(dt, world) {
     scene.add(playerMesh);
   }
 
+  // eerste persoon (#833): de stand komt uit world.firstPersoon en de bewaarde instelling
+  // (pausemenu); een filmcamera, de treincamera of een scène die zijn eigen cast filmt gaat voor,
+  // dan is de volgcam weer aan de beurt. Deze vlag gaat ook over het verbergen van het eigen figuur.
+  const fpState = world.firstPersoon || initFirstPerson(world);
+  if (syncFirstPerson(world)) fpState.pitch = 0;
+  const firstPersonView = !!fpState.on && !world.cameraOverride && !world.trainCam && !world.trainDriving && !world.cinematicHidePlayers;
+  if (fpState.on !== firstPersonOnWas) { firstPersonOnWas = !!fpState.on; fpToggled = true; }
+  if (firstPersonView !== firstPersonShown) {
+    firstPersonShown = firstPersonView;
+    fpJustEntered = firstPersonView;
+    camPullReset = true;   // harde snee: nooit van of naar het oog glijden, ook niet door muren
+    camBaseInit = false;
+  }
+
   const pv = player.inVehicle;
   const hidePlayers = (world.pigeonMode && !world.pigeonIntro) || world.menuCam || world.cinematicHidePlayers || !!world.trainDriving;
+  const hideFigure = hidePlayers || firstPersonView;
+  // staat het eigen figuur dit beeld op zijn echte plek? Alleen dan is de hoofdbot bruikbaar als
+  // oog; op een fiets of scooter tekent de berijder op het voertuig (syncPlayerRider) en is de
+  // playerMesh niet neergezet, dus daar gebruikt de camera de spelerstand als terugval.
+  let playerMeshPlaced = false;
   const pvMesh = pv ? vehicleMeshes.get(pv.id) : null;
-  const inCabin = !!pv && updateCarInterior(pvMesh, pv, !!(world.cameraOverride && world.cameraOverride.interior));
+  // in een voertuig het gedetailleerde interieur ook in eerste persoon (niet alleen bij de
+  // BINNENIN-filmcamera): je zit er zelf in en ziet dashboard en stuur
+  const showInterior = firstPersonView || !!(world.cameraOverride && world.cameraOverride.interior);
+  const inCabin = !!pv && updateCarInterior(pvMesh, pv, showInterior);
+  // het interieur hangt aan de auto, niet aan de speler: stap je uit, dan gaat het weer weg
+  if (inCabin) interiorOwnerMesh = pvMesh;
+  else if (interiorOwnerMesh) {
+    const oud = interiorOwnerMesh.userData.interior;
+    if (oud) oud.visible = false;
+    interiorOwnerMesh = null;
+  }
   const pAnim = trackSeat(playerSeatTr, player, animDt, true);
   doorAsk.clear();
   if (pAnim) doorAsk.set(pAnim.v, vraagVoorAnim(pAnim, 'bestuurder'));
-  syncPlayerRider(pv, pvMesh, hidePlayers || (pAnim && pAnim.kind === 'enter'), world.time);
-  if (pAnim && !hidePlayers) {
+  syncPlayerRider(pv, pvMesh, hideFigure || (pAnim && pAnim.kind === 'enter'), world.time);
+  if (pAnim && !hideFigure) {
     // enter/exit animation (visual only; any input skips it)
     drawTransition(pAnim, playerMesh, vehicleMeshes.get(pAnim.v.id), player, vehicleSeat(pAnim.v, true), animDt, world.time);
     playerMesh.scale.y = 1;
   } else if (pv) {
     // on a horse the player sits astride the saddle (seating3d horse seat)
     const seated = (!pv.isBike && !pv.isScooter) || pv._mount === 'horse';
-    playerMesh.visible = seated && !hidePlayers && !inCabin;
+    playerMesh.visible = seated && !hideFigure && !inCabin;
     if (seated) {
+      playerMeshPlaced = true;
       playerMesh.scale.y = 1;
       placeSeated(playerMesh, pvMesh, pv, vehicleSeat(pv, true), world.time);
       playerMesh.userData.shadow.visible = false;
     }
   } else {
-    playerMesh.visible = !hidePlayers && scopeBlend < 0.6 && !world.coopInVoertuig; // een gast die meerijdt zit in het blok (#372)
+    playerMeshPlaced = true;
+    playerMesh.visible = !hideFigure && scopeBlend < 0.6 && !world.coopInVoertuig; // een gast die meerijdt zit in het blok (#372)
     if (!driveRagdoll(player, playerMesh, world, animDt)) {
-      playerMesh.userData.shadow.visible = !player.swimming;
+      playerMesh.userData.shadow.visible = !firstPersonView && !player.swimming;
       playerMesh.rotation.x = 0;
       playerMesh.rotation.z = player.swimTilt || 0;
       playerMesh.position.set(player.x, (player.gz || 0) + (player.z || 0) - (player.wade || 0), player.y);
@@ -3034,6 +3080,9 @@ export function update3D(dt, world) {
       applyHitReaction(playerMesh, player.hitReact, world.time, player.angle);
     }
   }
+  // eerste persoon (#833): het eigen lichaam (met zijn blobschaduw eraan) is niet te zien; de
+  // metgezel, de voertuigen en de wereld blijven dat wel
+  if (firstPersonView) playerMesh.visible = false;
   if (playerMesh) {
     const onFoot = !pv && !player.swimming && !world.pigeonMode;
     setHeldWeapon(playerMesh, onFoot ? world.weapon : null);
@@ -3112,8 +3161,6 @@ export function update3D(dt, world) {
   // a stolen train (traindrive.js) is followed like a very long vehicle
   const camVeh = player.inVehicle || world.trainCam || null;
   const targetAngle = camVeh ? camVeh.angle : player.angle;
-  followYaw += normalizeAngleDelta(-targetAngle - followYaw) * Math.min(1, dt * 5);
-
   // mouse Y pans the camera up/down around the player - top of
   // the screen swings the camera down to a lower, more level angle ("looking
   // up"), bottom of the screen swings it up to a steeper overhead angle
@@ -3123,207 +3170,272 @@ export function update3D(dt, world) {
   const mouse = world.input.mouse;
   const looking = world.input.lookActive ? world.input.lookActive() : mouse.locked;
   const lookK = MOUSE_LOOK_PER_PX * getSettings().mouseSensitivity;
-  // een gast op de grond houdt zijn eigen kijkhoogte bij (coopgast.js gastKijkHoogte): die stand wint van de dode
-  // muis, want zijn invoer is al aan het eind van het vorige beeld gelezen (#434). In een voertuig doet de camera
-  // het zelf, net als bij de gastheer.
-  if (looking && world.coopRole === 'client' && !camVeh && typeof world.coopKijkPitch === 'number' && Number.isFinite(world.coopKijkPitch)) {
-    lookPitchTarget = world.coopKijkPitch;
-  } else if (looking) {
-    // zelfde gevoeligheid als links/rechts, ook door de scope (player.js: x 0.3)
-    lookPitchTarget += mouse.dy * lookK * (world.scoped ? 0.3 : 1) * (getSettings().invertY ? -1 : 1);
-    lookPitchTarget = Math.min(PITCH_LOOK_MAX_DEG, Math.max(PITCH_LOOK_MIN_DEG, lookPitchTarget * 180 / Math.PI)) * Math.PI / 180;
-  } else {
-    // de cursorpositie is een aantal pixels, gedeeld door de schermhoogte: op
-    // een telefoon in landschap (360 px hoog) gaf dezelfde pixel een andere
-    // hoek dan in portret (800 px), en dus een andere camerahoogte. Zonder muis
-    // (aanraakbesturing) geldt daarom de vaste volgstand (#463).
-    const doc = document.documentElement;
-    const cursor = !(doc && doc.classList && doc.classList.contains('touch-play'));
-    lookPitchTarget = pitchForMouse(cursor ? (mouse.y || 0) / (innerHeight || 1) : NaN);
-  }
-  followPitch += (lookPitchTarget - followPitch) * Math.min(1, dt * (looking ? 30 : 6));
-  // on foot the camera yaw is world.camYaw (orbited by the mouse in
-  // player.js, independent of the facing); in a vehicle the mouse orbits
-  // around the car and the camera eases back behind it after a moment idle
-  if (world.camYaw == null) world.camYaw = targetAngle;
-  let camAngle;
   // hold Q / middle mouse in a vehicle: look back, a hard cut
   // (world.noLookBack: a minigame has Q for itself, the skûtsje's sail trim)
   const lookBack = lookBackActive({ inVehicle: !!camVeh, override: !!world.cameraOverride, noLookBack: world.noLookBack, qDown: world.input.isDown('q'), middleDown: mouse.middleDown });
   const lookBackCut = lookBack !== lookBackWas;
   lookBackWas = lookBack;
-  if (camVeh) {
-    if (!camWasInVehicle) { lookYaw = normalizeAngleDelta(world.camYaw - targetAngle); lookYawIdle = 0; }
-    const fast = Math.min(1, Math.abs(camVeh.speed || 0) / LOOK_FAST_SPEED);
-    // in a helicopter the mouse turns the heli itself (heliflight.js)
-    if (looking && mouse.dx !== 0 && !lookBack && !camVeh.isHeli) {
-      lookYaw = normalizeAngleDelta(lookYaw + mouse.dx * lookK);
-      lookYawIdle = 0;
+  // height of whatever the camera follows: on a viaduct, down in a cutting (elevation.js).
+  // The scope needs it too, so it is known before either camera.
+  const baseH = camVeh ? camVeh.z || 0 : (player.gz || 0) + Math.max(0, player.z || 0);
+  if (world.camYaw == null) world.camYaw = targetAngle;
+  if (fpToggled) {
+    // net aangezet of uitgezet: recht vooruit beginnen. Te voet draait het lichaam mee met de
+    // kijkrichting, in een voertuig blijft de besturing zoals hij was en kijkt het hoofd vooruit.
+    fpToggled = false;
+    fpState.pitch = 0;
+    if (camVeh) lookYaw = 0;
+    else if (fpState.on) world.camYaw = player.angle;
+  }
+  let camAngle, lookX, lookY, lookZ;
+  if (firstPersonView) {
+    // muisLOOK (#833): dy is de kijkhoek van de camera zelf; dx draait (in een voertuig) het
+    // hoofd op de voertuighoek. Anders dan de volgcam zwaait die hoek niet vanzelf terug.
+    if (looking) addLookPitch(world, mouse.dy * (world.scoped ? 0.3 : 1), lookK, getSettings().invertY);
+    if (camVeh) {
+      if (!camWasInVehicle) { lookYaw = normalizeAngleDelta(world.camYaw - targetAngle); lookYawIdle = 0; }
+      // in a helicopter the mouse turns the heli itself (heliflight.js)
+      if (looking && mouse.dx !== 0 && !lookBack && !camVeh.isHeli) lookYaw = normalizeAngleDelta(lookYaw + mouse.dx * lookK);
+      camAngle = targetAngle + (lookBack ? Math.PI : lookYaw);
+      world.camYaw = normalizeAngleDelta(targetAngle + lookYaw);
     } else {
-      lookYawIdle += dt;
-      const delay = LOOK_RECENTER_DELAY + (LOOK_RECENTER_DELAY_FAST - LOOK_RECENTER_DELAY) * fast;
-      if (lookYawIdle > delay) lookYaw *= Math.exp(-dt * (2.5 - 1.2 * fast));
+      lookYaw = 0;
+      camAngle = world.camYaw;
     }
-    camAngle = targetAngle + (lookBack ? Math.PI : lookYaw);
-    world.camYaw = normalizeAngleDelta(targetAngle + lookYaw);
+    camWasInVehicle = !!camVeh;
+    // Het oog van het eigen figuur: de hoofdbot van de playerMesh (de stand van dit beeld), met
+    // de spelerstand uit firstperson.js als het figuur er niet staat (fiets, scooter, instap-
+    // animatie): dan is er geen betrouwbaar hoofd om de camera op te zetten. Het figuur zelf is
+    // verborgen, dus de camera kan in het hoofd staan.
+    const head = playerMeshPlaced && playerMesh ? playerMesh.userData.head : null;
+    if (head) {
+      playerMesh.updateMatrixWorld(true);
+      head.getWorldPosition(_fpEye);
+      _fpEye.y += FP_EYE_ABOVE_NECK;
+      cam.position.copy(_fpEye);
+    } else {
+      firstPersonEye(player, _fpAlt); // terugval: de spelerstand
+      cam.position.set(_fpAlt.x, _fpAlt.z, _fpAlt.y);
+    }
+    lookVector(camAngle, clampPitch(fpState.pitch), _fpDir);
+    lookX = cam.position.x + _fpDir.x * FP_LOOK_DIST;
+    lookY = cam.position.y + _fpDir.y * FP_LOOK_DIST;
+    lookZ = cam.position.z + _fpDir.z * FP_LOOK_DIST;
+    followPose.position.x = cam.position.x; followPose.position.y = cam.position.z; followPose.position.z = cam.position.y;
+    followPose.lookAt.x = lookX; followPose.lookAt.y = lookZ; followPose.lookAt.z = lookY;
+    followPose.at = performance.now();
+    if (fpJustEntered) {
+      // de volgcam verborg kroontjes tussen oog en camera; die moeten weer tevoorschijn komen
+      fpJustEntered = false;
+      updateCamTreeHiding(world.map, cam.position.x, cam.position.y, cam.position.z, cam.position.x, cam.position.y, cam.position.z);
+    }
   } else {
-    lookYaw = 0;
-    camAngle = world.camYaw;
-  }
-  camWasInVehicle = !!camVeh;
-
-  // vehicles get a longer, higher orbit scaled to their length, so the car
-  // doesn't fill the lower half of the screen; a bus further still, to see
-  // the road ahead over its roof and its tail through a corner (a gelede
-  // bus's rear unit too)
-  const veh = camVeh;
-  const camScale = veh ? (veh.isHeli ? 4.4 : veh._mount === 'horse' ? 1.7 : veh.isBus ? (veh.model.trailer ? 5.2 : Math.min(4.4, Math.max(3.2, veh.model.len / 2.5))) : Math.min(3.2, Math.max(1.35, veh.model.len / 2.4))) : 1;
-  // samen spelen (#95): de eerste twee spelers delen één camera op het midden tussen hen (coop.js sharedCamera)
-  const share = !camVeh && world.coopCam ? world.coopCam : null;
-  const radius = orbitRadius * camScale * (share ? share.zoom : 1);
-  // height of whatever the camera follows: on a viaduct, down in a cutting (elevation.js)
-  const baseH = veh ? veh.z || 0 : (player.gz || 0) + Math.max(0, player.z || 0);
-  const eyeX = share ? share.x : player.x, eyeY = baseH + (veh ? (veh._mount === 'horse' ? 2.2 : 1.3 + (camScale - 1) * 0.55) : 1.3), eyeZ = share ? share.y : player.y;
-  // de volgplek komt uit cameraplan.js: achter de speler en `sin(pitch) x
-  // radius` erboven, ongeacht het schermformaat (#463)
-  const pose = followCameraPose({ x: player.x, y: player.y, eye: eyeY, angle: camAngle, pitch: followPitch, radius });
-  let desiredX = pose.x;
-  let desiredZ = pose.z;
-  let desiredY = pose.y;
-
-  // recursive: true - each building is now a Group of several child meshes
-  // (roof/window-band/steeple/...), not one flat Mesh, so a non-recursive
-  // raycast against the Group itself would never hit anything
-  // a hard-cut override (title screen, trailer) replaces the follow camera
-  // outright: no collision rays against buildings it never looks through
-  const noCollide = !!(world.cameraOverride && world.cameraOverride.cut && overrideBlend >= 1);
-  const camTargets = noCollide ? _noTargets : nearbyCamTargets(player.x, player.y);
-  function raycastFrom(ox, oy, oz, dx, dy, dz, dist) {
-    if (noCollide) return null;
-    camRayOrigin.set(ox, oy, oz);
-    camRayDir.set(dx / dist, dy / dist, dz / dist);
-    camRaycaster.set(camRayOrigin, camRayDir);
-    camRaycaster.far = dist;
-    camRaycaster.near = 0.05;
-    return camNearestHit(camTargets);
-  }
-  function raycastBuildingDist(dx, dy, dz, dist) {
-    return raycastFrom(eyeX, eyeY, eyeZ, dx, dy, dz, dist);
-  }
-
-  const dx = desiredX - eyeX, dy = desiredY - eyeY, dz = desiredZ - eyeZ;
-  const fullDist = Math.hypot(dx, dy, dz) || 1;
-  const hitDist = raycastBuildingDist(dx, dy, dz, fullDist);
-  // Blocked view (narrow Gronings streets, turning the camera past a wall):
-  // slide in along the same ray. This used to jump to a 75-degree
-  // overhead vantage or snap to 1 m behind the head, so turning the view
-  // flipped between eye level, top-down and near first person - very
-  // disorienting. Now: in at once (never clip the wall), back out slowly, and
-  // rise a little when close so it reads as an over-the-shoulder view.
-  const propHit = noCollide ? null : propRayHit(world.map, eyeX, eyeY, eyeZ, dx, dy, dz, fullDist);
-  const blockDist = propHit === null ? hitDist : hitDist === null ? propHit + CAM_CLEARANCE : Math.min(hitDist, propHit + CAM_CLEARANCE);
-  const wantPull = blockDist === null ? 1 : Math.max(CAM_MIN_DIST, blockDist - CAM_CLEARANCE) / fullDist;
-  if (camPullReset || wantPull < camPull) camPull = wantPull;
-  else camPull += (wantPull - camPull) * (1 - Math.exp(-dt * CAM_PULL_OUT_RATE));
-  camPullReset = false;
-  const pull = Math.min(1, camPull);
-  desiredX = eyeX + dx * pull;
-  desiredY = eyeY + dy * pull + (1 - pull) * CAM_PULL_LIFT;
-  desiredZ = eyeZ + dz * pull;
-
-  // The rays above only test the line from eye to camera, so a wall or roof
-  // edge running alongside the camera still ends up inside the 0.5m near
-  // plane and gets cut open (sky-coloured voids, see-through walls). Push
-  // the camera away from anything closer than CAM_CLEARANCE on each axis.
-  for (const [ax, ay, az] of CAM_PUSH_DIRS) {
-    const hit = raycastFrom(desiredX, desiredY, desiredZ, ax, ay, az, CAM_CLEARANCE);
-    if (hit === null) continue;
-    const push = CAM_CLEARANCE - hit;
-    desiredX -= ax * push;
-    desiredY -= ay * push;
-    desiredZ -= az * push;
-  }
-  if (world.map.elev && world.map.elev.has) {
-    // never below the surface under the camera, never above a tunnel roof / deck over the player
-    const gCam = world.map.groundHeightAt(desiredX, desiredZ, baseH + 1.5);
-    desiredY = Math.max(desiredY, Math.min(gCam, baseH + 3) + 0.6);
-    const ceil = Math.min(world.map.ceilingAt(desiredX, desiredZ, baseH + 0.5), world.map.ceilingAt(player.x, player.y, baseH + 0.5));
-    if (ceil < Infinity) desiredY = Math.min(desiredY, ceil - 0.45);
-  } else desiredY = Math.max(desiredY, 0.6);
-  // vehicles aren't in the building raycast: never let the camera sit
-  // inside a car/bus parked right behind the player - rise above its roof
-  for (const v of world.vehicles) {
-    if (v === player.inVehicle || v.isBoat) continue;
-    const dx = desiredX - v.x, dz = desiredZ - v.y;
-    if (dx * dx + dz * dz > 100) continue;
-    const c = Math.cos(v.angle), sn = Math.sin(v.angle);
-    const lx = dx * c + dz * sn, lz = -dx * sn + dz * c;
-    if (Math.abs(lx) < v.model.len / 2 + 0.6 && Math.abs(lz) < v.model.wid / 2 + 0.6) {
-      if (Math.abs((v.z || 0) - baseH) < 2.5) desiredY = Math.max(desiredY, (v.z || 0) + (v.isBus ? 3.3 : v._mount === 'horse' ? 2.4 : v.isBike || v.isScooter ? 1.3 : 1.6) + 0.7);
+    // third-person follow: smoothly settle behind whatever the player is
+    // currently facing (on foot or driving), classic third-person style - with a wall-aware
+    // pull-in so the camera never ends up clipped inside a building, and an
+    // instant snap on teleport (respawn/mission warp) instead of a long lerp
+    // that would otherwise glide the camera straight through geometry
+    followYaw += normalizeAngleDelta(-targetAngle - followYaw) * Math.min(1, dt * 5);
+    // een gast op de grond houdt zijn eigen kijkhoogte bij (coopgast.js gastKijkHoogte): die stand wint van de dode
+    // muis, want zijn invoer is al aan het eind van het vorige beeld gelezen (#434). In een voertuig doet de camera
+    // het zelf, net als bij de gastheer.
+    if (looking && world.coopRole === 'client' && !camVeh && typeof world.coopKijkPitch === 'number' && Number.isFinite(world.coopKijkPitch)) {
+      lookPitchTarget = world.coopKijkPitch;
+    } else if (looking) {
+      // zelfde gevoeligheid als links/rechts, ook door de scope (player.js: x 0.3)
+      lookPitchTarget += mouse.dy * lookK * (world.scoped ? 0.3 : 1) * (getSettings().invertY ? -1 : 1);
+      lookPitchTarget = Math.min(PITCH_LOOK_MAX_DEG, Math.max(PITCH_LOOK_MIN_DEG, lookPitchTarget * 180 / Math.PI)) * Math.PI / 180;
+    } else {
+      // de cursorpositie is een aantal pixels, gedeeld door de schermhoogte: op
+      // een telefoon in landschap (360 px hoog) gaf dezelfde pixel een andere
+      // hoek dan in portret (800 px), en dus een andere camerahoogte. Zonder muis
+      // (aanraakbesturing) geldt daarom de vaste volgstand (#463).
+      const doc = document.documentElement;
+      const cursor = !(doc && doc.classList && doc.classList.contains('touch-play'));
+      lookPitchTarget = pitchForMouse(cursor ? (mouse.y || 0) / (innerHeight || 1) : NaN);
     }
-  }
-  // spaces outside the building raycast adjust the camera themselves (home.js: the flat, the garage)
-  if (world.camAdjust) {
-    const r = world.camAdjust(desiredX, desiredY, desiredZ, eyeX, eyeY, eyeZ);
-    if (r) { desiredX = r[0]; desiredY = r[1]; desiredZ = r[2]; }
-  }
-  // (#463) nooit in de eigen carrosserie: trok een muur de camera naar binnen
-  // (en staat de wereld op pauze, dan blijft dat beeld staan), dan gaat hij
-  // boven het dak langs in plaats van erin
-  if (veh && veh.model && !veh.isBoat && !veh.isHeli) {
-    const q = camClearOfVehicle(desiredX, desiredY, desiredZ, veh);
-    desiredX = q[0]; desiredY = q[1]; desiredZ = q[2];
-  }
-
-  updateCamTreeHiding(world.map, eyeX, eyeY, eyeZ, desiredX, desiredY, desiredZ);
-
-  const teleported = lastPx !== null && Math.hypot(player.x - lastPx, player.y - lastPy) > 15;
-  // (#463) Een harde snee ook als de camera niet meer op een volgplek staat: na
-  // de titel of een filmpje hing hij nog op het laatste titelbeeld (op een
-  // telefoon in landschap een straatbeeld 1,6 km verderop, 0,6 m boven de kale
-  // kaart) en het eerste beeld van een partij gleed hij daar vandaan naar de
-  // speler - over de lege kaart (beeld "onder het maaiveld") en dwars door de
-  // bebouwing (beeld "in de gevel"). Zonder deze snee duurt dat bij een laag
-  // beeldtempo seconden en is het maar net welk beeld je ziet.
-  const snap = teleported || !camBaseInit
-    || cameraSnapNeeded(camBaseInit ? camBase : null, { x: desiredX, y: desiredY, z: desiredZ });
-  if (snap) camPullReset = true;
-  if (lookBackCut) camPullReset = true;
-  const lerpT = chaseFollowLerp(dt, { cut: snap || lookBackCut, lookBack });
-  if (snap) { camBase.set(desiredX, desiredY, desiredZ); camBaseInit = true; }
-  else {
-    camBase.x += (desiredX - camBase.x) * lerpT;
-    camBase.y += (desiredY - camBase.y) * lerpT;
-    camBase.z += (desiredZ - camBase.z) * lerpT;
-  }
-  // (#463) De getekende stand is de geïnterpoleerde stand, en die is nog nooit
-  // getest. Bij snelheid loopt de camera tot een paar meter achter op zijn
-  // volgplek en snijdt hij de hoek af: in een smalle straat hing hij daardoor
-  // in de gevel (gemeten: 1,1 m binnen de gebouwlijn, 2,5 m hoog, met de auto
-  // 3,7 m verderop) terwijl de gewenste stand vrij stond. Daarom dezelfde
-  // controles nog eens op de stand die echt getekend wordt: de lijn naar de
-  // speler, de eigen carrosserie en de grond.
-  if (!noCollide) {
-    const bx = camBase.x - eyeX, by = camBase.y - eyeY, bz = camBase.z - eyeZ;
-    const bl = Math.hypot(bx, by, bz) || 1;
-    const blocked = raycastFrom(eyeX, eyeY, eyeZ, bx, by, bz, bl);
-    if (blocked !== null) {
-      const k = Math.max(CAM_MIN_DIST, blocked - CAM_CLEARANCE) / bl;
-      camBase.set(eyeX + bx * k, eyeY + by * k, eyeZ + bz * k);
+    followPitch += (lookPitchTarget - followPitch) * Math.min(1, dt * (looking ? 30 : 6));
+    // on foot the camera yaw is world.camYaw (orbited by the mouse in
+    // player.js, independent of the facing); in a vehicle the mouse orbits
+    // around the car and the camera eases back behind it after a moment idle
+    if (camVeh) {
+      if (!camWasInVehicle) { lookYaw = normalizeAngleDelta(world.camYaw - targetAngle); lookYawIdle = 0; }
+      const fast = Math.min(1, Math.abs(camVeh.speed || 0) / LOOK_FAST_SPEED);
+      // in a helicopter the mouse turns the heli itself (heliflight.js)
+      if (looking && mouse.dx !== 0 && !lookBack && !camVeh.isHeli) {
+        lookYaw = normalizeAngleDelta(lookYaw + mouse.dx * lookK);
+        lookYawIdle = 0;
+      } else {
+        lookYawIdle += dt;
+        const delay = LOOK_RECENTER_DELAY + (LOOK_RECENTER_DELAY_FAST - LOOK_RECENTER_DELAY) * fast;
+        if (lookYawIdle > delay) lookYaw *= Math.exp(-dt * (2.5 - 1.2 * fast));
+      }
+      camAngle = targetAngle + (lookBack ? Math.PI : lookYaw);
+      world.camYaw = normalizeAngleDelta(targetAngle + lookYaw);
+    } else {
+      lookYaw = 0;
+      camAngle = world.camYaw;
     }
+    camWasInVehicle = !!camVeh;
+
+    // vehicles get a longer, higher orbit scaled to their length, so the car
+    // doesn't fill the lower half of the screen; a bus further still, to see
+    // the road ahead over its roof and its tail through a corner (a gelede
+    // bus's rear unit too)
+    const veh = camVeh;
+    const camScale = veh ? (veh.isHeli ? 4.4 : veh._mount === 'horse' ? 1.7 : veh.isBus ? (veh.model.trailer ? 5.2 : Math.min(4.4, Math.max(3.2, veh.model.len / 2.5))) : Math.min(3.2, Math.max(1.35, veh.model.len / 2.4))) : 1;
+    // samen spelen (#95): de eerste twee spelers delen één camera op het midden tussen hen (coop.js sharedCamera)
+    const share = !camVeh && world.coopCam ? world.coopCam : null;
+    const radius = orbitRadius * camScale * (share ? share.zoom : 1);
+    const eyeX = share ? share.x : player.x, eyeY = baseH + (veh ? (veh._mount === 'horse' ? 2.2 : 1.3 + (camScale - 1) * 0.55) : 1.3), eyeZ = share ? share.y : player.y;
+    // de volgplek komt uit cameraplan.js: achter de speler en `sin(pitch) x
+    // radius` erboven, ongeacht het schermformaat (#463)
+    const pose = followCameraPose({ x: player.x, y: player.y, eye: eyeY, angle: camAngle, pitch: followPitch, radius });
+    let desiredX = pose.x;
+    let desiredZ = pose.z;
+    let desiredY = pose.y;
+
+    // recursive: true - each building is now a Group of several child meshes
+    // (roof/window-band/steeple/...), not one flat Mesh, so a non-recursive
+    // raycast against the Group itself would never hit anything
+    // a hard-cut override (title screen, trailer) replaces the follow camera
+    // outright: no collision rays against buildings it never looks through
+    const noCollide = !!(world.cameraOverride && world.cameraOverride.cut && overrideBlend >= 1);
+    const camTargets = noCollide ? _noTargets : nearbyCamTargets(player.x, player.y);
+    function raycastFrom(ox, oy, oz, dx, dy, dz, dist) {
+      if (noCollide) return null;
+      camRayOrigin.set(ox, oy, oz);
+      camRayDir.set(dx / dist, dy / dist, dz / dist);
+      camRaycaster.set(camRayOrigin, camRayDir);
+      camRaycaster.far = dist;
+      camRaycaster.near = 0.05;
+      return camNearestHit(camTargets);
+    }
+    function raycastBuildingDist(dx, dy, dz, dist) {
+      return raycastFrom(eyeX, eyeY, eyeZ, dx, dy, dz, dist);
+    }
+
+    const dx = desiredX - eyeX, dy = desiredY - eyeY, dz = desiredZ - eyeZ;
+    const fullDist = Math.hypot(dx, dy, dz) || 1;
+    const hitDist = raycastBuildingDist(dx, dy, dz, fullDist);
+    // Blocked view (narrow Gronings streets, turning the camera past a wall):
+    // slide in along the same ray. This used to jump to a 75-degree
+    // overhead vantage or snap to 1 m behind the head, so turning the view
+    // flipped between eye level, top-down and near first person - very
+    // disorienting. Now: in at once (never clip the wall), back out slowly, and
+    // rise a little when close so it reads as an over-the-shoulder view.
+    const propHit = noCollide ? null : propRayHit(world.map, eyeX, eyeY, eyeZ, dx, dy, dz, fullDist);
+    const blockDist = propHit === null ? hitDist : hitDist === null ? propHit + CAM_CLEARANCE : Math.min(hitDist, propHit + CAM_CLEARANCE);
+    const wantPull = blockDist === null ? 1 : Math.max(CAM_MIN_DIST, blockDist - CAM_CLEARANCE) / fullDist;
+    if (camPullReset || wantPull < camPull) camPull = wantPull;
+    else camPull += (wantPull - camPull) * (1 - Math.exp(-dt * CAM_PULL_OUT_RATE));
+    camPullReset = false;
+    const pull = Math.min(1, camPull);
+    desiredX = eyeX + dx * pull;
+    desiredY = eyeY + dy * pull + (1 - pull) * CAM_PULL_LIFT;
+    desiredZ = eyeZ + dz * pull;
+
+    // The rays above only test the line from eye to camera, so a wall or roof
+    // edge running alongside the camera still ends up inside the 0.5m near
+    // plane and gets cut open (sky-coloured voids, see-through walls). Push
+    // the camera away from anything closer than CAM_CLEARANCE on each axis.
+    for (const [ax, ay, az] of CAM_PUSH_DIRS) {
+      const hit = raycastFrom(desiredX, desiredY, desiredZ, ax, ay, az, CAM_CLEARANCE);
+      if (hit === null) continue;
+      const push = CAM_CLEARANCE - hit;
+      desiredX -= ax * push;
+      desiredY -= ay * push;
+      desiredZ -= az * push;
+    }
+    if (world.map.elev && world.map.elev.has) {
+      // never below the surface under the camera, never above a tunnel roof / deck over the player
+      const gCam = world.map.groundHeightAt(desiredX, desiredZ, baseH + 1.5);
+      desiredY = Math.max(desiredY, Math.min(gCam, baseH + 3) + 0.6);
+      const ceil = Math.min(world.map.ceilingAt(desiredX, desiredZ, baseH + 0.5), world.map.ceilingAt(player.x, player.y, baseH + 0.5));
+      if (ceil < Infinity) desiredY = Math.min(desiredY, ceil - 0.45);
+    } else desiredY = Math.max(desiredY, 0.6);
+    // vehicles aren't in the building raycast: never let the camera sit
+    // inside a car/bus parked right behind the player - rise above its roof
+    for (const v of world.vehicles) {
+      if (v === player.inVehicle || v.isBoat) continue;
+      const dx = desiredX - v.x, dz = desiredZ - v.y;
+      if (dx * dx + dz * dz > 100) continue;
+      const c = Math.cos(v.angle), sn = Math.sin(v.angle);
+      const lx = dx * c + dz * sn, lz = -dx * sn + dz * c;
+      if (Math.abs(lx) < v.model.len / 2 + 0.6 && Math.abs(lz) < v.model.wid / 2 + 0.6) {
+        if (Math.abs((v.z || 0) - baseH) < 2.5) desiredY = Math.max(desiredY, (v.z || 0) + (v.isBus ? 3.3 : v._mount === 'horse' ? 2.4 : v.isBike || v.isScooter ? 1.3 : 1.6) + 0.7);
+      }
+    }
+    // spaces outside the building raycast adjust the camera themselves (home.js: the flat, the garage)
+    if (world.camAdjust) {
+      const r = world.camAdjust(desiredX, desiredY, desiredZ, eyeX, eyeY, eyeZ);
+      if (r) { desiredX = r[0]; desiredY = r[1]; desiredZ = r[2]; }
+    }
+    // (#463) nooit in de eigen carrosserie: trok een muur de camera naar binnen
+    // (en staat de wereld op pauze, dan blijft dat beeld staan), dan gaat hij
+    // boven het dak langs in plaats van erin
+    if (veh && veh.model && !veh.isBoat && !veh.isHeli) {
+      const q = camClearOfVehicle(desiredX, desiredY, desiredZ, veh);
+      desiredX = q[0]; desiredY = q[1]; desiredZ = q[2];
+    }
+
+    updateCamTreeHiding(world.map, eyeX, eyeY, eyeZ, desiredX, desiredY, desiredZ);
+
+    const teleported = lastPx !== null && Math.hypot(player.x - lastPx, player.y - lastPy) > 15;
+    // (#463) Een harde snee ook als de camera niet meer op een volgplek staat: na
+    // de titel of een filmpje hing hij nog op het laatste titelbeeld (op een
+    // telefoon in landschap een straatbeeld 1,6 km verderop, 0,6 m boven de kale
+    // kaart) en het eerste beeld van een partij gleed hij daar vandaan naar de
+    // speler - over de lege kaart (beeld "onder het maaiveld") en dwars door de
+    // bebouwing (beeld "in de gevel"). Zonder deze snee duurt dat bij een laag
+    // beeldtempo seconden en is het maar net welk beeld je ziet.
+    const snap = teleported || !camBaseInit
+      || cameraSnapNeeded(camBaseInit ? camBase : null, { x: desiredX, y: desiredY, z: desiredZ });
+    if (snap) camPullReset = true;
+    if (lookBackCut) camPullReset = true;
+    const lerpT = chaseFollowLerp(dt, { cut: snap || lookBackCut, lookBack });
+    if (snap) { camBase.set(desiredX, desiredY, desiredZ); camBaseInit = true; }
+    else {
+      camBase.x += (desiredX - camBase.x) * lerpT;
+      camBase.y += (desiredY - camBase.y) * lerpT;
+      camBase.z += (desiredZ - camBase.z) * lerpT;
+    }
+    // (#463) De getekende stand is de geïnterpoleerde stand, en die is nog nooit
+    // getest. Bij snelheid loopt de camera tot een paar meter achter op zijn
+    // volgplek en snijdt hij de hoek af: in een smalle straat hing hij daardoor
+    // in de gevel (gemeten: 1,1 m binnen de gebouwlijn, 2,5 m hoog, met de auto
+    // 3,7 m verderop) terwijl de gewenste stand vrij stond. Daarom dezelfde
+    // controles nog eens op de stand die echt getekend wordt: de lijn naar de
+    // speler, de eigen carrosserie en de grond.
+    if (!noCollide) {
+      const bx = camBase.x - eyeX, by = camBase.y - eyeY, bz = camBase.z - eyeZ;
+      const bl = Math.hypot(bx, by, bz) || 1;
+      const blocked = raycastFrom(eyeX, eyeY, eyeZ, bx, by, bz, bl);
+      if (blocked !== null) {
+        const k = Math.max(CAM_MIN_DIST, blocked - CAM_CLEARANCE) / bl;
+        camBase.set(eyeX + bx * k, eyeY + by * k, eyeZ + bz * k);
+      }
+    }
+    // nooit in de eigen auto of bus, ook niet als een muur hem naar binnen trok
+    if (veh && veh.model && !veh.isBoat && !veh.isHeli) {
+      const q = camClearOfVehicle(camBase.x, camBase.y, camBase.z, veh);
+      camBase.set(q[0], q[1], q[2]);
+    }
+    // en nooit onder het maaiveld, ook als de interpolatie door een helling zakte
+    if (world.map.elev && world.map.elev.has) {
+      const gBase = world.map.groundHeightAt(camBase.x, camBase.z, baseH + 1.5);
+      camBase.y = Math.max(camBase.y, Math.min(gBase, baseH + 3) + 0.6);
+    } else camBase.y = Math.max(camBase.y, 0.6);
+    lastPx = player.x; lastPy = player.y;
+    cam.position.copy(camBase);
+    // de volgcam kijkt naar de speler (bij een lage kijkhoek met wat extra hoogte erbij)
+    const lookUp = Math.max(0, LOOK_UP_FROM_DEG * Math.PI / 180 - followPitch) * radius * LOOK_UP_LIFT;
+    lookX = player.x; lookY = (veh ? baseH + (eyeY - baseH) * 0.85 : baseH + 1.3) + lookUp; lookZ = player.y;
+    followPose.position.x = camBase.x; followPose.position.y = camBase.z; followPose.position.z = camBase.y;
+    followPose.lookAt.x = lookX; followPose.lookAt.y = lookZ; followPose.lookAt.z = lookY;
+    followPose.at = performance.now();
   }
-  // nooit in de eigen auto of bus, ook niet als een muur hem naar binnen trok
-  if (veh && veh.model && !veh.isBoat && !veh.isHeli) {
-    const q = camClearOfVehicle(camBase.x, camBase.y, camBase.z, veh);
-    camBase.set(q[0], q[1], q[2]);
-  }
-  // en nooit onder het maaiveld, ook als de interpolatie door een helling zakte
-  if (world.map.elev && world.map.elev.has) {
-    const gBase = world.map.groundHeightAt(camBase.x, camBase.z, baseH + 1.5);
-    camBase.y = Math.max(camBase.y, Math.min(gBase, baseH + 3) + 0.6);
-  } else camBase.y = Math.max(camBase.y, 0.6);
-  lastPx = player.x; lastPy = player.y;
-  cam.position.copy(camBase);
+  // camera-shake (#196) en de aardbeving gelden in beide standen
   const imp = world.lastImpact;
   const shakeAge = imp ? world.time - imp.time : Infinity;
   if (shakeAge >= 0 && shakeAge < CAM_SHAKE_TIME) {
@@ -3340,12 +3452,7 @@ export function update3D(dt, world) {
     const j = quakeJitter(world.time, shakeAmount(world.quake.amp, { reduceMotion: reducedMotion() }));
     cam.position.x += j.x; cam.position.y += j.y; cam.position.z += j.z;
   }
-  const lookUp = Math.max(0, LOOK_UP_FROM_DEG * Math.PI / 180 - followPitch) * radius * LOOK_UP_LIFT;
-  let lookX = player.x, lookY = (veh ? baseH + (eyeY - baseH) * 0.85 : baseH + 1.3) + lookUp, lookZ = player.y;
-  followPose.position.x = camBase.x; followPose.position.y = camBase.z; followPose.position.z = camBase.y;
-  followPose.lookAt.x = lookX; followPose.lookAt.y = lookZ; followPose.lookAt.z = lookY;
-  followPose.at = performance.now();
-  scopeBlend += ((world.scoped && !veh ? 1 : 0) - scopeBlend) * Math.min(1, dt * 14);
+  scopeBlend += ((world.scoped && !camVeh ? 1 : 0) - scopeBlend) * Math.min(1, dt * 14);
   if (scopeBlend < 0.01) scopeBlend = 0;
   if (scopeBlend > 0) {
     // eye just in front of the face, looking level: the scoped bullet starts

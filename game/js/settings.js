@@ -79,6 +79,9 @@ const BASE_DEFAULTS = {
   // stuurgevoeligheid van voertuigen (#801): 0.5 (zacht) tot 1.5 (fel)
   steerSensitivity: 1,
   invertY: false,
+  // eerste persoon (#833): de speelcamera op de ogen van het eigen figuur in plaats van de
+  // volgcam (C in de app, G in de browser; ook onder Camera & richten in het pauzemenu)
+  firstPersoon: false,
   autoAim: true,
   drunkFx: 'aan',
   // verkeersruzie (roadrage.js): hoe vaak boze bestuurders uitstappen; 'uit', 'weinig', 'normaal' of 'veel'
