@@ -19,6 +19,7 @@ import { noteMoney } from './finance.js';
 import { zoneTotals, losseOnderdelen, onderdelenPrijs, schadeTekst } from './vehicledamage.js';
 import { deelPrijs } from './vehicledoors.js';
 import { wantedClearCooldownLeft, markWantedCleared } from './heatcooldown.js'; // #838: spuiterij-cooldown
+import { onderdelenAlbum, bouwAuto, onderdelenGebouwd } from './onderdelenlive.js'; // #837: Eigen Maaksel
 
 // Garages: every Garage Knalpot branch (from the OSM car repair shops) and
 // every Pomp & Poets gas station has a workshop with a roller door by the
@@ -334,6 +335,15 @@ function garageMenu(w, site) {
   const sections = () => {
     const v = hoofdspeler(w).inVehicle;
     const out = [];
+    // #837: wie alle vijf onderdelen heeft, laat hier zijn Eigen Maaksel bouwen.
+    const album = onderdelenAlbum();
+    if (album.compleet && !onderdelenGebouwd()) {
+      out.push({ title: 'Eigen Maaksel', note: 'Vijf onderdelen, één auto', items: [{
+        id: 'g-knutsel', label: 'Bouw je Knutselwagen', price: 0, preview: { kind: 'product', product: 'sleutel' },
+        desc: 'De onderdelen liggen klaar; Henk schroeft ze in elkaar.',
+        buy() { const r = bouwAuto(w); return r.ok ? 'Je Knutselwagen staat buiten. Eigen Maaksel!' : r.reden; },
+      }] });
+    }
     if (serviceable(v)) {
       const price = repairPrice(v);
       const broken = (v.health ?? 100) < 100 || (v.damage && v.damage.total > 0) || v.riderOff || v.flat;

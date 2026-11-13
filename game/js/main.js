@@ -84,6 +84,8 @@ import { initParkeergarages, updateParkeergarages } from './parkeergarage.js';
 import { initHoreca, initCountryHoreca, updateHoreca, tryHorecaInteract } from './horeca.js';
 import { initShops, initCountryShops, updateShops, tryShopInteract, COUNTRY_SHOP_KINDS, getShopsForRender, spawnSharedVehicle } from './shops.js';
 import { initSnackMachines, updateSnackMachines, tryMachineInteract } from './snackautomaat.js';
+import { initOnderdelen, tryOnderdeelInteract } from './onderdelenlive.js'; // #837: onderdelenjacht
+import { initWrakduiken, tryWrakduikInteract } from './wrakduikenlive.js'; // #839: wrakduiken
 import { updateStreetLife, tryStreetLifeInteract } from './streetlife.js';
 import { bikeBoost, hourOf } from './streetlifedata.js';
 import { wijkProfileAt } from './trafficfleet.js';
@@ -701,6 +703,8 @@ async function boot() {
   initShops(world);
   setShopSpots(spotsFrom(FAC.all, getShopsForRender()));
   initSnackMachines(world);
+  initOnderdelen(world);
+  initWrakduiken(world);
   initHome(world);
   parkHeroAtHome(world);
   initTrafficLights(world);
@@ -1117,6 +1121,8 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     else if (isActivityActive()) { updateActivityGame(dt, world); updateCompanion(dt, world); }
     else {
       tryQuickWaypoint(world);
+      tryOnderdeelInteract(world);
+      tryWrakduikInteract(world);
       interactActivityKinds(world, 'pre');
       tryPadelInteract(world);
       interactActivityKinds(world, 'act');
