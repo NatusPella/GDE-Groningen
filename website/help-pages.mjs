@@ -71,7 +71,7 @@ export const HELP_PAGES = [
         <tbody>
           <tr><td>W A S D of pijltjes</td><td>lopen (Shift: rennen)</td><td>gas, achteruit, sturen</td></tr>
           <tr><td>Spatie</td><td>springen</td><td>remmen</td></tr>
-          <tr><td>Ctrl (browser: C)</td><td>bunken</td><td></td></tr>
+          <tr><td>Ctrl (browser: C)</td><td>bukken</td><td></td></tr>
           <tr><td>E of F</td><td>instappen, winkel of klus gebruiken</td><td>uitstappen</td></tr>
           <tr><td>Muis</td><td>camera draaien</td><td>camera draaien</td></tr>
           <tr><td>Linkermuisknop</td><td>aanvallen of schieten</td><td>uit het raam schieten</td></tr>
@@ -152,3 +152,4 @@ export const HELP_PAGES = [
     `,
   },
 ];
+
