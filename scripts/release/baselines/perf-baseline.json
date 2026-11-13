@@ -1,0 +1,10 @@
+{
+  "schema": "gde-perf-baseline",
+  "versie": 1,
+  "datum": null,
+  "commit": null,
+  "machine": null,
+  "load": null,
+  "reden": "leeg beginschema; de coordinator vult deze baseline met --update na een perf-run",
+  "routes": {}
+}
