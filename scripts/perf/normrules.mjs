@@ -44,6 +44,30 @@ export function slowWall(wallS, expectedS) {
   return wallS > WALL_FACTOR * expectedS + WALL_STARTUP_S;
 }
 
+// #804: de perf-marks uit het runlog. Puur, zodat de routewand-telling (en het
+// feit dat álle routes meetellen) getest kan worden; een crash halverwege de
+// lus mag de teller niet stilzetten.
+export function parseRouteMarks(lines) {
+  const marks = {};
+  for (const l of lines || []) {
+    const m = /\[perf-mark\] (start|end) (\S+) (\d+)(?: (\d+))?/.exec(l);
+    if (!m) continue;
+    (marks[m[2]] ||= {})[m[1]] = { t: Number(m[3]), frames: Number(m[4]) || 0 };
+  }
+  return marks;
+}
+export function routeMarksSummary(lines) {
+  const marks = parseRouteMarks(lines);
+  let seconds = 0;
+  let firstAt = null;
+  for (const mk of Object.values(marks)) {
+    if (!mk.start || !mk.end) continue;
+    seconds += (mk.end.t - mk.start.t) / 1000;
+    if (firstAt == null || mk.start.t < firstAt) firstAt = mk.start.t;
+  }
+  return { marks, seconds, firstAt };
+}
+
 // Heeft deze route frametijden? (census en latentie zijn losse metingen.)
 export function routeHasFrames(route) {
   const s = routeStats(route);

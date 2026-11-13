@@ -14,7 +14,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { stageReady, stageError } from './stagecheck.mjs';
-import { slowWall } from './normrules.mjs';
+import { slowWall, routeMarksSummary } from './normrules.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const OUT = process.env.PERF_OUT || path.join(os.tmpdir(), 'gde-perf');
@@ -113,8 +113,10 @@ let routeWallS = 0;
 let firstRouteAt = null;
 result.threadCpu = {};
 try {
-  const marks = {};
-  for (const l of lines) { const m = /\[perf-mark\] (start|end) (\S+) (\d+)(?: (\d+))?/.exec(l); if (m) (marks[m[2]] ||= {})[m[1]] = { t: Number(m[3]), frames: Number(m[4]) }; }
+  const summary = routeMarksSummary(lines);
+  const marks = summary.marks;
+  routeWallS = summary.seconds;
+  firstRouteAt = summary.firstAt;
   const th = new Map();
   if (fs.existsSync(threadFile)) for (const l of fs.readFileSync(threadFile, 'utf8').split(String.fromCharCode(10))) {
     const [t, pid, type, tid, ms] = l.split('|'); if (!ms) continue;
@@ -128,8 +130,6 @@ try {
   for (const [rn, mk] of Object.entries(marks)) {
     if (!mk.start || !mk.end) continue;
     const dur = mk.end.t - mk.start.t, rows = [];
-    routeWallS += dur / 1000;
-    if (firstRouteAt == null || mk.start.t < firstRouteAt) firstRouteAt = mk.start.t;
     for (const [k, arr] of th) { const a = at(arr, mk.start.t), b = at(arr, mk.end.t); if (a != null && b != null && b - a > dur * 0.02) rows.push([k, b - a]); }
     const byType = (ty) => rows.filter(([k]) => k.split(':')[1] === ty).sort((x, y) => y[1] - x[1]);
     const f = Math.max(1, mk.end.frames);
