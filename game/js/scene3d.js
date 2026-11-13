@@ -548,6 +548,18 @@ function camNearestHit(targets) {
 // Materials reused across many actors - disposing one would force every
 // remaining user to re-upload/recompile it on the next frame.
 const SHARED_MATERIALS = new Set([OUTLINE_MAT]);
+// Tijdens het voorrijden van de montage worden wijken gebouwd en daarna weer
+// geëvicteerd. Hun materialen houden we vast tot de film klaar is: dan blijven
+// de shader-programma's (met geïnitialiseerde uniforms) in de cache, terwijl de
+// geometries gewoon vrijkomen.
+const heldMaterials = new Set();
+let holdMaterials = false;
+export function setHoldMaterials(on) { holdMaterials = !!on; }
+export function releaseHeldMaterials() {
+  holdMaterials = false;
+  for (const m of heldMaterials) { try { m.dispose(); } catch (e) { /* niet erg */ } }
+  heldMaterials.clear();
+}
 const SHARED_GEOMETRIES = new Set();
 
 // Flat-pack boxes strapped to a car's roof (v.roofBoxes, the story's EIKEA trip).
@@ -594,7 +606,10 @@ export function disposeObject(root) {
     // the bone texture three.js makes for a skinned mesh on its first draw
     if (o.isSkinnedMesh && o.skeleton) o.skeleton.dispose();
     const mats = Array.isArray(o.material) ? o.material : o.material ? [o.material] : [];
-    for (const m of mats) if (!SHARED_MATERIALS.has(m) && !(m.userData && m.userData.shared)) m.dispose();
+    for (const m of mats) {
+      if (SHARED_MATERIALS.has(m) || (m.userData && m.userData.shared)) continue;
+      if (holdMaterials) heldMaterials.add(m); else m.dispose();
+    }
   });
 }
 

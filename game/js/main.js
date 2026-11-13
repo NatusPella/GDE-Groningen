@@ -128,7 +128,7 @@ import { updateSluizen, getSluizen } from './sluizen.js';
 import { updateBridgeHits, resetBridgeDamage, startBridgeCrashDemo, stepBridgeCrashDemo } from './bridgehitworld.js';
 import { geoWorkerActive } from './geojobs.js';
 import { preloadRoadWorker } from './roadsurface.js';
-import { init3D, update3D, resize3D, getScene, getRenderer, toggleLightRig, disposeObject, warmWaterIndex, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady, canvasFrameCount, prewarmStreamAt, prewarmPending, precompilePrograms, streamPending, queueWarmupObject, prewarmBusy, takeWarmupSamples, releaseWarmupSamples, getCamera, getFollowPose, setRouteLinks } from './scene3d.js';
+import { init3D, update3D, resize3D, getScene, getRenderer, toggleLightRig, disposeObject, setHoldMaterials, releaseHeldMaterials, warmWaterIndex, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady, canvasFrameCount, prewarmStreamAt, prewarmPending, precompilePrograms, streamPending, queueWarmupObject, prewarmBusy, takeWarmupSamples, releaseWarmupSamples, getCamera, getFollowPose, setRouteLinks } from './scene3d.js';
 import { checkFrame } from './blackframe.js';
 import { setCameraOverride } from './cinematics.js';
 import { noteFrame, hideAdvice, classifyGpu, readGpu, dynamicScale, cpuLevel } from './gfxprofile.js';
@@ -268,7 +268,8 @@ const START_WARM_CALM = 12;
 const START_WARM_MAX_FRAME_MS = 50;
   // De eigenaar koos een langer laadscherm boven een haperende eerste minuut: de
   // montageplekken mogen samen ruim een minuut kosten om klaar te zetten.
-  const INTRO_WARM_MS = 45000;
+  const INTRO_WARM_MS = 80000;
+  const INTRO_TOUR_MS = 30000;
 
 function waitForStart(world, ready) {
   const relocate = (x, y) => {
@@ -396,6 +397,29 @@ function waitForStart(world, ready) {
           // de film gebouwd. Teken ze hier één keer echt, onder beide
           // lichtstanden: compileren alleen zet de shader-uniforms nog niet,
           // en dat is precies de eerste-draw-piek in de film (#804).
+          // Rijd de montageplekken ook op straathoogte af: perrons, spoor,
+          // water en museuminrichting worden pas bij die cuts gebouwd, en
+          // hun eerste draw kost anders honderden ms in de film (#804).
+          try {
+          setHoldMaterials(true);
+          const tourEnd = performance.now() + INTRO_TOUR_MS;
+          for (const p of spots) {
+          if (performance.now() >= tourEnd) break;
+          setCameraOverride(world, { position: { x: p.x + 14, y: p.y + 14, z: 24 }, lookAt: { x: p.x, y: p.y, z: 2 }, fov: 62, cut: true });
+          const stop = Math.min(tourEnd, performance.now() + 3200);
+          let n = 0;
+          while (performance.now() < stop && n < 70) {
+          try { tick(1 / 60); render(1 / 60); } catch (e) { break; }
+          n++;
+          const sp = streamPending();
+          if (n > 8 && sp.buildings + sp.roads === 0 && prewarmPending() === 0 && !prewarmBusy()) break;
+          await yieldToPaint();
+          }
+          }
+          setCameraOverride(world, null);
+          if (window.__loadMarks) window.__loadMarks.introTour = Math.round(performance.now() - tIntro);
+          } catch (e) { console.warn('montage-tour', e); }
+
           {
             let warmGroup = null, sc = null, vorigeOverride = null, ok = false;
             try {
@@ -928,7 +952,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
   // De montage ruimt de vooraf gepinde tegels zelf op; loopt hij niet (of is hij
   // al klaar), dan mogen ze hier alsnog vrij.
   setTimeout(() => {
-    try { if (world.map && world.map.releaseShots && !document.body.classList.contains('intro-montage')) world.map.releaseShots(); if (!document.body.classList.contains('intro-montage')) { try { releaseWarmupSamples(); } catch (e) { /* niet erg */ } world.__warmSamples = null; if (world.__openingWarm) { try { disposeObject(world.__openingWarm); } catch (e) { /* niet erg */ } world.__openingWarm = null; } } } catch (e) { /* niet erg */ }
+    try { if (world.map && world.map.releaseShots && !document.body.classList.contains('intro-montage')) world.map.releaseShots(); if (!document.body.classList.contains('intro-montage')) { try { releaseWarmupSamples(); } catch (e) { /* niet erg */ } try { releaseHeldMaterials(); } catch (e) { /* niet erg */ } world.__warmSamples = null; if (world.__openingWarm) { try { disposeObject(world.__openingWarm); } catch (e) { /* niet erg */ } world.__openingWarm = null; } } } catch (e) { /* niet erg */ }
   }, 20000);
   hideAdvice();
   input.tryLock(false); // the game itself asks here, long after the click that started it: refusing is no sign of a browser without lock (#328)
