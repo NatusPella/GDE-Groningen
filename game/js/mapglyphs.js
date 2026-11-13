@@ -126,6 +126,9 @@ const GLYPHS = {
   'pg-jelle': heart,
   'pg-fjord': friesCone,
   dorp: pennant,
+  onderdeel: cog,
+  wrakduik: anchor,
+  streekuitdaging: routeFlag,
 };
 export const MAP_GLYPH_KINDS = Object.keys(GLYPHS);
 
@@ -144,4 +147,32 @@ export function drawMapGlyph(ctx, kind, s) {
   glyph(ctx);
   ctx.restore();
   return true;
+}
+
+function cog(g) {
+  g.fillStyle = CREAM;
+  g.beginPath(); g.arc(0, 0, 2.1, 0, Math.PI * 2); g.fill();
+  for (let i = 0; i < 8; i++) {
+    const a = i * Math.PI / 4;
+    g.save(); g.rotate(a);
+    g.fillRect(-0.45, -3.4, 0.9, 1.5);
+    g.restore();
+  }
+  g.fillStyle = DISC;
+  g.beginPath(); g.arc(0, 0, 0.8, 0, Math.PI * 2); g.fill();
+}
+
+function anchor(g) {
+  g.strokeStyle = CREAM; g.lineWidth = 0.9; g.lineCap = 'round';
+  g.beginPath(); g.arc(0, -2.3, 0.9, 0, Math.PI * 2); g.stroke();
+  g.beginPath(); g.moveTo(0, -1.4); g.lineTo(0, 3.2); g.moveTo(-2.1, 0.4); g.lineTo(2.1, 0.4); g.stroke();
+  g.beginPath(); g.arc(0, 1.2, 2.6, 0.15 * Math.PI, 0.85 * Math.PI); g.stroke();
+}
+
+function routeFlag(g) {
+  g.strokeStyle = CREAM; g.lineWidth = 0.9; g.lineCap = 'round';
+  g.beginPath(); g.moveTo(-2.6, 3.3); g.lineTo(-2.6, -3.3); g.stroke();
+  g.fillStyle = CREAM;
+  g.beginPath(); g.moveTo(-2.6, -3.2); g.lineTo(2.8, -1.7); g.lineTo(-2.6, -0.2); g.closePath(); g.fill();
+  g.beginPath(); g.arc(-2.6, 3.4, 0.8, 0, Math.PI * 2); g.fill();
 }

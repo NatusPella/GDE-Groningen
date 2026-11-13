@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- **De Hogelandrit, de wrakduikplekken en de vijf onderdelen zijn nu vindbaar (#848).** Ze hebben een eigen icoon op de kaart en minikaart, een E-prompt waar dat past, en een rij in Te doen met de dichtstbijzijnde plek. De wrakduik krijgt bovendien een korte visuele duikscène.
 - **De eerste dag heeft nu een korte checklist in de hulp en een eenmalige kaart na de eerste missie (#841).** Kleding, spuiterij, garage, waypoint en uitkijkpunten staan bij elkaar; geen nieuwe teller.
 - **Nieuw: de Hogelandrit, één streekuitdaging met een voertuig van Warffum via Usquert naar Uithuizen (#835).** De rit gebruikt de bestaande waypoint, HUD en medailles; onderweg uitstappen stopt de rit.
 - **Vijf onderdelen liggen verspreid over de provincie; wie ze allemaal vindt, laat bij de garage een Eigen Maaksel bouwen (#837).** De onderdelen zijn per speler, de auto is een bestaand model met een eigen kleur en naam; geen nieuwe munteenheid.

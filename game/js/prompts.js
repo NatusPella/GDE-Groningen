@@ -38,6 +38,8 @@ import { gameBusy } from './busy.js';
 import { aaiPrompt } from './aaien.js';
 import { kaartjesPrompt } from './kaartjescontrole.js';
 import { viewpointPrompt } from './explorationlive.js';
+import { wrakduikPrompt } from './wrakduikenlive.js'; // #839
+import { streekuitdagingPrompt } from './streekuitdaginglive.js'; // #835
 import { makePromptClock } from './prompttick.js';
 
 const USES_KEY = KEYS.hintUses;
@@ -371,6 +373,8 @@ function findPrimary(world) {
   // hengelen overal (#412): in een boot die stilligt gaat het prompt voor de andere, anders pas als er niets anders te doen is
   const visBoot = hengelVrijPrompt(world, true);
   if (visBoot) return visBoot;
+  const wad = streekuitdagingPrompt(world);
+  if (wad) return wad;
   if (p.inVehicle) return null;
   if (p.swimming) {
     // E boards a boat alongside, Space climbs out: a quay next to a boat
@@ -380,6 +384,8 @@ function findPrimary(world) {
     if (!p.canClimbOut) return null;
     return { id: 'climb', x: p.x, y: p.y, h: 0.6, key: 'SPATIE', label: 'Eruit klimmen', sub: learning('climb') ? 'Klim de kade weer op' : '', learn: learning('climb'), ring: true };
   }
+  const wrak = wrakduikPrompt(world);
+  if (wrak) return wrak;
   const duif = pigeonSpotPrompt(world);
   if (duif) return duif;
   const heli = heliSpotPrompt(world);

@@ -23,6 +23,9 @@ import { getPadelSpotsForRender, drawPadelMapIcon } from './padel.js';
 import { activityMapIcons, drawActivityMapIcon } from './activities.js';
 import { isAreaHidden } from './explorationlive.js';
 import { getPostgameSpotsForRender, drawPostgameMapIcon } from './postgame.js';
+import { getOnderdeelSpotsForRender } from './onderdelenlive.js'; // #837
+import { getWrakduikSpotsForRender } from './wrakduikenlive.js'; // #839
+import { getStreekuitdagingSpotsForRender } from './streekuitdaginglive.js'; // #835
 import { getStationsForRender, drawStationMapIcon } from './stationtravel.js';
 import { getSideJobSpotsForRender, drawSideJobMapIcon, JOB_TARGET_COLOR } from './sidejobs.js';
 import { vehicleDisplayName } from './vehiclenames.js';
@@ -2437,6 +2440,9 @@ function drawMinimapPois(ctx, world, job, placed, inRange, toScreen, t) {
   add('padel', getPadelSpotsForRender().filter((q) => sichtbaar(q.x, q.y)), 'padel', 1, MM_POI_FAR_M);
   for (const a of activityMapIcons(world)) if (sichtbaar(a.x, a.y)) add(a.layer, [a], a.kind, 1, MM_POI_FAR_M);
   add('postgame', getPostgameSpotsForRender().filter((q) => sichtbaar(q.x, q.y)), (q) => 'pg-' + q.kind, 2, MM_POI_FAR_M);
+  add('onderdeel', getOnderdeelSpotsForRender().filter((q) => sichtbaar(q.x, q.y)), (q) => 'onderdeel-' + q.id, 1, MM_POI_FAR_M);
+  add('wrakduik', getWrakduikSpotsForRender().filter((q) => !q.gedoken && sichtbaar(q.x, q.y)), (q) => 'wrakduik-' + q.id, 1, MM_POI_FAR_M);
+  add('streekuitdaging', getStreekuitdagingSpotsForRender().filter((q) => sichtbaar(q.x, q.y)), () => 'hogelandrit', 1, MM_POI_FAR_M);
   add('horeca', getHorecaForRender().filter((q) => sichtbaar(q.x, q.y)), 'horeca', 1);
   add('landmark', (world.map.meta.landmarks || []).filter((q) => sichtbaar(q.x, q.y)), 'landmark', 2);
   add('uitkijkpunt', world.map.meta.uitkijkpunten || [], 'uitkijkpunt', 2, MM_POI_FAR_M);

@@ -60,6 +60,7 @@ export function mapCategory(kind) {
   if (kind === 'horeca') return 'horeca';
   if (kind === 'flitspaal') return 'flitspaal';
   if (kind === 'uitkijkpunt') return 'ommeland'; // #807 A15: per streek, onderweg zichtbaar
+  if (kind === 'onderdeel' || kind === 'wrakduik' || kind === 'streekuitdaging') return 'fun';
   if (kind === 'pigeon' || kind === 'heli' || kind === 'padel' || kind.startsWith('act-') || kind.startsWith('pg-')) return 'fun';
   return 'other';
 }

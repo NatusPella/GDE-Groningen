@@ -45,6 +45,9 @@ import { zachtePauze } from './coopgroep.js';
 import { samenWaarschuwing } from './coopstatus.js';
 import { missieMagVanuitMenu, MISSIE_VIA_STARTPUNT } from './coopgast.js';
 import { beginHierItems, beginHierCount } from './todobegin.js';
+import { onderdelenAlbum, getOnderdeelSpotsForRender } from './onderdelenlive.js'; // #837
+import { duikAlbum, getWrakduikSpotsForRender } from './wrakduikenlive.js'; // #839
+import { getStreekuitdagingSpotsForRender } from './streekuitdaginglive.js'; // #835
 export { beginHierItems, beginHierCount };
 
 export const GROUPS = [
@@ -344,6 +347,13 @@ function collectItems(world) {
   const soortRows = stand.perSoort
     .filter((r) => r.soort !== 'overig')
     .map((r) => [r.meervoud.charAt(0).toUpperCase() + r.meervoud.slice(1), `${r.gezien} van ${r.totaal}`]);
+  const parts = onderdelenAlbum();
+  const partSpots = getOnderdeelSpotsForRender();
+  const partNear = partSpots.length ? partSpots.map((q) => ({ q, d: Math.hypot(q.x - p.x, q.y - p.y) })).sort((a, b) => a.d - b.d)[0] : null;
+  const duik = duikAlbum();
+  const duikSpots = getWrakduikSpotsForRender().filter((q) => !q.gedoken);
+  const duikNear = duikSpots.length ? duikSpots.map((q) => ({ q, d: Math.hypot(q.x - p.x, q.y - p.y) })).sort((a, b) => a.d - b.d)[0] : null;
+  const uitdaging = getStreekuitdagingSpotsForRender()[0] || null;
   return [
     { key: 'col:eieren', group: 'verzamelen', icon: 'eierbalTip', title: 'Eierballen zoeken', status: eggs >= EIERBAL_TOTAL ? 'klaar' : '',
       meta: 'Verstopt bij de bezienswaardigheden', medal: null, record: `${eggs} van ${EIERBAL_TOTAL} gevonden`, goal: null,
@@ -351,6 +361,21 @@ function collectItems(world) {
     { key: 'col:geheim', group: 'verzamelen', icon: 'landmark', title: 'Geheimpjes', status: secrets >= SECRETS_TOTAL ? 'klaar' : '',
       meta: 'Ergens in Grunn · we verklappen niks', medal: null, record: `${secrets} van ${SECRETS_TOTAL} gevonden`, goal: null,
       detail: { kicker: 'Verzamelen', text: 'Kleine dingen die je alleen vindt als je goed kijkt. Of als je op de verkeerde plek staat op het verkeerde moment.', rows: [] } },
+    { key: 'col:onderdelen', group: 'verzamelen', icon: 'onderdeel', title: 'Onderdelen voor de Knutselwagen', status: parts.compleet ? 'klaar' : '',
+      meta: 'Vijf onderdelen in de provincie · daarna bouwen bij de garage', medal: null, record: `${parts.gevonden} van ${parts.totaal} gevonden`,
+      x: partNear ? partNear.q.x : undefined, y: partNear ? partNear.q.y : undefined,
+      goal: partNear ? { kind: 'place', name: partNear.q.naam, sub: partNear.q.plek, x: partNear.q.x, y: partNear.q.y } : null,
+      detail: { kicker: 'Verzamelen · de provincie', text: 'Vijf onderdelen liggen bij bestaande plekken in de provincie. Bij de garage laat je met alle vijf de Knutselwagen bouwen.', rows: partNear ? [['Dichtstbijzijnde', `${partNear.q.naam} · ${Math.round(partNear.d)} m`], ['Stand', `${parts.gevonden}/${parts.totaal}`]] : [['Stand', 'Compleet: ga naar de garage']] } },
+    { key: 'col:wrakduiken', group: 'verzamelen', icon: 'wrakduik', title: 'Wrakduiken', status: duik.klaar ? 'klaar' : '',
+      meta: 'Drie wrakken in de Wadden en het Lauwersmeer', medal: null, record: `${duik.gevonden} van ${duik.totaal} gedoken`,
+      x: duikNear ? duikNear.q.x : undefined, y: duikNear ? duikNear.q.y : undefined,
+      goal: duikNear ? { kind: 'place', name: duikNear.q.naam, sub: duikNear.q.water, x: duikNear.q.x, y: duikNear.q.y } : null,
+      detail: { kicker: 'Verzamelen · de kust', text: 'Vaar of loop naar een wrak en druk E om te duiken. Elke plek heeft één vondst; de wereld en de wrakken zijn voor iedereen gelijk.', rows: duikNear ? [['Dichtstbijzijnde', `${duikNear.q.naam} · ${Math.round(duikNear.d)} m`], ['Stand', `${duik.gevonden}/${duik.totaal}`]] : [['Stand', 'Alle drie gedoken']] } },
+    { key: 'col:hogelandrit', group: 'ommeland', icon: 'streekuitdaging', title: 'De Hogelandrit', status: '',
+      meta: 'Streekuitdaging · met een voertuig vanaf Warffum', medal: null, record: '',
+      x: uitdaging ? uitdaging.x : undefined, y: uitdaging ? uitdaging.y : undefined,
+      goal: uitdaging ? { kind: 'place', name: 'De Hogelandrit', sub: 'Warffum', x: uitdaging.x, y: uitdaging.y } : null,
+      detail: { kicker: 'Streekuitdaging · Hogeland', text: 'Rij met een voertuig naar Warffum (Pastorieweg) en druk E. Via Usquert naar Uithuizen, met de klok en een medaille.', rows: [['Start', 'Warffum, Pastorieweg'], ['Route', 'Usquert → Uithuizen']] } },
     { key: 'col:herkenningspunten', group: 'verzamelen', icon: 'landmark', title: 'Herkenningspunten',
       status: stand.gezien >= HERKENNINGSPUNTEN_TOTAAL ? 'klaar' : '',
       meta: 'Kerken, molens en borgen in de provincie · kom binnen 70 meter', medal: null,

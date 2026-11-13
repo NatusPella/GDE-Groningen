@@ -22,6 +22,9 @@ import { getHeliSpotsForRender, getHeliRunMarks } from './helirun.js';
 import { getPadelSpotsForRender } from './padel.js';
 import { activityMapIcons, ACTIVITY_LEGEND } from './activities.js';
 import { getPostgameSpotsForRender } from './postgame.js';
+import { getOnderdeelSpotsForRender } from './onderdelenlive.js'; // #837
+import { getWrakduikSpotsForRender } from './wrakduikenlive.js'; // #839
+import { getStreekuitdagingSpotsForRender } from './streekuitdaginglive.js'; // #835
 import { getStationsForRender } from './stationtravel.js';
 import { reisOptiesVoor, tekenLijnen, lijnLagen } from './reiskaart.js';
 import { kaartRijen } from './ovkaart.js';
@@ -1447,6 +1450,9 @@ function drawDynamicMarkers(ctx, world) {
     icon(a.layer, a.kind, a.x, a.y, a.name, {}, a.sub, ap ? play(ap[0], ap[1], a.name, a.x, a.y, ap[2]) : null, samenVan('activiteit', a.id));
   }
   for (const q of getPostgameSpotsForRender()) { if (onbekend(q.x, q.y)) continue; icon('postgame', 'pg-' + q.kind, q.x, q.y, q.name, {}, q.busy ? `Nu: ${q.busy.label}` : q.sub, q.id ? { goal: { kind: 'challenge', id: q.id, name: q.name, x: q.x, y: q.y }, todo: 'pg:' + q.id } : null, samenVan('minigame', 'pg_' + q.id)); }
+  for (const q of getOnderdeelSpotsForRender()) { if (onbekend(q.x, q.y)) continue; icon('onderdeel', 'onderdeel-' + q.id, q.x, q.y, q.naam, {}, q.plek, { goal: { kind: 'place', name: q.naam, sub: q.plek, x: q.x, y: q.y } }); }
+  for (const q of getWrakduikSpotsForRender()) { if (q.gedoken || onbekend(q.x, q.y)) continue; icon('wrakduik', 'wrakduik-' + q.id, q.x, q.y, q.naam, {}, `Duiken naar ${q.wrak.naam}`, { goal: { kind: 'place', name: q.naam, sub: q.water, x: q.x, y: q.y } }); }
+  for (const q of getStreekuitdagingSpotsForRender()) { if (onbekend(q.x, q.y)) continue; icon('streekuitdaging', 'hogelandrit', q.x, q.y, q.naam, {}, 'Met een voertuig vanaf Warffum', { goal: { kind: 'place', name: q.naam, x: q.x, y: q.y } }); }
   const ct = !job && world.challengeTarget;
   if (ct) {
     if (ct.path.length) drawRoute(ctx, [...ct.path, ct].map((w) => toScreen(w.x, w.y)), ICON);
@@ -1676,6 +1682,9 @@ function buildSearchIndex(world) {
   for (const h of getHomeHelipadForRender()) entries.push({ label: h.name, kind: 'Heli thuis', pri: 1, x: h.x, y: h.y, zoom: 8 });
   for (const sh of getShopsForRender()) entries.push({ label: sh.name, kind: SHOP_TYPES[sh.type].label, pri: 3, x: sh.x, y: sh.y, zoom: 8 });
   for (const sj of getSideJobSpotsForRender()) { if (isAreaHidden(sj.x, sj.y)) continue; entries.push({ label: sj.job.name, kind: sj.job.kicker || 'Bijbaantje', pri: 1, x: sj.x, y: sj.y, zoom: 8 }); }
+  for (const q of getOnderdeelSpotsForRender()) { if (isAreaHidden(q.x, q.y)) continue; entries.push({ label: q.naam, kind: 'Onderdeel', pri: 1, x: q.x, y: q.y, zoom: 8 }); }
+  for (const q of getWrakduikSpotsForRender()) { if (q.gedoken || isAreaHidden(q.x, q.y)) continue; entries.push({ label: q.naam, kind: 'Duikplek', pri: 1, x: q.x, y: q.y, zoom: 8 }); }
+  for (const q of getStreekuitdagingSpotsForRender()) { if (isAreaHidden(q.x, q.y)) continue; entries.push({ label: q.naam, kind: 'Streekuitdaging', pri: 1, x: q.x, y: q.y, zoom: 8 }); }
   for (const st of getStationsForRender()) entries.push({ label: st.name, kind: 'Treinstation', pri: 0, x: st.x, y: st.y, zoom: 7 });
   for (const e of entries) {
     e.norm = normalize(e.label);
