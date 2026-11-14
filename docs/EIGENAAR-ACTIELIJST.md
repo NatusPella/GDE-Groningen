@@ -298,7 +298,7 @@ bewijsrapport voor static, world, perf, visual en de AI-review
 eigenaar bepaalt of de lat voor deze release bewust lager mag.
 
 **Waarom 0.61.0 nog niet uit is:** de perf-fase haalt de absolute norm niet op de
-ontwikkelmachine (p95 <= 25 ms, max <= 100 ms, geen frame boven 50/100 ms). Gemeten op 14-11:
+ontwikkelmachine (sinds ADR 0037: p95 <= 33,4 ms voor wandklok én werktijd, max <= 100 ms, geen frame boven 100 ms; 50 ms-frames zijn rapportage). Gemeten op 14-11:
 a7 p95 ~67 ms/max 950 ms, spoor p95 ~83 ms/max 1033 ms; de grootste pieken zijn
 `populate-pre` (tot ~570 ms), `3d:roads` (~270-360 ms) en `traffic` (~230 ms). De andere
 fasen zijn op de tussenstand groen of gereviewd; de verhaaltest en smoke zijn groen.

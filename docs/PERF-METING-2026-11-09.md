@@ -1,3 +1,5 @@
+> **Norm gewijzigd (14-11, ADR 0037):** onderstaande oude metingen verwijzen naar de vroegere norm p95 <= 25 ms. De geldende norm is p95 <= 33,4 ms (wandklok én werktijd), max <= 100 ms en geen frame boven 100 ms.
+
 # Prestatiemeting 9 november 2026 (#804/#806, verificatie na de merge)
 
 > Vervolg op `docs/PERF-METING-2026-11-05.md`. Dit is de verificatieronde van de
