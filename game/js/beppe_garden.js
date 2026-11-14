@@ -25,7 +25,7 @@
 //
 // All player-facing text comes from beppe_texts.js. Debug: window.__beppe.
 
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import * as THREE from 'three';
 import { hoofdspeler } from './players.js';
 import { getScene } from './scene3d.js';
 import { canvasTex, signBothSides } from './canvastex.js';
@@ -147,14 +147,14 @@ function ensureSite() {
 function plaqueTexture() {
   return canvasTex(256, 80, (g, w, h) => {
     const gr = g.createLinearGradient(0, 0, w, h);
-    gr.addColorStop(0, '#d8b45a');
-    gr.addColorStop(1, '#a8842a');
+    gr.addColorStop(0, '#d6a05a');
+    gr.addColorStop(1, '#c9a876');
     g.fillStyle = gr;
     g.fillRect(0, 0, w, h);
-    g.strokeStyle = '#6a4a1a';
+    g.strokeStyle = '#b06a28';
     g.lineWidth = 5;
     g.strokeRect(4, 4, w - 8, h - 8);
-    g.fillStyle = '#2a1a08';
+    g.fillStyle = '#1c1408';
     g.textAlign = 'center';
     g.textBaseline = 'middle';
     g.font = 'bold 34px Georgia, serif';
@@ -166,12 +166,12 @@ function plaqueTexture() {
 
 function roadSignTexture() {
   return canvasTex(256, 96, (g, w, h) => {
-    g.fillStyle = '#1d4f9c';
+    g.fillStyle = '#2f6fb0';
     g.fillRect(0, 0, w, h);
-    g.strokeStyle = '#f2efe6';
+    g.strokeStyle = '#f0ede4';
     g.lineWidth = 6;
     g.strokeRect(6, 6, w - 12, h - 12);
-    g.fillStyle = '#f2efe6';
+    g.fillStyle = '#f0ede4';
     g.textAlign = 'center';
     g.textBaseline = 'middle';
     g.font = 'bold 40px Arial, sans-serif';
@@ -181,12 +181,12 @@ function roadSignTexture() {
 
 function namePlateTexture() {
   return canvasTex(128, 64, (g, w, h) => {
-    g.fillStyle = '#f2efe6';
+    g.fillStyle = '#f0ede4';
     g.fillRect(0, 0, w, h);
-    g.strokeStyle = '#2f5a44';
+    g.strokeStyle = '#1d3a23';
     g.lineWidth = 5;
     g.strokeRect(4, 4, w - 8, h - 8);
-    g.fillStyle = '#2f5a44';
+    g.fillStyle = '#1d3a23';
     g.textAlign = 'center';
     g.textBaseline = 'middle';
     g.font = 'bold 30px Georgia, serif';
