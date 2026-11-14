@@ -21,6 +21,9 @@ import { isInWater, pointInPolygon } from './util.js';
 
 // Suikerhal Hoogkerk: de bietenhoop. Pas bij gebruik berekend: wgsToWorld kent zijn kader pas als de wereld er is.
 const fabriek = () => { const [x, y] = wgsToWorld(53.2336, 6.4977); return { x, y }; };
+// Pure regel voor de verhaalkoppeling: A1 (bietenoogst) moet ook met een eigen akker
+// bereikbaar blijven, anders wacht het verhaal op een startpunt dat nooit verschijnt.
+export const bietenoogstBeschikbaar = (eigenAkker, stepId) => !eigenAkker || stepId === 'A1';
 const BIET_STAP = 2;                            // m tussen twee bieten in een rij
 const AKKER_STRALEN = [350, 500, 700, 950, 1300, 1800];
 
@@ -135,12 +138,12 @@ export default {
   anchor(map) {
     // De verhaalstap A1 vraagt juist om deze loonoogst; ook met een eigen akker blijft hij
     // tot die stap klaar is bereikbaar.
-    if (heeftEigenAkker() && currentStep()?.id !== 'A1') return null;
+    if (!bietenoogstBeschikbaar(heeftEigenAkker(), currentStep()?.id)) return null;
     return ankerMetWeg(map, fabriek(), true, [250, 400]);
   },
 
   start(c) {
-    if (heeftEigenAkker() && currentStep()?.id !== 'A1') return 'Je eigen akker ligt vast: oogst je bieten daar (Eigen boerderij).';
+    if (!bietenoogstBeschikbaar(heeftEigenAkker(), currentStep()?.id)) return 'Je eigen akker ligt vast: oogst je bieten daar (Eigen boerderij).';
     const v = spawnJobVehicle(c.world, c.spot.x, c.spot.y, { kind: 'car', model: { ...TRACTOR_MODEL, color: '#3f7d3a' } });
     if (!v) return 'Geen trekker beschikbaar';
     c.vehicle = v;
