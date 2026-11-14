@@ -16,20 +16,31 @@ staat in zijn eigen `gde-*`-sleutel, nooit in een savegame.
 
 **Doel.** Elk vak betaalt beter als je het vaker en gevarieerder doet.
 
-**Regels.** Negentien vakken in drie groepen (`game/js/loopbaan.js:32`), niveau 1 tot 6 met drempels
+**Regels.** Negentien vakken in drie groepen (`game/js/loopbaan.js:39`), niveau 1 tot 6 met drempels
 0/50/140/300/560/950 (`:15`) en loonfactor 1,00 tot 1,30 (`:18`). Een nieuwe plek geeft 8 punten
-(`:20`); `STAT_VAK` hangt prestatietellers aan een vak met €10 tot €20 premie (`:191`). Elke
-uitbetaling loopt via `loopbaanVerdien` (`game/js/loopbaanlive.js:156`) of `loopbaanTel`; nooit
+(`:20`); `STAT_VAK` hangt prestatietellers aan een vak met €10 tot €20 premie (`:198`). Elke
+uitbetaling loopt via `loopbaanVerdien` (`game/js/loopbaanlive.js:198`) of `loopbaanTel`; nooit
 `w.money +=` naast een haak, en een nieuwe haak komt in `haken` van `loopbaan_balans_test.mjs`. De
-eerste klus staat in `START` (`:122`, #431). Opslag `gde-loopbaan-v1`
+eerste klus staat in `START` (`:129`, #431). Opslag `gde-loopbaan-v1`
 (`game/js/storagekeys.js:77`). Samen spelen: de gastheer deelt `{ vak, basis, xp }` vóór zijn eigen
-factor (`loopbaanDeel`, `:150`), de gast past zijn eigen factor toe (`loopbaanGast`, `:190`).
+factor (`loopbaanDeel`, `:192`), de gast past zijn eigen factor toe (`loopbaanGast`, `:232`).
 
-**Bestanden.** `loopbaan.js`, `loopbaanlive.js`, `loopbaanui.js`; haken in `sidejobs.js`,
+**Eerste klus en De Duizendpoot (#846).** De maatstaf is de eerste klus die echt gedaan is: punten of
+teller > 0 in het vak, nooit de menuknop (`eersteKlusGedaan`, `game/js/loopbaan.js:229`; een uit de
+prestaties gezaaid profiel telt mee). De telling gaat als levensduur-teller `careerFirstJobs` naar de
+prestaties; bij negentien ontgrendelt de prestatie "De Duizendpoot" (categorie bijbaan) en betaalt
+`loopbaanlive.js` eenmalig €750 lokaal, zonder loonfactor en zonder coopDeel (per speler/apparaat). De
+titel "De Duizendpoot" blijft afgeleid zichtbaar in het Loopbanen-scherm. Een verhaalstap die een
+loopbaan noemt geeft eenmalig een stil kaartje met de eerste klus en de startplek
+(`game/js/loopbaankaarten.js`, profielveld `kaarten`). In Te doen staat één rij Loopbanen met de stand en
+de dichtstbijzijnde nog open eerste klus als doel. De kaartjes, de teller en het bedrag zijn per speler
+en device; een gast ziet en verdient zijn eigen loopbaan in zijn eigen spel.
+
+**Bestanden.** `loopbaan.js`, `loopbaanlive.js`, `loopbaanui.js`, `loopbaankaarten.js`; haken in `sidejobs.js`,
 `vliegschool.js`, `padel.js`, `kermis.js`, `carbid.js`, `driftzone.js`, `postgame.js`.
 
 **Tests.** `loopbaan_test.mjs`, `loopbaan_balans_test.mjs`, `loopbaan_coop_test.mjs`,
-`loopbaanstart_test.mjs`.
+`loopbaanstart_test.mjs`, `loopbaankaarten_test.mjs`.
 
 ## Vracht (bijbaan)
 
@@ -180,7 +191,7 @@ van (`game/js/audio/scenario.js:127`).
 **Doel.** Levenslange prestaties per speler, en beeld dat zich aanpast.
 
 **Regels.** Prestaties staan in `gde-prestaties-v1` (`storagekeys.js:27`); tellers lopen via
-`recordStat` (`game/js/achievements.js:445`) en de gate (`:379`) zet ze stil bij een streek. Vier
+`recordStat` (`game/js/achievements.js:478`) en de gate (`:379`) zet ze stil bij een streek. Vier
 presets: laag, middel, vlot en hoog (`game/js/gfxprofile.js:10`). Automatische kwaliteit beoordeelt
 elke seconde op de mediaan, traag boven 27 ms (`:282`), schaalt de resolutie tot 50% (`:281`) en kent
 cpuniveau 0 tot 3 (`:284`); `simload.js` volgt dat niveau voor verkeer en voetgangers. Het bewuste

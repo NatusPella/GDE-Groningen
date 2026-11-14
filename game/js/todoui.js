@@ -14,11 +14,10 @@ import { getGoal, clearGoal, storyWaiting } from './goal.js';
 import { formatDistance } from './routing.js';
 import { deviceText } from './touchui.js';
 import { dualHtml } from './subtitles.js';
-import { loopbaanSamenvatting } from './loopbaanlive.js'; // #821: de drie lussen in gewone taal
+import { loopbaanSamenvatting, loopbaanEersteKlusStand } from './loopbaanlive.js'; // #821, #846: de lussen in gewone taal
 import { getSideJobList } from './sidejobs.js';
 import { getOverzicht } from './gebiedenlive.js';
 import { samenvatting as gebiedenSamenvatting } from './gebieden.js';
-import { VAKKEN } from './loopbaan.js';
 import { fillBars, countTo } from './motion.js';
 import { placeShot } from './placeshot.js';
 import { todayInfo, todaySpecial, upcoming } from './calendarday.js';
@@ -184,11 +183,12 @@ function agendaHtml(world) {
 // #821: één blok "Je voortgang" dat de drie lussen naast elkaar zet, met alleen de bestaande
 // systemen als bron (loopbaanlive, sidejobs, gebieden) en geen nieuwe teller of opslagsleutel.
 function voortgangHtml() {
-  let lb = null, banen = [], gebieden = null;
+  let lb = null, ek = null, banen = [], gebieden = null;
   try { lb = loopbaanSamenvatting(); } catch (e) { lb = null; }
+  try { ek = loopbaanEersteKlusStand(); } catch (e) { ek = null; }
   try { banen = getSideJobList() || []; } catch (e) { banen = []; }
   try { const o = getOverzicht(); if (o) gebieden = gebiedenSamenvatting(o.profiel, o.ind); } catch (e) { gebieden = null; }
-  const lbTekst = lb ? `${lb.aantal} van ${VAKKEN.length} vakken gestart${lb.hoogste ? ` · hoogste titel: ${esc(lb.hoogste.titel)}` : ''}` : 'Nog niet geladen';
+  const lbTekst = ek ? `${ek.gedaan} van ${ek.totaal} eerste klussen${ek.klaar ? ` · titel ${esc(ek.titel)}` : ''}${lb && lb.hoogste ? ` · hoogste titel: ${esc(lb.hoogste.titel)}` : ''}` : 'Nog niet geladen';
   const niveau2 = banen.filter((b) => b.level >= 2).length;
   const baanTekst = banen.length ? `${niveau2} van ${banen.length} banen op niveau 2 of hoger` : 'Nog geen baan gedaan';
   const gebiedTekst = gebieden ? `${gebieden.voltooid} van ${gebieden.totaal} gebieden veroverd` : 'De kaart wordt nog geladen';
@@ -432,10 +432,11 @@ export function todoSummary(world) {
 // Verhaalmissies staan onder Verhaal > Opdrachten, niet onder Activiteiten (#435)
 const isActiviteit = (it) => it.group !== 'verhaal' && it.group !== 'bijbaantjes' && it.group !== 'missies';
 const SHOWN = GROUPS.filter(([g]) => g !== 'bijbaantjes' && g !== 'missies');
-// De bijbanen die nu te kiezen zijn, voor de lijst met banen bij een loopbaan.
+// De bijbanen die nu te kiezen zijn, voor de lijst met banen bij een loopbaan (#430: ze staan als job-rij in
+// de catalogus; de loopbaan gebruikt dezelfde keys, zodat er geen tweede lijst met aanbiedingen is).
 export function baanDoelen(world) {
   refresh(world);
-  return new Set(items.filter((it) => it.group === 'bijbaantjes').map((it) => it.key.slice(4)));
+  return new Set(items.filter((it) => it.key.startsWith('job:')).map((it) => it.key.slice(4)));
 }
 
 export function renderTodoStory(el, world) {

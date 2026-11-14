@@ -1,6 +1,7 @@
 // The story "Alles voor één eierbal" in five acts plus Deel 4 "Nazomer"
 // (docs/verhaal/nieuw, 00-OVERZICHT, 08-IMPLEMENTATIE and DEEL4): 30 missions
-// (M01-M30), five travel beats (T1-T5), the opening (M00) and the epilogue (E).
+// (M01-M30), five travel beats (T1-T5), the opening (M00), two between-steps
+// (A1-A2, the side activities of #845) and the epilogue (E).
 // It is the only story (the first version was removed in #187); storyarc.js is
 // what the rest of the game imports. Nothing here imports game code, only the
 // cast tables of storyarc_basis.js to extend.
@@ -8,7 +9,8 @@
 // Every step has `built: true`: the story runs to the end.
 //
 // Step fields
-//   id       unique, stable (saved): 'H1'..'H18' for missions, 'k-*', 'r-*', 's-*' for activities
+//   id       unique, stable (saved): 'M01'..'M30' for missions, 'T1'..'T5' for travel beats,
+//            'A1'/'A2' for the between-steps (#845), 'E' for the epilogue
 //   part     'kop' | 'romp' | 'staart'
 //   kind     'mission' | 'activity'
 //   player   'tammo' | 'anita': who the player controls in this step (story.js switches
@@ -212,6 +214,10 @@ export const PARTS = {
     ] },
 };
 
+// The between-steps of #845, in step order. They were added to the story after the first save format (v:1), so a
+// v:1 save does not know them: storyarc.js passedBetweenSteps closes the ones that save had already passed.
+export const BETWEEN_STEPS = ['A1', 'A2'];
+
 const M = (id, part, title, def, o = {}) => ({ id, part, kind: 'mission', mission: def, title, built: false, silent: true, ...o });
 const A = (id, part, title, goal, o = {}) => ({ id, part, kind: 'activity', title, goal, built: false, silent: true, ...o });
 
@@ -257,6 +263,10 @@ export const STEPS = [
     // the sloot scene (M10.3) is a stage of the mission itself; the talk in the car after it (M10.4) is a banter exchange
     story: { intro: ['M10.1'], outro: null }, scenes: ['M10.1', 'M10.2', 'M10.3', 'M10.4'],
     lead: ['T', 'Een zwarte trekker met vlaggetjes rijdt het erf van de kerk op. Dat is Jelle.'] }),
+  // #845: a between-step (the alternation mission <-> side activity): one round of the Landbouw side job before
+  // the story goes on; silent, so no TTS, and the existing skip offers to pass it.
+  A('A1', 'romp', 'De bietenoogst bij Hoogkerk', { type: 'sideJob', job: 'bietenoogst' }, { built: true, loopbanen: ['landbouw'],
+    lead: ['A', 'De bieten moeten van het land. Akkerbouw Zonnehoek zoekt bij Hoogkerk een rooier: vier rijen, één trekker.'] }),
   A('T2', 'romp', 'De streekbus naar Zoutkamp', { type: 'reis', to: 'Zoutkamp', at: [53.3377, 6.2986], r: 400 }, { built: true, loopbanen: ['bus', 'hengelen'], scenes: ['T2'],
     lead: ['A', 'Oma stuurt ons naar Kapitein Klaas in Zoutkamp: met de streekbus, overstappen in Winsum. Daarna is er alleen nog water.'] }),
   M('M11', 'romp', 'Geleend van de Friezen', 'skutsje', { built: true, reward: 1300, loopbanen: ['water'],
@@ -287,6 +297,9 @@ export const STEPS = [
   M('M16', 'staart', 'Nog eentje dan', 'kroegentocht', { built: true, reward: 600, loopbanen: ['kermis'],
     story: { intro: ['M16.1'], outro: ['M16.3', 'M16.4', 'M16.5', 'M16.6'], replay: ['M16.7'] }, scenes: ['M16.1', 'M16.2', 'M16.3', 'M16.4', 'M16.5', 'M16.6', 'M16.7'],
     lead: ['T', 'Durk en Douwe weten waar Jelle heen gaat. Volg ze langs Geerts drie tenten op de kermis in Winschoten, tot ze moe zijn.'] }),
+  // #845: a between-step at the end of act 3: one free bumper-car ride on the Grote Markt (Kermis) before act 4.
+  A('A2', 'staart', 'De kermisrit', { type: 'kermis' }, { built: true, loopbanen: ['kermis'],
+    lead: ['A', "De kermis in Stad staat nog op de Grote Markt. Eén ritje in de botsauto's, dan rijden we door naar het zuiden."] }),
 
   // --- Akte 4: Zuidwaarts (Veenkoloniën en Westerwolde, zo 23 - wo 26 augustus) ----------
   M('M17', 'zuid', 'Open, dicht', 'bruggen', { built: true, reward: 700,

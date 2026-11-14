@@ -12,6 +12,9 @@ import { noteMoney } from './finance.js';
 import { zetGarageKorting } from './economy.js';
 import * as L from './loopbaan.js';
 import { gebiedenOpUniek, gebiedenOpStat } from './gebiedenlive.js';
+// #846: de eerste klussen en de prestatie "De Duizendpoot" lopen via de bestaande prestatiehaken (recordStat/
+// setStatMax in achievements.js); die module importeert geen loopbaan, dus er is geen cyclus.
+import { setStatMax } from './achievements.js';
 
 // #674: de garagekorting van een meester in een vervoersvak, via de haak in economy.js (garages.js
 // hoeft de loopbaan zo niet te importeren). De haak leest pas bij gebruik, dus het profiel is dan geladen.
@@ -83,6 +86,7 @@ export function initLoopbaan({ gate = null, snapshot = null, opslag: st } = {}) 
   profiel = null;
   vuil = false;
   getProfiel();
+  eersteKlussenBijwerken(null); // #846: teller en prestatie ook voor een bestaand, oud of gezaaid profiel
   if (!opslagLeestAl()) { vuil = true; schrijfNu(); }
   if (typeof window !== 'undefined' && window.addEventListener) window.addEventListener('pagehide', () => { if (timer) clearTimeout(timer); schrijfNu(); });
   return profiel;
@@ -99,6 +103,30 @@ export function opVeranderen(f) {
 }
 
 const geblokkeerd = () => { try { return !!(poort && poort()); } catch (e) { return false; } };
+
+// #846: de teller van de eerste klussen en de prestatie "De Duizendpoot". De maatstaf is de eerste klus die
+// echt gedaan is (loopbaan.js eersteKlusGedaan: punten of teller > 0), niet de menuknop. De stand gaat als
+// levensduur-teller naar de prestaties (setStatMax: alleen omhoog, dus een oude of gezaaide stand telt mee en
+// de prestatie ontgrendelt vanzelf bij negentien). Zonder wereld (bij het laden) telt het alleen mee.
+export const EERSTE_KLUS_STAT = 'careerFirstJobs';
+function eersteKlussenBijwerken(w) {
+  const p = getProfiel();
+  const stand = L.eersteKlusStand(p);
+  setStatMax(w, EERSTE_KLUS_STAT, stand.gedaan);
+  if (!stand.klaar || L.duizendpootKlaar(p)) return 0;
+  // Uitbetalen kan pas met een portemonnee; een gezaaid of oud profiel dat al op negentien staat, krijgt het
+  // bedrag bij de eerstvolgende loopbaangebeurtenis. Cheats die de prestaties blokkeren houden ook dit tegen.
+  if (!w || geblokkeerd()) return 0;
+  if (!L.markeerDuizendpoot(p)) return 0;
+  markeer();
+  const bedrag = L.DUIZENDPOOT_EURO;
+  noteMoney('Overig inkomsten');
+  w.money = (w.money || 0) + bedrag;
+  // Samen spelen: de loopbaan is van de speler en dit is een mijlpaal van zijn eigen apparaat. Het bedrag gaat
+  // daarom niet mee in coopDeel; gasten verdienen hun eigen loopbaan in hun eigen spel (docs/LOOPBAAN.md).
+  if (w.addMessage) w.addMessage(`${L.DUIZENDPOOT_TITEL}: alle ${stand.totaal} loopbanen begonnen. +€${bedrag}`, 6, { kind: 'prestatie', kicker: 'Loopbaan', key: 'loopbaan-duizendpoot' });
+  return bedrag;
+}
 
 // Het loon voor een bedrag in dit vak, met de factor van het niveau van deze speler.
 export function loopbaanLoon(vak, basis) {
@@ -129,9 +157,17 @@ export function loopbaanTel(w, vak, opties = {}) {
   // de eerste punten in een vak beginnen die loopbaan (#431): de verhaalstap die erbij hoort telt daarna als gedaan
   const begonnen = r.xp > 0 || (opties.n || 0) > 0 ? L.startVak(getProfiel(), vak).nieuw : false;
   if (r.xp > 0 || (opties.n || 0) > 0 || begonnen) markeer();
+  if (r.xp > 0 || (opties.n || 0) > 0) eersteKlussenBijwerken(w); // #846: de teller, de prestatie en eenmalig €750
   if (r.omhoog) meldOmhoog(w, r.omhoog);
   if (typeof opties.uniek === 'string' && opties.uniek) gebiedenOpUniek(w, opties.uniek); // gebieden veroveren (#414)
   return r;
+}
+
+// #846: ook een speler die al op negentien stond (een gezaaid of oud profiel) krijgt het bedrag zodra er een
+// wereld met een portemonnee is; loopbaankaarten.js roept dit bij een verhaalstapwissel aan. Idempotent.
+export function controleerDuizendpoot(w) {
+  if (geblokkeerd()) return 0;
+  return eersteKlussenBijwerken(w);
 }
 
 // Een loopbaan zelf beginnen (#431), vanuit het Loopbaan-scherm: hij telt daarna als gedaan voor de verhaalstap
@@ -142,6 +178,7 @@ export function startLoopbaan(w, vak) {
   const r = L.startVak(getProfiel(), vak);
   if (!r.nieuw) return r;
   markeer();
+  controleerDuizendpoot(w); // #846: een speler die alle eerste klussen al had, krijgt het bedrag hier
   if (w && w.addMessage) {
     w.addMessage(`Loopbaan begonnen: ${info.naam}. Eerste klus: ${r.start.klus}`, 4.5, { kind: 'prestatie', kicker: 'Loopbaan', key: 'loopbaan-start-' + vak });
   }
@@ -202,6 +239,16 @@ export function loopbaanGast(w, geld, vak, xp = 0) {
 
 // Voor het scherm en de tests.
 export const loopbaanSamenvatting = () => L.samenvatting(getProfiel());
+// #846: de overkoepelende teller (eerste klussen) en de blijvende titel "De Duizendpoot", voor het Loopbanen-scherm
+// en de Te-doen-rij. Puur afgeleid uit het profiel, dus per speler en zonder eigen opslagsleutel.
+export const loopbaanEersteKlussen = () => L.eersteKlussen(getProfiel());
+export const loopbaanEersteKlusStand = () => L.eersteKlusStand(getProfiel());
+// #846: een kaartje van loopbaankaarten.js eenmalig onthouden in het profiel van deze speler (normaliseer bewaart het).
+export function markeerKaartGezien(vak) {
+  const nieuw = L.markeerKaart(getProfiel(), vak);
+  if (nieuw) markeer();
+  return nieuw;
+}
 // #674: de hoogste titel buiten het Loopbanen-scherm en de niet-geldelijke voordelen per groep.
 export const loopbaanTeken = () => L.loopbaanTeken(getProfiel());
 export const loopbaanVoordelen = () => L.voordelenVan(getProfiel());

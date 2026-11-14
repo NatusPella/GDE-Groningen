@@ -71,6 +71,8 @@ t('geld uit missies, winkels, vondsten en reparaties loopt niet via de loopbaan'
 // betaalt niets uit. Dat het geen geld laat lopen, blijkt uit de volgende test: story.js staat niet in de haken-lijst.
 t('wat de loopbaan uitbetaalt loopt alleen via loopbaanVerdien of de loonfactor van het vak', () => {
   // elke haak die geld uitbetaalt staat hier; een nieuwe haak moet bewust worden toegevoegd (en hier verantwoord)
+  // #846: loopbaanlive.js betaalt daarnaast de eenmalige Duizendpoot-uitbetaling (€750, één keer per profiel, nooit
+  // gedeeld; zie de test onderaan). Dat is dezelfde module, dus geen nieuwe haak in deze lijst.
   const haken = ['sidejobs.js', 'machinist.js', 'padel.js', 'driftzone.js', 'kermis.js', 'carbid.js', 'postgame.js', 'kartbaan.js', 'regatta.js', 'pg_bruggenrace.js', 'ringrace.js', 'stationtravel.js', 'coopnet.js', 'hengelen.js', 'vliegschool.js', 'loopbaanlive.js', 'boerderijlive.js', 'kaartjescontrole.js', 'pitchputt.js', 'discgolf.js', 'klimtoren.js', 'skatepark.js', 'activities.js', 'cooptrein.js', 'streekuitdaginglive.js']; // discgolf.js en klimtoren.js: idem voor een online ronde of klim (#443); pitchputt.js: de prijs van een online pitch-and-putt-ronde loopt via loopbaanVerdien('golf') (#443); skatepark.js: de prijs van een online skatewedstrijd via loopbaanVerdien('buiten') (#443); kaartjescontrole.js: EUR 45 per volle perronronde, per station hooguit eens per 15 spelminuten (#437); pg_bruggenrace.js: de prijs van een gezamenlijke Elf Bruggenrace via loopbaanVerdien('boot') (#443); ringrace.js: de ringrace als vrije activiteit betaalt via het vak race (#443); activities.js: de rondvlucht betaalt per medaille (#492); cooptrein.js: de conducteur betaalt zijn kaartjesronde (#492)
   const gevonden = fs.readdirSync(JS).filter((f) => f.endsWith('.js') && !/^loopbaan/.test(f) && /loopbaan(Verdien|Loon|Prijs|Gast)\(/.test(fs.readFileSync(JS + f, 'utf8')));
   assert.deepEqual(gevonden.sort(), haken.filter((f) => !/^loopbaan/.test(f)).sort());
@@ -136,6 +138,29 @@ t('#668: de eerste ronde van een baan telt dubbel voor het niveau, de drempels b
   assert.match(sj, /rondeWaarde\(gewogen\)/, 'de baan gebruikt dezelfde regel');
   assert.doesNotMatch(sj, /const LEVEL_AT =/, 'geen tweede drempeltabel in sidejobs.js');
   assert.match(sj, /levelRondes: n\(/, 'de gewogen teller overleeft een save');
+});
+
+// #846: de eenmalige beloning voor alle negentien loopbanen. Geen nieuwe haak en geen factor: één vast bedrag,
+// één keer per profiel, lokaal (niet met gasten gedeeld), in de orde van één missiebeloning. De balanscheck: het
+// bedrag is begrensd, het groeit niet mee met een niveau en het is niet te herhalen (het profiel onthoudt het).
+t('#846: de Duizendpoot is eenmalig, begrensd en nooit met gasten gedeeld', () => {
+  assert.equal(L.DUIZENDPOOT_TITEL, 'De Duizendpoot');
+  assert.equal(L.DUIZENDPOOT_EURO, 750, 'de eigenaar koos €750');
+  assert.ok(L.DUIZENDPOOT_EURO <= 1000, 'het blijft onder duizend euro');
+  // geen loonfactor: het bedrag staat als vaste regel in loopbaan.js, niet als premie per ronde in STAT_VAK
+  assert.ok(!Object.values(L.STAT_VAK).some((r) => r.premie >= L.DUIZENDPOOT_EURO), 'geen premie van die orde per gebeurtenis');
+  const live = fs.readFileSync(JS + 'loopbaanlive.js', 'utf8');
+  assert.match(live, /L\.DUIZENDPOOT_EURO/, 'de haak leest het bedrag uit de regelmodule');
+  assert.match(live, /duizendpootKlaar/, 'alleen uitbetalen als het nog niet betaald is');
+  assert.match(live, /duizendpoot/, 'het profiel onthoudt de eenmaligheid');
+  assert.ok(!/coopDeel[^\n]*duizendpoot/i.test(live), 'de beloning gaat niet naar medespelers');
+  // eenmalig: markeren kan één keer, en normaliseer bewaart de vlag (dus geen tweede uitbetaling na een herstart)
+  const p = L.nieuwProfiel();
+  for (const id of L.VAK_IDS) L.tel(p, id, { xp: 1 });
+  assert.equal(L.markeerDuizendpoot(p), true);
+  assert.equal(L.markeerDuizendpoot(p), false);
+  assert.equal(L.duizendpootKlaar(L.normaliseer(JSON.stringify(p))), true);
+  assert.equal(L.duizendpootKlaar(L.nieuwProfiel()), false);
 });
 
 console.log(`loopbaan_balans_test: ${n - fails}/${n} ok`);

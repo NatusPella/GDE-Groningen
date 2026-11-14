@@ -17,7 +17,9 @@ for (const st of STEPS.filter((s) => s.built && ['romp', 'staart', 'zuid', 'ontz
   ok(!!lead && lead.length >= 40 && lead.length <= 220, `${st.id}: lead of 40-220 characters`, lead ? lead.length : 'none');
   ok(!!lead && /[.!?]$/.test(lead), `${st.id}: the lead is a full sentence`);
   ok(!!lead && named.test(lead.slice(1)), `${st.id}: the lead names a place or a person`);
-  ok(Array.isArray(st.scenes) && st.scenes.length > 0 && st.scenes.every((s) => scenes.has(s)), `${st.id}: scenes exist`);
+  // #845: a silent between-step has no scene in the script (its reason is the silent phone text of the lead itself)
+  const silentBetween = st.kind === 'activity' && st.silent && !!st.lead;
+  ok(silentBetween || (Array.isArray(st.scenes) && st.scenes.length > 0 && st.scenes.every((s) => scenes.has(s))), `${st.id}: scenes exist`);
 }
 console.log(`${n - fails}/${n} storyclarity`);
 process.exit(fails ? 1 : 0);

@@ -7,7 +7,7 @@
 // Tammo and Tessa trade places at its start, behind a short fade. After the
 // built story the last step's character stays.
 
-import { STEPS, STEP_BY_ID, PARTS, CLUES, WHY, CHARACTERS, SPEAKERS, stepAvailable, missionIndexOf, computeMoneyTimeline, partNumber, stepDone, stapAfgeleidGedaan, nextStoryStep, FINALE_PART } from './storyarc.js';
+import { STEPS, STEP_BY_ID, PARTS, CLUES, WHY, CHARACTERS, SPEAKERS, stepAvailable, missionIndexOf, computeMoneyTimeline, partNumber, stepDone, stapAfgeleidGedaan, nextStoryStep, passedBetweenSteps, FINALE_PART } from './storyarc.js';
 import { makeTick } from './tickbudget.js';
 import { tickStoryTravel, rideWith } from './storytravel.js';
 import { askTravel, travelPromptOpen } from './reispanel.js';
@@ -32,6 +32,7 @@ import { getPigeonFlight, stopPigeonMode } from './pigeonmode.js';
 import { isHeliRunActive, abortHeliRun } from './helirun.js';
 import { jumpPrep, jumpSpot, openRond } from './storyjump.js';
 import { isLoopbaanGestart } from './loopbaanlive.js';
+import { maybeCareerCards } from './loopbaankaarten.js';
 import { JUMP_M } from './loadlogic.js';
 import { buildingAt, withTiles } from './tileplace.js';
 import { waterAt } from './waterlevels.js';
@@ -298,6 +299,8 @@ function enter(step) {
   if (step.kind === 'activity' && GOALS[step.goal.type] && GOALS[step.goal.type].begin) GOALS[step.goal.type].begin(step, rt.base);
   pointMissionChain(step);
   refreshGuide();
+  // #846: the one-time career card of a step that names a loopbaan (loopbaankaarten.js); once per step change.
+  maybeCareerCards(world, step.id);
 }
 
 // The mission marker shows the mission of this step, or the next mission
@@ -1245,22 +1248,28 @@ export function getStorySave() {
   const loopbaan = STEPS.filter((s) => stapAfgeleidGedaan(s, isLoopbaanGestart, onStepId())).map((s) => s.id);
   const done = new Set([...state.done, ...loopbaan]);
   return {
-    v: 1, done: [...done], skipped: [...state.skipped], fails: { ...state.fails },
+    v: 2, done: [...done], skipped: [...state.skipped], fails: { ...state.fails },
     waived: [...state.waived], voorschot: [...state.voorschot], cards: [...state.cards], flags: [...state.flags],
   };
 }
 
 // Without story data (a save from before 0.5.0) the progress follows from
 // the missions already passed: see isDone. Money, cars and prestaties live
-// elsewhere in the save and stay as they are.
+// elsewhere in the save and stay as they are. v:1 is the format before the
+// between-steps of #845 (v:2); its fields are read as they are, with the
+// between-steps that save had already passed closed (passedBetweenSteps).
 export function applyStorySave(d) {
   const fresh = freshState();
   Object.assign(state, fresh);
   rt = freshRuntime();
   if (world) world.kissUnlocked = false;
-  if (!d || typeof d !== 'object' || d.v !== 1) return;
+  if (!d || typeof d !== 'object' || (d.v !== 1 && d.v !== 2)) return;
   const ids = (list) => (Array.isArray(list) ? list.filter((id) => STEP_BY_ID.has(id)) : []);
-  state.done = new Set(ids(d.done));
+  const done = ids(d.done);
+  // a v:1 save predates A1/A2: close a between-step only when that save had already passed it, so a player who
+  // stood before it still gets the side activity (#845)
+  if (d.v === 1) done.push(...passedBetweenSteps(done, isMissionCompleted));
+  state.done = new Set(done);
   state.skipped = new Set(ids(d.skipped));
   state.voorschot = new Set(ids(d.voorschot));
   state.waived = new Set((Array.isArray(d.waived) ? d.waived : []).filter((k) => typeof k === 'string'));
