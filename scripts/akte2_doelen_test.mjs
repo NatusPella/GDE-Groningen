@@ -139,12 +139,15 @@ ok(L.stepExposure(0, 1, true, false, lt) === 1 && L.stepExposure(1, 1, false, fa
   for (const f of fixtures) {
     const fx = JSON.parse(fs.readFileSync(new URL(f, dir), 'utf8'));
     const done = new Set(fx.save.story.done);
+    const { MISSION_IDS, passedBetweenSteps } = await import('../game/js/storyarc.js');
+    const completed = new Set(fx.save.missions.completed);
+    // a fixture from before #845 predates A1/A2: the game closes those between-steps on load when the save had
+    // already passed them, so the test does the same before asking which step is next
+    const migrated = new Set([...done, ...passedBetweenSteps(done, (i) => completed.has(i))]);
     ok([...done].every((id) => STEPS.some((s) => s.id === id)), `${f}: every done step is a step of the new arc`);
-    const next = STEPS.find((s) => !done.has(s.id));
+    const next = STEPS.find((s) => !migrated.has(s.id));
     ok(next && next.id === fx._expect.step && next.built, `${f}: continues at the built step ${fx._expect.step}`, next && next.id);
     // the missions it counts as completed are the defs of the done mission steps
-    const { MISSION_IDS } = await import('../game/js/storyarc.js');
-    const completed = new Set(fx.save.missions.completed);
     for (const s of STEPS.filter((q) => q.kind === 'mission' && done.has(q.id))) ok(completed.has(MISSION_IDS.indexOf(s.mission)), `${f}: ${s.id} (${s.mission}) is a completed mission`);
     const [x, y] = [fx.save.pos.x, fx.save.pos.y];
     ok(x > 150000 && x < 280000 && y > 560000 && y < 620000, `${f}: the player stands in the province (RD New)`);

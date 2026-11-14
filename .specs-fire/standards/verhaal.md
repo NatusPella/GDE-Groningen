@@ -42,7 +42,7 @@ letter maakt hem stil. Nieuwe opnames komen er in rondes bij op Flash-Lite (ADR 
 - **Vijf akten** (`PARTS`, `game/js/storyarc_nieuw.js:147-215`): 1 Moi, Grunn (Stad,
   vr 14 aug), 2 Het Noorden is groot, 3 Aan de Eems, 4 Zuidwaarts, 5 Ontzet (vr 28
   aug), met **Deel 4: Nazomer** erna (`:202`), dat pas opent als de eindkaart van
-  akte 5 is gespeeld (`game/js/story.js:170`).
+  akte 5 is gespeeld (`game/js/story.js:177`).
 - **Stappen**: opening M00, 26 missies M01-M26, vier reisbeats T1-T4, twee stille
   tussenstappen A1-A2 (bietenoogst en kermisrit, #845) en epiloog E;
   Deel 4 voegt M27-M30 en T5 toe: samen 30 missies en vijf reisbeats

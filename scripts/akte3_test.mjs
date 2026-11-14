@@ -31,7 +31,7 @@ const scenes = new Set(script.scenes.map((s) => s.id));
 const inProvince = (p) => p && Number.isFinite(p.x) && Number.isFinite(p.y) && p.x > -30000 && p.x < 48000 && p.y > -32000 && p.y < 14000;
 
 const act3 = STEPS.filter((s) => s.part === 'staart');
-ok(act3.map((s) => s.id).join() === 'M12,M13,M14,T3,M15,M16', 'act 3 steps in order');
+ok(act3.map((s) => s.id).join() === 'M12,M13,M14,T3,M15,M16,A2', 'act 3 steps in order (met de kermis-tussenstap A2)');
 for (const s of act3.filter((q) => q.kind === 'mission' && q.built)) {
   const id = s.mission;
   ok(MISSION_IDS.includes(id), `${s.id}: ${id} is in MISSION_IDS`);
