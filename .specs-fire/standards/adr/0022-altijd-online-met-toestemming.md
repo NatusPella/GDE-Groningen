@@ -84,3 +84,7 @@ Nooit een IP-adres, nooit een wachtwoord.
   maximaal aantal spelers) blijven bij de sessie in het pauzemenu.
 - Dit is de eerste keer dat het spel bij het starten contact met buiten zoekt. Elke
   nieuwe plek die dat doet, moet dezelfde vraag stellen en dezelfde instelling lezen.
+
+## Addendum 13-11-2026: altijd online
+
+De eigenaar heeft de keuzevraag laten vallen: het spel speelt altijd online, ook met één speler. De eerste start vraagt verplicht om een naam (niet overslaanbaar) en zet daarna automatisch de sessiezoektocht aan; er is geen ja/nee- of later-knop meer. De toestemmingsplicht blijft inhoudelijk gelden: de startkaart legt uit dat er verbinding met STUN/brokers wordt gemaakt. Zie #530 en de releasegate-review van 0.60.8.

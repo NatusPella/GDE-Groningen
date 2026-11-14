@@ -729,7 +729,7 @@ const CSS_EXTRA = `
 @keyframes ach-spark { 0% { opacity: 0; transform: translate(0, 0) scale(0.6); } 25% { opacity: 0.95; } 100% { opacity: 0; transform: translate(var(--dx, 0), -20px) scale(1.1); } }
 #hud .ach-toast .ach-title { font-size: 31px; letter-spacing: 1.6px; text-shadow: 0 1px 0 rgba(0,0,0,0.4); animation: ach-rise 0.5s 0.06s both; }
 @keyframes ach-rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
-#hud .ach-toast .ach-kicker { font-size: 12.5px; }
+#hud .ach-toast .ach-kicker { font-size: 13px; }
 #hud .ach-toast::after { content: ''; position: absolute; inset: 0; border-radius: 12px; pointer-events: none;
   background: linear-gradient(115deg, transparent 30%, rgba(240,237,228,0.14) 45%, transparent 60%); background-size: 220% 100%;
   animation: ach-shimmer 1.6s 0.15s ease-out 1; }

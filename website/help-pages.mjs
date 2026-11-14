@@ -177,7 +177,7 @@ export const HELP_PAGES = [
         <li>Kies <strong>Samen spelen</strong> in het hoofdmenu of onder <strong>Esc</strong>.</li>
         <li>Eén speler kiest <strong>Een spel openen</strong> en deelt de kamercode.</li>
         <li>De anderen kiezen <strong>Meedoen</strong> en typen of plakken de code.</li>
-        <li>Je krijgt een melding en kiest zelf of je meedoet. Zonder toestemming gebeurt er niets.</li>
+        <li>Je naam vul je bij de eerste start verplicht in; daarna zoekt het spel automatisch een sessie of opent er zelf een (ook als je alleen speelt).</li>
       </ol>
       <p>Er kunnen tot <strong>16 spelers</strong> meedoen, inclusief wie het spel opende. Op Android werkt Samen spelen niet, omdat de app geen internetrechten heeft.</p>
       <h2>Wat je deelt en wat je houdt</h2>
@@ -187,7 +187,7 @@ export const HELP_PAGES = [
         <li>Spelers kunnen elkaar alleen te lijf als beiden niet op de <strong>passieve stand</strong> staan. Dood door een medespeler kost je geen geld of voortgang.</li>
       </ul>
       <h2>Privacy en verbinding</h2>
-      <p>Na jouw toestemming gaat je IP-adres naar je medespeler en naar een openbare STUN-server; de versleutelde signaleringsberichten lopen via openbare brokers. Maakt de host de sessie openbaar, dan staat alleen de sessienaam, het aantal spelers en de versie in de openbare lijst; je IP-adres en de kamercode staan daar niet in. Zonder toestemming voor Samen spelen verstuurt het spel geen sessiegegevens. De live busposities staan los daarvan standaard aan en zijn in Instellingen uit te zetten. Zie <a href="https://github.com/NatusPella/GDE-Groningen/blob/main/docs/PRIVACY-EN-CREDITS.md">docs/PRIVACY-EN-CREDITS.md</a>.</p>
+      <p>Omdat het spel altijd online speelt, gaat je IP-adres naar een openbare STUN-server; speel je met anderen, dan gaat het ook naar je medespeler. De versleutelde signaleringsberichten lopen via openbare brokers. Maakt de host de sessie openbaar, dan staat alleen de sessienaam, het aantal spelers en de versie in de openbare lijst; je IP-adres en de kamercode staan daar niet in. Maakt de host de sessie openbaar, dan staat alleen de sessienaam, het aantal spelers en de versie in de openbare lijst; je IP-adres en de kamercode staan daar niet in. De live busposities staan los daarvan standaard aan en zijn in Instellingen uit te zetten. Zie <a href="https://github.com/NatusPella/GDE-Groningen/blob/main/docs/PRIVACY-EN-CREDITS.md">docs/PRIVACY-EN-CREDITS.md</a>.</p>
       <p>Werkt de verbinding niet? Kies in het Samen spelen-scherm <strong>Verbinding testen</strong>; daar staat in gewone taal wat er mis is. Controleer ook je firewall en of jullie dezelfde versie spelen.</p>
       <p class="help-terug"><a href="./">← Terug naar de hulpindex</a></p>
     `,
