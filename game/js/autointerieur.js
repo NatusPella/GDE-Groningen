@@ -3,17 +3,21 @@
 // eigen, kleine mesh (ring, spaken en naaf, één gedeelde geometrie per maat) dat draait met v.steer. Alleen voor
 // auto's waarvan de cabine zichtbaar is en die binnen STUUR_R van de speler staan; verder weg staat het stuur recht
 // in de cabine-geometrie niet getekend (dat is op die afstand niet te zien). De binnenin-camera (carinterior.js)
-// draait zijn eigen stuur met dezelfde hoek.
+// draait zijn eigen stuur met dezelfde hoek. Sinds #847 ook voor de trekker en de machines (waar een stuurwiel
+// hoort); de heli en het vliegtuig hebben een cyclic/yoke en geen stuurwiel, en een wrak heeft er geen.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { GeoBuilder, markShared } from './pixelart3d.js';
 import { vehicleSeat } from './seating3d.js';
 import { interiorKlasse } from './carinteriorlayout.js';
 import { cabinWheelPose } from './cabin3d.js';
 import { carBodyFit } from './models3d_vehicles.js';
+import { isCockpitKlasse } from './cockpitlayout.js';
 
 export const STUUR_R = 12;       // m: verder weg is het draaien van het stuur niet te zien
 export const STUUR_HOEK = 2.2;   // rad stuurdraaiing bij volle stuurinvoer (zelfde als de binnenin-camera)
 const DARK = 0x23262b, GREY = 0x3a3f46, TRIM = 0x6a707a;
+// de cockpitklassen met een echt stuurwiel; een heli en een vliegtuig hebben een cyclic/yoke
+const GEEN_STUURWIEL = new Set(['heli', 'vliegtuig']);
 const geoCache = new Map();
 let material = null;
 
@@ -65,20 +69,27 @@ export function draaiStuurwiel(mount, steer, dt) {
   turn.rotation.z = turn.userData.hoek;
 }
 
-// Eén keer per frame, na syncCabins: het stuur van auto's dichtbij. meshes: scene3d vehicleMeshes (id -> mesh).
+// Eén keer per frame, na syncCabins: het stuur van auto's, de trekker en de machines dichtbij (een wrak, heli of
+// vliegtuig heeft geen stuurwiel). meshes: scene3d vehicleMeshes (id -> mesh).
 export function syncAutoStuur(world, meshes, px, py, dt) {
   for (const v of world.vehicles) {
     const mesh = meshes.get(v.id);
     const cab = mesh && mesh.userData.cabin;
     if (!cab) continue;
     let w = cab.userData.stuur;
-    if (!cab.visible || Math.abs(v.x - px) > STUUR_R || Math.abs(v.y - py) > STUUR_R) {
+    const klasse = interiorKlasse(v);
+    const mag = !v.wrecked && cab.visible && !GEEN_STUURWIEL.has(klasse) &&
+      Math.abs(v.x - px) <= STUUR_R && Math.abs(v.y - py) <= STUUR_R;
+    if (!mag) {
       if (w) w.visible = false;
       continue;
     }
     if (!w) {
       const seat = vehicleSeat(v, true);
-      w = bouwStuurwiel(cabinWheelPose(seat, v.model.len, v.model.wid, interiorKlasse(v), carBodyFit(v)));
+      const naam = (v.model && v.model.name) || '';
+      // voor de cockpitklassen (#847) geeft carBodyFit() geen bruikbare romp; die hebben hun eigen indeling
+      const romp = isCockpitKlasse(klasse) ? null : carBodyFit(v);
+      w = bouwStuurwiel(cabinWheelPose(seat, v.model.len, v.model.wid, klasse, romp, naam));
       w.userData.turn.userData.hoek = -(v.steer || 0) * STUUR_HOEK;
       cab.add(w);
       cab.userData.stuur = w;

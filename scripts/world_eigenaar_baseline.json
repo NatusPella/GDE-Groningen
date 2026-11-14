@@ -1,7 +1,7 @@
 {
  "version": 1,
  "note": "Aantal schrijvende bestanden per world-veld (#498), gemeten met scripts/world_eigenaar.mjs. Alleen omlaag; nieuwe velden worden op hun huidige stand opgenomen.",
- "veldTotaal": 318,
+ "veldTotaal": 321,
  "velden": {
   "__openingWarm": 1,
   "__warmSamples": 1,
@@ -22,7 +22,7 @@
   "bullets": 2,
   "cameraOverride": 4,
   "camKick": 3,
-  "camYaw": 8,
+  "camYaw": 9,
   "challenge": 1,
   "challengeHoldPlayer": 2,
   "challengeHud": 1,
@@ -186,6 +186,7 @@
   "eventsNow": 1,
   "eventSound": 1,
   "extraSpeakers": 8,
+  "firstPersoon": 1,
   "flitspaalen": 1,
   "furniture": 1,
   "goal": 1,

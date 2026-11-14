@@ -1,5 +1,7 @@
 // Het stuur en de bediening van voertuigen (#442): ploeg en aftakas (toestand), het stuur dat meedraait in een auto,
-// fiets, step en brommer, de trekkercabine, het roer en het stuurwiel van boten, en dat het alleen dichtbij bestaat.
+// fiets, step en brommer, het roer van boten, en dat het alleen dichtbij bestaat. Sinds #847 komen de trekkercabine
+// en de stuurhutten van boten met een roef uit de cockpit-/bootinterieurs; hier mag dus geen tweede stuur of cabine
+// meer bijkomen.
 //   node scripts/voertuigbediening_test.mjs   (eenmalig: cd desktop && npm run stage; three in desktop/vendor-cache)
 import './node3d.mjs';
 await import('three');
@@ -7,6 +9,7 @@ await import('../game/js/player.js');
 const { buildVehicleMesh, updateVehicleWheelSpin } = await import('../game/js/models3d_vehicles.js');
 const { Vehicle, TRAFFIC_MODELS, TRACTOR_MODEL, QUAD_MODEL, MOPED_MODEL } = await import('../game/js/vehicle.js');
 const { BOAT_KINDS } = await import('../game/js/boattypes.js');
+const { heeftBootInterieur } = await import('../game/js/bootinterieur.js');
 const { syncCabins } = await import('../game/js/cabin3d.js');
 const A = await import('../game/js/autointerieur.js');
 const V = await import('../game/js/voertuigbediening.js');
@@ -84,8 +87,8 @@ for (const [naam, model, flags] of cases) {
     check(naam + ': ver weg weer de gewone carrosserie', sw.body.geometry === sw.orig && !sw.stuur.visible);
   } else if (naam === 'trekker') {
     const tr = ud.vb && ud.vb.tr;
-    check('trekker: cabine met stoel en stuur', !!tr && tr.cabine.visible && tr.stuur.visible);
-    check('trekker: stuurwiel draait', tr && Math.abs(tr.stuur.userData.turn.rotation.z) > 1);
+    // Sinds #847 tekent cabin3d/carinterior de cabine en het stuur; hier geen tweede exemplaar.
+    check('trekker: geen dubbele cabine of stuur meer', !!tr && !tr.cabine && !tr.stuur);
     check('trekker: voorwielen sturen', ud.frontWheels && ud.frontWheels.length === 2 && Math.abs(ud.frontWheels[0].rotation.y) > 0.3);
     check('trekker: geen werktuig zonder knop', !ud.vb.wg);
     v.werktuig = V.nieuwWerktuig();
@@ -99,13 +102,16 @@ for (const [naam, model, flags] of cases) {
     check('trekker: ploeg omhoog kantelt', wg.rotation.z < -0.6, String(wg.rotation.z));
     check('trekker: aftakas draait', wg.userData.as.rotation.x !== 0);
     V.syncVoertuigBediening(world, meshes, 0, 0, 1 / 60);
-    check('trekker: ver weg alles uit', !ud.vb.tr.cabine.visible && !wg.visible);
+    check('trekker: ver weg alles uit', !!ud.vb.tr && !ud.vb.tr.cabine && !wg.visible);
   } else if (naam === 'quad') {
     check('quad: voorwielen sturen', ud.frontWheels && Math.abs(ud.frontWheels[0].rotation.y) > 0.3);
   } else {
     const bt = ud.vb && ud.vb.bt;
     check(naam + ': roer', !!bt && !!bt.roer && Math.abs(bt.roer.rotation.y) > 0.3);
-    if (naam !== 'sloep') check(naam + ': stuurwiel', !!bt && !!bt.stuur && Math.abs(bt.stuur.userData.turn.rotation.z) > 1);
+    // Een stuurhut met een eigen interieur tekent zijn eigen stuurwiel (#847); alleen een open boot
+    // zonder roef houdt hier het losse stuurwiel.
+    if (heeftBootInterieur(v)) check(naam + ': geen dubbel stuurwiel naast het interieur', !!bt && !bt.stuur);
+    else if (naam !== 'sloep') check(naam + ': stuurwiel', !!bt && !!bt.stuur && Math.abs(bt.stuur.userData.turn.rotation.z) > 1);
   }
   check(naam + ': alles eindig', (() => { let ok = true; mesh.traverse((o) => { if (o.isMesh) for (const x of o.geometry.attributes.position.array) if (!Number.isFinite(x)) ok = false; }); return ok; })());
 }

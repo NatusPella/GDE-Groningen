@@ -38,6 +38,10 @@
       "eigenaar": "game/js/scene3d.js",
       "notitie": "scene3d.js zet de sprekers om in tekstballonnen; modules melden alleen een spreker."
     },
+    "firstPersoon": {
+      "eigenaar": "game/js/firstperson.js",
+      "notitie": "Eerste-persoonstand (#833): firstperson.js schrijft hem (aan/uit, kijkhoek); scene3d.js en player.js lezen hem alleen. De stand is per speler lokaal en gaat niet over het net."
+    },
     "health": {
       "eigenaar": "game/js/player.js",
       "notitie": "De speler bezit zijn gezondheid; schade en herstel horen via de spelersmodule te lopen."
@@ -418,6 +422,13 @@
       "max": 1,
       "reden": "zet de camerahoek",
       "issue": "#498"
+    },
+    {
+      "veld": "camYaw",
+      "bestand": "game/js/firstpersoncam.js",
+      "max": 3,
+      "reden": "de eerste-persooncamera zet de kijkhoek (te voet, in een voertuig en bij het uitzetten); scene3d.js blijft de eigenaar van de camera",
+      "issue": "#833"
     },
     {
       "veld": "cameraOverride",

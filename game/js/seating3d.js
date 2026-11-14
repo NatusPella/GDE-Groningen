@@ -28,6 +28,9 @@ function carKind(v) {
   if (n === 'truck') return 'truck';
   if (n === 'trekkerlimo' || n === 'tractor') return 'trekker';
   if (n === 'quad') return 'quad';
+  // de machines van de boerderij (#847): eigen zitposities, zie CAR_SEATS
+  if (n === 'maaidorser') return 'maaier';
+  if (n === 'laadmachine') return 'laad';
   if (v.isAmbulance || n === 'foodtruck' || n === 'cashvan') return 'van';
   if (v.isHeroCar) return 'escort';
   if (v.isPolice) return 'wagon';
@@ -50,6 +53,12 @@ const CAR_SEATS = {
   trekker: { y: 1.36, pose: { recline: 0.06, footX: 0.46, footY: -0.4, arms: 'lap' } },
   quad: { y: 0.92, pose: { recline: -0.08, footX: 0.3, footY: -0.5, splay: 0.3, arms: 'lap' } },
   bus: { y: 1.5, pose: { recline: 0.08, footX: 0.45, footY: -0.33, arms: 'lap' } },
+  // De machines (#847) zitten in hun eigen cabine, niet op auto-hoogte: de maaidorser hoog
+  // boven de dorskast (cabine 2,0..3,3 in buildMaaidorserMesh), de laadmachine laag in de kooi
+  // (1,39..2,04 in buildLaadmachineMesh). De zittingen staan zo dat het hoofd en de eerste-
+  // persooncamera in de raamband van het model vallen (hoofd = zitting + 0,65; oog = + 0,82).
+  maaier: { y: 2.28, pose: { recline: 0.1, footX: 0.5, footY: -0.3, arms: 'lap' } },
+  laad: { y: 1.04, pose: { recline: 0.18, footX: 0.36, footY: -0.2, arms: 'lap' } },
 };
 
 // the farm tractor's cushion above its cab floor (models3d_vehicles.js tractorCab)
@@ -123,6 +132,16 @@ export function vehicleSeat(v, driver) {
       x = driver ? -0.2 : -0.62;
       z = 0;
       if (!driver) y += 0.02;
+    } else if (k === 'maaier') {
+      // de maaidorser-cabine (buildMaaidorserMesh: x 0,55..2,05, z ±1,155); één zitplaats links
+      x = 1.25;
+      z = driver ? -0.2 : 0.4;
+      if (!driver) y -= 0.06;
+    } else if (k === 'laad') {
+      // de kooi van de laadmachine (buildLaadmachineMesh: x -0,65..0,45, z ±0,70); één zitplaats
+      x = -0.15;
+      z = driver ? -0.1 : 0.4;
+      if (!driver) y -= 0.04;
     }
     seat = { x, z, y, face: 0, pose: driver ? { ...spec.pose, arms: 'wheel' } : spec.pose };
   }

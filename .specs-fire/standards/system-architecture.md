@@ -56,10 +56,10 @@ op het web.
 | --- | --- | --- |
 | Boot en loop | `main.js` | `boot()`, `frame()`, vaste updatevolgorde |
 | Wereld-state | `world.js` | `map`, `player`, `vehicles`, `peds`, `wanted`, `money`, ... |
-| Streaming | `scene3d.js`, `tileworld.js`, `tilefocus.js`, `tilestore.js`, `gdt.js` | tegels laden, scene opbouwen, camera |
+| Streaming | `scene3d.js`, `firstperson.js`, `tileworld.js`, `tilefocus.js`, `tilestore.js`, `gdt.js` | tegels laden, scene opbouwen, camera (volgcam en eerste persoon) |
 | Wereldbouw | `worldbuilder.js`, `scripts/world/*` | bronfeature → tegelrij (`.gdt`) |
 | Speler en invoer | `player.js`, `input.js`, `controls.js`, `gamepad.js`, `touch.js` | beweging, toetsen, pad, touch |
-| Voertuigen | `vehicle.js`, `heliflight.js`, `trailer.js`, `drift.js` | fysica, verkeers-AI, boten, schade |
+| Voertuigen | `vehicle.js`, `heliflight.js`, `trailer.js`, `drift.js`; interieurs: `cabin3d.js`, `businterieur3d.js`, `carinterior.js`, `autointerieur.js`, `cockpitlayout.js`, `bootinterieur3d.js`, `vrachtruimte3d.js` | fysica, verkeers-AI, boten, schade; interieurs op drie afstandsniveaus per voertuigfamilie (ADR 0035, 0036) |
 | Peds en dieren | `pedestrians.js`, `pedroutes.js`, `wildlife.js` | lopen, routes, dieren |
 | Politie en combat | `police.js`, `combat.js`, `crime.js`, `wantedstate.js` | wanted-level, kogels, effecten |
 | Verhaal en missies | `missions.js`, `story.js`, `storyarc.js`, `missionstory.js`, `cutscenes*.js`, `cutscript.js` | missiestappen, scènes, regie |
@@ -86,7 +86,10 @@ op het web.
 
 - **Prestaties**: 60 fps-doel op een gewone GPU; graphicspresets in `gfxprofile.js`,
   adaptieve kwaliteit en zichtafstand; benchmarks en perfscripts in `desktop/` en
-  `scripts/perf/`.
+  `scripts/perf/`. Voertuiginterieurs zijn afstandsgelaagd (drie LOD's, één
+  gedeelde geometrie per soort en maat, één mesh per voertuig, bouwbudget per
+  frame) en casten geen schaduw; de eerste-persooncamera slaat het
+  volgcam-werk (collisie en pull-in) over.
 - **Geheugen**: streaming met een vaste tegelstraal; gasten die objecten
   verwijderen geven geometrie vrij (`coopruim.js`).
 - **Veiligheid**: geen secrets, geen spelersgegevens, geen IP-opslag; e2e-verkeer.
@@ -109,7 +112,8 @@ bundler, de opener is geen baas, de opdrachtstand per groep, de saves, de kleurt
 tekst als data, Nederlands en verzonnen namen, de testrunner, de releaseketen, het
 safehouse, de ingang, code in het Engels, de speleringang, spraak op Flash-Lite,
 1+1=3, de twee lagen verhaal en mechanica, altijd online met toestemming, JavaScript
-blijft de taal, de sessie van één en de bootorde (0020-0026). De index met nummers, statussen en de reserveringen staat in `adr/README.md`;
+blijft de taal, de sessie van één en de bootorde (0020-0026), de eerste-persooncamera
+en de interieur-LOD's (0035) en de interieurs voor alle voertuigfamilies (0036). De index met nummers, statussen en de reserveringen staat in `adr/README.md`;
 dat is de enige lijst.
 
 ## Waar de bestandskaart staat

@@ -103,7 +103,7 @@ frame then runs, in order:
 | Audio | `speech.js` (the one talking channel, see "Spoken lines"), `audio.js` (G-Music, voicelines, synthesised effects; buses for music, effects and voices), `linevoice.js` (recordings for speech bubbles, unvoiced cutscene subtitles and the rondvaart guide, `audio/voicelines/lines`), `scenariomusic.js` (race/chase loops that pause G-Music) |
 | Building passages and interiors | `passages.js` (the corridors footways and streets cut through a footprint: mapped OSM passages from `mapextras.json` `passages`, streets, short footways/cycleways; walkers, vehicles, spawns and the camera share them; a way that ends at a facade gets a door, a footway or cycleway through a solid block is cut at the facade when the map loads, `clipWaysInBuildings`), `portalcut3d.js` (building materials discard inside the passage boxes near the player, so the facade shows a real gate; lined tunnels with lamps; the door panels), `museumplan.js` + `museum3d.js` (the Groninger Museum's walkable ground floor as rooms: cycle passage, atrium, Entreehal, zaal 1, zaal 3 with the Gouden Eierbal case used by H6; a room with `shut` is closed to walkers) |
 | Validation | `spotcheck.js` (every start/target point must be open ground you can walk away from), `ringcheck.js` (nothing solid or open water on the ring race lap and ring roads, a car crosses every water crossing of the major and numbered roads at 80 km/h in both directions and three lanes, a scripted car and the AI racers drive a full lap, every rail lift can be walked, driven and cycled up), `passagecheck.js` (every street, cycleway and footway stretch inside a footprint is an opening, a door, a facade graze or clipped, never through a solid wall or an invisible hole; `node scripts/passage_audit.mjs` lists them from the map data); `node scripts/seat_audit.mjs` seats a figure on every vehicle's driver and passenger seat (seating3d.js `vehicleSeat`) and checks the head is in the cab glass under the roof, the hands ahead of the hip and the feet inside the body; all run in the story test, desktop `--validate-spots[=dir]` runs only them; out in the Ommelanden spotcheck.js loads the tiles round a far spot first (`withTiles`) and also rejects spots inside what is solid there (farmsteads, villages, turbines and pylons), with the same countryplan.js `pushOutOfPlan` query collision.js uses and the map-edge mask built first (`ensureCountryEdge`); `node scripts/swim_audit.mjs` (not in the story test) poses the ambient swimmers (swimmers3d.js) in each swimwear over a full stroke and checks no hand goes over the head, a back floater lies at the waterline with its hands in the water and a bank sitter's feet reach the water |
-| 3D | `scene3d.js` (scene, streaming, camera), `staticbatch3d.js` (static batching of city buildings and roads per 48 m cell, see Graphics settings), `gfxprofile.js` (graphics presets, GPU check, adaptive quality), `roadsurface.js` + `roadstructures3d.js` (roads; viaducts, embankments, cuttings, tunnels), `cutmask3d.js`, `terrain3d.js`, `water3d.js`, `models3d_buildings.js`, `models3d_vehicles.js`, `models3d_people.js`, `treeprops.js`, `pixelart3d.js` (shared materials), `landmarkmodels.js` (GLB landmarks) |
+| 3D | `scene3d.js` (scene, streaming, camera), `staticbatch3d.js` (static batching of city buildings and roads per 48 m cell, see Graphics settings), `gfxprofile.js` (graphics presets, GPU check, adaptive quality), `roadsurface.js` + `roadstructures3d.js` (roads; viaducts, embankments, cuttings, tunnels), `cutmask3d.js`, `terrain3d.js`, `water3d.js`, `models3d_buildings.js`, `models3d_vehicles.js`, `models3d_people.js`, `treeprops.js`, `pixelart3d.js` (shared materials), `landmarkmodels.js` (GLB landmarks), `firstperson.js` (eye and look of the first-person camera), vehicle interiors `cabin3d.js` + `businterieur3d.js` (three distance LODs, shared geometry, one mesh per vehicle), `cockpitlayout.js` (tractor, helicopter, plane, harvester and loader cabins), `bootinterieur3d.js` (wheelhouse/roof interiors of boats, LODs scaled to ship length), `vrachtruimte3d.js` (cargo holds and boots, shown when a door/tailgate is open, loose or the vehicle is a wreck), and `carinterior.js` + `autointerieur.js` (the detailed interior of the vehicle the player sits in); the wreck variant of every cabin family lives in `cabin3d.js` |
 
 ### Import cycles (#108)
 
@@ -1171,7 +1171,22 @@ under the player (`profileoverlay.js`).
   - `scripts/markt_audit.mjs` counts the area's triangles and batched draw
     calls.
 - The follow camera orbits at `ORBIT_RADIUS` and keeps `CAM_CLEARANCE` from
-  nearby buildings, which must stay larger than the 0.5 m near plane.
+  nearby buildings, which must stay larger than the 0.5 m near plane. First
+  person (`firstperson.js`, C / G in the browser) replaces it with the eye of
+  the player's own figure (its head bone, plus a fallback from the player
+  position): free mouse look, the figure and its shadow out of view, and in a
+  vehicle the detailed interior; it does no follow-camera raycasts at all.
+- Every vehicle family has an interior in the #833 pattern (ADR 0035, 0036):
+  a pure layout module per family (`carinteriorlayout.js`, `cockpitlayout.js`,
+  `businterieur.js`, `treinlayout.js`, `bootinterieur.js`, `vrachtruimte.js`),
+  one shared merged geometry per (kind, size, level) and one mesh per vehicle
+  whose `geometry` is swapped. Cars, vans, trucks, buses and the cockpits of
+  tractor/helicopter/plane/harvester/loader use the `cabin3d.js` LOD path and
+  `carinterior.js` when you sit in them. Boats (`bootinterieur3d.js`) and cargo
+  holds (`vrachtruimte3d.js`) run as world tick kinds registered in `main.js`,
+  so `scene3d.js` stays within its #497 size limit. Wrecks get a shared burnt
+  variant and their own glass is opened; the harvester cab and the plane
+  cockpit were opened in their model builders so the interior shows through.
 
 ## Graphics settings and performance
 

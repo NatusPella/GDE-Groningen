@@ -935,7 +935,13 @@ function buildMaaidorserMesh(v) {
     B.box(-1.2, 2.55, 0, 3.2, 1.0, W * 0.74, paint);
     B.box(-1.2, 3.14, 0, 3.3, 0.14, W * 0.78, rond);
     B.box(-0.2, 3.5, hw * 0.55, 3.4, 0.14, 0.16, 0x6b6b6b);
-    B.box(hl - 2.4, 2.65, 0, 1.5, 1.3, W * 0.7, paint);
+    // De maaidorsers-cabine (#847): geen dichte plaatswerkdoos meer achter het glas, zodat het
+    // interieur op cabinehoogte (2,35-3,2 m) door de glasband te zien is. Onderpaneel tot de
+    // raamlijn, dakpaneel erboven en vier hoekstijlen ertussen; de glaspanelen zelf staan op
+    // dezelfde plek als voorheen (voor/achter op hl-1,64 en hl-3,16, zij op +/-W*0,35).
+    B.box(hl - 2.4, 2.175, 0, 1.5, 0.35, W * 0.7, paint);
+    B.box(hl - 2.4, 3.25, 0, 1.5, 0.1, W * 0.7, paint);
+    for (const px of [hl - 3.12, hl - 1.68]) for (const pz of [-1, 1]) B.box(px, 2.775, pz * (W * 0.35 - 0.03), 0.06, 0.85, 0.06, paint);
     B.box(hl - 2.4, 3.36, 0, 1.6, 0.14, W * 0.76, rond);
     B.box(hl - 1.64, 2.7, 0, 0.03, 1.0, W * 0.64, GLASS, G_GLASS);
     B.box(hl - 3.16, 2.7, 0, 0.03, 1.0, W * 0.64, GLASS, G_GLASS);

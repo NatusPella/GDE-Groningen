@@ -34,7 +34,7 @@ export const KEY_ACTIONS = [
   ['p', 'Alarmlichten aan of uit', 'actie'],
   ['v', 'Filmcamera', 'actie'],
   ['r', 'Lak of garagemenu', 'actie'],
-  ['c', 'Auto: binnenzicht aan of uit (in de app); duif: koeren', 'actie'],
+  ['c', 'Eerste persoon aan of uit (in de browser G); duif: koeren', 'actie'],
   ['x', 'Duif: weer mens worden; trekker: aftakas aan of uit', 'actie'],
   ['tab', 'Volgend doelwit tijdens het richten', 'wapens'],
   ['1', 'Slaan', 'wapens'],

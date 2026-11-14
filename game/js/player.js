@@ -12,6 +12,7 @@ import { playAutoGejatLine } from './audio.js';
 import { requestRespawn } from './world.js';
 import { roadGrip } from './weather.js';
 import { getSettings } from './settings.js';
+import { firstPersonOn } from './firstperson.js';
 import { makeJumpAssist, jumpStep } from './gamefeel.js';
 import { steerScale } from './steerscale.js';
 import { assistDamage } from './assistlive.js';
@@ -236,9 +237,12 @@ export class Player {
     this.wade = wq && wq.wade && wq.body < 0 ? Math.min(0.45, wq.depth * 0.6) : 0;
     const speed = (this.crouching ? CROUCH_SPEED : pace) * (this.carrying || 1) * ((world && world.hurtWalk) || 1) * (this.wade ? WADE_PACE : 1);
     const aiming = input.mouse.down || input.mouse.rightDown;
+    // eerste persoon (#833): het lichaam draait mee met de kijkrichting, zoals bij het richten,
+    // zodat E en gebruiken vooruit blijven wijzen
+    const firstPerson = firstPersonOn(world);
     const dir = drunkMove(world, cameraRelativeMove(input, world.camYaw), dt);
     this.moving = !!dir;
-    if (aiming) this.angle = world.camYaw;
+    if (aiming || firstPerson) this.angle = world.camYaw;
     else if (dir) this.angle = turnToward(this.angle, dir.angle, FACE_TURN_RATE * dt);
     if (dir) {
       this.vx = Math.cos(dir.angle) * speed;
