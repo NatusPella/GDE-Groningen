@@ -2,6 +2,7 @@
 // voorwerp en dat komt in je album. Geen nieuwe opslagsleutel; de vondsten staan in de
 // bestaande prestatieset.
 import { hoofdspeler } from './players.js';
+import { ALLEEN_EIGEN_SPEL } from './coopgast.js';
 import { recordUnique, hasUnique, recordStat, getSaveSet } from './achievements.js';
 import { DUIK_R, WRAKVONDSTEN_SET, WRAKDUIKEN_STAT, duikplekken, duikplekBij, vondstId, duikStand } from './wrakduiken.js';
 
@@ -35,7 +36,8 @@ export const duikAlbum = () => duikStand(gedoken);
 export const getWrakduikSpotsForRender = () => duikplekken().map((p) => ({ ...p, kind: 'wrakduik', gedoken: gedoken(p.vondst.id) }));
 
 export function tryWrakduikInteract(world) {
-  if (!world || world.coopRole === 'client') return false;
+  if (!world) return false;
+  if (world.coopRole === 'client') { world.addMessage?.(ALLEEN_EIGEN_SPEL, 3); return false; }
   const inp = world.input;
   if (!inp || !inp.wasPressed || !(inp.wasPressed('e') || inp.wasPressed('f'))) return false;
   const p = hoofdspeler(world);

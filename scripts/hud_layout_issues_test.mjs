@@ -38,9 +38,9 @@ const near = (a, b, m = 0.01) => Math.abs(a - b) <= m;
 // --- #868: menu-, kaart- en telefoontekst houdt 12 schermpixels -------------
 {
   const menu = read('menu.css');
-  ok(/--menu-min:\s*calc\(12px \/ var\(--mz\)\)/.test(menu), '#868: --menu-min staat op .gm');
-  ok(MENU_READABLE_MIN === 12 && near(menuTextMin(1), 14.4), '#868: menuvloer rekent 14,4 stage-px op 1600x900');
-  ok(near(menuTextMin(0.667) * (0.667 / 1.2), 12, 0.02), '#868: de vloer is 12 px na de menuzoom');
+  ok(/--menu-min:\s*calc\(13px \/ var\(--mz\)\)/.test(menu), '#868: --menu-min staat op .gm');
+  ok(MENU_READABLE_MIN === 13 && near(menuTextMin(1), 15.6), '#868: menuvloer rekent 14,4 stage-px op 1600x900');
+  ok(near(menuTextMin(0.667) * (0.667 / 1.2), 13, 0.02), '#868: de vloer is 12 px na de menuzoom');
   const vloer = (f, sel) => {
     const src = read(f);
     const at = src.indexOf(sel);

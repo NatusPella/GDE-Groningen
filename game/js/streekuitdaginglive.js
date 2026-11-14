@@ -2,6 +2,7 @@
 // Uithuizen; de klok loopt en de volgende etappe staat als waypoint. Geen nieuw scherm:
 // de bestaande HUD, waypoint en medaille-uitslag doen het werk.
 import { hoofdspeler } from './players.js';
+import { ALLEEN_EIGEN_SPEL } from './coopgast.js';
 import { setUserWaypoint } from './routing.js';
 import { recordChallengeResult } from './achievements.js';
 import { loopbaanVerdien } from './loopbaanlive.js';

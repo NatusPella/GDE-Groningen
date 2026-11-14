@@ -14,7 +14,7 @@
   --mz: calc(var(--ui, 1.2) / 1.2);
   /* #868: de menutekst wordt met --mz verkleind; deze vloer houdt kleine regels op
      12 schermpixels, net als --hud-min in de HUD. */
-  --menu-min: calc(12px / var(--mz));
+  --menu-min: calc(13px / var(--mz));
   --mt: 7.4%; --mb: 11.1%;
   font-family: 'Arial Narrow', Arial, sans-serif; font-size: 20px; line-height: 1.45; color: var(--ink);
   -webkit-font-smoothing: antialiased;

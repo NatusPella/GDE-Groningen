@@ -114,7 +114,7 @@ export function textPx(base, scale = 1) {
 // #868: menu's lay out in stage px and are zoomed by --mz (ui / 1.2), so their
 // own floor has to be divided by that zoom. This is the smallest stage px that
 // still shows MENU_READABLE_MIN device px; menu.css exposes it as --menu-min.
-export const MENU_READABLE_MIN = 12;
+export const MENU_READABLE_MIN = 13;
 export function menuTextMin(ui = 1.2) {
   return MENU_READABLE_MIN * 1.2 / Math.max(0.5, Number(ui) || 1.2);
 }

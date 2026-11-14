@@ -26,7 +26,9 @@
 .os-knoppen { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 24px; }
 .os-knop { padding: 12px 26px; border: 0; border-radius: 8px; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 26px; letter-spacing: 0.05em; cursor: pointer; }
 .os-knop:focus-visible { outline: 2px solid #f0ede4; outline-offset: 3px; }
+.os-doorgaan,
 .os-meedoen { background: #3fc97a; color: #0c140e; }
+.os-doorgaan:hover,
 .os-meedoen:hover { background: #4fd98a; }
 .os-alleen { background: rgba(240, 237, 228, 0.14); color: #f0ede4; }
 .os-alleen:hover { background: rgba(240, 237, 228, 0.22); }

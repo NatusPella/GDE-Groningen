@@ -334,7 +334,10 @@ export async function bootSession(world, deps = {}) {
   }
 
   await hostNu();
-  meld(world, deps, keuze.reden); // "Er speelt nog niemand", "De sessie van X is vol": the player hears why
+  // Zonder expliciete samen-keuze hosten we direct; dan is "er speelt nog niemand"
+  // misleidend (we hebben niet eens een lijst opgevraagd). Alleen bij de echte
+  // samen-zoektocht melden we de reden.
+  if (joinPublic) meld(world, deps, keuze.reden);
   return { doen: KEUZE.HOSTEN, sessie: null, pogingen, reden: keuze.reden };
 }
 

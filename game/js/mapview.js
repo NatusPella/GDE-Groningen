@@ -1452,8 +1452,8 @@ function drawDynamicMarkers(ctx, world) {
   }
   for (const q of getPostgameSpotsForRender()) { if (onbekend(q.x, q.y)) continue; icon('postgame', 'pg-' + q.kind, q.x, q.y, q.name, {}, q.busy ? `Nu: ${q.busy.label}` : q.sub, q.id ? { goal: { kind: 'challenge', id: q.id, name: q.name, x: q.x, y: q.y }, todo: 'pg:' + q.id } : null, samenVan('minigame', 'pg_' + q.id)); }
   for (const q of getOnderdeelSpotsForRender()) { if (onbekend(q.x, q.y)) continue; icon('onderdeel', 'onderdeel-' + q.id, q.x, q.y, q.naam, {}, q.plek, { goal: { kind: 'place', name: q.naam, sub: q.plek, x: q.x, y: q.y } }); }
-  for (const q of getWrakduikSpotsForRender()) { if (q.gedoken || onbekend(q.x, q.y)) continue; icon('wrakduik', 'wrakduik-' + q.id, q.x, q.y, q.naam, {}, `Duiken naar ${q.wrak.naam}`, { goal: { kind: 'place', name: q.naam, sub: q.water, x: q.x, y: q.y } }); }
-  for (const q of getStreekuitdagingSpotsForRender()) { if (onbekend(q.x, q.y)) continue; icon('streekuitdaging', 'hogelandrit', q.x, q.y, q.naam, {}, 'Met een voertuig vanaf Warffum', { goal: { kind: 'place', name: q.naam, x: q.x, y: q.y } }); }
+  for (const q of getWrakduikSpotsForRender()) { if (q.gedoken || onbekend(q.x, q.y)) continue; icon('wrakduik', 'wrakduik-' + q.id, q.x, q.y, q.naam, {}, `Duiken naar ${q.wrak.naam}`, { goal: { kind: 'place', name: q.naam, sub: q.water, x: q.x, y: q.y } }, samenVan('activiteit', 'wrakduik')); }
+  for (const q of getStreekuitdagingSpotsForRender()) { if (onbekend(q.x, q.y)) continue; icon('streekuitdaging', 'hogelandrit', q.x, q.y, q.naam, {}, 'Met een voertuig vanaf Warffum', { goal: { kind: 'place', name: q.naam, x: q.x, y: q.y } }, samenVan('activiteit', 'hogelandrit')); }
   const ct = !job && world.challengeTarget;
   if (ct) {
     if (ct.path.length) drawRoute(ctx, [...ct.path, ct].map((w) => toScreen(w.x, w.y)), ICON);

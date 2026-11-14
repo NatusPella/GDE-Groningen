@@ -80,7 +80,8 @@ const ACTIVITEIT = {
   dijkrace: WERKT, // de straatrace van M14 (De dijk): iedereen dezelfde auto, één gezamenlijke start (#443)
   vluchtdienst: DEELS, // de rondvlucht is host-only; als passagier meerijden mag (#492)
   safehuis: DEELS, geheimen: DEELS, wandeling: DEELS, snackketen: DEELS, evenementen: DEELS,
-  pvparena: DEELS, // de PvP-minigame: de host rekent en ziet het bord, de gastenkant van het bord is nog open (#454)
+  pvparena: DEELS,
+  wrakduik: NEE, hogelandrit: NEE, // de PvP-minigame: de host rekent en ziet het bord, de gastenkant van het bord is nog open (#454)
   carbid: NEE, kermis: NEE, hoogvlieger: NEE, drift: NEE, skatepark: WERKT, zwembad: NEE, waterski: NEE, vliegschool: NEE,
 };
 
