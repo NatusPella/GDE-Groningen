@@ -290,7 +290,7 @@ voorbereiden en de workflows controleren; het starten en betalen is van de eigen
 - Een eigenaarsbesluit nemen over geld, rechten, leeftijd, merken of publicatie
   (AGENTS.md, constitution 4, 5 en 8).
 
-## Releasegate en 0.61.0 (stand 14-11-2026)
+## Releasegate en 0.61.0 (afgerond) (stand 14-11-2026)
 
 Sinds ADR 0034 is er een **releasegate**: `desktop/release.sh` bouwt alleen met een groen
 bewijsrapport voor static, world, perf, visual en de AI-review
