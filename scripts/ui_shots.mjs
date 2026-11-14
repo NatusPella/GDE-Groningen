@@ -60,9 +60,9 @@ for (const size of sizes) {
   fs.writeFileSync(script, `window.__shotsOnly = ${JSON.stringify(only)};\nwindow.__shotsTypes = ${JSON.stringify(types)};\n` + fs.readFileSync(scenes, 'utf8'));
   // devtools adds -<scene> to the name for every capture
   const png = path.join(out, size + '.png');
-  const args = ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=' + (emulate ? size.split('x').map((n) => Math.round(Number(n) * emulate)).join('x') : size), ...(emulate ? ['--emulate-view=' + size + '@' + emulate] : []), ...(flags ? ['--url-flags=' + flags] : []), '--smoke-test=' + png, '--perf-script=' + script, ...extraArgs];
+  const args = ['.', '--windowed', '--stil', '--no-sandbox', '--force-device-scale-factor=1', '--window-size=' + (emulate ? size.split('x').map((n) => Math.round(Number(n) * emulate)).join('x') : size), ...(emulate ? ['--emulate-view=' + size + '@' + emulate] : []), ...(flags ? ['--url-flags=' + flags] : []), '--smoke-test=' + png, '--perf-script=' + script, ...extraArgs];
   console.log('==', size);
-  const child = spawn(bin, args, { cwd: path.join(root, 'desktop'), env: { ...process.env, GDE_TEST_PROFILE: profile }, shell: process.platform === 'win32' });
+  const child = spawn(bin, args, { cwd: path.join(root, 'desktop'), env: (() => { const e = { ...process.env, GDE_TEST_PROFILE: profile }; delete e.ELECTRON_RUN_AS_NODE; return e; })(), shell: process.platform === 'win32' });
   let log = '';
   child.stdout.on('data', (d) => { log += d; });
   child.stderr.on('data', (d) => { log += d; });

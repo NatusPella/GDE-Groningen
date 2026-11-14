@@ -2,14 +2,20 @@
 
 Deze map bouwt de landingspagina van GDE Groningen: één statische pagina in het Nederlands,
 met een grote slideshow van screenshots uit het spel, de trailer (pas geladen na een klik) en
-het social-preview-beeld. **Er gaat niets vanzelf
+het social-preview-beeld. Daarnaast genereert `build.mjs` zes **hulppagina's** (`/help/`:
+index, installeren, systeemeisen, spelen, samen spelen en problemen) uit `help-pages.mjs`, met dezelfde
+header, footer en stylesheet. **Er gaat niets vanzelf
 openbaar.** De pagina wordt pas gebouwd en gepubliceerd als jij de workflow met de hand start,
 en dat kan pas nadat de repo publiek is. Zet de repo dus pas op Public als je er klaar voor bent.
 
 Dit is de **marketingpagina**, niet de game-webversie. De webversie hosten is een apart spoor
 (#57) en komt hier niet op: deze pagina laadt bewust niets van buiten (geen CDN, geen
 lettertypen van derden, geen analytics) tot je op de trailer klikt; dan pas laadt YouTube via
-`youtube-nocookie.com`. De slideshow werkt ook zonder JavaScript (dan scrollbaar).
+`youtube-nocookie.com`. De slideshow gebruikt `srcset` met vooraf gemaakte WebP-varianten
+(640 en 1024 px) in `website/media/`; maak ze opnieuw met
+`python3 scripts/website_responsive.py` (Pillow) als je een slide vervangt. Zonder
+JavaScript blijven alle slideshowpanelen onder elkaar zichtbaar en zijn de tabknoppen
+verborgen.
 
 ## Stappen, in deze volgorde
 
@@ -22,7 +28,7 @@ lettertypen van derden, geen analytics) tot je op de trailer klikt; dan pas laad
    `main`). De workflow heeft alleen `workflow_dispatch`: niets anders start hem.
 4. **Controleer de URL.** Na de deploy staat de pagina op
    <https://natuspella.github.io/GDE-Groningen/>. Kijk of het beeld, de knoppen naar de
-   Releases en de perskit-link werken. Dit is meteen de canonical-URL en de basis voor
+   Releases en de hulp-links werken. Dit is meteen de canonical-URL en de basis voor
    `og:image` (dat is `https://natuspella.github.io/GDE-Groningen/img/social-preview.png`).
 5. **Optioneel maar aan te raden: het environment `github-pages`.** De deploy-job gebruikt
    dat environment. Voeg in Settings → Environments → `github-pages` een verplichte

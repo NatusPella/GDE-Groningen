@@ -44,7 +44,7 @@ openen) en meldt bestand, patroonnaam en blob, nooit de waarde.
 | 9 | IARC-vragenlijst en Steam Content Survey zelf invullen: [IARC-ANTWOORDEN.md](IARC-ANTWOORDEN.md) | concept klaar |
 | 10 | Velden van de eigenaar op één blad: [INVULBLAD-EIGENAAR.md](INVULBLAD-EIGENAAR.md) (GitHub-profiel, credits, muziekproduct, registers, nalezer) | blad klaar |
 | 11 | Route naar 1.0: issue #65 (het plan zelf staat in `docs/archief/2026-10/PLAN-1.0.md`) | plan klaar |
-| 12 | Actions-minuten: de 2000 gratis minuten van deze maand zijn op; platformbuilds (macOS/Linux/Android) pas na de maandelijkse reset of aankoop van extra minuten (Windows lokaal; de platformbijlagen van 0.60.1/0.60.2/0.60.3 staan nog op 0.60.0) | wacht op reset/aankoop |
+| 12 | Actions-minuten: sinds 13-11-2026 is de repo publiek en is Actions gratis; alle platformbijlagen voor v0.60.1 t/m v0.60.7 zijn gebouwd | klaar |
 
 ## 3. Vlak voor Public (volgorde)
 

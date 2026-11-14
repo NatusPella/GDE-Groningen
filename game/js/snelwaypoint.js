@@ -13,15 +13,15 @@ export function tryQuickWaypoint(world) {
     world.addMessage('Nu even geen waypoint.', 2);
     return false;
   }
+  const g = getGoal();
+  if (!g || g.kind === 'mission') {
+    world.addMessage('Een verhaalmissie heeft al een route; een eigen waypoint is nu niet nodig.', 2.6);
+    return false;
+  }
   if (getUserWaypoint()) {
     clearUserWaypoint();
     world.addMessage('Waypoint weg.', 2);
     return true;
-  }
-  const g = getGoal();
-  if (!g || g.kind === 'mission') {
-    world.addMessage('Geen eigen doel om een waypoint naartoe te zetten.', 2.6);
-    return false;
   }
   setUserWaypoint(g.x, g.y, g.name);
   world.addMessage(`Waypoint: ${g.name}`, 2.4);

@@ -67,6 +67,28 @@
     zetActief();
   }
 
+  // ------------------------------------------------------- mobiel menu
+  const navToggle = document.querySelector('.nav-toggle');
+  const siteNav = document.querySelector('.site-nav');
+  if (navToggle && siteNav) {
+    document.documentElement.classList.add('js');
+    navToggle.hidden = false;
+    const zetMenu = (open) => {
+      navToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      siteNav.classList.toggle('is-open', open);
+    };
+    navToggle.addEventListener('click', () => zetMenu(navToggle.getAttribute('aria-expanded') !== 'true'));
+    siteNav.addEventListener('click', (event) => {
+      if (event.target.closest('a')) zetMenu(false);
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && navToggle.getAttribute('aria-expanded') === 'true') {
+        zetMenu(false);
+        navToggle.focus();
+      }
+    });
+  }
+
   // ------------------------------------------------------- slideshow-categorieën
   const tabList = document.querySelector('[data-showcase-tabs]');
   const tabs = [...document.querySelectorAll('[data-slideshow-tab]')];

@@ -709,7 +709,7 @@ body.mg-on #hud .ach-toast { top: auto; bottom: max(calc(13vh / var(--ui, 1)), 1
 // (html.reduce-motion) of prefers-reduced-motion staat alle beweging stil.
 const CSS_EXTRA = `
 #hud .ach-toast { min-width: 340px; padding: 14px 26px 14px 14px; gap: 16px; border-radius: 12px; border-left-width: 5px;
-  background: linear-gradient(105deg, rgba(12,20,14,0.96) 0%, rgba(18,32,22,0.92) 62%, rgba(12,20,14,0.58) 100%);
+  background: var(--hud-card);
   box-shadow: 0 10px 34px rgba(0,0,0,0.6), 0 0 30px rgba(63,201,122,0.22), inset 0 0 0 1px rgba(240,237,228,0.08); }
 #hud .ach-toast.on { animation: ach-in 0.42s cubic-bezier(0.2, 0.9, 0.25, 1.15); }
 @keyframes ach-in { from { opacity: 0; transform: translateY(-18px) scale(0.94); } 70% { opacity: 1; transform: translateY(2px) scale(1.012); } to { transform: none; } }
@@ -729,14 +729,14 @@ const CSS_EXTRA = `
 @keyframes ach-spark { 0% { opacity: 0; transform: translate(0, 0) scale(0.6); } 25% { opacity: 0.95; } 100% { opacity: 0; transform: translate(var(--dx, 0), -20px) scale(1.1); } }
 #hud .ach-toast .ach-title { font-size: 31px; letter-spacing: 1.6px; text-shadow: 0 1px 0 rgba(0,0,0,0.4); animation: ach-rise 0.5s 0.06s both; }
 @keyframes ach-rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
-#hud .ach-toast .ach-kicker { font-size: 12.5px; }
+#hud .ach-toast .ach-kicker { font-size: 13px; }
 #hud .ach-toast::after { content: ''; position: absolute; inset: 0; border-radius: 12px; pointer-events: none;
   background: linear-gradient(115deg, transparent 30%, rgba(240,237,228,0.14) 45%, transparent 60%); background-size: 220% 100%;
   animation: ach-shimmer 1.6s 0.15s ease-out 1; }
 @keyframes ach-shimmer { from { background-position: 120% 0; } to { background-position: -40% 0; } }
 #hud .ach-toast.gold { box-shadow: 0 10px 34px rgba(0,0,0,0.6), 0 0 34px rgba(232,201,58,0.3), inset 0 0 0 1px rgba(240,237,228,0.1); }
 #hud .ach-toast.gold .ach-rays { background: repeating-conic-gradient(var(--mk-mission, #e8c93a) 0deg 2deg, transparent 2deg 18deg); opacity: 0.4; }
-#hud .ach-toast.gold .ach-title { color: #fff0a8; }
+#hud .ach-toast.gold .ach-title { color: var(--mk-mission, #e8c93a); }
 html.reduce-motion #hud .ach-toast, html.reduce-motion #hud .ach-toast .ach-title,
 html.reduce-motion #hud .ach-toast .ach-rays, html.reduce-motion #hud .ach-toast .ach-spark, html.reduce-motion #hud .ach-toast::after {
   animation: none !important; transition: none !important; transform: none; }

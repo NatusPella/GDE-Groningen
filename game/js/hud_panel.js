@@ -2426,6 +2426,7 @@ function drawMinimapPois(ctx, world, job, placed, inRange, toScreen, t) {
       pois.push(['shop-' + sh.type, sh.x, sh.y]);
     }
   }
+  // #834: een onbekende streek toont ook op de minikaart geen bijbanen, vondsten en overige spots.
   if (!job) {
     const sjs = getSideJobSpotsForRender().filter((sj) => sichtbaar(sj.x, sj.y));
     add('bijbaan', sjs.filter((sj) => !sj.job.layer), (sj) => 'sj-' + sj.job.id, 2, MM_POI_FAR_M);

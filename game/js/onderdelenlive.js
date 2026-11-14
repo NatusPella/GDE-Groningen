@@ -2,7 +2,7 @@
 // bestaande prestatieset (geen nieuwe opslagsleutel); de auto is een bestaand model uit
 // de shopvoorraad met een eigen kleur en naam.
 import { hoofdspeler } from './players.js';
-import { recordUnique, getSaveSet, isUnlocked } from './achievements.js';
+import { recordUnique, hasUnique, isUnlocked } from './achievements.js';
 import { Vehicle } from './vehicle.js';
 import { VEHICLE_STOCK } from './shopdata.js';
 import { ONDERDELEN_TOTAAL, ONDERDEEL_R, PRESTATIE_SET, ONDERDEEL_AUTO, onderdelen, onderdeelId, stand, autoNaam, heeftAlle } from './onderdelen.js';
@@ -12,14 +12,13 @@ let gebouwd = false;
 
 export function initOnderdelen(world) { worldRef = world; return true; }
 
+const gezien = (id) => hasUnique(PRESTATIE_SET, id);
 export function onderdelenAlbum() {
-  const gezien = getSaveSet(PRESTATIE_SET);
   return stand(gezien);
 }
 
 export function getOnderdeelSpotsForRender() {
-  const s = new Set(getSaveSet(PRESTATIE_SET));
-  return onderdelen().filter((p) => !s.has(p.id)).map((p) => ({ ...p, kind: 'onderdeel' }));
+  return onderdelen().filter((p) => !gezien(p.id)).map((p) => ({ ...p, kind: 'onderdeel' }));
 }
 
 export function tryOnderdeelInteract(world) {
@@ -27,10 +26,10 @@ export function tryOnderdeelInteract(world) {
   const p = hoofdspeler(world);
   if (!p) return false;
   const id = onderdeelId(p.x, p.y, ONDERDEEL_R);
-  if (!id || getSaveSet(PRESTATIE_SET).has(id)) return false;
+  if (!id || gezien(id)) return false;
   const part = onderdelen().find((q) => q.id === id);
   if (!recordUnique(world, PRESTATIE_SET, id)) return false;
-  const now = stand(getSaveSet(PRESTATIE_SET));
+  const now = stand(gezien);
   world.addMessage(`${part.naam} gevonden · ${now.gevonden}/${now.totaal} onderdelen`, 3.2, { kind: 'prestatie' });
   if (now.compleet) world.addMessage('Alle onderdelen! Ga naar de garage om je auto te laten bouwen.', 4, { kind: 'tip' });
   return true;
@@ -40,7 +39,7 @@ export function tryOnderdeelInteract(world) {
 // zet de auto een bestaand model (Knutselwagen op basis van de wervelwind) bij de speler.
 export function bouwAuto(world) {
   if (!world || world.coopRole === 'client') return { ok: false, reden: 'Alleen in je eigen spel.' };
-  if (!heeftAlle(getSaveSet(PRESTATIE_SET))) return { ok: false, reden: 'Je mist nog onderdelen.' };
+  if (!heeftAlle(gezien)) return { ok: false, reden: 'Je mist nog onderdelen.' };
   if (gebouwd) return { ok: false, reden: 'Je auto staat er al.' };
   const spec = VEHICLE_STOCK[ONDERDEEL_AUTO.basis] || VEHICLE_STOCK.mug;
   if (!spec) return { ok: false, reden: 'Dit model is niet beschikbaar.' };

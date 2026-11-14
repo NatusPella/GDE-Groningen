@@ -8,11 +8,12 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { SLIDESHOWS } from '../website/slideshows.mjs';
+import { HELP_PAGES } from '../website/help-pages.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const WEBSITE = path.join(ROOT, 'website');
 const SITE = path.join(WEBSITE, '_site');
-const RELEASES = 'https://github.com/NatusPella/GDE-Groningen/releases/latest';
+const RELEASES = 'https://github.com/NatusPella/GDE-Groningen/releases';
 const REPO = 'https://github.com/NatusPella/GDE-Groningen';
 const PAGES = 'https://natuspella.github.io/GDE-Groningen/';
 const OG_IMAGE = 'https://natuspella.github.io/GDE-Groningen/img/social-preview.png';
@@ -29,7 +30,7 @@ const VERBODEN_RE = new RegExp('\\b(?:' + VERBODEN.join('|') + ')\\b', 'i');
 
 // ------------------------------------------------------------------ 1. bron en build
 
-for (const f of ['index.html', 'style.css', 'script.js', 'build.mjs', 'slideshows.mjs']) {
+for (const f of ['index.html', 'style.css', 'script.js', 'build.mjs', 'slideshows.mjs', 'help-pages.mjs']) {
   ok(fs.existsSync(path.join(WEBSITE, f)), `website/${f} bestaat`);
 }
 ok(fs.existsSync(path.join(ROOT, 'desktop', 'resources', 'icon.svg')), 'het app-icoon desktop/resources/icon.svg bestaat (favicon)');
@@ -145,7 +146,8 @@ for (const m of gebouwd.matchAll(/\b(?:src|href)\s*=\s*"([^"]+)"/gi)) {
 const dodePaden = [...lokaal].filter((url) => !bestaat(url));
 ok(dodePaden.length === 0, 'alle relatieve paden in de HTML bestaan in _site', dodePaden.join(', '));
 ok(bestaat('img/social-preview.png'), 'het social-preview-beeld staat in _site');
-ok(bestaat('img/trailer.jpg'), 'de trailerstill staat in _site');
+ok(bestaat('img/trailer-960.webp'), 'de trailerstill staat in _site');
+ok(!bestaat('img/trailer.jpg'), 'de zware trailer-origineel wordt niet meer gedeployd');
 
 // De pagina heeft meerdere slideshows (#37): per categorie een slider met pijlen, stippen en
 // een script dat de navigatie doet. Zonder JavaScript blijft elke slider scrollbaar.
@@ -164,10 +166,15 @@ ok(/aria-selected="true"/.test(gebouwd) && /aria-selected="false"/.test(gebouwd)
 for (const show of SLIDESHOWS) {
   ok(gebouwd.includes(`id="slideshow-${show.id}"`), `slideshow ${show.id} staat in de HTML`);
   for (const slide of show.slides) {
-    ok(bestaat(slide.img), `beeld ${slide.img} staat in _site`);
     ok(slide.alt && slide.alt.length > 10, `slide ${slide.img} heeft een alt-tekst`);
+    const stem = path.basename(slide.img).replace(/\.[^.]+$/, '');
+    ok(bestaat(`img/${stem}-640.webp`) && bestaat(`img/${stem}-1024.webp`), `slide ${stem} heeft responsieve varianten`);
+    ok(!bestaat(slide.img) || /\.(webp|jpg)$/.test(slide.img), `slide ${stem} verwijst niet naar een ontbrekend origineel`);
   }
 }
+ok(/srcset="img\/hero-groningen-640\.webp 640w/.test(gebouwd), 'de hero gebruikt srcset');
+ok(/srcset="img\/trailer-640\.webp 640w/.test(gebouwd), 'de trailer-thumb gebruikt srcset');
+ok(/<noscript><style>\.showcase-tabs\{display:none!important\}<\/style><\/noscript>/.test(gebouwd), 'zonder JavaScript worden de tabknoppen verborgen');
 ok(/<script\s+src="script\.js"\s+defer><\/script>/i.test(gebouwd), 'de pagina laadt script.js');
 const script = bestaat('script.js') ? lees('script.js') : '';
 ok(/data-slideshow-tab/.test(script) && /panel\.hidden/.test(script), 'script.js schakelt de tabbladen');
@@ -178,6 +185,47 @@ ok(/data-video="jh6L9dd-YeE"/.test(gebouwd), 'de trailer-facade heeft het juiste
 ok(!/<iframe\b/i.test(gebouwd), 'er staat geen iframe in de HTML; die komt pas na de klik');
 ok(/laadt niets van buiten/i.test(gebouwd) && /nocookie/i.test(gebouwd), 'de privacyregel noemt de click-to-load trailer');
 
+// Hulppagina's (#37): gegenereerd uit help-pages.mjs, met eigen titel, meta, 18+,
+// een weg terug naar de marketingpagina en alleen bestaande lokale links.
+const HELP_DIR = path.join(SITE, 'help');
+ok(fs.existsSync(HELP_DIR), 'de hulpmap staat in _site');
+const helpBestanden = fs.existsSync(HELP_DIR) ? fs.readdirSync(HELP_DIR).filter((f) => f.endsWith('.html')) : [];
+ok(helpBestanden.length === HELP_PAGES.length, 'elke hulppagina is gebouwd', `${helpBestanden.length}/${HELP_PAGES.length}`);
+ok(helpBestanden.includes('systeemeisen.html'), 'de systeemeisen-pagina is gebouwd');
+for (const page of HELP_PAGES) {
+  const bestand = page.slug === 'index' ? 'index.html' : `${page.slug}.html`;
+  ok(helpBestanden.includes(bestand), `hulppagina ${bestand} bestaat`);
+  const tekst = fs.existsSync(path.join(HELP_DIR, bestand)) ? fs.readFileSync(path.join(HELP_DIR, bestand), 'utf8') : '';
+  ok(/<html lang="nl"/.test(tekst), `${bestand} is Nederlands`);
+  ok(/<title>[^<]+<\/title>/.test(tekst) && /name="description" content="[^"]+"/.test(tekst), `${bestand} heeft titel en omschrijving`);
+  ok(/property="og:image" content="https:\/\/natuspella\.github\.io\/GDE-Groningen\/img\/social-preview\.png"/.test(tekst), `${bestand} heeft een social-preview-afbeelding`);
+  ok(/name="twitter:card" content="summary_large_image"/.test(tekst), `${bestand} heeft een Twitter-card`);
+  ok(/name="twitter:title" content="[^"]+"/.test(tekst) && /name="twitter:description" content="[^"]+"/.test(tekst), `${bestand} heeft een Twitter-titel en -omschrijving`);
+  ok(/18\+/.test(tekst), `${bestand} noemt 18+`);
+  ok(/href="\.\.\/"/.test(tekst), `${bestand} linkt terug naar de marketingpagina`);
+  ok(/class="help-subnav"/.test(tekst) && /aria-current="page"/.test(tekst), `${bestand} heeft een hulp-subnavigatie met actieve pagina`);
+  ok(!/<(?:script|img|iframe)\b/i.test(tekst), `${bestand} laadt geen eigen scripts of beelden`);
+  const dood = [...tekst.matchAll(/\b(?:src|href)\s*=\s*"([^"]+)"/gi)]
+    .map((m) => m[1].trim())
+    .filter((url) => url && !url.startsWith('#') && !url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('mailto:') && !url.startsWith('data:'))
+    .filter((url) => !fs.existsSync(path.resolve(HELP_DIR, url.split('?')[0].split('#')[0])));
+  ok(dood.length === 0, `${bestand} heeft geen dode lokale links`, dood.join(', '));
+}
+ok(/Android.*geen internetrechten|geen internetrechten.*Android/is.test(fs.readFileSync(path.join(HELP_DIR, 'samen-spelen.html'), 'utf8')), 'de hulp noemt de Android-beperking bij samen spelen');
+ok(/Spel exporteren/.test(fs.readFileSync(path.join(HELP_DIR, 'spelen.html'), 'utf8')), 'de hulp legt save-exporteren uit');
+ok(/class="table-wrap"/.test(fs.readFileSync(path.join(HELP_DIR, 'spelen.html'), 'utf8')), 'de besturingstabel heeft een scroll-container');
+ok(/href="help\/"/.test(gebouwd) && /Hulp en veelgestelde vragen/.test(gebouwd), 'de marketingpagina linkt naar de hulp');
+
+// SEO: preload van de hero, gestructureerde data, sitemap en robots.
+ok(/<link rel="preload" href="img\/hero-groningen\.webp" as="image" imagesrcset="img\/hero-groningen-640\.webp 640w/.test(gebouwd), 'de hero-afbeelding wordt preload met imagesrcset');
+ok(/application\/ld\+json/.test(gebouwd) && /"@type": "VideoGame"/.test(gebouwd) && /"price": "0"/.test(gebouwd), 'de pagina heeft VideoGame-structured-data');
+ok(bestaat('sitemap.xml'), 'sitemap.xml staat in _site');
+ok(bestaat('robots.txt'), 'robots.txt staat in _site');
+const sitemap = bestaat('sitemap.xml') ? lees('sitemap.xml') : '';
+const robots = bestaat('robots.txt') ? lees('robots.txt') : '';
+ok(sitemap.includes('https://natuspella.github.io/GDE-Groningen/') && sitemap.includes('/help/installeren.html'), 'de sitemap noemt de marketingpagina en de hulp');
+ok(new RegExp('Sitemap: https://natuspella\\.github\\.io/GDE-Groningen/sitemap\\.xml').test(robots), 'robots.txt wijst naar de sitemap');
+
 const ids = new Set([...gebouwd.matchAll(/\bid="([^"]+)"/g)].map((m) => m[1]));
 const dodeAnkers = [...gebouwd.matchAll(/href="#([^"]+)"/g)].map((m) => m[1]).filter((id) => !ids.has(id));
 ok(dodeAnkers.length === 0, 'alle interne ankers (#...) bestaan', dodeAnkers.join(', '));
@@ -186,6 +234,18 @@ const zonderAlt = [...gebouwd.matchAll(/<img\b[^>]*>/gi)].filter((m) => !/\balt\
 ok(zonderAlt.length === 0, 'elke afbeelding heeft een gevulde alt-tekst', zonderAlt.map((m) => m[0].slice(0, 60)).join('; '));
 ok(!/\bautoplay\b/i.test(gebouwd), 'geen autoplay');
 ok(/\bprefers-reduced-motion\b/.test(css), 'style.css respecteert prefers-reduced-motion');
+
+// Inhoud en conversie na de review: duidelijke value proposition, correcte platformen,
+// echte CTA's, trust-strip en een kloppende FAQ.
+ok(/open-wereldkomedie/i.test(gebouwd) && /GDE = Grootste Diefstal Ever/.test(gebouwd), 'de hero noemt genre en de naam-uitleg');
+ok(/class="platform-row"/.test(gebouwd) && !/Windows-only/.test(gebouwd) && !/Actions-minuten/.test(gebouwd), 'de platforminformatie is actueel en zonder Actions-jargon');
+ok(/Over › Problemen/.test(gebouwd) && !/Instellingen › Foutrapport/.test(gebouwd), 'de FAQ verwijst naar het juiste foutrapportpad');
+ok(/60\+ reacties in het playtest-issue/.test(gebouwd) && /issues\/116/.test(gebouwd), 'de pagina toont echt playtest-bewijs en linkt naar #116');
+ok(!/releases\/latest/.test(gebouwd), 'downloadlinks gaan naar de releaselijst, niet naar de pre-release-redirect');
+ok(/class="nav-toggle"/.test(gebouwd) && /aria-controls="site-nav"/.test(gebouwd), 'de mobiele header heeft een menuknop');
+ok(/navToggle/.test(script) && /aria-expanded/.test(script), 'script.js schakelt het mobiele menu');
+ok(/\.js \.site-nav:not\(\.is-open\)/.test(css), 'style.css verbergt de mobiele nav tot de menuknop');
+ok(/@media \(max-width: 48rem\) \{[\s\S]*?\.site-header\s*\{[^}]*position:\s*static/.test(css), 'de header is op mobiel niet sticky');
 
 // Merkenpalet uit DESIGN_SYSTEM.md: geen near-miss-hexen, geel alleen voor wanted-sterren.
 const PALET = new Set(['#1e9e56', '#3fc97a', '#0f5c30', '#0c140e', '#17301f', '#f0ede4', '#f2f2f2', '#d93f3f', '#e8c93a']);
@@ -200,6 +260,7 @@ ok(/:focus-visible\s*\{[^}]*outline:\s*2px solid var\(--ink\)/.test(css), 'focus
 
 ok(/system-ui/.test(css) && !/@font-face/i.test(css), 'systeemlettertypen, geen @font-face');
 ok(/<main\b/.test(html) && (html.match(/<h1\b/gi) || []).length === 1 && /<header\b/.test(html) && /<footer\b/.test(html), 'semantische HTML met precies één h1');
+ok(/<main id="inhoud" tabindex="-1"/.test(html), 'de skip-link kan focus naar de inhoud verplaatsen');
 ok(/class="skip-link"[^>]*href="#inhoud"/i.test(html) && /id="inhoud"/.test(html), 'de pagina heeft een skip-link naar de inhoud');
 
 // Opbouw volgens de funnel: aandacht (hero) → interesse (trailer, kort) → verlangen
@@ -208,20 +269,23 @@ ok(/class="skip-link"[^>]*href="#inhoud"/i.test(html) && /id="inhoud"/.test(html
 const volgorde = [
   'class="hero"',
   'id="trailer"',
-  'class="intro"',
+  'class="trust-strip"',
   'id="wat-je-kunt-doen"',
   'id="echt-groningen"',
   'id="beelden"',
   'id="spelen"',
   'class="cta-band"',
-  'id="zo-gemaakt"',
   'id="delen"',
+  'id="zo-gemaakt"',
   'id="vragen"',
   'id="leeftijd"',
 ];
 ok(volgorde.every((m, i) => i === 0 || html.indexOf(volgorde[i - 1]) < html.indexOf(m)), 'de secties staan in de funnel-volgorde', volgorde.filter((m) => html.includes(m)).length + '/' + volgorde.length);
 ok((html.match(/<ol class="steps">/g) || []).length === 1 && (html.match(/<h3>Pak een build<\/h3>|<h3>Speel de playtest<\/h3>|<h3>Laat het weten<\/h3>/g) || []).length === 3, 'de "zo speel je mee"-sectie heeft drie stappen');
-ok(/\.faq\s*\{[^}]*max-width:\s*none/.test(css), 'de FAQ gebruikt de volle breedte');
+ok(/\.slide-tag\s*\{[^}]*color:\s*var\(--bg\)/.test(css), 'slide-labels hebben voldoende contrast');
+ok(/\.slider-dot\s*\{[^}]*width:\s*1\.5rem[^}]*height:\s*1\.5rem/.test(css), 'de slider-dots hebben een klikdoel van 24px');
+ok(/<caption class="sr-only">/.test(fs.readFileSync(path.join(HELP_DIR, 'spelen.html'), 'utf8')) && /<th scope="col">/.test(fs.readFileSync(path.join(HELP_DIR, 'spelen.html'), 'utf8')), 'de besturingstabel heeft caption en scoped kolomkoppen');
+ok(/audience/.test(gebouwd) && /suggestedMinAge/.test(gebouwd), 'de structured data noemt de minimumleeftijd');
 
 // ------------------------------------------------------------------ 7. build, gitignore en workflow
 
