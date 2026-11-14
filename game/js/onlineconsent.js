@@ -23,7 +23,7 @@ export const moetVragen = (settings = getSettings()) => settings.onlineMeedoen !
 // What the first start shows: a name, and one honest question with two answers.
 export const EERSTE_START = {
   titel: 'Je naam voor Samen spelen',
-  uitleg: `${CONSENT_TEXT} Je speelt altijd met andere spelers; onder deze naam zien ze je. Je kunt je naam later in het pauzemenu aanpassen.`,
+  uitleg: `${CONSENT_TEXT} Je speelt altijd online, in je eigen besloten sessie; onder deze naam zien anderen je alleen als je de sessie deelt. Je kunt je naam later in het pauzemenu aanpassen.`,
   naamLabel: 'Je naam',
   naamHint: 'Verplicht. Andere spelers zien je onder deze naam.',
   doorgaan: 'Doorgaan',

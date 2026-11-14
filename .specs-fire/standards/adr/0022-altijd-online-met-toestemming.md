@@ -87,4 +87,4 @@ Nooit een IP-adres, nooit een wachtwoord.
 
 ## Addendum 13-11-2026: altijd online
 
-De eigenaar heeft de keuzevraag laten vallen: het spel speelt altijd online, ook met één speler. De eerste start vraagt verplicht om een naam (niet overslaanbaar) en zet daarna automatisch de sessiezoektocht aan; er is geen ja/nee- of later-knop meer. De toestemmingsplicht blijft inhoudelijk gelden: de startkaart legt uit dat er verbinding met STUN/brokers wordt gemaakt. Zie #530 en de releasegate-review van 0.61.0.
+De eigenaar heeft de keuzevraag laten vallen: het spel speelt altijd online, ook met één speler. De eerste start vraagt verplicht om een naam (niet overslaanbaar) en start daarna automatisch een eigen online sessie (sessie van één); er is geen ja/nee- of later-knop meer. De toestemmingsplicht blijft inhoudelijk gelden: de startkaart legt uit dat er verbinding met STUN/brokers wordt gemaakt. Zie #530 en de releasegate-review van 0.61.0.

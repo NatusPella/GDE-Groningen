@@ -162,7 +162,7 @@ export const HELP_PAGES = [
       <h2>Toegankelijkheid</h2>
       <p>Onder <strong>Instellingen › Toegankelijkheid</strong> vind je kleurenblindmodi, de grootte van de interface en "Beweging beperken". De grootte van de ondertitels staat onder <strong>Geluid &amp; ondertitels</strong>.</p>
       <h2>Privacy</h2>
-      <p>Er is geen account, geen tracking en geen statistiek. De desktopapp speelt offline, met twee uitzonderingen: <strong>Samen spelen</strong> (alleen na jouw toestemming) en de <strong>live busposities</strong> (staan standaard aan en zijn in Instellingen uit te zetten). Op Android staat Samen spelen uit. Zie <a href="https://github.com/NatusPella/GDE-Groningen/blob/main/docs/PRIVACY-EN-CREDITS.md">docs/PRIVACY-EN-CREDITS.md</a>.</p>
+      <p>Er is geen account, geen tracking en geen statistiek. De desktopapp speelt altijd online in een eigen besloten sessie (ook met één speler). Daarnaast kies je zelf of je een sessie deelt of met iemand meespeelt (<strong>Samen spelen</strong>) en of de <strong>live busposities</strong> worden opgehaald (staan standaard aan en zijn in Instellingen uit te zetten). Op Android staat Samen spelen uit. Zie <a href="https://github.com/NatusPella/GDE-Groningen/blob/main/docs/PRIVACY-EN-CREDITS.md">docs/PRIVACY-EN-CREDITS.md</a>.</p>
       <p class="help-terug"><a href="./">← Terug naar de hulpindex</a></p>
     `,
   },

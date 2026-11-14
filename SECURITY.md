@@ -19,7 +19,7 @@ Alleen de nieuwste release krijgt fixes.
 ## Goed om te weten
 
 - Het spel heeft geen account en geen telemetrie. Saves en instellingen staan alleen
-  op je eigen apparaat. Alleen bij samen spelen (na jouw toestemming) gaat je IP-adres
+  op je eigen apparaat. Bij het starten van de altijd-online sessie gaat je IP-adres naar een STUN-server; deel je de sessie of speel je mee, dan gaat het ook naar je medespeler. Je IP-adres
   naar een openbare STUN-server en gaat versleutelde signalering via openbare brokers;
   zet je de live busposities aan, dan is dat een openbare leesopvraag zonder gegevens
   van jou (wel ziet die dienst je IP-adres, zoals bij elke webopvraag);

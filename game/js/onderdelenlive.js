@@ -21,12 +21,27 @@ export function getOnderdeelSpotsForRender() {
   return onderdelen().filter((p) => !gezien(p.id)).map((p) => ({ ...p, kind: 'onderdeel' }));
 }
 
+// Prompt en E-koppeling zoals de wrakduik: een onderdeel is een ding dat je opraapt.
+export function onderdeelPrompt(world) {
+  if (!world || world.coopRole === 'client') return null;
+  const p = hoofdspeler(world);
+  if (!p || p.inVehicle || p.swimming || p.climb) return null;
+  const id = onderdeelId(p.x, p.y, ONDERDEEL_R);
+  if (!id || gezien(id)) return null;
+  const part = onderdelen().find((q) => q.id === id);
+  return { id: 'onderdeel-' + id, x: part.x, y: part.y, h: 1.2, key: 'E', label: `Onderdeel oprapen: ${part.naam}`, sub: 'Voor de Knutselwagen in de garage', ring: true };
+}
+
 export function tryOnderdeelInteract(world) {
   if (!world || world.coopRole === 'client') return false;
+  const inp = world.input;
+  if (!inp || !inp.wasPressed || !(inp.wasPressed('e') || inp.wasPressed('f'))) return false;
   const p = hoofdspeler(world);
   if (!p) return false;
   const id = onderdeelId(p.x, p.y, ONDERDEEL_R);
   if (!id || gezien(id)) return false;
+  inp.consume?.('e');
+  inp.consume?.('f');
   const part = onderdelen().find((q) => q.id === id);
   if (!recordUnique(world, PRESTATIE_SET, id)) return false;
   const now = stand(gezien);

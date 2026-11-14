@@ -16,6 +16,7 @@ import { spawnJobVehicle, vehicleSpeed } from './sidejobkit.js';
 import { TRACTOR_MODEL } from './vehicle.js';
 import { ankerMetWeg } from './bijbaananker.js';
 import { heeftEigenAkker } from './boerderijlive.js';
+import { currentStep } from './storyquery.js';
 import { isInWater, pointInPolygon } from './util.js';
 
 // Suikerhal Hoogkerk: de bietenhoop. Pas bij gebruik berekend: wgsToWorld kent zijn kader pas als de wereld er is.

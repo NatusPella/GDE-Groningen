@@ -167,9 +167,22 @@ async function run(name, setup, move, teardown, opts = {}) {
   fixWorld();
   const ctx = await setup();
   const SETTLE = window.__perfSettle || 6000;
+  // Wacht zoals de speler achter het laadscherm: tot de streaming (gebouwen, wegen,
+  // tegels) leeg is, met een bovengrens. Een vaste 6 s was te kort voor de eerste
+  // stad-route en telde de koude instroom als speelhapering (P5, docs/PERF-BESLUITEN).
+  const settleStream = async (maxMs) => {
+    const beg = performance.now();
+    while (performance.now() - beg < maxMs) {
+      const pend = SP && SP.streamPending ? SP.streamPending() : null;
+      const tiles = map && map.tileQueue ? map.tileQueue.size : 0;
+      const store = map && map.store ? map.store.queue.length + map.store.active : 0;
+      if ((!pend || pend.buildings + pend.roads === 0) && tiles === 0 && store === 0) break;
+      await sleep(200);
+    }
+  };
   let t0 = performance.now() + SETTLE;
   mover = (now) => move(ctx, (now - t0) / 1000);
-  await sleep(SETTLE);
+  if (SETTLE > 0) { await settleStream(20000); await sleep(Math.min(1200, SETTLE)); }
   t0 = performance.now();
   fixWorld();
   calls = 0; tris = 0; renders = 0; EJECTS = 0;

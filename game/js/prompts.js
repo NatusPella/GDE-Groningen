@@ -40,6 +40,7 @@ import { aaiPrompt } from './aaien.js';
 import { kaartjesPrompt } from './kaartjescontrole.js';
 import { viewpointPrompt } from './explorationlive.js';
 import { wrakduikPrompt } from './wrakduikenlive.js'; // #839
+import { onderdeelPrompt } from './onderdelenlive.js'; // #837
 import { streekuitdagingPrompt } from './streekuitdaginglive.js'; // #835
 import { makePromptClock } from './prompttick.js';
 
@@ -387,6 +388,8 @@ function findPrimary(world) {
   }
   const wrak = wrakduikPrompt(world);
   if (wrak) return wrak;
+  const onderdeel = onderdeelPrompt(world);
+  if (onderdeel) return onderdeel;
   const duif = pigeonSpotPrompt(world);
   if (duif) return duif;
   const heli = heliSpotPrompt(world);
