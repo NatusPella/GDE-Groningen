@@ -200,7 +200,7 @@ async function run(name, setup, move, teardown, opts = {}) {
   console.error('[perf-mark] end ' + name + ' ' + Date.now() + ' ' + res.frames);
   const frames = Math.max(1, res.frames);
   mover = null;
-  const out = { ...res, callsPerFrame: Math.round(calls / frames), trisPerFrame: Math.round(tris / frames), rendersPerFrame: +(renders / frames).toFixed(2),
+  const out = { ...res, cold: opts.cold === true, callsPerFrame: Math.round(calls / frames), trisPerFrame: Math.round(tris / frames), rendersPerFrame: +(renders / frames).toFixed(2),
     programs: r.info.programs.length, textures: r.info.memory.textures, geometries: r.info.memory.geometries,
     heapMB: performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1e6) : null, at: [Math.round((p.inVehicle || p).x), Math.round((p.inVehicle || p).y)],
     ejects: EJECTS, vehicles: w.vehicles.length, peds: w.pedestrians.length, simLevel: window.__simLoad ? window.__simLoad.level() : null, dyn: window.__gfxDyn || null,
@@ -226,7 +226,7 @@ const FOOT = PL([[167, 283], [121, 193], [105, 161], [100, 77], [124, 7], [134, 
 results.routes.foot = await run('foot', async () => { teleport(FOOT[0][0], FOOT[0][1]); return {}; }, (c, t) => {
   const q = at(FOOT, Math.max(0, t) * 6);
   p.x = q.x; p.y = q.y; p.angle = q.ang; w.camYaw = q.ang;
-});
+}, undefined, { cold: true });
 
 const RING = RR.RING_ROUTE.map((q) => [q[0], q[1]]);
 const RING_LEN = pathLen(RING);

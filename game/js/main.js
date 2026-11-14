@@ -61,7 +61,7 @@ import { World } from './world.js';
 import { initCompanion, updateCompanion } from './companion.js';
 import { tickRowingCoaches } from './roeicoach.js';
 import { PATH_BUILDS_PER_FRAME } from './pathbudget.js';
-import { updateTrafficAI, resolveVehicleBuildingCollision, resolveVehicleVehicleCollisions, manageTrafficPopulation, manageBikePopulation, manageBusPopulation, manageScooterPopulation, manageMotorPopulation, manageBoatPopulation, updateBoatAI, recordContact, checkVehicleWater, spawnHeroCarNear, tickBurningVehicles, setGroundMap } from './vehicle.js';
+import { setSpawnBudget, updateTrafficAI, resolveVehicleBuildingCollision, resolveVehicleVehicleCollisions, manageTrafficPopulation, manageBikePopulation, manageBusPopulation, manageScooterPopulation, manageMotorPopulation, manageBoatPopulation, updateBoatAI, recordContact, checkVehicleWater, spawnHeroCarNear, tickBurningVehicles, setGroundMap } from './vehicle.js';
 import { spawnPedestriansNear, updatePedestrians, CITY_CENTRE, ejectPassenger } from './pedestrians.js';
 import { updateCombat, updateBullets, gastAanvalUitvoeren, gastSlagLanding } from './combat.js';
 import { setCombatEffect } from './combateffect.js';
@@ -1159,9 +1159,15 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     syncLedger(getLedger(), world.money, world.clock);
     probe.mark('populate-pre'); // #804: sectie begint hier, niet bij de vorige frame-mark
 
+    probe.mark('populate-pre:voor-traffic');
     trafficTimer -= dt;
     if (trafficTimer <= 0) {
       trafficTimer = 1.5;
+      // Tijdens het streamen geen spawngolf: de wereld is nog niet klaar en de
+      // speler ziet de auto's toch niet. Daarna weer onbeperkt (#804).
+      const pend0 = streamPending();
+      const druk0 = pend0.buildings + pend0.roads > 0 || prewarmPending() > 0 || prewarmBusy() || (world.map.tileQueue && world.map.tileQueue.size > 0);
+      setSpawnBudget(druk0 ? 4 : Infinity);
       const fociN = world.coopFoci && world.coopFoci.length > 1 ? world.coopFoci.length : 1, fa = aandeel(fociN); // spelers uit elkaar (#429): de foci delen het budget
       manageTrafficPopulation(world, { target: Math.round(scaledTarget(30) * MODS.cars * fa) });
       probe.mark('pop-traffic');
@@ -1183,12 +1189,16 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
       tickRowingCoaches(world);
       probe.mark('pop-boats');
       if (simLevel() || MODS.fading) thinTraffic(world);
+      setSpawnBudget(Infinity);
+      probe.mark('populate-pre:na-traffic');
     }
+    probe.mark('populate-pre:voor-peds');
     pedTimer -= dt;
     if (pedTimer <= 0) {
       pedTimer = 2;
       maintainPedestrians(world);
       probe.mark('pop-peds');
+      probe.mark('populate-pre:na-peds');
     }
     probe.mark('populate');
 

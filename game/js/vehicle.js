@@ -829,6 +829,10 @@ export function dedupeVehicles(vehicles) {
 }
 
 const BUS_VERDWAALD_M = 200; // m van zijn lijn: de bus is de weg kwijt
+// Tijdens het streamen mag de bevolking maar een paar voertuigen per beurt
+// bijmaken; daarna weer onbeperkt (tests en rustige frames). (#804)
+let spawnBudgetPerCall = Infinity;
+export function setSpawnBudget(n) { spawnBudgetPerCall = Number.isFinite(n) && n >= 0 ? n : Infinity; }
 export function manageTrafficPopulation(world, opts = {}) {
   const { map, vehicles } = world;
   const player = opts.focus || (world.cameraOverride && world.streamFocus ? world.streamFocus : hoofdspeler(world)); // in a cutscene the traffic fills round the camera's view (#157)
@@ -862,7 +866,8 @@ export function manageTrafficPopulation(world, opts = {}) {
   for (const v of vehicles) if (v.fleetKind in have && !v.wrecked && v.driver !== 'player') have[v.fleetKind]++;
   const want = { ambulance: 1, taxi: 2, cashvan: 1, newsvan: newsVanWanted(hourOf(world), distToCentre(player.x, player.y)) ? 1 : 0 };
   let guard = 0;
-  while (count < target && candidates.length && guard++ < target * 4) {
+  let spawned = 0;
+  while (count < target && candidates.length && guard++ < target * 4 && spawned < spawnBudgetPerCall) {
     const road = candidates[Math.floor(Math.random() * candidates.length)];
     const mid = road.pts[Math.floor(road.pts.length / 2)];
     let pick = pickTrafficCar(map, mid[0], mid[1], Math.random, { hour: hourOf(world) });
@@ -876,7 +881,7 @@ export function manageTrafficPopulation(world, opts = {}) {
     applyFleetFlags(v, pick.kind);
     if (pick.kind in have) have[pick.kind]++;
     vehicles.push(v);
-    count++;
+    count++; spawned++;
   }
 }
 
@@ -898,7 +903,8 @@ export function manageBikePopulation(world, { target = 16, spawnMin = 40, spawnM
   const candidates = map.roadsNear(player.x, player.y, spawnMax)
     .filter((r) => r.cat === 'cycle' || r.cat === 'normal' || r.cat === 'minor');
   let guard = 0;
-  while (count < target && candidates.length && guard++ < target * 4) {
+  let spawned = 0;
+  while (count < target && candidates.length && guard++ < target * 4 && spawned < spawnBudgetPerCall) {
     const road = candidates[Math.floor(Math.random() * candidates.length)];
     const mid = road.pts[Math.floor(road.pts.length / 2)];
     const variant = pickBikeVariant(map, mid[0], mid[1], Math.random, { hour: hourOf(world) });
@@ -907,7 +913,7 @@ export function manageBikePopulation(world, { target = 16, spawnMin = 40, spawnM
     const d = Math.hypot(v.x - player.x, v.y - player.y);
     if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v) || inPrivateGarage(map, v.x, v.y, 2) || spawnWouldPop(world, v)) continue;
     vehicles.push(v);
-    count++;
+    count++; spawned++;
   }
 }
 
@@ -928,13 +934,14 @@ export function manageScooterPopulation(world, { target = 10, spawnMin = 40, spa
   const candidates = map.roadsNear(player.x, player.y, spawnMax)
     .filter((r) => r.cat === 'cycle' || r.cat === 'normal' || r.cat === 'minor');
   let guard = 0;
-  while (count < target && candidates.length && guard++ < target * 4) {
+  let spawned = 0;
+  while (count < target && candidates.length && guard++ < target * 4 && spawned < spawnBudgetPerCall) {
     const road = candidates[Math.floor(Math.random() * candidates.length)];
     const v = spawnVehicleOnRoad(map, road, false, Math.random, false, false, null, true);
     const d = Math.hypot(v.x - player.x, v.y - player.y);
     if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v) || inPrivateGarage(map, v.x, v.y, 2) || spawnWouldPop(world, v)) continue;
     vehicles.push(v);
-    count++;
+    count++; spawned++;
   }
 }
 
@@ -954,7 +961,8 @@ export function manageMotorPopulation(world, { target = null, spawnMin = 50, spa
   for (const v of vehicles) if (v.isMotor && !v.wrecked && v.driver !== 'player' && v.road && lokaalTelt(world, v, player, despawnDist)) count++;
   const candidates = map.roadsNear(player.x, player.y, spawnMax).filter((r) => (r.cat === 'normal' || r.cat === 'minor') && r.width >= 3 && !r.busOnly);
   let guard = 0;
-  while (count < want && candidates.length && guard++ < want * 5) {
+  let spawned = 0;
+  while (count < want && candidates.length && guard++ < want * 5 && spawned < spawnBudgetPerCall) {
     const road = candidates[Math.floor(Math.random() * candidates.length)];
     const mid = road.pts[Math.floor(road.pts.length / 2)];
     const pick = pickMotor(wijkProfileAt(map, mid[0], mid[1]).key);
@@ -964,7 +972,7 @@ export function manageMotorPopulation(world, { target = null, spawnMin = 50, spa
     const d = Math.hypot(v.x - player.x, v.y - player.y);
     if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v) || spawnWouldPop(world, v)) continue;
     vehicles.push(v);
-    count++;
+    count++; spawned++;
   }
 }
 

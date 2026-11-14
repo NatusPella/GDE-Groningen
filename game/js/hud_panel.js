@@ -645,8 +645,11 @@ export function updateHud(dt, world) {
   // a redraw that costs a lot (vector map of the whole province) gets at most a quarter of the time: measured on
   // hoog the minimap took 5 to 14% of the busy main thread (docs/PERF-METING-2026-10-19.md)
   const mmNow = performance.now();
+  // Op een dure kaart de cadans echt kostenproportioneel maken: een redraw van
+  // 5-12 ms mag hooguit ~10% van het frame kosten, anders zakt de kaart naar
+  // 10-15 fps in plaats van de vaste 20 fps-vloer. (#804, P7)
   const mmInterval = mmCostMs > MM_HEAVY_COST_MS ? MM_HEAVY_INTERVAL_MS : MM_MIN_INTERVAL_MS;
-  if (mmNow - mmLastAt < Math.max(mmInterval, mmCostMs * 4)) return;
+  if (mmNow - mmLastAt < Math.max(mmInterval, mmCostMs * 10)) return;
   mmSkip = simLevel() >= 2 ? 1 : 0;
   if (els.vis.minimap !== false) { drawMinimap(mmDt, world); mmCostMs = mmCostMs * 0.7 + (performance.now() - mmNow) * 0.3; }
   if (hm) probe.mark('hud:minimap');
