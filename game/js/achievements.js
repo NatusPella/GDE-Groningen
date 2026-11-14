@@ -626,14 +626,15 @@ export function recordChallengeResult(w, id, { value, medal = 0, lower = false }
 // --- savegame ---------------------------------------------------------------
 
 export function getAchievementSaveData() {
-  return { eierballen: [...getSaveSet('eierballen')], geheimen: [...getSaveSet('geheimen')], unlocked: Object.keys(life.unlocked) };
+  return { eierballen: [...getSaveSet('eierballen')], geheimen: [...getSaveSet('geheimen')], knutselwagen: [...getSaveSet('knutselwagen')], unlocked: Object.keys(life.unlocked) };
 }
 
 export function applyAchievementSaveData(d) {
-  perSave = { eierballen: new Set(), geheimen: new Set() };
+  perSave = { eierballen: new Set(), geheimen: new Set(), knutselwagen: new Set() };
   if (!d || typeof d !== 'object') return;
   if (Array.isArray(d.eierballen)) for (const id of d.eierballen) if (typeof id === 'string') perSave.eierballen.add(id);
   if (Array.isArray(d.geheimen)) for (const id of d.geheimen) if (typeof id === 'string') perSave.geheimen.add(id);
+  if (Array.isArray(d.knutselwagen)) for (const id of d.knutselwagen) if (typeof id === 'string') perSave.knutselwagen.add(id);
   let merged = false;
   if (Array.isArray(d.unlocked)) {
     for (const id of d.unlocked) if (BY_ID.has(id) && !life.unlocked[id]) { life.unlocked[id] = 1; merged = true; }

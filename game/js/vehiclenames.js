@@ -23,6 +23,8 @@ const NAMES = {
   // #857: the training plane is called Kist Kees in the game; without this row the
   // vehicle name fell back to the generic "Voertuig".
   plane: [['', 'Kist Kees']],
+  // #837: de gebouwde auto uit de onderdelenjacht.
+  knutselwagen: [['Eigen Maaksel', 'Knutselwagen']],
 };
 const BOATS = {
   rondvaart: [['Rondvaartboot', 'Diepenring'], ['Rondvaartboot', 'Stadjer']],

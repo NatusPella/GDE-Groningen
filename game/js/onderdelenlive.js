@@ -2,7 +2,7 @@
 // bestaande prestatieset (geen nieuwe opslagsleutel); de auto is een bestaand model uit
 // de shopvoorraad met een eigen kleur en naam.
 import { hoofdspeler } from './players.js';
-import { recordUnique, hasUnique, isUnlocked } from './achievements.js';
+import { recordUnique, hasUnique, isUnlocked, addToSaveSet, getSaveSet } from './achievements.js';
 import { Vehicle } from './vehicle.js';
 import { VEHICLE_STOCK } from './shopdata.js';
 import { ONDERDELEN_TOTAAL, ONDERDEEL_R, PRESTATIE_SET, ONDERDEEL_AUTO, onderdelen, onderdeelId, stand, autoNaam, heeftAlle } from './onderdelen.js';
@@ -52,12 +52,9 @@ export function tryOnderdeelInteract(world) {
 
 // De garage roept dit aan zodra de speler alle onderdelen heeft. Zonder garagehaak
 // zet de auto een bestaand model (Knutselwagen op basis van de wervelwind) bij de speler.
-export function bouwAuto(world) {
-  if (!world || world.coopRole === 'client') return { ok: false, reden: 'Alleen in je eigen spel.' };
-  if (!heeftAlle(gezien)) return { ok: false, reden: 'Je mist nog onderdelen.' };
-  if (gebouwd) return { ok: false, reden: 'Je auto staat er al.' };
+function maakAuto(world) {
   const spec = VEHICLE_STOCK[ONDERDEEL_AUTO.basis] || VEHICLE_STOCK.mug;
-  if (!spec) return { ok: false, reden: 'Dit model is niet beschikbaar.' };
+  if (!spec) return null;
   const p = hoofdspeler(world);
   const model = { ...spec.model, color: ONDERDEEL_AUTO.kleur, name: 'knutselwagen' };
   // Geen import van ownedvehicles (dat zou een importcyclus met garages geven): de auto
@@ -67,11 +64,32 @@ export function bouwAuto(world) {
   v.name = autoNaam();
   v.playerOwned = true;
   v.missionCar = false;
+  v.knutselwagen = true;
   v.color = ONDERDEEL_AUTO.kleur;
   world.vehicles.push(v);
+  return v;
+}
+
+export function bouwAuto(world) {
+  if (!world || world.coopRole === 'client') return { ok: false, reden: 'Alleen in je eigen spel.' };
+  if (!heeftAlle(gezien)) return { ok: false, reden: 'Je mist nog onderdelen.' };
+  if (gebouwd) return { ok: false, reden: 'Je auto staat er al.' };
+  const v = maakAuto(world);
+  if (!v) return { ok: false, reden: 'Dit model is niet beschikbaar.' };
   gebouwd = true;
+  addToSaveSet(world, 'knutselwagen', 'gebouwd');
   world.addMessage(`Je ${autoNaam()} staat klaar. Een echte Eigen Maaksel!`, 4, { kind: 'prestatie' });
   return { ok: true, auto: v, record: v };
+}
+
+// Herstel de gebouwde auto na het laden van een save (per-save vlag).
+export function updateOnderdelen(world) {
+  if (!world || world.__knutselwagenChecked) return;
+  world.__knutselwagenChecked = true;
+  if (!getSaveSet('knutselwagen').has('gebouwd')) { gebouwd = false; return; }
+  gebouwd = true;
+  if (world.vehicles.some((v) => v.knutselwagen || v.name === autoNaam())) return;
+  maakAuto(world);
 }
 
 export const onderdelenGebouwd = () => gebouwd;

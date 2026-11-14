@@ -15,7 +15,8 @@ export const streekuitdagingActief = () => !!run;
 export const getStreekuitdagingSpotsForRender = () => [{ ...STREEKUITDAGING.start, kind: 'streekuitdaging', naam: STREEKUITDAGING.naam }];
 
 export function tryStreekuitdaging(world) {
-  if (!world || run || world.coopRole === 'client') return false;
+  if (!world || run) return false;
+  if (world.coopRole === 'client') { world.addMessage?.(ALLEEN_EIGEN_SPEL, 3); return false; }
   const inp = world.input;
   if (!inp || !inp.wasPressed || !inp.wasPressed('e')) return false;
   const p = hoofdspeler(world);

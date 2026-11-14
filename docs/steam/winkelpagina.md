@@ -79,10 +79,10 @@ De stad is gebouwd uit OpenStreetMap: de echte straten, grachten, bruggen en geb
 [*]Satire met een rauwe rand: burgers en agenten kunnen sneuvelen, met bloed en rondvliegende ledematen. Dat is in de instellingen uit te zetten ("Bloed en ledematen"). Het spel is 18+.
 [/list]
 
-[h2]Gratis, offline, zonder gedoe[/h2]
+[h2]Gratis, zonder gedoe[/h2]
 [list]
 [*]Helemaal gratis. Geen aankopen in de game, geen lootboxes, geen advertenties.
-[*]Singleplayer en offline te spelen. Geen account, geen tracking. Samen spelen (online co-op én PvP) met een kamercode kan ook, of via de lijst met openbare sessies (internet nodig; het spel vraagt eerst toestemming; geen tekstchat).
+[*]Singleplayer in je eigen besloten online sessie (ook met één speler). Geen account, geen tracking. Samen spelen (online co-op én PvP) met een kamercode kan ook, of via de lijst met openbare sessies (internet nodig; geen tekstchat).
 [*]Toetsenbord en muis of controller, ook op de Steam Deck; alles opnieuw in te delen.
 [*]Ondertitels in vier maten, kleurenblinde paletten, en een benchmark die zegt welke instelling bij je pc past.
 [/list]
@@ -341,11 +341,11 @@ hetzelfde:
 
 NL:
 
-> Geen account, geen tracking, geen statistieken, geen advertenties. De game bewaart je voortgang en instellingen alleen op je eigen computer; fouten komen in een logboek op je eigen computer dat niets verstuurt (je kunt het zelf kopiëren als je een fout meldt). Er zijn twee uitzonderingen, en alleen als jij ze zelf aanzet: (1) Samen spelen — na je toestemming gaat je IP-adres naar een openbare STUN-server en loopt de versleutelde signalering via openbare brokers; (2) live busposities — een openbare leesopvraag zonder gegevens van jou. Zonder die twee gaat er niets van of over jou naar buiten.
+> Geen account, geen tracking, geen statistieken, geen advertenties. De game bewaart je voortgang en instellingen alleen op je eigen computer; fouten komen in een logboek op je eigen computer dat niets verstuurt (je kunt het zelf kopiëren als je een fout meldt). Het spel speelt altijd online in een eigen besloten sessie: daarvoor gaat je IP-adres naar een openbare STUN-server en loopt de versleutelde signalering via openbare brokers. Deel je de sessie of speel je mee, dan gaat je IP-adres ook naar je medespeler. Daarnaast staan de live busposities standaard aan (openbare leesopvraag zonder gegevens van jou, uit te zetten in Instellingen). Er is geen account, geen telemetrie en niets van je voortgang gaat naar buiten.
 
 EN:
 
-> No account, no tracking, no analytics, no ads. Your progress and settings are stored only on your own computer; errors go into a log on your own computer that sends nothing (you can copy it yourself when you report a bug). There are two exceptions, and only if you turn them on yourself: (1) Playing together — after your permission, your IP address goes to a public STUN server and the encrypted signalling runs through public brokers; (2) live bus positions — a public read-only request with no data about you. Without those two, nothing about you leaves your computer.
+> No account, no tracking, no analytics, no ads. Your progress and settings are stored only on your own computer; errors go into a log on your own computer that sends nothing (you can copy it yourself when you report a bug). The game always plays online in its own private session: your IP address goes to a public STUN server and the encrypted signalling runs through public brokers. If you share the session or join someone, your IP address also goes to that player. Live bus positions are on by default (a public read-only request with no data about you, switchable in Settings). There is no account, no telemetry and none of your progress leaves your computer.
 
 (Steam zelf meet speeltijd en prestaties; dat valt onder het beleid van
 Valve. Als er later Steam Cloud of Steam-achievements bij komen via

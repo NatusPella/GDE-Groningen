@@ -41,7 +41,9 @@ export function tryWrakduikInteract(world) {
   const inp = world.input;
   if (!inp || !inp.wasPressed || !(inp.wasPressed('e') || inp.wasPressed('f'))) return false;
   const p = hoofdspeler(world);
-  if (!p || p.inVehicle || p.swimming || p.climb) return false;
+  // Ook vanaf een boot of zwemmend bij het wrak mag je duiken: het Lauwersmeerwrak
+  // heeft geen droge oever binnen loopafstand (review 0.61.0).
+  if (!p || p.climb || (p.inVehicle && !p.inVehicle.isBoat)) return false;
   const plek = duikplekBij(p.x, p.y);
   if (!plek) return false;
   const id = vondstId(plek);
@@ -64,7 +66,7 @@ export function tryWrakduikInteract(world) {
 export function wrakduikPrompt(world) {
   if (!world || world.coopRole === 'client') return null;
   const p = hoofdspeler(world);
-  if (!p || p.inVehicle || p.swimming || p.climb) return null;
+  if (!p || p.climb || (p.inVehicle && !p.inVehicle.isBoat)) return null;
   const plek = duikplekBij(p.x, p.y);
   if (!plek || gedoken(vondstId(plek))) return null;
   return { id: 'wrakduik-' + plek.id, x: plek.x, y: plek.y, h: 1.6, key: 'E', label: `Duiken naar ${plek.wrak.naam}`, sub: `${plek.water} · een vondst voor je album`, ring: true };

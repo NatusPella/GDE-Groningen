@@ -84,7 +84,7 @@ import { initParkeergarages, updateParkeergarages } from './parkeergarage.js';
 import { initHoreca, initCountryHoreca, updateHoreca, tryHorecaInteract } from './horeca.js';
 import { initShops, initCountryShops, updateShops, tryShopInteract, COUNTRY_SHOP_KINDS, getShopsForRender, spawnSharedVehicle } from './shops.js';
 import { initSnackMachines, updateSnackMachines, tryMachineInteract } from './snackautomaat.js';
-import { initOnderdelen, tryOnderdeelInteract } from './onderdelenlive.js'; // #837: onderdelenjacht
+import { initOnderdelen, tryOnderdeelInteract, updateOnderdelen } from './onderdelenlive.js'; // #837: onderdelenjacht
 import { initWrakduiken, tryWrakduikInteract } from './wrakduikenlive.js'; // #839: wrakduiken
 import { tryStreekuitdaging, updateStreekuitdaging } from './streekuitdaginglive.js'; // #835: Hogelandrit
 import { updateStreetLife, tryStreetLifeInteract } from './streetlife.js';
@@ -1209,6 +1209,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     else {
       tryQuickWaypoint(world);
       tryOnderdeelInteract(world);
+      updateOnderdelen(world);
       tryWrakduikInteract(world);
       tryStreekuitdaging(world);
       updateStreekuitdaging(world, dt);
