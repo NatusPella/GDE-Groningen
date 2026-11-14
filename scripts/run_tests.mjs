@@ -61,7 +61,7 @@ export function listFiles(dir, re, out = []) {
     try { st = statSync(p); } catch { continue; }
     if (name === 'audio_check.js' || /\.page\.js$/.test(name)) continue; // snippets voor de browserconsole/CDP (top-level await)
     if (st.isDirectory()) {
-      if (['build', 'dist', 'vendor', '.claude'].includes(name)) continue;
+      if (['build', 'dist', 'vendor', '.claude'].includes(name) || /^\.shots/.test(name)) continue;
       listFiles(p, re, out);
     } else if (re.test(name)) out.push(p);
   }

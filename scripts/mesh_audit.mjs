@@ -117,7 +117,15 @@ const ZEPS = 0.003;
 const mats = [];
 const matId = new Map();
 const SURF_NAMES = { SURF_ASPHALT: 'asphalt', SURF_CYCLE: 'cycle', SURF_KLINKER: 'klinker', SURF_TILES: 'tiles', SURF_GRAVEL: 'gravel', SURF_MARKING: 'marking' };
+let missingMat = null;
 function matOf(m, hint) {
+  if (!m) {
+    if (missingMat === null) {
+      missingMat = mats.length;
+      mats.push({ name: 'geen-materiaal', factor: 0, units: 0, ownerJz: 0, double: false });
+    }
+    return missingMat;
+  }
   let id = matId.get(m);
   if (id !== undefined) return id;
   const defs = m.defines || {};
