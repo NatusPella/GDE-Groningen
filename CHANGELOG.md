@@ -9,7 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
-## [0.60.8] - 2026-11-13
+## [0.61.0] - 2026-11-14
 
 - **De koude start is verder teruggebracht: het laadscherm rijdt nu een ruimere ring rond het startpunt voor (320 m i.p.v. 200 m) en tekent de warm-up-palette echt één keer onder beide lichtstanden.** Daardoor verdwijnen de eerste-draw-piek en de oude Canvas2D-kosten uit het koude pad; de JS-heap bij de start is meetbaar lager.
 - **De warm-up-objecten worden na de opening betrouwbaar opgeruimd, ook als er tijdens het tekenen iets misgaat.** De palette-groep wordt niet meer dubbel opgeruimd en de verwijzingen op de wereld blijven niet hangen; dat scheelt geheugen in lange sessies.

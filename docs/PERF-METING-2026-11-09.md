@@ -472,7 +472,7 @@ tientallen losse bouw- en detailtrekken op spoor), (c) `3d:buildings`
 streaming. De norm (p95 <= 25, max <= 100) blijft op deze machine onhaalbaar te
 verifiëren; dat staat hier eerlijk als restpunt.
 
-## Koudstart-hermeting 0.60.8 (13-11, Electron 45, schone machine)
+## Koudstart-hermeting 0.61.0 (13-11, Electron 45, schone machine)
 
 Opnieuw `--profile-load=20000` (CPU-profiel van de eerste 20 s na navigatie;
 totaal 21,1 s gesampled) en de benchmark, na `npm run stage`:
