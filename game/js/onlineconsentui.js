@@ -11,7 +11,7 @@ const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<
 
 // De eerste-startkaart is één verplichte stap: een naam en één knop "Doorgaan".
 // Geen tweede antwoord, geen "Later" en geen weg terug: altijd online.
-export function onlineStartHtml({ naam = '', fout = '' } = {}) {
+export function onlineStartHtml({ naam = '', fout = '', consent = false } = {}) {
   return `<section class="os-kaart" role="dialog" aria-modal="true" aria-labelledby="os-titel">
     <p class="os-eb">Samen spelen</p>
     <h2 id="os-titel">${esc(EERSTE_START.titel)}</h2>
@@ -20,7 +20,7 @@ export function onlineStartHtml({ naam = '', fout = '' } = {}) {
       <input type="text" class="os-naam" maxlength="${ONLINE_NAAM_MAX}" spellcheck="false" autocomplete="off" placeholder="Je naam" required value="${esc(naam)}">
     </label>
     <p class="os-hint">${esc(EERSTE_START.naamHint)}</p>
-    <label class="os-consent"><input type="checkbox" class="os-consent-vink"> <span>${esc(EERSTE_START.consent)}</span></label>
+    <label class="os-consent"><input type="checkbox" class="os-consent-vink"${consent ? ' checked' : ''}> <span>${esc(EERSTE_START.consent)}</span></label>
     ${fout ? `<p class="os-fout" role="alert">${esc(fout)}</p>` : '<p class="os-fout" role="alert" hidden></p>'}
     <div class="os-knoppen">
       <button type="button" class="os-knop os-doorgaan" data-doorgaan>${esc(EERSTE_START.doorgaan)}</button>
@@ -45,10 +45,11 @@ export function consentOnthoudenHtml({ label = 'Niet meer vragen', checked = fal
 // (role="alert"), and nothing is written; the focus goes back to the name field.
 export function mountOnlineStart(root, { naam = '', onKies = () => {} } = {}) {
   let fout = '';
-  let getypt = naam; // what the field holds now, so a refused name is not wiped from under the player
+  let getypt = naam;
+  let aangevinkt = false; // what the field holds now, so a refused name is not wiped from under the player
   const veld = () => (root.querySelector ? root.querySelector('.os-naam') : null);
   const teken = () => {
-    root.innerHTML = onlineStartHtml({ naam: getypt, fout });
+    root.innerHTML = onlineStartHtml({ naam: getypt, fout, consent: aangevinkt });
     const v = veld();
     if (v && typeof v.focus === 'function') v.focus();
   };
@@ -58,8 +59,13 @@ export function mountOnlineStart(root, { naam = '', onKies = () => {} } = {}) {
     const v = veld();
     if (v && 'value' in v) getypt = v.value;
     const vink = root.querySelector ? root.querySelector('.os-consent-vink') : null;
-    const r = kiesNaam(getypt, { consent: vink && 'checked' in vink ? !!vink.checked : true });
-    if (!r.ok) { fout = r.error; teken(); return r; }
+    if (vink && 'checked' in vink) aangevinkt = !!vink.checked;
+    const r = kiesNaam(getypt, { consent: vink && 'checked' in vink ? aangevinkt : true });
+    if (!r.ok) {
+      fout = r.error; teken();
+      if (/toestemming/.test(fout)) { const c = root.querySelector && root.querySelector('.os-consent-vink'); if (c && c.focus) c.focus(); }
+      return r;
+    }
     root.innerHTML = '';
     onKies({ ...r, keuze: 'doorgaan' });
     return r;
