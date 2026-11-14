@@ -117,7 +117,7 @@ async function runPart(deel, pre, pageFile, extraEnv = {}) {
   const env = { ...process.env, GDE_TEST_PROFILE: profile, ...extraEnv };
   delete env.ELECTRON_RUN_AS_NODE;
   const logFd = fs.openSync(path.join(OUT, `run-${deel}.log`), 'w');
-  const child = spawn(electron, ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1600x900',
+  const child = spawn(electron, ['.', '--windowed', '--stil', '--no-sandbox', '--force-device-scale-factor=1', '--window-size=1600x900',
     `--smoke-test=${path.join(OUT, 'shots.png')}`, `--perf-script=${script}`], { cwd: path.join(ROOT, 'desktop'), env, stdio: ['ignore', logFd, logFd] });
   try { os.setPriority(child.pid, os.constants.priority.PRIORITY_BELOW_NORMAL); } catch { /* geen recht: gewone prioriteit */ }
   const kill = setTimeout(() => { try { spawnSync('taskkill', ['/PID', String(child.pid), '/T', '/F']); } catch { /* weg */ } }, 50 * 60 * 1000);

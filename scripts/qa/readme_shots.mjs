@@ -75,7 +75,7 @@ const env = { ...process.env, GDE_TEST_PROFILE: profile, GDE_NIEUW_VERHAAL: '1' 
 delete env.ELECTRON_RUN_AS_NODE;
 // Windows houdt een venster binnen het werkgebied (hier 1904x993 in plaats van 1920x1080): de pagina legt zich daarom uit
 // op 1920x1080 (--emulate-view) in een venster van 0,9 keer die grootte, een beeld van 1728x972 (16:9)
-const r = spawnSync(electron, ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1728x972', '--emulate-view=1920x1080@0.9',
+const r = spawnSync(electron, ['.', '--windowed', '--stil', '--no-sandbox', '--force-device-scale-factor=1', '--window-size=1728x972', '--emulate-view=1920x1080@0.9',
   `--smoke-test=${path.join(OUT, 'shots.png')}`, `--perf-script=${script}`],
   { cwd: path.join(ROOT, 'desktop'), env, encoding: 'utf8', maxBuffer: 1 << 28, timeout: 60 * 60 * 1000, killSignal: 'SIGKILL' });
 if (r.error) console.error('Electron starten mislukt (zet ELECTRON_EXE):', r.error.message);
