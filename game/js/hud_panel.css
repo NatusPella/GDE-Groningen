@@ -55,7 +55,7 @@ body.hide-minimap #hud .hud-minimap-wrap { display: none; }
 #hud .hud-special {
   display: flex; gap: 7px; align-items: center; padding: 4px 10px 3px 8px; border-radius: 6px;
   background: rgba(232, 201, 58, 0.14); box-shadow: inset 0 0 0 1px rgba(232, 201, 58, 0.55);
-  font-size: max(16px, var(--hud-min)); color: #f3dc6a; text-shadow: none;
+  font-size: max(16px, var(--hud-min)); color: var(--mk-mission, #e8c93a); text-shadow: none;
 }
 #hud .hud-special[hidden] { display: none; }
 #hud .hud-special svg { width: 15px; height: 15px; fill: #e8c93a; flex: none; }
