@@ -403,7 +403,7 @@ export function buildReport(input = {}) {
     gegenereerd: b.gegenereerd || null,
     baseline: b.baseline || null,
     drempels: normalizeThresholds(b.thresholds),
-    norm: { maxP95Ms: NORM.maxP95Ms, maxMaxMs: NORM.maxMaxMs, maxOver50: NORM.maxOver50, maxOver100: NORM.maxOver100 },
+    norm: { maxP95Ms: NORM.maxP95Ms, maxCpuP95Ms: NORM.maxCpuP95Ms, maxMaxMs: NORM.maxMaxMs, maxOver50: NORM.maxOver50, maxOver100: NORM.maxOver100 },
     bestanden: Array.isArray(b.bestanden) ? b.bestanden : [],
     routes,
     statistiek: isObject(b.statistiek) ? b.statistiek : routeCounts(routes),

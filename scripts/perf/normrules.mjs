@@ -22,7 +22,8 @@ export function routeStats(route) {
     max: num(r.max),
     over50: h && Number.isFinite(h.over50) ? h.over50 : null,
     over100: h && Number.isFinite(h.over100) ? h.over100 : null,
-    cpuP95: h && Number.isFinite(h.cpuP95) ? h.cpuP95 : null,
+    // De perf-run zet cpuP95 op routeniveau; oudere runs stopten hem in hitch.
+    cpuP95: Number.isFinite(r.cpuP95) ? r.cpuP95 : (h && Number.isFinite(h.cpuP95) ? h.cpuP95 : null),
   };
 }
 

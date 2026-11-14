@@ -37,7 +37,6 @@ export const getWrakduikSpotsForRender = () => duikplekken().map((p) => ({ ...p,
 
 export function tryWrakduikInteract(world) {
   if (!world) return false;
-  if (world.coopRole === 'client') { world.addMessage?.(ALLEEN_EIGEN_SPEL, 3); return false; }
   const inp = world.input;
   if (!inp || !inp.wasPressed || !(inp.wasPressed('e') || inp.wasPressed('f'))) return false;
   const p = hoofdspeler(world);
@@ -46,6 +45,8 @@ export function tryWrakduikInteract(world) {
   if (!p || p.climb || (p.inVehicle && !p.inVehicle.isBoat)) return false;
   const plek = duikplekBij(p.x, p.y);
   if (!plek) return false;
+  // De gastwaarschuwing pas bij een echte E-druk bij een wrak, niet elke frame.
+  if (world.coopRole === 'client') { inp.consume?.('e'); inp.consume?.('f'); world.addMessage?.(ALLEEN_EIGEN_SPEL, 3); return false; }
   const id = vondstId(plek);
   if (gedoken(id)) {
     world.addMessage('Hier heb je al gedoken; het wrak is leeg.', 2.4);
