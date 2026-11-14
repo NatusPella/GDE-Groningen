@@ -17,7 +17,7 @@
 // niet betrouwbaar bleek, en blijft hij achter het plaatwerk: door een dichte carrosserie is niets te
 // zien. De masker- en gatmesh zijn elk twee driehoeken per opening en delen hun geometrie met alle
 // voertuigen van dezelfde soort en maat; de ladingmesh is de enige met een eigen, gedeelde LOD-geometrie.
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import * as THREE from 'three';
 import { GeoBuilder, markShared } from './pixelart3d.js';
 import { getVehicleMesh } from './models3d_vehicles.js';
 import { hoofdspeler } from './players.js';

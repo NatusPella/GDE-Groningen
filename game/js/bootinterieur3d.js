@@ -22,7 +22,7 @@
 // terug; er komt dus nooit een tweede mesh bij. De binnenhuid (vloer, plafond en wanden met de normaal naar
 // binnen) zit in niveau 0, zodat je in eerste persoon niet door de achterkanten van het enkelzijdige
 // plaatwerk heen kijkt; van buiten is hij onzichtbaar en hij kost geen extra tekenaanroep.
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import * as THREE from 'three';
 import { GeoBuilder, markShared, composeMatrix } from './pixelart3d.js';
 import { getVehicleMesh } from './models3d_vehicles.js';
 import { hoofdspeler } from './players.js';
