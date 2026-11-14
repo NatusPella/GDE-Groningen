@@ -54,6 +54,7 @@ export function mapCategory(kind) {
   if (kind.startsWith('sj-')) return 'job';
   if (kind.startsWith('shop-')) return 'shop';
   if (kind.startsWith('perceel-')) return 'ommeland';
+  if (kind === 'beppe') return 'ommeland'; // het eerbetoonbankje (#832): altijd zichtbaar op de kaart
   if (kind === 'dorp' || kind === 'dorpKlaar' || kind === 'wereldeinde') return 'ommeland';
   if (kind === 'companion') return 'companion';
   if (kind === 'eierbalTip') return 'tip';

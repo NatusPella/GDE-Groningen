@@ -2,7 +2,7 @@
 // voorwerp en dat komt in je album. Geen nieuwe opslagsleutel; de vondsten staan in de
 // bestaande prestatieset.
 import { hoofdspeler } from './players.js';
-import { recordUnique, hasUnique, recordStat } from './achievements.js';
+import { recordUnique, hasUnique, recordStat, getSaveSet } from './achievements.js';
 import { DUIK_R, WRAKVONDSTEN_SET, WRAKDUIKEN_STAT, duikplekken, duikplekBij, vondstId, duikStand } from './wrakduiken.js';
 
 let worldRef = null;

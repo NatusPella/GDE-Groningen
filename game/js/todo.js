@@ -48,6 +48,7 @@ import { beginHierItems, beginHierCount } from './todobegin.js';
 import { onderdelenAlbum, getOnderdeelSpotsForRender } from './onderdelenlive.js'; // #837
 import { duikAlbum, getWrakduikSpotsForRender } from './wrakduikenlive.js'; // #839
 import { getStreekuitdagingSpotsForRender } from './streekuitdaginglive.js'; // #835
+import { beppeTodoItem } from './beppe_garden.js'; // #832
 export { beginHierItems, beginHierCount };
 
 export const GROUPS = [
@@ -328,8 +329,10 @@ function ommelandItems(world) {
   const st = city.length ? nearest(city, hoofdspeler(world)) : null;
   const names = Object.keys(VILLAGES);
   const ends = uniqueCount('wereldeinden');
+  const beppe = beppeTodoItem(world);
   return [
     ...ommelandPaspoortItems(world),
+    ...(beppe ? [beppe] : []),
     { key: 'om:einde', group: 'ommeland', icon: 'landmark', title: 'Einde van de wereld', status: ends >= WORLD_END_TOTAL ? 'klaar' : '',
       meta: 'Waar het Ommeland ophoudt · zoek ze zelf', medal: null, record: `${ends} van ${WORLD_END_TOTAL} gevonden`, goal: null,
       detail: { kicker: 'Ommeland · verkennen', text: 'Ergens houden de wegen van het Ommeland op. Waar, dat zeggen we niet.', rows: [] } },

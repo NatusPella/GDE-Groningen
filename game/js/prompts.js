@@ -32,6 +32,7 @@ import { activityPrompt, activitySecondary } from './activities.js';
 import { hengelVrijPrompt } from './hengelen.js';
 import { postgamePrompt, postgameSecondary } from './postgame.js';
 import { ommelandPrompt, ommelandSecondary } from './ommelandfun.js';
+import { beppePrompt } from './beppe_garden.js';
 import { renderAimReticle } from './aimassist.js';
 import { WEAPONS, isMeleeWeapon, isRangedWeapon } from './combat.js';
 import { gameBusy } from './busy.js';
@@ -398,6 +399,9 @@ function findPrimary(world) {
   if (aai) return aai;
   const dorp = ommelandPrompt(world);
   if (dorp) return dorp;
+  // het eerbetoonbankje (#832): de twee bankjes aan de westgrens
+  const beppe = beppePrompt(world);
+  if (beppe) return beppe;
   const knip = kaartjesPrompt(world);
   if (knip) return knip;
   const trein = stationPrompt(world);

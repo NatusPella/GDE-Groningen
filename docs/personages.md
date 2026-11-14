@@ -67,6 +67,13 @@ Regels die voor iedereen gelden:
   - "Het museum heeft camera's. Ik heb een pet."
   - "Wij tweeën vóór Grunn. Kon minder, hè?"
 
+## Beppe (Tammo's beppe)
+**In één zin:** Tammo's Friese oma; haar tuin, haar vogels en haar "Goed ite!" leven voort in het tuintje aan de westgrens.
+
+- **In het spel:** geen levend personage en geen stem. Aan de westgrens staan het laatste bankje van Grunn met haar koperen plaatje, een richtingbordje naar Kollum en haar huis met tuin, vogelhuisje en duiven; het tuinbankje is een rustpunt. De aftiteling eindigt met de in-herinnering-kaarten.
+- **In het verhaal:** Tammo zegt weinig over haar; hij noemt haar "beppe", het enige Friese woord dat hij gebruikt. Na het verhaal wijst de automatische route één keer naar het huis, vóór de uitdagingen; daarna staat de plek in Te doen onder Ommeland.
+- **Let op:** verzonnen personage. Geen echte naam, adres of persoonsgegevens in de game of de repo (constitutie 2 en 4).
+
 ## Tessa
 **In één zin:** snel, ad rem en de baas van het duo. Ze lacht om alles behalve om mensen die haar droom kleineren.
 

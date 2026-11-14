@@ -34,6 +34,7 @@ import { wedNodigUit, wedNuStarten } from './multiplayerwedstrijd.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
 import { vakVanUitdaging } from './loopbaan.js';
 import { hoofdspeler } from './players.js';
+import { FAREWELL } from './beppe_texts.js';
 
 // The post-game: once the story's ending card has played (story.js, read
 // only), Jelle Terpstra challenges Tammo and Tessa to three replayable duels
@@ -572,6 +573,7 @@ function dayWage(w) {
 const isTruckV = (v) => !!(v && FJORD.vehicle(v));
 let guideSkip = new Set();
 let guideT = 0;
+let beppeHinted = false;
 
 function medalOf(id) {
   const rec = getChallengeRecord(id);
@@ -609,8 +611,14 @@ function guideCandidates(w) {
 }
 
 function pickGuide(w) {
-  if (!open || !spots || run || state.guideOff || !(state.revealed || state.invited)) return null;
+  if (!open || run || state.guideOff) return null;
   if (playerBusy(w, ['challenge', 'pigeon', 'heliRun', 'mission', 'sideJob']).busy) return null;
+  // Eerst het eerbetoon (#832): na het verhaal wijst de automatische route één
+  // keer naar het huis van Tammo's beppe, tot de herinnering daar gelezen is.
+  // Daarna pas de uitdagingen. beppe_garden zet deze closure op de wereld.
+  const beppe = w.beppeGuide && typeof w.beppeGuide.target === 'function' ? w.beppeGuide.target() : null;
+  if (beppe && !guideSkip.has('beppe')) return { x: beppe.x, y: beppe.y, name: beppe.name, id: 'beppe', pg: true };
+  if (!spots || !(state.revealed || state.invited)) return null;
   const list = guideCandidates(w);
   if (!list.length) return null;
   let pick = list.find((c) => !guideSkip.has(c.id));
@@ -623,9 +631,16 @@ function updateGuide(dt, w) {
   guideT = 1;
   const g = pickGuide(w);
   w.postgameGuide = g ? { x: g.x, y: g.y, name: g.name, id: g.id, pg: true } : null;
-  if (g && !state.guideHinted && !isCinematicActive() && w.phoneNotifications) {
-    state.guideHinted = true;
-    w.phoneNotifications.push({ from: 'GDE', text: 'Je GPS wijst nu naar de dichtstbijzijnde uitdaging zonder medaille. Je eigen bestemming gaat voor. Op de kaart kies je Volgende of Uit, en zet je hem weer aan.', duration: 8 });
+  if (g && !isCinematicActive() && w.phoneNotifications) {
+    if (g.id === 'beppe') {
+      if (!beppeHinted && !w.storyGuide) {
+        beppeHinted = true;
+        w.phoneNotifications.push({ from: 'Tammo', text: FAREWELL.hint, duration: 8 });
+      }
+    } else if (!state.guideHinted) {
+      state.guideHinted = true;
+      w.phoneNotifications.push({ from: 'GDE', text: 'Je GPS wijst nu naar de dichtstbijzijnde uitdaging zonder medaille. Je eigen bestemming gaat voor. Op de kaart kies je Volgende of Uit, en zet je hem weer aan.', duration: 8 });
+    }
   }
 }
 

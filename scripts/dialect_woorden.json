@@ -4050,6 +4050,72 @@
       "status": "kennis",
       "opm": "gemengd; staat in de Nederlandse ondertitel (subtitles.js:169)",
       "bewijs": "fy.wikipedia: 0 artikelen"
+    },
+    "ite": {
+      "nl": "eten (eet smakelijk, 'goed ite!')",
+      "status": "bron",
+      "opm": "fy.wiktionary.org/wiki/ite: Fries werkwoord 'ite' (Nederlands: iten, nuttigje), vervoeging ite/yt/ytst/yt/ite/iet/ieten/iten; in 'Goed ite!' staat de infinitief als algemene wens 'goed eten, eet goed'. Spellingsvorm volgens de Friese standaard (Stavering 1980, herzien 2015); geen variant nodig.",
+      "bewijs": "woordenboek: iten, nuttigje (fy.wiktionary); fy.wikipedia: 679 artikelen"
+    },
+    "beppe": {
+      "nl": "oma, grootmoeder (rolnaam, geen eigennaam)",
+      "status": "bron",
+      "opm": "fy.wiktionary.org/wiki/beppe: 'mem fan in âlder' en 'in âlde frou'; meartal 'beppes'/'beppen', ferlytsingsfoarm 'bepke'. 'Beppe' is een gewoon zelfstandig naamwoord en in dit eerbetoon een rolnaam, geen echte persoon (constitutie 2 en 4).",
+      "bewijs": "woordenboek: mem fan in âlder; in âlde frou (fy.wiktionary); fy.wikipedia: 496 artikelen (artikel 'Beppe': de manlike wjergader is in pake)"
+    },
+    "Kollum": {
+      "nl": "Kollum (Fries dorp in de gemeente Noardeast-Fryslân)",
+      "status": "kennis",
+      "opm": "fy.wikipedia.org/wiki/Kollum: 'Kollum (Frysk en Kollumersk) is in doarp yn de gemeente Noardeast-Fryslân'. De Friese naam is gelijk aan de Nederlandse, dus het richtingbordje 'Kollum' klopt in beide talen; het is een echte plaatsnaam (constitutie 2 staat echte plaatsen toe). Geen woordenboekopzoeking.",
+      "bewijs": "fy.wikipedia: 393 artikelen"
+    },
+    "hoopje": {
+      "nl": "hopen (ik hoop)",
+      "status": "bron",
+      "opm": "en.wiktionary.org/wiki/hoopje, sectie West Frisian: werkwoord 'to hope', vervoeging hoopje/hope, met verwijzing naar WFT 41313. fy.wiktionary heeft geen eigen pagina; fy.wikipedia gebruikt 'hoopje' wel (artikel 'Hoop'). 'Ik hoopje' is de 1e persoon enkelvoud tegenwoordige tijd.",
+      "bewijs": "woordenboek: to hope (en.wiktionary, West-Fries); fy.wikipedia: 74 artikelen"
+    },
+    "himel": {
+      "nl": "hemel",
+      "status": "bron",
+      "opm": "fy.wiktionary.org/wiki/himel: 'it blauwe himelferwulft' en (religy) 'besteanssfear dêr't de deaden hinne giet at er goed libbe hat'. Die tweede, religieuze betekenis is de bedoelde hemel in 'Ik hoopje dat der in himel is.'",
+      "bewijs": "woordenboek: ciel (fy.wiktionary); fy.wikipedia: 299 artikelen"
+    },
+    "der": {
+      "nl": "er (daar, onbepaald)",
+      "status": "bron",
+      "opm": "en.wiktionary.org/wiki/der, sectie West Frisian: bijwoord 'there (unspecific to distance)', voorbeeld 'Der binne trije Fryske talen'. In 'dat der in himel is' is het de gewone existentiële 'der' (Nederlands: er); geen verwarring met Nederlands 'der'.",
+      "bewijs": "woordenboek: there (en.wiktionary, West-Fries; WFT 15378); fy.wikipedia: 26905 artikelen"
+    },
+    "fûgels": {
+      "nl": "vogels",
+      "status": "bron",
+      "opm": "meervoud van 'fûgel'; fy.wiktionary.org/wiki/fûgel: waarmbloedich wringedier mei twa wjukken, meartal 'fûgels'. Spelling met û hoort bij de Friese standaard (Stavering 1980/2015).",
+      "bewijs": "woordenboek: bird, meartal fûgels (fy.wiktionary); fy.wikipedia: 3440 artikelen (artikel 'Fûgels')"
+    },
+    "yn": {
+      "nl": "in, binnen",
+      "status": "bron",
+      "opm": "en.wiktionary.org/wiki/yn, sectie West Frisian: voorzetsel 'in, into' (WFT 43725); fy.wiktionary bevestigt het voorzetsel. In 'Kom mar yn.' staat 'yn' als bijwoord 'naar binnen', een gewone Friese constructie.",
+      "bewijs": "woordenboek: in, into (en.wiktionary en fy.wiktionary, West-Fries); fy.wikipedia: 59095 artikelen"
+    },
+    "mar": {
+      "nl": "maar",
+      "status": "bron",
+      "opm": "en.wiktionary.org/wiki/mar, sectie West Frisian: voegwoord 'but' (WFT 61255) en bijwoord 'only, solely'. fy.wiktionary heeft op de pagina 'mar' alleen het zelfstandig naamwoord 'meer' (marren); de voegwoordbetekenis komt daar niet voor, wel in en.wiktionary.",
+      "bewijs": "woordenboek: but (en.wiktionary, West-Fries); fy.wikipedia: 24698 artikelen"
+    },
+    "binne": {
+      "nl": "zijn (meervoud tegenwoordige tijd van wêze)",
+      "status": "bron",
+      "opm": "en.wiktionary.org/wiki/binne, sectie West Frisian: werkwoordsvorm 'plural present of wêze'; fy.wiktionary.org/wiki/binne: 'meartal notiid fan wêze'. Past bij 'De fûgels binne der al.' (de vogels zijn er al).",
+      "bewijs": "woordenboek: meartal notiid fan wêze (en.wiktionary en fy.wiktionary); fy.wikipedia: 35887 artikelen"
+    },
+    "jonge": {
+      "nl": "jongen",
+      "status": "bron",
+      "opm": "en.wiktionary.org/wiki/jonge, sectie West Frisian: zelfstandig naamwoord 'boy', meervoud 'jonges' (WFT 46219). fy.wiktionary heeft geen pagina; het fy.wikipedia-artikel 'Jonge' bevestigt de betekenis. In 'Goed ite, jonge!' is het een aanspreekvorm.",
+      "bewijs": "woordenboek: boy (en.wiktionary, West-Fries); fy.wikipedia: 3866 artikelen"
     }
   },
   "nl_ok": [

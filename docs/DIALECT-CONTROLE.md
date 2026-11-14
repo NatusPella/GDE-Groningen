@@ -6,6 +6,10 @@ Stand: 20 oktober 2026. Besluit van de eigenaar: geen echte nalezer, maar zelf c
 vindt, meldt die zelf. Dit document zegt **wat er is nagezocht, waarin, en wat er uitkwam**. De opzoekingen zijn echt
 gedaan in openbare woordenboeken; het is geen oordeel van een moedertaalspreker.
 
+> **Bijgewerkt 13 november 2026 (#832):** voor het eerbetoon zijn elf Friese woorden toegevoegd (ite, beppe, Kollum,
+> hoopje, himel, der, fûgels, yn, mar, binne, jonge). Het register telt nu 100 Friese woorden (59 bron, 33 kennis,
+> 8 twijfel). De tellingen verderop in dit document zijn de stand van 20 oktober 2026.
+
 ## Wat er in het spel staat
 
 - **Gronings, ingesproken:** `scripts/gronings_spoken.json` (2508 regels: getoonde Nederlandse tekst -> gesproken spelling; de ondertitel blijft Nederlands). Dit levert 589 verschillende Groningse woorden op (het register hieronder is de bron).

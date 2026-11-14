@@ -57,6 +57,7 @@ import { getPadelMatchCount, getPadelSpotsForRender } from './padel.js';
 import { FUN_GOALS, initStoryFun, updateStoryFun, storyFunDone, storyFunBusy, hideoutStep, hideoutChoices } from './storyfun.js';
 import { EIKEA_GOALS, updateStoryEikea, waiveEikea, initStoryEikea } from './storyeikea.js';
 import { THIRD_PARTY_CARDS } from './credits.js';
+import { REMEMBRANCE } from './beppe_texts.js';
 import { SERIES, GAME_TITLE } from './logo.js';
 import { registerNarrative, mayStart, narrativeBusy, narrativeState } from './narrative.js';
 import { storyLines, talkLines, radioContacts, appsAt, storyDataReady, readingTime, scene as storyScene } from './storytext.js';
@@ -779,7 +780,28 @@ function playCredits() {
   CREDITS.forEach(([name, role], k) => q({ duration: 3.2, kicker: role, title: name, cardFor: 3.2, shot: creditShot(k) }));
   q({ duration: 4.5, logo: true, shot: finaleShot(46 + CREDITS.length * 3.2) });
   q({ duration: 4, big: 'Einde', kicker: 'Grunn is van jou', shot: finaleShot(50.5 + CREDITS.length * 3.2) });
+  playDedication(q, 54.5 + CREDITS.length * 3.2);
   return true;
+}
+
+// #832: a quiet dedication after the ending. There are no recordings, so the
+// two voices stay as subtitles under the card: her hope in her own Frisian
+// words (with the Dutch on the same line) and the maker's answer in Dutch. The
+// game does not decide between them; neither is put in the other's mouth.
+function playDedication(q, t0) {
+  const R = REMEMBRANCE;
+  q({
+    duration: 17.5,
+    big: R.title,
+    kicker: R.body,
+    shot: finaleShot(t0),
+    lines: [
+      { text: `Zij: “${R.her.fries}” — ${R.her.nl}`, at: 2.2, dur: 4.4 },
+      { text: `Ik: “${R.hope}”`, at: 7.0, dur: 4.2 },
+      { text: `Ik: “${R.certain}”`, at: 11.6, dur: 4.4 },
+    ],
+  });
+  q({ duration: 4.5, big: R.closing.fries, kicker: R.closing.nl, shot: finaleShot(t0 + 17.5) });
 }
 
 function updateCredits(dt, w) {

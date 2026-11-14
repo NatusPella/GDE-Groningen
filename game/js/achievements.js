@@ -12,6 +12,7 @@
 import { dualHtml } from './subtitles.js';
 import { mayStart, noteToast } from './narrative.js';
 import { MISSION_IDS, RETIRED_MISSIONS } from './storyarc_basis.js';
+import { HOUSE_ARRIVAL } from './beppe_texts.js';
 import { KEYS } from './storagekeys.js';
 import { iconSvg } from './achievementicons.js';
 import { isOverlayHeld } from './overlayhold.js';
@@ -180,6 +181,9 @@ export const ACHIEVEMENTS = [
   { id: 'wereldeinde_1', cat: 'verkennen', title: 'Rand van de kaart', desc: 'Vind een plek waar een weg van het Ommeland ophoudt', set: 'wereldeinden', goal: 1 },
   { id: 'wereldeinde_alle', cat: 'verkennen', title: 'Einde van de wereld', desc: 'Vind alle 12 plekken waar de wegen van het Ommeland ophouden', set: 'wereldeinden', goal: 12 },
   { id: 'dorpen_alle', cat: 'verkennen', title: 'Ommelander in hart en nieren', desc: 'Doe in elk van de 8 dorpen langs het spoor waar je daar voor komt', set: 'dorpsuitjes', goal: 8 },
+  // the Beppe tribute (#832): a hidden place card at the western border; the
+  // description is the arrival line of the place (beppe_texts.js)
+  { id: 'goed_eten', cat: 'verkennen', title: 'Goed eten', desc: HOUSE_ARRIVAL.body, hidden: true },
 
   // post-game (postgame.js): Jelle's challenges and the Fjord Frituur
   { id: 'bruggen_klaar', cat: 'nahetverhaal', title: 'Elf bruggen', desc: 'Vaar de Elf Bruggenrace tegen Jelle uit' },
