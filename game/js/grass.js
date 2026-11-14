@@ -975,15 +975,25 @@ function buildGrassChunks() {
 
 function syncChunks(px, py, dist) {
   if (map && chunksGreenVer !== greenVerOf(map) && !holdGrass) buildGrassChunks(); // groenlaag veranderd (#314 C2); tijdens de film wacht de rebuild
+  // Na de film komen de vastgehouden tour-chunks terug in de gewone sync. Het
+  // bouwen en opruimen deden dat in één frame (onder belasting grasperken van
+  // 250-300 ms gezien). Nu hooguit twee chunks bouwen en vier opruimen per
+  // frame, met hetzelfde 3 ms-tijdsbudget; de rest volgt een paar frames later.
+  let gebouwd = 0;
+  let opgeruimd = 0;
   const t0 = performance.now();
   for (const c of chunks.values()) {
     const d = rectDist(c.bounds, px, py);
     if (d < dist) {
-      if (!c.group && (d < 30 || performance.now() - t0 < 3)) {
+      if (!c.group && gebouwd < 2 && performance.now() - t0 < 3) {
         c.group = buildChunk(c);
         scene.add(c.group);
+        gebouwd++;
       }
-    } else if (c.group && d > dist + 30 && !holdGrass) disposeChunk(c);
+    } else if (c.group && d > dist + 30 && !holdGrass && opgeruimd < 4) {
+      disposeChunk(c);
+      opgeruimd++;
+    }
   }
 }
 
