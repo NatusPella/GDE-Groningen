@@ -20,6 +20,7 @@ export function onlineStartHtml({ naam = '', fout = '' } = {}) {
       <input type="text" class="os-naam" maxlength="${ONLINE_NAAM_MAX}" spellcheck="false" autocomplete="off" placeholder="Je naam" required value="${esc(naam)}">
     </label>
     <p class="os-hint">${esc(EERSTE_START.naamHint)}</p>
+    <label class="os-consent"><input type="checkbox" class="os-consent-vink"> <span>${esc(EERSTE_START.consent)}</span></label>
     ${fout ? `<p class="os-fout" role="alert">${esc(fout)}</p>` : '<p class="os-fout" role="alert" hidden></p>'}
     <div class="os-knoppen">
       <button type="button" class="os-knop os-doorgaan" data-doorgaan>${esc(EERSTE_START.doorgaan)}</button>
@@ -56,6 +57,8 @@ export function mountOnlineStart(root, { naam = '', onKies = () => {} } = {}) {
   const kies = () => {
     const v = veld();
     if (v && 'value' in v) getypt = v.value;
+    const vink = root.querySelector ? root.querySelector('.os-consent-vink') : null;
+    if (vink && 'checked' in vink && !vink.checked) { fout = 'Vink eerst de online-toestemming aan.'; teken(); return { ok: false, error: fout }; }
     const r = kiesNaam(getypt);
     if (!r.ok) { fout = r.error; teken(); return r; }
     root.innerHTML = '';

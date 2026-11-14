@@ -1,6 +1,6 @@
 # 0022 - Altijd een online sessie, met toestemming bij de eerste start
 
-- **Status:** besloten
+- **Status:** vervangen door [0038](0038-altijd-online-met-instemming.md)
 - **Datum:** 2026-10-31
 - **Spec:** `.specs-fire/standards/multiplayer.md`
 - **Gebied:** Samen spelen, de ingang, instellingen

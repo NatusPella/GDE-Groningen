@@ -70,6 +70,7 @@ await t('de kaart heeft een naamveld en precies één knop Doorgaan', async () =
   assert.equal((html.match(/<button\b/g) || []).length, 1, 'één knop: Doorgaan');
   assert.ok(!/data-keuze|Meedoen<|Alleen spelen|Later</.test(html), 'geen tweede antwoord of uitstelknop');
   assert.match(html, /class="os-naam"[^>]*maxlength="16"[^>]*required/, 'verplicht naamveld met dezelfde grens als het profiel');
+  assert.match(html, /class="os-consent-vink"/, 'de online-toestemming is een verplicht vinkje');
   assert.ok(html.indexOf('class="os-naam"') < html.indexOf('data-doorgaan'), 'het naamveld staat boven de knop');
 });
 

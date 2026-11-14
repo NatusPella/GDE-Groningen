@@ -26,6 +26,7 @@ export const EERSTE_START = {
   uitleg: `${CONSENT_TEXT} Je speelt altijd online, in je eigen besloten sessie; onder deze naam zien anderen je alleen als je de sessie deelt. Je kunt je naam later in het pauzemenu aanpassen.`,
   naamLabel: 'Je naam',
   naamHint: 'Verplicht. Andere spelers zien je onder deze naam.',
+  consent: 'Ik ga ermee akkoord dat het spel online verbindt met een STUN-server en openbare brokers; mijn IP-adres gaat daarvoor naar die diensten.',
   doorgaan: 'Doorgaan',
 };
 

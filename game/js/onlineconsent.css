@@ -20,6 +20,8 @@
 .os-label { display: flex; flex-direction: column; gap: 6px; font-size: 19px; }
 .os-naam { padding: 8px 12px; border: 0; border-radius: 6px; background: rgba(240, 237, 228, 0.14); color: #f0ede4; font: inherit; }
 .os-naam:focus-visible { outline: 2px solid #f0ede4; outline-offset: 2px; }
+.os-consent { display:flex; gap:10px; align-items:flex-start; margin:14px 0 0; font-size:17px; line-height:1.35; color:rgba(240,237,228,0.9); }
+.os-consent-vink { flex:none; width:20px; height:20px; margin-top:1px; accent-color:#3fc97a; }
 .os-hint { margin: 6px 0 0; font-size: 16px; color: rgba(240, 237, 228, 0.66); }
 .os-fout { margin: 10px 0 0; font-size: 17px; color: #ff8f86; }
 .os-fout[hidden] { display: none; }

@@ -1,7 +1,9 @@
 # 0037 - Perf-norm v2: 30 fps-p95, werktijd en een 100 ms-hitchbudget
 
-- **Status:** aangenomen (eigenaarsbeslissing 14-11-2026, voor release 0.61.0)
+- **Status:** besloten (eigenaarsbeslissing 14-11-2026, voor release 0.61.0)
+- **Datum:** 14-11-2026
 - **Vervangt:** de norm-definitie in #804 / `scripts/perf/normrules.mjs`
+- **Spec:** `docs/RELEASEGATE.md`, `docs/PERF-BESLUITEN.md`
 - **Verwant:** ADR 0034 (releasegate)
 
 ## Besluit
