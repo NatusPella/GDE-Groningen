@@ -265,6 +265,7 @@ export const SURFACES = {
   // own planning, no gate: the HUD's layout (decideHud, hudrules.js) or a panel the player or the activity owns
   status: { files: ['hud_panel.js', 'hudgps.js', 'lowhealth.js'], p: P2, own: 'decideHud (hudrules.js) zet sterren, geld, kaart, voertuig, doel en balken neer' },
   opgeslagen: { files: ['savegame.js'], zone: 'F', p: P3, own: 'het kleine Opgeslagen-vinkje bij de plaatsnaam, links onder; een eigen DOM-element, geen kaart' },
+  duikscene: { files: ['wrakduikenlive.js'], zone: 'G', p: P3, own: 'de korte duikscène die de speler zelf start bij een wrak (E) en die vanzelf weer weggaat' },
   toetsen: { files: ['prompts.js', 'hudtext.js'], zone: 'H', p: P2, own: 'de toetstips tellen mee in decideHud (keys); gameBusy houdt ze weg' },
   activiteit: { files: ['stunthud.js', 'heistui.js', 'casework.js', 'bakeround.js', 'carbid.js', 'dorpsuitjes.js', 'kermis.js', 'padel.js', 'pigeonmode.js', 'postgame.js', 'uitjepaneel.js', 'reuzenrad.js', 'rondvaartchase.js', 'stationtravel.js'], zone: 'C', p: P1, own: 'het paneel van de activiteit zelf; de activiteit bepaalt wanneer, playerBusy houdt de rest weg' },
   voertuighud: { files: ['heliflight.js', 'helirun.js', 'planeflight.js', 'instrumenten.js', 'busboard3d.js', 'busbestuurhud.js', 'cockpit.js', 'treincabine.js'], zone: 'H', p: P2, own: 'vervangt de snelheidsmeter zolang je vliegt (body.heli-flying) of een trein bestuurt (body.tc-on)' },

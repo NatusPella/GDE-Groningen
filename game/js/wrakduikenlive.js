@@ -64,6 +64,6 @@ export function wrakduikPrompt(world) {
   const p = hoofdspeler(world);
   if (!p || p.inVehicle || p.swimming || p.climb) return null;
   const plek = duikplekBij(p.x, p.y);
-  if (!plek || getSaveSet(WRAKVONDSTEN_SET).has(vondstId(plek))) return null;
+  if (!plek || gedoken(vondstId(plek))) return null;
   return { id: 'wrakduik-' + plek.id, x: plek.x, y: plek.y, h: 1.6, key: 'E', label: `Duiken naar ${plek.wrak.naam}`, sub: `${plek.water} · een vondst voor je album`, ring: true };
 }

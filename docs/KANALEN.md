@@ -22,8 +22,8 @@ Daarnaast: de kaartenwachtrij (`enqueueCard`, `hudcards.js`) en de zonelayout (`
 
 | Kanaal | Module | Aanroepers | Prioriteit | Zone | Via hudbus | Voorstel #92 |
 |---|---|---|---|---|---|---|
-| kaart | hudcards.js | 164 modules, 668 aanroepen | P0 tot P3 per soort | A | ja: hud, narrative (card), tip | Blijft de ene tekstkaart. Alles wat nu een eigen tekstkaartje is (Opgeslagen, prestatietoast) kan hier als soort in; dat scheelt twee eigen DOM-elementen. |
-| prestatie | achievements.js | 32 modules, 95 aanroepen | P3 | E | ja: narrative (award), overlay (prestatie) | Samen met kaart: de soort prestatie bestaat al in KINDS (zone E). Een kaart met een medaille-icoon in plaats van een tweede element. |
+| kaart | hudcards.js | 165 modules, 673 aanroepen | P0 tot P3 per soort | A | ja: hud, narrative (card), tip | Blijft de ene tekstkaart. Alles wat nu een eigen tekstkaartje is (Opgeslagen, prestatietoast) kan hier als soort in; dat scheelt twee eigen DOM-elementen. |
+| prestatie | achievements.js | 33 modules, 96 aanroepen | P3 | E | ja: narrative (award), overlay (prestatie) | Samen met kaart: de soort prestatie bestaat al in KINDS (zone E). Een kaart met een medaille-icoon in plaats van een tweede element. |
 | bel | phonefeed.js | 3 modules, 3 aanroepen | P1 | A | ja: narrative (call), speech (call) | Samen met radio: twee telefoonschermen (phonefeed en storycontact) voor hetzelfde gesprek; één telefoonpaneel met een portret en een regel. |
 | bericht | phonefeed.js, sikkomfeed.js | 4 modules, 4 aanroepen | P1 tot P2 per soort | A | ja: narrative (text, phone), voice | Samen met kaart voor wat niet verhaal is (bank, nieuws, app): dezelfde zone, dezelfde rang, nu twee stromen. Voorlezen: alleen verhaal. |
 | radio | storycontact.js | 1 module, 2 aanroepen | P1 | - | ja: narrative (contact) | Samen met bel (zie daar). Het portret en de ondertitelregel zijn het enige dat de speler echt nodig heeft. |
@@ -42,7 +42,8 @@ Daarnaast: de kaartenwachtrij (`enqueueCard`, `hudcards.js`) en de zonelayout (`
 | spraak | speech.js | 14 modules, 19 aanroepen | n.v.t. | - | ja: speech | Blijft. Zie ook #110 (voicebank). |
 | status | hud_panel.js, hudgps.js, lowhealth.js | beslist zelf | P2 | - | nee: decideHud (hudrules.js) zet sterren, geld, kaart, voertuig, doel en balken neer | Blijft; dit is de vaste laag. decideHud blijft in hudrules (zonelayout), de tabellen zijn die van hudbus. |
 | opgeslagen | savegame.js | beslist zelf | P3 | F | nee: het kleine Opgeslagen-vinkje bij de plaatsnaam, links onder; een eigen DOM-element, geen kaart | Weg als eigen element: een pictogram in het plaatsblok, of een kaart van de soort tip. |
-| toetsen | prompts.js, hudtext.js | 26 modules, 26 aanroepen | P2 | H | nee: de toetstips tellen mee in decideHud (keys); gameBusy houdt ze weg | Blijft. Veel modules leveren een toetstip aan; geen planner nodig, de ruimte is vast (twee regels). |
+| duikscene | wrakduikenlive.js | beslist zelf | P3 | G | nee: de korte duikscène die de speler zelf start bij een wrak (E) en die vanzelf weer weggaat |  |
+| toetsen | prompts.js, hudtext.js | 27 modules, 27 aanroepen | P2 | H | nee: de toetstips tellen mee in decideHud (keys); gameBusy houdt ze weg | Blijft. Veel modules leveren een toetstip aan; geen planner nodig, de ruimte is vast (twee regels). |
 | activiteit | stunthud.js, heistui.js, casework.js en 11 andere | beslist zelf | P1 | C | nee: het paneel van de activiteit zelf; de activiteit bepaalt wanneer, playerBusy houdt de rest weg | Samen met keuze en bord: een gedeeld activiteitenpaneel (createBoard) voor titel, stand en toetsen. Veel eigen CSS-strings verdwijnen. |
 | voertuighud | heliflight.js, helirun.js, planeflight.js en 5 andere | beslist zelf | P2 | H | nee: vervangt de snelheidsmeter zolang je vliegt (body.heli-flying) of een trein bestuurt (body.tc-on) | Samen: een voertuigblok per voertuigsoort via hudlook (welke meters per voertuig staat er al). |
 | samen | coophud.js, coophold.js, coopscene.js en 4 andere | beslist zelf | P2 | - | nee: de uitnodiging Meedoen? en de uitslag van een race of golfronde tegen elkaar (coopwedstrijd3d.js, alleen zolang er een wedstrijd is), de spelerslijst (alleen bij Tab en in het pauzemenu, nooit permanent) en de fade bij samen spelen, en het meekijklaagje van een gast op de scene van de host (coopscene.js, volgt wat de host toont); geen eigen planner | Blijft; klein en alleen op verzoek van de speler. |
@@ -73,6 +74,7 @@ Daarnaast: de kaartenwachtrij (`enqueueCard`, `hudcards.js`) en de zonelayout (`
 - **spraak**: Het ene stemkanaal: een regel tegelijk, hogere klasse snijdt lagere af (speech.js, nu regels in hudbus).
 - **status**: De vaste HUD: sterren, geld, wapen, klok, kaart, balken, voertuig, doel, GPS (zones B, C, F, G). decideHud in hudrules.js zet ze neer.
 - **opgeslagen**: Het kleine Opgeslagen-vinkje links onder, bij de plaatsnaam.
+- **duikscene**: 
 - **toetsen**: De toetstips onderaan rechts (zone H, maximaal twee): wat E, Spatie en de rest hier doen.
 - **activiteit**: Het eigen paneel van een activiteit (stuntscore, heistpanelen, tekstbijbaan, bakronde, padel, kermis en andere): rechts of bovenaan, alleen tijdens de activiteit.
 - **voertuighud**: Voertuig-HUD buiten de auto: de heli-HUD (vervangt de snelheidsmeter), de vliegtuigkaart en het busbord.
