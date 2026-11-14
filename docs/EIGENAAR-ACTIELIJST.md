@@ -289,3 +289,29 @@ voorbereiden en de workflows controleren; het starten en betalen is van de eigen
   (behalve NatusPella).
 - Een eigenaarsbesluit nemen over geld, rechten, leeftijd, merken of publicatie
   (AGENTS.md, constitution 4, 5 en 8).
+
+## Releasegate en 0.60.8 (stand 14-11-2026)
+
+Sinds ADR 0034 is er een **releasegate**: `desktop/release.sh` bouwt alleen met een groen
+bewijsrapport voor static, world, perf, visual en de AI-review
+(`node scripts/release_gate.mjs --verify`). De gate is geen eigenaarsbeslissing, maar de
+eigenaar bepaalt of de lat voor deze release bewust lager mag.
+
+**Waarom 0.60.8 nog niet uit is:** de perf-fase haalt de absolute norm niet op de
+ontwikkelmachine (p95 <= 25 ms, max <= 100 ms, geen frame boven 50/100 ms). Gemeten op 14-11:
+a7 p95 ~67 ms/max 950 ms, spoor p95 ~83 ms/max 1033 ms; de grootste pieken zijn
+`populate-pre` (tot ~570 ms), `3d:roads` (~270-360 ms) en `traffic` (~230 ms). De andere
+fasen zijn op de tussenstand groen of gereviewd; de verhaaltest en smoke zijn groen.
+
+**Wat de eigenaar kan beslissen:**
+1. **Wachten/freezen:** de perf-regressies eerst laten oplossen (#804), daarna de gate opnieuw
+   draaien en release 0.60.8 uitbrengen (aanbevolen).
+2. **Hotfix-nooduitgang:** expliciet `GDE_RELEASE_SKIP_GATE=1` goedkeuren voor een release.
+   Dat is zichtbaar in de uitvoer en betekent: geen bewijs voor perf/beeld/review op deze
+   commit. Alleen voor een dringende hotfix, niet als normale route.
+3. **De lat verlagen:** de perf-norm of de gate zelf aanpassen (ADR wijzigen) - dat is een
+   eigenaarsbesluit over kwaliteitsbewijs, geen agentbesluit.
+
+**Wat een agent doet:** de gate draaien, bevindingen fixen, het bewijs in de runmap
+(%TEMP%/gde-release/...) en de reviewrapporten bewaren, en nooit stil `GDE_RELEASE_SKIP_GATE`
+gebruiken. De review- en meetstappen staan in [RELEASEGATE.md](RELEASEGATE.md).
