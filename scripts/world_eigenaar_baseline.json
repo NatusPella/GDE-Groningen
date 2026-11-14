@@ -1,8 +1,9 @@
 {
  "version": 1,
  "note": "Aantal schrijvende bestanden per world-veld (#498), gemeten met scripts/world_eigenaar.mjs. Alleen omlaag; nieuwe velden worden op hun huidige stand opgenomen.",
- "veldTotaal": 321,
+ "veldTotaal": 322,
  "velden": {
+  "__knutselwagenChecked": 1,
   "__openingWarm": 1,
   "__warmSamples": 1,
   "_balloonTimer": 1,

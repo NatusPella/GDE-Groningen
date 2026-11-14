@@ -29,7 +29,7 @@ een treffer in een merkenregister is niet nagegaan (MERKENCHECK.md).
 | Hoofdpersonen en bijrollen | Tammo, Tessa, Jelle Terpstra, Mem Terpstra, Durk & Douwe, Berend Bos, Rikus, Oma Trijntje, Kapitein Klaas, Dokter Dijkstra, Rotor Roelf, Schipper Wiebe, Duivenmelker Bert, Aaltje & Grietje (koeien); volledige lijst: [personages.md](personages.md) |
 | Bedrijven | **Delfstof Noord** (verzonnen delfstofbedrijf; gevoelig onderwerp, zie constitution 6), **Wiebelwerk** (het Wiebelwerk-universum), **Fjord Frituur** (Tessa's frietwagen), **Harm Occasions**, **Poen Express** (waardetransport), **Pakkie Nou** (pakketdienst), **Noord-Nieuws** (verslaggeversbus), **Us Mem Vet** |
 | Media | **Kiekdoar** (nieuwssite), **Radio Proat** (radio), **G-Music** (muziekzender), **Pompeblêd** (blad) |
-| Automerken en modellen | verzonnen merken naar Groninger streekwoorden: Dollard, Eemsmond, Hunze, Wadden, Reitdiep, Oldambt, Eemshaven, Ommelander, Wierde, Terpstra, Tweetakt; held-auto *Fjord Escapade* (zie `game/js/vehiclenames.js`) |
+| Automerken en modellen | verzonnen merken naar Groninger streekwoorden: Dollard, Eemsmond, Hunze, Wadden, Reitdiep, Oldambt, Eemshaven, Ommelander, Wierde, Terpstra, Tweetakt, Eigen Maaksel (de gebouwde Knutselwagen); held-auto *Fjord Escapade* (zie `game/js/vehiclenames.js`) |
 | Winkels en horeca | echte ketens uit OpenStreetMap worden herkend (`CHAINS` in `game/js/shopbind.js`, ruim gekozen) en krijgen een verzonnen naam; echte caféeigenaars krijgen een verzonnen café (`CAFE_NAMES` in `game/js/horeca.js`, zie [LICENTIES.md](LICENTIES.md)) |
 | Grappen met een knipoog | *Albert Hijgt* (woordspeling, geen merk), *Henk van Garage*, *Sjoerd van de KEI-commissie* (staan op de allowlist van de audit, met reden) |
 

@@ -133,6 +133,10 @@
     "__warmSamples": {
       "eigenaar": "game/js/main.js",
       "notitie": "tijdelijke groep met de warm-up-palette; main.js maakt hem tijdens het laden en intromontage/main ruimen hem op."
+    },
+    "__knutselwagenChecked": {
+      "eigenaar": "game/js/onderdelenlive.js",
+      "notitie": "eenmalige herstelvlag voor de gebouwde auto na het laden"
     }
   },
   "uitzonderingen": [
