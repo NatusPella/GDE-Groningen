@@ -128,6 +128,7 @@ met een echt merk; bewuste parodie, op de allowlist, de eigenaar kan kiezen te h
 | EIKEA | woonwarenhuis ("Zweeds? Nee, Gronings") | `game/js/shopdata.js` | IKEA (één letter erbij, bewuste woordgrap) | let op |
 | Rotor Roelf | helikopterdealer | `game/js/shops.js` | niets | ok |
 | Poen Express | waardetransport (kluiswagen) | `game/js/cashvan.js` | niets | ok |
+| Eigen Maaksel | automerk van de gebouwde Knutselwagen | `game/js/vehiclenames.js` | niets | ok |
 | Pakkie Nou | pakketdienst | `game/js/vehiclenames.js` | pakketbezorgers in het algemeen | ok |
 | Noord-Nieuws | verslaggeversbus | `game/js/vehiclenames.js` | niets | ok |
 | Fjord Frituur | frietwagen van Tessa | `game/js/characters.js` | niets | ok |
