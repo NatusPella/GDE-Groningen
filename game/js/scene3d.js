@@ -5,6 +5,7 @@ import { FLAGS, perfOff } from './devflags.js';
 import { sfxLinks } from './latehooks.js';
 import { MODS } from './cheatmods.js';
 import { setDualText } from './subtitles.js';
+import { bubblePlace } from './hudrules.js';
 import { gridItems } from './spatialgrid.js';
 import { terrainHoleRows } from './terraincache.js';
 import { speakerHtml } from './speakers.js';
@@ -2598,6 +2599,9 @@ function speechBubbleEl() {
   el.style.padding = '3px 9px';
   el.style.color = '#20201e';
   el.style.font = 'bold 13px "Arial Narrow", Arial, sans-serif';
+  // #868/#870: de bel hangt in de gezoomde HUD; op een telefoon werd 13 px daar
+  // 8,7 px. Dezelfde 12px-vloer als de rest van de HUD-tekst.
+  el.style.fontSize = 'max(13px, calc(13px / var(--ui, 1)))';
   el.style.whiteSpace = 'nowrap';
   el.style.pointerEvents = 'none';
   billboardRoot.appendChild(el);
@@ -2630,12 +2634,19 @@ function syncSpeechBubbles(world) {
     if (el._text !== p.speechText) {
       el._text = p.speechText;
       setDualText(el, p.speechText);
+      el._bw = 0; // #870: een nieuwe regel kan een andere belmaat geven
       // story characters (the companion, Jelle) carry their name: world.extraSpeakers speechName
       if (p.speechName) el.insertAdjacentHTML('afterbegin', speakerHtml(p.speechName).replace('class="spk"', 'class="spk bubble"'));
     }
+    // #870: een bel van een voorbijganger net buiten beeld viel buiten de viewport.
+    // Verberg hem dan en klem een half zichtbare bel met zijn echte maat binnen de
+    // randen (hudrules.js bubblePlace); de maat wordt alleen bij nieuwe tekst gemeten.
     el.style.display = 'block';
-    el.style.left = scr.x + 'px';
-    el.style.top = scr.y + 'px';
+    if (!el._bw) { el._bw = el.offsetWidth || 140; el._bh = el.offsetHeight || 30; }
+    const placed = bubblePlace(scr, { w: el._bw, h: el._bh }, { w: renderer.domElement.clientWidth / getUiScale(), h: renderer.domElement.clientHeight / getUiScale() });
+    if (!placed) { el.style.display = 'none'; continue; }
+    el.style.left = placed.x + 'px';
+    el.style.top = placed.y + 'px';
   }
   for (const [p, el] of speechBubbleEls) {
     if (seen.has(p)) continue;

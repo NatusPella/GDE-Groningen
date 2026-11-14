@@ -3,7 +3,12 @@
 // de kanalen zetten deze klasse op hun eigen paneel. Eén keer in de kop van het document.
 export const COCKPIT_CLASS = 'cockpit-frame';
 export const COCKPIT_CSS = `
-#hud .${COCKPIT_CLASS} { position: relative; border-left: 3px solid var(--mk-ok, #3fc97a); }
+/* #849: hier bewust geen position. De panelen die deze klasse dragen (het
+   vliegtuigpaneel, het buskaartje) zetten zelf position: absolute; een
+   position: relative in deze regel had dezelfde specificiteit en kwam later in
+   de head, waardoor het vliegtuigpaneel in de normale flow linksboven belandde.
+   Een absoluut paneel is zelf al het containing block voor de ::before. */
+#hud .${COCKPIT_CLASS} { border-left: 3px solid var(--mk-ok, #3fc97a); }
 #hud .${COCKPIT_CLASS}::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 46px; pointer-events: none; opacity: 0.32;
   background: repeating-linear-gradient(0deg, rgba(240,237,228,0.30) 0 2px, transparent 2px 9px); }
 #hud .${COCKPIT_CLASS} small { color: var(--mk-mission, #e8c93a); }

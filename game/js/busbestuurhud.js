@@ -23,7 +23,7 @@ function getRow() {
   if (!document.getElementById('busbed-style')) {
     const st = document.createElement('style');
     st.id = 'busbed-style';
-    st.textContent = `#hud .hud-busbed{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:2px 12px;max-width:100%;margin-top:6px;font-size:13px;color:rgba(240,237,228,.85)}
+    st.textContent = `#hud .hud-busbed{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:2px 12px;max-width:100%;margin-top:6px;font-size:max(13px,var(--hud-min, 13px));color:rgba(240,237,228,.85)}
 #hud .hud-busbed>span{white-space:nowrap}
 #hud .hud-busbed .hud-key{margin-right:5px}
 #hud .hud-busbed .bb-stop{padding:0 8px;border-radius:3px;background:rgba(80,24,18,.9);color:rgba(240,237,228,.45);letter-spacing:2px;font-weight:bold}

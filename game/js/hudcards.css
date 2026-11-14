@@ -61,7 +61,7 @@ body.hud-call-on #hud .hud-nowplaying, body.hud-call-on #hud .hud-vehname, body.
 @keyframes hc-pulse { 50% { transform: scale(1.12); } }
 
 #hud .hc-text { display: flex; flex-direction: column; line-height: 1; min-width: 0; }
-#hud .hc-text small { font-size: 14px; letter-spacing: 3px; text-transform: uppercase; color: var(--hc); }
+#hud .hc-text small { font-size: max(14px, var(--hud-min)); letter-spacing: 3px; text-transform: uppercase; color: var(--hc); }
 #hud .hc-text b {
   margin-top: 3px;
   font-weight: normal;
@@ -111,7 +111,7 @@ body.hud-call-on #hud .hud-nowplaying, body.hud-call-on #hud .hud-vehname, body.
 
 @media (max-height: 640px) {
   #hud .hc-text b { font-size: 23px; }
-  #hud .hc-text span { font-size: 16px; }
+  #hud .hc-text span { font-size: max(16px, var(--hud-min)); }
 }
 @media (prefers-reduced-motion: reduce) {
   #hud .hud-card, #hud .hud-cards { transition: opacity 0.2s; transform: none; }

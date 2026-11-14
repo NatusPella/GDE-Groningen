@@ -21,7 +21,7 @@
 
 export const ACTOR_ANIMS = ['idle', 'walk', 'run', 'talk', 'wave', 'point', 'shrug', 'nod', 'shake', 'laugh', 'carry', 'lean', 'hips', 'phone', 'cheer', 'look', 'ride', 'zwem', 'klim', 'sprong'];
 import { propKindIssue, propFoot } from './cutscenemodels.js';
-export const PROP_KINDS = ['doos', 'tas', 'bestelbus', 'fiets', 'duif', 'radio', 'bord', 'koffer', 'bal', 'auto', 'matras', 'bakkie', 'automaat', 'aanhanger', 'trekker', 'politie', 'duiventil', 'zuil', 'klembord', 'briefje', 'kat'];
+export const PROP_KINDS = ['doos', 'tas', 'bestelbus', 'fiets', 'duif', 'radio', 'bord', 'koffer', 'bal', 'auto', 'matras', 'bakkie', 'automaat', 'aanhanger', 'trekker', 'politie', 'duiventil', 'zuil', 'klembord', 'briefje', 'kat', 'botsauto'];
 const VERBS = ['walk', 'anim', 'face', 'gaze', 'carry', 'drop', 'move', 'path', 'spin', 'bob', 'show', 'hide', 'sit'];
 export const SHOTS = ['cut', 'dolly', 'orbit', 'follow', 'close', 'reaction', 'ots', 'insert', 'tracking', 'crane', 'handheld'];
 // The host can scale or remove camera shake (a11y.js: Beweging beperken).
@@ -282,12 +282,14 @@ export function compileScene(def, opts = {}) {
     // put down: stays where the carrier stood
     const dr = drops.filter((d) => d.prop === id && d.t <= t + 1e-9).pop();
     if (dr) { const ap = actorPos(dr.actor, dr.t), af = actorFacing(dr.actor, dr.t); pos = [ap.f + Math.cos(af) * 0.5, ap.s + Math.sin(af) * 0.5, 0]; }
-    // carried: rides along with the actor's hands
+    // carried: rides along with the actor's hands (#864: close to the hands, not loose in front of the
+    // chest: small flat things at chest height, bags/boxes/suitcases at the carrier's hip height)
     if (!raw) for (const [aid, ak] of Object.entries(track)) {
       const c = last([{ t: 0, v: null }, ...ak.carries], t);
       if (c.v === id) {
         const ap = actorPos(aid, t), af = actorFacing(aid, t);
-        pos = [ap.f + Math.cos(af) * 0.35, ap.s + Math.sin(af) * 0.35, 1.0];
+        const laag = props[id].kind === 'tas' || props[id].kind === 'koffer' || props[id].kind === 'doos' || props[id].kind === 'bal';
+        pos = [ap.f + Math.cos(af) * 0.3, ap.s + Math.sin(af) * 0.3, laag ? 0.9 : 0.98];
         a = af;
       }
     }

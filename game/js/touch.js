@@ -45,7 +45,7 @@ html.touch-portrait body:has(#pause-menu.visible) #touch-ui .t-turn { display: n
 /* every action button shows a HUD-style line icon above its Dutch label (#427) */
 #touch-ui .t-btn:not(.t-num) { flex-direction: column; gap: 1px; }
 #touch-ui .t-btn .t-ic { flex: none; width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-#touch-ui .t-btn .t-lb { line-height: 1; white-space: nowrap; }
+#touch-ui .t-btn .t-lb { line-height: 1; white-space: nowrap; font-size: max(1em, calc(13px / var(--t-scale, 1))); }
 #touch-ui .t-btn.t-num { font-size: 24px; }
 /* a narrow phone gets smaller icons and a smaller caption, so the labels stay on one line */
 @media (max-width: 700px) {
@@ -60,7 +60,11 @@ html.touch-device button, html.touch-device [role="button"], html.touch-device s
 html.touch-device #touch-ui .t-btn { min-height: 0; }
 /* the HUD around the touch layer (#96): zone C (clock, stars) left of pause and Meer, the speedometer between the thumbs, the street name above the minimap */
 html.touch-device #hud .hud-top-right { right: calc(var(--hud-edge) + 128px / var(--ui, 1)); }
-html.touch-device #hud .hud-speedo, html.touch-device #hud .hud-heli { right: auto; left: 50%; transform: translateX(-50%); }
+html.touch-device #hud .hud-speedo, html.touch-device #hud .hud-heli, html.touch-device #hud .hud-instr { right: auto; left: 50%; transform: translateX(-50%); }
+/* #850/#881: het vliegtuigpaneel is hoger dan de knoppenrij; in portret zakt het
+   boven de rechterknoppen. Het staat daar ook boven de linkerkolom (straatnaam,
+   gezondheid), waarvan hud_panel.js de bovenkant meet in --hud-f-top. */
+html.touch-device.touch-portrait #hud .hud-instr { right: var(--hud-edge); left: auto; transform: none; bottom: calc(var(--hud-f-top, 430px) + 12px); }
 html.touch-device #hud .hud-vehname, html.touch-device #hud .hud-race { right: calc(var(--hud-edge) + 120px / var(--ui, 1)); }
 html.touch-device #hud .hud-weapon-text { font-size: max(18px, calc(12px / var(--ui, 1))); }
 /* #828: de voertuignaam wijkt in landschap boven de rechterknoppen in plaats van eronder. */
@@ -95,13 +99,44 @@ html.touch-device #pause-menu .pm-inner.pm-game { scrollbar-width: thin; scrollb
 
 /* #826: HUD-blokken niet onder de aanraakknoppen; tekst in de nowplaying >= 12 px. */
 html.touch-device #hud .hud-mission { bottom: calc(var(--hud-edge, 46px) + 190px); }
+/* #850/#877: het vliegtuigpaneel staat op aanraak gecentreerd op de bodem (als de
+   snelheidsmeter) en is ~185 px hoog; het doel zakt daar precies boven, onder zone C.
+   Op korte schermen is de strook daarvoor krap: het doel houdt dan één regel over
+   (de bedieningsregel staat al in het paneel zelf). Staat het les-/minigamebord
+   (body.mg-on) er ook, dan is er helemaal geen strook en wijkt het doel. */
+html.touch-device body.plane-flying #hud .hud-mission { bottom: calc(var(--hud-edge, 46px) + 290px); }
+@media (max-height: 640px) {
+  html.touch-device body.plane-flying #hud .hud-mission { bottom: calc(var(--hud-edge, 46px) + 298px); }
+  html.touch-device body.plane-flying #hud .hud-mission :is(.hud-mission-progress, .hud-obj-keys, .hud-obj-dist) { display: none; }
+  html.touch-device body.plane-flying #hud .hud-mission .hud-mission-label { -webkit-line-clamp: 1; line-clamp: 1; }
+  html.touch-device body.plane-flying.mg-on #hud .hud-mission { display: none; }
+}
+/* #881: in portret is er tussen paneel, kolom en doel geen hoogte voor een
+   ondertitel; de radio speelt door en nowplaying noemt de zender. Het doel houdt
+   één regel over, zodat het niet tegen de linkerkolom aan schuift. */
+@media (orientation: portrait) {
+  body.plane-flying #banter-sub, body.plane-flying #radio-sub { display: none; }
+  html.touch-device body.plane-flying #hud .hud-mission :is(.hud-mission-progress, .hud-obj-keys, .hud-obj-dist) { display: none; }
+  html.touch-device body.plane-flying #hud .hud-mission .hud-mission-label { -webkit-line-clamp: 1; line-clamp: 1; }
+}
 html.touch-device #hud .ach-toast { top: calc(var(--hud-top, 34px) + 72px) !important; bottom: auto !important; left: 50% !important; transform: translateX(-50%); }
 html.touch-device #hud .hud-nowplaying { max-width: 132px; }
 html.touch-device #hud .hud-nowplaying small, html.touch-device #hud .hud-nowplaying b, html.touch-device #hud .np-artist, html.touch-device #hud .np-title { font-size: max(18px, calc(12px / var(--ui, 1))); }
 html.touch-device #hud .wp-text b { font-size: max(18px, calc(12px / var(--ui, 1))) !important; }
 html.touch-device:not(.touch-portrait) #hud .hud-place { left: 90px; right: 300px; }
 /* small HUD texts stay at 12 px on screen after the phone's HUD scale (0.62-0.8) */
-html.touch-device #hud :is(small, .hud-key, .ach-kicker, .ach-desc, .ach-pct, .pf-time, .pf-more, .nl-sub, .hud-mission-progress) { font-size: max(12px, calc(12px / var(--ui, 1))); }
+html.touch-device #hud :is(small, .hud-key, .ach-kicker, .ach-desc, .ach-pct, .pf-time, .pf-more, .nl-sub, .hud-mission-progress,
+  .hud-district, .hud-instr small, .hud-instr .hi-keys, .hud-instr .hi-st, .hud-instr .hi-row, .hud-instr .hi-num span,
+  .hud-instr .hi-lamp, .hud-instr .hi-keys .hud-key, .hud-busnext small, .hud-busnext span, .hud-busnext em,
+  .pf-from, .pf-body, .pf-state, .mg-sfeer, .mg-help) { font-size: max(12px, calc(12px / var(--ui, 1))); }
+/* #868: de aanraakknoppen zelf staan buiten #hud en schalen met de knopzoom; hun
+   labels zakten in portret naar 11 px. 16 px in knopeenheden houdt ze op 12 px. */
+@media (max-width: 700px) { #touch-ui .t-btn .t-lb { font-size: max(17px, calc(13px / var(--t-scale, 1))); } }
+/* #854/#877: het les-/minigamebord staat op een telefoon linksboven (zone C zit
+   rechtsboven). De toetsenbord-hulpregel in dat bord (W/S/SPATIE/…) is op aanraak
+   betekenisloos en maakt het bord zo hoog dat het de minimap raakt; verbergen. */
+html.touch-device #hud .mg-board .mg-help { display: none; }
+@media (max-height: 640px) { #hud .mg-board { padding: 6px 10px 6px 8px; } }
 /* De pauzemenu heeft in portret een eigen smalle indeling (pausemenu.css). Geen
    "Draai je toestel"-banner meer: die bedekte juist de rail bovenaan (#805). */
 #touch-ui .t-left-btns, #touch-ui .t-right-btns { position: absolute; bottom: env(safe-area-inset-bottom); }

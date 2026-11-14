@@ -182,7 +182,7 @@ function injectStyles() {
       font: 15px 'Arial Narrow', Arial, sans-serif; color: ink(cream); letter-spacing: 0.3px;
     }
     .mapview-results li[aria-selected="true"], .mapview-results li:hover { background: ink(greenDark); }
-    .mapview-results .kind { color: ink(greenLight); font-size: 13px; }
+    .mapview-results .kind { color: ink(greenLight); font-size: max(13px, var(--menu-min, 13px)); }
     .mapview-results .empty { color: ink(cream 0.6); cursor: default; }
     .mapview-btn {
       font: inherit; font-size: 15px; letter-spacing: 1px; white-space: nowrap;
@@ -200,7 +200,7 @@ function injectStyles() {
     .mapview-route .job { color: var(--mk-job, ${ROUTE_COLORS.job}); }
     .mapview-route .care { color: var(--mk-care, ${ROUTE_COLORS.care}); }
     .mapview-route > span + span { margin-left: 14px; }
-    .mapview-route button { margin-left: 6px; padding: 0 6px; font: inherit; font-size: 13px; color: inherit; background: transparent; border: 1px solid currentColor; border-radius: 3px; cursor: pointer; }
+    .mapview-route button { margin-left: 6px; padding: 0 6px; font: inherit; font-size: max(13px, var(--menu-min, 13px)); color: inherit; background: transparent; border: 1px solid currentColor; border-radius: 3px; cursor: pointer; }
     .mapview-footer b { color: ink(greenLight); font-weight: normal; }
     .mapview-body { position: relative; flex: 1; min-height: 0; display: flex; }
     .mapview-canvas {
@@ -222,7 +222,7 @@ function injectStyles() {
     .mapview-osm {
       position: absolute; left: 12px; bottom: 12px; pointer-events: none;
       padding: 2px 8px; border-radius: 3px; background: ink(dark 0.7);
-      font: 12px 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.2px; color: ink(cream 0.7);
+      font: 12px 'Arial Narrow', Arial, sans-serif; font-size: max(12px, var(--menu-min, 12px)); letter-spacing: 0.2px; color: ink(cream 0.7);
     }
     .mapview-tp {
       position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 3; pointer-events: none;
@@ -235,7 +235,7 @@ function injectStyles() {
       position: absolute; pointer-events: none;
       background: ink(dark 0.92);
       border: 1px solid ink(greenLight 0.6);
-      border-radius: 4px; padding: 3px 8px; font-size: 14px; letter-spacing: 0.3px; color: ink(textBright);
+      border-radius: 4px; padding: 3px 8px; font-size: max(14px, var(--menu-min, 14px)); letter-spacing: 0.3px; color: ink(textBright);
       transform: translate(12px, -50%); max-width: min(560px, calc(100vw - 32px));
       /* de hoverregel van een activiteit noemt doel, brons en beloning en is daarmee langer
          dan een plaatsnaam. Wikkel op woordgrenzen in plaats van de regel af te knippen of midden
@@ -250,7 +250,7 @@ function injectStyles() {
       border: 1px solid ink(greenLight 0.35); border-radius: 4px; pointer-events: auto;
     }
     .mapview-legend h3 { margin: 0 2px; font-size: 24px; font-weight: normal; letter-spacing: 1px; color: ink(greenLight); }
-    .mapview-legend .hint { margin: 0 2px; font: 13px 'Arial Narrow', Arial, sans-serif; color: ink(cream 0.6); }
+    .mapview-legend .hint { margin: 0 2px; font: 13px 'Arial Narrow', Arial, sans-serif; font-size: max(13px, var(--menu-min, 13px)); color: ink(cream 0.6); }
     .mapview-legend .mv-grp { border-radius: 10px; background: ink(white 0.035); border: 1px solid ink(white 0.08); }
     .mapview-legend .mv-grp-head { display: flex; justify-content: space-between; width: 100%; padding: 8px 12px; background: none; border: 0; cursor: pointer; font: 16px 'Bebas Neue', 'Arial Narrow', sans-serif; letter-spacing: 1px; color: ink(cream 0.62); }
     .mapview-legend .mv-grp-head:focus-visible { outline: 2px solid ink(cream); }
@@ -268,9 +268,9 @@ function injectStyles() {
     .mapview-legend .chk::after { content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: ink(cream); transition: transform var(--dur-base, 200ms) var(--ease-pop, ease); }
     .mapview-legend li[aria-checked="true"] .chk { background: ink(green); }
     .mapview-legend li[aria-checked="true"] .chk::after { transform: translateX(16px); }
-    .mapview-legend .always { font: 12px 'Arial Narrow', Arial, sans-serif; color: ink(cream 0.55); }
+    .mapview-legend .always { font: 12px 'Arial Narrow', Arial, sans-serif; font-size: max(12px, var(--menu-min, 12px)); color: ink(cream 0.55); }
     .mapview-legend canvas { width: 30px; height: 30px; }
-    .mapview-legend .note { color: ink(cream 0.6); font: 12px 'Arial Narrow', Arial, sans-serif; }
+    .mapview-legend .note { color: ink(cream 0.6); font: 12px 'Arial Narrow', Arial, sans-serif; font-size: max(12px, var(--menu-min, 12px)); }
     .mapview-legend .note:empty { display: none; }
     .mapview-legend .always { display: none; }
     .mapview-card {
@@ -284,9 +284,9 @@ function injectStyles() {
     .mapview-card .mv-ico img { width: 36px; height: 36px; }
     .mapview-card > div { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
     .mapview-card b { font-weight: normal; font-size: 22px; letter-spacing: 1px; line-height: 1.05; }
-    .mapview-card small, .mapview-card .mv-rec { font: 13px 'Arial Narrow', Arial, sans-serif; color: ink(cream 0.65); letter-spacing: 0.2px; }
+    .mapview-card small, .mapview-card .mv-rec { font: 13px 'Arial Narrow', Arial, sans-serif; font-size: max(13px, var(--menu-min, 13px)); color: ink(cream 0.65); letter-spacing: 0.2px; }
     .mapview-card .mv-reis { display: flex; flex-direction: column; gap: 3px; margin: 4px 0; }
-    .mapview-card .mv-reisrij { text-align: left; font: 13px Arial, sans-serif; color: ink(cream); background: ink(white 0.05); border: 0; border-radius: 4px; padding: 5px 8px; cursor: pointer; }
+    .mapview-card .mv-reisrij { text-align: left; font: 13px Arial, sans-serif; font-size: max(13px, var(--menu-min, 13px)); color: ink(cream); background: ink(white 0.05); border: 0; border-radius: 4px; padding: 5px 8px; cursor: pointer; }
     .mapview-card .mv-reisrij.sel { background: ink(selected 0.22); }
     .mapview-card .mv-reisrij[aria-disabled] { opacity: 0.55; }
     .mapview-card .mv-rec { display: flex; align-items: center; gap: 8px; }

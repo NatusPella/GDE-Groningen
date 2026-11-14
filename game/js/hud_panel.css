@@ -55,11 +55,11 @@ body.hide-minimap #hud .hud-minimap-wrap { display: none; }
 #hud .hud-special {
   display: flex; gap: 7px; align-items: center; padding: 4px 10px 3px 8px; border-radius: 6px;
   background: rgba(232, 201, 58, 0.14); box-shadow: inset 0 0 0 1px rgba(232, 201, 58, 0.55);
-  font-size: 16px; color: #f3dc6a; text-shadow: none;
+  font-size: max(16px, var(--hud-min)); color: #f3dc6a; text-shadow: none;
 }
 #hud .hud-special[hidden] { display: none; }
 #hud .hud-special svg { width: 15px; height: 15px; fill: #e8c93a; flex: none; }
-#hud .hud-special.small { background: none; box-shadow: inset 0 0 0 1px rgba(232, 201, 58, 0.35); font-size: 14px; padding: 2px 8px; }
+#hud .hud-special.small { background: none; box-shadow: inset 0 0 0 1px rgba(232, 201, 58, 0.35); font-size: max(14px, var(--hud-min)); padding: 2px 8px; }
 
 #hud .hud-wanted { display: flex; justify-content: flex-end; gap: 5px; line-height: 0; }
 #hud .hud-wanted svg { width: 28px; height: 28px; fill: none; stroke: rgba(255, 255, 255, 0.3); stroke-width: 1.6; stroke-linejoin: round; }
@@ -111,12 +111,12 @@ body.hide-minimap #hud .hud-minimap-wrap { display: none; }
 #hud .gps-arrow { width: 36px; height: 36px; fill: none; stroke: var(--gron-green-light); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 #hud .gps-txt { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
 #hud .gps-txt b { font-weight: normal; font-size: 28px; line-height: 1; }
-#hud .gps-txt span { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 15px; color: rgba(240, 237, 228, 0.75); overflow: hidden; text-overflow: ellipsis; }
+#hud .gps-txt span { font-family: 'Arial Narrow', Arial, sans-serif; font-size: max(15px, var(--hud-min)); color: rgba(240, 237, 228, 0.75); overflow: hidden; text-overflow: ellipsis; }
 #hud .gps-txt span:empty { display: none; }
 #hud .gps-sep { width: 1px; align-self: stretch; background: rgba(63, 201, 122, 0.3); }
 #hud .gps-dist { display: flex; flex-direction: column; align-items: flex-end; }
 #hud .gps-dist b { font-weight: normal; font-size: 25px; line-height: 1; color: var(--gron-green-light); }
-#hud .gps-dist span { font-size: 13px; color: rgba(240, 237, 228, 0.6); }
+#hud .gps-dist span { font-size: max(13px, var(--hud-min)); color: rgba(240, 237, 228, 0.6); }
 #hud .gps-timer { display: none; flex-direction: column; align-items: center; }
 #hud .gps-timer span { font-size: max(12px, var(--hud-min)); color: rgba(240, 237, 228, 0.6); }
 #hud .gps-timer b { font-weight: normal; font-size: 30px; line-height: 1; color: var(--hud-redtx, #ff9a9a); font-variant-numeric: tabular-nums; }
@@ -229,7 +229,7 @@ body.tc-on #hud .hud-mission { bottom: calc(var(--hud-g-floor, 225px) + 10px); }
 #hud .hud-location { display: flex; flex-direction: column; gap: 1px; max-width: min(calc(30vw / var(--ui, 1)), 340px); }
 #hud .hud-location:has(.hud-street:empty) { display: none; }
 #hud .hud-street { font-size: 28px; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#hud .hud-district { font-size: 17px; color: var(--gron-green-light); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#hud .hud-district { font-size: max(17px, var(--hud-min)); color: var(--gron-green-light); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #hud .hud-street:empty { display: none; }
 #hud .hud-loc-ic { display: none; }
 
@@ -654,3 +654,46 @@ html.touch-play .hud-chip.hud-mute { min-height: 44px; min-width: 44px; display:
 
 /* #802: de schermnarratie is alleen voor de schermlezer, niet zichtbaar */
 #hud .hud-narration { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* --- #867: het doel van zone G past op smalle schermen -------------------- */
+/* Op 1024x768 werd de doellijn 128 px breed (formule reserveerde minimap én
+   160 px zone H) en kapte de opdracht af; op 1280x800 schoof hij over de
+   straatkolom. Onder 1320 px zakt het doel boven de straatkolom en krijgt het
+   de breedte tussen de randen, met de minimap gereserveerd. Zodra je vliegt
+   staat het paneel van zone H rechtsonder: dan zakt het doel daar ook boven. */
+@media (max-width: 1320px) {
+  #hud .hud-mission {
+    bottom: calc(var(--hud-edge) + 150px);
+    max-width: min(calc(58vw / var(--ui, 1)), calc(100vw / var(--ui, 1) - 2 * (var(--hud-edge) + var(--mm-size) + 16px)));
+  }
+  body.plane-flying #hud .hud-mission { bottom: calc(var(--hud-edge) + 310px); }
+}
+/* Op een korte telefoon liggen de knoppen en de minimap hoger; het doel zakt
+   daar boven de aanraakknoppen (touch.js regelt de basis, dit is de vliegstand). */
+@media (max-height: 640px) and (max-width: 760px) {
+  body.plane-flying #hud .hud-mission { bottom: calc(var(--hud-edge) + 210px); }
+}
+
+/* --- #855: de radio-ondertitel wijkt voor het vliegpaneel ------------------ */
+/* Het paneel van zone H staat rechtsonder en is (met de leesbare labels) ~290
+   HUD-px hoog; de ondertitel lag eroverheen en over de minimap. In de vlucht
+   zakt hij boven het paneel én boven het doel van zone G. */
+body.plane-flying #banter-sub, body.plane-flying #radio-sub {
+  bottom: calc(500px * var(--ui, 1)) !important;
+}
+@media (max-height: 640px) {
+  /* #877: op een korte telefoon is er in de vlucht geen strook meer over tussen
+     zone C, het doel, de hintregels en het paneel; een ondertitel die daar
+     tóch valt dekt de klok/datum af (35%). De radio speelt door en de
+     nowplaying-kaart noemt de zender, dus de tekst wijkt hier. */
+  body.plane-flying #banter-sub, body.plane-flying #radio-sub { display: none; }
+}
+/* Ook buiten de vlucht schoof de ondertitel op 1024-1366 over de straatkolom en
+   de minimap. Daar zakt hij boven die kolom en houdt hij de breedte tussen de
+   randen (de kolommen zijn samen 46 + 250 px aan de linkerkant). */
+@media (min-width: 761px) and (max-width: 1366px) and (min-height: 641px) {
+  #banter-sub, #radio-sub {
+    bottom: calc(200px * var(--ui, 1)) !important;
+    max-width: min(56vw, calc(100vw - 2 * (46px + 250px))) !important;
+  }
+}

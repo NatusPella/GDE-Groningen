@@ -56,12 +56,12 @@
   background: var(--pf);
 }
 #hud .pf-app svg { width: 16px; height: 16px; }
-#hud .pf-from { font-size: 16px; letter-spacing: 2px; text-transform: uppercase; color: var(--pf); }
+#hud .pf-from { font-size: max(16px, var(--hud-min)); letter-spacing: 2px; text-transform: uppercase; color: var(--pf); }
 #hud .pf-more { padding: 1px 7px 0; border-radius: 9px; font-size: 14px; letter-spacing: 0.5px; color: #0c140e; background: rgba(240,237,228,0.85); }
 #hud .pf-more[hidden] { display: none; }
 #hud .pf-time { margin-left: auto; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 13px; color: rgba(240, 237, 228, 0.55); }
 #hud .pf-title { padding: 3px 14px 0; font-size: 25px; line-height: 1.02; letter-spacing: 0.6px; text-transform: uppercase; }
-#hud .pf-body { padding: 3px 14px 12px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 17px; line-height: 1.28; color: rgba(240, 237, 228, 0.92); }
+#hud .pf-body { padding: 3px 14px 12px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: max(17px, var(--hud-min)); line-height: 1.28; color: rgba(240, 237, 228, 0.92); }
 #hud .pf-title:last-child { padding-bottom: 12px; }
 
 /* calls and livestreams */
@@ -92,9 +92,9 @@
 @keyframes pf-ring { from { transform: scale(0.9); opacity: 1; } to { transform: scale(1.5); opacity: 0; } }
 @keyframes pf-buzz { from { transform: rotate(-1deg); } to { transform: rotate(1deg); } }
 #hud .pf-callwho { display: flex; flex-direction: column; line-height: 1; min-width: 0; }
-#hud .pf-callwho small { font-size: 13px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--pf); }
+#hud .pf-callwho small { font-size: max(13px, var(--hud-min)); letter-spacing: 2.5px; text-transform: uppercase; color: var(--pf); }
 #hud .pf-callwho b { margin-top: 2px; font-weight: normal; font-size: 26px; letter-spacing: 0.8px; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#hud .pf-state { margin-left: auto; display: flex; align-items: center; gap: 6px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 14px; color: rgba(240, 237, 228, 0.7); white-space: nowrap; }
+#hud .pf-state { margin-left: auto; display: flex; align-items: center; gap: 6px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: max(14px, var(--hud-min)); color: rgba(240, 237, 228, 0.7); white-space: nowrap; }
 #hud .pf-clock { font-weight: normal; font-variant-numeric: tabular-nums; }
 #hud .pf-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--pf); animation: pf-blink 1.2s ease-in-out infinite; }
 #hud .pf-live { margin-left: auto; padding: 3px 8px 1px; border-radius: 4px; font-size: 15px; letter-spacing: 2px; color: #fff; background: var(--mk-danger, #d93f3f); animation: pf-blink 1.4s ease-in-out infinite; }

@@ -78,7 +78,7 @@ t('de sfeerband is één component voor elk scherm met een sfeer (#609)', () => 
   assert.match(band, /lb-sfeer-groot/);
   assert.equal(S.sfeerBandHtml('bestaatniet'), '', 'een onbekend vak geeft geen band');
   const css = S.SFEER_BAND_CSS;
-  assert.match(css, /\.lb-sfeer-klein \{[^}]*font: 13px/, 'de kleine regel staat op de menuvloer van 13 px');
+  assert.match(css, /\.lb-sfeer-klein \{[^}]*font-size: max\(13px, var\(--menu-min, 13px\)\)/, 'de kleine regel staat op de menuvloer van 13 px');
   assert.ok(!/font: 1[0-2]px|font-size: 1[0-2]px/.test(css), 'niets in de band is kleiner dan 13 px');
   assert.ok(!/#[0-9a-f]{3,8}/i.test(css + band), 'geen losse hex in de band');
 });

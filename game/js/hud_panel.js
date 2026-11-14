@@ -257,6 +257,8 @@ export function initHud(world) {
       '</div>' +
     '</div>';
   fcol.appendChild(topLeft);
+  // #881: de hoogte van de linkerkolom voor de vliegstand op een telefoon
+  watchFlightColumn(root, fcol);
 
   els = {
     root,
@@ -419,6 +421,13 @@ function watchRightStack(root, topRight, race, vehName, cards) {
     const stack = race.hidden ? trBottom : trBottom + GAP + race.offsetHeight;
     root.style.setProperty('--hud-tr-bottom', `${trBottom}px`);
     root.style.setProperty('--hud-stack-top', `${stack + GAP + 2}px`);
+    // #854: het vliegschool-/minigamebord reserveert de echte zone C-kolom.
+    // Via getBoundingClientRect (niet offsetWidth), want de kolom kan in een
+    // gezoomde/verschoven context staan; de maten gaan terug naar HUD-px.
+    const scale = getUiScale();
+    const trRect = topRight.getBoundingClientRect();
+    root.style.setProperty('--hud-c-width', `${Math.max(0, Math.round(trRect.width / scale))}px`);
+    root.style.setProperty('--hud-c-right', `${Math.max(0, Math.round((window.innerWidth - trRect.left) / scale))}px`);
     // #638: de voertuignaam in dezelfde gemeten kolom: boven het racepaneel, niet op een vaste 300 px.
     const bottom = race.hidden ? null : vehnameBottom({ raceTop: race.getBoundingClientRect().top, viewH: window.innerHeight, gap: GAP });
     if (bottom != null && cards && !cards.classList.contains('hc-held')) root.style.setProperty('--hud-vehname-bottom', `${bottom}px`);
@@ -428,6 +437,27 @@ function watchRightStack(root, topRight, race, vehName, cards) {
   ro.observe(topRight);
   ro.observe(race);
   if (vehName) ro.observe(vehName);
+  place();
+  // #854: de eerste meting kan vallen voordat zone C zijn definitieve breedte
+  // heeft (letters/fonts); meet daarom ook na de eerste layout nog een keer.
+  if (typeof requestAnimationFrame === 'function') requestAnimationFrame(() => { place(); requestAnimationFrame(place); });
+}
+
+// #881: in portret staat het vliegtuigpaneel boven de rechterknoppen, maar de
+// linkerkolom (straatnaam, gezondheid) schuift in portret boven de linkerknoppen
+// en kan daardoor op dezelfde hoogte komen. We meten de bovenkant van die kolom
+// in HUD-px vanaf de onderkant van #hud (--hud-f-top), zodat touch.js het paneel
+// daar precies boven kan zetten.
+function watchFlightColumn(root, fcol) {
+  if (typeof ResizeObserver === 'undefined') return;
+  const place = () => {
+    const top = root.clientHeight - fcol.offsetTop;
+    if (top > 0) root.style.setProperty('--hud-f-top', `${Math.ceil(top)}px`);
+    else root.style.removeProperty('--hud-f-top');
+  };
+  const ro = new ResizeObserver(place);
+  ro.observe(fcol);
+  ro.observe(root);
   place();
 }
 
@@ -507,6 +537,8 @@ const VEH_ICONS = {
   boat: '<path d="M2.5 14.5h19l-3 5h-13z"/><path d="M11.5 3v10M11.5 4.5l6 8h-6" class="ln"/>',
   horse: '<path d="M5 19v-5.5l1.5-3.5h7l2.5-4 1.5-1.5 1 1.5 1.5 2.5-1 1.2-2-.7-1.5 2.5V19M8 14v5M14 14v5" class="ln"/><path d="M6.5 10l-2.5 2.5" class="ln"/>',
   heli: '<path d="M3 6h16M11 6v3" class="ln"/><path d="M5.5 13a4.5 3.5 0 0 1 9 0v1.5h-9z"/><path d="M14.5 12.5h6.5M20 10v4.5M6 19h8M8 16v3M12 16v3" class="ln"/>',
+  // #857: the plane has its own icon, just like the heli.
+  plane: '<path d="M12 2.6c.7 0 1.2.6 1.2 1.4v5.6l7.2 4.1v2l-7.2-2.1v3.4l2.5 1.9v1.3L12 19.3l-3.7.9v-1.3l2.5-1.9v-3.4l-7.2 2.1v-2l7.2-4.1V4c0-.8.5-1.4 1.2-1.4z"/>',
 };
 
 // Genre convention: the model name shows for a moment when you get into a vehicle
@@ -520,7 +552,7 @@ function updateVehicleName(dt, world) {
       const { make, model } = vehicleDisplayName(v);
       els.vehName.querySelector('small').textContent = make;
       els.vehName.querySelector('b').textContent = model;
-      els.vehName.querySelector('.vn-ic').innerHTML = VEH_ICONS[v.isHeli ? 'heli' : v.isBoat ? 'boat' : v._mount === 'horse' ? 'horse' : v.isBike ? 'bike' : v.isScooter ? 'scooter' : v.isBus ? 'bus' : 'car'];
+      els.vehName.querySelector('.vn-ic').innerHTML = VEH_ICONS[v.isPlane ? 'plane' : v.isHeli ? 'heli' : v.isBoat ? 'boat' : v._mount === 'horse' ? 'horse' : v.isBike ? 'bike' : v.isScooter ? 'scooter' : v.isBus ? 'bus' : 'car'];
       vehNameTimer = 4.5;
       restartClass(els.vehName, 'on', () => vehNameFor === v);
     } else {

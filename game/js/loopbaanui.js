@@ -48,7 +48,7 @@ const loopbaanIcoon = (naam, cls = 'pa-ico') => `<span class="${cls}"><svg viewB
 
 
 const CSS = `${SFEER_BAND_CSS}
-.lb-groep { margin: 14px 0 4px; font: 14px "Arial Narrow", Arial, sans-serif; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.55; }
+.lb-groep { margin: 14px 0 4px; font-family: "Arial Narrow", Arial, sans-serif; font-size: max(14px, var(--menu-min, 14px)); letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.55; }
 .lb-groep:first-child { margin-top: 0; }
 .lb-li { gap: 12px; }
 .lb-li .nm { min-width: 0; }
@@ -79,8 +79,8 @@ const CSS = `${SFEER_BAND_CSS}
 .lb-kan { padding-left: 10px; box-shadow: inset 3px 0 0 var(--g, #3fc97a); }
 .lb-bz { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
 .lb-bz > span:first-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.lb-bz .mut { font-size: 14px; }
-.lb-volg { flex: none; padding: 1px 8px; border-radius: 999px; font: 12px "Arial Narrow", Arial, sans-serif; letter-spacing: 0.08em; text-transform: uppercase; background: rgba(63, 201, 122, 0.18); color: var(--g, #3fc97a); }
+.lb-bz .mut { font-size: max(14px, var(--menu-min, 14px)); }
+.lb-volg { flex: none; padding: 1px 8px; border-radius: 999px; font-family: "Arial Narrow", Arial, sans-serif; font-size: max(12px, var(--menu-min, 12px)); letter-spacing: 0.08em; text-transform: uppercase; background: rgba(63, 201, 122, 0.18); color: var(--g, #3fc97a); }
 .lb-bz-link { border-top: 1px solid rgba(255, 255, 255, 0.09); padding-top: 4px; margin-top: 2px; }
 .lb-leeg { margin: 4px 0 0; }
 .lb-start { padding: 10px 14px; border-radius: 10px; background: rgba(63, 201, 122, 0.1); box-shadow: inset 0 0 0 1.5px rgba(63, 201, 122, 0.4); }

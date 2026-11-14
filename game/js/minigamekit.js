@@ -78,9 +78,15 @@ export function boardBox(vw, ui = 1) {
   const edge = 46;
   if (!(vw > 0)) return { max: 0, min: 0, mobile: false };
   if (vw <= 480) return { max: Math.max(0, vw - 32), min: 0, mobile: true };
-  const basis = Math.min(760, vw / (ui || 1) - 2 * (edge + 360), vw - 32);
+  const basis = Math.min(760, vw / (ui || 1) - 2 * (edge + 310), vw - 32);
   const smal = vw <= 1500 ? vw / (ui || 1) - edge - 372 - 330 : Infinity;
   return { max: Math.max(0, Math.min(basis, smal)), min: 360, mobile: false };
+}
+
+// #877/#881: op een korte telefoon (liggend) en op een smalle telefoon (staand)
+// is er geen ruime strook voor het les-/minigamebord: daar wordt het één regel.
+export function compactBoard(width, height) {
+  return (width <= 1000 && height <= 520) || width <= 480;
 }
 
 // --- HUD board ----------------------------------------------------------------------------------
@@ -92,12 +98,12 @@ import { vormStijl } from './carrieresfeer.js';
 
 const CSS = `
 #hud .mg-board[hidden] { display: none; }
-#hud .mg-board { position: absolute; top: var(--hud-top, 14px); left: 50%; transform: translateX(-50%); min-width: 360px; max-width: min(760px, calc(100vw / var(--ui, 1) - 2 * (var(--hud-edge, 46px) + 360px)), calc(100vw - 32px)); padding: 8px 18px 9px 12px; color: #f0ede4; text-shadow: var(--hud-shadow); pointer-events: none; z-index: 4;
+#hud .mg-board { position: absolute; top: var(--hud-top, 14px); left: 50%; transform: translateX(-50%); box-sizing: border-box; min-width: 360px; max-width: min(760px, calc(100vw / var(--ui, 1) - 2 * (var(--hud-edge, 46px) + 310px)), calc(100vw - 32px)); padding: 8px 18px 9px 12px; color: #f0ede4; text-shadow: var(--hud-shadow); pointer-events: none; z-index: 4;
   background: linear-gradient(90deg, rgba(12,20,14,0.9), rgba(24,34,28,0.66) 80%, rgba(24,34,28,0.2)); border-left: 3px solid var(--mg-acc, var(--mk-ok, #3fc97a)); }
-#hud .mg-board small { display: flex; align-items: center; gap: 6px; font-size: max(12px, calc(13px * var(--ui, 1))); letter-spacing: 3px; color: var(--mg-acc, var(--mk-ok, #3fc97a)); }
+#hud .mg-board small { display: flex; align-items: center; gap: 6px; font-size: max(13px, calc(13px / var(--ui, 1))); letter-spacing: 3px; color: var(--mg-acc, var(--mk-ok, #3fc97a)); }
 #hud .mg-board .mg-ic { flex: none; }
 /* de sfeernaam klein naast de titel en één watermark in de marge (#595): geen tweede balk */
-#hud .mg-board .mg-sfeer { font: max(12px, calc(12px * var(--ui, 1))) 'Arial Narrow', Arial, sans-serif; letter-spacing: 2px; text-transform: uppercase; color: rgba(240,237,228,0.62); font-style: normal; }
+#hud .mg-board .mg-sfeer { font: max(12px, calc(12px / var(--ui, 1))) 'Arial Narrow', Arial, sans-serif; letter-spacing: 2px; text-transform: uppercase; color: rgba(240,237,228,0.62); font-style: normal; }
 #hud .mg-board .mg-watermark { position: absolute; right: 10px; bottom: -4px; font: 54px/1 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 4px; text-transform: uppercase; color: var(--mg-acc, var(--mk-ok, #3fc97a)); opacity: 0.11; pointer-events: none; white-space: nowrap; }
 #hud .mg-board[data-sfeerbord="scorekaart"], #hud .mg-board[data-sfeerbord="meetlat"] { border-radius: 0 10px 10px 0; }
 #hud .mg-board[data-sfeerbord="clubschild"], #hud .mg-board[data-sfeerbord="entreekaartje"] { border-radius: 14px 4px 4px 14px; }
@@ -122,10 +128,38 @@ const CSS = `
 /* #621: de rondvaart draagt de kadeband: het golfvlak links en een cream kadelijn onder */
 #hud .mg-board[data-sfeer="vaardienst"] { border-bottom: 2px solid var(--ink, #f0ede4); }
 @media (max-width: 480px) { #hud .mg-board[data-sfeer] { padding-left: 12px; } #hud .mg-board .mg-vorm { display: none; } }
+/* #854: op een telefoon liggen de klok/datum links van Pauze en Meer. Een gecentreerd
+   bord op de gewone hoogte schuift daar doorheen; het bord zakt op smalle liggende
+   schermen onder de zone C-rij en houdt de volle breedte tussen de randen. */
+@media (max-width: 900px) and (orientation: landscape) {
+  #hud .mg-board { left: 50%; transform: translateX(-50%); top: calc(var(--hud-top, 18px) + 170px); max-width: min(560px, calc(100vw - 2 * var(--hud-edge, 46px))); }
+}
+/* #877: op een korte telefoon (liggend) is er tussen zone C en het vliegpaneel maar
+   ~42 px; het bord wordt daar één regel (titel + voortgang), secundaire regels weg.
+   De positie zelf zet createBoard inline (de mediaregel bleek daar niet te grijpen). */
+@media (max-height: 460px) and (orientation: landscape) {
+  #hud .mg-board { padding: 4px 10px; }
+  body.plane-flying #hud .mg-board :is(small, .mg-sfeer, .mg-watermark, .mg-cells, .mg-extra, .mg-meter, .mg-help) { display: none !important; }
+  body.plane-flying #hud .mg-board .mg-row { flex-wrap: nowrap; overflow: hidden; white-space: nowrap; line-height: 1.15; }
+}
+/* #881: in portret geldt dezelfde compacte vliegstand; buiten de vlucht (het
+   lesmenu) houdt het bord zijn titel en wikkelt de rij gewoon door. */
+@media (max-width: 480px) {
+  #hud .mg-board { padding: 4px 10px; }
+  body.plane-flying #hud .mg-board :is(small, .mg-sfeer, .mg-watermark, .mg-cells, .mg-extra, .mg-meter, .mg-help) { display: none !important; }
+  body.plane-flying #hud .mg-board .mg-row { flex-wrap: nowrap; overflow: hidden; white-space: nowrap; line-height: 1.15; }
+}
+@media (max-height: 460px) and (orientation: landscape), (max-width: 480px) {
+  /* #877/#881: in de compacte vliegstand is er één regel. Een lesmelding
+     (flash) gaat dan voor de voortgangsregel; zo blijft het bord even hoog en
+     houdt de melding ruimte zonder over het paneel te schuiven. */
+  body.plane-flying #hud .mg-board:has(.mg-flash:not(:empty)) .mg-row { display: none; }
+  body.plane-flying #hud .mg-board .mg-flash { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+}
 #hud .mg-board .mg-row { display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: baseline; font-size: 20px; letter-spacing: 1px; }
 #hud .mg-board .mg-row b { font-weight: normal; color: var(--mk-mission, #e8c93a); font-size: 24px; }
 #hud .mg-board .mg-cells { display: flex; flex-wrap: wrap; gap: 3px; margin: 5px 0 2px; }
-#hud .mg-board .mg-cells i { flex: 1; min-width: 26px; text-align: center; font-style: normal; font-size: 13px; padding: 2px 0; background: rgba(240,237,228,0.1); color: rgba(240,237,228,0.75); }
+#hud .mg-board .mg-cells i { flex: 1; min-width: 26px; text-align: center; font-style: normal; font-size: max(13px, calc(13px / var(--ui, 1))); padding: 2px 0; background: rgba(240,237,228,0.1); color: rgba(240,237,228,0.75); }
 /* touch: a cell with a key is a button (carillon bells) */
 html.touch-play #hud .mg-board .mg-cells i[data-k] { pointer-events: auto; touch-action: none; min-height: 44px; display: flex; align-items: center; justify-content: center; }
 #hud .mg-board .mg-cells i.on { background: color-mix(in srgb, var(--mk-mission, #e8c93a) 28%, transparent); color: #fff; }
@@ -139,29 +173,29 @@ html.touch-play #hud .mg-board .mg-cells i[data-k] { pointer-events: auto; touch
 #hud .mg-board .mg-meter .mg-bar { position: relative; flex: 1; height: 11px; background: rgba(240,237,228,0.16); border-radius: 2px; overflow: hidden; box-shadow: inset 0 0 0 1px rgba(240,237,228,0.18); }
 #hud .mg-board .mg-meter i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--mg-acc, var(--mk-ok, #3fc97a)); }
 #hud .mg-board .mg-meter em { position: absolute; top: 0; bottom: 0; width: 3px; margin-left: -1px; background: #f0ede4; box-shadow: 0 0 0 1px rgba(12,20,14,0.7); }
-#hud .mg-board .mg-meter-t { min-width: 3.2em; text-align: right; font-size: max(13px, calc(14px * var(--ui, 1))); letter-spacing: 0.5px; color: #f0ede4; }
+#hud .mg-board .mg-meter-t { min-width: 3.2em; text-align: right; font-size: max(14px, calc(14px / var(--ui, 1))); letter-spacing: 0.5px; color: #f0ede4; }
 #hud .mg-board .mg-extra[hidden] { display: none; }
 /* #619: de balanstip staat op een eigen regel, los van de puntenflits */
-#hud .mg-board .sk-bal { display: block; font: max(13px, calc(13px * var(--ui, 1))) 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.4px; color: var(--mk-job, #ff9a3c); margin: 2px 0 1px; }
+#hud .mg-board .sk-bal { display: block; font: max(13px, calc(13px / var(--ui, 1))) 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.4px; color: var(--mk-job, #ff9a3c); margin: 2px 0 1px; }
 /* een tussenstand als echte tabel (#617), geen rij chips */
-#hud .mg-board .mg-stand { border-collapse: collapse; margin: 5px 0 2px; font: max(12px, calc(13px * var(--ui, 1))) 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.82); }
+#hud .mg-board .mg-stand { border-collapse: collapse; margin: 5px 0 2px; font: max(13px, calc(13px / var(--ui, 1))) 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.82); }
 #hud .mg-board .mg-stand th, #hud .mg-board .mg-stand td { padding: 1px 9px; font-weight: normal; text-align: right; }
 #hud .mg-board .mg-stand th[scope="row"], #hud .mg-board .mg-stand thead th:first-child { text-align: left; }
-#hud .mg-board .mg-stand thead th { font-size: 12px; letter-spacing: 1px; color: rgba(240,237,228,0.6); }
+#hud .mg-board .mg-stand thead th { font-size: max(12px, calc(12px / var(--ui, 1))); letter-spacing: 1px; color: rgba(240,237,228,0.6); }
 #hud .mg-board .mg-stand tr.on { background: rgba(63,201,122,0.18); color: #f0ede4; }
 #hud .mg-board .mg-stand tr.weg { opacity: 0.55; }
-#hud .mg-board .mg-help { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; font: max(13px, calc(14px * var(--ui, 1))) 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.78); }
+#hud .mg-board .mg-help { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; font: max(14px, calc(14px / var(--ui, 1))) 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.78); }
 #hud .mg-board .hud-key { margin: 0 2px; vertical-align: middle; }
-#hud .mg-board .mg-flash { font-size: calc(22px * var(--ui, 1)); letter-spacing: 1.5px; color: var(--mk-ok, #3fc97a); min-height: 1em; }
+#hud .mg-board .mg-flash { font-size: max(18px, calc(22px * var(--ui, 1))); letter-spacing: 1.5px; color: var(--mk-ok, #3fc97a); min-height: 1em; }
 #hud .mg-board .mg-flash.bad { color: var(--mk-danger, #d93f3f); }
-body.mg-on #hud .hud-speedo, body.mg-on #hud .hud-route, body.mg-on #hud .hud-gps, body.mg-on #hud .hud-place, body.mg-on #hud .phonefeed .pf-card { display: none !important; }
+body.mg-on #hud .hud-speedo, body.mg-on #hud .hud-route, body.mg-on #hud .hud-gps, body.mg-on #hud .hud-place, body.mg-on #hud .hud-nowplaying, body.mg-on #hud .phonefeed .pf-card { display: none !important; }
 /* het stopvenster in de HUD-stijl (#596): Bebas + Arial Narrow, toetsplaatjes en 44 px-knoppen */
 .mg-stopask { position: fixed; left: 50%; top: 38%; transform: translateX(-50%); z-index: 60; pointer-events: auto; padding: 14px 22px; border-radius: 10px; background: rgba(12,20,14,0.94); box-shadow: inset 0 0 0 1px rgba(240,237,228,0.16); color: #f0ede4; text-align: center; text-shadow: var(--hud-shadow); }
 .mg-stopask b { display: block; font: normal calc(26px * var(--ui, 1))/1.1 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.04em; }
 .mg-stopask .mg-stopbtns { display: flex; justify-content: center; gap: 8px; margin-top: 10px; }
 .mg-stopask button { min-height: 44px; min-width: 44px; padding: 0 18px; border: 0; border-radius: 8px; background: var(--g, #3fc97a); color: var(--gd, #0f5c30); font: normal calc(20px * var(--ui, 1)) 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.04em; cursor: pointer; }
 .mg-stopask button[data-do="stop"] { background: var(--mk-danger, #d93f3f); color: #fff; }
-.mg-stopask small { display: block; margin-top: 8px; font: max(12px, calc(13px * var(--ui, 1))) 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.72); }
+.mg-stopask small { display: block; margin-top: 8px; font: max(13px, calc(13px / var(--ui, 1))) 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.72); }
 /* smal scherm: de spel-HUD begint rechts van de uitlegkaart (linksboven, 350 px) in plaats van eroverheen (#294) */
 @media (max-width: 1500px) { #hud .mg-board { left: calc(var(--hud-edge, 46px) + 372px); transform: none; max-width: calc(100vw / var(--ui, 1) - var(--hud-edge, 46px) - 372px - 330px); } }
 @media (max-width: 480px) { #hud .mg-board { top: 64px; left: 50%; transform: translateX(-50%); min-width: 0; max-width: calc(100vw - 32px); } }
@@ -280,6 +314,23 @@ export function createBoard(title, accent) {
   root.hidden = true;
   root.innerHTML = `${vlak ? `<span class="mg-vorm" aria-hidden="true" style="${vlak}background-color:${TINT_RGBA[sfeer.tint]};background-repeat:repeat;"></span>` : ''}<small>${thema ? mgIcoon(thema.icoon) : ''}<span>${titel}</span>${sfeer ? `<em class="mg-sfeer">${sfeer.naam}</em>` : ''}</small>${sfeer ? `<b class="mg-watermark" aria-hidden="true">${sfeer.naam}</b>` : ''}<div class="mg-row"></div><div class="mg-cells" hidden></div><div class="mg-extra" hidden></div><div class="mg-meter" hidden><span class="mg-bar"><i></i><em></em></span><span class="mg-meter-t"></span></div><div class="mg-flash"></div><div class="mg-help"></div>`;
   (document.getElementById('hud') || document.body).appendChild(root);
+  // #854/#877/#881: op een korte telefoon (liggend) en op een smalle telefoon
+  // (staand) kan het bord niet op de gewone hoogte gecentreerd staan zonder zone C
+  // (klok/datum links van Pauze en Meer) te raken. De CSS-mediaregel bleek in de
+  // praktijk niet aan te slaan op dit bord; daarom hier de positie inline (wint van
+  // elke stylesheet): onder de zone C-rij, horizontaal gecentreerd en niet breder
+  // dan tussen de randen. De compacte éénregelstand zelf is CSS onder
+  // body.plane-flying, zodat het bord in de lesmenu's gewoon zijn tekst houdt en
+  // pas tijdens de vlucht inklapt.
+  if (typeof window !== 'undefined' && compactBoard(window.innerWidth, window.innerHeight)) {
+    const uiS = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ui')) || 1;
+    const hudEl = document.getElementById('hud');
+    const edge = (hudEl && parseFloat(getComputedStyle(hudEl).getPropertyValue('--hud-edge'))) || 46;
+    root.style.left = '50%';
+    root.style.transform = 'translateX(-50%)';
+    root.style.top = '170px'; // net onder de zone C-rij, boven de paneeltop (153 px op 800x360)
+    root.style.maxWidth = `${Math.min(560, window.innerWidth / uiS - 2 * edge)}px`;
+  }
   const q = (s) => root.querySelector(s);
   const el = { row: q('.mg-row'), cells: q('.mg-cells'), extra: q('.mg-extra'), meter: q('.mg-meter'), bar: q('.mg-meter i'), mark: q('.mg-meter em'), meterT: q('.mg-meter-t'), flash: q('.mg-flash'), help: q('.mg-help') };
   let last = '';

@@ -218,13 +218,13 @@ export const SFEER_BAND_CSS = `
 .lb-sfeer-ico { position: absolute; right: 18px; top: 50%; z-index: 2; display: block; width: 86px; height: 86px; margin: 0; padding: 15px; box-sizing: border-box; border-radius: 50%; background: rgba(12, 20, 14, 0.36); box-shadow: inset 0 0 0 1px rgba(240, 237, 228, 0.20); color: rgba(240, 237, 228, 0.94); transform: translateY(-50%); }
 .lb-sfeer-groot { position: absolute; left: 14px; top: calc(50% + 6px); z-index: 2; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; max-width: calc(100% - 132px); overflow: hidden; transform: translateY(-50%); font: 40px "Bebas Neue", "Arial Narrow", Arial, sans-serif; line-height: 0.92; letter-spacing: 0.04em; text-transform: uppercase; color: rgba(240, 237, 228, 0.96); text-shadow: 0 2px 6px rgba(0, 0, 0, 0.55); }
 .lb-sfeer-ico svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.35; stroke-linecap: round; stroke-linejoin: round; }
-.lb-sfeer-klein { position: absolute; left: 14px; top: 9px; z-index: 2; max-width: calc(100% - 132px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font: 13px "Arial Narrow", Arial, sans-serif; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(240, 237, 228, 0.72); }
+.lb-sfeer-klein { position: absolute; left: 14px; top: 9px; z-index: 2; max-width: calc(100% - 132px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: "Arial Narrow", Arial, sans-serif; font-size: max(13px, var(--menu-min, 13px)); letter-spacing: 0.14em; text-transform: uppercase; color: rgba(240, 237, 228, 0.72); }
 .lb-sfeer-vouw { position: absolute; right: 22px; bottom: -24px; z-index: 1; width: 64px; height: 64px; transform: rotate(45deg); border-radius: 3px; box-shadow: inset 0 0 0 1px rgba(240, 237, 228, 0.22), 0 2px 8px rgba(0, 0, 0, 0.22); pointer-events: none; }
 .lb-sfeer-chip { width: 20px; height: 20px; border-radius: 5px; flex: none; box-shadow: inset 0 0 0 1px rgba(240, 237, 228, 0.18); }
 @media (max-height: 820px) {
   .lb-sfeer { min-height: 86px; }
   .lb-sfeer-ico { width: 60px; height: 60px; padding: 10px; right: 12px; }
   .lb-sfeer-groot { font-size: 28px; left: 10px; top: calc(50% + 4px); max-width: calc(100% - 96px); }
-  .lb-sfeer-klein { font-size: 13px; top: 6px; left: 10px; }
+  .lb-sfeer-klein { font-size: max(13px, var(--menu-min, 13px)); top: 6px; left: 10px; }
   .lb-sfeer-vouw { width: 46px; height: 46px; bottom: -18px; right: 16px; }
 }`;

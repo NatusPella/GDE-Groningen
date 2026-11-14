@@ -20,6 +20,9 @@ const NAMES = {
   motor: [['Wadden', 'Stormvogel']],
   boat: [['Sloep', 'Nait Soezen'], ['Sloep', 'Grachtengast']],
   heli: [['Rotor Roelf', 'Wieken Wubbo']],
+  // #857: the training plane is called Kist Kees in the game; without this row the
+  // vehicle name fell back to the generic "Voertuig".
+  plane: [['', 'Kist Kees']],
 };
 const BOATS = {
   rondvaart: [['Rondvaartboot', 'Diepenring'], ['Rondvaartboot', 'Stadjer']],

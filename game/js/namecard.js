@@ -28,6 +28,13 @@ function ensure() {
 #name-card .nc-name { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: clamp(44px, 7vw, 96px); line-height: .9; letter-spacing: 1px; text-transform: uppercase; }
 #name-card .nc-name::after { content: ''; display: block; width: 120px; height: 4px; margin-top: 8px; background: linear-gradient(90deg, #1e9e56, #3fc97a); box-shadow: 0 0 14px rgba(63,201,122,.45); }
 #name-card .nc-line { font-family: 'Arial Narrow', Arial, sans-serif; font-size: clamp(16px, 1.6vw, 22px); margin-top: 6px; max-width: 36ch; color: rgba(240,237,228,.92); }
+/* #870: op een smalle telefoon schoof de kaart met zijn vaste 340px-reserve
+   buiten beeld; hij houdt daar de breedte tussen de randen en een kleinere titel. */
+@media (max-width: 700px) {
+  #name-card { left: 16px; right: 16px; max-width: calc(100vw - 32px); }
+  #name-card .nc-name { font-size: clamp(34px, 10vw, 56px); }
+  #name-card .nc-line { font-size: 14px; max-width: none; }
+}
 `;
   document.head.appendChild(st);
   el = document.createElement('div');

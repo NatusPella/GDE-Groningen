@@ -32,10 +32,10 @@ const CSS = `${SFEER_BAND_CSS}
 .vb-soorten li { display: grid; grid-template-columns: 1fr auto; column-gap: 10px; padding: 4px 0; border-bottom: 1px solid rgba(240,237,228,0.08); }
 .vb-soorten li.nog { opacity: 0.5; }
 .vb-soorten .nm { font-size: 17px; }
-.vb-soorten .wat { grid-column: 1 / -1; font-size: 14px; opacity: 0.72; }
-.vb-soorten .z { font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.8; align-self: center; }
+.vb-soorten .wat { grid-column: 1 / -1; font-size: max(14px, var(--menu-min, 14px)); opacity: 0.72; }
+.vb-soorten .z { font-size: max(13px, var(--menu-min, 13px)); letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.8; align-self: center; }
 .vb-soorten .z1 { opacity: 0.55; } .vb-soorten .z3 { color: #f2c14a; } .vb-soorten .z4 { color: #ff9a3c; }
-.vb-soorten .rec { grid-column: 1 / -1; font-size: 14px; color: var(--g, #3fc97a); }
+.vb-soorten .rec { grid-column: 1 / -1; font-size: max(14px, var(--menu-min, 14px)); color: var(--g, #3fc97a); }
 `;
 let cssAan = false;
 function zetCss() {

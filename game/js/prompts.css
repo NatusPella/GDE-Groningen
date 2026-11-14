@@ -174,6 +174,12 @@
   transition: opacity 0.4s ease;
 }
 body.hud-in-vehicle #hud .hud-ctx { bottom: calc(var(--hud-edge, 46px) + 190px); }
+/* #876: in de lucht vervangt het vliegpaneel de snelheidsmeter in zone H en is het
+   ~221 HUD-px hoog; de toetshint-regels lagen er dwars doorheen (84%/41%). Ze wijken
+   boven het paneel. De voertuignaam verdwijnt daar (het paneel noemt de kist al). */
+body.plane-flying #hud .hud-ctx { bottom: calc(var(--hud-edge, 46px) + 305px); }
+body.plane-flying #hud .hud-vehname { display: none; }
+body.heli-flying #hud .hud-vehname { display: none; }
 #hud .hud-ctx.quiet { opacity: 0.7; }
 
 /* key cap + pictogram chips; text only while new or rare (prompts.js) */

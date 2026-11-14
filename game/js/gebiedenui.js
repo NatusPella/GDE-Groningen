@@ -10,7 +10,7 @@ const CHECK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 
 const VLAG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 21V4M7 5l10 3.5L7 12"/></svg>';
 
 export const GEBIEDEN_CSS = `
-.gb-groep { margin: 14px 0 4px; font: 14px "Arial Narrow", Arial, sans-serif; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.55; display: flex; gap: 10px; }
+.gb-groep { margin: 14px 0 4px; font-family: "Arial Narrow", Arial, sans-serif; font-size: max(14px, var(--menu-min, 14px)); letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.55; display: flex; gap: 10px; }
 .gb-groep:first-child { margin-top: 0; }
 .gb-groep .gb-n { margin-left: auto; letter-spacing: 0; }
 .gb-li .gb-vlag { flex: none; width: 26px; height: 26px; display: grid; place-items: center; opacity: 0.35; }

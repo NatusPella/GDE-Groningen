@@ -12,6 +12,9 @@
   --g: #3fc97a; --g2: #1e9e56; --gd: #0f5c30; --ink: #f0ede4; --mut: rgba(240, 237, 228, 0.68);
   --line: rgba(240, 237, 228, 0.08); --line2: rgba(240, 237, 228, 0.16); --red: #d93f3f; --redtx: #f08a8a;
   --mz: calc(var(--ui, 1.2) / 1.2);
+  /* #868: de menutekst wordt met --mz verkleind; deze vloer houdt kleine regels op
+     12 schermpixels, net als --hud-min in de HUD. */
+  --menu-min: calc(12px / var(--mz));
   --mt: 7.4%; --mb: 11.1%;
   font-family: 'Arial Narrow', Arial, sans-serif; font-size: 20px; line-height: 1.45; color: var(--ink);
   -webkit-font-smoothing: antialiased;
@@ -171,6 +174,9 @@ button.m-li:hover, div.m-li:hover { background: rgba(240, 237, 228, 0.04); }
 .m-pill.g { box-shadow: inset 0 0 0 1px var(--g); color: var(--g); }
 
 .gm .one { display: block; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* #869: de actie-uitleg van Besturing is echte tekst, geen label: laat hem
+   omslaan zodat de speler de hele regel leest (het lange stuk staat ernaast). */
+#pause-menu .pm-cdesc .one, #pause-menu .pm-cgrid .one, #pause-menu .pm-bind .one { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.25; }
 .m-li .t.g, .gm .g { color: var(--g); }
 .m-note b { font-weight: normal; color: var(--ink); }
 .m-ghbtn { width: 100%; text-align: left; cursor: pointer; padding-top: 32px; transition: color 0.2s; }

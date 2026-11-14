@@ -199,7 +199,8 @@ S['M16.outro'] = {
     douwe: { key: 'douwe', at: [3.4, -1.4], face: 175, anim: 'lean', gest: ['lean', 'shrug'] },
     kermisexploitant: { key: 'kermisexploitant', at: [-4.2, 4.8], face: 20, anim: 'hips', gest: ['point', 'talk'] },
   },
-  props: { botsauto1: { kind: 'auto', at: [6.5, 4, 0], face: 215 }, botsauto2: { kind: 'auto', at: [7.4, -3.8, 0], face: 150 } },
+  // #864: fair carts, not full Escapade cars (kind 'auto' is the hero model)
+  props: { botsauto1: { kind: 'botsauto', at: [6.5, 4, 0], face: 215 }, botsauto2: { kind: 'botsauto', at: [7.4, -3.8, 0], face: 150 } },
   open: [{ actor: 'tessa', face: 'actor:durk' }, { actor: 'tammo', face: 'actor:durk' }],
   beats: [
     { on: 'Een rit. Wij tegen jullie', actor: 'tessa', anim: 'point' },

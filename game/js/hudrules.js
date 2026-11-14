@@ -121,6 +121,25 @@ export function cardYields(card, hints = []) {
   return !!card && hints.some((h) => !!h && hits(card, h));
 }
 
+// #870: een tekstbel hangt met translate(-50%,-100%) aan zijn ankerpunt: (x, y)
+// is het midden van de onderkant. Staat de spreker buiten beeld, dan valt de bel
+// daar ook buiten (op 800x360 stonden twee bubbels op y=441 en 483). Deze regel
+// verbergt een bel die helemaal buiten beeld valt en houdt een half zichtbare
+// bel met zijn echte maat binnen de randen. `size` en `view` zijn in dezelfde
+// eenheid als het anker (HUD-px binnen #hud).
+export function bubblePlace(anchor, size, view, pad = 4) {
+  const ax = anchor && Number(anchor.x), ay = anchor && Number(anchor.y);
+  const bw = size && Number(size.w), bh = size && Number(size.h);
+  const vw = view && Number(view.w), vh = view && Number(view.h);
+  if (![ax, ay, bw, bh, vw, vh].every(Number.isFinite) || bw <= 0 || bh <= 0 || vw <= 0 || vh <= 0) return null;
+  if (ax < 0 || ax > vw || ay < 0 || ay > vh) return null;
+  if (bw + 2 * pad > vw || bh + 2 * pad > vh) return null;
+  return {
+    x: Math.max(bw / 2 + pad, Math.min(vw - bw / 2 - pad, ax)),
+    y: Math.max(bh + pad, Math.min(vh - pad, ay)),
+  };
+}
+
 // What shows now. s: the situation (all optional):
 //   mode, hidden, banner, busy, dialogue, idle, wake,
 //   wanted, wantedAgo, moneyAgo, moneySign (+1/-1), nearShop, moneyHeld,

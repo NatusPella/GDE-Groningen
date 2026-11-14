@@ -226,6 +226,8 @@ const ACT_VERHUISDAG = {
     { t: 'L4+1.9', actor: 'tessa', hide: true },
     { t: 'L4+2.0', actor: 'tammo', hide: true },
     { t: 'L4+2.6', prop: 'escapade', path: [[8, 4.5, 0], [9.2, 10, 0], [13, 26, 0], [22, 62, 0]], speed: 4.5 },
+    // #860: the mattress lies on the roof and has to ride along with the car; without a cue it stayed floating
+    { t: 'L4+2.6', prop: 'matras', path: [[8, 4.5, 1.45], [9.2, 10, 1.45], [13, 26, 1.45], [22, 62, 1.45]], speed: 4.5 },
   ],
   shots: [
     // who and where: the street, the Escapade with the mattress on the roof

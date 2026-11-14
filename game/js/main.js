@@ -640,6 +640,13 @@ function armBootWatchdog() {
   const check = () => {
     bootWatchdog = 0;
     if (bootFinished) return;
+    // De verplichte naamkaart is geen hapering: zolang die openstaat telt de
+    // wachter niet door en krijgt de speler na het invullen weer de volle tijd.
+    if (document.getElementById && document.getElementById('online-start')) {
+      seenMs = 0; visibleSince = document.hidden ? 0 : performance.now();
+      plan(BOOT_WATCHDOG_MS);
+      return;
+    }
     const gezien = visibleNow();
     if (gezien < BOOT_WATCHDOG_MS) { plan(Math.min(5000, BOOT_WATCHDOG_MS - gezien)); return; }
     const mark = Object.entries(loadMarks).sort((a, b) => b[1] - a[1])[0];

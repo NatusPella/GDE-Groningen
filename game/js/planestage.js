@@ -15,7 +15,7 @@ import { teamActor } from './stagegroep.js';
 import { assistGate } from './assistlive.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
-import { signBothSides } from './canvastex.js';
+import { signBothSides, fitText } from './canvastex.js';
 import { Vehicle } from './vehicle.js';
 import { attachPlane, makeStrip } from './planecontrol.js';
 import { PLANE_MODEL } from './planeflight.js';
@@ -37,6 +37,28 @@ export function judgeGate(g, state, d, agl) {
   return null;
 }
 
+// (#880) The slogan on two lines: at 512 px "JELLE KOOPT DE JURY. LEVENSLANG
+// EIERBALLEN" does not fit on one line. The words are split as evenly as possible.
+export function bannerLines(text) {
+  const woorden = String(text).split(/\s+/).filter(Boolean);
+  if (woorden.length > 3) {
+    let beste = 1, besteVerschil = Infinity;
+    for (let k = 1; k < woorden.length; k++) {
+      const links = woorden.slice(0, k).join(' '), rechts = woorden.slice(k).join(' ');
+      const verschil = Math.abs(links.length - rechts.length);
+      if (verschil < besteVerschil) { besteVerschil = verschil; beste = k; }
+    }
+    return [woorden.slice(0, beste).join(' '), woorden.slice(beste).join(' ')];
+  }
+  return [woorden.join(' ')];
+}
+
+// (#880) The middle of the banner: normally 1.5 m below the plane, but never so low
+// that the 3 m cloth disappears under the ground after landing.
+export function bannerHeight(planeZ, groundZ) {
+  return Math.max(planeZ - 1.5, groundZ + 1.6);
+}
+
 function bannerMesh(text) {
   const c = document.createElement('canvas');
   c.width = 512; c.height = 96;
@@ -44,7 +66,14 @@ function bannerMesh(text) {
   g.fillStyle = '#f4efe0'; g.fillRect(0, 0, 512, 96);
   g.strokeStyle = '#c8261e'; g.lineWidth = 8; g.strokeRect(4, 4, 504, 88);
   g.fillStyle = '#c8261e'; g.font = 'bold 40px Arial'; g.textAlign = 'center'; g.textBaseline = 'middle';
-  g.fillText(text, 256, 50);
+  // (#880) scale every line down with fitText, so nothing is clipped
+  const regels = bannerLines(text);
+  const hoogte = regels.length === 2 ? [35, 66] : [50];
+  const maat = regels.length === 2 ? 34 : 40;
+  regels.forEach((regel, i) => {
+    fitText(g, regel, 468, maat, 'bold', 'Arial', 18);
+    g.fillText(regel, 256, hoogte[i]);
+  });
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
   const m = signBothSides(16, 3, new THREE.MeshBasicMaterial({ map: tex }));
@@ -129,11 +158,14 @@ function setBanner(world, text) {
   scene.add(S0.banner);
 }
 
-function placeBanner(v) {
+function placeBanner(v, world) {
   const b = S0 && S0.banner;
   if (!b || !v) return;
   const back = 13;
-  b.position.set(v.x - Math.cos(v.angle) * back, v.z - 1.5, v.y - Math.sin(v.angle) * back);
+  const x = v.x - Math.cos(v.angle) * back, y = v.y - Math.sin(v.angle) * back;
+  // (#880) on the ground the cloth hung below the surface; clamp its middle to ground + half its height
+  const gh = world && world.map ? ground(world.map, x, y) : 0;
+  b.position.set(x, bannerHeight(v.z, gh), y);
   b.rotation.y = -v.angle;
 }
 
@@ -151,7 +183,7 @@ export function updatePlaneStage(dt, world, st, S) {
   }
   if (v.wrecked) return { fail: st.crashed || 'het vliegtuig is neergestort. Roelfien is niet blij' };
   if (!mine && st.kind === 'airgates') return v.plane && !v.plane.onGround ? null : { fail: st.left || 'je liet het vliegtuig staan' };
-  placeBanner(v);
+  placeBanner(v, world);
   if (st.kind === 'airgates') {
     const A = S.air;
     const g0 = st.gates[A.i];

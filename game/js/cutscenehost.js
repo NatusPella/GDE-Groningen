@@ -1,7 +1,7 @@
 import { hoofdspeler } from './players.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
-import { buildPersonMesh, seatPose, seatedY, releasePersonGeometry, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
+import { buildPersonMesh, seatPose, seatedY, releasePersonGeometry, TAMMO_APPEARANCE, ANITA_APPEARANCE, PERSON_RIG } from './models3d_people.js';
 import { buildKitchen } from './introkitchen3d.js';
 import { playCinematic, setNameCard, setCinematicRate, setCinematicTime } from './cinematics.js';
 import { buildVehicleMesh, releaseVehicleGeometries } from './models3d_vehicles.js';
@@ -36,6 +36,20 @@ const STEL = { tempo: setCinematicRate, tijd: setCinematicTime };
 
 const MATS = {};
 const mat = (c, o = {}) => (MATS[c + JSON.stringify(o)] ||= new THREE.MeshStandardMaterial({ color: c, roughness: 0.8, ...o }));
+
+// #864: an actor's hand (wrist/palm) in world coordinates: the end of the forearm on the
+// elbow bone. The mesh matrices are updated first (the animation was just set). Returns null
+// when the character has no arm bones (then the old carry offset in cutscript.js still applies).
+const HAND_V = new THREE.Vector3();
+function handOf(mesh) {
+  const ud = mesh && mesh.userData;
+  const elbow = ud && (ud.elbowR || ud.elbowL);
+  if (!elbow) return null;
+  mesh.updateMatrixWorld(true);
+  HAND_V.set(0, -(PERSON_RIG.FOREARM || 0.25) * 1.25, 0);
+  elbow.localToWorld(HAND_V);
+  return HAND_V;
+}
 
 const SHADOW_GEO = new THREE.CircleGeometry(0.42, 16).rotateX(-Math.PI / 2);
 const SHADOW_MAT = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.35, depthWrite: false });
@@ -98,6 +112,12 @@ const PROP_MAKERS = {
   },
   zuil: () => { const g = new THREE.Group(); g.add(box(0.4, 1.25, 0.4, 0xb23a3a, 0.62), box(0.3, 0.2, 0.02, 0xe8d98a, 1.2, 0.0, 0.21), box(0.1, 0.06, 0.02, 0xf2f0ea, 0.9, 0.0, 0.21)); return g; },
   klembord: () => { const g = new THREE.Group(); g.add(box(0.3, 0.02, 0.4, 0x8a6a46, 0.01), box(0.26, 0.012, 0.34, 0xf2f0ea, 0.026)); return g; },
+  // a bumper car for the fair (#864): a small cart with a rubber rim, not a full Escapade
+  botsauto: () => {
+    const g = new THREE.Group();
+    g.add(box(1.7, 0.26, 1.0, 0x222831, 0.17), box(1.35, 0.4, 0.85, 0xc4402c, 0.5), box(1.0, 0.34, 0.6, 0xe8e2d2, 0.82, -0.2), box(1.74, 0.14, 1.04, 0x2f5d9e, 0.3));
+    return g;
+  },
   // een los briefje (#740: het dankbriefje op de klomp): een vel papier met één geschreven regel
   briefje: () => { const g = new THREE.Group(); g.add(box(0.21, 0.012, 0.15, 0xf7f4e8, 0.01), box(0.15, 0.006, 0.014, 0x5b4a36, 0.017)); return g; },
 };
@@ -207,6 +227,17 @@ function buildScriptRun(def, scene, anchor, env = null, w = null) {
         m.rotation.y = -st.a;
         // a pigeon's wings (the world's mesh) beat while it moves
         if (m.userData.wings && st.h > 0.5) for (const w of m.userData.wings) w.rotation.x = -(w.userData.sign || 1) * (0.5 + Math.sin(t * 22) * 0.7);
+      }
+      // #864: a carried prop follows the carrier's hand (with the offset from cutscript.js as a fallback)
+      for (const [cid, sa] of Object.entries(s.actors)) {
+        if (!sa || !sa.carrying || sa.visible === false) continue;
+        const pm = props[sa.carrying], am = actors[cid];
+        if (!pm || !am || !am.visible) continue;
+        const hand = handOf(am);
+        if (!hand) continue;
+        const kind = def.props[sa.carrying] && def.props[sa.carrying].kind;
+        const laag = kind === 'koffer' || kind === 'tas' || kind === 'doos';
+        pm.position.set(hand.x, hand.y + (laag ? -0.08 : 0.03), hand.z);
       }
       return s.camera;
     },
