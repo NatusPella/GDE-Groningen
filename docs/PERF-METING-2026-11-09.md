@@ -518,6 +518,47 @@ benchmarkruns achter elkaar op een stille machine (mediaan) en de eerste
 benchmark-shots apart profileren; de koude start zelf is met de startring/
 warm-up-palette aantoonbaar verbeterd op de Canvas2D-post.
 
+## Releasegate-piek: green-chunk-warm-up geprobeerd en teruggedraaid (#804, 14-11)
+
+De releasegate-perf was rood: a7 p95 34,4 / max 589, spoor 35,5 / 496, heli
+34,5 / 367, nacht 35,4, regen 34,3; foot max 208, ring 245, platteland 301,
+staan 213. De hitch-secties wezen een piek van 426,6 ms in
+`3d:render:hoofdpas+post`: `gl:getProgramParameter` 417 ms bij een **nieuw
+programma "Mesh/MeshStandardMaterial green-chunk"** (gras `fillMaterial`).
+
+Geprobeerd: in `grass.js` een warm-up die met de bestaande precompile-route
+(`setGrassWarmHost` + `precompile`) representatieve meshes met alle
+vulmaterialen (10 soorten × 2 sublagen), het randmateriaal en de twee
+tuftmaterialen tijdens het laden laat linken; `precompilePrograms()` in
+`scene3d.js` roept die aan. Gerichte broncontrole-test toegevoegd.
+
+Gemeten met `node scripts/perf/run.mjs ... --hitch` (gestaged, machine stil,
+15 s):
+
+| route | p95 (gate -> na warm-up) | max (gate -> na warm-up) | >50 na |
+|---|---:|---:|---:|
+| a7 | 34,4 -> 36,2 | 589 -> **426,7** | 82 |
+| spoor | 35,5 -> 36,4 | 496 -> 500,2 | 75 |
+| foot | — -> 35,4 | 208 -> 297,4 | 18 |
+| ring | — -> 18,3 | 245 -> 376,6 | 7 |
+
+De a7-max daalt, maar **het green-chunk-programma wordt nog steeds in-game
+gelinkt**: op 87,63 s een frame van 430,3 ms met `gl:getProgramParameter`
+394,5 ms en `programs: ["Mesh/MeshStandardMaterial green-chunk"]`. De warm-up
+raakt dus niet dezelfde programmavariant (de echte green-chunk-mesh heeft
+andere geometrie-attributen/instancing/defines dan de dummy-mesh), en foot/ring
+vallen juist hoger uit (binnen de runonzekerheid). Omdat er geen bewezen winst
+is, is de wijziging **teruggedraaid** (grass.js/scene3d.js weer HEAD) en de
+test verwijderd — geen speculatieve wijziging in de releasegate.
+
+Restpost en volgende stap: eerst de **exacte program-sleutel** van de echte
+green-chunk-mesh vergelijken met de warm-dummy (material.defines,
+onBeforeCompile/customProgramCacheKey, geometry-attributen, instancing), of de
+eerste green-chunk tijdens het laden met de echte geometrie bouwen
+(`buildGrassChunks`/prewarm) en dan precompileren; daarna opnieuw a7/spoor/foot/
+ring meten. De norm (p95<=25, max<=100) blijft op deze machine niet gehaald;
+de green-chunk-linkpiek is de eerstvolgende aantoonbare bron.
+
 ## Reproduceren
 
 ```
