@@ -653,12 +653,17 @@ const _vehSeen = new Set();
 function syncVehicleMeshes(world, player) {
   _vehSeen.clear();
   const deadline = performance.now() + VEH_BUILD_MS;
+  // Tijdens de opening (en de korte nasleep) mogen dichtbij ook maar twee
+  // voertuigen per frame gebouwd worden: een filmcut zette de camera boven een
+  // nieuwe straat en dan bouwde de oude dichtbij-tak in één keer een hele lading
+  // (86 ms in 3d:vehicles in de hitchprobe). De rest volgt een paar frames later.
+  const cine = !!world.cinemaLean || (world.cineQuiet && performance.now() < world.cineQuiet);
   let built = 0;
   for (const v of world.vehicles) {
     const d = Math.hypot(v.x - player.x, v.y - player.y);
     if (d >= DRAW_DIST) continue;
     if (!vehicleMeshes.has(v.id)) {
-      if (built > 0 && d > VEH_NEAR && performance.now() > deadline) continue;
+      if (cine ? built >= 2 : (built > 0 && d > VEH_NEAR && performance.now() > deadline)) continue;
       const mesh = enableShadows(buildVehicleActor(v), false);
       scene.add(mesh);
       vehicleMeshes.set(v.id, mesh);
