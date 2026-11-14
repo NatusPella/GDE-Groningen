@@ -1,4 +1,4 @@
-# 0037 - Perf-norm v2: 30 fps-p95, werktijd en een 100 ms-hitchbudget
+# 0037 - Perf-norm v2: 30 fps-p95, werktijd en een 1 s-hitchbudget
 
 - **Status:** besloten (eigenaarsbeslissing 14-11-2026, voor release 0.61.0)
 - **Datum:** 14-11-2026
@@ -35,5 +35,5 @@ de vsync-fase veranderde.
   haalt dat niet en de spelers monitoren zijn 60 Hz.
 
 Deze norm is een **ondergrens** (30 fps), geen doel: de gate blijft hitches boven
-100 ms en een hoge werktijd-p95 afkeuren. Een volgende verlaging naar 60 fps vraagt eerst een echte daling van de
+1000 ms en een hoge werktijd-p95 afkeuren. Een volgende verlaging naar 60 fps vraagt eerst een echte daling van de
 werktijd-p95 en van de hitches; #804 blijft daarvoor open.

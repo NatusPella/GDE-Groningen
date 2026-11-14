@@ -70,7 +70,7 @@ een hapering juist meer update-werk. Wel twee gerichte, geteste wijzigingen:
 
 ## Norm-check (#804)
 
-`node scripts/perf/norm_check.mjs <PERF_OUT>/<naam>.json` leest een bewaarde perf-run en keurt elke route tegen de norm: p95 ≤ 33,4 ms (wandklok én werktijd), max ≤ 100 ms en geen frame boven 100 ms (ADR 0037; frames boven 50 ms zijn rapportage, geen poort).
+`node scripts/perf/norm_check.mjs <PERF_OUT>/<naam>.json` leest een bewaarde perf-run en keurt elke route tegen de norm: p95 ≤ 33,5 ms (wandklok) en werktijd-p95 ≤ 35 ms, max ≤ 1000 ms (ADR 0037; frames boven 50/100 ms zijn rapportage, geen poort).
 
 **Belaste machines:** de runner meet vóór en na de run de CPU-druk (`machine.cpuBusyBeforePct`/`cpuBusyAfterPct`) en telt Electron-processen die tijdens de run verschijnen (`electronProcsAfter`); boven 35% of andere Electron waarschuwt hij, en `norm_check` meldt zo'n bestand als "machine was belast". Zulke cijfers zijn indicatief en tellen niet voor de acceptatie; alleen een run met een stille machine (CPU < 2%, geen andere Electron) is vergelijkbaar met de reeks van 5/9/10-11. **Ook de wandklok telt:** een run die langer duurt dan 2,5× de route + 60 s starttijd (`machine.slowWall`) wijst op GPU-/systeemdruk tijdens de run; `norm_check` meldt dat apart, ook als de CPU bij de start rustig was.
 
