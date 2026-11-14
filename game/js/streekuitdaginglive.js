@@ -16,11 +16,12 @@ export const getStreekuitdagingSpotsForRender = () => [{ ...STREEKUITDAGING.star
 
 export function tryStreekuitdaging(world) {
   if (!world || run) return false;
-  if (world.coopRole === 'client') { world.addMessage?.(ALLEEN_EIGEN_SPEL, 3); return false; }
   const inp = world.input;
   if (!inp || !inp.wasPressed || !inp.wasPressed('e')) return false;
   const p = hoofdspeler(world);
   if (!p || !p.inVehicle || !startBij(p.x, p.y)) return false;
+  // De gastwaarschuwing pas bij een echte E-druk op de startplek, niet elke frame.
+  if (world.coopRole === 'client') { inp.consume?.('e'); world.addMessage?.(ALLEEN_EIGEN_SPEL, 3); return false; }
   run = { t: 0, index: 0 };
   inp.consume?.('e');
   setUserWaypoint(checkpoints()[0].x, checkpoints()[0].y, checkpoints()[0].naam);
