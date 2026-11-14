@@ -84,12 +84,16 @@ export function bouwAuto(world) {
 
 // Herstel de gebouwde auto na het laden van een save (per-save vlag).
 export function updateOnderdelen(world) {
-  if (!world || world.__knutselwagenChecked) return;
-  world.__knutselwagenChecked = true;
-  if (!getSaveSet('knutselwagen').has('gebouwd')) { gebouwd = false; return; }
-  gebouwd = true;
-  if (world.vehicles.some((v) => v.knutselwagen || v.name === autoNaam())) return;
-  maakAuto(world);
+  if (!world) return;
+  const inSave = getSaveSet('knutselwagen').has('gebouwd');
+  const stand = inSave ? 'ja' : 'nee';
+  if (world.__knutselwagenChecked === stand) return;
+  world.__knutselwagenChecked = stand;
+  gebouwd = inSave;
+  // Een slotwissel kan de per-save set vervangen: haal de oude auto weg of zet de
+  // auto van deze save terug.
+  if (!inSave) { world.vehicles = world.vehicles.filter((v) => !v.knutselwagen); return; }
+  if (!world.vehicles.some((v) => v.knutselwagen || v.name === autoNaam())) maakAuto(world);
 }
 
 export const onderdelenGebouwd = () => gebouwd;
