@@ -52,7 +52,9 @@ const wereld = (extra = {}) => ({
 });
 
 const meldingen = [];
-const deps = (o = {}) => ({ magOnline: () => true, meld: (m) => meldingen.push(m), ...o });
+// De bestaande tests gaan over de expliciete samen-zoektocht; die zetten joinPublic aan.
+// De productiestandaard (zelf hosten) heeft een eigen test hieronder.
+const deps = (o = {}) => ({ magOnline: () => true, meld: (m) => meldingen.push(m), joinPublic: true, ...o });
 
 // A public list that stays put: no broker is touched (haalLijst is a seam).
 const lijstVan = (rijen) => async () => rijen;
@@ -63,12 +65,27 @@ await t('met toestemming en een passende sessie: meedoen, en de reden blijft lee
   const rijen = [rij('rustig', 1, 8), rij('druk', 5, 8, { naam: 'Groningen' })];
   let gehost = 0;
   const gekozen = [];
-  const uit = await bootSession(w, deps({ haalLijst: lijstVan(rijen), verbind: async (r) => { gekozen.push(r.id); }, host: async () => { gehost++; } }));
+  const uit = await bootSession(w, deps({ joinPublic: true, haalLijst: lijstVan(rijen), verbind: async (r) => { gekozen.push(r.id); }, host: async () => { gehost++; } }));
   assert.equal(uit.doen, KEUZE.MEEDOEN);
   assert.deepEqual(gekozen, ['druk'], 'de drukste sessie wint');
   assert.equal(uit.sessie.id, 'druk');
   assert.equal(gehost, 0, 'niets gehost als meedoen lukt');
   assert.deepEqual(meldingen, [], 'geen melding als het gewoon lukt');
+});
+
+await t('zonder expliciete samen-keuze host het spel zelf, ook als er openbare sessies zijn', async () => {
+  meldingen.length = 0;
+  const rijen = [rij('druk', 5, 8, { naam: 'Groningen' })];
+  let gehost = 0, gejoint = 0;
+  const uit = await bootSession(wereld(), deps({
+    joinPublic: false,
+    haalLijst: lijstVan(rijen),
+    verbind: async () => { gejoint++; },
+    host: async () => { gehost++; },
+  }));
+  assert.equal(uit.doen, KEUZE.HOSTEN, 'automatisch starten host, het joint niet bij een onbekende');
+  assert.equal(gehost, 1);
+  assert.equal(gejoint, 0);
 });
 
 await t('de eerste sessie weigert: de volgende kandidaat, geen derde poging, daarna zelf hosten', async () => {

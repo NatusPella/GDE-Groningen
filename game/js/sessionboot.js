@@ -293,8 +293,12 @@ export async function bootSession(world, deps = {}) {
   const mag = deps.magOnline || magOnline;
   if (!mag()) return { doen: KEUZE.BESLOTEN, sessie: null, pogingen: [], reden: '' }; // never contacts anyone
 
+  // De eigenaar wil altijd online, maar niet automatisch in de drukste openbare sessie van
+  // een onbekende belanden. Standaard hosten we daarom zelf (een sessie van één); alleen
+  // een expliciete "Samen spelen"-keuze mag de openbare lijst gebruiken.
+  const joinPublic = deps.joinPublic === true;
   let rijen = [];
-  try { rijen = (await (deps.haalLijst || haalLijst)()) || []; } catch (e) { rijen = []; }
+  if (joinPublic) { try { rijen = (await (deps.haalLijst || haalLijst)()) || []; } catch (e) { rijen = []; } }
   // The player opened a session in the pause menu while the list was loading: that one wins, we stop here.
   if (world && world.coopNet) return { doen: KEUZE.BESLOTEN, sessie: null, pogingen: [], reden: '' };
   const keuze = kies({ rijen, meedoen: true, eigenId: deps.eigenId || '' });
