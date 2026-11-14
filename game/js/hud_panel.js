@@ -649,7 +649,7 @@ export function updateHud(dt, world) {
   // 5-12 ms mag hooguit ~10% van het frame kosten, anders zakt de kaart naar
   // 10-15 fps in plaats van de vaste 20 fps-vloer. (#804, P7)
   const mmInterval = mmCostMs > MM_HEAVY_COST_MS ? MM_HEAVY_INTERVAL_MS : MM_MIN_INTERVAL_MS;
-  if (mmNow - mmLastAt < Math.max(mmInterval, mmCostMs * 10)) return;
+  if (mmNow - mmLastAt < Math.max(mmInterval, mmCostMs * 12)) return;
   mmSkip = simLevel() >= 2 ? 1 : 0;
   if (els.vis.minimap !== false) { drawMinimap(mmDt, world); mmCostMs = mmCostMs * 0.7 + (performance.now() - mmNow) * 0.3; }
   if (hm) probe.mark('hud:minimap');

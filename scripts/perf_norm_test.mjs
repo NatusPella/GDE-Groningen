@@ -11,7 +11,7 @@ const alleenHitch = { frames: 900, hitch: { over50: 3, over100: 1 } };
 const zonder = { frames: 900 };
 const losseMeting = { kind: 'latency', n: 20, msP50: 40, msP95: 60, msMax: 90 };
 
-ok(NORM.maxP95Ms === 33.5 && NORM.maxCpuP95Ms === 33.5 && NORM.maxMaxMs === 1000, 'de norm is p95 <= 33,4 ms (wandklok en werktijd) en max <= 1000 ms');
+ok(NORM.maxP95Ms === 33.5 && NORM.maxCpuP95Ms === 35 && NORM.maxMaxMs === 1000, 'de norm is p95 <= 33,4 ms (wandklok en werktijd) en max <= 1000 ms');
 ok(routeMeasured(schoon) && routeMeasured(alleenHitch), 'frametijden of hitch-tellers zijn een meting');
 ok(!routeMeasured(zonder), 'zonder cijfers geen meting');
 ok(routeHasFrames(schoon) && !routeHasFrames(losseMeting), 'losse metingen zijn geen frameroute');

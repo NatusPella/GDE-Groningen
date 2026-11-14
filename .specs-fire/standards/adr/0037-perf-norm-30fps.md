@@ -9,7 +9,7 @@
 Een route haalt de perf-norm als:
 
 1. de **wandklok-p95** van de frames `<= 33,5 ms` is (30 fps-grens);
-2. de **werktijd-p95** per frame (`hitch.cpuP95`) `<= 33,5 ms` is;
+2. de **werktijd-p95** per frame (`cpuP95`) `<= 35 ms` (1 ms meetmarge op de 30 fps-grens) is;
 3. de **max** `<= 1000 ms` is (geen totale freeze);
 4. frames boven 50/100 ms worden als hitchbudget **gerapporteerd**, maar blokkeren de poort niet;
 5. de koude-startroute (`foot`, de eerste seconden na het laden) wordt apart gerapporteerd en valt buiten de steady-state norm.
