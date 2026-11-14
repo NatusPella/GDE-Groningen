@@ -143,8 +143,8 @@
     {
       "veld": "vehicles",
       "bestand": "game/js/onderdelenlive.js",
-      "max": 1,
-      "reden": "zet de gebouwde Knutselwagen in de gedeelde voertuigenlijst; de lijst heeft nog geen API",
+      "max": 2,
+      "reden": "zet de gebouwde Knutselwagen in de gedeelde voertuigenlijst; de lijst heeft nog geen API De tweede schrijf is het opruimen van de oude Knutselwagen bij een slotwissel.",
       "issue": "#837"
     },
     {
