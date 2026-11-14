@@ -27,11 +27,9 @@ export function onlineStartHtml({ naam = '', fout = '' } = {}) {
   </section>`;
 }
 
-// The switch in the players panel: reads the same key and shows it, so the panel never
-// disagrees with what the game will do.
-export function meedoenSchakelaarHtml(settings = getSettings()) {
-  return `<div class="cs-meedoen"><label class="cs-meedoen-rij"><input type="checkbox" class="m-sw cs-meedoen-sw" data-meedoen${settings.onlineMeedoen === true ? ' checked' : ''}> <span>${esc(SCHAKELAAR.label)}</span></label>` +
-    `<p class="cs-profiel-hint">${esc(SCHAKELAAR.uitleg)}</p></div>`;
+// Het spelerspaneel: geen keuze meer, het spel speelt altijd online (eigenaarsbeslissing #530).
+export function meedoenSchakelaarHtml() {
+  return `<div class="cs-meedoen"><p class="cs-profiel-hint">Je speelt altijd online, ook als je alleen speelt. Andere spelers zien je alleen als je een sessie deelt.</p></div>`;
 }
 
 // Het vinkje "Niet meer vragen" in de wachtkamer (#526): dezelfde toestemmingsvorm

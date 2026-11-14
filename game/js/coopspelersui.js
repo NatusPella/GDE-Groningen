@@ -15,7 +15,6 @@ import { setUserWaypoint } from './routing.js';
 import { getSettings, setSetting } from './settings.js';
 import { PROFIEL_KLEUREN, ONLINE_NAAM_MAX, profielNaam, profielKleur, profielTekst } from './lobby.js';
 import { meedoenSchakelaarHtml } from './onlineconsentui.js';
-import { zetMeedoen } from './onlineconsent.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const STIP = { ok: 'cs-stip-ok', lag: 'cs-stip-lag', lost: 'cs-stip-lost' };
@@ -186,17 +185,6 @@ export function renderSpelersPanel(root, world, sluit = () => {}, opts = {}) {
         profielFout = r.ok ? '' : r.reason;
         if (r.ok) setSetting('onlineNaam', r.naam);
         root.dataset.klaar = ''; teken();
-      }
-      if (e.target && e.target.matches && e.target.matches('[data-meedoen]')) { // Meedoen met andere spelers (#530): the same gde-settings key as the first-start screen
-        const r = zetMeedoen(!!e.target.checked, { world });
-        if (r.tekst && world && world.addMessage) world.addMessage(r.tekst, 5);
-        // Aan: the existing way into the waiting room (requestOpenSamen in samenpanel.js), which
-        // uses lobbyui.js to host or join. pausemenu.js hands that in, so no cycle.
-        if (r.openSamen && opts.openSamen) opts.openSamen();
-        root.dataset.klaar = ''; teken();
-        // The panel is redrawn, so a keyboard user would lose the switch; put the focus back.
-        const nieuw = root.querySelector && root.querySelector('[data-meedoen]');
-        if (nieuw && typeof nieuw.focus === 'function') nieuw.focus();
       }
     });
     root.addEventListener('click', (e) => {

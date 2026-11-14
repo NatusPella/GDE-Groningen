@@ -189,8 +189,8 @@ await t('maybeOpenOnlineStart slaat de vraag over als de naam al geldig is', asy
 // --- 8. de schakelaar blijft dezelfde sleutel lezen ---------------------------
 await t('de schakelaar leest en schrijft dezelfde sleutel', async () => {
   naar(true);
-  assert.match(meedoenSchakelaarHtml(S.getSettings()), /data-meedoen checked/);
-  assert.match(meedoenSchakelaarHtml(S.getSettings()), new RegExp(SCHAKELAAR.label));
+  assert.doesNotMatch(meedoenSchakelaarHtml(), /data-meedoen|type="checkbox"/);
+  assert.match(meedoenSchakelaarHtml(), /altijd online/);
   const r = zetMeedoen(false);
   assert.equal(r.meedoen, false);
   assert.equal(S.getSettings().onlineMeedoen, false);
