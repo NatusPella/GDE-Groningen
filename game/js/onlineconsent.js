@@ -44,7 +44,8 @@ export const SCHAKELAAR = {
 // De enige uitkomst van de eerste-startkaart: een verplichte naam. Dezelfde filter als
 // het profielveld (lobby.js) en altijd onlineMeedoen = true; niets wordt bewaard bij een
 // fout, zodat een typefout nooit een halve keuze achterlaat.
-export function kiesNaam(naam, { zet = setSetting } = {}) {
+export function kiesNaam(naam, { zet = setSetting, consent = true } = {}) {
+  if (!consent) return { ok: false, error: 'Vink eerst de online-toestemming aan.' };
   const fout = onlineNaamFout(naam);
   if (fout) return { ok: false, error: fout };
   const r = profielNaam(naam);

@@ -58,8 +58,7 @@ export function mountOnlineStart(root, { naam = '', onKies = () => {} } = {}) {
     const v = veld();
     if (v && 'value' in v) getypt = v.value;
     const vink = root.querySelector ? root.querySelector('.os-consent-vink') : null;
-    if (vink && 'checked' in vink && !vink.checked) { fout = 'Vink eerst de online-toestemming aan.'; teken(); return { ok: false, error: fout }; }
-    const r = kiesNaam(getypt);
+    const r = kiesNaam(getypt, { consent: vink && 'checked' in vink ? !!vink.checked : true });
     if (!r.ok) { fout = r.error; teken(); return r; }
     root.innerHTML = '';
     onKies({ ...r, keuze: 'doorgaan' });
@@ -79,7 +78,7 @@ export function mountOnlineStart(root, { naam = '', onKies = () => {} } = {}) {
       return;
     }
     if (!e || e.key !== 'Tab' || !root.querySelectorAll) return;
-    const velden = [...root.querySelectorAll('.os-naam, [data-doorgaan]')];
+    const velden = [...root.querySelectorAll('.os-naam, .os-consent-vink, [data-doorgaan]')];
     if (!velden.length) return;
     const nu = velden.indexOf(e.target);
     const volgende = velden[(nu + (e.shiftKey ? -1 : 1) + velden.length) % velden.length];
