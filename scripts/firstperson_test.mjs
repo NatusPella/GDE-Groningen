@@ -107,7 +107,9 @@ ok(/\(fpBits & FP_VIEW\)/.test(scene) && /\(fpBits & FP_HIDE\)/.test(scene) && /
 ok(/if \(firstPersonView\) playerMesh\.visible = false/.test(scene), 'scene3d.js verbergt het eigen figuur in eerste persoon');
 ok(/'3d:players'/.test(scene) && !/function updateFirstPerson/.test(scene), 'geen tweede updatepad: de camera blijft in update3D');
 const sceneRegels = scene.split(/\r?\n/).length - (scene.endsWith('\n') ? 1 : 0);
-ok(sceneRegels < 4360, 'scene3d.js blijft onder de omvangsgrens van #497 (4360 regels)', sceneRegels);
+// Dezelfde grens als de andere #497-bewakers (cammath/blobschaduw/raychunks): die is na de
+// latere scene3d-uitbreidingen op main op 4500 gezet.
+ok(sceneRegels < 4500, 'scene3d.js blijft onder de omvangsgrens van #497 (4500 regels)', sceneRegels);
 // De module doet het echte werk: hoofdbot als oog, terugval, muisLOOK, kijkvector, interieur.
 ok(/playerMesh\.userData\.head/.test(fpc) && /head\.matrixWorld\.elements/.test(fpc), 'firstpersoncam.js zet de camera op de hoofdbot van het eigen figuur');
 ok(/firstPersonEye\(player, _altEye\)/.test(fpc), 'firstpersoncam.js heeft de terugval op de spelerstand, zonder allocatie per frame');
