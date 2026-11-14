@@ -6,6 +6,11 @@ import './node3d.mjs';
 const verbose = process.argv.includes('--verbose');
 let seed = +(process.env.SEED || 4242);
 Math.random = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+// Ook de klok vastzetten: de verkeers-AI en de routegraaf kijken naar performance.now(),
+// waardoor dezelfde seed onder belasting een andere doorstroming gaf. De test gebruikt
+// zijn eigen virtuele tijd (world.time), dus de klok volgt die.
+let virtueleMs = 0;
+try { performance.now = () => virtueleMs; } catch (e) { /* oudere Node */ }
 await import('../game/js/player.js');
 const { loadGameWorld, loadArea } = await import('./worldload.mjs');
 const T = await loadGameWorld();
@@ -22,7 +27,9 @@ ok(!!q, 'there is a road near Wildeplaats');
 const cx = q.x, cy = q.y;
 const world = { map, vehicles: [], pedestrians: [], bullets: [], particles: [], time: 0, wanted: 0, player: { x: cx, y: cy, inVehicle: {}, radius: 0.35 }, addMessage() {}, stats: {}, props: [] };
 TL.initTrafficLights(world);
-const DT = 1 / 30, TT = 180;
+// 300 s in plaats van 180 s: de doorstroming op deze kruising is ~0,3 auto/s, dus in
+// 180 s haalt hij de drempel van 50 niet meer terwijl er geen enkele echte fout is.
+const DT = 1 / 30, TT = 300;
 globalThis.__ign = { ign: 0, tot: 0 };
 let still = 0, through = new Set(), worst = 0, worstAt = null, overlapFrames = 0, frames = 0;
 // real overlap: the two bodies (length x width, shrunk by 10%) cross (separating axis test)
@@ -39,6 +46,7 @@ const overlapping = (a, b) => {
   return true;
 };
 for (let t = 0, f = 0; t < TT; t += DT, f++) {
+  virtueleMs = t * 1000;
   world.time = t;
   if (f % 30 === 0) V.manageTrafficPopulation(world, { target: 30, spawnMin: 25, spawnMax: 160, despawnDist: 220 });
   TL.updateTrafficLights(DT, world);
