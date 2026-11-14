@@ -133,12 +133,14 @@ export default {
 
   // Alleen zolang de speler zelf nog geen akker heeft: daarna hoort de bietenoogst bij de eigen boerderij (#437).
   anchor(map) {
-    if (heeftEigenAkker()) return null;
+    // De verhaalstap A1 vraagt juist om deze loonoogst; ook met een eigen akker blijft hij
+    // tot die stap klaar is bereikbaar.
+    if (heeftEigenAkker() && currentStep()?.id !== 'A1') return null;
     return ankerMetWeg(map, fabriek(), true, [250, 400]);
   },
 
   start(c) {
-    if (heeftEigenAkker()) return 'Je eigen akker ligt vast: oogst je bieten daar (Eigen boerderij).';
+    if (heeftEigenAkker() && currentStep()?.id !== 'A1') return 'Je eigen akker ligt vast: oogst je bieten daar (Eigen boerderij).';
     const v = spawnJobVehicle(c.world, c.spot.x, c.spot.y, { kind: 'car', model: { ...TRACTOR_MODEL, color: '#3f7d3a' } });
     if (!v) return 'Geen trekker beschikbaar';
     c.vehicle = v;
