@@ -7,6 +7,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 versies staan op datum op volgorde. Er zijn geen aparte kopstijlen per sectie:
 elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
+## [Unreleased]
+
 ## [0.62.0] - 2026-11-15
 
 - **De taxi-rit is weer een echte rit (#882):** je ziet de taxi met dakbord, wielen en een weg meerijden met de voortgang, in plaats van alleen een balk en een skip-knop.
