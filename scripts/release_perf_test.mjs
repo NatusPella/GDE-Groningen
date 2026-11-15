@@ -52,11 +52,11 @@ ok(regressionViolations({ p95: null, avg: 16, max: 33 }, { p95: 20, avg: 16, max
 
 // --- per route vergelijken -------------------------------------------------
 ok(rt(schoon, schoon).status === STATUS.OK && rt(schoon, schoon).bevindingen.length === 0, 'schone route is ok');
-const normFout = rt({ ...schoon, p95: 34, max: 60 }, schoon);
+const normFout = rt({ ...schoon, p95: 36, max: 60 }, schoon);
 ok(normFout.status === STATUS.ROOD && normFout.bevindingen.some((b) => b.ernst === 'blokkerend' && /norm/i.test(b.titel)), 'normovertreding is blokkerend rood');
 const regressie = rt({ ...schoon, p95: 24 }, { ...schoon, p95: 20 });
 ok(regressie.status === STATUS.ROOD && regressie.bevindingen.some((b) => b.ernst === 'blokkerend' && /trager/.test(b.titel)), 'relatieve regressie is blokkerend rood');
-ok(rt({ ...schoon, p95: 34, max: 60 }, schoon, { machine: andereMachine }).status === STATUS.ROOD, 'op een andere machine blijft de absolute norm hard');
+ok(rt({ ...schoon, p95: 36, max: 60 }, schoon, { machine: andereMachine }).status === STATUS.ROOD, 'op een andere machine blijft de absolute norm hard');
 const anderTraag = rt({ ...schoon, p95: 24 }, { ...schoon, p95: 20 }, { machine: andereMachine });
 ok(anderTraag.status === STATUS.ONBESLIST && anderTraag.bevindingen.length === 0, 'op een andere machine geen valse regressie');
 const nieuw = rt(schoon, undefined);
@@ -67,8 +67,8 @@ ok(rt({ kind: 'latency', n: 20, msP50: 40, msP95: 60 }).status === STATUS.OVERGE
 ok(rt({ frames: 900, avg: 16 }).status === STATUS.ONBESLIST, 'onvolledige meting is onbeslist');
 
 // --- alle routes, statistiek en schema van de bevindingen ------------------
-const basisRoutes = { foot: schoon, ring: { ...schoon, p95: 34, max: 60 }, verdwenen: schoon };
-const vergelijking = compareRoutes({ foot: schoon, ring: { ...schoon, p95: 34, max: 60 }, census: { kind: 'census', n: 5 } }, basisRoutes, { machine: zelfdeMachine, baselinePad: 'scripts/release/baselines/perf-baseline.json' });
+const basisRoutes = { foot: schoon, ring: { ...schoon, p95: 36, max: 60 }, verdwenen: schoon };
+const vergelijking = compareRoutes({ foot: schoon, ring: { ...schoon, p95: 36, max: 60 }, census: { kind: 'census', n: 5 } }, basisRoutes, { machine: zelfdeMachine, baselinePad: 'scripts/release/baselines/perf-baseline.json' });
 ok(vergelijking.routes.foot.status === STATUS.OK && vergelijking.routes.ring.status === STATUS.ROOD, 'per route ok en rood');
 ok(vergelijking.routes.census.status === STATUS.OVERGESLAGEN && vergelijking.routes.verdwenen.status === STATUS.ONTBREEKT, 'census telt niet mee, ontbrekende route wordt gemeld');
 ok(vergelijking.bevindingen.filter((b) => b.ernst === 'blokkerend').length === 1, 'alleen de normfout is blokkerend');
@@ -106,7 +106,7 @@ ok(measuredRoutes({ foot: schoon, census: { kind: 'census' } }).length === 1, 'm
 ok(updateBlokkades({ foot: schoon }, { reden: 'na ronde 12' }).ok, 'update mag met een schone route en een reden');
 ok(!updateBlokkades({ foot: schoon }, {}).ok, 'update zonder reden mag niet');
 ok(!updateBlokkades({}, { reden: 'leeg' }).ok, 'update zonder frameroute mag niet');
-const blok = updateBlokkades({ foot: { ...schoon, p95: 34, max: 60 } }, { reden: 'x' });
+const blok = updateBlokkades({ foot: { ...schoon, p95: 36, max: 60 } }, { reden: 'x' });
 ok(!blok.ok && blok.overtredingen.length === 1, 'update met normovertreding mag niet');
 const opgebouwd = buildBaseline(
   { foot: schoon, census: { kind: 'census' }, hitch: { frames: 0, hitch: { over50: 0, over100: 0 } } },
@@ -146,7 +146,7 @@ try {
   ok(/foot: ok/.test(groen.stdout), 'CLI print de Nederlandse samenvatting');
 
   const runRood = path.join(tmp, 'run-rood.json');
-  fs.writeFileSync(runRood, JSON.stringify({ routes: { foot: { ...schoon, p95: 34, max: 60 }, ring: { ...schoon, p95: 21, avg: 17 } } }));
+  fs.writeFileSync(runRood, JSON.stringify({ routes: { foot: { ...schoon, p95: 36, max: 60 }, ring: { ...schoon, p95: 21, avg: 17 } } }));
   const outRood = path.join(tmp, 'out-rood');
   const rood = runGate([`--json=${runRood}`, `--baseline=${basisSchoon}`, `--out=${outRood}`, '--machine=test-machine']);
   ok(rood.code === EXIT.ROOD, 'CLI rood geeft exit 1', rood);
