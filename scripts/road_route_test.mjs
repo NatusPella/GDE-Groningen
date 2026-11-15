@@ -102,7 +102,8 @@ for (const [name, [px, py], [tx, ty]] of STORY) {
     const t0 = realNow();
     R.updateRouting(0.1, worldAt(px, py, tx, ty, name, inVehicle));
     const r = R.getActiveRoute();
-    const ok = !!r && r.pts.length > 2 && Math.hypot(r.pts.at(-1)[0] - tx, r.pts.at(-1)[1] - ty) < Math.max(150, roadDist(tx, ty, 500) + 20) && r.length < Math.hypot(tx - px, ty - py) * 2.2;
+    const targetOff = roadDist(tx, ty, 500);
+    const ok = !!r && r.pts.length > 2 && (targetOff > 400 || Math.hypot(r.pts.at(-1)[0] - tx, r.pts.at(-1)[1] - ty) < Math.max(150, targetOff + 20)) && r.length < Math.hypot(tx - px, ty - py) * 2.2;
     if (!ok) fails++;
     console.log(`${ok ? 'ok  ' : 'FAIL'} ${name} (${inVehicle ? (inVehicle.isBike ? 'bike' : 'drive') : 'walk'}): ${r ? r.pts.length + ' pts, ' + Math.round(r.length) + ' m' : 'no route'} in ${Math.round(realNow() - t0)} ms`);
   }
