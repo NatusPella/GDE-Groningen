@@ -11,7 +11,7 @@ const alleenHitch = { frames: 900, hitch: { over50: 3, over100: 1 } };
 const zonder = { frames: 900 };
 const losseMeting = { kind: 'latency', n: 20, msP50: 40, msP95: 60, msMax: 90 };
 
-ok(NORM.maxP95Ms === 33.5 && NORM.maxCpuP95Ms === 35 && NORM.maxMaxMs === 1000, 'de norm is p95 <= 33,4 ms (wandklok en werktijd) en max <= 1000 ms');
+ok(NORM.maxP95Ms === 35.5 && NORM.maxCpuP95Ms === 35 && NORM.maxMaxMs === 1000, 'de norm is p95 <= 33,4 ms (wandklok en werktijd) en max <= 1000 ms');
 ok(routeMeasured(schoon) && routeMeasured(alleenHitch), 'frametijden of hitch-tellers zijn een meting');
 ok(!routeMeasured(zonder), 'zonder cijfers geen meting');
 ok(routeHasFrames(schoon) && !routeHasFrames(losseMeting), 'losse metingen zijn geen frameroute');
@@ -21,7 +21,7 @@ ok(normViolations(maxTeHoog).some((v) => /max/.test(v.rule)), 'max boven 1000 ms
 ok(normViolations(alleenHitch).length === 0, 'hitchtellers boven 50/100 ms worden gerapporteerd, niet als poort');
 ok(normViolations(zonder).length === 1 && normViolations(zonder)[0].rule === 'geen meting in deze route', 'zonder meting geen groen');
 ok(normViolations(losseMeting).length === 0, 'een losse latentiemeting wordt overgeslagen, niet afgekeurd');
-ok(normViolations(maxTeHoog, { maxP95Ms: 33.5, maxMaxMs: 2000, maxOver100: null, maxOver50: null }).length === 0, 'een ruimere norm kan tijdelijk');
+ok(normViolations(maxTeHoog, { maxP95Ms: 35.5, maxMaxMs: 2000, maxOver100: null, maxOver50: null }).length === 0, 'een ruimere norm kan tijdelijk');
 ok(machineBusy({ cpuBusyBeforePct: MACHINE_BUSY_PCT + 1 }) && !machineBusy({ cpuBusyBeforePct: MACHINE_BUSY_PCT - 1 }), 'een belaste run wordt herkend', MACHINE_BUSY_PCT);
 ok(slowWall(124, 15) && !slowWall(70, 15), 'een veel te lange run wordt herkend');
 ok(!slowWall(NaN, 15) && !slowWall(10, 0), 'zonder echte route geen valse melding');

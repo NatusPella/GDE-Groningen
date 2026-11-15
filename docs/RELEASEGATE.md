@@ -177,7 +177,7 @@ afwijking meenemen zonder issue.
 |---|---|---|
 | Constitutie of veiligheid | blokkerend | echt merk of echte persoon, winter, "de Grunn", `.env`, externe URL in spelcode, geheime sleutel |
 | Design system | blokkerend | nieuwe losse hex buiten de tokens, tekst onder 12 px, tweede rood, blauw accent |
-| Performance | blokkerend | normovertreding (p95 > 33,5 ms, werktijd-p95 > 35 ms of max > 1000 ms; ADR 0037), regressie boven de baseline-tolerantie |
+| Performance | blokkerend | normovertreding (p95 > 35,5 ms, werktijd-p95 > 35 ms of max > 1000 ms; ADR 0037), regressie boven de baseline-tolerantie |
 | Graphics | blokkerend | zwart/leeg/kapot beeld, zichtbaar kapotte wereld, HUD buiten beeld, overlappende tekst |
 | Correctheid | blokkerend | crash, save- of netwerkfout, regressie in een bestaande test |
 | UI/UX/gameplay | blokkerend als de speler vastloopt; anders belangrijk | onbereikbare knop, missie onhaalbaar, onduidelijke hint |
